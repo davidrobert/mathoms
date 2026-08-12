@@ -25,6 +25,9 @@ class InstitutionEntry:
     code: str
     name: str
     category: str = "bank"
+    # ADR-384 — raiz de 8 dígitos do CNPJ da entidade BR emissora; None para
+    # instituição sem entidade BR relevante (conta exterior).
+    cnpj_raiz: Optional[str] = None
 
 
 class InstitutionCatalogProvider(Protocol):
@@ -64,6 +67,32 @@ def render_institution_catalog(
     if not entries:
         return CATALOG_UNAVAILABLE_BLOCK
     return "\n".join(f"- {e.code} ({e.name})" for e in sorted(entries, key=lambda e: e.code))
+
+
+# ADR-384 §2 — raiz NÃO é única por design: holding × banco da mesma raiz
+# coexistem, e marcas distintas emitem no mesmo CNPJ (informe da Rico sai no
+# CNPJ da XP CCTVM). O mapa devolve o CONJUNTO de codes; a entidade
+# operacional vem antes da holding na tupla.
+_CNPJ_COLLISION_LOSERS = ("holding",)
+
+
+def cnpj_raiz_to_code(
+    provider: Optional[InstitutionCatalogProvider] = None,
+) -> dict[str, tuple[str, ...]]:
+    """Mapping ``cnpj_raiz → codes`` do catálogo (resolvedor ADR-384); ``{}`` sem provider."""
+    if provider is None:
+        return {}
+    operacionais: dict[str, list[str]] = {}
+    holdings: dict[str, list[str]] = {}
+    for e in provider.list_institutions():
+        if not e.cnpj_raiz:
+            continue
+        alvo = holdings if e.category in _CNPJ_COLLISION_LOSERS else operacionais
+        alvo.setdefault(e.cnpj_raiz, []).append(e.code)
+    return {
+        raiz: tuple(operacionais.get(raiz, []) + holdings.get(raiz, []))
+        for raiz in {*operacionais, *holdings}
+    }
 
 
 def institution_code_map(

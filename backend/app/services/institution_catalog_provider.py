@@ -28,6 +28,7 @@ class DBInstitutionCatalogProvider:
                 code=inst.code,
                 name=inst.name,
                 category=str(inst.metadata.get("category") or "bank"),
+                cnpj_raiz=inst.metadata.get("cnpj_raiz") or None,
             )
             for inst in catalog.institutions.values()
         ]

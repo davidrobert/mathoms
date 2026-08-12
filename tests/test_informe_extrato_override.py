@@ -146,3 +146,61 @@ def test_sem_informes_passthrough():
     assert result.detalhes[0].fonte == "extrato"
     assert result.ajuste_total_brl == Decimal("0")
     assert result.divergencias == []
+
+
+# =============================================================================
+# ADR-384 (A40.l40) — cascata de identidade: CNPJ-raiz → token de nome
+# =============================================================================
+
+
+def test_cnpj_raiz_casa_descricao_sem_nome_do_banco():
+    """A representação que quebra hoje: 'Conta Corrente - Ag 9652...' não
+    contém 'itau', mas o cnpj_emissor resolve para o code do catálogo."""
+    entry = _entry(
+        tipo="conta_corrente",
+        moeda="BRL",
+        descricao="Conta Corrente - Ag 9652 Conta 0004397-8",
+        cnpj_emissor="60701190000104",
+        saldo_brl="0.00",
+        saldo_original="0.00",
+    )
+    pos = _posicao(banco="itau", moeda="BRL", valor_brl=5156.06, saldo_original=5156.06)
+    result = apply_informe_override([pos], [entry], cnpj_raiz_to_code={"60701190": ("itau",)})
+    assert result.detalhes[0].fonte == "informe_31_12"
+    assert entry["informe_venceu_extrato"] is True
+
+
+def test_cnpj_raiz_de_outro_banco_veta_match_mesmo_com_token_na_descricao():
+    """CNPJ conhecido tem precedência TOTAL: se aponta para outra instituição,
+    o token de nome não ressuscita o match (cascata, não união)."""
+    entry = _entry(
+        tipo="conta_corrente",
+        moeda="BRL",
+        descricao="Conta wise de terceiros",
+        cnpj_emissor="60701190000104",
+        saldo_brl="10.00",
+    )
+    pos = _posicao(banco="wise", moeda="BRL", valor_brl=10.0)
+    result = apply_informe_override([pos], [entry], cnpj_raiz_to_code={"60701190": ("itau",)})
+    assert result.detalhes[0].fonte == "extrato"
+
+
+def test_sem_cnpj_no_entry_cai_no_token_de_nome():
+    entry = _entry(descricao="Wise Multi-Currency Account — USD")
+    pos = _posicao(banco="wise")
+    result = apply_informe_override([pos], [entry], cnpj_raiz_to_code={"60701190": ("itau",)})
+    assert result.detalhes[0].fonte == "informe_31_12"
+
+
+def test_slug_do_code_normaliza_espaco_e_acento():
+    """'btg pactual' (com espaço) e 'Itaú' (acento) resolvem para o code ASCII."""
+    entry = _entry(
+        tipo="conta_corrente",
+        moeda="BRL",
+        descricao="Aplicação automática",
+        cnpj_emissor="30306294000145",
+        saldo_brl="1.00",
+    )
+    pos = _posicao(banco="btg pactual", moeda="BRL", valor_brl=1.0)
+    result = apply_informe_override([pos], [entry], cnpj_raiz_to_code={"30306294": ("btgpactual",)})
+    assert result.detalhes[0].fonte == "informe_31_12"

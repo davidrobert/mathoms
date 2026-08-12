@@ -607,12 +607,14 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `default_parser` | `VARCHAR(80)` | yes | — | — |
 | `category` | `VARCHAR(20)` | no | `'bank'` | — |
 | `tax_regime` | `VARCHAR(8)` | no | server: `both` | — |
+| `cnpj_raiz` | `VARCHAR(8)` | yes | — | INDEX |
 | `metadata_json` | `JSON` | no | callable: `dict` | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Indexes:**
 
+- `ix_institution_catalog_cnpj_raiz` (cnpj_raiz)
 - UNIQUE `ix_institution_catalog_code` (code)
 
 ### `institution_configs`
@@ -2230,6 +2232,7 @@ type InstitutionCatalog struct {
 	DefaultParser *string `db:"default_parser" json:"default_parser"`
 	Category string `db:"category" json:"category"`
 	TaxRegime string `db:"tax_regime" json:"tax_regime"`
+	CnpjRaiz *string `db:"cnpj_raiz" json:"cnpj_raiz"`
 	MetadataJson json.RawMessage `db:"metadata_json" json:"metadata_json"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`

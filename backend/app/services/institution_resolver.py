@@ -19,7 +19,10 @@ from pipeline.domain.types.config import InstitutionDef, InstitutionsCatalog
 
 logger = logging.getLogger(__name__)
 
-_CATALOG_CACHE_KEY = "institution_catalog:global"
+# v2 (ADR-384): payload ganhou cnpj_raiz — payload antigo cacheado sob a chave
+# v1 não conhece o campo e deixaria o matcher CNPJ inerte por até 30d (TTL).
+# Versionar a chave torna o payload velho inalcançável em vez de confiar em DEL.
+_CATALOG_CACHE_KEY = "institution_catalog:global:v2"
 _CATALOG_TTL_SECONDS = 86400 * 30
 
 
@@ -45,7 +48,11 @@ def _rows_to_catalog(rows: list[InstitutionCatalog]) -> InstitutionsCatalog:
             code=row.code,
             name=row.name,
             parser=row.default_parser,
-            metadata={"category": row.category, **(row.metadata_json or {})},
+            metadata={
+                "category": row.category,
+                "cnpj_raiz": row.cnpj_raiz,
+                **(row.metadata_json or {}),
+            },
         )
         for row in rows
     }

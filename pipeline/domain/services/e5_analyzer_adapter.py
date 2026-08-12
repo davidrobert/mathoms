@@ -316,6 +316,7 @@ class E5AnalyzerAdapter:
         reference_date: date | None = None,
         seguradoras_catalog: Mapping[str, str] | None = None,
         protection_bundle: ProtectionBundle | None = None,
+        cnpj_raiz_to_code: Mapping[str, tuple[str, ...]] | None = None,
     ) -> None:
         self._identity = member_identity or MemberIdentity(
             titular_key="david",
@@ -333,6 +334,9 @@ class E5AnalyzerAdapter:
         self._taxas = taxas or {}
         self._cambio_usd_brl = float(cambio_usd_brl) if cambio_usd_brl is not None else None
         self._cambio_eur_brl = float(cambio_eur_brl) if cambio_eur_brl is not None else None
+        # ADR-384 — resolvedor de identidade institucional (raiz de 8 dígitos →
+        # code do catálogo); vazio degrada para o token de nome no matcher.
+        self._cnpj_raiz_to_code = dict(cnpj_raiz_to_code or {})
         self._member_resolver = member_resolver or E5MemberResolver()
         self._fluxo_enricher = fluxo_enricher or FluxoCaixaEnricher()
         self._if_projector = if_projector
@@ -383,6 +387,7 @@ class E5AnalyzerAdapter:
         imoveis_no_if: bool = True,
         seguradoras_catalog: Mapping[str, str] | None = None,
         protection_bundle: ProtectionBundle | None = None,
+        cnpj_raiz_to_code: Mapping[str, tuple[str, ...]] | None = None,
     ) -> "E5AnalyzerAdapter":
         """Constrói o adapter com todas as configs + services instanciados.
 
@@ -509,6 +514,7 @@ class E5AnalyzerAdapter:
             reference_date=reference_date,
             seguradoras_catalog=seguradoras_catalog,
             protection_bundle=protection_bundle,
+            cnpj_raiz_to_code=cnpj_raiz_to_code,
         )
 
     # -- API --
@@ -950,7 +956,9 @@ class E5AnalyzerAdapter:
         # saldo do extrato da virada de ano pelo do informe (fonte fiscal
         # certificada) e anota divergência relevante nos entries do baseline.
         override = apply_informe_override(
-            posicoes, (baseline or {}).get("informe_pf_saldos_31_12") or []
+            posicoes,
+            (baseline or {}).get("informe_pf_saldos_31_12") or [],
+            cnpj_raiz_to_code=self._cnpj_raiz_to_code,
         )
         detalhes = override.detalhes
         total_brl += float(override.ajuste_total_brl)

@@ -12,6 +12,7 @@ diff com valores NÃO é persistido; payload carrega apenas booleans, padrão
 from __future__ import annotations
 
 import unicodedata
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from dataclasses import field as dataclass_field
 from decimal import Decimal
@@ -61,13 +62,21 @@ class OverrideResult:
     divergencias: list[InformeExtratoDivergencia]
 
 
+# ``cnpj_raiz_to_code`` (ADR-384): mapa ``raiz de 8 dígitos → codes`` do
+# catálogo — resolvedor de identidade de maior precedência; token de nome
+# na descrição vira fallback (cascata cnpj → token → sem match).
 def apply_informe_override(
-    posicoes: list[ExtratoPosicao], informe_entries: list[dict]
+    posicoes: list[ExtratoPosicao],
+    informe_entries: list[dict],
+    *,
+    cnpj_raiz_to_code: Mapping[str, tuple[str, ...]] | None = None,
 ) -> OverrideResult:
     """Aplica "informe vence extrato D+1"; muta entries in-place com marcas booleans (LGPD)."""
     acc = _OverrideAccumulator()
     for pos in posicoes:
-        entry = _find_matching_informe(pos, informe_entries, acc.matched_ids)
+        entry = _find_matching_informe(
+            pos, informe_entries, acc.matched_ids, cnpj_raiz_to_code or {}
+        )
         acc.consume(pos, entry)
     return OverrideResult(
         detalhes=acc.detalhes,
@@ -98,15 +107,18 @@ class _OverrideAccumulator:
 
 
 def _find_matching_informe(
-    pos: ExtratoPosicao, informe_entries: list[dict], matched_ids: set[int]
+    pos: ExtratoPosicao,
+    informe_entries: list[dict],
+    matched_ids: set[int],
+    cnpj_raiz_to_code: Mapping[str, tuple[str, ...]],
 ) -> dict | None:
-    """1º informe elegível (tipo caixa, saldo_brl presente, moeda + banco + janela D+1)."""
+    """1º informe elegível (tipo caixa, saldo_brl presente, moeda + instituição + janela D+1)."""
     for entry in informe_entries:
         if id(entry) in matched_ids or not _is_elegivel(entry):
             continue
         if entry.get("moeda", "BRL") != pos.detalhe.moeda:
             continue
-        if not _banco_match(pos.banco, entry):
+        if not _instituicao_match(pos.banco, entry, cnpj_raiz_to_code):
             continue
         if not _period_in_janela_d1(pos.period_end, int(entry.get("ano_base", 0))):
             continue
@@ -116,6 +128,31 @@ def _find_matching_informe(
 
 def _is_elegivel(entry: dict) -> bool:
     return entry.get("tipo") in _TIPOS_CAIXA_INFORME and entry.get("saldo_brl") is not None
+
+
+def _instituicao_match(
+    banco: str, entry: dict, cnpj_raiz_to_code: Mapping[str, tuple[str, ...]]
+) -> bool:
+    """Cascata ADR-384: CNPJ-raiz do emissor → token de nome (fallback).
+
+    Raiz conhecida decide sozinha (match ou veto) — token não ressuscita um
+    CNPJ que aponta para outra instituição. Raiz mapeia para CONJUNTO de
+    codes: marcas distintas emitem no mesmo CNPJ (Rico → CNPJ da XP).
+    """
+    codes = cnpj_raiz_to_code.get(_cnpj_raiz(entry.get("cnpj_emissor")))
+    if codes:
+        return _slug_code(banco) in codes
+    return _banco_match(banco, entry)
+
+
+def _cnpj_raiz(cnpj: object) -> str:
+    digits = "".join(ch for ch in str(cnpj or "") if ch.isdigit())
+    return digits[:8] if len(digits) >= 8 else ""
+
+
+def _slug_code(banco: str) -> str:
+    """Código canônico do catálogo: lowercase ASCII sem espaço (ADR-384 §1)."""
+    return _norm_ascii(banco).replace(" ", "")
 
 
 def _banco_match(banco: str, entry: dict) -> bool:

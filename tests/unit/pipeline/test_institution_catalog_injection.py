@@ -18,6 +18,7 @@ from pipeline.llm.institution_catalog import (
     CATALOG_UNAVAILABLE_BLOCK,
     INSURANCE_CATEGORY,
     InstitutionEntry,
+    cnpj_raiz_to_code,
     render_institution_catalog,
 )
 
@@ -124,3 +125,36 @@ def test_prompts_sem_lista_hardcoded_de_instituicoes():
         assert (
             "catálogo" in content or "catalogo" in content
         ), f"{module}: placeholder de injection do catálogo ausente"
+
+
+class TestCnpjRaizToCode:
+    # ADR-384 §2 — colisão de raiz: a entidade operacional (bank) vence a
+    # holding; o mapa nunca aponta a raiz compartilhada para a holding.
+    def test_colisao_de_raiz_prefere_operacional_a_holding(self):
+        provider = FakeCatalogProvider(
+            [
+                InstitutionEntry(
+                    code="itausa", name="Itaúsa", category="holding", cnpj_raiz="61532644"
+                ),
+                InstitutionEntry(
+                    code="bancox", name="Banco X", category="bank", cnpj_raiz="61532644"
+                ),
+                InstitutionEntry(code="itau", name="Itaú", category="bank", cnpj_raiz="60701190"),
+                InstitutionEntry(code="wise", name="Wise", category="fintech"),
+            ]
+        )
+        mapa = cnpj_raiz_to_code(provider)
+        assert mapa == {"61532644": ("bancox", "itausa"), "60701190": ("itau",)}
+
+    def test_holding_entra_quando_nao_ha_concorrente(self):
+        provider = FakeCatalogProvider(
+            [
+                InstitutionEntry(
+                    code="itausa", name="Itaúsa", category="holding", cnpj_raiz="61532644"
+                ),
+            ]
+        )
+        assert cnpj_raiz_to_code(provider) == {"61532644": ("itausa",)}
+
+    def test_sem_provider_degrada_para_vazio(self):
+        assert cnpj_raiz_to_code(None) == {}
