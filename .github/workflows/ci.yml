@@ -550,7 +550,9 @@ jobs:
 
       - name: Restore venv cache
         # Key no hash do requirements.lock (pinado + hashes, ADR-254) — paridade
-        # com o Dockerfile (`pip install --require-hashes`). SEM restore-keys: o
+        # de VERSÕES DE PACOTE com o Dockerfile (interpretador diverge: prod 3.12,
+        # aqui 3.13 — ADR-254 §Emenda 2026-08-12; e os test-deps inline rebaixam
+        # starlette/pytest até existir requirements-test.lock). SEM restore-keys: o
         # fallback de prefixo restaurava venv de lock divergente e mascarava drift
         # de transitiva (incidente 2026-06-18: install do .in loose pegou release
         # nova que quebrou registro de routers). Miss → rebuild do lock ~10-15s (uv).

@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-16 open · 8 in_progress.
+17 open · 8 in_progress.
 
-## Open (16)
+## Open (17)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · branch `a40-l29-editorial-do-ano-de-if`
@@ -25,6 +25,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l56]] — A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa · priority P1 · branch `a40-l56-tabela-fiscal-de-producao`
 - [[A40.l57]] — O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null · priority P2 · branch `a40-l57-parecer-le-contrato-antigo-do-pgbl`
 - [[A40.l59]] — A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README · priority P2 · branch `a40-l59-gate-na-transicao-shipped`
+- [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
 
 ## In progress (8)
 
