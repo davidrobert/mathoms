@@ -10,6 +10,7 @@ branch_slug: a40-l40-identidade-institucional-cnpj-raiz
 adrs:
   - "[[ADR-137]]"
   - "[[ADR-238]]"
+  - "[[ADR-384]]"
 depends_on: []
 tags:
   - type/lane

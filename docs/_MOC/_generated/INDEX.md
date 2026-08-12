@@ -376,6 +376,9 @@
 | ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
 | ADR-379 | adr | Proposto |  | Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório | `adr/379-posicoes-do-card-exposicao-cambial-vem-do-e4-pinado-ao-run.md` |
 | ADR-380 | adr | Decidido |  | Nenhum card afirma ausência a partir de falha de carregamento | `adr/380-card-nao-afirma-ausencia-a-partir-de-falha-de-carregamento.md` |
+| ADR-382 | adr | Proposto |  | Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 | `adr/382-visoes-corrente-e-fiscal-da-posicao-por-instituicao.md` |
+| ADR-383 | adr | Proposto |  | Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras | `adr/383-precedencia-temporal-de-fontes-patrimoniais.md` |
+| ADR-384 | adr | Proposto |  | Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback | `adr/384-identidade-institucional-por-cnpj-raiz.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
