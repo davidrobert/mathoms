@@ -13,6 +13,10 @@ from backend.app.services.security.crypto import read_artifact_content
 logger = logging.getLogger("mathoms.informes.query")
 
 # Repo é alias-aware (stage_aliases, ADR-093): uma forma cobre legacy + descritivo.
+# Contrato de leitura (gate: dev/check_artifact_read_keys.py) — as chaves lidas do
+# payload precisam existir no schema do stage. Declarado, nunca inferido da query.
+ARTIFACT_CONTRACT = ("extract_informes_anuais",)
+
 _STAGE_DESCRIPTIVE = "extract_informes_anuais"
 
 

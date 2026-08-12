@@ -29,6 +29,10 @@ from backend.app.services.security.crypto import read_artifact_content
 from pipeline.artifact_store import stage_aliases
 from pipeline.domain.services.asset_classifier import classify_asset
 
+# Contrato de leitura (gate: dev/check_artifact_read_keys.py) — as chaves lidas do
+# payload precisam existir no schema do stage. Declarado, nunca inferido da query.
+ARTIFACT_CONTRACT = ("analyze_finances",)
+
 THRESHOLD_VERDE_PCT = 10.0
 THRESHOLD_AMARELO_PCT = 5.0
 
