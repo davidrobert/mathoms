@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { Alert } from "../ui/Alert";
 import { LastroDeclareDropdown } from "./LastroDeclareDropdown";
 import { useExposicaoCambialV2 } from "@/hooks/useExposicaoCambialV2";
 import type {
@@ -59,35 +60,95 @@ const LASTRO_SOURCE_CLASS: Record<LastroSource, string> = {
 export function ExposicaoCambialCard({ data, workspaceId }: ExposicaoCambialCardProps) {
   const v2 = useExposicaoCambialV2(workspaceId ?? null);
 
-  // V2 carregou → usa V2; ainda carregando ou sem workspaceId → fallback V1 (instant render).
-  if (workspaceId && v2.data) {
+  // Autoridade do V2 vem de ter BASE, não de ter respondido. Enquanto o critério foi
+  // "respondeu", uma resposta vazia apagou a exposição real e o card afirmou
+  // "100% denominado em real" sobre caixa em USD e EUR.
+  if (workspaceId && v2.data?.base_disponivel) {
     return <ExposicaoCambialCardV2 v2={v2} />;
   }
-  if (!data) return null;
-  return <ExposicaoCambialCardV1 data={data} />;
+  if (data) {
+    return (
+      <ExposicaoCambialCardV1
+        data={data}
+        controlesIndisponiveis={Boolean(v2.data && !v2.data.base_disponivel)}
+        onRetry={v2.reload}
+      />
+    );
+  }
+  return <SemBaseCard />;
 }
 
-function ExposicaoCambialCardV1({ data }: { data: ExposicaoCambialData }) {
+/** Percentual em pt-BR: vírgula decimal (COPY §4). */
+function fmtPct(pct: number): string {
+  return pct.toFixed(1).replace(".", ",");
+}
+
+function ExposicaoCambialCardV1({
+  data,
+  controlesIndisponiveis,
+  onRetry,
+}: {
+  data: ExposicaoCambialData;
+  controlesIndisponiveis: boolean;
+  onRetry: () => Promise<void>;
+}) {
   const tier = data.tier;
-  const badgeText =
-    tier === "empty"
-      ? "0% sem exposição"
-      : `${data.pct_investivel_financeiro.toFixed(1)}% · ${TIER_LABEL[tier] ?? tier}`;
+  const semExposicao = tier === "empty";
   return (
     <ReportCard variant="feature" title="Exposição Cambial">
       <div className="space-y-4">
-        <CardHeader badgeText={badgeText} tier={tier} />
-        {tier === "empty" ? (
-          <EmptyExposicaoMessage />
+        <CardHeader
+          badgeText={semExposicao ? null : `${fmtPct(data.pct_investivel_financeiro)}% · ${TIER_LABEL[tier] ?? tier}`}
+          tier={tier}
+        />
+        {semExposicao ? (
+          <SemExposicaoMessage />
         ) : (
           <>
             <TotalDisplay totalBrl={data.total_brl} />
             <PorMoedaTableV1 rows={data.por_moeda} />
           </>
         )}
+        {controlesIndisponiveis ? <ControlesIndisponiveisNote onRetry={onRetry} /> : null}
         <Footnote />
       </div>
     </ReportCard>
+  );
+}
+
+/** Sem base de cálculo — o card não afirma nada sobre a composição do patrimônio. */
+function SemBaseCard() {
+  return (
+    <ReportCard variant="feature" title="Exposição Cambial">
+      <div className="space-y-4">
+        <Alert severity="warning">
+          <strong>Exposição cambial indisponível neste relatório.</strong>
+          <br />
+          O cálculo precisa do patrimônio investível financeiro, que esta análise não
+          apurou. Atualize a análise para recalcular.
+        </Alert>
+        <Footnote />
+      </div>
+    </ReportCard>
+  );
+}
+
+/** O número do V1 está certo — quem sumiu foi a função. A nota vive onde o controle estaria. */
+function ControlesIndisponiveisNote({ onRetry }: { onRetry: () => Promise<void> }) {
+  return (
+    <div className="print:hidden text-xs text-[var(--surface-muted-foreground)]">
+      <p>
+        Não conseguimos carregar a lista de ativos nem a opção de declarar lastro. Os
+        valores acima vêm da análise deste relatório.
+      </p>
+      <button
+        type="button"
+        className="mt-1 text-[var(--brand-primary)] hover:underline"
+        onClick={() => void onRetry()}
+      >
+        Tentar de novo
+      </button>
+    </div>
   );
 }
 
@@ -96,16 +157,19 @@ function ExposicaoCambialCardV2({
 }: {
   v2: ReturnType<typeof useExposicaoCambialV2>;
 }) {
+  // Só entra aqui com base_disponivel — tier e pct são não-nulos por construção.
   const tier = v2.data?.tier ?? "empty";
   const pct = v2.data?.pct_investivel_financeiro ?? 0;
-  const badgeText =
-    tier === "empty" ? "0% sem exposição" : `${pct.toFixed(1)}% · ${TIER_LABEL[tier] ?? tier}`;
+  const semExposicao = tier === "empty";
   return (
     <ReportCard variant="feature" title="Exposição Cambial">
       <div className="space-y-4">
-        <CardHeader badgeText={badgeText} tier={tier} />
-        {tier === "empty" ? (
-          <EmptyExposicaoMessage />
+        <CardHeader
+          badgeText={semExposicao ? null : `${fmtPct(pct)}% · ${TIER_LABEL[tier] ?? tier}`}
+          tier={tier}
+        />
+        {semExposicao ? (
+          <SemExposicaoMessage alvoBrl={v2.data?.alvo_moeda_forte_brl ?? null} />
         ) : (
           <>
             <TotalDisplay totalBrl={parseFloat(v2.data?.total_brl ?? "0")} />
@@ -124,28 +188,43 @@ function ExposicaoCambialCardV2({
   );
 }
 
-function CardHeader({ badgeText, tier }: { badgeText: string; tier: string }) {
+function CardHeader({ badgeText, tier }: { badgeText: string | null; tier: string }) {
   return (
     <header className="flex items-start justify-between gap-4">
       <p className="text-sm text-[var(--surface-muted-foreground)]">
         Patrimônio protegido contra desvalorização do real.
       </p>
-      <span
-        className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          TIER_BADGE_CLASS[tier] ?? TIER_BADGE_CLASS.empty
-        }`}
-      >
-        {badgeText}
-      </span>
+      {badgeText === null ? null : (
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            TIER_BADGE_CLASS[tier] ?? TIER_BADGE_CLASS.empty
+          }`}
+        >
+          {badgeText}
+        </span>
+      )}
     </header>
   );
 }
 
-function EmptyExposicaoMessage() {
+/** Zero MEDIDO (base válida, nenhum ativo com lastro fora do real).
+ *
+ * Não diz "100% denominado em real": o universo é o investível financeiro, não o
+ * patrimônio, e o card mede lastro econômico, não moeda de denominação — um FII é
+ * denominado em real e não pertence a esta conta.
+ */
+function SemExposicaoMessage({ alvoBrl }: { alvoBrl?: string | null }) {
+  const alvo = alvoBrl ? parseFloat(alvoBrl) : null;
   return (
     <p className="text-sm text-[var(--surface-muted-foreground)]">
-      Seu patrimônio está 100% denominado em real. Diversificação cambial reduz risco de
-      perda de poder de compra em cenários de desvalorização do real.
+      Nenhum ativo com lastro fora do real no seu patrimônio investível financeiro.
+      {alvo !== null ? (
+        <>
+          {" "}
+          A referência de proteção é 10% — hoje, <MonetaryValue value={alvo} /> em moeda
+          forte.
+        </>
+      ) : null}
     </p>
   );
 }
@@ -189,7 +268,7 @@ function PorMoedaTableV1({
               <MonetaryValue value={row.valor_brl} />
             </td>
             <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-              {row.pct_total_cambial.toFixed(1)}%
+              {fmtPct(row.pct_total_cambial)}%
             </td>
           </tr>
         ))}
@@ -224,7 +303,7 @@ function PorMoedaTableV2({
               <MonetaryValue value={parseFloat(row.valor_brl)} />
             </td>
             <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-              {row.share_pct.toFixed(1)}%
+              {fmtPct(row.share_pct)}%
             </td>
           </tr>
         ))}
@@ -314,6 +393,7 @@ function AtivoRow({
         </div>
         <button
           type="button"
+          aria-label={`Declarar lastro de ${ativo.nome}`}
           className="text-xs text-[var(--brand-primary)] hover:underline"
           onClick={onStartEdit}
         >

@@ -35,22 +35,34 @@ const V1: ExposicaoCambialData = {
   pct_investivel_financeiro: 6.45,
   tier: "amarelo",
   por_moeda: [
-    { moeda: "USD", valor_brl: 900, share_pct: 90, pct_total_cambial: 90 },
-    { moeda: "EUR", valor_brl: 100, share_pct: 10, pct_total_cambial: 10 },
+    { moeda: "USD", valor_brl: 900, pct_total_cambial: 90 },
+    { moeda: "EUR", valor_brl: 100, pct_total_cambial: 10 },
   ],
   detalhes: [],
-} as ExposicaoCambialData;
+};
 
-/** Resposta que o endpoint V2 devolve hoje para esse workspace. */
-const V2_VAZIO = {
+/** V2 sem base de cálculo: valores `null`, nunca zero. */
+const V2_SEM_BASE = {
   workspace_id: "ws-1",
-  total_brl: "0.00",
-  pct_investivel_financeiro: 0,
+  base_disponivel: false,
+  total_brl: null,
+  pct_investivel_financeiro: null,
   por_moeda: [],
-  tier: "empty",
+  tier: null,
+  alvo_moeda_forte_brl: null,
   ativos_contribuintes: [],
   source_run_id: "run-1",
   computed_at: "2026-08-11T18:34:09Z",
+};
+
+/** V2 com base e zero medido — aí a afirmação de ausência é legítima. */
+const V2_ZERO_MEDIDO = {
+  ...V2_SEM_BASE,
+  base_disponivel: true,
+  total_brl: "0.00",
+  pct_investivel_financeiro: 0,
+  tier: "empty",
+  alvo_moeda_forte_brl: "129987.47",
 };
 
 describe("ExposicaoCambialCard — precedência V1 x V2", () => {
@@ -63,13 +75,47 @@ describe("ExposicaoCambialCard — precedência V1 x V2", () => {
     expect(screen.queryByText(/100% denominado em real/)).not.toBeInTheDocument();
   });
 
-  it("não pode apagar a exposição real quando o V2 responde vazio", () => {
-    V2_STATE.data = V2_VAZIO;
+  it("não apaga a exposição real quando o V2 responde sem base", () => {
+    V2_STATE.data = V2_SEM_BASE;
     render(<ExposicaoCambialCard data={V1} workspaceId="ws-1" />);
 
-    // Hoje FALHA: o V2 vazio vence e o card afirma ausência de exposição.
     expect(screen.queryByText(/100% denominado em real/)).not.toBeInTheDocument();
     expect(screen.getByText("USD")).toBeInTheDocument();
     expect(screen.getByText("EUR")).toBeInTheDocument();
+  });
+
+  it("avisa que o controle de declarar lastro sumiu, sem alarmar sobre o número", () => {
+    V2_STATE.data = V2_SEM_BASE;
+    render(<ExposicaoCambialCard data={V1} workspaceId="ws-1" />);
+
+    expect(screen.getByText(/opção de declarar lastro/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tentar de novo/i })).toBeInTheDocument();
+  });
+
+  it("sem V1 e sem base no V2, declara indisponibilidade em vez de afirmar ausência", () => {
+    V2_STATE.data = V2_SEM_BASE;
+    render(<ExposicaoCambialCard data={undefined} workspaceId="ws-1" />);
+
+    expect(screen.getByText(/indisponível neste relatório/i)).toBeInTheDocument();
+    expect(screen.queryByText(/100% denominado em real/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/0,0%/)).not.toBeInTheDocument();
+  });
+
+  it("com base e zero medido, aí sim afirma ausência de exposição", () => {
+    V2_STATE.data = V2_ZERO_MEDIDO;
+    render(<ExposicaoCambialCard data={V1} workspaceId="ws-1" />);
+
+    expect(screen.getByText(/Nenhum ativo com lastro fora do real/)).toBeInTheDocument();
+    // A frase antiga era errada mesmo com base: fala de patrimônio, não do investível
+    // financeiro, e de denominação, não de lastro econômico.
+    expect(screen.queryByText(/100% denominado em real/)).not.toBeInTheDocument();
+  });
+
+  it("formata percentual com vírgula decimal (pt-BR)", () => {
+    V2_STATE.data = null;
+    render(<ExposicaoCambialCard data={V1} workspaceId="ws-1" />);
+
+    expect(screen.getByText(/6,5% ·/)).toBeInTheDocument();
+    expect(screen.queryByText(/6\.5%/)).not.toBeInTheDocument();
   });
 });

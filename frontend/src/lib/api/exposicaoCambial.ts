@@ -30,11 +30,16 @@ export interface ExposicaoCambialAtivo {
 
 export interface ExposicaoCambialV2Response {
   workspace_id: string;
-  /** Decimal string no wire (ADR-090). */
-  total_brl: string;
-  pct_investivel_financeiro: number;
+  /** false = não houve base para calcular. Os campos de valor vêm `null` — zero
+   * falso é infabricável. Nunca leia ausência de base como ausência de exposição. */
+  base_disponivel: boolean;
+  /** Decimal string no wire (ADR-090); `null` sem base. */
+  total_brl: string | null;
+  pct_investivel_financeiro: number | null;
   por_moeda: ExposicaoCambialPorMoeda[];
-  tier: ExposicaoCambialTier;
+  tier: ExposicaoCambialTier | null;
+  /** Piso verde em reais para este patrimônio (threshold mora no backend). */
+  alvo_moeda_forte_brl: string | null;
   ativos_contribuintes: ExposicaoCambialAtivo[];
   catalog_version: number;
   source_run_id: string | null;
