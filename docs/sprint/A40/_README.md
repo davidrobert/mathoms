@@ -240,13 +240,15 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
 | [[A40.l43]] | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | P1 | — | `shipped` `849e372b` (#1386) · achado do parecer de design · emenda [[ADR-356]] (regra: o narrador não publica valor nem juízo) · fecha por remoção o item de `n_imoveis` da [[A40.l6]] e a classe da [[A40.l15]] · transfere p/ [[A40.l29]] |
+| [[A40.l46]] | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant `feature` sem o DNA do mockup | P2 | — | aberta 2026-08-12 no fecho do #1382 · coleta os 2 achados sem dono da investigação do overlap · item 2 executa o deferimento da [[A40.l33]] §3 ([[ADR-117]] na mesa) |
 
-> **Contador vs. disco (medido 2026-08-12).** `ls docs/sprint/A40/lanes/*.md` dá
-> **44**; esta tabela lista 38. As **6 ausentes** foram abertas por PRs que não
+> **Contador vs. disco (medido 2026-08-12; re-medido no mesmo dia com a l46).**
+> `ls docs/sprint/A40/lanes/*.md` dá **46**; esta tabela lista 39. As **7
+> ausentes** foram abertas por PRs que não
 > atualizaram a tabela e não têm dono nesta passada: **l38** (caixa canônico,
 > #1391), **l39** (posição corrente/fiscal), **l40** (identidade institucional
 > CNPJ raiz), **l41** (frescor cross-pool), **l42**, **l44** (janela declarada,
-> #1397/#1398). Ficam nomeadas aqui em vez de silenciadas — o id aponta o arquivo,
+> #1397/#1398), **l45** (clipping caixa estreita, #1387 · [[ADR-381]]). Ficam nomeadas aqui em vez de silenciadas — o id aponta o arquivo,
 > então completar custa pouco. Quem fechar a sprint tem de resolver isto: o §Gate
 > de saída lê esta tabela, e uma lane fora dela é invisível ao encerramento.
 

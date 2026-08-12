@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-8 open · 7 in_progress.
+9 open · 7 in_progress.
 
-## Open (8)
+## Open (9)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · branch `a40-l29-editorial-do-ano-de-if`
@@ -17,6 +17,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l40]] — Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre · priority P1 · branch `a40-l40-identidade-institucional-cnpj-raiz`
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l42]] — Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em max() lexicográfico · priority P1 · branch `a40-l42-safra-irpf-ordenacao-de-chave`
+- [[A40.l46]] — Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup · priority P2 · branch `a40-l46-residuos-perfil-identidade`
 
 ## In progress (7)
 
