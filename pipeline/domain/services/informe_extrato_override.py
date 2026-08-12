@@ -187,14 +187,23 @@ def _override_posicao(
     relevante = diff > max(_TOLERANCIA_ABS, informe_brl.copy_abs() * _TOLERANCIA_PCT)
     entry["informe_venceu_extrato"] = True
     entry["divergencia_relevante"] = relevante
-    novo = replace(
+    novo = _detalhe_com_informe(pos, entry, informe_brl)
+    divergencia = _build_divergencia(pos, entry, diff) if relevante else None
+    return novo, informe_brl - extrato_brl, divergencia
+
+
+# A linha adotada do informe É o snapshot 31/12 — a data de referência vira
+# 31/12/ano_base (A40.l39), não o fim de período do extrato substituído.
+def _detalhe_com_informe(pos: ExtratoPosicao, entry: dict, informe_brl: Decimal) -> CaixaDetalhe:
+    ano_base = int(entry.get("ano_base", 0) or 0)
+    return replace(
         pos.detalhe,
         saldo_original=float(Decimal(str(entry.get("saldo_original") or "0"))),
         valor_brl=float(informe_brl),
         fonte="informe_31_12",
+        data_referencia=f"{ano_base}-12-31" if ano_base else None,
+        data_referencia_precisao="dia" if ano_base else "desconhecida",
     )
-    divergencia = _build_divergencia(pos, entry, diff) if relevante else None
-    return novo, informe_brl - extrato_brl, divergencia
 
 
 def _build_divergencia(

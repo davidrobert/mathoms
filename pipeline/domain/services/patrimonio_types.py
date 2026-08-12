@@ -12,6 +12,7 @@ A hierarquia de arquivos:
 
 from __future__ import annotations
 
+import calendar
 import logging
 import re
 from dataclasses import dataclass, field
@@ -168,6 +169,20 @@ class PatrimonioConfig:
     include_real_estate_in_if: bool = True
 
 
+# Produtores carregam datas em larguras mistas ("YYYY-MM-DD", "YYYY-MM", "");
+# comparar sem normalizar é bug de ordenação (mesma classe de A40.l42).
+# Convenção: fim de período; "YYYY-MM" resolve para o último dia do mês.
+def normalize_data_referencia(raw: object) -> tuple[str | None, str]:
+    """Normaliza data de referência para ``(YYYY-MM-DD, precisao)`` (A40.l39)."""
+    s = str(raw or "").strip()
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", s):
+        return s, "dia"
+    if re.fullmatch(r"\d{4}-\d{2}", s):
+        ano, mes = int(s[:4]), int(s[5:7])
+        return f"{s}-{calendar.monthrange(ano, mes)[1]:02d}", "mes"
+    return None, "desconhecida"
+
+
 @dataclass(frozen=True)
 class CaixaDetalhe:
     """Linha de saldo em caixa ou moeda estrangeira (output legado)."""
@@ -179,6 +194,10 @@ class CaixaDetalhe:
     tipo: str  # "caixa" | "moeda_estrangeira"
     # ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1.
     fonte: str = "extrato"
+    # A40.l39 — fim de período do extrato vencedor (YYYY-MM-DD) + precisão
+    # ("dia" | "mes" | "desconhecida"); linha de informe carrega 31/12/ano_base.
+    data_referencia: str | None = None
+    data_referencia_precisao: str = "desconhecida"
 
     def to_dict(self) -> dict:
         return {
@@ -188,6 +207,8 @@ class CaixaDetalhe:
             "valor_brl": round(self.valor_brl, 2),
             "tipo": self.tipo,
             "fonte": self.fonte,
+            "data_referencia": self.data_referencia,
+            "data_referencia_precisao": self.data_referencia_precisao,
         }
 
 
