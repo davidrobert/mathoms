@@ -197,7 +197,7 @@ Revisado pelo co-design de 2026-08-11. O anterior tinha um item **inexequível**
   snapshot. Escrever "conferido por `golden_diff`" como se fosse gate era
   verdadeiro sobre o script e falso sobre o CI.
 
-## PR1 — entregue 2026-08-11
+## PR1 — entregue 2026-08-11 (#1383)
 
 `fix(pipeline)` `cc5d281e` + `test(golden)` `992bf0ad` + rebaseline `b5b96234`.
 
