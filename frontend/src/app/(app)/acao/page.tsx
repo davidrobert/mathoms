@@ -127,6 +127,16 @@ function useTabSelection({ urlTab, pending, pendingLoading }: UseTabSelectionInp
   const [tab, setTab] = useState<TabId>(urlTab ?? FALLBACK_TAB);
   const userPickedRef = useRef(false);
 
+  // F5 — `?tab=` também tem de vencer DEPOIS do mount. Os chips de
+  // <ActionStatusBar/> navegam para /acao?tab=… a partir da própria /acao;
+  // como `tab` nascia de um inicializador de useState, a query mudava e o
+  // estado não — o chip virava link morto. Limite honesto: o clique em tab
+  // não reescreve a URL, então voltar para um `?tab=` idêntico ao que já
+  // está na barra não remonta nada (Next não re-renderiza query igual).
+  useEffect(() => {
+    if (urlTab) setTab(urlTab);
+  }, [urlTab]);
+
   useEffect(() => {
     if (urlTab) return;
     if (userPickedRef.current) return;

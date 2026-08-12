@@ -85,11 +85,31 @@ export function isActionable(s: Suggestion): boolean {
   return s.severity !== "info";
 }
 
+/** Corte de foco do inbox: quantas acionáveis abrem em "Decidir agora".
+ *  3 porque o dogfood 2026-08-11 mostrou 11 cards de mesmo peso ocupando
+ *  ~2,5 viewports — o cap de 12 nunca mordeu e a ordenação, sem grupo,
+ *  ficou invisível. Ordenar não é priorizar se nada separa o topo. */
+export const FOCUS_GROUP_SIZE = 3;
+
+/** ADR-376 §D4 — "agendada" é afirmação sobre o horizonte, nunca negação de
+ *  `execucao`: `horizon: null` (determinística e row legada) é a maioria do
+ *  inbox e tem de continuar na fila do agora. Escrever o gate como
+ *  `horizon !== "execucao"` mandaria todas elas para "Agendadas" —
+ *  a regressão que o teste de polaridade guarda. */
+export function isScheduled(s: Suggestion): boolean {
+  return s.horizon === "tatica" || s.horizon === "estrategica";
+}
+
 export interface SuggestionDisplayPartition {
-  /** Acionáveis em destaque (≤ ACTIONABLE_DISPLAY_CAP, danger sempre incluído). */
-  primary: Suggestion[];
-  /** Acionáveis acima do cap — disclosure compacta, nunca escondidas. */
+  /** As FOCUS_GROUP_SIZE primeiras da fila do agora — danger no topo pelo
+   *  comparator, então o slice basta para nunca enterrar risco real. */
+  focus: Suggestion[];
+  /** Resto da fila do agora, até ACTIONABLE_DISPLAY_CAP somado ao focus. */
+  rest: Suggestion[];
+  /** Acionáveis acima do cap — disclosure compacta, nunca escondidas (KR5). */
   overflow: Suggestion[];
+  /** Acionáveis táticas/estratégicas — fora do cap; não competem com o agora. */
+  scheduled: Suggestion[];
   /** `info` — colapsadas por default, fora do cap (referência, não fila). */
   informative: Suggestion[];
 }
@@ -99,9 +119,12 @@ export function partitionForDisplay(
 ): SuggestionDisplayPartition {
   const sorted = [...suggestions].sort(suggestionPriorityComparator);
   const actionable = sorted.filter(isActionable);
+  const now = actionable.filter((s) => !isScheduled(s));
   return {
-    primary: actionable.slice(0, ACTIONABLE_DISPLAY_CAP),
-    overflow: actionable.slice(ACTIONABLE_DISPLAY_CAP),
+    focus: now.slice(0, FOCUS_GROUP_SIZE),
+    rest: now.slice(FOCUS_GROUP_SIZE, ACTIONABLE_DISPLAY_CAP),
+    overflow: now.slice(ACTIONABLE_DISPLAY_CAP),
+    scheduled: actionable.filter(isScheduled),
     informative: sorted.filter((s) => !isActionable(s)),
   };
 }

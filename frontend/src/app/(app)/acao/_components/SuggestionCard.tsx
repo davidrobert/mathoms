@@ -9,6 +9,13 @@
 //
 // Onda 10 #3 — backward link para a seção do relatório que originou
 // a sugestão. Dialogs movidos para `SuggestionDialogs.tsx`.
+//
+// F5 (PLAN-suggestion-lifecycle) — três correções vindas do dogfood
+// 2026-08-11: (1) tokens semânticos no lugar de Tailwind literal
+// (ADR-076); (2) mês de origem no meta, porque sem data uma sugestão de
+// três relatórios atrás é indistinguível de uma de hoje; (3) `density`,
+// que apaga o rótulo em caixa alta fora do grupo de foco — 11 cards
+// repetindo "ATENÇÃO" é ruído, não sinal.
 
 import { useState } from "react";
 import Link from "next/link";
@@ -22,13 +29,14 @@ import {
   X,
 } from "lucide-react";
 
+import { MonetaryValue } from "@/components/report/MonetaryValue";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   type Suggestion,
   type SuggestionSeverity,
 } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatMonthShortPtBR } from "@/lib/format";
 
 import {
   AcceptDialog,
@@ -41,11 +49,17 @@ import {
   type ModifyHandler,
 } from "./suggestionTypes";
 
+/** `full` mantém o rótulo textual de severidade; `compact` deixa só o
+ *  ícone (com aria-label) + a borda. Uma prop em vez de um segundo
+ *  componente: duplicar o card duplicaria os 3 dialogs junto. */
+export type SuggestionCardDensity = "full" | "compact";
+
 interface SuggestionCardProps {
   suggestion: Suggestion;
   onAccept: AcceptHandler;
   onModify: ModifyHandler;
   onDismiss: DismissHandler;
+  density?: SuggestionCardDensity;
 }
 
 export function SuggestionCard({
@@ -53,27 +67,23 @@ export function SuggestionCard({
   onAccept,
   onModify,
   onDismiss,
+  density = "full",
 }: SuggestionCardProps) {
   const [acceptOpen, setAcceptOpen] = useState(false);
   const [modifyOpen, setModifyOpen] = useState(false);
   const [dismissOpen, setDismissOpen] = useState(false);
+  const tone = severityTone(suggestion.severity);
 
   return (
     <Card
       id={`SUG-${suggestion.id}`}
       data-suggestion-id={suggestion.id}
-      className={[
-        "scroll-mt-24 target:ring-2 target:ring-[var(--brand-info)] target:ring-offset-2",
-        // ADR-161 (Onda 8 #4) — borda esquerda colorida por severidade,
-        // antes definida em SEVERITY_CONFIG.cls mas nunca aplicada ao Card.
-        SEVERITY_BORDER[suggestion.severity] ?? SEVERITY_BORDER.info,
-      ].join(" ")}
+      data-severity={suggestion.severity}
+      className="scroll-mt-24 border-l-4 target:ring-2 target:ring-[var(--brand-info)] target:ring-offset-2"
+      style={{ borderLeftColor: tone.borderVar }}
     >
       <CardContent className="flex flex-col gap-3 py-4">
-        <SeverityRow suggestion={suggestion} />
-        <p className="text-sm font-semibold leading-snug">
-          {suggestion.title}
-        </p>
+        <SuggestionHeading suggestion={suggestion} density={density} />
         <p className="text-xs text-muted-foreground line-clamp-3">
           {suggestion.rationale}
         </p>
@@ -109,47 +119,91 @@ export function SuggestionCard({
   );
 }
 
-const SEVERITY_CONFIG: Record<
+/** ADR-076 — severidade sai dos tokens semânticos, nunca de classe
+ * Tailwind literal (`border-l-amber-500` & cia. eram o estado anterior).
+ *
+ * `borderVar` é o tom cheio (decoração; o significado vai no aria-label
+ * do ícone). `textVar` é o par **-on-tint** onde ele existe, porque o tom
+ * cheio de `--semantic-alert` sobre `--surface-card` mede 2,06:1 em light
+ * — reprova AA com folga. Medido contra `--surface-card` nos dois temas:
+ * alert-on-tint 6,22 / 8,67 · loss-on-tint 6,47 / 7,74 ·
+ * info-financial (sem par on-tint; o tom cheio já passa) 5,70 / 7,65.
+ * `dev/check_tint_contrast.py` não alcança `style` inline — a guarda aqui
+ * é o teste que afirma o nome da var; trocar por Tailwind literal falha. */
+const SEVERITY_TONE: Record<
   SuggestionSeverity,
-  {
-    label: string;
-    Icon: typeof Info;
-    cls: string;
-  }
+  { label: string; Icon: typeof Info; borderVar: string; textVar: string }
 > = {
   info: {
     label: "Informativo",
     Icon: Info,
-    cls: "border-l-sky-500 text-sky-700 dark:text-sky-300",
+    borderVar: "var(--semantic-info-financial)",
+    textVar: "var(--semantic-info-financial)",
   },
   warning: {
     label: "Atenção",
     Icon: AlertTriangle,
-    cls: "border-l-amber-500 text-amber-700 dark:text-amber-300",
+    borderVar: "var(--semantic-alert)",
+    textVar: "var(--semantic-alert-on-tint)",
   },
   danger: {
     label: "Ação urgente",
     Icon: AlertOctagon,
-    cls: "border-l-red-500 text-red-700 dark:text-red-300",
+    borderVar: "var(--semantic-loss)",
+    textVar: "var(--semantic-loss-on-tint)",
   },
 };
 
-// ADR-161 (Onda 8 #4) — classes Tailwind aplicadas ao Card root para
-// borda esquerda colorida visível. Separadas de SEVERITY_CONFIG.cls
-// (que mistura ícone+texto) para evitar acoplamento.
-const SEVERITY_BORDER: Record<SuggestionSeverity, string> = {
-  danger: "border-l-4 border-l-red-500",
-  warning: "border-l-4 border-l-amber-500",
-  info: "border-l-4 border-l-sky-500",
-};
+function severityTone(severity: SuggestionSeverity) {
+  return SEVERITY_TONE[severity] ?? SEVERITY_TONE.info;
+}
 
-function SeverityRow({ suggestion }: { suggestion: Suggestion }) {
-  const sev = SEVERITY_CONFIG[suggestion.severity] ?? SEVERITY_CONFIG.info;
-  const Icon = sev.Icon;
+function SuggestionHeading({
+  suggestion,
+  density,
+}: {
+  suggestion: Suggestion;
+  density: SuggestionCardDensity;
+}) {
+  if (density === "full") {
+    return (
+      <>
+        <SeverityRow severity={suggestion.severity} />
+        <p className="text-sm font-semibold leading-snug">{suggestion.title}</p>
+      </>
+    );
+  }
+  return <CompactHeading suggestion={suggestion} />;
+}
+
+/** Grupos fora do foco: o ícone carrega a severidade sozinho, com
+ *  `role="img"` + aria-label para não perder o sinal no leitor de tela. */
+function CompactHeading({ suggestion }: { suggestion: Suggestion }) {
+  const tone = severityTone(suggestion.severity);
+  const Icon = tone.Icon;
   return (
-    <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide">
-      <Icon className={`h-4 w-4 ${sev.cls.split(" ").slice(1).join(" ")}`} />
-      <span>{sev.label}</span>
+    <p className="flex items-start gap-2 text-sm font-semibold leading-snug">
+      <Icon
+        role="img"
+        aria-label={`Severidade: ${tone.label}`}
+        className="mt-0.5 h-4 w-4 shrink-0"
+        style={{ color: tone.textVar }}
+      />
+      {suggestion.title}
+    </p>
+  );
+}
+
+function SeverityRow({ severity }: { severity: SuggestionSeverity }) {
+  const tone = severityTone(severity);
+  const Icon = tone.Icon;
+  return (
+    <div
+      className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide"
+      style={{ color: tone.textVar }}
+    >
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      <span>{tone.label}</span>
     </div>
   );
 }
@@ -163,10 +217,11 @@ function SuggestionMeta({ suggestion }: { suggestion: Suggestion }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
       <span>Origem: {reportLabel}</span>
+      <span data-testid="suggestion-created-month">
+        {formatMonthShortPtBR(suggestion.created_at)}
+      </span>
       {amount !== null && Number.isFinite(amount) && (
-        <span className="font-mono tabular-nums">
-          {formatCurrency(amount)}
-        </span>
+        <MonetaryValue value={amount} data-testid="suggestion-amount" />
       )}
       {suggestion.status !== "Pendente" && (
         <span className="font-medium">

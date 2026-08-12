@@ -1,4 +1,9 @@
 import type { DocumentStatus, DocumentType, PipelineStageStatus, PipelineRunStatus } from "./api";
+import { MONTH_SHORT_PT_LOWER } from "./monthLabel";
+
+// Re-export: o card do inbox importa daqui; o rótulo de mês mora em
+// monthLabel.ts porque este arquivo estava a 8 linhas do teto de 500.
+export { formatMonthShortPtBR } from "./monthLabel";
 
 // ─── Number Formatting ───
 
@@ -159,11 +164,6 @@ export function formatFullBRL(value: number): string {
     maximumFractionDigits: 2,
   }).format(value);
 }
-
-const MONTH_SHORT_PT_LOWER = [
-  "jan", "fev", "mar", "abr", "mai", "jun",
-  "jul", "ago", "set", "out", "nov", "dez",
-];
 
 /** v2.F.3b — período no cover do relatório.
  *
