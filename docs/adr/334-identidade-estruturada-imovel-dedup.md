@@ -4,6 +4,9 @@ type: adr
 title: "Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida)"
 status: Proposto
 date: "2026-07-14"
+amended_at: ["2026-08-11"]
+superseded_by:
+  - "[[ADR-375]]"
 relates_to:
   - "[[ADR-246]]"
   - "[[ADR-271]]"
@@ -17,9 +20,30 @@ tags:
 
 # ADR-334 — Dedup de imóvel deriva a chave inline
 
+> ⚠️ **Supersedida em parte em 2026-08-11 pela [[ADR-375]].** As §Decisões 1, 2 e 4
+> deixam de ser o caminho: persistir o canonical recomputado flipa a identidade das
+> rows sob `ORDER BY created_at`, e a resolução passa a ser por travessia da
+> supersessão mais amostra bruta byte-exata. **A §Decisão 3 (invariante
+> `imoveis ∩ excluded == ∅`) NÃO foi supersedida** — segue vigente e não aplicada.
+> A §Evidência foi **re-medida em 2026-08-11 e confirmada** (chave derivada para
+> 11/11 rows vivas, colapsando em 6), mas o remédio mudou.
+
 > Cluster **G** (P1) da re-review dogfood 2026-07-13 · PLAN-dogfood-report-fix.
 > **Destravada** pela auditoria empírica de 2026-07-14 (ver §Evidência), que **inverteu**
 > a hipótese de causa-raiz.
+
+
+## Emenda 2026-08-11 — supersedure parcial: §1, §2 e §4 caem; §3 permanece vigente
+
+A medição desta ADR estava certa e foi refeita: a chave derivável do texto colapsa
+as rows vivas no número correto de imóveis. O que não se sustenta é derivá-la a cada
+leitura ou gravá-la na coluna. Derivar no read-path mascararia a duplicata em cada
+um dos read-sites em vez de corrigir o dado uma vez; e persistir o recomputado faz a
+row mais antiga vencer o match, transformando a vencedora atual em zumbi — troca o
+conjunto de duplicatas em vez de eliminá-lo.
+
+O remédio adotado corrige o dado uma vez, por supersessão com linhagem, e usa a
+chave derivada apenas como insumo de eleição do sweep. Ver [[ADR-375]] e [[ADR-376]].
 
 ## Contexto
 

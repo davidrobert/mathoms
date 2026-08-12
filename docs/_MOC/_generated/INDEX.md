@@ -371,7 +371,9 @@
 | ADR-373 | adr | Decidido |  | Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade | `adr/373-prazo-if-projeta-capacidade-declarada.md` |
 | ADR-374 | adr | Decidido |  | Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado | `adr/374-sigma-do-cone-if-agrega-premissa-por-alvo-declarado.md` |
 | ADR-375 | adr | Proposto |  | Limite PGBL tem um produtor, e a prescrição exige evidência declarada | `adr/375-limite-pgbl-tem-um-produtor-e-a-prescricao-exige-evidencia-declarada.md` |
+| ADR-375 | adr | Proposto |  | Resolver de imóvel devolve row viva atravessando as eras do canonicalizador | `adr/375-resolver-de-imovel-devolve-row-viva-atravessando-eras.md` |
 | ADR-376 | adr | Decidido |  | Caixa corrente vem do último extrato reconciliado — sem denylist de instituição | `adr/376-caixa-corrente-vem-do-extrato-sem-denylist-de-instituicao.md` |
+| ADR-376 | adr | Proposto |  | Supersessão de PropertyIdentity é escopada ao que o run observou | `adr/376-supersessao-de-imovel-escopada-ao-run-observado.md` |
 | ADR-377 | adr | Proposto |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
 | ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
 | ADR-379 | adr | Proposto |  | Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório | `adr/379-posicoes-do-card-exposicao-cambial-vem-do-e4-pinado-ao-run.md` |
@@ -1129,6 +1131,7 @@
 | TRACK-pipeline-review-quick-unblock | track | consumed | A11 | Track Pipeline Review — Quick Unblock (caminho A) | `sprint/A11/tracks/pipeline-review-quick-unblock.md` |
 | TRACK-pipeline-review-screen | track | consumed | A11 | Track Pipeline Review — Tela de revisão real (caminho B) | `sprint/A11/tracks/pipeline-review-screen.md` |
 | TRACK-platform-review | track | consumed | A11 | Track Platform Review — Orquestração Multi-Agent (revisão + plano) | `sprint/A11/tracks/platform-review.md` |
+| TRACK-property-identity-cross-era | track | ready |  | Track — identidade de imóvel atravessa eras: write-path fechado, passivo colapsado por sweep | `plan/PIPELINE_REVIEW_R2/tracks/property-identity-cross-era.md` |
 | TRACK-public-release-flip | track | ready |  | Runbook — flip do repo para público + verificação pós-flip | `plan/PUBLIC_RELEASE/tracks/public-release-flip.md` |
 | TRACK-public-release-history-rewrite | track | ready |  | Runbook — rewrite de histórico git para release pública (git-filter-repo) | `plan/PUBLIC_RELEASE/tracks/public-release-history-rewrite.md` |
 | TRACK-real-estate-efficiency | track | consumed | A11 | Track — Real estate efficiency feature (ADR-160) | `sprint/A11/tracks/real-estate-efficiency.md` |

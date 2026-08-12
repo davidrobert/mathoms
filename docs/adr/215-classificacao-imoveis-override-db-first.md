@@ -6,6 +6,7 @@ status: Decidido
 phase: A12
 date: "2026-05-15"
 decided_at: "2026-05-18"
+amended_at: ["2026-08-11"]
 relates_to:
   - "[[ADR-145]]"
   - "[[ADR-142]]"
@@ -14,6 +15,9 @@ relates_to:
   - "[[ADR-137]]"
   - "[[ADR-186]]"
   - "[[ADR-157]]"
+  - "[[ADR-225]]"
+  - "[[ADR-265]]"
+  - "[[ADR-375]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -32,7 +36,24 @@ tags:
   - type/adr
 ---
 
+> ⚠️ **Emendada em 2026-08-11.** A §5 ("heurística fuzzy é *assist*, nunca decide
+> sozinha") governa a **sugestão de residência principal na UI**, não o dedup de
+> identidade no pipeline: a [[ADR-265]] já pusera o fuzzy como nível automático da
+> cascata do resolver, e a [[ADR-375]] mantém esse desenho. Ler a §5 como proibição
+> de auto-merge no pipeline levaria o próximo revisor a classificar o dedup vigente
+> como violação.
+
 > ADR longa (>150 linhas) por design: a decisão toca pipeline (E1.6 schema + E1.5c identity), domínio (`patrimonio_calculator._split_imoveis`), schema DB (tabela nova + coluna em workspaces), UX (pós-upload IRPF + MembersTab) e invariante de produto ([[ADR-145]] taxonomia, [[ADR-142]] anti-dupla-contagem em IF). Split produziria peças órfãs sem o contrato cruzado.
+
+
+## Emenda 2026-08-11 — o escopo da §5 é a sugestão de UI, não o dedup do pipeline
+
+A §5 foi escrita para a pré-seleção de residência principal, onde a confirmação
+humana é o guard-rail correto: errar ali muda a classificação declarada de um bem.
+O dedup de identidade é outra coisa — decide se duas linhas descrevem o mesmo
+imóvel, e sua contrapartida de segurança é o guard de complemento, não confirmação
+humana por linha. Registrado aqui porque a [[ADR-265]] passou a usar fuzzy na
+cascata do resolver sem emendar esta §5, e a [[ADR-375]] amplia esse uso.
 
 ## Contexto
 
