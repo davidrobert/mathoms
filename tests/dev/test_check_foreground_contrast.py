@@ -90,3 +90,32 @@ def test_bg_tintado_nao_conta_como_fundo_solido() -> None:
     """`bg-[var(--X)]/15` é tint — classe do check_tint_contrast, não desta."""
     assert cfc.BG_SOLIDO_RE.search("bg-[var(--semantic-warning)]/15 text-x") is None
     assert cfc.BG_SOLIDO_RE.search("bg-[var(--brand-primary)] text-x") is not None
+
+
+def test_foreground_por_style_inline_e_pareado() -> None:
+    """A 3ª vez que esta classe reabriu foi por sintaxe: o gate nasceu vendo só
+    `className` e deixou passar `style={{color}}` a 1,88:1 no mesmo dia."""
+    linhas = ['<span role="alert" style={{ gap: 4, color: "var(--semantic-warning)" }}>']
+    usos = cfc._usos_style("x.tsx", linhas, 0)
+    assert [(u.token, u.alpha, u.fundo) for u in usos] == [("semantic-warning", None, None)]
+
+
+def test_style_usa_o_background_irmao_do_mesmo_objeto() -> None:
+    """`background` e `color` vivem em linhas irmãs do object literal; sem olhar
+    a vizinhança, texto branco em botão sólido mediria 1,00:1 e reprovaria."""
+    linhas = [
+        "const BTN_ACTIVE_STYLE: CSSProperties = {",
+        '  background: "var(--brand-primary)",',
+        '  color: "var(--surface-card)",',
+        "};",
+    ]
+    (uso,) = cfc._usos_style("x.tsx", linhas, 2)
+    assert uso.fundo == "brand-primary"
+    assert cfc._pior_contra(uso, TOKENS)[0] > 4.5
+
+
+def test_style_sem_background_cai_nos_neutros() -> None:
+    linhas = ['  <Badge style={{ color: "var(--semantic-warning)" }}>']
+    (uso,) = cfc._usos_style("x.tsx", linhas, 0)
+    assert uso.fundo is None
+    assert cfc._pior_contra(uso, TOKENS)[0] < 4.5

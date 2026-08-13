@@ -4,10 +4,17 @@
 Irmão do `check_tint_contrast.py`, que mede texto sobre tint da própria cor.
 Aqui a pergunta é outra e mais simples: **esta cor serve como texto sobre o
 fundo liso do relatório?** O ataque de 2026-08-13 (A40.l33) mostrou que a
-resposta era "não" em 17 call-sites vivos, todos invisíveis ao gate de tint
+resposta era "não" em 19 call-sites vivos, todos invisíveis ao gate de tint
 porque não havia tint nenhum — o texto estava direto no card.
 
-Duas famílias, as duas medidas e não proibidas por forma:
+**Duas sintaxes de foreground, e a segunda entrou no MESMO dia em que o gate
+nasceu**: escrito só sobre `className`, ele deixou passar 2 call-sites a 1,88:1
+em `style={{ color }}` — um deles `role="alert"`, cujo gêmeo em `className` já
+estava corrigido no arquivo ao lado. Foi a terceira vez que esta classe reabriu
+por sintaxe nesta lane. Antes de declarar classe fechada aqui, procure a forma
+que você ainda não enumerou.
+
+Duas famílias de defeito, as duas medidas e não proibidas por forma:
 
 1. **Token que reprova contra os DOIS fundos neutros.** `--semantic-alert` (e
    seus alias `--semantic-warning`/`--brand-warning`, mesmo hex) dava 2,06:1 em
@@ -75,6 +82,18 @@ FG_RE = re.compile(r"text-\[var\(--([\w-]+)\)\](?:/(\d+))?")
 # de fora de propósito: fundo tintado é a classe do `check_tint_contrast.py`.
 BG_SOLIDO_RE = re.compile(r"bg-\[var\(--([\w-]+)\)\](?!/)")
 
+# Segunda sintaxe de foreground: `style={{ color: "var(--X)" }}`. O gate nasceu
+# vendo só a forma `className` e, no mesmo dia, deixou passar 2 call-sites a
+# 1,88:1 — um deles `role="alert"`, cujo gêmeo em `className` já estava
+# corrigido. É a TERCEIRA vez que a classe reabre por sintaxe nesta lane; a
+# lição é que gate que lê código fecha a forma que casou, não a classe.
+STYLE_FG_RE = re.compile(r'(?:color|fill|stroke):\s*"var\(--([\w-]+)\)"')
+STYLE_BG_RE = re.compile(r'background(?:Color)?:\s*"var\(--([\w-]+)\)"')
+# O `style` costuma ser objeto multi-linha, com `background` e `color` em linhas
+# irmãs. Janela pequena e declarada: cobre o object literal típico sem virar
+# pareamento de arquivo inteiro.
+JANELA_STYLE = 6
+
 
 class Uso(NamedTuple):
     where: str
@@ -83,15 +102,13 @@ class Uso(NamedTuple):
     fundo: str | None  # fundo sólido declarado na mesma linha, se houver
 
 
-def _linhas():
+def _arquivos():
     fontes = (p for p in sorted(SRC.rglob("*")) if p.suffix in {".tsx", ".ts"})
     for path in fontes:
-        rel = path.relative_to(SRC)
-        texto = path.read_text(encoding="utf-8").splitlines()
-        yield from ((f"{rel}:{n}", line) for n, line in enumerate(texto, 1))
+        yield path.relative_to(SRC), path.read_text(encoding="utf-8").splitlines()
 
 
-def _usos_na_linha(where: str, line: str) -> list[Uso]:
+def _usos_className(where: str, line: str) -> list[Uso]:
     fundo = BG_SOLIDO_RE.search(line)
     return [
         Uso(where, token, int(alpha) if alpha else None, fundo.group(1) if fundo else None)
@@ -99,8 +116,27 @@ def _usos_na_linha(where: str, line: str) -> list[Uso]:
     ]
 
 
+def _fundo_do_style(linhas: list[str], idx: int) -> str | None:
+    """`background` irmão dentro do mesmo object literal de `style`."""
+    inicio, fim = max(0, idx - JANELA_STYLE), min(len(linhas), idx + JANELA_STYLE + 1)
+    achados = (STYLE_BG_RE.search(linha) for linha in linhas[inicio:fim])
+    return next((m.group(1) for m in achados if m), None)
+
+
+def _usos_style(rel, linhas: list[str], idx: int) -> list[Uso]:
+    fundo = _fundo_do_style(linhas, idx)
+    return [
+        Uso(f"{rel}:{idx + 1}", token, None, fundo) for token in STYLE_FG_RE.findall(linhas[idx])
+    ]
+
+
 def _usos() -> list[Uso]:
-    return [uso for where, line in _linhas() for uso in _usos_na_linha(where, line)]
+    out = []
+    for rel, linhas in _arquivos():
+        for idx, linha in enumerate(linhas):
+            out += _usos_className(f"{rel}:{idx + 1}", linha)
+            out += _usos_style(rel, linhas, idx)
+    return out
 
 
 def _casa(uso: Uso, entradas) -> str | None:

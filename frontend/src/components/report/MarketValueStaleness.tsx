@@ -27,9 +27,12 @@ export function MarketValueStaleness({ stalenessDays }: MarketValueStalenessProp
     return (
       <Badge
         variant="outline"
+        // Par `-on-tint` (ADR-372 · A40.l33): o âmbar base sobre o card dava
+        // 1,88:1 — texto e borda do badge eram um só tom ilegível. A variante
+        // escura é da mesma família, então o nível "atenção" não muda.
         style={{
-          borderColor: "var(--semantic-warning)",
-          color: "var(--semantic-warning)",
+          borderColor: "var(--semantic-alert-on-tint)",
+          color: "var(--semantic-alert-on-tint)",
         }}
       >
         Atualizado há {months} meses
