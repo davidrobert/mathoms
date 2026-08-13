@@ -45,6 +45,7 @@ só intenção.
 |---|---|---|---|
 | `axe-core` — página inteira (light **e dark**) + por seção (light) | 1.4.3, 4.1.2 | [a11y.@critical.spec.ts](../../../frontend/tests/e2e/reports/a11y.@critical.spec.ts) — step `Report render gate` de `frontend-checks` | **Sim** — `critical+serious` (D1) |
 | Contraste de texto sobre tint da mesma cor — **todos** os call-sites, por medição | 1.4.3 no par (cor de texto, tint de fundo), sem depender de render | [check_tint_contrast.py](../../../dev/check_tint_contrast.py) — pre-commit, e `pre-commit run --all-files` no job `lint-all` | **Sim** — ≥ 4,5:1 texto / 3:1 não-texto |
+| Contraste de texto sobre o card **liso** — cor semântica como foreground, e opacity modifier no texto | 1.4.3 / 1.4.11 sem depender de render; mede contra o `bg-[var(--Y)]` da própria linha quando declarado | [check_foreground_contrast.py](../../../dev/check_foreground_contrast.py) — pre-commit, e `pre-commit run --all-files` no job `lint-all` | **Sim** — ≥ 4,5:1 texto / 3:1 ícone nomeado |
 | Contraste de pares nomeados (badge Fator-R, tons do parecer) | 1.4.3 em pares específicos, incluindo branch que fixture não alcança | [cascataFiscalContrast.test.ts](../../../frontend/tests/components/report/cascataFiscalContrast.test.ts) + [parecerToneContrast.test.ts](../../../frontend/tests/components/report/parecerToneContrast.test.ts) — Vitest em `frontend-checks` | **Sim** — ≥ 4,5:1 |
 | Tab-order escopado a `[data-report-scope]` | 2.1.1, 2.4.3, 4.1.2 | [tab-order.@critical.spec.ts](../../../frontend/tests/e2e/reports/tab-order.@critical.spec.ts) — step `Report render gate` de `frontend-checks` | **Sim** desde o #1318 — entrou sozinho quando a seleção do step virou diretório + tag. Estava quebrado enquanto ficou fora ([#1317](https://github.com/davidrobert/mathoms/pull/1317)) |
 | Lighthouse CI (categoria `accessibility`) | 1.4.3, 2.4.7, 4.1.2 (mistura) | [lighthouserc.cjs](../../../frontend/lighthouserc.cjs) + job `frontend-lighthouse` | **Não** — o job migrou para `nightly.yml`, e o workflow `Nightly` está `disabled_manually`. Gate morto. |
@@ -116,10 +117,10 @@ sendo o defeito. O axe não alcançava porque `medium.json` não tem
 `exposicao_cambial`. As três formas em uso vivem em `_tints_in_line`; forma
 nova é o modo de falha a vigiar.
 
-Duas coisas que **nenhum dos dois** cobre hoje, medidas no mesmo ataque e
-abertas em [[A40.l33]]: cor semântica como foreground sobre o card **liso**
-(6 textos a 2,06:1 em light) e `opacity modifier` no texto
-(`text-[var(--X)]/70` → 3,55:1). E o helper do axe lê só `results.violations`:
+Duas coisas que **nenhum dos dois** cobria — cor semântica como foreground sobre
+o card **liso** (14 call-sites a 1,88:1, dois deles ícone) e opacity modifier no
+texto (`text-[var(--X)]/70` → 3,55:1) — ganharam o terceiro gate da tabela acima,
+`check_foreground_contrast.py`. E o helper do axe lê só `results.violations`:
 o que ele não consegue resolver cai em `incomplete` e é **descartado** — medido
 em 2026-08-13, são **65 nós por tema** com `violations=0`. O retrato de hoje é
 benigno (checado um a um: tooltip do Base UI com conteúdo lazy, fundo em
