@@ -379,7 +379,7 @@
 | ADR-381 | adr | Decidido |  | O PDF é uma caixa de 703px: `md:` não é o teste de "é celular" no relatório | `adr/381-o-pdf-e-uma-caixa-de-703px-md-nao-e-o-teste-de-celular.md` |
 | ADR-382 | adr | Proposto |  | Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 | `adr/382-visoes-corrente-e-fiscal-da-posicao-por-instituicao.md` |
 | ADR-383 | adr | Proposto |  | Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras | `adr/383-precedencia-temporal-de-fontes-patrimoniais.md` |
-| ADR-384 | adr | Proposto |  | Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback | `adr/384-identidade-institucional-por-cnpj-raiz.md` |
+| ADR-384 | adr | Decidido |  | Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback | `adr/384-identidade-institucional-por-cnpj-raiz.md` |
 | ADR-385 | adr | Proposto |  | Resolver de imóvel devolve row viva atravessando as eras do canonicalizador | `adr/385-resolver-de-imovel-devolve-row-viva-atravessando-eras.md` |
 | ADR-386 | adr | Proposto |  | Supersessão de PropertyIdentity é escopada ao que o run observou | `adr/386-supersessao-de-imovel-escopada-ao-run-observado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |

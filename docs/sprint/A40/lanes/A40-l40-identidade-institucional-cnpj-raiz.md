@@ -95,3 +95,8 @@ Duas correções ao desenho original, achadas na execução:
 `43815158` × banco `30306294`) — decidir quando um informe real do produto
 aparecer; hoje o fallback por token cobre. A allowlist do gate nomeia esse
 caso e o `bankofamerica` (conta US sem entidade BR emissora).
+
+**Correção de fechamento (2026-08-12, lane-closeout):** o PR #1404 declarou
+a intenção de flippar [[ADR-384]] `Proposto → Decidido` "neste PR" e o
+follow-up não aconteceu — a ADR ficou `Proposto` com a lane já `shipped`,
+contra a política do repo (CLAUDE.md §ADRs). Corrigido nesta passada.
