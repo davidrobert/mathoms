@@ -103,11 +103,13 @@ def test_faceta_do_ano_renderiza_sobre_o_payload_do_produtor() -> None:
     assert "ano_cone" in _facetas(nota)
 
 
-def test_a_chave_do_ano_existe_no_bloco_que_o_produtor_grava() -> None:
+def test_o_leitor_do_ano_acha_o_ano_no_bloco_do_produtor() -> None:
     """Rename futuro do cone falha aqui, alto, em vez de calar a nota."""
-    from backend.app.application.report.recalibracao_note import _CHAVE_ANO_CONE
+    # Behavioral e não introspectivo: asserir a constante contra si mesma seria
+    # tautologia. Aqui o leitor de produção corre sobre o payload de produção.
+    from backend.app.application.report.recalibracao_note import _ano_cone
 
-    assert _CHAVE_ANO_CONE in _bloco_do_produtor("400000")
+    assert _ano_cone(_bloco_do_produtor("400000")) is not None
 
 
 def test_par_2_0_para_5_0_le_os_dois_lados_do_rename() -> None:

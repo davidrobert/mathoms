@@ -8,7 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from pipeline.domain.services.if_monte_carlo_payload import valor_do_cone
+from pipeline.domain.services.if_monte_carlo_payload import (
+    CONE_CHAVES_PRE_4_0,
+    MAJOR_DO_RENAME_DO_CONE,
+)
 from pipeline.domain.services.if_recalibracao import (
     FACETA_ANO_CONE,
     FACETA_PROBABILIDADE_ALVO,
@@ -16,14 +19,14 @@ from pipeline.domain.services.if_recalibracao import (
     resolve_facetas,
 )
 
-# O nome de hoje. Ler a chave ANTIGA direto deixou esta nota inerte desde que
-# nasceu (#1356): `p50_ano_if` não existe em artefato 4.0+, então o lado ATUAL
-# do par vinha sempre `None` e a faceta do ano — o número que motiva a nota
-# inteira — nunca renderizava. Resolver por lado é obrigatório, não defensivo:
-# o par que a nota compara atravessa justamente o bump que renomeou a chave —
-# o cliente com relatório v1/2.0 na base e 4.0+ na tela tem a chave antiga de um
-# lado e a de hoje do outro, e é exatamente esse par que o ledger manda avisar.
-_CHAVE_ANO_CONE = "ano_if_cenario_central"
+# Contrato de leitura (gate: dev/check_artifact_read_keys.py) — as chaves lidas do
+# payload precisam existir no schema do stage. Declarado, nunca inferido da query.
+# `E5` e `analyze_finances` são o mesmo stage (ADR-093).
+ARTIFACT_CONTRACT = ("analyze_finances",)
+# Modo estrito: este módulo só toca UM bloco do payload, então toda chave literal
+# lida aqui é checada contra `properties.if_monte_carlo` — inclusive as lidas de
+# parâmetro, que é onde `p50_ano_if` se escondeu do rastreio por variável.
+ARTIFACT_CONTRACT_BLOCO = "if_monte_carlo"
 
 
 def _bloco_if(snapshot) -> dict[str, Any] | None:
@@ -33,9 +36,28 @@ def _bloco_if(snapshot) -> dict[str, Any] | None:
     return bloco if isinstance(bloco, dict) else None
 
 
-def _ano_cone(bloco: dict[str, Any] | None) -> int | None:
-    valor = valor_do_cone(bloco or {}, _CHAVE_ANO_CONE, major=mc_major(bloco))
+def _inteiro(valor: Any) -> int | None:
     return valor if isinstance(valor, int) else None
+
+
+# Ler a chave ANTIGA direto deixou esta nota inerte desde que nasceu (#1356):
+# `p50_ano_if` não existe em artefato 4.0+, então o lado ATUAL do par vinha sempre
+# `None` e a faceta do ano — o número que motiva a nota inteira — nunca renderizava.
+#
+# Resolver por lado é obrigatório, não defensivo: o par que a nota compara atravessa
+# justamente o bump que renomeou a chave, e o cliente com relatório v1/2.0 na base e
+# 4.0+ na tela tem a chave antiga de um lado e a de hoje do outro — é exatamente esse
+# par que o ledger manda avisar.
+#
+# A chave de HOJE fica LITERAL no `.get()` de propósito: é a forma que
+# `dev/check_artifact_read_keys.py` enxerga, e foi a ausência dessa cobertura que
+# deixou a chave morta passar em review. A do artefato antigo sai do mapa justamente
+# porque NÃO está no schema de hoje — gateá-la reprovaria leitura correta.
+def _ano_cone(bloco: dict[str, Any] | None) -> int | None:
+    """Ano do cenário central; artefato pré-4.0 responde pela chave antiga (ADR-369 D3)."""
+    if mc_major(bloco) < MAJOR_DO_RENAME_DO_CONE:
+        return _inteiro((bloco or {}).get(CONE_CHAVES_PRE_4_0["ano_if_cenario_central"]))
+    return _inteiro((bloco or {}).get("ano_if_cenario_central"))
 
 
 def _faceta_ano(anterior: dict[str, Any], atual: dict[str, Any]) -> dict[str, Any] | None:

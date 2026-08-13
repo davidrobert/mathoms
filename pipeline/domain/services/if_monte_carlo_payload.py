@@ -36,16 +36,6 @@ CONE_CHAVES_PRE_4_0: Mapping[str, str] = {
 MAJOR_DO_RENAME_DO_CONE = 4
 
 
-def valor_do_cone(bloco: Mapping[str, Any], chave_de_hoje: str, *, major: int) -> Any:
-    """Lê ``chave_de_hoje`` do bloco honrando o rename de 4.0 (ADR-369 D3)."""
-    # Gateado pelo major do PRÓPRIO bloco, não por "tenta a nova, senão a
-    # antiga": a tolerância fica declarada, e artefato 5.0 sem a chave de hoje
-    # devolve ausência de verdade em vez de ser resgatado em silêncio.
-    if major >= MAJOR_DO_RENAME_DO_CONE:
-        return bloco.get(chave_de_hoje)
-    return bloco.get(CONE_CHAVES_PRE_4_0.get(chave_de_hoje, chave_de_hoje))
-
-
 def _cone_cenarios(mc: MonteCarloIFResult) -> dict:
     """Anos do cone com a flag de censura INTERCALADA (ADR-361)."""
     # O corte do distiller é prefixal, então flags agrupadas depois dos três anos
