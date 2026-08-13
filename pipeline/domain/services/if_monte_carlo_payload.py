@@ -7,7 +7,33 @@
 
 from __future__ import annotations
 
+from typing import Any, Mapping
+
 from pipeline.domain.services.if_monte_carlo import MonteCarloIFResult
+
+# ADR-369 D3 — chaves do cone ANTES do rename de `mc_version` 4.0, nome-de-hoje
+# → nome-antigo. Artefato gravado sob 1.0/2.0/3.0 continua na base (backfill
+# descartado, ADR-369 D4) e continua legível: o valor é o mesmo, só a chave
+# mudou.
+#
+# Mora aqui, no módulo do CONTRATO DO WIRE, porque é contrato de LEITURA do
+# wire — e porque cada consumidor que mantinha a sua própria cópia do mapa é um
+# lugar a mais onde o rename pode ser esquecido. Foi assim que a nota de
+# recalibração nasceu inerte (A40.l25): ela lia `p50_ano_if` direto, chave que
+# nenhum artefato 4.0+ emite, e o par que ela existe para comparar atravessa
+# exatamente esta fronteira.
+CONE_CHAVES_PRE_4_0: Mapping[str, str] = {
+    "ano_if_cenario_favoravel": "p10_ano_if",
+    "ano_if_cenario_favoravel_censurado": "p10_censurado",
+    "ano_if_cenario_central": "p50_ano_if",
+    "ano_if_cenario_central_censurado": "p50_censurado",
+    "ano_if_cenario_adverso": "p90_ano_if",
+    "ano_if_cenario_adverso_censurado": "p90_censurado",
+    "prob_if_ate_horizonte_simulado": "prob_if_ate_horizonte",
+    "horizonte_simulado_anos": "horizonte_anos",
+}
+
+MAJOR_DO_RENAME_DO_CONE = 4
 
 
 def _cone_cenarios(mc: MonteCarloIFResult) -> dict:

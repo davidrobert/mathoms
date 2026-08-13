@@ -353,6 +353,112 @@ um bump de `mc_version` sem mudança de modelo — o que corromperia o significa
 do campo (é provenance do **modelo**, não da exibição). Vai junto com a
 agregação de σ, sob `6.0`, como o ledger da [[ADR-360]] §Emenda já prevê.
 
+## ✅ Parcial entregue em 2026-08-13 — PR #1433
+
+### A nota do #1356 estava INERTE na faceta que a motiva
+
+Ataque ao passo 3. Medindo o substrato antes de escrever, apareceu um defeito
+vivo na entrega anterior **desta própria lane**: `recalibracao_note._ano_cone`
+lia `p50_ano_if`, chave que o rename de `mc_version` 4.0 ([[ADR-369]] D3)
+aposentou. Medido sobre o payload do produtor real, não inferido do código:
+
+| | |
+|---|---|
+| `p50_ano_if` no bloco que `monte_carlo_to_dict` grava | **ausente** |
+| ano central no par medido | 2034 → **2033** (moveu) |
+| facetas renderizadas | `['probabilidade_alvo']` — **só uma** |
+
+O componente `FacetaAnoCone` estava **inalcançável em produção** desde que
+nasceu, e o número que motiva a nota inteira — *"IF em 2049 onde antes lia
+2046"*, a frase de abertura do próprio módulo — era justamente o calado.
+
+**Rename simples não bastava, e essa é a parte não-óbvia.** O par que a nota
+compara **atravessa o bump que renomeou a chave**: o cliente com relatório
+v1/2.0 na base e 4.0+ na tela tem a chave antiga de um lado e a de hoje do
+outro. Ler só a chave de hoje deixaria a nota inerte no caso que mais importa.
+Cada lado passa a ser resolvido pelo major do **próprio** bloco.
+
+O mapa nome-de-hoje → nome-antigo saiu da cópia privada de `generate_narratives`
+para o módulo do **contrato do wire**: uma cópia por consumidor é um lugar a mais
+onde o rename passa em branco, que é literalmente como este defeito nasceu.
+
+### Por que nada acusou — dois instrumentos cegos, não um
+
+**A suíte fabricava `p50_ano_if` nos DOIS lados**, então passava sobre código
+inerte: teste e código compartilhavam a crença errada. O lado atual agora sai de
+`monte_carlo_to_dict` sobre uma simulação de verdade; o lado anterior é bloco
+histórico **congelado e rotulado**, porque aquele produtor não existe mais.
+
+**E o gate que existe para esta classe passou verde.**
+`dev/check_artifact_read_keys.py` declarava cobrir todo leitor de
+`application/` — a docstring do próprio gate diz isso — mas só detectava
+`read_artifact_content(...)`. Este módulo lê por `snapshot.content_json` e saía
+de `_analisa` **antes** do falha-fechado. Era o único leitor de `content_json`
+em `application/` sem `ARTIFACT_CONTRACT`, e foi exatamente onde a chave morta
+viveu. Três furos, cada um medido:
+
+| Furo | Fechado por |
+|---|---|
+| payload chega por `.content_json`, não só pelo reader | passa a contar como payload; blast radius **medido antes** de declarar: 1 violação nova (a esperada), zero colateral |
+| `(bloco or {}).get("x")` é `BoolOp` na superfície | `_desembrulha` antes de exigir `Name` — sem isso, **mesmo com o módulo declarado a mutação saía verde** |
+| chave de **bloco** lida de **parâmetro** | `ARTIFACT_CONTRACT_BLOCO` (opt-in): módulo focado em um bloco checa toda chave literal contra `properties.<bloco>` |
+
+> ⚠️ **A primeira tentativa deste fix me cegou o gate por construção.** Roteei a
+> chave por um helper (`valor_do_cone(bloco, chave, major=)`) e a mutação passou
+> **verde** — o gate só enxerga literal em `.get()`. A chave de hoje ficou
+> literal de propósito; a do artefato antigo sai do mapa justamente porque
+> **não** está no schema de hoje, e gateá-la reprovaria leitura correta.
+
+**Mutação (contada):**
+
+| Mutação | Cai |
+|---|---|
+| restaurar `p50_ano_if` no leitor | **5** testes |
+| idem, no gate estático | aponta arquivo, **linha** e chave |
+| chave de bloco morta **sem** o opt-in estrito | **nada** — limite declarado como teste próprio |
+
+**Nenhum número publicado mudou** e o snapshot do view-model não moveu — a nota
+é injetada na resposta da API, não no artefato E5.
+
+### O §Deferimento da ADR-374 foi VERIFICADO, não implementado
+
+A [[ADR-374]] §Deferimento manda estender o gatilho do ledger com diff de
+`premissas_economicas.classes[].effective_from`, e diz que a pior instância é
+`effective_to` vencer sem sucessor. **Suspeitei que o instrumento fosse cego à
+própria pior instância** — se a linha só vence, não nasce `effective_from` novo.
+Medido no serializador real, a suspeita era **falsa**:
+
+| Estado da classe | `status` | `effective_from` |
+|---|---|---|
+| vigente | `emitted` | `'2026-01-01'` |
+| `effective_to` vencido sem sucessor | `indisponivel` | **`None`** |
+
+`_resolve_one` devolve `_indisponivel(code, as_of)`, que mantém a classe no
+snapshot com `effective_from: null` — logo o diff **dispara**. O instrumento da
+ADR está correto e não precisa de emenda por esse motivo.
+
+**O que sobra é uma decisão de produto, não de engenharia:** o diff de
+`effective_from` é a **causa**, e sozinho ele **super-dispara**. Uma revisão
+numa classe de peso zero — ou qualquer revisão hoje, com σ em
+`fallback_codigo` em **100% dos runs** (o adapter não passa `sigma_anual`) —
+publicaria *"revisamos o modelo"* para família cujo cone **não se moveu**. Isso
+contradiz a regra de supressão que a nota aplica em todas as outras facetas: ela
+nunca oferece movimento que não está na tela. A refinação recomendada é
+conjunção causa ∧ efeito — `effective_from` diferente **e** `sigma_usado` de
+fato movido para esta família.
+
+**Isso é emenda ao §Deferimento de uma ADR `Decidido` e decide o que a família
+é informada sobre dinheiro** ⇒ gatilho de `financial-planner` no protocolo de
+delegação, e não foi feito nesta sessão. Fica registrado aqui, não silenciado.
+**O passo 3 continua bloqueado por essa decisão**, exatamente como a ADR-374
+mandou.
+
+**Não entrou:** o passo 3 do σ ([[ADR-374]] D1–D10 + `mc_version` `"6.0"`), a
+faixa de 5 pp (item 1 — vai junto com o passo 3, sob `6.0`), a §Carga herdada da
+[[A40.l26]], e a verificação renderizada de S7 (o worktree não sobe Playwright —
+`node_modules` é symlink e o Turbopack recusa; §Débito de método segue
+**declarado, não contornado**).
+
 ## Problema
 
 Duas faces independentes, mesmo arquivo-alvo (`if_monte_carlo.py` + superfícies
