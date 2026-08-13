@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Literal, Optional
 
 from pipeline.domain.models.transaction import Money
+from pipeline.domain.services.tributario.cascata_pgbl import compute_pgbl
 from pipeline.domain.services.tributario.cascata_triggers import (
     CascataTrigger,
     TriggerContext,
@@ -67,9 +68,6 @@ PRESUMIDO_CSLL: Decimal = Decimal("0.09")
 #: Fator-R — LC 123 §5º-J/K + Resolução CGSN 140/2018 art. 26.
 FATOR_R_LIMIAR: Decimal = Decimal("0.28")
 
-#: PGBL — art. 11 Lei 9.532/97.
-PGBL_LIMITE_PCT: Decimal = Decimal("0.12")
-
 
 # =============================================================================
 # Value objects
@@ -109,7 +107,9 @@ class CascataInput:
     regime: Optional[Literal["mei", "simples", "lucro_presumido", "lucro_real"]] = None
     anexo_simples: Optional[Literal["III", "V"]] = None
     iss_aliquota_pct: Optional[Decimal] = None
-    tipo_declaracao_ir: Literal["completa", "simplificada"] = "completa"
+    # ADR-375 D4 cond. 1: o default era "completa" — afirmava o modelo de declaração
+    # sem tê-lo lido. `None` é o vocabulário que o `BusinessProfile` já usa.
+    tipo_declaracao_ir: Optional[Literal["completa", "simplificada"]] = None
     receita_pj_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
     pro_labore_mensal: Money = field(default_factory=lambda: Money.zero("BRL"))
     lucros_distribuidos_mensal: Money = field(default_factory=lambda: Money.zero("BRL"))
@@ -296,18 +296,6 @@ def _dispatch_tributos(inp: CascataInput) -> tuple[Money, Money]:
 # =============================================================================
 
 
-def _compute_pgbl(
-    renda_pf_tributavel_total: Money, tipo_declaracao_ir: str
-) -> tuple[Money, bool, Optional[str]]:
-    """Retorna (limite_anual, aplicavel, motivo_inaplicavel)."""
-    limite = Money.brl(renda_pf_tributavel_total.amount * PGBL_LIMITE_PCT)
-    if tipo_declaracao_ir == "simplificada":
-        return limite, False, "declaracao_simplificada"
-    if renda_pf_tributavel_total.amount <= 0:
-        return limite, False, "renda_tributavel_pf_zerada"
-    return limite, True, None
-
-
 def _compute_fator_r(
     folha_pj_mensal: Money, pro_labore_mensal: Money, receita_anual: Money
 ) -> tuple[Optional[Decimal], Optional[str], Optional[Money]]:
@@ -381,7 +369,7 @@ def _compute_layers(inp: CascataInput) -> _ComputedLayers:
     cargas = _compute_pro_labore_cargas(inp.pro_labore_mensal, inp.regime)
     tributos, iss = _dispatch_tributos(inp)
     renda_pf = Money.brl(cargas.bruto_anual.amount + inp.outras_rendas_tributaveis_pf_anual.amount)
-    pgbl_limite, pgbl_aplicavel, pgbl_motivo = _compute_pgbl(renda_pf, inp.tipo_declaracao_ir)
+    pgbl_limite, pgbl_aplicavel, pgbl_motivo = compute_pgbl(renda_pf, inp.tipo_declaracao_ir)
     fator_r = _compute_fator_r_if_simples(inp)
     return _ComputedLayers(
         cargas=cargas,

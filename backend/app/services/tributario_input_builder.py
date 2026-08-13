@@ -277,9 +277,11 @@ def _iss_aliquota(bp: Optional[BusinessProfile] = None) -> Optional[Decimal]:
     return Decimal(str(bp.iss_aliquota_pct))
 
 
-def _tipo_declaracao(bp: Optional[BusinessProfile] = None) -> str:
-    if bp is None or bp.tipo_declaracao_ir is None:
-        return "completa"
+# ADR-375 D4 cond. 1: devolvia "completa" sem perfil, e essa afirmação liberava
+# T1/T3 a prescrever aporte em PGBL. Desconhecido propaga como desconhecido.
+def _tipo_declaracao(bp: Optional[BusinessProfile] = None) -> Optional[str]:
+    if bp is None:
+        return None
     return bp.tipo_declaracao_ir
 
 
