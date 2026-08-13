@@ -121,7 +121,7 @@ export function CpfField({ workspaceId, memberId, memberName, cpfMasked, canReve
       )}
 
       {state === "error" && (
-        <span role="alert" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--brand-warning)" }}>
+        <span role="alert" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--brand-warning-on-tint)" }}>
           <AlertTriangle size={14} aria-hidden="true" />
           <span>{error}</span>
           <button type="button" onClick={reveal} style={linkButtonStyle}>
