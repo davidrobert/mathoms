@@ -5,6 +5,8 @@ title: "Card A Família: a coluna direita repetia o hero, e o validador exigia q
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1386
+ship_date: "2026-08-12"
 priority: P1
 branch_slug: a40-l43-perfil-familia-prosa
 adrs:
