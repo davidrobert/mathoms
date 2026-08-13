@@ -324,7 +324,19 @@ informativos **nunca montam em gate nenhum**. Mesma classe do `exposicao_cambial
 - **De-publicar os quatro sites restantes**: T3 (corpo **e** `params` — campo sem
   leitor é faceta inerte), `_pgbl_clause` (base + ponteiro, com unit test próprio
   porque `narrativas.S8` é `null` nas fixtures), a folha citável do parecer
-  (renomear para fora do predicado monetário ou remover), e a S7.
+  (abaixo), e a S7.
+
+  > **Remedido 2026-08-13, e o achado ficou diferente do reportado.** Rodei
+  > `_is_money_key` nas oito chaves: citáveis são `limite_pgbl_anual`,
+  > `aporte_mensal` e `renda_tributavel_anual`; **`economia_ir_anual` já não é**
+  > — a chave prescritiva estava fora do predicado desde sempre. E o Card B tem
+  > **zero** folhas citáveis (`pgbl_teto_brl` / `pgbl_aportado_brl` /
+  > `pgbl_capacidade_dedutivel_brl` todas `False`). Logo trocar o dono para o Card
+  > B **não "fecha o site de prosa LLM por construção" como ganho** — remove do
+  > parecer qualquer número dedutível citável. Isso pode ser gap, não vitória:
+  > decidir se o parecer **deve** poder citar a capacidade e, se sim, dar ao Card B
+  > uma folha citável. Rota: [[A40.l57]], que já trata das âncoras
+  > `$.previdencia_pgbl.*` resolvendo `null`.
 - **T1**: suprimir `aporte_pgbl_extra_anual_brl` + `economia_ir_anual_brl`. Não é
   escopo novo — é o D4 cond. 2 num site que o inventário da ADR perdeu. A
   *correção* (fonte da faixa) fica na [[A40.l37]], que precisa **herdar D4 cond. 2
