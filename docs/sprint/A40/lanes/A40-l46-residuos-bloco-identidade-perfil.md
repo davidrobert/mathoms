@@ -86,7 +86,10 @@ call-sites herdam): qualquer mudança move baselines visuais em bloco.
 ## Fora do escopo (follow-ups da mesma investigação, já com dono)
 
 - **Clipping ≤700px**: **entregue** — [[A40.l45]] (#1387, [[ADR-381]]) fechou a
-  classe (grid track `auto`, `min-w-0`, caixa A4 703px).
+  classe (grid track `auto` explícito, caixa A4 703px). Correção 2026-08-12: o
+  header do `ReportCard` só ficou de fato escopado a `max-sm` em
+  [PR #1429](https://github.com/davidrobert/mathoms/pull/1429) (`9ab41aff`) —
+  ver [[A40.l45]] §Regressão 2 §Emenda.
 - **`report-print.css` `:first-of-type` inerte + cobertura e2e do roster**:
   **entregue** — #1400 (`9dd59380`): par de irmãos `[data-report-section] ~`
   substitui o seletor que contava por tag, com gate de computed style; mock de
