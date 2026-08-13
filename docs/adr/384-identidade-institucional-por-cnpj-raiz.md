@@ -2,7 +2,7 @@
 id: ADR-384
 type: adr
 title: "Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback"
-status: Proposto
+status: Decidido
 phase: A40.l40
 date: "2026-08-12"
 relates_to:
@@ -17,7 +17,7 @@ superseded_by: []
 aliases: ["ADR 384", "cnpj_raiz", "identidade institucional"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/pipeline
   - area/db
