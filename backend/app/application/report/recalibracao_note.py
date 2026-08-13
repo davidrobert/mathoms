@@ -8,12 +8,22 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.if_monte_carlo_payload import valor_do_cone
 from pipeline.domain.services.if_recalibracao import (
     FACETA_ANO_CONE,
     FACETA_PROBABILIDADE_ALVO,
     mc_major,
     resolve_facetas,
 )
+
+# O nome de hoje. Ler a chave ANTIGA direto deixou esta nota inerte desde que
+# nasceu (#1356): `p50_ano_if` não existe em artefato 4.0+, então o lado ATUAL
+# do par vinha sempre `None` e a faceta do ano — o número que motiva a nota
+# inteira — nunca renderizava. Resolver por lado é obrigatório, não defensivo:
+# o par que a nota compara atravessa justamente o bump que renomeou a chave —
+# o cliente com relatório v1/2.0 na base e 4.0+ na tela tem a chave antiga de um
+# lado e a de hoje do outro, e é exatamente esse par que o ledger manda avisar.
+_CHAVE_ANO_CONE = "ano_if_cenario_central"
 
 
 def _bloco_if(snapshot) -> dict[str, Any] | None:
@@ -24,7 +34,7 @@ def _bloco_if(snapshot) -> dict[str, Any] | None:
 
 
 def _ano_cone(bloco: dict[str, Any] | None) -> int | None:
-    valor = (bloco or {}).get("p50_ano_if")
+    valor = valor_do_cone(bloco or {}, _CHAVE_ANO_CONE, major=mc_major(bloco))
     return valor if isinstance(valor, int) else None
 
 
