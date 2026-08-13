@@ -488,7 +488,7 @@
     },
     "previdencia_pgbl": {
       "type": "object",
-      "description": "Recomendação PGBL (ADR-277/305). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null no caminho proxy_receita_pj. nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao."
+      "description": "Recomendação PGBL (ADR-277/305/375). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null quando não há capacidade declarada no IRPF, caso em que os campos prescritivos nascem ausentes e não zerados (ADR-375 D3/D4 — o valor proxy_receita_pj saiu do vocabulário). nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao."
     },
     "pontos_fortes": {
       "type": "array",

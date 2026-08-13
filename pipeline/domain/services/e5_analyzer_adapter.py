@@ -1199,8 +1199,8 @@ def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:
 
 
 def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | None:
-    """Capacidade PGBL do ano-base fiscal único (ADR-266/277/305). ``None`` quando
-    não há IRPF ou ano-base resolvível → analyzer usa o proxy de receita PJ."""
+    """Capacidade PGBL do ano-base fiscal único (ADR-266/277/305/375). ``None`` quando
+    não há IRPF ou ano-base resolvível → analyzer devolve ausência declarada."""
     if irpf is None:
         return None
     resolved = resolve_ano_base_fiscal(irpf.estados_completude())
