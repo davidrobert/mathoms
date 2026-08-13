@@ -75,7 +75,7 @@ function PreviewSummary({ preview }: { preview: RulePreviewResponse }) {
           transações no total
         </li>
         {preview.matches_in_closed_months > 0 && (
-          <li className="text-[var(--semantic-warning)] inline-flex items-center gap-1">
+          <li className="text-[var(--semantic-alert-on-tint)] inline-flex items-center gap-1">
             <Lock className="h-3 w-3" />
             <span>
               <strong>{preview.matches_in_closed_months}</strong> em meses já
@@ -317,7 +317,7 @@ export function CreateRuleDialog({
               estabelecimento ou da contraparte.
             </p>
             {keyword.length > 0 && keyword.length < 4 && (
-              <p className="mt-1 text-[10px] text-[var(--semantic-warning)]">
+              <p className="mt-1 text-[10px] text-[var(--semantic-alert-on-tint)]">
                 Palavras curtas (&lt;4 caracteres) podem produzir muitos
                 matches.
               </p>

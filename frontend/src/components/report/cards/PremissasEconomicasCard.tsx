@@ -149,7 +149,7 @@ function PremissaRow({ row }: { row: PremissasEconomicasClassRow }) {
         </td>
         <td
           colSpan={4}
-          className="py-2 pr-4 text-sm text-[var(--semantic-alert)]"
+          className="py-2 pr-4 text-sm text-[var(--semantic-alert-on-tint)]"
           title={row.razao_indisponivel ?? undefined}
         >
           Premissa indisponível — projeção parcial nesta classe.

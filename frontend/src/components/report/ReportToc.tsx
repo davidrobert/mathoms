@@ -146,7 +146,7 @@ export function ReportToc({ groups }: ReportTocProps) {
         {groups.map((group, groupIdx) => (
           <div key={group.label ?? `g${groupIdx}`} className="flex flex-col gap-0.5">
             {group.label && (
-              <p className="mb-0.5 px-2 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--surface-muted-foreground)]/80">
+              <p className="mb-0.5 px-2 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--surface-muted-foreground)]">
                 {group.label}
               </p>
             )}
@@ -180,11 +180,11 @@ function TocButton({
       onClick={() => onClick(entry.id)}
       className={cn(
         "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+        // Apêndice já se distingue pelo grupo próprio no índice; a opacidade
+        // que também o marcava punha o texto a 3,59:1 (A40.l33).
         active
           ? "bg-[color-mix(in_srgb,var(--brand-primary)_10%,transparent)] font-medium text-[var(--brand-primary)]"
-          : entry.isAppendix
-            ? "text-[var(--surface-muted-foreground)]/70 hover:bg-[var(--surface-muted)]"
-            : "text-[var(--surface-muted-foreground)] hover:bg-[var(--surface-muted)]",
+          : "text-[var(--surface-muted-foreground)] hover:bg-[var(--surface-muted)]",
       )}
     >
       {entry.num ? (

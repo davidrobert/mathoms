@@ -101,7 +101,7 @@ export function CpfMaskedField({ workspaceId, memberId, memberName, cpfMasked, c
       )}
 
       {state === "error" && (
-        <span role="alert" className="inline-flex items-center gap-1 text-xs text-[var(--brand-warning)]">
+        <span role="alert" className="inline-flex items-center gap-1 text-xs text-[var(--brand-warning-on-tint)]">
           <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
           {error}
           <button type="button" onClick={reveal} className="font-semibold underline">

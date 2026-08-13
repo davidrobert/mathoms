@@ -31,7 +31,7 @@ export const SEVERITY: Record<CascataTrigger["severity"], SeverityStyle> = {
   },
   atencao: {
     borderClass: "border-[var(--semantic-warning)]",
-    iconClass: "text-[var(--semantic-warning)]",
+    iconClass: "text-[var(--semantic-alert-on-tint)]",
     Icon: AlertTriangle,
     ariaSeverity: "sinal de atenção",
   },

@@ -115,29 +115,34 @@ Dois achados de calibragem, sem defeito vivo:
 ## Aberto — 2026-08-13 · dono: David Robert
 
 Três achados do ataque **fora** da classe desta lane (que é "texto sobre tint da
-própria cor"). Ficaram fora do PR por exigirem decisão de design, não por
-esquecimento.
+própria cor"). **Os dois primeiros fecharam** no PR
+[#1434](https://github.com/davidrobert/mathoms/pull/1434); ficam registrados
+porque a medição de origem é o que justifica o gate novo.
 
-**1. Cor semântica como foreground sobre o card liso — 6 textos a 2,06:1.**
-`AlocacaoAtualVsAlvoCard:163` (11px), `PremissasEconomicasCard:152` (14px),
-`StressScenarioCard:126/147/162`, `S7IndependenciaSection:434` (12px) usam
-`--semantic-warning`/`--semantic-alert` como cor de texto sobre `--surface-card`.
-Reprova 1.4.3 em light por folga larga; em dark passa (8,67). Mais 2 ícones
-`aria-hidden` a 1,85–2,06 (`AcoesMitigacaoCard:61`, `alocacaoCardParts:112`) —
-isentos de 1.4.11 por serem decorativos, mas abaixo do 3:1 que esta lane aplica
-a ícones que nomeou.
-*Decisão pendente:* qual âmbar legível usar — `--semantic-alert-on-tint`
-(`#984C11`, ~6,9:1 sobre branco) ou `--report-alert-warning-text` (`#B45309`).
-As duas famílias já são duplicadas e a convergência é o item 1 do §Deferido.
-Enquanto não sai, `-on-tint` é o único par que existe para os dois.
+**1. ~~Cor semântica como foreground sobre o card liso~~ — fechado (#1434).**
+O âmbar (`--semantic-alert` e os alias, mesmo hex) dava **2,06:1** sobre
+`--surface-card` e **1,88:1** sobre `--surface-muted` — não há fundo neutro da
+paleta onde ele sirva de texto. Eram **14 call-sites** (8 no relatório, 6 em
+telas do app), não os 6 que a primeira varredura viu: o gate novo achou o resto.
+Dois são **ícone** e reprovavam até o limiar de 3:1 de 1.4.11.
+Escolhido `--semantic-alert-on-tint` e não `--report-alert-warning-text`: muda
+**só o tema light** (no dark o par é alias da base), é global em vez de escopado
+a `[data-report-scope]`, e não mexe na convergência das duas famílias âmbar, que
+segue sendo o item 1 do §Deferido.
 
-**2. Opacity modifier no texto — 3 call-sites a 3,55:1.**
-`text-[var(--surface-muted-foreground)]/70` dá 3,59 light / 3,55 dark
-(`ReportToc:186`, `alocacaoCardParts:318`); `/80` dá 4,54/**4,21** dark
-(`ReportToc:149`). O gate não modela alpha no foreground.
-*Decisão pendente:* o `/70` existe para de-enfatizar entrada de apêndice no
-índice — tirar achata a hierarquia. Ou aceita-se o achatamento, ou nasce um
-token "dim" que ainda passe AA.
+**2. ~~Opacity modifier no texto~~ — fechado (#1434).**
+`text-[var(--surface-muted-foreground)]/70` dava 3,55–3,59:1 nos dois temas
+(`ReportToc`, `alocacaoCardParts`); `/80` dava 4,21 no dark. Nos três o alfa era
+sinal **secundário** com um primário independente já presente (o apêndice tem
+grupo próprio no índice; o "/ alvo" tem o próprio rótulo), então sair não custou
+hierarquia. Se a de-ênfase for pedida de volta, a resposta é um token "dim" que
+passe AA — aí sim é decisão de design.
+
+Os dois viraram [`dev/check_foreground_contrast.py`](../../../../dev/check_foreground_contrast.py),
+irmão do gate de tint: mede contra o fundo **declarado na linha** quando existe
+(texto branco em botão sólido é correto e daria 1,00:1 contra o card) e contra os
+dois neutros quando não. O conjunto ruim é derivado da paleta; a curadoria fica
+no inverso, em 2 listas com checagem de staleness.
 
 **3. O `axe` descarta `results.incomplete` — 65 nós por tema, medidos.**
 [`helpers/axe.ts`](../../../../frontend/tests/e2e/helpers/axe.ts) lê só
