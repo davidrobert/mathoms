@@ -160,7 +160,7 @@ function CaixaLine({ caixa }: { caixa: AlocacaoCaixa }): JSX.Element | null {
         </span>
       </div>
       {caixa.sinal_excesso && (
-        <p className="mt-1 text-[11px] leading-relaxed text-[var(--semantic-warning)]">
+        <p className="mt-1 text-[11px] leading-relaxed text-[var(--semantic-alert-on-tint)]">
           Excesso de caixa — considere aportar.
         </p>
       )}

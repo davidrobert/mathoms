@@ -431,7 +431,7 @@ function AcumuladoresStat({ acumuladoresPct }: { acumuladoresPct: number }) {
           ? "Sem ETFs/fundos acumuladores"
           : isHigh
             ? (
-              <span className="text-[var(--semantic-warning)]">
+              <span className="text-[var(--semantic-alert-on-tint)]">
                 &gt;40% subestima TRS
               </span>
             )

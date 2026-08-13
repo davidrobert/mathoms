@@ -123,7 +123,7 @@ export function StressScenarioCard({
                 <span
                   className={
                     deltaAportePct != null && deltaAportePct > 0
-                      ? "text-[var(--semantic-warning)] ml-1"
+                      ? "text-[var(--semantic-alert-on-tint)] ml-1"
                       : "ml-1"
                   }
                   aria-label={
@@ -144,7 +144,7 @@ export function StressScenarioCard({
                   <span
                     className={
                       deltaPrazo != null && deltaPrazo > 0
-                        ? "text-[var(--semantic-warning)] ml-1"
+                        ? "text-[var(--semantic-alert-on-tint)] ml-1"
                         : "ml-1"
                     }
                   >
@@ -159,7 +159,7 @@ export function StressScenarioCard({
                 {estresseNaoProjetavel ? "—" : (anoEstresse ?? "—")}
                 {!estresseNaoProjetavel && deltaAno != null && deltaAno !== 0 && (
                   <span
-                    className={deltaAno > 0 ? "text-[var(--semantic-warning)] ml-1" : "ml-1"}
+                    className={deltaAno > 0 ? "text-[var(--semantic-alert-on-tint)] ml-1" : "ml-1"}
                   >
                     {deltaAno > 0 ? `(+${deltaAno} anos)` : `(${deltaAno} anos)`}
                   </span>

@@ -432,6 +432,18 @@ repos:
         pass_filenames: false
         files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
 
+      - id: foreground-contrast
+        # Irmão do de cima, para a classe SEM tint: a cor serve como texto sobre
+        # o card liso? O âmbar não servia (2,06:1) em 9 call-sites que o gate de
+        # tint não podia ver, porque não havia tint nenhum. Mede contra o fundo
+        # declarado na linha quando existe — texto branco em botão sólido é
+        # correto e mediria 1,00:1 contra o card.
+        name: "Texto sobre o card ≥ 4,5:1 (WCAG AA)"
+        entry: python3 dev/check_foreground_contrast.py
+        language: system
+        pass_filenames: false
+        files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
+
       - id: report-layout-codegen
         name: "Report layout codegen (TS/Pydantic) em sync com YAML (ADR-076)"
         entry: python3 dev/codegen_report_layout.py --check

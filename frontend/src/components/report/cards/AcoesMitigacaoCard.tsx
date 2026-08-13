@@ -58,7 +58,7 @@ function RecommendationItem({ rec }: { rec: ProtectionRecommendation }) {
   const pri = priorityLabel(rec.priority);
   return (
     <li className="flex items-start gap-2">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--semantic-warning)]" aria-hidden="true" />
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--semantic-alert-on-tint)]" aria-hidden="true" />
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold">{rec.rationale}</p>

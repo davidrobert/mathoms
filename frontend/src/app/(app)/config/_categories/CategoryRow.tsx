@@ -91,7 +91,7 @@ export function CategoryRow({
                   render={(props) => (
                     <span {...props}>
                       <AlertCircle
-                        className="h-4 w-4 text-[var(--semantic-warning)]"
+                        className="h-4 w-4 text-[var(--semantic-alert-on-tint)]"
                         aria-hidden
                       />
                     </span>

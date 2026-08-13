@@ -109,7 +109,7 @@ export function severityIcon(level: SeverityLevel): JSX.Element {
     return <CheckCircle2 aria-hidden className="size-4 text-[var(--semantic-success)]" />;
   }
   if (level === "atencao") {
-    return <AlertTriangle aria-hidden className="size-4 text-[var(--semantic-warning)]" />;
+    return <AlertTriangle aria-hidden className="size-4 text-[var(--semantic-alert-on-tint)]" />;
   }
   if (level === "rebalancear") {
     return <XCircle aria-hidden className="size-4 text-[var(--semantic-danger)]" />;
@@ -315,9 +315,7 @@ function MobileCard({ row, hasAlvo }: DesktopRowProps): JSX.Element {
         <span className="font-mono tabular-nums">
           {PCT.format(row.atual_pct)}%
           {row.alvo_pct !== null && (
-            <span className="ml-1 text-[var(--surface-muted-foreground)]/70">
-              / alvo {PCT.format(row.alvo_pct)}%
-            </span>
+            <span className="ml-1">/ alvo {PCT.format(row.alvo_pct)}%</span>
           )}
         </span>
         <MonetaryValue
