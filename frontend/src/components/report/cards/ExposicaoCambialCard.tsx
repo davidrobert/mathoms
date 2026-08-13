@@ -31,10 +31,12 @@ const TIER_LABEL: Record<string, string> = {
   empty: "sem exposição",
 };
 
+// Texto no par `-on-tint` (ADR-372): o fundo é tint de 15% da própria cor, e a
+// cor base sobre ela reprovava AA — `amarelo` dava 1,86:1 em light.
 const TIER_BADGE_CLASS: Record<string, string> = {
-  verde: "bg-[var(--semantic-success)]/15 text-[var(--semantic-success)]",
-  amarelo: "bg-[var(--semantic-warning)]/15 text-[var(--semantic-warning)]",
-  vermelho: "bg-[var(--semantic-danger)]/15 text-[var(--semantic-danger)]",
+  verde: "bg-[var(--semantic-success)]/15 text-[var(--semantic-gain-on-tint)]",
+  amarelo: "bg-[var(--semantic-warning)]/15 text-[var(--semantic-alert-on-tint)]",
+  vermelho: "bg-[var(--semantic-danger)]/15 text-[var(--semantic-loss-on-tint)]",
   empty: "bg-[var(--surface-muted)] text-[var(--surface-muted-foreground)]",
 };
 
@@ -45,9 +47,10 @@ const LASTRO_SOURCE_LABEL: Record<LastroSource, string> = {
 };
 
 const LASTRO_SOURCE_CLASS: Record<LastroSource, string> = {
-  override: "bg-[var(--brand-accent)]/15 text-[var(--brand-accent)]",
+  override: "bg-[var(--brand-accent)]/15 text-[var(--brand-accent-on-tint)]",
   catalog: "bg-[var(--surface-muted)] text-[var(--surface-muted-foreground)]",
-  fallback_classe: "bg-[var(--semantic-warning)]/15 text-[var(--semantic-warning)]",
+  fallback_classe:
+    "bg-[var(--semantic-warning)]/15 text-[var(--semantic-alert-on-tint)]",
 };
 
 /** Bloco G + ADR-224 PR-E — Card "Exposição Cambial" com fetch V2 + declare lastro inline.

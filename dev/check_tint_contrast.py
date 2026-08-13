@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 """Gate de contraste do padrão "texto na cor X sobre tint da MESMA cor X".
 
-O padrão é `bg-[color-mix(in_srgb,var(--X)_N%,transparent)]` junto de
-`text-[var(--Y)]` no mesmo `className`: o texto compõe contra um fundo que é a
-própria cor clareada. Quando `Y` é `X` (ou um alias dele), o par tende a
-reprovar WCAG AA — foi assim que o badge Fator-R chegou a 1,86:1 em light e o
-selo de risco a 4,36:1 em dark.
+O padrão é um tint da cor semântica como fundo junto de `text-[var(--Y)]` no
+mesmo `className`: o texto compõe contra um fundo que é a própria cor clareada.
+Quando `Y` é `X` (ou um alias dele), o par tende a reprovar WCAG AA — foi assim
+que o badge Fator-R chegou a 1,86:1 em light e o selo de risco a 4,36:1 em dark.
 
 Por que MEDIR e não só PROIBIR a forma: a proibição pura reprovaria pares que
 passam com folga (tint de 8-10% costuma passar) e, pior, deixaria passar um par
 de tokens *diferentes* que contrasta mal. Medir fecha a classe — token novo,
 percentual novo ou tema novo entram no cálculo sozinhos, sem editar allowlist.
 
-Limite honesto: o fundo sob o tint transparente é assumido como
-`--surface-card`, que é o caso de todos os call-sites de hoje. Um componente
-sobre fundo bem mais escuro/claro que o card sai medido errado — se isso
-aparecer, o par tem de ser nomeado num teste explícito (padrão de
-`parecerToneContrast.test.ts`) em vez de inferido aqui.
+Medir por UMA sintaxe, porém, não fecha nada: o ataque de 2026-08-13 (A40.l33)
+achou 7 call-sites reprovando — inclusive o mesmo 1,86:1 que abriu a lane — só
+porque escreviam o tint de outro jeito. As três formas em uso estão em
+`_tints_in_line`, e forma nova é o modo de falha a vigiar aqui.
 
-Segundo limite: o pareamento é dentro de UM `className`. Ícone colorido cujo
-`text-[…]` vive num elemento filho (o `<AlertTriangle>` de `SimplificadaFlag`,
-por exemplo) não é pareado aqui — 1.4.11 nesses casos está coberto por teste de
-token nomeado, não por este gate.
+Limite honesto: sob tint *translúcido* o fundo é assumido `--surface-card`.
+Onde a forma declara o substrato (`color-mix(… , var(--Y))`) o valor é opaco e
+o substrato declarado é usado. Componente sobre fundo bem mais escuro/claro que
+o card sai medido errado — nesse caso o par tem de ser nomeado em
+`NAMED_PAIRS` em vez de inferido.
+
+Segundo limite: o pareamento é dentro de UMA linha. Ícone colorido cujo
+`text-[…]` vive num elemento filho não é pareado aqui — entra em `NAMED_PAIRS`.
 """
 
 from __future__ import annotations
@@ -39,24 +41,94 @@ AA_TEXTO_PEQUENO = 4.5
 # 1.4.11 (objeto gráfico / ícone) — limiar mais baixo que texto, mas existe.
 AA_NAO_TEXTO = 3.0
 
-# Pares que o pareamento por `className` NÃO alcança: o tint está no elemento
-# pai e o `text-[…]` num filho (ícone colorido ao lado de prosa em foreground
-# neutro). Nomeados à mão porque inferir a relação pai↔filho exigiria parsear
-# JSX — e um par nomeado errado é mais fácil de auditar que um inferido errado.
-# Cada entrada é verificada contra o arquivo: se o call-site sumir ou trocar de
-# token, a entrada fica stale e o gate falha em vez de medir fantasma.
+# Pares que o pareamento por linha NÃO alcança: o tint está no elemento pai e o
+# `text-[…]` num filho (ícone colorido ao lado de prosa em foreground neutro, ou
+# `<p>` logo abaixo do `<div>` tintado). Nomeados à mão porque inferir a relação
+# pai↔filho exigiria parsear JSX — e um par nomeado errado é mais fácil de
+# auditar que um inferido errado.
+#
+# `(arquivo, cor do texto, cor do tint, %, substrato, limiar)`. Cada entrada é
+# verificada contra o arquivo: se o texto trocar de token OU o tint mudar de
+# percentual, a entrada fica stale e o gate falha em vez de medir fantasma.
 NAMED_PAIRS = [
-    ("components/report/provenance/ProvenancePopover.tsx", "semantic-alert", 15, AA_NAO_TEXTO),
-    ("components/report/cards/CascataFiscalCard.pgbl.tsx", "semantic-alert", 10, AA_NAO_TEXTO),
+    (
+        "components/report/provenance/ProvenancePopover.tsx",
+        "semantic-alert-on-tint",
+        "semantic-alert",
+        15,
+        "surface-card",
+        AA_NAO_TEXTO,
+    ),
+    (
+        "components/report/cards/CascataFiscalCard.pgbl.tsx",
+        "semantic-alert-on-tint",
+        "semantic-alert",
+        10,
+        "surface-card",
+        AA_NAO_TEXTO,
+    ),
     # `alocacaoCardParts.BADGE_COLOR` monta o par por `style` inline, com `bg` e
     # `fg` em linhas separadas de um object literal — o pareamento por linha não
-    # alcança, e a forma `color-mix(in srgb, …)` (com espaços) nem casa com o
-    # arbitrary value do Tailwind. Foi a varredura dark do axe que achou:
-    # `rebalancear` dava 4,44:1. Nomeados porque cobrir object literal por regex
-    # seria frágil o bastante para virar falso-verde.
-    ("components/report/cards/alocacaoCardParts.tsx", "semantic-gain", 12, AA_TEXTO_PEQUENO),
-    ("components/report/cards/alocacaoCardParts.tsx", "semantic-alert", 14, AA_TEXTO_PEQUENO),
-    ("components/report/cards/alocacaoCardParts.tsx", "semantic-loss", 14, AA_TEXTO_PEQUENO),
+    # alcança. Foi a varredura dark do axe que achou: `rebalancear` dava 4,44:1.
+    # Nomeados porque cobrir object literal por regex seria frágil o bastante
+    # para virar falso-verde.
+    (
+        "components/report/cards/alocacaoCardParts.tsx",
+        "semantic-gain-on-tint",
+        "semantic-success",
+        12,
+        "surface-card",
+        AA_TEXTO_PEQUENO,
+    ),
+    (
+        "components/report/cards/alocacaoCardParts.tsx",
+        "semantic-alert-on-tint",
+        "semantic-warning",
+        14,
+        "surface-card",
+        AA_TEXTO_PEQUENO,
+    ),
+    (
+        "components/report/cards/alocacaoCardParts.tsx",
+        "semantic-loss-on-tint",
+        "semantic-danger",
+        14,
+        "surface-card",
+        AA_TEXTO_PEQUENO,
+    ),
+    # Pai tintado + `<p>` filho, achados no ataque da A40.l33: a linha do `<div>`
+    # não tem `text-[…]` e a linha do `<p>` não tem tint, então nenhuma das duas
+    # sozinha vira par. O substrato aqui é declarado (`var(--surface-card)`),
+    # logo o tint do `.card-variant-highlight` do card em volta não entra —
+    # `color-mix` com segunda cor opaca não compõe com o que está atrás.
+    (
+        "components/report/cards/EstrategiaAporteCard.tsx",
+        "semantic-gain-on-tint",
+        "semantic-gain",
+        8,
+        "surface-card",
+        AA_TEXTO_PEQUENO,
+    ),
+    (
+        "components/report/cards/EstrategiaAporteCard.tsx",
+        "brand-primary",
+        "brand-primary",
+        8,
+        "surface-card",
+        AA_TEXTO_PEQUENO,
+    ),
+    # S_parecer: tint por `style` inline no `<div>`, texto no `<p>` filho. Passa
+    # a 4,76:1 e NÃO foi repintado — a calibragem do S_parecer é do dono
+    # (A40.l33 §Deferido). Nomeado para que uma mudança de token não o derrube
+    # em silêncio.
+    (
+        "components/report/sections/SParecer/ParecerHorizonteList.tsx",
+        "brand-accent",
+        "brand-accent",
+        4,
+        "surface-card",
+        AA_TEXTO_PEQUENO,
+    ),
 ]
 
 # `--semantic-warning` e `--semantic-alert` são o mesmo hex, idem
@@ -69,7 +141,17 @@ ALIAS = {
     "semantic-success": "semantic-gain",
 }
 
-BG_RE = re.compile(r"bg-\[color-mix\(in_srgb,var\(--([\w-]+)\)_(\d+)%,transparent\)\]")
+# Três sintaxes produzem o mesmo pixel; a primeira versão do gate via só a (1).
+#   (1) bg-[color-mix(in_srgb,var(--X)_15%,transparent)]  — Tailwind arbitrary
+#   (2) color-mix(in srgb, var(--X) 8%, var(--Y))         — substrato declarado,
+#       inclusive em `style` inline (espaços em vez de `_`)
+#   (3) bg-[var(--X)]/15                                  — opacity modifier
+# (2) é opaca: compõe contra o substrato declarado, não contra o pai.
+COLOR_MIX_RE = re.compile(
+    r"color-mix\(in[ _]srgb,[ _]*var\(--([\w-]+)\)[ _](\d+)%,[ _]*"
+    r"(?:transparent|var\(--([\w-]+)\))\s*\)"
+)
+OPACITY_BG_RE = re.compile(r"bg-\[var\(--([\w-]+)\)\]/(\d+)")
 FG_RE = re.compile(r"text-\[var\(--([\w-]+)\)\]")
 BLOCK_RE = re.compile(r"([^{}]+)\{([^{}]*)\}")
 DECL_RE = re.compile(r"--([\w-]+):\s*(#[0-9A-Fa-f]{6})\b")
@@ -77,8 +159,9 @@ DECL_RE = re.compile(r"--([\w-]+):\s*(#[0-9A-Fa-f]{6})\b")
 
 def token_map(css: str, theme: str) -> dict[str, str]:
     """Mapa token → hex. `tokens.css` declara tema em 4 seletores distintos
-    (`:root`, `:root [data-report-scope]`, `.dark, …`, `.dark [data-report-scope]`),
-    então classificar por presença de `dark` no seletor cobre todos."""
+    (`:root`, `[data-report-scope]`, `[data-theme='dark']` e
+    `[data-theme='dark'] [data-report-scope]`), então classificar por presença
+    de `dark` no seletor cobre todos."""
     out: dict[str, str] = {}
     for selector, body in BLOCK_RE.findall(css):
         if ("dark" in selector) != (theme == "dark"):
@@ -128,30 +211,54 @@ class TintPair(NamedTuple):
     fg_token: str
     bg_token: str
     pct: int
+    substrate: str = "surface-card"
     min_ratio: float = AA_TEXTO_PEQUENO
 
 
-def _pair_in_line(where: str, line: str) -> TintPair | None:
-    bg = BG_RE.search(line)
-    fg = FG_RE.search(line)
-    if not (bg and fg):
-        return None
-    return TintPair(where, fg.group(1), bg.group(1), int(bg.group(2)))
+def _tints_in_line(line: str) -> list[tuple[str, int, str]]:
+    """`(token, %, substrato)` de cada tint declarado na linha."""
+    mixes = [
+        (token, int(pct), substrate or "surface-card")
+        for token, pct, substrate in COLOR_MIX_RE.findall(line)
+    ]
+    return mixes + [(token, int(pct), "surface-card") for token, pct in OPACITY_BG_RE.findall(line)]
+
+
+def _pairs_in_line(where: str, line: str) -> list[TintPair]:
+    fgs = FG_RE.findall(line)
+    return [
+        TintPair(where, fg, bg, pct, substrate)
+        for bg, pct, substrate in _tints_in_line(line)
+        for fg in fgs
+    ]
+
+
+# Checar só a cor do texto deixava o percentual apodrecer: o call-site vira 30%
+# e o gate segue reportando o contraste de 15%, que ninguém pinta.
+def _assert_fresh(where: str, source: str, pair: TintPair) -> None:
+    """Entrada nomeada que não corresponde mais ao arquivo é fantasma."""
+    if f"var(--{pair.fg_token})" not in source:
+        raise SystemExit(
+            f"{where}: entrada stale em NAMED_PAIRS — o arquivo não usa mais "
+            f"--{pair.fg_token}. Atualize ou remova a entrada."
+        )
+    declarados = {(t, p) for line in source.splitlines() for t, p, _ in _tints_in_line(line)}
+    if (pair.bg_token, pair.pct) not in declarados:
+        raise SystemExit(
+            f"{where}: entrada stale em NAMED_PAIRS — o arquivo não declara tint "
+            f"de --{pair.bg_token} a {pair.pct}%. Atualize o percentual da entrada."
+        )
 
 
 def named_pairs() -> list[TintPair]:
-    """Pares nomeados (ícone em elemento filho) + checagem de staleness."""
+    """Pares nomeados (texto em elemento filho) + checagem de staleness."""
     out = []
-    for rel, bg_token, pct, min_ratio in NAMED_PAIRS:
-        fg_token = f"{canonical(bg_token)}-on-tint"
-        source = (SRC / rel).read_text(encoding="utf-8")
-        where = f"frontend/src/{rel} (par nomeado)"
-        if f"var(--{fg_token})" not in source:
-            raise SystemExit(
-                f"{where}: entrada stale em NAMED_PAIRS — o arquivo não usa mais "
-                f"--{fg_token}. Atualize ou remova a entrada."
-            )
-        out.append(TintPair(where, fg_token, bg_token, pct, min_ratio))
+    for rel, fg_token, bg_token, pct, substrate, min_ratio in NAMED_PAIRS:
+        pair = TintPair(
+            f"frontend/src/{rel} (par nomeado)", fg_token, bg_token, pct, substrate, min_ratio
+        )
+        _assert_fresh(pair.where, (SRC / rel).read_text(encoding="utf-8"), pair)
+        out.append(pair)
     return out
 
 
@@ -165,23 +272,28 @@ def _source_lines():
 
 
 def same_color_pairs() -> list[TintPair]:
-    """Cada `className` que declara tint E cor de texto da mesma cor."""
-    found = (_pair_in_line(where, line) for where, line in _source_lines())
-    return [p for p in found if p and is_same_color_pair(p.fg_token, p.bg_token)]
+    """Cada linha que declara tint E cor de texto da mesma cor."""
+    return [
+        pair
+        for where, line in _source_lines()
+        for pair in _pairs_in_line(where, line)
+        if is_same_color_pair(pair.fg_token, pair.bg_token)
+    ]
 
 
 def _violation(pair: TintPair, theme: str, tokens: dict[str, str]) -> str | None:
-    fg, bg_base, card = (
+    fg, bg_base, substrate = (
         tokens.get(pair.fg_token),
         tokens.get(pair.bg_token),
-        tokens.get("surface-card"),
+        tokens.get(pair.substrate),
     )
-    if not (fg and bg_base and card):
+    if not (fg and bg_base and substrate):
         return (
             f"{pair.where} — token sem hex no tema {theme} "
-            f"(fg=--{pair.fg_token} bg=--{pair.bg_token}); gate não consegue medir"
+            f"(fg=--{pair.fg_token} bg=--{pair.bg_token} sob --{pair.substrate}); "
+            "gate não consegue medir"
         )
-    ratio = contrast_ratio(fg, composite(bg_base, card, pair.pct))
+    ratio = contrast_ratio(fg, composite(bg_base, substrate, pair.pct))
     if ratio >= pair.min_ratio:
         return None
     return (

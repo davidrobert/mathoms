@@ -144,7 +144,7 @@ function WarningNotice({
       {warnings.map((w) => (
         <div
           key={w.code}
-          className="flex items-start gap-2 rounded-md border border-[var(--semantic-warning)]/30 bg-[var(--semantic-warning)]/5 p-2 text-xs text-[var(--semantic-warning)]"
+          className="flex items-start gap-2 rounded-md border border-[var(--semantic-warning)]/30 bg-[var(--semantic-warning)]/5 p-2 text-xs text-[var(--semantic-alert-on-tint)]"
         >
           <TriangleAlert className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
           <span>{w.message}</span>

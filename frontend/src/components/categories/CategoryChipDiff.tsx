@@ -190,7 +190,7 @@ function ChipPill({
     chip.kind === "default"
       ? "border-transparent bg-[var(--surface-muted)] text-[var(--surface-foreground)]"
       : chip.kind === "added"
-        ? "border-[var(--brand-accent)] bg-[var(--brand-accent)]/10 text-[var(--brand-accent)]"
+        ? "border-[var(--brand-accent)] bg-[var(--brand-accent)]/10 text-[var(--brand-accent-on-tint)]"
         : "border-dashed border-[var(--surface-border)] bg-transparent text-[var(--surface-muted-foreground)] line-through";
 
   return (

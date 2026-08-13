@@ -106,7 +106,7 @@ export function EstrategiaAporteCard({
         {(estrategia?.pct_brl !== undefined || estrategia?.pct_usd !== undefined) && (
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-[var(--radius-md)] border border-[var(--surface-border)] bg-[color-mix(in_srgb,var(--semantic-gain)_8%,var(--surface-card))] p-3">
-              <p className="text-sm font-semibold text-[var(--semantic-gain)]">
+              <p className="text-sm font-semibold text-[var(--semantic-gain-on-tint)]">
                 {estrategia?.pct_brl ?? 0}% em BRL
               </p>
               {estrategia?.resumo_brl && (
