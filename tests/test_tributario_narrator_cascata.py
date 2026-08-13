@@ -23,6 +23,36 @@ def _ctx() -> NarrativasContext:
     )
 
 
+def _section_simples(cascata_extra: dict) -> dict:
+    return {
+        "regime": "simples",
+        "regime_label": "Simples Nacional (Anexo III)",
+        "cascata": {
+            "receita_bruta": 600_000.0,
+            "tributos_federais": 40_000.0,
+            "carga_total_pct": 0.0667,
+            "pgbl_base_anual": 144_000.0,
+            "pgbl_limite_anual": 17_280.0,
+            **cascata_extra,
+        },
+    }
+
+
+# Sem a cláusula, o motivo cai no fall-through genérico ("indisponível"), que
+# esconde qual insumo falta — o oposto de nomear a precondição.
+def test_declaracao_desconhecida_nao_narra_deducao_como_permitida():
+    """ADR-375 D4 cond. 1 — o consumidor da narrativa também precisa do motivo novo."""
+    out = narrate_cascata(
+        _section_simples(
+            {"pgbl_aplicavel": False, "pgbl_motivo_inaplicavel": "tipo_declaracao_desconhecido"}
+        ),
+        _ctx(),
+    )
+    assert "modelo de declaração" in out["conclusion"]
+    assert "indisponível" not in out["conclusion"]
+    assert "permite dedução" not in out["conclusion"]
+
+
 def test_perfil_pendente_com_receita_cita_valor_detectado():
     section = {
         "regime": None,

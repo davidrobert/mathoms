@@ -125,26 +125,36 @@ def _triggers_summary(cascata: Mapping[str, Any]) -> str:
     return f" Sinalizadores ativos: {', '.join(codes)}."
 
 
+_PGBL_CLAUSE_POR_MOTIVO: dict[str, str] = {
+    "declaracao_simplificada": (
+        "PGBL não dedutível: declaração simplificada foi escolhida "
+        "(desconto simplificado substitui deduções legais)."
+    ),
+    "renda_tributavel_pf_zerada": (
+        "Base PGBL ainda não detectada — IRPF processado é necessário "
+        "para calcular a renda tributável PF."
+    ),
+    # ADR-375 D4 cond. 1 — sem este verbete o motivo cai no fall-through genérico,
+    # que esconde qual insumo falta.
+    "tipo_declaracao_desconhecido": (
+        "Dedução de PGBL não afirmada: o modelo de declaração do IRPF "
+        "(completa ou simplificada) não está registrado, e só a completa "
+        "admite a dedução."
+    ),
+}
+
+_PGBL_CLAUSE_FALLBACK = "Base PGBL indisponível neste momento."
+
+
 def _pgbl_clause(cascata: Mapping[str, Any]) -> str:
-    aplicavel = cascata.get("pgbl_aplicavel")
     limite = cascata.get("pgbl_limite_anual") or 0
-    motivo = cascata.get("pgbl_motivo_inaplicavel")
-    if aplicavel and limite > 0:
+    if cascata.get("pgbl_aplicavel") and limite > 0:
         return (
             f"Base PGBL (renda tributável PF) permite dedução de até "
             f"{_fmt_money_safe(limite)}/ano (limite 12% da base)."
         )
-    if motivo == "declaracao_simplificada":
-        return (
-            "PGBL não dedutível: declaração simplificada foi escolhida "
-            "(desconto simplificado substitui deduções legais)."
-        )
-    if motivo == "renda_tributavel_pf_zerada":
-        return (
-            "Base PGBL ainda não detectada — IRPF processado é necessário "
-            "para calcular a renda tributável PF."
-        )
-    return "Base PGBL indisponível neste momento."
+    motivo = cascata.get("pgbl_motivo_inaplicavel")
+    return _PGBL_CLAUSE_POR_MOTIVO.get(motivo, _PGBL_CLAUSE_FALLBACK)
 
 
 def _narrate_simples(

@@ -385,6 +385,41 @@ def test_simplificada_bloqueia_triggers_pgbl_dependentes():
     assert "T3" not in codes  # T3 exige PGBL aplicável
 
 
+def _input_simples_iii_declaracao_desconhecida() -> CascataInput:
+    base = _input_simples_iii()
+    return CascataInput(
+        regime=base.regime,
+        anexo_simples=base.anexo_simples,
+        tipo_declaracao_ir=None,
+        receita_pj_anual=base.receita_pj_anual,
+        pro_labore_mensal=base.pro_labore_mensal,
+        lucros_distribuidos_mensal=base.lucros_distribuidos_mensal,
+        folha_pj_mensal=base.folha_pj_mensal,
+        outras_rendas_tributaveis_pf_anual=base.outras_rendas_tributaveis_pf_anual,
+    )
+
+
+def test_declaracao_desconhecida_nao_afirma_pgbl_aplicavel():
+    """ADR-375 D4 cond. 1 — "completa" precisa ser conhecida, não defaultada."""
+    out = compute(_input_simples_iii_declaracao_desconhecida())
+    assert out.pgbl_base_anual.amount > Decimal("0")  # a base existe
+    assert out.pgbl_aplicavel is False
+    assert out.pgbl_motivo_inaplicavel == "tipo_declaracao_desconhecido"
+
+
+def test_declaracao_desconhecida_bloqueia_triggers_pgbl_dependentes():
+    """O dano do default é a prescrição: T1 e T3 aconselham aporte sem saber o modelo."""
+    out = compute(_input_simples_iii_declaracao_desconhecida())
+    codes = _trigger_codes(out)
+    assert "T1" not in codes
+    assert "T3" not in codes
+
+
+def test_input_sem_tipo_declaracao_nasce_desconhecido():
+    """O gate incide sobre o default do produtor: kwarg omitido não vira "completa"."""
+    assert CascataInput().tipo_declaracao_ir is None
+
+
 def test_triggers_break_even_computed():
     # Gate — todo trigger emitido tem params com valor numérico (não copy genérico).
     out = compute(_input_simples_v())
