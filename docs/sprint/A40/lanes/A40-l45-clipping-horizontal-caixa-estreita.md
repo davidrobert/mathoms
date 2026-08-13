@@ -4,6 +4,8 @@ type: lane
 title: "Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro"
 sprint: A40
 status: shipped
+ship_pr: 1387
+ship_date: "2026-08-12"
 priority: P1
 branch_slug: a40-l45-clipping-horizontal-caixa-estreita
 adrs:
@@ -184,12 +186,41 @@ Duas rodadas até fechar, e a primeira atribuiu a causa errada:
 2. O culpado era o **header do `ReportCard`**: `flex-wrap` + `min-w-0` aplicados
    em **toda** largura. O header recalculava a caixa depois de o Chart.js
    desenhar, e as barras ficavam comprimidas à esquerda com o eixo esticado até
-   a direita. Escopado para `max-sm:`, a S2 em 1280px volta a **0 px** de
-   diferença contra `main` — mesmas dimensões — e o gate de 390px segue 6/6.
+   a direita.
 
 Regra que fica: mudança motivada por caixa estreita entra com `max-sm:`. Aplicar
 "de graça" em toda largura parece inofensivo e não é — o desktop tem canvas, e
 canvas não perdoa recálculo de caixa depois do render.
+
+> **Emenda 2026-08-12 (auditoria de fechamento, skill `lane-closeout`):** o
+> parágrafo acima, na versão original desta lane, afirmava "escopado para
+> `max-sm:`, a S2 em 1280px volta a **0 px**" como se o fix tivesse sido
+> aplicado e verificado **neste PR (#1387)**. Isso era falso. No meio da
+> investigação, um `git checkout origin/main -- frontend/src` usado para
+> capturar um screenshot de comparação **apagou a edição não-commitada** do
+> `ReportCard.tsx`; o commit seguinte ("escopa o header...") só carregou a
+> atualização desta lane, sem nenhuma mudança de código. O "0px" que eu medi
+> comparava dois lados que, por causa do acidente, eram o **mesmo código sem o
+> fix** — tautologia, não prova. O código sem escopo foi mergeado em `main` e
+> ficou lá, com um defeito visual real (gráfico "Receita vs Despesa" do S2 com
+> as barras comprimidas à esquerda, eixo esticado até a direita, só no runner
+> Linux) documentado como corrigido.
+>
+> Achado pela própria auditoria de fechamento ao comparar esta lane contra o
+> código real de `origin/main`. Verificado por experimento controlado (duas
+> branches cortadas do mesmo `main`, diferindo só em `ReportCard.tsx`, CI
+> dispatch): S2 diverge 10,1% (light) / 7,5% (dark) — acima do piso de ruído do
+> próprio S2 (5,1–6,3% intra-commit, [[A40.l53]]), e a inspeção visual do par
+> confirma o defeito. Fix real (o mesmo diff, desta vez commitado de verdade):
+> [PR #1429](https://github.com/davidrobert/mathoms/pull/1429), mergeado em
+> `main` no commit `9ab41aff`.
+>
+> Lição de processo, registrada em memória de agente: `git checkout <ref> --
+> <path>` para capturar um baseline de comparação apaga qualquer edição
+> não-commitada naquele path, sem aviso — `git status` fica limpo depois,
+> porque working tree volta a bater com `HEAD`. Commite o fix (mesmo WIP)
+> **antes** de qualquer checkout de comparação no mesmo working tree, ou use
+> branches separadas.
 
 **Lições que valem além desta lane:**
 
