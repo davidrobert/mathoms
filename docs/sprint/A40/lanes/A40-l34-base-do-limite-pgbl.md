@@ -160,8 +160,11 @@ Revisado pelo co-design de 2026-08-11. O anterior tinha um item **inexequível**
 
 **Publicação:**
 
-- **Um único limite PGBL no relatório inteiro**, na S8. Gate de inventário
-  (padrão [[ADR-370]]) impede que superfície futura re-publique.
+- **Um único limite PGBL no relatório inteiro**, ~~na S8~~ **no Card B
+  (`S_IRPF_OTIMIZACAO`)** — corrigido 2026-08-13 pelo co-design (§Emenda da
+  [[ADR-375]]). O gate é **textual**, não de inventário: medido que o de
+  inventário passa verde com o teto publicado 2× dentro da S8, porque conta
+  título de card e não vê corpo de trigger nem prosa.
 - Prescrição **ausente/suprimida — não `R$ 0`** — sem IRPF **e** sem
   `business_profile`. R$ 0 como "aporte sugerido" continua sendo conselho.
 - O gate incide sobre o **default do produtor**, não só sobre o call-site: se
@@ -261,6 +264,89 @@ O **D5 segue bloqueado** pela escala de `deducao_brl_cents`. E a pergunta de
 domínio — faixa marginal sobre base de cálculo ou sobre rendimento bruto? —
 segue **sem dono**: o `financial-planner` foi interrompido por limite de gasto
 da conta. Não afeta o PR2; afeta o PR3.
+
+## PR3a — entregue 2026-08-13 (#1437)
+
+Fecha o **§D4 cond. 1** no lado da S8: `tipo_declaracao_ir` desconhecido deixa de
+afirmar dedutibilidade. `_tipo_declaracao(bp=None)` devolvia `"completa"` e
+`CascataInput` defaultava o mesmo — e a afirmação **libera T1 e T3**, os dois
+triggers que prescrevem aporte. Medido antes do fix, com 3 testes escritos
+primeiro: perfil ausente + base > 0 ⇒ **T3 dispara**. Se a família declara no
+simplificado, a dedução é zero e o conselho foi inventado sobre um default.
+
+A regra saiu para [`cascata_pgbl.py`](../../../../pipeline/domain/services/tributario/cascata_pgbl.py):
+`cascata_calculator.py` estava em **498/500** linhas e o gate P2 reprova qualquer
+adição. Extração mecânica, no mesmo commit, declarada na mensagem.
+
+Motivo novo testado no **consumidor**, não só no produtor — sem o ramo em
+`PgblStatus` o bloco imprimiria o teto sem caveat nenhum, e sem o verbete no
+narrador o motivo cairia no fall-through genérico. De brinde: a `description` de
+`previdencia_pgbl` no schema E5 e a docstring de `_build_capacidade_pgbl` ainda
+documentavam o `proxy_receita_pj` que o PR2 removeu.
+
+**O golden não se move** e isso é esperado: `tributario` é `None` no snapshot do
+dogfood, então o produtor da S8 é invisível ao snapshot.
+
+## Co-design de 2026-08-13 — o inventário era de 2 e são 6
+
+`financial-planner` + `product-designer` em paralelo; **divergiram na hospedagem**
+e o `senior-cto` fechou (protocolo anti-loop). Detalhe e justificativa na
+§Emenda 2026-08-13 da [[ADR-375]]. O que muda para a execução:
+
+**Quatro publicadores que a lane não contava:** T3 (`pgbl_limite_anual_brl`), T1
+(`aporte_pgbl_extra_anual_brl` + `economia_ir_anual_brl`, pelo instrumento que o
+D5 condena), a prosa do narrador, e o **catálogo de citação do parecer** — as
+folhas `limite_pgbl_anual` / `aporte_mensal` / `renda_tributavel_anual` casam o
+predicado monetário e são citáveis por LLM; as do Card B não casam. Consequência
+direta: **"um único limite PGBL no relatório inteiro" era falso se o PR3 parasse
+no bloco da S8.**
+
+**O instrumento do gate estava errado.** Medido em `medium.json`: R$ 4.320
+aparece **duas vezes dentro da S8** (bloco + corpo do T3) e o gate de inventário
+passa **verde** — ele conta título de card e é cego a corpo de trigger e a prosa.
+O gate certo é **textual** (padrão de `print-text.@critical.spec.ts`, que já roda
+em `frontend-checks ⊂ all-green.needs`).
+
+**O D1 troca de dono** — Card B (`S_IRPF_OTIMIZACAO`), por evidência: o piso do D4
+é nativo lá e sintético na S8. A partição por horizonte foi recusada por medição
+(a base da S8 é híbrida). **O D2 vira nota**, não card: custo não existe em schema
+nenhum, regime defaulta `progressivo` no silêncio, e o saldo já sai na S3.
+
+**A fixture certifica um estado impossível.** `medium.json` traz
+`previdencia_pgbl = {"saldo": 45000}` — chave que nenhum produtor emite — e **zero**
+bloco `irpf`. O card da S7 cai no `DefaultPrevidenciaCard` com os três KPIs
+`undefined`: o único sinal de S7 no gate é ficção, e Card B + os 4 modos
+informativos **nunca montam em gate nenhum**. Mesma classe do `exposicao_cambial`
+([[A40.l33]]) e do `anexo_v`.
+
+## PR3b — o que falta
+
+- **De-publicar os quatro sites restantes**: T3 (corpo **e** `params` — campo sem
+  leitor é faceta inerte), `_pgbl_clause` (base + ponteiro, com unit test próprio
+  porque `narrativas.S8` é `null` nas fixtures), a folha citável do parecer
+  (renomear para fora do predicado monetário ou remover), e a S7.
+- **T1**: suprimir `aporte_pgbl_extra_anual_brl` + `economia_ir_anual_brl`. Não é
+  escopo novo — é o D4 cond. 2 num site que o inventário da ADR perdeu. A
+  *correção* (fonte da faixa) fica na [[A40.l37]], que precisa **herdar D4 cond. 2
+  + D5 + D6 + [[ADR-135]] por escrito**; sem isso migra a fonte e preserva o
+  instrumento condenado com CI verde.
+- **S7 vira nota de 2 estados**; morrem o card, a matriz de 6 modos e
+  `getPgblCardStrategy`. **Preservar** `derivePrimaryYear` + `matchIrpfToPeriod`:
+  a linha de defasagem ≥2 anos não existe no Card B e é sinal órfão se não migrar.
+  Idem a `nota` do produtor (diferimento + ano-calendário corrente, [[ADR-305]] D3).
+- **Fixture + gate**: `medium.json` ganha bloco `irpf` e perde o `saldo`;
+  `report-inventory.expected.json` perde a linha "Previdência PGBL" **à mão**
+  (regenerar não conserta remoção) e ganha as chaves das seções que passam a
+  montar.
+- **`FORMULAS.md`**: entrada PGBL (hoje **zero** ocorrências) — teto = 12% do
+  rendimento **bruto** tributável citando [[ADR-236]], faixa marginal sobre **base
+  de cálculo**, a diferencial, os estados e a distinção teto × restante.
+- **`ParecerAncoraChips.tsx`**: o rótulo `previdencia_pgbl → "Previdência PGBL"`
+  fica falso no merge, e o comentário acima dele justifica o valor dizendo que é o
+  title do card da S7. Colisão declarada com a [[A40.l49]] PR1, que substitui o
+  mapa inteiro.
+- **Emenda da [[ADR-375]]** — ✅ aplicada 2026-08-13; `Proposto` → `Decidido (A40)`
+  no merge do PR3b.
 
 ## Colisão declarada
 
