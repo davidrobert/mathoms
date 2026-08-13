@@ -4,6 +4,7 @@ type: adr
 title: "Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma"
 status: Decidido
 date: "2026-08-08"
+amended_at: ["2026-08-13"]
 relates_to: ["[[ADR-076]]", "[[ADR-117]]", "[[ADR-143]]", "[[ADR-236]]"]
 tags:
   - type/adr
@@ -14,6 +15,11 @@ tags:
 ---
 
 # ADR-372 — Par `-on-tint` para texto sobre tint da própria cor
+
+> **Emendada em 2026-08-13** — a D2 fecha token, percentual e tema, mas não a
+> **sintaxe**: 7 call-sites escreviam o tint como `bg-[var(--X)]/15` e ficaram
+> fora do conjunto medido, reprovando com os mesmos números desta ADR. Ver
+> §Emenda 2026-08-13.
 
 ## Contexto
 
@@ -121,6 +127,42 @@ Enquanto a decisão não sai (dono: `product-designer`), o limiar canônico do p
 par. Mitigado por três caminhos — a regra no §Design System do `CLAUDE.md`, a
 mensagem de erro do gate (que nomeia o token a usar) e o comentário no
 call-site. É o padrão de [[ADR-143]]: a regra vive junto do enforcer.
+
+## Emenda 2026-08-13 — a sintaxe é o quarto eixo da D2
+
+A D2 diz que medir fecha a classe porque "token novo, percentual novo ou tema
+novo entram no cálculo sozinhos". Verdade nos três eixos citados — e o ataque à
+[[A40.l33]] achou um quarto que não estava na lista: **a forma de escrever o
+tint**. O gate casava só `bg-[color-mix(in_srgb,var(--X)_N%,transparent)]`.
+Outras duas formas pintam o mesmo pixel:
+
+- `bg-[var(--X)]/15` (opacity modifier do Tailwind) — **7 call-sites**, todos
+  reprovando: 1,86:1 no âmbar, 4,09:1 no verde, 4,36:1 no vermelho em dark. São
+  os números da tabela do §Contexto, vivos, dois meses depois de a ADR os
+  publicar como sendo o defeito;
+- `color-mix(…, var(--Y))` com substrato declarado — 11 usos, um deles a
+  **4,51:1**, 0,01 acima do limiar, sem nada medindo.
+
+Correção: as três formas vivem em `_tints_in_line`, e **forma nova é o modo de
+falha a vigiar** — está dito no docstring do gate, onde o próximo agente lê.
+Nenhuma mudança em D1: os 7 call-sites foram corrigidos trocando a cor do texto
+pelo par. `--brand-accent-on-tint` nasceu aqui, por aplicação mecânica de D1 —
+mesma construção de `--brand-warning-on-tint`, e pelo mesmo motivo (`--brand-accent`
+já é nome independente para o hex de `--semantic-gain`).
+
+**Correção factual à D4 e ao limite do substrato.** `color-mix` com segunda cor
+**opaca** não compõe com o fundo do pai: o substrato declarado *é* o fundo. Só a
+forma `transparent` compõe. Consequência prática: badge translúcido dentro de
+`.card-variant-{highlight,success,warn,critical}` (que tinta o card em 6-8%) sai
+medido ~0,45 otimista — 5,00 reportado vale 4,54 na tela. Passa, e a margem é
+menor do que o número diz. Substrato não-card continua fora do inferido: entra
+em `NAMED_PAIRS`.
+
+**A D4 continua de pé, com uma ressalva.** Nomear em vez de inferir é auditável,
+mas allowlist só nomeia o que alguém já achou — `EstrategiaAporteCard` não estava
+lá porque ninguém sabia que existia. A checagem de staleness passou a validar
+também o **percentual**: checar só a cor do texto deixava o gate medir 15% depois
+de o call-site virar 30%.
 
 ## Alternativas consideradas
 

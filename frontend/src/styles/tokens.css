@@ -82,6 +82,7 @@
     --brand-secondary: #457B9D;
     --brand-warning-on-tint: #984C11;
     --brand-secondary-on-tint: #345E77;
+    --brand-accent-on-tint: #166534;
 
     --surface-background: #FFFFFF;
     --surface-foreground: #0F172A;
@@ -155,6 +156,7 @@
     --brand-secondary: #94A3B8;
     --brand-warning-on-tint: #FDBA74;
     --brand-secondary-on-tint: #CBD5E1;
+    --brand-accent-on-tint: #4ADE80;
 
     --surface-background: #0F172A;
     --surface-foreground: #F8FAFC;
@@ -431,6 +433,7 @@
     --color-brand-secondary: var(--brand-secondary);
     --color-brand-warning-on-tint: var(--brand-warning-on-tint);
     --color-brand-secondary-on-tint: var(--brand-secondary-on-tint);
+    --color-brand-accent-on-tint: var(--brand-accent-on-tint);
     --color-background: var(--surface-background);
     --color-foreground: var(--surface-foreground);
     --color-card: var(--surface-card);

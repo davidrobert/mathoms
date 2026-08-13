@@ -1136,13 +1136,17 @@ a árvore. Custo de investigação é gateado por `dev/check_lineage_eval_gate.p
 - **Cores:** nunca hex literal no frontend — sempre `var(--brand-*)`,
   `var(--surface-*)`, `var(--semantic-*)`.
 - **Texto sobre tint da própria cor usa o par `-on-tint`.** Ao pôr texto (ou
-  ícone) na cor `--X` sobre um fundo que é tint da mesma `--X`
-  (`color-mix(... var(--X) N%, ...)`), a cor do **texto** é
-  `var(--X-on-tint)`, nunca `var(--X)`: o par existe porque a cor base sobre a
-  própria versão clareada reprova WCAG AA (o âmbar chegava a 1,86:1). Corrija
-  pelo texto, **não afrouxando o tint**. Gate: `dev/check_tint_contrast.py`
-  (pre-commit; mede todos os pares, nos dois temas). Par que o gate não alcança
-  — `style` inline, ou ícone em elemento filho — entra em `NAMED_PAIRS`.
+  ícone) na cor `--X` sobre um fundo que é tint da mesma `--X`, a cor do
+  **texto** é `var(--X-on-tint)`, nunca `var(--X)`: o par existe porque a cor
+  base sobre a própria versão clareada reprova WCAG AA (o âmbar chegava a
+  1,86:1). Corrija pelo texto, **não afrouxando o tint**. **Três sintaxes
+  contam como tint** — `bg-[color-mix(in_srgb,var(--X)_N%,transparent)]`,
+  `color-mix(..., var(--Y))` com substrato declarado (inclusive em `style`
+  inline) e `bg-[var(--X)]/N`. Escrever de uma quarta forma é como 7 call-sites
+  reprovaram calados por dois meses ([[ADR-372]] §Emenda 2026-08-13): o gate
+  media só a primeira. Gate: `dev/check_tint_contrast.py` (pre-commit; mede
+  todos os pares, nos dois temas). Par que o gate não alcança — ícone ou texto
+  em elemento filho — entra em `NAMED_PAIRS`.
   Detalhe e limites: [A11Y_CHECKLIST](docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md).
 - **Valores monetários:** sempre `<MonetaryValue/>` (font-mono +
   tabular-nums).

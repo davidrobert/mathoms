@@ -3,12 +3,13 @@
 Trava: (a) o repo real passa; (b) a aritmética WCAG bate com valores de
 referência conhecidos; (c) alias (`warning`↔`alert`) não escapa do pareamento;
 (d) o par `-on-tint` não é confundido com "cores diferentes"; (e) um par que
-reprova é de fato reportado.
+reprova é de fato reportado; (f) as três sintaxes de tint são pareadas.
 
-O item (c) é o que o teste existe para proteger: se `is_same_color_pair`
-deixasse de resolver alias, `bg: --semantic-warning` + `text: --semantic-warning`
-sairia do conjunto medido e o gate ficaria verde por **não olhar**, que é o
-modo de falha caro — o teste de (a) sozinho continuaria passando.
+Os itens (c) e (f) são o que o teste existe para proteger, e pelo mesmo motivo:
+os dois modos de ficar verde **por não olhar** — o caro, porque (a) continua
+passando. (c) foi hipótese; (f) foi medido — o ataque de 2026-08-13 achou 7
+call-sites reprovando (1,86:1 entre eles) que só escreviam o tint como
+`bg-[var(--X)]/15` em vez de `bg-[color-mix(…)]`.
 """
 
 from __future__ import annotations
@@ -67,25 +68,89 @@ def test_cores_genuinamente_diferentes_ficam_de_fora() -> None:
     assert not ctc.is_same_color_pair("surface-foreground", "surface-border")
 
 
+@pytest.mark.parametrize(
+    ("forma", "linha"),
+    [
+        (
+            "arbitrary/transparent",
+            'className="bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)]'
+            ' text-[var(--semantic-alert)]"',
+        ),
+        (
+            "substrato declarado",
+            'className="bg-[color-mix(in_srgb,var(--semantic-alert)_15%,var(--surface-muted))]'
+            ' text-[var(--semantic-alert)]"',
+        ),
+        (
+            "opacity modifier",
+            'amarelo: "bg-[var(--semantic-alert)]/15 text-[var(--semantic-alert)]",',
+        ),
+    ],
+)
+def test_as_tres_sintaxes_de_tint_sao_pareadas(forma: str, linha: str) -> None:
+    """Sintaxe nova é o modo de falha desta classe: a mesma cor, o mesmo pixel e
+    o mesmo defeito, escritos de outro jeito, saíam do conjunto medido."""
+    pares = ctc._pairs_in_line("fake.tsx:1", linha)
+    assert [(p.fg_token, p.bg_token, p.pct) for p in pares] == [
+        ("semantic-alert", "semantic-alert", 15)
+    ], forma
+
+
+def test_substrato_declarado_e_usado_no_lugar_do_card() -> None:
+    """`color-mix(…, var(--Y))` é opaco: compõe contra `--Y`, não contra o card
+    nem contra o fundo do pai."""
+    linha = 'className="bg-[color-mix(in_srgb,var(--semantic-gain)_8%,var(--surface-muted))]"'
+    assert ctc._tints_in_line(linha) == [("semantic-gain", 8, "surface-muted")]
+
+
 def test_pares_nomeados_cobrem_o_que_o_pareamento_por_linha_nao_alcanca() -> None:
     """Duas famílias entram como par nomeado: ícone em elemento filho (1.4.11 =
-    3:1) e `style` inline com bg/fg em linhas separadas (texto = 4,5:1)."""
+    3:1) e tint no pai com o texto num filho (texto = 4,5:1)."""
     pares = ctc.named_pairs()
     assert len(pares) == len(ctc.NAMED_PAIRS)
-    assert all(p.fg_token.endswith("-on-tint") for p in pares)
     limiares = {p.min_ratio for p in pares}
     assert limiares == {ctc.AA_NAO_TEXTO, ctc.AA_TEXTO_PEQUENO}
 
 
-def test_entrada_nomeada_stale_falha(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_entrada_nomeada_com_texto_stale_falha(monkeypatch: pytest.MonkeyPatch) -> None:
     """Par nomeado cujo call-site trocou de token tem de falhar, não medir
     fantasma — allowlist que sobrevive ao próprio motivo é fail-open."""
     monkeypatch.setattr(
         ctc,
         "NAMED_PAIRS",
-        [("components/report/provenance/ProvenancePopover.tsx", "semantic-gain", 15, 3.0)],
+        [
+            (
+                "components/report/provenance/ProvenancePopover.tsx",
+                "semantic-gain-on-tint",
+                "semantic-alert",
+                15,
+                "surface-card",
+                3.0,
+            )
+        ],
     )
-    with pytest.raises(SystemExit, match="stale"):
+    with pytest.raises(SystemExit, match="não usa mais"):
+        ctc.named_pairs()
+
+
+def test_entrada_nomeada_com_percentual_stale_falha(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Checar só a cor do texto deixava o percentual apodrecer: o call-site vira
+    30% e o gate segue reportando o contraste de 15%, que ninguém pinta."""
+    monkeypatch.setattr(
+        ctc,
+        "NAMED_PAIRS",
+        [
+            (
+                "components/report/provenance/ProvenancePopover.tsx",
+                "semantic-alert-on-tint",
+                "semantic-alert",
+                30,
+                "surface-card",
+                3.0,
+            )
+        ],
+    )
+    with pytest.raises(SystemExit, match="não declara tint"):
         ctc.named_pairs()
 
 

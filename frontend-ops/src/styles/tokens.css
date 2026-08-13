@@ -86,6 +86,7 @@
     --brand-secondary: #457B9D;
     --brand-warning-on-tint: #984C11;
     --brand-secondary-on-tint: #345E77;
+    --brand-accent-on-tint: #166534;
 
     --surface-background: #FFFFFF;
     --surface-foreground: #0F172A;
@@ -159,6 +160,7 @@
     --brand-secondary: #94A3B8;
     --brand-warning-on-tint: #FDBA74;
     --brand-secondary-on-tint: #CBD5E1;
+    --brand-accent-on-tint: #4ADE80;
 
     --surface-background: #0F172A;
     --surface-foreground: #F8FAFC;

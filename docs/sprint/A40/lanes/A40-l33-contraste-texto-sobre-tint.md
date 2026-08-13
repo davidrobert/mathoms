@@ -75,6 +75,110 @@ dois ficam:
 
 Nenhum dos dois fecharia a classe sozinho.
 
+## Ataque — 2026-08-13 · PR [#1432](https://github.com/davidrobert/mathoms/pull/1432)
+
+**A classe não estava fechada.** O gate media **uma sintaxe**; existem três, e as
+outras duas escondiam **7 call-sites reprovando AA** — com os mesmos números que
+a [[ADR-372]] publicou como sendo *o problema*, inclusive o 1,86:1 do âmbar.
+
+| call-site | par | light | dark |
+| --- | --- | --- | --- |
+| `ExposicaoCambialCard` `amarelo` / `fallback_classe` | alert sobre 15% alert | **1,86** ✗ | 6,21 |
+| `ExposicaoCambialCard` `verde` / `override` | gain(accent) sobre 15% | **4,09** ✗ | 6,05 |
+| `ExposicaoCambialCard` `vermelho` | loss sobre 15% loss | 5,00 | **4,36** ✗ |
+| `CreateRuleDialog` (app) | alert sobre 5% alert | **1,99** ✗ | 7,85 |
+| `CategoryChipDiff` (app) | accent sobre 10% accent | **4,38** ✗ | 6,80 |
+
+Os sete escrevem o tint como `bg-[var(--X)]/15` — o `BG_RE` casava só
+`bg-[color-mix(…,transparent)]`. O `axe` também não alcança: `medium.json` não
+tem `exposicao_cambial`, então o branch não monta. **É o mesmo modo de falha que
+abriu a lane** (o `anexo_v` do Fator-R que a fixture não montava), repetido numa
+dimensão que a D2 não tinha considerado — a D2 fecha token, percentual e tema,
+e a **sintaxe** é o quarto eixo.
+
+Entregue no PR: 7 call-sites migrados, `--brand-accent-on-tint` (aplicação
+mecânica da D1), as três formas em `_tints_in_line`, substrato declarado usado
+no lugar do card, `NAMED_PAIRS` validando o **percentual** além do token, e +3
+pares pai→filho nomeados. O gate foi de **27 para 37 pares medidos**.
+
+Dois achados de calibragem, sem defeito vivo:
+
+- `EstrategiaAporteCard` estava a **4,51:1** — 0,01 acima do limiar, e nada o
+  media (forma com substrato declarado + texto em linha diferente da do tint).
+  Migrado para o par e nomeado.
+- `color-mix(…, var(--surface-card))` é **opaco**: não compõe com o fundo do
+  pai. Medir badge dentro de `.card-variant-*` como se compusesse dá ~0,45 a
+  menos, e está errado. Só a forma `transparent` compõe — para essa, os pares
+  dentro de card tintado ficam a 4,54–4,55 reais contra os 5,00 que o gate
+  reporta. Passa, mas a margem é menor do que o número diz.
+
+## Aberto — 2026-08-13 · dono: David Robert
+
+Três achados do ataque **fora** da classe desta lane (que é "texto sobre tint da
+própria cor"). Ficaram fora do PR por exigirem decisão de design, não por
+esquecimento.
+
+**1. Cor semântica como foreground sobre o card liso — 6 textos a 2,06:1.**
+`AlocacaoAtualVsAlvoCard:163` (11px), `PremissasEconomicasCard:152` (14px),
+`StressScenarioCard:126/147/162`, `S7IndependenciaSection:434` (12px) usam
+`--semantic-warning`/`--semantic-alert` como cor de texto sobre `--surface-card`.
+Reprova 1.4.3 em light por folga larga; em dark passa (8,67). Mais 2 ícones
+`aria-hidden` a 1,85–2,06 (`AcoesMitigacaoCard:61`, `alocacaoCardParts:112`) —
+isentos de 1.4.11 por serem decorativos, mas abaixo do 3:1 que esta lane aplica
+a ícones que nomeou.
+*Decisão pendente:* qual âmbar legível usar — `--semantic-alert-on-tint`
+(`#984C11`, ~6,9:1 sobre branco) ou `--report-alert-warning-text` (`#B45309`).
+As duas famílias já são duplicadas e a convergência é o item 1 do §Deferido.
+Enquanto não sai, `-on-tint` é o único par que existe para os dois.
+
+**2. Opacity modifier no texto — 3 call-sites a 3,55:1.**
+`text-[var(--surface-muted-foreground)]/70` dá 3,59 light / 3,55 dark
+(`ReportToc:186`, `alocacaoCardParts:318`); `/80` dá 4,54/**4,21** dark
+(`ReportToc:149`). O gate não modela alpha no foreground.
+*Decisão pendente:* o `/70` existe para de-enfatizar entrada de apêndice no
+índice — tirar achata a hierarquia. Ou aceita-se o achatamento, ou nasce um
+token "dim" que ainda passe AA.
+
+**3. O `axe` descarta `results.incomplete` — 65 nós por tema, medidos.**
+[`helpers/axe.ts`](../../../../frontend/tests/e2e/helpers/axe.ts) lê só
+`results.violations`. O que o axe não consegue decidir cai em `incomplete` e o
+gate fica verde por não olhar. **Medido em 2026-08-13** (probe com a fixture
+`medium`, chromium, os dois temas — `violations=0` nos dois):
+
+| regra | impacto | nós | motivo dominante |
+| --- | --- | --- | --- |
+| `color-contrast` | serious | 46 | 22× fundo em gradiente · 16× texto curto demais · 3× só não-texto · 3× nó de imagem · 2× sobreposto |
+| `aria-prohibited-attr` | serious | 14 | sem mensagem |
+| `aria-valid-attr-value` | critical | 5 | `aria-describedby="_r_a_"` (e 4 irmãos) apontando para ID ausente do DOM |
+
+**As 5 do `aria-valid-attr-value` são benignas — verifiquei depois de afirmar o
+contrário.** São `TooltipTrigger` do Base UI em
+[`ReportActions.tsx`](../../../../frontend/src/components/report/shell/ReportActions.tsx):
+o `TooltipContent` só monta quando o tooltip abre, então o `aria-describedby`
+aponta para ID inexistente enquanto fechado. É o desenho da lib, e cada botão
+tem `aria-label` explícito ("Ocultar índice", "Imprimir ou salvar PDF") — a
+descrição é redundante, não o nome acessível. O `incomplete` aqui está
+**correto**. (Duas correções minhas de passagem: a página **tem** 2 elementos com
+`shadowRoot`, e são 6 `aria-describedby` pendurados no documento inteiro contra 5
+dentro do `[data-report-scope]`.)
+
+Das 46 de contraste, ~22 são fundo em gradiente (incerteza real) e ~22 são ruído
+(caractere único, ícone).
+*Retomar quando:* virar lane própria. **Não** basta falhar em tudo — as 65 do
+retrato de hoje são benignas ou ruído, então ligar o `incomplete` inteiro
+nasceria vermelho e seria desligado na mesma semana. O valor está no
+**delta**: congelar a contagem por regra e falhar quando ela subir, que é o
+sinal de "apareceu caso novo que o axe não consegue decidir". O buraco real é
+que hoje esse número não é nem observado.
+
+*Nota de método:* a versão anterior deste item dizia que Playwright não roda
+neste worktree. **Falso** — era memória vencida de outra sessão; `node_modules`
+é diretório real e o `a11y.@critical.spec.ts` roda em 46s (20 testes, verde). O
+que atrapalha é o `webServer` do `playwright.config.ts` com `url` fixo em 3000 e
+`reuseExistingServer: !CI`: com um servidor de outro worktree na 3000, o
+Playwright **reusa o servidor errado** em silêncio. Use
+`PLAYWRIGHT_SKIP_WEB_SERVER=1` + `PLAYWRIGHT_BASE_URL` numa porta livre.
+
 ## Deferido — 2026-08-08 · dono: David Robert
 
 Três itens saíram do escopo com decisão explícita, não por esquecimento.
