@@ -459,6 +459,70 @@ faixa de 5 pp (item 1 — vai junto com o passo 3, sob `6.0`), a §Carga herdada
 `node_modules` é symlink e o Turbopack recusa; §Débito de método segue
 **declarado, não contornado**).
 
+## 🚧 Passo 3, parte 1 de 2 — 2026-08-13: a fórmula do σ
+
+`pipeline/domain/services/if_sigma_agregado.py` + 24 testes. **Os sete números do
+§Critério de aceite da [[ADR-374]] reproduzem**: padrão 10,80% · conservador
+1,80% · agressivo 17,55% · faixa 0,5%–22% · D9 (pool 60/40) 5,08% · guard de
+caixa 11,94%. Asseridos no valor **não-arredondado** — o agressivo cai em meia
+exata a 1 decimal e seria frágil justamente na convenção que o #1360 consertou.
+
+Mutação por decisão da ADR, contada: caixa fora da normalização **7** · mapa por
+sufixo **19** · D9 sem renormalizar **2** · sanidade removida **1** · pct tratado
+como decimal **21** · procedência ignorando contribuição **1**.
+
+`sigma_classes_contribuintes` já sai declarado — R2 do co-design de
+`financial-planner`: o gatilho da nota precisa dos pesos finais, e re-derivá-los
+fora de `pipeline/domain/services/` duplicaria domínio. Esta é a única janela em
+que o campo é grátis (o bust de cache do parecer já está aceito).
+
+> ⚠️ **A parte 1 aterrissa SEM consumidor, e isso é escolha declarada.** Ligar a
+> fonte muda a largura do cone de toda família com alvo declarado, então o
+> consumidor não pode entrar sem o bump de `mc_version` e a precisão de exibição
+> no mesmo PR. Separar foi o que permitiu provar a fórmula em isolamento. Se a
+> parte 2 não aterrissar, **este módulo é dead code e deve ser revertido** — é a
+> mesma régua que matou o `_SIGMA_POR_PERFIL` na 1ª parcial desta lane.
+
+### Três achados que a parte 2 tem de resolver antes de escrever código
+
+**1. A D2 cita a shape errada, e o erro é silencioso.** A ADR diz *"o
+`goal.alocacao_alvo.v2.inputs` tem as chaves que mapeiam 1:1"* — essa é a shape
+do DTO/DB. No pipeline, `goals["alocacao_alvo"]` é **flat**: os `*_pct` no topo,
+sem `inputs` (o guard de `_enrich_alocacao_with_deviation` é
+`"rf_pos_pct" not in alvo`). Quem seguir a ADR literalmente lê `["inputs"]`, acha
+nada, e σ cai para `fallback_codigo` em **100% dos runs com a feature parecendo
+entregue** — a mesma classe de falha que a própria ADR descreve para o mapa de
+nomes, um nível acima.
+
+**2. `cat2_efetivo` não está no payload.** `patrimonio_calculator` computa mas
+publica só `investivel_financeiro` e `investivel_efetivo`. O peso da D9 sai da
+diferença dos dois; a alternativa é expor o campo. A diferença é exata (os dois
+são `round(…, 2)`), mas o `max(0.0, …)` no cálculo do efetivo é uma armadilha se
+algum dia `cat2` puder ser negativo.
+
+**3. ⚠️ A D10 descreve um defeito que não existe, e promete um determinismo que o
+reorder NÃO entrega.** A D10 afirma *"duas bases de tempo"* — snapshot em
+`as_of=TODAY` e MC em `self._reference_date.year`. Medido:
+`scripts/analyze_finances.py:2268` passa **`reference_date=TODAY`**, único
+call-site de produção, e `TODAY = date.today()` no módulo. **As duas bases são o
+mesmo valor.** Pior: o §Critério de aceite da D10 (*"mesmo run, `as_of` deslocado
+por wall-clock ⇒ mesmo σ"*) é **inalcançável por reordenação**, porque
+`pipeline/context.py` **não tem campo de data do run** — os dois lados leem
+wall-clock e se movem juntos. Pinar exige campo persistido novo, que é escopo
+maior e não está na ADR.
+
+Consequência: a parte 2 precisa de decisão antes de codar — (a) manter o reorder
+só pelo acoplamento explícito e **emendar a D10** removendo a promessa de
+determinismo, ou (b) adicionar data de referência persistida no run. Não escrever
+o reorder afirmando que ele entrega (a) o determinismo de (b).
+
+**Falta na parte 2:** fiação no adapter (alvo + `peso_imoveis` + conversão do
+snapshot), campos D6 no payload + schema E5, `mc_version` → `"6.0"` + entrada no
+ledger (`largura_cone` + `precisao_probabilidade`), a precisão de exibição
+(`toFixed(0)` imprime "11%" para σ=0,108 — string idêntica ao fallback de hoje),
+as 5 declarações da D8 na S7, a faixa de 5 pp, e o gatilho refinado (causa ∧
+efeito).
+
 ## Problema
 
 Duas faces independentes, mesmo arquivo-alvo (`if_monte_carlo.py` + superfícies
