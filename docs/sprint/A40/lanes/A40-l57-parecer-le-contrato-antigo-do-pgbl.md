@@ -65,8 +65,16 @@ leem o contrato velho:
 
 ## Sequência recomendada
 
-Atacar **depois (ou junto) do PR3 da [[A40.l34]]**, que move o `restante` para a
-S8 e troca o registro do card da S7 — senão o realinhamento é feito duas vezes.
+Atacar **depois (ou junto) do PR3b da [[A40.l34]]** — senão o realinhamento é
+feito duas vezes.
+
+> **Corrigido 2026-08-13.** Esta linha dizia que o PR3 *"move o `restante` para a
+> S8"*. Falso: o `restante` já mora no Card B, e o co-design de 2026-08-13
+> **trocou o dono para o Card B (`S_IRPF_OTIMIZACAO`)** — a cláusula da [[ADR-375]]
+> D1 caiu por emenda. Consequência para esta lane: o `aligned_with_layout: "S8"`
+> do item 4 provavelmente passa a apontar `S_IRPF_OTIMIZACAO`, e o item 3 herda
+> um `_SECTION_KEYS["S8"]` cujo `previdencia_pgbl` deixa de conter quantidade
+> fiscal. Confirme o destino contra o merge do PR3b antes de realinhar.
 Não é `depends_on` duro: os itens 1 e 2 podem fechar antes, porque dependem só
 do contrato do PR2, que já está em `main`.
 

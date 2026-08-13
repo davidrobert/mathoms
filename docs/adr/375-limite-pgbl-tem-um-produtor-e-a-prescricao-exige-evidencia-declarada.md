@@ -5,7 +5,7 @@ title: "Limite PGBL tem um produtor, e a prescrição exige evidência declarada
 status: Proposto
 phase: A40
 date: "2026-08-11"
-amended_at: ["2026-08-11"]
+amended_at: ["2026-08-11", "2026-08-13"]
 relates_to:
   - "[[ADR-236]]"
   - "[[ADR-135]]"
@@ -26,6 +26,72 @@ tags:
 ---
 
 # ADR-375 — Limite PGBL tem um produtor, e a prescrição exige evidência declarada
+
+> ### ⚠️ Emenda 2026-08-13 — o inventário era de 2 sites e são 6; o D1 troca de dono; o D2 vira nota
+>
+> Divergência entre `financial-planner` e `product-designer` sobre a hospedagem,
+> **fechada pelo `senior-cto`** (protocolo anti-loop). Três correções à decisão
+> central, todas com medição:
+>
+> **1. O inventário estava incompleto — são seis sites de publicação, não dois.**
+> A §Contexto lista S7 e o bloco da S8. Publicam o mesmo número, também:
+> **T3** (`cascata_triggers._t3_pgbl_marginal`, param `pgbl_limite_anual_brl`);
+> **T1** (`_t1_build_params`, `aporte_pgbl_extra_anual_brl` +
+> `economia_ir_anual_brl = delta × 12% × marginal` — o instrumento que o §D5
+> condena, sobre `IRRF_TABELA_MENSAL` literal contra a [[ADR-135]]); a **prosa do
+> narrador** (`tributario_narrator._pgbl_clause`: *"permite dedução de até
+> {limite}/ano"*); e o **catálogo de citação do parecer** — `limite_pgbl_anual`,
+> `aporte_mensal` e `renda_tributavel_anual` casam o predicado monetário
+> (`_is_money_key`) e são **citáveis por LLM em prosa**, enquanto as folhas do
+> Card B (`pgbl_teto_brl`, `pgbl_aportado_brl`, `pgbl_capacidade_dedutivel_brl`)
+> não casam. O teto aparece **três vezes dentro da própria S8** — medido em
+> `medium.json`: R$ 4.320 no bloco e no corpo do T3, com o gate de inventário
+> **verde**, porque ele conta título de card e é cego a corpo de trigger e prosa.
+>
+> **2. O D1 troca de dono: Card B (`S_IRPF_OTIMIZACAO`), não o bloco da S8.** A
+> razão é **evidência**, não acionabilidade: `pgbl_aplicavel` da S8 depende de
+> `BusinessProfile.tipo_declaracao_ir`, cadastro manual que defaultava para
+> `"completa"` (§D4 cond. 1, fechada no PR3a); o `pgbl_status` do Card B deriva da
+> declaração em si. O piso do D4 é **nativo** no Card B e **sintético** na S8. A
+> partição alternativa por horizonte (S8 = ano corrente, Card B = ano-base) foi
+> **recusada por medição**: `cascata_calculator._compute_layers` soma
+> `bruto_anual` (pró-labore do run) + `outras_rendas_tributaveis_pf_anual`
+> (= **total** tributável do IRPF), então o horizonte "ano corrente" que ela
+> reivindica **não existe na soma** — é híbrido, e o erro é sistemático para
+> cima, na direção que vende o produto. O `PgblBlock` mantém base + frase
+> explicativa + status, **sem a linha dos 12%**, e a frase nomeia onde o teto
+> mora. A ressalva de ano-calendário corrente ([[ADR-305]] D3, copy assinada)
+> **muda de casa junto com o número**, para a copy do Card B — sem isso a
+> migração perde a ponte prospectiva.
+>
+> **3. Cai a cláusula *"o `restante` muda de casa para o bloco PGBL da S8"*.** O
+> `restante` **já mora** no Card B, num card construído para ele — a cláusula
+> criaria uma 4ª publicação.
+>
+> **4. O D2 vira nota de seção, não card com registro trocado.** Dos quatro
+> ingredientes que o D2 nomeia, três não se sustentam: **custo** (taxa de
+> administração / carregamento) **não existe** em nenhum schema —
+> `InformePrevidenciaPayload` não tem os campos; **regime tributário** morre no
+> agregado (`InformePrevidenciaSummary` não o carrega) e **defaulta
+> `progressivo` no silêncio do informe**, então publicá-lo repetiria o pecado que
+> o PR2 fechou; e **patrimônio previdenciário já é publicado na S3**
+> (`investimentos.tabela_classes`, bucket "Previdência", [[ADR-193]]) — card com
+> saldo na S7 seria segundo produtor do mesmo conceito, e a consolidação
+> ativo × dedução é lane P1 aberta em outro plano
+> ([LAUNCH_TRUST](../plan/LAUNCH_TRUST/_README.md) §F1). A S7 fica com **nota de
+> uma linha, dois estados**: ponteiro quando há evidência, e **ausência declarada
+> nomeando o insumo que falta** quando não há — este segundo estado é obrigatório,
+> porque `IrpfOtimizacaoSection` retorna `null` sem `irpf_kpis` e sem ele o
+> relatório omitiria o tópico em silêncio.
+>
+> **5. A faixa marginal vai sobre base de cálculo; o teto continua sobre
+> rendimento bruto tributável** (RIR/2018 art. 68 — *"12% do total dos
+> rendimentos computados na determinação da base de cálculo"*). O parâmetro já se
+> chama `base_calculo_anual_brl_cents`; é o call-site
+> (`previdencia_analyzer._analyze_via_irpf`) que passa o bruto, enviesando a
+> faixa **para cima**. Base de cálculo ausente com tributável > 0 ⇒ **recusar**
+> (`aliquota_marginal=None` + prescrição suprimida), nunca degradar para o bruto:
+> o fallback não é neutro, ele aponta na direção do viés.
 
 > ### ⚠️ Emenda 2026-08-11 — quatro correções que a execução do PR1 impôs
 >

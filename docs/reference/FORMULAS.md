@@ -400,3 +400,62 @@ educação, suporte familiar, financiamentos). Implementação:
 > declarados em `_base_calculo.custo_essencial_mensal.impostos.incluir`
 > ainda não cruzam com a origem do lançamento para distinguir PF vs PJ —
 > v1 trata como categoria comum quando aparece em `categorias_in`.
+
+## PGBL — base dedutível, teto e economia — [[ADR-236]] · [[ADR-375]]
+
+**Teto e restante são grandezas distintas, com donos distintos.** Confundi-las é a
+origem do defeito que a [[ADR-375]] fecha: a S7 rotulava *"Limite PGBL/ano (12%)"*
+um valor que era o **restante**.
+
+| Conceito | Fórmula | Onde no código |
+| --- | --- | --- |
+| Base dedutível (ano corrente) | `pgbl_base_anual = pro_labore_anualizado + outras_rendas_tributaveis_pf_anual`. **Lucros distribuídos não entram** — são isentos, logo não compõem base tributável ([[ADR-236]] §3). | `cascata_calculator._compute_layers` · E5 · `tributario.cascata.pgbl_base_anual` |
+| Teto de 12% (ano corrente) | `pgbl_limite_anual = pgbl_base_anual × 0,12` | [`cascata_pgbl.compute_pgbl`](../../pipeline/domain/services/tributario/cascata_pgbl.py) · `tributario.cascata.pgbl_limite_anual` |
+| Restante dedutível (ano-base declarado) | `restante = Σ(tributável × 12% − já_aportado)`, clamp ≥ 0 ([[ADR-189]]) | `IRPFAnalyzer.pgbl_capacidade_dedutivel` · `irpf.pgbl_capacidade_dedutivel_brl` |
+| Alíquota marginal | Faixa de `fiscal_parameters.ir_brackets` que **contém** a renda — nunca a faixa excedida nem a do topo | [`irpf_faixa_marginal.resolve_faixa_marginal`](../../pipeline/domain/services/irpf_faixa_marginal.py) |
+
+### O que a base do teto NÃO é
+
+O teto de 12% incide sobre o **total dos rendimentos tributáveis** (RIR/2018
+art. 68 — *"12% do total dos rendimentos computados na determinação da base de
+cálculo"*), **não** sobre a base de cálculo líquida de deduções, e **não** sobre
+`receita_pj × 32%`. O proxy de lucro presumido foi **removido**, não recalibrado:
+sob lucro presumido ele aproxima o teto da distribuição **isenta** (Lei 9.249/95
+art. 10), que é o *complemento* da base PGBL — nenhum coeficiente conserta
+referente invertido ([[ADR-375]] §D3).
+
+**A faixa marginal, essa sim, resolve sobre base de cálculo** (líquida das deduções
+legais) — é sobre ela que a tabela progressiva é definida. Resolver sobre o bruto
+enviesa a faixa **para cima**, e o viés aponta na direção que vende o produto.
+
+### Piso de prescrição — três condições ([[ADR-375]] §D4)
+
+Não se prescreve aporte nem se publica "economia de IR" a menos que **todas**
+sejam verdadeiras:
+
+1. `tipo_declaracao_ir == "completa"` **conhecido**, não defaultado — desconhecido
+   devolve `pgbl_aplicavel = False` com motivo `tipo_declaracao_desconhecido`;
+2. a economia diferencial no ano é positiva;
+3. contribuição a regime oficial (INSS/RPPS) presente — precondição legal dos 12%.
+   Quando desconhecida, a copy declara a precondição (não derruba a aplicabilidade:
+   em PJ com pró-labore, INSS de sócio é a norma, e derrubar produziria falso
+   negativo no caso central).
+
+Abaixo do piso a saída **não é número menor: é "não se aplica" com o motivo**. E a
+dedução nunca sai em `--semantic-gain` — é **diferimento**, não ganho: o resgate é
+tributado sobre o **total** (PGBL), não só sobre o rendimento.
+
+### Economia de IR — a diferencial, e por que ela ainda não roda
+
+Forma canônica: `economia = IR(base) − IR(base − aporte)`, sobre `IR(base, ano)`
+progressiva. Ela devolve **zero para o isento por construção**, o que
+`limite × aliquota_marginal` não faz — e é por isso que o instrumento antigo está
+encerrado ([[ADR-375]] §D5).
+
+> **Status: decidido, não implementável ainda.** `fiscal_parameters.ir_brackets`
+> guarda `deducao_brl_cents` em escala **mensal** contra faixas **anuais** (FLAG
+> auto-declarada na migration `e1f2a3b4c5d6`), e o ×12 não resolve — abre degrau de
+> R$ 11,04 em R$ 26.963,20, porque a row é internamente inconsistente. Enquanto a
+> row não for reconciliada ([[A40.l56]]), o substituto honesto da condição 2 é
+> `aliquota_marginal > 0`, que já mata o ramo de dano de sinal. **Nenhum número
+> prescritivo é republicado pelo instrumento antigo com fonte nova.**

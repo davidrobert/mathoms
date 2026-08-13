@@ -56,9 +56,33 @@ Migrar `cascata_triggers._ir_marginal_anual` para o resolver comum que a
 **Fora de escopo:** recalibrar limiar ou copy dos triggers T1/T3. A unificação
 da regra resolve a divergência; recalibrar é outra conversa.
 
+### Herança declarada da [[ADR-375]] — escrita 2026-08-13, não presuma
+
+O co-design de 2026-08-13 mediu que **T1 e T3 são publicadores do número
+dedutível** que o inventário da [[ADR-375]] tinha perdido, e que o T1 publica
+`economia_ir_anual_brl = delta × 12% × marginal` — o instrumento que o **§D5
+encerra**. O PR3b da [[A40.l34]] **suprime** esses dois params do T1 e o
+`pgbl_limite_anual_brl` do T3; esta lane herda a **correção**, e com ela:
+
+- **§D4 cond. 2** — faixas vindas de `fiscal_parameters`, **nunca literal em
+  código**. É o motivo pelo qual `IRRF_TABELA_MENSAL` sai.
+- **§D5** — a economia é `IR(base) − IR(base − aporte)`, não `limite × marginal`.
+  **Bloqueado** enquanto `deducao_brl_cents` estiver em escala errada ([[A40.l56]]
+  desbloqueia). Até lá, número prescritivo **suprimido** — não recalculado pelo
+  instrumento antigo com fonte nova.
+- **§D6** — a faixa resolve sobre **base de cálculo**, não sobre rendimento bruto
+  (§Emenda 2026-08-13). Conversor de escala explícito.
+- **§D7** — paridade com legado não justifica número prescritivo.
+
+Sem esta herança escrita, a lane migra a fonte e **preserva o instrumento
+condenado com CI verde** — o risco que fez a [[ADR-375]] existir.
+
 ## Critério de aceite
 
 - Um único produtor de faixa marginal no repo, com fonte única [[ADR-135]].
+- **Nenhum número prescritivo ressuscitado** ao migrar a fonte: T1 continua sem
+  `economia_ir_anual_brl` e sem `aporte_pgbl_extra_anual_brl` até o D5 estar
+  implementável. Trocar a fonte da faixa **não** é autorização para republicar.
 - `IRRF_TABELA_MENSAL` não existe mais, **ou** existe só como fixture de teste
   com a origem declarada.
 - **Delta declarado com sinal próprio:** isto muda T1/T3 publicados, que são
