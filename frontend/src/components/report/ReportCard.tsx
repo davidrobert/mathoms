@@ -39,21 +39,27 @@ export function ReportCard({
         className,
       )}
     >
-      {/* `flex-wrap` porque `shrink-0` + título longo não cabem lado a lado em
-        * 390px: o badge da S8 vazava 121px e o seletor de período da S2, 32px,
-        * ambos fora da caixa e sem rolagem para alcançá-los. Quebrar a linha
-        * preserva os dois; encolher o badge cortaria o texto dele. */}
+      {/* Tudo aqui é `max-sm:` — abaixo de 640px o `shrink-0` fixava o
+        * `headerRight` no max-content e anulava o `flex-wrap` de dentro dele (os
+        * dois badges da S8 somam ~377px numa caixa de 310px; o seletor de
+        * período da S2 vazava 32px), e sem rolagem horizontal o conteúdo ficava
+        * inalcançável.
+        *
+        * O escopo estreito não é preciosismo: aplicar as mesmas regras em toda
+        * largura é o candidato a explicar a divergência de pixel do S2 medida em
+        * CI (verificação re-aberta em A40.l45 §Regressão 2 — este experimento
+        * mede se o efeito é real ou é a flakiness já documentada na A40.l53).
+        * Acima de 640px o header tem de continuar byte-idêntico ao que era. */}
       {(title || headerRight) && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="mb-4 flex items-center justify-between gap-2 max-sm:flex-wrap">
           {title && (
-            <h3 className="min-w-0 font-display text-lg font-semibold leading-tight">
+            <h3 className="font-display text-lg font-semibold leading-tight max-sm:min-w-0">
               {title}
             </h3>
           )}
-          {/* `shrink-0` só a partir de 640px: em telefone ele fixava a largura no
-            * max-content e anulava o `flex-wrap` de quem vem dentro (os dois
-            * badges da S8 somam ~377px numa caixa de 310px). */}
-          {headerRight && <div className="min-w-0 sm:shrink-0">{headerRight}</div>}
+          {headerRight && (
+            <div className="shrink-0 max-sm:min-w-0 max-sm:shrink">{headerRight}</div>
+          )}
         </div>
       )}
       {children}
