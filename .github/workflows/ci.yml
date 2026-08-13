@@ -1544,6 +1544,18 @@ jobs:
     # 1 min/job). A cobertura anti-secret NÃO caiu — ela agora é exigida pelo
     # `changes: success` no fim deste script, que é mais estrito do que a
     # entrada antiga no loop: o loop aceitava `skipped`, `changes` não.
+    #
+    # `frontend-visual` e `frontend-print-visual` entraram em 2026-08-12 depois
+    # de medir a consequência de estarem fora: o PR #1384 mergeou por auto-merge
+    # com `Frontend visual snapshots` VERMELHO (S1 light+dark), porque o ruleset
+    # `main-protection` só exige este job e o job vermelho não estava no grafo.
+    # A label fazia o gate rodar e aparecer no PR sem gatear nada — e como
+    # ninguém era obrigado a rebaselinar no próprio PR, `main` acumulava drift
+    # que o próximo PR com a label herdava (5 lotes numa sessão: 6 baselines,
+    # 2 capas, 2 da S7, 2 da S1).
+    #
+    # NÃO trava PR sem label: os dois jobs são opt-in (`if:` por label) e o loop
+    # aceita `skipped` — só morde quem pediu o gate e o viu falhar.
     name: All checks green
     runs-on: ubuntu-latest
     needs:
@@ -1552,6 +1564,8 @@ jobs:
       - pipeline-tests
       - backend-tests
       - frontend-checks
+      - frontend-visual
+      - frontend-print-visual
       - go-lint
       - go-test
     if: always()
@@ -1559,12 +1573,14 @@ jobs:
       - name: Verify all required jobs passed or were skipped
         run: |
           fail=0
-          for job in lint-all pipeline-tests backend-tests frontend-checks go-lint go-test; do
+          for job in lint-all pipeline-tests backend-tests frontend-checks frontend-visual frontend-print-visual go-lint go-test; do
             case "$job" in
               lint-all) result="${{ needs.lint-all.result }}" ;;
               pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
               backend-tests) result="${{ needs.backend-tests.result }}" ;;
               frontend-checks) result="${{ needs.frontend-checks.result }}" ;;
+              frontend-visual) result="${{ needs.frontend-visual.result }}" ;;
+              frontend-print-visual) result="${{ needs.frontend-print-visual.result }}" ;;
               go-lint) result="${{ needs.go-lint.result }}" ;;
               go-test) result="${{ needs.go-test.result }}" ;;
             esac
