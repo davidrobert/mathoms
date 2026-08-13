@@ -149,17 +149,27 @@ gate fica verde por não olhar. **Medido em 2026-08-13** (probe com a fixture
 | --- | --- | --- | --- |
 | `color-contrast` | serious | 46 | 22× fundo em gradiente · 16× texto curto demais · 3× só não-texto · 3× nó de imagem · 2× sobreposto |
 | `aria-prohibited-attr` | serious | 14 | sem mensagem |
-| `aria-valid-attr-value` | **critical** | 5 | `aria-describedby="_r_a_"` (e 4 irmãos) apontando para **ID que não existe na página** |
+| `aria-valid-attr-value` | critical | 5 | `aria-describedby="_r_a_"` (e 4 irmãos) apontando para ID ausente do DOM |
 
-As 5 do `aria-valid-attr-value` **não são "não consegui decidir"** — são
-referência pendurada, e o axe só não crava porque o alvo *poderia* estar num
-shadow DOM (não há shadow DOM aqui). Os IDs têm a cara dos gerados pelo Base UI.
+**As 5 do `aria-valid-attr-value` são benignas — verifiquei depois de afirmar o
+contrário.** São `TooltipTrigger` do Base UI em
+[`ReportActions.tsx`](../../../../frontend/src/components/report/shell/ReportActions.tsx):
+o `TooltipContent` só monta quando o tooltip abre, então o `aria-describedby`
+aponta para ID inexistente enquanto fechado. É o desenho da lib, e cada botão
+tem `aria-label` explícito ("Ocultar índice", "Imprimir ou salvar PDF") — a
+descrição é redundante, não o nome acessível. O `incomplete` aqui está
+**correto**. (Duas correções minhas de passagem: a página **tem** 2 elementos com
+`shadowRoot`, e são 6 `aria-describedby` pendurados no documento inteiro contra 5
+dentro do `[data-report-scope]`.)
+
 Das 46 de contraste, ~22 são fundo em gradiente (incerteza real) e ~22 são ruído
 (caractere único, ícone).
-*Retomar quando:* virar lane própria. O caminho é fazer o helper falhar em
-`incomplete` de regra escolhida (começando por `aria-valid-attr-value`) e tratar
-o resto com allowlist justificada. **Não** basta falhar em tudo: 46 nós de
-contraste com ruído dentro viraria gate que se aprende a ignorar.
+*Retomar quando:* virar lane própria. **Não** basta falhar em tudo — as 65 do
+retrato de hoje são benignas ou ruído, então ligar o `incomplete` inteiro
+nasceria vermelho e seria desligado na mesma semana. O valor está no
+**delta**: congelar a contagem por regra e falhar quando ela subir, que é o
+sinal de "apareceu caso novo que o axe não consegue decidir". O buraco real é
+que hoje esse número não é nem observado.
 
 *Nota de método:* a versão anterior deste item dizia que Playwright não roda
 neste worktree. **Falso** — era memória vencida de outra sessão; `node_modules`

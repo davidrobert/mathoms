@@ -121,9 +121,10 @@ abertas em [[A40.l33]]: cor semântica como foreground sobre o card **liso**
 (6 textos a 2,06:1 em light) e `opacity modifier` no texto
 (`text-[var(--X)]/70` → 3,55:1). E o helper do axe lê só `results.violations`:
 o que ele não consegue resolver cai em `incomplete` e é **descartado** — medido
-em 2026-08-13, são **65 nós por tema** com `violations=0`, entre eles 5 de
-`aria-valid-attr-value` (impacto **critical**) que são `aria-describedby`
-apontando para ID inexistente. Verde por não olhar.
+em 2026-08-13, são **65 nós por tema** com `violations=0`. O retrato de hoje é
+benigno (checado um a um: tooltip do Base UI com conteúdo lazy, fundo em
+gradiente, caractere curto), mas ninguém observa esse número, então caso novo
+entra calado. O valor de gatear é no **delta**, não no valor absoluto.
 
 ---
 
