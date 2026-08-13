@@ -389,19 +389,12 @@ def _riscos_items_from_bundle(goals_cfg: dict) -> list[dict]:
     ]
 
 
-# ADR-369 D3 — chaves do cone antes do rename de `mc_version` 4.0, mapeadas
-# nome-novo → nome-antigo. Artefato gravado sob 2.0/3.0 (ou sem carimbo, que é
-# v1) continua sendo lido; o valor é o mesmo, só a chave mudou.
-_CONE_CHAVES_PRE_4_0 = {
-    "ano_if_cenario_favoravel": "p10_ano_if",
-    "ano_if_cenario_favoravel_censurado": "p10_censurado",
-    "ano_if_cenario_central": "p50_ano_if",
-    "ano_if_cenario_central_censurado": "p50_censurado",
-    "ano_if_cenario_adverso": "p90_ano_if",
-    "ano_if_cenario_adverso_censurado": "p90_censurado",
-    "prob_if_ate_horizonte_simulado": "prob_if_ate_horizonte",
-    "horizonte_simulado_anos": "horizonte_anos",
-}
+# ADR-369 D3 — o mapa nome-de-hoje → nome-antigo mora no módulo do contrato do
+# wire (`if_monte_carlo_payload`), não aqui: uma cópia por consumidor é um lugar
+# a mais onde o rename passa em branco. Ver A40.l25.
+from pipeline.domain.services.if_monte_carlo_payload import (  # noqa: E402
+    CONE_CHAVES_PRE_4_0 as _CONE_CHAVES_PRE_4_0,
+)
 
 
 def _mc_major(mc_if: dict) -> int:

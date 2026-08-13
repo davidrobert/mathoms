@@ -736,7 +736,10 @@ dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
 > bump sem entrada. Especificação vigente em [[ADR-360]] §Emenda 2026-08-10 —
 > a de 2026-08-05 está vencida.
 
-> **Estado em 2026-08-10 (2ª parcial do dia) — #1359.** Ao medir o item 1, saiu
+> **Estado em 2026-08-10 (2ª parcial do dia) — #1360.** (Citado como `#1359` até
+> 2026-08-13; #1359 é PR da [[A40.l2]]. A lane já havia corrigido a proveniência
+> em 2026-08-11 e este índice ficou com o número errado — sincronia de índice
+> conta linha, não verdade.) Ao medir o item 1, saiu
 > um defeito que a lane não conhecia: o **parágrafo do narrador e a legenda do
 > cone discordavam sobre o mesmo campo** em 45 dos 50 001 desfechos possíveis
 > ("2%" contra "3%", no mesmo relatório). Os dois declaravam paridade em
@@ -764,6 +767,42 @@ dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
 > destrava é o passo 3 (agregação + `mc_version` 6.0), e o que impede é o passo 3
 > ser escrito contra uma D4 que diz o contrário. **Flip de `Proposto` →
 > `Decidido` é do dono:** a fórmula muda a largura do cone de toda a frota.
+
+> **Flip executado em 2026-08-11 — #1366 (bloqueio) + #1369 (aprovação).** O dono
+> autorizou condicionado à aprovação do `financial-planner`, que **bloqueou na 1ª
+> revisão**: não por infidelidade de redação — os sete números conferiram — e sim
+> porque dois achados mudavam o que a ADR afirma. **Imóvel de renda está no pool
+> simulado e o alvo não o descreve** (publicaria 1,80% contra limite real de 5,08%
+> — cone 2,8× mais **estreito**, concentrado no ICP aluguel + carteira defensiva),
+> e a **incoerência μ/σ**: a largura passa a refletir o alvo e o centro não. Saíram
+> D9 (peso observado para imóvel), D10 (σ do snapshot, `as_of` = data de
+> referência) e a quinta declaração de D8. A 2ª revisão achou um defeito **novo,
+> introduzido pelo conserto do primeiro** — a precondição de D1 redigida como
+> *"cobrir o pool"* é falsa para família com cripto material. **A sprint herda a
+> lição:** revisão que aprova tem de re-caçar o que o conserto introduziu, não só
+> conferir se o achado original fechou.
+
+> **Estado em 2026-08-13 — #1433, parcial, segue `in_progress`** (os snapshots
+> acima são datados — **não os reescreva**). Ao medir o substrato do passo 3
+> apareceu um defeito vivo na **entrega anterior desta própria lane**: a faceta
+> `ano_cone` da nota do #1356 **nunca renderizou**, porque o leitor buscava
+> `p50_ano_if` — chave que o rename de `mc_version` 4.0 aposentou. O componente
+> `FacetaAnoCone` estava inalcançável e o número que motiva a nota era o único
+> calado. **Nenhum número publicado mudou.**
+>
+> **A sprint herda três coisas.** (1) O gate `dev/check_artifact_read_keys.py`
+> declarava cobrir todo leitor de `application/` e **não cobria** payload que
+> chega por `.content_json` — o falha-fechado nunca disparou para o único leitor
+> sem contrato declarado. Furo fechado + `ARTIFACT_CONTRACT_BLOCO` para chave de
+> bloco lida de parâmetro. (2) **Instrumento pode ficar cego pelo próprio fix:** a
+> primeira tentativa roteou a chave por helper e a mutação saiu **verde**, porque o
+> gate só enxerga literal em `.get()`. (3) O §Deferimento da [[ADR-374]] foi
+> **verificado e está correto** (classe com `effective_to` vencido vira
+> `effective_from: null`, então o diff dispara), mas sozinho **super-dispara** —
+> com σ em `fallback_codigo` em 100% dos runs, avisaria "revisamos o modelo" a quem
+> não teve cone movido. A refinação (causa ∧ efeito) é emenda a ADR `Decidido`
+> sobre o que a família é informada ⇒ **gatilho de `financial-planner`**, não feita
+> nesta sessão. **O passo 3 segue bloqueado por essa decisão**, como a ADR mandou.
 
 **[[A40.l28]] e [[A40.l29]] seguem o critério da l25** (abertas 2026-08-03):
 mesmo residual, mesma dependência de #1162 aterrissar, fora das ondas pelo mesmo

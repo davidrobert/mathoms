@@ -62,6 +62,37 @@ def f(artifact):
 """
 
 
+# O payload também chega por atributo de um carrier já decriptado. Era o furo que
+# deixava `recalibracao_note.py` fora do falha-fechado (A40.l25).
+_LEITOR_POR_CONTENT_JSON = """
+ARTIFACT_CONTRACT = ("analyze_finances",)
+
+
+def f(snapshot):
+    return (snapshot.content_json or {}).get("if_monte_carlo")
+"""
+
+_CONTENT_JSON_SEM_CONTRATO = _LEITOR_POR_CONTENT_JSON.replace(
+    'ARTIFACT_CONTRACT = ("analyze_finances",)', ""
+)
+
+# Modo estrito: chave de BLOCO lida de PARÂMETRO, que o rastreio por variável não vê.
+_LEITOR_ESTRITO = """
+ARTIFACT_CONTRACT = ("analyze_finances",)
+ARTIFACT_CONTRACT_BLOCO = "if_monte_carlo"
+
+
+def bloco(snapshot):
+    return (snapshot.content_json or {}).get("if_monte_carlo")
+
+
+def ano(bloco):
+    return (bloco or {}).get("ano_if_cenario_central")
+"""
+
+_ESTRITO_COM_CHAVE_MORTA = _LEITOR_ESTRITO.replace('"ano_if_cenario_central"', '"p50_ano_if"')
+
+
 def test_reprova_a_chave_ficticia_que_originou_o_gate(tmp_path):
     erros = _erros(_LEITOR_DO_BUG, tmp_path)
     assert any("patrimonio_full" in e for e in erros), erros
@@ -79,6 +110,34 @@ def test_falha_fechado_sem_contrato_declarado(tmp_path):
 def test_enxerto_do_backend_nao_e_violacao(tmp_path):
     # Escrever chave nova no payload é legítimo; só a LEITURA precisa existir no schema.
     assert _erros(_ENXERTO, tmp_path) == []
+
+
+def test_falha_fechado_para_payload_lido_por_content_json(tmp_path):
+    """O furo da A40.l25: sem detectar `.content_json`, o módulo nunca declarava nada."""
+    erros = _erros(_CONTENT_JSON_SEM_CONTRATO, tmp_path)
+    assert any("ARTIFACT_CONTRACT" in e for e in erros), erros
+
+
+def test_aprova_leitor_por_content_json_com_contrato(tmp_path):
+    assert _erros(_LEITOR_POR_CONTENT_JSON, tmp_path) == []
+
+
+def test_modo_estrito_aprova_chave_viva_do_bloco(tmp_path):
+    assert _erros(_LEITOR_ESTRITO, tmp_path) == []
+
+
+def test_modo_estrito_reprova_chave_morta_do_bloco(tmp_path):
+    """`p50_ano_if` morreu no rename de `mc_version` 4.0 e deixou a nota inerte."""
+    erros = _erros(_ESTRITO_COM_CHAVE_MORTA, tmp_path)
+    assert any("p50_ano_if" in e for e in erros), erros
+
+
+def test_sem_modo_estrito_a_chave_de_parametro_nao_e_checada(tmp_path):
+    """Limite declarado: fora do opt-in, leitura de parâmetro segue invisível."""
+    # Registrado como teste para que o limite seja fato medido, não suposição de
+    # quem lê o gate — e para que ampliar a cobertura seja mudança consciente.
+    sem_bloco = _ESTRITO_COM_CHAVE_MORTA.replace('ARTIFACT_CONTRACT_BLOCO = "if_monte_carlo"', "")
+    assert _erros(sem_bloco, tmp_path) == []
 
 
 def test_todo_leitor_de_application_declara_contrato():
