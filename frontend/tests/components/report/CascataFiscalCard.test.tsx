@@ -233,6 +233,20 @@ describe("<CascataFiscalCard /> · PGBL inaplicável", () => {
       screen.getByText(/processar o IRPF mais recente libera o cálculo/i),
     ).toBeInTheDocument();
   });
+
+  // ADR-375 D4 cond. 1. Sem este ramo o motivo novo cai no `return null` do
+  // `PgblStatus` e o bloco imprime o teto de 12% sem caveat nenhum — o valor
+  // novo no enum passa silencioso pelo consumidor.
+  it("declara a precondição quando tipo_declaracao_desconhecido", () => {
+    const cascata = buildCascata({
+      pgbl_aplicavel: false,
+      pgbl_motivo_inaplicavel: "tipo_declaracao_desconhecido",
+    });
+    render(<CascataFiscalCard tributario={buildBundle({ cascata })} />);
+    expect(
+      screen.getByTestId("pgbl-tipo-declaracao-desconhecido"),
+    ).toHaveTextContent(/só a declaração completa admite a dedução de PGBL/i);
+  });
 });
 
 describe("<CascataFiscalCard /> · Decision triggers", () => {

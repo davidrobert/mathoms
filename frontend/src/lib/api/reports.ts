@@ -244,7 +244,11 @@ export interface CascataPayload {
   pgbl_limite_anual: number;
   pgbl_aplicavel: boolean;
   pgbl_motivo_inaplicavel:
-    "declaracao_simplificada" | "renda_tributavel_pf_zerada" | null;
+    | "declaracao_simplificada"
+    | "renda_tributavel_pf_zerada"
+    /** ADR-375 D4 cond. 1 — modelo de declaração não registrado. */
+    | "tipo_declaracao_desconhecido"
+    | null;
   /** Fração (0.32 = 32%). Apenas em regime=simples. */
   fator_r_pct: number | null;
   fator_r_faixa: "anexo_iii" | "anexo_v" | null;

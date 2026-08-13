@@ -64,6 +64,8 @@ function PgblStatus({
   if (aplicavel) return null;
   if (motivo === "declaracao_simplificada") return <SimplificadaFlag />;
   if (motivo === "renda_tributavel_pf_zerada") return <RendaPfZeradaNotice />;
+  if (motivo === "tipo_declaracao_desconhecido")
+    return <TipoDeclaracaoDesconhecidoNotice />;
   return null;
 }
 
@@ -85,6 +87,22 @@ function SimplificadaFlag() {
         comparação caso-a-caso.
       </p>
     </div>
+  );
+}
+
+// ADR-375 D4 cond. 1: estado neutro, não flag de atenção — o insumo falta no
+// cadastro, não há erro do usuário. Declara a precondição legal (só a completa
+// deduz) em vez de imprimir o teto como se ele estivesse disponível.
+function TipoDeclaracaoDesconhecidoNotice() {
+  return (
+    <p
+      data-testid="pgbl-tipo-declaracao-desconhecido"
+      className="rounded-md border-l-4 border-[var(--surface-border)] bg-[var(--surface-card)] p-3 text-xs leading-relaxed text-[var(--surface-muted-foreground)]"
+    >
+      Modelo de declaração do IRPF não registrado — só a declaração completa
+      admite a dedução de PGBL. Informe o modelo no perfil tributário para que
+      este limite valha como capacidade dedutível.
+    </p>
   );
 }
 
