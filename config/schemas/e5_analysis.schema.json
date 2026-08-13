@@ -433,13 +433,13 @@
       }
     },
     "goals": {
-      "type": "object"
+      "$ref": "#/$defs/Goals"
     },
     "orcamento_prospectivo": {
       "type": "object"
     },
     "reserva_emergencia": {
-      "type": "object"
+      "$ref": "#/$defs/ReservaEmergencia"
     },
     "endividamento": {
       "type": "object",
@@ -571,7 +571,7 @@
       }
     },
     "consumo_consciente": {
-      "type": "object"
+      "$ref": "#/$defs/ConsumoConsciente"
     },
     "diagnostico_comportamental": {
       "type": "array",
@@ -1766,6 +1766,511 @@
     }
   },
   "$defs": {
+    "ConsumoConsciente": {
+      "type": "object",
+      "description": "ConsumoConsciente.to_legacy_dict (A40.l5 PR2). A janela da folga e a janela dos pontuais ficam declaradas para impedir mistura full-period × 12m (ADR-306 D6).",
+      "properties": {
+        "itens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GastoPontualItem"
+          }
+        },
+        "total_pontuais": {
+          "type": "number"
+        },
+        "total_pontuais_janela": {
+          "type": "number"
+        },
+        "equivalente_meses_aporte": {
+          "type": "number"
+        },
+        "folga_mensal": {
+          "type": "number"
+        },
+        "folga_pct": {
+          "type": "number"
+        },
+        "teto_sugerido": {
+          "type": "number"
+        },
+        "analise": {
+          "type": "string"
+        },
+        "janela": {
+          "type": "string",
+          "enum": [
+            "full",
+            "12m"
+          ]
+        },
+        "janela_meses": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "GastoPontualItem": {
+      "type": "object",
+      "description": "GastoPontualItem.to_dict; item identificado pelo produtor de consumo consciente.",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "conta_cartao": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        },
+        "mes": {
+          "type": "string"
+        },
+        "valor": {
+          "type": "number"
+        },
+        "categoria": {
+          "type": "string"
+        },
+        "observacao": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "ReservaEmergencia": {
+      "type": "object",
+      "description": "EmergencyReserveCalculator.calculate (A40.l5 PR2; ADR-306 D4). Campos opcionais preservam leitura de artefatos antigos, mas qualquer nome novo precisa entrar no contrato antes de ser consumido.",
+      "properties": {
+        "despesas_mensais": {
+          "type": "number"
+        },
+        "custo_essencial_mensal": {
+          "type": "number"
+        },
+        "base_denominador": {
+          "type": "string",
+          "enum": [
+            "custo_essencial",
+            "despesa_total"
+          ]
+        },
+        "janela": {
+          "type": "string",
+          "enum": [
+            "full",
+            "12m"
+          ]
+        },
+        "janela_meses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "perfil_renda": {
+          "type": "string",
+          "enum": [
+            "indefinido",
+            "clt_estavel",
+            "clt_unica_fonte",
+            "renda_mista",
+            "pj_relevante",
+            "pj_dominante"
+          ]
+        },
+        "receita_pj_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "meses_alvo": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "alvo_brl": {
+          "type": "number"
+        },
+        "gap_brl": {
+          "type": "number"
+        },
+        "nivel_6_meses": {
+          "type": "number"
+        },
+        "nivel_12_meses": {
+          "type": "number"
+        },
+        "composicao_liquida": {
+          "$ref": "#/$defs/ReservaComposicaoLiquida"
+        },
+        "excluido_da_reserva": {
+          "$ref": "#/$defs/ReservaExcluida"
+        },
+        "total_liquida": {
+          "type": "number"
+        },
+        "cobertura_meses": {
+          "type": "number"
+        },
+        "avaliacao_liquidity": {
+          "type": "string"
+        },
+        "niveis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "ReservaComposicaoLiquida": {
+      "type": "object",
+      "properties": {
+        "investimentos_titular": {
+          "type": "number"
+        },
+        "investimentos_conjuge": {
+          "type": "number"
+        },
+        "caixa": {
+          "type": "number"
+        },
+        "caixa_moeda_estrangeira": {
+          "type": "number"
+        },
+        "total_liquido": {
+          "type": "number"
+        },
+        "cobertura_meses": {
+          "type": "number"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "ReservaExcluida": {
+      "type": "object",
+      "properties": {
+        "investimentos_nao_liquidos": {
+          "type": "number"
+        },
+        "caixa_moeda_estrangeira": {
+          "type": "number"
+        },
+        "caixa_nao_classificado": {
+          "type": "number"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "Goals": {
+      "type": "object",
+      "description": "União dos produtores reais do E5 (A40.l5 PR2): IFProjection.to_legacy_dict + enriquecimento de renda passiva + alvo de alocação do adapter DB enriquecido no stage. Não é derivado da fixture _GOALS_MIN.",
+      "properties": {
+        "if_meta": {
+          "type": "number"
+        },
+        "if_trs": {
+          "type": "number"
+        },
+        "if_trs_monthly_value": {
+          "type": "number"
+        },
+        "if_pct": {
+          "type": "number"
+        },
+        "if_gap": {
+          "type": "number"
+        },
+        "prazo_anos_realista": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "idade_titular_if": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "idade_conjuge_if": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "ano_if": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "motivo_prazo_indefinido": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "renda_passiva_estimada_4pct": {
+          "type": "number"
+        },
+        "retorno_esperado_pct_aa": {
+          "type": "number"
+        },
+        "taxa_retirada_efetiva_pct": {
+          "type": "number"
+        },
+        "renda_passiva_anual_observada_brl": {
+          "type": "number"
+        },
+        "renda_passiva_mensal_observada_brl": {
+          "type": "number"
+        },
+        "patrimonio_gerador_brl": {
+          "type": "number"
+        },
+        "acumuladores_pct_gerador": {
+          "type": "number"
+        },
+        "ano_referencia_irpf": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "defasagem_meses": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "janela": {
+          "type": "string"
+        },
+        "janela_meses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "alocacao_alvo": {
+          "$ref": "#/$defs/AlocacaoAlvoE5"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "AlocacaoAlvoE5": {
+      "type": "object",
+      "description": "União de _alocacao_bundle_payload (inclui aliases de compatibilidade) e _enrich_alocacao_with_deviation. Fechar pelo golden sozinho omite campos emitidos pelo adapter DB.",
+      "properties": {
+        "rf_pos_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rf_pre_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rf_ipca_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "acoes_br_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "acoes_int_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fiis_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "caixa_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rebalanceamento_modo": {
+          "type": "string"
+        },
+        "instrumentos": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "converted_from": {
+          "enum": [
+            "1",
+            "orphan",
+            null
+          ]
+        },
+        "renda_fixa_pct": {
+          "type": "number"
+        },
+        "acoes_pct": {
+          "type": "number"
+        },
+        "imoveis_reits_pct": {
+          "type": "number"
+        },
+        "liquidez_usd_pct": {
+          "type": "number"
+        },
+        "instrumentos_rf": {
+          "type": "string"
+        },
+        "instrumentos_rv": {
+          "type": "string"
+        },
+        "rebalanceamento": {
+          "type": "string"
+        },
+        "_source": {
+          "type": "string"
+        },
+        "derived": {
+          "$ref": "#/$defs/AlocacaoDerived"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "AlocacaoDerived": {
+      "type": "object",
+      "properties": {
+        "comparaveis": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AlocacaoComparable"
+          }
+        },
+        "desvio_max_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "next_aporte_classe": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "carteira_liquida_brl": {
+          "type": "number"
+        },
+        "caixa": {
+          "$ref": "#/$defs/AlocacaoCaixa"
+        },
+        "imoveis_fisicos_brl": {
+          "type": "number"
+        },
+        "has_alvo": {
+          "type": "boolean"
+        },
+        "rf_comparacao": {
+          "type": "string"
+        },
+        "alvo_renormalizado_defensivo": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "AlocacaoComparable": {
+      "type": "object",
+      "properties": {
+        "classe": {
+          "type": "string"
+        },
+        "valor_brl": {
+          "type": "number"
+        },
+        "componentes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "atual_pct": {
+          "type": "number"
+        },
+        "alvo_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "desvio_pp": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "neutro",
+            "alinhado",
+            "atencao",
+            "rebalancear"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "AlocacaoCaixa": {
+      "type": "object",
+      "properties": {
+        "valor_brl": {
+          "type": "number"
+        },
+        "atual_pct_patrimonio": {
+          "type": "number"
+        },
+        "alvo_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "excesso_pp": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "sinal_excesso": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
     "PontoUrgente": {
       "type": "object",
       "description": "Item de recomendação do plano (ADR-365). Mesmo shape nos dois arrays — eles são projeções da MESMA lista produzida por PontosUrgentesAnalyzer.analyze, particionada por elegibilidade em e5_serialization.partition_pontos_urgentes. `code`/`origem_premissa`/`elegibilidade` sao OPCIONAIS de proposito: o produtor sempre os emite, mas artefato antigo em pipeline_artifacts nao os tem e nao e revalidado na leitura — e o leitor os trata como ausentes==computavel (partition_pontos_urgentes). Marcar required contradiria essa tolerancia, e o modo strict do CI pega (medido no #1243). `additionalProperties: false` fica: e ele que barra campo novo sem schema.",

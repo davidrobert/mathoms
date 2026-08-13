@@ -400,7 +400,7 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
 def _enrich_goals_with_passive_income(
     goals: _GoalsPayload, passive_income: PassiveIncomeResult | None
 ) -> _GoalsPayload:
-    """Adiciona 7 KPIs de TRS efetiva ao ``goals`` quando status ``"ok"``."""
+    """Adiciona 9 KPIs de TRS efetiva ao ``goals`` quando status ``"ok"``."""
     if passive_income is None or passive_income.status != "ok":
         return dict(goals or {})
     enriched = dict(goals or {})
