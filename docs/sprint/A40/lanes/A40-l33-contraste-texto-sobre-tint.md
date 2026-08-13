@@ -139,15 +139,35 @@ Enquanto não sai, `-on-tint` é o único par que existe para os dois.
 índice — tirar achata a hierarquia. Ou aceita-se o achatamento, ou nasce um
 token "dim" que ainda passe AA.
 
-**3. O `axe` descarta `results.incomplete`.**
+**3. O `axe` descarta `results.incomplete` — 65 nós por tema, medidos.**
 [`helpers/axe.ts`](../../../../frontend/tests/e2e/helpers/axe.ts) lê só
-`results.violations`. Onde o axe não consegue resolver o fundo, o achado cai em
-`incomplete` e o gate fica verde por não olhar. Não foi possível medir quantos
-`incomplete` a página produz — Playwright não roda neste worktree
-(`node_modules` é symlink e o Turbopack recusa), então o tamanho do buraco é
-**desconhecido**, não "pequeno".
-*Retomar quando:* alguém rodar o spec num ambiente que execute Playwright;
-imprimir a contagem de `incomplete` por regra é o primeiro passo.
+`results.violations`. O que o axe não consegue decidir cai em `incomplete` e o
+gate fica verde por não olhar. **Medido em 2026-08-13** (probe com a fixture
+`medium`, chromium, os dois temas — `violations=0` nos dois):
+
+| regra | impacto | nós | motivo dominante |
+| --- | --- | --- | --- |
+| `color-contrast` | serious | 46 | 22× fundo em gradiente · 16× texto curto demais · 3× só não-texto · 3× nó de imagem · 2× sobreposto |
+| `aria-prohibited-attr` | serious | 14 | sem mensagem |
+| `aria-valid-attr-value` | **critical** | 5 | `aria-describedby="_r_a_"` (e 4 irmãos) apontando para **ID que não existe na página** |
+
+As 5 do `aria-valid-attr-value` **não são "não consegui decidir"** — são
+referência pendurada, e o axe só não crava porque o alvo *poderia* estar num
+shadow DOM (não há shadow DOM aqui). Os IDs têm a cara dos gerados pelo Base UI.
+Das 46 de contraste, ~22 são fundo em gradiente (incerteza real) e ~22 são ruído
+(caractere único, ícone).
+*Retomar quando:* virar lane própria. O caminho é fazer o helper falhar em
+`incomplete` de regra escolhida (começando por `aria-valid-attr-value`) e tratar
+o resto com allowlist justificada. **Não** basta falhar em tudo: 46 nós de
+contraste com ruído dentro viraria gate que se aprende a ignorar.
+
+*Nota de método:* a versão anterior deste item dizia que Playwright não roda
+neste worktree. **Falso** — era memória vencida de outra sessão; `node_modules`
+é diretório real e o `a11y.@critical.spec.ts` roda em 46s (20 testes, verde). O
+que atrapalha é o `webServer` do `playwright.config.ts` com `url` fixo em 3000 e
+`reuseExistingServer: !CI`: com um servidor de outro worktree na 3000, o
+Playwright **reusa o servidor errado** em silêncio. Use
+`PLAYWRIGHT_SKIP_WEB_SERVER=1` + `PLAYWRIGHT_BASE_URL` numa porta livre.
 
 ## Deferido — 2026-08-08 · dono: David Robert
 

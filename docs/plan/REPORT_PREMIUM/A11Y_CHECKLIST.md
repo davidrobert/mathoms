@@ -120,8 +120,10 @@ Duas coisas que **nenhum dos dois** cobre hoje, medidas no mesmo ataque e
 abertas em [[A40.l33]]: cor semântica como foreground sobre o card **liso**
 (6 textos a 2,06:1 em light) e `opacity modifier` no texto
 (`text-[var(--X)]/70` → 3,55:1). E o helper do axe lê só `results.violations`:
-o que ele não consegue resolver cai em `incomplete` e é **descartado** — verde
-por não olhar, de tamanho desconhecido.
+o que ele não consegue resolver cai em `incomplete` e é **descartado** — medido
+em 2026-08-13, são **65 nós por tema** com `violations=0`, entre eles 5 de
+`aria-valid-attr-value` (impacto **critical**) que são `aria-describedby`
+apontando para ID inexistente. Verde por não olhar.
 
 ---
 
