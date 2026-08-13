@@ -96,18 +96,32 @@ só intenção.
 > Decisão canônica do par `-on-tint` e do "medir em vez de proibir a forma":
 > [[ADR-372]]. Execução e itens deferidos: [[A40.l33]].
 
-O `check_tint_contrast.py` pareia **dentro de um `className`**. Não enxerga par
+O `check_tint_contrast.py` pareia **dentro de uma linha**. Não enxerga par
 montado por `style` inline com `bg` e `fg` em linhas separadas de um object
 literal: foi assim que `BADGE_COLOR` de `alocacaoCardParts.tsx` passou batido a
 4,44:1 no dark, e **quem achou foi a varredura dark do axe**. Esses casos, mais
-ícone colorido cujo `text-[…]` vive num elemento filho (1.4.11), entram como
-`NAMED_PAIRS` no gate — com checagem de staleness, para entrada cujo call-site
-trocou de token falhar em vez de medir fantasma.
+texto ou ícone colorido em elemento filho do que carrega o tint, entram como
+`NAMED_PAIRS` no gate — com checagem de staleness (cor do texto **e**
+percentual), para entrada cujo call-site mudou falhar em vez de medir fantasma.
 
 Na direção oposta, o axe mede **a tela que a fixture monta**, e um branch que a
 fixture não alcança nunca é varrido (`fator_r_faixa: "anexo_v"` era o pior par,
 1,86:1, e `medium.json` fixa `anexo_iii`). Gate que passa por **ausência do
 caso** não é gate — por isso o par de cores também é medido fora do render.
+
+**O eixo que derrubou os dois, em 2026-08-13: a sintaxe.** O gate casava uma
+forma de escrever o tint; `bg-[var(--X)]/15` é outra, e escondia 7 call-sites
+reprovando — 1,86:1 entre eles, o mesmo número que a [[ADR-372]] publicou como
+sendo o defeito. O axe não alcançava porque `medium.json` não tem
+`exposicao_cambial`. As três formas em uso vivem em `_tints_in_line`; forma
+nova é o modo de falha a vigiar.
+
+Duas coisas que **nenhum dos dois** cobre hoje, medidas no mesmo ataque e
+abertas em [[A40.l33]]: cor semântica como foreground sobre o card **liso**
+(6 textos a 2,06:1 em light) e `opacity modifier` no texto
+(`text-[var(--X)]/70` → 3,55:1). E o helper do axe lê só `results.violations`:
+o que ele não consegue resolver cai em `incomplete` e é **descartado** — verde
+por não olhar, de tamanho desconhecido.
 
 ---
 
