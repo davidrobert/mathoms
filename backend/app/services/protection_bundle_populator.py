@@ -1,16 +1,18 @@
-"""Populator ``ProtectionBundle`` (ADR-192 §D3, S9-T03) — monta value objects e invoca 4 calculators puros (DIP); thresholds default (ITCMD UF, FBAR/FATCA/Estate Tax) documentados como débito para ``fiscal_parameters`` (ADR-135 follow-up)."""
+"""Populator fail-closed do ``ProtectionBundle`` (ADR-192; A40.l61)."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
-from typing import Optional
+from typing import Literal, Optional
 
 from backend.app.core.logging import get_logger
 from backend.app.models.family_member import FamilyMember
 from backend.app.models.workspace import Workspace
+from backend.app.services.protection_bundle_inputs import ProtectionComputationInputs
 from pipeline.domain.protection_bundle import (
     ProtectionBundle,
+    ProtectionCalculationStatus,
     ProtectionGapItem,
     ProtectionItem,
     ProtectionRecommendation,
@@ -23,42 +25,26 @@ from pipeline.domain.services.protection import (
     ITCMDInputs,
     LifeInsuranceInputs,
     USExposureInputs,
-    USPersonThresholds,
     compliance_risk_us_person,
     disability_coverage_gap,
     itcmd_estimated,
     life_insurance_coverage_ideal,
 )
 
-# ITCMD: tabela default de alíquotas por UF (% sobre patrimônio bruto).
-# TODO (ADR-135 follow-up): migrar para coluna ``fiscal_parameters.itcmd_aliquota_por_uf``
-# (JSON ou tabela filha por vigência) — esta tabela é referência conservadora
-# e deve ser refletida em ``fiscal_parameters`` por ``effective_date``.
-_ITCMD_ALIQUOTAS_DEFAULT_PCT: dict[str, Decimal] = {
-    "AC": Decimal("4"), "AL": Decimal("4"), "AM": Decimal("2"), "AP": Decimal("4"),
-    "BA": Decimal("8"), "CE": Decimal("8"), "DF": Decimal("6"), "ES": Decimal("4"),
-    "GO": Decimal("8"), "MA": Decimal("7"), "MG": Decimal("5"), "MS": Decimal("6"),
-    "MT": Decimal("8"), "PA": Decimal("4"), "PB": Decimal("8"), "PE": Decimal("8"),
-    "PI": Decimal("6"), "PR": Decimal("4"), "RJ": Decimal("8"), "RN": Decimal("6"),
-    "RO": Decimal("4"), "RR": Decimal("4"), "RS": Decimal("6"), "SC": Decimal("8"),
-    "SE": Decimal("8"), "SP": Decimal("4"), "TO": Decimal("4"),
-}  # fmt: skip
-
-# US compliance: thresholds default.
-# TODO (ADR-135 follow-up): migrar para ``fiscal_parameters.us_thresholds_usd`` por vigência.
-_US_THRESHOLDS_DEFAULT: USPersonThresholds = USPersonThresholds(
-    fbar_threshold_usd=10_000,
-    fatca_single_threshold_usd=50_000,
-    fatca_joint_threshold_usd=100_000,
-    estate_tax_nra_threshold_usd=60_000,
-)
-
-# Codes ``us_tax_status`` que representam pessoa fiscalmente americana.
-_US_PERSON_CODES: frozenset[str] = frozenset(
-    {"resident", "former_resident_within_10y", "greencard_expiring", "citizen"}
-)
-
 logger = get_logger("mathoms.protection.populator")
+
+_OrchestrationResult = tuple[
+    dict[str, ProtectionGapItem],
+    list[ProtectionRecommendation],
+    list[RiskInferred],
+    dict[str, ProtectionCalculationStatus],
+]
+
+
+@dataclass(frozen=True)
+class _DependentAgesResolution:
+    status: Literal["confirmed", "none", "indeterminate"]
+    ages: tuple[int, ...] = ()
 
 
 def _coverage_by_category(items: list[ProtectionItem]) -> dict[str, int]:
@@ -80,38 +66,31 @@ def _age_from_birth(
 ) -> Optional[int]:
     if birth is None or reference is None:
         return None
+    if birth > reference:
+        return None
     age = (
         reference.year - birth.year - ((reference.month, reference.day) < (birth.month, birth.day))
     )
-    return max(0, age)
+    return age
 
 
-def _has_us_exposure(members: list[FamilyMember], workspace: Optional[Workspace] = None) -> bool:
-    """``has_us_exposure`` (ADR-192 §D4) derivado de ``family_members`` + workspace flag."""
-    for m in members:
-        status = getattr(m, "us_tax_status", None)
-        if status and status in _US_PERSON_CODES:
-            return True
-    if workspace is not None and workspace.business_profile_json:
-        bp = workspace.business_profile_json
-        if isinstance(bp, dict) and bool(bp.get("us_exposure_explicit", False)):
-            return True
-    return False
-
-
-def _titular_us_tax_status(members: list[FamilyMember]) -> str:
-    """Status do titular ou primeiro membro disponível."""
-    for m in members:
-        if m.role == "titular":
-            return getattr(m, "us_tax_status", None) or "none"
-    if members:
-        return getattr(members[0], "us_tax_status", None) or "none"
-    return "none"
-
-
-def _dependents_ages(members: list[FamilyMember], today: date) -> tuple[int, ...]:
-    ages = [_age_from_birth(m.birth_date, today) for m in members if m.role == "dependente"]
-    return tuple(a for a in ages if a is not None)
+def _dependents_ages(members: list[FamilyMember], today: date) -> _DependentAgesResolution:
+    eligible = [member for member in members if member.role in {"filho", "dependente"}]
+    if not members:
+        return _DependentAgesResolution("indeterminate")
+    if not eligible:
+        return _DependentAgesResolution("none")
+    ages = [_age_from_birth(member.birth_date, today) for member in eligible]
+    if any(age is None for age in ages):
+        return _DependentAgesResolution("indeterminate")
+    if any(member.role == "dependente" and age >= 18 for member, age in zip(eligible, ages)):
+        return _DependentAgesResolution("indeterminate")
+    minors = tuple(age for age in ages if age < 18)
+    return (
+        _DependentAgesResolution("confirmed", minors)
+        if minors
+        else _DependentAgesResolution("none")
+    )
 
 
 def _principal_age(members: list[FamilyMember], today: date) -> int:
@@ -121,25 +100,15 @@ def _principal_age(members: list[FamilyMember], today: date) -> int:
     return valid[0] if valid else 0
 
 
-def _resolve_uf(workspace: Optional[Workspace] = None) -> str:
-    """UF do titular via ``business_profile_json.uf_titular`` ou fallback SP."""
-    if workspace is None or not workspace.business_profile_json:
-        return "SP"
-    bp = workspace.business_profile_json
-    if isinstance(bp, dict):
-        return str(bp.get("uf_titular") or "SP").upper()
-    return "SP"
-
-
-def _build_thresholds() -> ProtectionThresholds:
-    """Snapshot dos thresholds default — exposto via bundle (UI consome)."""
+def _build_thresholds(inputs: ProtectionComputationInputs) -> ProtectionThresholds:
+    us = inputs.us_thresholds
     return ProtectionThresholds(
         life_insurance_multiple_renda_anual=10.0,
         reserva_meses_clt=6,
         reserva_meses_pj=9,
         reserva_meses_socio_variavel=12,
-        fbar_threshold_usd=_US_THRESHOLDS_DEFAULT.fbar_threshold_usd,
-        estate_tax_threshold_usd=_US_THRESHOLDS_DEFAULT.estate_tax_nra_threshold_usd,
+        fbar_threshold_usd=us.fbar_threshold_usd if us else None,
+        estate_tax_threshold_usd=us.estate_tax_nra_threshold_usd if us else None,
     )
 
 
@@ -168,25 +137,33 @@ def _run_life(
     today: date,
     coverage_by_cat: dict[str, int],
     effective_date_iso: str,
+    computation_inputs: ProtectionComputationInputs,
 ):
-    """Roda calculator de vida; retorna recomendação ou None."""
-    deps_ages = _dependents_ages(members, today)
+    deps = _dependents_ages(members, today)
+    assert computation_inputs.annual_active_income_brl_cents is not None
+    assert computation_inputs.outstanding_debts_brl_cents is not None
     inputs = LifeInsuranceInputs(
         principal_age=_principal_age(members, today),
-        dependents_ages=deps_ages,
-        annual_active_income_brl_cents=0,  # TODO: do baseline/E5
-        outstanding_debts_brl_cents=0,  # TODO: do baseline E1.5
+        dependents_ages=deps.ages,
+        annual_active_income_brl_cents=computation_inputs.annual_active_income_brl_cents,
+        outstanding_debts_brl_cents=computation_inputs.outstanding_debts_brl_cents,
         current_coverage_brl_cents=coverage_by_cat.get("vida", 0),
         effective_date=effective_date_iso,
     )
     return life_insurance_coverage_ideal(inputs)
 
 
-def _run_disability(items: list[ProtectionItem], effective_date_iso: str):
+def _run_disability(
+    items: list[ProtectionItem],
+    effective_date_iso: str,
+    computation_inputs: ProtectionComputationInputs,
+):
+    assert computation_inputs.active_net_monthly_income_brl_cents is not None
+    assert computation_inputs.passive_net_monthly_income_brl_cents is not None
     actual_monthly = _disability_coverage_monthly(items)
     inputs = DisabilityInputs(
-        active_net_monthly_income_brl_cents=0,  # TODO: do E5/IRPF
-        passive_net_monthly_income_brl_cents=0,
+        active_net_monthly_income_brl_cents=computation_inputs.active_net_monthly_income_brl_cents,
+        passive_net_monthly_income_brl_cents=computation_inputs.passive_net_monthly_income_brl_cents,
         current_disability_coverage_monthly_brl_cents=actual_monthly,
         effective_date=effective_date_iso,
     )
@@ -194,28 +171,37 @@ def _run_disability(items: list[ProtectionItem], effective_date_iso: str):
 
 
 def _run_itcmd(
-    workspace: Optional[Workspace],  # pode ser None em testes/workspace recém-criado
     effective_date_iso: str,
+    computation_inputs: ProtectionComputationInputs,
 ):
+    assert computation_inputs.itcmd_uf is not None
+    assert computation_inputs.gross_estate_brl_cents is not None
+    assert computation_inputs.itcmd_aliquota_pct_por_uf is not None
     inputs = ITCMDInputs(
-        uf=_resolve_uf(workspace),
-        gross_estate_brl_cents=0,  # TODO: do baseline E1.5
+        uf=computation_inputs.itcmd_uf,
+        gross_estate_brl_cents=computation_inputs.gross_estate_brl_cents,
         effective_date=effective_date_iso,
-        aliquota_pct_por_uf=_ITCMD_ALIQUOTAS_DEFAULT_PCT,
+        aliquota_pct_por_uf=dict(computation_inputs.itcmd_aliquota_pct_por_uf),
     )
     return itcmd_estimated(inputs)
 
 
 def _run_us_compliance(
-    members: list[FamilyMember], effective_date_iso: str
+    effective_date_iso: str,
+    computation_inputs: ProtectionComputationInputs,
 ) -> list[ComplianceFlag]:
+    assert computation_inputs.has_us_assets is not None
+    assert computation_inputs.has_us_income is not None
+    assert computation_inputs.us_tax_status is not None
+    assert computation_inputs.us_assets_usd is not None
+    assert computation_inputs.us_thresholds is not None
     inputs = USExposureInputs(
-        has_us_assets=False,  # TODO: campo no business_profile_json
-        has_us_income=False,
-        us_tax_status=_titular_us_tax_status(members),  # type: ignore[arg-type]
-        us_assets_usd=None,
+        has_us_assets=computation_inputs.has_us_assets,
+        has_us_income=computation_inputs.has_us_income,
+        us_tax_status=computation_inputs.us_tax_status,
+        us_assets_usd=computation_inputs.us_assets_usd,
         effective_date=effective_date_iso,
-        thresholds=_US_THRESHOLDS_DEFAULT,
+        thresholds=computation_inputs.us_thresholds,
     )
     return compliance_risk_us_person(inputs)
 
@@ -282,7 +268,105 @@ def _append_us_compliance(flags, recommendations, auto_inferred) -> None:
             auto_inferred.append(flag.risk_inferred)
 
 
-def _log_populated(workspace, items, gap_analysis, auto_inferred, has_us_exposure) -> None:
+def _status(
+    state: Literal["computed", "not_applicable", "missing_data"],
+    *,
+    missing: tuple[str, ...] = (),
+    reason: str,
+) -> ProtectionCalculationStatus:
+    return ProtectionCalculationStatus(status=state, missing_inputs=list(missing), reason=reason)
+
+
+def _missing_names(*candidates: tuple[str, object | None]) -> tuple[str, ...]:
+    return tuple(name for name, value in candidates if value is None)
+
+
+def _life_status(
+    members: list[FamilyMember], today: date, inputs: ProtectionComputationInputs
+) -> ProtectionCalculationStatus:
+    deps = _dependents_ages(members, today)
+    if deps.status == "none":
+        return _status("not_applicable", reason="Nenhum dependente econômico menor confirmado.")
+    if deps.status == "indeterminate":
+        return _status(
+            "missing_data",
+            missing=("dependents_ages",),
+            reason="Idade ou dependência econômica não confirmada.",
+        )
+    missing = _missing_names(
+        ("annual_active_income_brl_cents", inputs.annual_active_income_brl_cents),
+        ("outstanding_debts_brl_cents", inputs.outstanding_debts_brl_cents),
+    )
+    if missing:
+        return _status("missing_data", missing=missing, reason="Renda ativa ou dívida ausente.")
+    return _status("computed", reason="Calculado sobre dependentes e insumos observados.")
+
+
+def _disability_status(inputs: ProtectionComputationInputs) -> ProtectionCalculationStatus:
+    missing = _missing_names(
+        ("active_net_monthly_income_brl_cents", inputs.active_net_monthly_income_brl_cents),
+        ("passive_net_monthly_income_brl_cents", inputs.passive_net_monthly_income_brl_cents),
+    )
+    if missing:
+        return _status(
+            "missing_data", missing=missing, reason="Par de renda líquida mensal incompleto."
+        )
+    return _status("computed", reason="Calculado sobre rendas líquidas da mesma base.")
+
+
+def _itcmd_status(inputs: ProtectionComputationInputs) -> ProtectionCalculationStatus:
+    missing = _missing_names(
+        ("gross_estate_brl_cents", inputs.gross_estate_brl_cents),
+        ("itcmd_uf", inputs.itcmd_uf),
+        ("itcmd_aliquota_pct_por_uf", inputs.itcmd_aliquota_pct_por_uf),
+    )
+    if missing:
+        return _status(
+            "missing_data", missing=missing, reason="Patrimônio, UF ou parâmetro fiscal ausente."
+        )
+    if inputs.itcmd_uf.upper() not in inputs.itcmd_aliquota_pct_por_uf:
+        return _status(
+            "missing_data",
+            missing=("itcmd_aliquota_pct_por_uf",),
+            reason="Não há alíquota vigente para a UF observada.",
+        )
+    return _status("computed", reason="Calculado com patrimônio bruto e parâmetro vigente.")
+
+
+def _us_status(inputs: ProtectionComputationInputs) -> ProtectionCalculationStatus:
+    evidence_missing = _missing_us_evidence(inputs)
+    if evidence_missing:
+        return _status(
+            "missing_data", missing=evidence_missing, reason="Evidência de exposição EUA ausente."
+        )
+    if _explicitly_no_us_exposure(inputs):
+        return _status("not_applicable", reason="Ausência explícita de exposição fiscal EUA.")
+    missing = _missing_names(
+        ("us_assets_usd", inputs.us_assets_usd),
+        ("us_thresholds", inputs.us_thresholds),
+    )
+    if missing:
+        return _status("missing_data", missing=missing, reason="Valor ou thresholds EUA ausentes.")
+    return _status(
+        "missing_data",
+        missing=("compliance_us_rule",),
+        reason="Regra atual não modela renda EUA sem afirmar filing indevido.",
+    )
+
+
+def _explicitly_no_us_exposure(inputs: ProtectionComputationInputs) -> bool:
+    return not inputs.has_us_assets and not inputs.has_us_income and inputs.us_tax_status == "none"
+
+
+def _missing_us_evidence(inputs: ProtectionComputationInputs) -> tuple[str, ...]:
+    return _missing_names(
+        ("has_us_assets", inputs.has_us_assets),
+        ("has_us_income", inputs.has_us_income),
+        ("us_tax_status", inputs.us_tax_status),
+    )
+
+
+def _log_populated(workspace, items, gap_analysis, auto_inferred, statuses) -> None:
     logger.info(
         "protection_bundle_populated",
         extra={
@@ -290,7 +374,7 @@ def _log_populated(workspace, items, gap_analysis, auto_inferred, has_us_exposur
             "policies_count": len(items),
             "gap_categories": list(gap_analysis.keys()),
             "auto_inferred_count": len(auto_inferred),
-            "has_us_exposure": has_us_exposure,
+            "calculation_status": {key: value["status"] for key, value in statuses.items()},
         },
     )
 
@@ -298,33 +382,71 @@ def _log_populated(workspace, items, gap_analysis, auto_inferred, has_us_exposur
 def _orchestrate_calculators(
     items: list[ProtectionItem],
     members: list[FamilyMember],
-    workspace: Optional[Workspace],  # populator chain — pode ser None em testes
     today: date,
     iso: str,
     cov: dict[str, int],
-    has_us: bool,
-) -> tuple[dict[str, ProtectionGapItem], list[ProtectionRecommendation], list[RiskInferred]]:
-    """Roda os 4 calculators e agrega resultados; chamada pelo populator."""
+    inputs: ProtectionComputationInputs,
+) -> _OrchestrationResult:
     gap: dict[str, ProtectionGapItem] = {}
     recs: list[ProtectionRecommendation] = []
     auto: list[RiskInferred] = []
-    _append_life(_run_life(members, today, cov, iso), gap, recs, auto)
-    dis_gap, actual_monthly = _run_disability(items, iso)
+    statuses = _calculation_statuses(members, today, inputs)
+    _compute_available_life(statuses, members, today, cov, iso, inputs, gap, recs, auto)
+    _compute_available_disability(statuses, items, iso, inputs, gap, recs, auto)
+    _compute_available_itcmd(statuses, cov, iso, inputs, gap, recs, auto)
+    _compute_available_us(statuses, iso, inputs, recs, auto)
+    return gap, recs, auto, statuses
+
+
+def _calculation_statuses(members, today, inputs) -> dict[str, ProtectionCalculationStatus]:
+    return {
+        "vida": _life_status(members, today, inputs),
+        "invalidez": _disability_status(inputs),
+        "sucessorio": _itcmd_status(inputs),
+        "compliance_us": _us_status(inputs),
+    }
+
+
+def _compute_available_life(statuses, members, today, cov, iso, inputs, gap, recs, auto):
+    if statuses["vida"]["status"] != "computed":
+        return
+    _append_life(_run_life(members, today, cov, iso, inputs), gap, recs, auto)
+
+
+def _compute_available_disability(statuses, items, iso, inputs, gap, recs, auto):
+    if statuses["invalidez"]["status"] != "computed":
+        return
+    dis_gap, actual_monthly = _run_disability(items, iso, inputs)
     _append_disability(dis_gap, actual_monthly, gap, recs, auto)
-    _append_itcmd(_run_itcmd(workspace, iso), cov, gap, recs, auto)
-    if has_us:
-        _append_us_compliance(_run_us_compliance(members, iso), recs, auto)
-    return gap, recs, auto
 
 
-def _assemble_bundle(items, gap_analysis, recs, auto, has_us, adapter_version) -> ProtectionBundle:
+def _compute_available_itcmd(statuses, cov, iso, inputs, gap, recs, auto):
+    if statuses["sucessorio"]["status"] != "computed":
+        return
+    _append_itcmd(_run_itcmd(iso, inputs), cov, gap, recs, auto)
+
+
+def _compute_available_us(statuses, iso, inputs, recs, auto):
+    if statuses["compliance_us"]["status"] != "computed":
+        return
+    _append_us_compliance(_run_us_compliance(iso, inputs), recs, auto)
+
+
+def _has_us_exposure(inputs: ProtectionComputationInputs) -> bool | None:
+    if inputs.has_us_assets is None or inputs.has_us_income is None or inputs.us_tax_status is None:
+        return None
+    return bool(inputs.has_us_assets or inputs.has_us_income or inputs.us_tax_status != "none")
+
+
+def _assemble_bundle(items, gap, recs, auto, statuses, inputs, adapter_version) -> ProtectionBundle:
     return {
         "policies": items,
-        "gap_analysis": gap_analysis,
+        "gap_analysis": gap,
         "recommendations": recs,
         "auto_inferred_risks": auto,
-        "methodology_thresholds": _build_thresholds(),
-        "has_us_exposure": has_us,
+        "calculation_status": statuses,
+        "methodology_thresholds": _build_thresholds(inputs),
+        "has_us_exposure": _has_us_exposure(inputs),
         "_adapter_version": adapter_version,
     }
 
@@ -336,14 +458,15 @@ def populate_protection_bundle(
     workspace: Optional[Workspace],
     today: date,
     adapter_version: int,
+    computation_inputs: ProtectionComputationInputs | None = None,
 ) -> ProtectionBundle:
-    """Popula ``ProtectionBundle`` (ADR-192 §D3, T03) invocando 4 calculators puros."""
-    has_us = _has_us_exposure(members, workspace)
+    """Invoca apenas calculators com insumos observados completos."""
+    inputs = computation_inputs or ProtectionComputationInputs()
     iso = today.isoformat()
     cov = _coverage_by_category(items)
-    gap, recs, auto = _orchestrate_calculators(items, members, workspace, today, iso, cov, has_us)
-    _log_populated(workspace, items, gap, auto, has_us)
-    return _assemble_bundle(items, gap, recs, auto, has_us, adapter_version)
+    gap, recs, auto, statuses = _orchestrate_calculators(items, members, today, iso, cov, inputs)
+    _log_populated(workspace, items, gap, auto, statuses)
+    return _assemble_bundle(items, gap, recs, auto, statuses, inputs, adapter_version)
 
 
 __all__ = ["populate_protection_bundle"]

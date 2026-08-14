@@ -105,6 +105,11 @@ em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomad
 > **O contador de 2 re-runs só inicia depois que a l2, a l34 e a l35 estiverem
 > terminais** — entregues, ou declaradas não-entregues. Iniciar antes mede um
 > relatório que a sprint ainda vai mudar.
+
+> **Correção de co-design em 2026-08-13 — a condição terminal não mudou.** A
+> l35 foi decomposta em [[A40.l61]] fail-closed → [[A40.l62]] fontes/snapshot →
+> l35 ativação. As pré-lanes são dependências transitivas, mas **l35 continua
+> sendo o terminal exigido**; l61 não liga a S9 nem altera o relatório entregue.
 >
 > Ressalva que a cláusula não previa: os dois runs usaram `SKIP_LLM=1`, então **o parecer não
 > rodou** (`review_finances_holistic: skipped`; as narrativas **rodaram**). O relatório
@@ -190,7 +195,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (58 no disco · 52 nesta tabela — ver nota ao fim)
+## Lanes (61 no disco · 61 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -243,7 +248,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l8]] | Cobertura do manifest do parecer (dado renderizado inalcançável) | P1 | — | RV3-08 |
 | [[A40.l9]] | Materialização de config run-scoped (input zerado silenciosamente) | **P1** | — | RV3-11 |
 | [[A40.l10]] | Ordem do plano + pendências do dono | P1 | l9 | RV3-07, RV3-10, **RV4-02** (P0, admitido 2026-08-04) |
-| [[A40.l11]] | Cobertura e incerteza na tela | P2 | l3, l4 | RV3-13, RV3-14, RV3-29 · flip [[ADR-353]] |
+| [[A40.l11]] | Cobertura e incerteza na tela | P2 | l3, l4, l35 | RV3-13, RV3-14, RV3-29 · flip [[ADR-353]] |
 | [[A40.l12]] | Classificação incompleta distorce KPI | P1 | l1 | RV3-20, RV3-21 · flip [[ADR-351]] |
 | [[A40.l13]] | Copy e design system | P2 | l4 | RV3-23, RV3-24, RV3-25 |
 | [[A40.l14]] | Limpeza de órfãos e schema morto | P3 | — | RV3-32 + handoff A39 |
@@ -267,7 +272,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l32]] | Proveniência do executor: qual código computou este run | P1 | — | promovida da [[A42]] · [[ADR-362]] · [[ADR-363]] · instrumento, sem custo de API |
 | [[A40.l33]] | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | P1 | — | `in_progress` · [[ADR-372]] (#1323) · **ataque 2026-08-13 (#1432)**: a classe não estava fechada — o gate media 1 das 3 sintaxes de tint e 7 call-sites reprovavam AA (1,86:1 entre eles, o mesmo número que a ADR publicou como sendo o defeito); emenda na ADR + §Aberto com 3 achados adjacentes medidos · §Deferido tem 3 itens datados; o nº 3 (`report_palette` espelha o mockup ou o uso? [[ADR-117]] na mesa) é o que a [[A40.l46]] item 2 executa · **prioridade corrigida em 2026-08-13**: a tabela dizia P2 e o frontmatter (fonte do `SPRINT_CURRENT`) diz P1 — era a única divergência das 33 linhas · **título corrigido em 2026-08-12 (#1423)**: a linha dizia "Cache de citação por conteúdo, não por posição", assunto de nenhuma lane — foi escrita de memória no #1372 quando o arquivo `A40-l33-contraste-texto-sobre-tint.md` já existia |
 | [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `in_progress` · **fora das ondas** · [[ADR-375]] `Proposto` escrita 2026-08-11 (#1377) · PR1 (faixa marginal, #1383) + PR2 (remove o proxy, corrige a polaridade, #1394) mergeados · supersede parcial [[ADR-196]] + [[ADR-277]] · **falta PR3** (S8 dono único + card com registro trocado) — D5 bloqueado, rota em [[A40.l56]] · exceção da cláusula 2 (ver §Fora do sprint) |
-| [[A40.l35]] | Bundle de proteção sobre insumos reais (5 zeros + 2 `False`) | P1 | — | spin-off da [[A40.l7]] 2026-08-11 · Onda 2 · [[A40.l11]] é consumidora |
+| [[A40.l35]] | Bundle de proteção sobre insumos reais (ativação final da S9) | P1 | l62 | `blocked` · split de co-design 2026-08-13 · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
 | [[A40.l38]] | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | **P0** | — | `shipped` (#1391) · [[ADR-376]] · linha adicionada em 2026-08-12 (#1415) — o PR de origem não atualizou a tabela |
@@ -292,6 +297,8 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l58]] | `schema_validation` warn → strict — o PR5 que a [[A40.l5]] declarou como outra lane | P2 | [[A40.l5]] | aberta 2026-08-12 · `blocked` (exige o drift medido dos PRs da l5) · ADR própria antes do PR · dono `sre-devops` |
 | [[A40.l59]] | A transição para `shipped` ganha gate: `ship_pr` no frontmatter e PR visível no `_README` | P2 | — | aberta 2026-08-12 · executa o gatilho de promoção da skill `lane-closeout` (3ª ocorrência + 10 lanes fora desta tabela na medição) · dono `information-architect` |
 | [[A40.l60]] | Conselho de seguro: cobertura recomendada sem ressalva fiduciária + string que afirma invalidez sem fonte | P1 | — | aberta 2026-08-12 no fecho da sessão S6/FP-010 (#1379/#1390) · funde 2 achados verificados (mesmo produtor, mesma classe fiduciária) · KR-E · PR2 com amarra de entrega parcial atrás da [[A40.l35]] · nasceu `l50`, passou por `l58`, renumerada 2× em rebase (ids tomados em `main`) |
+| [[A40.l61]] | ProtectionBundle fail-closed: ausência não vira zero/False | P1 | — | `in_progress` · mitigação do split da l35 · não liga a S9 |
+| [[A40.l62]] | Fontes canônicas + ProtectionComputationSnapshotV1 | P1 | l61 | `blocked` · dois PRs ordenados · [[ADR-387]] `Proposto` |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -304,6 +311,10 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 > lidos do frontmatter de cada arquivo. A **l45** já havia entrado junto com as
 > lanes que os follow-ups dela originaram (l53–l55). A **l60** entrou nesta
 > passada, já sincronizada.
+
+> **Re-medição 2026-08-13:** `ls docs/sprint/A40/lanes/*.md` dá **61** e esta
+> tabela lista **61**. As novas l61/l62 são pré-requisitos do mesmo destino da
+> l35, não expansão temática. DAG: [[A40.l61]] → [[A40.l62]] → [[A40.l35]].
 >
 > **Quem fechar a sprint tem de resolver isto:** lane fora desta tabela é invisível
 > ao **encerramento administrativo** (flip `sprint_status: done` + contador de
@@ -500,7 +511,7 @@ achados com esforço S e risco baixo. A l9 sobe para cá porque é **pré-requis
 RV3-07** e porque é reincidência de um "FIXADO" falso.
 
 **Onda 2 — corrigir com o instrumento pronto** ([[A40.l2]], [[A40.l5]], [[A40.l7]],
-[[A40.l8]], [[A40.l12]]). A l2 só abre depois da l1: sem detector, o fix fecha
+[[A40.l8]], [[A40.l12]], [[A40.l61]], [[A40.l62]], [[A40.l35]]). A l2 só abre depois da l1: sem detector, o fix fecha
 verde sem prova. A l5 vem **antes** das lanes de correção individual de contrato —
 senão cada uma é fixada uma vez e volta a divergir.
 
@@ -568,6 +579,13 @@ senão cada uma é fixada uma vez e volta a divergir.
 >   `<summary>` no print, então o dano do RV3-15 é na tela. O rótulo que de
 >   fato mentia no PDF era outro (`Mostrando 5 de 8 riscos` acima de 8 linhas
 >   impressas), e foi corrigido no mesmo PR.
+
+> **Estado da Onda 2 em 2026-08-13 — split da proteção.** O co-design refutou a
+> premissa de wiring simples: E5 não tem renda ativa líquida mensal nem situs EUA,
+> e o adapter live quebraria a fotografia do Report. A sequência vigente é
+> **[[A40.l61]] `in_progress` → [[A40.l62]] `blocked` → [[A40.l35]] `blocked`**.
+> A l61 fecha o dano latente sem ligar a superfície; a l35 continua sendo o
+> terminal que habilita a S9 e o contador de re-runs.
 
 **[[A40.l30]] entra como instrumento que gateia esta onda** (aberta 2026-08-03,
 co-design `prompt-engineer`). Não é Onda 0 — a Onda 0 é "parar a sangria" e sua

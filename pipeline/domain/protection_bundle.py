@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TypedDict
+from typing import Literal, Optional, TypedDict
 
 
 class ProtectionItem(TypedDict):
@@ -58,6 +58,14 @@ class ProtectionThresholds(TypedDict, total=False):
     estate_tax_threshold_usd: Optional[int]
 
 
+class ProtectionCalculationStatus(TypedDict):
+    """Computabilidade explícita; ausência de dado nunca é gap zero."""
+
+    status: Literal["computed", "not_applicable", "missing_data"]
+    missing_inputs: list[str]
+    reason: str
+
+
 class ProtectionBundle(TypedDict, total=False):
     """Bundle tipado consumido por stages do pipeline (ADR-192; total=False)."""
 
@@ -65,13 +73,15 @@ class ProtectionBundle(TypedDict, total=False):
     gap_analysis: dict[str, ProtectionGapItem]  # key = category
     recommendations: list[ProtectionRecommendation]
     auto_inferred_risks: list[RiskInferred]
+    calculation_status: dict[str, ProtectionCalculationStatus]
     methodology_thresholds: ProtectionThresholds
-    has_us_exposure: bool
+    has_us_exposure: Optional[bool]
     _adapter_version: int
 
 
 __all__ = [
     "ProtectionBundle",
+    "ProtectionCalculationStatus",
     "ProtectionGapItem",
     "ProtectionItem",
     "ProtectionRecommendation",

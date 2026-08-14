@@ -382,6 +382,7 @@
 | ADR-384 | adr | Decidido |  | Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback | `adr/384-identidade-institucional-por-cnpj-raiz.md` |
 | ADR-385 | adr | Proposto |  | Resolver de imóvel devolve row viva atravessando as eras do canonicalizador | `adr/385-resolver-de-imovel-devolve-row-viva-atravessando-eras.md` |
 | ADR-386 | adr | Proposto |  | Supersessão de PropertyIdentity é escopada ao que o run observou | `adr/386-supersessao-de-imovel-escopada-ao-run-observado.md` |
+| ADR-387 | adr | Proposto |  | ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria | `adr/387-protection-computation-snapshot-v1-computabilidade-por-categoria.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -878,7 +879,7 @@
 | A40.l32 | lane | shipped | A40 | Proveniência do executor: qual código computou este run | `sprint/A40/lanes/A40-l32-proveniencia-do-executor-do-run.md` |
 | A40.l33 | lane | in_progress | A40 | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | `sprint/A40/lanes/A40-l33-contraste-texto-sobre-tint.md` |
 | A40.l34 | lane | in_progress | A40 | Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis | `sprint/A40/lanes/A40-l34-base-do-limite-pgbl.md` |
-| A40.l35 | lane | open | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
+| A40.l35 | lane | blocked | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
 | A40.l36 | lane | open | A40 | Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes | `sprint/A40/lanes/A40-l36-double-count-na-base-da-cascata-s8.md` |
 | A40.l37 | lane | blocked | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
 | A40.l38 | lane | shipped | A40 | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
@@ -906,6 +907,8 @@
 | A40.l59 | lane | open | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l60 | lane | open | A40 | Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte | `sprint/A40/lanes/A40-l60-ressalva-e-separacao-do-conselho-de-seguro.md` |
+| A40.l61 | lane | in_progress | A40 | ProtectionBundle fail-closed: ausência de insumo não vira zero/False e filho conta como dependente | `sprint/A40/lanes/A40-l61-protection-bundle-fail-closed.md` |
+| A40.l62 | lane | blocked | A40 | ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria | `sprint/A40/lanes/A40-l62-protection-computation-snapshot-v1.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |

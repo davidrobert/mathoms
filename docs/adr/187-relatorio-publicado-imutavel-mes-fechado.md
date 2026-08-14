@@ -10,8 +10,10 @@ relates_to:
   - "[[ADR-136]]"
   - "[[ADR-143]]"
   - "[[ADR-186]]"
+  - "[[ADR-387]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-13"]
 aliases: ["ADR 187", "Mês fechado", "Report publication immutability"]
 tags:
   - area/report
@@ -20,6 +22,10 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda 2026-08-13:** [[ADR-387]] estende a imutabilidade ao snapshot de
+> proteção do Report. O hash composto entra apenas na implementação da
+> [[A40.l62]]; até lá a S9 permanece desligada.
 
 ## Contexto
 
@@ -139,3 +145,9 @@ com janela de "edição quente" antes.
 - `product-designer` desenha indicador visual e fluxo de publicar.
 - `product-manager` decide priorização vs [[ADR-186]] (esta é
   pré-requisito).
+
+## Emenda 2026-08-13 — hash inclui a fotografia de proteção
+
+Quando existir `ProtectionComputationSnapshotV1`, `immutable_hash` cobre E5 +
+digest canônico versionado do snapshot. Alterar a fotografia de proteção sem
+invalidar a publicação passa a ser falha de integridade, não atualização live.

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -68,6 +68,14 @@ class ProtectionThresholdsResponse(BaseModel):
     estate_tax_threshold_usd: Optional[int] = None
 
 
+class ProtectionCalculationStatusResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["computed", "not_applicable", "missing_data"]
+    missing_inputs: list[str]
+    reason: str
+
+
 class ProtectionBundleResponse(BaseModel):
     """Bundle exposto via ``GET /workspaces/{id}/protection-bundle``."""
 
@@ -77,6 +85,7 @@ class ProtectionBundleResponse(BaseModel):
     gap_analysis: dict[str, ProtectionGapItemResponse]
     recommendations: list[ProtectionRecommendationResponse]
     auto_inferred_risks: list[RiskInferredResponse]
+    calculation_status: dict[str, ProtectionCalculationStatusResponse]
     methodology_thresholds: ProtectionThresholdsResponse
-    has_us_exposure: bool
+    has_us_exposure: Optional[bool]
     adapter_version: int

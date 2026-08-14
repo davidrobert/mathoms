@@ -18,9 +18,10 @@ relates_to:
   - "[[ADR-178]]"
   - "[[ADR-180]]"
   - "[[ADR-240]]"
+  - "[[ADR-387]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-08-08"]
+amended_at: ["2026-08-08", "2026-08-13"]
 aliases: ["ADR 192"]
 tags:
   - area/backend
@@ -33,6 +34,10 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda 2026-08-13:** ausência de input deixa a categoria `missing_data`,
+> nunca gap zero. A fotografia do Report e a ativação da S9 seguem o rollout
+> [[A40.l61]] → [[A40.l62]] → [[A40.l35]], normatizado em [[ADR-387]].
 
 # ADR-192 — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção)
 
@@ -234,3 +239,12 @@ datado, com dono e condição de retomada, está em [[ADR-240]] §Deferido.
 desatualizados — aggregate, migration, repo, use cases e endpoints existem em
 `main` desde A11.W5 apesar de marcados `[ ]`. Não usar esta lista como medida de
 entrega.
+
+## Emenda 2026-08-13 — computabilidade e temporalidade por categoria
+
+`ProtectionBundle` passa a distinguir `computed`, `not_applicable` e
+`missing_data`. Calculator incompleto não emite gap/recomendação/risco; zero
+observado continua válido. O endpoint live pode projetar o cadastro corrente,
+mas um Report só consome o snapshot imutável da [[ADR-387]]. Vida sem dependente
+econômico menor confirmado não publica `10× renda`; invalidez, ITCMD e EUA ficam
+retidos até seus contratos canônicos completos.

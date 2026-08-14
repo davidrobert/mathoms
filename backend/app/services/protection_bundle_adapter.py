@@ -15,7 +15,7 @@ from backend.app.models.workspace import Workspace
 from backend.app.services.protection_bundle_populator import populate_protection_bundle
 from pipeline.domain.protection_bundle import ProtectionBundle, ProtectionItem
 
-_PROTECTION_BUNDLE_VERSION: int = 2  # bump T03 — populator real
+_PROTECTION_BUNDLE_VERSION: int = 3  # A40.l61 — computabilidade fail-closed
 
 
 def _protection_to_bundle_item(protection: Protection) -> ProtectionItem:
@@ -184,8 +184,9 @@ def _bundle_to_response(bundle: ProtectionBundle):
         gap_analysis=_gap_analysis_to_response(bundle),
         recommendations=_recommendations_to_response(bundle),
         auto_inferred_risks=_auto_inferred_to_response(bundle),
+        calculation_status=bundle.get("calculation_status", {}),
         methodology_thresholds=ProtectionThresholdsResponse(**thresholds_raw),
-        has_us_exposure=bundle.get("has_us_exposure", False),
+        has_us_exposure=bundle.get("has_us_exposure"),
         adapter_version=bundle.get("_adapter_version", _PROTECTION_BUNDLE_VERSION),
     )
 
