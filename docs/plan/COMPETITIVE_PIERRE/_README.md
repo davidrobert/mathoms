@@ -2,12 +2,12 @@
 id: PLAN-competitive-pierre
 type: plan
 title: Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
-status: draft
+status: in_progress
 sprint_origem: A11
-sprint_atual: A11
-sprints_envolvidas: [A11]
+sprint_atual: null
+sprints_envolvidas: [A11, A43]
 created_at: "2026-05-08"
-last_review: "2026-05-23"
+last_review: "2026-08-14"
 paused_at: null
 pause_reason: null
 adrs_canonical:
@@ -17,7 +17,7 @@ adrs_canonical:
   - "[[ADR-264]]"
 tags:
   - type/plan
-  - status/draft
+  - status/in-progress
   - area/strategy
   - area/competitive
   - area/openfinance
@@ -31,9 +31,46 @@ tags:
 >
 > **Audiência:** orquestrador `senior-cto` + delegação a `build-vs-buy`, `product-manager`, `product-designer`, `financial-planner`, `gtm-strategist` por fase.
 >
-> **Status do plano:** `draft` (ainda sem ADR Proposto materializada — Fase 1 abre a ADR de competitor analysis; cada fase subsequente abre a sua antes do PR de implementação, conforme [CLAUDE.md §"Política operacional — ADR Proposto antes de PR P0/P1"](../../../CLAUDE.md)).
+> **Status do plano:** `in_progress`, sem sprint corrente. A janela de execução
+> AI-native está materializada na [[A43]] como `candidate`; o campo `sprint_atual`
+> permanece `null` até sua promoção. ADRs [[ADR-262]]/[[ADR-263]] já estão
+> decididas, [[ADR-264]] segue proposta, e a A43 abre a ADR específica de MCP antes
+> do primeiro PR produtivo.
 >
 > **NÃO está em escopo:** a decisão **build vs buy do agregador OFB B2B** (Pluggy / Belvo / Klavi / DIY) — esse é plano e ADR separados, decidido em pista paralela. Razão: a decisão do agregador depende de variáveis comerciais (pricing por consent ativo, CAC, AUM) que independem da resposta a Pierre/ChatGPT, e bundlear as duas decisões aumenta acoplamento sem ganho.
+
+## Rebaseline — ChatGPT, Codex e superfícies OpenAI · 2026-08-14
+
+Esta seção é normativa quando conflita com a baseline histórica de maio mantida
+abaixo. O objetivo operacional deixou de ser “responder rápido ao concorrente” e
+passou a ser **distribuir insight Mathoms com a mesma confiança do produto**.
+
+Decisão de priorização: A40 → A42 → A43. Externalizar antes de fechar corretude do
+relatório e provabilidade do instrumento aumenta a distribuição de um número ainda
+não provado. A43 nasce `candidate`; nenhum item entra na A40.
+
+| Baseline de maio | Disposição 2026-08-14 |
+| --- | --- |
+| Fase 1 Pierre como hard gate | preservada como discovery competitivo histórico; não bloqueia compatibilidade |
+| 2.A design MCP/auth | adotada por [[A43.l1]] + [[A43.l2]]; OAuth/PKCE passa a ser MVP |
+| 2.B seis tools incluindo `query_transactions` | supersedida por [[A43.l3]]–[[A43.l5]]: três jobs read-only, DTO mínimo, sem transação/raw E5 |
+| 2.C registry público e clientes não-OpenAI | supersedida por [[A43.l7]]: plugin privado ChatGPT+Codex; listing é MMP posterior |
+| 2.D telemetria/abuse | adotada e ampliada por [[A43.l6]] |
+| chat + memories em paralelo ao MCP | movidos para Later condicional; só voltam com sinal de uso/necessidade após A43 |
+| GTM no caminho crítico | desacoplado da compatibilidade; continua trilha do owner |
+| métricas de 5–10 workspaces/100 calls | substituídas por KRs N=1 verificáveis na [[A43]]; métricas de escala ficam no beta |
+
+Arquitetura vigente: **core MCP vendor-neutral + plugin OpenAI fino**. Mathoms
+mantém domínio, cálculo, dados, consentimento, entitlement e audit; ChatGPT/Codex
+são canais opcionais. OAuth 2.1, tenant isolation, minimização, revogação e LGPD
+precedem dado real. O app permanece fallback e não compõe seu SLO com o canal.
+
+Fontes oficiais revalidadas em 2026-08-14: [arquitetura de
+plugins](https://developers.openai.com/plugins/concepts/plugins), [definição de
+tools](https://developers.openai.com/plugins/plan/tools),
+[autenticação](https://developers.openai.com/plugins/build/auth),
+[empacotamento](https://developers.openai.com/plugins/build/plugins) e [segurança e
+privacidade](https://developers.openai.com/plugins/guides/security-privacy).
 
 ---
 
@@ -152,9 +189,15 @@ P5. **CloudWalk vai apertar.** Se Pierre mostrar tração 2026, CloudWalk injeta
 
 P6. **A jugular do Pierre é cônjuge/sucessão.** Casal HENRY com filhos não cabe em chat single-user. Quem dobra cônjuge + sucessão + holding patrimonial primeiro pega esse segmento. Nosso schema já comporta — falta exploração de produto.
 
-P7. **ChatGPT Finance eleva a expectativa de mercado para chat conversacional sobre dados financeiros próprios.** O segmento HENRY brasileiro vai passar a esperar essa UX em qualquer produto que se proponha "advisor". Não responder = ser percebido como "ferramenta antiga". Janela: ~12 meses até ChatGPT chegar ao BR (Plus tier + Open Finance integration). **Fase 3 (chat sobre relatório) sai de "nice-to-have" e vira gate de credibilidade.**
+P7. **ChatGPT eleva a expectativa de acesso conversacional a dados próprios.** A
+resposta de menor risco é validar primeiro a distribuição externa read-only na
+[[A43]]. Chat first-party só vira gate de credibilidade se o uso provar que o canal
+externo não resolve o job; previsão de data/expansão não governa pickup.
 
-P8. **"Financial memories" é primitiva de UX, não primitiva de dados — para nós.** ChatGPT inventou a *superfície* (card editável "isto sabemos sobre você"); o Mathoms já tem a *substância* (`Goal`, `Decision`, `family_members`, workspace settings). Lançar a superfície custa 1-2 sprints; ignorá-la deixa o usuário pensando que ChatGPT "lembra mais" só porque mostra.
+P8. **"Financial memories" é primitiva de UX, não primitiva de dados — para nós.**
+O Mathoms já tem a substância (`Goal`, `Decision`, `family_members`, workspace
+settings). A superfície só entra após sinal; não justifica store paralelo nem
+concorrência com A40/A42/A43.
 
 ---
 
@@ -179,37 +222,49 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 
 **Risco principal:** dossiê voltar inconclusivo (H1-H5 ambíguos). Mitigação: time-box rígido — fecha com "inconclusivo + razão" em vez de estender. Spike é spike.
 
-### Fase 2 — Mathoms-as-MCP (Sprint A11→A12, ~3 sprints)
+### Fase 2 — Compatibilidade AI-native ([[A43]])
 
-**Goal:** posicionar Mathoms como MCP server consultável por AIs externas (Claude/ChatGPT/Cursor). Diferenciação: nosso MCP entrega **insight processado, não dado bruto**. Pierre vende "AI nativa OFB"; Mathoms vende "AI nativa de planejamento".
+**Goal:** permitir que uma família autorizada consulte relatório/plano Mathoms no
+ChatGPT e no Codex com corretude, fonte, atualidade e isolamento equivalentes ao
+produto. Diferenciação: **insight processado, nunca dado bruto**.
 
-**Sub-fases:**
+**Sub-fases atuais:**
 
-| Sub | Escopo | Duração | ADR |
-|---|---|---|---|
-| 2.A | Spike de design — surface (read-only? action-trigger?), authn (API key vs OAuth), authz (workspace scope), rate-limit, telemetria. Output: doc de design + decisão. | 1 semana | abrir `mathoms-mcp-server-design` Proposto |
-| 2.B | MVP read-only: `get_report`, `get_score`, `get_decisions`, `get_suggestions`, `get_balance_sheet`, `query_transactions`. Reusa autenticação + Fernet vault existente. | 2 semanas | herda 2.A |
-| 2.C | Distribution — registry público (Anthropic MCP registry, Smithery), instalação Cursor/Claude Code/Windsurf, doc dev pública (Mintlify ou similar). | 1 semana | — |
-| 2.D | Telemetria + abuse limits — quem usa, quanto consome, blacklist de prompt injection (referência [ADR-175](../../adr/175-prompt-injection-defense-em-camadas-sanitize.md)). | 1 semana | herda 2.A |
+| Sub | Escopo | Dono operacional |
+| --- | --- | --- |
+| 2.A | boundary MCP, threat model, URL/deployment, saída e decisão build-vs-buy do IdP | [[A43.l1]] + [[A43.l2]] |
+| 2.B | DTOs externos minimizados, três jobs e corpus de 10 tarefas | [[A43.l3]] |
+| 2.C | core MCP remoto read-only + OAuth 2.1 workspace-scoped | [[A43.l4]] + [[A43.l5]] |
+| 2.D | audit/rate limit/SLO/runbook + plugin/skill privado ChatGPT/Codex | [[A43.l6]] + [[A43.l7]] |
+| 2.E | certificação cross-surface, matriz adversarial, rollback e kill switch | [[A43.l8]] |
+| 2.F | currentness do provider OpenAI, independente do MCP | [[A43.l9]] |
 
-**Owner:** `senior-cto` (design) + delegação a `sre-devops` (rate-limit, abuse) e `build-vs-buy` (registry choice).
+**Decisões fechadas no rebaseline:**
 
-**Decisões abertas que entram na ADR 2.A:**
+1. MVP é estritamente read-only. Write exige novo sinal, scopes, confirmação e ADR.
+2. OAuth 2.1 authorization-code + PKCE entra antes de dado real. API key/IP allowlist
+   não é baseline do ChatGPT.
+3. Entitlement permanece Mathoms: conta, workspace e tier ativos são revalidados a
+   cada chamada.
+4. O core MCP é vendor-neutral; `.codex-plugin/plugin.json` + skill formam shell fino.
+5. Public listing, UI e SLA de escala não fecham a A43; são MMP pós-beta.
 
-1. **Escopo write?** Read-only MVP é seguro; escopo write (criar Decision, marcar Suggestion accepted) tem implicação de auth + audit. Recomendação inicial: **read-only no MVP, escopo write em Fase 2 v2 após signal de uso**.
-2. **Authn:** API key fixa (Pierre-style) vs OAuth flow (mais correto, mais fricção). Recomendação inicial: **API key derivada do JWT do user, scoped ao workspace**, rotacionável; OAuth flow em v2.
-3. **Pricing:** parte do tier pago do Mathoms (não cobra extra) ou monetização separada? Recomendação inicial: **incluir no tier pago** — diferenciação, não revenue stream.
-4. **Custo LLM downstream:** quem paga o token quando Claude do usuário consulta nosso MCP? Resposta: o usuário paga (o LLM é dele); nós só servimos JSON. Confirma no design.
+**Critério de saída Fase 2:** KRs e gate da [[A43]] verdes em ChatGPT + Codex,
+private beta ready, PRs mergeados em `main` com CI verde. Nenhum dado bruto,
+transação livre, documento ou PII entra na superfície.
 
-**Critério de saída Fase 2:** MCP server live em `mcp.mathoms.ai`; ≥ 5 usuários internos rodando contra produção; instalação documentada em ≥ 2 clients (Claude Code + Cursor).
+**Risco principal:** o host externo ampliar o alcance de um erro ou vazamento.
+Mitigação: A43 só promove após [[A40]]/[[A42]], com OAuth, DTO mínimo, fontes,
+matriz cross-tenant, telemetria sem payload e kill switch.
 
-**Risco principal:** registry público + chave assinada vazada → exposição de dados. Mitigação: gate de IP/domain allowlist por workspace + rate-limit agressivo + Fernet vault (já existe) + telemetria de anomalia.
-
-### Fase 3 — Chat conversacional + Financial Memories sobre relatório (Sprint A12→A13, ~3 sprints) — **prioridade elevada por P7/P8**
+### Fase 3 — Chat conversacional + Financial Memories — **Later condicional**
 
 **Goal:** fechar gap de UX vs Pierre conversacional **e vs ChatGPT Finance** sem virar nenhum dos dois — chat é **focado e metodológico** (responde sobre *o seu* plano patrimonial, não sobre o mundo); memories é **superfície explícita** sobre Goals/Decisions/Workspace já existentes (não nova primitiva de dados). Camadas complementares ao relatório, não substitutas.
 
-> **Mudança 2026-05-23 vs versão original:** Fase 3 era "chat sobre relatório" único. Com o lançamento do ChatGPT Personal Finance (mai/2026), `Financial Memories` virou expectativa de UX. Adicionada sub-fase **3.E — Financial Memories surface** como entregável irmão. Razão: ambos consomem o mesmo substrato (`Goal` + `Decision` + workspace settings + family); separar duplicaria descoberta UX e RAG store.
+> **Rebaseline 2026-08-14:** o discovery de maio permanece válido, mas implementação
+> saiu do caminho crítico. A fase só volta à priorização se o uso da A43 provar que
+> contexto/histórico first-party resolve um job que o canal externo não atende, ou se
+> >30% dos workspaces pagos pedirem essa experiência. Não roda em paralelo à A43.
 
 **Sub-fases:**
 
@@ -279,21 +334,20 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 ## 4. Sequenciamento e dependências
 
 ```
-Fase 1 (recon)  ──┐
-                   ├─→ Fase 2 (MCP)        ──┐
-                   ├─→ Fase 3 (chat+memories) ─┼─→ Fase 4 (GTM, sub 4.B+)
-                   └─→ Fase 4.A (pesquisa)  ──┘
+A40 report trust → A42 provabilidade → A43 compatibilidade privada
+                                          │
+                                          ├─→ beta convidado / publicação (novo gate)
+                                          └─→ Fase 3 chat+memories (só com sinal)
 
-Fase 4.A pode rodar em paralelo com 1, 2, 3.
-Fase 4.B+ deve esperar 2 e 3 (pelo menos beta) para a narrativa não furar.
-Sub-fase 3.E (memories) pode ir live antes de 3.C/3.D (não depende de ADR-173).
+Fase 1 recon Pierre permanece discovery histórico, não hard gate da A43.
+Fase 4 GTM é trilha do owner e não muda o gate técnico de compatibilidade.
 ```
 
-- **Fase 1** habilita 2, 3, 4 com dado factual.
-- **Fase 2 e 3** rodam em paralelo (owners distintos), competindo por capacidade de eng.
-- **Fase 3.E (memories)** é o caminho mais rápido para responder ao ChatGPT em UX percebida — destravar primeiro dentro da Fase 3.
-- **Fase 4.A** roda em paralelo desde dia 1 (não depende de eng).
-- **Fase 4.B-F** publica depois de Fase 2 ou 3 visíveis (mesmo beta) para narrativa ter prova.
+- **A40** prova que o dado chega corretamente ao usuário.
+- **A42** prova que os instrumentos upstream não dão verde falso.
+- **A43** expõe somente o payload já provado, em canal privado e reversível.
+- **Fase 3** não compete por engenharia até uso da A43 produzir sinal explícito.
+- **Publicação** exige decisão própria após beta, LGPD/DPA e requisitos de review.
 
 ---
 
@@ -326,7 +380,7 @@ Pelo protocolo CLAUDE.md "ADR Proposto antes de PR P0/P1", cada fase abre ADR an
 | ADR (próximo ID livre) | Slug | Fase | Quando | Responsável |
 |---|---|---|---|---|
 | ADR-Y1 | `competitor-analysis-pierre` | 1 | ao final do dossiê | `senior-cto` |
-| ADR-Y2 | `mathoms-mcp-server-design` | 2.A | antes do PR de MVP | `senior-cto` |
+| ADR-Y2 | `mathoms-mcp-server-design` | [[A43.l1]] | antes do PR produtivo | `senior-cto` |
 | ADR-Y3 | `chat-over-report-architecture` | 3.B | antes do PR de MVP | `senior-cto` + `financial-planner` |
 | ADR-Y4 | `pricing-repositioning-2026` | 4.C | antes da mudança em billing | CEO + `product-manager` |
 
@@ -338,7 +392,11 @@ IDs concretos serão atribuídos no commit que abre cada ADR (próximo livre em 
 
 **Fase 1 (recon):** dossiê fechado em ≤ 3 dias, ADR mergeado, ≥ 5 capabilities Pierre catalogadas + ≥ 5 gaps Mathoms vs Pierre quantificados.
 
-**Fase 2 (MCP):** MCP server em `mcp.mathoms.ai` com uptime ≥ 99,5% por 30 dias, ≥ 100 chamadas/dia de ≥ 10 workspaces distintos no fim do trimestre, listing público em registry Anthropic.
+**Fase 2 (A43, dogfood N=1):** ChatGPT + Codex 2/2 conectam via OAuth; ≥9/10
+tarefas corretas por superfície; 100% das respostas suportadas com fonte + `as_of`;
+zero vazamento cross-workspace/PII; revogação efetiva na chamada seguinte; app
+permanece funcional com MCP off. Uptime 30 dias, ≥100 calls/dia, ≥10 workspaces e
+listing público são métricas/gates de beta/MMP, não da sprint.
 
 **Fase 3 (chat + memories):**
 - Chat: ≥ 70% intents resolvidos sem fallback, custo médio < R$ 0,30/conversa, ≥ 40% dos relatórios abertos no trimestre tiveram ≥ 1 interação chat, opt-out < 15%.
@@ -384,13 +442,13 @@ IDs concretos serão atribuídos no commit que abre cada ADR (próximo livre em 
 
 | Track sugerido | Fase | Quando criar | Owner |
 |---|---|---|---|
-| `mathoms-mcp-design.md` | 2.A | após Fase 1 fechar | `senior-cto` |
-| `mathoms-mcp-mvp-readonly.md` | 2.B | após ADR 2.A mergeada | `senior-cto` + `sre-devops` |
-| `mathoms-mcp-distribution.md` | 2.C | em paralelo a 2.B | `build-vs-buy` (registry choice) |
-| `chat-report-discovery.md` | 3.A | em paralelo a 2.A | `product-designer` + `financial-planner` |
-| `chat-report-spike.md` | 3.B | após 3.A fechar | `senior-cto` + `financial-planner` |
-| `chat-report-mvp.md` | 3.C | após ADR 3.B mergeada e [ADR-173] live | `senior-cto` |
-| `financial-memories-surface.md` | 3.E | em paralelo a 3.A (sem dependência [ADR-173]) | `product-designer` + `senior-cto` |
+| ~~`mathoms-mcp-design.md`~~ | 2.A | adotado pelas lanes autocontidas [[A43.l1]]/[[A43.l2]]; track só se execução exigir | `senior-cto` + `build-vs-buy` |
+| ~~`mathoms-mcp-mvp-readonly.md`~~ | 2.B/2.C | adotado por [[A43.l3]]–[[A43.l5]] | `senior-cto` + `data-engineer` |
+| ~~`mathoms-mcp-distribution.md`~~ | 2.D | supersedido por plugin privado [[A43.l7]]; registry público fora da A43 | `build-vs-buy` |
+| `chat-report-discovery.md` | 3.A | Later, apenas após sinal da A43 | `product-designer` + `financial-planner` |
+| `chat-report-spike.md` | 3.B | Later, após 3.A e nova priorização | `senior-cto` + `financial-planner` |
+| `chat-report-mvp.md` | 3.C | Later, após ADR 3.B e [[ADR-173]] | `senior-cto` |
+| `financial-memories-surface.md` | 3.E | Later condicional, sem store paralelo | `product-designer` + `senior-cto` |
 | `gtm-segment-research.md` | 4.A | desde dia 1 (paralelo) | CEO + `product-manager` |
 | ~~`gtm-landing-copy-rewrite.md`~~ | 4.B | ✅ criado (ver §8.1) — soft launch viável imediato sem comparativo + chat hero conforme [[ADR-183]] §"Dependências de gate" | CEO + `product-designer` |
 | `gtm-pricing-repositioning.md` | 4.C | após 4.A | CEO + `product-manager` |
@@ -400,6 +458,12 @@ Nomenclatura segue padrão atual (`docs/sprint/<X>/tracks/<slug>.md` com frontma
 ---
 
 ## 9. Atualizações deste documento
+
+- **2026-08-14:** plano rebaselined para compatibilidade segura ChatGPT/Codex;
+  [[A43]] criada como janela `candidate`. OAuth 2.1 substitui API key no MVP;
+  tools amplas/raw e registry público saem; core MCP vendor-neutral + plugin fino,
+  três jobs read-only e certificação cross-surface entram. Fase 3 vira Later
+  condicional; A40 → A42 → A43 passa a governar o sequenciamento.
 
 - **2026-05-08:** plano criado em `draft`. Fase 1 track materializado. Fases 2-4 descritas em alto nível, esperando dossiê da Fase 1 para refinar.
 - **2026-05-08:** Fase 4.B PR-A → [[ADR-183]] mergeada como `Proposto` (#141). Fase 4.B PR-B → [`gtm-landing-copy-rewrite.md`](../../sprint/A11/tracks/gtm-landing-copy-rewrite.md) materializado em `status: ready`. Confirmado em [[ADR-183]] §"Dependências de gate" que soft launch P1+P2+P3+P4 é viável imediatamente — gate Fase 2/3 beta aplica-se apenas a comparativo (4.E) e narrativa AI conversacional. Próximos: PR-C (copy literal — `product-designer`), PR-D (publicação — CEO + designer), PR-E (flip ADR-183 para `Decidido`).

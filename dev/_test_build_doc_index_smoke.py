@@ -301,6 +301,7 @@ def _plan_with_lanes_fixture(note_cls: type) -> list:
         status="in_progress",
         title="Plano Z",
         sprint_atual="A11",
+        sprints_envolvidas=("A11", "A12"),
     )
     lanes = [
         _make_test_lane(note_cls, id_="A11.1", sprint="A11", status="shipped", plan="PLAN-z"),
@@ -317,8 +318,8 @@ def _assert_plan_with_lanes(plan_build_fn: Callable[[list], str], note_cls: type
     bad: list[str] = []
     if "1 done · 1 in_progress · 1 open · 0 blocked" not in out:
         bad.append("test10: contagem de lanes errada (esperado 1 done · 1 in_progress · 1 open)")
-    if "Sprints envolvidas: A10, A11" not in out:
-        bad.append("test10: sprints derivadas das lanes erradas (esperado A10, A11)")
+    if "Sprints envolvidas: A10, A11, A12" not in out:
+        bad.append("test10: união de sprints declaradas+derivadas errada (esperado A10, A11, A12)")
     if "_Lanes serão linkadas após Fase 4" in out:
         bad.append("test10: aviso F4 não deveria aparecer (vault tem lanes)")
     return bad

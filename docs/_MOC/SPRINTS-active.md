@@ -280,7 +280,7 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
 - **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) ·
   **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md).
 
-## Sprint candidate (próxima)
+## Sprints candidates — fila não ordenada
 
 ### A42 — Provabilidade da ingestão e do razão: fechar o falso-verde do instrumento (`candidate` 2026-08-04)
 
@@ -330,6 +330,31 @@ nenhuma sprint acima de ~11 lanes fechou pelo próprio gate na história do repo
 - **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **12 lanes**
   `planned` em 4 ondas (0–3), teto de capacidade 14. Declara o **critério de admissão**
   em 5 cláusulas, fechando a §Pendência de decisão nº 10 da [[A40]].
+
+### A43 — Compatibilidade AI-native: ChatGPT, Codex e clientes MCP (`candidate` 2026-08-14)
+
+**Origem:** avaliação de compatibilidade sobre código, arquitetura,
+[[PLAN-competitive-pierre]] e documentação oficial OpenAI. O provider OpenAI já
+existe via LiteLLM, mas a superfície nativa ainda não: faltam MCP, OAuth 2.1,
+contratos minimizados, plugin/skill e certificação ChatGPT+Codex.
+
+**Objective:** uma família autorizada consulta relatório e plano Mathoms no cliente
+de IA que já usa, com a mesma corretude, atualidade, fonte e separação entre
+workspaces — sem copiar token/JSON nem expor documento, transação bruta ou raw E5.
+
+**9 lanes em 5 ondas:** decisão MCP + build-vs-buy do IdP → contratos externos →
+core read-only + OAuth workspace-scoped → operação + plugin universal privado →
+certificação cross-surface. Currentness do provider OpenAI é uma lane independente;
+não acopla o MCP a um modelo. Public listing, write tools, UI, chat first-party e
+memories são Later.
+
+**Gatilho:** [[A40]] `done` + [[A42]] `done` + nenhum P0/P1 no payload exposto +
+IdP/jurídico autorizados. A43 não despeja lane na A40 e não compete com os gates de
+confiança. Fecha com ChatGPT+Codex 2/2, ≥9/10 tarefas corretas por superfície, zero
+cross-tenant/PII, revogação efetiva e kill switch exercitado.
+
+- **Sprint:** [sprint/A43/_README.md](../sprint/A43/_README.md) · **9 lanes**
+  `planned` · plano dono [[PLAN-competitive-pierre]].
 
 ### A41 — Governança de chamada LLM: fechar a rota alternativa ao choke-point (`candidate` 2026-08-03)
 
