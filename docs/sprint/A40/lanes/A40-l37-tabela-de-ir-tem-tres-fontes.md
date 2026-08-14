@@ -4,7 +4,7 @@ type: lane
 title: "A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: open
 priority: P2
 branch_slug: a40-l37-tabela-de-ir-tres-fontes
 adrs:
@@ -16,7 +16,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p2
   - area/pipeline
 ---
@@ -26,8 +26,8 @@ tags:
 > **Aberta em 2026-08-11**, achado do co-design da [[A40.l34]] (`senior-cto`).
 > Registrada como §Não-objetivo da [[ADR-375]].
 >
-> **`blocked` por [[A40.l34]]**: o resolver comum que esta lane consome nasce
-> lá (D6). Abrir antes seria construir o consumidor antes do produtor.
+> **Desbloqueada em 2026-08-14** após a [[A40.l34]] shippar no PR #1448: o
+> resolver comum que esta lane consome está em `main`.
 
 ## Problema
 
