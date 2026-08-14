@@ -1480,7 +1480,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
+          # 1.26.x já pré-instalado no tool cache do runner sem consultar o
+          # manifest — o patch viraria input da image. Par com `toolchain`
+          # em go.work/go.mod.
+          go-version: '1.26.6'
           cache: true
           cache-dependency-path: services/pipeline-service-go/go.sum
       - name: gofmt check
@@ -1508,7 +1512,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
+          # 1.26.x já pré-instalado no tool cache do runner sem consultar o
+          # manifest — o patch viraria input da image. Par com `toolchain`
+          # em go.work/go.mod.
+          go-version: '1.26.6'
           cache: true
           cache-dependency-path: services/pipeline-service-go/go.sum
       - name: "Codegen sync — stage registry (fonte: pipeline/stage_spec.py)"
@@ -1528,8 +1536,14 @@ jobs:
         run: go build ./...
       - name: govulncheck (CVE alcançável na stdlib/deps — A36.l4/SEC-07)
         # Gate contínuo: pega a próxima vuln alcançável no CI, não na próxima
-        # auditoria manual. O piso `toolchain go1.26.5` (go.mod) garante que a
-        # análise use a stdlib corrigida (fecha GO-2026-5856). Scanner pinado.
+        # auditoria manual. Scanner pinado; a stdlib analisada é a do toolchain
+        # resolvido, então o piso de patch É o gate.
+        #
+        # Bump (quando o scanner acusar `Fixed in: <pkg>@goX.Y.Z`) exige os três
+        # pontos juntos: `toolchain` em go.work — é ele que governa, em
+        # workspace mode o de go.mod fica inerte —, o de go.mod por paridade, e
+        # o `go-version` dos dois setup-go. Piso só levanta: se um ficar para
+        # trás o maior vence, o custo é download de toolchain, não falso verde.
         working-directory: services/pipeline-service-go
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.6.0 ./...
 
