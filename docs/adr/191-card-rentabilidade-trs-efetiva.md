@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-161]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-07-15"]
+amended_at: ["2026-07-15", "2026-08-14"]
 aliases: ["ADR 191", "Card Rentabilidade TRS", "Renda passiva sobre patrimônio"]
 tags:
   - area/report
@@ -24,6 +24,10 @@ tags:
   - type/adr
 ---
 
+> **Emenda 2026-08-14 (RV4-13 · A40.l47):** `goals.trs_pct` é taxa de **saque**, não
+> yield-alvo — o card deixa de publicar meta de retorno. Corrige o ponto da emenda
+> anterior que atribuía essa chave ao card. Ver §Emenda 2026-08-14 ao final.
+>
 > **Emenda 2026-07-15 (cluster FP-03, onda R2 do PLAN-dogfood-report-fix):** distingue
 > explicitamente **yield-alvo/TRS (5%)** de **taxa de retirada segura/SWR (4%)** entre as
 > superfícies e corrige o rótulo da renda passiva estimada (era 5%, valor calculado a 4%).
@@ -221,3 +225,50 @@ meta (wizard/goals), não em recomputação aqui.
 **Aceite.** Nenhuma superfície rotula a mesma taxa como 4% e 5%; a estimativa de renda passiva
 mostra o valor a 4% rotulado "retirada segura"; o card e o rendimento da meta mostram 5%
 rotulado "yield/TRS". Sem bump de manifest do parecer nesta onda.
+
+## Emenda 2026-08-14 (RV4-13 · A40.l47) — não existe yield-alvo; `trs_pct` é saque
+
+> Corrige a emenda de 2026-07-15 no ponto em que ela atribui `goals.trs_pct` ao card
+> de Rentabilidade. A emenda anterior **não se apaga** — o que ela decidiu sobre
+> *não colapsar* os dois conceitos continua valendo; o que cai é a casa que ela
+> apontou como yield-alvo.
+
+**O erro.** A emenda de 2026-07-15 declarou `goals.trs_pct` = *yield-alvo (5%)*, vivendo
+"no card de Rentabilidade e no rendimento da meta patrimonial". Três fontes canônicas
+dizem o contrário, e são elas que governam:
+
+| Fonte | O que diz de `trs_pct` |
+| --- | --- |
+| `config/schemas/goal.if.v2.schema.json` §inputs | *"Taxa de Retirada Segura operacional… Trinity Study clássico"* |
+| mesmo schema, §derived | `if_meta_bruta_brl = renda_passiva_mensal × 12 ÷ (trs_pct/100)` — o divisor da regra ×25 |
+| wizard da Meta IF, passo 2 | coleta sob o rótulo **"Taxa de Retirada Segura (TRS)"**: *"percentual do patrimônio que você pode sacar por ano"* |
+
+O schema tem campo **separado** para retorno (`retorno_real_anual_pct`). Logo `trs_pct`
+é taxa de **decumulação**, e usá-la como alvo contra o qual julgar a TRS efetiva
+observada é promover saque a meta de retorno — o achado RV4-13.
+
+**Por que ninguém viu.** A promoção estava registrada mas **não conectada**:
+`RatiosCalculator()` rodava sem config, então `meta_pct` publicava a constante `5.0`
+do código (residual declarado na A40.l4). O número exibido não era o da família, o que
+mascarava a promoção em vez de removê-la — e ligar a fiação teria **completado** o
+defeito, não corrigido.
+
+### D6 — o card não publica meta de retorno
+
+`RentabilidadeRatio.meta_pct` sai do domínio, do schema E5 e do tipo TS. A TRS efetiva
+é **valor observado** e sustenta-se sozinha: sem comparador, sem delta, e sem tom de
+aprovação (`pickVariant` fica `neutral`; `trsTone` e `readYieldAlvoPct` foram deletados
+por perda de consumidor). Precedente de forma: o S7 já não imprimia meta quando o campo
+faltava.
+
+Consequência deliberada: perde-se o sinal visual de "abaixo do esperado". É o preço de
+não empurrar yield-chasing numa carteira em acumulação — a mesma razão que o §D5 usou
+para vetar CDI e Trinity no card.
+
+**Não-objetivo.** Criar `goals.yield_alvo_pct` para a família configurar um alvo de
+rendimento próprio. É conceitualmente defensável e abre schema + migration + campo no
+wizard; fica fora desta lane, sem dono nem data.
+
+**Aceite.** Nenhuma superfície do relatório compara a TRS efetiva com um alvo de
+retorno. Gate por **ausência na superfície** (não por valor), nos dois consumidores —
+provado por mutação: reintroduzir a meta deixa os dois testes vermelhos.

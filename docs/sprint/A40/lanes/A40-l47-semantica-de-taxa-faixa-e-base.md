@@ -92,6 +92,12 @@ está registrada em RV3-07(b).
 > um está **subcontado**. O §Escopo abaixo é revisado por isto — o texto original
 > fica como registro.
 
+> **Remedição 2026-08-14, no mesmo dia:** o item 1 abaixo está **errado no ponto
+> principal** e fica como registro. Ele conclui, da [[ADR-191]], que `meta_pct` "não é a
+> premissa de saque" e que **não** era preciso emenda nova. As duas conclusões caem
+> contra o schema canônico — ver §Remedição do item 1. O §Problema original da lane
+> estava **certo**; foi o ataque que errou. Itens 2 e 3 seguem válidos.
+
 ### 1 — o mecanismo do RV4-13 não é o descrito (o §Problema erra a raiz)
 
 `ratios.rentabilidade.meta_pct` **não é** "a premissa de saque do número da IF". É
@@ -198,13 +204,41 @@ mas **não** para a divergência — que precisa de fixture própria.
 demais"* — bate com a superfície de exposição cambial. PR3 não reabre essa chave como
 se fosse órfã (achado com medição citada em outra lane exige remedir, não reabrir).
 
+### Remedição do item 1 — o ataque errou, a lane estava certa
+
+Fui checar `goals.trs_pct` na fonte antes de ligar a fiação. **Três fontes canônicas
+dizem que é taxa de saque**, e são elas que governam — não a prosa da ADR:
+
+- `goal.if.v2.schema.json` §inputs: *"Taxa de Retirada Segura operacional… Trinity
+  Study clássico"*; §derived: `if_meta_bruta_brl = renda × 12 ÷ (trs_pct/100)` — o
+  divisor da regra ×25;
+- wizard da Meta IF, passo 2: coleta sob o rótulo **"Taxa de Retirada Segura (TRS)"**
+  (*"percentual do patrimônio que você pode sacar por ano"*);
+- o mesmo schema tem campo **separado** para retorno: `retorno_real_anual_pct`.
+
+Logo o §Problema desta lane estava certo: a "meta" ao lado da TRS efetiva **é** premissa
+de saque. A emenda de 2026-07-15 da ADR-191, que atribuiu `goals.trs_pct` ao card como
+yield-alvo, é a outlier — e é ela que registra a promoção. Duas correções ao item 1:
+**precisa** de emenda datada (feita: §Emenda 2026-08-14), e a fiação que eu já tinha
+escrito (`meta_pct ← goals.trs_pct`) **teria completado o defeito** em vez de corrigi-lo
+— pegaria o número que a família digitou como "quanto posso sacar" e o imprimiria como
+alvo contra o qual pintar o KPI de `critical`.
+
+O que **sobrevive** do item 1: a constante congelada (`RatiosCalculator()` sem config,
+`ratios_calculator=` nunca passado) é real e é o que **mascarava** a promoção; o campo
+morto `PassiveIncomeConfig.trs_meta_pct` é real; a dupla publicação no manifest é real; e
+o glossário definindo TRS como "Taxa de Retirada Segura" é real — só que ele estava
+**certo sobre `trs_pct`** e errado por usar a mesma sigla do card. Virou duas entradas.
+
 ### Escopo revisado
 
-- **PR1** — corrigir o glossário (`TRS` deixa de ser "Taxa de Retirada Segura") +
-  despublicar `meta_pct` das **duas** posições do manifest + fechar/rotear o residual
-  da A40.l4 (constante congelada). **Sem emenda nova na ADR-191**; citar a de
-  2026-07-15. Se `meta_pct` sobreviver como número exibido, ele passa a vir da
-  família — ou a superfície não imprime meta, como o S7 já faz quando o campo falta.
+- **PR1 ✅** (`093ce8d7`) — `meta_pct` sai do payload, do domínio, do schema E5, do tipo
+  TS e do comparador das duas superfícies; KPI fica neutro. Removidos junto o campo
+  morto `trs_meta_pct`, `trsTone` e `readYieldAlvoPct`. Emenda datada na [[ADR-191]]
+  (§D6) + glossário separando "TRS (Taxa de Retirada Segura)" de "TRS efetiva" +
+  `FORMULAS.md`. Gate é de **ausência na superfície**, provado por mutação.
+  Deferido sem dono: `goals.yield_alvo_pct` para a família configurar alvo próprio —
+  abre schema + migration + wizard, não cabe nesta lane.
 - **PR2** — uma régua só, com o **enforcer declarado** (`scoring.json` ← analyzer). O
   gate compara rótulo-a-rótulo **e faixa-a-faixa** (item 3 acima é o caso que um gate
   só de rótulos deixa passar). Decidir o destino da cópia morta em
