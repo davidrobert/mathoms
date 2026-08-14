@@ -1252,6 +1252,24 @@
   },
   "equilibrio_cerbasi": {
     "classificacao": "Investidor",
+    "classificacao_faixas": [
+      {
+        "label": "Investidor",
+        "minimo_futuro_pct": "30.000000"
+      },
+      {
+        "label": "Equilibrado",
+        "minimo_futuro_pct": "20.000000"
+      },
+      {
+        "label": "Endividado consciente",
+        "minimo_futuro_pct": "10.000000"
+      },
+      {
+        "label": "Gastador",
+        "minimo_futuro_pct": "0.000000"
+      }
+    ],
     "componentes": {
       "base": 300000,
       "gasto_futuro": 0,
