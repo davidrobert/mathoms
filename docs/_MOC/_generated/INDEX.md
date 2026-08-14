@@ -693,7 +693,7 @@
 | A20.l2 | lane | shipped | A20 | Docker dev↔prod parity — L2 SHA pinning de bases + Dependabot Docker | `sprint/A20/lanes/A20-l2-sha-pinning.md` |
 | A20.l3 | lane | shipped | A20 | Docker dev↔prod parity — L3 pipeline-service non-root + healthcheck por service | `sprint/A20/lanes/A20-l3-pipeline-service.md` |
 | A20.l4 | lane | open | A20 | Docker dev↔prod parity — L4 GHCR push em CI + tagging strategy | `sprint/A20/lanes/A20-l4-ghcr-push.md` |
-| A20.l5 | lane | open | A20 | Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/lanes/A20-l5-trivy-sbom.md` |
+| A20.l5 | lane | blocked | A20 | Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/lanes/A20-l5-trivy-sbom.md` |
 | A20.l6 | lane | shipped | A20 | Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/lanes/A20-l6-compose-dev.md` |
 | A20.l7 | lane | shipped | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
 | A20.l8 | lane | shipped | A20 | Docker dev↔prod parity — L8 Postgres driver (psycopg2 → psycopg v3 swap) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
@@ -996,6 +996,7 @@
 | F7.e | lane | shipped | F7 | Operational Readiness (semana 6-7, ~2 semanas) | `sprint/F7/lanes/F7-e-operational-readiness.md` |
 | F7.f | lane | shipped | F7 | Console interno (operadores) | `sprint/F7/lanes/F7-f-console-interno.md` |
 | MARKETING-landing-copy-draft-v1 | marketing-draft | draft |  | Landing copy draft v1 — pilares ADR-183 (Fase 4.B COMPETITIVE_PIERRE) | `_marketing/landing-copy-draft-v1.md` |
+| MOC-a40-historico | moc |  |  | Sprint A40 — histórico: o que foi decidido, medido e encerrado | `sprint/A40/_HISTORY.md` |
 | MOC-sprint-a10 | moc |  |  | Sprint A10 — goals.json cutover final | `sprint/A10/_README.md` |
 | MOC-sprint-a11 | moc |  |  | Sprint A11 — Platform review execution | `sprint/A11/_README.md` |
 | MOC-sprint-a12 | moc |  |  | Sprint A12 — Categorization learning loop + post-A11 follow-up | `sprint/A12/_README.md` |

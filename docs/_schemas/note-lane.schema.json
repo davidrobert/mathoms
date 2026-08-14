@@ -78,6 +78,10 @@
         "pattern": "^\\[\\[.+\\]\\]$"
       }
     },
+    "partial_delivery": {
+      "type": "boolean",
+      "description": "Declara a 2ª cláusula do predicado de `status` (docs/sprint/A40/_README.md §Predicado do campo `status` de lane): a lane é `open` mesmo com `depends_on` pendente porque entrega uma fatia e declara POR ESCRITO, no corpo, o que fica de fora. É declaração do autor, não inferência — `dev/check_lane_status_predicate.py` usa este campo como a única saída da regra `open ⇒ toda dep terminal`. Precedentes: A40.l20 (2 PRs), A40.l27 (entrega itens 2-5 e declara o item 1 não-entregue), A40.l60 (PR2 atrás da A40.l35)."
+    },
     "parallel_with": {
       "type": "array",
       "items": {
