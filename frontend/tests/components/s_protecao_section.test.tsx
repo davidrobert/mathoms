@@ -116,9 +116,9 @@ describe("S_ProtecaoSection", () => {
   });
 
   describe("Cenário B — workspace sem apólices", () => {
-    it("retorna null quando protecao_patrimonial=null", () => {
+    it("retorna null quando protecao_patrimonial está incompleto", () => {
       const { container } = render(
-        <S_ProtecaoSection data={{ protecao_patrimonial: null } as ReportAnalysisData} />,
+        <S_ProtecaoSection data={{ protecao_patrimonial: {} } as ReportAnalysisData} />,
       );
       expect(container.firstChild).toBeNull();
     });

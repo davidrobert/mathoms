@@ -48,7 +48,7 @@ function makePassiveIncome(overrides: Partial<PassiveIncomeData> = {}): PassiveI
 
 function makeData(overrides: Partial<ReportAnalysisData> = {}): ReportAnalysisData {
   return {
-    goals: { if_meta: 5_000_000, if_pct: 30, trs_pct: 5, ano_if: 2040, if_gap: 4_000_000 },
+    goals: { if_meta: 5_000_000, if_pct: 30, if_trs: 5, ano_if: 2040, if_gap: 4_000_000 },
     passive_income: makePassiveIncome(),
     ...overrides,
   };
@@ -135,7 +135,7 @@ describe("<S7IndependenciaSection /> · empty states", () => {
 describe("<S7IndependenciaSection /> · caption de acumulação", () => {
   it("aparece quando progresso < 50", () => {
     const data = makeData({
-      goals: { if_meta: 5_000_000, if_pct: 30, trs_pct: 5 },
+      goals: { if_meta: 5_000_000, if_pct: 30, if_trs: 5 },
     });
     render(<S7IndependenciaSection data={data} />);
     expect(screen.getByText(/Carteira em acumulação/i)).toBeInTheDocument();
@@ -143,7 +143,7 @@ describe("<S7IndependenciaSection /> · caption de acumulação", () => {
 
   it("some quando progresso >= 50", () => {
     const data = makeData({
-      goals: { if_meta: 5_000_000, if_pct: 60, trs_pct: 5 },
+      goals: { if_meta: 5_000_000, if_pct: 60, if_trs: 5 },
     });
     render(<S7IndependenciaSection data={data} />);
     expect(screen.queryByText(/Carteira em acumulação/i)).toBeNull();
@@ -226,7 +226,7 @@ describe("<S7IndependenciaSection /> · matriz fase × acumuladores × defasagem
       for (const def of DEFASAGENS) {
         it(`renderiza 4 KPIs em ${phase.name} × ${acum.name} acumuladores × ${def.name} defasagem`, () => {
           const data = makeData({
-            goals: { if_meta: 5_000_000, if_pct: phase.if_pct, trs_pct: 5 },
+            goals: { if_meta: 5_000_000, if_pct: phase.if_pct, if_trs: 5 },
             passive_income: makePassiveIncome({
               acumuladores_pct_gerador: acum.pct,
               defasagem_meses: def.meses,

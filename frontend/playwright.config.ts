@@ -69,6 +69,20 @@ export default defineConfig({
       testMatch: /.*\.visual\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
+        // A40.l53 — a captura do próprio Playwright redimensiona o canvas
+        // (924px → 0 → 924px a cada tentativa) e o Chart.js redesenha com
+        // animação; sob runner carregado o redesenho não termina entre duas
+        // capturas e `toHaveScreenshot` morre no gate de estabilidade, antes
+        // de comparar com a baseline. Com a media query, o Chart.js não anima
+        // (ver `ChartRegistry`) e o redesenho é instantâneo.
+        //
+        // Vai em `contextOptions` porque nesta versão `reducedMotion` NÃO é
+        // chave de topo de `use` — escrita ali, o TS reclama e, num spec,
+        // `test.use({ reducedMotion })` passa a ser no-op silencioso
+        // (`matchMedia` devolve `false` e a medição parece refutar o fix).
+        // `setupReport` afirma a media query justamente para não voltar a
+        // confiar nesta linha sem prova.
+        contextOptions: { reducedMotion: "reduce" },
       },
     },
   ],

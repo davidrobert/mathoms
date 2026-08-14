@@ -1,4 +1,4 @@
-import type { ScoreData } from "@/types/report-analysis";
+import type { E5AnalysisArtifact } from "@/generated/report-analysis";
 import { API_BASE, apiFetch } from "./core";
 
 // ─── Report Types ───
@@ -109,13 +109,8 @@ export interface RecalibracaoMcData {
   competencia_mudou: boolean;
 }
 
-/** F9 · ADR-076 — payload do GET /reports/{id}/data.
- *
- * Tipagem progressiva: as 24 chaves top-level do E5 JSON serão tipadas
- * fortemente conforme as seções forem migradas nos lotes 2.A–2.H. Nesta
- * fase (F0.5) expomos shape parcial + fallback `Record<string, unknown>`.
- */
-export interface ReportAnalysisData {
+/** Campos adicionados pelo endpoint depois de carregar o artefato E5. */
+export interface ReportEndpointAugmentations {
   /** v2.8 (ADR-148) — comparativos seção-a-seção. `null` no primeiro relatório. */
   comparisons?: ComparisonItemRead[] | null;
   /** v2.8 (ADR-148) — changelog determinístico. Permanece no wire, mas a UI
@@ -137,80 +132,57 @@ export interface ReportAnalysisData {
     consumed_document_count: number;
     consumed_document_ids: string[];
   };
-  /** ADR-279 · A25.l5 — bloco `_lineage` field-level do E5. Tipado de
-   * propósito SÓ com o subset que a UI consome (label/edge_type/signals);
-   * member_hashes/inputs/rule_ref existem no wire mas são proibidos na UI
-   * cliente (lista negra do popover N2). */
-  _lineage?: {
-    lineage_version: string;
-    fields: Record<
-      string,
-      {
-        label?: string;
-        edge_type?: string;
-        signals?: Record<string, string>;
-      }
-    >;
-  };
-  periodo_dados?: string;
-  data_analise?: string;
-  patrimonio?: Record<string, unknown>;
-  goals?: Record<string, unknown>;
-  fluxo_caixa?: Record<string, unknown>;
-  ratios?: Record<string, unknown>;
-  /** v2.E.7 — score top-level tipado (absorve v2.5; elimina o cast inline em S1). */
-  score?: ScoreData;
-  orcamento_prospectivo?: Record<string, unknown>;
-  reserva_emergencia?: Record<string, unknown>;
-  endividamento?: Record<string, unknown>;
-  previdencia_pgbl?: Record<string, unknown>;
-  pontos_fortes?: unknown[];
-  pontos_urgentes?: unknown[];
-  tarefas?: unknown[];
-  diagnostico_comportamental?: unknown[];
-  tarefas_status?: Record<string, unknown>;
-  investimentos?: Record<string, unknown>;
-  equilibrio_cerbasi?: Record<string, unknown>;
-  /** ADR-166 (A8.4): chave estável universal. Bloco populado quando o gate
-   *  `should_render_conjuge_scenarios` (ADR-167) retorna True. */
-  cenarios_conjuge?: Record<string, unknown>;
-  programa_milhas?: Record<string, unknown>;
-  alertas?: unknown[];
-  consumo_consciente?: Record<string, unknown>;
-  narrativas?: Record<string, unknown>;
-  /** v2.9 · ADR-144 — LLM-driven section summaries (id → texto). */
-  section_summaries?: Record<string, string>;
-  review_metadata?: Record<string, unknown>;
-  /** ADR-157 — KPIs IRPF (renda, alíquota, PGBL, split trabalho×capital, evolução).
-   *  Ausente quando o workspace não tem declaração IRPF processada. */
-  irpf_kpis?: Record<string, unknown>;
-  /** A8.3 — TRS efetiva e carteira de renda. Sempre presente; ``status``
-   * controla render (ok = KPIs · sem_irpf | gerador_zero = empty state). */
-  passive_income?: PassiveIncomeData;
-  /** Onda 2 · ADR-216 — cap rate líquido + tríade benchmarks + tabela por imóvel.
-   *  Ausente quando workspace não tem property_identity (UI oculta S4). */
-  real_estate?: import("@/types/report-analysis").RealEstateData | null;
-  /** A33.l4 (ADR-238 §L4) — renda de proventos por ativo (informes
-   *  proventos_acoes). Ausente quando workspace não tem informe (UI oculta o card). */
-  proventos_por_ativo?: readonly import("@/types/report-analysis").ProventosAtivoData[];
-  /** N3 — Monte Carlo IF com cone P10/P50/P90. Presente quando workspace
-   * tem meta IF configurada. ``exibir_cone`` controla se o chart aparece. */
-  if_monte_carlo?: IFMonteCarloData;
-  /** ADR-219 wave 2 — snapshot das premissas econômicas vigentes na data do
-   *  run (auditoria fiduciária). Ausente em runs antigos pré-ADR-219;
-   *  UI degrada com empty state. */
-  premissas_economicas?: PremissasEconomicasData;
-  /** ADR-236 §D5 — bundle tributário PJ (cascata fiscal calculada).
-   *  Ausente quando workspace não tem `business_profile_json` ou pipeline
-   *  pré-A16 L2 P5. UI renderiza estado "perfil pendente" se ausente. */
-  tributario?: TributarioBundle;
-  /** ADR-240 D8 (A19 L1) — bloco S_PROTECAO 4º pilar AUVP. Ausente quando
-   *  workspace não tem apólices ingeridas (UI oculta seção). */
-  protecao_patrimonial?:
-    import("@/types/protecao").ProtecaoPatrimonialData | null;
-  // Extensibilidade para chaves ainda não tipadas
-  [key: string]: unknown;
 }
+
+/** ADR-279 — subset de lineage permitido no cliente; hashes e inputs ficam fora. */
+export interface ReportLineageData {
+  lineage_version: string;
+  fields: Record<
+    string,
+    {
+      label?: string;
+      edge_type?: string;
+      signals?: Record<string, string>;
+    }
+  >;
+}
+
+type E5Goals = NonNullable<E5AnalysisArtifact["goals"]>;
+type DeepPartial<T> =
+  T extends Array<infer Item>
+    ? ReadonlyArray<DeepPartial<Item>>
+    : T extends object
+      ? { readonly [Key in keyof T]?: DeepPartial<T[Key]> }
+      : T;
+
+interface LegacyFluxoFields {
+  readonly por_fonte?: Readonly<Record<string, number | undefined>>;
+  readonly despesas_por_categoria?: Readonly<Record<string, number>>;
+  readonly receita_despesa_mensal_detalhado?: {
+    readonly labels?: readonly string[];
+    readonly totais_receita?: readonly number[];
+    readonly totais_despesa?: readonly number[];
+  };
+}
+
+type GeneratedReadSnapshot = DeepPartial<
+  Omit<E5AnalysisArtifact, "_lineage" | "goals">
+>;
+type HistoricalE5Snapshot = Omit<GeneratedReadSnapshot, "fluxo_caixa"> & {
+  readonly fluxo_caixa?: GeneratedReadSnapshot["fluxo_caixa"] &
+    LegacyFluxoFields;
+};
+
+/** GET /reports/{id}/data = snapshot E5 (inclusive legado) + enriquecimentos HTTP. */
+export type ReportAnalysisData = HistoricalE5Snapshot &
+  ReportEndpointAugmentations & {
+    readonly _lineage?: ReportLineageData;
+    readonly goals?: DeepPartial<E5Goals> & {
+      readonly premissas_snapshot?: Readonly<Record<string, unknown>> | null;
+    };
+    /** Segundo writer E5n; o schema bruto segue aberto no topo para merges. */
+    readonly tributario?: TributarioBundle;
+  };
 
 /** ADR-236 §D6 — Decision trigger T1-T5 com break-even computado. */
 export interface CascataTrigger {
@@ -333,7 +305,7 @@ export interface IFMonteCarloData {
    *  `fallback_codigo` = constante do modelo, NÃO calibrada à carteira: a
    *  legenda tem de dizer isso, senão publica precisão que o número não tem.
    *  Opcional para tolerar artefato anterior a #1338. */
-  sigma_procedencia?: "global" | "workspace_override" | "fallback_codigo" | null;
+  sigma_procedencia?: "global" | "workspace_override" | "fallback_codigo";
   exibir_cone: boolean;
   /** ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje). */
   aporte_mensal_usado?: number;
