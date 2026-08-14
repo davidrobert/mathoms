@@ -4,7 +4,7 @@ type: lane
 title: "Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l47-semantica-de-taxa-faixa-e-base
 owner: financial-planner
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/frontend
@@ -232,17 +232,33 @@ o glossário definindo TRS como "Taxa de Retirada Segura" é real — só que el
 
 ### Escopo revisado
 
-- **PR1 ✅** (`093ce8d7`) — `meta_pct` sai do payload, do domínio, do schema E5, do tipo
+- **PR1 ✅** (`c416ac90`, em `main` via #1452 `ae2b2453`) — `meta_pct` sai do payload, do domínio, do schema E5, do tipo
   TS e do comparador das duas superfícies; KPI fica neutro. Removidos junto o campo
   morto `trs_meta_pct`, `trsTone` e `readYieldAlvoPct`. Emenda datada na [[ADR-191]]
   (§D6) + glossário separando "TRS (Taxa de Retirada Segura)" de "TRS efetiva" +
   `FORMULAS.md`. Gate é de **ausência na superfície**, provado por mutação.
   Deferido sem dono: `goals.yield_alvo_pct` para a família configurar alvo próprio —
   abre schema + migration + wizard, não cabe nesta lane.
-- **PR2** — uma régua só, com o **enforcer declarado** (`scoring.json` ← analyzer). O
-  gate compara rótulo-a-rótulo **e faixa-a-faixa** (item 3 acima é o caso que um gate
-  só de rótulos deixa passar). Decidir o destino da cópia morta em
-  `analyze_finances.py` no mesmo PR.
-- **PR3** — dar leitor a `base_denominador` + `excluido_da_reserva`, **menos** a chave
-  já triada na A40.l50. A divergência base-vs-carteira exige **fixture própria**; a do
-  dogfood não a expressa.
+- **PR2 ✅** (`5022e8ec`) — o E5 publica `equilibrio_cerbasi.classificacao_faixas` (a
+  régua que de fato classificou) e a legenda do apêndice renderiza dela. Escolhido
+  **publicar no payload** em vez de codegen a partir do `scoring.json` global: override
+  de `scoring` por workspace mantém legenda e enforcer casados, o que codegen não
+  garantiria. Gate fecha a classe — régua custom aparece inteira, rótulo emitido tem de
+  estar na régua, e sem régua no payload não se inventa nenhuma. Cópia morta
+  (`analyze_equilibrio_cerbasi`, 81 linhas) deletada.
+- **PR3 ✅** (`6cd78488`) — o card da reserva declara a base do denominador e o que
+  ficou fora, com o acoplamento explícito ("reduzir uma classe sobre-alocada pode
+  derrubar a cobertura"). `base_denominador` + `excluido_da_reserva` ganham leitor.
+  **Todas as três** chaves de exclusão são exibidas, inclusive
+  `caixa_moeda_estrangeira`: a [[A40.l50]] refutou a afirmação de que ela não tem
+  consumidor, não a de que deva ser divulgada aqui. `BASE_LABEL` cobre só o vocabulário
+  fechado do produtor — o gate do [[ADR-306]] D1 expôs um terceiro rótulo inventado.
+
+### Fixture continua sem expressar a divergência
+
+O aceite entregue é **declaração de base**, que a fixture do dogfood exercita
+(`excluido_da_reserva.caixa_nao_classificado > 0`). A divergência
+**base-da-reserva > carteira exibida** segue sem fixture que a reproduza — o
+`dogfood_view_model.json` tem `composicao_liquida.total_liquido` batendo exato com a
+linha "Renda Fixa" de `tabela_classes`. Isso é **deferido sem dono**: exige fixture
+sintética própria, e nenhum gate atual a alcança.
