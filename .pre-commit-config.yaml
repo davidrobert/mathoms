@@ -635,6 +635,17 @@ repos:
         files: ^docs/.*\.md$
         pass_filenames: false
 
+      - id: lane-status-predicate
+        # Falha nos DOIS sentidos: `open` com dep pendente (armadilha de pickup)
+        # e `blocked` com dep já terminal (lane pegável invisível no
+        # SPRINT_CURRENT). Precisa do índice global de status ⇒ pass_filenames:
+        # false — o merge que satisfaz a dep está em OUTRO arquivo.
+        name: "docs/: status de lane deriva de depends_on (predicado A40)"
+        entry: python3 dev/check_lane_status_predicate.py
+        language: system
+        files: ^docs/sprint/.*/lanes/.*\.md$
+        pass_filenames: false
+
       - id: adr-prose-refs
         name: "docs/: ADR-NNN citada em prosa resolve para arquivo (nunca reserve ID)"
         entry: python3 dev/check_adr_prose_refs.py

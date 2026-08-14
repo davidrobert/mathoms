@@ -3,7 +3,7 @@ id: A20.l5
 type: lane
 title: "Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX"
 sprint: A20
-status: open
+status: blocked
 priority: P0
 branch_slug: a20-l5-trivy-sbom-blocking
 depends_on:
@@ -14,7 +14,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a20
-  - status/ready
+  - status/blocked
   - priority/p0
   - area/infra
   - area/ci
