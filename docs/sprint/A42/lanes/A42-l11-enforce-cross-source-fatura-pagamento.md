@@ -9,8 +9,7 @@ branch_slug: a42-l11-enforce-cross-source-fatura-pagamento
 adrs:
   - "[[ADR-350]]"
   - "[[ADR-347]]"
-depends_on:
-  - "[[A40.l2]]"
+depends_on: []
 tags:
   - type/lane
   - sprint/a42
@@ -24,10 +23,10 @@ tags:
 > **Origem:** [[PARSE-CERTIFY-active]] §r1, re-priorizado ↑ P2→P1 no §r2 2026-08-04 —
 > PC07. [[ADR-350]] segue `Proposto`; existe apenas o PR de medição (measure-only).
 
-> **Depende de [[A40.l2]]**, que injeta o colapsador cross-documento no mesmo
-> adaptador de reconciliação onde este validador é injetado. Dois injetores no mesmo
-> ponto de composição ⇒ serializar. **Na promoção, re-ler a disposição da l2**; se
-> `cancelled`, esta lane absorve o ponto de injeção e declara a absorção.
+> **Depende de [[A40.l2]] — quitada 2026-08-14.** A l2 shipou (#1368) e o
+> colapsador já está injetado no adaptador. O ponto de composição existe; esta
+> lane injeta o validador **depois** dele, sem absorver escopo. `depends_on`
+> saiu. [[ADR-350]] segue `Proposto`.
 
 ## Problema
 

@@ -10,8 +10,7 @@ adrs:
   - "[[ADR-173]]"
   - "[[ADR-357]]"
   - "[[ADR-371]]"
-depends_on:
-  - "[[A40.l19]]"
+depends_on: []
 tags:
   - type/lane
   - sprint/a42
@@ -26,10 +25,10 @@ tags:
 > **Origem:** [[PIPELINE-REVIEWS-active]] §r4 2026-08-04 — RV4-03 (Alto, **provado em
 > Postgres real**), RV4-14, RV4-22, RV4-42, RV4-52.
 
-> **Depende de [[A40.l19]]** — e a razão é dura, não preferência: as duas lanes
-> adicionam migration, e duas migrations concorrentes **ramificam a cadeia de
-> revisão**. Serializar é obrigatório. A [[A40.l19]] também exige migration em PR
-> próprio, sem misturar com feature — herdar essa regra aqui.
+> **Depende de [[A40.l19]] — quitada 2026-08-14.** A l19 shipou (#1241). A razão
+> (duas migrations concorrentes ramificam a cadeia) está satisfeita: esta lane é
+> a próxima na cadeia, em PR próprio, sem misturar com feature. `depends_on`
+> saiu. `LLMCallLog.stage` segue `String(64)` (`llm_call_log.py:26`).
 
 ## Problema
 
@@ -58,7 +57,8 @@ interpolação), e há precedente de correção já aplicada noutro módulo.
 
 ## Decisão
 
-1. **Migration** que amplia a coluna, em PR próprio, atrás da [[A40.l19]] na cadeia.
+1. **Migration** que amplia a coluna, em PR próprio, **depois** da [[A40.l19]]
+   (#1241) na cadeia — não mais "atrás de alguém em voo".
 2. **Nome de stage descritivo puro** nos dois produtores que interpolam filename —
    fecha 1 e 5 juntos. Identificar o documento, se necessário, em coluna própria.
 3. **Falha de escrita do registro de custo não pode ser engolida em aviso.** É a fonte
@@ -94,5 +94,5 @@ interpolação), e há precedente de correção já aplicada noutro módulo.
 - Stage que fez skip **não** reporta status de concluído. Teste sobre run incremental.
 - Reconciliação memória ↔ fonte única ao fim do run, com divergência diferente de
   zero falhando o run em modo estrito.
-- **Migration em PR próprio**, atrás da [[A40.l19]]; cadeia de revisão linear
-  verificada antes do merge.
+- **Migration em PR próprio**, encadeada depois da [[A40.l19]] (#1241); cadeia
+  de revisão linear verificada antes do merge.

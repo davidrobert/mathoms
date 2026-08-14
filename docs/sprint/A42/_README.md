@@ -85,7 +85,7 @@ linha de contagem porque a métrica óbvia é gamificável.
 
 | KR | Métrica | Instrumento | Anti-Goodhart |
 |---|---|---|---|
-| **KR-A · fidelidade discriminada** | Todo parser line-oriented emite âncora de linhas de origem; o veredito separa *fidelidade do parser* de *completude da fonte*. `coberto-sem-verificação` cai de 80 | `dev/certify_parse_local.py --compare` | Contar em **duas linhas** — `fidelidade_provada` e `teto_estrutural`. A queda só conta pela primeira: reclassificar vocabulário não é progresso |
+| **KR-A · fidelidade discriminada** | Todo parser line-oriented emite âncora de linhas de origem; o veredito separa *fidelidade do parser* de *completude da fonte*. `coberto-sem-verificação` cai pela linha `fidelidade_provada` | `dev/certify_parse_local.py --compare` | Contar em **duas linhas** — `fidelidade_provada` e `teto_estrutural`. A queda só conta pela primeira: reclassificar vocabulário não é progresso. O "cai de 80" da abertura (2026-08-04) é **fotografia**, não denominador vigente — re-medir na abertura |
 | **KR-B · instrumento que não dá verde falso** | Nenhum check que não consegue avaliar desaparece da conta: todo check emite `pass\|fail\|skipped(motivo)` com piso de contagem por check-id; registry de balde do razão com default `não-verificável` | `scripts/validate_cross.py` + `dev/ledger_certify_core.py` | **Prova por mutação**: remover o input do check ⇒ exit ≠ 0. O KR não mede número de checks; mede que a ausência morde |
 | **KR-C · identidade sob cobertura redundante** | Nenhum par de grupos do razão da mesma conta *period-free* com chaves de artefato distintas; nenhum artefato onde o sentinela de ausência é indecidível do literal | `dev/certify_ledger_local.py` | Escopo é a classe **latente** nativo↔nativo. O P0 de duplicação cross-documento é KR-B da [[A40]] e **não conta aqui** — senão A42 colhe o trabalho da [[A40.l2]] |
 | **KR-D · base mensal honesta** | A janela de 12 meses tem teto na data de análise; nenhum mês entra no divisor de média sem transação observada ou declarado como lacuna | invariante em teste + `dev/golden_diff.py` | Delta declarado `↑`/`↓`/`=` no golden. Rebaseline silencioso é reprovação |
@@ -110,6 +110,15 @@ sobre o mesmo corpus, prova o fechamento**:
 
 Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 
+**Rito de abertura (auditoria 2026-08-14).** O gate acima fecha a sprint. A
+**promoção** (`[[A40]] → done`) começa com `parse-certify` r3 + `ledger-certify` r5
+**antes do primeiro pickup**, carimbando cada uma das 12 lanes
+`sobrevive` / `absorvido` / `morreu`. Achado novo da classe falso-verde entra;
+achado de entrega vai para [[PLAN-report-trust]], não vira `A42.l14`. Sem esse
+passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
+mutou. A auditoria de mesa abaixo **não** substitui esse rito — só deixa o
+grafo honesto até lá.
+
 ## Lanes (12)
 
 | Lane | O quê | Prio | Onda | Dep |
@@ -119,12 +128,12 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 | [[A42.l4]] | Check que não consegue avaliar evapora em vez de virar `skipped` | P2 | 1 | — |
 | [[A42.l2]] | Parsers line-oriented: âncora de fidelidade + supressão vira verdict do gate | P1 | 1 | [[A42.l3]] |
 | [[A42.l6]] | Contrato do store: política de escopo, retenção de órfão e validação de artefato | P1 | 2 | [[A42.l5]] |
-| [[A42.l7]] | Registro de custo de LLM é fonte de verdade que perde row e vaza filename | P1 | 2 | [[A40.l19]] |
-| [[A42.l5]] | Chave de agrupamento do razão carrega o período do documento | P1 | 2 | [[A40.l2]] |
-| [[A42.l8]] | Mês vazio por falha de extração conta como mês documentado | P1 | 2 | [[A40.l15]] · [[A40.l11]] |
+| [[A42.l7]] | Registro de custo de LLM é fonte de verdade que perde row e vaza filename | P1 | 2 | — |
+| [[A42.l5]] | Chave de agrupamento do razão carrega o período do documento | P1 | 2 | — |
+| [[A42.l8]] | Mês vazio por falha de extração conta como mês documentado | P1 | 2 | [[A40.l15]] · [[A40.l11]] · [[A40.l44]] |
 | [[A42.l9]] | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | P1 | 3 | [[A42.l2]] |
 | [[A42.l10]] | Misclassificação na classificação amplifica o carrier de duplicação | P1 | 3 | [[A41.l2]] |
-| [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | [[A40.l2]] |
+| [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | — |
 | [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
@@ -156,8 +165,8 @@ o arquivo de senha existe e o run completa — morde em deploy limpo e no segund
 usuário). Fica fora da Onda 1 para não competir por pickup com instrumento nem
 sugerir bloqueio que não existe.
 
-**Onda 1 — instrumento** ([[A42.l4]] livre; [[A42.l3]] atrás da [[A40.l2]] **no item 1**,
-com entrega parcial declarada; [[A42.l2]] atrás da l3).
+**Onda 1 — instrumento** ([[A42.l4]] livre; [[A42.l3]] livre desde 2026-08-14 — a
+aresta para [[A40.l2]] morreu no #1368; [[A42.l2]] atrás da l3).
 **Não são disjuntas — partição declarada.** A l4 é solo em arquivo. A l2 e a l3 tocam
 ambas `dev/certify_parse_local.py`, e no mesmo ratchet: a **l3 é a dona do arquivo** e
 entrega a cláusula que a l2 precisa — cláusula que agora está no **critério de aceite da
@@ -165,11 +174,13 @@ l3**, não só na prosa da l2. Uma versão anterior deste plano afirmava disjun�
 falso, e duas lanes P1 reescrevendo o mesmo ratchet em paralelo é exatamente o cenário que
 a onda diz evitar.
 
-**Onda 2 — identidade, contrato e base** ([[A42.l5]] → [[A42.l6]]; [[A42.l7]] e
-[[A42.l8]] independentes entre si). A l5 e a l6 são **sequenciais**, não paralelas: o
-guard "por expectativa" da l6 conta grupos cujo keying a l5 muda, e o escopo da listagem
-da l6 muda o conjunto de pernas do merge da l5 — logo o `titular` que vai ao hash. A l8
-entra na fila de rebaseline do snapshot do view-model, compartilhada com a [[A40.l15]].
+**Onda 2 — identidade, contrato e base** ([[A42.l5]] → [[A42.l6]]; [[A42.l7]] livre;
+[[A42.l8]] atrás de [[A40.l15]], [[A40.l11]] e [[A40.l44]]). A l5 e a l6 são
+**sequenciais**, não paralelas: o guard "por expectativa" da l6 conta grupos cujo
+keying a l5 muda, e o escopo da listagem da l6 muda o conjunto de pernas do merge
+da l5 — logo o `titular` que vai ao hash. A l8 entra na fila de rebaseline do
+snapshot do view-model, compartilhada com a [[A40.l15]], e **não reabre** o D3 da
+[[ADR-306]] que a [[A40.l44]] já emendou — ver §Auditoria de mesa.
 
 **Onda 3 — o que depende de terceiros** ([[A42.l9]], [[A42.l10]], [[A42.l11]],
 [[A42.l12]]). A l12 está aqui, e não na 2, porque depende do enum de verificabilidade que
@@ -177,46 +188,100 @@ a l2 cria: escrever o predicado contra o mundo de dois estados e receber o terce
 acenderia o selo de qualidade sobre conservação não provada — o falso-verde da tese,
 produzido pela lane que existe para matá-lo.
 
-**Amarra obrigatória das dependências cross-sprint.** **Seis lanes carregam sete
-arestas** para fora da sprint: [[A42.l5]] e [[A42.l11]] → [[A40.l2]] · [[A42.l3]] →
-[[A40.l2]] (aberta 2026-08-05, ver abaixo) · [[A42.l7]] → [[A40.l19]] · [[A42.l8]] →
-[[A40.l15]] **e** [[A40.l11]] · [[A42.l10]] → [[A41.l2]]. A contagem anterior dizia
-"seis lanes" e eram **cinco lanes / seis arestas** — contava aresta como lane, num
-plano cuja tese é "contada, não estimada". Na promoção, **re-ler a disposição de cada
-dependência** — por **aresta**, não por lane — com **três** ramos, não um:
+**Amarra obrigatória das dependências cross-sprint.** **Duas lanes carregam quatro
+arestas** vivas (auditoria 2026-08-14): [[A42.l8]] → [[A40.l15]] · [[A40.l11]] ·
+[[A40.l44]] · [[A42.l10]] → [[A41.l2]]. Quatro arestas morreram no ramo 2 (dep
+`shipped`): [[A42.l3]]/[[A42.l5]]/[[A42.l11]] → [[A40.l2]] (#1368) e [[A42.l7]] →
+[[A40.l19]] (#1241). A aresta nova [[A42.l8]] → [[A40.l44]] é colisão de arquivo
+(`fluxo_caixa_enricher.py`) + demarcação do D3 — ver §Auditoria. Na promoção,
+**re-ler a disposição de cada dependência** — por **aresta**, não por lane — com
+**três** ramos, não um:
 
 1. dependência `cancelled` ⇒ a lane A42 **absorve o escopo** e declara a absorção no
    corpo. Sem isso, uma A40 que fecha `done` com [[A40.l15]] `cancelled` deixa a
    [[A42.l8]] esperando um evento que nunca chega;
 2. dependência `shipped` ⇒ a dependência é morta, remover e anotar o PR;
-3. dependência ainda `open`, **carregada por plano vivo** — caso real da [[A40.l2]] sob
-   o plano de report-trust, e o ramo **mais provável** dos três: a lane sobrevive ao
-   fechamento da sprint, porque a cláusula 4 do §Critério de admissão diz que plano é dono
-   de tese além da sprint. Nesse ramo a lane A42 permanece `blocked` e a condição de
-   destravamento é o **merge do PR nomeado**, não o fechamento da A40. A versão anterior
-   desta amarra só cobria o ramo 1.
+3. dependência ainda `open`/`planned`/`in_progress`, **carregada por plano vivo** —
+   caso residual da [[A40.l15]]/[[A40.l11]]/[[A40.l44]] e da [[A41.l2]]. A lane A42
+   permanece `blocked` e a condição de destravamento é o **merge do PR nomeado** (ou
+   `cancelled` → ramo 1), não o fechamento da sprint dona. A [[A40.l2]] saiu deste
+   ramo em 2026-08-11.
 
 Precedente: cláusula de entrega parcial da [[A40.l27]].
 
-**Furo desta amarra, fechado 2026-08-05.** Ela cobria só a direção `A42 → A40`: "a
-dependência escorregou, e agora?". Faltava a direção inversa — **lane A42 que põe em
-risco entrega viva da A40**. No ramo 3, que a própria amarra declara o mais provável, a
-A42 promove com a [[A40.l2]] ainda em voo e a [[A42.l3]] livre para reescrever
+**Furo desta amarra, fechado 2026-08-05 e quitado 2026-08-14.** Ela cobria só a
+direção `A42 → A40`: "a dependência escorregou, e agora?". Faltava a direção inversa
+— **lane A42 que põe em risco entrega viva da A40**. Em 2026-08-05 isso era a
+[[A42.l3]] reescrevendo
 [`dev/ledger_certify_core.py`](../../../dev/ledger_certify_core.py) — o arquivo que
-produz o numerador de 261 contra o qual a l2 prova o fix. Não é conflito de merge: é
-**invalidação silenciosa de prova**, que fecha verde. Fechado com a sétima aresta acima
-(`depends_on` na l3, com entrega parcial declarada na lane). **Regra que generaliza:**
-antes de promover, verificar também se alguma lane desta sprint **escreve no
-instrumento** de uma lane viva de outra — o critério de agrupamento por arquivo não
-alcança dependência cross-sprint, e foi exatamente aqui que ele não alcançou.
+produzia o numerador de 261 (fotografia) contra o qual a [[A40.l2]] provava o
+fix. A l2 shipou (#1368); a aresta morreu. **Cautela que sobrevive sem ser dep:**
+o residual da l2 declara que o instrumento **continua cego ao enforce** por
+construção e ainda reporta 261 na sombra. Quem reescrever o item 1 da l3 pina
+comparabilidade do `cross_group` ou re-freeze — não trata o 261 como denominador
+vigente. **Regra que generaliza:** antes de promover, verificar também se alguma
+lane desta sprint **escreve no instrumento** de uma lane viva de outra.
+
+## Auditoria de mesa 2026-08-14
+
+> Cruzamento das 12 lanes contra `origin/main` (`6c68723a`). Sem re-execução de
+> skill. **Não reabre** a fusão A42→A40. Números da abertura (261, ~19% da
+> receita, `coberto-sem-verificação` = 80, 31/41 faturas) são **fotografia de
+> 2026-08-04**, anteriores ao enforce da [[A40.l2]].
+
+**Veredito.** A tese sobrevive. Os 12 mecanismos ainda estão no código. O que
+envelheceu é o grafo, três âncoras de linha, e o item 2 da [[A42.l8]].
+
+| Lane | Âncora hoje | Dep | Carimbo |
+|---|---|---|---|
+| [[A42.l1]] | `unlock_documents.py:395` ainda chama `load_passwords()` antes do glob; `llm_call_log` é outro assunto | — | **sobrevive** |
+| [[A42.l2]] | `_c6_csv_apply_conservation_flags` (`c6bank.py:112-130`) ainda suprime o gate por conclusão do parser | [[A42.l3]] | **sobrevive** |
+| [[A42.l3]] | `_non_ledger_verdict` agora em `ledger_certify_core.py:170` (era `:161`); default ainda `COBERTO_SEM_VALOR`. `certify_parse_local.py` ainda não lê `checksum_ok` | — (era [[A40.l2]], #1368) | **sobrevive**; cautela de instrumento no §Amarra |
+| [[A42.l4]] | `_CONSERVATION_CHECKS` em `validate_cross.py:611`; `compare_reviews.py:179` ainda busca `transacoes_total` | — | **sobrevive** |
+| [[A42.l5]] | `generate_legacy_filename` (`e3_serialization.py:139-144`) ainda embute `inicio_ym`/`fim_ym` na chave | — (era [[A40.l2]], #1368) | **sobrevive** (classe latente nativo↔nativo). LC04: âncoras originais **não resolvem** — o default de `account_type` agora é `"extrato"`, não `"desconhecido"`; re-medir na abertura |
+| [[A42.l6]] | `list_keys` (`db_artifact_store.py:379`) segue workspace-wide; `SCHEMA_BY_STAGE` ainda sem `review_finances_holistic` nem `extract_members` | [[A42.l5]] | **sobrevive** |
+| [[A42.l7]] | `LLMCallLog.stage` segue `String(64)` (`llm_call_log.py:26`) | — (era [[A40.l19]], #1241) | **sobrevive** |
+| [[A42.l8]] | `_compute_janela_12m` ainda fatia `meses[-n:]` (`fluxo_caixa_enricher.py:497`); a série que chega já passou por `split_provisionado(data_corte)` | [[A40.l15]] · [[A40.l11]] · **[[A40.l44]]** | **sobrevive em parte** — ver demarcação abaixo |
+| [[A42.l9]] | vocabulário de checksum de fatura inalterado | [[A42.l2]] | **sobrevive** |
+| [[A42.l10]] | classificação E0 ainda amplifica o carrier; arquivos ainda da [[A41.l2]] | [[A41.l2]] (`planned`) | **sobrevive** |
+| [[A42.l11]] | [[ADR-350]] segue `Proposto`; measure-only #1087 | — (era [[A40.l2]], #1368) | **sobrevive** |
+| [[A42.l12]] | `_E2_DB_STAGES` hardcoded em 3 (`document_pipeline_sync.py:36`); predicado ainda não inspeciona payload. Path moveu para `backend/app/services/pipeline/` | [[A42.l2]] | **sobrevive** |
+
+Nenhuma lane **morreu**. Nenhuma foi absorvida inteira.
+
+### Demarcação [[A42.l8]] ↔ [[A40.l44]]
+
+A [[ADR-306]] §Emenda 2026-08-11 (commitada) já redefiniu D3: mês documentado
+exige movimento, fechamento e não-posterioridade à `data_corte` do run. A
+[[A40.l44]] PR1 entrega o corte de **futuro** via `split_provisionado` **antes**
+de `_compute_janela_12m`. O corte do **mês em curso** está deferido pela própria
+l44, dono `senior-cto`, **lane própria depois da l44** — não é esta.
+
+| Eixo | Dono | Estado 2026-08-14 |
+|---|---|---|
+| Mês futuro no denominador (RV4-04, item 2 da l8) | [[A40.l44]] + emenda D3 | **absorvido** — l8 não reabre |
+| Mês em curso no denominador | deferido da [[A40.l44]] | **fora da l8** |
+| Zero por falha de extração fantasiado de observação (PC11) | [[A42.l8]] | aberto |
+| União receita+despesa com zero-fill (RV4-05) | [[A42.l8]] | aberto |
+| Piso de publicação por classe + fonte única de categoria | [[A42.l8]] | aberto |
+
+A l8 **ganha** `depends_on: [[A40.l44]]` por colisão de arquivo
+(`fluxo_caixa_enricher.py`) e para não emendar o D3 por cima da l44.
+
+### O que a A40 comeu na borda (e não é desta sprint)
+
+[[A40.l38]] (caixa canônico), [[A40.l40]] (CNPJ-raiz), [[A40.l41]] (frescor
+cross-pool) e [[A40.l42]] (baseline pegajoso do E1.5c) tocam identidade/ingestão
+e nasceram depois desta sprint. Nenhuma das 12 lanes daqui é dona desses
+arquivos. Ficam na A40. Não é fato novo que reabra fusão — é a cerca da cláusula
+1 do §Critério de admissão funcionando no sentido inverso.
 
 ## Relação com a A39
 
-A [[A39]] tem a mesma tese (`ingest-trust`) e nunca foi fechada: 12 de 13 lanes
-`shipped`, `sprint_status: candidate` desde 2026-07-23. Manter duas sprints
-`candidate` com a mesma tese, sobre os mesmos arquivos, criaria as duas fontes de
-verdade que o roteamento desta sprint existe para evitar. **A A42 abre no mesmo PR
-que flipa a A39 para `done`**, com disposição item a item:
+A [[A39]] tem a mesma tese (`ingest-trust`) e **já está `done`** (fechada na
+abertura desta sprint). A disposição item a item abaixo é histórica — o conjunto
+`candidate` deixou de incluir a A39. Mantida aqui porque os resíduos deferidos
+ainda apontam para lanes desta sprint:
 
 | Resíduo da A39 | Blocker declarado | Disposição |
 |---|---|---|
@@ -225,9 +290,9 @@ que flipa a A39 para `done`**, com disposição item a item:
 | §Deferidos — propagação E2→E5 e selo de qualidade, gated por [[ADR-345]] | ADR `Roadmap`, adoção deferida | **Gatilho registrado** por [[A42.l2]]. A condição de retomada da nota é "quando um achado de revisão demonstrar número de origem degradada chegando ao usuário sem sinal" — o §r2 é esse achado. Registrar o gatilho é docs-only; **promover a nota exige design** ([[ADR-358]]) e não é escopo desta sprint |
 | [[A39.l13]] (`planned`) — re-route da classificação pelo choke-point de LLM | — | **`cancelled`** por duplicação: é a [[A41.l2]], que já é dona dos mesmos arquivos |
 
-Efeito no inventário: o conjunto `candidate` vai de {A39, A41} para {A41, A42} —
-**não cresce**, e os resíduos deferidos ganham destino nomeado. Precedente exato: a
-própria A39 fazendo isso com a cauda da A38.
+Efeito no inventário (já ocorrido): o conjunto `candidate` foi de {A39, A41} para
+{A41, A42} — **não cresceu**, e os resíduos deferidos ganharam destino nomeado.
+Precedente exato: a própria A39 fazendo isso com a cauda da A38.
 
 ## Fora do sprint (disposição explícita)
 
@@ -239,7 +304,7 @@ superfície possui o achado):
 
 | Achado | Destino | Motivo |
 |---|---|---|
-| Duplicação cross-documento do razão (P0, ~19% da receita) | [[A40.l2]] | É o KR-B da A40, com instrumento shipado ([[A40.l1]]) e escopo em 5 PRs. A trilha do próprio achado aponta para lá. **Ressalva registrada:** o §r4 mediu que **4 dos 5 desenhos de fix foram eliminados**, e o desenho sobrevivente (colapsador por transação, chave provenance-free day-exact) **não está escrito** nos PRs atuais da l2 — o P0 tem dono e não tem fix escrito. Isto é aviso à A40, não escopo da A42 |
+| Duplicação cross-documento do razão (P0, ~19% da receita — fotografia 2026-08-04) | [[A40.l2]] | **Shipou 2026-08-11 (#1368):** colapsador enforce, 453 rows cortadas, E3 6256→5803. O aviso de 2026-08-04 ("P0 tem dono e não tem fix escrito") **não vale mais**. Residual da própria l2: o instrumento `certify_ledger_local` re-deriva E3 a partir do E2 em sombra e **continua cego ao enforce** — o numerador 261 na sombra não é o E3 persistido. KR-B da A40; **não conta** no KR-C daqui |
 | Débito de âncora estável de override manual + eixo member-level do lineage em zero | [[A40.l2]] PR3 | Mesma causa; a trilha de ambos diz "não abrir lane" |
 | Limiar de confiança + canal de pausa inalcançável | [[A40.l21]] | A trilha diz "acoplar a A40.l21" |
 | Decisão registrada pelo dono descartada da única seção que responde "o que fazer" (**P0**) | [[A40.l10]] | Ver §Nota sobre o P0 de entrega abaixo |
@@ -356,12 +421,12 @@ do PR de implementação.
 | Lane | Forma | Por quê |
 |---|---|---|
 | [[A42.l2]] | **Emenda datada à [[ADR-342]]** — não ADR nova | Mesma decisão com o eixo refinado (separar fidelidade do parser de completude da fonte). Precedente: a emenda de 2026-07-27, também nascida desta skill |
-| [[A42.l5]] | Corolário da emenda [[ADR-354]] | O repo já tem a definição period-free certa e agrupa pela errada |
+| [[A42.l5]] | Corolário da [[ADR-354]] (`Decidido` desde o merge da [[A40.l2]]) | O repo já tem a definição period-free certa e agrupa pela errada. Se a tupla da chave de **artefato** exigir mudança de decisão, a forma é emenda datada — a ADR já não está `Proposto` |
 | [[A42.l6]] | Emenda [[ADR-291]] | Política de escopo do store: listagem e leitura discordam. Toca também [[ADR-278]] e [[ADR-212]] |
 | [[A42.l12]] | **ADR nova** `Proposto` | Onde mora o predicado único de extração é decisão de **boundary** (`backend/` ↔ `pipeline/`) — uma emenda de política de escopo não pode ser o veículo dela |
-| [[A42.l8]] | **ADR nova** `Proposto` + emenda datada à [[ADR-306]] D3 | Piso de publicação por classe de métrica e dimensionamento conservador são **regra nova**; a política vigente decide o divisor, nunca piso nem conservadoria. A emenda aponta para a ADR nova |
+| [[A42.l8]] | **ADR nova** `Proposto` + emenda datada à [[ADR-306]] **só no eixo que sobra** | Piso de publicação por classe e dimensionamento conservador são **regra nova**. O D3 já foi emendado em 2026-08-11 pela [[A40.l44]] (mês documentado exige movimento, fechamento e não-posterioridade à data de corte). Esta lane **não reabre** futuro nem mês em curso — o segundo está deferido pela própria l44. A emenda daqui cobre só "zero por falha de extração ≠ observação" |
 | [[A42.l1]] | **ADR nova** `Proposto` | Provisionamento de secret em tenant limpo — co-design `senior-cto` + `sre-devops` |
-| [[A42.l7]] | Coordenar com [[ADR-357]] §7 | Migration + contrato de coluna; serializada atrás de [[A40.l19]] na cadeia alembic |
+| [[A42.l7]] | Coordenar com [[ADR-357]] §7 | Migration + contrato de coluna; a [[A40.l19]] (#1241) já está na cadeia — esta lane é a próxima, não mais "atrás de alguém em voo" |
 
 **Armadilha de forma:** heading de emenda **não leva wikilink** — o gate
 `check_adr_amendment_signal.py` pula heading que contém `[[ADR-NNN]]` diferente do

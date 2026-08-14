@@ -311,7 +311,14 @@ mensal honesta.
 
 **Gate de saída:** não é burn-down — é **re-certificação**. A42 fecha quando
 `parse-certify` r3 + `ledger-certify` r5, sobre o mesmo corpus, retornarem **zero
-achado novo da classe falso-verde**.
+achado novo da classe falso-verde**. A promoção começa pelo mesmo par de skills
+**antes do primeiro pickup** (rito de abertura, auditoria 2026-08-14).
+
+**Auditoria de mesa 2026-08-14.** Tese intacta; 12/12 mecanismos ainda no código.
+Quatro arestas para a A40 morreram (`A40.l2` #1368, `A40.l19` #1241). A
+[[A42.l8]] ganhou aresta para a [[A40.l44]] (D3 já emendado: futuro absorvido;
+mês em curso deferido pela l44; sobra zero-por-falha-de-extração). Números da
+abertura (261, 80, ~19%) são fotografia pré-enforce. Não reabre fusão.
 
 **Gatilho de promoção** — **dois níveis** desde 2026-08-05 (evento, não calendário):
 **sprint** = [[A40]] → `done`; **lane** = promoção individual por *consumidor datado*,

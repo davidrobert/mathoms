@@ -8,7 +8,7 @@ priority: P1
 branch_slug: a42-l3-harness-falso-verde-para-dentro
 adrs:
   - "[[ADR-302]]"
-depends_on: ["[[A40.l2]]"]
+depends_on: []
 tags:
   - type/lane
   - sprint/a42
@@ -43,14 +43,12 @@ tags:
 > [[A40.l1]] codificou (*baseline pós-mutação mede o próprio fix*), agora entre
 > sprints.
 >
-> **Amarra, com entrega parcial declarada** (forma da [[A40.l27]], que o §Amarra do
-> `_README` já cita como precedente): `depends_on: [[A40.l2]]` cobre **o item 1 e a
-> extensão do drift para contagem por balde** — os dois que tocam
-> `ledger_certify_core.py`. Os itens **3, 4 e 5** (traço de checksum, perna de volume,
-> auditoria de paridade fail-open) **não** tocam esse arquivo e podem shipar antes,
-> declarando o item 1 como não-entregue. O item 2 (invariantes da P0 nº 1) fica com o
-> item 1 por escrever no mesmo agregado publicado. Destravamento é o **merge do PR
-> nomeado** da l2, não o fechamento da A40 — ramo 3 do §Amarra.
+> **Amarra quitada 2026-08-14.** A [[A40.l2]] shipou (#1368). `depends_on` saiu.
+> Os cinco itens voltam a ser entregáveis juntos. **Cautela que sobrevive sem ser
+> dep:** o residual da l2 declara que `ledger_certify_core.py` continua cego ao
+> enforce e ainda reporta 261 na sombra. O item 1 desta lane reescreve esse
+> arquivo — pinar comparabilidade do `cross_group` ou re-freeze; não tratar 261
+> como denominador vigente. `_non_ledger_verdict` moveu para a linha 170.
 
 > **Esta lane é dona de `dev/certify_parse_local.py`.** Colisão declarada com
 > [[A42.l2]] (mesma onda): o critério da l2 exige que o ratchet aceite código de aviso
@@ -125,9 +123,7 @@ O princípio único: **"não consegui avaliar" é um estado, não um sucesso.**
   `senior-cto`, 2026-08-04).
 - **KR-B da sprint só é mensurável depois desta lane.** É a razão pela qual ela está
   na Onda 1 e não depois dos fixes que ela deveria vigiar.
-- **O item 1 (e a extensão do drift) não mergeia antes do PR nomeado da [[A40.l2]]**,
-  e o PR desta lane cita o número dele. Se os itens 3-5 forem entregues antes, o corpo
-  declara o item 1 como **não-entregue** — nunca como fora de escopo. Colocar a amarra
-  no DoD (e não só no blockquote) é a mesma correção que esta lane já sofreu do
-  `senior-cto` em 2026-08-04 para a cláusula que a [[A42.l2]] consome: *dependência
-  cujo entregável não está no critério de aceite não é dependência, é esperança.*
+- **O item 1 pode mergear** — a [[A40.l2]] é terminal (#1368). O PR desta lane cita
+  esse número e declara o que fez com o numerador `cross_group` (re-freeze ou
+  pin de comparabilidade). Sem essa declaração o KR-B residual da A40 perde o
+  referente.

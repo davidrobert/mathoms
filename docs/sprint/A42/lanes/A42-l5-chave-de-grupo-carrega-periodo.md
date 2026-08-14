@@ -9,8 +9,7 @@ branch_slug: a42-l5-chave-de-grupo-carrega-periodo
 adrs:
   - "[[ADR-354]]"
   - "[[ADR-310]]"
-depends_on:
-  - "[[A40.l2]]"
+depends_on: []
 tags:
   - type/lane
   - sprint/a42
@@ -23,17 +22,20 @@ tags:
 
 > **Origem:** [[LEDGER-CERTIFY-active]] §r4 2026-08-04 — LC02 (Alto, P1), LC03
 > (contexto de desenho), LC04 (P1, contrato de identidade). Corolário da definição
-> *period-free* da [[ADR-310]]; a [[ADR-354]] é `Proposto` e **não tem emenda** — se
-> esta lane exigir mudança de decisão, a forma é emenda datada a ela, escrita nesta lane.
+> *period-free* da [[ADR-310]]; a [[ADR-354]] é `Decidido` desde o merge da
+> [[A40.l2]] (#1368) — se esta lane exigir mudança de decisão, a forma é emenda
+> datada a ela, escrita nesta lane.
 
-> **Serializada atrás de [[A40.l2]]** — `depends_on`, não `parallel_with`. A razão foi
-> medida pelo `senior-cto` em 2026-08-04 e **invalida o critério de aceite que esta lane
-> tinha**: reagrupar *period-free* **muta input de hash sem tocar a função de hash**.
+> **Serialização atrás de [[A40.l2]] quitada 2026-08-14** — a l2 shipou (#1368);
+> `depends_on` saiu. A razão da ordem (reagrupar *period-free* **muta input de
+> hash sem tocar a função de hash**) **continua válida como cautela de
+> implementação**, não como bloqueio:
 > Cadeia verificada linha a linha:
 >
 > 1. a chave period-free faz duas pernas da mesma conta caírem no mesmo grupo;
 > 2. o merge posicional escreve `member_key = base.member_key` (= a 1ª perna da lista);
-> 3. a serialização grava **um** `titular` por artefato (`e3_serialization.py:96`);
+> 3. a serialização grava **um** `titular` por artefato (`e3_serialization.py:96`,
+>    conferido 2026-08-14);
 > 4. o classificador **lê** `account["titular"]` do artefato E3 (`transaction_classifier.py:300`);
 > 5. e o alimenta em `build_hash_inputs` (`:350`) → `_hash_v2` → `transaction_hash`;
 > 6. o hash muda ⇒ a constraint única de override não casa ⇒ **override manual do dono
@@ -140,8 +142,16 @@ existe separada, e é ela que fecha a classe.
    instrução que recebeu.
 
 Forma: corolário da definição *period-free* da [[ADR-310]] para a chave de artefato.
-Se a decisão da [[ADR-354]] (`Proposto`) precisar mudar, a forma é **emenda datada** a
-ela — heading **sem** wikilink e `amended_at` no frontmatter, no mesmo commit.
+A [[ADR-354]] é `Decidido` desde o merge da [[A40.l2]]. Se a tupla da chave de
+**artefato** (não a de transação) exigir mudança de decisão, a forma é **emenda
+datada** — heading **sem** wikilink e `amended_at` no frontmatter, no mesmo commit.
+
+**LC04 (auditoria 2026-08-14).** As âncoras de 2026-08-04 (`e2_llm_extract.py:94`,
+`e3_serialization.py:99,:137`, `document.py:186`) **não resolvem**: o arquivo do
+contrato LLM mudou de path e o default de `account_type` em
+`e3_serialization.py:137` agora é `"extrato"`, não `"desconhecido"`. O KR-C
+ainda pede sentinela indecidível = 0; a abertura **re-mede** o mecanismo antes
+de implementar. Não fechar LC04 nesta auditoria.
 
 ## Critério de aceite
 

@@ -12,6 +12,7 @@ adrs:
 depends_on:
   - "[[A40.l15]]"
   - "[[A40.l11]]"
+  - "[[A40.l44]]"
 tags:
   - type/lane
   - sprint/a42
@@ -26,13 +27,26 @@ tags:
 > [[PIPELINE-REVIEWS-active]] §r4 — RV4-04, RV4-05 (Alto, par de mesmo fix), RV4-26,
 > RV4-28, RV4-46, RV4-55.
 
-> **Depende de [[A40.l15]]** (dona do enricher de fluxo — mesmo arquivo) **e de
-> [[A40.l11]]** (dona da resolução do vocabulário de confiança e do único consumidor do
-> campo de confiança do view-model). A dependência da l11 foi acrescentada em 2026-08-04
-> por objeção do `financial-planner`: a **declaração ao usuário** desta lane usa aquele
-> campo, e ele hoje é a única chave top-level sem leitor. Ordem: a l11 cria o consumidor →
-> esta lane acrescenta a segunda entrada. Se a l11 não vier antes, esta lane **emite a
-> banda no payload e não tenta renderizar**. **Na promoção, re-ler a disposição das duas.**
+> **Depende de [[A40.l15]]** (dona do enricher de fluxo — mesmo arquivo), de
+> [[A40.l11]] (dona da resolução do vocabulário de confiança e do único consumidor do
+> campo de confiança do view-model) **e de [[A40.l44]]** (auditoria 2026-08-14:
+> colisão no mesmo `fluxo_caixa_enricher.py` + dona da emenda D3 de 2026-08-11).
+> A dependência da l11 foi acrescentada em 2026-08-04 por objeção do
+> `financial-planner`: a **declaração ao usuário** desta lane usa aquele campo, e
+> ele hoje é a única chave top-level sem leitor. Ordem: a l11 cria o consumidor →
+> esta lane acrescenta a segunda entrada. Se a l11 não vier antes, esta lane
+> **emite a banda no payload e não tenta renderizar**. **Na promoção, re-ler a
+> disposição das três.**
+
+> **Demarcação com a [[A40.l44]] (2026-08-14).** A [[ADR-306]] §Emenda 2026-08-11
+> já redefiniu D3: mês documentado exige movimento, fechamento e
+> não-posterioridade à `data_corte`. A l44 PR1 corta **futuro** via
+> `split_provisionado` antes de `_compute_janela_12m`. O item 2 desta lane
+> (teto na data de análise / meses não decorridos) está **absorvido** — não
+> reabrir. O corte do **mês em curso** está deferido pela própria l44, dono
+> `senior-cto`, lane própria depois dela — **não é escopo daqui**. O que
+> sobra: zero por falha de extração (PC11), união receita+despesa com
+> zero-fill (RV4-05), piso de publicação, fonte única de categoria.
 
 > **Atenção — esta lane invalida uma premissa de lane já shipada.** A [[A40.l3]]
 > tratou *qual* janela cada número lê e o *rótulo* impresso; **não** a validade da
@@ -53,8 +67,10 @@ resultado composto é que o denominador é maior do que os meses realmente obser
    forma**: é o pior dos três estados possíveis, **ausente sem aviso, fantasiado de
    observação**. Escalar é o comportamento correto no E2, mas escalação **não é segura
    quando não há LLM para atender**.
-2. **A janela não tem teto na data de análise:** fatia os últimos doze e divide pelo
-   tamanho, sobre série sem teto ⇒ slots de meses **não decorridos** entram no divisor.
+2. ~~**A janela não tem teto na data de análise**~~ — **absorvido** pela
+   [[A40.l44]] PR1 + [[ADR-306]] §Emenda 2026-08-11. A série que chega a
+   `_compute_janela_12m` já passou por `split_provisionado(data_corte)`. Não
+   reimplementar.
 3. **Universo de meses é a união das pernas de receita e despesa com preenchimento de
    zero** ⇒ mês documentado só numa perna entra no divisor da outra como zero. Causa
    independente da anterior, mesmo fix.
@@ -79,8 +95,9 @@ terceira base não localizada, e aí vira item próprio.
    documentado.** Reflete no número de meses da janela; a visão por conta imprime
    "não lido", **nunca zero monetário**. É decisão de **agregação**, não de UI — e é o
    ponto que o §r2 classificou como bloqueante para o tier gratuito.
-2. **Teto na data de análise** e **universo de meses observados**, não união com
-   preenchimento de zero. Semântica única de lacuna.
+2. **Universo de meses observados**, não união com preenchimento de zero.
+   Semântica única de lacuna. O teto na data de análise **já é da [[A40.l44]]**
+   — esta lane não o reabre.
 3. **Fonte única de categoria** para as quatro listas. **Cuidado com erro de segunda
    ordem:** o fix ingênuo (unificar na lista mais permissiva) muda o percentual
    publicado — declarar o sinal do delta.
@@ -178,7 +195,9 @@ tabela de bandas na referência de fórmulas.
 - Nenhum KPI de janela de doze meses inclui período cujo zero veio de falha de
   extração; o número de meses da janela reflete a exclusão.
 - Visão por conta imprime "não lido" para esses períodos; **nenhum zero monetário**.
-- Teste com mês não decorrido na série ⇒ não entra no divisor.
+- Teste com mês não decorrido na série ⇒ não entra no divisor. **Herdado da
+  [[A40.l44]]** — esta lane falha o PR se o corte de futuro tiver regressado;
+  não é ela quem o implementa.
 - Teste com mês documentado só numa perna ⇒ semântica única, declarada.
 - Grep prova fonte única de categoria; o percentual publicado que **inverte** sob a
   lista declarada tem o delta declarado no golden.

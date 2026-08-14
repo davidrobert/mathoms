@@ -27,6 +27,12 @@ tags:
 > agregado próprio, com forma de ADR, bloqueio e reversibilidade distintos da metade de
 > política de store.
 
+> **Âncora 2026-08-14.** O sync mora em
+> `backend/app/services/pipeline/document_pipeline_sync.py` (não mais
+> `services/documents/`). `_E2_DB_STAGES` segue hardcoded em 3
+> (`extract_statements`, `extract_invoices`, `extract_with_llm`); o predicado
+> ainda não inspeciona payload.
+
 > **Depende de [[A42.l2]] — e a dependência é a razão de ser do split.** A l2 cria um
 > **terceiro estado** de verificabilidade: extraiu, não escalou, e **não** está
 > verificado. Se esta lane escrever o predicado contra o mundo de **dois** estados
