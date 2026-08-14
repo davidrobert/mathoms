@@ -69,15 +69,33 @@ def _walk(node: Any, prefix: str, out: Folhas) -> None:
         out[prefix].add(_tipo(node))
 
 
+def _coleta_gaps_schema(schema: dict, path: str, objetos: set[str], arrays: set[str]) -> None:
+    if (
+        path
+        and schema.get("type") == "object"
+        and not (
+            schema.get("properties")
+            or schema.get("patternProperties")
+            or isinstance(schema.get("additionalProperties"), dict)
+        )
+    ):
+        objetos.add(path)
+    if path and schema.get("type") == "array" and not schema.get("items"):
+        arrays.add(path)
+    for name, child in (schema.get("properties") or {}).items():
+        _coleta_gaps_schema(child, f"{path}.{name}" if path else name, objetos, arrays)
+    items = schema.get("items")
+    if isinstance(items, dict):
+        _coleta_gaps_schema(items, f"{path}[]", objetos, arrays)
+    for child in schema.get("oneOf") or []:
+        _coleta_gaps_schema(child, path, objetos, arrays)
+
+
 def _blocos_opacos(schema: dict) -> tuple[set[str], set[str]]:
-    """(objetos sem `properties`/`patternProperties`, arrays sem `items`)."""
-    props = schema.get("properties", {})
-    objetos = {
-        k
-        for k, v in props.items()
-        if v.get("type") == "object" and not (v.get("properties") or v.get("patternProperties"))
-    }
-    arrays = {k for k, v in props.items() if v.get("type") == "array" and not v.get("items")}
+    """Gaps de shape em qualquer profundidade, expressos como dot-path."""
+    objetos: set[str] = set()
+    arrays: set[str] = set()
+    _coleta_gaps_schema(schema, "", objetos, arrays)
     return objetos, arrays
 
 
@@ -113,19 +131,36 @@ def _cenarios() -> list[tuple[str, dict]]:
     return [(nome, p) for nome, p in saida if p]
 
 
-def _agrega(payloads: list[tuple[str, dict]]) -> tuple[Folhas, dict[str, int]]:
+def _path_exists(payload: dict, path: str) -> bool:
+    current: object = payload
+    for part in path.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return False
+        current = current[part]
+    return True
+
+
+def _agrega(
+    payloads: list[tuple[str, dict]], tracked_paths: set[str]
+) -> tuple[Folhas, dict[str, int]]:
     folhas: Folhas = defaultdict(set)
     presenca: dict[str, int] = defaultdict(int)
     for _nome, p in payloads:
         _walk(p, "", folhas)
         for topo in p:
             presenca[topo] += 1
+        for path in tracked_paths:
+            presenca[path] += int(_path_exists(p, path))
     return folhas, presenca
 
 
 def _linha_bloco(bloco: str, eh_array: bool, folhas: Folhas, presenca: dict, total: int) -> str:
     sufixo = "[]" if eh_array else ""
-    chaves = [k for k in folhas if k == bloco + sufixo or k.startswith(bloco + ".")]
+    chaves = [
+        k
+        for k in folhas
+        if k == bloco + sufixo or k.startswith(bloco + ".") or k.startswith(bloco + "[]")
+    ]
     tipos = sorted({t for k in chaves for t in folhas[k] if t})
     rotulo = f"`{bloco}`{' (array)' if eh_array else ''}"
     return (
@@ -149,7 +184,7 @@ def _secao_ambiguas(folhas: Folhas) -> list[str]:
 
 def _relatorio(payloads: list[tuple[str, dict]], schema: dict) -> str:
     objetos, arrays = _blocos_opacos(schema)
-    folhas, presenca = _agrega(payloads)
+    folhas, presenca = _agrega(payloads, objetos | arrays)
     total = len(payloads)
     linhas = [
         "# Inventário de tipos do E5 — PRÉ-normalização (A40.l5 PR0)",

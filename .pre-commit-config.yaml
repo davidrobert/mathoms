@@ -451,6 +451,13 @@ repos:
         pass_filenames: false
         files: '^(config/report_layout\.yaml|config/schemas/report_layout\.schema\.json|frontend/src/generated/report-layout\.ts|backend/app/generated/report_layout\.py)$'
 
+      - id: report-view-model-contract
+        name: "Contrato E5 → frontend em sync e sem opacidade consumida (A40.l5)"
+        entry: python3 dev/check_view_model_contract.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: chart-conclusion-parity
         # audit-vault r3 (F12) + r4 (F13) · ADR-117/ADR-122 — YAML declarado
         # source-of-truth mas o consumidor real é conclusionUtils.ts (BUILDERS

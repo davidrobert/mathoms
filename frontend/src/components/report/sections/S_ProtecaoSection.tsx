@@ -7,13 +7,14 @@ import { ProtecaoApolices } from "./SProtecao/ProtecaoApolices";
 import { ProtecaoGapQualitativo } from "./SProtecao/ProtecaoGapQualitativo";
 import { ProtecaoGapVeiculos } from "./SProtecao/ProtecaoGapVeiculos";
 import { ProtecaoKpiHero } from "./SProtecao/ProtecaoKpiHero";
+import { readProtecaoPatrimonial } from "../utils/reportContractGuards";
 
 /** S_PROTECAO — 4º pilar AUVP (ADR-240). Renderiza apenas quando workspace
  *  tem apólices ingeridas (`protecao_patrimonial` presente). Subgrupos:
  *  Bens (auto V1) + Pessoas-V2 placeholder + PJ-V2 placeholder. */
 export function S_ProtecaoSection({ data }: { data: ReportAnalysisData }) {
-  const protecao = data.protecao_patrimonial ?? null;
-  if (protecao === null) {
+  const protecao = readProtecaoPatrimonial(data.protecao_patrimonial);
+  if (!protecao) {
     return null;
   }
   return (

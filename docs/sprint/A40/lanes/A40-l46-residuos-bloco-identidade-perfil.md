@@ -47,6 +47,21 @@ no §Notas do #1382).
 Risco de deixar como está: o próximo PR com label `print` herda uma falha que
 não é dele, e o diagnóstico se perde no contexto errado.
 
+> **Correção 2026-08-14 — a previsão acima foi medida e é falsa.** O risco
+> descrito realizou-se: o `frontend-print-visual` está vermelho em `main` desde
+> antes do #1453, e o PR que o herdou não era o causador. A análise de que "a
+> página 1 do PDF não muda" no #1400 estava errada — foi o #1400 que a mudou.
+> A/B com `pdftotext` (mesma máquina, mesmo fixture, único delta = o hunk de 13
+> linhas): com o `break-before: avoid`, a página 1 fica em capa + Premissas (393
+> chars) e os 6 KPIs abrem a página 2; sem ele, a página 1 leva os KPIs (1076
+> chars). `avoid` é keep-with-**previous** — em vez de puxar S1 para cima, ele
+> arrasta o hero para baixo, produzindo justamente a "página nova meio vazia"
+> que a regra dizia evitar. Revertido em
+> [PR #1458](https://github.com/davidrobert/mathoms/pull/1458), junto com a
+> troca do gate de computed style por gate de efeito sobre a página 1 do PDF.
+> O item 1 desta lane (baseline de print não provada) **continua aberto**: o que
+> o #1458 fecha é a regressão, não a política de label-gate.
+
 ### 2. `card-variant-feature` perdeu o DNA do mockup no build de tokens
 
 No exemplo canônico ([[ADR-117]]), `.card-feature` é gradiente + `border-left:

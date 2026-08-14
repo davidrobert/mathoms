@@ -58,19 +58,24 @@
     margin-bottom: 8pt;
   }
 
+  /* Nenhuma seção declara `break-before` — e isso é a decisão, não a omissão.
+   *
+   * `break-before: avoid` na primeira seção é keep-with-PREVIOUS: quando S1 não
+   * cabe na sobra da página 1 (nunca cabe — é mais alta que o resto do papel
+   * depois da capa), o Chromium desiste da quebra e recua para a anterior,
+   * ARRASTANDO o hero de KPIs para a página 2 junto de S1. Medido em 2026-08-14
+   * por A/B com `pdftotext`: com o `avoid`, a página 1 fica em capa + Premissas
+   * (393 chars) e a 2 abre com KPIs+S1; sem ele, a página 1 leva os 6 KPIs
+   * (1076 chars). Mesmo total de páginas.
+   *
+   * Ou seja: a regra produzia exatamente a "página nova meio vazia" que ela
+   * dizia evitar (F9 · F3.2, restaurada no #1400 e revertida aqui). O fluxo
+   * natural já satisfaz a intenção — nenhuma página abre meio vazia sem ela.
+   * O gate é de EFEITO (print-text.@critical.spec.ts §"hero de KPIs divide a
+   * página 1 com a capa"); a versão anterior aferia a declaração computada e
+   * ficou verde os 2 dias em que a página 1 esteve 55% em branco. */
   [data-report-section] {
-    break-before: avoid;
     break-inside: auto;
-  }
-  /* Só a PRIMEIRA seção fica com o `avoid` acima — as demais retomam a
-   * quebra livre. O par substitui `[data-report-section]:first-of-type`,
-   * que não casava NADA: `:first-of-type` conta por tag, e o primeiro
-   * <section> irmão do <article> é o bloco de Premissas, que não carrega
-   * o atributo. O seletor de irmão expressa "primeiro COM o atributo" e
-   * sobrevive a blocos sem o atributo inseridos antes da primeira seção
-   * (gate: print-text.@critical.spec.ts §break-before). */
-  [data-report-section] ~ [data-report-section] {
-    break-before: auto;
   }
 
   /* Unidades atômicas de altura limitada — aqui o `avoid` é satisfazível. */

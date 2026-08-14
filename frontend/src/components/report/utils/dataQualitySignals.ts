@@ -4,6 +4,10 @@ import type {
   RealEstateData,
   RealEstateExcludedProperty,
 } from "@/types/report-analysis";
+import {
+  readExcludedProperties,
+  readPremissasEconomicas,
+} from "./reportContractGuards";
 
 /** A28.l9 — derivação pura dos sinais de qualidade de dados do relatório.
  *
@@ -155,8 +159,12 @@ export function computeDataQualitySignals(
     naoIdentificado:
       share && share.pct > NAO_IDENTIFICADO_THRESHOLD_PCT ? share : null,
     needsReviewDocs,
-    premissas: computePremissasDegrade(data.premissas_economicas),
-    imoveisPendentes: pendingClassificationProperties(data.real_estate).length,
+    premissas: computePremissasDegrade(
+      readPremissasEconomicas(data.premissas_economicas),
+    ),
+    imoveisPendentes: readExcludedProperties(data.real_estate).filter(
+      (property) => property.classification === "desconhecido",
+    ).length,
     parecerRetidos,
   };
   return { ...parcial, count: countActiveSignals(parcial) };

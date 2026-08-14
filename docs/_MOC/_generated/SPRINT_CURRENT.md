@@ -18,7 +18,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l49]] — Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar · priority P1 · área backend/llm · branch `a40-l49-parecer-rotulo-e-guardrails`
 - [[A40.l50]] — Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado · priority P1 · área report/pipeline/financial-planning · branch `a40-l50-abertos-exposicao-cambial`
 - [[A40.l51]] — Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando · priority P1 · área frontend/pipeline/financial-planning · branch `a40-l51-followups-orfaos`
-- [[A40.l53]] — Gate visual de seções está cego: S2 varia 5–6% entre tentativas do mesmo commit e `main` puro reprova em 6 baselines · priority P1 · área frontend/ci · branch `a40-l53-gate-visual-secoes-cego`
 - [[A40.l54]] — `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) · priority P2 · área frontend/report · branch `a40-l54-hidden-md-block-no-papel`
 - [[A40.l55]] — Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 · priority P3 · área frontend/report · branch `a40-l55-medida-de-linha-no-papel`
 - [[A40.l56]] — A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa · priority P1 · área pipeline/db · branch `a40-l56-tabela-fiscal-de-producao`
@@ -37,6 +36,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l44]] — Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação · priority P0 · área frontend/pipeline/backend · branch `a40-l44-janela-interativa-pre-computada`
 - [[A40.l47]] — Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva · priority P1 · área pipeline/frontend · branch `a40-l47-semantica-de-taxa-faixa-e-base`
 - [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · área frontend/dx · branch `a40-l5-contrato-view-model-gate`
+- [[A40.l53]] — Gate visual de seções está cego: S2 varia 5–6% entre tentativas do mesmo commit e `main` puro reprova em 6 baselines · priority P1 · área frontend/ci · branch `a40-l53-gate-visual-secoes-cego`
 
 ## Blocked (2)
 

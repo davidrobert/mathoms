@@ -6,6 +6,7 @@ import { SectionSummary } from "../SectionSummary";
 import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
 import type { ReportAnalysisData } from "@/lib/api";
+import { readPremissasEconomicas } from "../utils/reportContractGuards";
 import { formatDate } from "@/lib/format";
 import {
   formatGoalVigenciaDate,
@@ -190,7 +191,9 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
       <SectionSummary data={data} sectionId="APP_B" />
 
       <MetasVigentesCard snapshot={snapshot} />
-      <PremissasEconomicasCard premissas={data.premissas_economicas ?? null} />
+      <PremissasEconomicasCard
+        premissas={readPremissasEconomicas(data.premissas_economicas) ?? null}
+      />
 
       <ReportCard variant="neutral" title="Pilares Metodológicos" size="full">
         <div className="space-y-4 text-sm text-[var(--surface-foreground)]">

@@ -144,39 +144,45 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
     expect(texto).not.toContain("Limite PGBL (12%)");
   });
 
-  test("a primeira seção do relatório cola no conteúdo anterior (break-before)", async ({ page }) => {
+  test("o hero de KPIs divide a página 1 com a capa", async ({ page }) => {
+    exigirPdftotext();
     await setupPrintReport(page);
-    await page.emulateMedia({ media: "print" });
 
-    const secoes = await page.evaluate(() =>
-      Array.from(
-        document.querySelectorAll<HTMLElement>("[data-report-section]"),
-      ).map((el) => ({
-        id: el.id || el.tagName,
-        breakBefore: getComputedStyle(el).breakBefore,
-      })),
+    // Os rótulos vêm do DOM, não de um literal de 6 nomes: KPI novo entra no
+    // gate sozinho, e o que se mede é o invariante — quem está no hero está na
+    // página 1 — em vez de uma amostra que envelhece.
+    const rotulos = await page.evaluate(() => {
+      const grid = document.querySelector("#sumario-executivo > div");
+      if (!grid) return [];
+      return Array.from(grid.children)
+        .map((card) => (card.firstElementChild?.textContent ?? "").trim())
+        .filter((t) => t.length > 0);
+    });
+    expect(
+      rotulos.length,
+      "hero de KPIs não encontrado em #sumario-executivo — fixture ou markup mudou",
+    ).toBeGreaterThanOrEqual(6);
+
+    const bruto = pdfToText(await generateReportPdf(page));
+    const pagina1 = normalizarTexto(bruto.split("\f")[0] ?? "").toUpperCase();
+    // `textTransform: uppercase` do KpiCard chega ao PDF como glifo maiúsculo.
+    const foraDaPagina1 = rotulos.filter(
+      (r) => !pagina1.includes(normalizarTexto(r).toUpperCase()),
     );
-    await page.emulateMedia({ media: null });
 
-    // Regressão do seletor morto (achado IA 2026-08-11): a regra usava
-    // `:first-of-type`, que conta por TAG — o bloco de Premissas (primeiro
-    // <section> irmão, sem o atributo) fazia o seletor não casar NADA, e a
-    // primeira seção perdeu o `avoid` sem nenhum gate acusar.
+    // Este gate mede o EFEITO porque o anterior media a DECLARAÇÃO. Ele aferia
+    // `getComputedStyle(...).breakBefore === "avoid"` na primeira seção e ficou
+    // verde enquanto a página 1 do PDF era capa + uma linha, 55% em branco: o
+    // `avoid` é keep-with-previous e empurrava o hero inteiro para a página 2
+    // (medido 2026-08-14; ver report-print.css §break-before). Declaração certa,
+    // efeito invertido — a falha que só a camada de texto do PDF enxerga.
     expect(
-      secoes.length,
-      "nenhuma [data-report-section] no DOM de print — seletor ou fixture apodreceu",
-    ).toBeGreaterThan(5);
-    expect(
-      secoes[0].breakBefore,
-      `a primeira seção (#${secoes[0].id}) deve declarar break-before: avoid ` +
-        `(cola no hero/premissas em vez de abrir página nova meio vazia)`,
-    ).toBe("avoid");
-    for (const s of secoes.slice(1)) {
-      expect(
-        s.breakBefore,
-        `#${s.id} não deve herdar o avoid reservado à primeira seção`,
-      ).toBe("auto");
-    }
+      foraDaPagina1,
+      `KPIs do hero que não chegaram à página 1 do PDF: ${foraDaPagina1.join(" | ")}. ` +
+        `A página 1 é a capa + o hero; se um deles cai para a página 2, o leitor ` +
+        `abre o relatório numa página majoritariamente vazia. Causa recorrente é ` +
+        `regra de quebra em report-print.css (${contarPaginas(bruto)} páginas geradas).`,
+    ).toEqual([]);
   });
 
   test("nenhum bloco proíbe quebra sendo mais alto que a página", async ({ page }) => {
