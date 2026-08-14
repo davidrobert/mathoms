@@ -402,6 +402,10 @@ export type E5AnalysisArtifact = {
     "pct_presente"?: number;
     "pct_futuro"?: number;
     "classificacao"?: string;
+    "classificacao_faixas"?: Array<{
+      "minimo_futuro_pct": number;
+      "label": string;
+    }>;
     "presente"?: string;
     "futuro"?: string;
     "janela"?: string;
