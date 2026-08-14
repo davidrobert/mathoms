@@ -370,7 +370,7 @@
 | ADR-372 | adr | Decidido |  | Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma | `adr/372-par-on-tint-para-texto-sobre-tint-da-propria-cor.md` |
 | ADR-373 | adr | Decidido |  | Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade | `adr/373-prazo-if-projeta-capacidade-declarada.md` |
 | ADR-374 | adr | Decidido |  | Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado | `adr/374-sigma-do-cone-if-agrega-premissa-por-alvo-declarado.md` |
-| ADR-375 | adr | Proposto |  | Limite PGBL tem um produtor, e a prescrição exige evidência declarada | `adr/375-limite-pgbl-tem-um-produtor-e-a-prescricao-exige-evidencia-declarada.md` |
+| ADR-375 | adr | Decidido |  | Limite PGBL tem um produtor, e a prescrição exige evidência declarada | `adr/375-limite-pgbl-tem-um-produtor-e-a-prescricao-exige-evidencia-declarada.md` |
 | ADR-376 | adr | Decidido |  | Caixa corrente vem do último extrato reconciliado — sem denylist de instituição | `adr/376-caixa-corrente-vem-do-extrato-sem-denylist-de-instituicao.md` |
 | ADR-377 | adr | Proposto |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
 | ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |

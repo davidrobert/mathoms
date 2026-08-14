@@ -3,6 +3,7 @@
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { CascataFiscalCard } from "../cards/CascataFiscalCard";
+import { useIrpfKpis } from "../hooks/useIrpfKpis";
 import type { ReportAnalysisData, TributarioBundle } from "@/lib/api";
 
 /** F9 · F2.F · ADR-117 — Seção S8 (Carga Tributária PJ).
@@ -14,6 +15,7 @@ import type { ReportAnalysisData, TributarioBundle } from "@/lib/api";
  */
 export function S8PrevidenciaSection({ data }: { data: ReportAnalysisData }) {
   const tributario = data.tributario as TributarioBundle | undefined;
+  const irpfKpis = useIrpfKpis(data);
 
   return (
     <ReportSection id="S8">
@@ -21,7 +23,7 @@ export function S8PrevidenciaSection({ data }: { data: ReportAnalysisData }) {
           o bloco separado (com guarda `!narrativas?.["S8"]`) foi deletado —
           com render site único, o duplo-parágrafo é impossível. */}
       <SectionSummary data={data} sectionId="S8" />
-      <CascataFiscalCard tributario={tributario} />
+      <CascataFiscalCard tributario={tributario} hasIrpf={irpfKpis !== null} />
     </ReportSection>
   );
 }

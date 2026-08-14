@@ -14,6 +14,8 @@
 import { test, expect } from "@playwright/test";
 import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
+const PGBL_TETO_SENTINELA = /R\$\s*21\.987,65/;
+
 test.describe("Cascata Fiscal card @critical", () => {
   test("seção S8 renderiza cascata com camadas, PGBL e triggers", async ({
     page,
@@ -41,9 +43,12 @@ test.describe("Cascata Fiscal card @critical", () => {
     // PGBL block
     await expect(s8).toContainText("Base para dedução PGBL");
     await expect(s8).toContainText("Renda tributável PF/ano");
-    await expect(s8).toContainText("Limite PGBL (12%)");
+    await expect(s8).not.toContainText("Limite PGBL (12%)");
     await expect(s8).toContainText(
-      /Lucros distribuídos\s+não entram na base PGBL/,
+      /Lucros distribuídos\s+não compõem esta base/,
+    );
+    await expect(s8).toContainText(
+      /Ver teto e capacidade dedutível em Otimização Tributária/,
     );
 
     // Triggers (T3 + T1 do fixture)
@@ -54,6 +59,9 @@ test.describe("Cascata Fiscal card @critical", () => {
     await expect(s8).toContainText(
       /Trade-off observado: pró-labore × lucros distribuídos/,
     );
+    await expect(s8).not.toContainText(/R\$\s*4\.320,00/);
+    await expect(s8).not.toContainText(/R\$\s*7\.200,00/);
+    await expect(s8).not.toContainText(/R\$\s*1\.980,00/);
 
     // Protection sentence + disclaimer
     await expect(s8).toContainText(/Não é recomendação/);
@@ -63,5 +71,18 @@ test.describe("Cascata Fiscal card @critical", () => {
 
     // Anti-folclore — string proibida (ADR-236 N3)
     await expect(s8).not.toContainText(/Lucro presumido \(32%\)/);
+  });
+
+  test("Card B é o único publicador do teto PGBL", async ({ page }) => {
+    const { workspaceId, reportId } = await mockReportPage(page);
+    await page.goto("/reports/" + reportId + "?workspace=" + workspaceId);
+    await waitForReportReady(page);
+
+    const cardB = page.locator("section#S_IRPF_OTIMIZACAO[data-report-section]");
+    await expect(cardB).toContainText("Capacidade PGBL");
+    await expect(cardB).toContainText(PGBL_TETO_SENTINELA);
+    await expect(page.getByText(PGBL_TETO_SENTINELA, { exact: true })).toHaveCount(1);
+    await expect(page.locator("section#S7")).not.toContainText(PGBL_TETO_SENTINELA);
+    await expect(page.locator("section#S8")).not.toContainText(PGBL_TETO_SENTINELA);
   });
 });

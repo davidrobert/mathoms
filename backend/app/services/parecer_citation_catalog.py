@@ -49,8 +49,9 @@ _MONEY_KEY_TOKENS = (
 # ``nivel_6_meses`` é nível de reserva em R$.)
 _NON_MONEY_MARKERS = ("pct", "percent", "count", "qtd", "n_imoveis")
 
-# Raízes top-level cujo conteúdo é score/ratio/comportamento — nunca R$ citável.
-_NON_MONEY_ROOTS = frozenset({"score", "ratios", "equilibrio_cerbasi"})
+# Raízes top-level fora do catálogo monetário. ``previdencia_pgbl`` é um
+# contrato legado: o Card B em ``irpf_kpis`` é o dono único do teto/capacidade.
+_NON_CITABLE_ROOTS = frozenset({"score", "ratios", "equilibrio_cerbasi", "previdencia_pgbl"})
 
 # Séries do cone Monte Carlo — NÃO citáveis por decisão (A40.l25), não por
 # acidente de predicado. São estimativas com dispersão amostral de ~1,2% a
@@ -71,7 +72,6 @@ _PRIORITY_ROOTS = (
     "patrimonio",
     "fluxo_caixa",
     "investimentos",
-    "previdencia_pgbl",
     "irpf_kpis",
 )
 
@@ -152,7 +152,7 @@ _MAX_LIST_ITEMS = 5
 
 def _leaf_paths_for(key: str, value: Any, prefix: str) -> Iterator[str]:
     """Paths citáveis de um par chave/valor (recursa em dicts E listas — A26.l7)."""
-    if not key.isidentifier() or (prefix == "$" and key in _NON_MONEY_ROOTS):
+    if not key.isidentifier() or (prefix == "$" and key in _NON_CITABLE_ROOTS):
         return
     if key in _NAO_CITAVEL_ESTIMATIVA:
         return

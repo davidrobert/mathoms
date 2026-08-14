@@ -47,6 +47,14 @@ def test_all_roots_in_whitelist(whitelist):
         assert entry.root in whitelist, f"raiz {entry.root} fora da whitelist"
 
 
+def test_previdencia_pgbl_legado_nao_e_citavel(whitelist):
+    entries = build_citation_catalog(
+        make_workspace_e5(), section_whitelist=whitelist, max_entries=60
+    )
+    assert all(entry.root != "previdencia_pgbl" for entry in entries)
+    assert any(entry.root == "irpf_kpis" for entry in entries)
+
+
 def test_priority_roots_rank_first(whitelist):
     entries = build_citation_catalog(make_workspace_e5(), section_whitelist=whitelist)
     roots_in_order = [e.root for e in entries]

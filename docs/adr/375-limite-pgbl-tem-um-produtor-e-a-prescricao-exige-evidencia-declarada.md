@@ -2,10 +2,10 @@
 id: ADR-375
 type: adr
 title: "Limite PGBL tem um produtor, e a prescrição exige evidência declarada"
-status: Proposto
+status: Decidido
 phase: A40
 date: "2026-08-11"
-amended_at: ["2026-08-11", "2026-08-13"]
+amended_at: ["2026-08-11", "2026-08-13", "2026-08-14"]
 relates_to:
   - "[[ADR-236]]"
   - "[[ADR-135]]"
@@ -19,13 +19,22 @@ superseded_by: []
 aliases: ["ADR 375", "base do limite PGBL", "polaridade da prescrição PGBL"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/frontend
   - area/financial-planning
 ---
 
 # ADR-375 — Limite PGBL tem um produtor, e a prescrição exige evidência declarada
+
+> ### Emenda 2026-08-14 — requisito previdenciário deixa de ser absoluto
+>
+> A §D4 cond. 3 dizia “contribuição a regime oficial presente” como condição
+> universal. A orientação da Receita distingue a regra geral RGPS/RPPS, a
+> dispensa de aposentados/pensionistas e a condição adicional do dependente
+> maior de 16 anos. A condição passa a ser “requisitos previdenciários
+> aplicáveis satisfeitos”; quando o dado falta, a copy declara a condição sem
+> fabricar inelegibilidade.
 
 > ### ⚠️ Emenda 2026-08-13 — o inventário era de 2 sites e são 6; o D1 troca de dono; o D2 vira nota
 >
@@ -162,7 +171,7 @@ uma quantidade cujo sinal é indeterminado — depende de
 
 ### A polaridade da prescrição está invertida, em três lugares
 
-`getPgblCardStrategy` ([pgbl-card-strategy.ts:103](../../frontend/src/lib/irpf/pgbl-card-strategy.ts))
+`getPgblCardStrategy` (`pgbl-card-strategy.ts:103`, removido por esta decisão)
 devolve `DEFAULT_STRATEGY` — o modo que **prescreve** aporte + economia — quando
 **não há** IRPF; com IRPF autoritativo degrada para `informative-*`, que
 **suprime**. `PrevidenciaAnalyzer.analyze` ([previdencia_analyzer.py:227](../../pipeline/domain/services/previdencia_analyzer.py))
@@ -240,8 +249,11 @@ IR" a menos que as três sejam simultaneamente verdadeiras:
 1. `tipo_declaracao_ir == "completa"` **conhecido**, não defaultado;
 2. `IR(base) − IR(base − aporte) > 0` no ano, com as faixas vindo de
    `fiscal_parameters` — **nunca literal em código**;
-3. contribuição a regime oficial (INSS/RPPS) presente — precondição legal dos
-   12%. Quando desconhecida, a copy declara a precondição.
+3. requisitos previdenciários aplicáveis satisfeitos — em regra, contribuição
+   ao RGPS/RPPS; aposentados e pensionistas desses regimes são dispensados do
+   recolhimento, e PGBL de dependente maior de 16 anos exige contribuição também
+   em nome do dependente. Quando desconhecidos, a copy declara a condição sem
+   inventar inelegibilidade ([Receita Federal](https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/preenchimento/manual-mir/pagamentos-ou-doacoes/despesas-dedutiveis#previdencia)).
 
 Abaixo do piso a saída **não é número menor: é "não se aplica" com o motivo**. E
 a dedução nunca sai em `--semantic-gain` — é **diferimento**, não ganho: o

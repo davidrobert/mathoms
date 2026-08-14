@@ -5,6 +5,7 @@ title: "Inventário estrutural do relatório: a fixture canônica é superfície
 status: Decidido
 phase: "A40"
 date: "2026-08-08"
+amended_at: ["2026-08-14"]
 relates_to:
   - "[[ADR-141]]"
   - "[[ADR-167]]"
@@ -17,6 +18,15 @@ tags:
   - area/testing
   - phase/a40
 ---
+
+> ### Emenda 2026-08-14 — deferimento segue no plano, fora da A40
+>
+> A [[A40.l34]] materializa a remoção intencional de um card e a linha apagada
+> à mão, mas não absorve o trabalho transversal de identidade estável. O
+> follow-up P2 fica no [[PLAN-report-trust]], para o primeiro sprint posterior
+> à drenagem da A40 que não concorra em `frontend/src/components/report/**`.
+> O escopo permanece unido: `cardId`, `data-card-id`, enforcement de presença e
+> unicidade, e inventário migrado de título para ID.
 
 ## Contexto
 
@@ -99,14 +109,14 @@ inventar ~10 mapeamentos ambíguos.
 
 ### Deferimento — tornar o layout load-bearing (2026-08-08)
 
-**Dono:** próxima lane que tocar a estrutura de cards do relatório.
+**Dono:** próximo sprint do [[PLAN-report-trust]] após a drenagem da A40.
 **Escopo:** `cardId?: string` em `ReportCard` emitindo `data-card-id`, aplicado
 aos `ReportCard` de topo dos cards declarados (~36 sítios, não os 76 call sites
 — o resto são variantes de loading/empty e sub-cards), com obrigatoriedade
 enforçada por registry ou lint, nunca por convenção. Feito isso, o inventário
 troca a chave de título por id e o acoplamento com copy de produto some.
-**Condição de retomada:** quando as lanes concorrentes em
-`frontend/src/components/report/**` drenarem — hoje um diff cross-cutting em ~30
-arquivos é ímã de conflito.
+**Condição de retomada:** quando não houver lane ativa da A40 tocando
+`frontend/src/components/report/**` — hoje um diff cross-cutting em ~30 arquivos
+é ímã de conflito.
 **Por que não agora:** o valor marginal sobre o gate v1 é a robustez a mudança
 de copy; o custo é o conflito. Não justifica bloquear o fechamento da classe.

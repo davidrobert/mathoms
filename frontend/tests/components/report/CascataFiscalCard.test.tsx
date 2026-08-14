@@ -1,8 +1,7 @@
 /**
  * Sprint A16 L2 P5 (ADR-236 §D5) — Unit tests do `<CascataFiscalCard/>`.
  *
- * Pattern espelha `PrevidenciaPgblCard.test.tsx` — asserções pontuais
- * sobre estado renderizado, copy literal e a11y do callout.
+ * Asserções pontuais sobre estado renderizado, copy literal e a11y do callout.
  */
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -106,14 +105,23 @@ describe("<CascataFiscalCard /> · Simples Anexo III", () => {
     expect(screen.queryByText(/− INSS patronal/i)).not.toBeInTheDocument();
   });
 
-  it("renderiza bloco PGBL com valores e disclaimer sobre lucros isentos", () => {
-    render(<CascataFiscalCard tributario={buildBundle()} />);
+  it("renderiza a base PGBL sem republicar o teto do Card B", () => {
+    render(<CascataFiscalCard tributario={buildBundle()} hasIrpf />);
     expect(screen.getByText(/Base para dedução PGBL/i)).toBeInTheDocument();
     expect(screen.getByText(/Renda tributável PF\/ano/i)).toBeInTheDocument();
-    expect(screen.getByText(/Limite PGBL \(12%\)/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Limite PGBL \(12%\)/i)).toBeNull();
     expect(
-      screen.getByText(/Lucros distribuídos\s+não entram na base PGBL/i),
+      screen.getByText(/Lucros distribuídos\s+não compõem esta base/i),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Otimização Tributária/i }))
+      .toHaveAttribute("href", "#S_IRPF_OTIMIZACAO");
+  });
+
+  it("não cria âncora morta para Otimização Tributária sem IRPF", () => {
+    render(<CascataFiscalCard tributario={buildBundle()} />);
+    expect(screen.queryByRole("link", { name: /Otimização Tributária/i })).toBeNull();
+    expect(screen.getByText(/dependem de uma declaração de IRPF processada/i))
+      .toBeInTheDocument();
   });
 
   it("renderiza disclaimer fiduciário e protection sentence", () => {
@@ -260,7 +268,7 @@ describe("<CascataFiscalCard /> · Decision triggers", () => {
     };
   }
 
-  it("renderiza T1 com copy CRC 'Trade-off observado' (não 'Considere avaliar')", () => {
+  it("renderiza T1 sem aporte nem economia calculados pelo instrumento condenado", () => {
     const trigger = buildTrigger({
       code: "T1",
       severity: "considere",
@@ -278,9 +286,8 @@ describe("<CascataFiscalCard /> · Decision triggers", () => {
     expect(
       screen.getByText(/Trade-off observado: pró-labore × lucros distribuídos/i),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Trade-off favorável enquanto a alíquota marginal IR > 15%/i),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/R\$\s*7\.200/)).toBeNull();
+    expect(screen.queryByText(/R\$\s*1\.980/)).toBeNull();
     expect(
       screen.getByText(/no Simples a contribuição patronal está embutida no DAS/i),
     ).toBeInTheDocument();
@@ -308,7 +315,7 @@ describe("<CascataFiscalCard /> · Decision triggers", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza T3 com '10 anos de cada aporte' (não 'no fundo')", () => {
+  it("renderiza T3 sem republicar o limite PGBL", () => {
     const trigger = buildTrigger({
       code: "T3",
       severity: "oportunidade",
@@ -326,6 +333,8 @@ describe("<CascataFiscalCard /> · Decision triggers", () => {
     expect(
       screen.getByText(/tabela regressiva \(10% após 10 anos de cada aporte\)/i),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/Limite anual disponível/i)).toBeNull();
+    expect(screen.queryByText(/R\$\s*4\.320/)).toBeNull();
   });
 
   it("renderiza T4 com 'Cenário observado' (não 'Considere holding')", () => {

@@ -6,7 +6,6 @@ import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
 import { RecalibracaoMcNote } from "./RecalibracaoMcNote";
 import { Stat } from "./S7Stat";
-import { PrevidenciaPgblCard, type PrevidenciaPgblData } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { AcumuladoresBanner } from "../AcumuladoresBanner";
@@ -30,11 +29,8 @@ import {
 } from "../utils/dataQualitySignals";
 import { IFConeConeChart } from "../charts/IFConeConeChart";
 import { useIrpfKpis } from "../hooks/useIrpfKpis";
-import {
-  derivePrimaryYear,
-  getPgblCardStrategy,
-  isInformativeMode,
-} from "@/lib/irpf/pgbl-card-strategy";
+import { derivePrimaryYear } from "@/lib/irpf/irpf-period-match";
+import { PgblLocationNote } from "./S7PgblLocationNote";
 
 const PHASE_INDEPENDENCIA = 95;
 const PHASE_ACUMULACAO = 50;
@@ -57,14 +53,13 @@ export function S7IndependenciaSection({
 }: S7IndependenciaSectionProps) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
-  const previdencia = data.previdencia_pgbl as unknown as PrevidenciaPgblData | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
   const passiveIncome = data.passive_income;
   const monteCarloIF = data.if_monte_carlo;
   const irpfKpis = useIrpfKpis(data);
   const labels = (data.fluxo_caixa as { receita_despesa_mensal_detalhado?: { labels?: string[] } } | undefined)
     ?.receita_despesa_mensal_detalhado?.labels;
-  const pgblStrategy = getPgblCardStrategy(irpfKpis, derivePrimaryYear(labels));
+  const primaryYear = derivePrimaryYear(labels);
 
   return (
     <ReportSection id="S7">
@@ -111,13 +106,7 @@ export function S7IndependenciaSection({
         yieldAlvoPct={readYieldAlvoPct(data)}
       />
 
-      <div className={isInformativeMode(pgblStrategy.mode) ? "md:col-span-1" : "md:col-span-2"}>
-        <PrevidenciaPgblCard
-          previdencia={previdencia}
-          mode={pgblStrategy.mode}
-          anoBase={pgblStrategy.anoBase ?? undefined}
-        />
-      </div>
+      <PgblLocationNote irpfKpis={irpfKpis} primaryYear={primaryYear} />
     </ReportSection>
   );
 }

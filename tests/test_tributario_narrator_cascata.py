@@ -53,6 +53,17 @@ def test_declaracao_desconhecida_nao_narra_deducao_como_permitida():
     assert "permite dedução" not in out["conclusion"]
 
 
+def test_pgbl_aplicavel_narra_base_e_ponteiro_sem_republicar_teto():
+    out = narrate_cascata(
+        _section_simples({"pgbl_aplicavel": True, "pgbl_motivo_inaplicavel": None}),
+        _ctx(),
+    )
+    assert "Base PGBL identificada" in out["conclusion"]
+    assert "Otimização Tributária" in out["conclusion"]
+    assert "17.280" not in out["conclusion"]
+    assert "12%" not in out["conclusion"]
+
+
 def test_perfil_pendente_com_receita_cita_valor_detectado():
     section = {
         "regime": None,

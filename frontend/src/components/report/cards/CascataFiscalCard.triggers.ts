@@ -60,15 +60,13 @@ function fmtPct(decimalStr: string | undefined): string {
 
 function renderT1(p: Record<string, string>): string {
   const delta = formatBRLDecimalString(p.delta_pro_labore_mensal_brl);
-  const aporte = formatBRLDecimalString(p.aporte_pgbl_extra_anual_brl);
-  const economia = formatBRLDecimalString(p.economia_ir_anual_brl);
   const inss = formatBRLDecimalString(p.custo_inss_patronal_anual_brl);
   const marginal = fmtPct(p.ir_marginal_potencial_pct);
   return (
-    `Aumentar o pró-labore mensal em ${delta} expandiria a base PGBL em ${aporte}/ano, ` +
-    `reduzindo aproximadamente ${economia} de IR (alíquota marginal projetada ${marginal}). ` +
-    `Custo adicional: INSS patronal de ${inss}/ano (no Simples a contribuição patronal está ` +
-    `embutida no DAS — não adicionar). Trade-off favorável enquanto a alíquota marginal IR > 15%.`
+    `Aumentar o pró-labore mensal em ${delta} elevaria a renda tributável sujeita ao IR ` +
+    `(alíquota marginal projetada ${marginal}). Custo adicional: INSS patronal de ${inss}/ano ` +
+    `(no Simples a contribuição patronal está embutida no DAS — não adicionar). ` +
+    `Compare o custo previdenciário e tributário antes de alterar a distribuição.`
   );
 }
 
@@ -86,11 +84,11 @@ function renderT2(p: Record<string, string>): string {
 
 function renderT3(p: Record<string, string>): string {
   const marginal = fmtPct(p.ir_marginal_estimado_pct);
-  const limite = formatBRLDecimalString(p.pgbl_limite_anual_brl);
   return (
     `Alíquota IR marginal estimada em ${marginal}. PGBL é dedutível no modelo completo ` +
-    `e oferece tabela regressiva (10% após 10 anos de cada aporte). ` +
-    `Limite anual disponível: ${limite}.`
+    `quando os requisitos previdenciários aplicáveis são atendidos e oferece tabela ` +
+    `regressiva (10% após 10 anos de cada aporte). Consulte o teto e a capacidade ` +
+    `declarada em Otimização Tributária.`
   );
 }
 

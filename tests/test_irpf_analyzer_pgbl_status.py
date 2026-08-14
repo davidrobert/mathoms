@@ -98,6 +98,15 @@ class TestPgblStatusCapacidadeDisponivel:
         # 12% × 200k - 10k = 14k
         assert a.pgbl_capacidade_dedutivel(2024) == Decimal("14000.00")
 
+    def test_excesso_de_um_declarante_nao_consumo_espaco_do_outro(self):
+        acima_do_teto = _decl(rendimento_pj="100000.00", pgbl_aportado="20000.00")
+        sem_aporte = _decl(
+            rendimento_pj="100000.00",
+            natureza=NaturezaContribuinte.dependente_titular,
+        )
+        a = IRPFAnalyzer([acima_do_teto, sem_aporte])
+        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("12000.00")
+
 
 class TestPgblStatusModeloSimplificado:
     def test_solo_simplificado_retorna_modelo_simplificado(self):

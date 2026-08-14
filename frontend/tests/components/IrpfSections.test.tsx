@@ -467,7 +467,9 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
     expect(screen.getByText(/tabela regressiva vs\. progressiva/)).toBeInTheDocument();
     expect(screen.getByText(/horizonte de resgate/)).toBeInTheDocument();
     expect(screen.getByText(/taxa de administração/)).toBeInTheDocument();
-    expect(screen.getByText(/contribuição ao INSS/)).toBeInTheDocument();
+    expect(screen.getByText(/requisitos previdenciários aplicáveis/)).toBeInTheDocument();
+    expect(screen.getByText(/ano-calendário corrente/)).toBeInTheDocument();
+    expect(screen.getByText(/Foram considerados para dedução/)).toBeInTheDocument();
     // Não usa "—" no estado positivo (zero monetário não aplicável aqui)
     const heroLine = container.querySelector(".font-mono.text-2xl");
     expect(heroLine?.textContent).not.toBe("—");
@@ -576,7 +578,7 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
       expect(screen.getByText("Previdência oficial (INSS)")).toBeInTheDocument();
       expect(screen.getByText("Pensão alimentícia")).toBeInTheDocument();
       expect(screen.getByText("Dependentes")).toBeInTheDocument();
-      expect(screen.getByText("PGBL aportado")).toBeInTheDocument();
+      expect(screen.getByText("PGBL considerado para dedução")).toBeInTheDocument();
       expect(screen.getByText("2")).toBeInTheDocument();
       expect(
         screen.getByText(
@@ -600,7 +602,7 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
       expect(screen.queryByText("Previdência oficial (INSS)")).toBeNull();
       expect(screen.queryByText("Pensão alimentícia")).toBeNull();
       expect(screen.queryByText("Dependentes")).toBeNull();
-      expect(screen.queryByText("PGBL aportado")).toBeNull();
+      expect(screen.queryByText("PGBL considerado para dedução")).toBeNull();
     });
 
     it("renderiza PGBL aportado quando simplificado tem aporte mas zero dedutíveis (caso real ADR-196)", () => {
@@ -610,7 +612,7 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
       });
       render(<IrpfPgblCapacidadeCard kpis={kpis} />);
       expect(screen.getByText(/Componentes elegíveis no modelo completo/)).toBeInTheDocument();
-      expect(screen.getByText("PGBL aportado")).toBeInTheDocument();
+      expect(screen.getByText("PGBL considerado para dedução")).toBeInTheDocument();
     });
 
     it("omite a lista inteira quando todos os componentes são zero/ausentes (sem ruído visual)", () => {
@@ -686,6 +688,7 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
     expect(
       screen.getByText(/Não há capacidade dedutível remanescente em 2024\./),
     ).toBeInTheDocument();
+    expect(screen.getByText(/ano-calendário corrente/)).toBeInTheDocument();
     expect(screen.queryByText(/Não é recomendação:/)).toBeNull();
     const heroLine = container.querySelector(".font-mono.text-2xl");
     expect(heroLine?.textContent).not.toBe("—");

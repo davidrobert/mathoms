@@ -147,11 +147,11 @@ _PGBL_CLAUSE_FALLBACK = "Base PGBL indisponível neste momento."
 
 
 def _pgbl_clause(cascata: Mapping[str, Any]) -> str:
-    limite = cascata.get("pgbl_limite_anual") or 0
-    if cascata.get("pgbl_aplicavel") and limite > 0:
+    base = cascata.get("pgbl_base_anual") or 0
+    if cascata.get("pgbl_aplicavel") and base > 0:
         return (
-            f"Base PGBL (renda tributável PF) permite dedução de até "
-            f"{_fmt_money_safe(limite)}/ano (limite 12% da base)."
+            "Base PGBL identificada sobre a renda tributável PF. Consulte o teto e a "
+            "capacidade dedutível em Otimização Tributária."
         )
     motivo = cascata.get("pgbl_motivo_inaplicavel")
     return _PGBL_CLAUSE_POR_MOTIVO.get(motivo, _PGBL_CLAUSE_FALLBACK)

@@ -23,6 +23,7 @@ import type {
   PremissasEconomicasData,
   ReportAnalysisData,
 } from "@/lib/api";
+import type { IrpfKpis } from "@/types/irpf";
 
 function makePassiveIncome(overrides: Partial<PassiveIncomeData> = {}): PassiveIncomeData {
   return {
@@ -54,6 +55,55 @@ function makeData(overrides: Partial<ReportAnalysisData> = {}): ReportAnalysisDa
     ...overrides,
   };
 }
+
+const IRPF_KPIS: IrpfKpis = {
+  ano_base: 2024,
+  anos_disponiveis: [2024],
+  renda_anual_familiar_brl: "180000.00",
+  renda_liquida_familiar_brl: "144000.00",
+  ir_pago_total_brl: "24000.00",
+  aliquota_sobre_tributavel_pct: "16.50",
+  aliquota_sobre_total_pct: "13.30",
+  pgbl_capacidade_dedutivel_brl: "11600.00",
+  pgbl_status: "capacidade_disponivel",
+  pgbl_aportado_brl: "10000.00",
+  pgbl_teto_brl: "21600.00",
+  split_trabalho_brl: "120000.00",
+  split_capital_brl: "60000.00",
+  evolucao_renda_anos: { "2024": "180000.00" },
+};
+
+describe("<S7IndependenciaSection /> · localização PGBL", () => {
+  it("declara o IRPF ausente sem número nem âncora morta", () => {
+    render(<S7IndependenciaSection data={makeData()} />);
+    expect(screen.getByTestId("s7-pgbl-without-irpf")).toHaveTextContent(/não há declaração de IRPF processada/i);
+    expect(screen.queryByRole("link", { name: /Otimização Tributária/i })).toBeNull();
+    expect(screen.getByRole("link", { name: /Importar declaração de IRPF/i }))
+      .toHaveAttribute("href", "/documents");
+  });
+
+  it("aponta para o Card B quando há IRPF processado", () => {
+    const data = makeData({
+      irpf_kpis: IRPF_KPIS as unknown as Record<string, unknown>,
+      fluxo_caixa: { receita_despesa_mensal_detalhado: { labels: ["2024-12"] } },
+    });
+    render(<S7IndependenciaSection data={data} />);
+    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/IRPF de 2024/i);
+    expect(screen.getByRole("link", { name: /Otimização Tributária/i }))
+      .toHaveAttribute("href", "#S_IRPF_OTIMIZACAO");
+    expect(screen.queryByText(/defasado em/i)).toBeNull();
+  });
+
+  it("preserva o aviso de defasagem maior ou igual a dois anos", () => {
+    const data = makeData({
+      irpf_kpis: { ...IRPF_KPIS, ano_base: 2022 } as unknown as Record<string, unknown>,
+      fluxo_caixa: { receita_despesa_mensal_detalhado: { labels: ["2025-12"] } },
+    });
+    render(<S7IndependenciaSection data={data} />);
+    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/defasado em 3 anos/i);
+    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/IRPF mais recente/i);
+  });
+});
 
 describe("trsTone", () => {
   it("acumulação (progresso < 50): SEMPRE neutro mesmo com TRS alta", () => {

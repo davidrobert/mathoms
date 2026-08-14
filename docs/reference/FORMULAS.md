@@ -436,10 +436,11 @@ sejam verdadeiras:
 1. `tipo_declaracao_ir == "completa"` **conhecido**, não defaultado — desconhecido
    devolve `pgbl_aplicavel = False` com motivo `tipo_declaracao_desconhecido`;
 2. a economia diferencial no ano é positiva;
-3. contribuição a regime oficial (INSS/RPPS) presente — precondição legal dos 12%.
-   Quando desconhecida, a copy declara a precondição (não derruba a aplicabilidade:
-   em PJ com pró-labore, INSS de sócio é a norma, e derrubar produziria falso
-   negativo no caso central).
+3. requisitos previdenciários aplicáveis satisfeitos — em regra, contribuição
+   ao RGPS/RPPS; aposentados e pensionistas desses regimes são dispensados do
+   recolhimento, e PGBL de dependente maior de 16 anos exige contribuição também
+   em nome do dependente. Quando desconhecidos, a copy declara a condição sem
+   inventar inelegibilidade ([Receita Federal](https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/preenchimento/manual-mir/pagamentos-ou-doacoes/despesas-dedutiveis#previdencia)).
 
 Abaixo do piso a saída **não é número menor: é "não se aplica" com o motivo**. E a
 dedução nunca sai em `--semantic-gain` — é **diferimento**, não ganho: o resgate é

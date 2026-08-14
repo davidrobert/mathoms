@@ -4,7 +4,7 @@ type: plan
 title: Report Trust — o relatório não pode afirmar precisão que os dados não sustentam
 status: in_progress
 created_at: 2026-07-03
-last_review: 2026-08-03
+last_review: 2026-08-14
 sprint_origem: A28
 sprint_atual: A40
 sprints_envolvidas: [A28, A40]
@@ -16,6 +16,7 @@ adrs_canonical:
   - "[[ADR-186]]"
   - "[[ADR-357]]"
   - "[[ADR-358]]"
+  - "[[ADR-370]]"
 tags:
   - type/plan
   - status/in-progress
@@ -287,6 +288,20 @@ gera esse tráfego.
 - Follow-ups candidatos a A29+ (fora do escopo A28): poda estrutural de
   `PropertyIdentity` órfãs (migration + backfill), saída do dogfood
   (gate de abertura), fuzzy dedup de investimentos cross-IRPF.
+
+## Débito estrutural pós-A40 — identidade estável de card
+
+[[ADR-370]] protege remoções por inventário textual, mas ainda identifica cards
+pelo título renderizado. A [[A40.l34]] remove intencionalmente o card duplicado
+de PGBL e apaga sua linha do inventário à mão; ela não transforma o layout em
+contrato executável.
+
+O follow-up P2 fica no próximo sprint deste plano **depois de a A40 drenar**, sem
+abrir lane nova na sprint atual: `cardId` obrigatório nos cards de topo,
+`data-card-id` no DOM, gate contra ID ausente/duplicado e inventário migrado de
+título para ID. O gatilho de pickup é não haver lane ativa da A40 tocando
+`frontend/src/components/report/**`. Até lá, o gate v1 continua protegendo
+desaparecimento de card; o débito residual é o acoplamento a mudanças de copy.
 
 ## Critério de done do plano
 

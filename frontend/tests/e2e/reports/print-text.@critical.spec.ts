@@ -134,6 +134,16 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
     ).toBe(true);
   });
 
+  test("Card B é o único publicador do teto PGBL no PDF", async ({ page }) => {
+    exigirPdftotext();
+    const texto = normalizarTexto(await textoDoPdf(page));
+
+    expect(texto).toContain("Capacidade PGBL");
+    expect(texto).toContain("Ver dedução de PGBL em Otimização Tributária");
+    expect(texto.match(/R\$\s*21\.987,65/g) ?? []).toHaveLength(1);
+    expect(texto).not.toContain("Limite PGBL (12%)");
+  });
+
   test("a primeira seção do relatório cola no conteúdo anterior (break-before)", async ({ page }) => {
     await setupPrintReport(page);
     await page.emulateMedia({ media: "print" });

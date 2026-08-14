@@ -395,7 +395,6 @@ def _build_trigger_context(inp: CascataInput, layers: _ComputedLayers) -> Trigge
         regime=inp.regime,
         pro_labore_mensal=inp.pro_labore_mensal,
         pgbl_base_anual=layers.renda_pf_tributavel,
-        pgbl_limite_anual=layers.pgbl_limite,
         pgbl_aplicavel=layers.pgbl_aplicavel,
         fator_r_pct=layers.fator_r_pct,
         folha_anual=folha_anual,
