@@ -148,6 +148,10 @@ class EquilibrioCerbasi:
     janela: str = "full"
     janela_meses: int = 0
     componentes: dict[str, float] = field(default_factory=dict)
+    # A40.l47 PR2: a régua que classificou, publicada junto do rótulo. A legenda do
+    # apêndice renderiza daqui — segunda régua hardcoded divergiu em 4 pontos, incluindo
+    # a faixa do rótulo COMUM (código [20,30) × legenda 20–40).
+    classificacao_faixas: tuple[ClassificacaoFaixa, ...] = ()
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -159,6 +163,14 @@ class EquilibrioCerbasi:
             "janela": self.janela,
             "janela_meses": self.janela_meses,
             "componentes": {k: round(v, 2) for k, v in self.componentes.items()},
+            "classificacao_faixas": [
+                {"minimo_futuro_pct": f.minimo_futuro_pct, "label": f.label}
+                for f in sorted(
+                    self.classificacao_faixas,
+                    key=lambda f: f.minimo_futuro_pct,
+                    reverse=True,
+                )
+            ],
         }
 
 
@@ -189,6 +201,7 @@ class EquilibrioCerbasiAnalyzer:
             pct_presente=pct_presente,
             pct_futuro=pct_futuro,
             classificacao=self._classify(pct_futuro),
+            classificacao_faixas=tuple(self._config.classificacao),
             janela=window.janela,
             janela_meses=window.janela_meses,
             componentes={

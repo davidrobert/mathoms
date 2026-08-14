@@ -704,6 +704,26 @@
         "classificacao": {
           "type": "string"
         },
+        "classificacao_faixas": {
+          "type": "array",
+          "description": "A40.l47: a regua que classificou (scoring.json::cerbasi.classificacao), publicada junto do rotulo e ordenada do topo para a base. A legenda do apendice renderiza daqui — legenda hardcoded divergia do enforcer em 4 pontos, inclusive na faixa do rotulo comum.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "minimo_futuro_pct": {
+                "type": "number"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "minimo_futuro_pct",
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
         "presente": {
           "type": "string"
         },

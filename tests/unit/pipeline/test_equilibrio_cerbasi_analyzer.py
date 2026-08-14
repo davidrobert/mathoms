@@ -249,3 +249,59 @@ class TestCustomClassificacao:
             )
         )
         assert r.classificacao == "Mid"
+
+
+# A40.l47 PR2 — duas superfícies imprimiam faixas: o enforcer (``scoring.json``) e uma
+# legenda hardcoded no apêndice. Divergiam em 4 pontos, inclusive no rótulo COMUM
+# (código ``Equilibrado=[20,30)`` × legenda ``20–40``: a 35% o relatório dizia
+# "Investidor" e a legenda da mesma página dizia "Equilibrado"). Publicada a régua, a
+# legenda renderiza dela e não há segunda régua a divergir.
+class TestReguaPublicada:
+    """A régua que classificou vai no payload."""
+
+    def _payload(self, analyzer: EquilibrioCerbasiAnalyzer) -> dict:
+        return analyzer.analyze(_fluxo({"educacao": 3_000, "moradia": 7_000})).to_legacy_dict()
+
+    def test_faixas_publicadas_sao_as_do_enforcer(self):
+        cfg = EquilibrioCerbasiConfig.from_scoring(
+            {
+                "cerbasi": {
+                    "classificacao": [
+                        {"minimo_futuro_pct": 40, "label": "Poupador"},
+                        {"minimo_futuro_pct": 0, "label": "Gastador"},
+                    ]
+                }
+            }
+        )
+        faixas = self._payload(EquilibrioCerbasiAnalyzer(cfg))["classificacao_faixas"]
+        assert faixas == [
+            {"minimo_futuro_pct": 40.0, "label": "Poupador"},
+            {"minimo_futuro_pct": 0.0, "label": "Gastador"},
+        ]
+
+    def test_rotulo_emitido_existe_na_regua_publicada(self):
+        """Fecha a CLASSE: qualquer faixa custom, o rótulo tem de estar na régua."""
+        for minimo in (0, 10, 20, 30, 40):
+            cfg = EquilibrioCerbasiConfig.from_scoring(
+                {
+                    "cerbasi": {
+                        "classificacao": [
+                            {"minimo_futuro_pct": minimo, "label": f"Faixa{minimo}"},
+                            {"minimo_futuro_pct": 0, "label": "Base"},
+                        ]
+                    }
+                }
+            )
+            d = self._payload(EquilibrioCerbasiAnalyzer(cfg))
+            assert d["classificacao"] in {f["label"] for f in d["classificacao_faixas"]}
+
+    def test_regua_default_sai_ordenada_do_topo_para_a_base(self):
+        d = self._payload(EquilibrioCerbasiAnalyzer())
+        minimos = [f["minimo_futuro_pct"] for f in d["classificacao_faixas"]]
+        assert minimos == sorted(minimos, reverse=True)
+        assert [f["label"] for f in d["classificacao_faixas"]] == [
+            "Investidor",
+            "Equilibrado",
+            "Endividado consciente",
+            "Gastador",
+        ]

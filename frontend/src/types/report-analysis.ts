@@ -111,9 +111,20 @@ export interface ReservaEmergenciaData {
   composicao_liquida?: {
     investimentos_titular?: number; // ADR-338: role-keyed
     investimentos_conjuge?: number;
+    caixa?: number;
     caixa_moeda_estrangeira?: number;
     total_liquido?: number;
     cobertura_meses?: number;
+  };
+  /** A40.l47 PR3 (RV4-18) — qual base o denominador da cobertura usa. */
+  base_denominador?: string;
+  /** A40.l47 PR3 — despesa essencial mensal, base quando `base_denominador` é essencial. */
+  custo_essencial_mensal?: number;
+  /** A40.l47 PR3 (RV4-18) — o que a base da reserva deixou de fora. */
+  excluido_da_reserva?: {
+    investimentos_nao_liquidos?: number;
+    caixa_moeda_estrangeira?: number;
+    caixa_nao_classificado?: number;
   };
 }
 

@@ -136,8 +136,66 @@ export function ReservaEmergenciaCard({
             {pctRumoAlvo.toFixed(0)}% {progressCaption}
           </p>
         </div>
+
+        <BaseDaReserva reserva={reserva} />
+
       </div>
     </ReportCard>
+  );
+}
+
+
+// Vocabulário fechado do produtor (`reserva_emergencia_calculator.py:147`): duas
+// bases, não três. Rótulo para valor que produtor nenhum emite é payload inventado.
+const BASE_LABEL: Record<string, string> = {
+  custo_essencial: "custo essencial",
+  despesa_total: "despesa total",
+};
+
+const EXCLUIDO_LABEL: Record<string, string> = {
+  investimentos_nao_liquidos: "investimentos não líquidos",
+  caixa_moeda_estrangeira: "caixa em moeda estrangeira",
+  caixa_nao_classificado: "caixa não classificado",
+};
+
+/**
+ * A40.l47 PR3 (RV4-18) — a cobertura declara a base que usou e o que ficou de fora.
+ *
+ * O numerador lê o agregado patrimonial, não a seção de investimentos: a base pode
+ * exceder a carteira exibida **por construção**, e nenhum invariante de conservação
+ * acusa porque o cálculo confere. `base_denominador` e `excluido_da_reserva` existiam
+ * no payload sem nenhum leitor. Sem os campos, não se inventa base — o bloco some.
+ */
+function BaseDaReserva({ reserva }: { reserva: ReservaEmergenciaData | undefined }) {
+  const baseLabel = reserva?.base_denominador
+    ? BASE_LABEL[reserva.base_denominador]
+    : undefined;
+  const excluidos = Object.entries(reserva?.excluido_da_reserva ?? {}).filter(
+    (e): e is [string, number] => typeof e[1] === "number" && e[1] > 0,
+  );
+  if (!baseLabel && excluidos.length === 0) return null;
+  return (
+    <div className="space-y-1 border-t border-[var(--surface-border)] pt-3 text-xs text-[var(--surface-muted-foreground)]">
+      {baseLabel && (
+        <p>
+          Base da cobertura: <strong>{baseLabel}</strong> — os meses acima dividem o
+          total líquido por essa base, não pela despesa cheia do mês.
+        </p>
+      )}
+      {excluidos.length > 0 && (
+        <p>
+          Fora da reserva:{" "}
+          {excluidos.map(([k, v], i) => (
+            <span key={k}>
+              {i > 0 && " · "}
+              {EXCLUIDO_LABEL[k] ?? k} (<MonetaryValue value={v} compact />)
+            </span>
+          ))}
+          . A reserva se apoia em ativos da carteira — reduzir uma classe
+          sobre-alocada pode derrubar a cobertura.
+        </p>
+      )}
+    </div>
   );
 }
 

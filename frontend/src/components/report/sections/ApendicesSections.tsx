@@ -127,6 +127,58 @@ function MetasVigentesCard({
  * + premissas econômicas auditáveis (ADR-219, retorno real + sigma por classe)
  * + metodologias estáticas (Perini / Cerbasi / AUVP / Score próprio).
  */
+
+/**
+ * A40.l47 PR2 — a legenda renderiza a régua QUE CLASSIFICOU
+ * (`equilibrio_cerbasi.classificacao_faixas`, emitida pelo enforcer), nunca faixas
+ * próprias. A legenda hardcoded anterior divergia do código em 4 pontos: dois rótulos
+ * do enforcer não existiam nela, um rótulo dela não existia no enforcer, ela deixava
+ * 10–20% sem entrada, e a faixa do rótulo COMUM discordava — a 35% de futuro o
+ * relatório imprimia "Investidor" e esta legenda dizia "Equilibrado".
+ *
+ * Sem régua no payload não se inventa uma: descreve-se só a proporção-alvo.
+ */
+function ReguaCerbasi({ data }: { data: ReportAnalysisData }) {
+  const bloco = data.equilibrio_cerbasi as
+    | { classificacao_faixas?: Array<{ minimo_futuro_pct?: unknown; label?: unknown }> }
+    | undefined;
+  const faixas = (bloco?.classificacao_faixas ?? []).filter(
+    (f): f is { minimo_futuro_pct: number; label: string } =>
+      typeof f?.minimo_futuro_pct === "number" &&
+      Number.isFinite(f.minimo_futuro_pct) &&
+      typeof f?.label === "string" &&
+      f.label.length > 0,
+  );
+  return (
+    <p className="text-[var(--surface-muted-foreground)]">
+      Classificação comportamental dos gastos: proporção ideal ~70% presente / 30%
+      futuro.
+      {faixas.length > 0 && (
+        <>
+          {" "}
+          {faixas.map((f, i) => (
+            <span key={f.label}>
+              {i > 0 && ", "}
+              {f.label} (
+              {i === faixas.length - 1
+                ? `<${formatPct(faixas[i - 1]?.minimo_futuro_pct ?? f.minimo_futuro_pct)}%`
+                : i === 0
+                  ? `≥${formatPct(f.minimo_futuro_pct)}%`
+                  : `${formatPct(f.minimo_futuro_pct)}–${formatPct(faixas[i - 1].minimo_futuro_pct)}%`}
+              )
+            </span>
+          ))}{" "}
+          de futuro.
+        </>
+      )}
+    </p>
+  );
+}
+
+function formatPct(v: number): string {
+  return Number.isInteger(v) ? String(v) : String(v).replace(".", ",");
+}
+
 export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
   const goals = data.goals as Record<string, unknown> | undefined;
   const snapshot: PremissasSnapshotShape | null =
@@ -161,11 +213,7 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
             <h4 className="font-display font-semibold">
               Equilíbrio entre presente e futuro
             </h4>
-            <p className="text-[var(--surface-muted-foreground)]">
-              Classificação comportamental dos gastos: proporção ideal ~70%
-              presente / 30% futuro. Gastador (&lt;10% futuro), Equilibrado
-              (20–40%), Poupador (&gt;40%).
-            </p>
+            <ReguaCerbasi data={data} />
           </section>
           <section>
             <h4 className="font-display font-semibold">
