@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from dev.report_analysis_schema_refinement import RefinementError, parse_discriminant_all_of
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "config" / "schemas" / "e5_analysis.schema.json"
 GENERATED_PATH = REPO_ROOT / "frontend" / "src" / "generated" / "report-analysis.ts"
@@ -17,6 +19,8 @@ _SUPPORTED_KEYS = {
     "$ref",
     "$schema",
     "additionalProperties",
+    "allOf",
+    "const",
     "description",
     "enum",
     "format",
@@ -135,6 +139,7 @@ class TypeScriptSchemaEmitter:
             self._validate_mapping_children(schema, container, document, pointer)
         self._validate_additional_properties(schema, document, pointer)
         self._validate_items(schema, document, pointer)
+        self._validate_sequence_children(schema, "allOf", document, pointer)
         self._validate_sequence_children(schema, "prefixItems", document, pointer)
         self._validate_sequence_children(schema, "oneOf", document, pointer)
 
@@ -206,8 +211,23 @@ class TypeScriptSchemaEmitter:
         pointer: str,
         level: int,
     ) -> str:
+        if "allOf" in schema:
+            return self._render_all_of(schema, document, pointer, level)
         if "$ref" in schema:
             return self._render_ref(str(schema["$ref"]), document, pointer)
+        if "const" in schema:
+            raise SchemaCodegenError(
+                f"{document.path}:{pointer}: const only supported as allOf discriminant"
+            )
+        return self._render_declared_type(schema, document, pointer, level)
+
+    def _render_declared_type(
+        self,
+        schema: dict[str, Any],
+        document: SchemaDocument,
+        pointer: str,
+        level: int,
+    ) -> str:
         if "enum" in schema:
             return " | ".join(json.dumps(item, ensure_ascii=False) for item in schema["enum"])
         if "oneOf" in schema:
@@ -218,6 +238,24 @@ class TypeScriptSchemaEmitter:
         if isinstance(declared_type, str):
             return self._render_simple_type(declared_type, schema, document, pointer, level)
         return self._render_inferred_object(schema, document, pointer, level)
+
+    def _render_all_of(
+        self, schema: dict[str, Any], document: SchemaDocument, pointer: str, level: int
+    ) -> str:
+        try:
+            refinement = parse_discriminant_all_of(schema, document.schema.get("$defs") or {})
+        except RefinementError as exc:
+            raise SchemaCodegenError(f"{document.path}:{pointer}: {exc}") from exc
+        base_type = self._render_ref(refinement.ref, document, f"{pointer}/allOf/0")
+        discriminant = self._render_discriminant(refinement.property_name, refinement.value, level)
+        return f"{base_type} & {discriminant}"
+
+    @staticmethod
+    def _render_discriminant(name: str, value: Any, level: int) -> str:
+        indent = "  " * level
+        quoted_name = json.dumps(name, ensure_ascii=False)
+        literal = json.dumps(value, ensure_ascii=False)
+        return f"{{\n{indent}  {quoted_name}: {literal};\n{indent}}}"
 
     def _render_inferred_object(
         self, schema: dict[str, Any], document: SchemaDocument, pointer: str, level: int

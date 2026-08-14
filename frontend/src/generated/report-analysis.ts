@@ -150,6 +150,44 @@ export type PontoUrgente = {
   "dado_faltante"?: string | null;
 };
 
+export type FluxoJanelaInterativa = {
+  "janela": "3m" | "6m" | "12m" | "ytd";
+  "janela_meses": number;
+  "mes_inicio": string | null;
+  "mes_fim": string | null;
+  "receita_total": number;
+  "despesa_total": number;
+  "receita_mensal_media": number;
+  "despesa_mensal_media": number;
+  "despesa_consumo_mensal_media": number;
+  "transferencia_patrimonial_mensal": number;
+  "tabela_receitas_por_fonte_mensal": Array<FluxoReceitaRow>;
+  "tabela_receita_por_natureza_mensal": Array<FluxoNaturezaRow>;
+  "tabela_consumo_por_categoria_mensal": Array<FluxoConsumoRow>;
+};
+
+export type FluxoReceitaRow = {
+  "fonte": string;
+  "total": number;
+  "mensal_media": number;
+  "participacao_pct": number;
+};
+
+export type FluxoNaturezaRow = {
+  "natureza": "receita_pj" | "receita_clt" | "receita_aluguel" | "receita_outras";
+  "total": number;
+  "mensal_media": number;
+  "participacao_pct": number;
+};
+
+export type FluxoConsumoRow = {
+  "categoria": string;
+  "total": number;
+  "mensal_media": number;
+  "participacao_pct": number;
+  "participacao_acumulada_pct": number;
+};
+
 export type ConsolidacaoCrossDocumento = {
   "count": number;
   "meses": Array<{
@@ -286,6 +324,20 @@ export type E5AnalysisArtifact = {
     "fluxo_liquido"?: number;
     "janela": "full" | "12m";
     "janela_meses": number;
+    "janelas": {
+      "3m": FluxoJanelaInterativa & {
+        "janela": "3m";
+      };
+      "6m": FluxoJanelaInterativa & {
+        "janela": "6m";
+      };
+      "12m": FluxoJanelaInterativa & {
+        "janela": "12m";
+      };
+      "ytd": FluxoJanelaInterativa & {
+        "janela": "ytd";
+      };
+    };
     "receita_por_natureza"?: {
       "receita_pj"?: number;
       "receita_clt"?: number;
