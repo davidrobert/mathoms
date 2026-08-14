@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 322
-- **Proposto**: 52
+- **Decidido**: 323
+- **Proposto**: 51
 - **Roadmap**: 4
 
 ## Fundação
@@ -302,7 +302,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (17)
+### Decidido (18)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -321,8 +321,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-359]] — Dispatch assíncrono falha alto; quem cria estado pendente compensa · phase A40
 - [[ADR-366]] — Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação · phase A40.l20
 - [[ADR-384]] — Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback · phase A40.l40
+- [[ADR-387]] — ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria · phase A40.l62
 
-### Proposto (7)
+### Proposto (6)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
@@ -330,7 +331,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
 - [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 - [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
-- [[ADR-387]] — ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria · phase A40.l62
 
 ## categorization
 

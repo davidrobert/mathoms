@@ -15,22 +15,37 @@ tags:
 
 # RULE — Cobertura ideal de seguro de vida
 
-**Conceito.** Capital segurado ideal = `max(Cerbasi, Perini) + dívidas em aberto`. Calculator determinístico recebe value object tipado e emite `CoverageRecommendation` com decomposição auditável (`cerbasi_ideal_brl_cents`, `perini_ideal_brl_cents`, `ideal_brl_cents`, `methodology="max"`).
+> **Hold normativo 2026-08-14 ([[ADR-387]]).** A fórmula só pode rodar por
+> segurado, com dependência econômica explícita, renda/dívida atribuídas,
+> cobertura do mesmo segurado e inventário confirmado. Ausência de apólice
+> cadastrada não é cobertura zero; sem esse contrato, `missing_data`.
+
+**Conceito.** Para cada segurado, comparar o capital confirmado com cenários
+metodológicos de reposição da renda ativa e liquidação das dívidas atribuídas.
+O resultado é uma estimativa condicionada aos dados e ao inventário declarados,
+não uma declaração universal de capital “ideal” ou cobertura suficiente.
 
 **Por quê.** Cobertura insuficiente é o risco financeiro mais comum em famílias com renda ativa dominante e dependentes em minoridade — quita dívidas, substitui renda durante o luto e cobre custos de educação até a maioridade do dependente mais novo. Duas escolas convergem:
 
 - **Cerbasi** (`Equilíbrio Financeiro` §"Proteção da Renda"): regra de bolso `10× renda_anual × fator_dependência` (1.0 sem deps minoridade · 1.5 com 1-2 · 2.0 com 3+). Simples de comunicar; assume reposição de renda durante uma década (suficiente para reorganização familiar).
 - **Perini** (`Viver de Renda`): PV de fluxo de renda anual durante anos restantes de minoridade do dependente mais novo, descontado por taxa real conservadora (default 3% a.a.). Mais fiel a famílias jovens com filhos pequenos — Cerbasi tende a subestimar quando o horizonte de dependência ainda é longo.
 
-`max` é a postura conservadora para evitar pegar o cliente em sub-cobertura pelo lado menos pessimista. Ambos os números ficam expostos no output para o planejador justificar o pick.
+`max` é a heurística conservadora adotada pelo calculator histórico. Ambos os
+cenários ficam expostos para justificar a estimativa; a versão metodológica deve
+ser registrada no snapshot.
 
-**Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111 stateless rigoroso); thresholds vêm de constantes documentadas como débito de migração para `fiscal_parameters` (ADR-135).
+**Doutrina canônica.** A fórmula histórica foi decidida em
+[ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3.
+A [[ADR-387]] agora governa identidade, computabilidade, temporalidade e copy;
+sem seus gates, o calculator puro não pode alimentar a S9.
 
-**Computabilidade (emenda 2026-08-13).** O adapter só invoca a fórmula quando
-há dependente econômico menor confirmado, renda ativa anual e dívida observadas.
-`filho` e `dependente` menores entram; idade ausente/futura e dependente adulto
-não modelado retêm a categoria. Sem dependente confirmado, a regra é
-`not_applicable` e não publica `10× renda` ([[ADR-365]], [[ADR-387]]).
+**Computabilidade (emendas 2026-08-13/14).** O adapter só invoca a fórmula quando
+há segurado e dependentes econômicos confirmados, renda ativa líquida recorrente
+de 12 meses, dívida atribuída e capital observado do mesmo segurado. `filho` e
+`dependente` menores entram; adulto depende de declaração explícita. Idade,
+dependência ou inventário indeterminados retêm a instância. Ausência explícita de
+dependente torna a regra `not_applicable` e não publica `10× renda` ([[ADR-365]],
+[[ADR-387]]).
 
 **Enforcer.**
 - [`pipeline/domain/services/protection/life_insurance_coverage.py`](../../../pipeline/domain/services/protection/life_insurance_coverage.py) — `life_insurance_coverage_ideal(LifeInsuranceInputs) -> CoverageRecommendation`. Emite `RiskInferred("falta_seguro_vida_cobertura_insuficiente")` quando gap > 5% do ideal **e** > R$ 50k.
@@ -38,7 +53,8 @@ não modelado retêm a categoria. Sem dependente confirmado, a regra é
 
 **Disclaimer fiduciário.** "Estimativa metodológica baseada em Cerbasi (10× renda) e Perini (PV minoridade); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para `<effective_date>`."
 
-**Fórmula.**
+**Fórmula histórica sob hold.** Só pode voltar a produzir `computed` após ser
+versionada e receber todos os inputs por segurado definidos na [[ADR-387]].
 
 ```
 fator(n_minors) = 1.0  se n_minors == 0
@@ -54,7 +70,7 @@ ideal = max(cerbasi_ideal, perini_ideal)
 gap   = max(0, ideal - cobertura_atual)
 ```
 
-**Casos de teste.** [tests/pipeline/domain/services/protection/test_life_insurance_coverage.py](../../../tests/pipeline/domain/services/protection/test_life_insurance_coverage.py) cobre 12 perfis:
+**Cobertura de teste legada.** [tests/pipeline/domain/services/protection/test_life_insurance_coverage.py](../../../tests/pipeline/domain/services/protection/test_life_insurance_coverage.py) cobre 12 perfis do calculator puro; não satisfaz, sozinho, o gate de computabilidade:
 - solteiro sem renda (zero everything),
 - solteiro com renda (Cerbasi puro),
 - casado com 2 deps minoridade (max ativo),

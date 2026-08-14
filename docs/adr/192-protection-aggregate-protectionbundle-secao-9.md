@@ -21,7 +21,7 @@ relates_to:
   - "[[ADR-387]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-08-08", "2026-08-13"]
+amended_at: ["2026-08-08", "2026-08-13", "2026-08-14"]
 aliases: ["ADR 192"]
 tags:
   - area/backend
@@ -38,6 +38,10 @@ tags:
 > **Emenda 2026-08-13:** ausência de input deixa a categoria `missing_data`,
 > nunca gap zero. A fotografia do Report e a ativação da S9 seguem o rollout
 > [[A40.l61]] → [[A40.l62]] → [[A40.l35]], normatizado em [[ADR-387]].
+
+> **Emenda 2026-08-14:** os quatro calculators não são autorizados por simples
+> plumbing. Vida/invalidez passam a ser por segurado; sucessório, por cenário;
+> FBAR/FATCA/Estate NRA, por check. Contrato incompleto permanece `missing_data`.
 
 # ADR-192 — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção)
 
@@ -248,3 +252,13 @@ observado continua válido. O endpoint live pode projetar o cadastro corrente,
 mas um Report só consome o snapshot imutável da [[ADR-387]]. Vida sem dependente
 econômico menor confirmado não publica `10× renda`; invalidez, ITCMD e EUA ficam
 retidos até seus contratos canônicos completos.
+
+## Emenda 2026-08-14 — instâncias e regras sob hold normativo
+
+A [[ADR-387]] substitui o agregado familiar como unidade de cálculo por
+instâncias pessoa/check-scoped. Ausência de row de apólice não prova cobertura
+zero sem confirmação de inventário; capital de invalidez não vira benefício
+mensal por divisão; patrimônio bruto familiar × alíquota única não é imposto
+devido. O calculator EUA atual fica retido até FBAR, FATCA e Estate Tax NRA terem
+bases, status e parâmetros separados. As assinaturas históricas de §D3 não são
+contrato suficiente para a S9.
