@@ -3,9 +3,55 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Chart as ChartJS, ChartOptions, ChartType, ChartData } from "chart.js";
 import { Chart as ReactChart } from "react-chartjs-2";
-import { ensureChartRegistered } from "./ChartRegistry";
+import { CHART_RENDERED_EVENT, ensureChartRegistered } from "./ChartRegistry";
 
 ensureChartRegistered();
+
+/** Silêncio de render que conta como "desenho terminou". Acima de um frame
+ * (~16ms) para não disparar no meio da animação, e curto o bastante para o
+ * `pdf_renderer` (que espera 2s após o ready) já achar a imagem pronta. */
+const PRINT_SNAPSHOT_QUIET_MS = 250;
+
+/** Serializa o canvas para o `<img>` que o PDF renderiza — quando o desenho para.
+ *
+ * `report-print.css` esconde o `<canvas>` em `@media print` e mostra este PNG,
+ * então ele **é** o gráfico no papel. O `setTimeout(…, 300)` que existia aqui
+ * congelava o frame de 300ms de uma animação de ~1s: a barra de "Salário" saía
+ * com 81% do comprimento e a rosca saía aberta, contradizendo o número impresso
+ * ao lado (A40.l53). Esperar um tempo maior não resolve — o desenho recomeça a
+ * cada resize, inclusive o que a captura do Playwright provoca.
+ */
+function usePrintSnapshot(
+  chartRef: { current: ChartJS | null },
+  data: unknown,
+): string | null {
+  const [printSrc, setPrintSrc] = useState<string | null>(null);
+  useEffect(() => {
+    const chart = chartRef.current;
+    const canvas = chart?.canvas;
+    if (!chart || !canvas) return;
+    let timer = 0;
+    const capture = () => {
+      try {
+        setPrintSrc(chart.toBase64Image());
+      } catch {
+        // ignore — canvas tainted ou contexto perdido
+      }
+    };
+    const agendar = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(capture, PRINT_SNAPSHOT_QUIET_MS);
+    };
+    canvas.addEventListener(CHART_RENDERED_EVENT, agendar);
+    agendar();
+    return () => {
+      canvas.removeEventListener(CHART_RENDERED_EVENT, agendar);
+      window.clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+  return printSrc;
+}
 
 /** ADR-117 · Fase 2 — wrapper base para todos primitivos de chart.
  *
@@ -47,7 +93,6 @@ export function ChartCanvas<TType extends ChartType = ChartType>({
   ...rest
 }: ChartCanvasProps<TType>) {
   const chartRef = useRef<ChartJS | null>(null);
-  const [printSrc, setPrintSrc] = useState<string | null>(null);
 
   // Ref callback estavel — React chama com null em unmount; estabilidade
   // evita disparar setState do consumer (`onChartReady`) a cada render.
@@ -61,18 +106,7 @@ export function ChartCanvas<TType extends ChartType = ChartType>({
     [onChartReady],
   );
 
-  useEffect(() => {
-    const c = chartRef.current;
-    if (!c) return;
-    const timer = window.setTimeout(() => {
-      try {
-        setPrintSrc(c.toBase64Image());
-      } catch {
-        // ignore — canvas tainted ou contexto perdido
-      }
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [data]);
+  const printSrc = usePrintSnapshot(chartRef, data);
 
   const style = useMemo<CSSProperties>(
     () => ({

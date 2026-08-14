@@ -416,6 +416,61 @@ CI pode rodar workflow `nightly-flaky-report.yml` (a criar) que lista tests com 
 > então um modo removido no futuro produz órfãs de novo sem sinal. Ao mexer
 > aqui, confira com `ls <dir> | wc -l` em vez de confiar no número escrito.
 
+### Antes de culpar a sua mudança: a captura mexe no desenho
+
+Medido na [[A40.l53]] (2026-08-14). O job **não** falhava só por diff contra a
+baseline — ele morria antes, no gate de estabilidade do próprio Playwright, com
+`Failed to take two consecutive stable screenshots`. Os dois erros parecem o
+mesmo vermelho e pedem ações opostas.
+
+O mecanismo: **cada `screenshot` de elemento zera a largura do `<canvas>` e a
+devolve ~212ms depois** (8 eventos de `ResizeObserver` por captura; zero com a
+página ociosa). Com `responsive: true` o Chart.js redesenha — antes com
+animação, então o gate perseguia o redesenho que ele mesmo provocava. Numa
+máquina ociosa isso não aparece (11 pares consecutivos dão 0,000%); sob CPU
+throttle 8× dava até 10,5% e não convergia em 19s, contra um limiar de 2,5% e
+um orçamento de `expect.timeout: 5000`.
+
+Consequências que economizam uma sessão:
+
+- **Esperar mais não resolve.** O tempo de acomodação é função da carga do
+  runner, e cada retry reinicia. Tentativas já queimadas: aumentar o
+  `waitForTimeout`; esperar o hash do canvas estabilizar.
+- **O comparador do gate de estabilidade usa as MESMAS opções do spec.** A 1ª
+  captura é comparada direto com a baseline (se casar, passa na hora); só da 2ª
+  em diante é captura-contra-captura. Por isso o `actual.png` que sobra pode
+  estar dentro da tolerância — o conteúdo estava certo, o desenho é que não
+  parava.
+- O projeto `visual` emula `prefers-reduced-motion`, que o `ChartRegistry`
+  honra desligando a animação do Chart.js. Isso é **um caminho de render só**,
+  não uma flag de ambiente de teste: gate verde sobre um render que o usuário
+  não recebe seria pior que gate vermelho.
+
+**Triagem, enquanto o vermelho for de outra causa.** Nunca compare captura
+local × baseline (macOS × Linux domina o diff) nem PNG por bytes. Compare
+`actual` × `actual` de **dois runs no mesmo runner** — o do PR e um controle
+cortado de `origin/main` — por pixel, limiar ~8/255:
+
+```bash
+git push origin origin/main:refs/heads/chore/visual-control-$(date +%Y%m%d)
+gh workflow run CI --ref chore/visual-control-$(date +%Y%m%d) -f run_visual=true
+```
+
+Depois `gh run download <run> -n report-visual-snapshots` nos dois. Foi assim
+que se provou que 5 de 6 falhas eram herdadas de `main`, não da lane.
+
+**O passivo de `main` se regenera em horas, não é um lote a limpar.** As 6
+baselines podres de 2026-08-12 foram refeitas pelo #1384; o controle de 08-13
+fechou 28/28; o de 08-14 já tinha 7 vermelhas — 4 delas (S7/S8) do #1448,
+mergeado 22 minutos antes **sem o label `visual`**. Rebaseline é sempre *do que
+estiver vermelho no dia do PR*, com o PNG olhado, nunca de uma lista escrita.
+
+**O mecanismo tem gate próprio, sem baseline e sem label:**
+`chart-determinismo.@critical.spec.ts` prova (a) que a imagem que o PDF
+renderiza é a que está no canvas e (b) que sob reduced-motion + throttle as
+capturas consecutivas são idênticas. Roda no `Report render gate`, que
+`all-green` exige.
+
 ### O gate de inventário é o irmão em texto — leia-o antes de rebaselinar
 
 Diff de PNG não é revisável em PR, e é por isso que **rebaselinar é a saída
