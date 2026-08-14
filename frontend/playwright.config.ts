@@ -75,7 +75,14 @@ export default defineConfig({
         // capturas e `toHaveScreenshot` morre no gate de estabilidade, antes
         // de comparar com a baseline. Com a media query, o Chart.js não anima
         // (ver `ChartRegistry`) e o redesenho é instantâneo.
-        reducedMotion: "reduce",
+        //
+        // Vai em `contextOptions` porque nesta versão `reducedMotion` NÃO é
+        // chave de topo de `use` — escrita ali, o TS reclama e, num spec,
+        // `test.use({ reducedMotion })` passa a ser no-op silencioso
+        // (`matchMedia` devolve `false` e a medição parece refutar o fix).
+        // `setupReport` afirma a media query justamente para não voltar a
+        // confiar nesta linha sem prova.
+        contextOptions: { reducedMotion: "reduce" },
       },
     },
   ],

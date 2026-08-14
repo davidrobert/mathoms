@@ -231,17 +231,30 @@ cobre o PDF, porque o `pdf_renderer` não emula `reduced-motion`: a captura do
 `printSrc` precisa acontecer no fim da animação (`animation.onComplete`), não
 num timer cego.
 
-### Escopo revisado proposto
+### Escopo revisado — decidido pelo dono em 2026-08-14
+
+O §6 fica **dentro** desta lane: a raiz é a mesma, e fechar só o gate deixaria
+o defeito do PDF invisível para o próprio gate criado para vê-lo.
 
 1. `prefers-reduced-motion` desliga a animação do Chart.js + `reducedMotion` no
-   projeto `visual` (medido no §2). **Sem** flag de ambiente de teste.
-2. Sonda de estabilidade como teste permanente (§5), sob throttle de CPU, sem
-   baseline.
-3. Rebaseline **do que estiver vermelho no dia do PR**, com PNG olhado um a um
+   projeto `visual` (§2). **Sem** flag de ambiente de teste.
+2. `ChartCanvas` serializa o fallback de impressão quando o Chart.js **para de
+   emitir render** (plugin `mathomsRenderSignal` + debounce), não num timer
+   cego de 300ms (§6).
+3. Gate permanente **sem baseline e sem label** —
+   `chart-determinismo.@critical.spec.ts`, no `Report render gate` que
+   `all-green` exige. Prova as duas coisas, e ambas foram verificadas por
+   mutação:
+   - voltar ao timer de 300ms ⇒ *"a imagem de impressão difere do canvas"*;
+   - tirar o `reduced-motion` do `ChartRegistry` ⇒ *"capturas 0 e 1 diferem sob
+     throttle 6×"*.
+4. Comentário de `ci.yml:1287-1290` corrigido: o job **gateia** merge (§4).
+5. `TESTING.md` §"Antes de culpar a sua mudança" — método `actual`×`actual`,
+   o mecanismo do resize e o fato de o gate de estabilidade ser um erro
+   distinto do diff de baseline (§1, §5).
+6. Rebaseline **do que estiver vermelho no dia do PR**, com PNG olhado um a um
    — não da lista de 2026-08-12 (§3).
-4. Corrigir o comentário de `ci.yml:1287-1290`, que contradiz `ci.yml:1567`
-   (§4).
-5. `TESTING.md` recebe o método `actual`×`actual` **e** o fato de que a captura
-   redimensiona o canvas (§1) — sem isso a próxima pessoa repete a sonda.
-6. **Fora desta lane** (proposta de lane nova): o §6, que é defeito de produto
-   no PDF, não de CI.
+
+O critério de aceite 1 permanece sem instrumento em run verde (§5); o item 3
+acima o substitui por uma prova que roda em todo PR de frontend, em vez de 3
+execuções manuais no mesmo commit.

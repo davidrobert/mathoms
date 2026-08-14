@@ -1284,10 +1284,21 @@ jobs:
     # tornava este gate refém de quem lembrasse do label no segundo certo.
     # O run do label NÃO cancela o run em voo — ver §concurrency.
     #
-    # O que continua NÃO sendo verdade: que vermelho aqui impeça merge. Este
-    # job não está em `all-green.needs`, então o resultado é informativo —
-    # mesma condição já medida para `frontend-e2e` (ADR-210 §Adendo
-    # 2026-07-31). Rodar é pré-condição de gatear, não gatear.
+    # **Desde o #1428 vermelho aqui IMPEDE merge**: este job entrou em
+    # `all-green.needs` (ver o bloco daquele job). O texto anterior dizia o
+    # contrário e sobreviveu dois dias ao commit que o desmentia, no mesmo
+    # arquivo — quem ler este bloco confira o `needs` antes de concluir que o
+    # gate é informativo.
+    #
+    # Consequência: aplicar o label `visual` — a coisa certa ao mexer no
+    # relatório — passou a ser o que BLOQUEIA o PR. Enquanto `main` acumular
+    # drift de PR que não pediu o label, quem pede herda o vermelho alheio.
+    # O flake que tornava isso pior está fechado (A40.l53): a captura do
+    # Playwright zerava a largura do canvas e o Chart.js redesenhava com
+    # animação, então o gate de estabilidade perseguia o redesenho que ele
+    # mesmo provocava. O projeto `visual` emula `prefers-reduced-motion`, que
+    # o `ChartRegistry` honra. Gate permanente do mecanismo (sem baseline, no
+    # job required) em `tests/e2e/reports/chart-determinismo.@critical.spec.ts`.
     name: Frontend visual snapshots (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 25

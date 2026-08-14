@@ -99,9 +99,20 @@ async function setupReport(page: Page, theme: Theme): Promise<void> {
   await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
   await waitForReportReady(page);
 
-  // Aguarda chart canvases renderizarem (chart.js anima por default;
-  // animation:disabled no playwright config cobre CSS, não canvas).
-  await page.waitForTimeout(500);
+  // A40.l53 — sem esta afirmação, o projeto perder `contextOptions.reducedMotion`
+  // volta a ser invisível: os snapshots simplesmente ficariam flaky de novo, e o
+  // vermelho pareceria drift de baseline. `reducedMotion` NÃO é chave de topo de
+  // `use` nesta versão — escrita ali, vira no-op silencioso.
+  const semMovimento = await page.evaluate(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  if (!semMovimento) {
+    throw new Error(
+      "projeto `visual` sem `contextOptions.reducedMotion: 'reduce'` — o Chart.js " +
+        "volta a animar e o gate de estabilidade do Playwright passa a perseguir " +
+        "o redesenho que a própria captura provoca (A40.l53)",
+    );
+  }
 }
 
 async function snapshotSection(
