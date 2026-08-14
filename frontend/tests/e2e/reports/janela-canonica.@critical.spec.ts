@@ -84,9 +84,9 @@ function consumoCard(page: Page): Locator {
 }
 
 function receitasFonteCard(page: Page): Locator {
-  return page
-    .locator("section.card-variant-feature")
-    .filter({ has: page.getByRole("heading", { name: "Receitas por Fonte" }) });
+  return page.locator("section.card-variant-feature").filter({
+    has: page.getByRole("heading", { name: "Composição das Receitas" }),
+  });
 }
 
 function consumoCategoriaCard(page: Page): Locator {
@@ -184,6 +184,9 @@ test.describe("janela canônica de fluxo @critical", () => {
         receitasFonteCard(page).getByTestId("receita-window-kpi"),
       ).toHaveText(item.receita);
       await expect(
+        receitasFonteCard(page).getByTestId("receita-natureza-strip"),
+      ).toBeVisible();
+      await expect(
         consumoCategoriaCard(page).getByTestId("consumo-window-kpi"),
       ).toHaveText(item.consumo);
       await expect(
@@ -197,6 +200,9 @@ test.describe("janela canônica de fluxo @critical", () => {
       await expect(
         receitasFonteCard(page).getByTestId("receita-window-kpi"),
       ).toHaveText(item.receita);
+      await expect(
+        receitasFonteCard(page).getByTestId("receita-natureza-strip"),
+      ).toBeVisible();
       await expect(
         consumoCategoriaCard(page).getByTestId("consumo-window-kpi"),
       ).toHaveText(item.consumo);

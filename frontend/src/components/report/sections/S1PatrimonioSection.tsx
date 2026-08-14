@@ -33,14 +33,15 @@ interface S1Props {
 
 /** F9 · F2.A — Seção S1 (Patrimônio — Estrutura e Composição).
  *
- * Renderiza 3 charts + 4 cards consumindo dados do E5 JSON. Hero KPI vive
+ * Renderiza 3 charts + cards consumindo dados do E5 JSON. Hero KPI vive
  * em `<ExecutiveSummarySection>` antes de S1 (v2.F.2).
  */
 export function S1PatrimonioSection({ data, reportId }: S1Props) {
   const patrimonio = data.patrimonio as PatrimonioData | undefined;
   const reserva = data.reserva_emergencia as ReservaEmergenciaData | undefined;
   const endividamento = data.endividamento as EndividamentoData | undefined;
-  const exposicaoCambial = data.exposicao_cambial as ExposicaoCambialData | undefined;
+  const exposicaoCambial = data.exposicao_cambial as
+    ExposicaoCambialData | undefined;
   const score = readScoreData(data.score);
   const scoreClasse = readScoreClasse(score?.classificacao);
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
@@ -110,7 +111,12 @@ export function S1PatrimonioSection({ data, reportId }: S1Props) {
 
 function readScoreClasse(value: string | undefined): ScoreClasse | undefined {
   const classes: readonly ScoreClasse[] = [
-    "Excelente", "Bom", "Regular", "Ruim", "Péssimo", "Crítico",
+    "Excelente",
+    "Bom",
+    "Regular",
+    "Ruim",
+    "Péssimo",
+    "Crítico",
   ];
   return classes.find((item) => item === value);
 }

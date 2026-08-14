@@ -215,6 +215,7 @@ export default [
   {
     files: [
       "src/components/report/cards/ReceitasFonteCard.tsx",
+      "src/components/report/cards/ReceitasNaturezaStrip.tsx",
       "src/components/report/cards/OrcamentoProspectivoCard.tsx",
     ],
     rules: {
