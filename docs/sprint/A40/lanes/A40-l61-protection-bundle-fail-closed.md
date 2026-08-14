@@ -4,7 +4,9 @@ type: lane
 title: "ProtectionBundle fail-closed: ausência de insumo não vira zero/False e filho conta como dependente"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1443
+ship_date: "2026-08-14"
 priority: P1
 branch_slug: a40-l61-protection-bundle-fail-closed
 adrs:
@@ -14,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/backend
   - area/financial-planning
@@ -25,6 +27,10 @@ tags:
 > **Aberta e iniciada em 2026-08-13**, no co-design da [[A40.l35]]. É a
 > mitigação imediatamente mergeável do split [[A40.l61]] → [[A40.l62]] →
 > [[A40.l35]]. Não liga a S9 nem conta como entrega parcial da l35.
+
+> **Entregue em 2026-08-14 pelo PR #1443** (`0a343302`). O fail-closed está em
+> `main`; [[A40.l62]] foi desbloqueada e a [[A40.l35]] continua bloqueada até a
+> fotografia run-scoped existir.
 
 ## Problema
 
