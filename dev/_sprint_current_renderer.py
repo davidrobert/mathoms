@@ -17,10 +17,19 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, Callable, Protocol
 
 _SPRINT_CURRENT_TITLE = "SPRINT_CURRENT — Lanes da sprint corrente"
-_SPRINT_CURRENT_FOOTER = ("---", "> Regenerar: `python3 dev/build_doc_index.py --inline`")
+_SPRINT_CURRENT_FOOTER = (
+    "---",
+    "> Regenerar: `python3 dev/build_doc_index.py --inline`",
+    ">",
+    "> **Este arquivo não vê ocupação.** Ele deriva do frontmatter, que ninguém",
+    "> escreve no pickup: sessão que abriu worktree e ainda não commitou é",
+    "> invisível aqui, em `git for-each-ref` e em `gh pr list`. Antes de pegar",
+    "> qualquer lane abaixo, rode `python3 dev/lane_pickup.py <id>`.",
+)
 
 # Status de lane que contam como "prontos para pickup" / "em execução".
 # `consumed` é status de TRACK (não lane) e nunca aparece aqui.
@@ -31,6 +40,17 @@ _STATUS_HEADINGS: dict[str, str] = {
     "open": "Open",
     "in_progress": "In progress",
 }
+
+# `blocked` ganha seção própria: enquanto ele só sumia daqui, lane P0 ficava
+# invisível exatamente quando a dependência shippava e ela virava pegável
+# (medido 2× na A40 — _README §Delta 2026-08-06 e §Delta 2026-08-07). O gate
+# `dev/check_lane_status_predicate.py` mata o caso derivável; esta seção cobre
+# o resto, mostrando o bloqueador em vez de esconder a lane.
+_LANE_STATUS_BLOCKED = "blocked"
+_TERMINAL_STATUS: frozenset[str] = frozenset({"shipped", "cancelled"})
+
+# `[[Alvo]]`, `[[Alvo|apelido]]`, `[[Alvo#anchor]]` — captura só o alvo.
+_WIKILINK_TARGET_RE = re.compile(r"^\[\[([^\]|#]+)")
 
 # Prioridade de detecção de sprint corrente. "A" (sprint oficial) ganha de "F"
 # (fase legada) que ganha de "W" (onda dentro de A). Outras letras caem por
@@ -121,27 +141,80 @@ def _bucket_lanes_by_status(lanes: list[LaneLike]) -> dict[str, list[LaneLike]]:
     return by_status
 
 
-def _summary_line(by_status: dict[str, list[LaneLike]]) -> str:
-    """Frase 'N ready · M in_progress · K open' (omite zeros)."""
+def _blocked_lanes(lanes: list[LaneLike]) -> list[LaneLike]:
+    """Lanes `blocked` da sprint — listadas para não sumirem ao ficarem pegáveis."""
+    return [lane for lane in lanes if lane.status == _LANE_STATUS_BLOCKED]
+
+
+def _summary_line(by_status: dict[str, list[LaneLike]], blocked: int = 0) -> str:
+    """Frase 'N ready · M in_progress · K open · J blocked' (omite zeros)."""
     parts: list[str] = []
     for status in _STATUS_DISPLAY_ORDER:
         count = len(by_status.get(status, []))
         if count:
             parts.append(f"{count} {status}")
+    if blocked:
+        parts.append(f"{blocked} blocked")
     if not parts:
         return "Nenhuma lane prontidão atual."
     return " · ".join(parts) + "."
 
 
-def _format_lane_line(lane: LaneLike) -> str:
-    """Linha por lane: wikilink + título + priority + branch_slug (se houver)."""
+def _dependency_ids(lane: LaneLike) -> list[str]:
+    """Alvos de `depends_on`, sem os colchetes do wikilink."""
+    out: list[str] = []
+    for raw in lane.raw.get("depends_on") or []:
+        match = _WIKILINK_TARGET_RE.match(str(raw))
+        if match:
+            out.append(match.group(1).strip())
+    return out
+
+
+def _areas(lane: LaneLike) -> list[str]:
+    """Tags `area/<x>` viram rótulo — evita abrir a lane só para saber o stack."""
+    prefix = "area/"
+    return [tag[len(prefix) :] for tag in lane.raw.get("tags") or [] if str(tag).startswith(prefix)]
+
+
+def _pending_dependencies(lane: LaneLike, status_by_id: dict[str, str]) -> list[str]:
+    """Deps conhecidas que ainda não são terminais, formatadas com o status."""
+    pending: list[str] = []
+    for dep_id in _dependency_ids(lane):
+        status = status_by_id.get(dep_id)
+        if status is not None and status not in _TERMINAL_STATUS:
+            pending.append(f"{dep_id} ({status})")
+    return pending
+
+
+def _dependency_note(lane: LaneLike, status_by_id: dict[str, str]) -> list[str]:
+    """Nota de dependência: só aparece quando há dep pendente."""
+    pending = _pending_dependencies(lane, status_by_id)
+    if not pending:
+        return []
+    if lane.raw.get("partial_delivery") is True:
+        return [f"⚠️ entrega parcial — dep pendente: {', '.join(pending)}"]
+    return [f"⛔ dep pendente: {', '.join(pending)}"]
+
+
+def _lane_extras(lane: LaneLike, status_by_id: dict[str, str]) -> list[str]:
+    """Campos que decidem pickup — a pergunta se responde aqui, não no arquivo."""
     extras: list[str] = []
     priority = lane.raw.get("priority")
     if priority not in (None, ""):
         extras.append(f"priority {priority}")
+    areas = _areas(lane)
+    if areas:
+        extras.append(f"área {'/'.join(areas)}")
+    extras.extend(_dependency_note(lane, status_by_id))
     branch_slug = lane.raw.get("branch_slug")
     if branch_slug not in (None, ""):
         extras.append(f"branch `{branch_slug}`")
+    return extras
+
+
+def _format_lane_line(lane: LaneLike, status_by_id: dict[str, str] | None = None) -> str:
+    """Linha por lane: wikilink + título + o que decide pickup."""
+    extras = _lane_extras(lane, status_by_id or {})
     suffix = f" · {' · '.join(extras)}" if extras else ""
     title = lane.title or lane.id
     return f"- [[{lane.id}]] — {title}{suffix}"
@@ -152,29 +225,54 @@ def _lane_sort_key(lane: LaneLike) -> str:
     return lane.id
 
 
-def _render_status_section(status: str, bucket: list[LaneLike]) -> list[str]:
+def _render_status_section(
+    status: str, bucket: list[LaneLike], status_by_id: dict[str, str]
+) -> list[str]:
     """Renderiza um h2 de status + bullets de lanes ordenadas por id."""
     heading = _STATUS_HEADINGS.get(status, status)
     out: list[str] = [f"## {heading} ({len(bucket)})", ""]
     for lane in sorted(bucket, key=_lane_sort_key):
-        out.append(_format_lane_line(lane))
+        out.append(_format_lane_line(lane, status_by_id))
     out.append("")
     return out
 
 
-def _render_inspection_listing(sprint_lanes: list[LaneLike]) -> list[str]:
+def _render_blocked_section(bucket: list[LaneLike], status_by_id: dict[str, str]) -> list[str]:
+    """Lanes `blocked` com o bloqueador à vista — esconder a lane esconde o destravamento."""
+    out: list[str] = [
+        f"## Blocked ({len(bucket)})",
+        "",
+        "_Não pegáveis. Listadas porque `blocked` que fica stale some daqui "
+        "justamente quando a dependência ship e a lane vira pegável._",
+        "",
+    ]
+    for lane in sorted(bucket, key=_lane_sort_key):
+        out.append(_format_lane_line(lane, status_by_id))
+    out.append("")
+    return out
+
+
+def _render_inspection_listing(
+    sprint_lanes: list[LaneLike], status_by_id: dict[str, str]
+) -> list[str]:
     """Quando ready/open/in_progress está vazio: lista todas as lanes para inspeção."""
     out: list[str] = ["## Todas as lanes da sprint (para inspeção)", ""]
     by_status: dict[str, list[LaneLike]] = {}
     for lane in sprint_lanes:
         by_status.setdefault(lane.status or "(sem status)", []).append(lane)
     for status in sorted(by_status):
-        bucket = sorted(by_status[status], key=_lane_sort_key)
-        out.append(f"### {status} ({len(bucket)})")
-        out.append("")
-        for lane in bucket:
-            out.append(_format_lane_line(lane))
-        out.append("")
+        out.extend(_render_inspection_bucket(status, by_status[status], status_by_id))
+    return out
+
+
+def _render_inspection_bucket(
+    status: str, bucket: list[LaneLike], status_by_id: dict[str, str]
+) -> list[str]:
+    """Um h3 de status dentro da listagem de inspeção."""
+    out: list[str] = [f"### {status} ({len(bucket)})", ""]
+    for lane in sorted(bucket, key=_lane_sort_key):
+        out.append(_format_lane_line(lane, status_by_id))
+    out.append("")
     return out
 
 
@@ -201,13 +299,15 @@ def _render_no_lanes_in_sprint(header_fn: Callable[[str], list[str]], current: s
     return lines
 
 
-def _render_open_sections(by_status: dict[str, list[LaneLike]]) -> list[str]:
+def _render_open_sections(
+    by_status: dict[str, list[LaneLike]], status_by_id: dict[str, str]
+) -> list[str]:
     """Concatena seções `## Ready/Open/In progress` na ordem editorial, omitindo vazias."""
     out: list[str] = []
     for status in _STATUS_DISPLAY_ORDER:
         bucket = by_status.get(status, [])
         if bucket:
-            out.extend(_render_status_section(status, bucket))
+            out.extend(_render_status_section(status, bucket, status_by_id))
     return out
 
 
@@ -216,18 +316,35 @@ def _render_sprint_body(
     sprint_lanes: list[LaneLike],
     by_status: dict[str, list[LaneLike]],
     header_fn: Callable[[str], list[str]],
+    status_by_id: dict[str, str],
 ) -> list[str]:
     """Renderiza corpo do MD quando há lanes na sprint corrente (status open ou não)."""
+    blocked = _blocked_lanes(sprint_lanes)
     lines = header_fn(f"{_SPRINT_CURRENT_TITLE} — {current}")
     lines.extend(("Volta para [`00-INDEX`](../00-INDEX.md).", ""))
-    lines.extend((_summary_line(by_status), ""))
-    open_lanes = [lane for bucket in by_status.values() for lane in bucket]
-    if open_lanes:
-        lines.extend(_render_open_sections(by_status))
-    else:
-        lines.extend(_render_inspection_listing(sprint_lanes))
+    lines.extend((_summary_line(by_status, len(blocked)), ""))
+    lines.extend(_render_lane_listing(sprint_lanes, by_status, status_by_id))
+    if blocked:
+        lines.extend(_render_blocked_section(blocked, status_by_id))
     lines.extend(_SPRINT_CURRENT_FOOTER)
     return lines
+
+
+def _render_lane_listing(
+    sprint_lanes: list[LaneLike],
+    by_status: dict[str, list[LaneLike]],
+    status_by_id: dict[str, str],
+) -> list[str]:
+    """Seções por status quando há lane pegável; listagem de inspeção quando não há."""
+    open_lanes = [lane for bucket in by_status.values() for lane in bucket]
+    if open_lanes:
+        return _render_open_sections(by_status, status_by_id)
+    return _render_inspection_listing(sprint_lanes, status_by_id)
+
+
+def _status_by_id(lanes: list[LaneLike]) -> dict[str, str]:
+    """Status de TODA lane do vault — a dep de uma lane da sprint pode viver em outra."""
+    return {lane.id: lane.status for lane in lanes if lane.id}
 
 
 def render_sprint_current(
@@ -244,4 +361,4 @@ def render_sprint_current(
     if not sprint_lanes:
         return _render_no_lanes_in_sprint(header_fn, current)
     by_status = _bucket_lanes_by_status(sprint_lanes)
-    return _render_sprint_body(current, sprint_lanes, by_status, header_fn)
+    return _render_sprint_body(current, sprint_lanes, by_status, header_fn, _status_by_id(lanes))
