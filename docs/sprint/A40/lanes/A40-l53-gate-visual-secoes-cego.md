@@ -4,7 +4,9 @@ type: lane
 title: "Gate visual de seções está cego: S2 varia 5–6% entre tentativas do mesmo commit e `main` puro reprova em 6 baselines"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1453
+ship_date: "2026-08-14"
 priority: P1
 branch_slug: a40-l53-gate-visual-secoes-cego
 adrs:
@@ -13,7 +15,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/frontend
   - area/ci
@@ -271,3 +273,59 @@ o defeito do PDF invisível para o próprio gate criado para vê-lo.
 O critério de aceite 1 permanece sem instrumento em run verde (§5); o item 3
 acima o substitui por uma prova que roda em todo PR de frontend, em vez de 3
 execuções manuais no mesmo commit.
+
+---
+
+## Entregue — PR #1453, `8934b00d`, CI verde (2026-08-14)
+
+Os 6 itens do escopo revisado entraram no mesmo PR. **As afirmações no presente
+da §Ataque acima descrevem o estado de ANTES deste merge** — em particular
+"o comentário de `ci.yml:1287-1290` ainda afirma o contrário" (§4) e "cobertura
+hoje: zero" (§6), que este PR fechou. O snapshot datado fica como está; esta
+seção é o que vale hoje.
+
+| Item | Estado |
+| --- | --- |
+| 1. `prefers-reduced-motion` + `reducedMotion` no projeto `visual` | ✅ pior par consecutivo 10,485% → **0,000%** sob throttle 8× |
+| 2. `ChartCanvas` serializa no fim do desenho | ✅ plugin `mathomsRenderSignal` + 250ms de silêncio |
+| 3. Gate sem baseline e sem label | ✅ `chart-determinismo.@critical.spec.ts` no `Report render gate` |
+| 4. Comentário de `ci.yml` | ✅ corrigido |
+| 5. `TESTING.md` | ✅ §"Antes de culpar a sua mudança" |
+| 6. Rebaseline do que estava vermelho | ✅ **7** baselines (S7×2, S8×2, APP_A×2, S_parecer-retido-dark) |
+
+**Critério de aceite original, reconciliado:**
+
+- [~] *3 runs no mesmo commit com pares < 0,5%* — **substituído** pelo item 3.
+  Não tinha instrumento: em run verde o Playwright não emite `actual.png` e o
+  upload é `if: failure()`. O gate novo prova a mesma propriedade em todo PR de
+  frontend, sem depender de baseline.
+- [x] *Baselines com justificativa individual* — as 7 têm origem nomeada e PNG
+  aberto; S7/S8 são a entrega do #1448, APP_A/`S_parecer` eram deslocamento de
+  1px (alinhando `dy=1`, o `S_parecer` vai a **0 px**).
+- [x] *Provado por mutação* — nas duas direções: voltar ao timer de 300ms
+  reprova o teste do PDF; tirar o `reduced-motion` reprova o de estabilidade.
+
+**O que a esteira cobrou no meio do caminho:** as baselines de `APP_A` foram
+regeradas **duas vezes**. A primeira leva venceu em ~20 minutos, quando o
+`auto-update-prs` trouxe o **#1452** (`A40.l47` PR1), que mexeu em
+`ApendiceASection.tsx`. Terceiro PR em ~24h a mudar o render sem o label.
+
+**Defeito próprio, achado pelo CI e corrigido antes do merge:** o teste de
+estabilidade estourava `Test timeout of 30000ms` no runner — throttlava a CPU
+antes do `goto` e capturava a seção inteira (976×2960). Passou a throttlar só a
+fase de captura e a mirar um `[data-chart-canvas]` (924×256).
+
+### Fora desta lane, com dono
+
+- **Página 1 do PDF sem o hero de KPIs** — não rebaselinei: `actual` deste PR ×
+  `actual` de `main` deu **0 px**, e blessar uma página ~55% vazia sem alguém
+  afirmar a intenção era congelar o desconhecido. O **#1458** provou depois que
+  era **regressão** do #1400 (`break-before: avoid` é keep-with-*previous*: a S1
+  não cabe na sobra e o Chromium recua a quebra, arrastando o hero junto).
+  Fechado lá.
+- **`govulncheck` vermelho** (6 vulns de stdlib `go1.26.5`) — nenhuma linha de
+  Go neste diff; fechado no **#1455** com piso `go1.26.6`.
+- **[[ADR-210]] §Camada 1 diz "visual em nightly"** e o `Nightly` está
+  `disabled_manually` desde 2026-06-15 — drift **pré-existente**, já nomeado no
+  comentário do `frontend-visual` em `ci.yml`. Não é desta lane; cai para quem
+  tocar a ADR-210 ou a [[A40.l59]], que já mexe na transição de status.
