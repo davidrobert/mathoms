@@ -4,15 +4,20 @@ type: lane
 title: "Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1459
+ship_date: "2026-08-14"
 priority: P1
 branch_slug: a40-l47-semantica-de-taxa-faixa-e-base
 owner: financial-planner
+adrs:
+  - "[[ADR-191]]"
+  - "[[ADR-306]]"
 depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/frontend
@@ -232,21 +237,21 @@ o glossário definindo TRS como "Taxa de Retirada Segura" é real — só que el
 
 ### Escopo revisado
 
-- **PR1 ✅** (`c416ac90`, em `main` via #1452 `ae2b2453`) — `meta_pct` sai do payload, do domínio, do schema E5, do tipo
+- **PR1 ✅** (#1452, `ae2b2453`) — `meta_pct` sai do payload, do domínio, do schema E5, do tipo
   TS e do comparador das duas superfícies; KPI fica neutro. Removidos junto o campo
   morto `trs_meta_pct`, `trsTone` e `readYieldAlvoPct`. Emenda datada na [[ADR-191]]
   (§D6) + glossário separando "TRS (Taxa de Retirada Segura)" de "TRS efetiva" +
   `FORMULAS.md`. Gate é de **ausência na superfície**, provado por mutação.
   Deferido sem dono: `goals.yield_alvo_pct` para a família configurar alvo próprio —
   abre schema + migration + wizard, não cabe nesta lane.
-- **PR2 ✅** (`5022e8ec`) — o E5 publica `equilibrio_cerbasi.classificacao_faixas` (a
+- **PR2 ✅** (#1459, `5d3bb01b`) — o E5 publica `equilibrio_cerbasi.classificacao_faixas` (a
   régua que de fato classificou) e a legenda do apêndice renderiza dela. Escolhido
   **publicar no payload** em vez de codegen a partir do `scoring.json` global: override
   de `scoring` por workspace mantém legenda e enforcer casados, o que codegen não
   garantiria. Gate fecha a classe — régua custom aparece inteira, rótulo emitido tem de
   estar na régua, e sem régua no payload não se inventa nenhuma. Cópia morta
   (`analyze_equilibrio_cerbasi`, 81 linhas) deletada.
-- **PR3 ✅** (`6cd78488`) — o card da reserva declara a base do denominador e o que
+- **PR3 ✅** (#1459, `5d3bb01b`) — o card da reserva declara a base do denominador e o que
   ficou fora, com o acoplamento explícito ("reduzir uma classe sobre-alocada pode
   derrubar a cobertura"). `base_denominador` + `excluido_da_reserva` ganham leitor.
   **Todas as três** chaves de exclusão são exibidas, inclusive
@@ -262,3 +267,38 @@ O aceite entregue é **declaração de base**, que a fixture do dogfood exercita
 `dogfood_view_model.json` tem `composicao_liquida.total_liquido` batendo exato com a
 linha "Renda Fixa" de `tabela_classes`. Isso é **deferido sem dono**: exige fixture
 sintética própria, e nenhum gate atual a alcança.
+
+## Fechamento 2026-08-14 — o que os merges mudaram nas medições acima
+
+> O §Ataque é **snapshot datado**: mede o repo de antes dos PRs e não se reescreve.
+> Esta seção registra quais daquelas medições **deixaram de valer** com #1452 e #1459,
+> para ninguém reler número vencido como estado atual. Re-medido agora, não relido.
+
+| Medição do §Ataque | Estado em `main` após os merges |
+| --- | --- |
+| `RentabilidadeConfig.meta_pct` "vivo — card S3 + sublabel S7 + parecer" | **não existe** — removido do domínio, do schema E5 e do tipo TS (#1452) |
+| manifest publica `meta_pct` **2×** ao LLM | `grep -c meta_pct config/prompts/parecer_planejador.yaml` → **0** |
+| `PassiveIncomeConfig.trs_meta_pct` morto | **removido** (#1452) |
+| faixas do equilíbrio presente/futuro em **3 sítios de código** | **2** — `scoring.json` (fonte) + `_DEFAULT_CLASSIFICACAO` (fallback). A cópia morta em `analyze_finances.py` saiu, e a legenda deixou de ser sítio: renderiza do payload |
+| `base_denominador` e `excluido_da_reserva` com **zero leitores** em `frontend/src` | **têm leitor** — `ReservaEmergenciaCard.tsx` + `report-analysis.ts` (#1459) |
+
+Segue valendo: a divergência **base-da-reserva > carteira exibida** continua sem
+fixture que a reproduza, e `excluido_da_reserva.caixa_moeda_estrangeira` continua com a
+triagem da [[A40.l50]].
+
+## Deferidos com dono e condição de retomada
+
+Os dois itens abaixo saíram do escopo **com decisão registrada**, não por esquecimento.
+
+1. **`goals.yield_alvo_pct`** — chave para a família configurar alvo de rendimento
+   próprio, separado da taxa de saque. Registrado como não-objetivo na [[ADR-191]] §D6.
+   **Dono: `financial-planner`** (dono desta lane). **Condição de retomada:** pedido de
+   usuário por comparador de rentabilidade, ou revisão de relatório que aponte a
+   ausência do sinal "abaixo do esperado" como perda. Custo: schema de goals +
+   migration + campo no wizard — lane própria, não emenda.
+2. **Fixture da divergência base-vs-carteira** — o `dogfood_view_model.json` não
+   expressa o caso (`composicao_liquida.total_liquido` bate exato com a linha
+   "Renda Fixa" de `tabela_classes`), então gate construído sobre ele nasce cego.
+   **Dono: `data-engineer`** (gatilho de fixture/contrato entre stages).
+   **Condição de retomada:** ao construir qualquer gate sobre a composição da reserva —
+   sem fixture sintética própria, o gate passa verde sem exercitar o achado.
