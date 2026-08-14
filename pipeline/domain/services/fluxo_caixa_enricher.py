@@ -26,6 +26,11 @@ from typing import Any
 from pipeline.domain.services.essential_expense_calculator import (
     compute_custo_essencial_mensal,
 )
+from pipeline.domain.services.fluxo_janelas import (
+    FluxoJanela,
+    PeriodoJanela,
+    build_fluxo_janelas,
+)
 from pipeline.domain.services.provisionado_cutoff import split_provisionado
 from pipeline.domain.services.receita_natureza import compute_receita_por_natureza
 
@@ -230,6 +235,7 @@ class FluxoCaixaEnriched:
     chart_totais_receita: tuple[float, ...]
     chart_totais_despesa: tuple[float, ...]
     janela_12m: Janela12m
+    janelas: dict[PeriodoJanela, FluxoJanela]
     # Track T06 — despesa média mensal das ``categorias_in`` no período
     # completo. Decimal (ADR-090); serializado em float no legacy_dict
     # por paridade com os demais campos desta dataclass.
@@ -276,6 +282,7 @@ class FluxoCaixaEnriched:
                 "totais_despesa": [round(v, 2) for v in self.chart_totais_despesa],
             },
             "janela_12m": self.janela_12m.to_dict(),
+            "janelas": {periodo: janela.to_dict() for periodo, janela in self.janelas.items()},
         }
         if self.consolidacao_cross_documento:
             out["consolidacao_cross_documento"] = self.consolidacao_cross_documento
@@ -366,6 +373,7 @@ class FluxoCaixaEnricher:
 
         # Janela 12m.
         janela_12m = self._compute_janela_12m(fluxo_mensal, meses)
+        janelas = build_fluxo_janelas(receitas, fluxo_mensal, self._config.transfer_categories)
 
         # por_fonte_detalhado (12m window).
         por_fonte_detalhado = self._compute_por_fonte_detalhado(fluxo_mensal, meses)
@@ -388,6 +396,7 @@ class FluxoCaixaEnricher:
             chart_totais_receita=chart_data["totais_receita"],
             chart_totais_despesa=chart_data["totais_despesa"],
             janela_12m=janela_12m,
+            janelas=janelas,
             despesa_mensal_essencial=despesa_mensal_essencial,
             num_months=len(meses),
             consolidacao_cross_documento=_le_consolidacao(fluxo_mensal),

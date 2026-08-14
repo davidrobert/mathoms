@@ -91,6 +91,16 @@ def test_array_paired_by_natural_key_reorder_is_unchanged():
     assert all(d.kind == "unchanged" for d in diffs), _kinds(diffs)
 
 
+@pytest.mark.parametrize("natural_key", ["fonte", "natureza"])
+def test_fluxo_window_rows_pair_by_natural_key(natural_key: str):
+    old = {"rows": [{natural_key: "A", "mensal_media": 10.0}]}
+    new = {"rows": [{natural_key: "A", "mensal_media": 11.0}]}
+
+    [diff] = [d for d in diff_golden(old, new) if d.kind == "value_delta"]
+
+    assert diff.path == "rows[A].mensal_media"
+
+
 def test_array_natural_key_detects_value_delta_in_item():
     old = {"composicao": [{"categoria": "A", "valor": 10.0}]}
     new = {"composicao": [{"categoria": "A", "valor": 11.0}]}

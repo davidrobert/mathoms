@@ -7,6 +7,7 @@ phase: "A40"
 date: "2026-08-11"
 relates_to:
   - "[[ADR-306]]"
+  - "[[ADR-333]]"
   - "[[ADR-212]]"
   - "[[ADR-090]]"
   - "[[ADR-370]]"
@@ -86,7 +87,11 @@ produtor está correto e a divergência nasce inteira na derivação do cliente.
 **D1 — Conjunto fechado, pré-computado pelo produtor.** `fluxo_caixa.janelas` é um
 mapa de chaves fixas — `3m`, `6m`, `12m`, `ytd` — emitido por
 `fluxo_caixa_enricher.py`, a partir da mesma série (`meses_ordenados`) que já
-alimenta a `janela_12m`.
+alimenta a `janela_12m`. `3m`/`6m`/`12m` selecionam os últimos N meses
+documentados com movimento, mesmo quando há gaps civis; `ytd` seleciona os meses
+documentados do ano do último mês realizado. O breakdown de receita usa as
+categorias canônicas de `receitas.dados`, restritas ao mesmo conjunto de meses —
+nunca `origem`, que pode carregar detalhe livre/PII.
 
 **D2 — Cada janela carrega o quociente, não os ingredientes:**
 
@@ -96,13 +101,24 @@ alimenta a `janela_12m`.
 | `receita_mensal_media`, `despesa_mensal_media` | **o quociente já calculado** |
 | `janela`, `janela_meses` | vocabulário [[ADR-306]] D2 — rótulo impresso, não tooltip |
 | `mes_inicio`, `mes_fim` | fronteira da janela, para o rodapé declarar o que mediu |
+| `despesa_consumo_mensal_media`, `transferencia_patrimonial_mensal` | separação [[ADR-333]]: orçamento é consumo ex-aporte; saída bruta continua conservada |
 
 Emitir numerador e denominador separados convidaria o cliente a dividir de novo —
 que é exatamente a classe que esta ADR fecha.
 
+Os dois cards também recebem **rows table-ready**, já ordenadas e com percentuais:
+`tabela_receitas_por_fonte_mensal`,
+`tabela_receita_por_natureza_mensal` e
+`tabela_consumo_por_categoria_mensal`. A última inclui o Pareto acumulado. Totais,
+médias por row e percentuais fecham em centavos/basis points por alocação
+determinística do resíduo — nunca por bucket fictício "Ajuste". A tabela de
+consumo exclui todas as `transfer_categories`; a identidade publicada é
+`despesa_mensal_media = despesa_consumo_mensal_media +
+transferencia_patrimonial_mensal`.
+
 **D3 — O toggle seleciona bloco; não calcula.** O cliente **não faz aritmética
-monetária**: nem soma, nem divide, nem filtra por predicado de categoria. Trocar
-de janela é trocar de chave no mapa.
+monetária nem tabular**: não soma, divide, filtra, ordena valores nem calcula
+percentual/Pareto. Trocar de janela é trocar de chave no mapa.
 
 ### Invariante (o que o gate enforça)
 
@@ -127,7 +143,8 @@ a propriedade que motiva esta ADR permanece intacta.
 
 ## Consequências
 
-- **Payload cresce poucos KB** — quatro blocos de oito escalares.
+- **Payload cresce poucos/dezenas de KB** — quatro blocos de escalares e três
+  tabelas pequenas, preço aceito para seleção atômica e auditável.
 - **Janela nova exige re-run e rebaseline de golden.** Adicionar `24m` deixa de
   ser mudança de front-end.
 - **Range customizado (date picker livre) deixa de ser possível sem re-run.**
@@ -140,6 +157,9 @@ a propriedade que motiva esta ADR permanece intacta.
 - Conforma à fronteira da [[ADR-212]] (o relatório lê artefato, não o razão) e não
   introduz float novo: **remove** a aritmética que o JavaScript fazia em `number`
   sobre dinheiro ([[ADR-090]]).
+- `receita_por_natureza` top-level continua full-period. A superfície com toggle
+  consome a projeção **da janela selecionada**; usar o bloco top-level sob 3M/6M
+  seria misturar bases.
 
 ## Gate
 
@@ -151,6 +171,9 @@ a propriedade que motiva esta ADR permanece intacta.
    lado do `no-restricted-syntax` da [[ADR-306]] D1 (que restringe *campo*, não
    *import*): `src/components/report/**` não importa `usePeriodTransactions` nem
    `listTransactions`.
+3. **Lineage dos campos renderizados.** Totais, médias e valores monetários das
+   rows de cada janela têm entrada em `_lineage`, com `rule_ref` desta ADR; existir
+   no JSON sem ser alcançável por `explain_number.py` não cumpre o invariante.
 
 ### O que este gate NÃO pega
 
@@ -173,3 +196,8 @@ Registrado porque gate cuja fronteira não está escrita vira garantia presumida
 **ordem obrigatória**: o corte de futuro no produtor vem **antes** da correção da
 taxonomia, senão o divisor parece validado e o gate fecha verde com o número
 ainda errado (anti-fix registrado no RV4-03).
+
+**Emenda de implementação 2026-08-14:** `senior-cto` + `data-engineer` +
+`financial-planner` fecharam rows table-ready, natureza por janela, alocação de
+resíduo, YTD histórico e orçamento ex-aporte. Sem esses campos, PR5/PR6 exigiriam
+reagregação no cliente e contradiriam D3.

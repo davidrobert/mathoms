@@ -6,7 +6,7 @@ sprint: A40
 plan: PLAN-report-trust
 status: in_progress
 priority: P0
-branch_slug: a40-l41-janela-interativa-pre-computada
+branch_slug: a40-l44-janela-interativa-pre-computada
 adrs:
   - "[[ADR-377]]"
   - "[[ADR-306]]"
@@ -129,15 +129,22 @@ Vem **depois** de PR1/PR2 porque aqueles conformam a um `Decidido` existente
 
 `fluxo_caixa.janelas` = `3m` | `6m` | `12m` | `ytd`, cada uma com
 `receita_total`, `despesa_total`, `receita_mensal_media`, `despesa_mensal_media`,
-`janela`, `janela_meses`, `mes_inicio`, `mes_fim` ([[ADR-377]] D1/D2).
+`despesa_consumo_mensal_media`, `transferencia_patrimonial_mensal`, `janela`,
+`janela_meses`, `mes_inicio`, `mes_fim` e três tabelas prontas: receita por fonte,
+receita por natureza e consumo por categoria ([[ADR-377]] D1/D2). Rows trazem
+média, percentual e, no consumo, Pareto acumulado; o cliente não ordena nem
+calcula. O orçamento exclui `transfer_categories` conforme [[ADR-333]].
 Co-change obrigatório: `config/schemas/e5_analysis.schema.json`, DTO do
-view-model, tipos do frontend.
+view-model, tipos do frontend e `_lineage` dos valores renderizados.
 
 **Aceite:** as quatro janelas emitidas sobre a mesma série · `janela_meses` reflete
 meses **com movimento**, não a constante do enum · schema declarado e validado no
-hook pós-write do `DBArtifactStore` ([[ADR-212]]) · snapshot do view-model
+hook pré-persistência do `DBArtifactStore` ([[ADR-212]]) · snapshot do view-model
 rebaselinado com delta declarado · **o quociente é emitido pronto** — emitir
-numerador e denominador convidaria o cliente a dividir de novo.
+numerador e denominador convidaria o cliente a dividir de novo · rows fecham em
+centavos e 100,00% sem balde de ajuste · YTD usa o ano do último movimento ·
+`janelas["12m"]` reconcilia com `janela_12m` · `explain_number.py` alcança os
+valores monetários table-ready.
 
 ### PR5 — o cliente seleciona e a agregação é deletada
 
@@ -155,7 +162,9 @@ comentado — deletados; código morto que agrega dinheiro volta.
   não importa `usePeriodTransactions` nem `listTransactions`. **Prova do gate:**
   arquivo de fixture com o import ⇒ `eslint` sai ≠ 0.
 - **Zero aritmética monetária no cliente** nos dois cards: nem `+`, nem `/`, nem
-  filtro por categoria.
+  filtro/ordenação por valor nem cálculo de percentual/Pareto.
+- O orçamento usa `despesa_consumo_mensal_media`, rotulado como média histórica
+  ex-transferências; `despesa_mensal_media` permanece a saída bruta conservada.
 - Tela e PDF exibem o **mesmo** número nas quatro janelas do toggle — verificação
   renderizada, capturando **as quatro**, não só a default (§Débito de método da r4
   nº 3).
@@ -167,9 +176,10 @@ consumido por `parecer_ancorabilidade.py` e pelo prompt do parecer, e tem **zero
 consumidores** em `frontend/src` — a tela re-deriva pior a mesma resposta (RV4-08,
 mesma família do RV3-02).
 
-**Aceite:** o corte por natureza da S1 lê `receita_por_natureza` · a r4 já mediu
-que o campo **fecha com o total de receita ao centavo** — o teste ancora nessa
-identidade, não em valor literal.
+**Aceite:** o corte por natureza da S1 lê
+`janelas[period].tabela_receita_por_natureza_mensal` (o bloco top-level é full e
+não serve ao toggle) · a r4 já mediu que a natureza **fecha com o total de receita
+ao centavo** — o teste ancora nessa identidade, não em valor literal.
 
 ## Critério de aceite da lane
 

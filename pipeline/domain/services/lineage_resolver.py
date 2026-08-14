@@ -18,7 +18,17 @@ _MISSING = object()
 _SEGMENT_RE = re.compile(r"^(?P<name>[^.\[\]]+)(?:\[(?P<selector>[^\]]+)\])?$")
 # Chaves naturais para selecionar item de lista por valor (paridade com
 # golden_diff._NATURAL_KEYS).
-_NATURAL_KEYS = ("categoria", "property_id", "codigo_rfb", "code", "id", "nome", "key")
+_NATURAL_KEYS = (
+    "categoria",
+    "fonte",
+    "natureza",
+    "property_id",
+    "codigo_rfb",
+    "code",
+    "id",
+    "nome",
+    "key",
+)
 
 
 class LineageResolver:

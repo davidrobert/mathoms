@@ -324,6 +324,49 @@ def test_provisionado_sai_do_realizado_sem_sumir(e5_com_provisionado: dict):
     assert _cents(prov["despesa_brl"]) == 0
 
 
+def test_janelas_table_ready_fecham_em_centavos(e5_payload: dict):
+    for janela in e5_payload["fluxo_caixa"]["janelas"].values():
+        fontes = janela["tabela_receitas_por_fonte_mensal"]
+        naturezas = janela["tabela_receita_por_natureza_mensal"]
+        consumo = janela["tabela_consumo_por_categoria_mensal"]
+        assert sum(_cents(row["mensal_media"]) for row in fontes) == _cents(
+            janela["receita_mensal_media"]
+        )
+        assert sum(_cents(row["mensal_media"]) for row in naturezas) == _cents(
+            janela["receita_mensal_media"]
+        )
+        assert sum(_cents(row["mensal_media"]) for row in consumo) == _cents(
+            janela["despesa_consumo_mensal_media"]
+        )
+
+
+def test_janelas_separam_consumo_de_transferencia(e5_payload: dict):
+    for janela in e5_payload["fluxo_caixa"]["janelas"].values():
+        bruto = _cents(janela["despesa_mensal_media"])
+        consumo = _cents(janela["despesa_consumo_mensal_media"])
+        transferencia = _cents(janela["transferencia_patrimonial_mensal"])
+        assert bruto == consumo + transferencia
+        assert all(
+            row["categoria"] != "aporte_investimento"
+            for row in janela["tabela_consumo_por_categoria_mensal"]
+        )
+
+
+def test_janela_interativa_12m_reconcilia_com_legado(e5_payload: dict):
+    fc = e5_payload["fluxo_caixa"]
+    nova = fc["janelas"]["12m"]
+    legada = fc["janela_12m"]
+    assert nova["janela_meses"] == legada["janela_meses"]
+    assert _cents(nova["receita_total"]) == _cents(legada["receita_total"])
+    assert _cents(nova["despesa_total"]) == _cents(legada["despesa_total"])
+
+
+def test_janelas_nao_reintroduzem_mes_provisionado(e5_com_provisionado: dict):
+    fc = e5_com_provisionado["fluxo_caixa"]
+    for janela in fc["janelas"].values():
+        assert janela["mes_fim"] is None or janela["mes_fim"] <= fc["data_corte"][:7]
+
+
 # DE-02 (R3.4b) + A37.l7 PR-2: conservação da renda passiva observada (ADR-191 +
 # ADR-336). O numerador da TRS (renda_passiva_anual) é só yield RECORRENTE — a
 # distribuição de lucro PJ do titular (renda de trabalho, ADR-191) e o ganho de

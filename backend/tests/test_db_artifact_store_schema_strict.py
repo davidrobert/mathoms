@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from copy import deepcopy
 
 import jsonschema
 import pytest
@@ -19,8 +20,37 @@ from backend.app.models import (
 )
 from backend.app.services.storage.db_artifact_store import DBArtifactStore
 from backend.app.tasks.pipeline_task import _run_stage_with_retry
+from pipeline.domain.services.fluxo_janelas import build_fluxo_janelas
 
 _INVALID_E3 = {"not_a_valid_e3_shape": True}
+
+
+def _empty_provisionado() -> dict:
+    return {
+        "data_corte": "2026-08-14",
+        "receita_brl": 0,
+        "despesa_brl": 0,
+        "por_fonte": {},
+        "por_categoria": {},
+        "transacoes": 0,
+        "primeiro_mes": None,
+        "ultimo_mes": None,
+    }
+
+
+def _valid_e5() -> dict:
+    janelas = build_fluxo_janelas({}, {"meses_ordenados": []}, frozenset())
+    return {
+        "score": {"valor": 0, "classificacao": "Inicial"},
+        "patrimonio": {"bruto": 0, "liquido": 0},
+        "fluxo_caixa": {
+            "janela": "full",
+            "janela_meses": 0,
+            "data_corte": "2026-08-14",
+            "provisionado": _empty_provisionado(),
+            "janelas": {key: value.to_dict() for key, value in janelas.items()},
+        },
+    }
 
 
 @pytest.fixture(autouse=True)
@@ -132,6 +162,29 @@ async def test_mode_override_per_schema_bloqueia_so_o_schema_alvo(db: AsyncSessi
     assert outcome == "raised"
     # e5_analysis não tem override → warn → write inválido prossegue.
     assert await _run(db, lambda c: _write_invalid_e5(c, ws_id, run_id)) is True
+
+
+def _write_e5(sync_conn, ws_id, run_id, payload: dict) -> bool:
+    with Session(sync_conn) as session:
+        store = DBArtifactStore(session, workspace_id=ws_id, pipeline_run_id=run_id)
+        store.write("E5", "analise_financeira", payload)
+        session.commit()
+        return session.query(PipelineArtifact).filter_by(stage="E5").one_or_none() is not None
+
+
+@pytest.mark.asyncio
+async def test_strict_e5_persiste_janelas_validas_e_rejeita_shape_incompleto(
+    db: AsyncSession, monkeypatch
+):
+    monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+    ws_ok, run_ok = await _seed(db, email="janelas-ok@test.com")
+    assert await _run(db, lambda c: _write_e5(c, ws_ok, run_ok, _valid_e5())) is True
+
+    invalido = deepcopy(_valid_e5())
+    del invalido["fluxo_caixa"]["janelas"]["3m"]["receita_mensal_media"]
+    ws_bad, run_bad = await _seed(db, email="janelas-bad@test.com")
+    with pytest.raises(jsonschema.ValidationError):
+        await _run(db, lambda c: _write_e5(c, ws_bad, run_bad, invalido))
 
 
 class TestValidationErrorNuncaRetenta:

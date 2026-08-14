@@ -98,7 +98,8 @@ export interface ReservaEmergenciaData {
   nivel_12_meses?: number;
   total_liquida?: number;
   cobertura_meses?: number;
-  avaliacao_liquidity?: "Adequada" | "Baixa" | "Excelente" | "Excessiva" | string;
+  avaliacao_liquidity?:
+    "Adequada" | "Baixa" | "Excelente" | "Excessiva" | string;
   /** A28.l1 (PR 787) — alvo em meses por perfil de renda (CLT 6 · mista 12 · PJ 18). */
   meses_alvo?: number;
   /** A28.l1 (PR 787) — alvo em R$ (`despesa_essencial × meses_alvo`). */
@@ -158,22 +159,12 @@ export type RentabilidadeStatus =
 // ──────────────────────────────────────────────────────────────────────
 
 export type RealEstateOrigemFonte =
-  | "informe"
-  | "irpf"
-  | "e3"
-  | "e4"
-  | "manual"
-  | "pro_rata"
-  | "none"
-  | "default";
+  "informe" | "irpf" | "e3" | "e4" | "manual" | "pro_rata" | "none" | "default";
 
 export type RealEstateConfidence = "high" | "medium" | "low";
 
 export type RealEstateStatusContrato =
-  | "atualizado"
-  | "reajuste_pendente"
-  | "sem_renda"
-  | "desconhecido";
+  "atualizado" | "reajuste_pendente" | "sem_renda" | "desconhecido";
 
 export type RealEstateAlertaCode =
   | "concentracao_alta"
@@ -335,6 +326,12 @@ export interface ScoreData {
 export type {
   FluxoPorFonte,
   FluxoJanela12m,
+  FluxoPeriodoInterativo,
+  FluxoReceitaMensalRow,
+  FluxoNaturezaMensalRow,
+  FluxoConsumoMensalRow,
+  FluxoJanelaInterativa,
+  FluxoJanelas,
   FluxoCaixaSummary,
 } from "./report-fluxo";
 
@@ -421,10 +418,10 @@ export interface ScoreFullData extends ScoreData {
 
 /** Meta IF (independência financeira) — ADR-117 GAPS Tabela C #5-8. */
 export interface MetaIfData {
-  progresso_pct?: number;       // 0..100+ (percentual absoluto — ADR-209)
-  gap_mensal?: number;          // R$
-  ano_alvo?: number;            // 2041
-  renda_passiva_alvo?: number;  // R$/mês
+  progresso_pct?: number; // 0..100+ (percentual absoluto — ADR-209)
+  gap_mensal?: number; // R$
+  ano_alvo?: number; // 2041
+  renda_passiva_alvo?: number; // R$/mês
 }
 
 /** Strip de 5 KPIs na seção de projeção (S7). */

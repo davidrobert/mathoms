@@ -256,7 +256,8 @@
         "janela",
         "janela_meses",
         "data_corte",
-        "provisionado"
+        "provisionado",
+        "janelas"
       ],
       "properties": {
         "data_corte": {
@@ -334,6 +335,43 @@
         "janela_meses": {
           "type": "integer",
           "minimum": 0
+        },
+        "janelas": {
+          "type": "object",
+          "description": "ADR-377: conjunto fechado precomputado. O cliente seleciona uma chave e renderiza rows prontas; não agrega dinheiro, percentuais nem Pareto.",
+          "required": [
+            "3m",
+            "6m",
+            "12m",
+            "ytd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "3m": {
+              "allOf": [
+                { "$ref": "#/$defs/FluxoJanelaInterativa" },
+                { "properties": { "janela": { "const": "3m" } } }
+              ]
+            },
+            "6m": {
+              "allOf": [
+                { "$ref": "#/$defs/FluxoJanelaInterativa" },
+                { "properties": { "janela": { "const": "6m" } } }
+              ]
+            },
+            "12m": {
+              "allOf": [
+                { "$ref": "#/$defs/FluxoJanelaInterativa" },
+                { "properties": { "janela": { "const": "12m" } } }
+              ]
+            },
+            "ytd": {
+              "allOf": [
+                { "$ref": "#/$defs/FluxoJanelaInterativa" },
+                { "properties": { "janela": { "const": "ytd" } } }
+              ]
+            }
+          }
         },
         "receita_por_natureza": {
           "type": "object",
@@ -2466,6 +2504,107 @@
         "prazo"
       ],
       "additionalProperties": false
+    },
+    "FluxoJanelaInterativa": {
+      "type": "object",
+      "description": "ADR-377 D2: janela monetaria table-ready. Totais sao brutos; o orcamento usa consumo ex-transferencias (ADR-333).",
+      "required": [
+        "janela",
+        "janela_meses",
+        "mes_inicio",
+        "mes_fim",
+        "receita_total",
+        "despesa_total",
+        "receita_mensal_media",
+        "despesa_mensal_media",
+        "despesa_consumo_mensal_media",
+        "transferencia_patrimonial_mensal",
+        "tabela_receitas_por_fonte_mensal",
+        "tabela_receita_por_natureza_mensal",
+        "tabela_consumo_por_categoria_mensal"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "janela": {
+          "enum": ["3m", "6m", "12m", "ytd"]
+        },
+        "janela_meses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mes_inicio": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}$"
+        },
+        "mes_fim": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}$"
+        },
+        "receita_total": { "type": "number" },
+        "despesa_total": { "type": "number" },
+        "receita_mensal_media": { "type": "number" },
+        "despesa_mensal_media": { "type": "number" },
+        "despesa_consumo_mensal_media": { "type": "number" },
+        "transferencia_patrimonial_mensal": { "type": "number" },
+        "tabela_receitas_por_fonte_mensal": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FluxoReceitaRow" }
+        },
+        "tabela_receita_por_natureza_mensal": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FluxoNaturezaRow" }
+        },
+        "tabela_consumo_por_categoria_mensal": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FluxoConsumoRow" }
+        }
+      }
+    },
+    "FluxoReceitaRow": {
+      "type": "object",
+      "required": ["fonte", "total", "mensal_media", "participacao_pct"],
+      "additionalProperties": false,
+      "properties": {
+        "fonte": { "type": "string", "minLength": 1 },
+        "total": { "type": "number" },
+        "mensal_media": { "type": "number" },
+        "participacao_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "FluxoNaturezaRow": {
+      "type": "object",
+      "required": ["natureza", "total", "mensal_media", "participacao_pct"],
+      "additionalProperties": false,
+      "properties": {
+        "natureza": {
+          "enum": ["receita_pj", "receita_clt", "receita_aluguel", "receita_outras"]
+        },
+        "total": { "type": "number" },
+        "mensal_media": { "type": "number" },
+        "participacao_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "FluxoConsumoRow": {
+      "type": "object",
+      "required": [
+        "categoria",
+        "total",
+        "mensal_media",
+        "participacao_pct",
+        "participacao_acumulada_pct"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "categoria": { "type": "string", "minLength": 1 },
+        "total": { "type": "number" },
+        "mensal_media": { "type": "number" },
+        "participacao_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "participacao_acumulada_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
     },
     "ConsolidacaoCrossDocumento": {
       "type": "object",
