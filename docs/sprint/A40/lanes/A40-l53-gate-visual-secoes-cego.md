@@ -182,6 +182,19 @@ controle, tocando `S7IndependenciaSection.tsx`, `S7PgblLocationNote.tsx` e
 `visual`**, logo sem rebaseline. O passivo não é um lote a limpar; ele se
 regenera em horas. Rebaselinar "as 6" é perseguir um retrato vencido.
 
+> **A esteira, medida dentro do próprio PR de conserto.** As 6 baselines foram
+> regeradas no runner (run `31817219064`) e commitadas. Antes de o CI reavaliar,
+> o `auto-update-prs` mergeou `main` na branch trazendo o **#1452** (`A40.l47`
+> PR1), que toca `ApendiceASection.tsx` e `RentabilidadeCard.tsx`. Resultado da
+> reavaliação: **36 passed, 2 failed** — as 4 estruturais passaram, e a
+> `APP_A` (light **e** dark) reprovou com altura `2042 → 2119px`. **As baselines
+> de APP_A nasceram vencidas em ~20 minutos**, por um terceiro PR, no mesmo dia
+> dos outros dois. Três PRs em ~24h mudaram o render sem o label. Qualquer
+> critério de aceite que fale em "as N baselines podres" descreve um retrato,
+> não um estado — o que o gate precisa é de sinal que não dependa de baseline
+> (§5) e de um caminho em que quem muda o render refaça a baseline no próprio
+> PR.
+
 ### 4. A consequência prática mudou de sinal desde que a lane foi escrita
 
 "Fail-open por ruído — vermelho permanente que todo autor aprende a ignorar"
