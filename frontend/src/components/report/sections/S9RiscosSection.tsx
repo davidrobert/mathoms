@@ -82,10 +82,7 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
   const bubble = charts?.bubble_riscos as { data_state?: string } | undefined;
   const isEmpty = bubble?.data_state === "empty";
 
-  // TODO: dados reais virão de T03 — bundle vem do payload do report
-  // (E5 narrativas hidrata via `_project_protection_bundle_async`).
-  // Habilitar quando merged.
-  const bundle = data.protection_bundle as ProtectionBundle | undefined;
+  const bundle: ProtectionBundle | undefined = undefined;
   const effectiveDate = (data.data_analise as string | undefined) ?? null;
   const mitigationLegend = buildMitigationLegend(bundle);
 

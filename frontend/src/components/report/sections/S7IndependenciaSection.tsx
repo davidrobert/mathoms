@@ -27,6 +27,11 @@ import {
   computePremissasDegrade,
   hasIfStats,
 } from "../utils/dataQualitySignals";
+import {
+  readMonteCarloData,
+  readPassiveIncome,
+  readPremissasEconomicas,
+} from "../utils/reportContractGuards";
 import { IFConeConeChart } from "../charts/IFConeConeChart";
 import { useIrpfKpis } from "../hooks/useIrpfKpis";
 import { derivePrimaryYear } from "@/lib/irpf/irpf-period-match";
@@ -52,8 +57,9 @@ export function S7IndependenciaSection({
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
-  const passiveIncome = data.passive_income;
-  const monteCarloIF = data.if_monte_carlo;
+  const passiveIncome = readPassiveIncome(data.passive_income);
+  const monteCarloIF = readMonteCarloData(data.if_monte_carlo);
+  const premissas = readPremissasEconomicas(data.premissas_economicas);
   const irpfKpis = useIrpfKpis(data);
   const labels = (data.fluxo_caixa as { receita_despesa_mensal_detalhado?: { labels?: string[] } } | undefined)
     ?.receita_despesa_mensal_detalhado?.labels;
@@ -95,7 +101,7 @@ export function S7IndependenciaSection({
       <IFMonteCarloBlock
         monteCarloIF={monteCarloIF}
         metaIf={goals?.if_meta as number | undefined}
-        premissas={data.premissas_economicas}
+        premissas={premissas}
       />
 
       <PassiveIncomeBlock

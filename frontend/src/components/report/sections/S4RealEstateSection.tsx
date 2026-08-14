@@ -4,6 +4,7 @@ import type { ReportAnalysisData } from "@/lib/api";
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { RealEstateYieldCard } from "../cards/RealEstateYieldCard";
+import { readRealEstateData } from "../utils/reportContractGuards";
 
 /** S4 (Real Estate). ADR-216 Onda 6 — cutover: NarrativeChartCard removido;
  *  RealEstateYieldCard é o único renderer. Seção é ocultada quando o workspace
@@ -16,8 +17,8 @@ import { RealEstateYieldCard } from "../cards/RealEstateYieldCard";
  *  o que mataria o hide-when-empty da ADR-216 Onda 6. O dono da visibilidade é
  *  `data.real_estate`, não a prosa. */
 export function S4RealEstateSection({ data }: { data: ReportAnalysisData }) {
-  const realEstate = data.real_estate ?? null;
-  if (!realEstate) return null;
+  if (!data.real_estate) return null;
+  const realEstate = readRealEstateData(data.real_estate);
 
   return (
     <ReportSection id="S4">

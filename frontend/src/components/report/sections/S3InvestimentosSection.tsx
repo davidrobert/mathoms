@@ -20,6 +20,7 @@ import { readNarrativeConclusion } from "../utils/chartNarrative";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 import type { RatiosData } from "@/types/report-analysis";
+import { readProventosRows } from "../utils/reportContractGuards";
 
 interface InvestimentosBlock extends InvestimentosClasseData, Top15AtivosData {
   estrategia_aporte?: EstrategiaAporteData;
@@ -64,7 +65,7 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
       {/* A33.l4 (ADR-238 §L4) — proventos por ativo dos informes anuais.
           Sem wrapper: o card já é size="full" e retorna null (célula nenhuma)
           quando o workspace não tem informe de proventos. */}
-      <ProventosYieldCard data={data.proventos_por_ativo} />
+      <ProventosYieldCard data={readProventosRows(data.proventos_por_ativo)} />
       <NarrativeChartCard
         chartId="cenarios_conjuge"
         title="Cenários de Estresse — Sem renda do cônjuge"
