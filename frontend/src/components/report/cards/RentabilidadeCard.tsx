@@ -54,7 +54,7 @@ function RentabilidadeFullCard({ ratio }: { ratio: RentabilidadeRatio }) {
     <ReportCard size="full" title="Renda passiva sobre patrimônio (TRS)" variant={variant}>
       {isSuspeito && <TrsSuspeitaBanner />}
       <div className="grid gap-6 md:grid-cols-[1fr_1fr]">
-        <RentabilidadeHeroBlock valorPct={valorPct} metaPct={ratio.meta_pct} />
+        <RentabilidadeHeroBlock valorPct={valorPct} />
         <RentabilidadeContextBlock
           cobertura={cobertura}
           showSemDadosEssencial={ratio.status === "sem_dados_essencial"}
@@ -84,8 +84,7 @@ function TrsSuspeitaBanner() {
   );
 }
 
-function RentabilidadeHeroBlock({ valorPct, metaPct }: { valorPct: number; metaPct: number }) {
-  const diff = valorPct - metaPct;
+function RentabilidadeHeroBlock({ valorPct }: { valorPct: number }) {
   return (
     <div className="flex flex-col gap-1">
       <p className="text-sm uppercase tracking-wide text-[var(--surface-muted-foreground)]">
@@ -94,12 +93,6 @@ function RentabilidadeHeroBlock({ valorPct, metaPct }: { valorPct: number; metaP
       <p className="font-mono text-4xl font-semibold tabular-nums leading-none">
         {valorPct.toFixed(2).replace(".", ",")}%
         <span className="ml-2 text-xl text-[var(--surface-muted-foreground)]">a.a.</span>
-      </p>
-      <p className="text-sm text-[var(--surface-muted-foreground)]">
-        Meta de referência: {metaPct.toFixed(1).replace(".", ",")}% a.a.
-        {" · "}
-        {diff >= 0 ? "+" : ""}
-        {diff.toFixed(2).replace(".", ",")} pp vs. meta
       </p>
     </div>
   );
@@ -220,12 +213,14 @@ function RentabilidadeEmptyState({
   );
 }
 
-function pickVariant(ratio: RentabilidadeRatio): CardVariant {
-  if (ratio.status !== "ok" || ratio.valor_pct === null) return "neutral";
-  const diff = ratio.valor_pct - ratio.meta_pct;
-  if (diff >= 0) return "success";
-  if (diff >= -1) return "warn";
-  return "critical";
+/**
+ * A40.l47 — a TRS efetiva é **valor observado** e não tem alvo de retorno contra o
+ * qual julgar: o único percentual que a família configura (`goals.trs_pct`) é taxa de
+ * saque ([[ADR-191]] §emenda 2026-08-14). Colorir success/warn/critical contra uma
+ * meta inexistente empurrava yield-chasing numa carteira em acumulação.
+ */
+function pickVariant(_ratio: RentabilidadeRatio): CardVariant {
+  return "neutral";
 }
 
 export function isDataDefasada(defasagemMeses: number | null): boolean {

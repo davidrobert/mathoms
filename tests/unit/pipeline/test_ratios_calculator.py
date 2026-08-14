@@ -364,7 +364,6 @@ class TestRentabilidadeNestedRatio:
         assert r.rentabilidade.ano_base is None
         assert r.rentabilidade.defasagem_meses is None
         assert r.rentabilidade.cobertura_despesa_essencial_pct is None
-        assert r.rentabilidade.meta_pct == Decimal("5.0")
 
     def test_status_gerador_zero_preserva_ano_base_e_defasagem(self):
         pi = make_passive_income(status="gerador_zero")
@@ -403,14 +402,15 @@ class TestRentabilidadeNestedRatio:
         assert r.rentabilidade.ano_base == 2024
         assert r.rentabilidade.defasagem_meses == 4
 
-    def test_meta_pct_pode_ser_customizada_via_config(self):
-        pi = make_passive_income(status="sem_irpf", ano=None)
-        calc = RatiosCalculator(RentabilidadeConfig(meta_pct=Decimal("4.0")))
-        r = calc.calculate(
+    def test_payload_nao_carrega_meta_de_retorno(self):
+        """A40.l47 — a TRS efetiva é valor observado; publicar ``meta_pct`` ao lado
+        dela promovia ``goals.trs_pct`` (taxa de SAQUE) a alvo de retorno
+        ([[ADR-191]] §emenda 2026-08-14). O campo não existe mais no payload."""
+        pi = make_passive_income()
+        d = RatiosCalculator().calculate(
             _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
         )
-        assert r.rentabilidade is not None
-        assert r.rentabilidade.meta_pct == Decimal("4.0")
+        assert "meta_pct" not in d.to_legacy_dict()["rentabilidade"]
 
     def test_rentabilidade_none_quando_passive_income_omitido(self):
         # Sem passive_income, o shape aninhado é None — UI render placeholder.
@@ -430,7 +430,6 @@ class TestRentabilidadeNestedRatio:
         assert ren["valor_pct"] == pytest.approx(3.25)
         assert ren["ano_base"] == 2024
         assert ren["defasagem_meses"] == 4
-        assert ren["meta_pct"] == pytest.approx(5.0)
         assert ren["cobertura_despesa_essencial_pct"] == pytest.approx(20.83)
         # back-compat: campo flat preservado em paralelo.
         assert d["rentabilidade_pct"] == "3.25"

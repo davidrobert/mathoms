@@ -421,7 +421,6 @@
                 "valor_pct",
                 "ano_base",
                 "defasagem_meses",
-                "meta_pct",
                 "cobertura_despesa_essencial_pct",
                 "status"
               ],
@@ -446,10 +445,6 @@
                     "integer",
                     "null"
                   ]
-                },
-                "meta_pct": {
-                  "description": "Meta de referência consagrada (default 5.0 = 5,0% a.a.) — percentual absoluto (ADR-209).",
-                  "type": "number"
                 },
                 "cobertura_despesa_essencial_pct": {
                   "description": "renda_passiva_mensal / custo_essencial_mensal × 100 — percentual absoluto (ADR-209). Valores > 100 são válidos e esperados (ex.: 350.0 = renda passiva cobre 3,5× a despesa). 'null' quando status = 'sem_irpf' | 'gerador_zero' | 'sem_dados_essencial'.",

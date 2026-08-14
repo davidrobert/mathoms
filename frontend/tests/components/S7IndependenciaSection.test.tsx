@@ -5,7 +5,6 @@
  * - 3 fases (acumulação · aproximação · independência) × 2 acumuladores
  *   (low/high) × 3 defasagens (none/info/warning) = 18 cenários.
  * - 2 empty states: ``sem_irpf`` e ``gerador_zero``.
- * - Helper ``trsTone`` cobre matriz de fase × yield.
  * - Caption permanente em acumulação aparece/some.
  * - Card "Em acumuladores" tom warning + sublabel quando >40%.
  */
@@ -15,7 +14,6 @@ import { render, screen } from "@testing-library/react";
 import {
   S7IndependenciaSection,
   TRS_EFETIVA_TOOLTIP,
-  trsTone,
 } from "@/components/report/sections/S7IndependenciaSection";
 import type {
   IFMonteCarloData,
@@ -102,23 +100,6 @@ describe("<S7IndependenciaSection /> · localização PGBL", () => {
     render(<S7IndependenciaSection data={data} />);
     expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/defasado em 3 anos/i);
     expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/IRPF mais recente/i);
-  });
-});
-
-describe("trsTone", () => {
-  it("acumulação (progresso < 50): SEMPRE neutro mesmo com TRS alta", () => {
-    expect(trsTone(8, 5, 30)).toBe("neutral");
-    expect(trsTone(0.5, 5, 30)).toBe("neutral");
-  });
-
-  it("aproximação (50-95): warning se yield < 70% da meta", () => {
-    expect(trsTone(2.0, 5, 70)).toBe("warning"); // 2 < 5*0.7
-    expect(trsTone(4.0, 5, 70)).toBe("neutral"); // 4 >= 3.5
-  });
-
-  it("independência (≥95): positive ≥ meta · warning < meta", () => {
-    expect(trsTone(5.5, 5, 96)).toBe("positive");
-    expect(trsTone(4.0, 5, 96)).toBe("warning");
   });
 });
 
@@ -441,49 +422,39 @@ describe("<S7IndependenciaSection /> · gate do bloco de stats de IF", () => {
 });
 
 /**
- * A40.l4 (PD-20 · ADR-191 §Emenda FP-03) — o card de TRS efetiva lia
- * `goals.trs_pct`, chave que o payload NÃO tem (o E5 emite `goals.if_trs`),
- * então o `?? 5.0` disparava 100% das vezes: constante de código impressa
- * como se fosse a meta da família. A casa sancionada do yield-alvo é
- * `ratios.rentabilidade.meta_pct` — a MESMA que o `kpi_rentabilidade` da S3 lê.
+ * A40.l47 (RV4-13 · [[ADR-191]] §emenda 2026-08-14) — não existe yield-alvo no
+ * produto. O único percentual que a família configura é `goals.trs_pct`, e ele é
+ * taxa de **saque** (`goal.if.v2` §inputs; `if_meta = renda × 12 ÷ trs_pct`; wizard
+ * passo 2). Compará-lo com o yield observado promove saque a meta de retorno — o
+ * defeito que a A40.l4 mascarava ao imprimir a constante `5.0` no lugar.
  *
- * O par SWR 4% (estimativa de renda passiva, regra de retirada) × yield-alvo
- * 5% (rentabilidade da carteira) são conceitos DISTINTOS e não se harmonizam:
- * colapsá-los desfaz a emenda FP-03 e encurta a meta de IF em ~20%.
+ * O gate é de **ausência na superfície**, não de valor: qualquer reintrodução de
+ * meta neste card volta a montar a comparação.
  */
-describe("<S7IndependenciaSection /> · yield-alvo (PD-20)", () => {
-  const withRatios = (metaPct: unknown) =>
-    makeData({
-      ratios: { rentabilidade: { meta_pct: metaPct } },
+describe("<S7IndependenciaSection /> · sem alvo de retorno", () => {
+  it("não imprime meta de yield, venha o payload de onde vier", () => {
+    const comMeta = makeData({
+      ratios: { rentabilidade: { meta_pct: 4.0 } },
     } as Partial<ReportAnalysisData>);
-
-  it("imprime o yield-alvo do payload, não uma constante de código", () => {
-    render(<S7IndependenciaSection data={withRatios(4.0)} />);
-    expect(screen.getByText(/Yield-alvo 4,0%/)).toBeInTheDocument();
-    expect(screen.queryByText(/Yield-alvo 5,0%/)).toBeNull();
+    for (const data of [makeData(), comMeta]) {
+      const { unmount } = render(<S7IndependenciaSection data={data} />);
+      expect(screen.queryByText(/Yield-alvo/i)).toBeNull();
+      expect(screen.queryByText(/\bmeta\b.*%/i)).toBeNull();
+      unmount();
+    }
   });
 
-  it("não imprime meta alguma quando o payload não traz yield-alvo", () => {
-    // `goals.trs_pct` presente e `ratios` ausente: a chave fantasma não pode
-    // ressuscitar como fonte, e nenhum default entra no lugar.
+  it("o valor observado continua visível — sustenta-se sem meta", () => {
     render(<S7IndependenciaSection data={makeData()} />);
-    expect(screen.queryByText(/Yield-alvo/)).toBeNull();
-    expect(screen.queryByText(/^Meta 5,0%$/)).toBeNull();
-    // O valor observado continua visível — sustenta-se sem meta.
     expect(screen.getByText("2.4%")).toBeInTheDocument();
-  });
-
-  it("shape inesperado em meta_pct não imprime meta", () => {
-    render(<S7IndependenciaSection data={withRatios("5.000000")} />);
-    expect(screen.queryByText(/Yield-alvo/)).toBeNull();
   });
 
   // A copy do tooltip é asserida na constante, não no DOM: `TooltipContent`
   // só monta no open, então um assert por DOM passaria vazio (vacuoso).
-  it("copy do tooltip não colapsa yield com taxa de retirada (ADR-191 §D5)", () => {
+  it("copy do tooltip não colapsa yield com taxa de retirada nem cita alvo", () => {
     expect(TRS_EFETIVA_TOOLTIP).not.toMatch(/Trinity/i);
     expect(TRS_EFETIVA_TOOLTIP).not.toMatch(/retirada sustentável/i);
     expect(TRS_EFETIVA_TOOLTIP).not.toMatch(/\b4%/);
-    expect(TRS_EFETIVA_TOOLTIP).toMatch(/yield-alvo/i);
+    expect(TRS_EFETIVA_TOOLTIP).not.toMatch(/alvo/i);
   });
 });

@@ -32,12 +32,10 @@ import { useIrpfKpis } from "../hooks/useIrpfKpis";
 import { derivePrimaryYear } from "@/lib/irpf/irpf-period-match";
 import { PgblLocationNote } from "./S7PgblLocationNote";
 
-const PHASE_INDEPENDENCIA = 95;
 const PHASE_ACUMULACAO = 50;
 const ACUMULADORES_THRESHOLD = 40;
 const DEFASAGEM_INFO_THRESHOLD = 6;
 const DEFASAGEM_WARNING_THRESHOLD = 15;
-const APROXIMACAO_YIELD_RATIO = 0.7;
 
 interface S7IndependenciaSectionProps {
   data: ReportAnalysisData;
@@ -103,7 +101,6 @@ export function S7IndependenciaSection({
       <PassiveIncomeBlock
         passiveIncome={passiveIncome}
         progressoIfPct={(goals?.if_pct as number | undefined) ?? 0}
-        yieldAlvoPct={readYieldAlvoPct(data)}
       />
 
       <PgblLocationNote irpfKpis={irpfKpis} primaryYear={primaryYear} />
@@ -232,51 +229,28 @@ function PremissasFallbackAlert({
 }
 
 
-/**
- * Yield-alvo da carteira (ADR-191 §D3) — `ratios.rentabilidade.meta_pct`, a
- * MESMA casa que o `kpi_rentabilidade` da S3 lê. `goals.trs_pct` não existe no
- * payload (o E5 emite `goals.if_trs`), então o `?? 5.0` anterior disparava
- * 100% das vezes: constante de código impressa como se fosse a meta da
- * família. `null` ⇒ não se imprime meta nenhuma — a TRS efetiva é valor
- * observado e sustenta-se sozinha.
- */
-export function readYieldAlvoPct(data: ReportAnalysisData): number | null {
-  const ratios = data.ratios as Record<string, unknown> | undefined;
-  const rent = ratios?.rentabilidade as { meta_pct?: unknown } | undefined;
-  const meta = rent?.meta_pct;
-  return typeof meta === "number" && Number.isFinite(meta) ? meta : null;
-}
-
 /** A8.3 — Bloco de KPIs de TRS efetiva (4 cards) + caption + 2 banners + empty states. */
 function PassiveIncomeBlock({
   passiveIncome,
   progressoIfPct,
-  yieldAlvoPct,
 }: {
   passiveIncome: PassiveIncomeData | undefined;
   progressoIfPct: number;
-  yieldAlvoPct: number | null;
 }) {
   if (!passiveIncome) return null;
   if (passiveIncome.status === "sem_irpf") return <SemIrpfEmptyState />;
   if (passiveIncome.status === "gerador_zero") return <GeradorZeroEmptyState />;
   return (
-    <PassiveIncomeOkBlock
-      data={passiveIncome}
-      progressoIfPct={progressoIfPct}
-      yieldAlvoPct={yieldAlvoPct}
-    />
+    <PassiveIncomeOkBlock data={passiveIncome} progressoIfPct={progressoIfPct} />
   );
 }
 
 function PassiveIncomeOkBlock({
   data,
   progressoIfPct,
-  yieldAlvoPct,
 }: {
   data: PassiveIncomeData;
   progressoIfPct: number;
-  yieldAlvoPct: number | null;
 }) {
   const acumuladoresPct = data.acumuladores_pct_gerador;
   const defasagem = data.defasagem_meses ?? 0;
@@ -285,11 +259,7 @@ function PassiveIncomeOkBlock({
       <div className="md:col-span-2 grid grid-cols-1 gap-4 md:grid-cols-4">
         <RendaPassivaStat data={data} />
         <PatrimonioGeradorStat data={data} />
-        <TrsEfetivaStat
-          data={data}
-          progressoIfPct={progressoIfPct}
-          yieldAlvoPct={yieldAlvoPct}
-        />
+        <TrsEfetivaStat data={data} />
         <AcumuladoresStat acumuladoresPct={acumuladoresPct} />
       </div>
 
@@ -348,27 +318,18 @@ function PatrimonioGeradorStat({ data }: { data: PassiveIncomeData }) {
 }
 
 /**
- * ADR-191 §Emenda 2026-07-15 (FP-03): *yield-alvo* (rentabilidade da carteira)
- * e *taxa de retirada segura* (SWR, decumulação) são conceitos distintos e
- * nunca se colapsam. Este card é yield — por isso o sublabel diz "Yield-alvo",
- * não "Meta" (a palavra "meta" já é da meta de IF, dois elementos acima), e o
- * texto não cita Trinity 4%: ADR-191 §D5 vetou o comparativo (SWR de depleção
- * vs. yield de fluxo são incomparáveis). Exportado para a guarda asserir a
- * copy — `TooltipContent` só monta no open, então o DOM não a expõe.
+ * ADR-191 §Emenda 2026-08-14 (A40.l47): não existe yield-alvo no produto. O único
+ * percentual que a família configura é `goals.trs_pct`, que é taxa de **saque**
+ * (goal.if.v2 §inputs; `if_meta = renda × 12 ÷ trs_pct`) — compará-lo com o yield
+ * observado é a promoção que o RV4-13 denuncia. A TRS efetiva sustenta-se sozinha.
+ * Exportado para a guarda asserir a copy — `TooltipContent` só monta no open, então
+ * o DOM não a expõe.
  */
 export const TRS_EFETIVA_TOOLTIP =
-  "Yield observado da carteira geradora de renda vs. yield-alvo definido no " +
-  "plano. Não é taxa de retirada (decumulação).";
+  "Yield observado da carteira geradora de renda, anualizado. Não é taxa de " +
+  "retirada (decumulação) nem retorno total da carteira.";
 
-function TrsEfetivaStat({
-  data,
-  progressoIfPct,
-  yieldAlvoPct,
-}: {
-  data: PassiveIncomeData;
-  progressoIfPct: number;
-  yieldAlvoPct: number | null;
-}) {
+function TrsEfetivaStat({ data }: { data: PassiveIncomeData }) {
   const defasagem = data.defasagem_meses ?? 0;
   const defasagemNote = defasagem >= DEFASAGEM_INFO_THRESHOLD && (
     <span className="block text-xs text-[var(--surface-muted-foreground)] mt-1">
@@ -384,19 +345,8 @@ function TrsEfetivaStat({
         </span>
       }
       value={`${data.trs_efetiva_pct.toFixed(1)}%`}
-      tone={
-        yieldAlvoPct === null
-          ? "neutral"
-          : trsTone(data.trs_efetiva_pct, yieldAlvoPct, progressoIfPct)
-      }
-      sublabel={
-        <>
-          {yieldAlvoPct !== null && (
-            <>Yield-alvo {yieldAlvoPct.toFixed(1).replace(".", ",")}%</>
-          )}
-          {defasagemNote}
-        </>
-      }
+      tone="neutral"
+      sublabel={defasagemNote}
     />
   );
 }
@@ -452,16 +402,4 @@ function GeradorZeroEmptyState() {
 }
 
 /** A8.3 — Tom condicionado à fase do plano (Perini · D4). */
-export function trsTone(
-  efetiva: number,
-  meta: number,
-  progresso: number,
-): "neutral" | "positive" | "warning" {
-  if (progresso < PHASE_ACUMULACAO) return "neutral";
-  if (progresso < PHASE_INDEPENDENCIA) {
-    return efetiva >= meta * APROXIMACAO_YIELD_RATIO ? "neutral" : "warning";
-  }
-  return efetiva >= meta ? "positive" : "warning";
-}
-
 export { formatProbability };

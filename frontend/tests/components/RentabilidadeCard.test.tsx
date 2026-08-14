@@ -12,7 +12,6 @@ function makeRatio(overrides: Partial<RentabilidadeRatio> = {}): RentabilidadeRa
     valor_pct: 3.25,
     ano_base: 2024,
     defasagem_meses: 4,
-    meta_pct: 5,
     cobertura_despesa_essencial_pct: 20.83,
     status: "ok",
     ...overrides,
@@ -34,11 +33,10 @@ function makeRatios(rentabilidade: RentabilidadeRatio | null): RatiosData {
 }
 
 describe("<RentabilidadeCard /> · status ok", () => {
-  it("mostra TRS efetiva, meta, cobertura essencial, ano-base e defasagem", () => {
+  it("mostra TRS efetiva, cobertura essencial, ano-base e defasagem", () => {
     render(<RentabilidadeCard ratios={makeRatios(makeRatio())} />);
     expect(screen.getByText("3,25%")).toBeInTheDocument();
     expect(screen.getByText("a.a.")).toBeInTheDocument();
-    expect(screen.getByText(/Meta de referência: 5,0% a.a/i)).toBeInTheDocument();
     expect(screen.getByText("20,8%")).toBeInTheDocument();
     expect(
       screen.getByText(/da despesa essencial mensal coberta pela renda passiva/i),
@@ -47,9 +45,13 @@ describe("<RentabilidadeCard /> · status ok", () => {
     expect(screen.getByText("4 meses de defasagem")).toBeInTheDocument();
   });
 
-  it("computa diff vs meta com sinal correto", () => {
+  // A40.l47 — a TRS efetiva é valor observado e não se julga contra alvo de retorno:
+  // o único percentual que a família configura (`goals.trs_pct`) é taxa de SAQUE
+  // ([[ADR-191]] §emenda 2026-08-14). Nem meta, nem delta, nem tom de aprovação.
+  it("não publica meta de retorno nem delta contra meta", () => {
     render(<RentabilidadeCard ratios={makeRatios(makeRatio({ valor_pct: 6.5 }))} />);
-    expect(screen.getByText(/\+1,50 pp vs\. meta/)).toBeInTheDocument();
+    expect(screen.queryByText(/vs\. meta/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/meta de referência/i)).not.toBeInTheDocument();
   });
 
   it("usa singular 'mês' quando defasagem=1", () => {
@@ -96,7 +98,6 @@ describe("<RentabilidadeCard /> · empty state sem_irpf", () => {
       valor_pct: null,
       ano_base: null,
       defasagem_meses: null,
-      meta_pct: 5,
       cobertura_despesa_essencial_pct: null,
       status: "sem_irpf",
     };
@@ -117,7 +118,6 @@ describe("<RentabilidadeCard /> · empty state gerador_zero", () => {
       valor_pct: null,
       ano_base: 2024,
       defasagem_meses: 5,
-      meta_pct: 5,
       cobertura_despesa_essencial_pct: null,
       status: "gerador_zero",
     };

@@ -265,7 +265,6 @@ export interface RentabilidadeRatio {
   valor_pct: number | null;
   ano_base: number | null;
   defasagem_meses: number | null;
-  meta_pct: number;
   cobertura_despesa_essencial_pct: number | null;
   status: RentabilidadeStatus;
 }
