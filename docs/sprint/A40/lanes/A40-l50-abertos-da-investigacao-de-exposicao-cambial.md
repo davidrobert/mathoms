@@ -43,7 +43,25 @@ RV2-08 da [[ADR-224]].
 
 ## Abertos que mordem hoje
 
-### P0 · `consolidate_baseline` re-consolida o run anterior
+### ~~P0 · `consolidate_baseline` re-consolida o run anterior~~ — FECHADO em 2026-08-12
+
+> **Re-medido em 2026-08-14: já estava corrigido quando esta lane nasceu.** O
+> #1395 (`608163ef`, A40.l42) mergeou às 09:24Z — **16 min depois** do #1409
+> que abriu esta lane (09:08Z). A l50 declarava "nada aqui está sendo atacado";
+> o item 1 estava sendo atacado em paralelo, sem que nenhum dos dois lados
+> soubesse.
+>
+> O fix inverteu a ordem: `consolidate_baseline.py:763` lê `extract_baseline`
+> **primeiro** e só cai em `consolidate_baseline` quando não há E1.5 no
+> workspace. Trava de regressão em
+> `tests/test_consolidate_baseline_stage_direct.py::test_rerun_consolida_e15_fresco_nao_o_proprio_output_anterior`,
+> que exige safra 2025 no `itens` de saída — 5 testes verdes.
+>
+> A prova citada abaixo (`load(15152)['itens'] == load(14649)['itens']`) mediu
+> artefatos do run `ee124571`, **anterior** ao fix. O diagnóstico estava certo;
+> o alvo já não existe. Texto original preservado — snapshot datado não se
+> reescreve.
+
 
 `scripts/consolidate_baseline.py:725` lê `store.read("consolidate_baseline", …)`
 **antes** de `extract_baseline` (727). O stage está em `_WORKSPACE_SCOPED_STAGES`
@@ -66,7 +84,36 @@ dívidas do IRPF 2025 nunca entram**, não "a declaração inteira".
 
 É o achado mais grave do lote e **não tem relação com o card** — merece lane própria.
 
-### P0 · Rodapé de PTAX afirma uma conversão que não aconteceu
+### P0 · Rodapé de PTAX — ROTEADO para a [[A40.l39]] em 2026-08-14
+
+> **Re-medido em 2026-08-14, com co-design `financial-planner` + `senior-cto`.**
+> O defeito é real e está vivo, mas **não é lane desta**: a [[A40.l39]] —
+> *"o header '31/12' mente para 10 de 16 linhas — separar visão corrente da
+> fiscal"* ([[ADR-382]]) — está `in_progress` com duas branches e já deleta esta
+> tabela. Abrir PR aqui conflita no arquivo que ela está partindo.
+>
+> **Correção de enquadramento que a l39 herda:** a linha de extrato tem **dois**
+> erros, não um — taxa errada *e* **data errada**. O saldo é do fim do último
+> período reconciliado (26/03, 22/07, 11/08/2026), não de 31/12. Por isso
+> *"converter tudo pela PTAX de 31/12"* está **vetado**: aplicar PTAX de
+> 31/12/2025 a saldo de agosto/2026 não aplica a regra fiscal, fabrica um número
+> que não corresponde a posição nenhuma, com aparência de autoridade fiscal.
+> Só o par (saldo de 31/12 × PTAX de 31/12) é defensável sob o nome da coluna.
+>
+> **Os R$ 4.308,60 não são queda de patrimônio.** São artefato de comparar duas
+> datas; o patrimônio corrente deve seguir em cotação corrente. Não cabe ressalva
+> de "seu patrimônio foi corrigido" — cabe nota de não-aditividade entre as duas
+> visões, que a spec do PR-b da l39 já prevê.
+>
+> **Regra fiscal, para o registro:** saldo em ME em 31/12 usa **PTAX de compra do
+> último boletim de fechamento do ano** — já sementada em `market_rates`
+> (`a33l2ptax3112_seed_ptax_compra_31_12.py`, USD 5,5018 · EUR 6,4679 em
+> 31/12/2025). Taxa de venda é para aquisição de bem; **rendimento** recebido usa
+> outra regra ainda (PTAX compra do último dia da 1ª quinzena do mês anterior) —
+> não replicar a taxa de 31/12 em card de renda.
+>
+> Texto original preservado abaixo — snapshot datado não se reescreve.
+
 
 `PosicaoInformeCard.PtaxFootnote` dispara pelo `ano_base` das linhas de informe (todas
 BRL) e cobre visualmente as 4 linhas em moeda estrangeira, que vêm de **extrato** e
@@ -156,6 +203,48 @@ expressão "Moeda Estrangeira" e diferem por 2×.
 *Ressalva:* o produtor citado na primeira rodada (`analyze_finances.py:1123`) é **script
 legado morto**; o valor vivo vem de outro caminho. A coexistência na tela é real; a
 linha apontada, não.
+
+## Achados novos do co-design de 2026-08-14 — precisam de lane própria
+
+> Levantados por `financial-planner` + `senior-cto` ao decidir o item do rodapé
+> PTAX. **Nenhum estava neste inventário** e nenhum pertence à [[A40.l39]], que
+> resolve a superfície e não a conversão. Prioridade/onda são gatilho de
+> `product-manager` — não classifiquei.
+
+**1. Taxa hardcoded `5.80`/`6.35` é indistinguível de taxa real.**
+`e5_analyzer_adapter.py:902-910` cai em literal quando o `ConfigStore` não
+resolve `market_rate`. Um run publica valor convertido por constante e **nada no
+payload ou no log diz que isso aconteceu** — o E5 não expõe a taxa aplicada em
+lugar nenhum. Hoje ninguém sabe com que frequência dispara.
+
+**2. Fallback da [[ADR-245]] rotula BRL como USD.**
+`_extract_me_caixa_from_baseline` (`e5_analyzer_adapter.py:1085-1129`) constrói
+`CaixaDetalhe` com `saldo_original` **em BRL** e `moeda="USD"` (default em
+`:1082`), `fonte` no default `"extrato"`. O card renderiza `US$ <valor em BRL>`.
+Latente — só dispara com `not has_foreign_in_e3` —, e por isso **sem sintoma**:
+mais grave que o rodapé e sem nada que o denuncie.
+
+**3. A cotação corrente está 106 dias defasada** (2026-04-27). Não é bug de
+conversão; é a ausência do rótulo que faria isso incomodar quem lê.
+
+**4. A assimetria está no produtor, não na linha.**
+`posicao_31_12_builder.py:97-114` — a row do E5 **já tem** os três campos de
+PTAX; `_posicao_from_extrato` os preenche com `None` explícito. Quem não tem o
+que preencher é a via a montante: `CaixaDetalhe` não carrega taxa.
+
+**Forma sugerida do fix (não decidida):** um único conversor ME→BRL devolvendo
+value object com `valor_brl`, `taxa`, `taxa_data`, `taxa_fonte` (enum fechado:
+`ptax_31_12` | `market_rate_corrente` | `default_hardcoded` | `nao_convertido`)
+e `status`; as três vias passam por ele. Fecha a classe por **tipo**, não por
+regex. Pede ADR própria (~60 linhas): nenhuma vigente cobre — a [[ADR-090]]
+decide representação, a [[ADR-238]] D5 decide precedência (e a [[ADR-382]] D4 já
+a mata), e a [[ADR-387]] D3 é a mesma classe escopada a proteção. Campo novo
+nasce `Decimal`; `CaixaDetalhe.valor_brl: float` **fica** — trocá-lo move centavos
+publicados e consome re-run por ganho ortogonal.
+
+**As 4 linhas em ME estão duplicadas hoje:** aparecem no card de Exposição
+Cambial (R$ 83.869,92) e em caixa, além da tabela sob o header falso. Nada se
+perde ao removê-las do S1.
 
 ## Abertos latentes
 
