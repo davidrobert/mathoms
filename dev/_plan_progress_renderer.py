@@ -72,14 +72,12 @@ def _count_lanes_by_status(plan_lanes: list[LaneLike]) -> dict[str, int]:
 
 
 def _format_sprints_envolvidas(plan: PlanLike, plan_lanes: list[LaneLike]) -> str:
-    """Lista sprints envolvidas. Prefere derivado das lanes; fallback para declarado."""
-    derived = sorted({lane.sprint for lane in plan_lanes if lane.sprint})
-    if derived:
-        return ", ".join(derived)
+    """Lista a união do histórico declarado com as sprints derivadas das lanes."""
     declared = plan.raw.get("sprints_envolvidas")
-    if isinstance(declared, list) and declared:
-        return ", ".join(str(s) for s in declared)
-    return "—"
+    declared_sprints = {str(s) for s in declared} if isinstance(declared, list) else set()
+    derived_sprints = {lane.sprint for lane in plan_lanes if lane.sprint}
+    sprints = sorted(declared_sprints | derived_sprints)
+    return ", ".join(sprints) if sprints else "—"
 
 
 def _format_adrs_canonical(plan: PlanLike) -> str:

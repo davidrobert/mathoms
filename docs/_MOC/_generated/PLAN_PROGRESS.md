@@ -9,6 +9,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Em execução (`in_progress`)
 
+### PLAN-competitive-pierre — Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
+
+- Status: `in_progress` · Sprint atual: —
+- Sprints envolvidas: A11, A43
+- Lanes: 0 done · 0 in_progress · 9 open · 0 blocked
+- ADRs canônicas: [[ADR-183]], [[ADR-262]], [[ADR-263]], [[ADR-264]]
+
 ### PLAN-data-lineage — Data Lineage fim-a-fim + Fonte plugável
 
 - Status: `in_progress` · Sprint atual: A26
@@ -26,14 +33,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### PLAN-internal-admin — Console interno (operadores) — IA-0 a IA-4
 
 - Status: `in_progress` · Sprint atual: A11
-- Sprints envolvidas: A30, A31, F7
+- Sprints envolvidas: A11, A30, A31, F7
 - Lanes: 4 done · 0 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-116]]
 
 ### PLAN-launch-trust — Launch Trust — três frentes que precisam estar verdes antes de produção
 
 - Status: `in_progress` · Sprint atual: —
-- Sprints envolvidas: A21, A22, A41
+- Sprints envolvidas: A20, A21, A22, A41
 - Lanes: 14 done · 0 in_progress · 3 open · 0 blocked
 - ADRs canônicas: [[ADR-246]], [[ADR-255]], [[ADR-267]], [[ADR-268]], [[ADR-271]]
 
@@ -106,14 +113,14 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 ### PLAN-cenarios-estresse — Cenários de Estresse — plano canônico
 
 - Status: `done` · Sprint atual: A11
-- Sprints envolvidas: A8
+- Sprints envolvidas: A11, A8
 - Lanes: 1 done · 0 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-168]]
 
 ### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
 
 - Status: `done` · Sprint atual: A33
-- Sprints envolvidas: A17, A20, A33
+- Sprints envolvidas: A17, A18, A20, A33
 - Lanes: 4 done · 0 in_progress · 5 open · 0 blocked
 - ADRs canônicas: [[ADR-081]], [[ADR-090]], [[ADR-097]], [[ADR-110]], [[ADR-111]], [[ADR-137]], [[ADR-157]], [[ADR-191]], [[ADR-212]], [[ADR-233]], [[ADR-246]]
 
@@ -132,13 +139,6 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - ADRs canônicas: [[ADR-236]]
 
 ## Rascunhos (`draft`)
-
-### PLAN-competitive-pierre — Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
-
-- Status: `draft` · Sprint atual: A11
-- Sprints envolvidas: A11
-- Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-183]], [[ADR-262]], [[ADR-263]], [[ADR-264]]
 
 ### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto
 

@@ -924,6 +924,15 @@
 | A42.l7 | lane | planned | A42 | Registro de custo de LLM é fonte de verdade que perde row e vaza identificador de documento | `sprint/A42/lanes/A42-l7-registro-de-custo-perde-row.md` |
 | A42.l8 | lane | planned | A42 | Mês vazio por falha de extração conta como mês documentado | `sprint/A42/lanes/A42-l8-mes-vazio-conta-como-documentado.md` |
 | A42.l9 | lane | planned | A42 | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | `sprint/A42/lanes/A42-l9-identidade-do-checksum-de-fatura.md` |
+| A43.l1 | lane | planned | A43 | ADR do boundary MCP, ameaça reversa e rebaseline do plano | `sprint/A43/lanes/A43-l1-adr-boundary-mcp-e-rebaseline.md` |
+| A43.l2 | lane | planned | A43 | Decisão build-vs-buy de OAuth/IdP, scopes e consentimento | `sprint/A43/lanes/A43-l2-decisao-oauth-idp-scopes-e-consentimento.md` |
+| A43.l3 | lane | planned | A43 | Contratos externos minimizados e corpus canônico de compatibilidade | `sprint/A43/lanes/A43-l3-contratos-externos-minimizados-e-eval.md` |
+| A43.l4 | lane | planned | A43 | Core MCP remoto read-only sobre application ports | `sprint/A43/lanes/A43-l4-core-mcp-read-only.md` |
+| A43.l5 | lane | planned | A43 | OAuth 2.1 e autorização workspace-scoped com revogação | `sprint/A43/lanes/A43-l5-oauth-e-autorizacao-workspace-scoped.md` |
+| A43.l6 | lane | planned | A43 | Operação do canal: audit, rate limit, SLO, redaction e runbook | `sprint/A43/lanes/A43-l6-operacao-audit-rate-limit-e-redaction.md` |
+| A43.l7 | lane | planned | A43 | Plugin e skill universal mínimos para ChatGPT e Codex | `sprint/A43/lanes/A43-l7-plugin-e-skill-universal.md` |
+| A43.l8 | lane | planned | A43 | Certificação ChatGPT/Codex, matriz adversarial e kill switch | `sprint/A43/lanes/A43-l8-certificacao-cross-surface-e-kill-switch.md` |
+| A43.l9 | lane | planned | A43 | Currentness OpenAI: catálogo, preço, smoke e política de upgrade | `sprint/A43/lanes/A43-l9-currentness-openai-catalogo-preco-e-smoke.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -1015,12 +1024,13 @@
 | MOC-sprint-a40 | moc |  |  | Sprint A40 — Report trust: o dado que entrou tem de chegar ao usuário | `sprint/A40/_README.md` |
 | MOC-sprint-a41 | moc |  |  | Sprint A41 — Governança de chamada LLM: fechar a rota alternativa ao choke-point | `sprint/A41/_README.md` |
 | MOC-sprint-a42 | moc |  |  | Sprint A42 — Provabilidade da ingestão e do razão: fechar o falso-verde do instrumento | `sprint/A42/_README.md` |
+| MOC-sprint-a43 | moc |  |  | Sprint A43 — Compatibilidade AI-native: Mathoms confiável no ChatGPT, Codex e clientes MCP | `sprint/A43/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
 | MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
 | PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
-| PLAN-competitive-pierre | plan | draft |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
+| PLAN-competitive-pierre | plan | in_progress |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
 | PLAN-go-shell | plan | in_progress |  | Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess | `plan/GO_SHELL/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
