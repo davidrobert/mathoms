@@ -69,6 +69,13 @@ export default defineConfig({
       testMatch: /.*\.visual\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
+        // A40.l53 — a captura do próprio Playwright redimensiona o canvas
+        // (924px → 0 → 924px a cada tentativa) e o Chart.js redesenha com
+        // animação; sob runner carregado o redesenho não termina entre duas
+        // capturas e `toHaveScreenshot` morre no gate de estabilidade, antes
+        // de comparar com a baseline. Com a media query, o Chart.js não anima
+        // (ver `ChartRegistry`) e o redesenho é instantâneo.
+        reducedMotion: "reduce",
       },
     },
   ],
