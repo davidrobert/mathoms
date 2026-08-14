@@ -107,8 +107,7 @@ type JanelaFixture = ReportAnalysisData & {
     Record<string, unknown>;
   consumo_consciente: NonNullable<ReportAnalysisData["consumo_consciente"]> &
     Record<string, unknown>;
-  ratios: NonNullable<ReportAnalysisData["ratios"]> &
-    Record<string, unknown>;
+  ratios: NonNullable<ReportAnalysisData["ratios"]> & Record<string, unknown>;
 };
 
 function loadFixture(): JanelaFixture {
@@ -809,11 +808,12 @@ describe("<S1PatrimonioSection /> — projeção interativa declarada", () => {
     expect(porMes).toContain("100.000,00");
 
     const receitaCard = [...section!.querySelectorAll("section")].find(
-      (card) => tituloDoCard(card) === "Receitas por Fonte",
+      (card) => tituloDoCard(card) === "Composição das Receitas",
     );
     expect(receitaCard?.textContent).toContain(
       "12 meses documentados · jan/25 — dez/25",
     );
+    expect(receitaCard?.textContent).toContain("Por tipo");
     expect(receitaCard?.textContent).not.toContain(V.receitaFull);
   });
 });

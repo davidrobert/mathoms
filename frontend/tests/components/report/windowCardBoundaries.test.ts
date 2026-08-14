@@ -10,22 +10,28 @@ const FORBIDDEN_SOURCE = `
     .sort();
 `;
 
-describe("gates dos cards de janela", () => {
-  it("rejeita fetch, aritmética, filtro e ordenação no boundary do relatório", async () => {
-    const eslint = new ESLint({ cwd: process.cwd() });
-    const [result] = await eslint.lintText(FORBIDDEN_SOURCE, {
-      filePath: "src/components/report/cards/ReceitasFonteCard.tsx",
-    });
-    const restrictedImports = result.messages.filter(
-      (message) => message.ruleId === "no-restricted-imports",
-    );
-    const moneyOperations = result.messages.filter(
-      (message) =>
-        message.ruleId === "no-restricted-syntax" &&
-        message.message.includes("cards de janela"),
-    );
+const WINDOW_CARDS = [
+  "src/components/report/cards/ReceitasFonteCard.tsx",
+  "src/components/report/cards/ReceitasNaturezaStrip.tsx",
+] as const;
 
-    expect(restrictedImports).toHaveLength(2);
-    expect(moneyOperations).toHaveLength(4);
-  });
+describe("gates dos cards de janela", () => {
+  it.each(WINDOW_CARDS)(
+    "rejeita fetch, aritmética, filtro e ordenação em %s",
+    async (filePath) => {
+      const eslint = new ESLint({ cwd: process.cwd() });
+      const [result] = await eslint.lintText(FORBIDDEN_SOURCE, { filePath });
+      const restrictedImports = result.messages.filter(
+        (message) => message.ruleId === "no-restricted-imports",
+      );
+      const moneyOperations = result.messages.filter(
+        (message) =>
+          message.ruleId === "no-restricted-syntax" &&
+          message.message.includes("cards de janela"),
+      );
+
+      expect(restrictedImports).toHaveLength(2);
+      expect(moneyOperations).toHaveLength(4);
+    },
+  );
 });
