@@ -283,10 +283,10 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l31]] | Gerador ancora em vez de digitar: correção guiada pelo mecanismo | P2 | l30 | par da l30 · **gasta** (re-eval ~US$ 26, owner-gated) · `planned` |
 | [[A40.l32]] | Proveniência do executor: qual código computou este run | P1 | — | promovida da [[A42]] · [[ADR-362]] · [[ADR-363]] · instrumento, sem custo de API |
 | [[A40.l33]] | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | P1 | — | `in_progress` · [[ADR-372]] (#1323) · **ataque 2026-08-13 (#1432)**: a classe não estava fechada — o gate media 1 das 3 sintaxes de tint e 7 call-sites reprovavam AA (1,86:1 entre eles, o mesmo número que a ADR publicou como sendo o defeito); emenda na ADR + §Aberto com 3 achados adjacentes medidos · §Deferido tem 3 itens datados; o nº 3 (`report_palette` espelha o mockup ou o uso? [[ADR-117]] na mesa) é o que a [[A40.l46]] item 2 executa · **prioridade corrigida em 2026-08-13**: a tabela dizia P2 e o frontmatter (fonte do `SPRINT_CURRENT`) diz P1 — era a única divergência das 33 linhas · **título corrigido em 2026-08-12 (#1423)**: a linha dizia "Cache de citação por conteúdo, não por posição", assunto de nenhuma lane — foi escrita de memória no #1372 quando o arquivo `A40-l33-contraste-texto-sobre-tint.md` já existia |
-| [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `in_progress` · **fora das ondas** · [[ADR-375]] `Proposto` escrita 2026-08-11 (#1377) · PR1 (faixa marginal, #1383) + PR2 (remove o proxy, corrige a polaridade, #1394) mergeados · supersede parcial [[ADR-196]] + [[ADR-277]] · **falta PR3** (S8 dono único + card com registro trocado) — D5 bloqueado, rota em [[A40.l56]] · exceção da cláusula 2 (ver §Fora do sprint) |
+| [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `shipped` (#1448 · `6c68723a`) · Card B é dono único do limite; S7 virou nota e S8 reteve base/estado sem duplicar 12% · [[ADR-375]] `Decidido` · resíduos roteados para [[A40.l56]], [[A40.l37]] e [[A40.l57]] · exceção da cláusula 2 (ver §Fora do sprint) |
 | [[A40.l35]] | Bundle de proteção sobre insumos reais (ativação final da S9) | P1 | l62 | `blocked` · split de co-design 2026-08-13 · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
-| [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
+| [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `open`, desbloqueada pelo #1448 (resolver comum em `main`) |
 | [[A40.l38]] | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | **P0** | — | `shipped` (#1391) · [[ADR-376]] · linha adicionada em 2026-08-12 (#1415) — o PR de origem não atualizou a tabela |
 | [[A40.l39]] | Posição por instituição: o header "31/12" mente para 10 de 16 linhas — separar visão corrente da fiscal | P1 | — | `in_progress` · aberta pelo #1381 · [[ADR-382]] `Proposto` (#1401) · PR-a mergeado #1399 · bloqueadores do PR-b resolvidos #1424 · linha adicionada em 2026-08-12 (#1415) |
 | [[A40.l40]] | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | P1 | — | `shipped` (#1404) · [[ADR-384]] `Decidido` (flip corrigido no lane-closeout) · linha adicionada em 2026-08-12 (#1415) |
@@ -1185,13 +1185,13 @@ lane-coletora — item com dono de mentira é o que reaparece como PR corretivo.
 | Parecer lê o contrato antigo do bloco PGBL (FP-04 morto · âncora `null` · resumo S8 · título do bucket) | handoff [[A40.l7]] + PR2 da l34 | **[[A40.l57]]** (P2, gatilho de subida declarado) |
 | `schema_validation` warn → strict | [[A40.l5]] §PR5 ("outra lane") | **[[A40.l58]]** (`blocked` por l5) |
 | "PR mergeado invisível no `_README`" (3ª ocorrência) + 10 lanes fora da tabela | fecho da l7 · nota do §Lanes | **[[A40.l59]]** (gate na transição) |
-| Faixa marginal: base de cálculo ou rendimento bruto? | co-design interrompido (limite de gasto) | **co-design do PR3 da [[A40.l34]]** — `financial-planner`; a assinatura do service só vira contrato público lá |
+| Faixa marginal: base de cálculo ou rendimento bruto? | co-design interrompido (limite de gasto) | **decidido na emenda 2026-08-13 da [[ADR-375]]** (D6: faixa sobre base de cálculo; teto sobre rendimento bruto) e shippado no #1448 · consumidor restante: [[A40.l37]] |
 | `dev/golden_diff.py` fora de hook e de CI | crítico do PR1 da l34 | **pendência de decisão do dono**: wire como gate ou declarar ferramenta manual — hoje a prosa de lanes o cita como se gateasse |
 | Vault key dos 55 E5 reais · `frontend-e2e` seed/auth · [[ADR-374]] §Deferimento | várias | **owner-gated**, documentados na origem — sem mudança |
 
 O que **não** entrou aqui por já ter rota: [[A40.l36]]/[[A40.l37]] (lanes desde
 2026-08-11), os PRs 2–4 da [[A40.l5]], a §Carga herdada da [[A40.l25]], e o PR3
-da [[A40.l34]] (em execução).
+da [[A40.l34]] (shipped #1448 · `6c68723a`).
 
 ## Infra de CI tocada durante a sprint (não são lanes)
 
