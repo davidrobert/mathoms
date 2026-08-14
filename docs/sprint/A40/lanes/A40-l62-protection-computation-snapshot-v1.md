@@ -69,3 +69,41 @@ vigentes quando foi gerado”. Nenhuma metade libera a S9 isoladamente.
   alteração semântica; `e5-v1` legado continua verificável.
 - Migration, schema do overlay, OpenAPI/view-model snapshot e testes estão
   squash-mergeados em `main` antes de desbloquear a [[A40.l35]].
+
+## Achados medidos entregues ao PR1 — 2026-08-14
+
+> Origem: sessão que começou a l62 sobre base pré-#1451 e teve o escopo superado
+> pela [[ADR-387]] `Decidido`. O código foi descartado; **estas três medições
+> sobrevivem** porque são fatos do repositório, não desenho. Cada uma tem
+> call-site citado — re-meça antes de usar, o rastro envelhece.
+
+**1. `endividamento.total_dividas` é cópia derivada, não segunda medição.**
+`endividamento_analyzer.py:88` faz `dividas_total = patrimonio.get("dividas")`, e
+`to_legacy_dict` emite `round(self.total_dividas, 2)`. Tratar os dois campos como
+fontes independentes é a dupla soma que o §Critério de aceite proíbe. A fonte
+única para `dívida atribuída` (D4, vida) é `patrimonio.dividas` — e ela é
+**familiar**, então a atribuição por segurado que a D4 exige ainda não tem
+produtor.
+
+**2. `passive_income.renda_passiva_mensal_brl` não tem base única.**
+`passive_income_calculator.py:488-490` usa `buckets.dividendos` (razão) quando
+`> 0` e cai para `renda.dividendos_liquido_brl` (IRPF) senão — bruto e líquido
+alternam **por fonte, dentro do mesmo campo**. A D4 exige renda ativa e passiva
+líquidas *na mesma janela*: este campo não satisfaz o par, e usá-lo produziria o
+gap de invalidez inventado que a [[A40.l61]] acabou de fechar.
+
+**3. `itcmd_estimated` já declara proveniência que não existe.**
+`itcmd_estimator.py` monta `sources=f"Tabela ITCMD {uf} (fiscal_parameters)"`,
+mas `fiscal_parameters` não tem coluna de ITCMD — o model é `year`, `ir_brackets`,
+`pgbl_limit`, `inss_ceiling`, `lucro_presumido`. Hoje é **inerte** (a l61 retém a
+categoria antes do calculator rodar), então não há dano vivo; vira dano no
+instante em que `fiscal_rule_sets` (D5) ligar o sucessório sem trocar a string.
+
+**Contexto de renda ativa, para quem escrever o `protection_computation_inputs_v1`:**
+o E5 não tem renda ativa canônica. Existe `renda_ativa_pj_excluida_brl`, que é a
+parcela PJ *excluída* do cálculo de renda passiva — subconjunto, não a renda. O
+material mais próximo é `fluxo_caixa.receita_por_natureza` ([[ADR-330]]:
+`receita_pj + receita_clt + receita_aluguel + receita_outras == receita_total`,
+conservativo em cents), mas ele é **familiar e bruto**, e a D4 pede
+**por segurado e líquido de 12 meses completos** — a distância entre os dois é
+trabalho de produtor, não de projeção.

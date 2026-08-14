@@ -6,6 +6,7 @@ import { MonetaryValue } from "../MonetaryValue";
 import { PeriodToggle } from "../PeriodToggle";
 import { formatPercent } from "@/lib/format";
 import { formatInteractiveWindowBasis } from "../utils/interactiveWindowLabel";
+import { ReceitasNaturezaStrip } from "./ReceitasNaturezaStrip";
 import type {
   FluxoCaixaSummary,
   FluxoJanelaInterativa,
@@ -29,7 +30,7 @@ const FONTE_LABELS: Record<string, string> = {
 
 function HistoricalReceitasCard() {
   return (
-    <ReportCard variant="feature" title="Receitas por Fonte">
+    <ReportCard variant="feature" title="Composição das Receitas">
       <p className="text-sm text-[var(--surface-muted-foreground)]">
         Detalhamento por janela indisponível neste relatório histórico. Gere um
         novo relatório para consultar médias mensais comparáveis.
@@ -124,6 +125,21 @@ function ReceitasTable({ janela }: { readonly janela: FluxoJanelaInterativa }) {
   );
 }
 
+function ReceitasDisclaimer() {
+  return (
+    <div className="space-y-1 text-xs text-[var(--surface-muted-foreground)]">
+      <p>
+        Inclui entradas recorrentes e pontuais; não representa renda
+        sustentável.
+      </p>
+      <p>
+        PJ agrupa pró-labore e lucros. Outras reúne o que não é trabalho nem
+        aluguel.
+      </p>
+    </div>
+  );
+}
+
 function ReceitasWindowContent({
   janela,
 }: {
@@ -136,26 +152,25 @@ function ReceitasWindowContent({
       </p>
     );
   }
-  const hasRows = janela.tabela_receitas_por_fonte_mensal.length !== 0;
+  const hasFonte = janela.tabela_receitas_por_fonte_mensal.length !== 0;
+  const hasNatureza = janela.tabela_receita_por_natureza_mensal.length !== 0;
   return (
     <div className="space-y-4">
       <ReceitaWindowSummary janela={janela} />
-      {hasRows ? (
-        <ReceitasTable janela={janela} />
+      <ReceitasNaturezaStrip rows={janela.tabela_receita_por_natureza_mensal} />
+      {hasFonte ? <ReceitasTable janela={janela} /> : null}
+      {hasFonte || hasNatureza ? (
+        <ReceitasDisclaimer />
       ) : (
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Sem entradas registradas nesta janela.
         </p>
       )}
-      <p className="text-xs text-[var(--surface-muted-foreground)]">
-        Inclui entradas recorrentes e pontuais; não representa renda
-        sustentável.
-      </p>
     </div>
   );
 }
 
-/** A40.l44 PR5 — seleção pura do agregado table-ready emitido pelo E5. */
+/** A40.l44 PR5+PR6 — seleção pura do agregado table-ready emitido pelo E5. */
 export function ReceitasFonteCard({
   fluxo,
 }: {
@@ -168,12 +183,12 @@ export function ReceitasFonteCard({
   return (
     <ReportCard
       variant="feature"
-      title="Receitas por Fonte"
+      title="Composição das Receitas"
       headerRight={
         <PeriodToggle
           value={period}
           onChange={setPeriod}
-          ariaLabel="Janela das receitas por fonte"
+          ariaLabel="Janela da composição das receitas"
         />
       }
     >

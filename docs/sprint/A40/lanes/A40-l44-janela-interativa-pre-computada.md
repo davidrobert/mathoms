@@ -194,6 +194,12 @@ mesma família do RV3-02).
 não serve ao toggle) · a r4 já mediu que a natureza **fecha com o total de receita
 ao centavo** — o teste ancora nessa identidade, não em valor literal.
 
+**Forma (co-design product-designer, 2026-08-14):** um card, um toggle, um KPI.
+A faixa **Por tipo** (as 4 naturezas da ADR-330) e a tabela **Fonte** ficam
+sempre visíveis. Título `Composição das Receitas`. Sem card irmão — dois KPIs
+do mesmo `receita_mensal_media` reabririam o RV4-04. Sem tabs: o PDF imprime
+os dois recortes.
+
 ## Critério de aceite da lane
 
 - **Invariante publicado e testado:** todo valor monetário renderizado existe, com
