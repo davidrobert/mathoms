@@ -67,6 +67,970 @@
         "transform": "receita total − despesa total",
         "value": "1500.00"
       },
+      "fluxo_caixa.janelas.12m.despesa_consumo_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Consumo mensal médio — janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias de consumo por categoria",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.12m.despesa_mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.despesa_total",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.janela_meses",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa mensal média bruta — janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa total ÷ meses documentados",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.12m.despesa_total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesa_total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa total — janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das despesas documentadas da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.12m.receita_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita mensal média — janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias por fonte com resíduo alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.12m.receita_total": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita total — janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das fontes de receita da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.12m.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.tabela_consumo_por_categoria_mensal[alimentacao].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — média mensal na janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.12m.tabela_consumo_por_categoria_mensal[alimentacao].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesas_por_categoria.alimentacao",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — total na janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.12m.tabela_receita_por_natureza_mensal[receita_pj].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.tabela_receita_por_natureza_mensal[receita_pj].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — média mensal na janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.12m.tabela_receita_por_natureza_mensal[receita_pj].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — total na janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "rebucketização das fontes de receita restritas à janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.12m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — média mensal na janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.12m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.por_fonte.lucros_distribuidos",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — total na janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.12m.transferencia_patrimonial_mensal": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.despesa_consumo_mensal_media",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.12m.despesa_mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Transferência patrimonial mensal — janela 12m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa mensal bruta − consumo mensal",
+        "value": "0.00"
+      },
+      "fluxo_caixa.janelas.3m.despesa_consumo_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Consumo mensal médio — janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias de consumo por categoria",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.3m.despesa_mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.despesa_total",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.janela_meses",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa mensal média bruta — janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa total ÷ meses documentados",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.3m.despesa_total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesa_total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa total — janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das despesas documentadas da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.3m.receita_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita mensal média — janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias por fonte com resíduo alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.3m.receita_total": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita total — janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das fontes de receita da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.3m.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.tabela_consumo_por_categoria_mensal[alimentacao].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — média mensal na janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.3m.tabela_consumo_por_categoria_mensal[alimentacao].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesas_por_categoria.alimentacao",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — total na janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.3m.tabela_receita_por_natureza_mensal[receita_pj].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.tabela_receita_por_natureza_mensal[receita_pj].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — média mensal na janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.3m.tabela_receita_por_natureza_mensal[receita_pj].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — total na janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "rebucketização das fontes de receita restritas à janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.3m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — média mensal na janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.3m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.por_fonte.lucros_distribuidos",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — total na janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.3m.transferencia_patrimonial_mensal": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.despesa_consumo_mensal_media",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.3m.despesa_mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Transferência patrimonial mensal — janela 3m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa mensal bruta − consumo mensal",
+        "value": "0.00"
+      },
+      "fluxo_caixa.janelas.6m.despesa_consumo_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Consumo mensal médio — janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias de consumo por categoria",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.6m.despesa_mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.despesa_total",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.janela_meses",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa mensal média bruta — janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa total ÷ meses documentados",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.6m.despesa_total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesa_total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa total — janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das despesas documentadas da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.6m.receita_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita mensal média — janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias por fonte com resíduo alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.6m.receita_total": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita total — janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das fontes de receita da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.6m.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.tabela_consumo_por_categoria_mensal[alimentacao].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — média mensal na janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.6m.tabela_consumo_por_categoria_mensal[alimentacao].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesas_por_categoria.alimentacao",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — total na janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.6m.tabela_receita_por_natureza_mensal[receita_pj].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.tabela_receita_por_natureza_mensal[receita_pj].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — média mensal na janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.6m.tabela_receita_por_natureza_mensal[receita_pj].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — total na janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "rebucketização das fontes de receita restritas à janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.6m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — média mensal na janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.6m.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.por_fonte.lucros_distribuidos",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — total na janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.6m.transferencia_patrimonial_mensal": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.despesa_consumo_mensal_media",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.6m.despesa_mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Transferência patrimonial mensal — janela 6m",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa mensal bruta − consumo mensal",
+        "value": "0.00"
+      },
+      "fluxo_caixa.janelas.ytd.despesa_consumo_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Consumo mensal médio — janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias de consumo por categoria",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.ytd.despesa_mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.despesa_total",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.janela_meses",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa mensal média bruta — janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa total ÷ meses documentados",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.ytd.despesa_total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesa_total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa total — janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das despesas documentadas da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.ytd.receita_mensal_media": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita mensal média — janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das médias por fonte com resíduo alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.ytd.receita_total": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Receita total — janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "soma das fontes de receita da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.ytd.tabela_consumo_por_categoria_mensal[alimentacao].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.tabela_consumo_por_categoria_mensal[alimentacao].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — média mensal na janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.ytd.tabela_consumo_por_categoria_mensal[alimentacao].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesas_por_categoria.alimentacao",
+            "stage": "E5"
+          }
+        ],
+        "label": "alimentacao — total na janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.janelas.ytd.tabela_receita_por_natureza_mensal[receita_pj].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.tabela_receita_por_natureza_mensal[receita_pj].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — média mensal na janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.ytd.tabela_receita_por_natureza_mensal[receita_pj].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "receita_pj — total na janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "rebucketização das fontes de receita restritas à janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.ytd.tabela_receitas_por_fonte_mensal[lucros_distribuidos].mensal_media": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.janela_meses",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — média mensal na janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.ytd.tabela_receitas_por_fonte_mensal[lucros_distribuidos].total": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.por_fonte.lucros_distribuidos",
+            "stage": "E5"
+          }
+        ],
+        "label": "lucros_distribuidos — total na janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "total da categoria E4 restrito aos meses da janela",
+        "value": "3000.00"
+      },
+      "fluxo_caixa.janelas.ytd.transferencia_patrimonial_mensal": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.despesa_consumo_mensal_media",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.janelas.ytd.despesa_mensal_media",
+            "stage": "E5"
+          }
+        ],
+        "label": "Transferência patrimonial mensal — janela ytd",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-377",
+          "ref": "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
+        },
+        "transform": "despesa mensal bruta − consumo mensal",
+        "value": "0.00"
+      },
       "investimentos.total": {
         "edge_type": "aggregation",
         "inputs": [
@@ -340,6 +1304,156 @@
       "transferencia_patrimonial": 0
     },
     "janela_meses": 1,
+    "janelas": {
+      "12m": {
+        "despesa_consumo_mensal_media": 150000,
+        "despesa_mensal_media": 150000,
+        "despesa_total": 150000,
+        "janela": "12m",
+        "janela_meses": 1,
+        "mes_fim": "2026-01",
+        "mes_inicio": "2026-01",
+        "receita_mensal_media": 300000,
+        "receita_total": 300000,
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "alimentacao",
+            "mensal_media": 150000,
+            "participacao_acumulada_pct": "100.000000",
+            "participacao_pct": "100.000000",
+            "total": 150000
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "mensal_media": 300000,
+            "natureza": "receita_pj",
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "lucros_distribuidos",
+            "mensal_media": 300000,
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "transferencia_patrimonial_mensal": 0
+      },
+      "3m": {
+        "despesa_consumo_mensal_media": 150000,
+        "despesa_mensal_media": 150000,
+        "despesa_total": 150000,
+        "janela": "3m",
+        "janela_meses": 1,
+        "mes_fim": "2026-01",
+        "mes_inicio": "2026-01",
+        "receita_mensal_media": 300000,
+        "receita_total": 300000,
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "alimentacao",
+            "mensal_media": 150000,
+            "participacao_acumulada_pct": "100.000000",
+            "participacao_pct": "100.000000",
+            "total": 150000
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "mensal_media": 300000,
+            "natureza": "receita_pj",
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "lucros_distribuidos",
+            "mensal_media": 300000,
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "transferencia_patrimonial_mensal": 0
+      },
+      "6m": {
+        "despesa_consumo_mensal_media": 150000,
+        "despesa_mensal_media": 150000,
+        "despesa_total": 150000,
+        "janela": "6m",
+        "janela_meses": 1,
+        "mes_fim": "2026-01",
+        "mes_inicio": "2026-01",
+        "receita_mensal_media": 300000,
+        "receita_total": 300000,
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "alimentacao",
+            "mensal_media": 150000,
+            "participacao_acumulada_pct": "100.000000",
+            "participacao_pct": "100.000000",
+            "total": 150000
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "mensal_media": 300000,
+            "natureza": "receita_pj",
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "lucros_distribuidos",
+            "mensal_media": 300000,
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "transferencia_patrimonial_mensal": 0
+      },
+      "ytd": {
+        "despesa_consumo_mensal_media": 150000,
+        "despesa_mensal_media": 150000,
+        "despesa_total": 150000,
+        "janela": "ytd",
+        "janela_meses": 1,
+        "mes_fim": "2026-01",
+        "mes_inicio": "2026-01",
+        "receita_mensal_media": 300000,
+        "receita_total": 300000,
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "alimentacao",
+            "mensal_media": 150000,
+            "participacao_acumulada_pct": "100.000000",
+            "participacao_pct": "100.000000",
+            "total": 150000
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "mensal_media": 300000,
+            "natureza": "receita_pj",
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "lucros_distribuidos",
+            "mensal_media": 300000,
+            "participacao_pct": "100.000000",
+            "total": 300000
+          }
+        ],
+        "transferencia_patrimonial_mensal": 0
+      }
+    },
     "por_fonte": {
       "lucros_distribuidos": 300000
     },

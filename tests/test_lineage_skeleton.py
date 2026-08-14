@@ -136,6 +136,19 @@ def test_l6_value_mirrors_payload(e5_payload: dict, field_name: str):
     )
 
 
+def test_janelas_lineage_reaches_every_rendered_money(e5_payload: dict):
+    fields = e5_payload["_lineage"]["fields"]
+    for periodo, janela in e5_payload["fluxo_caixa"]["janelas"].items():
+        scalar = f"fluxo_caixa.janelas.{periodo}.receita_mensal_media"
+        assert _cents(fields[scalar]["value"]) == _resolved_cents(e5_payload, scalar)
+        for row in janela["tabela_receitas_por_fonte_mensal"]:
+            path = (
+                f"fluxo_caixa.janelas.{periodo}."
+                f"tabela_receitas_por_fonte_mensal[{row['fonte']}].mensal_media"
+            )
+            assert _cents(fields[path]["value"]) == _resolved_cents(e5_payload, path)
+
+
 @pytest.mark.parametrize("field_name", _L6_FIELDS)
 def test_l6_aggregate_equals_sum_of_lineage_inputs(e5_payload: dict, field_name: str):
     """check_lineage_sum: Σ inputs[] (resolvidos no payload) == value, em cents int."""

@@ -1,8 +1,9 @@
 """Invariante ADR-306 — rótulo de janela em toda métrica mensalizada do E5.
 
-Todo dict do payload que contém campo ``*mensal*``/``*mensais*`` derivado de
+Todo bloco do payload que contém campo ``*mensal*``/``*mensais*`` derivado de
 série temporal DEVE carregar a chave irmã ``janela`` (vocabulário fechado:
-``12m`` | ``full`` | ``irpf[_<ano>]``). Campos "valor mensal por natureza"
+``3m`` | ``6m`` | ``12m`` | ``ytd`` | ``full`` | ``irpf[_<ano>]``). Rows
+table-ready herdam o rótulo do bloco que as contém. Campos "valor mensal por natureza"
 (parcela contratual, aporte de meta) são isentos — cada isenção justificada
 inline; assert anti-órfã impede a lista de acumular nomes mortos (ADR-210).
 """
@@ -27,7 +28,7 @@ _E3_MIXED = _FIX / "e3" / "minimal-conta-com-despesa-3_reconciled.json"
 _BASELINE = _FIX / "e2" / "minimal-baseline-1.5_consolidated.json"
 _DOGFOOD = _FIX / "dogfood"
 
-_JANELA_VOCAB = re.compile(r"^(12m|full|irpf(_\d{4})?)$")
+_JANELA_VOCAB = re.compile(r"^(3m|6m|12m|ytd|full|irpf(_\d{4})?)$")
 
 # Valores mensais por natureza — quantia mensal contratual/planejada, não
 # mensalização de série temporal (ADR-306 §D1 família iv).
@@ -53,7 +54,7 @@ def _mensal_fields(node: dict) -> set[str]:
 
 def _children(node, path):
     if isinstance(node, dict):
-        return [(f"{path}.{k}", v) for k, v in node.items()]
+        return [(f"{path}.{k}", v) for k, v in node.items() if k != "_lineage"]
     if isinstance(node, list):
         return [(f"{path}[{i}]", v) for i, v in enumerate(node)]
     return []
@@ -69,6 +70,10 @@ def _walk(node, path=""):
 def _walk_all(payloads):
     for payload in payloads:
         yield from _walk(payload)
+
+
+def _inherits_interactive_window(path: str) -> bool:
+    return path.startswith(".fluxo_caixa.janelas.") and ".tabela_" in path
 
 
 @pytest.fixture(scope="module")
@@ -97,7 +102,9 @@ def test_todo_campo_mensal_tem_rotulo_de_janela(payloads: list[dict]):
     violations = [
         f"{path or '<root>'}: {sorted(fields)} sem chave 'janela'"
         for path, node in _walk_all(payloads)
-        if (fields := _mensal_fields(node)) and "janela" not in node
+        if (fields := _mensal_fields(node))
+        and "janela" not in node
+        and not _inherits_interactive_window(path)
     ]
     assert not violations, "campos mensalizados sem rótulo de janela (ADR-306):\n" + "\n".join(
         violations

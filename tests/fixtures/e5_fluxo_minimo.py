@@ -10,11 +10,29 @@ from __future__ import annotations
 
 from typing import Any
 
+_JANELA_VAZIA: dict[str, Any] = {
+    "janela_meses": 0,
+    "mes_inicio": None,
+    "mes_fim": None,
+    "receita_total": 0.0,
+    "despesa_total": 0.0,
+    "receita_mensal_media": 0.0,
+    "despesa_mensal_media": 0.0,
+    "despesa_consumo_mensal_media": 0.0,
+    "transferencia_patrimonial_mensal": 0.0,
+    "tabela_receitas_por_fonte_mensal": [],
+    "tabela_receita_por_natureza_mensal": [],
+    "tabela_consumo_por_categoria_mensal": [],
+}
+
 # `data_corte` + `provisionado` são required desde o corte de provisionado
 # (ADR-377 · A40.l41): o E5 sempre emite os dois, derivados do `reference_date`.
 FLUXO_CAIXA_MINIMO: dict[str, Any] = {
     "janela": "full",
     "janela_meses": 0,
+    "janelas": {
+        periodo: {**_JANELA_VAZIA, "janela": periodo} for periodo in ("3m", "6m", "12m", "ytd")
+    },
     "data_corte": "2026-01-31",
     "provisionado": {
         "data_corte": "2026-01-31",

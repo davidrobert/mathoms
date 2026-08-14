@@ -85,6 +85,52 @@ export interface FluxoProvisionado {
   ultimo_mes: string | null;
 }
 
+export type FluxoPeriodoInterativo = "3m" | "6m" | "12m" | "ytd";
+
+export interface FluxoReceitaMensalRow {
+  fonte: string;
+  total: number;
+  mensal_media: number;
+  participacao_pct: number;
+}
+
+export interface FluxoNaturezaMensalRow {
+  natureza: "receita_pj" | "receita_clt" | "receita_aluguel" | "receita_outras";
+  total: number;
+  mensal_media: number;
+  participacao_pct: number;
+}
+
+export interface FluxoConsumoMensalRow {
+  categoria: string;
+  total: number;
+  mensal_media: number;
+  participacao_pct: number;
+  participacao_acumulada_pct: number;
+}
+
+/** ADR-377 — bloco table-ready; o cliente seleciona uma chave sem recalcular. */
+export interface FluxoJanelaInterativa {
+  janela: FluxoPeriodoInterativo;
+  janela_meses: number;
+  mes_inicio: string | null;
+  mes_fim: string | null;
+  receita_total: number;
+  despesa_total: number;
+  receita_mensal_media: number;
+  despesa_mensal_media: number;
+  despesa_consumo_mensal_media: number;
+  transferencia_patrimonial_mensal: number;
+  tabela_receitas_por_fonte_mensal: FluxoReceitaMensalRow[];
+  tabela_receita_por_natureza_mensal: FluxoNaturezaMensalRow[];
+  tabela_consumo_por_categoria_mensal: FluxoConsumoMensalRow[];
+}
+
+export type FluxoJanelas = Record<
+  FluxoPeriodoInterativo,
+  FluxoJanelaInterativa
+>;
+
 export interface FluxoCaixaSummary {
   /** Último dia realizado do run (ISO `YYYY-MM-DD`). Ausente em relatório
    * anterior ao corte de provisionado. */
@@ -96,6 +142,8 @@ export interface FluxoCaixaSummary {
   janela_meses?: number;
   /** ADR-306 D1 — bloco canônico de 12 meses (ausente em payload pré-A28). */
   janela_12m?: FluxoJanela12m;
+  /** ADR-377 — ausente apenas em relatório histórico anterior à A40.l44. */
+  janelas?: FluxoJanelas;
   receita_total?: number;
   receita_recorrente?: number;
   receita_one_time?: number;

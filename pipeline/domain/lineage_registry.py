@@ -16,6 +16,7 @@ _RESERVA_CALCULATE = (
     "pipeline.domain.services.reserva_emergencia_calculator:EmergencyReserveCalculator.calculate"
 )
 _FLUXO_ENRICH = "pipeline.domain.services.fluxo_caixa_enricher:FluxoCaixaEnricher.enrich"
+_FLUXO_JANELAS = "pipeline.domain.services.fluxo_janelas:build_fluxo_janelas"
 _INVESTIMENTOS_ANALYZE = (
     "pipeline.domain.services.investimentos_classes_analyzer:InvestimentosClassesAnalyzer.analyze"
 )
@@ -38,6 +39,7 @@ LINEAGE_RULE_REFS: dict[str, dict[str, str]] = {
     # A25.l6 — fluxo líquido (capacidade de poupança) é formula sobre os
     # agregados do mesmo enricher; reusa o enforcer de fluxo (ADR-137).
     "fluxo_caixa.fluxo_liquido": {"adr": "ADR-137", "ref": _FLUXO_ENRICH},
+    "fluxo_caixa.janelas": {"adr": "ADR-377", "ref": _FLUXO_JANELAS},
     # A25.l6 — endividamento consolida dívidas do baseline (agregado Debt,
     # ADR-227); nó distinto de patrimonio.dividas com o mesmo valor — o
     # lineage é declarado no enforcer do campo, não re-derivado.

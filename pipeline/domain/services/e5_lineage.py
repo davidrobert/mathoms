@@ -52,6 +52,7 @@ def build_e5_lineage(
     fields["reserva_emergencia.total_liquida"] = reserva_total_liquida_field(reserva, identity)
     fields["fluxo_caixa.despesa_total"] = despesa_total_field(fluxo_legacy, despesas_e4)
     fields["fluxo_caixa.fluxo_liquido"] = fluxo_liquido_field(fluxo_legacy)
+    fields.update(janelas_lineage_fields(fluxo_legacy))
     fields["investimentos.total"] = total_investido_field(investimentos_legacy)
     fields["endividamento.total_dividas"] = total_dividas_field(endividamento_legacy)
     return lineage_block(fields)
@@ -130,6 +131,153 @@ def fluxo_liquido_field(fluxo_legacy: FluxoLegacyDict) -> LineageField:
         "member_hashes": [],
         "inputs": sorted_inputs(refs),
     }
+
+
+_JANELA_SCALARS = {
+    "receita_total": "Receita total",
+    "despesa_total": "Despesa total",
+    "receita_mensal_media": "Receita mensal média",
+    "despesa_mensal_media": "Despesa mensal média bruta",
+    "despesa_consumo_mensal_media": "Consumo mensal médio",
+    "transferencia_patrimonial_mensal": "Transferência patrimonial mensal",
+}
+_JANELA_TABLES = (
+    ("tabela_receitas_por_fonte_mensal", "fonte"),
+    ("tabela_receita_por_natureza_mensal", "natureza"),
+    ("tabela_consumo_por_categoria_mensal", "categoria"),
+)
+
+
+def _janela_ref(periodo: str, campo: str) -> str:
+    return f"fluxo_caixa.janelas.{periodo}.{campo}"
+
+
+def _janela_field(
+    value: Any,
+    label: str,
+    transform: str,
+    inputs: list[str],
+    edge_type: str = "aggregation",
+) -> LineageField:
+    return {
+        "value": money_str(value),
+        "label": label,
+        "transform": transform,
+        "rule_ref": dict(LINEAGE_RULE_REFS["fluxo_caixa.janelas"]),
+        "edge_type": edge_type,
+        "member_hashes": [],
+        "inputs": sorted_inputs([e5_input_ref(field) for field in inputs]),
+    }
+
+
+def _table_row_refs(
+    periodo: str, janela: dict, table: str, natural_key: str, campo: str
+) -> list[str]:
+    return [
+        _janela_ref(periodo, f"{table}[{row[natural_key]}].{campo}")
+        for row in janela.get(table) or []
+    ]
+
+
+def _scalar_inputs(periodo: str, campo: str, janela: dict) -> list[str]:
+    if campo in {"receita_total", "receita_mensal_media"}:
+        row_field = "total" if campo == "receita_total" else "mensal_media"
+        return _table_row_refs(
+            periodo, janela, "tabela_receitas_por_fonte_mensal", "fonte", row_field
+        )
+    if campo == "despesa_consumo_mensal_media":
+        return _table_row_refs(
+            periodo, janela, "tabela_consumo_por_categoria_mensal", "categoria", "mensal_media"
+        )
+    if campo == "transferencia_patrimonial_mensal":
+        return [
+            _janela_ref(periodo, "despesa_mensal_media"),
+            _janela_ref(periodo, "despesa_consumo_mensal_media"),
+        ]
+    if campo == "despesa_total":
+        return ["fluxo_caixa.despesa_total"]
+    return [_janela_ref(periodo, "despesa_total"), _janela_ref(periodo, "janela_meses")]
+
+
+def _scalar_edge(campo: str) -> str:
+    aggregations = {"receita_total", "receita_mensal_media", "despesa_consumo_mensal_media"}
+    return "aggregation" if campo in aggregations else "formula"
+
+
+def _scalar_transform(campo: str) -> str:
+    transforms = {
+        "receita_total": "soma das fontes de receita da janela",
+        "despesa_total": "soma das despesas documentadas da janela",
+        "receita_mensal_media": "soma das médias por fonte com resíduo alocado",
+        "despesa_mensal_media": "despesa total ÷ meses documentados",
+        "despesa_consumo_mensal_media": "soma das médias de consumo por categoria",
+        "transferencia_patrimonial_mensal": "despesa mensal bruta − consumo mensal",
+    }
+    return transforms[campo]
+
+
+def _table_total_inputs(periodo: str, janela: dict, table: str, selector: str) -> list[str]:
+    if table == "tabela_receitas_por_fonte_mensal":
+        return [f"fluxo_caixa.por_fonte.{selector}"]
+    if table == "tabela_consumo_por_categoria_mensal":
+        return [f"fluxo_caixa.despesas_por_categoria.{selector}"]
+    return _table_row_refs(periodo, janela, "tabela_receitas_por_fonte_mensal", "fonte", "total")
+
+
+def _table_total_transform(table: str) -> str:
+    if table == "tabela_receita_por_natureza_mensal":
+        return "rebucketização das fontes de receita restritas à janela"
+    return "total da categoria E4 restrito aos meses da janela"
+
+
+def _table_total_field(
+    periodo: str, janela: dict, row: dict, table: str, selector: str
+) -> LineageField:
+    return _janela_field(
+        row["total"],
+        f"{selector} — total na janela {periodo}",
+        _table_total_transform(table),
+        _table_total_inputs(periodo, janela, table, selector),
+        "formula",
+    )
+
+
+def _table_monthly_field(periodo: str, row: dict, selector: str, base: str) -> LineageField:
+    return _janela_field(
+        row["mensal_media"],
+        f"{selector} — média mensal na janela {periodo}",
+        "total da linha ÷ meses documentados, com resíduo de centavos alocado",
+        [f"{base}.total", _janela_ref(periodo, "janela_meses")],
+        "formula",
+    )
+
+
+def _table_fields(periodo: str, janela: dict) -> dict[str, LineageField]:
+    fields: dict[str, LineageField] = {}
+    for table, natural_key in _JANELA_TABLES:
+        for row in janela.get(table) or []:
+            selector = row[natural_key]
+            base = _janela_ref(periodo, f"{table}[{selector}]")
+            fields[f"{base}.total"] = _table_total_field(periodo, janela, row, table, selector)
+            fields[f"{base}.mensal_media"] = _table_monthly_field(periodo, row, selector, base)
+    return fields
+
+
+def janelas_lineage_fields(fluxo_legacy: FluxoLegacyDict) -> dict[str, LineageField]:
+    """Lineage dos valores monetários table-ready emitidos pela ADR-377."""
+    fields: dict[str, LineageField] = {}
+    for periodo, janela in (fluxo_legacy.get("janelas") or {}).items():
+        for campo, label in _JANELA_SCALARS.items():
+            path = _janela_ref(periodo, campo)
+            fields[path] = _janela_field(
+                janela[campo],
+                f"{label} — janela {periodo}",
+                _scalar_transform(campo),
+                _scalar_inputs(periodo, campo, janela),
+                _scalar_edge(campo),
+            )
+        fields.update(_table_fields(periodo, janela))
+    return fields
 
 
 def total_investido_field(investimentos_legacy: InvestimentosLegacyDict) -> LineageField:

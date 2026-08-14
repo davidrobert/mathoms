@@ -288,6 +288,7 @@ class TestResult:
             "tabela_receitas",
             "receita_despesa_mensal_detalhado",
             "janela_12m",
+            "janelas",
         }
         assert required.issubset(d.keys())
 

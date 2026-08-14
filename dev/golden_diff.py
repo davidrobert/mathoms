@@ -116,7 +116,17 @@ class FieldDiff:
         return self.kind == "value_delta" and self.delta_cents is not None
 
 
-_NATURAL_KEYS = ("categoria", "property_id", "codigo_rfb", "code", "id", "nome", "key")
+_NATURAL_KEYS = (
+    "categoria",
+    "fonte",
+    "natureza",
+    "property_id",
+    "codigo_rfb",
+    "code",
+    "id",
+    "nome",
+    "key",
+)
 
 
 def _natural_key(item: Any) -> Any | None:
