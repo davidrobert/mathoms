@@ -59,8 +59,21 @@ não é dele, e o diagnóstico se perde no contexto errado.
 > que a regra dizia evitar. Revertido em
 > [PR #1458](https://github.com/davidrobert/mathoms/pull/1458), junto com a
 > troca do gate de computed style por gate de efeito sobre a página 1 do PDF.
-> O item 1 desta lane (baseline de print não provada) **continua aberto**: o que
-> o #1458 fecha é a regressão, não a política de label-gate.
+> **Emenda 2026-08-14 (mesma sessão, no closeout): o §Critério de aceite do item
+> 1 está satisfeito.** A frase original dizia que o item 1 "continua aberto" —
+> impreciso, e a imprecisão é minha. O critério é literalmente *"run do job
+> `frontend-print-visual` referenciado nesta lane, verde"*, e o run existe:
+> [31823180323](https://github.com/davidrobert/mathoms/actions/runs/31823180323),
+> `frontend-print-visual` **success** sobre o tip de `main` `5b4beee6`, com a
+> baseline commitada **inalterada** — ou seja, nem a segunda perna do critério
+> (baseline nova com PNG inspecionado) foi necessária: a baseline nunca esteve
+> errada, o #1400 respondia por 100% da divergência.
+>
+> O que continua aberto **não é o item 1**, é a política que o §Problema dele
+> descreve — o job ser label-gated, de modo que PR sem o label envelhece a
+> baseline em silêncio. Essa é a linha `sem lane` do
+> [`_README`](../_README.md) da sprint §"Rodar ainda não é gatear", corrigida no
+> mesmo PR desta emenda.
 
 ### 2. `card-variant-feature` perdeu o DNA do mockup no build de tokens
 
