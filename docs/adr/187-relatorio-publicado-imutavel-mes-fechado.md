@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-387]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-08-13"]
+amended_at: ["2026-08-13", "2026-08-14"]
 aliases: ["ADR 187", "Mês fechado", "Report publication immutability"]
 tags:
   - area/report
@@ -26,6 +26,9 @@ tags:
 > **Emenda 2026-08-13:** [[ADR-387]] estende a imutabilidade ao snapshot de
 > proteção do Report. O hash composto entra apenas na implementação da
 > [[A40.l62]]; até lá a S9 permanece desligada.
+
+> **Emenda 2026-08-14:** a [[ADR-387]] foi decidida e fechou a identidade da
+> publicação nova: `report_id` + `hash_version=report-v2`, sem reconstrução live.
 
 ## Contexto
 
@@ -151,3 +154,11 @@ com janela de "edição quente" antes.
 Quando existir `ProtectionComputationSnapshotV1`, `immutable_hash` cobre E5 +
 digest canônico versionado do snapshot. Alterar a fotografia de proteção sem
 invalidar a publicação passa a ser falha de integridade, não atualização live.
+
+## Emenda 2026-08-14 — publicação referencia o Report exato
+
+`report_publications` ganha `report_id` nullable (`ON DELETE SET NULL`) e
+`hash_version`. Rows antigas permanecem `e5-v1`; publicação nova usa
+`report-v2`, valida que o Report referencia o mesmo `artifact_id` e hasheia o E5
+versionado + a serialização canônica integral de `protection_snapshot_json`.
+Vigências, fontes, versões e `captured_at` do snapshot não são voláteis.

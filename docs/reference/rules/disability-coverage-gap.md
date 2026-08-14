@@ -14,23 +14,39 @@ tags:
 
 # RULE — Gap de cobertura de invalidez
 
-**Conceito.** Famílias com **renda ativa dominante** (`renda_ativa > 40% da renda total`) carregam risco concentrado em capital humano. Cerbasi recomenda cobertura mensal de invalidez ≥ **60% da renda ativa líquida** para sustentar o padrão essencial enquanto o titular se reorganiza ou retoma capacidade laborativa parcial.
+> **Hold normativo 2026-08-14 ([[ADR-387]]).** O gap é por segurado. Cobertura
+> atual exige benefício mensal contratual e inventário confirmado; dividir
+> capital segurado por 12 é proibido. Até o contrato existir, `missing_data`.
 
-**Por quê.** Sem cobertura, invalidez total ou parcial colapsa o fluxo de caixa sem suporte de patrimônio gerador. O gate de 40% (renda ativa / renda total) garante que o calculator não dispara quando o cliente já tem renda passiva substancial que cobre o risco. O 60% (`target_pct`) coincide com a fração de despesa essencial típica observada no perfil Mathoms — abaixo disso o orçamento essencial colapsa.
+**Conceito.** Para cada segurado, comparar o benefício mensal contratual com uma
+fração versionada da sua renda ativa líquida recorrente. O calculator Mathoms
+histórico usa gates de 40% de dependência da renda ativa e alvo de 60%; são
+heurísticas metodológicas, não prova de suficiência contratual.
 
-**Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111). Thresholds (`target_pct=0.60`, `dependency_threshold=0.40`) hardcoded como constantes no calculator com referência à fonte metodológica — não vêm de `fiscal_parameters` porque são thresholds **metodológicos**, não fiscais.
+**Por quê.** Invalidez pode interromper a renda do trabalho. A estimativa serve
+para explicitar quanto do alvo metodológico não está coberto pelo benefício
+mensal confirmado, sem inferir que capital único, patrimônio ou cobertura de
+outra pessoa substituem essa renda.
+
+**Doutrina canônica.** A fórmula histórica foi decidida em
+[ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3.
+Seus thresholds são metodológicos, não fiscais, e precisam de versão explícita
+no snapshot da [[ADR-387]].
 
 **Computabilidade (emenda 2026-08-13).** Renda ativa e passiva líquidas mensais
 devem vir da mesma base temporal. Ausência de qualquer lado produz
 `missing_data`; receita recorrente bruta ou subtração entre janelas não é proxy.
-O calculator não roda até o contrato canônico da [[ADR-387]] existir.
+O calculator também exige `insured_family_member_id`, benefício mensal na unidade
+contratual e completude do inventário. Capital único permanece descritivo e não
+reduz o gap mensal.
 
 **Enforcer.**
 - [`pipeline/domain/services/protection/disability_coverage.py`](../../../pipeline/domain/services/protection/disability_coverage.py) — `disability_coverage_gap(DisabilityInputs) -> CoverageGap`. Emite `RiskInferred("invalidez_subcobertura")` quando share > 40% **e** gap > R$ 1k/mês.
 
 **Disclaimer fiduciário.** "Estimativa metodológica baseada em Cerbasi (renda ativa dominante → 60% mínimo); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para `<effective_date>`."
 
-**Fórmula.**
+**Fórmula histórica sob hold.** `cobertura_atual_mensal` só pode ser benefício
+mensal contratual do mesmo segurado, com inventário confirmado.
 
 ```
 share_ativa     = renda_ativa / (renda_ativa + renda_passiva)
@@ -41,7 +57,7 @@ dispara_risk    = (share_ativa > 0.40) AND (gap_mensal > R$ 1k/mês)
 impact_anual    = gap_mensal × 12   (campo RiskInferred.estimated_impact_brl_cents)
 ```
 
-**Casos de teste.** [tests/pipeline/domain/services/protection/test_disability_coverage.py](../../../tests/pipeline/domain/services/protection/test_disability_coverage.py) cobre 9 perfis:
+**Cobertura de teste legada.** [tests/pipeline/domain/services/protection/test_disability_coverage.py](../../../tests/pipeline/domain/services/protection/test_disability_coverage.py) cobre 9 perfis do calculator puro; não satisfaz, sozinho, o gate de computabilidade:
 - solteiro CLT sem cobertura,
 - casado com renda passiva majoritária (não dispara),
 - expatriado freelance com cobertura parcial,
@@ -52,4 +68,5 @@ impact_anual    = gap_mensal × 12   (campo RiskInferred.estimated_impact_brl_ce
 - gap imaterial (< R$ 1k/mês),
 - cobertura > target (gap=0).
 
-**Metodologias.** Apenas Cerbasi trata gap de invalidez de forma quantitativa no corpus Mathoms. Perini e AUVP focam em alocação patrimonial; não overrid am esta regra.
+**Metodologias.** O corpus Mathoms atribui a regra quantitativa a Cerbasi. Perini
+e AUVP não adicionam fórmula concorrente neste contrato.
