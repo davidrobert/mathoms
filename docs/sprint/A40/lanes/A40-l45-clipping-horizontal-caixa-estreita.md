@@ -130,6 +130,15 @@ quem encolhe a tabela é o rótulo; número é átomo.
 
 ## Follow-up com evidência — `S2` é flaky no gate visual → [[A40.l53]]
 
+> **A causa abaixo foi refutada pela medição da [[A40.l53]] (2026-08-14, PR
+> #1453).** O que segue é o retrato de 2026-08-12 e fica como registro. Sem
+> throttle, 11 pares de capturas consecutivas da S2 dão **0,000%** — não há
+> flake em máquina ociosa. O que existe é a **captura** zerando a largura do
+> canvas (8 resizes por screenshot, zero com a página parada), o que faz o
+> Chart.js redesenhar: o gate de estabilidade perseguia o próprio rastro. Por
+> isso esperar mais nunca ia resolver — inclusive a tentativa registrada dois
+> parágrafos abaixo.
+
 Medido no run 31576243325: as **três tentativas do mesmo job**, mesmo commit,
 mesmo runner, diferem entre si em **5,1%, 5,6% e 6,3%** no `S2-dark`. A
 tolerância do spec é 2,5%, então esse snapshot reprova sozinho em qualquer PR

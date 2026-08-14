@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-16 open · 9 in_progress · 2 blocked.
+16 open · 8 in_progress · 2 blocked.
 
 ## Open (16)
 
@@ -26,7 +26,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · área pipeline/frontend · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
 - [[A40.l62]] — ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria · priority P1 · área backend/pipeline/persistence/financial-planning · branch `a40-l62-protection-computation-snapshot-v1`
 
-## In progress (9)
+## In progress (8)
 
 - [[A40.l22]] — Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF · priority P0 · área frontend · branch `a40-l22-superficie-de-degradacao`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
@@ -36,7 +36,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l44]] — Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação · priority P0 · área frontend/pipeline/backend · branch `a40-l44-janela-interativa-pre-computada`
 - [[A40.l47]] — Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva · priority P1 · área pipeline/frontend · branch `a40-l47-semantica-de-taxa-faixa-e-base`
 - [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · área frontend/dx · branch `a40-l5-contrato-view-model-gate`
-- [[A40.l53]] — Gate visual de seções está cego: S2 varia 5–6% entre tentativas do mesmo commit e `main` puro reprova em 6 baselines · priority P1 · área frontend/ci · branch `a40-l53-gate-visual-secoes-cego`
 
 ## Blocked (2)
 
