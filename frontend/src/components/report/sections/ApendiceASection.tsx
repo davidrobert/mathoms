@@ -5,7 +5,8 @@ import type { ReportAnalysisData } from "@/lib/api";
 
 const GLOSSARIO: Array<{ termo: string; definicao: string }> = [
   { termo: "IF", definicao: "Independência Financeira — patrimônio suficiente para gerar renda passiva que cubra todas as despesas da família sem depender de trabalho ativo." },
-  { termo: "TRS", definicao: "Taxa de Retirada Segura — percentual anual que pode ser sacado do patrimônio investido sem exauri-lo ao longo do tempo. Referência: 4–5% a.a. para carteira diversificada." },
+  { termo: "TRS (Taxa de Retirada Segura)", definicao: "Percentual anual que pode ser sacado do patrimônio sem exauri-lo — premissa de DECUMULAÇÃO. É o que dimensiona a meta de Independência Financeira (meta = renda desejada ÷ TRS). Referência clássica: 4% a.a. (Trinity)." },
+  { termo: "TRS efetiva", definicao: "Yield ANUALIZADO da renda passiva já observada (dividendos, JCP, aplicações, aluguéis) sobre o patrimônio gerador. Mede o que a carteira rende hoje — não é taxa de saque nem retorno total (que incluiria valorização)." },
   { termo: "CDI", definicao: "Certificado de Depósito Interbancário — taxa de referência para investimentos de renda fixa no Brasil. Acompanha de perto a taxa Selic." },
   { termo: "Selic", definicao: "Taxa básica de juros da economia brasileira, definida pelo COPOM (Comitê de Política Monetária do Banco Central)." },
   { termo: "IPCA", definicao: "Índice Nacional de Preços ao Consumidor Amplo — indicador oficial de inflação no Brasil, medido pelo IBGE." },

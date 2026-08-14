@@ -168,6 +168,7 @@ from pipeline.domain.services.protecao_wiring import (
 from pipeline.domain.services.ratios_calculator import (
     FinancialRatios,
     RatiosCalculator,
+    RentabilidadeConfig,
 )
 from pipeline.domain.services.reserva_emergencia_calculator import (
     EmergencyReserveCalculator,
@@ -513,9 +514,7 @@ class E5AnalyzerAdapter:
             pontos_urgentes_analyzer=PontosUrgentesAnalyzer(
                 PontosUrgentesConfig.from_scoring(scoring)
             ),
-            passive_income_calculator=PassiveIncomeCalculator(
-                _passive_income_config_from_goals(goals)
-            ),
+            passive_income_calculator=PassiveIncomeCalculator(PassiveIncomeConfig()),
             family_snapshots=family_snapshots_from_config(family, reference_date or date.today()),
             reference_date=reference_date,
             seguradoras_catalog=seguradoras_catalog,
@@ -1216,13 +1215,8 @@ def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | No
     )
 
 
-def _passive_income_config_from_goals(goals: dict | None) -> PassiveIncomeConfig:
-    """Constrói ``PassiveIncomeConfig`` lendo ``trs_pct`` de ``independencia_financeira``."""
-    if_block = (goals or {}).get("independencia_financeira") or {}
-    trs_pct_raw = if_block.get("trs_pct")
-    if trs_pct_raw is None:
-        return PassiveIncomeConfig()
-    try:
-        return PassiveIncomeConfig(trs_meta_pct=Decimal(str(trs_pct_raw)))
-    except Exception:
-        return PassiveIncomeConfig()
+# A40.l47 — ``_passive_income_config_from_goals`` foi removida aqui: existia só para
+# mapear ``goals.trs_pct`` em ``PassiveIncomeConfig.trs_meta_pct``, campo que ninguém
+# lia. ``goals.trs_pct`` é **taxa de saque** (goal.if.v2 §inputs, wizard passo 2,
+# ``if_meta = renda × 12 ÷ trs_pct``) e não pode virar alvo de rentabilidade — a
+# promoção é o defeito que a [[ADR-191]] §emenda 2026-08-14 corrige.

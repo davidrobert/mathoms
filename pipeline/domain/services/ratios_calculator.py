@@ -74,11 +74,13 @@ def _to_decimal(val) -> Decimal:
 # =============================================================================
 
 
+# A40.l47 removeu ``meta_pct``: a TRS efetiva é valor OBSERVADO e não se compara com
+# alvo de retorno — o único percentual que a família configura (``goals.trs_pct``) é
+# taxa de saque ([[ADR-191]] §emenda 2026-08-14).
 @dataclass(frozen=True)
 class RentabilidadeConfig:
-    """Parâmetros do card Rentabilidade ([[ADR-191]] §D3); ``meta_pct`` é 5% por padrão."""
+    """Guardrail de sanidade do card Rentabilidade ([[ADR-191]] §D3)."""
 
-    meta_pct: Decimal = Decimal("5.0")
     # A28.l2 — guardrail de sanidade determinístico do E5 (fonte única; a
     # A28.l11 apenas consome): TRS acima disso é implausível como yield de
     # carteira → status "suspeito"; nunca publicar o número sem flag.
@@ -92,7 +94,6 @@ class RentabilidadeRatio:
     valor_pct: Decimal | None
     ano_base: int | None
     defasagem_meses: int | None
-    meta_pct: Decimal
     cobertura_despesa_essencial_pct: Decimal | None
     status: RentabilidadeStatus
 
@@ -101,7 +102,6 @@ class RentabilidadeRatio:
             "valor_pct": _serialize_decimal(self.valor_pct),
             "ano_base": self.ano_base,
             "defasagem_meses": self.defasagem_meses,
-            "meta_pct": _serialize_decimal(self.meta_pct),
             "cobertura_despesa_essencial_pct": _serialize_decimal(
                 self.cobertura_despesa_essencial_pct
             ),
@@ -347,15 +347,15 @@ def _build_rentabilidade(
     if passive_income is None:
         return None
     if passive_income.status == "sem_irpf":
-        return _rentabilidade_empty(config, status="sem_irpf")
+        return _rentabilidade_empty(status="sem_irpf")
     if passive_income.status == "gerador_zero":
-        return _rentabilidade_empty(config, status="gerador_zero", pi=passive_income)
+        return _rentabilidade_empty(status="gerador_zero", pi=passive_income)
     cobertura, status = _cobertura_essencial(
         passive_income.renda_passiva_mensal_brl, window.despesa_mensal_essencial_brl
     )
     if _trs_suspeita(passive_income.trs_efetiva_pct, config):
         status = "suspeito"
-    return _rentabilidade_ok(passive_income, config, cobertura, status)
+    return _rentabilidade_ok(passive_income, cobertura, status)
 
 
 def _trs_suspeita(trs_efetiva_pct: Decimal, config: RentabilidadeConfig) -> bool:
@@ -365,7 +365,6 @@ def _trs_suspeita(trs_efetiva_pct: Decimal, config: RentabilidadeConfig) -> bool
 
 def _rentabilidade_ok(
     pi: PassiveIncomeResult,
-    config: RentabilidadeConfig,
     cobertura: Decimal | None,
     status: RentabilidadeStatus,
 ) -> RentabilidadeRatio:
@@ -373,14 +372,12 @@ def _rentabilidade_ok(
         valor_pct=pi.trs_efetiva_pct,
         ano_base=pi.ano_referencia_irpf,
         defasagem_meses=pi.defasagem_meses,
-        meta_pct=config.meta_pct,
         cobertura_despesa_essencial_pct=cobertura,
         status=status,
     )
 
 
 def _rentabilidade_empty(
-    config: RentabilidadeConfig,
     *,
     status: RentabilidadeStatus,
     pi: PassiveIncomeResult | None = None,
@@ -389,7 +386,6 @@ def _rentabilidade_empty(
         valor_pct=None,
         ano_base=pi.ano_referencia_irpf if pi else None,
         defasagem_meses=pi.defasagem_meses if pi else None,
-        meta_pct=config.meta_pct,
         cobertura_despesa_essencial_pct=None,
         status=status,
     )

@@ -31,7 +31,6 @@ _NON_MONETARY_EXACT = frozenset(
         "anos_if",
         "if_pct",
         "if_trs",
-        "meta_pct",
         "folga_pct",
         "n_imoveis_total",
         "janela_n_meses",

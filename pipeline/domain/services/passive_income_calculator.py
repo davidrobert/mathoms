@@ -29,11 +29,13 @@ StatusEmpty = Literal["sem_irpf", "gerador_zero"]
 Status = Literal["ok", "sem_irpf", "gerador_zero"]
 
 
+# A40.l47: não há alvo de yield aqui nem em lugar nenhum — ``goals.trs_pct`` é taxa de
+# SAQUE ([[ADR-191]] §emenda 2026-08-14). O ``trs_meta_pct`` que existia neste config lia
+# ``goals.trs_pct`` e nunca era lido de volta; saiu junto com o comparador do card.
 @dataclass(frozen=True)
 class PassiveIncomeConfig:
-    """Parâmetros do cálculo TRS efetiva (D15: meta 5% Perini, 4% Trinity)."""
+    """Parâmetros do cálculo da TRS efetiva — recorte do patrimônio gerador."""
 
-    trs_meta_pct: Decimal = Decimal("5.0")
     trs_trinity_pct: Decimal = Decimal("4.0")
     incluir_imoveis_investimento: bool = True
     excluir_residencia: bool = True
