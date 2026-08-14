@@ -29,6 +29,13 @@ tags:
 > subcontar*. **Procede.** Decisão de forma e escopo escrita na
 > **[[ADR-377]] (`Proposto`)**, que fecha o gate de "ADR antes de PR P0".
 
+> **Fronteira com a [[A42.l8]] (auditoria 2026-08-14).** Esta lane é dona do
+> corte de **futuro** (D3 emendado 2026-08-11) e do deferimento do **mês em
+> curso**. A [[A42.l8]] **não reabre** nenhum dos dois. O que sobra lá é zero
+> por falha de extração (PC11), união das pernas com zero-fill, e piso de
+> publicação. A l8 declara `depends_on: [[A40.l44]]` por colisão em
+> `fluxo_caixa_enricher.py`.
+
 ## Problema
 
 Dois cards do relatório — `ReceitasFonteCard.tsx:43` e
