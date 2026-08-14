@@ -354,7 +354,6 @@ export type E5AnalysisArtifact = {
       "valor_pct": number | null;
       "ano_base": number | null;
       "defasagem_meses": number | null;
-      "meta_pct": number;
       "cobertura_despesa_essencial_pct": number | null;
       "status": "ok" | "sem_irpf" | "gerador_zero" | "sem_dados_essencial" | "suspeito";
     };
