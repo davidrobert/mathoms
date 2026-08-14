@@ -4,7 +4,7 @@ type: lane
 title: "ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: open
 priority: P1
 branch_slug: a40-l62-protection-computation-snapshot-v1
 adrs:
@@ -14,7 +14,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p1
   - area/backend
   - area/pipeline
@@ -24,9 +24,9 @@ tags:
 
 # A40.l62 — `protection-computation-snapshot-v1`
 
-> **Aberta bloqueada em 2026-08-13**, no co-design da [[A40.l35]]. Retoma
-> depois que a [[A40.l61]] estiver `shipped`. Decisão arquitetural em
-> [[ADR-387]] (`Proposto`).
+> **Aberta bloqueada em 2026-08-13**, no co-design da [[A40.l35]], e
+> **desbloqueada em 2026-08-14** após a [[A40.l61]] shippar no PR #1443.
+> Decisão arquitetural em [[ADR-387]] (`Proposto`).
 
 ## Problema
 
