@@ -404,6 +404,36 @@ nunca chega ao `main`. Plano fora de `docs/` = plano invisível.
   Linke da tabela "Onde procurar contexto adicional" abaixo se virar
   fonte de verdade.
 
+### `_README` de sprint governa hoje; `_HISTORY` guarda o que fechou
+
+O `_README` de `docs/sprint/<X>/` é lido por **toda** pergunta sobre a sprint,
+então ele custa tokens em toda sessão. A política de append-only ("não o
+reescreva") é certa para auditoria e cara para contexto — o `_README` da A40
+foi de 195 a 1692 linhas em 14 dias (~40k tokens).
+
+**A regra:** o `_README` contém só o que **governa decisão de hoje** — tese,
+KRs, gate de saída, tabela de lanes, predicado de status, ondas, disposições
+de fora-do-sprint. Pendência **resolvida**, painel **encerrado**, entrega
+**feita** e snapshot **datado** vão para `docs/sprint/<X>/_HISTORY.md`, com
+ponteiro no lugar de origem. **Nada se apaga nem se reescreve** — snapshot
+datado que alguém "atualiza" deixa de ser evidência.
+
+```bash
+python3 dev/split_sprint_history.py --sprint A40 --dry-run   # lista candidatos
+python3 dev/split_sprint_history.py --sprint A40 --section 'Pendências de decisão (2026-08-03)'
+```
+
+O `--dry-run` marca candidatos; **mover exige `--section` por nome**, uma
+decisão humana por seção. Heurística que move sozinha erra exatamente no caso
+que importa — a seção que parece histórica e ainda governa.
+
+Gate: `dev/check_sprint_readme_size.py` (pre-commit). Ele mede a **patologia**
+— `_README` acima de 800 linhas **sem** `_HISTORY.md` —, não o tamanho: sprint
+grande e bem organizada não reprova, senão o incentivo vira inflar o
+`_HISTORY`. O id do `_HISTORY` é `MOC-<x>-historico`, nunca `MOC-sprint-<x>-*`
+(o segundo casa o padrão de MOC de sprint e o índice passa a listar o
+histórico como se fosse uma sprint).
+
 ### Quando concluído → `docs/archive/`, com data
 
 `git mv docs/<NOME>.md docs/archive/<NOME>-YYYY-MM-DD.md` e adicione
@@ -820,6 +850,22 @@ de varrer a vault inteira. `docs/archive/**` é arqueologia: consulte apenas
 quando uma decisão histórica ou plano substituído for explicitamente relevante.
 
 ### Antes de pegar uma task do BACKLOG
+
+**Comece pela pergunta barata.** Uma lane é pegável? Rode
+
+```bash
+python3 dev/lane_pickup.py A40.l53
+```
+
+Ele cruza o frontmatter (status, `depends_on` + terminalidade, amarra parcial)
+com a **ocupação viva** — worktree, branch local e remota, e arquivo de lane
+não-commitado dentro de outro worktree. Custa ~80 tokens; ler o `_README` da
+sprint custa dezenas de milhares e responde pior (precedente [[ADR-281]]).
+`--sprint A40` varre a sprint inteira. **`SPRINT_CURRENT.md` não vê ocupação**
+— ele deriva do frontmatter, e `status` não tem escritor no pickup: sessão que
+abriu worktree e ainda não commitou é invisível nele, em `git for-each-ref` e
+em `gh pr list`. Caso medido em 2026-08-13: a `A40.l35` estava `open` com
+sessão viva há 2h, duas lanes novas e uma ADR existindo só dentro do worktree.
 
 Agentes trabalham em branches `agent/<slug>/<timestamp>`. Dois agentes na
 mesma lane = merge hell garantido. **Antes de escolher qualquer task,

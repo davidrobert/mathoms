@@ -635,6 +635,17 @@ repos:
         files: ^docs/.*\.md$
         pass_filenames: false
 
+      - id: sprint-readme-history
+        # Mede a PATOLOGIA (README grande SEM histórico separado), não o
+        # tamanho: sprint grande e bem organizada não pode reprovar, senão
+        # vira Goodhart — infla-se o `_HISTORY` para passar. Precisa varrer
+        # todas as sprints ⇒ pass_filenames: false.
+        name: "docs/sprint: README grande exige _HISTORY separado"
+        entry: python3 dev/check_sprint_readme_size.py
+        language: system
+        files: ^docs/sprint/.*/_(README|HISTORY)\.md$
+        pass_filenames: false
+
       - id: lane-status-predicate
         # Falha nos DOIS sentidos: `open` com dep pendente (armadilha de pickup)
         # e `blocked` com dep já terminal (lane pegável invisível no
