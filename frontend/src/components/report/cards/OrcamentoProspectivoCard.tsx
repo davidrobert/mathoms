@@ -1,162 +1,192 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
-import { formatPercent } from "@/lib/format";
 import { PeriodToggle } from "../PeriodToggle";
-import { usePeriodTransactions } from "@/hooks/usePeriodTransactions";
-import {
-  aggregateDespesasMediaMensal,
-  getPeriodMonths,
-  type Period,
-} from "@/lib/periodUtils";
+import { formatPercent } from "@/lib/format";
 import { humanizeCategoryLabel } from "@/lib/categoryLabels";
-import type { OrcamentoProspectivoData } from "@/types/report-analysis";
+import { formatInteractiveWindowBasis } from "../utils/interactiveWindowLabel";
+import type {
+  FluxoCaixaSummary,
+  FluxoConsumoMensalRow,
+  FluxoJanelaInterativa,
+  FluxoPeriodoInterativo,
+} from "@/types/report-analysis";
 
-/** F9 · F2.B · S2 — Card "Orçamento Prospectivo" com toggle de período.
- *
- * `anchorDate` (opcional) ancora a janela 3M/6M/12M/YTD no fim do dataset
- * — passa-se o último mês de `fluxo.receita_despesa_mensal_detalhado.labels`.
- * Sem âncora, cai no `orcamento.categorias` (E5 estático). Com âncora e
- * janela vazia, mostra "Sem transações em [período]" em vez de fallback. */
-export function OrcamentoProspectivoCard({
-  orcamento,
-  anchorDate,
+function HistoricalConsumptionCard() {
+  return (
+    <ReportCard variant="feature" title="Consumo por Categoria">
+      <p className="text-sm text-[var(--surface-muted-foreground)]">
+        Detalhamento por janela indisponível neste relatório histórico. Gere um
+        novo relatório para consultar médias mensais comparáveis.
+      </p>
+    </ReportCard>
+  );
+}
+
+function ConsumptionWindowSummary({
+  janela,
 }: {
-  orcamento: OrcamentoProspectivoData | undefined;
-  anchorDate?: Date;
+  readonly janela: FluxoJanelaInterativa;
 }) {
-  const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading, total: totalNaJanela, isTruncated } =
-    usePeriodTransactions(period, anchorDate);
+  return (
+    <div aria-live="polite" data-window-summary>
+      <p className="text-sm text-[var(--surface-muted-foreground)]">
+        Referência mensal de consumo
+      </p>
+      <p className="mt-1 flex items-baseline gap-1">
+        <MonetaryValue
+          value={janela.despesa_consumo_mensal_media}
+          size="kpi"
+          data-testid="consumo-window-kpi"
+        />
+        <span className="text-xs text-[var(--surface-muted-foreground)]">
+          /mês
+        </span>
+      </p>
+      <p
+        data-window-basis
+        className="mt-1 text-xs text-[var(--surface-muted-foreground)]"
+      >
+        {formatInteractiveWindowBasis(janela)}
+      </p>
+    </div>
+  );
+}
 
-  const numMonths = getPeriodMonths(period, anchorDate);
+function ConsumptionTableHead() {
+  return (
+    <thead>
+      <tr className="border-b border-[var(--surface-border)] text-left">
+        <th scope="col" className="pb-2 font-display font-semibold">
+          Categoria
+        </th>
+        <th scope="col" className="pb-2 text-right font-display font-semibold">
+          Referência mensal
+        </th>
+        <th scope="col" className="pb-2 text-right font-display font-semibold">
+          Participação
+        </th>
+        <th scope="col" className="pb-2 text-right font-display font-semibold">
+          Acumulado
+        </th>
+      </tr>
+    </thead>
+  );
+}
 
-  const { entries, total, isLiveData } = useMemo(() => {
-    if (transactions.length > 0) {
-      const agg = aggregateDespesasMediaMensal(transactions, numMonths);
-      const sorted = Object.entries(agg)
-        .filter(([, v]) => v > 0)
-        .sort(([, a], [, b]) => b - a) as Array<[string, number]>;
-      const t = sorted.reduce((sum, [, v]) => sum + v, 0);
-      return { entries: sorted, total: t, isLiveData: true };
-    }
-    if (anchorDate && !isLoading) {
-      // Anchor presente + load concluído + transactions vazia = janela
-      // genuinamente vazia. Não cair em E5 estático (mascararia o toggle).
-      return {
-        entries: [] as Array<[string, number]>,
-        total: 0,
-        isLiveData: true,
-      };
-    }
-    const categorias = orcamento?.categorias ?? {};
-    const sorted = Object.entries(categorias)
-      .filter(([, v]) => v > 0)
-      .sort(([, a], [, b]) => b - a) as Array<[string, number]>;
-    return { entries: sorted, total: orcamento?.total ?? 0, isLiveData: false };
-  }, [transactions, orcamento, numMonths, anchorDate, isLoading]);
+function ConsumptionRow({ row }: { readonly row: FluxoConsumoMensalRow }) {
+  return (
+    <tr className="border-b border-[var(--surface-border)]/40 last:border-0">
+      <td className="py-2">{humanizeCategoryLabel(row.categoria)}</td>
+      <td className="py-2 text-right">
+        <MonetaryValue value={row.mensal_media} />
+      </td>
+      <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
+        {formatPercent(row.participacao_pct, 2)}
+      </td>
+      <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
+        {formatPercent(row.participacao_acumulada_pct, 2)}
+      </td>
+    </tr>
+  );
+}
 
-  // Pareto cumulative %
-  let acumulado = 0;
-  const entriesComAcum = entries.map(([key, value]) => {
-    acumulado += total > 0 ? (value / total) * 100 : 0;
-    return { key, value, acum: acumulado };
-  });
+function ConsumptionTable({
+  janela,
+}: {
+  readonly janela: FluxoJanelaInterativa;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <ConsumptionTableHead />
+        <tbody>
+          {janela.tabela_consumo_por_categoria_mensal.map((row) => (
+            <ConsumptionRow key={row.categoria} row={row} />
+          ))}
+          <tr className="font-semibold">
+            <td className="pt-3">Referência mensal total</td>
+            <td className="pt-3 text-right">
+              <MonetaryValue value={janela.despesa_consumo_mensal_media} />
+            </td>
+            <td className="pt-3 text-right font-mono tabular-nums">
+              {formatPercent(100, 2)}
+            </td>
+            <td className="pt-3" />
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
+function TransferNote({ value }: { readonly value: number }) {
+  return (
+    <p className="text-xs text-[var(--surface-muted-foreground)]">
+      Aportes e transferências patrimoniais: <MonetaryValue value={value} />
+      /mês. Este valor não entra na referência de consumo.
+    </p>
+  );
+}
+
+function ConsumptionWindowContent({
+  janela,
+}: {
+  readonly janela: FluxoJanelaInterativa;
+}) {
+  if (janela.janela_meses === 0) {
+    return (
+      <p className="text-sm text-[var(--surface-muted-foreground)]">
+        Não há meses documentados com movimento nesta janela.
+      </p>
+    );
+  }
+  const hasRows = janela.tabela_consumo_por_categoria_mensal.length !== 0;
+  return (
+    <div className="space-y-4">
+      <ConsumptionWindowSummary janela={janela} />
+      {hasRows ? (
+        <ConsumptionTable janela={janela} />
+      ) : (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          Sem consumo registrado nesta janela.
+        </p>
+      )}
+      <TransferNote value={janela.transferencia_patrimonial_mensal} />
+    </div>
+  );
+}
+
+/** A40.l44 PR5 — consumo histórico ex-aporte, sem recomputação no cliente. */
+export function OrcamentoProspectivoCard({
+  fluxo,
+}: {
+  readonly fluxo: FluxoCaixaSummary | undefined;
+}) {
+  const [period, setPeriod] = useState<FluxoPeriodoInterativo>("12m");
+  if (!fluxo?.janelas) return <HistoricalConsumptionCard />;
+
+  const janela = fluxo.janelas[period] as FluxoJanelaInterativa | undefined;
   return (
     <ReportCard
       variant="feature"
-      title="Orçamento Prospectivo Mensal"
-      headerRight={<PeriodToggle value={period} onChange={setPeriod} />}
+      title="Consumo por Categoria"
+      headerRight={
+        <PeriodToggle
+          value={period}
+          onChange={setPeriod}
+          ariaLabel="Janela do consumo por categoria"
+        />
+      }
     >
-      {isTruncated ? (
-        <p className="text-sm text-[var(--surface-muted-foreground)]">
-          <strong className="font-semibold text-[var(--surface-foreground)]">
-            A janela {period.toUpperCase()} não cabe inteira neste card.
-          </strong>{" "}
-          Entraram os {transactions.length.toLocaleString("pt-BR")} lançamentos
-          mais recentes de {totalNaJanela.toLocaleString("pt-BR")} — os mais
-          antigos ficaram fora, e o teto por categoria apareceria abaixo do
-          real. Escolha uma janela mais curta para ver o número completo, ou
-          consulte a lista inteira em Transações.
-        </p>
-      ) : entries.length === 0 && !isLoading ? (
-        <p className="text-sm text-[var(--surface-muted-foreground)]">
-          Sem dados de orçamento neste período.
-        </p>
+      {janela ? (
+        <ConsumptionWindowContent janela={janela} />
       ) : (
-        <div className={`transition-opacity duration-150 ${isLoading ? "opacity-40" : "opacity-100"}`}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--surface-border)] text-left">
-                  <th scope="col" className="pb-2 font-display font-semibold">Categoria</th>
-                  <th scope="col" className="pb-2 text-right font-display font-semibold">
-                    Teto/mês
-                  </th>
-                  <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
-                  <th scope="col" className="pb-2 text-right font-display font-semibold text-[var(--surface-muted-foreground)]">
-                    Acum.
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {entriesComAcum.map(({ key, value, acum }) => {
-                  const pct = total > 0 ? (value / total) * 100 : 0;
-                  const isParetoThreshold = acum >= 80 && acum - pct < 80;
-                  return (
-                    <tr
-                      key={key}
-                      className="border-b border-[var(--surface-border)]/40 last:border-0"
-                    >
-                      <td className="py-2">{humanizeCategoryLabel(key)}</td>
-                      <td className="py-2 text-right">
-                        <MonetaryValue value={value} />
-                      </td>
-                      <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                        {formatPercent(pct)}
-                      </td>
-                      <td
-                        className="py-2 text-right font-mono tabular-nums"
-                        style={{
-                          color: isParetoThreshold
-                            ? "var(--semantic-alert)"
-                            : acum >= 80
-                              ? "var(--surface-muted-foreground)"
-                              : "var(--semantic-gain)",
-                        }}
-                      >
-                        {acum.toFixed(0)}%
-                      </td>
-                    </tr>
-                  );
-                })}
-                <tr className="font-semibold">
-                  <td className="pt-3">Total</td>
-                  <td className="pt-3 text-right">
-                    <MonetaryValue value={total} />
-                  </td>
-                  <td className="pt-3 text-right font-mono tabular-nums">
-                    {formatPercent(100)}
-                  </td>
-                  <td className="pt-3" />
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          {isLiveData && (
-            <p className="mt-2 text-xs text-[var(--surface-muted-foreground)]">
-              Média mensal · {period.toUpperCase()} ({numMonths} meses)
-            </p>
-          )}
-          {!isLiveData && orcamento?.legenda && (
-            <p className="mt-3 text-xs italic text-[var(--surface-muted-foreground)]">
-              {orcamento.legenda}
-            </p>
-          )}
-        </div>
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          Dados desta janela indisponíveis. Escolha outro período.
+        </p>
       )}
     </ReportCard>
   );

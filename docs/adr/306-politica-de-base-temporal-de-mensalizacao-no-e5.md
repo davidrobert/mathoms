@@ -5,7 +5,7 @@ title: "Política de base temporal de mensalização no E5 — janela canônica 
 status: Decidido
 phase: A28
 date: "2026-07-03"
-amended_at: ["2026-07-31", "2026-08-11"]
+amended_at: ["2026-07-31", "2026-08-11", "2026-08-14"]
 relates_to:
   - "[[ADR-191]]"
   - "[[ADR-090]]"
@@ -54,6 +54,15 @@ tags:
 > **movimento**, **fechamento** e **não-posterioridade à data de corte do run** —
 > ver §Emenda 2026-08-11 no fim desta nota, com o deferimento datado da cláusula
 > de fechamento.
+
+> **Emenda de vocabulário (A40.l44, 2026-08-14).** O vocabulário canônico de
+> D1/D2 continua `12m | full | irpf_<ano>`; a projeção descritiva e interativa
+> `fluxo_caixa.janelas` da [[ADR-377]] acrescenta as chaves fechadas
+> `3m | 6m | 12m | ytd`. Elas não criam novas bases para score, reserva,
+> Cerbasi ou Perini: servem somente aos dois detalhamentos históricos da
+> [[A40.l44]], sempre acompanhadas por `janela_meses`, `mes_inicio` e
+> `mes_fim` impressos. Assim, “3M” nomeia a seleção; não promete três meses
+> civis contíguos.
 
 ## Contexto
 
@@ -191,3 +200,13 @@ declarado e conferido por `dev/golden_diff.py`.
 **Estado até lá — declarado, não enforçado:** o código exclui futuro e exige
 movimento; **não** exclui o mês em curso. Esta ADR descreve a política decidida,
 e este parágrafo existe para que ninguém a leia como descrição do código vigente.
+
+## Emenda A40.l44 — vocabulário das janelas interativas · 2026-08-14
+
+O vocabulário canônico de D1/D2 continua `12m | full | irpf_<ano>`. A
+projeção descritiva `fluxo_caixa.janelas` da [[ADR-377]] acrescenta as
+chaves fechadas `3m | 6m | 12m | ytd`. Elas **não** criam bases novas para
+score, reserva, Cerbasi ou Perini: servem só aos dois detalhamentos
+históricos da [[A40.l44]], sempre acompanhadas de `janela_meses`,
+`mes_inicio` e `mes_fim` impressos. “3M” nomeia a seleção; não promete
+três meses civis contíguos.

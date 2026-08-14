@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
-import { formatPercent } from "@/lib/format";
 import { PeriodToggle } from "../PeriodToggle";
-import { usePeriodTransactions } from "@/hooks/usePeriodTransactions";
-import { aggregateReceitas, getPeriodMonths, type Period } from "@/lib/periodUtils";
-import type { FluxoCaixaSummary } from "@/types/report-analysis";
+import { formatPercent } from "@/lib/format";
+import { formatInteractiveWindowBasis } from "../utils/interactiveWindowLabel";
+import type {
+  FluxoCaixaSummary,
+  FluxoJanelaInterativa,
+  FluxoPeriodoInterativo,
+  FluxoReceitaMensalRow,
+} from "@/types/report-analysis";
 
-// Cobertura: todas as categorias de receita produzidas pelo pipeline
-// (`pipeline/domain/services/income_origin_resolver.py::_DEFAULT_STATIC_ORIGINS`
-// + `receita_clt`/`receita_pj` resolvidos dinamicamente
-// + labels PJ-side de `transaction_classifier_pj.PJ_LABELS`, [[ADR-236]]).
 const FONTE_LABELS: Record<string, string> = {
   receita_clt: "CLT",
   receita_pj: "PJ",
@@ -27,121 +27,162 @@ const FONTE_LABELS: Record<string, string> = {
   lucros_distribuidos: "Lucros distribuídos",
 };
 
-/** F9 · F2.A · S1 — Card "Receitas por Fonte" com toggle de período.
- *
- * `anchorDate` (opcional) ancora a janela 3M/6M/12M/YTD no fim do dataset
- * — passa-se o último mês de `fluxo.receita_despesa_mensal_detalhado.labels`.
- * Sem âncora, cai no `fluxo.por_fonte` (E5 estático). Com âncora e janela
- * vazia, mostra "Sem dados" em vez de fallback. */
+function HistoricalReceitasCard() {
+  return (
+    <ReportCard variant="feature" title="Receitas por Fonte">
+      <p className="text-sm text-[var(--surface-muted-foreground)]">
+        Detalhamento por janela indisponível neste relatório histórico. Gere um
+        novo relatório para consultar médias mensais comparáveis.
+      </p>
+    </ReportCard>
+  );
+}
+
+function ReceitaWindowSummary({
+  janela,
+}: {
+  readonly janela: FluxoJanelaInterativa;
+}) {
+  return (
+    <div aria-live="polite" data-window-summary>
+      <p className="text-sm text-[var(--surface-muted-foreground)]">
+        Média mensal observada de entradas
+      </p>
+      <p className="mt-1 flex items-baseline gap-1">
+        <MonetaryValue
+          value={janela.receita_mensal_media}
+          size="kpi"
+          data-testid="receita-window-kpi"
+        />
+        <span className="text-xs text-[var(--surface-muted-foreground)]">
+          /mês
+        </span>
+      </p>
+      <p
+        data-window-basis
+        className="mt-1 text-xs text-[var(--surface-muted-foreground)]"
+      >
+        {formatInteractiveWindowBasis(janela)}
+      </p>
+    </div>
+  );
+}
+
+function ReceitasTableHead() {
+  return (
+    <thead>
+      <tr className="border-b border-[var(--surface-border)] text-left">
+        <th scope="col" className="pb-2 font-display font-semibold">
+          Fonte
+        </th>
+        <th scope="col" className="pb-2 text-right font-display font-semibold">
+          Média mensal
+        </th>
+        <th scope="col" className="pb-2 text-right font-display font-semibold">
+          Participação
+        </th>
+      </tr>
+    </thead>
+  );
+}
+
+function ReceitaRow({ row }: { readonly row: FluxoReceitaMensalRow }) {
+  return (
+    <tr className="border-b border-[var(--surface-border)]/40 last:border-0">
+      <td className="py-2">{FONTE_LABELS[row.fonte] ?? row.fonte}</td>
+      <td className="py-2 text-right">
+        <MonetaryValue value={row.mensal_media} />
+      </td>
+      <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
+        {formatPercent(row.participacao_pct, 2)}
+      </td>
+    </tr>
+  );
+}
+
+function ReceitasTable({ janela }: { readonly janela: FluxoJanelaInterativa }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <ReceitasTableHead />
+        <tbody>
+          {janela.tabela_receitas_por_fonte_mensal.map((row) => (
+            <ReceitaRow key={row.fonte} row={row} />
+          ))}
+          <tr className="font-semibold">
+            <td className="pt-3">Total mensal observado</td>
+            <td className="pt-3 text-right">
+              <MonetaryValue value={janela.receita_mensal_media} />
+            </td>
+            <td className="pt-3 text-right font-mono tabular-nums">
+              {formatPercent(100, 2)}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ReceitasWindowContent({
+  janela,
+}: {
+  readonly janela: FluxoJanelaInterativa;
+}) {
+  if (janela.janela_meses === 0) {
+    return (
+      <p className="text-sm text-[var(--surface-muted-foreground)]">
+        Não há meses documentados com movimento nesta janela.
+      </p>
+    );
+  }
+  const hasRows = janela.tabela_receitas_por_fonte_mensal.length !== 0;
+  return (
+    <div className="space-y-4">
+      <ReceitaWindowSummary janela={janela} />
+      {hasRows ? (
+        <ReceitasTable janela={janela} />
+      ) : (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          Sem entradas registradas nesta janela.
+        </p>
+      )}
+      <p className="text-xs text-[var(--surface-muted-foreground)]">
+        Inclui entradas recorrentes e pontuais; não representa renda
+        sustentável.
+      </p>
+    </div>
+  );
+}
+
+/** A40.l44 PR5 — seleção pura do agregado table-ready emitido pelo E5. */
 export function ReceitasFonteCard({
   fluxo,
-  anchorDate,
 }: {
-  fluxo: FluxoCaixaSummary | undefined;
-  anchorDate?: Date;
+  readonly fluxo: FluxoCaixaSummary | undefined;
 }) {
-  const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading, total: totalNaJanela, isTruncated } =
-    usePeriodTransactions(period, anchorDate);
+  const [period, setPeriod] = useState<FluxoPeriodoInterativo>("12m");
+  if (!fluxo?.janelas) return <HistoricalReceitasCard />;
 
-  const numMonths = getPeriodMonths(period, anchorDate);
-
-  const { entries, isLiveData } = useMemo(() => {
-    if (transactions.length > 0) {
-      const agg = aggregateReceitas(transactions);
-      const sorted = Object.entries(agg)
-        .filter(([, v]) => v > 0)
-        .sort(([, a], [, b]) => b - a) as Array<[string, number]>;
-      return { entries: sorted, isLiveData: true };
-    }
-    if (anchorDate && !isLoading) {
-      // Anchor presente + load concluído + transactions vazia = janela
-      // genuinamente vazia. Não cair em E5 estático.
-      return { entries: [] as Array<[string, number]>, isLiveData: true };
-    }
-    const porFonte = fluxo?.por_fonte ?? {};
-    const sorted = Object.entries(porFonte)
-      .filter(([, v]) => typeof v === "number" && v > 0)
-      .sort(([, a], [, b]) => (b as number) - (a as number)) as Array<[string, number]>;
-    return { entries: sorted, isLiveData: false };
-  }, [transactions, fluxo, anchorDate, isLoading]);
-
-  const displayEntries: Array<[string, number]> = isLiveData
-    ? entries.map(([k, v]) => [k, v / numMonths])
-    : entries;
-
-  const total = displayEntries.reduce((sum, [, v]) => sum + v, 0);
-
+  const janela = fluxo.janelas[period] as FluxoJanelaInterativa | undefined;
   return (
     <ReportCard
       variant="feature"
       title="Receitas por Fonte"
-      headerRight={<PeriodToggle value={period} onChange={setPeriod} />}
+      headerRight={
+        <PeriodToggle
+          value={period}
+          onChange={setPeriod}
+          ariaLabel="Janela das receitas por fonte"
+        />
+      }
     >
-      {isTruncated ? (
-        <p className="text-sm text-[var(--surface-muted-foreground)]">
-          <strong className="font-semibold text-[var(--surface-foreground)]">
-            A janela {period.toUpperCase()} não cabe inteira neste card.
-          </strong>{" "}
-          Entraram os {transactions.length.toLocaleString("pt-BR")} lançamentos
-          mais recentes de {totalNaJanela.toLocaleString("pt-BR")} — os mais
-          antigos ficaram fora, e a média por fonte apareceria abaixo da real.
-          Escolha uma janela mais curta para ver o número completo, ou consulte
-          a lista inteira em Transações.
-        </p>
-      ) : displayEntries.length === 0 && !isLoading ? (
-        <p className="text-sm text-[var(--surface-muted-foreground)]">
-          Sem dados de receitas neste período.
-        </p>
+      {janela ? (
+        <ReceitasWindowContent janela={janela} />
       ) : (
-        <div
-          className={`overflow-x-auto transition-opacity duration-150 ${isLoading ? "opacity-40" : "opacity-100"}`}
-        >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--surface-border)] text-left">
-                <th scope="col" className="pb-2 font-display font-semibold">Fonte</th>
-                <th scope="col" className="pb-2 text-right font-display font-semibold">
-                  {isLiveData ? "Média/mês" : "Total"}
-                </th>
-                <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayEntries.map(([key, value]) => {
-                const pct = total > 0 ? (value / total) * 100 : 0;
-                return (
-                  <tr
-                    key={key}
-                    className="border-b border-[var(--surface-border)]/40 last:border-0"
-                  >
-                    <td className="py-2">{FONTE_LABELS[key] ?? key}</td>
-                    <td className="py-2 text-right">
-                      <MonetaryValue value={value} />
-                    </td>
-                    <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                      {formatPercent(pct)}
-                    </td>
-                  </tr>
-                );
-              })}
-              <tr className="font-semibold">
-                <td className="pt-3">Total</td>
-                <td className="pt-3 text-right">
-                  <MonetaryValue value={total} />
-                </td>
-                <td className="pt-3 text-right font-mono tabular-nums">
-                  {formatPercent(100)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          {isLiveData && (
-            <p className="mt-2 text-xs text-[var(--surface-muted-foreground)]">
-              Média mensal · {period.toUpperCase()} ({numMonths} meses)
-            </p>
-          )}
-        </div>
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          Dados desta janela indisponíveis. Escolha outro período.
+        </p>
       )}
     </ReportCard>
   );

@@ -17,7 +17,6 @@ import { ReceitaDespesaMensalChart } from "../charts/ReceitaDespesaMensalChart";
 import type { ReportAnalysisData } from "@/lib/api";
 import type {
   FluxoCaixaSummary,
-  OrcamentoProspectivoData,
   ConsumoConscienteData,
   DiagnosticoComportamental,
   EquilibrioCerbasiData,
@@ -43,18 +42,11 @@ export function S2FluxoCaixaSection({
   reportId,
 }: S2FluxoCaixaSectionProps) {
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
-  const orcamento = data.orcamento_prospectivo as
-    | OrcamentoProspectivoData
-    | undefined;
-  const consumo = data.consumo_consciente as
-    | ConsumoConscienteData
-    | undefined;
+  const consumo = data.consumo_consciente as ConsumoConscienteData | undefined;
   const diagnostico = data.diagnostico_comportamental as
-    | DiagnosticoComportamental[]
-    | undefined;
+    DiagnosticoComportamental[] | undefined;
   const equilibrio = data.equilibrio_cerbasi as
-    | EquilibrioCerbasiData
-    | undefined;
+    EquilibrioCerbasiData | undefined;
   /** ADR-356 (A40.l4): a leitura `narrativas?.[id]` era ramo morto — o E5.N
    * emite conclusão de chart em `narrativas.charts[id]`, nunca no topo. */
   const getConclusion = (id: string): string | undefined =>
@@ -88,17 +80,26 @@ export function S2FluxoCaixaSection({
 
       {/* Charts */}
       <div className="md:col-span-2">
-        <FluxoMensalChart fluxo={fluxo} conclusion={getConclusion("fluxo_mensal")} />
+        <FluxoMensalChart
+          fluxo={fluxo}
+          conclusion={getConclusion("fluxo_mensal")}
+        />
       </div>
-      <ReceitaBarChart fluxo={fluxo} conclusion={getConclusion("receita_bar")} />
-      <DespesasDoughnutChart fluxo={fluxo} conclusion={getConclusion("despesas_doughnut")} />
+      <ReceitaBarChart
+        fluxo={fluxo}
+        conclusion={getConclusion("receita_bar")}
+      />
+      <DespesasDoughnutChart
+        fluxo={fluxo}
+        conclusion={getConclusion("despesas_doughnut")}
+      />
       <div className="md:col-span-2">
         <ReceitaDespesaMensalChart fluxo={fluxo} />
       </div>
 
       {/* Cards */}
       <div className="md:col-span-2">
-        <OrcamentoProspectivoCard orcamento={orcamento} anchorDate={anchorDate} />
+        <OrcamentoProspectivoCard fluxo={fluxo} />
       </div>
       <div className="md:col-span-2">
         <ConsumoConscienteCard consumo={consumo} anchorDate={anchorDate} />

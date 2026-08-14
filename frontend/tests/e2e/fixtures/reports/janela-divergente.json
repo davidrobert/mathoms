@@ -495,6 +495,232 @@
         "transporte": 165600,
         "aporte_investimento": 144000
       }
+    },
+    "janelas": {
+      "3m": {
+        "janela": "3m",
+        "janela_meses": 3,
+        "mes_inicio": "2025-08",
+        "mes_fim": "2025-12",
+        "receita_total": 90009,
+        "despesa_total": 72009,
+        "receita_mensal_media": 30003,
+        "despesa_mensal_media": 24003,
+        "despesa_consumo_mensal_media": 21003,
+        "transferencia_patrimonial_mensal": 3000,
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "receita_pj",
+            "total": 60006,
+            "mensal_media": 20002,
+            "participacao_pct": 66.67
+          },
+          {
+            "fonte": "receita_aluguel",
+            "total": 30003,
+            "mensal_media": 10001,
+            "participacao_pct": 33.33
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "natureza": "receita_pj",
+            "total": 60006,
+            "mensal_media": 20002,
+            "participacao_pct": 66.67
+          },
+          {
+            "natureza": "receita_aluguel",
+            "total": 30003,
+            "mensal_media": 10001,
+            "participacao_pct": 33.33
+          }
+        ],
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "moradia",
+            "total": 44106.3,
+            "mensal_media": 14702.1,
+            "participacao_pct": 70,
+            "participacao_acumulada_pct": 70
+          },
+          {
+            "categoria": "alimentacao",
+            "total": 18902.7,
+            "mensal_media": 6300.9,
+            "participacao_pct": 30,
+            "participacao_acumulada_pct": 100
+          }
+        ]
+      },
+      "6m": {
+        "janela": "6m",
+        "janela_meses": 6,
+        "mes_inicio": "2025-04",
+        "mes_fim": "2025-12",
+        "receita_total": 360036,
+        "despesa_total": 288036,
+        "receita_mensal_media": 60006,
+        "despesa_mensal_media": 48006,
+        "despesa_consumo_mensal_media": 42006,
+        "transferencia_patrimonial_mensal": 6000,
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "receita_clt",
+            "total": 240024,
+            "mensal_media": 40004,
+            "participacao_pct": 66.67
+          },
+          {
+            "fonte": "outras_receitas",
+            "total": 120012,
+            "mensal_media": 20002,
+            "participacao_pct": 33.33
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "natureza": "receita_clt",
+            "total": 240024,
+            "mensal_media": 40004,
+            "participacao_pct": 66.67
+          },
+          {
+            "natureza": "receita_outras",
+            "total": 120012,
+            "mensal_media": 20002,
+            "participacao_pct": 33.33
+          }
+        ],
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "moradia",
+            "total": 176425.2,
+            "mensal_media": 29404.2,
+            "participacao_pct": 70,
+            "participacao_acumulada_pct": 70
+          },
+          {
+            "categoria": "alimentacao",
+            "total": 75610.8,
+            "mensal_media": 12601.8,
+            "participacao_pct": 30,
+            "participacao_acumulada_pct": 100
+          }
+        ]
+      },
+      "12m": {
+        "janela": "12m",
+        "janela_meses": 12,
+        "mes_inicio": "2025-01",
+        "mes_fim": "2025-12",
+        "receita_total": 1200000,
+        "despesa_total": 972000,
+        "receita_mensal_media": 100000,
+        "despesa_mensal_media": 81000,
+        "despesa_consumo_mensal_media": 69000,
+        "transferencia_patrimonial_mensal": 12000,
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "receita_clt",
+            "total": 1104000,
+            "mensal_media": 92000,
+            "participacao_pct": 92
+          },
+          {
+            "fonte": "outras_receitas",
+            "total": 96000,
+            "mensal_media": 8000,
+            "participacao_pct": 8
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "natureza": "receita_clt",
+            "total": 1104000,
+            "mensal_media": 92000,
+            "participacao_pct": 92
+          },
+          {
+            "natureza": "receita_outras",
+            "total": 96000,
+            "mensal_media": 8000,
+            "participacao_pct": 8
+          }
+        ],
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "moradia",
+            "total": 579600,
+            "mensal_media": 48300,
+            "participacao_pct": 70,
+            "participacao_acumulada_pct": 70
+          },
+          {
+            "categoria": "alimentacao",
+            "total": 248400,
+            "mensal_media": 20700,
+            "participacao_pct": 30,
+            "participacao_acumulada_pct": 100
+          }
+        ]
+      },
+      "ytd": {
+        "janela": "ytd",
+        "janela_meses": 4,
+        "mes_inicio": "2025-09",
+        "mes_fim": "2025-12",
+        "receita_total": 188016,
+        "despesa_total": 144016,
+        "receita_mensal_media": 47004,
+        "despesa_mensal_media": 36004,
+        "despesa_consumo_mensal_media": 32004,
+        "transferencia_patrimonial_mensal": 4000,
+        "tabela_receitas_por_fonte_mensal": [
+          {
+            "fonte": "receita_clt",
+            "total": 120012,
+            "mensal_media": 30003,
+            "participacao_pct": 63.83
+          },
+          {
+            "fonte": "outras_receitas",
+            "total": 68004,
+            "mensal_media": 17001,
+            "participacao_pct": 36.17
+          }
+        ],
+        "tabela_receita_por_natureza_mensal": [
+          {
+            "natureza": "receita_clt",
+            "total": 120012,
+            "mensal_media": 30003,
+            "participacao_pct": 63.83
+          },
+          {
+            "natureza": "receita_outras",
+            "total": 68004,
+            "mensal_media": 17001,
+            "participacao_pct": 36.17
+          }
+        ],
+        "tabela_consumo_por_categoria_mensal": [
+          {
+            "categoria": "moradia",
+            "total": 89611.2,
+            "mensal_media": 22402.8,
+            "participacao_pct": 70,
+            "participacao_acumulada_pct": 70
+          },
+          {
+            "categoria": "alimentacao",
+            "total": 38404.8,
+            "mensal_media": 9601.2,
+            "participacao_pct": 30,
+            "participacao_acumulada_pct": 100
+          }
+        ]
+      }
     }
   },
   "ratios": {

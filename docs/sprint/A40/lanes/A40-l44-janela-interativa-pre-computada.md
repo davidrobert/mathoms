@@ -69,9 +69,11 @@ janela de 12m — enquanto o card exibia o derivado quebrado.
 | RV4-08 `receita_por_natureza` com zero consumidores | PR6 |
 
 **Fora desta lane, declarado:** RV4-04 (três agregados de "receita mensal" na
-mesma leitura) e RV4-10 (rodapé declara meses que não mediu) ficam **habilitados**
-por esta lane mas são **copy e contrato de estados** — dono `product-designer`,
-lane própria. RV4-09 (exposição cambial) é outro card e não tem relação.
+mesma leitura) segue como copy e contrato de estados — dono
+`product-designer`, lane própria. **RV4-10 foi absorvido pelo PR5** após
+co-design: o card agora imprime `janela_meses · mes_inicio — mes_fim`, sem
+transformar “3M” em promessa de três meses civis contíguos. RV4-09 (exposição
+cambial) é outro card e não tem relação.
 
 ## Escopo — 6 PRs sequenciais
 
@@ -133,6 +135,10 @@ Vem **depois** de PR1/PR2 porque aqueles conformam a um `Decidido` existente
 `build_doc_index --inline`) · zero wikilink quebrado.
 
 ### PR4 — `janelas` no produtor
+
+> **Entregue 2026-08-14** — #1449 (`da91a181`). As quatro janelas, três
+> tabelas table-ready, conservação ao centavo, lineage, schema strict, teste
+> real do `DBArtifactStore` e rebaseline isolado foram mergeados com CI verde.
 
 `fluxo_caixa.janelas` = `3m` | `6m` | `12m` | `ytd`, cada uma com
 `receita_total`, `despesa_total`, `receita_mensal_media`, `despesa_mensal_media`,

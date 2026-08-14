@@ -76,6 +76,25 @@ const MENSALIZACAO_RESTRITA = CAMPOS_MENSALIZADOS.flatMap((campo) => [
   },
 ]);
 
+const CARD_MONEY_MESSAGE =
+  "A40.l44: cards de janela renderizam o payload table-ready; aritmética, filtro " +
+  "ou ordenação monetária pertencem ao produtor E5.";
+
+const CARD_MONEY_RESTRICTIONS = [
+  {
+    selector: 'BinaryExpression[operator="+"]',
+    message: CARD_MONEY_MESSAGE,
+  },
+  {
+    selector: 'BinaryExpression[operator="/"]',
+    message: CARD_MONEY_MESSAGE,
+  },
+  ...["filter", "sort", "reduce"].map((method) => ({
+    selector: `CallExpression[callee.property.name="${method}"]`,
+    message: CARD_MONEY_MESSAGE,
+  })),
+];
+
 export default [
   js.configs.recommended,
   {
@@ -162,6 +181,48 @@ export default [
       // A40.l3 (ADR-306 D1) — gate de CONSUMO da mensalização de fluxo.
       // Ver bloco dedicado abaixo para o racional e a allowlist.
       "no-restricted-syntax": ["error", ...MENSALIZACAO_RESTRITA],
+    },
+  },
+  {
+    files: ["src/components/report/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@/hooks/usePeriodTransactions",
+              message:
+                "A40.l44: relatório seleciona fluxo_caixa.janelas; não busca transações para reagregar.",
+            },
+            {
+              name: "@/lib/api",
+              importNames: ["listTransactions"],
+              message:
+                "A40.l44: listTransactions não cruza a fronteira do relatório.",
+            },
+            {
+              name: "@/lib/api/transactions",
+              importNames: ["listTransactions"],
+              message:
+                "A40.l44: listTransactions não cruza a fronteira do relatório.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      "src/components/report/cards/ReceitasFonteCard.tsx",
+      "src/components/report/cards/OrcamentoProspectivoCard.tsx",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...MENSALIZACAO_RESTRITA,
+        ...CARD_MONEY_RESTRICTIONS,
+      ],
     },
   },
   {
