@@ -43,7 +43,25 @@ RV2-08 da [[ADR-224]].
 
 ## Abertos que mordem hoje
 
-### P0 · `consolidate_baseline` re-consolida o run anterior
+### ~~P0 · `consolidate_baseline` re-consolida o run anterior~~ — FECHADO em 2026-08-12
+
+> **Re-medido em 2026-08-14: já estava corrigido quando esta lane nasceu.** O
+> #1395 (`608163ef`, A40.l42) mergeou às 09:24Z — **16 min depois** do #1409
+> que abriu esta lane (09:08Z). A l50 declarava "nada aqui está sendo atacado";
+> o item 1 estava sendo atacado em paralelo, sem que nenhum dos dois lados
+> soubesse.
+>
+> O fix inverteu a ordem: `consolidate_baseline.py:763` lê `extract_baseline`
+> **primeiro** e só cai em `consolidate_baseline` quando não há E1.5 no
+> workspace. Trava de regressão em
+> `tests/test_consolidate_baseline_stage_direct.py::test_rerun_consolida_e15_fresco_nao_o_proprio_output_anterior`,
+> que exige safra 2025 no `itens` de saída — 5 testes verdes.
+>
+> A prova citada abaixo (`load(15152)['itens'] == load(14649)['itens']`) mediu
+> artefatos do run `ee124571`, **anterior** ao fix. O diagnóstico estava certo;
+> o alvo já não existe. Texto original preservado — snapshot datado não se
+> reescreve.
+
 
 `scripts/consolidate_baseline.py:725` lê `store.read("consolidate_baseline", …)`
 **antes** de `extract_baseline` (727). O stage está em `_WORKSPACE_SCOPED_STAGES`
