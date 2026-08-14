@@ -2,7 +2,6 @@
 
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
-import { MonetaryValue } from "../MonetaryValue";
 import { SectionSummary } from "../SectionSummary";
 import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
@@ -194,9 +193,9 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
 /** ADR-167 (A8.4 PR3) — APP_C: Cenários de Estresse.
  *
  * Hide-when-empty com numeração estável: quando `data.cenarios_conjuge`
- * (e `data.programa_milhas`) ausentes, seção retorna `null` — APP_D
- * permanece rotulado "D" porque a numeração no YAML é literal, não
- * recomputada.
+ * está ausente, seção retorna `null` — APP_D permanece rotulado "D" porque
+ * a numeração no YAML é literal, não recomputada. `programa_milhas` saiu
+ * daqui na A40.l5: o produtor E5 emite somente `{}` e não há contrato real.
  *
  * Visualização (D3 do plano A8.4): comparativo lado-a-lado base vs.
  * cenário de estresse com delta explícito + parágrafo "Leitura:" para
@@ -213,13 +212,6 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
         premissas?: { aporte_base?: number };
       }
     | undefined;
-  const milhas = data.programa_milhas as
-    | {
-        saldo_total?: number;
-        valor_estimado?: number;
-        observacao?: string;
-      }
-    | undefined;
   // A37.l10 PD-09 — o payload E5 (IFProjection.to_legacy_dict) expõe
   // prazo_anos_realista/ano_if; ausência degrada a coluna base para "—".
   // `null` é a forma atual; o `!== 999` cobre artefatos E5 já persistidos
@@ -234,12 +226,10 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
       : undefined;
 
   const hasCenarios = !!cenarios?.labels && cenarios.labels.length > 0;
-  const hasMilhas =
-    !!milhas && (milhas.saldo_total != null || milhas.valor_estimado != null);
 
   // ADR-167 hide-when-empty: workspace inelegível (gate retorna False) →
   // seção some completamente. Numeração A/B/D/E preservada.
-  if (!hasCenarios && !hasMilhas) {
+  if (!hasCenarios) {
     return null;
   }
 
@@ -260,42 +250,9 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
       {hasCenarios && (
         <StressScenarioCard cenarios={cenarios!} goals={goals} />
       )}
-
-      {hasMilhas && (
-        <ReportCard variant="neutral" title="Programa de Milhas" size="full">
-          <dl className="grid grid-cols-2 gap-4 text-sm">
-            {milhas?.saldo_total != null && (
-              <div>
-                <dt className="text-xs text-[var(--surface-muted-foreground)]">
-                  Saldo total
-                </dt>
-                <dd className="font-mono tabular-nums">
-                  {milhas.saldo_total.toLocaleString("pt-BR")}
-                </dd>
-              </div>
-            )}
-            {milhas?.valor_estimado != null && (
-              <div>
-                <dt className="text-xs text-[var(--surface-muted-foreground)]">
-                  Valor estimado
-                </dt>
-                <dd className="font-mono tabular-nums">
-                  <MonetaryValue value={milhas.valor_estimado} fractionDigits={0} />
-                </dd>
-              </div>
-            )}
-          </dl>
-          {milhas?.observacao && (
-            <p className="mt-3 text-xs text-[var(--surface-muted-foreground)]">
-              {milhas.observacao}
-            </p>
-          )}
-        </ReportCard>
-      )}
     </ReportSection>
   );
 }
-
 
 /** ADR-117/122 · Fase 10 — APP_D: Referências e Fontes.
  *

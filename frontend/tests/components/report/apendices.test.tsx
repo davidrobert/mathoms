@@ -135,8 +135,19 @@ describe("ApendiceBSection", () => {
 });
 
 describe("ApendiceCSection (ADR-167 · A8.4 PR3)", () => {
-  it("retorna null (hide-when-empty) quando sem cenários e sem milhas", () => {
+  it("retorna null (hide-when-empty) quando sem cenários", () => {
     const { container } = render(<ApendiceCSection data={emptyData()} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("não inventa card para o placeholder programa_milhas sem produtor", () => {
+    const data = {
+      programa_milhas: {
+        saldo_total: 1000,
+        valor_estimado: 20,
+      },
+    } as unknown as ReportAnalysisData;
+    const { container } = render(<ApendiceCSection data={data} />);
     expect(container.firstChild).toBeNull();
   });
 
