@@ -10,14 +10,17 @@ import {
   type ProtectionBundle,
 } from "@/components/report/cards";
 
-function makeBundle(overrides: Partial<ProtectionBundle> = {}): ProtectionBundle {
+function makeBundle(
+  overrides: Partial<ProtectionBundle> = {},
+): ProtectionBundle {
   return {
     policies: [],
     gap_analysis: {},
     recommendations: [],
     auto_inferred_risks: [],
+    calculation_status: {},
     methodology_thresholds: {},
-    has_us_exposure: false,
+    has_us_exposure: null,
     adapter_version: 1,
     ...overrides,
   };
@@ -33,17 +36,14 @@ describe("<HeroGapProtecaoCard /> — KPI protagonista (ADR-192 §D4)", () => {
 
   it("renderiza disclaimer fiduciário canônico (COPY_GUIDELINES §13.2 — sem atribuição)", () => {
     render(
-      <HeroGapProtecaoCard
-        bundle={makeBundle()}
-        effectiveDate="2026-05-12"
-      />,
+      <HeroGapProtecaoCard bundle={makeBundle()} effectiveDate="2026-05-12" />,
     );
     expect(
-      screen.getByText(/metodologia consagrada de planejamento patrimonial brasileiro/),
+      screen.getByText(
+        /metodologia consagrada de planejamento patrimonial brasileiro/,
+      ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Susep e planejador CFP/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Susep e planejador CFP/)).toBeInTheDocument();
     expect(screen.getByText(/2026-05-12/)).toBeInTheDocument();
   });
 
@@ -134,7 +134,9 @@ describe("<SucessaoCard /> — checklist sucessório (ADR-192 §D4)", () => {
     expect(
       screen.getByText(/Beneficiários de previdência declarados/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Holding patrimonial avaliada/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Holding patrimonial avaliada/),
+    ).toBeInTheDocument();
     expect(screen.getByText(/ITCMD estimado por estado/)).toBeInTheDocument();
   });
 
@@ -155,9 +157,7 @@ describe("<SucessaoCard /> — checklist sucessório (ADR-192 §D4)", () => {
 
   it("disclaimer fiduciário sucessório", () => {
     render(<SucessaoCard bundle={makeBundle()} effectiveDate="2026-05-12" />);
-    expect(
-      screen.getByText(/metodologia sucessória BR/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/metodologia sucessória BR/)).toBeInTheDocument();
   });
 });
 
@@ -174,7 +174,11 @@ describe("<AcoesMitigacaoCard /> — lista priorizada (ADR-192 §D4)", () => {
       recommendations: [
         { category: "vida", rationale: "Baixa prioridade", priority: "baixa" },
         { category: "vida", rationale: "Alta prioridade", priority: "alta" },
-        { category: "invalidez", rationale: "Media prioridade", priority: "média" },
+        {
+          category: "invalidez",
+          rationale: "Media prioridade",
+          priority: "média",
+        },
       ],
     });
     render(<AcoesMitigacaoCard bundle={bundle} />);

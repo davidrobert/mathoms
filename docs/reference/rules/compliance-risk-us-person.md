@@ -16,7 +16,12 @@ tags:
 
 **Por quê.** O IRS rastreia rendas globais de **US-persons** independentemente de residência atual; ativos estrangeiros disparam obrigações de reporte específicas (Form 8938 FATCA, FinCEN Form 114 FBAR). Não-US-person com ativos US-situs acima de $60k federal carrega exposição a Estate Tax federal (40%) na transmissão causa mortis. Detectar essas obrigações tarde resulta em multas pesadas (FBAR up to $10k/violação non-willful, willful $100k+).
 
-**Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111). Thresholds vêm de `USPersonThresholds` **injetado** pelo adapter — ADR-192 §"Atualizações pós-revisão" exige `fiscal_parameters` (ADR-135) por `effective_date`. Default no populator (`_US_THRESHOLDS_DEFAULT` em `backend/app/services/protection_bundle_populator.py`) reflete a tabela vigente IRS 2026 (FBAR $10k · FATCA single $50k / joint $100k · Estate Tax NRA $60k) — débito documentado para migração à coluna `fiscal_parameters.us_thresholds_usd`.
+**Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111). Thresholds vêm de `USPersonThresholds` **injetado** pelo adapter — ADR-192 §"Atualizações pós-revisão" exige `fiscal_parameters` (ADR-135) por `effective_date`. Desde a [[A40.l61]], ausência de thresholds ou exposição explícita retém o calculator.
+
+**Computabilidade (emenda 2026-08-13).** Status fiscal, situs de ativos, renda,
+valor em USD e thresholds vigentes precisam ser explícitos. Moeda USD não prova
+situs americano; renda “exterior” não prova país EUA. Ausência produz
+`missing_data`, nunca `False` nem “sem exposição” ([[ADR-387]]).
 
 **Enforcer.**
 - [`pipeline/domain/services/protection/compliance_us_person.py`](../../../pipeline/domain/services/protection/compliance_us_person.py) — `compliance_risk_us_person(USExposureInputs) -> list[ComplianceFlag]`. Cada flag carrega `RiskInferred(source_calculator="compliance_risk_us_person", category="compliance_us")`.

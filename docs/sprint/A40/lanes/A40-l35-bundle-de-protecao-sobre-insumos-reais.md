@@ -4,17 +4,19 @@ type: lane
 title: "Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: blocked
 priority: P1
 branch_slug: a40-l35-bundle-de-protecao-sobre-insumos-reais
 adrs:
   - "[[ADR-240]]"
   - "[[ADR-192]]"
-depends_on: []
+  - "[[ADR-387]]"
+depends_on:
+  - "[[A40.l62]]"
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/blocked
   - priority/p1
   - area/backend
   - area/frontend
@@ -26,6 +28,13 @@ tags:
 > **Aberta em 2026-08-11**, spin-off da [[A40.l7]] (precedente: [[A40.l15]] ←
 > [[A40.l3]]). Recebe o ⛔ que a l7 carregava e o §Deferido da [[ADR-240]], cujo
 > dono passa a ser esta lane. Colocação e prioridade: `product-manager`.
+
+> **Split de co-design em 2026-08-13.** O aceite original é tecnicamente
+> impossível com os contratos atuais sem fabricar renda ativa líquida, situs EUA,
+> UF fiscal e temporalidade. A [[A40.l61]] entrega a mitigação fail-closed; a
+> [[A40.l62]] cria fontes canônicas + snapshot imutável; esta lane fica
+> **bloqueada** e conserva a ativação final da S9. DAG: [[A40.l61]] →
+> [[A40.l62]] → [[A40.l35]].
 
 ## Problema
 
@@ -69,7 +78,7 @@ corrigido, o ideal continua **zero** enquanto a renda for zero.
 > bundle — por isso a lane é P1 **com amarra**, e por isso o ⛔ da l7 estava
 > certo em existir.
 
-## Escopo
+## Escopo original — supersedido em 2026-08-13
 
 `data.protection_bundle` chega ao payload do relatório **e** os cinco insumos
 hoje zerados passam a vir do E5/E1.5, com **predicado único de dependente
@@ -85,6 +94,28 @@ parecer.
 pressupõe é conformance. O que é regra nova é o **predicado de dependente
 econômico**, e vai na emenda com **co-design `financial-planner`** — a definição
 é dele. Heading de emenda **não leva wikilink**; `amended_at` no mesmo commit.
+
+## Escopo vigente — split 2026-08-13
+
+O co-design `financial-planner` + `data-engineer` + `product-designer`, fechado
+por `senior-cto`, refutou a premissa de que os sete campos eram simples plumbing:
+
+- o E5 pinado contém patrimônio/dívidas e parte da renda passiva, mas não renda
+  ativa líquida mensal canônica nem situs EUA;
+- E1.x histórico cai em fallback workspace-scoped `latest` e não recompõe o run;
+- o adapter lê apólices/membros/workspace vivos e `date.today()`, quebrando a
+  fotografia do Report;
+- UF default SP e tabela fiscal hardcoded violam [[ADR-135]];
+- `10× renda` sem dependente econômico contradiz [[ADR-365]].
+
+Por isso a entrega foi decomposta sem rebaixar este aceite:
+
+1. [[A40.l61]] remove zeros/`False` implícitos, declara computabilidade por
+   categoria e corrige o predicado `filho`, sem ligar a S9.
+2. [[A40.l62]] produz os contratos ausentes e persiste o
+   `ProtectionComputationSnapshotV1` decidido em [[ADR-387]].
+3. Esta lane consome somente o snapshot, injeta-o no view-model e executa o gate
+   renderizado. Merge de pré-lane **não** conta como entrega parcial desta lane.
 
 ## Critério de aceite
 

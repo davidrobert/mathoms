@@ -72,14 +72,21 @@ export interface ProtectionThresholds {
   estate_tax_threshold_usd?: number | null;
 }
 
+export interface ProtectionCalculationStatus {
+  status: "computed" | "not_applicable" | "missing_data";
+  missing_inputs: string[];
+  reason: string;
+}
+
 export interface ProtectionBundle {
   policies: ProtectionItem[];
   /** Key = `ProtectionCategory`. */
   gap_analysis: Record<string, ProtectionGapItem>;
   recommendations: ProtectionRecommendation[];
   auto_inferred_risks: RiskInferred[];
+  calculation_status: Record<string, ProtectionCalculationStatus>;
   methodology_thresholds: ProtectionThresholds;
-  has_us_exposure: boolean;
+  has_us_exposure: boolean | null;
   adapter_version: number;
 }
 

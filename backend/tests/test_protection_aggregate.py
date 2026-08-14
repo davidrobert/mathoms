@@ -439,11 +439,10 @@ async def test_bundle_skeleton_returns_empty_lists_when_no_policies(db, setup):
     assert bundle["gap_analysis"] == {}
     assert bundle["recommendations"] == []
     assert bundle["auto_inferred_risks"] == []
-    assert bundle["has_us_exposure"] is False
-    # T03 (ADR-192 §D3) bumpou adapter_version → 2 ao popular calculators.
-    # methodology_thresholds passa a vir preenchido com defaults.
-    assert bundle["_adapter_version"] == 2
-    assert bundle["methodology_thresholds"]["fbar_threshold_usd"] == 10_000
+    assert bundle["has_us_exposure"] is None
+    assert bundle["_adapter_version"] == 3
+    assert bundle["methodology_thresholds"]["fbar_threshold_usd"] is None
+    assert bundle["calculation_status"]["invalidez"]["status"] == "missing_data"
 
 
 @pytest.mark.asyncio
@@ -529,17 +528,16 @@ async def _add_titular_with_us_status(db, ws, us_tax_status: str):
 
 
 @pytest.mark.asyncio
-async def test_bundle_t03_us_exposure_from_family_member_us_tax_status(db, setup):
-    """ADR-192 §D4: ``has_us_exposure`` deriva de ``family_members.us_tax_status``."""
+async def test_bundle_live_us_status_does_not_replace_missing_snapshot_inputs(db, setup):
     from backend.app.services.protection_bundle_adapter import _project_protection_bundle_async
 
     ws, _, _ = setup
     await _add_titular_with_us_status(db, ws, "citizen")
     bundle = await _project_protection_bundle_async(ws.id, db=db)
-    assert bundle["has_us_exposure"] is True
+    assert bundle["has_us_exposure"] is None
     fbar = [r for r in bundle["auto_inferred_risks"] if r.get("name") == "compliance_us_fbar"]
-    assert len(fbar) == 1
-    assert fbar[0]["source_calculator"] == "compliance_risk_us_person"
+    assert fbar == []
+    assert bundle["calculation_status"]["compliance_us"]["status"] == "missing_data"
 
 
 @pytest.mark.asyncio
@@ -565,6 +563,6 @@ async def test_bundle_t03_thresholds_populados(db, setup):
     ws, _, _ = setup
     bundle = await _project_protection_bundle_async(ws.id, db=db)
     thresholds = bundle["methodology_thresholds"]
-    assert thresholds["fbar_threshold_usd"] == 10_000
-    assert thresholds["estate_tax_threshold_usd"] == 60_000
+    assert thresholds["fbar_threshold_usd"] is None
+    assert thresholds["estate_tax_threshold_usd"] is None
     assert thresholds["life_insurance_multiple_renda_anual"] == 10.0

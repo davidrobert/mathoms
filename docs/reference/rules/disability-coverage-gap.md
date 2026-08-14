@@ -20,6 +20,11 @@ tags:
 
 **Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111). Thresholds (`target_pct=0.60`, `dependency_threshold=0.40`) hardcoded como constantes no calculator com referência à fonte metodológica — não vêm de `fiscal_parameters` porque são thresholds **metodológicos**, não fiscais.
 
+**Computabilidade (emenda 2026-08-13).** Renda ativa e passiva líquidas mensais
+devem vir da mesma base temporal. Ausência de qualquer lado produz
+`missing_data`; receita recorrente bruta ou subtração entre janelas não é proxy.
+O calculator não roda até o contrato canônico da [[ADR-387]] existir.
+
 **Enforcer.**
 - [`pipeline/domain/services/protection/disability_coverage.py`](../../../pipeline/domain/services/protection/disability_coverage.py) — `disability_coverage_gap(DisabilityInputs) -> CoverageGap`. Emite `RiskInferred("invalidez_subcobertura")` quando share > 40% **e** gap > R$ 1k/mês.
 

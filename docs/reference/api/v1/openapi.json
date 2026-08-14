@@ -8475,6 +8475,13 @@
             "title": "Auto Inferred Risks",
             "type": "array"
           },
+          "calculation_status": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProtectionCalculationStatusResponse"
+            },
+            "title": "Calculation Status",
+            "type": "object"
+          },
           "gap_analysis": {
             "additionalProperties": {
               "$ref": "#/components/schemas/ProtectionGapItemResponse"
@@ -8483,8 +8490,15 @@
             "type": "object"
           },
           "has_us_exposure": {
-            "title": "Has Us Exposure",
-            "type": "boolean"
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Us Exposure"
           },
           "methodology_thresholds": {
             "$ref": "#/components/schemas/ProtectionThresholdsResponse"
@@ -8509,11 +8523,44 @@
           "gap_analysis",
           "recommendations",
           "auto_inferred_risks",
+          "calculation_status",
           "methodology_thresholds",
           "has_us_exposure",
           "adapter_version"
         ],
         "title": "ProtectionBundleResponse",
+        "type": "object"
+      },
+      "ProtectionCalculationStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "missing_inputs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Inputs",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "computed",
+              "not_applicable",
+              "missing_data"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "missing_inputs",
+          "reason"
+        ],
+        "title": "ProtectionCalculationStatusResponse",
         "type": "object"
       },
       "ProtectionCancelCommand": {

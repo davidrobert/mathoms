@@ -26,6 +26,12 @@ tags:
 
 **Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111 stateless rigoroso); thresholds vêm de constantes documentadas como débito de migração para `fiscal_parameters` (ADR-135).
 
+**Computabilidade (emenda 2026-08-13).** O adapter só invoca a fórmula quando
+há dependente econômico menor confirmado, renda ativa anual e dívida observadas.
+`filho` e `dependente` menores entram; idade ausente/futura e dependente adulto
+não modelado retêm a categoria. Sem dependente confirmado, a regra é
+`not_applicable` e não publica `10× renda` ([[ADR-365]], [[ADR-387]]).
+
 **Enforcer.**
 - [`pipeline/domain/services/protection/life_insurance_coverage.py`](../../../pipeline/domain/services/protection/life_insurance_coverage.py) — `life_insurance_coverage_ideal(LifeInsuranceInputs) -> CoverageRecommendation`. Emite `RiskInferred("falta_seguro_vida_cobertura_insuficiente")` quando gap > 5% do ideal **e** > R$ 50k.
 - Adapter (app layer): [`backend/app/services/protection_bundle_adapter.py`](../../../backend/app/services/protection_bundle_adapter.py) injeta value objects a partir do DB (family_members, dívidas, renda).

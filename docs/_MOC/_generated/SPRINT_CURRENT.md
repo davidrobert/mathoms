@@ -5,13 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-17 open · 8 in_progress.
+16 open · 9 in_progress.
 
-## Open (17)
+## Open (16)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · branch `a40-l29-editorial-do-ano-de-if`
-- [[A40.l35]] — Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros · priority P1 · branch `a40-l35-bundle-de-protecao-sobre-insumos-reais`
 - [[A40.l36]] — Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes · priority P1 · branch `a40-l36-double-count-base-cascata-s8`
 - [[A40.l46]] — Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup · priority P2 · branch `a40-l46-residuos-perfil-identidade`
 - [[A40.l47]] — Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva · priority P1 · branch `a40-l47-semantica-de-taxa-faixa-e-base`
@@ -27,7 +26,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l59]] — A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README · priority P2 · branch `a40-l59-gate-na-transicao-shipped`
 - [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
 
-## In progress (8)
+## In progress (9)
 
 - [[A40.l22]] — Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF · priority P0 · branch `a40-l22-superficie-de-degradacao`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · branch `a40-l25-honestidade-do-cone-if`
@@ -37,6 +36,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l44]] — Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação · priority P0 · branch `a40-l41-janela-interativa-pre-computada`
 - [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · branch `a40-l5-contrato-view-model-gate`
+- [[A40.l61]] — ProtectionBundle fail-closed: ausência de insumo não vira zero/False e filho conta como dependente · priority P1 · branch `a40-l61-protection-bundle-fail-closed`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

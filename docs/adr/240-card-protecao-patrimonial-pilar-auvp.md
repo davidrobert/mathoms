@@ -18,9 +18,10 @@ relates_to:
   - "[[ADR-238]]"
   - "[[ADR-239]]"
   - "[[ADR-365]]"
+  - "[[ADR-387]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-08-08"]
+amended_at: ["2026-08-08", "2026-08-13"]
 aliases:
   - "ADR 240"
   - "S_PROTECAO"
@@ -51,6 +52,10 @@ tags:
 > veredito derivado dele quando a união revela cobertura fora desse escopo.** O
 > gating do D3 KPI F abaixo é histórico — mecânica vigente em §Emenda 2026-08-08
 > (cobertura tem duas fontes).
+
+> **Emenda 2026-08-13:** o deferimento da S9 foi decomposto em fail-closed,
+> fontes/snapshot e ativação: [[A40.l61]] → [[A40.l62]] → [[A40.l35]]. A regra
+> completa de temporalidade e computabilidade vive em [[ADR-387]].
 
 ## Contexto
 
@@ -462,3 +467,11 @@ O item vira urgente no primeiro workspace que cadastrar apólice em `/protecao`.
 **Condição de retomada:** instrução declarando que faixa/suficiência de prêmio não
 se emite quando `escopo_cobertura.veredito_pct_renda_suprimido` é verdadeiro +
 caso no eval golden cobrindo o payload suprimido.
+
+## Emenda 2026-08-13 — deferimento da S9 exige snapshot completo
+
+O co-design da [[A40.l35]] provou que o produtor não podia ser ligado por simples
+plumbing: faltam renda ativa líquida, situs EUA, UF/parâmetro fiscal e fotografia
+imutável do cadastro. A [[A40.l61]] elimina defaults `0`/`False` e corrige
+`filho`, mas não liga a S9. A [[A40.l62]] entrega fontes + snapshot. Só a l35
+injeta o bundle e executa o gate renderizado; pré-lanes não satisfazem seu aceite.
