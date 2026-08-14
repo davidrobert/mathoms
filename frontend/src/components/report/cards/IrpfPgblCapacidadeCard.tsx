@@ -97,7 +97,7 @@ function buildComponentesElegiveis(kpis: IrpfKpis): ComponenteElegivel[] {
   }
   const pgblAportado = parseDecimalString(kpis.pgbl_aportado_brl) ?? 0;
   if (pgblAportado > 0) {
-    out.push({ kind: "money", label: "PGBL aportado", valueBrl: pgblAportado });
+    out.push({ kind: "money", label: "PGBL considerado para dedução", valueBrl: pgblAportado });
   }
   return out;
 }
@@ -151,19 +151,20 @@ export function IrpfPgblCapacidadeCard({
               <MonetaryValue value={capacidade} />
             </p>
             <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
-              Você aportou{" "}
+              Foram considerados para dedução{" "}
               <strong>
                 <MonetaryValue value={aportado} />
               </strong>{" "}
-              dos{" "}
+              do teto PGBL de{" "}
               <strong>
                 <MonetaryValue value={teto} />
               </strong>{" "}
-              dedutíveis em {anoBase} (12% da renda tributável).{" "}
+              em {anoBase} (12% da renda tributável).{" "}
               <strong>Não é recomendação:</strong> contratar PGBL exige
               análise de tabela regressiva vs. progressiva, horizonte de
-              resgate, taxa de administração e contribuição ao INSS.
+              resgate, taxa de administração e requisitos previdenciários aplicáveis.
             </p>
+            <AnoCorrenteNote />
           </>
         )}
 
@@ -193,7 +194,7 @@ export function IrpfPgblCapacidadeCard({
               <MonetaryValue value={0} />
             </p>
             <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
-              Você aportou{" "}
+              Foram considerados para dedução{" "}
               <strong>
                 <MonetaryValue value={aportado} />
               </strong>{" "}
@@ -204,6 +205,7 @@ export function IrpfPgblCapacidadeCard({
               </strong>
               ). Não há capacidade dedutível remanescente em {anoBase}.
             </p>
+            <AnoCorrenteNote />
           </>
         )}
 
@@ -221,6 +223,16 @@ export function IrpfPgblCapacidadeCard({
         )}
       </div>
     </ReportCard>
+  );
+}
+
+function AnoCorrenteNote() {
+  return (
+    <p className="text-xs leading-relaxed text-[var(--surface-muted-foreground)]">
+      O espaço dedutível de 12% aplica-se ao ano-calendário corrente — aportes
+      até 31/12 deduzem na próxima declaração; se a renda tributável atual
+      diferir do ano-base, o espaço real muda proporcionalmente.
+    </p>
   );
 }
 

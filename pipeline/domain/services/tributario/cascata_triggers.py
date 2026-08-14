@@ -25,8 +25,6 @@ SIMPLES_SUBLIMITE_NACIONAL: Decimal = Decimal("3600000")
 T5_SUBLIMITE_PROXIMIDADE_PCT: Decimal = Decimal("0.80")
 #: INSS patronal CPP — aplica só em Lucro Presumido (Simples inclui no DAS).
 INSS_PATRONAL_ALIQ: Decimal = Decimal("0.20")
-#: PGBL — art. 11 Lei 9.532/97.
-PGBL_LIMITE_PCT: Decimal = Decimal("0.12")
 
 
 @dataclass(frozen=True)
@@ -65,8 +63,6 @@ def _t1_build_params(delta_anual: Decimal, ir_marginal: Decimal, regime: str) ->
     return {
         "delta_pro_labore_mensal_brl": _money_str(delta_anual / Decimal(12)),
         "delta_pro_labore_anual_brl": _money_str(delta_anual),
-        "aporte_pgbl_extra_anual_brl": _money_str(delta_anual * PGBL_LIMITE_PCT),
-        "economia_ir_anual_brl": _money_str(delta_anual * PGBL_LIMITE_PCT * ir_marginal),
         "custo_inss_patronal_anual_brl": _money_str(custo_inss),
         "ir_marginal_potencial_pct": _pct_str(ir_marginal),
     }
@@ -139,7 +135,6 @@ def _t2_fator_r(
 def _t3_pgbl_marginal(
     pgbl_aplicavel: bool,
     pgbl_base_anual: Money,
-    pgbl_limite_anual: Money,
     irrf_table_mensal,
 ) -> Optional[CascataTrigger]:
     if not pgbl_aplicavel or pgbl_base_anual.amount <= 0:
@@ -153,7 +148,6 @@ def _t3_pgbl_marginal(
         title="Oportunidade: PGBL dedutível dentro do seu perfil",
         params={
             "ir_marginal_estimado_pct": _pct_str(ir_marginal),
-            "pgbl_limite_anual_brl": _money_str(pgbl_limite_anual.amount),
         },
     )
 
@@ -201,7 +195,6 @@ class TriggerContext:
     regime: str
     pro_labore_mensal: Money
     pgbl_base_anual: Money
-    pgbl_limite_anual: Money
     pgbl_aplicavel: bool
     folha_anual: Money
     receita_anual: Money
@@ -218,7 +211,7 @@ def _eval_candidates(ctx: TriggerContext) -> tuple:
     return (
         _t1_otimizar_pro_labore(ctx.pro_labore_mensal, base, aplicavel, ctx.regime, irrf),
         _t2_fator_r(ctx.fator_r_pct, ctx.folha_anual, ctx.receita_anual),
-        _t3_pgbl_marginal(aplicavel, base, ctx.pgbl_limite_anual, irrf),
+        _t3_pgbl_marginal(aplicavel, base, irrf),
         _t4_holding_alugueis(ctx.imoveis_alugados_count, ctx.receita_aluguel_anual),
         _t5_sublimite_simples(ctx.regime, ctx.receita_anual),
     )

@@ -197,7 +197,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
 | `secao-3` | Investimentos e Rendimentos | 3.1 Rentabilidade (4 KPIs + benchmark acumulado) · 3.2 Estratégia aporte (R$22,3k: R$20k investimentos + R$1,8k PGBL + R$500 DCA Crypto + **Contrafluxo AUVP** — quadro didático Selic↑→Prefixado, Selic↓→IPCA+, regra prática + coluna liquidez + nota validação vs alocação alvo) · 3.3 Card **Ações Diretas — Rico** (tabela: Ativo/Qtd/PM/Cotação/Valor/P&L/Situação — dados de `rico_investimentosposicao`, PM de `lots` no E3 ou IRPF, total + notas de lote) · 3.4 Análise ativos (top 15 + fundamentalista PM/lotes + marcação mercado IPCA+ + crypto 1% + FIIs ref.) · 3.5 Consolidação corretoras |
 | `secao-4` | Imóveis e Bens | Card **Patrimônio Imobiliário** (tabela #/Imóvel/Área/Dono/Compra/IRPF/Aluguel/Status + linha resumo com totais) + yield vs CDI + custo oportunidade + simulação Barão→FIIs + 5 FIIs referência com disclaimer. Fonte: `patrimonio-3_unified.json` / `imoveis-3_unified.json` + XLSX + IRPF |
 <!-- A8.4 PR4 (ADR-168): Seções 5 (F1/F2 EUA) e 6 (Green Card) removidas — Modo USA descontinuado. -->
-| `secao-7` | Independência Financeira | TRS didática + rentabilidade 6% real + projeção 3 cenários + renda passiva por fonte + projeção 2035 8 fontes com disclaimer + card **Previdência PGBL** (obrigatório — portabilidade, benefício fiscal 12%, projeção acumulação, de `previdencia_pgbl` do E4) |
+| `secao-7` | Independência Financeira | TRS didática + rentabilidade 6% real + projeção 3 cenários + renda passiva por fonte + projeção 2035 8 fontes com disclaimer + nota que aponta à análise PGBL baseada no IRPF |
 | `secao-8` | Tributário | DAS irregular + Simples vs LP + PGBL portabilidade + carnê-leão passo-a-passo 7 etapas + calendário |
 | `secao-9` | Riscos e Proteção | Bubble chart (X=Probabilidade, Y=Impacto, Raio=Severidade) + **Seguros** (vida, DIT, residencial — cobertura atual vs recomendada, gap analysis) + top 3 mitigações + planejamento sucessório (testamentos BR + procuração duradoura + holding + guardianship EUA) |
 | `secao-10` | Conclusão e Roadmap | Card **Pontos Fortes** (obrigatório — 5-7 destaques positivos, de `pontos_fortes[]` do E4) + card **Pontos Urgentes** (obrigatório — 5-7 ações críticas priorizadas, de `pontos_urgentes[]` do E4) + card **Equilíbrio Presente × Futuro** (obrigatório — análise Cerbasi gastos-presente vs investimentos-futuro, de `equilibrio_cerbasi` do E4) + top 5 decisões + timeline Abr split |
@@ -1094,59 +1094,12 @@ Card 2 — Metodologias: 3 sub-seções (Bruno Perini: número IF = despesa anua
 
 ---
 
-### Card obrigatório: Previdência PGBL (dentro de `secao-7` — OBRIGATÓRIO)
+### Diagnóstico PGBL baseado no IRPF
 
-**Regra:** Este card DEVE ser gerado SEMPRE na secao-7 (Independência Financeira), após a projeção de renda passiva por fonte. Aborda o benefício fiscal do PGBL (12% da renda tributável), portabilidade, e projeção de acumulação. Metodologia: Bruno Perini (PGBL como "imposto que volta") + AUVP (usar PGBL como alavanca, não como investimento principal).
-
-**Posição no HTML:** Dentro de `secao-7`, após o bloco de renda passiva por fonte, antes do fechamento da seção.
-
-**Fonte de dados:**
-- Renda tributável: `report-data.previdencia_pgbl.renda_tributavel_anual`
-- Limite dedução: 12% da renda tributável
-- Aporte atual: `report-data.previdencia_pgbl.aporte_mensal_atual`
-- Projeção: E4 calcula acumulação em 10/15/20 anos com taxa real de 6%
-
-**Estrutura HTML:**
-```html
-<div class="card card-feature">
-  <div class="card-title">Previdência PGBL — Benefício Fiscal + Acumulação</div>
-  <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
-    <div class="kpi-card"><div class="kpi-value">R$ {{renda_tributavel_anual}}</div><div class="kpi-label">Renda Tributável Anual</div></div>
-    <div class="kpi-card"><div class="kpi-value">R$ {{limite_pgbl_anual}}</div><div class="kpi-label">Limite PGBL (12%)</div></div>
-    <div class="kpi-card"><div class="kpi-value">R$ {{aporte_mensal_atual}}</div><div class="kpi-label">Aporte Mensal Atual</div></div>
-    <div class="kpi-card"><div class="kpi-value">R$ {{economia_ir_anual}}</div><div class="kpi-label">Economia IR/Ano</div></div>
-  </div>
-  <h3>Projeção de Acumulação (taxa real 6% a.a.)</h3>
-  <table>
-    <thead><tr><th>HORIZONTE</th><th>APORTE MENSAL</th><th>ACUMULADO</th><th>RENDA MENSAL (4% a.a.)</th></tr></thead>
-    <tbody>
-      <tr><td>10 anos</td><td>R$ {{aporte_mensal_atual}}</td><td>R$ {{acumulado_10a}}</td><td>R$ {{renda_10a}}</td></tr>
-      <tr><td>15 anos</td><td>R$ {{aporte_mensal_atual}}</td><td>R$ {{acumulado_15a}}</td><td>R$ {{renda_15a}}</td></tr>
-      <tr><td>20 anos</td><td>R$ {{aporte_mensal_atual}}</td><td>R$ {{acumulado_20a}}</td><td>R$ {{renda_20a}}</td></tr>
-    </tbody>
-  </table>
-  <p><strong>Portabilidade:</strong> {{status_portabilidade}}</p>
-  <p><strong>Recomendação:</strong> {{recomendacao}}</p>
-</div>
-```
-
-**JSON em `report-data`:**
-```json
-"previdencia_pgbl": {
-  "renda_tributavel_anual": 0,
-  "limite_pgbl_anual": 0,
-  "aporte_mensal_atual": 1800,
-  "economia_ir_anual": 0,
-  "acumulado_10a": 0,
-  "acumulado_15a": 0,
-  "acumulado_20a": 0,
-  "renda_10a": 0,
-  "renda_15a": 0,
-  "renda_20a": 0,
-  "status_portabilidade": "Pendente — avaliar fundos disponíveis",
-  "recomendacao": "Calcular renda tributável real (CLT Cônjuge + pro-labore do Titular) e confirmar se aporte atual atinge o teto de 12%."
-}
-```
+O Card B **Capacidade PGBL**, em `S_IRPF_OTIMIZACAO`, é o único publicador do
+teto e da capacidade dedutível. A fonte é `report-data.irpf_kpis`. A `secao-7`
+mantém apenas uma nota que aponta para o diagnóstico ou declara a ausência de
+IRPF processado; a `secao-8` explica a base tributável sem republicar o teto.
 
 ---
 
@@ -1626,7 +1579,7 @@ Tabela consolidada de todas as chaves obrigatórias no JSON embutido no relatór
 | 10 | `contrafluxo` | E4 / Selic vigente | S3 — Card Contrafluxo | ✅ |
 | 11 | `reserva_emergencia` | E4 | S1 — Card Reserva | ✅ |
 | 12 | `endividamento` | E4 | S1 — Card Endividamento | ✅ |
-| 13 | `previdencia_pgbl` | E4 | S7 — Card PGBL | ✅ |
+| 13 | `irpf_kpis` | E5 IRPF | S_IRPF_RENDA, S_IRPF_OTIMIZACAO | ✅ |
 | 14 | `pontos_fortes` | E4 | S10 — Card Pontos Fortes | ✅ |
 | 15 | `pontos_urgentes` | E4 | S10 — Card Pontos Urgentes | ✅ |
 | 16 | `equilibrio_cerbasi` | E4 | S10 — Card Equilíbrio | ✅ |

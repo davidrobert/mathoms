@@ -28,7 +28,6 @@
     "Top 15 Ativos da Carteira"
   ],
   "S7": [
-    "Previdência PGBL",
     "Projeção Patrimonial — 3 Cenários",
     "Renda Passiva — Progresso até a Meta"
   ],
@@ -46,6 +45,16 @@
     "Decisões de Impacto",
     "Pontos Fortes",
     "Pontos Urgentes"
+  ],
+  "S_IRPF_OTIMIZACAO": [
+    "Capacidade PGBL"
+  ],
+  "S_IRPF_RENDA": [
+    "Alíquota Efetiva — RFB e Renda Total",
+    "Evolução da Renda — Multi-anos",
+    "IR Pago",
+    "Renda Anual Familiar",
+    "Renda do Trabalho × Renda do Capital"
   ],
   "S_parecer": [],
   "plano_de_acao": [],

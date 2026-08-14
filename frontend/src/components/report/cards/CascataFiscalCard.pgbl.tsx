@@ -1,5 +1,5 @@
 /** Sprint A16 L2 P5 (ADR-236 §D5) — Bloco "Base para dedução PGBL" do card
- * Cascata Fiscal, com os dois estados em que a dedução não se aplica:
+ * Cascata Fiscal, com os estados em que a dedução não se aplica:
  * `declaracao_simplificada` (flag de atenção) e `renda_tributavel_pf_zerada`
  * (estado neutro — falta IRPF processado, não é problema do usuário).
  */
@@ -8,7 +8,13 @@ import { AlertTriangle } from "lucide-react";
 import type { CascataPayload } from "@/lib/api";
 import { MonetaryValue } from "../MonetaryValue";
 
-export function PgblBlock({ cascata }: { cascata: CascataPayload }) {
+export function PgblBlock({
+  cascata,
+  hasIrpf,
+}: {
+  cascata: CascataPayload;
+  hasIrpf: boolean;
+}) {
   return (
     <section
       aria-labelledby="cascata-pgbl-title"
@@ -27,30 +33,43 @@ export function PgblBlock({ cascata }: { cascata: CascataPayload }) {
             <MonetaryValue value={cascata.pgbl_base_anual} fractionDigits={0} />
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-[var(--surface-muted-foreground)]">Limite PGBL (12%)</dt>
-          <dd>
-            <MonetaryValue value={cascata.pgbl_limite_anual} fractionDigits={0} />
-          </dd>
-        </div>
       </dl>
-      <p className="text-[0.7rem] leading-relaxed text-[var(--surface-muted-foreground)]">
+      <p className="text-xs leading-relaxed text-[var(--surface-muted-foreground)]">
         Base = pró-labore + outras rendas tributáveis IRPF. Lucros distribuídos
-        não entram na base PGBL.
+        não compõem esta base. <PgblDestination hasIrpf={hasIrpf} />
       </p>
       <PgblStatus
         aplicavel={cascata.pgbl_aplicavel}
         motivo={cascata.pgbl_motivo_inaplicavel}
       />
       <p
-        className="text-[0.7rem] italic leading-relaxed text-[var(--surface-muted-foreground)]"
+        className="text-xs italic leading-relaxed text-[var(--surface-muted-foreground)]"
         data-testid="pgbl-disclaimer-crc"
       >
-        Cálculo informativo de capacidade dedutível. Para decisão de aporte em
-        PGBL, considere conversar com seu contador — Mathoms consolida, não
-        substitui orientação tributária.
+        Base informativa para análise de PGBL. Para decidir sobre aportes,
+        confirme os requisitos previdenciários aplicáveis e converse com seu
+        contador — o Mathoms consolida dados e não substitui orientação
+        tributária.
       </p>
     </section>
+  );
+}
+
+function PgblDestination({ hasIrpf }: { hasIrpf: boolean }) {
+  if (!hasIrpf) {
+    return <>O teto e a capacidade dedutível dependem de uma declaração de IRPF processada.</>;
+  }
+  return (
+    <>
+      Ver teto e capacidade dedutível em{" "}
+      <a
+        href="#S_IRPF_OTIMIZACAO"
+        className="underline decoration-dotted underline-offset-2 text-[var(--brand-info)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        Otimização Tributária
+      </a>
+      .
+    </>
   );
 }
 
@@ -101,7 +120,7 @@ function TipoDeclaracaoDesconhecidoNotice() {
     >
       Modelo de declaração do IRPF não registrado — só a declaração completa
       admite a dedução de PGBL. Informe o modelo no perfil tributário para que
-      este limite valha como capacidade dedutível.
+      avaliar a dedutibilidade.
     </p>
   );
 }

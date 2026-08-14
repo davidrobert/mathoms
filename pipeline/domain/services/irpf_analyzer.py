@@ -279,8 +279,8 @@ class IRPFAnalyzer:
                 continue
             tributavel = _renda_tributavel(d)
             ja_aportado = _pgbl_aportado(d)
-            capacidade += (tributavel * PGBL_TETO_PCT) - ja_aportado
-        return max(capacidade, Decimal("0"))
+            capacidade += max((tributavel * PGBL_TETO_PCT) - ja_aportado, Decimal("0"))
+        return capacidade
 
     def pgbl_resumo(self, ano: int) -> PgblResumo:
         """ADR-189 §D2: aporte total + teto dedutível (12% × tributável das completas)."""

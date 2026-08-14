@@ -389,21 +389,15 @@ estrategico:
         - id: "renda_passiva"
           enabled: true
           conclusion: true
-      cards:
-        - id: "previdencia_pgbl"
-          enabled: true
-          variant: "feature"
-          size: "full"
 
     # --------------------------------------------------------------------------
     # S8 — Tributário PJ
     # --------------------------------------------------------------------------
     - id: "S8"
       # A40.l7 · RV3-28: o título prometia "Previdência — PGBL" e a seção
-      # renderiza a CASCATA FISCAL PJ; o card de PGBL vive na S7. Decisão do
-      # financial-planner: retitular, NÃO mover o card — previdência é
-      # wrapper (AUVP), não capítulo, e nenhuma seção do relatório tem nome
-      # de produto financeiro. "Regime" e não "Cascata": o card logo abaixo
+      # renderiza a CASCATA FISCAL PJ. A40.l34 moveu teto/capacidade para o
+      # Card B da S_IRPF_OTIMIZACAO e deixou aqui apenas a base explicativa.
+      # "Regime" e não "Cascata": o card logo abaixo
       # já se chama "Tributário PJ · Cascata Fiscal" (mesmo defeito que o
       # APP_B teve no #1355). "PJ" é o único discriminador vs. as S_IRPF_*,
       # que são o lado pessoa física declarada.
@@ -682,7 +676,6 @@ estrategico:
 # kpi_rentabilidade           | (inline HTML block)                     | S3
 # estrategia_aporte           | build_estrategia_aporte_card()          | S3
 # contrafluxo                 | (inline HTML block)                     | S3
-# previdencia_pgbl            | build_previdencia_pgbl_card()           | S7
 # pontos_fortes               | build_pontos_fortes_card()              | S10
 # pontos_urgentes             | build_pontos_urgentes_card()            | S10
 # equilibrio_cerbasi          | build_equilibrio_cerbasi_card()         | S10

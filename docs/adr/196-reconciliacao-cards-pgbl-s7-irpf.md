@@ -54,7 +54,8 @@ cross-link entre eles:
 
 ### Card A — `previdencia_pgbl` em §S7
 
-[frontend/src/components/report/cards/PrevidenciaPgblCard.tsx](../../frontend/src/components/report/cards/PrevidenciaPgblCard.tsx)
+`frontend/src/components/report/cards/PrevidenciaPgblCard.tsx` (removido pela
+[[ADR-375]])
 + [pipeline/domain/services/previdencia_analyzer.py](../../pipeline/domain/services/previdencia_analyzer.py).
 
 - **Natureza: prospectivo, prescritivo.**

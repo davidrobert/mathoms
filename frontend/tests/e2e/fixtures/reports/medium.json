@@ -285,9 +285,6 @@
     "total": 50000,
     "percentual_renda": 0.15
   },
-  "previdencia_pgbl": {
-    "saldo": 45000
-  },
   "investimentos": {
     "total": 600000,
     "alocacao_atual": [],
@@ -326,6 +323,25 @@
     }
   ],
   "tarefas_status": {},
+  "irpf_kpis": {
+    "ano_base": 2024,
+    "anos_disponiveis": [2023, 2024],
+    "renda_anual_familiar_brl": "183230.42",
+    "renda_liquida_familiar_brl": "150000.00",
+    "ir_pago_total_brl": "25000.00",
+    "aliquota_sobre_tributavel_pct": "16.50",
+    "aliquota_sobre_total_pct": "13.64",
+    "pgbl_capacidade_dedutivel_brl": "11987.65",
+    "pgbl_status": "capacidade_disponivel",
+    "pgbl_aportado_brl": "10000.00",
+    "pgbl_teto_brl": "21987.65",
+    "split_trabalho_brl": "123230.42",
+    "split_capital_brl": "60000.00",
+    "evolucao_renda_anos": {
+      "2023": "172000.00",
+      "2024": "183230.42"
+    }
+  },
   "narrativas": {
     "perfil_familia": {
       "left": "<p>Titular Sintético, 44 anos, é engenheiro de software com 20 anos de carreira, atuando como PJ no Simples Nacional.</p><p>Cônjuge Sintético, 39 anos, é enfermeira CLT com salário-base de R$ 8,3k/mês.</p><p>O primeiro filho do casal é peça central no planejamento sucessório da família.</p>"
@@ -363,8 +379,7 @@
           "severity": "oportunidade",
           "title": "Oportunidade: PGBL dedutível",
           "params": {
-            "ir_marginal_estimado_pct": "27.50",
-            "pgbl_limite_anual_brl": "4320.00"
+            "ir_marginal_estimado_pct": "27.50"
           }
         },
         {
@@ -373,8 +388,7 @@
           "title": "Trade-off pró-labore × lucros",
           "params": {
             "delta_pro_labore_mensal_brl": "5000.00",
-            "aporte_pgbl_extra_anual_brl": "7200.00",
-            "economia_ir_anual_brl": "1980.00",
+            "delta_pro_labore_anual_brl": "60000.00",
             "custo_inss_patronal_anual_brl": "0.00",
             "ir_marginal_potencial_pct": "27.50"
           }

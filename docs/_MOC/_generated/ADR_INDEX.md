@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 322
-- **Proposto**: 52
+- **Decidido**: 323
+- **Proposto**: 51
 - **Roadmap**: 4
 
 ## Fundação
@@ -545,7 +545,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (60)
+### Decidido (61)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -606,9 +606,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-369]] — Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) · phase A40.l28
 - [[ADR-373]] — Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade
 - [[ADR-374]] — Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado · phase A40
+- [[ADR-375]] — Limite PGBL tem um produtor, e a prescrição exige evidência declarada · phase A40
 - [[ADR-376]] — Caixa corrente vem do último extrato reconciliado — sem denylist de instituição · phase A40.l38
 
-### Proposto (15)
+### Proposto (14)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -622,7 +623,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-352]] — Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante · phase pipeline-review r2 (RV2-26)
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
-- [[ADR-375]] — Limite PGBL tem um produtor, e a prescrição exige evidência declarada · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 

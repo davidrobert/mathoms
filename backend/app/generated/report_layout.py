@@ -367,11 +367,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                              'conclusion': True},
                                                          {   'id': 'renda_passiva',
                                                              'enabled': True,
-                                                             'conclusion': True}],
-                                           'cards': [   {   'id': 'previdencia_pgbl',
-                                                            'enabled': True,
-                                                            'variant': 'feature',
-                                                            'size': 'full'}]},
+                                                             'conclusion': True}]},
                                        {   'id': 'S8',
                                            'title': 'Carga Tributária PJ — Regime e Base Dedutível',
                                            'enabled': True,
@@ -656,5 +652,5 @@ LAYOUT_DICT: dict = {   'version': '1.2',
 
 LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)
 
-ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'posicao_informe_31_12', 'exposicao_cambial', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'protecao_kpi_hero', 'protecao_bens', 'protecao_gap_qualitativo', 'protecao_apolices', 'alocacao_atual_vs_alvo', 'kpi_rentabilidade', 'proventos_yield', 'estrategia_aporte', 'contrafluxo', 'real_estate_yield', 'previdencia_pgbl', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'irpf_dependentes_declarados', 'irpf_dedutiveis_aplicados', 'hero_gap_protecao', 'cobertura_seguros', 'sucessao', 'acoes_mitigacao', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref')
+ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'posicao_informe_31_12', 'exposicao_cambial', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'protecao_kpi_hero', 'protecao_bens', 'protecao_gap_qualitativo', 'protecao_apolices', 'alocacao_atual_vs_alvo', 'kpi_rentabilidade', 'proventos_yield', 'estrategia_aporte', 'contrafluxo', 'real_estate_yield', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'irpf_dependentes_declarados', 'irpf_dedutiveis_aplicados', 'hero_gap_protecao', 'cobertura_seguros', 'sucessao', 'acoes_mitigacao', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref')
 ALL_CHART_IDS: tuple[str, ...] = ('patrimonio_doughnut', 'waterfall_if', 'score_gauge', 'fluxo_mensal', 'receita_bar', 'despesas_doughnut', 'receita_despesa_mensal', 'viagens', 'protecao_premio_decomp', 'top15_ativos', 'cenarios_conjuge', 'projecao_3cenarios', 'renda_passiva', 'impostos_pj', 'renda_evolucao_multi_anos', 'aliquota_efetiva_dual_gauge', 'bubble_riscos', 'top5_decisoes')

@@ -184,7 +184,7 @@ function MobileCard({ row }: { row: CategoryRow }) {
 /** S9-T04 (ADR-192 §D4) — Tabela de cobertura por categoria.
  *
  * 6 categorias canônicas; colunas: status, capital, prêmio/mês, vigência.
- * Mobile (<md): cards empilhados. Padrão tipográfico de PrevidenciaPgblCard.
+ * Mobile (<md): cards empilhados. Padrão tipográfico dos cards de relatório.
  *
  * TODO: dados reais virão de T03 — `gap_analysis` por categoria define
  * "parcial". Até T03 mergear, qualquer apólice cadastrada vira "contratado".

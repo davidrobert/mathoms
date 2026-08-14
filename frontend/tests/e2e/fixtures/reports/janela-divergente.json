@@ -591,8 +591,7 @@
           "severity": "oportunidade",
           "title": "Oportunidade: PGBL dedutível",
           "params": {
-            "ir_marginal_estimado_pct": "27.50",
-            "pgbl_limite_anual_brl": "4320.00"
+            "ir_marginal_estimado_pct": "27.50"
           }
         },
         {
@@ -601,8 +600,7 @@
           "title": "Trade-off pró-labore × lucros",
           "params": {
             "delta_pro_labore_mensal_brl": "5000.00",
-            "aporte_pgbl_extra_anual_brl": "7200.00",
-            "economia_ir_anual_brl": "1980.00",
+            "delta_pro_labore_anual_brl": "60000.00",
             "custo_inss_patronal_anual_brl": "0.00",
             "ir_marginal_potencial_pct": "27.50"
           }

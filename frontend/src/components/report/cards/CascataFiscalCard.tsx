@@ -49,9 +49,10 @@ import {
 
 interface CascataFiscalCardProps {
   tributario: TributarioBundle | undefined;
+  hasIrpf?: boolean;
 }
 
-export function CascataFiscalCard({ tributario }: CascataFiscalCardProps) {
+export function CascataFiscalCard({ tributario, hasIrpf = false }: CascataFiscalCardProps) {
   const cascata = tributario?.cascata;
   if (!tributario || !cascata || cascata.motivo_nao_suportado === "perfil_incompleto") {
     return <PerfilPendenteState />;
@@ -62,15 +63,17 @@ export function CascataFiscalCard({ tributario }: CascataFiscalCardProps) {
   if (cascata.motivo_nao_suportado === "anexo_simples_pendente") {
     return <AnexoPendenteState />;
   }
-  return <CascataFullCard tributario={tributario} cascata={cascata} />;
+  return <CascataFullCard tributario={tributario} cascata={cascata} hasIrpf={hasIrpf} />;
 }
 
 function CascataFullCard({
   tributario,
   cascata,
+  hasIrpf,
 }: {
   tributario: TributarioBundle;
   cascata: CascataPayload;
+  hasIrpf: boolean;
 }) {
   return (
     <ReportCard
@@ -91,7 +94,7 @@ function CascataFullCard({
         <ProtectionAndPremises />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
           <CascataLayers cascata={cascata} />
-          <PgblBlock cascata={cascata} />
+          <PgblBlock cascata={cascata} hasIrpf={hasIrpf} />
         </div>
         <TriggersList triggers={cascata.triggers} />
         <FiduciaryDisclaimer temContador={Boolean(tributario.contador_nome)} />
