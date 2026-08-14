@@ -70,7 +70,11 @@
                 "type": "string"
               },
               "signals": {
-                "type": "object"
+                "type": "object",
+                "description": "Sinais de qualidade/conferencia propagados como strings pelo produtor E5 (ADR-279).",
+                "additionalProperties": {
+                  "type": "string"
+                }
               },
               "member_hashes": {
                 "type": "array",
@@ -436,7 +440,33 @@
       "$ref": "#/$defs/Goals"
     },
     "orcamento_prospectivo": {
-      "type": "object"
+      "type": "object",
+      "description": "OrcamentoProspectivo.to_legacy_dict (ADR-306): media mensal por categoria e janela de observacao.",
+      "properties": {
+        "categorias": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "total": {
+          "type": "number"
+        },
+        "media_mensal": {
+          "type": "number"
+        },
+        "legenda": {
+          "type": "string"
+        },
+        "janela": {
+          "type": "string"
+        },
+        "janela_meses": {
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
     },
     "reserva_emergencia": {
       "$ref": "#/$defs/ReservaEmergencia"
@@ -488,7 +518,73 @@
     },
     "previdencia_pgbl": {
       "type": "object",
-      "description": "Recomendação PGBL (ADR-277/305/375). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null quando não há capacidade declarada no IRPF, caso em que os campos prescritivos nascem ausentes e não zerados (ADR-375 D3/D4 — o valor proxy_receita_pj saiu do vocabulário). nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao."
+      "description": "Recomendação PGBL (ADR-277/305/375). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null quando não há capacidade declarada no IRPF, caso em que os campos prescritivos nascem ausentes e não zerados (ADR-375 D3/D4 — o valor proxy_receita_pj saiu do vocabulário). nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Calculado",
+            "N/D"
+          ]
+        },
+        "nota": {
+          "type": "string"
+        },
+        "renda_tributavel_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "limite_pgbl_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "aporte_mensal": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "aliquota_marginal": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "economia_ir_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fonte_recomendacao": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "irpf_capacidade",
+            null
+          ]
+        },
+        "ano_base": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "nota_degradacao": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false
     },
     "pontos_fortes": {
       "type": "array",
@@ -526,7 +622,52 @@
       }
     },
     "equilibrio_cerbasi": {
-      "type": "object"
+      "type": "object",
+      "description": "EquilibrioCerbasi.to_legacy_dict (ADR-306): presente/futuro e componentes monetarios da janela canonica.",
+      "properties": {
+        "pct_presente": {
+          "type": "number"
+        },
+        "pct_futuro": {
+          "type": "number"
+        },
+        "classificacao": {
+          "type": "string"
+        },
+        "presente": {
+          "type": "string"
+        },
+        "futuro": {
+          "type": "string"
+        },
+        "janela": {
+          "type": "string"
+        },
+        "janela_meses": {
+          "type": "integer"
+        },
+        "componentes": {
+          "type": "object",
+          "properties": {
+            "gasto_presente": {
+              "type": "number"
+            },
+            "gasto_futuro": {
+              "type": "number"
+            },
+            "poupanca": {
+              "type": "number"
+            },
+            "base": {
+              "type": "number"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
     },
     "tarefas": {
       "type": "array",
@@ -610,7 +751,13 @@
       }
     },
     "programa_milhas": {
-      "type": "object"
+      "type": "object",
+      "description": "Placeholder legado vazio em 3/3 cenarios do produtor; sem leitor TS apos A40.l5 PR4. Candidato a delecao sob ADR-364.",
+      "x-codegen": {
+        "opaque": true,
+        "reason": "Produtor E5 emite somente objeto vazio; tipar campos observados inventaria contrato.",
+        "owner": "A40.l5"
+      }
     },
     "exposicao_cambial": {
       "type": "object",
