@@ -878,10 +878,10 @@
 | A40.l31 | lane | planned | A40 | Gerador ancora em vez de digitar: correção guiada pelo mecanismo, com o eval como gate de saída | `sprint/A40/lanes/A40-l31-gerador-ancora-em-vez-de-digitar.md` |
 | A40.l32 | lane | shipped | A40 | Proveniência do executor: qual código computou este run | `sprint/A40/lanes/A40-l32-proveniencia-do-executor-do-run.md` |
 | A40.l33 | lane | in_progress | A40 | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | `sprint/A40/lanes/A40-l33-contraste-texto-sobre-tint.md` |
-| A40.l34 | lane | in_progress | A40 | Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis | `sprint/A40/lanes/A40-l34-base-do-limite-pgbl.md` |
+| A40.l34 | lane | shipped | A40 | Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis | `sprint/A40/lanes/A40-l34-base-do-limite-pgbl.md` |
 | A40.l35 | lane | blocked | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
 | A40.l36 | lane | open | A40 | Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes | `sprint/A40/lanes/A40-l36-double-count-na-base-da-cascata-s8.md` |
-| A40.l37 | lane | blocked | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
+| A40.l37 | lane | open | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
 | A40.l38 | lane | shipped | A40 | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
 | A40.l39 | lane | in_progress | A40 | Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal | `sprint/A40/lanes/A40-l39-posicao-visoes-corrente-fiscal.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |

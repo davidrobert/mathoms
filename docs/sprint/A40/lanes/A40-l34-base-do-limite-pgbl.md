@@ -4,7 +4,9 @@ type: lane
 title: "Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1448
+ship_date: "2026-08-14"
 priority: P0
 branch_slug: a40-l34-base-do-limite-pgbl
 adrs:
@@ -16,7 +18,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/frontend
@@ -29,6 +31,11 @@ tags:
 > Decisão de abrir: do dono. Colocação, prioridade e onda: `product-manager`.
 > Severidade de domínio: `financial-planner` — *"a única parte deste achado que
 > pode custar dinheiro à família"*.
+
+> **Entregue em 2026-08-14 pelo PR #1448** (`6c68723a`). O Card B é o único
+> publicador do limite PGBL; S7 e S8 deixaram de duplicar a prescrição, e a
+> [[ADR-375]] passou a `Decidido`. Os resíduos de instrumento e citação seguem
+> explicitamente roteados para [[A40.l56]], [[A40.l37]] e [[A40.l57]].
 
 ## Problema
 
@@ -319,9 +326,18 @@ bloco `irpf`. O card da S7 cai no `DefaultPrevidenciaCard` com os três KPIs
 informativos **nunca montam em gate nenhum**. Mesma classe do `exposicao_cambial`
 ([[A40.l33]]) e do `anexo_v`.
 
-## PR3b — o que falta
+## PR3b — entregue 2026-08-14 (#1448)
 
-- **De-publicar os quatro sites restantes**: T3 (corpo **e** `params` — campo sem
+O PR3b fechou a publicação única e os gates de regressão sobre o commit
+`6c68723a`. O Card B (`S_IRPF_OTIMIZACAO`) passou a ser o único dono de teto e
+capacidade; a S7 virou nota contextual e a S8 reteve apenas base, estado e
+explicação. A capacidade familiar passou a limitar cada declaração em zero
+antes da soma, impedindo que sobreaporte de um cônjuge consumisse a capacidade
+do outro.
+
+Escopo executado:
+
+- **Quatro sites restantes de-publicados**: T3 (corpo **e** `params` — campo sem
   leitor é faceta inerte), `_pgbl_clause` (base + ponteiro, com unit test próprio
   porque `narrativas.S8` é `null` nas fixtures), a folha citável do parecer
   (abaixo), e a S7.
@@ -337,28 +353,26 @@ informativos **nunca montam em gate nenhum**. Mesma classe do `exposicao_cambial
   > decidir se o parecer **deve** poder citar a capacidade e, se sim, dar ao Card B
   > uma folha citável. Rota: [[A40.l57]], que já trata das âncoras
   > `$.previdencia_pgbl.*` resolvendo `null`.
-- **T1**: suprimir `aporte_pgbl_extra_anual_brl` + `economia_ir_anual_brl`. Não é
+- **T1**: `aporte_pgbl_extra_anual_brl` + `economia_ir_anual_brl` foram
+  suprimidos. Não é
   escopo novo — é o D4 cond. 2 num site que o inventário da ADR perdeu. A
   *correção* (fonte da faixa) fica na [[A40.l37]], que precisa **herdar D4 cond. 2
   + D5 + D6 + [[ADR-135]] por escrito**; sem isso migra a fonte e preserva o
   instrumento condenado com CI verde.
-- **S7 vira nota de 2 estados**; morrem o card, a matriz de 6 modos e
-  `getPgblCardStrategy`. **Preservar** `derivePrimaryYear` + `matchIrpfToPeriod`:
+- **S7 virou nota de 2 estados**; morreram o card, a matriz de 6 modos e
+  `getPgblCardStrategy`. Foram preservados `derivePrimaryYear` + `matchIrpfToPeriod`:
   a linha de defasagem ≥2 anos não existe no Card B e é sinal órfão se não migrar.
   Idem a `nota` do produtor (diferimento + ano-calendário corrente, [[ADR-305]] D3).
-- **Fixture + gate**: `medium.json` ganha bloco `irpf` e perde o `saldo`;
-  `report-inventory.expected.json` perde a linha "Previdência PGBL" **à mão**
-  (regenerar não conserta remoção) e ganha as chaves das seções que passam a
+- **Fixture + gate**: `medium.json` ganhou bloco `irpf` e perdeu o `saldo`;
+  `report-inventory.expected.json` perdeu a linha "Previdência PGBL" **à mão**
+  (regenerar não conserta remoção) e ganhou as chaves das seções que passaram a
   montar.
-- **`FORMULAS.md`**: entrada PGBL (hoje **zero** ocorrências) — teto = 12% do
+- **`FORMULAS.md`**: ganhou a entrada PGBL — teto = 12% do
   rendimento **bruto** tributável citando [[ADR-236]], faixa marginal sobre **base
   de cálculo**, a diferencial, os estados e a distinção teto × restante.
-- **`ParecerAncoraChips.tsx`**: o rótulo `previdencia_pgbl → "Previdência PGBL"`
-  fica falso no merge, e o comentário acima dele justifica o valor dizendo que é o
-  title do card da S7. Colisão declarada com a [[A40.l49]] PR1, que substitui o
-  mapa inteiro.
-- **Emenda da [[ADR-375]]** — ✅ aplicada 2026-08-13; `Proposto` → `Decidido (A40)`
-  no merge do PR3b.
+- **`ParecerAncoraChips.tsx`**: o rótulo legado foi substituído por
+  `previdencia_pgbl → "Análise PGBL"`, sem afirmar a existência do card removido.
+- **Emenda da [[ADR-375]]** — aplicada no merge; `Proposto` → `Decidido (A40)`.
 
 ## Colisão declarada
 
