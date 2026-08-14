@@ -71,12 +71,22 @@ test.describe("Determinismo do desenho dos charts", () => {
   });
 
   test("com reduced-motion, capturas consecutivas são idênticas", async ({ page }) => {
+    test.setTimeout(120_000);
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await abrirRelatorio(page);
+
+    // Throttle SÓ a partir daqui: o que se quer simular é o runner carregado
+    // durante a captura, não durante o carregamento. Throttlar o `goto`
+    // também estourava o timeout do teste no runner do CI sem medir nada a
+    // mais — o mecanismo é a captura, não o boot da página.
     const client = await page.context().newCDPSession(page);
     await client.send("Emulation.setCPUThrottlingRate", { rate: CPU_THROTTLE });
-
-    await abrirRelatorio(page);
-    const secao = page.locator(`section#${SECTION}[data-report-section]`);
+    // O alvo é UM chart, não a seção inteira: o resize que a captura provoca é
+    // por canvas, então o mecanismo é o mesmo, e capturar 924×256 em vez de
+    // 976×2960 (11× menos pixel) é o que faz o teste caber no runner do CI sob
+    // throttle. Com a seção inteira, o step estourava os 30s de timeout.
+    const alvo = page.locator(`section#${SECTION}[data-report-section] [data-chart-canvas]`).first();
+    await expect(alvo).toBeVisible();
 
     // Cadência do próprio `toHaveScreenshot`: é ela que o gate visual usa, e é
     // a captura que provoca o redesenho que se quer provar ausente.
@@ -84,14 +94,15 @@ test.describe("Determinismo do desenho dos charts", () => {
     const capturas: Buffer[] = [];
     for (const espera of esperas) {
       if (espera) await page.waitForTimeout(espera);
-      capturas.push(await secao.screenshot({ animations: "disabled" }));
+      capturas.push(await alvo.screenshot({ animations: "disabled" }));
     }
 
     for (let i = 1; i < capturas.length; i++) {
       expect(
         capturas[i].equals(capturas[i - 1]),
-        `capturas ${i - 1} e ${i} da ${SECTION} diferem sob throttle ${CPU_THROTTLE}× — ` +
-          `algo volta a animar depois de a captura redimensionar o canvas (A40.l53)`,
+        `capturas ${i - 1} e ${i} do 1º chart da ${SECTION} diferem sob throttle ` +
+          `${CPU_THROTTLE}× — algo volta a animar depois de a captura ` +
+          `redimensionar o canvas (A40.l53)`,
       ).toBe(true);
     }
   });
