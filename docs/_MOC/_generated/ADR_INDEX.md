@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 323
-- **Proposto**: 51
+- **Decidido**: 324
+- **Proposto**: 50
 - **Roadmap**: 4
 
 ## Fundação
