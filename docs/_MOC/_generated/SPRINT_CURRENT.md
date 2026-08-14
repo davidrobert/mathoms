@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-17 open · 7 in_progress · 2 blocked.
+16 open · 8 in_progress · 2 blocked.
 
-## Open (17)
+## Open (16)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
@@ -26,7 +26,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · área pipeline/frontend · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
 - [[A40.l62]] — ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria · priority P1 · área backend/pipeline/persistence/financial-planning · branch `a40-l62-protection-computation-snapshot-v1`
 
-## In progress (7)
+## In progress (8)
 
 - [[A40.l22]] — Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF · priority P0 · área frontend · branch `a40-l22-superficie-de-degradacao`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`

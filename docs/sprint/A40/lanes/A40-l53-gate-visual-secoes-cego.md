@@ -1,7 +1,7 @@
 ---
 id: A40.l53
 type: lane
-title: "Gate visual de seções está cego: S2 varia 5–6% entre tentativas do mesmo commit e `main` puro reprova em 6 baselines"
+title: "Gate visual de seções está cego: a captura do Playwright reinicia o desenho do chart — e o mesmo defeito imprimia o gráfico pela metade no PDF"
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
@@ -28,6 +28,12 @@ tags:
 > [[A40.l46]] item 1**: aquela cobre o job `frontend-print-visual` (página 1 do
 > PDF, baseline única); esta cobre o job `Frontend visual snapshots`
 > (`sections.snapshots.visual.spec.ts`, 28 baselines por seção × tema).
+>
+> **O título foi corrigido no fecho.** O original — *"S2 varia 5–6% entre
+> tentativas do mesmo commit e `main` puro reprova em 6 baselines"* — afirmava a
+> caracterização que a medição do §Ataque refutou, e título é o que aparece no
+> índice e no `SPRINT_CURRENT`. A §Problema abaixo preserva o diagnóstico de
+> origem como registro datado.
 
 ## Problema
 
