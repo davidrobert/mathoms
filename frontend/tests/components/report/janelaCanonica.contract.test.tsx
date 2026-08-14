@@ -54,10 +54,24 @@ vi.mock("@/components/report/hooks/useIsPrint", () => ({
   useIsPrint: () => mockUseIsPrint(),
 }));
 
+vi.mock("@/lib/WorkspaceProvider", () => ({
+  useWorkspace: () => ({
+    workspace: null,
+    workspaces: [],
+    isLoading: false,
+    error: null,
+    refresh: vi.fn(),
+  }),
+}));
+
 vi.mock("react-chartjs-2", () => ({
   Chart: ({ "aria-label": ariaLabel }: { "aria-label"?: string }) => (
     <div data-testid="chart-mock" aria-label={ariaLabel} />
   ),
+}));
+
+vi.mock("@/components/report/ui/ScoreCard", () => ({
+  ScoreCard: () => null,
 }));
 
 import { FluxoMensalChart } from "@/components/report/charts/FluxoMensalChart";
@@ -65,6 +79,7 @@ import { DespesasDoughnutChart } from "@/components/report/charts/DespesasDoughn
 import { ConsumoConscienteCard } from "@/components/report/cards/ConsumoConscienteCard";
 import { HeroKpiGrid } from "@/components/report/kpi/HeroKpiGrid";
 import { S2FluxoCaixaSection } from "@/components/report/sections/S2FluxoCaixaSection";
+import { S1PatrimonioSection } from "@/components/report/sections/S1PatrimonioSection";
 import {
   deriveChartConclusion,
   deriveSectionSummary,
@@ -165,7 +180,10 @@ function dataSemJanela12m(): ReportAnalysisData {
 /** Composição REAL de produção: a seção deriva a conclusão e a passa ao chart
  * (`S2FluxoCaixaSection.tsx:77`). Testar o chart sem a prop mediria um ramo que
  * produção não executa — a armadilha do I7. */
-function renderFluxoCard(data: ReportAnalysisData, fluxoBloco: FluxoCaixaSummary) {
+function renderFluxoCard(
+  data: ReportAnalysisData,
+  fluxoBloco: FluxoCaixaSummary,
+) {
   return render(
     <FluxoMensalChart
       fluxo={fluxoBloco}
@@ -225,7 +243,9 @@ describe("fixture janela-divergente — self-check de divergência", () => {
     // ("2025-01 a 2025-12"). Fixture que trocasse os dois deixaria o consumidor
     // "funcionar" aqui e quebrar em produção (B3).
     expect(fx.ratios.janela).toBe("12m");
-    expect(String(fx.ratios.janela_referencia)).toMatch(/^\d{4}-\d{2} a \d{4}-\d{2}$/);
+    expect(String(fx.ratios.janela_referencia)).toMatch(
+      /^\d{4}-\d{2} a \d{4}-\d{2}$/,
+    );
   });
 
   it("aritmética da fixture fecha (total do intervalo ≠ mensalização)", () => {
@@ -293,7 +313,9 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     // `consumo_consciente.janela_meses = 12` conta os meses da janela da folga.
     // Imprimi-lo ao lado do acumulado de todo o período seria o mesmo defeito.
     expect(consumo.janela_meses).toBe(12);
-    expect(resolveConsumoBases(consumo)?.historico.rotulo.meses).toBeUndefined();
+    expect(
+      resolveConsumoBases(consumo)?.historico.rotulo.meses,
+    ).toBeUndefined();
   });
 
   it("fluxo: o bloco lido e o rótulo devolvido são o mesmo bloco", () => {
@@ -340,13 +362,18 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     // "full" seria pôr rótulo de período completo num agregado de 12 meses.
     // Prova de mutação: trocar o `"12m"` do primeiro `readBloco` por `"full"`
     // derruba este assert.
-    const semRotulo = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
+    const semRotulo = JSON.parse(JSON.stringify(fluxo)) as Record<
+      string,
+      unknown
+    >;
     const bloco = semRotulo.janela_12m as Record<string, unknown>;
     delete bloco.janela;
     delete bloco.janela_meses;
     const lido = resolveFluxoJanelaMensal(semRotulo as FluxoCaixaSummary);
     expect(lido?.rotulo.tipo).toBe("12m");
-    expect(lido?.receitaRecorrenteMensal).toBe(janela12m.receita_recorrente_mensal);
+    expect(lido?.receitaRecorrenteMensal).toBe(
+      janela12m.receita_recorrente_mensal,
+    );
     // `n_meses` do MESMO bloco serve de contagem; não há herança de vizinho.
     expect(lido?.rotulo.meses).toBe(janela12m.n_meses);
   });
@@ -409,8 +436,14 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
   });
 
   it("consolidação: sem bloco `janela_12m`, não há frase de janela", () => {
-    const semBloco = JSON.parse(JSON.stringify(fluxoSemJanela12m())) as Record<string, unknown>;
-    semBloco.consolidacao_cross_documento = { count: 4, meses: [{ mes: "2026-01", count: 4 }] };
+    const semBloco = JSON.parse(JSON.stringify(fluxoSemJanela12m())) as Record<
+      string,
+      unknown
+    >;
+    semBloco.consolidacao_cross_documento = {
+      count: 4,
+      meses: [{ mes: "2026-01", count: 4 }],
+    };
 
     const lido = resolveConsolidacaoCrossDoc(semBloco as FluxoCaixaSummary);
 
@@ -424,7 +457,10 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     // laço que este arquivo já documenta ("preservar `janela: 'full'` fazia o
     // ramo nunca rodar"). Aqui a posição do bloco é a única evidência.
     // Prova de mutação: `readConsolidacao(fluxo, "12m")` derruba este assert.
-    const degradado = comConsolidacao(11, null) as unknown as Record<string, unknown>;
+    const degradado = comConsolidacao(11, null) as unknown as Record<
+      string,
+      unknown
+    >;
     delete degradado.janela;
     delete degradado.janela_meses;
 
@@ -470,7 +506,10 @@ describe("buildContext — barras do render, agregado do payload", () => {
     // ADR-306 D2 documenta `janela: "12m", janela_meses: 8` — payload com menos
     // meses documentados que a janela conceitual. A cláusula das barras não
     // pode herdar essa contagem: o range renderizado tem 12 rótulos.
-    const oitoMeses = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
+    const oitoMeses = JSON.parse(JSON.stringify(fluxo)) as Record<
+      string,
+      unknown
+    >;
     (oitoMeses.janela_12m as Record<string, unknown>).janela_meses = 8;
     (oitoMeses.janela_12m as Record<string, unknown>).n_meses = 8;
     renderFluxoCard(fx, oitoMeses as FluxoCaixaSummary);
@@ -529,7 +568,8 @@ describe("deriveChartConclusion('fluxo_mensal') — único texto que mensaliza S
   });
 
   it("simetria full: rotula todo o período", () => {
-    const text = deriveChartConclusion("fluxo_mensal", dataSemJanela12m()) ?? "";
+    const text =
+      deriveChartConclusion("fluxo_mensal", dataSemJanela12m()) ?? "";
     expect(text).toMatch(/todo o período/i);
     expect(text).toContain(V.receitaFull);
     expect(text).not.toContain(V.receita12m);
@@ -543,7 +583,11 @@ describe("deriveChartConclusion('fluxo_mensal') — único texto que mensaliza S
     const bloco = semContagem.fluxo_caixa.janela_12m as Record<string, unknown>;
     delete bloco.janela_meses;
     delete bloco.n_meses;
-    const text = deriveChartConclusion("fluxo_mensal", semContagem as ReportAnalysisData) ?? "";
+    const text =
+      deriveChartConclusion(
+        "fluxo_mensal",
+        semContagem as ReportAnalysisData,
+      ) ?? "";
     expect(text).toContain("Sobre a janela documentada:");
     expect(text).not.toMatch(/\d+\s+(?:mês|meses)/);
     expect(text).toContain(V.receita12m);
@@ -583,7 +627,8 @@ describe("<DespesasDoughnutChart /> — fatias somam a janela renderizada, ex-ap
     // produtor nunca emite (`fluxo_caixa_enricher.py:404` ⇒ "Aporte
     // Investimento"): com ele, o aporte entrava no donut e nada falhava.
     render(<DespesasDoughnutChart fluxo={fluxo} />);
-    const comAporte = document.querySelector(".chart-context")?.textContent ?? "";
+    const comAporte =
+      document.querySelector(".chart-context")?.textContent ?? "";
     expect(comAporte).toContain(brl0(828_000));
     expect(comAporte).not.toContain(brl0(972_000));
     expect(comAporte).toContain("3 categorias");
@@ -616,7 +661,8 @@ function tituloDoCard(card: Element): string {
 function noEscopoDaLane(root: HTMLElement): HTMLElement {
   const copia = root.cloneNode(true) as HTMLElement;
   for (const card of [...copia.querySelectorAll("section")]) {
-    if ((CARDS_DA_L15 as readonly string[]).includes(tituloDoCard(card))) card.remove();
+    if ((CARDS_DA_L15 as readonly string[]).includes(tituloDoCard(card)))
+      card.remove();
   }
   return copia;
 }
@@ -638,7 +684,9 @@ function taxasDePoupanca(root: HTMLElement): string[] {
 /** Valores citados como mensalização (`X/mês`) na seção. */
 function valoresPorMes(root: HTMLElement): string[] {
   const texto = root.textContent ?? "";
-  return [...texto.matchAll(/R\$\s*([\d.]+(?:,\d+)?)\s*\/mês/g)].map((m) => m[1]);
+  return [...texto.matchAll(/R\$\s*([\d.]+(?:,\d+)?)\s*\/mês/g)].map(
+    (m) => m[1],
+  );
 }
 
 /** Todo texto derivado (context/conclusion) renderizado na seção — varredura,
@@ -654,10 +702,14 @@ function textosDerivados(root: HTMLElement): string[] {
 describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () => {
   it("os dois cards herdados pela l15 estão na seção (exclusão não é vácuo)", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    const titulos = [...container.querySelectorAll("section")].map(tituloDoCard);
+    const titulos = [...container.querySelectorAll("section")].map(
+      tituloDoCard,
+    );
     for (const nome of CARDS_DA_L15) expect(titulos).toContain(nome);
     // E a cópia sem eles perdeu exatamente 2 cards.
-    const restantes = [...noEscopoDaLane(container).querySelectorAll("section")];
+    const restantes = [
+      ...noEscopoDaLane(container).querySelectorAll("section"),
+    ];
     expect(restantes.length).toBe(
       [...container.querySelectorAll("section")].length - CARDS_DA_L15.length,
     );
@@ -675,8 +727,8 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
     const porMes = valoresPorMes(noEscopoDaLane(container));
     expect(porMes.length).toBeGreaterThan(0);
-    // Só `janela_12m.receita_recorrente_mensal` e `.despesa_mensal_media`.
-    const permitidos = new Set(["92.000", "81.000"]);
+    // Família canônica + detalhamento interativo 12m, todos do próprio bloco.
+    const permitidos = new Set(["92.000", "81.000", "69.000,00", "12.000,00"]);
     expect(porMes.filter((v) => !permitidos.has(v))).toEqual([]);
     // Bloco full mensalizado (42.667 / 36.000 / 40.000) nunca aparece como /mês.
     expect(porMes).not.toContain("42.667");
@@ -715,12 +767,15 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
     // `CLAUSULA_DE_BASE`, este texto passava — declarando quantas barras foram
     // desenhadas e nada sobre a base do R$ citado. Reintroduzir a alternativa no
     // regex derruba este assert.
-    const soODesenho = "No gráfico: 12 meses (25/01 a 25/12). Receita média de R$ 42.667/mês.";
+    const soODesenho =
+      "No gráfico: 12 meses (25/01 a 25/12). Receita média de R$ 42.667/mês.";
     expect(CITA_AGREGADO.test(soODesenho)).toBe(true);
     expect(soODesenho).not.toMatch(CLAUSULA_DE_BASE);
     // E o texto que só descreve o desenho, sem citar agregado, não é sujeito do
     // invariante — não há número a rotular.
-    expect(CITA_AGREGADO.test("No gráfico: 3 meses (25/10 a 25/12).")).toBe(false);
+    expect(CITA_AGREGADO.test("No gráfico: 3 meses (25/10 a 25/12).")).toBe(
+      false,
+    );
   });
 
   it("janela de UM mês documentado: a forma singular também satisfaz o invariante", () => {
@@ -742,6 +797,24 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
     for (const t of textos.filter((t) => CITA_AGREGADO.test(t))) {
       expect(t).toMatch(CLAUSULA_DE_BASE);
     }
+  });
+});
+
+describe("<S1PatrimonioSection /> — projeção interativa declarada", () => {
+  it("a varredura de X/mês alcança o card composto e a base do mesmo bloco", () => {
+    const { container } = render(<S1PatrimonioSection data={fx} />);
+    const section = container.querySelector("section#S1");
+    expect(section).not.toBeNull();
+    const porMes = valoresPorMes(section as HTMLElement);
+    expect(porMes).toContain("100.000,00");
+
+    const receitaCard = [...section!.querySelectorAll("section")].find(
+      (card) => tituloDoCard(card) === "Receitas por Fonte",
+    );
+    expect(receitaCard?.textContent).toContain(
+      "12 meses documentados · jan/25 — dez/25",
+    );
+    expect(receitaCard?.textContent).not.toContain(V.receitaFull);
   });
 });
 
@@ -772,7 +845,9 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
 
   it("cada KPI carrega o rótulo da SUA base (histórico vs janela da folga)", () => {
     render(<ConsumoConscienteCard consumo={consumo} />);
-    const termos = [...document.querySelectorAll("dt")].map((t) => t.textContent ?? "");
+    const termos = [...document.querySelectorAll("dt")].map(
+      (t) => t.textContent ?? "",
+    );
     expect(termos[0]).toContain("Gastos pontuais");
     expect(termos[0]).toContain("todo o período documentado");
     expect(termos[2]).toContain("Folga mensal");
@@ -787,7 +862,11 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
   });
 
   it("sem janela declarada: folga/teto ficam sem rótulo inventado", () => {
-    const semJanela = { ...consumo, janela: undefined, janela_meses: undefined };
+    const semJanela = {
+      ...consumo,
+      janela: undefined,
+      janela_meses: undefined,
+    };
     render(<ConsumoConscienteCard consumo={semJanela} />);
     expect(badges()).toEqual([
       "todo o período documentado",
@@ -834,7 +913,9 @@ describe("<HeroKpiGrid /> — taxa de poupança com rótulo impresso", () => {
     expect(container.textContent).toContain("25,0%");
     expect(badges(container)).toEqual(["últimos 12 meses documentados"]);
     // O tooltip continua existindo, mas não é o portador da base.
-    expect(container.querySelector('[title*="12 meses documentados"]')).not.toBeNull();
+    expect(
+      container.querySelector('[title*="12 meses documentados"]'),
+    ).not.toBeNull();
   });
 
   it("lê o campo `janela` (vocabulário D2), não `janela_referencia`", () => {
@@ -850,7 +931,9 @@ describe("<HeroKpiGrid /> — taxa de poupança com rótulo impresso", () => {
       janela_n_meses: 1,
     });
     expect(badges(container)).toEqual([]);
-    expect(container.querySelector('[title*="Média mensal calculada"]')).toBeNull();
+    expect(
+      container.querySelector('[title*="Média mensal calculada"]'),
+    ).toBeNull();
   });
 
   it("`janela: 12m` sem `janela_meses`: nenhum dígito de contagem no texto", () => {

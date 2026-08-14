@@ -1,188 +1,167 @@
-/**
- * Specs do `<OrcamentoProspectivoCard>` — labels pt-BR de categoria (A37.l6 · PD-03).
- *
- * Regressão guard: o mapa local do card não continha `lazer`, `das_simples`,
- * `folha_pj` e `aporte_investimento`, e o fallback `?? key` vazava snake_case
- * cru para a tabela ao lado de categorias bem rotuladas. Pós-fix, o card
- * consome o mapa único de `@/lib/categoryLabels` com fallback humanizado.
- */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
-
-import type { TransactionItem } from "@/lib/api/transactions";
-
-const mockUsePeriodTransactions = vi.fn();
-
-vi.mock("@/hooks/usePeriodTransactions", () => ({
-  usePeriodTransactions: (...args: unknown[]) => mockUsePeriodTransactions(...args),
-}));
+import userEvent from "@testing-library/user-event";
 
 import { OrcamentoProspectivoCard } from "@/components/report/cards/OrcamentoProspectivoCard";
-import type { OrcamentoProspectivoData } from "@/types/report-analysis";
+import type {
+  FluxoCaixaSummary,
+  FluxoJanelaInterativa,
+  FluxoJanelas,
+  FluxoPeriodoInterativo,
+} from "@/types/report-analysis";
 
-function tx(categoria: string, valor: number, data = "2026-04-15"): TransactionItem {
+function windowFixture(
+  janela: FluxoPeriodoInterativo,
+  overrides: Partial<FluxoJanelaInterativa> = {},
+): FluxoJanelaInterativa {
   return {
-    data,
-    descricao: `mock-${categoria}`,
-    valor,
-    banco: "itau",
-    categoria,
-    tipo_conta: "corrente",
-    titular: "Titular",
-    moeda: "BRL",
-    transaction_hash: `${categoria}-${valor}`,
-    row_id: `${categoria}-${valor}`,
-    is_overridden: false,
+    janela,
+    janela_meses: 12,
+    mes_inicio: "2025-01",
+    mes_fim: "2025-12",
+    receita_total: 1_104_000,
+    despesa_total: 972_000,
+    receita_mensal_media: 92_000,
+    despesa_mensal_media: 81_000,
+    despesa_consumo_mensal_media: 69_000,
+    transferencia_patrimonial_mensal: 12_000,
+    tabela_receitas_por_fonte_mensal: [],
+    tabela_receita_por_natureza_mensal: [],
+    tabela_consumo_por_categoria_mensal: [
+      {
+        categoria: "moradia",
+        total: 579_600,
+        mensal_media: 48_300,
+        participacao_pct: 70,
+        participacao_acumulada_pct: 70,
+      },
+      {
+        categoria: "alimentacao",
+        total: 248_400,
+        mensal_media: 20_700,
+        participacao_pct: 30,
+        participacao_acumulada_pct: 100,
+      },
+    ],
+    ...overrides,
   };
 }
 
-/** Células de categoria (1ª coluna do body, exceto a linha Total). */
-function categoryCellTexts(): string[] {
-  const table = screen.getByRole("table");
-  const rows = within(table).getAllByRole("row").slice(1); // pula thead
-  return rows
-    .map((row) => within(row).getAllByRole("cell")[0]?.textContent ?? "")
-    .filter((text) => text !== "Total");
+function fluxoFixture(): FluxoCaixaSummary {
+  const three = windowFixture("3m", {
+    janela_meses: 3,
+    mes_inicio: "2025-08",
+    mes_fim: "2025-12",
+    despesa_mensal_media: 24_003,
+    despesa_consumo_mensal_media: 21_003,
+    transferencia_patrimonial_mensal: 3_000,
+    tabela_consumo_por_categoria_mensal: [
+      {
+        categoria: "lazer_viagens",
+        total: 42_006,
+        mensal_media: 14_002,
+        participacao_pct: 66.67,
+        participacao_acumulada_pct: 66.67,
+      },
+      {
+        categoria: "nao_identificado",
+        total: 21_003,
+        mensal_media: 7_001,
+        participacao_pct: 33.33,
+        participacao_acumulada_pct: 100,
+      },
+    ],
+  });
+  const janelas: FluxoJanelas = {
+    "3m": three,
+    "6m": windowFixture("6m"),
+    "12m": windowFixture("12m"),
+    ytd: windowFixture("ytd"),
+  };
+  return { janelas };
 }
 
 describe("<OrcamentoProspectivoCard />", () => {
-  it("humaniza as 4 keys ausentes do mapa antigo (fallback E5 estático)", () => {
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [],
-      isLoading: false,
-      error: null,
-    });
+  it("renderiza referência ex-aporte e Pareto emitido pelo E5", () => {
+    render(<OrcamentoProspectivoCard fluxo={fluxoFixture()} />);
 
-    const orcamento: OrcamentoProspectivoData = {
-      categorias: {
-        lazer: 400,
-        das_simples: 300,
-        folha_pj: 200,
-        aporte_investimento: 100,
-        moradia: 1000,
-      },
-      total: 2000,
-    };
-
-    render(<OrcamentoProspectivoCard orcamento={orcamento} />);
-
-    const table = screen.getByRole("table");
-    const body = within(table);
-    expect(body.getByText("Lazer")).toBeInTheDocument();
-    expect(body.getByText("DAS (Simples Nacional)")).toBeInTheDocument();
-    expect(body.getByText("Folha PJ")).toBeInTheDocument();
-    expect(body.getByText("Aporte em investimentos")).toBeInTheDocument();
-    expect(body.getByText("Moradia")).toBeInTheDocument();
-
-    // Regressão: chave crua snake_case não pode vazar para a UI.
-    expect(body.queryByText("lazer")).toBeNull();
-    expect(body.queryByText("das_simples")).toBeNull();
-    expect(body.queryByText("folha_pj")).toBeNull();
-    expect(body.queryByText("aporte_investimento")).toBeNull();
-  });
-
-  it("humaniza labels com transações live (mesmo caminho de render)", () => {
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [
-        tx("lazer", 400),
-        tx("das_simples", 300),
-        tx("folha_pj", 200),
-        tx("aporte_investimento", 100),
-      ],
-      isLoading: false,
-      error: null,
-    });
-
-    render(<OrcamentoProspectivoCard orcamento={undefined} />);
-
-    const body = within(screen.getByRole("table"));
-    expect(body.getByText("Lazer")).toBeInTheDocument();
-    expect(body.getByText("DAS (Simples Nacional)")).toBeInTheDocument();
-    expect(body.getByText("Folha PJ")).toBeInTheDocument();
-    expect(body.getByText("Aporte em investimentos")).toBeInTheDocument();
-  });
-
-  it("percentual em pt-BR na tabela inteira, linhas e total (RV4-19)", () => {
-    // Mesma divergência do card irmão: total literal pt-BR ao lado de linhas
-    // em `toFixed(1)`. `acum` fica de fora — é inteiro e já passa.
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [tx("lazer", 750), tx("moradia", 250)],
-      isLoading: false,
-      error: null,
-    });
-
-    render(<OrcamentoProspectivoCard orcamento={undefined} />);
-
-    const body = within(screen.getByRole("table"));
-    expect(body.getByText("75,0%")).toBeInTheDocument();
-    expect(body.getByText("25,0%")).toBeInTheDocument();
-    expect(body.getByText("100,0%")).toBeInTheDocument();
-    expect(body.queryByText(/\d\.\d%/)).toBeNull();
-  });
-
-  it("janela truncada declara degradação em vez de exibir o teto (RV4-07)", () => {
-    // 500 de 1634 lançamentos: o teto por categoria sairia abaixo do real.
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [tx("mercado", -800), tx("transporte", -300)],
-      isLoading: false,
-      error: null,
-      total: 1634,
-      isTruncated: true,
-    });
-
-    const { container } = render(
-      <OrcamentoProspectivoCard orcamento={undefined} />,
+    expect(
+      screen.getByRole("heading", { name: "Consumo por Categoria" }),
+    ).toBeVisible();
+    expect(screen.getByTestId("consumo-window-kpi")).toHaveTextContent(
+      "R$ 69.000,00",
     );
-
-    expect(screen.queryByRole("table")).toBeNull();
-    expect(screen.getByText(/não cabe inteira neste card/)).toBeInTheDocument();
-    expect(container.textContent).toContain("1.634");
-    expect(container.textContent).toContain("mais antigos ficaram fora");
+    expect(
+      screen.getByText("12 meses documentados · jan/25 — dez/25"),
+    ).toBeVisible();
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText("Moradia")).toBeVisible();
+    expect(table.getByText("Alimentação")).toBeVisible();
+    expect(table.getAllByText("70,00%")).toHaveLength(2);
+    expect(table.getAllByText("100,00%")).toHaveLength(2);
+    expect(
+      screen.getByText(/Aportes e transferências patrimoniais/),
+    ).toHaveTextContent("R$ 12.000,00/mês");
   });
 
-  it("KR-B: nenhum label renderizado contém `_` nem inicia com minúscula-código", () => {
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [],
-      isLoading: false,
-      error: null,
+  it("troca atomicamente para consumo, rows e transferência de 3M", async () => {
+    const user = userEvent.setup();
+    render(<OrcamentoProspectivoCard fluxo={fluxoFixture()} />);
+
+    const toggle = screen.getByRole("group", {
+      name: "Janela do consumo por categoria",
     });
+    await user.click(within(toggle).getByRole("button", { name: "3M" }));
 
-    // Keys do payload dogfood da superfície (mapa completo + key nova desconhecida).
-    const orcamento: OrcamentoProspectivoData = {
-      categorias: {
-        assinaturas: 10,
-        seguros: 10,
-        financeiro: 10,
-        impostos: 10,
-        nao_identificado: 10,
-        reserva_desejos: 10,
-        transporte: 10,
-        financiamentos: 10,
-        moradia: 10,
-        alimentacao: 10,
-        suporte_familiar: 10,
-        saude: 10,
-        lazer_viagens: 10,
-        vestuario: 10,
-        educacao: 10,
-        servicos_domesticos: 10,
-        melhoria_reforma: 10,
-        lazer: 10,
-        das_simples: 10,
-        folha_pj: 10,
-        aporte_investimento: 10,
-        categoria_futura_desconhecida: 10,
-      },
-      total: 220,
-    };
+    expect(screen.getByTestId("consumo-window-kpi")).toHaveTextContent(
+      "R$ 21.003,00",
+    );
+    expect(
+      screen.getByText("3 meses documentados · ago/25 — dez/25"),
+    ).toBeVisible();
+    expect(screen.getByText("Lazer e viagens")).toBeVisible();
+    expect(screen.getByText("Não identificado")).toBeVisible();
+    expect(screen.queryByText("Moradia")).toBeNull();
+    expect(
+      screen.getByText(/Aportes e transferências patrimoniais/),
+    ).toHaveTextContent("R$ 3.000,00/mês");
+  });
 
-    render(<OrcamentoProspectivoCard orcamento={orcamento} />);
+  it("declara degradação histórica e ignora orçamento legado", () => {
+    render(<OrcamentoProspectivoCard fluxo={undefined} />);
+    expect(screen.getByText(/relatório histórico/)).toBeVisible();
+    expect(screen.queryByRole("group")).toBeNull();
+    expect(screen.queryByRole("table")).toBeNull();
+  });
 
-    const labels = categoryCellTexts();
-    expect(labels.length).toBe(22);
-    for (const label of labels) {
-      expect(label).not.toMatch(/_/);
-      expect(label.charAt(0)).not.toMatch(/[a-z]/);
-    }
+  it("preserva o zero medido e separa ausência de documentação", () => {
+    const zero = fluxoFixture();
+    zero.janelas = {
+      ...zero.janelas,
+      "12m": windowFixture("12m", {
+        despesa_consumo_mensal_media: 0,
+        transferencia_patrimonial_mensal: 0,
+        tabela_consumo_por_categoria_mensal: [],
+      }),
+    } as FluxoJanelas;
+    const { rerender } = render(<OrcamentoProspectivoCard fluxo={zero} />);
+    expect(screen.getByTestId("consumo-window-kpi")).toHaveTextContent(
+      "R$ 0,00",
+    );
+    expect(screen.getByText(/Sem consumo registrado/)).toBeVisible();
+
+    const noMonths = fluxoFixture();
+    noMonths.janelas = {
+      ...noMonths.janelas,
+      "12m": windowFixture("12m", {
+        janela_meses: 0,
+        mes_inicio: null,
+        mes_fim: null,
+        tabela_consumo_por_categoria_mensal: [],
+      }),
+    } as FluxoJanelas;
+    rerender(<OrcamentoProspectivoCard fluxo={noMonths} />);
+    expect(screen.getByText(/Não há meses documentados/)).toBeVisible();
+    expect(screen.queryByTestId("consumo-window-kpi")).toBeNull();
   });
 });

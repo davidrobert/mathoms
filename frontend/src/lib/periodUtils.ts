@@ -1,5 +1,3 @@
-import type { TransactionItem } from "@/lib/api";
-
 export type Period = "3m" | "6m" | "12m" | "ytd";
 
 export const PERIOD_LABELS: Record<Period, string> = {
@@ -24,9 +22,7 @@ const PT_BR_MONTHS: Record<string, number> = {
   dez: 12,
 };
 
-/** Aceita "YY/MM" (ex.: "26/04") ou "mes/aa" pt-BR (ex.: "abr/26") e retorna
- * o último dia do mês como Date. Mesmo formato consumido por
- * `usePeriodWindow` em charts (paridade de ancora chart ↔ card). */
+/** Converte um label mensal do chart no último dia local daquele mês. */
 export function parseChartMonthLabel(label: string): Date | null {
   const trimmed = label.trim().toLowerCase();
   const numeric = /^(\d{2})\/(\d{2})$/.exec(trimmed);
@@ -37,29 +33,18 @@ export function parseChartMonthLabel(label: string): Date | null {
     return null;
   }
   const named = /^([a-zç]{3})\/(\d{2})$/.exec(trimmed);
-  if (named) {
-    const month = PT_BR_MONTHS[named[1]];
-    if (!month) return null;
-    return new Date(2000 + Number(named[2]), month, 0);
-  }
-  return null;
+  if (!named) return null;
+  const month = PT_BR_MONTHS[named[1]];
+  return month ? new Date(2000 + Number(named[2]), month, 0) : null;
 }
 
 function parseIsoDate(value: string | undefined): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec((value ?? "").trim());
   if (!match) return null;
-  // Local, não `new Date(iso)`: a forma ISO é parseada como UTC e volta um dia
-  // atrás em fuso negativo — `parseChartMonthLabel` também constrói local.
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
-/** Âncora do fim da janela de dados para os period toggles dos cards.
- *
- * `fluxo_caixa.data_corte` (E5) é o **teto**: a série mensal nunca passa dele.
- * Quando o último label é anterior ao corte (corpus que termina antes de hoje),
- * ele continua vencendo — ancorar em hoje dividiria receita de 2 meses por 3, que
- * é o mesmo defeito ao contrário. Payload sem `data_corte` (relatório anterior ao
- * corte de provisionado) cai no comportamento antigo: só o último label. */
+/** Resolve a âncora realizada usada pelos charts e pelo card de pontuais. */
 export function resolveAnchorDate(
   labels: string[] | undefined,
   dataCorte: string | undefined,
@@ -70,107 +55,4 @@ export function resolveAnchorDate(
   const corte = parseIsoDate(dataCorte);
   if (!corte) return last ?? undefined;
   return last && last < corte ? last : corte;
-}
-
-/** Retorna date_from e date_to (YYYY-MM-DD) para o período selecionado.
- * `anchorDate` ancora o `date_to` no fim da janela de dados (default: hoje). */
-export function getPeriodDates(
-  period: Period,
-  anchorDate?: Date,
-): {
-  date_from: string;
-  date_to: string;
-} {
-  const end = anchorDate ?? new Date();
-  const start = new Date(end);
-
-  switch (period) {
-    case "3m":
-      start.setMonth(end.getMonth() - 3);
-      break;
-    case "6m":
-      start.setMonth(end.getMonth() - 6);
-      break;
-    case "12m":
-      start.setFullYear(end.getFullYear() - 1);
-      break;
-    case "ytd":
-      start.setFullYear(end.getFullYear(), 0, 1);
-      break;
-  }
-
-  return {
-    date_from: start.toISOString().split("T")[0],
-    date_to: end.toISOString().split("T")[0],
-  };
-}
-
-/** Número aproximado de meses no período (para calcular médias mensais).
- * `anchorDate` define o "ano/mês corrente" do YTD (default: hoje). */
-export function getPeriodMonths(period: Period, anchorDate?: Date): number {
-  switch (period) {
-    case "3m":
-      return 3;
-    case "6m":
-      return 6;
-    case "12m":
-      return 12;
-    case "ytd": {
-      const ref = anchorDate ?? new Date();
-      return Math.max(1, ref.getMonth() + 1);
-    }
-  }
-}
-
-// Prefixos de categoria que indicam receita no pipeline Mathoms AI.
-const INCOME_PREFIXES = ["receita_", "outras_receitas"];
-
-// Labels PJ-side de receita ([[ADR-236]] · transaction_classifier_pj.PJ_LABELS).
-// Não seguem prefixo `receita_` por convenção do classifier — mantemos set
-// explícito aqui. `das_simples`, `iss`, `folha_pj` são despesas PJ e ficam fora.
-const PJ_INCOME_CATEGORIES = new Set(["pro_labore", "lucros_distribuidos"]);
-
-export function isIncomeCategory(categoria: string): boolean {
-  if (PJ_INCOME_CATEGORIES.has(categoria)) return true;
-  return INCOME_PREFIXES.some((p) => categoria.startsWith(p));
-}
-
-/**
- * Agrega receitas por categoria a partir de uma lista de transações.
- * Retorna Record<categoria, totalBRL>.
- */
-export function aggregateReceitas(
-  transactions: TransactionItem[],
-): Record<string, number> {
-  const result: Record<string, number> = {};
-  for (const t of transactions) {
-    if (!t.categoria) continue;
-    if (isIncomeCategory(t.categoria) && t.valor > 0) {
-      result[t.categoria] = (result[t.categoria] ?? 0) + t.valor;
-    }
-  }
-  return result;
-}
-
-/**
- * Agrega despesas por categoria e retorna médias mensais.
- * Retorna Record<categoria, mediaMensalBRL>.
- */
-export function aggregateDespesasMediaMensal(
-  transactions: TransactionItem[],
-  numMonths: number,
-): Record<string, number> {
-  const totals: Record<string, number> = {};
-  for (const t of transactions) {
-    if (!t.categoria) continue;
-    if (!isIncomeCategory(t.categoria) && t.valor > 0) {
-      totals[t.categoria] = (totals[t.categoria] ?? 0) + t.valor;
-    }
-  }
-  const months = Math.max(1, numMonths);
-  const result: Record<string, number> = {};
-  for (const [cat, total] of Object.entries(totals)) {
-    result[cat] = total / months;
-  }
-  return result;
 }

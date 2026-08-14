@@ -22,7 +22,6 @@ import type {
   EndividamentoData,
   FluxoCaixaSummary,
 } from "@/types/report-analysis";
-import { resolveAnchorDate } from "@/lib/periodUtils";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import { readScoreData } from "../utils/reportContractGuards";
 
@@ -54,14 +53,6 @@ export function S1PatrimonioSection({ data, reportId }: S1Props) {
    * para `narrativas.charts` fica deferido (ver ADR-356 §Deferimentos). */
   const getConclusion = (id: string): string | undefined =>
     deriveChartConclusion(id, data) ?? undefined;
-
-  /** Anchor do period toggle do card de receitas — paridade com `usePeriodWindow`
-   * dos charts. `fluxo_caixa.data_corte` limita a âncora ao último dia realizado;
-   * sem ele (relatório antigo), cai no último label do dataset. */
-  const anchorDate = resolveAnchorDate(
-    fluxo?.receita_despesa_mensal_detalhado?.labels,
-    fluxo?.data_corte,
-  );
 
   return (
     <ReportSection id="S1">
@@ -104,9 +95,12 @@ export function S1PatrimonioSection({ data, reportId }: S1Props) {
         posicoes={patrimonio?.posicao_31_12}
         cbeObrigatorio={patrimonio?.cbe_obrigatorio ?? false}
       />
-      <ExposicaoCambialCardWithContext data={exposicaoCambial} reportId={reportId} />
+      <ExposicaoCambialCardWithContext
+        data={exposicaoCambial}
+        reportId={reportId}
+      />
       <div className="md:col-span-2">
-        <ReceitasFonteCard fluxo={fluxo} anchorDate={anchorDate} />
+        <ReceitasFonteCard fluxo={fluxo} />
       </div>
       <ReservaEmergenciaCard reserva={reserva} />
       <EndividamentoCard endividamento={endividamento} />

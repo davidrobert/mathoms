@@ -1,6 +1,7 @@
 /** A28.l9 + A40.l3 — vocabulário de janela de mensalização (ADR-306 D2).
  *
- * D2 fecha o vocabulário em `12m` | `full` | `irpf[_<ano>]` e exige a chave
+ * D2 fecha o vocabulário canônico em `12m` | `full` | `irpf[_<ano>]`;
+ * a projeção interativa da ADR-377 acrescenta `3m` | `6m` | `ytd`.
  * irmã `janela_meses` (meses documentados reais). Este módulo é o **único**
  * lugar que interpreta esse par: consumidores recebem um valor tipado e nunca
  * inspecionam a string crua.
@@ -13,7 +14,7 @@
  * `null` ⇒ nenhum rótulo inventado.
  */
 
-export type JanelaTipo = "12m" | "full" | "irpf";
+export type JanelaTipo = "3m" | "6m" | "12m" | "ytd" | "full" | "irpf";
 
 export interface JanelaRotulo {
   readonly tipo: JanelaTipo;
@@ -26,16 +27,28 @@ export interface JanelaRotulo {
 const IRPF_RE = /^irpf(?:_(\d{4}))?$/;
 
 function mesesAt(value: unknown): number | undefined {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return undefined;
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0)
+    return undefined;
   return Math.trunc(value);
 }
 
 /** `null` para payload sem rótulo (pré-A28) **e** para string fora do
  * vocabulário D2 — as duas situações pedem silêncio, não rótulo adivinhado. */
-export function parseJanelaRotulo(janela: unknown, janelaMeses?: unknown): JanelaRotulo | null {
+export function parseJanelaRotulo(
+  janela: unknown,
+  janelaMeses?: unknown,
+): JanelaRotulo | null {
   if (typeof janela !== "string" || janela.length === 0) return null;
   const meses = mesesAt(janelaMeses);
-  if (janela === "12m" || janela === "full") return { tipo: janela, anoIrpf: undefined, meses };
+  if (
+    janela === "3m" ||
+    janela === "6m" ||
+    janela === "12m" ||
+    janela === "ytd" ||
+    janela === "full"
+  ) {
+    return { tipo: janela, anoIrpf: undefined, meses };
+  }
   const irpf = IRPF_RE.exec(janela);
   if (irpf) return { tipo: "irpf", anoIrpf: irpf[1], meses };
   return null;
@@ -57,7 +70,9 @@ export function pluralMeses(n: number): string {
  * `fluxo_caixa.janela_12m.n_meses` e `consumo_consciente.janela_meses` são
  * todos 1). Bug alimentado por dado, não hipótese. */
 export function describeMesesDocumentados(n: number): string {
-  return n === 1 ? "o último mês documentado" : `os últimos ${n} meses documentados`;
+  return n === 1
+    ? "o último mês documentado"
+    : `os últimos ${n} meses documentados`;
 }
 
 /** Cláusula de escopo temporal para prosa ("sobre …", "em …").
@@ -70,13 +85,22 @@ export function describeMesesDocumentados(n: number): string {
  * "os últimos 12 meses documentados". Sem contagem, a cláusula não cita
  * contagem. */
 export function describeJanelaEscopo(rotulo: JanelaRotulo): string {
-  if (rotulo.tipo === "12m") {
-    return rotulo.meses ? describeMesesDocumentados(rotulo.meses) : "a janela documentada";
+  if (
+    rotulo.tipo === "3m" ||
+    rotulo.tipo === "6m" ||
+    rotulo.tipo === "12m" ||
+    rotulo.tipo === "ytd"
+  ) {
+    return rotulo.meses
+      ? describeMesesDocumentados(rotulo.meses)
+      : "a janela documentada";
   }
   if (rotulo.tipo === "irpf") {
     return `o ano-base IRPF${rotulo.anoIrpf ? ` ${rotulo.anoIrpf}` : ""}`;
   }
-  const sufixo = rotulo.meses ? ` (${rotulo.meses} ${pluralMeses(rotulo.meses)})` : "";
+  const sufixo = rotulo.meses
+    ? ` (${rotulo.meses} ${pluralMeses(rotulo.meses)})`
+    : "";
   return `todo o período analisado${sufixo}`;
 }
 
@@ -99,7 +123,12 @@ export function describeJanelaEm(rotulo: JanelaRotulo): string {
  * `describeJanelaEscopo`. */
 export function janelaBadgeLabel(rotulo: JanelaRotulo | null): string | null {
   if (!rotulo) return null;
-  if (rotulo.tipo === "12m") {
+  if (
+    rotulo.tipo === "3m" ||
+    rotulo.tipo === "6m" ||
+    rotulo.tipo === "12m" ||
+    rotulo.tipo === "ytd"
+  ) {
     if (!rotulo.meses) return "janela documentada";
     return rotulo.meses === 1
       ? "último mês documentado"
@@ -115,7 +144,9 @@ export function janelaBadgeLabel(rotulo: JanelaRotulo | null): string | null {
 
 /** Tooltip de valor **mensalizado** (média por mês). Complementa o rótulo
  * impresso — nunca o substitui (ADR-306 §Emenda A40.l3: tooltip não imprime). */
-export function formatJanelaTooltip(rotulo: JanelaRotulo | null): string | null {
+export function formatJanelaTooltip(
+  rotulo: JanelaRotulo | null,
+): string | null {
   if (!rotulo) return null;
   if (rotulo.tipo === "irpf") {
     return `Valor mensalizado do ano-base IRPF${rotulo.anoIrpf ? ` ${rotulo.anoIrpf}` : ""} (12 meses).`;

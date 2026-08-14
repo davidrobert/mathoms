@@ -49,7 +49,10 @@ const PONTUAIS_FULL = /R\$\s?250\.000,00/;
 /** Cards cujo TEXTO derivado saiu desta lane para a A40.l15 (base e rótulo do
  * par são decisão de domínio). Mesma exclusão nominal do contract test —
  * renomear um card devolve o texto ao invariante, e falha alto. */
-const CARDS_DA_L15 = ["Despesas por Categoria", "Receita vs Despesa — Mês a Mês"];
+const CARDS_DA_L15 = [
+  "Despesas por Categoria",
+  "Receita vs Despesa — Mês a Mês",
+];
 
 async function openReport(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -59,21 +62,37 @@ async function openReport(page: Page): Promise<void> {
     fixture: "janela-divergente",
   });
   await page.setViewportSize(VIEWPORT);
-  await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+  await page.goto(`/reports/${reportId}?workspace=${workspaceId}`, {
+    waitUntil: "domcontentloaded",
+  });
   await waitForReportReady(page);
-  await expect(fluxoCard(page).locator("[data-chart-conclusion]")).toBeVisible();
+  await expect(
+    fluxoCard(page).locator("[data-chart-conclusion]"),
+  ).toBeVisible();
 }
 
 function fluxoCard(page: Page): Locator {
-  return page
-    .locator("section.card-variant-neutral")
-    .filter({ has: page.getByRole("heading", { name: "Fluxo de Caixa Mensal" }) });
+  return page.locator("section.card-variant-neutral").filter({
+    has: page.getByRole("heading", { name: "Fluxo de Caixa Mensal" }),
+  });
 }
 
 function consumoCard(page: Page): Locator {
   return page
     .locator("section.card-variant-success")
     .filter({ has: page.getByRole("heading", { name: "Consumo Consciente" }) });
+}
+
+function receitasFonteCard(page: Page): Locator {
+  return page
+    .locator("section.card-variant-feature")
+    .filter({ has: page.getByRole("heading", { name: "Receitas por Fonte" }) });
+}
+
+function consumoCategoriaCard(page: Page): Locator {
+  return page.locator("section.card-variant-feature").filter({
+    has: page.getByRole("heading", { name: "Consumo por Categoria" }),
+  });
 }
 
 function s2(page: Page): Locator {
@@ -99,7 +118,9 @@ async function textoNoEscopoDaLane(page: Page): Promise<string> {
  * enumerado: componente novo que mensalize o bloco full cai aqui. */
 async function valoresPorMes(page: Page): Promise<string[]> {
   const texto = await textoNoEscopoDaLane(page);
-  return [...texto.matchAll(/R\$\s*([\d.]+(?:,\d+)?)\s*\/mês/g)].map((m) => m[1]);
+  return [...texto.matchAll(/R\$\s*([\d.]+(?:,\d+)?)\s*\/mês/g)].map(
+    (m) => m[1],
+  );
 }
 
 /** Todo texto derivado de S2 com o título do card que o hospeda — varredura,
@@ -113,14 +134,79 @@ async function textosDerivadosPorCard(
         "[data-chart-conclusion], [data-chart-context], .chart-context",
       ),
     ].map((n) => ({
-      titulo: n.closest("section")?.querySelector("h3")?.textContent?.trim() ?? "",
+      titulo:
+        n.closest("section")?.querySelector("h3")?.textContent?.trim() ?? "",
       texto: n.textContent ?? "",
     })),
   );
 }
 
 test.describe("janela canônica de fluxo @critical", () => {
-  test("tela: texto rotulado 12m cita o agregado de janela_12m", async ({ page }) => {
+  test("tela e print: os dois cards selecionam as quatro janelas do E5", async ({
+    page,
+  }) => {
+    await openReport(page);
+    const cases = [
+      {
+        button: "3M",
+        receita: "R$ 30.003,00",
+        consumo: "R$ 21.003,00",
+        base: "3 meses documentados · ago/25 — dez/25",
+      },
+      {
+        button: "6M",
+        receita: "R$ 60.006,00",
+        consumo: "R$ 42.006,00",
+        base: "6 meses documentados · abr/25 — dez/25",
+      },
+      {
+        button: "12M",
+        receita: "R$ 100.000,00",
+        consumo: "R$ 69.000,00",
+        base: "12 meses documentados · jan/25 — dez/25",
+      },
+      {
+        button: "YTD",
+        receita: "R$ 47.004,00",
+        consumo: "R$ 32.004,00",
+        base: "4 meses documentados · set/25 — dez/25",
+      },
+    ] as const;
+
+    for (const item of cases) {
+      await receitasFonteCard(page)
+        .getByRole("button", { name: item.button })
+        .click();
+      await consumoCategoriaCard(page)
+        .getByRole("button", { name: item.button })
+        .click();
+      await expect(
+        receitasFonteCard(page).getByTestId("receita-window-kpi"),
+      ).toHaveText(item.receita);
+      await expect(
+        consumoCategoriaCard(page).getByTestId("consumo-window-kpi"),
+      ).toHaveText(item.consumo);
+      await expect(
+        receitasFonteCard(page).locator("[data-window-basis]"),
+      ).toHaveText(item.base);
+      await expect(
+        consumoCategoriaCard(page).locator("[data-window-basis]"),
+      ).toHaveText(item.base);
+
+      await page.emulateMedia({ media: "print" });
+      await expect(
+        receitasFonteCard(page).getByTestId("receita-window-kpi"),
+      ).toHaveText(item.receita);
+      await expect(
+        consumoCategoriaCard(page).getByTestId("consumo-window-kpi"),
+      ).toHaveText(item.consumo);
+      await page.emulateMedia({ media: "screen" });
+    }
+  });
+
+  test("tela: texto rotulado 12m cita o agregado de janela_12m", async ({
+    page,
+  }) => {
     await openReport(page);
 
     const context = fluxoCard(page).locator("[data-chart-context]");
@@ -152,7 +238,9 @@ test.describe("janela canônica de fluxo @critical", () => {
     expect([...texto.matchAll(/\((\d{1,3}[.,]\d)% da receita\)/g)]).toEqual([]);
   });
 
-  test("tela: hero imprime o rótulo da janela ao lado da taxa", async ({ page }) => {
+  test("tela: hero imprime o rótulo da janela ao lado da taxa", async ({
+    page,
+  }) => {
     await openReport(page);
     // ADR-306 §Emenda A40.l3 — tooltip não conta como rótulo: não imprime.
     const badge = page.locator("[data-janela-badge]").first();
@@ -183,9 +271,9 @@ test.describe("janela canônica de fluxo @critical", () => {
     ]);
 
     // A lista tem toggle próprio (default 3M) — escopo declarado em cima dela.
-    await expect(consumoCard(page).locator("[data-consumo-tabela-escopo]")).toContainText(
-      "Lista: últimos 3M",
-    );
+    await expect(
+      consumoCard(page).locator("[data-consumo-tabela-escopo]"),
+    ).toContainText("Lista: últimos 3M");
   });
 
   test("tela: no escopo da lane, toda mensalização vem da janela canônica", async ({
@@ -194,11 +282,13 @@ test.describe("janela canônica de fluxo @critical", () => {
     await openReport(page);
     const porMes = await valoresPorMes(page);
     expect(porMes.length).toBeGreaterThan(0);
-    const permitidos = new Set(["92.000", "81.000"]);
+    const permitidos = new Set(["92.000", "81.000", "69.000,00", "12.000,00"]);
     expect(porMes.filter((v) => !permitidos.has(v))).toEqual([]);
   });
 
-  test("tela: todo texto que cita agregado declara a base", async ({ page }) => {
+  test("tela: todo texto que cita agregado declara a base", async ({
+    page,
+  }) => {
     await openReport(page);
     await expect(s2(page)).toContainText("todo o período analisado");
     // Varredura de TODOS os textos derivados da seção — não só os que a lane
@@ -217,21 +307,25 @@ test.describe("janela canônica de fluxo @critical", () => {
     for (const { texto } of sujeitos) expect(texto).toMatch(CLAUSULA_DE_BASE);
   });
 
-  test("tela: fatias do donut somam a janela, ex-aporte (ADR-333)", async ({ page }) => {
+  test("tela: fatias do donut somam a janela, ex-aporte (ADR-333)", async ({
+    page,
+  }) => {
     await openReport(page);
     // Único assert desta lane sobre o donut: o total DESENHADO é o consumo da
     // janela (828k), não o bruto (972k). O par (valor, rótulo) do texto do card
     // é da A40.l15 — hoje a conclusão dele cita a base full.
-    const donut = page
-      .locator("section.card-variant-neutral")
-      .filter({ has: page.getByRole("heading", { name: "Despesas por Categoria" }) });
+    const donut = page.locator("section.card-variant-neutral").filter({
+      has: page.getByRole("heading", { name: "Despesas por Categoria" }),
+    });
     const ctx = donut.locator(".chart-context");
     await expect(ctx).toContainText(/R\$\s?828\.000/);
     await expect(ctx).not.toContainText(/R\$\s?972\.000/);
     await expect(ctx).toContainText("3 categorias");
   });
 
-  test("PDF: superfície print carrega a mesma janela canônica", async ({ page }) => {
+  test("PDF: superfície print carrega a mesma janela canônica", async ({
+    page,
+  }) => {
     // Instrumento — sem isto `isPrint` é false e o spec mede a tela.
     await page.emulateMedia({ media: "print" });
     await openReport(page);
@@ -254,7 +348,9 @@ test.describe("janela canônica de fluxo @critical", () => {
     await expect(page.locator("[data-janela-badge]").first()).toContainText(
       "últimos 12 meses documentados",
     );
-    expect(await consumoCard(page).locator("[data-janela-badge]").allInnerTexts()).toEqual([
+    expect(
+      await consumoCard(page).locator("[data-janela-badge]").allInnerTexts(),
+    ).toEqual([
       "todo o período documentado",
       "todo o período documentado",
       "últimos 12 meses documentados",

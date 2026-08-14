@@ -1,191 +1,160 @@
-/**
- * Specs do `<ReceitasFonteCard>` — labels pt-BR para todas as categorias
- * de receita produzidas pelo pipeline (income_origin_resolver
- * `_DEFAULT_STATIC_ORIGINS` + `receita_clt`/`receita_pj`).
- *
- * Regressão guard: chave crua sem entrada em `FONTE_LABELS` aparecia na
- * UI (ex.: "receita_resgate") quando workspace tinha venda de ativo,
- * resgate, FGTS ou restituição.
- */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
-
-import type { TransactionItem } from "@/lib/api/transactions";
-
-const mockUsePeriodTransactions = vi.fn();
-
-vi.mock("@/hooks/usePeriodTransactions", () => ({
-  usePeriodTransactions: (...args: unknown[]) => mockUsePeriodTransactions(...args),
-}));
+import userEvent from "@testing-library/user-event";
 
 import { ReceitasFonteCard } from "@/components/report/cards/ReceitasFonteCard";
-import type { FluxoCaixaSummary } from "@/types/report-analysis";
+import type {
+  FluxoCaixaSummary,
+  FluxoJanelaInterativa,
+  FluxoJanelas,
+  FluxoPeriodoInterativo,
+} from "@/types/report-analysis";
 
-function tx(categoria: string, valor: number, data = "2026-04-15"): TransactionItem {
+function windowFixture(
+  janela: FluxoPeriodoInterativo,
+  overrides: Partial<FluxoJanelaInterativa> = {},
+): FluxoJanelaInterativa {
   return {
-    data,
-    descricao: `mock-${categoria}`,
-    valor,
-    banco: "itau",
-    categoria,
-    tipo_conta: "corrente",
-    titular: "Titular",
-    moeda: "BRL",
-    transaction_hash: `${categoria}-${valor}`,
-    row_id: `${categoria}-${valor}`,
-    is_overridden: false,
+    janela,
+    janela_meses: 12,
+    mes_inicio: "2025-01",
+    mes_fim: "2025-12",
+    receita_total: 1_104_000,
+    despesa_total: 972_000,
+    receita_mensal_media: 92_000,
+    despesa_mensal_media: 81_000,
+    despesa_consumo_mensal_media: 69_000,
+    transferencia_patrimonial_mensal: 12_000,
+    tabela_receitas_por_fonte_mensal: [
+      {
+        fonte: "receita_clt",
+        total: 828_000,
+        mensal_media: 69_000,
+        participacao_pct: 75,
+      },
+      {
+        fonte: "outras_receitas",
+        total: 276_000,
+        mensal_media: 23_000,
+        participacao_pct: 25,
+      },
+    ],
+    tabela_receita_por_natureza_mensal: [],
+    tabela_consumo_por_categoria_mensal: [],
+    ...overrides,
   };
 }
 
+function fluxoFixture(): FluxoCaixaSummary {
+  const twelve = windowFixture("12m");
+  const three = windowFixture("3m", {
+    janela_meses: 3,
+    mes_inicio: "2025-08",
+    mes_fim: "2025-12",
+    receita_total: 90_009,
+    receita_mensal_media: 30_003,
+    tabela_receitas_por_fonte_mensal: [
+      {
+        fonte: "receita_pj",
+        total: 60_006,
+        mensal_media: 20_002,
+        participacao_pct: 66.67,
+      },
+      {
+        fonte: "receita_aluguel",
+        total: 30_003,
+        mensal_media: 10_001,
+        participacao_pct: 33.33,
+      },
+    ],
+  });
+  const janelas: FluxoJanelas = {
+    "3m": three,
+    "6m": windowFixture("6m"),
+    "12m": twelve,
+    ytd: windowFixture("ytd"),
+  };
+  return { janelas };
+}
+
 describe("<ReceitasFonteCard />", () => {
-  it("renderiza labels pt-BR para todas as categorias do pipeline (live data)", () => {
-    const transactions: TransactionItem[] = [
-      tx("receita_clt", 8000),
-      tx("receita_pj", 4000),
-      tx("receita_aluguel", 3000),
-      tx("receita_investimento", 2000),
-      tx("receita_resgate", 1500),
-      tx("receita_venda_ativo", 1000),
-      tx("receita_fgts", 800),
-      tx("receita_restituicao", 500),
-      tx("outras_receitas", 200),
-    ];
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions,
-      isLoading: false,
-      error: null,
-    });
+  it("renderiza 12M por default a partir das rows e escalares do E5", () => {
+    render(<ReceitasFonteCard fluxo={fluxoFixture()} />);
 
-    render(<ReceitasFonteCard fluxo={undefined} />);
-
-    const table = screen.getByRole("table");
-    const body = within(table);
-    expect(body.getByText("CLT")).toBeInTheDocument();
-    expect(body.getByText("PJ")).toBeInTheDocument();
-    expect(body.getByText("Aluguéis")).toBeInTheDocument();
-    expect(body.getByText("Rendimentos de Investimento")).toBeInTheDocument();
-    expect(body.getByText("Resgates de Aplicações")).toBeInTheDocument();
-    expect(body.getByText("Venda de Ativo")).toBeInTheDocument();
-    expect(body.getByText("FGTS")).toBeInTheDocument();
-    expect(body.getByText("Restituições")).toBeInTheDocument();
-    expect(body.getByText("Outras receitas")).toBeInTheDocument();
-
-    // Regressão: nenhuma chave crua de pipeline deve vazar para UI.
-    expect(body.queryByText(/^receita_/)).toBeNull();
-    expect(body.queryByText("outras_receitas")).toBeNull();
+    expect(screen.getByTestId("receita-window-kpi")).toHaveTextContent(
+      "R$ 92.000,00",
+    );
+    expect(
+      screen.getByText("12 meses documentados · jan/25 — dez/25"),
+    ).toBeVisible();
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText("CLT")).toBeVisible();
+    expect(table.getByText("Outras receitas")).toBeVisible();
+    expect(table.getByText("75,00%")).toBeVisible();
+    expect(table.getByText("25,00%")).toBeVisible();
+    expect(screen.getByText(/não representa renda sustentável/)).toBeVisible();
   });
 
-  it("percentual em pt-BR na tabela inteira, linhas e total (RV4-19)", () => {
-    // O total era literal `100,0%` (pt-BR) ao lado de linhas em `toFixed(1)`
-    // (en-US): duas convenções na MESMA tabela. Ancorar as duas pontas impede
-    // que a convergência divirja de novo por um lado só.
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [tx("receita_clt", 8000), tx("receita_aluguel", 2000)],
-      isLoading: false,
-      error: null,
+  it("troca atomicamente para os números precomputados de 3M", async () => {
+    const user = userEvent.setup();
+    render(<ReceitasFonteCard fluxo={fluxoFixture()} />);
+
+    const toggle = screen.getByRole("group", {
+      name: "Janela das receitas por fonte",
     });
+    await user.click(within(toggle).getByRole("button", { name: "3M" }));
 
-    render(<ReceitasFonteCard fluxo={undefined} />);
-
-    const body = within(screen.getByRole("table"));
-    expect(body.getByText("80,0%")).toBeInTheDocument();
-    expect(body.getByText("20,0%")).toBeInTheDocument();
-    expect(body.getByText("100,0%")).toBeInTheDocument();
-    expect(body.queryByText(/\d\.\d%/)).toBeNull();
+    expect(screen.getByTestId("receita-window-kpi")).toHaveTextContent(
+      "R$ 30.003,00",
+    );
+    expect(
+      screen.getByText("3 meses documentados · ago/25 — dez/25"),
+    ).toBeVisible();
+    expect(screen.getByText("PJ")).toBeVisible();
+    expect(screen.getByText("Aluguéis")).toBeVisible();
+    expect(screen.queryByText("CLT")).toBeNull();
+    expect(screen.getByText("66,67%")).toBeVisible();
   });
 
-  it("fallback E5 estático (por_fonte) — renderiza labels para todas as categorias", () => {
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [],
-      isLoading: false,
-      error: null,
-    });
+  it("declara degradação histórica sem toggle nem fallback full", () => {
+    render(
+      <ReceitasFonteCard fluxo={{ por_fonte: { receita_clt: 1_000_000 } }} />,
+    );
 
-    const fluxo: FluxoCaixaSummary = {
-      por_fonte: {
-        receita_clt: 100000,
-        receita_pj: 50000,
-        receita_aluguel: 24000,
-        receita_investimento: 12000,
-        receita_resgate: 8000,
-        receita_venda_ativo: 5000,
-        receita_fgts: 3000,
-        receita_restituicao: 1500,
-        outras_receitas: 500,
-      },
-    };
-
-    render(<ReceitasFonteCard fluxo={fluxo} />);
-
-    const table = screen.getByRole("table");
-    const body = within(table);
-    for (const label of [
-      "CLT",
-      "PJ",
-      "Aluguéis",
-      "Rendimentos de Investimento",
-      "Resgates de Aplicações",
-      "Venda de Ativo",
-      "FGTS",
-      "Restituições",
-      "Outras receitas",
-    ]) {
-      expect(body.getByText(label)).toBeInTheDocument();
-    }
-
-    // Regressão: chave crua não pode aparecer.
-    expect(body.queryByText(/^receita_/)).toBeNull();
-  });
-
-  it("categoria desconhecida cai no fallback `?? key` (não quebra a UI)", () => {
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [],
-      isLoading: false,
-      error: null,
-    });
-
-    const fluxo: FluxoCaixaSummary = {
-      por_fonte: {
-        receita_clt: 5000,
-        receita_categoria_nova: 1000,
-      },
-    };
-
-    render(<ReceitasFonteCard fluxo={fluxo} />);
-
-    const table = screen.getByRole("table");
-    const body = within(table);
-    expect(body.getByText("CLT")).toBeInTheDocument();
-    expect(body.getByText("receita_categoria_nova")).toBeInTheDocument();
-  });
-
-  it("janela truncada declara degradação em vez de exibir a média (RV4-07)", () => {
-    // 500 de 1634 lançamentos: a média por fonte sairia 42% abaixo da real.
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [tx("receita_clt", 8000), tx("receita_aluguel", 3000)],
-      isLoading: false,
-      error: null,
-      total: 1634,
-      isTruncated: true,
-    });
-
-    const { container } = render(<ReceitasFonteCard fluxo={undefined} />);
-
+    expect(screen.getByText(/relatório histórico/)).toBeVisible();
+    expect(screen.queryByRole("group")).toBeNull();
     expect(screen.queryByRole("table")).toBeNull();
-    expect(screen.getByText(/não cabe inteira neste card/)).toBeInTheDocument();
-    expect(container.textContent).toContain("1.634");
-    expect(container.textContent).toContain("mais antigos ficaram fora");
+    expect(screen.queryByText("CLT")).toBeNull();
   });
 
-  it("render vazio quando não há transações nem por_fonte", () => {
-    mockUsePeriodTransactions.mockReturnValue({
-      transactions: [],
-      isLoading: false,
-      error: null,
-    });
+  it("distingue janela sem documentação de janela documentada com receita zero", () => {
+    const noMonths = fluxoFixture();
+    noMonths.janelas = {
+      ...noMonths.janelas,
+      "12m": windowFixture("12m", {
+        janela_meses: 0,
+        mes_inicio: null,
+        mes_fim: null,
+        receita_mensal_media: 0,
+        tabela_receitas_por_fonte_mensal: [],
+      }),
+    } as FluxoJanelas;
+    const { rerender } = render(<ReceitasFonteCard fluxo={noMonths} />);
+    expect(screen.getByText(/Não há meses documentados/)).toBeVisible();
+    expect(screen.queryByTestId("receita-window-kpi")).toBeNull();
 
-    render(<ReceitasFonteCard fluxo={undefined} />);
-
-    expect(screen.getByText(/Sem dados de receitas/)).toBeInTheDocument();
+    const zero = fluxoFixture();
+    zero.janelas = {
+      ...zero.janelas,
+      "12m": windowFixture("12m", {
+        receita_mensal_media: 0,
+        tabela_receitas_por_fonte_mensal: [],
+      }),
+    } as FluxoJanelas;
+    rerender(<ReceitasFonteCard fluxo={zero} />);
+    expect(screen.getByTestId("receita-window-kpi")).toHaveTextContent(
+      "R$ 0,00",
+    );
+    expect(screen.getByText(/Sem entradas registradas/)).toBeVisible();
   });
 });
