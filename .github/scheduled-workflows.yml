@@ -56,12 +56,20 @@ workflows:
       - label: visual-regression
         max_issue_age_days: 14
     waiver:
-      until: "2026-08-13"
+      until: "2026-10-15"
       reason: >-
-        Desabilitado manualmente em 2026-06-15 com #642/#643/#644 abertas.
-        Religar é decisão do owner (custa ~30-60min de runner com cache frio,
-        num repo em 544% do orçamento). Sem o waiver este gate trava todo
-        merge, inclusive o PR que o introduz. Vencimento força a decisão.
+        O vencimento de 2026-08-13 cumpriu o desenho: travou todo merge e
+        forçou a decisão. Em 2026-08-14 o owner decidiu NÃO religar agora —
+        religar custa ~30-60min de runner com cache frio num repo a 544% do
+        orçamento, e a decisão é de FinOps, não de qualidade. O que mudou
+        desde o waiver anterior é que a dívida que ele carregava foi paga:
+        #642 (main-smoke, 61d) e #643 (visual, 60d) foram TRIADAS e fechadas
+        com evidência, não silenciadas — 774 merges com `All checks green`
+        cobriram os mesmos gates do main-smoke, e o achado visual foi roteado
+        para a A40.l53, que tem critério de aceite. #644 segue ABERTA de
+        propósito (achado substantivo, não dispara este gate) com condição de
+        retomada datada. Portanto S1/S2 são consequência declarada da decisão
+        do owner, e não rot. Novo vencimento força re-decisão em 2026-10-15.
 
   - file: budget-alert.yml
     crons: ["0 2 * * *"]
@@ -85,12 +93,12 @@ workflows:
     alerts:
       - label: security
         max_issue_age_days: 21
-    waiver:
-      until: "2026-08-13"
-      reason: >-
-        Seis Issues `security` abertas desde 2026-05-23 sem triagem — rot real,
-        não falso-positivo. Precisa de uma passada de triagem antes de virar
-        gate, senão bloqueia merge por dívida pré-existente.
+    # Waiver REMOVIDO em 2026-08-14: a causa dele deixou de existir. Ele
+    # cobria "seis Issues `security` abertas desde 2026-05-23 sem triagem";
+    # medido hoje restam DUAS (#1279 de 08-08 e #1184 de 08-03), ambas dentro
+    # do limite de 21 dias. O S3 desta entrada está verde por mérito, então
+    # manter o waiver renovaria uma exceção sem exceção a cobrir — que é como
+    # waiver vira decoração e depois vira surpresa.
 
   - file: auto-update-prs.yml
     crons: ["17,47 * * * *"]
