@@ -5,6 +5,7 @@ import type {
   RatiosData,
   ReservaEmergenciaData,
 } from "@/types/report-analysis";
+import { readScoreData } from "./utils/reportContractGuards";
 
 interface ExecutiveSummarySectionProps {
   data: ReportAnalysisData;
@@ -20,7 +21,7 @@ export function ExecutiveSummarySection({ data }: ExecutiveSummarySectionProps) 
   const patrimonio = data.patrimonio as PatrimonioData | undefined;
   const reserva = data.reserva_emergencia as ReservaEmergenciaData | undefined;
   const ratios = data.ratios as RatiosData | undefined;
-  const score = data.score;
+  const score = readScoreData(data.score);
   const goals = data.goals as Record<string, unknown> | undefined;
 
   return (

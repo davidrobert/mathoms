@@ -33,7 +33,7 @@ export interface ApoliceResumo {
   vigencia_fim: string;
   premio_total_brl: string;
   bens_count: number;
-  tipos_bem?: string[];
+  tipos_bem?: Array<"veiculo" | "imovel" | "pessoa">;
 }
 
 /**

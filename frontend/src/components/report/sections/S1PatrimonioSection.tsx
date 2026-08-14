@@ -24,6 +24,7 @@ import type {
 } from "@/types/report-analysis";
 import { resolveAnchorDate } from "@/lib/periodUtils";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
+import { readScoreData } from "../utils/reportContractGuards";
 
 interface S1Props {
   data: ReportAnalysisData;
@@ -41,7 +42,8 @@ export function S1PatrimonioSection({ data, reportId }: S1Props) {
   const reserva = data.reserva_emergencia as ReservaEmergenciaData | undefined;
   const endividamento = data.endividamento as EndividamentoData | undefined;
   const exposicaoCambial = data.exposicao_cambial as ExposicaoCambialData | undefined;
-  const score = data.score;
+  const score = readScoreData(data.score);
+  const scoreClasse = readScoreClasse(score?.classificacao);
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
 
@@ -75,12 +77,12 @@ export function S1PatrimonioSection({ data, reportId }: S1Props) {
         goals={goals}
         conclusion={getConclusion("waterfall_if")}
       />
-      {score && (
+      {score && scoreClasse && (
         <div className="md:col-span-2">
           <ScoreCard
             value={score.valor}
             max={score.max}
-            classe={score.classificacao as ScoreClasse}
+            classe={scoreClasse}
             breakdown={score.breakdown}
             formula={score.formula}
             context={score.context}
@@ -110,6 +112,13 @@ export function S1PatrimonioSection({ data, reportId }: S1Props) {
       <EndividamentoCard endividamento={endividamento} />
     </ReportSection>
   );
+}
+
+function readScoreClasse(value: string | undefined): ScoreClasse | undefined {
+  const classes: readonly ScoreClasse[] = [
+    "Excelente", "Bom", "Regular", "Ruim", "Péssimo", "Crítico",
+  ];
+  return classes.find((item) => item === value);
 }
 
 /** Wrapper que injeta `workspaceId` do context (ADR-224 PR-E). Fora do

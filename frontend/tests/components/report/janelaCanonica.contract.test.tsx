@@ -87,11 +87,14 @@ const FIXTURE_PATH = join(
   "../../e2e/fixtures/reports/janela-divergente.json",
 );
 
-interface JanelaFixture extends ReportAnalysisData {
-  fluxo_caixa: Record<string, unknown>;
-  consumo_consciente: Record<string, unknown>;
-  ratios: Record<string, unknown>;
-}
+type JanelaFixture = ReportAnalysisData & {
+  fluxo_caixa: NonNullable<ReportAnalysisData["fluxo_caixa"]> &
+    Record<string, unknown>;
+  consumo_consciente: NonNullable<ReportAnalysisData["consumo_consciente"]> &
+    Record<string, unknown>;
+  ratios: NonNullable<ReportAnalysisData["ratios"]> &
+    Record<string, unknown>;
+};
 
 function loadFixture(): JanelaFixture {
   return JSON.parse(readFileSync(FIXTURE_PATH, "utf-8")) as JanelaFixture;

@@ -7,7 +7,7 @@ plan: PLAN-report-trust
 status: in_progress
 priority: P1
 branch_slug: a40-l5-contrato-view-model-gate
-adrs: []
+adrs: ["[[ADR-388]]"]
 depends_on: []
 tags:
   - type/lane
@@ -429,3 +429,10 @@ os 7 opacos restantes. PR5 (`warn → strict` global) segue sendo outra lane.
 O gate **é** a guarda — única lane cujo entregável principal é impedir a classe
 inteira, não corrigir instâncias. Removido o gate, a fixture (2) volta a verde e o
 defeito retorna silencioso.
+
+## Decisão do PR3
+
+[[ADR-388]] fixa o boundary que tornou o codegen construível: schema E5 gera o
+tipo canônico exato; snapshots históricos recebem tolerância apenas na leitura;
+opacidade exige metadata, ratchet e zero consumidores. `additionalProperties`
+aberto para múltiplos writers nunca vira index signature no frontend.

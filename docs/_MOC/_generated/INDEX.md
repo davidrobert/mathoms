@@ -383,6 +383,7 @@
 | ADR-385 | adr | Proposto |  | Resolver de imóvel devolve row viva atravessando as eras do canonicalizador | `adr/385-resolver-de-imovel-devolve-row-viva-atravessando-eras.md` |
 | ADR-386 | adr | Proposto |  | Supersessão de PropertyIdentity é escopada ao que o run observou | `adr/386-supersessao-de-imovel-escopada-ao-run-observado.md` |
 | ADR-387 | adr | Decidido |  | ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria | `adr/387-protection-computation-snapshot-v1-computabilidade-por-categoria.md` |
+| ADR-388 | adr | Decidido |  | Contrato E5 para frontend usa codegen determinístico e opacidade governada | `adr/388-contrato-e5-frontend-codegen-deterministico-opacidade-governada.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

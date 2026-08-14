@@ -136,6 +136,43 @@
         "formula": {
           "type": "string"
         },
+        "breakdown": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dimensao": {
+                "type": "string"
+              },
+              "valor": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "peso": {
+                "type": "number"
+              },
+              "contribuicao": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "dimensao",
+              "valor",
+              "max",
+              "peso",
+              "contribuicao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "context": {
+          "type": "string"
+        },
+        "conclusion": {
+          "type": "string"
+        },
         "componentes": {
           "type": "array",
           "items": {
@@ -835,7 +872,34 @@
           "description": "Tier canônico: verde >=10%, amarelo 5-10%, vermelho <5%, empty sem posições."
         },
         "detalhes": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fonte": {
+                "type": "string"
+              },
+              "nome": {
+                "type": "string"
+              },
+              "moeda": {
+                "type": "string"
+              },
+              "saldo_original": {
+                "type": "number"
+              },
+              "valor_brl": {
+                "type": "number"
+              },
+              "tipo": {
+                "enum": [
+                  "caixa"
+                ]
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
         }
       }
     },
@@ -1163,13 +1227,22 @@
           ]
         },
         "caminho_p10": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IFMonteCarloPathPoint"
+          }
         },
         "caminho_p50": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IFMonteCarloPathPoint"
+          }
         },
         "caminho_p90": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IFMonteCarloPathPoint"
+          }
         },
         "mc_version": {
           "type": "string"
@@ -1946,6 +2019,20 @@
     }
   },
   "$defs": {
+    "IFMonteCarloPathPoint": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
     "ConsumoConsciente": {
       "type": "object",
       "description": "ConsumoConsciente.to_legacy_dict (A40.l5 PR2). A janela da folga e a janela dos pontuais ficam declaradas para impedir mistura full-period × 12m (ADR-306 D6).",
