@@ -2,8 +2,8 @@
 id: ADR-377
 type: adr
 title: "Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa"
-status: Proposto
-phase: "A40"
+status: Decidido
+phase: A40.l44
 date: "2026-08-11"
 relates_to:
   - "[[ADR-306]]"
@@ -16,7 +16,7 @@ superseded_by: []
 aliases: ["ADR 377", "janela interativa pré-computada", "cliente não agrega"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/frontend
   - area/e5
   - area/pipeline
@@ -24,6 +24,9 @@ tags:
 ---
 
 # ADR-377 — Janela interativa é conjunto fechado pré-computado
+
+> **Decidida na [[A40.l44]]** — último código #1462 (`8d07c4fb`, 2026-08-14).
+> O cliente seleciona `fluxo_caixa.janelas[period]`; não recomputa.
 
 > Esta ADR **não decide base temporal nova**. A [[ADR-306]] já fixou a política de
 > janela e rótulo no E5, e o gate dela vigia o **produtor**. O que esta ADR fecha é

@@ -4,7 +4,9 @@ type: lane
 title: "Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1462
+ship_date: "2026-08-14"
 priority: P0
 branch_slug: a40-l44-janela-interativa-pre-computada
 adrs:
@@ -14,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/frontend
   - area/pipeline
@@ -27,7 +29,8 @@ tags:
 > [[REPORT-REVIEWS-active]] §r4 (report `7a7d7115` sobre run `ee124571`).
 > Disparada por report de uso do dono: *o card de receita por fonte parecia
 > subcontar*. **Procede.** Decisão de forma e escopo escrita na
-> **[[ADR-377]] (`Proposto`)**, que fecha o gate de "ADR antes de PR P0".
+> **[[ADR-377]] (`Decidido`)** — o gate de "ADR antes de PR P0" foi
+> cumprido no #1397; o flip é deste closeout.
 
 > **Fronteira com a [[A42.l8]] (auditoria 2026-08-14).** Esta lane é dona do
 > corte de **futuro** (D3 emendado 2026-08-11) e do deferimento do **mês em
@@ -134,7 +137,7 @@ Vem **depois** de PR1/PR2 porque aqueles conformam a um `Decidido` existente
 `check_doc_links`, `check_adr_anchors`, `check_adr_amendment_signal`,
 `build_doc_index --inline`) · zero wikilink quebrado.
 
-### PR4 — `janelas` no produtor
+### PR4 — `janelas` no produtor — ✅ shipped
 
 > **Entregue 2026-08-14** — #1449 (`da91a181`). As quatro janelas, três
 > tabelas table-ready, conservação ao centavo, lineage, schema strict, teste
@@ -159,7 +162,11 @@ centavos e 100,00% sem balde de ajuste · YTD usa o ano do último movimento ·
 `janelas["12m"]` reconcilia com `janela_12m` · `explain_number.py` alcança os
 valores monetários table-ready.
 
-### PR5 — o cliente seleciona e a agregação é deletada
+### PR5 — o cliente seleciona e a agregação é deletada — ✅ shipped
+
+> **Entregue 2026-08-14** — #1456 (`5194115a`). Os dois cards selecionam
+> `janelas[period]`. `usePeriodTransactions` e `listTransactions` saíram do
+> caminho do relatório (gate ESLint). Quatro janelas, tela e print.
 
 Os dois cards leem `janelas[period]`. **Deletados** do caminho do relatório:
 `aggregateReceitas`, `aggregateDespesasMediaMensal`, `getPeriodMonths`,
@@ -182,7 +189,13 @@ comentado — deletados; código morto que agrega dinheiro volta.
   renderizada, capturando **as quatro**, não só a default (§Débito de método da r4
   nº 3).
 
-### PR6 — consumidor para `receita_por_natureza`
+### PR6 — consumidor para `receita_por_natureza` — ✅ shipped
+
+> **Entregue 2026-08-14** — #1462 (`8d07c4fb`). Co-design `product-designer`:
+> um card, um toggle, um KPI. Faixa **Por tipo** lê
+> `janelas[period].tabela_receita_por_natureza_mensal`. Identidade ao
+> centavo nas quatro janelas. Título `Composição das Receitas`. Inventário
+> ADR-370 e 6 baselines Linux (S1 desta lane; S2 herdado do PR5; APP-B wrap).
 
 `fluxo_caixa.receita_por_natureza` tem contrato em `e5_analysis.schema.json`, é
 consumido por `parecer_ancorabilidade.py` e pelo prompt do parecer, e tem **zero
@@ -234,3 +247,28 @@ os dois recortes.
   janela. Quem mergear depois rebaseia.
 - `S1PatrimonioSection.tsx` não tem outra lane viva; a âncora que ele deriva
   (`:56-58`) deixa de existir no PR5.
+
+## Entrega
+
+`shipped` 2026-08-14. `ship_pr: 1462` nomeia o último código; os outros cinco
+PRs estão no corpo.
+
+| PR | Merge | SHA |
+|---|---|---|
+| PR3 ADR + lane | #1397 | `3fafe676` |
+| PR1 corte de futuro | #1396 | `f1cad2e4` |
+| PR2 guarda de truncagem | #1398 | `38a7742d` |
+| PR4 `janelas` | #1449 | `da91a181` |
+| PR5 cliente seleciona | #1456 | `5194115a` |
+| PR6 faixa Por tipo | #1462 | `8d07c4fb` |
+
+**Medido no closeout:** `rg usePeriodTransactions frontend/src/components/report`
+→ 0. Consumidor vivo da tabela de natureza: `ReceitasFonteCard` /
+`ReceitasNaturezaStrip`. Bloco top-level `receita_por_natureza` não é lido pela
+tela.
+
+**Continua aberto, com dono:** residual de copy do RV4-04 (rótulo que reconcilie
+bases se "receita mensal" ainda aparecer com outra janela) → `product-designer`,
+**lane a abrir** — não aponta para esta. Exclusão do mês em curso → [[ADR-306]]
+§Deferimento, `senior-cto` (condição de retomada = l44 fechada, agora
+satisfeita). Clone Python de `getPeriodDates` → [[A40.l15]].
