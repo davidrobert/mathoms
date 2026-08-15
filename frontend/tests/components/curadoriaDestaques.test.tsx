@@ -96,4 +96,19 @@ describe("<PontosUrgentesCard /> curadoria defensiva", () => {
     expect(screen.getByText("Nenhum ponto urgente neste período.")).toBeInTheDocument();
     expect(screen.queryByText(/Score financeiro/)).not.toBeInTheDocument();
   });
+
+  it("anexa a ressalva fiduciária ao item de seguro de vida", () => {
+    render(
+      <PontosUrgentesCard
+        pontos={[
+          {
+            code: "seguro_vida",
+            acao: "Contratar seguro de vida e invalidez",
+            impacto: "Proteção patrimonial",
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText(/não constitui recomendação fiduciária/)).toBeInTheDocument();
+  });
 });

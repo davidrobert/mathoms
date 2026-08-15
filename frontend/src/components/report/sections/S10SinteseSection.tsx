@@ -32,7 +32,10 @@ export function S10SinteseSection({ data }: { data: ReportAnalysisData }) {
       </div>
 
       <PontosFortesCard pontos={data.pontos_fortes as unknown[] | undefined} />
-      <PontosUrgentesCard pontos={data.pontos_urgentes as unknown[] | undefined} />
+      <PontosUrgentesCard
+        pontos={data.pontos_urgentes as unknown[] | undefined}
+        effectiveDate={(data.data_analise as string | undefined) ?? null}
+      />
     </ReportSection>
   );
 }

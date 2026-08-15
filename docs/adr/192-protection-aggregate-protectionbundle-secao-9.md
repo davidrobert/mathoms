@@ -21,7 +21,7 @@ relates_to:
   - "[[ADR-387]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-08-08", "2026-08-13", "2026-08-14"]
+amended_at: ["2026-08-08", "2026-08-13", "2026-08-14", "2026-08-15"]
 aliases: ["ADR 192"]
 tags:
   - area/backend
@@ -42,6 +42,13 @@ tags:
 > **Emenda 2026-08-14:** os quatro calculators não são autorizados por simples
 > plumbing. Vida/invalidez passam a ser por segurado; sucessório, por cenário;
 > FBAR/FATCA/Estate NRA, por check. Contrato incompleto permanece `missing_data`.
+>
+> **Emenda 2026-08-15:** o checkbox de disclaimer sem escopo re-armou a classe.
+> Escopo medido: S9 (4 cards), S10 `pontos_urgentes`, narrativa `summaries.s9`,
+> conclusão `bubble_riscos`, APP_E `disclaimers`. Superfície nova que cite
+> cobertura recomendada sem a
+> marca *não constitui recomendação fiduciária* hard-falha
+> (`dev/check_coverage_disclaimer.py`).
 
 # ADR-192 — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção)
 
@@ -208,7 +215,10 @@ Susep/OAB).
 - [ ] UI mínima de cadastro de apólice em `/protecao` (página dedicada) ou módulo expandido em `/plano` — TBD na lane S9-T05.
 - [ ] Goldens E5 atualizados em PR de paridade dedicado quando shape do `bubble_riscos.context/conclusion` mudar.
 - [ ] Logs estruturados (ADR-110): `mathoms.protection.*` com `policy_ref` redatado em `INFO`; assertion em teste para garantir que `coverage_brl_cents` aparece como faixa (`R$ 1-5M`) em logs, não valor exato.
-- [ ] Disclaimers fiduciários em todas as narrativas/cards que citem cobertura recomendada.
+- [x] Disclaimers fiduciários em todas as narrativas/cards que citem cobertura recomendada
+  — escopo medido 2026-08-15 (A40.l60): S9 (4 cards), S10 `pontos_urgentes`,
+  `summaries.s9`, APP_E `disclaimers`. Classe fechada pelo gate
+  `dev/check_coverage_disclaimer.py`, não pela enumeração.
 - [ ] [ADR-178](178-risk-aggregate-workspace-scoped.md) ganha `relates_to: [[ADR-192]]` no frontmatter (supersedure bidirecional).
 - [ ] Frontmatter validado por `dev/validate_frontmatter.py`, `dev/check_doc_filename_id.py`, `dev/check_doc_links.py`, `dev/check_adr_anchors.py`, `dev/build_doc_index.py --check`, `dev/validate_adr_format.py`.
 
