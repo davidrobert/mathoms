@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-387]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-08-13", "2026-08-14"]
+amended_at: ["2026-08-13", "2026-08-14", "2026-08-15"]
 aliases: ["ADR 187", "Mês fechado", "Report publication immutability"]
 tags:
   - area/report
@@ -29,6 +29,9 @@ tags:
 
 > **Emenda 2026-08-14:** a [[ADR-387]] foi decidida e fechou a identidade da
 > publicação nova: `report_id` + `hash_version=report-v2`, sem reconstrução live.
+>
+> **Emenda 2026-08-15:** a [[A40.l62]] shippou o hash composto e o snapshot
+> pinado (#1471 + #1474). A S9 continua desligada até a [[A40.l35]].
 
 ## Contexto
 

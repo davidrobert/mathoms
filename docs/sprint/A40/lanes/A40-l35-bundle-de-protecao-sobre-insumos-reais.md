@@ -4,7 +4,7 @@ type: lane
 title: "Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: in_progress
 priority: P1
 branch_slug: a40-l35-bundle-de-protecao-sobre-insumos-reais
 adrs:
@@ -16,7 +16,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/in-progress
   - priority/p1
   - area/backend
   - area/frontend
@@ -35,6 +35,9 @@ tags:
 > [[A40.l62]] cria fontes canônicas + snapshot imutável; esta lane fica
 > **bloqueada** e conserva a ativação final da S9. DAG: [[A40.l61]] →
 > [[A40.l62]] → [[A40.l35]].
+>
+> 🔓 **Desbloqueada em 2026-08-15** — a [[A40.l62]] shippou (#1471 + #1474).
+> Ativação da S9 em curso no #1476.
 
 ## Problema
 

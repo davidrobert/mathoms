@@ -4,7 +4,9 @@ type: lane
 title: "ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1474
+ship_date: "2026-08-15"
 priority: P1
 branch_slug: a40-l62-protection-computation-snapshot-v1
 adrs:
@@ -14,7 +16,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -27,6 +29,11 @@ tags:
 > **Aberta bloqueada em 2026-08-13**, no co-design da [[A40.l35]], e
 > **desbloqueada em 2026-08-14** após a [[A40.l61]] shippar no PR #1443.
 > Decisão arquitetural em [[ADR-387]] (`Decidido` em 2026-08-14).
+>
+> ✅ **Entregue em 2026-08-15.** PR1 #1471 (`ea1a2c6a`) — fontes relacionais e
+> contrato E5 V1. PR2 #1474 (`5cc4a02f`) — snapshot pinado ao Report, GET só
+> lê `snapshot.bundle`, hash `report-v2`. Nenhuma metade ligou a S9; isso
+> continua com a [[A40.l35]] (#1476). `ship_pr` nomeia o último código.
 
 ## Problema
 
@@ -69,6 +76,17 @@ vigentes quando foi gerado”. Nenhuma metade libera a S9 isoladamente.
   alteração semântica; `e5-v1` legado continua verificável.
 - Migration, schema do overlay, OpenAPI/view-model snapshot e testes estão
   squash-mergeados em `main` antes de desbloquear a [[A40.l35]].
+
+## Residual após o merge — 2026-08-15
+
+O que **não** saiu dos PRs, de propósito (D6) ou por falta de insumo no V1:
+
+- Checks EUA não produzem `computed`. Fontes e `fiscal_rule_sets` existem;
+  o populator ainda retém `compliance_us` até a regra separar FBAR/FATCA/Estate
+  NRA. Dono da superfície: [[A40.l35]]; a promoção do calculator não é automática.
+- Sucessório sem cenário de espólio no V1 permanece `missing_data`. É proibido
+  publicar patrimônio familiar × UF como imposto devido.
+- S9 continua desligada. Pré-lane não conta como entrega da l35.
 
 ## Achados medidos entregues ao PR1 — 2026-08-14
 

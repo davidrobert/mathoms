@@ -881,7 +881,7 @@
 | A40.l32 | lane | shipped | A40 | Proveniência do executor: qual código computou este run | `sprint/A40/lanes/A40-l32-proveniencia-do-executor-do-run.md` |
 | A40.l33 | lane | in_progress | A40 | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | `sprint/A40/lanes/A40-l33-contraste-texto-sobre-tint.md` |
 | A40.l34 | lane | shipped | A40 | Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis | `sprint/A40/lanes/A40-l34-base-do-limite-pgbl.md` |
-| A40.l35 | lane | blocked | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
+| A40.l35 | lane | in_progress | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
 | A40.l36 | lane | open | A40 | Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes | `sprint/A40/lanes/A40-l36-double-count-na-base-da-cascata-s8.md` |
 | A40.l37 | lane | open | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
 | A40.l38 | lane | shipped | A40 | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
@@ -910,7 +910,7 @@
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l60 | lane | open | A40 | Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte | `sprint/A40/lanes/A40-l60-ressalva-e-separacao-do-conselho-de-seguro.md` |
 | A40.l61 | lane | shipped | A40 | ProtectionBundle fail-closed: ausência de insumo não vira zero/False e filho conta como dependente | `sprint/A40/lanes/A40-l61-protection-bundle-fail-closed.md` |
-| A40.l62 | lane | open | A40 | ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria | `sprint/A40/lanes/A40-l62-protection-computation-snapshot-v1.md` |
+| A40.l62 | lane | shipped | A40 | ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria | `sprint/A40/lanes/A40-l62-protection-computation-snapshot-v1.md` |
 | A40.l63 | lane | open | A40 | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD | `sprint/A40/lanes/A40-l63-conversao-me-brl-sem-proveniencia.md` |
 | A40.l64 | lane | blocked | A40 | Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante | `sprint/A40/lanes/A40-l64-redutor-lei-15270-e-irpfm.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |

@@ -45,8 +45,9 @@ explicitamente rotulado, não obrigação tributária ([[ADR-387]]).
 - Populator app-layer: [`backend/app/services/protection_bundle_populator.py`](../../../backend/app/services/protection_bundle_populator.py) injeta `_ITCMD_ALIQUOTAS_DEFAULT_PCT` (26 estados + DF — 27 UFs) na vigência atual.
 
 Esses dois comportamentos são legado incompatível: zero por UF ausente e tabela
-local ficam retidos pela [[A40.l61]]/[[ADR-387]] e devem ser removidos no PR1 da
-[[A40.l62]].
+local ficam retidos pela [[A40.l61]]/[[ADR-387]]. O PR1 da [[A40.l62]] (#1471)
+criou `fiscal_rule_sets`; o calculator linear continua sob hold e não alimenta a
+S9.
 
 **Disclaimer fiduciário.** “Cenário indicativo sob os dados e a legislação
 capturados em `<effective_date>`; não é cálculo definitivo nem orientação
