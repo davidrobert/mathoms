@@ -60,13 +60,20 @@ def verificar_continuidade(faixas: Sequence[IRPFBracket]) -> tuple[Violacao, ...
     return tuple(violacoes)
 
 
+# A igualdade NÃO é exata em toda tabela publicada. Medido contra fonte primária
+# (Anexo VII da IN RFB 1.500/2014, item VI): no ano-calendário 2016 o publicado é
+# 22.847,76 / 1.713,58, contra produto exato de 1.713,582 — 0,2 centavo de
+# arredondamento. Exigir igualdade exata reprovaria a tabela real. Ela é exata em
+# 2024-2026 por coincidência dos tetos de isenção caírem em múltiplos limpos.
+# 1 centavo mantém o poder de detecção: o vintage misturado que motivou o
+# invariante desviava 1.104 centavos.
 def verificar_primeira_fronteira(faixas: Sequence[IRPFBracket]) -> tuple[Violacao, ...]:
-    """``upper[0] × aliquota[1] == deducao[1]``, EXATO — é aqui que vintage misturado aparece."""
+    """``upper[0] × aliquota[1] ≈ deducao[1]`` a 1 centavo — onde vintage misturado aparece."""
     if len(faixas) < 2 or faixas[0].upper_brl_cents is None:
         return (Violacao("primeira_fronteira", 0, "tabela sem faixa isenta com teto"),)
     esperado = Decimal(faixas[0].upper_brl_cents) * faixas[1].aliquota_pct / Decimal(100)
     observado = Decimal(faixas[1].deducao_brl_cents)
-    if esperado != observado:
+    if abs(esperado - observado) > TOLERANCIA_CONTINUIDADE_CENTS:
         return (
             Violacao(
                 "primeira_fronteira",

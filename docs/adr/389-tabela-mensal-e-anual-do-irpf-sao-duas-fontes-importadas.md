@@ -5,6 +5,7 @@ title: "As tabelas mensal e anual do IRPF são duas fontes importadas, não duas
 status: Proposto
 phase: A40.l56
 date: "2026-08-15"
+amended_at: ["2026-08-15"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-135]]"
@@ -28,6 +29,9 @@ tags:
 > Origem: co-design da [[A40.l56]] em 2026-08-15 (`financial-planner` +
 > `data-engineer`, divergência fechada por `senior-cto`). Emenda o contrato de
 > `ir_brackets` da [[ADR-135]].
+>
+> **Correção (2026-08-15):** a versão original citava o **Anexo IV**; o anexo da
+> tabela anual é o **VII**. Ver §"Correção — o anexo citado era o errado".
 
 ## Contexto
 
@@ -51,7 +55,7 @@ faixas de 2025 e 2026 são as de 2024.
 ### D1 — São duas tabelas, não duas escalas
 
 A RFB publica a **progressiva mensal** (IRRF, antecipação na fonte) e a do
-**Anexo IV da IN RFB 1.500/2014** (ajuste anual da DAA). Bases legais e atos de
+**Anexo VII da IN RFB 1.500/2014** (ajuste anual da DAA) — ver §Correção. Bases legais e atos de
 publicação distintos. A anual **não é ×12 da mensal**, por dois motivos
 independentes:
 
@@ -181,3 +185,58 @@ nada aconteceu em 3 meses. Runbook é promessa; chave em código é estrutura.
   bump, nunca o contrário.
 - ≥1 golden atravessa `from_fiscal_parameters`, e a mutação de call-site
   `from_fiscal_parameters → from_fiscal` o derruba.
+
+## Correção — o anexo citado era o errado (2026-08-15)
+
+A versão original desta ADR afirmava que a tabela anual do ajuste é o **Anexo IV**
+da IN RFB 1.500/2014. **É o Anexo VII.** O Anexo IV é a tabela de rendimentos
+recebidos acumuladamente (RRA), expressa multiplicada pelo número de meses; o
+Anexo II é a progressiva mensal.
+
+O erro foi apanhado por refutação adversarial independente em duas lentes
+(anos 2024 e 2026) e **verificado contra fonte primária**: o PDF do repositório
+de normas da RFB (`normas.receita.fazenda.gov.br`, `idArquivoBinario=46090`)
+tem como título literal **"ANEXO VII — TABELAS PROGRESSIVAS ANUAIS"** e indexa
+as tabelas por "para o exercício de X, ano-calendário de Y".
+
+Importa registrar **como** o erro se propagou: ele nasceu nesta ADR e os agentes
+de apuração o copiaram da premissa, em vez de o descobrirem na fonte. Citação
+errada numa ADR não fica contida — ela vira `vigencia_ref` de toda row semeada e
+de todo ano futuro.
+
+**Consequência para o D2:** o `vigencia_ref` de cada tabela cita o **cabeçalho da
+norma** ("Exercício de 2026, ano-calendário de 2025") e o **ato que a positiva**
+(IN RFB 2.299, de 17/12/2025, DOU 18/12/2025), não a página de portal — que é
+mutável e não versionada. Número de anexo só entra depois de alguém ler o DOU
+do ato correspondente; ausente é melhor que errado.
+
+## Correção — a igualdade `mensal 2025 == mensal 2026` é esperada (2026-08-15)
+
+O §Critério de aceite exige "teste que prova que os 3 anos **diferem entre si**".
+Medido: as tabelas **mensais** de AC2025 e AC2026 são **byte-idênticas**, e isso
+é correto — a Lei 15.270/2025 não alterou faixas nem parcelas, e a geometria da
+MP 1.294/2025 vigora ininterruptamente desde 01/05/2025.
+
+Aplicado ingenuamente às duas tabelas, o critério **reprova o dado correto** —
+mesma classe da mutação do falsy-zero que esta lane já teve de reescrever por ser
+irrealizável. O critério passa a ser: as três **anuais** diferem
+(`2696320 / 2846720 / 2914560`); na **mensal**, `2024 ≠ 2025` e `2025 == 2026`
+é igualdade **declarada**, com a norma citada.
+
+## Correção — a primeira fronteira não é exata fora de 2024-2026 (2026-08-15)
+
+O D3 exige `upper[0] × aliq[1] == deducao[1]` **sem tolerância**. Medido contra
+a fonte primária: no ano-calendário **2016** (Anexo VII, item VI) o publicado é
+`22.847,76` e `1.713,58`, enquanto o produto exato é `1.713,582` — desvio de
+**0,2 centavo**. O invariante exato **reprovaria a tabela real publicada**.
+
+A igualdade exata vale nos três anos que esta lane semeia por coincidência dos
+tetos de isenção caírem em múltiplos limpos, não por propriedade da tabela. A
+tolerância passa a **1 centavo**, que continua pegando o defeito que motivou o
+invariante com folga de três ordens de grandeza (o seed misturado desviava
+**1.104 centavos**).
+
+Corroboração colhida no mesmo documento: os tetos das faixas 2-4
+(`33.919,80 / 45.012,60 / 55.976,16`) estão **congelados desde o ano-calendário
+2016**. Só o teto de isenção se move — e é por isso que um teste de "os anos
+diferem" que olhe as faixas superiores não mede nada.
