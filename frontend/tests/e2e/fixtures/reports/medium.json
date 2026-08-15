@@ -1,6 +1,24 @@
 {
   "periodo_dados": "2026-01 a 2026-04",
   "data_analise": "2026-04-25",
+  "protection_bundle": {
+    "policies": [
+      {
+        "id": "pol-vida-1",
+        "category": "vida",
+        "coverage_brl": 500000,
+        "starts_at": "2026-01-01",
+        "status": "Ativa"
+      }
+    ],
+    "gap_analysis": {},
+    "recommendations": [],
+    "auto_inferred_risks": [],
+    "calculation_status": {},
+    "methodology_thresholds": {},
+    "has_us_exposure": null,
+    "adapter_version": 3
+  },
   "comparisons": [
     {
       "section_id": "M_PL",
