@@ -4,7 +4,9 @@ type: lane
 title: "Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1476
+ship_date: "2026-08-15"
 priority: P1
 branch_slug: a40-l35-bundle-de-protecao-sobre-insumos-reais
 adrs:
@@ -16,7 +18,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/backend
   - area/frontend
@@ -38,6 +40,10 @@ tags:
 >
 > 🔓 **Desbloqueada em 2026-08-15** — a [[A40.l62]] shippou (#1471 + #1474).
 > Ativação da S9 em curso no #1476.
+>
+> ✅ **Entregue em 2026-08-15 pelo PR #1476** (`549695b1`). A S9 lê
+> `snapshot.bundle`. Empty total só sem insumo real. Capital único não vira
+> renda. ITCMD/EUA permanecem `missing_data` sem cenário/regra (D4/D6).
 
 ## Problema
 
@@ -130,6 +136,15 @@ Por isso a entrega foi decomposta sem rebaixar este aceite:
 - **Sinal do delta declarado** + conferência por `dev/golden_diff.py`.
 - **Verificação renderizada** da S9 (§Débito de método).
 - A S9 sai do empty state **total** apenas quando o bundle tem insumo real.
+
+## Residual após o merge — 2026-08-15
+
+- Sucessório sem espólio no V1 e checks EUA sem regra separada continuam
+  `missing_data`. Não se publica patrimônio familiar × UF como imposto devido.
+- Gate visual/PDF da S9 não rodou neste PR (job de snapshot pulado). Inventário
+  estrutural (ADR-370) passou com a fixture `medium` carregando uma apólice.
+- `dev/golden_diff.py` sobre o E5 canônico não se aplica: o bundle vive no
+  snapshot do Report, não no artefato de análise.
 
 ## Amarra com a [[A40.l11]]
 

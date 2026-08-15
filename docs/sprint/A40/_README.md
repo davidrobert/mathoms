@@ -284,7 +284,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l32]] | Proveniência do executor: qual código computou este run | P1 | — | promovida da [[A42]] · [[ADR-362]] · [[ADR-363]] · instrumento, sem custo de API |
 | [[A40.l33]] | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | P1 | — | `in_progress` · [[ADR-372]] (#1323) · **ataque 2026-08-13 (#1432)**: a classe não estava fechada — o gate media 1 das 3 sintaxes de tint e 7 call-sites reprovavam AA (1,86:1 entre eles, o mesmo número que a ADR publicou como sendo o defeito); emenda na ADR + §Aberto com 3 achados adjacentes medidos · §Deferido tem 3 itens datados; o nº 3 (`report_palette` espelha o mockup ou o uso? [[ADR-117]] na mesa) é o que a [[A40.l46]] item 2 executa · **prioridade corrigida em 2026-08-13**: a tabela dizia P2 e o frontmatter (fonte do `SPRINT_CURRENT`) diz P1 — era a única divergência das 33 linhas · **título corrigido em 2026-08-12 (#1423)**: a linha dizia "Cache de citação por conteúdo, não por posição", assunto de nenhuma lane — foi escrita de memória no #1372 quando o arquivo `A40-l33-contraste-texto-sobre-tint.md` já existia |
 | [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `shipped` (#1448 · `6c68723a`) · Card B é dono único do limite; S7 virou nota e S8 reteve base/estado sem duplicar 12% · [[ADR-375]] `Decidido` · resíduos roteados para [[A40.l56]], [[A40.l37]] e [[A40.l57]] · exceção da cláusula 2 (ver §Fora do sprint) |
-| [[A40.l35]] | Bundle de proteção sobre insumos reais (ativação final da S9) | P1 | l62 | `in_progress` · desbloqueada pelo #1474 · ativação no #1476 · [[A40.l11]] é consumidora |
+| [[A40.l35]] | Bundle de proteção sobre insumos reais (ativação final da S9) | P1 | l62 | `shipped` (#1476 · `549695b1`) · S9 lê o snapshot · ITCMD/EUA `missing_data` sem cenário · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `open`, desbloqueada pelo #1448 (resolver comum em `main`) |
 | [[A40.l38]] | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | **P0** | — | `shipped` (#1391) · [[ADR-376]] · linha adicionada em 2026-08-12 (#1415) — o PR de origem não atualizou a tabela |
@@ -610,6 +610,11 @@ senão cada uma é fixada uma vez e volta a divergir.
 > shippou (#1471 fontes + #1474 snapshot, `5cc4a02f`). O DAG vigente é
 > **l61 `shipped` → l62 `shipped` → l35 `in_progress` (#1476)**. A S9
 > continua desligada até a l35 mergear; o GET já não consulta estado live.
+
+> **Estado da Onda 2 em 2026-08-15 — S9 ligada.** A [[A40.l35]] shippou
+> (#1476 · `549695b1`). DAG **l61/l62/l35 `shipped`**. A S9 consome o
+> snapshot; empty total só sem insumo real. l2 + l34 + l35 estão terminais —
+> o contador de 2 re-runs E0→E6 (o primeiro com LLM) pode iniciar.
 
 **[[A40.l30]] entra como instrumento que gateia esta onda** (aberta 2026-08-03,
 co-design `prompt-engineer`). Não é Onda 0 — a Onda 0 é "parar a sangria" e sua
