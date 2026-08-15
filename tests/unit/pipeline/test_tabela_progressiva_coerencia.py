@@ -66,11 +66,41 @@ def test_tabelas_reais_sao_continuas(tabela):
     assert verificar_continuidade(tabela) == ()
 
 
-@pytest.mark.parametrize(
-    "tabela", [ANUAL_2026, MENSAL_2026, ANUAL_2024], ids=["anual26", "mensal26", "anual24"]
+# Ano-calendário 2016, Anexo VII da IN RFB 1.500/2014 item VI — fonte primária.
+# Aqui o publicado (1.713,58) desvia 0,2 centavo do produto exato (1.713,582):
+# é a prova de que a primeira fronteira NÃO é exata em toda tabela real.
+ANUAL_2016 = _faixas(
+    [
+        ("0.0", 2284776, 0),
+        ("7.5", 3391980, 171358),
+        ("15.0", 4501260, 425757),
+        ("22.5", 5597616, 763351),
+        ("27.5", None, 1043232),
+    ]
 )
-def test_tabelas_reais_fecham_a_primeira_fronteira_exatamente(tabela):
+
+
+@pytest.mark.parametrize(
+    "tabela",
+    [ANUAL_2026, MENSAL_2026, ANUAL_2024, ANUAL_2016],
+    ids=["anual26", "mensal26", "anual24", "anual16"],
+)
+def test_tabelas_reais_fecham_a_primeira_fronteira(tabela):
     assert verificar_primeira_fronteira(tabela) == ()
+
+
+def test_tabela_publicada_de_2016_reprovaria_sob_igualdade_exata():
+    """O motivo de a tolerância existir: 0,2 centavo de arredondamento na fonte."""
+    exato = Decimal(ANUAL_2016[0].upper_brl_cents) * ANUAL_2016[1].aliquota_pct / Decimal(100)
+    assert exato != Decimal(ANUAL_2016[1].deducao_brl_cents)
+    assert abs(exato - Decimal(ANUAL_2016[1].deducao_brl_cents)) == Decimal("0.2")
+
+
+def test_tetos_das_faixas_superiores_estao_congelados_desde_2016():
+    """Só o teto de isenção se move — teste de 'os anos diferem' que olhe as
+    faixas superiores não mede nada."""
+    superiores = lambda t: tuple(f.upper_brl_cents for f in t[1:4])  # noqa: E731
+    assert superiores(ANUAL_2016) == superiores(ANUAL_2024) == superiores(ANUAL_2026)
 
 
 def test_o_defeito_original_e_pego_pela_primeira_fronteira():
