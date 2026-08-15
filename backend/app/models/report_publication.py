@@ -37,6 +37,12 @@ class ReportPublication(Base):
         ForeignKey("pipeline_artifacts.id", ondelete="RESTRICT"),
         nullable=False,
     )
+    report_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("reports.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    hash_version: Mapped[str] = mapped_column(String(16), nullable=False, default="e5-v1")
     published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     published_by: Mapped[str] = mapped_column(String(64), nullable=False)
     immutable_hash: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -57,7 +63,12 @@ class ReportPublication(Base):
             "length(period_yyyymm) = 6",
             name="ck_report_publications_period_len",
         ),
+        CheckConstraint(
+            "hash_version IN ('e5-v1','report-v2')",
+            name="chk_report_publication_hash_version",
+        ),
         Index("ix_report_publications_workspace_id", "workspace_id"),
+        Index("ix_report_publications_report_id", "report_id"),
         Index(
             "ix_report_publications_workspace_period",
             "workspace_id",

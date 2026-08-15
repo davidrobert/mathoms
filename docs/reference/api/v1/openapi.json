@@ -9637,6 +9637,11 @@
             "title": "Artifact Id",
             "type": "integer"
           },
+          "hash_version": {
+            "default": "e5-v1",
+            "title": "Hash Version",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -9657,6 +9662,17 @@
           "published_by": {
             "title": "Published By",
             "type": "string"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
           },
           "unpublished_at": {
             "anyOf": [

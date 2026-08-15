@@ -88,6 +88,7 @@ def _assemble_view_model(e5_payload: dict) -> dict:
         ),
         "comparisons": None,
         "changelog": None,
+        "protection_bundle": None,
     }
 
 

@@ -1308,6 +1308,8 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
 | `period_yyyymm` | `VARCHAR(6)` | no | — | — |
 | `artifact_id` | `INTEGER` | no | — | FK→pipeline_artifacts.id |
+| `report_id` | `VARCHAR(36)` | yes | — | FK→reports.id |
+| `hash_version` | `VARCHAR(16)` | no | `'e5-v1'` | — |
 | `published_at` | `DATETIME` | no | — | — |
 | `published_by` | `VARCHAR(64)` | no | — | — |
 | `immutable_hash` | `VARCHAR(64)` | no | — | — |
@@ -1316,12 +1318,15 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 **Constraints:**
 
+- CHECK (`hash_version IN ('e5-v1','report-v2')`) — `chk_report_publication_hash_version`
 - CHECK (`length(period_yyyymm) = 6`) — `ck_report_publications_period_len`
 - FOREIGN KEY (artifact_id) REFERENCES pipeline_artifacts.id ON DELETE RESTRICT — `(unnamed)`
+- FOREIGN KEY (report_id) REFERENCES reports.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
 **Indexes:**
 
+- `ix_report_publications_report_id` (report_id)
 - `ix_report_publications_workspace_id` (workspace_id)
 - `ix_report_publications_workspace_period` (workspace_id, period_yyyymm)
 - UNIQUE `uq_report_publications_active` (workspace_id, period_yyyymm)
@@ -1338,6 +1343,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `analysis_artifact_id` | `INTEGER` | yes | — | FK→pipeline_artifacts.id |
 | `tasks_snapshot_json` | `JSON` | yes | — | — |
 | `premissas_snapshot_json` | `JSON` | yes | — | — |
+| `protection_snapshot_json` | `JSON` | yes | — | — |
 | `score` | `FLOAT` | yes | — | — |
 | `patrimonio_liquido` | `NUMERIC(18, 2)` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
@@ -2008,6 +2014,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `pipeline_stage_logs.output_summary`
 - `report_layouts.config_json`
 - `reports.premissas_snapshot_json`
+- `reports.protection_snapshot_json`
 - `reports.tasks_snapshot_json`
 - `risks.mitigation_protection_ids`
 - `risks.mitigations_decision_ids`
@@ -2867,6 +2874,8 @@ type ReportPublication struct {
 	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
 	PeriodYyyymm string `db:"period_yyyymm" json:"period_yyyymm"`
 	ArtifactId int `db:"artifact_id" json:"artifact_id"`
+	ReportId *string `db:"report_id" json:"report_id"`
+	HashVersion string `db:"hash_version" json:"hash_version"`
 	PublishedAt time.Time `db:"published_at" json:"published_at"`
 	PublishedBy string `db:"published_by" json:"published_by"`
 	ImmutableHash string `db:"immutable_hash" json:"immutable_hash"`
@@ -2887,6 +2896,7 @@ type Report struct {
 	AnalysisArtifactId *int `db:"analysis_artifact_id" json:"analysis_artifact_id"`
 	TasksSnapshotJson json.RawMessage `db:"tasks_snapshot_json" json:"tasks_snapshot_json"`
 	PremissasSnapshotJson json.RawMessage `db:"premissas_snapshot_json" json:"premissas_snapshot_json"`
+	ProtectionSnapshotJson json.RawMessage `db:"protection_snapshot_json" json:"protection_snapshot_json"`
 	Score *float64 `db:"score" json:"score"`
 	PatrimonioLiquido *decimal.Decimal `db:"patrimonio_liquido" json:"patrimonio_liquido"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`

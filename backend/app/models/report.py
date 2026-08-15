@@ -37,6 +37,8 @@ class Report(Base):
     tasks_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # F11.6b — referência às premissas vigentes (metas + hash do goals.json) para comparar relatórios.
     premissas_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # ADR-387 — envelope V1 de proteção pinado ao Report. NULL = legado.
+    protection_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # ``score`` é índice 0–10 (não monetário) → Float é legítimo. Populado a
     # partir do artefato E5 (``score.valor``) na criação do Report (ADR-326).
     score: Mapped[float] = mapped_column(Float, nullable=True)

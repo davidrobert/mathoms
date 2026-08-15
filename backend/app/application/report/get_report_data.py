@@ -20,6 +20,7 @@ from backend.app.schemas.snapshot_changelog import (
     changelog_entry_to_read,
     comparison_item_to_read,
 )
+from backend.app.services.protection_snapshot_builder import protection_bundle_from_snapshot
 from backend.app.services.report_lineage import (
     consumed_documents_for_run,
     lineage_payload,
@@ -49,6 +50,7 @@ async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession
     _assert_analysis_stage(report_id, artifact)
 
     payload = dict(read_artifact_content(artifact.content_json))
+    payload["protection_bundle"] = protection_bundle_from_snapshot(report.protection_snapshot_json)
 
     doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace_id)
     consumed_total, consumed_ids = await consumed_documents_for_run(db, report.pipeline_run_id)

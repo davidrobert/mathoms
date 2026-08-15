@@ -19,6 +19,7 @@ from backend.app.application.base.errors import (
     ValidationError,
 )
 from backend.app.models.pipeline_artifact import PipelineArtifact
+from backend.app.models.report import Report
 from backend.app.models.report_publication import ReportPublication
 from backend.app.repositories.report_publication_repository import (
     ReportPublicationRepository,
@@ -53,9 +54,22 @@ def _strip_volatile(value: Any) -> Any:
 
 
 def compute_immutable_hash(snapshot: dict) -> str:
-    """SHA-256 do snapshot normalizado (chaves ordenadas, voláteis removidas)."""
+    """SHA-256 do snapshot E5 normalizado (chaves ordenadas, voláteis removidas)."""
     normalized = _strip_volatile(snapshot)
     payload = json.dumps(normalized, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+_REPORT_V2_PREFIX = "mathoms.report-v2\n"
+
+
+def compute_report_v2_hash(e5_snapshot: dict, protection_snapshot: dict) -> str:
+    """Hash do digest E5 legado + serialização canônica integral do snapshot."""
+    e5_digest = compute_immutable_hash(e5_snapshot)
+    canonical = json.dumps(
+        protection_snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+    )
+    payload = f"{_REPORT_V2_PREFIX}{e5_digest}\n{canonical}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -106,18 +120,64 @@ async def _load_artifact(
     return artifact
 
 
+async def _load_report_for_artifact(
+    workspace_id: str, artifact_id: int, *, db: AsyncSession
+) -> Report | None:
+    result = await db.execute(
+        select(Report).where(
+            Report.workspace_id == workspace_id,
+            Report.analysis_artifact_id == artifact_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+def _publication_hash_fields(
+    artifact: PipelineArtifact, report: Report | None
+) -> tuple[str, str | None, str]:
+    e5 = read_artifact_content(artifact.content_json) or {}
+    if report is None or report.protection_snapshot_json is None:
+        return compute_immutable_hash(e5), None if report is None else report.id, "e5-v1"
+    if report.analysis_artifact_id != artifact.id:
+        raise ValidationError(
+            "report.analysis_artifact_id não coincide com o artefato publicado",
+            code="report_artifact_mismatch",
+        )
+    return (
+        compute_report_v2_hash(e5, report.protection_snapshot_json),
+        report.id,
+        "report-v2",
+    )
+
+
 def _build_publication(
-    *, workspace_id: str, period_yyyymm: str, artifact: PipelineArtifact, actor: str
+    *,
+    workspace_id: str,
+    period_yyyymm: str,
+    artifact: PipelineArtifact,
+    actor: str,
+    report: Report | None,
 ) -> ReportPublication:
+    digest, report_id, hash_version = _publication_hash_fields(artifact, report)
     return ReportPublication(
         id=str(uuid.uuid4()),
         workspace_id=workspace_id,
         period_yyyymm=period_yyyymm,
         artifact_id=artifact.id,
+        report_id=report_id,
+        hash_version=hash_version,
         published_at=datetime.now(timezone.utc),
         published_by=actor,
-        immutable_hash=compute_immutable_hash(read_artifact_content(artifact.content_json) or {}),
+        immutable_hash=digest,
     )
+
+
+async def _ensure_month_open(repo: ReportPublicationRepository, workspace_id: str, period: str):
+    if await repo.get_active(workspace_id, period) is not None:
+        raise ConflictError(
+            f"Período {period} já está publicado para este workspace",
+            code="already_published",
+        )
 
 
 async def publish_month(
@@ -127,13 +187,14 @@ async def publish_month(
     _validate_period(period_yyyymm)
     artifact = await _load_artifact(workspace_id, artifact_id, db=db)
     repo = ReportPublicationRepository(db)
-    if await repo.get_active(workspace_id, period_yyyymm) is not None:
-        raise ConflictError(
-            f"Período {period_yyyymm} já está publicado para este workspace",
-            code="already_published",
-        )
+    await _ensure_month_open(repo, workspace_id, period_yyyymm)
+    report = await _load_report_for_artifact(workspace_id, artifact.id, db=db)
     publication = _build_publication(
-        workspace_id=workspace_id, period_yyyymm=period_yyyymm, artifact=artifact, actor=actor
+        workspace_id=workspace_id,
+        period_yyyymm=period_yyyymm,
+        artifact=artifact,
+        actor=actor,
+        report=report,
     )
     return await repo.add(publication)
 

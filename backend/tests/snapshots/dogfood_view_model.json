@@ -1836,6 +1836,7 @@
     "premio_total_anual_brl": "0.00",
     "seguradoras_count": 0
   },
+  "protection_bundle": null,
   "protection_computation_inputs_v1": {
     "as_of_date": "2026-08-15",
     "captured_at": "2026-08-15T00:00:00Z",
