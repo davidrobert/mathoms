@@ -49,6 +49,7 @@ from backend.app.models.family_member import (
 )
 from backend.app.models.feature_flag import FeatureFlag
 from backend.app.models.fiscal_parameter import FiscalParameter
+from backend.app.models.fiscal_rule_set import VALID_FISCAL_RULE_CODES, FiscalRuleSet
 from backend.app.models.goal import VALID_GOAL_TYPES, Goal
 from backend.app.models.institution_catalog import InstitutionCatalog
 from backend.app.models.internal_ops_audit import InternalOpsAudit
@@ -105,10 +106,17 @@ from backend.app.models.property_market_value import (
     PropertyMarketValue,
 )
 from backend.app.models.protection import (
+    VALID_PROTECTION_BENEFIT_MODES,
     VALID_PROTECTION_CATEGORIES,
     VALID_PROTECTION_COVERAGE_TYPES,
     VALID_PROTECTION_STATUSES,
     Protection,
+)
+from backend.app.models.protection_profile import (
+    EconomicDependency,
+    FamilyMemberProtectionProfile,
+    FamilyMemberTaxProfile,
+    ProtectionIncomeDeclaration,
 )
 from backend.app.models.refresh_token_family import RefreshTokenFamily
 from backend.app.models.report import Report
@@ -199,6 +207,8 @@ __all__ = [
     "WorkspaceMemoryConfirmation",
     "FeatureFlag",
     "FiscalParameter",
+    "FiscalRuleSet",
+    "VALID_FISCAL_RULE_CODES",
     "EconomicAssetClass",
     "EconomicAssumption",
     "WorkspaceEconomicAssumptionOverride",
@@ -270,9 +280,14 @@ __all__ = [
     "VALID_RISK_PROBABILITIES",
     "VALID_RISK_STATUSES",
     "Protection",
+    "VALID_PROTECTION_BENEFIT_MODES",
     "VALID_PROTECTION_CATEGORIES",
     "VALID_PROTECTION_COVERAGE_TYPES",
     "VALID_PROTECTION_STATUSES",
+    "EconomicDependency",
+    "FamilyMemberProtectionProfile",
+    "FamilyMemberTaxProfile",
+    "ProtectionIncomeDeclaration",
     "PropertyIdentity",
     "WorkspacePropertyOverride",
     "PropertyMarketValue",

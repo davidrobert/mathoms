@@ -55,10 +55,19 @@ def _coverage_by_category(items: list[ProtectionItem]) -> dict[str, int]:
     return totals
 
 
-def _disability_coverage_monthly(items: list[ProtectionItem]) -> int:
-    """Proxy mensal de cobertura de invalidez (refinamento real em T-futuro)."""
-    cat_total = sum(int(it["coverage_brl_cents"]) for it in items if it["category"] == "invalidez")
-    return (cat_total // 12) if cat_total > 0 else 0
+def _disability_monthly_benefit(items: list[ProtectionItem]) -> int | None:
+    """Soma só benefício mensal contratual; capital único não vira renda (ADR-387 D6)."""
+    monthly = 0
+    for item in items:
+        if item["category"] != "invalidez":
+            continue
+        if item.get("benefit_mode") != "monthly_income":
+            return None
+        benefit = item.get("benefit_monthly_brl_cents")
+        if benefit is None:
+            return None
+        monthly += int(benefit)
+    return monthly
 
 
 def _age_from_birth(
@@ -160,7 +169,8 @@ def _run_disability(
 ):
     assert computation_inputs.active_net_monthly_income_brl_cents is not None
     assert computation_inputs.passive_net_monthly_income_brl_cents is not None
-    actual_monthly = _disability_coverage_monthly(items)
+    actual_monthly = _disability_monthly_benefit(items)
+    assert actual_monthly is not None
     inputs = DisabilityInputs(
         active_net_monthly_income_brl_cents=computation_inputs.active_net_monthly_income_brl_cents,
         passive_net_monthly_income_brl_cents=computation_inputs.passive_net_monthly_income_brl_cents,
@@ -302,7 +312,9 @@ def _life_status(
     return _status("computed", reason="Calculado sobre dependentes e insumos observados.")
 
 
-def _disability_status(inputs: ProtectionComputationInputs) -> ProtectionCalculationStatus:
+def _disability_status(
+    items: list[ProtectionItem], inputs: ProtectionComputationInputs
+) -> ProtectionCalculationStatus:
     missing = _missing_names(
         ("active_net_monthly_income_brl_cents", inputs.active_net_monthly_income_brl_cents),
         ("passive_net_monthly_income_brl_cents", inputs.passive_net_monthly_income_brl_cents),
@@ -310,6 +322,12 @@ def _disability_status(inputs: ProtectionComputationInputs) -> ProtectionCalcula
     if missing:
         return _status(
             "missing_data", missing=missing, reason="Par de renda líquida mensal incompleto."
+        )
+    if _disability_monthly_benefit(items) is None:
+        return _status(
+            "missing_data",
+            missing=("disability_monthly_benefit",),
+            reason="Capital único de invalidez não se converte em renda mensal.",
         )
     return _status("computed", reason="Calculado sobre rendas líquidas da mesma base.")
 
@@ -390,7 +408,7 @@ def _orchestrate_calculators(
     gap: dict[str, ProtectionGapItem] = {}
     recs: list[ProtectionRecommendation] = []
     auto: list[RiskInferred] = []
-    statuses = _calculation_statuses(members, today, inputs)
+    statuses = _calculation_statuses(members, today, items, inputs)
     _compute_available_life(statuses, members, today, cov, iso, inputs, gap, recs, auto)
     _compute_available_disability(statuses, items, iso, inputs, gap, recs, auto)
     _compute_available_itcmd(statuses, cov, iso, inputs, gap, recs, auto)
@@ -398,10 +416,10 @@ def _orchestrate_calculators(
     return gap, recs, auto, statuses
 
 
-def _calculation_statuses(members, today, inputs) -> dict[str, ProtectionCalculationStatus]:
+def _calculation_statuses(members, today, items, inputs) -> dict[str, ProtectionCalculationStatus]:
     return {
         "vida": _life_status(members, today, inputs),
-        "invalidez": _disability_status(inputs),
+        "invalidez": _disability_status(items, inputs),
         "sucessorio": _itcmd_status(inputs),
         "compliance_us": _us_status(inputs),
     }

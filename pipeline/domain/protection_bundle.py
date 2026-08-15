@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional, TypedDict
+from typing import Literal, NotRequired, Optional, TypedDict
 
 
 class ProtectionItem(TypedDict):
@@ -18,6 +18,9 @@ class ProtectionItem(TypedDict):
     starts_at: str  # ISO 8601 date
     ends_at: Optional[str]  # ISO 8601 date | None
     status: str
+    insured_family_member_id: NotRequired[Optional[str]]
+    benefit_mode: NotRequired[Optional[str]]
+    benefit_monthly_brl_cents: NotRequired[Optional[int]]
 
 
 class ProtectionGapItem(TypedDict, total=False):

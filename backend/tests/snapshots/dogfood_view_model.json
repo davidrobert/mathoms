@@ -1836,6 +1836,22 @@
     "premio_total_anual_brl": "0.00",
     "seguradoras_count": 0
   },
+  "protection_computation_inputs_v1": {
+    "as_of_date": "2026-08-15",
+    "captured_at": "2026-08-15T00:00:00Z",
+    "debts": [],
+    "economic_dependencies": [],
+    "fiscal_rules": [],
+    "incomes": [],
+    "input_contract_version": 100,
+    "inputs_digest_sha256": "12734af9f32079d116bdcb5629b41434f852b0ea4042724aab284b5b40d76d1f",
+    "member_profiles": [],
+    "pipeline_run_id": null,
+    "policies": [],
+    "reason_code": "source_not_injected",
+    "status": "unavailable",
+    "tax_profiles": []
+  },
   "ratios": {
     "aliquota_efetiva_ir_pct": "N/D",
     "autonomia_financeira_meses": "86.670000",

@@ -662,4 +662,13 @@ export type E5AnalysisArtifact = {
     }>;
   };
   "protecao_patrimonial"?: ProtecaoPatrimonialArtifact;
+  "protection_computation_inputs_v1"?: {
+    "input_contract_version": number;
+    "status": "available" | "unavailable";
+    "reason_code"?: string | null;
+    "pipeline_run_id"?: string | null;
+    "captured_at": string;
+    "as_of_date": string;
+    "inputs_digest_sha256": string;
+  };
 };

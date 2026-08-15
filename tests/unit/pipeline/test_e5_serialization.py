@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import sys
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
+from pipeline.domain.protection_computation_inputs import finalize_inputs  # noqa: E402
 from pipeline.domain.services.e5_serialization import (  # noqa: E402
     E5_ARTIFACT_FILENAME,
     E5_ARTIFACT_KEY,
@@ -288,6 +290,7 @@ class TestBuildOutput:
             "diagnostico_comportamental",
             "cenarios_conjuge",
             "programa_milhas",
+            "protection_computation_inputs_v1",
         ):
             assert field in out
 
@@ -315,6 +318,27 @@ class TestBuildOutput:
         assert out["cenarios_conjuge"] == {"cenarios": [1, 2, 3]}
         # Garantir que o campo configurável foi removido do dataclass.
         assert not hasattr(inp, "cenarios_conjuge_key")
+
+    def test_protection_inputs_unavailable_when_not_injected(self):
+        out = build_e5_output(_inputs())
+        block = out["protection_computation_inputs_v1"]
+        assert block["status"] == "unavailable"
+        assert block["reason_code"] == "source_not_injected"
+        assert block["as_of_date"] == "2026-04-19"
+        assert len(block["inputs_digest_sha256"]) == 64
+
+    def test_protection_inputs_uses_injected_available_block(self):
+        injected = finalize_inputs(
+            status="available",
+            captured_at=datetime(2026, 4, 19, tzinfo=timezone.utc),
+            as_of_date=date(2026, 4, 19),
+            pipeline_run_id="run-injected",
+        )
+        out = build_e5_output(_inputs(protection_computation_inputs=injected))
+        block = out["protection_computation_inputs_v1"]
+        assert block["status"] == "available"
+        assert block["pipeline_run_id"] == "run-injected"
+        assert block["reason_code"] is None
 
     def test_protecao_patrimonial_incluida_quando_presente(self):
         """A28.l6 (ADR-240 D8): bloco protecao_patrimonial entra no payload E5."""

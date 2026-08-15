@@ -109,6 +109,55 @@ def test_no_economic_dependent_does_not_publish_ten_times_income() -> None:
     assert "vida" not in bundle["gap_analysis"]
 
 
+def _disability_item(**overrides) -> dict:
+    item = {
+        "id": "pol-inv",
+        "category": "invalidez",
+        "holder_family_member_id": None,
+        "insurer": None,
+        "coverage_brl_cents": 1_200_000_00,
+        "premium_monthly_brl_cents": None,
+        "coverage_type": None,
+        "starts_at": "2026-01-01",
+        "ends_at": None,
+        "status": "Ativa",
+    }
+    item.update(overrides)
+    return item
+
+
+def _disability_bundle(items):
+    return populate_protection_bundle(
+        items=items,
+        members=[],
+        workspace=None,
+        today=date(2026, 8, 13),
+        adapter_version=3,
+        computation_inputs=ProtectionComputationInputs(
+            active_net_monthly_income_brl_cents=20_000_00,
+            passive_net_monthly_income_brl_cents=2_000_00,
+        ),
+    )
+
+
+def test_lump_sum_disability_is_not_converted_to_monthly() -> None:
+    lump = _disability_bundle([_disability_item(benefit_mode="lump_sum")])
+    monthly = _disability_bundle(
+        [
+            _disability_item(
+                coverage_brl_cents=0,
+                benefit_mode="monthly_income",
+                benefit_monthly_brl_cents=8_000_00,
+            )
+        ]
+    )
+    assert lump["calculation_status"]["invalidez"]["status"] == "missing_data"
+    assert "disability_monthly_benefit" in lump["calculation_status"]["invalidez"]["missing_inputs"]
+    assert "invalidez" not in lump["gap_analysis"]
+    assert monthly["calculation_status"]["invalidez"]["status"] == "computed"
+    assert monthly["gap_analysis"]["invalidez"]["actual_brl_cents"] == 8_000_00 * 12
+
+
 def test_disability_requires_both_net_income_inputs() -> None:
     incomplete = _bundle(
         [], ProtectionComputationInputs(active_net_monthly_income_brl_cents=20_000_00)
@@ -191,5 +240,7 @@ def test_populator_has_no_todo_zero_or_false_calculator_input() -> None:
         "gross_estate_brl_cents=0",
         "has_us_assets=False",
         "has_us_income=False",
+        "// 12",
+        "/ 12",
     )
     assert not [needle for needle in forbidden if needle in source]

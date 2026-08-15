@@ -18,6 +18,10 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Mapping
 
+from pipeline.domain.protection_computation_inputs import (
+    ProtectionComputationInputsV1,
+    unavailable_inputs,
+)
 from pipeline.domain.services.if_monte_carlo import MonteCarloIFResult
 from pipeline.domain.services.if_monte_carlo_payload import monte_carlo_to_dict
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
@@ -292,6 +296,9 @@ class E5OutputInputs:
     # a classe de motivo). Default vazio para caller legado; a paridade com o
     # emissor é travada por teste derivado de `fields()`, não por inspeção.
     pontos_urgentes_retidos: list[dict[str, Any]] = field(default_factory=list)
+    # ADR-387 — insumos de proteção observados no run. None = não injetados;
+    # o serializer emite unavailable/source_not_injected (pipeline sem SQLAlchemy).
+    protection_computation_inputs: ProtectionComputationInputsV1 | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -389,7 +396,15 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     if inputs.monte_carlo_if is not None:
         output["if_monte_carlo"] = monte_carlo_to_dict(inputs.monte_carlo_if)
 
+    output["protection_computation_inputs_v1"] = _protection_inputs_payload(inputs)
     return output
+
+
+def _protection_inputs_payload(inputs: E5OutputInputs) -> dict[str, Any]:
+    block = inputs.protection_computation_inputs
+    if block is None:
+        block = unavailable_inputs(data_analise=inputs.data_analise)
+    return block.model_dump(mode="json")
 
 
 # =============================================================================

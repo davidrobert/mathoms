@@ -1,4 +1,9 @@
-"""Calculator ``itcmd_estimated`` (ADR-192 §D3, S9-T03) — ITCMD por UF = patrimônio × alíquota. Tabela injetada pelo adapter via ``fiscal_parameters`` (ADR-135 / ADR-192 §"Atualizações pós-revisão"). Pure (ADR-097 D3 / ADR-111). Boundary ADR-101 R5; cents int64 (ADR-090)."""
+"""Calculator ``itcmd_estimated`` — cenário bruto familiar × alíquota injetada.
+
+ADR-387 D6: o produto não é imposto devido. Tabela por vigência vive em
+``fiscal_rule_sets`` (não em ``fiscal_parameters``). Puro (ADR-097/111);
+cents int64 (ADR-090).
+"""
 
 from __future__ import annotations
 
@@ -41,7 +46,7 @@ def _format_brl(cents: int) -> str:
 def _itcmd_uf_unknown(uf: str, effective_date: str) -> ITCMDEstimate:
     """UF fora da tabela: degrada para 0 com warning textual no rationale."""
     disclaimer = render_disclaimer(
-        sources="Tabela ITCMD estadual (fiscal_parameters)",
+        sources="cenário bruto familiar × alíquota injetada; não é imposto devido",
         effective_date=effective_date,
     )
     rationale = (
@@ -63,8 +68,8 @@ def _itcmd_rationale(gross: int, uf: str, aliquota: Decimal, itcmd: int, disclai
     return (
         f"Patrimônio bruto declarado: {_format_brl(gross)}; "
         f"alíquota ITCMD-{uf} vigente: {aliquota}%; "
-        f"ITCMD estimado: {_format_brl(itcmd)}. "
-        f"Não inclui doações em vida nem deduções (cônjuge meeiro, dependentes). "
+        f"cenário bruto estimado: {_format_brl(itcmd)}. "
+        f"Não é imposto devido. Não inclui titularidade, meação nem regra vigente. "
         f"{disclaimer}"
     )
 
@@ -86,7 +91,8 @@ def _build_itcmd_estimate(
     uf: str, aliquota: Decimal, gross: int, itcmd: int, effective_date: str
 ) -> ITCMDEstimate:
     disclaimer = render_disclaimer(
-        sources=f"Tabela ITCMD {uf} (fiscal_parameters)", effective_date=effective_date
+        sources=f"cenário bruto familiar × alíquota {uf} injetada; não é imposto devido",
+        effective_date=effective_date,
     )
     rationale = _itcmd_rationale(gross, uf, aliquota, itcmd, disclaimer)
     return ITCMDEstimate(
