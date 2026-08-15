@@ -1,3 +1,4 @@
+import type { ProtectionBundle } from "@/components/report/cards/protectionBundle.types";
 import type { E5AnalysisArtifact } from "@/generated/report-analysis";
 import { API_BASE, apiFetch } from "./core";
 
@@ -124,6 +125,8 @@ export interface ReportEndpointAugmentations {
   /** A40.l25 — nota one-shot de recalibração da S7. `null` calа: sem relatório
    * anterior, bloco anterior ilegível, ou nenhuma faceta renderizável. */
   recalibracao_mc?: RecalibracaoMcData | null;
+  /** A40.l35 — bundle pinado no snapshot (null = Report legado ou sem insumo). */
+  protection_bundle?: ProtectionBundle | null;
   /** F11.4a — injetado pelo GET /reports/{id}/data (não faz parte do E5 legado). */
   _report_lineage?: {
     pipeline_run_id: string | null;

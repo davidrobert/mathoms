@@ -118,6 +118,24 @@ function buildData(
     },
     score: { valor: 8.2, max: 10, classificacao: "Excelente" },
     real_estate: REAL_ESTATE,
+    protection_bundle: {
+      policies: [
+        {
+          id: "p1",
+          category: "vida",
+          coverage_brl: 100000,
+          starts_at: "2026-01-01",
+          status: "Ativa",
+        },
+      ],
+      gap_analysis: {},
+      recommendations: [],
+      auto_inferred_risks: [],
+      calculation_status: {},
+      methodology_thresholds: {},
+      has_us_exposure: null,
+      adapter_version: 3,
+    },
     ...overrides,
   } as unknown as ReportAnalysisData;
 }
@@ -299,6 +317,7 @@ describe("composição e supressão por seção (ADR-356)", () => {
   // não há análise de cobertura" — o `s9` diria o mesmo com outro wording.
   it("S9 em empty state não publica o s9 (o EmptyState é a mensagem)", () => {
     const data = buildData({
+      protection_bundle: null,
       narrativas: {
         ...FIXTURE,
         charts: {
