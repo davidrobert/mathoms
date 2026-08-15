@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 
 from backend.app.core.logging import get_logger
+from backend.app.services.protection_snapshot_compute import compute_protection_bundle
 from pipeline.domain.protection_computation_inputs import (
     ProtectionComputationInputsV1,
     analysis_clock,
@@ -79,6 +80,10 @@ def _build_from_e5(e5_payload: dict, *, captured_at, as_of_date, **ids) -> dict:
         return _unavailable_from_inputs(
             inputs, captured_at=captured_at, as_of_date=as_of_date, **ids
         ).model_dump(mode="json")
+    return _available_snapshot(inputs, captured_at=captured_at, as_of_date=as_of_date, **ids)
+
+
+def _available_snapshot(inputs, *, captured_at, as_of_date, **ids) -> dict:
     return ProtectionComputationSnapshotV1(
         snapshot_status="available",
         e5_inputs_digest_sha256=inputs.inputs_digest_sha256,
@@ -86,7 +91,7 @@ def _build_from_e5(e5_payload: dict, *, captured_at, as_of_date, **ids) -> dict:
         as_of_date=as_of_date,
         calculator_versions=dict(CALCULATOR_VERSIONS),
         inputs=inputs,
-        bundle=None,
+        bundle=compute_protection_bundle(inputs, as_of_date=as_of_date),
         **ids,
     ).model_dump(mode="json")
 

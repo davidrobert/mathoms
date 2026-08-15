@@ -51,7 +51,8 @@ def test_builder_available_when_e5_carries_available_inputs() -> None:
     )
     assert snap["snapshot_status"] == "available"
     assert snap["e5_inputs_digest_sha256"] == inputs.inputs_digest_sha256
-    assert snap["bundle"] is None
+    assert isinstance(snap["bundle"], dict)
+    assert snap["bundle"]["policies"] == []
 
 
 def test_legacy_report_has_null_bundle() -> None:

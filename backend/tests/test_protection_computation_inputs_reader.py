@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 
+from backend.app.models.family_member import FamilyMember
 from backend.app.models.fiscal_rule_set import FiscalRuleSet
 from backend.app.models.protection import Protection
 from backend.app.models.protection_profile import (
@@ -151,6 +152,34 @@ def test_invalid_fiscal_payload_is_dropped() -> None:
     bad.parameters_json = {"kind": "us_fbar"}
     block = _project(fiscal_rules=(bad,))
     assert block.fiscal_rules == ()
+
+
+def _member(*, member_id: str, role: str, birth: date) -> FamilyMember:
+    return FamilyMember(
+        id=member_id,
+        workspace_id="ws-1",
+        key=role,
+        full_name=role,
+        short_name=role,
+        role=role,
+        birth_date=birth,
+        created_at=_now(),
+    )
+
+
+def test_members_project_role_and_birth_date() -> None:
+    titular = _member(member_id="m-titular", role="titular", birth=date(1986, 1, 1))
+    filho = _member(member_id="m-filho", role="filho", birth=date(2016, 1, 1))
+    block = _project(members=(titular, filho))
+    by_id = {row.subject_family_member_id: row for row in block.member_profiles}
+    assert by_id["m-titular"].role == "titular"
+    assert by_id["m-titular"].birth_date == date(1986, 1, 1)
+    assert by_id["m-filho"].role == "filho"
+    assert by_id["m-filho"].birth_date == date(2016, 1, 1)
+
+
+def test_policy_status_is_projected() -> None:
+    assert _project().policies[0].status == "Ativa"
 
 
 def test_digest_changes_when_income_changes() -> None:

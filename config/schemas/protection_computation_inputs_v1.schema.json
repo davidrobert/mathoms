@@ -474,6 +474,31 @@
           "title": "Subject Family Member Id",
           "type": "string"
         },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "birth_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Birth Date"
+        },
         "economic_dependents_complete_as_of": {
           "anyOf": [
             {
@@ -740,6 +765,11 @@
           ],
           "default": null,
           "title": "Ends At"
+        },
+        "status": {
+          "default": "Ativa",
+          "title": "Status",
+          "type": "string"
         },
         "source_ref": {
           "$ref": "#/$defs/DBSourceRef"

@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.debt import Debt
+from backend.app.models.family_member import FamilyMember
 from backend.app.models.fiscal_rule_set import FiscalRuleSet
 from backend.app.models.protection import Protection
 from backend.app.models.protection_profile import (
@@ -45,9 +46,16 @@ def _row_ref(table: str, record_id: str, observed: datetime) -> DBSourceRef:
     return DBSourceRef(table=table, record_id=record_id, observed_updated_at=observed)
 
 
-def _map_profile(row: FamilyMemberProtectionProfile) -> MemberProtectionProfileInput:
+def _map_profile(
+    row: FamilyMemberProtectionProfile,
+    *,
+    role: str | None = None,
+    birth_date: date | None = None,
+) -> MemberProtectionProfileInput:
     return MemberProtectionProfileInput(
         subject_family_member_id=row.family_member_id,
+        role=role,
+        birth_date=birth_date,
         economic_dependents_complete_as_of=row.economic_dependents_complete_as_of,
         debt_inventory_complete_as_of=row.debt_inventory_complete_as_of,
         life_policy_inventory_complete_as_of=row.life_policy_inventory_complete_as_of,
@@ -55,6 +63,29 @@ def _map_profile(row: FamilyMemberProtectionProfile) -> MemberProtectionProfileI
         estate_inventory_complete_as_of=row.estate_inventory_complete_as_of,
         source_ref=_row_ref(row.__tablename__, row.id, row.updated_at),
     )
+
+
+def _map_member(
+    member: FamilyMember, profile: FamilyMemberProtectionProfile | None
+) -> MemberProtectionProfileInput:
+    if profile is not None:
+        return _map_profile(profile, role=member.role, birth_date=member.birth_date)
+    return MemberProtectionProfileInput(
+        subject_family_member_id=member.id,
+        role=member.role,
+        birth_date=member.birth_date,
+        source_ref=_row_ref("family_members", member.id, member.created_at),
+    )
+
+
+def _profiles_for_members(
+    members: Iterable, profiles: Iterable[FamilyMemberProtectionProfile]
+) -> tuple[MemberProtectionProfileInput, ...]:
+    listed = list(members)
+    if not listed:
+        return tuple(_map_profile(row) for row in profiles)
+    by_member = {row.family_member_id: row for row in profiles}
+    return tuple(_map_member(member, by_member.get(member.id)) for member in listed)
 
 
 def _map_dependency(row: EconomicDependency) -> EconomicDependencyInput:
@@ -97,6 +128,7 @@ def _map_policy(row: Protection) -> ProtectionPolicyInput:
         benefit_monthly_brl_cents=row.benefit_monthly_brl_cents,
         starts_at=row.starts_at,
         ends_at=row.ends_at,
+        status=row.status,
         source_ref=_row_ref(row.__tablename__, row.id, row.updated_at),
     )
 
@@ -166,15 +198,15 @@ def _map_rule(row: FiscalRuleSet) -> FiscalRuleInput | None:
     )
 
 
-def _collections_kwargs(**rows: Iterable) -> dict:
+def _collections_kwargs(*, as_of_date: date, members=(), **rows) -> dict:
     return {
-        "member_profiles": tuple(_map_profile(row) for row in rows["profiles"]),
+        "member_profiles": _profiles_for_members(members, rows["profiles"]),
         "economic_dependencies": tuple(_map_dependency(row) for row in rows["dependencies"]),
         "incomes": tuple(_map_income(row) for row in rows["incomes"]),
         "policies": tuple(_map_policy(row) for row in rows["policies"]),
         "debts": tuple(_map_debt(row) for row in rows["debts"]),
         "tax_profiles": tuple(_map_tax(row) for row in rows["tax_profiles"]),
-        "fiscal_rules": tuple(_map_effective_rules(rows["fiscal_rules"], rows["as_of_date"])),
+        "fiscal_rules": tuple(_map_effective_rules(rows["fiscal_rules"], as_of_date)),
     }
 
 
@@ -211,7 +243,10 @@ def _map_effective_rules(
 
 
 def _load_workspace_sources(db: Session, workspace_id: str) -> dict:
+    members = list(_workspace_rows(db, FamilyMember, workspace_id))
+    members.sort(key=lambda member: (member.order, member.id))
     return {
+        "members": members,
         "profiles": _workspace_rows(db, FamilyMemberProtectionProfile, workspace_id),
         "dependencies": _workspace_rows(db, EconomicDependency, workspace_id),
         "incomes": _workspace_rows(db, ProtectionIncomeDeclaration, workspace_id),

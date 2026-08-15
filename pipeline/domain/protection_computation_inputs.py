@@ -34,6 +34,8 @@ SourceRef = Annotated[Union[DBSourceRef, FiscalRuleSourceRef], Field(discriminat
 
 class MemberProtectionProfileInput(_StrictModel):
     subject_family_member_id: str
+    role: str | None = None
+    birth_date: date | None = None
     economic_dependents_complete_as_of: date | None = None
     debt_inventory_complete_as_of: date | None = None
     life_policy_inventory_complete_as_of: date | None = None
@@ -75,6 +77,7 @@ class ProtectionPolicyInput(_StrictModel):
     benefit_monthly_brl_cents: int | None = Field(default=None, ge=0)
     starts_at: date
     ends_at: date | None = None
+    status: str = "Ativa"
     source_ref: DBSourceRef
 
 
