@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-15 open · 7 in_progress · 2 blocked.
+15 open · 6 in_progress · 2 blocked.
 
 ## Open (15)
 
@@ -25,11 +25,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · área pipeline/frontend · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
 - [[A40.l63]] — Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD · priority P1 · área pipeline/money · branch `a40-l63-conversao-me-brl-sem-proveniencia`
 
-## In progress (7)
+## In progress (6)
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · área frontend/design-system/a11y · branch `a40-l33-contraste-texto-sobre-tint`
-- [[A40.l35]] — Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros · priority P1 · área backend/frontend/financial-planning · branch `a40-l35-bundle-de-protecao-sobre-insumos-reais`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · área frontend/dx · branch `a40-l5-contrato-view-model-gate`

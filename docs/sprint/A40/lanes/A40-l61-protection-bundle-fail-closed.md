@@ -33,7 +33,8 @@ tags:
 > fotografia run-scoped existir.
 >
 > **2026-08-15:** a fotografia existe — [[A40.l62]] shippou (#1471 + #1474).
-> A [[A40.l35]] passou a `in_progress` (#1476).
+> A [[A40.l35]] passou a `in_progress` (#1476) e shippou no mesmo dia (#1476
+> · `549695b1`).
 
 ## Problema
 

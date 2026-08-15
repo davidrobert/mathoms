@@ -32,6 +32,9 @@ tags:
 >
 > **Emenda 2026-08-15:** a [[A40.l62]] shippou o hash composto e o snapshot
 > pinado (#1471 + #1474). A S9 continua desligada até a [[A40.l35]].
+>
+> **Emenda 2026-08-15 (l35):** a [[A40.l35]] shippou (#1476). A S9 lê
+> `snapshot.bundle`; empty total só sem insumo real. GET não consulta live.
 
 ## Contexto
 

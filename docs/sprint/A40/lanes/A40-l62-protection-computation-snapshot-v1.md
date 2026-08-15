@@ -82,11 +82,12 @@ vigentes quando foi gerado”. Nenhuma metade libera a S9 isoladamente.
 O que **não** saiu dos PRs, de propósito (D6) ou por falta de insumo no V1:
 
 - Checks EUA não produzem `computed`. Fontes e `fiscal_rule_sets` existem;
-  o populator ainda retém `compliance_us` até a regra separar FBAR/FATCA/Estate
-  NRA. Dono da superfície: [[A40.l35]]; a promoção do calculator não é automática.
+  o populator ainda retém `compliance_us`. Fica no residual da [[A40.l35]]
+  (já `shipped`) — owner-gated, sem reabrir lane.
 - Sucessório sem cenário de espólio no V1 permanece `missing_data`. É proibido
   publicar patrimônio familiar × UF como imposto devido.
-- S9 continua desligada. Pré-lane não conta como entrega da l35.
+- S9 desligada neste merge. Pré-lane não conta como entrega da l35.
+  **2026-08-15:** a [[A40.l35]] shippou (#1476) e ligou a S9 ao snapshot.
 
 ## Achados medidos entregues ao PR1 — 2026-08-14
 
