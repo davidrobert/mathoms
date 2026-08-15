@@ -140,7 +140,8 @@ class TestGetMarketRate:
 
 class TestFiscalCacheKeys:
     def test_fiscal_cache_key_shape(self):
-        assert fiscal_cache.fiscal_cache_key(2025) == "fiscal:y=2025"
+        # A40.l56: a chave carrega a versão do SHAPE do payload (ADR-389 D5).
+        assert fiscal_cache.fiscal_cache_key(2025) == "fiscal:v2:y=2025"
 
     def test_market_cache_key_shape(self):
         key = fiscal_cache.market_cache_key("USD/BRL", date(2026, 4, 27))
@@ -184,8 +185,8 @@ class TestFakeRedisRoundTrip:
     def test_fiscal_cache_stores_and_retrieves(self, fake_redis):
         payload = {"year": 2025, "lucro_presumido_aliquota": "0.32"}
         fiscal_cache.store_fiscal_cache(2025, payload)
-        assert fake_redis["fiscal:y=2025"][0]
-        assert fake_redis["fiscal:y=2025"][1] == 3600  # TTL 1h
+        assert fake_redis["fiscal:v2:y=2025"][0]
+        assert fake_redis["fiscal:v2:y=2025"][1] == 3600  # TTL 1h
         got = fiscal_cache.get_cached_fiscal(2025)
         assert got == payload
 
@@ -196,16 +197,16 @@ class TestFakeRedisRoundTrip:
 
     def test_invalidate_removes_key(self, fake_redis):
         fiscal_cache.store_fiscal_cache(2025, {"year": 2025})
-        assert "fiscal:y=2025" in fake_redis
+        assert "fiscal:v2:y=2025" in fake_redis
         fiscal_cache.invalidate_fiscal(2025)
-        assert "fiscal:y=2025" not in fake_redis
+        assert "fiscal:v2:y=2025" not in fake_redis
 
     def test_dbconfigstore_uses_cache_on_repeat(self, sync_db, fake_redis):
         _seed_fiscal(sync_db, year=2025)
         with sync_db() as s:
             store = DBConfigStore(s)
             store.get_fiscal_for_period(date(2025, 6, 1), date(2025, 6, 30))
-            assert "fiscal:y=2025" in fake_redis
+            assert "fiscal:v2:y=2025" in fake_redis
             # Segunda chamada não deve quebrar mesmo se DB row some — vem do cache.
             with sync_db() as s2:
                 from backend.app.models.fiscal_parameter import FiscalParameter
@@ -219,4 +220,4 @@ class TestFakeRedisRoundTrip:
             # Aqui somente o segundo SELECT vai falhar — o teste real é que
             # invalidação remove o cache:
             fiscal_cache.invalidate_fiscal(2025)
-            assert "fiscal:y=2025" not in fake_redis
+            assert "fiscal:v2:y=2025" not in fake_redis
