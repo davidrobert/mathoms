@@ -16,6 +16,9 @@ tags:
 > não está autorizado a produzir `computed`: mistura bases de FBAR, FATCA e
 > Estate Tax NRA. A [[A40.l62]] o substitui por três checks person-scoped; até
 > lá, exposição positiva ou incerta permanece `missing_data`.
+>
+> **2026-08-15:** a [[A40.l62]] shippou as fontes e o snapshot (#1471 + #1474).
+> O hold do calculator permanece — ainda não há `computed` EUA.
 
 **Conceito.** Triagem de três obrigações/exposições independentes, sempre por
 pessoa e ano: FBAR, FATCA/Form 8938 e Estate Tax para nonresident not citizen.

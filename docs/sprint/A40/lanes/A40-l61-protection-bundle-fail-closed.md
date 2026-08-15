@@ -31,6 +31,9 @@ tags:
 > **Entregue em 2026-08-14 pelo PR #1443** (`0a343302`). O fail-closed está em
 > `main`; [[A40.l62]] foi desbloqueada e a [[A40.l35]] continua bloqueada até a
 > fotografia run-scoped existir.
+>
+> **2026-08-15:** a fotografia existe — [[A40.l62]] shippou (#1471 + #1474).
+> A [[A40.l35]] passou a `in_progress` (#1476).
 
 ## Problema
 
