@@ -2036,6 +2036,51 @@
     "protecao_patrimonial": {
       "$ref": "protecao_patrimonial.schema.json",
       "description": "Proteção patrimonial (ADR-240 D8 · A28.l6): apólices de extract_comprovantes_bens → compute_protecao. Sempre presente pós-wiring (workspace sem apólice = KPIs zerados + gap_qualitativo, cenário G6-b). Contrato completo em protecao_patrimonial.schema.json (validado no hook pós-write)."
+    },
+    "protection_computation_inputs_v1": {
+      "type": "object",
+      "description": "Insumos de proteção observados no run (ADR-387). Sempre emitido por build_e5_output; unavailable/source_not_injected quando o adapter não injetou a projeção relacional. Contrato completo em protection_computation_inputs_v1.schema.json; aqui só o envelope para o codegen do view-model.",
+      "required": [
+        "input_contract_version",
+        "status",
+        "captured_at",
+        "as_of_date",
+        "inputs_digest_sha256"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "input_contract_version": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "reason_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "captured_at": {
+          "type": "string"
+        },
+        "as_of_date": {
+          "type": "string"
+        },
+        "inputs_digest_sha256": {
+          "type": "string"
+        }
+      }
     }
   },
   "$defs": {

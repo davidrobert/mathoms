@@ -86,6 +86,12 @@ def test_disclaimer_presente_no_rationale() -> None:
     assert _EFFECTIVE_DATE in out.rationale
 
 
+def test_itcmd_is_labeled_gross_scenario_not_tax_due() -> None:
+    out = itcmd_estimated(_inputs(uf="SP", gross_estate_brl_cents=1_000_000_00))
+    assert "não é imposto devido" in out.rationale.lower()
+    assert "fiscal_parameters" not in out.rationale
+
+
 def test_idempotente() -> None:
     inputs = _inputs(uf="SP", gross_estate_brl_cents=1_000_000_00)
     o1 = itcmd_estimated(inputs)

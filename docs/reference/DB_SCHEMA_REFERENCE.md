@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 64
+**Total de tabelas:** 69
 
 ---
 
@@ -28,9 +28,13 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`documents`](#documents)
 - [`economic_asset_class`](#economicassetclass)
 - [`economic_assumptions`](#economicassumptions)
+- [`economic_dependencies`](#economicdependencies)
+- [`family_member_protection_profiles`](#familymemberprotectionprofiles)
+- [`family_member_tax_profiles`](#familymembertaxprofiles)
 - [`family_members`](#familymembers)
 - [`feature_flags`](#featureflags)
 - [`fiscal_parameters`](#fiscalparameters)
+- [`fiscal_rule_sets`](#fiscalrulesets)
 - [`goals`](#goals)
 - [`institution_catalog`](#institutioncatalog)
 - [`institution_configs`](#institutionconfigs)
@@ -50,6 +54,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`planner_review_metadata`](#plannerreviewmetadata)
 - [`property_identity`](#propertyidentity)
 - [`property_market_value`](#propertymarketvalue)
+- [`protection_income_declarations`](#protectionincomedeclarations)
 - [`protections`](#protections)
 - [`refresh_token_families`](#refreshtokenfamilies)
 - [`report_layouts`](#reportlayouts)
@@ -503,6 +508,107 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_economic_assumptions_effective_from` (effective_from)
 - `ix_economic_assumptions_effective_to` (effective_to)
 
+### `economic_dependencies`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `_uuid` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `dependent_family_member_id` | `VARCHAR(36)` | no | — | FK→family_members.id |
+| `provider_family_member_id` | `VARCHAR(36)` | no | — | FK→family_members.id |
+| `status` | `VARCHAR(12)` | no | — | — |
+| `support_monthly_brl_cents` | `BIGINT` | yes | — | — |
+| `support_share_pct` | `NUMERIC(5, 2)` | yes | — | — |
+| `dependency_end_date` | `DATE` | yes | — | — |
+| `durable` | `BOOLEAN` | no | `False` | — |
+| `as_of_date` | `DATE` | no | — | — |
+| `source_kind` | `VARCHAR(24)` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `_now` | — |
+| `updated_at` | `DATETIME` | no | callable: `_now` | — |
+
+**Constraints:**
+
+- CHECK (`dependent_family_member_id <> provider_family_member_id`) — `chk_dependency_distinct_members`
+- CHECK (`source_kind IN ('user_declared','document_derived')`) — `chk_dependency_source_kind`
+- CHECK (`status IN ('yes','no','unknown')`) — `chk_dependency_status`
+- CHECK (`support_monthly_brl_cents IS NULL OR support_monthly_brl_cents >= 0`) — `chk_dependency_support_nonnegative`
+- CHECK (`support_share_pct IS NULL OR (support_share_pct >= 0 AND support_share_pct <= 100)`) — `chk_dependency_share_range`
+- FOREIGN KEY (dependent_family_member_id) REFERENCES family_members.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (provider_family_member_id) REFERENCES family_members.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, dependent_family_member_id, provider_family_member_id, as_of_date) — `uq_dependency_ws_pair_asof`
+
+**Indexes:**
+
+- `ix_dependency_ws_provider` (workspace_id, provider_family_member_id)
+- `ix_economic_dependencies_workspace_id` (workspace_id)
+
+### `family_member_protection_profiles`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `_uuid` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `family_member_id` | `VARCHAR(36)` | no | — | FK→family_members.id, UNIQUE |
+| `economic_dependents_complete_as_of` | `DATE` | yes | — | — |
+| `debt_inventory_complete_as_of` | `DATE` | yes | — | — |
+| `life_policy_inventory_complete_as_of` | `DATE` | yes | — | — |
+| `disability_policy_inventory_complete_as_of` | `DATE` | yes | — | — |
+| `estate_inventory_complete_as_of` | `DATE` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `_now` | — |
+| `updated_at` | `DATETIME` | no | callable: `_now` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (family_member_id) REFERENCES family_members.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (family_member_id) — `(unnamed)`
+- UNIQUE (workspace_id, family_member_id) — `uq_member_protection_profile_ws_member`
+
+**Indexes:**
+
+- `ix_family_member_protection_profiles_workspace_id` (workspace_id)
+
+### `family_member_tax_profiles`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `_uuid` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `family_member_id` | `VARCHAR(36)` | no | — | FK→family_members.id, UNIQUE |
+| `br_succession_uf` | `VARCHAR(2)` | yes | — | — |
+| `us_person_status` | `VARCHAR(20)` | yes | — | — |
+| `us_filing_status` | `VARCHAR(20)` | yes | — | — |
+| `us_filing_residence` | `VARCHAR(16)` | yes | — | — |
+| `foreign_financial_accounts_max_usd_cents` | `BIGINT` | yes | — | — |
+| `specified_foreign_assets_end_usd_cents` | `BIGINT` | yes | — | — |
+| `specified_foreign_assets_max_usd_cents` | `BIGINT` | yes | — | — |
+| `us_situs_estate_assets_usd_cents` | `BIGINT` | yes | — | — |
+| `estate_tax_treaty_code` | `VARCHAR(32)` | yes | — | — |
+| `as_of_date` | `DATE` | no | — | — |
+| `source_kind` | `VARCHAR(24)` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `_now` | — |
+| `updated_at` | `DATETIME` | no | callable: `_now` | — |
+
+**Constraints:**
+
+- CHECK (`foreign_financial_accounts_max_usd_cents IS NULL OR foreign_financial_accounts_max_usd_cents >= 0`) — `chk_tax_profile_fbar_nonnegative`
+- CHECK (`source_kind IN ('user_declared','document_derived')`) — `chk_tax_profile_source_kind`
+- CHECK (`specified_foreign_assets_end_usd_cents IS NULL OR specified_foreign_assets_end_usd_cents >= 0`) — `chk_tax_profile_fatca_end_nonnegative`
+- CHECK (`specified_foreign_assets_max_usd_cents IS NULL OR specified_foreign_assets_max_usd_cents >= 0`) — `chk_tax_profile_fatca_max_nonnegative`
+- CHECK (`us_filing_residence IS NULL OR us_filing_residence IN ('inside_us','outside_us','unknown')`) — `chk_tax_profile_filing_residence`
+- CHECK (`us_filing_status IS NULL OR us_filing_status IN ('single','married_joint','married_separate','other','unknown')`) — `chk_tax_profile_filing_status`
+- CHECK (`us_person_status IS NULL OR us_person_status IN ('us_person','not_us_person','unknown')`) — `chk_tax_profile_us_person_status`
+- CHECK (`us_situs_estate_assets_usd_cents IS NULL OR us_situs_estate_assets_usd_cents >= 0`) — `chk_tax_profile_estate_nonnegative`
+- FOREIGN KEY (family_member_id) REFERENCES family_members.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (family_member_id) — `(unnamed)`
+- UNIQUE (workspace_id, family_member_id) — `uq_tax_profile_ws_member`
+
+**Indexes:**
+
+- `ix_family_member_tax_profiles_workspace_id` (workspace_id)
+
 ### `family_members`
 
 | Column | Type | Nullable | Default | Tags |
@@ -566,6 +672,30 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_fiscal_parameters_effective_from` (effective_from)
 - `ix_fiscal_parameters_effective_to` (effective_to)
 - `ix_fiscal_parameters_year` (year)
+
+### `fiscal_rule_sets`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `rule_code` | `VARCHAR(24)` | no | — | — |
+| `jurisdiction_code` | `VARCHAR(24)` | no | — | — |
+| `rule_version` | `VARCHAR(32)` | no | — | — |
+| `effective_from` | `DATE` | no | — | — |
+| `effective_to` | `DATE` | yes | — | — |
+| `parameters_json` | `JSON` | no | — | — |
+| `source` | `TEXT` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- CHECK (`effective_to IS NULL OR effective_to >= effective_from`) — `chk_fiscal_rule_period`
+- CHECK (`rule_code IN ('BR_ITCMD','US_FBAR','US_FATCA','US_ESTATE_NRA')`) — `chk_fiscal_rule_code`
+- UNIQUE (rule_code, jurisdiction_code, effective_from) — `uq_fiscal_rule_code_jurisdiction_from`
+
+**Indexes:**
+
+- `ix_fiscal_rule_lookup` (rule_code, jurisdiction_code, effective_from)
 
 ### `goals`
 
@@ -1055,6 +1185,41 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - `idx_pmv_lookup` (workspace_id, property_id)
 
+### `protection_income_declarations`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `_uuid` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `family_member_id` | `VARCHAR(36)` | no | — | FK→family_members.id |
+| `active_net_annual_brl_cents` | `BIGINT` | yes | — | — |
+| `passive_net_annual_brl_cents` | `BIGINT` | yes | — | — |
+| `period_start` | `DATE` | no | — | — |
+| `period_end` | `DATE` | no | — | — |
+| `observed_months` | `INTEGER` | no | — | — |
+| `basis` | `VARCHAR(64)` | no | — | — |
+| `as_of_date` | `DATE` | no | — | — |
+| `source_kind` | `VARCHAR(24)` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `_now` | — |
+| `updated_at` | `DATETIME` | no | callable: `_now` | — |
+
+**Constraints:**
+
+- CHECK (`active_net_annual_brl_cents IS NULL OR active_net_annual_brl_cents >= 0`) — `chk_protection_income_active_nonnegative`
+- CHECK (`basis = 'cash_receipts_after_source_withholding'`) — `chk_protection_income_basis`
+- CHECK (`observed_months >= 1 AND observed_months <= 12`) — `chk_protection_income_months`
+- CHECK (`passive_net_annual_brl_cents IS NULL OR passive_net_annual_brl_cents >= 0`) — `chk_protection_income_passive_nonnegative`
+- CHECK (`period_start <= period_end`) — `chk_protection_income_period`
+- CHECK (`source_kind IN ('user_declared','document_derived')`) — `chk_protection_income_source_kind`
+- FOREIGN KEY (family_member_id) REFERENCES family_members.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, family_member_id, as_of_date) — `uq_income_ws_member_asof`
+
+**Indexes:**
+
+- `ix_income_ws_asof` (workspace_id, as_of_date)
+- `ix_protection_income_declarations_workspace_id` (workspace_id)
+
 ### `protections`
 
 | Column | Type | Nullable | Default | Tags |
@@ -1063,9 +1228,12 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
 | `category` | `VARCHAR(32)` | no | — | — |
 | `holder_family_member_id` | `VARCHAR(36)` | yes | — | FK→family_members.id |
+| `insured_family_member_id` | `VARCHAR(36)` | yes | — | FK→family_members.id |
 | `insurer` | `VARCHAR(120)` | yes | — | — |
 | `policy_ref` | `TEXT` | yes | — | — |
 | `coverage_brl_cents` | `BIGINT` | no | — | — |
+| `benefit_mode` | `VARCHAR(16)` | yes | — | — |
+| `benefit_monthly_brl_cents` | `BIGINT` | yes | — | — |
 | `premium_monthly_brl_cents` | `BIGINT` | yes | — | — |
 | `coverage_type` | `VARCHAR(16)` | yes | — | — |
 | `starts_at` | `DATE` | no | — | — |
@@ -1077,7 +1245,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 **Constraints:**
 
+- CHECK (`benefit_mode IS NULL OR benefit_mode IN ('lump_sum','monthly_income')`) — `chk_protection_benefit_mode`
+- CHECK (`benefit_monthly_brl_cents IS NULL OR benefit_monthly_brl_cents >= 0`) — `chk_protection_monthly_benefit_nonnegative`
 - FOREIGN KEY (holder_family_member_id) REFERENCES family_members.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (insured_family_member_id) REFERENCES family_members.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
 **Indexes:**
@@ -1085,6 +1256,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_protections_workspace_id` (workspace_id)
 - `ix_protections_ws_category` (workspace_id, category)
 - `ix_protections_ws_ends_at` (workspace_id, ends_at)
+- `ix_protections_ws_insured` (workspace_id, insured_family_member_id)
 - `ix_protections_ws_status` (workspace_id, status)
 
 ### `refresh_token_families`
@@ -1822,6 +1994,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `family_members.extra`
 - `feature_flags.flags_json`
 - `fiscal_parameters.ir_brackets`
+- `fiscal_rule_sets.parameters_json`
 - `goals.derived_json`
 - `goals.params_json`
 - `institution_catalog.metadata_json`
@@ -2156,6 +2329,66 @@ type EconomicAssumption struct {
 }
 ```
 
+### `economic_dependencies` → `type EconomicDependencie struct`
+
+```go
+type EconomicDependencie struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	DependentFamilyMemberId string `db:"dependent_family_member_id" json:"dependent_family_member_id"`
+	ProviderFamilyMemberId string `db:"provider_family_member_id" json:"provider_family_member_id"`
+	Status string `db:"status" json:"status"`
+	SupportMonthlyBrlCents *int64 `db:"support_monthly_brl_cents" json:"support_monthly_brl_cents"`
+	SupportSharePct *decimal.Decimal `db:"support_share_pct" json:"support_share_pct"`
+	DependencyEndDate *time.Time `db:"dependency_end_date" json:"dependency_end_date"`
+	Durable bool `db:"durable" json:"durable"`
+	AsOfDate time.Time `db:"as_of_date" json:"as_of_date"`
+	SourceKind string `db:"source_kind" json:"source_kind"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `family_member_protection_profiles` → `type FamilyMemberProtectionProfile struct`
+
+```go
+type FamilyMemberProtectionProfile struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	FamilyMemberId string `db:"family_member_id" json:"family_member_id"`
+	EconomicDependentsCompleteAsOf *time.Time `db:"economic_dependents_complete_as_of" json:"economic_dependents_complete_as_of"`
+	DebtInventoryCompleteAsOf *time.Time `db:"debt_inventory_complete_as_of" json:"debt_inventory_complete_as_of"`
+	LifePolicyInventoryCompleteAsOf *time.Time `db:"life_policy_inventory_complete_as_of" json:"life_policy_inventory_complete_as_of"`
+	DisabilityPolicyInventoryCompleteAsOf *time.Time `db:"disability_policy_inventory_complete_as_of" json:"disability_policy_inventory_complete_as_of"`
+	EstateInventoryCompleteAsOf *time.Time `db:"estate_inventory_complete_as_of" json:"estate_inventory_complete_as_of"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `family_member_tax_profiles` → `type FamilyMemberTaxProfile struct`
+
+```go
+type FamilyMemberTaxProfile struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	FamilyMemberId string `db:"family_member_id" json:"family_member_id"`
+	BrSuccessionUf *string `db:"br_succession_uf" json:"br_succession_uf"`
+	UsPersonStatus *string `db:"us_person_status" json:"us_person_status"`
+	UsFilingStatus *string `db:"us_filing_status" json:"us_filing_status"`
+	UsFilingResidence *string `db:"us_filing_residence" json:"us_filing_residence"`
+	ForeignFinancialAccountsMaxUsdCents *int64 `db:"foreign_financial_accounts_max_usd_cents" json:"foreign_financial_accounts_max_usd_cents"`
+	SpecifiedForeignAssetsEndUsdCents *int64 `db:"specified_foreign_assets_end_usd_cents" json:"specified_foreign_assets_end_usd_cents"`
+	SpecifiedForeignAssetsMaxUsdCents *int64 `db:"specified_foreign_assets_max_usd_cents" json:"specified_foreign_assets_max_usd_cents"`
+	UsSitusEstateAssetsUsdCents *int64 `db:"us_situs_estate_assets_usd_cents" json:"us_situs_estate_assets_usd_cents"`
+	EstateTaxTreatyCode *string `db:"estate_tax_treaty_code" json:"estate_tax_treaty_code"`
+	AsOfDate time.Time `db:"as_of_date" json:"as_of_date"`
+	SourceKind string `db:"source_kind" json:"source_kind"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
 ### `family_members` → `type FamilyMember struct`
 
 ```go
@@ -2198,6 +2431,22 @@ type FiscalParameter struct {
 	LucroPresumidoAliquota decimal.Decimal `db:"lucro_presumido_aliquota" json:"lucro_presumido_aliquota"`
 	EffectiveFrom time.Time `db:"effective_from" json:"effective_from"`
 	EffectiveTo *time.Time `db:"effective_to" json:"effective_to"`
+	Source string `db:"source" json:"source"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `fiscal_rule_sets` → `type FiscalRuleSet struct`
+
+```go
+type FiscalRuleSet struct {
+	Id string `db:"id" json:"id"`
+	RuleCode string `db:"rule_code" json:"rule_code"`
+	JurisdictionCode string `db:"jurisdiction_code" json:"jurisdiction_code"`
+	RuleVersion string `db:"rule_version" json:"rule_version"`
+	EffectiveFrom time.Time `db:"effective_from" json:"effective_from"`
+	EffectiveTo *time.Time `db:"effective_to" json:"effective_to"`
+	ParametersJson json.RawMessage `db:"parameters_json" json:"parameters_json"`
 	Source string `db:"source" json:"source"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
@@ -2536,6 +2785,26 @@ type PropertyMarketValue struct {
 }
 ```
 
+### `protection_income_declarations` → `type ProtectionIncomeDeclaration struct`
+
+```go
+type ProtectionIncomeDeclaration struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	FamilyMemberId string `db:"family_member_id" json:"family_member_id"`
+	ActiveNetAnnualBrlCents *int64 `db:"active_net_annual_brl_cents" json:"active_net_annual_brl_cents"`
+	PassiveNetAnnualBrlCents *int64 `db:"passive_net_annual_brl_cents" json:"passive_net_annual_brl_cents"`
+	PeriodStart time.Time `db:"period_start" json:"period_start"`
+	PeriodEnd time.Time `db:"period_end" json:"period_end"`
+	ObservedMonths int `db:"observed_months" json:"observed_months"`
+	Basis string `db:"basis" json:"basis"`
+	AsOfDate time.Time `db:"as_of_date" json:"as_of_date"`
+	SourceKind string `db:"source_kind" json:"source_kind"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
 ### `protections` → `type Protection struct`
 
 ```go
@@ -2544,9 +2813,12 @@ type Protection struct {
 	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
 	Category string `db:"category" json:"category"`
 	HolderFamilyMemberId *string `db:"holder_family_member_id" json:"holder_family_member_id"`
+	InsuredFamilyMemberId *string `db:"insured_family_member_id" json:"insured_family_member_id"`
 	Insurer *string `db:"insurer" json:"insurer"`
 	PolicyRef *string `db:"policy_ref" json:"policy_ref"`
 	CoverageBrlCents int64 `db:"coverage_brl_cents" json:"coverage_brl_cents"`
+	BenefitMode *string `db:"benefit_mode" json:"benefit_mode"`
+	BenefitMonthlyBrlCents *int64 `db:"benefit_monthly_brl_cents" json:"benefit_monthly_brl_cents"`
 	PremiumMonthlyBrlCents *int64 `db:"premium_monthly_brl_cents" json:"premium_monthly_brl_cents"`
 	CoverageType *string `db:"coverage_type" json:"coverage_type"`
 	StartsAt time.Time `db:"starts_at" json:"starts_at"`

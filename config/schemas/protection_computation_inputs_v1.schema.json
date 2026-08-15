@@ -1,0 +1,951 @@
+{
+  "$defs": {
+    "BRITCMDParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "br_itcmd",
+          "default": "br_itcmd",
+          "title": "Kind",
+          "type": "string"
+        },
+        "calculation_mode": {
+          "const": "scenario_bracketed",
+          "title": "Calculation Mode",
+          "type": "string"
+        },
+        "brackets": {
+          "items": {
+            "$ref": "#/$defs/ITCMDBracket"
+          },
+          "minItems": 1,
+          "title": "Brackets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "calculation_mode",
+        "brackets"
+      ],
+      "title": "BRITCMDParameters",
+      "type": "object"
+    },
+    "DBSourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "db_row",
+          "default": "db_row",
+          "title": "Kind",
+          "type": "string"
+        },
+        "table": {
+          "title": "Table",
+          "type": "string"
+        },
+        "record_id": {
+          "title": "Record Id",
+          "type": "string"
+        },
+        "observed_updated_at": {
+          "format": "date-time",
+          "title": "Observed Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "table",
+        "record_id",
+        "observed_updated_at"
+      ],
+      "title": "DBSourceRef",
+      "type": "object"
+    },
+    "EconomicDependencyInput": {
+      "additionalProperties": false,
+      "properties": {
+        "dependent_family_member_id": {
+          "title": "Dependent Family Member Id",
+          "type": "string"
+        },
+        "provider_family_member_id": {
+          "title": "Provider Family Member Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "support_monthly_brl_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Support Monthly Brl Cents"
+        },
+        "support_share_pct": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Support Share Pct"
+        },
+        "dependency_end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dependency End Date"
+        },
+        "durable": {
+          "title": "Durable",
+          "type": "boolean"
+        },
+        "as_of_date": {
+          "format": "date",
+          "title": "As Of Date",
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/DBSourceRef"
+        }
+      },
+      "required": [
+        "dependent_family_member_id",
+        "provider_family_member_id",
+        "status",
+        "durable",
+        "as_of_date",
+        "source_ref"
+      ],
+      "title": "EconomicDependencyInput",
+      "type": "object"
+    },
+    "FATCAThreshold": {
+      "additionalProperties": false,
+      "properties": {
+        "filing_status": {
+          "enum": [
+            "single",
+            "married_joint",
+            "married_separate",
+            "other"
+          ],
+          "title": "Filing Status",
+          "type": "string"
+        },
+        "residence": {
+          "enum": [
+            "inside_us",
+            "outside_us"
+          ],
+          "title": "Residence",
+          "type": "string"
+        },
+        "year_end_usd_cents": {
+          "minimum": 0,
+          "title": "Year End Usd Cents",
+          "type": "integer"
+        },
+        "any_time_usd_cents": {
+          "minimum": 0,
+          "title": "Any Time Usd Cents",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filing_status",
+        "residence",
+        "year_end_usd_cents",
+        "any_time_usd_cents"
+      ],
+      "title": "FATCAThreshold",
+      "type": "object"
+    },
+    "FamilyMemberTaxInput": {
+      "additionalProperties": false,
+      "properties": {
+        "subject_family_member_id": {
+          "title": "Subject Family Member Id",
+          "type": "string"
+        },
+        "br_succession_uf": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z]{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Br Succession Uf"
+        },
+        "us_person_status": {
+          "anyOf": [
+            {
+              "enum": [
+                "us_person",
+                "not_us_person",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Us Person Status"
+        },
+        "us_filing_status": {
+          "anyOf": [
+            {
+              "enum": [
+                "single",
+                "married_joint",
+                "married_separate",
+                "other",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Us Filing Status"
+        },
+        "us_filing_residence": {
+          "anyOf": [
+            {
+              "enum": [
+                "inside_us",
+                "outside_us",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Us Filing Residence"
+        },
+        "foreign_financial_accounts_max_usd_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Foreign Financial Accounts Max Usd Cents"
+        },
+        "specified_foreign_assets_end_usd_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Specified Foreign Assets End Usd Cents"
+        },
+        "specified_foreign_assets_max_usd_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Specified Foreign Assets Max Usd Cents"
+        },
+        "us_situs_estate_assets_usd_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Us Situs Estate Assets Usd Cents"
+        },
+        "estate_tax_treaty_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estate Tax Treaty Code"
+        },
+        "as_of_date": {
+          "format": "date",
+          "title": "As Of Date",
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/DBSourceRef"
+        }
+      },
+      "required": [
+        "subject_family_member_id",
+        "as_of_date",
+        "source_ref"
+      ],
+      "title": "FamilyMemberTaxInput",
+      "type": "object"
+    },
+    "FiscalRuleInput": {
+      "additionalProperties": false,
+      "properties": {
+        "rule_code": {
+          "enum": [
+            "BR_ITCMD",
+            "US_FBAR",
+            "US_FATCA",
+            "US_ESTATE_NRA"
+          ],
+          "title": "Rule Code",
+          "type": "string"
+        },
+        "jurisdiction_code": {
+          "title": "Jurisdiction Code",
+          "type": "string"
+        },
+        "parameters": {
+          "discriminator": {
+            "mapping": {
+              "br_itcmd": "#/$defs/BRITCMDParameters",
+              "us_estate_nra": "#/$defs/USEstateNRAParameters",
+              "us_fatca": "#/$defs/USFATCAParameters",
+              "us_fbar": "#/$defs/USFBARParameters"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/BRITCMDParameters"
+            },
+            {
+              "$ref": "#/$defs/USFBARParameters"
+            },
+            {
+              "$ref": "#/$defs/USFATCAParameters"
+            },
+            {
+              "$ref": "#/$defs/USEstateNRAParameters"
+            }
+          ],
+          "title": "Parameters"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/FiscalRuleSourceRef"
+        }
+      },
+      "required": [
+        "rule_code",
+        "jurisdiction_code",
+        "parameters",
+        "source_ref"
+      ],
+      "title": "FiscalRuleInput",
+      "type": "object"
+    },
+    "FiscalRuleSourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fiscal_rule_set",
+          "default": "fiscal_rule_set",
+          "title": "Kind",
+          "type": "string"
+        },
+        "record_id": {
+          "title": "Record Id",
+          "type": "string"
+        },
+        "rule_version": {
+          "title": "Rule Version",
+          "type": "string"
+        },
+        "effective_from": {
+          "format": "date",
+          "title": "Effective From",
+          "type": "string"
+        },
+        "effective_to": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effective To"
+        }
+      },
+      "required": [
+        "record_id",
+        "rule_version",
+        "effective_from"
+      ],
+      "title": "FiscalRuleSourceRef",
+      "type": "object"
+    },
+    "ITCMDBracket": {
+      "additionalProperties": false,
+      "properties": {
+        "up_to_brl_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Up To Brl Cents"
+        },
+        "rate_basis_points": {
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Rate Basis Points",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "rate_basis_points"
+      ],
+      "title": "ITCMDBracket",
+      "type": "object"
+    },
+    "MemberProtectionProfileInput": {
+      "additionalProperties": false,
+      "properties": {
+        "subject_family_member_id": {
+          "title": "Subject Family Member Id",
+          "type": "string"
+        },
+        "economic_dependents_complete_as_of": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Economic Dependents Complete As Of"
+        },
+        "debt_inventory_complete_as_of": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Debt Inventory Complete As Of"
+        },
+        "life_policy_inventory_complete_as_of": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Life Policy Inventory Complete As Of"
+        },
+        "disability_policy_inventory_complete_as_of": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Disability Policy Inventory Complete As Of"
+        },
+        "estate_inventory_complete_as_of": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estate Inventory Complete As Of"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/DBSourceRef"
+        }
+      },
+      "required": [
+        "subject_family_member_id",
+        "source_ref"
+      ],
+      "title": "MemberProtectionProfileInput",
+      "type": "object"
+    },
+    "ProtectionDebtInput": {
+      "additionalProperties": false,
+      "properties": {
+        "debt_id": {
+          "title": "Debt Id",
+          "type": "string"
+        },
+        "subject_family_member_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Family Member Id"
+        },
+        "balance_brl_cents": {
+          "minimum": 0,
+          "title": "Balance Brl Cents",
+          "type": "integer"
+        },
+        "needs_review": {
+          "title": "Needs Review",
+          "type": "boolean"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/DBSourceRef"
+        }
+      },
+      "required": [
+        "debt_id",
+        "balance_brl_cents",
+        "needs_review",
+        "source_ref"
+      ],
+      "title": "ProtectionDebtInput",
+      "type": "object"
+    },
+    "ProtectionIncomeInput": {
+      "additionalProperties": false,
+      "properties": {
+        "subject_family_member_id": {
+          "title": "Subject Family Member Id",
+          "type": "string"
+        },
+        "active_net_annual_brl_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Net Annual Brl Cents"
+        },
+        "passive_net_annual_brl_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passive Net Annual Brl Cents"
+        },
+        "period_start": {
+          "format": "date",
+          "title": "Period Start",
+          "type": "string"
+        },
+        "period_end": {
+          "format": "date",
+          "title": "Period End",
+          "type": "string"
+        },
+        "observed_months": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Observed Months",
+          "type": "integer"
+        },
+        "basis": {
+          "const": "cash_receipts_after_source_withholding",
+          "title": "Basis",
+          "type": "string"
+        },
+        "as_of_date": {
+          "format": "date",
+          "title": "As Of Date",
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/DBSourceRef"
+        }
+      },
+      "required": [
+        "subject_family_member_id",
+        "period_start",
+        "period_end",
+        "observed_months",
+        "basis",
+        "as_of_date",
+        "source_ref"
+      ],
+      "title": "ProtectionIncomeInput",
+      "type": "object"
+    },
+    "ProtectionPolicyInput": {
+      "additionalProperties": false,
+      "properties": {
+        "policy_id": {
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "insured_family_member_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Insured Family Member Id"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "benefit_mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "lump_sum",
+                "monthly_income"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Benefit Mode"
+        },
+        "lump_sum_brl_cents": {
+          "minimum": 0,
+          "title": "Lump Sum Brl Cents",
+          "type": "integer"
+        },
+        "benefit_monthly_brl_cents": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Benefit Monthly Brl Cents"
+        },
+        "starts_at": {
+          "format": "date",
+          "title": "Starts At",
+          "type": "string"
+        },
+        "ends_at": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ends At"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/DBSourceRef"
+        }
+      },
+      "required": [
+        "policy_id",
+        "category",
+        "lump_sum_brl_cents",
+        "starts_at",
+        "source_ref"
+      ],
+      "title": "ProtectionPolicyInput",
+      "type": "object"
+    },
+    "USEstateNRAParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "us_estate_nra",
+          "default": "us_estate_nra",
+          "title": "Kind",
+          "type": "string"
+        },
+        "filing_threshold_usd_cents": {
+          "minimum": 0,
+          "title": "Filing Threshold Usd Cents",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filing_threshold_usd_cents"
+      ],
+      "title": "USEstateNRAParameters",
+      "type": "object"
+    },
+    "USFATCAParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "us_fatca",
+          "default": "us_fatca",
+          "title": "Kind",
+          "type": "string"
+        },
+        "thresholds": {
+          "items": {
+            "$ref": "#/$defs/FATCAThreshold"
+          },
+          "minItems": 1,
+          "title": "Thresholds",
+          "type": "array"
+        }
+      },
+      "required": [
+        "thresholds"
+      ],
+      "title": "USFATCAParameters",
+      "type": "object"
+    },
+    "USFBARParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "us_fbar",
+          "default": "us_fbar",
+          "title": "Kind",
+          "type": "string"
+        },
+        "aggregate_threshold_usd_cents": {
+          "minimum": 0,
+          "title": "Aggregate Threshold Usd Cents",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "aggregate_threshold_usd_cents"
+      ],
+      "title": "USFBARParameters",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "input_contract_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Input Contract Version",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "available",
+        "unavailable"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "reason_code": {
+      "anyOf": [
+        {
+          "enum": [
+            "source_not_injected",
+            "source_read_failed"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reason Code"
+    },
+    "pipeline_run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pipeline Run Id"
+    },
+    "captured_at": {
+      "format": "date-time",
+      "title": "Captured At",
+      "type": "string"
+    },
+    "as_of_date": {
+      "format": "date",
+      "title": "As Of Date",
+      "type": "string"
+    },
+    "inputs_digest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Inputs Digest Sha256",
+      "type": "string"
+    },
+    "member_profiles": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/MemberProtectionProfileInput"
+      },
+      "title": "Member Profiles",
+      "type": "array"
+    },
+    "economic_dependencies": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/EconomicDependencyInput"
+      },
+      "title": "Economic Dependencies",
+      "type": "array"
+    },
+    "incomes": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProtectionIncomeInput"
+      },
+      "title": "Incomes",
+      "type": "array"
+    },
+    "policies": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProtectionPolicyInput"
+      },
+      "title": "Policies",
+      "type": "array"
+    },
+    "debts": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProtectionDebtInput"
+      },
+      "title": "Debts",
+      "type": "array"
+    },
+    "tax_profiles": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/FamilyMemberTaxInput"
+      },
+      "title": "Tax Profiles",
+      "type": "array"
+    },
+    "fiscal_rules": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/FiscalRuleInput"
+      },
+      "title": "Fiscal Rules",
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "captured_at",
+    "as_of_date",
+    "inputs_digest_sha256"
+  ],
+  "title": "ProtectionComputationInputsV1",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Insumos run-scoped de proteção (ADR-387). Dinheiro em cents; ausência é null; unavailable exige reason_code. extra=forbid no modelo Pydantic."
+}

@@ -8,6 +8,7 @@ from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
@@ -26,6 +27,7 @@ VALID_PROTECTION_CATEGORIES: frozenset[str] = frozenset(
 VALID_PROTECTION_STATUSES: frozenset[str] = frozenset({"Ativa", "Suspensa", "Cancelada", "Vencida"})
 
 VALID_PROTECTION_COVERAGE_TYPES: frozenset[str] = frozenset({"term", "whole", "universal"})
+VALID_PROTECTION_BENEFIT_MODES: frozenset[str] = frozenset({"lump_sum", "monthly_income"})
 
 
 class Protection(Base):
@@ -46,9 +48,16 @@ class Protection(Base):
         ForeignKey("family_members.id", ondelete="SET NULL"),
         nullable=True,
     )
+    insured_family_member_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("family_members.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     insurer: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     policy_ref: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     coverage_brl_cents: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    benefit_mode: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
+    benefit_monthly_brl_cents: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     premium_monthly_brl_cents: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     coverage_type: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
     starts_at: Mapped[date] = mapped_column(Date, nullable=False)
@@ -70,8 +79,17 @@ class Protection(Base):
     workspace = relationship("Workspace")
 
     __table_args__ = (
+        CheckConstraint(
+            "benefit_mode IS NULL OR benefit_mode IN ('lump_sum','monthly_income')",
+            name="chk_protection_benefit_mode",
+        ),
+        CheckConstraint(
+            "benefit_monthly_brl_cents IS NULL OR benefit_monthly_brl_cents >= 0",
+            name="chk_protection_monthly_benefit_nonnegative",
+        ),
         Index("ix_protections_ws_status", "workspace_id", "status"),
         Index("ix_protections_ws_category", "workspace_id", "category"),
+        Index("ix_protections_ws_insured", "workspace_id", "insured_family_member_id"),
         Index("ix_protections_ws_ends_at", "workspace_id", "ends_at"),
     )
 

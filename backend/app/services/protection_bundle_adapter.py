@@ -19,7 +19,7 @@ _PROTECTION_BUNDLE_VERSION: int = 3  # A40.l61 — computabilidade fail-closed
 
 
 def _protection_to_bundle_item(protection: Protection) -> ProtectionItem:
-    return {
+    item: ProtectionItem = {
         "id": protection.id,
         "category": protection.category,
         "holder_family_member_id": protection.holder_family_member_id,
@@ -31,6 +31,10 @@ def _protection_to_bundle_item(protection: Protection) -> ProtectionItem:
         "ends_at": protection.ends_at.isoformat() if protection.ends_at else None,
         "status": protection.status,
     }
+    item["insured_family_member_id"] = protection.insured_family_member_id
+    item["benefit_mode"] = protection.benefit_mode
+    item["benefit_monthly_brl_cents"] = protection.benefit_monthly_brl_cents
+    return item
 
 
 def _protections_active_stmt(workspace_id: str):
