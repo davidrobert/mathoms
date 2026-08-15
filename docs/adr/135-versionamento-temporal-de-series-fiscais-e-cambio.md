@@ -5,8 +5,8 @@ title: "Versionamento temporal de séries fiscais e câmbio"
 status: Decidido
 phase: "Sprint A7"
 date: "2026-04-26"
-amended_at: ["2026-07-07"]
-relates_to: ["[[ADR-090]]", "[[ADR-238]]"]
+amended_at: ["2026-07-07", "2026-08-15"]
+relates_to: ["[[ADR-090]]", "[[ADR-238]]", "[[ADR-389]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 135"]
@@ -21,6 +21,10 @@ size_lines: 101
 
 > **Emenda (2026-07-07):** `rate` para pares `*/BRL` é PTAX de **compra** —
 > ver §"Emenda — lado da PTAX em pares */BRL (2026-07-07)".
+>
+> **Emenda (2026-08-15):** `ir_brackets` deixa de existir — a mensal e a anual
+> são duas publicações importadas, não duas escalas ([[ADR-389]]). Ver
+> §"Emenda — ir_brackets vira duas tabelas importadas (2026-08-15)".
 
 # ADR-135 — Versionamento temporal de séries fiscais e câmbio
 
@@ -140,3 +144,19 @@ Co-design `data-engineer` + `financial-planner` (A33.l2, [[ADR-238]] §D1):
   ano-base** (senão degradam para `None` + warning). Cotações reais de
   31/12 (2023-2025, USD/EUR/GBP) seedadas em `a33l2ptax3112` com fonte
   BCB Olinda (boletim "Fechamento PTAX", cotação de compra).
+
+## Emenda — `ir_brackets` vira duas tabelas importadas (2026-08-15)
+
+Esta ADR pôs os parâmetros fiscais no DB versionados por data, mas tratou a
+tabela progressiva do IRPF como **um** objeto. Medido na [[A40.l56]]: a RFB
+publica **duas** — a progressiva mensal (IRRF na fonte) e a do Anexo IV da
+IN 1.500/2014 (ajuste anual da DAA) —, com bases legais e atos de publicação
+distintos, e a anual **não é ×12 da mensal** (mistura ponderada por mês em ano
+de transição; divergência de arredondamento mesmo em ano limpo).
+
+Tratá-las como uma só produziu uma row com faixas anuais e parcelas mensais,
+cujo degrau de R$ 11,04 bloqueou o D5 da [[ADR-375]] por três meses.
+
+`ir_brackets` é substituído por `ir_brackets_anual` + `ir_brackets_mensal`,
+cada um verbatim da publicação e com proveniência própria; o nome antigo deixa
+de resolver. Contrato, invariantes e política de cache em [[ADR-389]].
