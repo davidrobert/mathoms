@@ -138,6 +138,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: fiscal-brackets-continuity
+        name: "Tabela progressiva do IRPF é internamente coerente (ADR-389 D3)"
+        entry: python3 dev/check_fiscal_brackets_continuity.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: enum-migration-parity
         name: "Membro de enum Python existe nas migrations (ADR-357 §7)"
         entry: python3 dev/check_enum_migration_parity.py

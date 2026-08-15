@@ -33,16 +33,23 @@ def no_redis(monkeypatch):
     monkeypatch.setattr(fiscal_cache, "_get_redis_safe", lambda: None)
 
 
+_ANUAL_SEED = {
+    "faixas": [
+        {"upper_brl_cents": 2696320, "aliquota_pct": "0.0", "deducao_brl_cents": 0},
+        {"upper_brl_cents": None, "aliquota_pct": "27.5", "deducao_brl_cents": 0},
+    ],
+    "vigencia_ref": "test",
+    "source": "test-seed",
+}
+
+
 def _seed_fiscal(session_factory, year: int = 2025) -> None:
     with session_factory() as s:
         s.add(
             FiscalParameter(
                 id=str(uuid.uuid4()),
                 year=year,
-                ir_brackets=[
-                    {"upper_brl_cents": 2696320, "aliquota_pct": "0.0", "deducao_brl_cents": 0},
-                    {"upper_brl_cents": None, "aliquota_pct": "27.5", "deducao_brl_cents": 0},
-                ],
+                ir_brackets_anual=_ANUAL_SEED,
                 pgbl_limit_brl_cents=0,
                 inss_ceiling_brl_cents=0,
                 lucro_presumido_aliquota=Decimal("0.32"),
@@ -84,15 +91,15 @@ class TestGetFiscalForPeriod:
         assert isinstance(fp, FiscalParameters)
         assert fp.year == 2025
         assert fp.lucro_presumido_aliquota == Decimal("0.3200")
-        assert all(isinstance(b, IRPFBracket) for b in fp.ir_brackets)
-        assert len(fp.ir_brackets) == 2
+        assert all(isinstance(b, IRPFBracket) for b in fp.ir_brackets_anual.faixas)
+        assert len(fp.ir_brackets_anual.faixas) == 2
 
     def test_brackets_aliquota_is_decimal(self, sync_db, no_redis):
         _seed_fiscal(sync_db, year=2025)
         with sync_db() as s:
             fp = DBConfigStore(s).get_fiscal_for_period(date(2025, 1, 1), date(2025, 12, 31))
-        assert fp.ir_brackets[-1].aliquota_pct == Decimal("27.5")
-        assert fp.ir_brackets[-1].upper_brl_cents is None
+        assert fp.ir_brackets_anual.faixas[-1].aliquota_pct == Decimal("27.5")
+        assert fp.ir_brackets_anual.faixas[-1].upper_brl_cents is None
 
     def test_propagates_not_found(self, sync_db, no_redis):
         from backend.app.repositories.fiscal_parameter_repository import (

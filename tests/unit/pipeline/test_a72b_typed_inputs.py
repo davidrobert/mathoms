@@ -16,7 +16,11 @@ from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
     PrevidenciaAnalyzer,
     PrevidenciaConfig,
 )
-from pipeline.domain.types.config import FiscalParameters, IRPFBracket  # noqa: E402
+from pipeline.domain.types.config import (  # noqa: E402
+    FiscalParameters,
+    IRPFBracket,
+    TabelaProgressiva,
+)
 
 _DAVID_DOB = date(1985, 6, 12)
 
@@ -27,9 +31,15 @@ def _fiscal_2025() -> FiscalParameters:
         pgbl_limit_brl_cents=0,
         inss_ceiling_brl_cents=0,
         lucro_presumido_aliquota=Decimal("0.32"),
-        ir_brackets=(
-            IRPFBracket(upper_brl_cents=2696320, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0),
-            IRPFBracket(upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0),
+        ir_brackets_anual=TabelaProgressiva(
+            faixas=(
+                IRPFBracket(
+                    upper_brl_cents=2696320, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0
+                ),
+                IRPFBracket(
+                    upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0
+                ),
+            )
         ),
         effective_from=date(2025, 1, 1),
         effective_to=date(2025, 12, 31),
@@ -55,7 +65,7 @@ class TestPrevidenciaFromFiscalParameters:
         # alíquota dela a toda renda.
         fiscal = _fiscal_2025()
         cfg = PrevidenciaConfig.from_fiscal_parameters(fiscal)
-        assert cfg.irpf_faixas is fiscal.ir_brackets
+        assert cfg.irpf_faixas is fiscal.ir_brackets_anual.faixas
         assert cfg.irpf_faixas[0].upper_brl_cents == 2696320
         assert cfg.irpf_faixas[0].aliquota_pct == Decimal("0.0")
         assert cfg.irpf_faixas[-1].upper_brl_cents is None
@@ -66,11 +76,15 @@ class TestPrevidenciaFromFiscalParameters:
         fiscal = FiscalParameters(
             year=2025,
             lucro_presumido_aliquota=Decimal("0.32"),
-            ir_brackets=(
-                IRPFBracket(upper_brl_cents=0, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0),
-                IRPFBracket(
-                    upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0
-                ),
+            ir_brackets_anual=TabelaProgressiva(
+                faixas=(
+                    IRPFBracket(
+                        upper_brl_cents=0, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0
+                    ),
+                    IRPFBracket(
+                        upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0
+                    ),
+                )
             ),
         )
         cfg = PrevidenciaConfig.from_fiscal_parameters(fiscal)

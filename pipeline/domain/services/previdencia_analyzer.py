@@ -92,7 +92,9 @@ class PrevidenciaConfig:
         return cls(
             lucro_presumido_pct=lp_pct or 32.0,
             pgbl_limite_pct=12.0,
-            irpf_faixas=fiscal.ir_brackets,
+            # ADR-389 D2: a base da DAA é a tabela ANUAL — a mensal serve o IRRF
+            # na fonte e é consumida pela cascata da S8 ([[A40.l37]]).
+            irpf_faixas=fiscal.ir_brackets_anual.faixas,
         )
 
 
