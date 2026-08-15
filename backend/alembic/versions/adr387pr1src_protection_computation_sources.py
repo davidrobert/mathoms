@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy import MetaData, Table
 
 revision: str = "adr387pr1src"
 down_revision: Union[str, Sequence[str], None] = "adr384cnpjseed"
@@ -212,6 +213,44 @@ def _fiscal_rule_constraints() -> tuple:
     )
 
 
+def _protections_pre_columns() -> tuple:
+    return (
+        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("workspace_id", sa.String(36), nullable=False),
+        sa.Column("category", sa.String(32), nullable=False),
+        sa.Column("holder_family_member_id", sa.String(36)),
+        sa.Column("insurer", sa.String(120)),
+        sa.Column("policy_ref", sa.Text()),
+        sa.Column("coverage_brl_cents", sa.BigInteger(), nullable=False),
+        sa.Column("premium_monthly_brl_cents", sa.BigInteger()),
+        sa.Column("coverage_type", sa.String(16)),
+        sa.Column("starts_at", sa.Date(), nullable=False),
+        sa.Column("ends_at", sa.Date()),
+        sa.Column("status", sa.String(16), nullable=False),
+        sa.Column("notes", sa.Text()),
+        *_timestamps(),
+        sa.ForeignKeyConstraint(["workspace_id"], ["workspaces.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["holder_family_member_id"], ["family_members.id"], ondelete="SET NULL"
+        ),
+    )
+
+
+def _protections_pre() -> Table:
+    return Table("protections", MetaData(), *_protections_pre_columns())
+
+
+def _protections_post() -> Table:
+    return Table(
+        "protections",
+        MetaData(),
+        *_protections_pre_columns(),
+        sa.Column("insured_family_member_id", sa.String(36)),
+        sa.Column("benefit_mode", sa.String(16)),
+        sa.Column("benefit_monthly_brl_cents", sa.BigInteger()),
+    )
+
+
 def _add_protection_columns(batch_op) -> None:
     batch_op.add_column(sa.Column("insured_family_member_id", sa.String(36)))
     batch_op.add_column(sa.Column("benefit_mode", sa.String(16)))
@@ -234,7 +273,7 @@ def _add_protection_columns(batch_op) -> None:
 
 
 def _add_protection_benefit_columns() -> None:
-    with op.batch_alter_table("protections") as batch_op:
+    with op.batch_alter_table("protections", copy_from=_protections_pre()) as batch_op:
         _add_protection_columns(batch_op)
     op.create_index(
         "ix_protections_ws_insured",
@@ -350,9 +389,6 @@ def upgrade() -> None:
 
 
 def _drop_protection_benefit_columns(batch_op) -> None:
-    batch_op.drop_constraint("chk_protection_monthly_benefit_nonnegative", type_="check")
-    batch_op.drop_constraint("chk_protection_benefit_mode", type_="check")
-    batch_op.drop_constraint("fk_protections_insured_family_member_id", type_="foreignkey")
     batch_op.drop_column("benefit_monthly_brl_cents")
     batch_op.drop_column("benefit_mode")
     batch_op.drop_column("insured_family_member_id")
@@ -388,5 +424,5 @@ def downgrade() -> None:
     _drop_income_and_tax()
     _drop_dependency_and_profile()
     op.drop_index("ix_protections_ws_insured", table_name="protections")
-    with op.batch_alter_table("protections") as batch_op:
+    with op.batch_alter_table("protections", copy_from=_protections_post()) as batch_op:
         _drop_protection_benefit_columns(batch_op)
