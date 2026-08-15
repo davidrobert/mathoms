@@ -207,7 +207,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (61 no disco · 61 nesta tabela — ver nota ao fim)
+## Lanes (63 no disco · 63 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -311,6 +311,8 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l60]] | Conselho de seguro: cobertura recomendada sem ressalva fiduciária + string que afirma invalidez sem fonte | P1 | — | aberta 2026-08-12 no fecho da sessão S6/FP-010 (#1379/#1390) · funde 2 achados verificados (mesmo produtor, mesma classe fiduciária) · KR-E · PR2 com amarra de entrega parcial atrás da [[A40.l35]] · nasceu `l50`, passou por `l58`, renumerada 2× em rebase (ids tomados em `main`) |
 | [[A40.l61]] | ProtectionBundle fail-closed: ausência não vira zero/False | P1 | — | `shipped` (#1443 · `0a343302`) · mitigação do split da l35 · não liga a S9 |
 | [[A40.l62]] | Fontes canônicas + ProtectionComputationSnapshotV1 | P1 | l61 | `open` · desbloqueada pelo #1443 · dois PRs ordenados · [[ADR-387]] `Decidido` em 2026-08-14 |
+| [[A40.l63]] | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de real, saldo BRL rotulado USD | P1 | — | aberta 2026-08-15 no co-design do P0 nº 2 da [[A40.l50]] · dono `data-engineer` · **não é** a [[A40.l39]], que resolve a superfície e não a conversão · pede ADR própria |
+| [[A40.l64]] | Redutor da Lei 15.270/2025 + IRPFM: a diferencial de PGBL está errada para AC2026 | P1 | l56 | aberta 2026-08-15 no co-design da [[A40.l56]] · dono `financial-planner` · `blocked` até o `regime_completo` existir · a [[ADR-389]] declara modelá-los como não-objetivo |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
