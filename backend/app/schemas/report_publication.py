@@ -29,6 +29,8 @@ class ReportPublicationResponse(BaseModel):
     workspace_id: str
     period_yyyymm: str
     artifact_id: int
+    report_id: Optional[str] = None
+    hash_version: str = "e5-v1"
     published_at: datetime
     published_by: str
     immutable_hash: str

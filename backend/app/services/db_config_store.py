@@ -140,6 +140,24 @@ class DBConfigStore:
 
         return build_protection_bundle_sync(workspace_id, db=self._session)
 
+    def get_protection_computation_inputs(self, workspace_id: str, *, as_of_date: date):
+        """Projeção run-scoped dos insumos de proteção (ADR-387)."""
+        from datetime import datetime, timezone
+
+        from backend.app.services.protection_computation_inputs_reader import (
+            read_protection_computation_inputs,
+        )
+
+        captured_at = datetime(
+            as_of_date.year, as_of_date.month, as_of_date.day, tzinfo=timezone.utc
+        )
+        return read_protection_computation_inputs(
+            self._session,
+            workspace_id,
+            captured_at=captured_at,
+            as_of_date=as_of_date,
+        )
+
 
 def _merge_transfer_block(
     family_data: dict[str, Any], workspace_id: str, session: Session

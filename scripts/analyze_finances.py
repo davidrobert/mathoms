@@ -2117,6 +2117,22 @@ def _load_protection_bundle(ctx):
         return None
 
 
+def _load_protection_computation_inputs(ctx, data_analise: str):
+    """Insumos person-scoped observados no run (ADR-387). Ausência = serializer emite unavailable."""
+    store = getattr(ctx, "config_store", None) if ctx is not None else None
+    workspace_id = getattr(ctx, "workspace_id", None) if ctx is not None else None
+    loader = getattr(store, "get_protection_computation_inputs", None)
+    if store is None or not workspace_id or loader is None:
+        return None
+    try:
+        from datetime import date as _date
+
+        return loader(workspace_id, as_of_date=_date.fromisoformat(data_analise[:10]))
+    except Exception as exc:  # pragma: no cover
+        print(f"  [warn] get_protection_computation_inputs falhou ({exc}); E5 emite unavailable")
+        return None
+
+
 def _e5_build_adapter(life_plan_content: str | None, ctx=None):
     """Carrega configs auxiliares + monta E5AnalyzerAdapter.
 
@@ -2395,6 +2411,7 @@ def _e5_compose_output(
     premissas_economicas: Dict[str, Any] | None = None,
     proventos_por_ativo=None,
     protecao_patrimonial: Dict[str, Any] | None = None,
+    protection_computation_inputs=None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
@@ -2440,6 +2457,7 @@ def _e5_compose_output(
         exposicao_cambial=legacy.get("exposicao_cambial"),
         lineage=legacy.get("lineage"),
         protecao_patrimonial=protecao_patrimonial,
+        protection_computation_inputs=protection_computation_inputs,
     )
     return build_e5_output(output_inputs)
 
@@ -2541,6 +2559,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         premissas_economicas=premissas_economicas,
         proventos_por_ativo=result.proventos_por_ativo,
         protecao_patrimonial=result.protecao_patrimonial,
+        protection_computation_inputs=_load_protection_computation_inputs(ctx, TODAY.isoformat()),
     )
     _e5_persist(store, ctx, output)
     _e5_print_summary(legacy)

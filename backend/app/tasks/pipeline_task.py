@@ -407,6 +407,15 @@ def _find_latest_analysis_artifact(ws_id: str, run_id: str):
         return {"id": row.id, "content_json": read_artifact_content(row.content_json)}
 
 
+def _protection_snapshot_for_report(analysis_content, run_id: str, artifact_id: int) -> dict:
+    from backend.app.services.protection_snapshot_builder import build_protection_snapshot
+
+    payload = analysis_content if isinstance(analysis_content, dict) else {}
+    return build_protection_snapshot(
+        e5_payload=payload, pipeline_run_id=run_id, analysis_artifact_id=artifact_id
+    )
+
+
 def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> None:
     # ADR-131: Report referencia o artefato E5 por FK (analysis_artifact_id).
     # Sem artifact no DB, não há nada para o relatório React consumir.
@@ -438,6 +447,9 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
         analysis_content = artifact.get("content_json") or {}
         period_value = analysis_content.get("periodo_dados") or analysis_content.get("data_analise")
         score, patrimonio_liquido = Report.denorm_from_analysis(analysis_content)
+        protection_snapshot = _protection_snapshot_for_report(
+            analysis_content, run_id, artifact["id"]
+        )
         report = Report(
             id=str(uuid.uuid4()),
             workspace_id=ws_id,
@@ -447,6 +459,7 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             analysis_artifact_id=artifact["id"],
             tasks_snapshot_json=tasks_snapshot,
             premissas_snapshot_json=premissas_snapshot,
+            protection_snapshot_json=protection_snapshot,
             score=score,
             patrimonio_liquido=patrimonio_liquido,
         )
