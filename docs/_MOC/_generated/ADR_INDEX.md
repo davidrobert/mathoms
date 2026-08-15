@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-379 ADRs (ADR-001 a ADR-388) em [`docs/adr/`](../../adr/).
+380 ADRs (ADR-001 a ADR-389) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 326
-- **Proposto**: 49
+- **Proposto**: 50
 - **Roadmap**: 4
 
 ## Fundação
@@ -323,7 +323,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-384]] — Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback · phase A40.l40
 - [[ADR-387]] — ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria · phase A40.l62
 
-### Proposto (6)
+### Proposto (7)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
@@ -331,6 +331,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
 - [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 - [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
+- [[ADR-389]] — As tabelas mensal e anual do IRPF são duas fontes importadas, não duas escalas de uma · phase A40.l56
 
 ## categorization
 

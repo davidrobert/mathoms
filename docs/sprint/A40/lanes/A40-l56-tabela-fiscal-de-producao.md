@@ -90,3 +90,62 @@ cobre o construtor que produção usa.
 
 Nenhuma com o PR3 da [[A40.l34]] (hospedagem/frontend). A migration toca
 `backend/alembic/versions/` — verificar head antes de abrir.
+
+## Decisão do escopo item 1 — 2026-08-15
+
+> Co-design `financial-planner` + `data-engineer`; divergência de escala fechada
+> por `senior-cto` (protocolo anti-loop). Decisão canônica em [[ADR-389]]
+> `Proposto`, que emenda a [[ADR-135]].
+
+**A pergunta estava errada.** Não são duas escalas de um objeto: a RFB publica
+**duas tabelas** — progressiva mensal (IRRF na fonte) e Anexo IV da IN 1.500/2014
+(ajuste anual da DAA) —, e a anual **não é ×12 da mensal**. Em ano de transição
+ela é mistura ponderada por mês (AC2024: `2.112,00×1 + 2.259,20×11 = 26.963,20`);
+e mesmo em ano limpo diverge por arredondamento (AC2026: `908,73×12 = 10.904,76`
+vs `10.904,66` publicado). As duas opções da FLAG estavam erradas porque ambas
+derivam — e foi a derivação que abriu o degrau de R$ 11,04.
+
+**Segundo defeito, não previsto pela lane:** o seed passa uma única constante
+(`_IR_BRACKETS_PRE_LEI_15270`, `y3z4a5b6c7d8:69`) para os 3 anos. As faixas de
+2025 e 2026 são as de 2024. Não é só escala — são valores errados.
+
+### Correções ao escopo escrito
+
+- **Item 2** cresce: a migration corretiva reescreve **duas** tabelas por ano
+  (`ir_brackets_anual` + `ir_brackets_mensal`), com `source`/`vigencia_ref` por
+  tabela, `regime_completo`/`componentes_ausentes` na row de 2026, e bump de
+  `fiscal:v2:` no mesmo PR (o cache é payload-shaped; a `e1f2a3b4c5d6` já pediu
+  invalidação manual em comentário e nada aconteceu por 3 meses).
+- **Item 3** aperta: tolerância **R$ 0,01**, não R$ 0,05. Recomputadas as 12
+  fronteiras dos 3 anos, o desvio máximo é R$ 0,005 — R$ 0,05 é 10× o ruído e
+  deixaria passar erro de um centavo em parcela. Somam-se dois invariantes:
+  congruência estrutural entre as duas tabelas, e divergência ×12 exigindo
+  `motivo` declarado.
+- **Item 5** sai **qualificado**: `AC ≤ 2025` desbloqueado; `AC ≥ 2026` segue
+  retido. A Lei 15.270/2025 criou um redutor (função do rendimento **bruto**,
+  não da base) e o IRPFM, e ambos quebram a diferencial ingênua do D5 — quem tem
+  tributável anual ≤ R$ 60.000 já paga zero. Modelá-los é lane e ADR próprias. A
+  recusa lê `regime_completo` na row, nunca `if year >= 2026`.
+
+### O §Critério de aceite muda: a mutação do falsy-zero é insatisfazível
+
+Medido: o falsy-zero (`if b.upper_brl_cents`) só morde faixa com `upper == 0`, e
+**a tabela real não tem nenhuma** — só o bracket artificial de
+`test_a72b_typed_inputs.py:70` a produz. Cumprir o critério ao pé da letra
+exigiria semear tabela irreal no golden: mutação implausível, teste-fantasma.
+
+A intenção do critério era provar que ≥1 golden atravessa
+`from_fiscal_parameters`. A sonda passa a ser a **mutação de call-site**:
+
+> Trocar `from_fiscal_parameters` por `from_fiscal` no call-site derruba ≥1 golden.
+
+Ela é plausível (é o fallback vivo) e morde forte, porque `from_fiscal` zera
+`deducao_brl_cents` incondicionalmente (`previdencia_analyzer.py:77`) —
+reintroduz a mesma classe na tabela real. O falsy-zero **permanece coberto** por
+unit test com fixture sintética: tabela irreal tem lugar, e o lugar é unit, não
+golden.
+
+Condições que autorizaram a troca, e que valem como regra para reescrever
+critério de lane: (i) o original é condenado por **medição citada**, não por
+dificuldade; (ii) o substituto cobre a **mesma classe**; (iii) o substituto é
+**plausível**; (iv) a troca fica como nota datada com o número que a motivou.
