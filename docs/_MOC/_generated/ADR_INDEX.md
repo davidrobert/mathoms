@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 325
-- **Proposto**: 50
+- **Decidido**: 326
+- **Proposto**: 49
 - **Roadmap**: 4
 
 ## Fundação
@@ -392,7 +392,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## frontend
 
-### Decidido (13)
+### Decidido (14)
 
 - [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
 - [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
@@ -404,13 +404,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-356]] — Precedência declarada do parágrafo de seção e CV9 como medida de entrega · phase report-review r3 (RV3-03 · RV3-33) · A40.l4
 - [[ADR-370]] — Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão · phase A40
 - [[ADR-372]] — Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma
+- [[ADR-377]] — Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa · phase A40.l44
 - [[ADR-380]] — Nenhum card afirma ausência a partir de falha de carregamento · phase A40
 - [[ADR-381]] — O PDF é uma caixa de 703px: `md:` não é o teste de "é celular" no relatório
 - [[ADR-388]] — Contrato E5 para frontend usa codegen determinístico e opacidade governada · phase A40.l5
-
-### Proposto (1)
-
-- [[ADR-377]] — Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa · phase A40
 
 ## gtm
 

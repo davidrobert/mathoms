@@ -372,7 +372,7 @@
 | ADR-374 | adr | Decidido |  | Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado | `adr/374-sigma-do-cone-if-agrega-premissa-por-alvo-declarado.md` |
 | ADR-375 | adr | Decidido |  | Limite PGBL tem um produtor, e a prescrição exige evidência declarada | `adr/375-limite-pgbl-tem-um-produtor-e-a-prescricao-exige-evidencia-declarada.md` |
 | ADR-376 | adr | Decidido |  | Caixa corrente vem do último extrato reconciliado — sem denylist de instituição | `adr/376-caixa-corrente-vem-do-extrato-sem-denylist-de-instituicao.md` |
-| ADR-377 | adr | Proposto |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
+| ADR-377 | adr | Decidido |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
 | ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
 | ADR-379 | adr | Proposto |  | Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório | `adr/379-posicoes-do-card-exposicao-cambial-vem-do-e4-pinado-ao-run.md` |
 | ADR-380 | adr | Decidido |  | Nenhum card afirma ausência a partir de falha de carregamento | `adr/380-card-nao-afirma-ausencia-a-partir-de-falha-de-carregamento.md` |
@@ -890,7 +890,7 @@
 | A40.l41 | lane | in_progress | A40 | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
 | A40.l42 | lane | shipped | A40 | Safra IRPF errada: baseline pegajoso — E1.5c re-consolida o próprio output do run anterior e ignora o E1.5 fresco | `sprint/A40/lanes/A40-l42-safra-irpf-baseline-pegajoso.md` |
 | A40.l43 | lane | shipped | A40 | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | `sprint/A40/lanes/A40-l43-perfil-familia-prosa-sobre-pessoas.md` |
-| A40.l44 | lane | in_progress | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
+| A40.l44 | lane | shipped | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
 | A40.l45 | lane | shipped | A40 | Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro | `sprint/A40/lanes/A40-l45-clipping-horizontal-caixa-estreita.md` |
 | A40.l46 | lane | open | A40 | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup | `sprint/A40/lanes/A40-l46-residuos-bloco-identidade-perfil.md` |
 | A40.l47 | lane | shipped | A40 | Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva | `sprint/A40/lanes/A40-l47-semantica-de-taxa-faixa-e-base.md` |
