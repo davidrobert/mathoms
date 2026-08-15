@@ -126,34 +126,31 @@ def _disability_item(**overrides) -> dict:
     return item
 
 
-def test_lump_sum_disability_is_not_converted_to_monthly() -> None:
-    inputs = ProtectionComputationInputs(
-        active_net_monthly_income_brl_cents=20_000_00,
-        passive_net_monthly_income_brl_cents=2_000_00,
-    )
-    lump = populate_protection_bundle(
-        items=[_disability_item(benefit_mode="lump_sum")],
+def _disability_bundle(items):
+    return populate_protection_bundle(
+        items=items,
         members=[],
         workspace=None,
         today=date(2026, 8, 13),
         adapter_version=3,
-        computation_inputs=inputs,
+        computation_inputs=ProtectionComputationInputs(
+            active_net_monthly_income_brl_cents=20_000_00,
+            passive_net_monthly_income_brl_cents=2_000_00,
+        ),
     )
-    monthly = populate_protection_bundle(
-        items=[
+
+
+def test_lump_sum_disability_is_not_converted_to_monthly() -> None:
+    lump = _disability_bundle([_disability_item(benefit_mode="lump_sum")])
+    monthly = _disability_bundle(
+        [
             _disability_item(
                 coverage_brl_cents=0,
                 benefit_mode="monthly_income",
                 benefit_monthly_brl_cents=8_000_00,
             )
-        ],
-        members=[],
-        workspace=None,
-        today=date(2026, 8, 13),
-        adapter_version=3,
-        computation_inputs=inputs,
+        ]
     )
-
     assert lump["calculation_status"]["invalidez"]["status"] == "missing_data"
     assert "disability_monthly_benefit" in lump["calculation_status"]["invalidez"]["missing_inputs"]
     assert "invalidez" not in lump["gap_analysis"]
