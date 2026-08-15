@@ -13,6 +13,20 @@ logger = logging.getLogger(__name__)
 _FISCAL_TTL_SECONDS = 3600  # 1h fallback
 _MARKET_TTL_SECONDS = 86400 * 30  # 30 dias (immutable, pode crescer)
 
+# Versão do SHAPE do payload fiscal, não da tabela. Bump obrigatório sempre que
+# uma chave do payload nascer, morrer ou trocar de nome ([[ADR-389]] D5).
+#
+# O motivo é histórico, não teórico: a migration `e1f2a3b4c5d6` pediu
+# "invalidar fiscal:y=... no Redis de produção" num comentário, em 2026-05, e
+# nada aconteceu em 3 meses — `invalidate_fiscal` não tem chamador em produção e
+# o TTL é a única rotatividade. Runbook é promessa; chave em código é estrutura.
+#
+# O dano não é de 1h: `aliquota_marginal` é campo PERSISTIDO do artefato
+# `analise_financeira`, e um leitor novo sobre payload velho não levanta — cai no
+# `aliquota_fallback` de 7,5% de `previdencia_analyzer`, silencioso. A janela é a
+# do cache; o número errado fica no relatório do cliente.
+_FISCAL_CACHE_SCHEMA = 2
+
 
 # ---------------------------------------------------------------------------
 # Cache keys
@@ -20,7 +34,7 @@ _MARKET_TTL_SECONDS = 86400 * 30  # 30 dias (immutable, pode crescer)
 
 
 def fiscal_cache_key(year: int) -> str:
-    return f"fiscal:y={year}"
+    return f"fiscal:v{_FISCAL_CACHE_SCHEMA}:y={year}"
 
 
 def market_cache_key(pair: str, observed_at: date) -> str:
@@ -33,19 +47,28 @@ def market_cache_key(pair: str, observed_at: date) -> str:
 
 
 def get_cached_fiscal(year: int) -> dict[str, Any] | None:
-    """Lê row de ``fiscal_parameters`` cacheada por ano. ``None`` em miss."""
+    """Lê row de ``fiscal_parameters`` cacheada por ano. ``None`` em miss ou shape velho."""
     raw = _redis_get(fiscal_cache_key(year))
     if raw is None:
         return None
     try:
-        return json.loads(raw)
+        payload = json.loads(raw)
     except (ValueError, TypeError) as exc:
         logger.warning("fiscal cache parse failed: %s", exc)
         return None
+    if not isinstance(payload, dict):
+        return None
+    # Cinto e suspensório: a chave versionada já isola por shape, mas uma entrada
+    # gravada entre o deploy do bump e o deploy do rename teria a chave nova com
+    # o payload antigo. Sem esta checagem o carimbo é decoração serializada.
+    if payload.pop("schema_version", None) != _FISCAL_CACHE_SCHEMA:
+        return None
+    return payload
 
 
 def store_fiscal_cache(year: int, payload: dict[str, Any]) -> None:
-    _redis_set(fiscal_cache_key(year), json.dumps(payload), _FISCAL_TTL_SECONDS)
+    stamped = {**payload, "schema_version": _FISCAL_CACHE_SCHEMA}
+    _redis_set(fiscal_cache_key(year), json.dumps(stamped), _FISCAL_TTL_SECONDS)
 
 
 def invalidate_fiscal(year: int) -> None:
