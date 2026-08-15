@@ -4,16 +4,19 @@ type: lane
 title: "Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1301
+ship_date: "2026-08-08"
 priority: P0
 branch_slug: a40-l22-superficie-de-degradacao
-adrs: []
+adrs:
+  - "[[ADR-366]]"
 depends_on:
   - "[[A40.l20]]"
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/frontend
 ---
@@ -139,6 +142,10 @@ tags:
 > código de ausência, ver o ➕ acima), que o #1277 **não** cobre. Como a escolha
 > da palavra é de produto e é do dono, a lane fica pegável nesse item. O #1277
 > fecha a **retenção**; a **ausência** continua aberta.
+>
+> **Closeout 2026-08-15:** a ausência fechou no #1301 (`cc957413`) no mesmo dia
+> 08-08. O `in_progress` acima ficou stale 7 dias. Flip `shipped` neste
+> closeout; `ship_pr` nomeia o #1301 (último código).
 >
 > **Do §Critério de aceite, 2 itens ficaram abertos no #1277 — 1 já fechou:**
 >
@@ -299,3 +306,31 @@ consequências que a l22 herda: (a) a contagem que a l10 passou a declarar no
 do que o card renderiza, porque o dedupe atua depois; (b) qualquer ordenação
 futura ([[A40.l10]] PR3) muda **qual** item sobrevive ao dedupe, sem mudar o
 payload — logo asserção sobre payload não prova o renderizado.
+
+**Closeout 2026-08-15 — medido:** `dedupeBySemanticKey` ainda vive em
+`PontosFortesCard` e `PontosUrgentesCard`. Não é desta lane (não é parecer).
+Volta para a [[A40.l10]] (`open`).
+
+## Entrega
+
+`shipped` 2026-08-08. `ship_pr: 1301` nomeia o último código; os outros ficam
+no corpo. Closeout de registro em 2026-08-15.
+
+| PR | O quê | SHA |
+|---|---|---|
+| #1277 | superfície de retenção (4 superfícies + gate) | `23090211` |
+| #1287 | PDF volta a conter as seções | `a5ad5eae` |
+| #1289 | chrome de app sai do PDF | `00b69a94` |
+| #1303 | registra o chrome na lane | `abbc007a` |
+| #1305 | receita de baseline do PDF | `29cf9630` |
+| #1301 | copy por código de ausência + `tier_gated` | `cc957413` |
+
+**Medido no closeout:** `parecer-degradacao.@critical.spec.ts` e
+`print-text.@critical.spec.ts` existem; snapshots `S-parecer-{retido,parcial}`
+light+dark estão no disco; copy em `parecerAusenciaCopy.ts`.
+
+**Continua aberto, com dono:**
+- Teste com humano (n=1) → owner-gated, o dono.
+- `dedupeBySemanticKey` → [[A40.l10]].
+- Runs pré-migration `tier_at_run=free` → residual; distinguir "free" de
+  "não registrado" se o dogfood tiver muitos runs antigos.

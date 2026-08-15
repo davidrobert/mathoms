@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-16 open · 6 in_progress · 2 blocked.
+16 open · 5 in_progress · 2 blocked.
 
 ## Open (16)
 
@@ -26,9 +26,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · área pipeline/frontend · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
 - [[A40.l62]] — ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria · priority P1 · área backend/pipeline/persistence/financial-planning · branch `a40-l62-protection-computation-snapshot-v1`
 
-## In progress (6)
+## In progress (5)
 
-- [[A40.l22]] — Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF · priority P0 · área frontend · branch `a40-l22-superficie-de-degradacao`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · área frontend/design-system/a11y · branch `a40-l33-contraste-texto-sobre-tint`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`

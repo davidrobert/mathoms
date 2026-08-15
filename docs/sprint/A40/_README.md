@@ -271,7 +271,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l19]] | Migration do drift de enum de status (4 valores) | P1 + gate de deploy | — | **[[ADR-357]]** §7 |
 | [[A40.l20]] | `PlannerReview` representa gerado-e-retido (destrava a UI) | **P0** | l18 ✅ | **[[ADR-366]]** `Decidido` — eixo próprio, **sem** emenda na [[ADR-204]] |
 | [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first) | **P0** | — | **[[ADR-357]]** §Consequências |
-| [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | fatia premium da F11.5 · **bloqueador do beta** (6ª classe do gate de saída) |
+| [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | `shipped` (#1301 · `cc957413`) · superfície #1277 · PDF #1287 · chrome #1289 · teste humano n=1 owner-gated |
 | [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
 | [[A40.l24]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | — | promovida da [[A41]] · [[ADR-355]] · [[PLAN-go-shell]] |
 | [[A40.l25]] | Honestidade do cone de IF: precisão de exibição + `sigma` como premissa auditada | P1 | — | residual de [[ADR-360]] §Def. 1 + [[ADR-361]] §Def. 5 · KR-E |
@@ -654,6 +654,13 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 > chega ao PDF hoje). Não é defeito da l22 e não tem lane; o ponto de retomada
 > está marcado como `test.fixme` em `print.@critical.spec.ts`. O teste com humano
 > (n=1) segue owner-gated.
+
+> **Apêndice 2026-08-15.** A [[A40.l22]] `shipped`. A copy por código de
+> ausência fechou no #1301 (`cc957413`) no mesmo 08-08; o `in_progress` ficou
+> stale. A perna de PDF que este snapshot chamava de parcial fechou no #1287
+> (`a5ad5eae`) — o `test.fixme` virou assert em `print-text.@critical.spec.ts`.
+> Teste humano n=1 continua owner-gated. `dedupeBySemanticKey` volta para a
+> [[A40.l10]].
 
 **Ordem interna, e nenhuma das três é estética:**
 
