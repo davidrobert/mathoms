@@ -4,7 +4,7 @@ type: lane
 title: "A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l56-tabela-fiscal-de-producao
 owner: data-engineer
@@ -15,7 +15,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/db
@@ -149,3 +149,51 @@ Condições que autorizaram a troca, e que valem como regra para reescrever
 critério de lane: (i) o original é condenado por **medição citada**, não por
 dificuldade; (ii) o substituto cobre a **mesma classe**; (iii) o substituto é
 **plausível**; (iv) a troca fica como nota datada com o número que a motivou.
+
+## Proveniência: o que está verificado em fonte primária — 2026-08-15
+
+> Fecha o gap nº 1 da síntese do fan-out ("nenhum agente leu ato normativo
+> primário"). **Parcialmente.** O que segue distingue o que foi lido na fonte do
+> que continua apoiado em portal — a distinção é o entregável, não um detalhe.
+
+### Verificado em ato primário
+
+**O Anexo VII é a tabela progressiva ANUAL.** Lido o PDF do repositório de normas
+da RFB (`normas.receita.fazenda.gov.br/sijut2consulta/anexoOutros.action?idArquivoBinario=46090`),
+título literal *"ANEXO VII — TABELAS PROGRESSIVAS ANUAIS"*, estruturado por
+*"para o exercício de X, ano-calendário de Y"*. Corrige a [[ADR-389]], que citava
+o Anexo IV (que é RRA). Anexo II é a mensal.
+
+**Os tetos das faixas 2-4 estão congelados desde o ano-calendário 2016.** O mesmo
+documento, item VI, traz `33.919,80 / 45.012,60 / 55.976,16` — idênticos aos de
+2024-2026. Só o teto de isenção se move.
+
+**A primeira fronteira não é exata em toda tabela publicada.** AC2016 publica
+`22.847,76` / `1.713,58` contra produto exato `1.713,582`. Motivou afrouxar o
+invariante para 1 centavo (#1473).
+
+### NÃO verificado em ato primário — limitação declarada
+
+O binário do Anexo VII acessível cobre até **AC2016**; a revisão consolidada
+atual não é alcançável pelas vias tentadas (o `link.action` consolidado
+redireciona, a notícia da RFB sobre a IN 2.299 responde "Conteúdo Restrito", e a
+busca só devolve o mesmo binário antigo).
+
+Portanto **os valores de 2024/2025/2026 não foram lidos no texto do ato**. O que
+os sustenta: 3 apurações independentes + 2 lentes adversariais + aritmética
+própria + a testemunha in-repo `IRRF_FAIXA_TOPO` (`cascata_calculator.py:47`,
+gravada por outra lane sob a mesma MP) + um exemplo oficial da RFB que fecha ao
+centavo em `908,73` e só nele. É evidência convergente forte, **não é o ato**.
+
+### Consequência para a migration
+
+- `vigencia_ref` cita o **cabeçalho da norma** (o que a [[ADR-389]] D2 pede:
+  verbatim da publicação) e o **ato** (IN RFB 2.174/2024; IN RFB 2.299/2025),
+  **sem número de anexo por ano** — a identidade do Anexo VII está verificada em
+  geral, mas qual IN inseriu o item de cada ano não. Ausente é melhor que errado.
+- `source` registra explicitamente `verificacao: "portal RFB + convergência;
+  texto do ato não lido"` por row. A auditoria futura lê o nível de verificação
+  no dado, não em prosa de PR.
+- **Este é o único item da lane que fica owner-gated:** 3 anos × 5 faixas × 2
+  tabelas viram imposto na tela. A conferência humana da tabela final antes do
+  merge não é formalidade.
