@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import types
 from decimal import Decimal
 from pathlib import Path
 
@@ -54,7 +55,37 @@ verificar_monotonicidade = _inv.verificar_monotonicidade
 verificar_primeira_fronteira = _inv.verificar_primeira_fronteira
 
 
+# A migration importa `sqlalchemy`/`alembic`, que também não existem na env do
+# lint. Ela só os usa DENTRO das funções — no nível de módulo há apenas o import
+# e os literais das tabelas. Stubs vazios bastam para chegar até o dado, e não
+# obrigam a migration a mudar: migration é congelada, e importar código de
+# aplicação nela para facilitar a nossa vida seria o anti-padrão clássico.
+_STUBS = ("sqlalchemy", "alembic")
+
+
+class _Qualquer:
+    """Aceita qualquer atributo/chamada — só precisamos chegar aos literais."""
+
+    def __getattr__(self, _nome):
+        return _Qualquer()
+
+    def __call__(self, *_a, **_kw):
+        return _Qualquer()
+
+
+def _com_stubs_de_migration():
+    for nome in _STUBS:
+        if nome in sys.modules:
+            continue
+        stub = types.ModuleType(nome)
+        # PEP 562: __getattr__ de módulo cobre atributo que a migration use no
+        # nível de módulo (ex.: anotação `-> sa.Table`), sem precisar prever qual.
+        stub.__getattr__ = lambda _n: _Qualquer()
+        sys.modules[nome] = stub
+
+
 def _carrega_tabelas() -> dict:
+    _com_stubs_de_migration()
     return _modulo("_adr389_migration", _MIGRATION).TABELAS_POR_ANO
 
 

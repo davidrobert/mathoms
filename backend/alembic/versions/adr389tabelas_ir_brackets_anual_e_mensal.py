@@ -13,6 +13,8 @@ Revision ID: adr389tabelas
 Revises: adr387pr2snap
 """
 
+from __future__ import annotations
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
