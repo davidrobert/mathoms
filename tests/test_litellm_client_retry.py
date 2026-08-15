@@ -85,6 +85,19 @@ def test_classify_error_provider_error_when_no_network_signal() -> None:
     assert classify_error(exc) == LLMErrorType.provider_error
 
 
+_DISCONNECT_EXC = Exception(
+    "litellm.InternalServerError: AnthropicException - "
+    "Server disconnected without sending a response.. "
+    "Handle with `litellm.InternalServerError`."
+)
+
+
+def test_classify_error_server_disconnected_is_timeout() -> None:
+    """Dogfood 2026-08-15: EOF no cap de 120s chega como InternalServerError,
+    não como Timeout — sem isso a escalada ADR-270 não dispara."""
+    assert classify_error(_DISCONNECT_EXC) == LLMErrorType.timeout
+
+
 def test_network_is_retryable() -> None:
     assert LLMErrorType.network in RETRYABLE_ERRORS
 
@@ -171,6 +184,20 @@ def test_custom_timeout_s_propagated_on_success() -> None:
     svc = _build_svc_with_mock_client(create_mock)
     svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out, timeout_s=240.0)
     assert create_mock.call_args.kwargs["timeout"] == 240.0
+
+
+def test_server_disconnected_escalates_like_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regressão do run 0c034a45: 4×120s classificado como provider_error.
+    Depois do fix, 2 tentativas (120 → 240) e para — o budget sobe."""
+    monkeypatch.setattr("pipeline.llm.litellm_client.time.sleep", lambda s: None)
+    create_mock = MagicMock(side_effect=_DISCONNECT_EXC)
+    svc = _build_svc_with_mock_client(create_mock)
+    with pytest.raises(LLMError) as excinfo:
+        svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out)
+    assert excinfo.value.error_type == LLMErrorType.timeout
+    timeouts = [c.kwargs["timeout"] for c in create_mock.call_args_list]
+    assert timeouts == [LLM_CALL_TIMEOUT_S, LLM_CALL_TIMEOUT_S * 2]
+    assert create_mock.call_count == LLM_TIMEOUT_MAX_ATTEMPTS
 
 
 def test_non_timeout_errors_do_not_escalate(monkeypatch: pytest.MonkeyPatch) -> None:

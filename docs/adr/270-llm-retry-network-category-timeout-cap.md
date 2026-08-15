@@ -5,7 +5,7 @@ title: "Retry de LLM calls — categoria network + cap de timeout"
 status: Decidido
 phase: A17.llm-retry
 date: "2026-05-28"
-amended_at: ["2026-06-12"]
+amended_at: ["2026-06-12", "2026-08-15"]
 relates_to:
   - "[[ADR-027]]"
   - "[[ADR-081]]"
@@ -16,7 +16,7 @@ superseded_by: []
 aliases:
   - "LLM network retry"
   - "Timeout cap LiteLLM"
-size_lines: 158
+size_lines: 234
 tags:
   - area/pipeline
   - area/llm
@@ -33,6 +33,11 @@ tags:
 > por call-site** com escalada em retry, e `validation` saiu do outer loop
 > (reask interno do Instructor = 2) após o incidente do parecer com
 > [[ADR-289]] — ver §"Emenda 2026-06-12" abaixo antes de citar §1/§3.
+>
+> **Emenda (2026-08-15):** `Server disconnected without sending a response`
+> (EOF do httpcore no cap, sem a palavra `timeout`) classifica como
+> `timeout`, não `provider_error`. Stages de geração 16k passam
+> `timeout_s=300` (`LLM_LONG_GENERATION_TIMEOUT_S`). Ver §"Emenda 2026-08-15".
 
 ## Contexto
 
@@ -182,8 +187,48 @@ validation = 1 chamada externa, reask interno 2) +
 cutover de modelo — [[ADR-289]] trocou o modelo sem eval real e esta classe de
 regressão é invisível ao CI mockado.
 
+## Emenda 2026-08-15 — `server disconnected` é timeout + budget 300s nos 16k
+
+**Gatilho:** run `0c034a45` (workspace `1b9f2cf5-…`) falhou em `extract_baseline`
+após 501s: 4 tentativas, **todas** `litellm.InternalServerError: Server
+disconnected without sending a response` exatamente no cap de 120s
+(14:34:30 → 14:36:31, depois +121s/+121s/+124s). Dois minutos antes, no mesmo
+worker, `extract_members` no mesmo modelo completou em 25s. O mesmo documento
+IRPF neste workspace completa em 72–81s em 12+ runs anteriores — não houve
+mudança de prompt/schema. `extract_with_llm` já passava `timeout_s=300` neste
+dogfood (CSV ~60KB); `extract_baseline` / `extract_irpf_full` /
+`extract_members` / `extract_informe_aluguel` ficaram no default 120s.
+
+A emenda de 2026-06-12 já prescrevia escalada 120→240 **quando
+`error_type=timeout`**. O httpcore reporta o corte no cap como EOF
+(`RemoteProtocolError: Server disconnected without sending a response`) e o
+LiteLLM reembrulha em `InternalServerError` **sem** a palavra `timeout`.
+`classify_error` marcava `provider_error` → sem escalada → 4×120s + backoff
+2/4/8 = 501s, stage morto. A tabela de retry do stage também não casava
+(`connection` ≠ `disconnected`).
+
+**Decisão (amplia a emenda 2026-06-12, não reabre §1):**
+
+1. Needles de timeout passam a incluir `server disconnected` e
+   `disconnected without sending`. A tentativa seguinte escala o cap
+   (120→240, ou 300→600 se o call-site já declarou o budget longo).
+2. Constante `LLM_LONG_GENERATION_TIMEOUT_S=300` — call-sites com
+   `max_tokens≥16384` declaram esse base (mesmo padrão do parecer com 240).
+3. `_TRANSIENT_LLM_ERRORS` do retry de stage ganha os mesmos needles —
+   o orchestrator deixa de ser no-op nessa mensagem.
+
+**Não nesta emenda:** persistir call LLM **falha** em `llm_call_log` (as 4
+tentativas deste run sumiram da telemetria). Exige coluna/`error_type` —
+follow-up, não mistura com o fix do cap.
+
+**Critério de aceite:** `tests/test_litellm_client_retry.py` (classify +
+escalada 120→240 no disconnect) + `tests/test_llm_long_generation_timeout.py`
+(os 5 stages 16k passam a constante) +
+`backend/tests/test_stage_retry_vocabulary.py` (mensagem real retenta).
+
 ## Follow-ups
 
 - Telemetria: emitir `mathoms.llm.error_type` como dimension no logger estruturado quando call falha definitivamente. Escopo de Sprint A17.observability se prioritário.
+- Persistir call LLM **falha** em `llm_call_log` (hoje só o sucesso grava; as 4 tentativas do run `0c034a45` sumiram). Exige coluna/`error_type` — não misturar com o fix do cap.
 - Avaliar partial success em stages LLM-heavy (`extract_baseline`, `extract_irpf_full`, `analyze_finances`). ADR `Proposto` separada se virar prioridade.
 - Migrar `timeout`/backoff para `LLMConfig` (DB) quando primeiro workspace pedir tunagem custom.

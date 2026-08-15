@@ -60,7 +60,13 @@ _MSG_RULES: tuple[tuple[tuple[str, ...], LLMErrorType], ...] = (
     (("rate limit", "rate_limit", "429", "too many requests"), LLMErrorType.rate_limit),
 )
 _MSG_RULES_POST_NETWORK: tuple[tuple[tuple[str, ...], LLMErrorType], ...] = (
-    (("timeout", "timed out"), LLMErrorType.timeout),
+    # "server disconnected" é EOF do httpcore no cap de timeout (geração
+    # não-streaming: TTFB = duração). LiteLLM embrulha como InternalServerError
+    # sem a palavra "timeout" — dogfood 2026-08-15, extract_baseline 4×120s.
+    (
+        ("timeout", "timed out", "server disconnected", "disconnected without sending"),
+        LLMErrorType.timeout,
+    ),
     (("too long", "maximum context"), LLMErrorType.context_length),
     (("validation", "pydantic"), LLMErrorType.validation),
 )
@@ -140,6 +146,10 @@ BACKOFF_DELAYS_NETWORK = (30.0, 60.0, 120.0)
 # parecer planejador, 16k max_tokens) passa ``timeout_s`` maior em
 # ``LLMService.call`` — emenda 2026-06-12 da ADR-270.
 LLM_CALL_TIMEOUT_S = 120.0
+# Call-sites com max_tokens ≥16k (E1/E1.5/E1.6/E2-llm/informe_aluguel).
+# extract_with_llm já usava 300s neste dogfood; os irmãos 16k ficaram no
+# default 120s e o extract_baseline morreu no cap (emenda ADR-270 2026-08-15).
+LLM_LONG_GENERATION_TIMEOUT_S = 300.0
 # Escalada de timeout em retry (emenda ADR-270, incidente parecer 2026-06-12):
 # geração que legitimamente excede o budget falha deterministicamente se o retry
 # reusa o mesmo cap — 4×120s queimados sem chance de sucesso. A tentativa

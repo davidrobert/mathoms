@@ -204,6 +204,7 @@ def _process_one_e2_llm_document(
     A6a: escreve via ``store.write("extract_with_llm", safe_stem, e2_json)`` em vez de
     disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
     """
+    from pipeline.llm.error_classification import LLM_LONG_GENERATION_TIMEOUT_S
     from pipeline.llm.institution_catalog import CATALOG_UNAVAILABLE_BLOCK
     from pipeline.llm.litellm_client import LLMRunSummary, LLMService
     from pipeline.llm.prompts.e2_llm import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
@@ -255,7 +256,7 @@ def _process_one_e2_llm_document(
             output_schema=LLMExtractOutput,
             max_retries=2,
             max_tokens=min_out,
-            timeout_s=300.0,
+            timeout_s=LLM_LONG_GENERATION_TIMEOUT_S,
             stage=f"E2-llm:{doc.name}",
             image_bytes=image_bytes,
             image_media_type=image_media_type,

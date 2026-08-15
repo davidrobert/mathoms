@@ -83,6 +83,7 @@ def run(ctx: WorkspaceContext) -> dict:
     Reads personal documents, sends to LLM, saves members JSON.
     Requires llm_config.json in ctx.config_dir.
     """
+    from pipeline.llm.error_classification import LLM_LONG_GENERATION_TIMEOUT_S
     from pipeline.llm.institution_catalog import INSURANCE_CATEGORY, render_institution_catalog
     from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e1_members import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
@@ -163,6 +164,7 @@ def run(ctx: WorkspaceContext) -> dict:
         user_prompt=user_prompt,
         output_schema=MembersExtractOutput,
         max_tokens=max(config.max_tokens, _E1_MIN_COMPLETION_TOKENS),
+        timeout_s=LLM_LONG_GENERATION_TIMEOUT_S,
         stage="extract_members",
         prompt_version=PROMPT_VERSION,
         prompt_name="e1_members",
