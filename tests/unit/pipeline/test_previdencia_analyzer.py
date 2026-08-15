@@ -20,7 +20,11 @@ from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
     PrevidenciaAnalyzer,
     PrevidenciaConfig,
 )
-from pipeline.domain.types.config import FiscalParameters, IRPFBracket  # noqa: E402
+from pipeline.domain.types.config import (  # noqa: E402
+    FiscalParameters,
+    IRPFBracket,
+    TabelaProgressiva,
+)
 
 #: Tabela literal de ``fiscal_parameters`` (seed y3z4a5b6c7d8, anos 2024-2026).
 _FAIXAS_SEEDADAS = (
@@ -35,7 +39,7 @@ _FAIXAS_SEEDADAS = (
 def _fiscal_seedado() -> FiscalParameters:
     return FiscalParameters(
         year=2026,
-        ir_brackets=_FAIXAS_SEEDADAS,
+        ir_brackets_anual=TabelaProgressiva(faixas=_FAIXAS_SEEDADAS),
         lucro_presumido_aliquota=Decimal("0.32"),
     )
 

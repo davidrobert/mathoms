@@ -658,7 +658,11 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 |---|---|---|---|---|
 | `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
 | `year` | `INTEGER` | no | — | INDEX |
-| `ir_brackets` | `JSON` | no | — | — |
+| `ir_brackets_anual` | `JSON` | yes | — | — |
+| `ir_brackets_mensal` | `JSON` | yes | — | — |
+| `regime_completo` | `BOOLEAN` | no | `True` | — |
+| `componentes_ausentes` | `JSON` | yes | — | — |
+| `ir_brackets` | `JSON` | yes | — | — |
 | `pgbl_limit_brl_cents` | `BIGINT` | no | — | — |
 | `inss_ceiling_brl_cents` | `BIGINT` | no | — | — |
 | `lucro_presumido_aliquota` | `NUMERIC(5, 4)` | no | — | — |
@@ -1999,7 +2003,10 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `documents.classification_meta`
 - `family_members.extra`
 - `feature_flags.flags_json`
+- `fiscal_parameters.componentes_ausentes`
 - `fiscal_parameters.ir_brackets`
+- `fiscal_parameters.ir_brackets_anual`
+- `fiscal_parameters.ir_brackets_mensal`
 - `fiscal_rule_sets.parameters_json`
 - `goals.derived_json`
 - `goals.params_json`
@@ -2432,6 +2439,10 @@ type FeatureFlag struct {
 type FiscalParameter struct {
 	Id string `db:"id" json:"id"`
 	Year int `db:"year" json:"year"`
+	IrBracketsAnual json.RawMessage `db:"ir_brackets_anual" json:"ir_brackets_anual"`
+	IrBracketsMensal json.RawMessage `db:"ir_brackets_mensal" json:"ir_brackets_mensal"`
+	RegimeCompleto bool `db:"regime_completo" json:"regime_completo"`
+	ComponentesAusentes json.RawMessage `db:"componentes_ausentes" json:"componentes_ausentes"`
 	IrBrackets json.RawMessage `db:"ir_brackets" json:"ir_brackets"`
 	PgblLimitBrlCents int64 `db:"pgbl_limit_brl_cents" json:"pgbl_limit_brl_cents"`
 	InssCeilingBrlCents int64 `db:"inss_ceiling_brl_cents" json:"inss_ceiling_brl_cents"`
