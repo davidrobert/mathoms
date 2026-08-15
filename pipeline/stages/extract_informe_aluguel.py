@@ -67,6 +67,7 @@ def extract_one_informe(
     members=None,
 ):
     """Extrai um informe via LLM e retorna (payload_dict, llm_run_summary) sem persistir."""
+    from pipeline.llm.error_classification import LLM_LONG_GENERATION_TIMEOUT_S
     from pipeline.llm.litellm_client import LLMService
     from pipeline.llm.prompts.informe_aluguel import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.informe_aluguel import PROMPT_VERSION, InformeAluguelExtract
@@ -90,6 +91,7 @@ def extract_one_informe(
         user_prompt=user_prompt,
         output_schema=InformeAluguelExtract,
         max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
+        timeout_s=LLM_LONG_GENERATION_TIMEOUT_S,
         stage=f"extract_informe_aluguel:{doc_path.name}",
         prompt_version=PROMPT_VERSION,
         prompt_name="informe_aluguel",

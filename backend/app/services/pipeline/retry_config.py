@@ -43,6 +43,10 @@ class StageRetryConfig:
 # chega ali é uma `LLMError` que re-embrulha a mensagem do provider
 # (`litellm_client.py`: "LLM call failed after N attempts (Xms): <msg>").
 #
+# **`server disconnected` / `disconnected without sending` (2026-08-15):**
+# o httpcore fecha no cap de timeout com EOF; LiteLLM embrulha como
+# InternalServerError sem a palavra `timeout`. Sem esses needles o retry
+# do stage é no-op — dogfood extract_baseline 4×120s (emenda ADR-270).
 # **`overloaded`/`529` e `timed out` foram acrescentados em A40.l18 por medição.**
 # O overload da Anthropic — o transiente mais comum em pico de capacidade — é
 # mapeado por litellm para `InternalServerError`, com mensagem que não contém
@@ -61,6 +65,8 @@ _TRANSIENT_LLM_ERRORS = [
     "timed out",
     "rate_limit",
     "connection",
+    "server disconnected",
+    "disconnected without sending",
     "overloaded",
     "503",
     "529",

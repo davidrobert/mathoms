@@ -29,6 +29,12 @@ _TRANSIENT = {
     "timeout_timed_out": "Request timed out.",
     "timeout_api": "APITimeoutError: Request timed out.",
     "connection_refused": "[Errno 61] Connection refused",
+    # Dogfood 2026-08-15: httpcore EOF no cap chega sem a palavra "timeout".
+    "server_disconnected": (
+        "litellm.InternalServerError: AnthropicException - "
+        "Server disconnected without sending a response.. "
+        "Handle with `litellm.InternalServerError`."
+    ),
 }
 
 _PERMANENT = {

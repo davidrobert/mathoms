@@ -116,6 +116,7 @@ def _build_e16_user_prompt(doc_name: str, text: str) -> str:
 
 
 def _call_llm(service, config, doc_name: str, text: str):
+    from pipeline.llm.error_classification import LLM_LONG_GENERATION_TIMEOUT_S
     from pipeline.llm.prompts.e16_irpf_full import PROMPT_VERSION, SYSTEM_PROMPT
     from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
@@ -125,6 +126,7 @@ def _call_llm(service, config, doc_name: str, text: str):
         user_prompt=user_prompt,
         output_schema=IRPFFullOutput,
         max_tokens=max(config.max_tokens, _E16_MIN_COMPLETION_TOKENS),
+        timeout_s=LLM_LONG_GENERATION_TIMEOUT_S,
         stage="extract_irpf_full",
         prompt_version=PROMPT_VERSION,
         prompt_name="e16_irpf_full",

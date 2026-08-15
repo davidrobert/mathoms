@@ -171,6 +171,7 @@ def run(ctx: WorkspaceContext) -> dict:
     vinculável ao documento. Depois agrega tudo num único
     `baseline_patrimonial-1.5_baseline.json` (E1.5) lido por E1.5c.
     """
+    from pipeline.llm.error_classification import LLM_LONG_GENERATION_TIMEOUT_S
     from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e15_baseline import (
         PROMPT_VERSION,
@@ -263,6 +264,7 @@ def run(ctx: WorkspaceContext) -> dict:
             user_prompt=user_prompt,
             output_schema=BaselinePatrimonialOutput,
             max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
+            timeout_s=LLM_LONG_GENERATION_TIMEOUT_S,
             stage="extract_baseline",
             prompt_version=PROMPT_VERSION,
             prompt_name="e15_baseline",
