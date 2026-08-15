@@ -19,6 +19,7 @@ import {
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
+import { hasRealProtectionInputs } from "./s9ProtectionInputs";
 
 interface MitigationCounts {
   coberto: number;
@@ -68,21 +69,15 @@ function buildMitigationLegend(
  *   - NarrativeChartCard bubble_riscos (full, re-enquadrado: apenas
  *     riscos compliance/sucessório + 3ª dimensão cor = mitigation_status)
  *
- * T01 empty state preservado: `data_state="empty"` continua renderizando
- * `<EmptyState/>` quando workspace não tem `Risk` cadastrado.
- *
- * TODO: dados reais virão de T03 — `data.protection_bundle` é populado
- * pelo adapter (ADR-192 §D2 + S9-T03 calculators). Até T03 mergear,
- * cards usam o bundle vazio (skeleton) e renderizam estados degradados
- * coerentes (gap "a calcular", checklist com pendências marcadas).
+ * Empty state total só quando o snapshot não trouxe insumo real
+ * (A40.l35). `bubble_riscos.data_state === "empty"` sozinho não esconde
+ * a seção — o gráfico pode estar vazio e o bundle ainda ter apólice.
  */
 export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
-  const bubble = charts?.bubble_riscos as { data_state?: string } | undefined;
-  const isEmpty = bubble?.data_state === "empty";
-
-  const bundle: ProtectionBundle | undefined = undefined;
+  const bundle = data.protection_bundle ?? undefined;
+  const isEmpty = !hasRealProtectionInputs(bundle);
   const effectiveDate = (data.data_analise as string | undefined) ?? null;
   const mitigationLegend = buildMitigationLegend(bundle);
 
