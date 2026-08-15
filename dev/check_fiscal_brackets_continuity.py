@@ -23,28 +23,39 @@ from pathlib import Path
 _REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO))
 
-from pipeline.domain.services.tabela_progressiva_coerencia import (  # noqa: E402
-    Violacao,
-    divergencia_x12,
-    verificar_congruencia,
-    verificar_continuidade,
-    verificar_monotonicidade,
-    verificar_primeira_fronteira,
-)
-from pipeline.domain.types.config import IRPFBracket  # noqa: E402
-
 _MIGRATION = (
     _REPO / "backend" / "alembic" / "versions" / "adr389tabelas_ir_brackets_anual_e_mensal.py"
 )
+_INVARIANTES = _REPO / "pipeline" / "domain" / "services" / "tabela_progressiva_coerencia.py"
+
+
+# Carga por PATH, não por pacote. `import pipeline.domain.services.X` dispara o
+# `__init__` do pacote, que puxa `e5_analyzer_adapter` → litellm → pydantic, e
+# explode com ModuleNotFoundError na env MÍNIMA do job de lint — onde este gate
+# roda. `pipeline.domain.types` é leve (stdlib só) e pode vir por import normal.
+def _modulo(nome: str, caminho: Path):
+    spec = importlib.util.spec_from_file_location(nome, caminho)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"não consegui carregar {caminho}")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[nome] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+from pipeline.domain.types.config import IRPFBracket  # noqa: E402
+
+_inv = _modulo("_adr389_invariantes", _INVARIANTES)
+Violacao = _inv.Violacao
+divergencia_x12 = _inv.divergencia_x12
+verificar_congruencia = _inv.verificar_congruencia
+verificar_continuidade = _inv.verificar_continuidade
+verificar_monotonicidade = _inv.verificar_monotonicidade
+verificar_primeira_fronteira = _inv.verificar_primeira_fronteira
 
 
 def _carrega_tabelas() -> dict:
-    spec = importlib.util.spec_from_file_location("_adr389", _MIGRATION)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"não consegui carregar {_MIGRATION}")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.TABELAS_POR_ANO
+    return _modulo("_adr389_migration", _MIGRATION).TABELAS_POR_ANO
 
 
 def _brackets(tabela: dict) -> tuple[IRPFBracket, ...]:
