@@ -39,15 +39,44 @@ class Occupancy(NamedTuple):
     detail: str
 
 
+# O crash é ruidoso, logo seguro. O perigo é a variante muda: sonda que falha em
+# silêncio devolve zero sinais, e zero sinais viram LIVRE — exatamente a colisão
+# que este tool existe para evitar. Por isso degradação é dado de primeira classe
+# e contamina o veredito, em vez de virar `except: pass`.
+class Degradacao(NamedTuple):
+    """Sonda que NÃO pôde rodar, com o motivo que a impediu."""
+
+    probe: str
+    motivo: str
+
+    def format(self) -> str:
+        return f"sonda cega [{self.probe}]: {self.motivo}"
+
+
+# `subprocess.run(cwd=<inexistente>)` levanta no Popen, ANTES de rodar o git —
+# `check=False` não protege. Vale para diretório removido, path que virou
+# arquivo e permissão negada; os três aparecem quando um worktree registrado
+# sai do disco sem `git worktree prune`.
+def _git_probe(*args: str, cwd: Path | None = None) -> tuple[str, str | None]:
+    """Devolve ``(stdout, motivo_da_falha)``; nunca levanta."""
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=str(cwd or REPO_ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        return "", f"{type(exc).__name__}: {exc.strerror or exc}"
+    if result.returncode != 0:
+        erro = (result.stderr or "").strip().splitlines()
+        return "", erro[0] if erro else f"git {args[0]} saiu {result.returncode}"
+    return result.stdout, None
+
+
 def _git(*args: str, cwd: Path | None = None) -> str:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=str(cwd or REPO_ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.stdout if result.returncode == 0 else ""
+    return _git_probe(*args, cwd=cwd)[0]
 
 
 def _frontmatter(path: Path) -> dict[str, Any]:
@@ -102,15 +131,32 @@ def _refs_mentioning(token: str) -> list[Occupancy]:
     return [Occupancy("branch", ref) for ref in hits]
 
 
-def _worktrees_mentioning(token: str) -> list[Occupancy]:
+def _sonda_worktree(path: Path, token: str) -> tuple[Occupancy | None, Degradacao | None]:
+    """Um worktree: sinal, degradação, ou nenhum dos dois (não cita a lane)."""
+    branch, erro = _git_probe("rev-parse", "--abbrev-ref", "HEAD", cwd=path)
+    cita_pelo_path = token in path.name.lower()
+    if erro is not None:
+        # Path pode citar a lane e o git ter falhado: reportar mesmo assim, senão
+        # um worktree quebrado esconde ocupação real.
+        return None, Degradacao("worktree", f"{path.name}: {erro}")
+    branch = branch.strip()
+    if not (cita_pelo_path or token in branch.lower()):
+        return None, None
+    sujos = len([ln for ln in _git("status", "--short", cwd=path).splitlines() if ln])
+    return Occupancy("worktree", f"{path.name} [{branch}] · {sujos} arq. sujos"), None
+
+
+def _worktrees_mentioning(token: str) -> tuple[list[Occupancy], list[Degradacao]]:
     """Worktree cujo path OU branch cita a lane — pega sessão sem nenhum commit."""
     signals: list[Occupancy] = []
+    degradacoes: list[Degradacao] = []
     for path in _worktree_paths():
-        branch = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=path).strip()
-        if token in path.name.lower() or token in branch.lower():
-            dirty = len([ln for ln in _git("status", "--short", cwd=path).splitlines() if ln])
-            signals.append(Occupancy("worktree", f"{path.name} [{branch}] · {dirty} arq. sujos"))
-    return signals
+        sinal, degradacao = _sonda_worktree(path, token)
+        if sinal is not None:
+            signals.append(sinal)
+        if degradacao is not None:
+            degradacoes.append(degradacao)
+    return signals, degradacoes
 
 
 # Sinal que nenhum comando do protocolo vigente enxerga: a sessão da A40.l35
@@ -143,18 +189,31 @@ def _pending_deps(front: dict[str, Any], lanes: dict[str, dict[str, Any]]) -> li
     return pending
 
 
-def occupancy_signals(lane_id: str, front: dict[str, Any]) -> list[Occupancy]:
+def occupancy_signals(
+    lane_id: str, front: dict[str, Any]
+) -> tuple[list[Occupancy], list[Degradacao]]:
     """Todos os sinais de que alguém já está na lane, do mais barato ao mais fundo."""
     tokens = {_short_id(lane_id), _slug_of(lane_id, front).lower()}
     signals: list[Occupancy] = []
+    degradacoes: list[Degradacao] = []
     for token in sorted(tokens):
         signals.extend(_refs_mentioning(token))
-        signals.extend(_worktrees_mentioning(token))
+        sinais_wt, cegas = _worktrees_mentioning(token)
+        signals.extend(sinais_wt)
+        degradacoes.extend(cegas)
     signals.extend(_uncommitted_lane_files(lane_id))
-    return list(dict.fromkeys(signals))
+    return list(dict.fromkeys(signals)), list(dict.fromkeys(degradacoes))
 
 
-def _verdict(front: dict[str, Any], pending: list[str], signals: list[Occupancy]) -> str:
+# Ordem deliberada: ocupação MEDIDA vence tudo, inclusive degradação — a ressalva
+# não pode diluir sinal real. Já a ausência de sinal só vale como LIVRE se todas
+# as sondas rodaram; senão o veredito diz que não sabe.
+def _verdict(
+    front: dict[str, Any],
+    pending: list[str],
+    signals: list[Occupancy],
+    degradacoes: list[Degradacao] | None = None,
+) -> str:
     if signals:
         return "OCUPADA — não pegue sem falar com quem está nela"
     if front.get("status") in TERMINAL_STATUS:
@@ -165,18 +224,50 @@ def _verdict(front: dict[str, Any], pending: list[str], signals: list[Occupancy]
         return f"BLOQUEADA — dep pendente: {', '.join(pending)}"
     if pending:
         return f"PEGÁVEL COM AMARRA PARCIAL — dep pendente: {', '.join(pending)}"
-    return "LIVRE"
+    return _livre(degradacoes)
+
+
+def _livre(degradacoes: list[Degradacao] | None) -> str:
+    """Ausência de sinal só é prova de lane livre se TODAS as sondas rodaram."""
+    if not degradacoes:
+        return "LIVRE"
+    return (
+        f"LIVRE (RESSALVA: {len(degradacoes)} sonda(s) de ocupação não rodaram — "
+        "ausência de sinal aqui não é prova de lane livre)"
+    )
 
 
 # §Pendência 13 da A40 (8 renumerações de id numa sessão): `ls` local mede o
 # teto errado enquanto alguém segura o id numa branch ou num worktree.
+# Diagnóstico read-only: prescreve o conserto, não o executa. Uma sonda de
+# pickup que muta estado do git como efeito colateral é surpresa cara — e
+# `prune` não é reversível por quem não sabia que rodou.
+_REMEDIO_REGISTRO_ORFAO = (
+    "  → registro de worktree órfão: `git worktree prune -v` "
+    "(remove só registro cujo diretório sumiu; não apaga nada no disco)"
+)
+
+
+def _linhas_de_degradacao(degradacoes: list[Degradacao]) -> list[str]:
+    if not degradacoes:
+        return []
+    linhas = [f"  {d.format()}" for d in degradacoes]
+    if any("No such file" in d.motivo or "NotADirectory" in d.motivo for d in degradacoes):
+        linhas.append(_REMEDIO_REGISTRO_ORFAO)
+    return linhas
+
+
 def _report_unknown(lane_id: str) -> tuple[str, int]:
     """Id ausente da vault local ainda pode estar TOMADO por outra sessão."""
-    signals = occupancy_signals(lane_id, {})
+    signals, degradacoes = occupancy_signals(lane_id, {})
     if not signals:
-        return (f"{lane_id}: não existe no vault e nenhum sinal de ocupação — id livre.", 2)
+        cabeca = f"{lane_id}: não existe no vault e nenhum sinal de ocupação — id livre."
+        if degradacoes:
+            cabeca = f"{lane_id}: não existe no vault, mas {len(degradacoes)} sonda(s) não rodaram."
+        return ("\n".join([cabeca, *_linhas_de_degradacao(degradacoes)]), 2)
     out = [f"{lane_id}: NÃO existe na vault local, mas o id está TOMADO — não realoque."]
     out.extend(f"  ocupação [{s.source}]: {s.detail}" for s in signals)
+    out.extend(_linhas_de_degradacao(degradacoes))
     return ("\n".join(out), 1)
 
 
@@ -186,14 +277,15 @@ def report(lane_id: str, lanes: dict[str, dict[str, Any]]) -> tuple[str, int]:
     if front is None:
         return _report_unknown(lane_id)
     pending = _pending_deps(front, lanes)
-    signals = occupancy_signals(lane_id, front)
-    verdict = _verdict(front, pending, signals)
+    signals, degradacoes = occupancy_signals(lane_id, front)
+    verdict = _verdict(front, pending, signals, degradacoes)
     out = [
         f"{lane_id} · status `{front.get('status')}` · {front.get('priority', 's/ prioridade')}",
         f"  {front.get('title', '')}",
         f"  veredito: {verdict}",
     ]
     out.extend(f"  ocupação [{s.source}]: {s.detail}" for s in signals)
+    out.extend(_linhas_de_degradacao(degradacoes))
     return ("\n".join(out), 0 if verdict.startswith(("LIVRE", "PEGÁVEL")) else 1)
 
 
