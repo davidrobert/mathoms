@@ -132,6 +132,8 @@ def test_call_propagates_timeout_and_disables_internal_retries() -> None:
     kwargs = create_mock.call_args.kwargs
     assert kwargs["timeout"] == LLM_CALL_TIMEOUT_S
     assert kwargs["num_retries"] == 0
+    # Stream é do assembler sob o Instructor — create() síncrono não muda de tipo.
+    assert kwargs.get("stream") is not True
 
 
 # ---------- escalada de timeout (emenda ADR-270, incidente parecer 2026-06-12) ----------

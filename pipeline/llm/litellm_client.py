@@ -52,6 +52,7 @@ from pipeline.llm.response_cache import (
 # LLMCallResult idem (ADR-307).
 from pipeline.llm.run_summary import LLMRunSummary
 from pipeline.llm.service_config import LLMCallResult, LLMConfig
+from pipeline.llm.stream_assemble import completion_via_stream
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,7 @@ class LLMService:
         logging.getLogger("litellm").setLevel(logging.WARNING)
 
         self._raw_client = litellm
-        self._client = instructor.from_litellm(litellm.completion)
+        self._client = instructor.from_litellm(completion_via_stream)
 
     def test_connection(self) -> dict[str, Any]:
         """Quick connectivity test — delegate de ``pipeline.llm.connection_check`` (P2 A33.l7)."""
@@ -253,7 +254,7 @@ class LLMService:
         is_multimodal = image_bytes is not None
         logger.info(
             "%sLLM call START: model=%s max_tokens=%d temp=%.2f timeout_s=%.0f "
-            "prompt_chars=%d schema=%s%s",
+            "prompt_chars=%d schema=%s stream=assemble%s",
             tag,
             self._config.model_name,
             effective_max_tokens,
