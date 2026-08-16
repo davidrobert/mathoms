@@ -197,3 +197,36 @@ centavo em `908,73` e só nele. É evidência convergente forte, **não é o ato
 - **Este é o único item da lane que fica owner-gated:** 3 anos × 5 faixas × 2
   tabelas viram imposto na tela. A conferência humana da tabela final antes do
   merge não é formalidade.
+
+## Escopo item 4 — golden atravessa o construtor de produção (2026-08-15)
+
+Antes desta lane, **zero** goldens passavam por `from_fiscal_parameters`:
+`ctx.config_store` era `None` em todo caminho de teste e `analyze_finances` caía
+em `from_fiscal` (dict legado). Por isso o falsy-zero do #1383 foi corrigido às
+cegas do golden.
+
+**Injeção opt-in.** `run_e3_e4_e5` ganha `config_store` kw-only com default
+`None`. Injetar no substrato compartilhado trocaria o construtor em **todos** os
+goldens de E5 e forçaria rebaseline geral; o default mantém os existentes no
+caminho legado e deixa **um** golden novo exercitar o de produção.
+
+**As tabelas do golden derivam da constante da migration**, via
+`fiscal_store_do_seed` — não de literais no teste. Golden com execução real
+sobre tabela fantasiada mede a fantasia.
+
+**A fixture é dimensionada para a sonda morder.** `aliquota_fallback` do caminho
+legado é 7,5% e a 2ª faixa da tabela real também: com base tributável na faixa
+de 7,5% os dois caminhos devolvem o **mesmo** número e o golden passaria verde
+sem medir nada. R$ 40.000/ano cai na faixa de 15% → **15,0% (DB) vs 7,5%
+(legado)**. O ano vem de `date.today().year`, nunca literal — `{2026: fp}`
+passaria hoje e viraria `KeyError` silencioso em 2027, engolido pelo
+`except Exception` de `analyze_finances:2163`, devolvendo o golden ao caminho
+legado sem falhar.
+
+**Braço de controle explícito.** `test_caminho_legado_devolve_o_fallback` prova
+que a mesma fixture NÃO produz 15,0% sem `config_store`. É ele que torna a sonda
+falsificável: sem divergência nesta fixture, trocar o construtor não muda nada.
+
+**Sonda de aceite, medida.** Trocar `from_fiscal_parameters` por `from_fiscal`
+no call-site de `e5_analyzer_adapter` derruba **2 dos 3** testes — e o braço de
+controle sobrevive, como deve, porque ele afirma o caminho legado.
