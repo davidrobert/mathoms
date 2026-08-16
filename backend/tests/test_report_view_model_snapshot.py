@@ -46,7 +46,19 @@ _FAMILY = {
 # `data_corte` é o mesmo caso de `data_analise`: o corte de provisionado ancora no
 # `reference_date` do run, que é hoje. O que ele MUDA (série cortada, bloco
 # `provisionado`) continua visível no snapshot — só o carimbo é mascarado.
-_VOLATILE_LEAVES = frozenset({"data_analise", "data_corte"})
+# `captured_at`/`as_of_date` do `protection_computation_inputs_v1` (ADR-387 D1)
+# caem em `date.today()` quando o payload E5 não traz `data_analise`
+# (`protection_snapshot_builder._clock_from_e5`) — e o dogfood não traz. São a
+# MESMA classe de `data_analise`, e ficaram de fora quando o bloco entrou em
+# #1471: o snapshot passou a falhar a cada virada de dia, e `main` ficou vermelha
+# por 4 merges sem que ninguém ligasse a causa.
+# `inputs_digest_sha256` deriva desses dois carimbos, então é volátil por
+# construção. Mascarar não perde cobertura: os inputs que o digest resume
+# (`debts`, `incomes`, `policies`, `member_profiles`…) são comparados um a um
+# logo acima dele no mesmo bloco.
+_VOLATILE_LEAVES = frozenset(
+    {"data_analise", "data_corte", "captured_at", "as_of_date", "inputs_digest_sha256"}
+)
 
 
 def _to_cents(value: Any) -> int:
@@ -184,3 +196,21 @@ def test_monetary_fields_subset_of_snapshot(tmp_path: Path):
     present = _monetary_paths(serialized)
     assert monetary <= present
     assert monetary, "esperado ≥1 campo monetário no view-model dogfood"
+
+
+# `main` ficou vermelha por 4 merges por causa destes três campos:
+# `protection_computation_inputs_v1` deriva `captured_at`/`as_of_date` de
+# `data_analise` (a data do run) e o `inputs_digest_sha256` desses dois. Sem
+# máscara o golden falha a cada virada de dia — e a mensagem do assert
+# ("rebaseline via MATHOMS_UPDATE_SNAPSHOT=1") convida a esconder o defeito em
+# vez de corrigi-lo, que foi o que quase aconteceu. Afirmação estreita de
+# propósito: cobre a normalização sem depender de encanamento de relógio que o
+# teste não controla.
+def test_carimbos_de_tempo_do_bloco_de_protecao_sao_mascarados(tmp_path):
+    """Os três carimbos voláteis do bloco de proteção normalizam para sentinela."""
+    bloco = _run_view_model(tmp_path)["protection_computation_inputs_v1"]
+    for campo in ("captured_at", "as_of_date", "inputs_digest_sha256"):
+        assert bloco[campo] == "<volatile>", f"{campo} não mascarado — golden vira bomba-relógio"
+    # Guarda anti-vacuidade: o bloco tem conteúdo real além dos carimbos, então
+    # mascarar os três não esvazia a cobertura.
+    assert "input_contract_version" in bloco and bloco["input_contract_version"]
