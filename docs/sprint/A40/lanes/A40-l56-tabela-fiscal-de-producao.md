@@ -230,3 +230,21 @@ falsificável: sem divergência nesta fixture, trocar o construtor não muda nad
 **Sonda de aceite, medida.** Trocar `from_fiscal_parameters` por `from_fiscal`
 no call-site de `e5_analyzer_adapter` derruba **2 dos 3** testes — e o braço de
 controle sobrevive, como deve, porque ele afirma o caminho legado.
+
+## Follow-up nomeado, ainda sem lane — 2026-08-15
+
+Achado pela síntese do fan-out ao varrer a vizinhança, **não estava em nenhum
+inventário**: o seed `y3z4a5b6c7d8` grava `pgbl_limit_brl_cents = 0`,
+`inss_ceiling_brl_cents = 0` e `lucro_presumido_aliquota = 0.32` — **os mesmos
+valores para 2024, 2025 e 2026** —, e nenhuma migration posterior os corrigiu.
+Só a `e1f2a3b4c5d6` tocou a row, e só em `ir_brackets`.
+
+O teto do INSS certamente não é zero e varia por ano: a própria produção carrega
+`INSS_TETO_MENSAL = 8157.41` em `cascata_calculator`. Os dois campos em cents
+são hoje **stale e mortos** (zero leitores fora de parsers e testes), o que
+explica por que passaram calados por um ano.
+
+É instância viva da **exata classe que esta lane conserta** — "uma constante
+para três anos" —, na mesma tabela, semeada pela mesma migration. Fora do escopo
+daqui, mas ninguém deve dar `fiscal_parameters` por reconciliada sem fechá-lo.
+Prioridade e onda são gatilho de `product-manager`.
