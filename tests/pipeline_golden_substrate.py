@@ -96,12 +96,19 @@ def _seed_store(
     return store
 
 
+# `config_store` é OPT-IN por decisão (A40.l56): com ele, `analyze_finances`
+# troca `PrevidenciaConfig.from_fiscal` (dict legado) por `from_fiscal_parameters`
+# (o construtor de PRODUÇÃO). Injetar no substrato compartilhado trocaria o
+# construtor em TODOS os goldens de E5 e forçaria rebaseline geral — o default
+# `None` mantém os existentes no caminho legado e deixa UM golden novo exercitar
+# o de produção.
 def run_e3_e4_e5(
     root: Path,
     *,
     e3_payloads: dict[str, dict],
     baseline: dict | None = None,
     irpf_payloads: dict[str, dict] | None = None,
+    config_store: Any | None = None,
 ) -> dict[str, Any]:
     """Roda E4→E5 sobre E3 seeded; ``irpf_payloads`` semeia extract_irpf_full (DE-02)."""
     from pipeline.context import WorkspaceContext
@@ -109,10 +116,48 @@ def run_e3_e4_e5(
     from scripts.categorize_transactions import main_with_store as e4_mws
 
     store = _seed_store(e3_payloads, baseline, irpf_payloads)
-    ctx = WorkspaceContext(root=root, artifact_store=store)
+    ctx = WorkspaceContext(root=root, artifact_store=store, config_store=config_store)
     e4_mws(ctx)
     e5_mws(ctx)
     return ctx.artifact_store.read("E5", "analise_financeira")
+
+
+def _tabelas_da_migration_adr389() -> dict:
+    import importlib.util
+
+    caminho = (
+        Path(__file__).resolve().parents[1]
+        / "backend"
+        / "alembic"
+        / "versions"
+        / "adr389tabelas_ir_brackets_anual_e_mensal.py"
+    )
+    spec = importlib.util.spec_from_file_location("_adr389_golden", caminho)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.TABELAS_POR_ANO
+
+
+# Deriva da constante da MIGRATION, não de literais aqui: golden com execução
+# real sobre tabela fantasiada mede a fantasia.
+def fiscal_store_do_seed(year: int):
+    """``InMemoryConfigStore`` com as tabelas que a migration ADR-389 grava."""
+    from pipeline.adapters.fiscal_parsers import fiscal_payload_to_dataclass
+    from pipeline.adapters.in_memory_config_store import InMemoryConfigStore
+
+    tabelas = _tabelas_da_migration_adr389()
+    dados = tabelas[max(a for a in tabelas if a <= year)]
+    fiscal = fiscal_payload_to_dataclass(
+        {
+            "year": year,
+            "ir_brackets_anual": dados["anual"],
+            "ir_brackets_mensal": dados["mensal"],
+            "regime_completo": dados["regime_completo"],
+            "componentes_ausentes": dados["componentes_ausentes"],
+            "lucro_presumido_aliquota": "0.32",
+        }
+    )
+    return InMemoryConfigStore(fiscal_by_year={year: fiscal})
 
 
 def _seed_dogfood_store(raw_baseline: dict, e2_extracts: dict[str, dict]):

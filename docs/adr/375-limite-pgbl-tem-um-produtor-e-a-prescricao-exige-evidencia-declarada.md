@@ -5,7 +5,7 @@ title: "Limite PGBL tem um produtor, e a prescrição exige evidência declarada
 status: Decidido
 phase: A40
 date: "2026-08-11"
-amended_at: ["2026-08-11", "2026-08-13", "2026-08-14"]
+amended_at: ["2026-08-11", "2026-08-13", "2026-08-14", "2026-08-15"]
 relates_to:
   - "[[ADR-236]]"
   - "[[ADR-135]]"
@@ -342,3 +342,29 @@ registrada: o `senior-cto` reportou divergência de 100× entre a `nota` e
 `renda_tributavel_anual` no snapshot — **refutada** na conferência: os campos são
 centavos e a cadeia fecha ao centavo com receita PJ de R$ 36.000/ano. Nada a
 explicar antes do rebaseline por esse motivo.
+
+## Emenda — D5 desbloqueado, QUALIFICADO por ano-calendário (2026-08-15)
+
+O D5 (economia diferencial `IR(base) − IR(base − aporte)`) estava retido porque
+a row de `fiscal_parameters` era internamente inconsistente: tetos anuais com
+parcelas mensais, degrau de R$ 11,04 na fronteira de R$ 26.963,20. A
+[[A40.l56]] reconciliou a row sob a [[ADR-389]] — duas tabelas importadas, com
+proveniência e invariantes travados em gate de pre-commit.
+
+**Liberado para `AC ≤ 2025`.** As tabelas anuais de 2024 e 2025 estão no banco,
+contínuas a ≤ R$ 0,01 em toda fronteira, e o construtor de produção
+(`from_fiscal_parameters`) agora é atravessado por golden com sonda de mutação.
+
+**`AC ≥ 2026` permanece retido, e a recusa lê o dado.** A row de 2026 carrega
+`regime_completo: false` e `componentes_ausentes: ["redutor_lei_15270",
+"irpfm"]`. A Lei 15.270/2025 criou um redutor que é função do rendimento
+**bruto** — não da base de cálculo que esta ADR fixou — e não se move com o
+aporte: quem tem tributável anual ≤ R$ 60.000 já paga zero, e a diferencial
+ingênua publicaria economia inexistente. Acima de R$ 600.000 o IRPFM absorve a
+redução, e é o ICP principal do produto. Dono do desbloqueio: [[A40.l64]].
+
+O consumidor recusa **lendo `regime_completo` na row**, nunca com
+`if year >= 2026`: o seam fica no dado, onde a próxima mudança de lei já
+encontra o lugar dela.
+
+Consumidora deste desbloqueio: [[A40.l34]].
