@@ -16,7 +16,7 @@ superseded_by: []
 aliases:
   - "LLM network retry"
   - "Timeout cap LiteLLM"
-size_lines: 234
+size_lines: 253
 tags:
   - area/pipeline
   - area/llm
@@ -37,7 +37,9 @@ tags:
 > **Emenda (2026-08-15):** `Server disconnected without sending a response`
 > (EOF do httpcore no cap, sem a palavra `timeout`) classifica como
 > `timeout`, não `provider_error`. Stages de geração 16k passam
-> `timeout_s=300` (`LLM_LONG_GENERATION_TIMEOUT_S`). Ver §"Emenda 2026-08-15".
+> `timeout_s=300` (`LLM_LONG_GENERATION_TIMEOUT_S`). O cap do cliente
+> **não** impede o EOF de TTFB ~120s — o choke-point passa a streamar
+> no HTTP e montar a resposta antes do Instructor. Ver §"Emenda 2026-08-15".
 
 ## Contexto
 
@@ -217,6 +219,21 @@ LiteLLM reembrulha em `InternalServerError` **sem** a palavra `timeout`.
 3. `_TRANSIENT_LLM_ERRORS` do retry de stage ganha os mesmos needles —
    o orchestrator deixa de ser no-op nessa mensagem.
 
+**Calibração (mesmo dia, após 2 re-runs):** runs `f3b6ca3b` e `fda24af9`
+no código já emendado (`timeout_s=300` → escalada 600, `type=timeout`)
+ainda morreram em `extract_baseline` com EOF aos **120,7 s / ~123 s**. O
+peer fecha a conexão muda; o cap do cliente é irrelevante. Histórico
+deste workspace: a mesma chamada completa em 72–81 s quando a Opus está
+rápida.
+
+4. **`completion_via_stream`** (`pipeline/llm/stream_assemble.py`) é o
+   `create` que o Instructor vê: `litellm.completion(stream=True)` +
+   `stream_chunk_builder`. O contrato do Instructor (schema, reask
+   `max_retries=2`, `_raw_response`) não muda. `connection_check` continua
+   no `_raw_client` não-stream (ping de 10 tokens). `create()` do
+   Instructor **não** recebe `stream=True` — isso devolveria generator e
+   quebraria o parse.
+
 **Não nesta emenda:** persistir call LLM **falha** em `llm_call_log` (as 4
 tentativas deste run sumiram da telemetria). Exige coluna/`error_type` —
 follow-up, não mistura com o fix do cap.
@@ -224,7 +241,9 @@ follow-up, não mistura com o fix do cap.
 **Critério de aceite:** `tests/test_litellm_client_retry.py` (classify +
 escalada 120→240 no disconnect) + `tests/test_llm_long_generation_timeout.py`
 (os 5 stages 16k passam a constante) +
-`backend/tests/test_stage_retry_vocabulary.py` (mensagem real retenta).
+`backend/tests/test_stage_retry_vocabulary.py` (mensagem real retenta) +
+`tests/test_stream_assemble.py` (stream forçado, wire no `LLMService`,
+`create()` sem `stream=True`).
 
 ## Follow-ups
 
