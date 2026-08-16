@@ -269,3 +269,33 @@ pós-#1162/#1156.
 **Permanecem abertos, com evidência nova deste run:** RV2-02 → **RV4-65** (refutado como "novo", mas o defeito é byte-idêntico em 3 runs; segue P1); RV2-05 → medido inalterado (`_CONSERVATION_CHECKS = {CV1,CV2,CV3,CV6}` em `validate_cross.py:605`, CV16/CV17 fora do gate de pausa) e **agravado por RV4-20** (check que não avalia evapora); RV2-10 → **RV4-44** (causa-raiz nova: o cap dominante é `max_entries`); RV2-12 → **RV4-57**; RV2-13 → **RV4-10** (escalado de `consistência` p/ `correção`); RV2-14 → **RV4-21**; RV2-16 → **RV4-18** (o drift é persistido mas cego: `extra` descartado); RV2-17 → **RV4-20**; RV2-20 → **RV4-29**; RV2-22 → re-medido (0 rows contra 6 no `llm_call_log`) e **agravado por RV4-45** (a auditoria de paridade é fail-open); RV2-24 → **RV4-35** (escalado: as duas afirmações agora são do E5 e as duas estão na tela); RV2-25 → **RV4-62**; RV2-01 → adjacente a **RV4-36/RV4-40** (limiar sem fonte no repo) — segue bloqueado pela dependência do catálogo KPI.
 **Permanecem abertos, sem re-teste neste run** (mantidos na prioridade da r2): RV2-04, RV2-06, RV2-07, RV2-09, RV2-11, RV2-15, RV2-19, RV2-23.
 **Sem zumbi:** nenhum item da r2 ficou sem disposição.
+
+---
+
+## r5 — ws-1b9f2cf5-2026-08-16
+
+> Skill pipeline-review ([[ADR-343]]) · run `0a040a22` · tier premium · executor `7dbbe389` (stream-assemble, PR #1482 aberto).
+> Execução: **completed**, 18/18, 171 docs, 27,9 min, CV **16/16**. Julgamento: 5 especialistas
+> em paralelo + verificação adversarial (PE-01 dependentes e S9/`missing_data` confirmados no payload).
+> Cru + baseline: `storage/1b9f2cf5-…/reviews/20260816-0315-0a040a22/` (off-git).
+> Working: `_scratch/pipeline-review-5at5-2026-08-16.md`.
+> Compare vs r4: exit 1, 4 FAIL HARD de balde cônjuge → 0; NOTE `corpus_grew`. Três runs do mesmo dia
+> tinham morrido em `extract_baseline` (EOF TTFB ~120s); este passou com `stream=assemble`.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| RV5-01 — `patrimonio.investimentos_conjuge` (e fatias irmãs) zera com instituições IRPF do papel ainda listadas; CV2 só testa Σ composição == bruto | correção | Alto | P0 | procede | procede-aberto | owner: data-engineer + financial-planner · fallback IRPF + igualdade canônica · check de balde role-keyed |
+| RV5-02 — parecer `riscos[0]` Crítica menciona dependente menor com `irpf_kpis.dependentes.count=0` e `economic_dependencies=[]` | qualidade-llm | Crítico | P0 | procede | procede-aberto | owner: prompt-engineer · guardrail determinístico (lemma dependente/menor) |
+| RV5-03 — S9 EmptyState (“cadastre riscos”) com `protection_bundle.calculation_status.*.status=missing_data` e `protecao_patrimonial.apolices_vigentes` populado | clareza-ux | Alto | P1 | procede | procede-aberto | owner: product-designer · EmptyState missing_data · residual l35/RV4-24/RV4-31 |
+| RV5-04 — `llm_call_log` 1 row vs `files_processed=10` em `extract_baseline`; `stage` interpola filename (slen 94/68 > VARCHAR(64)) | saúde-execução | Alto | P1 | procede | procede-aberto | owner: data-engineer · [[A42.l7]] (RV4-14 agravado + RV4-03) |
+| RV5-05 — `cenarios_conjuge.premissas.salario_conjuge_clt_brl` zero com CLT do papel em `fluxo_caixa.por_fonte_detalhado` | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner · resolver por papel, não substring |
+| RV5-06 — `extract_with_llm` `success=true` com `queued > processed` e `errors=[]` | correção | Alto | P2 | procede | procede-aberto | owner: data-engineer · re-teste RV2-02 |
+| RV5-07 — stream-assemble não prova a classe TTFB>120s (n=1 na banda histórica 72–81s) | saúde-execução | Médio | P2 | procede | procede-aberto | owner: senior-cto · #1482 = adapter, não “EOF resolvido” · [[ADR-270]] calibração |
+| RV5-08 — PII como chave em `fluxo_caixa.por_fonte_detalhado` (keys com espaço) | consistência | Médio | P2 | procede | procede-aberto | owner: data-engineer · re-teste RV2-07 |
+| RV5-09 — `metricas[]` sem âncora; `target` órfão (comparador de retorno / limiar sem fonte em `scoring.json`) | qualidade-llm | Alto | P2 | procede | procede-aberto | owner: prompt-engineer · RV2-01 + RV4-40 |
+| RV5-10 — `compare_reviews` HARD em folha → 0 sem cruzar conservação irmã (CV2 passou) | saúde-execução | Médio | P2 | procede | procede-aberto | owner: senior-cto · [[A42.l3]] |
+| RV5-11 — POSITIVO — `extract_baseline` completed com `stream=assemble` após 3 EOFs no mesmo dia | saúde-execução | — | — | positivo | procede-fechado | #1482 (local) · residual em RV5-07 |
+
+**Re-triagem da r4** — nenhum `procede-aberto` da r4 fecha neste run. Agravados com evidência nova: RV4-14 → P1 (RV5-04); RV4-20 (CV2 tautológico no caso real); RV4-24/31 (S9 ainda vazia, RV5-03); RV4-03 (slen>64 medido). RV4-12 fechado na r4 pelo PD (título saneado). Demais r4 mantidos.
+
+**Sem zumbi:** todo achado sistêmico desta r5 tem disposição.
