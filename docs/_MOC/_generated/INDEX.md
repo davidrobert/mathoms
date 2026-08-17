@@ -1040,6 +1040,7 @@
 | PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | in_progress |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
+| PLAN-deterministic-authority | plan | draft |  | Autoridade determinística sobre rótulo de LLM — remediação r6 (baseline, fan-out, dado do casal, render) | `plan/DETERMINISTIC_AUTHORITY/_README.md` |
 | PLAN-go-shell | plan | in_progress |  | Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess | `plan/GO_SHELL/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |

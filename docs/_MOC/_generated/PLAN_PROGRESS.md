@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-18 planos detectados em [`docs/plan/`](../../plan/).
+19 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -139,6 +139,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - ADRs canônicas: [[ADR-236]]
 
 ## Rascunhos (`draft`)
+
+### PLAN-deterministic-authority — Autoridade determinística sobre rótulo de LLM — remediação r6 (baseline, fan-out, dado do casal, render)
+
+- Status: `draft` · Sprint atual: A40
+- Sprints envolvidas: A40, A42
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-343]]
 
 ### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto
 
