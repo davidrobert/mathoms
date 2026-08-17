@@ -375,7 +375,10 @@ class TestMoedaEstrangeiraFallback:
         assert total == pytest.approx(34918.47, abs=0.01)
         assert len(detalhes) == 2
         assert all(d.tipo == "moeda_estrangeira_irpf" for d in detalhes)
-        assert all(d.moeda == "USD" for d in detalhes)
+        assert all(d.moeda == "BRL" for d in detalhes)
+        assert all(
+            d.conversao is not None and d.conversao.taxa_fonte == "irpf_ja_em_brl" for d in detalhes
+        )
 
     def test_extract_me_caixa_handles_eur(self):
         from pipeline.domain.services.e5_analyzer_adapter import _extract_me_caixa_from_baseline
@@ -390,7 +393,9 @@ class TestMoedaEstrangeiraFallback:
         }
         total, detalhes = _extract_me_caixa_from_baseline(baseline)
         assert total == 5000.0
-        assert detalhes[0].moeda == "EUR"
+        assert detalhes[0].moeda == "BRL"
+        assert detalhes[0].conversao is not None
+        assert detalhes[0].conversao.status == "identity"
 
     def test_extract_me_caixa_skips_non_me_items(self):
         from pipeline.domain.services.e5_analyzer_adapter import _extract_me_caixa_from_baseline
@@ -843,6 +848,7 @@ class TestA75TypedCambio:
         total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 6000.0  # 1000 * 6.00 (typed), não 5500 (taxas)
         assert detalhes[0].valor_brl == 6000.0
+        assert detalhes[0].conversao.taxa_fonte == "market_rate_corrente"
 
     def test_typed_eur_overrides_taxas_dict(self):
         store = InMemoryArtifactStore()
@@ -878,8 +884,10 @@ class TestA75TypedCambio:
             },
         )
         adapter = E5AnalyzerAdapter(taxas={"cambio_usd_brl": 5.50})
-        total, _, _ = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 5500.0
+        assert detalhes[0].conversao is not None
+        assert detalhes[0].conversao.taxa_fonte == "market_rate_corrente"
 
     def test_default_cambio_when_neither_typed_nor_dict(self):
         """Sem typed nem dict, usa default 5.80/6.35."""
@@ -895,8 +903,29 @@ class TestA75TypedCambio:
             },
         )
         adapter = E5AnalyzerAdapter()
-        total, _, _ = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 5800.0  # 1000 * 5.80 default
+        assert detalhes[0].conversao is not None
+        assert detalhes[0].conversao.taxa_fonte == "default_hardcoded"
+
+    def test_gbp_without_rate_is_missing_and_out_of_total(self):
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "wise_cc_GBP",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Wise",
+                "moeda": "GBP",
+                "saldo_final": 1000.0,
+            },
+        )
+        adapter = E5AnalyzerAdapter()
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
+        assert total == 0.0
+        assert detalhes[0].conversao is not None
+        assert detalhes[0].conversao.status == "missing_rate"
+        assert detalhes[0].moeda == "GBP"
 
     def test_typed_cambio_accepts_float(self):
         store = InMemoryArtifactStore()

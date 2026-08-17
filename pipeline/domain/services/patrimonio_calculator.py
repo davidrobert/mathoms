@@ -392,10 +392,11 @@ class PatrimonioCalculator:
     @staticmethod
     def _caixa_me_from_detalhes(detalhes: list) -> float:
         """Soma só o caixa em moeda estrangeira (``tipo == 'moeda_estrangeira'``) do E3."""
+        tipos_me = {"moeda_estrangeira", "moeda_estrangeira_irpf"}
         return sum(
             safe_float(d.get("valor_brl", 0))
             for d in detalhes
-            if isinstance(d, dict) and d.get("tipo") == "moeda_estrangeira"
+            if isinstance(d, dict) and d.get("tipo") in tipos_me
         )
 
     @staticmethod

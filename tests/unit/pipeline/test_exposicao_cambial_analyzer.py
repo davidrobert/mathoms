@@ -115,6 +115,26 @@ def test_detalhes_inclui_contas_e_ativos():
     assert detalhes_ativos[0]["moeda"] == "USD"
 
 
+def test_irpf_me_entra_mesmo_com_moeda_brl():
+    """ADR-390: fallback IRPF (moeda=BRL, tipo=moeda_estrangeira_irpf) conta."""
+    r = compute_exposicao_cambial(
+        caixa_detalhes=[
+            {
+                "conta": "IRPF: DEPOSITO EM MOEDA ESTRANGEIRA DOLAR",
+                "moeda": "BRL",
+                "saldo_original": 25_000,
+                "valor_brl": 25_000,
+                "tipo": "moeda_estrangeira_irpf",
+            }
+        ],
+        investimentos_atuais=None,
+        investivel_financeiro=250_000,
+    )
+    assert r.total_brl == 25_000
+    moedas = {p.moeda: p.valor_brl for p in r.por_moeda}
+    assert moedas == {"USD": 25_000}
+
+
 def test_rv2_08_ativo_le_valor_atual_nao_zero():
     """RV2-08: posição E4 usa `valor_atual` (não `valor`) — antes lia 0 e o ativo sumia."""
     r = compute_exposicao_cambial(

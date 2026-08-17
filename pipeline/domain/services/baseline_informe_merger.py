@@ -6,6 +6,13 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
 
+from pipeline.domain.services.conversao_me import (
+    ConversaoMeBrl,
+    FxQuote,
+    convert_me_brl,
+    identity_native_brl,
+    missing_rate,
+)
 from pipeline.domain.services.ptax_types import PtaxGetter
 
 
@@ -111,17 +118,21 @@ class BaselineInformeMerger:
     ) -> tuple["_Conversao", list[PtaxMissingWarning]]:
         """Aplica PTAX compra 31/12 do ano_base. Graceful: PTAX ausente → warning."""
         if moeda == "BRL":
-            return _Conversao(saldo_brl=valor, taxa=Decimal("1"), ptax_data=None), []
+            return _from_vo(identity_native_brl(valor)), []
         quote = self._ptax(moeda, ano_base)
         if quote is None:
             warning = PtaxMissingWarning(moeda, ano_base, saldo.get("descricao", ""))
-            return _Conversao(saldo_brl=None, taxa=None, ptax_data=None), [warning]
-        conv = _Conversao(
-            saldo_brl=valor * quote.rate,
-            taxa=quote.rate,
-            ptax_data=quote.observed_at.isoformat(),
+            return _from_vo(missing_rate(valor, moeda)), [warning]
+        vo = convert_me_brl(
+            valor,
+            moeda,
+            FxQuote(
+                rate=quote.rate,
+                fonte="ptax_31_12",
+                observed_at=quote.observed_at.isoformat(),
+            ),
         )
-        return conv, []
+        return _from_vo(vo), []
 
 
 # ─────────────────────── helpers (pure) ─────────────────────────────────────
@@ -129,11 +140,15 @@ class BaselineInformeMerger:
 
 @dataclass(frozen=True)
 class _Conversao:
-    """Resultado da conversão ME→BRL de 1 saldo (taxa + data da cotação usada)."""
+    """Projeção do VO ADR-390 nos campos históricos do entry de informe."""
 
     saldo_brl: Optional[Decimal]
     taxa: Optional[Decimal]
     ptax_data: Optional[str]
+
+
+def _from_vo(vo: ConversaoMeBrl) -> _Conversao:
+    return _Conversao(saldo_brl=vo.valor_brl, taxa=vo.taxa, ptax_data=vo.taxa_data)
 
 
 _TWO_PLACES = Decimal("0.01")

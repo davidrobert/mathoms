@@ -5,11 +5,13 @@ title: "`caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD
 status: Decidido
 phase: A17.incremental-correctness
 date: "2026-05-21"
+amended_at: ["2026-08-17"]
 relates_to:
   - "[[ADR-145]]"
   - "[[ADR-157]]"
   - "[[ADR-241]]"
   - "[[ADR-244]]"
+  - "[[ADR-390]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -22,6 +24,10 @@ tags:
 ---
 
 # ADR-245 — Fallback baseline IRPF para `caixa_moeda_estrangeira`
+
+> **Emenda 2026-08-17** ([[A40.l63]] · [[ADR-390]]): §Limitações 3 deixou
+> de autorizar `moeda=USD` com `saldo_original` em BRL. O fallback permanece;
+> a unidade do saldo e o rótulo passam a coincidir.
 
 **Status:** Decidido • **Data:** 2026-05-21 • **Relaciona** [[ADR-145]] (taxonomia patrimonial), [[ADR-157]] (IRPF full), [[ADR-241]] (E2 ws-scoped), [[ADR-244]] (informe rendimentos)
 
@@ -68,7 +74,7 @@ Caller (`analyze_via_store`) passa `patrimonio_raw` (lido de E4 patrimonio) como
 
 2. **Heurística de keyword pode pegar falso-positivo** (ex.: "FUNDO EURO X" como FII brasileiro). Mitigação: requer keyword genérica `"moeda estrangeira"` OU keyword específica de moeda — não basta só "euro" / "dolar" sozinho num nome de fundo. Conjunto observado em informes BR é restrito; ampliar se telemetria mostrar mais variações.
 
-3. **Inferência de moeda é aproximada** quando descrição diz só "MOEDA ESTRANGEIRA" sem citar USD/EUR. Default USD (mais comum em IRPF BR — contas no exterior). Item já está em BRL no IRPF, então o erro de moeda só afeta o label exibido, não o total.
+3. **`moeda` ≡ unidade de `saldo_original`.** O valor IRPF já está em BRL; `moeda="BRL"`, `conversao.taxa_fonte=irpf_ja_em_brl`, `status=identity`. Keyword "dólar" classifica exposição, não autoriza gravar BRL como USD nem câmbio reverso. (Emenda 2026-08-17; o texto anterior autorizava o label mentiroso.)
 
 ## Alternativas consideradas
 
@@ -100,3 +106,11 @@ Caller (`analyze_via_store`) passa `patrimonio_raw` (lido de E4 patrimonio) como
 1. **Reclassificar ME no `baseline_normalizer`** (alternativa b acima): separar items ME do `investimentos_consolidados` para um campo dedicado. Elimina o trade-off de double-count permanentemente. Lane dedicada — exige cuidado com consumers.
 2. **Telemetria** para detectar cenários de double-count em produção (logger estruturado quando `fonte_investimentos="irpf"` + `caixa_detalhes` contém `moeda_estrangeira_irpf`).
 3. **Refinar heurística de keyword** se telemetria mostrar falsos positivos (ex.: "FUNDO RENDIMENTO DOLAR HEDGE" — fundo BR com nome ambíguo).
+
+## Emenda 2026-08-17 — L3: moeda ≡ unidade de saldo_original
+
+O texto original de L3 dizia que o erro de moeda "só afeta o label". O card
+imprimia `US$ <valor em BRL>`. A [[ADR-390]] fecha isso sem reabrir o
+fallback: `moeda="BRL"`, `conversao.status=identity`,
+`taxa_fonte=irpf_ja_em_brl`. Keyword de descrição continua só para detectar
+o item e para o card de exposição agrupar a origem.

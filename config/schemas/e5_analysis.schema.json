@@ -246,6 +246,13 @@
           "type": "number",
           "description": "CTO-02: parcela do caixa em moeda estrangeira (subconjunto de caixa_total_brl)."
         },
+        "caixa_detalhes": {
+          "type": "array",
+          "description": "Linhas de caixa/ME (ADR-390: writer novo emite conversao).",
+          "items": {
+            "$ref": "#/$defs/CaixaDetalhe"
+          }
+        },
         "composicao": {
           "type": "array",
           "description": "Decomposição patrimonial por balde (Σ valor == bruto). Cada item: categoria + valor + pct.",
@@ -2084,6 +2091,80 @@
     }
   },
   "$defs": {
+    "ConversaoMe": {
+      "type": "object",
+      "description": "Carimbo da conversão ME→BRL (ADR-390). Ausência da chave = artefato pré-390.",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "taxa": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "taxa_data": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "taxa_fonte": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ptax_31_12 | market_rate_corrente | default_hardcoded | irpf_ja_em_brl"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "converted",
+            "identity",
+            "missing_rate"
+          ]
+        }
+      }
+    },
+    "CaixaDetalhe": {
+      "type": "object",
+      "description": "Linha de caixa ou ME. conversao é aditivo (ADR-390 D5).",
+      "additionalProperties": true,
+      "properties": {
+        "conta": {
+          "type": "string"
+        },
+        "moeda": {
+          "type": "string"
+        },
+        "saldo_original": {
+          "type": "number"
+        },
+        "valor_brl": {
+          "type": "number"
+        },
+        "tipo": {
+          "type": "string"
+        },
+        "fonte": {
+          "type": "string"
+        },
+        "data_referencia": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data_referencia_precisao": {
+          "type": "string"
+        },
+        "conversao": {
+          "$ref": "#/$defs/ConversaoMe"
+        }
+      }
+    },
     "IFMonteCarloPathPoint": {
       "type": "array",
       "prefixItems": [

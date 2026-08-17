@@ -17,6 +17,7 @@ from dataclasses import dataclass, replace
 from dataclasses import field as dataclass_field
 from decimal import Decimal
 
+from pipeline.domain.services.conversao_me import from_informe_entry
 from pipeline.domain.services.patrimonio_types import CaixaDetalhe
 
 #: Tipos de saldo de informe elegíveis para override de caixa — CDB/LCI/fundos
@@ -203,6 +204,7 @@ def _detalhe_com_informe(pos: ExtratoPosicao, entry: dict, informe_brl: Decimal)
         fonte="informe_31_12",
         data_referencia=f"{ano_base}-12-31" if ano_base else None,
         data_referencia_precisao="dia" if ano_base else "desconhecida",
+        conversao=from_informe_entry(entry),
     )
 
 

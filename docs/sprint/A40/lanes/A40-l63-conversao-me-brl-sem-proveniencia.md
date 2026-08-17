@@ -11,6 +11,7 @@ owner: data-engineer
 adrs:
   - "[[ADR-090]]"
   - "[[ADR-245]]"
+  - "[[ADR-390]]"
 depends_on: []
 tags:
   - type/lane
@@ -104,9 +105,6 @@ Não é bug de conversão; é a ausência do rótulo que faria isso incomodar qu
 
 ## Pendente de decisão
 
-ADR própria: nenhuma vigente cobre. A [[ADR-090]] decide **representação**
-(float vs Decimal), a [[ADR-238]] D5 decide **precedência** entre fontes (e a
-[[ADR-382]] D4 já a mata), e a [[ADR-387]] D3 é a mesma classe escopada a
-proteção. A nova é "D3 generalizada": *valor monetário derivado de conversão
-carrega taxa, data, fonte e status de enum fechado; ausência é status explícito,
-nunca `null` silencioso*. Prioridade e onda são gatilho de `product-manager`.
+Fechado em 2026-08-17: [[ADR-390]] (Decidido). Conversor não escolhe a taxa;
+fonte ≠ status; objeto `conversao` aninhado. A [[ADR-245]] L3 foi emendada
+no mesmo PR.
