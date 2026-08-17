@@ -10,6 +10,7 @@ import hashlib
 from decimal import Decimal
 from typing import Any
 
+from pipeline.domain.services.brl_prose import fmt_brl_prosa
 from pipeline.domain.services.suggestion_config import SuggestionGeneratorConfig
 from pipeline.domain.types.suggestion import SuggestionDraft
 
@@ -286,10 +287,7 @@ def _format_alocacao_table(desvios: list[Any]) -> str:
 
 def _format_brl(value: Decimal) -> str:
     """Decimal monetário em formato BR (R$ 1.234,56) sem depender de locale."""
-    quantized = value.quantize(Decimal("0.01"))
-    formatted = f"{quantized:,.2f}"
-    swapped = formatted.replace(",", "_TMP_").replace(".", ",").replace("_TMP_", ".")
-    return f"R$ {swapped}"
+    return fmt_brl_prosa(value, decimals=2)
 
 
 def rule_aporte_abaixo_meta(
@@ -567,11 +565,11 @@ def rule_renda_passiva_real_baixa(
     rationale = (
         f"Patrimônio já passou de {progresso:.0f}% da meta IF, mas a renda "
         f"passiva recorrente cobre apenas {pct_atual:.0f}% do custo de vida "
-        f"(R$ {renda_passiva:,.0f} vs R$ {custo_vida:,.0f}/mês). "
+        f"({fmt_brl_prosa(renda_passiva)} vs {fmt_brl_prosa(custo_vida)}/mês). "
         f"Perini sugere alvo intermediário de {pct_meta:.0f}% — convém "
         f"realocar parte da carteira para ativos geradores de fluxo (FIIs, "
         f"dividendos, debêntures de pagamento)."
-    ).replace(",", ".")
+    )
     return SuggestionDraft(
         section_id="S7",
         kind="renda_passiva_real_baixa",
