@@ -225,7 +225,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (63 no disco · 63 nesta tabela — ver nota ao fim)
+## Lanes (64 no disco · 64 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -331,6 +331,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l62]] | Fontes canônicas + ProtectionComputationSnapshotV1 | P1 | l61 | `shipped` (#1471 · #1474 · `5cc4a02f`) · [[ADR-387]] `Decidido` · não liga a S9 |
 | [[A40.l63]] | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de real, saldo BRL rotulado USD | P1 | — | aberta 2026-08-15 no co-design do P0 nº 2 da [[A40.l50]] · dono `data-engineer` · **não é** a [[A40.l39]], que resolve a superfície e não a conversão · pede ADR própria |
 | [[A40.l64]] | Redutor da Lei 15.270/2025 + IRPFM: a economia de PGBL não pode ser publicada para AC2026 | P1 | l56 ✅ | aberta 2026-08-15 no co-design da [[A40.l56]] · dono `financial-planner` · **`open` desde 2026-08-16** (a condição "até o `regime_completo` existir" foi satisfeita pela l56) · **PR1 ✅ #1501 (`c88206b1`)** — a recusa passou a existir; restam PR2 (`IR(base,ano)`), PR3 (redutor) e PR4 (IRPFM) · ⚠️ o título antigo dizia "a diferencial está errada": **a diferencial nunca foi implementada** ([[ADR-375]] D5 é dívida aberta — ver §Correção de premissa da lane) · pendência do dono: `aliquota_marginal` segue publicada na banda do redutor · a [[ADR-389]] declara modelá-los como não-objetivo |
+| [[A40.l65]] | Base do PGBL perdeu a âncora de declarante: lê o IRPF mais recente por `created_at`, e o teto de 12% é por CPF | P1 | — | aberta 2026-08-17 no co-design da [[A40.l36]], que é o que a torna load-bearing · dono `data-engineer` · dois resolvedores de ano-base no mesmo documento |
 | [[A40.l66]] | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | **P0** | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · FK `plan:` distinta do resto da sprint (exceção do §Critério de admissão da [[A42]]) · RV6-01/02/03 · caminho crítico do gate de saída · **§Ataque medido antes do pickup (#1510)**: os degraus 1–2 da hierarquia medem 0% no corpus e 3 critérios de aceite estão corrigidos — leia a lane antes de pegar |
 | [[A40.l67]] | Guarda de publicação no E5: nenhum balde publica negativo, e o schema deixa de aceitá-lo | **P0** | l66 | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · `blocked` para não medir o defeito da l66 · cede eixo com [[A42.l6]]/[[A40.l58]] (RV6-06) |
 | [[A40.l68]] | Balanço de stage fan-out: documento que some não pode sair como sucesso | P1 | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · RV6-10 · **paralela desde o dia 0**, não disputa janela de rebaseline · [[A42.l4]] não amplia |

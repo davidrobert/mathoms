@@ -62,3 +62,47 @@ uma segunda opinião no documento para contradizê-lo.
 
 Toca `cascata_calculator.py`, que a [[A40.l34]] **não** modifica (a l34 só
 consome a base). Sem colisão de conteúdo; quem mergear depois rebaseia.
+
+## Entregue — 2026-08-17
+
+Confirmado, medido e corrigido. Base 318.000 → 174.000 (**−82,8%**), teto PGBL
+38.160 → 20.880. Decisão de domínio em [[ADR-236]] §Emenda 2026-08-17
+(`financial-planner`, duas rodadas).
+
+**A ADR-236 se contradizia**: o §D3 mandava somar pró-labore + outras, a §Riscos
+proibia inferir base de pró-labore só. Sobreviveu a §Riscos — só o IRPF tem o
+*total* que o RIR/2018 art. 68 manda usar.
+
+### O delta tem DUAS dimensões — declarar só a monetária engana o revisor
+
+| dimensão | direção |
+|---|---|
+| monetária (`pgbl_base_anual`, `renda_pf_tributavel_total`) | **↓** sempre, = 12% do pró-labore anualizado |
+| conjunto de triggers | **não-monótona**: T3 apaga sem IRPF; T1 **acende** com IRPF |
+
+T1 é *prescritivo* ("subir pró-labore", com custo real de INSS) e sua guarda de
+elegibilidade (`base/(base+delta) ≥ 0,80`) é **monotônica na base** — baixar a
+base só pode ligá-lo. Quem olhar o `golden_diff` e vir só o dinheiro cair não vê
+a prescrição aparecer.
+
+### Achados que não estavam no escopo
+
+- **Dois testes que PASSAVAM** asseveram ausência de T1/T3 e passariam por
+  construção com base zero — verde sem cobertura. Ganharam guarda anti-vacuidade.
+- **O gate LGPD pegou regressão real do rename**: a denylist de `redaction.py`
+  casa por prefixo, e `outras_rendas` deixou de cobrir o campo — ele vazaria em
+  log. Foi o único gate que viu.
+- **A fixture do T1 precisou de dimensionamento medido**: com 174k a razão passa
+  de 0,80 (alvo = teto INSS 8.157,41) e o trigger DESLIGA, deixando o teste verde
+  sem exercitar o que existe para exercitar. Ficou em 96k.
+- **O gate `test_pgbl_base_...` foi reescrito em pé e ficou mais forte**: passou a
+  discriminar quatro grandezas (canônica, `receita×32%`, pró-labore-only,
+  double-count) em vez de uma. Com IRPF = 0 as duas primeiras coincidiam.
+
+### Follow-up P1 que esta lane destravou — [[A40.l65]]
+
+Com o pró-labore fora, **a base perdeu a âncora do titular**.
+`_read_latest_workspace_artifact` pega o IRPF mais recente por `created_at`, sem
+resolver ano-base e sem dedup — e o artifact é **por declarante**. Numa família
+de dois, a base do PGBL vira a declaração de quem foi processado por último, e o
+teto de 12% é por CPF, não por família.
