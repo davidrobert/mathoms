@@ -158,6 +158,137 @@ Onda 0 (inteira) + Onda 1 (inteira) + Onda 3 itens 3a/3b + lanes 7a/7e no
 - **0e. Registro**: linha em [[PLANS-active]] §Olhar primeiro; backfill Trilha
   §r6; disposição tripartite RV6-06 escrita.
 
+#### 0a/0b — entregue 2026-08-17 (medido, não estimado)
+
+`tests/test_e15c_golden_execution.py` ganhou **5 casos** `xfail(strict=True)` —
+um por assert, não um teste com 5 asserts: com um só, o primeiro a falhar esconde
+os outros quatro e a lane perde o sinal de progresso parcial. Os 4 primeiros
+nomeiam a [[A40.l66]]; o do schema nomeia a [[A40.l67]].
+
+Números do payload sintético (cents, tolerância zero, ano-ref 2024):
+
+| Medida | Hoje | Declarado no `resumo` | Veredito |
+|---|---|---|---|
+| Σ ativos | 400.000,00 | 600.000,00 | **RED** (Δ −200k) |
+| Σ passivos | 0,00 | 200.000,00 | **RED** (Δ −200k) |
+| Líquido (A − P) | 400.000,00 | 400.000,00 | **VERDE** |
+
+O par é o achado: a dívida foi **subtraída do ativo** em vez de somada ao
+passivo, os dois somatórios ficam devendo o mesmo montante, e o líquido — sendo a
+diferença entre eles — não acusa nada. Daí o teste-irmão
+`..._conservacao_liquida_nasce_verde_sobre_o_payload_defeituoso` (controle
+permanente) e o
+`..._o_cancelamento_exato_e_a_assinatura_do_bug` (datado; a [[A40.l66]] o
+**deleta**, não relaxa).
+
+Confirmado de passagem: `validate_dict` do payload contra `baseline_patrimonial`
+devolve `True` — não há `minimum` nos baldes de ativo (alvo do 1e). O golden mede
+`iter_errors` direto porque o retorno de `validate_dict` depende do modo (warn
+devolve `True` mesmo inválido) e um assert mode-dependente seria verde local e
+vermelho só no CI.
+
+**0b — 4a** vive em arquivo próprio (`tests/test_e5_invariante_entre_agregados.py`;
+em `test_e5_conservation_invariants.py` estouraria o teto de 500 linhas) com
+**guard anti-vacuidade**: sobre corpus limpo os três produtores concordam em
+600.000,00, e só no payload r6 divergem — `imoveis_investimento` = 450.000,00 e
+`imoveis_fisicos_brl` = 600.000,00, porque o `PatrimonioCalculator` **soma** o
+negativo e `_aggregate_carteira` o **descarta** (`if valor > 0`,
+`alocacao_alvo_deviation.py:186`). Sem o guard, o RED seria indistinguível de
+invariante que nunca valeu.
+
+#### 0c — RV6-13 re-medido contra `main`: **o buraco está ABERTO** (2026-08-17)
+
+**Consequência: a lane 4b-i entra** (§Onda 4), nas condições já escritas lá. O
+item **não** vira nota pontual na [[TRACK-property-identity-cross-era]] — a track
+segue dona só da reconciliação das órfãs (4b-ii).
+
+A linha que decide é `backend/app/services/db_property_identity_resolver.py:44`:
+falhada a cascata de match, o `_insert_row` é **incondicional**. Não há ramo que
+inspecione `endereco_canonical is None` para abortar, levantar ou marcar
+`needs_review`. A prova de que o INSERT é *desenhado* para aceitar canonical
+ausente está na linha 68 — `low_confidence=lookup.endereco_canonical is None`: o
+campo existe para **carimbar** a ausência, não para recusá-la. No enricher
+(`property_identity_enricher.py`), o único early-continue (`:38-42`) é sobre
+`titular_key`/`codigo_rfb`; o retorno de `canonicalize` (`:44`) não é checado e o
+`None` entra direto no `PropertyLookupKey`, que o tipa como `Optional[str]`.
+
+Verificado por três caminhos independentes, incluindo uma lente adversarial
+instruída a refutar (falhou nas quatro frentes: guarda de call-site, caminho
+alternativo de INSERT, guarda atrás de flag, guarda que o relatório teria negado):
+
+- **Execução do write-path real** contra SQLite com `PRAGMA foreign_keys=ON`:
+  descrição que canonicaliza para `None` ⇒ identidade criada, `endereco_canonical`
+  NULL no DB, `low_confidence=1`, **sem exceção e sem `needs_review`**. A row
+  sobrevive a `session.rollback()` — o `commit()` da linha 80 é eager.
+- **Regrowth medido** — um imóvel, três IRPFs, variação de grafia que qualquer
+  re-extração produz (espaço à direita, caixa): **3 identidades**. É o mecanismo
+  que repõe as órfãs depois de qualquer sweep.
+- **O piso da [[ADR-385]] §Decisão 4 não fecha isto, por desenho.** O 4º nível da
+  cascata casa `codigo_rfb` + `descricao_sample` **byte-exata**; a própria ADR o
+  chama de "piso para a classe futura, não o fix do passivo". Os testes que o
+  cobrem afirmam o INSERT como correto — a classe chama-se
+  `TestLowConfidenceInserts`.
+
+Correção factual que ficou pendente na [[ADR-324]] §Emenda: a premissa revogada
+estava errada por **dois** motivos, não um. Além de as órfãs agora agruparem pelo
+4º nível, o argumento `_identity_key → None` já era falso —
+`imoveis_dedup.py:314-322` retorna `("pid", …)` **antes** de olhar canonical, e o
+enricher sempre anexa um `property_id` às entries órfãs.
+
+**Não medido nesta onda** (e o veredito não depende disso): a contagem 19 rows /
+6 órfãs / 2 criadas na janela do run é do registro §r6 e não foi reconferida
+contra o DB de dogfood — exigiria o storage off-git com PII. A contagem importa
+para dimensionar 4b-ii, não para decidir 4b-i. Nenhum backfill foi rodado nesta
+onda, conforme o escopo.
+
+#### 0d — fila serializada e orçamento de verificação
+
+**Regra da fila.** Uma janela de rebaseline por onda, **um dono por janela**.
+Quem detém a janela declara no PR: commit de rebaseline isolado
+(`dev/check_golden_rebaseline_isolation.py`), diff valor-a-valor via
+`dev/golden_diff.py --manifest` e sinal ↑/↓/= por campo. Migrations seguem a
+mesma disciplina (precedente A42.l7 × A40.l19). Quem for pegar uma lane fora
+desta fila e precisar rebaselinar **espera a janela fechar** — sem isso, dois
+fixes caem no mesmo diff e nenhum dos dois é atribuível.
+
+| # | Janela | Dono | Pode rebaselinar | Abre quando |
+|---|---|---|---|---|
+| J1 | Seam determinístico | [[A40.l66]] | goldens E1.5c/E5 afetados pelo roteamento; snapshot do view-model | imediatamente |
+| J2 | Guarda + strict | [[A40.l67]] | `baseline_patrimonial` + schema irmão; `mode_overrides` | J1 fechada |
+| J3 | Balanço de fan-out | [[A40.l68]] | contrato de retorno do stage (sem golden monetário) | independente — **não** disputa J1/J2 |
+
+**Coordenação com a A40 em voo.** 23 lanes estão `open`/`in_progress`/`blocked`
+na sprint, quase todas sob [[PLAN-report-trust]]. As que declaram efeito em valor
+publicado — e portanto podem colidir com J1/J2 — confirmam no pickup se o diff
+delas toca golden monetário; se tocar, entram na fila atrás da janela vigente. A
+[[A40.l58]] é o caso nomeado: ela mantém `mode_overrides` como infra e o flip de
+schema desta onda é J2, logo as duas **não** podem estar abertas na mesma janela.
+
+**Orçamento de verificação.** Cada checkpoint é 1 run completo do corpus, ~25 min,
+**com extração paga** (o cache fica OFF: com hit, o compare mede o cache e não o
+pipeline). Manifesto de PRs por checkpoint é obrigatório — sem ele o delta não é
+atribuível a nenhum fix.
+
+| Checkpoint | Quando | Runs pagos | Manifesto |
+|---|---|---|---|
+| CP-0 | já existe | 0 | baseline **por dimensão**: r4 (`82b30303`) para composição, r5 (`0a040a22`) para o resto. **r6 não entra** |
+| CP-1 | J1 fechada | 1 | PRs da [[A40.l66]] |
+| CP-2 | J2 fechada | 1 | PRs da [[A40.l67]] (+ [[A40.l68]] se já mergeada) |
+| CP-3 | gate de saída | 2 | KR-0 exige **2 runs consecutivos** do mesmo corpus, comparador pinado, `corpus_grew` desligado |
+
+Total do MVP: **4 runs pagos**. O custo em US$ por run não está medido — a
+telemetria por tentativa é da [[A42.l7]]; o CP-1 é a primeira oportunidade de
+registrá-lo, e quem o rodar anota o número aqui.
+
+#### 0e — lanes do MVP abertas (2026-08-17)
+
+[[A40.l66]] (`open`, P0, seam — itens 1a/1b/1c), [[A40.l67]] (`blocked` por l66,
+P0, guarda E5 — itens 1d/1e) e [[A40.l68]] (`planned`, P1, balanço de fan-out —
+Onda 2, paralela desde o dia 0). Ids a partir de `l66` porque a `A40.l65` já
+existe em PR aberto (#1491) — `SPRINT_CURRENT` não vê lane que só existe em
+branch. Só a l66 nasce `open`: `dev/check_lane_status_predicate.py` reprova
+`open` com dependência pendente, e a l67 depende dela.
+
 ### Onda 1 — seam determinístico (P0 · MVP · 2 lanes)
 
 **L1 (seam extração/consolidação):**
@@ -272,10 +403,14 @@ que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
 ### Onda 4 — identidade durável (gated por 0c)
 
 - 4a. — absorvido como aceite da Onda 1 (ver 0b).
-- 4b-i. `endereco_canonical=None` **não cria identidade** (se 0c confirmar o
-  buraco em `main`): match `(titular_key, codigo_rfb)` + corroboração de valor
-  (**ano é atributo**, nunca chave); sem match → `needs_review`. Mergeia
-  imediatamente (dano durável é contínuo), sem esperar 1b.
+- 4b-i. `endereco_canonical=None` **não cria identidade** — condicional
+  **resolvida em 0c (2026-08-17): o buraco está aberto em `main`**, logo o item
+  entra. Match `(titular_key, codigo_rfb)` + corroboração de valor (**ano é
+  atributo**, nunca chave); sem match → `needs_review`. Mergeia imediatamente
+  (dano durável é contínuo), sem esperar 1b. O ponto exato a fechar é o
+  `_insert_row` incondicional em `db_property_identity_resolver.py:44`; o fake
+  `InMemoryPropertyIdentityResolver` precisa da mesma regra (o 4º nível da
+  [[ADR-385]] nunca foi portado para ele).
 - 4b-ii. Reconciliação das órfãs via [[TRACK-property-identity-cross-era]]
   (`dev/backfill_property_supersession.py`, idempotente, dry-run com diff
   revisado), **só após** re-consolidação limpa pós-Onda 1 — para não eleger

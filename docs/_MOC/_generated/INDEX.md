@@ -913,6 +913,9 @@
 | A40.l62 | lane | shipped | A40 | ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria | `sprint/A40/lanes/A40-l62-protection-computation-snapshot-v1.md` |
 | A40.l63 | lane | open | A40 | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD | `sprint/A40/lanes/A40-l63-conversao-me-brl-sem-proveniencia.md` |
 | A40.l64 | lane | open | A40 | Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante | `sprint/A40/lanes/A40-l64-redutor-lei-15270-e-irpfm.md` |
+| A40.l66 | lane | open | A40 | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | `sprint/A40/lanes/A40-l66-seam-extracao-consolidacao.md` |
+| A40.l67 | lane | blocked | A40 | Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo | `sprint/A40/lanes/A40-l67-guarda-de-publicacao-e5.md` |
+| A40.l68 | lane | planned | A40 | Balanço de stage fan-out: documento que some não pode sair como sucesso | `sprint/A40/lanes/A40-l68-balanco-de-fan-out.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
