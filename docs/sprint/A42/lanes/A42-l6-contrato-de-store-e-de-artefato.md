@@ -80,6 +80,24 @@ Forma: **emenda [[ADR-291]]** (política de escopo) — a decisão existe, o lad
 listagem ficou de fora. Toca também [[ADR-278]] (coluna de lineage) e [[ADR-212]] (hook
 pós-write).
 
+## Coordenação declarada — RV6-06 (escrita em 2026-08-17, Onda 0 do [[PLAN-deterministic-authority]])
+
+Esta lane **cede o eixo dos 2 schemas de baseline** (`baseline_patrimonial` e o
+schema irmão do E1.5a) para o item 1e daquele plano, materializado na
+[[A40.l67]]: a simetrização do contrato (`minimum: 0` nos 3 baldes de ativo) e o
+flip per-schema para strict acontecem lá, não aqui.
+
+O que **permanece nesta lane**, sem alteração de escopo: a retenção, o
+`SCHEMA_BY_STAGE` e o hook de validação pós-write da decisão 3 — incluindo o
+1-liner do RV4-23 e os dois stages hoje fora do mapeamento.
+
+A ordem que a decisão 3 já declara — **corrigir o schema antes de gatear** — é a
+mesma que o plano segue no 1e (simetriza, mede drift por ≥7 dias, só então
+flippa). Não há conflito de método; há partilha de superfície, e é ela que está
+sendo registrada aqui para que nenhum dos dois lados abra PR no eixo do outro.
+
+Terceira perna da disposição: [[A40.l58]].
+
 ## Critério de aceite
 
 **Piso de DoD = decisões 1 a 3.** A coleta de órfãos (decisão 4) é trailing declarado e
