@@ -36,6 +36,7 @@ from dev.ledger_conservation import (
     fmt_cross_group,
     investment_double_count,
 )
+from dev.ledger_cross_group_render import _KR_B_LABEL, _SOMBRA_LABEL, _TITLE
 
 _TX_BUCKETS = ("despesas", "receitas")
 
@@ -80,6 +81,10 @@ class LedgerReport:
     # não pode ser lido só pelo detector (populações distintas por construção).
     collapse_layer: CollapseLayerSummary = field(default_factory=CollapseLayerSummary)
     blast_radius: dict = field(default_factory=dict)
+    # Modo entregue (KR-B): detector sobre E3 persistido do run pinado.
+    # Vazio = relatório só-sombra; a sombra NÃO pontua a KR.
+    cross_group_entregue: CrossGroupSummary | None = None
+    entregue: dict = field(default_factory=dict)
 
     @property
     def zero_write_ok(self) -> bool:
@@ -415,13 +420,39 @@ def _fmt_blast_radius(br: dict) -> list[str]:
     ]
 
 
+def _fmt_entregue_meta(meta: dict) -> list[str]:
+    if not meta:
+        return []
+    rev = meta.get("executor_revision") or "n/d"
+    return [
+        "## KR-B · prova no E3 persistido",
+        f"- run_id={meta['run_id']} executor_revision={rev} "
+        f"cortadas={meta['cortadas']} retido_por_override={meta['retido_por_override']}",
+        "- este bloco pontua KR-B; a sombra (enforce omitido) não pontua",
+    ]
+
+
+def _cross_group_blocks(report: LedgerReport) -> list:
+    sombra = fmt_cross_group(report.cross_group, numerator_label=_SOMBRA_LABEL, title=_TITLE)
+    if report.cross_group_entregue is None:
+        return [sombra]
+    run8 = (report.entregue.get("run_id") or report.run_id or "n/d")[:8]
+    label = f"{_KR_B_LABEL} · E3 persistido run {run8}"
+    title = "## Duplicação cross-grupo — entregue (E3 persistido do run)"
+    return [
+        sombra,
+        _fmt_entregue_meta(report.entregue),
+        fmt_cross_group(report.cross_group_entregue, numerator_label=label, title=title),
+    ]
+
+
 def _report_blocks(report: LedgerReport) -> list:
     return [
         _fmt_conservation(report.conservation),
         _fmt_exec(report),
         _fmt_units("## Eixo E3 (por grupo)", report.e3_groups),
         _fmt_units("## Eixo E4 (por balde)", report.e4_buckets),
-        fmt_cross_group(report.cross_group),
+        *_cross_group_blocks(report),
         fmt_collapse_layer(report.collapse_layer),
         _fmt_tail(report),
         _fmt_drift(report.drift),

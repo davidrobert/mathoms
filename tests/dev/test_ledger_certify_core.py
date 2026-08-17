@@ -258,7 +258,8 @@ def test_render_cross_grupo_com_cobertura_ok_e_numerador_positivo() -> None:
     bloco = _bloco(format_report(report), _CROSS_GROUP_TITLE)
     assert "cobertura=OK" in bloco and "CEGA" not in bloco
     assert "carrier-shaped=3" in bloco and "coincidence-shaped=0" in bloco
-    assert "[numerador KR-B]" in bloco and "[off-git]" in bloco
+    assert "[sombra · enforce omitido]" in bloco and "[off-git]" in bloco
+    assert "[numerador KR-B]" not in bloco
     # O número IMPRESSO tem asserção própria (o do grão de dados está 3 linhas acima):
     # 3 ocorrências × 2 proveniências ⇒ Σ (P−1)·valor = 10000 + 5000 + 15000 cents.
     assert "não-explicada: 3 ocorrência(s)" in bloco
@@ -266,6 +267,23 @@ def test_render_cross_grupo_com_cobertura_ok_e_numerador_positivo() -> None:
     # 3ª identidade: nenhum filtro silencioso entre o que o detector achou e o que
     # saiu particionado — sem ela, um piso de materialidade no numerador é invisível.
     assert "3ª identidade" in bloco and "⇒ fecha" in bloco
+
+
+def test_format_report_so_uma_linha_kr_b_e_e_a_do_persistido() -> None:
+    report = _report(_e4_com_carrier_cross_grupo(), valores=_VALORES_CARRIER, with_key=6)
+    report.cross_group_entregue = report.cross_group
+    report.entregue = {
+        "run_id": "abcdef12-persist",
+        "executor_revision": "deadbeef",
+        "cortadas": 4,
+        "retido_por_override": 0,
+    }
+    texto = format_report(report)
+    assert texto.count("[numerador KR-B]") == 1
+    assert "[numerador KR-B] · E3 persistido run abcdef12" in texto
+    assert texto.count("[sombra · enforce omitido]") == 1
+    assert "cortadas=4" in texto and "retido_por_override=0" in texto
+    assert "executor_revision=deadbeef" in texto
 
 
 def test_transferencias_count_do_result_chega_ao_bloco_cross_grupo() -> None:
