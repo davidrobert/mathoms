@@ -96,6 +96,12 @@ mesma que o plano segue no 1e (simetriza, mede drift por ≥7 dias, só então
 flippa). Não há conflito de método; há partilha de superfície, e é ela que está
 sendo registrada aqui para que nenhum dos dois lados abra PR no eixo do outro.
 
+O mecanismo do flip não é escolha de nenhuma das três pernas: a [[ADR-284]]
+(`Decidido`) §C fixa `mode_overrides` per-schema com precedência
+`env > mode_overrides[schema] > mode`, e o runbook
+[`schema_validation_strict_flip.md`](../../../reference/runbooks/schema_validation_strict_flip.md)
+fecha o global (*"nunca global de uma vez"*). Quem flipar em 1e segue esse gate.
+
 Terceira perna da disposição: [[A40.l58]].
 
 ## Critério de aceite

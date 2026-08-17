@@ -91,16 +91,45 @@ mesmo eixo e mantém retenção/`SCHEMA_BY_STAGE`.
 **Tensão que o dono desta lane precisa resolver — não a resolvo aqui.** O §Escopo
 acima trata do flip **global** (`pipeline.json → schema_validation.mode`), e o
 plano carrega anti-decisão explícita em sentido contrário: *"NÃO subir
-`schema_validation.mode` global — só per-schema com janela medida."* As duas
-posições não são compatíveis como escritas. Três encaminhamentos possíveis, todos
-do `sre-devops`:
+`schema_validation.mode` global — só per-schema com janela medida."*
 
-1. a ADR desta lane decide o rollout global e **supera** a anti-decisão do plano,
-   que então é emendada;
-2. esta lane se re-escopa para "entregar e provar a infra per-schema", e o global
-   vira deferimento datado;
+**Correção de 2026-08-17 (closeout): o contraditor não é o plano.** A primeira
+escrita desta seção enquadrou isto como plano `draft` × lane, e enumerou como
+saída *"a ADR desta lane supera a anti-decisão do plano, que então é emendada"*.
+Está errado no artefato e, portanto, na altura da barra. Quem já decidiu é a
+[[ADR-284]] (**`Decidido`**, 2026-06-09), cujo runbook operacional
+[`schema_validation_strict_flip.md`](../../../reference/runbooks/schema_validation_strict_flip.md)
+diz na abertura: *"O flip é por schema (`mode_overrides`), **nunca global de uma
+vez**: strict global abortaria runs em qualquer stage com drift não-mapeado."* O
+§Anti-decisões do plano não cria posição nova — **repete** essa doutrina.
+
+Dois pontos concretos em que o §Escopo acima diverge da ADR-284, e que a ADR
+desta lane precisa endereçar por escrito:
+
+- **O lever de rollback.** O item 3 nomeia `MATHOMS_PIPELINE_SCHEMA_MODE=warn`
+  como kill-switch. A [[ADR-284]] §C posiciona essa env como **global, de
+  CI/escape**, e o §Rollback do runbook define o lever de produção como *"revert
+  de 1 linha em `mode_overrides`"*. São mecanismos diferentes com blast radius
+  diferente.
+- **A unidade do flip.** O §Escopo trata o modo como chave única; a [[ADR-284]]
+  §C estabelece precedência `env > mode_overrides[schema] > mode`, e o §Não-decisões
+  já rejeitou *"flipar strict nesta lane"* — o flip é operacional, gated por
+  baseline ≥7 dias zero-WARN **por schema alvo**.
+
+Encaminhamentos possíveis, todos do `sre-devops` — com a barra real:
+
+1. a ADR desta lane decide o rollout global e **supersede a [[ADR-284]]**
+   (frontmatter `supersedes`/`superseded_by` nos dois lados + atualização do
+   runbook, [[ADR-182]]) — não basta emendar o plano;
+2. esta lane se re-escopa para "entregar e provar a infra per-schema" — que é o
+   que a ADR-284 já manda — e o global vira deferimento datado;
 3. as duas convivem com o global **depois** de N schemas flipados per-schema, com
-   o N declarado.
+   o N declarado; como isto contraria o *"nunca global de uma vez"* do runbook,
+   exige emenda datada na [[ADR-284]], não só nota aqui.
+
+Nenhuma das três estava citando a ADR-284: até este closeout, `rg "ADR-284"`
+retornava **zero** nesta lane, no plano e na [[A42.l6]] — as três pernas da
+disposição discutiam o eixo sem citar quem já o decidiu.
 
 Enquanto não houver decisão, vale a regra operacional da fila (§0d do plano):
 esta lane e a [[A40.l67]] **não podem estar abertas na mesma janela de
