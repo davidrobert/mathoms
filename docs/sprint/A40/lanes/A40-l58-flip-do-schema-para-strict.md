@@ -79,6 +79,33 @@ flip em produção, onde o blast radius é run de cliente.
 4. Re-adoção do "flip órfão" que a l5 registrou: a suíte valida com `strict`
    fixo, não dependente de CI lembrar de setar env.
 
+## Coordenação declarada — RV6-06 (escrita em 2026-08-17, Onda 0 do [[PLAN-deterministic-authority]])
+
+Esta lane **permanece dona do `mode_overrides` e do kill-switch como infra**. O
+que mudou de mãos é o *consumo* dessa infra para dois schemas específicos: o item
+1e do [[PLAN-deterministic-authority]], materializado na [[A40.l67]], flippa
+`baseline_patrimonial` e o schema irmão do E1.5a **per-schema**, via
+`mode_overrides`, com drift medido por ≥7 dias de dogfood. A [[A42.l6]] cedeu o
+mesmo eixo e mantém retenção/`SCHEMA_BY_STAGE`.
+
+**Tensão que o dono desta lane precisa resolver — não a resolvo aqui.** O §Escopo
+acima trata do flip **global** (`pipeline.json → schema_validation.mode`), e o
+plano carrega anti-decisão explícita em sentido contrário: *"NÃO subir
+`schema_validation.mode` global — só per-schema com janela medida."* As duas
+posições não são compatíveis como escritas. Três encaminhamentos possíveis, todos
+do `sre-devops`:
+
+1. a ADR desta lane decide o rollout global e **supera** a anti-decisão do plano,
+   que então é emendada;
+2. esta lane se re-escopa para "entregar e provar a infra per-schema", e o global
+   vira deferimento datado;
+3. as duas convivem com o global **depois** de N schemas flipados per-schema, com
+   o N declarado.
+
+Enquanto não houver decisão, vale a regra operacional da fila (§0d do plano):
+esta lane e a [[A40.l67]] **não podem estar abertas na mesma janela de
+rebaseline** — J2 é da l67.
+
 ## Critério de aceite
 
 - ADR mergeada antes do PR de flip, com a decisão de rollout e o rollback

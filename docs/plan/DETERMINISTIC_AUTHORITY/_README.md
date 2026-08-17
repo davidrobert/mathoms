@@ -280,6 +280,23 @@ Total do MVP: **4 runs pagos**. O custo em US$ por run não está medido — a
 telemetria por tentativa é da [[A42.l7]]; o CP-1 é a primeira oportunidade de
 registrá-lo, e quem o rodar anota o número aqui.
 
+#### 0e — registro: disposição tripartite RV6-06 escrita (2026-08-17)
+
+As três pernas agora existem, cada uma no arquivo do seu dono: a §Roteamento
+acima (plano), a §Coordenação declarada da [[A42.l6]] (cede o eixo dos 2 schemas
+de baseline; mantém retenção/`SCHEMA_BY_STAGE`) e a da [[A40.l58]] (permanece
+dona de `mode_overrides`/kill-switch como infra). Antes disto a disposição estava
+escrita **só deste lado** — as outras duas lanes não sabiam que tinham cedido ou
+recebido superfície, que é como duas sessões abrem PR no mesmo eixo.
+
+**Tensão encontrada ao escrever, e deliberadamente NÃO resolvida aqui:** o
+§Escopo da [[A40.l58]] trata do flip **global** de `schema_validation.mode`,
+enquanto §Anti-decisões deste plano diz *"NÃO subir `schema_validation.mode`
+global — só per-schema com janela medida"*. As duas posições não são compatíveis
+como escritas. Os três encaminhamentos possíveis estão enumerados na própria
+l58; a escolha é do `sre-devops`, dono de lá. Enquanto não houver decisão, vale a
+regra da fila: l58 e [[A40.l67]] não abrem na mesma janela (J2 é da l67).
+
 #### 0e — lanes do MVP abertas (2026-08-17)
 
 [[A40.l66]] (`open`, P0, seam — itens 1a/1b/1c), [[A40.l67]] (`blocked` por l66,
