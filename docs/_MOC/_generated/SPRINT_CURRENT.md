@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-19 open · 4 in_progress · 3 blocked.
+18 open · 4 in_progress · 3 blocked.
 
-## Open (19)
+## Open (18)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
@@ -26,7 +26,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l63]] — Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD · priority P1 · área pipeline/money · branch `a40-l63-conversao-me-brl-sem-proveniencia`
 - [[A40.l64]] — Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante · priority P1 · área pipeline/financial-planning · branch `a40-l64-redutor-lei-15270-e-irpfm`
 - [[A40.l66]] — Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint · priority P0 · área pipeline · branch `a40-l66-seam-extracao-consolidacao`
-- [[A40.l70]] — endereco_canonical=None não cria identidade: match por titular+código ou needs_review · priority P1 · área pipeline/backend · branch `a40-l70-endereco-canonical-nao-cria-identidade`
 - [[A40.l71]] — Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente · priority P1 · área frontend · branch `a40-l71-predicado-unico-da-composicao`
 
 ## In progress (4)

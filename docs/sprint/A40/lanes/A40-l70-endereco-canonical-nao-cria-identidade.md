@@ -4,7 +4,9 @@ type: lane
 title: "endereco_canonical=None não cria identidade: match por titular+código ou needs_review"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1508
+ship_date: "2026-08-17"
 priority: P1
 branch_slug: a40-l70-endereco-canonical-nao-cria-identidade
 owner: data-engineer
@@ -21,7 +23,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/backend
