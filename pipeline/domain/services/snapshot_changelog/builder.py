@@ -36,6 +36,12 @@ DEFAULT_SECTION_VALUE_PATHS: Mapping[str, str] = {
     "M_AUVP_DESVIO": "goals.alocacao_alvo.derived.desvio_max_pct",
 }
 
+# A40.l48 — métrica com alvo: polaridade deriva da posição, não da constante.
+# Ausência do path = fallback no default D3 (snapshots pré-alvo).
+TARGET_PATHS: Mapping[str, str] = {
+    "M_RESERVA_MESES": "reserva_emergencia.meses_alvo",
+}
+
 DEFAULT_SECTION_LABELS: Mapping[str, str] = {
     "S1": "Patrimônio Líquido",
     "S2": "Receita Total",
@@ -82,16 +88,16 @@ def _compare_section(
         return None
     before = extract_section_value(prev.content_json, section_id)
     after = extract_section_value(curr.content_json, section_id)
-    return _build_item(section_id, before, after, config)
+    return _build_item(section_id, before, after, config, curr.content_json)
 
 
 def _build_item(
-    section_id: str,
-    before: Decimal,
-    after: Decimal,
-    config: SnapshotChangelogConfig,
+    section_id: str, before: Decimal, after: Decimal, config: SnapshotChangelogConfig, content
 ) -> ComparisonItem:
     delta_pct, signal = _compute_delta(before, after, config.threshold_rule_for(section_id))
+    polarity = config.direction_positive_for(
+        section_id, after=after, target=_section_target(section_id, content)
+    )
     return ComparisonItem(
         section_id=section_id,
         section_label=_resolve_label(section_id, config),
@@ -99,9 +105,19 @@ def _build_item(
         after=after,
         delta_pct=delta_pct,
         delta_signal=signal,
-        direction_positive=config.direction_positive_for(section_id),
+        direction_positive=polarity,
         unit=DEFAULT_METRIC_UNITS.get(section_id, "brl"),
     )
+
+
+def _section_target(section_id: str, content: Mapping[str, Any]) -> Decimal | None:
+    path = TARGET_PATHS.get(section_id)
+    if path is None:
+        return None
+    raw = _navigate_dotted(content, path)
+    if raw is None or isinstance(raw, bool):
+        return None
+    return _coerce_decimal(raw)
 
 
 def _is_suppressed(
