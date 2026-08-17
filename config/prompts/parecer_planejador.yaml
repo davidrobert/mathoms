@@ -82,7 +82,10 @@
 # escalar 475 → 633 chars no pior caso; `max_chars` 490 → 650. As chaves
 # `prob_if_ate_idade_meta`/`idade_meta_usada` saem do catálogo de citação (as
 # sucessoras não contêm token monetário — medido). Bump invalida cache Redis.
-version: "2.0.4"
+# 2.0.5 — A40.l49 PR1 (ADR-296 emenda): citation_labels path→{rotulo_id,label};
+# pairing do verificador deixa o root e passa a cruzar rotulo ↔ rotulo_id do
+# mapa. Hints de emissão alinhados (rotulo = id da linha, não o grupo).
+version: "2.0.5"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -105,7 +108,7 @@ narrative_hints_global:
   - "NUNCA prescreva ativo específico (ticker). Parecer é orientativo metodológico, não recomendação de investimento."
   - "Quando confiança não for 'alta', evite linguagem prescritiva — descreva o quê, não o porquê especulado."
   - "Cite apenas números/categorias/fatos presentes no exec context ou retornados por tool."
-  - "Citação determinística (ADR-296 · persona R22): NUNCA escreva valores em R$ na prosa — nem 'R$ 720.000', nem '720 mil reais', nem por extenso, INCLUSIVE quando o valor é premissa de um cálculo (ex. renda-base de um percentual). Descreva o conceito; o sistema renderiza o número a partir do path. Para cada valor que fundamenta um Risco/Sugestão, emita uma âncora em ancoras:[{path, rotulo}] copiada de UMA linha do catálogo 'evidencia_paths_disponiveis': path = o path daquela linha; rotulo = o cabeçalho de grupo (em negrito, ex. 'reserva_emergencia') sob o qual aquele path está listado. Escolha a linha pelo CONCEITO da frase (path e rotulo vêm da MESMA linha). Máximo 3 âncoras por item. Se o conceito não está no catálogo, NÃO ancore — declare em campos_faltantes_pediria_se_iterasse."
+  - "Citação determinística (ADR-296 · persona R22): NUNCA escreva valores em R$ na prosa — nem 'R$ 720.000', nem '720 mil reais', nem por extenso, INCLUSIVE quando o valor é premissa de um cálculo (ex. renda-base de um percentual). Descreva o conceito; o sistema renderiza o número a partir do path. Para cada valor que fundamenta um Risco/Sugestão, emita uma âncora em ancoras:[{path, rotulo}] copiada de UMA linha do catálogo 'evidencia_paths_disponiveis': path = o path daquela linha; rotulo = o rotulo_id entre colchetes da mesma linha (identificador ASCII, não o texto do chip). Escolha a linha pelo CONCEITO da frase (path e rotulo vêm da MESMA linha). Máximo 3 âncoras por item. Se o conceito não está no catálogo, NÃO ancore — declare em campos_faltantes_pediria_se_iterasse."
   - "Convenção numérica de percentual (ADR-209): TODOS os campos *_pct, pct_*, percentual_* são valores ABSOLUTOS (44.7 = 44,7%; nunca 4470% nem 0,447%). Valores > 100 são válidos quando semanticamente possível (cobertura_despesa_essencial_pct: 350.0 = renda passiva cobre 3,5× a despesa). Valores < 1 são válidos (valor_pct: 0.5 = 0,5% a.a.). Exceção: ratios.rentabilidade_pct, ratios.aliquota_efetiva_ir_pct, irpf_kpis.aliquota_sobre_tributavel_pct, irpf_kpis.aliquota_sobre_total_pct vêm como STRING ('22.50' ou 'N/D') — faça cast antes de operar; trate 'N/D' como indisponibilidade."
   - "Tipagem de impacto (ADR-220): em impacto_estimado.tipo, declare a natureza do valor: 'patrimonio_alvo' (estoque-alvo necessário, ex. 25× despesa anual para IF), 'fluxo_anual' (renda anual desejada ou despesa anual evitada), 'economia_anual_irpf' (PGBL, dedutíveis), 'gap_protecao' (capital de seguro faltante), 'outro' (não-monetário ou casos especiais). Para sugestões com tema_canonico='Renda passiva', emita SEMPRE pelo menos uma sugestão com tipo='patrimonio_alvo' calculado pela regra metodológica (estoque, não fluxo). Opcionalmente, emita também uma sugestão-irmã com tipo='fluxo_anual' descrevendo a renda projetada. NUNCA marque o fluxo anual como 'patrimonio_alvo' — isso confunde estoque com fluxo no produto."
 
@@ -391,7 +394,7 @@ context_sections:
       - "Premissas em fallback: se o status das premissas econômicas for 'parcial', NENHUM risco/sugestão ancorado em $.if_monte_carlo.* pode ter confianca 'alta' — use no máximo 'media' e mencione que a projeção corre sob premissa de fallback."
       - "Cenários cônjuge ausentes (objeto vazio) = workspace solteiro ou casal sem meta IF; não force narrativa."
       # ADR-290 F2 — valor determinístico (par do hint de saude_balanco).
-      - "Ancore patrimônio-alvo/renda passiva via ancoras (NÃO escreva o R$ na prosa): path na folha ($.passive_income.*, $.if_monte_carlo.*), rotulo = a seção dona (passive_income / if_monte_carlo)."
+      - "Ancore patrimônio-alvo/renda passiva via ancoras (NÃO escreva o R$ na prosa): path na folha ($.passive_income.*, $.if_monte_carlo.*), rotulo = o rotulo_id da linha do catálogo (não o root da seção)."
 
   # --------------------------------------------------------------------------
   # 7) Previdência + IRPF (S8 / S_IRPF_RENDA / S_IRPF_OTIMIZACAO)
@@ -612,6 +615,37 @@ citation_catalog:
   monetary_only: true
   max_entries: 30
   max_bytes: 1600
+
+# A40.l49 — rótulo do chip por folha, não por bloco. rotulo_id é o que o LLM
+# copia; label é o texto do chip (finalize). Path ausente daqui = fail-open.
+citation_labels:
+  "$.passive_income.renda_passiva_anual_brl":
+    rotulo_id: renda_passiva_anual
+    label: "Renda passiva anual"
+  "$.passive_income.renda_passiva_mensal_brl":
+    rotulo_id: renda_passiva_mensal
+    label: "Renda passiva mensal"
+  "$.passive_income.renda_ativa_pj_excluida_brl":
+    rotulo_id: renda_ativa_pj_excluida
+    label: "Renda ativa PJ excluída"
+  "$.passive_income.ganho_capital_excluido_brl":
+    rotulo_id: ganho_capital_excluido
+    label: "Ganho de capital (excluído)"
+  "$.passive_income.patrimonio_gerador_brl":
+    rotulo_id: patrimonio_gerador
+    label: "Patrimônio gerador"
+  "$.reserva_emergencia.total_liquida":
+    rotulo_id: reserva_emergencia
+    label: "Reserva de emergência"
+  "$.patrimonio.bruto":
+    rotulo_id: patrimonio
+    label: "Patrimônio"
+  "$.patrimonio.composicao.imoveis_residencia":
+    rotulo_id: patrimonio
+    label: "Imóveis residenciais"
+  "$.if_monte_carlo.prob_sucesso_pct":
+    rotulo_id: if_monte_carlo
+    label: "Independência financeira"
 
 # ==============================================================================
 # HARD CAPS (ADR-202 §D5)

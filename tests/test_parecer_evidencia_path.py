@@ -48,9 +48,10 @@ def _run(
     ancoras: list[tuple[str | None, str | None]],
     workspace_id: str = "ws-evid",
     severidade: str = "Alta",
+    e5: dict | None = None,
 ):
     canned = make_canned_output().model_copy(update={"riscos": [_risco(ancoras, severidade)]})
-    return make_run_stage_with_mocks(make_workspace_e5(), canned, workspace_id=workspace_id)
+    return make_run_stage_with_mocks(e5 or make_workspace_e5(), canned, workspace_id=workspace_id)
 
 
 def _risco_entries(store) -> list[dict]:
@@ -441,12 +442,11 @@ class TestJsonPathRegexParity:
 
 
 class TestCacheKeyBump:
-    def test_verification_version_bumped_para_envelope_adr366(self):
-        """ "6": o cache passa a guardar envelope {output, evidencia_*}; o shape "5"
-        (output nu) é ilegível, e o bump é o que garante que nenhum hit o alcance."""
+    def test_verification_version_bumped_para_citation_labels(self):
+        """ "7": pairing passa a cruzar rotulo ↔ rotulo_id do mapa (A40.l49)."""
         from backend.app.services.parecer_evidencia import EVIDENCIA_VERIFICATION_VERSION
 
-        assert EVIDENCIA_VERIFICATION_VERSION == "6"
+        assert EVIDENCIA_VERIFICATION_VERSION == "7"
 
     def test_post_bump_key_differs_from_pre_f4_key(self):
         from backend.app.services.parecer_orchestrator import compute_cache_key

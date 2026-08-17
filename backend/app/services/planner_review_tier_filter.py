@@ -84,6 +84,7 @@ def _ancoras_dto(raw: Mapping[str, Any]) -> list[AncoraDTO]:
             path=a.get("path"),
             rotulo=a.get("rotulo"),
             valor_renderizado=a.get("valor_renderizado"),
+            label=a.get("label"),
         )
         for a in raw.get("ancoras", [])
     ]

@@ -22,6 +22,14 @@ class CitationCatalogConfig:
     max_bytes: int = 1600
 
 
+@dataclass(frozen=True)
+class CitationLabel:
+    """Entrada do mapa path → rótulo (A40.l49 · ADR-296)."""
+
+    rotulo_id: str
+    label: str
+
+
 @dataclass
 class ManifestData:
     """Manifest parseado — subset consumido pelo orchestrator."""
@@ -35,6 +43,7 @@ class ManifestData:
     max_exec_context_bytes: int
     evidencia_verification_mode: str = "warn"
     citation_catalog: CitationCatalogConfig = field(default_factory=CitationCatalogConfig)
+    citation_labels: dict[str, CitationLabel] = field(default_factory=dict)
 
 
 def _resolve_repo_path(rel: str) -> Path:
@@ -93,6 +102,27 @@ def _parse_citation_catalog(raw: dict) -> CitationCatalogConfig:
     )
 
 
+def _parse_one_citation_label(path: object, spec: object) -> CitationLabel:
+    if not isinstance(path, str) or not path.startswith("$."):
+        raise ValueError(f"citation_labels key must be JSONPath, got {path!r}")
+    if not isinstance(spec, dict):
+        raise ValueError(f"citation_labels[{path!r}] expected mapping, got {type(spec).__name__}")
+    rotulo_id = spec.get("rotulo_id")
+    label = spec.get("label")
+    if not isinstance(rotulo_id, str) or not rotulo_id.isidentifier() or len(rotulo_id) > 64:
+        raise ValueError(f"citation_labels[{path!r}].rotulo_id must be identifier ≤64")
+    if not isinstance(label, str) or not label.strip() or len(label) > 64:
+        raise ValueError(f"citation_labels[{path!r}].label must be 1..64 chars")
+    return CitationLabel(rotulo_id=rotulo_id, label=label.strip())
+
+
+def _parse_citation_labels(raw: dict) -> dict[str, CitationLabel]:
+    block = raw.get("citation_labels") or {}
+    if not isinstance(block, dict):
+        raise ValueError(f"citation_labels must be a mapping, got {type(block).__name__}")
+    return {path: _parse_one_citation_label(path, spec) for path, spec in block.items()}
+
+
 def load_manifest(path: Optional[str] = None) -> ManifestData:
     """Lê manifest YAML e expõe os campos consumidos pelo orchestrator."""
     import yaml
@@ -110,6 +140,7 @@ def load_manifest(path: Optional[str] = None) -> ManifestData:
         max_exec_context_bytes=int(raw.get("max_exec_context_bytes", 5120)),
         evidencia_verification_mode=str(raw.get("evidencia_verification_mode", "warn")),
         citation_catalog=_parse_citation_catalog(raw),
+        citation_labels=_parse_citation_labels(raw),
     )
 
 

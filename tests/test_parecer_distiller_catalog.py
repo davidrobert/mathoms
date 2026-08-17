@@ -30,7 +30,7 @@ def test_emit_false_is_byte_identical_to_pre_a26():
 def test_catalog_appended_after_sections():
     on = distill_exec_context(_with_catalog(True), make_workspace_e5())
     assert on.index("### Patrimônio") < on.index(_CATALOG_HEADER)
-    assert "`$.reserva_emergencia.total_liquida` → R$ 84.000,00" in on
+    assert "`$.reserva_emergencia.total_liquida` [reserva_emergencia] → R$ 84.000,00" in on
 
 
 def test_catalog_survives_narrative_truncation():

@@ -63,6 +63,7 @@ class AncoraDTO(BaseModel):
     path: Optional[str] = None
     rotulo: Optional[str] = None
     valor_renderizado: Optional[str] = None
+    label: Optional[str] = None
 
 
 class RiscoDTO(BaseModel):
