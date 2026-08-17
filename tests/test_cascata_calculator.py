@@ -78,7 +78,7 @@ def _input_simples_iii() -> CascataInput:
         pro_labore_mensal=Money.brl("12000"),
         lucros_distribuidos_mensal=Money.brl("20000"),
         folha_pj_mensal=Money.brl("6000"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        renda_tributavel_pf_irpf_anual=Money.brl("0"),
     )
 
 
@@ -152,7 +152,7 @@ def _input_simples_v() -> CascataInput:
         pro_labore_mensal=Money.brl("5000"),
         lucros_distribuidos_mensal=Money.brl("30000"),
         folha_pj_mensal=Money.brl("0"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        renda_tributavel_pf_irpf_anual=Money.brl("0"),
     )
 
 
@@ -203,7 +203,7 @@ def _input_presumido() -> CascataInput:
         pro_labore_mensal=Money.brl("10000"),
         lucros_distribuidos_mensal=Money.brl("0"),
         folha_pj_mensal=Money.brl("0"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("120000"),  # aluguéis
+        renda_tributavel_pf_irpf_anual=Money.brl("120000"),  # aluguéis
         imoveis_alugados_count=4,
         receita_aluguel_anual=Money.brl("120000"),
     )
@@ -367,7 +367,7 @@ def _input_simples_iii_simplificada() -> CascataInput:
         pro_labore_mensal=base.pro_labore_mensal,
         lucros_distribuidos_mensal=base.lucros_distribuidos_mensal,
         folha_pj_mensal=base.folha_pj_mensal,
-        outras_rendas_tributaveis_pf_anual=base.outras_rendas_tributaveis_pf_anual,
+        renda_tributavel_pf_irpf_anual=base.renda_tributavel_pf_irpf_anual,
     )
 
 
@@ -395,7 +395,7 @@ def _input_simples_iii_declaracao_desconhecida() -> CascataInput:
         pro_labore_mensal=base.pro_labore_mensal,
         lucros_distribuidos_mensal=base.lucros_distribuidos_mensal,
         folha_pj_mensal=base.folha_pj_mensal,
-        outras_rendas_tributaveis_pf_anual=base.outras_rendas_tributaveis_pf_anual,
+        renda_tributavel_pf_irpf_anual=base.renda_tributavel_pf_irpf_anual,
     )
 
 
@@ -443,7 +443,7 @@ def test_no_holding_trigger_zero_imoveis_mesmo_receita_pj_alta():
         iss_aliquota_pct=Decimal("5"),
         receita_pj_anual=Money.brl("3000000"),
         pro_labore_mensal=Money.brl("10000"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("120000"),
+        renda_tributavel_pf_irpf_anual=Money.brl("120000"),
         imoveis_alugados_count=0,
         receita_aluguel_anual=Money.brl("0"),
     )
@@ -457,7 +457,7 @@ def test_no_holding_trigger_dois_imoveis_abaixo_min():
         iss_aliquota_pct=Decimal("5"),
         receita_pj_anual=Money.brl("1200000"),
         pro_labore_mensal=Money.brl("10000"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("120000"),
+        renda_tributavel_pf_irpf_anual=Money.brl("120000"),
         imoveis_alugados_count=2,
         receita_aluguel_anual=Money.brl("120000"),
     )
@@ -472,7 +472,7 @@ def test_trigger_t5_proximo_sublimite_simples():
         receita_pj_anual=Money.brl("3000000"),
         pro_labore_mensal=Money.brl("15000"),
         folha_pj_mensal=Money.brl("60000"),  # fator-R ~30% → seguro de T2
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        renda_tributavel_pf_irpf_anual=Money.brl("0"),
     )
     out = compute(inp)
     assert "T5" in _trigger_codes(out)
@@ -490,7 +490,7 @@ def test_trigger_t2_fator_r_proximo_corte():
         receita_pj_anual=Money.brl("600000"),
         pro_labore_mensal=Money.brl("10500"),  # 10500×12=126k; folha 0 → 21%
         folha_pj_mensal=Money.brl("2000"),  # +24k → 150k total → 25%
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        renda_tributavel_pf_irpf_anual=Money.brl("0"),
     )
     out = compute(inp)
     assert "T2" in _trigger_codes(out)

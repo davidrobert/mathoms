@@ -15,7 +15,7 @@ def _input(anexo: str, pro_labore_mensal: str) -> CascataInput:
         receita_pj_anual=Money.brl("600000"),
         pro_labore_mensal=Money.brl(pro_labore_mensal),
         folha_pj_mensal=Money.brl("0"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        renda_tributavel_pf_irpf_anual=Money.brl("0"),
     )
 
 
