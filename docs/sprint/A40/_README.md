@@ -57,7 +57,7 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 | KR | Métrica | Como se mede |
 |---|---|---|
 | **KR-A · Contrato de leitura** | ~~Leituras órfãs conhecidas **5 → 0**~~ → **2 → 0** (remedido, ver nota) *e* existe gate que hard-falha quando a próxima aparece | `dev/check_view_model_contract.py` (novo) cruzando schema E5 × tipos do frontend × readers Python. Prova do gate: fixture com chave órfã ⇒ EXIT≠0 |
-| **KR-B · Não-duplicação do razão** | Duplicação cross-grupo **não-explicada = 0** no corpus dogfood | Check cross-grupo em `dev/certify_ledger_local.py`. Baseline congelado pela [[A40.l1]] **antes** de qualquer fix. Anti-Goodhart: ocorrências whitelisted contadas em **linha separada**, nunca somadas ao numerador |
+| **KR-B · Não-duplicação do razão** | Duplicação cross-grupo **não-explicada = 0** no corpus dogfood | **Modo entregue** de `dev/certify_ledger_local.py --entregue --run <id>` (E3 persistido daquele run). A sombra (default, E2→E3 com enforce omitido) **não pontua**. Baseline congelado pela [[A40.l1]] **antes** de qualquer fix. Anti-Goodhart: whitelist em **linha separada**; cortadas do colapso **não** entram em explicadas |
 | **KR-C · Entrega visível** | Nº de seções que **renderizam** parágrafo == nº de seções com narrativa **emitida** (hoje **0 de 16**) *e* 0 âncoras de nav sem alvo | Teste de render (Vitest/RTL) sobre payload golden + assert bidirecional nav↔seções em `ReportShell.tsx`. CV9 redefinido para medir **entrega**, não geração |
 | **KR-D · PII zero no entregue** | 0 violações no view-model; critério 4 da [[ADR-337]] existe e é executável | Gate de PII sobre o view-model. Fixture sintética com identificador de terceiro + matrícula + endereço ⇒ bloqueio no CI |
 | **KR-E · Honestidade da recomendação** | 0 recomendações no topo do plano cuja premissa o próprio payload contesta, sem pendência pareada | Predicado determinístico `premissa → campo E5` em teste sobre payload golden |
@@ -139,6 +139,18 @@ em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomad
 > cross-grupo do `certify_ledger_local`) **segue 261**: o instrumento re-deriva o E3 a partir do
 > E2 em sombra e é cego ao enforce por construção. O que mudou é o E3 persistido e o E5. Item
 > com dono no §Residual da [[A40.l2]].
+>
+> **Emenda 2026-08-17 — a régua ganhou modo entregue.** `--entregue --run <id>` lê o E3
+> persistido daquele run, categoriza sem reconcile e pontua a KR só nessa linha
+> (`[numerador KR-B · E3 persistido run <id>]`). A sombra permanece o default e passou a
+> se chamar `[sombra · enforce omitido]`. Fechar a KR ainda exige entregue=0 **e** sombra>0
+> no mesmo corpus (anti-vacuidade).
+>
+> **Medição 2026-08-17** no run `7b64b6c7` (r6, `cortadas=47`, `retido_por_override=0`,
+> cobertura fecha nos dois modos): sombra **317** · entregue **7** (todas carrier-shaped).
+> Anti-vacuidade ok (sombra>0). KR-B **não atingida**. Não se troca a métrica; triagem
+> das 7 fica para quem retomar. O baseline 261 da l1 era o cru de 2026-07-30 — o
+> numerador sombra andou com o corpus.
 
 **§Estado dos KRs — obrigação de leitura honesta.** Se o flip escorregar, a **KR-B é
 reportada não atingida**. É proibido ler as 261 ocorrências como "explicadas" por estarem
@@ -318,7 +330,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l61]] | ProtectionBundle fail-closed: ausência não vira zero/False | P1 | — | `shipped` (#1443 · `0a343302`) · mitigação do split da l35 · não liga a S9 |
 | [[A40.l62]] | Fontes canônicas + ProtectionComputationSnapshotV1 | P1 | l61 | `shipped` (#1471 · #1474 · `5cc4a02f`) · [[ADR-387]] `Decidido` · não liga a S9 |
 | [[A40.l63]] | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de real, saldo BRL rotulado USD | P1 | — | aberta 2026-08-15 no co-design do P0 nº 2 da [[A40.l50]] · dono `data-engineer` · **não é** a [[A40.l39]], que resolve a superfície e não a conversão · pede ADR própria |
-| [[A40.l64]] | Redutor da Lei 15.270/2025 + IRPFM: a diferencial de PGBL está errada para AC2026 | P1 | l56 | aberta 2026-08-15 no co-design da [[A40.l56]] · dono `financial-planner` · `blocked` até o `regime_completo` existir · a [[ADR-389]] declara modelá-los como não-objetivo |
+| [[A40.l64]] | Redutor da Lei 15.270/2025 + IRPFM: a economia de PGBL não pode ser publicada para AC2026 | P1 | l56 ✅ | aberta 2026-08-15 no co-design da [[A40.l56]] · dono `financial-planner` · **`open` desde 2026-08-16** (a condição "até o `regime_completo` existir" foi satisfeita pela l56) · **PR1 ✅ #1501 (`c88206b1`)** — a recusa passou a existir; restam PR2 (`IR(base,ano)`), PR3 (redutor) e PR4 (IRPFM) · ⚠️ o título antigo dizia "a diferencial está errada": **a diferencial nunca foi implementada** ([[ADR-375]] D5 é dívida aberta — ver §Correção de premissa da lane) · pendência do dono: `aliquota_marginal` segue publicada na banda do redutor · a [[ADR-389]] declara modelá-los como não-objetivo |
 | [[A40.l66]] | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | **P0** | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · FK `plan:` distinta do resto da sprint (exceção do §Critério de admissão da [[A42]]) · RV6-01/02/03 · caminho crítico do gate de saída |
 | [[A40.l67]] | Guarda de publicação no E5: nenhum balde publica negativo, e o schema deixa de aceitá-lo | **P0** | l66 | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · `blocked` para não medir o defeito da l66 · cede eixo com [[A42.l6]]/[[A40.l58]] (RV6-06) |
 | [[A40.l68]] | Balanço de stage fan-out: documento que some não pode sair como sucesso | P1 | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · RV6-10 · **paralela desde o dia 0**, não disputa janela de rebaseline · [[A42.l4]] não amplia |
@@ -1061,7 +1073,7 @@ nasceu lane.
 
 | Achado (enunciado corrigido) | Onde está | Destino |
 |---|---|---|
-| Conselho de cobertura sem ressalva fiduciária fora dos cards da S9 (card `pontos_urgentes`, narrativa `_S9_GAP_VIDA`, card `disclaimers` do APP_E sem componente) + string afirma *invalidez* com predicado só de *vida* | [[A40.l60]] | **lane** — funde os 2; PR2 com amarra parcial atrás da [[A40.l35]] |
+| Conselho de cobertura sem ressalva fiduciária fora dos cards da S9 (card `pontos_urgentes`, narrativa `_S9_GAP_VIDA`, card `disclaimers` do APP_E sem componente) + string afirma *invalidez* com predicado só de *vida* | [[A40.l60]] | **lane** — funde os 2; PR1 ✅ #1480 · PR2 **deixou de ter amarra** quando a [[A40.l35]] shipou (#1476): virou exigível, não dispensável |
 | Os extras de test-deps **rebaixam o lock a cada run** (`starlette` 1.3.1→0.52.1, `pytest` 9.0.3→8.4.2, medido em cache-HIT): o gatilho do item 3 da emenda 2026-08-11 disparou e `requirements-test.lock` deixou de ser opcional | [[ADR-254]] §Emenda 2026-08-12 | **emenda datada** — doença e remédio no mesmo lugar (registrar separado garantiria que ninguém pegasse a cura) |
 | Custo do `Ensure venv` em cache-HIT (sinal b da emenda 2026-08-11) | [[ADR-254]] §Emenda 2026-08-12 | **refutado por medição** — mediana 1s (n=14, máx 3s); MISS 4-7s. Registrado para ninguém re-investigar |
 | Composite action para os blocos de venv (7 sítios do pin `setup-uv` em 4 workflows) | [[ADR-254]] §Deferimento datado | **deferido com gatilho** — "próximo bump do pin"; a condição vivia só no corpo do PR #1385, o modo de falha que custou a re-investigação do #658 |

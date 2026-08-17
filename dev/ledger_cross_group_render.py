@@ -106,11 +106,15 @@ def _fmt_occurrences(hits: list, cap: int) -> list[str]:
     ]
 
 
-def _fmt_numerator(hits: list) -> list[str]:
-    """Linha do numerador do KR-B + partição + 2 histogramas + ocorrências (``[off-git]``: ADR-343)."""
+_SOMBRA_LABEL = "[sombra · enforce omitido]"
+_KR_B_LABEL = "[numerador KR-B]"
+
+
+def _fmt_numerator(hits: list, label: str = _SOMBRA_LABEL) -> list[str]:
+    """Linha do numerador + partição + 2 histogramas + ocorrências (``[off-git]``: ADR-343)."""
     head = (
         f"- não-explicada: {len(hits)} ocorrência(s) · "
-        f"Σ excesso {_sum_excess(hits)} cents [off-git] · [numerador KR-B]"
+        f"Σ excesso {_sum_excess(hits)} cents [off-git] · {label}"
     )
     return (
         [head]
@@ -140,12 +144,17 @@ def _fmt_explained(hits: list, shapes: tuple[str, ...]) -> list[str]:
 _TITLE = "## Duplicação cross-grupo — divergência CONFINADA à proveniência (reporta, não dedupa)"
 
 
-def fmt_cross_group(cg: CrossGroupSummary) -> list[str]:
+def fmt_cross_group(
+    cg: CrossGroupSummary,
+    *,
+    numerator_label: str = _SOMBRA_LABEL,
+    title: str = _TITLE,
+) -> list[str]:
     """Bloco do relatório: cobertura primeiro, numerador e whitelisted em linhas SEPARADAS."""
     return (
-        [_TITLE]
+        [title]
         + _fmt_coverage(cg.coverage)
         + _fmt_unscanned(cg.nao_varrido, cg.coverage)
-        + _fmt_numerator(cg.numerador)
+        + _fmt_numerator(cg.numerador, numerator_label)
         + _fmt_explained(cg.explicadas, cg.explained_shapes)
     )

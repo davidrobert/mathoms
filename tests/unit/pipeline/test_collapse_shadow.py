@@ -132,7 +132,9 @@ def test_o_stage_liga_o_enforce_SO_pela_flag():
 
 def test_o_harness_de_certificacao_nunca_liga_o_enforce():
     """`dev/certify_ledger_local.py` mede sobre o corpus do usuário e estava fora do parse."""
-    for arg in _enforce_args(_HARNESS):
+    chamadas = _enforce_args(_HARNESS)
+    assert chamadas, "call-site sumiu — o teste passaria por vacuidade"
+    for arg in chamadas:
         assert arg is None or (
             isinstance(arg, ast.Constant) and arg.value is False
         ), "o harness ligou o enforce sobre dado real"
