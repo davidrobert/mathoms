@@ -14,10 +14,15 @@ pipeline efetivamente lê para os stages E2 do workspace. A divergência vs o E3
 gravado é drift esperado (código mudou pós-run OU artefato de run parcial,
 ADR-080) — reportada, não tratada como perda.
 
+**Default = sombra** (E2→E3, ``collapse_enforce`` omitido). Não pontua a KR-B.
+``--entregue --run <id>`` adiciona o detector sobre o E3 persistido daquele run
+(única linha ``[numerador KR-B]``). Workspace-latest é recusado no modo entregue.
+
 Uso (do CHECKOUT PRINCIPAL, com o venv do repo — o worktree tem DB/STORAGE
 vazios pois ``_PROJECT_ROOT`` segue o ``sys.path``):
 
     python3 dev/certify_ledger_local.py <email|uuid> [--run <run_id>] [--persist]
+    python3 dev/certify_ledger_local.py <email|uuid> --entregue --run <run_id>
 
 Os imports de backend são lazy: importar este módulo não exige env/DB.
 """
@@ -38,6 +43,12 @@ if str(_SKILL_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SKILL_SCRIPTS))
 
 from dev.ledger_certify_core import LedgerReport, build_report, format_report
+from dev.ledger_certify_entregue import (
+    EntregueRecusado,
+    evidence_from_retention,
+    require_pinned_run,
+)
+from dev.ledger_conservation import cross_group_summary
 
 _E2_STAGES = ("extract_statements", "extract_invoices", "extract_with_llm")
 _BASELINE_STAGES = ("consolidate_baseline",)
@@ -56,7 +67,7 @@ def _decrypt(payload: dict) -> dict:
     return decrypt_artifact_payload(payload) if is_encrypted_payload(payload) else payload
 
 
-def _artifact_rows(session, ws: str, stages: tuple[str, ...]) -> list:
+def _artifact_rows(session, ws: str, stages: tuple[str, ...], *, run_id: str | None = None) -> list:
     from sqlalchemy import select
 
     from backend.app.models.pipeline_artifact import PipelineArtifact
@@ -67,6 +78,8 @@ def _artifact_rows(session, ws: str, stages: tuple[str, ...]) -> list:
         PipelineArtifact.workspace_id == ws,
         PipelineArtifact.stage.in_(aliases),
     )
+    if run_id is not None:
+        stmt = stmt.where(PipelineArtifact.pipeline_run_id == run_id)
     return list(session.execute(stmt).scalars())
 
 
@@ -97,6 +110,51 @@ def _persisted_e3_by_key(session, ws: str) -> dict:
     """E3 persistido mais recente por ``artifact_key`` (string) — para o drift."""
     latest = _latest_by_canonical(_artifact_rows(session, ws, (_E3_STAGE,)))
     return {key: _decrypt(row.content_json) for (stage, key), row in latest.items()}
+
+
+def _e3_of_run(session, ws: str, run_id: str) -> dict:
+    """E3 persistido daquele run — não workspace-latest."""
+    latest = _latest_by_canonical(_artifact_rows(session, ws, (_E3_STAGE,), run_id=run_id))
+    return {key: _decrypt(row.content_json) for (_stage, key), row in latest.items()}
+
+
+def _require_run(session, ws: str, run_id: str):
+    from backend.app.models.pipeline_run import PipelineRun
+
+    run = session.get(PipelineRun, run_id)
+    if run is None:
+        raise EntregueRecusado(f"run não encontrado: {run_id}")
+    if run.workspace_id != ws:
+        raise EntregueRecusado(f"run {run_id} não pertence ao workspace")
+    return run
+
+
+def _e3_stage_log(session, run_id: str):
+    from sqlalchemy import select
+
+    from backend.app.models.pipeline_run import PipelineStageLog
+    from pipeline.artifact_store import stage_aliases
+
+    aliases = sorted(stage_aliases(_E3_STAGE))
+    stmt = (
+        select(PipelineStageLog)
+        .where(
+            PipelineStageLog.pipeline_run_id == run_id,
+            PipelineStageLog.stage.in_(aliases),
+        )
+        .order_by(PipelineStageLog.started_at.desc())
+    )
+    return session.execute(stmt).scalars().first()
+
+
+def _entregue_evidence(session, ws: str, run_id: str) -> dict:
+    _require_run(session, ws, run_id)
+    if not _e3_of_run(session, ws, run_id):
+        raise EntregueRecusado(f"run {run_id} sem artefato E3 persistido")
+    log = _e3_stage_log(session, run_id)
+    summary = getattr(log, "output_summary", None) if log is not None else None
+    revision = getattr(log, "executor_revision", None) if log is not None else None
+    return evidence_from_retention(run_id, summary, revision)
 
 
 def _row_counts(session, ws: str) -> dict:
@@ -249,6 +307,21 @@ def _fresh_e3(store) -> dict:
     return {key: store.read(_E3_STAGE, key) for key in store.list_keys(_E3_STAGE)}
 
 
+def _seed_e3(store, e3_by_key: dict) -> None:
+    for key, payload in e3_by_key.items():
+        store.seed(_E3_STAGE, key, payload)
+
+
+def _rederive_entregue(session, ws: str, run_id: str, e3_by_key: dict):
+    """Categoriza o E3 persistido — sem reconcile, sem enforce."""
+    from pipeline.artifact_store import InMemoryArtifactStore
+
+    store = InMemoryArtifactStore()
+    _seed_e3(store, e3_by_key)
+    ctx = _build_context(session, ws, run_id, store)
+    return _rederive_e4(ctx, session, ws, store)
+
+
 def _rederive(session, ws: str, run_id: str | None):
     from pipeline.artifact_store import InMemoryArtifactStore
 
@@ -286,6 +359,22 @@ def certify(session, ws: str, run_id: str | None) -> LedgerReport:
     return report
 
 
+def _attach_entregue(report: LedgerReport, result_e, e4_e, evidence: dict) -> None:
+    report.cross_group_entregue = cross_group_summary(e4_e, result_e.cash_flow.transferencias_count)
+    report.entregue = evidence
+
+
+def certify_entregue(session, ws: str, run_id: str) -> LedgerReport:
+    """Sombra + detector sobre o E3 persistido do ``run_id``. Fail-closed no pin."""
+    evidence = _entregue_evidence(session, ws, run_id)
+    e3_run = _e3_of_run(session, ws, run_id)
+    report = certify(session, ws, run_id)
+    result_e, e4_e = _rederive_entregue(session, ws, run_id, e3_run)
+    _attach_entregue(report, result_e, e4_e, evidence)
+    report.counts_after = _row_counts(session, ws)
+    return report
+
+
 # ─────────────────────────── CLI ───────────────────────────
 
 
@@ -313,8 +402,11 @@ def _resolve_and_certify(session, args) -> LedgerReport | None:
     ws = resolve_ledger._resolve_id(session, args.workspace)
     if ws is None:
         return None
-    run_id = args.run or resolve_ledger._latest_run(session, ws)
-    report = certify(session, ws, run_id)
+    if args.entregue:
+        report = certify_entregue(session, ws, require_pinned_run(args.run))
+    else:
+        run_id = args.run or resolve_ledger._latest_run(session, ws)
+        report = certify(session, ws, run_id)
     session.rollback()
     return report
 
@@ -330,6 +422,11 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="grava synthesis.md off-git em storage/<uuid>/ledger_certify/",
     )
+    parser.add_argument(
+        "--entregue",
+        action="store_true",
+        help="prova KR-B no E3 persistido do --run (obrigatório); sombra segue no relatório",
+    )
     return parser.parse_args()
 
 
@@ -338,8 +435,12 @@ def main() -> int:
     from backend.app.core.database import SyncSessionLocal
 
     _silence_sql_echo()
-    with SyncSessionLocal() as session:
-        report = _resolve_and_certify(session, args)
+    try:
+        with SyncSessionLocal() as session:
+            report = _resolve_and_certify(session, args)
+    except EntregueRecusado as exc:
+        print(f"entregue recusado: {exc}", file=sys.stderr)
+        return 2
     if report is None:
         print(f"workspace não encontrado: {args.workspace!r}")
         return 1
