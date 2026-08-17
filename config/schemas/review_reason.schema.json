@@ -35,7 +35,8 @@
         "domain.balance_gap",
         "domain.temporal_gap",
         "domain.anachronic_transaction",
-        "domain.baseline_divergence"
+        "domain.baseline_divergence",
+        "domain.property_identity_uncanonical"
       ]
     },
     "stage": {

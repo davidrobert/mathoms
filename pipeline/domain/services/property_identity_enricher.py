@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services.endereco_canonicalizer import canonicalize
 from pipeline.domain.services.titular_key_normalizer import normalize_titular_key
 from pipeline.domain.types.property_identity import PropertyLookupKey
@@ -53,11 +54,37 @@ def enrich_imoveis_with_property_ids(
             first_seen_year=first_seen_year,
             descricao_sample=descricao,
         )
-        entry["property_id"] = record.property_id
-        entry["endereco_canonical"] = record.endereco_canonical
-        entry["low_confidence"] = record.low_confidence
+        _apply_record(entry, record, endereco_canonical)
 
     return consolidated
+
+
+def _apply_record(entry: dict, record, endereco_canonical: str | None) -> None:
+    if record is None:
+        _mark_uncanonical(entry, endereco_canonical)
+        return
+    entry["property_id"] = record.property_id
+    entry["endereco_canonical"] = record.endereco_canonical
+    entry["low_confidence"] = record.low_confidence
+
+
+def _mark_uncanonical(entry: dict, endereco_canonical: str | None) -> None:
+    entry["property_id"] = None
+    entry["endereco_canonical"] = endereco_canonical
+    entry["low_confidence"] = True
+    entry["needs_review"] = True
+    reasons = entry.setdefault("review_reasons", [])
+    reasons.append(
+        ReviewReason(
+            code=ReviewReasonCode.domain_property_identity_uncanonical,
+            stage="consolidate_baseline",
+            artifact_key="baseline_patrimonial",
+            document_id=None,
+            offending_value="endereco_canonical=None",
+            expected="canonical or unique (titular, codigo_rfb)",
+            message="identity not minted without endereco_canonical",
+        ).to_dict()
+    )
 
 
 __all__ = ["enrich_imoveis_with_property_ids"]
