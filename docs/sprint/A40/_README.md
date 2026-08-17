@@ -335,6 +335,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l67]] | Guarda de publicação no E5: nenhum balde publica negativo, e o schema deixa de aceitá-lo | **P0** | l66 | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · `blocked` para não medir o defeito da l66 · cede eixo com [[A42.l6]]/[[A40.l58]] (RV6-06) |
 | [[A40.l68]] | Balanço de stage fan-out: documento que some não pode sair como sucesso | P1 | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · RV6-10 · **paralela desde o dia 0**, não disputa janela de rebaseline · [[A42.l4]] não amplia |
 | [[A40.l69]] | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | **P0** | l66, l67 | aberta 2026-08-17 na Onda 3 do [[PLAN-deterministic-authority]] · RV6-04 · último P0 do MVP fora do seam · janela J4 atrás da J2 · **não abre ADR** (3a na ADR-A, 3b é [[ADR-267]]) |
+| [[A40.l70]] | `endereco_canonical=None` não cria identidade: match por titular+código ou `needs_review` | P1 | — | aberta 2026-08-17 na Onda 4 do [[PLAN-deterministic-authority]] · 4b-i / RV6-13 · 0c confirmou o buraco aberto em `main` · **não espera** a [[A40.l66]] · 4b-ii fica na track |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
