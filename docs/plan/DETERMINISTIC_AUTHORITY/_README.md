@@ -463,7 +463,7 @@ atribuição de investimento por membro. 3c–3f seguem sem lane.
   (dano durável é contínuo), sem esperar 1b. O ponto exato a fechar é o
   `_insert_row` incondicional em `db_property_identity_resolver.py:44`; o fake
   `InMemoryPropertyIdentityResolver` precisa da mesma regra (o 4º nível da
-  [[ADR-385]] nunca foi portado para ele).
+  [[ADR-385]] nunca foi portado para ele). Lane: [[A40.l70]].
 - 4b-ii. Reconciliação das órfãs via [[TRACK-property-identity-cross-era]]
   (`dev/backfill_property_supersession.py`, idempotente, dry-run com diff
   revisado), **só após** re-consolidação limpa pós-Onda 1 — para não eleger
