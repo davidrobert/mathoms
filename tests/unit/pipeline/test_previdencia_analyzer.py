@@ -352,3 +352,90 @@ class TestINVPREV1Deferred:
         from pipeline.domain.services import previdencia_dedup  # noqa: F401
 
         raise AssertionError("contrato de dedup de ativo de previdência ainda não existe")
+
+
+# =============================================================================
+# A40.l64 — regime fiscal incompleto retém a prescrição (ADR-375 D4 · ADR-389 D4)
+#
+# `FiscalParameters.regime_completo` nasceu na ADR-389 D4 com a intenção escrita
+# no docstring: "para o consumidor recusar lendo a row em vez de `if year >=
+# 2026`". Medido em 2026-08-17: NENHUM consumidor existia. A row de AC2026 vinha
+# marcada `regime_completo=False` + `componentes_ausentes=[redutor_lei_15270,
+# irpfm]`, o `analyze_finances` carrega a row do ano CORRENTE — e o D5 publicava
+# economia assim mesmo. Marcador inerte é pior que marcador ausente: ele faz a
+# vault afirmar que a recusa existe.
+# =============================================================================
+
+
+def _fiscal_incompleto(year: int = 2026) -> FiscalParameters:
+    return FiscalParameters(
+        year=year,
+        ir_brackets_anual=TabelaProgressiva(faixas=_FAIXAS_SEEDADAS),
+        lucro_presumido_aliquota=Decimal("0.32"),
+        regime_completo=False,
+        componentes_ausentes=("redutor_lei_15270", "irpfm"),
+    )
+
+
+class TestRegimeIncompletoRetemPrescricao:
+    def test_config_carrega_a_completude_da_row(self):
+        """O seam do bug: `from_fiscal_parameters` descartava o marcador."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_incompleto())
+
+        assert cfg.regime_completo is False
+        assert cfg.componentes_ausentes == ("redutor_lei_15270", "irpfm")
+        assert cfg.ano_fiscal == 2026
+
+    def test_economia_nao_e_publicada_com_regime_incompleto(self):
+        """ADR-375 D4: abaixo do piso a saída não é número menor — é ausência."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_incompleto())
+        recon = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("1000"))
+
+        assert recon.economia_ir_anual is None
+
+    def test_aporte_sugerido_tambem_e_retido(self):
+        """D4 gateia "prescrever PGBL", não só "publicar economia"."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_incompleto())
+        recon = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("1000"))
+
+        assert recon.aporte_mensal is None
+
+    def test_a_capacidade_lida_do_irpf_sobrevive(self):
+        """Reter prescrição não é apagar fato: o espaço de 12% vem do IRPF."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_incompleto())
+        recon = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("1000"))
+
+        assert recon.limite_pgbl_anual == Decimal("1000")
+        assert recon.renda_tributavel_anual == Decimal("38400")
+
+    def test_nota_nomeia_os_componentes_que_faltam(self):
+        """Motivo genérico não é motivo — a nota cita a lei e o ano."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_incompleto())
+        recon = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("1000"))
+
+        assert "2026" in recon.nota
+        assert "15.270" in recon.nota
+
+    def test_criterio_1_da_lane_banda_do_redutor_nao_publica_numero(self):
+        """Bruto anual R$ 70.000 em AC2026 cai na banda 60k–88,2k do redutor."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_incompleto())
+        cap = _capacidade("8400", renda="70000", ano=2026)
+        recon = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=cap)
+
+        assert recon.economia_ir_anual is None
+        assert recon.nota
+
+    def test_regime_completo_nao_muda_de_comportamento(self):
+        """Guarda contra over-reach: a retenção é da row incompleta, só dela."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_seedado())
+        recon = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("1000"))
+
+        assert recon.economia_ir_anual is not None
+        assert recon.aporte_mensal is not None
+
+    def test_caminho_legacy_nao_regride(self):
+        """`from_fiscal` (dict legado) não conhece a coluna — presume completo."""
+        cfg = PrevidenciaConfig.from_fiscal({})
+
+        assert cfg.regime_completo is True
+        assert cfg.componentes_ausentes == ()

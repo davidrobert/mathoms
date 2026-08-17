@@ -57,6 +57,13 @@ class PrevidenciaConfig:
     pgbl_limite_pct: float = 12.0
     irpf_faixas: tuple[IRPFBracket, ...] = ()
     aliquota_fallback: float = 7.5
+    # ADR-389 D4 + A40.l64: completude do regime é DADO da row, para o consumidor
+    # recusar lendo-a em vez de `if year >= 2026`. O caminho legado (`from_fiscal`,
+    # dict pré-A7.2b) não conhece a coluna e presume completo — presumir incompleto
+    # ali reteria a prescrição de todo workspace legado sem defeito medido.
+    regime_completo: bool = True
+    componentes_ausentes: tuple[str, ...] = ()
+    ano_fiscal: int | None = None
 
     @classmethod
     def from_fiscal(cls, fiscal: dict | None = None) -> "PrevidenciaConfig":
@@ -95,6 +102,9 @@ class PrevidenciaConfig:
             # ADR-389 D2: a base da DAA é a tabela ANUAL — a mensal serve o IRRF
             # na fonte e é consumida pela cascata da S8 ([[A40.l37]]).
             irpf_faixas=fiscal.ir_brackets_anual.faixas,
+            regime_completo=fiscal.regime_completo,
+            componentes_ausentes=fiscal.componentes_ausentes,
+            ano_fiscal=fiscal.year,
         )
 
 
@@ -211,6 +221,45 @@ _NOTA_NO_TETO = (
 )
 
 
+# A40.l64 — a row de AC2026 nasce `regime_completo=False` porque a tabela
+# progressiva deixou de descrever sozinha o imposto devido. Os dois componentes
+# que faltam são independentes do aporte, então a diferencial por faixa
+# superestima: quem tem tributável anual até R$ 60k já paga zero depois do
+# redutor, e acima de R$ 600k o mínimo reabsorve o que a dedução economiza.
+_COMPONENTE_LABEL = {
+    "redutor_lei_15270": "o redutor da Lei 15.270/2025",
+    "irpfm": "o imposto mínimo sobre altas rendas (IRPFM)",
+}
+
+
+def _lista_componentes(componentes: tuple[str, ...]) -> str:
+    """Rótulos legíveis em português; termo desconhecido sai verbatim, não sumido."""
+    rotulos = [_COMPONENTE_LABEL.get(c, c) for c in componentes]
+    if not rotulos:
+        return "componentes do regime vigente"
+    if len(rotulos) == 1:
+        return rotulos[0]
+    return f"{', '.join(rotulos[:-1])} e {rotulos[-1]}"
+
+
+_NOTA_REGIME_INCOMPLETO = (
+    "A estimativa de economia de IR não se aplica ao ano-calendário {ano}: a tabela "
+    "progressiva deixou de descrever sozinha o imposto devido, e ainda falta modelar "
+    "{componentes}. Nenhum deles se move com o aporte, então calcular a economia pela "
+    "diferença de faixa superestimaria o benefício — e para renda tributável de até "
+    "R$ 60 mil no ano, em que o imposto já fica zerado, publicaria uma economia "
+    "inexistente. O seu espaço dedutível de 12% continua válido e está declarado acima; "
+    "a estimativa volta quando o regime estiver completo."
+)
+
+
+def _nota_regime_incompleto(config: "PrevidenciaConfig") -> str:
+    ano = config.ano_fiscal or "corrente"
+    return _NOTA_REGIME_INCOMPLETO.format(
+        ano=ano, componentes=_lista_componentes(config.componentes_ausentes)
+    )
+
+
 def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: float) -> str:
     """Nota de capacidade PGBL ramificada por PgblStatus (RV2-03 · ADR-305 D3)."""
     ano = cap.ano_base
@@ -245,6 +294,8 @@ class PrevidenciaAnalyzer:
     def _analyze_via_irpf(self, cap: CapacidadePgblIRPF) -> PrevidenciaAnalysis:
         restante = max(Decimal("0"), cap.restante_anual)
         aliquota = self._aliquota_para(int(cap.renda_tributavel_anual * 100))
+        if not self._config.regime_completo:
+            return self._retem_prescricao(cap, restante, aliquota)
         return PrevidenciaAnalysis(
             status="Calculado",
             nota=_nota_capacidade_irpf(cap, float(restante)),
@@ -253,6 +304,27 @@ class PrevidenciaAnalyzer:
             aporte_mensal=restante / Decimal("12"),
             aliquota_marginal=aliquota,
             economia_ir_anual=restante * Decimal(str(aliquota)) / Decimal("100"),
+            fonte_recomendacao="irpf_capacidade",
+            ano_base=cap.ano_base,
+            nota_degradacao=cap.nota_degradacao,
+        )
+
+    # Reter prescrição não é apagar fato: a capacidade de 12% vem do IRPF e não
+    # depende do regime do ano corrente. O que sai são os dois campos que a
+    # ADR-375 D4 nomeia — "prescrever PGBL" (aporte) e "publicar economia de IR".
+    def _retem_prescricao(
+        self, cap: CapacidadePgblIRPF, restante: Decimal, aliquota: float
+    ) -> PrevidenciaAnalysis:
+        """Regime incompleto: ausência com motivo, nunca número menor (ADR-375 D4)."""
+        motivo = _nota_regime_incompleto(self._config)
+        return PrevidenciaAnalysis(
+            status="Calculado",
+            nota=f"{motivo} {_nota_capacidade_irpf(cap, float(restante))}",
+            renda_tributavel_anual=cap.renda_tributavel_anual,
+            limite_pgbl_anual=restante,
+            aporte_mensal=None,
+            aliquota_marginal=aliquota,
+            economia_ir_anual=None,
             fonte_recomendacao="irpf_capacidade",
             ano_base=cap.ano_base,
             nota_degradacao=cap.nota_degradacao,

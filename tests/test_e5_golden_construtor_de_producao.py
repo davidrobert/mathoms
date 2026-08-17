@@ -106,3 +106,43 @@ def test_caminho_legado_devolve_o_fallback(tmp_path: Path):
         irpf_payloads={f"irpfdeclaracao_{_ANO_BASE_IRPF}": _irpf_com_renda_tributavel()},
     )
     assert _aliquota(analise) != _ALIQUOTA_ESPERADA_DB
+
+
+# =============================================================================
+# A40.l64 — a recusa do regime incompleto chega ao payload E5
+#
+# O unit test do analyzer prova a regra; este prova a FIAÇÃO. A row que
+# `fiscal_store_do_seed` semeia vem da migration ADR-389, onde AC2026 nasce
+# `regime_completo=False` — e esta fixture roda com `date.today().year`.
+# Sem esta asserção, o wiring `FiscalParameters → PrevidenciaConfig` poderia
+# voltar a descartar o marcador e nenhum golden ficaria vermelho.
+# =============================================================================
+
+
+def _previdencia(analise: dict) -> dict:
+    return analise.get("previdencia_pgbl") or {}
+
+
+@pytest.mark.skipif(
+    date.today().year < 2026,
+    reason="a row incompleta é AC2026+; antes disso não há o que recusar",
+)
+def test_regime_incompleto_retem_a_economia_no_payload(analise_com_config_store):
+    """AC2026 publica capacidade e NÃO publica economia (ADR-375 D4 · A40.l64)."""
+    bloco = _previdencia(analise_com_config_store)
+
+    # Falsificável: sem o par, `economia is None` passaria por AUSÊNCIA de
+    # capacidade — que é outro caminho (`_sem_capacidade_declarada`) e mediria
+    # a fixture, não a recusa.
+    assert bloco.get("limite_pgbl_anual") is not None, "a capacidade do IRPF tem de sobreviver"
+    assert bloco.get("economia_ir_anual") is None
+    assert bloco.get("aporte_mensal") is None
+
+
+@pytest.mark.skipif(date.today().year < 2026, reason="ver acima")
+def test_a_nota_nomeia_a_lei_que_falta_modelar(analise_com_config_store):
+    """Motivo genérico não é motivo: a copy cita a norma e o ano-calendário."""
+    nota = _previdencia(analise_com_config_store).get("nota") or ""
+
+    assert "15.270" in nota
+    assert str(date.today().year) in nota
