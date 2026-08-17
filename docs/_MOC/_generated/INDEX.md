@@ -896,7 +896,7 @@
 | A40.l46 | lane | open | A40 | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup | `sprint/A40/lanes/A40-l46-residuos-bloco-identidade-perfil.md` |
 | A40.l47 | lane | shipped | A40 | Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva | `sprint/A40/lanes/A40-l47-semantica-de-taxa-faixa-e-base.md` |
 | A40.l48 | lane | open | A40 | Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo | `sprint/A40/lanes/A40-l48-polaridade-de-comparacao-nao-monotonica.md` |
-| A40.l49 | lane | open | A40 | Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar | `sprint/A40/lanes/A40-l49-parecer-rotulo-e-guardrails.md` |
+| A40.l49 | lane | shipped | A40 | Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar | `sprint/A40/lanes/A40-l49-parecer-rotulo-e-guardrails.md` |
 | A40.l5 | lane | in_progress | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l50 | lane | open | A40 | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | `sprint/A40/lanes/A40-l50-abertos-da-investigacao-de-exposicao-cambial.md` |
 | A40.l51 | lane | open | A40 | Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando | `sprint/A40/lanes/A40-l51-followups-orfaos-da-l43.md` |

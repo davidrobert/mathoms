@@ -4,15 +4,19 @@ type: lane
 title: "Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1487
+ship_date: "2026-08-17"
 priority: P1
 branch_slug: a40-l49-parecer-rotulo-e-guardrails
 owner: prompt-engineer
+adrs:
+  - "[[ADR-296]]"
 depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/llm
@@ -24,6 +28,13 @@ tags:
 > §r4 (report `7a7d7115` sobre run `ee124571`). Dono: `prompt-engineer`.
 > Agrupada **por domínio de dono**, não por severidade: os achados aqui precisam
 > do mesmo especialista para fechar, e lane com donos distintos não fecha.
+>
+> ✅ **Entregue em 2026-08-17 pelo PR #1487** (`cb9253eb`). Os três guardrails
+> passam a poder falhar: pairing contra `citation_labels` (não o root);
+> rebaixamento de MC por S7+lemma; pedido com ano sem cobertura não é
+> SPURIOUS. `needs_review_triggered` espelha evidencia/red-line ([[ADR-295]]),
+> não o limiar 0,7 da [[ADR-081]] — correção do enunciado original. Emenda
+> [[ADR-296]] 2026-08-16. RV5-02 (dependente fantasma) ficou fora.
 
 ## Problema
 
@@ -82,3 +93,16 @@ decoração, e essa é a classe que une os três achados.
 Mexer no prompt, no model ou no seed: nada aqui é de geração, é de verificação
 pós-geração. Reescrever a ancorabilidade do exec context — é a [[A40.l30]],
 `shipped`.
+
+## Entregue — 2026-08-17
+
+Um PR cobriu os três itens do escopo (#1487 · `cb9253eb`):
+
+1. Mapa `citation_labels` path→`{rotulo_id, label}`; pairing contra o mapa;
+   path ausente é fail-open (`unmapped_leaf`). Mutação root-split falha.
+2. MC: S7 + lemma na prosa (ou âncora `$.if_monte_carlo`). Tema sozinho não
+   rebaixa. `needs_review_triggered` espelha evidencia/red-line.
+3. Motivo que nomeia um ano sem cobertura completa no E5 deixa de ser
+   SPURIOUS.
+
+Fora: RV5-02 (dependente fantasma).
