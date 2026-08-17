@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Mapping, Optional
 
 from backend.app.services.parecer_citation_catalog import ancora_format_hint
 from pipeline.llm.schemas.parecer_planejador import (
@@ -170,33 +170,39 @@ def _stamped_metadata(
     )
 
 
-def _resolve_ancora(ancora: Ancora, drill: PlannerDrillDown) -> Ancora:
-    """Resolve path→valor_renderizado com dispatch por tipo de folha (ADR-296 · A28.l10):
-    o hint vem de ``ancora_format_hint`` (catálogo de citação — a folha conhece seu
-    campo), não de heurística sobre o valor. Prob → "31%", idade → "53 anos",
-    moeda → "R$ …" (ADR-090)."""
+def _resolve_ancora(ancora: Ancora, drill: PlannerDrillDown, labels: Mapping) -> Ancora:
+    """Resolve path→valor_renderizado e carimba label do mapa (ADR-296 · A40.l49)."""
+    updates: dict = {}
+    mapped = labels.get(ancora.path) if ancora.path else None
+    if mapped is not None:
+        updates["label"] = mapped.label
     if ancora.path is None:
-        return ancora
+        return ancora.model_copy(update=updates) if updates else ancora
     result = drill.get_e5_jsonpath(ancora.path)
-    if not result.found:
-        return ancora
-    rendered = format_value(result.value, ancora_format_hint(ancora.path))
-    return ancora.model_copy(update={"valor_renderizado": rendered})
+    if result.found:
+        updates["valor_renderizado"] = format_value(result.value, ancora_format_hint(ancora.path))
+    return ancora.model_copy(update=updates) if updates else ancora
 
 
-def _stamp_item(item: Risco | Sugestao, drill: PlannerDrillDown) -> Risco | Sugestao:
+def _stamp_item(
+    item: Risco | Sugestao, drill: PlannerDrillDown, labels: Mapping
+) -> Risco | Sugestao:
     if not item.ancoras:
         return item
-    return item.model_copy(update={"ancoras": [_resolve_ancora(a, drill) for a in item.ancoras]})
+    stamped = [_resolve_ancora(a, drill, labels) for a in item.ancoras]
+    return item.model_copy(update={"ancoras": stamped})
 
 
 def stamp_ancora_values(
     output: ParecerPlanejadorOutput, drill: PlannerDrillDown
 ) -> ParecerPlanejadorOutput:
     """ADR-296: grava o snapshot valor_renderizado de cada âncora (LLM não autora o número)."""
-    update: dict = {"riscos": [_stamp_item(r, drill) for r in output.riscos]}
+    from backend.app.services.parecer_manifest import load_manifest
+
+    labels = load_manifest().citation_labels
+    update: dict = {"riscos": [_stamp_item(r, drill, labels) for r in output.riscos]}
     for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
-        update[horizon] = [_stamp_item(s, drill) for s in getattr(output, horizon)]
+        update[horizon] = [_stamp_item(s, drill, labels) for s in getattr(output, horizon)]
     return output.model_copy(update=update)
 
 

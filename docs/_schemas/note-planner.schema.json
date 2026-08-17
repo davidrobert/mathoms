@@ -127,6 +127,28 @@
       "type": "array",
       "items": {"type": "string", "minLength": 5},
       "description": "Hints globais aplicáveis a todas as seções (ex.: 'Nunca prescreva ativo específico')."
+    },
+    "citation_labels": {
+      "type": "object",
+      "description": "Mapa path → {rotulo_id, label} (A40.l49 · ADR-296 emenda 2026-08-16). rotulo_id é identifier ASCII ≤64 (contrato do chip); label é o texto PT-BR do chip. Path sem entrada é fail-open no verificador.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rotulo_id", "label"],
+        "properties": {
+          "rotulo_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "description": "Identificador que o LLM copia em ancora.rotulo."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Texto do chip; o finalize carimba em ancora.label."
+          }
+        }
+      }
     }
   },
 

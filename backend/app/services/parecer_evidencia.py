@@ -7,7 +7,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Iterator, Optional, Sequence
+from typing import Iterator, Mapping, Optional, Sequence
 
 from pipeline.llm.prompts.parecer_planejador import PROMPT_VERSION
 from pipeline.llm.schemas.parecer_planejador import Ancora, ParecerPlanejadorOutput
@@ -28,7 +28,8 @@ logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # "6" (ADR-366 §D7): a CAUSA daquele defeito — o hit não repopular — só agora foi
 # tocada. O cache passa a guardar envelope {output, evidencia_summary, entries}, e o
 # shape antigo não é legível; o bump é o que garante que nenhum hit o alcance.
-EVIDENCIA_VERIFICATION_VERSION = "6"
+# "7" (ADR-296 emenda 2026-08-16 · A40.l49): pairing contra rotulo_id do mapa.
+EVIDENCIA_VERIFICATION_VERSION = "7"
 
 # Inventário de campos de prosa inspecionados — estratificador do summary (A40.l30).
 # 1 (implícito, sem a chave): riscos[].descricao/.evidencia + sugestoes_*[].acao — os
@@ -157,6 +158,7 @@ class EvidenciaVerification:
     failed: int = 0
     failures_by_layer: dict[str, int] = field(default_factory=lambda: dict.fromkeys(_LAYERS, 0))
     entries: list[dict] = field(default_factory=list)
+    unmapped_leaf: int = 0
     violations: list[str] = field(default_factory=list)  # "tipo:índice:camada"
     # UNIDADES DIFERENTES, não confundir ao ler budget (ADR-358 §3 — régua errada):
     # money_tokens_total conta TOKENS monetários; failures_by_layer["number_in_prose"]
@@ -235,6 +237,7 @@ class EvidenciaVerification:
             "money_tokens_usd": self.money_tokens_usd,
             "metricas_money_tokens": self.metricas_money_tokens,
             "prose_inventory_version": PROSE_INVENTORY_VERSION,
+            "unmapped_leaf": self.unmapped_leaf,
         }
 
 
@@ -258,10 +261,28 @@ def log_evidencia_kpi(verification: "EvidenciaVerification", workspace_id: str) 
     )
 
 
+def _record_checked_anchor(
+    result: EvidenciaVerification,
+    drill: PlannerDrillDown,
+    ancora: Ancora,
+    labels: Mapping,
+    item_type: str,
+    index: int,
+) -> None:
+    layer = _check_anchor(drill, ancora, labels)
+    if layer == "unmapped_leaf":
+        result.unmapped_leaf += 1
+        layer = None
+    _record(result, item_type=item_type, index=index, path=ancora.path, layer=layer)
+
+
 def verify_evidencia(
     *, output: ParecerPlanejadorOutput, drill: PlannerDrillDown
 ) -> EvidenciaVerification:
     """Cross-check por âncora sobre riscos + sugestões; ``drill`` é instância dedicada."""
+    from backend.app.services.parecer_manifest import load_manifest
+
+    labels = load_manifest().citation_labels
     result = EvidenciaVerification()
     for item_type, index, prose_fields, ancoras in _iter_anchorable_items(output):
         _record_prose(result, item_type=item_type, index=index, prose_fields=prose_fields)
@@ -270,8 +291,7 @@ def verify_evidencia(
         if not ancoras:
             result.itens_sem_ancora += 1
         for ancora in ancoras:
-            layer = _check_anchor(drill, ancora)
-            _record(result, item_type=item_type, index=index, path=ancora.path, layer=layer)
+            _record_checked_anchor(result, drill, ancora, labels, item_type, index)
     for item_type, index, prose_fields in _iter_prose_only_items(output):
         _record_prose(result, item_type=item_type, index=index, prose_fields=prose_fields)
     result.metricas_money_tokens = _count_metricas_money(output)
@@ -343,15 +363,17 @@ def _count_metricas_money(output: ParecerPlanejadorOutput) -> int:
     return len(_extract_money_tokens(fields)) + len(_extract_usd_tokens(fields))
 
 
-def _check_anchor(drill: PlannerDrillDown, ancora: Ancora) -> Optional[str]:
+def _check_anchor(drill: PlannerDrillDown, ancora: Ancora, labels: Mapping) -> Optional[str]:
     """None = verificado; senão a camada que falhou (ADR-296)."""
     if ancora.path is None:
         return "missing_path"  # path coercido (ADR-292) — cobertura, fail-open
     tool_result = drill.get_e5_jsonpath(ancora.path)
     if not tool_result.found:
         return _REASON_TO_LAYER.get(tool_result.reason or "", "resolve_null")
-    # Cross-check determinístico: rotulo deve casar a seção dona do path (1º segmento).
-    if ancora.rotulo != ancora.path[2:].split(".", 1)[0]:
+    mapped = labels.get(ancora.path)
+    if mapped is None:
+        return "unmapped_leaf"  # fail-open: mapa incompleto não fabrica pairing_mismatch
+    if ancora.rotulo != mapped.rotulo_id:
         return "pairing_mismatch"
     return None
 
