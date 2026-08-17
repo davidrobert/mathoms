@@ -13,14 +13,23 @@
 // Lote A (S1) — Patrimônio
 // ──────────────────────────────────────────────────────────────────────
 
+export interface PatrimonioCaixaConversao {
+  taxa: string | null;
+  taxa_data: string | null;
+  taxa_fonte: "ptax_31_12" | "market_rate_corrente" | "default_hardcoded" | "irpf_ja_em_brl" | null;
+  status: "converted" | "identity" | "missing_rate";
+}
+
 export interface PatrimonioCaixaDetalhe {
   conta: string;
   moeda: "BRL" | "USD" | "EUR" | string;
   saldo_original: number;
   valor_brl: number;
-  tipo: "moeda_nacional" | "moeda_estrangeira" | string;
+  tipo: "moeda_nacional" | "moeda_estrangeira" | "moeda_estrangeira_irpf" | string;
   /** ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1. */
   fonte?: "extrato" | "informe_31_12" | string;
+  /** ADR-390 — carimbo da conversão; ausência = artefato pré-390. */
+  conversao?: PatrimonioCaixaConversao;
 }
 
 import type { Posicao3112Row } from "./posicao-31-12";

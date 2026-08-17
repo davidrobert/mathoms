@@ -458,6 +458,13 @@ repos:
         pass_filenames: false
         files: '^(frontend/src/components/report/.*\.(tsx|ts)|pipeline/domain/services/narrativas/.*\.py|dev/check_coverage_disclaimer\.py)$'
 
+      - id: conversao-me-funnel
+        name: "Conversão ME→BRL só no conversor (ADR-390 D4)"
+        entry: python3 dev/check_conversao_me_funnel.py
+        language: system
+        pass_filenames: false
+        files: '^(pipeline/.*\.py|scripts/analyze_finances\.py|scripts/generate_narratives\.py|dev/check_conversao_me_funnel\.py)$'
+
       - id: report-layout-codegen
         name: "Report layout codegen (TS/Pydantic) em sync com YAML (ADR-076)"
         entry: python3 dev/codegen_report_layout.py --check

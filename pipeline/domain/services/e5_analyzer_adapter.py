@@ -53,6 +53,14 @@ from pipeline.domain.services.consumo_consciente_calculator import (
     ConsumoConscienteCalculator,
     ConsumoConscienteConfig,
 )
+from pipeline.domain.services.conversao_me import (
+    ConversaoMeBrl,
+    HardcodedFxDefault,
+    apply_fx,
+    identity_already_brl,
+    resolve_fx_input,
+    warn_hardcoded,
+)
 from pipeline.domain.services.diagnostico_comportamental_analyzer import (
     DiagnosticoComportamentalAnalyzer,
     DiagnosticoComportamentalConfig,
@@ -408,8 +416,8 @@ class E5AnalyzerAdapter:
         A7.2b: ``fiscal_parameters`` (typed) tem prioridade sobre ``fiscal``
         (dict legacy). ``cambio_usd_brl`` / ``cambio_eur_brl`` (Decimal)
         têm prioridade sobre ``taxas["cambio_usd_brl"]`` / ``taxas["cambio_eur_brl"]``.
-        Quando ambos None, usa default codificado (5.80/6.35) — pos-A7.5,
-        sem fallback de disco.
+        Quando ambos None, USD/EUR usam HardcodedFxDefault nomeado
+        (ADR-390 D3) — pos-A7.5, sem fallback de disco.
         """
         member_cfg = MemberResolverConfig.from_family(family)
         identity = cls._build_identity(family, member_cfg)
@@ -885,9 +893,9 @@ class E5AnalyzerAdapter:
             - Poupança / PJ / saldo desconhecido → fora do caixa com razão
               tipada (``CaixaContaExcluida``, 1 por conta) — nada some em silêncio
 
-        Cambio resolution (A7.5): typed ``self._cambio_usd_brl`` /
-        ``self._cambio_eur_brl`` (resolvidos via ``ConfigStore.get_market_rate``)
-        têm prioridade sobre ``self._taxas`` dict legacy. Default final: 5.80/6.35.
+        Cambio (ADR-390): typed ``self._cambio_usd_brl`` /
+        ``self._cambio_eur_brl`` têm prioridade sobre ``self._taxas``. Sem
+        os dois, USD/EUR usam ``HardcodedFxDefault`` nomeado + WARNING.
 
         ADR-245 — fallback baseline IRPF: quando nenhum extrato em USD/EUR
         está em E3, agrega items de moeda estrangeira de
@@ -899,17 +907,6 @@ class E5AnalyzerAdapter:
 
         Sem keys em E3 (ou store sem list_keys) → fallback baseline apenas.
         """
-        cambio_usd = (
-            self._cambio_usd_brl
-            if self._cambio_usd_brl is not None
-            else safe_float(self._taxas.get("cambio_usd_brl", 5.80), default=5.80)
-        )
-        cambio_eur = (
-            self._cambio_eur_brl
-            if self._cambio_eur_brl is not None
-            else safe_float(self._taxas.get("cambio_eur_brl", 6.35), default=6.35)
-        )
-
         keys = (
             list(store.list_keys("reconcile_transactions")) if hasattr(store, "list_keys") else []
         )
@@ -952,39 +949,31 @@ class E5AnalyzerAdapter:
         total_brl = 0.0
         posicoes: list[ExtratoPosicao] = []
         has_foreign_in_e3 = False
+        hardcoded_counts: dict[str, int] = {}
         for _, data in sorted(latest_per_account.values(), key=lambda x: x[0]):
             tipo_conta = (data.get("tipo_conta") or "").lower()
             moeda = (data.get("moeda") or "BRL").upper()
             saldo = safe_float(data.get("saldo_final"))
-
-            if moeda == "USD":
-                valor_brl = saldo * cambio_usd
+            conv, hardcoded = self._converter_extrato(saldo, moeda)
+            if hardcoded is not None:
+                hardcoded_counts[hardcoded.pair] = hardcoded_counts.get(hardcoded.pair, 0) + 1
+            if moeda != "BRL":
                 has_foreign_in_e3 = True
-            elif moeda == "EUR":
-                valor_brl = saldo * cambio_eur
-                has_foreign_in_e3 = True
-            else:
-                valor_brl = saldo
-
-            categoria = "moeda_estrangeira" if moeda != "BRL" else "caixa"
-            total_brl += valor_brl
+            if conv.valor_brl is not None:
+                total_brl += float(conv.valor_brl)
             period_end = (data.get("periodo_cobertura") or {}).get("fim") or ""
             data_ref, precisao = normalize_data_referencia(period_end)
             posicoes.append(
                 ExtratoPosicao(
-                    detalhe=CaixaDetalhe(
-                        conta=f"{data.get('banco', '?')} ({tipo_conta})",
-                        moeda=moeda,
-                        saldo_original=saldo,
-                        valor_brl=valor_brl,
-                        tipo=categoria,
-                        data_referencia=data_ref,
-                        data_referencia_precisao=precisao,
+                    detalhe=_detalhe_from_conv(
+                        data, tipo_conta, moeda, saldo, conv, data_ref, precisao
                     ),
                     banco=(data.get("banco") or "").lower(),
                     period_end=period_end,
                 )
             )
+        for par, n_linhas in hardcoded_counts.items():
+            warn_hardcoded(par, n_linhas)
 
         # ADR-238 D5 (A33.l2) — informe 31/12 vence extrato D+1: substitui o
         # saldo do extrato da virada de ano pelo do informe (fonte fiscal
@@ -1004,6 +993,35 @@ class E5AnalyzerAdapter:
             detalhes.extend(me_detalhes)
 
         return round(total_brl, 2), detalhes, excluidas
+
+    def _converter_extrato(
+        self, saldo, moeda: str
+    ) -> tuple[ConversaoMeBrl, HardcodedFxDefault | None]:
+        resolved = resolve_fx_input(
+            moeda,
+            typed_usd=self._cambio_usd_brl,
+            typed_eur=self._cambio_eur_brl,
+            taxas=self._taxas,
+        )
+        hardcoded = resolved if isinstance(resolved, HardcodedFxDefault) else None
+        return apply_fx(saldo, moeda, resolved), hardcoded
+
+
+def _detalhe_from_conv(
+    data: dict, tipo_conta: str, moeda: str, saldo, conv: ConversaoMeBrl, data_ref, precisao: str
+) -> CaixaDetalhe:
+    valor = float(conv.valor_brl) if conv.valor_brl is not None else 0.0
+    tipo = "moeda_estrangeira" if moeda != "BRL" else "caixa"
+    return CaixaDetalhe(
+        conta=f"{data.get('banco', '?')} ({tipo_conta})",
+        moeda=moeda,
+        saldo_original=saldo,
+        valor_brl=valor,
+        tipo=tipo,
+        data_referencia=data_ref,
+        data_referencia_precisao=precisao,
+        conversao=conv,
+    )
 
 
 def _motivo_exclusao_caixa(tipo_conta: str, saldo_raw, data: dict) -> str | None:
@@ -1073,15 +1091,6 @@ def _distribuicao_pj_signal_from_fluxo(fluxo_legacy: dict) -> DistribuicaoPJSign
     )
 
 
-def _moeda_from_descricao(descricao_lower: str) -> str:
-    """Inferir moeda a partir de palavras-chave em descrição do baseline IRPF."""
-    if any(kw in descricao_lower for kw in _ME_KEYWORDS_USD):
-        return "USD"
-    if any(kw in descricao_lower for kw in _ME_KEYWORDS_EUR):
-        return "EUR"
-    return "USD"  # default conservador — IRPF mais comum em USD
-
-
 def _extract_me_caixa_from_baseline(baseline: dict) -> tuple[float, list[CaixaDetalhe]]:
     """Extrai items de moeda estrangeira de ``baseline.investimentos_consolidados``.
 
@@ -1092,8 +1101,9 @@ def _extract_me_caixa_from_baseline(baseline: dict) -> tuple[float, list[CaixaDe
     cenários raros de fallback IRPF puro) em troca de visibilidade do
     saldo ME no card "Caixa e Moeda Estrangeira" (ADR-245 §Limitações).
 
-    Valor IRPF já está em BRL (declaração consolida a R$ à taxa
-    de fechamento do ano-base) — não re-converte.
+    Valor IRPF já está em BRL. ``moeda`` é BRL (unidade de
+    ``saldo_original``); keyword "dólar" não autoriza gravar BRL como USD
+    (ADR-245 L3 emendada · ADR-390).
     """
     inv_list = baseline.get("investimentos_consolidados", []) or []
     if not isinstance(inv_list, list):
@@ -1115,15 +1125,16 @@ def _extract_me_caixa_from_baseline(baseline: dict) -> tuple[float, list[CaixaDe
         if valor <= 0:
             continue
 
-        moeda = _moeda_from_descricao(descricao)
+        conv = identity_already_brl(valor)
         total_brl += valor
         detalhes.append(
             CaixaDetalhe(
                 conta=f"IRPF: {(item.get('descricao') or '')[:80]}",
-                moeda=moeda,
-                saldo_original=valor,  # IRPF já é BRL — sem cambio reverso.
+                moeda="BRL",
+                saldo_original=valor,
                 valor_brl=valor,
                 tipo="moeda_estrangeira_irpf",
+                conversao=conv,
             )
         )
     return total_brl, detalhes

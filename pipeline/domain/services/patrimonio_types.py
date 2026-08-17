@@ -20,6 +20,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Literal, Mapping
 
+from pipeline.domain.services.conversao_me import ConversaoMeBrl
 from pipeline.domain.services.money_parsing import valor_monetario_float
 
 logger = logging.getLogger("mathoms.pipeline.patrimonio")
@@ -199,16 +200,18 @@ class CaixaDetalhe:
     moeda: str
     saldo_original: float
     valor_brl: float
-    tipo: str  # "caixa" | "moeda_estrangeira"
+    tipo: str  # "caixa" | "moeda_estrangeira" | "moeda_estrangeira_irpf"
     # ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1.
     fonte: str = "extrato"
     # A40.l39 — fim de período do extrato vencedor (YYYY-MM-DD) + precisão
     # ("dia" | "mes" | "desconhecida"); linha de informe carrega 31/12/ano_base.
     data_referencia: str | None = None
     data_referencia_precisao: str = "desconhecida"
+    # ADR-390 — carimbo da conversão; writer novo sempre preenche.
+    conversao: ConversaoMeBrl | None = None
 
     def to_dict(self) -> dict:
-        return {
+        payload = {
             "conta": self.conta,
             "moeda": self.moeda,
             "saldo_original": round(self.saldo_original, 2),
@@ -218,6 +221,9 @@ class CaixaDetalhe:
             "data_referencia": self.data_referencia,
             "data_referencia_precisao": self.data_referencia_precisao,
         }
+        if self.conversao is not None:
+            payload["conversao"] = self.conversao.to_wire()
+        return payload
 
 
 # Nenhuma conta some do caixa em silêncio: cada exclusão de domínio remanescente
