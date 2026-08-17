@@ -1,0 +1,395 @@
+---
+id: PLAN-deterministic-authority
+type: plan
+title: "Autoridade determinística sobre rótulo de LLM — remediação r6 (baseline, fan-out, dado do casal, render)"
+status: draft
+created_at: 2026-08-17
+last_review: 2026-08-17
+sprint_origem: A40
+sprint_atual: A40
+sprints_envolvidas: [A40, A42]
+paused_at: null
+pause_reason: null
+adrs_canonical:
+  - "[[ADR-343]]"
+relates_to:
+  - "[[PLAN-pipeline-review-r2]]"
+  - "[[PLAN-report-trust]]"
+tags:
+  - type/plan
+  - status/draft
+  - area/pipeline
+  - area/backend
+---
+
+# Autoridade determinística sobre rótulo de LLM — remediação r6
+
+> Origem: skill `pipeline-review` ([[ADR-343]]), run `7b64b6c7` (executor
+> `origin/main` f724438f + #1482), registrado em [[PIPELINE-REVIEWS-active]] §r6
+> (PR #1489). 23 achados sistêmicos + 1 positivo. Cru + baseline off-git:
+> `storage/1b9f2cf5-…/reviews/20260816-1947-7b64b6c7/` (PII).
+> Co-design 2026-08-17: 7 lentes (PM · IA · CTO · DE · FP · PE · PD) +
+> crítico de completude; 6 conflitos fechados pela regra anti-loop
+> (senior-cto arbitra). Este `_README` é a síntese pós-co-design.
+
+## Tese
+
+Onde existe **fato verificável fora do LLM** — código de catálogo RFB, sinal do
+valor, seção do documento, CPF, catálogo server-side de limiares — **o fato
+decide; a saída do LLM é hint em vocabulário fechado**. O r6 provou o custo da
+inversão: 1 rótulo flipado atravessou consolidador, E5, CV, parecer e render sem
+que nenhuma camada o segurasse, e o compare cross-run foi o único detector.
+As quatro dimensões do pedido mapeiam assim:
+
+| Dimensão | O que fecha | Gate mensurável |
+|---|---|---|
+| Corretude | Ondas 1+2 (roteamento por fato + balanço de fan-out) | golden 0a red→green **+ prova por mutação** (flipar `categoria` de item negativo ⇒ baldes byte-idênticos) |
+| Consistência | invariante entre-agregados (4a, escrito RED na Onda 0) + conservação POR EIXO + strict no baseline | teste 4a verde só pós-Onda 1; drift do schema = 0 por ≥7 dias antes do flip |
+| Completude | Onda 3 (dado do casal; zero≠não-medido) + export honesto (REPORT_TRUST) | fixtures red→green: cônjuge nunca publica 0 sem ressalva; doc pulado vira `needs_review` nomeado |
+| Precisão | temp 0 + seed em `extract_*` (cauda da Onda 1) + telemetria por tentativa ([[A42.l7]]) | **KR-0** (gate de saída): 2 runs consecutivos do mesmo corpus com compare = **0 FAIL HARD** não-explicado — comparador pinado, `corpus_grew` desligado, **cache de extração OFF** no run de verificação |
+
+## Fronteira
+
+- **[[PLAN-pipeline-review-r2]]** — dono de RV2-* remanescentes; a Onda 5 daqui
+  **não reabre** o desenho de RV2-01 (catálogo KPI, §Onda C de lá) — registra a
+  dependência e cede o desenho.
+- **[[A42]]** — [[A42.l4]], [[A42.l6]] e [[A42.l7]] são donas das superfícies
+  `validate_cross`, `SCHEMA_BY_STAGE`/retenção e `llm_call_log`. Este plano
+  **não abre PR nelas**; disposição por lane em §Roteamento.
+- **[[PLAN-report-trust]]** — casa das lanes de render (7a/7e e o resíduo de
+  export de [[A40.l22]]); a tese de lá ("o relatório não pode afirmar precisão
+  que os dados não sustentam") é a Onda 7 daqui.
+- **[[TRACK-property-identity-cross-era]]** — casa da reconciliação de órfãs
+  (4b-ii) e do backfill de supersessão.
+- Sprint-casa das lanes MVP: **A40**, pela exceção nomeada do §Critério de
+  admissão (cláusula 2) da A42 — precedente [[A40.l58]]/[[A40.l5]] com FK
+  `plan:`. Este plano é **caminho crítico do gate de saída da A40** (2 re-runs
+  completos consecutivos sem P0/P1 novo): r5 e r6 abriram P0 em runs
+  consecutivos, logo o contador não pode iniciar e a A42 não promove — é o
+  argumento de cost-of-delay que prioriza este plano sobre as lanes `open` da
+  A40.
+
+## Critério de admissão
+
+Entra: achado da §r6 roteado para este plano em §Roteamento. **Não entra, ainda
+que P0**: superfície com dono vivo (vai por §Roteamento ao dono); achado novo de
+runs futuros (r7+) — entra na re-triagem do registro e **só migra para cá se
+algo sair** (cap: nada entra sem sair). Done por **re-execução** (KR-0), nunca
+por burn-down de tabela.
+
+## Princípios de execução
+
+1. **Estabilizar antes de gatear.** Gate sobre sistema instável mede ruído e
+   ensina a ignorá-lo. Nenhum compare-como-gate antes da Onda 1.
+2. **Fato > hint.** Hierarquia de autoridade na classificação de baseline:
+   catálogo RFB (grupo do código) > mapa `(secao, codigo)` > **sinal do valor
+   como veto/desempate (suficiente, não necessário)** > `categoria_hint`.
+   Agregado emitido por LLM **nunca** sobrescreve soma determinística.
+3. **Enforcement sob doutrina [[ADR-357]]/[[ADR-358]].** Todo ponto novo de
+   enforcement entra WARN-first com **taxa de disparo medida sobre os payloads
+   r5+r6 e declarada na ADR** antes do flip; default é **rebaixa/declara**
+   (warning tipado + `review_reason` + superfície), nunca reter/abortar;
+   kill-switch de 1 env var provado por teste. Estado terminal de unidade não
+   processada é `degraded` + `needs_review` — não run vermelho.
+4. **Correção antes de custo.** Cache/pin de extração ([[ADR-307]] nos
+   call-sites `extract_*`) só depois da Onda 1 — pin antes congela extração
+   errada.
+5. **Rebaseline consciente.** Commit de rebaseline **isolado dentro do PR do
+   fix** (`dev/check_golden_rebaseline_isolation.py`), diff valor-a-valor via
+   `dev/golden_diff.py --manifest`, sinal ↑/↓/= declarado, **uma janela de
+   rebaseline por onda** e fila serializada compartilhada com as lanes A40 em
+   voo (migrations idem — precedente A42.l7×A40.l19).
+6. **1 lane = 1 seam = 1 branch**; sub-itens são PRs dentro da lane. Lanes de
+   ondas não-MVP nascem `planned`/`blocked` com `depends_on` por wikilink.
+
+## Roteamento achado→dono (disposição escrita antes do primeiro pickup)
+
+| Achado §r6 | Casa | Disposição |
+|---|---|---|
+| RV6-01, RV6-02, RV6-03 | **este plano · Onda 1** | lanes MVP (L1 seam + L2 guarda E5) |
+| RV6-04, RV6-05 | **este plano · Onda 3** | lane MVP (L3 dado do casal) + produtor `gap_qualitativo` |
+| RV6-06 | este plano (simetrização `minimum:0` + flip strict dos 2 schemas de baseline) · [[A42.l6]] **cede o eixo dos 2 schemas** e mantém retenção/`SCHEMA_BY_STAGE` (incl. 1-liner RV4-23) | tripartite escrita: plano ↔ l6 ↔ [[A40.l58]] (que mantém `mode_overrides`/kill-switch como infra) |
+| RV6-07 | este plano · **critério de aceite da Onda 1** (teste RED na Onda 0) | não é onda própria |
+| RV6-08, RV6-09 | este plano · Onda 5 — **bloqueada** pela dependência do catálogo KPI ([[PLAN-pipeline-review-r2]] §Onda C, RV2-01) | fora do MVP; item novo: entrega do catálogo com dono DE+FP |
+| RV6-10 | este plano · Onda 2 (lane própria; **paralela desde o dia 0**) | [[A42.l4]] **não amplia** (preserva a disjunção declarada); ganha citação da ADR-B + re-prioridade P1 no frontmatter |
+| RV6-11, RV6-18 | **[[A42.l7]]** promovida individualmente (porta nível-lane da A42: reparentar `sprint: A40` + `git mv`), consumidor datado = RV6-18 + [[ADR-173]] sobre piso | #1482 mergeia com claim corrigido ("reduz p50; não elimina timeout") |
+| RV6-12 | este plano · Onda 2 (ladder [[ADR-081]] no E1.5) | — |
+| RV6-13 | **re-medição na Onda 0** (pós-sweep 2026-08-12 da track; [[ADR-324]] §Emenda revogou premissa) → confirmado o buraco, 4b-i (estanca-sangramento) mergeia imediatamente; 4b-ii via [[TRACK-property-identity-cross-era]] com `dev/backfill_property_supersession.py` **após** re-consolidação limpa pós-Onda 1 | chave de match **sem ano** (`titular_key`+`codigo_rfb`+corroboração de valor; ano é atributo, [[ADR-274]]) |
+| RV6-14, RV6-15, RV6-21 | este plano · Onda 3 (fora do MVP, exceto onde indicado) | tripwire re-discriminado por **data-base**, não magnitude |
+| RV6-16 | 7a como **lane do [[PLAN-report-trust]] dentro do MVP** (guard de runtime em módulo próprio; coordenação declarada com [[A40.l5]], que é gate estático tsc); supressor do ponto forte alimentado **exclusivamente** pelo warning tipado da Onda 1 (fio único, no produtor `pontos_fortes_analyzer`) | anti-decisão: **não criar 5º banner**; violação **não incrementa** `signals.count` |
+| RV6-17 | **[[A40.l6]]** (dona do gate de PII do view-model, critério 4 da [[ADR-337]]) — 7f **estende** o escopo do gate para `patrimonio.composicao[].categoria` + `endividamento.dividas[].descricao`; a chave composta de `por_fonte_detalhado` segue com [[PLAN-pipeline-review-r2]] (RV2-07) | — |
+| RV6-19 | este plano · **cauda da Onda 1** (temp/seed é pré-requisito de medir o prompt novo; mesma janela de rebaseline) | "destrava cache" corrigido: temp 0 é pré-condição; `use_cache` é opt-in por call-site (6c) |
+| RV6-20 | **re-roteado ao produtor**: `hasRealProtectionInputs` já considera apólices (shipado #1476, [[A40.l35]]) — o 7c do draft era no-op; o defeito real é o `protection_bundle_populator` ignorar a fonte documental `protecao_patrimonial` ([[ADR-240]]). Item produtor-side na Onda 3 | lição: re-medir contra `main` antes de abrir lane de render |
+| RV6-22 | resíduo de export da **[[A40.l22]]** via [[PLAN-report-trust]]: contagem server-side no payload **+ 3º estado visível no export + catch → `não apurado`** (as 3 pernas; 2/3 do tri-state já existem — `run_outcome` e `mayAssertCleanQuality`) | — |
+| RV6-23 | 7e como lane do [[PLAN-report-trust]] dentro do MVP (enabler puro, sem copy): `visibleCompositionRows()` único decidindo **explicitamente o negativo** (3 casos: negativo/zero-confirmado/ausente) | — |
+| RV6-24 | §Baseline e verificação (abaixo) | r6 **não** é baseline |
+
+Backfill da coluna Trilha da §r6 com o wikilink deste plano: mesmo PR desta
+abertura (convenção 3 do registro).
+
+## MVP — "o relatório não publica número que o sistema sabe estar errado, e não afirma zero onde não mediu"
+
+Onda 0 (inteira) + Onda 1 (inteira) + Onda 3 itens 3a/3b + lanes 7a/7e no
+[[PLAN-report-trust]]. Todo o resto nasce `planned`/`blocked`.
+
+## Ondas
+
+### Onda 0 — instrumento e curadoria (S · antes de qualquer fix)
+
+- **0a. Golden que reprova o r6**: caso novo em
+  `tests/test_e15c_golden_execution.py` (substrato `main_with_store` +
+  `InMemoryArtifactStore`), marcado `@pytest.mark.xfail(strict=True)` nomeando a
+  lane que o desmarca. Fixture sintética PII-free: item com categoria de ativo e
+  valor negativo (mesmo código RFB de um imóvel legítimo do fixture) + `resumo`
+  contando o montante no passivo. 5 asserts (sinal; destino em `dividas[]` com
+  `fonte`/`ano_ref`/`tipo`; conservação **por eixo**; `review_reason` tipado;
+  validação strict) + **teste-irmão que prova que a conservação líquida nasce
+  VERDE** sobre o mesmo payload (o cancelamento exato é a assinatura do bug).
+- **0b. Teste 4a RED** (aceite da Onda 1): `patrimonio.imoveis_investimento ≡
+  imoveis_geradores + imoveis_nao_geradores ≡
+  goals.alocacao_alvo.derived.imoveis_fisicos_brl`, cents, tolerância zero.
+- **0c. Re-medição RV6-13** contra `main` pós-sweep (decide 4b-i vs item da
+  track) e **contagem de órfãs atual**.
+- **0d. Fila serializada** de migrations e rebaselines (dono por janela),
+  coordenada com A40 em voo; **orçamento de verificação**: checkpoints de
+  re-run (~25 min/1 run pago cada) com manifesto dos PRs incluídos por
+  checkpoint — sem isso, fixes paralelos caem na mesma janela e o efeito não é
+  atribuível.
+- **0e. Registro**: linha em [[PLANS-active]] §Olhar primeiro; backfill Trilha
+  §r6; disposição tripartite RV6-06 escrita.
+
+### Onda 1 — seam determinístico (P0 · MVP · 2 lanes)
+
+**L1 (seam extração/consolidação):**
+- 1a. Predicado de dívida deixa de conjuncionar com o rótulo: função pura
+  `classify_baseline_item(codigo, valor_cents, categoria_hint, catalogo)` em
+  `pipeline/domain/services/` (VO de config tipado, warnings [[ADR-097]] D1).
+  **Autoridade primária: catálogo RFB** — estender o substrato existente
+  (`pipeline/llm/rfb_codes.py`, YAML versionado por ano-base com fail-fast e
+  runbook anual) com os grupos de bens/direitos e dívidas/ônus. Sinal negativo
+  = **veto suficiente** (nunca necessário — o IRPF declara saldo devedor
+  positivo na seção de dívidas). Divergência fato×hint → warning tipado +
+  `review_reason`, nunca silêncio. Ramo de dívida passa a carimbar
+  `fonte`/`ano_referencia`/`tipo` (hoje só o ramo de imóvel carimba).
+- 1b. Contrato E1.5a: `categoria` → **`categoria_hint`** (opcional, string
+  livre, usado só no warning); campo derivado server-side fechado em enum;
+  `secao` entra **OPTIONAL na etapa 1** (prompt emite + taxa de emissão
+  medida), `required` só com cobertura 100% comprovada — nunca no PR que o
+  introduz (re-validação de histórico dispara re-extração, [[ADR-261]] Tier 3).
+  Bump `e15_baseline` 1.2.0→1.3.0 cobrindo o schema irmão. Conservação por
+  seção **dentro do E1.5a** (`Σ itens ≡ total_liabilities/assets`, por ano).
+  Boundary tolerante: enum desconhecido → `needs_review` no item, resto do
+  documento extraído (anti reask-storm, precedente [[ADR-292]]).
+- 1c. Conservação intra-artefato no E1.5c, **por eixo e por ano** (cents int,
+  tolerância zero): generalizar o ramo `pj_skipped>0` que **já desliga** o
+  override do `resumo` (o fix é majoritariamente deleção); determinístico
+  ganha; divergência → `review_reason` + stage `degraded` ([[ADR-357]]), nunca
+  raise que mata o relatório. Contrato de `review_reasons` no artefato E1.5c
+  (hoje só `extract_baseline` projeta).
+- Cauda da L1, mesma janela de rebaseline: `temperature=0.0` + seed explícito
+  nos call-sites `extract_*` (kwarg, sem bump) + gate que falha em call-site
+  novo sem o kwarg. Claim honesto: reduz variância; **não** torna extração
+  idempotente.
+
+**L2 (guarda de publicação E5):**
+- 1d. Nenhum dos 7 baldes [[ADR-145]] < 0 — com **rota de reclassificação
+  antes da guarda**: negativo legítimo (cheque especial, conta margem)
+  reclassifica determinístico para dívida de curto prazo e **publica**; só o
+  negativo que sobrevive vira warning tipado + `needs_review`. Regra
+  unificadora (na ADR-A): **prescrição exige cobertura; descrição admite
+  ressalva** — cobertura incompleta ⇒ `next_aporte_classe=None` +
+  `desvio_max_pct=None` + `motivo_supressao` (campos já `Optional`), sem
+  suprimir o resto do relatório.
+- 1e. Simetrização do contrato: `patternProperties` `^(31_12_)?\d{4}$` com
+  `minimum:0` nos 3 baldes de ativo do `baseline_patrimonial.schema.json`
+  (**sem** fechar `additionalProperties` — os resolvers leem 3 formas de
+  chave); flip `mode_overrides` para strict dos 2 schemas de baseline é o
+  **último passo da Onda 1**, com gate medido: drift = 0 por ≥7 dias de
+  dogfood, número citado no PR do flip.
+
+**Saída da Onda 1 (gate de conclusão):** re-run do corpus + **republicação do
+relatório do dogfood com o delta declarado ao dono** (G2 do
+[[PLAN-report-trust]]) — score, dívidas e "ponto forte" corrigidos no artefato
+que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
++ decisão sobre as rows de identidade mintadas, com 0c).
+
+### Onda 2 — balanço de fan-out (P1 · paralela desde o dia 0)
+
+- 2a. Invariante `queued ≡ processed + errors + skipped(motivo)` no
+  `extract_with_llm`, com **resultado tipado na extração de texto**
+  (`texto | falha_de_leitor(motivo)` — o `.xls` medido é "leitor ausente", não
+  "texto vazio": `text_extractor.py` lava a exceção do leitor). Skip →
+  `review_reason` nomeando o documento; `success` exige balanço fechado;
+  formato sem extrator falha no E0. Mora no contrato de retorno do stage
+  (stage log/`validation`), **não** em JSON Schema (com `processed=0` não há
+  payload para o hook pós-write validar). Denominador **enumerado** (lista
+  declarada de stages fan-out) — prova por mutação: remover o leitor de um
+  formato ⇒ motivo "leitor ausente" + doc em `needs_review` + balanço fecha.
+- 2b. Ladder [[ADR-081]] no E1.5: `confidence < 0,7` → `review_reason` +
+  `degraded` — WARN-first com budget medido (§Enforcement).
+
+### Onda 3 — dado do casal + tripwires (3a/3b no MVP; resto planned)
+
+- 3a. Eleição de `fonte_investimentos` **por membro** com predicado de
+  cobertura; **campo próprio `cobertura_investimentos[]`**
+  (status/fonte/frescor/motivo — **não** sobrecarregar `pl_ressalva`,
+  [[ADR-346]]); **3 estados**: `apurado` · `zero_apurado` (zero com fonte — é
+  o caminho de saída da ressalva) · `nao_apurado` (null + ressalva +
+  `needs_review`, **nunca 0,0**); prescrição suprimida enquanto `nao_apurado`
+  (regra unificadora da ADR-A). Fallback para baseline IRPF é a fase 2 (pós
+  Onda 1, para não herdar roteamento sujo).
+- 3b. Identidade de membro por **CPF** antes de qualquer agrupamento
+  ([[ADR-267]]; slug de LLM nunca é chave) + **varredura de matching por
+  substring** além do analyzer (ex.: `patrimonio_resolvers` casa
+  `conjuge_key in kl`) + gate proibindo match por substring em chave de membro.
+- 3c. Produtor `gap_qualitativo` reconciliado com `irpf_kpis.dependentes`
+  (determinístico); **e** o produtor do `protection_bundle` passa a consumir a
+  fonte documental `protecao_patrimonial` ([[ADR-240]]) — o vazio da S9 é do
+  produtor, não do render (re-roteamento do 7c). Residual PE (regra de
+  precedência entre fontes contraditórias no prompt) é **item próprio da
+  Onda 5**, sequenciado depois deste.
+- 3d. Cenário do cônjuge: gate [[ADR-167]] e extrator lendo a **mesma fonte
+  por papel**; `fator_reduzido` derivado (`1 − renda_conjuge/renda_familiar`,
+  com piso); inelegível → **omitir o bloco** e a concentração de renda em
+  fonte única aparece como linha de risco (omissão não pode ler como "sem
+  risco").
+- 3e. Tripwire fluxo×estoque re-discriminado por **coerência de data-base**
+  (estoque sem `ano_ref`/data-base, ou data-base fora da janela do fluxo ⇒
+  `needs_review` interno), **não** por magnitude ×12 — a razão ~2× do r6 é
+  indistinguível de financiamento saudável em fase final. Canal de DADO
+  (needs_review, operador) separado do canal de DOMÍNIO (alerta ao usuário).
+  Cláusula run-a-run vive no substrato de snapshot changelog
+  ([[ADR-148]]/[[ADR-190]]), não no E5 (E5 permanece função pura do corpus).
+- 3f. Reserva: histerese com **assimetria protetiva invertida** — promove ao
+  alvo maior na 1ª observação acima do limiar (com ressalva), rebaixa só após
+  2 ciclos abaixo da banda; perfil `indefinido_por_cobertura` quando a fatia
+  de renda não classificada ≥15-20% (mantém alvo vigente + ressalva, nunca
+  flipa); "ciclo anterior" = snapshot **publicado**. Dependência declarada:
+  estender o substrato de changelog para entrada **categórica**
+  (perfil X→Y com causa nomeada) — hoje `ChangelogEntry` só suporta delta
+  numérico e não cobre `meses_alvo`/`perfil_renda`.
+
+### Onda 4 — identidade durável (gated por 0c)
+
+- 4a. — absorvido como aceite da Onda 1 (ver 0b).
+- 4b-i. `endereco_canonical=None` **não cria identidade** (se 0c confirmar o
+  buraco em `main`): match `(titular_key, codigo_rfb)` + corroboração de valor
+  (**ano é atributo**, nunca chave); sem match → `needs_review`. Mergeia
+  imediatamente (dano durável é contínuo), sem esperar 1b.
+- 4b-ii. Reconciliação das órfãs via [[TRACK-property-identity-cross-era]]
+  (`dev/backfill_property_supersession.py`, idempotente, dry-run com diff
+  revisado), **só após** re-consolidação limpa pós-Onda 1 — para não eleger
+  como âncora um pid nascido do run corrompido.
+
+### Onda 5 — parecer (bloqueada pelo catálogo KPI · fora do MVP)
+
+Ordem interna: (5-zero) estender o report do eval + fixture holdout com a
+patologia r6 (balde negativo/endividamento colapsado) — instrumento antes de
+mexer; E1.5a ganha eval próprio junto de 1b (hoje só fixture estática. (5c-tel)
+publicar **duas razões** server-side sem gate — cobertura
+(`1 − sem_ancora/total`) e correção (`verified/(verified+failed)`) — flip para
+enforcement só com ≥20 gerações de produção medidas e ADR própria. (5a)
+catálogo de targets: **fonte única** dos limiares metodológicos
+(`config/scoring.json`; valores do FP, mecanismo do PE); modelo emite
+`target_id`; `narrative_hints` do manifesto citam `target_id` em vez de repetir
+número em prosa; `ancoras[]` no schema de `metricas[]`; conjunto canônico por
+tier; bump parecer 2.2.0→2.3.0. (5b) gate pré-LLM **consome o warning tipado
+de 1d** (sem |Δ|-vs-run-anterior — estado cross-run no caminho do parecer
+contraria o princípio 1); resposta = confiança rebaixada + nota metodológica,
+sem bloquear geração. (5d-resto) `use_cache` opt-in nos call-sites `extract_*`
+(a chave do `response_cache` já hasheia o prompt — é o content-hash do antigo
+"6c"); regra dura: mudança de shape em `pipeline/llm/schemas/*` bumpa o
+PROMPT_VERSION irmão. **Um** run de eval após 5a+5b+5c atrás de um único
+`prompt_version` (~US$29, cap vigente; 1 bump de manifesto por onda — cada
+bump invalida o cache Redis e re-paga geração por workspace). Cada item
+declara o **delta de custo/token** que introduz.
+
+### Onda 7 — render (lanes no [[PLAN-report-trust]]; 7a/7e no MVP)
+
+Sequência por dependência: (0) decisão de copy dos 3 estados do banner +
+decisão sobre o **estoque publicado** (define a copy do 7a); (1) PR backend
+`needs_review` count no payload + snapshot OpenAPI; (2) 7e (enabler sem copy);
+(3) 7a+7d-frontend **juntos** (mesmo trio
+`ReportDataQualityBanner`/`dataQualitySignals`/CleanBar — um rebaseline visual,
+uma rodada print+a11y); (4) 7f via [[A40.l6]]. Transversal obrigatório da onda:
+gate declarado por PR (`frontend-print-visual` é label-gated — rodar
+explicitamente), PNG inspecionado no runner Linux antes de commitar baseline,
+contraste dos estados novos nos 2 temas (par `-on-tint`; `NAMED_PAIRS` quando o
+gate não alcança), estados novos adicionados aos specs de a11y por seção.
+Aceites-chave: violação de contrato renderiza estado `error` **sem**
+incrementar `signals.count` e **sem** `data-testid="data-quality-clean"`;
+export com contagem indisponível mostra "não apurado", nunca CleanBar.
+
+## §Enforcement (doutrina [[ADR-358]] G1 — item a item antes de qualquer flip)
+
+| Ponto | Default | Budget medido (r5+r6) antes do flip | Kill-switch |
+|---|---|---|---|
+| 1c conservação E1.5c | degraded + review_reason | obrigatório | env var |
+| 1d guarda de sinal E5 | reclassifica → publica; sobrevivente → needs_review | obrigatório | env var |
+| 1e strict baseline | warn ≥7 dias, drift=0 medido | obrigatório | `mode_overrides` |
+| 2a balanço fan-out | skipped(motivo) + needs_review; success=false só com balanço aberto | obrigatório | env var |
+| 2b ladder E1.5 | degraded, nunca abort | obrigatório | env var |
+| 5c verified_ratio | telemetria (2 razões); flip só pós-produção | ≥20 gerações | ADR própria |
+| 5b sanidade pré-LLM | rebaixa confiança + nota | obrigatório | env var |
+
+## ADRs a abrir (forma [[ADR-345]] — ID alocado na escrita, nunca em prosa)
+
+- **ADR-A — "Fato determinístico é autoridade; saída de LLM é hint em
+  vocabulário fechado."** Hierarquia catálogo RFB > (secao, codigo) > sinal
+  (veto suficiente) > hint; agregado LLM nunca sobrescreve soma determinística;
+  regra "prescrição exige cobertura, descrição admite ressalva"; local canônico
+  dos invariantes (domain service puro; adapter converte; store não conhece
+  semântica). Cobre 1a/1b/1c/1d/3a.
+- **ADR-B — "Contrato de balanço de stage fan-out."** `queued ≡ processed +
+  errors + skipped(motivo)`, 3 estados + piso por identificador declarado,
+  resultado tipado do leitor. **Nenhuma emenda à [[ADR-342]]** (escopo distinto;
+  decisão CTO no co-design). Cobre 2a; [[A42.l4]] a cita sem mudar de escopo.
+
+## Baseline e verificação
+
+- **r6 (`7b64b6c7`) está CORROMPIDO — não usar como baseline de compare** (esta
+  linha é a marcação git-durável; o dir off-git tem a cópia).
+- Baseline **por dimensão**: baldes de patrimônio/dívida → r4 (`82b30303`,
+  último pré-zero do cônjuge é r4 para composição; r5 também carrega os 4 FAIL
+  do cônjuge desde r4 — campo a campo declarado no compare); demais dimensões →
+  r5 (`0a040a22`).
+- **KR-0 (gate de saída do plano = gate da A40, deliberadamente o mesmo
+  predicado):** 2 runs consecutivos do mesmo corpus, compare com **0 FAIL HARD
+  não-explicado**, comparador pinado, `corpus_grew` desligado, cache de
+  extração **OFF** no run de verificação (senão o hit mede o cache, não o
+  pipeline). Prova por mutação é gate de **task** (aceite de 1a/1c), não KR.
+
+## Anti-decisões
+
+- NÃO subir `schema_validation.mode` global — só per-schema com janela medida.
+- NÃO compare-como-gate de pipeline antes da Onda 1 (detector ≠ preventor).
+- NÃO pin/cache de extração antes da Onda 1.
+- NÃO "consertar" RV6-05 no prompt do parecer (treinaria a não citar payload).
+- NÃO interpolar o degrau da reserva (histerese com assimetria protetiva).
+- NÃO corrigir só o prompt E1.5a sem 1a (a classe volta no próximo flip).
+- NÃO criar 5º banner no relatório (reusar `ReportDataQualityBanner` com
+  estado de severidade novo; enumeração da [[A40.l22]]).
+- NÃO ampliar [[A42.l4]] nem emendar [[ADR-342]].
+- NÃO fechar `additionalProperties` nos `valores_31_12` (3 formas de chave
+  vivas nos resolvers).
+
+## Critério de done
+
+KR-0 verde + MVP mergeado + republicação do relatório dogfood com delta
+declarado + disposições de §Roteamento executadas (l7 promovida; l4 re-priorizada;
+l6/l58 com disposição tripartite; 7a/7e/7d no REPORT_TRUST; 4b-ii na track).
+Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
+`last_review` datado a cada revisão; ao fechar, arquivar em
+`docs/archive/DETERMINISTIC_AUTHORITY-<data>.md` + entrada no README do archive.
+
+## Deferimentos datados
+
+- **2026-08-17 · E1.5a × E1.6 extraem o mesmo IRPF com contratos diferentes**
+  (E1.6 já separa `bens_direitos`/`dividas` por seção — a duplicação estrutural
+  é a causa remota de 1b). Dono: senior-cto. Condição de retomada: Onda 1
+  mergeada + medição de custo de unificação dos extratores.
+- **2026-08-17 · Split do registro** `PIPELINE-REVIEWS-active` (~72KB; sem gate
+  de tamanho para MOC editorial). Dono: information-architect. Condição:
+  próximo run (r7) antes de abrir a seção.
+- **2026-08-17 · Frontmatter stale do [[PLAN-pipeline-review-r2]]**
+  (`sprint_atual: A39`). Dono: PM na próxima curadoria de PLANS-active.

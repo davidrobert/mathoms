@@ -35,53 +35,53 @@
   "description": "Custo em tokens de queries-benchmark sobre docs/ (ADR-182). tokens = ceil(chars/4).",
   "latest": {
     "Q1": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
+      "measured_at": "2026-08-17",
+      "phase": "F1",
       "tokens": 453
     },
     "Q10": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
+      "measured_at": "2026-08-17",
+      "phase": "F1",
       "tokens": 730
     },
     "Q2": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
+      "measured_at": "2026-08-17",
+      "phase": "F1",
       "tokens": 453
     },
     "Q3": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
-      "tokens": 351
+      "measured_at": "2026-08-17",
+      "phase": "F1",
+      "tokens": 362
     },
     "Q4": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
-      "tokens": 351
+      "measured_at": "2026-08-17",
+      "phase": "F1",
+      "tokens": 362
     },
     "Q5": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
-      "tokens": 804
+      "measured_at": "2026-08-17",
+      "phase": "F1",
+      "tokens": 815
     },
     "Q6": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
-      "tokens": 901
+      "measured_at": "2026-08-17",
+      "phase": "F1",
+      "tokens": 983
     },
     "Q7": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
+      "measured_at": "2026-08-17",
+      "phase": "F1",
       "tokens": 831
     },
     "Q8": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
+      "measured_at": "2026-08-17",
+      "phase": "F1",
       "tokens": 677
     },
     "Q9": {
-      "measured_at": "2026-07-24",
-      "phase": "ledger-integrity-plan",
+      "measured_at": "2026-08-17",
+      "phase": "F1",
       "tokens": 686
     }
   },

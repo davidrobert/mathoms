@@ -20,6 +20,7 @@ aliases: ["PLANS-active", "plans-active"]
 | [`PLAN-go-shell`](../plan/GO_SHELL/_README.md) | Caminho 1 do [[ADR-150]] (shell Go + Python subprocess). **F0 pré-requisitos ✅ concluída 2026-07-02** (A3.store [[ADR-303]] · A3.cli #737 · otel #738 · benchmark gate PASSA 413ms≤500ms; resta só A3.codegen, ancorado a F1). F1+ (PR Go) segue bloqueada pelos gatilhos da ADR-150 (revisita 2027-Q2 / 100 workspaces). |
 | [`PLAN-ledger-integrity`](../plan/LEDGER_INTEGRITY/_README.md) | **`draft`.** Conservação do razão E3/E4 (origem: certificação `ledger-certify` r2, [[LEDGER-CERTIFY-active]]). Owna LC-01 (ledger de contagem, [[ADR-347]] Proposto) + LC-03; **roteia** LC-02 → lane própria `depends_on` A39.l9 (co-autoria ADR-346 step 4b) e LC-04/LC-05 → [[PLAN-data-lineage]]. Prioridade≠ordem: LC-01 1º por estar desbloqueado, LC-02 mais material mas gated. |
 | [`PLAN-competitive-pierre`](../plan/COMPETITIVE_PIERRE/_README.md) | [[A43]]: MCP/OAuth read-only para ChatGPT+Codex. |
+| [`PLAN-deterministic-authority`](../plan/DETERMINISTIC_AUTHORITY/_README.md) | **`draft`.** Remediação r6: fato > rótulo LLM; destrava o gate da A40. |
 
 ## Pausados relevantes
 

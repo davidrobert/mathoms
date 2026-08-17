@@ -14,6 +14,7 @@ adrs_canonical:
   - "[[ADR-343]]"
 relates_to:
   - "[[PLAN-ledger-integrity]]"
+  - "[[PLAN-deterministic-authority]]"
 tags:
   - type/plan
   - status/in-progress
