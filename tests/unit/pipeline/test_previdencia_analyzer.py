@@ -439,3 +439,20 @@ class TestRegimeIncompletoRetemPrescricao:
 
         assert cfg.regime_completo is True
         assert cfg.componentes_ausentes == ()
+
+
+# Achado colateral da A40.l64: a nota de capacidade usava `f"{restante:,.0f}"`,
+# que é separador de milhar ANGLO. O cliente lia "R$ 8,400" para oito mil e
+# quatrocentos reais — em pt-BR isso se lê como oito reais e quarenta centavos.
+# CLAUDE.md §Convenções: BRL usa formato brasileiro nos documentos.
+class TestFormatoMonetarioDaNota:
+    def test_capacidade_usa_separador_brasileiro(self):
+        recon = PrevidenciaAnalyzer().analyze({}, capacidade_irpf=_capacidade("8400"))
+
+        assert "R$ 8.400" in recon.nota
+        assert "R$ 8,400" not in recon.nota
+
+    def test_milhao_nao_vira_ambiguo(self):
+        recon = PrevidenciaAnalyzer().analyze({}, capacidade_irpf=_capacidade("1234567"))
+
+        assert "R$ 1.234.567" in recon.nota

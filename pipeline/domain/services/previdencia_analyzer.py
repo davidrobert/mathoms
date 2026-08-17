@@ -260,7 +260,16 @@ def _nota_regime_incompleto(config: "PrevidenciaConfig") -> str:
     )
 
 
-def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: float) -> str:
+# `f"{v:,.0f}"` é separador ANGLO: "R$ 8,400" para oito mil e quatrocentos, que
+# em pt-BR se lê como oito reais e quarenta centavos. Sétima cópia da mesma
+# técnica no repo (`suggestion_rules`, `itcmd_estimator`, `value_formatter`…) —
+# a consolidação é dívida própria, não desta lane.
+def _brl_inteiro(valor: Decimal) -> str:
+    """Reais sem centavos em formato BR (R$ 1.234), sem depender de locale."""
+    return "R$ " + f"{valor:,.0f}".replace(",", ".")
+
+
+def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal) -> str:
     """Nota de capacidade PGBL ramificada por PgblStatus (RV2-03 · ADR-305 D3)."""
     ano = cap.ano_base
     if cap.pgbl_status == PgblStatus.modelo_simplificado:
@@ -270,7 +279,8 @@ def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: float) -> str:
     if cap.pgbl_status == PgblStatus.no_teto or (cap.pgbl_status is None and restante <= 0):
         return f"{_NOTA_NO_TETO.format(ano=ano)} {_NOTA_PROXY_ANO_CORRENTE}"
     capacidade = (
-        f"Capacidade PGBL restante do IRPF {ano}: R$ {restante:,.0f} (já descontado o aportado)."
+        f"Capacidade PGBL restante do IRPF {ano}: {_brl_inteiro(restante)} "
+        "(já descontado o aportado)."
     )
     return f"{capacidade} {_NOTA_DIFERIMENTO} {_NOTA_PROXY_ANO_CORRENTE}"
 
@@ -298,7 +308,7 @@ class PrevidenciaAnalyzer:
             return self._retem_prescricao(cap, restante, aliquota)
         return PrevidenciaAnalysis(
             status="Calculado",
-            nota=_nota_capacidade_irpf(cap, float(restante)),
+            nota=_nota_capacidade_irpf(cap, restante),
             renda_tributavel_anual=cap.renda_tributavel_anual,
             limite_pgbl_anual=restante,
             aporte_mensal=restante / Decimal("12"),
@@ -319,7 +329,7 @@ class PrevidenciaAnalyzer:
         motivo = _nota_regime_incompleto(self._config)
         return PrevidenciaAnalysis(
             status="Calculado",
-            nota=f"{motivo} {_nota_capacidade_irpf(cap, float(restante))}",
+            nota=f"{motivo} {_nota_capacidade_irpf(cap, restante)}",
             renda_tributavel_anual=cap.renda_tributavel_anual,
             limite_pgbl_anual=restante,
             aporte_mensal=None,
