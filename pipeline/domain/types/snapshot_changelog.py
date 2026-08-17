@@ -26,6 +26,7 @@ DEFAULT_DIRECTION_POSITIVE: Mapping[str, DirectionPositive] = {
     "T5": "down",
     "M_PL": "up",
     "M_TAXA_POUPANCA": "up",
+    # Fallback quando `meses_alvo` ausente. Com alvo, o builder deriva (A40.l48).
     "M_RESERVA_MESES": "up",
     "M_AUVP_DESVIO": "down",
 }
@@ -130,10 +131,18 @@ class SnapshotChangelogConfig:
             return DEFAULT_METRIC_THRESHOLDS[section_id]
         return ThresholdRule(pct=self.minimum_delta_pct)
 
-    def direction_positive_for(self, section_id: str) -> DirectionPositive:
-        """Direção positiva efetiva (override > default D3 > 'up')."""
+    def direction_positive_for(
+        self,
+        section_id: str,
+        *,
+        after: Decimal | None = None,
+        target: Decimal | None = None,
+    ) -> DirectionPositive:
+        """Override > polaridade vs alvo (A40.l48) > default D3 > 'up'."""
         if self.direction_positive and section_id in self.direction_positive:
             return self.direction_positive[section_id]
+        if after is not None and target is not None:
+            return "down" if after > target else "up"
         return DEFAULT_DIRECTION_POSITIVE.get(section_id, "up")
 
     def label_for(self, section_id: str) -> str:
