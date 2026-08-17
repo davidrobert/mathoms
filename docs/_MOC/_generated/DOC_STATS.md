@@ -34,12 +34,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | changelog-entry | (sem status) | 252 |
 | doc | (sem status) | 2 |
 | domain-rule | (sem status) | 13 |
-| lane | blocked | 11 |
+| lane | blocked | 10 |
 | lane | cancelled | 2 |
-| lane | in_progress | 11 |
-| lane | open | 18 |
+| lane | in_progress | 10 |
+| lane | open | 19 |
 | lane | planned | 61 |
-| lane | shipped | 243 |
+| lane | shipped | 244 |
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 37 |
 | plan | done | 4 |

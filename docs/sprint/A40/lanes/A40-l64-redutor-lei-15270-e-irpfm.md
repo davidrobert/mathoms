@@ -4,7 +4,7 @@ type: lane
 title: "Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: open
 priority: P1
 branch_slug: a40-l64-redutor-lei-15270-e-irpfm
 owner: financial-planner
@@ -16,7 +16,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p1
   - area/pipeline
   - area/financial-planning
@@ -24,9 +24,10 @@ tags:
 
 # A40.l64 — `redutor-lei-15270-e-irpfm`
 
-> **Bloqueada pela [[A40.l56]]**, que reconcilia a row de `fiscal_parameters` e
-> introduz o marcador `regime_completo`. Sem ele, a recusa desta classe vira
-> `if year >= 2026` hardcoded — o seam errado.
+> **Destravada em 2026-08-16** — a [[A40.l56]] shipou (#1483) e o marcador
+> `regime_completo` existe na row de 2026 com
+> `componentes_ausentes: ["redutor_lei_15270", "irpfm"]`. A recusa já lê o dado;
+> esta lane é quem torna o `true` possível.
 >
 > Aberta em 2026-08-15 no co-design da l56 (`financial-planner`; escopo fechado
 > por `senior-cto`).
