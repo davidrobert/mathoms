@@ -154,6 +154,14 @@ def test_summaries_s9_plural_when_multiple_riscos():
     assert "3 riscos prioritários" in s9
 
 
+def test_summaries_s9_carries_fiduciary_disclaimer_when_citing_coverage():
+    from pipeline.domain.protection_disclaimer import DISCLAIMER_MARK
+
+    s9 = _narrate_summary(2, ["r1", "r2"])["s9"]
+    assert "Cobertura recomendada" in s9
+    assert DISCLAIMER_MARK in s9
+
+
 # A gramática de imóveis do `perfil_familia` (singular/plural + breakdown com
 # n≥2) morreu com `perfil_familia.right` — emenda ADR-356, 2026-08-11. Os 4
 # testes asseriam literais de uma string que o narrador não emite mais; a

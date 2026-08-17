@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from pipeline.domain.protection_disclaimer import fiduciary_disclaimer
 from pipeline.domain.services.narrativas.alocacao_narrator import (
     narrate_alocacao_atual_vs_alvo,
 )
@@ -411,7 +412,10 @@ def _format_priority_phrase(riscos_top3: list[dict[str, Any]]) -> str:
 
 def _pick_action_line(has_us_exposure: bool, seguro_range: str | None) -> str:
     template = _ACTION_LINES[(has_us_exposure, bool(seguro_range))]
-    return template.format(range=seguro_range or "")
+    line = template.format(range=seguro_range or "")
+    if "seguro term" not in line:
+        return line
+    return f"{line} {fiduciary_disclaimer('wealth management')}"
 
 
 def _narrate_bubble_riscos(

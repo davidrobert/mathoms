@@ -4,9 +4,10 @@ type: lane
 title: "A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: a40-l56-tabela-fiscal-de-producao
+ship_pr: 1483
 owner: data-engineer
 adrs:
   - "[[ADR-375]]"
@@ -15,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/db
@@ -248,3 +249,48 @@ explica por que passaram calados por um ano.
 para três anos" —, na mesma tabela, semeada pela mesma migration. Fora do escopo
 daqui, mas ninguém deve dar `fiscal_parameters` por reconciliada sem fechá-lo.
 Prioridade e onda são gatilho de `product-manager`.
+
+## Entregue — 2026-08-16
+
+Seis PRs, na ordem em que a sequência exigia: [[ADR-389]] `Proposto` (#1469) ·
+invariantes do D3 (#1470) · correção do anexo citado + tolerância (#1473) ·
+proveniência declarada + cache versionado (#1475) · migration das duas tabelas
++ fail-closed do parser + gate (#1479) · golden atravessando o construtor de
+produção + D5 desbloqueado (#1483).
+
+**Os cinco itens do escopo:**
+
+1. **Vintage decidido** — e a pergunta estava errada. Não são duas escalas: são
+   duas tabelas publicadas (mensal do IRRF; anual do **Anexo VII** da IN RFB
+   1.500/2014, verificado no ato). Nenhuma deriva da outra.
+2. **Row reconciliada** — 3 anos × 2 tabelas, cada uma com `vigencia_ref` e
+   `source` próprios. O seed anterior passava UMA constante para os três anos.
+3. **Invariantes travados** — continuidade a R$ 0,01 (não os R$ 0,05 que a lane
+   propunha antes de alguém medir: o ruído real é R$ 0,005), congruência
+   estrutural e divergência ×12 exigindo motivo declarado. Gate de pre-commit
+   lendo a constante DA migration.
+4. **Golden atravessa `from_fiscal_parameters`** com sonda de mutação de
+   call-site.
+5. **D5 desbloqueado, qualificado** — `AC ≤ 2025` liberado; `AC ≥ 2026` retido
+   por `regime_completo: false` na row. Emenda datada na [[ADR-375]].
+
+### Limitação que fica declarada, não escondida
+
+Os valores de 2024-2026 **não foram lidos no texto do ato**. O Anexo VII teve a
+identidade verificada em fonte primária; os valores por ano vieram de portal +
+convergência adversarial (3 apurações, 2 lentes, aritmética própria, a testemunha
+in-repo `IRRF_FAIXA_TOPO` e um exemplo oficial da RFB que fecha ao centavo em
+`908,73`). O nível de verificação está gravado em `source` de cada tabela, para a
+auditoria ler no dado. Conferência humana da tabela final: [#1479] §Tabela final.
+
+### Follow-up que NÃO virou lane
+
+`pgbl_limit_brl_cents = 0`, `inss_ceiling_brl_cents = 0` e
+`lucro_presumido_aliquota = 0.32` estão iguais nos três anos em
+`fiscal_parameters`, semeados pela mesma migration (`y3z4a5b6c7d8`) e **nunca
+corrigidos** — é a MESMA classe que esta lane fechou ("uma constante para três
+anos"), na mesma tabela. Os dois campos em cents são hoje stale e sem leitor
+vivo fora de parsers/testes, o que explica o silêncio. O teto do INSS
+certamente não é zero: a produção carrega `INSS_TETO_MENSAL = 8157.41` em
+`cascata_calculator`. Prioridade é gatilho de `product-manager`; não abri lane
+porque já abri duas nesta sprint.
