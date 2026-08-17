@@ -57,7 +57,7 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 | KR | Métrica | Como se mede |
 |---|---|---|
 | **KR-A · Contrato de leitura** | ~~Leituras órfãs conhecidas **5 → 0**~~ → **2 → 0** (remedido, ver nota) *e* existe gate que hard-falha quando a próxima aparece | `dev/check_view_model_contract.py` (novo) cruzando schema E5 × tipos do frontend × readers Python. Prova do gate: fixture com chave órfã ⇒ EXIT≠0 |
-| **KR-B · Não-duplicação do razão** | Duplicação cross-grupo **não-explicada = 0** no corpus dogfood | Check cross-grupo em `dev/certify_ledger_local.py`. Baseline congelado pela [[A40.l1]] **antes** de qualquer fix. Anti-Goodhart: ocorrências whitelisted contadas em **linha separada**, nunca somadas ao numerador |
+| **KR-B · Não-duplicação do razão** | Duplicação cross-grupo **não-explicada = 0** no corpus dogfood | **Modo entregue** de `dev/certify_ledger_local.py --entregue --run <id>` (E3 persistido daquele run). A sombra (default, E2→E3 com enforce omitido) **não pontua**. Baseline congelado pela [[A40.l1]] **antes** de qualquer fix. Anti-Goodhart: whitelist em **linha separada**; cortadas do colapso **não** entram em explicadas |
 | **KR-C · Entrega visível** | Nº de seções que **renderizam** parágrafo == nº de seções com narrativa **emitida** (hoje **0 de 16**) *e* 0 âncoras de nav sem alvo | Teste de render (Vitest/RTL) sobre payload golden + assert bidirecional nav↔seções em `ReportShell.tsx`. CV9 redefinido para medir **entrega**, não geração |
 | **KR-D · PII zero no entregue** | 0 violações no view-model; critério 4 da [[ADR-337]] existe e é executável | Gate de PII sobre o view-model. Fixture sintética com identificador de terceiro + matrícula + endereço ⇒ bloqueio no CI |
 | **KR-E · Honestidade da recomendação** | 0 recomendações no topo do plano cuja premissa o próprio payload contesta, sem pendência pareada | Predicado determinístico `premissa → campo E5` em teste sobre payload golden |
@@ -139,6 +139,18 @@ em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomad
 > cross-grupo do `certify_ledger_local`) **segue 261**: o instrumento re-deriva o E3 a partir do
 > E2 em sombra e é cego ao enforce por construção. O que mudou é o E3 persistido e o E5. Item
 > com dono no §Residual da [[A40.l2]].
+>
+> **Emenda 2026-08-17 — a régua ganhou modo entregue.** `--entregue --run <id>` lê o E3
+> persistido daquele run, categoriza sem reconcile e pontua a KR só nessa linha
+> (`[numerador KR-B · E3 persistido run <id>]`). A sombra permanece o default e passou a
+> se chamar `[sombra · enforce omitido]`. Fechar a KR ainda exige entregue=0 **e** sombra>0
+> no mesmo corpus (anti-vacuidade).
+>
+> **Medição 2026-08-17** no run `7b64b6c7` (r6, `cortadas=47`, `retido_por_override=0`,
+> cobertura fecha nos dois modos): sombra **317** · entregue **7** (todas carrier-shaped).
+> Anti-vacuidade ok (sombra>0). KR-B **não atingida**. Não se troca a métrica; triagem
+> das 7 fica para quem retomar. O baseline 261 da l1 era o cru de 2026-07-30 — o
+> numerador sombra andou com o corpus.
 
 **§Estado dos KRs — obrigação de leitura honesta.** Se o flip escorregar, a **KR-B é
 reportada não atingida**. É proibido ler as 261 ocorrências como "explicadas" por estarem
