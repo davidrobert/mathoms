@@ -497,6 +497,17 @@
         "additionalProperties": false,
         "description": "\u00c2ncora de cita\u00e7\u00e3o determin\u00edstica (ADR-296) \u2014 chip D2-puro; `valor_renderizado` \u00e9 o R$ resolvido do `path` pelo finalize. v1 usa `evidencia_path` (dispatch por `version`).",
         "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
           "path": {
             "anyOf": [
               {

@@ -451,6 +451,13 @@ repos:
         pass_filenames: false
         files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
 
+      - id: coverage-disclaimer
+        name: "Cobertura recomendada exige ressalva fiduciária (A40.l60)"
+        entry: python3 dev/check_coverage_disclaimer.py
+        language: system
+        pass_filenames: false
+        files: '^(frontend/src/components/report/.*\.(tsx|ts)|pipeline/domain/services/narrativas/.*\.py|dev/check_coverage_disclaimer\.py)$'
+
       - id: report-layout-codegen
         name: "Report layout codegen (TS/Pydantic) em sync com YAML (ADR-076)"
         entry: python3 dev/codegen_report_layout.py --check

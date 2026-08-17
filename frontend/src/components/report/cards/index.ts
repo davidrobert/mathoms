@@ -41,6 +41,7 @@ export { OrcamentoProspectivoCard } from "./OrcamentoProspectivoCard";
 export { PatrimonioCategoriasCard } from "./PatrimonioCategoriasCard";
 export { PosicaoInformeCard } from "./PosicaoInformeCard";
 export { PontosFortesCard } from "./PontosFortesCard";
+export { DisclaimersCard } from "./DisclaimersCard";
 export { PontosUrgentesCard } from "./PontosUrgentesCard";
 // A33.l4 (ADR-238 §L4) — proventos por ativo em S3 (yield sobre custo + valor atual).
 export { ProventosYieldCard } from "./ProventosYieldCard";

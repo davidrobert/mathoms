@@ -5,6 +5,7 @@ title: "Citação determinística: LLM emite (claim, path, rótulo); pipeline re
 status: Decidido
 phase: "A26.l9 · parecer reliability"
 date: "2026-06-19"
+amended_at: ["2026-08-16"]
 relates_to:
   - "[[ADR-202]]"
   - "[[ADR-279]]"
@@ -24,6 +25,11 @@ tags:
 ---
 
 # ADR-296 — Citação determinística (render value-from-path)
+
+> **Emendada em 2026-08-16** — o pairing `rotulo ↔ root do path` tornava o
+> verificador tautológico: folhas distintas do mesmo bloco (renda passiva vs
+> renda ativa PJ vs patrimônio gerador) saíam `verified` com o mesmo chip.
+> Ver §Emenda 2026-08-16.
 
 **Status:** Decidido (A26.l9 · parecer reliability) • **Data:** 2026-06-19 •
 **Relaciona** [[ADR-202]] (schema do parecer), [[ADR-279]] (citação verificada §E),
@@ -172,3 +178,27 @@ de gate baseados em evidência empírica (mesma força da redefinição da [[A26
 > de propósito: dependem do `prompt_version`, e a tabela de agregação vive na
 > [[ADR-304]] §Emenda 2026-08-03 — que revoga a §2 e restaura este parágrafo como
 > política operativa. **Não é emenda desta nota** — nada aqui mudou.
+
+## Emenda 2026-08-16 — pairing contra o mapa da folha, não contra o root
+
+A §Implementação (2026-06-19) cravou `rotulo = root do path` e
+`pairing_mismatch` quando `rotulo != path[2:].split(".")[0]`. Isso detecta o
+LLM cruzando **grupos** e é cego a folhas distintas do **mesmo** grupo: o
+verificador tautológico e o chip compartilham a mesma identidade. Medido em
+r4 (RV4-11): `renda_passiva_anual_brl`, `renda_ativa_pj_excluida_brl` e
+`patrimonio_gerador_brl` renderizavam "Renda passiva".
+
+**A partir desta emenda:**
+
+- O mapa `citation_labels` em `parecer_planejador.yaml` declara
+  `path → {rotulo_id, label}`. `rotulo_id` é identifier ASCII ≤64 (o LLM
+  copia); `label` é o texto do chip (o finalize carimba em `ancora.label`).
+- `pairing_mismatch` compara `rotulo == rotulo_id` do mapa. Path ausente do
+  mapa é fail-open (`unmapped_leaf` na telemetria) — o mapa cresce por
+  extensão, não por quebrar o que ainda não foi rotulado.
+- `EVIDENCIA_VERIFICATION_VERSION` 6 → 7. Pareceres v2 já persistidos não
+  migram (`content_json` imutável, [[ADR-204]]); o renderer cai no fallback
+  root → label legado quando `label` está ausente.
+
+A forma (`isidentifier` + ≤64) e o sentinela `None` não mudam. Co-design
+`prompt-engineer` 2026-08-16 (A40.l49).

@@ -123,28 +123,27 @@ EvidenciaPath = Annotated[Optional[str], BeforeValidator(_coerce_jsonpath_or_non
 
 def _coerce_rotulo_or_none(v):
     """Boundary do LLM (ADR-296): ``rótulo`` fora da FORMA (não-identifier ASCII ou
-    > 64 chars) vira ``None`` — nunca reask. A PERTINÊNCIA (``rótulo == root do path``)
-    é do verificador, não do schema: o conjunto válido é o catálogo daquela geração,
-    não um ``Literal`` estático (root novo no E5 → falso-drop sistemático). Mesmo
-    padrão de ``_coerce_jsonpath_or_none``. NUNCA loga o valor (pode carregar prosa)."""
+    > 64 chars) vira ``None`` — nunca reask. A PERTINÊNCIA (``rótulo == rotulo_id``
+    do mapa citation_labels) é do verificador, não do schema. Mesmo padrão de
+    ``_coerce_jsonpath_or_none``. NUNCA loga o valor (pode carregar prosa)."""
     if not isinstance(v, str) or (len(v) <= 64 and v.isidentifier()):
         return v
     logger.warning("parecer_rotulo_coerced", extra={"len": len(v)})
     return None
 
 
-# Aplicado em Ancora.rotulo — root da seção dona do path (1º segmento do JSONPath).
+# Aplicado em Ancora.rotulo — rotulo_id do mapa citation_labels (A40.l49).
 Rotulo = Annotated[Optional[str], BeforeValidator(_coerce_rotulo_or_none)]
 
 
 class Ancora(BaseModel):
     """Citação determinística (ADR-296): LLM emite ``path``+``rotulo`` copiados da MESMA
-    linha do catálogo; ``valor_renderizado`` é escrito pelo finalize (não pelo LLM) —
-    ``value_mismatch`` por transcrição vira impossível por construção."""
+    linha do catálogo; ``valor_renderizado`` e ``label`` são escritos pelo finalize."""
 
     path: EvidenciaPath = None
     rotulo: Rotulo = None
     valor_renderizado: Optional[str] = None  # escrito pelo finalize, não pelo LLM
+    label: Optional[str] = None  # texto do chip; escrito pelo finalize (A40.l49)
 
 
 # Fim de frase para truncação graciosa — terminador seguido de espaço ou fim.

@@ -139,6 +139,19 @@ def test_list_cap_top_k_por_valor_com_indice_original(whitelist):
 # -----------------------------------------------------------------------
 
 
+def test_mapped_leaf_renders_rotulo_id_not_just_root(whitelist):
+    e5 = make_workspace_e5()
+    e5["passive_income"] = {
+        "renda_passiva_anual_brl": 120_000.0,
+        "renda_ativa_pj_excluida_brl": 80_000.0,
+    }
+    entries = build_citation_catalog(e5, section_whitelist=whitelist, max_entries=60)
+    rendered = render_citation_catalog(entries, max_bytes=1600)
+    assert "[renda_passiva_anual]" in rendered
+    assert "[renda_ativa_pj_excluida]" in rendered
+    assert "rotulo = o rotulo_id entre colchetes" in rendered
+
+
 def test_ancora_format_hint_por_tipo_de_folha():
     """Dogfood 72883bde: prob/idade viravam R$ — o hint vem do nome do campo
     (a folha conhece seu campo), nunca de heurística sobre o valor."""

@@ -2,7 +2,7 @@
   "_comment": "A40.l30 item 2 — folhas R$ visíveis no corpo do exec context sem rota de citação no catálogo RENDERIZADO. Gate por diff de conjunto: um #1004 futuro aparece aqui. Rebaseline: MATHOMS_UPDATE_SNAPSHOT=1 pytest tests/test_parecer_ancorabilidade.py — US$ 0, in-process.",
   "corpus": "make_workspace_e5 (sintético, PII-zero)",
   "parametros_geradores": {
-    "manifest_version": "2.0.4",
+    "manifest_version": "2.0.5",
     "max_exec_context_bytes": 16384,
     "catalogo_max_bytes": 1600,
     "catalogo_max_entries": 30,
@@ -20,15 +20,16 @@
   },
   "medicao": {
     "visiveis": 28,
-    "ancoraveis": 12,
+    "ancoraveis": 11,
     "catalogo_construido": 30,
-    "catalogo_renderizado": 19,
+    "catalogo_renderizado": 18,
     "hard_cut": false
   },
   "inancoraveis": [
     "$.consumo_consciente.folga_mensal",
     "$.exposicao_cambial.total_brl",
     "$.fluxo_caixa.janela_12m.transferencia_patrimonial",
+    "$.fluxo_caixa.receita_por_natureza.receita_clt",
     "$.fluxo_caixa.receita_por_natureza.receita_outras",
     "$.fluxo_caixa.receita_por_natureza.receita_pj",
     "$.fluxo_caixa.receita_recorrente_mensal",

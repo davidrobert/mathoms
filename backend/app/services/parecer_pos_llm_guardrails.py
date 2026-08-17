@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, Mapping, Optional
 
 from backend.app.services.parecer_distiller import walk_path
@@ -28,6 +29,18 @@ logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
 _IF_MONTE_CARLO_PREFIX = "$.if_monte_carlo"
 _SUGESTAO_HORIZONS = ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas")
+_MC_SECTION = "S7"
+_MC_LEMMAS = (
+    "monte carlo",
+    "independência financeira",
+    "independencia financeira",
+    "probabilidade de sucesso",
+    "probabilidade de atingir",
+    "projeção de longo prazo",
+    "projecao de longo prazo",
+    "cone de",
+)
+_YEAR_IN_MOTIVO = re.compile(r"\b(20\d{2})\b")
 
 # Path que o LLM pede errado → path canônico onde o dado vive no E5 (via 2 do
 # filtro 3-vias). Dogfood 72883bde: pediu $.composicao_familiar.dependentes com
@@ -62,10 +75,32 @@ def _premissas_parciais(e5_data: Mapping[str, Any]) -> bool:
     return isinstance(premissas, Mapping) and premissas.get("status") == "parcial"
 
 
+def _prose_blob(item: Risco | Sugestao) -> str:
+    parts = [item.titulo if isinstance(item, Risco) else item.acao]
+    if isinstance(item, Risco):
+        parts.extend([item.descricao, item.evidencia])
+    else:
+        caveat = item.impacto_estimado.caveat if item.impacto_estimado is not None else None
+        parts.extend([item.impacto_qualitativo, caveat])
+    return " ".join(p for p in parts if p).casefold()
+
+
+def _has_mc_lemma(item: Risco | Sugestao) -> bool:
+    blob = _prose_blob(item)
+    return any(lemma in blob for lemma in _MC_LEMMAS)
+
+
 def _anchored_on_monte_carlo(item: Risco | Sugestao) -> bool:
     return any(
         a.path is not None and a.path.startswith(_IF_MONTE_CARLO_PREFIX) for a in item.ancoras
     )
+
+
+def _depends_on_monte_carlo(item: Risco | Sugestao) -> bool:
+    """S7 + (âncora MC ou lemma na prosa). Tema sozinho não rebaixa (A40.l49)."""
+    if item.section_id != _MC_SECTION:
+        return False
+    return _anchored_on_monte_carlo(item) or _has_mc_lemma(item)
 
 
 def _downgrade_risco(risco: Risco) -> Risco:
@@ -81,7 +116,7 @@ def _downgrade_sugestao(sug: Sugestao) -> Sugestao:
 def _downgrade_bucket(items: list, downgrade_fn) -> tuple[list, int]:
     out, count = [], 0
     for item in items:
-        if item.confianca == "alta" and _anchored_on_monte_carlo(item):
+        if item.confianca == "alta" and _depends_on_monte_carlo(item):
             out.append(downgrade_fn(item))
             count += 1
         else:
@@ -103,8 +138,9 @@ def _downgraded_buckets(output: ParecerPlanejadorOutput) -> tuple[dict[str, list
 def downgrade_confianca_fallback(
     output: ParecerPlanejadorOutput, e5_data: Mapping[str, Any], workspace_id: str
 ) -> tuple[ParecerPlanejadorOutput, int]:
-    """Rebaixa ``confianca alta→media`` de itens ancorados em ``$.if_monte_carlo.*``
-    quando as premissas do Monte Carlo estão em fallback. Nunca bloqueia (A28.l11)."""
+    """Rebaixa ``confianca alta→media`` de itens que dependem do Monte Carlo
+    (S7 + âncora ``$.if_monte_carlo.*`` ou lemma na prosa) quando as premissas
+    estão em fallback. Nunca bloqueia (A28.l11)."""
     if not _premissas_parciais(e5_data):
         return output, 0
     update, total = _downgraded_buckets(output)
@@ -122,12 +158,43 @@ def downgrade_confianca_fallback(
 # ----------------------------------------------------------------------
 
 
+def _years_in_motivo(motivo: str) -> set[int]:
+    return {int(m) for m in _YEAR_IN_MOTIVO.findall(motivo)}
+
+
+def _irpf_kpis(e5_data: Mapping[str, Any]) -> Mapping[str, Any]:
+    block = e5_data.get("irpf_kpis")
+    return block if isinstance(block, Mapping) else {}
+
+
+def _status_for_year(e5_data: Mapping[str, Any], year: int) -> Optional[str]:
+    irpf = _irpf_kpis(e5_data)
+    por_ano = irpf.get("anos_completude_por_ano")
+    if isinstance(por_ano, Mapping) and str(year) in por_ano:
+        return str(por_ano[str(year)])
+    default = irpf.get("ano_base_default", irpf.get("ano_base"))
+    if default == year:
+        status = irpf.get("ano_base_completude")
+        return str(status) if status is not None else None
+    return None
+
+
+def _motivo_year_uncovered(campo: CampoFaltante, e5_data: Mapping[str, Any]) -> bool:
+    """True se o motivo pede um ano sem cobertura completa no E5 (A40.l49 PR3)."""
+    years = _years_in_motivo(campo.motivo)
+    if not years:
+        return False
+    return any(_status_for_year(e5_data, year) != "completo" for year in years)
+
+
 def _classify_campo(
     campo: CampoFaltante, e5_data: Mapping[str, Any]
 ) -> tuple[Optional[str], Optional[str]]:
     """``(reason, alias_path)`` — reason ``None`` = genuinamente ausente (mantém)."""
     if campo.field_path is None:
         return None, None  # path coercido (ADR-292) — motivo carrega o sinal, mantém
+    if _motivo_year_uncovered(campo, e5_data):
+        return None, None
     if _resolves_to_data(walk_path(e5_data, campo.field_path)):
         return REASON_SPURIOUS, None
     alias = FIELD_PATH_ALIASES.get(campo.field_path)
@@ -169,14 +236,19 @@ def filter_campos_faltantes(
     return output.model_copy(update={"campos_faltantes_pediria_se_iterasse": kept}), audit
 
 
-def guardrails_summary(*, confianca_rebaixada: int, audit: list[dict]) -> dict:
-    """Telemetria dos guardrails — ``needs_review_triggered`` é ``False`` por construção
-    (critério de aceite A28.l11: nenhum guardrail marca needs_review)."""
+def guardrails_summary(
+    *,
+    confianca_rebaixada: int,
+    audit: list[dict],
+    needs_review_triggered: bool = False,
+) -> dict:
+    """Telemetria dos guardrails. ``needs_review_triggered`` espelha evidencia/red-line
+    (ADR-295) — o fallback do MC nunca promove needs_review (A28.l11 / A40.l49)."""
     return {
         "confianca_rebaixada": confianca_rebaixada,
         "field_requests_spurious": sum(1 for a in audit if a["reason"] == REASON_SPURIOUS),
         "field_requests_wrong_path": sum(1 for a in audit if a["reason"] == REASON_WRONG_PATH),
-        "needs_review_triggered": False,
+        "needs_review_triggered": needs_review_triggered,
     }
 
 

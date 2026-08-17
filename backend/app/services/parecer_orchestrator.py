@@ -640,6 +640,11 @@ def _check_evidencia(
     return verification, None, decision.output, decision
 
 
+def _needs_review_guardrails() -> dict:
+    """Espelha evidencia/red-line: o fallback do MC nunca é quem dispara."""
+    return guardrails_summary(confianca_rebaixada=0, audit=[], needs_review_triggered=True)
+
+
 def _apply_pos_llm_guardrails(
     raw: ParecerPlanejadorOutput,
     e5_data: Mapping[str, Any],
@@ -697,7 +702,11 @@ def _generate_with_llm(
             elapsed_ms=_elapsed_ms(start),
             metrics=metrics,
         )
-        return replace(base, red_lines_summary=red_lines_summary)
+        return replace(
+            base,
+            red_lines_summary=red_lines_summary,
+            pos_llm_guardrails=_needs_review_guardrails(),
+        )
     sigilo_err = _check_sigilo(raw, config)
     if sigilo_err:
         return replace(
@@ -711,6 +720,7 @@ def _generate_with_llm(
                 metrics=metrics,
             ),
             red_lines_summary=red_lines_summary,
+            pos_llm_guardrails=_needs_review_guardrails(),
         )
     evidencia, evidencia_err, raw, decision = _check_evidencia(raw, manifest, e5_data, config)
     if evidencia_err:
@@ -733,6 +743,7 @@ def _generate_with_llm(
             ),
             evidencia_entries=evidencia.entries,
             red_lines_summary=red_lines_summary,
+            pos_llm_guardrails=_needs_review_guardrails(),
         )
     # A28.l11 — pós-validação, pré-finalize: rebaixamento de confiança sob premissa
     # fallback + filtro 3-vias de campos_faltantes. Coerce, nunca needs_review.

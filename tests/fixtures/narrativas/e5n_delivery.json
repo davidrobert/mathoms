@@ -5,7 +5,7 @@
       "context": "Alocação-alvo ainda não definida para este workspace — a comparação da carteira atual com o alvo por classe fica disponível quando o alvo for cadastrado."
     },
     "bubble_riscos": {
-      "conclusion": "Riscos prioritários: (1) Cobertura de vida abaixo do recomendado (média prob., alto impacto), (2) Sucessão sem inventário planejado (baixa prob., alto impacto). Ação: contratação de seguro term R$ 2-4M.",
+      "conclusion": "Riscos prioritários: (1) Cobertura de vida abaixo do recomendado (média prob., alto impacto), (2) Sucessão sem inventário planejado (baixa prob., alto impacto). Ação: contratação de seguro term R$ 2-4M. Estimativa baseada em metodologia consagrada de planejamento patrimonial brasileiro (wealth management); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para data corrente.",
       "context": "Identificação de 2 riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto.",
       "data_state": "ok"
     },
@@ -85,6 +85,6 @@
     "s6": "Exposição cambial: nenhum saldo em moeda estrangeira identificado no período. Total US$ 0. Meta de reserva cambial de US$ 100k com gap de US$ 100k — ritmo de R$ 2k/mês alcança a meta em 290 meses.",
     "s7": "Meta de independência financeira de R$ 5,0M em 2039. Gap atual de R$ 4,9M com prazo realista de 13,1 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (4% retirada segura): R$ 433,33/mês.",
     "s8": "Simples Nacional — Anexo III. Contador cadastrado. Avaliação de holding patrimonial pendente para 12 meses.",
-    "s9": "2 riscos prioritários: Cobertura de vida abaixo do recomendado, Sucessão sem inventário planejado. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 2-4M em seguro term. Planejamento sucessório em estágio inicial."
+    "s9": "2 riscos prioritários: Cobertura de vida abaixo do recomendado, Sucessão sem inventário planejado. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 2-4M em seguro term. Planejamento sucessório em estágio inicial. Estimativa baseada em metodologia consagrada de planejamento patrimonial brasileiro (wealth management); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para data corrente."
   }
 }

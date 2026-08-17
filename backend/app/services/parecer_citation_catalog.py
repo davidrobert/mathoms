@@ -79,19 +79,20 @@ _CATALOG_HEADER = "### Evidência citável (evidencia_paths_disponiveis)"
 _CATALOG_INSTRUCTION = (
     "_Para fundamentar um valor, NÃO escreva o R$ na prosa: emita uma âncora "
     "ancoras:[{path, rotulo}] copiando UMA linha abaixo — path = o path da linha, "
-    "rotulo = o cabeçalho de grupo (em negrito) acima dela. O sistema renderiza o "
-    "número a partir do path. Conceito ausente daqui → não ancore (use "
-    "campos_faltantes_pediria_se_iterasse[])._"
+    "rotulo = o rotulo_id entre colchetes (identificador, não o texto do chip). "
+    "O sistema renderiza o número a partir do path. Conceito ausente daqui → "
+    "não ancore (use campos_faltantes_pediria_se_iterasse[])._"
 )
 
 
 @dataclass(frozen=True)
 class CatalogEntry:
-    """Uma folha citável: path + valor formatado (R$) + raiz (seção dona)."""
+    """Uma folha citável: path + valor formatado (R$) + raiz + rotulo_id opcional."""
 
     path: str
     display_value: str
     root: str
+    rotulo_id: str | None = None
 
 
 def _is_money_key(key: str) -> bool:
@@ -207,23 +208,44 @@ def _priority_key(entry: CatalogEntry) -> tuple[int, str]:
     return (rank, entry.path)
 
 
-def _entry_for(drill: PlannerDrillDown, path: str) -> CatalogEntry | None:
+def _entry_for(
+    drill: PlannerDrillDown, path: str, labels: Mapping[str, Any]
+) -> CatalogEntry | None:
     """CatalogEntry se o path resolve no verificador; None caso contrário."""
     result = drill.get_e5_jsonpath(path)
     if not result.found:
         return None
-    value = format_value(result.value, "brl")
-    return CatalogEntry(path=path, display_value=value, root=path[2:].split(".", 1)[0])
+    mapped = labels.get(path)
+    rotulo_id = mapped.rotulo_id if mapped is not None else None
+    return CatalogEntry(
+        path=path,
+        display_value=format_value(result.value, "brl"),
+        root=path[2:].split(".", 1)[0],
+        rotulo_id=rotulo_id,
+    )
 
 
 def build_citation_catalog(
-    e5_data: Mapping[str, Any], *, section_whitelist: frozenset[str], max_entries: int = 30
+    e5_data: Mapping[str, Any],
+    *,
+    section_whitelist: frozenset[str],
+    max_entries: int = 30,
+    labels: Mapping[str, Any] | None = None,
 ) -> list[CatalogEntry]:
     """Folhas monetárias resolvíveis pelo verificador, priorizadas e capadas."""
+    from backend.app.services.parecer_manifest import load_manifest
+
+    resolved = labels if labels is not None else load_manifest().citation_labels
     drill = PlannerDrillDown(e5_data=e5_data, section_whitelist=section_whitelist, format_hints={})
-    entries = [e for p in _iter_money_leaf_paths(e5_data) if (e := _entry_for(drill, p))]
+    entries = [e for p in _iter_money_leaf_paths(e5_data) if (e := _entry_for(drill, p, resolved))]
     entries.sort(key=_priority_key)
     return entries[:max_entries]
+
+
+def _render_line(entry: CatalogEntry) -> str:
+    if entry.rotulo_id:
+        return f"- `{entry.path}` [{entry.rotulo_id}] → {entry.display_value}"
+    return f"- `{entry.path}` → {entry.display_value}"
 
 
 def _render_grouped(entries: list[CatalogEntry]) -> str:
@@ -234,7 +256,7 @@ def _render_grouped(entries: list[CatalogEntry]) -> str:
         if entry.root != current_root:
             current_root = entry.root
             lines.append(f"**{entry.root}**")
-        lines.append(f"- `{entry.path}` → {entry.display_value}")
+        lines.append(_render_line(entry))
     return head + "\n" + "\n".join(lines)
 
 

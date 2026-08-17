@@ -55,6 +55,7 @@ export interface Ancora {
   path: string | null;
   rotulo: string | null;
   valor_renderizado: string | null;
+  label?: string | null;
 }
 
 export interface Risco {
