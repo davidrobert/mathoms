@@ -114,6 +114,31 @@ def test_deferimento_orfao(nome: str, texto: str, status: str, acende: bool) -> 
             f"Roteado em **duas** lanes, com corte em **US$ 0 | US$ 26**: [[{MORTA}]] é",
             False,
         ),
+        # Medido em 2026-08-17 no closeout da A40.l64: assim que a A40.l5 virou
+        # `shipped`, estes 3 acenderam CLOSE-BLOCK-05 — 3 de 3, num código de
+        # severidade ALTA. O gatilho é `dono` dentro de "§Decisão do dono", que
+        # CITA uma decisão; "Dono: [[X]]" ATRIBUI. O caso "precedente citado"
+        # acima não pegava porque põe a frase DEPOIS do wikilink, fora da janela.
+        (
+            "decisão do dono citada como precedente (_README A40)",
+            f"nenhum filtro cobre as duas direções (precedente: §Decisão do dono da [[{MORTA}]]).",
+            False,
+        ),
+        (
+            "decisão do dono citada como precedente (lane A40.l25)",
+            f"cobre as duas direções (precedente: a §Decisão do dono da [[{MORTA}]]). Custo",
+            False,
+        ),
+        (
+            "liberação histórica no mesmo par",
+            f"🔓 **Liberada em 2026-08-07 (decisão do dono)**, no mesmo par que a [[{MORTA}]].",
+            False,
+        ),
+        (
+            "atribuição de dono continua sendo rota",
+            f"O item fica sem destino até alguém assumir — dono: [[{MORTA}]]",
+            True,
+        ),
     ],
 )
 def test_rota_governa_o_wikilink(nome: str, linha: str, roteia: bool) -> None:
