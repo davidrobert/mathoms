@@ -24,10 +24,54 @@ tags:
 
 # A40.l64 — `redutor-lei-15270-e-irpfm`
 
+> ## ⚠️ Correção de premissa — 2026-08-17: **a recusa não existia**
+>
+> O cabeçalho abaixo afirma *"a recusa já lê o dado"*, e o §Enquanto esta lane não
+> fecha repete *"a recusa lê a row"*. **Medido contra `main` em 2026-08-17: nenhum
+> consumidor de `regime_completo` existia.** O marcador era escrito pela migration,
+> parseado por `fiscal_parsers`, testado no parser — e ignorado por todo o domínio
+> (`rg regime_completo` fora de `docs/`: migration, parser, dataclass, testes de
+> parser; zero leitores de regra).
+>
+> **O efeito não era latente.** [`analyze_finances:2176`](../../../../scripts/analyze_finances.py)
+> carrega a row do ano **corrente** (`date(TODAY.year, 1, 1)`), que hoje é AC2026 —
+> a row marcada incompleta. O D5 publicava economia de IR sobre uma tabela que a
+> própria row declara insuficiente. Para tributável até R$ 60k/ano o imposto já é
+> zerado pelo redutor: **o número publicado era economia inexistente, em produção,
+> sem nenhuma trava.**
+>
+> O seam era `PrevidenciaConfig.from_fiscal_parameters`, que recebia
+> `FiscalParameters` inteiro e **descartava** o marcador.
+>
+> **Segundo achado, maior:** a [[ADR-375]] **D5** diz *"a economia passa a ser
+> diferencial `IR(base) − IR(base − aporte)` … **encerra o `limite × marginal`**"*.
+> O código em `previdencia_analyzer` ainda faz `restante × alíquota_marginal` — o
+> instrumento que o D5 encerrou. **Não existe função `IR(base, ano)` no domínio**
+> (`irpf_faixa_marginal` só resolve a faixa, D6). Ou seja: a lane descreve o D5
+> como implementado-e-errado-para-2026; ele **nunca foi implementado**.
+>
+> ### Ordem de trabalho revista
+>
+> | PR | O quê | Estado |
+> |---|---|---|
+> | **PR1** | A recusa vira real: `regime_completo=false` retém `economia_ir_anual` e `aporte_mensal`, com motivo que cita a lei e o ano | ✅ **entregue 2026-08-17** — fecha o §Critério de aceite 1 |
+> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ⬜ |
+> | **PR3** | Contrato tipado do redutor (bandas, coeficientes, vigência) + ADR própria | ⬜ |
+> | **PR4** | IRPFM — confirmar base e abatimentos no texto da lei **antes** de implementar (§Escopo 2) | ⬜ |
+>
+> O §Critério 3 (`regime_completo` de AC2026 vira `true`) **não** é do PR1 e segue
+> aberto: vira `true` só depois do PR3 + PR4.
+>
+> **Fica pendente de decisão do dono** (gatilho `financial-planner`, §Delegação do
+> CLAUDE.md): o PR1 mantém `aliquota_marginal` publicada. Na banda R$ 60k–88,2k o
+> redutor sai a `0,095575` por real, o que soma ~9,6 p.p. à alíquota **efetiva**
+> marginal — então o número da tabela, sozinho, também engana nessa faixa. Retê-lo
+> é mudança de card e não cabia no PR1 sem decisão de domínio.
+
 > **Destravada em 2026-08-16** — a [[A40.l56]] shipou (#1483) e o marcador
 > `regime_completo` existe na row de 2026 com
-> `componentes_ausentes: ["redutor_lei_15270", "irpfm"]`. A recusa já lê o dado;
-> esta lane é quem torna o `true` possível.
+> `componentes_ausentes: ["redutor_lei_15270", "irpfm"]`. ~~A recusa já lê o dado~~
+> (falso — ver correção acima); esta lane é quem torna o `true` possível.
 >
 > Aberta em 2026-08-15 no co-design da l56 (`financial-planner`; escopo fechado
 > por `senior-cto`).
@@ -95,7 +139,11 @@ está prescrevendo com o sinal errado** — e é exatamente o público do Mathom
 
 A [[A40.l56]] entrega o desbloqueio do D5 **qualificado**: liberado para
 `AC ≤ 2025`; `AC ≥ 2026` retido por `regime_completo: false` com
-`componentes_ausentes: ["redutor_lei_15270", "irpfm"]`. A recusa lê a row.
+`componentes_ausentes: ["redutor_lei_15270", "irpfm"]`. ~~A recusa lê a row.~~
+
+> **Corrigido em 2026-08-17:** a recusa **passou a** ler a row no PR1 desta lane.
+> Até então o marcador era inerte e a retenção descrita neste parágrafo não
+> acontecia — ver §Correção de premissa no topo.
 
 ## Critério de aceite
 
