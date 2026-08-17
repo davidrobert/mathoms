@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 326
-- **Proposto**: 51
+- **Decidido**: 327
+- **Proposto**: 50
 - **Roadmap**: 4
 
 ## Fundação
@@ -544,7 +544,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (61)
+### Decidido (62)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -607,8 +607,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-374]] — Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado · phase A40
 - [[ADR-375]] — Limite PGBL tem um produtor, e a prescrição exige evidência declarada · phase A40
 - [[ADR-376]] — Caixa corrente vem do último extrato reconciliado — sem denylist de instituição · phase A40.l38
+- [[ADR-390]] — Conversão ME→BRL carrega taxa, data, fonte e status; ausência é explícita · phase A40.l63
 
-### Proposto (15)
+### Proposto (14)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -624,7 +625,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
-- [[ADR-390]] — Conversão ME→BRL carrega taxa, data, fonte e status; ausência é explícita · phase A40.l63
 
 ### Roadmap (1)
 

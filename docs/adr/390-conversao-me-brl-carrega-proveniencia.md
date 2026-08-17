@@ -2,7 +2,7 @@
 id: ADR-390
 type: adr
 title: "Conversão ME→BRL carrega taxa, data, fonte e status; ausência é explícita"
-status: Proposto
+status: Decidido
 phase: A40.l63
 date: "2026-08-17"
 relates_to:
@@ -20,7 +20,7 @@ aliases:
   - "proveniencia de cambio"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/money
   - phase/a40-l63
@@ -28,7 +28,8 @@ tags:
 
 # ADR-390 — Conversão ME→BRL carrega proveniência
 
-> Origem: [[A40.l63]] (co-design 2026-08-17, `data-engineer` + `senior-cto`).
+> **Decidido em 2026-08-17** no PR de implementação da [[A40.l63]].
+> Origem: co-design `data-engineer` + `senior-cto`.
 > Generaliza a [[ADR-387]] D3 para conversão cambial. **Não** decide qual
 > taxa a coluna 31/12 usa ([[ADR-382]] / [[A40.l39]]). **Não** reabre
 > [[ADR-090]] (`valor_brl` float no legado).
