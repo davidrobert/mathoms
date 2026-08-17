@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.asset_classifier import classify_asset
+from pipeline.domain.services.conversao_me import infer_declared_me_currency
 
 # ADR-193 + co-design G: bucket "Internacional" = lastro forte.
 _BUCKET_INTERNACIONAL = "Internacional"
@@ -83,17 +84,30 @@ def _to_decimal(v: Any) -> Decimal:
 
 
 def _sum_caixa_estrangeiro(caixa_detalhes: list[dict]) -> dict[str, Decimal]:
-    """Soma `caixa_detalhes` em BRL por moeda estrangeira (BRL excluído)."""
+    """Soma caixa ME em BRL por moeda. Inclui IRPF já-em-BRL (ADR-390)."""
     out: dict[str, Decimal] = {}
     for d in caixa_detalhes or []:
-        moeda = str(d.get("moeda") or "").upper()
-        if not moeda or moeda == "BRL":
+        if not _is_caixa_me(d):
             continue
         valor = _to_decimal(d.get("valor_brl"))
         if valor <= _ZERO:
             continue
+        moeda = _moeda_exposicao(d)
         out[moeda] = out.get(moeda, _ZERO) + valor
     return out
+
+
+def _is_caixa_me(d: dict) -> bool:
+    if d.get("tipo") == "moeda_estrangeira_irpf":
+        return True
+    moeda = str(d.get("moeda") or "").upper()
+    return bool(moeda) and moeda != "BRL"
+
+
+def _moeda_exposicao(d: dict) -> str:
+    if d.get("tipo") == "moeda_estrangeira_irpf":
+        return infer_declared_me_currency(str(d.get("conta") or "")) or "ME"
+    return str(d.get("moeda") or "").upper()
 
 
 def _pos_value(pos: dict) -> Decimal:
@@ -142,13 +156,13 @@ def _detalhes_caixa(caixa_detalhes: list[dict]) -> list[dict[str, Any]]:
     return [
         {
             "fonte": d.get("conta", ""),
-            "moeda": str(d.get("moeda") or "").upper(),
+            "moeda": _moeda_exposicao(d),
             "saldo_original": d.get("saldo_original"),
             "valor_brl": d.get("valor_brl"),
             "tipo": "caixa",
         }
         for d in (caixa_detalhes or [])
-        if str(d.get("moeda") or "").upper() not in {"", "BRL"}
+        if _is_caixa_me(d)
     ]
 
 

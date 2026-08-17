@@ -36,6 +36,8 @@ def _entry(**overrides) -> dict:
         "moeda": "USD",
         "saldo_original": "5210.55",
         "saldo_brl": "32262.16",
+        "taxa_ptax_aplicada": "6.1917",
+        "ptax_data": "2024-12-31",
         "ptax_status": "applied",
         "fonte": "informe_31_12",
     }
@@ -49,6 +51,9 @@ def test_informe_vence_extrato_na_janela_d1():
     detalhe = result.detalhes[0]
     assert detalhe.fonte == "informe_31_12"
     assert detalhe.valor_brl == 32262.16
+    assert detalhe.conversao is not None
+    assert detalhe.conversao.taxa_fonte == "ptax_31_12"
+    assert detalhe.conversao.status == "converted"
     assert entry["informe_venceu_extrato"] is True
     # Ajuste no total = informe − extrato (Decimal, ADR-090).
     assert result.ajuste_total_brl == Decimal("62.16")
