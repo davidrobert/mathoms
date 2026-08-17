@@ -20,10 +20,77 @@ from dev.lane_pickup import Occupancy, _pending_deps, _verdict
 _OCUPADA = [Occupancy("worktree", "a40-l35-bundle [agent/...] · 20 arq. sujos")]
 
 
-def test_ocupacao_vence_qualquer_status() -> None:
+def test_ocupacao_vence_status_nao_terminal() -> None:
     # A l35 dizia `open` e sem dep pendente. O sinal de worktree é o único que
     # a contradiz — e tem de vencer, senão a sonda repete o erro da superfície.
+    # Estreitado em 2026-08-17: vence status NÃO-terminal (ver o teste abaixo).
     assert _verdict({"status": "open"}, [], _OCUPADA).startswith("OCUPADA")
+
+
+# ---------------------------------------------------------------------------
+# Regressões medidas em 2026-08-17, varrendo a A40 inteira com `--sprint A40`.
+# As duas fazem a sonda dizer OCUPADA para lane que ninguém está tocando —
+# e falso-positivo em ferramenta de pickup custa o mesmo que falso-negativo:
+# manda o agente para outra lane, e a lane certa fica parada.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "token, ref",
+    [
+        ("a40-l5", "agent/a40-l50-consolidate-baseline/20260814-1530"),
+        ("a40-l5", "agent/a40-l56-tabela-fiscal/20260815-0900"),
+        ("a40-l1", "agent/a40-l18-criticidade-de-stage/20260806-0900"),
+        ("a40-l2", "a40-l22-base"),
+        ("a40-l3", "agent/a40-l34-base-limite-pgbl/20260811-0330"),
+    ],
+)
+def test_token_de_lane_nao_casa_por_prefixo(token: str, ref: str) -> None:
+    """`a40-l5` não é `a40-l50`. O dígito seguinte muda a lane, não a decora."""
+    assert not lane_pickup._mentions(token, ref)
+
+
+@pytest.mark.parametrize(
+    "token, ref",
+    [
+        ("a40-l5", "agent/a40-l5-contrato-view-model/20260808-2123"),
+        ("a40-l5", "agent/a40-l5/20260811-0200"),
+        ("a40-l18", "claude/ataque-a40-l18-3c4356"),
+        ("a40-l35", "a40-l35-bundle"),
+        ("a40-l63", "origin/agent/a40-l63-conversao-me/20260817-1720"),
+        ("a40-l2", "agent/a40-l2-3c1-carrier/20260808-0450"),
+    ],
+)
+def test_token_de_lane_casa_a_propria_lane(token: str, ref: str) -> None:
+    """Estreitar não pode cegar: hífen, barra e fim de string são fronteira."""
+    assert lane_pickup._mentions(token, ref)
+
+
+def test_mentions_ignora_caixa() -> None:
+    assert lane_pickup._mentions("a40-l5", "Agent/A40-L5-Contrato/2026")
+
+
+# Medido na A40: as 34 lanes `shipped` respondiam OCUPADA por causa das próprias
+# branches já mergeadas. "Não pegue sem falar com quem está nela" manda procurar
+# interlocutor que não existe; o certo é "nada a pegar".
+@pytest.mark.parametrize("status", ["shipped", "cancelled"])
+def test_terminal_vence_branch_residual(status: str) -> None:
+    """Lane entregue não é 'ocupada' — a branch que sobrou é o fim normal dela."""
+    assert _verdict({"status": status}, [], _OCUPADA).startswith("TERMINAL")
+
+
+# Caso real: `a40-l35-bundle` tem 6 arquivos não-commitados numa lane `shipped`.
+# Reclassificar o veredito não pode apagar essa linha, senão o fix troca um
+# falso-positivo por um ponto cego.
+def test_terminal_nao_engole_o_sinal_de_ocupacao(monkeypatch: pytest.MonkeyPatch) -> None:
+    """O veredito muda; a evidência continua IMPRESSA — worktree sujo importa."""
+    sujo = [Occupancy("worktree", "a40-l35-bundle [agent/a40-l62-pr1] · 6 arq. sujos")]
+    monkeypatch.setattr(lane_pickup, "occupancy_signals", lambda *_: (sujo, []))
+    lanes = {"A1.l1": {"status": "shipped", "title": "t", "priority": "P1"}}
+    texto, code = lane_pickup.report("A1.l1", lanes)
+    assert "TERMINAL" in texto
+    assert "6 arq. sujos" in texto, "sinal medido não pode sumir do relatório"
+    assert code == 1
 
 
 def test_livre_quando_open_sem_dep_e_sem_sinal() -> None:

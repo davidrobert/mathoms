@@ -125,22 +125,32 @@ def _short_id(lane_id: str) -> str:
     return lane_id.lower().replace(".", "-")
 
 
+# O id de lane é sequencial e sem padding: `l5` é prefixo textual de `l50`.
+# Com `in`, a A40.l5 casava 8 branches de l50/l53/l56 e as 34 lanes `shipped`
+# da A40 respondiam OCUPADA. Falso-positivo em sonda de pickup custa igual ao
+# falso-negativo: manda o agente para outra lane, e a lane certa fica parada.
+# Fronteira = qualquer char não-alfanumérico (o naming é kebab: `-`, `/`, fim).
+def _mentions(token: str, text: str) -> bool:
+    """`a40-l5` casa `a40-l5-slug` e `agent/a40-l5/ts`, nunca `a40-l50`."""
+    return re.search(rf"(?<![0-9a-z]){re.escape(token)}(?![0-9a-z])", text.lower()) is not None
+
+
 def _refs_mentioning(token: str) -> list[Occupancy]:
     out = _git("for-each-ref", "--format=%(refname:short)", "refs/heads", "refs/remotes")
-    hits = [ref for ref in out.splitlines() if token in ref.lower()]
+    hits = [ref for ref in out.splitlines() if _mentions(token, ref)]
     return [Occupancy("branch", ref) for ref in hits]
 
 
 def _sonda_worktree(path: Path, token: str) -> tuple[Occupancy | None, Degradacao | None]:
     """Um worktree: sinal, degradação, ou nenhum dos dois (não cita a lane)."""
     branch, erro = _git_probe("rev-parse", "--abbrev-ref", "HEAD", cwd=path)
-    cita_pelo_path = token in path.name.lower()
+    cita_pelo_path = _mentions(token, path.name)
     if erro is not None:
         # Path pode citar a lane e o git ter falhado: reportar mesmo assim, senão
         # um worktree quebrado esconde ocupação real.
         return None, Degradacao("worktree", f"{path.name}: {erro}")
     branch = branch.strip()
-    if not (cita_pelo_path or token in branch.lower()):
+    if not (cita_pelo_path or _mentions(token, branch)):
         return None, None
     sujos = len([ln for ln in _git("status", "--short", cwd=path).splitlines() if ln])
     return Occupancy("worktree", f"{path.name} [{branch}] · {sujos} arq. sujos"), None
@@ -171,7 +181,7 @@ def _uncommitted_lane_files(lane_id: str) -> list[Occupancy]:
         if not lanes_dir.exists():
             continue
         untracked = _git("ls-files", "--others", "--exclude-standard", "docs/sprint", cwd=path)
-        hits = [ln for ln in untracked.splitlines() if token in ln.lower()]
+        hits = [ln for ln in untracked.splitlines() if _mentions(token, ln)]
         signals.extend(Occupancy("arquivo não-commitado", f"{path.name}: {h}") for h in hits)
     return signals
 
@@ -205,19 +215,27 @@ def occupancy_signals(
     return list(dict.fromkeys(signals)), list(dict.fromkeys(degradacoes))
 
 
-# Ordem deliberada: ocupação MEDIDA vence tudo, inclusive degradação — a ressalva
-# não pode diluir sinal real. Já a ausência de sinal só vale como LIVRE se todas
-# as sondas rodaram; senão o veredito diz que não sabe.
+# Ordem deliberada, em dois degraus.
+#
+# 1º TERMINAL, antes de ocupação. Lane entregue não tem o que pegar, e a branch
+#    que sobrou é o fim NORMAL dela — não um vizinho trabalhando. Dizer "não
+#    pegue sem falar com quem está nela" manda procurar interlocutor que não
+#    existe. Medido em 2026-08-17: as 34 lanes `shipped` da A40 respondiam
+#    OCUPADA por causa das próprias branches mergeadas. O sinal continua
+#    impresso pelo `report` — muda o rótulo, não a evidência.
+# 2º Ocupação MEDIDA vence o resto, inclusive degradação: a ressalva não pode
+#    diluir sinal real. Já a ausência de sinal só vale como LIVRE se todas as
+#    sondas rodaram; senão o veredito diz que não sabe.
 def _verdict(
     front: dict[str, Any],
     pending: list[str],
     signals: list[Occupancy],
     degradacoes: list[Degradacao] | None = None,
 ) -> str:
-    if signals:
-        return "OCUPADA — não pegue sem falar com quem está nela"
     if front.get("status") in TERMINAL_STATUS:
         return f"TERMINAL ({front.get('status')}) — nada a pegar"
+    if signals:
+        return "OCUPADA — não pegue sem falar com quem está nela"
     if front.get("status") == "planned":
         return "NÃO LIBERADA — `planned` é liberação por-lane, decisão do dono"
     if pending and front.get("partial_delivery") is not True:
