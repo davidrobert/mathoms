@@ -35,7 +35,8 @@ tags:
 > **Entregue em 2026-08-14 pelo PR #1448** (`6c68723a`). O Card B é o único
 > publicador do limite PGBL; S7 e S8 deixaram de duplicar a prescrição, e a
 > [[ADR-375]] passou a `Decidido`. Os resíduos de instrumento e citação seguem
-> explicitamente roteados para [[A40.l56]], [[A40.l37]] e [[A40.l57]].
+> explicitamente roteados para [[A40.l56]] (✅ `shipped` em #1483, 2026-08-16),
+> [[A40.l37]] e [[A40.l57]] — estas duas seguem vivas.
 
 ## Problema
 

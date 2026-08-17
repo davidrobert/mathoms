@@ -8,6 +8,7 @@ status: shipped
 priority: P1
 branch_slug: a40-l56-tabela-fiscal-de-producao
 ship_pr: 1483
+ship_date: "2026-08-16"
 owner: data-engineer
 adrs:
   - "[[ADR-375]]"
@@ -281,7 +282,15 @@ identidade verificada em fonte primária; os valores por ano vieram de portal +
 convergência adversarial (3 apurações, 2 lentes, aritmética própria, a testemunha
 in-repo `IRRF_FAIXA_TOPO` e um exemplo oficial da RFB que fecha ao centavo em
 `908,73`). O nível de verificação está gravado em `source` de cada tabela, para a
-auditoria ler no dado. Conferência humana da tabela final: [#1479] §Tabela final.
+auditoria ler no dado.
+
+**Dono deste deferimento:** owner-gated, registrado em
+[`OWNER-GATED-active.md`](../../../_MOC/OWNER-GATED-active.md). A conferência é da
+tabela final (3 anos × 5 faixas × 2 tabelas, no corpo do #1479) contra o texto
+do ato no DOU. Condição de retomada: alguém com acesso ao DOU ler
+IN RFB 2.174/2024 e 2.299/2025 e carimbar `source` com `verificacao: "ato lido"`.
+Enquanto não acontecer, o dado declara o próprio nível de verificação — não há
+afirmação falsa, há afirmação qualificada.
 
 ### Follow-up que NÃO virou lane
 
