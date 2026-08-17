@@ -127,7 +127,7 @@ def test_ponteiro_orfao_nao_ressuscita_a_perdedora(sync_db, forma):
         session.commit()
         resolver = DBPropertyIdentityResolver(session=session)
         record = resolver.match_or_create(ws.id, _lookup(forma), 2025, DESCRICAO)
-        assert record.property_id != orfa
+        assert record is None or record.property_id != orfa
 
 
 def _seed_cluster_do_dogfood(session, workspace_id: str) -> str:

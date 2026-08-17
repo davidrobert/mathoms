@@ -14,6 +14,7 @@ adrs:
   - "[[ADR-274]]"
   - "[[ADR-324]]"
   - "[[ADR-385]]"
+  - "[[ADR-392]]"
 depends_on: []
 parallel_with:
   - "[[A40.l66]]"

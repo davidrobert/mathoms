@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-381 ADRs (ADR-001 a ADR-390) em [`docs/adr/`](../../adr/).
+382 ADRs (ADR-001 a ADR-392) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 327
+- **Decidido**: 328
 - **Proposto**: 50
 - **Roadmap**: 4
 
@@ -544,7 +544,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (62)
+### Decidido (63)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -608,6 +608,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-375]] — Limite PGBL tem um produtor, e a prescrição exige evidência declarada · phase A40
 - [[ADR-376]] — Caixa corrente vem do último extrato reconciliado — sem denylist de instituição · phase A40.l38
 - [[ADR-390]] — Conversão ME→BRL carrega taxa, data, fonte e status; ausência é explícita · phase A40.l63
+- [[ADR-392]] — endereco_canonical=None não minta PropertyIdentity; match residual é único (titular, código) · phase A40.l70
 
 ### Proposto (14)
 

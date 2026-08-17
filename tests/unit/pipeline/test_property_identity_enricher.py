@@ -86,8 +86,8 @@ class TestEnricher:
         assert ids[0] == ids[1]
         assert len(resolver.all()) == 1
 
-    def test_different_titular_no_endereco_keeps_distinct(self):
-        """low_confidence (sem endereço): mantém rows distintas — merge fuzzy é arriscado."""
+    def test_different_titular_no_endereco_does_not_mint(self):
+        """[[ADR-392]]: sem canonical não minta — os dois ficam needs_review."""
         resolver = InMemoryPropertyIdentityResolver()
         imovel_t = {
             "descricao": "APTO SEM ENDERECO",
@@ -104,10 +104,12 @@ class TestEnricher:
         out = enrich_imoveis_with_property_ids(
             _build_consolidated([imovel_t, imovel_c]), resolver, WS_ID
         )
-        ids = [e["property_id"] for e in out["imoveis_consolidados"]]
-        assert ids[0] != ids[1]
+        entries = out["imoveis_consolidados"]
+        assert [e["property_id"] for e in entries] == [None, None]
+        assert all(e["needs_review"] is True for e in entries)
+        assert resolver.all() == []
 
-    def test_descricao_without_address_yields_low_confidence(self):
+    def test_descricao_without_address_yields_needs_review_not_mint(self):
         resolver = InMemoryPropertyIdentityResolver()
         imovel = {
             "descricao": "APARTAMENTO COND EXEMPLO C APTO 34",
@@ -119,7 +121,9 @@ class TestEnricher:
         entry = out["imoveis_consolidados"][0]
         assert entry["low_confidence"] is True
         assert entry["endereco_canonical"] is None
-        assert entry["property_id"] is not None
+        assert entry["property_id"] is None
+        assert entry["needs_review"] is True
+        assert resolver.all() == []
 
     def test_missing_codigo_rfb_marks_low_confidence_without_property(self):
         resolver = InMemoryPropertyIdentityResolver()

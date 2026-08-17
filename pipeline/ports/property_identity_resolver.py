@@ -20,7 +20,6 @@ class PropertyIdentityResolver(Protocol):
         lookup: PropertyLookupKey,
         first_seen_year: int,
         descricao_sample: str,
-    ) -> PropertyIdentityRecord:
-        # ADR-215: retorna identidade existente (mesmo lookup) ou cria nova.
-        # endereco_canonical=None → low_confidence=True (UI resolve merge).
+    ) -> PropertyIdentityRecord | None:
+        # ADR-392: sem canonical não minta. None = needs_review no item.
         ...

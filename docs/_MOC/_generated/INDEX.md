@@ -386,6 +386,7 @@
 | ADR-388 | adr | Decidido |  | Contrato E5 para frontend usa codegen determinístico e opacidade governada | `adr/388-contrato-e5-frontend-codegen-deterministico-opacidade-governada.md` |
 | ADR-389 | adr | Proposto |  | As tabelas mensal e anual do IRPF são duas fontes importadas, não duas escalas de uma | `adr/389-tabela-mensal-e-anual-do-irpf-sao-duas-fontes-importadas.md` |
 | ADR-390 | adr | Decidido |  | Conversão ME→BRL carrega taxa, data, fonte e status; ausência é explícita | `adr/390-conversao-me-brl-carrega-proveniencia.md` |
+| ADR-392 | adr | Decidido |  | endereco_canonical=None não minta PropertyIdentity; match residual é único (titular, código) | `adr/392-endereco-canonical-none-nao-cria-identidade.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

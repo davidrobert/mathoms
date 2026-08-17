@@ -15,6 +15,7 @@ from pipeline.domain.services.canonical_fuzzy_match import (
     extract_complemento,
     matches_fuzzy,
 )
+from pipeline.domain.services.property_identity_mint import mint_without_canonical_enabled
 from pipeline.domain.types.property_identity import (
     PropertyIdentityRecord,
     PropertyLookupKey,
@@ -35,12 +36,15 @@ class DBPropertyIdentityResolver:
         lookup: PropertyLookupKey,
         first_seen_year: int,
         descricao_sample: str,
-    ) -> PropertyIdentityRecord:
-        """Match cascade: estrito → loose → fuzzy → amostra bruta → insert (ADR-385)."""
+    ) -> PropertyIdentityRecord | None:
+        """Cascata ADR-385; sem canonical não minta ([[ADR-392]])."""
         index = _WorkspaceIdentities(self._load_rows(workspace_id))
         existing = _cascade_match(index, lookup, descricao_sample)
         if existing is not None:
             return _to_record(existing)
+        if lookup.endereco_canonical is None and not mint_without_canonical_enabled():
+            residual = _residual_unique(index, lookup)
+            return _to_record(residual) if residual is not None else None
         return _to_record(self._insert_row(workspace_id, lookup, first_seen_year, descricao_sample))
 
     def _load_rows(self, workspace_id: str) -> list[PropertyIdentity]:
@@ -151,6 +155,26 @@ def _candidates_fuzzy(
 # Substitui o passe fuzzy de low-confidence que a ADR-225 §3 deixou de fora.
 # `titular_key` fica fora do predicado de propósito: incluí-lo foi o mecanismo
 # que duplicou o imóvel do casal quando a extração variou a grafia do membro.
+def _residual_unique(
+    index: _WorkspaceIdentities, lookup: PropertyLookupKey
+) -> Optional[PropertyIdentity]:
+    """Única row viva com o mesmo (titular_key, codigo_rfb) — [[ADR-392]] D1."""
+    hits = [
+        row
+        for row in index.ordered
+        if row.titular_key == lookup.titular_key and row.codigo_rfb == lookup.codigo_rfb
+    ]
+    live = []
+    seen: set[str] = set()
+    for row in hits:
+        winner = index._live_winner(row)
+        if winner is None or winner.id in seen:
+            continue
+        seen.add(winner.id)
+        live.append(winner)
+    return live[0] if len(live) == 1 else None
+
+
 def _candidates_by_descricao(
     index: _WorkspaceIdentities, lookup: PropertyLookupKey, descricao_sample: str
 ) -> list[PropertyIdentity]:
