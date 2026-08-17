@@ -4,7 +4,7 @@ type: lane
 title: "schema_validation warn → strict: o PR5 que a l5 declarou como outra lane"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: open
 priority: P2
 branch_slug: a40-l58-flip-do-schema-para-strict
 owner: sre-devops
@@ -13,17 +13,44 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p2
   - area/pipeline
 ---
 
 # A40.l58 — `flip-do-schema-para-strict`
 
-> **`blocked` por [[A40.l5]]** — o flip exige *"o drift medido em mãos"*
-> (§Forma da l5), e o drift só existe depois que os PRs 2–4 da l5 tiparem os
-> blocos restantes do `e5_analysis.schema.json`. Flipar antes é converter
-> lacuna de tipagem em run de cliente abortado.
+> 🔓 **Desbloqueada em 2026-08-17 — o bloqueador morreu em 2026-08-14 e ninguém
+> viu.** A condição escrita abaixo era *"os PRs 2–4 da l5"*: **#1440** (PR2,
+> 08-13), **#1441** (PR4, 08-14) e **#1450** (PR3, 08-14) estão **todos
+> mergeados**. A lane ficou `blocked` por **3 dias** sobre dep satisfeita.
+>
+> `depends_on: [[A40.l5]]` **permanece** — a dep é real e agora está terminal
+> (`shipped`, 2026-08-17). O que estava errado era o `status`, não o grafo.
+>
+> **O instrumento funcionou; o insumo é que estava podre.** O
+> [`_sprint_current_renderer`](../../../../dev/_sprint_current_renderer.py) **já**
+> dá seção própria ao `blocked` — exatamente para que lane bloqueada não suma no
+> instante em que vira pegável (comentário no `:44`) — e ainda imprime a dep
+> pendente. O que ele imprimia era **`⛔ dep pendente: A40.l5 (in_progress)`**:
+> uma frase que lê como bloqueio legítimo, porque o `status` da l5 também estava
+> stale.
+>
+> **Dois status stale se mascararam mutuamente.** Nenhum leitor humano tinha
+> como suspeitar: a linha do painel era coerente consigo mesma. Só cruzar o
+> frontmatter com os PRs mergeados em `main` desfaz — que é a checagem que
+> nenhum gate fazia.
+>
+> **Classe, não incidente.** O merge da dep não tem escritor no `status` da lane
+> dependente: quem fecha a dep não sabe quem depende dela. É a mesma classe que a
+> [[A40.l59]] gateia na transição — registrada lá como caso de origem.
+>
+> **Motivo original do bloqueio (preservado — era correto quando escrito):**
+>
+> > **`blocked` por [[A40.l5]]** — o flip exige *"o drift medido em mãos"*
+> > (§Forma da l5), e o drift só existe depois que os PRs 2–4 da l5 tiparem os
+> > blocos restantes do `e5_analysis.schema.json`. Flipar antes é converter
+> > lacuna de tipagem em run de cliente abortado.
 >
 > **Aberta em 2026-08-12**, no fechamento da rodada de follow-ups (decisão do
 > dono). Origem: [[A40.l5]] §Forma, PR5 — *"Proposta `warn → strict` …

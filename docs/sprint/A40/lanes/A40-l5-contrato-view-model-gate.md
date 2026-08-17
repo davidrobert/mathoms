@@ -4,7 +4,9 @@ type: lane
 title: "Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1450
+ship_date: "2026-08-14"
 priority: P1
 branch_slug: a40-l5-contrato-view-model-gate
 adrs: ["[[ADR-388]]"]
@@ -12,13 +14,62 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/frontend
   - area/dx
 ---
 
 # A40.l5 — `contrato-view-model-gate` (alavanca estrutural)
+
+> ✅ **`shipped` em 2026-08-17 — correção de status, não entrega nova.** A lane
+> ficou `in_progress` por **3 dias** depois de o último PR do seu plano mergear.
+> O plano PR0–PR5 da §Forma está terminal:
+>
+> | PR | Estado |
+> |---|---|
+> | PR0 — inventário | ✅ #1362 / #1363 (2026-08-10) |
+> | PR1 — 4 arrays sem `items` | ✅ #1371 (2026-08-11) |
+> | PR2 — `consumo_consciente`, `reserva_emergencia`, `goals` | ✅ #1440 (2026-08-13) |
+> | PR4 — blocos finais do E5 | ✅ #1441 (2026-08-14 13:15Z) |
+> | PR3 — codegen + gate de sincronia | ✅ #1450 (2026-08-14 16:32Z) — **último a mergear** |
+> | PR5 — flip `warn → strict` | ➡️ **[[A40.l58]]**, por decisão da própria lane |
+>
+> `ship_pr: 1450` é o último a mergear, não o de numeração maior — o PR4 mergeou
+> **antes** do PR3.
+>
+> **O gate foi verificado, não presumido** (2026-08-17):
+> [`dev/check_view_model_contract.py`](../../../../dev/check_view_model_contract.py)
+> está no `.pre-commit-config.yaml` com `always_run: true` (todo PR, qualquer
+> path), sai `EXIT=0` em `main` e **falha por mutação** — violações tipadas
+> (`OPAQUE_READER`, ratchet de bloco opaco, schema citado inexistente) provadas em
+> [`tests/test_view_model_contract_gate.py`](../../../../tests/test_view_model_contract_gate.py).
+> A perna do `tsc` existe: `frontend/src/generated/report-analysis.ts`.
+>
+> ## ⚠️ Resíduo do §Critério de aceite — 2 de 5 fixtures sem artefato
+>
+> Medido em 2026-08-17 por busca em `dev/` + `tests/` (`meses_cobertura`,
+> `cobertura_meses`, `allowlist`): **zero ocorrências**.
+>
+> | Fixture do §Critério | Estado |
+> |---|---|
+> | (1) chave no schema sem consumidor ⇒ falha | ✅ coberta (ratchet + `OPAQUE_READER`) |
+> | **(2) renomear `cobertura_meses`→`meses_cobertura` só no consumidor ⇒ falha** — *reproduz o RV3-09 exatamente* | ❌ **sem artefato** |
+> | **(3) allowlist com razão escrita ⇒ passa** | ❌ **sem mecanismo de allowlist** |
+> | Gate de sincronia (regenerar e falhar se divergir) | ✅ no pre-commit |
+> | Gate de consumo (`tsc --noEmit` quebra em campo não declarado) | ✅ codegen publicado |
+>
+> **O que isso significa, sem eufemismo:** o gate fecha a classe *"reader lê
+> bloco opaco"* — a **precondição** da leitura órfã. A leitura órfã **dentro de
+> bloco já tipado** (que é literalmente o RV3-09: `reserva.get("meses_cobertura")`
+> devolvendo `None` para sempre) não tem fixture provando que fica vermelha.
+>
+> **Por isso o `shipped` é do plano de PRs, não da KR-A.** Os PR0–PR4 mergearam e
+> ninguém trabalha a lane — deixá-la `in_progress` afirma sessão viva que não
+> existe. Mas **a KR-A não é declarada fechada** por esta lane. Pendência do dono
+> no [`_README`](../_README.md) §Estado da Onda 2 (2026-08-17): aceitar a
+> cobertura atual, ou rotear as 2 fixtures. **Não abri lane nova** — a §Triagem
+> de fecho recusou lane catch-all.
 
 > 🔓 **Liberada em 2026-08-07 (decisão do dono).** `planned` → `open`. Não houve
 > condição técnica a satisfazer — `depends_on` sempre foi vazio; o que faltava era
