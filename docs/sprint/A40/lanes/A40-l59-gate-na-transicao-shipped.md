@@ -49,8 +49,9 @@ do merge.
 ### Caso de origem medido em 2026-08-17 — a variante que o escopo atual não pega
 
 A avaliação de pickup da A40 achou **3 lanes** cujo `status` divergia de `main`.
-Duas delas são a classe já descrita ([[A40.l5]] `in_progress` com PR0–PR4
-mergeados; [[A40.l60]] `open` com o PR1 entregue no #1480 sem constar). A
+Duas delas são a classe já descrita — no estado **em que foram encontradas**, e
+as três já corrigidas no **#1497**: [[A40.l5]] estava `in_progress` com PR0–PR4
+mergeados; [[A40.l60]] estava `open` com o PR1 entregue no #1480 sem constar. A
 terceira é **uma variante que o gate desta lane, como escopado, não alcança**:
 
 **[[A40.l58]] ficou `blocked` 3 dias depois de a dep fechar.** O gate desta lane

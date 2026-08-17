@@ -256,6 +256,7 @@ fixes caem no mesmo diff e nenhum dos dois é atribuível.
 | J1 | Seam determinístico | [[A40.l66]] | goldens E1.5c/E5 afetados pelo roteamento; snapshot do view-model | imediatamente |
 | J2 | Guarda + strict | [[A40.l67]] | `baseline_patrimonial` + schema irmão; `mode_overrides` | J1 fechada |
 | J3 | Balanço de fan-out | [[A40.l68]] | contrato de retorno do stage (sem golden monetário) | independente — **não** disputa J1/J2 |
+| J4 | Cobertura por membro | [[A40.l69]] | baldes de investimento por membro + snapshot do view-model | J2 fechada |
 
 **Coordenação com a A40 em voo.** 23 lanes estão `open`/`in_progress`/`blocked`
 na sprint, quase todas sob [[PLAN-report-trust]]. As que declaram efeito em valor
@@ -280,24 +281,39 @@ Total do MVP: **4 runs pagos**. O custo em US$ por run não está medido — a
 telemetria por tentativa é da [[A42.l7]]; o CP-1 é a primeira oportunidade de
 registrá-lo, e quem o rodar anota o número aqui.
 
-#### 0e — registro: disposição tripartite RV6-06 escrita (2026-08-17)
+#### 0e — registro: as três pernas escritas (2026-08-17)
 
-As três pernas agora existem, cada uma no arquivo do seu dono: a §Roteamento
-acima (plano), a §Coordenação declarada da [[A42.l6]] (cede o eixo dos 2 schemas
-de baseline; mantém retenção/`SCHEMA_BY_STAGE`) e a da [[A40.l58]] (permanece
-dona de `mode_overrides`/kill-switch como infra). Antes disto a disposição estava
-escrita **só deste lado** — as outras duas lanes não sabiam que tinham cedido ou
-recebido superfície, que é como duas sessões abrem PR no mesmo eixo.
+Item 0e cumprido nas suas três pernas, cada uma verificável onde vive:
 
-**Tensão encontrada ao escrever, e deliberadamente NÃO resolvida aqui:** o
-§Escopo da [[A40.l58]] trata do flip **global** de `schema_validation.mode`,
+| Perna | Onde | Evidência |
+|---|---|---|
+| linha em [[PLANS-active]] §Olhar primeiro | `docs/_MOC/PLANS-active.md` | linha da tabela §Olhar primeiro |
+| backfill da Trilha §r6 | [[PIPELINE-REVIEWS-active]] §r6 | todo RV6-* carrega `plano: [[PLAN-deterministic-authority]]` na coluna Trilha |
+| disposição tripartite RV6-06 | plano ↔ [[A42.l6]] ↔ [[A40.l58]] | §Roteamento aqui + §Coordenação declarada nas duas lanes |
+
+Antes disto a disposição estava escrita **só deste lado** — as outras duas lanes
+não sabiam que tinham cedido ou recebido superfície, que é como duas sessões
+abrem PR no mesmo eixo.
+
+**Com isto a Onda 0 está inteira** (0a/0b golden + 4a RED · 0c re-medição RV6-13 ·
+0d fila e orçamento · 0e registro), que é a metade do gate do MVP declarado em
+§MVP. A [[A40.l66]] (J1) está `open` e ocupada; a [[A40.l67]] segue `blocked` por
+ela, por desenho.
+
+**Tensão encontrada ao escrever — e o contraditor que a primeira escrita errou:**
+o §Escopo da [[A40.l58]] trata do flip **global** de `schema_validation.mode`,
 enquanto §Anti-decisões deste plano diz *"NÃO subir `schema_validation.mode`
-global — só per-schema com janela medida"*. As duas posições não são compatíveis
-como escritas. Os três encaminhamentos possíveis estão enumerados na própria
-l58; a escolha é do `sre-devops`, dono de lá. Enquanto não houver decisão, vale a
-regra da fila: l58 e [[A40.l67]] não abrem na mesma janela (J2 é da l67).
+global — só per-schema com janela medida"*. A primeira redação enquadrou isto
+como *plano × lane* e ofereceu "emendar o plano" como saída. **Está errado:** quem
+decidiu o eixo é a [[ADR-284]] (`Decidido`, 2026-06-09) e o runbook
+[`schema_validation_strict_flip.md`](../../reference/runbooks/schema_validation_strict_flip.md)
+(*"nunca global de uma vez"*); o §Anti-decisões daqui só **repete** essa doutrina.
+Os encaminhamentos, com a barra corrigida, estão na própria l58 — superar o
+global exige supersedure/emenda da ADR-284, não emenda deste plano. A escolha é
+do `sre-devops`, dono de lá. Enquanto não houver decisão, vale a regra da fila:
+l58 e [[A40.l67]] não abrem na mesma janela (J2 é da l67).
 
-#### 0e — lanes do MVP abertas (2026-08-17)
+#### Lanes do MVP abertas (2026-08-17)
 
 [[A40.l66]] (`open`, P0, seam — itens 1a/1b/1c), [[A40.l67]] (`blocked` por l66,
 P0, guarda E5 — itens 1d/1e) e [[A40.l68]] (`planned`, P1, balanço de fan-out —
@@ -305,6 +321,23 @@ Onda 2, paralela desde o dia 0). Ids a partir de `l66` porque a `A40.l65` já
 existe em PR aberto (#1491) — `SPRINT_CURRENT` não vê lane que só existe em
 branch. Só a l66 nasce `open`: `dev/check_lane_status_predicate.py` reprova
 `open` com dependência pendente, e a l67 depende dela.
+
+**2026-08-17 (2º ciclo)** — [[A40.l69]] (`blocked` por l66+l67, P0, cobertura de
+investimentos por membro — itens 3a/3b, RV6-04). Fecha o último P0 do MVP que não
+é do seam. Nasce `blocked` por dois motivos independentes: a regra unificadora
+que o 3a consome é decidida na ADR-A (aberta pela l66), e a lane precisa de
+janela de rebaseline (J4, atrás da J2). **Não abre ADR nova** — 3a está na
+cobertura declarada da ADR-A e 3b é a [[ADR-267]], já `Decidido`.
+
+Medido ao escrever a lane (contra `main` @ `0bb4ba55`), e é o que a torna P0: o
+caminho de investimentos **nunca chama** `resolve_by_cpf` — o único call-site de
+produção é `consolidate_baseline.py:410` (E1.5c) — e o artefato de posições não
+tem onde carregar CPF (`e2_llm_artifact.schema.json:32` declara `membro`, não
+`cpf`). No miss do resolver, `investments_consolidator.py:324` **preserva o slug
+bruto**, e `patrimonio_calculator.py:315-327` soma ao **titular** tudo que não
+casa por substring. O zero do cônjuge não é um valor medido: é um valor que foi
+para a outra pessoa. A varredura por substring em chave de membro tem **31
+call-sites** em 4 arquivos — o analyzer do RV6-14 é um deles, não o conjunto.
 
 ### Onda 1 — seam determinístico (P0 · MVP · 2 lanes)
 
@@ -377,6 +410,9 @@ que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
   `degraded` — WARN-first com budget medido (§Enforcement).
 
 ### Onda 3 — dado do casal + tripwires (3a/3b no MVP; resto planned)
+
+3a e 3b vivem na [[A40.l69]] (`blocked` por l66+l67) — são o mesmo seam: a
+atribuição de investimento por membro. 3c–3f seguem sem lane.
 
 - 3a. Eleição de `fonte_investimentos` **por membro** com predicado de
   cobertura; **campo próprio `cobertura_investimentos[]`**

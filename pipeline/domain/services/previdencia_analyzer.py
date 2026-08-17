@@ -261,9 +261,11 @@ def _nota_regime_incompleto(config: "PrevidenciaConfig") -> str:
 
 
 # `f"{v:,.0f}"` é separador ANGLO: "R$ 8,400" para oito mil e quatrocentos, que
-# em pt-BR se lê como oito reais e quarenta centavos. Sétima cópia da mesma
-# técnica no repo (`suggestion_rules`, `itcmd_estimator`, `value_formatter`…) —
-# a consolidação é dívida própria, não desta lane.
+# em pt-BR se lê como oito reais e quarenta centavos. Contado em 2026-08-17: são
+# **7** formatadores BRL privados já no repo (`dashboard_service`,
+# `disability_coverage`, `life_insurance_coverage`, `itcmd_estimator`,
+# `snapshot_changelog/narratives`, `suggestion_rules`, `llm/value_formatter`) e
+# este é o 8º. A consolidação é dívida própria, não desta lane.
 def _brl_inteiro(valor: Decimal) -> str:
     """Reais sem centavos em formato BR (R$ 1.234), sem depender de locale."""
     return "R$ " + f"{valor:,.0f}".replace(",", ".")

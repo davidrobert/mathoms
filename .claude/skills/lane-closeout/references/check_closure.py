@@ -72,6 +72,12 @@ STRIKETHROUGH_RE = re.compile(r"~~.+?~~", re.S)
 # (proveniência) e `Precedente exato: [[X]]` acusavam — 64% de falso-positivo.
 # 40 chars separa `Dono: [[X]]` (rota) de `Roteado em duas lanes …: [[X]]` (relato).
 ROUTE_WINDOW = 40
+# `Dono: [[X]]` ATRIBUI; `§Decisão do dono da [[X]]` CITA uma decisão como
+# precedente. Medido em 2026-08-17 no closeout da A40.l64: no instante em que a
+# A40.l5 virou `shipped`, esta forma acendeu 3 de 3 CLOSE-BLOCK-05 — 100% de
+# falso-positivo num código de severidade ALTA, contra o teto de 20% do §Critério
+# de aceite da skill. A janela sozinha não separa: a frase cabe nos 40 chars.
+DECISAO_DO_DONO_RE = re.compile(r"decis(ão|ao|ões|oes)\s+d[oa]s?\s+dono", re.I)
 # Parágrafo que JÁ declara o fechamento não está enganando ninguém — o doc que
 # diz "Dono do arquivo é a [[X]] (`shipped`) … fora da sprint por falta de dono
 # vivo" é exatamente a forma honesta que este check quer produzir.
@@ -292,7 +298,7 @@ def _routes_to(line: str, lane_id: str) -> bool:
     """Palavra de rota governa este wikilink (janela curta antes dele)?"""
     for match in re.finditer(rf"\[\[{re.escape(lane_id)}[\]|#]", line):
         window = line[max(0, match.start() - ROUTE_WINDOW) : match.start()]
-        if ROUTE_WORD_RE.search(window):
+        if ROUTE_WORD_RE.search(DECISAO_DO_DONO_RE.sub(" ", window)):
             return True
     return False
 
