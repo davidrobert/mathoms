@@ -94,7 +94,7 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
           <EmptyState
             icon={ShieldOff}
             title="Mapeie seus riscos críticos para destravar esta seção"
-            description="Sem riscos cadastrados, não conseguimos calcular cobertura recomendada, exposição de compliance ou planejamento sucessório. Registre vida, invalidez, sucessão e compliance no Console para a análise completa."
+            description="Sem riscos cadastrados, não conseguimos calcular cobertura, exposição de compliance ou planejamento sucessório. Registre vida, invalidez, sucessão e compliance no Console para a análise completa."
             action={{ href: "/plano", label: "Cadastrar riscos no Console" }}
           />
         </div>

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from pipeline.domain.protection_disclaimer import fiduciary_disclaimer
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
     TOP_DECISOES_RENDER,
@@ -413,6 +414,10 @@ def _s9_gap_vida_line(M: Mapping[str, Any]) -> str:
     return _S9_GAP_VIDA if M.get("protecao_gap_vida") is True else ""
 
 
+def _s9_disclaimer() -> str:
+    return fiduciary_disclaimer("wealth management")
+
+
 def _summary_s9(M: Mapping[str, Any], riscos_nomes: list[str]) -> str:
     if not riscos_nomes:
         return _S9_EMPTY
@@ -422,5 +427,6 @@ def _summary_s9(M: Mapping[str, Any], riscos_nomes: list[str]) -> str:
         f"{len(riscos_nomes)} {n_label}: {nomes_top3}. "
         f"{_s9_gap_vida_line(M)}"
         f"{_s9_cobertura_line(M)}"
-        "Planejamento sucessório em estágio inicial."
+        "Planejamento sucessório em estágio inicial. "
+        f"{_s9_disclaimer()}"
     )

@@ -3,6 +3,7 @@
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { SectionSummary } from "../SectionSummary";
+import { DisclaimersCard } from "../cards/DisclaimersCard";
 import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
 import type { ReportAnalysisData } from "@/lib/api";
@@ -377,9 +378,11 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
  * single-pair com rótulo enganoso.
  */
 export function ApendiceESection({ data }: { data: ReportAnalysisData }) {
+  const effectiveDate = (data.data_analise as string | undefined) ?? null;
   return (
     <ReportSection id="APP_E">
       <SectionSummary data={data} sectionId="APP_E" />
+      <DisclaimersCard effectiveDate={effectiveDate} />
     </ReportSection>
   );
 }
