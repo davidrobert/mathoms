@@ -494,6 +494,27 @@ declara o **delta de custo/token** que introduz.
 
 ### Onda 7 — render (lanes no [[PLAN-report-trust]]; 7a/7e no MVP)
 
+**Lanes abertas 2026-08-17 (2º ciclo):** 7e é a [[A40.l71]] (`open` — não depende
+do seam) e 7a é a [[A40.l72]] (`blocked` por [[A40.l66]]). As duas nascem com
+`plan: PLAN-report-trust` e entram na §Ondas de lá; a FK aponta para a casa que
+as executa, não para este plano que as origina.
+
+O `blocked` da 7a tem causa mecânica, não de sequenciamento: o supressor do ponto
+forte é **fio único** a partir do warning tipado da Onda 1. Sem o warning, a única
+forma de suprimir "Endividamento Mínimo" seria re-derivar o defeito no render —
+uma segunda fonte de verdade sobre o mesmo fato, que é a classe que este plano
+fecha.
+
+Re-medido contra `main` antes de abrir (lição do RV6-20, que morreu de ser
+no-op): as duas superfícies **estão como o r6 as descreveu**. O
+`reportContractGuards.ts` que já existe é módulo de **leitura** (`readScoreData`,
+`readRealEstateData`…), não avalia invariante e não tem onde reportar violação —
+o guard da 7a é módulo próprio. E os dois predicados da composição seguem
+divergentes: `PatrimonioDoughnutChart.tsx:23-25` filtra `valor > 0` (some com
+zero **e** negativo) enquanto `PatrimonioCategoriasCard.tsx:21-23` só esconde
+`"Residência"` zero — casando pela **string renderizada**, o que desliga a
+exceção da [[ADR-215]] P5 em silêncio se a copy mudar.
+
 Sequência por dependência: (0) decisão de copy dos 3 estados do banner +
 decisão sobre o **estoque publicado** (define a copy do 7a); (1) PR backend
 `needs_review` count no payload + snapshot OpenAPI; (2) 7e (enabler sem copy);
