@@ -897,7 +897,7 @@
 | A40.l47 | lane | shipped | A40 | Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva | `sprint/A40/lanes/A40-l47-semantica-de-taxa-faixa-e-base.md` |
 | A40.l48 | lane | open | A40 | Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo | `sprint/A40/lanes/A40-l48-polaridade-de-comparacao-nao-monotonica.md` |
 | A40.l49 | lane | shipped | A40 | Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar | `sprint/A40/lanes/A40-l49-parecer-rotulo-e-guardrails.md` |
-| A40.l5 | lane | in_progress | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
+| A40.l5 | lane | shipped | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l50 | lane | open | A40 | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | `sprint/A40/lanes/A40-l50-abertos-da-investigacao-de-exposicao-cambial.md` |
 | A40.l51 | lane | open | A40 | Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando | `sprint/A40/lanes/A40-l51-followups-orfaos-da-l43.md` |
 | A40.l53 | lane | shipped | A40 | Gate visual de seções está cego: a captura do Playwright reinicia o desenho do chart — e o mesmo defeito imprimia o gráfico pela metade no PDF | `sprint/A40/lanes/A40-l53-gate-visual-secoes-cego.md` |
@@ -905,7 +905,7 @@
 | A40.l55 | lane | open | A40 | Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 | `sprint/A40/lanes/A40-l55-medida-de-linha-no-papel.md` |
 | A40.l56 | lane | shipped | A40 | A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa | `sprint/A40/lanes/A40-l56-tabela-fiscal-de-producao.md` |
 | A40.l57 | lane | open | A40 | O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null | `sprint/A40/lanes/A40-l57-parecer-le-contrato-antigo-do-pgbl.md` |
-| A40.l58 | lane | blocked | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
+| A40.l58 | lane | open | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
 | A40.l59 | lane | open | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l60 | lane | open | A40 | Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte | `sprint/A40/lanes/A40-l60-ressalva-e-separacao-do-conselho-de-seguro.md` |

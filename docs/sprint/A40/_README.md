@@ -68,7 +68,13 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 > lido de propósito, D6; o órfão é o inverso e pertence à [[A40.l15]]). Restavam
 > **2**, ambas fechadas no #1336. **A KR-A não fecha com isso**: falta o gate,
 > que é o outro termo do "e" — e o gate especificado depende de tipar o schema
-> E5 primeiro (ver §Estado da Onda 2). Registrado aqui porque fechar a sprint
+> E5 primeiro (ver §Estado da Onda 2).
+>
+> **Atualização 2026-08-17:** o gate **passou a existir** (a l5 shipou), mas com
+> **cobertura menor que a especificada** — 2 das 5 fixtures do §Critério de
+> aceite da [[A40.l5]] não têm artefato. **A conclusão acima segue valendo pelo
+> mesmo motivo, com fato novo.** Detalhe e pendência do dono: §Estado da Onda 2
+> em 2026-08-17. Registrado aqui porque fechar a sprint
 > citando "5 → 0" contaria dois itens inexistentes.
 
 **KR rejeitado deliberadamente:** cobertura (`N% dos achados fechados`) — mede
@@ -306,9 +312,9 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l55]] | Medida de linha no papel: 100–110 cpl na prosa do A4 | P3 | — | aberta 2026-08-12 · polish de legibilidade; fix candidato `max-width: 90ch` em `@media print` |
 | [[A40.l56]] | A tabela fiscal de produção: row internamente inconsistente e nenhum golden a atravessa | P1 | — | aberta 2026-08-12 no fechamento dos follow-ups · desbloqueia [[ADR-375]] D5 · dono `data-engineer` · nasceu `l50`, renumerada no dia (o #1409 tomou o id em paralelo) |
 | [[A40.l57]] | O parecer lê o contrato antigo do bloco PGBL: guardrail FP-04 morto e âncora que resolve `null` | P2 | — | aberta 2026-08-12 · handoff da [[A40.l7]] **agravado pelo PR2 da [[A40.l34]]** (#1394) · dono `prompt-engineer` · sobe a P1 se dogfood mostrar retenção espúria |
-| [[A40.l58]] | `schema_validation` warn → strict — o PR5 que a [[A40.l5]] declarou como outra lane | P2 | [[A40.l5]] | aberta 2026-08-12 · `blocked` (exige o drift medido dos PRs da l5) · ADR própria antes do PR · dono `sre-devops` |
+| [[A40.l58]] | `schema_validation` warn → strict — o PR5 que a [[A40.l5]] declarou como outra lane | P2 | [[A40.l5]] ✅ | aberta 2026-08-12 · **`open` desde 2026-08-17** (era `blocked`; a dep fechou em 08-14 com #1440/#1441/#1450 e o status não acompanhou) · ADR própria antes do PR · dono `sre-devops` |
 | [[A40.l59]] | A transição para `shipped` ganha gate: `ship_pr` no frontmatter e PR visível no `_README` | P2 | — | aberta 2026-08-12 · executa o gatilho de promoção da skill `lane-closeout` (3ª ocorrência + 10 lanes fora desta tabela na medição) · dono `information-architect` |
-| [[A40.l60]] | Conselho de seguro: cobertura recomendada sem ressalva fiduciária + string que afirma invalidez sem fonte | P1 | — | aberta 2026-08-12 no fecho da sessão S6/FP-010 (#1379/#1390) · funde 2 achados verificados (mesmo produtor, mesma classe fiduciária) · KR-E · PR2 com amarra de entrega parcial atrás da [[A40.l35]] · nasceu `l50`, passou por `l58`, renumerada 2× em rebase (ids tomados em `main`) |
+| [[A40.l60]] | Conselho de seguro: cobertura recomendada sem ressalva fiduciária + string que afirma invalidez sem fonte | P1 | — | aberta 2026-08-12 no fecho da sessão S6/FP-010 (#1379/#1390) · funde 2 achados verificados (mesmo produtor, mesma classe fiduciária) · KR-E · **PR1 ✅ #1480 (`49c1cb3c`, 2026-08-15) — 3 superfícies + gate `check_coverage_disclaimer` + emenda [[ADR-192]]**; segue `open` pelo **PR2** (separar vida×invalidez), cuja amarra caiu quando a [[A40.l35]] shipou (#1476) — a rota de "declarar não-entregue" fechou · nasceu `l50`, passou por `l58`, renumerada 2× em rebase (ids tomados em `main`) |
 | [[A40.l61]] | ProtectionBundle fail-closed: ausência não vira zero/False | P1 | — | `shipped` (#1443 · `0a343302`) · mitigação do split da l35 · não liga a S9 |
 | [[A40.l62]] | Fontes canônicas + ProtectionComputationSnapshotV1 | P1 | l61 | `shipped` (#1471 · #1474 · `5cc4a02f`) · [[ADR-387]] `Decidido` · não liga a S9 |
 | [[A40.l63]] | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de real, saldo BRL rotulado USD | P1 | — | aberta 2026-08-15 no co-design do P0 nº 2 da [[A40.l50]] · dono `data-engineer` · **não é** a [[A40.l39]], que resolve a superfície e não a conversão · pede ADR própria |
@@ -615,6 +621,38 @@ senão cada uma é fixada uma vez e volta a divergir.
 > (#1476 · `549695b1`). DAG **l61/l62/l35 `shipped`**. A S9 consome o
 > snapshot; empty total só sem insumo real. l2 + l34 + l35 estão terminais —
 > o contador de 2 re-runs E0→E6 (o primeiro com LLM) pode iniciar.
+
+> **Estado da Onda 2 em 2026-08-17 — a [[A40.l5]] fecha e a Onda 2 fica sem lane
+> `in_progress`.** Correção de status, não entrega nova: a l5 ficou 3 dias
+> `in_progress` depois de o **PR3 (#1450, o último a mergear)** fechar o plano
+> PR0–PR4. `ship_pr: 1450`, `ship_date: 2026-08-14`. O PR5 nunca foi dela — é a
+> [[A40.l58]], que por isso saiu de `blocked` para `open` no mesmo dia.
+>
+> **O termo "e existe gate" da KR-A foi verificado, não presumido — e o
+> resultado é parcial.** `dev/check_view_model_contract.py` está no
+> `.pre-commit-config.yaml` com `always_run: true`, sai `EXIT=0` em `main`, e
+> **falha por mutação** com violações tipadas (`OPAQUE_READER`, ratchet de bloco
+> opaco, schema citado inexistente) provadas em
+> `tests/test_view_model_contract_gate.py`. A perna do `tsc` também é real:
+> `frontend/src/generated/report-analysis.ts` existe.
+>
+> **⚠️ 2 das 5 fixtures do §Critério de aceite da l5 não têm artefato**
+> (verificado em 2026-08-17 por busca em `dev/` + `tests/`): a **(2)** —
+> renomear `cobertura_meses`→`meses_cobertura` só no consumidor, que
+> *reproduz o RV3-09 exatamente* — e a **(3)** — allowlist com razão escrita
+> (não há mecanismo de allowlist). O gate fecha a classe *"reader lê bloco
+> opaco"*, que é a **precondição** da leitura órfã, não a leitura órfã em si.
+>
+> **Logo: a KR-A não é declarada fechada aqui.** O primeiro termo (órfãs → 0)
+> fechou no #1336; o segundo tem gate real mas cobertura menor que a
+> especificada. Fechar a KR citando "o gate existe" repetiria a classe que a
+> própria KR-A denuncia — afirmação sem a medição que ela mesma exige.
+> **Pendência do dono:** aceitar a cobertura atual e fechar a KR-A, ou rotear as
+> 2 fixtures. Não vira lane nova por conta própria (§Triagem de fecho recusou
+> lane catch-all).
+>
+> Toda a Onda 2 está terminal: **l2, l5, l7, l35, l61, l62 `shipped`**; l6, l8 e
+> l12 seguem `planned` (liberação por-lane, decisão do dono).
 
 **[[A40.l30]] entra como instrumento que gateia esta onda** (aberta 2026-08-03,
 co-design `prompt-engineer`). Não é Onda 0 — a Onda 0 é "parar a sangria" e sua
@@ -1202,7 +1240,7 @@ lane-coletora — item com dono de mentira é o que reaparece como PR corretivo.
 | Row de `fiscal_parameters` inconsistente (`deducao_brl_cents` mensal × faixa anual) — bloqueia [[ADR-375]] D5 | co-design [[A40.l34]] | **[[A40.l56]]** (P1) |
 | Nenhum golden atravessa `from_fiscal_parameters` (produção) | crítico do PR1 da l34 | **[[A40.l56]]** (mesmo dono, mesmo objeto) |
 | Parecer lê o contrato antigo do bloco PGBL (FP-04 morto · âncora `null` · resumo S8 · título do bucket) | handoff [[A40.l7]] + PR2 da l34 | **[[A40.l57]]** (P2, gatilho de subida declarado) |
-| `schema_validation` warn → strict | [[A40.l5]] §PR5 ("outra lane") | **[[A40.l58]]** (`blocked` por l5) |
+| `schema_validation` warn → strict | [[A40.l5]] §PR5 ("outra lane") | **[[A40.l58]]** (`open` desde 2026-08-17 — a l5 shipou) |
 | "PR mergeado invisível no `_README`" (3ª ocorrência) + 10 lanes fora da tabela | fecho da l7 · nota do §Lanes | **[[A40.l59]]** (gate na transição) |
 | Faixa marginal: base de cálculo ou rendimento bruto? | co-design interrompido (limite de gasto) | **decidido na emenda 2026-08-13 da [[ADR-375]]** (D6: faixa sobre base de cálculo; teto sobre rendimento bruto) e shippado no #1448 · consumidor restante: [[A40.l37]] |
 | `dev/golden_diff.py` fora de hook e de CI | crítico do PR1 da l34 | **pendência de decisão do dono**: wire como gate ou declarar ferramenta manual — hoje a prosa de lanes o cita como se gateasse |

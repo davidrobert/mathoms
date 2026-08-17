@@ -26,6 +26,27 @@ tags:
 
 # A40.l60 — `ressalva-e-separacao-do-conselho-de-seguro`
 
+> ⏳ **PR1 ✅ entregue em 2026-08-15 — #1480 (`49c1cb3c`). A lane segue `open`
+> pelo PR2**, que é trabalho real, não resíduo de status. Registrado em
+> 2026-08-17: a entrega ficou **2 dias** sem constar aqui, e a lane `open` sem
+> PR citado é indistinguível de lane não-começada.
+>
+> **O PR1 fechou os 3 itens do §Entregável, incluindo o durável:**
+>
+> | Item do §Entregável | Onde |
+> |---|---|
+> | Ressalva nas 3 superfícies medidas | `PontosUrgentesCard.tsx`, `summaries_narrator.py` (`_S9_GAP_VIDA`), `S9RiscosSection.tsx` + `S10SinteseSection.tsx` |
+> | Card `disclaimers` do APP_E — **criar o componente declarado** | `DisclaimersCard.tsx` + `ApendicesSections.tsx` (o `enabled: true` do `report_layout.yaml` deixou de apontar para o nada) |
+> | **Gate cross-superfície** (o entregável durável) | [`dev/check_coverage_disclaimer.py`](../../../../dev/check_coverage_disclaimer.py) + `.pre-commit-config.yaml` + prova por mutação em [`tests/dev/test_check_coverage_disclaimer.py`](../../../../tests/dev/test_check_coverage_disclaimer.py) |
+> | Emenda datada na [[ADR-192]] com escopo medido | `docs/adr/192-…-secao-9.md` |
+>
+> **A amarra do PR2 deixou de valer — e isso o torna mais exigente, não menos.**
+> A cláusula dizia: *"se a [[A40.l35]] não entregar os insumos, o PR2 é declarado
+> não-entregue por escrito"*. A **l35 shipou** (#1476, 2026-08-15), então
+> `disability_coverage_gap` não é mais um campo sobre bundle zerado. A rota de
+> escape fechou: **o PR2 agora é entregável e precisa ser entregue**, com a ADR
+> `Proposto` + co-design `financial-planner` que o §Entregável exige.
+
 > **Aberta em 2026-08-12**, no fecho da sessão S6/FP-010 (#1379/#1390) — dois
 > achados verificados contra `main` e fundidos porque saem do **mesmo produtor**
 > e carregam a **mesma classe de risco fiduciário**. Triagem: exceção da
