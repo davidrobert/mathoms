@@ -15,7 +15,12 @@ def _input(anexo: str, pro_labore_mensal: str) -> CascataInput:
         receita_pj_anual=Money.brl("600000"),
         pro_labore_mensal=Money.brl(pro_labore_mensal),
         folha_pj_mensal=Money.brl("0"),
-        renda_tributavel_pf_irpf_anual=Money.brl("0"),
+        # A40.l36: o campo é o TOTAL do IRPF. Fixture com 0 deixaria o caminho
+        # PGBL/T1/T3 verde sem exercitar a regra; e 174k faria a razão de
+        # elegibilidade do T1 passar de 0,80 (alvo = teto INSS 8.157,41), o que
+        # DESLIGA o trigger que este teste existe para exercitar.
+        # 96k = 60k declarados pela própria PJ + 36k de aluguel → razão 0,717.
+        renda_tributavel_pf_irpf_anual=Money.brl("96000"),
     )
 
 
