@@ -916,6 +916,7 @@
 | A40.l66 | lane | open | A40 | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | `sprint/A40/lanes/A40-l66-seam-extracao-consolidacao.md` |
 | A40.l67 | lane | blocked | A40 | Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo | `sprint/A40/lanes/A40-l67-guarda-de-publicacao-e5.md` |
 | A40.l68 | lane | planned | A40 | Balanço de stage fan-out: documento que some não pode sair como sucesso | `sprint/A40/lanes/A40-l68-balanco-de-fan-out.md` |
+| A40.l69 | lane | blocked | A40 | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | `sprint/A40/lanes/A40-l69-cobertura-investimentos-por-membro.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
