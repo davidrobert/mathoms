@@ -180,6 +180,14 @@ sequenciamento; esta frente não tem numeração própria.
 | **3** | [[A40.l19]] | Migration do drift de enum (4 valores) | P1 + gate de deploy |
 | **3** | [[A40.l20]] | `PlannerReview` representa "gerado e retido" | **P0** |
 | **3** — a superfície | [[A40.l22]] | Estados de degradação no relatório + PDF | **P0** (bloqueador do beta — ver 6ª classe) |
+| **Onda 7 do [[PLAN-deterministic-authority]]** | [[A40.l71]] | Predicado único da composição (7e · RV6-23) — enabler sem copy | P1 |
+| **idem** | [[A40.l72]] | Guard de contrato no render (7a · RV6-16) — `blocked` por [[A40.l66]] | P1 |
+
+As duas últimas vêm de fora: são a **Onda 7 do [[PLAN-deterministic-authority]]**,
+que roteou as lanes de render para cá por este plano ser a casa delas. A
+numeração da coluna deixa de ser só das ondas da A40 nessas duas linhas, e é o
+preço de manter a lane no plano que a executa em vez de duplicá-la. Ordem interna
+declarada lá: 7e (sem copy) mergeia antes de 7a (que detém a decisão de texto).
 
 **A onda 0 precede a onda 1 da A40** ("medir antes de mexer") por motivo
 estrutural, não de gravidade: medir exige run que completa, e o §Gate de saída

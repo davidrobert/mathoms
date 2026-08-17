@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-18 open · 4 in_progress · 2 blocked.
+19 open · 4 in_progress · 3 blocked.
 
-## Open (18)
+## Open (19)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
@@ -27,6 +27,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l64]] — Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante · priority P1 · área pipeline/financial-planning · branch `a40-l64-redutor-lei-15270-e-irpfm`
 - [[A40.l66]] — Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint · priority P0 · área pipeline · branch `a40-l66-seam-extracao-consolidacao`
 - [[A40.l70]] — endereco_canonical=None não cria identidade: match por titular+código ou needs_review · priority P1 · área pipeline/backend · branch `a40-l70-endereco-canonical-nao-cria-identidade`
+- [[A40.l71]] — Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente · priority P1 · área frontend · branch `a40-l71-predicado-unico-da-composicao`
 
 ## In progress (4)
 
@@ -35,12 +36,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 
-## Blocked (2)
+## Blocked (3)
 
 _Não pegáveis. Listadas porque `blocked` que fica stale some daqui justamente quando a dependência ship e a lane vira pegável._
 
 - [[A40.l67]] — Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo · priority P0 · área pipeline/financial-planning · ⛔ dep pendente: A40.l66 (open) · branch `a40-l67-guarda-de-publicacao-e5`
 - [[A40.l69]] — Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado · priority P0 · área pipeline · ⛔ dep pendente: A40.l66 (open), A40.l67 (blocked) · branch `a40-l69-cobertura-investimentos-por-membro`
+- [[A40.l72]] — Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante · priority P1 · área frontend · ⛔ dep pendente: A40.l66 (open) · branch `a40-l72-guarda-de-contrato-no-render`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

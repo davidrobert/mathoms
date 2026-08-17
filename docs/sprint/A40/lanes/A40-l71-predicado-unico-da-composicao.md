@@ -1,0 +1,138 @@
+---
+id: A40.l71
+type: lane
+title: "Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente"
+sprint: A40
+plan: PLAN-report-trust
+status: open
+priority: P1
+branch_slug: a40-l71-predicado-unico-da-composicao
+owner: product-designer
+adrs:
+  - "[[ADR-145]]"
+  - "[[ADR-215]]"
+depends_on: []
+parallel_with:
+  - "[[A40.l66]]"
+tags:
+  - type/lane
+  - sprint/a40
+  - status/open
+  - priority/p1
+  - area/frontend
+---
+
+# A40.l71 — `a40-l71-predicado-unico-da-composicao`
+
+> Item **7e** da Onda 7 do [[PLAN-deterministic-authority]] (RV6-23), aberto como
+> lane do [[PLAN-report-trust]] — a casa das lanes de render. É o **enabler sem
+> copy** da onda: entrega o predicado único, e a decisão de texto dos estados
+> fica com o 7a ([[A40.l72]]). Nasce `open` — não depende do seam nem de janela
+> de rebaseline monetário.
+
+## Problema
+
+A mesma composição patrimonial é filtrada por **dois predicados diferentes**, um
+em cada componente, e nenhum dos dois decide o negativo — ambos o resolvem por
+efeito colateral:
+
+`frontend/src/components/report/charts/PatrimonioDoughnutChart.tsx:23-25`
+
+```tsx
+const data = rows
+  .filter((r) => r.valor > 0)
+  .map((r) => ({ label: r.categoria, value: r.valor }));
+```
+
+`frontend/src/components/report/cards/PatrimonioCategoriasCard.tsx:21-23`
+
+```tsx
+const rows = allRows.filter(
+  (row) => !(row.categoria === "Residência" && row.valor === 0),
+);
+```
+
+Sobre o payload do r6 as duas divergem **na mesma tela**: o balde com valor
+negativo (a dívida que o seam roteou para o ativo — RV6-01) **desaparece do
+gráfico** e **é impresso na tabela**; o zero suspeito do cônjuge (RV6-04) some do
+gráfico e a tabela o imprime como zero confirmado. O leitor vê duas respostas
+para uma pergunta.
+
+Dois agravantes do predicado da tabela:
+
+1. Ele é **acoplado à copy** — casa a categoria pela string renderizada
+   `"Residência"`. Mudança de rótulo (ou i18n) desliga o filtro sem que nada
+   falhe, e a exceção do [[ADR-215]] P5 (esconder "Residência R$ 0,00" para não
+   confundir "zero ≠ dado ausente") deixa de valer em silêncio.
+2. Ele resolve **exatamente um** caso de zero — o de residência — e trata todo o
+   resto (zero de qualquer outra categoria, negativo de qualquer categoria) por
+   omissão, imprimindo. Não há decisão escrita para o negativo em lugar nenhum
+   dos dois componentes.
+
+## Escopo
+
+`visibleCompositionRows()` — **um** predicado, exportado de módulo próprio em
+`frontend/src/components/report/utils/`, consumido pelos **dois** componentes.
+Ele decide os 3 casos **explicitamente**, cada um com nome:
+
+| Caso | Predicado | Donut | Tabela |
+|---|---|---|---|
+| negativo | `valor < 0` | omite a fatia | imprime a linha, marcada |
+| zero-confirmado | `valor === 0` com cobertura | omite a fatia | imprime `0,00` |
+| ausente | zero sem cobertura, ou categoria sem dado | omite a fatia | `—` + nota |
+
+A assimetria donut×tabela é **intencional e declarada** no módulo: fatia de área
+zero ou negativa não é representável num donut, mas a linha da tabela é o lugar
+onde o número presta contas. O que a lane elimina não é a assimetria — é ela
+existir **por acidente**, escrita duas vezes e divergente.
+
+A exceção [[ADR-215]] P5 (residência zero) migra para dentro do predicado e
+deixa de casar por string renderizada — passa a casar pela chave de categoria
+([[ADR-145]]).
+
+**Interim declarado:** enquanto o RV6-04 estiver aberto ([[A40.l69]]), zero sem
+cobertura renderiza `—` + nota, **não** `0,00` — a distinção `zero_apurado` ×
+`nao_apurado` chega no payload com a l69, e até lá o render não tem como afirmar
+qual dos dois é. Quando a l69 mergear, o caso `zero-confirmado` passa a ser
+alimentado pelo campo `cobertura_investimentos[]` em vez do interim.
+
+## Enforcement
+
+Sem enforcement novo de pipeline — é lane de render. O que a lane trava é
+**estrutural**: teste que reprova se algum dos dois componentes voltar a filtrar
+`composicao`/`tabela_categorias` por conta própria (o predicado é fonte única, e
+duplicá-lo é a regressão que esta lane fecha).
+
+## Critério de aceite
+
+- **Prova por mutação:** fixture com balde negativo ⇒ hoje o donut o omite e a
+  tabela o imprime sem marca; pós-fix, os dois consomem o mesmo predicado e o
+  caso é **nomeado** nos dois — a linha da tabela sai marcada e a fatia sai
+  omitida **pela mesma decisão**, não por dois `filter` que por acaso divergem.
+  Segunda mutação: renomear a categoria `"Residência"` no fixture ⇒ **hoje** o
+  filtro do [[ADR-215]] P5 desliga em silêncio e a linha R$ 0,00 reaparece;
+  pós-fix, o predicado continua valendo porque casa por chave.
+- Teste dos 3 casos com nome, um por caso — não um teste com 3 asserts (o
+  primeiro a falhar esconderia os outros dois).
+- Gate de duplicação: `filter` sobre `composicao`/`tabela_categorias` fora do
+  predicado reprova.
+- Contraste dos estados novos (marca do negativo, nota do `—`) nos **2 temas**,
+  par `-on-tint` quando o texto for sobre tint da própria cor; `NAMED_PAIRS` se o
+  gate não alcançar o par.
+- Baseline visual: `frontend-print-visual` é **label-gated** — rodar
+  explicitamente e **inspecionar o PNG no runner Linux** antes de commitar
+  baseline. Baseline commitada sem olhar já custou uma sessão neste repo.
+- Specs de a11y por seção cobrindo os estados novos.
+
+## Fora de escopo
+
+- **Copy** dos estados de degradação e do banner → [[A40.l72]] (7a), que é quem
+  detém a decisão de texto da onda. Esta lane entrega o predicado e usa texto
+  mínimo (`—` + nota curta); reescrevê-lo é lá.
+- Contagem `needs_review` server-side no payload + snapshot OpenAPI — passo (1)
+  da sequência da Onda 7, PR de backend, fora desta lane.
+- Distinguir `zero_apurado` de `nao_apurado` **no dado** → [[A40.l69]]. Aqui é só
+  o render do que o payload já diz.
+- Export/PDF com contagem indisponível → resíduo da [[A40.l22]] (RV6-22).
+- 5º banner: **proibido** (§Anti-decisões do plano). Estado novo reusa o
+  `ReportDataQualityBanner`.
