@@ -79,7 +79,10 @@
           "descricao": {"type": "string"},
           "tipo": {"type": "string"},
           "proprietario": {"type": "string"},
-          "valores_31_12": {"type": "object"},
+          "valores_31_12": {
+            "type": "object",
+            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": "number", "minimum": 0}}
+          },
           "instituicao": {"type": "string"},
           "proprietarios": {
             "type": "array",
@@ -114,7 +117,10 @@
           },
           "endereco": {"type": "string"},
           "tipo": {"type": "string"},
-          "valores_31_12": {"type": "object"},
+          "valores_31_12": {
+            "type": "object",
+            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": "number", "minimum": 0}}
+          },
           "property_id": {"type": ["string", "null"]},
           "endereco_canonical": {"type": ["string", "null"]},
           "codigo_rfb": {"type": "string"},
@@ -133,7 +139,10 @@
           "descricao": {"type": "string"},
           "proprietario": {"type": "string"},
           "tipo": {"type": "string"},
-          "valores_31_12": {"type": "object"},
+          "valores_31_12": {
+            "type": "object",
+            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": "number", "minimum": 0}}
+          },
           "veiculo_id": {
             "type": ["string", "null"],
             "description": "FK opcional para vehicles.id após reconciliação E1.5c (ADR-239)"
