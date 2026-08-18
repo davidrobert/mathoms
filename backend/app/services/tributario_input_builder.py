@@ -261,7 +261,7 @@ def _assemble_input(
     financeiro_pj: Optional[FinanceiroPJSnapshot] = None,
 ) -> CascataInput:
     return CascataInput(
-        outras_rendas_tributaveis_pf_anual=irpf_total,
+        renda_tributavel_pf_irpf_anual=irpf_total,
         imoveis_alugados_count=imoveis[0],
         receita_aluguel_anual=Money.brl(imoveis[1]),
         previdencia_snapshot=previdencia,

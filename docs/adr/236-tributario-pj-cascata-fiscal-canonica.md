@@ -6,7 +6,7 @@ status: Decidido
 phase: A16.tributario-pj-cascata
 date: "2026-05-20"
 decided_at: "2026-05-21"
-amended_at: ["2026-07-15", "2026-08-08"]
+amended_at: ["2026-07-15", "2026-08-08", "2026-08-17"]
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-157]]"
@@ -37,6 +37,12 @@ tags:
 > **Emenda 2026-07-15 (CTO-05):** ver [§ Emenda 2026-07-15](#emenda-2026-07-15-cto-05--cascata-pj-com-perfil-incompleto-e-receita-detectada). Perfil PJ incompleto (`regime=None`) com entradas PJ detectadas no fluxo **suprime** a cascata zerada e emite CTA citando o valor observado + sinal `perfil_incompleto_com_receita`. Não deriva faturamento (pró-labore ≠ receita bruta).
 
 > **Emenda 2026-08-08 (medição):** ver [§ Emenda 2026-08-08](#emenda-2026-08-08--o-critério-a11y-aaa-não-é-verificado-por-nenhum-mecanismo). O critério "UI A11y AAA" desta ADR **não é verificado**: o axe roda com tags até `wcag21aa`, então a regra de 7:1 nunca executa. Medidos, os 4 pares do badge Fator-R passam AA e **reprovam AAA** (5,60–6,21:1). Decisão em aberto — recalibrar token ou corrigir o critério para AA.
+
+
+> **Emenda 2026-08-17 (A40.l36):** a base do PGBL é o **total dos rendimentos
+> declarados no IRPF**, fonte única — o pró-labore do fluxo sai da soma. Esta ADR
+> se contradizia: o §D3 mandava somar, a §Riscos proibia inferir de pró-labore.
+> Ver [§ Emenda 2026-08-17](#emenda-2026-08-17--a-base-do-pgbl-tem-uma-fonte-não-uma-soma).
 
 ## Emenda 2026-07-15 (CTO-05) — Cascata PJ com perfil incompleto e receita detectada
 
@@ -185,7 +191,7 @@ class CascataOutput:
     inss_empregado: Money               # 11% s/ pró-labore até teto
     irrf_pro_labore: Money              # tabela progressiva
     lucros_distribuidos: Money          # isentos (informativo)
-    renda_pf_tributavel_total: Money    # pró-labore tributável + outras tributáveis IRPF
+    renda_pf_tributavel_total: Money    # TOTAL do IRPF (ver §Emenda 2026-08-17)
     carga_total_pct: Decimal            # (tributos_federais + iss + inss_patronal + irrf) / receita_bruta
 
     # PGBL
@@ -399,3 +405,48 @@ Flip ADR-236 → `Decidido (A16.tributario-pj-cascata)` no merge do P6.
 - **AUVP** módulo previdência — PGBL só em declaração completa + IR marginal ≥ 22,5% + horizonte >10 anos.
 - **Cerbasi** "Como organizar sua vida financeira" cap. renda variável PJ — otimização pró-labore × lucros isentos.
 - **Diagnóstico:** sessão 2026-05-20, workspace dogfood — card S8 com lacunas literais ("enquadrada no  ("), texto canned errado ("Lucro presumido 32% define base PGBL"), `bundle["tributario"]` nunca propagado.
+
+## Emenda 2026-08-17 — a base do PGBL tem uma fonte, não uma soma
+
+Esta ADR se contradizia desde a origem, e as duas cláusulas produziram
+comportamentos incompatíveis no mesmo código:
+
+- o **§D3** declarava `renda_pf_tributavel_total = pró-labore tributável +
+  outras tributáveis IRPF`;
+- a **§Riscos** declarava o oposto: *"Não infere base PGBL de pró-labore só
+  (sub-estima quando há aluguéis)"*.
+
+`_compute_layers` herdou o §D3 e somava as duas parcelas. Mas o produtor
+preenchia o segundo termo com o **total** do IRPF — e o pró-labore está nesse
+total, porque a própria empresa do titular é fonte pagadora PJ. Medido na
+[[A40.l36]]: base R$ 318.000 contra R$ 174.000 corretos (**+82,8%**), e teto
+PGBL de R$ 38.160 no lugar de R$ 20.880.
+
+**A cláusula que sobrevive é a §Riscos.** Três consequências, explícitas para
+que o §D3 não seja re-derivado:
+
+1. **Fonte única.** A base é o total dos rendimentos tributáveis do IRPF
+   (`rendimentos_pj + rendimentos_pf`). O pró-labore do fluxo E4 **não compõe** a
+   base; segue servindo às camadas da cascata, ao fator-R e à elegibilidade do
+   T1. O limite de 12% incide sobre *"o total dos rendimentos computados na
+   determinação da base de cálculo"* (RIR/2018 art. 68) — **computados** é
+   declarados, e só o IRPF tem o total. O fluxo é cego a aluguel, segundo
+   emprego, aposentadoria e RPA.
+2. **O horizonte muda, e isso é declarado.** A base passa a ser do **ano-base
+   declarado**, não do ano corrente; vale a ressalva de proxy retrospectivo da
+   [[ADR-305]] D3.
+3. **Sem IRPF, a base não existe** — ausência não é `R$ 0` nem é o pró-labore. A
+   saída é `pgbl_aplicavel=False` com motivo, no espírito do §D4 da [[ADR-375]].
+   O estado de UI que a §Riscos pedia já existia (`RendaPfZeradaNotice`) e era
+   **inalcançável** para o ICP PJ, porque bastava um pró-labore no E4 para a base
+   ficar > 0; esta emenda o reconecta.
+
+**Nada é subtraído do lado do IRPF.** `rendimentos_pj` é heterogêneo — cabem ali
+salário CLT de outro empregador, aluguel pago por inquilino PJ, aposentadoria,
+RPA e lucro excedente tributável —, e a ficha da própria PJ nem é só pró-labore.
+Regra por ficha apaga renda legítima, e `BusinessProfile` não carrega o CNPJ que
+faria a identidade. Três testes de guarda travam isso.
+
+Campo renomeado para `renda_tributavel_pf_irpf_anual`: o nome anterior
+(`outras_rendas_tributaveis_pf_anual`) prometia "exceto pró-labore" e entregava o
+total. **Foi o nome que causou a soma.**

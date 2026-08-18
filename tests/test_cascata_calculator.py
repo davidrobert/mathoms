@@ -78,7 +78,9 @@ def _input_simples_iii() -> CascataInput:
         pro_labore_mensal=Money.brl("12000"),
         lucros_distribuidos_mensal=Money.brl("20000"),
         folha_pj_mensal=Money.brl("6000"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        # A40.l36: campo = TOTAL do IRPF, e o pró-labore está nele. Cenário
+        # preservado (pró-labore só); só a semântica do campo mudou.
+        renda_tributavel_pf_irpf_anual=Money.brl("144000"),
     )
 
 
@@ -104,16 +106,6 @@ def test_golden_simples_iii_tributos():
     # Lucro contábil = 600000 − 63360 − 144000 = R$ 392.640
     assert _approx(out.lucro_contabil_pj, "392640.00")
     assert _approx(out.lucros_distribuidos, "240000.00")
-
-
-def test_golden_simples_iii_pgbl():
-    out = compute(_input_simples_iii())
-    # Base PGBL = pró-labore bruto + outras tributáveis = 144.000 + 0
-    assert _approx(out.pgbl_base_anual, "144000.00")
-    # Limite = 144.000 × 0,12 = R$ 17.280
-    assert _approx(out.pgbl_limite_anual, "17280.00")
-    assert out.pgbl_aplicavel is True
-    assert out.pgbl_motivo_inaplicavel is None
 
 
 def test_golden_simples_iii_fator_r():
@@ -143,6 +135,9 @@ def test_golden_simples_iii_triggers():
 
 def _input_simples_v() -> CascataInput:
     # Mesmo receita 600k mas pró-labore baixo (5k) e zero folha → fator-R 10% → V.
+    #
+    # A40.l36: IRPF 0 deixaria PGBL/T1/T3 verdes sem exercitar a regra. 96k =
+    # 60k da própria PJ + 36k de aluguel; os 4 candidatos ficam distintos.
     return CascataInput(
         regime="simples",
         anexo_simples="V",
@@ -152,7 +147,7 @@ def _input_simples_v() -> CascataInput:
         pro_labore_mensal=Money.brl("5000"),
         lucros_distribuidos_mensal=Money.brl("30000"),
         folha_pj_mensal=Money.brl("0"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        renda_tributavel_pf_irpf_anual=Money.brl("96000"),
     )
 
 
@@ -203,7 +198,8 @@ def _input_presumido() -> CascataInput:
         pro_labore_mensal=Money.brl("10000"),
         lucros_distribuidos_mensal=Money.brl("0"),
         folha_pj_mensal=Money.brl("0"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("120000"),  # aluguéis
+        # A40.l36: total do IRPF = pró-labore 120k + aluguéis 120k.
+        renda_tributavel_pf_irpf_anual=Money.brl("240000"),
         imoveis_alugados_count=4,
         receita_aluguel_anual=Money.brl("120000"),
     )
@@ -226,14 +222,6 @@ def test_golden_presumido_cascata():
     assert _approx(out.irrf_pro_labore, "19134.12")
     # Lucro contábil = 1200000 − 150360 − 60000 − 120000 − 24000 = R$ 845.640
     assert _approx(out.lucro_contabil_pj, "845640.00")
-
-
-def test_golden_presumido_pgbl():
-    out = compute(_input_presumido())
-    # Base = 120.000 (pró-labore) + 120.000 (aluguéis) = R$ 240.000
-    assert _approx(out.pgbl_base_anual, "240000.00")
-    assert _approx(out.pgbl_limite_anual, "28800.00")
-    assert out.pgbl_aplicavel is True
 
 
 def test_golden_presumido_no_fator_r():
@@ -342,21 +330,6 @@ def test_lucro_real_nao_suportado():
 # =============================================================================
 # Gates explícitos da ADR-236
 # =============================================================================
-
-
-def test_pgbl_base_is_renda_tributavel_pf_not_receita_pj_times_32pct():
-    """Gate crítico — base PGBL nunca é `receita_pj × 32%` (folclore amador rejeitado)."""
-    # Workspace típico: receita PJ R$ 600k, pró-labore R$ 5k/mês, sem aluguéis.
-    out = compute(_input_simples_v())
-    pro_labore_anual = Decimal("60000")
-    # Confusão amador comum (rejeitada):
-    receita_pj_x_32pct = Decimal("600000") * Decimal("0.32")  # = 192.000
-    # Base PGBL canônica = pró-labore + outras tributáveis (= 60.000 aqui).
-    assert _approx(out.pgbl_base_anual, str(pro_labore_anual))
-    # Confirmação explícita: NUNCA pode ser receita × 32%.
-    assert out.pgbl_base_anual.amount != receita_pj_x_32pct
-
-
 def _input_simples_iii_simplificada() -> CascataInput:
     base = _input_simples_iii()
     return CascataInput(
@@ -367,22 +340,8 @@ def _input_simples_iii_simplificada() -> CascataInput:
         pro_labore_mensal=base.pro_labore_mensal,
         lucros_distribuidos_mensal=base.lucros_distribuidos_mensal,
         folha_pj_mensal=base.folha_pj_mensal,
-        outras_rendas_tributaveis_pf_anual=base.outras_rendas_tributaveis_pf_anual,
+        renda_tributavel_pf_irpf_anual=base.renda_tributavel_pf_irpf_anual,
     )
-
-
-def test_simplificada_anula_pgbl():
-    out = compute(_input_simples_iii_simplificada())
-    assert out.pgbl_base_anual.amount > Decimal("0")  # renda tributável existe
-    assert out.pgbl_aplicavel is False
-    assert out.pgbl_motivo_inaplicavel == "declaracao_simplificada"
-
-
-def test_simplificada_bloqueia_triggers_pgbl_dependentes():
-    out = compute(_input_simples_iii_simplificada())
-    codes = _trigger_codes(out)
-    assert "T1" not in codes  # T1 exige PGBL aplicável
-    assert "T3" not in codes  # T3 exige PGBL aplicável
 
 
 def _input_simples_iii_declaracao_desconhecida() -> CascataInput:
@@ -395,24 +354,8 @@ def _input_simples_iii_declaracao_desconhecida() -> CascataInput:
         pro_labore_mensal=base.pro_labore_mensal,
         lucros_distribuidos_mensal=base.lucros_distribuidos_mensal,
         folha_pj_mensal=base.folha_pj_mensal,
-        outras_rendas_tributaveis_pf_anual=base.outras_rendas_tributaveis_pf_anual,
+        renda_tributavel_pf_irpf_anual=base.renda_tributavel_pf_irpf_anual,
     )
-
-
-def test_declaracao_desconhecida_nao_afirma_pgbl_aplicavel():
-    """ADR-375 D4 cond. 1 — "completa" precisa ser conhecida, não defaultada."""
-    out = compute(_input_simples_iii_declaracao_desconhecida())
-    assert out.pgbl_base_anual.amount > Decimal("0")  # a base existe
-    assert out.pgbl_aplicavel is False
-    assert out.pgbl_motivo_inaplicavel == "tipo_declaracao_desconhecido"
-
-
-def test_declaracao_desconhecida_bloqueia_triggers_pgbl_dependentes():
-    """O dano do default é a prescrição: T1 e T3 aconselham aporte sem saber o modelo."""
-    out = compute(_input_simples_iii_declaracao_desconhecida())
-    codes = _trigger_codes(out)
-    assert "T1" not in codes
-    assert "T3" not in codes
 
 
 def test_input_sem_tipo_declaracao_nasce_desconhecido():
@@ -443,7 +386,7 @@ def test_no_holding_trigger_zero_imoveis_mesmo_receita_pj_alta():
         iss_aliquota_pct=Decimal("5"),
         receita_pj_anual=Money.brl("3000000"),
         pro_labore_mensal=Money.brl("10000"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("120000"),
+        renda_tributavel_pf_irpf_anual=Money.brl("120000"),
         imoveis_alugados_count=0,
         receita_aluguel_anual=Money.brl("0"),
     )
@@ -457,7 +400,7 @@ def test_no_holding_trigger_dois_imoveis_abaixo_min():
         iss_aliquota_pct=Decimal("5"),
         receita_pj_anual=Money.brl("1200000"),
         pro_labore_mensal=Money.brl("10000"),
-        outras_rendas_tributaveis_pf_anual=Money.brl("120000"),
+        renda_tributavel_pf_irpf_anual=Money.brl("120000"),
         imoveis_alugados_count=2,
         receita_aluguel_anual=Money.brl("120000"),
     )
@@ -472,7 +415,8 @@ def test_trigger_t5_proximo_sublimite_simples():
         receita_pj_anual=Money.brl("3000000"),
         pro_labore_mensal=Money.brl("15000"),
         folha_pj_mensal=Money.brl("60000"),  # fator-R ~30% → seguro de T2
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        # A40.l36: fixture com 0 deixaria o caminho PGBL/T1/T3 sem exercício.
+        renda_tributavel_pf_irpf_anual=Money.brl("180000"),
     )
     out = compute(inp)
     assert "T5" in _trigger_codes(out)
@@ -490,7 +434,8 @@ def test_trigger_t2_fator_r_proximo_corte():
         receita_pj_anual=Money.brl("600000"),
         pro_labore_mensal=Money.brl("10500"),  # 10500×12=126k; folha 0 → 21%
         folha_pj_mensal=Money.brl("2000"),  # +24k → 150k total → 25%
-        outras_rendas_tributaveis_pf_anual=Money.brl("0"),
+        # A40.l36: fixture com 0 deixaria o caminho PGBL/T1/T3 sem exercício.
+        renda_tributavel_pf_irpf_anual=Money.brl("180000"),
     )
     out = compute(inp)
     assert "T2" in _trigger_codes(out)

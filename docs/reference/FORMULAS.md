@@ -409,7 +409,7 @@ um valor que era o **restante**.
 
 | Conceito | Fórmula | Onde no código |
 | --- | --- | --- |
-| Base dedutível (ano corrente) | `pgbl_base_anual = pro_labore_anualizado + outras_rendas_tributaveis_pf_anual`. **Lucros distribuídos não entram** — são isentos, logo não compõem base tributável ([[ADR-236]] §3). | `cascata_calculator._compute_layers` · E5 · `tributario.cascata.pgbl_base_anual` |
+| Base dedutível (ano-base declarado) | `pgbl_base_anual = renda_tributavel_pf_irpf_anual` — o **total** dos rendimentos tributáveis do IRPF (`rendimentos_pj + rendimentos_pf`), fonte única. O pró-labore do fluxo **não** é somado: ele já está no IRPF, porque a própria PJ é fonte pagadora ([[ADR-236]] §Emenda 2026-08-17). **Lucros distribuídos não entram** — são isentos. Sem IRPF a base **não existe**; ausência não é zero. | `cascata_calculator._compute_layers` · E5 · `tributario.cascata.pgbl_base_anual` |
 | Teto de 12% (ano corrente) | `pgbl_limite_anual = pgbl_base_anual × 0,12` | [`cascata_pgbl.compute_pgbl`](../../pipeline/domain/services/tributario/cascata_pgbl.py) · `tributario.cascata.pgbl_limite_anual` |
 | Restante dedutível (ano-base declarado) | `restante = Σ(tributável × 12% − já_aportado)`, clamp ≥ 0 ([[ADR-189]]) | `IRPFAnalyzer.pgbl_capacidade_dedutivel` · `irpf.pgbl_capacidade_dedutivel_brl` |
 | Alíquota marginal | Faixa de `fiscal_parameters.ir_brackets` que **contém** a renda — nunca a faixa excedida nem a do topo | [`irpf_faixa_marginal.resolve_faixa_marginal`](../../pipeline/domain/services/irpf_faixa_marginal.py) |

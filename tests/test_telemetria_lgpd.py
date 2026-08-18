@@ -63,7 +63,7 @@ _MONEY_KEYS_FORBIDDEN: tuple[str, ...] = (
     "folha_pj_mensal",
     "das_pago_mensal",
     "iss_pago_mensal",
-    "outras_rendas_tributaveis_pf_anual",
+    "renda_tributavel_pf_irpf_anual",
     "carga_total_pct",
     "fator_r_break_even",
     "cnpj",
