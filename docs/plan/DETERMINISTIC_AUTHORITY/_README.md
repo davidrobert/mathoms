@@ -363,7 +363,10 @@ call-sites** em 4 arquivos — o analyzer do RV6-14 é um deles, não o conjunto
   documento extraído (anti reask-storm, precedente [[ADR-292]]).
 - 1c. Conservação intra-artefato no E1.5c, **por eixo e por ano** (cents int,
   tolerância zero): generalizar o ramo `pj_skipped>0` que **já desliga** o
-  override do `resumo` (o fix é majoritariamente deleção); determinístico
+  override do `resumo` (o fix é majoritariamente deleção — **mas 1a vem antes:
+  medido em §Ataque da [[A40.l66]], `total_passivos ≡ Σ|negativos|` em 7/7, logo
+  hoje o override mascara o defeito nos totais e deletá-lo primeiro piora r6**);
+  determinístico
   ganha; divergência → `review_reason` + stage `degraded` ([[ADR-357]]), nunca
   raise que mata o relatório. Contrato de `review_reasons` no artefato E1.5c
   (hoje só `extract_baseline` projeta).
@@ -596,7 +599,11 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
 - **2026-08-17 · E1.5a × E1.6 extraem o mesmo IRPF com contratos diferentes**
   (E1.6 já separa `bens_direitos`/`dividas` por seção — a duplicação estrutural
   é a causa remota de 1b). Dono: senior-cto. Condição de retomada: Onda 1
-  mergeada + medição de custo de unificação dos extratores.
+  mergeada + medição de custo de unificação dos extratores. **Revisar a condição:**
+  §Ataque da [[A40.l66]] mediu `E1.6.dividas_onus` = 6 em **7/7** runs contra o
+  rótulo do E1.5a flipando em 5/7 — a seção que 1a precisa já existe, estável, uma
+  etapa depois no `FULL_ORDER`; o deferimento pode estar no caminho crítico da
+  Onda 1, não atrás dela.
 - **2026-08-17 · Split do registro** `PIPELINE-REVIEWS-active` (~72KB; sem gate
   de tamanho para MOC editorial). Dono: information-architect. Condição:
   próximo run (r7) antes de abrir a seção.

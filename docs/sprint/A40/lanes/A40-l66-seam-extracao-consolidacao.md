@@ -109,23 +109,31 @@ idempotente**.
 
 ## Enforcement
 
-WARN-first, doutrina [[ADR-357]]/[[ADR-358]]. A taxa de disparo de 1c é medida
-sobre os payloads r5+r6 e **declarada na ADR-A antes de qualquer flip**; default
+WARN-first, doutrina [[ADR-357]]/[[ADR-358]]. A taxa de disparo de 1c está
+**medida** em §Ataque (0% ano-cega · 100% por ano, 7/7 runs); o que resta à ADR-A
+é **declarar qual das duas adota**, antes de qualquer flip; default
 é rebaixa/declara (warning tipado + `review_reason` + `degraded`), nunca reter
 nem abortar run. Kill-switch de 1 env var, provado por teste.
 
 ## Critério de aceite
 
-- Os 4 `xfail(strict=True)` de `tests/test_e15c_golden_execution.py` que nomeiam
+> **3 destes critérios foram corrigidos por medição** — leia §Ataque
+> (2026-08-17) §Correções antes do pickup. Os itens afetados estão marcados
+> `⚠️ corrigido`. O texto original fica: é o co-design, não um snapshot a
+> reescrever.
+
+- ⚠️ corrigido — Os 4 `xfail(strict=True)` de `tests/test_e15c_golden_execution.py` que nomeiam
   A40.l66 desmarcados e verdes; o 5º (schema) continua RED — é da [[A40.l67]].
 - `tests/test_e5_invariante_entre_agregados.py::test_invariante_4a_entre_agregados`
   desmarcado e verde (invariante 4a — critério de aceite da Onda 1).
 - `test_e15c_r6_o_cancelamento_exato_e_a_assinatura_do_bug` **deletado** (não
   relaxado): ele afirma a presença do defeito, e Δ passa a ser (0, 0).
-- **Prova por mutação:** flipar `categoria` de um item negativo no corpus produz
-  baldes **byte-idênticos**. Sem essa prova, o teste nomeia o mecanismo sem
-  exercitá-lo.
-- Taxa de disparo de 1c medida sobre r5+r6 e escrita na ADR-A.
+- ⚠️ corrigido — **Prova por mutação:** flipar `categoria` de um item negativo no
+  corpus produz baldes **byte-idênticos**. Sem essa prova, o teste nomeia o
+  mecanismo sem exercitá-lo. *(§Ataque: a mutação negativa é satisfeita só pelo
+  degrau do sinal — exige também o caso positivo e o caso sem código útil.)*
+- ⚠️ corrigido — Taxa de disparo de 1c medida sobre r5+r6 e escrita na ADR-A.
+  *(§Ataque já mediu: 0% ano-cega · 100% por ano.)*
 - ADR-A aberta `Proposto` **antes** do PR de implementação (política P0/P1) e
   flipada para `Decidido` no merge.
 - Rebaseline, se houver, em commit isolado dentro do PR do fix
