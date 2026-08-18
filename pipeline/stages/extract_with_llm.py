@@ -399,7 +399,9 @@ def _skip_review_reason(skip: dict[str, str]) -> dict[str, Any]:
         code=ReviewReasonCode.extract_reader_missing,
         stage="extract_with_llm",
         artifact_key=_e2_extract_stem(Path(skip["file"])),
-        document_id=skip["file"],
+        # identidade do documento resolve no boundary pelo prefixo content_hash
+        # do artifact_key (ADR-308 §5); filename aqui violava a FK (ADR-371)
+        document_id=None,
         offending_value=skip["motivo"],
         expected="documento extraído e enviado ao LLM",
         message=f"documento não extraído — {skip['motivo']}",

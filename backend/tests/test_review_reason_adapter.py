@@ -431,3 +431,47 @@ async def test_record_stage_keeps_native_issues_untouched(sync_db) -> None:
     _record(run_id, log_id, _needs_review_detail(), stage="extract_baseline")
     issues = _fetch_review(sync_db, run_id).validation_issues
     assert issues == [{"code": "e15.item.empty_code", "severity": "warning"}]
+
+
+@pytest.mark.asyncio
+async def test_foreign_keys_pragma_esta_on(sync_db) -> None:
+    """Sem o pragma, os dois testes abaixo passariam pelo motivo errado."""
+    assert sync_db.execute(text("PRAGMA foreign_keys")).scalar() == 1
+
+
+_SKIP_KEY = "47609e9b0b51_itau_cdbdetalhes_2026"
+
+
+# Regressão do run 140ac8d7: stage que projeta filename em `document_id` derrubava
+# o run inteiro com IntegrityError no INSERT — o caminho de REPORTE matando a
+# execução que ele existe para documentar (FK enforçada, ADR-371).
+@pytest.mark.asyncio
+async def test_document_id_nao_resolvivel_nao_aborta_o_run(sync_db) -> None:
+    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+    _seed_workspace(sync_db, ws_id)
+    sync_db.add(PipelineRun(id=run_id, workspace_id=ws_id, status=PipelineRunStatus.running))
+    sync_db.commit()
+    reasons = [
+        _reason(
+            "extract.reader_missing",
+            artifact_key=_SKIP_KEY,
+            document_id=f"{_SKIP_KEY}-0_original.xls",
+        )
+    ]
+    assert _materialize(sync_db, run_id, ws_id, reasons) == 1
+    row = _rows(sync_db, run_id)[0]
+    assert row.document_id is None, "id não resolvível vira NULL, não aborta"
+    assert row.artifact_key == _SKIP_KEY, "identidade preservada"
+
+
+@pytest.mark.asyncio
+async def test_document_id_real_continua_persistido(sync_db) -> None:
+    """A guarda acima não pode cegar a FK legítima."""
+    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+    doc = _seed_document(sync_db, ws_id, "dddd1111eeee")
+    sync_db.add(PipelineRun(id=run_id, workspace_id=ws_id, status=PipelineRunStatus.running))
+    sync_db.commit()
+
+    reasons = [_reason("domain.temporal_gap", artifact_key="", document_id=doc.id)]
+    assert _materialize(sync_db, run_id, ws_id, reasons) == 1
+    assert _rows(sync_db, run_id)[0].document_id == doc.id
