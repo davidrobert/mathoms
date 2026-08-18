@@ -86,9 +86,22 @@ zero ou negativa não é representável num donut, mas a linha da tabela é o lu
 onde o número presta contas. O que a lane elimina não é a assimetria — é ela
 existir **por acidente**, escrita duas vezes e divergente.
 
-A exceção [[ADR-215]] P5 (residência zero) migra para dentro do predicado e
-deixa de casar por string renderizada — passa a casar pela chave de categoria
-([[ADR-145]]).
+A exceção [[ADR-215]] P5 (residência zero) migra para dentro do predicado.
+
+> **Corrigido na execução (2026-08-17): a chave não trafega.** Esta linha dizia
+> "passa a casar pela chave de categoria ([[ADR-145]])". Medido ao implementar:
+> a [[ADR-145]] declara `template_key` estável e proíbe rename, mas o payload
+> transmite **só o rótulo exibido** — `patrimonio_calculator.py:455` monta
+> `{"categoria": "Residência", …}`, e dois dos seis rótulos interpolam nome de
+> membro (`f"Investimentos {identity.titular_nome}"`). Não há campo de chave em
+> `PatrimonioCategoria` nem bridge de codegen. Fazer a chave trafegar é mudança
+> de contrato do E5 — fora desta lane, e na superfície da [[A40.l5]].
+>
+> Entregue no lugar, com a mesma intenção (rename não desliga o filtro em
+> silêncio): constante única `CATEGORIA_RESIDENCIA_LABEL` no predicado + **gate
+> de paridade Py↔TS** (`dev/check_composicao_predicate.py`), que falha no commit
+> se o produtor renomear. Precedente da forma: `check_probabilidade_parity.py`
+> ([[A40.l25]]) e `check_chart_conclusion_parity.py` ([[ADR-122]]).
 
 **Interim declarado:** enquanto o RV6-04 estiver aberto ([[A40.l69]]), zero sem
 cobertura renderiza `—` + nota, **não** `0,00` — a distinção `zero_apurado` ×
@@ -123,6 +136,15 @@ duplicá-lo é a regressão que esta lane fecha).
   explicitamente e **inspecionar o PNG no runner Linux** antes de commitar
   baseline. Baseline commitada sem olhar já custou uma sessão neste repo.
 - Specs de a11y por seção cobrindo os estados novos.
+
+> **Medido na execução (2026-08-17): o spec de axe não é gate do texto
+> acessível.** Removido o par `sr-only` do travessão do `nao_apurado`,
+> `tests/a11y/accessibility.test.tsx` seguiu **verde** — célula com travessão
+> não é violação séria para o axe, e quem usa leitor de tela ouviria célula
+> vazia (a mesma ambiguidade "zero ≠ não medido" que a lane fecha no visual).
+> Daí `tests/components/report/PatrimonioCategoriasCard.test.tsx`, que afirma o
+> texto e **reprova** sob a mesma mutação. O spec de axe continua — ele cobre
+> outra classe (violação estrutural) — mas não é o que protege este par.
 
 ## Fora de escopo
 

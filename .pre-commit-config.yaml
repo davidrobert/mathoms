@@ -514,6 +514,22 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: composicao-predicate
+        # A40.l71 (RV6-23): donut e tabela liam `composicao` com dois `filter`
+        # divergentes — o balde negativo sumia de um e aparecia no outro, na
+        # mesma tela. O gate trava as duas metades: leitor único (só o
+        # predicado lê a composição crua) e paridade do rótulo da residência
+        # entre produtor Py e predicado TS, porque o payload transmite o LABEL
+        # e não o `template_key` da ADR-145 — rename no produtor desligaria o
+        # filtro da ADR-215 P5 em silêncio.
+        #
+        # SEM `files:` pelo mesmo motivo do hook acima: o par vive nos dois
+        # stacks e só o `--all-files` do job Lint cobre as duas direções.
+        name: "Composição patrimonial: leitor único + rótulo Py ↔ TS (A40.l71)"
+        entry: python3 dev/check_composicao_predicate.py
+        language: system
+        pass_filenames: false
+
       - id: planner-manifest-coverage
         # ADR-200 §D3 (M1) + ADR-206 §6 (snapshot drift):
         # manifest do parecer ↔ E5 schema ↔ report_layout em sync.
