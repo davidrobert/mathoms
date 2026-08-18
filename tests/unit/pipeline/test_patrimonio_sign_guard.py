@@ -295,7 +295,11 @@ def test_balde_negativo_pausa_o_stage_em_needs_review() -> None:
     result = _e5_build_result_dict(_legacy(SignGuardMode.enforce, veiculos="-7000"), [])
 
     assert result["validation"]["valid"] is False
-    assert result["validation"]["errors"] == ["E5: balde patrimonial negativo — balde=veiculos"]
+    # A40.l69: com duas fontes de razão (guarda + cobertura), o prefixo fixo
+    # rotularia errado a razão da outra — a mensagem passa a vir da própria razão.
+    assert result["validation"]["errors"] == [
+        "E5: Balde patrimonial fisico publicou valor negativo — balde=veiculos"
+    ]
     assert result["validation"]["review_reasons"][0]["code"] == "domain.balde_patrimonial_negativo"
 
 

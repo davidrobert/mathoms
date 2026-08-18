@@ -438,13 +438,13 @@ def _enrich_alocacao_with_deviation(
 ) -> _GoalsPayload:
     """Injeta ``alocacao_alvo.derived`` (desvio atual-vs-alvo run-time; ADR-141 §Emenda item 4)."""
     from pipeline.domain.services.alocacao_alvo_deviation import AlocacaoAlvoDeviationCalculator
-    from pipeline.domain.services.patrimonio_sign_guard import motivo_supressao_do_patrimonio
+    from pipeline.domain.services.investimentos_cobertura import motivo_supressao_e5
 
     alvo = (goals or {}).get("alocacao_alvo")
     if not isinstance(alvo, dict) or "rf_pos_pct" not in alvo:
         return goals
     result = AlocacaoAlvoDeviationCalculator().calculate(tabela_classes or [], alvo)
-    result = result.talvez_suprimir(motivo_supressao_do_patrimonio(patrimonio))
+    result = result.talvez_suprimir(motivo_supressao_e5(patrimonio))
     return {**goals, "alocacao_alvo": {**alvo, "derived": result.to_dict()}}
 
 

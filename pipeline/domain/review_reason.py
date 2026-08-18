@@ -49,6 +49,9 @@ class ReviewReasonCode(str, enum.Enum):
     # A40.l67 ([[ADR-394]] §Emenda D6): balde patrimonial físico publicou negativo
     # e não é reclassificável — imóvel/veículo não tem saldo devedor próprio.
     domain_balde_patrimonial_negativo = "domain.balde_patrimonial_negativo"
+    # A40.l69 ([[ADR-394]] §Emenda (b) D7): membro sem fonte de investimentos —
+    # balde não apurado, que é diferente de balde medido em zero.
+    domain_membro_nao_apurado = "domain.membro_nao_apurado"
 
 
 # Codes que pausam o run em needs_review (gate A28.l8). Os demais são

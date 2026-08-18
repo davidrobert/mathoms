@@ -2499,16 +2499,18 @@ def _e5_print_summary(legacy: Dict[str, Any]) -> None:
 
 
 def _e5_validation_block(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
-    """Balde negativo sobrevivente vira needs_review ([[ADR-394]] §Emenda 2026-08-18)."""
+    """Balde negativo e membro não apurado viram needs_review ([[ADR-394]] §Emendas)."""
     from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
+    from pipeline.domain.services.investimentos_cobertura import review_reasons_da_cobertura
     from pipeline.domain.services.patrimonio_sign_guard import review_reasons_do_artefato
 
-    reasons = review_reasons_do_artefato(
-        patrimonio, stage="analyze_finances", artifact_key=E5_ARTIFACT_KEY
+    kwargs = {"stage": "analyze_finances", "artifact_key": E5_ARTIFACT_KEY}
+    reasons = review_reasons_do_artefato(patrimonio, **kwargs) + review_reasons_da_cobertura(
+        patrimonio, **kwargs
     )
     return {
         "valid": not reasons,
-        "errors": [f"E5: balde patrimonial negativo — {r['offending_value']}" for r in reasons],
+        "errors": [f"E5: {r['message']} — {r['offending_value']}" for r in reasons],
         "review_reasons": reasons,
     }
 

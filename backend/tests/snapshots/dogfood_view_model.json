@@ -1663,6 +1663,14 @@
     "caixa_me_detalhe": [],
     "caixa_total_brl": 5000000,
     "cbe_obrigatorio": false,
+    "cobertura_investimentos": [
+      {
+        "fonte": "irpf",
+        "membro": "titular",
+        "motivo": null,
+        "status": "apurado"
+      }
+    ],
     "composicao": [
       {
         "categoria": "Imóveis de Renda",
