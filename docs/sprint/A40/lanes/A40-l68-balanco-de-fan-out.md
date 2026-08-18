@@ -103,7 +103,7 @@ de um stage, então o delta é consistente com o skip do RV6-10 sem isolá-lo.
 Descoberto ao mapear o terreno: são **dois** call-sites que devolvem
 `(None, None)` — imagem vazia além do texto vazio — e **cinco** stages consomem
 o `DocumentTextExtractor`. Só o `extract_with_llm` entra no escopo desta lane;
-os outros quatro herdam a mesma cegueira e ficam declarados na [[ADR-393]] §D2,
+os outros **seis** herdam a mesma cegueira e ficam declarados na [[ADR-393]] §D2,
 não consertados em silêncio.
 
 ## 2a entregue — 2026-08-18 (#1526 · `4b3bff08`)
