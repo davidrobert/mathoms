@@ -45,7 +45,7 @@ invariantes do produto Mathoms (não dado cliente).
    :mod:`pipeline.domain.services.investimentos_classes_analyzer`.
 6. **Caixa + Moeda Estrangeira** — saldo final reconciliado (E3) das
    contas correntes BRL + contas FX convertidas (USD/EUR via
-   ``taxas.json``). Ver :meth:`PatrimonioCalculator._compute_caixa` e
+   ``taxas.json``). Ver :func:`pipeline.domain.services.patrimonio_caixa.compute_caixa` e
    ``scripts/analyze_finances._load_caixa_from_e3_saldos``.
 7. **Veículos** — soma de ``veiculos[]`` de todos os membros. Ver
    :meth:`PatrimonioCalculator._sum_veiculos`.
@@ -66,6 +66,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.patrimonio_caixa import caixa_me_from_detalhes, compute_caixa
 from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_COMERCIAL,
     CLASSIFICATION_DESCONHECIDO,
@@ -82,6 +83,7 @@ from pipeline.domain.services.patrimonio_resolvers import (
     resolve_members,
     rv_ressalva,
 )
+from pipeline.domain.services.patrimonio_sign_guard import aplicar_guarda_aos_componentes
 from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
     PatrimonioInputs,
@@ -152,7 +154,7 @@ class PatrimonioCalculator:
             inputs, titular_bens, conjuge_bens
         )
 
-        caixa_total_brl, caixa_detalhes = self._compute_caixa(
+        caixa_total_brl, caixa_detalhes = compute_caixa(
             inputs,
             total_bens_irpf=total_bens_irpf,
             residencia=residencia,
@@ -161,6 +163,26 @@ class PatrimonioCalculator:
             investimentos_titular=investimentos_titular,
             investimentos_conjuge=investimentos_conjuge,
         )
+
+        # ADR-142 + ADR-215 §6: split cat_2 antes das duas somas — a guarda vê os 8.
+        imoveis_geradores, imoveis_nao_geradores = split_imoveis_geradores_vs_nao_geradores(
+            titular_bens=titular_bens,
+            conjuge_bens=conjuge_bens,
+            overrides_by_property_id=self._config.property_classification_overrides or {},
+        )
+        guarda, investimentos_titular, investimentos_conjuge, caixa_total_brl = (
+            aplicar_guarda_aos_componentes(
+                residencia=residencia,
+                imoveis_investimento=imoveis_investimento,
+                veiculos=veiculos,
+                investimentos_titular=investimentos_titular,
+                investimentos_conjuge=investimentos_conjuge,
+                caixa_total_brl=caixa_total_brl,
+                imoveis_geradores=imoveis_geradores,
+                imoveis_nao_geradores=imoveis_nao_geradores,
+            )
+        )
+        total_dividas += float(guarda.dividas_curto_prazo_brl)
 
         patrimonio_bruto = self._compute_bruto(
             inputs,
@@ -174,13 +196,6 @@ class PatrimonioCalculator:
         )
 
         patrimonio_liquido = patrimonio_bruto - total_dividas
-        # ADR-142 + ADR-215 §6: split cat_2 por classification para honrar a
-        # invariante anti-dupla-contagem em ``investivel_efetivo``.
-        imoveis_geradores, imoveis_nao_geradores = split_imoveis_geradores_vs_nao_geradores(
-            titular_bens=titular_bens,
-            conjuge_bens=conjuge_bens,
-            overrides_by_property_id=self._config.property_classification_overrides or {},
-        )
         investivel_financeiro = max(
             0.0,
             investimentos_titular + investimentos_conjuge + caixa_total_brl,
@@ -203,7 +218,7 @@ class PatrimonioCalculator:
         )
 
         caixa_me_detalhe = build_caixa_me_detalhe(inputs.baseline)
-        caixa_me_brl = self._caixa_me_from_detalhes(caixa_detalhes)
+        caixa_me_brl = caixa_me_from_detalhes(caixa_detalhes)
         wise_fiscal_flags = inputs.baseline.get("wise_fiscal_flags") or []
         # A33.l2 (P4, co-design product-designer 2026-07-07) — card S1
         # "posição por instituição/moeda": informe 31/12 + extrato não coberto.
@@ -239,6 +254,7 @@ class PatrimonioCalculator:
             "fonte_investimentos": fonte,
             # ADR-346 (A39.l9): ressalva de PL quando há posição RV sem valor de
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
+            "guarda_de_sinal": guarda.to_dict(),
             "pl_ressalva": ressalva["pl_ressalva"],
             "posicoes_sem_marcacao": ressalva["posicoes_sem_marcacao"],
         }
@@ -356,47 +372,6 @@ class PatrimonioCalculator:
             conjuge_val,
             "irpf",
             rv_ressalva({}, identity, titular_fb=True, conjuge_fb=True),
-        )
-
-    @staticmethod
-    def _compute_caixa(
-        inputs: PatrimonioInputs,
-        *,
-        total_bens_irpf: float,
-        residencia: float,
-        imoveis_investimento: float,
-        veiculos: float,
-        investimentos_titular: float,
-        investimentos_conjuge: float,
-    ) -> tuple[float, list]:
-        """Caixa + ME.
-
-        Com posições atuais, o adapter carregou o total + detalhes de E3;
-        sem, calcula residualmente sobre o IRPF (floor zero).
-        """
-        if inputs.has_current_positions:
-            caixa = max(0.0, inputs.caixa_total_brl)
-            detalhes = [d.to_dict() for d in inputs.caixa_detalhes]
-            return caixa, detalhes
-
-        residual = (
-            total_bens_irpf
-            - residencia
-            - imoveis_investimento
-            - veiculos
-            - investimentos_titular
-            - investimentos_conjuge
-        )
-        return max(0.0, residual), []
-
-    @staticmethod
-    def _caixa_me_from_detalhes(detalhes: list) -> float:
-        """Soma só o caixa em moeda estrangeira (``tipo == 'moeda_estrangeira'``) do E3."""
-        tipos_me = {"moeda_estrangeira", "moeda_estrangeira_irpf"}
-        return sum(
-            safe_float(d.get("valor_brl", 0))
-            for d in detalhes
-            if isinstance(d, dict) and d.get("tipo") in tipos_me
         )
 
     @staticmethod

@@ -127,6 +127,9 @@ class AlocacaoDeviationResult:
     has_alvo: bool
     rf_comparacao: str
     alvo_renormalizado_defensivo: bool
+    # [[ADR-394]] §Emenda 2026-08-18 — `None` enquanto a cobertura está completa;
+    # com balde negativo sobrevivente carrega o motivo e a prescrição sai vazia.
+    motivo_supressao: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -139,7 +142,20 @@ class AlocacaoDeviationResult:
             "has_alvo": self.has_alvo,
             "rf_comparacao": self.rf_comparacao,
             "alvo_renormalizado_defensivo": self.alvo_renormalizado_defensivo,
+            "motivo_supressao": self.motivo_supressao,
         }
+
+    # Prescrição exige cobertura; descrição admite ressalva ([[ADR-394]] §Emenda).
+    # `comparaveis` e `carteira_liquida_brl` sobrevivem — o que cai é o conselho
+    # ("aporte na classe X", "seu desvio máximo é Y%"), não a foto da carteira.
+    def suprimir_prescricao(self, motivo: str) -> "AlocacaoDeviationResult":
+        """Zera a prescrição e declara o motivo, preservando a descrição."""
+        from dataclasses import replace
+
+        return replace(self, desvio_max_pct=None, next_aporte_classe=None, motivo_supressao=motivo)
+
+    def talvez_suprimir(self, motivo: str | None) -> "AlocacaoDeviationResult":
+        return self.suprimir_prescricao(motivo) if motivo else self
 
 
 @dataclass

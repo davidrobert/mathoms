@@ -138,6 +138,7 @@ export type AlocacaoDerived = {
   "has_alvo"?: boolean;
   "rf_comparacao"?: string;
   "alvo_renormalizado_defensivo"?: boolean;
+  "motivo_supressao"?: string | null;
 };
 
 export type AlocacaoComparable = {
@@ -321,6 +322,20 @@ export type E5AnalysisArtifact = {
       "valor"?: number;
       "pct"?: number;
     }>;
+    "guarda_de_sinal"?: {
+      "modo"?: "enforce" | "warn" | "off";
+      "cobertura_completa"?: boolean;
+      "motivo_supressao"?: string | null;
+      "dividas_curto_prazo_brl"?: number;
+      "reclassificados"?: Array<{
+        "balde"?: string;
+        "montante_brl"?: number;
+      }>;
+      "baldes_negativos"?: Array<{
+        "balde"?: string;
+        "valor_brl"?: number;
+      }>;
+    };
     "pl_ressalva"?: boolean;
     "posicoes_sem_marcacao"?: {
       "count"?: number;

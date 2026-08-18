@@ -46,6 +46,9 @@ class ReviewReasonCode(str, enum.Enum):
     domain_anachronic_transaction = "domain.anachronic_transaction"
     domain_baseline_divergence = "domain.baseline_divergence"
     domain_property_identity_uncanonical = "domain.property_identity_uncanonical"
+    # A40.l67 ([[ADR-394]] §Emenda D6): balde patrimonial físico publicou negativo
+    # e não é reclassificável — imóvel/veículo não tem saldo devedor próprio.
+    domain_balde_patrimonial_negativo = "domain.balde_patrimonial_negativo"
 
 
 # Codes que pausam o run em needs_review (gate A28.l8). Os demais são
