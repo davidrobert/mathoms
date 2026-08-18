@@ -285,7 +285,6 @@ def test_e15c_r6_divergencia_fato_rotulo_emite_review_reason(tmp_path: Path) -> 
 # Mede `iter_errors` direto, não `validate_dict`: o retorno de `validate_dict`
 # depende do modo (warn devolve `True` mesmo inválido), e um assert mode-dependente
 # seria verde local e vermelho só no CI.
-@pytest.mark.xfail(strict=True, reason=f"RED até {_L2} — schema aceita ativo negativo")
 # Afirma o erro DO BALDE, não "existe algum erro": com o helper resolvendo o
 # schema, o payload da fixture já reprova por `pipeline_stage`/`data_processamento`
 # ausentes — genérico demais, e o teste passaria sem que o `minimum: 0` da
