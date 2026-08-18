@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+from pipeline.llm.text_extractor import ReaderOutcome, TextExtraction
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tests._llm_stage_fixtures import (
@@ -159,7 +161,7 @@ class TestE2LLMStage:
         assert result["skipped"] is True
         assert "No unprocessed documents" in result["reason"]
 
-    @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")
+    @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract_result")
     @patch("pipeline.llm.litellm_client.LLMService.call")
     @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
     def test_runs_successfully_with_mock(self, mock_ensure, mock_call, mock_extract, tmp_path):
@@ -168,7 +170,9 @@ class TestE2LLMStage:
         stmts_dir.mkdir(parents=True)
         (stmts_dir / "btg_informe_2024.pdf").write_text("fake content")
 
-        mock_extract.return_value = "Investment report content"
+        mock_extract.return_value = TextExtraction(
+            ReaderOutcome.ok, text="Investment report content"
+        )
         mock_call.return_value = make_llm_call_result(make_e2_llm_output())
 
         from pipeline.stages.extract_with_llm import run
@@ -339,8 +343,8 @@ class TestA6aStructural:
 
         with (
             patch(
-                "pipeline.llm.text_extractor.DocumentTextExtractor.extract",
-                return_value="Investment content",
+                "pipeline.llm.text_extractor.DocumentTextExtractor.extract_result",
+                return_value=TextExtraction(ReaderOutcome.ok, text="Investment content"),
             ),
             patch("pipeline.llm.litellm_client.LLMService._ensure_client"),
             patch(

@@ -30,6 +30,9 @@ class ReviewReasonCode(str, enum.Enum):
     # caminho NÃO-certificado. Deletar quando os parsers relevantes certificarem.
     extract_conservation_above_piso = "extract.conservation_above_piso"
     extract_empty_result = "extract.empty_result"
+    # ADR-393 D4: documento entrou na fila do fan-out e não saiu por defeito
+    # de leitor (formato sem extrator, lib ausente, leitor que levanta).
+    extract_reader_missing = "extract.reader_missing"
     extract_investment_sum_mismatch = "extract.investment_sum_mismatch"
     extract_fatura_total_mismatch = "extract.fatura_total_mismatch"
     # Invariante de cobertura de escopo (ADR-342 emenda 2026-07-27): tx num escopo

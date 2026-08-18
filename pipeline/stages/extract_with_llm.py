@@ -202,18 +202,14 @@ def _process_one_e2_llm_document(
     progress: _E2LLMProgress,
     member_resolver: Any = None,
     institution_catalog_block: str | None = None,
-) -> tuple[dict[str, Any] | None, dict[str, str] | None, Any]:
-    """Extract + one LLM call for a single file. Returns (processed, error, run_summary).
-
-    A6a: escreve via ``store.write("extract_with_llm", safe_stem, e2_json)`` em vez de
-    disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
-    """
+) -> tuple[dict[str, Any] | None, dict[str, str] | None, dict[str, str] | None, Any]:
+    """Extract + one LLM call. Returns (processed, error, skipped, run_summary)."""
     from pipeline.llm.error_classification import LLM_LONG_GENERATION_TIMEOUT_S
     from pipeline.llm.institution_catalog import CATALOG_UNAVAILABLE_BLOCK
     from pipeline.llm.litellm_client import LLMRunSummary, LLMService
     from pipeline.llm.prompts.e2_llm import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
-    from pipeline.llm.text_extractor import DocumentTextExtractor
+    from pipeline.llm.text_extractor import DocumentTextExtractor, ReaderOutcome
     from pipeline.llm.validators import validate_e2_llm_output
 
     empty_summary = LLMRunSummary()
@@ -227,14 +223,23 @@ def _process_one_e2_llm_document(
     if extractor.is_image(doc):
         image_bytes, image_media_type = extractor.extract_image_bytes(doc)
         if not image_bytes:
-            logger.warning("E2-llm: imagem vazia para %s, pulando", doc.name)
-            return None, None, empty_summary
+            return (
+                None,
+                None,
+                _skip_entry(doc, "documento_vazio", "imagem sem bytes"),
+                empty_summary,
+            )
         text = ""
     else:
-        text = extractor.extract(doc)
-        if not text.strip():
-            logger.warning("E2-llm: texto vazio para %s, pulando", doc.name)
-            return None, None, empty_summary
+        extraction = extractor.extract_result(doc)
+        text = extraction.text
+        if extraction.outcome is not ReaderOutcome.ok:
+            return (
+                None,
+                None,
+                _skip_entry(doc, extraction.outcome.value, extraction.detalhe),
+                empty_summary,
+            )
 
     progress.emit(doc.name, "preparing")
 
@@ -283,7 +288,7 @@ def _process_one_e2_llm_document(
                 "E2-llm: institution vazia — artefato não gravado (needs_review)",
                 extra={"file": doc.name},
             )
-            return _needs_review_entry(doc.name, output), None, service.summary
+            return _needs_review_entry(doc.name, output), None, None, service.summary
 
         e2_json = _output_to_e2_json(output, member_resolver=member_resolver)
         # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
@@ -325,11 +330,22 @@ def _process_one_e2_llm_document(
             output.confidence,
         )
 
-        return processed, None, service.summary
+        return processed, None, None, service.summary
 
     except Exception as exc:
         logger.error("E2-llm: failed for %s: %s", doc.name, exc)
-        return None, {"file": doc.name, "error": str(exc)[:300]}, service.summary
+        return None, {"file": doc.name, "error": str(exc)[:300]}, None, service.summary
+
+
+# Nomear o documento é o ponto: `skipped: 1` sem identificador não permite ir
+# atrás do arquivo, e foi assim que o `.xls` sumiu em 3 runs seguidos.
+def _skip_entry(doc: Path, motivo: str, detalhe: str) -> dict[str, str]:
+    """Documento que não virou artefato, com motivo tipado (ADR-393 D1)."""
+    logger.warning(
+        "e2_llm.document_skipped",
+        extra={"file": doc.name, "motivo": motivo, "detalhe": detalhe[:200]},
+    )
+    return {"file": doc.name, "motivo": motivo, "detalhe": detalhe[:200]}
 
 
 def _needs_review_entry(filename: str, output: Any) -> dict[str, Any]:
@@ -356,13 +372,52 @@ def _needs_review_entry(filename: str, output: Any) -> dict[str, Any]:
     }
 
 
-def _e2llm_validation_block(processed: list[dict[str, Any]]) -> dict[str, Any]:
-    """A28.l8: review_reasons por-doc → bloco validation consumido pelo gate needs_review."""
-    flagged = [p for p in processed if p.get("review_reason")]
+def _fan_out_balance(
+    *,
+    queued: int,
+    processed: list[dict[str, Any]],
+    errors: list[dict[str, str]],
+    skipped: list[dict[str, str]],
+) -> dict[str, Any]:
+    """`queued ≡ processed + errors + skipped` (ADR-393 D1)."""
+    contabilizado = len(processed) + len(errors) + len(skipped)
     return {
-        "valid": not flagged,
-        "errors": [f"E2-llm: institution vazia — needs_review ({p['file']})" for p in flagged],
-        "review_reasons": [p["review_reason"] for p in flagged],
+        "queued": queued,
+        "processed": len(processed),
+        "errors": len(errors),
+        "skipped": len(skipped),
+        "contabilizado": contabilizado,
+        "fecha": contabilizado == queued,
+    }
+
+
+def _skip_review_reason(skip: dict[str, str]) -> dict[str, Any]:
+    """Skip de leitor vira review_reason nomeando o documento (ADR-393 D4)."""
+    from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+
+    return ReviewReason(
+        code=ReviewReasonCode.extract_reader_missing,
+        stage="extract_with_llm",
+        artifact_key=_e2_extract_stem(Path(skip["file"])),
+        document_id=skip["file"],
+        offending_value=skip["motivo"],
+        expected="documento extraído e enviado ao LLM",
+        message=f"documento não extraído — {skip['motivo']}",
+    ).to_dict()
+
+
+def _e2llm_validation_block(
+    processed: list[dict[str, Any]], skipped: list[dict[str, str]] | None = None
+) -> dict[str, Any]:
+    """A28.l8 + ADR-393 D4: review_reasons por-doc → bloco validation do gate needs_review."""
+    flagged = [p for p in processed if p.get("review_reason")]
+    defeitos = [s for s in (skipped or []) if s["motivo"] != "documento_vazio"]
+    return {
+        "valid": not flagged and not defeitos,
+        "errors": [f"E2-llm: institution vazia — needs_review ({p['file']})" for p in flagged]
+        + [f"E2-llm: {s['file']} não extraído — {s['motivo']}" for s in defeitos],
+        "review_reasons": [p["review_reason"] for p in flagged]
+        + [_skip_review_reason(s) for s in defeitos],
     }
 
 
@@ -527,6 +582,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     processed: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
+    skipped: list[dict[str, str]] = []
     summary_parts: list[Any] = []
 
     max_chars = int(perf["max_input_chars"])
@@ -565,13 +621,15 @@ def run(ctx: WorkspaceContext) -> dict:
             for doc in docs
         ]
         for fut in as_completed(futures):
-            proc, err, summ = fut.result()
+            proc, err, skip, summ = fut.result()
             progress.increment()
             summary_parts.append(summ)
             if proc is not None:
                 processed.append(proc)
             if err is not None:
                 errors.append(err)
+            if skip is not None:
+                skipped.append(skip)
 
     from pipeline.live_progress import emit_item_progress
 
@@ -586,13 +644,22 @@ def run(ctx: WorkspaceContext) -> dict:
 
     summary = _merge_llm_run_summaries(summary_parts)
 
+    # ADR-393 D1: o balanço é o contrato. `success` deixa de significar
+    # "ninguém levantou" e passa a significar "todo documento enfileirado tem
+    # destino declarado".
+    balance = _fan_out_balance(
+        queued=len(docs), processed=processed, errors=errors, skipped=skipped
+    )
+
     out: dict[str, Any] = {
-        "success": len(errors) == 0,
+        "success": len(errors) == 0 and balance["fecha"],
         "processed": processed,
         "errors": errors,
+        "skipped_docs": skipped,
+        "balanco": balance,
         "total_processed": len(processed),
         "total_errors": len(errors),
-        "validation": _e2llm_validation_block(processed),
+        "validation": _e2llm_validation_block(processed, skipped),
         "llm_usage": summary,
         "queued": {
             "total": len(docs),
