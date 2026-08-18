@@ -27,19 +27,19 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 | type | status | notas |
 | --- | --- | ---: |
-| adr | Decidido | 328 |
-| adr | Proposto | 52 |
+| adr | Decidido | 329 |
+| adr | Proposto | 51 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 252 |
 | doc | (sem status) | 2 |
 | domain-rule | (sem status) | 13 |
-| lane | blocked | 12 |
+| lane | blocked | 10 |
 | lane | cancelled | 2 |
 | lane | in_progress | 9 |
-| lane | open | 22 |
+| lane | open | 23 |
 | lane | planned | 61 |
-| lane | shipped | 248 |
+| lane | shipped | 249 |
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 37 |
 | plan | done | 4 |

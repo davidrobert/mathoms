@@ -4,7 +4,7 @@ type: lane
 title: "Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: blocked
+status: open
 priority: P0
 branch_slug: a40-l67-guarda-de-publicacao-e5
 owner: financial-planner
@@ -18,7 +18,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -27,7 +27,8 @@ tags:
 # A40.l67 — `a40-l67-guarda-de-publicacao-e5`
 
 > Aberta em 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] (itens 1d,
-> 1e). `blocked` por [[A40.l66]]: a guarda tem de rodar sobre roteamento já
+> 1e). **Destravada em 2026-08-18** — a [[A40.l66]] shipou (#1522) e o roteamento
+> por fato existe. Era `blocked` por ela: a guarda tem de rodar sobre roteamento já
 > corrigido, senão mede o defeito da lane anterior e a taxa de disparo sai
 > inflada — e o flip do schema para strict é, por desenho, o **último** passo da
 > Onda 1.

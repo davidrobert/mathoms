@@ -76,7 +76,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - Status: `in_progress` · Sprint atual: A40
 - Sprints envolvidas: A28, A40
-- Lanes: 44 done · 3 in_progress · 25 open · 1 blocked
+- Lanes: 44 done · 3 in_progress · 26 open · 0 blocked
 - ADRs canônicas: [[ADR-191]], [[ADR-240]], [[ADR-186]], [[ADR-357]], [[ADR-358]], [[ADR-370]]
 
 ### PLAN-snapshot-changelog-v3 — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica
@@ -144,7 +144,7 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 
 - Status: `draft` · Sprint atual: A40
 - Sprints envolvidas: A40, A42
-- Lanes: 1 done · 0 in_progress · 2 open · 2 blocked
+- Lanes: 2 done · 0 in_progress · 2 open · 1 blocked
 - ADRs canônicas: [[ADR-343]]
 
 ### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto
