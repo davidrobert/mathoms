@@ -7,8 +7,10 @@ Images (JPG, JPEG, PNG) are returned as raw bytes via extract_image_bytes().
 from __future__ import annotations
 
 import csv
+import enum
 import io
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -21,6 +23,32 @@ _MEDIA_TYPE_MAP = {
     ".jpeg": "image/jpeg",
     ".png": "image/png",
 }
+
+
+class ReaderOutcome(str, enum.Enum):
+    """Por que um documento não virou texto. Só ``documento_vazio`` não é defeito."""
+
+    ok = "ok"
+    leitor_ausente = "leitor_ausente"
+    leitor_indisponivel = "leitor_indisponivel"
+    leitura_falhou = "leitura_falhou"
+    documento_vazio = "documento_vazio"
+
+
+# O ``str`` cru não distinguia "não existe leitor para este formato" de "o
+# documento está vazio" — as duas produziam ``""``, e só a primeira é defeito.
+# Quem decide o balanço do fan-out precisa da diferença (ADR-393 D2).
+@dataclass(frozen=True)
+class TextExtraction:
+    """Resultado da extração de texto: texto + motivo tipado."""
+
+    outcome: ReaderOutcome
+    text: str = ""
+    detalhe: str = ""
+
+    @property
+    def is_defect(self) -> bool:
+        return self.outcome not in (ReaderOutcome.ok, ReaderOutcome.documento_vazio)
 
 
 class DocumentTextExtractor:
@@ -44,38 +72,66 @@ class DocumentTextExtractor:
         media_type = _MEDIA_TYPE_MAP.get(path.suffix.lower(), "image/jpeg")
         return path.read_bytes(), media_type
 
+    # Wrapper de compat: quatro stages fora do escopo da A40.l68 ainda consomem
+    # esta forma e herdam a cegueira que a ADR-393 §D2 declara (não conserta).
     def extract(self, path: Path) -> str:
-        """Extract text from a file. Returns empty string on failure."""
-        suffix = path.suffix.lower()
+        """Texto do documento, ou ``""`` — prefira ``extract_result``."""
+        return self.extract_result(path).text
 
+    def extract_result(self, path: Path) -> TextExtraction:
+        """Texto + motivo tipado (ADR-393 D2)."""
+        reader = self._reader_for(path.suffix.lower())
+        if reader is None:
+            return self._no_reader(path)
         try:
-            if suffix == ".pdf":
-                return self._extract_pdf(path)
-            elif suffix in (".xlsx", ".xls"):
-                return self._extract_excel(path)
-            elif suffix == ".csv":
-                return self._extract_csv(path)
-            elif suffix == ".json":
-                return path.read_text(encoding="utf-8")[: self.max_chars]
-            elif suffix in (".txt", ".md"):
-                return path.read_text(encoding="utf-8")[: self.max_chars]
-            elif suffix in IMAGE_EXTENSIONS:
-                logger.debug("Image file %s — use extract_image_bytes() instead", path.name)
-                return ""
-            else:
-                logger.warning("Unsupported file type: %s", suffix)
-                return ""
+            text = reader(path)
         except Exception as exc:
-            logger.error("Failed to extract text from %s: %s", path.name, exc)
-            return ""
+            return self._read_failure(path, exc)
+        return (
+            TextExtraction(ReaderOutcome.ok, text=text)
+            if text.strip()
+            else TextExtraction(ReaderOutcome.documento_vazio, text=text)
+        )
+
+    def _no_reader(self, path: Path) -> TextExtraction:
+        """Formato sem leitor — era o `""` mudo indistinguível de doc vazio."""
+        suffix = path.suffix.lower()
+        detalhe = f"imagem ({suffix})" if suffix in IMAGE_EXTENSIONS else (suffix or "sem extensão")
+        logger.warning("text_extractor.reader_missing", extra={"suffix": suffix})
+        return TextExtraction(ReaderOutcome.leitor_ausente, detalhe=detalhe)
+
+    def _read_failure(self, path: Path, exc: Exception) -> TextExtraction:
+        """Lib ausente vs. leitor que levantou — motivos distintos, nunca `""`."""
+        detalhe = str(exc) if isinstance(exc, ImportError) else f"{type(exc).__name__}: {exc}"
+        outcome = (
+            ReaderOutcome.leitor_indisponivel
+            if isinstance(exc, ImportError)
+            else ReaderOutcome.leitura_falhou
+        )
+        logger.error("text_extractor.read_failed", extra={"file": path.name, "erro": detalhe})
+        return TextExtraction(outcome, detalhe=detalhe)
+
+    def _reader_for(self, suffix: str):
+        """Leitor do formato, ou ``None`` quando não existe — o que era `""` mudo."""
+        if suffix == ".pdf":
+            return self._extract_pdf
+        if suffix in (".xlsx", ".xls"):
+            return self._extract_excel
+        if suffix == ".csv":
+            return self._extract_csv
+        if suffix in (".json", ".txt", ".md"):
+            return self._extract_plain
+        return None
+
+    def _extract_plain(self, path: Path) -> str:
+        return path.read_text(encoding="utf-8")[: self.max_chars]
 
     def _extract_pdf(self, path: Path) -> str:
         """Extract text from PDF using pdfplumber."""
         try:
             import pdfplumber
-        except ImportError:
-            logger.error("pdfplumber not installed — cannot extract PDF text")
-            return ""
+        except ImportError as exc:  # vira leitor_indisponivel em extract_result
+            raise ImportError("pdfplumber não instalado — PDF ilegível") from exc
 
         pages_text: list[str] = []
         total_chars = 0
@@ -110,9 +166,8 @@ class DocumentTextExtractor:
         """Extract text from XLSX/XLS using openpyxl."""
         try:
             import openpyxl
-        except ImportError:
-            logger.error("openpyxl not installed — cannot extract Excel text")
-            return ""
+        except ImportError as exc:  # vira leitor_indisponivel em extract_result
+            raise ImportError("openpyxl não instalado — planilha ilegível") from exc
 
         wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
         sheets_text: list[str] = []

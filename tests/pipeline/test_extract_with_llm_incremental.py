@@ -12,6 +12,8 @@ from unittest.mock import patch
 
 import pytest
 
+from pipeline.llm.text_extractor import ReaderOutcome, TextExtraction
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tests._llm_stage_fixtures import make_e2_llm_output, make_llm_ctx  # noqa: E402
@@ -36,7 +38,10 @@ def _run_e2_llm(ctx, output=None):
         return run(ctx), fake
 
 
-@patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract", return_value="fake-content")
+@patch(
+    "pipeline.llm.text_extractor.DocumentTextExtractor.extract_result",
+    return_value=TextExtraction(ReaderOutcome.ok, text="fake-content"),
+)
 @patch("pipeline.llm.text_extractor.DocumentTextExtractor.is_image", return_value=False)
 @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
 def test_extract_with_llm_full_mode_processes_all(
@@ -52,7 +57,10 @@ def test_extract_with_llm_full_mode_processes_all(
     assert fake.calls == 2
 
 
-@patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract", return_value="fake-content")
+@patch(
+    "pipeline.llm.text_extractor.DocumentTextExtractor.extract_result",
+    return_value=TextExtraction(ReaderOutcome.ok, text="fake-content"),
+)
 @patch("pipeline.llm.text_extractor.DocumentTextExtractor.is_image", return_value=False)
 @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
 def test_extract_with_llm_incremental_filters_to_allowlist(
@@ -89,7 +97,10 @@ def test_extract_with_llm_incremental_skips_when_no_overlap(tmp_path: Path) -> N
     assert "incremental" in result["reason"]
 
 
-@patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract", return_value="fake-content")
+@patch(
+    "pipeline.llm.text_extractor.DocumentTextExtractor.extract_result",
+    return_value=TextExtraction(ReaderOutcome.ok, text="fake-content"),
+)
 @patch("pipeline.llm.text_extractor.DocumentTextExtractor.is_image", return_value=False)
 @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
 def test_extract_with_llm_payload_carries_prompt_version(

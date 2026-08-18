@@ -26,6 +26,7 @@
         "extract.incomplete_conservation",
         "extract.conservation_above_piso",
         "extract.empty_result",
+        "extract.reader_missing",
         "extract.investment_sum_mismatch",
         "extract.fatura_total_mismatch",
         "extract.fatura_scope_uncovered",
