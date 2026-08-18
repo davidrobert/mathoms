@@ -9,6 +9,7 @@ priority: P0
 branch_slug: a40-l66-seam-extracao-consolidacao
 owner: data-engineer
 adrs:
+  - "[[ADR-394]]"
   - "[[ADR-081]]"
   - "[[ADR-090]]"
   - "[[ADR-097]]"
@@ -139,8 +140,8 @@ nem abortar run. Kill-switch de 1 env var, provado por teste.
   `uuid4()` por run — precisa de projeção canônica.)*
 - ⚠️ corrigido — Taxa de disparo de 1c medida sobre r5+r6 e escrita na ADR-A.
   *(§Ataque já mediu: 0% ano-cega · 100% por ano.)*
-- ADR-A aberta `Proposto` **antes** do PR de implementação (política P0/P1) e
-  flipada para `Decidido` no merge.
+- ✅ ADR-A = **[[ADR-394]]**, aberta `Proposto` em 2026-08-18 (política P0/P1);
+  flipa para `Decidido` no merge do PR de implementação.
 - Rebaseline, se houver, em commit isolado dentro do PR do fix
   (`dev/check_golden_rebaseline_isolation.py`), com `dev/golden_diff.py
   --manifest` e sinal ↑/↓/= declarado.
