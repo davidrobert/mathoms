@@ -162,7 +162,7 @@ do dogfood, zero-write:
 | **1c** — conservação ano-cega por eixo (cents int, tolerância zero) | **0/7** |
 | **1a** — divergência fato × hint | **7/7** |
 | valor negativo em balde de ativo | **0/7** (era 3/7 antes) |
-| `dividas[]` | **6/7 runs com 6 entradas** (era 4), convergindo com `E1.6.dividas_onus` |
+| `dividas[]` | **6 entradas em 7/7 runs**, convergindo com `E1.6.dividas_onus` (antes: 4 em 4 runs e **2** nos 3 que consolidaram baseline stale) |
 
 1c é **contrato, não detector**: fecha em todos os runs. O detector é 1a. Com o
 cap de cardinalidade ([[ADR-272]] §Cap), run com o item flipado emite **2** razões
