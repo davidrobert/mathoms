@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 
 def _coerce_decimal(v):
@@ -32,9 +32,17 @@ class PatrimonialItem(BaseModel):
 
     code: str = Field(..., description="IRPF item code (e.g. '01' for imóveis, '41' for poupança)")
     description: str = Field(..., description="Item description as in the declaration")
-    category: str = Field(
+    # ADR-394 D1: a ficha de onde o item veio é a autoridade do eixo ativo×passivo.
+    # Opcional na etapa 1 — só documento re-extraído a emite (D7).
+    secao: Optional[str] = Field(
+        None, description="Ficha da declaração: bens_direitos | dividas_onus"
+    )
+    # ADR-394 D1/D7: o rótulo do LLM é HINT, nunca decide o eixo. `category` é
+    # aceito como alias para não brickar resposta de prompt anterior.
+    category_hint: str = Field(
         ...,
-        description="Category: imovel, veiculo, investimento, conta_corrente, poupanca, previdencia, outros",
+        validation_alias=AliasChoices("category_hint", "category"),
+        description="Hint: imovel, veiculo, investimento, conta_corrente, poupanca, previdencia, outros",
     )
     institution: Optional[str] = Field(None, description="Financial institution name or code")
     value_brl: Decimal = Field(..., description="Value in BRL as decimal string (e.g. '150000.00')")

@@ -447,7 +447,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
 
         {
           "itens": [
-            {"codigo", "descricao", "categoria", "valor_brl", "membro", "ano", "instituicao"?, "cpf"?}
+            {"codigo", "descricao", "categoria_hint", "valor_brl", "membro", "ano", "secao"?, "instituicao"?, "cpf"?}
           ],
           "resumo": {"total_ativos", "total_passivos", "patrimonio_liquido", "ano_referencia", "membros"},
           "_meta": {...}
@@ -478,7 +478,9 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
 
     for item in itens:
         valor = safe_float(item.get("valor_brl", 0))
-        categoria = (item.get("categoria") or "").strip().lower()
+        # ADR-394 D7: `categoria_hint` é o nome novo; `categoria` sobrevive como
+        # alias de leitura enquanto houver artefato histórico no store.
+        categoria = (item.get("categoria_hint") or item.get("categoria") or "").strip().lower()
         # INV-9 (ADR-268, boundary de consolidação): contribuinte PJ (razão
         # social com sufixo LTDA/S.A./EIRELI/MEI/…) não é pessoa física — não
         # vira membro nem soma ao PL. O read-filter `partition_irpf_payloads`
