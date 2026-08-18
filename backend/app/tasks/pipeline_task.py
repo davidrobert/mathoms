@@ -965,6 +965,33 @@ def _existing_review_reason(db, *, run_id: str, workspace_id: str, code: str):
     ).scalar_one_or_none()
 
 
+def _resolvable_document_ids(db, workspace_id: str, reasons: list[dict]) -> set[str]:
+    """Subconjunto dos `document_id` reivindicados que existe em `documents`."""
+    claimed = {r.get("document_id") for r in reasons if r.get("document_id")}
+    if not claimed:
+        return set()
+    rows = db.query(Document.id).filter(
+        Document.workspace_id == workspace_id, Document.id.in_(claimed)
+    )
+    return {row[0] for row in rows}
+
+
+# A FK de `document_id` é enforçada (ADR-371): um id que não resolve abortaria o
+# run inteiro no INSERT — o caminho de REPORTE matando a execução que ele existe
+# para documentar. Degrada a row, nunca a execução.
+def _with_safe_document_id(payload: dict, stage_name: str, known_docs: set[str]) -> dict:
+    """Payload com `document_id` que não resolve trocado por None."""
+    claimed = payload.get("document_id")
+    if not claimed or claimed in known_docs:
+        return payload
+    logger.warning(
+        "review_reason.document_id descartado — não resolve em documents: stage=%s code=%s",
+        stage_name,
+        payload.get("code"),
+    )
+    return {**payload, "document_id": None}
+
+
 def _new_review_reason_row(
     payload: dict, *, run_id: str, workspace_id: str, stage_name: str, inc: int
 ):
@@ -1010,10 +1037,11 @@ def _materialize_review_reasons(
 ) -> int:
     """Materializa review_reasons (ADR-272 Fase 2): 1 row por (run, code), soma occurrence_count. Retorna nº inseridas."""
     inserted = 0
+    known_docs = _resolvable_document_ids(db, workspace_id, reasons)
     for payload in reasons:
         if _apply_one_reason(
             db,
-            payload,
+            _with_safe_document_id(payload, stage_name, known_docs),
             run_id=run_id,
             workspace_id=workspace_id,
             stage_name=stage_name,

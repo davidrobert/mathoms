@@ -96,7 +96,11 @@ class TestSkipNomeiaODocumento:
         assert bloco["valid"] is False
         assert len(bloco["review_reasons"]) == 1
         assert bloco["review_reasons"][0]["code"] == ReviewReasonCode.extract_reader_missing.value
-        assert bloco["review_reasons"][0]["document_id"] == "extrato.xls"
+        # o documento é nomeado pelo artifact_key + errors; `document_id` é FK
+        # para `documents` (ADR-371) e filename ali abortava o run no INSERT
+        assert bloco["review_reasons"][0]["document_id"] is None
+        assert bloco["review_reasons"][0]["artifact_key"] == "extrato"
+        assert "extrato.xls" in bloco["errors"][0]
 
     def test_documento_vazio_nao_gera_review_reason(self) -> None:
         """Sem isto o banner dispara sempre e ensina o leitor a ignorá-lo."""
@@ -142,7 +146,8 @@ class TestProvaPorMutacao:
         skip = _skip_entry(doc, resultado.outcome.value, resultado.detalhe)
         bloco = _e2llm_validation_block([], [skip])
         assert bloco["valid"] is False
-        assert bloco["review_reasons"][0]["document_id"] == "extrato.csv"
+        assert bloco["review_reasons"][0]["document_id"] is None
+        assert "extrato.csv" in bloco["errors"][0]
 
         # …e o balanço FECHA: 1 enfileirado, 1 contabilizado. Antes da ADR-393
         # ele sumia e `contabilizado` era 0 com `success=True`.
