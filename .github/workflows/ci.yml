@@ -848,11 +848,25 @@ jobs:
     # dividir teste em mais arquivos é boa prática que por acaso custa CI —
     # gate errado para o problema. O que falta é orçamento visível, não trava.
     #
-    # Regra prática, então: a folga de 12min se paga em ~1,3s por arquivo de
-    # teste de frontend. Re-meça pela mediana de ≥10 runs `success/success` (a
-    # API expõe step a step), nunca por dois runs isolados — com p25–p75 de
-    # 191–210s, qualquer par de pontos "prova" o movimento que se quiser.
-    timeout-minutes: 12
+    # Regra prática, então: a folga se paga em ~1,3s por arquivo de teste de
+    # frontend. Re-meça pela mediana de ≥10 runs `success/success` (a API expõe
+    # step a step), nunca por dois runs isolados — com p25–p75 de 191–210s,
+    # qualquer par de pontos "prova" o movimento que se quiser.
+    #
+    # Re-medido em 2026-08-18 pelo protocolo acima (10 runs; 6 `success`):
+    # 608 · 653 · 656 · 660 · 674 · 691s — mediana 658s, **max 691s contra o
+    # teto de 720s: 29s de folga (4%)**. O orçamento dos 12min tinha acabado, e
+    # o job passou a estourar: dois runs cancelados em 736s e 737s, a 16-17s do
+    # teto. Timeout de job conclui `cancelled`, e o agregador `all-green` trata
+    # cancelado como não-verde — então o sintoma chega como "Frontend checks
+    # falhou" num PR que não mexeu em nada disso (medido no #1491, cujo rerun
+    # no MESMO SHA passou em 691s).
+    # 20min = ~1,7× o max observado, alinhado com `frontend-print-visual` (20) e
+    # abaixo de `frontend-visual` (25). Isto compra ~9min de crescimento, ou
+    # ~415 arquivos de teste ao custo de 1,3s cada — não é licença para parar de
+    # medir: quando a folga voltar a <20%, o próximo passo é cortar trabalho do
+    # job (paralelizar o render gate), não subir o teto de novo.
+    timeout-minutes: 20
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     defaults:
