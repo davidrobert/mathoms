@@ -124,6 +124,8 @@ nem abortar run. Kill-switch de 1 env var, provado por teste.
 
 - ⚠️ corrigido — Os 4 `xfail(strict=True)` de `tests/test_e15c_golden_execution.py` que nomeiam
   A40.l66 desmarcados e verdes; o 5º (schema) continua RED — é da [[A40.l67]].
+  *(§Ataque II: 2 dos 5 não são desmarcáveis — `_schema_errors` passa o nome nu
+  ao `_schema_to_validate`, que resolve por filename.)*
 - `tests/test_e5_invariante_entre_agregados.py::test_invariante_4a_entre_agregados`
   desmarcado e verde (invariante 4a — critério de aceite da Onda 1).
 - `test_e15c_r6_o_cancelamento_exato_e_a_assinatura_do_bug` **deletado** (não
@@ -131,7 +133,10 @@ nem abortar run. Kill-switch de 1 env var, provado por teste.
 - ⚠️ corrigido — **Prova por mutação:** flipar `categoria` de um item negativo no
   corpus produz baldes **byte-idênticos**. Sem essa prova, o teste nomeia o
   mecanismo sem exercitá-lo. *(§Ataque: a mutação negativa é satisfeita só pelo
-  degrau do sinal — exige também o caso positivo e o caso sem código útil.)*
+  degrau do sinal — exige também o caso positivo e o caso sem código útil.
+  §Ataque II **provou por execução**: 4/4 flips dão idêntico com o catálogo
+  inerte; e "byte-idênticos" reprova a hipótese nula, porque `property_id` é
+  `uuid4()` por run — precisa de projeção canônica.)*
 - ⚠️ corrigido — Taxa de disparo de 1c medida sobre r5+r6 e escrita na ADR-A.
   *(§Ataque já mediu: 0% ano-cega · 100% por ano.)*
 - ADR-A aberta `Proposto` **antes** do PR de implementação (política P0/P1) e
@@ -241,6 +246,95 @@ datado *"E1.5a × E1.6 extraem o mesmo IRPF com contratos diferentes"*.
   útil** (6/6 das dívidas do E1.6).
 - "taxa de disparo de 1c medida sobre r5+r6": **medida acima** — 0% ano-cego,
   100% por ano. A ADR-A precisa declarar qual das duas está sendo adotada.
+
+## Ataque II (2026-08-18) — por execução, não por leitura
+
+O ataque de 2026-08-17 mediu o **corpus**. Este roda o **instrumento**: aplica
+um patch mínimo em `consolidate_from_itens` que implementa **só o degrau 3**
+(o sinal decide), deixando catálogo RFB e `secao` **inertes por construção**, e
+observa o que os critérios de aceite fazem. Patch descartado após a medição —
+nada de código neste PR.
+
+### O critério de aceite passa com o degrau 1 inerte
+
+| teste | antes | com o degrau 3 sozinho |
+| --- | --- | --- |
+| `..._nenhum_balde_de_ativo_publica_valor_negativo` | RED | **verde** |
+| `..._item_negativo_vira_divida_carimbada` | RED | **verde** |
+| `..._conservacao_por_eixo_e_por_ano` | RED | **verde** |
+| `..._o_cancelamento_exato_e_a_assinatura_do_bug` | verde | falha ⇒ **deletável**, como a lane prescreve |
+| **mutação prescrita** (flip do `categoria` do item negativo → `investimento`, `veiculo`, `poupanca`, `outros`) | — | **4/4 baldes byte-idênticos** |
+
+O catálogo RFB — YAML por ano-base, fail-fast, runbook anual: o entregável
+principal de 1a — **não é exercitado por nenhum critério**. Um PR que entregue
+só o sinal fecha a lane com a suíte verde.
+
+### E o caso discriminante fica silencioso
+
+Dívida **positiva** — que a própria lane diz ser como o IRPF a declara — com o
+mesmo código do imóvel legítimo, sob o mesmo patch:
+
+```
+aterrissa em: imoveis_consolidados · dividas[] = 0 · review_reasons = 0
+```
+
+Não é só que o degrau 3 não pega: **não há warning**. A divergência fato×hint
+que 1a promete nunca calar sai calada, porque o único detector implementado é o
+sinal, e o sinal concorda com o rótulo.
+
+### "Baldes byte-idênticos" reprova a hipótese nula
+
+Dois runs do **mesmo** payload já diferem: `property_id` é `uuid4()` novo por
+run. O critério é insatisfazível como escrito — quem for prová-lo vai perseguir
+fantasma ou afrouxar a comparação até passar. Precisa de projeção canônica
+(dropar `property_id`) ou resolver determinístico. Com a projeção, os 4 flips
+dão idênticos — foi assim que a tabela acima foi medida.
+
+### 2 dos 5 `xfail` não são desmarcáveis como escritos
+
+`_schema_to_validate` resolve por **filename**: `review_reason.schema.json`
+devolve schema, `review_reason` devolve `None`. O `_schema_errors` do arquivo de
+teste passa o nome nu, então morre no `assert schema is not None` — não no
+mecanismo. Vale para `..._divergencia_fato_rotulo_emite_review_reason` (4º
+critério desta lane) e para `..._payload_reprova_no_schema` ([[A40.l67]]).
+`strict=True` **esconde**: xfail é xfail, seja por mecanismo ausente ou por
+helper quebrado.
+
+### O `code` novo pode não ser necessário
+
+`domain.baseline_divergence` já está no enum de `review_reason.schema.json`, e o
+teste só exige o namespace `domain.`. O schema declara explicitamente **"sem
+migration — a coluna DB é String, não Enum SQL"**. O comentário do instrumento
+("membro novo no enum ADR-272") pode estar cobrando trabalho que não existe.
+
+### O `seed` da cauda é descartado no provider default
+
+Medido via litellm: `get_supported_openai_params` para
+`anthropic/claude-sonnet-4-6` **não** inclui `seed` (para `openai/gpt-5`,
+inclui), e o cliente roda com `litellm.drop_params = True`. A cauda instala um
+gate que exige o kwarg em todo call-site novo — de um parâmetro que não chega à
+API do provider default. O ganho de variância é do `temperature=0.0`; o gate
+fecha sintaxe. Diga isso no PR, ou o "claim honesto" fica honesto pela metade.
+
+### O defeito é regressão do schema flat, e o antídoto está no mesmo arquivo
+
+`consolidate()` — a irmã legada, ~200 linhas acima na mesma
+`scripts/consolidate_baseline.py` — itera `decl["bens_direitos"]` e
+`decl["dividas"]`: **roteia por seção**, usa `grupo` só para o subtipo do ativo,
+e lê o saldo devedor **positivo** em `situacao_atual`. Nunca teve nem a
+conjunção com o rótulo nem a dependência do sinal. O `itens[]` plano é que
+perdeu a seção. Some ao E1.6 (`dividas_onus`, 6 em 7/7 runs): **duas
+implementações vivas roteiam por seção; só a do meio não.**
+
+### A rename de 1b é barata no código e cara no histórico
+
+`categoria` tem **1 read-site em produção** (`consolidate_baseline.py:481`) —
+mais o mapper do E1.5a e o schema. Mas há **766 artefatos E1.5a** gravados com
+`categoria`; `read` não valida, `write` valida, e o modo incremental
+(`ctx.incremental`) **relê todos os E1.5a do store** e agrega. O primeiro run
+incremental pós-rename monta um `itens[]` com as duas formas e grava o agregado
+contra um schema que admite uma só. A cautela de "nunca no PR que a introduz"
+está escrita para o `secao`; ela vale **mais** para a rename.
 
 ## Fora de escopo
 
