@@ -225,7 +225,6 @@ def test_e15c_golden_dedup_e_serie(tmp_path: Path) -> None:
 _ANO_REF = "2024"
 
 
-@pytest.mark.xfail(strict=True, reason=f"RED até {_L1} — sinal negativo em balde de ativo")
 def test_e15c_r6_nenhum_balde_de_ativo_publica_valor_negativo(tmp_path: Path) -> None:
     """Item com rótulo de ativo e valor negativo não pode aterrissar em balde de ativo."""
     out = _run(tmp_path, _r6_baseline())
@@ -241,7 +240,6 @@ def test_e15c_r6_nenhum_balde_de_ativo_publica_valor_negativo(tmp_path: Path) ->
 
 # Hoje só o ramo de imóvel carimba proveniência; o ramo de dívida devolve
 # `descricao`/`proprietario`/`saldo_31_12` e nada mais (item 1a).
-@pytest.mark.xfail(strict=True, reason=f"RED até {_L1} — item negativo não vira dívida carimbada")
 def test_e15c_r6_item_negativo_vira_divida_carimbada(tmp_path: Path) -> None:
     """O fato (sinal) roteia para `dividas[]`, com `fonte`/`ano_referencia`/`tipo`."""
     out = _run(tmp_path, _r6_baseline())
@@ -258,7 +256,6 @@ def test_e15c_r6_item_negativo_vira_divida_carimbada(tmp_path: Path) -> None:
 # SUBTRAÍDA do lado do ativo em vez de somada ao do passivo, então os dois
 # somatórios ficam devendo o mesmo montante — e o líquido, sendo a diferença entre
 # eles, não acusa nada (ver o teste irmão logo abaixo).
-@pytest.mark.xfail(strict=True, reason=f"RED até {_L1} — conservação por eixo não fecha")
 def test_e15c_r6_conservacao_por_eixo_e_por_ano(tmp_path: Path) -> None:
     """Σ ativos ≡ `resumo.total_ativos` E Σ passivos ≡ `resumo.total_passivos`."""
     base = _r6_baseline()
@@ -271,7 +268,6 @@ def test_e15c_r6_conservacao_por_eixo_e_por_ano(tmp_path: Path) -> None:
 # O contrato de `review_reasons` no artefato E1.5c é o item 1c — hoje só
 # `extract_baseline` projeta o bloco. O `code` fica a cargo da L1 (membro novo no
 # enum ADR-272); aqui só se exige o namespace `domain.` e a forma do schema.
-@pytest.mark.xfail(strict=True, reason=f"RED até {_L1} — divergência fato×rótulo é silenciosa")
 def test_e15c_r6_divergencia_fato_rotulo_emite_review_reason(tmp_path: Path) -> None:
     """A divergência entre o fato (sinal/código) e o rótulo do LLM vira razão tipada."""
     out = _run(tmp_path, _r6_baseline())
@@ -290,18 +286,34 @@ def test_e15c_r6_divergencia_fato_rotulo_emite_review_reason(tmp_path: Path) -> 
 # depende do modo (warn devolve `True` mesmo inválido), e um assert mode-dependente
 # seria verde local e vermelho só no CI.
 @pytest.mark.xfail(strict=True, reason=f"RED até {_L2} — schema aceita ativo negativo")
+# Afirma o erro DO BALDE, não "existe algum erro": com o helper resolvendo o
+# schema, o payload da fixture já reprova por `pipeline_stage`/`data_processamento`
+# ausentes — genérico demais, e o teste passaria sem que o `minimum: 0` da
+# A40.l67 existisse (medido no §Ataque II da A40.l66).
 def test_e15c_r6_payload_reprova_no_schema(tmp_path: Path) -> None:
     """`baseline_patrimonial` deve recusar valor negativo nos 3 baldes de ativo (item 1e)."""
-    out = _run(tmp_path, _r6_baseline())
-    erros = _schema_errors(out, "baseline_patrimonial")
-    assert erros, "schema aceitou payload com balde de ativo negativo"
+    negativo = copy.deepcopy(_R6_PAYLOAD)
+    out = _run(tmp_path, negativo)
+    out["imoveis_consolidados"] = [
+        {
+            "descricao": "forçado",
+            "proprietario": "x",
+            "tipo": "imovel",
+            "valores_31_12": {_ANO_REF: -1.0},
+        }
+    ]
+    erros = [e for e in _schema_errors(out, "baseline_patrimonial") if "imoveis" in e or "-1" in e]
+    assert erros, "schema aceitou balde de ativo com valor negativo"
 
 
 def _schema_errors(payload: dict, schema_name: str) -> list[str]:
     """Erros de schema independentes do modo warn/strict (ADR-212 PR3a)."""
     from scripts.pipeline_common import _build_schema_validator, _schema_to_validate
 
-    schema, _ = _schema_to_validate(schema_name)
+    # `_schema_to_validate` resolve por FILENAME (`CONFIG_DIR/schemas/<nome>`):
+    # com o nome nu ele devolve `None` e o assert abaixo mata o teste por um
+    # motivo que não é o mecanismo sob prova (medido no §Ataque II da A40.l66).
+    schema, _ = _schema_to_validate(f"{schema_name}.schema.json")
     assert schema is not None, f"schema {schema_name!r} não encontrado em config/schemas/"
     return [e.message for e in _build_schema_validator(schema).iter_errors(payload)]
 
@@ -312,13 +324,6 @@ def _schema_errors(payload: dict, schema_name: str) -> list[str]:
 # existe. O cancelamento exato dos dois lados É a assinatura do bug, então este
 # teste passa HOJE e precisa continuar passando: é controle, não alvo.
 # ---------------------------------------------------------------------------
-
-
-def _deltas_por_eixo(out: dict, resumo: dict) -> tuple[int, int]:
-    return (
-        _soma_ativos_cents(out, _ANO_REF) - _cents(resumo["total_ativos"]),
-        _soma_passivos_cents(out, _ANO_REF) - _cents(resumo["total_passivos"]),
-    )
 
 
 # Controle PERMANENTE: verde hoje (seam quebrado) e verde depois (seam corrigido).
@@ -335,18 +340,3 @@ def test_e15c_r6_conservacao_liquida_nasce_verde_sobre_o_payload_defeituoso(
     liquido_observado = _soma_ativos_cents(out, _ANO_REF) - _soma_passivos_cents(out, _ANO_REF)
     liquido_declarado = _cents(resumo["total_ativos"]) - _cents(resumo["total_passivos"])
     assert liquido_observado == liquido_declarado
-
-
-# Teste DATADO (2026-08-17). Dono da deleção: a mesma A40.l66 que desmarca os xfail
-# acima — ao rotear pelo fato, Δ vira 0 nos dois eixos e este teste DEVE SER
-# DELETADO (não relaxado): ele afirma a presença do defeito, não uma invariante.
-# Existe para que ninguém troque a conservação por eixo pela do líquido e leia o
-# verde como corretude.
-def test_e15c_r6_o_cancelamento_exato_e_a_assinatura_do_bug(tmp_path: Path) -> None:
-    """Mede a assinatura: os dois eixos ficam devendo o MESMO montante, e o líquido não vê."""
-    base = _r6_baseline()
-    delta_ativos, delta_passivos = _deltas_por_eixo(_run(tmp_path, base), base["resumo"])
-    assert (delta_ativos, delta_passivos) == (-20_000_000, -20_000_000), (
-        "a assinatura r6 mudou — se o seam foi corrigido (Δ=0,0), delete este "
-        f"teste e desmarque os xfail; medido: {(delta_ativos, delta_passivos)}"
-    )
