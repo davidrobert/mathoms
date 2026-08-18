@@ -254,7 +254,7 @@ fixes caem no mesmo diff e nenhum dos dois é atribuível.
 | # | Janela | Dono | Pode rebaselinar | Abre quando |
 |---|---|---|---|---|
 | J1 | Seam determinístico | [[A40.l66]] | goldens E1.5c/E5 afetados pelo roteamento; snapshot do view-model | ~~imediatamente~~ · **FECHADA 2026-08-18** (l66 `shipped`, sem rebaseline necessário) |
-| J2 | Guarda + strict | [[A40.l67]] | `baseline_patrimonial` + schema irmão; `mode_overrides` | J1 fechada |
+| J2 | Guarda + strict | [[A40.l67]] | `baseline_patrimonial` + schema irmão; `mode_overrides` | ~~J1 fechada~~ · **ABERTA 2026-08-18** — o 1d passou **sem consumir rebaseline** (`golden_diff` de `aa53d5bf~1`×`aa53d5bf`: 2 campos `new`, zero `value_delta`, sinal **=**); segue disponível para o flip strict |
 | J3 | Balanço de fan-out | [[A40.l68]] | contrato de retorno do stage (sem golden monetário) | independente — **não** disputa J1/J2 |
 | J4 | Cobertura por membro | [[A40.l69]] | baldes de investimento por membro + snapshot do view-model | J2 fechada |
 
@@ -378,15 +378,21 @@ call-sites** em 4 arquivos — o analyzer do RV6-14 é um deles, não o conjunto
   novo sem o kwarg. Claim honesto: reduz variância; **não** torna extração
   idempotente.
 
-**L2 (guarda de publicação E5):**
+**L2 (guarda de publicação E5) — 1d ✅ `shipped` 2026-08-18 (#1534); 1e parcial: schema entregue (#1529), flip strict é critério temporal:**
 - 1d. Nenhum dos 7 baldes [[ADR-145]] < 0 — com **rota de reclassificação
   antes da guarda**: negativo legítimo (cheque especial, conta margem)
   reclassifica determinístico para dívida de curto prazo e **publica**; só o
   negativo que sobrevive vira warning tipado + `needs_review`. Regra
   unificadora (na ADR-A): **prescrição exige cobertura; descrição admite
   ressalva** — cobertura incompleta ⇒ `next_aporte_classe=None` +
-  `desvio_max_pct=None` + `motivo_supressao` (campos já `Optional`), sem
-  suprimir o resto do relatório.
+  `desvio_max_pct=None` + `motivo_supressao` (~~campos já `Optional`~~ —
+  **`motivo_supressao` não existia**; nasceu no #1534, e `AlocacaoDerived` tem
+  `additionalProperties: false`, logo declará-lo no schema não era opcional),
+  sem suprimir o resto do relatório. *Entregue com um balde a mais que o
+  escrito:* o par derivado `imoveis_geradores`/`imoveis_nao_geradores` entrou
+  porque é o **único** negativo publicado do corpus (r6, −125.381,88) e não é um
+  dos 7 baldes [[ADR-145]] — a guarda literal passaria verde sobre o run que a
+  motivou.
 - 1e. Simetrização do contrato: `patternProperties` `^(31_12_)?\d{4}$` com
   `minimum:0` nos 3 baldes de ativo do `baseline_patrimonial.schema.json`
   (**sem** fechar `additionalProperties` — os resolvers leem 3 formas de

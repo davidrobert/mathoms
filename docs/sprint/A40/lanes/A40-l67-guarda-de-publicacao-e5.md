@@ -150,3 +150,86 @@ Uma primeira versão do serviço foi escrita sobre a `composicao` e **descartada
 sem commit** ao medir isto — guarda meio-certa que dessincroniza dois agregados
 é pior que guarda nenhuma, porque o defeito passa a ser invisível no lugar onde
 o leitor confere.
+
+## 1d entregue — 2026-08-18 (#1534 · `aa53d5bf`)
+
+`patrimonio_sign_guard.py` aplica a guarda **no componente**, a montante de
+`_compute_bruto` e `_build_composicao`, como o §desenho corrigido acima exigia.
+Caixa saiu para `patrimonio_caixa.py` para o saldo corrente chegar cru à guarda
+(e o calculator ficar sob o teto de 500 linhas). A [[ADR-394]] §Emenda 2026-08-18
+(#1531) carrega a regra "prescrição exige cobertura; descrição admite ressalva"
+e as decisões D5/D6.
+
+**Correção da própria lane, confirmada:** `motivo_supressao` **não existia** —
+nasceu aqui, em `AlocacaoDeviationResult` e no `AlocacaoDerived` do schema (que
+tem `additionalProperties: false`, então declarar não era opcional).
+
+### A medição que mudou o escopo
+
+Sobre `report_data.json` dos **6 runs completos** do dogfood:
+
+| nível | disparo | efeito no desenho |
+|---|---|---|
+| 6 componentes < 0 | **0/36** | a guarda no componente é rede, não detector |
+| split derivado < 0 | **1/12** — só r6, `imoveis_nao_geradores` = −125.381,88 | **entrou no escopo** |
+| linhas de `caixa_detalhes` < 0 | **6/6 runs** (−95,62) | a guarda mede **agregado**, não linha |
+
+O `imoveis_geradores`/`imoveis_nao_geradores` é o split de cat_2
+([[ADR-142]]/[[ADR-215]] §6), **não** um dos 7 baldes [[ADR-145]] que o item 1d
+nomeia. Uma guarda literal ao texto teria passado **verde sobre o r6**: lá o
+agregado `imoveis_investimento` seguia positivo (437.324,36) com o negativo
+escondido dentro do split. Entrou em `BALDES_FISICOS` e é detectado **sem
+mutação** — mutá-lo quebraria a invariante 4a (`imoveis_investimento ≡
+geradores + não-geradores ≡ imoveis_fisicos_brl`) que a Onda 0 instalou.
+
+A linha de −95,62 é o argumento contra medir por linha: ela se anula dentro de
+um caixa de +257.683,53, em **todo** run — a guarda viraria ruído recorrente,
+que é o modo de falha que a §Escopo cita ao exigir a rota de reclassificação.
+
+### Efeito colateral corrigido de passagem
+
+`_compute_caixa` aplicava `max(0.0, caixa)` no ramo de posições atuais: caixa
+negativo **evaporava**, e o bruto (logo o líquido) saía superestimado pelo mesmo
+montante. Agora o montante vai para `total_dividas` e o líquido cai o que devia
+cair. Disparo medido: **0** — o agregado de caixa nunca foi negativo nos 6 runs.
+O modo `off` reaplica esse clamp: kill-switch que não restaura o comportamento
+anterior não é kill-switch.
+
+### Janela J2 — aberta e fechada sem consumir rebaseline
+
+`dev/golden_diff.py` sobre o payload E5 do golden, `aa53d5bf~1` × `aa53d5bf`:
+dois campos `new` (`patrimonio.guarda_de_sinal`,
+`goals.alocacao_alvo.derived.motivo_supressao`) e **zero `value_delta`**. Sinal
+declarado: **=**. O rebaseline do view-model é igualmente aditivo (8 linhas, 1
+campo `new`). Nenhum valor monetário publicado se moveu, logo a janela segue
+disponível para o flip strict do 1e.
+
+### Kill-switch `MATHOMS_E5_SIGN_GUARD`
+
+| valor | comportamento |
+|---|---|
+| ausente / `enforce` | reclassifica, declara, sobrevivente pausa em `needs_review` (artefato já persistido — pausa, não aborto) |
+| `warn` | reclassifica e declara no artefato, sem pausar |
+| `off` | status quo ante literal, clamp `max(0, caixa)` incluído |
+
+### Follow-up datado (2026-08-18) · dono `senior-cto`
+
+`_enrich_alocacao_with_deviation` recebe o patrimônio como **keyword com default
+`None`** (`e5_serialization.py:436`). Call-site que omitir `patrimonio=` publica
+a prescrição sobre cobertura possivelmente incompleta e **passa verde** —
+4 call-sites de teste já o omitem hoje
+(`backend/tests/test_alocacao_bundle_serialization_v2.py:81,91,94` e
+`tests/test_schema_validation_e5_decision_blocks.py:129`), exercitando um caminho
+onde a supressão nunca pode disparar. Nenhum call-site de produção está exposto
+agora; o risco é o próximo. Condição de retomada: qualquer call-site novo do
+enricher, ou a lane de render 7a/7e ao consumir `motivo_supressao`.
+
+### Segue aberto
+
+- **Flip de `mode_overrides` para strict** (resto do 1e): critério **temporal** —
+  drift = 0 por ≥7 dias de dogfood. Nenhuma sessão o fecha; retomada coordenada
+  com [[A40.l58]], dona de `mode_overrides`. É por isso que esta lane **não**
+  vai a `shipped`.
+- **Copy/banner do estado de ressalva** no relatório: 7a/7e no
+  [[PLAN-report-trust]], fora desta lane. O artefato já carrega
+  `guarda_de_sinal` e `motivo_supressao` para o render consumir.
