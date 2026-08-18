@@ -35,11 +35,13 @@ tags:
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l66]].
 Cobre 1a/1b/1c no corpo original; 1d entra pela emenda abaixo.
 
-> **Emendada em 2026-08-18** — a [[A40.l67]] anexa a regra que faltava,
+> **Emendada em 2026-08-18 (2×)** — a [[A40.l67]] anexa a regra que faltava,
 > "prescrição exige cobertura; descrição admite ressalva", e a guarda de sinal
 > do E5 que a materializa. A hierarquia de autoridade não muda; o que a emenda
 > acrescenta é **o que fazer com o negativo que chega mesmo assim** ao balde
-> publicado. Ver §Emenda 2026-08-18.
+> publicado. Ver §Emenda 2026-08-18. A [[A40.l69]] anexa a segunda emenda do
+> mesmo dia: a mesma regra vista pelo outro lado — valor **ausente** em vez de
+> impossível. Ver §Emenda 2026-08-18 (b).
 
 ## Contexto
 
@@ -268,3 +270,87 @@ interruptor binário obriga a escolher entre ruído e cegueira:
 - `off` → **status quo ante literal**, incluindo o clamp `max(0, caixa)` que o
   ramo de posições atuais aplicava. Kill-switch que não restaura o comportamento
   anterior não é kill-switch.
+
+## Emenda 2026-08-18 (b) — cobertura por membro: zero apurado ≠ zero não apurado
+
+Anexada pela [[A40.l69]] (itens 3a/3b do [[PLAN-deterministic-authority]]). A
+emenda anterior decidiu o que fazer com **valor impossível**; esta decide o que
+fazer com **valor ausente**. É a mesma regra — prescrição exige cobertura — vista
+pelo outro lado: lá o número existia e estava errado, aqui ele não existe e o
+relatório publicou `0,00` como se existisse.
+
+### D7 — a cobertura é declarada por membro, em enum fechado
+
+`fonte_investimentos` é uma string **do domicílio**: descreve o caminho que o
+cálculo tomou, não se cada pessoa foi medida. Com o titular vindo de posições
+atuais e o cônjuge de lugar nenhum, ela diz `"posicoes_atuais"` para os dois.
+
+Campo próprio `cobertura_investimentos[]`, por membro, com três estados:
+
+| estado | significado | publica |
+| --- | --- | --- |
+| `apurado` | fonte presente, valor apurado | o valor |
+| `zero_apurado` | fonte presente, valor é zero | **0,00** — é a saída da ressalva |
+| `nao_apurado` | sem fonte para o membro | **`null`** + ressalva + `needs_review` |
+
+`null` e não `0,0`: um zero publicado é uma afirmação sobre o patrimônio da
+pessoa, e o sistema não a mediu. `fonte_investimentos` permanece por compat de
+leitor, mas deixa de responder "este membro foi medido?".
+
+**Não sobrecarregar `pl_ressalva`** ([[ADR-346]]): ela mede posição de renda
+variável **sem valor de mercado**, e membro sem posição alguma não produz ticker
+sem marcação. São sinais distintos; fundi-los apagaria os dois.
+
+### Taxa de disparo medida (por membro, 6 runs do dogfood)
+
+A medição é **por membro**, nunca por workspace: um domicílio de 2 pessoas com 1
+buraco contaria como "100% coberto" no denominador errado.
+
+| run | `fonte_investimentos` | titular | cônjuge | `pl_ressalva` |
+| --- | --- | --- | --- | --- |
+| r1–r4 (07-25 → 08-04) | `posicoes_atuais+irpf` | 943.189,25 | 188.123,73 | `false` |
+| r5 (`0a040a22`) | `posicoes_atuais` | 943.189,25 | **0,00** | `false` |
+| r6 (`7b64b6c7`) | `posicoes_atuais` | 943.189,25 | **0,00** | `false` |
+
+- **`nao_apurado` em r5+r6: 2/4 instâncias-membro (50%)**; sobre os 6 runs,
+  **2/12 (17%)**. É o budget WARN-first do item 3a.
+- **A regressão é datada e localizada.** Entre r4 (2026-08-04) e r5 (2026-08-16)
+  o `fonte_investimentos` caiu de `posicoes_atuais+irpf` para `posicoes_atuais`:
+  o fallback IRPF do cônjuge **deixou de disparar** (`if irpf_conjuge > 0`), e
+  o balde foi de 188.123,73 para 0,00. Não é um zero antigo — é um valor que o
+  relatório publicava e parou de publicar, sem dizer nada.
+- **`pl_ressalva` é `false` em 6/6 runs** — inclusive nos 2 em que a cobertura
+  quebrou. Isso mede, em vez de supor, que ela é **inerte** para esta classe: a
+  ressalva não está quebrada, ela responde outra pergunta, e foi lida como "PL
+  certificado".
+
+### D8 — slug não canonicalizado não vira membro, e ninguém o absorve
+
+`investments_consolidator.py` preserva o slug cru no miss do resolver
+(`else: membro = membro_raw`) e `PatrimonioCalculator._compute_investimentos`
+soma o não-atribuído ao titular (`if unattributed > 0: titular_val += unattributed`).
+Os dois juntos creditam à pessoa errada, em silêncio. Miss do resolver passa a
+produzir `nao_apurado` + `review_reason` nomeando o slug; o valor **não** migra.
+
+Onde há CPF, CPF é a chave ([[ADR-267]]) — esta emenda não re-decide isso, só
+proíbe que o agrupamento aconteça antes dele.
+
+### O denominador do gate anti-substring, com o padrão declarado
+
+Medido em `26293e93` com o padrão
+`(titular_key|conjuge_key|_TITULAR_KEY|_CONJUGE_KEY)[^=<>!]* in `:
+
+| arquivo | sites |
+| --- | --- |
+| `patrimonio_resolvers.py` | 12 |
+| `analyze_finances.py` | 11 |
+| `e5_member_resolver.py` | 10 |
+| `patrimonio_calculator.py` | 2 |
+| **total da classe** | **35** |
+
+O padrão casa 38 linhas no repo; **3 são falso-positivo** e ficam fora do
+denominador — `llm/validators.py` (2: `not in keys_seen`, membership em conjunto
+de chaves) e `parecer_context_sanitizer.py` (1: `not in ("titular", "conjuge")`,
+membership em tupla). A distinção é a que o gate precisa acertar: `chave in
+string` é o defeito; `chave in coleção` é uso legítimo. Gate que não separe os
+dois fecha sintaxe, não a classe.
