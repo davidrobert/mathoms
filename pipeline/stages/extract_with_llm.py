@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from pipeline.domain.services.e2_natural_key import stamp_natural_key
+from pipeline.llm.deterministic_extraction import (
+    EXTRACTION_SEED,
+    EXTRACTION_TEMPERATURE,
+)
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
@@ -251,6 +255,8 @@ def _process_one_e2_llm_document(
         # (ADR-270) e a 2ª tentativa a 240s — dogfood 5@5.com: timeout em
         # c6bank CSV ~60KB. Base 300s → retry escala a 600s (teto ADR-270).
         result = service.call(
+            temperature=EXTRACTION_TEMPERATURE,
+            seed=EXTRACTION_SEED,
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
             output_schema=LLMExtractOutput,
