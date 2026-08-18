@@ -76,7 +76,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - Status: `in_progress` · Sprint atual: A40
 - Sprints envolvidas: A28, A40
-- Lanes: 43 done · 3 in_progress · 26 open · 1 blocked
+- Lanes: 44 done · 3 in_progress · 25 open · 1 blocked
 - ADRs canônicas: [[ADR-191]], [[ADR-240]], [[ADR-186]], [[ADR-357]], [[ADR-358]], [[ADR-370]]
 
 ### PLAN-snapshot-changelog-v3 — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica
