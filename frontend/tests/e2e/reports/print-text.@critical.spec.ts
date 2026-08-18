@@ -49,6 +49,19 @@ const PROIBIDO_NO_PDF = [
 
 /** Sem `pdftotext` o gate não mede nada. Local isso é um skip legítimo (nem
  *  todo dev tem Poppler); no CI é falso-verde, e o step instala o pacote. */
+function chaveCabecalho(txt: string): string {
+  return normalizarTexto(txt)
+    .toLocaleLowerCase("pt-BR")
+    .replace(/\s*\/\s*/g, "/");
+}
+
+function cabecalhoNoPdf(header: string, texto: string): boolean {
+  const chave = chaveCabecalho(header);
+  if (texto.includes(chave)) return true;
+  const tokens = chave.split(/[\s/]+/).filter((t) => t.length >= 3);
+  return tokens.length > 0 && tokens.every((t) => texto.includes(t));
+}
+
 function exigirPdftotext(): void {
   if (pdftotextInstalado()) return;
   if (process.env.CI) {
@@ -214,14 +227,12 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
       );
     }
 
-    // `uppercase` no thead chega ao PDF como glifo maiúsculo; sem case-fold
-    // o instrumento acusava "Status" ausente enquanto o papel tinha "STATUS".
-    const texto = normalizarTexto(pdfToText(await generateReportPdf(page))).toLocaleLowerCase(
-      "pt-BR",
-    );
-    const ausentes = [...new Set(headers)].filter(
-      (h) => !texto.includes(normalizarTexto(h).toLocaleLowerCase("pt-BR")),
-    );
+    // `uppercase` no thead chega como glifo maiúsculo. "Sigla / Termo" no
+    // Linux do CI quebra no `/` e o `includes` literal falha sobre o mesmo
+    // rótulo — não é hidden md:block. Tokens de 3+ letras fecham o reflow
+    // sem abrir a porta de um cabeçalho que realmente sumiu.
+    const texto = chaveCabecalho(pdfToText(await generateReportPdf(page)));
+    const ausentes = [...new Set(headers)].filter((h) => !cabecalhoNoPdf(h, texto));
     expect(
       ausentes,
       `cabeçalhos visíveis no desktop que o PDF não tem: ${ausentes.join(" | ")}. ` +
