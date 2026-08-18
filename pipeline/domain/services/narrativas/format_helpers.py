@@ -19,6 +19,11 @@ from __future__ import annotations
 import re
 from typing import Any, Mapping
 
+# A40.l51 C4 — só é obrigatório ter texto quem tem destino em `summary_source`.
+# Órfãs (s2/s3/s5/s6) podem ser ausentes ou vazias; o validador antigo
+# proibia silêncio e fabricava prosa (mesma classe que a l43 removeu do right).
+DELIVERED_SUMMARY_KEYS: tuple[str, ...] = ("s1", "s4", "s7", "s8", "s9", "s10")
+
 
 def fmt_currency(value) -> str:
     """Format BRL currency per spec.
@@ -200,6 +205,21 @@ def _is_impostos_pj_pendente(chart: dict) -> bool:
     return "Perfil tributário PJ pendente" in context
 
 
+def _monetary_format_errors(text: str, field_name: str) -> list[str]:
+    found: list[str] = []
+    if re.search(r"R\$\s*[\d.,]+\s*KM", text, re.IGNORECASE):
+        found.append(f"{field_name}: Invalid 'KM' suffix found (use either k or M, not KM)")
+    if re.search(r"R\$\s*[\d.,]+\s+[kM]", text):
+        found.append(f"{field_name}: Invalid space between value and k/M suffix")
+    if re.search(r"R\$\s*\d+\.\d+[kM]", text):
+        found.append(
+            f"{field_name}: Possível ponto decimal em valor monetário (deveria usar vírgula)"
+        )
+    if re.search(r"R\$\s*\d+,\d{3}", text):
+        found.append(f"{field_name}: separador de milhar US (A40.l51 C2)")
+    return found
+
+
 def validate_narrativas(
     narrativas_obj: dict, cenarios_section_key: str = "cenarios_conjuge"
 ) -> tuple[bool, list[str]]:
@@ -238,13 +258,12 @@ def validate_narrativas(
                     plain = re.sub(r"<[^>]+>", "", p_html).strip()
                     if len(plain) > _MAX:
                         errors.append(
-                            f"perfil_familia.{side} P{idx+1}: {len(plain)} chars " f"(max {_MAX})"
+                            f"perfil_familia.{side} P{idx + 1}: {len(plain)} chars (max {_MAX})"
                         )
 
     if "summaries" in narrativas_obj:
         summaries = narrativas_obj["summaries"]
-        required_summaries = [f"s{i}" for i in range(1, 11)]
-        for s_key in required_summaries:
+        for s_key in DELIVERED_SUMMARY_KEYS:
             if s_key not in summaries:
                 errors.append(f"Missing summaries.{s_key}")
             elif not summaries[s_key]:
@@ -289,32 +308,26 @@ def validate_narrativas(
                 if "conclusion" not in chart or not chart["conclusion"]:
                     errors.append(f"charts.{chart_key}.conclusion is missing or empty")
 
-    def check_monetary_format(text: str, field_name: str) -> None:
-        if re.search(r"R\$\s*[\d.,]+\s*KM", text, re.IGNORECASE):
-            errors.append(f"{field_name}: Invalid 'KM' suffix found (use either k or M, not KM)")
-        if re.search(r"R\$\s*[\d.,]+\s+[kM]", text):
-            errors.append(f"{field_name}: Invalid space between value and k/M suffix")
-        if re.search(r"R\$\s*\d+\.\d+[kM]", text):
-            errors.append(
-                f"{field_name}: Possível ponto decimal em valor monetário " "(deveria usar vírgula)"
-            )
-
     if "perfil_familia" in narrativas_obj:
         for side in ["left", "right"]:
             if side in narrativas_obj["perfil_familia"]:
-                check_monetary_format(
-                    narrativas_obj["perfil_familia"][side], f"perfil_familia.{side}"
+                errors.extend(
+                    _monetary_format_errors(
+                        narrativas_obj["perfil_familia"][side], f"perfil_familia.{side}"
+                    )
                 )
 
     if "summaries" in narrativas_obj:
         for s_key, text in narrativas_obj["summaries"].items():
             if text:
-                check_monetary_format(text, f"summaries.{s_key}")
+                errors.extend(_monetary_format_errors(text, f"summaries.{s_key}"))
 
     if "charts" in narrativas_obj:
         for chart_key, chart in narrativas_obj["charts"].items():
             for field in ["context", "conclusion"]:
                 if field in chart and chart[field]:
-                    check_monetary_format(chart[field], f"charts.{chart_key}.{field}")
+                    errors.extend(
+                        _monetary_format_errors(chart[field], f"charts.{chart_key}.{field}")
+                    )
 
     return len(errors) == 0, errors

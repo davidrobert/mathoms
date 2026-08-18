@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any
 
+from pipeline.domain.services.brl_prose import fmt_brl_prosa
 from pipeline.domain.services.irpf_analyzer import PgblStatus
 from pipeline.domain.services.irpf_faixa_marginal import resolve_faixa_marginal
 from pipeline.domain.types.config import FiscalParameters, IRPFBracket
@@ -260,17 +261,6 @@ def _nota_regime_incompleto(config: "PrevidenciaConfig") -> str:
     )
 
 
-# `f"{v:,.0f}"` é separador ANGLO: "R$ 8,400" para oito mil e quatrocentos, que
-# em pt-BR se lê como oito reais e quarenta centavos. Contado em 2026-08-17: são
-# **7** formatadores BRL privados já no repo (`dashboard_service`,
-# `disability_coverage`, `life_insurance_coverage`, `itcmd_estimator`,
-# `snapshot_changelog/narratives`, `suggestion_rules`, `llm/value_formatter`) e
-# este é o 8º. A consolidação é dívida própria, não desta lane.
-def _brl_inteiro(valor: Decimal) -> str:
-    """Reais sem centavos em formato BR (R$ 1.234), sem depender de locale."""
-    return "R$ " + f"{valor:,.0f}".replace(",", ".")
-
-
 def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal) -> str:
     """Nota de capacidade PGBL ramificada por PgblStatus (RV2-03 · ADR-305 D3)."""
     ano = cap.ano_base
@@ -281,7 +271,7 @@ def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal) -> str:
     if cap.pgbl_status == PgblStatus.no_teto or (cap.pgbl_status is None and restante <= 0):
         return f"{_NOTA_NO_TETO.format(ano=ano)} {_NOTA_PROXY_ANO_CORRENTE}"
     capacidade = (
-        f"Capacidade PGBL restante do IRPF {ano}: {_brl_inteiro(restante)} "
+        f"Capacidade PGBL restante do IRPF {ano}: {fmt_brl_prosa(restante)} "
         "(já descontado o aportado)."
     )
     return f"{capacidade} {_NOTA_DIFERIMENTO} {_NOTA_PROXY_ANO_CORRENTE}"

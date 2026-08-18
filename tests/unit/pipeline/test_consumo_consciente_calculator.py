@@ -327,6 +327,8 @@ class TestAnalise:
     def test_texto_quando_sem_itens(self):
         r = ConsumoConscienteCalculator().calculate(_fluxo(), _despesas())
         assert "Nenhum gasto pontual" in r.analise
+        assert "R$ 2.000" in r.analise
+        assert "R$ 2,000" not in r.analise
 
 
 # =============================================================================

@@ -60,6 +60,8 @@ class TestRendaPassivaAlias:
         assert draft is not None
         assert draft.kind == "renda_passiva_real_baixa"
         assert draft.section_id == "S7"
+        assert ", mas a renda" in draft.rationale
+        assert "R$ 4.000" in draft.rationale
 
     def test_dispara_com_progresso_if_pct_legado(self, cfg):
         """Backwards-compat: snapshot com `progresso_if_pct` ainda funciona."""

@@ -14,6 +14,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from pipeline.domain.services.brl_prose import fmt_brl_prosa
+
 
 def _safe_float(val) -> float:
     if val is None:
@@ -278,13 +280,15 @@ class ConsumoConscienteCalculator:
         self, *, n_candidates: int, total_pontuais: float, equivalente_meses: float
     ) -> str:
         cfg = self._config
+        minimo = fmt_brl_prosa(cfg.consumo_min)
         if n_candidates > 0:
+            total = fmt_brl_prosa(total_pontuais, decimals=2)
             return (
-                f"Identificados {n_candidates} gastos pontuais ≥ R$ {cfg.consumo_min:,.0f} "
-                f"no período analisado. O total de R$ {total_pontuais:,.2f} equivale a "
+                f"Identificados {n_candidates} gastos pontuais ≥ {minimo} "
+                f"no período analisado. O total de {total} equivale a "
                 f"{equivalente_meses:.1f} meses de aporte."
             )
         return (
-            f"Nenhum gasto pontual relevante ≥ R$ {cfg.consumo_min:,.0f} identificado "
+            f"Nenhum gasto pontual relevante ≥ {minimo} identificado "
             "no período analisado — padrão de consumo dentro dos limites recorrentes."
         )
