@@ -2,7 +2,7 @@
 id: ADR-394
 type: adr
 title: "Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado"
-status: Proposto
+status: Decidido
 phase: A40.l66
 date: "2026-08-18"
 relates_to:
@@ -23,14 +23,14 @@ aliases:
   - "ADR-A do PLAN-deterministic-authority"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - phase/a40-l66
 ---
 
 # ADR-394 — Fato determinístico é autoridade; saída de LLM é hint
 
-**Status:** Proposto • **Data:** 2026-08-18 • É a **ADR-A** do
+**Status:** Decidido (A40.l66) • **Data:** 2026-08-18 • É a **ADR-A** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l66]].
 Cobre 1a/1b/1c; a regra "prescrição exige cobertura" (1d/3a) fica para a
 emenda que a [[A40.l67]] anexa.
@@ -146,6 +146,23 @@ que admite uma só ([[ADR-261]] Tier 3). Boundary tolerante: valor de enum
 desconhecido → `needs_review` no item, resto do documento extraído
 ([[ADR-292]]).
 
+## Taxa de disparo medida (2026-08-18, pós-implementação)
+
+Rodando o consolidador **real** sobre os 7 agregados dos runs completos de agosto
+do dogfood, zero-write:
+
+| sinal | disparo |
+| --- | --- |
+| **1c** — conservação ano-cega por eixo (cents int, tolerância zero) | **0/7** |
+| **1a** — divergência fato × hint | **7/7** |
+| valor negativo em balde de ativo | **0/7** (era 3/7 antes) |
+| `dividas[]` | **6/7 runs com 6 entradas** (era 4), convergindo com `E1.6.dividas_onus` |
+
+1c é **contrato, não detector**: fecha em todos os runs. O detector é 1a. Com o
+cap de cardinalidade ([[ADR-272]] §Cap), run com o item flipado emite **2** razões
+e run limpo emite **1** — a separação bate com a taxa de flip de 5/7 medida antes
+do fix. Sem o cap eram 84 e 83: os dois mundos ficavam indistinguíveis.
+
 ## Consequências
 
 - O `secao` só cobre documento **re-extraído**. Enquanto a cobertura não é 100%,
@@ -158,6 +175,13 @@ desconhecido → `needs_review` no item, resto do documento extraído
   satisfeito pelo degrau do sinal sozinho e não prova nada acima dele.
 - `previdencia` não tem ramo em `consolidate_from_itens` e cai em `outros`; o
   roteamento novo passa a nomeá-la. É correção de subtipo, não de eixo.
+- **Deferido, datado (2026-08-18) · dono `data-engineer`:** o eixo de **ativos**
+  em `_validate_e15_totals` mantém a tolerância histórica de R$ 1,00 (o de
+  passivos nasceu em cents com tolerância zero). Apertá-lo é rebaseline dos
+  goldens, com janela própria. Condição de retomada: cobertura de `secao` medida.
+- **Deferido, datado (2026-08-18) · dono `data-engineer`:** flip de `secao` e
+  `categoria_hint` para `required` no `e15_baseline_extract.schema.json`. Condição:
+  cobertura 100% medida após a re-extração do corpus ([[ADR-261]] Tier 3).
 - A unificação E1.5a × E1.6 continua deferida (§Deferimentos do plano, dono
   `senior-cto`), mas esta ADR registra que ela é o caminho **estruturalmente**
   certo: `secao` no E1.5a é a ponte enquanto os dois extratores existirem.

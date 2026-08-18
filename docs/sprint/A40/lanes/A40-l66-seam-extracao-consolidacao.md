@@ -4,7 +4,9 @@ type: lane
 title: "Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1522
+ship_date: "2026-08-18"
 priority: P0
 branch_slug: a40-l66-seam-extracao-consolidacao
 owner: data-engineer
@@ -19,17 +21,22 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
 ---
 
 # A40.l66 — `a40-l66-seam-extracao-consolidacao`
 
+> **Entregue em 2026-08-18** em 5 PRs: **#1520** ([[ADR-394]] `Proposto`) ·
+> **#1521** (1b — contrato `secao`/`categoria_hint`) · **#1522** (1a+1c — o seam) ·
+> **#1523** (cauda — temperature/seed + gate) · **#1524** (cap de cardinalidade).
+> A [[ADR-394]] flipou para `Decidido` com a taxa de disparo medida.
+>
 > Aberta em 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] (itens 1a,
-> 1b, 1c). É o caminho crítico do MVP: enquanto o rótulo do LLM decidir o eixo,
-> dois runs do mesmo corpus continuam divergindo e o contador do gate de saída
-> da [[A40]] não pode iniciar.
+> 1b, 1c). Era o caminho crítico do MVP: enquanto o rótulo do LLM decidisse o
+> eixo, dois runs do mesmo corpus divergiam e o contador do gate de saída da
+> [[A40]] não podia iniciar.
 
 ## Problema
 

@@ -4,7 +4,7 @@ type: lane
 title: "Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: open
 priority: P1
 branch_slug: a40-l72-guarda-de-contrato-no-render
 owner: product-designer
@@ -17,7 +17,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p1
   - area/frontend
 ---
@@ -26,6 +26,7 @@ tags:
 
 > Item **7a** da Onda 7 do [[PLAN-deterministic-authority]] (RV6-16), aberto como
 > lane do [[PLAN-report-trust]]. Nasce `blocked`: o supressor do ponto forte é
+> **Destravada em 2026-08-18** — a [[A40.l66]] shipou (#1522).
 > alimentado **exclusivamente** pelo warning tipado da Onda 1, que a [[A40.l66]]
 > cria — antes dele, a lane teria de re-derivar o defeito, que é a duplicação de
 > fonte de verdade que este plano inteiro existe para matar.
