@@ -1,0 +1,38 @@
+# Catálogo RFB por ano-base para o roteamento ativo × passivo do E1.5c
+# (ADR-394 D2 · A40.l66). Indexado por `(secao, codigo)` — `codigo` sozinho NÃO
+# é chave: o mesmo dígito vive nas duas fichas ('11' rotula apartamento em
+# "Bens e Direitos" e dívida em "Dívidas e Ônus Reais", medido em 7/7 runs).
+#
+# O eixo já vem da `secao`; este catálogo refina o SUBTIPO. Entrada aqui só é
+# consultada quando o item traz `secao` — sem ela, nada daqui decide.
+# Atualização anual: docs/reference/runbooks/atualizacao_codigos_rfb.md
+ano_base: 2024
+fonte: "Manual DIRPF 2025 (ano-base 2024) — fichas Bens e Direitos / Dívidas e Ônus Reais"
+
+bens_direitos:
+  "01": imovel
+  "02": veiculo
+  "03": participacao_societaria
+  "04": renda_fixa
+  "07": fundo
+  "10": criptoativo
+  "11": imovel
+  "12": imovel
+  "41": poupanca
+  "45": renda_fixa
+  "61": conta_bancaria
+  "97": previdencia
+  "99": outros
+
+# Vocabulário fechado por `baseline_patrimonial.schema.json` (dividas[].tipo) —
+# valor fora dele reprova o artefato inteiro no write.
+dividas_onus:
+  "11": financiamento_imobiliario
+  "12": financiamento_veiculo
+  "13": emprestimo_pessoal
+  "14": emprestimo_pessoal
+  "15": emprestimo_pessoal
+  "16": emprestimo_pessoal
+  "21": consignado
+  "51": emprestimo_pessoal
+  "99": outros

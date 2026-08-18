@@ -101,14 +101,10 @@ def test_invariante_4a_vale_no_payload_limpo(tmp_path: Path) -> None:
     assert imoveis_investimento == split == fisicos
 
 
-# Sobre o payload r6 os três divergem porque cada produtor trata o negativo de um
-# jeito: o PatrimonioCalculator o SOMA ao estoque (600k−150k=450k) e
-# `_aggregate_carteira` o DESCARTA (`if valor > 0`, alocacao_alvo_deviation.py:186),
-# mantendo 600k. Nenhuma das duas leituras é sinalizada — e é o mesmo imóvel.
-@pytest.mark.xfail(
-    strict=True,
-    reason="RED até A40.l66 (seam extração/consolidação) — critério de aceite da Onda 1",
-)
+# Divergiam sobre o payload r6 porque cada produtor tratava o negativo de um
+# jeito: o PatrimonioCalculator o SOMAVA ao estoque e `_aggregate_carteira` o
+# DESCARTAVA (`if valor > 0`). Com o roteamento por fato (A40.l66 · ADR-394 D1)
+# o negativo não chega mais a balde de ativo, e os três termos coincidem.
 def test_invariante_4a_entre_agregados(tmp_path: Path) -> None:
     """`imoveis_investimento` ≡ geradores+não-geradores ≡ `imoveis_fisicos_brl`, cents, tolerância zero."""
     itens = [_IMOVEL_LEGITIMO, _FINANCIAMENTO_ROTULADO_ATIVO]

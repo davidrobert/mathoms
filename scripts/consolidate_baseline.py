@@ -23,11 +23,18 @@ Uso:
 import json
 import re
 from datetime import date
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+from pipeline.domain.services.baseline_item_classifier import (
+    BaselineAxis,
+    classify_baseline_item,
+)
 from pipeline.domain.services.money_parsing import valor_monetario_float
+from pipeline.llm.rfb_codes import load_baseline_catalog
 from pipeline.llm.schemas.e16_irpf_full import detect_pj_suffix
 
 # ============================================================================
@@ -475,6 +482,8 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     total_bens = 0.0
     total_dividas = 0.0
     pj_skipped = 0
+    review_reasons: List[dict] = []
+    catalogo = load_baseline_catalog(ano_base)
 
     for item in itens:
         valor = safe_float(item.get("valor_brl", 0))
@@ -500,13 +509,31 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         # falso conflito de mesmo-ano no dedup cross-year.
         item_ano_str = str(item.get("ano") or ano_base)
 
-        is_divida = categoria == "outros" and valor < 0
-        if is_divida:
+        # ADR-394 D1: quem decide o eixo é o fato (secao → catálogo → sinal),
+        # nunca o rótulo. O sinal é veto suficiente e jamais necessário — o IRPF
+        # declara saldo devedor POSITIVO na ficha de dívidas.
+        classificacao = classify_baseline_item(
+            codigo=str(item.get("codigo", "") or ""),
+            valor_cents=_to_cents(valor),
+            secao=(item.get("secao") or None),
+            categoria_hint=categoria,
+            catalogo=catalogo,
+        )
+        review_reasons.extend(
+            _review_reason_da_divergencia(w, descricao) for w in classificacao.warnings
+        )
+        if classificacao.eixo is BaselineAxis.PASSIVO:
             dividas_consolidadas.append(
                 {
                     "descricao": descricao,
                     "proprietario": membro,
                     "saldo_31_12": {item_ano_str: abs(valor)},
+                    # `tipo`/`fonte` são vocabulários FECHADOS do
+                    # `baseline_patrimonial.schema.json`; o grau de autoridade da
+                    # decisão vai na `review_reason`, não no balde.
+                    "tipo": classificacao.subtipo or "outros",
+                    "fonte": "irpf",
+                    "ano_referencia": int(item_ano_str),
                 }
             )
             total_dividas += abs(valor)
@@ -536,6 +563,9 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         elif categoria == "conta_corrente":
             entry["tipo"] = "conta_bancaria"
             investimentos_consolidados.append(entry)
+        elif categoria == "previdencia":
+            entry["tipo"] = "previdencia"
+            investimentos_consolidados.append(entry)
         elif categoria == "investimento":
             entry["tipo"] = _classify_investimento(
                 normalize_grupo(item.get("codigo", "")), descricao
@@ -547,18 +577,15 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
 
         total_bens += valor
 
-    # Totais vindo do próprio resumo do E1.5 são mais confiáveis
-    # (LLM já somou considerando arredondamentos) — EXCETO quando filtramos
-    # contribuinte PJ (INV-9): o `resumo` do LLM somou o PJ na extração, então
-    # está contaminado. Nesse caso a soma recomputada dos itens PF-only é a
-    # verdade; cair no override deixaria `patrimonio_por_ano` com o valor PJ
-    # mesmo após dropar os itens (vazamento parcial silencioso).
-    resumo_bens = safe_float(resumo.get("total_ativos", 0))
-    resumo_dividas = safe_float(resumo.get("total_passivos", 0))
-    if resumo_bens > 0 and pj_skipped == 0:
-        total_bens = resumo_bens
-    if resumo_dividas > 0 and pj_skipped == 0:
-        total_dividas = resumo_dividas
+    # ADR-394 D4: o agregado do LLM não sobrescreve mais a soma determinística.
+    # O override antigo (`resumo` vence quando `pj_skipped == 0`) MASCARAVA o
+    # defeito de roteamento — medido, `total_passivos ≡ Σ|negativos|` em 7/7 —,
+    # então ele só pôde sair junto com o roteamento por fato acima, nunca antes.
+    review_reasons.extend(
+        _review_reasons_da_conservacao(
+            resumo, _to_cents(total_bens), _to_cents(total_dividas), pj_skipped
+        )
+    )
 
     patrimonio_por_ano = {
         ano_str: {
@@ -585,8 +612,63 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     baseline["investimentos_consolidados"] = investimentos_consolidados
     baseline["dividas"] = dividas_consolidadas
     baseline["patrimonio_por_ano"] = patrimonio_por_ano
+    # ADR-272/ADR-394 D3: divergência é sempre observável. WARN-first — o stage
+    # entrega; `degraded` é derivado de (entrega, criticidade) pelo orquestrador
+    # e nunca declarado pelo produtor (ADR-357 §2 · alternativas rejeitadas).
+    baseline["validation"] = {"review_reasons": review_reasons}
 
     return baseline
+
+
+def _to_cents(quantia: Any) -> int:
+    """ADR-090: o domínio recebe centavos int, nunca float."""
+    return int((Decimal(str(quantia or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def _review_reason_da_divergencia(warning: object, descricao: str) -> dict:
+    """Warning tipado do domínio → razão consultável ([[ADR-097]] D1 → [[ADR-272]])."""
+    return ReviewReason(
+        code=ReviewReasonCode.domain_baseline_divergence,
+        stage="consolidate_baseline",
+        artifact_key="baseline_patrimonial",
+        document_id=None,
+        offending_value=type(warning).__name__,
+        expected="eixo decidido por secao ou catalogo",
+        message=warning.format(),
+    ).to_dict()
+
+
+def _conservacao_reason(eixo: str, declarado: int, somado: int) -> dict:
+    return ReviewReason(
+        code=ReviewReasonCode.domain_baseline_divergence,
+        stage="consolidate_baseline",
+        artifact_key="baseline_patrimonial",
+        document_id=None,
+        offending_value=f"{eixo}: declarado {declarado} cents, somado {somado} cents",
+        expected=f"soma deterministica de {eixo} == resumo agregado",
+        message=f"conservacao ano-cega do eixo {eixo} nao fecha",
+    ).to_dict()
+
+
+# ADR-394 D5: a referência do agregado é ano-CEGA — `_aggregate_baselines` soma
+# os `resumo` per-file de anos distintos (medido em 7/7). Conservar "por ano"
+# contra ela dispararia 100% por construção; o grão por ano é contra os E1.5a.
+def _review_reasons_da_conservacao(
+    resumo: dict, bens_cents: int, dividas_cents: int, pj_skipped: int
+) -> List[dict]:
+    """Σ determinística vs. `resumo` do LLM, por eixo, cents int, tolerância zero."""
+    if pj_skipped:
+        # O `resumo` somou o contribuinte PJ que este boundary dropou (INV-9,
+        # ADR-268): a divergência é esperada e já tem sinal próprio.
+        return []
+    razoes = []
+    for eixo, declarado, somado in (
+        ("ativos", _to_cents(safe_float(resumo.get("total_ativos", 0))), bens_cents),
+        ("passivos", _to_cents(safe_float(resumo.get("total_passivos", 0))), dividas_cents),
+    ):
+        if declarado != somado:
+            razoes.append(_conservacao_reason(eixo, declarado, somado))
+    return razoes
 
 
 def _classify_investimento(grupo: str, descricao: str) -> str:

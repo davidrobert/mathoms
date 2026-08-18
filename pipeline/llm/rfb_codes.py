@@ -32,6 +32,54 @@ class RFBCodes:
     pagamentos_efetuados: dict[str, str]
 
 
+_SECOES_FILENAME_RE = re.compile(r"^e15_secoes_rfb_(\d{4})\.yaml$")
+_SECOES_REQUIRED = ("bens_direitos", "dividas_onus")
+
+
+def available_secao_years(prompts_dir: Optional[Path] = None) -> list[int]:
+    """Anos-base com catálogo de seções presente, ascendente."""
+    base = prompts_dir or _DEFAULT_PROMPTS_DIR
+    if not base.exists():
+        return []
+    matches = (_SECOES_FILENAME_RE.match(f.name) for f in base.iterdir())
+    return sorted(int(m.group(1)) for m in matches if m)
+
+
+# ADR-394 D6: WARN-first. Ano ausente cai no mais recente e o VO marca
+# `is_fallback` — o consolidador não pode abortar o run por catálogo faltando.
+def load_baseline_catalog(ano_base: int, prompts_dir: Optional[Path] = None):
+    """Catálogo `(secao, codigo) → subtipo` do ano-base, para o E1.5c (ADR-394 D2)."""
+    from pipeline.domain.services.baseline_item_classifier import BaselineCatalog
+
+    years = available_secao_years(prompts_dir)
+    if not years:
+        return BaselineCatalog(ano_base=ano_base, ano_base_solicitado=ano_base)
+    resolvido = ano_base if ano_base in years else max(years)
+    path = (prompts_dir or _DEFAULT_PROMPTS_DIR) / f"e15_secoes_rfb_{resolvido}.yaml"
+    tabela = _parse_secoes_yaml(yaml.safe_load(path.read_text(encoding="utf-8")), path)
+    return BaselineCatalog(
+        ano_base=resolvido,
+        subtipo_por_secao_codigo=tabela,
+        ano_base_solicitado=ano_base,
+    )
+
+
+def _parse_secoes_yaml(raw: object, path: Path) -> dict[tuple[str, str], str]:
+    """`{secao: {codigo: subtipo}}` → índice plano `(secao, codigo) → subtipo`."""
+    if not isinstance(raw, dict):
+        raise ValueError(f"{path}: esperado mapping no topo, got {type(raw).__name__}={raw!r}")
+    tabela: dict[tuple[str, str], str] = {}
+    for secao in _SECOES_REQUIRED:
+        entradas = raw.get(secao)
+        if not isinstance(entradas, dict) or not entradas:
+            raise ValueError(
+                f"{path}: seção {secao!r} ausente ou vazia — "
+                f"got {type(entradas).__name__}={entradas!r}; ver {_RUNBOOK}"
+            )
+        tabela.update({(secao, str(k)): str(v) for k, v in entradas.items()})
+    return tabela
+
+
 def rfb_codes_path(ano_base: int, prompts_dir: Optional[Path] = None) -> Path:
     return (prompts_dir or _DEFAULT_PROMPTS_DIR) / f"e16_codigos_rfb_{ano_base}.yaml"
 
