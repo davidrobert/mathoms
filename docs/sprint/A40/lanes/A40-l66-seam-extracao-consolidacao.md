@@ -45,6 +45,9 @@ em `imoveis_consolidados` com valor **negativo**, `dividas[]` esvaziou, e o
 efeito atravessou E5, CV (16/16 verde), parecer e render — o defeito chegou ao
 leitor promovido a "ponto forte".
 
+> **Corrigido em §Ataque (2026-08-17):** `dividas[]` **não** esvaziou — 4 entradas
+> em r5 e 4 em r6. O que se perdeu foi uma **perna de ano** da dívida flipada.
+
 Dois agravantes medidos:
 
 1. **O detector já estava dentro do artefato e o código o descarta.** O `resumo`
@@ -128,6 +131,108 @@ nem abortar run. Kill-switch de 1 env var, provado por teste.
 - Rebaseline, se houver, em commit isolado dentro do PR do fix
   (`dev/check_golden_rebaseline_isolation.py`), com `dev/golden_diff.py
   --manifest` e sinal ↑/↓/= declarado.
+
+## Ataque (2026-08-17) — medido antes do pickup
+
+Corpus: os 7 runs completos de agosto do workspace de dogfood — r6 (`7b64b6c7`),
+r5 (`0a040a22`), `1aaa1072`, `b842e6e5`, `ee124571`, `82b30303`, `2a0e82a4`.
+Artefatos decriptados localmente (Fernet), leitura zero-write; só contagens,
+sinais e códigos abaixo — nenhum valor, descrição ou membro.
+
+> Os payloads de r5+r6 estão **encriptados em repouso**. Medir a taxa de disparo
+> de 1c exige o path de decrypt — custo que a lane não orça.
+
+### Confirmado
+
+- **O flip existe e é frequente.** `imovel` + valor negativo aparece no E1.5a em
+  **5/7 runs** do mesmo corpus; nos outros 2 o mesmo item sai como `outros`.
+  Não é acidente de re-extração — é ~71%.
+- **O detector está dentro do payload.** `resumo.total_passivos ≡ Σ|negativos|`
+  em **7/7**, inclusive em r6, onde um dos negativos estava rotulado `imovel`.
+- **O E1.5c não projeta `review_reasons`:** 0 em 7/7.
+- **O ramo de dívida não carimba proveniência** — confirmado no código.
+
+### Corrigido
+
+1. **`dividas[]` não esvaziou.** 4 entradas em r5 e 4 em r6. O que mudou foi a
+   cobertura de **ano**: r5 tem 6 pares (dívida, ano), r6 tem 5 — a dívida
+   flipada perdeu a perna de 2025 de `dividas[]` e reapareceu negativa em
+   `imoveis_consolidados{2025}`. O §Problema descreve um sumiço total que não
+   ocorreu; o defeito real é **perda de uma perna de ano dentro de uma dívida
+   que continua presente**.
+2. **A assinatura chega ao E1.5c em 3/7, não 5/7.** Nos 2 runs restantes com
+   flip, o E1.5c consolidou baseline **stale** (`dividas` só com 2024 enquanto o
+   baseline do run tem 2024+2025) — o "baseline pegajoso" mascarando. Gate posto
+   só no E1.5c mede a conjunção dos dois defeitos.
+3. **O override do `resumo` está mascarando o defeito nos totais, não causando-o.**
+   Como `total_passivos ≡ Σ|negativos|` (7/7), hoje `patrimonio_por_ano` sai
+   certo apesar do balde errado. **1c é deleção que piora r6 se aterrissar antes
+   de 1a** — a ordem 1a → 1c é restrição dura, não preferência.
+
+### Novo — os degraus 1 e 2 da hierarquia medem zero
+
+| degrau | cobertura medida no corpus |
+| --- | --- |
+| 1 · catálogo RFB por `codigo` | `codigo` 100% preenchido no E1.5a, **mas** `'11' → {imovel: 7, outros: 6}` e `'01' → {veiculo, investimento, poupanca, conta_corrente, imovel}`; no E1.6, `codigo_rfb` **vazio em 6/6** das dívidas |
+| 2 · mapa `(secao, codigo)` | `secao` **não existe** no contrato E1.5a — 0/89 itens |
+| 3 · sinal do valor | é o campo que flipou; o `SYSTEM_PROMPT` do e15 **nunca pede sinal negativo para dívida** e não tem categoria `divida` na enum |
+| 4 · `categoria_hint` | é o defeito |
+
+O espaço de código é misto por construção: o `SYSTEM_PROMPT` ensina a tabela
+plana pré-2019 (`"41" poupança, "45" CDB`) e o corpus tem `41/45/61/71/74/97`
+convivendo com `01–12` grupo-shaped; o E1.6 emite `GG-CC` (64 itens) e `GG` (122)
+no mesmo run, e `normalize_grupo("01-11")` devolve `"01-11"`. Um YAML
+`codigo → grupo` sobre esse campo adjudica errado com confiança.
+
+**A seção já é extraída, estável, e no lugar errado.** `E1.6.dividas_onus` = **6
+em 7/7 runs** — determinístico onde o rótulo flipa. Mas `extract_irpf_full` é
+`FULL_ORDER[5]` e `consolidate_baseline` é `FULL_ORDER[4]`: a autoridade nasce
+uma etapa **depois** de quem precisa dela. Três saídas — reordenar E1.6 antes do
+E1.5c; o E1.5a emitir `secao` (o que 1b escolheu, com cobertura desconhecida e
+bump de prompt); ou adjudicar ativo/passivo depois do E1.6. **Não reabro a
+ordenação decidida no co-design** — reporto que ela ranqueia 4 candidatos e o que
+mede 100% não está entre eles. Decisão do dono do plano; casa com o §Deferimento
+datado *"E1.5a × E1.6 extraem o mesmo IRPF com contratos diferentes"*.
+
+### Novo — a conservação de 1b/1c, medida
+
+- **Agregado:** `resumo.total_ativos ≡ Σ de TODOS os anos` em **7/7** e
+  `≢ Σ do ano-máx` em **7/7** — `_aggregate_baselines` soma os `resumo` per-file
+  de anos distintos e o `ano_referencia` é `max(years)`. Conservação **por ano**
+  contra esse `resumo` é falsa por construção: dispara **100%**, não é detector.
+- **Per-file (E1.5a):** fecha **8/8** nos dois eixos, e cada artefato tem
+  **1 ano distinto**. A conservação por ano de 1b já é verde hoje e dispara
+  **0%** — é tautologia enquanto o artefato for mono-ano.
+- `patrimonio_por_ano` tem **1 chave** (`2025`) enquanto os baldes carregam
+  2023/2024/2025 — 7/7. É a chave que o E5 consome, e nenhum critério da lane a
+  toca.
+
+### Novo — dois buracos na mesma função
+
+- **`previdencia` não tem ramo** em `consolidate_from_itens`: cai no `else` e
+  vira `tipo="outros"` em `investimentos_consolidados`. 3 itens em r6. A enum do
+  prompt emite a categoria; o consolidador não a conhece.
+- **A fixture do instrumento é v1-shaped:** `_R6_PAYLOAD` usa `valor_brl` float e
+  não traz `payload_version`; r5/r6 em produção são **string decimal** (v2).
+  Conservação em cents sobre `safe_float` herda ruído de float — 1c precisa ler o
+  decimal, não o `safe_float`.
+
+### Correções ao §Critério de aceite
+
+- "nenhum balde de ativo publica valor negativo" é **necessário e não
+  suficiente**: não vê dívida positiva nem perna de ano perdida.
+- "item negativo vira dívida carimbada" **passa no artefato real de r6** — a
+  dívida está lá. Trocar por **conservação de pares (dívida, ano)** entre os
+  itens do E1.5a e `dividas[]`.
+- "conservação por eixo e por ano" precisa de referência por ano que o agregado
+  não tem. Ou `_aggregate_baselines` passa a emitir `resumo` por ano (contrato
+  não previsto em 1b), ou 1c compara contra os E1.5a per-file.
+- **Prova por mutação:** flipar `categoria` de item **negativo** é satisfeita só
+  pelo degrau 3 — não prova o catálogo. Exigir também (a) o caso **positivo** (o
+  que o próprio §Escopo diz ser o caso real do IRPF) e (b) o caso **sem código
+  útil** (6/6 das dívidas do E1.6).
+- "taxa de disparo de 1c medida sobre r5+r6": **medida acima** — 0% ano-cego,
+  100% por ano. A ADR-A precisa declarar qual das duas está sendo adotada.
 
 ## Fora de escopo
 
