@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-383 ADRs (ADR-001 a ADR-393) em [`docs/adr/`](../../adr/).
+384 ADRs (ADR-001 a ADR-394) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 328
-- **Proposto**: 51
+- **Proposto**: 52
 - **Roadmap**: 4
 
 ## Fundação
@@ -610,7 +610,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-390]] — Conversão ME→BRL carrega taxa, data, fonte e status; ausência é explícita · phase A40.l63
 - [[ADR-392]] — endereco_canonical=None não minta PropertyIdentity; match residual é único (titular, código) · phase A40.l70
 
-### Proposto (15)
+### Proposto (16)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -627,6 +627,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 - [[ADR-393]] — Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) · phase A40.l68
+- [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
 
 ### Roadmap (1)
 

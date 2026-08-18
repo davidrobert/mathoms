@@ -546,13 +546,14 @@ export com contagem indisponível mostra "não apurado", nunca CleanBar.
 
 ## ADRs a abrir (forma [[ADR-345]] — ID alocado na escrita, nunca em prosa)
 
-- **ADR-A — "Fato determinístico é autoridade; saída de LLM é hint em
-  vocabulário fechado."** Hierarquia catálogo RFB > (secao, codigo) > sinal
+- **ADR-A = [[ADR-394]]** (`Proposto`, 2026-08-18) — "Fato determinístico é
+  autoridade; saída de LLM é hint em vocabulário fechado." Hierarquia catálogo RFB > (secao, codigo) > sinal
   (veto suficiente) > hint; agregado LLM nunca sobrescreve soma determinística;
   regra "prescrição exige cobertura, descrição admite ressalva"; local canônico
   dos invariantes (domain service puro; adapter converte; store não conhece
   semântica). Cobre 1a/1b/1c/1d/3a.
-- **ADR-B — "Contrato de balanço de stage fan-out."** `queued ≡ processed +
+- **ADR-B = [[ADR-393]]** (`Proposto`, 2026-08-18) — "Contrato de balanço de
+  stage fan-out." `queued ≡ processed +
   errors + skipped(motivo)`, 3 estados + piso por identificador declarado,
   resultado tipado do leitor. **Nenhuma emenda à [[ADR-342]]** (escopo distinto;
   decisão CTO no co-design). Cobre 2a; [[A42.l4]] a cita sem mudar de escopo.
