@@ -4,12 +4,13 @@ type: lane
 title: "Balanço de stage fan-out: documento que some não pode sair como sucesso"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: planned
+status: open
 priority: P1
 branch_slug: a40-l68-balanco-de-fan-out
 owner: data-engineer
 adrs:
   - "[[ADR-081]]"
+  - "[[ADR-393]]"
   - "[[ADR-272]]"
   - "[[ADR-357]]"
 depends_on: []
@@ -18,7 +19,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p1
   - area/pipeline
 ---
@@ -88,3 +89,19 @@ por env var. Estado terminal de documento não processado é `degraded` +
   além disso.
 - `llm_call_log` e telemetria por tentativa → [[A42.l7]].
 - Cache/pin de extração → depois da Onda 1 (§Anti-decisões do plano).
+
+## Liberada e em execução — 2026-08-18
+
+Promovida `planned` → `open` por decisão do dono. A **ADR-B** do plano é a
+[[ADR-393]], aberta `Proposto` antes do PR de implementação.
+
+Medido ao abrir a ADR, e é mais forte que o registro §r6 sozinho: r5 e r6 têm
+`total_documents` **idêntico (171)** e `llm_calls` **7 vs 6**, ambos
+`completed`. O limite da medição está declarado na ADR — `llm_calls` agrega mais
+de um stage, então o delta é consistente com o skip do RV6-10 sem isolá-lo.
+
+Descoberto ao mapear o terreno: são **dois** call-sites que devolvem
+`(None, None)` — imagem vazia além do texto vazio — e **cinco** stages consomem
+o `DocumentTextExtractor`. Só o `extract_with_llm` entra no escopo desta lane;
+os outros quatro herdam a mesma cegueira e ficam declarados na [[ADR-393]] §D2,
+não consertados em silêncio.
