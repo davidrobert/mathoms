@@ -105,3 +105,37 @@ Descoberto ao mapear o terreno: são **dois** call-sites que devolvem
 o `DocumentTextExtractor`. Só o `extract_with_llm` entra no escopo desta lane;
 os outros quatro herdam a mesma cegueira e ficam declarados na [[ADR-393]] §D2,
 não consertados em silêncio.
+
+## 2a entregue — 2026-08-18 (#1526 · `4b3bff08`)
+
+Leitor tipado (`extract_result` → `TextExtraction`), balanço
+`queued ≡ processed + errors + skipped` com `success` exigindo o fechamento, e
+`extract.reader_missing` WARN-first fora de `BLOCKING_CODES`. Quatro mutações
+provadas, incluindo a que a lane pede (remover o leitor de um formato ⇒ motivo
+nomeado + `needs_review` + balanço fecha), como teste permanente.
+
+Três achados de execução que o planejamento não tinha:
+
+1. **Dois** call-sites mudos, não um — imagem vazia além do texto vazio.
+2. A chave `skipped` já existia como **booleano** nos early-returns do stage;
+   minha lista teria criado a mesma chave com dois tipos. Renomeada
+   `skipped_docs`.
+3. Deslocar o seam **silenciou 18 dublês** que fazem `patch` em `extract`.
+   Atualizados só os do E2-llm.
+
+O `.xls` do RV6-10 ficou provado por execução: `openpyxl does not support the
+old .xls file format`.
+
+## §Pendência datada — 2b (ladder [[ADR-081]] no E1.5) · 2026-08-18
+
+**Não entregue**, e não por falta de tempo: ao ler o terreno,
+`extract_baseline.py:161` agrega confiança como
+`min(confidences) if confidences else **0.0**`. Um ladder `< 0,7` cru dispararia
+para **todo** run sem metadado de confiança, porque o `0.0` ali é **sentinela de
+ausência**, não medição — é o mesmo "zero ≠ não medido" que este plano combate,
+e um gate que dispara sempre ensina o operador a ignorá-lo.
+
+Condição de retomada: `confidence` ausente modelado como estado próprio
+(distinto de confiança baixa), com a taxa de disparo medida sobre r5+r6 **antes**
+do WARN, na forma da [[ADR-393]] §D4. Dono: `data-engineer`. Enquanto isso a lane
+fica `open` — 2a mergeado não fecha a lane.
