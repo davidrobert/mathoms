@@ -31,6 +31,8 @@ import scripts.pipeline_common as _pc
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services.baseline_item_classifier import (
     BaselineAxis,
+    DivergenciaFatoHint,
+    EixoDecididoPeloHint,
     classify_baseline_item,
 )
 from pipeline.domain.services.money_parsing import valor_monetario_float
@@ -482,7 +484,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     total_bens = 0.0
     total_dividas = 0.0
     pj_skipped = 0
-    review_reasons: List[dict] = []
+    warnings_do_run: List[object] = []
     catalogo = load_baseline_catalog(ano_base)
 
     for item in itens:
@@ -519,9 +521,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
             categoria_hint=categoria,
             catalogo=catalogo,
         )
-        review_reasons.extend(
-            _review_reason_da_divergencia(w, descricao) for w in classificacao.warnings
-        )
+        warnings_do_run.extend(classificacao.warnings)
         if classificacao.eixo is BaselineAxis.PASSIVO:
             dividas_consolidadas.append(
                 {
@@ -581,6 +581,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     # O override antigo (`resumo` vence quando `pj_skipped == 0`) MASCARAVA o
     # defeito de roteamento — medido, `total_passivos ≡ Σ|negativos|` em 7/7 —,
     # então ele só pôde sair junto com o roteamento por fato acima, nunca antes.
+    review_reasons = _agrega_review_reasons(warnings_do_run)
     review_reasons.extend(
         _review_reasons_da_conservacao(
             resumo, _to_cents(total_bens), _to_cents(total_dividas), pj_skipped
@@ -625,7 +626,21 @@ def _to_cents(quantia: Any) -> int:
     return int((Decimal(str(quantia or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
-def _review_reason_da_divergencia(warning: object, descricao: str) -> dict:
+# ADR-272 §Cap de cardinalidade: "eixo veio do hint" é o ESTADO do histórico
+# enquanto `secao` não cobre o corpus — medido, 84 de 89 itens por run. Uma razão
+# por item afogaria o sinal raro (fato × hint em conflito), então esta classe
+# agrega em UMA com `occurrence_count`. A divergência fica item a item.
+def _agrega_review_reasons(warnings: List[object]) -> List[dict]:
+    """Warnings tipados do domínio → razões consultáveis, com cap por classe."""
+    divergencias = [w for w in warnings if isinstance(w, DivergenciaFatoHint)]
+    pelo_hint = [w for w in warnings if isinstance(w, EixoDecididoPeloHint)]
+    razoes = [_review_reason_da_divergencia(w) for w in divergencias]
+    if pelo_hint:
+        razoes.append(_review_reason_da_divergencia(pelo_hint[0], occurrence_count=len(pelo_hint)))
+    return razoes
+
+
+def _review_reason_da_divergencia(warning: object, occurrence_count: int = 1) -> dict:
     """Warning tipado do domínio → razão consultável ([[ADR-097]] D1 → [[ADR-272]])."""
     return ReviewReason(
         code=ReviewReasonCode.domain_baseline_divergence,
@@ -635,6 +650,7 @@ def _review_reason_da_divergencia(warning: object, descricao: str) -> dict:
         offending_value=type(warning).__name__,
         expected="eixo decidido por secao ou catalogo",
         message=warning.format(),
+        occurrence_count=occurrence_count,
     ).to_dict()
 
 

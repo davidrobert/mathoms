@@ -133,3 +133,22 @@ def test_divida_positiva_sem_secao_nao_e_silenciosa(tmp_path: Path) -> None:
     out = _run(tmp_path, _payload(_IMOVEL, divida))
     reasons = (out.get("validation") or {}).get("review_reasons") or []
     assert any("categoria_hint" in r["message"] for r in reasons), reasons
+
+
+# Medido nos 7 runs de agosto: 84 de 89 itens caíam no hint por falta de `secao`.
+# Uma razão por item afogaria a divergência fato×hint, que é o sinal que importa —
+# com o cap, run flipado emite 2 razões e run limpo emite 1.
+def test_cap_de_cardinalidade_nao_afoga_o_sinal_raro(tmp_path: Path) -> None:
+    """[[ADR-272]] §Cap: "veio do hint" é o estado do histórico, não anomalia."""
+    muitos = [dict(_IMOVEL, descricao=f"ativo {i}") for i in range(12)]
+    divida = dict(_DIVIDA_NEGATIVA, secao="dividas_onus", categoria_hint="imovel")
+    out = _run(tmp_path, _payload(*muitos, divida))
+    reasons = (out.get("validation") or {}).get("review_reasons") or []
+
+    pelo_hint = [r for r in reasons if "sem secao" in r["message"]]
+    assert len(pelo_hint) == 1, f"cap não agregou: {len(pelo_hint)} razões"
+    assert pelo_hint[0]["occurrence_count"] == 12
+
+    divergencias = [r for r in reasons if "roteou para" in r["message"]]
+    assert len(divergencias) == 1, "a divergência fato×hint some se for agregada junto"
+    assert divergencias[0]["occurrence_count"] == 1
