@@ -5,6 +5,8 @@ title: "Predicado único da composição patrimonial: o donut e a tabela decidem
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1511
+ship_date: "2026-08-18"
 priority: P1
 branch_slug: a40-l71-predicado-unico-da-composicao
 owner: product-designer
@@ -122,9 +124,12 @@ duplicá-lo é a regressão que esta lane fecha).
   tabela o imprime sem marca; pós-fix, os dois consomem o mesmo predicado e o
   caso é **nomeado** nos dois — a linha da tabela sai marcada e a fatia sai
   omitida **pela mesma decisão**, não por dois `filter` que por acaso divergem.
-  Segunda mutação: renomear a categoria `"Residência"` no fixture ⇒ **hoje** o
-  filtro do [[ADR-215]] P5 desliga em silêncio e a linha R$ 0,00 reaparece;
-  pós-fix, o predicado continua valendo porque casa por chave.
+  Segunda mutação: renomear a categoria `"Residência"` no fixture ⇒ o filtro do
+  [[ADR-215]] P5 desliga, **e continua desligando pós-fix** — o payload não
+  carrega a chave (ver a caixa de correção acima). Quem impede o rename
+  silencioso é o gate de paridade Py↔TS, que quebra no commit do **produtor**;
+  o teste do fixture pina essa dependência para que mudá-la seja decisão, não
+  deriva.
 - Teste dos 3 casos com nome, um por caso — não um teste com 3 asserts (o
   primeiro a falhar esconderia os outros dois).
 - Gate de duplicação: `filter` sobre `composicao`/`tabela_categorias` fora do

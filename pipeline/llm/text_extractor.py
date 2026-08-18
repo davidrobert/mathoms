@@ -72,7 +72,7 @@ class DocumentTextExtractor:
         media_type = _MEDIA_TYPE_MAP.get(path.suffix.lower(), "image/jpeg")
         return path.read_bytes(), media_type
 
-    # Wrapper de compat: quatro stages fora do escopo da A40.l68 ainda consomem
+    # Wrapper de compat: seis stages fora do escopo da A40.l68 ainda consomem
     # esta forma e herdam a cegueira que a ADR-393 §D2 declara (não conserta).
     def extract(self, path: Path) -> str:
         """Texto do documento, ou ``""`` — prefira ``extract_result``."""
