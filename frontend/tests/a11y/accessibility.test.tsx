@@ -19,6 +19,7 @@ import { toHaveNoViolations } from "vitest-axe/matchers";
 import { http, HttpResponse } from "msw";
 
 import { KPICard } from "@/components/KPICard";
+import { PatrimonioCategoriasCard } from "@/components/report/cards/PatrimonioCategoriasCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { Delta } from "@/components/Delta";
@@ -72,6 +73,28 @@ describe("a11y — compostos", () => {
   it("KPICard é acessível", async () => {
     const { container } = render(
       <KPICard label="Saldo" value="R$ 4.100,00" delta={{ value: 100, percent: 0.1 }} />,
+    );
+    const results = await axe(container);
+    assertNoSeriousViolations(results);
+  });
+
+  // A40.l71 — os 3 estados novos da composição juntos. O `nao_apurado`
+  // renderiza travessão, que sem o par sr-only chega ao leitor de tela como
+  // célula vazia: a mesma ambiguidade "zero ≠ não medido" que a lane fecha.
+  it("PatrimonioCategoriasCard com negativo e não-apurado é acessível", async () => {
+    const { container } = render(
+      <PatrimonioCategoriasCard
+        patrimonio={
+          {
+            bruto: 50_000,
+            composicao: [
+              { categoria: "Veículos", valor: 50_000, pct: 100 },
+              { categoria: "Imóveis de Renda", valor: -200_000, pct: 0 },
+              { categoria: "Investimentos Cônjuge", valor: 0, pct: 0 },
+            ],
+          } as never
+        }
+      />,
     );
     const results = await axe(container);
     assertNoSeriousViolations(results);

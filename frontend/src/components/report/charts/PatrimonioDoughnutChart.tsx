@@ -3,6 +3,10 @@
 import { ReportCard } from "../ReportCard";
 import { ChartDonut } from "./primitives/ChartDonut";
 import { fmtBRL } from "./_shared";
+import {
+  donutSlices,
+  visibleCompositionRows,
+} from "../utils/visibleCompositionRows";
 import type { PatrimonioData } from "@/types/report-analysis";
 
 /** W5-T02 (v2.E.9) · S1 — Chart "Composição Patrimonial" (Chart.js doughnut).
@@ -19,10 +23,7 @@ export function PatrimonioDoughnutChart({
   patrimonio: PatrimonioData | undefined;
   conclusion?: string;
 }) {
-  const rows = patrimonio?.composicao ?? patrimonio?.tabela_categorias ?? [];
-  const data = rows
-    .filter((r) => r.valor > 0)
-    .map((r) => ({ label: r.categoria, value: r.valor }));
+  const data = donutSlices(visibleCompositionRows(patrimonio));
 
   if (data.length === 0) {
     return (
