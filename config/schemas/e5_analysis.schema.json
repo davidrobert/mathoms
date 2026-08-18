@@ -271,6 +271,36 @@
             }
           }
         },
+        "guarda_de_sinal": {
+          "type": "object",
+          "description": "A40.l67 (ADR-394 §Emenda 2026-08-18): veredito da guarda de sinal dos baldes patrimoniais. `reclassificados` saíram do ativo para dívida de curto prazo (patrimônio líquido inalterado); `baldes_negativos` são os físicos que sobreviveram e publicam com ressalva.",
+          "properties": {
+            "modo": { "type": "string", "enum": ["enforce", "warn", "off"] },
+            "cobertura_completa": { "type": "boolean" },
+            "motivo_supressao": { "type": ["string", "null"] },
+            "dividas_curto_prazo_brl": { "type": "number", "minimum": 0 },
+            "reclassificados": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "balde": { "type": "string" },
+                  "montante_brl": { "type": "number", "minimum": 0 }
+                }
+              }
+            },
+            "baldes_negativos": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "balde": { "type": "string" },
+                  "valor_brl": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
         "pl_ressalva": {
           "type": "boolean",
           "description": "ADR-346 (A39.l9): true quando há posição RV sem valor de mercado (custódia só-quantidade) NÃO coberta por fallback IRPF — o PL é renderizado mas não 'certificado' (pode estar subestimado). false quando toda posição é valorada ou a marcação faltante é coberta pelo IRPF."
@@ -2608,6 +2638,13 @@
         },
         "alvo_renormalizado_defensivo": {
           "type": "boolean"
+        },
+        "motivo_supressao": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "A40.l67 (ADR-394 §Emenda 2026-08-18): prescrição exige cobertura. Não-nulo quando a guarda de sinal do E5 encontrou balde negativo sobrevivente — `next_aporte_classe` e `desvio_max_pct` saem nulos e `comparaveis` sobrevive."
         }
       },
       "required": [],

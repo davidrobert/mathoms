@@ -268,3 +268,28 @@ def test_e5_divergent_baseline_imoveis_not_zeroed(e5_tenant_with_baseline: Path)
     classes = {c["categoria"]: c["valor"] for c in payload["investimentos"]["tabela_classes"]}
     assert classes.get("Imóveis Investimento", 0) == 350_000.0
     assert payload["patrimonio"]["bruto"] == 350_000.0
+
+
+# O golden é o único lugar onde o schema REAL de produção encontra o payload
+# REAL: `guarda_de_sinal` declarado à mão não prova que ele valida sob o
+# registry que resolve $ref cross-file (A40.l67 · [[ADR-394]] §Emenda).
+def test_e5_publica_veredito_da_guarda_de_sinal(e5_tenant_with_baseline: Path):
+    """Corpus limpo: veredito inerte, cobertura completa e run sem needs_review."""
+    from scripts.analyze_finances import main_with_store as e5_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
+
+    ctx = _new_e5_ctx(e5_tenant_with_baseline, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_MIN)
+    e4_mws(ctx)
+    result = e5_mws(ctx)
+    payload = ctx.artifact_store.read("E5", "analise_financeira")
+
+    guarda = payload["patrimonio"]["guarda_de_sinal"]
+    assert guarda["modo"] == "enforce"
+    assert guarda["cobertura_completa"] is True
+    assert guarda["baldes_negativos"] == [] and guarda["reclassificados"] == []
+    assert result["validation"] == {"valid": True, "errors": [], "review_reasons": []}
+
+    pytest.importorskip("jsonschema")
+    from scripts.pipeline_common import validate_dict
+
+    assert validate_dict(payload, "e5_analysis.schema.json") is True

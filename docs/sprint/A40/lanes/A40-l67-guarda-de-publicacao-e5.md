@@ -4,7 +4,7 @@ type: lane
 title: "Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l67-guarda-de-publicacao-e5
 owner: financial-planner

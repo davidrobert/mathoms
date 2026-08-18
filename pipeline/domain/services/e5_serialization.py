@@ -320,7 +320,9 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
 
     goals_enriched = _enrich_goals_with_passive_income(inputs.goals, inputs.passive_income)
     goals_enriched = _enrich_alocacao_with_deviation(
-        goals_enriched, (inputs.investimentos_classes or {}).get("tabela_classes") or []
+        goals_enriched,
+        (inputs.investimentos_classes or {}).get("tabela_classes") or [],
+        patrimonio=inputs.patrimonio,
     )
 
     output: dict[str, Any] = {
@@ -431,16 +433,18 @@ def _enrich_goals_with_passive_income(
     return enriched
 
 
-def _enrich_alocacao_with_deviation(goals: _GoalsPayload, tabela_classes: list) -> _GoalsPayload:
+def _enrich_alocacao_with_deviation(
+    goals: _GoalsPayload, tabela_classes: list, *, patrimonio: dict[str, Any] | None = None
+) -> _GoalsPayload:
     """Injeta ``alocacao_alvo.derived`` (desvio atual-vs-alvo run-time; ADR-141 §Emenda item 4)."""
-    # reserva_completa=None silencia o sinal de excesso de caixa (default seguro
-    # do financial-planner — só o E5 tem tabela observada + alvo v2 juntos).
     from pipeline.domain.services.alocacao_alvo_deviation import AlocacaoAlvoDeviationCalculator
+    from pipeline.domain.services.patrimonio_sign_guard import motivo_supressao_do_patrimonio
 
     alvo = (goals or {}).get("alocacao_alvo")
     if not isinstance(alvo, dict) or "rf_pos_pct" not in alvo:
         return goals
     result = AlocacaoAlvoDeviationCalculator().calculate(tabela_classes or [], alvo)
+    result = result.talvez_suprimir(motivo_supressao_do_patrimonio(patrimonio))
     return {**goals, "alocacao_alvo": {**alvo, "derived": result.to_dict()}}
 
 

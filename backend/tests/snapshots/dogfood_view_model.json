@@ -1708,6 +1708,14 @@
       ],
       "contradicoes": []
     },
+    "guarda_de_sinal": {
+      "baldes_negativos": [],
+      "cobertura_completa": true,
+      "dividas_curto_prazo_brl": 0,
+      "modo": "enforce",
+      "motivo_supressao": null,
+      "reclassificados": []
+    },
     "imoveis_geradores": 0,
     "imoveis_investimento": 60000000,
     "imoveis_nao_geradores": 60000000,

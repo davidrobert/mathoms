@@ -2498,6 +2498,21 @@ def _e5_print_summary(legacy: Dict[str, Any]) -> None:
     print("=" * 70)
 
 
+def _e5_validation_block(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
+    """Balde negativo sobrevivente vira needs_review ([[ADR-394]] §Emenda 2026-08-18)."""
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
+    from pipeline.domain.services.patrimonio_sign_guard import review_reasons_do_artefato
+
+    reasons = review_reasons_do_artefato(
+        patrimonio, stage="analyze_finances", artifact_key=E5_ARTIFACT_KEY
+    )
+    return {
+        "valid": not reasons,
+        "errors": [f"E5: balde patrimonial negativo — {r['offending_value']}" for r in reasons],
+        "review_reasons": reasons,
+    }
+
+
 def _e5_build_result_dict(legacy: Dict[str, Any], warnings) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5_ARTIFACT_FILENAME
 
@@ -2505,6 +2520,7 @@ def _e5_build_result_dict(legacy: Dict[str, Any], warnings) -> Dict[str, Any]:
     patrimonio = legacy["patrimonio"]
     goals = legacy["goals"]
     return {
+        "validation": _e5_validation_block(patrimonio),
         "files_created": [E5_ARTIFACT_FILENAME],
         "total": 1,
         "score_valor": score.get("valor"),
