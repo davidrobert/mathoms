@@ -254,9 +254,9 @@ fixes caem no mesmo diff e nenhum dos dois é atribuível.
 | # | Janela | Dono | Pode rebaselinar | Abre quando |
 |---|---|---|---|---|
 | J1 | Seam determinístico | [[A40.l66]] | goldens E1.5c/E5 afetados pelo roteamento; snapshot do view-model | ~~imediatamente~~ · **FECHADA 2026-08-18** (l66 `shipped`, sem rebaseline necessário) |
-| J2 | Guarda + strict | [[A40.l67]] | `baseline_patrimonial` + schema irmão; `mode_overrides` | ~~J1 fechada~~ · **ABERTA 2026-08-18** — o 1d passou **sem consumir rebaseline** (`golden_diff` de `aa53d5bf~1`×`aa53d5bf`: 2 campos `new`, zero `value_delta`, sinal **=**); segue disponível para o flip strict |
+| J2 | Guarda | [[A40.l67]] | `baseline_patrimonial` + schema irmão | ~~J1 fechada~~ · **FECHADA 2026-08-18 sem consumir rebaseline** (`golden_diff` de `aa53d5bf~1`×`aa53d5bf`: 2 campos `new`, zero `value_delta`, sinal **=**). O flip strict saiu daqui — ver §Deferimentos |
 | J3 | Balanço de fan-out | [[A40.l68]] | contrato de retorno do stage (sem golden monetário) | independente — **não** disputa J1/J2 |
-| J4 | Cobertura por membro | [[A40.l69]] | baldes de investimento por membro + snapshot do view-model | J2 fechada |
+| J4 | Cobertura por membro | [[A40.l69]] | baldes de investimento por membro + snapshot do view-model | ~~J2 fechada~~ · **ABERTA 2026-08-18** com o orçamento inteiro (a J2 não gastou) |
 
 **Coordenação com a A40 em voo.** 23 lanes estão `open`/`in_progress`/`blocked`
 na sprint, quase todas sob [[PLAN-report-trust]]. As que declaram efeito em valor
@@ -606,6 +606,16 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
 
 ## Deferimentos datados
 
+- **2026-08-18 · Flip de `mode_overrides` para strict re-homeado da [[A40.l67]]
+  para a [[A40.l58]].** Ele estava na §Critério de aceite da l67 e era
+  **inexequível ali**: o §Roteamento RV6-06 acima já atribui `mode_overrides` e o
+  kill-switch à l58, e a §Coordenação da l67 declara que ela não abre PR naquela
+  superfície. Critério inexequível não adia entrega — esconde, e este travava a
+  [[A40.l69]] (último P0 do MVP) por uma dependência que o trabalho real já
+  satisfez. Escopo: `strict` nos 2 schemas de baseline via `mode_overrides`,
+  nunca global (§Anti-decisões). Condição de retomada: **drift = 0 por ≥7 dias de
+  dogfood, número citado no PR do flip** — temporal por construção. A
+  simetrização que o torna executável shipou em #1529.
 - **2026-08-17 · E1.5a × E1.6 extraem o mesmo IRPF com contratos diferentes**
   (E1.6 já separa `bens_direitos`/`dividas` por seção — a duplicação estrutural
   é a causa remota de 1b). Dono: senior-cto. Condição de retomada: Onda 1

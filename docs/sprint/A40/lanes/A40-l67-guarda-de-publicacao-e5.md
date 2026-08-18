@@ -4,7 +4,7 @@ type: lane
 title: "Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a40-l67-guarda-de-publicacao-e5
 owner: financial-planner
@@ -18,7 +18,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -95,7 +95,8 @@ declarado antes do flip; kill-switch por env var. Para 1e o kill-switch é
   aborta o run (teste do kill-switch inclusive).
 - Cobertura incompleta suprime só a prescrição (`next_aporte_classe`,
   `desvio_max_pct`) e emite `motivo_supressao`; o resto do relatório publica.
-- Drift do schema = 0 por ≥7 dias de dogfood, número citado no PR do flip.
+- ~~Drift do schema = 0 por ≥7 dias de dogfood, número citado no PR do flip.~~
+  **Re-homeado para a [[A40.l58]] em 2026-08-18** — ver §Deferimento abaixo.
 - ADR-A (aberta na [[A40.l66]]) emendada com a regra "prescrição exige
   cobertura; descrição admite ressalva", ou a lane cita a seção já escrita.
 
@@ -224,12 +225,25 @@ onde a supressão nunca pode disparar. Nenhum call-site de produção está expo
 agora; o risco é o próximo. Condição de retomada: qualquer call-site novo do
 enricher, ou a lane de render 7a/7e ao consumir `motivo_supressao`.
 
+### Deferimento datado (2026-08-18) · dono [[A40.l58]]
+
+**O flip de `mode_overrides` para strict sai desta lane.** Ele estava na
+§Critério de aceite acima, e era um critério que **esta lane não podia
+executar**: o §Roteamento RV6-06 do plano já atribui `mode_overrides` e o
+kill-switch à [[A40.l58]], e a §Coordenação declarada desta lane diz literalmente
+que ela "**não** abre PR nas superfícies delas". Um critério inexequível não
+adia a entrega — ele a esconde, e neste caso travava a [[A40.l69]], o último P0
+do MVP, por uma dependência que o trabalho real já satisfez.
+
+Escopo do que foi re-homeado: flip de `schema_validation.mode` para `strict` nos
+**2 schemas de baseline** (`baseline_patrimonial`, `e15_baseline_extract`), via
+`mode_overrides` — nunca global (§Anti-decisões). Condição de retomada:
+**drift = 0 por ≥7 dias de dogfood, com o número citado no PR do flip** —
+critério **temporal** por construção, que nenhuma sessão fecha por esforço.
+A simetrização do contrato que o flip torna executável já shipou no #1529.
+
 ### Segue aberto
 
-- **Flip de `mode_overrides` para strict** (resto do 1e): critério **temporal** —
-  drift = 0 por ≥7 dias de dogfood. Nenhuma sessão o fecha; retomada coordenada
-  com [[A40.l58]], dona de `mode_overrides`. É por isso que esta lane **não**
-  vai a `shipped`.
 - **Copy/banner do estado de ressalva** no relatório: 7a/7e no
   [[PLAN-report-trust]], fora desta lane. O artefato já carrega
   `guarda_de_sinal` e `motivo_supressao` para o render consumir.
