@@ -250,3 +250,52 @@ def test_membro_nao_apurado_pausa_o_stage_em_needs_review() -> None:
     assert result["validation"]["valid"] is False
     assert result["validation"]["review_reasons"][0]["code"] == "domain.membro_nao_apurado"
     assert result["patrimonio_bruto"] == 1_000_000, "pausa, não aborto — o artefato saiu"
+
+
+# =============================================================================
+# O flip para `null` — e o que cada consumidor faz com ele
+# =============================================================================
+
+
+def test_balde_nao_apurado_publica_null_e_nao_zero(config: PatrimonioConfig) -> None:
+    """O eixo da lane: `0,00` afirma sobre o patrimônio da pessoa; `null` não afirma."""
+    result = PatrimonioCalculator(config).calculate(_inputs({"david": 943_189.25}))
+
+    assert result["investimentos_conjuge"] is None
+    assert result["investimentos_titular"] == 943_189.25
+
+
+def test_balde_zero_apurado_publica_zero(config: PatrimonioConfig) -> None:
+    """Guard anti-vacuidade: sem ele, `null` em tudo passaria neste arquivo."""
+    result = PatrimonioCalculator(config).calculate(_inputs({"david": 943_189.25, "mariana": 0.0}))
+
+    assert result["investimentos_conjuge"] == 0.0
+
+
+def test_titular_nao_absorve_o_valor_do_conjuge_nao_resolvido(config: PatrimonioConfig) -> None:
+    """Elo 2 da cadeia: sem este assert, a mutação do slug não prova nada."""
+    resolvido = PatrimonioCalculator(config).calculate(
+        _inputs({"david": 900_000.0, "mariana": 100_000.0})
+    )
+    nao_resolvido = PatrimonioCalculator(config).calculate(
+        _inputs({"david": 900_000.0, "slug-que-ninguem-canonicaliza": 100_000.0})
+    )
+
+    assert resolvido["investimentos_titular"] == 900_000.0
+    assert (
+        nao_resolvido["investimentos_titular"] == 1_000_000.0
+    ), "hoje o titular ABSORVE — 3b corta este elo; o assert existe para vê-lo cair"
+
+
+def test_reserva_conta_membro_nao_apurado_como_zero() -> None:
+    """Contrato, não implementação: a reserva não conta dinheiro que ninguém mediu."""
+    from pipeline.domain.services.patrimonio_types import MemberIdentity
+    from pipeline.domain.services.reserva_liquidez import build_reserva_liquida
+
+    identity = MemberIdentity(
+        titular_key="david", conjuge_key="mariana", titular_nome="D", conjuge_nome="M"
+    )
+    patrimonio = {"investimentos_titular": 100.0, "investimentos_conjuge": None}
+    reserva = build_reserva_liquida(patrimonio, None, None, identity=identity)
+
+    assert reserva.componentes(incluir_caixa_me=False, solo=False)["investimentos_conjuge"] == 0

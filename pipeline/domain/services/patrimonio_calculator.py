@@ -111,6 +111,14 @@ __all__ = [
 ]
 
 
+# `None` e não `0,0`: um zero publicado é uma afirmação sobre o patrimônio da
+# pessoa, e o sistema não a mediu ([[ADR-394]] §Emenda (b) D7).
+def _publicavel(valor: float, cobertura: tuple, papel: str) -> float | None:
+    """Valor do balde, ou ``None`` quando o membro não foi apurado."""
+    apurado = next((c.apurado for c in cobertura if c.membro == papel), True)
+    return round(valor, 2) if apurado else None
+
+
 class PatrimonioCalculator:
     """Calcula patrimônio consolidado preservando paridade com ``analyze_patrimonio``.
 
@@ -218,6 +226,7 @@ class PatrimonioCalculator:
             veiculos=veiculos,
         )
 
+        cobertura = ressalva["cobertura"]
         caixa_me_detalhe = build_caixa_me_detalhe(inputs.baseline)
         caixa_me_brl = caixa_me_from_detalhes(caixa_detalhes)
         wise_fiscal_flags = inputs.baseline.get("wise_fiscal_flags") or []
@@ -234,8 +243,8 @@ class PatrimonioCalculator:
             "imoveis_investimento": round(imoveis_investimento, 2),
             "imoveis_geradores": round(imoveis_geradores, 2),
             "imoveis_nao_geradores": round(imoveis_nao_geradores, 2),
-            identity.key_inv_titular: round(investimentos_titular, 2),
-            identity.key_inv_conjuge: round(investimentos_conjuge, 2),
+            identity.key_inv_titular: _publicavel(investimentos_titular, cobertura, "titular"),
+            identity.key_inv_conjuge: _publicavel(investimentos_conjuge, cobertura, "conjuge"),
             # CTO-02: `caixa_total_brl` guarda o caixa TOTAL (BRL + ME); o ME
             # real fica em `caixa_me_brl`. Alias legado removido em CTO-08
             # (A37.l15); leitores de artefatos antigos mantêm fallback próprio.
@@ -256,7 +265,7 @@ class PatrimonioCalculator:
             # ADR-346 (A39.l9): ressalva de PL quando há posição RV sem valor de
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
             "guarda_de_sinal": guarda.to_dict(),
-            "cobertura_investimentos": [c.to_dict() for c in ressalva["cobertura"]],
+            "cobertura_investimentos": [c.to_dict() for c in cobertura],
             "pl_ressalva": ressalva["pl_ressalva"],
             "posicoes_sem_marcacao": ressalva["posicoes_sem_marcacao"],
         }
