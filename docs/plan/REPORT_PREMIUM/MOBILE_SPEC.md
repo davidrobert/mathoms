@@ -20,11 +20,10 @@
 >
 > **Não-escopo:**
 >
-> - Print/PDF de qualquer dispositivo. Servidor renderiza em viewport
->   1280×1800 (Playwright headless) — PDF gerado em mobile mantém layout
->   desktop, intencionalmente. Justificativa: papel impresso e PDF são
->   leitura fixa de 1 página; spec de fluido em `<767px` quebraria a
->   paridade com `EXEMPLO_DE_RELATORIO.html`.
+> - Print/PDF. O Chromium relayouta contra a caixa de página (A4 útil =
+>   703px), não contra o viewport da janela — `md:` (768px) nunca casa no
+>   papel ([[ADR-381]] D1). O divisor papel/telefone é `sm:` (640px); o
+>   que o papel faz de diferente da tela vai em `@media print`.
 > - Modo edição. Tático (T1-T6) tem operações de Kanban/Notas que **não**
 >   são otimizadas para mobile — ver §1.6 abaixo.
 > - Tablet retrato (768-1023). Tratado como "desktop estreito" (sidebar
@@ -96,12 +95,12 @@ Toda tabela com **>3 colunas** vira lista de cards em `<767px`. Padrão
 recomendado:
 
 ```jsx
-{/* Desktop */}
-<div className="hidden md:block overflow-x-auto">
+{/* Papel + desktop (`sm:` = 640px; md: nunca casa no PDF — ADR-381) */}
+<div className="hidden sm:block overflow-x-auto">
   <table>...</table>
 </div>
-{/* Mobile */}
-<ul className="md:hidden grid gap-2">
+{/* Telefone */}
+<ul className="sm:hidden grid gap-2">
   {rows.map((r) => (
     <li className="rounded border p-3">
       <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-sm">
@@ -146,18 +145,9 @@ otimizado para tablet/desktop. **Razões:**
 
 ### 1.7 Print/PDF
 
-**Mantém layout desktop em qualquer dispositivo.** Servidor (Playwright
-headless) renderiza com viewport `1280×1800`. Documentado em
-[backend/app/services/pdf_renderer.py](../../../backend/app/services/pdf_renderer.py).
-
-**Razão:** PDF é artefato fixo. Geração mobile-first quebraria paridade
-visual com a referência `EXEMPLO_DE_RELATORIO.html` e produziria
-documento sem charts (fallback agregado vira mentira em PDF). O usuário
-mobile que precisa do PDF baixa e abre em qualquer leitor; o conteúdo
-não-fluido é desejável.
-
-`@media print` em `frontend/src/app/globals.css:184` continua sem
-adaptação mobile-specific.
+**A caixa de página é 703px.** `printToPDF` relayouta contra o papel, não
+contra o viewport 1280 da janela — `md:` nunca casa ([[ADR-381]] D1).
+Divisor papel/telefone: `sm:`. Diferença só de papel: `@media print`.
 
 ---
 

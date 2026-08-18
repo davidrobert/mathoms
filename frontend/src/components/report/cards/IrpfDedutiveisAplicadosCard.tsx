@@ -183,8 +183,9 @@ function DedutivelProgressBar({
 }) {
   if (teto === null || teto <= 0) return null;
   const pct = Math.min(100, Math.round((utilizado / teto) * 100));
+  // `sm:` — a 703px do papel a barra cabe; `md:` a escondia do PDF.
   return (
-    <div className="hidden flex-1 md:block">
+    <div className="hidden flex-1 sm:block">
       <progress
         value={utilizado}
         max={teto}

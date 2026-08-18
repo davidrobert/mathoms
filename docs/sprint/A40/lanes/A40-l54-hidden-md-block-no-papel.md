@@ -4,7 +4,7 @@ type: lane
 title: "`hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1)"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P2
 branch_slug: a40-l54-hidden-md-block-no-papel
 adrs:
@@ -13,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p2
   - area/frontend
   - area/report
@@ -43,6 +43,30 @@ Estado medido em 2026-08-11 (parecer do `product-designer` + verificação por
 - ~21 wrappers `overflow-x-auto` no relatório: no papel viravam clip silencioso
   até o `report-print.css` da l45 devolver `overflow: visible` — a quebra por
   rótulo cobre a classe, mas ninguém mediu tabela a tabela se todas cabem.
+
+## Inventário — 2026-08-18
+
+> Varredura [[ADR-381]] D1 em `frontend/src/components/report/`.
+> Snapshot datado: não reescrever. Remedir → blockquote novo
+> (precedente [[A40.l5]]).
+
+| arquivo | padrão | papel recebe hoje | veredito |
+| --- | --- | --- | --- |
+| `cards/alocacaoCardParts.tsx` | `hidden md:block` / `md:hidden` | MobileStack | perda de header |
+| `cards/CoberturaSegurosCard.tsx` | `hidden md:block` / `md:hidden` | cards mobile | perda de header |
+| `cards/Top15AtivosCard.tsx` | `hidden md:table-cell` (Membro) | coluna some | perda de coluna |
+| `cards/IrpfDedutiveisAplicadosCard.tsx` | `hidden … md:block` (barra) | barra some | perda de coluna |
+| `ReportShell.tsx` + `shell/ReportActions.tsx` | `hidden md:block` / `md:inline-*` | ToC/`no-print` | chrome |
+| `RealEstateBreakdownPanel.tsx` | `hidden md:grid` / `md:hidden` | dialog fechado | chrome |
+| `VariacaoSection.tsx` | `hidden sm:table` / `sm:hidden` | tabela | já-conforme ([[A40.l45]]) |
+| `cards/EstrategiaAporteCard.tsx` | `hidden sm:table-cell` | colunas no papel | já-conforme |
+| `cards/ContrafluxoCard.tsx` | `hidden sm:table-cell` | colunas no papel | já-conforme |
+
+**Veredito (conjunto fechado):** `dado completo` · `perda de header` ·
+`perda de coluna` · `chrome` · `já-conforme` · `fora de escopo D2`.
+
+Wrappers `overflow-x-auto` (~21): fora desta tabela — [[ADR-381]] D3,
+já da [[A40.l45]]. `md:grid-cols-*` é [[ADR-381]] D2 — fora desta lane.
 
 ## Escopo
 

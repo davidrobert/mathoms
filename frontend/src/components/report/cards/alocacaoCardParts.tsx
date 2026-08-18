@@ -215,8 +215,11 @@ interface TableProps {
 }
 
 export function DesktopTable({ rows, hasAlvo }: TableProps): JSX.Element {
+  // Divisor `sm:` (não `md:`): a caixa de página A4 tem 703px — com `md:`
+  // (768px) o PAPEL receberia o stack mobile e perderia os cabeçalhos
+  // "Classe"/"Desvio (pp)" (ADR-381 D1). Precedente: VariacaoSection.
   return (
-    <div className="hidden overflow-x-auto md:block">
+    <div className="hidden overflow-x-auto sm:block">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[var(--surface-border)] text-left text-[var(--surface-muted-foreground)]">
@@ -282,7 +285,7 @@ function DesktopRow({ row, hasAlvo }: DesktopRowProps): JSX.Element {
 
 export function MobileStack({ rows, hasAlvo }: TableProps): JSX.Element {
   return (
-    <div className="space-y-3 md:hidden" role="list">
+    <div className="space-y-3 sm:hidden" role="list">
       {rows.map((row) => (
         <MobileCard key={row.classe} row={row} hasAlvo={hasAlvo} />
       ))}

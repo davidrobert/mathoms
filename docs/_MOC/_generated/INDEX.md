@@ -905,7 +905,7 @@
 | A40.l50 | lane | open | A40 | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | `sprint/A40/lanes/A40-l50-abertos-da-investigacao-de-exposicao-cambial.md` |
 | A40.l51 | lane | open | A40 | Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando | `sprint/A40/lanes/A40-l51-followups-orfaos-da-l43.md` |
 | A40.l53 | lane | shipped | A40 | Gate visual de seções está cego: a captura do Playwright reinicia o desenho do chart — e o mesmo defeito imprimia o gráfico pela metade no PDF | `sprint/A40/lanes/A40-l53-gate-visual-secoes-cego.md` |
-| A40.l54 | lane | open | A40 | `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) | `sprint/A40/lanes/A40-l54-hidden-md-block-no-papel.md` |
+| A40.l54 | lane | in_progress | A40 | `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) | `sprint/A40/lanes/A40-l54-hidden-md-block-no-papel.md` |
 | A40.l55 | lane | open | A40 | Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 | `sprint/A40/lanes/A40-l55-medida-de-linha-no-papel.md` |
 | A40.l56 | lane | shipped | A40 | A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa | `sprint/A40/lanes/A40-l56-tabela-fiscal-de-producao.md` |
 | A40.l57 | lane | open | A40 | O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null | `sprint/A40/lanes/A40-l57-parecer-le-contrato-antigo-do-pgbl.md` |

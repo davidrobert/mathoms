@@ -49,6 +49,19 @@ const PROIBIDO_NO_PDF = [
 
 /** Sem `pdftotext` o gate não mede nada. Local isso é um skip legítimo (nem
  *  todo dev tem Poppler); no CI é falso-verde, e o step instala o pacote. */
+function chaveCabecalho(txt: string): string {
+  return normalizarTexto(txt)
+    .toLocaleLowerCase("pt-BR")
+    .replace(/\s*\/\s*/g, "/");
+}
+
+function cabecalhoNoPdf(header: string, texto: string): boolean {
+  const chave = chaveCabecalho(header);
+  if (texto.includes(chave)) return true;
+  const tokens = chave.split(/[\s/]+/).filter((t) => t.length >= 3);
+  return tokens.length > 0 && tokens.every((t) => texto.includes(t));
+}
+
 function exigirPdftotext(): void {
   if (pdftotextInstalado()) return;
   if (process.env.CI) {
@@ -182,6 +195,48 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
         `A página 1 é a capa + o hero; se um deles cai para a página 2, o leitor ` +
         `abre o relatório numa página majoritariamente vazia. Causa recorrente é ` +
         `regra de quebra em report-print.css (${contarPaginas(bruto)} páginas geradas).`,
+    ).toEqual([]);
+  });
+
+  test("cabeçalhos de tabela visíveis no desktop chegam ao PDF", async ({ page }) => {
+    exigirPdftotext();
+    await setupPrintReport(page);
+
+    // Derivado do DOM, não de uma lista de cards: coluna nova entra sozinha.
+    // Mede o invariante da ADR-381 D1 — o que o desktop mostra como `<th>`
+    // chega à camada de texto do PDF — em vez de emular print a 703px, que
+    // reproduziria o próprio defeito (`md:` não casa) e passaria à toa.
+    const headers = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("article th"))
+        .filter((el) => {
+          const cs = getComputedStyle(el);
+          if (cs.display === "none" || cs.visibility === "hidden") return false;
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.height > 0;
+        })
+        .map((el) => (el.textContent ?? "").trim())
+        .filter((t) => t.length > 0),
+    );
+
+    // Anti-fail-open: estas quatro NÃO existem no stack mobile. Se sumirem
+    // do conjunto coletado, a fixture perdeu o card ou o instrumento ficou
+    // cego — "Vigência" não serve de âncora (o card mobile também a emite).
+    for (const ancora of ["Classe", "Desvio (pp)", "Categoria", "Status"]) {
+      expect(headers, `âncora "${ancora}" ausente do <article> em 1280px`).toContain(
+        ancora,
+      );
+    }
+
+    // `uppercase` no thead chega como glifo maiúsculo. "Sigla / Termo" no
+    // Linux do CI quebra no `/` e o `includes` literal falha sobre o mesmo
+    // rótulo — não é hidden md:block. Tokens de 3+ letras fecham o reflow
+    // sem abrir a porta de um cabeçalho que realmente sumiu.
+    const texto = chaveCabecalho(pdfToText(await generateReportPdf(page)));
+    const ausentes = [...new Set(headers)].filter((h) => !cabecalhoNoPdf(h, texto));
+    expect(
+      ausentes,
+      `cabeçalhos visíveis no desktop que o PDF não tem: ${ausentes.join(" | ")}. ` +
+        `Causa recorrente é hidden md:block (caixa A4 = 703px, md: nunca casa).`,
     ).toEqual([]);
   });
 

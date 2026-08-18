@@ -465,6 +465,16 @@ repos:
         pass_filenames: false
         files: '^(frontend/src/components/report/.*\.(tsx|ts)|pipeline/domain/services/narrativas/.*\.py|dev/check_coverage_disclaimer\.py)$'
 
+      - id: hidden-md-on-paper
+        # ADR-381 D1: a caixa A4 tem 703px, md: (768) nunca casa no PDF.
+        # hidden md:block em dado entrega o mobile ou some. sm: ou print:
+        # são o idioma certo; chrome/dialog ficam no allowlist do script.
+        name: "hidden md:* em dado do relatório some do PDF (ADR-381 D1)"
+        entry: python3 dev/check_hidden_md_on_paper.py
+        language: system
+        pass_filenames: false
+        files: '^(frontend/src/components/report/.*\.(tsx|ts)|dev/check_hidden_md_on_paper\.py)$'
+
       - id: conversao-me-funnel
         name: "Conversão ME→BRL só no conversor (ADR-390 D4)"
         entry: python3 dev/check_conversao_me_funnel.py

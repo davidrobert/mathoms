@@ -136,8 +136,11 @@ function TotalRow({ totalCoverage, totalPremium }: { totalCoverage: number; tota
 }
 
 function CoverageTable({ rows, totalCoverage, totalPremium }: { rows: CategoryRow[]; totalCoverage: number; totalPremium: number | null }) {
+  // Divisor `sm:` (não `md:`): a caixa de página A4 tem 703px — com `md:`
+  // (768px) o PAPEL receberia os cards e perderia os cabeçalhos
+  // "Status"/"Vigência" (ADR-381 D1). Precedente: VariacaoSection.
   return (
-    <div className="hidden overflow-x-auto md:block">
+    <div className="hidden overflow-x-auto sm:block">
       <table className="w-full text-sm" aria-label="Cobertura de seguros por categoria">
         <caption className="sr-only">Status, capital segurado, prêmio mensal e vigência por categoria de seguro.</caption>
         <thead>
@@ -184,7 +187,8 @@ function MobileCard({ row }: { row: CategoryRow }) {
 /** S9-T04 (ADR-192 §D4) — Tabela de cobertura por categoria.
  *
  * 6 categorias canônicas; colunas: status, capital, prêmio/mês, vigência.
- * Mobile (<md): cards empilhados. Padrão tipográfico dos cards de relatório.
+ * Mobile (<sm): cards empilhados. Papel (703px) recebe a tabela. Padrão
+ * tipográfico dos cards de relatório.
  *
  * TODO: dados reais virão de T03 — `gap_analysis` por categoria define
  * "parcial". Até T03 mergear, qualquer apólice cadastrada vira "contratado".
@@ -201,7 +205,7 @@ export function CoberturaSegurosCard({ bundle, effectiveDate }: CoberturaSeguros
       <section role="region" aria-labelledby="cobertura-seguros-title" aria-describedby="cobertura-seguros-disclaimer" className="space-y-4">
         <h4 id="cobertura-seguros-title" className="sr-only">Tabela de cobertura de seguros por categoria</h4>
         <CoverageTable rows={rows} totalCoverage={totalCoverage} totalPremium={totalPremium} />
-        <ul className="space-y-3 md:hidden" aria-label="Cobertura por categoria (mobile)">
+        <ul className="space-y-3 sm:hidden" aria-label="Cobertura por categoria">
           {rows.map((row) => <MobileCard key={row.category} row={row} />)}
         </ul>
         <p id="cobertura-seguros-disclaimer" className="rounded-md bg-[var(--surface-muted)] p-3 text-[0.7rem] leading-relaxed text-[var(--surface-muted-foreground)]">
