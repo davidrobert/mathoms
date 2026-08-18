@@ -4,7 +4,7 @@ type: lane
 title: "Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l71-predicado-unico-da-composicao
 owner: product-designer
@@ -17,7 +17,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/frontend
 ---
@@ -158,3 +158,30 @@ duplicá-lo é a regressão que esta lane fecha).
 - Export/PDF com contagem indisponível → resíduo da [[A40.l22]] (RV6-22).
 - 5º banner: **proibido** (§Anti-decisões do plano). Estado novo reusa o
   `ReportDataQualityBanner`.
+
+## Entregue — 2026-08-18 (#1511 · `50033dae`)
+
+`visibleCompositionRows()` é fonte única do donut e da tabela; os 4 estados
+(`apurado`/`negativo`/`zero_apurado`/`nao_apurado`) usam o vocabulário da
+[[A40.l69]], e o parâmetro `cobertura` já está na assinatura para ela ligar sem
+mudar shape. Gate `dev/check_composicao_predicate.py` no pre-commit.
+
+**Duas correções de rota, medidas na execução** (detalhe nas §Escopo/§Critério
+acima): a chave da [[ADR-145]] não trafega — entregue constante única + gate de
+paridade Py↔TS no lugar do match por `template_key`; e o spec de axe não protege
+o texto acessível — daí `PatrimonioCategoriasCard.test.tsx`.
+
+**O gate v1 era cego, e isso é o achado reutilizável.** A primeira versão casava
+`composicao` e `.filter(` na **mesma linha**, e passou verde sobre a mutação que
+reintroduz o bug em duas linhas — que é a forma do código original. Trocado por
+*leitor único*, com allowlist declarada de 3 leitores. Ambos os braços
+re-provados por mutação depois do refactor.
+
+**Cobertura ausente, declarada:** os fixtures de e2e/visual têm
+`patrimonio.categorias` — nem `composicao` nem `tabela_categorias` — então o card
+renderiza estado vazio neles e o gate visual **não** exercita estas linhas. A
+lacuna de fixture é real e fica aqui em vez de virar "baseline estável".
+
+Verificado localmente o *report render gate* que o CI cancelou na primeira
+tentativa (72 passed, 2 skipped), além de pipeline 6706, frontend 1789 e backend
+3532.

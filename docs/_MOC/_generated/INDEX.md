@@ -922,7 +922,7 @@
 | A40.l69 | lane | blocked | A40 | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | `sprint/A40/lanes/A40-l69-cobertura-investimentos-por-membro.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l70 | lane | shipped | A40 | endereco_canonical=None não cria identidade: match por titular+código ou needs_review | `sprint/A40/lanes/A40-l70-endereco-canonical-nao-cria-identidade.md` |
-| A40.l71 | lane | open | A40 | Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente | `sprint/A40/lanes/A40-l71-predicado-unico-da-composicao.md` |
+| A40.l71 | lane | shipped | A40 | Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente | `sprint/A40/lanes/A40-l71-predicado-unico-da-composicao.md` |
 | A40.l72 | lane | blocked | A40 | Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante | `sprint/A40/lanes/A40-l72-guarda-de-contrato-no-render.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
