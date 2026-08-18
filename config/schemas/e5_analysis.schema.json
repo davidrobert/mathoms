@@ -301,6 +301,19 @@
             }
           }
         },
+        "cobertura_investimentos": {
+          "type": "array",
+          "description": "A40.l69 (ADR-394 §Emenda (b) D7): cobertura por membro. `fonte_investimentos` descreve o caminho do cálculo no domicílio; este campo responde se CADA membro foi medido. `nao_apurado` ≠ `zero_apurado`.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "membro": { "type": "string", "enum": ["titular", "conjuge"] },
+              "status": { "type": "string", "enum": ["apurado", "zero_apurado", "nao_apurado"] },
+              "fonte": { "type": ["string", "null"], "enum": ["posicoes_atuais", "irpf", null] },
+              "motivo": { "type": ["string", "null"] }
+            }
+          }
+        },
         "pl_ressalva": {
           "type": "boolean",
           "description": "ADR-346 (A39.l9): true quando há posição RV sem valor de mercado (custódia só-quantidade) NÃO coberta por fallback IRPF — o PL é renderizado mas não 'certificado' (pode estar subestimado). false quando toda posição é valorada ou a marcação faltante é coberta pelo IRPF."

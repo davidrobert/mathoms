@@ -336,6 +336,12 @@ export type E5AnalysisArtifact = {
         "valor_brl"?: number;
       }>;
     };
+    "cobertura_investimentos"?: Array<{
+      "membro"?: "titular" | "conjuge";
+      "status"?: "apurado" | "zero_apurado" | "nao_apurado";
+      "fonte"?: "posicoes_atuais" | "irpf" | null;
+      "motivo"?: string | null;
+    }>;
     "pl_ressalva"?: boolean;
     "posicoes_sem_marcacao"?: {
       "count"?: number;

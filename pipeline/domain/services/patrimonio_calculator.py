@@ -66,6 +66,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.investimentos_cobertura import cobertura_de_membros
 from pipeline.domain.services.patrimonio_caixa import caixa_me_from_detalhes, compute_caixa
 from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_COMERCIAL,
@@ -255,6 +256,7 @@ class PatrimonioCalculator:
             # ADR-346 (A39.l9): ressalva de PL quando há posição RV sem valor de
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
             "guarda_de_sinal": guarda.to_dict(),
+            "cobertura_investimentos": [c.to_dict() for c in ressalva["cobertura"]],
             "pl_ressalva": ressalva["pl_ressalva"],
             "posicoes_sem_marcacao": ressalva["posicoes_sem_marcacao"],
         }
@@ -328,6 +330,8 @@ class PatrimonioCalculator:
             titular_val = 0.0
             conjuge_val = 0.0
             unattributed = 0.0
+            titular_atribuido = False
+            conjuge_atribuido = False
             for member_key, value in totais.items():
                 v = safe_float(value)
                 key_lower = str(member_key).lower()
@@ -335,12 +339,15 @@ class PatrimonioCalculator:
                     unattributed += v
                 elif identity.titular_key and identity.titular_key in key_lower:
                     titular_val += v
+                    titular_atribuido = True
                 elif identity.conjuge_key and identity.conjuge_key in key_lower:
                     conjuge_val += v
+                    conjuge_atribuido = True
                 else:
                     unattributed += v
             if unattributed > 0:
                 titular_val += unattributed
+                titular_atribuido = True
 
             titular_fb = False
             conjuge_fb = False
@@ -360,6 +367,11 @@ class PatrimonioCalculator:
             sem = inputs.investimentos_atuais.get("posicoes_sem_marcacao_por_membro", {})
             ressalva = rv_ressalva(sem, identity, titular_fb=titular_fb, conjuge_fb=conjuge_fb)
             fonte = "posicoes_atuais+irpf" if (titular_fb or conjuge_fb) else "posicoes_atuais"
+            ressalva["cobertura"] = cobertura_de_membros(
+                tem_conjuge=bool(identity.conjuge_key),
+                titular=(titular_val, titular_atribuido, titular_fb, bool(titular_bens)),
+                conjuge=(conjuge_val, conjuge_atribuido, conjuge_fb, bool(conjuge_bens)),
+            )
             return titular_val, conjuge_val, fonte, ressalva
 
         # Fallback IRPF
@@ -367,12 +379,13 @@ class PatrimonioCalculator:
             titular_bens, extras=("saldo_corretora", "moeda_estrangeira", "outros")
         )
         conjuge_val = investimentos_from_irpf(conjuge_bens, extras=("outros",))
-        return (
-            titular_val,
-            conjuge_val,
-            "irpf",
-            rv_ressalva({}, identity, titular_fb=True, conjuge_fb=True),
+        ressalva = rv_ressalva({}, identity, titular_fb=True, conjuge_fb=True)
+        ressalva["cobertura"] = cobertura_de_membros(
+            tem_conjuge=bool(identity.conjuge_key),
+            titular=(titular_val, False, titular_val > 0, bool(titular_bens)),
+            conjuge=(conjuge_val, False, conjuge_val > 0, bool(conjuge_bens)),
         )
+        return titular_val, conjuge_val, "irpf", ressalva
 
     @staticmethod
     def _compute_bruto(
