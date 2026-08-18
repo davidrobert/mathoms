@@ -253,7 +253,7 @@ fixes caem no mesmo diff e nenhum dos dois é atribuível.
 
 | # | Janela | Dono | Pode rebaselinar | Abre quando |
 |---|---|---|---|---|
-| J1 | Seam determinístico | [[A40.l66]] | goldens E1.5c/E5 afetados pelo roteamento; snapshot do view-model | imediatamente |
+| J1 | Seam determinístico | [[A40.l66]] | goldens E1.5c/E5 afetados pelo roteamento; snapshot do view-model | ~~imediatamente~~ · **FECHADA 2026-08-18** (l66 `shipped`, sem rebaseline necessário) |
 | J2 | Guarda + strict | [[A40.l67]] | `baseline_patrimonial` + schema irmão; `mode_overrides` | J1 fechada |
 | J3 | Balanço de fan-out | [[A40.l68]] | contrato de retorno do stage (sem golden monetário) | independente — **não** disputa J1/J2 |
 | J4 | Cobertura por membro | [[A40.l69]] | baldes de investimento por membro + snapshot do view-model | J2 fechada |
@@ -341,11 +341,14 @@ call-sites** em 4 arquivos — o analyzer do RV6-14 é um deles, não o conjunto
 
 ### Onda 1 — seam determinístico (P0 · MVP · 2 lanes)
 
-**L1 (seam extração/consolidação):**
+**L1 (seam extração/consolidação) — ✅ `shipped` 2026-08-18 ([[A40.l66]], 5 PRs):**
 - 1a. Predicado de dívida deixa de conjuncionar com o rótulo: função pura
   `classify_baseline_item(codigo, valor_cents, categoria_hint, catalogo)` em
   `pipeline/domain/services/` (VO de config tipado, warnings [[ADR-097]] D1).
-  **Autoridade primária: catálogo RFB** — estender o substrato existente
+  **Autoridade primária: catálogo RFB** *(⚠️ ENTREGUE com outra ordem —
+  [[ADR-394]] D1/D2 põe `secao` em primeiro e deixa o catálogo só para o
+  subtipo, por `(ano_base, secao, codigo)`; `codigo` sozinho mediu 0%)* —
+  estender o substrato existente
   (`pipeline/llm/rfb_codes.py`, YAML versionado por ano-base com fail-fast e
   runbook anual) com os grupos de bens/direitos e dívidas/ônus. Sinal negativo
   = **veto suficiente** (nunca necessário — o IRPF declara saldo devedor

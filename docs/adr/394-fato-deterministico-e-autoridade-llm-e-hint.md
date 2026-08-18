@@ -5,6 +5,7 @@ title: "Fato determinístico é autoridade; saída de LLM é hint em vocabulári
 status: Decidido
 phase: A40.l66
 date: "2026-08-18"
+amended_at: ["2026-08-18"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-090]]"
@@ -32,8 +33,13 @@ tags:
 
 **Status:** Decidido (A40.l66) • **Data:** 2026-08-18 • É a **ADR-A** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l66]].
-Cobre 1a/1b/1c; a regra "prescrição exige cobertura" (1d/3a) fica para a
-emenda que a [[A40.l67]] anexa.
+Cobre 1a/1b/1c no corpo original; 1d entra pela emenda abaixo.
+
+> **Emendada em 2026-08-18** — a [[A40.l67]] anexa a regra que faltava,
+> "prescrição exige cobertura; descrição admite ressalva", e a guarda de sinal
+> do E5 que a materializa. A hierarquia de autoridade não muda; o que a emenda
+> acrescenta é **o que fazer com o negativo que chega mesmo assim** ao balde
+> publicado. Ver §Emenda 2026-08-18.
 
 ## Contexto
 
@@ -156,7 +162,7 @@ do dogfood, zero-write:
 | **1c** — conservação ano-cega por eixo (cents int, tolerância zero) | **0/7** |
 | **1a** — divergência fato × hint | **7/7** |
 | valor negativo em balde de ativo | **0/7** (era 3/7 antes) |
-| `dividas[]` | **6/7 runs com 6 entradas** (era 4), convergindo com `E1.6.dividas_onus` |
+| `dividas[]` | **6 entradas em 7/7 runs**, convergindo com `E1.6.dividas_onus` (antes: 4 em 4 runs e **2** nos 3 que consolidaram baseline stale) |
 
 1c é **contrato, não detector**: fecha em todos os runs. O detector é 1a. Com o
 cap de cardinalidade ([[ADR-272]] §Cap), run com o item flipado emite **2** razões
@@ -185,3 +191,80 @@ do fix. Sem o cap eram 84 e 83: os dois mundos ficavam indistinguíveis.
 - A unificação E1.5a × E1.6 continua deferida (§Deferimentos do plano, dono
   `senior-cto`), mas esta ADR registra que ela é o caminho **estruturalmente**
   certo: `secao` no E1.5a é a ponte enquanto os dois extratores existirem.
+
+## Emenda 2026-08-18 — prescrição exige cobertura; descrição admite ressalva
+
+Anexada pela [[A40.l67]] (item 1d do [[PLAN-deterministic-authority]]). O corpo
+original decide **quem tem autoridade** para rotear um item. Falta a regra do
+degrau seguinte: o que o relatório faz quando um valor impossível chega ao balde
+publicado apesar do roteamento.
+
+**A regra.** Um número **descritivo** (patrimônio, composição, dívida) publica
+sempre — com ressalva quando o sistema sabe que ele está sujo. Um número
+**prescritivo** ("aporte na classe X", "seu desvio máximo é Y%") só publica sobre
+cobertura completa; sem ela é **suprimido com motivo declarado**, e o resto do
+relatório sai inteiro. Suprimir a descrição esconderia o defeito exatamente onde
+o leitor confere; emitir a prescrição sobre base incompleta o promoveria a
+conselho.
+
+### D5 — a reclassificação acontece no componente, nunca na linha da composição
+
+`_compute_bruto` e `_build_composicao` (`patrimonio_calculator.py`) são **duas
+somas independentes sobre os mesmos seis componentes**. Guarda que pós-processe
+as linhas da `composicao` — zerando o balde e somando à dívida — dessincroniza os
+dois agregados, e o `pct` por largest-remainder passa a distribuir sobre um total
+que não existe. A reclassificação é **a montante das duas somas**: o componente
+vai a zero, o montante vai para `total_dividas`, `composicao ≡ bruto` se preserva
+e `patrimonio_liquido` não muda. O que muda é a honestidade da apresentação.
+
+Uma primeira versão escrita sobre a `composicao` foi descartada sem commit ao
+medir isto — guarda meio-certa que dessincroniza dois agregados é pior que guarda
+nenhuma.
+
+### D6 — negativo financeiro reclassifica; negativo físico só ressalva
+
+| balde | negativo significa | ação |
+| --- | --- | --- |
+| `caixa_total_brl`, `investimentos_titular`, `investimentos_conjuge` | cheque especial, conta margem — **dívida de curto prazo legítima** | reclassifica: balde → 0, montante → `total_dividas`, publica normal |
+| `residencia`, `imoveis_investimento`, `veiculos` | imóvel não vale menos que nada — **defeito de dado** | publica o valor, emite `review_reason`, suprime a prescrição |
+| `imoveis_geradores`, `imoveis_nao_geradores` (split derivado) | idem, no split de cat_2 | idem — **sem mutar**: mutar quebraria `imoveis_investimento ≡ geradores + não-geradores ≡ imoveis_fisicos_brl` (invariante 4a) |
+
+O físico não é reclassificado porque não há dívida a nomear: mover o montante
+para `total_dividas` inventaria um passivo, e zerá-lo sem mover inventaria
+patrimônio. Publicar com ressalva é a única saída que não fabrica número.
+
+### Taxa de disparo medida (r5+r6, e os 4 runs anteriores)
+
+Medido sobre `report_data.json` dos 6 runs completos do dogfood, campo a campo:
+
+| nível | disparo | leitura |
+| --- | --- | --- |
+| 6 componentes < 0 | **0/36** (0 em 6 runs) | a guarda no componente não teria disparado em nenhum run |
+| split derivado < 0 | **1/12** — só r6, `imoveis_nao_geradores` = −125.381,88 | é o único negativo publicado do corpus |
+| linhas de `caixa_detalhes` < 0 | **6/6 runs**, sempre a mesma linha de −95,62 | anula dentro de um caixa de +257.683,53 |
+
+Três consequências de desenho, todas medidas e não estimadas:
+
+1. **A guarda mede agregado, não linha.** No nível da linha ela dispararia em 6/6
+   runs por R$ 95,62 que se anulam dentro do próprio balde — ruído recorrente, o
+   modo de falha que a [[A40.l67]] cita ao exigir a rota de reclassificação.
+2. **O split derivado precisa estar coberto.** Ele é o único negativo publicado
+   do corpus; uma guarda restrita aos 7 baldes [[ADR-145]] erraria exatamente o
+   run que a motivou. No r6 o agregado `imoveis_investimento` seguia **positivo**
+   (437.324,36) com o negativo escondido dentro do split.
+3. **O disparo esperado em regime é 0.** O único disparo do corpus é o r6, cuja
+   causa a [[A40.l66]] fechou a montante (o item negativo não chega mais a balde
+   de ativo). A guarda é rede, não detector primário.
+
+### Enforcement (linha 1d da §Enforcement do plano)
+
+Default = o da tabela do plano: **reclassifica → publica; sobrevivente →
+`needs_review`**. Kill-switch `MATHOMS_E5_SIGN_GUARD` com três estados, porque um
+interruptor binário obriga a escolher entre ruído e cegueira:
+
+- ausente → `enforce` (default): reclassifica, declara, e o sobrevivente pausa
+  em `needs_review`. Nunca run vermelho — o artefato E5 já foi persistido.
+- `warn` → reclassifica e declara no artefato, sem pausar. Rebaixa sem cegar.
+- `off` → **status quo ante literal**, incluindo o clamp `max(0, caixa)` que o
+  ramo de posições atuais aplicava. Kill-switch que não restaura o comportamento
+  anterior não é kill-switch.

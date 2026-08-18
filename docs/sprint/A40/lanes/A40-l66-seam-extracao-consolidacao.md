@@ -81,6 +81,13 @@ identidade **líquida** fica verde sobre o mesmo payload — medido, Δ = (−20
 tipados ([[ADR-097]] D1). Hierarquia de autoridade, decidida no co-design e
 **não reaberta aqui**:
 
+> ⚠️ **A ordem ENTREGUE é outra — [[ADR-394]] D1/D2 (2026-08-18).** O co-design
+> abaixo fica como registro; o que shipou põe **`secao` em primeiro** e usa o
+> catálogo por `(ano_base, secao, codigo)` só para o **subtipo**, porque §Ataque
+> mediu `codigo` sozinho em 0% de poder discriminante (`'11'` rotula imóvel E
+> dívida). A assinatura real ganhou `secao`:
+> `classify_baseline_item(*, codigo, valor_cents, secao, categoria_hint, catalogo)`.
+
 1. **catálogo RFB** (grupo do código) — autoridade primária;
 2. mapa `(secao, codigo)`;
 3. **sinal do valor como veto/desempate** — suficiente, nunca necessário (o IRPF
