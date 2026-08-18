@@ -5,6 +5,7 @@ title: "endereco_canonical=None não minta PropertyIdentity; match residual é �
 status: Decidido
 phase: A40.l70
 date: "2026-08-17"
+amended_at: ["2026-08-17"]
 relates_to:
   - "[[ADR-097]]"
   - "[[ADR-215]]"
@@ -30,6 +31,9 @@ tags:
 
 > **Decidido em 2026-08-17** no PR da [[A40.l70]] (4b-i / RV6-13). O 0c do
 > [[PLAN-deterministic-authority]] mediu o buraco aberto em `main`.
+>
+> ⚠️ **Emendada em 2026-08-17** — o D1 abaixo ganhou uma condição: a row
+> candidata precisa ser ela própria sem canonical. Ver §Emenda no fim.
 
 ## Contexto
 
@@ -74,3 +78,30 @@ o kill-switch cobre regressão operacional.
 - `match_or_create` passa a `Optional[PropertyIdentityRecord]`.
 - `TestLowConfidenceInserts` deixa de afirmar INSERT.
 - Órfãs já persistidas **não** se podam aqui (4b-ii / track).
+
+## Emenda 2026-08-17 — a row candidata também precisa estar sem canonical
+
+O D1 acima guardou o caso `≥2 hits` ("dois apartamentos no mesmo código RFB")
+e deixou passar o caso `1 hit` em que **essa única row é um imóvel já
+identificado**. Como `codigo_rfb` é o código de **categoria** da RFB (11 =
+bens imóveis), o par `(titular_key, codigo_rfb)` casa com todo imóvel da
+pessoa: quem tem um apartamento tem exatamente 1 hit, e qualquer item novo
+sem canonical o reivindicava.
+
+O efeito não parava na identidade. O enricher copia `endereco_canonical` da
+row casada para o item; com os dois carregando `exemplo 100`, o dedup do
+E1.5c fundia as duas entradas. **Medido em 2026-08-17** sobre o payload r6
+(`tests/test_e15c_golden_execution.py`): o financiamento de −200k
+desapareceu dentro do apartamento de 600k, sobrando só um `_dedup_warning`
+`valor_divergente`, e o patrimônio líquido saiu **200k a maior** (600k
+observado contra 400k declarado).
+
+**Emenda ao D1:** o hit residual só vale se a row viva também tiver
+`endereco_canonical IS NULL`. Row com canonical própria é imóvel conhecido —
+item sem endereço não tem evidência de ser ele. Sem hit válido, vale o
+default da ADR: `None`, `needs_review` e o item segue no documento com
+`property_id` nulo.
+
+Regressão provada por mutação nos dois resolvers (D3 continua valendo). Não
+altera o D2 nem o kill-switch. O roteamento ativo↔passivo desse item segue
+sendo escopo da [[A40.l66]] — esta emenda só devolve o item ao balanço.

@@ -213,6 +213,18 @@ class TestLowConfidenceDoesNotMint:
             resolver = DBPropertyIdentityResolver(session=session)
             assert resolver.match_or_create(ws.id, lookup, 2024, "qualquer") is None
 
+    # Regressão do #1508: `codigo_rfb` é código de CATEGORIA, então (titular,
+    # codigo_rfb) casa com todo imóvel da pessoa. Reivindicar a row canônica fazia
+    # o item sem canonical herdar `property_id`/`endereco_canonical` do imóvel
+    # legítimo, e o dedup do E1.5c fundia os dois — o valor sumia do balanço.
+    def test_row_com_canonical_propria_nao_e_alvo_de_residual(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        _seed_property(sync_db, ws, titular_key="x", codigo_rfb="12", endereco_canonical="rua a 1")
+        lookup = _new_lookup(titular_key="x", codigo_rfb="12", endereco_canonical=None)
+        with sync_db() as session:
+            resolver = DBPropertyIdentityResolver(session=session)
+            assert resolver.match_or_create(ws.id, lookup, 2024, "FINANCIAMENTO IMOVEL") is None
+
     def test_kill_switch_restores_insert(self, sync_db, monkeypatch):
         monkeypatch.setenv("MATHOMS_PROPERTY_MINT_WITHOUT_CANONICAL", "1")
         ws = _seed_workspace(sync_db)

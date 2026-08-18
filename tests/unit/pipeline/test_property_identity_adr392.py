@@ -58,3 +58,32 @@ def test_inmemory_residual_unique_matches_one_row() -> None:
         WS, PropertyLookupKey("david_robert", "11", None), 2024, "grafia nova"
     )
     assert got is not None and got.property_id == seeded.property_id
+
+
+# Regressão do #1508: `codigo_rfb` é código de CATEGORIA (11 = imóveis), então
+# (titular, codigo_rfb) casa com todo imóvel da pessoa. O residual reivindicava o
+# imóvel legítimo, e o item sem canonical herdava `property_id` E
+# `endereco_canonical` — o dedup seguinte fundia os dois e o valor sumia.
+def test_residual_nao_reivindica_row_que_tem_canonical_propria() -> None:
+    resolver = InMemoryPropertyIdentityResolver()
+    resolver._insert(WS, PropertyLookupKey("david_robert", "11", "exemplo 100"), 2024)
+    got = resolver.match_or_create(
+        WS, PropertyLookupKey("david_robert", "11", None), 2024, "FINANCIAMENTO IMOVEL EXEMPLO"
+    )
+    assert got is None
+
+
+def test_item_sem_canonical_nao_absorve_o_valor_do_imovel_legitimo() -> None:
+    """O -200k tem de sobreviver como entrada própria, não virar dedup do 600k."""
+    payload = {
+        "imoveis_consolidados": [
+            _imovel("Rua Exemplo, 100", codigo="11") | {"valor": 600000.0},
+            _imovel("FINANCIAMENTO IMOVEL EXEMPLO", codigo="11") | {"valor": -200000.0},
+        ]
+    }
+    out = enrich_imoveis_with_property_ids(payload, InMemoryPropertyIdentityResolver(), WS)
+    legitimo, financiamento = out["imoveis_consolidados"]
+    assert canonicalize("FINANCIAMENTO IMOVEL EXEMPLO") is None
+    assert legitimo["property_id"] is not None
+    assert financiamento["property_id"] is None
+    assert financiamento["endereco_canonical"] != legitimo["endereco_canonical"]

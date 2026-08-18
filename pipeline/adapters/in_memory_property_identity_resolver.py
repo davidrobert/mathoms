@@ -74,5 +74,6 @@ def _residual_unique(
         if row.workspace_id == workspace_id
         and row.titular_key == lookup.titular_key
         and row.codigo_rfb == lookup.codigo_rfb
+        and row.endereco_canonical is None
     ]
     return hits[0] if len(hits) == 1 else None
