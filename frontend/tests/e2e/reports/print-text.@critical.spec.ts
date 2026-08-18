@@ -185,6 +185,50 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
     ).toEqual([]);
   });
 
+  test("cabeçalhos de tabela visíveis no desktop chegam ao PDF", async ({ page }) => {
+    exigirPdftotext();
+    await setupPrintReport(page);
+
+    // Derivado do DOM, não de uma lista de cards: coluna nova entra sozinha.
+    // Mede o invariante da ADR-381 D1 — o que o desktop mostra como `<th>`
+    // chega à camada de texto do PDF — em vez de emular print a 703px, que
+    // reproduziria o próprio defeito (`md:` não casa) e passaria à toa.
+    const headers = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("article th"))
+        .filter((el) => {
+          const cs = getComputedStyle(el);
+          if (cs.display === "none" || cs.visibility === "hidden") return false;
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.height > 0;
+        })
+        .map((el) => (el.textContent ?? "").trim())
+        .filter((t) => t.length > 0),
+    );
+
+    // Anti-fail-open: estas quatro NÃO existem no stack mobile. Se sumirem
+    // do conjunto coletado, a fixture perdeu o card ou o instrumento ficou
+    // cego — "Vigência" não serve de âncora (o card mobile também a emite).
+    for (const ancora of ["Classe", "Desvio (pp)", "Categoria", "Status"]) {
+      expect(headers, `âncora "${ancora}" ausente do <article> em 1280px`).toContain(
+        ancora,
+      );
+    }
+
+    // `uppercase` no thead chega ao PDF como glifo maiúsculo; sem case-fold
+    // o instrumento acusava "Status" ausente enquanto o papel tinha "STATUS".
+    const texto = normalizarTexto(pdfToText(await generateReportPdf(page))).toLocaleLowerCase(
+      "pt-BR",
+    );
+    const ausentes = [...new Set(headers)].filter(
+      (h) => !texto.includes(normalizarTexto(h).toLocaleLowerCase("pt-BR")),
+    );
+    expect(
+      ausentes,
+      `cabeçalhos visíveis no desktop que o PDF não tem: ${ausentes.join(" | ")}. ` +
+        `Causa recorrente é hidden md:block (caixa A4 = 703px, md: nunca casa).`,
+    ).toEqual([]);
+  });
+
   test("nenhum bloco proíbe quebra sendo mais alto que a página", async ({ page }) => {
     await setupPrintReport(page, "parcial");
     // Larga como a coluna de impressão: a altura de um bloco na tela (1280px)

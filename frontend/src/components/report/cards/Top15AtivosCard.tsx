@@ -158,9 +158,13 @@ export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
               <th scope="col" className="pb-2 pr-4 font-display font-semibold">
                 Classe
               </th>
+              {/* Titular some do PDF com `md:` sozinho (caixa A4 = 703px).
+                  `print:table-cell` devolve a coluna no papel; `sm:table-cell`
+                  esmagaria Ativo no ecrã 640–767 (barra de % já come 180px).
+                  ADR-381 D2: o que o papel faz de diferente da tela é print. */}
               <th
                 scope="col"
-                className="hidden whitespace-nowrap pb-2 pr-4 font-display font-semibold md:table-cell"
+                className="hidden whitespace-nowrap pb-2 pr-4 font-display font-semibold print:table-cell md:table-cell"
               >
                 Membro
               </th>
@@ -209,7 +213,7 @@ export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
                   <td className="py-2 pr-4">
                     <ClasseBadge classe={r.classe} />
                   </td>
-                  <td className="hidden whitespace-nowrap py-2 pr-4 text-[var(--surface-muted-foreground)] md:table-cell">
+                  <td className="hidden whitespace-nowrap py-2 pr-4 text-[var(--surface-muted-foreground)] print:table-cell md:table-cell">
                     {r.membro || "—"}
                   </td>
                   <td className="py-2 pr-4 text-right">
