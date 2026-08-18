@@ -152,13 +152,16 @@ def _candidates_fuzzy(
     return sorted(hits, key=lambda row: row.superseded_at is not None)
 
 
-# Substitui o passe fuzzy de low-confidence que a ADR-225 §3 deixou de fora.
-# `titular_key` fica fora do predicado de propósito: incluí-lo foi o mecanismo
-# que duplicou o imóvel do casal quando a extração variou a grafia do membro.
+# A candidata precisa ser ela própria sem canonical: `codigo_rfb` é o código de
+# CATEGORIA da RFB (11 = imóveis), não uma identidade, então (titular, codigo_rfb)
+# casa com TODO imóvel da pessoa. Sem esta condição, um item sem canonical herdava
+# o `property_id` — e o `endereco_canonical` — do imóvel legítimo da pessoa, e o
+# dedup seguinte fundia os dois: medido em 2026-08-17, o financiamento de -200k
+# desapareceu dentro do apartamento de 600k e o líquido saiu 200k a maior.
 def _residual_unique(
     index: _WorkspaceIdentities, lookup: PropertyLookupKey
 ) -> Optional[PropertyIdentity]:
-    """Única row viva com o mesmo (titular_key, codigo_rfb) — [[ADR-392]] D1."""
+    """Única row viva sem canonical própria com o mesmo (titular_key, codigo_rfb) — [[ADR-392]] D1."""
     hits = [
         row
         for row in index.ordered
@@ -168,13 +171,16 @@ def _residual_unique(
     seen: set[str] = set()
     for row in hits:
         winner = index._live_winner(row)
-        if winner is None or winner.id in seen:
+        if winner is None or winner.id in seen or winner.endereco_canonical is not None:
             continue
         seen.add(winner.id)
         live.append(winner)
     return live[0] if len(live) == 1 else None
 
 
+# Substitui o passe fuzzy de low-confidence que a ADR-225 §3 deixou de fora.
+# `titular_key` fica fora do predicado de propósito: incluí-lo foi o mecanismo
+# que duplicou o imóvel do casal quando a extração variou a grafia do membro.
 def _candidates_by_descricao(
     index: _WorkspaceIdentities, lookup: PropertyLookupKey, descricao_sample: str
 ) -> list[PropertyIdentity]:
