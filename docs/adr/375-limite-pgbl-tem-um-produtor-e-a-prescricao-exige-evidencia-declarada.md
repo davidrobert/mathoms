@@ -5,7 +5,7 @@ title: "Limite PGBL tem um produtor, e a prescrição exige evidência declarada
 status: Decidido
 phase: A40
 date: "2026-08-11"
-amended_at: ["2026-08-11", "2026-08-13", "2026-08-14", "2026-08-15"]
+amended_at: ["2026-08-11", "2026-08-13", "2026-08-14", "2026-08-15", "2026-08-17"]
 relates_to:
   - "[[ADR-236]]"
   - "[[ADR-135]]"
@@ -368,3 +368,20 @@ O consumidor recusa **lendo `regime_completo` na row**, nunca com
 encontra o lugar dela.
 
 Consumidora deste desbloqueio: [[A40.l34]].
+
+## Emenda 2026-08-17 — a soma híbrida que a emenda de 2026-08-13 mediu não existe mais
+
+A emenda de 2026-08-13 §2 recusou a partição "S8 = ano corrente / Card B =
+ano-base" **por medição**: o horizonte "ano corrente" que a soma reivindicava não
+existia nela, porque ela misturava pró-labore do fluxo com total do IRPF do
+ano-base.
+
+A [[A40.l36]] **removeu a soma**. A base da S8 passou a ser o total do IRPF
+sozinho ([[ADR-236]] §Emenda 2026-08-17), e o horizonte agora é declaradamente
+ano-base nos dois lados.
+
+**A conclusão sobrevive intacta** — o D1 continua com dono único no Card B, e a
+razão passa a ser mais simples, não mais fraca: não há duas grandezas competindo.
+O que vira histórico é o **mecanismo citado**: quem reler a medição de 13/08
+contra o código de hoje não encontrará a soma que ela descreve. Este ponteiro
+existe para que ninguém a re-meça achando que o código regrediu.

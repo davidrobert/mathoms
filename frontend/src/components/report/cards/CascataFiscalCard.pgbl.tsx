@@ -28,15 +28,18 @@ export function PgblBlock({
       </h4>
       <dl className="space-y-2 text-sm">
         <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-[var(--surface-muted-foreground)]">Renda tributável PF/ano</dt>
+          <dt className="text-[var(--surface-muted-foreground)]">
+            Renda tributável PF/ano
+          </dt>
           <dd>
             <MonetaryValue value={cascata.pgbl_base_anual} fractionDigits={0} />
           </dd>
         </div>
       </dl>
       <p className="text-xs leading-relaxed text-[var(--surface-muted-foreground)]">
-        Base = pró-labore + outras rendas tributáveis IRPF. Lucros distribuídos
-        não compõem esta base. <PgblDestination hasIrpf={hasIrpf} />
+        Base = total dos rendimentos tributáveis declarados no IRPF, do
+        ano-base. Lucros distribuídos não compõem esta base.{" "}
+        <PgblDestination hasIrpf={hasIrpf} />
       </p>
       <PgblStatus
         aplicavel={cascata.pgbl_aplicavel}
@@ -57,7 +60,12 @@ export function PgblBlock({
 
 function PgblDestination({ hasIrpf }: { hasIrpf: boolean }) {
   if (!hasIrpf) {
-    return <>O teto e a capacidade dedutível dependem de uma declaração de IRPF processada.</>;
+    return (
+      <>
+        O teto e a capacidade dedutível dependem de uma declaração de IRPF
+        processada.
+      </>
+    );
   }
   return (
     <>
@@ -101,9 +109,9 @@ function SimplificadaFlag() {
         aria-hidden="true"
       />
       <p>
-        PGBL não dedutível — você escolheu desconto simplificado no IRPF.
-        Migrar para declaração completa é decisão anual e depende de
-        comparação caso-a-caso.
+        PGBL não dedutível — você escolheu desconto simplificado no IRPF. Migrar
+        para declaração completa é decisão anual e depende de comparação
+        caso-a-caso.
       </p>
     </div>
   );
@@ -128,8 +136,8 @@ function TipoDeclaracaoDesconhecidoNotice() {
 function RendaPfZeradaNotice() {
   return (
     <p className="rounded-md border-l-4 border-[var(--surface-border)] bg-[var(--surface-card)] p-3 text-xs leading-relaxed text-[var(--surface-muted-foreground)]">
-      Renda tributável PF não detectada — processar o IRPF mais recente
-      libera o cálculo da base PGBL.
+      Renda tributável PF não detectada — processar o IRPF mais recente libera o
+      cálculo da base PGBL.
     </p>
   );
 }

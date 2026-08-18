@@ -51,7 +51,12 @@ SENSITIVE_FIELD_SUBSTRINGS: tuple[str, ...] = (
     "pgbl_base",
     "pgbl_limite",
     "renda_pf",
+    # A40.l36: `outras_rendas_tributaveis_pf_anual` virou
+    # `renda_tributavel_pf_irpf_anual`. A denylist casa por PREFIXO, então o
+    # rename apagou o mascaramento em silêncio — o gate LGPD pegou. O prefixo
+    # antigo fica: custa nada e protege quem ainda emitir o nome velho.
     "outras_rendas",
+    "renda_tributavel_pf",
     "inss_patronal",
     "inss_empregado",
     "inss_pago",

@@ -116,7 +116,11 @@ class CascataInput:
     folha_pj_mensal: Money = field(default_factory=lambda: Money.zero("BRL"))
     das_pago_mensal: Money = field(default_factory=lambda: Money.zero("BRL"))
     iss_pago_mensal: Money = field(default_factory=lambda: Money.zero("BRL"))
-    outras_rendas_tributaveis_pf_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
+    # TOTAL dos rendimentos tributáveis PF do IRPF (rendimentos_pj + rendimentos_pf),
+    # o pró-labore INCLUÍDO. O nome anterior (`outras_rendas...`) prometia
+    # "exceto pró-labore" e entregava o total — foi o nome que causou a soma
+    # dupla da [[A40.l36]].
+    renda_tributavel_pf_irpf_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
     imoveis_alugados_count: int = 0
     receita_aluguel_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
     # ADR-238 (A17 L1 plumbing): snapshot de informes previdência. Default None
@@ -365,10 +369,18 @@ def _compute_fator_r_if_simples(inp: CascataInput) -> tuple:
     return _compute_fator_r(inp.folha_pj_mensal, inp.pro_labore_mensal, inp.receita_pj_anual)
 
 
+# A base do teto de 12% é o TOTAL dos rendimentos tributáveis, e só o IRPF o tem.
+# Somar `cargas.bruto_anual` contava o pró-labore duas vezes: ele já está no IRPF
+# como `rendimentos_pj` — a própria empresa do titular é fonte pagadora PJ.
+# Medido: +82,8% na base, teto de R$ 38.160 no lugar de R$ 20.880 ([[A40.l36]]).
+#
+# Não se subtrai nada do lado do IRPF: a ficha da própria PJ também carrega lucro
+# excedente tributável e gratificações, e trocá-la pelo valor do fluxo produziria
+# base de ano híbrido — o híbrido que a [[ADR-375]] já recusou por medição.
 def _compute_layers(inp: CascataInput) -> _ComputedLayers:
     cargas = _compute_pro_labore_cargas(inp.pro_labore_mensal, inp.regime)
     tributos, iss = _dispatch_tributos(inp)
-    renda_pf = Money.brl(cargas.bruto_anual.amount + inp.outras_rendas_tributaveis_pf_anual.amount)
+    renda_pf = inp.renda_tributavel_pf_irpf_anual
     pgbl_limite, pgbl_aplicavel, pgbl_motivo = compute_pgbl(renda_pf, inp.tipo_declaracao_ir)
     fator_r = _compute_fator_r_if_simples(inp)
     return _ComputedLayers(
