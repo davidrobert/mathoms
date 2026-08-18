@@ -4,7 +4,7 @@ type: lane
 title: "Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: blocked
+status: open
 priority: P0
 branch_slug: a40-l69-cobertura-investimentos-por-membro
 owner: data-engineer
@@ -20,7 +20,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p0
   - area/pipeline
 ---
@@ -33,6 +33,14 @@ tags:
 > cobertura; descrição admite ressalva") é decidida na **ADR-A**, que a
 > [[A40.l66]] abre, e a janela de rebaseline desta lane (J4) só abre com a J2 da
 > [[A40.l67]] fechada.
+>
+> **Destravada em 2026-08-18.** As duas condições estão satisfeitas: a ADR-A é a
+> [[ADR-394]], emendada em #1531 com a regra "prescrição exige cobertura;
+> descrição admite ressalva"; e a J2 fechou em #1534 **sem consumir rebaseline**
+> (`golden_diff` de `aa53d5bf~1`×`aa53d5bf`: 2 campos `new`, zero `value_delta`,
+> sinal **=**), logo a J4 abre com o orçamento inteiro. O resíduo da [[A40.l67]]
+> — o flip para strict — foi re-homeado à [[A40.l58]] e **não** é insumo desta
+> lane: ela consome a regra e o seam, não o modo de validação do schema.
 
 ## Problema
 
