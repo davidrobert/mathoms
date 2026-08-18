@@ -2,7 +2,7 @@
 id: ADR-393
 type: adr
 title: "Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo)"
-status: Proposto
+status: Decidido
 phase: A40.l68
 date: "2026-08-18"
 relates_to:
@@ -20,14 +20,14 @@ aliases:
   - "ADR-B do PLAN-deterministic-authority"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - phase/a40-l68
 ---
 
 # ADR-393 — Contrato de balanço de stage fan-out
 
-**Status:** Proposto • **Data:** 2026-08-18 • É a **ADR-B** do
+**Status:** Decidido • **Data:** 2026-08-18 • É a **ADR-B** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l68]].
 
 ## Contexto
@@ -111,11 +111,19 @@ hook pós-write validar, e é exatamente o caso que mais importa.
 `leitor_ausente`, `leitor_indisponivel`, `leitura_falhou`, `documento_vazio` —
 os três primeiros são defeito, o quarto é fato legítimo.
 
-`extract()` permanece como wrapper `-> str` por compat: **cinco** stages o
-consomem (`extract_baseline`, `extract_with_llm`, `extract_informes_anuais`,
-`extract_comprovantes_bens`, `extract_irpf_full`) e só o segundo entra no escopo
-da [[A40.l68]]. Os outros quatro herdam a mesma cegueira e **não** são
+`extract()` permanece como wrapper `-> str` por compat: **sete** stages o
+consomem — `extract_baseline`, `extract_comprovantes_bens`,
+`extract_informe_aluguel`, `extract_informes_anuais`, `extract_irpf_full`,
+`extract_members` e `extract_with_llm`. Só o último entra no escopo da
+[[A40.l68]]; os outros **seis** herdam a mesma cegueira e **não** são
 consertados aqui — fica declarado, não silencioso.
+
+> **Correção 2026-08-18 (closeout).** Esta linha dizia "cinco" e nomeava cinco.
+> A medição original terminava em `| head -10` e a saída foi **truncada** —
+> `extract_informe_aluguel` e `extract_members` ficaram de fora da lista de
+> quem herda o resíduo, que é justamente o que a §D2 existe para declarar.
+> Re-medido: `grep -rln DocumentTextExtractor pipeline/stages/` → 7 arquivos,
+> e 6 chamam `.extract(`.
 
 ### D3 — Denominador enumerado, não descoberto
 
@@ -143,11 +151,19 @@ contabilidade de documentos **entre** unidades de fan-out. Decisão do co-design
 do plano, registrada em §Anti-decisões ("NÃO ampliar [[A42.l4]] nem emendar
 [[ADR-342]]").
 
+## Estado de implementação (2026-08-18)
+
+`Decidido` refere-se à **decisão**, não à cobertura. Entregue na [[A40.l68]] 2a
+(#1526 · `4b3bff08`): **D1** (balanço), **D2** (leitor tipado), **D4**
+(WARN-first). **Não** entregues: **D3** (denominador enumerado de stages
+fan-out) e **D5** (formato sem extrator falha no E0) — sem dono nomeado, ficam
+como resíduo da lane.
+
 ## Consequências
 
 - `extract_with_llm` passa a devolver `skipped: list[...]`; leitores do bloco
   precisam tolerar a chave nova (aditiva).
 - `success=true` com balanço aberto passa a ser impossível por construção.
-- Os quatro stages fora do escopo seguem cegos até lane própria.
+- Os **seis** stages fora do escopo seguem cegos até lane própria.
 - O `.xls` do dogfood passa a aparecer como `needs_review` nomeado em vez de
   sumir — o corpus não muda, a **visibilidade** dele muda.
