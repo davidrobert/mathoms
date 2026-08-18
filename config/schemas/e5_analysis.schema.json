@@ -301,6 +301,14 @@
             }
           }
         },
+        "investimentos_titular": {
+          "type": ["number", "null"],
+          "description": "A40.l69 (ADR-394 §Emenda (b) D7): `null` = membro não apurado. Zero publicado é afirmação sobre o patrimônio da pessoa; `null` não afirma. Quem diz qual dos dois é `cobertura_investimentos[]`."
+        },
+        "investimentos_conjuge": {
+          "type": ["number", "null"],
+          "description": "A40.l69 (ADR-394 §Emenda (b) D7): `null` = membro não apurado — ver `investimentos_titular`."
+        },
         "cobertura_investimentos": {
           "type": "array",
           "description": "A40.l69 (ADR-394 §Emenda (b) D7): cobertura por membro. `fonte_investimentos` descreve o caminho do cálculo no domicílio; este campo responde se CADA membro foi medido. `nao_apurado` ≠ `zero_apurado`.",

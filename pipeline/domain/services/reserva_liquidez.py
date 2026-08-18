@@ -89,6 +89,10 @@ def build_reserva_liquida(
     return _com_caixa_por_tipo(patrimonio, por_membro)
 
 
+# Balde `None` = membro não apurado ([[ADR-394]] §Emenda (b) D7). A reserva não
+# conta dinheiro que ninguém mediu, então ele entra como zero — `_dec` já o faz, e
+# um ramo explícito seria cerimônia que nenhuma mutação mata. O contrato "None
+# conta zero" é travado por teste; a ressalva no KPI é follow-up da [[A40.l69]].
 def _liquidez_por_membro(
     patrimonio: dict,
     investimentos_atuais: dict | None,
