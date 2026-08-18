@@ -92,7 +92,10 @@ class TestE15GoldenFile:
         assert baseline["resumo"]["patrimonio_liquido"] == "897000.00"
         assert len(baseline["itens"]) == 5
         assert baseline["_meta"]["source"] == "E1.5-llm"
-        assert baseline["itens"][0]["categoria"] == "imovel"
+        # ADR-394 D7 (A40.l66): o produtor emite `categoria_hint`; `categoria` só
+        # sobrevive como alias de LEITURA para os artefatos históricos.
+        assert baseline["itens"][0]["categoria_hint"] == "imovel"
+        assert "categoria" not in baseline["itens"][0]
 
     def test_items_sum_matches_total(self, golden_data):
         from decimal import Decimal

@@ -61,11 +61,14 @@ def _output_to_baseline_json(output) -> dict:
         entry = {
             "codigo": item.code,
             "descricao": item.description,
-            "categoria": item.category,
+            # ADR-394 D7: nome novo no artefato; o leitor aceita `categoria` legado.
+            "categoria_hint": item.category_hint,
             "valor_brl": _money_str(item.value_brl),
             "membro": item.member_key,
             "ano": item.year,
         }
+        if item.secao:
+            entry["secao"] = item.secao
         if item.institution:
             entry["instituicao"] = item.institution
         # ADR-267: propaga CPF do contribuinte quando LLM extraiu — habilita

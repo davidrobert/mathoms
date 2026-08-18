@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Literal
 
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
@@ -15,6 +15,9 @@ from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
 VALID_ROLES = {"titular", "conjuge", "filho", "dependente"}
 VALID_ACCOUNT_TYPES = {"extratoconta", "cartao_credito", "investimento", "poupanca"}
+#: ADR-394 D1 — fichas da declaração; a seção é a autoridade do eixo ativo×passivo.
+VALID_SECOES = {"bens_direitos", "dividas_onus"}
+
 VALID_CATEGORIES = {
     "imovel",
     "veiculo",
@@ -89,6 +92,18 @@ _REVIEW_REASON_MAP: dict[str, tuple[ReviewReasonCode, str, str, tuple[str, ...] 
         "Soma de ativos diverge do total declarado",
         "soma(itens>0) == total_assets_brl",
         None,
+    ),
+    "e15.totals.liabilities_mismatch": (
+        ReviewReasonCode.domain_validation_conflict,
+        "Soma de passivos diverge do total declarado",
+        "soma(|itens<0|) == total_liabilities_brl",
+        None,
+    ),
+    "e15.item.unknown_secao": (
+        ReviewReasonCode.domain_validation_conflict,
+        "Secao de item fora do vocabulario",
+        "secao em VALID_SECOES",
+        ("index", "secao"),
     ),
     "e15.totals.net_worth_mismatch": (
         ReviewReasonCode.domain_validation_conflict,
@@ -401,6 +416,11 @@ _E15_RULES: dict[str, tuple[Severity, dict[str, Any]]] = {
     "e15.item.invalid_year": ("warning", {**_E15_ITEMS, "field": "year"}),
     "e15.totals.assets_mismatch": ("warning", {**_E15_TOTALS, "field": "total_assets_brl"}),
     "e15.totals.net_worth_mismatch": ("warning", {**_E15_TOTALS, "field": "net_worth_brl"}),
+    "e15.totals.liabilities_mismatch": (
+        "warning",
+        {**_E15_TOTALS, "field": "total_liabilities_brl"},
+    ),
+    "e15.item.unknown_secao": ("warning", {**_E15_ITEMS, "field": "secao"}),
     "e15.contribuinte.invalid_reference_year": (
         "error",
         {**_E15_CONTRIB, "field": "reference_year"},
@@ -412,6 +432,21 @@ def _emit_e15(r: ValidationResult, code: str, msg: str, *, path: str, **extras: 
     severity, base_ctx = _E15_RULES[code]
     r.add_issue(
         code=code, severity=severity, path=path, context={**base_ctx, **extras}, legacy_message=msg
+    )
+
+
+# ADR-292: vocabulário desconhecido marca o ITEM, nunca derruba o documento.
+def _validate_e15_item_secao(i: int, item: Any, r: ValidationResult) -> None:
+    """`secao` fora de VALID_SECOES vira warning no item (ADR-394 D1/D7)."""
+    if not item.secao or item.secao in VALID_SECOES:
+        return
+    _emit_e15(
+        r,
+        "e15.item.unknown_secao",
+        f"E1.5: item[{i}] secao '{item.secao}' fora do vocabulário fechado",
+        path=f"$.items[{i}].secao",
+        index=i,
+        secao=item.secao,
     )
 
 
@@ -432,14 +467,15 @@ def _validate_e15_item_strings(i: int, item: Any, r: ValidationResult) -> None:
             path=f"$.items[{i}].description",
             index=i,
         )
-    if item.category not in VALID_CATEGORIES:
+    _validate_e15_item_secao(i, item, r)
+    if item.category_hint not in VALID_CATEGORIES:
         _emit_e15(
             r,
             "e15.item.non_standard_category",
-            f"E1.5: item[{i}] category '{item.category}' is non-standard",
+            f"E1.5: item[{i}] category_hint '{item.category_hint}' is non-standard",
             path=f"$.items[{i}].category",
             index=i,
-            category=item.category,
+            category=item.category_hint,
         )
 
 
@@ -480,6 +516,27 @@ def _emit_e15_assets_mismatch(output: Any, computed: "Decimal", r: ValidationRes
     )
 
 
+def _to_cents(value: Any) -> int:
+    """ADR-090: comparação monetária é int de centavos, nunca float."""
+    return int((Decimal(str(value or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+# ADR-394 D5 (A40.l66): o eixo do passivo não tinha conservação nenhuma — dívida
+# sumia do `resumo` sem sinal. Nasce em cents int com tolerância zero; o eixo de
+# ativos mantém a tolerância histórica de R$1,00 (presa aos goldens).
+def _validate_e15_liabilities(output: Any, r: ValidationResult) -> None:
+    """Σ|itens negativos| ≡ total_liabilities_brl, cents int, tolerância zero."""
+    declared = _to_cents(output.total_liabilities_brl)
+    computed = _to_cents(-sum((i.value_brl for i in output.items if i.value_brl < 0), Decimal("0")))
+    if computed != declared:
+        _emit_e15(
+            r,
+            "e15.totals.liabilities_mismatch",
+            f"E1.5: total_liabilities_brl {declared} cents != soma dos negativos {computed} cents",
+            path="$.total_liabilities_brl",
+        )
+
+
 def _validate_e15_totals(output: Any, r: ValidationResult) -> None:
     if not output.items:
         return
@@ -489,6 +546,7 @@ def _validate_e15_totals(output: Any, r: ValidationResult) -> None:
     computed = sum(i.value_brl for i in output.items if i.value_brl > 0)
     if abs(computed - output.total_assets_brl) > tolerance:
         _emit_e15_assets_mismatch(output, computed, r)
+    _validate_e15_liabilities(output, r)
     nw_diff = abs(output.net_worth_brl - (output.total_assets_brl - output.total_liabilities_brl))
     if output.net_worth_brl != 0 and nw_diff > tolerance:
         _emit_e15(
