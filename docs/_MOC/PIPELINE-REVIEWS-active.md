@@ -409,6 +409,14 @@ gate aprovar a corrupção.
 | RV6-10 — fan-out não fechava o próprio balanço, com skip determinístico e perda permanente de documento | correção | Alto | — | **fechado com ressalva** | fechado | #1526 fez o balanço fechar e o skip ser nomeado — mas o remédio gerou RV7-01 (abort) e expôs RV7-03/DE-4 (o balanço fecha sobre denominador pós-filtro) |
 | RV6-24 — positivo do r6: o compare de 3 pernas pegou o que os CV não veem | saúde-execução | — | — | positivo (reconfirmado) | fechado | r7 confirma pelo inverso: **não congelar r7 como baseline** enquanto DE-1/RV7-04 e RV6-04 seguirem abertos — congelar faria o gate aprovar ambos |
 
+**Nota datada 2026-08-18 — chegou depois da medição.** A [[A40.l69]] mergeou #1541 e
+**#1542** (`58ca1c11`, 21:37Z) **após** o fim deste run (21:21Z): balde de membro não apurado
+passa a publicar `null` em vez de `0,00`. Isso endereça o braço de **afirmação** do RV6-04
+("omitir ≠ afirmar zero") no produtor. **Não** está medido aqui, e dois braços seguem abertos
+até prova em contrário: (a) a **cobertura** — por que as instituições conhecidas do membro não
+chegam ao balde; (b) a **prosa entregue**, que afirmava o zero e era byte-idêntica em 3 runs.
+Re-medir os três no r8 antes de rebaixar a prioridade.
+
 **Re-triagem do §r6 (cadência).** Fechados por medição: RV6-01/02/03, RV6-07, RV6-23,
 RV6-10 (com ressalva). Persistem re-priorizados: RV6-04 (P0, 3º run), RV6-11 (P1),
 RV6-17 (P1, **âncora corrigida** — o campo registrado no r6 é dead code), RV6-13 (P2,
