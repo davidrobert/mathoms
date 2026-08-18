@@ -7,6 +7,11 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pipeline.llm.deterministic_extraction import (
+    EXTRACTION_SEED,
+    EXTRACTION_TEMPERATURE,
+)
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
@@ -122,6 +127,8 @@ def _call_llm(service, config, doc_name: str, text: str):
 
     user_prompt = _build_e16_user_prompt(doc_name, text)
     return service.call(
+        temperature=EXTRACTION_TEMPERATURE,
+        seed=EXTRACTION_SEED,
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
         output_schema=IRPFFullOutput,

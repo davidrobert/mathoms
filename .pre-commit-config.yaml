@@ -124,6 +124,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: check-extraction-sampling
+        name: Call-site de extração declara temperature + seed (A40.l66)
+        entry: python3 dev/check_extraction_sampling.py
+        language: system
+        pass_filenames: false
+        files: ^(pipeline/stages/extract_.*\.py|dev/check_extraction_sampling\.py)$
+
       - id: pipeline-boundaries
         name: "pipeline/ não importa backend/frameworks (ADR-089 · ADR-325)"
         entry: python3 dev/check_pipeline_boundaries.py

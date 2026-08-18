@@ -8,6 +8,11 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from pipeline.llm.deterministic_extraction import (
+    EXTRACTION_SEED,
+    EXTRACTION_TEMPERATURE,
+)
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
     from pipeline.llm.litellm_client import LLMConfig
@@ -251,6 +256,8 @@ def _call_llm_for(tipo_informe, service, config, doc_name, text, ano_hint, conte
 
     prompt_mod = _load_prompt_module(tipo_informe)
     result = service.call(
+        temperature=EXTRACTION_TEMPERATURE,
+        seed=EXTRACTION_SEED,
         system_prompt=prompt_mod.SYSTEM_PROMPT,
         user_prompt=_build_user_prompt_for(tipo_informe, doc_name, text, ano_hint),
         output_schema=InformeRendimentosBase,

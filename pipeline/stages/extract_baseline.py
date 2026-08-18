@@ -7,6 +7,11 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pipeline.llm.deterministic_extraction import (
+    EXTRACTION_SEED,
+    EXTRACTION_TEMPERATURE,
+)
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
@@ -263,6 +268,8 @@ def run(ctx: WorkspaceContext) -> dict:
             phase="awaiting_llm",
         )
         result = service.call(
+            temperature=EXTRACTION_TEMPERATURE,
+            seed=EXTRACTION_SEED,
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
             output_schema=BaselinePatrimonialOutput,
