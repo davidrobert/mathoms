@@ -45,6 +45,11 @@ from typing import AsyncGenerator
 
 _TEST_FERNET_KEY = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
 os.environ.setdefault("MATHOMS_FERNET_KEY", _TEST_FERNET_KEY)
+# ADR-171: FERNET_KEYS tem precedência sobre FERNET_KEY em resolve_fernet_keys().
+# Um `.env` de dev com janela de rotação ativa tornava o pin acima INERTE — a
+# suíte inteira cifrava com a key real da máquina e o resultado de teste passava
+# a depender do ambiente (RV7-02: verde no CI, vermelho no laptop).
+os.environ.pop("MATHOMS_FERNET_KEYS", None)
 
 # scripts.pipeline_common requires MATHOMS_WORKSPACE_ROOT; repo root for config/ in tests.
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -65,6 +70,7 @@ from backend.app.main import app
 
 if not settings.FERNET_KEY:
     settings.FERNET_KEY = _TEST_FERNET_KEY
+settings.FERNET_KEYS = ""
 
 # File-backed SQLite so the async engine (aiosqlite) and the sync engine
 # (SyncSessionLocal, used by code paths reached through endpoints — e.g.

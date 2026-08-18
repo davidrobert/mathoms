@@ -11,6 +11,19 @@ from backend.app.core.config import settings
 from backend.app.services.security import crypto
 
 
+@pytest.fixture
+def fernet_primary(monkeypatch):
+    """Pina a precedência de ``resolve_fernet_keys`` (ADR-171) e devolve o setter da key primária.
+
+    O decoy constante em ``FERNET_KEY`` é o gate: se o resolver voltar a preferir
+    o singular deprecado, a key primária para de mudar entre as fases e os testes
+    abaixo falham. Antes (RV7-02) o patch ia só no singular — inerte em máquina
+    com ``FERNET_KEYS`` no ``.env``, e quem decidia o resultado era o ambiente.
+    """
+    monkeypatch.setattr(settings, "FERNET_KEY", Fernet.generate_key().decode())
+    return lambda key: monkeypatch.setattr(settings, "FERNET_KEYS", key)
+
+
 def test_encrypt_decrypt_roundtrip():
     payload = {"cpf": "000.000.000-00", "nome": "Foo Bar", "saldo": "1234.56"}
     sentinel = crypto.encrypt_artifact_payload(payload)
@@ -51,21 +64,22 @@ def test_kid_is_stable_for_same_key():
     assert a["kid"] == b["kid"]
 
 
-def test_kid_changes_when_key_changes(monkeypatch):
+def test_kid_changes_when_key_changes(fernet_primary):
+    fernet_primary(Fernet.generate_key().decode())
     original_kid = crypto._key_id()
-    new_key = Fernet.generate_key().decode()
-    monkeypatch.setattr(settings, "FERNET_KEY", new_key)
+
+    fernet_primary(Fernet.generate_key().decode())
     assert crypto._key_id() != original_kid
 
 
-def test_decrypt_raises_when_ciphertext_wrong_key(monkeypatch):
-    payload = {"secret": "abc"}
-    sentinel = crypto.encrypt_artifact_payload(payload)
-
-    new_key = Fernet.generate_key().decode()
-    monkeypatch.setattr(settings, "FERNET_KEY", new_key)
+def test_decrypt_raises_when_ciphertext_wrong_key(monkeypatch, fernet_primary):
     import backend.app.services.security.vault as vault_mod
 
+    fernet_primary(Fernet.generate_key().decode())
+    monkeypatch.setattr(vault_mod, "_singleton", None)
+    sentinel = crypto.encrypt_artifact_payload({"secret": "abc"})
+
+    fernet_primary(Fernet.generate_key().decode())
     monkeypatch.setattr(vault_mod, "_singleton", None)
 
     with pytest.raises(crypto.ArtifactDecryptError):
