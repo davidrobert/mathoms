@@ -52,7 +52,7 @@ class ReviewReasonCode(str, enum.Enum):
     # A40.l69 ([[ADR-394]] §Emenda (b) D7): membro sem fonte de investimentos —
     # balde não apurado, que é diferente de balde medido em zero.
     domain_membro_nao_apurado = "domain.membro_nao_apurado"
-    # DE-6 ([[ADR-396]]): o eixo ativo do item veio do `categoria_hint`, não de
+    # DE-6 ([[ADR-398]]): o eixo ativo do item veio do `categoria_hint`, não de
     # um fato — mint de identidade recusado, porque rotular converteria um
     # passivo em ativo do patrimônio bruto.
     domain_property_identity_eixo_por_hint = "domain.property_identity_eixo_por_hint"

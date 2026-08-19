@@ -1,4 +1,4 @@
-"""DE-6 — eixo decidido por fato é precondição de mint de identidade ([[ADR-396]]).
+"""DE-6 — eixo decidido por fato é precondição de mint de identidade ([[ADR-398]]).
 
 `secao` é OPCIONAL no `e15_baseline_extract.schema.json` e 766 artefatos
 históricos não a carregam. Sem ela, o eixo cai no último degrau da [[ADR-394]]
@@ -113,7 +113,7 @@ def test_secao_de_dividas_nunca_chega_ao_mint() -> None:
 # Recusar o mint por ausência do fato tiraria `property_id` de todo imóvel antigo —
 # e com ele o dedup, os overrides e a seção de imóveis inteira.
 def test_declaracao_legada_sem_secao_segue_mintando() -> None:
-    """[[ADR-396]] D2 — onde a fonte nunca ofereceu o fato, exigi-lo apagaria o corpus."""
+    """[[ADR-398]] D2 — onde a fonte nunca ofereceu o fato, exigi-lo apagaria o corpus."""
     out, resolver = _run(
         [_item(_IMOVEL, 600000.0), _item("APARTAMENTO - Rua Exemplo, 200", 300000.0)]
     )

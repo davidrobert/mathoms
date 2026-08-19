@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-386 ADRs (ADR-001 a ADR-396) em [`docs/adr/`](../../adr/).
+386 ADRs (ADR-001 a ADR-398) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -612,7 +612,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-392]] — endereco_canonical=None não minta PropertyIdentity; match residual é único (titular, código) · phase A40.l70
 - [[ADR-393]] — Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) · phase A40.l68
 - [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
-- [[ADR-396]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
+- [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
 
 ### Proposto (14)
 

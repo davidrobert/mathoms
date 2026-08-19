@@ -88,7 +88,7 @@ def _load_identities(db: Session, workspace_id: str) -> list[PropertyIdentity]:
     return list(db.execute(stmt).scalars().all())
 
 
-# [[ADR-396]] D3: a projeção lê TODA row viva de `property_identity`, então
+# [[ADR-398]] D3: a projeção lê TODA row viva de `property_identity`, então
 # identidade mintada por run antigo — inclusive a que nasceu de item da ficha de
 # dívidas antes da [[ADR-392]] — segue pedindo rótulo ao dono, e rotular põe um
 # passivo no patrimônio bruto. O baseline do run é a autoridade sobre o que é

@@ -1,4 +1,4 @@
-"""DE-6 / RV6-13 — identidade fóssil não vira imóvel pendente de rótulo ([[ADR-396]] D3).
+"""DE-6 / RV6-13 — identidade fóssil não vira imóvel pendente de rótulo ([[ADR-398]] D3).
 
 `_load_identities` projeta **toda** row viva de `property_identity` como imóvel,
 sem consultar o baseline do run. Identidade mintada por run antigo — inclusive a

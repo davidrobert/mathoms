@@ -260,7 +260,7 @@ def consolidate(baseline: dict, resolver=None) -> dict:
                 # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
                 entry["codigo_rfb"] = str(bem.get("grupo", "") or "").strip()
                 entry["ano_referencia"] = ano
-                # ADR-396: este caminho itera `decl["bens_direitos"]` — a ficha
+                # ADR-398: este caminho itera `decl["bens_direitos"]` — a ficha
                 # de origem É o fato, e o mint fica autorizado.
                 entry["eixo_autoridade"] = ClassificationAuthority.SECAO.value
                 # Try to enrich with XLSX data
@@ -556,7 +556,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
             entry["tipo"] = "imovel"
             # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
             entry["codigo_rfb"] = str(item.get("codigo", "") or "").strip()
-            # ADR-396: o mint lê estes dois campos. `eixo_autoridade` diz QUEM
+            # ADR-398: o mint lê estes dois campos. `eixo_autoridade` diz QUEM
             # decidiu; `secao_disponivel` diz se a declaração de origem sequer
             # oferecia o fato — sem esse escopo, recusar o mint apagaria a
             # identidade de todo o corpus pré-`secao`.
@@ -638,7 +638,7 @@ def _declaracao_do_item(item: dict) -> tuple[str, str]:
 
 
 def _declaracoes_com_secao(itens: list) -> set:
-    """ADR-396: declarações cuja extração emitiu `secao` — só nelas o fato é exigível."""
+    """ADR-398: declarações cuja extração emitiu `secao` — só nelas o fato é exigível."""
     return {_declaracao_do_item(i) for i in itens if i.get("secao")}
 
 

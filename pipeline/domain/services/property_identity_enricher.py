@@ -64,7 +64,7 @@ def enrich_imoveis_with_property_ids(
     return consolidated
 
 
-# [[ADR-396]]: mintar é ato durável com CTA de rótulo — só o degrau de FATO da
+# [[ADR-398]]: mintar é ato durável com CTA de rótulo — só o degrau de FATO da
 # [[ADR-394]] D1 o autoriza. O eixo ATIVO só sai de `secao` ou de `hint`
 # (`sinal` nunca promove a ativo, e o catálogo refina subtipo, nunca eixo), então
 # a ausência de fato aqui significa exatamente "quem decidiu foi o rótulo do LLM".
@@ -76,7 +76,7 @@ _AUTORIDADE_DE_FATO = frozenset(
 # `secao` é OPCIONAL no contrato do E1.5a e 766 artefatos históricos não a
 # carregam. Exigir o fato onde ele nunca existiu não fecharia o eixo: apagaria a
 # identidade de todo imóvel do corpus antigo. A precondição vale onde a
-# declaração provou saber emitir `secao` ([[ADR-396]] D2).
+# declaração provou saber emitir `secao` ([[ADR-398]] D2).
 def _eixo_atestado_por_fato(entry: dict) -> bool:
     """Fato decidiu o eixo — ou a declaração de origem nunca ofereceu o fato."""
     if str(entry.get("eixo_autoridade") or "") in _AUTORIDADE_DE_FATO:

@@ -1,5 +1,5 @@
 ---
-id: ADR-396
+id: ADR-398
 type: adr
 title: "Eixo decidido por fato é precondição de mint de identidade de imóvel"
 status: Decidido
@@ -26,7 +26,7 @@ tags:
   - area/persistence
 ---
 
-# ADR-396 — Sem fato de eixo, não se minta identidade
+# ADR-398 — Sem fato de eixo, não se minta identidade
 
 > **Decidido em 2026-08-19** na remediação do **DE-6** (P0) do §r7 de
 > [[PIPELINE-REVIEWS-active]]. Estende a hierarquia de autoridade da
