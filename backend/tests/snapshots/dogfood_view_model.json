@@ -1584,6 +1584,7 @@
       }
     ],
     "n_imoveis_total": 1,
+    "nao_classificado_pct": "0.000000",
     "tabela_classes": [
       {
         "categoria": "Imóveis Investimento",
@@ -1600,6 +1601,7 @@
     ],
     "top_ativos": [
       {
+        "autoridade": "origem",
         "classe": "Imóveis Investimento",
         "instituicao": "",
         "membro": "Alex",
@@ -1610,6 +1612,7 @@
         "valor": 60000000
       },
       {
+        "autoridade": "keyword",
         "classe": "Renda Fixa",
         "instituicao": "Bancoficticio",
         "membro": "Alex",
