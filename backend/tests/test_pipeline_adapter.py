@@ -226,6 +226,10 @@ async def test_build_config_overrides_skips_empty_workspace(db):
     with SyncSessionLocal() as sync_db:
         overrides = build_config_overrides_from_db(ws.id, db=sync_db)
     # ADR-180 (A10.6): ``goals.json`` sempre presente como ``GoalsBundle`` mínimo.
+    # ``institutions.json`` fica de fora porque o catálogo é global (ADR-137), não
+    # workspace-scoped: aqui o DB de teste não tem os seeds das migrations e o
+    # conftest corta o Redis compartilhado. Em prod um workspace vazio o recebe —
+    # o que esta asserção fecha é a materialização workspace-scoped, não o global.
     assert set(overrides.keys()) == {"goals.json"}
     assert overrides["goals.json"]["_adapter_version"] == 2
 

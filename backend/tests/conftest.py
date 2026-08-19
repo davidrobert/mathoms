@@ -178,6 +178,23 @@ def _rate_limit_fail_open(monkeypatch):
     monkeypatch.setattr(_rl, "_get_redis_safe", lambda: None)
 
 
+@pytest.fixture(autouse=True)
+def _institution_catalog_no_redis(monkeypatch):
+    """Catálogo global (ADR-137) não fala com o Redis compartilhado na suíte.
+
+    ``institution_catalog:global:v2`` não tem escopo de workspace e vive 30
+    dias, então sem isolamento a suíte é não-hermética nas duas direções: lê o
+    catálogo que um run de dogfood gravou (e um workspace vazio passa a receber
+    ``institutions.json``) e grava o catálogo vazio do DB de teste — o conftest
+    usa ``create_all``, sem os seeds das migrations —, deixando o pipeline local
+    resolvendo zero instituições até o TTL expirar.
+    ``test_institution_resolver.py`` re-injeta fakes por teste.
+    """
+    import backend.app.services.institution_resolver as _ir
+
+    monkeypatch.setattr(_ir, "_get_redis_safe", lambda: None)
+
+
 @pytest_asyncio.fixture(autouse=True)
 async def setup_db():
     """Recreate schema before every test and drop after.
