@@ -8,6 +8,12 @@ import {
   readExcludedProperties,
   readPremissasEconomicas,
 } from "./reportContractGuards";
+import {
+  allMeasured,
+  measured,
+  signalCount,
+  type MeasuredCount,
+} from "./measuredCount";
 
 /** A28.l9 — derivação pura dos sinais de qualidade de dados do relatório.
  *
@@ -134,12 +140,17 @@ export interface ReportDataQualitySignals {
   readonly parecerRetidos: number;
   /** Quantos sinais ativos (0 = banner colapsa para barra fina). */
   readonly count: number;
+  /** PD-6 — todos os contadores client-side chegaram? `false` proíbe AFIRMAR
+   *  ausência de pendências; não proíbe listar as que se conhece. */
+  readonly allMeasured: boolean;
 }
 
 /** Sinais ativos. Cada linha do banner é condicional num sinal específico, então
  *  o `count` tem de ser a soma EXATA das linhas que vão renderizar — contar algo
  *  sem linha própria produz "1 pendência" com `<ul>` vazia (A40.l18 · ADR-357). */
-function countActiveSignals(s: Omit<ReportDataQualitySignals, "count">): number {
+function countActiveSignals(
+  s: Omit<ReportDataQualitySignals, "count" | "allMeasured">,
+): number {
   return (
     (s.naoIdentificado ? 1 : 0) +
     (s.needsReviewDocs > 0 ? 1 : 0) +
@@ -149,25 +160,33 @@ function countActiveSignals(s: Omit<ReportDataQualitySignals, "count">): number 
   );
 }
 
+/** PD-6 — os dois contadores client-side entram como `MeasuredCount`, não como
+ *  `number`: a assinatura é o que impede o próximo consumidor de reintroduzir
+ *  o colapso "falhei ⇒ 0". Não-medido não vira linha (`signalCount`) e derruba
+ *  `allMeasured`, que é o único canal que autoriza a afirmação positiva. */
 export function computeDataQualitySignals(
   data: ReportAnalysisData,
-  needsReviewDocs: number,
-  parecerRetidos = 0,
+  needsReviewDocs: MeasuredCount,
+  parecerRetidos: MeasuredCount = measured(0),
 ): ReportDataQualitySignals {
   const share = computeNaoIdentificadoShare(data.fluxo_caixa as FluxoCaixaSummary | undefined);
   const parcial = {
     naoIdentificado:
       share && share.pct > NAO_IDENTIFICADO_THRESHOLD_PCT ? share : null,
-    needsReviewDocs,
+    needsReviewDocs: signalCount(needsReviewDocs),
     premissas: computePremissasDegrade(
       readPremissasEconomicas(data.premissas_economicas),
     ),
     imoveisPendentes: readExcludedProperties(data.real_estate).filter(
       (property) => property.classification === "desconhecido",
     ).length,
-    parecerRetidos,
+    parecerRetidos: signalCount(parecerRetidos),
   };
-  return { ...parcial, count: countActiveSignals(parcial) };
+  return {
+    ...parcial,
+    count: countActiveSignals(parcial),
+    allMeasured: allMeasured(needsReviewDocs, parecerRetidos),
+  };
 }
 
 /** Chaves de KPI de IF que o bloco de stats da S7 realmente lê. */

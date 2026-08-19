@@ -11,15 +11,18 @@ import { render, screen } from "@testing-library/react";
 import { ReportDataQualityBanner } from "@/components/report/ReportDataQualityBanner";
 import type { ReportAnalysisData } from "@/lib/api";
 
+/** PD-6 — os hooks devolvem `MeasuredCount`; aqui o valor é sempre MEDIDO.
+ *  O eixo "não medi" tem arquivo próprio (`reportDataQualityMeasured.test.tsx`
+ *  e `measuredCountHooks.test.tsx`), que exercita o fetch em vez de mockar. */
 const mockNeedsReview = vi.hoisted(() => ({ count: 0 }));
 vi.mock("@/components/report/hooks/useNeedsReviewCount", () => ({
-  useNeedsReviewCount: () => mockNeedsReview.count,
+  useNeedsReviewCount: () => ({ state: "ok", count: mockNeedsReview.count }),
 }));
 
 /** A40.l22 — o hook faz `GET .../planner-review`; aqui só o contador importa. */
 const mockParecerRetidos = vi.hoisted(() => ({ count: 0 }));
 vi.mock("@/components/report/hooks/useParecerRetidoCount", () => ({
-  useParecerRetidoCount: () => mockParecerRetidos.count,
+  useParecerRetidoCount: () => ({ state: "ok", count: mockParecerRetidos.count }),
 }));
 
 function degradedData(): ReportAnalysisData {

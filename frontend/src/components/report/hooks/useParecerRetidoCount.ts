@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-import { getPlannerReview } from "@/lib/api";
+import { ApiError, getPlannerReview } from "@/lib/api";
 import { parecerItensRetidos } from "../utils/parecerRetencao";
+import {
+  MEASURING,
+  UNMEASURED,
+  measured,
+  type MeasuredCount,
+} from "../utils/measuredCount";
 
 /** A40.l22 — itens do parecer retidos na conferência, para o banner agregado.
  *
@@ -14,21 +20,30 @@ import { parecerItensRetidos } from "../utils/parecerRetencao";
  * mesma resposta do mesmo endpoint, e o contador é derivado por
  * `parecerItensRetidos` nos dois lados (produtor único da regra).
  *
- * 404 (nunca gerado / free) e falha de rede degradam para 0: o banner perde uma
- * LINHA, e a seção — que faz o próprio fetch e é a superfície autoritativa —
- * segue declarando a retenção.
+ * PD-6 (RV6-22) — 404 e falha de rede deixam de ser o mesmo fato. 404 (nunca
+ * gerado / free) é ausência POR CONSTRUÇÃO, logo zero medido: o banner perde
+ * uma LINHA e a seção, superfície autoritativa, segue declarando a retenção.
+ * Qualquer outra falha é `unknown` — não sabemos se há itens retidos, e o
+ * relatório não pode afirmar que não há.
  */
+function classifyRetidoError(err: unknown): MeasuredCount {
+  if (err instanceof ApiError && err.status === 404) return measured(0);
+  return UNMEASURED;
+}
+
 function fetchRetidoCount(
   workspaceId: string,
   reportId: string,
-  apply: (n: number) => void,
+  apply: (value: MeasuredCount) => void,
 ): () => void {
   let cancelled = false;
   getPlannerReview(workspaceId, reportId)
     .then((data) => {
-      if (!cancelled) apply(parecerItensRetidos(data));
+      if (!cancelled) apply(measured(parecerItensRetidos(data)));
     })
-    .catch(() => {});
+    .catch((err: unknown) => {
+      if (!cancelled) apply(classifyRetidoError(err));
+    });
   return () => {
     cancelled = true;
   };
@@ -37,13 +52,19 @@ function fetchRetidoCount(
 export function useParecerRetidoCount(
   workspaceId: string | undefined,
   reportId: string | undefined,
-): number {
-  const [count, setCount] = useState(0);
+): MeasuredCount {
+  const [value, setValue] = useState<MeasuredCount>(MEASURING);
 
   useEffect(() => {
-    if (!workspaceId || !reportId) return;
-    return fetchRetidoCount(workspaceId, reportId, setCount);
+    // Sem par (workspace, report) não há parecer a conferir: o sinal está
+    // desligado por construção, o que é zero medido — não falha de medição.
+    if (!workspaceId || !reportId) {
+      setValue(measured(0));
+      return;
+    }
+    setValue(MEASURING);
+    return fetchRetidoCount(workspaceId, reportId, setValue);
   }, [workspaceId, reportId]);
 
-  return count;
+  return value;
 }
