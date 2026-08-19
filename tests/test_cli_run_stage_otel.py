@@ -58,12 +58,16 @@ def in_memory_exporter(monkeypatch):
 
 def _ensure_test_fernet_key(monkeypatch) -> None:
     # Hidratação exige o vault Fernet; settings pode ter sido instanciado sem key.
+    # Os dois settings entram: `resolve_fernet_keys` prefere FERNET_KEYS (rotação,
+    # ADR-171), então pinar só o singular é inerte em máquina com rotação no `.env`
+    # — quem decidia a key era o ambiente, não o teste (RV7-02). O pin é
+    # incondicional porque `.env` de dev preenche FERNET_KEY e afastava o `if`.
     from backend.app.core.config import settings
 
     test_key = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
     monkeypatch.setenv("MATHOMS_FERNET_KEY", test_key)
-    if not settings.FERNET_KEY:
-        monkeypatch.setattr(settings, "FERNET_KEY", test_key)
+    monkeypatch.setattr(settings, "FERNET_KEY", test_key)
+    monkeypatch.setattr(settings, "FERNET_KEYS", "")
 
 
 def _isolate_redis(monkeypatch) -> None:
