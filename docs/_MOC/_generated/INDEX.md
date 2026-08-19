@@ -392,6 +392,7 @@
 | ADR-395 | adr | Proposto |  | Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap | `adr/395-cobertura-documental-e-hint-de-inventario.md` |
 | ADR-396 | adr | Proposto |  | Amostragem de LLM é declarada no call-site, não herdada do config | `adr/396-amostragem-declarada-no-call-site-de-llm.md` |
 | ADR-398 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/398-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
+| ADR-399 | adr | Proposto |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
