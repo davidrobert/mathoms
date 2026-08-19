@@ -125,7 +125,11 @@ def _cli_env(db_url: str | None) -> dict[str, str]:
         **os.environ,
         "MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS": "false",
         # Hidratação (run_context_factory) exige o vault Fernet (config_materializer).
+        # O par é indivisível: o subprocess constrói `Settings()` própria e relê o
+        # `.env` do disco, onde uma janela de rotação venceria o pin do singular
+        # (ADR-171). `pop` não alcança arquivo — só a env var vazia o sobrepõe.
         "MATHOMS_FERNET_KEY": _TEST_FERNET_KEY,
+        "MATHOMS_FERNET_KEYS": "",
         # Porta fechada: caches Redis (catálogo, budget) viram no-op fail-open —
         # sem isso a hidratação do subprocess escreveria no Redis dev (ex.:
         # catálogo vazio por cima do real em institution_catalog:global).
