@@ -3,7 +3,7 @@
 
 Anti-recorrência de 2026-08-19 (§r7): quatro sessões paralelas alocaram o
 mesmo id de ADR na escrita, duas vezes no mesmo dia (ADR-396 por três
-frentes, ADR-399 por duas). Nada barrava — `check_adr_anchors` valida
+frentes, ADR-404 por duas). Nada barrava — `check_adr_anchors` valida
 anchor, `validate_frontmatter` valida shape, e `check_doc_filename_id`
 casa filename com id **por nota**, nunca entre notas. Filenames distintos
 (`396-amostragem-...` vs `396-eixo-...`) satisfazem os três, não conflitam

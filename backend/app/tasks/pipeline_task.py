@@ -1064,7 +1064,7 @@ def _issues_from_reasons(
 
 def _legacy_validation_text(validation: dict) -> str:
     """`validation.errors` → texto. Coage item não-str: um `join` sobre lista
-    heterogênea levanta TypeError ANTES da transição de estado (ADR-399)."""
+    heterogênea levanta TypeError ANTES da transição de estado (ADR-404)."""
     errors = validation.get("errors")
     if not isinstance(errors, list):
         return ""
@@ -1076,7 +1076,7 @@ def _project_issues(db, run_id: str, stage_name: str, workspace_id: str, reasons
     try:
         by_key, by_id = _resolve_document_identities(db, workspace_id, reasons)
         return _issues_from_reasons(reasons, by_key, by_id)
-    except Exception as exc:  # noqa: BLE001 — ver ADR-399
+    except Exception as exc:  # noqa: BLE001 — ver ADR-404
         # Sem traceback: o erro do driver ecoa os bound parameters, e
         # `artifact_key` é stem de filename que a redação não alcança.
         logger.error(
@@ -1126,7 +1126,7 @@ def _mark_stage_log_needs_review(db, log_id: str, result, elapsed_ms: int) -> No
     stage_log.output_summary = result.detail
 
 
-# `StageReview` fica do lado do CONTROLE de propósito (ADR-399): `resume_run` só
+# `StageReview` fica do lado do CONTROLE de propósito (ADR-404): `resume_run` só
 # libera a retomada com zero reviews `pending`, então status sem review deixaria
 # o humano retomar sem revisar nada — falha silenciosa pior que a barulhenta.
 # Falhar aqui é falhar a execução, e deve ser alto: nada de try/except.
@@ -1144,7 +1144,7 @@ def _commit_needs_review_pause(
         db.commit()
 
 
-# Ordem obrigatória (ADR-399): controle commita primeiro e sozinho; o analítico
+# Ordem obrigatória (ADR-404): controle commita primeiro e sozinho; o analítico
 # vem depois, em sessão própria. O inverso grava razão de pausa para um run que
 # pode nunca ter pausado.
 def _record_stage_needs_review(

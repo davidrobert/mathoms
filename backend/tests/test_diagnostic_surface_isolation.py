@@ -1,4 +1,4 @@
-"""CTO-6 · ADR-399 — a superfície de diagnóstico nunca aborta a execução que
+"""CTO-6 · ADR-404 — a superfície de diagnóstico nunca aborta a execução que
 documenta. DB real (SQLite via `SyncSessionLocal`, FKs ON — ADR-371), nunca mock:
 produtor emite payload venenoso → o run PAUSA e a row de `review_reasons` degrada.
 """

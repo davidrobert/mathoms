@@ -1,4 +1,4 @@
-"""Boundary de `review_reasons` (ADR-399): normaliza o payload do produtor ao
+"""Boundary de `review_reasons` (ADR-404): normaliza o payload do produtor ao
 contrato de coluna ANTES do INSERT. Degrada o campo, depois a row, nunca o run.
 
 As três munições medidas contra `origin/main` (run `140ac8d7`, §r7) são de
@@ -136,7 +136,7 @@ def _build_row(payload: dict, *, stage_name: str) -> ReviewReasonRow | None:
         # `stage` é do ORQUESTRADOR: o produtor não escolhe em que stage a razão
         # dele foi emitida, e deixá-lo escolher reabriria a munição de largura.
         return ReviewReasonRow(**{**payload, "stage": stage_name})
-    except Exception as exc:  # noqa: BLE001 — boundary não propaga; ver ADR-399
+    except Exception as exc:  # noqa: BLE001 — boundary não propaga; ver ADR-404
         # Sem `exc_info`: `ValidationError` ecoa o input, que pode carregar PII.
         _reject(
             "review_reason descartado — payload inválido",

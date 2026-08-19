@@ -487,7 +487,7 @@ PDF é a superfície que sai do produto e é arquivada por terceiros, e o KR-3 d
 já a declara obrigatória por isso), mas a causa registrada teria mandado o executor procurar no
 lugar errado — SSR/hidratação em vez do caminho de rede.
 
-**Nota datada 2026-08-19 — CTO-6 remediado (#PR, [[ADR-399]]).** Re-medido contra
+**Nota datada 2026-08-19 — CTO-6 remediado (#PR, [[ADR-404]]).** Re-medido contra
 `origin/main` (`ab91f7ec`) e **confirmado**: a assimetria persistia (o commit de artefato do
 ramo `needs_review` tem `try/except`; o `_record_stage_needs_review` logo abaixo, nenhum), e
 três payloads de produtor derrubavam o run **no SQLite** — `dict` em coluna `Text` (o driver

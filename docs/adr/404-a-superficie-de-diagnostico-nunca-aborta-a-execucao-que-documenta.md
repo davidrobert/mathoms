@@ -1,5 +1,5 @@
 ---
-id: ADR-399
+id: ADR-404
 type: adr
 title: "A superfície de diagnóstico nunca aborta a execução que documenta"
 status: Proposto
@@ -16,7 +16,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 396"
+  - "ADR 404"
   - "diagnostico nao aborta"
 tags:
   - type/adr
@@ -26,7 +26,7 @@ tags:
 size_lines: 132
 ---
 
-# ADR-399 — A superfície de diagnóstico nunca aborta a execução que documenta
+# ADR-404 — A superfície de diagnóstico nunca aborta a execução que documenta
 
 **Status:** Proposto (r7/CTO-6) · **Data:** 2026-08-19
 

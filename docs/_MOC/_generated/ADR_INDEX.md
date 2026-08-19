@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-389 ADRs (ADR-001 a ADR-399) em [`docs/adr/`](../../adr/).
+389 ADRs (ADR-001 a ADR-404) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -632,7 +632,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
-- [[ADR-399]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
+- [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 
 ### Roadmap (1)
 
