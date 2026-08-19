@@ -21,11 +21,11 @@ from backend.app.models.pipeline_run import (
 from backend.app.models.review_reason import ReviewReason
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
-from backend.app.tasks.pipeline_task import (
+from backend.app.services.diagnostics.review_reason_sink import (
     _REVIEW_REASON_ROW_CAP,
     _materialize_review_reasons,
-    _record_stage_needs_review,
 )
+from backend.app.tasks.pipeline_task import _record_stage_needs_review
 
 
 @pytest_asyncio.fixture

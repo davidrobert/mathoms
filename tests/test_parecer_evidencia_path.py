@@ -481,4 +481,7 @@ class TestPromptTokenBudget:
         current_tokens = len(SYSTEM_PROMPT_TEMPLATE) // 4
         delta = abs(current_tokens - baseline_tokens) / baseline_tokens
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
-        assert PROMPT_VERSION == "2.2.0"
+        # Tripwire: bump obriga a reconferir o budget acima. 2.2.0 → 2.3.0 é
+        # bump de AMOSTRAGEM (ADR-396), não de texto — o template não mudou e
+        # o delta segue 0%.
+        assert PROMPT_VERSION == "2.3.0"

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-386 ADRs (ADR-001 a ADR-398) em [`docs/adr/`](../../adr/).
+389 ADRs (ADR-001 a ADR-404) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 331
-- **Proposto**: 51
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -476,11 +476,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-307]] — Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift · phase W6-T02
 - [[ADR-341]] — Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores · phase A37.l1
 
-### Proposto (3)
+### Proposto (5)
 
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-358]] — Enforcement em produção exige budget de produção — e KR no plano onde ele age · phase A40
 - [[ADR-368]] — Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão · phase A40
+- [[ADR-396]] — Amostragem de LLM é declarada no call-site, não herdada do config · phase §r7 PE-2
+- [[ADR-399]] — Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número · phase §r7 PE-2/FP-6
 
 ## marketing
 
@@ -614,7 +616,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
 - [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
 
-### Proposto (14)
+### Proposto (15)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -630,6 +632,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
+- [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 
 ### Roadmap (1)
 

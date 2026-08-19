@@ -4,8 +4,10 @@ type: lane
 title: "Produtor do bundle de proteção lê a fonte documental, e o gap_qualitativo reconcilia com os dependentes do IRPF"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: in_progress
+status: shipped
 priority: P1
+ship_pr: 1576
+ship_date: "2026-08-19"
 branch_slug: a40-l73-3c-produtor-protecao
 adrs:
   - "[[ADR-395]]"
@@ -18,7 +20,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -27,6 +29,11 @@ tags:
 ---
 
 # A40.l73 — `produtor-do-bundle-le-a-fonte-documental`
+
+> ✅ **Entregue em 2026-08-19** em 5 PRs: **#1549** (lane + [[ADR-395]]) · **#1554**
+> (canal `categorias_somente_no_documento`) · **#1560** (`e6774876`, retenção no
+> populator + `actual` nulo deixa de virar `0,00`) · **#1564** (S9 de vazio para
+> **parcial**) · **#1576** (metade (i) + `pontos_urgentes` lendo o mesmo estado).
 
 > **Aberta em 2026-08-19** pelo item **3c inteiro** da Onda 3 do
 > [[PLAN-deterministic-authority]] (`_README.md:441`), por autorização
@@ -114,6 +121,18 @@ invalidez sem fonte) **não é resolvido aqui**.
 - **Residual PE** (precedência entre fontes contraditórias no prompt do
   parecer) é item próprio da **Onda 5** (achado PE-3). Manifest e prompt não
   são tocados aqui.
+
+## Como ficou
+
+| Estado | Gatilho | O que o relatório publica |
+|---|---|---|
+| `apurado` | cadastro sustenta o cálculo | gap e prescrição, como antes |
+| `parcial` | só o documento identificou apólice | nomeia apólices, seguradoras e vigência; declara o gap **retido**; sem número, sem conselho |
+| `nao_apurado` | nenhuma fonte | ausência declarada nomeando o insumo — **não** "sem riscos cadastrados" |
+
+`gap_qualitativo` ganhou `status: apurado | nao_apurado`; `flag` seguiu booleano
+de propósito (o prompt do parecer lê `flag == True` e **não foi tocado** — PE-3
+é Onda 5).
 
 ## Aceite
 

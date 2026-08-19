@@ -162,6 +162,19 @@ def _as_positive(valor: Any) -> bool:
         return False
 
 
+# ADR-395 §D7 — MESMO ano-base de `irpf_kpis` (ADR-305), senão a reconciliação
+# compararia o gatilho de vida com dependentes de outro ano.
+def resolve_dependentes_irpf_count(irpf_analyzer) -> Optional[int]:
+    """``irpf_kpis.dependentes.count`` do ano-base fiscal. ``None`` = sem IRPF."""
+    ano = _ano_base_fiscal(irpf_analyzer)
+    if ano is None:
+        return None
+    try:
+        return int(irpf_analyzer.dependentes_count(ano)["count"])
+    except Exception:
+        return None
+
+
 def _has_deducao_saude_irpf(irpf_analyzer) -> bool:
     ano = _ano_base_fiscal(irpf_analyzer)
     if ano is None:
@@ -245,15 +258,26 @@ def _protecao_input(
     seguradoras_catalog: Mapping[str, str],
     cadastro: tuple[ProtectionItem, ...],
 ) -> ProtecaoInput:
-    renda = resolve_renda_anual_liquida(sources.irpf_analyzer, sources.fluxo_legacy)
     return ProtecaoInput(
         apolices=load_apolices(store),
         vehicles_by_id={},
         data_referencia=ref,
-        renda_anual_liquida_brl=renda,
         family_members=family,
-        patrimonio=build_patrimonio_snapshot(sources.patrimonio_full),
-        fiscal=build_fiscal_snapshot(sources.irpf_analyzer, sources.fluxo_mensal_raw),
         seguradoras_catalog=seguradoras_catalog,
         cobertura_cadastrada=cadastro,
+        **_derivados_do_analyzer(sources),
     )
+
+
+# Agrupados porque saem todos dos sub-resultados do ``E5AnalyzerAdapter`` e
+# compartilham o mesmo ano-base fiscal (ADR-305) — separá-los reintroduziria a
+# divergência de ano que a ADR fechou.
+def _derivados_do_analyzer(sources: ProtecaoSources) -> dict:
+    return {
+        "renda_anual_liquida_brl": resolve_renda_anual_liquida(
+            sources.irpf_analyzer, sources.fluxo_legacy
+        ),
+        "patrimonio": build_patrimonio_snapshot(sources.patrimonio_full),
+        "fiscal": build_fiscal_snapshot(sources.irpf_analyzer, sources.fluxo_mensal_raw),
+        "dependentes_irpf_count": resolve_dependentes_irpf_count(sources.irpf_analyzer),
+    }

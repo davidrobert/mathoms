@@ -18,6 +18,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from pipeline.llm.deterministic_extraction import EXTRACTION_SEED
 from pipeline.llm.litellm_client import LLMConfig, LLMService
 from pipeline.llm.prompts import crlv as crlv_prompt
 from pipeline.llm.prompts._sanitization import sanitize_and_wrap
@@ -180,7 +181,10 @@ def _service_with_cache(cache, hooks=None) -> LLMService:
     )
 
 
-def _prepopulate(cache, service, *, system: str, raw_user: str) -> str:
+# `seed` default None serve os testes que chamam `service.call` direto; o golden
+# que atravessa o stage passa a constante de produção — priming com amostragem
+# diferente da do produtor gera cache-miss e o golden tenta tocar o provider.
+def _prepopulate(cache, service, *, system: str, raw_user: str, seed: int | None = None) -> str:
     sanitized_user, _ = sanitize_and_wrap(raw_user)
     key = build_response_cache_key(
         model=service._get_model_string(),
@@ -189,7 +193,7 @@ def _prepopulate(cache, service, *, system: str, raw_user: str) -> str:
         schema_name="CRLVPayload",
         temperature=0.0,
         max_tokens=4096,
-        seed=None,
+        seed=seed,
         image_bytes=None,
         stage="extract_comprovantes_bens",
         prompt_version=crlv_prompt.PROMPT_VERSION,
@@ -288,8 +292,8 @@ def test_golden_crlv_llm_free_via_cache_hit(tmp_path: Path):
     text = "CRLV PLACA ABC1D23 RENAVAM 123456789 EXERCICIO 2026"
     cache = InMemoryResponseCache()
     service = _service_with_cache(cache)
-    raw_user = _build_user_prompt(doc.name, text)
-    _prepopulate(cache, service, system=crlv_prompt.SYSTEM_PROMPT, raw_user=raw_user)
+    raw_user, crlv = _build_user_prompt(doc.name, text), crlv_prompt.SYSTEM_PROMPT
+    _prepopulate(cache, service, system=crlv, raw_user=raw_user, seed=EXTRACTION_SEED)
     service._ensure_client = lambda: pytest.fail("golden é LLM-free — provider proibido")
 
     payload, result, prompt_version = _extract_crlv(doc, text, service, _Cfg())

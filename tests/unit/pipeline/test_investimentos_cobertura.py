@@ -33,7 +33,7 @@ def _obs(**kw) -> MembroObservado:
         "valor_brl": Decimal("0"),
         "posicoes_atribuidas": False,
         "fallback_irpf": False,
-        "tem_bens_irpf": False,
+        "ano_base": None,
     }
     base.update(kw)
     return MembroObservado(**base)
@@ -61,10 +61,12 @@ def test_fallback_irpf_e_apurado() -> None:
     assert c.status is CoberturaStatus.apurado and c.fonte == "irpf"
 
 
-def test_sem_posicao_mas_com_bens_no_baseline_e_zero_apurado() -> None:
-    """O IRPF do membro existe e não tem investimento — é medida, não ausência."""
-    c = classificar_cobertura(_obs(tem_bens_irpf=True))
-    assert c.status is CoberturaStatus.zero_apurado and c.fonte == "irpf"
+def test_presenca_de_linha_no_baseline_nao_e_evidencia_de_medicao() -> None:
+    """O ramo que media o CONTÊINER: `bens` é sempre materializado, então isso
+    dava `zero_apurado` a qualquer membro e tornava `nao_apurado` inalcançável
+    (0/114 no corpus). Só valor lido é medição ([[ADR-394]] §Emenda (c))."""
+    c = classificar_cobertura(_obs())
+    assert c.status is CoberturaStatus.nao_apurado
 
 
 def test_sem_fonte_nenhuma_e_nao_apurado() -> None:
@@ -72,7 +74,7 @@ def test_sem_fonte_nenhuma_e_nao_apurado() -> None:
     c = classificar_cobertura(_obs())
     assert c.status is CoberturaStatus.nao_apurado
     assert c.fonte is None and not c.apurado
-    assert c.motivo == "sem posicao atribuida e sem bens no baseline"
+    assert c.motivo == "nenhuma fonte devolveu valor para o membro"
 
 
 # =============================================================================
@@ -87,7 +89,8 @@ def test_membro_nao_apurado_suprime_a_prescricao() -> None:
 
 def test_zero_apurado_nao_suprime() -> None:
     """O modo de falha oposto: se tudo virar ressalva, o sinal some."""
-    coberturas = (classificar_cobertura(_obs(tem_bens_irpf=True)),)
+    coberturas = (classificar_cobertura(_obs(posicoes_atribuidas=True)),)
+    assert coberturas[0].status is CoberturaStatus.zero_apurado
     assert motivo_supressao_por_cobertura(coberturas) is None
 
 
@@ -149,11 +152,27 @@ def config() -> PatrimonioConfig:
     )
 
 
-def _inputs(totais: dict, *, conjuge_bens: dict | None = None) -> PatrimonioInputs:
-    membros = {"david": {"total_bens": 0, "bens": {"investimentos": [{"valor": 1.0}]}}}
-    membros["mariana"] = {"total_bens": 0, "bens": conjuge_bens} if conjuge_bens else {}
+# O fixture anterior era `baseline={"members": <dict>}` — 1 dos 4 shapes que
+# `resolve_members` aceita, e o ÚNICO que desvia de `build_members_from_consolidated`,
+# que é por onde a produção sempre passa. Era a razão de 22 testes verdes sobre um
+# mecanismo inerte: o shape do teste não existe em produção.
+def _baseline_consolidado(*, conjuge_inv: list | None = None) -> dict:
+    """Shape que o E1.5c realmente emite — sem chave `members`."""
+    itens = [{"descricao": "CDB", "proprietario": "david", "valores_31_12": {"2025": 1.0}}]
+    for i, inv in enumerate(conjuge_inv or []):
+        itens.append(
+            {
+                "descricao": f"FII{i}",
+                "proprietario": "mariana",
+                "valores_31_12": {"2025": inv},
+            }
+        )
+    return {"investimentos_consolidados": itens, "patrimonio_por_ano": {"2025": {}}}
+
+
+def _inputs(totais: dict, *, conjuge_inv: list | None = None) -> PatrimonioInputs:
     return PatrimonioInputs(
-        baseline={"members": membros},
+        baseline=_baseline_consolidado(conjuge_inv=conjuge_inv),
         investimentos_atuais={
             "dados": [{"membro": k, "valor": v} for k, v in totais.items()],
             "total_por_membro": totais,
@@ -326,3 +345,38 @@ def test_sem_nao_atribuido_a_categoria_nao_aparece(config: PatrimonioConfig) -> 
     assert "Investimentos sem titular identificado" not in {
         c["categoria"] for c in result["composicao"]
     }
+
+
+# =============================================================================
+# Alcançabilidade — o gate que faltava (A40.l69 · ADR-394 §Emenda (c))
+#
+# O ramo `tem_bens_irpf` media o CONTÊINER: `build_members_from_consolidated`
+# materializa `bens` com 4 chaves sempre, logo o predicado era constante `True` e
+# `nao_apurado` ficou inalcançável — 0/114 instâncias-membro do corpus, com a
+# suíte inteira verde. Enum fechado de estado precisa de cobertura de estados
+# MEDIDA: estado que nunca ocorre é código morto ou predicado quebrado, e o
+# teste obriga a dizer qual dos dois.
+# =============================================================================
+
+
+def test_os_tres_estados_sao_alcancaveis_pela_fachada(config: PatrimonioConfig) -> None:
+    """Cada estado do enum ocorre a partir de um baseline que o produtor emite."""
+    alcancados = set()
+    for totais, conjuge_inv in (
+        ({"david": 943_189.25, "mariana": 110_130.67}, None),  # apurado
+        ({"david": 943_189.25, "mariana": 0.0}, None),  # zero_apurado
+        ({"david": 943_189.25}, None),  # nao_apurado
+    ):
+        result = PatrimonioCalculator(config).calculate(_inputs(totais, conjuge_inv=conjuge_inv))
+        alcancados |= {c["status"] for c in result["cobertura_investimentos"]}
+    assert alcancados == {s.value for s in CoberturaStatus}
+
+
+def test_frescor_carrega_o_ano_base_do_membro(config: PatrimonioConfig) -> None:
+    """`fonte` diz de ONDE; `frescor` diz de QUANDO — a lane pediu os dois."""
+    result = PatrimonioCalculator(config).calculate(
+        _inputs({"david": 943_189.25, "mariana": 110_130.67})
+    )
+    por_membro = {c["membro"]: c for c in result["cobertura_investimentos"]}
+    assert por_membro["titular"]["frescor"] == "2025"
+    assert por_membro["conjuge"]["frescor"] == "2025"

@@ -1,11 +1,16 @@
 """Eval golden do evidencia_path com LLM real (A26.l1) — fora do PR gate."""
 
 # Roda só com MATHOMS_RUN_LLM_EVAL=1 + ANTHROPIC_API_KEY (custo/flakiness). Mede
-# no holdout lacrado (10 fixtures × 5 runs, temperature de produção 0.1) a taxa
+# no holdout lacrado (10 fixtures × 5 runs, temperature de produção) a taxa
 # PER-PARECER de violação de citação — gate = limite superior do IC95 (Wilson)
 # < 5%, que é como produção falha (1 violação → parecer inteiro vira needs_review
-# no strict da A26.l2). Braço diagnóstico temp=0 separa bug de design de variância
-# de amostragem. Guarda anti-sub-citação: densidade de citação não pode colapsar.
+# no strict da A26.l2). O braço diagnóstico temp=0 foi REMOVIDO no §r7 PE-2: a
+# amostragem de produção passou de 0.1 p/ PARECER_TEMPERATURE=0.0, então o braço
+# virou subconjunto estrito do braço de gate (mesmo regime, menos runs) e custava
+# 10 gerações reais para não contrastar com nada. A pergunta que ele respondia
+# ('design ou variância?') agora é respondida pelo próprio gate: com a amostragem
+# no modo da distribuição, violação remanescente é design.
+# Guarda anti-sub-citação: densidade de citação não pode colapsar.
 # O eval ANTECIPA o gate; NÃO substitui o gate de produção da A26.l2 (≥20 gerações
 # reais). Relatório por fixture em _scratch/parecer_evidencia_eval_report.json.
 
@@ -30,15 +35,13 @@ _REPO = Path(__file__).resolve().parents[1]
 _REPORT_PATH = _REPO / "_scratch" / "parecer_evidencia_eval_report.json"
 
 _GATE_RUNS = 5
-_GATE_TEMP = 0.1
-_DIAG_TEMP = 0.0
 _PER_PARECER_GATE = 0.05
 # Colapso-guarda (ADR-296): pós-l9 a prosa não tem R$, então a densidade é a mediana
 # de ÂNCORAS/parecer (não mais money_tokens). Piso conservador — re-ancorar na 1ª
 # medição real (o anti-sub-citação importa, não o número absoluto).
 _DENSITY_FLOOR = 5
 # Cap escalado ao holdout estratificado (ADR-300 §Item 3): n=24 fixtures × _GATE_RUNS +
-# diag (~144 gerações) vs. 60 do holdout monocultura — ~2,4×. ~US$29/run observado;
+# (~144 gerações) vs. 60 do holdout monocultura — ~2,4×. ~US$29/run observado;
 # cap com folga p/ jitter de tokens. Budget é não-binário (UX); este cap só barra fuga.
 _COST_CAP_USD = 50.0
 
@@ -88,11 +91,13 @@ def _verdict(fixture, result) -> dict:
     }
 
 
-def _run_once(fixture, temperature: float, run_idx: int) -> dict:
+# Amostragem é a de produção (PARECER_TEMPERATURE/PARECER_SEED, fixadas no
+# call-site do orquestrador) — o eval não a parametriza de propósito: config que
+# sobrescreve amostragem por-workspace é a superfície de drift que
+# `dev/check_llm_sampling.py` existe para fechar.
+def _run_once(fixture, run_idx: int) -> dict:
     """Gera 1 parecer real e extrai o veredito de citação (PII-free)."""
-    config = ParecerOrchestratorConfig(
-        workspace_id=f"eval-{fixture.fixture_id}-{run_idx}", temperature=temperature
-    )
+    config = ParecerOrchestratorConfig(workspace_id=f"eval-{fixture.fixture_id}-{run_idx}")
     result = generate_parecer(e5_data=fixture.e5, config=config, cache=_NoCache())
     return _verdict(fixture, result)
 
@@ -108,13 +113,12 @@ def _wilson_upper(k: int, n: int, z: float = 1.96) -> float:
     return (centre + margin) / denom
 
 
-def _build_report(gate: list[dict], diag: list[dict]) -> dict:
+def _build_report(gate: list[dict]) -> dict:
     """Agrega vereditos em métricas de gate + cobertura (missing_path à parte, ADR-292)."""
     ok_gate = [r for r in gate if r["ok"]]
     violations = sum(r["violation"] for r in ok_gate)
     return {
         "gate_runs": gate,
-        "diag_runs": diag,
         "n_ok_gate": len(ok_gate),
         "per_parecer_violations": violations,
         "per_parecer_ub_ic95": _wilson_upper(violations, len(ok_gate)),
@@ -124,15 +128,13 @@ def _build_report(gate: list[dict], diag: list[dict]) -> dict:
         # ADR-296: R$ na prosa é budget (chip autoritativo), mediana 0 = maioria limpa.
         "number_in_prose_total": sum(r["number_in_prose"] for r in ok_gate),
         "number_in_prose_median": statistics.median([r["number_in_prose"] for r in ok_gate] or [0]),
-        "diag_violations": sum(r["violation"] for r in diag if r["ok"]),
-        "total_cost_usd": sum(r["cost_usd"] for r in gate + diag),
+        "total_cost_usd": sum(r["cost_usd"] for r in gate),
     }
 
 
 def _collect() -> dict:
-    gate = [_run_once(f, _GATE_TEMP, i) for f in HOLDOUT for i in range(_GATE_RUNS)]
-    diag = [_run_once(f, _DIAG_TEMP, 0) for f in HOLDOUT]
-    report = _build_report(gate, diag)
+    gate = [_run_once(f, i) for f in HOLDOUT for i in range(_GATE_RUNS)]
+    report = _build_report(gate)
     _REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     _REPORT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return report
@@ -160,13 +162,6 @@ def test_holdout_zero_pairing_violations(eval_report):
         f"{eval_report['per_parecer_violations']} pareceres com citação incorreta "
         f"(UB IC95 {eval_report['per_parecer_ub_ic95']:.2%})"
     )
-
-
-def test_diagnostic_temp0_zero_violations(eval_report):
-    """temp=0: violação aqui = bug de design (catálogo/prompt), não variância."""
-    assert (
-        eval_report["diag_violations"] == 0
-    ), f"{eval_report['diag_violations']} violações em temp=0 — design ainda tem bug"
 
 
 def test_citation_density_floor(eval_report):

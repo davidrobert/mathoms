@@ -124,12 +124,16 @@ repos:
         pass_filenames: false
         always_run: true
 
-      - id: check-extraction-sampling
-        name: Call-site de extração declara temperature + seed (A40.l66)
-        entry: python3 dev/check_extraction_sampling.py
+      - id: check-llm-sampling
+        # `files:` largo de propósito: o hook é pass_filenames:false e só RODA
+        # quando um path casado muda. Com o padrão antigo (extract_*.py), um
+        # call-site novo em backend/app/services/ não disparava o hook e o gate
+        # ficava verde por não ter rodado.
+        name: Call-site de LLM declara temperature + seed (A40.l66 · §r7 PE-2)
+        entry: python3 dev/check_llm_sampling.py
         language: system
         pass_filenames: false
-        files: ^(pipeline/stages/extract_.*\.py|dev/check_extraction_sampling\.py)$
+        files: ^(pipeline/.*\.py|backend/app/.*\.py|dev/check_llm_sampling\.py)$
 
       - id: pipeline-boundaries
         name: "pipeline/ não importa backend/frameworks (ADR-089 · ADR-325)"
@@ -173,6 +177,18 @@ repos:
         # como tabela nova, não como edição das existentes.
         name: "FK para pipeline_runs/artifacts é classificada (ADR-371)"
         entry: python3 dev/check_run_artifact_fk_coverage.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: diagnostic-session-isolation
+        # CTO-6 (§r7): o run 140ac8d7 morreu em 12/18 porque a row de
+        # `review_reasons` dividia transação com `run.status = needs_review`.
+        # Full-scan AST com fecho transitivo de chamada — extrair a escrita
+        # para um helper não cega o gate, que é como #1535 fechou a instância
+        # e deixou a classe aberta.
+        name: "Diagnóstico não divide sessão com transição de run (ADR-404)"
+        entry: python3 dev/check_diagnostic_session_isolation.py
         language: system
         pass_filenames: false
         always_run: true
@@ -636,6 +652,17 @@ repos:
         entry: python3 dev/check_adr_amendment_signal.py
         language: system
         files: ^docs/adr/.*\.md$
+
+      # `always_run`: duplicata é propriedade do CONJUNTO de notas. Gate que só
+      # roda sobre os arquivos do diff não vê o par quando os dois lados chegam
+      # por PRs distintos — que é exatamente como a colisão de 2026-08-19
+      # aconteceu (§r7), duas vezes no mesmo dia.
+      - id: adr-id-unique
+        name: "docs/adr/: dois arquivos nunca declaram o mesmo id"
+        entry: python3 dev/check_adr_id_unique.py
+        language: system
+        pass_filenames: false
+        always_run: true
 
       # adr-toc removido em F2.F (DOC_REORG / ADR-182): ToC inline em
       # DECISIONS.md foi substituído por _MOC/_generated/ADR_INDEX.md

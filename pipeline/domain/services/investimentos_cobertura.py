@@ -42,7 +42,7 @@ class MembroObservado:
     valor_brl: Decimal
     posicoes_atribuidas: bool
     fallback_irpf: bool
-    tem_bens_irpf: bool
+    ano_base: str | None = None
 
 
 @dataclass(frozen=True)
@@ -52,6 +52,10 @@ class CoberturaMembro:
     membro: str
     status: CoberturaStatus
     fonte: str | None
+    # `frescor` responde "de QUANDO", que `fonte` não responde: a §Escopo da
+    # [[A40.l69]] pediu os dois e a implementação inicial só shipou `fonte`.
+    # Defasagem não é estado — `status` diz se mediu, `frescor` diz quando.
+    frescor: str | None = None
     motivo: str | None = None
 
     @property
@@ -63,6 +67,7 @@ class CoberturaMembro:
             "membro": self.membro,
             "status": self.status.value,
             "fonte": self.fonte,
+            "frescor": self.frescor,
             "motivo": self.motivo,
         }
 
@@ -85,23 +90,41 @@ class CoberturaMembro:
 
 # A ordem dos ramos é a hierarquia de autoridade: fonte observada primeiro
 # (posições atuais > IRPF), e "não medido" só quando nenhuma delas respondeu.
+#
+# Não existe ramo "tem bens no baseline ⇒ zero_apurado". Ele existiu e media o
+# CONTÊINER: `build_members_from_consolidated` materializa `bens` com 4 chaves
+# sempre, então o predicado era constante `True` e `nao_apurado` era inalcançável
+# — 0/114 instâncias-membro do corpus. Presença de linha não é evidência de
+# medição; só valor é. Com o valor lido, o ramo 2 já capturou; sem ele, é
+# `nao_apurado` ([[ADR-394]] §Emenda (c)).
 def classificar_cobertura(obs: MembroObservado) -> CoberturaMembro:
     """Traduz o observado nos 3 estados ([[ADR-394]] §Emenda (b) D7)."""
     if obs.posicoes_atribuidas:
         status = CoberturaStatus.apurado if obs.valor_brl != 0 else CoberturaStatus.zero_apurado
-        return CoberturaMembro(membro=obs.membro, status=status, fonte=FONTE_POSICOES)
-    if obs.fallback_irpf:
-        return CoberturaMembro(membro=obs.membro, status=CoberturaStatus.apurado, fonte=FONTE_IRPF)
-    if obs.tem_bens_irpf:
         return CoberturaMembro(
-            membro=obs.membro, status=CoberturaStatus.zero_apurado, fonte=FONTE_IRPF
+            membro=obs.membro, status=status, fonte=FONTE_POSICOES, frescor=obs.ano_base
+        )
+    if obs.fallback_irpf:
+        return CoberturaMembro(
+            membro=obs.membro,
+            status=CoberturaStatus.apurado,
+            fonte=FONTE_IRPF,
+            frescor=obs.ano_base,
         )
     return CoberturaMembro(
         membro=obs.membro,
         status=CoberturaStatus.nao_apurado,
         fonte=None,
-        motivo="sem posicao atribuida e sem bens no baseline",
+        motivo="nenhuma fonte devolveu valor para o membro",
     )
+
+
+# `None` e não `0,0`: um zero publicado é uma afirmação sobre o patrimônio da
+# pessoa, e o sistema não a mediu ([[ADR-394]] §Emenda (b) D7).
+def valor_publicavel(valor: float, cobertura: tuple, papel: str) -> float | None:
+    """Valor do balde, ou ``None`` quando o membro não foi apurado."""
+    apurado = next((c.apurado for c in cobertura if c.membro == papel), True)
+    return round(valor, 2) if apurado else None
 
 
 def motivo_supressao_por_cobertura(coberturas: tuple[CoberturaMembro, ...]) -> str | None:
@@ -184,7 +207,7 @@ def motivo_supressao_e5(patrimonio: dict) -> str | None:
 def cobertura_de_membros(
     *, tem_conjuge: bool, titular: tuple, conjuge: tuple
 ) -> tuple[CoberturaMembro, ...]:
-    """Veredito por papel a partir do observado `(valor, atribuido, fallback, tem_bens)`."""
+    """Veredito por papel a partir do observado `(valor, atribuido, fallback, ano_base)`."""
     papeis = [("titular", titular)]
     if tem_conjuge:
         papeis.append(("conjuge", conjuge))
@@ -195,10 +218,10 @@ def cobertura_de_membros(
                 valor_brl=Decimal(str(valor)),
                 posicoes_atribuidas=atribuido,
                 fallback_irpf=fallback,
-                tem_bens_irpf=tem_bens,
+                ano_base=ano_base,
             )
         )
-        for papel, (valor, atribuido, fallback, tem_bens) in papeis
+        for papel, (valor, atribuido, fallback, ano_base) in papeis
     )
 
 
@@ -233,4 +256,5 @@ __all__ = [
     "motivo_supressao_e5",
     "motivo_supressao_por_cobertura",
     "review_reasons_da_cobertura",
+    "valor_publicavel",
 ]

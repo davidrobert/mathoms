@@ -5,7 +5,7 @@ title: "Fato determinístico é autoridade; saída de LLM é hint em vocabulári
 status: Decidido
 phase: A40.l66
 date: "2026-08-18"
-amended_at: ["2026-08-18"]
+amended_at: ["2026-08-18", "2026-08-19"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-090]]"
@@ -42,6 +42,12 @@ Cobre 1a/1b/1c no corpo original; 1d entra pela emenda abaixo.
 > publicado. Ver §Emenda 2026-08-18. A [[A40.l69]] anexa a segunda emenda do
 > mesmo dia: a mesma regra vista pelo outro lado — valor **ausente** em vez de
 > impossível. Ver §Emenda 2026-08-18 (b).
+>
+> **Emendada em 2026-08-19** — a §Emenda (b) shipou com um predicado que media
+> o **contêiner**: `nao_apurado` era inalcançável em produção, e a taxa de 50%
+> declarada abaixo era a do mecanismo pretendido, não a do código entregue.
+> A raiz não era o predicado: era o **eixo de ano**, no grão do domicílio.
+> Ver §Emenda 2026-08-19 (c).
 
 ## Contexto
 
@@ -354,3 +360,115 @@ de chaves) e `parecer_context_sanitizer.py` (1: `not in ("titular", "conjuge")`,
 membership em tupla). A distinção é a que o gate precisa acertar: `chave in
 string` é o defeito; `chave in coleção` é uso legítimo. Gate que não separe os
 dois fecha sintaxe, não a classe.
+
+## Emenda 2026-08-19 (c) — o predicado media o contêiner; a raiz era o eixo de ano
+
+Anexada pela [[A40.l69]] depois de um ataque medido aos PRs que entregaram a
+§Emenda (b). A regra de D7 não muda. O que muda é **como se decide que um membro
+foi medido**, e a descoberta de que o defeito que D7 existe para nomear tinha
+uma causa um andar abaixo.
+
+### D9 — presença de linha não é evidência de medição; só valor é
+
+`classificar_cobertura` tinha um 3º ramo: "tem bens no baseline ⇒ `zero_apurado`".
+O predicado era `bool(conjuge_bens)`, e `build_members_from_consolidated`
+materializa `bens` com 4 chaves **sempre** — dict literal de 4 chaves é truthy
+mesmo com as 4 listas vazias. O predicado era constante `True` para qualquer
+membro que o resolver produzisse.
+
+Consequência medida: `nao_apurado` **inalcançável** no caminho de produção — 0 em
+114 instâncias-membro do corpus. O `null` do balde, o `review_reason`
+`domain_membro_nao_apurado` e a supressão da prescrição, os três efeitos do
+estado, nunca armaram. A suíte ficou verde o tempo todo.
+
+**O ramo sai.** Se o valor foi lido, o ramo do fallback IRPF já capturou; se não
+foi, é `nao_apurado`. `zero_apurado` segue alcançável pelo ramo de posições
+atuais (posição atribuída somando zero), que é onde ele sempre teve extensão.
+
+Corolário para gate: **enum fechado de estado precisa de cobertura de estados
+medida.** Estado que nunca ocorre é código morto ou predicado quebrado, e o teste
+obriga a dizer qual dos dois. Gate:
+`test_os_tres_estados_sao_alcancaveis_pela_fachada`.
+
+### D10 — o ano-base é do membro, não do domicílio
+
+`_max_value_year` reduz o baseline inteiro a **um** ano e `resolve_value_year` o
+propaga a todos os membros. Com os cônjuges declarando em anos disjuntos isso é
+aritmeticamente impossível de acertar: quem não tem item no ano escolhido cai no
+fallback de `_resolve_item_valor` e vira `0,00`.
+
+É a mesma conflação `null`↔`0,00` que D7 proíbe um andar acima, cometida um andar
+abaixo — e a [[ADR-346]] já a decidiu ("ausência não vira zero"); ela só não fora
+aplicada aqui.
+
+Medido no corpus: o balde do cônjuge saía `0,00` com os 9 lançamentos dela
+valorando **R$ 110.130,67** em 2023. A simetria prova que o defeito é do eixo e
+não do cônjuge — forçando o ano do domicílio para 2023, quem zera é o **titular**.
+
+Consequências:
+
+- **Ano por membro**, com `ano_base` carimbado no dict de cada um. O agregado do
+  domicílio pode misturar datas, e quem consome precisa poder ressalvar —
+  [[ADR-383]] §6 já decidiu que consolidado de datas mistas **nunca leva data
+  única**. Esta emenda aplica aquela regra no grão de membro.
+- **`frescor` na linha de cobertura**: `fonte` responde de ONDE, `frescor`
+  responde de QUANDO. A §Escopo da [[A40.l69]] pediu os dois e a implementação
+  inicial shipou só `fonte`. Defasagem **não** vira estado do enum.
+- **O top-up legado do titular** (`total_bens_summary` − sintético → titular) passa
+  a valer só quando os dois membros estão no mesmo ano. `total_bens_summary` é de
+  um ano só; com anos distintos a divergência dispara por construção e o resíduo
+  fabricaria patrimônio — mesma família do `unattributed → titular` que a §D8
+  cortou. Medido: sem a guarda o titular perdia R$ 110k.
+
+### Correção da §Taxa de disparo medida (b)
+
+A §Emenda (b) declara **`nao_apurado` em r5+r6: 2/4 (50%)** e 2/12 em 6 runs. Esse
+número é a taxa do mecanismo **pretendido**, não a do código que shipou sob ele.
+Re-medido em 57 runs com par baseline+investimentos (114 instâncias-membro):
+
+| predicado do 3º ramo | `nao_apurado` | taxa |
+| --- | --- | --- |
+| `bool(bens)` — o que shipou na (b) | 0/114 | **0,0 %** |
+| `any(bens.values())` | 0/114 | 0,0 % |
+| `bens["investimentos"]` não-vazio | 0/114 | 0,0 % |
+| exigir valor lido (D9) — **antes** do D10 | 5/114 | 4,4 % |
+| exigir valor lido (D9) — **depois** do D10 | **0/114** | **0,0 %** |
+
+Duas leituras que só a medição dá:
+
+1. **O conserto óbvio não conserta.** Predicados de *presença* (`any`,
+   lista não-vazia) medem exatamente o mesmo que o predicado quebrado. A
+   distinção que importa é presença × valor.
+2. **A ordem é restrição dura.** D9 sozinho suprimiria a prescrição em **5 de 5**
+   dos runs recentes, publicando `null` para alguém cujo valor existe. Com D10
+   antes, o valor volta pelo fallback IRPF e a taxa cai a zero — a guarda volta a
+   ser **rede**, não detector primário, que é o que esta ADR diz que ela deve ser.
+
+A tabela de sintomas da (b) (cônjuge `0,00`, `fonte=posicoes_atuais`,
+`pl_ressalva=false` em 6/6) permanece verdadeira; o que era falso é a inferência
+de que o classificador entregue rotularia aqueles casos `nao_apurado`.
+
+### Deferimento datado — 2026-08-19, dono: [[A40.l69]]
+
+Dois itens que esta emenda **não** decide, com condição de retomada:
+
+1. **Trava anti-dupla-contagem no cônjuge dependente.** Bens de dependente vão na
+   ficha do declarante (regra RFB), então somar o ano antigo de um membro que
+   virou dependente do outro infla patrimônio fabricado. Medido neste corpus: o
+   único dependente é o filho (`filho_filha`), o cônjuge é declarante
+   independente em 100 % das declarações — a soma cross-ano é legítima **aqui**.
+   A trava geral exige `dependentes`/`declarante` no artefato do E1.5c, que hoje
+   **não os carrega** (medido: as chaves não existem no consolidado). É mudança
+   de contrato do produtor. **Retomar** quando o E1.5c publicar o declarante.
+2. **Válvula declarada para domicílio genuinamente sem investimentos.** Sob D9,
+   um membro sem investimento nenhum só alcança `zero_apurado` se existir extrato
+   de corretora no nome dele somando zero — artefato que quase nunca existe. Sem
+   uma afirmação declarada ("este membro não tem investimentos"), esse domicílio
+   fica `nao_apurado` e com prescrição suprimida sem caminho de saída dentro do
+   produto. **Retomar** ao primeiro workspace real nessa configuração; a válvula
+   é ADR nova quando for tomada (não reserve ID — precedente [[ADR-345]]).
+
+O teto de defasagem para suprimir prescrição (quantos anos de distância entre os
+membros tornam a composição ficção) também não é decidido aqui: com D10 a
+defasagem passa a ser **declarada** em `frescor`, e o consumidor da regra é o
+render, fora desta lane.

@@ -300,6 +300,9 @@ class TestFilterCamposFaltantes3Vias:
             "field_requests_spurious": 1,
             "field_requests_wrong_path": 1,
             "needs_review_triggered": False,
+            # §r7 FP-6: contador do rebaixamento por antagonismo. Zero aqui porque
+            # este teste não exercita sugestão — o default tem de ser explícito.
+            "sugestoes_antagonicas": 0,
         }
 
 

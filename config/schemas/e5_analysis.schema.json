@@ -323,6 +323,10 @@
               "membro": { "type": "string", "enum": ["titular", "conjuge"] },
               "status": { "type": "string", "enum": ["apurado", "zero_apurado", "nao_apurado"] },
               "fonte": { "type": ["string", "null"], "enum": ["posicoes_atuais", "irpf", null] },
+              "frescor": {
+                "type": ["string", "null"],
+                "description": "A40.l69 (ADR-394 §Emenda (c)): ano-base da fonte deste membro. `fonte` responde de ONDE, `frescor` responde de QUANDO — o ano-base é por membro, e cônjuges declaram em anos distintos. Defasagem não é estado do enum: `status` diz se mediu, `frescor` diz quando (ADR-383 §6)."
+              },
               "motivo": { "type": ["string", "null"] }
             }
           }
