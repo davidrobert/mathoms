@@ -201,3 +201,79 @@ def test_consolidate_from_itens_multi_year_does_not_double():
     total_imoveis = sum(i["valor_31_12_ano_base"] for i in titular["bens"]["imoveis"])
     # Só o valor 2024 de cada série conta — não 480k + 500k.
     assert total_imoveis == 500_000.0
+
+
+# =============================================================================
+# Eixo de ano POR MEMBRO (A40.l69 · ADR-394)
+#
+# `_max_value_year` escolhe um ano para o domicílio inteiro. Com os cônjuges
+# declarando em anos disjuntos, quem não tem item no ano escolhido cai no
+# fallback de `_resolve_item_valor` e vira 0,00 — a conflação `null`↔`0,00`
+# que a ADR-394 proíbe um andar acima. Medido no corpus: 5/5 runs recentes.
+# =============================================================================
+
+
+def _baseline_anos_disjuntos() -> dict:
+    """Titular declara em 2025, cônjuge em 2023 — nenhum ano em comum."""
+    return {
+        "investimentos_consolidados": [
+            {"descricao": "CDB", "proprietario": "david", "valores_31_12": {"2025": 900_000.0}},
+            {"descricao": "FII", "proprietario": "mariana", "valores_31_12": {"2023": 110_000.0}},
+        ],
+        # v1: o resumo é de UM ano — é o que torna o top-up perigoso cross-ano.
+        "patrimonio_por_ano": {"2025": {"total_bens": 900_000.0}},
+    }
+
+
+def test_anos_disjuntos_valoram_os_dois_membros():
+    """O defeito: o ano do domicílio zerava quem não declarou nele."""
+    titular, conjuge = build_members_from_consolidated(_baseline_anos_disjuntos(), _DAVID)
+    assert titular["bens"]["investimentos"][0]["valor_31_12_ano_base"] == 900_000.0
+    assert conjuge["bens"]["investimentos"][0]["valor_31_12_ano_base"] == 110_000.0
+
+
+def test_o_defeito_e_do_eixo_e_nao_do_conjuge():
+    """Simetria: com o ano do domicílio forçado a 2023, quem zerava era o TITULAR."""
+    baseline = _baseline_anos_disjuntos()
+    assert _max_value_year(baseline) == "2025"
+    # Sob o eixo único, cada membro só é valorado no ano que o domicílio escolheu.
+    titular_2023, conjuge_2023 = _split_no_ano(baseline, "2023")
+    titular_2025, conjuge_2025 = _split_no_ano(baseline, "2025")
+    assert (titular_2023, conjuge_2023) == (0.0, 110_000.0)
+    assert (titular_2025, conjuge_2025) == (900_000.0, 0.0)
+
+
+def _split_no_ano(baseline: dict, ano: str) -> tuple[float, float]:
+    """Total de investimentos de cada membro resolvido num ano único."""
+    from pipeline.domain.services.patrimonio_resolvers import _split_investimentos
+
+    titular, conjuge = _split_investimentos(baseline, _DAVID, ano)
+    soma = lambda itens: sum(i["valor_31_12_ano_base"] for i in itens)  # noqa: E731
+    return soma(titular), soma(conjuge)
+
+
+def test_ano_base_por_membro_carimbado_no_dict():
+    """Soma cross-ano não pode ser silenciosa (ADR-383 §6)."""
+    titular, conjuge = build_members_from_consolidated(_baseline_anos_disjuntos(), _DAVID)
+    assert (titular["ano_base"], conjuge["ano_base"]) == ("2025", "2023")
+
+
+def test_top_up_do_titular_nao_dispara_com_anos_disjuntos():
+    """`total_bens_summary` é de um ano só; com anos distintos o resíduo fabricaria patrimônio."""
+    titular, _ = build_members_from_consolidated(_baseline_anos_disjuntos(), _DAVID)
+    # Sem a guarda, o titular receberia `900k - (900k + 110k) = -110k` do top-up.
+    assert titular["total_bens"] == 900_000.0
+
+
+def test_top_up_do_titular_segue_vivo_com_ano_unico():
+    """A guarda é sobre anos disjuntos — o comportamento legado não muda no caso comum."""
+    baseline = {
+        "investimentos_consolidados": [
+            {"descricao": "CDB", "proprietario": "david", "valores_31_12": {"2025": 900_000.0}},
+            {"descricao": "FII", "proprietario": "mariana", "valores_31_12": {"2025": 100_000.0}},
+        ],
+        "patrimonio_por_ano": {"2025": {"total_bens": 1_050_000.0}},
+    }
+    titular, conjuge = build_members_from_consolidated(baseline, _DAVID)
+    assert titular["ano_base"] == conjuge["ano_base"] == "2025"
+    assert titular["total_bens"] == 950_000.0

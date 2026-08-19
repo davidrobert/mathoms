@@ -119,7 +119,7 @@ por burn-down de tabela.
 | RV6-16 | 7a como **lane do [[PLAN-report-trust]] dentro do MVP** (guard de runtime em módulo próprio; coordenação declarada com [[A40.l5]], que é gate estático tsc); supressor do ponto forte alimentado **exclusivamente** pelo warning tipado da Onda 1 (fio único, no produtor `pontos_fortes_analyzer`) | anti-decisão: **não criar 5º banner**; violação **não incrementa** `signals.count` |
 | RV6-17 | **[[A40.l6]]** (dona do gate de PII do view-model, critério 4 da [[ADR-337]]) — 7f **estende** o escopo do gate para `patrimonio.composicao[].categoria` + `endividamento.dividas[].descricao`; a chave composta de `por_fonte_detalhado` segue com [[PLAN-pipeline-review-r2]] (RV2-07) | — |
 | RV6-19 | este plano · **cauda da Onda 1** (temp/seed é pré-requisito de medir o prompt novo; mesma janela de rebaseline) | "destrava cache" corrigido: temp 0 é pré-condição; `use_cache` é opt-in por call-site (6c) |
-| RV6-20 | **re-roteado ao produtor**: `hasRealProtectionInputs` já considera apólices (shipado #1476, [[A40.l35]]) — o 7c do draft era no-op; o defeito real é o `protection_bundle_populator` ignorar a fonte documental `protecao_patrimonial` ([[ADR-240]]). Item produtor-side na Onda 3 | lição: re-medir contra `main` antes de abrir lane de render |
+| RV6-20 | **re-roteado ao produtor**: `hasRealProtectionInputs` já considera apólices (shipado #1476, [[A40.l35]]) — o 7c do draft era no-op; o defeito real é o `protection_bundle_populator` ignorar a fonte documental `protecao_patrimonial` ([[ADR-240]]). Item produtor-side na Onda 3 · **entregue 2026-08-19** pela [[A40.l73]] ([[ADR-395]]), 5 PRs — o re-roteamento estava certo: o `#1476` era no-op por construção, os 4 sinais do predicado saíam do mesmo bundle | lição: re-medir contra `main` antes de abrir lane de render |
 | RV6-22 | resíduo de export da **[[A40.l22]]** via [[PLAN-report-trust]]: contagem server-side no payload **+ 3º estado visível no export + catch → `não apurado`** (as 3 pernas; 2/3 do tri-state já existem — `run_outcome` e `mayAssertCleanQuality`) | — |
 | RV6-23 | 7e como lane do [[PLAN-report-trust]] dentro do MVP (enabler puro, sem copy): `visibleCompositionRows()` único decidindo **explicitamente o negativo** (3 casos: negativo/zero-confirmado/ausente) | — |
 | RV6-24 | §Baseline e verificação (abaixo) | r6 **não** é baseline |
@@ -438,12 +438,21 @@ atribuição de investimento por membro. 3c–3f seguem sem lane.
   ([[ADR-267]]; slug de LLM nunca é chave) + **varredura de matching por
   substring** além do analyzer (ex.: `patrimonio_resolvers` casa
   `conjuge_key in kl`) + gate proibindo match por substring em chave de membro.
-- 3c. Produtor `gap_qualitativo` reconciliado com `irpf_kpis.dependentes`
-  (determinístico); **e** o produtor do `protection_bundle` passa a consumir a
-  fonte documental `protecao_patrimonial` ([[ADR-240]]) — o vazio da S9 é do
-  produtor, não do render (re-roteamento do 7c). Residual PE (regra de
-  precedência entre fontes contraditórias no prompt) é **item próprio da
-  Onda 5**, sequenciado depois deste.
+- 3c. ✅ **Entregue em 2026-08-19** pela [[A40.l73]] ([[ADR-395]] `Proposto`),
+  fora do MVP declarado por autorização do dono. Produtor `gap_qualitativo`
+  reconciliado com `irpf_kpis.dependentes` (determinístico, #1576); **e** o
+  produtor do `protection_bundle` consumindo a fonte documental
+  `protecao_patrimonial` ([[ADR-240]]) — o vazio da S9 era do produtor, não do
+  render (re-roteamento do 7c confirmado). PRs: #1549 (lane + ADR) · #1554
+  (canal `categorias_somente_no_documento`) · #1560 (retenção no populator +
+  `actual` nulo deixa de virar `0,00`) · #1564 (S9 de vazio para **parcial**)
+  · #1576 (metade (i) + `pontos_urgentes` lendo o mesmo estado).
+  A regra decidida: extração é **hint**, o número tem produtor único
+  (cadastro), as fontes nunca somam, e documento vigente em categoria sem
+  cadastro ativo é contraprova de inventário — `missing_data`, nunca gap sobre
+  zero. Residual PE (regra de precedência entre fontes contraditórias no
+  prompt) segue **item próprio da Onda 5**, sequenciado depois deste e **não
+  tocado** aqui.
 - 3d. Cenário do cônjuge: gate [[ADR-167]] e extrator lendo a **mesma fonte
   por papel**; `fator_reduzido` derivado (`1 − renda_conjuge/renda_familiar`,
   com piso); inelegível → **omitir o bloco** e a concentração de renda em

@@ -273,6 +273,26 @@ def test_e5_divergent_baseline_imoveis_not_zeroed(e5_tenant_with_baseline: Path)
 # O golden é o único lugar onde o schema REAL de produção encontra o payload
 # REAL: `guarda_de_sinal` declarado à mão não prova que ele valida sob o
 # registry que resolve $ref cross-file (A40.l67 · [[ADR-394]] §Emenda).
+# O fixture declara 500k de `total_bens` e NENHUM investimento itemizado — nenhuma
+# fonte mediu os investimentos do titular. Até a A40.l69 isso saía `zero_apurado` +
+# 0,00, afirmando que quem tem 500k tem zero investimento; o predicado media o
+# contêiner `bens`, sempre materializado. A razão é correta para este corpus.
+def _assert_cobertura_do_corpus_sem_investimentos(payload: dict, result: dict) -> None:
+    """`nao_apurado` + razão é o comportamento certo quando ninguém mediu."""
+    assert [r["code"] for r in result["validation"]["review_reasons"]] == [
+        "domain.membro_nao_apurado"
+    ]
+    assert payload["patrimonio"]["cobertura_investimentos"] == [
+        {
+            "membro": "titular",
+            "status": "nao_apurado",
+            "fonte": None,
+            "frescor": None,
+            "motivo": "nenhuma fonte devolveu valor para o membro",
+        }
+    ]
+
+
 def test_e5_publica_veredito_da_guarda_de_sinal(e5_tenant_with_baseline: Path):
     """Corpus limpo: veredito inerte, cobertura completa e run sem needs_review."""
     from scripts.analyze_finances import main_with_store as e5_mws
@@ -284,10 +304,9 @@ def test_e5_publica_veredito_da_guarda_de_sinal(e5_tenant_with_baseline: Path):
     payload = ctx.artifact_store.read("E5", "analise_financeira")
 
     guarda = payload["patrimonio"]["guarda_de_sinal"]
-    assert guarda["modo"] == "enforce"
-    assert guarda["cobertura_completa"] is True
+    assert guarda["modo"] == "enforce" and guarda["cobertura_completa"] is True
     assert guarda["baldes_negativos"] == [] and guarda["reclassificados"] == []
-    assert result["validation"] == {"valid": True, "errors": [], "review_reasons": []}
+    _assert_cobertura_do_corpus_sem_investimentos(payload, result)
 
     pytest.importorskip("jsonschema")
     from scripts.pipeline_common import validate_dict
