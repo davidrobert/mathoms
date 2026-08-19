@@ -1666,6 +1666,7 @@
     "cobertura_investimentos": [
       {
         "fonte": "irpf",
+        "frescor": "2024",
         "membro": "titular",
         "motivo": null,
         "status": "apurado"
