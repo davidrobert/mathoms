@@ -247,3 +247,34 @@ def test_sem_cadastro_o_veredito_de_pct_renda_e_emitido():
     escopo = compute_protecao(_inp(apolices=[_apolice_vida_extraida()]))["escopo_cobertura"]
     assert escopo["veredito_pct_renda_suprimido"] is False
     assert escopo["categorias_somente_no_cadastro"] == []
+
+
+# ───────── Categoria sustentada só por documento (A40.l73 · ADR-395) ───────
+
+
+def test_documento_sozinho_marca_categoria_sem_inventario_no_cadastro():
+    """Contraprova de que o cadastro não inventariou a categoria (ADR-395 D2)."""
+    cob = consolidar_cobertura([_apolice_com_cobertura_pessoa("vida")], [], REF)
+    assert cob.categorias_somente_no_documento() == frozenset({"vida"})
+
+
+def test_categoria_nos_dois_lados_nao_marca_inventario_ausente():
+    """Com cadastro na categoria, computar o gap é o lado conservador."""
+    cob = consolidar_cobertura([_apolice_com_cobertura_pessoa("vida")], [_cadastro("vida")], REF)
+    assert cob.categorias_somente_no_documento() == frozenset()
+
+
+def test_documento_de_acidentes_nao_marca_vida_sem_inventario():
+    """`acidentes` ≠ `vida` (ADR-240 §D11) — não fabrica contraprova."""
+    cob = consolidar_cobertura([_apolice_com_cobertura_pessoa("acidentes")], [], REF)
+    assert cob.categorias_somente_no_documento() == frozenset()
+
+
+def test_payload_declara_categoria_sustentada_so_por_documento():
+    escopo = compute_protecao(_inp(apolices=[_apolice_vida_extraida()]))["escopo_cobertura"]
+    assert escopo["categorias_somente_no_documento"] == ["vida"]
+
+
+def test_payload_sem_documento_nao_declara_categoria_sem_inventario():
+    escopo = compute_protecao(_inp(cobertura_cadastrada=(_cadastro("vida"),)))["escopo_cobertura"]
+    assert escopo["categorias_somente_no_documento"] == []

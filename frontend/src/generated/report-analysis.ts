@@ -259,6 +259,7 @@ export type ProtecaoPatrimonialArtifact = {
     "premio_inclui_cadastro_manual": boolean;
     "categorias_somente_no_cadastro": Array<string>;
     "veredito_pct_renda_suprimido": boolean;
+    "categorias_somente_no_documento": Array<string>;
   };
 };
 

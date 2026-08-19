@@ -1833,6 +1833,7 @@
     "corretoras_count": 0,
     "escopo_cobertura": {
       "categorias_somente_no_cadastro": [],
+      "categorias_somente_no_documento": [],
       "premio_inclui_cadastro_manual": false,
       "veredito_pct_renda_suprimido": false
     },
