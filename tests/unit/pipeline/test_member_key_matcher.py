@@ -86,3 +86,29 @@ def test_resolve_members_preserva_o_caso_legitimo() -> None:
 
     assert titular["nome"] == "David Robert Silva"
     assert conjuge["nome"] == "Mariana Souza"
+
+
+# =============================================================================
+# Posse exclusiva — o predicado que decide dívida/imóvel do cônjuge
+# =============================================================================
+
+
+def test_exclusividade_recusa_texto_que_nomeia_os_dois() -> None:
+    """P5: `"David e Mariana"` não é posse exclusiva de ninguém."""
+    from pipeline.domain.services.member_key_matcher import matches_member_exclusively
+
+    assert not matches_member_exclusively("mariana", "david", "David e Mariana Souza")
+
+
+def test_exclusividade_aceita_texto_que_nomeia_so_um() -> None:
+    from pipeline.domain.services.member_key_matcher import matches_member_exclusively
+
+    assert matches_member_exclusively("mariana", "david", "Mariana Souza")
+    assert not matches_member_exclusively("mariana", "david", "David Robert")
+
+
+def test_exclusividade_com_chave_vazia_e_falsa() -> None:
+    """Família de 1 titular: `conjuge_key=''` não possui nada exclusivamente."""
+    from pipeline.domain.services.member_key_matcher import matches_member_exclusively
+
+    assert not matches_member_exclusively("", "david", "Qualquer Coisa")
