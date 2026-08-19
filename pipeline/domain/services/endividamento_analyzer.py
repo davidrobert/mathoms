@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from pipeline.domain.services.money_parsing import valor_monetario_float
+from pipeline.observability.view_model_pii import redact_cartorial
 
 
 def _safe_float(val) -> float:
@@ -39,7 +40,7 @@ class DividaItem:
 
     def to_dict(self) -> dict:
         return {
-            "descricao": self.descricao,
+            "descricao": redact_cartorial(self.descricao),
             "saldo_devedor": round(self.saldo_devedor, 2),
             "parcela_mensal": round(self.parcela_mensal, 2)
             if self.parcela_mensal is not None
