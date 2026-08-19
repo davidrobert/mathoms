@@ -42,7 +42,7 @@ _NON_MONETARY_EXACT = frozenset(
         "transacoes",
         "acumuladores_pct_gerador",
         "percentual_patrimonio",
-        # ADR-398: ano-base do saldo da dívida. O prefixo `ano_` do
+        # ADR-401: ano-base do saldo da dívida. O prefixo `ano_` do
         # classificador não alcança `saldo_ano_referencia`, e monetário-por-
         # default leria 2024 como R$ 20,24 no snapshot do view-model — mesma
         # classe que motivou o rename `taxa_juros` -> `taxa_juros_aa`.

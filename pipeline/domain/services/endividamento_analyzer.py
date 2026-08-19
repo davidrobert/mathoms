@@ -45,7 +45,7 @@ class DividaItem:
     # e guardrail do parecer tratam null como dado faltante (A37.l4 · DE-07).
     descricao: str
     saldo_devedor: float
-    # ADR-398: a origem do saldo é `baseline_irpf` (estoque de 31/12) ou
+    # ADR-401: a origem do saldo é `baseline_irpf` (estoque de 31/12) ou
     # `declarado` (usuário). Nenhum outro campo do item tem fonte hoje.
     fonte_saldo: str = "baseline_irpf"
     membro: str | None = None
