@@ -321,8 +321,8 @@ def test_current_positions_recomputes_bruto(config: PatrimonioConfig):
     assert result["bruto"] == 900_000.0
 
 
-def test_current_positions_unattributed_goes_to_titular(config: PatrimonioConfig):
-    """Posições com membro='' vão para titular."""
+def test_current_positions_unattributed_vai_para_balde_proprio(config: PatrimonioConfig):
+    """A40.l69 (ADR-394 D8): posição sem membro não é do titular — vira balde próprio."""
     baseline = {"members": {"david": {}, "mariana": {}}}
     inv_atuais = {
         "dados": [{"valor": 1}],
@@ -330,8 +330,10 @@ def test_current_positions_unattributed_goes_to_titular(config: PatrimonioConfig
     }
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
-    assert result["investimentos_titular"] == 130.0  # 100 + 30 unattributed
+    assert result["investimentos_titular"] == 100.0  # era 130 (100 + 30 absorvidos)
     assert result["investimentos_conjuge"] == 50.0
+    assert result["investimentos_nao_atribuidos"] == 30.0
+    assert result["bruto"] == 180.0, "o não-atribuído sai do titular sem sair do bruto"
 
 
 def test_pl_ressalva_when_sem_marcacao_not_irpf_covered(config: PatrimonioConfig):

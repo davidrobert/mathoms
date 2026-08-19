@@ -283,8 +283,12 @@ def test_titular_nao_absorve_o_valor_do_conjuge_nao_resolvido(config: Patrimonio
 
     assert resolvido["investimentos_titular"] == 900_000.0
     assert (
-        nao_resolvido["investimentos_titular"] == 1_000_000.0
-    ), "hoje o titular ABSORVE — 3b corta este elo; o assert existe para vê-lo cair"
+        nao_resolvido["investimentos_titular"] == 900_000.0
+    ), "o titular NÃO absorve o slug não resolvido (era 1.000.000 antes do 3b)"
+    assert nao_resolvido["investimentos_nao_atribuidos"] == 100_000.0
+    assert (
+        nao_resolvido["bruto"] == resolvido["bruto"]
+    ), "o dinheiro sai do titular sem sair do patrimônio — só o dono é incerto"
 
 
 def test_reserva_conta_membro_nao_apurado_como_zero() -> None:
@@ -299,3 +303,26 @@ def test_reserva_conta_membro_nao_apurado_como_zero() -> None:
     reserva = build_reserva_liquida(patrimonio, None, None, identity=identity)
 
     assert reserva.componentes(incluir_caixa_me=False, solo=False)["investimentos_conjuge"] == 0
+
+
+def test_nao_atribuido_vira_categoria_e_a_composicao_segue_fechando(
+    config: PatrimonioConfig,
+) -> None:
+    """P3: sem este assert, o balde podia sumir do donut e a soma quebrar calada."""
+    result = PatrimonioCalculator(config).calculate(
+        _inputs({"david": 900_000.0, "slug-orfao": 100_000.0})
+    )
+    categorias = {c["categoria"]: c["valor"] for c in result["composicao"]}
+
+    assert categorias["Investimentos sem titular identificado"] == 100_000.0
+    assert round(sum(c["valor"] for c in result["composicao"]), 2) == result["bruto"]
+    assert round(sum(c["pct"] for c in result["composicao"]), 2) == 100.0
+
+
+def test_sem_nao_atribuido_a_categoria_nao_aparece(config: PatrimonioConfig) -> None:
+    """Categoria permanente com 0,00 em todo run sadio seria ruído no donut."""
+    result = PatrimonioCalculator(config).calculate(_inputs({"david": 900_000.0}))
+
+    assert "Investimentos sem titular identificado" not in {
+        c["categoria"] for c in result["composicao"]
+    }

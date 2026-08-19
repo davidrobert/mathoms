@@ -66,7 +66,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from pipeline.domain.services.investimentos_cobertura import cobertura_de_membros
+from pipeline.domain.services.investimentos_cobertura import (
+    atribuir_por_membro,
+    cobertura_de_membros,
+)
+from pipeline.domain.services.member_key_matcher import matches_member_key
 from pipeline.domain.services.patrimonio_caixa import caixa_me_from_detalhes, compute_caixa
 from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_COMERCIAL,
@@ -163,6 +167,7 @@ class PatrimonioCalculator:
             inputs, titular_bens, conjuge_bens
         )
 
+        nao_atribuidos = float(ressalva.get("nao_atribuido") or 0.0)
         caixa_total_brl, caixa_detalhes = compute_caixa(
             inputs,
             total_bens_irpf=total_bens_irpf,
@@ -202,6 +207,7 @@ class PatrimonioCalculator:
             investimentos_titular=investimentos_titular,
             investimentos_conjuge=investimentos_conjuge,
             caixa=caixa_total_brl,
+            nao_atribuidos=nao_atribuidos,
         )
 
         patrimonio_liquido = patrimonio_bruto - total_dividas
@@ -224,6 +230,7 @@ class PatrimonioCalculator:
             investimentos_conjuge=investimentos_conjuge,
             caixa=caixa_total_brl,
             veiculos=veiculos,
+            nao_atribuidos=nao_atribuidos,
         )
 
         cobertura = ressalva["cobertura"]
@@ -265,6 +272,7 @@ class PatrimonioCalculator:
             # ADR-346 (A39.l9): ressalva de PL quando há posição RV sem valor de
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
             "guarda_de_sinal": guarda.to_dict(),
+            "investimentos_nao_atribuidos": round(nao_atribuidos, 2),
             "cobertura_investimentos": [c.to_dict() for c in cobertura],
             "pl_ressalva": ressalva["pl_ressalva"],
             "posicoes_sem_marcacao": ressalva["posicoes_sem_marcacao"],
@@ -336,27 +344,16 @@ class PatrimonioCalculator:
             assert inputs.investimentos_atuais is not None  # narrow para type-checker
             totais = inputs.investimentos_atuais.get("total_por_membro", {}) or {}
 
-            titular_val = 0.0
-            conjuge_val = 0.0
-            unattributed = 0.0
-            titular_atribuido = False
-            conjuge_atribuido = False
-            for member_key, value in totais.items():
-                v = safe_float(value)
-                key_lower = str(member_key).lower()
-                if not key_lower:
-                    unattributed += v
-                elif identity.titular_key and identity.titular_key in key_lower:
-                    titular_val += v
-                    titular_atribuido = True
-                elif identity.conjuge_key and identity.conjuge_key in key_lower:
-                    conjuge_val += v
-                    conjuge_atribuido = True
-                else:
-                    unattributed += v
-            if unattributed > 0:
-                titular_val += unattributed
-                titular_atribuido = True
+            atribuicao = atribuir_por_membro(
+                totais,
+                titular_key=identity.titular_key,
+                conjuge_key=identity.conjuge_key,
+                valor_de=safe_float,
+            )
+            titular_val = float(atribuicao.titular_brl)
+            conjuge_val = float(atribuicao.conjuge_brl)
+            titular_atribuido = atribuicao.titular_atribuido
+            conjuge_atribuido = atribuicao.conjuge_atribuido
 
             titular_fb = False
             conjuge_fb = False
@@ -376,6 +373,7 @@ class PatrimonioCalculator:
             sem = inputs.investimentos_atuais.get("posicoes_sem_marcacao_por_membro", {})
             ressalva = rv_ressalva(sem, identity, titular_fb=titular_fb, conjuge_fb=conjuge_fb)
             fonte = "posicoes_atuais+irpf" if (titular_fb or conjuge_fb) else "posicoes_atuais"
+            ressalva["nao_atribuido"] = float(atribuicao.nao_atribuido_brl)
             ressalva["cobertura"] = cobertura_de_membros(
                 tem_conjuge=bool(identity.conjuge_key),
                 titular=(titular_val, titular_atribuido, titular_fb, bool(titular_bens)),
@@ -389,6 +387,7 @@ class PatrimonioCalculator:
         )
         conjuge_val = investimentos_from_irpf(conjuge_bens, extras=("outros",))
         ressalva = rv_ressalva({}, identity, titular_fb=True, conjuge_fb=True)
+        ressalva["nao_atribuido"] = 0.0
         ressalva["cobertura"] = cobertura_de_membros(
             tem_conjuge=bool(identity.conjuge_key),
             titular=(titular_val, False, titular_val > 0, bool(titular_bens)),
@@ -407,6 +406,7 @@ class PatrimonioCalculator:
         investimentos_titular: float,
         investimentos_conjuge: float,
         caixa: float,
+        nao_atribuidos: float = 0.0,
     ) -> float:
         """Patrimônio bruto: recompõe de fontes mistas (posições atuais)
         ou pega direto do IRPF total (fallback)."""
@@ -418,6 +418,7 @@ class PatrimonioCalculator:
                 + investimentos_titular
                 + investimentos_conjuge
                 + caixa
+                + nao_atribuidos
             )
         return total_bens_irpf
 
@@ -430,6 +431,7 @@ class PatrimonioCalculator:
         investimentos_conjuge: float,
         caixa: float,
         veiculos: float,
+        nao_atribuidos: float = 0.0,
     ) -> list[dict]:
         """Monta as 6 categorias visíveis + percentuais via largest-remainder
         (soma=100%).
@@ -462,6 +464,12 @@ class PatrimonioCalculator:
             {"categoria": "Caixa e Moeda Estrangeira", "valor": caixa},
             {"categoria": "Veículos", "valor": veiculos},
         ]
+        # Só aparece quando existe: categoria permanente com 0,00 em todo run
+        # sadio seria ruído no donut de toda família bem resolvida.
+        if nao_atribuidos:
+            composicao.append(
+                {"categoria": "Investimentos sem titular identificado", "valor": nao_atribuidos}
+            )
         self._apply_percentuals_largest_remainder(composicao)
         composicao.sort(key=lambda x: x["valor"], reverse=True)
         return composicao

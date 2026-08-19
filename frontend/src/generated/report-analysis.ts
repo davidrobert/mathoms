@@ -338,6 +338,7 @@ export type E5AnalysisArtifact = {
     };
     "investimentos_titular"?: number | null;
     "investimentos_conjuge"?: number | null;
+    "investimentos_nao_atribuidos"?: number;
     "cobertura_investimentos"?: Array<{
       "membro"?: "titular" | "conjuge";
       "status"?: "apurado" | "zero_apurado" | "nao_apurado";
