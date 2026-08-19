@@ -30,10 +30,13 @@ from pipeline.domain.services.member_key_matcher import (
     matches_member_key,
 )
 from pipeline.domain.services.patrimonio_types import (
+    CONSOLIDATED_LIST_KEYS,
     MemberIdentity,
     investimento_valor,
+    parse_ano_31_12,
     resolve_value_year,
     safe_float,
+    years_in_list,
 )
 
 # =============================================================================
@@ -304,6 +307,50 @@ def _resolve_ano_ref(baseline: dict) -> AnoResolution:
     return AnoResolution(value_year, summary_year)
 
 
+def _anos_da_lista(raw: object, identity: MemberIdentity, conjuge: bool) -> set[int]:
+    """Anos declarados pelo membro numa lista consolidada (v1 itens ou v2 agregado)."""
+    if isinstance(raw, list):
+        return years_in_list([i for i in raw if _is_conjuge_exclusive(i, identity) == conjuge])
+    if isinstance(raw, dict):
+        return _anos_do_membro_agregado(raw, identity, conjuge)
+    return set()
+
+
+def _anos_do_membro(baseline: dict, identity: MemberIdentity, conjuge: bool) -> set[int]:
+    """Anos 31/12 declarados nos itens **deste** membro, por lista consolidada."""
+    anos: set[int] = set()
+    for list_key in CONSOLIDATED_LIST_KEYS:
+        anos |= _anos_da_lista(baseline.get(list_key), identity, conjuge)
+    return anos
+
+
+def _anos_do_membro_agregado(raw: dict, identity: MemberIdentity, conjuge: bool) -> set[int]:
+    """Anos no formato agregado E1.5 v2, cuja chave é ``<membro>_<ano>``."""
+
+    def _e_do_membro(key: object) -> bool:
+        casa = bool(identity.conjuge_key) and matches_member_key(identity.conjuge_key, str(key))
+        return casa == conjuge
+
+    anos = (parse_ano_31_12(str(k)) for k in raw if _e_do_membro(k))
+    return {ano for ano in anos if ano is not None}
+
+
+# O eixo de ano era do DOMICÍLIO (`_max_value_year` sobre o baseline inteiro). Com
+# os cônjuges declarando em anos disjuntos isso zera todos menos um: quem não tem
+# item no ano escolhido cai no fallback de `_resolve_item_valor` e vira 0,00 — a
+# mesma conflação `null`↔`0,00` que a [[ADR-394]] proíbe um andar acima.
+def anos_base_por_membro(
+    baseline: dict, identity: MemberIdentity, ano_domicilio: str
+) -> tuple[str, str]:
+    """Ano-base de cada membro: o maior ano que ele próprio declarou."""
+    titular = _anos_do_membro(baseline, identity, conjuge=False)
+    conjuge = _anos_do_membro(baseline, identity, conjuge=True)
+    return (
+        str(max(titular)) if titular else ano_domicilio,
+        str(max(conjuge)) if conjuge else ano_domicilio,
+    )
+
+
 def _resolve_item_valor(item: dict, ano_ref: str) -> float:
     """Resolve valor de item consolidated tentando 3 conveções.
 
@@ -486,11 +533,18 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     """
     summary_year, total_bens_summary, _ = _resolve_summary_year(baseline)
     ano_ref = resolve_value_year(baseline, summary_year)
+    ano_titular, ano_conjuge = anos_base_por_membro(baseline, identity, ano_ref)
 
-    titular_imoveis, conjuge_imoveis = _split_imoveis(baseline, identity, ano_ref)
-    titular_inv, conjuge_inv = _split_investimentos(baseline, identity, ano_ref)
-    titular_vei, conjuge_vei = _split_veiculos(baseline, identity, ano_ref)
-    titular_div, conjuge_div = _split_dividas(baseline, identity, ano_ref)
+    def _split(fn):
+        """Cada metade resolvida no ano-base do **próprio** membro."""
+        if ano_titular == ano_conjuge:
+            return fn(baseline, identity, ano_titular)
+        return fn(baseline, identity, ano_titular)[0], fn(baseline, identity, ano_conjuge)[1]
+
+    titular_imoveis, conjuge_imoveis = _split(_split_imoveis)
+    titular_inv, conjuge_inv = _split(_split_investimentos)
+    titular_vei, conjuge_vei = _split(_split_veiculos)
+    titular_div, conjuge_div = _split(_split_dividas)
 
     def _sum_items(*lists: list[dict]) -> float:
         return sum(safe_float(item.get("valor_31_12_ano_base", 0)) for lst in lists for item in lst)
@@ -498,9 +552,13 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     titular_total = _sum_items(titular_imoveis, titular_inv, titular_vei)
     conjuge_total = _sum_items(conjuge_imoveis, conjuge_inv, conjuge_vei)
 
+    # `ano_base` por membro para que a soma cross-ano nunca seja silenciosa: o
+    # agregado do domicílio pode misturar datas, e quem consome precisa poder
+    # ressalvar ([[ADR-383]] §6 — consolidado de datas mistas nunca leva data única).
     titular_data = {
         "total_bens": titular_total,
         "total_dividas": titular_div,
+        "ano_base": ano_titular,
         "bens": {
             "imoveis": titular_imoveis,
             "investimentos": titular_inv,
@@ -511,6 +569,7 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     conjuge_data = {
         "total_bens": conjuge_total,
         "total_dividas": conjuge_div,
+        "ano_base": ano_conjuge,
         "bens": {
             "imoveis": conjuge_imoveis,
             "investimentos": conjuge_inv,
@@ -519,9 +578,14 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
         },
     }
 
-    # Diferença vs resumo → atribuída ao titular (comportamento legado)
+    # Diferença vs resumo → atribuída ao titular (comportamento legado). Só vale
+    # quando os dois membros estão no MESMO ano: `total_bens_summary` é de um ano
+    # só, então com anos distintos o sintético é multi-ano e a divergência dispara
+    # por construção — creditar o resíduo ao titular fabricaria patrimônio, a mesma
+    # família do `unattributed → titular` que a [[ADR-394]] §D8 cortou.
     synthetic_total = titular_total + conjuge_total
-    if total_bens_summary > 0 and abs(synthetic_total - total_bens_summary) > 1.0:
+    mesmo_ano = ano_titular == ano_conjuge
+    if mesmo_ano and total_bens_summary > 0 and abs(synthetic_total - total_bens_summary) > 1.0:
         diff = total_bens_summary - synthetic_total
         titular_data["total_bens"] += diff
 
