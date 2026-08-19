@@ -1,4 +1,4 @@
-"""Sink de `review_reasons` (ADR-395) — sessão própria, fail-open, sem `Session`
+"""Sink de `review_reasons` (ADR-396) — sessão própria, fail-open, sem `Session`
 na API pública. O run `140ac8d7` morreu em 12/18 porque esta escrita dividia
 transação com `run.status = needs_review` (CTO-6 · §r7)."""
 
@@ -188,7 +188,7 @@ def _log_sink_ok(*, run_id: str, stage_name: str, written: int, attempted: int) 
     )
 
 
-# Não aceita `Session` de propósito (ADR-395): quem chama não consegue
+# Não aceita `Session` de propósito (ADR-396): quem chama não consegue
 # compartilhar a transação da transição de estado nem por engano.
 # `sanitize_review_reasons` é idempotente e silenciosa sobre entrada já
 # normalizada — chamá-la aqui mantém o sink seguro standalone sem duplicar o
@@ -204,7 +204,7 @@ def record_review_reasons(*, run_id: str, workspace_id: str, stage_name: str, re
                 db, run_id=run_id, workspace_id=workspace_id, stage_name=stage_name, reasons=rows
             )
             db.commit()
-    except Exception as exc:  # noqa: BLE001 — fail-open é a decisão da ADR-395
+    except Exception as exc:  # noqa: BLE001 — fail-open é a decisão da ADR-396
         _log_sink_failure(
             exc, run_id=run_id, workspace_id=workspace_id, stage_name=stage_name, rows=rows
         )
