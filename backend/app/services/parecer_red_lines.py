@@ -248,15 +248,30 @@ def _rl2_divida_cara_precede_risco(out, e5) -> list[RedLineViolation]:
     return []
 
 
+#: Chave canônica primeiro; a legada é PONTE, não contrato (o RV6-15 / #1573 renomeia
+#: `taxa_juros` → `taxa_juros_aa`). A ponte existe porque a red line não pode depender
+#: de ordem de merge nem de artefato já persistido: ler só o nome novo faria a RL2 voltar
+#: a ser gate morto na janela entre os dois deploys — exatamente a cegueira que ela mata.
+#: Os dois nomes carregam a MESMA semântica (% a.a.), então a ponte não adivinha nada.
+TAXA_KEYS = ("taxa_juros_aa", "taxa_juros")
+
+
+def taxa_declarada(divida: Any) -> Any:
+    """Primeiro valor não-nulo entre as chaves de taxa conhecidas."""
+    if not isinstance(divida, Mapping):
+        return None
+    return next((divida[k] for k in TAXA_KEYS if divida.get(k) is not None), None)
+
+
 def _divida_cara_conhecida(e5: Mapping[str, Any]) -> bool:
     for div in (e5.get("endividamento") or {}).get("dividas") or []:
-        taxa = _taxa_mensal_equivalente(div.get("taxa_juros") if isinstance(div, dict) else None)
+        taxa = _taxa_mensal_equivalente(taxa_declarada(div))
         if taxa is not None and taxa > LIMIAR_TAXA_MENSAL_PCT:
             return True
     return False
 
 
-# PERÍODO DECLARADO (1.5 · RV6-15): `endividamento.dividas[].taxa_juros` numérico é lido
+# PERÍODO DECLARADO (1.5 · RV6-15): `endividamento.dividas[].taxa_juros_aa` numérico é lido
 # como percentual AO ANO — paridade com `debts.taxa_juros_aa` ([[ADR-227]]), o único
 # produtor estruturado de taxa no produto, e com o contrato esboçado na [[ADR-301]].
 # Enquanto o produtor do E5 não for decidido (RV6-15 D4, dono pendente) esta é a leitura
@@ -413,5 +428,7 @@ __all__ = [
     "RED_LINES_VERSION",
     "RedLineViolation",
     "RedLinesResult",
+    "TAXA_KEYS",
+    "taxa_declarada",
     "check_red_lines",
 ]

@@ -37,7 +37,7 @@ lane [[A22.l2]] (= F3-O1 de [[PLAN-launch-trust]]).
 > dogfood — ver §"Calibração pós-dogfood" (1.1), §"Calibração 1.2 — RL1
 > rebalanceamento ≠ deploy" e §"Resolução de RL3 e RL7" (1.4).
 
-> **Calibração 1.5 (2026-08-19):** RL2 passa a ler `taxa_juros` **numérico** e o
+> **Calibração 1.5 (2026-08-19):** RL2 passa a ler a taxa **numérica** e o
 > período do campo fica **declarado** (% a.a.) — ver §"Calibração 1.5". O invariante
 > não muda; o que muda é o input deixar de ser inalcançável.
 
@@ -298,6 +298,18 @@ sub-schema real do E5.
 Taxa de disparo medida no payload do r7: **inalterada (RL2 silenciosa)** — a dívida do
 run tem `taxa_juros: null` e o proxy `ratios.taxa_endividamento_pct` é 7,51 (< 40). O
 fix torna a linha **alcançável**, não mais barulhenta.
+
+**Composição com o rename do RV6-15 (#1573).** Enquanto esta calibração estava em revisão, a
+lane do RV6-15 renomeou o campo do produtor: `taxa_juros` → **`taxa_juros_aa`**. O leitor
+foi composto **antes** do merge daquela lane, porque o acoplamento é invisível ao git —
+arquivos diferentes, zero conflito, zero teste vermelho, e a RL2 voltaria a ser gate morto
+(a cegueira B3 reintroduzida pelo vizinho). `TAXA_KEYS` lê a chave canônica primeiro e
+mantém a legada como **ponte**: as duas carregam a mesma semântica (% a.a.), então a ponte
+não adivinha período — ela só impede que a red line dependa de ordem de merge ou de
+artefato já persistido. O `field_path` que o piso do FP-4 injeta em `campos_faltantes`
+aponta para o nome **canônico**, porque esse pedido alimenta a expansão do manifest.
+Gate: `TestComposicaoComORename` — reverter o leitor para o nome aposentado derruba
+5 testes; apontar o path injetado para ele derruba outros 5.
 
 ### Prompt-side REGRA 14 + resultado combinado (PROMPT_VERSION 2.1.0 · 2026-07-01)
 

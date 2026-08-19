@@ -610,7 +610,7 @@
     },
     "endividamento": {
       "type": "object",
-      "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros numérica é percentual absoluto (ADR-209). PERÍODO: taxa_juros numérica é % AO ANO — paridade com debts.taxa_juros_aa (ADR-227) e com o contrato esboçado na ADR-301; é como parecer_red_lines (RED_LINES_VERSION 1.5) a lê. Leitura do CONSUMIDOR enquanto o produtor do campo segue indefinido (RV6-15 D4): produtor que emitir mensal precisa mudar o leitor junto, senão 12% a.a. vira hard-block.",
+      "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros numérica é percentual absoluto (ADR-209).",
       "properties": {
         "total_dividas": {
           "type": "number"

@@ -31,6 +31,10 @@ VALID_FIELD_REQUEST_REASONS: frozenset[str] = frozenset(
         "llm_declared",
         "field_request_spurious",
         "field_request_wrong_path",
+        # FP-4 D3-A: pedido que o GUARDRAIL injetou, não o LLM. Sem este reason o
+        # dashboard top-10 (ADR-206 §D4) contaria como demanda do modelo um campo que
+        # ele nunca pediu — a mesma classe de fabricação que a lane está fechando.
+        "guardrail_injected",
     }
 )
 

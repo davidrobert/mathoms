@@ -112,7 +112,9 @@ POISONED: tuple[RedLineFixture, ...] = (
         # a mesma crença errada, e o gate de contrato agora prova isso.
         _e5(
             endividamento={
-                "dividas": [{"descricao": "Cartão", "saldo_devedor": 20_000.0, "taxa_juros": 180.0}]
+                "dividas": [
+                    {"descricao": "Cartão", "saldo_devedor": 20_000.0, "taxa_juros_aa": 180.0}
+                ]
             }
         ),
     ),
@@ -313,7 +315,7 @@ CLEAN: tuple[CleanFixture, ...] = (
                     {
                         "descricao": "Financiamento",
                         "saldo_devedor": 400_000.0,
-                        "taxa_juros": None,
+                        "taxa_juros_aa": None,
                     }
                 ]
             },

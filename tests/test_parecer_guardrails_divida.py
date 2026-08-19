@@ -1,6 +1,6 @@
 """FP-4 — piso de prescrição sob dívida de taxa desconhecida + auto-contradição.
 
-D3-A: com `endividamento.dividas[].taxa_juros` nulo as DUAS direções ficam
+D3-A: com `endividamento.dividas[].taxa_juros_aa` nulo as DUAS direções ficam
 proibidas — prescrever aporte fabrica que a dívida é barata, prescrever quitação
 fabrica que é cara. E o parecer passa a PEDIR a taxa: o distiller omite folha nula
 (`tests/test_parecer_distiller_flatten.py`), então o LLM nunca soube que o campo
@@ -18,11 +18,11 @@ from __future__ import annotations
 
 import pytest
 
-from backend.app.services.parecer_pos_llm_guardrails import (
-    PONTOS_FORTES_MIN,
+from backend.app.services.parecer_guardrails_divida import (
     neutralize_autocontradicao,
     piso_prescricao_divida,
 )
+from backend.app.services.parecer_pos_llm_guardrails import PONTOS_FORTES_MIN
 from pipeline.llm.schemas.parecer_planejador import (
     Metadata,
     ParecerPlanejadorOutput,
@@ -36,7 +36,9 @@ WS = "ws-divida-test"
 E5_TAXA_NULA = {
     "endividamento": {
         "total_dividas": 500_000.0,
-        "dividas": [{"descricao": "Financiamento", "saldo_devedor": 500_000.0, "taxa_juros": None}],
+        "dividas": [
+            {"descricao": "Financiamento", "saldo_devedor": 500_000.0, "taxa_juros_aa": None}
+        ],
     },
     "reserva_emergencia": {"cobertura_meses": 12.0, "avaliacao_liquidity": "Adequada"},
 }
@@ -44,7 +46,9 @@ E5_TAXA_CONHECIDA = {
     **E5_TAXA_NULA,
     "endividamento": {
         "total_dividas": 500_000.0,
-        "dividas": [{"descricao": "Financiamento", "saldo_devedor": 500_000.0, "taxa_juros": 11.5}],
+        "dividas": [
+            {"descricao": "Financiamento", "saldo_devedor": 500_000.0, "taxa_juros_aa": 11.5}
+        ],
     },
 }
 E5_SEM_DIVIDA = {
@@ -56,7 +60,7 @@ E5_LIQUIDEZ_EXCESSIVA = {
     "reserva_emergencia": {"cobertura_meses": 30.0, "avaliacao_liquidity": "Excessiva"},
 }
 
-_TAXA_PATH_0 = "$.endividamento.dividas[0].taxa_juros"
+_TAXA_PATH_0 = "$.endividamento.dividas[0].taxa_juros_aa"
 
 
 def _pf(tema: str = "Saúde de balanço", section: str = "S10", i: int = 0) -> PontoForte:
@@ -145,7 +149,7 @@ class TestInjecaoDoPedidoDeTaxa:
         """Dívida liquidada não tem prescrição pendente — pedir a taxa é ruído."""
         e5 = {
             "endividamento": {
-                "dividas": [{"descricao": "Quitada", "saldo_devedor": 0.0, "taxa_juros": None}]
+                "dividas": [{"descricao": "Quitada", "saldo_devedor": 0.0, "taxa_juros_aa": None}]
             }
         }
         _, tel = piso_prescricao_divida(_output(), e5, WS)
