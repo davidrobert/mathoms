@@ -542,10 +542,44 @@ hard-block, e exige eval próprio. E **não toca** o que o E5 publica em
 segue com o dono. Rótulo da taxa no card do relatório (`EndividamentoCard.tsx` renderiza
 `%` sem período) fica atrelado à mesma decisão.
 
+**Nota datada 2026-08-19 — PD-4 fechado no produtor, e o re-roteamento se confirmou.**
+Entregue pela [[A40.l73]] ([[ADR-395]] `Proposto`) em 5 PRs: #1549 (lane + ADR) · #1554 (canal
+`escopo_cobertura.categorias_somente_no_documento`) · #1560 (`e6774876`, retenção no populator) ·
+#1564 (S9 de vazio para **parcial**) · #1576 (metade (i) + `pontos_urgentes`). Escopo fora do MVP
+declarado da A40, aberto por decisão do dono.
+
+**O diagnóstico do r7 estava certo e a lição do RV6-20 se pagou.** O #1476 tentou consertar
+render-side e foi **no-op por construção**: os 4 sinais de `hasRealProtectionInputs` saem todos do
+mesmo `protection_bundle`. O defeito era do produtor, que lia só o cadastro `Protection` e, com ele
+vazio, publicava `actual = 0`, gap igual à necessidade integral e prescrição "alta" — enquanto a
+seção vizinha listava as apólices vigentes extraídas dos documentos.
+
+A regra decidida com o `financial-planner`: extração é **hint**, o número tem produtor único
+(cadastro, [[ADR-192]]), as duas fontes **nunca somam** (não têm chave de identidade comum,
+[[ADR-240]] §D12), e documento vigente numa categoria **sem** cadastro ativo é contraprova de
+inventário incompleto ⇒ `missing_data`, sem entry em `gap_analysis`, sem prescrição. Isso é a
+aplicação literal da [[ADR-387]] §D4. Categoria **com** cadastro continua computando: ali o gap
+superestima a necessidade, que é o lado seguro da assimetria (descoberto é ruína irreversível;
+prêmio duplicado é fluxo corrigível).
+
+**Dois defeitos irmãos fecharam junto:** `_gap_analysis_to_response` coagia `actual` nulo para
+`Decimal("0.00")` — retenção agora é ausência de entry + status, nunca zero fabricado; e a copy do
+vazio **total** deixou de dizer "sem riscos cadastrados" (afirmação sobre o patrimônio do cliente a
+partir de uma fonte só) para nomear o insumo que falta.
+
+**O que NÃO foi tocado, de propósito:** o manifest do parecer e o prompt LLM — a precedência entre
+fontes contraditórias no prompt é PE-3 / Onda 5. E o gate de `_categorias_de_documento`
+(`cobertura_consolidada.py`) fecha `flag_vida` com **qualquer** `tipo == "vida"` vigente, sem
+distinguir apólice **prestamista** (beneficiário = credor) nem **vida em grupo** do empregador
+(morre com o vínculo) — defeito vivo, independente desta entrega, registrado como follow-up com
+dono (`financial-planner` + `data-engineer`) em [[ADR-395]] §Deferido. Por isso o estado parcial
+**nomeia** o identificado e **não afirma adequação de cobertura**.
+
 **Re-triagem do §r6 (cadência).** Fechados por medição: RV6-01/02/03, RV6-07, RV6-23,
 RV6-10 (com ressalva). Persistem re-priorizados: RV6-04 (P0, 3º run), RV6-11 (P1),
 RV6-17 (P1, **âncora corrigida** — o campo registrado no r6 é dead code), RV6-13 (P2,
-parcial), RV6-15 (P2, re-escopo — o campo do tripwire é nulo 3/3), RV6-20→PD-4 (P1),
+parcial), RV6-15 (P2, re-escopo — o campo do tripwire é nulo 3/3), RV6-20→PD-4 (P1, **fechado
+2026-08-19** — ver nota datada acima),
 RV6-22→PD-6 (P2), RV6-08→PE-2 (P1, agravado), RV6-09→PE-1 (P1, agravado),
 RV6-05→PE-3 (P1, re-rotulado: o produtor está correto, o manifest é que não reconcilia),
 RV6-06/RV6-12/RV6-14/RV6-16/RV6-18/RV6-19/RV6-21 mantidos na prioridade do §r6 (não
