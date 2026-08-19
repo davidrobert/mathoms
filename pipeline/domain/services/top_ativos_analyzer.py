@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
 
-from pipeline.domain.services.asset_classifier import classify_asset
+from pipeline.domain.services.asset_classifier import classify_asset_outcome
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
@@ -58,6 +58,9 @@ class TopAtivo:
     valor: Decimal
     pct_carteira: float  # percentage 0-100, peso na carteira
     tipo_origem: str
+    # Quem decidiu a `classe` ([[ADR-396]]). `None` = a linha não passou pelo
+    # classificador (imóvel: a classe vem da origem do item, não de keyword).
+    autoridade: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -69,6 +72,7 @@ class TopAtivo:
             "valor": float(round(self.valor, 2)),
             "pct_carteira": round(self.pct_carteira, 2),
             "tipo_origem": self.tipo_origem,
+            "autoridade": self.autoridade,
         }
 
 
@@ -90,6 +94,7 @@ class _Candidate:
     valor: Decimal
     tipo_origem: str
     property_id: str | None = None
+    autoridade: str | None = None
 
 
 class TopAtivosAnalyzer:
@@ -139,6 +144,7 @@ class TopAtivosAnalyzer:
                     valor=c.valor,
                     pct_carteira=pct,
                     tipo_origem=c.tipo_origem,
+                    autoridade=c.autoridade,
                 )
             )
         return tuple(out)
@@ -161,15 +167,16 @@ class TopAtivosAnalyzer:
         descricao = str(inv.get("descricao") or inv.get("description") or "").strip()
         instituicao_raw = str(inv.get("instituicao") or "").strip()
         instituicao = instituicao_raw.capitalize() if instituicao_raw else ""
-        classe = self._classify(tipo, descricao, instituicao_raw)
-        nome = str(inv.get("nome") or "").strip() or self._fallback_nome(tipo, classe, instituicao)
+        resultado = self._classify(tipo, descricao)
+        nome = self._nome_ou_fallback(inv, tipo, resultado.classe, instituicao)
         return _Candidate(
             nome=nome,
-            classe=classe,
+            classe=resultado.classe,
             membro=member,
             instituicao=instituicao,
             valor=valor,
             tipo_origem="investimento",
+            autoridade=resultado.autoridade.value,
         )
 
     def _collect_imoveis(self, member: str, bens: Mapping[str, Any]) -> list[_Candidate]:
@@ -204,15 +211,17 @@ class TopAtivosAnalyzer:
             property_id=str(pid) if isinstance(pid, str) and pid else None,
         )
 
-    def _classify(self, tipo: str, descricao: str, instituicao: str) -> str:
-        """Delega para :func:`classify_asset` — taxonomia ADR-193 unificada
-        com :class:`InvestimentosClassesAnalyzer`."""
-        return classify_asset(
+    def _classify(self, tipo: str, descricao: str):
+        """Delega para :func:`classify_asset_outcome` — taxonomia ADR-193 unificada
+        com :class:`InvestimentosClassesAnalyzer`; `instituicao` não entra (ADR-396)."""
+        return classify_asset_outcome(
             tipo,
             descricao,
-            instituicao,
             keywords=self._config.classes_config.keywords_por_classe,
         )
+
+    def _nome_ou_fallback(self, inv, tipo: str, classe: str, instituicao: str) -> str:
+        return str(inv.get("nome") or "").strip() or self._fallback_nome(tipo, classe, instituicao)
 
     @staticmethod
     def _fallback_nome(tipo: str, classe: str, instituicao: str) -> str:

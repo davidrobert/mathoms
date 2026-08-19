@@ -215,7 +215,7 @@ def _is_liquid_item(item: dict, keywords: dict[str, tuple[str, ...]] | None) -> 
     tipo = str(item.get("tipo") or "")
     descricao = str(item.get("descricao") or item.get("nome") or item.get("description") or "")
     instituicao = str(item.get("instituicao") or "")
-    bucket = classify_asset(tipo, descricao, instituicao, keywords=keywords)
+    bucket = classify_asset(tipo, descricao, keywords=keywords)
     if bucket not in _LIQUID_BUCKETS:
         return False
     haystack = f"{tipo} {descricao} {instituicao}".lower()

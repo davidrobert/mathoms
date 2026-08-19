@@ -320,9 +320,7 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
 
     goals_enriched = _enrich_goals_with_passive_income(inputs.goals, inputs.passive_income)
     goals_enriched = _enrich_alocacao_with_deviation(
-        goals_enriched,
-        (inputs.investimentos_classes or {}).get("tabela_classes") or [],
-        patrimonio=inputs.patrimonio,
+        goals_enriched, inputs.investimentos_classes, patrimonio=inputs.patrimonio
     )
 
     output: dict[str, Any] = {
@@ -434,7 +432,7 @@ def _enrich_goals_with_passive_income(
 
 
 def _enrich_alocacao_with_deviation(
-    goals: _GoalsPayload, tabela_classes: list, *, patrimonio: dict[str, Any] | None = None
+    goals: _GoalsPayload, investimentos: dict | None, *, patrimonio: dict[str, Any] | None = None
 ) -> _GoalsPayload:
     """Injeta ``alocacao_alvo.derived`` (desvio atual-vs-alvo run-time; ADR-141 §Emenda item 4)."""
     from pipeline.domain.services.alocacao_alvo_deviation import AlocacaoAlvoDeviationCalculator
@@ -443,8 +441,10 @@ def _enrich_alocacao_with_deviation(
     alvo = (goals or {}).get("alocacao_alvo")
     if not isinstance(alvo, dict) or "rf_pos_pct" not in alvo:
         return goals
-    result = AlocacaoAlvoDeviationCalculator().calculate(tabela_classes or [], alvo)
+    inv = investimentos or {}
+    result = AlocacaoAlvoDeviationCalculator().calculate(inv.get("tabela_classes") or [], alvo)
     result = result.talvez_suprimir(motivo_supressao_e5(patrimonio))
+    result = result.suprimir_por_incerteza(inv.get("nao_classificado_pct"))
     return {**goals, "alocacao_alvo": {**alvo, "derived": result.to_dict()}}
 
 

@@ -12,6 +12,12 @@ from pipeline.domain.services.conversao_me import infer_declared_me_currency
 # ADR-193 + co-design G: bucket "Internacional" = lastro forte.
 _BUCKET_INTERNACIONAL = "Internacional"
 
+# Custodiantes estrangeiros ([[ADR-396]]). Estavam como keyword de classe no
+# `asset_classifier`, onde respondiam à pergunta errada: custódia diz QUEM guarda,
+# não O QUE é o ativo. Aqui a pergunta é lastro cambial — e para ela o custodiante
+# é resposta legítima. Lista explícita e nomeada no módulo que faz a pergunta.
+_CUSTODIA_ESTRANGEIRA: tuple[str, ...] = ("wise", "bofa", "bank of america")
+
 # Tier de alerta (financial-planner co-design 2026-05-18). Trade-off:
 # limiar único sem perfil de risco; conservadorismo Perini > otimismo.
 THRESHOLD_VERDE_PCT = 10.0
@@ -123,11 +129,18 @@ def _pos_value(pos: dict) -> Decimal:
     )
 
 
+def _tem_custodia_estrangeira(instituicao: str) -> bool:
+    agulha = instituicao.lower().replace("_", " ").replace("-", " ")
+    return any(c in agulha for c in _CUSTODIA_ESTRANGEIRA)
+
+
 def _pos_is_internacional(pos: dict) -> bool:
+    """Classe internacional OU custodiante estrangeiro — duas perguntas distintas."""
     tipo = str(pos.get("tipo") or pos.get("classe") or "")
     descricao = str(pos.get("descricao") or pos.get("nome") or "")
-    instituicao = str(pos.get("instituicao") or "")
-    return classify_asset(tipo, descricao, instituicao) == _BUCKET_INTERNACIONAL
+    if classify_asset(tipo, descricao) == _BUCKET_INTERNACIONAL:
+        return True
+    return _tem_custodia_estrangeira(str(pos.get("instituicao") or ""))
 
 
 def _ativo_detalhe(pos: dict, valor: Decimal) -> dict:
