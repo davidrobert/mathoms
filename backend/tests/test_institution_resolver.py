@@ -119,6 +119,17 @@ class TestCacheBehavior:
             second = institution_resolver.resolve_institutions(s)
         assert set(first.institutions.keys()) == set(second.institutions.keys())
 
+    def test_catalogo_vazio_nao_entra_no_cache(self, sync_db, monkeypatch):
+        """DB sem rows não vira cache de 30 dias — a chave é global e serviria o dogfood."""
+        fake = FakeRedisClient()
+        monkeypatch.setattr(institution_resolver, "_get_redis_safe", lambda: fake)
+
+        with sync_db() as s:
+            catalog = institution_resolver.resolve_institutions(s)
+
+        assert catalog.institutions == {}
+        assert institution_resolver._CATALOG_CACHE_KEY not in fake.store
+
     def test_invalidate_forces_re_read(self, sync_db, monkeypatch):
         fake = FakeRedisClient()
         monkeypatch.setattr(institution_resolver, "_get_redis_safe", lambda: fake)

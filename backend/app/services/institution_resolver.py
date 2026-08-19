@@ -33,7 +33,11 @@ def resolve_institutions(db: Session) -> InstitutionsCatalog:
         return _payload_to_catalog(cached)
     rows = db.execute(select(InstitutionCatalog).order_by(InstitutionCatalog.code)).scalars().all()
     catalog = _rows_to_catalog(list(rows))
-    _store_catalog_cache([_def_to_payload(d) for d in catalog.institutions.values()])
+    # Catálogo vazio não vira cache: a chave é global e vive 30 dias, então um DB
+    # sem seeds (suíte de teste, instalação nova) serviria zero instituições a
+    # todo mundo que compartilha o Redis até o TTL expirar.
+    if catalog.institutions:
+        _store_catalog_cache([_def_to_payload(d) for d in catalog.institutions.values()])
     return catalog
 
 
