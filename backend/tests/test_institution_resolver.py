@@ -47,6 +47,11 @@ def _seed_catalog(session_factory, items: list[dict]) -> None:
         s.commit()
 
 
+def test_suite_nao_toca_o_cache_global_do_catalogo():
+    """Gate de ``_institution_catalog_no_redis``: removê-lo devolve a suíte ao Redis do dev."""
+    assert institution_resolver._get_redis_safe() is None
+
+
 class TestResolveInstitutions:
     def test_returns_empty_catalog_when_no_rows(self, sync_db, no_redis):
         with sync_db() as s:
