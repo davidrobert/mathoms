@@ -35,9 +35,10 @@ from backend.app.models.pipeline_run import (
     PipelineStageStatus,
 )
 from backend.app.models.report import Report
-from backend.app.models.review_reason import ReviewReason
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.schemas.dto.document.mapper import extract_e0_doc_type
+from backend.app.services.diagnostics.review_reason_boundary import sanitize_review_reasons
+from backend.app.services.diagnostics.review_reason_sink import record_review_reasons
 from backend.app.services.pipeline.events import (
     publish_needs_review,
     publish_run_cancelled,
@@ -946,111 +947,6 @@ def _record_stage_exception(
     publish_stage_failed(run_id, stage_name, exc_error or "Unknown error", progress_pct)
 
 
-# Cap de rows por (run, code) — proteção contra row explosion (ADR-272 Fase 2).
-# Consolidamos para 1 row por (run, code) somando occurrence_count cross-doc; o cap
-# é defensivo (há só 6 ReviewReasonCode, então <=6 rows por run na prática).
-_REVIEW_REASON_ROW_CAP = 50
-
-
-def _existing_review_reason(db, *, run_id: str, workspace_id: str, code: str):
-    """Row já materializada para (run, code) — autoflush torna add anterior visível na mesma transação."""
-    from sqlalchemy import select
-
-    return db.execute(
-        select(ReviewReason).where(
-            ReviewReason.workspace_id == workspace_id,
-            ReviewReason.pipeline_run_id == run_id,
-            ReviewReason.code == code,
-        )
-    ).scalar_one_or_none()
-
-
-def _resolvable_document_ids(db, workspace_id: str, reasons: list[dict]) -> set[str]:
-    """Subconjunto dos `document_id` reivindicados que existe em `documents`."""
-    claimed = {r.get("document_id") for r in reasons if r.get("document_id")}
-    if not claimed:
-        return set()
-    rows = db.query(Document.id).filter(
-        Document.workspace_id == workspace_id, Document.id.in_(claimed)
-    )
-    return {row[0] for row in rows}
-
-
-# A FK de `document_id` é enforçada (ADR-371): um id que não resolve abortaria o
-# run inteiro no INSERT — o caminho de REPORTE matando a execução que ele existe
-# para documentar. Degrada a row, nunca a execução.
-def _with_safe_document_id(payload: dict, stage_name: str, known_docs: set[str]) -> dict:
-    """Payload com `document_id` que não resolve trocado por None."""
-    claimed = payload.get("document_id")
-    if not claimed or claimed in known_docs:
-        return payload
-    logger.warning(
-        "review_reason.document_id descartado — não resolve em documents: stage=%s code=%s",
-        stage_name,
-        payload.get("code"),
-    )
-    return {**payload, "document_id": None}
-
-
-def _new_review_reason_row(
-    payload: dict, *, run_id: str, workspace_id: str, stage_name: str, inc: int
-):
-    """Constrói row ReviewReason a partir do dict projetado pelo stage."""
-    return ReviewReason(
-        workspace_id=workspace_id,
-        pipeline_run_id=run_id,
-        stage=stage_name,
-        code=payload["code"],
-        artifact_key=payload.get("artifact_key", "") or "",
-        document_id=payload.get("document_id"),
-        offending_value=payload.get("offending_value", "") or "",
-        expected=payload.get("expected", "") or "",
-        message=payload.get("message", "") or "",
-        occurrence_count=inc,
-    )
-
-
-def _apply_one_reason(
-    db, payload: dict, *, run_id: str, workspace_id: str, stage_name: str, can_insert: bool
-) -> bool:
-    """Bump (run, code) existente ou insere nova row se can_insert. Retorna True se inseriu."""
-    code = payload.get("code")
-    if not code:
-        return False
-    inc = int(payload.get("occurrence_count", 1) or 1)
-    existing = _existing_review_reason(db, run_id=run_id, workspace_id=workspace_id, code=code)
-    if existing is not None:
-        existing.occurrence_count += inc
-        return False
-    if not can_insert:
-        return False
-    db.add(
-        _new_review_reason_row(
-            payload, run_id=run_id, workspace_id=workspace_id, stage_name=stage_name, inc=inc
-        )
-    )
-    return True
-
-
-def _materialize_review_reasons(
-    db, *, run_id: str, workspace_id: str, stage_name: str, reasons: list[dict]
-) -> int:
-    """Materializa review_reasons (ADR-272 Fase 2): 1 row por (run, code), soma occurrence_count. Retorna nº inseridas."""
-    inserted = 0
-    known_docs = _resolvable_document_ids(db, workspace_id, reasons)
-    for payload in reasons:
-        if _apply_one_reason(
-            db,
-            _with_safe_document_id(payload, stage_name, known_docs),
-            run_id=run_id,
-            workspace_id=workspace_id,
-            stage_name=stage_name,
-            can_insert=inserted < _REVIEW_REASON_ROW_CAP,
-        ):
-            inserted += 1
-    return inserted
-
-
 _ISSUE_CAP_PER_CODE = 20
 # Prefixo content-addressed dos filenames/keys de artefato (ADR-084): sha256[:12].
 _HASH_PREFIX_RE = re.compile(r"^[0-9a-f]{12}(?=_)")
@@ -1166,57 +1062,110 @@ def _issues_from_reasons(
     return issues
 
 
-def _record_stage_needs_review(
-    run_id: str,
-    stage_name: str,
-    log_id: str,
-    result,
-    elapsed_ms: int,
-) -> None:
-    validation = result.detail.get("validation", {}) if result.detail else {}
-    legacy_text = "\n".join(validation.get("errors", []))
-    structured_issues = validation.get("issues") or None  # ADR-165 onda 2
-    review_reasons = validation.get("review_reasons") or []  # ADR-272 Fase 2
+def _legacy_validation_text(validation: dict) -> str:
+    """`validation.errors` → texto. Coage item não-str: um `join` sobre lista
+    heterogênea levanta TypeError ANTES da transição de estado (ADR-404)."""
+    errors = validation.get("errors")
+    if not isinstance(errors, list):
+        return ""
+    return "\n".join(e if isinstance(e, str) else str(e) for e in errors)
 
-    with SyncSessionLocal() as db:
-        run = db.get(PipelineRun, run_id)
-        if not structured_issues and review_reasons:
-            by_key, by_id = _resolve_document_identities(db, run.workspace_id, review_reasons)
-            structured_issues = _issues_from_reasons(review_reasons, by_key, by_id)
-        stage_log = db.get(PipelineStageLog, log_id)
-        stage_log.status = PipelineStageStatus.needs_review
-        stage_log.duration_ms = elapsed_ms
-        stage_log.completed_at = datetime.now(timezone.utc)
-        stage_log.output_summary = result.detail
-        db.add(
-            StageReview(
-                pipeline_run_id=run_id,
-                stage=stage_name,
-                status=StageReviewStatus.pending,
-                original_output_json=result.detail,
-                validation_errors=legacy_text,
-                validation_issues=structured_issues,
-            )
+
+def _project_issues(db, run_id: str, stage_name: str, workspace_id: str, reasons: list[dict]):
+    """`validation_issues` a partir das razões; None se a projeção falhar."""
+    try:
+        by_key, by_id = _resolve_document_identities(db, workspace_id, reasons)
+        return _issues_from_reasons(reasons, by_key, by_id)
+    except Exception as exc:  # noqa: BLE001 — ver ADR-404
+        # Sem traceback: o erro do driver ecoa os bound parameters, e
+        # `artifact_key` é stem de filename que a redação não alcança.
+        logger.error(
+            "projeção de validation_issues falhou — StageReview segue sem issues",
+            exc_info=False,
+            extra={
+                "event": "mathoms.pipeline.validation_issues_projection_failed",
+                "run_id": run_id,
+                "stage": stage_name,
+                "exc_type": type(exc).__name__,
+                "rows_attempted": len(reasons),
+            },
         )
+        return None
+
+
+# A projeção lê `documents` com valores do produtor e é fail-open:
+# `validation_issues` é nullable e a UI cai para `validation_errors` (ADR-165
+# onda 2). O `workspace_id` NÃO é fail-open — sem ele não há transição a fazer.
+def _workspace_and_issues(
+    run_id: str, stage_name: str, native_issues, reasons: list[dict]
+) -> tuple[str, list | None]:
+    """`(workspace_id, validation_issues)` — sessão de leitura, antes da transição."""
+    with SyncSessionLocal() as db:
+        workspace_id = db.get(PipelineRun, run_id).workspace_id
+        if native_issues or not reasons:
+            return workspace_id, native_issues
+        return workspace_id, _project_issues(db, run_id, stage_name, workspace_id, reasons)
+
+
+def _pending_stage_review(run_id: str, stage_name: str, result, legacy_text, issues):
+    return StageReview(
+        pipeline_run_id=run_id,
+        stage=stage_name,
+        status=StageReviewStatus.pending,
+        original_output_json=result.detail,
+        validation_errors=legacy_text,
+        validation_issues=issues,
+    )
+
+
+def _mark_stage_log_needs_review(db, log_id: str, result, elapsed_ms: int) -> None:
+    stage_log = db.get(PipelineStageLog, log_id)
+    stage_log.status = PipelineStageStatus.needs_review
+    stage_log.duration_ms = elapsed_ms
+    stage_log.completed_at = datetime.now(timezone.utc)
+    stage_log.output_summary = result.detail
+
+
+# `StageReview` fica do lado do CONTROLE de propósito (ADR-404): `resume_run` só
+# libera a retomada com zero reviews `pending`, então status sem review deixaria
+# o humano retomar sem revisar nada — falha silenciosa pior que a barulhenta.
+# Falhar aqui é falhar a execução, e deve ser alto: nada de try/except.
+def _commit_needs_review_pause(
+    run_id: str, stage_name: str, log_id: str, result, elapsed_ms: int, *, legacy_text, issues
+) -> None:
+    """Transição de estado + contrato de pausa, atômicos e numa sessão só."""
+    with SyncSessionLocal() as db:
+        _mark_stage_log_needs_review(db, log_id, result, elapsed_ms)
+        db.add(_pending_stage_review(run_id, stage_name, result, legacy_text, issues))
+        run = db.get(PipelineRun, run_id)
         run.status = PipelineRunStatus.needs_review
         run.paused_at_stage = stage_name
         run.current_stage = None
-        inserted = _materialize_review_reasons(
-            db,
-            run_id=run_id,
-            workspace_id=run.workspace_id,
-            stage_name=stage_name,
-            reasons=review_reasons,
-        )
         db.commit()
-    if review_reasons:
-        logger.info(
-            "review_reasons materializadas: run=%s stage=%s rows=%d entries=%d",
-            run_id,
-            stage_name,
-            inserted,
-            len(review_reasons),
-        )
+
+
+# Ordem obrigatória (ADR-404): controle commita primeiro e sozinho; o analítico
+# vem depois, em sessão própria. O inverso grava razão de pausa para um run que
+# pode nunca ter pausado.
+def _record_stage_needs_review(
+    run_id: str, stage_name: str, log_id: str, result, elapsed_ms: int
+) -> None:
+    validation = result.detail.get("validation", {}) if result.detail else {}
+    reasons = sanitize_review_reasons(validation.get("review_reasons"), stage_name=stage_name)
+    native = validation.get("issues") or None
+    workspace_id, issues = _workspace_and_issues(run_id, stage_name, native, reasons)
+    _commit_needs_review_pause(
+        run_id,
+        stage_name,
+        log_id,
+        result,
+        elapsed_ms,
+        legacy_text=_legacy_validation_text(validation),
+        issues=issues,
+    )
+    record_review_reasons(
+        run_id=run_id, workspace_id=workspace_id, stage_name=stage_name, reasons=reasons
+    )
     publish_needs_review(run_id, stage_name)
 
 

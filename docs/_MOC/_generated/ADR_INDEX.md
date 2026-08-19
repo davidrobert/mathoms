@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-388 ADRs (ADR-001 a ADR-399) em [`docs/adr/`](../../adr/).
+389 ADRs (ADR-001 a ADR-404) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 331
-- **Proposto**: 53
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -616,7 +616,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
 - [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
 
-### Proposto (14)
+### Proposto (15)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -632,6 +632,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
+- [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 
 ### Roadmap (1)
 

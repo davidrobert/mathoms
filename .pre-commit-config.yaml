@@ -181,6 +181,18 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: diagnostic-session-isolation
+        # CTO-6 (§r7): o run 140ac8d7 morreu em 12/18 porque a row de
+        # `review_reasons` dividia transação com `run.status = needs_review`.
+        # Full-scan AST com fecho transitivo de chamada — extrair a escrita
+        # para um helper não cega o gate, que é como #1535 fechou a instância
+        # e deixou a classe aberta.
+        name: "Diagnóstico não divide sessão com transição de run (ADR-404)"
+        entry: python3 dev/check_diagnostic_session_isolation.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: artifact-read-keys
         # O card de exposição cambial leu `payload["patrimonio_full"]` por três meses:
         # nome de variável interna do domínio, que o serializador renomeia na fronteira.
