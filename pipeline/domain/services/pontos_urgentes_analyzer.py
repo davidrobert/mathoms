@@ -20,7 +20,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal, Mapping, Optional
 
-from pipeline.domain.services.narrativas.format_helpers import pluralize
+from pipeline.domain.services.narrativas.format_helpers import fmt_percent, pluralize
 
 # ADR-365 — dois eixos ORTOGONAIS. `origem_premissa` diz de onde vem o fato;
 # `elegibilidade` diz se o produto consegue avaliá-lo. Um eixo só embutiria
@@ -171,14 +171,25 @@ def _seguro_vida_item(protecao: dict[str, Any] | None) -> PontoUrgenteItem | Non
     return _item_seguro_vida(detalhe, eleg, origem=origem)
 
 
+# ADR-395 §D7 — o mesmo estado que a S_PROTECAO publica. Ler outro predicado
+# aqui só mudaria a contradição do RV6-20 de casa.
+_GAP_VIDA_RETENCAO: dict[str, str] = {
+    "sem family_members": "composição da família",
+    "dependentes_irpf_sem_cadastro": (
+        "idade e dependência econômica dos dependentes declarados no IRPF"
+    ),
+}
+
+
 def _sem_gap_vida(rationale: str, detalhe: str) -> PontoUrgenteItem | None:
     """Gap fechado: ou o conselho não se aplica, ou falta o cadastro que o decide."""
-    if rationale == "sem family_members":
+    faltante = _GAP_VIDA_RETENCAO.get(rationale)
+    if faltante is not None:
         return _item_seguro_vida(
             detalhe,
             "pendente_de_dado",
             origem="cadastro_familia",
-            dado_faltante="composição da família",
+            dado_faltante=faltante,
         )
     # "sem gatilho" (nenhuma dependência econômica) e "apolice_vida_ativa" não
     # são retenção: o conselho não existe, logo não há o que declarar (ADR-167).
@@ -247,8 +258,8 @@ class PontosUrgentesAnalyzer:
                     prioridade="Alta",
                     acao="Reduzir endividamento",
                     impacto=(
-                        f"Taxa de endividamento em {endiv:.1f}% — "
-                        f"meta < {cfg.endividamento_maximo_pct:.0f}%"
+                        f"Taxa de endividamento em {fmt_percent(endiv)} — "
+                        f"meta < {fmt_percent(cfg.endividamento_maximo_pct)}"
                     ),
                     prazo="Próximo trimestre",
                     code="endividamento_alto",

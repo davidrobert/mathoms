@@ -249,6 +249,7 @@ export type ProtecaoPatrimonialArtifact = {
     "categoria": "vida" | "saude" | "rc_familiar" | "rd_profissional" | "ap";
     "flag": boolean;
     "rationale": string;
+    "status": "apurado" | "nao_apurado";
   }>;
   "apolices_vigentes": Array<ProtecaoPatrimonialApoliceResumo>;
   "apolices_vencendo": Array<ProtecaoPatrimonialApoliceResumo>;

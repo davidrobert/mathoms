@@ -102,6 +102,12 @@ class ProtecaoInput:
     """Codes ``category=insurance`` → nome de exibição (A37.l11). Vazio degrada
     para normalização pura (sem unificação de variantes)."""
 
+    dependentes_irpf_count: Optional[int] = None
+    """Dependentes declarados no IRPF do ano-base (``irpf_kpis.dependentes``,
+    ADR-194). ``None`` = sem IRPF observado; ``0`` é medida, não ausência.
+    ADR-395 §D7: declaração legal de dependente com cadastro que não confirma
+    idade/dependência torna o gatilho de vida NÃO APURADO, não inexistente."""
+
     cobertura_cadastrada: tuple[ProtectionItem, ...] = ()
     """Apólices do aggregate ``Protection`` (ADR-192). Entram nos predicados de
     ausência (KPI F) e no escopo declarado do prêmio — nunca na soma dele
@@ -276,19 +282,30 @@ def _rationale_coberto(categoria: str, cobertura: CoberturaConsolidada) -> str:
 
 
 def _flag_vida(inp: ProtecaoInput, cobertura: CoberturaConsolidada) -> dict:
-    """Gating heurístico vida (ADR-240 KPI F). Sem family_members → False (G5)."""
+    """Gating heurístico vida (ADR-240 KPI F); ausência de gatilho é apurada."""
     if not inp.family_members:
-        return {"categoria": "vida", "flag": False, "rationale": "sem family_members"}
+        return _gap_vida_sem_gatilho(inp, "sem family_members")
     risco = _detecta_risco_vida(inp.family_members, inp.patrimonio)
     if not risco:
-        return {"categoria": "vida", "flag": False, "rationale": "sem gatilho"}
+        return _gap_vida_sem_gatilho(inp, "sem gatilho")
     if cobertura.tem_cobertura("vida"):
-        return {
-            "categoria": "vida",
-            "flag": False,
-            "rationale": _rationale_coberto("vida", cobertura),
-        }
-    return {"categoria": "vida", "flag": True, "rationale": risco}
+        return _gap_vida_entry(False, _rationale_coberto("vida", cobertura), "apurado")
+    return _gap_vida_entry(True, risco, "apurado")
+
+
+def _gap_vida_entry(flag: bool, rationale: str, status: str) -> dict:
+    return {"categoria": "vida", "flag": flag, "rationale": rationale, "status": status}
+
+
+# ADR-395 §D7 — o IRPF é declaração legal de dependente. Se ele lista alguém e o
+# cadastro não confirma idade nem dependência econômica, "sem gatilho" seria
+# afirmação de ausência sobre fonte que não mediu. `flag` segue booleano: a
+# semântica de `True` não muda e nenhum consumidor existente quebra.
+def _gap_vida_sem_gatilho(inp: ProtecaoInput, rationale: str) -> dict:
+    if (inp.dependentes_irpf_count or 0) > 0:
+        return _gap_vida_entry(False, "dependentes_irpf_sem_cadastro", "nao_apurado")
+    status = "nao_apurado" if rationale == "sem family_members" else "apurado"
+    return _gap_vida_entry(False, rationale, status)
 
 
 def _detecta_risco_vida(
@@ -314,14 +331,14 @@ def _detecta_risco_vida(
 def _flag_saude(inp: ProtecaoInput, cobertura: CoberturaConsolidada) -> dict:
     """Gating heurístico saúde (ADR-240 KPI F)."""
     if inp.fiscal.has_deducao_saude_irpf or inp.fiscal.has_categoria_saude_e4_3_meses:
-        return {"categoria": "saude", "flag": False, "rationale": "evidencia_pagamento_saude"}
+        return _gap_entry("saude", False, "evidencia_pagamento_saude")
     if cobertura.tem_cobertura("saude"):
-        return {
-            "categoria": "saude",
-            "flag": False,
-            "rationale": _rationale_coberto("saude", cobertura),
-        }
-    return {"categoria": "saude", "flag": True, "rationale": "sem_evidencia_cobertura"}
+        return _gap_entry("saude", False, _rationale_coberto("saude", cobertura))
+    return _gap_entry("saude", True, "sem_evidencia_cobertura")
+
+
+def _gap_entry(categoria: str, flag: bool, rationale: str, status: str = "apurado") -> dict:
+    return {"categoria": categoria, "flag": flag, "rationale": rationale, "status": status}
 
 
 # ===========================================================================
