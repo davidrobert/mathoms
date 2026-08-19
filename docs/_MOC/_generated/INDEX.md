@@ -912,7 +912,7 @@
 | A40.l57 | lane | open | A40 | O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null | `sprint/A40/lanes/A40-l57-parecer-le-contrato-antigo-do-pgbl.md` |
 | A40.l58 | lane | open | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
 | A40.l59 | lane | open | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
-| A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
+| A40.l6 | lane | open | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l60 | lane | open | A40 | Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte | `sprint/A40/lanes/A40-l60-ressalva-e-separacao-do-conselho-de-seguro.md` |
 | A40.l61 | lane | shipped | A40 | ProtectionBundle fail-closed: ausência de insumo não vira zero/False e filho conta como dependente | `sprint/A40/lanes/A40-l61-protection-bundle-fail-closed.md` |
 | A40.l62 | lane | shipped | A40 | ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria | `sprint/A40/lanes/A40-l62-protection-computation-snapshot-v1.md` |
@@ -942,7 +942,7 @@
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |
 | A42.l6 | lane | planned | A42 | Contrato do store: política de escopo, retenção de órfão e validação de artefato | `sprint/A42/lanes/A42-l6-contrato-de-store-e-de-artefato.md` |
-| A42.l7 | lane | planned | A42 | Registro de custo de LLM é fonte de verdade que perde row e vaza identificador de documento | `sprint/A42/lanes/A42-l7-registro-de-custo-perde-row.md` |
+| A42.l7 | lane | open | A42 | Registro de custo de LLM é fonte de verdade que perde row e vaza identificador de documento | `sprint/A42/lanes/A42-l7-registro-de-custo-perde-row.md` |
 | A42.l8 | lane | planned | A42 | Mês vazio por falha de extração conta como mês documentado | `sprint/A42/lanes/A42-l8-mes-vazio-conta-como-documentado.md` |
 | A42.l9 | lane | planned | A42 | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | `sprint/A42/lanes/A42-l9-identidade-do-checksum-de-fatura.md` |
 | A43.l1 | lane | planned | A43 | ADR do boundary MCP, ameaça reversa e rebaseline do plano | `sprint/A43/lanes/A43-l1-adr-boundary-mcp-e-rebaseline.md` |

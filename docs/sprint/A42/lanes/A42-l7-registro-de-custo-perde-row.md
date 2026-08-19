@@ -3,7 +3,7 @@ id: A42.l7
 type: lane
 title: "Registro de custo de LLM é fonte de verdade que perde row e vaza identificador de documento"
 sprint: A42
-status: planned
+status: open
 priority: P1
 branch_slug: a42-l7-registro-de-custo-perde-row
 adrs:
@@ -14,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a42
-  - status/planned
+  - status/open
   - priority/p1
   - area/dados
   - area/llm
