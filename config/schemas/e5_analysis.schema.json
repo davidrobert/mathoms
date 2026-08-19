@@ -610,7 +610,7 @@
     },
     "endividamento": {
       "type": "object",
-      "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros numérica é percentual absoluto (ADR-209).",
+      "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros_aa numérica é percentual absoluto AO ANO (ADR-209; renomeada de taxa_juros em ADR-396).",
       "properties": {
         "total_dividas": {
           "type": "number"
@@ -625,28 +625,117 @@
           "type": "array",
           "items": {
             "type": "object",
+            "description": "ADR-396: cada campo com mais de uma origem possível declara a sua em `fontes`, com enum próprio por chave. Invariante do produtor (bijeção, não expressável neste dialeto): item[c] is not None ⟺ c ∈ fontes. Gate: tests/test_endividamento_fontes_bijecao.py.",
+            "additionalProperties": false,
             "required": [
               "descricao",
-              "saldo_devedor"
+              "saldo_devedor",
+              "fontes"
             ],
             "properties": {
+              "divida_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Identidade do consolidador de baseline (dividas_dedup). null quando o item não veio de baseline itemizado."
+              },
               "descricao": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1,
+                "description": "Rótulo DERIVADO para exibição. Discriminação crua de documento fiscal e nome de pessoa não entram aqui — nome vai no campo `membro` (a rota React é a fonte do PDF, ADR-129)."
+              },
+              "membro": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Nome de exibição do titular da dívida, mesma fonte de investimentos[].membro. Campo tipado, nunca embutido na descrição."
+              },
+              "tipo": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "financiamento_imobiliario",
+                  "financiamento_veiculo",
+                  "consignado",
+                  "emprestimo_pessoal",
+                  "cheque_especial",
+                  "cartao_credito",
+                  "credito_rotativo",
+                  "outros",
+                  null
+                ],
+                "description": "Enum do baseline_patrimonial.dividas[].tipo (ADR-301). null quando a origem não classificou."
               },
               "saldo_devedor": {
-                "type": "number"
+                "type": "number",
+                "minimum": 0
+              },
+              "saldo_ano_referencia": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 2000,
+                "maximum": 2100,
+                "description": "Ano-base do saldo. Estoque de IRPF é foto de 31/12 — pode estar até 18 meses atrás do fluxo observado."
               },
               "parcela_mensal": {
                 "type": [
                   "number",
                   "null"
-                ]
+                ],
+                "minimum": 0
               },
-              "taxa_juros": {
+              "taxa_juros_aa": {
                 "type": [
                   "number",
                   "null"
-                ]
+                ],
+                "minimum": 0,
+                "description": "Percentual absoluto AO ANO. O sufixo é load-bearing: 12,5% a.m. e 12,5% a.a. levam a decisões opostas, e `_aa` também tira o campo do classificador monetário-por-default (dev/golden_diff.py)."
+              },
+              "desembolso_mensal_observado_brl": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "exclusiveMinimum": 0,
+                "description": "Fluxo medido no E4 atribuível a ESTA dívida. Zero é proibido por construção: 0,0 no item é indistinguível de 'não consegui atribuir' — ausência é null."
+              },
+              "fontes": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "saldo_devedor"
+                ],
+                "description": "Precedência de fonte codificada no contrato: cada chave admite só as origens legítimas daquele campo. Fonte nova = um membro no enum da chave onde ela é legítima — não um campo de versão global (o discriminador é por item).",
+                "properties": {
+                  "saldo_devedor": {
+                    "enum": [
+                      "baseline_irpf",
+                      "declarado"
+                    ]
+                  },
+                  "parcela_mensal": {
+                    "enum": [
+                      "declarado"
+                    ]
+                  },
+                  "taxa_juros_aa": {
+                    "enum": [
+                      "declarado"
+                    ]
+                  },
+                  "desembolso_mensal_observado_brl": {
+                    "enum": [
+                      "observado_e4"
+                    ]
+                  }
+                }
               }
             }
           }

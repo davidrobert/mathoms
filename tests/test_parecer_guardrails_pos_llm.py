@@ -63,7 +63,7 @@ E5_COM_SENTINELAS: dict[str, Any] = {
                 "descricao": "Financiamento imobiliário",
                 "saldo_devedor": 500_000.0,
                 "parcela_mensal": None,
-                "taxa_juros": "N/D",
+                "taxa_juros_aa": "N/D",
             }
         ],
     },
@@ -369,15 +369,15 @@ class TestSentinelasDeAusencia:
         return [CampoFaltante(field_path=path, motivo="dado ausente (sentinela) no E5")]
 
     def test_nd_string_sentinel_is_kept_as_genuine(self):
-        """Regressão dogfood: taxa_juros "N/D" fazia o pedido legítimo ser removido."""
-        output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros"))
+        """Regressão dogfood: taxa_juros_aa "N/D" fazia o pedido legítimo ser removido."""
+        output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros_aa"))
         result, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
         assert audit == []
         kept = result.campos_faltantes_pediria_se_iterasse
-        assert [c.field_path for c in kept] == ["$.endividamento.dividas[0].taxa_juros"]
+        assert [c.field_path for c in kept] == ["$.endividamento.dividas[0].taxa_juros_aa"]
 
     def test_nd_sentinel_not_counted_in_spurious_telemetry(self):
-        output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros"))
+        output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros_aa"))
         _, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
         summary = guardrails_summary(confianca_rebaixada=0, audit=audit)
         assert summary["field_requests_spurious"] == 0

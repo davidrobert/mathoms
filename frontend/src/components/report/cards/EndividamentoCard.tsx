@@ -80,7 +80,7 @@ export function EndividamentoCard({
                       Valor
                     </th>
                     <th scope="col" className="pb-2 text-right font-display font-semibold">
-                      Taxa
+                      Taxa (a.a.)
                     </th>
                   </tr>
                 </thead>
@@ -95,8 +95,8 @@ export function EndividamentoCard({
                         <MonetaryValue value={d.saldo_devedor} />
                       </td>
                       <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                        {d.taxa_juros != null
-                          ? `${d.taxa_juros.toFixed(2)}%`
+                        {d.taxa_juros_aa != null
+                          ? `${d.taxa_juros_aa.toFixed(2).replace(".", ",")}% a.a.`
                           : "—"}
                       </td>
                     </tr>

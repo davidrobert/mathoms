@@ -102,18 +102,18 @@ class TestResult:
         d = item.to_dict()
         assert d["saldo_devedor"] == 200_000.12
         assert d["parcela_mensal"] is None
-        assert d["taxa_juros"] is None
+        assert d["taxa_juros_aa"] is None
 
     def test_divida_item_to_dict_rounds_known_parcela(self):
         item = DividaItem(
             descricao="Fin imóvel",
             saldo_devedor=200_000.0,
             parcela_mensal=1_234.567,
-            taxa_juros=9.5,
+            taxa_juros_aa=9.5,
         )
         d = item.to_dict()
         assert d["parcela_mensal"] == 1_234.57
-        assert d["taxa_juros"] == 9.5
+        assert d["taxa_juros_aa"] == 9.5
 
     def test_divida_item_to_dict_redige_descricao_cartorial(self):
         item = DividaItem(

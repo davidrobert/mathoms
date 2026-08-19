@@ -391,6 +391,7 @@
 | ADR-394 | adr | Decidido |  | Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado | `adr/394-fato-deterministico-e-autoridade-llm-e-hint.md` |
 | ADR-395 | adr | Decidido |  | Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap | `adr/395-cobertura-documental-e-hint-de-inventario.md` |
 | ADR-396 | adr | Decidido |  | Amostragem de LLM é declarada no call-site, não herdada do config | `adr/396-amostragem-declarada-no-call-site-de-llm.md` |
+| ADR-396 | adr | Proposto |  | Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio) | `adr/396-item-de-divida-declara-a-fonte-de-cada-campo.md` |
 | ADR-397 | adr | Decidido |  | Registro civil e dependente fiscal são domínios distintos, projetados juntos | `adr/397-registro-civil-e-dependente-fiscal-sao-dominios-distintos.md` |
 | ADR-398 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/398-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
 | ADR-399 | adr | Decidido |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |

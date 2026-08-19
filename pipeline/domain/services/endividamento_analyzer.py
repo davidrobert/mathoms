@@ -29,24 +29,62 @@ def _safe_float(val) -> float:
 # =============================================================================
 
 
+# Campos cujo valor obriga declaração de fonte no item — e vice-versa
+# (bijeção; gate em ``tests/test_endividamento_fontes_bijecao.py``).
+_CAMPOS_COM_FONTE = (
+    "saldo_devedor",
+    "parcela_mensal",
+    "taxa_juros_aa",
+    "desembolso_mensal_observado_brl",
+)
+
+
 @dataclass(frozen=True)
 class DividaItem:
     # Ausência é None, nunca sentinela ("N/D"/0.0) — contrato tipado no schema E5
     # e guardrail do parecer tratam null como dado faltante (A37.l4 · DE-07).
     descricao: str
     saldo_devedor: float
+    # ADR-396: a origem do saldo é `baseline_irpf` (estoque de 31/12) ou
+    # `declarado` (usuário). Nenhum outro campo do item tem fonte hoje.
+    fonte_saldo: str = "baseline_irpf"
+    membro: str | None = None
+    divida_id: str | None = None
+    tipo: str | None = None
+    saldo_ano_referencia: int | None = None
     parcela_mensal: float | None = None
-    taxa_juros: float | None = None
+    # Percentual absoluto AO ANO. O sufixo `_aa` é load-bearing: sem ele o
+    # classificador monetário-por-default lê 12.5 como R$ 0,12 no snapshot.
+    taxa_juros_aa: float | None = None
 
     def to_dict(self) -> dict:
-        return {
+        item = {
+            "divida_id": self.divida_id,
+            # A40.l6 redige PII cartorial; o rótulo já nasce de vocabulário
+            # fechado (ADR-401 D4), então aqui é cinto-e-suspensório, não a
+            # garantia — a peneira de `_CODIGO_CANONICO` é que fecha a porta.
             "descricao": redact_cartorial(self.descricao),
+            "membro": self.membro,
+            "tipo": self.tipo,
             "saldo_devedor": round(self.saldo_devedor, 2),
+            "saldo_ano_referencia": self.saldo_ano_referencia,
             "parcela_mensal": round(self.parcela_mensal, 2)
             if self.parcela_mensal is not None
             else None,
-            "taxa_juros": self.taxa_juros,
+            "taxa_juros_aa": self.taxa_juros_aa,
         }
+        item["fontes"] = self._fontes(item)
+        return item
+
+    def _fontes(self, item: dict) -> dict:
+        """Derivada do próprio item — bijeção por construção, não por disciplina."""
+        origens = {
+            "saldo_devedor": self.fonte_saldo,
+            "parcela_mensal": "declarado",
+            "taxa_juros_aa": "declarado",
+            "desembolso_mensal_observado_brl": "observado_e4",
+        }
+        return {c: origens[c] for c in _CAMPOS_COM_FONTE if item.get(c) is not None}
 
 
 @dataclass(frozen=True)

@@ -42,6 +42,11 @@ _NON_MONETARY_EXACT = frozenset(
         "transacoes",
         "acumuladores_pct_gerador",
         "percentual_patrimonio",
+        # ADR-396: ano-base do saldo da dívida. O prefixo `ano_` do
+        # classificador não alcança `saldo_ano_referencia`, e monetário-por-
+        # default leria 2024 como R$ 20,24 no snapshot do view-model — mesma
+        # classe que motivou o rename `taxa_juros` -> `taxa_juros_aa`.
+        "saldo_ano_referencia",
         # ADR-369 D2 aposentou estas duas do contrato; ficam porque o diff também
         # compara goldens HISTÓRICOS, onde elas existem — remover reintroduziria
         # o delta_cents fantasma nessas comparações.

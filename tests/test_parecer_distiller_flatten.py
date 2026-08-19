@@ -68,7 +68,7 @@ _ENDIVIDAMENTO_COM_NULLS = {
                 "descricao": "Financiamento imobiliário",
                 "saldo_devedor": 500000.0,
                 "parcela_mensal": None,
-                "taxa_juros": None,
+                "taxa_juros_aa": None,
             }
         ],
     }
@@ -85,7 +85,7 @@ def test_key_value_flatten_skips_null_leaves():
     (paridade com on_null:skip dos blocos escalares)."""
     out = render_block(_ENDIVIDAMENTO_BLOCK, _ENDIVIDAMENTO_COM_NULLS)
     assert "total_dividas: 500000.0" in out
-    assert "taxa_juros" not in out
+    assert "taxa_juros_aa" not in out
     assert "parcela_mensal" not in out
     assert "None" not in out
 

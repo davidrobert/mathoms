@@ -19,7 +19,9 @@ _DIVIDA_NULLS = {
     "descricao": "Financiamento imobiliário",
     "saldo_devedor": 500000.0,
     "parcela_mensal": None,
-    "taxa_juros": None,
+    # ADR-396 renomeou `taxa_juros` -> `taxa_juros_aa` (percentual AO ANO).
+    "taxa_juros_aa": None,
+    "fontes": {"saldo_devedor": "baseline_irpf"},
 }
 
 
@@ -52,18 +54,27 @@ class TestEndividamentoDividasContract:
     def test_rejects_taxa_juros_nd_string(self, tmp_path, monkeypatch):
         """Sentinela "N/D" string em campo numérico falha o contrato."""
         monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
-        assert _validate(tmp_path, {**_DIVIDA_NULLS, "taxa_juros": "N/D"}) is False
+        assert _validate(tmp_path, {**_DIVIDA_NULLS, "taxa_juros_aa": "N/D"}) is False
 
     def test_rejects_parcela_mensal_string(self, tmp_path, monkeypatch):
         monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
         assert _validate(tmp_path, {**_DIVIDA_NULLS, "parcela_mensal": "N/D"}) is False
 
     def test_rejects_divida_sem_required(self, tmp_path, monkeypatch):
-        """dividas[] exige descricao + saldo_devedor em strict."""
+        """dividas[] exige descricao + saldo_devedor + fontes em strict."""
         monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
         assert _validate(tmp_path, {"descricao": "Financiamento imobiliário"}) is False
 
     def test_taxa_juros_numerica_valida(self, tmp_path, monkeypatch):
         monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
-        divida = {**_DIVIDA_NULLS, "parcela_mensal": 1234.57, "taxa_juros": 9.5}
+        divida = {
+            **_DIVIDA_NULLS,
+            "parcela_mensal": 1234.57,
+            "taxa_juros_aa": 9.5,
+            "fontes": {
+                "saldo_devedor": "baseline_irpf",
+                "parcela_mensal": "declarado",
+                "taxa_juros_aa": "declarado",
+            },
+        }
         assert _validate(tmp_path, divida) is True
