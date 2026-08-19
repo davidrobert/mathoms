@@ -12,7 +12,7 @@ from backend.app.services.protection_bundle_adapter import (
 )
 from backend.app.services.protection_bundle_inputs import ProtectionComputationInputs
 from backend.app.services.protection_bundle_populator import populate_protection_bundle
-from pipeline.domain.protection_bundle import ProtectionItem
+from pipeline.domain.protection_bundle import DocumentaryCoverage, ProtectionItem
 from pipeline.domain.protection_computation_inputs import (
     MemberProtectionProfileInput,
     ProtectionComputationInputsV1,
@@ -21,7 +21,12 @@ from pipeline.domain.protection_computation_inputs import (
 )
 
 
-def compute_protection_bundle(inputs: ProtectionComputationInputsV1, *, as_of_date: date) -> dict:
+def compute_protection_bundle(
+    inputs: ProtectionComputationInputsV1,
+    *,
+    as_of_date: date,
+    documentary_coverage: DocumentaryCoverage | None = None,
+) -> dict:
     """Fotografia computada do run. Capital único não vira renda mensal."""
     bundle = populate_protection_bundle(
         items=_items_from_policies(inputs.policies),
@@ -30,6 +35,7 @@ def compute_protection_bundle(inputs: ProtectionComputationInputsV1, *, as_of_da
         today=as_of_date,
         adapter_version=_PROTECTION_BUNDLE_VERSION,
         computation_inputs=_computation_from_v1(inputs),
+        documentary_coverage=documentary_coverage,
     )
     return _jsonable(_bundle_to_response(bundle).model_dump())
 

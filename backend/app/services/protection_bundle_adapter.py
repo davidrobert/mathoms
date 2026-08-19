@@ -139,7 +139,7 @@ def _gap_analysis_to_response(bundle: ProtectionBundle):
     return {
         key: ProtectionGapItemResponse(
             ideal_brl=_cents_to_decimal(value.get("ideal_brl_cents")),
-            actual_brl=_cents_to_decimal(value.get("actual_brl_cents")) or Decimal("0.00"),
+            actual_brl=_cents_to_decimal(value.get("actual_brl_cents")),
             gap_brl=_cents_to_decimal(value.get("gap_brl_cents")),
             methodology=value.get("methodology"),
         )
@@ -175,6 +175,13 @@ def _auto_inferred_to_response(bundle: ProtectionBundle):
     ]
 
 
+def _documentary_to_response(bundle: ProtectionBundle):
+    from backend.app.schemas.dto.protection.bundle import DocumentaryCoverageResponse
+
+    raw = bundle.get("documentary_coverage")
+    return None if raw is None else DocumentaryCoverageResponse(**raw)
+
+
 def _bundle_to_response(bundle: ProtectionBundle):
     """TypedDict → Pydantic DTO."""
     from backend.app.schemas.dto.protection.bundle import (
@@ -191,6 +198,7 @@ def _bundle_to_response(bundle: ProtectionBundle):
         calculation_status=bundle.get("calculation_status", {}),
         methodology_thresholds=ProtectionThresholdsResponse(**thresholds_raw),
         has_us_exposure=bundle.get("has_us_exposure"),
+        documentary_coverage=_documentary_to_response(bundle),
         adapter_version=bundle.get("_adapter_version", _PROTECTION_BUNDLE_VERSION),
     )
 

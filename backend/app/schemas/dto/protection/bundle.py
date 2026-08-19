@@ -32,7 +32,9 @@ class ProtectionGapItemResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     ideal_brl: Optional[Decimal] = None
-    actual_brl: Decimal
+    # ADR-395 §D4: nulo é "não medido". Coagir para 0,00 afirmava cobertura
+    # zero onde o produtor não observou nada — retenção é ausência de entry.
+    actual_brl: Optional[Decimal] = None
     gap_brl: Optional[Decimal] = None
     methodology: Optional[str] = None
 
@@ -76,6 +78,17 @@ class ProtectionCalculationStatusResponse(BaseModel):
     reason: str
 
 
+class DocumentaryCoverageResponse(BaseModel):
+    """Fonte documental projetada no bundle (ADR-395 §D2) — hint, nunca valor."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    active_policies_count: int
+    insurers: list[str]
+    earliest_coverage_end: Optional[str] = None
+    unconfirmed_categories: list[str]
+
+
 class ProtectionBundleResponse(BaseModel):
     """Bundle exposto via ``GET /workspaces/{id}/protection-bundle``."""
 
@@ -88,4 +101,5 @@ class ProtectionBundleResponse(BaseModel):
     calculation_status: dict[str, ProtectionCalculationStatusResponse]
     methodology_thresholds: ProtectionThresholdsResponse
     has_us_exposure: Optional[bool]
+    documentary_coverage: Optional[DocumentaryCoverageResponse] = None
     adapter_version: int
