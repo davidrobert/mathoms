@@ -124,6 +124,15 @@
           "property_id": {"type": ["string", "null"]},
           "endereco_canonical": {"type": ["string", "null"]},
           "codigo_rfb": {"type": "string"},
+          "eixo_autoridade": {
+            "type": "string",
+            "enum": ["secao", "catalogo", "sinal", "hint"],
+            "description": "Degrau da ADR-394 D1 que decidiu o eixo ATIVO deste item. ADR-398: só `secao`/`catalogo` (fato) autorizam o mint de PropertyIdentity; `hint` produz review_reason `domain.property_identity_eixo_por_hint` e `property_id` nulo."
+          },
+          "secao_disponivel": {
+            "type": "boolean",
+            "description": "ADR-398 D2: a declaração de origem (membro, ano) emitiu `secao` em algum item. Falso = corpus pré-`secao`, onde o fato não é exigível e o mint segue autorizado."
+          },
           "_dedup_warning": {
             "type": "object",
             "description": "Marca divergência >10% de valores entre IRPFs co-declarados (ADR-246)."

@@ -31,6 +31,7 @@ import scripts.pipeline_common as _pc
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services.baseline_item_classifier import (
     BaselineAxis,
+    ClassificationAuthority,
     DivergenciaFatoHint,
     EixoDecididoPeloHint,
     classify_baseline_item,
@@ -259,6 +260,9 @@ def consolidate(baseline: dict, resolver=None) -> dict:
                 # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
                 entry["codigo_rfb"] = str(bem.get("grupo", "") or "").strip()
                 entry["ano_referencia"] = ano
+                # ADR-398: este caminho itera `decl["bens_direitos"]` — a ficha
+                # de origem É o fato, e o mint fica autorizado.
+                entry["eixo_autoridade"] = ClassificationAuthority.SECAO.value
                 # Try to enrich with XLSX data
                 xlsx_match = _match_imovel_xlsx(descricao, imoveis_xlsx)
                 if xlsx_match:
@@ -470,6 +474,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     como antes. Sem resolver, comportamento legado preservado (backwards compat).
     """
     itens = baseline.get("itens", [])
+    declaracoes_com_secao = _declaracoes_com_secao(itens)
     resumo = baseline.get("resumo", {})
     ano_ref = resumo.get("ano_referencia") or (date.today().year - 1)
     # ADR-274: chave do resumo em ano-base 31/12 (máximo `ano` dos itens),
@@ -551,6 +556,12 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
             entry["tipo"] = "imovel"
             # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
             entry["codigo_rfb"] = str(item.get("codigo", "") or "").strip()
+            # ADR-398: o mint lê estes dois campos. `eixo_autoridade` diz QUEM
+            # decidiu; `secao_disponivel` diz se a declaração de origem sequer
+            # oferecia o fato — sem esse escopo, recusar o mint apagaria a
+            # identidade de todo o corpus pré-`secao`.
+            entry["eixo_autoridade"] = classificacao.autoridade.value
+            entry["secao_disponivel"] = _declaracao_do_item(item) in declaracoes_com_secao
             # ADR-274: first_seen_year é o ano-base do próprio item (não exercício).
             entry["ano_referencia"] = int(item_ano_str)
             imoveis_consolidados.append(entry)
@@ -619,6 +630,16 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     baseline["validation"] = {"review_reasons": review_reasons}
 
     return baseline
+
+
+def _declaracao_do_item(item: dict) -> tuple[str, str]:
+    """Chave da declaração de origem — um E1.5a é um IRPF, logo um (membro, ano)."""
+    return (str(item.get("membro") or ""), str(item.get("ano") or ""))
+
+
+def _declaracoes_com_secao(itens: list) -> set:
+    """ADR-398: declarações cuja extração emitiu `secao` — só nelas o fato é exigível."""
+    return {_declaracao_do_item(i) for i in itens if i.get("secao")}
 
 
 def _to_cents(quantia: Any) -> int:

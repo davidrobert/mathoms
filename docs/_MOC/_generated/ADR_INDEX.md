@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-385 ADRs (ADR-001 a ADR-395) em [`docs/adr/`](../../adr/).
+386 ADRs (ADR-001 a ADR-398) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 330
+- **Decidido**: 331
 - **Proposto**: 51
 - **Roadmap**: 4
 
@@ -545,7 +545,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (65)
+### Decidido (66)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -612,6 +612,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-392]] — endereco_canonical=None não minta PropertyIdentity; match residual é único (titular, código) · phase A40.l70
 - [[ADR-393]] — Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) · phase A40.l68
 - [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
+- [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
 
 ### Proposto (14)
 
