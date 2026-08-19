@@ -6,10 +6,17 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
 
-from pipeline.domain.services.asset_classifier import classify_asset_outcome
+from pipeline.domain.services.asset_classifier import AssetAuthority, classify_asset_outcome
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
+
+
+def _valor_declarado_do_imovel(imovel: Mapping[str, Any]) -> Decimal:
+    """Primeiro valor declarado que existir, na ordem de precedência do baseline."""
+    return _safe_money(
+        imovel.get("valor_31_12_ano_base") or imovel.get("valor_irpf") or imovel.get("valor", 0)
+    )
 
 
 def _safe_money(val) -> Decimal:
@@ -58,8 +65,8 @@ class TopAtivo:
     valor: Decimal
     pct_carteira: float  # percentage 0-100, peso na carteira
     tipo_origem: str
-    # Quem decidiu a `classe` ([[ADR-400]]). `None` = a linha não passou pelo
-    # classificador (imóvel: a classe vem da origem do item, não de keyword).
+    # Quem decidiu a `classe` ([[ADR-400]]) — inclusive `origem`, para imóvel,
+    # cuja classe vem da proveniência e não de degrau algum.
     autoridade: str | None = None
 
     def to_dict(self) -> dict:
@@ -193,9 +200,7 @@ class TopAtivosAnalyzer:
     def _build_imovel_candidate(
         self, member: str, imovel: Mapping[str, Any], residencia_property_ids: frozenset[str]
     ) -> _Candidate | None:
-        valor = _safe_money(
-            imovel.get("valor_31_12_ano_base") or imovel.get("valor_irpf") or imovel.get("valor", 0)
-        )
+        valor = _valor_declarado_do_imovel(imovel)
         if valor <= 0:
             return None
         pid = imovel.get("property_id")
@@ -208,6 +213,7 @@ class TopAtivosAnalyzer:
             instituicao="",
             valor=valor,
             tipo_origem="imovel",
+            autoridade=AssetAuthority.ORIGEM.value,
             property_id=str(pid) if isinstance(pid, str) and pid else None,
         )
 

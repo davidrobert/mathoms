@@ -148,6 +148,18 @@ class TestAutoridadeDeclarada:
             AssetAuthority.SEM_HAYSTACK,
         }
 
+    def test_imovel_declara_origem_em_vez_de_nulo(self):
+        # `None` significaria ao mesmo tempo "a origem decidiu" e "campo não
+        # populado" — a ambiguidade que o RV7-04 denuncia, com o agravante de o
+        # consumidor do DE-2 ter de destratá-la por item.
+        from pipeline.domain.services.top_ativos_analyzer import TopAtivosAnalyzer
+
+        bens = {"imoveis": [{"valor_31_12_ano_base": 500_000.0, "property_id": "p-1"}]}
+        (ativo,) = TopAtivosAnalyzer().analyze([("titular", bens)]).top_ativos
+        assert ativo.classe == "Imóveis Investimento"
+        assert ativo.autoridade == AssetAuthority.ORIGEM.value
+        assert ativo.autoridade is not None
+
     def test_sem_mapa_conta_como_nao_classificado(self):
         # Contrato pré-declarado: quando o degrau 1 emitir SEM_MAPA, a supressão
         # graduada já o contabiliza — não é `Outros` mudo.

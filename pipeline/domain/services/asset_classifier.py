@@ -148,6 +148,11 @@ class AssetAuthority(str, Enum):
     # ninguém souber que é deliberado — este comentário é o registro.
     CONCLUSIVO = "conclusivo"
     PRESUNTIVO = "presuntivo"
+    # A classe veio da PROVENIÊNCIA do item (imóvel é "Imóveis Investimento" por
+    # construção), não de degrau nenhum. Nomear evita que `None` signifique ao
+    # mesmo tempo "a origem decidiu" e "campo não populado" — a ambiguidade que
+    # o RV7-04 denuncia, e que o consumidor do DE-2 teria de destratar.
+    ORIGEM = "origem"
     KEYWORD = "keyword"
     TICKER = "ticker"
     SEM_MATCH = "sem_match"
