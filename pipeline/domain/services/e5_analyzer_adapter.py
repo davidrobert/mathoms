@@ -48,6 +48,7 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeConfig,
     CenariosConjugeResult,
 )
+from pipeline.domain.services.composicao_familiar import build_composicao_familiar
 from pipeline.domain.services.consumo_consciente_calculator import (
     ConsumoConsciente,
     ConsumoConscienteCalculator,
@@ -279,6 +280,11 @@ class E5AnalysisResult:
     # presente (workspace sem apólice = KPIs zerados + gap qualitativo,
     # cenário G6-b).
     protecao_patrimonial: dict[str, Any] | None = None
+    # PE-3 (r7): cadastro civil do domicílio (papel + faixa etária em
+    # ``faixa_ref``). Par do lado fiscal ``irpf_kpis.dependentes`` — sem ele o
+    # parecer emitia os dois fatos da mesma família sem reconciliar. ``None``
+    # quando o workspace não declara membros.
+    composicao_familiar: dict[str, Any] | None = None
 
 
 # =============================================================================
@@ -328,6 +334,7 @@ class E5AnalyzerAdapter:
         pontos_urgentes_analyzer: PontosUrgentesAnalyzer | None = None,
         passive_income_calculator: PassiveIncomeCalculator | None = None,
         family_snapshots: tuple[FamilyMemberSnapshot, ...] = (),
+        family_config: dict | None = None,
         reference_date: date | None = None,
         seguradoras_catalog: Mapping[str, str] | None = None,
         protection_bundle: ProtectionBundle | None = None,
@@ -373,6 +380,10 @@ class E5AnalyzerAdapter:
             PassiveIncomeConfig()
         )
         self._family_snapshots = family_snapshots
+        # PE-3: as faixas etárias são recortadas em 31/12 do ano-base fiscal, que
+        # só se resolve com o store em mãos — daí reter a config e não só os
+        # snapshots, cujas idades já foram fixadas em ``reference_date``.
+        self._family_config = family_config
         self._reference_date = reference_date or date.today()
         # A37.l11 — canonicalização de seguradora no bloco de proteção.
         self._seguradoras_catalog = dict(seguradoras_catalog or {})
@@ -524,6 +535,7 @@ class E5AnalyzerAdapter:
             ),
             passive_income_calculator=PassiveIncomeCalculator(PassiveIncomeConfig()),
             family_snapshots=family_snapshots_from_config(family, reference_date or date.today()),
+            family_config=family,
             reference_date=reference_date,
             seguradoras_catalog=seguradoras_catalog,
             protection_bundle=protection_bundle,
@@ -797,6 +809,7 @@ class E5AnalyzerAdapter:
             proventos_por_ativo=tuple(fiscal_informes.proventos_summaries()) or None,
             exposicao_cambial=exposicao_cambial,
             protecao_patrimonial=protecao,
+            composicao_familiar=self._composicao_familiar(irpf_analyzer),
             lineage=build_e5_lineage(
                 patrimonio_report=patrimonio_full,
                 reserva=reserva,
@@ -809,6 +822,12 @@ class E5AnalyzerAdapter:
         )
 
     # -- Helpers de wiring --
+
+    def _composicao_familiar(self, irpf: IRPFAnalyzer | None) -> dict[str, Any] | None:
+        """Cadastro civil recortado em 31/12 do ano-base fiscal (PE-3)."""
+        ref = _faixa_ref_fiscal(irpf, self._reference_date)
+        snapshots = family_snapshots_from_config(self._family_config, ref)
+        return build_composicao_familiar(snapshots, faixa_ref=ref.isoformat())
 
     def _compute_passive_income(
         self,
@@ -1206,6 +1225,16 @@ def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:
     except Exception:
         return None
     return analyzer if analyzer.anos_base_disponiveis() else None
+
+
+def _faixa_ref_fiscal(irpf: IRPFAnalyzer | None, reference_date: date) -> date:
+    """31/12 do ano-calendário do IRPF sob reconciliação (mesmo ``resolve_ano_base_fiscal``
+    de ``irpf_kpis.ano_base_default``, ADR-305). Sem IRPF não há ano a reconciliar:
+    cai no último ano-calendário fechado, um relógio no passado — nunca à frente
+    da realidade, que é a direção que fabricaria menor onde já há maior."""
+    resolved = resolve_ano_base_fiscal(irpf.estados_completude()) if irpf is not None else None
+    ano = resolved.ano if resolved is not None else reference_date.year - 1
+    return date(ano, 12, 31)
 
 
 def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | None:

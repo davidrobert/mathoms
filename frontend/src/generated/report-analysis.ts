@@ -733,6 +733,14 @@ export type E5AnalysisArtifact = {
     }>;
   };
   "protecao_patrimonial"?: ProtecaoPatrimonialArtifact;
+  "composicao_familiar"?: {
+    "faixa_ref": string;
+    "fonte": "cadastro_familia";
+    "membros": Array<{
+      "papel": "titular" | "conjuge" | "filho" | "enteado" | "ascendente" | "outro_dependente";
+      "faixa_etaria": "0-17" | "18-21" | "22-24" | "25-59" | "60+" | "desconhecida";
+    }>;
+  };
   "protection_computation_inputs_v1"?: {
     "input_contract_version": number;
     "status": "available" | "unavailable";

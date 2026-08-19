@@ -2421,6 +2421,7 @@ def _e5_compose_output(
     proventos_por_ativo=None,
     protecao_patrimonial: Dict[str, Any] | None = None,
     protection_computation_inputs=None,
+    composicao_familiar: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
@@ -2467,6 +2468,7 @@ def _e5_compose_output(
         lineage=legacy.get("lineage"),
         protecao_patrimonial=protecao_patrimonial,
         protection_computation_inputs=protection_computation_inputs,
+        composicao_familiar=composicao_familiar,
     )
     return build_e5_output(output_inputs)
 
@@ -2600,6 +2602,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         premissas_economicas=premissas_economicas,
         proventos_por_ativo=result.proventos_por_ativo,
         protecao_patrimonial=result.protecao_patrimonial,
+        composicao_familiar=result.composicao_familiar,
         protection_computation_inputs=_load_protection_computation_inputs(ctx, TODAY.isoformat()),
     )
     _e5_persist(store, ctx, output)
