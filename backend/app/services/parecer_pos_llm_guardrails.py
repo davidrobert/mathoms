@@ -241,6 +241,7 @@ def guardrails_summary(
     confianca_rebaixada: int,
     audit: list[dict],
     needs_review_triggered: bool = False,
+    sugestoes_antagonicas: int = 0,
 ) -> dict:
     """Telemetria dos guardrails. ``needs_review_triggered`` espelha evidencia/red-line
     (ADR-295) — o fallback do MC nunca promove needs_review (A28.l11 / A40.l49)."""
@@ -249,6 +250,7 @@ def guardrails_summary(
         "field_requests_spurious": sum(1 for a in audit if a["reason"] == REASON_SPURIOUS),
         "field_requests_wrong_path": sum(1 for a in audit if a["reason"] == REASON_WRONG_PATH),
         "needs_review_triggered": needs_review_triggered,
+        "sugestoes_antagonicas": sugestoes_antagonicas,
     }
 
 
