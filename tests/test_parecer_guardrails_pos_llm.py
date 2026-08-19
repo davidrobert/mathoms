@@ -11,13 +11,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+import pytest
+
 from backend.app.services.parecer_orchestrator import (
     ParecerOrchestratorConfig,
     generate_parecer,
 )
 from backend.app.services.parecer_pos_llm_guardrails import (
+    FIELD_PATH_ALIASES,
     REASON_SPURIOUS,
     REASON_WRONG_PATH,
+    classify_field_path,
     downgrade_confianca_fallback,
     filter_campos_faltantes,
     guardrails_summary,
@@ -36,8 +40,9 @@ from pipeline.llm.schemas.parecer_planejador import (
 
 WS = "ws-guardrails-test"
 
-# E5 sintético PII-zero: premissas em fallback + dado de dependentes presente
-# no path canônico ($.irpf_kpis) e ausente no path errado ($.composicao_familiar).
+# E5 sintético PII-zero: premissas em fallback + contagem fiscal de dependentes
+# no path canônico ($.irpf_kpis.dependentes). Sem bloco civil — os testes que
+# precisam dele o injetam, para não acoplar as duas leituras.
 E5_PARCIAL: dict[str, Any] = {
     "premissas_economicas": {"status": "parcial"},
     "if_monte_carlo": {"prob_sucesso_pct": 31.0},
@@ -229,13 +234,27 @@ class TestDowngradeConfiancaFallback:
 # -----------------------------------------------------------------------
 
 
+# O par real civil→fiscal ($.composicao_familiar.dependentes →
+# $.irpf_kpis.dependentes) foi deletado de FIELD_PATH_ALIASES no PE-3: eram
+# domínios distintos, não o mesmo fato sob outro path. O MECANISMO da via 2
+# segue vivo e é exercitado aqui com um alias sintético legítimo — mesmo fato
+# fiscal (contagem de dependentes IRPF), path que o modelo poderia inventar.
+_ALIAS_ERRADO = "$.dependentes_irpf"
+_ALIAS_CANONICO = "$.irpf_kpis.dependentes"
+
+
+@pytest.fixture
+def alias_sintetico(monkeypatch):
+    monkeypatch.setitem(FIELD_PATH_ALIASES, _ALIAS_ERRADO, _ALIAS_CANONICO)
+
+
 def _campos_3_vias() -> list[CampoFaltante]:
     return [
         CampoFaltante(
             field_path="$.patrimonio.bruto", motivo="detalhar a composição do patrimônio"
         ),
         CampoFaltante(
-            field_path="$.composicao_familiar.dependentes",
+            field_path=_ALIAS_ERRADO,
             motivo="quantos dependentes a família possui",
         ),
         CampoFaltante(
@@ -246,7 +265,7 @@ def _campos_3_vias() -> list[CampoFaltante]:
 
 
 class TestFilterCamposFaltantes3Vias:
-    def test_spurious_removed_wrong_path_reannotated_absent_kept(self):
+    def test_spurious_removed_wrong_path_reannotated_absent_kept(self, alias_sintetico):
         output = make_output(campos=_campos_3_vias())
         result, audit = filter_campos_faltantes(output, E5_PARCIAL, WS)
 
@@ -257,19 +276,16 @@ class TestFilterCamposFaltantes3Vias:
         assert set(by_reason) == {REASON_SPURIOUS, REASON_WRONG_PATH}
         assert by_reason[REASON_SPURIOUS]["field_path"] == "$.patrimonio.bruto"
         wrong = by_reason[REASON_WRONG_PATH]
-        assert wrong["field_path"] == "$.composicao_familiar.dependentes"
-        assert wrong["alias_path"] == "$.irpf_kpis.dependentes"
-        assert "[reanotado: dado presente em $.irpf_kpis.dependentes]" in wrong["motivo"]
+        assert wrong["field_path"] == _ALIAS_ERRADO
+        assert wrong["alias_path"] == _ALIAS_CANONICO
+        assert f"[reanotado: dado presente em {_ALIAS_CANONICO}]" in wrong["motivo"]
 
-    def test_alias_null_in_e5_keeps_entry(self):
+    def test_alias_null_in_e5_keeps_entry(self, alias_sintetico):
         """Alias conhecido mas dado ausente no E5 → genuinamente faltante, mantém."""
         e5_sem_irpf = {"premissas_economicas": {"status": "completo"}}
         output = make_output(
             campos=[
-                CampoFaltante(
-                    field_path="$.composicao_familiar.dependentes",
-                    motivo="quantos dependentes a família possui",
-                )
+                CampoFaltante(field_path=_ALIAS_ERRADO, motivo="quantos dependentes a família tem")
             ]
         )
         result, audit = filter_campos_faltantes(output, e5_sem_irpf, WS)
@@ -291,7 +307,7 @@ class TestFilterCamposFaltantes3Vias:
         assert result is output
         assert audit == []
 
-    def test_summary_counts_and_never_needs_review(self):
+    def test_summary_counts_and_never_needs_review(self, alias_sintetico):
         output = make_output(campos=_campos_3_vias())
         _, audit = filter_campos_faltantes(output, E5_PARCIAL, WS)
         summary = guardrails_summary(confianca_rebaixada=2, audit=audit)
@@ -304,6 +320,45 @@ class TestFilterCamposFaltantes3Vias:
             # este teste não exercita sugestão — o default tem de ser explícito.
             "sugestoes_antagonicas": 0,
         }
+
+
+class TestColecaoVaziaNaoEhSpuria:
+    """PE-3 (r7): path que EXISTE e não rende dado (coleção vazia, folha ausente
+    em todos os elementos) é observação VÁLIDA do planejador — o predicado de 2
+    estados marcava spurious porque a lista "resolvia", apagando o pedido que o
+    próprio payload torna inevitável."""
+
+    def test_colecao_vazia_mantem_pedido_e_nao_audita(self):
+        e5 = {**E5_PARCIAL, "protecao_patrimonial": {"bens_com_gap_cobertura": []}}
+        path = "$.protecao_patrimonial.bens_com_gap_cobertura[*]"
+        output = make_output(campos=[CampoFaltante(field_path=path, motivo="bens sem cobertura")])
+        result, audit = filter_campos_faltantes(output, e5, WS)
+        assert audit == []
+        assert [c.field_path for c in result.campos_faltantes_pediria_se_iterasse] == [path]
+
+    def test_folha_ausente_em_todos_os_elementos_mantem_pedido(self):
+        """Wildcard terminal fazia a lista de membros contar como o dado pedido."""
+        e5 = {
+            **E5_PARCIAL,
+            "composicao_familiar": {
+                "faixa_ref": "2024-12-31",
+                "fonte": "cadastro_familia",
+                "membros": [{"papel": "titular", "faixa_etaria": "25-59"}],
+            },
+        }
+        path = "$.composicao_familiar.membros[*].idade"
+        output = make_output(campos=[CampoFaltante(field_path=path, motivo="idade exata")])
+        result, audit = filter_campos_faltantes(output, e5, WS)
+        assert audit == []
+        assert [c.field_path for c in result.campos_faltantes_pediria_se_iterasse] == [path]
+
+    def test_folha_presente_em_algum_elemento_ainda_e_espuria(self):
+        """Polaridade não afrouxou: um elemento com o dado basta para ser espúrio."""
+        e5 = {**E5_PARCIAL, "composicao_familiar": {"membros": [{}, {"faixa_etaria": "0-17"}]}}
+        path = "$.composicao_familiar.membros[*].faixa_etaria"
+        output = make_output(campos=[CampoFaltante(field_path=path, motivo="faixa dos membros")])
+        _, audit = filter_campos_faltantes(output, e5, WS)
+        assert [a["reason"] for a in audit] == [REASON_SPURIOUS]
 
 
 class TestSentinelasDeAusencia:
@@ -350,15 +405,12 @@ class TestSentinelasDeAusencia:
         assert [a["reason"] for a in audit] == [REASON_SPURIOUS]
         assert result.campos_faltantes_pediria_se_iterasse == []
 
-    def test_alias_resolving_to_sentinel_keeps_entry(self):
+    def test_alias_resolving_to_sentinel_keeps_entry(self, alias_sintetico):
         """Alias conhecido cujo dado é sentinela → genuinamente faltante (não wrong_path)."""
         e5 = {**E5_COM_SENTINELAS, "irpf_kpis": {"dependentes": "N/D"}}
         output = make_output(
             campos=[
-                CampoFaltante(
-                    field_path="$.composicao_familiar.dependentes",
-                    motivo="quantos dependentes a família possui",
-                )
+                CampoFaltante(field_path=_ALIAS_ERRADO, motivo="quantos dependentes a família tem")
             ]
         )
         result, audit = filter_campos_faltantes(output, e5, WS)
@@ -423,7 +475,7 @@ class TestGuardrailsEndToEnd:
         assert result.output.sugestoes_execucao[0].impacto_estimado is not None
         assert result.pos_llm_guardrails["confianca_rebaixada"] == 0
 
-    def test_3_vias_filters_output_and_emits_audit(self):
+    def test_3_vias_filters_output_and_emits_audit(self, alias_sintetico):
         raw = make_output(campos=_campos_3_vias())
         result = _generate(raw, E5_PARCIAL)
 
