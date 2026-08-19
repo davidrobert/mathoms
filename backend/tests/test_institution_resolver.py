@@ -47,6 +47,13 @@ def _seed_catalog(session_factory, items: list[dict]) -> None:
         s.commit()
 
 
+# A chave é global e vive 30 dias no mesmo Redis do dev: sem o autouse do
+# conftest a suíte lê o catálogo real da máquina e regrava ``[]`` sobre ele.
+def test_suite_nao_toca_o_cache_global_do_catalogo():
+    """Gate do autouse em ``conftest``: cache desligado por default na suíte."""
+    assert institution_resolver._get_redis_safe() is None
+
+
 class TestResolveInstitutions:
     def test_returns_empty_catalog_when_no_rows(self, sync_db, no_redis):
         with sync_db() as s:
