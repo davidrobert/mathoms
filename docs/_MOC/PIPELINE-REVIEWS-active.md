@@ -390,9 +390,9 @@ gate aprovar a corrupção.
 | PE-6 — tier invertido (modelo caro em 5/6 chamadas, todas de extração com schema+fallback; síntese aberta no barato); custo do parecer e cobertura de citação caem juntos sem alarme | saúde-execução | Alto | P1 | procede | procede-aberto | owner: data-engineer+prompt-engineer · fechar escrita da tabela; publicar custo × cobertura no mesmo painel; eval antes de mexer em tier |
 | RV6-11 — `llm_call_log.stage` interpola filename e excede a largura declarada da coluna (94 em `VARCHAR(64)`); SQLite tolera, Postgres levanta truncation — **mesma classe** do RV7-01 | consistência | Alto | P1 | procede (persiste) | procede-aberto | owner: data-engineer · `stage` curto + `stage_ref`; 1 row por **tentativa** |
 | PE-5 — superfícies do mesmo run publicam números conflitantes para o mesmo conceito com janelas distintas e rótulo idêntico; conceito de horizonte aparece em 3 valores em 3 superfícies; veredito de diversificação contradiz veredito de concentração com confiança alta | consistência | Alto | P1 | procede | procede-aberto | owner: prompt-engineer+data-engineer · rótulo de janela obrigatório no manifest; conceito canônico único; CV cruzando parecer × narrativas |
-| FP-2 — parecer descreve trajetória em aceleração enquanto o changelog do mesmo payload declara queda, com `comparison_base_changed` verdadeiro; a métrica que ancora o ponto forte nº 1 salta por mudança de base, não por comportamento | solidez-financeira | Crítico | P1 | procede | procede-aberto | owner: financial-planner · gate de base alterada (proíbe derivar ponto forte de delta temporal) + trava de lançamento único ≥10% da janela em categoria não identificada |
+| FP-2 — parecer descreve trajetória em aceleração enquanto o changelog do mesmo payload declara queda, com `comparison_base_changed` verdadeiro; a métrica que ancora o ponto forte nº 1 salta por mudança de base, não por comportamento | solidez-financeira | Crítico | P1 | procede (re-diagnosticado) | **parcial** | #1574 · o parecer NÃO vê o changelog (zero ocorrência de comparison/delta no manifest, distiller e prompt) — eram 2 defeitos: produtor afirmando direção sob base alterada + trajetória derivada de nível. Braço de concentração **deferido** (ver §Deferimento D2, 2026-08-19) |
 | FP-6 — parecer publica `target` **fabricado e mais frouxo** que o alvo declarado em `goals.alocacao_alvo.derived`, subestimando o desvio; e emite duas sugestões P1 que se cancelam por recaírem na mesma comparável com sinais opostos | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: prompt-engineer+financial-planner · `metricas[].target` derivado de `goals`/config; checagem determinística de antagonismo pós-LLM |
-| FP-4 — prescreve realocar excedente de reserva para risco sem conhecer a taxa da dívida (`endividamento.dividas[].taxa_juros` nulo e ausente dos campos que pediria), violando a única convergência sem exceção das três metodologias; e trata a mesma reserva como ponto forte **e** risco | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner · piso de prescrição no espírito [[ADR-375]] §D4; liquidez excessiva exclui reserva de pontos fortes (regra pós-LLM) |
+| FP-4 — prescreve realocar excedente de reserva para risco sem conhecer a taxa da dívida (`endividamento.dividas[].taxa_juros` nulo e ausente dos campos que pediria), violando a única convergência sem exceção das três metodologias; e trata a mesma reserva como ponto forte **e** risco | solidez-financeira | Alto | P1 | procede | **parcial** | #1575 · piso proíbe as DUAS direções sob taxa nula + injeta o pedido da taxa; liquidez excessiva remove o ponto forte de liquidez. Regra por par (seção, tema) **refutada por medição** — ver §Refutação R1. RL2 destravada (parser numérico, v1.5) |
 | FP-5 — `previdencia_pgbl.limite_pgbl_anual` publica zero sobre base positiva (defeito de rótulo que [[ADR-375]] §D4 fechou, reintroduzido) e a nota do bloco afirma o oposto do campo; KPI de exposição cambial ignora a classe internacional, tornando o tier artefato de definição | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner · "não se aplica" com motivo, nunca zero; exposição **econômica** ≠ moeda de custódia |
 | FP-3 — dois universos de imóveis no mesmo payload com membros exclusivos de cada lado; o limiar canônico de concentração cai **entre** as duas leituras, os dois alertas ficam mudos e o LLM fabrica um limiar próprio; default de IPTU zerado infla o rendimento líquido na direção que [[ADR-216]] proíbe | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner+data-engineer · fonte única de estoque imobiliário; suprimir a razão enquanto divergirem >5%; corrigir default |
 | RV6-04 — balde de investimento de um membro publica zero enquanto o artefato a montante lista instituições dele, com a flag de ressalva falsy e `cobertura_completa` verdadeiro; a narrativa **afirma o zero em prosa entregue**, byte-idêntica em 3 runs | completude | Crítico | P0 | procede (3º run) | procede-aberto | owner: data-engineer+financial-planner · portar doutrina [[ADR-240]] ao patrimônio: ressalva + **omitir** linha (omitir ≠ afirmar zero) + suprimir vereditos derivados; CV bloqueante membro-com-fonte × balde-zero · [[A40.l69]] |
@@ -501,6 +501,46 @@ normaliza tipo e largura (larguras derivadas de `__table__`). `StageReview` fica
 fail-open trocaria abort ruidoso por retomada silenciosa sobre dado não-revisado. Gate
 `dev/check_diagnostic_session_isolation.py`. **Fica aberto:** RV6-11 é a mesma classe em
 `llm_call_log.stage` e segue com writer fora do sink — lane própria.
+
+**§Deferimento D2 — trava de concentração de lançamento (datado 2026-08-19).**
+O braço de concentração do FP-2 (o brief pedia "lançamento único ≥10% da janela em
+categoria não identificada ⇒ `needs_review`") **não foi construído**, e não por falta de
+tempo: **o E5 não tem grão transacional**. `fluxo_caixa.despesas_por_categoria` é um mapa
+categoria→total, e `transacoes` é **contagem inteira** no schema
+(`config/schemas/e5_analysis.schema.json`); o grão de lançamento vive no E3
+(`transacoes[]`), e o E4 publica `periodo` + `total_geral`. A detecção nasceria no E4 com
+plumbing E4→E5 novo — construir meia-solução aqui repetiria o erro do DE-2.
+O desenho também foi **corrigido** antes de deferir (co-design `financial-planner`): o
+limiar certo é "cruza faixa de KPI publicado", não tamanho; a conjunção "categoria não
+identificada" elimina a classe mais comum e tratável (anualidades bem categorizadas —
+IPVA, IPTU, prêmio de seguro, matrícula); e o desfecho é **ressalva no KPI**, nunca
+`needs_review` (≈20% de retenção mataria a categoria).
+**Dono:** `data-engineer` (contrato E4→E5) + `financial-planner` (calibração do limiar).
+**Condição de retomada:** existir no E5 um agregado por lançamento — ou o `top-N` de
+lançamentos por categoria — sem exigir que o parecer leia o E3.
+
+**§Refutação R1 — auto-contradição por par (seção, tema) (datado 2026-08-19).**
+A regra ratificada para o FP-4 D3-B era: mesmo `(section_id, tema_canonico)` em ponto
+forte e risco ⇒ remove o ponto forte. **Medida no parecer do r7: casa 2/5 pontos fortes e
+1 é falso-positivo** — S2 + "Equilíbrio presente-futuro" aproxima "taxa de poupança alta"
+de "gasto com saúde elevado": mesmo balde, assuntos diferentes. Removê-lo derrubaria o
+ponto forte mais sólido do parecer. Casar só por `section_id` é pior (4/5). O par é um
+**balde**, não identidade de assunto, e identidade exigiria âncora estrutural — mas
+`PontoForte` é da classe PROSA-SEM-ÂNCORA (sem campo `ancoras`, ver
+`parecer_evidencia._iter_prose_only_items`). R1 foi **rebaixada a contagem** em
+`_meta.pos_llm_guardrails.autocontradicao_pares_secao_tema`; o desfecho ficou com R2,
+cujo sinal vem do E5 (`avaliacao_liquidity == "Excessiva"`). Re-avaliar no r8 se a
+contagem justificar predicado mais fino.
+
+**§RV6-15 — metade fechada (datado 2026-08-19).** O #1575 fecha as duas cegueiras de
+**parser** da RL2 (B4: exigia `%` literal e o schema tipa `["number","null"]`; B5: limiar
+mensal contra produtor anual — 12% a.a. viraria hard-block em todo financiamento). Não
+fecha B1/B2, o portão `_is_aporte_risco`: mexer nele mexe na **RL1**, que também é
+hard-block, e exige eval próprio. E **não toca** o que o E5 publica em
+`endividamento.dividas[]` (D4(i)/(ii) — agregado `debts`, `fonte`,
+`desembolso_mensal_observado_brl`, preenchimento de `parcela_mensal`/`taxa_juros`), que
+segue com o dono. Rótulo da taxa no card do relatório (`EndividamentoCard.tsx` renderiza
+`%` sem período) fica atrelado à mesma decisão.
 
 **Re-triagem do §r6 (cadência).** Fechados por medição: RV6-01/02/03, RV6-07, RV6-23,
 RV6-10 (com ressalva). Persistem re-priorizados: RV6-04 (P0, 3º run), RV6-11 (P1),

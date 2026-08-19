@@ -102,7 +102,8 @@
         "required": [
           "categoria",
           "flag",
-          "rationale"
+          "rationale",
+          "status"
         ],
         "properties": {
           "categoria": {
@@ -120,6 +121,14 @@
           },
           "rationale": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "apurado",
+              "nao_apurado"
+            ],
+            "description": "ADR-395 §D7: `nao_apurado` quando a ausência de gatilho não foi medida — cadastro de família ausente, ou dependente declarado no IRPF sem idade/dependência confirmada. `flag: false` com `nao_apurado` NÃO é 'sem risco'."
           }
         }
       }
