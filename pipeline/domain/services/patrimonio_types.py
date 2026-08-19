@@ -28,8 +28,8 @@ logger = logging.getLogger("mathoms.pipeline.patrimonio")
 # Período sentinel de fatura sem data (propaga E0→E2→E3); nunca é ano-base.
 _SENTINEL_PERIODO = "999999"
 
-# Listas consolidadas (v1 + v2) varridas por ``_max_value_year``.
-_CONSOLIDATED_LIST_KEYS = (
+# Listas consolidadas (v1 + v2) varridas por ``_max_value_year`` e pelo eixo por membro.
+CONSOLIDATED_LIST_KEYS = (
     "imoveis_consolidados",
     "bens_imoveis_consolidados",
     "investimentos_consolidados",
@@ -86,7 +86,7 @@ def _years_in_vals(vals: object) -> set[int]:
     return out
 
 
-def _years_in_list(seq: object) -> set[int]:
+def years_in_list(seq: object) -> set[int]:
     """Anos 31/12 numa lista consolidada de itens (ADR-274)."""
     out: set[int] = set()
     for item in seq or []:
@@ -99,8 +99,8 @@ def _years_in_list(seq: object) -> set[int]:
 def _max_value_year(baseline: dict) -> str | None:
     """Maior ano-base 31/12 entre os itens consolidados; ``None`` se nenhum."""
     years: set[int] = set()
-    for list_key in _CONSOLIDATED_LIST_KEYS:
-        years |= _years_in_list(baseline.get(list_key))
+    for list_key in CONSOLIDATED_LIST_KEYS:
+        years |= years_in_list(baseline.get(list_key))
     return str(max(years)) if years else None
 
 

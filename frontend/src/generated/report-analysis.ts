@@ -345,6 +345,7 @@ export type E5AnalysisArtifact = {
       "membro"?: "titular" | "conjuge";
       "status"?: "apurado" | "zero_apurado" | "nao_apurado";
       "fonte"?: "posicoes_atuais" | "irpf" | null;
+      "frescor"?: string | null;
       "motivo"?: string | null;
     }>;
     "pl_ressalva"?: boolean;

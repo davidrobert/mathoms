@@ -41,6 +41,17 @@ tags:
 > sinal **=**), logo a J4 abre com o orçamento inteiro. O resíduo da [[A40.l67]]
 > — o flip para strict — foi re-homeado à [[A40.l58]] e **não** é insumo desta
 > lane: ela consome a regra e o seam, não o modo de validação do schema.
+>
+> **Estado em 2026-08-19 — 3a e 3b entregues, com correção medida.** Os PRs de
+> 3a (#1541, #1542) shipuram o enum e o flip para `null`, mas com um predicado
+> que media o **contêiner** (`bool(bens)`, sempre truthy): `nao_apurado` era
+> inalcançável em produção, 0 em 114 instâncias-membro. O 3b saiu no #1550
+> (match por token + gate `check_member_key_substring.py`); o `else: membro =
+> membro_raw` do consolidador **segue vivo** — entregou (ii) e (iii), não (i).
+> Um ataque medido a 2026-08-19 achou a raiz um andar abaixo: o **eixo de ano**
+> é do domicílio, e cônjuges que declaram em anos disjuntos zeram um ao outro.
+> Correção e re-medição na [[ADR-394]] §Emenda 2026-08-19 (c) — D9 (presença de
+> linha não é medição) e D10 (ano-base por membro). §Ataque abaixo.
 
 ## Problema
 
@@ -204,3 +215,55 @@ declara quantos viraram match exato e quantos entraram na allowlist.
 - Tripwire fluxo×estoque (3e) e histerese da reserva (3f) → `planned` no plano.
 - `gap_qualitativo` × `irpf_kpis.dependentes` (3c, RV6-05) → item próprio da
   Onda 3, produtor distinto.
+
+## Ataque medido — 2026-08-19
+
+Ataque adversarial aos PRs de 3a, **depois** do merge deles e **durante** o do
+3b. O que a medição achou, com a saída que a sustenta na [[ADR-394]] §Emenda (c):
+
+- **`nao_apurado` era inalcançável.** `tem_bens_irpf = bool(conjuge_bens)` e
+  `build_members_from_consolidated` materializa `bens` com 4 chaves sempre. Os
+  três efeitos do estado (`null`, `review_reason`, supressão) nunca armaram —
+  0/114 instâncias-membro. Suíte verde o tempo todo.
+- **A raiz não era o predicado.** `_max_value_year` escolhe **um** ano para o
+  domicílio; os dois membros declaram em anos disjuntos, então por construção só
+  um pode ser valorado. Os 9 lançamentos do cônjuge valem **R$ 110.130,67** em
+  2023 e saíam `0,00`. Com o ano forçado a 2023, quem zera é o **titular** — o
+  defeito é do eixo, não da pessoa.
+- **O conserto óbvio não consertava.** `any(bens.values())` e
+  `bens["investimentos"]` não-vazio medem **0/114**, igual ao predicado quebrado.
+  A distinção que importa é presença × valor.
+- **A ordem é restrição dura.** O predicado de valor **antes** do fix de ano
+  suprimiria a prescrição em 5/5 dos runs recentes, publicando `null` sobre valor
+  que existe. Depois dele: 0/114.
+- **A taxa da ADR era do mecanismo pretendido**, não do entregue. A tabela de
+  sintomas segue verdadeira; a inferência de rotulagem, não. Corrigida na (c).
+- **O fixture dos 22 testes usava um shape que nenhum produtor emite**
+  (`baseline={"members": <dict>}`). Trocado pelo do E1.5c; com ele, reintroduzir
+  o ramo mata 5 testes — antes matava 0.
+- **`frescor` nunca foi implementado.** A §Escopo pediu
+  `status`/`fonte`/`frescor`/`motivo`; shipou com 3. Entra na (c).
+
+### Entregue
+
+| PR | o quê |
+| --- | --- |
+| #1541 · #1542 | 3a — enum de cobertura + flip para `null` (predicado inerte) |
+| #1550 | 3b (ii)+(iii) — match por token + gate anti-substring |
+| _este_ | D10 (ano por membro + guarda do top-up) e D9 (ramo do contêiner sai, `frescor` entra, gate de alcançabilidade) |
+
+### Aberto, com dono
+
+- **3b (i)** — `else: membro = membro_raw` em `investments_consolidator.py:324`.
+- **Trava do cônjuge dependente** e **válvula declarada** para domicílio sem
+  investimentos → §Deferimento datado da [[ADR-394]] §Emenda (c).
+- **68 % do balde do titular é chave vazia** (`total_por_membro` tem `''`).
+  Pós-#1550 vai para `nao_atribuido`, que **não** gera linha de cobertura nem
+  `review_reason` e não suprime nada — buraco maior que o do cônjuge.
+- **Kill-switch parcial**: `valor_publicavel` não consulta
+  `cobertura_enforcement_ligado()`; com a env em `0` o balde segue `null` e some
+  a razão que o explica.
+- **Copy de `null` na narrativa** sai "Bia possui N/D concentrados em
+  instituições…" — é da lane de render ([[PLAN-report-trust]] 7e).
+- **Colapso cross-ano** no consolidador: 26→9 itens do cônjuge em 2026-08-12 com
+  input idêntico, survivor keyed no ano velho.

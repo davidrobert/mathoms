@@ -69,6 +69,7 @@ from typing import Any
 from pipeline.domain.services.investimentos_cobertura import (
     atribuir_por_membro,
     cobertura_de_membros,
+    valor_publicavel,
 )
 from pipeline.domain.services.member_key_matcher import matches_member_key
 from pipeline.domain.services.patrimonio_caixa import caixa_me_from_detalhes, compute_caixa
@@ -115,14 +116,6 @@ __all__ = [
 ]
 
 
-# `None` e não `0,0`: um zero publicado é uma afirmação sobre o patrimônio da
-# pessoa, e o sistema não a mediu ([[ADR-394]] §Emenda (b) D7).
-def _publicavel(valor: float, cobertura: tuple, papel: str) -> float | None:
-    """Valor do balde, ou ``None`` quando o membro não foi apurado."""
-    apurado = next((c.apurado for c in cobertura if c.membro == papel), True)
-    return round(valor, 2) if apurado else None
-
-
 class PatrimonioCalculator:
     """Calcula patrimônio consolidado preservando paridade com ``analyze_patrimonio``.
 
@@ -164,7 +157,10 @@ class PatrimonioCalculator:
         veiculos = self._sum_veiculos(titular_bens, conjuge_bens)
 
         investimentos_titular, investimentos_conjuge, fonte, ressalva = self._compute_investimentos(
-            inputs, titular_bens, conjuge_bens
+            inputs,
+            titular_bens,
+            conjuge_bens,
+            (titular_data.get("ano_base"), conjuge_data.get("ano_base")),
         )
 
         nao_atribuidos = float(ressalva.get("nao_atribuido") or 0.0)
@@ -250,8 +246,8 @@ class PatrimonioCalculator:
             "imoveis_investimento": round(imoveis_investimento, 2),
             "imoveis_geradores": round(imoveis_geradores, 2),
             "imoveis_nao_geradores": round(imoveis_nao_geradores, 2),
-            identity.key_inv_titular: _publicavel(investimentos_titular, cobertura, "titular"),
-            identity.key_inv_conjuge: _publicavel(investimentos_conjuge, cobertura, "conjuge"),
+            identity.key_inv_titular: valor_publicavel(investimentos_titular, cobertura, "titular"),
+            identity.key_inv_conjuge: valor_publicavel(investimentos_conjuge, cobertura, "conjuge"),
             # CTO-02: `caixa_total_brl` guarda o caixa TOTAL (BRL + ME); o ME
             # real fica em `caixa_me_brl`. Alias legado removido em CTO-08
             # (A37.l15); leitores de artefatos antigos mantêm fallback próprio.
@@ -327,18 +323,17 @@ class PatrimonioCalculator:
         inputs: PatrimonioInputs,
         titular_bens: dict,
         conjuge_bens: dict,
-    ) -> tuple[float, float, str]:
-        """Calcula investimentos por membro + fonte.
+        anos: tuple[str | None, str | None] = (None, None),
+    ) -> tuple[float, float, str, dict]:
+        """Investimentos por membro + fonte (ADR-145 cat. 3 e 4).
 
-        Implementa as categorias 3 e 4 de ADR-145 (Investimentos {TITULAR}
-        e Investimentos {CONJUGE}). Prefere ``investimentos_atuais``
-        (posições atuais E2-llm) sobre fallback IRPF. Posições sem membro
-        atribuído (``""``) vão para o titular (convenção legado).
-
-        Fundos regulados (FIC FIM) com nome sugerindo crypto seguem aqui —
-        ADR-145: "fundo FIC FIM não é crypto direta".
+        Prefere ``investimentos_atuais`` (E2-llm) sobre fallback IRPF. Posição
+        cujo membro o resolver não canonicalizou sai em ``nao_atribuido``, nunca
+        no balde do titular (ADR-394 §D8). ``anos`` é o ano-base de cada membro
+        e vira o ``frescor`` da cobertura. FIC FIM com nome de crypto fica aqui.
         """
         identity = self._config.members
+        ano_titular, ano_conjuge = anos
 
         if inputs.has_current_positions:
             assert inputs.investimentos_atuais is not None  # narrow para type-checker
@@ -376,8 +371,8 @@ class PatrimonioCalculator:
             ressalva["nao_atribuido"] = float(atribuicao.nao_atribuido_brl)
             ressalva["cobertura"] = cobertura_de_membros(
                 tem_conjuge=bool(identity.conjuge_key),
-                titular=(titular_val, titular_atribuido, titular_fb, bool(titular_bens)),
-                conjuge=(conjuge_val, conjuge_atribuido, conjuge_fb, bool(conjuge_bens)),
+                titular=(titular_val, titular_atribuido, titular_fb, ano_titular),
+                conjuge=(conjuge_val, conjuge_atribuido, conjuge_fb, ano_conjuge),
             )
             return titular_val, conjuge_val, fonte, ressalva
 
@@ -390,8 +385,8 @@ class PatrimonioCalculator:
         ressalva["nao_atribuido"] = 0.0
         ressalva["cobertura"] = cobertura_de_membros(
             tem_conjuge=bool(identity.conjuge_key),
-            titular=(titular_val, False, titular_val > 0, bool(titular_bens)),
-            conjuge=(conjuge_val, False, conjuge_val > 0, bool(conjuge_bens)),
+            titular=(titular_val, False, titular_val > 0, ano_titular),
+            conjuge=(conjuge_val, False, conjuge_val > 0, ano_conjuge),
         )
         return titular_val, conjuge_val, "irpf", ressalva
 
