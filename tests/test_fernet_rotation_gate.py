@@ -6,6 +6,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 _REPO = Path(__file__).resolve().parents[1]
 _MOD = "fernet_rotation_gate"
 
@@ -178,3 +180,103 @@ def test_help_nao_exige_vault(monkeypatch, capsys):
     except SystemExit as exc:
         assert exc.code == 0
     assert "preflight" in capsys.readouterr().out
+
+
+# ─── corpus vazio (medido 2026-08-19) ───
+
+
+def test_corpus_vazio_nao_fecha_o_gate():
+    """O furo medido: DB com schema e ZERO linhas fechava com "GATE OK"."""
+    gate = _load()
+    vazio = _report(cpf=(0, 0, 0), artifacts=(0, 0, 0))
+    problems = gate.evaluate(vazio, OPEN_WINDOW, expect_idle=True)
+    assert problems
+    assert "todo-zero" in problems[0]
+
+
+def test_passe_real_com_skipped_fecha_o_gate():
+    """O contraste: mesmos rotated/failed, mas com material inspecionado."""
+    gate = _load()
+    real = _report(cpf=(0, 12150, 0))
+    assert gate.evaluate(real, OPEN_WINDOW, expect_idle=True) == []
+
+
+def test_empty_corpus_problem_olha_a_soma_e_nao_so_rotated():
+    gate = _load()
+    assert gate.empty_corpus_problem({"rotated": 0, "skipped": 0, "failed": 0})
+    assert gate.empty_corpus_problem({"rotated": 0, "skipped": 1, "failed": 0}) is None
+    assert gate.empty_corpus_problem({"rotated": 0, "skipped": 0, "failed": 1}) is None
+
+
+# ─── armadilha do fallback (runbook §7) ───
+
+
+def test_armadilha_quando_fallback_difere_da_primaria():
+    gate = _load()
+    problem = gate.fallback_problem("05d68234", "51c36c21")
+    assert problem and "ARMADILHA" in problem
+
+
+def test_fallback_igual_a_primaria_esta_ok():
+    gate = _load()
+    assert gate.fallback_problem("05d68234", "05d68234") is None
+
+
+def test_fallback_ausente_esta_ok():
+    """Fora de janela, sem FERNET_KEY setada, não há o que comparar."""
+    gate = _load()
+    assert gate.fallback_problem("05d68234", "") is None
+
+
+def test_kid_of_bate_com_o_key_id_do_crypto(monkeypatch):
+    """Amarra a fórmula duplicada em `kid_of` à canônica em `crypto._key_id`."""
+    gate = _load()
+    from backend.app.core.config import settings
+    from backend.app.services.security import crypto
+
+    chave = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
+    monkeypatch.setattr(settings, "FERNET_KEYS", chave)
+    assert gate.kid_of(chave) == crypto._key_id()
+
+
+# ─── janela que já cumpriu a função ───
+
+
+def test_janela_sem_funcao_quando_nada_sobrou_na_antiga():
+    gate = _load()
+    problem = gate.stale_window_problem({"05d68234": 15874}, "05d68234")
+    assert problem and "passo 7" in problem
+
+
+def test_janela_com_residuo_na_antiga_nao_e_reclamada():
+    """Ainda há o que rotacionar — a janela está fazendo o trabalho dela."""
+    gate = _load()
+    inventory = {"05d68234": 15874, "51c36c21": 42}
+    assert gate.stale_window_problem(inventory, "05d68234") is None
+
+
+def test_plaintext_nao_conta_como_residuo_de_chave_antiga():
+    """`<sem kid>` é artifact não cifrado, não resíduo de rotação."""
+    gate = _load()
+    inventory = {"05d68234": 15874, "<sem kid>": 418}
+    assert gate.stale_window_problem(inventory, "05d68234") is not None
+
+
+def test_window_problems_ignora_stale_fora_de_janela():
+    """Com 1 chave a janela está fechada — cobrar "janela sem função" seria ruído."""
+    gate = _load()
+    inventory = {"05d68234": 15874}
+    assert gate.window_problems("05d68234", "05d68234", inventory, CLOSED_WINDOW) == []
+
+
+def test_window_problems_acumula_armadilha_e_stale():
+    gate = _load()
+    problems = gate.window_problems("05d68234", "51c36c21", {"05d68234": 15874}, OPEN_WINDOW)
+    assert len(problems) == 2
+
+
+def test_require_any_key_bloqueia_ambiente_sem_chave():
+    gate = _load()
+    with pytest.raises(gate.PreflightError):
+        gate._require_any_key(0)
+    assert gate._require_any_key(1) is None

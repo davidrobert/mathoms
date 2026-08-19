@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -55,6 +56,34 @@ def key_window() -> tuple[int, str]:
     from backend.app.services.security.vault import resolve_fernet_keys
 
     return len(resolve_fernet_keys()), _key_id()
+
+
+# Duplicada de propósito: `_key_id()` só sabe falar da primária, e o que
+# interessa aqui é o `kid` da chave do FALLBACK. O teste
+# `test_kid_of_bate_com_o_key_id_do_crypto` amarra as duas fórmulas.
+def kid_of(key: str) -> str:
+    """`kid` de uma chave qualquer — mesma fórmula de `crypto._key_id` (sha256[:8])."""
+    return hashlib.sha256(key.encode()).hexdigest()[:8]
+
+
+def fallback_kid() -> str:
+    """`kid` de MATHOMS_FERNET_KEY (a singular), ou "" se não estiver setada."""
+    from backend.app.core.config import settings
+
+    single = (settings.FERNET_KEY or "").strip()
+    return kid_of(single) if single else ""
+
+
+def artifact_kid_inventory() -> dict[str, int]:
+    """{kid: nº de artifacts cifrados}. Responde "a janela ainda serve para alguma coisa?"."""
+    from sqlalchemy import text
+
+    from backend.app.core.database import SyncSessionLocal
+
+    _, sqlite_path = db_target()
+    with SyncSessionLocal() as session:
+        rows = session.execute(text(kid_audit_sql(is_sqlite=sqlite_path is not None))).all()
+    return {(kid or "<sem kid>"): n for kid, n in rows}
 
 
 def run_task(dry_run: bool) -> dict:
@@ -140,10 +169,63 @@ def _residue_problem(totals: dict[str, int]) -> str | None:
     )
 
 
+# `resolve_fernet_keys` é `FERNET_KEYS or FERNET_KEY`. Durante a janela o runbook
+# manda deixar a singular intocada (passo 2), então ela guarda a chave VELHA.
+# Enquanto a CSV existe ela mascara isso e tudo funciona; a ação intuitiva de
+# "fechar a janela" apagando só a CSV torna a velha efetiva e nenhuma linha do
+# corpus decifra mais.
+def fallback_problem(primary_kid: str, fallback: str) -> str | None:
+    """A armadilha do passo 7: esvaziar FERNET_KEYS cai no fallback, que é a chave ANTIGA."""
+    if not fallback or fallback == primary_kid:
+        return None
+    return (
+        f"ARMADILHA: MATHOMS_FERNET_KEY (kid {fallback}) NÃO é a chave primária "
+        f"(kid {primary_kid}). Hoje MATHOMS_FERNET_KEYS a mascara. Apagar a CSV "
+        "sem antes reescrever a singular faz o vault cair na chave ANTIGA e TODO "
+        "o corpus cifrado fica ilegível. Feche a janela com as DUAS edições "
+        "juntas (runbook fernet_rotation.md §7)"
+    )
+
+
+# Critério derivado de ESTADO, não de relógio: não há timestamp confiável de
+# quando a janela abriu, mas "não sobrou linha para rotacionar" é medível.
+def stale_window_problem(inventory: dict[str, int], primary_kid: str) -> str | None:
+    """Janela aberta sem nada fora da primária = já cumpriu a função; deve fechar."""
+    leftover = {kid: n for kid, n in inventory.items() if kid not in (primary_kid, "<sem kid>")}
+    if leftover:
+        return None
+    total = inventory.get(primary_kid, 0)
+    return (
+        f"janela de rotação ABERTA sem função: {total} artifacts cifrados, todos já "
+        f"na primária (kid {primary_kid}), zero na antiga. A rotação terminou — o "
+        "passo 7 do runbook (fechar a janela) está pendente"
+    )
+
+
+# `evaluate` só lia `rotated`/`failed`; um DB com o schema e ZERO linhas (o que
+# `alembic upgrade head` produz, e o que se pega ao rodar de um worktree) fechava
+# com "GATE OK ... failed=0 rotated=0" e ainda imprimia a string de confirmação do
+# G0 — indistinguível de um passe real, exceto pelo `skipped` que ninguém lia. O
+# passe real de 2026-07-31 tinha skipped=12150; a isca tinha skipped=0.
+def empty_corpus_problem(totals: dict[str, int]) -> str | None:
+    """Report todo-zero = o gate não olhou nada. Medido em 2026-08-19."""
+    if sum(totals.values()) > 0:
+        return None
+    return (
+        "report todo-zero: nenhum valor cifrado foi sequer inspecionado. O alvo "
+        "não tem material cifrado (banco errado, vazio, ou recém-migrado). O gate "
+        "não fecha sobre um banco que ele não leu — confira `banco alvo` acima"
+    )
+
+
 def evaluate(report: dict, keys_configured: int, expect_idle: bool) -> list[str]:
     """Problemas que impedem o gate de fechar; lista vazia = passou."""
     totals = summarize(report)
-    found = [_window_problem(keys_configured), _failed_problem(totals)]
+    found = [
+        _window_problem(keys_configured),
+        empty_corpus_problem(totals),
+        _failed_problem(totals),
+    ]
     if expect_idle:
         found.append(_residue_problem(totals))
     return [p for p in found if p]
@@ -243,6 +325,53 @@ def cmd_verify(args) -> int:
     return 0
 
 
+def _print_inventory(inventory: dict[str, int], primary_kid: str) -> None:
+    print(f"\n{'kid':<12}{'artifacts':>10}  papel")
+    print("-" * 52)
+    for kid, n in sorted(inventory.items(), key=lambda kv: -kv[1]):
+        papel = "PRIMÁRIA (encrypt)" if kid == primary_kid else "CHAVE ANTIGA — re-encrypt pendente"
+        print(f"{kid:<12}{n:>10}  {papel}")
+
+
+# `_key_id()` hasheia a string vazia e devolve um kid de aparência legítima
+# (e3b0c442); comparar qualquer coisa com ele é ruído, não diagnóstico.
+def _require_any_key(keys: int) -> None:
+    """Sem chave nenhuma configurada não há janela para auditar."""
+    if keys:
+        return
+    raise PreflightError(
+        "nenhuma chave Fernet configurada — MATHOMS_FERNET_KEY/KEYS ausentes "
+        "no ambiente. Rode da raiz do repo que hospeda o `.env`"
+    )
+
+
+def window_problems(
+    primary_kid: str, fallback: str, inventory: dict[str, int], keys: int
+) -> list[str]:
+    """Problemas do estado da janela; lista vazia = coerente. `stale` só faz sentido em janela."""
+    found = [fallback_problem(primary_kid, fallback)]
+    if keys >= MIN_KEYS_FOR_WINDOW:
+        found.append(stale_window_problem(inventory, primary_kid))
+    return [p for p in found if p]
+
+
+def cmd_window(args) -> int:
+    """Audita o estado da janela: a armadilha do fallback e se a janela ainda serve."""
+    _require_real_target()
+    keys, kid = key_window()
+    _require_any_key(keys)
+    fallback = fallback_kid()
+    print(f"chaves ativas: {keys} · kid da primária: {kid}")
+    print(f"MATHOMS_FERNET_KEY (fallback): {'não setada' if not fallback else 'kid ' + fallback}")
+    inventory = artifact_kid_inventory()
+    _print_inventory(inventory, kid)
+    problems = window_problems(kid, fallback, inventory, keys)
+    if problems:
+        return _fail(problems)
+    print("\nOK — sem armadilha de fallback e a janela está coerente com o corpus.")
+    return 0
+
+
 def _confirm(pending: int) -> bool:
     prompt = f"\nRotacionar {pending} valor(es) agora? Digite 'rotacionar' para confirmar: "
     return input(prompt).strip() == "rotacionar"
@@ -259,6 +388,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("preflight", help="a janela de rotação está aberta?")
+    sub.add_parser("window", help="a janela deveria estar fechada? há armadilha de fallback?")
     rotate = sub.add_parser("rotate", help="dry-run → confirmação → passe real")
     rotate.add_argument("--yes", action="store_true", help="pula a confirmação interativa")
     verify = sub.add_parser("verify", help="2º dry-run + as duas condições do gate")
@@ -268,7 +398,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
-    handler = {"preflight": cmd_preflight, "rotate": cmd_rotate, "verify": cmd_verify}[args.cmd]
+    handler = {
+        "preflight": cmd_preflight,
+        "window": cmd_window,
+        "rotate": cmd_rotate,
+        "verify": cmd_verify,
+    }[args.cmd]
     try:
         return handler(args)
     except PreflightError as exc:
