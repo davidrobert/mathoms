@@ -10,7 +10,7 @@ from pipeline.domain.services.asset_classifier import (
     BUCKETS,
     OUTROS_EXCESSIVO_THRESHOLD_PCT,
     OutrosExcessivoWarning,
-    classify_asset,
+    classify_asset_outcome,
     merge_asset_keywords,
 )
 
@@ -129,6 +129,17 @@ class InvestimentosClassesAnalysis:
     total_financeiro: Decimal = Decimal("0")
     total_imoveis_investimento: Decimal = Decimal("0")
     warnings: tuple[OutrosExcessivoWarning, ...] = ()
+    # Soma dos investimentos cuja classe NENHUM degrau decidiu ([[ADR-400]]).
+    nao_classificado_brl: Decimal = Decimal("0")
+
+    @property
+    def nao_classificado_pct(self) -> float:
+        """Fração não classificada da CARTEIRA FINANCEIRA (mesma base de
+        ``pct_carteira_financeira``, A37.l9) — imóvel é classificado pela origem
+        e nunca depende de keyword, então incluí-lo diluiria a incerteza."""
+        if self.total_financeiro <= 0:
+            return 0.0
+        return float(self.nao_classificado_brl / self.total_financeiro) * 100
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -136,6 +147,7 @@ class InvestimentosClassesAnalysis:
             "total": round(self.total, 2),
             "total_financeiro": float(round(self.total_financeiro, 2)),
             "total_imoveis_investimento": float(round(self.total_imoveis_investimento, 2)),
+            "nao_classificado_pct": round(self.nao_classificado_pct, 2),
         }
 
 
@@ -154,13 +166,7 @@ class InvestimentosClassesAnalyzer:
 
     def analyze(self, bens_por_membro: list[dict[str, Any]]) -> InvestimentosClassesAnalysis:
         classes = {cat: 0.0 for cat in self.CATEGORIES}
-        for bens in bens_por_membro or []:
-            if not isinstance(bens, dict):
-                continue
-            self._classify_investments(bens, classes)
-            self._add_top_level_cripto(bens, classes)
-            self._add_contas_bancarias_scalar(bens, classes)
-            self._add_imoveis_investimento(bens, classes)
+        nao_classificado = self._acumular(bens_por_membro or [], classes)
         total = sum(classes.values())
         total_imoveis = classes.get(_CLASSE_IMOVEIS_INVESTIMENTO, 0.0)
         total_financeiro = total - total_imoveis
@@ -170,24 +176,41 @@ class InvestimentosClassesAnalyzer:
             total_financeiro=Decimal(str(total_financeiro)),
             total_imoveis_investimento=Decimal(str(total_imoveis)),
             warnings=self._build_warnings(classes, total),
+            nao_classificado_brl=Decimal(str(nao_classificado)),
         )
 
     # -- Helpers internos --
 
-    def _classify_investments(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
+    def _acumular(self, bens_por_membro: list, classes: dict[str, float]) -> float:
+        """Soma todos os membros nos baldes; devolve o total não classificado."""
+        nao_classificado = 0.0
+        for bens in bens_por_membro:
+            if not isinstance(bens, dict):
+                continue
+            nao_classificado += self._classify_investments(bens, classes)
+            self._add_top_level_cripto(bens, classes)
+            self._add_contas_bancarias_scalar(bens, classes)
+            self._add_imoveis_investimento(bens, classes)
+        return nao_classificado
+
+    def _classify_investments(self, bens: dict[str, Any], classes: dict[str, float]) -> float:
+        """Soma cada investimento no seu balde; devolve o total não classificado."""
+        nao_classificado = 0.0
         for inv in bens.get("investimentos", []) or []:
             if not isinstance(inv, dict):
                 continue
             tipo = str(inv.get("tipo") or "")
             descricao = str(inv.get("descricao") or inv.get("description") or "")
-            instituicao = str(inv.get("instituicao") or "")
             valor = _safe_float(inv.get("valor", inv.get("valor_31_12_ano_base", 0)))
             if valor <= 0:
                 continue
-            bucket = classify_asset(
-                tipo, descricao, instituicao, keywords=self._config.keywords_por_classe
+            resultado = classify_asset_outcome(
+                tipo, descricao, keywords=self._config.keywords_por_classe
             )
-            classes[bucket] = classes.get(bucket, 0.0) + valor
+            classes[resultado.classe] = classes.get(resultado.classe, 0.0) + valor
+            if resultado.nao_classificado:
+                nao_classificado += valor
+        return nao_classificado
 
     def _add_top_level_cripto(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
         classes["Cripto"] += _safe_float(bens.get("criptos", 0))

@@ -52,101 +52,80 @@ class TestNormalizationBug:
 
     def test_underscore_in_tipo_normalized(self):
         # Esse era o exato bug em produção (tipo IRPF vem com underscore).
-        assert classify_asset("renda_fixa", "", "") == "Renda Fixa"
+        assert classify_asset("renda_fixa", "") == "Renda Fixa"
 
     def test_hyphen_in_tipo_normalized(self):
-        assert classify_asset("conta-corrente", "", "") == "Caixa"
+        assert classify_asset("conta-corrente", "") == "Caixa"
 
     def test_descricao_dominates_when_tipo_is_generic(self):
         # `tipo='investimento'` é o aggregate genérico do E1.5 — o sinal
         # real fica na descricao.
-        c = classify_asset("investimento", "ACOES - ITSA4 - QUANTIDADE 693", "Itausa S.A.")
+        c = classify_asset("investimento", "ACOES - ITSA4 - QUANTIDADE 693")
         assert c == "Ações BR"
 
 
 class TestBucketSpecific:
     def test_cripto_via_descricao(self):
-        assert (
-            classify_asset(
-                "investimento",
-                "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX FIC FIM",
-                "XP INVESTIMENTOS",
-            )
-            == "Cripto"
-        )
+        assert classify_asset("investimento", "HASHDEX 20 NASDAQ CRYPTO INDEX FIC FIM") == "Cripto"
 
     def test_cripto_btc(self):
-        assert classify_asset("", "BTC cold wallet", "") == "Cripto"
+        assert classify_asset("", "BTC cold wallet") == "Cripto"
 
     def test_previdencia_pgbl(self):
-        assert classify_asset("previdencia", "PGBL Itaú", "Itau") == "Previdência"
+        assert classify_asset("previdencia", "PGBL") == "Previdência"
 
     def test_previdencia_vgbl(self):
-        assert classify_asset("investimento", "VGBL Brasilprev", "Brasilprev") == "Previdência"
+        assert classify_asset("investimento", "VGBL") == "Previdência"
 
     def test_fii_via_ticker_xxxx11(self):
         # Sinal forte: ticker XXXX11.
-        assert classify_asset("fundo_investimento", "HGLG11 quotas", "BTG") == "FIIs"
+        assert classify_asset("fundo_investimento", "HGLG11 quotas") == "FIIs"
 
     def test_fii_via_keyword(self):
-        assert classify_asset("fundo_investimento", "Fundo Imobiliário XP Log", "XP") == "FIIs"
+        assert classify_asset("fundo_investimento", "Fundo Imobiliário Log") == "FIIs"
 
     def test_internacional_usd(self):
-        assert classify_asset("conta_bancaria", "Conta em USD na Wise", "Wise") == "Internacional"
+        assert classify_asset("conta_bancaria", "Conta em USD") == "Internacional"
 
     def test_internacional_moeda_estrangeira(self):
-        assert (
-            classify_asset("outros", "DEPOSITO EM MOEDA ESTRANGEIRA - U$ 6524,00", "")
-            == "Internacional"
-        )
+        assert classify_asset("outros", "DEPOSITO EM MOEDA ESTRANGEIRA") == "Internacional"
 
     def test_acoes_br_via_tipo(self):
-        assert classify_asset("acao", "ITSA4", "Itausa") == "Ações BR"
+        assert classify_asset("acao", "ITSA4") == "Ações BR"
 
     def test_acoes_br_via_participacao_societaria(self):
-        assert classify_asset("participacao_societaria", "PETR4 - 300 acoes", "") == "Ações BR"
+        assert classify_asset("participacao_societaria", "PETR4 - 300 acoes") == "Ações BR"
 
     def test_renda_fixa_cdb(self):
-        assert classify_asset("investimento", "CDB BTG Pactual", "BTG") == "Renda Fixa"
+        assert classify_asset("investimento", "CDB pos-fixado") == "Renda Fixa"
 
     def test_renda_fixa_lci(self):
-        assert (
-            classify_asset("participacao_societaria", "LCI OPEA SECURITIZADORA - BTG", "BTG")
-            == "Renda Fixa"
-        )
+        assert classify_asset("participacao_societaria", "LCI SECURITIZADORA") == "Renda Fixa"
 
     def test_renda_fixa_poupanca(self):
-        assert classify_asset("poupanca", "SALDO POUPANCA CAIXA", "Caixa Econômica") == "Renda Fixa"
+        assert classify_asset("poupanca", "SALDO POUPANCA") == "Renda Fixa"
 
     def test_renda_fixa_tesouro(self):
-        assert classify_asset("renda_fixa", "Tesouro IPCA+ 2030", "Itau") == "Renda Fixa"
+        assert classify_asset("renda_fixa", "Tesouro IPCA+ 2030") == "Renda Fixa"
 
     def test_fundos_fic_fim(self):
         # `tipo='fundo_investimento'` + descricao com FIC FIM (mas não FII).
-        assert (
-            classify_asset("fundo_investimento", "DNA ENERGY FIC FIM CP", "XP INVESTIMENTOS")
-            == "Fundos"
-        )
+        assert classify_asset("fundo_investimento", "DNA ENERGY FIC FIM CP") == "Fundos"
 
     def test_fundos_fia_alaska(self):
-        assert (
-            classify_asset("fundo_investimento", "ALASKA BLACK FIC FIA", "XP INVESTIMENTOS")
-            == "Fundos"
-        )
+        assert classify_asset("fundo_investimento", "ALASKA BLACK FIC FIA") == "Fundos"
 
     def test_caixa_conta_corrente(self):
-        assert (
-            classify_asset("conta_bancaria", "CONTA CORRENTE AG 1218", "Caixa Econômica") == "Caixa"
-        )
+        assert classify_asset("conta_bancaria", "CONTA CORRENTE AG 1218") == "Caixa"
 
     def test_caixa_picpay(self):
-        assert classify_asset("conta_bancaria", "Saldo Picpay", "Picpay Bank") == "Caixa"
+        assert classify_asset("conta_bancaria", "Saldo Picpay") == "Caixa"
 
     def test_outros_fallback(self):
-        assert classify_asset("outros", "ativo exotico XYZ", "") == "Outros"
+        assert classify_asset("outros", "ativo exotico XYZ") == "Outros"
 
     def test_outros_when_empty(self):
-        assert classify_asset("", "", "") == "Outros"
+        assert classify_asset("", "") == "Outros"
 
 
 class TestSpecializationWins:
@@ -154,32 +133,27 @@ class TestSpecializationWins:
 
     def test_fii_wins_over_fundos(self):
         # "FIC" também é keyword de Fundos, mas FII é mais específico.
-        assert classify_asset("fundo_investimento", "FII XPLG11", "XP") == "FIIs"
+        assert classify_asset("fundo_investimento", "FII XPLG11") == "FIIs"
 
     def test_internacional_wins_over_caixa(self):
         # Conta corrente em USD → Internacional, não Caixa.
-        assert (
-            classify_asset("conta_bancaria", "Conta corrente USD - Wise", "Wise") == "Internacional"
-        )
+        assert classify_asset("conta_bancaria", "Conta corrente USD") == "Internacional"
 
     def test_previdencia_wins_over_renda_fixa(self):
         # PGBL atuarialmente é RF; semanticamente é Previdência.
-        assert classify_asset("renda_fixa", "PGBL Bradesco IPCA+", "Bradesco") == "Previdência"
+        assert classify_asset("renda_fixa", "PGBL IPCA+") == "Previdência"
 
     def test_cripto_wins_over_fundos(self):
         # Hashdex é fundo, mas categoria semântica é Cripto.
-        assert (
-            classify_asset("fundo_investimento", "HASHDEX 20 NASDAQ CRYPTO FIC FIM", "XP")
-            == "Cripto"
-        )
+        assert classify_asset("fundo_investimento", "HASHDEX 20 NASDAQ CRYPTO FIC FIM") == "Cripto"
 
 
 class TestCustomKeywords:
     def test_override_uses_only_provided_keywords(self):
         custom = {"Cripto": ("solana",)}
-        assert classify_asset("solana wallet", "", "", keywords=custom) == "Cripto"
+        assert classify_asset("solana wallet", "", keywords=custom) == "Cripto"
         # Bitcoin não está no override custom (sem fallback default) → Outros.
-        assert classify_asset("bitcoin", "", "", keywords=custom) == "Outros"
+        assert classify_asset("bitcoin", "", keywords=custom) == "Outros"
 
     def test_default_keywords_has_8_buckets(self):
         kws = default_keywords()

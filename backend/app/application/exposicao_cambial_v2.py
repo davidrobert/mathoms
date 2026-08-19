@@ -135,9 +135,7 @@ def _fallback_classe(pos: dict, descricao: str | None) -> str:
     """Classe categórica derivada (last-resort do resolver, depois de catalog/override) — RV2-08."""
     if pos.get("classe"):
         return str(pos["classe"])
-    return classify_asset(
-        str(pos.get("tipo") or ""), str(descricao or ""), str(pos.get("instituicao") or "")
-    )
+    return classify_asset(str(pos.get("tipo") or ""), str(descricao or ""))
 
 
 def _build_asset_query(pos: dict) -> AssetQuery:

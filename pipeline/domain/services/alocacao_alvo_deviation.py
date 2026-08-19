@@ -35,6 +35,17 @@ _ALVO_INPUTS_BY_COMPARABLE: dict[str, tuple[str, ...]] = {
 }
 
 SEVERITY_ALINHADO_MAX_PP = 2.0
+
+# Degraus de supressão por incerteza de classificação ([[ADR-400]]).
+INCERTEZA_APORTE_MIN_PCT = SEVERITY_ALINHADO_MAX_PP
+INCERTEZA_DESVIO_MIN_PCT = 10.0
+
+
+def _compor_motivo(novo: str, anterior: Optional[str] = None) -> str:
+    """Acumula causas: cobertura e incerteza de classe são distintas e coexistem."""
+    return f"{anterior}; {novo}" if anterior else novo
+
+
 SEVERITY_ATENCAO_MAX_PP = 5.0
 
 AlvoInputs = Mapping[str, object]
@@ -156,6 +167,24 @@ class AlocacaoDeviationResult:
 
     def talvez_suprimir(self, motivo: str | None) -> "AlocacaoDeviationResult":
         return self.suprimir_prescricao(motivo) if motivo else self
+
+    # A incerteza de classificação não pode ser maior que a menor diferença que o
+    # produto trata como acionável ([[ADR-400]]). Os limiares não são novos: 2pp é
+    # `SEVERITY_ALINHADO_MAX_PP` e 10pp é o da [[ADR-141]] item 9.
+    def suprimir_por_incerteza(
+        self, nao_classificado_pct: float | None
+    ) -> "AlocacaoDeviationResult":
+        """Grada a supressão pela fração da carteira que nenhum degrau classificou."""
+        if nao_classificado_pct is None or nao_classificado_pct < INCERTEZA_APORTE_MIN_PCT:
+            return self
+        motivo = _compor_motivo(
+            f"nao_classificado: {nao_classificado_pct:.1f}% da carteira", self.motivo_supressao
+        )
+        if nao_classificado_pct < INCERTEZA_DESVIO_MIN_PCT:
+            from dataclasses import replace
+
+            return replace(self, next_aporte_classe=None, motivo_supressao=motivo)
+        return self.suprimir_prescricao(motivo)
 
 
 @dataclass

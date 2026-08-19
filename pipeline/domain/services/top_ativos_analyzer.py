@@ -6,10 +6,17 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
 
-from pipeline.domain.services.asset_classifier import classify_asset
+from pipeline.domain.services.asset_classifier import AssetAuthority, classify_asset_outcome
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
+
+
+def _valor_declarado_do_imovel(imovel: Mapping[str, Any]) -> Decimal:
+    """Primeiro valor declarado que existir, na ordem de precedência do baseline."""
+    return _safe_money(
+        imovel.get("valor_31_12_ano_base") or imovel.get("valor_irpf") or imovel.get("valor", 0)
+    )
 
 
 def _safe_money(val) -> Decimal:
@@ -58,6 +65,9 @@ class TopAtivo:
     valor: Decimal
     pct_carteira: float  # percentage 0-100, peso na carteira
     tipo_origem: str
+    # Quem decidiu a `classe` ([[ADR-400]]) — inclusive `origem`, para imóvel,
+    # cuja classe vem da proveniência e não de degrau algum.
+    autoridade: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -69,6 +79,7 @@ class TopAtivo:
             "valor": float(round(self.valor, 2)),
             "pct_carteira": round(self.pct_carteira, 2),
             "tipo_origem": self.tipo_origem,
+            "autoridade": self.autoridade,
         }
 
 
@@ -90,6 +101,7 @@ class _Candidate:
     valor: Decimal
     tipo_origem: str
     property_id: str | None = None
+    autoridade: str | None = None
 
 
 class TopAtivosAnalyzer:
@@ -139,6 +151,7 @@ class TopAtivosAnalyzer:
                     valor=c.valor,
                     pct_carteira=pct,
                     tipo_origem=c.tipo_origem,
+                    autoridade=c.autoridade,
                 )
             )
         return tuple(out)
@@ -161,15 +174,16 @@ class TopAtivosAnalyzer:
         descricao = str(inv.get("descricao") or inv.get("description") or "").strip()
         instituicao_raw = str(inv.get("instituicao") or "").strip()
         instituicao = instituicao_raw.capitalize() if instituicao_raw else ""
-        classe = self._classify(tipo, descricao, instituicao_raw)
-        nome = str(inv.get("nome") or "").strip() or self._fallback_nome(tipo, classe, instituicao)
+        resultado = self._classify(tipo, descricao)
+        nome = self._nome_ou_fallback(inv, tipo, resultado.classe, instituicao)
         return _Candidate(
             nome=nome,
-            classe=classe,
+            classe=resultado.classe,
             membro=member,
             instituicao=instituicao,
             valor=valor,
             tipo_origem="investimento",
+            autoridade=resultado.autoridade.value,
         )
 
     def _collect_imoveis(self, member: str, bens: Mapping[str, Any]) -> list[_Candidate]:
@@ -186,9 +200,7 @@ class TopAtivosAnalyzer:
     def _build_imovel_candidate(
         self, member: str, imovel: Mapping[str, Any], residencia_property_ids: frozenset[str]
     ) -> _Candidate | None:
-        valor = _safe_money(
-            imovel.get("valor_31_12_ano_base") or imovel.get("valor_irpf") or imovel.get("valor", 0)
-        )
+        valor = _valor_declarado_do_imovel(imovel)
         if valor <= 0:
             return None
         pid = imovel.get("property_id")
@@ -201,18 +213,21 @@ class TopAtivosAnalyzer:
             instituicao="",
             valor=valor,
             tipo_origem="imovel",
+            autoridade=AssetAuthority.ORIGEM.value,
             property_id=str(pid) if isinstance(pid, str) and pid else None,
         )
 
-    def _classify(self, tipo: str, descricao: str, instituicao: str) -> str:
-        """Delega para :func:`classify_asset` — taxonomia ADR-193 unificada
-        com :class:`InvestimentosClassesAnalyzer`."""
-        return classify_asset(
+    def _classify(self, tipo: str, descricao: str):
+        """Delega para :func:`classify_asset_outcome` — taxonomia ADR-193 unificada
+        com :class:`InvestimentosClassesAnalyzer`; `instituicao` não entra (ADR-400)."""
+        return classify_asset_outcome(
             tipo,
             descricao,
-            instituicao,
             keywords=self._config.classes_config.keywords_por_classe,
         )
+
+    def _nome_ou_fallback(self, inv, tipo: str, classe: str, instituicao: str) -> str:
+        return str(inv.get("nome") or "").strip() or self._fallback_nome(tipo, classe, instituicao)
 
     @staticmethod
     def _fallback_nome(tipo: str, classe: str, instituicao: str) -> str:

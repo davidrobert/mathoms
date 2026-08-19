@@ -8,13 +8,13 @@ from decimal import Decimal
 import pytest
 
 from backend.app.services.pipeline.pipeline_adapter import _alocacao_bundle_payload
+from pipeline.domain.services.alocacao_derived_enricher import (
+    enrich_alocacao_with_deviation,
+)
 from pipeline.domain.services.consumo_consciente_calculator import (
     ConsumoConscienteCalculator,
 )
-from pipeline.domain.services.e5_serialization import (
-    _enrich_alocacao_with_deviation,
-    _enrich_goals_with_passive_income,
-)
+from pipeline.domain.services.e5_serialization import _enrich_goals_with_passive_income
 from pipeline.domain.services.if_projector import IFProjection
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
 from pipeline.domain.services.patrimonio_types import MemberIdentity
@@ -126,7 +126,7 @@ def _passive_income_ok() -> PassiveIncomeResult:
 
 def _goals_do_produtor() -> dict:
     goals = {**_if_projection().to_legacy_dict(), "alocacao_alvo": _alocacao_do_adapter()}
-    goals = _enrich_alocacao_with_deviation(
+    goals = enrich_alocacao_with_deviation(
         goals,
         [{"categoria": "Renda Fixa", "valor": 100_000}],
     )

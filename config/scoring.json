@@ -164,7 +164,7 @@
     "Cripto": ["cripto", "bitcoin", "ethereum", "binance", "btc", "eth", "hashdex"],
     "Previdência": ["pgbl", "vgbl", "previdencia", "previdência"],
     "FIIs": ["fii", "fiis", "fundo imobiliario", "fundo imobiliário"],
-    "Internacional": ["wise", "usd", "dolar", "dólar", "ivvb", "global", "bofa", "bank of america", "moeda estrangeira", "exterior"],
+    "Internacional": ["usd", "dolar", "dólar", "ivvb", "global", "moeda estrangeira", "exterior"],
     "Ações BR": ["acoes", "ações", "acao", "ação", "itsa", "brkm", "petr", "etf", "participacao societaria", "participação societária"],
     "Renda Fixa": ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "debênture", "certificado de deposito", "cra", "cri", "poupanca", "poupança", "cofrinhos"],
     "Fundos": ["fic ", " fim", " fia", "fundo de investimento", "alaska", "constellation", "western", "safari", "dna energy"],

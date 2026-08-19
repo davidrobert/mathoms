@@ -6,7 +6,7 @@ from datetime import date
 from types import SimpleNamespace
 
 from backend.app.services.pipeline.pipeline_adapter import _serialize_alocacao_goal
-from pipeline.domain.services.e5_serialization import _enrich_alocacao_with_deviation
+from pipeline.domain.services.alocacao_derived_enricher import enrich_alocacao_with_deviation
 
 V2_INPUTS = {
     "rf_pos_pct": 20,
@@ -78,7 +78,7 @@ class TestE5InjectaDerived:
         ]
 
     def test_injeta_bloco_derived(self):
-        enriched = _enrich_alocacao_with_deviation(self._goals_com_alvo(), self._tabela())
+        enriched = enrich_alocacao_with_deviation(self._goals_com_alvo(), self._tabela())
         derived = enriched["alocacao_alvo"]["derived"]
         assert "comparaveis" in derived
         assert "desvio_max_pct" in derived
@@ -88,8 +88,8 @@ class TestE5InjectaDerived:
 
     def test_sem_alvo_nao_injeta(self):
         goals = {"independencia_financeira": {"if_meta": 1000}}
-        assert _enrich_alocacao_with_deviation(goals, self._tabela()) == goals
+        assert enrich_alocacao_with_deviation(goals, self._tabela()) == goals
 
     def test_alvo_sem_tabela_nao_quebra(self):
-        enriched = _enrich_alocacao_with_deviation(self._goals_com_alvo(), [])
+        enriched = enrich_alocacao_with_deviation(self._goals_com_alvo(), [])
         assert "derived" in enriched["alocacao_alvo"]

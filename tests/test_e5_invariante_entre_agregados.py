@@ -11,7 +11,7 @@ from tests.pipeline_golden_substrate import load_fixture, run_dogfood_pipeline, 
 
 _FIX = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "pipeline_golden" / "dogfood"
 
-# `_enrich_alocacao_with_deviation` exige `rf_pos_pct` na RAIZ de `alocacao_alvo`
+# `enrich_alocacao_with_deviation` exige `rf_pos_pct` na RAIZ de `alocacao_alvo`
 # (e5_serialization.py:441); aninhado sob `inputs`, o `derived` nasce vazio e o
 # invariante viraria "campo ausente" em vez de "produtores discordam".
 _ALOCACAO_ALVO_V2 = {
