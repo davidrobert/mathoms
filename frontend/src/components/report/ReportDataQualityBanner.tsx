@@ -58,6 +58,13 @@ export function ReportDataQualityBanner({
   // A ressalva positiva ("o que faltou") é da A40.l22 — este PR só cala a
   // afirmação falsa, e o slot fica livre para a linha que ela vai escrever.
   if (signals.count > 0) return <SignalsAlert signals={signals} />;
+
+  // PD-6 (RV6-22) — mesma polaridade positiva, outro eixo. `runOutcome`
+  // responde "o run entregou tudo?"; `allMeasured` responde "os contadores
+  // client-side chegaram?". Falha de fetch colapsava para 0 e a barra afirmava
+  // ausência de pendências sobre número nunca medido — inclusive no PDF, que é
+  // esta mesma rota num Chromium real (ADR-129), onde o efeito roda e falha.
+  if (!signals.allMeasured) return null;
   if (!mayAssertCleanQuality(runOutcome)) return null;
   return <CleanBar />;
 }

@@ -14,6 +14,7 @@ import {
   isNaoIdentificadoKey,
   pendingClassificationProperties,
 } from "@/components/report/utils/dataQualitySignals";
+import { UNMEASURED, measured } from "@/components/report/utils/measuredCount";
 import type { PremissasEconomicasData, ReportAnalysisData } from "@/lib/api";
 import type { RealEstateData } from "@/types/report-analysis";
 
@@ -138,19 +139,19 @@ describe("computeDataQualitySignals", () => {
     const data: ReportAnalysisData = {
       fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
     };
-    expect(computeDataQualitySignals(data, 0).count).toBe(0);
+    expect(computeDataQualitySignals(data, measured(0)).count).toBe(0);
   });
 
   it("nao_identificado só entra acima do threshold de 10%", () => {
     const at9: ReportAnalysisData = {
       fluxo_caixa: { despesas_por_categoria: { moradia: 910, nao_identificado: 90 } },
     };
-    expect(computeDataQualitySignals(at9, 0).naoIdentificado).toBeNull();
+    expect(computeDataQualitySignals(at9, measured(0)).naoIdentificado).toBeNull();
 
     const at23: ReportAnalysisData = {
       fluxo_caixa: { despesas_por_categoria: { moradia: 770, nao_identificado: 230 } },
     };
-    const signals = computeDataQualitySignals(at23, 0);
+    const signals = computeDataQualitySignals(at23, measured(0));
     expect(signals.naoIdentificado?.pct).toBeCloseTo(23);
     expect(signals.count).toBe(1);
   });
@@ -161,10 +162,40 @@ describe("computeDataQualitySignals", () => {
       premissas_economicas: makePremissas(),
       real_estate: makeRealEstate([{ classification: "desconhecido" }]),
     };
-    const signals = computeDataQualitySignals(data, 13);
+    const signals = computeDataQualitySignals(data, measured(13));
     expect(signals.count).toBe(4);
     expect(signals.needsReviewDocs).toBe(13);
     expect(signals.imoveisPendentes).toBe(1);
     expect(signals.premissas?.status).toBe("parcial");
+  });
+
+  // ─── PD-6 (RV6-22) — não medido ≠ medido zero ───
+
+  it("contador não medido não vira linha E derruba allMeasured", () => {
+    const data: ReportAnalysisData = {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+    };
+    const signals = computeDataQualitySignals(data, UNMEASURED);
+    expect(signals.needsReviewDocs).toBe(0);
+    expect(signals.count).toBe(0);
+    expect(signals.allMeasured).toBe(false);
+  });
+
+  it("zero medido é indistinguível do anterior no count — e distinguível no canal que afirma", () => {
+    const data: ReportAnalysisData = {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+    };
+    const signals = computeDataQualitySignals(data, measured(0));
+    expect(signals.count).toBe(0);
+    expect(signals.allMeasured).toBe(true);
+  });
+
+  it("um contador não medido basta para derrubar allMeasured", () => {
+    const data: ReportAnalysisData = {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+    };
+    expect(
+      computeDataQualitySignals(data, measured(0), UNMEASURED).allMeasured,
+    ).toBe(false);
   });
 });
