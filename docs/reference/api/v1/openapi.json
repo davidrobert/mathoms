@@ -4284,6 +4284,48 @@
         "title": "DocumentUploadResponse",
         "type": "object"
       },
+      "DocumentaryCoverageResponse": {
+        "additionalProperties": false,
+        "description": "Fonte documental projetada no bundle (ADR-395 \u00a7D2) \u2014 hint, nunca valor.",
+        "properties": {
+          "active_policies_count": {
+            "title": "Active Policies Count",
+            "type": "integer"
+          },
+          "earliest_coverage_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Coverage End"
+          },
+          "insurers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Insurers",
+            "type": "array"
+          },
+          "unconfirmed_categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unconfirmed Categories",
+            "type": "array"
+          }
+        },
+        "required": [
+          "active_policies_count",
+          "insurers",
+          "unconfirmed_categories"
+        ],
+        "title": "DocumentaryCoverageResponse",
+        "type": "object"
+      },
       "DolarGoalComputeRequest": {
         "properties": {
           "cambio_brl_usd": {
@@ -8493,6 +8535,16 @@
             "title": "Calculation Status",
             "type": "object"
           },
+          "documentary_coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentaryCoverageResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "gap_analysis": {
             "additionalProperties": {
               "$ref": "#/components/schemas/ProtectionGapItemResponse"
@@ -8728,9 +8780,16 @@
         "description": "Gap por categoria (T03 popula via calculators).",
         "properties": {
           "actual_brl": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-            "title": "Actual Brl",
-            "type": "string"
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Brl"
           },
           "gap_brl": {
             "anyOf": [
@@ -8768,9 +8827,6 @@
             "title": "Methodology"
           }
         },
-        "required": [
-          "actual_brl"
-        ],
         "title": "ProtectionGapItemResponse",
         "type": "object"
       },

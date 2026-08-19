@@ -15,6 +15,7 @@ from pipeline.domain.protection_computation_snapshot import (
     ProtectionComputationSnapshotV1,
     unavailable_snapshot,
 )
+from pipeline.domain.services.documentary_coverage import documentary_coverage_from_payload
 
 logger = get_logger("mathoms.protection.snapshot")
 
@@ -80,10 +81,16 @@ def _build_from_e5(e5_payload: dict, *, captured_at, as_of_date, **ids) -> dict:
         return _unavailable_from_inputs(
             inputs, captured_at=captured_at, as_of_date=as_of_date, **ids
         ).model_dump(mode="json")
-    return _available_snapshot(inputs, captured_at=captured_at, as_of_date=as_of_date, **ids)
+    # ADR-395 §D6: o hint vem do MESMO artefato E5 pinado que o envelope já
+    # referencia por `analysis_artifact_id` — segue reprodutível a partir do run.
+    # Fora do `inputs_digest`, que sela a projeção relacional, não esta.
+    documentary = documentary_coverage_from_payload(e5_payload.get("protecao_patrimonial"))
+    return _available_snapshot(
+        inputs, captured_at=captured_at, as_of_date=as_of_date, documentary=documentary, **ids
+    )
 
 
-def _available_snapshot(inputs, *, captured_at, as_of_date, **ids) -> dict:
+def _available_snapshot(inputs, *, captured_at, as_of_date, documentary=None, **ids) -> dict:
     return ProtectionComputationSnapshotV1(
         snapshot_status="available",
         e5_inputs_digest_sha256=inputs.inputs_digest_sha256,
@@ -91,7 +98,9 @@ def _available_snapshot(inputs, *, captured_at, as_of_date, **ids) -> dict:
         as_of_date=as_of_date,
         calculator_versions=dict(CALCULATOR_VERSIONS),
         inputs=inputs,
-        bundle=compute_protection_bundle(inputs, as_of_date=as_of_date),
+        bundle=compute_protection_bundle(
+            inputs, as_of_date=as_of_date, documentary_coverage=documentary
+        ),
         **ids,
     ).model_dump(mode="json")
 

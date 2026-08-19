@@ -69,6 +69,18 @@ class ProtectionCalculationStatus(TypedDict):
     reason: str
 
 
+# ADR-395 §D2 — o que o documento sustenta, sem virar valor. `insurers` e
+# `earliest_coverage_end` existem para o render NOMEAR o identificado; a copy
+# nunca deriva de `missing_inputs`, que carrega identificador interno.
+class DocumentaryCoverage(TypedDict):
+    """Fonte documental (ADR-240) projetada no bundle — hint, nunca aritmética."""
+
+    active_policies_count: int
+    insurers: list[str]
+    earliest_coverage_end: Optional[str]
+    unconfirmed_categories: list[str]
+
+
 class ProtectionBundle(TypedDict, total=False):
     """Bundle tipado consumido por stages do pipeline (ADR-192; total=False)."""
 
@@ -79,10 +91,12 @@ class ProtectionBundle(TypedDict, total=False):
     calculation_status: dict[str, ProtectionCalculationStatus]
     methodology_thresholds: ProtectionThresholds
     has_us_exposure: Optional[bool]
+    documentary_coverage: DocumentaryCoverage
     _adapter_version: int
 
 
 __all__ = [
+    "DocumentaryCoverage",
     "ProtectionBundle",
     "ProtectionCalculationStatus",
     "ProtectionGapItem",
