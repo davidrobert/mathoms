@@ -313,8 +313,9 @@ describe("composição e supressão por seção (ADR-356)", () => {
     expect(screen.queryByText(/delta qualquer/)).not.toBeInTheDocument();
   });
 
-  // A S9 em empty state tem <EmptyState/> que JÁ afirma "sem riscos cadastrados
-  // não há análise de cobertura" — o `s9` diria o mesmo com outro wording.
+  // A S9 fora do estado apurado tem um bloco que JÁ é a mensagem da seção — o
+  // `s9` diria o mesmo com outro wording. A copy mudou em A40.l73 (ADR-395 §D3):
+  // ausência declarada nomeia o insumo em vez de afirmar "sem riscos cadastrados".
   it("S9 em empty state não publica o s9 (o EmptyState é a mensagem)", () => {
     const data = buildData({
       protection_bundle: null,
@@ -332,7 +333,7 @@ describe("composição e supressão por seção (ADR-356)", () => {
     const { container } = renderSection("S9", data);
     expect(container.textContent).not.toContain(FIXTURE.summaries.s9);
     expect(
-      screen.getByText(/Mapeie seus riscos críticos/i),
+      screen.getByText(/Ainda não temos insumo para analisar seus riscos/i),
     ).toBeInTheDocument();
   });
 });
