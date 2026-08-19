@@ -27,6 +27,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from pipeline.domain.services.narrativas.format_helpers import fmt_percent
+
 
 def _safe_float(val) -> float:
     if val is None:
@@ -115,7 +117,7 @@ class PontosFortesAnalyzer:
                 PontoForteItem(
                     titulo="Taxa de Poupança Elevada",
                     descricao=(
-                        f"Poupança recorrente de {taxa_poup:.1f}% da renda — "
+                        f"Poupança recorrente de {fmt_percent(taxa_poup)} da renda — "
                         f"acima da referência de {cfg.poupanca_forte_min_pct:.0f}%."
                     ),
                     icone="savings",
@@ -126,7 +128,7 @@ class PontosFortesAnalyzer:
                 PontoForteItem(
                     titulo="Disciplina de Poupança",
                     descricao=(
-                        f"Taxa de poupança de {taxa_poup:.1f}% demonstra hábito "
+                        f"Taxa de poupança de {fmt_percent(taxa_poup)} demonstra hábito "
                         "consistente de guardar dinheiro."
                     ),
                     icone="savings",
@@ -141,7 +143,7 @@ class PontosFortesAnalyzer:
                     PontoForteItem(
                         titulo="Endividamento Mínimo",
                         descricao=(
-                            f"Taxa de endividamento de apenas {endiv:.1f}% do "
+                            f"Taxa de endividamento de apenas {fmt_percent(endiv)} do "
                             "patrimônio bruto — excelente controle de dívidas."
                         ),
                         icone="shield",
@@ -152,7 +154,7 @@ class PontosFortesAnalyzer:
                     PontoForteItem(
                         titulo="Endividamento Controlado",
                         descricao=(
-                            f"Taxa de endividamento de {endiv:.1f}% — "
+                            f"Taxa de endividamento de {fmt_percent(endiv)} — "
                             f"abaixo do teto de {cfg.endividamento_max_pct:.0f}%."
                         ),
                         icone="shield",
