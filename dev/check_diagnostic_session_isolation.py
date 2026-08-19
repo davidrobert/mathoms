@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Isolamento da superfície de diagnóstico (ADR-396; uso:
+"""Isolamento da superfície de diagnóstico (ADR-399; uso:
 ``python3 dev/check_diagnostic_session_isolation.py [-v]``; exit 1 = violação).
 O run `140ac8d7` morreu em 12/18 porque a row de `review_reasons` compartilhava
 transação — e domínio de falha — com o `run.status = needs_review`.
@@ -164,7 +164,7 @@ def violations_in_source(src: str, path: str) -> list[str]:
         out.append(
             f"{path}:{lineno}: sessão transiciona PipelineRun E escreve tabela de "
             f"diagnóstico ({', '.join(sorted(DIAGNOSTIC_MODELS))}) — separe a sessão "
-            "e proteja o diagnóstico com try/except (ADR-396)"
+            "e proteja o diagnóstico com try/except (ADR-399)"
         )
     return out
 
@@ -233,7 +233,7 @@ def _traceback_violations(tree: ast.Module, path: str) -> list[str]:
     return [
         f"{path}:{n.lineno}: log com traceback em {_SINK_PACKAGE} — o traceback do "
         "driver carrega os bound parameters (PII). Use exc_info=False + campos "
-        "tipados por shape (ADR-396)"
+        "tipados por shape (ADR-399)"
         for n in ast.walk(tree)
         if isinstance(n, ast.Call) and _logs_traceback(n)
     ]
@@ -244,7 +244,7 @@ def _public_session_params(tree: ast.Module, path: str) -> list[str]:
     return [
         f"{path}:{n.lineno}: `{n.name}` é público em {_SINK_PACKAGE} e aceita "
         "Session — o sink abre a sessão dele, senão o chamador volta a "
-        "compartilhar a transação (ADR-396)"
+        "compartilhar a transação (ADR-399)"
         for n in ast.walk(tree)
         if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
         and not n.name.startswith("_")
@@ -257,7 +257,7 @@ def _constructions_outside_sink(tree: ast.Module, path: str) -> list[str]:
     owned = [n for n in sorted(OWNED_BY_SINK) if _binds_db_model(tree, n)]
     return [
         f"{path}:{n.lineno}: `{n.func.id}(...)` construído fora de {_SINK_PACKAGE} — "
-        "escrita de diagnóstico tem um dono só (ADR-396)"
+        "escrita de diagnóstico tem um dono só (ADR-399)"
         for n in ast.walk(tree)
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id in owned
     ]
@@ -281,7 +281,7 @@ def main(argv: list[str] | None = None) -> int:
     for line in errors:
         print(line, file=sys.stderr)
     if args.verbose and not errors:
-        print("OK: diagnóstico isolado da transição de run (ADR-396)")
+        print("OK: diagnóstico isolado da transição de run (ADR-399)")
     return 1 if errors else 0
 
 

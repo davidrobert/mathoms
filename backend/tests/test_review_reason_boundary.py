@@ -1,4 +1,4 @@
-"""ADR-396 — boundary de `review_reasons`: normalização de TIPO e largura.
+"""ADR-399 — boundary de `review_reasons`: normalização de TIPO e largura.
 
 Puro-Python, sem DB de propósito: as larguras vêm de `__table__` e o SQLite
 ignora `VARCHAR(n)`. Afirmar comprimento com teste SQLite seria falso-verde

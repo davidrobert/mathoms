@@ -1,4 +1,4 @@
-"""CTO-6 · ADR-396 — testes do gate ``dev/check_diagnostic_session_isolation.py``.
+"""CTO-6 · ADR-399 — testes do gate ``dev/check_diagnostic_session_isolation.py``.
 
 O gate tem de FALHAR na forma pré-fix e PASSAR na pós-fix. Fonte sintética
 espelha as duas, e o scan real de `backend/app` fecha o repo de hoje.
@@ -164,7 +164,7 @@ def _stage(run_id, log_id):
         assert _check(src) == []
 
     def test_stage_review_convive_com_a_transicao(self):
-        """Decisão explícita da ADR-396: `StageReview` é contrato de pausa —
+        """Decisão explícita da ADR-399: `StageReview` é contrato de pausa —
         `resume_run` exige zero reviews `pending` —, não diagnóstico."""
         src = """
 def _pause(run_id, stage):

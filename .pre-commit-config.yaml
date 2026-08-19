@@ -187,7 +187,7 @@ repos:
         # Full-scan AST com fecho transitivo de chamada — extrair a escrita
         # para um helper não cega o gate, que é como #1535 fechou a instância
         # e deixou a classe aberta.
-        name: "Diagnóstico não divide sessão com transição de run (ADR-396)"
+        name: "Diagnóstico não divide sessão com transição de run (ADR-399)"
         entry: python3 dev/check_diagnostic_session_isolation.py
         language: system
         pass_filenames: false
