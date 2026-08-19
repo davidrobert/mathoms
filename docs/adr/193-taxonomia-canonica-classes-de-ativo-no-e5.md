@@ -4,11 +4,13 @@ type: adr
 title: "Taxonomia canônica de classes de ativo no E5 (10 buckets)"
 status: Decidido
 date: "2026-05-11"
+amended_at: ["2026-08-19"]
 relates_to:
   - "[[ADR-141]]"
   - "[[ADR-143]]"
   - "[[ADR-097]]"
   - "[[ADR-160]]"
+  - "[[ADR-396]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 193", "Asset classifier taxonomy"]
@@ -23,6 +25,10 @@ tags:
 ---
 
 # ADR-193 — Taxonomia canônica de classes de ativo no E5 (10 buckets)
+
+> **Emendada em 2026-08-19 ([[ADR-396]]).** `classify_asset` perdeu o parâmetro
+> `instituicao` e passou a devolver value object com `autoridade`; o ticker
+> `XXXX11` deixou de decidir sozinho. Ver §Emenda 2026-08-19 no fim desta nota.
 
 **Status:** Decidido · **Data:** 2026-05-11 · **Implementação:** `pipeline/domain/services/asset_classifier.py` (`classify_asset`, `BUCKETS`, `EVALUATION_ORDER`, `OutrosExcessivoWarning`); refatora `InvestimentosClassesAnalyzer` e `TopAtivosAnalyzer`; atualiza `config/scoring.json::asset_class_keywords` e `config/schemas/e5_analysis.schema.json` (enum em `top_ativos.classe` + `tabela_classes.categoria`); propaga `OutrosExcessivoWarning` para `alertas[]` via `build_alertas` em [`e5_serialization.py`](../../pipeline/domain/services/e5_serialization.py).
 
@@ -108,3 +114,33 @@ Especializações primeiro garantem que keywords genéricas (e.g. "fundo" em "Fu
 - [ ] Smoke manual no workspace dogfood (`028125eb-…`): distribuição esperada Ações BR > 0, Renda Fixa > 0, Fundos > 0, Cripto > 0, Caixa > 0, Internacional > 0, Imóveis Investimento ≈ R$ 3,14M, **Outros ≤ 5%**.
 
 **Relaciona-se a:** [[ADR-141]] (taxonomia AUVP autêntica para Goal — alinhamento parcial), [[ADR-143]] (methodology = code), [[ADR-097]] D1 (warnings tipados), [[ADR-160]] (eficiência tributária imóvel direto vs FII), [[ADR-089]]/[[ADR-097]] D3 (config tipado por value object). Origem: investigação de produto 2026-05-11 a partir de inspeção do card "Investimentos por Classe" no workspace dogfood.
+
+## Emenda 2026-08-19 — o classificador declara quem decidiu
+
+Decidido em [[ADR-396]]. Duas premissas desta ADR caíram na medição do §r7 do dogfood.
+
+**1. `instituicao` sai da assinatura.** `classify_asset(tipo, descricao,
+instituicao)` tratava a marca da instituição como sinal de classe. Ela é o único
+input cuja forma canônica é propriedade de outro subsistema
+(`institution_catalog`, [[ADR-137]]/[[ADR-384]]): entre r5 e r7, um renomeio
+legítimo lá moveu `Caixa` de 4,49% para 3,65% aqui, sem um único diff no
+classificador. A assinatura passa a ser `classify_asset(tipo, descricao)`. Onde a
+custódia é resposta legítima — lastro cambial —, `wise`/`bofa`/`bank of america`
+saem das keywords de `Internacional` e viram
+`exposicao_cambial_analyzer._CUSTODIA_ESTRANGEIRA`, no módulo que faz a pergunta.
+
+**2. O ticker `XXXX11` deixa de decidir sozinho.** `_FII_TICKER_RE` rodava antes
+de tudo e mandava para `FIIs` qualquer coisa com o padrão — `IVVB11`, `BOVA11`,
+`HASH11`, `BPAC11`, `TAEE11` inclusive, contra sinal explícito em contrário. O
+sufixo `11` é compartilhado por FII, ETF, UNIT e BDR: ele identifica formato, não
+classe. A keyword `"ivvb"` desta ADR era **dead code** por causa disso. Agora
+qualquer sinal textual vence o ticker, e ticker fora da allowlist mínima vira
+`SEM_MATCH` declarado em vez de `FIIs` mudo.
+
+**O que não muda:** os 10 buckets, a `EVALUATION_ORDER`, os enums do schema E5 e
+o `OutrosExcessivoWarning`. `Outros` continua classe legítima; `nao_classificado`
+é campo derivado da `autoridade`, não do rótulo.
+
+O retorno passa a ser `AssetClassification(classe, autoridade, moeda, lastro,
+warnings)`; `classify_asset` sobrevive como fachada de uma linha sobre
+`classify_asset_outcome`.
