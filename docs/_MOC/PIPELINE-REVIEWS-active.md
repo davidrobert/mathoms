@@ -487,6 +487,21 @@ PDF é a superfície que sai do produto e é arquivada por terceiros, e o KR-3 d
 já a declara obrigatória por isso), mas a causa registrada teria mandado o executor procurar no
 lugar errado — SSR/hidratação em vez do caminho de rede.
 
+**Nota datada 2026-08-19 — CTO-6 remediado (#PR, [[ADR-396]]).** Re-medido contra
+`origin/main` (`ab91f7ec`) e **confirmado**: a assimetria persistia (o commit de artefato do
+ramo `needs_review` tem `try/except`; o `_record_stage_needs_review` logo abaixo, nenhum), e
+três payloads de produtor derrubavam o run **no SQLite** — `dict` em coluna `Text` (o driver
+recusa o bind), entrada `str` no lugar de objeto (`AttributeError`) e `occurrence_count`
+não-numérico (`ValueError`). Nenhum é largura de coluna: o #1535 fechou uma munição de FK e a
+classe era de **tipo**. Remediado em três camadas — controle (`stage_log` + `StageReview` +
+`run.status`) commita primeiro e sozinho, sem `try/except`; sink de `review_reasons` em
+`backend/app/services/diagnostics/` com sessão própria e sem `Session` na API pública; DTO
+normaliza tipo e largura (larguras derivadas de `__table__`). `StageReview` fica do lado do
+**controle** de propósito: `resume_run` exige zero reviews `pending`, e um `StageReview`
+fail-open trocaria abort ruidoso por retomada silenciosa sobre dado não-revisado. Gate
+`dev/check_diagnostic_session_isolation.py`. **Fica aberto:** RV6-11 é a mesma classe em
+`llm_call_log.stage` e segue com writer fora do sink — lane própria.
+
 **Re-triagem do §r6 (cadência).** Fechados por medição: RV6-01/02/03, RV6-07, RV6-23,
 RV6-10 (com ressalva). Persistem re-priorizados: RV6-04 (P0, 3º run), RV6-11 (P1),
 RV6-17 (P1, **âncora corrigida** — o campo registrado no r6 é dead code), RV6-13 (P2,
