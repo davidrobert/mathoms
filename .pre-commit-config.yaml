@@ -124,12 +124,16 @@ repos:
         pass_filenames: false
         always_run: true
 
-      - id: check-extraction-sampling
-        name: Call-site de extração declara temperature + seed (A40.l66)
-        entry: python3 dev/check_extraction_sampling.py
+      - id: check-llm-sampling
+        # `files:` largo de propósito: o hook é pass_filenames:false e só RODA
+        # quando um path casado muda. Com o padrão antigo (extract_*.py), um
+        # call-site novo em backend/app/services/ não disparava o hook e o gate
+        # ficava verde por não ter rodado.
+        name: Call-site de LLM declara temperature + seed (A40.l66 · §r7 PE-2)
+        entry: python3 dev/check_llm_sampling.py
         language: system
         pass_filenames: false
-        files: ^(pipeline/stages/extract_.*\.py|dev/check_extraction_sampling\.py)$
+        files: ^(pipeline/.*\.py|backend/app/.*\.py|dev/check_llm_sampling\.py)$
 
       - id: pipeline-boundaries
         name: "pipeline/ não importa backend/frameworks (ADR-089 · ADR-325)"
