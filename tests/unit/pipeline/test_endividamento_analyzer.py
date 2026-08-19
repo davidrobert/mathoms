@@ -33,7 +33,10 @@ class TestAnalyze:
         )
         assert r.percentual_patrimonio == pytest.approx(20.0)
 
-    def test_creates_divida_item_per_member_with_positive_divida(self):
+    def test_fallback_cria_item_por_membro_sem_inventar_tipo(self):
+        """ADR-401: sem baseline itemizado o item vira agregado por membro — mas
+        `descricao` deixa de afirmar "Financiamento imobiliário", que o produtor
+        nunca soube; o nome sai da string e vira o campo `membro`."""
         r = EndividamentoAnalyzer().analyze(
             {"bruto": 1_000_000, "dividas": 300_000},
             [
@@ -42,9 +45,9 @@ class TestAnalyze:
             ],
         )
         assert len(r.dividas) == 2
-        descs = [d.descricao for d in r.dividas]
-        assert "Financiamento imobiliário (David)" in descs
-        assert "Financiamento imobiliário (Mariana)" in descs
+        assert {d.descricao for d in r.dividas} == {"Dívida (origem: declaração patrimonial)"}
+        assert [d.membro for d in r.dividas] == ["David", "Mariana"]
+        assert all(d.tipo is None for d in r.dividas)
 
     def test_skips_member_without_dividas(self):
         r = EndividamentoAnalyzer().analyze(
@@ -74,7 +77,7 @@ class TestAnalyze:
             [_member("David", total_dividas=200_000), _member("Mariana", total_dividas=100_000)],
         )
         assert "; " in r.detalhe
-        assert r.detalhe.count("Financiamento imobiliário") == 2
+        assert r.detalhe.count("Dívida (origem: declaração patrimonial)") == 2
 
     def test_pct_zero_when_bruto_zero(self):
         r = EndividamentoAnalyzer().analyze(
