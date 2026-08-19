@@ -11,7 +11,23 @@ from __future__ import annotations
 #   espelham parecer_red_lines v1.4; prevenção reduz needs_review, validador segue defesa.
 #   Ao recalibrar parecer_red_lines, atualize a REGRA 14 no mesmo PR (simetria prompt↔validador).
 # 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
-PROMPT_VERSION = "2.2.0"
+PROMPT_VERSION = "2.3.0"
+
+# Amostragem do parecer — mora aqui, e não no orquestrador, porque este módulo é
+# varrido por `check_prompt_version_bumped.py`: re-afinar a amostragem sem bumpar
+# a versão fica impossível. O bump é load-bearing, não burocracia — `prompt_version`
+# compõe a cache key (TTL 7d) e janela o drift monitor, então sem ele a mudança não
+# chega em produção por uma semana e os dois regimes se misturam na mesma janela.
+#: Modo da distribuição. 0.1 era default herdado do LLMConfig, nunca decisão: a
+#: superfície irmã de síntese aberta (section_summary) já roda 0.0, e o parecer
+#: congela uma amostra por 7 dias — a variedade que temp>0 compraria é entregue
+#: uma vez e repetida a semana toda ([[ADR-307]] proíbe o par cache×temp>0 uma
+#: camada abaixo pelo mesmo motivo).
+PARECER_TEMPERATURE = 0.0
+#: Constante — variar entre runs derrotaria o propósito. Reduz variância; **não**
+#: produz determinismo: `seed` é descartado por `litellm.drop_params` em
+#: `anthropic/*`. Passamos porque custa zero e vale no dia em que o provider mudar.
+PARECER_SEED = 20260819
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
