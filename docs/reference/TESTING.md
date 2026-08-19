@@ -284,6 +284,15 @@ npm run test:e2e tests/e2e/golden-path.spec.ts
 
 3. Para endpoints autenticados, use `auth_client` ou crie token via `make_user(db) + create_access_token(user.id)`.
 4. Para multi-tenant (6.5B.12): crie 2 workspaces com `make_workspace` e teste vazamento.
+5. **O Redis da suíte é o mesmo do dev.** Não há fake global: chave **global**
+   lida num teste devolve o que o dogfood gravou, e o que o teste gravar fica lá
+   até o TTL (o catálogo de instituições vive 30 dias). O `conftest` já isola o
+   catálogo (`_institution_catalog_no_redis`) e o rate limit (`_rate_limit_fail_open`);
+   ao tocar outra chave global — `categories:latest_template_version`, por
+   exemplo — isole com
+   `monkeypatch.setattr(<módulo>, "_get_redis_safe", lambda: None)` ou injete um
+   fake por teste. Chave por workspace (`categories:ws=<uuid>:v=<n>`) não precisa:
+   o uuid da factory já isola.
 
 ### Frontend (Vitest)
 
