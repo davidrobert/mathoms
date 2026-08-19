@@ -19,7 +19,8 @@ import {
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
-import { hasRealProtectionInputs } from "./s9ProtectionInputs";
+import { S9CoberturaNaoConfirmada } from "./S9CoberturaNaoConfirmada";
+import { protectionSectionState } from "./s9ProtectionInputs";
 
 interface MitigationCounts {
   coberto: number;
@@ -34,7 +35,9 @@ function countMitigationStatuses(
   if (!gapAnalysis) return counts;
   for (const value of Object.values(gapAnalysis)) {
     if (value.gap_brl === null || value.gap_brl === undefined) {
-      if (value.actual_brl > 0) counts.coberto += 1;
+      // ADR-395 §D4: `actual_brl` nulo é "não medido". `?? 0` aqui refaria no
+      // render a afirmação de zero que o produtor deixou de fazer.
+      if ((value.actual_brl ?? 0) > 0) counts.coberto += 1;
     } else if (value.gap_brl > 0) {
       counts.descoberto += 1;
     } else {
@@ -77,28 +80,33 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const bundle = data.protection_bundle ?? undefined;
-  const isEmpty = !hasRealProtectionInputs(bundle);
+  const sectionState = protectionSectionState(bundle);
   const effectiveDate = (data.data_analise as string | undefined) ?? null;
   const mitigationLegend = buildMitigationLegend(bundle);
 
   return (
     <ReportSection id="S9">
-      {/* ADR-356: em empty state o <EmptyState/> abaixo JÁ é a mensagem
-          ("sem riscos cadastrados não há análise de cobertura"). Imprimir o
-          `s9` acima dele repetiria a mesma afirmação com wording diferente —
-          deduplicar o CTA não bastava. Fora do empty state, o parágrafo abre
-          a seção normalmente. */}
-      {!isEmpty && <SectionSummary data={data} sectionId="S9" />}
-      {isEmpty ? (
+      {/* ADR-356: fora do estado apurado, o bloco abaixo JÁ é a mensagem da
+          seção. Imprimir o `s9` acima dele repetiria a mesma afirmação com
+          wording diferente — deduplicar o CTA não bastava. */}
+      {sectionState === "apurado" && <SectionSummary data={data} sectionId="S9" />}
+      {sectionState === "parcial" && bundle?.documentary_coverage && (
+        <S9CoberturaNaoConfirmada documentary={bundle.documentary_coverage} />
+      )}
+      {sectionState === "nao_apurado" && (
         <div className="md:col-span-2">
+          {/* ADR-395 §D3 — ausência declarada NOMEIA o insumo que falta. A copy
+              anterior ("sem riscos cadastrados") afirmava algo sobre o
+              patrimônio do cliente a partir de uma fonte só. */}
           <EmptyState
             icon={ShieldOff}
-            title="Mapeie seus riscos críticos para destravar esta seção"
-            description="Sem riscos cadastrados, não conseguimos calcular cobertura, exposição de compliance ou planejamento sucessório. Registre vida, invalidez, sucessão e compliance no Console para a análise completa."
-            action={{ href: "/plano", label: "Cadastrar riscos no Console" }}
+            title="Ainda não temos insumo para analisar seus riscos"
+            description="Não recebemos apólice nos documentos enviados nem cadastro de proteção — sem uma dessas fontes não há o que medir em cobertura, sucessão ou compliance. Isto não afirma que você está descoberto."
+            action={{ href: "/protecao", label: "Cadastrar apólices" }}
           />
         </div>
-      ) : (
+      )}
+      {sectionState === "apurado" && (
         <>
           <HeroGapProtecaoCard bundle={bundle} effectiveDate={effectiveDate} />
           <CoberturaSegurosCard bundle={bundle} effectiveDate={effectiveDate} />

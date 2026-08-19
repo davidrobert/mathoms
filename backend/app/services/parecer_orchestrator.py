@@ -48,6 +48,8 @@ from backend.app.services.parecer_strict_enforcement import (
 )
 from pipeline.llm.models_catalog import PARECER_MODEL
 from pipeline.llm.prompts.parecer_planejador import (
+    PARECER_SEED,
+    PARECER_TEMPERATURE,
     PROMPT_VERSION,
     SYSTEM_PROMPT_TEMPLATE,
     USER_PROMPT_TEMPLATE,
@@ -118,7 +120,6 @@ class ParecerOrchestratorConfig:
     api_key: Optional[str] = None
     schema_version: str = _SCHEMA_VERSION
     max_tokens: int = 16_384
-    temperature: float = 0.1
     # Geração mais longa do pipeline (16k max_tokens) estourou o cap global de
     # 120s pós-migração claude-sonnet-4-6 — emenda ADR-270 (2026-06-12).
     llm_timeout_s: float = 240.0
@@ -238,7 +239,7 @@ def _build_llm_service(config: ParecerOrchestratorConfig):
             api_key=api_key,
             model_name=model_name,
             max_tokens=config.max_tokens,
-            temperature=config.temperature,
+            temperature=PARECER_TEMPERATURE,
             call_hooks=config.llm_hooks,
             metrics_emitter=get_llm_metrics_emitter(),
         )
@@ -535,6 +536,8 @@ def _invoke_parecer_llm(
         user_prompt=user_prompt,
         output_schema=ParecerPlanejadorOutput,
         stage="review_finances_holistic",
+        temperature=PARECER_TEMPERATURE,
+        seed=PARECER_SEED,
         max_tokens=config.max_tokens,
         timeout_s=config.llm_timeout_s,
         prompt_version=PROMPT_VERSION,

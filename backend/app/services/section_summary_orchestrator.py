@@ -62,6 +62,14 @@ def _build_summary_llm_service(api_key: str, model_name: str, max_tokens: int, c
     )
 
 
+#: Amostragem das narrativas. A `temperature` já era 0.0 no `LLMConfig`; o gate
+#: `dev/check_llm_sampling.py` exige no call-site, que é a superfície que ele
+#: inspeciona — valor em config é invisível a ele. Versão do prompt vem do YAML
+#: (`load_prompt_version_from_yaml`), então não há módulo em PROMPT_DIRS p/ hospedar.
+SUMMARY_TEMPERATURE = 0.0
+SUMMARY_SEED = 20260819
+
+
 class _LiteLLMSectionSummaryClient:
     """Adapter ``SectionSummaryLLMClient`` sobre ``pipeline.llm.LLMService``."""
 
@@ -83,6 +91,8 @@ class _LiteLLMSectionSummaryClient:
             user_prompt=user_prompt,
             output_schema=SectionSummaryOutput,
             stage=f"section-summary[{section_id}]",
+            temperature=SUMMARY_TEMPERATURE,
+            seed=SUMMARY_SEED,
             prompt_version=self._prompt_version,
             prompt_name="section_summaries",
         )

@@ -60,6 +60,7 @@ export { CoberturaSegurosCard } from "./CoberturaSegurosCard";
 export { SucessaoCard } from "./SucessaoCard";
 export { AcoesMitigacaoCard } from "./AcoesMitigacaoCard";
 export type {
+  DocumentaryCoverage,
   ProtectionBundle,
   ProtectionItem,
   ProtectionGapItem,
