@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+from pipeline.domain.services.baseline_item_classifier import ClassificationAuthority
 from pipeline.domain.services.endereco_canonicalizer import canonicalize
 from pipeline.domain.services.titular_key_normalizer import normalize_titular_key
 from pipeline.domain.types.property_identity import PropertyLookupKey
@@ -30,6 +31,10 @@ def enrich_imoveis_with_property_ids(
         return consolidated
 
     for entry in imoveis:
+        if not _eixo_atestado_por_fato(entry):
+            _mark_eixo_por_hint(entry)
+            continue
+
         raw_titular = (entry.get("proprietario") or "").strip().lower()
         titular_key = normalize_titular_key(raw_titular, family_members)
         codigo_rfb = (entry.get("codigo_rfb") or "").strip()
@@ -57,6 +62,46 @@ def enrich_imoveis_with_property_ids(
         _apply_record(entry, record, endereco_canonical)
 
     return consolidated
+
+
+# [[ADR-396]]: mintar é ato durável com CTA de rótulo — só o degrau de FATO da
+# [[ADR-394]] D1 o autoriza. O eixo ATIVO só sai de `secao` ou de `hint`
+# (`sinal` nunca promove a ativo, e o catálogo refina subtipo, nunca eixo), então
+# a ausência de fato aqui significa exatamente "quem decidiu foi o rótulo do LLM".
+_AUTORIDADE_DE_FATO = frozenset(
+    {ClassificationAuthority.SECAO.value, ClassificationAuthority.CATALOGO.value}
+)
+
+
+# `secao` é OPCIONAL no contrato do E1.5a e 766 artefatos históricos não a
+# carregam. Exigir o fato onde ele nunca existiu não fecharia o eixo: apagaria a
+# identidade de todo imóvel do corpus antigo. A precondição vale onde a
+# declaração provou saber emitir `secao` ([[ADR-396]] D2).
+def _eixo_atestado_por_fato(entry: dict) -> bool:
+    """Fato decidiu o eixo — ou a declaração de origem nunca ofereceu o fato."""
+    if str(entry.get("eixo_autoridade") or "") in _AUTORIDADE_DE_FATO:
+        return True
+    return not entry.get("secao_disponivel")
+
+
+def _mark_eixo_por_hint(entry: dict) -> None:
+    """Sem fato de eixo não há identidade — nem `endereco_canonical`, que é chave de dedup."""
+    entry["property_id"] = None
+    entry["endereco_canonical"] = None
+    entry["low_confidence"] = True
+    entry["needs_review"] = True
+    reasons = entry.setdefault("review_reasons", [])
+    reasons.append(
+        ReviewReason(
+            code=ReviewReasonCode.domain_property_identity_eixo_por_hint,
+            stage="consolidate_baseline",
+            artifact_key="baseline_patrimonial",
+            document_id=None,
+            offending_value=f"eixo_autoridade={entry.get('eixo_autoridade') or 'ausente'}",
+            expected="eixo ativo atestado por secao ou catalogo",
+            message="identity not minted: axis decided by hint, not by fact",
+        ).to_dict()
+    )
 
 
 def _apply_record(entry: dict, record, endereco_canonical: str | None) -> None:

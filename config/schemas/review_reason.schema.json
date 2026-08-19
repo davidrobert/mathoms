@@ -39,7 +39,8 @@
         "domain.baseline_divergence",
         "domain.property_identity_uncanonical",
         "domain.balde_patrimonial_negativo",
-        "domain.membro_nao_apurado"
+        "domain.membro_nao_apurado",
+        "domain.property_identity_eixo_por_hint"
       ]
     },
     "stage": {
