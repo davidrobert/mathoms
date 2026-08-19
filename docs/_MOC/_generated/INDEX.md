@@ -389,6 +389,7 @@
 | ADR-392 | adr | Decidido |  | endereco_canonical=None não minta PropertyIdentity; match residual é único (titular, código) | `adr/392-endereco-canonical-none-nao-cria-identidade.md` |
 | ADR-393 | adr | Decidido |  | Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) | `adr/393-contrato-de-balanco-de-stage-fan-out.md` |
 | ADR-394 | adr | Decidido |  | Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado | `adr/394-fato-deterministico-e-autoridade-llm-e-hint.md` |
+| ADR-395 | adr | Proposto |  | Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap | `adr/395-cobertura-documental-e-hint-de-inventario.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -926,6 +927,7 @@
 | A40.l70 | lane | shipped | A40 | endereco_canonical=None não cria identidade: match por titular+código ou needs_review | `sprint/A40/lanes/A40-l70-endereco-canonical-nao-cria-identidade.md` |
 | A40.l71 | lane | shipped | A40 | Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente | `sprint/A40/lanes/A40-l71-predicado-unico-da-composicao.md` |
 | A40.l72 | lane | open | A40 | Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante | `sprint/A40/lanes/A40-l72-guarda-de-contrato-no-render.md` |
+| A40.l73 | lane | in_progress | A40 | Produtor do bundle de proteção lê a fonte documental, e o gap_qualitativo reconcilia com os dependentes do IRPF | `sprint/A40/lanes/A40-l73-produtor-do-bundle-le-a-fonte-documental.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
