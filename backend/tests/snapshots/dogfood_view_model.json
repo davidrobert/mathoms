@@ -1256,9 +1256,16 @@
     "dividas": [
       {
         "descricao": "Financiamento imobiliário (Alex)",
+        "divida_id": null,
+        "fontes": {
+          "saldo_devedor": "baseline_irpf"
+        },
+        "membro": null,
         "parcela_mensal": null,
+        "saldo_ano_referencia": null,
         "saldo_devedor": 15000000,
-        "taxa_juros": null
+        "taxa_juros_aa": null,
+        "tipo": null
       }
     ],
     "percentual_patrimonio": "20.550000",
