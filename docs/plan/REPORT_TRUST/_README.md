@@ -4,7 +4,7 @@ type: plan
 title: Report Trust — o relatório não pode afirmar precisão que os dados não sustentam
 status: in_progress
 created_at: 2026-07-03
-last_review: 2026-08-14
+last_review: 2026-08-19
 sprint_origem: A28
 sprint_atual: A40
 sprints_envolvidas: [A28, A40]
@@ -278,6 +278,40 @@ reversão é correção **de instrumento**: devolve `number_in_prose` de enforce
 de produção para budget monitorado, que é onde a [[ADR-296]] já o havia posto.
 Isto não é desistir da pureza de prosa — a §1 da [[ADR-304]] (fix de prompt,
 88% de redução real) **permanece vigente e não é tocada**.
+
+### PD-6 (r7) — a afirmação positiva também depende de o contador ter chegado (entregue 2026-08-19)
+
+A [[A40.l22]] fechou o eixo do **run** (`mayAssertCleanQuality(runOutcome)`:
+[[ADR-357]] §3, polaridade positiva). Sobrava um segundo eixo no mesmo
+componente: os dois contadores do banner são **client-side**, nasciam
+`useState(0)` com `.catch(() => {})`, e falha de fetch ficava byte-idêntica a
+zero medido — o relatório afirmava *"sem pendências"* sobre número que nunca
+chegou. O guard novo não alcançava, porque mede outra coisa.
+
+**A afirmação do §r7 sobre "render estático" estava errada e fica corrigida
+aqui.** Por [[ADR-129]] o PDF é Playwright sobre a **mesma rota React**, num
+Chromium real que espera `networkidle` + `data-report-ready`: o `useEffect`
+roda. O vetor não é "o efeito nunca roda" — é falha de fetch/auth **dentro do
+contexto do renderer**, que produz a mesma afirmação falsa num artefato que sai
+do produto e é arquivado por terceiros (a superfície que o KR-3 chama de
+obrigatória justamente por não poder perguntar nada).
+
+Entregue: os dois hooks (`useNeedsReviewCount`, `useParecerRetidoCount`) devolvem
+`MeasuredCount` (`loading | ok | unknown`); `unknown` **cala** a barra em vez de
+afirmar. A distinção mora no **tipo**, não na UI — enquanto o valor de falha for
+indistinguível de zero medido, o próximo consumidor repete o bug, e é por isso
+que `computeDataQualitySignals` recebe `MeasuredCount` e não `number`. Não-medido
+não vira linha *e* não vira afirmação; o alerta com sinais reais continua
+(incompleto ≠ falso, mesma doutrina da l22). No parecer, **404 deixa de ser a
+mesma coisa que 5xx**: nunca-gerado/free é ausência por construção, logo zero
+medido.
+
+Entregue em #1551 (`d2527993`). Prova por mutação: `catch → measured(0)` (o defeito
+original) mata dois testes,
+um sobre HTTP real (MSW → `apiFetch` → `ApiError`) e um sobre o render do banner.
+Controle positivo obrigatório no mesmo arquivo — fetch OK com zero real **continua**
+afirmando, senão o remédio trocaria falso-positivo por falso-negativo e a barra
+nunca mais apareceria.
 
 ## Sinergia com [[PLAN-data-lineage]] (A26 `paused`)
 

@@ -399,7 +399,7 @@ gate aprovar a corrupção.
 | PD-4 — predicado de vazio da seção de riscos lê só um bundle e ignora a fonte populada, imprimindo "sem riscos cadastrados" enquanto a seção vizinha cita apólices vigentes; copy de vazio **desqualifica** dado que o próprio documento exibe | clareza-ux | Alto | P1 | procede (RV6-20 persiste) | procede-aberto | owner: product-designer · predicado lê as duas fontes; estado **parcial** em vez de vazio; nunca derivar copy de `missing_inputs` |
 | RV6-17 — vocabulário composto com identificador de pessoa/empresa chega ao render — **re-ancorado**: o campo registrado no r6 não tem consumidor (só o tipo); a rota viva é o `label` das séries mensais, consumido pela legenda do gráfico | consistência | Alto | P1 | procede (âncora corrigida) | procede-aberto | owner: data-engineer+product-designer · chave semântica PII-free + rótulo por papel; corrigir a âncora registrada no §r6 |
 | PD-3 — catch-all de classe sem drill-down nem provenance: linha de participação baixa parece resíduo de arredondamento, sem rota para as posições que caíram nela | clareza-ux | Médio | P2 | procede | procede-aberto | owner: product-designer · provenance + nota condicional + cinza neutro no donut |
-| PD-6 — contagem de pendências é client-side com catch→0 e o guard novo só testa desfecho do run, então falha de fetch no render estático ainda permite afirmar "sem pendências" | completude | Médio | P2 | procede (RV6-22 mitigado, não fechado) | procede-aberto | owner: product-designer · hook tri-state; `unknown` **cala** em vez de afirmar |
+| PD-6 — contagem de pendências é client-side com catch→0 e o guard novo só testa desfecho do run, então falha de fetch no render estático ainda permite afirmar "sem pendências" | completude | Médio | P2 | procede (RV6-22 mitigado, não fechado) | **fechado** | owner: product-designer · hook tri-state; `unknown` **cala** em vez de afirmar — entregue em #1551 (`d2527993`), prova por mutação. A premissa "render estático" era falsa: ver nota datada 2026-08-19 |
 | PD-5 — prosa do E5 emite decimal em formato en-US e é renderizada crua; banner de qualidade conta duplicata e inclui item que não é imóvel na contagem que pede rótulo ao usuário | clareza-ux | Médio | P2 | procede | procede-aberto | owner: data-engineer+product-designer · formatação é responsabilidade do produtor + gate de formato; deduplicar antes de contar |
 | CTO-5 — supressor `corpus_grew` derruba **toda** a perna de valor de HARD para informativo a partir de um único documento novo, desligando a rede justamente quando corpus e código mudaram juntos | saúde-execução | Médio | P2 | procede (latente — não disparou neste run) | procede-aberto | owner: senior-cto · manter HARD para par compensatório e troca de sinal; supressor por-path via lineage |
 | RV6-13 — identidades de imóvel sem canonical persistem no DB (dano durável), embora **nenhuma nova** tenha sido criada neste run | consistência | Médio | P2 | procede parcial | procede-aberto | owner: data-engineer · sangria estancada por [[ADR-392]]; falta reconciliar as remanescentes |
@@ -421,6 +421,26 @@ Re-medir os três no r8 antes de rebaixar a prioridade.
 **Correção datada 2026-08-19 — erro meu no §r7 acima.** O PE-6 foi registrado afirmando que `pipeline_run_costs` vazio implicaria "nenhum cap da [[ADR-173]] enforceável". **É falso.** `backend/app/services/llm_budget_service.py:115,164` lê `LLMCallLog` — a tabela que ESTÁ populada. `pipeline_run_costs` está vazio por ser **dead schema** pós-ADR-173, não por defeito. Verifiquei as contagens e repassei a INFERÊNCIA da lente sem checá-la.
 O que **permanece de pé** no PE-6, medido: (a) tier invertido — 5 de 6 chamadas no modelo caro são de extração, superfície que já tem schema + fallback determinístico, ~82% do custo, enquanto a única síntese aberta roda no barato; (b) subcontagem — 1 row por stage, tentativa cobrada e invisível; (c) custo do parecer e cobertura de citação caem juntos sem alarme (mesma variável, via PE-1).
 O que **muda de natureza**: a tabela morta não é falha de governança de custo — é **ruído que se faz passar por medição**, porque o `run_meta` a imprime como `(0): []` e um leitor (este) leu "custo zero". O fix é declará-la morta e removê-la do `run_meta`, ou ressuscitá-la — não "consertar o cap".
+
+**Nota datada 2026-08-19 — PD-6 fechado, e uma premissa minha do §r7 corrigida.** Entregue
+em #1551 (`d2527993`): os dois contadores client-side do banner (`useNeedsReviewCount` e o irmão
+`useParecerRetidoCount`, que repetia a classe) passam a devolver um tipo discriminado
+`loading | ok | unknown`; `unknown` **cala** a barra em vez de afirmar "sem pendências". A
+distinção mora no **tipo**, não na UI — `computeDataQualitySignals` recebe o tipo e não `number`,
+porque enquanto o valor de falha for indistinguível de zero medido o próximo consumidor repete o
+bug. Prova por mutação: `catch → measured(0)` (o defeito original) mata dois testes, um sobre HTTP
+real (MSW → `apiFetch` → `ApiError`) e um sobre o render do banner; o controle positivo no mesmo
+arquivo garante que zero **medido** continua afirmando (senão o remédio trocaria falso-positivo por
+falso-negativo e a barra nunca mais apareceria).
+
+**A frase "falha de fetch no render estático" da linha do PD-6 está errada** e fica registrada como
+erro meu, não corrigida em silêncio na tabela. Por [[ADR-129]] o PDF é Playwright sobre a **mesma
+rota React**, num Chromium real que espera `networkidle` + `data-report-ready`: o `useEffect`
+**roda**. O vetor não é "o efeito nunca roda" — é falha de fetch/auth **dentro do contexto do
+renderer**, que produz a mesma afirmação falsa. O alcance é igual ou pior do que o registrado (o
+PDF é a superfície que sai do produto e é arquivada por terceiros, e o KR-3 do [[PLAN-report-trust]]
+já a declara obrigatória por isso), mas a causa registrada teria mandado o executor procurar no
+lugar errado — SSR/hidratação em vez do caminho de rede.
 
 **Re-triagem do §r6 (cadência).** Fechados por medição: RV6-01/02/03, RV6-07, RV6-23,
 RV6-10 (com ressalva). Persistem re-priorizados: RV6-04 (P0, 3º run), RV6-11 (P1),
