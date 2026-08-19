@@ -1,5 +1,5 @@
 ---
-id: ADR-396
+id: ADR-398
 type: adr
 title: "Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio)"
 status: Proposto
@@ -27,7 +27,7 @@ tags:
   - phase/a40
 ---
 
-# ADR-396 — Item de dívida declara a fonte de cada campo
+# ADR-398 — Item de dívida declara a fonte de cada campo
 
 **Status:** Proposto • **Data:** 2026-08-19 • Origem: achado **RV6-15** da
 revisão r7 (`endividamento.dividas[]` fabrica `descricao` e publica

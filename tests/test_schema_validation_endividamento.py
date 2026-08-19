@@ -19,7 +19,7 @@ _DIVIDA_NULLS = {
     "descricao": "Financiamento imobiliário",
     "saldo_devedor": 500000.0,
     "parcela_mensal": None,
-    # ADR-396 renomeou `taxa_juros` -> `taxa_juros_aa` (percentual AO ANO).
+    # ADR-398 renomeou `taxa_juros` -> `taxa_juros_aa` (percentual AO ANO).
     "taxa_juros_aa": None,
     "fontes": {"saldo_devedor": "baseline_irpf"},
 }

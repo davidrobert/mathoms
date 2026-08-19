@@ -610,7 +610,7 @@
     },
     "endividamento": {
       "type": "object",
-      "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros_aa numérica é percentual absoluto AO ANO (ADR-209; renomeada de taxa_juros em ADR-396).",
+      "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros_aa numérica é percentual absoluto AO ANO (ADR-209; renomeada de taxa_juros em ADR-398).",
       "properties": {
         "total_dividas": {
           "type": "number"
@@ -625,7 +625,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "description": "ADR-396: cada campo com mais de uma origem possível declara a sua em `fontes`, com enum próprio por chave. Invariante do produtor (bijeção, não expressável neste dialeto): item[c] is not None ⟺ c ∈ fontes. Gate: tests/test_endividamento_fontes_bijecao.py.",
+            "description": "ADR-398: cada campo com mais de uma origem possível declara a sua em `fontes`, com enum próprio por chave. Invariante do produtor (bijeção, não expressável neste dialeto): item[c] is not None ⟺ c ∈ fontes. Gate: tests/test_endividamento_fontes_bijecao.py.",
             "additionalProperties": false,
             "required": [
               "descricao",

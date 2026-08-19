@@ -1,6 +1,6 @@
 /** Tipos do bloco `real_estate` do view-model E5 (S4 · ADR-216 · Onda 2).
  *
- * Extraídos de `report-analysis.ts` em RV6-15/ADR-396 para manter aquele
+ * Extraídos de `report-analysis.ts` em RV6-15/ADR-398 para manter aquele
  * arquivo dentro do limite de 500 linhas (CLAUDE.md §Code style · gate
  * `dev/audit_code_style.py` T2) — mesmo movimento que `report-fluxo.ts` fez
  * em A40.l3. `report-analysis.ts` re-exporta tudo: todo import existente

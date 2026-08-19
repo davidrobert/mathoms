@@ -645,7 +645,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
-- [[ADR-396]] — Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio) · phase A40 · RV6-15
+- [[ADR-398]] — Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio) · phase A40 · RV6-15
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
 
 ### Roadmap (1)

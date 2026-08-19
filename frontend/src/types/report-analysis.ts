@@ -169,7 +169,7 @@ export interface EndividamentoData {
     saldo_ano_referencia?: number | null;
     parcela_mensal?: number | null;
     /**
-     * Percentual absoluto AO ANO (ADR-396). O sufixo `_aa` é load-bearing:
+     * Percentual absoluto AO ANO (ADR-398). O sufixo `_aa` é load-bearing:
      * 12,5% a.m. e 12,5% a.a. levam a decisões opostas, e o card renderizava
      * `%` nu. Renomeado de `taxa_juros`, que nenhum leitor jamais viu com
      * valor (null em r5/r6/r7).
