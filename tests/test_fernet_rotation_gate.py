@@ -6,6 +6,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 _REPO = Path(__file__).resolve().parents[1]
 _MOD = "fernet_rotation_gate"
 
@@ -258,3 +260,23 @@ def test_plaintext_nao_conta_como_residuo_de_chave_antiga():
     gate = _load()
     inventory = {"05d68234": 15874, "<sem kid>": 418}
     assert gate.stale_window_problem(inventory, "05d68234") is not None
+
+
+def test_window_problems_ignora_stale_fora_de_janela():
+    """Com 1 chave a janela está fechada — cobrar "janela sem função" seria ruído."""
+    gate = _load()
+    inventory = {"05d68234": 15874}
+    assert gate.window_problems("05d68234", "05d68234", inventory, CLOSED_WINDOW) == []
+
+
+def test_window_problems_acumula_armadilha_e_stale():
+    gate = _load()
+    problems = gate.window_problems("05d68234", "51c36c21", {"05d68234": 15874}, OPEN_WINDOW)
+    assert len(problems) == 2
+
+
+def test_require_any_key_bloqueia_ambiente_sem_chave():
+    gate = _load()
+    with pytest.raises(gate.PreflightError):
+        gate._require_any_key(0)
+    assert gate._require_any_key(1) is None

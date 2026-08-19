@@ -333,30 +333,39 @@ def _print_inventory(inventory: dict[str, int], primary_kid: str) -> None:
         print(f"{kid:<12}{n:>10}  {papel}")
 
 
+# `_key_id()` hasheia a string vazia e devolve um kid de aparência legítima
+# (e3b0c442); comparar qualquer coisa com ele é ruído, não diagnóstico.
+def _require_any_key(keys: int) -> None:
+    """Sem chave nenhuma configurada não há janela para auditar."""
+    if keys:
+        return
+    raise PreflightError(
+        "nenhuma chave Fernet configurada — MATHOMS_FERNET_KEY/KEYS ausentes "
+        "no ambiente. Rode da raiz do repo que hospeda o `.env`"
+    )
+
+
+def window_problems(
+    primary_kid: str, fallback: str, inventory: dict[str, int], keys: int
+) -> list[str]:
+    """Problemas do estado da janela; lista vazia = coerente. `stale` só faz sentido em janela."""
+    found = [fallback_problem(primary_kid, fallback)]
+    if keys >= MIN_KEYS_FOR_WINDOW:
+        found.append(stale_window_problem(inventory, primary_kid))
+    return [p for p in found if p]
+
+
 def cmd_window(args) -> int:
     """Audita o estado da janela: a armadilha do fallback e se a janela ainda serve."""
     _require_real_target()
     keys, kid = key_window()
-    if keys == 0:
-        # `_key_id()` hasheia a string vazia e devolve um kid de aparência
-        # legítima (e3b0c442); comparar qualquer coisa com ele é ruído.
-        raise PreflightError(
-            "nenhuma chave Fernet configurada — MATHOMS_FERNET_KEY/KEYS ausentes "
-            "no ambiente. Rode da raiz do repo que hospeda o `.env`"
-        )
+    _require_any_key(keys)
     fallback = fallback_kid()
     print(f"chaves ativas: {keys} · kid da primária: {kid}")
     print(f"MATHOMS_FERNET_KEY (fallback): {'não setada' if not fallback else 'kid ' + fallback}")
     inventory = artifact_kid_inventory()
     _print_inventory(inventory, kid)
-    problems = [
-        p
-        for p in (
-            fallback_problem(kid, fallback),
-            stale_window_problem(inventory, kid) if keys >= MIN_KEYS_FOR_WINDOW else None,
-        )
-        if p
-    ]
+    problems = window_problems(kid, fallback, inventory, keys)
     if problems:
         return _fail(problems)
     print("\nOK — sem armadilha de fallback e a janela está coerente com o corpus.")
