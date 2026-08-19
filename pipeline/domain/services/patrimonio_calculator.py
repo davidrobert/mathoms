@@ -67,6 +67,7 @@ from __future__ import annotations
 from typing import Any
 
 from pipeline.domain.services.investimentos_cobertura import cobertura_de_membros
+from pipeline.domain.services.member_key_matcher import matches_member_key
 from pipeline.domain.services.patrimonio_caixa import caixa_me_from_detalhes, compute_caixa
 from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_COMERCIAL,
@@ -346,10 +347,10 @@ class PatrimonioCalculator:
                 key_lower = str(member_key).lower()
                 if not key_lower:
                     unattributed += v
-                elif identity.titular_key and identity.titular_key in key_lower:
+                elif identity.titular_key and matches_member_key(identity.titular_key, key_lower):
                     titular_val += v
                     titular_atribuido = True
-                elif identity.conjuge_key and identity.conjuge_key in key_lower:
+                elif identity.conjuge_key and matches_member_key(identity.conjuge_key, key_lower):
                     conjuge_val += v
                     conjuge_atribuido = True
                 else:
