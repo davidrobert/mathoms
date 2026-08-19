@@ -441,6 +441,10 @@ def _escopo_cobertura(cobertura: CoberturaConsolidada) -> dict:
         "premio_inclui_cadastro_manual": False,
         "categorias_somente_no_cadastro": somente_cadastro,
         "veredito_pct_renda_suprimido": bool(somente_cadastro),
+        # ADR-395 §D2 — canal explícito da contraprova de inventário. Antes o
+        # consumidor teria de inferi-la do `rationale` do gap_qualitativo, que
+        # só nomeia o documento quando existe gatilho de risco.
+        "categorias_somente_no_documento": sorted(cobertura.categorias_somente_no_documento()),
     }
 
 

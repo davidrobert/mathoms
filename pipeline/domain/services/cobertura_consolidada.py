@@ -64,6 +64,16 @@ class CoberturaConsolidada:
         }
         return frozenset(so_cadastro | self.cadastro_fora_do_vocabulario)
 
+    # ADR-395 §D2 — simétrico de `categorias_somente_no_cadastro`, com
+    # consequência distinta: lá cai o veredito de faixa sobre soma parcial;
+    # aqui cai a aritmética do gap, porque o cadastro provadamente não
+    # inventariou a categoria e `actual = 0` seria afirmação sem medida.
+    def categorias_somente_no_documento(self) -> frozenset[str]:
+        """Cobertura que só o documento sustenta — o cadastro não a inventariou."""
+        return frozenset(
+            e.categoria for e in self.evidencias if self.origens(e.categoria) == {"documento"}
+        )
+
     def premio_documental_e_completo(self) -> bool:
         """False quando há cobertura fora do escopo somado em KPI G / KPI B."""
         return not self.categorias_somente_no_cadastro()

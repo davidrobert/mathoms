@@ -159,7 +159,8 @@
       "required": [
         "premio_inclui_cadastro_manual",
         "categorias_somente_no_cadastro",
-        "veredito_pct_renda_suprimido"
+        "veredito_pct_renda_suprimido",
+        "categorias_somente_no_documento"
       ],
       "properties": {
         "premio_inclui_cadastro_manual": {
@@ -176,6 +177,13 @@
         "veredito_pct_renda_suprimido": {
           "type": "boolean",
           "description": "True quando o numerador do KPI B é sabidamente parcial — consumidor não emite faixa Cerbasi."
+        },
+        "categorias_somente_no_documento": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "ADR-395 §D2: cobertura vigente nos documentos sem contrapartida ativa no aggregate `Protection` — contraprova de inventário incompleto. O consumidor retém o gap da categoria (`missing_data`) em vez de publicá-lo sobre `actual = 0`."
         }
       }
     }
