@@ -58,7 +58,7 @@ class TopAtivo:
     valor: Decimal
     pct_carteira: float  # percentage 0-100, peso na carteira
     tipo_origem: str
-    # Quem decidiu a `classe` ([[ADR-396]]). `None` = a linha não passou pelo
+    # Quem decidiu a `classe` ([[ADR-398]]). `None` = a linha não passou pelo
     # classificador (imóvel: a classe vem da origem do item, não de keyword).
     autoridade: str | None = None
 
@@ -213,7 +213,7 @@ class TopAtivosAnalyzer:
 
     def _classify(self, tipo: str, descricao: str):
         """Delega para :func:`classify_asset_outcome` — taxonomia ADR-193 unificada
-        com :class:`InvestimentosClassesAnalyzer`; `instituicao` não entra (ADR-396)."""
+        com :class:`InvestimentosClassesAnalyzer`; `instituicao` não entra (ADR-398)."""
         return classify_asset_outcome(
             tipo,
             descricao,

@@ -1641,7 +1641,7 @@
           "type": "number",
           "minimum": 0,
           "maximum": 100,
-          "description": "Fração da CARTEIRA FINANCEIRA (mesma base de pct_carteira_financeira) cuja classe nenhum degrau decidiu — autoridade em {sem_match, sem_haystack, sem_mapa} (ADR-396). Gradua a supressão da prescrição de alocação: <2% publica tudo, 2-10% derruba next_aporte_classe, >=10% derruba também desvio_max_pct. 'Outros' segue classe legítima; não-classificado deriva da autoridade, não do rótulo."
+          "description": "Fração da CARTEIRA FINANCEIRA (mesma base de pct_carteira_financeira) cuja classe nenhum degrau decidiu — autoridade em {sem_match, sem_haystack, sem_mapa} (ADR-398). Gradua a supressão da prescrição de alocação: <2% publica tudo, 2-10% derruba next_aporte_classe, >=10% derruba também desvio_max_pct. 'Outros' segue classe legítima; não-classificado deriva da autoridade, não do rótulo."
         },
         "fonte": {
           "type": "string",
@@ -1726,7 +1726,7 @@
                   "sem_mapa",
                   null
                 ],
-                "description": "Qual degrau decidiu `classe` (ADR-396) — provenance por linha do ranking. null = a linha não passou pelo classificador (imóvel: a classe vem da origem do item). conclusivo/presuntivo/sem_mapa são emitidos pelo degrau 1, que entra em rodada posterior."
+                "description": "Qual degrau decidiu `classe` (ADR-398) — provenance por linha do ranking. null = a linha não passou pelo classificador (imóvel: a classe vem da origem do item). conclusivo/presuntivo/sem_mapa são emitidos pelo degrau 1, que entra em rodada posterior."
               }
             },
             "additionalProperties": false

@@ -1,4 +1,4 @@
-"""Taxonomia canônica de classes de ativo no E5 ([[ADR-193]] · [[ADR-396]]).
+"""Taxonomia canônica de classes de ativo no E5 ([[ADR-193]] · [[ADR-398]]).
 
 A classe sai do sinal mais forte disponível e o resultado **declara quem
 decidiu**. `instituicao` não entra: a forma canônica dela é propriedade do
@@ -135,7 +135,7 @@ class OutrosExcessivoWarning:
 
 
 # O degrau 1 é `tipo`, não `(secao, codigo)`: a M1 mediu `codigo` degenerado em
-# 51,8% dos itens (§ADR-396). E ele tem DUAS camadas porque metade do codomínio de
+# 51,8% dos itens (§ADR-398). E ele tem DUAS camadas porque metade do codomínio de
 # `tipo` (`renda_fixa`, `acao`, `participacao_societaria`, `fundo_investimento`)
 # sai de `_classify_investimento(normalize_grupo(codigo), …)` e herda essa mesma
 # degeneração; a outra metade sai do hint sozinho, que é enum fechado de 7.
@@ -216,7 +216,7 @@ def _match_ticker(haystack: str) -> str | None:
     return None
 
 
-# Ordem ([[ADR-396]]): keyword explícita → ticker conhecido → sem match. O padrão
+# Ordem ([[ADR-398]]): keyword explícita → ticker conhecido → sem match. O padrão
 # `XXXX11` perde para qualquer sinal textual porque ele não distingue FII de ETF.
 def _decide_classe(
     haystack: str, keywords: dict[str, tuple[str, ...]]
@@ -247,7 +247,7 @@ def classify_asset_outcome(
     *,
     keywords: dict[str, tuple[str, ...]] | None = None,
 ) -> AssetClassification:
-    """Classe + autoridade + warnings tipados ([[ADR-396]]). Site único de construção."""
+    """Classe + autoridade + warnings tipados ([[ADR-398]]). Site único de construção."""
     haystack = _normalize_haystack(tipo, descricao)
     classe, autoridade = _decide_classe(haystack, keywords or _DEFAULT_KEYWORDS)
     return AssetClassification(
