@@ -11,12 +11,13 @@ Função pura. Recebe ``PrevidenciaConfig`` tipada (R9/ISP) e dicts de entrada
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from decimal import Decimal
+from enum import Enum
 from typing import Any
 
 from pipeline.domain.services.brl_prose import fmt_brl_prosa
-from pipeline.domain.services.irpf_analyzer import PgblStatus
+from pipeline.domain.services.irpf_analyzer import CapacidadePgbl, PgblStatus
 from pipeline.domain.services.irpf_faixa_marginal import resolve_faixa_marginal
 from pipeline.domain.types.config import FiscalParameters, IRPFBracket
 
@@ -114,16 +115,66 @@ class PrevidenciaConfig:
 # =============================================================================
 
 
+# `nota_degradacao` NÃO serve a este papel: tem dono semântico (ADR-305 D3 —
+# "existe ano-base mais recente não usado") e coocorre com estes motivos.
+class MotivoAusenciaPgbl(str, Enum):
+    """Por que um campo do card PGBL nasce ausente (ADR-402). Enum fechado."""
+
+    sem_irpf_processado = "sem_irpf_processado"
+    modelo_simplificado = "modelo_simplificado"
+    sem_renda_tributavel = "sem_renda_tributavel"
+    regime_fiscal_incompleto = "regime_fiscal_incompleto"
+
+
+# Precedência declarada: o primeiro que se aplica é o dominante e CALA os demais.
+# Sem ela, o r7 publicou uma nota que casava `_NOTA_REGIME_INCOMPLETO` E
+# `_NOTA_SIMPLIFICADO` — duas explicações mutuamente exclusivas no mesmo texto.
+PRECEDENCIA_MOTIVO_PGBL: tuple[MotivoAusenciaPgbl, ...] = (
+    MotivoAusenciaPgbl.sem_irpf_processado,
+    MotivoAusenciaPgbl.modelo_simplificado,
+    MotivoAusenciaPgbl.sem_renda_tributavel,
+    MotivoAusenciaPgbl.regime_fiscal_incompleto,
+)
+
+# Os quatro campos que podem nascer ausentes, na ordem em que o card os lê.
+CAMPOS_MOTIVO_PGBL: tuple[str, ...] = ("teto", "restante", "aporte", "economia")
+
+# Fonte única do par (motivo, texto): a nota e os campos derivam AMBOS do VO, e
+# este mapa é o que permite ao gate assertar coocorrência em vez de inspecionar.
+FRAGMENTO_CANONICO_MOTIVO: dict[MotivoAusenciaPgbl, str] = {
+    MotivoAusenciaPgbl.sem_irpf_processado: "Não há IRPF processado",
+    MotivoAusenciaPgbl.modelo_simplificado: "modelo simplificado",
+    MotivoAusenciaPgbl.sem_renda_tributavel: "Sem renda tributável",
+    MotivoAusenciaPgbl.regime_fiscal_incompleto: "não se aplica ao ano-calendário",
+}
+
+
+def motivo_dominante(
+    motivos: dict[str, MotivoAusenciaPgbl | None],
+) -> MotivoAusenciaPgbl | None:
+    """O motivo de maior precedência presente — quem decide a nota."""
+    presentes = {m for m in motivos.values() if m is not None}
+    for motivo in PRECEDENCIA_MOTIVO_PGBL:
+        if motivo in presentes:
+            return motivo
+    return None
+
+
+# Carrega o VO inteiro, não o escalar: `teto` e `restante` são grandezas
+# distintas, e o campo publicado com nome de teto precisa do teto.
 @dataclass(frozen=True)
 class CapacidadePgblIRPF:
-    """Capacidade PGBL dedutível restante do titular, lida do IRPF (ADR-277)."""
+    """Capacidade PGBL do titular lida do IRPF (ADR-277/395)."""
 
-    restante_anual: Decimal  # Σ(tributável×12% − já_aportado), clamp ≥0 (ADR-189)
+    capacidade: CapacidadePgbl
     renda_tributavel_anual: Decimal
     ano_base: int
     fonte: str
     nota_degradacao: str | None = None  # ADR-305 D3: existe ano mais recente não usado
-    pgbl_status: PgblStatus | None = None  # RV2-03: ramifica a nota (simplificado ≠ teto)
+
+    @property
+    def pgbl_status(self) -> PgblStatus:
+        return self.capacidade.status
 
 
 # `Decimal` em memória, `float` no wire: `to_legacy_dict` É a fronteira de
@@ -137,17 +188,39 @@ def _round_ou_ausente(valor: Decimal | None) -> float | None:
 # voltar a publicar assim que alguém mudar o `def` — gate de call-site não
 # protege o default.
 @dataclass(frozen=True)
+class CamposGateados:
+    """Os 5 campos que um motivo de ausência pode suprimir (ADR-402)."""
+
+    limite_pgbl_anual: Decimal | None
+    capacidade_restante_anual: Decimal | None
+    aporte_mensal: Decimal | None
+    aliquota_marginal: float | None  # percentage, não money
+    economia_ir_anual: Decimal | None
+
+
+@dataclass(frozen=True)
 class PrevidenciaAnalysis:
+    # `limite_pgbl_anual` carrega o TETO (12% × base tributável das declarações
+    # completas), não a capacidade restante — o nome sempre disse teto e o valor
+    # era outro (ADR-402). O restante mora em `capacidade_restante_anual`, onde
+    # `0` é legítimo: significa teto consumido, e não "não existe teto".
     status: str  # "Calculado" | "N/D"
     nota: str
     renda_tributavel_anual: Decimal | None = None
     limite_pgbl_anual: Decimal | None = None
+    capacidade_restante_anual: Decimal | None = None
     aporte_mensal: Decimal | None = None
     aliquota_marginal: float | None = None  # percentage, não money
     economia_ir_anual: Decimal | None = None
     fonte_recomendacao: str | None = None  # "irpf_capacidade" (ADR-277/375)
     ano_base: int | None = None  # ADR-305 D4: ano-base fiscal do cálculo
     nota_degradacao: str | None = None  # ADR-305 D3
+    pgbl_status: PgblStatus | None = None
+    pgbl_aportado_anual: Decimal | None = None
+    excedente_nao_dedutivel_anual: Decimal | None = None
+    motivo_ausencia: dict[str, MotivoAusenciaPgbl | None] = field(
+        default_factory=lambda: dict.fromkeys(CAMPOS_MOTIVO_PGBL)
+    )
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -155,12 +228,23 @@ class PrevidenciaAnalysis:
             "nota": self.nota,
             "renda_tributavel_anual": _round_ou_ausente(self.renda_tributavel_anual),
             "limite_pgbl_anual": _round_ou_ausente(self.limite_pgbl_anual),
+            "capacidade_restante_anual": _round_ou_ausente(self.capacidade_restante_anual),
             "aporte_mensal": _round_ou_ausente(self.aporte_mensal),
             "aliquota_marginal": self.aliquota_marginal,
             "economia_ir_anual": _round_ou_ausente(self.economia_ir_anual),
             "fonte_recomendacao": self.fonte_recomendacao,
             "ano_base": self.ano_base,
             "nota_degradacao": self.nota_degradacao,
+            "pgbl_status": self.pgbl_status.value if self.pgbl_status else None,
+            "pgbl_aportado_anual": _round_ou_ausente(self.pgbl_aportado_anual),
+            "excedente_nao_dedutivel_anual": _round_ou_ausente(self.excedente_nao_dedutivel_anual),
+            "motivo_ausencia": self._motivo_ausencia_wire(),
+        }
+
+    def _motivo_ausencia_wire(self) -> dict[str, str | None]:
+        return {
+            campo: (motivo.value if motivo else None)
+            for campo, motivo in self.motivo_ausencia.items()
         }
 
 
@@ -182,7 +266,11 @@ _NOTA_SEM_CAPACIDADE = (
 # Nomeia o insumo que falta, não a nossa incapacidade — e a ausência é ausência,
 # não zero: `R$ 0` num campo chamado "aporte sugerido" continua sendo conselho.
 def _sem_capacidade_declarada() -> PrevidenciaAnalysis:
-    return PrevidenciaAnalysis(status="N/D", nota=_NOTA_SEM_CAPACIDADE)
+    return PrevidenciaAnalysis(
+        status="N/D",
+        nota=_NOTA_SEM_CAPACIDADE,
+        motivo_ausencia=dict.fromkeys(CAMPOS_MOTIVO_PGBL, MotivoAusenciaPgbl.sem_irpf_processado),
+    )
 
 
 # ADR-305 D3 (co-design financial-planner): a capacidade lida do IRPF é
@@ -261,20 +349,59 @@ def _nota_regime_incompleto(config: "PrevidenciaConfig") -> str:
     )
 
 
-def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal) -> str:
-    """Nota de capacidade PGBL ramificada por PgblStatus (RV2-03 · ADR-305 D3)."""
-    ano = cap.ano_base
+# Direção da derivação (ADR-402): nota e campos derivam AMBOS do VO. A nota
+# nunca é escrita ao lado do campo, e o campo nunca é lido a partir da nota —
+# `null` não carrega a razão de ser `null`, então "nota derivada do campo" é
+# inexequível. O motivo dominante é o pivô comum.
+def _motivos_por_campo(
+    cap: CapacidadePgblIRPF, regime_completo: bool
+) -> dict[str, MotivoAusenciaPgbl | None]:
+    """Aplica a precedência aos 4 campos. Fonte única do que é ausência e por quê."""
     if cap.pgbl_status == PgblStatus.modelo_simplificado:
-        return _NOTA_SIMPLIFICADO.format(ano=ano)
-    if cap.pgbl_status == PgblStatus.sem_renda_tributavel:
-        return _NOTA_SEM_RENDA.format(ano=ano)
-    if cap.pgbl_status == PgblStatus.no_teto or (cap.pgbl_status is None and restante <= 0):
+        return dict.fromkeys(CAMPOS_MOTIVO_PGBL, MotivoAusenciaPgbl.modelo_simplificado)
+    # `teto is None` sem status simplificado significa que nenhuma declaração
+    # COMPLETA tem base tributável — a dedução de 12% não tem sobre o que incidir.
+    if cap.pgbl_status == PgblStatus.sem_renda_tributavel or cap.capacidade.teto is None:
+        return dict.fromkeys(CAMPOS_MOTIVO_PGBL, MotivoAusenciaPgbl.sem_renda_tributavel)
+    if not regime_completo:
+        # Anula prescrição (ADR-375 D4) e PRESERVA o fato: o espaço de 12% vem do
+        # IRPF e não depende da completude do regime do ano corrente.
+        return {
+            "teto": None,
+            "restante": None,
+            "aporte": MotivoAusenciaPgbl.regime_fiscal_incompleto,
+            "economia": MotivoAusenciaPgbl.regime_fiscal_incompleto,
+        }
+    return dict.fromkeys(CAMPOS_MOTIVO_PGBL, None)
+
+
+def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal | None) -> str:
+    """Fato medido (sem motivo dominante de ausência total): teto vivo ou consumido."""
+    ano = cap.ano_base
+    if cap.pgbl_status == PgblStatus.no_teto or not restante or restante <= 0:
         return f"{_NOTA_NO_TETO.format(ano=ano)} {_NOTA_PROXY_ANO_CORRENTE}"
     capacidade = (
         f"Capacidade PGBL restante do IRPF {ano}: {fmt_brl_prosa(restante)} "
         "(já descontado o aportado)."
     )
     return f"{capacidade} {_NOTA_DIFERIMENTO} {_NOTA_PROXY_ANO_CORRENTE}"
+
+
+def _nota_do_motivo(
+    dominante: MotivoAusenciaPgbl | None,
+    cap: CapacidadePgblIRPF,
+    config: "PrevidenciaConfig",
+) -> str:
+    """Uma nota, um motivo. A precedência já calou os demais."""
+    ano = cap.ano_base
+    if dominante == MotivoAusenciaPgbl.modelo_simplificado:
+        return _NOTA_SIMPLIFICADO.format(ano=ano)
+    if dominante == MotivoAusenciaPgbl.sem_renda_tributavel:
+        return _NOTA_SEM_RENDA.format(ano=ano)
+    fato = _nota_capacidade_irpf(cap, cap.capacidade.restante)
+    if dominante == MotivoAusenciaPgbl.regime_fiscal_incompleto:
+        return f"{_nota_regime_incompleto(config)} {fato}"
+    return fato
 
 
 class PrevidenciaAnalyzer:
@@ -294,43 +421,50 @@ class PrevidenciaAnalyzer:
         return self._analyze_via_irpf(capacidade_irpf)
 
     def _analyze_via_irpf(self, cap: CapacidadePgblIRPF) -> PrevidenciaAnalysis:
-        restante = max(Decimal("0"), cap.restante_anual)
-        aliquota = self._aliquota_para(int(cap.renda_tributavel_anual * 100))
-        if not self._config.regime_completo:
-            return self._retem_prescricao(cap, restante, aliquota)
+        motivos = _motivos_por_campo(cap, self._config.regime_completo)
         return PrevidenciaAnalysis(
             status="Calculado",
-            nota=_nota_capacidade_irpf(cap, restante),
+            nota=_nota_do_motivo(motivo_dominante(motivos), cap, self._config),
             renda_tributavel_anual=cap.renda_tributavel_anual,
-            limite_pgbl_anual=restante,
-            aporte_mensal=restante / Decimal("12"),
-            aliquota_marginal=aliquota,
-            economia_ir_anual=restante * Decimal(str(aliquota)) / Decimal("100"),
             fonte_recomendacao="irpf_capacidade",
             ano_base=cap.ano_base,
             nota_degradacao=cap.nota_degradacao,
+            pgbl_status=cap.pgbl_status,
+            pgbl_aportado_anual=cap.capacidade.aportado,
+            excedente_nao_dedutivel_anual=cap.capacidade.excedente_nao_dedutivel,
+            motivo_ausencia=motivos,
+            **asdict(self._campos_gateados(cap, motivos)),
+        )
+
+    # Um campo com motivo é ausência, sempre — nunca número menor (ADR-375 D4).
+    # `aliquota_marginal` é bicondicional com a economia: marginal sem economia
+    # publicável é ruído citável, que convida o leitor a reconstruir a prescrição
+    # que o motivo acabou de suprimir.
+    def _campos_gateados(
+        self, cap: CapacidadePgblIRPF, motivos: dict[str, MotivoAusenciaPgbl | None]
+    ) -> "CamposGateados":
+        restante = cap.capacidade.restante
+        economia = self._economia(cap, motivos)
+        return CamposGateados(
+            limite_pgbl_anual=None if motivos["teto"] else cap.capacidade.teto,
+            capacidade_restante_anual=None if motivos["restante"] else restante,
+            aporte_mensal=None if motivos["aporte"] else restante / Decimal("12"),
+            aliquota_marginal=None if economia is None else self._aliquota(cap),
+            economia_ir_anual=economia,
         )
 
     # Reter prescrição não é apagar fato: a capacidade de 12% vem do IRPF e não
     # depende do regime do ano corrente. O que sai são os dois campos que a
     # ADR-375 D4 nomeia — "prescrever PGBL" (aporte) e "publicar economia de IR".
-    def _retem_prescricao(
-        self, cap: CapacidadePgblIRPF, restante: Decimal, aliquota: float
-    ) -> PrevidenciaAnalysis:
-        """Regime incompleto: ausência com motivo, nunca número menor (ADR-375 D4)."""
-        motivo = _nota_regime_incompleto(self._config)
-        return PrevidenciaAnalysis(
-            status="Calculado",
-            nota=f"{motivo} {_nota_capacidade_irpf(cap, restante)}",
-            renda_tributavel_anual=cap.renda_tributavel_anual,
-            limite_pgbl_anual=restante,
-            aporte_mensal=None,
-            aliquota_marginal=aliquota,
-            economia_ir_anual=None,
-            fonte_recomendacao="irpf_capacidade",
-            ano_base=cap.ano_base,
-            nota_degradacao=cap.nota_degradacao,
-        )
+    def _economia(
+        self, cap: CapacidadePgblIRPF, motivos: dict[str, MotivoAusenciaPgbl | None]
+    ) -> Decimal | None:
+        if motivos["economia"] or cap.capacidade.restante is None:
+            return None
+        return cap.capacidade.restante * Decimal(str(self._aliquota(cap))) / Decimal("100")
+
+    def _aliquota(self, cap: CapacidadePgblIRPF) -> float:
+        return self._aliquota_para(int(cap.renda_tributavel_anual * 100))
 
     def _aliquota_para(self, base_calculo_anual_brl_cents: int) -> float:
         """Alíquota marginal; sem tabela configurada, degrada para o fallback declarado."""

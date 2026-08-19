@@ -655,7 +655,7 @@
     },
     "previdencia_pgbl": {
       "type": "object",
-      "description": "Recomendação PGBL (ADR-277/305/375). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null quando não há capacidade declarada no IRPF, caso em que os campos prescritivos nascem ausentes e não zerados (ADR-375 D3/D4 — o valor proxy_receita_pj saiu do vocabulário). nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao.",
+      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ economia_ir_anual não-null. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
       "properties": {
         "status": {
           "type": "string",
@@ -678,6 +678,54 @@
             "number",
             "null"
           ]
+        },
+        "capacidade_restante_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "pgbl_status": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "capacidade_disponivel",
+            "modelo_simplificado",
+            "no_teto",
+            "sem_renda_tributavel",
+            null
+          ]
+        },
+        "pgbl_aportado_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "excedente_nao_dedutivel_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "motivo_ausencia": {
+          "type": "object",
+          "description": "Por que cada campo nasce ausente (ADR-402). Enum fechado; `null` = campo publicado.",
+          "properties": {
+            "teto": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
+            "restante": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
+            "aporte": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
+            "economia": { "$ref": "#/$defs/motivo_ausencia_pgbl" }
+          },
+          "required": [
+            "teto",
+            "restante",
+            "aporte",
+            "economia"
+          ],
+          "additionalProperties": false
         },
         "aporte_mensal": {
           "type": [
@@ -2171,6 +2219,20 @@
     }
   },
   "$defs": {
+    "motivo_ausencia_pgbl": {
+      "description": "Enum fechado de motivos de ausência do card PGBL (ADR-402).",
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "sem_irpf_processado",
+        "modelo_simplificado",
+        "sem_renda_tributavel",
+        "regime_fiscal_incompleto",
+        null
+      ]
+    },
     "ConversaoMe": {
       "type": "object",
       "description": "Carimbo da conversão ME→BRL (ADR-390). Ausência da chave = artefato pré-390.",
