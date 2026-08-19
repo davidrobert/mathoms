@@ -287,7 +287,23 @@ def test_e5_publica_veredito_da_guarda_de_sinal(e5_tenant_with_baseline: Path):
     assert guarda["modo"] == "enforce"
     assert guarda["cobertura_completa"] is True
     assert guarda["baldes_negativos"] == [] and guarda["reclassificados"] == []
-    assert result["validation"] == {"valid": True, "errors": [], "review_reasons": []}
+
+    # O fixture declara 500k de `total_bens` e NENHUM investimento itemizado —
+    # nenhuma fonte mediu os investimentos do titular. Até a A40.l69 isso saía
+    # `zero_apurado` + 0,00, afirmando que quem tem 500k tem zero investimento;
+    # o predicado media o contêiner `bens`, sempre materializado. A razão abaixo
+    # é o comportamento correto para este corpus, não ruído.
+    codigos = [r["code"] for r in result["validation"]["review_reasons"]]
+    assert codigos == ["domain.membro_nao_apurado"]
+    assert payload["patrimonio"]["cobertura_investimentos"] == [
+        {
+            "membro": "titular",
+            "status": "nao_apurado",
+            "fonte": None,
+            "frescor": None,
+            "motivo": "nenhuma fonte devolveu valor para o membro",
+        }
+    ]
 
     pytest.importorskip("jsonschema")
     from scripts.pipeline_common import validate_dict
