@@ -21,8 +21,8 @@ from pipeline.domain.services.asset_classifier import (  # noqa: E402
 )
 from pipeline.domain.services.investimentos_classes_analyzer import (  # noqa: E402
     InvestimentosClassesAnalyzer,
+    InvestimentosClassesConfig,
 )
-
 
 _AMOSTRAS = (
     ("", ""),
@@ -33,6 +33,25 @@ _AMOSTRAS = (
     ("conta_bancaria", ""),
     ("previdencia", "plano"),
 )
+
+
+# Marca sintética que É keyword de `Caixa` na config do teste. Sem isso a
+# mutação não é plausível: uma marca que não bate keyword nenhuma devolve
+# `Outros` com e sem o fix, e o teste passa nos dois lados do flip.
+_MARCA_CURTA = "bancoalfa"
+_MARCA_CANONICA = "banco_alfa_pagamentos"
+
+# Reproduz a forma do caso medido em r5→r7: a forma curta bate keyword de um
+# balde nomeado; a canônica normaliza para dois tokens e não bate nada.
+_SCORING_COM_MARCA = {
+    "asset_class_keywords": {"Caixa": ["conta corrente", _MARCA_CURTA, "saldo em conta"]}
+}
+
+
+def _analyzer_com_marca_de_caixa() -> InvestimentosClassesAnalyzer:
+    return InvestimentosClassesAnalyzer(
+        InvestimentosClassesConfig.from_configs(scoring=_SCORING_COM_MARCA)
+    )
 
 
 def _carteira_de_duas_linhas(instituicao: str) -> dict:
@@ -77,12 +96,16 @@ class TestInstituicaoForaDaEntrada:
         assert {c.categoria for c in resultado.tabela_classes} == {"Outros"}
 
     def test_troca_de_instituicao_no_golden_nao_move_nenhum_balde(self):
-        # Mutação que prova o fix: devolver `instituicao` ao haystack faz este
-        # teste falhar (o item passa a bater keyword de Caixa por marca).
-        analyzer = InvestimentosClassesAnalyzer()
-        curta = analyzer.analyze([_carteira_de_duas_linhas("bancoalfa")])
-        canonica = analyzer.analyze([_carteira_de_duas_linhas("banco_alfa_pagamentos")])
-        assert _mix(curta) == _mix(canonica)
+        # Mutação que prova o fix: devolver `instituicao` ao haystack de
+        # `classify_asset_outcome` faz este teste falhar. A config do analyzer
+        # registra `_MARCA_CURTA` como keyword de `Caixa`, então antes do fix a
+        # forma curta somava R$3.000 em `Caixa` e a canônica em `Outros` — a
+        # mesma assinatura compensatória medida entre r5 e r7. Sem essa keyword
+        # as duas formas caem em `Outros` e o teste passa nos dois lados.
+        analyzer = _analyzer_com_marca_de_caixa()
+        curta = analyzer.analyze([_carteira_de_duas_linhas(_MARCA_CURTA)])
+        canonica = analyzer.analyze([_carteira_de_duas_linhas(_MARCA_CANONICA)])
+        assert _mix(curta) == _mix(canonica) == {"Outros": 3000.0}
 
 
 class TestAutoridadeDeclarada:

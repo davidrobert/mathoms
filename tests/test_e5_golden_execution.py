@@ -56,7 +56,7 @@ _GOALS_MIN = {
         "trs_pct": 4.0,
     },
     # A12.alocacao-v2 PR10: alvo v2 (7 classes AUVP) — exercita o bloco
-    # derived injetado pelo E5 (_enrich_alocacao_with_deviation, ADR-141).
+    # derived injetado pelo E5 (enrich_alocacao_with_deviation, ADR-141).
     "alocacao_alvo": {
         "rf_pos_pct": 20,
         "rf_pre_pct": 10,

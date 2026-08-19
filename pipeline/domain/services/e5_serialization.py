@@ -22,6 +22,9 @@ from pipeline.domain.protection_computation_inputs import (
     ProtectionComputationInputsV1,
     unavailable_inputs,
 )
+from pipeline.domain.services.alocacao_derived_enricher import (
+    enrich_alocacao_with_deviation,
+)
 from pipeline.domain.services.if_monte_carlo import MonteCarloIFResult
 from pipeline.domain.services.if_monte_carlo_payload import monte_carlo_to_dict
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
@@ -319,8 +322,12 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     alertas = build_alertas(inputs.score, inputs.ratios, inputs.investimentos_warnings)
 
     goals_enriched = _enrich_goals_with_passive_income(inputs.goals, inputs.passive_income)
-    goals_enriched = _enrich_alocacao_with_deviation(
-        goals_enriched, inputs.investimentos_classes, patrimonio=inputs.patrimonio
+    inv_classes = inputs.investimentos_classes or {}
+    goals_enriched = enrich_alocacao_with_deviation(
+        goals_enriched,
+        inv_classes.get("tabela_classes") or [],
+        patrimonio=inputs.patrimonio,
+        nao_classificado_pct=inv_classes.get("nao_classificado_pct"),
     )
 
     output: dict[str, Any] = {
@@ -429,23 +436,6 @@ def _enrich_goals_with_passive_income(
     enriched["janela"] = _janela_irpf(passive_income.ano_referencia_irpf)
     enriched["janela_meses"] = 12
     return enriched
-
-
-def _enrich_alocacao_with_deviation(
-    goals: _GoalsPayload, investimentos: dict | None, *, patrimonio: dict[str, Any] | None = None
-) -> _GoalsPayload:
-    """Injeta ``alocacao_alvo.derived`` (desvio atual-vs-alvo run-time; ADR-141 §Emenda item 4)."""
-    from pipeline.domain.services.alocacao_alvo_deviation import AlocacaoAlvoDeviationCalculator
-    from pipeline.domain.services.investimentos_cobertura import motivo_supressao_e5
-
-    alvo = (goals or {}).get("alocacao_alvo")
-    if not isinstance(alvo, dict) or "rf_pos_pct" not in alvo:
-        return goals
-    inv = investimentos or {}
-    result = AlocacaoAlvoDeviationCalculator().calculate(inv.get("tabela_classes") or [], alvo)
-    result = result.talvez_suprimir(motivo_supressao_e5(patrimonio))
-    result = result.suprimir_por_incerteza(inv.get("nao_classificado_pct"))
-    return {**goals, "alocacao_alvo": {**alvo, "derived": result.to_dict()}}
 
 
 def _proventos_summary_to_dict(s) -> _GoalsPayload:
