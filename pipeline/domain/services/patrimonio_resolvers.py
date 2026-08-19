@@ -554,7 +554,7 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
 
     # `ano_base` por membro para que a soma cross-ano nunca seja silenciosa: o
     # agregado do domicílio pode misturar datas, e quem consome precisa poder
-    # ressalvar ([[ADR-383]] §6 — consolidado de datas mistas nunca leva data única).
+    # ressalvar ([[ADR-383]] §6 — datas mistas nunca levam data única).
     titular_data = {
         "total_bens": titular_total,
         "total_dividas": titular_div,
