@@ -7,6 +7,10 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
+from pipeline.domain.services.member_key_matcher import (
+    matches_member_exclusively,
+    matches_member_key,
+)
 from pipeline.domain.services.money_parsing import valor_monetario_float
 from pipeline.domain.services.patrimonio_types import resolve_value_year
 
@@ -135,9 +139,9 @@ class E5MemberResolver:
             if not isinstance(m, dict):
                 continue
             nome = str(m.get("nome", "")).lower()
-            if cfg.titular_key and cfg.titular_key in nome:
+            if cfg.titular_key and matches_member_key(cfg.titular_key, nome):
                 titular_data = m
-            elif cfg.conjuge_key and cfg.conjuge_key in nome:
+            elif cfg.conjuge_key and matches_member_key(cfg.conjuge_key, nome):
                 conjuge_data = m
         return ResolvedMembers(
             titular_data=titular_data,
@@ -170,9 +174,9 @@ class E5MemberResolver:
                         ano = float(m.group(1))
             key = (
                 cfg.titular_key
-                if cfg.titular_key and cfg.titular_key in membro
+                if cfg.titular_key and matches_member_key(cfg.titular_key, membro)
                 else cfg.conjuge_key
-                if cfg.conjuge_key and cfg.conjuge_key in membro
+                if cfg.conjuge_key and matches_member_key(cfg.conjuge_key, membro)
                 else None
             )
             if key is None:
@@ -378,18 +382,14 @@ class E5MemberResolver:
         if (
             isinstance(prop, str)
             and cfg.conjuge_key
-            and cfg.conjuge_key in prop.lower()
-            and cfg.titular_key not in prop.lower()
+            and matches_member_key(cfg.conjuge_key, prop)
+            and not matches_member_key(cfg.titular_key, prop)
         ):
             return True
         props = item.get("proprietarios", [])
         if isinstance(props, list):
             names_lower = [str(p).lower() for p in props]
-            if (
-                cfg.conjuge_key
-                and cfg.conjuge_key in names_lower
-                and cfg.titular_key not in names_lower
-            ):
+            if matches_member_exclusively(cfg.conjuge_key, cfg.titular_key, names_lower):
                 return True
         return False
 
@@ -441,7 +441,9 @@ class E5MemberResolver:
                 if not isinstance(categories, dict):
                     continue
                 member_lower = str(member_key).lower()
-                is_conjuge = bool(cfg.conjuge_key and cfg.conjuge_key in member_lower)
+                is_conjuge = bool(
+                    cfg.conjuge_key and matches_member_key(cfg.conjuge_key, member_lower)
+                )
                 for cat_name, cat_value in categories.items():
                     if cat_name == "total":
                         continue
@@ -472,7 +474,7 @@ class E5MemberResolver:
             else:
                 val = self._resolve_valor(dv, ano_ref)
             prop = str(dv.get("proprietario", "")).lower()
-            if cfg.conjuge_key and cfg.conjuge_key in prop and cfg.titular_key not in prop:
+            if matches_member_exclusively(cfg.conjuge_key, cfg.titular_key, prop):
                 conjuge_dividas += val
             else:
                 titular_dividas += val

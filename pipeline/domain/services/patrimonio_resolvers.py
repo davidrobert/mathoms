@@ -25,6 +25,10 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
+from pipeline.domain.services.member_key_matcher import (
+    matches_member_exclusively,
+    matches_member_key,
+)
 from pipeline.domain.services.patrimonio_types import (
     MemberIdentity,
     investimento_valor,
@@ -53,9 +57,9 @@ def resolve_members(baseline: dict, identity: MemberIdentity) -> tuple[dict, dic
                 if not isinstance(m, dict):
                     continue
                 nome = m.get("nome", "").lower()
-                if identity.titular_key in nome:
+                if matches_member_key(identity.titular_key, nome):
                     titular_data = m
-                elif identity.conjuge_key and identity.conjuge_key in nome:
+                elif identity.conjuge_key and matches_member_key(identity.conjuge_key, nome):
                     conjuge_data = m
             return titular_data, conjuge_data
 
@@ -145,9 +149,9 @@ def _extract_membro_key(decl: dict, identity: MemberIdentity) -> str | None:
             membro = declarante.get("nome", "")
     membro = membro.lower()
 
-    if identity.titular_key and identity.titular_key in membro:
+    if identity.titular_key and matches_member_key(identity.titular_key, membro):
         return identity.titular_key
-    if identity.conjuge_key and identity.conjuge_key in membro:
+    if identity.conjuge_key and matches_member_key(identity.conjuge_key, membro):
         return identity.conjuge_key
     return None
 
@@ -198,12 +202,12 @@ def build_members_from_declarations(baseline: dict, identity: MemberIdentity) ->
         total = 0.0
         for dv in dividas_list:
             prop = (dv.get("proprietario", "") or "").lower()
-            if key == identity.titular_key and identity.titular_key in prop:
+            if key == identity.titular_key and matches_member_key(identity.titular_key, prop):
                 total += safe_float(dv.get("saldo_31_12", 0))
             elif (
                 key == identity.conjuge_key
                 and identity.conjuge_key
-                and identity.conjuge_key in prop
+                and matches_member_key(identity.conjuge_key, prop)
             ):
                 total += safe_float(dv.get("saldo_31_12", 0))
         return total
@@ -329,13 +333,13 @@ def _is_conjuge_exclusive(item: dict, identity: MemberIdentity) -> bool:
     prop = item.get("proprietario", "")
     if isinstance(prop, str):
         p_lower = prop.lower()
-        if identity.conjuge_key in p_lower and identity.titular_key not in p_lower:
+        if matches_member_exclusively(identity.conjuge_key, identity.titular_key, p_lower):
             return True
 
     props = item.get("proprietarios", [])
     if isinstance(props, list):
         names_lower = [p.lower() for p in props if isinstance(p, str)]
-        if identity.conjuge_key in names_lower and identity.titular_key not in names_lower:
+        if matches_member_exclusively(identity.conjuge_key, identity.titular_key, names_lower):
             return True
 
     return False
@@ -411,7 +415,9 @@ def _split_investimentos(
         for member_key, categories in inv_raw.items():
             if not isinstance(categories, dict):
                 continue
-            is_conjuge = identity.conjuge_key and identity.conjuge_key in member_key.lower()
+            is_conjuge = identity.conjuge_key and matches_member_key(
+                identity.conjuge_key, member_key
+            )
             target = conjuge_inv if is_conjuge else titular_inv
             for cat_name, cat_value in categories.items():
                 if cat_name == "total":
@@ -458,11 +464,7 @@ def _split_dividas(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tu
         else:
             val = _resolve_item_valor(dv, ano_ref)
         prop = (dv.get("proprietario", "") or "").lower()
-        if (
-            identity.conjuge_key
-            and identity.conjuge_key in prop
-            and identity.titular_key not in prop
-        ):
+        if matches_member_exclusively(identity.conjuge_key, identity.titular_key, prop):
             conjuge_div += val
         else:
             titular_div += val
@@ -537,7 +539,7 @@ def rv_ressalva(sem_por_membro: dict, identity, *, titular_fb: bool, conjuge_fb:
     tickers: list[str] = []
     for member_key, nomes in (sem_por_membro or {}).items():
         kl = str(member_key).lower()
-        is_conjuge = bool(identity.conjuge_key and identity.conjuge_key in kl)
+        is_conjuge = bool(identity.conjuge_key and matches_member_key(identity.conjuge_key, kl))
         if not (conjuge_fb if is_conjuge else titular_fb):
             tickers.extend(nomes)
     return {

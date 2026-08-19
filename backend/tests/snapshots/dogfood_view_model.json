@@ -1729,6 +1729,7 @@
     "imoveis_nao_geradores": 60000000,
     "imoveis_no_if": true,
     "investimentos_conjuge": 0,
+    "investimentos_nao_atribuidos": 0,
     "investimentos_titular": 8000000,
     "investivel_efetivo": 13000000,
     "investivel_financeiro": 13000000,

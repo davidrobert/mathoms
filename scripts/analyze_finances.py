@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import scripts.pipeline_common as _pc
+from pipeline.domain.services.member_key_matcher import matches_member_key
 from pipeline.domain.services.money_parsing import valor_monetario_float
 
 _logger = logging.getLogger("mathoms.pipeline.e5")
@@ -381,9 +382,9 @@ def _resolve_members(baseline: Dict[str, Any]) -> tuple:
                 if not isinstance(m, dict):
                     continue
                 nome = m.get("nome", "").lower()
-                if _TITULAR_KEY in nome:
+                if matches_member_key(_TITULAR_KEY, nome):
                     titular_data = m
-                elif _CONJUGE_KEY in nome:
+                elif matches_member_key(_CONJUGE_KEY, nome):
                     conjuge_data = m
             return titular_data, conjuge_data
         # Format 3: membros is list of strings + declarations exist
@@ -440,9 +441,9 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
                     ano = int(_m.group(1))
         key = (
             _TITULAR_KEY
-            if _TITULAR_KEY in membro
+            if matches_member_key(_TITULAR_KEY, membro)
             else _CONJUGE_KEY
-            if _CONJUGE_KEY in membro
+            if matches_member_key(_CONJUGE_KEY, membro)
             else None
         )
         if key is None:
@@ -499,9 +500,9 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
         total_dividas = 0.0
         for dv in baseline.get("dividas", []):
             prop_lower = dv.get("proprietario", "").lower()
-            if key == _TITULAR_KEY and _TITULAR_KEY in prop_lower:
+            if key == _TITULAR_KEY and matches_member_key(_TITULAR_KEY, prop_lower):
                 total_dividas += safe_float(dv.get("saldo_31_12", 0))
-            elif key == _CONJUGE_KEY and _CONJUGE_KEY in prop_lower:
+            elif key == _CONJUGE_KEY and matches_member_key(_CONJUGE_KEY, prop_lower):
                 total_dividas += safe_float(dv.get("saldo_31_12", 0))
 
         # Synthetic total from classified bens
@@ -598,14 +599,16 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
         prop = item.get("proprietario", "")
         if (
             isinstance(prop, str)
-            and _CONJUGE_KEY in prop.lower()
-            and _TITULAR_KEY not in prop.lower()
+            and matches_member_key(_CONJUGE_KEY, prop)
+            and not matches_member_key(_TITULAR_KEY, prop)
         ):
             return True
         props = item.get("proprietarios", [])
         if isinstance(props, list):
             names_lower = [p.lower() for p in props]
-            if _CONJUGE_KEY in names_lower and _TITULAR_KEY not in names_lower:
+            if matches_member_key(_CONJUGE_KEY, names_lower) and not matches_member_key(
+                _TITULAR_KEY, names_lower
+            ):
                 return True
         return False
 
@@ -662,7 +665,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
             member_lower = member_key.lower()
             if not isinstance(categories, dict):
                 continue
-            is_mariana = _CONJUGE_KEY in member_lower
+            is_mariana = matches_member_key(_CONJUGE_KEY, member_lower)
             for cat_name, cat_value in categories.items():
                 if cat_name in ("total",):
                     continue  # Skip summary key
@@ -701,7 +704,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
         else:
             val = _resolve_valor(dv, ano_ref)
         prop = dv.get("proprietario", "").lower()
-        if _CONJUGE_KEY in prop and _TITULAR_KEY not in prop:
+        if matches_member_key(_CONJUGE_KEY, prop) and not matches_member_key(_TITULAR_KEY, prop):
             mariana_dividas += val
         else:
             david_dividas += val  # Shared debts assigned to david for totaling
