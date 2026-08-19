@@ -42,7 +42,7 @@ def populate_real_estate(
     baseline_payload: dict | None = None,
 ) -> dict | None:
     """Calcula payload `real_estate` (None quando workspace sem property_identity)."""
-    identities = _load_identities(db, workspace_id)
+    identities = _carregar_projetaveis(db, workspace_id, baseline_payload)
     if not identities:
         return None
     result = _calculate(
@@ -86,6 +86,37 @@ def _load_identities(db: Session, workspace_id: str) -> list[PropertyIdentity]:
         PropertyIdentity.first_seen_year.desc(), PropertyIdentity.created_at.asc()
     )
     return list(db.execute(stmt).scalars().all())
+
+
+# [[ADR-396]] D3: a projeção lê TODA row viva de `property_identity`, então
+# identidade mintada por run antigo — inclusive a que nasceu de item da ficha de
+# dívidas antes da [[ADR-392]] — segue pedindo rótulo ao dono, e rotular põe um
+# passivo no patrimônio bruto. O baseline do run é a autoridade sobre o que é
+# imóvel hoje; o rótulo do dono é fato do usuário e nunca se poda. Sem baseline
+# não há autoridade para comparar: o filtro fica inerte.
+def _carregar_projetaveis(
+    db: Session, workspace_id: str, baseline_payload: dict | None
+) -> list[PropertyIdentity]:
+    """Rows vivas menos os fósseis que nem o baseline nem o dono reivindicam."""
+    identities = _load_identities(db, workspace_id)
+    return _projetaveis(identities, _load_overrides(db, workspace_id), baseline_payload)
+
+
+def _projetaveis(
+    identities: list[PropertyIdentity],
+    overrides: dict[str, WorkspacePropertyOverride],
+    baseline_payload: dict | None,
+) -> list[PropertyIdentity]:
+    """Identidade que nem o baseline vivo nem o dono reivindicam não vira imóvel."""
+    reivindicadas = _property_ids_do_baseline(baseline_payload)
+    if not reivindicadas:
+        return identities
+    return [i for i in identities if i.id in reivindicadas or i.id in overrides]
+
+
+def _property_ids_do_baseline(baseline_payload: dict | None) -> set[str]:
+    imoveis = (baseline_payload or {}).get("imoveis_consolidados") or []
+    return {pid for im in imoveis if (pid := im.get("property_id"))}
 
 
 def _load_overrides(db: Session, workspace_id: str) -> dict[str, WorkspacePropertyOverride]:
