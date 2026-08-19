@@ -5,6 +5,7 @@ title: "Contrato de balanço de stage fan-out: queued ≡ processed + errors + s
 status: Decidido
 phase: A40.l68
 date: "2026-08-18"
+amended_at: ["2026-08-19"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-097]]"
@@ -29,6 +30,13 @@ tags:
 
 **Status:** Decidido • **Data:** 2026-08-18 • É a **ADR-B** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l68]].
+
+> **Emendada em 2026-08-19 (correção do §Estado, não da decisão):** o §Estado
+> declarava **D4 entregue** e a §D4 prometia um **kill-switch de 1 env var
+> "provado por teste"**. Medido: o kill-switch **não existe** em lugar nenhum, e
+> o produtor de `extract.reader_missing` **retém o run** — o oposto do que o
+> texto promete. A decisão D4 sobrevive; o que cai é a afirmação de cobertura.
+> Ver §Emenda 2026-08-19.
 
 ## Contexto
 
@@ -158,6 +166,52 @@ do plano, registrada em §Anti-decisões ("NÃO ampliar [[A42.l4]] nem emendar
 (WARN-first). **Não** entregues: **D3** (denominador enumerado de stages
 fan-out) e **D5** (formato sem extrator falha no E0) — sem dono nomeado, ficam
 como resíduo da lane.
+
+> **Corrigido em 2026-08-19 (§Emenda):** **D4** é **parcial**, não entregue — o
+> produtor retém o run via `validation.valid`, e o kill-switch prometido nunca
+> existiu. O snapshot acima fica como registro do que se acreditava em 18/08.
+
+## Emenda 2026-08-19 — o §Estado afirmava cobertura que a medição refuta
+
+Achado **CTO-2** do §r7. Duas afirmações desta ADR não se sustentam.
+
+**(a) O kill-switch não existe.** A §D4 promete "kill-switch de 1 env var,
+provado por teste". `rg 'getenv|environ' pipeline/stages/extract_with_llm.py`
+devolve **uma** ocorrência, `MATHOMS_E2_LLM_CONCURRENCY`, que é paralelismo.
+Nenhuma env var governa `extract.reader_missing`, e nenhum teste a prova.
+
+**(b) "O run segue" é falso — o produtor retém.** A §D4 diz que o default
+"declara + `needs_review` nomeando o documento; o run segue", e o teste que
+guarda a promessa (`test_reader_missing_e_warn_first`) afirma **pertinência em
+conjunto** — `code not in BLOCKING_CODES` — com a docstring "não retém o run".
+O caminho real não passa por `BLOCKING_CODES`:
+
+- `_e2llm_validation_block` publica `valid = not flagged and not defeitos`, e um
+  skip com `motivo != "documento_vazio"` é defeito ⇒ `valid=False`;
+- o orquestrador retém lendo **`validation.valid`**
+  (`pipeline_task.py::_has_validation_errors`, consumido no loop de stages);
+- `BLOCKING_CODES` só escolhe **rótulo de severidade** na projeção para
+  `ValidationIssue`.
+
+Evidência independente no próprio §r7: o run `33514dc4` **pausou 1× em
+`extract_with_llm`** e precisou de `resume_pipeline_run`. A pausa é o
+comportamento que a ADR declara não existir.
+
+**O que muda.** A decisão D4 — *documento não processado é declarado, nomeado, e
+não pinta o run de vermelho* — sobrevive inteira e está entregue nessa parte:
+o code existe, fica fora de `BLOCKING_CODES`, e o desfecho não é `failed`. Cai a
+afirmação de que **não retém**, e cai o kill-switch.
+
+**O kill-switch fica redundante, não pendente.** Ele existia para desligar a
+retenção em emergência. Sob a tabela de política **total** que o RV7-03/DE-3 vai
+introduzir — predicado de pausa passa a ser `any(code ∈ BLOCKING_CODES)`, e cada
+membro do enum declara sua política — desligar a retenção de um code é editar a
+tabela, não uma env var. Env var de emergência sobre um predicado que já é
+declarativo é um segundo lugar para a verdade morar.
+
+**§Estado corrigido:** entregues **D1** (balanço) e **D2** (leitor tipado); **D4
+parcial** (code declarado e fora de `BLOCKING_CODES`; retenção **não** desligada,
+kill-switch inexistente e retirado do escopo); **não** entregues **D3** e **D5**.
 
 ## Consequências
 
