@@ -390,6 +390,7 @@
 | ADR-393 | adr | Decidido |  | Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) | `adr/393-contrato-de-balanco-de-stage-fan-out.md` |
 | ADR-394 | adr | Decidido |  | Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado | `adr/394-fato-deterministico-e-autoridade-llm-e-hint.md` |
 | ADR-395 | adr | Proposto |  | Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap | `adr/395-cobertura-documental-e-hint-de-inventario.md` |
+| ADR-396 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/396-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
