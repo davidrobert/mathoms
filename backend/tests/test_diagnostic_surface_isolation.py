@@ -144,6 +144,15 @@ _POISON_SQLITE = [
 ]
 
 
+@pytest.mark.parametrize("poison", _POISON_SQLITE)
+@pytest.mark.asyncio
+async def test_payload_venenoso_pausa_o_run_em_vez_de_mata_lo(sync_db, poison) -> None:
+    """O teste-mãe: cada munição derrubava a execução inteira antes do fix."""
+    _, run_id, log_id = _seed(sync_db)
+    _record(run_id, log_id, _detail(poison))
+    _assert_paused(sync_db, run_id)
+
+
 @pytest.mark.asyncio
 async def test_artifact_key_acima_da_coluna_trunca_preservando_a_cabeca(sync_db) -> None:
     """SQLite ignora `VARCHAR(n)`; o Postgres levanta `22001` (classe do RV6-11).
