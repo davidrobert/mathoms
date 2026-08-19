@@ -56,8 +56,23 @@ _FAMILY = {
 # construção. Mascarar não perde cobertura: os inputs que o digest resume
 # (`debts`, `incomes`, `policies`, `member_profiles`…) são comparados um a um
 # logo acima dele no mesmo bloco.
+# `composicao_familiar.faixa_ref` (ADR-397 D3) é 31/12 do ano-base do IRPF; sem
+# IRPF — o caso do dogfood — cai no último ano-calendário fechado, derivado de
+# `date.today()`. Mesma classe de `data_analise`, só que vira na passagem de ANO
+# em vez de a cada dia: sem máscara, `main` amanheceria vermelha em 1º de janeiro
+# e ninguém ligaria a causa (é o que #1471 fez com `captured_at`). O que a máscara
+# NÃO esconde: `membros[].faixa_etaria` continua comparado valor a valor, e a
+# regra que escolhe a data tem teste próprio em
+# `tests/unit/pipeline/test_composicao_familiar_projection.py`.
 _VOLATILE_LEAVES = frozenset(
-    {"data_analise", "data_corte", "captured_at", "as_of_date", "inputs_digest_sha256"}
+    {
+        "data_analise",
+        "data_corte",
+        "captured_at",
+        "as_of_date",
+        "inputs_digest_sha256",
+        "faixa_ref",
+    }
 )
 
 

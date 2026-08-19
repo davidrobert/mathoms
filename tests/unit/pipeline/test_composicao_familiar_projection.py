@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import date
 
 import pytest
 
@@ -18,6 +19,7 @@ from pipeline.domain.services.composicao_familiar import (
     PAPEIS,
     build_composicao_familiar,
 )
+from pipeline.domain.services.e5_analyzer_adapter import _faixa_ref_fiscal
 from pipeline.domain.services.protecao_analyzer import FamilyMemberSnapshot
 
 FAIXA_REF = "2024-12-31"
@@ -121,3 +123,39 @@ class TestOrdemEBlocoAusente:
 
     def test_faixa_ref_e_ecoada_no_bloco(self):
         assert _build(_snap("titular", 41))["faixa_ref"] == FAIXA_REF
+
+
+class TestFaixaRefFiscal:
+    """A data de corte é regra de domínio, não conveniência (ADR-397 D3). Tem
+    teste próprio porque o snapshot do view-model mascara ``faixa_ref``: sem
+    IRPF ela deriva de ``date.today()`` e viraria na passagem de ano."""
+
+    def _irpf(self, anos: dict[int, tuple]):
+        class _FakeIRPF:
+            def estados_completude(self, today=None):
+                return anos
+
+        return _FakeIRPF()
+
+    def test_usa_31_12_do_ano_base_do_irpf(self):
+        from pipeline.domain.services.irpf_completude import CompletudeAno
+
+        irpf = self._irpf({2024: (CompletudeAno.completo, None)})
+        assert _faixa_ref_fiscal(irpf, date(2026, 8, 19)) == date(2024, 12, 31)
+
+    def test_sem_irpf_cai_no_ultimo_ano_calendario_fechado(self):
+        """Relógio no passado: subestimar idade é a direção conservadora — nunca
+        envelhece um membro para além do que o ano declarado sustentaria."""
+        assert _faixa_ref_fiscal(None, date(2026, 8, 19)) == date(2025, 12, 31)
+
+    def test_irpf_sem_ano_base_resolvivel_cai_no_fallback(self):
+        assert _faixa_ref_fiscal(self._irpf({}), date(2026, 3, 1)) == date(2025, 12, 31)
+
+    def test_nao_usa_a_data_do_run(self):
+        """Recortar em ``today`` produz falso positivo para quem completou 22 (ou
+        25) entre 1º de janeiro e o dia do run."""
+        from pipeline.domain.services.irpf_completude import CompletudeAno
+
+        irpf = self._irpf({2024: (CompletudeAno.completo, None)})
+        ref = _faixa_ref_fiscal(irpf, date(2026, 8, 19))
+        assert ref.year != 2026 and (ref.month, ref.day) == (12, 31)
