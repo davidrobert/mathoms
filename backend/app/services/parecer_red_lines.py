@@ -12,7 +12,10 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
-RED_LINES_VERSION = "1.4"
+RED_LINES_VERSION = "1.5"
+
+#: Limiar da RL2 em % AO MÊS (ADR-300). 1,5% a.m. ≡ 19,56% a.a.
+LIMIAR_TAXA_MENSAL_PCT = 1.5
 
 # Lemmas (radicais, sem acento, lowercase) — lista controlada, não NLP.
 # RL1 (ADR-300, calibração financial-planner 2026-06-30): "reserva antes de risco"
@@ -247,15 +250,30 @@ def _rl2_divida_cara_precede_risco(out, e5) -> list[RedLineViolation]:
 
 def _divida_cara_conhecida(e5: Mapping[str, Any]) -> bool:
     for div in (e5.get("endividamento") or {}).get("dividas") or []:
-        taxa_mensal = _parse_taxa_mensal(div.get("taxa_juros") if isinstance(div, dict) else None)
-        if taxa_mensal is not None and taxa_mensal > 1.5:
+        taxa = _taxa_mensal_equivalente(div.get("taxa_juros") if isinstance(div, dict) else None)
+        if taxa is not None and taxa > LIMIAR_TAXA_MENSAL_PCT:
             return True
     return False
 
 
-def _parse_taxa_mensal(raw: Any) -> float | None:
-    m = re.search(r"(\d+[.,]?\d*)\s*%", str(raw or ""))
-    return float(m.group(1).replace(",", ".")) if m else None
+# PERÍODO DECLARADO (1.5 · RV6-15): `endividamento.dividas[].taxa_juros` numérico é lido
+# como percentual AO ANO — paridade com `debts.taxa_juros_aa` ([[ADR-227]]), o único
+# produtor estruturado de taxa no produto, e com o contrato esboçado na [[ADR-301]].
+# Enquanto o produtor do E5 não for decidido (RV6-15 D4, dono pendente) esta é a leitura
+# CONSERVADORA: se um dia o campo vier mensal, ler como anual SUBESTIMA e a red line cala
+# — o erro inverso bloquearia todo financiamento imobiliário (12% a.a. lido como mensal).
+#
+# String não é aceita: o schema tipa `["number","null"]`, o default histórico do campo era
+# "N/D" (nunca carregou taxa real) e adivinhar o período de uma string é exatamente a
+# cegueira que mantinha a RL2 morta.
+def _taxa_mensal_equivalente(raw: Any) -> float | None:
+    """Taxa numérica em % a.a. → equivalente em % a.m.; ausência/forma inválida → None."""
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        return None
+    taxa_aa = float(raw)
+    if taxa_aa != taxa_aa or taxa_aa <= 0:  # NaN-safe
+        return None
+    return ((1.0 + taxa_aa / 100.0) ** (1.0 / 12.0) - 1.0) * 100.0
 
 
 def _promete_retorno(n: str) -> bool:
@@ -391,6 +409,7 @@ def check_red_lines(
 
 __all__ = [
     "RED_LINES",
+    "LIMIAR_TAXA_MENSAL_PCT",
     "RED_LINES_VERSION",
     "RedLineViolation",
     "RedLinesResult",

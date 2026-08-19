@@ -107,7 +107,14 @@ POISONED: tuple[RedLineFixture, ...] = (
         "RL2",
         "block",
         _output(sugestoes_execucao=[_sug(_APORTE)]),
-        _e5(endividamento={"dividas": [{"descricao": "Cartão", "taxa_juros": "5,5% a.m."}]}),
+        # Taxa NUMÉRICA em % a.a. (1.5 · RV6-15): rotativo de cartão. A forma antiga
+        # ("5,5% a.m.") é rejeitada pelo schema do E5 — fixture e código compartilhavam
+        # a mesma crença errada, e o gate de contrato agora prova isso.
+        _e5(
+            endividamento={
+                "dividas": [{"descricao": "Cartão", "saldo_devedor": 20_000.0, "taxa_juros": 180.0}]
+            }
+        ),
     ),
     RedLineFixture(
         "rl2_proxy_endividamento",
@@ -295,13 +302,21 @@ CLEAN: tuple[CleanFixture, ...] = (
         ),
         _e5(reserva_emergencia={"cobertura_meses": 1.47, "avaliacao_liquidity": "insuficiente"}),
     ),
-    # RL2 — aporte em risco mas taxa "N/D" e endividamento baixo
+    # RL2 — aporte em risco mas taxa AUSENTE (null) e endividamento baixo
     CleanFixture(
-        "rl2_clean_taxa_nd",
+        "rl2_clean_taxa_ausente",
         "RL2",
         _output(sugestoes_execucao=[_sug(_APORTE)]),
         _e5(
-            endividamento={"dividas": [{"descricao": "Financiamento", "taxa_juros": "N/D"}]},
+            endividamento={
+                "dividas": [
+                    {
+                        "descricao": "Financiamento",
+                        "saldo_devedor": 400_000.0,
+                        "taxa_juros": None,
+                    }
+                ]
+            },
             ratios={"taxa_endividamento_pct": 12.0},
         ),
     ),

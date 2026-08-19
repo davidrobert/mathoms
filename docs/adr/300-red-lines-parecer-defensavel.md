@@ -5,7 +5,7 @@ title: "Red lines do parecer: 4ª camada de validação determinística (conselh
 status: Decidido
 phase: "A22.l2 · F3 launch-trust"
 date: "2026-06-26"
-amended_at: ["2026-06-30"]
+amended_at: ["2026-06-30", "2026-08-19"]
 relates_to:
   - "[[ADR-202]]"
   - "[[ADR-279]]"
@@ -36,6 +36,10 @@ lane [[A22.l2]] (= F3-O1 de [[PLAN-launch-trust]]).
 > **Calibrações (2026-06-30):** `RED_LINES_VERSION` 1.0→1.4 após 3 rodadas de
 > dogfood — ver §"Calibração pós-dogfood" (1.1), §"Calibração 1.2 — RL1
 > rebalanceamento ≠ deploy" e §"Resolução de RL3 e RL7" (1.4).
+
+> **Calibração 1.5 (2026-08-19):** RL2 passa a ler `taxa_juros` **numérico** e o
+> período do campo fica **declarado** (% a.a.) — ver §"Calibração 1.5". O invariante
+> não muda; o que muda é o input deixar de ser inalcançável.
 
 ## Contexto
 
@@ -252,6 +256,48 @@ Inspeção do texto real (captura cirúrgica) + co-design `financial-planner`:
 
 RED_LINES_VERSION: 1.0 (base) → 1.1 (RL3 proximidade + RL1 P0/P1, #697) → 1.2 (RL1
 composicional/derisk, #698) → 1.3 (RL3 `\b` anti-substring, #700) → 1.4 (RL7 graduado, #700).
+→ 1.5 (RL2 lê taxa numérica + período declarado, 2026-08-19).
+
+### Calibração 1.5 — RL2 lê taxa numérica e declara o período (2026-08-19)
+
+Origem: revisão de pipeline **r7** (achado FP-4 / RV6-15). O §"Consequências" desta
+ADR já registrava a RL2 como *best-effort*; a medição do r7 mostrou que ela estava
+**morta**, não apenas fraca — quatro cegueiras independentes, das quais esta calibração
+fecha as duas do parser:
+
+- **`%` literal exigido.** `_parse_taxa_mensal` casava `r"(\d+[.,]?\d*)\s*%"` sobre
+  `str(raw)`. Mas o schema tipa `endividamento.dividas[].taxa_juros` como
+  `["number","null"]` (A37.l4 · DE-07) — logo **taxa numérica válida não disparava**.
+  Medido: `_parse_taxa_mensal(9.5) → None`.
+- **Período não declarado (latente).** O limiar `> 1,5` é **mensal**; o único produtor
+  estruturado de taxa no produto é `debts.taxa_juros_aa` ([[ADR-227]]), **anual**.
+  Preencher o campo direto faria 12% a.a. ser lido como 12% a.m. → hard-block em
+  100% dos financiamentos imobiliários.
+
+Decisão: `_taxa_mensal_equivalente` lê **número** e o interpreta como **% a.a.**,
+convertendo para o equivalente mensal antes de comparar com `LIMIAR_TAXA_MENSAL_PCT`
+(1,5% a.m. ≡ 19,56% a.a.). String deixa de ser aceita: o default histórico do campo era
+`"N/D"` (nunca carregou taxa real) e adivinhar o período de uma string É a cegueira.
+A leitura anual é a **conservadora** — se o produtor um dia emitir mensal, a red line
+subestima e cala; a troca inversa bloquearia a frota.
+
+O período fica declarado também na descrição do campo em
+`config/schemas/e5_analysis.schema.json`, com a dependência explícita: **produtor que
+emitir mensal precisa mudar o leitor junto**. A decisão de o que o E5 publica em
+`endividamento.dividas[]` segue com o dono (RV6-15 D4) e **não** foi tocada aqui.
+
+Cegueiras B1/B2 — o portão `_is_aporte_risco` (exige `tema_canonico ∈ {Alocação, Renda
+passiva}`, e `_PRO_RESERVA`/`_DERISK_REBALANCE` curto-circuitam) — **seguem abertas**:
+mexer nelas mexe na RL1, que também é hard-block, e exige eval próprio.
+
+A fixture que "provava" a RL2 usava `"5,5% a.m."`, forma que o schema do E5 **rejeita**
+(`tests/test_schema_validation_endividamento.py`): fixture e código compartilhavam a
+mesma crença errada. Agora há gate — toda `dividas[]` das fixtures valida contra o
+sub-schema real do E5.
+
+Taxa de disparo medida no payload do r7: **inalterada (RL2 silenciosa)** — a dívida do
+run tem `taxa_juros: null` e o proxy `ratios.taxa_endividamento_pct` é 7,51 (< 40). O
+fix torna a linha **alcançável**, não mais barulhenta.
 
 ### Prompt-side REGRA 14 + resultado combinado (PROMPT_VERSION 2.1.0 · 2026-07-01)
 
