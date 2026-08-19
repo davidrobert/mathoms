@@ -9,6 +9,15 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", str(_REPO_ROOT))
 
+# ADR-171: `resolve_fernet_keys` prefere FERNET_KEYS (rotação) a FERNET_KEY, então
+# pinar só o singular é inerte em máquina com rotação ativa. O `.env` não passa por
+# `os.environ` — `pop` não o alcança; só a env var VAZIA sobrepõe o arquivo. Sem as
+# duas linhas, a key da suíte é a de dev da máquina e local diverge do CI (RV7-02).
+# Vale para subprocess que herda `os.environ` (ex.: test_cli_run_stage).
+_TEST_FERNET_KEY = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
+os.environ.setdefault("MATHOMS_FERNET_KEY", _TEST_FERNET_KEY)
+os.environ["MATHOMS_FERNET_KEYS"] = ""
+
 
 @pytest.fixture(autouse=True)
 def _reset_pipeline_common_globals():

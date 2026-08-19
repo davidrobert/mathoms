@@ -16,6 +16,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 import pytest
+from cryptography.fernet import Fernet
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 _E2_FIXTURE = (
@@ -125,7 +126,11 @@ def _cli_env(db_url: str | None) -> dict[str, str]:
         **os.environ,
         "MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS": "false",
         # Hidratação (run_context_factory) exige o vault Fernet (config_materializer).
+        # O par é indivisível: o subprocess constrói `Settings()` própria e relê o
+        # `.env` do disco, onde uma janela de rotação venceria o pin do singular
+        # (ADR-171). `pop` não alcança arquivo — só a env var vazia o sobrepõe.
         "MATHOMS_FERNET_KEY": _TEST_FERNET_KEY,
+        "MATHOMS_FERNET_KEYS": "",
         # Porta fechada: caches Redis (catálogo, budget) viram no-op fail-open —
         # sem isso a hidratação do subprocess escreveria no Redis dev (ex.:
         # catálogo vazio por cima do real em institution_catalog:global).
@@ -219,6 +224,33 @@ def test_cli_fails_fast_without_database_url(tenant_minimal):
     assert err["error"] == "environment"
     assert "MATHOMS_DATABASE_URL" in err["message"]
     assert err["adr"] == "ADR-303 D4"
+
+
+# RV7-02 · ADR-171: o subprocess constrói `Settings()` própria e relê o `.env` do
+# disco, onde FERNET_KEYS vence FERNET_KEY — o pin do singular sozinho é inerte e
+# quem decide a key vira o ambiente. O teste fabrica a rotação em vez de depender
+# dela (no CI não há `.env`), então vale nos dois lugares: se `_cli_env` parar de
+# zerar FERNET_KEYS, ela vaza para o filho e a asserção cai.
+_PROBE_PRIMARY_KEY = (
+    "from backend.app.services.security.vault import resolve_fernet_keys;"
+    "print(resolve_fernet_keys()[0])"
+)
+
+
+def test_cli_env_pins_canonical_fernet_key_over_ambient_rotation(monkeypatch):
+    """A key resolvida dentro do subprocess é a canônica da suíte, não a da máquina."""
+    monkeypatch.setenv("MATHOMS_FERNET_KEYS", Fernet.generate_key().decode())
+
+    proc = subprocess.run(
+        [sys.executable, "-c", _PROBE_PRIMARY_KEY],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        env=_cli_env(None),
+        timeout=60,
+    )
+
+    assert proc.stdout.strip() == _TEST_FERNET_KEY, proc.stderr[-500:]
 
 
 def _seed_two_e2_versions(db_url: str, monkeypatch) -> None:
