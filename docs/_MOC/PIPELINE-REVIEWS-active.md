@@ -478,6 +478,30 @@ real (MSW → `apiFetch` → `ApiError`) e um sobre o render do banner; o contro
 arquivo garante que zero **medido** continua afirmando (senão o remédio trocaria falso-positivo por
 falso-negativo e a barra nunca mais apareceria).
 
+**Nota datada 2026-08-19 — PD-5(b) fechado na ORIGEM, e a premissa da duplicata é falsa.**
+A metade (a) saiu em #1561 (`4d70ae16`): percentual em prosa passa pelo produtor único
+`fmt_percent`, com gate de formato — mutação nos dois produtores dá `7 failed`, com
+`AssertionError: decimal en-US: '28.0%'`. O follow-up em `pontos_urgentes_analyzer` foi roteado
+para a [[A40.l73]] (dona daquele produtor) e saiu em #1576 (`ff23c03e`).
+
+A metade (b) **não vira PR**, e a razão é medição, não desistência. A contagem que o banner faz
+(`dataQualitySignals.ts:127` — `excluded_properties` filtrado por `classification ===
+"desconhecido"`) foi corrigida **a montante** pelo DE-6 (#1556, `26264d6f`): as entradas caem de
+**4 para 0**. Deduplicar no banner seria **inerte** — repetiria o padrão do #1476, que consertou a
+S9 render-side sobre um predicado que não tinha como enxergar a outra fonte.
+
+E a premissa registrada na linha do PD-5 — "**DUAS** são o mesmo imóvel (mesma matrícula/endereço)"
+— **está errada**. Medido pelo DE-6 com e sem o filtro, contra o DB real: das 4 entradas que somem,
+**2 saem por serem passivo** e **0 por dedup de identidade**. As outras 2 são identidades cujo item
+o baseline corrente já carrega com `property_id` nulo ([[ADR-392]]), com CTA apontando para row que
+run nenhum resolve — o "override sem efeito monetário" do **RV4-10**, não duplicação. O
+`_dedup_excluded_projection` que já existe seguia **inerte**, e nenhuma entrada some por ele.
+
+**O que sobra do PD-5(b) não é dedup — é o RV4-10.** O invariante `imoveis ∩ excluded == ∅`
+([[ADR-334]] §3) segue vigente e não aplicado: o D3 do DE-6 reduz o conjunto excluído, não fecha a
+interseção. Quem retomar o RV4-10 herda o item; o banner não deve maquiar defeito de montante, e
+hoje não precisa, porque a montante já não produz o item.
+
 **A frase "falha de fetch no render estático" da linha do PD-6 está errada** e fica registrada como
 erro meu, não corrigida em silêncio na tabela. Por [[ADR-129]] o PDF é Playwright sobre a **mesma
 rota React**, num Chromium real que espera `networkidle` + `data-report-ready`: o `useEffect`
