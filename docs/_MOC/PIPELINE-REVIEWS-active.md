@@ -382,7 +382,7 @@ gate aprovar a corrupção.
 | CTO-2 — a própria [[ADR-393]] declara D4 entregue e promete kill-switch que não existe no código; o §Estado afirma cobertura que a medição refuta | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto · emendar ADR-393 (`amended_at`) corrigindo o §Estado; kill-switch fica redundante sob a tabela de política |
 | CTO-3 — teste afirma **pertinência em conjunto** e nunca exercita o comportamento (`test_fan_out_balance.py:114-116` afirma "não retém o run" 15 linhas depois de afirmar `valid is False`); o único produtor com teste comportamental é o único que honra `BLOCKING_CODES` | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto · 1 teste por produtor no formato do E3 + 1 teste de **loop** provando que reason advisory não pausa |
 | DE-5 — invariante de passivo do E1.5 contradiz o prompt shipado no **mesmo PR**: computa Σ dos negativos enquanto o prompt manda transcrever saldo devedor positivo ⇒ predicado vira "declarado ≠ 0" e dispara 100%; rebaixado a `warning`, não vira `review_reason`, não move `valid` | consistência | Crítico | P1 | procede | procede-aberto | owner: data-engineer · referente vira `Σ secao=='dividas_onus'` com fallback datado; rotear `review_reasons` do consolidador ao `detail` do stage (senão [[ADR-394]] D3 fica inerte) |
-| DE-6 — item da ficha de dívidas recebe `property_id` mintado e é apresentado como imóvel pendente de rótulo; rotular converte passivo em ativo do patrimônio bruto — a autoridade de `secao` da [[ADR-394]] não foi propagada ao mint de identidade | correção | Alto | P0 | procede | procede-aberto | owner: data-engineer · `secao` é precondição de mint; `redact_pii` na fronteira do payload de imóveis · coordenar com [[ADR-392]] (mesmo resolver) |
+| DE-6 — item da ficha de dívidas recebe `property_id` mintado e é apresentado como imóvel pendente de rótulo; rotular converte passivo em ativo do patrimônio bruto — a autoridade de `secao` da [[ADR-394]] não foi propagada ao mint de identidade | correção | Alto | P0 | procede | **fechado com ressalva** | #1556 (`26264d6f`, [[ADR-398]]): mint exige eixo atestado por fato; projeção exige que baseline ou dono reivindiquem a identidade. Ver §Nota datada 2026-08-19 |
 | DE-4 — balanço de fan-out fecha sobre denominador **pós-filtro** (`queued` conta depois do "já processado", e o lookup é workspace-scoped, não run-scoped): run reportou balanço fechado tendo gravado zero artefatos do stage; consequência — `review_snapshot.provenance` declara `execucao_mista: false` num run que consome artefato de outro executor | saúde-execução | Alto | P1 | procede | procede-aberto | owner: data-engineer+senior-cto · denominador = corpus elegível; `list_keys` run-scoped; proveniência deriva dos artefatos **consumidos**, não dos stage logs |
 | PE-2 — `target` de métrica do parecer é gerado pelo LLM e **migra sobre dado byte-idêntico**, atravessando o valor observado (violação vira conformidade sem nada mudar); orquestrador roda com `temperature` sem `seed`, enquanto os stages de extração já têm gate exigindo ambos | qualidade-llm | Crítico | P1 | procede (RV6-08 agravado) | procede-aberto | owner: prompt-engineer · `target` sai do LLM p/ catálogo determinístico; `seed` + gate espelhando `check_extraction_sampling.py` |
 | PE-1 — âncora de citação só existe onde houve round-trip de tool: o conjunto ancorado é idêntico ao buscado, **zero** âncoras vêm do catálogo renderizado; com metade das iterações duplicadas o teto estrutural de cobertura é ~8,6%; `strict` é inerte porque `missing_path` está fora das camadas hard | qualidade-llm | Crítico | P1 | procede (RV6-09 agravado) | procede-aberto | owner: prompt-engineer · rota de âncora p/ percentual; persistir `evidencia_summary`; `missing_path` vira gate soft com piso · emenda [[ADR-296]]/[[ADR-304]] |
@@ -402,13 +402,58 @@ gate aprovar a corrupção.
 | PD-6 — contagem de pendências é client-side com catch→0 e o guard novo só testa desfecho do run, então falha de fetch no render estático ainda permite afirmar "sem pendências" | completude | Médio | P2 | procede (RV6-22 mitigado, não fechado) | **fechado** | owner: product-designer · hook tri-state; `unknown` **cala** em vez de afirmar — entregue em #1551 (`d2527993`), prova por mutação. A premissa "render estático" era falsa: ver nota datada 2026-08-19 |
 | PD-5 — prosa do E5 emite decimal em formato en-US e é renderizada crua; banner de qualidade conta duplicata e inclui item que não é imóvel na contagem que pede rótulo ao usuário | clareza-ux | Médio | P2 | procede | procede-aberto | owner: data-engineer+product-designer · formatação é responsabilidade do produtor + gate de formato; deduplicar antes de contar |
 | CTO-5 — supressor `corpus_grew` derruba **toda** a perna de valor de HARD para informativo a partir de um único documento novo, desligando a rede justamente quando corpus e código mudaram juntos | saúde-execução | Médio | P2 | procede (latente — não disparou neste run) | procede-aberto | owner: senior-cto · manter HARD para par compensatório e troca de sinal; supressor por-path via lineage |
-| RV6-13 — identidades de imóvel sem canonical persistem no DB (dano durável), embora **nenhuma nova** tenha sido criada neste run | consistência | Médio | P2 | procede parcial | procede-aberto | owner: data-engineer · sangria estancada por [[ADR-392]]; falta reconciliar as remanescentes |
+| RV6-13 — identidades de imóvel sem canonical persistem no DB (dano durável), embora **nenhuma nova** tenha sido criada neste run | consistência | Médio | P2 | procede parcial | **medido — poda é decisão do dono** | 4 vivas sem canonical (6 no total, 2 supersedidas); zero criadas no r7. Inertes: inalcançáveis pelo resolver e invisíveis ao relatório após #1556. Ver §Nota datada 2026-08-19 |
 | RV6-15 — tripwire fluxo×estoque proposto no r6 keyaria em campo de parcela/taxa que é **nulo em 3 runs consecutivos** | solidez-financeira | Médio | P2 | procede (re-escopo) | procede-aberto | owner: financial-planner · o tripwire precisa de outra fonte de fluxo; o campo nulo é ele próprio um gap de completude |
 | RV6-01 / RV6-02 / RV6-03 — roteamento por rótulo do LLM, conservação intra-artefato descartada e balde de ativo negativo sem guarda de sinal | correção | Crítico | — | **fechado por medição** | fechado | dívidas voltam ao baseline pré-corrupção com resíduo 0,0000%; zero baldes negativos (7/7) · A40.l66/l67 (#1520-#1525, #1529) |
 | RV6-07 — agregados irmãos declarando o mesmo conceito e divergindo no mesmo payload | consistência | Alto | — | **fechado por medição** | fechado | divergência zero neste run; era efeito do item flipado do r6 |
 | RV6-23 — donut e tabela da composição com predicados de filtro divergentes | consistência | Médio | — | **fechado** | fechado | predicado único com estados nomeados + gate próprio (#1511) |
 | RV6-10 — fan-out não fechava o próprio balanço, com skip determinístico e perda permanente de documento | correção | Alto | — | **fechado com ressalva** | fechado | #1526 fez o balanço fechar e o skip ser nomeado — mas o remédio gerou RV7-01 (abort) e expôs RV7-03/DE-4 (o balanço fecha sobre denominador pós-filtro) |
 | RV6-24 — positivo do r6: o compare de 3 pernas pegou o que os CV não veem | saúde-execução | — | — | positivo (reconfirmado) | fechado | r7 confirma pelo inverso: **não congelar r7 como baseline** enquanto DE-1/RV7-04 e RV6-04 seguirem abertos — congelar faria o gate aprovar ambos |
+
+**Nota datada 2026-08-19 — DE-6 e RV6-13 remediados; o diagnóstico mudou de lugar.**
+O #1556 (`26264d6f`, [[ADR-398]]) fechou o DE-6 em duas frentes, e a re-medição contra
+`main` corrigiu a âncora do achado. **`secao` cobre 87/87 itens** no run `33514dc4` — as 6
+dívidas têm valor positivo e **2 trazem `categoria_hint: "imovel"`**, mas com `secao`
+presente o roteamento da [[ADR-394]] já as manda para `dividas`: **nenhuma** dívida foi
+mintada neste run. As duas entradas "DIVIDA" que o leitor viu são rows de **2026-08-12 e
+2026-08-16**, anteriores à [[ADR-392]]. O que as levou à tela foi a **leitura**, que
+projetava toda row viva de `property_identity` sem consultar o baseline do run.
+
+O buraco de **escrita** existe e é alcançável onde `secao` falta (campo opcional; 766
+artefatos históricos não o carregam e o modo incremental os reagrega). Reproduzido em
+fixture sintética, com um agravante **não previsto no achado**: quando a descrição do
+financiamento canonicaliza para o mesmo endereço do imóvel financiado, o passivo não ganha
+identidade nova — **casa com a identidade do próprio imóvel** e o dedup da [[ADR-246]] o
+absorve, é a classe da §Emenda da ADR-392 por outra porta.
+
+**Blast radius medido** (mesmo harness, com e sem o filtro): `excluded_properties` é o
+único campo do payload que muda, **6 → 2**; `imoveis`, `valor_total_imoveis`, `cap_rate`,
+`concentracao_pct`, `componentes_calculo`, `spreads` e `alertas` idênticos. As 4 entradas
+podadas são todas `desconhecido` — a contagem que o banner de qualidade usa para pedir
+rótulo cai de **4 para 0**, o que endereça metade do PD-5 (a outra metade é o formato
+en-US da prosa). Duas são as dívidas do DE-6; duas são identidades cujo CTA apontava para
+row que run nenhum resolve (RV4-10). **Nenhuma** sai por dedup — o
+`_dedup_excluded_projection` segue inerte.
+
+**Ressalva do fechamento:** a precondição de mint é escopada ao que a fonte pode oferecer
+([[ADR-398]] D2). Numa declaração inteiramente legada (sem `secao` em item nenhum) o mint
+segue autorizado — exigir o fato ali apagaria `property_id` de todo o corpus antigo, medido
+em 17 testes de dedup/identidade. Nesse regime quem protege o leitor é o filtro de leitura.
+
+**RV6-13 medido:** **4** identidades vivas sem `endereco_canonical` (6 no total, 2 já
+supersedidas), últimas criadas em 12 e 16/08 — **zero no r7**, confirmando o §r7. São
+**inalcançáveis** pelo resolver (o match residual da ADR-392 D1 exige row única por
+`(titular_key, codigo_rfb)` e há 2 em cada um dos dois pares) e invisíveis ao relatório
+após o #1556. A poda **não** foi executada: o backfill aborta grupo sem âncora no baseline
+e nenhuma das 4 tem âncora, então o dry-run esperado é 4 grupos abortados / 0 supersessões.
+Podá-las exigiria eleger vencedor por outro critério, que é o que a [[ADR-386]] proibiu.
+Recomendação registrada em [[TRACK-property-identity-cross-era]]: **não podar** enquanto
+inertes.
+
+**Segue aberto:** o invariante `imoveis ∩ excluded == ∅` ([[ADR-334]] §3 / RV4-10) — o
+filtro reduz o conjunto excluído, não fecha a interseção. E `redact_pii` na fronteira do
+payload de imóveis, citado na disposição original do DE-6, **não** foi tocado: é o RV7-05,
+de outra onda, e mascarar CPF/monetário não resolve endereço nem nome de terceiro.
 
 **Nota datada 2026-08-18 — chegou depois da medição.** A [[A40.l69]] mergeou #1541 e
 **#1542** (`58ca1c11`, 21:37Z) **após** o fim deste run (21:21Z): balde de membro não apurado

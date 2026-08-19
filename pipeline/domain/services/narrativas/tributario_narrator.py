@@ -110,9 +110,12 @@ def _fmt_pct_safe(value: Any) -> str:
 
 
 def _fmt_fator_r(value: Any) -> str:
+    # PD-5 (r7): formatação de percentual em PROSA é do produtor. A f-string crua
+    # emitia "28.5%" (en-US) enquanto `_fmt_pct_safe`, duas linhas acima, já
+    # usava `fmt_percent`. Ausência continua vazia — o call-site gateia nisso.
     if value is None:
         return ""
-    return f"{float(value) * 100:.1f}%"
+    return fmt_percent(float(value) * 100)
 
 
 def _triggers_summary(cascata: Mapping[str, Any]) -> str:
