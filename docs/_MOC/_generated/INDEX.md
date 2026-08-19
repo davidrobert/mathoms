@@ -393,6 +393,7 @@
 | ADR-396 | adr | Proposto |  | Amostragem de LLM é declarada no call-site, não herdada do config | `adr/396-amostragem-declarada-no-call-site-de-llm.md` |
 | ADR-398 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/398-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
 | ADR-399 | adr | Proposto |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
+| ADR-400 | adr | Proposto |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
 | ADR-404 | adr | Proposto |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
