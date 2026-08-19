@@ -16,6 +16,7 @@ from typing import Any, Mapping, Optional
 
 from backend.app.core.llm_metrics import get_llm_metrics_emitter
 from backend.app.models.planner_review import ParecerRetentionReason
+from backend.app.services.parecer_antagonismo import rebaixa_sugestoes_antagonicas
 from backend.app.services.parecer_context_sanitizer import sanitize_e5_for_parecer
 from backend.app.services.parecer_distiller import distill_exec_context
 from backend.app.services.parecer_evidencia import (
@@ -648,6 +649,20 @@ def _needs_review_guardrails() -> dict:
     return guardrails_summary(confianca_rebaixada=0, audit=[], needs_review_triggered=True)
 
 
+def _rebaixa_antagonismo(
+    raw: ParecerPlanejadorOutput, workspace_id: str
+) -> tuple[ParecerPlanejadorOutput, int]:
+    """§r7 FP-6: P1 que aumenta a classe que outra P1 manda reduzir cai p/ P2."""
+    baldes = ("sugestoes_estrategicas", "sugestoes_taticas", "sugestoes_execucao")
+    todas = [s for balde in baldes for s in getattr(raw, balde)]
+    rebaixadas, n = rebaixa_sugestoes_antagonicas(todas, workspace_id=workspace_id)
+    if not n:
+        return raw, 0
+    it = iter(rebaixadas)
+    update = {balde: [next(it) for _ in getattr(raw, balde)] for balde in baldes}
+    return raw.model_copy(update=update), n
+
+
 def _apply_pos_llm_guardrails(
     raw: ParecerPlanejadorOutput,
     e5_data: Mapping[str, Any],
@@ -656,7 +671,14 @@ def _apply_pos_llm_guardrails(
     """Guardrails determinísticos A28.l11 — rebaixam/removem, nunca needs_review."""
     raw, downgraded = downgrade_confianca_fallback(raw, e5_data, config.workspace_id)
     raw, audit = filter_campos_faltantes(raw, e5_data, config.workspace_id)
-    return raw, audit, guardrails_summary(confianca_rebaixada=downgraded, audit=audit)
+    raw, antagonicas = _rebaixa_antagonismo(raw, config.workspace_id)
+    return (
+        raw,
+        audit,
+        guardrails_summary(
+            confianca_rebaixada=downgraded, audit=audit, sugestoes_antagonicas=antagonicas
+        ),
+    )
 
 
 def _generate_with_llm(
