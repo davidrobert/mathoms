@@ -451,5 +451,3 @@ def _enrich_goals_with_passive_income(
     enriched["janela"] = _janela_irpf(passive_income.ano_referencia_irpf)
     enriched["janela_meses"] = 12
     return enriched
-
-

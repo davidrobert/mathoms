@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-392 ADRs (ADR-001 a ADR-406) em [`docs/adr/`](../../adr/).
+393 ADRs (ADR-001 a ADR-406) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 335
+- **Decidido**: 336
 - **Proposto**: 53
 - **Roadmap**: 4
 
@@ -547,7 +547,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (69)
+### Decidido (70)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
