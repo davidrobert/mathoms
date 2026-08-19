@@ -1,5 +1,5 @@
 ---
-id: ADR-398
+id: ADR-400
 type: adr
 title: "Transcrição não é mais confiável que classificação — a forma da dependência é que decide"
 status: Proposto
@@ -27,7 +27,7 @@ tags:
   - phase/de-1
 ---
 
-# ADR-398 — Transcrição não é mais confiável que classificação
+# ADR-400 — Transcrição não é mais confiável que classificação
 
 ## Contexto
 

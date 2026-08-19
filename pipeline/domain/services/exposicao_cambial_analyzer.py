@@ -12,7 +12,7 @@ from pipeline.domain.services.conversao_me import infer_declared_me_currency
 # ADR-193 + co-design G: bucket "Internacional" = lastro forte.
 _BUCKET_INTERNACIONAL = "Internacional"
 
-# Custodiantes estrangeiros ([[ADR-398]]). Estavam como keyword de classe no
+# Custodiantes estrangeiros ([[ADR-400]]). Estavam como keyword de classe no
 # `asset_classifier`, onde respondiam à pergunta errada: custódia diz QUEM guarda,
 # não O QUE é o ativo. Aqui a pergunta é lastro cambial — e para ela o custodiante
 # é resposta legítima. Lista explícita e nomeada no módulo que faz a pergunta.

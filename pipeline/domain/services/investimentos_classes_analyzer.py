@@ -129,7 +129,7 @@ class InvestimentosClassesAnalysis:
     total_financeiro: Decimal = Decimal("0")
     total_imoveis_investimento: Decimal = Decimal("0")
     warnings: tuple[OutrosExcessivoWarning, ...] = ()
-    # Soma dos investimentos cuja classe NENHUM degrau decidiu ([[ADR-398]]).
+    # Soma dos investimentos cuja classe NENHUM degrau decidiu ([[ADR-400]]).
     nao_classificado_brl: Decimal = Decimal("0")
 
     @property

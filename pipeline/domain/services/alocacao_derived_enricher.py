@@ -1,6 +1,6 @@
 """Injeta ``alocacao_alvo.derived`` no bloco de goals do E5 ([[ADR-141]] §Emenda item 4).
 
-Saiu de ``e5_serialization`` em [[ADR-398]]: enriquecimento de domínio não é
+Saiu de ``e5_serialization`` em [[ADR-400]]: enriquecimento de domínio não é
 serialização, e a supressão por incerteza de classificação trouxe um terceiro
 input que tornava a assinatura do módulo de wire ainda mais larga.
 """

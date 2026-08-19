@@ -10,7 +10,7 @@ relates_to:
   - "[[ADR-143]]"
   - "[[ADR-097]]"
   - "[[ADR-160]]"
-  - "[[ADR-398]]"
+  - "[[ADR-400]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 193", "Asset classifier taxonomy"]
@@ -26,7 +26,7 @@ tags:
 
 # ADR-193 — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 
-> **Emendada em 2026-08-19 ([[ADR-398]]).** `classify_asset` perdeu o parâmetro
+> **Emendada em 2026-08-19 ([[ADR-400]]).** `classify_asset` perdeu o parâmetro
 > `instituicao` e passou a devolver value object com `autoridade`; o ticker
 > `XXXX11` deixou de decidir sozinho. Ver §Emenda 2026-08-19 no fim desta nota.
 
@@ -117,7 +117,7 @@ Especializações primeiro garantem que keywords genéricas (e.g. "fundo" em "Fu
 
 ## Emenda 2026-08-19 — o classificador declara quem decidiu
 
-Decidido em [[ADR-398]]. Duas premissas desta ADR caíram na medição do §r7 do dogfood.
+Decidido em [[ADR-400]]. Duas premissas desta ADR caíram na medição do §r7 do dogfood.
 
 **1. `instituicao` sai da assinatura.** `classify_asset(tipo, descricao,
 instituicao)` tratava a marca da instituição como sinal de classe. Ela é o único

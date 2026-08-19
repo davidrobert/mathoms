@@ -36,7 +36,7 @@ _ALVO_INPUTS_BY_COMPARABLE: dict[str, tuple[str, ...]] = {
 
 SEVERITY_ALINHADO_MAX_PP = 2.0
 
-# Degraus de supressão por incerteza de classificação ([[ADR-398]]).
+# Degraus de supressão por incerteza de classificação ([[ADR-400]]).
 INCERTEZA_APORTE_MIN_PCT = SEVERITY_ALINHADO_MAX_PP
 INCERTEZA_DESVIO_MIN_PCT = 10.0
 
@@ -169,7 +169,7 @@ class AlocacaoDeviationResult:
         return self.suprimir_prescricao(motivo) if motivo else self
 
     # A incerteza de classificação não pode ser maior que a menor diferença que o
-    # produto trata como acionável ([[ADR-398]]). Os limiares não são novos: 2pp é
+    # produto trata como acionável ([[ADR-400]]). Os limiares não são novos: 2pp é
     # `SEVERITY_ALINHADO_MAX_PP` e 10pp é o da [[ADR-141]] item 9.
     def suprimir_por_incerteza(
         self, nao_classificado_pct: float | None
