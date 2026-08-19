@@ -1666,6 +1666,7 @@
     "cobertura_investimentos": [
       {
         "fonte": "irpf",
+        "frescor": "2024",
         "membro": "titular",
         "motivo": null,
         "status": "apurado"
@@ -1795,7 +1796,7 @@
       "code": "endividamento_alto",
       "dado_faltante": null,
       "elegibilidade": "computavel",
-      "impacto": "Taxa de endividamento em 20.6% — meta < 20%",
+      "impacto": "Taxa de endividamento em 20,6% — meta < 20%",
       "origem_premissa": "derivado_e5",
       "prazo": "Próximo trimestre",
       "prioridade": "Alta"
@@ -1841,12 +1842,14 @@
       {
         "categoria": "vida",
         "flag": false,
-        "rationale": "sem gatilho"
+        "rationale": "sem gatilho",
+        "status": "apurado"
       },
       {
         "categoria": "saude",
         "flag": true,
-        "rationale": "sem_evidencia_cobertura"
+        "rationale": "sem_evidencia_cobertura",
+        "status": "apurado"
       }
     ],
     "pct_renda_anual": "0.000000",
@@ -2019,7 +2022,7 @@
   "tarefas": [
     {
       "e": "Próximo trimestre",
-      "impacto": "Taxa de endividamento em 20.6% — meta < 20%",
+      "impacto": "Taxa de endividamento em 20,6% — meta < 20%",
       "n": 1,
       "p": "alta",
       "t": "Reduzir endividamento"

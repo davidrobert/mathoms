@@ -249,6 +249,7 @@ export type ProtecaoPatrimonialArtifact = {
     "categoria": "vida" | "saude" | "rc_familiar" | "rd_profissional" | "ap";
     "flag": boolean;
     "rationale": string;
+    "status": "apurado" | "nao_apurado";
   }>;
   "apolices_vigentes": Array<ProtecaoPatrimonialApoliceResumo>;
   "apolices_vencendo": Array<ProtecaoPatrimonialApoliceResumo>;
@@ -344,6 +345,7 @@ export type E5AnalysisArtifact = {
       "membro"?: "titular" | "conjuge";
       "status"?: "apurado" | "zero_apurado" | "nao_apurado";
       "fonte"?: "posicoes_atuais" | "irpf" | null;
+      "frescor"?: string | null;
       "motivo"?: string | null;
     }>;
     "pl_ressalva"?: boolean;

@@ -44,7 +44,9 @@ export interface ProtectionItem {
 
 export interface ProtectionGapItem {
   ideal_brl?: number | null;
-  actual_brl: number;
+  /** ADR-395 §D4: nulo é "não medido". Nunca coagir para 0 no consumidor —
+   *  seria refazer no render a afirmação de zero que o produtor deixou de fazer. */
+  actual_brl?: number | null;
   gap_brl?: number | null;
   methodology?: string | null;
 }
@@ -78,6 +80,21 @@ export interface ProtectionCalculationStatus {
   reason: string;
 }
 
+/** Fonte documental (ADR-240) projetada no bundle — ADR-395 §D2.
+ *
+ * Hint de inventário, nunca valor: nomeia o que os documentos sustentam e em
+ * que categoria o cadastro provadamente não inventariou. Serve à copy do
+ * estado parcial, que NUNCA deriva de `missing_inputs` (identificador interno,
+ * e metade dos nomes tem correspondente presente no payload).
+ */
+export interface DocumentaryCoverage {
+  active_policies_count: number;
+  insurers: string[];
+  earliest_coverage_end?: string | null;
+  /** Categorias do bundle cujo gap fica retido por falta de confirmação. */
+  unconfirmed_categories: string[];
+}
+
 export interface ProtectionBundle {
   policies: ProtectionItem[];
   /** Key = `ProtectionCategory`. */
@@ -87,6 +104,7 @@ export interface ProtectionBundle {
   calculation_status: Record<string, ProtectionCalculationStatus>;
   methodology_thresholds: ProtectionThresholds;
   has_us_exposure: boolean | null;
+  documentary_coverage?: DocumentaryCoverage | null;
   adapter_version: number;
 }
 

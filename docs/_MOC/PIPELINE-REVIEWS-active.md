@@ -390,9 +390,9 @@ gate aprovar a corrupção.
 | PE-6 — tier invertido (modelo caro em 5/6 chamadas, todas de extração com schema+fallback; síntese aberta no barato); custo do parecer e cobertura de citação caem juntos sem alarme | saúde-execução | Alto | P1 | procede | procede-aberto | owner: data-engineer+prompt-engineer · fechar escrita da tabela; publicar custo × cobertura no mesmo painel; eval antes de mexer em tier |
 | RV6-11 — `llm_call_log.stage` interpola filename e excede a largura declarada da coluna (94 em `VARCHAR(64)`); SQLite tolera, Postgres levanta truncation — **mesma classe** do RV7-01 | consistência | Alto | P1 | procede (persiste) | procede-aberto | owner: data-engineer · `stage` curto + `stage_ref`; 1 row por **tentativa** |
 | PE-5 — superfícies do mesmo run publicam números conflitantes para o mesmo conceito com janelas distintas e rótulo idêntico; conceito de horizonte aparece em 3 valores em 3 superfícies; veredito de diversificação contradiz veredito de concentração com confiança alta | consistência | Alto | P1 | procede | procede-aberto | owner: prompt-engineer+data-engineer · rótulo de janela obrigatório no manifest; conceito canônico único; CV cruzando parecer × narrativas |
-| FP-2 — parecer descreve trajetória em aceleração enquanto o changelog do mesmo payload declara queda, com `comparison_base_changed` verdadeiro; a métrica que ancora o ponto forte nº 1 salta por mudança de base, não por comportamento | solidez-financeira | Crítico | P1 | procede | procede-aberto | owner: financial-planner · gate de base alterada (proíbe derivar ponto forte de delta temporal) + trava de lançamento único ≥10% da janela em categoria não identificada |
+| FP-2 — parecer descreve trajetória em aceleração enquanto o changelog do mesmo payload declara queda, com `comparison_base_changed` verdadeiro; a métrica que ancora o ponto forte nº 1 salta por mudança de base, não por comportamento | solidez-financeira | Crítico | P1 | procede (re-diagnosticado) | **parcial** | #1574 · o parecer NÃO vê o changelog (zero ocorrência de comparison/delta no manifest, distiller e prompt) — eram 2 defeitos: produtor afirmando direção sob base alterada + trajetória derivada de nível. Braço de concentração **deferido** (ver §Deferimento D2, 2026-08-19) |
 | FP-6 — parecer publica `target` **fabricado e mais frouxo** que o alvo declarado em `goals.alocacao_alvo.derived`, subestimando o desvio; e emite duas sugestões P1 que se cancelam por recaírem na mesma comparável com sinais opostos | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: prompt-engineer+financial-planner · `metricas[].target` derivado de `goals`/config; checagem determinística de antagonismo pós-LLM |
-| FP-4 — prescreve realocar excedente de reserva para risco sem conhecer a taxa da dívida (`endividamento.dividas[].taxa_juros` nulo e ausente dos campos que pediria), violando a única convergência sem exceção das três metodologias; e trata a mesma reserva como ponto forte **e** risco | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner · piso de prescrição no espírito [[ADR-375]] §D4; liquidez excessiva exclui reserva de pontos fortes (regra pós-LLM) |
+| FP-4 — prescreve realocar excedente de reserva para risco sem conhecer a taxa da dívida (`endividamento.dividas[].taxa_juros` nulo e ausente dos campos que pediria), violando a única convergência sem exceção das três metodologias; e trata a mesma reserva como ponto forte **e** risco | solidez-financeira | Alto | P1 | procede | **parcial** | #1575 · piso proíbe as DUAS direções sob taxa nula + injeta o pedido da taxa; liquidez excessiva remove o ponto forte de liquidez. Regra por par (seção, tema) **refutada por medição** — ver §Refutação R1. RL2 destravada (parser numérico, v1.5) |
 | FP-5 — `previdencia_pgbl.limite_pgbl_anual` publica zero sobre base positiva (defeito de rótulo que [[ADR-375]] §D4 fechou, reintroduzido) e a nota do bloco afirma o oposto do campo; KPI de exposição cambial ignora a classe internacional, tornando o tier artefato de definição | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner · "não se aplica" com motivo, nunca zero; exposição **econômica** ≠ moeda de custódia |
 | FP-3 — dois universos de imóveis no mesmo payload com membros exclusivos de cada lado; o limiar canônico de concentração cai **entre** as duas leituras, os dois alertas ficam mudos e o LLM fabrica um limiar próprio; default de IPTU zerado infla o rendimento líquido na direção que [[ADR-216]] proíbe | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner+data-engineer · fonte única de estoque imobiliário; suprimir a razão enquanto divergirem >5%; corrigir default |
 | RV6-04 — balde de investimento de um membro publica zero enquanto o artefato a montante lista instituições dele, com a flag de ressalva falsy e `cobertura_completa` verdadeiro; a narrativa **afirma o zero em prosa entregue**, byte-idêntica em 3 runs | completude | Crítico | P0 | procede (3º run) | procede-aberto | owner: data-engineer+financial-planner · portar doutrina [[ADR-240]] ao patrimônio: ressalva + **omitir** linha (omitir ≠ afirmar zero) + suprimir vereditos derivados; CV bloqueante membro-com-fonte × balde-zero · [[A40.l69]] |
@@ -478,6 +478,30 @@ real (MSW → `apiFetch` → `ApiError`) e um sobre o render do banner; o contro
 arquivo garante que zero **medido** continua afirmando (senão o remédio trocaria falso-positivo por
 falso-negativo e a barra nunca mais apareceria).
 
+**Nota datada 2026-08-19 — PD-5(b) fechado na ORIGEM, e a premissa da duplicata é falsa.**
+A metade (a) saiu em #1561 (`4d70ae16`): percentual em prosa passa pelo produtor único
+`fmt_percent`, com gate de formato — mutação nos dois produtores dá `7 failed`, com
+`AssertionError: decimal en-US: '28.0%'`. O follow-up em `pontos_urgentes_analyzer` foi roteado
+para a [[A40.l73]] (dona daquele produtor) e saiu em #1576 (`ff23c03e`).
+
+A metade (b) **não vira PR**, e a razão é medição, não desistência. A contagem que o banner faz
+(`dataQualitySignals.ts:127` — `excluded_properties` filtrado por `classification ===
+"desconhecido"`) foi corrigida **a montante** pelo DE-6 (#1556, `26264d6f`): as entradas caem de
+**4 para 0**. Deduplicar no banner seria **inerte** — repetiria o padrão do #1476, que consertou a
+S9 render-side sobre um predicado que não tinha como enxergar a outra fonte.
+
+E a premissa registrada na linha do PD-5 — "**DUAS** são o mesmo imóvel (mesma matrícula/endereço)"
+— **está errada**. Medido pelo DE-6 com e sem o filtro, contra o DB real: das 4 entradas que somem,
+**2 saem por serem passivo** e **0 por dedup de identidade**. As outras 2 são identidades cujo item
+o baseline corrente já carrega com `property_id` nulo ([[ADR-392]]), com CTA apontando para row que
+run nenhum resolve — o "override sem efeito monetário" do **RV4-10**, não duplicação. O
+`_dedup_excluded_projection` que já existe seguia **inerte**, e nenhuma entrada some por ele.
+
+**O que sobra do PD-5(b) não é dedup — é o RV4-10.** O invariante `imoveis ∩ excluded == ∅`
+([[ADR-334]] §3) segue vigente e não aplicado: o D3 do DE-6 reduz o conjunto excluído, não fecha a
+interseção. Quem retomar o RV4-10 herda o item; o banner não deve maquiar defeito de montante, e
+hoje não precisa, porque a montante já não produz o item.
+
 **A frase "falha de fetch no render estático" da linha do PD-6 está errada** e fica registrada como
 erro meu, não corrigida em silêncio na tabela. Por [[ADR-129]] o PDF é Playwright sobre a **mesma
 rota React**, num Chromium real que espera `networkidle` + `data-report-ready`: o `useEffect`
@@ -487,10 +511,99 @@ PDF é a superfície que sai do produto e é arquivada por terceiros, e o KR-3 d
 já a declara obrigatória por isso), mas a causa registrada teria mandado o executor procurar no
 lugar errado — SSR/hidratação em vez do caminho de rede.
 
+**Nota datada 2026-08-19 — CTO-6 remediado (#PR, [[ADR-404]]).** Re-medido contra
+`origin/main` (`ab91f7ec`) e **confirmado**: a assimetria persistia (o commit de artefato do
+ramo `needs_review` tem `try/except`; o `_record_stage_needs_review` logo abaixo, nenhum), e
+três payloads de produtor derrubavam o run **no SQLite** — `dict` em coluna `Text` (o driver
+recusa o bind), entrada `str` no lugar de objeto (`AttributeError`) e `occurrence_count`
+não-numérico (`ValueError`). Nenhum é largura de coluna: o #1535 fechou uma munição de FK e a
+classe era de **tipo**. Remediado em três camadas — controle (`stage_log` + `StageReview` +
+`run.status`) commita primeiro e sozinho, sem `try/except`; sink de `review_reasons` em
+`backend/app/services/diagnostics/` com sessão própria e sem `Session` na API pública; DTO
+normaliza tipo e largura (larguras derivadas de `__table__`). `StageReview` fica do lado do
+**controle** de propósito: `resume_run` exige zero reviews `pending`, e um `StageReview`
+fail-open trocaria abort ruidoso por retomada silenciosa sobre dado não-revisado. Gate
+`dev/check_diagnostic_session_isolation.py`. **Fica aberto:** RV6-11 é a mesma classe em
+`llm_call_log.stage` e segue com writer fora do sink — lane própria.
+
+**§Deferimento D2 — trava de concentração de lançamento (datado 2026-08-19).**
+O braço de concentração do FP-2 (o brief pedia "lançamento único ≥10% da janela em
+categoria não identificada ⇒ `needs_review`") **não foi construído**, e não por falta de
+tempo: **o E5 não tem grão transacional**. `fluxo_caixa.despesas_por_categoria` é um mapa
+categoria→total, e `transacoes` é **contagem inteira** no schema
+(`config/schemas/e5_analysis.schema.json`); o grão de lançamento vive no E3
+(`transacoes[]`), e o E4 publica `periodo` + `total_geral`. A detecção nasceria no E4 com
+plumbing E4→E5 novo — construir meia-solução aqui repetiria o erro do DE-2.
+O desenho também foi **corrigido** antes de deferir (co-design `financial-planner`): o
+limiar certo é "cruza faixa de KPI publicado", não tamanho; a conjunção "categoria não
+identificada" elimina a classe mais comum e tratável (anualidades bem categorizadas —
+IPVA, IPTU, prêmio de seguro, matrícula); e o desfecho é **ressalva no KPI**, nunca
+`needs_review` (≈20% de retenção mataria a categoria).
+**Dono:** `data-engineer` (contrato E4→E5) + `financial-planner` (calibração do limiar).
+**Condição de retomada:** existir no E5 um agregado por lançamento — ou o `top-N` de
+lançamentos por categoria — sem exigir que o parecer leia o E3.
+
+**§Refutação R1 — auto-contradição por par (seção, tema) (datado 2026-08-19).**
+A regra ratificada para o FP-4 D3-B era: mesmo `(section_id, tema_canonico)` em ponto
+forte e risco ⇒ remove o ponto forte. **Medida no parecer do r7: casa 2/5 pontos fortes e
+1 é falso-positivo** — S2 + "Equilíbrio presente-futuro" aproxima "taxa de poupança alta"
+de "gasto com saúde elevado": mesmo balde, assuntos diferentes. Removê-lo derrubaria o
+ponto forte mais sólido do parecer. Casar só por `section_id` é pior (4/5). O par é um
+**balde**, não identidade de assunto, e identidade exigiria âncora estrutural — mas
+`PontoForte` é da classe PROSA-SEM-ÂNCORA (sem campo `ancoras`, ver
+`parecer_evidencia._iter_prose_only_items`). R1 foi **rebaixada a contagem** em
+`_meta.pos_llm_guardrails.autocontradicao_pares_secao_tema`; o desfecho ficou com R2,
+cujo sinal vem do E5 (`avaliacao_liquidity == "Excessiva"`). Re-avaliar no r8 se a
+contagem justificar predicado mais fino.
+
+**§RV6-15 — metade fechada (datado 2026-08-19).** O #1575 fecha as duas cegueiras de
+**parser** da RL2 (B4: exigia `%` literal e o schema tipa `["number","null"]`; B5: limiar
+mensal contra produtor anual — 12% a.a. viraria hard-block em todo financiamento). Não
+fecha B1/B2, o portão `_is_aporte_risco`: mexer nele mexe na **RL1**, que também é
+hard-block, e exige eval próprio. E **não toca** o que o E5 publica em
+`endividamento.dividas[]` (D4(i)/(ii) — agregado `debts`, `fonte`,
+`desembolso_mensal_observado_brl`, preenchimento de `parcela_mensal`/`taxa_juros`), que
+segue com o dono. Rótulo da taxa no card do relatório (`EndividamentoCard.tsx` renderiza
+`%` sem período) fica atrelado à mesma decisão.
+
+**Nota datada 2026-08-19 — PD-4 fechado no produtor, e o re-roteamento se confirmou.**
+Entregue pela [[A40.l73]] ([[ADR-395]] `Proposto`) em 5 PRs: #1549 (lane + ADR) · #1554 (canal
+`escopo_cobertura.categorias_somente_no_documento`) · #1560 (`e6774876`, retenção no populator) ·
+#1564 (S9 de vazio para **parcial**) · #1576 (metade (i) + `pontos_urgentes`). Escopo fora do MVP
+declarado da A40, aberto por decisão do dono.
+
+**O diagnóstico do r7 estava certo e a lição do RV6-20 se pagou.** O #1476 tentou consertar
+render-side e foi **no-op por construção**: os 4 sinais de `hasRealProtectionInputs` saem todos do
+mesmo `protection_bundle`. O defeito era do produtor, que lia só o cadastro `Protection` e, com ele
+vazio, publicava `actual = 0`, gap igual à necessidade integral e prescrição "alta" — enquanto a
+seção vizinha listava as apólices vigentes extraídas dos documentos.
+
+A regra decidida com o `financial-planner`: extração é **hint**, o número tem produtor único
+(cadastro, [[ADR-192]]), as duas fontes **nunca somam** (não têm chave de identidade comum,
+[[ADR-240]] §D12), e documento vigente numa categoria **sem** cadastro ativo é contraprova de
+inventário incompleto ⇒ `missing_data`, sem entry em `gap_analysis`, sem prescrição. Isso é a
+aplicação literal da [[ADR-387]] §D4. Categoria **com** cadastro continua computando: ali o gap
+superestima a necessidade, que é o lado seguro da assimetria (descoberto é ruína irreversível;
+prêmio duplicado é fluxo corrigível).
+
+**Dois defeitos irmãos fecharam junto:** `_gap_analysis_to_response` coagia `actual` nulo para
+`Decimal("0.00")` — retenção agora é ausência de entry + status, nunca zero fabricado; e a copy do
+vazio **total** deixou de dizer "sem riscos cadastrados" (afirmação sobre o patrimônio do cliente a
+partir de uma fonte só) para nomear o insumo que falta.
+
+**O que NÃO foi tocado, de propósito:** o manifest do parecer e o prompt LLM — a precedência entre
+fontes contraditórias no prompt é PE-3 / Onda 5. E o gate de `_categorias_de_documento`
+(`cobertura_consolidada.py`) fecha `flag_vida` com **qualquer** `tipo == "vida"` vigente, sem
+distinguir apólice **prestamista** (beneficiário = credor) nem **vida em grupo** do empregador
+(morre com o vínculo) — defeito vivo, independente desta entrega, registrado como follow-up com
+dono (`financial-planner` + `data-engineer`) em [[ADR-395]] §Deferido. Por isso o estado parcial
+**nomeia** o identificado e **não afirma adequação de cobertura**.
+
 **Re-triagem do §r6 (cadência).** Fechados por medição: RV6-01/02/03, RV6-07, RV6-23,
 RV6-10 (com ressalva). Persistem re-priorizados: RV6-04 (P0, 3º run), RV6-11 (P1),
 RV6-17 (P1, **âncora corrigida** — o campo registrado no r6 é dead code), RV6-13 (P2,
-parcial), RV6-15 (P2, re-escopo — o campo do tripwire é nulo 3/3), RV6-20→PD-4 (P1),
+parcial), RV6-15 (P2, re-escopo — o campo do tripwire é nulo 3/3), RV6-20→PD-4 (P1, **fechado
+2026-08-19** — ver nota datada acima),
 RV6-22→PD-6 (P2), RV6-08→PE-2 (P1, agravado), RV6-09→PE-1 (P1, agravado),
 RV6-05→PE-3 (P1, re-rotulado: o produtor está correto, o manifest é que não reconcilia),
 RV6-06/RV6-12/RV6-14/RV6-16/RV6-18/RV6-19/RV6-21 mantidos na prioridade do §r6 (não

@@ -19,6 +19,7 @@ from backend.app.services.extract_llm_drift_fixtures import (
     StructuralExpectation,
 )
 from pipeline.llm.call_hooks import LLMBudgetExceededError
+from pipeline.llm.deterministic_extraction import EXTRACTION_SEED, EXTRACTION_TEMPERATURE
 from pipeline.llm.institution_catalog import CATALOG_UNAVAILABLE_BLOCK
 from pipeline.llm.prompts.e2_llm import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
@@ -139,13 +140,14 @@ def _evaluated(fixture: DriftFixture, result: Any) -> FixtureDriftResult:
     )
 
 
+# A33.l8: eval de drift é sintético/determinístico — usa o fallback documentado
+# em vez do catálogo em DB (paridade entre runs). Amostragem é a de produção
+# (ADR-396): medir a 0.1 herdado seria medir um regime que produção não usa.
 def _call_one(llm_client: StructuredLLMClient, fixture: DriftFixture) -> Any:
     user_prompt = USER_PROMPT_TEMPLATE.format(
         filename=fixture.filename,
         doc_type="unknown",
         institution="unknown",
-        # A33.l8: eval de drift é sintético/determinístico — usa o fallback
-        # documentado em vez do catálogo em DB (paridade entre runs).
         institution_catalog=CATALOG_UNAVAILABLE_BLOCK,
         document_text=fixture.document_text,
     )
@@ -153,6 +155,8 @@ def _call_one(llm_client: StructuredLLMClient, fixture: DriftFixture) -> Any:
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
         output_schema=LLMExtractOutput,
+        temperature=EXTRACTION_TEMPERATURE,
+        seed=EXTRACTION_SEED,
         max_retries=2,
         max_tokens=4096,
         stage=DRIFT_STAGE,

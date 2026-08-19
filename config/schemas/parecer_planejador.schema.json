@@ -250,12 +250,13 @@
         "pos_llm_guardrails": {
           "type": "object",
           "additionalProperties": false,
-          "description": "A28.l11: telemetria dos guardrails determinísticos pós-LLM (rebaixamento de confiança sob premissa fallback do Monte Carlo + filtro 3-vias de campos_faltantes). needs_review_triggered é false por construção — guardrail rebaixa/remove, nunca bloqueia.",
+          "description": "A28.l11: telemetria dos guardrails determinísticos pós-LLM (rebaixamento de confiança sob premissa fallback do Monte Carlo + filtro 3-vias de campos_faltantes + rebaixamento de sugestões P1 antagônicas na mesma classe, §r7 FP-6). needs_review_triggered é false por construção — guardrail rebaixa/remove, nunca bloqueia.",
           "properties": {
             "confianca_rebaixada": {"type": "integer", "minimum": 0},
             "field_requests_spurious": {"type": "integer", "minimum": 0},
             "field_requests_wrong_path": {"type": "integer", "minimum": 0},
-            "needs_review_triggered": {"type": "boolean", "const": false}
+            "needs_review_triggered": {"type": "boolean", "const": false},
+            "sugestoes_antagonicas": {"type": "integer", "minimum": 0}
           }
         }
       }

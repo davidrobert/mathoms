@@ -16,6 +16,7 @@ from typing import Any, Mapping, Optional
 
 from backend.app.core.llm_metrics import get_llm_metrics_emitter
 from backend.app.models.planner_review import ParecerRetentionReason
+from backend.app.services.parecer_antagonismo import rebaixa_sugestoes_antagonicas
 from backend.app.services.parecer_context_sanitizer import sanitize_e5_for_parecer
 from backend.app.services.parecer_distiller import distill_exec_context
 from backend.app.services.parecer_evidencia import (
@@ -47,6 +48,8 @@ from backend.app.services.parecer_strict_enforcement import (
 )
 from pipeline.llm.models_catalog import PARECER_MODEL
 from pipeline.llm.prompts.parecer_planejador import (
+    PARECER_SEED,
+    PARECER_TEMPERATURE,
     PROMPT_VERSION,
     SYSTEM_PROMPT_TEMPLATE,
     USER_PROMPT_TEMPLATE,
@@ -117,7 +120,6 @@ class ParecerOrchestratorConfig:
     api_key: Optional[str] = None
     schema_version: str = _SCHEMA_VERSION
     max_tokens: int = 16_384
-    temperature: float = 0.1
     # Geração mais longa do pipeline (16k max_tokens) estourou o cap global de
     # 120s pós-migração claude-sonnet-4-6 — emenda ADR-270 (2026-06-12).
     llm_timeout_s: float = 240.0
@@ -237,7 +239,7 @@ def _build_llm_service(config: ParecerOrchestratorConfig):
             api_key=api_key,
             model_name=model_name,
             max_tokens=config.max_tokens,
-            temperature=config.temperature,
+            temperature=PARECER_TEMPERATURE,
             call_hooks=config.llm_hooks,
             metrics_emitter=get_llm_metrics_emitter(),
         )
@@ -534,6 +536,8 @@ def _invoke_parecer_llm(
         user_prompt=user_prompt,
         output_schema=ParecerPlanejadorOutput,
         stage="review_finances_holistic",
+        temperature=PARECER_TEMPERATURE,
+        seed=PARECER_SEED,
         max_tokens=config.max_tokens,
         timeout_s=config.llm_timeout_s,
         prompt_version=PROMPT_VERSION,
@@ -645,6 +649,20 @@ def _needs_review_guardrails() -> dict:
     return guardrails_summary(confianca_rebaixada=0, audit=[], needs_review_triggered=True)
 
 
+def _rebaixa_antagonismo(
+    raw: ParecerPlanejadorOutput, workspace_id: str
+) -> tuple[ParecerPlanejadorOutput, int]:
+    """§r7 FP-6: P1 que aumenta a classe que outra P1 manda reduzir cai p/ P2."""
+    baldes = ("sugestoes_estrategicas", "sugestoes_taticas", "sugestoes_execucao")
+    todas = [s for balde in baldes for s in getattr(raw, balde)]
+    rebaixadas, n = rebaixa_sugestoes_antagonicas(todas, workspace_id=workspace_id)
+    if not n:
+        return raw, 0
+    it = iter(rebaixadas)
+    update = {balde: [next(it) for _ in getattr(raw, balde)] for balde in baldes}
+    return raw.model_copy(update=update), n
+
+
 def _apply_pos_llm_guardrails(
     raw: ParecerPlanejadorOutput,
     e5_data: Mapping[str, Any],
@@ -653,7 +671,14 @@ def _apply_pos_llm_guardrails(
     """Guardrails determinísticos A28.l11 — rebaixam/removem, nunca needs_review."""
     raw, downgraded = downgrade_confianca_fallback(raw, e5_data, config.workspace_id)
     raw, audit = filter_campos_faltantes(raw, e5_data, config.workspace_id)
-    return raw, audit, guardrails_summary(confianca_rebaixada=downgraded, audit=audit)
+    raw, antagonicas = _rebaixa_antagonismo(raw, config.workspace_id)
+    return (
+        raw,
+        audit,
+        guardrails_summary(
+            confianca_rebaixada=downgraded, audit=audit, sugestoes_antagonicas=antagonicas
+        ),
+    )
 
 
 def _generate_with_llm(

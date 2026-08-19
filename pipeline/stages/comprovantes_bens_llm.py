@@ -46,20 +46,22 @@ def _build_user_prompt(doc_name: str, text: str) -> str:
     return prompt_mod.USER_PROMPT_TEMPLATE.format(filename=doc_name, document_text=text)
 
 
+# ADR-307: cache real no choke-point (key = content-hash do prompt) exige temp=0;
+# ``stage`` volta a ser descritivo (ADR-093 — antes carregava uma pseudo-key que
+# poluía a cardinalidade do LLMCallLog).
 def _call_llm_crlv(service, config, doc_name: str, text: str):
+    from pipeline.llm.deterministic_extraction import EXTRACTION_SEED, EXTRACTION_TEMPERATURE
     from pipeline.llm.metrics import prompt_name_of
     from pipeline.llm.prompts import crlv as prompt_mod
     from pipeline.llm.schemas.crlv import CRLVPayload
 
-    # ADR-307: cache real no choke-point (key = content-hash do prompt) exige
-    # temp=0; ``stage`` volta a ser descritivo (ADR-093 — antes carregava uma
-    # pseudo-key que poluía a cardinalidade do LLMCallLog).
     result = service.call(
         system_prompt=prompt_mod.SYSTEM_PROMPT,
         user_prompt=_build_user_prompt(doc_name, text),
         output_schema=CRLVPayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
-        temperature=0.0,
+        temperature=EXTRACTION_TEMPERATURE,
+        seed=EXTRACTION_SEED,
         stage="extract_comprovantes_bens",
         prompt_version=prompt_mod.PROMPT_VERSION,
         prompt_name=prompt_name_of(prompt_mod),
@@ -102,6 +104,7 @@ def _build_apolice_user_prompt(doc_name: str, text: str, seguradoras_catalog: st
 
 def _call_llm_apolice(service, config, doc_name, text, seguradoras_catalog):
     """LLM call apólice — ``service`` pré-bound ao modelo (Haiku/Sonnet); o modelo entra na cache key do choke-point (ADR-307)."""
+    from pipeline.llm.deterministic_extraction import EXTRACTION_SEED, EXTRACTION_TEMPERATURE
     from pipeline.llm.metrics import prompt_name_of
     from pipeline.llm.prompts import apolice as prompt_mod
     from pipeline.llm.schemas.apolice import ApolicePayload
@@ -111,7 +114,8 @@ def _call_llm_apolice(service, config, doc_name, text, seguradoras_catalog):
         user_prompt=_build_apolice_user_prompt(doc_name, text, seguradoras_catalog),
         output_schema=ApolicePayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
-        temperature=0.0,
+        temperature=EXTRACTION_TEMPERATURE,
+        seed=EXTRACTION_SEED,
         stage="extract_comprovantes_bens",
         prompt_version=prompt_mod.PROMPT_VERSION,
         prompt_name=prompt_name_of(prompt_mod),
