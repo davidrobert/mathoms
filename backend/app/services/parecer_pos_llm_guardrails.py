@@ -15,9 +15,9 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Mapping, Optional
+from typing import Any, Literal, Mapping, Optional
 
-from backend.app.services.parecer_distiller import walk_path
+from backend.app.services.parecer_distiller import tokenize_path_part
 from pipeline.llm.schemas.parecer_planejador import (
     CampoFaltante,
     ParecerPlanejadorOutput,
@@ -43,11 +43,13 @@ _MC_LEMMAS = (
 _YEAR_IN_MOTIVO = re.compile(r"\b(20\d{2})\b")
 
 # Path que o LLM pede errado → path canônico onde o dado vive no E5 (via 2 do
-# filtro 3-vias). Dogfood 72883bde: pediu $.composicao_familiar.dependentes com
-# o dado presente em $.irpf_kpis.dependentes.
-FIELD_PATH_ALIASES: dict[str, str] = {
-    "$.composicao_familiar.dependentes": "$.irpf_kpis.dependentes",
-}
+# filtro 3-vias). VAZIO desde o PE-3 (r7): a única entrada mapeava
+# $.composicao_familiar.dependentes (registro civil) → $.irpf_kpis.dependentes
+# (contagem fiscal do ano-base). São domínios e datas de referência distintos —
+# tratar um pedido civil como "path errado" do fiscal É a fusão de domínios que
+# o PE-3 diagnostica, e o parecer respondia com os dois lados sem reconciliar.
+# O mecanismo da via 2 segue vivo para um alias que seja de fato o MESMO fato.
+FIELD_PATH_ALIASES: dict[str, str] = {}
 
 REASON_SPURIOUS = "field_request_spurious"
 REASON_WRONG_PATH = "field_request_wrong_path"
@@ -58,11 +60,76 @@ REASON_WRONG_PATH = "field_request_wrong_path"
 _ABSENCE_SENTINELS = frozenset({"", "N/D", "nan"})
 
 
-def _resolves_to_data(value: Any) -> bool:
-    """False para ausência: None ou sentinela string ("N/D"/""/"nan")."""
-    if value is None:
+FieldPathState = Literal["missing", "empty", "present"]
+
+# Distingue "a chave não existe" de "a chave existe e não rende dado". O objeto
+# sentinela não pode ser None nem "" — esses são valores legítimos de folha.
+_ABSENT = object()
+
+
+def _is_data(v: Any) -> bool:
+    """Folha que conta como dado. ``0``/``False`` contam; coleção vazia, ``None``
+    e sentinela de ausência ("N/D"/""/"nan") não."""
+    if v is None or (isinstance(v, (list, dict)) and not v):
         return False
-    return not (isinstance(value, str) and value.strip() in _ABSENCE_SENTINELS)
+    return not (isinstance(v, str) and v.strip() in _ABSENCE_SENTINELS)
+
+
+def _fanout(items: list, idxs_rest: list[str], rest: list[str]) -> Any:
+    """Fan-out do ``[*]``. Coleção vazia devolve ``[]`` (o path EXISTE e não rende
+    dado); coleção não-vazia cuja folha falta em TODOS os elementos devolve
+    ``_ABSENT``. Motivos distintos, e ambos mantêm o pedido do planejador."""
+    leaves: list[Any] = []
+    for item in items:
+        reached = _reach_indexed(item, idxs_rest, rest) if idxs_rest else _reach(item, rest)
+        if reached is not _ABSENT:
+            leaves.extend(reached)
+    return leaves if leaves or not items else _ABSENT
+
+
+def _index_one(current: Any, idx: str) -> Any:
+    """``[n]`` posicional — ``_ABSENT`` quando o índice não existe."""
+    try:
+        return current[int(idx)]
+    except (IndexError, KeyError, TypeError, ValueError):
+        return _ABSENT
+
+
+def _reach_indexed(current: Any, idxs: list[str], rest: list[str]) -> Any:
+    """Aplica ``[n]`` posicional; ``[*]`` delega o fan-out sobre a coleção."""
+    for pos, idx in enumerate(idxs):
+        if idx == "*":
+            fan = idxs[pos + 1 :]
+            return _fanout(current, fan, rest) if isinstance(current, list) else _ABSENT
+        current = _index_one(current, idx)
+        if current is _ABSENT:
+            return _ABSENT
+    return _reach(current, rest)
+
+
+def _reach(node: Any, parts: list[str]) -> Any:
+    """``_ABSENT`` se algum ramo do path não existe; senão a lista de folhas
+    alcançadas (uma, ou N quando o path atravessa ``[*]``)."""
+    if not parts:
+        return [node]
+    base, idxs = tokenize_path_part(parts[0])
+    if not isinstance(node, Mapping) or base not in node:
+        return _ABSENT
+    current = node[base]
+    return _reach_indexed(current, idxs, parts[1:]) if idxs else _reach(current, parts[1:])
+
+
+def classify_field_path(e5_data: Mapping[str, Any], path: str) -> FieldPathState:
+    """3 estados. ``missing``: nenhum ramo do path existe — pedido espúrio de
+    verdade. ``empty``: o path existe e não rende dado (coleção vazia, null,
+    sentinela) — observação VÁLIDA do planejador, nunca espúria. ``present``:
+    ao menos um valor real."""
+    if not path.startswith("$."):
+        return "missing"
+    reached = _reach(e5_data, path[2:].split("."))
+    if reached is _ABSENT:
+        return "missing"
+    return "present" if any(_is_data(v) for v in reached) else "empty"
 
 
 # ----------------------------------------------------------------------
@@ -195,10 +262,10 @@ def _classify_campo(
         return None, None  # path coercido (ADR-292) — motivo carrega o sinal, mantém
     if _motivo_year_uncovered(campo, e5_data):
         return None, None
-    if _resolves_to_data(walk_path(e5_data, campo.field_path)):
+    if classify_field_path(e5_data, campo.field_path) == "present":
         return REASON_SPURIOUS, None
     alias = FIELD_PATH_ALIASES.get(campo.field_path)
-    if alias is not None and _resolves_to_data(walk_path(e5_data, alias)):
+    if alias is not None and classify_field_path(e5_data, alias) == "present":
         return REASON_WRONG_PATH, alias
     return None, None
 
@@ -214,6 +281,40 @@ def _audit_entry(campo: CampoFaltante, reason: str, alias: Optional[str] = None)
     return entry
 
 
+def _log_empty_field_path(
+    campo: CampoFaltante, e5_data: Mapping[str, Any], workspace_id: str
+) -> None:
+    """``empty`` é pedido legítimo sobre coleção vazia/sentinela — telemetria só.
+    NÃO vira entrada em ``_meta.field_request_audit``: o enum do schema tem 2
+    valores + ``additionalProperties: false``, e promover ``empty`` a
+    ``PlannerFieldRequest.reason`` é mudança de contrato (ADR-206)."""
+    if campo.field_path is None:
+        return
+    if classify_field_path(e5_data, campo.field_path) != "empty":
+        return
+    logger.info(
+        "field_request_empty_collection",
+        extra={"workspace_id": workspace_id, "field_path": campo.field_path},
+    )
+
+
+def _partition_campos(
+    campos: list[CampoFaltante], e5_data: Mapping[str, Any], workspace_id: str
+) -> tuple[list[CampoFaltante], list[dict]]:
+    """Separa mantidos de auditados, emitindo a telemetria de cada decisão."""
+    kept: list[CampoFaltante] = []
+    audit: list[dict] = []
+    for campo in campos:
+        reason, alias = _classify_campo(campo, e5_data)
+        if reason is None:
+            kept.append(campo)
+            _log_empty_field_path(campo, e5_data, workspace_id)
+            continue
+        audit.append(_audit_entry(campo, reason, alias))
+        logger.warning(reason, extra={"workspace_id": workspace_id, "field_path": campo.field_path})
+    return kept, audit
+
+
 def filter_campos_faltantes(
     output: ParecerPlanejadorOutput, e5_data: Mapping[str, Any], workspace_id: str
 ) -> tuple[ParecerPlanejadorOutput, list[dict]]:
@@ -222,15 +323,7 @@ def filter_campos_faltantes(
     campos = output.campos_faltantes_pediria_se_iterasse
     if not campos:
         return output, []
-    kept: list[CampoFaltante] = []
-    audit: list[dict] = []
-    for campo in campos:
-        reason, alias = _classify_campo(campo, e5_data)
-        if reason is None:
-            kept.append(campo)
-            continue
-        audit.append(_audit_entry(campo, reason, alias))
-        logger.warning(reason, extra={"workspace_id": workspace_id, "field_path": campo.field_path})
+    kept, audit = _partition_campos(campos, e5_data, workspace_id)
     if not audit:
         return output, []
     return output.model_copy(update={"campos_faltantes_pediria_se_iterasse": kept}), audit
@@ -256,8 +349,10 @@ def guardrails_summary(
 
 __all__ = [
     "FIELD_PATH_ALIASES",
+    "FieldPathState",
     "REASON_SPURIOUS",
     "REASON_WRONG_PATH",
+    "classify_field_path",
     "downgrade_confianca_fallback",
     "filter_campos_faltantes",
     "guardrails_summary",

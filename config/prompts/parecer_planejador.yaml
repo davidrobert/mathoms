@@ -82,14 +82,19 @@
 # escalar 475 → 633 chars no pior caso; `max_chars` 490 → 650. As chaves
 # `prob_if_ate_idade_meta`/`idade_meta_usada` saem do catálogo de citação (as
 # sucessoras não contêm token monetário — medido). Bump invalida cache Redis.
-# 2.0.5 — A40.l49 PR1 (ADR-296 emenda): citation_labels path→{rotulo_id,label};
-# pairing do verificador deixa o root e passa a cruzar rotulo ↔ rotulo_id do
-# mapa. Hints de emissão alinhados (rotulo = id da linha, não o grupo).
+# 2.1.0 — PE-3 (r7): projeta $.composicao_familiar (cadastro civil: papel +
+# faixa etária em faixa_ref = 31/12 do ano-base fiscal) co-locado com
+# $.irpf_kpis.dependentes em previdencia_irpf — os dois lados da família
+# evictam juntos. Hint 'não existe $.composicao_familiar no E5' virou falso e
+# foi substituído por hint factual dos dois domínios + o que o par sustenta.
 # 2.0.6 — FP-5A (ADR-402): `previdencia_pgbl.limite_pgbl_anual` passa a carregar
 # o TETO e nunca mais vale 0; o restante mora em `capacidade_restante_anual` e a
 # razão de cada ausência em `motivo_ausencia`. O hint que instruía sobre
 # `limite_pgbl_anual=0` apontava para um valor que deixou de existir.
-version: "2.0.6"
+# 2.0.5 — A40.l49 PR1 (ADR-296 emenda): citation_labels path→{rotulo_id,label};
+# pairing do verificador deixa o root e passa a cruzar rotulo ↔ rotulo_id do
+# mapa. Hints de emissão alinhados (rotulo = id da linha, não o grupo).
+version: "2.1.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -431,11 +436,23 @@ context_sections:
         label: "Dependentes IRPF (count + por_relacao) — path canônico"
         value_format: "raw"
         on_null: "skip"
+      # PE-3 (r7): o lado CIVIL da mesma família. Co-locado de propósito — os
+      # dois evictam juntos (ADR-341 D2) e nunca sobra um sem o outro, que é o
+      # estado que produzia risco Crítico com confiança alta de um lado e
+      # oportunidade fiscal com confiança baixa do outro, sem reconciliar.
+      - format: "scalar"
+        path: "$.composicao_familiar"
+        label: "Composição familiar (civil: papel + faixa etária em faixa_ref)"
+        value_format: "raw"
+        on_null: "skip"
+        max_chars: 260
     narrative_hints:
       - "Não opine sobre qual regime tributário escolher — descreva o atual e o gap em relação ao desenho-alvo."
       - "PGBL (FP-04 · ADR-402): campo null de previdencia_pgbl tem razão em motivo_ausencia — leia-a antes de opinar. NÃO proponha 'investigar PGBL do zero' nem aporte PGBL como oportunidade nova."
       - "PGBL: modelo_simplificado = dedução desabilitada pelo MODELO da declaração, não teto consumido. capacidade_restante_anual=0 = teto atingido. regime_fiscal_incompleto retém só a prescrição; teto e restante seguem válidos."
-      - "Dependentes: o path canônico é $.irpf_kpis.dependentes — não existe $.composicao_familiar no E5."
+      - "Dependentes, dois domínios: $.composicao_familiar é o cadastro CIVIL do domicílio (papel + faixa etária em faixa_ref = 31/12 do ano-base do IRPF); $.irpf_kpis.dependentes é a contagem FISCAL do ano-base. Os dois podem ser verdadeiros."
+      - "Par civil × fiscal: faixa 0-17 ou 18-21 com contagem fiscal zero sustenta subdeclaração (Lei 9.250/95 art. 35). Faixa 22-24 depende de matrícula, que não está no payload: não-conclusivo. Faixa 25-59, 60+ e desconhecida: não-conclusivo."
+      - "Papel ascendente não é conclusivo em nenhuma faixa: o critério é teto de rendimento, não idade (art. 35, VII), e declarar obriga a somar os rendimentos dele. Nada no payload sustenta afirmação de superdeclaração."
       - "Pendência regulatória (FBAR/8938 atrasada, contador sem definição) → risco severidade Alta."
 
   # --------------------------------------------------------------------------

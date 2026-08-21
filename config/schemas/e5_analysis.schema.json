@@ -2235,6 +2235,64 @@
       "$ref": "protecao_patrimonial.schema.json",
       "description": "Proteção patrimonial (ADR-240 D8 · A28.l6): apólices de extract_comprovantes_bens → compute_protecao. Sempre presente pós-wiring (workspace sem apólice = KPIs zerados + gap_qualitativo, cenário G6-b). Contrato completo em protecao_patrimonial.schema.json (validado no hook pós-write)."
     },
+    "composicao_familiar": {
+      "type": "object",
+      "description": "PE-3 (r7) — cadastro CIVIL do domicílio. Domínio distinto de irpf_kpis.dependentes, que é a contagem FISCAL do ano-base declarado; datas de referência distintas. additionalProperties=false é a garantia de PII do bloco: idade e data_nascimento não têm por onde entrar (o sanitizer do contexto do parecer troca nome por papel e rasga CPF/CNPJ, mas uma data ISO passa intacta). Reconciliação de direção única: faixa 0-17 ou 18-21 no lado civil com zero dependentes no lado fiscal sustenta subdeclaração; 22-24 depende de matrícula, que não está no payload; 25+ e papel ascendente não são conclusivos.",
+      "additionalProperties": false,
+      "required": [
+        "faixa_ref",
+        "fonte",
+        "membros"
+      ],
+      "properties": {
+        "faixa_ref": {
+          "type": "string",
+          "description": "31/12 do ano-calendário do IRPF sob reconciliação (AAAA-12-31) — data em que as faixas foram cortadas. Não é a data do run: quem completou 22 ou 25 entre 1º de janeiro e o dia do run cairia fora da faixa que decidiu a elegibilidade do ano declarado."
+        },
+        "fonte": {
+          "type": "string",
+          "enum": [
+            "cadastro_familia"
+          ]
+        },
+        "membros": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "papel",
+              "faixa_etaria"
+            ],
+            "properties": {
+              "papel": {
+                "type": "string",
+                "enum": [
+                  "titular",
+                  "conjuge",
+                  "filho",
+                  "enteado",
+                  "ascendente",
+                  "outro_dependente"
+                ]
+              },
+              "faixa_etaria": {
+                "type": "string",
+                "enum": [
+                  "0-17",
+                  "18-21",
+                  "22-24",
+                  "25-59",
+                  "60+",
+                  "desconhecida"
+                ],
+                "description": "Cortes nas fronteiras de decisão fiscal (Lei 9.250/95 art. 35; RIR/2018 art. 71 §1º; IN RFB 1.500/2014 art. 90). 'desconhecida' = sem data de nascimento no cadastro."
+              }
+            }
+          }
+        }
+      }
+    },
     "protection_computation_inputs_v1": {
       "type": "object",
       "description": "Insumos de proteção observados no run (ADR-387). Sempre emitido por build_e5_output; unavailable/source_not_injected quando o adapter não injetou a projeção relacional. Contrato completo em protection_computation_inputs_v1.schema.json; aqui só o envelope para o codegen do view-model.",

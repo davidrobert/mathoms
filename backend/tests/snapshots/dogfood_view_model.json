@@ -1213,6 +1213,20 @@
   },
   "changelog": null,
   "comparisons": null,
+  "composicao_familiar": {
+    "faixa_ref": "<volatile>",
+    "fonte": "cadastro_familia",
+    "membros": [
+      {
+        "faixa_etaria": "25-59",
+        "papel": "titular"
+      },
+      {
+        "faixa_etaria": "25-59",
+        "papel": "outro_dependente"
+      }
+    ]
+  },
   "consumo_consciente": {
     "analise": "Nenhum gasto pontual relevante ≥ R$ 2.000 identificado no período analisado — padrão de consumo dentro dos limites recorrentes.",
     "equivalente_meses_aporte": 0,

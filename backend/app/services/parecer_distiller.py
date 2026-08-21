@@ -45,8 +45,9 @@ def _walk_indices(current: Any, indices: list[str]) -> Any:
     return current
 
 
-def _tokenize_part(part: str) -> tuple[str, list[str]]:
-    """Tokeniza ``foo[*][0]`` em ``("foo", ["*", "0"])``."""
+def tokenize_path_part(part: str) -> tuple[str, list[str]]:
+    """Tokeniza ``foo[*][0]`` em ``("foo", ["*", "0"])``. Público: o guardrail
+    pós-LLM classifica os mesmos paths e um segundo tokenizer divergiria."""
     base = part
     idxs: list[str] = []
     while "[" in base:
@@ -63,7 +64,7 @@ def walk_path(data: Mapping[str, Any], path: str) -> Any:
         return None
     current: Any = data
     for part in path[2:].split("."):
-        base, idxs = _tokenize_part(part)
+        base, idxs = tokenize_path_part(part)
         if not isinstance(current, Mapping):
             return None
         current = current.get(base)
