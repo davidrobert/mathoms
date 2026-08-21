@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-393 ADRs (ADR-001 a ADR-406) em [`docs/adr/`](../../adr/).
+394 ADRs (ADR-001 a ADR-406) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 336
-- **Proposto**: 53
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -352,6 +352,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-363]] — Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem · phase A40
+
+## dados
+
+### Proposto (1)
+
+- [[ADR-405]] — Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico
 
 ## data-lineage
 

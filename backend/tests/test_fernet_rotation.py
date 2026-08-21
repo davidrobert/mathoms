@@ -234,7 +234,81 @@ def test_rotate_artifacts_reencrypts_stale_kid(rotation_env) -> None:
 
     counts, payload = _rotate_and_load_artifact(rotation_env, artifact_id)
 
-    assert counts == {"rotated": 1, "skipped": 0, "failed": 0}
+    assert counts == {
+        "rotated": 1,
+        "skipped": 0,
+        "failed": 0,
+        "plaintext": 0,
+        "plaintext_after_cutover": 0,
+    }
     assert is_encrypted_payload(payload)
     assert payload["kid"] == _key_id() != _stale_kid()
     assert VaultService(key=NEW_KEY).decrypt(payload["ct"]) == '{"resumo": "dado"}'
+
+
+# ─── bucket `plaintext` (ADR-231 §Emenda 2026-08-21) ───
+
+
+# Reusa o workspace em vez de chamar `_seed_user_ws`: o email do user é fixo, e
+# semear duas vezes na mesma sessão viola o unique de `users.email`.
+def _plaintext_row(run, created_at):
+    """Artifact com `content_json` em CLARO (sem sentinel ADR-231), datado."""
+    from backend.app.models import PipelineArtifact
+
+    return PipelineArtifact(
+        workspace_id=run.workspace_id,
+        pipeline_run_id=run.id,
+        stage="E1.5a",
+        artifact_key="em_claro",
+        content_json={"resumo": "dado"},
+        created_at=created_at,
+    )
+
+
+def _seed_plaintext_artifact(factory, created_at) -> int:
+    """Insere a row em claro no workspace JÁ existente."""
+    from backend.app.models import PipelineRun
+
+    session = factory()
+    try:
+        artifact = _plaintext_row(
+            session.execute(select(PipelineRun)).scalars().first(), created_at
+        )
+        session.add(artifact)
+        session.commit()
+        return artifact.id
+    finally:
+        session.close()
+
+
+def _counts_com_plaintext(factory, created_at) -> dict:
+    """Semeia stale (cria o workspace) + plaintext datado, e roda a rotação."""
+    stale_id = _seed_stale_artifact(factory)
+    _seed_plaintext_artifact(factory, created_at)
+    counts, _ = _rotate_and_load_artifact(factory, stale_id)
+    return counts
+
+
+def test_plaintext_sai_de_skipped_para_bucket_proprio(rotation_env) -> None:
+    """Dentro de `skipped`, 418 rows em claro atravessaram o gate G0 caladas."""
+    from datetime import datetime, timezone
+
+    counts = _counts_com_plaintext(rotation_env, datetime(2026, 4, 1, tzinfo=timezone.utc))
+    assert counts["plaintext"] == 1
+    assert counts["skipped"] == 0
+
+
+def test_plaintext_pre_cutover_nao_conta_como_drift(rotation_env) -> None:
+    """Resíduo histórico é dívida conhecida, não config quebrada."""
+    from datetime import datetime, timezone
+
+    counts = _counts_com_plaintext(rotation_env, datetime(2026, 4, 1, tzinfo=timezone.utc))
+    assert counts["plaintext_after_cutover"] == 0
+
+
+def test_plaintext_pos_cutover_e_drift_vivo(rotation_env) -> None:
+    """O caso que o gate precisa pegar: escrita em claro DEPOIS do cutover."""
+    from datetime import datetime, timezone
+
+    counts = _counts_com_plaintext(rotation_env, datetime(2026, 8, 1, tzinfo=timezone.utc))
+    assert counts["plaintext_after_cutover"] == 1

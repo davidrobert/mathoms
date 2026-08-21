@@ -97,10 +97,44 @@ def test_payload_fingerprint_is_deterministic():
     ) == migrate_mod._payload_fingerprint({"n": 1, "foo": "bar"})
 
 
+# O cursor guarda `PipelineArtifact.id`, que é INTEGER. Esta versão do teste
+# fazia round-trip de `"artifact-uuid-123"` — um id que a rota de produção
+# nunca produz —, então passava verde sobre dois bugs reais, medidos em
+# 2026-08-21 ao rodar o backfill dos 418 artifacts em claro do dogfood:
+# `_write_cursor` recebia int e `write_text` exigia str (TypeError DEPOIS de
+# commitar o primeiro batch), e `_read_cursor` devolvia texto cru, fazendo
+# `_query_pending` comparar `id > '500'` — no SQLite todo INTEGER ordena antes
+# de todo TEXT, então o resume varreria zero rows e o script diria
+# "Done. 0 rows encrypted" sem ter feito nada.
 def test_cursor_roundtrip(tmp_path, monkeypatch):
+    """O cursor tem que voltar do disco como int, não como texto."""
     monkeypatch.setattr(migrate_mod, "CURSOR_DIR", tmp_path)
     assert migrate_mod._read_cursor("ws-1") is None
-    migrate_mod._write_cursor("ws-1", "artifact-uuid-123")
-    assert migrate_mod._read_cursor("ws-1") == "artifact-uuid-123"
+    migrate_mod._write_cursor("ws-1", 4321)
+    lido = migrate_mod._read_cursor("ws-1")
+    assert lido == 4321
+    assert isinstance(lido, int)
     migrate_mod._clear_cursor("ws-1")
     assert migrate_mod._read_cursor("ws-1") is None
+
+
+def test_cursor_lido_nunca_e_str(tmp_path, monkeypatch):
+    """A regressão silenciosa: `id > '4321'` casa zero rows no SQLite."""
+    monkeypatch.setattr(migrate_mod, "CURSOR_DIR", tmp_path)
+    migrate_mod._write_cursor("ws-1", 4321)
+    assert not isinstance(migrate_mod._read_cursor("ws-1"), str)
+
+
+def test_cursor_vazio_devolve_none(tmp_path, monkeypatch):
+    """Arquivo truncado por crash no meio do write não vira `int("")`."""
+    monkeypatch.setattr(migrate_mod, "CURSOR_DIR", tmp_path)
+    migrate_mod._cursor_path("ws-1").write_text("")
+    assert migrate_mod._read_cursor("ws-1") is None
+
+
+def test_cursor_por_workspace_nao_colide(tmp_path, monkeypatch):
+    monkeypatch.setattr(migrate_mod, "CURSOR_DIR", tmp_path)
+    migrate_mod._write_cursor("ws-a", 10)
+    migrate_mod._write_cursor("ws-b", 99)
+    assert migrate_mod._read_cursor("ws-a") == 10
+    assert migrate_mod._read_cursor("ws-b") == 99

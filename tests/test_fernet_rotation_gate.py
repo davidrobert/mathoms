@@ -24,24 +24,42 @@ def _load():
 
 
 def _report(**targets) -> dict:
-    """`_report(col_a=(rotated, skipped, failed))` → report no shape da task."""
-    return {
-        "dry_run": True,
-        "targets": {
-            name: {"rotated": r, "skipped": s, "failed": f} for name, (r, s, f) in targets.items()
-        },
-    }
+    """`_report(col_a=(rotated, skipped, failed))`; tupla de 5 inclui `(plaintext, após-cutover)`."""
+    out = {}
+    for name, counts in targets.items():
+        r, sk, f = counts[:3]
+        pt, pt_novo = (counts[3], counts[4]) if len(counts) == 5 else (0, 0)
+        out[name] = {
+            "rotated": r,
+            "skipped": sk,
+            "failed": f,
+            "plaintext": pt,
+            "plaintext_after_cutover": pt_novo,
+        }
+    return {"dry_run": True, "targets": out}
 
 
 def test_summarize_soma_todos_os_targets():
     gate = _load()
     report = _report(a=(1, 2, 3), b=(10, 20, 30))
-    assert gate.summarize(report) == {"rotated": 11, "skipped": 22, "failed": 33}
+    assert gate.summarize(report) == {
+        "rotated": 11,
+        "skipped": 22,
+        "failed": 33,
+        "plaintext": 0,
+        "plaintext_after_cutover": 0,
+    }
 
 
 def test_summarize_report_vazio():
     gate = _load()
-    assert gate.summarize({}) == {"rotated": 0, "skipped": 0, "failed": 0}
+    assert gate.summarize({}) == {
+        "rotated": 0,
+        "skipped": 0,
+        "failed": 0,
+        "plaintext": 0,
+        "plaintext_after_cutover": 0,
+    }
 
 
 def test_janela_fechada_bloqueia_mesmo_com_report_limpo():
@@ -280,3 +298,46 @@ def test_require_any_key_bloqueia_ambiente_sem_chave():
     with pytest.raises(gate.PreflightError):
         gate._require_any_key(0)
     assert gate._require_any_key(1) is None
+
+
+# ─── plaintext: bucket próprio, gate por recência ───
+
+
+def test_plaintext_recente_bloqueia_o_gate():
+    """Drift vivo: row em claro gravada DEPOIS do cutover de encryption."""
+    gate = _load()
+    report = _report(artifacts=(0, 15874, 0, 1, 1))
+    problems = gate.evaluate(report, OPEN_WINDOW, expect_idle=True)
+    assert problems
+    assert "plaintext_after_cutover" in problems[0]
+
+
+def test_plaintext_historico_nao_bloqueia():
+    """Resíduo pré-cutover é dívida conhecida, não drift — não pode travar o gate."""
+    gate = _load()
+    report = _report(artifacts=(0, 15874, 0, 418, 0))
+    assert gate.evaluate(report, OPEN_WINDOW, expect_idle=True) == []
+
+
+def test_gate_de_plaintext_nao_nasce_morto():
+    """O absoluto zera após o backfill; o recorte de recência continua vivo."""
+    gate = _load()
+    pos_backfill = _report(artifacts=(0, 16292, 0, 0, 0))
+    assert gate.evaluate(pos_backfill, OPEN_WINDOW, expect_idle=True) == []
+    drift = _report(artifacts=(0, 16292, 0, 1, 1))
+    assert gate.evaluate(drift, OPEN_WINDOW, expect_idle=True)
+
+
+def test_corpus_so_de_plaintext_nao_passa_como_vazio():
+    """`skipped` deixou de absorver plaintext — o corpus 100% em claro é visível."""
+    gate = _load()
+    report = _report(artifacts=(0, 0, 0, 500, 0))
+    assert gate.summarize(report)["plaintext"] == 500
+    assert gate.empty_corpus_problem(gate.summarize(report)) is None
+
+
+def test_plaintext_problem_isola_o_recorte():
+    gate = _load()
+    assert gate.plaintext_problem({"plaintext": 418, "plaintext_after_cutover": 0}) is None
+    assert gate.plaintext_problem({"plaintext": 1, "plaintext_after_cutover": 1})
+    assert gate.plaintext_problem({}) is None
