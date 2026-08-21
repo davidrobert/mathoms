@@ -26,6 +26,9 @@ tags:
 size_lines: 132
 ---
 
+> `Decidido` no closeout da Onda A (#1585). Implementada em #1565 (`a8d57ee1`), com o
+> teste-mãe restaurado em #1579 (`dfb534d3`).
+
 # ADR-404 — A superfície de diagnóstico nunca aborta a execução que documenta
 
 **Status:** Proposto (r7/CTO-6) · **Data:** 2026-08-19
