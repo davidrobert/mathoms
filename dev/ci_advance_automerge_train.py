@@ -9,6 +9,7 @@ import json
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from typing import Any, Callable
 
 EXCLUDED_LABELS = {"wip", "do-not-merge", "blocked"}
@@ -109,14 +110,31 @@ def eligible_train(prs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(queue, key=lambda pr: pr["createdAt"])
 
 
-def select_pr_to_update(
-    prs: list[dict[str, Any]], runs_for: RunsFetcher = _runs_for_pr
-) -> dict[str, Any] | None:
-    """Primeiro PR BEHIND da fila cujo turno chegou; None se o trem deve esperar —
+@dataclass(frozen=True)
+class TrainDecision:
+    """Resultado de um ciclo: o PR a atualizar, ou por que não há um. `waiting_behind`
+    conta elegíveis em BEHIND atrás da cabeça — mesmo predicado do `gh pr list` do
+    runbook §1, não promessa de que todos sejam atualizáveis (um deles pode estar
+    red no head e sair do trem quando chegar a vez dele)."""
+
+    pr: dict[str, Any] | None
+    head_on_hold: dict[str, Any] | None
+    waiting_behind: int
+
+
+def _behind_in(prs: list[dict[str, Any]]) -> int:
+    return sum(1 for pr in prs if pr.get("mergeStateStatus") == "BEHIND")
+
+
+def decide_train(prs: list[dict[str, Any]], runs_for: RunsFetcher = _runs_for_pr) -> TrainDecision:
+    """Primeiro PR BEHIND da fila cujo turno chegou, ou o motivo de o trem esperar —
     DIRTY e workflow required em failure saem do trem (não mergeiam de qualquer
     forma), e PENDING nunca é pulado: atualizar o próximo enquanto a cabeça
-    roda CI desperdiça runs e pode livelock (ADR-322 §D1)."""
-    for pr in eligible_train(prs):
+    roda CI desperdiça runs e pode livelock (ADR-322 §D1). Fila vazia e cabeça
+    segurando são estados distintos: nenhum dos dois atualiza PR, mas só o
+    segundo tem trabalho em voo e fila atrás."""
+    queue = eligible_train(prs)
+    for position, pr in enumerate(queue):
         status = pr.get("mergeStateStatus")
         if status == "DIRTY":
             print(f"skip #{pr['number']}: conflito de merge — autor precisa rebasar")
@@ -125,10 +143,16 @@ def select_pr_to_update(
             print(f"skip #{pr['number']}: workflow required em failure no head atual")
             continue
         if status == "BEHIND":
-            return pr
-        print(f"hold #{pr['number']}: mergeStateStatus={status} — cabeça do trem em andamento")
-        return None
-    return None
+            return TrainDecision(pr, None, 0)
+        return TrainDecision(None, pr, _behind_in(queue[position + 1 :]))
+    return TrainDecision(None, None, 0)
+
+
+def select_pr_to_update(
+    prs: list[dict[str, Any]], runs_for: RunsFetcher = _runs_for_pr
+) -> dict[str, Any] | None:
+    """PR que o trem atualiza neste ciclo; o motivo de um None vive em decide_train."""
+    return decide_train(prs, runs_for).pr
 
 
 def update_branch(number: int) -> None:
@@ -136,17 +160,34 @@ def update_branch(number: int) -> None:
     _gh("api", "-X", "PUT", f"repos/{{owner}}/{{repo}}/pulls/{number}/update-branch")
 
 
+def describe_decision(decision: TrainDecision) -> str:
+    """Linha final do run. Fila vazia e cabeça segurando tiveram a mesma frase até
+    2026-08-21 ("trem em dia") — ela afirmava zero elegível BEHIND com 5 esperando
+    atrás do #1569, e fez enfileiramento saudável parecer trem parado."""
+    if decision.pr is not None:
+        return f"update-branch #{decision.pr['number']} — {decision.pr['title']}"
+    head = decision.head_on_hold
+    if head is None:
+        return "trem em dia: nenhum PR elegível BEHIND"
+    atras = (
+        f"{decision.waiting_behind} PR(s) elegível(is) BEHIND atrás"
+        if decision.waiting_behind
+        else "nenhum PR elegível atrás"
+    )
+    return (
+        f"trem segurando: cabeça #{head['number']} em andamento "
+        f"(mergeStateStatus={head.get('mergeStateStatus')}) — {atras}"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="só decide, não atualiza")
     args = parser.parse_args()
-    pr = select_pr_to_update(list_open_prs())
-    if pr is None:
-        print("trem em dia: nenhum PR elegível BEHIND")
-        return 0
-    print(f"update-branch #{pr['number']} — {pr['title']}")
-    if not args.dry_run:
-        update_branch(pr["number"])
+    decision = decide_train(list_open_prs())
+    print(describe_decision(decision))
+    if decision.pr is not None and not args.dry_run:
+        update_branch(decision.pr["number"])
     return 0
 
 

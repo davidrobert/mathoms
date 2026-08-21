@@ -11,7 +11,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+import dev.ci_advance_automerge_train as train  # noqa: E402
 from dev.ci_advance_automerge_train import (  # noqa: E402
+    decide_train,
+    describe_decision,
     eligible_train,
     latest_required_runs,
     required_workflow_failed,
@@ -130,6 +133,128 @@ class TestSelectPrToUpdate:
 
     def test_fila_vazia_retorna_none(self) -> None:
         assert select_pr_to_update([], _runs_fake({})) is None
+
+
+def _fila_medida_2026_08_21() -> list[dict[str, Any]]:
+    """Fila real do incidente: cabeça BLOCKED e 5 elegíveis BEHIND atrás dela."""
+    return [
+        _pr(1569, mergeStateStatus="BLOCKED", createdAt="2026-08-19T10:00:00Z"),
+        _pr(1574, createdAt="2026-08-20T10:00:00Z"),
+        _pr(1591, createdAt="2026-08-20T11:00:00Z"),
+        _pr(1594, createdAt="2026-08-20T12:00:00Z"),
+        _pr(1600, createdAt="2026-08-21T09:00:00Z"),
+        _pr(1601, createdAt="2026-08-21T10:00:00Z"),
+    ]
+
+
+class TestDecideTrain:
+    def test_hold_devolve_cabeca_e_conta_quem_espera(self) -> None:
+        decision = decide_train(_fila_medida_2026_08_21(), _runs_fake({}))
+        assert decision.pr is None
+        assert decision.head_on_hold is not None and decision.head_on_hold["number"] == 1569
+        assert decision.waiting_behind == 5
+
+    def test_fila_vazia_nao_tem_cabeca_nem_espera(self) -> None:
+        decision = decide_train([], _runs_fake({}))
+        assert (decision.pr, decision.head_on_hold, decision.waiting_behind) == (None, None, 0)
+
+    def test_pr_selecionado_nao_reporta_hold(self) -> None:
+        decision = decide_train([_pr(1)], _runs_fake({}))
+        assert decision.pr is not None and decision.pr["number"] == 1
+        assert (decision.head_on_hold, decision.waiting_behind) == (None, 0)
+
+    def test_conta_so_behind_atras_da_cabeca(self) -> None:
+        prs = [
+            _pr(1, mergeStateStatus="BLOCKED"),
+            _pr(2, mergeStateStatus="DIRTY"),
+            _pr(3, mergeStateStatus="BLOCKED"),
+            _pr(4),
+        ]
+        assert decide_train(prs, _runs_fake({})).waiting_behind == 1
+
+    def test_nao_conta_quem_esta_fora_do_trem(self) -> None:
+        prs = [
+            _pr(1, mergeStateStatus="BLOCKED"),
+            _pr(2, isDraft=True),
+            _pr(3, autoMergeRequest=None),
+            _pr(4, labels=[{"name": "blocked"}]),
+        ]
+        assert decide_train(prs, _runs_fake({})).waiting_behind == 0
+
+    def test_pulado_antes_da_cabeca_nao_conta_como_atras(self) -> None:
+        prs = [_pr(1, mergeStateStatus="DIRTY"), _pr(2, mergeStateStatus="BLOCKED"), _pr(3)]
+        decision = decide_train(prs, _runs_fake({}))
+        assert decision.head_on_hold is not None and decision.head_on_hold["number"] == 2
+        assert decision.waiting_behind == 1
+
+    def test_select_pr_to_update_deriva_da_mesma_decisao(self) -> None:
+        prs = _fila_medida_2026_08_21()
+        assert select_pr_to_update(prs, _runs_fake({})) is decide_train(prs, _runs_fake({})).pr
+
+
+def _run_main(monkeypatch: Any, capsys: Any, prs: list[dict[str, Any]], *dry: str) -> Any:
+    """Executa main() sem rede; devolve (stdout, PRs que receberam update-branch)."""
+    updated: list[int] = []
+    monkeypatch.setattr(train, "list_open_prs", lambda: prs)
+    monkeypatch.setattr(train, "runs_for_commit", lambda sha: [])
+    monkeypatch.setattr(train, "update_branch", lambda number: updated.append(number))
+    monkeypatch.setattr(sys, "argv", ["ci_advance_automerge_train.py", *dry])
+    assert train.main() == 0
+    return capsys.readouterr().out, updated
+
+
+class TestMainOutput:
+    """A linha final de main() é o único sinal que o operador lê no Actions —
+    até 2026-08-21 ela dizia 'nenhum PR elegível BEHIND' com 5 esperando."""
+
+    def test_hold_com_fila_atras_nomeia_cabeca_e_conta_espera(
+        self, monkeypatch: Any, capsys: Any
+    ) -> None:
+        out, updated = _run_main(monkeypatch, capsys, _fila_medida_2026_08_21())
+        assert "trem segurando" in out
+        assert "#1569" in out and "5 PR(s)" in out
+        assert "trem em dia" not in out
+        assert updated == []
+
+    def test_fila_vazia_diz_trem_em_dia(self, monkeypatch: Any, capsys: Any) -> None:
+        out, updated = _run_main(monkeypatch, capsys, [_pr(1, autoMergeRequest=None)])
+        assert "trem em dia: nenhum PR elegível BEHIND" in out
+        assert "trem segurando" not in out
+        assert updated == []
+
+    def test_hold_e_fila_vazia_nao_compartilham_mensagem(
+        self, monkeypatch: Any, capsys: Any
+    ) -> None:
+        hold, _ = _run_main(monkeypatch, capsys, _fila_medida_2026_08_21())
+        vazia, _ = _run_main(monkeypatch, capsys, [])
+        assert hold != vazia
+
+    def test_hold_sem_ninguem_atras_ainda_nao_e_trem_em_dia(
+        self, monkeypatch: Any, capsys: Any
+    ) -> None:
+        out, _ = _run_main(monkeypatch, capsys, [_pr(1, mergeStateStatus="BLOCKED")])
+        assert "trem segurando" in out and "nenhum PR elegível atrás" in out
+        assert "trem em dia" not in out
+
+    def test_pr_elegivel_e_atualizado(self, monkeypatch: Any, capsys: Any) -> None:
+        out, updated = _run_main(monkeypatch, capsys, [_pr(7)])
+        assert "update-branch #7" in out
+        assert updated == [7]
+
+    def test_dry_run_decide_sem_atualizar(self, monkeypatch: Any, capsys: Any) -> None:
+        out, updated = _run_main(monkeypatch, capsys, [_pr(7)], "--dry-run")
+        assert "update-branch #7" in out
+        assert updated == []
+
+
+class TestDescribeDecision:
+    def test_hold_declara_o_merge_state_da_cabeca(self) -> None:
+        decision = decide_train(_fila_medida_2026_08_21(), _runs_fake({}))
+        assert "mergeStateStatus=BLOCKED" in describe_decision(decision)
+
+    def test_unknown_tambem_segura_e_aparece_na_mensagem(self) -> None:
+        prs = [_pr(1, mergeStateStatus="UNKNOWN"), _pr(2)]
+        assert "mergeStateStatus=UNKNOWN" in describe_decision(decide_train(prs, _runs_fake({})))
 
 
 class TestRequiredWorkflowPredicates:
