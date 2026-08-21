@@ -56,7 +56,8 @@
     },
     "ship_pr": {
       "type": ["integer", "null"],
-      "minimum": 1
+      "minimum": 1,
+      "description": "PR que deixou a lane no estado em que `main` está — nao necessariamente o primeiro. Lane com N PRs nomeia UM; os demais vivem no corpo da lane e na tabela de lanes do _README da sprint. Precedente: A40.l69, cujo ship_pr apontava para o PR que shipou o mecanismo INERTE."
     },
     "adrs": {
       "type": "array",
