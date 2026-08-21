@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 331
-- **Proposto**: 55
+- **Decidido**: 333
+- **Proposto**: 53
 - **Roadmap**: 4
 
 ## Fundação
@@ -302,7 +302,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (18)
+### Decidido (19)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -322,8 +322,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-366]] — Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação · phase A40.l20
 - [[ADR-384]] — Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback · phase A40.l40
 - [[ADR-387]] — ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria · phase A40.l62
+- [[ADR-395]] — Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap · phase A40.l73
 
-### Proposto (8)
+### Proposto (7)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
@@ -332,7 +333,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 - [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
 - [[ADR-389]] — As tabelas mensal e anual do IRPF são duas fontes importadas, não duas escalas de uma · phase A40.l56
-- [[ADR-395]] — Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap · phase A40.l73
 
 ## categorization
 
@@ -547,7 +547,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (66)
+### Decidido (67)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -615,8 +615,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-393]] — Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) · phase A40.l68
 - [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
 - [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
+- [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 
-### Proposto (16)
+### Proposto (15)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -633,7 +634,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 - [[ADR-400]] — Transcrição não é mais confiável que classificação — a forma da dependência é que decide · phase DE-1
-- [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 
 ### Roadmap (1)
 

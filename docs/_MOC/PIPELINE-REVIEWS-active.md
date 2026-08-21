@@ -497,6 +497,15 @@ o baseline corrente já carrega com `property_id` nulo ([[ADR-392]]), com CTA ap
 run nenhum resolve — o "override sem efeito monetário" do **RV4-10**, não duplicação. O
 `_dedup_excluded_projection` que já existe seguia **inerte**, e nenhuma entrada some por ele.
 
+**Ressalva de precisão (medida em 2026-08-21):** o "4 para 0" vale enquanto o baseline
+reivindica ao menos um `property_id`. `_projetaveis`
+(`backend/app/services/real_estate_e5_integration.py`) tem `if not reivindicadas: return
+identities` — com `imoveis_consolidados` sem nenhum `property_id`, o filtro **falha aberto** e as
+4 voltam a projetar. É fail-safe deliberado (baseline ausente não deve esconder tudo), mas torna o
+número condicional, e a frase acima o afirmava sem condição. Re-medido: as 4 órfãs seguem vivas no
+DB (criadas em 12 e 16/08, **zero novas**) e **nenhuma está em `workspace_property_overrides`**,
+então sob baseline não-vazio as quatro são filtradas.
+
 **O que sobra do PD-5(b) não é dedup — é o RV4-10.** O invariante `imoveis ∩ excluded == ∅`
 ([[ADR-334]] §3) segue vigente e não aplicado: o D3 do DE-6 reduz o conjunto excluído, não fecha a
 interseção. Quem retomar o RV4-10 herda o item; o banner não deve maquiar defeito de montante, e
@@ -511,7 +520,27 @@ PDF é a superfície que sai do produto e é arquivada por terceiros, e o KR-3 d
 já a declara obrigatória por isso), mas a causa registrada teria mandado o executor procurar no
 lugar errado — SSR/hidratação em vez do caminho de rede.
 
-**Nota datada 2026-08-19 — CTO-6 remediado (#PR, [[ADR-404]]).** Re-medido contra
+**Nota datada 2026-08-21 — RV7-03/DE-3: a prescrição registrada na tabela é PERIGOSA;
+não a execute como está.** A linha do RV7-03 prescreve *"predicado de pausa passa a ser
+`any(code ∈ BLOCKING_CODES)`"*. Medido no DB de dogfood antes de implementar, e o gate de blast
+radius reprovou: `stage_reviews` tem **14 pausas históricas**, das quais **11 (79%) vêm de
+`extract_irpf_full`** — produtor cujo bloco `validation` **não tem a chave `review_reasons`**
+(idem `extract_members`). Com o predicado novo, `any([])` é `False`: **esses 11 deixam de pausar,
+em silêncio**. A remediação prescrita seria um kill-switch de retenção — exatamente a classe que
+esta revisão persegue.
+
+A estimativa que autorizou a mudança ("o run inteiro do r7 tem 1 `review_reason`") media a
+**tabela**, não a **retenção**: `review_reasons` tem 8 rows (4 blocking, 4 advisory) e não é a
+fonte de quem pausa. Medir o proxy errado é o que fazia a mudança parecer barata.
+
+**Pré-requisito que a especificação não previu:** todo produtor emite `review_reasons` **antes**
+de o predicado passar a chavear por code. A ordem inversa desliga a retenção. RV7-03 permanece
+`procede-aberto`, **re-escopado**: owner senior-cto + data-engineer, e o primeiro entregável é a
+cobertura de emissão por produtor, não o predicado. O CTO-3 correlato foi entregue (#1581,
+`b0f64d8e`: 1 teste comportamental por produtor + 1 teste de loop), e é ele que torna a fase
+seguinte verificável.
+
+**Nota datada 2026-08-19 — CTO-6 remediado (#1565 `a8d57ee1`, [[ADR-404]]).** Re-medido contra
 `origin/main` (`ab91f7ec`) e **confirmado**: a assimetria persistia (o commit de artefato do
 ramo `needs_review` tem `try/except`; o `_record_stage_needs_review` logo abaixo, nenhum), e
 três payloads de produtor derrubavam o run **no SQLite** — `dict` em coluna `Text` (o driver
@@ -567,7 +596,7 @@ segue com o dono. Rótulo da taxa no card do relatório (`EndividamentoCard.tsx`
 `%` sem período) fica atrelado à mesma decisão.
 
 **Nota datada 2026-08-19 — PD-4 fechado no produtor, e o re-roteamento se confirmou.**
-Entregue pela [[A40.l73]] ([[ADR-395]] `Proposto`) em 5 PRs: #1549 (lane + ADR) · #1554 (canal
+Entregue pela [[A40.l73]] ([[ADR-395]] `Decidido`) em 5 PRs: #1549 (lane + ADR) · #1554 (canal
 `escopo_cobertura.categorias_somente_no_documento`) · #1560 (`e6774876`, retenção no populator) ·
 #1564 (S9 de vazio para **parcial**) · #1576 (metade (i) + `pontos_urgentes`). Escopo fora do MVP
 declarado da A40, aberto por decisão do dono.
