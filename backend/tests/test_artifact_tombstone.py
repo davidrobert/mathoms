@@ -217,3 +217,37 @@ async def test_patch_reclassify_regression_cdbdetalhes_para_informe(
     remaining = await _remaining_keys(db)
     assert ("E2-llm", "aaaaaaaaaaaa_btgpactual_cdbdetalhes_2024") not in remaining
     assert ("extract_with_llm", "bbbbbbbbbbbb_outro_doc") in remaining
+
+
+# Formas de key observadas no dogfood (2026-08-21), com placa e nº de apólice
+# SINTÉTICOS — o que o teste exercita é a forma, nunca o dado. Nesses 2 stages o `artifact_key` é
+# identidade de ENTIDADE derivada do payload — placa, nº de apólice,
+# instituição+ano (ADR-238 D3 / ADR-239 D7) — não identidade de documento.
+# Sem o prefixo `<hash12>_` e com a FK NULL, `_document_match_conditions`
+# não tem por onde casar: 282 + 348 = 630 rows fora do alcance do D1.
+_ENTITY_KEYED_ARTIFACTS = (
+    ("extract_informes_anuais", "financeiro_pf_itau_2025"),
+    ("extract_informes_anuais", "previdencia_itau_2025"),
+    ("extract_comprovantes_bens", "crlv_ABC1D23_2026"),
+    ("extract_comprovantes_bens", "apolice_00000000_2026"),
+)
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "Buraco medido: `document_id` NULL em 16.292/16.292 rows e esses 2 stages "
+        "não carregam o prefixo hash12. Remover o marker junto com o fix da FK."
+    ),
+)
+@pytest.mark.parametrize("stage,key", _ENTITY_KEYED_ARTIFACTS)
+@pytest.mark.asyncio
+async def test_tombstone_reaches_entity_keyed_e2_stages(db: AsyncSession, stage: str, key: str):
+    """ADR-311 D1 em `extract_informes_anuais`/`extract_comprovantes_bens` — reclassificar tem de matar o artifact do contrato antigo, e a key de entidade não expõe o documento."""
+    ws, doc, run_id = await _seed_ws_doc_run(db)
+    # `document_id=None` espelha produção: nenhum caller E2 popula a FK.
+    db.add(_artifact(ws.id, run_id, stage=stage, key=key, document_id=None))
+    await db.flush()
+
+    assert await _tombstone_doc(db, ws.id, doc) == 1
+    assert (stage, key) not in await _remaining_keys(db)
