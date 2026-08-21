@@ -5,6 +5,7 @@ title: "Encryption at-rest de PII em pipeline_artifacts via Fernet wrapper (hook
 status: Decidido
 phase: A11.W2
 date: "2026-05-20"
+amended_at: ["2026-08-21"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-109]]"
@@ -27,6 +28,12 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Retratação parcial do §D5 (2026-08-21):** o hand-off do backfill de
+> encrypt para a task de rotação nunca existiu — `rotate_fernet_secrets` conta
+> row em plaintext como `skipped`, e o docstring dela canoniza isso. O script
+> de dev/staging **foi** entregue e funciona; o que faltava era alguém rodá-lo.
+> Rodado em 2026-08-21 sobre as 418 rows remanescentes do dogfood. Ver §Emenda.
 
 ## Contexto
 
@@ -241,3 +248,43 @@ Flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 após merge de:
 - [`docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md`](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §W2-T01 — task origem.
 - Finding DE-003 (revisão multi-agente 2026-05-06).
 - CLAUDE.md §"Política operacional — ADR Proposto antes de PR P0/P1" — esta ADR é cumprimento direto da política.
+
+
+## Emenda 2026-08-21 — o backfill do §D5 foi executado; a disposição é cifrar, não deletar
+
+O §D5 prometeu que "a primeira execução de rotation é equivalente a backfill
+(encrypt rows com `_encrypted: false` usando nova chave)". A implementação de
+[[ADR-171]] faz o oposto: `_rotate_artifact_row` sai cedo em row sem sentinel,
+contando-a como `skipped`. Nenhuma condição do gate lê `skipped`, então o
+bolso de plaintext ficou invisível por 3 meses.
+
+**A aritmética que fecha o caso.** A lane A34.l3 fechou o gate G0 em
+2026-07-31 com `pipeline_artifacts.content_json` reportando `skipped=12140` e
+verificou "11.722 cifrados, todos no kid novo". **12.140 − 11.722 = 418** — o
+bolso inteiro estava escondido dentro de `skipped`, e a query de auditoria
+prescrita pelo runbook §6 é cega a ele por construção (`WHERE
+content_json->>'_encrypted' = 'true'`).
+
+**Executado em 2026-08-21:** `dev/migrate_encrypt_existing_artifacts.py
+--apply` sobre as 418 rows do dogfood (último write em plaintext: 2026-05-20;
+nenhuma depois). Snapshot do `.db` antes. Resultado verificado contra o
+snapshot: 16.292 rows antes e depois (**nada deletado**), plaintext 418 → 0,
+`kid` único (`05d68234`) em 16.292/16.292, e **418/418 decriptam para payload
+byte-idêntico ao original**.
+
+**A disposição é cifrar e manter, não deletar.** Os 418 somam 3,39 MB de
+316,97 MB — 1,07% do corpus. Deletar compraria armazenamento desprezível ao
+custo de destruir a evidência de um P0 vivo: o não-determinismo de
+`extract_irpf_full`, que foi descoberto justamente comparando essas rows. A
+regra geral está em [[ADR-405]] — recência só autoriza expurgo em stage
+determinístico.
+
+**O hand-off para produção fica deferido**, com condição de retomada: o
+primeiro corpus real em produção (hoje owner-gated, [[ADR-228]] G2/G3). Não é
+ID reservado nem checkbox aberto — é ausência de sujeito. O script cobre a
+única instância com dado real.
+
+**Prazo que quase fechou o gap pelo lado errado:** 384 das 418 carregavam
+`retention_until` em 2027-01-04. Sem esta execução, o plaintext desapareceria
+por **deleção silenciosa** em janeiro, e o gap de PII teria "fechado" sem
+registro. Ver [[ADR-405]] §Débito nomeado.
