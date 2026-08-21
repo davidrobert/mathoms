@@ -12,6 +12,8 @@ paused_at: null
 pause_reason: null
 adrs_canonical:
   - "[[ADR-343]]"
+  - "[[ADR-400]]"
+  - "[[ADR-406]]"
 relates_to:
   - "[[PLAN-pipeline-review-r2]]"
   - "[[PLAN-report-trust]]"
@@ -340,6 +342,17 @@ para a outra pessoa. A varredura por substring em chave de membro tem **31
 call-sites** em 4 arquivos — o analyzer do RV6-14 é um deles, não o conjunto.
 
 ### Onda 1 — seam determinístico (P0 · MVP · 2 lanes)
+
+> **Marcador 2026-08-21 — o eixo CLASSE shipou fora desta lane.** O seam desta
+> onda tratava o eixo **ativo×passivo**; o eixo **classe de ativo** foi estendido
+> pelo §r7 e já está em `main`: **DE-1** ([[ADR-400]], #1571 `5f73b116`) —
+> `tipo` decide em duas camadas, instituição sai da entrada, autoridade declarada
+> no resultado; e **DE-2** ([[ADR-406]], #1593 `d69d3177`) — gate por item da
+> catch-all, `sem_haystack` ≠ `sem_match`. A [[ADR-400]] §Alternativa **recusa por
+> medição** o catálogo `(secao, codigo)` como degrau 1 do eixo classe (`codigo`
+> semanticamente puro em 48,2% de 6.780 itens; `secao` presente em 2,57%) — o que
+> **não** revoga a autoridade de `secao` no eixo ativo×passivo da [[ADR-394]] D1/D2,
+> que é outra pergunta sobre o mesmo campo. Quem pegar 1a lê as duas antes.
 
 **L1 (seam extração/consolidação) — ✅ `shipped` 2026-08-18 ([[A40.l66]], 5 PRs):**
 - 1a. Predicado de dívida deixa de conjuncionar com o rótulo: função pura
