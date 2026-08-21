@@ -115,6 +115,15 @@ class TestResult:
         assert d["parcela_mensal"] == 1_234.57
         assert d["taxa_juros"] == 9.5
 
+    def test_divida_item_to_dict_redige_descricao_cartorial(self):
+        item = DividaItem(
+            descricao="Financiamento matrícula 999.999, Rua Exemplo, 100",
+            saldo_devedor=200_000.0,
+        )
+        d = item.to_dict()
+        assert "999.999" not in d["descricao"]
+        assert "Rua Exemplo" not in d["descricao"]
+
     def test_to_legacy_dict_has_all_fields(self):
         r = EndividamentoAnalyzer().analyze(
             {"bruto": 1_000_000, "dividas": 100_000},

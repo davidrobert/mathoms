@@ -11,6 +11,7 @@ import type {
 } from "@/types/report-analysis";
 import { MonetaryValue } from "../MonetaryValue";
 import { ReportCard } from "../ReportCard";
+import { imovelDisplayLabel, valorApurado } from "./imovelDisplay";
 
 interface RealEstateYieldCardProps {
   data: RealEstateData | null | undefined;
@@ -162,7 +163,12 @@ function RealEstateImoveisTable({ imoveis }: { imoveis: readonly RealEstateImove
         * página não rola horizontalmente: as colunas Cap líq./Status ficavam
         * inalcançáveis. No papel o `report-print.css` devolve `overflow:
         * visible` — lá não há gesto de rolagem. */}
-      <div className="overflow-x-auto">
+      <div className="mt-3 space-y-3 sm:hidden">
+        {top.map((im) => (
+          <RealEstateMobileItem key={`m-${im.property_id}`} im={im} />
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto sm:block print:block">
       <table className="w-full text-sm">
         <caption className="sr-only">
           Imóveis de investimento ordenados por valor IRPF descendente — cap rate líquido por imóvel
@@ -193,19 +199,49 @@ function RealEstateImoveisTable({ imoveis }: { imoveis: readonly RealEstateImove
   );
 }
 
+function RealEstateIdentity({ im }: { im: RealEstateImovel }) {
+  return (
+    <>
+      <span className="block">{imovelDisplayLabel(im)}</span>
+      {im.imobiliaria_nome && (
+        <span className="block text-xs text-[var(--surface-muted-foreground)]">
+          {im.imobiliaria_nome}
+        </span>
+      )}
+    </>
+  );
+}
+
+function RealEstateMobileItem({ im }: { im: RealEstateImovel }) {
+  return (
+    <article className="rounded-md border border-[var(--surface-border)] p-3 text-sm">
+      <RealEstateIdentity im={im} />
+      <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+        <dt className="text-[var(--surface-muted-foreground)]">Valor IRPF</dt>
+        <dd className="text-right font-mono tabular-nums">
+          <MonetaryValue value={valorApurado(im.valor_imovel)} />
+        </dd>
+        <dt className="text-[var(--surface-muted-foreground)]">Aluguel/mês</dt>
+        <dd className="text-right font-mono tabular-nums">
+          {im.aluguel_mensal_bruto !== null ? (
+            <MonetaryValue value={im.aluguel_mensal_bruto} />
+          ) : (
+            <span className="text-[var(--surface-muted-foreground)]">—</span>
+          )}
+        </dd>
+      </dl>
+    </article>
+  );
+}
+
 function RealEstateRow({ im }: { im: RealEstateImovel }) {
   return (
     <tr className="border-t border-[var(--surface-border)]">
       <td className="py-2 pr-2">
-        <span className="block">{im.descricao}</span>
-        {im.imobiliaria_nome && (
-          <span className="block text-xs text-[var(--surface-muted-foreground)]">
-            {im.imobiliaria_nome}
-          </span>
-        )}
+        <RealEstateIdentity im={im} />
       </td>
       <td className="py-2 pr-2 text-right font-mono tabular-nums">
-        <MonetaryValue value={im.valor_imovel} />
+        <MonetaryValue value={valorApurado(im.valor_imovel)} />
       </td>
       <td className="py-2 pr-2 text-right font-mono tabular-nums">
         {im.aluguel_mensal_bruto !== null ? (
@@ -296,7 +332,7 @@ function labelForAlerta(code: RealEstateAlerta["code"]): string {
 function RealEstateExcluded({
   excluded,
 }: {
-  excluded: readonly { readonly descricao: string; readonly motivo: string }[];
+  excluded: readonly RealEstateExcludedProperty[];
 }) {
   if (excluded.length === 0) return null;
   return (
@@ -306,8 +342,8 @@ function RealEstateExcluded({
       </summary>
       <ul className="mt-2 space-y-1">
         {excluded.map((e, idx) => (
-          <li key={`${e.descricao}-${idx}`}>
-            <span className="font-semibold">{e.descricao}</span> — {e.motivo}
+          <li key={`${e.property_id}-${idx}`}>
+            <span className="font-semibold">{e.classification}</span> — {e.motivo}
           </li>
         ))}
       </ul>
@@ -377,8 +413,9 @@ function RealEstateExcludedSummary({
       <ul className="mt-2 space-y-2 text-sm">
         {excluded.map((e, idx) => (
           <li key={`${e.property_id}-${idx}`}>
-            <span className="font-semibold text-[var(--surface-foreground)]">{e.descricao}</span>{" "}
-            <span className="text-[var(--surface-muted-foreground)]">({e.classification})</span>
+            <span className="font-semibold text-[var(--surface-foreground)]">
+              {e.classification}
+            </span>
             <span className="block text-[var(--surface-muted-foreground)]">{e.motivo}</span>
           </li>
         ))}
