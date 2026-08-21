@@ -15,7 +15,13 @@
 #   - gate de PR (ci.yml, job lint-all) — falha o PR;
 #   - cron diário (budget-alert.yml) — abre Issue `ops-watchdog`.
 #
-# Três sinais, porque as falhas observadas foram de três tipos distintos:
+# CINCO sinais. Eram três quando este arquivo nasceu; S0 e GH existiam só como
+# caminho de código, e um deles bloqueava merge sem estar declarado em lugar
+# nenhum — a inversão exata da invariante acima (ADR-210 §Adendo 2026-08-21b).
+#   S0 manifesto   — arquivo com `schedule:` fora daqui, ou entrada aqui sem
+#                    `schedule:` no disco. Calculado do DISCO, sem chamar `gh`:
+#                    é o único sinal que um PR pode causar e consertar, e o
+#                    único imune a instabilidade de API.
 #   S1 state       — workflow desabilitado (foi o que aconteceu em 06-15).
 #   S2 liveness    — nenhum run agendado dentro de `max_age_days`. Pega o que
 #                    S1 não vê: cron que parou de disparar, auto-disable da
@@ -26,6 +32,20 @@
 #                    sinal que teria evitado o incidente: #642 abriu em 06-14 e
 #                    seguia aberta 46 dias depois. Pior, a trava anti-duplicata
 #                    faz toda falha nova ser silenciada por uma issue velha.
+#   GH  instrumento — `gh` não respondeu DENTRO do CI. Não é sinal sobre os
+#                    workflows; é sinal sobre a própria medição, e é
+#                    fail-closed de propósito ("não sei medir" não pode virar
+#                    verde). Bloqueia merge. Desbloqueio sancionado é
+#                    `gh run rerun --failed`; `hotfix`/`ops-override` apagam a
+#                    causa do registro (precedente #1508) — não use para blip.
+#                    Nunca alimenta a Issue do cron: ruído de API não pode
+#                    iniciar o relógio de rot do S3.
+#
+# Onde cada um bloqueia: todos, hoje, no gate de PR (ci.yml, job lint-all). A
+# redistribuição por escopo — S0 e waiver offline no PR, S1/S2/S3 dos demais
+# compensadores no cron — está deferida com dono e condição em ADR-210
+# §Adendo 2026-08-21b. Enquanto não acontecer, o gate faz ~25 chamadas `gh`
+# por run de CI, e essa superfície É a fonte do falso-vermelho medido.
 #
 # `waiver` é exceção datada e auditável. Enquanto `until` não vencer, as
 # violações da entrada viram warning. Depois de vencer, o waiver ele mesmo
