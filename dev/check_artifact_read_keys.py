@@ -83,7 +83,16 @@ def _schema_json(schema_file: str) -> dict:
 
 
 def _propriedades(schema_file: str) -> set[str]:
-    return set(_schema_json(schema_file).get("properties", {}))
+    # Schema-base polimórfico (comprovante_base) só declara o discriminador no topo;
+    # o contrato de cada ramo mora atrás de `allOf[].then.$ref`. Sem descer o ramo, o
+    # gate reprovaria `payload["placa"]` como chave que o produtor não emite.
+    doc = _schema_json(schema_file)
+    props = set(doc.get("properties", {}))
+    for ramo in doc.get("allOf", []):
+        ref = (ramo.get("then") or {}).get("$ref")
+        if isinstance(ref, str) and not ref.startswith("#"):
+            props |= set(_schema_json(ref.split("#", 1)[0]).get("properties", {}))
+    return props
 
 
 def _propriedades_do_bloco(schema_file: str, bloco: str) -> set[str]:
@@ -264,9 +273,50 @@ def _analisa(path: Path, mapa: dict[str, str]) -> list[str]:
     return erros if not props else erros + _erros_de_chave(rel, tree, alvos, stages, props)
 
 
+def _refs_externos(node: object, out: set[str]) -> None:
+    """Nomes de arquivo em ``$ref`` externo (``#`` puro é interno ao próprio doc)."""
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if isinstance(ref, str) and not ref.startswith("#"):
+            out.add(ref.split("#", 1)[0])
+    filhos = node.values() if isinstance(node, dict) else node if isinstance(node, list) else ()
+    for valor in filhos:
+        _refs_externos(valor, out)
+
+
+def _fecho_de_schemas(nomes: list[str]) -> set[str]:
+    """Fecho transitivo de arquivos alcançáveis por ``$ref`` a partir de ``nomes``."""
+    vistos: set[str] = set()
+    pendentes = list(nomes)
+    while pendentes:
+        nome = pendentes.pop()
+        if nome in vistos:
+            continue
+        vistos.add(nome)
+        refs: set[str] = set()
+        _refs_externos(_schema_json(nome), refs)
+        pendentes.extend(refs - vistos)
+    return vistos
+
+
+def _erros_de_schema_ausente(mapa: dict[str, str]) -> list[str]:
+    """Schema alcançável pelo mapa que não existe em disco. `validate_dict` faz
+    short-circuit para True no ausente (e para False no corrompido), então schema
+    ausente é indistinguível de contrato cumprido. O fecho é transitivo porque
+    schema-base polimórfico alcança o ramo por `$ref` — checar só os valores do
+    mapa não veria o ramo sumir."""
+    faltando = sorted(
+        f for f in _fecho_de_schemas(list(mapa.values())) if not (SCHEMAS_DIR / f).exists()
+    )
+    return [
+        f"schema {f} é alcançável por SCHEMA_BY_STAGE mas não existe em config/schemas/"
+        for f in faltando
+    ]
+
+
 def main() -> int:
     mapa = _schema_por_stage()
-    erros: list[str] = []
+    erros: list[str] = _erros_de_schema_ausente(mapa)
     for path in sorted(SCAN_DIR.rglob("*.py")):
         erros.extend(_analisa(path, mapa))
     if erros:

@@ -225,7 +225,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (64 no disco · 64 nesta tabela — ver nota ao fim)
+## Lanes (73 no disco · 73 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -340,6 +340,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l71]] | Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente | P1 | — | aberta 2026-08-17 · item 7e da Onda 7 do [[PLAN-deterministic-authority]], FK `plan:` para [[PLAN-report-trust]] (casa das lanes de render) · RV6-23 · `shipped` (#1511 · `50033dae`) · enabler sem copy, mergeou antes da l72 · gate v1 era cego (casava mesma linha), trocado por leitor único |
 | [[A40.l72]] | Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante | P1 | l66 | aberta 2026-08-17 · item 7a da Onda 7 do [[PLAN-deterministic-authority]], FK `plan:` para [[PLAN-report-trust]] · RV6-16 · **`open` desde 2026-08-18** (a l66 shipou, e o warning tipado existe) |
 | [[A40.l73]] | Produtor do bundle de proteção lê a fonte documental, e o `gap_qualitativo` reconcilia com os dependentes do IRPF | P1 | — | aberta 2026-08-19 · item **3c inteiro** da Onda 3 do [[PLAN-deterministic-authority]], por autorização explícita do dono (fora do MVP declarado) · PD-4 / RV6-20 · [[ADR-395]] `Decidido` · `parallel_with` [[A40.l60]] (dormente; divisão de arquivos declarada na lane) · **`shipped` 2026-08-19** (#1549 · #1554 · #1560 · #1564 · #1576) |
+| [[A40.l74]] | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | P1 | — | aberta 2026-08-21 · fecha a metade apólice do problema cujo lado CRLV saiu em #1599 · [[ADR-407]] `Proposto` + emenda datada em [[ADR-239]] §D8 · descobriu 2 consumidores extras do 1:1 (`_schema_version_token` carimbava row de apólice com hash de schema de veículo; `check_artifact_read_keys` lê o mapa por `ast.literal_eval`) · follow-up de `e4_unified` endereçado a [[A40.l58]] · **`shipped` 2026-08-21** (#1604) |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
