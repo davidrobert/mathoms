@@ -239,3 +239,50 @@ def test_razao_nao_carrega_descricao_instituicao_nem_brl(gate_ligado: None) -> N
         assert DESC_MIGRADO not in blob
         assert "inst-sintetica" not in blob
         assert "1300" not in blob and "1.300" not in blob
+
+
+# =============================================================================
+# Retenção: o gate pausa o stage. Razão que não retém é descartada no chão —
+# `record_review_reasons` só roda quando `validation.valid` é False.
+# =============================================================================
+
+
+def _legacy(investimentos: dict) -> dict:
+    return {
+        "score": {"valor": 7.0, "classificacao": "Bom"},
+        "patrimonio": {"bruto": 1_000_000},
+        "goals": {},
+        "investimentos_classes": investimentos,
+    }
+
+
+def test_item_migrado_pausa_o_stage_em_needs_review(gate_ligado: None) -> None:
+    from scripts.analyze_finances import _e5_build_result_dict
+
+    investimentos = InvestimentosClassesAnalyzer().analyze(_carteira(DESC_MIGRADO)).to_legacy_dict()
+    result = _e5_build_result_dict(_legacy(investimentos), [])
+
+    assert result["validation"]["valid"] is False
+    codes = {r["code"] for r in result["validation"]["review_reasons"]}
+    assert codes == {"domain.ativo_sem_haystack", "domain.ativo_nao_classificado"}
+    assert result["validation"]["errors"]
+
+
+def test_stage_entrega_o_artefato_mesmo_pausando(gate_ligado: None) -> None:
+    """needs_review é pausa, não aborto — os KPIs continuam publicados."""
+    from scripts.analyze_finances import _e5_build_result_dict
+
+    investimentos = InvestimentosClassesAnalyzer().analyze(_carteira(DESC_MIGRADO)).to_legacy_dict()
+    result = _e5_build_result_dict(_legacy(investimentos), [])
+
+    assert result["total"] == 1 and result["score_valor"] == 7.0
+
+
+def test_kill_switch_nao_pausa_o_stage(monkeypatch: pytest.MonkeyPatch) -> None:
+    from scripts.analyze_finances import _e5_build_result_dict
+
+    monkeypatch.setenv(GATE_ENV, "0")
+    investimentos = InvestimentosClassesAnalyzer().analyze(_carteira(DESC_MIGRADO)).to_legacy_dict()
+    result = _e5_build_result_dict(_legacy(investimentos), [])
+
+    assert result["validation"] == {"valid": True, "errors": [], "review_reasons": []}
