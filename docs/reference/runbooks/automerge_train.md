@@ -4,7 +4,8 @@
 > **Owner:** davidrobert (único humano com poder de criar/rotacionar o PAT).
 > **Sinal de entrada:** issue "CI: trem de auto-merge travado — ação
 > necessária" (aberta pelo watchdog), warning `AUTOUPDATE_PAT ausente`
-> no Actions, ou PR com auto-merge parado >1h.
+> no Actions, ou **cabeça** do trem parada >1h (é o que o watchdog mede —
+> PR no meio da fila parado horas é vazão normal, ver Modelo mental).
 
 ---
 
@@ -16,6 +17,11 @@ auto-merge mais antigo elegível) com a identidade do `AUTOUPDATE_PAT` →
 CI roda → auto-merge squasha → push em main dispara o próximo ciclo.
 Rede de segurança: schedule 2×/h no advance + watchdog 2×/h
 (`automerge-watchdog.yml`).
+
+**Vazão: 1 PR por ciclo completo de CI.** Com a fila cheia, esperar é o
+estado normal — não sintoma. Medido em 2026-08-21: ~13 min por PR, ~2h
+para drenar 9 PRs armados. Antes de procurar o que destravar, confirme
+que não é só a fila andando.
 
 **Invariante:** update-branch/push NUNCA pode sair como
 `github-actions[bot]` — runs nascem `action_required` (0 jobs) e o CI
@@ -37,8 +43,16 @@ gh run list --commit "$(gh pr view <N> --json headRefOid --jq .headRefOid)" \
   --json status,conclusion,name
 ```
 
+**A última linha do `--dry-run` separa os três estados** — `update-branch #N`
+(vai andar agora), `trem segurando: cabeça #N …` (cabeça em voo, fila atrás:
+esperar), `trem em dia: nenhum PR elegível BEHIND` (fila vazia de verdade).
+Até 2026-08-21 os dois últimos compartilhavam a mesma frase, e o hold com 5
+PRs esperando aparecia como trem parado.
+
 | Sintoma | Causa provável | Ação |
 | --- | --- | --- |
+| `trem segurando: cabeça #N em andamento` com PRs `BEHIND` atrás | Enfileiramento normal: o trem é serial por desenho ([[ADR-322]] §D1) e não pula cabeça rodando CI | esperar — atualizar o próximo desperdiça runs e pode livelock |
+| PR nunca avança; log diz `skip #N: conflito de merge` | `DIRTY` — o trem só resolve `BEHIND`; conflito ele pula e o PR fica fora da fila | autor rebasa e pusha da própria conta |
 | Warning `AUTOUPDATE_PAT ausente` no advance | Secret nunca criado ou PAT expirou | §2 |
 | Runs `action_required` (0 jobs) no head | Push saiu como bot (fonte externa ao trem) | §3 |
 | `All checks green` FAILURE em ~2-5s, 0 steps | Budget de Actions esgotado (runner não inicia) OU agregador stale de run superseded | §4 |
