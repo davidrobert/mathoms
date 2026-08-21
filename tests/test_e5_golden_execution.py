@@ -312,3 +312,56 @@ def test_e5_publica_veredito_da_guarda_de_sinal(e5_tenant_with_baseline: Path):
     from scripts.pipeline_common import validate_dict
 
     assert validate_dict(payload, "e5_analysis.schema.json") is True
+
+
+# Invariante do contrato do [[ADR-399]]: procedência XOR motivo. Entrada com os dois
+# (ou com nenhum) é alvo sem origem auditável — a classe que a ADR fecha.
+def _assert_alvo_bem_formado(chave: str, alvo: dict) -> None:
+    assert bool(alvo["procedencia"]) != bool(alvo["motivo"]), chave
+    assert alvo["observado_path"].startswith("$."), chave
+    assert alvo["base"], chave
+    if alvo["limiar"] is None:
+        assert alvo["motivo"], f"{chave}: órfão sem motivo legível"
+    else:
+        assert alvo["operador"] and alvo["ref"], f"{chave}: limiar sem comparador/fonte"
+
+
+def _kpi_targets_do_run(tenant: Path) -> dict:
+    from scripts.analyze_finances import main_with_store as e5_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
+
+    ctx = _new_e5_ctx(tenant, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_MIN)
+    e4_mws(ctx)
+    e5_mws(ctx)
+    return ctx.artifact_store.read("E5", "analise_financeira")["kpi_targets"]
+
+
+# Guard do wiring: sem ele, remover a chamada a `build_kpi_targets` em
+# `analyze_finances` só quebraria o snapshot do view-model — que alguém
+# rebaselinaria de volta sem perceber que o alvo voltou a ser autorado pelo LLM.
+def test_e5_publica_kpi_targets_com_procedencia(e5_tenant_with_baseline: Path):
+    """O E5 publica o alvo de KPI derivado; órfão traz motivo, nunca número."""
+    alvos = _kpi_targets_do_run(e5_tenant_with_baseline)
+
+    assert alvos, "stage não publicou kpi_targets — wiring do ADR-399 sumiu"
+    for chave, alvo in alvos.items():
+        _assert_alvo_bem_formado(chave, alvo)
+
+
+# PE-2 no grão do stage: o alvo publicado é o limiar do repo, não um número que
+# acompanha o observado — foi a migração `< 30%` → `< 35%` sobre dado
+# byte-idêntico que originou o achado. A asserção do endividamento fecha o ponto
+# cego: sem ela, `scoring={}` no call-site rebaixa a entrada a órfão e o
+# invariante genérico aceita calado.
+def test_e5_kpi_target_nao_depende_do_valor_observado(e5_tenant_with_baseline: Path):
+    """Alvo vem do canon do repo e o `scoring` chega ao catálogo."""
+    from pipeline.domain.services.real_estate_metrics import RealEstateConfig
+
+    alvos = _kpi_targets_do_run(e5_tenant_with_baseline)
+
+    concentracao = alvos["concentracao_imobiliaria"]
+    assert concentracao["limiar"] == float(RealEstateConfig().concentracao_alerta_pct)
+    assert concentracao["procedencia"] == "limiar_canonico"
+    endiv = alvos["taxa_endividamento"]
+    assert endiv["limiar"] is not None, "scoring não chegou ao catálogo"
+    assert endiv["procedencia"] == "limiar_canonico" and endiv["operador"]

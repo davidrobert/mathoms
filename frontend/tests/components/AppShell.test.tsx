@@ -49,6 +49,23 @@ beforeEach(() => {
   localStorage.setItem("fin_token", "t");
   replaceMock.mockClear();
   pathnameMock = "/dashboard";
+  server.use(
+    // Badge de sugestões pendentes na sidebar — nenhum teste daqui declara
+    // contagem; sem override a request rejeitava pelo `onUnhandledRequest`.
+    http.get("/api/v1/workspaces/:workspaceId/suggestions/count", () =>
+      HttpResponse.json({ count: 0, status: "Pendente" }),
+    ),
+    // `logout()` é best-effort: engole o erro do POST e limpa o token de
+    // qualquer forma (`lib/api/auth.ts`). Sem este handler o teste de logout
+    // só exercitava o `catch` — o caminho feliz do servidor nunca rodava.
+    http.post("/api/v1/auth/logout", () => new HttpResponse(null, { status: 204 })),
+    // Refresh transparente do ADR-170: só dispara em 401. Nos testes que
+    // forçam 401 de propósito, o refresh **deve** falhar — 401 explícito diz
+    // isso, em vez de deixar a request órfã dizer por acidente.
+    http.post("/api/v1/auth/refresh", () =>
+      HttpResponse.json({ detail: "expired" }, { status: 401 }),
+    ),
+  );
 });
 
 describe("AppShell", () => {

@@ -455,3 +455,16 @@ Lane de **registro + execução opcional**. O aceite mínimo é que nenhum item 
   transferência da declaração de ausência para a S7, `today` de `data_analise`, gates
   de classe do perfil.
 - Tudo na tabela §Já têm dono — repetir aqui criaria segunda fonte de verdade.
+
+## Recebido do closeout da [[A40.l69]] — 2026-08-21
+
+- **Copy de `null` na narrativa.** Com o balde de investimentos publicando `null`
+  (#1542), `summaries_narrator.py:166` produz *"Bia possui N/D concentrados em
+  instituições não detalhadas neste período"* — a prosa afirma concentração sobre
+  um valor que o sistema declarou **não ter medido**. É a mesma classe do achado
+  de `summaries_narrator.py:86-87` já hospedado aqui: produtor de prosa ungated
+  sobre o que não foi medido.
+- **Rota corrigida no caminho:** a l69 declarava este item como sendo da lane de
+  render ([[PLAN-report-trust]] 7e). O 7e é a [[A40.l71]], `shipped` em
+  2026-08-18 — um dia **antes** de o `null` existir; e a copy é **pipeline**, não
+  render. Errava de plano e de camada.

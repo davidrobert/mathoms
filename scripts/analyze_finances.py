@@ -2424,6 +2424,7 @@ def _e5_compose_output(
     composicao_familiar: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
 
     # A12.alocacao-v2: legacy["goals"] é o dict computado (if_meta, …) e não
     # carrega o alvo de alocação; carrega a seção do bundle bruto p/ o E5
@@ -2470,7 +2471,13 @@ def _e5_compose_output(
         protection_computation_inputs=protection_computation_inputs,
         composicao_familiar=composicao_familiar,
     )
-    return build_e5_output(output_inputs)
+    output = build_e5_output(output_inputs)
+    # [[ADR-399]]: alvo de KPI é derivado, nunca autorado pelo LLM. Resolve sobre o
+    # payload FINAL (e não sobre os inputs) para que todo `observado_path` publicado
+    # aponte para uma folha que existe no artefato — path que não resolve é a mesma
+    # classe de defeito que o alvo fabricado.
+    output["kpi_targets"] = build_kpi_targets(output, scoring=SCORING_CONFIG)
+    return output
 
 
 def _e5_persist(store, ctx, output: Dict[str, Any]) -> None:

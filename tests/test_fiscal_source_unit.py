@@ -15,6 +15,7 @@ from pipeline.domain.services.fiscal_source import (
     InformeFinanceiroPJSummary,
     InformePrevidenciaSummary,
 )
+from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
 
 def _make_informe_pgbl(
@@ -182,30 +183,57 @@ def test_previdencia_summaries_lista_todos_planos():
 # ─────────────────────── Política D4: declaração vence ────────────────────────
 
 
-class _FakePagamentoPGBL:
-    def __init__(self, valor: Decimal, cnpj: str) -> None:
-        self.codigo = "36"  # CodigoPagamentoDedutivel.pgbl
-        self.valor_pago = valor
-        self.cnpj_beneficiario = cnpj
+_CONTRIB_TESTE = {
+    "cpf_masked": "***.***.***-11",
+    "nome": "Contribuinte Teste",
+    "modelo": "completo",
+    "natureza": "titular",
+}
+_IMPOSTO_ZERO = {
+    "base_calculo_brl": "0",
+    "ir_devido_brl": "0",
+    "deducoes_totais_brl": "0",
+    "ir_pago_brl": "0",
+}
 
 
-class _FakeContribuinte:
-    def __init__(self, ano: int) -> None:
-        self.ano_base = ano
+def _cnpj_pontuado(digits: str) -> str:
+    """14 dígitos (forma do informe) → forma pontuada que o schema do IRPF exige."""
+    d = digits
+    return f"{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}"
 
 
-class _FakeIRPF:
-    """Stub mínimo de IRPFFullOutput — só pagamentos_efetuados + contribuinte."""
+def _pgbl(valor: Decimal, cnpj: str) -> dict:
+    return {
+        "codigo_rfb": "36",
+        "beneficiario_nome": "Previdencia Teste",
+        "beneficiario_cpf_cnpj_masked": _cnpj_pontuado(cnpj),
+        "valor_pago_brl": str(valor),
+        "valor_dedutivel_brl": str(valor),
+    }
 
-    def __init__(self, ano: int, pagamentos: list) -> None:
-        self.contribuinte = _FakeContribuinte(ano)
-        self.pagamentos_efetuados = pagamentos
+
+# `IRPFFullOutput` real, nunca stub. O stub anterior expunha `.codigo`/`.valor_pago`/
+# `.cnpj_beneficiario` — exatamente os nomes que `fiscal_source` lia e que o schema
+# NÃO tem: teste e código compartilhavam a mesma crença errada, e o cross-check da
+# ADR-238 devolvia zero em produção com a suíte verde. O CNPJ entra em dígitos (forma
+# do informe) e sai pontuado (forma do IRPF) — é esse par que o join reconcilia.
+def _irpf_com_pgbl(ano: int, pagamentos: list[tuple[Decimal, str]]) -> IRPFFullOutput:
+    """Declaração real com N pagamentos PGBL, para o cross-check da ADR-238."""
+    return IRPFFullOutput.model_validate(
+        {
+            "contribuinte": {**_CONTRIB_TESTE, "ano_base": ano, "exercicio": ano + 1},
+            "pagamentos_efetuados": [_pgbl(v, c) for v, c in pagamentos],
+            "imposto_apurado": _IMPOSTO_ZERO,
+            "confidence": 1.0,
+        }
+    )
 
 
 def test_declaracao_vence_quando_cobre_mesmo_cnpj_ano():
     """ADR-238 D4: dedupe por (ano, CNPJ) — declaração vence, informe não soma."""
     cnpj = "16404287000167"
-    irpf = _FakeIRPF(2024, [_FakePagamentoPGBL(Decimal("15000.00"), cnpj)])
+    irpf = _irpf_com_pgbl(2024, [(Decimal("15000.00"), cnpj)])
     informe = _make_informe_pgbl(ano=2024, cnpj=cnpj, contribuicoes="12000.00")
     fs = FiscalSource.from_both(irpf, [informe])
     # Total = declaração apenas (informe é descartado por overlap).
@@ -214,7 +242,7 @@ def test_declaracao_vence_quando_cobre_mesmo_cnpj_ano():
 
 def test_informe_preenche_gaps_de_cnpj_nao_coberto_pela_declaracao():
     """ADR-238 D4: informe complementa quando declaração não tem aquele CNPJ."""
-    irpf = _FakeIRPF(2024, [_FakePagamentoPGBL(Decimal("15000.00"), "11111111000111")])
+    irpf = _irpf_com_pgbl(2024, [(Decimal("15000.00"), "11111111000111")])
     # Informe é de outro CNPJ — soma.
     informe_outro = _make_informe_pgbl(ano=2024, cnpj="22222222000122", contribuicoes="8000.00")
     fs = FiscalSource.from_both(irpf, [informe_outro])
@@ -227,7 +255,7 @@ def test_informe_preenche_gaps_de_cnpj_nao_coberto_pela_declaracao():
 def test_divergencia_pgbl_gera_warning_estruturado():
     """ADR-238 D4: divergência entre informe e IRPF mesmo (ano, CNPJ) emite warning efêmero."""
     cnpj = "16404287000167"
-    irpf = _FakeIRPF(2024, [_FakePagamentoPGBL(Decimal("15000.00"), cnpj)])
+    irpf = _irpf_com_pgbl(2024, [(Decimal("15000.00"), cnpj)])
     informe = _make_informe_pgbl(ano=2024, cnpj=cnpj, contribuicoes="12000.00")
     fs = FiscalSource.from_both(irpf, [informe])
     divs = fs.divergencias_pgbl()
@@ -243,7 +271,7 @@ def test_divergencia_pgbl_gera_warning_estruturado():
 def test_divergencia_ignora_diferenca_centavos():
     """Ruído de arredondamento (< R$ 1,00) não gera warning."""
     cnpj = "16404287000167"
-    irpf = _FakeIRPF(2024, [_FakePagamentoPGBL(Decimal("12000.50"), cnpj)])
+    irpf = _irpf_com_pgbl(2024, [(Decimal("12000.50"), cnpj)])
     informe = _make_informe_pgbl(ano=2024, cnpj=cnpj, contribuicoes="12000.00")
     fs = FiscalSource.from_both(irpf, [informe])
     assert fs.divergencias_pgbl() == []
@@ -251,7 +279,7 @@ def test_divergencia_ignora_diferenca_centavos():
 
 def test_divergencia_sem_overlap_nao_gera_warning():
     """Informe e IRPF cobrem CNPJs distintos → não há divergência (cada um é fonte primária)."""
-    irpf = _FakeIRPF(2024, [_FakePagamentoPGBL(Decimal("15000.00"), "11111111000111")])
+    irpf = _irpf_com_pgbl(2024, [(Decimal("15000.00"), "11111111000111")])
     informe = _make_informe_pgbl(ano=2024, cnpj="22222222000122")
     fs = FiscalSource.from_both(irpf, [informe])
     assert fs.divergencias_pgbl() == []
