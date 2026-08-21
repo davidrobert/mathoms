@@ -47,8 +47,9 @@ tags:
 > #1546 90 min antes. A mesma query devolveu **três respostas diferentes em
 > minutos** (2026-08-06, 2026-08-14, 2026-08-19). **Não reabre a decisão** — a
 > invariante de liveness segue válida e `S2` continua sendo o sinal certo;
-> o que está errado é a **medição**. Correção proposta e ainda **não
-> implementada** no §Adendo 2026-08-21.
+> o que está errado é a **medição**. Correção **implementada** em 2026-08-21
+> (`per_page=10` + `max`), com a premissa de que a obsolescência é de linha
+> medida antes — ver §Adendo 2026-08-21.
 
 > **Emenda (2026-08-08) — o watchdog de duração observa um job só, e o
 > "gatilho de 60%" não é avaliável a partir de um run:** o adendo 2026-08-05
@@ -833,6 +834,30 @@ registro** — precedente #1508, contornado sem investigação.
 (`per_page=10`) e tomar `max(run_started_at)`, em vez do primeiro elemento. Não
 muda a semântica do sinal nem o que ele detecta; só impede que uma cabeça
 obsoleta vença a leitura. `S0`/`S1`/`S3` não usam esse endpoint e ficam intactos.
+
+**Implementada em 2026-08-21, com a premissa medida antes.** A correção acima só
+funciona se a obsolescência for de **linha** (cabeça velha, resto da página
+fresco); se a réplica servisse a **página inteira** velha, `max` não salvaria
+nada e o fix nasceria inerte. Medido contra a API real neste dia, no repo:
+
+| Consulta | Amostra | Leituras obsoletas |
+|---|---|---|
+| `per_page=1`, elemento `[0]` | 130 chamadas (4 workflows) | **2** (`2026-08-06` em `auto-update-prs.yml`; `2026-08-17` em `automerge-watchdog.yml`) |
+| `per_page=10`, `max(run_started_at)` | 60 chamadas (2 workflows) | **0** |
+
+A obsolescência é de linha — a premissa se sustenta. As duas leituras sujas
+caíram em workflows **diferentes**, o que corrobora a causa compartilhada (a
+query) contra hipótese específica de workflow, como já apontava a segunda
+ocorrência acima. Regressão em
+[`tests/dev/test_check_scheduled_workflows.py`](../../tests/dev/test_check_scheduled_workflows.py):
+a fixture é a forma medida (cabeça velha + linhas frescas), e reverter para
+`per_page=1`/`runs[0]` derruba 2 dos 5 testes.
+
+**Risco residual declarado:** se algum dia a réplica servir página inteira
+obsoleta, `max` volta a ler velho e o falso vermelho reaparece. A amostra de 60
+não exclui esse caso — só mostra que ele não ocorreu. O sintoma é idêntico ao já
+registrado aqui, e o diagnóstico barato do parágrafo anterior (só o seu PR
+reprova + diff não toca `.github/` ⇒ é o índice) continua valendo.
 
 ## Adendo 2026-08-21b — o quinto sinal, e o vigia que não vigiava a si mesmo
 
