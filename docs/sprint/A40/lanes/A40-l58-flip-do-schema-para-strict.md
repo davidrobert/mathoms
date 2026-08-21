@@ -144,3 +144,23 @@ rebaseline** — J2 é da l67.
   logar-e-passar — teste, não prosa.
 - Runbook de incidente: o que fazer quando um run de cliente aborta por schema
   (gatilho `sre-devops`).
+
+## Aporte da [[A40.l74]] — dois schemas saem da inelegibilidade, um continua nela (2026-08-21)
+
+**Entra na baseline.** `crlv.schema.json` e `apolice.schema.json` eram
+**permanentemente inelegíveis** ao flip: o stage `extract_comprovantes_bens` tem dois
+produtores e o mapa 1:1 apontava para o schema de veículo, então todo write de apólice
+emitia WARN (25 paths em drift, medidos). [[ADR-407]] fecha isso; o merge da l74 é o
+**dia 0** da baseline de ≥7 dias zero-WARN destes dois.
+
+**Continua fora — e é maior:** `e4_unified.schema.json` tem 5 ramos em `oneOf` que
+discriminam por `required`. Medido: com **um** drift real, `oneOf` emite path `$` e
+`if/then` emite o campo. `iter_errors` não faz union dos erros de ramo — emite um erro
+no keyword `oneOf` com os sub-erros em `error.context`, onde `_validation_paths`
+([[ADR-284]] §B) não desce. O drift do E4 é portanto **indiagnosticável**: a baseline
+zero-WARN pode até ser atingida, mas um WARN nunca diz qual das 7 artifact keys
+regrediu, nem em que campo.
+
+Consequência para o critério desta lane: "drift pré-flip medido e citado" **não é
+satisfazível** para `e4_unified` no desenho atual. Ou o schema migra para despacho por
+discriminador ([[ADR-407]] D2), ou o E4 sai do escopo do flip com a razão declarada.

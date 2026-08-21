@@ -174,9 +174,16 @@ def test_json_schema_arquivo_existe_e_parseia():
 
 
 def test_db_artifact_store_registra_schema():
+    """A40.l74 — o stage tem dois produtores, então o mapa aponta para o base
+    polimórfico; o ramo CRLV precisa continuar alcançável a partir dele."""
     from backend.app.services.storage.db_artifact_store import SCHEMA_BY_STAGE
 
-    assert SCHEMA_BY_STAGE["extract_comprovantes_bens"] == "crlv.schema.json"
+    base = SCHEMA_BY_STAGE["extract_comprovantes_bens"]
+    assert base == "comprovante_base.schema.json"
+    repo_root = Path(__file__).resolve().parent.parent
+    doc = json.loads((repo_root / "config" / "schemas" / base).read_text())
+    ramos = {r["then"]["$ref"] for r in doc["allOf"]}
+    assert ramos == {"crlv.schema.json", "apolice.schema.json"}
 
 
 def test_db_artifact_store_workspace_scoped():

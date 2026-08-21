@@ -982,15 +982,35 @@ def _pin_repo_schemas(monkeypatch):
     )
 
 
-def _expected_schema_token(schema_name: str) -> str:
-    """Recalcula o token independente da implementação: sha256[:12] do JSON canônico do schema."""
-    import hashlib
+def _schema_closure_docs(schema_name: str) -> dict[str, dict]:
+    """Fecho transitivo de `$ref` externos, lido do texto — independente da produção."""
     import json
+    import re
     from pathlib import Path
 
-    schema_path = Path(__file__).resolve().parents[2] / "config" / "schemas" / schema_name
-    doc = json.loads(schema_path.read_text(encoding="utf-8"))
-    canonical = json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    schemas_dir = Path(__file__).resolve().parents[2] / "config" / "schemas"
+    docs: dict[str, dict] = {}
+    pendentes = [schema_name]
+    while pendentes:
+        nome = pendentes.pop()
+        if nome in docs:
+            continue
+        bruto = (schemas_dir / nome).read_text(encoding="utf-8")
+        docs[nome] = json.loads(bruto)
+        refs = {r.split("#", 1)[0] for r in re.findall(r'"\$ref":\s*"([^"#][^"]*)"', bruto)}
+        pendentes.extend(refs - docs.keys())
+    return docs
+
+
+def _expected_schema_token(schema_name: str) -> str:
+    """Recalcula o token independente da implementação (A40.l74 · ADR-407 D5):
+    hashear só o arquivo mapeado deixa o token estável enquanto o ramo muda."""
+    import hashlib
+    import json
+
+    docs = _schema_closure_docs(schema_name)
+    alvo = docs[schema_name] if len(docs) == 1 else [[n, docs[n]] for n in sorted(docs)]
+    canonical = json.dumps(alvo, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:12]
 
 
