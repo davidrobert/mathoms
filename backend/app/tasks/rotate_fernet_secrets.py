@@ -12,6 +12,8 @@ Procedure completa: docs/reference/runbooks/fernet_rotation.md.
 from __future__ import annotations
 
 import logging
+import os
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 
@@ -35,6 +37,16 @@ from backend.app.worker import celery_app
 logger = logging.getLogger(__name__)
 
 _BATCH_SIZE = 100
+
+# Data em que `ENCRYPT_PIPELINE_ARTIFACTS` passou a valer (ADR-231): o último
+# write em plaintext do dogfood é 2026-05-20T10:22, o primeiro cifrado é
+# 2026-05-20T18:26. Row em plaintext ANTES disto é resíduo histórico e fecha
+# para sempre; DEPOIS é drift vivo de config — flag desligada ou writer
+# contornando `DBArtifactStore.write`. São modos de falha diferentes, e contar
+# os dois juntos faz o gate morrer verde assim que o resíduo é limpo.
+_ENCRYPTION_CUTOVER = datetime.fromisoformat(
+    os.getenv("MATHOMS_ENCRYPTION_CUTOVER", "2026-05-20T18:26:00+00:00")
+)
 
 # (model, coluna ciphertext) — todo secret Fernet em coluna dedicada.
 # pipeline_artifacts.content_json (sentinel ADR-231) tem caminho próprio por kid.
@@ -92,9 +104,31 @@ def _rotate_column(session, vault, model, column: str, dry_run: bool) -> dict:
     return counts
 
 
+def _created_after_cutover(row) -> bool:
+    created = getattr(row, "created_at", None)
+    if created is None:
+        return False
+    return (
+        created if created.tzinfo else created.replace(tzinfo=timezone.utc)
+    ) > _ENCRYPTION_CUTOVER
+
+
+# Bucket próprio: dentro de `skipped` a row em plaintext era indistinguível de
+# "já está na primária", e foi assim que 418 delas atravessaram o gate G0
+# (ADR-231 §Emenda 2026-08-21).
+def _count_plaintext(row, counts: dict) -> None:
+    """Contabiliza row sem sentinel, separando resíduo histórico de drift vivo."""
+    counts["plaintext"] += 1
+    if _created_after_cutover(row):
+        counts["plaintext_after_cutover"] += 1
+
+
 def _rotate_artifact_row(row, current_kid: str, counts: dict, dry_run: bool) -> None:
     payload = row.content_json
-    if not is_encrypted_payload(payload) or payload.get("kid") == current_kid:
+    if not is_encrypted_payload(payload):
+        _count_plaintext(row, counts)
+        return
+    if payload.get("kid") == current_kid:
         counts["skipped"] += 1
         return
     try:
@@ -113,7 +147,7 @@ def _rotate_artifact_row(row, current_kid: str, counts: dict, dry_run: bool) -> 
 
 def _rotate_artifacts(session, dry_run: bool) -> dict:
     """Re-encripta sentinels ADR-231 cujo ``kid`` difere da key primária."""
-    counts = {"rotated": 0, "skipped": 0, "failed": 0}
+    counts = {"rotated": 0, "skipped": 0, "failed": 0, "plaintext": 0, "plaintext_after_cutover": 0}
     current_kid = _key_id()
 
     def _stmt(last_pk):

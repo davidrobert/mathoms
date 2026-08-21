@@ -133,7 +133,7 @@ def sqlite_problem(path: Path | None) -> str | None:
 
 
 def summarize(report: dict) -> dict[str, int]:
-    totals = {"rotated": 0, "skipped": 0, "failed": 0}
+    totals = {"rotated": 0, "skipped": 0, "failed": 0, "plaintext": 0, "plaintext_after_cutover": 0}
     for counts in (report.get("targets") or {}).values():
         for key in totals:
             totals[key] += counts.get(key, 0)
@@ -218,12 +218,28 @@ def empty_corpus_problem(totals: dict[str, int]) -> str | None:
     )
 
 
+# O absoluto (`plaintext`) fecha para sempre depois do backfill e viraria regra
+# morta; o recorte de recência não fecha, porque 0 é o estado estacionário e
+# qualquer não-zero é drift de config vivo. Gate no recorte, absoluto na métrica.
+def plaintext_problem(totals: dict[str, int]) -> str | None:
+    """Row em plaintext escrita DEPOIS do cutover de encryption não fecha o gate."""
+    recentes = totals.get("plaintext_after_cutover", 0)
+    if recentes == 0:
+        return None
+    return (
+        f"plaintext_after_cutover={recentes}: há artifact gravado em claro DEPOIS do "
+        "cutover de encryption. Não é resíduo histórico — é ENCRYPT_PIPELINE_ARTIFACTS "
+        "desligada ou writer contornando DBArtifactStore.write (ADR-231)"
+    )
+
+
 def evaluate(report: dict, keys_configured: int, expect_idle: bool) -> list[str]:
     """Problemas que impedem o gate de fechar; lista vazia = passou."""
     totals = summarize(report)
     found = [
         _window_problem(keys_configured),
         empty_corpus_problem(totals),
+        plaintext_problem(totals),
         _failed_problem(totals),
     ]
     if expect_idle:
@@ -232,16 +248,20 @@ def evaluate(report: dict, keys_configured: int, expect_idle: bool) -> list[str]
 
 
 def format_report(report: dict) -> str:
-    lines = [f"{'target':<45}{'rotated':>9}{'skipped':>9}{'failed':>8}"]
-    lines.append("-" * 71)
+    lines = [f"{'target':<45}{'rotated':>9}{'skipped':>9}{'failed':>8}{'plain':>7}"]
+    lines.append("-" * 78)
     for target, counts in sorted((report.get("targets") or {}).items()):
         lines.append(
             f"{target[:44]:<45}{counts.get('rotated', 0):>9}"
             f"{counts.get('skipped', 0):>9}{counts.get('failed', 0):>8}"
+            f"{counts.get('plaintext', 0):>7}"
         )
     totals = summarize(report)
-    lines.append("-" * 71)
-    lines.append(f"{'TOTAL':<45}{totals['rotated']:>9}{totals['skipped']:>9}{totals['failed']:>8}")
+    lines.append("-" * 78)
+    lines.append(
+        f"{'TOTAL':<45}{totals['rotated']:>9}{totals['skipped']:>9}"
+        f"{totals['failed']:>8}{totals['plaintext']:>7}"
+    )
     return "\n".join(lines)
 
 
