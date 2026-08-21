@@ -128,12 +128,11 @@ def _schema_version_token(stage: str) -> Optional[str]:
     docs = _schema_closure(schema_name, pipeline_common.CONFIG_DIR / "schemas")
     if docs is None:
         return None
-    canonical = json.dumps(
-        [[name, docs[name]] for name in sorted(docs)],
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-    )
+    # Schema sem `$ref` externo hasheia só o próprio doc — preserva o token histórico
+    # dos 8 schemas que já eram auto-contidos; só os que dependem de outro arquivo
+    # (comprovante_base, informe_base, e2_llm_artifact, e5_analysis) mudam de token.
+    alvo = docs[schema_name] if len(docs) == 1 else [[n, docs[n]] for n in sorted(docs)]
+    canonical = json.dumps(alvo, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:12]
 
 

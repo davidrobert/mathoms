@@ -136,9 +136,14 @@ diagnosticável.
 
 `_schema_version_token` hasheava só o arquivo mapeado. Sob D1 o arquivo mapeado é o base,
 que **só despacha** — o token ficaria estável enquanto o contrato real muda atrás do
-`$ref`. É o mesmo falso-verde, deslocado uma casa. Passa a hashear o conjunto ordenado do
-fecho transitivo, o que retro-corrige três buracos preexistentes: `informe_base`,
-`e2_llm_artifact` e `e5_analysis`.
+`$ref`. É o mesmo falso-verde, deslocado uma casa. Passa a hashear o fecho transitivo,
+o que retro-corrige três buracos preexistentes: `informe_base`, `e2_llm_artifact` e
+`e5_analysis`.
+
+Schema **sem** `$ref` externo continua hasheando só o próprio doc, então o token
+histórico dos 8 auto-contidos é preservado: mudam apenas os 4 que dependem de outro
+arquivo. Churn de token é barato (é auditoria, não key), mas churn desnecessário
+esconderia a mudança que importa no meio de ruído.
 
 ## Alternativas consideradas
 
