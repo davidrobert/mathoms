@@ -2,7 +2,8 @@
 id: ADR-407
 type: adr
 title: "Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape"
-status: Proposto
+status: Decidido
+phase: A40.l74
 date: "2026-08-21"
 relates_to:
   - "[[ADR-239]]"
@@ -20,13 +21,13 @@ aliases:
 tags:
   - area/pipeline
   - area/dados
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-407 — Stage com N formas de payload despacha schema por discriminador declarado
 
-**Status:** Proposto · **Data:** 2026-08-21 · **Relaciona** [[ADR-239]] (D8, stage único
+**Status:** Decidido (Sprint A40 · [[A40.l74]], PR #1604) · **Data:** 2026-08-21 · **Relaciona** [[ADR-239]] (D8, stage único
 polimórfico), [[ADR-238]] (D2, leniência top-level), [[ADR-284]] (telemetria de drift +
 flip per-schema), [[ADR-212]] (hook pós-write), [[ADR-090]] (dinheiro no wire).
 
