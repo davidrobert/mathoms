@@ -83,6 +83,35 @@ def _payload_prompt_version(data: dict) -> Optional[str]:
     return None
 
 
+def _external_ref_files(node: object, out: set) -> None:
+    """Nomes de arquivo em ``$ref`` externo (``#`` puro é interno, já no doc)."""
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if isinstance(ref, str) and not ref.startswith("#"):
+            out.add(ref.split("#", 1)[0])
+    filhos = node.values() if isinstance(node, dict) else node if isinstance(node, list) else ()
+    for value in filhos:
+        _external_ref_files(value, out)
+
+
+def _schema_closure(schema_name: str, schemas_dir) -> Optional[dict[str, dict]]:
+    """Fecho transitivo ``nome → doc`` a partir de ``schema_name``; None se ilegível."""
+    docs: dict[str, dict] = {}
+    pending = [schema_name]
+    while pending:
+        name = pending.pop()
+        if name in docs:
+            continue
+        try:
+            docs[name] = json.loads((schemas_dir / name).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        refs: set = set()
+        _external_ref_files(docs[name], refs)
+        pending.extend(refs - docs.keys())
+    return docs
+
+
 def _schema_version_token(stage: str) -> Optional[str]:
     """A37.l13 (CTO-07) — token real de auditoria por row: sha256[:12] do JSON
     canônico do schema resolvido via ``SCHEMA_BY_STAGE``. Muda quando o schema
@@ -93,12 +122,18 @@ def _schema_version_token(stage: str) -> Optional[str]:
         return None
     import scripts.pipeline_common as pipeline_common
 
-    schema_path = pipeline_common.CONFIG_DIR / "schemas" / schema_name
-    try:
-        doc = json.loads(schema_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    # Fecho transitivo: hashear só o arquivo-base deixaria o token estável enquanto
+    # o contrato real muda atrás de um `$ref` — é o caso de comprovante_base (que só
+    # despacha), informe_base, e2_llm_artifact e e5_analysis.
+    docs = _schema_closure(schema_name, pipeline_common.CONFIG_DIR / "schemas")
+    if docs is None:
         return None
-    canonical = json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    canonical = json.dumps(
+        [[name, docs[name]] for name in sorted(docs)],
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:12]
 
 
