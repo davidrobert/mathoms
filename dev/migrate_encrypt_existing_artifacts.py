@@ -36,16 +36,22 @@ def _cursor_path(workspace_id: str | None) -> Path:
     return CURSOR_DIR / f"backfill_{name}_cursor.txt"
 
 
-def _read_cursor(workspace_id: str | None) -> str | None:
+# O cursor é o `id` (INTEGER) da última row commitada, e volta do disco como
+# texto. Devolver o texto cru fazia `_query_pending` comparar `id > '500'`: no
+# SQLite todo INTEGER ordena antes de todo TEXT, então o predicado é sempre
+# falso, o resume varre zero rows e o script reporta "Done. 0 rows encrypted"
+# sem ter feito nada. Falso-verde silencioso — o int tem que atravessar inteiro.
+def _read_cursor(workspace_id: str | None) -> int | None:
     path = _cursor_path(workspace_id)
-    if path.exists():
-        return path.read_text().strip() or None
-    return None
+    if not path.exists():
+        return None
+    raw = path.read_text().strip()
+    return int(raw) if raw else None
 
 
-def _write_cursor(workspace_id: str | None, last_id: str) -> None:
+def _write_cursor(workspace_id: str | None, last_id: int) -> None:
     CURSOR_DIR.mkdir(parents=True, exist_ok=True)
-    _cursor_path(workspace_id).write_text(last_id)
+    _cursor_path(workspace_id).write_text(str(last_id))
 
 
 def _clear_cursor(workspace_id: str | None) -> None:
@@ -64,7 +70,7 @@ def _pg_plaintext_filter(query):
     )
 
 
-def _query_pending(session, workspace_id: str | None, after_id: str | None, batch_size: int):
+def _query_pending(session, workspace_id: str | None, after_id: int | None, batch_size: int):
     query = session.query(PipelineArtifact)
     if workspace_id:
         query = query.filter(PipelineArtifact.workspace_id == workspace_id)
@@ -101,7 +107,7 @@ def _print_dry_run_sample(session, workspace_id: str | None, batch_size: int) ->
 
 def _encrypt_loop(
     session, workspace_id, batch_size, sleep_ms, after_id, total_pending
-) -> tuple[int, str | None]:
+) -> tuple[int, int | None]:
     processed = 0
     while True:
         batch = _query_pending(session, workspace_id, after_id, batch_size)
