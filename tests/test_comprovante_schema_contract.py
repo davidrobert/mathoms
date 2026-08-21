@@ -9,6 +9,7 @@ então teste com nome literal de schema passa verde antes do fix.
 
 from __future__ import annotations
 
+import functools
 import json
 import sys
 from pathlib import Path
@@ -158,3 +159,70 @@ def test_token_de_auditoria_muda_quando_o_ramo_muda(ramo, tmp_path, monkeypatch)
     alvo.write_text(json.dumps(doc), encoding="utf-8")
 
     assert _schema_version_token(STAGE) != antes, f"token cego a mudança em {ramo}"
+
+
+# Mapa explícito Pydantic → `$defs`. O teste do produtor só exercita o que os goldens
+# emitem; campo novo opcional em sub-model passaria por ele sem o schema declará-lo.
+_SUB_MODEL_DEFS = {
+    "EnderecoStruct": "endereco",
+    "CongenereRef": "congenere_ref",
+    "CorretorRef": "corretor_ref",
+    "BeneficiarioRef": "beneficiario_ref",
+    "CoberturaMaterial": "cobertura_material",
+    "CoberturaRcfv": "cobertura_rcfv",
+    "CoberturaVida": "cobertura_vida",
+    "CoberturaSaude": "cobertura_saude",
+    "CoberturaAcidentes": "cobertura_acidentes",
+    "BemSeguradoVeiculo": "bem_veiculo",
+    "BemSeguradoImovel": "bem_imovel",
+    "BemSeguradoPessoa": "bem_pessoa",
+}
+
+
+@functools.lru_cache(maxsize=1)
+def _apolice_schema() -> dict:
+    # lru_cache: 12 casos parametrizados reparseariam o mesmo JSON (ADR-210).
+    return json.loads((CONFIG_DIR / "schemas" / "apolice.schema.json").read_text(encoding="utf-8"))
+
+
+def test_mapa_de_sub_models_cobre_todos_os_forbid():
+    """Sub-model novo em `apolice.py` entra no mapa — senão os testes abaixo o ignoram."""
+    import inspect
+
+    from pydantic import BaseModel
+
+    from pipeline.llm.schemas import apolice as mod
+
+    forbid = {
+        nome
+        for nome, obj in inspect.getmembers(mod, inspect.isclass)
+        if issubclass(obj, BaseModel)
+        and obj is not BaseModel
+        and obj.model_config.get("extra") == "forbid"
+    }
+    assert forbid == set(_SUB_MODEL_DEFS)
+
+
+@pytest.mark.parametrize("modelo,nome_def", sorted(_SUB_MODEL_DEFS.items()))
+def test_sub_model_tem_def_strict_com_os_mesmos_required(modelo, nome_def):
+    """Espelha a trava de `test_schema_leniency_lock`: sub-model é `extra="forbid"`."""
+    from pipeline.llm.schemas import apolice as mod
+
+    definicao = _apolice_schema()["$defs"][nome_def]
+    assert definicao["additionalProperties"] is False
+    campos = getattr(mod, modelo).model_fields
+    assert set(definicao["properties"]) == set(campos), "schema derivou do Pydantic"
+    obrigatorios = {n for n, f in campos.items() if f.is_required()}
+    assert obrigatorios <= set(definicao["required"])
+
+
+def test_top_level_de_apolice_espelha_a_leniencia_do_pydantic():
+    """Topo lenient é design ([[ADR-238]] D2), não descuido — e o schema tem de segui-lo."""
+    from pipeline.llm.schemas.apolice import ApolicePayload
+
+    schema = _apolice_schema()
+    assert ApolicePayload.model_config.get("extra") == "allow"
+    assert schema["additionalProperties"] is True
+    campos = ApolicePayload.model_fields
+    assert set(campos) <= set(schema["properties"])
+    assert {n for n, f in campos.items() if f.is_required()} <= set(schema["required"])
