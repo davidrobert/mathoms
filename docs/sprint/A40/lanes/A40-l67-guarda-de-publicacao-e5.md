@@ -5,6 +5,8 @@ title: "Guarda de publicação no E5: nenhum balde de patrimônio publica negati
 sprint: A40
 plan: PLAN-deterministic-authority
 status: shipped
+ship_pr: 1534
+ship_date: "2026-08-18"
 priority: P0
 branch_slug: a40-l67-guarda-de-publicacao-e5
 owner: financial-planner
@@ -213,17 +215,25 @@ disponível para o flip strict do 1e.
 | `warn` | reclassifica e declara no artefato, sem pausar |
 | `off` | status quo ante literal, clamp `max(0, caixa)` incluído |
 
-### Follow-up datado (2026-08-18) · dono `senior-cto`
+### Follow-up re-roteado — 2026-08-21
 
-`_enrich_alocacao_with_deviation` recebe o patrimônio como **keyword com default
-`None`** (`e5_serialization.py:436`). Call-site que omitir `patrimonio=` publica
-a prescrição sobre cobertura possivelmente incompleta e **passa verde** —
-4 call-sites de teste já o omitem hoje
-(`backend/tests/test_alocacao_bundle_serialization_v2.py:81,91,94` e
-`tests/test_schema_validation_e5_decision_blocks.py:129`), exercitando um caminho
-onde a supressão nunca pode disparar. Nenhum call-site de produção está exposto
-agora; o risco é o próximo. Condição de retomada: qualquer call-site novo do
-enricher, ou a lane de render 7a/7e ao consumir `motivo_supressao`.
+Esta lane hospedava um follow-up com **dono `senior-cto`** — papel de revisor,
+não rota de trabalho. Lane `shipped` não guarda pendência sem destino vivo, e o
+`check_closure.py` o pegou como `CLOSE-BLOCK-01`. O item foi **movido** para o
+§Deferimentos datados do [[PLAN-deterministic-authority]], que é onde o plano
+guarda trabalho com condição de retomada declarada.
+
+**O item, em uma linha:** `enrich_alocacao_with_deviation` recebe o patrimônio
+como kwarg com default `None`; call-site que o omitir publica a prescrição sobre
+cobertura possivelmente incompleta e passa verde.
+
+**O ponteiro também envelheceu em 3 dias.** A função saiu de
+`e5_serialization.py:436` para
+[`alocacao_derived_enricher.py:15-21`](../../../../pipeline/domain/services/alocacao_derived_enricher.py).
+Re-medido em `5f73b116`: o default `patrimonio: dict[str, Any] | None = None`
+**persiste**, e 3 call-sites de teste seguem omitindo o kwarg
+(`backend/tests/test_alocacao_bundle_serialization_v2.py:81,91,94`). O achado
+continua válido; só a coordenada estava errada.
 
 ### Deferimento datado (2026-08-18) · dono [[A40.l58]]
 
