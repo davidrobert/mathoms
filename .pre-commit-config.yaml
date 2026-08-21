@@ -574,15 +574,15 @@ repos:
         pass_filenames: false
 
       - id: planner-manifest-coverage
-        # ADR-200 §D3 (M1) + ADR-206 §6 (snapshot drift):
-        # manifest do parecer ↔ E5 schema ↔ report_layout em sync.
-        # Snapshot baseline em dev/snapshots/e5_schema_hash.txt — regen
-        # com `python3 dev/check_planner_manifest_coverage.py --update-snapshot`.
+        # ADR-200 §D3 (M1) + ADR-206 §6: manifest do parecer ↔ E5 schema ↔
+        # report_layout em sync. O drift do E5 (§D3.3) sai do diff contra HEAD,
+        # não de baseline versionada: hash de uma linha serializava merge entre
+        # ondas (todo PR que tocava o schema conflitava) sem produzir sinal.
         name: "Manifest do parecer planejador em sync com E5 schema + report_layout (ADR-200)"
         entry: python3 dev/check_planner_manifest_coverage.py
         language: system
         pass_filenames: false
-        files: '^(config/prompts/parecer_planejador\.yaml|config/schemas/parecer_planejador\.schema\.json|config/schemas/e5_analysis\.schema\.json|config/report_layout\.yaml|docs/_schemas/note-planner\.schema\.json|dev/check_planner_manifest_coverage\.py|dev/snapshots/e5_schema_hash\.txt)$'
+        files: '^(config/prompts/parecer_planejador\.yaml|config/schemas/parecer_planejador\.schema\.json|config/schemas/e5_analysis\.schema\.json|config/report_layout\.yaml|docs/_schemas/note-planner\.schema\.json|dev/check_planner_manifest_coverage\.py)$'
 
       - id: prompt-version-bumped
         # Sprint A11 W2-T05 · ADR-233 — exige bump de PROMPT_VERSION
