@@ -150,10 +150,12 @@ SCHEMA_BY_STAGE: dict[str, str] = {
     # L1: previdência (PGBL/VGBL). L2-L4 expandem para financeiro_pj/pf,
     # proventos, aluguel migra do standalone acima.
     "extract_informes_anuais": "informe_base.schema.json",
-    # extract_comprovantes_bens — comprovantes de bens polimórficos (ADR-239).
-    # A18 L1: CRLV-e (veículos). A18 V2 estende para imóveis (RGI/IPTU) e
-    # outros bens com identidade canônica.
-    "extract_comprovantes_bens": "crlv.schema.json",
+    # extract_comprovantes_bens — comprovantes de bens polimórficos (ADR-239 D8).
+    # O stage tem DOIS writers (_persist_crlv, _persist_apolice) e este mapa é
+    # 1:1 — apontá-lo direto para crlv.schema.json validava apólice contra
+    # schema de veículo. O base despacha por `tipo_comprovante`; cada ramo
+    # mantém a própria strictness. A18 V2 (imóveis RGI/IPTU) adiciona ramo.
+    "extract_comprovantes_bens": "comprovante_base.schema.json",
     # E3 — reconciliação
     "E3": "e3_reconciled.schema.json",
     "reconcile_transactions": "e3_reconciled.schema.json",

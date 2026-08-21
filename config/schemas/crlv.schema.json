@@ -6,6 +6,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "tipo_comprovante",
     "placa",
     "renavam",
     "marca",
@@ -18,6 +19,10 @@
     "prompt_version"
   ],
   "properties": {
+    "tipo_comprovante": {
+      "const": "crlv",
+      "description": "Discriminator do comprovante_base — enxertado pelo stage pós-model_dump. Ramo com additionalProperties:false não enxerga as properties do base, então precisa declará-lo."
+    },
     "placa": {
       "type": "string",
       "pattern": "^[A-Z]{3}\\d[A-Z\\d]\\d{2}$",
