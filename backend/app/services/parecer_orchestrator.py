@@ -39,6 +39,7 @@ from backend.app.services.parecer_pos_llm_guardrails import (
     downgrade_confianca_fallback,
     filter_campos_faltantes,
     guardrails_summary,
+    neutralize_trajetoria_sem_serie,
 )
 from backend.app.services.parecer_red_lines import RED_LINES_VERSION, check_red_lines
 from backend.app.services.parecer_strict_enforcement import (
@@ -672,11 +673,15 @@ def _apply_pos_llm_guardrails(
     raw, downgraded = downgrade_confianca_fallback(raw, e5_data, config.workspace_id)
     raw, audit = filter_campos_faltantes(raw, e5_data, config.workspace_id)
     raw, antagonicas = _rebaixa_antagonismo(raw, config.workspace_id)
+    raw, trajetoria = neutralize_trajetoria_sem_serie(raw, config.workspace_id)
     return (
         raw,
         audit,
         guardrails_summary(
-            confianca_rebaixada=downgraded, audit=audit, sugestoes_antagonicas=antagonicas
+            confianca_rebaixada=downgraded,
+            audit=audit,
+            sugestoes_antagonicas=antagonicas,
+            extra=trajetoria,
         ),
     )
 
