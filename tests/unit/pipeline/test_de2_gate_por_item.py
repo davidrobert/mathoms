@@ -1,4 +1,4 @@
-"""DE-2 / RV7-04 — gate por ITEM da catch-all ([[ADR-405]]).
+"""DE-2 / RV7-04 — gate por ITEM da catch-all ([[ADR-406]]).
 
 O eixo é a cegueira POR CONSTRUÇÃO que o §r7 denuncia: migração entre baldes
 preserva Σ, então todo check de conservação passa. Os testes de replay abaixo

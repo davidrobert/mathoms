@@ -156,7 +156,7 @@ class TestNImoveis:
 
 class TestSerialization:
     def test_to_dict_shape(self):
-        # `n_posicoes`/`posicoes_sem_identidade` entraram em [[ADR-405]]: sem o
+        # `n_posicoes`/`posicoes_sem_identidade` entraram em [[ADR-406]]: sem o
         # denominador, uma queda no número de instituições é indistinguível
         # entre corpus menor e identidade perdida (§r7: 18→16 com posições fixas).
         m = MembroInstituicoes(membro="david", instituicoes=("Btg", "Xp"), n_posicoes=2)

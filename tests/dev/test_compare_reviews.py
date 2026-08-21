@@ -316,7 +316,7 @@ def test_snapshot_omite_provenance_quando_nao_ha() -> None:
 
 
 # =============================================================================
-# DE-2 / RV7-04 — par compensatório e cobertura de identidade ([[ADR-405]])
+# DE-2 / RV7-04 — par compensatório e cobertura de identidade ([[ADR-406]])
 # =============================================================================
 
 

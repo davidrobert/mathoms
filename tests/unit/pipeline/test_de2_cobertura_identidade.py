@@ -1,4 +1,4 @@
-"""DE-2 braço 2 — cobertura de identidade de instituição por membro ([[ADR-405]]).
+"""DE-2 braço 2 — cobertura de identidade de instituição por membro ([[ADR-406]]).
 
 Medido no §r7: as instituições distintas do titular caíram de 18 para 16 com as
 posições constantes. A causa não é a contagem — é posição com valor cuja

@@ -2510,7 +2510,7 @@ def _e5_print_summary(legacy: Dict[str, Any]) -> None:
 def _e5_review_reasons(
     patrimonio: Dict[str, Any], investimentos: Dict[str, Any] | None
 ) -> list[dict]:
-    """Balde negativo, membro não apurado ([[ADR-394]]) e ativo sem classe ([[ADR-405]])."""
+    """Balde negativo, membro não apurado ([[ADR-394]]) e ativo sem classe ([[ADR-406]])."""
     from pipeline.domain.services.classificacao_review_reasons import (
         review_reasons_da_classificacao,
     )

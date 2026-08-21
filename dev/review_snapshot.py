@@ -2,7 +2,7 @@
 
 Metade "snapshot" do ``compare_reviews``: zero literal monetário, zero nome
 próprio, zero descrição de transação. Só contagens, enums, estados e
-percentuais. Separado em [[ADR-405]], quando o arquivo único cruzou 500 linhas.
+percentuais. Separado em [[ADR-406]], quando o arquivo único cruzou 500 linhas.
 """
 
 from __future__ import annotations

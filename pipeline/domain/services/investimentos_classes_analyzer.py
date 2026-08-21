@@ -90,7 +90,7 @@ class InvestimentosClassesConfig:
 
 
 # Item, não agregado: a migração entre baldes preserva Σ, então o percentual da
-# catch-all é cego POR CONSTRUÇÃO ao caso do §r7 ([[ADR-405]]).
+# catch-all é cego POR CONSTRUÇÃO ao caso do §r7 ([[ADR-406]]).
 @dataclass(frozen=True)
 class PosicaoNaoClassificada:
     """Posição cuja classe nenhum degrau decidiu — locator PII-free + valor."""
@@ -141,7 +141,7 @@ class InvestimentosClassesAnalysis:
     warnings: tuple[OutrosExcessivoWarning, ...] = ()
     # Soma dos investimentos cuja classe NENHUM degrau decidiu ([[ADR-400]]).
     nao_classificado_brl: Decimal = Decimal("0")
-    # As posições por trás dessa soma ([[ADR-405]]) — o agregado sozinho não
+    # As posições por trás dessa soma ([[ADR-406]]) — o agregado sozinho não
     # distingue um item grande migrado de mil cortes pequenos.
     nao_classificado_itens: tuple[PosicaoNaoClassificada, ...] = ()
 

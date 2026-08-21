@@ -233,7 +233,7 @@ _RECLASSIFICACAO_TOL_CENTESIMOS = 2
 # Assinatura de RECLASSIFICAÇÃO, e por isso `corpus_grew` não a suprime: corpus
 # maior move muitas classes na MESMA direção, nunca duas em módulo igual e sinal
 # oposto com o resto parado. É a dimensão que os 16 CV não cobrem — migração
-# entre baldes preserva Σ por construção ([[ADR-405]]).
+# entre baldes preserva Σ por construção ([[ADR-406]]).
 def _reclassificacao_regression(base: dict, cur: dict) -> list[str]:
     b = (base.get("investimentos_mix") or {}).get("classes") or {}
     c = (cur.get("investimentos_mix") or {}).get("classes") or {}

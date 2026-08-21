@@ -29,7 +29,7 @@ class InstituicoesPorMembroConfig:
 
 @dataclass(frozen=True)
 class PosicaoSemIdentidade:
-    """Posição com valor cuja instituição não chegou ([[ADR-405]])."""
+    """Posição com valor cuja instituição não chegou ([[ADR-406]])."""
 
     locator: str
     valor: Decimal
@@ -46,7 +46,7 @@ class MembroInstituicoes:
     instituicoes: tuple[str, ...]
     # `instituicoes` sozinho é incomparável entre runs: uma queda pode vir de
     # corpus menor ou de identidade perdida. `n_posicoes` é o denominador que
-    # separa os dois ([[ADR-405]]; medido no §r7 como 18→16 com posições fixas).
+    # separa os dois ([[ADR-406]]; medido no §r7 como 18→16 com posições fixas).
     n_posicoes: int = 0
     posicoes_sem_identidade: tuple[PosicaoSemIdentidade, ...] = ()
 
@@ -131,7 +131,7 @@ class InstituicoesPorMembroAnalyzer:
         ]
 
     # `.capitalize()` é normalização com perda (mediu 20 rótulos crus → 19 no
-    # corpus do §r7) — deferida em [[ADR-405]] §Deferimento D1, não é acidente.
+    # corpus do §r7) — deferida em [[ADR-406]] §Deferimento D1, não é acidente.
     @staticmethod
     def _collect_instituicoes(bens: Mapping[str, Any]) -> list[str]:
         seen: set[str] = set()

@@ -1,4 +1,4 @@
-"""Gate por ITEM da catch-all de classes de ativo ([[ADR-405]] · DE-2 / RV7-04).
+"""Gate por ITEM da catch-all de classes de ativo ([[ADR-406]] · DE-2 / RV7-04).
 
 Migração entre baldes preserva Σ por construção, então os 16 checks de
 conservação são cegos a ela por desenho: no §r7 a perda de um balde igualou o
@@ -42,7 +42,7 @@ def classificacao_gate_ligado() -> bool:
 
 # Separador DECIMAL PONTO, não vírgula: `redact_pii._MONEY_RE` casa `\d+,\d{2}`
 # e mascarava "1,30%" como "R$ ***%" — percentual em pt-BR é indistinguível de
-# BRL para o redator. O valor em reais fica de fora por decisão ([[ADR-405]]);
+# BRL para o redator. O valor em reais fica de fora por decisão ([[ADR-406]]);
 # o peso na carteira é o número que decide o limiar.
 def _pct_str(pct: float) -> str:
     """Percentual da carteira financeira, imune à redação monetária."""
@@ -190,7 +190,7 @@ def _itens_normalizados(investimentos: dict) -> list[dict]:
 def review_reasons_da_classificacao(
     investimentos: dict[str, Any] | None, *, stage: str, artifact_key: str
 ) -> list[dict]:
-    """Projeta o gate por item do artefato E5 para ``review_reason`` ([[ADR-405]])."""
+    """Projeta o gate por item do artefato E5 para ``review_reason`` ([[ADR-406]])."""
     if not classificacao_gate_ligado():
         return []
     inv = investimentos or {}
