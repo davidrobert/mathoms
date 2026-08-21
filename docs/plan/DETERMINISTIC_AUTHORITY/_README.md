@@ -438,7 +438,7 @@ atribuição de investimento por membro. 3c–3f seguem sem lane.
   ([[ADR-267]]; slug de LLM nunca é chave) + **varredura de matching por
   substring** além do analyzer (ex.: `patrimonio_resolvers` casa
   `conjuge_key in kl`) + gate proibindo match por substring em chave de membro.
-- 3c. ✅ **Entregue em 2026-08-19** pela [[A40.l73]] ([[ADR-395]] `Proposto`),
+- 3c. ✅ **Entregue em 2026-08-19** pela [[A40.l73]] ([[ADR-395]] `Decidido`),
   fora do MVP declarado por autorização do dono. Produtor `gap_qualitativo`
   reconciliado com `irpf_kpis.dependentes` (determinístico, #1576); **e** o
   produtor do `protection_bundle` consumindo a fonte documental

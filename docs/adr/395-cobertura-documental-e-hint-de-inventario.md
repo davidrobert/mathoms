@@ -2,7 +2,7 @@
 id: ADR-395
 type: adr
 title: "Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap"
-status: Proposto
+status: Decidido
 phase: A40.l73
 date: "2026-08-19"
 relates_to:
