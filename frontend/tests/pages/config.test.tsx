@@ -131,7 +131,11 @@ describe("ConfigPage", () => {
         called = true;
         return HttpResponse.json(null);
       }),
-      http.get("/api/v1/config/llm/tier", () =>
+      // A rota é escopada por workspace desde a migração de `/config/*`; o
+      // override apontava para `/api/v1/config/llm/tier`, que o cliente não
+      // chama mais — nunca casava, e o fetch de tier ia para o
+      // `onUnhandledRequest: "error"` enquanto o teste seguia verde.
+      http.get("/api/v1/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
     );

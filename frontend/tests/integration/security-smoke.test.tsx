@@ -49,6 +49,19 @@ vi.mock("@/lib/WorkspaceProvider", () => ({
 beforeEach(() => {
   localStorage.setItem("fin_token", "t");
   replaceMock.mockClear();
+  server.use(
+    http.get("/api/v1/workspaces/:workspaceId/suggestions/count", () =>
+      HttpResponse.json({ count: 0, status: "Pendente" }),
+    ),
+    // O 401 aqui é o **assunto** de metade destes testes: o refresh do
+    // ADR-170 tem de falhar para o AppShell cair em clearToken + /login.
+    // Declarado explícito — antes quem produzia a falha era a ausência de
+    // handler, e o teste passava por acidente de infraestrutura de mock.
+    http.post("/api/v1/auth/refresh", () =>
+      HttpResponse.json({ detail: "expired" }, { status: 401 }),
+    ),
+    http.post("/api/v1/auth/logout", () => new HttpResponse(null, { status: 204 })),
+  );
 });
 
 // ─── XSS smoke em campos user-controlled ─────────────────────────────
