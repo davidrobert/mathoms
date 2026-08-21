@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "comprovante_base.schema.json",
+  "title": "Comprovante de Bem (base polimórfico)",
+  "description": "Schema-base do stage extract_comprovantes_bens (ADR-239 D8). Discriminator: tipo_comprovante, enxertado pelo stage pós-model_dump (o tipo é determinístico em _detect_tipo_comprovante — não se pede ao LLM). Despacha por if/then para o schema do ramo, que mantém a própria strictness: crlv é additionalProperties:false, apolice é lenient no topo com sub-objetos strict (ADR-238 D2). O despacho é if/then e NÃO oneOf-por-shape: oneOf colapsa o path de drift para a raiz `$` e cega a telemetria per-path da ADR-284, que é o gate do flip warn→strict. A18 V2 (imóveis rgi/iptu) adiciona o valor do enum E o ramo no mesmo PR — valor de enum sem ramo valida contra nada.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["tipo_comprovante"],
+  "properties": {
+    "tipo_comprovante": {
+      "enum": ["crlv", "apolice"],
+      "description": "Discriminator do ramo. Identidade é declarada, não inferida do shape."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "tipo_comprovante": { "const": "crlv" } },
+        "required": ["tipo_comprovante"]
+      },
+      "then": { "$ref": "crlv.schema.json" }
+    },
+    {
+      "if": {
+        "properties": { "tipo_comprovante": { "const": "apolice" } },
+        "required": ["tipo_comprovante"]
+      },
+      "then": { "$ref": "apolice.schema.json" }
+    }
+  ]
+}
