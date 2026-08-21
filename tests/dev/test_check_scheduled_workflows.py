@@ -9,7 +9,10 @@ import pytest
 from dev import check_scheduled_workflows as mod
 
 REF = date(2026, 8, 21)
-ENTRY = {"file": "auto-update-prs.yml", "max_age_days": 2}
+# Nome genérico de propósito: o defeito é do resolvedor de idade, que não olha
+# para qual workflow é. Fixar um alvo nomeado fecharia a instância, não a classe
+# — e as ocorrências reais caíram em 3 workflows diferentes.
+ENTRY = {"file": "qualquer-agendado.yml", "max_age_days": 2}
 
 
 def _pagina(*instantes: str) -> dict:

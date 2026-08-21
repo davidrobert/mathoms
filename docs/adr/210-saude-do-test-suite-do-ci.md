@@ -847,8 +847,17 @@ nada e o fix nasceria inerte. Medido contra a API real neste dia, no repo:
 
 A obsolescência é de linha — a premissa se sustenta. As duas leituras sujas
 caíram em workflows **diferentes**, o que corrobora a causa compartilhada (a
-query) contra hipótese específica de workflow, como já apontava a segunda
-ocorrência acima. Regressão em
+query) contra hipótese específica de workflow.
+
+**Quarta e quinta ocorrências, 2026-08-21, no mesmo PR (#1568).** Dois runs de CI
+distintos acusaram workflows **distintos**: `[S2] stale.yml: último run há 14d
+(limite 3d)` (run 32492357488) e `[S2] auto-update-prs.yml: último run há 14d
+(limite 2d)` (run 32491419416) — com um `OK` limpo do mesmo gate minutos depois.
+Somando #1548 (`budget-alert.yml`) e #1590 (`stale.yml`), são **três workflows
+diferentes** flagrados. Um alvo só ainda admitiria "o índice daquele workflow
+está ruim"; três alvos e um `OK` intercalado deixam só a query. Por isso o teste
+de regressão usa **nome de workflow genérico**: fixar um alvo nomeado fecharia a
+instância, não a classe. Regressão em
 [`tests/dev/test_check_scheduled_workflows.py`](../../tests/dev/test_check_scheduled_workflows.py):
 a fixture é a forma medida (cabeça velha + linhas frescas), e reverter para
 `per_page=1`/`runs[0]` derruba 2 dos 5 testes.
