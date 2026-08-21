@@ -4,7 +4,7 @@ type: adr
 title: "Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)"
 status: Decidido
 date: "2026-07-09"
-amended_at: ["2026-08-08"]
+amended_at: ["2026-08-08", "2026-08-21"]
 relates_to:
   - "[[ADR-210]]"
   - "[[ADR-320]]"
@@ -18,6 +18,10 @@ tags:
 ---
 
 # ADR-322 — Trem de auto-merge serializado com identidade real
+
+> **Emendada em 2026-08-21** — skip-class `incoming_main_docs_only` nos jobs
+> pesados do CI, fail-closed enquanto o compensador `main-smoke` não estiver
+> vivo nas últimas 24h. D1 e D4 não reabrem. Ver §Emenda 2026-08-21.
 
 **Status:** Decidido • **Data:** 2026-07-09 • **Relaciona** [[ADR-210]], [[ADR-320]].
 
@@ -138,3 +142,23 @@ mover não é fila em andamento — é fila morta, e segurá-la não protege nad
 **Diagnóstico read-only barato** (antes de rebasar em loop e queimar ciclos de
 CI): `gh run list --workflow=auto-update-prs.yml --limit 1` e
 `python3 dev/ci_advance_automerge_train.py --dry-run`.
+
+## Emenda 2026-08-21 — skip-class `incoming_main_docs_only`
+
+Incidente: N PRs de código na fila, cada squash de docs no `main` zera o verde
+dos outros (O(n²) de CI). Relaxar `strict` (D4) foi rejeitado: o ruleset não
+distingue delta docs de delta de código.
+
+**O que esta emenda decide:**
+
+1. Jobs pesados (`pipeline-tests`, `backend-tests`, `frontend-checks`,
+   `go-lint`, `go-test`) skipam quando o HEAD é merge-commit cujo segundo
+   parent está em `origin/main` **e** `git diff HEAD^1 HEAD` é só vault
+   (`docs/**` + `*.md` na raiz, **exceto** `docs/reference/api/**`).
+2. Fail-closed: rebase (1 parent), mix de código, OpenAPI, lista vazia ou
+   `main-smoke`/`Nightly` success com mais de 24h → suíte cheia.
+3. `lint-all` e `changes` **não** skipam. Label `visual`/`print` continua
+   opt-in próprio — o skip não os apaga.
+4. D1 (1 PR/run) e D4 (`strict` ligado) **não reabrem**. O skip é inerte
+   enquanto o compensador noturno estiver `disabled_manually` — é a mesma
+   trava da [[ADR-210]] camada 4.

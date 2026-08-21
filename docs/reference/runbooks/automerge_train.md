@@ -23,6 +23,11 @@ estado normal — não sintoma. Medido em 2026-08-21: ~13 min por PR, ~2h
 para drenar 9 PRs armados. Antes de procurar o que destravar, confirme
 que não é só a fila andando.
 
+**Congelar squash de docs** enquanto houver >2 PRs de código com
+auto-merge: cada docs no `main` zera o verde da fila. DIRTY não entra no
+trem — rebase + `--auto` só na cabeça, um de cada vez. Não rebaseie os
+outros na mão.
+
 **Invariante:** update-branch/push NUNCA pode sair como
 `github-actions[bot]` — runs nascem `action_required` (0 jobs) e o CI
 nunca roda. Por isso não existe fallback para `GITHUB_TOKEN`.
