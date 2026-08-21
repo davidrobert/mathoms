@@ -2,8 +2,8 @@
 id: ADR-399
 type: adr
 title: "Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número"
-status: Proposto
-phase: §r7 PE-2/FP-6
+status: Decidido
+phase: r7.PE-2/FP-6
 date: "2026-08-19"
 relates_to:
   - "[[ADR-081]]"
@@ -18,9 +18,19 @@ relates_to:
   - "[[ADR-396]]"
 tags:
   - type/adr
+  - status/decidido
   - area/llm
   - area/dominio
+aliases:
+  - "ADR 399"
+  - "procedência do alvo de KPI"
 ---
+
+# ADR-399 — Alvo de KPI tem procedência; o LLM seleciona, não autora
+
+> **Decidido em 2026-08-19** na remediação de **PE-2** + **FP-6** (P1) do §r7 de
+> [[PIPELINE-REVIEWS-active]]. Implementação **em ondas** — ver §Estado de
+> implementação antes de §Consequências.
 
 ## Contexto
 
@@ -90,22 +100,48 @@ sinal. Quatro órfãos **por decisão de domínio**, não por lacuna:
 **não escolhe** — publica órfão. Escolher seria inventar regra de domínio com
 carimbo de procedência, pior que o alvo do LLM por parecer autoritativo.
 
-**D4 — Leitor único por limiar, no produtor.** O catálogo vive em
-`pipeline/domain/services/kpi_target_catalog.py` e é o único leitor de cada
-constante. Precisa ser o produtor porque só ele conhece a config **efetiva** após
-override por workspace ([[ADR-134]]) — `concentracao_alerta_pct` entra por
-parâmetro, não por global. Antes disso `endividamento_maximo_pct` já tinha dois
-leitores com default inline duplicado; um terceiro no backend seria a quarta cópia
-([[ADR-143]], methodology = code).
+**D4 — Leitor único do limiar **na rota do `target` publicado**, no produtor.** O
+catálogo vive em `pipeline/domain/services/kpi_target_catalog.py` e é o leitor
+único **do alvo que o parecer publica**. Precisa ser o produtor porque só ele
+conhece a config **efetiva** após override por workspace ([[ADR-134]]) —
+`concentracao_alerta_pct` entra por parâmetro, não por global; um leitor no
+backend teria de reimplementar a resolução ([[ADR-143]], methodology = code).
+
+**O escopo é essa rota, não o repo.** Os leitores pré-existentes de
+`endividamento_maximo_pct` (`pontos_fortes_analyzer.py:66` e
+`pontos_urgentes_analyzer.py:65`, com o default inline `20` duplicado nos dois) e
+de `concentracao_alerta_pct` (`real_estate_metrics_aggregator.py:142`)
+**permanecem** — não foram unificados e não estão no escopo desta ADR. Redação
+anterior dizia "leitor único de cada constante", o que a medição refuta: o
+catálogo é um **terceiro** leitor. Unificar os demais é trabalho à parte.
+
+## Estado de implementação (2026-08-21)
+
+`Decidido` refere-se à **decisão**, não à cobertura. Registro de fato, **não**
+emenda — nenhuma decisão acima mudou.
+
+**Em produção, o parecer continua publicando `target` autorado pelo LLM.** O
+defeito que PE-2 e FP-6 descrevem segue vivo no relatório entregue.
+
+| decisão | estado em `main` |
+|---|---|
+| **D1** — `target`/`valor_atual` derivados, LLM emite `metrica_key` | **não construído.** `Metrica` não tem `metrica_key`, `target` segue required-string, e nada estampa o alvo no pós-LLM |
+| **D2** — precedência declarado > doutrina | refletida no catálogo (#1557, `13deaa8f`); **sem consumidor** enquanto D1 não existir |
+| **D3** — órfão publica `motivo`, nunca número | idem D2 — o invariante vive no catálogo e no `e5_analysis.schema.json` |
+| **D4** — leitor único na rota do `target` | catálogo é o leitor único **do alvo publicado** (#1557). Os leitores pré-existentes citados em D4 **permanecem** |
+| publicação de `kpi_targets` no payload E5 | #1591 — **habilita** D1, não o entrega |
+
+Dono, faltantes (a)–(d) e condição de retomada: **§Deferimento D3 (2026-08-21)**
+em [[PIPELINE-REVIEWS-active]].
 
 ## Consequências
 
-- Cobertura medida no payload real do run r7: **6/10 resolvem, 4 órfãos
-  documentados**. A premissa "toda métrica % vira drop → a seção esvazia" não se
+- Cobertura **do catálogo** medida sobre o payload do run r7: **6/10 resolvem,
+  4 órfãos documentados** (não é cobertura do parecer publicado — ver §Estado). A premissa "toda métrica % vira drop → a seção esvazia" não se
   materializa: nenhuma métrica é omitida.
 - O bloqueio declarado do **catálogo KPI não se aplica a este eixo** — ver
   §Bloqueio abaixo.
-- `Metrica` ganha `metrica_key`; `target` passa a `Optional`. Bump do schema de
+- `Metrica` **passará a ter** `metrica_key`, com `target` `Optional` (D1 — ver §Estado). Bump do schema de
   saída + `PROMPT_VERSION` ([[ADR-396]] D3 explica por que o bump é load-bearing).
 - O LLM emite **menos** tokens (perde `target` e `valor_atual`, ganha um enum
   curto).

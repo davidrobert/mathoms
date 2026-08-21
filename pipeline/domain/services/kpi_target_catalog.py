@@ -7,9 +7,11 @@ observado**: violação virou conformidade sem nada ter mudado no patrimônio. E
 limiar canônico do repo para esse conceito é 50% ([[ADR-340]]), então os dois
 números do LLM estavam errados, em direções opostas.
 
-Este módulo é o **leitor único** de cada limiar. Antes dele, ``endividamento_maximo_pct``
-já tinha dois leitores com default inline duplicado; um terceiro no backend seria a
-quarta cópia.
+Este módulo é o leitor único do limiar **na rota do `target` publicado** — não do
+repo. Os leitores pré-existentes de ``endividamento_maximo_pct``
+(``pontos_fortes_analyzer``, ``pontos_urgentes_analyzer``, com default inline
+duplicado) permanecem; unificá-los é trabalho à parte. O que esta rota evita é uma
+**quarta** cópia, nascendo no backend.
 
 Duas procedências, com precedência declarada — **alvo da família vence doutrina do
 produto** (co-design financial-planner: na metodologia dona da métrica o desvio só
