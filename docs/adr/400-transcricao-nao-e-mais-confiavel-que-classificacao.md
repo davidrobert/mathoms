@@ -5,6 +5,7 @@ title: "Transcrição não é mais confiável que classificação — a forma da
 status: Decidido
 phase: DE-1
 date: "2026-08-19"
+amended_at: ["2026-08-21"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-097]]"
@@ -27,6 +28,8 @@ tags:
 ---
 
 # ADR-400 — Transcrição não é mais confiável que classificação
+
+> **Emendada em 2026-08-21** (§Emenda — o gatilho é re-extração, não o #1521).
 
 ## Contexto
 
@@ -165,3 +168,26 @@ o catálogo `(secao, codigo)` — exatamente o que a M1 acabou de fechar.
   São keywords sobre a **descrição do próprio item**, não sobre forma canônica de
   terceiro, então não têm o modo de falha desta ADR — mas são degrau 2 frágil e
   saem quando o degrau 1 entrar.
+
+## Emenda 2026-08-21 — o gatilho é *qualquer* re-extração, não o #1521
+
+O §r7 registrava o DE-1 atribuindo a migração de classe ao bump de
+`PROMPT_VERSION` do **#1521**. Esta ADR nunca fez essa atribuição — e a medição
+mostra que ela é falsa como **causa**:
+
+| medida | resultado |
+| --- | --- |
+| commits na história de `-L '/Instituição financeira/,+1'` (`pipeline/llm/prompts/e15_baseline.py`) | **1** — `6219acd5`, 2026-04-14 |
+| o #1521 (`3a7aca05`) tocou o arquivo? | sim |
+| o #1521 tocou **a linha** que produz o rótulo de instituição? | **não** |
+
+A instrução que produz o rótulo não mudou desde abril. O que o #1521 fez foi
+forçar **re-extração** — e é a re-extração, não o conteúdo do prompt, que
+reemite a instituição em forma canônica e move a classe.
+
+**Consequência prática:** o conjunto de gatilhos é maior do que o §r7 sugeria —
+retry de stage, documento reprocessado, troca de model, `reextract_stale_e2_llm.py`
+e qualquer bump de `PROMPT_VERSION`. Uma guarda desenhada a partir da redação
+antiga cobriria a minoria dos casos. A decisão desta ADR **não muda**: o remédio
+já é a autoridade declarada no resultado, que independe do gatilho. O que muda é
+onde procurar quando a classe migrar sem diff no classificador.
