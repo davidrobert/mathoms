@@ -1691,6 +1691,41 @@
           "maximum": 100,
           "description": "Fração da CARTEIRA FINANCEIRA (mesma base de pct_carteira_financeira) cuja classe nenhum degrau decidiu — autoridade em {sem_match, sem_haystack, sem_mapa} (ADR-400). Gradua a supressão da prescrição de alocação: <2% publica tudo, 2-10% derruba next_aporte_classe, >=10% derruba também desvio_max_pct. 'Outros' segue classe legítima; não-classificado deriva da autoridade, não do rótulo."
         },
+        "nao_classificado_itens": {
+          "type": "array",
+          "description": "Posições por trás de nao_classificado_pct (ADR-406 · DE-2/RV7-04). O agregado sozinho não distingue um item grande migrado para a catch-all de mil cortes pequenos — e migração entre baldes preserva Σ, então nenhum check de conservação alcança a classe. `locator` é o investment_id do baseline (sha256 de tipo|instituicao|descricao): PII-free e grepável. Sem valor em BRL por decisão — o peso na carteira é o número que decide o limiar, e redact_pii mascararia o monetário.",
+          "items": {
+            "type": "object",
+            "required": [
+              "locator",
+              "pct_carteira_financeira",
+              "autoridade"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "locator": {
+                "type": "string",
+                "minLength": 1,
+                "description": "investment_id do baseline, ou `h:<sha256[:16]>` da descrição quando ausente."
+              },
+              "pct_carteira_financeira": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Peso do item sobre a CARTEIRA FINANCEIRA (mesma base de nao_classificado_pct, A37.l9). ADR-209: 1.28 = 1,28%."
+              },
+              "autoridade": {
+                "type": "string",
+                "enum": [
+                  "sem_match",
+                  "sem_haystack",
+                  "sem_mapa"
+                ],
+                "description": "Por que a classe não foi decidida (ADR-400). `sem_haystack` é violação de contrato do produtor e nunca escala por limiar."
+              }
+            }
+          }
+        },
         "fonte": {
           "type": "string",
           "enum": [
@@ -1801,6 +1836,34 @@
                   "minLength": 1
                 },
                 "uniqueItems": true
+              },
+              "n_posicoes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Posições de investimento do membro — o denominador que torna `instituicoes` comparável entre runs (ADR-406). Sem ele, uma queda no número de instituições é indistinguível entre corpus menor e identidade perdida (§r7: 18→16 com posições constantes)."
+              },
+              "posicoes_sem_identidade": {
+                "type": "array",
+                "description": "Posições COM VALOR cuja instituição não chegou (ADR-406). Elas somem de `instituicoes` e continuam num balde nomeado — no §r7 a interseção com nao_classificado_itens foi ZERO, e a maior órfã pesava 2,81% da carteira. Posição zerada fica de fora: é posição encerrada, não lacuna de identidade.",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "locator",
+                    "valor"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "locator": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "valor": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Wire legado do E5 é JSON number (ADR-090 §consequências); Decimal em memória."
+                    }
+                  }
+                }
               }
             },
             "additionalProperties": false

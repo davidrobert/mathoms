@@ -396,6 +396,7 @@
 | ADR-400 | adr | Proposto |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
 | ADR-402 | adr | Decidido |  | Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado | `adr/402-teto-e-capacidade-restante-do-pgbl-sao-campos-distintos.md` |
 | ADR-404 | adr | Decidido |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |
+| ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

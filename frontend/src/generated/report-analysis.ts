@@ -642,6 +642,11 @@ export type E5AnalysisArtifact = {
     "total_financeiro"?: number;
     "total_imoveis_investimento"?: number;
     "nao_classificado_pct"?: number;
+    "nao_classificado_itens"?: Array<{
+      "locator": string;
+      "pct_carteira_financeira": number;
+      "autoridade": "sem_match" | "sem_haystack" | "sem_mapa";
+    }>;
     "fonte"?: "irpf_bens";
     "top_ativos"?: Array<{
       "posicao": number;
@@ -657,6 +662,11 @@ export type E5AnalysisArtifact = {
     "instituicoes_por_membro"?: Array<{
       "membro": string;
       "instituicoes": Array<string>;
+      "n_posicoes"?: number;
+      "posicoes_sem_identidade"?: Array<{
+        "locator": string;
+        "valor": number;
+      }>;
     }>;
     "n_imoveis_total"?: number;
   };
