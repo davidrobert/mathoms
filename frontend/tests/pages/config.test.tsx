@@ -138,6 +138,16 @@ describe("ConfigPage", () => {
       http.get("/api/v1/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
+      // Só alcançável depois que o tier resolve — com o override quebrado
+      // acima, esta request nunca chegava a sair.
+      http.get("/api/v1/workspaces/:workspaceId/config/llm/models", () =>
+        HttpResponse.json({
+          provider: "anthropic",
+          models: [],
+          default_model: "",
+          fetched_dynamic: false,
+        }),
+      ),
     );
     const user = userEvent.setup();
     render(<ConfigPage />);
