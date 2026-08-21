@@ -34,6 +34,10 @@ from backend.app.services.parecer_finalization import (
     stamp_ancora_values,
     validate_anti_sigilo,
 )
+from backend.app.services.parecer_guardrails_divida import (
+    neutralize_autocontradicao,
+    piso_prescricao_divida,
+)
 from backend.app.services.parecer_manifest import ManifestData, load_manifest, load_persona
 from backend.app.services.parecer_pos_llm_guardrails import (
     downgrade_confianca_fallback,
@@ -664,26 +668,29 @@ def _rebaixa_antagonismo(
     return raw.model_copy(update=update), n
 
 
+# ORDEM: a injeção do pedido de taxa (FP-4 D3-A) vem ANTES do filtro 3-vias de
+# propósito — o filtro revalida o path injetado contra o E5 e removeria um pedido
+# espúrio. Inverter a ordem publicaria pedido não conferido.
 def _apply_pos_llm_guardrails(
     raw: ParecerPlanejadorOutput,
     e5_data: Mapping[str, Any],
     config: ParecerOrchestratorConfig,
 ) -> tuple[ParecerPlanejadorOutput, list[dict], dict]:
     """Guardrails determinísticos A28.l11 — rebaixam/removem, nunca needs_review."""
-    raw, downgraded = downgrade_confianca_fallback(raw, e5_data, config.workspace_id)
-    raw, audit = filter_campos_faltantes(raw, e5_data, config.workspace_id)
-    raw, antagonicas = _rebaixa_antagonismo(raw, config.workspace_id)
-    raw, trajetoria = neutralize_trajetoria_sem_serie(raw, config.workspace_id)
-    return (
-        raw,
-        audit,
-        guardrails_summary(
-            confianca_rebaixada=downgraded,
-            audit=audit,
-            sugestoes_antagonicas=antagonicas,
-            extra=trajetoria,
-        ),
+    ws = config.workspace_id
+    raw, downgraded = downgrade_confianca_fallback(raw, e5_data, ws)
+    raw, divida = piso_prescricao_divida(raw, e5_data, ws)
+    raw, audit = filter_campos_faltantes(raw, e5_data, ws)
+    raw, antagonicas = _rebaixa_antagonismo(raw, ws)
+    raw, trajetoria = neutralize_trajetoria_sem_serie(raw, ws)
+    raw, contradicao = neutralize_autocontradicao(raw, e5_data, ws)
+    summary = guardrails_summary(
+        confianca_rebaixada=downgraded,
+        audit=audit,
+        sugestoes_antagonicas=antagonicas,
+        extra={**divida, **trajetoria, **contradicao},
     )
+    return raw, audit, summary
 
 
 def _generate_with_llm(
