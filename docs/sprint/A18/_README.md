@@ -30,7 +30,13 @@ Entrega: migration Alembic `vehicles` + extensão `market_rates.reference_month`
 
 Lane mais complexa: schema polimórfico com Discriminated Union (3 tipos de bem: veículo/imóvel/pessoa-placeholder-V2). Casca cascata Haiku→Sonnet quando detectar multi-bem. **Apólice combinada Porto Seguro (Toro + residência) é caso V1 obrigatório.**
 
-Entrega: schema `apolice.schema.json` polimórfico + `Cobertura` também discriminated (material/rcfv/vida-V2/saúde-V2/acidentes-V2); classifier `apolice_seguro`; parser LLM Haiku→Sonnet cascade; reconciliação `veiculo_id`/`imovel_id` assíncrona; histórico imutável temporal; catálogo institucional expandido (`insurance_carrier`, `insurance_broker`).
+Entrega: schema Pydantic `ApolicePayload` polimórfico + `Cobertura` também discriminated (material/rcfv/vida-V2/saúde-V2/acidentes-V2); classifier `apolice_seguro`; parser LLM Haiku→Sonnet cascade; reconciliação `veiculo_id`/`imovel_id` assíncrona; histórico imutável temporal; catálogo institucional expandido (`insurance_carrier`, `insurance_broker`).
+
+> **Correção 2026-08-21 ([[A40.l74]] · [[ADR-407]]):** esta linha dizia "schema
+> `apolice.schema.json` polimórfico". O JSON Schema **nunca existiu** — o que L2
+> entregou foi o Pydantic `ApolicePayload`. Como `SCHEMA_BY_STAGE` é 1:1 e apontava
+> para `crlv.schema.json`, payload de apólice foi validado contra o schema de veículo
+> por ~3 meses (25 paths em drift, silenciosos porque o modo é `warn`).
 
 ### L3 — FIPE refresh assíncrono via BrasilAPI — 2 PRs (~3d eng)
 
