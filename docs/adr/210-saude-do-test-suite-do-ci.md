@@ -868,6 +868,18 @@ não exclui esse caso — só mostra que ele não ocorreu. O sintoma é idêntic
 registrado aqui, e o diagnóstico barato do parágrafo anterior (só o seu PR
 reprova + diff não toca `.github/` ⇒ é o índice) continua valendo.
 
+**O que esta correção NÃO fecha — `GH` tem a mesma raiz e continua sem retry.**
+`_run()` faz **uma** `subprocess.run` sem retry: falha transiente (5xx, timeout,
+rate-limit secundário) devolve `None`, e `_unreachable()` transforma isso em
+violação **bloqueante** dentro do CI. É a mesma fraqueza de leitura única que
+produziu o `S2` obsoleto, manifestada no outro sinal — e o `max` não faz nada por
+ela: melhora *qual elemento* se lê, não *quantas tentativas* se faz. O §Adendo
+2026-08-21b abaixo declarou o sinal e mediu 7 ocorrências de `GH` na mesma
+janela; o que segue aberto é a **política de leitura** (retry com backoff em
+`_run`, ou manter o hard-fail assumido). Quem ler "correção implementada" e
+concluir que o gate parou de reprovar PR verde vai se surpreender na primeira
+falha transiente de `gh` — este PR se limita ao elemento lido.
+
 ## Adendo 2026-08-21b — o quinto sinal, e o vigia que não vigiava a si mesmo
 
 O §Adendo anterior fechou a **medição** do `S2`. Medindo a frequência para
