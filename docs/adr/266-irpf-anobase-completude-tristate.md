@@ -5,6 +5,7 @@ title: "Completude tri-state de ano-base IRPF: completo / provisorio / incomplet
 status: Decidido
 phase: A16
 date: "2026-05-23"
+amended_at: ["2026-08-21"]
 relates_to:
   - "[[ADR-157]]"
   - "[[ADR-188]]"
@@ -27,6 +28,12 @@ tags:
 ---
 
 ## Contexto
+
+> **Emenda 2026-08-21 — o limiar `não-shell` está falsificado.** `completo` exige
+> "≥ 1 decl **não-shell**", e `não-shell` provou-se fraco demais: declaração com
+> `pagamentos_efetuados == []` sai `completo` com `nota_degradacao = None`,
+> e o consumidor de PGBL conclui aporte zero. Ver §Emenda ao final. O predicado
+> **substituto não é decidido aqui** — nasce na lane, com co-design.
 
 [[ADR-157]] estabeleceu o extract IRPF E1.6 e o `IRPFAnalyzer` que agrega KPIs por `ano_base`. O card "Renda Anual Familiar" (`S_IRPF_RENDA`) e o `RendaEvolucaoChart` consomem `irpf_kpis.ano_base` (último ano disponível) para opinar — implícito: o último ano-base sempre é a fonte da verdade.
 
@@ -141,3 +148,28 @@ PR2 da lane A16 L2 (irpf-dedup + completude):
    - Pura: combinações de prazo × continuidade × shell
    - Regressão workspace `1b9f2cf5...`: 2023=incompleto (Cônjuge sozinha), 2024=completo (casal), 2025=incompleto (Cônjuge ausente)
    - Edge: workspace sem nenhuma decl, com só 1 ano, com 5 anos mistos
+
+## Emenda 2026-08-21 — `não-shell` é limiar fraco demais para sustentar `completo`
+
+**O que caiu.** A tabela de estados define `completo` como *"ano fiscalmente
+fechado **E** continuidade familiar **E** ≥ 1 decl não-shell"*. `_is_shell_decl`
+exige que **todos** os blocos estejam vazios; logo, uma declaração com
+rendimentos e bens presentes mas com a ficha de Pagamentos Efetuados vazia
+**não** é shell, e o ano sai `completo` com `nota_degradacao = None`.
+
+**Como se manifesta.** `resolve_ano_base_fiscal` elege esse ano como canônico.
+`_pgbl_aportado` filtra `codigo_rfb == "36"` dentro de `pagamentos_efetuados` e
+conclui aporte zero — e como `restante = teto − aportado`, a ficha vazia
+**maximiza** a capacidade prescrita. Medido no dogfood em 2026-08-21: dois
+artefatos de IRPF com a versão corrente degradada (0 de 2 e 1 de 5 itens), e o
+relatório publicado usa essas. Origem: o não-determinismo de `extract_irpf_full`
+registrado no §Débito nomeado da ADR-405.
+
+**O que esta emenda NÃO decide.** O predicado substituto. Se completude é da
+declaração ou do conjunto de fichas relevantes para o consumidor é regra de
+domínio, e nasce `Proposto` na lane A42.l13 com co-design. Registrar aqui que a
+regra caiu não é o mesmo que decidir qual regra entra.
+
+**Consequência imediata para quem lê esta ADR:** `completo` não é evidência de
+que uma ficha específica foi apurada. Consumidor que depende de uma ficha —
+hoje, PGBL e dedutíveis — precisa de sinal próprio.
