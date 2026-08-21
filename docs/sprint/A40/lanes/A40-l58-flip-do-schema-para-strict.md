@@ -161,6 +161,19 @@ no keyword `oneOf` com os sub-erros em `error.context`, onde `_validation_paths`
 zero-WARN pode até ser atingida, mas um WARN nunca diz qual das 7 artifact keys
 regrediu, nem em que campo.
 
+Medido com payload E4 **válido** do ramo `seguros v2` como baseline (atenção: o
+`const` de `schema_version` é a string `"2"`, não o inteiro — payload de controle
+errado mede drift sobre baseline já quebrado):
+
+| drift de UM campo | path emitido |
+| --- | --- |
+| falta `seguradora` num item de `apolices[]` | `$` |
+| `premio_total_brl` como `number` (viola [[ADR-090]]) | `$` |
+| outro ramo, falta `total_geral` | `$` |
+
+A segunda linha é a que dói: **violação de float-monetário**, a classe que este
+repo mais gateia, reporta como `$` em vez de `$.apolices[].premio_total_brl`.
+
 Consequência para o critério desta lane: "drift pré-flip medido e citado" **não é
 satisfazível** para `e4_unified` no desenho atual. Ou o schema migra para despacho por
 discriminador ([[ADR-407]] D2), ou o E4 sai do escopo do flip com a razão declarada.

@@ -399,7 +399,7 @@
 | ADR-404 | adr | Decidido |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |
 | ADR-405 | adr | Proposto |  | Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico | `adr/405-retencao-de-artefato-e-per-produtor.md` |
 | ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
-| ADR-407 | adr | Proposto |  | Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape | `adr/407-stage-polimorfico-despacha-schema-por-discriminador.md` |
+| ADR-407 | adr | Decidido |  | Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape | `adr/407-stage-polimorfico-despacha-schema-por-discriminador.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -938,7 +938,7 @@
 | A40.l71 | lane | shipped | A40 | Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente | `sprint/A40/lanes/A40-l71-predicado-unico-da-composicao.md` |
 | A40.l72 | lane | open | A40 | Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante | `sprint/A40/lanes/A40-l72-guarda-de-contrato-no-render.md` |
 | A40.l73 | lane | shipped | A40 | Produtor do bundle de proteção lê a fonte documental, e o gap_qualitativo reconcilia com os dependentes do IRPF | `sprint/A40/lanes/A40-l73-produtor-do-bundle-le-a-fonte-documental.md` |
-| A40.l74 | lane | in_progress | A40 | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | `sprint/A40/lanes/A40-l74-schema-por-forma-de-payload.md` |
+| A40.l74 | lane | shipped | A40 | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | `sprint/A40/lanes/A40-l74-schema-por-forma-de-payload.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |

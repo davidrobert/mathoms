@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-18 open · 7 in_progress.
+18 open · 6 in_progress.
 
 ## Open (18)
 
@@ -28,7 +28,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l68]] — Balanço de stage fan-out: documento que some não pode sair como sucesso · priority P1 · área pipeline · branch `a40-l68-balanco-de-fan-out`
 - [[A40.l72]] — Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante · priority P1 · área frontend · branch `a40-l72-guarda-de-contrato-no-render`
 
-## In progress (7)
+## In progress (6)
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · área frontend/design-system/a11y · branch `a40-l33-contraste-texto-sobre-tint`
@@ -36,7 +36,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l54]] — `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) · priority P2 · área frontend/report · branch `a40-l54-hidden-md-block-no-papel`
 - [[A40.l6]] — Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor · priority P0 · área frontend/backend · branch `a40-l6-cards-imovel-divida`
-- [[A40.l74]] — Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares · priority P1 · área pipeline/backend · branch `a40-l74-schema-por-forma-de-payload`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

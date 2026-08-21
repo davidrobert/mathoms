@@ -3,8 +3,10 @@ id: A40.l74
 type: lane
 title: "Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares"
 sprint: A40
-status: in_progress
+status: shipped
 priority: P1
+ship_pr: 1604
+ship_date: "2026-08-21"
 branch_slug: a40-l74-schema-por-forma-de-payload
 adrs:
   - "[[ADR-407]]"
@@ -15,7 +17,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/backend
