@@ -30,6 +30,16 @@ tags:
 
 # ADR-210 — Saúde do test suite do CI
 
+> **Emenda (2026-08-21b) — o gate tem CINCO sinais e o quinto bloqueava merge
+> sem estar declarado; e o alerta do próprio vigia apodreceu 21 dias:** varrendo
+> os runs de `ci.yml` de 08-05 a 08-21, 19 falhas do step de liveness se dividem
+> em 7 `GH` (instrumento mudo), 5 waiver vencido (gate correto) e 7 `S2`
+> obsoleta. `GH` não existia no manifesto ("três sinais"), nem na tabela desta
+> ADR (quatro), nem no docstring do script — que afirmava o **oposto** do
+> código. **Não reabre a decisão** (fail-closed em "não sei medir" segue certo);
+> declara o que já bloqueava e conserta o produtor da Issue `ops-watchdog`.
+> Detalhe no §Adendo 2026-08-21b.
+
 > **Emenda (2026-08-21) — `S2` reprova PR verde: o watchdog lê `per_page=1` de
 > um índice eventualmente consistente:** o gate reprovou o #1548 com
 > *"budget-alert.yml: último run há 12d (limite 3d)"* enquanto o workflow estava
@@ -823,3 +833,127 @@ registro** — precedente #1508, contornado sem investigação.
 (`per_page=10`) e tomar `max(run_started_at)`, em vez do primeiro elemento. Não
 muda a semântica do sinal nem o que ele detecta; só impede que uma cabeça
 obsoleta vença a leitura. `S0`/`S1`/`S3` não usam esse endpoint e ficam intactos.
+
+## Adendo 2026-08-21b — o quinto sinal, e o vigia que não vigiava a si mesmo
+
+O §Adendo anterior fechou a **medição** do `S2`. Medindo a frequência para
+dimensionar o risco, apareceram dois defeitos que ele não cobre.
+
+### O que a varredura mediu
+
+Runs de `ci.yml` entre 2026-08-05 e 08-21 (o cap de 1000 runs da API corta aí;
+07-22→08-05 varrida à parte deu **zero**). Frame: `conclusion=failure` **ou**
+`run_attempt>1`, jobs lidos com `filter=all` — sem isso, tentativa re-rodada com
+sucesso **esconde** a falha, e a arqueologia subconta.
+
+| Categoria | Jobs | Quando | Defeito? |
+|---|---|---|---|
+| `GH` — `gh` não respondeu | **7** | 08-11, 08-12 (×3), 08-17 (×3) | sim, transitório |
+| Waiver vencido (`nightly` + `security`, 08-13) | 5 | 08-14 | **não** — gate correto |
+| `S2` leitura obsoleta | **7** | 08-19 (×1), 08-21 (×6) | sim, corrigido no #1603 |
+
+Os 7 `S2` são inequívocos: os quatro workflows acusados estavam `active` com
+runs `schedule` densos (`stale.yml` diário às 06:44; `auto-update-prs` e
+`automerge-watchdog` a cada ~30min). Acusações de 90d, 14d, 6d e 3d são
+impossíveis. Em 08-21 foram 6 falhas contra 68 runs do dia — **~9%**, com um run
+acusando dois workflows de uma vez. Não é ocorrência isolada.
+
+### `GH` é o quinto sinal, e bloqueava merge sem decisão escrita
+
+Quando `gh` não responde **dentro do CI**, `_unreachable()` emite violação
+bloqueante — de propósito: degradar em silêncio recriaria o fail-open. A
+postura está certa e **fica**. O que estava errado é que ninguém decidiu isso
+por escrito: o manifesto declarava "três sinais", a tabela §camada 4 declarava
+quatro, e o docstring do script afirmava *"offline/sem `gh` degrada para pass
+com warning"* — verdadeiro só **fora** do CI, e falso exatamente na questão em
+disputa. Um hard-fail em check obrigatório documentado apenas por comentário
+inline é a inversão da invariante desta camada ("afirmação que ninguém
+verifica"). Agora `GH` está nomeado no manifesto e no docstring.
+
+A mensagem dele também afirmava causa que não tem como saber — *"cheque
+permissions do job"* —, **errada em 7 de 7** casos medidos: `_run` descarta
+`returncode` e `stderr`, então blip, rate-limit e permissão são
+indistinguíveis daqui. Reescrita para declarar o que se sabe e nomear
+`gh run rerun --failed` como desbloqueio sancionado. Pelo mesmo motivo, a linha
+de resumo do gate parou de oferecer `hotfix`/`ops-override` como terceira opção
+de menu: é exceção de **política**, e usá-la para instabilidade de API apaga a
+causa do registro (precedente #1508) — que foi como a causa do `S2` sobreviveu
+duas ocorrências antes de alguém medir.
+
+### O alerta do vigia apodreceu 21 dias
+
+Medido em 2026-08-21: a Issue `ops-watchdog` **#1122** estava aberta desde
+07-31, contendo **apenas** duas linhas `WAIVED` do `nightly.yml` — que a própria
+legenda dela classifica como *"informativo, não bloqueia"*.
+
+A causa é o acoplamento entre corpo e gatilho: o step de `budget-alert.yml`
+fecha a Issue quando o relatório é vazio, e `render_markdown` renderizava
+violações **waived**. Com o waiver do `nightly` válido até 2026-10-15, o
+relatório nunca ficava vazio e o auto-close **não podia** disparar. O alerta que
+"se auto-resolve para não apodrecer" apodreceu pelo mesmo mecanismo da #642 —
+desta vez no próprio vigia.
+
+Corrigido em `_worth_an_issue`: exceção já aceita (`WAIVED`) e instrumento mudo
+(`GH`) não abrem nem sustentam Issue. `GH` fica de fora por razão própria —
+ruído de API não pode iniciar o relógio de rot do `S3`. Medido antes/depois: o
+relatório sai de 2 linhas `WAIVED` para **vazio**, então o próximo run do cron
+fecha a #1122.
+
+### Deferido — a entrada `ops-watchdog`, com precondição
+
+Falta cobrar a triagem dessa Issue: entrada `ops-watchdog` com
+`max_issue_age_days: 3` sob `budget-alert.yml`. **Não entra nesta leva porque
+não pode**: com a #1122 aberta há 21 dias, o gate reprova (`exit=1`, medido), e
+como ele roda no próprio PR, **o PR que contém a entrada não consegue mergear a
+si mesmo**. A precondição é o filtro acima estar em `main` e o cron ter fechado
+a #1122. Dono: próxima sessão que tocar este gate. Condição de retomada:
+`gh issue list --label ops-watchdog --state open` vazio.
+
+### Deferido — redistribuir os sinais por escopo (revisão `sre-devops`)
+
+`S0` e waiver vencido são calculados **do disco**, sem `gh`, e são propriedade
+**do PR**. `S1`/`S2`/`S3` são propriedade **do repositório** — nenhum PR as
+causa nem conserta — e concentram 100% da flakiness: das 14 falhas transitórias
+medidas, 7/7 dos `GH` e 6/7 dos `S2` miravam workflows que um gate de PR
+restrito ao escopo do PR nem leria. **13 das 14 somem sem uma linha de retry.**
+
+Duas travas que o desenho precisa respeitar, e que a versão ingênua viola:
+
+1. **`budget-alert.yml` é raiz de confiança e fica bloqueante.** Ele é o
+   produtor da Issue `ops-watchdog` e está no manifesto por auto-cobertura. Se
+   o `S1`/`S2` dele sair do caminho bloqueante: ele morre → o cron não roda →
+   a Issue nunca abre → `S3` não vê nada → **o gate passa por construção**. É
+   textualmente a consequência #2 do §Adendo 2026-07-30, aplicada ao vigia.
+2. **A entrada `ops-watchdog` é pré-requisito, não acessório.** Sem ela, mover
+   `S1`/`S2` para o canal de Issue é fail-open puro. É ela que troca veredito
+   *instantâneo e flaky* por veredito *datado e durável*.
+
+O retry com backoff, avaliado como correção primária, foi **rebaixado a
+endurecimento de transporte** das ~3 chamadas que sobrariam. Ele tem três
+pré-condições próprias, medidas: (a) **deadline global** — `timeout=30` × ~25
+chamadas dá 750s de pior caso contra o `timeout-minutes: 4` do `lint-all`, hoje
+já em 2m04s (52% do teto); (b) ordenar o **waiver antes** da releitura, senão o
+"retry só no caminho da violação" dispara em 100% dos runs, porque o `nightly`
+desabilitado produz `S1`+`S2` sempre; (c) **classificar** `returncode`/`stderr`,
+já que 403-permissão é determinístico e não deve ser re-tentado — e os `GH`
+clusterizam (08-12 ×3, 08-17 ×3), padrão compatível com rate-limit secundário,
+onde retry cego **piora**.
+
+Condição de retomada declarada: **A34 G0** (repo público). Com Actions
+ilimitado, o desenho final não é nem redistribuição nem retry, e sim um **job
+próprio, não-required**, rodando `S1`/`S2`/`S3` completos — a restrição que
+força tudo isso a caber num step de check obrigatório é o budget.
+
+### Follow-ups menores medidos aqui
+
+- `ci.yml:430` afirma *"observado 44s; 4min dá ~5× buffer"* para o `lint-all`,
+  medido em **2m04s**; `ci.yml:519` afirma que o step de liveness *"custa ~2s"*,
+  medido em 8-10s. Comentário de custo vencido faz o próximo ajuste de timeout
+  partir da premissa errada.
+- A legenda de sinais dentro de `budget-alert.yml` precisa **encolher** (não
+  crescer): pós-filtro, `WAIVED` e `GH` não podem mais aparecer naquela Issue.
+  Fica para a leva que já tocar `.github/workflows/**` — PR que toca esse path
+  starva a fila enquanto é cabeça do trem ([[ADR-322]] §Emenda 2026-08-08).
+- Falso-vermelho custa mais que um `rerun`: `ci_advance_automerge_train.py`
+  tira o PR do trem em `required_workflow_failed`, exigindo novo ciclo de
+  re-arme.
