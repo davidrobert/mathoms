@@ -286,6 +286,9 @@ de contexto do parecer, num bloco com `eviction_priority: 8`.
 
 - `dev/check_planner_manifest_coverage.py` — cruza `dev/snapshots/e5_schema_hash.txt`;
   **qualquer** edit no `e5_analysis.schema.json` dá drift. Rodar `--update-snapshot`.
+  > **Superado em 2026-08-21** — o baseline versionado foi removido: o drift do E5
+  > passou a sair do diff (ADR-200 §D3.3). Não há mais `--update-snapshot` nem
+  > `dev/snapshots/e5_schema_hash.txt`; o gate não pede ação nesta lane.
 - `backend/tests/test_parecer_exec_context_mc_budget.py` (o do `max_chars`).
 - `backend/tests/test_report_view_model_snapshot.py` (`MATHOMS_UPDATE_SNAPSHOT=1`) +
   invariante `monetary_fields ⊆ snapshot`.

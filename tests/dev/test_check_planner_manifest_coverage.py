@@ -1,8 +1,9 @@
-"""Smoke tests do gate dev/check_planner_manifest_coverage.py (T-09): green path, manifest com path ausente do E5, tool com section ausente, drift de snapshot, cobertura inversa de layout."""
+"""Smoke tests do gate dev/check_planner_manifest_coverage.py (T-09): green path, manifest com path ausente do E5, tool com section ausente, drift E5↔manifest derivado do diff, cobertura inversa de layout."""
 
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -13,12 +14,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from dev import _planner_coverage_internals as internals  # noqa: E402
 from dev.check_planner_manifest_coverage import (  # noqa: E402
     DEFAULT_E5_SCHEMA,
     DEFAULT_MANIFEST,
     DEFAULT_MANIFEST_SCHEMA,
     DEFAULT_REPORT_LAYOUT,
-    canonical_schema_hash,
     run_coverage,
 )
 
@@ -112,12 +113,6 @@ def make_layout(*section_ids: str) -> dict:
     }
 
 
-def make_snapshot(path: Path, schema: dict) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(canonical_schema_hash(schema) + "\n", encoding="utf-8")
-    return path
-
-
 @pytest.fixture
 def fixtures(tmp_path: Path) -> dict:
     schema = make_e5_schema()
@@ -126,7 +121,6 @@ def fixtures(tmp_path: Path) -> dict:
         "e5_schema": schema,
         "e5_path": make_json_file(tmp_path / "e5.schema.json", schema),
         "layout_path": make_yaml_file(tmp_path / "layout.yaml", make_layout("S1", "S_parecer")),
-        "snapshot_path": make_snapshot(tmp_path / "snapshots" / "e5_hash.txt", schema),
     }
 
 
@@ -137,8 +131,6 @@ def _run(manifest: dict, fx: dict):
         manifest_schema_path=DEFAULT_MANIFEST_SCHEMA,
         e5_schema_path=fx["e5_path"],
         layout_path=fx["layout_path"],
-        snapshot_path=fx["snapshot_path"],
-        update_snapshot=False,
     )
 
 
@@ -147,17 +139,13 @@ def _run(manifest: dict, fx: dict):
 # ---------------------------------------------------------------------------
 
 
-def test_green_path_repo_vigente(tmp_path: Path) -> None:
+def test_green_path_repo_vigente() -> None:
     """Manifest commitado no repo passa o gate (warnings tolerados)."""
-    e5 = json.loads(DEFAULT_E5_SCHEMA.read_text(encoding="utf-8"))
-    snapshot = make_snapshot(tmp_path / "e5_hash.txt", e5)
     report = run_coverage(
         manifest_path=DEFAULT_MANIFEST,
         manifest_schema_path=DEFAULT_MANIFEST_SCHEMA,
         e5_schema_path=DEFAULT_E5_SCHEMA,
         layout_path=DEFAULT_REPORT_LAYOUT,
-        snapshot_path=snapshot,
-        update_snapshot=False,
     )
     assert report.ok, f"Erros: {report.errors}"
 
@@ -205,42 +193,60 @@ def test_tool_enum_referencia_key_ausente(fixtures: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 3) Snapshot drift
+# 3) Drift E5 ↔ manifest (derivado do diff — ADR-200 §D3.3)
 # ---------------------------------------------------------------------------
 
 
-def test_snapshot_drift_emite_warning(fixtures: dict) -> None:
-    """Snapshot baseline divergente do hash atual → warning ativo."""
-    fixtures["snapshot_path"].write_text("0" * 64 + "\n", encoding="utf-8")
-    report = _run(make_manifest(), fixtures)
+def _drift_report(changed: set[str]) -> internals.CoverageReport:
+    report = internals.CoverageReport()
+    internals.check_schema_manifest_drift(
+        internals.REPO_ROOT / "config" / "schemas" / "e5_analysis.schema.json",
+        internals.REPO_ROOT / "config" / "prompts" / "parecer_planejador.yaml",
+        report,
+        changed_paths=frozenset(changed),
+    )
+    return report
+
+
+def test_drift_schema_sem_manifest_emite_warning() -> None:
+    """E5 mudou e o manifest não — warning que pede justificativa."""
+    report = _drift_report({"config/schemas/e5_analysis.schema.json"})
     assert report.ok, "Drift do schema E5 é warning, não erro"
-    assert any("schema E5 mudou" in warn for warn in report.warnings)
+    assert any("NÃO foi tocado" in w for w in report.warnings), report.warnings
 
 
-def test_snapshot_ausente_emite_warning(fixtures: dict) -> None:
-    """Sem snapshot baseline, gate emite warning instruindo --update-snapshot."""
-    fixtures["snapshot_path"] = fixtures["tmp"] / "snapshots" / "missing.txt"
-    report = _run(make_manifest(), fixtures)
-    assert report.ok
-    assert any("hash baseline ausente" in warn for warn in report.warnings)
-
-
-def test_update_snapshot_regenera(fixtures: dict) -> None:
-    """--update-snapshot grava hash atual do schema E5."""
-    target = fixtures["tmp"] / "snapshots" / "fresh.txt"
-    manifest_path = make_yaml_file(fixtures["tmp"] / "manifest.yaml", make_manifest())
-    report = run_coverage(
-        manifest_path=manifest_path,
-        manifest_schema_path=DEFAULT_MANIFEST_SCHEMA,
-        e5_schema_path=fixtures["e5_path"],
-        layout_path=fixtures["layout_path"],
-        snapshot_path=target,
-        update_snapshot=True,
+def test_drift_schema_com_manifest_emite_warning_brando() -> None:
+    """Ambos mudaram — warning pede confirmação de sync, sem acusar omissão."""
+    report = _drift_report(
+        {
+            "config/schemas/e5_analysis.schema.json",
+            "config/prompts/parecer_planejador.yaml",
+        }
     )
-    assert report.ok
-    assert target.read_text(encoding="utf-8").strip() == canonical_schema_hash(
-        fixtures["e5_schema"]
-    )
+    assert any("mudaram juntos" in w for w in report.warnings), report.warnings
+    assert not any("NÃO foi tocado" in w for w in report.warnings)
+
+
+def test_sem_mudanca_no_schema_nao_emite_drift() -> None:
+    """Sem o E5 no diff, o gate silencia — nada de warning herdado de PR alheio."""
+    report = _drift_report({"config/report_layout.yaml"})
+    assert not any(w.startswith("[drift]") for w in report.warnings), report.warnings
+
+
+def test_git_changed_paths_le_diff_real(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A derivação lê `git diff` de verdade — sem baseline em disco para conflitar."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for key, val in (("user.email", "t@t.dev"), ("user.name", "t")):
+        subprocess.run(["git", "-C", str(tmp_path), "config", key, val], check=True)
+    alvo = tmp_path / "alvo.json"
+    alvo.write_text("{}\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-qm", "base"], check=True)
+    monkeypatch.setattr(internals, "REPO_ROOT", tmp_path)
+
+    assert internals._git_changed_paths() == frozenset()
+    alvo.write_text('{"novo": 1}\n', encoding="utf-8")
+    assert "alvo.json" in internals._git_changed_paths()
 
 
 # ---------------------------------------------------------------------------
