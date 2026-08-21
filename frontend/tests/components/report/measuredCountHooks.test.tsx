@@ -8,7 +8,7 @@
  * caminho de rede que o PDF percorre chega lá.
  */
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 
 import { server } from "../../mocks/server";
@@ -20,6 +20,28 @@ const API = "/api/v1";
 
 function label(value: MeasuredCount): string {
   return value.state === "ok" ? `ok:${value.count}` : value.state;
+}
+
+/** Lê o probe já no estado TERMINAL — `loading` não é resposta.
+ *
+ * `findByTestId` resolve na PRESENÇA do elemento, e o probe existe desde o
+ * primeiro render (ainda em `loading`): ele não espera o fetch, espera o
+ * `<span>`. A asserção de texto rodava então uma única vez, sobre o DOM
+ * daquele instante, com a folga de um único `setTimeout(0)` que o
+ * `asyncWrapper` do RTL concede — margem ZERO, um `delay(0)` no handler do
+ * MSW já derruba. Sob contenção de CI o fetch não cabe na janela e a leitura
+ * sai `loading`: foi o que quebrou o run 32500293097 (attempt 1) e passou no
+ * attempt 2, mesmo SHA, sem mudança nenhuma.
+ *
+ * Esperar o estado terminal e só então comparar mantém a polaridade do
+ * `MeasuredCount` (o valor exato é afirmado, não relaxado) e separa os dois
+ * defeitos no relatório de falha: valor terminal errado falha na hora, com o
+ * valor; hook que nunca assenta falha por timeout em `loading`.
+ */
+async function probeState(): Promise<string> {
+  const probe = await screen.findByTestId("probe");
+  await waitFor(() => expect(probe).not.toHaveTextContent(/^loading$/));
+  return probe.textContent ?? "";
 }
 
 function NeedsReviewProbe({ workspaceId }: { workspaceId?: string }) {
@@ -69,7 +91,7 @@ describe("useNeedsReviewCount", () => {
       ),
     );
     render(<NeedsReviewProbe workspaceId="ws-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^unknown$/);
+    expect(await probeState()).toBe("unknown");
   });
 
   it("200 → ok com a contagem medida", async () => {
@@ -79,12 +101,12 @@ describe("useNeedsReviewCount", () => {
       ),
     );
     render(<NeedsReviewProbe workspaceId="ws-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:1$/);
+    expect(await probeState()).toBe("ok:1");
   });
 
   it("sem workspace não há o que medir → unknown", async () => {
     render(<NeedsReviewProbe />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^unknown$/);
+    expect(await probeState()).toBe("unknown");
   });
 });
 
@@ -97,7 +119,7 @@ describe("useParecerRetidoCount", () => {
       ),
     );
     render(<ParecerProbe reportId="report-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:0$/);
+    expect(await probeState()).toBe("ok:0");
   });
 
   it("500 é falha de medição → unknown", async () => {
@@ -108,7 +130,7 @@ describe("useParecerRetidoCount", () => {
       ),
     );
     render(<ParecerProbe reportId="report-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^unknown$/);
+    expect(await probeState()).toBe("unknown");
   });
 
   it("200 com retenção parcial → ok com a contagem", async () => {
@@ -119,11 +141,11 @@ describe("useParecerRetidoCount", () => {
       ),
     );
     render(<ParecerProbe reportId="report-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:2$/);
+    expect(await probeState()).toBe("ok:2");
   });
 
   it("sem `reportId` o sinal está desligado por construção → ok:0", async () => {
     render(<ParecerProbe />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:0$/);
+    expect(await probeState()).toBe("ok:0");
   });
 });
