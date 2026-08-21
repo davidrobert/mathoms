@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Vigia a liveness dos workflows agendados declarados em .github/scheduled-workflows.yml (ADR-210 §camada 4): S1 workflow desabilitado, S2 sem run agendado dentro da janela, S3 Issue de alerta apodrecendo; waiver datado degrada para warning até vencer e vira hard-fail depois; offline/sem ``gh`` degrada para pass com warning."""
+"""Vigia a liveness dos workflows agendados declarados em .github/scheduled-workflows.yml (ADR-210 §camada 4): S0 manifesto dessincronizado do disco, S1 workflow desabilitado, S2 sem run agendado dentro da janela, S3 Issue de alerta apodrecendo, GH instrumento mudo; waiver datado degrada para warning até vencer e vira hard-fail depois. FORA do CI, ``gh`` indisponível degrada para pass com warning; DENTRO do CI vira GH e bloqueia — degradar em silêncio no gate recriaria o fail-open."""
 
 from __future__ import annotations
 
@@ -104,14 +104,18 @@ def workflow_state(repo: str, filename: str) -> str | None:
 
 def last_scheduled_run_age(repo: str, filename: str, ref: date) -> float | None:
     """Idade em dias do run agendado mais recente; None se a API não respondeu."""
-    path = f"repos/{repo}/actions/workflows/{filename}/runs?event=schedule&per_page=1"
+    # página + `max`, não `runs[0]`: o índice serve cabeça obsoleta de forma
+    # intermitente e `per_page=1` não tem como perceber (ADR-210 §Adendo 2026-08-21)
+    path = f"repos/{repo}/actions/workflows/{filename}/runs?event=schedule&per_page=10"
     data = _gh_json(["api", path])
     if data is None:
         return None
     runs = data.get("workflow_runs") or []
     if not runs:
         return float("inf")
-    started = datetime.fromisoformat(runs[0]["run_started_at"].replace("Z", "+00:00"))
+    started = max(
+        datetime.fromisoformat(run["run_started_at"].replace("Z", "+00:00")) for run in runs
+    )
     return (datetime.combine(ref, datetime.min.time(), timezone.utc) - started).days
 
 
@@ -155,7 +159,12 @@ def _unreachable(entry: dict, what: str) -> list[Violation]:
     """No CI, `gh` mudo é falha — degradar em silêncio recriaria o fail-open."""
     if not running_in_ci():
         return []
-    detail = f"`gh` não respondeu para {what} — cheque permissions do job (actions/issues: read)"
+    detail = (
+        f"`gh` não respondeu para {what} — instrumento mudo, não veredito sobre o "
+        "workflow. A causa não é observável daqui: `_run` descarta returncode e "
+        "stderr, então blip, rate-limit e permissions são indistinguíveis. "
+        "Desbloqueio: `gh run rerun --failed`"
+    )
     return [Violation("GH", entry["file"], detail)]
 
 
@@ -224,6 +233,16 @@ def render_markdown(violations: list[Violation]) -> str:
     return "\n".join(lines)
 
 
+def _report(violations: list[Violation]) -> int:
+    """Modo cron. Exceção já aceita (WAIVED) e instrumento mudo (GH) ficam fora
+    do corpo: ele é o gatilho de abertura E o de auto-close, então WAIVED
+    mantinha a Issue viva para sempre — medido na #1122, aberta 21 dias só com
+    o waiver do nightly. E ruído de API não pode iniciar o relógio do S3."""
+    alerting = [v for v in violations if not v.waived and v.signal != "GH"]
+    print(render_markdown(alerting) if alerting else "")
+    return 0
+
+
 def collect(repo: str, ref: date) -> list[Violation]:
     entries = load_manifest()
     found = check_manifest_coverage(entries)
@@ -244,7 +263,10 @@ def _gate(violations: list[Violation]) -> int:
         return 0
     print(
         f"check_scheduled_workflows: {len(blocking)} violação(ões) — religue/conserte o "
-        "workflow, trie a Issue, ou aplique label `hotfix`/`ops-override`",
+        "workflow ou trie a Issue. Linha `GH` é instrumento mudo: re-rode com "
+        "`gh run rerun --failed`. Label `hotfix`/`ops-override` é exceção de "
+        "POLÍTICA e apaga a causa do registro (precedente #1508) — não é o "
+        "caminho para instabilidade de API",
         file=sys.stderr,
     )
     return 1
@@ -267,8 +289,7 @@ def main() -> int:
         return 0
     violations = collect(repo, today())
     if args.report:
-        print(render_markdown(violations) if violations else "")
-        return 0
+        return _report(violations)
     return _gate(violations)
 
 

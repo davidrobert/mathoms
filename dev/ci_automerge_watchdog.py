@@ -20,9 +20,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from dev.ci_advance_automerge_train import (  # noqa: E402
+    RunsFetcher,
     _gh,
     eligible_train,
-    required_workflow_failed,
+    out_of_train_reason,
     required_workflows_green,
     runs_for_commit,
 )
@@ -159,13 +160,16 @@ def kick_orphans(prs: list[dict[str, Any]], dry_run: bool) -> None:
             kicked += 1
 
 
-def train_head(prs: list[dict[str, Any]], runs_for=None) -> dict[str, Any] | None:
-    """Cabeça efetiva do trem: primeiro elegível que não está fora (DIRTY/red)."""
+def train_head(
+    prs: list[dict[str, Any]], runs_for: RunsFetcher | None = None
+) -> dict[str, Any] | None:
+    """Cabeça efetiva do trem: primeiro elegível que out_of_train_reason não exclui.
+    Mesmo predicado de decide_train, desfecho diferente de propósito — aqui a
+    cabeça volta mesmo sem estar BEHIND, porque é ela que a issue de stall nomeia."""
     fetch = runs_for or (lambda pr: runs_for_commit(pr["headRefOid"]))
     for pr in eligible_train(prs):
-        if pr.get("mergeStateStatus") == "DIRTY" or required_workflow_failed(fetch(pr)):
-            continue
-        return pr
+        if out_of_train_reason(pr, fetch) is None:
+            return pr
     return None
 
 
