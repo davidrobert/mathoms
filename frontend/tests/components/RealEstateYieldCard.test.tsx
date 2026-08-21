@@ -85,8 +85,18 @@ describe("RealEstateYieldCard", () => {
   it("renderiza a tabela quando há ≥2 imóveis ordenados por valor descendente", () => {
     const data = makeData({
       imoveis: [
-        makeImovel({ property_id: "p1", descricao: "Imóvel A", valor_imovel: 2000000 }),
-        makeImovel({ property_id: "p2", descricao: "Imóvel B", valor_imovel: 1000000 }),
+        makeImovel({
+          property_id: "p1",
+          descricao: "Imóvel A",
+          endereco_canonical: "Imóvel A",
+          valor_imovel: 2000000,
+        }),
+        makeImovel({
+          property_id: "p2",
+          descricao: "Imóvel B",
+          endereco_canonical: "Imóvel B",
+          valor_imovel: 1000000,
+        }),
       ],
     });
     render(<RealEstateYieldCard data={data} />);
@@ -142,7 +152,8 @@ describe("RealEstateYieldCard", () => {
     });
     render(<RealEstateYieldCard data={data} />);
     expect(screen.getByText(/1 imóvel não incluído/)).toBeInTheDocument();
-    expect(screen.getByText(/Casa Residência/)).toBeInTheDocument();
+    expect(screen.getByText(/residencia_principal/)).toBeInTheDocument();
+    expect(screen.queryByText(/Casa Residência/)).not.toBeInTheDocument();
   });
 
   it("empty state quando data é null", () => {
@@ -177,11 +188,11 @@ describe("RealEstateYieldCard", () => {
     render(<RealEstateYieldCard data={data} />);
     expect(screen.getByText(/Sem dados de aluguel suficientes/)).toBeInTheDocument();
     expect(screen.getByText(/2 imóveis foram excluídos do cálculo de yield/)).toBeInTheDocument();
-    expect(screen.getByText(/Casa Residência/)).toBeInTheDocument();
-    expect(screen.getByText(/\(residencia_principal\)/)).toBeInTheDocument();
+    expect(screen.getByText("residencia_principal")).toBeInTheDocument();
     expect(screen.getByText(/não conta como investimento/)).toBeInTheDocument();
-    expect(screen.getByText(/Lote sem uso/)).toBeInTheDocument();
-    expect(screen.getByText(/\(desconhecido\)/)).toBeInTheDocument();
+    expect(screen.getByText("desconhecido")).toBeInTheDocument();
+    expect(screen.queryByText(/Casa Residência/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Lote sem uso/)).not.toBeInTheDocument();
   });
 
   it("cap_rate null sem excluded_properties mostra só o empty state", () => {
@@ -199,5 +210,58 @@ describe("RealEstateYieldCard", () => {
   it("mostra concentração no hero", () => {
     render(<RealEstateYieldCard data={makeData({ concentracao_pct: 35.8 })} />);
     expect(screen.getByText(/35,8%/)).toBeInTheDocument();
+  });
+
+  it("não interpola descrição cartorial no corpo (A40.l6)", () => {
+    const cartorial = "Apartamento matrícula 999.999, Rua Exemplo, 100";
+    const data = makeData({
+      imoveis: [
+        makeImovel({
+          property_id: "p1",
+          descricao: cartorial,
+          endereco_canonical: "Imóvel locado",
+          valor_imovel: 2000000,
+        }),
+        makeImovel({
+          property_id: "p2",
+          descricao: cartorial,
+          endereco_canonical: "Imóvel locado",
+          valor_imovel: 1000000,
+        }),
+      ],
+      excluded_properties: [
+        {
+          property_id: "p3",
+          descricao: cartorial,
+          classification: "residencia_principal",
+          motivo: "Residência principal — não conta como investimento.",
+        },
+      ],
+    });
+    render(<RealEstateYieldCard data={data} />);
+    expect(document.body.textContent).not.toContain("matrícula 999.999");
+    expect(document.body.textContent).not.toContain("Rua Exemplo, 100");
+    expect(screen.getAllByText("Imóvel locado").length).toBeGreaterThan(0);
+  });
+
+  it("valor 0 e null renderizam traço, valor real renderiza (RV3-27)", () => {
+    const data = makeData({
+      imoveis: [
+        makeImovel({
+          property_id: "p1",
+          endereco_canonical: "Com valor",
+          valor_imovel: 2000000,
+        }),
+        makeImovel({
+          property_id: "p2",
+          endereco_canonical: "Zero",
+          valor_imovel: 0,
+        }),
+      ],
+    });
+    render(<RealEstateYieldCard data={data} />);
+    const table = screen.getByRole("table");
+    expect(within(table).getByText(/R\$\s*2\.000\.000/)).toBeInTheDocument();
+    expect(within(table).getAllByText("—").length).toBeGreaterThan(0);
   });
 });

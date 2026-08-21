@@ -183,3 +183,34 @@ def test_db_artifact_store_workspace_scoped():
     from backend.app.services.storage.db_artifact_store import _WORKSPACE_SCOPED_STAGES
 
     assert "extract_comprovantes_bens" in _WORKSPACE_SCOPED_STAGES
+
+
+# `_build_payload` injeta `source_artifact_id` depois do `model_dump()`, escapando
+# do `extra="forbid"` do Pydantic; com `additionalProperties: false` e a chave não
+# declarada, todo write de CRLV reprovava em strict desde #836 (só não abortava
+# porque o modo global é `warn`).
+_CRLV_MINIMO = {
+    "placa": "ABC1D23",
+    "renavam": "12345678901",
+    "marca": "Fiat",
+    "modelo": "Toro",
+    "ano_modelo": 2022,
+    "ano_fabricacao": 2021,
+    "exercicio": 2024,
+    "categoria": "particular",
+    "confidence": 0.95,
+    "prompt_version": "1.0.0",
+}
+
+
+def test_payload_produzido_valida_em_strict(monkeypatch):
+    """Output do produtor valida contra o schema em strict (regressão #836)."""
+    from pipeline.llm.schemas.crlv import CRLVPayload
+    from pipeline.stages.comprovantes_bens_llm import _build_payload
+    from scripts.pipeline_common import validate_dict
+
+    monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+    payload = _build_payload(CRLVPayload(**_CRLV_MINIMO), "1.0.0", "sem cpf", "crlv_abc1d23_2024")
+
+    assert payload["source_artifact_id"] == "crlv_abc1d23_2024"
+    assert validate_dict(payload, "crlv.schema.json", source="test-crlv")

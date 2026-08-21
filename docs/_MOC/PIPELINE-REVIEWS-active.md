@@ -57,6 +57,14 @@ Para que nenhum achado-defeito se perca entre runs:
 **Taxonomia de disposição** (reusada do `AUDITS-active`): `procede-fechado` ·
 `procede-aberto` · `refutado` · `não-acionável` · `aceito-wontfix`.
 
+**`remediado — fecha por medição no rN+1`** (declarado 2026-08-21). Achado cujo
+remédio **está em `main`** mas cuja prova de fecho é o **corpus do próximo run**,
+não um gate. Existe porque `procede-aberto` e `fechado` estavam ambos errados
+para essa classe: `aberto` convida a re-trabalhar código já mergeado, e `fechado`
+afirma um desfecho que ninguém mediu. Exige as duas coisas: **SHA do remédio** e
+**o predicado que o r(N+1) vai medir**. Se o run seguinte não mover o predicado,
+o item volta a `procede-aberto` com a medição anexada — nunca decai em silêncio.
+
 **Formato de seção** (por run):
 
 ```
@@ -369,18 +377,24 @@ negativo — RV6-01/02/03 fecham **por medição**. Corolário do gate: os 14 FA
 compare vs r6 são a correção sendo lida como regressão; congelar r6 teria feito o
 gate aprovar a corrupção.
 
+**Fecho parcial datado 2026-08-21.** RV6-04 e RV7-04 fecham; CTO-6 e CTO-3 fecham por
+gate/teste; DE-1 e DE-2 entram em `remediado — fecha por medição no r8` (vocabulário
+declarado no §Convenção). A triagem do RV6-04 rendeu **4 achados novos** — DE-7 (61% da
+soma sem linha de cobertura), DE-8, DE-9 e CTO-7 —, dos quais o **DE-7 é o de maior
+magnitude aberto no eixo membro** e não tem instrumento nenhum.
+
 | Achado | Dimensão | Sev. | Prio | Veredito | Disposição | Gatilho |
 |---|---|---|---|---|---|---|
 | RV7-05 — campo de descrição de imóvel é a discriminação crua do documento fiscal e é renderizado como rótulo (`RealEstateYieldCard.tsx:200`,`:310`,`:380` via `S4RealEstateSection.tsx:26`); por [[ADR-129]] a rota React é a fonte do PDF, então documento de terceiro sai no artefato exportado; baseline visual usa fixture sintética e não alcança | clareza-ux | Crítico | P0 | procede | procede-aberto | owner: product-designer+data-engineer · E5 emite `label` curto derivado; discriminação vai p/ painel de detalhe; gate sobre payload real · ADR a abrir |
 | RV7-01 — caminho de REPORTE aborta a execução que documenta: produtor projetava filename em `review_reasons.document_id` (FK, [[ADR-371]]) → `IntegrityError` → run morto; teste afirmava o filename como esperado e não persistia em DB | correção | Crítico | P0 | procede | **fechado** | #1535 (`ac847372`): produtor manda None + boundary degrada id não-resolvível; regressão DB-backed verificada por mutação |
 | RV7-02 — pin de key Fernet em teste cobria a fonte de **menor** precedência (`FERNET_KEY`), inerte sob o `FERNET_KEYS` da [[ADR-171]]: 2 testes de crypto passavam a ser decididos pelo ambiente (verdes no CI, vermelhos em máquina com rotação no `.env`) e o pin do próprio `backend/tests/conftest.py` era inerte pelo mesmo motivo — a suíte inteira cifrava com a key real da máquina, não com a canônica | consistência | Médio | P2 | procede | **fechado** | #1539 (`ab91f7ec`, backend) + #1547 (`37c754cb`, pipeline): pin cobre a chave autoritativa e deixa decoy na deprecada, então a preferência volta a ser gateada. Cegueira medida por mutação — invertida a precedência em `resolve_fernet_keys`, a versão antiga seguia **11/11 verde** |
-| DE-1 — `classify_asset` decide classe por texto livre que inclui o rótulo de instituição; bump de `PROMPT_VERSION` do E1.5a (#1521) reemitiu instituições em forma canônica e reclassificou posição para a catch-all **sem diff no classificador**; migração atravessa p/ `goals.alocacao_alvo.derived.comparaveis[].desvio_pp`, que é prescritivo | correção | Crítico | P0 | procede | procede-aberto | owner: data-engineer+senior-cto · estender [[ADR-394]] D1 do eixo ativo×passivo p/ o eixo **classe**: `secao`+`codigo` RFB decidem, keyword vira degrau 2 com `review_reason`, instituição sai da entrada |
-| RV7-04 — reclassificação entre baldes preserva Σ **por construção**, logo os 16 CV são cegos por design: `classify_asset` devolve a mesma catch-all para haystack vazio e para haystack sem keyword (indistinguíveis) | correção | Crítico | P0 | procede | procede-aberto | owner: data-engineer · outcome tipado (`sem_match` ≠ `sem_haystack`); `sem_haystack` é violação de contrato do produtor · dobra em DE-2 |
-| DE-2 — único sensor da catch-all é de **nível** (limiar 5%) e nunca vira `review_reason`; participação observada ~6× abaixo do limiar deixa crescimento de duas ordens passar em silêncio | correção | Crítico | P1 | procede | procede-aberto | owner: data-engineer · gate por **item** (não agregado) + cobertura de identidade de instituição por membro + métrica de mix no changelog |
-| CTO-6 — superfície de diagnóstico compartilha transação e domínio de falha com a transição de estado do run (uma sessão cobre status + `StageReview` + `review_reasons`, sem try/except, enquanto o commit de artefato acima é protegido) | saúde-execução | Crítico | P0 | procede | procede-aberto | owner: senior-cto · sessão separada + try/except p/ diagnóstico; DTO valida no boundary · **ADR nova**: "a superfície de diagnóstico nunca aborta a execução que documenta" (#1535 fechou a instância, não a classe) |
+| DE-1 — `classify_asset` decide classe por texto livre que inclui o rótulo de instituição; bump de `PROMPT_VERSION` do E1.5a (#1521) reemitiu instituições em forma canônica e reclassificou posição para a catch-all **sem diff no classificador**; migração atravessa p/ `goals.alocacao_alvo.derived.comparaveis[].desvio_pp`, que é prescritivo | correção | Crítico | P0 | procede | **remediado — fecha por medição no r8** | #1571 (`5f73b116`, [[ADR-400]]): `secao`+`codigo` RFB decidem, keyword vira degrau 2 com autoridade declarada, instituição sai da entrada. **Predicado do r8:** nenhuma posição migra de classe sob `PROMPT_VERSION` novo sem diff no classificador, e `classe_autoridade` cobre 100% dos itens |
+| RV7-04 — reclassificação entre baldes preserva Σ **por construção**, logo os 16 CV são cegos por design: `classify_asset` devolve a mesma catch-all para haystack vazio e para haystack sem keyword (indistinguíveis) | correção | Crítico | P0 | procede | **fechado** | dobrado na [[ADR-406]] (D1/D3): autoridade tipada torna `sem_haystack` ≠ `sem_match`, e `sem_haystack` vira razão **sempre** — o par indistinguível que cegava os 16 CV deixa de existir · #1593 (`d69d3177`) |
+| DE-2 — único sensor da catch-all é de **nível** (limiar 5%) e nunca vira `review_reason`; participação observada ~6× abaixo do limiar deixa crescimento de duas ordens passar em silêncio | correção | Crítico | P1 | procede | **remediado — fecha por medição no r8** | #1593 (`d69d3177`, [[ADR-406]]): gate por **item** com piso de 0,5%/item + `sem_haystack` sempre-razão + `n_posicoes` como denominador de identidade. **Predicado do r8:** item da catch-all acima do piso vira `review_reason`, e `sem_haystack` segue em 0 |
+| CTO-6 — superfície de diagnóstico compartilha transação e domínio de falha com a transição de estado do run (uma sessão cobre status + `StageReview` + `review_reasons`, sem try/except, enquanto o commit de artefato acima é protegido) | saúde-execução | Crítico | P0 | procede | **fechado** | #1565 (`a8d57ee1`, [[ADR-404]]): sessão separada + try/except no diagnóstico; a **classe** fecha, não só a instância do #1535. **Ressalva de leitura:** o título do commit em `main` cita `ADR-399` — o ID foi tomado por outra lane na mesma janela e a nota shipou como `ADR-404`. Dano permanente da colisão; o commit **não** é corrigido (já mergeado), fica registrado aqui para quem seguir o SHA |
 | RV7-03 / DE-3 — contrato warn-first de [[ADR-393]] D4 é decorativo: `validation.valid` é escrito por 6 produtores com 4 políticas divergentes e `BLOCKING_CODES` é honrado por 1; quem retém o run é `pipeline_task.py:1489` lendo `validation.valid`, e `BLOCKING_CODES` só escolhe rótulo de severidade em `:1155` | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto+data-engineer · **REFUTADO 2026-08-21** → ~~predicado de pausa passa a ser `any(code ∈ BLOCKING_CODES)`~~ — ver §Refutação R2; o primeiro entregável passa a ser **cobertura de emissão por produtor** · produtor emite fato, orquestrador deriva retenção; tabela de política **total** + gate p/ membro novo do enum |
 | CTO-2 — a própria [[ADR-393]] declara D4 entregue e promete kill-switch que não existe no código; o §Estado afirma cobertura que a medição refuta | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto · emendar ADR-393 (`amended_at`) corrigindo o §Estado; kill-switch fica redundante sob a tabela de política |
-| CTO-3 — teste afirma **pertinência em conjunto** e nunca exercita o comportamento (`test_fan_out_balance.py:114-116` afirma "não retém o run" 15 linhas depois de afirmar `valid is False`); o único produtor com teste comportamental é o único que honra `BLOCKING_CODES` | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto · 1 teste por produtor no formato do E3 + 1 teste de **loop** provando que reason advisory não pausa |
+| CTO-3 — teste afirma **pertinência em conjunto** e nunca exercita o comportamento (`test_fan_out_balance.py:114-116` afirma "não retém o run" 15 linhas depois de afirmar `valid is False`); o único produtor com teste comportamental é o único que honra `BLOCKING_CODES` | consistência | Alto | P1 | procede | **fechado** | #1581 (`b0f64d8e`): 1 teste comportamental por produtor de `validation.valid` + 1 teste de loop provando que reason advisory não pausa. Fecha por **gate/teste**, não por corpus — independe do r8 |
 | DE-5 — invariante de passivo do E1.5 contradiz o prompt shipado no **mesmo PR**: computa Σ dos negativos enquanto o prompt manda transcrever saldo devedor positivo ⇒ predicado vira "declarado ≠ 0" e dispara 100%; rebaixado a `warning`, não vira `review_reason`, não move `valid` | consistência | Crítico | P1 | procede | procede-aberto | owner: data-engineer · referente vira `Σ secao=='dividas_onus'` com fallback datado; rotear `review_reasons` do consolidador ao `detail` do stage (senão [[ADR-394]] D3 fica inerte) |
 | DE-6 — item da ficha de dívidas recebe `property_id` mintado e é apresentado como imóvel pendente de rótulo; rotular converte passivo em ativo do patrimônio bruto — a autoridade de `secao` da [[ADR-394]] não foi propagada ao mint de identidade | correção | Alto | P0 | procede | **fechado com ressalva** | #1556 (`26264d6f`, [[ADR-398]]): mint exige eixo atestado por fato; projeção exige que baseline ou dono reivindiquem a identidade. Ver §Nota datada 2026-08-19 |
 | DE-4 — balanço de fan-out fecha sobre denominador **pós-filtro** (`queued` conta depois do "já processado", e o lookup é workspace-scoped, não run-scoped): run reportou balanço fechado tendo gravado zero artefatos do stage; consequência — `review_snapshot.provenance` declara `execucao_mista: false` num run que consome artefato de outro executor | saúde-execução | Alto | P1 | procede | procede-aberto | owner: data-engineer+senior-cto · denominador = corpus elegível; `list_keys` run-scoped; proveniência deriva dos artefatos **consumidos**, não dos stage logs |
@@ -395,7 +409,12 @@ gate aprovar a corrupção.
 | FP-4 — prescreve realocar excedente de reserva para risco sem conhecer a taxa da dívida (`endividamento.dividas[].taxa_juros` nulo e ausente dos campos que pediria), violando a única convergência sem exceção das três metodologias; e trata a mesma reserva como ponto forte **e** risco | solidez-financeira | Alto | P1 | procede | **parcial** | #1575 · piso proíbe as DUAS direções sob taxa nula + injeta o pedido da taxa; liquidez excessiva remove o ponto forte de liquidez. Regra por par (seção, tema) **refutada por medição** — ver §Refutação R1. RL2 destravada (parser numérico, v1.5) |
 | FP-5 — `previdencia_pgbl.limite_pgbl_anual` publica zero sobre base positiva (defeito de rótulo que [[ADR-375]] §D4 fechou, reintroduzido) e a nota do bloco afirma o oposto do campo; KPI de exposição cambial ignora a classe internacional, tornando o tier artefato de definição | solidez-financeira | Alto | P1 | procede | **parcial** | #1567 (`440d4618`, [[ADR-402]]) fecha o braço do **PGBL**: `limite_pgbl_anual` carregava a *capacidade restante* sob o nome de *teto* — o `0.0` era valor correto sob rótulo errado, não aritmética errada. Grandezas separadas + `motivo_ausencia` por campo com precedência; `aliquota_marginal` vira bicondicional com `economia_ir_anual`. Braço da **exposição cambial** segue aberto (#1568, **não mergeado** — a ADR do braço cambial entra com ele) · owner: financial-planner |
 | FP-3 — dois universos de imóveis no mesmo payload com membros exclusivos de cada lado; o limiar canônico de concentração cai **entre** as duas leituras, os dois alertas ficam mudos e o LLM fabrica um limiar próprio; default de IPTU zerado infla o rendimento líquido na direção que [[ADR-216]] proíbe | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner+data-engineer · fonte única de estoque imobiliário; suprimir a razão enquanto divergirem >5%; corrigir default |
-| RV6-04 — balde de investimento de um membro publica zero enquanto o artefato a montante lista instituições dele, com a flag de ressalva falsy e `cobertura_completa` verdadeiro; a narrativa **afirma o zero em prosa entregue**, byte-idêntica em 3 runs | completude | Crítico | P0 | procede (3º run) | procede-aberto | owner: data-engineer+financial-planner · portar doutrina [[ADR-240]] ao patrimônio: ressalva + **omitir** linha (omitir ≠ afirmar zero) + suprimir vereditos derivados; CV bloqueante membro-com-fonte × balde-zero · [[A40.l69]] |
+| RV6-04 — balde de investimento de um membro publica zero enquanto o artefato a montante lista instituições dele, com a flag de ressalva falsy e `cobertura_completa` verdadeiro; a narrativa **afirma o zero em prosa entregue**, byte-idêntica em 3 runs | completude | Crítico | P0 | procede (3º run) | **fechado por medição** | #1578 (`11b90a4e`, [[ADR-394]] §Emenda (c)). A raiz **não** eram os `extras` por papel — medidos **inertes**: 0 mudanças em 90 instâncias-membro, nenhuma das 3 chaves existe em `bens` no caminho de produção. Era `_max_value_year` reduzindo o baseline a **um** ano e propagando-o a todos os membros: **defeito do eixo, não da pessoa**. Ver §Nota datada 2026-08-21 · [[A40.l69]] |
+| CTO-8 — dano de colisão de ID desta onda, **medido**: (a) o commit `a8d57ee1` em `main` cita `ADR-399` no título tendo shipado a nota `ADR-404` — imutável, fica registrado; (b) `aliases: "ADR 396"` vivia em **duas** notas que não são a 396 (`398` e `400`), então 3 notas atendiam pelo mesmo nome; (c) o par `status:` × tag `status/<lc>` **desincroniza em 7 de 394** ADRs, sempre na direção `Decidido` no campo × `proposto` na tag | consistência | Médio | P2 | procede (novo, 2026-08-21) | **parcial** | owner: information-architect · (b) e (c) da onda r7 **corrigidos aqui** (`398`,`400`,`404`); os outros **5** desincronizados (`330`,`333`,`360`,`361`,`395`) são de lanes alheias e ficam **registrados, não varridos** — rename global em nota de terceiro é a armadilha conhecida. O CLAUDE.md descreve a tag `status/<lc>` como "automática"; ela é escrita à mão e **não tem gate** — `build_doc_index.py` lê o campo `status:` e nunca confere a tag, então busca por tag no Obsidian devolve 7 falsos-positivos |
+| DE-7 — `patrimonio.investimentos_nao_atribuidos` = **61,0% da soma dos baldes** e **não tem linha em `cobertura_investimentos`**: `cobertura_de_membros` só constrói `titular`/`conjuge`, e a chave vazia de `total_por_membro` não gera veredito nenhum. O relatório atribui patrimônio a pessoas e deixa a maior fatia sem dono, sem ressalva | completude | Crítico | P0 | procede (novo, 2026-08-21) | procede-aberto | owner: data-engineer · **61× acima** do piso agregado de 1% que a [[ADR-406]] instalou, em eixo que **nenhum** gate alcança. Invariante medido: `Σ(baldes)+nao_atribuido` vs `Σ(total_por_membro)` — **0,00 exato em 25/25** onde `fonte == "posicoes_atuais"`; nos outros 20 o delta é o top-up (DE-8). Sucessor natural da [[A40.l69]] · o próprio #1578 o nomeia no corpo |
+| DE-8 — top-up IRPF entra no balde do membro **sem quantia declarada**: `fonte_investimentos: "posicoes_atuais+irpf"` descreve o **domicílio**, não diz quanto nem de quem, e o valor fica fora de qualquer denominador publicado | completude | Alto | P1 | procede (novo, 2026-08-21) | procede-aberto | owner: data-engineer · é a queixa que criou `cobertura_investimentos` um andar acima, cometida um andar abaixo — mesma família de [[ADR-394]] §Emenda (c). Medido em **20/45 runs**; delta = exatamente o top-up. Remédio: publicar a quantia por membro, e o invariante do DE-7 passa a fechar nos 45 |
+| DE-9 — `cobertura_investimentos[].frescor` tem **zero consumidores**: chegou ao schema (`e5_analysis.schema.json:326`) e ao tipo TS (`report-analysis.ts:350`), e não há leitor em `pipeline/domain/services/narrativas/` nem em componente do relatório. A prosa põe o valor de **2023** de um membro ao lado do de **2025** do outro sem qualificar | clareza-ux | Alto | P1 | procede (novo, 2026-08-21) | procede-aberto | owner: data-engineer+product-designer · mesma família do RV6-04 — **afirmar sem qualificar**. `status` diz se mediu, `frescor` diz quando; publicar o segundo e não lê-lo é o campo existir para o gate e não para o leitor |
+| CTO-7 — kill-switch de retenção **não deixa rastro**: com `MATHOMS_E5_CLASSIFICACAO_GATE=0` ou `MATHOMS_E5_COBERTURA_ENFORCEMENT=0` o run fica **indistinguível de run limpo** — sem razão, sem pausa, sem campo. A pausa é auditável; o desligamento não | saúde-execução | Alto | P1 | procede (novo, 2026-08-21) | procede-aberto | owner: senior-cto · **segunda instância da classe de falso-verde desta onda** (a 1ª foi o gate que media o contêiner, [[ADR-394]] §Emenda (c)). Remédio barato e sem contenda: `validation.gates_desligados: ["classificacao"]` — **não** toca `e5_analysis.schema.json`, `dogfood_view_model.json` nem o codegen, logo não disputa superfície com #1591/#1568/#1573 |
 | PD-4 — predicado de vazio da seção de riscos lê só um bundle e ignora a fonte populada, imprimindo "sem riscos cadastrados" enquanto a seção vizinha cita apólices vigentes; copy de vazio **desqualifica** dado que o próprio documento exibe | clareza-ux | Alto | P1 | procede (RV6-20 persiste) | procede-aberto | owner: product-designer · predicado lê as duas fontes; estado **parcial** em vez de vazio; nunca derivar copy de `missing_inputs` |
 | RV6-17 — vocabulário composto com identificador de pessoa/empresa chega ao render — **re-ancorado**: o campo registrado no r6 não tem consumidor (só o tipo); a rota viva é o `label` das séries mensais, consumido pela legenda do gráfico | consistência | Alto | P1 | procede (âncora corrigida) | procede-aberto | owner: data-engineer+product-designer · chave semântica PII-free + rótulo por papel; corrigir a âncora registrada no §r6 |
 | PD-3 — catch-all de classe sem drill-down nem provenance: linha de participação baixa parece resíduo de arredondamento, sem rota para as posições que caíram nela | clareza-ux | Médio | P2 | procede | procede-aberto | owner: product-designer · provenance + nota condicional + cinza neutro no donut |
@@ -462,6 +481,63 @@ passa a publicar `null` em vez de `0,00`. Isso endereça o braço de **afirmaç�
 até prova em contrário: (a) a **cobertura** — por que as instituições conhecidas do membro não
 chegam ao balde; (b) a **prosa entregue**, que afirmava o zero e era byte-idêntica em 3 runs.
 Re-medir os três no r8 antes de rebaixar a prioridade.
+
+**Nota datada 2026-08-21 — RV6-04 fecha por medição, e a raiz não era a que a linha dizia.**
+Os três braços que a nota acima mandou re-medir foram medidos contra `main`, e o defeito
+**já estava corrigido** por **#1578** (`11b90a4e`, mergeado 2026-08-19), que a triagem não
+tinha visto. Saída crua, com procedência no mesmo output — padrão desta lane:
+
+```
+git rev  : 4251a538e58ab65f9b8ac10e45e8ef0250cac1f0
+git dirty: ''
+modulo   : …/pipeline/domain/services/investimentos_cobertura.py
+tem_bens_irpf no modulo carregado: False
+RUN      : 33514dc4-115b-45fe-8976-03e25ba971c8
+
+investimentos_titular            = 300444.46
+investimentos_conjuge            = 110130.67
+fonte_investimentos              = 'posicoes_atuais+irpf'
+investimentos_nao_atribuidos     = 642744.79
+cobertura_investimentos          = [{"membro": "titular", "status": "apurado",
+  "fonte": "posicoes_atuais", "frescor": "2025", "motivo": null},
+ {"membro": "conjuge", "status": "apurado", "fonte": "irpf", "frescor": "2023",
+  "motivo": null}]
+```
+
+**A raiz não eram os `extras` por papel.** A hipótese era que `investimentos_from_irpf`
+recebia `("saldo_corretora","moeda_estrangeira","outros")` para o titular e só `("outros",)`
+para o cônjuge. Medida sobre o corpus, a assimetria é **inerte**: trocar um pelo outro muda
+**0 valores em 90 instâncias-membro**, porque **nenhuma** das 3 chaves existe em `bens`
+produzido por `build_members_from_consolidated` — o parâmetro é dead code no caminho de
+produção. A raiz é `_max_value_year` reduzindo o baseline a **um** ano e propagando-o a todos
+os membros: os lançamentos do cônjuge são de 2023, `ano_ref` resolvia 2025, e
+`_resolve_item_valor` caía no fallback e devolvia `0,00`. Forçando o ano para 2023, quem zera
+é o **titular** — **defeito do eixo, não da pessoa**.
+
+**Braço (b), a prosa, dissolve-se e é substituído.** Com a cobertura correta,
+`fmt_currency` recebe valor real e a frase deixa de afirmar zero. Mas a prosa passa a pôr um
+número de **2023** ao lado de um de **2025** sem qualificar: `frescor` existe no payload e
+**não tem leitor** — é o **DE-9**, aberto acima, da mesma família (afirmar sem qualificar).
+
+**Duas coisas que a medição comprou e a leitura de código não compraria:**
+
+1. **O terceiro ramo morreu; o estado não.** `classificar_cobertura` não tem mais o ramo
+   `tem_bens_irpf ⇒ zero_apurado` (media o **contêiner**: `bens` vem sempre com 4 chaves, o
+   predicado era constante `True`). Mas `zero_apurado` **continua alcançável** pelo ramo 1,
+   com valor lido = 0 — as docstrings do enum seguem vigentes e **não discriminam** entre as
+   duas versões. Só o bloco `if obs.tem_bens_irpf:` discrimina, e ele não existe em `main`.
+2. **A mutação matou 2 testes, contra a previsão.** Invertido o default de `apurado`
+   (`True`→`False`) em `valor_publicavel`: baseline `7063 passed`; mutado `2 failed, 7061
+   passed` — `test_solo_identity_no_conjuge_category` e
+   `test_adr145_solo_titular_conjuge_bucket_is_zero`. O ramo **é** exercitado, porque #1578
+   trocou o fixture que usava o único dos 4 shapes de `resolve_members` que **desvia** de
+   `build_members_from_consolidated`, por onde a produção sempre passa.
+
+**Método, para a próxima triagem.** A análise que dava o RV6-04 por aberto foi feita lendo o
+arquivo de **outro checkout do mesmo clone**. `git merge-base --is-ancestor` valida a **ref**;
+não valida de onde o arquivo foi lido, e num repo com vários worktrees os dois se separam em
+silêncio. Quando a afirmação é sobre uma ref, a leitura passa por `git show <ref>:<path>` —
+não pelo filesystem.
 
 **Correção datada 2026-08-19 — erro meu no §r7 acima.** O PE-6 foi registrado afirmando que `pipeline_run_costs` vazio implicaria "nenhum cap da [[ADR-173]] enforceável". **É falso.** `backend/app/services/llm_budget_service.py:115,164` lê `LLMCallLog` — a tabela que ESTÁ populada. `pipeline_run_costs` está vazio por ser **dead schema** pós-ADR-173, não por defeito. Verifiquei as contagens e repassei a INFERÊNCIA da lente sem checá-la.
 O que **permanece de pé** no PE-6, medido: (a) tier invertido — 5 de 6 chamadas no modelo caro são de extração, superfície que já tem schema + fallback determinístico, ~82% do custo, enquanto a única síntese aberta roda no barato; (b) subcontagem — 1 row por stage, tentativa cobrada e invisível; (c) custo do parecer e cobertura de citação caem juntos sem alarme (mesma variável, via PE-1).

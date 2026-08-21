@@ -57,7 +57,21 @@ export function EndividamentoCard({
           </div>
 
           {dividas.length > 0 && (
-            <div className="overflow-x-auto">
+            <>
+            <div className="space-y-3 sm:hidden">
+              {dividas.map((d, idx) => (
+                <article
+                  key={`divida-m-${idx}`}
+                  className="rounded-md border border-[var(--surface-border)] p-3 text-sm"
+                >
+                  <p className="font-medium">{d.descricao}</p>
+                  <p className="mt-1 text-right font-mono tabular-nums">
+                    <MonetaryValue value={d.saldo_devedor} />
+                  </p>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto sm:block print:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--surface-border)] text-left">
@@ -90,6 +104,7 @@ export function EndividamentoCard({
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       )}

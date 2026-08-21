@@ -4,6 +4,7 @@ type: adr
 title: "Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico"
 status: Proposto
 date: "2026-08-21"
+amended_at: ["2026-08-21"]
 relates_to:
   - "[[ADR-157]]"
   - "[[ADR-171]]"
@@ -26,6 +27,11 @@ tags:
 # ADR-405 — Retenção de artefato é per-produtor
 
 **Status:** Proposto · **Data:** 2026-08-21
+
+> **Correção medida (2026-08-21):** a afirmação de que "os `codigo_rfb`
+> distintos se preservam" e "os buckets do E5 sobrevivem" está ERRADA — o
+> multiset de código também oscila, e em 2 de 5 artefatos o split
+> trabalho×capital muda. Ver §Correção.
 
 ## Contexto
 
@@ -53,13 +59,13 @@ Dois desdobramentos medidos:
   último sorteio. Dois artefatos de IRPF estão hoje com a versão corrente
   degradada: um com 0 de 2 `pagamentos_efetuados` (0% do valor de pico) e
   outro com 1 de 5 (2,6%). O relatório publicado usa essas.
-- **Duas classes de divergência, não uma.** Em
-  `rendimentos_tributacao_exclusiva` a soma em BRL é **idêntica** entre os
-  modos de 11 e de 3 itens, e os `codigo_rfb` distintos se preservam: é perda
-  de granularidade, e os buckets do E5 (que pescam por código) sobrevivem. Em
-  `pagamentos_efetuados` a soma cai **97,4%**: é perda de valor. Um detector
-  único trata as duas como "flapping" e declara ambas fechadas ao consertar
-  uma.
+- **Três classes de divergência, não uma** (a terceira foi medida depois —
+  ver §Correção). Em `rendimentos_tributacao_exclusiva` a soma em BRL é
+  **idêntica** entre os modos de 11 e de 3 itens: é perda de granularidade. Em
+  `pagamentos_efetuados` a soma cai **97,4%**: é perda de valor. E o
+  **`codigo_rfb` oscila com contagem e soma estáveis**, o que derrota checksum
+  de soma *e* de contagem. Um detector único trata as três como "flapping" e
+  declara todas fechadas ao consertar uma.
 
 ## Decisão
 
@@ -139,3 +145,44 @@ Consequências que esta ADR fixa:
   2026-08-21).
 - [[ADR-157]] — `extract_irpf_full`, o stage onde o não-determinismo foi medido.
 - [[ADR-311]] / [[ADR-371]] — tombstone e grafo de FK como fonte da deleção.
+
+
+## Correção 2026-08-21 — o `codigo_rfb` também oscila, e o bucket se move
+
+A versão original desta nota afirmava que, em
+`rendimentos_tributacao_exclusiva`, "os `codigo_rfb` distintos se preservam" e
+que por isso "os buckets do E5 (que pescam por código) sobrevivem". **As duas
+afirmações estão erradas.** Elas vieram de conferir o código de *um* par de
+versões e generalizar — inferência apresentada como medição.
+
+Re-medido sobre todas as versões de `extract_irpf_full` no dogfood:
+
+| artifact_key | assinaturas de código | contagem | soma | split trabalho×capital |
+| --- | ---: | --- | --- | --- |
+| `114fda512711…` | 2 | **estável (5)** | **estável** | estável |
+| `03c16f8b5899…` | 4 | 3 ou 11 | **estável** | **MUDA (2 splits)** |
+| `00327fd80b31…` | 3 | 3 ou 11 | estável | estável |
+| `268cf0e0d013…` | 2 | 1 ou 2 | 2 valores | **MUDA (2 splits)** |
+| `7aa485036c22…` | 2 | 1 ou 3 | estável | estável |
+
+`114fda512711` isola a classe nova: **contagem 5 e soma constantes, e ainda
+assim duas assinaturas** — `{11:1, 12:4}` em 42 runs contra `{06:4, 11:1}` em
+34. O mesmo valor migra entre os códigos `12` e `06` de uma execução para
+outra.
+
+`03c16f8b5899` é o que refuta a conclusão: **soma total estável e mesmo assim
+dois splits trabalho×capital distintos.** Como `_bucket_capital` filtra por
+`_CAPITAL_EXCLUSIVA = {jcp(10), aplicações(12), ganho_capital(06)}` e
+`_bucket_trabalho` por `_TRABALHO_EXCLUSIVA = {13º(11)}`
+([`irpf_analyzer.py:39-48`](../../pipeline/domain/services/irpf_analyzer.py)),
+migração de código **entre** esses conjuntos desloca renda passiva → TRS →
+prazo do cone de IF. Em 2 de 5 artefatos isso acontece de fato.
+
+**Consequência para arbitragem:** o multiset de `codigo_rfb` **não serve de
+árbitro** entre versões, e nem checksum de soma nem de contagem detecta esta
+classe. O árbitro tem de ser o **total impresso na própria ficha da DIRPF**,
+que é externo ao extrator.
+
+**O que continua de pé:** a decisão desta ADR não muda — ao contrário, fica
+mais forte. Se nem soma nem contagem nem código são estáveis, menos ainda
+"recência" caracteriza dominância, e a partição per-produtor é o mínimo.

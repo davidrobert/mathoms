@@ -17,7 +17,6 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 396"
   - "secao e precondicao de mint"
 tags:
   - type/adr
