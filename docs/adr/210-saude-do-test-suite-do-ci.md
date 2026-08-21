@@ -801,6 +801,18 @@ com run `schedule` bem-sucedido às 02:25 do mesmo dia, e o mesmo gate reportara
 workflow recriado: os runs recentes e a query do checker resolvem para o
 **mesmo** `workflow_id` (`276754849`).
 
+**Segunda ocorrência, 2026-08-21 — corrobora que a causa é a query, não o workflow.**
+O `lint-all` do #1590 (docs-only, sem tocar `.github/`) reprovou com *"stale.yml:
+último run há 90d (limite 3d)"*, enquanto `stale.yml` estava `active` e com run
+`success` às 06:44 do mesmo dia. **Workflow diferente do #1548**, mesma
+patologia — o que descarta hipótese específica de `budget-alert.yml` e aponta
+para a query compartilhada. O diagnóstico barato que separa este caso de "waiver
+vencido trava o repo": se **só o seu** PR reprova e o diff não toca `.github/`, é
+o índice; se **todos** reprovam, é waiver. O #1591 passou no mesmo job minutos
+depois. Destravado com `gh run rerun --failed`, **sem escape hatch** — o
+`ops-override` que o parágrafo abaixo teme não foi usado, e por isso a causa
+sobreviveu ao registro.
+
 **Classe do defeito.** É falso **vermelho**, não falso verde — não fere a
 invariante desta camada, que existe contra o falso verde. Mas custa o que o
 §Custo tenta economizar: o PR reprova, alguém re-roda, e o caminho barato de
