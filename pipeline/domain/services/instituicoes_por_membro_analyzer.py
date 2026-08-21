@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any, Mapping
 
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
+from pipeline.domain.services.posicao_identity import locator_da_posicao, valor_da_posicao
 
 
 @dataclass(frozen=True)
@@ -26,12 +28,35 @@ class InstituicoesPorMembroConfig:
 
 
 @dataclass(frozen=True)
+class PosicaoSemIdentidade:
+    """Posição com valor cuja instituição não chegou ([[ADR-405]])."""
+
+    locator: str
+    valor: Decimal
+
+    def to_dict(self) -> dict:
+        # Wire legado do E5 é JSON number ([[ADR-090]] §consequências), como
+        # `total_financeiro` ao lado; `Decimal` é o que vive em memória.
+        return {"locator": self.locator, "valor": float(round(self.valor, 2))}
+
+
+@dataclass(frozen=True)
 class MembroInstituicoes:
     membro: str
     instituicoes: tuple[str, ...]
+    # `instituicoes` sozinho é incomparável entre runs: uma queda pode vir de
+    # corpus menor ou de identidade perdida. `n_posicoes` é o denominador que
+    # separa os dois ([[ADR-405]]; medido no §r7 como 18→16 com posições fixas).
+    n_posicoes: int = 0
+    posicoes_sem_identidade: tuple[PosicaoSemIdentidade, ...] = ()
 
     def to_dict(self) -> dict:
-        return {"membro": self.membro, "instituicoes": list(self.instituicoes)}
+        return {
+            "membro": self.membro,
+            "instituicoes": list(self.instituicoes),
+            "n_posicoes": self.n_posicoes,
+            "posicoes_sem_identidade": [p.to_dict() for p in self.posicoes_sem_identidade],
+        }
 
 
 @dataclass(frozen=True)
@@ -64,8 +89,7 @@ class InstituicoesPorMembroAnalyzer:
                 # Workspace sem cônjuge → conjuge_key=""; pula da lista
                 # (schema exige membro non-empty), mas n_imoveis fica.
                 continue
-            instituicoes = self._collect_instituicoes(bens)
-            por_membro.append(MembroInstituicoes(membro=member, instituicoes=tuple(instituicoes)))
+            por_membro.append(self._linha_do_membro(member, bens))
         por_membro.sort(key=lambda m: m.membro)
         return InstituicoesPorMembroResult(
             por_membro=tuple(por_membro),
@@ -81,6 +105,33 @@ class InstituicoesPorMembroAnalyzer:
             if isinstance(bens, Mapping):
                 yield member, bens
 
+    def _linha_do_membro(self, member: str, bens: Mapping[str, Any]) -> MembroInstituicoes:
+        posicoes = self._iter_investimentos(bens)
+        return MembroInstituicoes(
+            membro=member,
+            instituicoes=tuple(self._collect_instituicoes(bens)),
+            n_posicoes=len(posicoes),
+            posicoes_sem_identidade=tuple(self._sem_identidade(posicoes)),
+        )
+
+    @staticmethod
+    def _iter_investimentos(bens: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+        return [i for i in (bens.get("investimentos") or []) if isinstance(i, Mapping)]
+
+    # Posição zerada sem instituição não é lacuna de identidade — é posição
+    # encerrada, e cobrá-la produziria ressalva sobre patrimônio que não existe.
+    @staticmethod
+    def _sem_identidade(posicoes: list[Mapping[str, Any]]) -> list[PosicaoSemIdentidade]:
+        return [
+            PosicaoSemIdentidade(
+                locator=locator_da_posicao(i), valor=Decimal(str(valor_da_posicao(i)))
+            )
+            for i in posicoes
+            if not str(i.get("instituicao") or "").strip() and valor_da_posicao(i) > 0
+        ]
+
+    # `.capitalize()` é normalização com perda (mediu 20 rótulos crus → 19 no
+    # corpus do §r7) — deferida em [[ADR-405]] §Deferimento D1, não é acidente.
     @staticmethod
     def _collect_instituicoes(bens: Mapping[str, Any]) -> list[str]:
         seen: set[str] = set()

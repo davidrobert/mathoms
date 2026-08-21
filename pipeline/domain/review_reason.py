@@ -52,6 +52,12 @@ class ReviewReasonCode(str, enum.Enum):
     # A40.l69 ([[ADR-394]] §Emenda (b) D7): membro sem fonte de investimentos —
     # balde não apurado, que é diferente de balde medido em zero.
     domain_membro_nao_apurado = "domain.membro_nao_apurado"
+    # DE-2/RV7-04 ([[ADR-405]]): a classe do ativo não foi decidida por degrau
+    # nenhum, ou a posição perdeu a identidade de instituição. Migração entre
+    # baldes preserva Σ — nenhum check de conservação alcança esta classe.
+    domain_ativo_sem_haystack = "domain.ativo_sem_haystack"
+    domain_ativo_nao_classificado = "domain.ativo_nao_classificado"
+    domain_instituicao_ausente = "domain.instituicao_ausente"
     # DE-6 ([[ADR-398]]): o eixo ativo do item veio do `categoria_hint`, não de
     # um fato — mint de identidade recusado, porque rotular converteria um
     # passivo em ativo do patrimônio bruto.

@@ -28,8 +28,7 @@ def resolve_faixa_marginal(
     """Alíquota da faixa que CONTÉM a base; ``upper_brl_cents`` é teto inclusivo."""
     if not faixas:
         raise TabelaProgressivaInvalida(
-            "tabela progressiva vazia; esperado >=1 IRPFBracket, "
-            "o último com upper_brl_cents=None"
+            "tabela progressiva vazia; esperado >=1 IRPFBracket, o último com upper_brl_cents=None"
         )
     for faixa in faixas:
         if faixa.upper_brl_cents is None:
