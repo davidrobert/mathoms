@@ -20,7 +20,7 @@ aliases:
   - "diagnostico nao aborta"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/observabilidade
 size_lines: 132
