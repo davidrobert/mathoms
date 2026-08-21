@@ -5,7 +5,7 @@ title: "Fato determinístico é autoridade; saída de LLM é hint em vocabulári
 status: Decidido
 phase: A40.l66
 date: "2026-08-18"
-amended_at: ["2026-08-18", "2026-08-19"]
+amended_at: ["2026-08-18", "2026-08-19", "2026-08-21"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-090]]"
@@ -48,6 +48,11 @@ Cobre 1a/1b/1c no corpo original; 1d entra pela emenda abaixo.
 > declarada abaixo era a do mecanismo pretendido, não a do código entregue.
 > A raiz não era o predicado: era o **eixo de ano**, no grão do domicílio.
 > Ver §Emenda 2026-08-19 (c).
+>
+> **Emendada em 2026-08-21** — a (c) atribuiu o sumiço do balde do cônjuge ao eixo
+> de ano. O eixo era **metade** da história: a outra metade é uma truncagem
+> silenciosa de documentos no E1.5a, que nunca deixou a declaração de 2024 dela
+> entrar no pipeline. Ver §Emenda 2026-08-21 (d).
 
 ## Contexto
 
@@ -450,6 +455,11 @@ de que o classificador entregue rotularia aqueles casos `nao_apurado`.
 
 ### Deferimento datado — 2026-08-19, dono: [[A40.l69]]
 
+> **Rota viva desde 2026-08-21:** a [[A40.l69]] fechou `shipped`, então o dono
+> declarado acima não é rota de trabalho. Os dois itens abaixo estão re-homeados
+> ao §Deferimentos datados do [[PLAN-deterministic-authority]]. O texto e as
+> condições de retomada seguem aqui — é a decisão; lá é o pickup.
+
 Dois itens que esta emenda **não** decide, com condição de retomada:
 
 1. **Trava anti-dupla-contagem no cônjuge dependente.** Bens de dependente vão na
@@ -472,3 +482,43 @@ O teto de defasagem para suprimir prescrição (quantos anos de distância entre
 membros tornam a composição ficção) também não é decidido aqui: com D10 a
 defasagem passa a ser **declarada** em `frescor`, e o consumidor da regra é o
 render, fora desta lane.
+
+## Emenda 2026-08-21 (d) — o eixo de ano era metade; a outra é o documento que nunca entrou
+
+A §Emenda (c) mediu que o ano-base era do domicílio e que isso zerava quem
+declarava em ano disjunto. Estava certo e o fix (D10) recuperou **R$ 110.130,67**.
+Mas o balde do cônjuge valia **R$ 298.254,40** antes de 2026-08-12, e a (c) não
+explica os **R$ 188.123,73** restantes.
+
+**Eles nunca entraram no pipeline.** `pipeline/stages/extract_baseline.py`
+seleciona documentos com `sorted(rglob)` — ordem lexicográfica sobre **hash de
+filename** — e trunca em `docs[:_MAX_DOCS_PER_RUN]`, teto **10**, sem
+`review_reason`, sem `degraded`, sem log. Medido no corpus do dogfood em
+2026-08-21: **23 elegíveis, 10 processados, 13 descartados calados**, e o 12º é a
+declaração da cônjuge (`ano_base` 2024, 38 bens). O E1.6 lê o mesmo documento em
+todos os runs — o discovery dele filtra `irpfdeclaracao` e nunca encosta no teto.
+
+### D11 — cap de documentos é orçamento declarado, nunca descarte mudo
+
+Duas regras, e a segunda é a que faltava:
+
+1. **A ordem de seleção é por autoridade da classe, nunca por filename.**
+   Declaração > informe > recibo, e recência dentro da classe. Ordem lexicográfica
+   sobre hash é sorteio: aqui ela sorteou fora a declaração de uma das duas
+   pessoas do domicílio.
+2. **O que o cap corta é declarado.** Truncagem emite `review_reason` tipado com o
+   número e as classes descartadas ([[ADR-357]] WARN-first; cap de cardinalidade
+   da [[ADR-272]]). Stage entrega — não retém run, não aborta.
+
+O teto de 10 **permanece**: as 4 declarações do corpus cabem nele, então ordenar
+por classe recupera o valor a **custo LLM zero**. Descapar é decisão de custo, com
+medição própria, e não pega carona nesta.
+
+**Corolário medido:** `real_estate/` e `vehicles/` são varridos depois de
+`income_tax_br` na mesma lista truncada — com 23 arquivos ali, nenhum documento de
+imóvel ou veículo jamais alcançou o E1.5a neste workspace.
+
+**Por que isso é a ADR-394 e não decisão nova:** é a tese do fato determinístico
+aplicada um stage acima. O pipeline afirmava um patrimônio sobre um conjunto de
+documentos que ele silenciosamente reduziu — a mesma classe de "afirma o que não
+mediu" que D7/D9 decidiram no E5, agora na porta de entrada.

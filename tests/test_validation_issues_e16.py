@@ -61,6 +61,26 @@ def _build_pj() -> FontePagadoraPJ:
     )
 
 
+# 13º é tributação exclusiva na fonte (Quadro 3) e não compõe o `ir_pago_brl` do
+# ajuste anual (Quadro 1). Somá-lo divergia em 100% das declarações com 13º,
+# capando confidence e cravando `needs_review` — o sinal morria por ruído.
+def _pj_com_13o() -> FontePagadoraPJ:
+    return FontePagadoraPJ(
+        cnpj="**.***.***/****-**",
+        nome="ACME",
+        rendimentos_tributaveis_brl="150000.00",
+        contrib_previdenciaria_brl="8000.00",
+        ir_retido_brl="25000.00",
+        decimo_terceiro_bruto_brl="12500.00",
+        decimo_terceiro_ir_retido_brl="1880.00",
+    )
+
+
+def _reconcile_issues(out: IRPFFullOutput) -> list:
+    codigo = "e16.reconcile.ir_pago_divergente"
+    return [i for i in validate_e16_output(out).issues if i.code == codigo]
+
+
 def _build_imposto(
     ir_pago: str = "25000.00",
     ir_a_pagar: str | None = "3000.00",
@@ -198,6 +218,18 @@ class TestIssuesStructure:
         assert i.path == "$.imposto_apurado.ir_pago_brl"
         assert i.context["ir_pago_brl"] == "99999.00"
         assert "diff_brl" in i.context
+
+    def test_reconcile_ignora_ir_do_decimo_terceiro(self):
+        """ADR-157 §6: a soma tem DOIS termos — o IR do 13º fica fora."""
+        base = dict(
+            contribuinte=_build_contribuinte(), rendimentos_pj=[_pj_com_13o()], confidence=0.95
+        )
+
+        ok = IRPFFullOutput(imposto_apurado=_build_imposto("25000.00"), **base)
+        inflado = IRPFFullOutput(imposto_apurado=_build_imposto("26880.00"), **base)
+
+        assert not _reconcile_issues(ok), "ir_pago do ajuste anual reconcilia"
+        assert _reconcile_issues(inflado), "ir_pago inflado pelo 13º diverge"
 
     def test_imposto_xor_issue(self):
         out = _minimal(ir_a_pagar="100", ir_a_restituir="100")

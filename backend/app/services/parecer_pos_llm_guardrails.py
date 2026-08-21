@@ -366,7 +366,7 @@ _RESSALVA_TRAJETORIA = (
 )
 
 
-def _ascii_fold(text: Any) -> str:
+def ascii_fold(text: Any) -> str:
     decomposed = unicodedata.normalize("NFKD", str(text or ""))
     return "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
 
@@ -382,7 +382,7 @@ def _afirma_lemma(blob: str, lemma: str) -> bool:
 
 def _lemmas_de_trajetoria_afirmada(*textos: Any) -> list[str]:
     """Lemmas presentes em forma AFIRMATIVA (fora de sintagma condicional)."""
-    blob = " ".join(_ascii_fold(t) for t in textos)
+    blob = " ".join(ascii_fold(t) for t in textos)
     return [lemma for lemma in _TRAJETORIA_LEMMAS if _afirma_lemma(blob, lemma)]
 
 
@@ -472,6 +472,7 @@ __all__ = [
     "downgrade_confianca_fallback",
     "filter_campos_faltantes",
     "aplicar_piso_pontos_fortes",
+    "ascii_fold",
     "guardrails_summary",
     "neutralize_trajetoria_sem_serie",
 ]

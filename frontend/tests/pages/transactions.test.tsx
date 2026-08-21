@@ -23,6 +23,28 @@ import TransactionsPage from "@/app/(app)/transactions/page";
 beforeEach(() => {
   localStorage.setItem("fin_token", "t");
   replaceMock.mockClear();
+  // A página monta o filtro por titular (members) e o mapa de overrides
+  // resolvidos; nenhum teste daqui declara membro ou override. Sem estes
+  // handlers as duas requests rejeitavam pelo `onUnhandledRequest: "error"`,
+  // e a UI media o próprio branch de falha em vez do estado vazio.
+  server.use(
+    http.get("/api/v1/workspaces/:workspaceId/config/members", () =>
+      HttpResponse.json({ members: [], total: 0 }),
+    ),
+    // `template_version_used === latest_template_version`: versões
+    // diferentes acendem o `AlertCircle` de template desatualizado, que
+    // nenhum teste daqui pede.
+    http.get(
+      "/api/v1/workspaces/:workspaceId/config/category-overrides/resolved",
+      () =>
+        HttpResponse.json({
+          categories: [],
+          total: 0,
+          template_version_used: 1,
+          latest_template_version: 1,
+        }),
+    ),
+  );
 });
 
 describe("TransactionsPage", () => {

@@ -5,7 +5,7 @@ title: "Cobertura de investimentos por membro: zero apurado não é o mesmo que 
 sprint: A40
 plan: PLAN-deterministic-authority
 status: shipped
-ship_pr: 1541
+ship_pr: 1578
 ship_date: "2026-08-19"
 priority: P0
 branch_slug: a40-l69-cobertura-investimentos-por-membro
@@ -147,7 +147,12 @@ segunda é a que fecha o buraco no caminho de investimentos:
 - **Onde não há CPF** (caminho de investimentos), slug não canonicalizado
   **deixa de virar membro**: o miss do resolver produz `nao_apurado` +
   `needs_review` nomeando o slug, e o valor **não é absorvido pelo titular**.
-  Some o `else: membro = membro_raw` da linha 324.
+  ~~Some o `else: membro = membro_raw` da linha 324.~~ **Mecanismo refutado por
+  medição (2026-08-19):** apagar o ramo colide com a semântica de membro vazio e
+  quebra 8 testes; o ramo vive em **324 e 326**, dois casos distintos. O desfecho
+  *"o valor não é absorvido pelo titular"* foi entregue por outra via — a §D8 no
+  E5, com `nao_atribuido` em balde próprio. O desfecho *"`needs_review` nomeando
+  o slug"* **não** foi entregue e viaja com o item dos 68 % (§Aberto).
 - **Varredura + gate:** ~~os 31 call-sites~~ **35 medidos** com o padrão
   declarado (`(titular_key|conjuge_key|_TITULAR_KEY|_CONJUGE_KEY)[^=<>!]* in `),
   **40 convertidos** contando `not in`, de match por substring em chave de
@@ -205,8 +210,27 @@ declara quantos viraram match exato e quantos entraram na allowlist.
 - Rebaseline em commit isolado dentro do PR do fix
   (`dev/check_golden_rebaseline_isolation.py`), `dev/golden_diff.py --manifest`,
   sinal ↑/↓/= declarado. **Janela J4** (§0d do plano) — abre com a J2 fechada.
-  O sinal esperado é **↓ no balde do titular** e **↑ ou `null` no do cônjuge**:
-  se o titular não cair, o elo 2 não foi cortado.
+  ~~O sinal esperado é **↓ no balde do titular** e **↑ ou `null` no do cônjuge**:
+  se o titular não cair, o elo 2 não foi cortado.~~
+
+  > **Emenda de 2026-08-21 — o critério estava invertido, não fraco.** O golden
+  > do dogfood é domicílio de **1 pessoa**: a população não pode exibir o sinal
+  > previsto em nenhum dos dois desfechos. Escrito na contrapositiva, ele conclui
+  > que o elo **não** foi cortado — qualquer que seja o código. Eram dois
+  > critérios fundidos, e a fusão é o defeito:
+  >
+  > | critério | instrumento | população | o que prova |
+  > | --- | --- | --- | --- |
+  > | guarda de não-regressão | `dev/golden_diff.py --manifest` | golden dogfood (1 membro) | nada mais mudou. **`=` é o resultado correto aqui**, não ressalva |
+  > | prova do efeito | mutação unitária + medição no corpus | corpus com domicílio de 2 membros | o elo foi cortado |
+  >
+  > Medido no #1578: reintroduzir o ramo do contêiner mata **5 testes** (antes
+  > matava 0), e a taxa no corpus vai de 5/114 para 0/114 depois do fix de ano.
+  >
+  > **Regra que sai daqui, e vale além desta lane:** critério que prevê um
+  > **sinal** declara instrumento, **população** e predicado — e só é válido se a
+  > população puder exibir **os dois desfechos**. Verificar custa um comando
+  > (inventariar o fixture) antes de escrever o critério.
 
 ## Fora de escopo
 
@@ -249,34 +273,75 @@ Ataque adversarial aos PRs de 3a, **depois** do merge deles e **durante** o do
 - **O fixture dos 22 testes usava um shape que nenhum produtor emite**
   (`baseline={"members": <dict>}`). Trocado pelo do E1.5c; com ele, reintroduzir
   o ramo mata 5 testes — antes matava 0.
-- **`frescor` nunca foi implementado.** A §Escopo pediu
-  `status`/`fonte`/`frescor`/`motivo`; shipou com 3. Entra na (c).
+- ~~**`frescor` nunca foi implementado.**~~ **Entregue no #1578** (2026-08-19) —
+  `investimentos_cobertura.py` + `e5_analysis.schema.json`. A frase valia quando
+  escrita, pré-merge; o PR seguinte fechou o buraco que o ataque achou.
 
-### Entregue
+### O que já havia shipado quando o ataque rodou — 2026-08-19
 
 | PR | o quê |
 | --- | --- |
 | #1541 · #1542 | 3a — enum de cobertura + flip para `null` (predicado inerte) |
 | #1550 | 3b (ii)+(iii) — match por token + gate anti-substring |
-| _este_ | D10 (ano por membro + guarda do top-up) e D9 (ramo do contêiner sai, `frescor` entra, gate de alcançabilidade) |
+| #1578 | D10 (ano por membro + guarda do top-up) e D9 (ramo do contêiner sai, `frescor` entra, gate de alcançabilidade) |
 
 ### Aberto, com dono
 
-- **3b (i)** — `else: membro = membro_raw` em `investments_consolidator.py:324`.
-- **Trava do cônjuge dependente** e **válvula declarada** para domicílio sem
-  investimentos → §Deferimento datado da [[ADR-394]] §Emenda (c).
-- **68 % do balde do titular é chave vazia** (`total_por_membro` tem `''`).
-  Pós-#1550 vai para `nao_atribuido`, que **não** gera linha de cobertura nem
-  `review_reason` e não suprime nada — buraco maior que o do cônjuge.
-- **Kill-switch parcial**: `valor_publicavel` não consulta
-  `cobertura_enforcement_ligado()`; com a env em `0` o balde segue `null` e some
-  a razão que o explica.
-- **Copy de `null` na narrativa** sai "Bia possui N/D concentrados em
-  instituições…" — é da lane de render ([[PLAN-report-trust]] 7e).
-- **Colapso cross-ano** no consolidador: 26→9 itens do cônjuge em 2026-08-12 com
-  input idêntico, survivor keyed no ano velho.
+> **Re-roteado no closeout de 2026-08-21.** A lista abaixo é o snapshot do
+> ataque; o destino de cada item está na coluna. Duas rotas que ela declarava
+> estavam **mortas** e foram corrigidas aqui — ver §Rotas corrigidas.
 
-## Entregue — 2026-08-19 (#1538 · #1541 · #1542 · #1550)
+| Achado | Destino |
+| --- | --- |
+| **3b (i)** — `else: membro = membro_raw` (vive em `investments_consolidator.py` **324 e 326**, dois casos) | **mecanismo refutado**, não pendência — ver §Escopo 3b, emenda de 2026-08-21. O desfecho residual (`review_reason` nomeando o slug) vai com o item seguinte |
+| **68 % do balde do titular é chave vazia** — `nao_atribuido` não gera linha de cobertura, nem `review_reason`, nem supressão. Re-medido 2026-08-21: **R$ 642.744,79 de R$ 943.189,25 em 3/3 runs** | **P0 · lane própria proposta** (§Inventário do `_README` da A40). É a superfície que **esta lane criou** e é maior, em massa, que o defeito de origem |
+| **Golden sem domicílio de 2 membros** — a classe de atribuição entre cônjuges é invisível ao CI por construção; mordeu 2× nesta lane | **P1 · mesma lane proposta, primeiro PR** — habilita o critério de aceite dos demais |
+| **Kill-switch parcial**: `valor_publicavel` não consulta `cobertura_enforcement_ligado()`; com a env em `0` o balde segue `null` e **some a razão** | **P1 · [[PLAN-deterministic-authority]] §Deferimentos datados.** Não é escopo novo: o §Enforcement desta lane prometeu "kill-switch de 1 env var, provado por teste", e o docstring de `cobertura_enforcement_ligado` **afirma** um contrato que o código não cumpre |
+| **Copy de `null` na narrativa** — "Bia possui N/D concentrados em instituições…" | **[[A40.l51]]**, que já hospeda a mesma classe em `summaries_narrator.py:86-87` |
+| **Colapso cross-ano** no consolidador (26→9 itens, survivor no ano velho) | **[[PLAN-deterministic-authority]] §Deferimentos datados, gateado por re-medição** — o número é de 2026-08-12 e decide a prioridade; registrar enunciado vencido induz regressão |
+| **Trava do cônjuge dependente** + **válvula declarada** | **[[PLAN-deterministic-authority]] §Deferimentos datados** — re-homeados da [[ADR-394]] §Emenda (c), cujo dono declarado era esta lane, agora `shipped` |
+
+### Rotas corrigidas — 2026-08-21
+
+Duas rotas que a lista acima declarava não existiam:
+
+- ~~"copy de `null` … é da lane de render ([[PLAN-report-trust]] 7e)"~~ — o item
+  7e é a [[A40.l71]], **`shipped` em 2026-08-18**, um dia **antes** de o #1542
+  shipar o `null`: a lane que receberia a copy fechou antes de o defeito existir.
+  E a copy não é render — é pipeline, em
+  `pipeline/domain/services/narrativas/summaries_narrator.py:166`. Errava de
+  plano **e** de camada. Destino real: [[A40.l51]].
+- ~~"§Deferimento datado da [[ADR-394]] §Emenda (c)"~~ como rota viva — o
+  deferimento nomeia `dono: [[A40.l69]]`, e esta lane fechou. Re-homeado ao
+  §Deferimentos datados do plano, no precedente que o #1586 abriu com a
+  [[A40.l67]].
+
+## Entregue — 2026-08-19 (#1538 · #1541 · #1542 · #1550 · #1578)
+
+### Correção pós-entrega — 2026-08-19 (#1578)
+
+**Sem este PR o 3a estava em `main` sem efeito.** O predicado do 3º ramo de
+`classificar_cobertura` lia `bool(bens)`, e `build_members_from_consolidated`
+materializa `bens` com 4 chaves **sempre** — constante `True`. `nao_apurado` era
+**inalcançável em produção**: 0 em 114 instâncias-membro medidas. Os três efeitos
+do estado (`null`, `review_reason`, supressão da prescrição) nunca armaram, com a
+suíte verde desde o merge do #1541.
+
+A raiz estava um andar abaixo: `_max_value_year` reduz o baseline a **um** ano e
+o propaga a todos os membros; cônjuges que declaram em anos disjuntos zeram um ao
+outro por construção. O balde do cônjuge saía `0,00` com os lançamentos dela
+valorando **R$ 110.130,67** em 2023. Forçando o ano do domicílio para 2023, quem
+zera é o **titular** — o defeito é do eixo, não da pessoa.
+
+O #1578 corta o ramo do contêiner, põe o ano-base **por membro** (com o top-up
+legado do titular neutralizado quando os anos diferem), implementa o `frescor`
+que a §Escopo pedia e a entrega inicial omitiu, e adiciona gate de
+**alcançabilidade de estados**. Decisão e re-medição em [[ADR-394]]
+§Emenda 2026-08-19 (c), D9 e D10.
+
+Ordem é restrição dura: o predicado de valor **sem** o fix de ano suprimiria a
+prescrição em 5 de 5 dos runs recentes, publicando `null` sobre valor que existe;
+com o ano corrigido antes, a taxa cai a 0/114 e a guarda volta a ser rede.
 
 ### 3a — cobertura por membro, em 2 PRs
 
