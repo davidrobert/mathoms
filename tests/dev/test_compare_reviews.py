@@ -313,3 +313,86 @@ def test_baseline_sem_provenance_degrada_para_nota() -> None:
 
 def test_snapshot_omite_provenance_quando_nao_ha() -> None:
     assert "provenance" not in _snap()
+
+
+# =============================================================================
+# DE-2 / RV7-04 — par compensatório e cobertura de identidade ([[ADR-405]])
+# =============================================================================
+
+
+def _snap_mix(classes: dict, membros: list, nao_cls_pct: int = 0) -> dict:
+    return {
+        "schema_version": "2",
+        "run_health": {"status": "completed"},
+        "needs_review": {},
+        "cross_validation": [],
+        "sections": {},
+        "investimentos_mix": {
+            "classes": classes,
+            "nao_classificado_pct": nao_cls_pct,
+            "membros": membros,
+        },
+        "parecer": {},
+    }
+
+
+_SUP_LIMPO = {"corpus_grew": False, "corpus_shrank": False, "tier_downgrade": False}
+
+
+def _hard(base: dict, cur: dict, *, sup: dict | None = None) -> list[str]:
+    from dev.compare_reviews import _hard_regressions
+
+    hard, _ = _hard_regressions(base, cur, {}, {}, {**_SUP_LIMPO, **(sup or {})}, 5.0)
+    return hard
+
+
+def test_migracao_entre_baldes_e_hard() -> None:
+    """Σ preservado por construção: a perda de um balde é o ganho do outro."""
+    base = _snap_mix({"Renda Fixa": 7604, "Outros": 0}, [[43, 16]])
+    cur = _snap_mix({"Renda Fixa": 7476, "Outros": 128}, [[43, 16]])
+
+    assert any("reclassificação entre baldes" in m for m in _hard(base, cur))
+
+
+# Em espaço de PERCENTUAL os deltas somam zero por normalização — então o
+# fechamento do par é quase de graça e quem discrimina é `len(moveram) == 2`.
+# A fixture move QUATRO classes, fechando em zero: sem a contagem exata, um
+# rebalanceamento de carteira viraria "reclassificação".
+def test_corpus_maior_nao_produz_o_par_e_nao_dispara() -> None:
+    """Corpus crescendo move várias classes de uma vez — não é o par."""
+    base = _snap_mix({"Renda Fixa": 7604, "Fundos": 1219, "Caixa": 557, "Outros": 620}, [[43, 16]])
+    cur = _snap_mix({"Renda Fixa": 7100, "Fundos": 1500, "Caixa": 800, "Outros": 600}, [[50, 18]])
+
+    assert sum(cur["investimentos_mix"]["classes"].values()) == 10_000
+    assert _hard(base, cur, sup={"corpus_grew": True, "corpus_shrank": False}) == []
+
+
+def test_par_compensatorio_nao_e_suprimido_por_corpus_grew() -> None:
+    base = _snap_mix({"Renda Fixa": 7604, "Outros": 0}, [[43, 16]])
+    cur = _snap_mix({"Renda Fixa": 7476, "Outros": 128}, [[50, 16]])
+
+    assert any(
+        "reclassificação" in m
+        for m in _hard(base, cur, sup={"corpus_grew": True, "corpus_shrank": False})
+    )
+
+
+def test_instituicoes_caem_com_posicoes_paradas_e_hard() -> None:
+    """Medido no §r7: 21→19 instituições distintas com o corpus parado."""
+    base = _snap_mix({"Renda Fixa": 7604}, [[43, 18], [9, 3]])
+    cur = _snap_mix({"Renda Fixa": 7604}, [[43, 16], [9, 3]])
+
+    assert _hard(base, cur) == ["instituições distintas 21 -> 19 com posições 52 -> 52"]
+
+
+def test_instituicoes_caem_com_posicoes_caindo_nao_dispara() -> None:
+    """Corpus encolheu: a queda é consequência, não perda de identidade."""
+    base = _snap_mix({"Renda Fixa": 7604}, [[43, 18]])
+    cur = _snap_mix({"Renda Fixa": 7604}, [[30, 16]])
+
+    assert _hard(base, cur) == []
+
+
+def test_snapshot_de_versao_1_nao_quebra_o_compare() -> None:
+    base = {k: v for k, v in _snap_mix({}, []).items() if k != "investimentos_mix"}
+    assert _hard(base, base) == []
