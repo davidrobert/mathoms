@@ -11,6 +11,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from decimal import Decimal  # noqa: E402
 
+from pipeline.domain.services.irpf_analyzer import (  # noqa: E402
+    CapacidadePgbl,
+    PgblStatus,
+)
 from pipeline.domain.services.irpf_faixa_marginal import (  # noqa: E402
     TabelaProgressivaInvalida,
 )
@@ -108,6 +112,7 @@ class TestSemCapacidadeDeclarada:
         assert r.aporte_mensal is None
         assert r.economia_ir_anual is None
         assert r.limite_pgbl_anual is None
+        assert r.capacidade_restante_anual is None
         assert r.renda_tributavel_anual is None
 
     def test_receita_pj_nao_produz_mais_recomendacao(self):
@@ -208,12 +213,7 @@ class TestAliquotaMarginal:
     def test_caminho_irpf_tambem_resolve_a_faixa(self):
         """O ramo autoritativo usa a mesma regra — senão o fix não alcança quem declarou."""
         cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_seedado())
-        cap = CapacidadePgblIRPF(
-            restante_anual=Decimal("1000"),
-            renda_tributavel_anual=Decimal("20000"),
-            ano_base=2025,
-            fonte="irpf_pgbl_capacidade",
-        )
+        cap = _capacidade("1000", renda="20000", ano=2025)
 
         r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=cap)
 
@@ -268,6 +268,10 @@ class TestLegacyDict:
             "nota",
             "renda_tributavel_anual",
             "limite_pgbl_anual",
+            "capacidade_restante_anual",
+            "motivo_ausencia",
+            "pgbl_status",
+            "pgbl_aportado_anual",
             "aporte_mensal",
             "aliquota_marginal",
             "economia_ir_anual",
@@ -285,8 +289,17 @@ class TestLegacyDict:
 
 
 def _capacidade(restante: str, renda: str = "38400", ano: int = 2024) -> CapacidadePgblIRPF:
+    """VO coerente (ADR-402): teto = 12% × renda; o já-aportado fecha o restante."""
+    resto = Decimal(restante)
+    teto = max(Decimal(renda) * Decimal("0.12"), resto)
     return CapacidadePgblIRPF(
-        restante_anual=Decimal(restante),
+        capacidade=CapacidadePgbl(
+            teto=teto,
+            aportado=teto - resto,
+            restante=resto,
+            status=(PgblStatus.capacidade_disponivel if resto > 0 else PgblStatus.no_teto),
+            excedente_nao_dedutivel=Decimal("0"),
+        ),
         renda_tributavel_anual=Decimal(renda),
         ano_base=ano,
         fonte="irpf_pgbl_capacidade",
@@ -302,17 +315,22 @@ class TestReconciliacaoIRPF:
         teto_bruto = 38_400.0 * 0.12
         recon = PrevidenciaAnalyzer().analyze({}, capacidade_irpf=_capacidade("608"))
 
-        assert recon.limite_pgbl_anual == Decimal("608")  # restante real
-        assert float(recon.limite_pgbl_anual) < teto_bruto
-        assert recon.aporte_mensal * 12 <= recon.limite_pgbl_anual
+        assert recon.capacidade_restante_anual == Decimal("608")  # restante real
+        assert float(recon.capacidade_restante_anual) < teto_bruto
+        assert recon.aporte_mensal * 12 <= recon.capacidade_restante_anual
+        # O teto NÃO é o restante — era o rótulo trocado do r7 (ADR-402).
+        assert recon.limite_pgbl_anual == Decimal(str(teto_bruto))
         assert recon.fonte_recomendacao == "irpf_capacidade"
 
     def test_inv_prev_3_no_teto_recomenda_zero(self):
         recon = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000), capacidade_irpf=_capacidade("0"))
 
         assert recon.status == "Calculado"
-        assert recon.limite_pgbl_anual == 0.0
+        assert recon.capacidade_restante_anual == 0.0
         assert recon.aporte_mensal == 0.0
+        # Zero restante NÃO é zero teto: `0` aqui é legítimo, e o teto segue vivo.
+        assert recon.limite_pgbl_anual > 0
+        assert recon.motivo_ausencia["restante"] is None
         assert recon.fonte_recomendacao == "irpf_capacidade"
 
     def test_economia_usa_aliquota_marginal_da_renda_tributavel(self):
@@ -405,7 +423,8 @@ class TestRegimeIncompletoRetemPrescricao:
         cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_incompleto())
         recon = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("1000"))
 
-        assert recon.limite_pgbl_anual == Decimal("1000")
+        assert recon.capacidade_restante_anual == Decimal("1000")
+        assert recon.limite_pgbl_anual == Decimal("4608.00")
         assert recon.renda_tributavel_anual == Decimal("38400")
 
     def test_nota_nomeia_os_componentes_que_faltam(self):

@@ -26,10 +26,17 @@ from tests.unit.pipeline._passive_income_builders import decl, exterior_rend
 # Dimensionada para a sonda MORDER. `aliquota_fallback` do caminho legado é 7,5%
 # e a 2ª faixa da tabela real também — com base tributável na faixa de 7,5% os
 # dois caminhos devolvem o MESMO número e o golden passaria verde sem medir nada.
-# R$ 40.000/ano cai na faixa de 15% da tabela anual: 15,0% (DB) vs 7,5% (legado).
+# R$ 40.000/ano cai na faixa de 15% da tabela anual.
+#
+# Pós-ADR-402 o observável MUDOU DE FORMA, não de dono: `aliquota_marginal` é
+# bicondicional com `economia_ir_anual`, e a row AC2026 do seed nasce
+# `regime_completo=False` (A40.l64) — o caminho de produção RETÉM a estimativa e
+# publica ausência com motivo. `regime_completo`/`componentes_ausentes` só
+# existem em `from_fiscal_parameters`; o legado presume completo e publica o
+# fallback. A divergência DB↔legado continua sendo o que a sonda morde.
 _RENDA_ANUAL_NA_FAIXA_DE_15 = 40_000.0
-_ALIQUOTA_ESPERADA_DB = 15.0
 _ALIQUOTA_DO_FALLBACK_LEGADO = 7.5
+_MOTIVO_SO_DO_CAMINHO_DB = "regime_fiscal_incompleto"
 
 
 _ANO_BASE_IRPF = 2024
@@ -80,18 +87,32 @@ def analise_com_config_store(tmp_path: Path) -> dict:
     )
 
 
+def _previdencia(analise: dict) -> dict:
+    return analise.get("previdencia_pgbl") or {}
+
+
 def _aliquota(analise: dict):
-    return (analise.get("previdencia_pgbl") or {}).get("aliquota_marginal")
+    return _previdencia(analise).get("aliquota_marginal")
+
+
+def _motivo_economia(analise: dict):
+    return (_previdencia(analise).get("motivo_ausencia") or {}).get("economia")
 
 
 def test_golden_atravessa_o_construtor_de_producao(analise_com_config_store):
     """Aceite da lane: ≥1 execução golden passa por `from_fiscal_parameters`."""
-    assert _aliquota(analise_com_config_store) == _ALIQUOTA_ESPERADA_DB
+    assert _motivo_economia(analise_com_config_store) == _MOTIVO_SO_DO_CAMINHO_DB
+    assert "15.270" in _previdencia(analise_com_config_store)["nota"]
 
 
 def test_a_aliquota_publicada_nao_e_a_do_fallback(analise_com_config_store):
     """Sem esta asserção, o teste acima passaria com o caminho legado."""
     assert _aliquota(analise_com_config_store) != _ALIQUOTA_DO_FALLBACK_LEGADO
+    # Bicondicional da ADR-402: retida a economia, a marginal sai junto.
+    assert _aliquota(analise_com_config_store) is None
+    assert _previdencia(analise_com_config_store)["economia_ir_anual"] is None
+    # Reter prescrição não apaga fato: o espaço de 12% do IRPF continua publicado.
+    assert _previdencia(analise_com_config_store)["limite_pgbl_anual"] > 0
 
 
 # Braço de CONTROLE. É ele que torna a sonda de mutação falsificável: os dois
@@ -105,7 +126,8 @@ def test_caminho_legado_devolve_o_fallback(tmp_path: Path):
         e3_payloads=_e3_payload(),
         irpf_payloads={f"irpfdeclaracao_{_ANO_BASE_IRPF}": _irpf_com_renda_tributavel()},
     )
-    assert _aliquota(analise) != _ALIQUOTA_ESPERADA_DB
+    assert _aliquota(analise) == _ALIQUOTA_DO_FALLBACK_LEGADO
+    assert _motivo_economia(analise) is None
 
 
 # =============================================================================

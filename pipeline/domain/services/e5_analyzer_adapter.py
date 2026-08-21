@@ -1217,12 +1217,13 @@ def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | No
     if resolved is None:
         return None
     return CapacidadePgblIRPF(
-        restante_anual=irpf.pgbl_capacidade_dedutivel(resolved.ano),
+        # VO inteiro (ADR-402): teto, aportado, restante e status vêm da mesma
+        # leitura — `pgbl_status` era uma segunda passada sobre as declarações.
+        capacidade=irpf.pgbl_capacidade_dedutivel(resolved.ano),
         renda_tributavel_anual=irpf.rendimentos_tributaveis(resolved.ano),
         ano_base=resolved.ano,
         fonte="irpf_pgbl_capacidade",
         nota_degradacao=resolved.nota_degradacao,
-        pgbl_status=irpf.pgbl_status(resolved.ano),  # RV2-03: ramifica a nota por estado
     )
 
 

@@ -262,7 +262,7 @@ class TestE16Goldens:
         a = IRPFAnalyzer.from_payloads([fixtures["completo"]])
         assert a.contrib_previdenciaria_total(2024) == Decimal("8000.00")
         assert a.pensao_alimenticia_paga(2024) == Decimal("18000.00")
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("7236.0000")
+        assert a.pgbl_capacidade_dedutivel(2024).restante == Decimal("7236.0000")
         sp = a.split_trabalho_vs_capital(2024)
         # A8.3 PR-B: aluguéis PF (R$ 30.000 — Inquilino Ficcional A) saíram
         # de trabalho e entraram em capital (Perini/AUVP capital imobiliário).
@@ -278,7 +278,7 @@ class TestE16Goldens:
 
         a = IRPFAnalyzer.from_payloads([fixtures["simplificado"]])
         # Modelo simplificado nunca usa PGBL — capacidade deve ser zero por design (G0).
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("0")
+        assert a.pgbl_capacidade_dedutivel(2024).restante is None  # simplificado: teto inexistente
         assert a.renda_anual_familiar(2024) == Decimal("81500.00")
         assert a.ir_pago_total(2024) == Decimal("3000.00")
         # Nenhum dependente.
