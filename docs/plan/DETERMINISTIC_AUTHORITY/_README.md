@@ -641,22 +641,65 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
   kill-switch"*. Condição de retomada: **o próximo PR que tocar
   `investimentos_cobertura.py`** — não "no primeiro incidente", porque kill-switch
   meio-funcional é o que se descobre durante o incidente.
-- **2026-08-21 · Colapso cross-ano no consolidador, gateado por re-medição.**
-  Re-roteado da [[A40.l69]]. Entre dois runs de 2026-08-12 com input idêntico, os
-  itens do cônjuge foram de 26 para 9, e o survivor ficou keyed no ano **velho** —
-  viola o contrato da [[ADR-274]] (chave em ano-base 31/12, não exercício).
-  **O número é de 2026-08-12 e decide a prioridade: re-meça `Σ valor` antes e
-  depois do colapso antes de registrar escopo.** Se os 17 itens carregam valor, é
-  P0 e vira lane própria; se são duplicatas colapsadas com chave errada, é P2 de
-  rotulagem. Prioridade sem esse número é opinião. Condição de retomada: a
-  re-medição, ou o próximo PR que toque `consolidate_baseline`.
+- **2026-08-21 · A perda de R$ 188.123,73 é truncagem silenciosa no E1.5a, não
+  colapso no consolidador.** Re-roteado da [[A40.l69]]. **A re-medição que esta
+  entrada exigia foi cumprida em 2026-08-21 e o veredito mudou de arquivo.**
+
+  O que se media: itens do cônjuge caindo de 26 para 9 entre dois runs de
+  2026-08-12, survivor keyed no ano velho. Medido:
+
+  | run | data | itens do cônjuge | Σ | anos |
+  | --- | --- | --- | --- | --- |
+  | `ee124571` | 2026-08-11 | 26 | R$ 298.254,40 | 2023: 9, **2024: 17** |
+  | `33514dc4` | 2026-08-18 | 9 | R$ 110.130,67 | 2023: 9 |
+
+  Os 17 itens de 2024 **carregam valor**: 298.254,40 − 110.130,67 = **R$
+  188.123,73** — exatamente o número que a [[ADR-394]] §Taxa registra como a
+  regressão datada do cônjuge. Pelo gate desta entrada, é P0.
+
+  **A causa não é o `consolidate_baseline`.** É
+  `pipeline/stages/extract_baseline.py`: `_find_irpf_docs` devolve
+  `sorted(rglob)` — ordem **lexicográfica sobre hash de filename** — e a linha
+  212 faz `docs[:_MAX_DOCS_PER_RUN]` com o teto em **10**, sem `review_reason`,
+  sem `degraded`, sem log. Medido no corpus do dogfood:
+
+  - **23 arquivos elegíveis, 10 processados, 13 descartados em silêncio.**
+  - O 12º é `67e1b6cd7461_receitafederal_irpfdeclaracao_2025` — **declaração da
+    cônjuge, `ano_base` 2024, 38 bens** (`contribuinte.natureza: "titular"`).
+  - Por classe: 4 declarações (1 descartada), 16 informes (10 descartados),
+    3 recibos (2 descartados).
+  - O E1.6 lê o mesmo documento em todos os runs, porque o discovery dele filtra
+    `irpfdeclaracao` (4 arquivos) e nunca encosta no teto. **O dado sempre
+    existiu; o E1.5a nunca o viu.**
+
+  **A forma do fix, já dimensionada:** as 4 declarações do corpus cabem inteiras
+  no teto de 10, então **ordenar por classe (declaração > informe > recibo) e
+  depois por recência recupera os R$ 188.123,73 a custo LLM zero** — descapar o
+  teto não é necessário e seria decisão de custo com medição própria. A truncagem
+  que sobrar deixa de ser muda: `review_reason` tipado nomeando quantos e de que
+  classe ficaram de fora ([[ADR-357]] WARN-first, com cap de cardinalidade da
+  [[ADR-272]]).
+
+  **Corolário que ninguém tinha medido:** `real_estate/` e `vehicles/` são
+  varridos **depois** de `income_tax_br`. Com 23 arquivos lá, nenhum documento de
+  imóvel ou veículo jamais alcançou o E1.5a neste workspace.
+
+  Dono: o deferimento de 2026-08-17 (E1.5a × E1.6, `senior-cto`) — mesmo produtor,
+  mesma superfície. **Sem lane nova.** Condição de retomada: **satisfeita**; o
+  próximo passo é o PR do produtor.
+
 - **2026-08-21 · Trava anti-dupla-contagem do cônjuge dependente + válvula
   declarada para domicílio sem investimentos.** Re-homeados da [[ADR-394]]
   §Emenda 2026-08-19 (c), que os declarava com `dono: [[A40.l69]]` — lane que
   fechou `shipped`. O texto e as condições de retomada permanecem lá; esta entrada
-  é a rota viva. Resumo: a trava exige `dependentes`/`declarante` no artefato do
-  E1.5c, que hoje **não os carrega** (medido) — é mudança de contrato do produtor;
-  a válvula exige um workspace real com membro genuinamente sem investimentos.
+  é a rota viva. Resumo: a trava exige `dependentes`/`declarante`, que o **E1.5c
+  consolidado não carrega** — mas o **E1.6 carrega** (`contribuinte.natureza`,
+  `dependentes`), medido em 2026-08-21. Logo o bloqueio não é ausência de dado, é
+  qual artefato o E5 lê; corrigido aqui porque o texto anterior mandava mudar
+  contrato de produtor sem necessidade. **A extensão segue zero:** a cônjuge é
+  `natureza: "titular"` com `dependentes: []` em 100 % das declarações, e o único
+  dependente do corpus é o filho. Permanece deferida. A válvula exige um workspace
+  real com membro genuinamente sem investimentos.
 - **2026-08-21 · `enrich_alocacao_with_deviation` recebe o patrimônio como kwarg
   com default.** Re-roteado da [[A40.l67]], que o hospedava com dono
   `senior-cto` — papel de revisor, não rota de trabalho. Call-site que omitir
