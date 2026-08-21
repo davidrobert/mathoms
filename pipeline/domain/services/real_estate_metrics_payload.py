@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from pipeline.domain.services.real_estate_metrics import RealEstateMetricsResult
+from pipeline.observability.view_model_pii import redact_cartorial
 
 
 def _decimal_to_payload(v: Decimal | None) -> float | None:
@@ -35,7 +36,7 @@ def result_to_payload(result: RealEstateMetricsResult) -> dict[str, object]:
     imoveis = [
         {
             "property_id": p.property_id,
-            "descricao": p.descricao,
+            "descricao": redact_cartorial(p.descricao),
             "classification": p.classification,
             "valor_imovel": _decimal_to_payload(p.valor_imovel),
             "valor_imovel_origem": p.valor_imovel_origem,
@@ -73,7 +74,7 @@ def result_to_payload(result: RealEstateMetricsResult) -> dict[str, object]:
         "excluded_properties": [
             {
                 "property_id": e.property_id,
-                "descricao": e.descricao,
+                "descricao": redact_cartorial(e.descricao),
                 "classification": e.classification,
                 "motivo": e.motivo,
             }

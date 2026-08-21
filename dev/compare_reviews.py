@@ -3,18 +3,16 @@
 
 Duas responsabilidades puras (testáveis sem DB):
 
-- ``build_snapshot(...)`` — reduz os insumos de um run (report_data, CV, meta do
-  run, parecer) a um ``review_snapshot.json`` **PII-safe** (zero literal
-  monetário; drift de valor vem do report_data cru no compare, nunca aqui).
-- ``compare_reviews(...)`` — regressão de relatório em **3 pernas** (conservação,
-  drift de valor via ``golden_diff``, saúde de execução), com **suppressors**
-  (tier downgrade / corpus cresceu) que evitam falso-fail. Reusa engines
-  (``golden_diff.diff_golden``), nunca o gate de manifesto de CI.
+- ``build_snapshot(...)`` — reduz os insumos de um run a um
+  ``review_snapshot.json`` **PII-safe** (zero literal monetário; drift de valor
+  vem do report_data cru no compare, nunca aqui).
+- ``compare_reviews(...)`` — regressão em **3 pernas** (conservação, drift de
+  valor via ``golden_diff``, saúde de execução), com **suppressors** (tier
+  downgrade / corpus cresceu) que evitam falso-fail. Reusa
+  ``golden_diff.diff_golden``, nunca o gate de manifesto de CI.
 
-CLI (espelha ``dev/certify_parse_local.py``):
-``python3 dev/compare_reviews.py --current <dir> --baseline <dir> [--strict] [--band 10]``
-onde cada ``<dir>`` tem ``review_snapshot.json`` (+ ``report_data.json`` p/ a perna
-de valor). Exit 1 em regressão HARD, 2 se baseline ausente, 0 se limpo.
+CLI: ``--current <dir> --baseline <dir> [--strict] [--band 10]``, cada ``<dir>``
+com ``review_snapshot.json`` + ``report_data.json``. Exit 1 em regressão HARD.
 """
 
 from __future__ import annotations
@@ -36,6 +34,7 @@ from dev.review_snapshot import (
     build_snapshot,
     elapsed_minutes,
 )
+from dev.serie_cambial import serie_reiniciada_cambial
 
 # Conservação numérica (tolerância zero): estende o set de pausa da produção
 # (_CONSERVATION_CHECKS = {CV1,CV2,CV3,CV6} em scripts/validate_cross.py) com os
@@ -55,8 +54,8 @@ _DELIVERY_HARD = frozenset({"CV9"})
 _TIER_DEPENDENT_SECTIONS = frozenset({"narrativas"})
 
 # Voláteis: mudam entre runs idênticos, nunca são regressão (espelha
-# _VOLATILE_LEAVES de backend/tests/test_report_view_model_snapshot.py).
-# ADR-360 tirou `prob_if_ate_idade_meta` do mascaramento no snapshot (o cone é
+# _VOLATILE_LEAVES de backend/tests/test_report_view_model_snapshot.py). ADR-360
+# tirou `prob_if_ate_idade_meta` do mascaramento no snapshot (o cone é
 # reprodutível); a cópia aqui sobrevivia e mantinha o campo cego nesta ferramenta.
 _VOLATILE_LEAVES = frozenset({"data_analise"})
 
@@ -319,6 +318,9 @@ def compare_reviews(
     sup = _suppressors(base, cur)
     notes = [f"suppressor ativo — {k}" for k, v in sup.items() if v]
     notes += [f"contexto — {n}" for n in provenance_notes(base, cur)]
+    reinicio = serie_reiniciada_cambial(base_rd, cur_rd)
+    if reinicio:
+        notes.append(reinicio)
     hard, drift = _hard_regressions(base, cur, base_rd, cur_rd, sup, band)
     soft = _soft_changes(base, cur, sup)
     if sup["corpus_grew"]:

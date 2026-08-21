@@ -4,10 +4,12 @@ type: adr
 title: "Rótulo de exibição sem PII para ativos — sanitização na fonte E5 (React + prompt)"
 status: Decidido
 date: "2026-07-15"
+amended_at: ["2026-08-19"]
 relates_to:
   - "[[ADR-332]]"
   - "[[ADR-319]]"
   - "[[ADR-216]]"
+  - "[[ADR-356]]"
 tags:
   - type/adr
   - status/decidido
@@ -17,6 +19,11 @@ tags:
 ---
 
 # ADR-337 — Rótulo de exibição sem PII para ativos
+
+> **Emendada em 2026-08-19** — a [[A40.l6]] materializa o critério 4 (gate de PII
+> no view-model) que o corpo original enunciou e ninguém implementou, e estende
+> a sanitização de `top_ativos[].nome` para as descrições de imóvel e dívida que
+> o relatório exporta. Ver §Emenda 2026-08-19.
 
 > Cluster **PD-02** (P0, + subsume **H1**) da onda R2 do PLAN-dogfood-report-fix.
 > Co-desenho `codesign-review-wave` (product-designer + senior-cto + red-team, 2026-07-15).
@@ -84,3 +91,25 @@ respeita a decisão deliberada da [[ADR-332]] de não dar localização ao LLM.
 - **Consistência** — mesmo abstrator em React e prompt; granularidade de display só downstream.
 - **Precisão** — teste com regex de PII zero-hit em `top_ativos[].nome` **e** no contexto do
   distiller; neutralidade de prompt provada ou 1 eval orçado.
+
+## Emenda 2026-08-19 — critério 4 no view-model (A40.l6)
+
+O critério 4 do corpo original ("gate PII-scan estendido ao view-model") não
+tinha artefato: o sanitizer do parecer cobre egresso a LLM, o lint de
+[[ADR-319]] cobre o git, e `top_ativos[].nome` é classe-only. Restava o
+view-model servido em `/reports/[id]/data` interpolando `descricao` cartorial
+em `real_estate.imoveis[]`, `excluded_properties[]` e
+`endividamento.dividas[]` — o PDF é a mesma rota ([[ADR-129]]).
+
+**O que esta emenda decide:**
+
+1. A descrição cartorial é **redigida na serialização** (`result_to_payload`,
+   `DividaItem.to_dict`) antes de entrar no artefato E5 / view-model.
+2. A UI lê o rótulo curto (`endereco_canonical` ou classe), nunca a descrição
+   crua.
+3. O gate `scan_view_model_pii` varre campos `descricao`/`detalhe`, cita o
+   dot-path ofensor e **não** reproduz o match. Fixture sintética com
+   identificador + matrícula + endereço ⇒ hits; `keys=frozenset()` ⇒ vazio
+   (prova de mutação).
+4. Valor de imóvel `0` no card é ausência (`—`), não "o bem vale zero"
+   ([[ADR-356]] D7). O `s1` omite a parcela de residência quando o valor é 0.

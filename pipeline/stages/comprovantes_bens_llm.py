@@ -70,11 +70,22 @@ def _call_llm_crlv(service, config, doc_name: str, text: str):
     return result, prompt_mod.PROMPT_VERSION
 
 
+def _stamp_stage_fields(
+    payload: dict, tipo_comprovante: str, prompt_version: str, source_artifact_id: str
+) -> None:
+    """Campos que o STAGE enxerta, não o LLM: discriminador de ramo + lineage."""
+    # Enxerto pós-``model_dump`` escapa do ``extra="forbid"`` do Pydantic, então o
+    # JSON Schema do ramo é o único lugar que os declara — foi assim que
+    # ``source_artifact_id`` reprovou calado desde #836 (#1599).
+    payload["tipo_comprovante"] = tipo_comprovante
+    payload["prompt_version"] = prompt_version
+    payload["source_artifact_id"] = source_artifact_id
+
+
 def _build_payload(output, prompt_version: str, doc_text: str, source_artifact_id: str) -> dict:
     """Materializa payload + força prompt_version + mask CPF Python + source_artifact_id."""
     payload = output.model_dump(mode="json")
-    payload["prompt_version"] = prompt_version
-    payload["source_artifact_id"] = source_artifact_id
+    _stamp_stage_fields(payload, "crlv", prompt_version, source_artifact_id)
     # LGPD: NUNCA confiar no LLM para mascarar CPF.
     payload["proprietario_cpf_masked"] = _extract_titular_cpf_masked(doc_text)
     confidence = payload.get("confidence", 1.0)
@@ -146,8 +157,7 @@ def _build_apolice_payload(
 ) -> dict:
     """Payload apólice + mask CPFs (pagador + segurado) Python pós-LLM (LGPD ADR-231 D8)."""
     payload = output.model_dump(mode="json")
-    payload["prompt_version"] = prompt_version
-    payload["source_artifact_id"] = source_artifact_id
+    _stamp_stage_fields(payload, "apolice", prompt_version, source_artifact_id)
     payload["cascade_triggered"] = cascade_triggered
     _apply_apolice_cpf_masks(payload, doc_text)
     payload["sinistro_indenizacao_recebida_brl"] = None  # placeholder V1 (ADR-238 integra em V2)

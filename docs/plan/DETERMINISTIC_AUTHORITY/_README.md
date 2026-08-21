@@ -434,7 +434,7 @@ que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
 - 2b. Ladder [[ADR-081]] no E1.5: `confidence < 0,7` → `review_reason` +
   `degraded` — WARN-first com budget medido (§Enforcement).
 
-### Onda 3 — dado do casal + tripwires (3a/3b ✅ `shipped` 2026-08-19 pela [[A40.l69]], 4 PRs; resto planned)
+### Onda 3 — dado do casal + tripwires (3a/3b ✅ `shipped` 2026-08-19 pela [[A40.l69]], 5 PRs; resto planned)
 
 3a e 3b vivem na [[A40.l69]] (`blocked` por l66+l67) — são o mesmo seam: a
 atribuição de investimento por membro. 3c–3f seguem sem lane.
@@ -628,6 +628,35 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
 
 ## Deferimentos datados
 
+- **2026-08-21 · Kill-switch da cobertura por membro restaura só metade.**
+  Re-roteado da [[A40.l69]], que fechou `shipped` hospedando-o. `valor_publicavel`
+  (`investimentos_cobertura.py`) **não** consulta `cobertura_enforcement_ligado()`
+  — só `motivo_supressao_por_cobertura` consulta. Com `MATHOMS_E5_COBERTURA_MEMBRO=0`
+  o balde continua `null` e **some a razão que o explica**: o freio deixa o produto
+  pior que ligado ou desligado. Não é escopo novo — o §Enforcement da l69 prometeu
+  "kill-switch de 1 env var, provado por teste", e o docstring de
+  `cobertura_enforcement_ligado` **afirma** *"`0` desliga a ressalva e a supressão,
+  não o campo"*, contrato que o código não cumpre. A [[ADR-394]] §Emenda 2026-08-18
+  já decidiu a regra: *"kill-switch que não restaura o comportamento anterior não é
+  kill-switch"*. Condição de retomada: **o próximo PR que tocar
+  `investimentos_cobertura.py`** — não "no primeiro incidente", porque kill-switch
+  meio-funcional é o que se descobre durante o incidente.
+- **2026-08-21 · Colapso cross-ano no consolidador, gateado por re-medição.**
+  Re-roteado da [[A40.l69]]. Entre dois runs de 2026-08-12 com input idêntico, os
+  itens do cônjuge foram de 26 para 9, e o survivor ficou keyed no ano **velho** —
+  viola o contrato da [[ADR-274]] (chave em ano-base 31/12, não exercício).
+  **O número é de 2026-08-12 e decide a prioridade: re-meça `Σ valor` antes e
+  depois do colapso antes de registrar escopo.** Se os 17 itens carregam valor, é
+  P0 e vira lane própria; se são duplicatas colapsadas com chave errada, é P2 de
+  rotulagem. Prioridade sem esse número é opinião. Condição de retomada: a
+  re-medição, ou o próximo PR que toque `consolidate_baseline`.
+- **2026-08-21 · Trava anti-dupla-contagem do cônjuge dependente + válvula
+  declarada para domicílio sem investimentos.** Re-homeados da [[ADR-394]]
+  §Emenda 2026-08-19 (c), que os declarava com `dono: [[A40.l69]]` — lane que
+  fechou `shipped`. O texto e as condições de retomada permanecem lá; esta entrada
+  é a rota viva. Resumo: a trava exige `dependentes`/`declarante` no artefato do
+  E1.5c, que hoje **não os carrega** (medido) — é mudança de contrato do produtor;
+  a válvula exige um workspace real com membro genuinamente sem investimentos.
 - **2026-08-21 · `enrich_alocacao_with_deviation` recebe o patrimônio como kwarg
   com default.** Re-roteado da [[A40.l67]], que o hospedava com dono
   `senior-cto` — papel de revisor, não rota de trabalho. Call-site que omitir

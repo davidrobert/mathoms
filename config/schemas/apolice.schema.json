@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "apolice.schema.json",
+  "title": "Apólice de Seguro (Comprovante de Bem · polimórfica)",
+  "description": "Schema do artefato extract_comprovantes_bens.apolice produzido pelo extractor LLM Haiku→Sonnet (ADR-239 D2/D6). Pareado com pipeline.llm.schemas.apolice.ApolicePayload. Topo lenient (additionalProperties: true — espelha extra='allow', ADR-238 D2); todo sub-objeto é strict (additionalProperties: false — espelha extra='forbid'). A assimetria é travada por tests/unit/pipeline/test_schema_leniency_lock.py. Dinheiro é string decimal no wire (ADR-090) — nunca number. Espelha o produtor e não adiciona política: condicionar lmi_brl/lmi_fipe_percentual a lmi_modo tornaria o schema mais estrito que o Pydantic e geraria WARN em payload legal.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "tipo_comprovante",
+    "apolice_numero",
+    "seguradora",
+    "vigencia_inicio",
+    "vigencia_fim",
+    "premio_total_brl",
+    "forma_pagamento",
+    "corretor",
+    "bens_segurados",
+    "confidence",
+    "prompt_version"
+  ],
+  "properties": {
+    "tipo_comprovante": { "const": "apolice" },
+    "apolice_numero": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "seguradora": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 60,
+      "description": "Code canônico de institution_catalog (porto, tokiomarine, ...) — canonicalizado em Python pós-LLM (A37.l11)."
+    },
+    "vigencia_inicio": { "type": "string", "format": "date" },
+    "vigencia_fim": { "type": "string", "format": "date" },
+    "classe_bonus": { "type": ["integer", "null"], "minimum": 0, "maximum": 10 },
+    "congenere_anterior": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/congenere_ref" }]
+    },
+    "premio_total_brl": { "$ref": "#/$defs/money" },
+    "forma_pagamento": { "enum": ["a_vista", "cartao", "boleto", "debito"] },
+    "pagador_cpf_masked": { "$ref": "#/$defs/cpf_masked" },
+    "pagador_family_member_id": { "type": ["string", "null"], "maxLength": 36 },
+    "segurado_cpf_masked": { "$ref": "#/$defs/cpf_masked" },
+    "segurado_family_member_id": { "type": ["string", "null"], "maxLength": 36 },
+    "corretor": { "$ref": "#/$defs/corretor_ref" },
+    "bens_segurados": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/bem_segurado" }
+    },
+    "sinistro_indenizacao_recebida_brl": {
+      "$ref": "#/$defs/money_nullable",
+      "description": "Placeholder V1 — o produtor força null (ADR-238 integra em V2)."
+    },
+    "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "needs_review": { "type": "boolean", "default": false },
+    "prompt_version": { "type": "string", "minLength": 1 },
+    "cascade_triggered": {
+      "type": "boolean",
+      "default": false,
+      "description": "Cascata Haiku→Sonnet disparada (ADR-239 D6). Enxertado pelo stage pós-model_dump."
+    },
+    "source_artifact_id": {
+      "type": ["string", "null"],
+      "description": "Lineage — enxertado pelo stage pós-model_dump, não vem do LLM."
+    },
+    "notas": { "type": ["string", "null"], "maxLength": 500 }
+  },
+  "$defs": {
+    "money": {
+      "type": "string",
+      "pattern": "^-?\\d+(\\.\\d{1,8})?$",
+      "description": "Decimal serializado como string (ADR-090) — number é proibido no wire monetário."
+    },
+    "money_nullable": {
+      "type": ["string", "null"],
+      "pattern": "^-?\\d+(\\.\\d{1,8})?$"
+    },
+    "cpf_masked": {
+      "type": ["string", "null"],
+      "pattern": "^[\\d\\*]{3}\\.[\\d\\*]{3}\\.[\\d\\*]{3}-[\\d\\*]{2}$",
+      "description": "CPF masked parcial (LGPD ADR-231 D8). CPF completo nunca persiste."
+    },
+    "endereco": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["logradouro", "cidade", "uf"],
+      "properties": {
+        "logradouro": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "numero": { "type": ["string", "null"], "maxLength": 20 },
+        "complemento": { "type": ["string", "null"], "maxLength": 80 },
+        "bairro": { "type": ["string", "null"], "maxLength": 80 },
+        "cidade": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "uf": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "cep": { "type": ["string", "null"], "pattern": "^\\d{5}-?\\d{3}$" }
+      }
+    },
+    "congenere_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seguradora", "apolice_numero"],
+      "properties": {
+        "seguradora": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "apolice_numero": { "type": "string", "minLength": 1, "maxLength": 40 }
+      }
+    },
+    "corretor_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["susep_code", "nome", "cpf_or_cnpj", "cnpj_or_cpf_kind"],
+      "properties": {
+        "susep_code": { "type": "string", "pattern": "^\\d{6,12}$" },
+        "nome": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "cpf_or_cnpj": { "type": "string", "pattern": "^\\d{11}$|^\\d{14}$" },
+        "cnpj_or_cpf_kind": { "enum": ["cnpj", "cpf"] }
+      }
+    },
+    "beneficiario_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nome", "percentual"],
+      "properties": {
+        "nome": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "parentesco": { "type": ["string", "null"], "maxLength": 40 },
+        "family_member_id": { "type": ["string", "null"], "maxLength": 36 },
+        "percentual": { "$ref": "#/$defs/money" }
+      }
+    },
+    "cobertura": {
+      "type": "object",
+      "required": ["tipo"],
+      "properties": {
+        "tipo": { "enum": ["material", "rcfv", "vida", "saude", "acidentes"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "tipo": { "const": "material" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/cobertura_material" }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "rcfv" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/cobertura_rcfv" }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "vida" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/cobertura_vida" }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "saude" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/cobertura_saude" }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "acidentes" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/cobertura_acidentes" }
+        }
+      ]
+    },
+    "cobertura_material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "nome", "lmi_modo", "premio_brl"],
+      "properties": {
+        "tipo": { "const": "material" },
+        "nome": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "ramo_susep": { "type": ["string", "null"], "maxLength": 20 },
+        "lmi_modo": { "enum": ["valor_fixo", "fipe_percentual", "primeiro_risco_absoluto"] },
+        "lmi_brl": { "$ref": "#/$defs/money_nullable" },
+        "lmi_fipe_percentual": { "$ref": "#/$defs/money_nullable" },
+        "franquia_brl": { "$ref": "#/$defs/money_nullable" },
+        "premio_brl": { "$ref": "#/$defs/money" }
+      }
+    },
+    "cobertura_rcfv": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "nome", "lmi_brl", "premio_brl"],
+      "properties": {
+        "tipo": { "const": "rcfv" },
+        "nome": { "enum": ["danos_materiais", "danos_corporais", "danos_morais"] },
+        "lmi_brl": { "$ref": "#/$defs/money" },
+        "premio_brl": { "$ref": "#/$defs/money" }
+      }
+    },
+    "cobertura_vida": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "capital_segurado_brl", "premio_brl"],
+      "properties": {
+        "tipo": { "const": "vida" },
+        "capital_segurado_brl": { "$ref": "#/$defs/money" },
+        "beneficiarios": { "type": "array", "items": { "$ref": "#/$defs/beneficiario_ref" } },
+        "premio_brl": { "$ref": "#/$defs/money" }
+      }
+    },
+    "cobertura_saude": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "premio_brl"],
+      "properties": {
+        "tipo": { "const": "saude" },
+        "rede_credenciada": { "type": ["string", "null"], "maxLength": 200 },
+        "capital_segurado_brl": { "$ref": "#/$defs/money_nullable" },
+        "premio_brl": { "$ref": "#/$defs/money" }
+      }
+    },
+    "cobertura_acidentes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "capital_segurado_morte_brl", "premio_brl"],
+      "properties": {
+        "tipo": { "const": "acidentes" },
+        "capital_segurado_morte_brl": { "$ref": "#/$defs/money" },
+        "capital_segurado_invalidez_brl": { "$ref": "#/$defs/money_nullable" },
+        "premio_brl": { "$ref": "#/$defs/money" }
+      }
+    },
+    "bem_segurado": {
+      "type": "object",
+      "required": ["tipo"],
+      "properties": { "tipo": { "enum": ["veiculo", "imovel", "pessoa"] } },
+      "allOf": [
+        {
+          "if": { "properties": { "tipo": { "const": "veiculo" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/bem_veiculo" }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "imovel" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/bem_imovel" }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "pessoa" } }, "required": ["tipo"] },
+          "then": { "$ref": "#/$defs/bem_pessoa" }
+        }
+      ]
+    },
+    "bem_veiculo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "placa", "marca", "modelo", "ano_modelo"],
+      "properties": {
+        "tipo": { "const": "veiculo" },
+        "placa": { "type": "string", "pattern": "^[A-Z]{3}\\d[A-Z\\d]\\d{2}$" },
+        "fipe_code": { "type": ["string", "null"], "pattern": "^[0-9\\-]{4,20}$" },
+        "marca": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "modelo": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "ano_modelo": { "type": "integer", "minimum": 1900, "maximum": 2100 },
+        "veiculo_id": { "type": ["string", "null"], "maxLength": 36 },
+        "coberturas": { "type": "array", "items": { "$ref": "#/$defs/cobertura" } }
+      }
+    },
+    "bem_imovel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "endereco", "tipo_imovel"],
+      "properties": {
+        "tipo": { "const": "imovel" },
+        "endereco": { "$ref": "#/$defs/endereco" },
+        "tipo_imovel": { "enum": ["casa", "apartamento", "comercial"] },
+        "imovel_id": { "type": ["string", "null"], "maxLength": 36 },
+        "coberturas": { "type": "array", "items": { "$ref": "#/$defs/cobertura" } }
+      }
+    },
+    "bem_pessoa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo"],
+      "properties": {
+        "tipo": { "const": "pessoa" },
+        "pessoa_cpf_masked": { "$ref": "#/$defs/cpf_masked" },
+        "family_member_id": { "type": ["string", "null"], "maxLength": 36 },
+        "coberturas": { "type": "array", "items": { "$ref": "#/$defs/cobertura" } }
+      }
+    }
+  }
+}

@@ -256,7 +256,14 @@
             "field_requests_spurious": {"type": "integer", "minimum": 0},
             "field_requests_wrong_path": {"type": "integer", "minimum": 0},
             "needs_review_triggered": {"type": "boolean", "const": false},
-            "sugestoes_antagonicas": {"type": "integer", "minimum": 0}
+            "sugestoes_antagonicas": {"type": "integer", "minimum": 0},
+            "trajetoria_pontos_fortes_removidos": {"type": "integer", "minimum": 0},
+            "trajetoria_pontos_fortes_ressalvados": {"type": "integer", "minimum": 0},
+            "trajetoria_diagnostico_lemmas": {
+              "type": "array",
+              "description": "FP-2 D1-A/D1-B: lemmas de trajetória afirmados no diagnostico_geral (campo único, não removível). Vocabulário controlado — nunca prosa do cliente. Alimenta a medição do r8.",
+              "items": {"type": "string"}
+            }
           }
         }
       }

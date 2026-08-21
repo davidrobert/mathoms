@@ -40,10 +40,11 @@ def _property(
     iptu: str | None = "4800",
     meses_locado: int | None = 12,
     ir_carne_leao: str | None = None,
+    descricao: str = "Apto",
 ) -> PropertyInput:
     return PropertyInput(
         property_id=property_id,
-        descricao="Apto",
+        descricao=descricao,
         classification=classification,
         valor_imovel=Decimal(valor),
         aluguel_bruto_anual=Decimal(aluguel) if aluguel is not None else None,
@@ -275,3 +276,16 @@ def test_benchmarks_propagados_para_payload():
     assert payload["benchmarks"]["ntnb_liquido_pct"] == 5.5
     assert payload["benchmarks"]["ifix_yield_pct"] == 9.2
     assert payload["benchmarks"]["as_of_date"] == "2026-05-15"
+
+
+def test_result_to_payload_redige_descricao_cartorial():
+    """A40.l6: descrição cartorial não chega crua ao view-model."""
+    p = _property(descricao="Apartamento matrícula 999.999, Rua Exemplo, 100, CEP 00000-000")
+    result = calculate_real_estate_metrics(
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
+    )
+    payload = result_to_payload(result)
+    desc = payload["imoveis"][0]["descricao"]
+    assert "999.999" not in desc
+    assert "00000-000" not in desc
+    assert "Rua Exemplo" not in desc

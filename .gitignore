@@ -109,6 +109,22 @@ logs/
 # 39 MB contendo o histórico inteiro). Aqui a regra é versionada.
 .claude/worktrees/
 
+# O resto de `.claude/` é estado de runtime do harness — `scheduled_tasks.lock`
+# guarda PID + sessionId + timestamp da sessão que segurou o lock, e é reescrito
+# toda vez que uma sessão o adquire. Tracked, isso deixa o working tree sujo em
+# todo worktree o tempo todo: o agente é empurrado ou a commitar PID na main, ou
+# a violar CLAUDE.md §Cadência de commit ("nunca termine uma resposta com
+# working tree sujo"). Foi assim que o lock entrou em `main` duas vezes, varrido
+# para dentro de PRs sem relação nenhuma (df57ebe9 #274, ad7215ee #291).
+# Whitelist em vez de mais uma linha de bloqueio — mesma forma do `.codex/*` lá
+# em cima: fecha a classe (qualquer arquivo novo que o harness largar aqui já
+# nasce ignorado), não a instância. Contrapartida: conteúdo versionado novo em
+# `.claude/` exige uma linha `!` própria — sem ela, `git add` pula em silêncio.
+.claude/*
+!.claude/agents/
+!.claude/skills/
+!.claude/settings.json
+
 # Resíduo de ferramenta e diretórios de trabalho que nunca são versionados.
 # `_archive/` e `processed/` já são bloqueados por dev/check_forbidden_paths.py
 # ([[ADR-319]]), mas hook é cinto — o .gitignore é o suspensório, e sobrevive

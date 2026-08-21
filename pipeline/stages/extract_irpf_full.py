@@ -140,12 +140,17 @@ def _call_llm(service, config, doc_name: str, text: str):
     )
 
 
+# Cap e piso são predicados independentes: antes `needs_review` morava DENTRO do
+# ramo do cap (`confidence > 0.7`), então extração com confidence 0,45 — pior que
+# a capada — saía sem sinal nenhum. Quanto pior o resultado, menor a chance de
+# ser sinalizado.
 def _build_payload(output, validation, prompt_version: str) -> dict:
-    """Aplica cap de confidence se reconciliação cross-field falhou (ADR-157)."""
+    """Cap de confidence (ADR-157 §6) e piso de ``needs_review`` (ADR-081)."""
     payload = output.model_dump(mode="json")
     reconcile_failed = any("divergente" in w for w in validation.warnings)
     if reconcile_failed and payload.get("confidence", 1.0) > _RECONCILE_FAIL_CONFIDENCE_CAP:
         payload["confidence"] = _RECONCILE_FAIL_CONFIDENCE_CAP
+    if reconcile_failed or payload.get("confidence", 1.0) < _RECONCILE_FAIL_CONFIDENCE_CAP:
         payload["needs_review"] = True
     payload["prompt_version"] = prompt_version
     payload["validation"] = validation.to_dict()

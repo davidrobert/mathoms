@@ -18,6 +18,10 @@ from pipeline.domain.types.snapshot_changelog import (
 )
 
 DeltaSignalRead = Literal["up", "down", "stable"]
+# FP-2 D1-A: o changelog admite um 4º estado que a célula de comparação não tem —
+# sob base alterada o juízo é recolhido, não invertido nem zerado.
+ChangelogSignalRead = Literal["up", "down", "stable", "nao_comparavel"]
+ComparabilidadeRead = Literal["comparavel", "base_alterada"]
 DirectionPositiveRead = Literal["up", "down"]
 MetricUnitRead = Literal["brl", "pp", "meses"]
 
@@ -44,8 +48,10 @@ class ChangelogEntryRead(BaseModel):
 
     section_id: str
     summary: str
-    delta_signal: DeltaSignalRead
+    delta_signal: ChangelogSignalRead
     delta_pct: Optional[MoneyBRL] = None
+    # Marcador é DIFERENÇA, não presença: "comparavel" é o default e não anota nada.
+    comparabilidade: ComparabilidadeRead = "comparavel"
 
 
 def comparison_item_to_read(item: ComparisonItem) -> ComparisonItemRead:
@@ -72,12 +78,38 @@ def changelog_entry_to_read(entry: ChangelogEntry) -> ChangelogEntryRead:
     )
 
 
+_RESSALVA_BASE_ALTERADA = "base de comparação alterada entre os relatórios"
+
+
+# Mantém ``delta_pct`` — some o juízo, não o número (FP-2 D1-A). A ressalva entra no
+# ``summary`` porque o template já afirma "cresceu/recuou … desde o relatório anterior",
+# e esse texto é emendado ao parágrafo de abertura da seção no renderer: deixar a prosa
+# intacta contradiz o ``delta_signal`` do próprio objeto e chega assim ao leitor.
+def neutralize_changelog_base_changed(
+    entries: list[ChangelogEntryRead],
+) -> list[ChangelogEntryRead]:
+    """Recolhe o juízo do changelog quando as pontas do par vieram de métodos diferentes."""
+    return [
+        entry.model_copy(
+            update={
+                "delta_signal": "nao_comparavel",
+                "comparabilidade": "base_alterada",
+                "summary": f"{entry.summary} — {_RESSALVA_BASE_ALTERADA}",
+            }
+        )
+        for entry in entries
+    ]
+
+
 __all__ = [
     "ChangelogEntryRead",
+    "ChangelogSignalRead",
+    "ComparabilidadeRead",
     "ComparisonItemRead",
     "DeltaSignalRead",
     "DirectionPositiveRead",
     "MetricUnitRead",
     "changelog_entry_to_read",
+    "neutralize_changelog_base_changed",
     "comparison_item_to_read",
 ]
