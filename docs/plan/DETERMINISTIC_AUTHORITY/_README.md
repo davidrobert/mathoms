@@ -256,7 +256,7 @@ fixes caem no mesmo diff e nenhum dos dois é atribuível.
 | J1 | Seam determinístico | [[A40.l66]] | goldens E1.5c/E5 afetados pelo roteamento; snapshot do view-model | ~~imediatamente~~ · **FECHADA 2026-08-18** (l66 `shipped`, sem rebaseline necessário) |
 | J2 | Guarda | [[A40.l67]] | `baseline_patrimonial` + schema irmão | ~~J1 fechada~~ · **FECHADA 2026-08-18 sem consumir rebaseline** (`golden_diff` de `aa53d5bf~1`×`aa53d5bf`: 2 campos `new`, zero `value_delta`, sinal **=**). O flip strict saiu daqui — ver §Deferimentos |
 | J3 | Balanço de fan-out | [[A40.l68]] | contrato de retorno do stage (sem golden monetário) | independente — **não** disputa J1/J2 |
-| J4 | Cobertura por membro | [[A40.l69]] | baldes de investimento por membro + snapshot do view-model | ~~J2 fechada~~ · **ABERTA 2026-08-18** com o orçamento inteiro (a J2 não gastou) |
+| J4 | Cobertura por membro | [[A40.l69]] | baldes de investimento por membro + snapshot do view-model | ~~J2 fechada~~ · **FECHADA 2026-08-19** — 2 rebaselines aditivos (`cobertura_investimentos`, `investimentos_nao_atribuidos`), zero `value_delta` nos dois. Sinal `=` **no golden**, que é inerte para o 3b: a fixture não tem posição órfã. O efeito monetário está provado por unidade e aparece no re-run do dogfood |
 
 **Coordenação com a A40 em voo.** 23 lanes estão `open`/`in_progress`/`blocked`
 na sprint, quase todas sob [[PLAN-report-trust]]. As que declaram efeito em valor
@@ -421,7 +421,7 @@ que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
 - 2b. Ladder [[ADR-081]] no E1.5: `confidence < 0,7` → `review_reason` +
   `degraded` — WARN-first com budget medido (§Enforcement).
 
-### Onda 3 — dado do casal + tripwires (3a/3b no MVP; resto planned)
+### Onda 3 — dado do casal + tripwires (3a/3b ✅ `shipped` 2026-08-19 pela [[A40.l69]], 4 PRs; resto planned)
 
 3a e 3b vivem na [[A40.l69]] (`blocked` por l66+l67) — são o mesmo seam: a
 atribuição de investimento por membro. 3c–3f seguem sem lane.
@@ -615,6 +615,15 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
 
 ## Deferimentos datados
 
+- **2026-08-21 · `enrich_alocacao_with_deviation` recebe o patrimônio como kwarg
+  com default.** Re-roteado da [[A40.l67]], que o hospedava com dono
+  `senior-cto` — papel de revisor, não rota de trabalho. Call-site que omitir
+  `patrimonio=` publica a prescrição sobre cobertura possivelmente incompleta e
+  **passa verde**. Re-medido em `5f73b116` (a função mudou de arquivo desde o
+  achado): `alocacao_derived_enricher.py:15-21`, default persiste, 3 call-sites
+  de teste omitem. Nenhum call-site de produção exposto — o risco é o próximo.
+  Condição de retomada: call-site novo do enricher, ou a lane de render 7a/7e ao
+  consumir `motivo_supressao`.
 - **2026-08-18 · Flip de `mode_overrides` para strict re-homeado da [[A40.l67]]
   para a [[A40.l58]].** Ele estava na §Critério de aceite da l67 e era
   **inexequível ali**: o §Roteamento RV6-06 acima já atribui `mode_overrides` e o

@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-20 open · 5 in_progress.
+19 open · 5 in_progress.
 
-## Open (20)
+## Open (19)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
@@ -27,7 +27,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l64]] — Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante · priority P1 · área pipeline/financial-planning · branch `a40-l64-redutor-lei-15270-e-irpfm`
 - [[A40.l65]] — A base do PGBL perdeu a âncora de declarante: lê o IRPF mais recente, e o teto de 12% é por CPF · priority P1 · área pipeline/financial-planning · branch `a40-l65-base-pgbl-sem-ancora-de-declarante`
 - [[A40.l68]] — Balanço de stage fan-out: documento que some não pode sair como sucesso · priority P1 · área pipeline · branch `a40-l68-balanco-de-fan-out`
-- [[A40.l69]] — Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado · priority P0 · área pipeline · branch `a40-l69-cobertura-investimentos-por-membro`
 - [[A40.l72]] — Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante · priority P1 · área frontend · branch `a40-l72-guarda-de-contrato-no-render`
 
 ## In progress (5)
