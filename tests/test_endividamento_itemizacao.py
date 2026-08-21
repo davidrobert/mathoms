@@ -13,6 +13,7 @@ só roda no caso ``baseline``; os testes daqui são alimentados pelo produtor e
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -21,6 +22,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pipeline.domain.services.endividamento_analyzer import (  # noqa: E402
+    _DESC_SEM_TIPO,
     TIPO_LABEL,
     EndividamentoAnalyzer,
 )
@@ -273,3 +275,64 @@ def test_conservacao_pega_saldo_lido_como_escalar():
         ano_ref="1999",  # ano ausente força o fallback de maior ano disponível
     )
     assert [d.saldo_devedor for d in r.dividas] == [100_000.0]
+
+
+# ──────────────────────────────────────────────────────────────────────
+# `descricao` é PII-free POR CONSTRUÇÃO — independente de redação a jusante
+# ──────────────────────────────────────────────────────────────────────
+
+# Vocabulário fechado: 8 rótulos de tipo + o de origem desconhecida, com
+# sufixo opcional de código canônico ou ordinal. Nada mais pode sair daqui.
+_DESCRICAO_PERMITIDA = re.compile(
+    r"^(?:"
+    + "|".join(re.escape(v) for v in [*TIPO_LABEL.values(), _DESC_SEM_TIPO])
+    + r")(?: — [a-z0-9_]{2,32}| #\d+)?$"
+)
+
+
+def _descricoes(dividas_baseline, **kw):
+    r = EndividamentoAnalyzer(**kw).analyze(
+        {"bruto": 1_000_000, "dividas": 1.0},
+        [],
+        dividas_baseline=dividas_baseline,
+        ano_ref="2024",
+        identity=_IDENT,
+    )
+    return [d.descricao for d in r.dividas]
+
+
+# Independente de redação a jusante: se o #1569 aplicar `redact_cartorial` por
+# cima, ele vira cinto-e-suspensório. Se este teste só passasse COM a redação,
+# o fix teria virado dependente dela.
+def test_descricao_sai_do_vocabulario_fechado_mesmo_com_baseline_sujo():
+    """Texto livre do baseline NÃO alcança `descricao` — ela é reconstruída."""
+    sujo = [
+        _divida(
+            "Financiamento c/ FULANO DE TAL, CPF 000.000.000-00, matr. 12.345 do 2º CRI",
+            100_000.0,
+            tipo="financiamento_imobiliario",
+            proprietario="Alfa",
+            credor="Banco Fulano de Tal S.A. — Agência 1234",
+            numero_contrato="8899-77/2021",
+        )
+    ]
+    for desc in _descricoes(sujo):
+        assert _DESCRICAO_PERMITIDA.match(desc), f"vocabulário violado: {desc!r}"
+        for vazado in ("FULANO", "Fulano", "000.000.000", "12.345", "8899", "Agência"):
+            assert vazado not in desc
+
+
+def test_resolver_de_credor_que_devolve_texto_livre_e_rejeitado():
+    """A única porta de dado externo na `descricao` é peneirada na origem."""
+    duas = [
+        _divida("a", 100_000.0, tipo="consignado", credor="Banco Fulano de Tal S.A."),
+        _divida("b", 50_000.0, tipo="consignado", credor="Outro"),
+    ]
+    # Resolver hostil: devolve razão social por extenso em vez de código.
+    descs = _descricoes(duas, resolve_credor_code=lambda c: c)
+    assert descs == ["Empréstimo consignado #1", "Empréstimo consignado #2"]
+    for d in descs:
+        assert _DESCRICAO_PERMITIDA.match(d)
+    # Resolver bem-comportado continua desambiguando pelo código canônico.
+    ok = _descricoes(duas, resolve_credor_code=lambda c: "c6bank" if "Fulano" in c else None)
+    assert ok == ["Empréstimo consignado — c6bank", "Empréstimo consignado #2"]

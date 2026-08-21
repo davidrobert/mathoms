@@ -12,6 +12,7 @@ desacoplado da lógica de resolução (que vive no orquestrador E5).
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Callable, Mapping
@@ -121,6 +122,12 @@ TIPO_LABEL: dict[str, str] = {
     "outros": "Outras dívidas",
 }
 _DESC_SEM_TIPO = "Dívida (origem: declaração patrimonial)"
+
+# Forma de código canônico do `institution_catalog` (ADR-137): `itau`, `c6bank`.
+# `descricao` é artefato exportado no PDF (ADR-129), então o único dado externo
+# que entra nela passa por esta peneira — resolver que devolva razão social por
+# extenso ("Banco X S.A. — Ag 1234") é rejeitado e o rótulo cai no ordinal.
+_CODIGO_CANONICO = re.compile(r"^[a-z0-9_]{2,32}$")
 
 # Linha de `baseline["dividas"][]` (ADR-301). Alias nomeado em vez de
 # `dict[str, Any]` cru: diz o que o dict é, e o schema já é o contrato.
@@ -276,7 +283,10 @@ class EndividamentoAnalyzer:
     def _codigo_credor(self, credor: Any) -> str | None:
         if not self._resolve_credor_code or not isinstance(credor, str) or not credor.strip():
             return None
-        return self._resolve_credor_code(credor)
+        codigo = self._resolve_credor_code(credor)
+        if not isinstance(codigo, str) or not _CODIGO_CANONICO.match(codigo):
+            return None
+        return codigo
 
     @staticmethod
     def _fallback_por_membro(members: list[dict[str, Any]] | None) -> list[DividaItem]:
