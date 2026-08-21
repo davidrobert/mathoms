@@ -256,7 +256,27 @@
             "field_requests_spurious": {"type": "integer", "minimum": 0},
             "field_requests_wrong_path": {"type": "integer", "minimum": 0},
             "needs_review_triggered": {"type": "boolean", "const": false},
-            "sugestoes_antagonicas": {"type": "integer", "minimum": 0}
+            "sugestoes_antagonicas": {"type": "integer", "minimum": 0},
+            "trajetoria_pontos_fortes_removidos": {"type": "integer", "minimum": 0},
+            "trajetoria_pontos_fortes_ressalvados": {"type": "integer", "minimum": 0},
+            "prescricao_divida_removida": {"type": "integer", "minimum": 0},
+            "taxa_divida_injetada_paths": {
+              "type": "array",
+              "description": "FP-4 D3-A: paths de taxa de dívida que o GUARDRAIL injetou em campos_faltantes (o distiller omite folha nula, então o LLM nunca soube que o campo existe). Persistência lê daqui para gravar PlannerFieldRequest com reason=guardrail_injected — atribuir ao LLM um pedido que ele não fez corromperia o sinal da ADR-206.",
+              "items": {"type": "string"}
+            },
+            "autocontradicao_removidos": {"type": "integer", "minimum": 0},
+            "autocontradicao_ressalvados": {"type": "integer", "minimum": 0},
+            "autocontradicao_pares_secao_tema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "FP-4 D3-B: pontos fortes cujo par (section_id, tema_canonico) também aparece em riscos. NÃO gera remoção — medido no r7 como balde, não identidade de assunto (2/5, 1 falso-positivo). Contagem para o r8 decidir se vale predicado mais fino."
+            },
+            "trajetoria_diagnostico_lemmas": {
+              "type": "array",
+              "description": "FP-2 D1-A/D1-B: lemmas de trajetória afirmados no diagnostico_geral (campo único, não removível). Vocabulário controlado — nunca prosa do cliente. Alimenta a medição do r8.",
+              "items": {"type": "string"}
+            }
           }
         }
       }

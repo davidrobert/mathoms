@@ -7,8 +7,13 @@ from decimal import Decimal
 from pipeline.domain.services.exposicao_cambial_analyzer import (
     THRESHOLD_AMARELO_PCT,
     THRESHOLD_VERDE_PCT,
+    _tier_from_pct,
     compute_exposicao_cambial,
 )
+
+
+def _carteira(r) -> Decimal:
+    return r.componentes["carteira_lastro_estrangeiro"].valor_brl
 
 
 def _caixa(moeda: str, valor_brl_raw: int, conta: str = "Wise") -> dict:
@@ -26,7 +31,9 @@ def test_empty_inputs_returns_zero_tier_empty():
         caixa_detalhes=[], investimentos_atuais=None, investivel_financeiro=0.0
     )
     assert r.total_brl == 0
-    assert r.tier == "empty"
+    # Pós-ADR-403 a cobertura da carteira é indeterminada e tem precedência
+    # sobre `empty` — sem posições medidas, "sem exposição" seria afirmação.
+    assert r.tier == "indeterminado"
     assert r.por_moeda == ()
 
 
@@ -43,7 +50,10 @@ def test_caixa_usd_e_eur_aggregates_per_moeda():
     )
     assert r.total_brl == 180_000.0
     assert r.pct_investivel_financeiro == 18.0
-    assert r.tier == "verde"  # >=10%
+    # O piso medido (18%) continua publicado; o VEREDITO é suprimido enquanto
+    # o componente de carteira não for apurado (ADR-403).
+    assert _tier_from_pct(r.pct_investivel_financeiro, has_data=True) == "verde"
+    assert r.tier == "indeterminado"
     moedas = {p.moeda: p.valor_brl for p in r.por_moeda}
     assert moedas == {"USD": 150_000.0, "EUR": 30_000.0}
 
@@ -61,11 +71,11 @@ def test_ativos_internacionais_classificados_via_asset_classifier():
         },
         investivel_financeiro=1_000_000,
     )
-    assert r.total_brl == 280_000.0
-    assert round(r.pct_investivel_financeiro, 2) == 28.0
-    # Tudo USD (asset_classifier não distingue moeda; assume USD).
-    moedas = {p.moeda: p.valor_brl for p in r.por_moeda}
-    assert moedas == {"USD": 280_000.0}
+    # v1 (ADR-403): a carteira é OBSERVACIONAL — medida e publicada com a
+    # própria cobertura, fora de `total_brl`, que só soma o que foi apurado.
+    assert _carteira(r) == 280_000.0
+    assert r.total_brl == 0
+    assert r.componentes["carteira_lastro_estrangeiro"].cobertura.value == "indeterminado"
 
 
 def test_caixa_usd_mais_ativo_internacional_agregam_em_usd():
@@ -76,22 +86,21 @@ def test_caixa_usd_mais_ativo_internacional_agregam_em_usd():
         },
         investivel_financeiro=500_000,
     )
-    assert r.total_brl == 150_000.0
-    assert r.pct_investivel_financeiro == 30.0
+    # Era `..._agregam_em_usd`: os dois DEIXAM de se fundir num escalar único
+    # (ADR-403). Cada componente carrega o próprio valor e a própria cobertura,
+    # e só o apurado entra no total — somar às cegas inflava o KPI.
+    assert r.total_brl == 100_000.0
+    assert _carteira(r) == 50_000.0
     moedas = {p.moeda: p.valor_brl for p in r.por_moeda}
-    assert moedas == {"USD": 150_000.0}
+    assert moedas == {"USD": 100_000.0}
 
 
+# A banda continua a mesma (decisão do dono 2026-08-19: separar os objetos e
+# rotular, não recalibrar). O que a ADR-403 muda é QUANDO ela é aplicável.
 def test_tier_thresholds():
-    """Verde >=10%; amarelo 5-10%; vermelho <5%."""
+    """Verde >=10%; amarelo 5-10%; vermelho <5% — a BANDA, não o veredito."""
     for pct, expected in [(15.0, "verde"), (10.0, "verde"), (7.0, "amarelo"), (3.0, "vermelho")]:
-        valor_cambial = pct * 1_000_000 / 100
-        r = compute_exposicao_cambial(
-            caixa_detalhes=[_caixa("USD", valor_cambial)],
-            investimentos_atuais=None,
-            investivel_financeiro=1_000_000,
-        )
-        assert r.tier == expected, f"pct={pct} → expected {expected}, got {r.tier}"
+        assert _tier_from_pct(pct, has_data=True) == expected, f"pct={pct}"
 
 
 def test_thresholds_constants():
@@ -151,5 +160,7 @@ def test_rv2_08_ativo_le_valor_atual_nao_zero():
         },
         investivel_financeiro=10_000,
     )
-    assert r.total_brl == Decimal("5000")
+    # A posição continua LIDA por `valor_atual` (o bug RV2-08 fazia ler 0), mas
+    # cai no componente de carteira, não no total de v1.
+    assert _carteira(r) == Decimal("5000")
     assert any(d.get("moeda") == "USD" for d in r.detalhes)

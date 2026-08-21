@@ -225,7 +225,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (64 no disco · 64 nesta tabela — ver nota ao fim)
+## Lanes (73 no disco · 73 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -335,11 +335,12 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l66]] | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | **P0** | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · FK `plan:` distinta do resto da sprint (exceção do §Critério de admissão da [[A42]]) · RV6-01/02/03 · **`shipped` 2026-08-18** em 5 PRs (#1520 [[ADR-394]] · #1521 contrato · #1522 seam · #1523 cauda · #1524 cap) · o ataque prévio (#1510/#1518) mostrou que os degraus 1–2 mediam 0% e que o critério passava com o catálogo inerte — a hierarquia entregue põe `secao` em primeiro |
 | [[A40.l67]] | Guarda de publicação no E5: nenhum balde publica negativo, e o schema deixa de aceitá-lo | **P0** | l66 | ✅ **shipped 2026-08-18** (#1529 · #1531 · #1534 · #1536 · #1537) · 1d (guarda de sinal, com o split derivado de cat_2 que a redação literal deixaria passar) + 1e (schema) · o flip strict saiu para [[A40.l58]] — critério temporal que esta lane não podia executar |
 | [[A40.l68]] | Balanço de stage fan-out: documento que some não pode sair como sucesso | P1 | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · RV6-10 · `open` (liberada pelo dono 2026-08-18) · [[ADR-393]] `Proposto` · **paralela desde o dia 0**, não disputa janela de rebaseline · [[A42.l4]] não amplia |
-| [[A40.l69]] | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | **P0** | l66, l67 | ✅ **shipped 2026-08-19** (#1538 · #1541 · #1542 · #1550) · RV6-04 · 3a (cobertura em 3 estados + balde `null`) e 3b (token, não substring + balde não-atribuído) · J4 fechada sem `value_delta` · a varredura foi entregue por **token normalizado**, não match exato — exato derrubava a resolução (medido) |
+| [[A40.l69]] | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | **P0** | l66, l67 | ✅ **shipped 2026-08-19** (#1538 · #1541 · #1542 · #1550 · **#1578**) · RV6-04 · 3a (cobertura em 3 estados + balde `null`) e 3b (token, não substring + balde não-atribuído) · J4 fechada sem `value_delta` · a varredura foi entregue por **token normalizado**, não match exato — exato derrubava a resolução (medido) · o **#1578** é o PR que tornou o 3a alcançável: sem ele o predicado media o contêiner e `nao_apurado` era inatingível (0/114) |
 | [[A40.l70]] | `endereco_canonical=None` não cria identidade: match por titular+código ou `needs_review` | P1 | — | `shipped` (#1508 · `0f35fbf3`) · [[ADR-392]] · 4b-i / RV6-13 · 4b-ii fica na track |
 | [[A40.l71]] | Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente | P1 | — | aberta 2026-08-17 · item 7e da Onda 7 do [[PLAN-deterministic-authority]], FK `plan:` para [[PLAN-report-trust]] (casa das lanes de render) · RV6-23 · `shipped` (#1511 · `50033dae`) · enabler sem copy, mergeou antes da l72 · gate v1 era cego (casava mesma linha), trocado por leitor único |
 | [[A40.l72]] | Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante | P1 | l66 | aberta 2026-08-17 · item 7a da Onda 7 do [[PLAN-deterministic-authority]], FK `plan:` para [[PLAN-report-trust]] · RV6-16 · **`open` desde 2026-08-18** (a l66 shipou, e o warning tipado existe) |
 | [[A40.l73]] | Produtor do bundle de proteção lê a fonte documental, e o `gap_qualitativo` reconcilia com os dependentes do IRPF | P1 | — | aberta 2026-08-19 · item **3c inteiro** da Onda 3 do [[PLAN-deterministic-authority]], por autorização explícita do dono (fora do MVP declarado) · PD-4 / RV6-20 · [[ADR-395]] `Decidido` · `parallel_with` [[A40.l60]] (dormente; divisão de arquivos declarada na lane) · **`shipped` 2026-08-19** (#1549 · #1554 · #1560 · #1564 · #1576) |
+| [[A40.l74]] | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | P1 | — | aberta 2026-08-21 · fecha a metade apólice do problema cujo lado CRLV saiu em #1599 · [[ADR-407]] `Proposto` + emenda datada em [[ADR-239]] §D8 · descobriu 2 consumidores extras do 1:1 (`_schema_version_token` carimbava row de apólice com hash de schema de veículo; `check_artifact_read_keys` lê o mapa por `ast.literal_eval`) · follow-up de `e4_unified` endereçado a [[A40.l58]] · **`shipped` 2026-08-21** (#1604) |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -1323,3 +1324,61 @@ emendadas por §Infra de CI tocada durante a sprint.
 ## Débito de método herdado da r3
 
 > Movida para [`_HISTORY`](_HISTORY.md) em 2026-08-14 — registro fechado, não governa decisão de hoje.
+
+## Inventário de achados órfãos do closeout da [[A40.l69]] (2026-08-21)
+
+A lane fechou `shipped` hospedando 6 achados numa seção `### Aberto, com dono` —
+título que `check_closure.py` **não** reconhece como deferimento (`DEFER_HEADING_RE`
+casa `deferi|fora de escopo|pendênc|em aberto|…`, e não `aberto, com dono`). O gate
+deu **0 achados estruturais** sobre 6 itens órfãos: verde de instrumento cego.
+
+| Achado | Onde estava | Destino |
+| --- | --- | --- |
+| 68 % do balde do titular vindo de chave vazia (R$ 642.744,79 de R$ 943.189,25 — re-medido 2026-08-21, 3/3 runs) | l69 §Aberto | **P0 · lane própria proposta** — superfície criada pela própria l69, maior em massa que o defeito de origem |
+| Golden sem domicílio de 2 membros (classe invisível ao CI por construção) | l69 §Ataque | **P1 · primeiro PR da lane proposta** — habilita o critério das demais |
+| Kill-switch da cobertura restaura só metade | l69 §Aberto | [[PLAN-deterministic-authority]] §Deferimentos datados |
+| Colapso cross-ano 26→9 no consolidador | l69 §Aberto | idem, **gateado por re-medição** (o número é de 08-12 e decide a prioridade) |
+| Trava do cônjuge dependente + válvula declarada | [[ADR-394]] §Emenda (c), `dono: [[A40.l69]]` | idem — dono era a lane que fechou |
+| Copy de `null` na narrativa | l69 §Aberto, roteada para 7e | **[[A40.l51]]**, que já hospeda a classe — o 7e ([[A40.l71]]) fechou 1 dia **antes** de o defeito existir, e a copy é pipeline, não render |
+
+**Ponteiro, não item novo:** o regex cego é da [[A40.l59]], que já move a metade
+estrutural do `check_closure` para hook. Acrescentar `aberto` ao alternador exige
+medir falso-positivo antes (`aberto` é palavra comum, e o CLOSE-BLOCK-05 tem
+orçamento declarado de ≤20 %).
+
+## Decisão dos abertos da [[A40.l69]] — 2026-08-21 (3 especialistas + arbitragem)
+
+`senior-cto`, `financial-planner` e `data-engineer` decidiram em paralelo; a
+arbitragem fechou os conflitos (protocolo anti-loop). Duas medições feitas antes
+de acioná-los mudaram a natureza de dois itens.
+
+| # | item | prioridade | destino |
+| --- | --- | --- | --- |
+| 1 | **Truncagem silenciosa no E1.5a** — 23 elegíveis, 10 processados, 13 descartados calados; o 12º é a declaração da cônjuge (`ano_base` 2024, 38 bens). É a causa dos **R$ 188.123,73**, e **não** o consolidador | **P0** | deferimento de 2026-08-17 (E1.5a × E1.6, `senior-cto`) — **sem lane nova**; rota corrigida e ADR-394 §Emenda (d) |
+| 2 | **`investivel_financeiro` perdeu `nao_atribuido`** — R$ 642.744,79 (68 %) saem do denominador de IF, exposição cambial e concentração imobiliária | **P0** | **lane nova, janela J5 própria** — 3/3 concordam no mérito; **não hoje** |
+| 3 | **Idempotência do eixo de atribuição** — 2 runs, mesmo corpus, 15 itens divergem (`titular` × `mariana_…`) | P1 | triagem do dono → lane própria (A42) |
+| 4 | Linha de cobertura de **atribuição** (grão domicílio) + 3º termo em `motivo_supressao_e5` | P1 | mesma lane do item 2, PR posterior |
+| 5 | Kill-switch: `valor_publicavel` consulta `cobertura_enforcement_ligado()` | P1 | deferimento existente, carona no próximo PR do arquivo |
+| 6 | Trava do cônjuge dependente | P2 | deferida; **texto corrigido** — o E1.6 carrega `contribuinte.natureza`/`dependentes`, o bloqueio era de leitura, não de dado |
+| 7 | Válvula declarada · fixture de 2 membros como lane · copy de `null` | não-fazer | válvula deferida · fixture é **critério de aceite** dos itens 1 e 2, não lane · copy na [[A40.l51]] |
+
+### O item 2 é regressão ainda não observada
+
+`nao_atribuidos` entra em `_compute_bruto` e na `composicao`, mas **não** em
+`investivel_financeiro`. Nenhum run executou pós-#1550 (`cobertura_investimentos`
+é `[]` em 6/6 artefatos E5 do corpus), então o dano ainda não apareceu — e aparece
+inteiro no próximo run. Excluir dinheiro do domicílio de um agregado do domicílio
+porque o **membro** é desconhecido é erro de categoria: é o espelho do pecado que
+a §D8 corrigiu.
+
+**Não foi feito hoje por decisão da arbitragem**, não por falta de mérito: exige
+rebaseline de golden, do snapshot do view-model e re-derivação de
+`tests/test_e5_conservation_invariants.py` — janela própria, que o PR do produtor
+não pode dividir.
+
+### O plano não reabre
+
+Nem ondas, nem gate de saída, nem critério de done. O trabalho executa sob
+mecanismos que o próprio plano já escreveu, e dois tiveram a condição satisfeita
+nesta sessão — a re-medição que o §Deferimento de 2026-08-21 exigia foi cumprida,
+e ela mudou o arquivo-alvo.

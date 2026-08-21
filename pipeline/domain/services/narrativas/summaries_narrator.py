@@ -80,8 +80,7 @@ class SummariesNarrator:
         return {
             "s1": (
                 f"Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])} com {fmt_percent(M['pct_investivel'])} investível ({fmt_currency(M['patrimonio_investivel'])}). "
-                f"Imóveis representam {fmt_percent(M['pct_imoveis_bruto'])} do patrimônio bruto, com residência própria de {fmt_currency(M['residencia'])} e imóveis de investimento somando "
-                f"{fmt_currency(M['imoveis_investimento'])}. Endividamento de {fmt_percent(M['taxa_endividamento'])} sobre o bruto."
+                f"{_s1_imoveis_clause(M)} Endividamento de {fmt_percent(M['taxa_endividamento'])} sobre o bruto."
             ),
             "s2": (
                 f"Score financeiro de {fmt_num(M['score'])}/10 ({M['score_label']}). Pontos fortes: taxa de poupança recorrente de {fmt_percent(M['taxa_poupanca'])}, "
@@ -333,6 +332,19 @@ def _summary_s4(M: Mapping[str, Any]) -> str:
 # mostra; a quantidade fica com a tabela da seção, seu único dono (§D7 da
 # ADR-356 — "ou o número vem do payload, ou não é afirmado"). Cada parcela é
 # condicional: `residência (R$ 0,00)` lê-se como "sua casa não vale nada".
+def _s1_imoveis_clause(M: Mapping[str, Any]) -> str:
+    """A40.l6 / ADR-356 D7: parcela de residência só entra com valor > 0."""
+    partes: list[str] = []
+    if (M.get("residencia") or 0) > 0:
+        partes.append(f"residência própria de {fmt_currency(M['residencia'])}")
+    if (M.get("imoveis_investimento") or 0) > 0:
+        partes.append(f"imóveis de investimento somando {fmt_currency(M['imoveis_investimento'])}")
+    pct = fmt_percent(M["pct_imoveis_bruto"])
+    if not partes:
+        return f"Imóveis representam {pct} do patrimônio bruto."
+    return f"Imóveis representam {pct} do patrimônio bruto, com {', '.join(partes)}."
+
+
 _S4_VALOR_TEMPLATES: tuple[tuple[str, str], ...] = (
     ("residencia", "residência de {valor}"),
     ("imoveis_investimento", "imóveis de investimento somando {valor}"),

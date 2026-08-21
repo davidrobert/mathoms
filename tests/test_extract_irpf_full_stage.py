@@ -297,3 +297,60 @@ class TestExtractIrpfFullValidationIssuesPropagation:
         assert any(
             "dividas_onus[0]" in i["legacy_message"] for i in issues
         ), "legacy_message deve manter byte-equality com errors list"
+
+
+_PJ_RECONCILIA = {
+    "cnpj": "**.***.***/****-**",
+    "nome": "ACME",
+    "rendimentos_tributaveis_brl": "100000.00",
+    "contrib_previdenciaria_brl": "8000.00",
+    "ir_retido_brl": "1000.00",
+}
+_IMPOSTO_RECONCILIA = {
+    "base_calculo_brl": "92000.00",
+    "ir_devido_brl": "1000.00",
+    "deducoes_totais_brl": "8000.00",
+    "ir_pago_brl": "1000.00",
+}
+_CONTRIB = {
+    "cpf_masked": "***.***.***-99",
+    "nome": "Contribuinte Teste",
+    "ano_base": 2024,
+    "exercicio": 2025,
+    "modelo": "completo",
+    "natureza": "titular",
+}
+
+
+def _payload_com_confidence(confidence: float) -> dict:
+    """Payload do stage para declaração que RECONCILIA, na confidence dada."""
+    from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
+    from pipeline.llm.validators import validate_e16_output
+    from pipeline.stages.extract_irpf_full import _build_payload
+
+    out = IRPFFullOutput.model_validate(
+        {
+            "contribuinte": _CONTRIB,
+            "rendimentos_pj": [_PJ_RECONCILIA],
+            "imposto_apurado": _IMPOSTO_RECONCILIA,
+            "confidence": confidence,
+        }
+    )
+    return _build_payload(out, validate_e16_output(out), "1.2.0")
+
+
+class TestBuildPayloadNeedsReview:
+    """Cap de confidence e piso de `needs_review` são predicados independentes."""
+
+    def test_confidence_baixa_sinaliza_mesmo_reconciliando(self):
+        """Regressão: a flag morava dentro do ramo do cap (`confidence > 0.7`)."""
+        payload = _payload_com_confidence(0.45)
+
+        assert payload["confidence"] == 0.45, "reconciliou: não pode haver cap"
+        assert payload["needs_review"] is True
+
+    def test_confidence_alta_reconciliando_nao_sinaliza(self):
+        payload = _payload_com_confidence(0.95)
+
+        assert payload["confidence"] == 0.95
+        assert payload.get("needs_review") is not True

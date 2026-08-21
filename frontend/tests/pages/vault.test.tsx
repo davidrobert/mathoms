@@ -26,6 +26,14 @@ beforeEach(() => {
 
 describe("VaultPage", () => {
   it("renderiza header + form de adicionar senha", async () => {
+    // Único teste do arquivo que não declarava a lista — o header e o form são
+    // estáticos, mas a página busca as senhas ao montar e a request ficava
+    // órfã. Lista vazia é o estado que o resto do arquivo já usa.
+    server.use(
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
+        HttpResponse.json({ passwords: [], total: 0 }),
+      ),
+    );
     render(<VaultPage />);
     expect(await screen.findByText(/Vault de Senhas/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Rótulo/i)).toBeInTheDocument();

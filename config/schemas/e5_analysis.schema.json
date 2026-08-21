@@ -964,9 +964,49 @@
         "owner": "A40.l5"
       }
     },
+    "kpi_targets": {
+      "type": "object",
+      "description": "Alvo de cada KPI publicável, com PROCEDÊNCIA declarada ([[ADR-399]] · §r7 PE-2/FP-6). Produzido por pipeline/domain/services/kpi_target_catalog.py, que é o LEITOR ÚNICO de cada limiar. Existe porque o parecer autorava `metricas[].target` como string livre: sobre `ratios.concentracao_imobiliaria` byte-idêntico em dois runs, o alvo migrou de '< 30%' para '< 35%', ATRAVESSANDO o valor observado (violação virou conformidade sem o dado mudar), e o canon do repo é 50%. Precedência: `goal_declarado` (a família escolheu) vence `limiar_canonico` (doutrina do produto) — publicar alvo mais frouxo que o compromisso da família é o produto absolvendo-a da própria meta. INVARIANTE: ou a entrada tem `procedencia`+`limiar`, ou tem `motivo` — nunca ambos, nunca nenhum. `limiar: null` é órfão legítimo (alvo sem fonte única), e órfão publica motivo, NUNCA um número inventado.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["observado_path", "base", "unidade"],
+        "properties": {
+          "observado_path": {
+            "type": "string",
+            "description": "JSONPath da folha observada no próprio E5. Casa o par observado↔alvo na MESMA base — o defeito medido publicava observado de uma base contra alvo de outra, subestimando o desvio em ~10pp."
+          },
+          "base": {
+            "type": "string",
+            "description": "Denominador declarado (ex.: carteira_produtiva, patrimonio_bruto). Alvo sem base é indefensável mesmo quando o número está certo."
+          },
+          "unidade": {"type": "string", "description": "pct | meses | pct_aa."},
+          "limiar": {
+            "type": ["number", "null"],
+            "description": "Valor-alvo. `null` ⇒ órfão; ver `motivo`."
+          },
+          "operador": {
+            "type": ["string", "null"],
+            "description": "Comparador do alvo (<, <=, >=). Carrega a polaridade: sem ele, 34,86 contra 50 é ambíguo."
+          },
+          "procedencia": {
+            "type": ["string", "null"],
+            "enum": ["goal_declarado", "limiar_canonico", null],
+            "description": "Origem do limiar. Ausente ⇔ órfão."
+          },
+          "ref": {
+            "type": ["string", "null"],
+            "description": "Ponteiro auditável para a fonte (JSONPath de goals, ou constante de código/config)."
+          },
+          "motivo": {
+            "type": ["string", "null"],
+            "description": "Por que é órfão, em texto legível ao usuário. Órfão por DECISÃO de domínio (ex.: rentabilidade observada não tem comparador canônico) não é lacuna de implementação."
+          }
+        }
+      }
+    },
     "exposicao_cambial": {
       "type": "object",
-      "description": "Exposição cambial (Bloco G plan/RESIDENCIA_E_USO; produzido por exposicao_cambial_analyzer): caixa em moeda estrangeira + ativos com lastro internacional, em BRL. CONCEITO DISTINTO da alocação internacional (A37.l9): exposição cambial mede posições EM MOEDA ESTRANGEIRA sobre investivel_financeiro (posições atuais + caixa); alocação internacional mede a classe 'Internacional' da tabela sobre a carteira financeira da tabela. Numerador E denominador diferem — nunca fundir os dois números.",
+      "description": "Exposição cambial ECONÔMICA em dois componentes nomeados (ADR-403): `componentes.caixa_fx` + `componentes.carteira_lastro_estrangeiro`, cada um com a própria `cobertura`. `total_brl` soma SÓ os componentes apurados; `∃ cobertura ≠ apurado ⇒ tier == \"indeterminado\"` (o piso medido continua publicado, o veredito não). `definicao_versao` (1 = só caixa FX; 2 = caixa FX + carteira com lastro) marca a fronteira: comparar tier entre runs de versões distintas é série reiniciada, nunca delta. `referencia_banda` declara que o tier mede PISO DE PROTEÇÃO — a faixa 20–30% USD da ADR-224 §6 é alvo de ALOCAÇÃO e tem dono próprio (`acoes_int`). CONCEITO DISTINTO da alocação internacional (A37.l9): exposição cambial mede posições EM MOEDA ESTRANGEIRA sobre investivel_financeiro (posições atuais + caixa); alocação internacional mede a classe 'Internacional' da tabela sobre a carteira financeira da tabela. Numerador E denominador diferem — nunca fundir os dois números.",
       "properties": {
         "total_brl": {
           "type": "number",
@@ -1002,9 +1042,52 @@
             "verde",
             "amarelo",
             "vermelho",
-            "empty"
+            "empty",
+            "indeterminado"
           ],
-          "description": "Tier canônico: verde >=10%, amarelo 5-10%, vermelho <5%, empty sem posições."
+          "description": "Tier canônico: verde >=10%, amarelo 5-10%, vermelho <5%, empty sem posições, indeterminado quando algum componente não foi apurado (ADR-403)."
+        },
+        "definicao_versao": {
+          "type": "integer",
+          "enum": [
+            1,
+            2
+          ],
+          "description": "1 = exposição é só caixa FX; 2 = caixa FX + carteira com lastro estrangeiro. Comparar tier entre versões distintas é série reiniciada, nunca delta."
+        },
+        "componentes": {
+          "type": "object",
+          "properties": {
+            "caixa_fx": { "$ref": "#/$defs/componente_exposicao_cambial" },
+            "carteira_lastro_estrangeiro": { "$ref": "#/$defs/componente_exposicao_cambial" }
+          },
+          "required": [
+            "caixa_fx",
+            "carteira_lastro_estrangeiro"
+          ],
+          "additionalProperties": false
+        },
+        "referencia_banda": {
+          "type": "object",
+          "description": "Contra o que o tier mede — piso de proteção, nunca alvo de alocação.",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "enum": [
+                "piso_protecao"
+              ]
+            },
+            "verde_min_pct": { "type": "number" },
+            "amarelo_min_pct": { "type": "number" },
+            "dono_prescricao_alocacao": { "type": "string" }
+          },
+          "required": [
+            "tipo",
+            "verde_min_pct",
+            "amarelo_min_pct",
+            "dono_prescricao_alocacao"
+          ],
+          "additionalProperties": false
         },
         "detalhes": {
           "type": "array",
@@ -2353,6 +2436,26 @@
         "regime_fiscal_incompleto",
         null
       ]
+    },
+    "componente_exposicao_cambial": {
+      "type": "object",
+      "description": "Valor do componente + quanto dele o run conseguiu medir (ADR-403).",
+      "properties": {
+        "valor_brl": { "type": "number" },
+        "cobertura": {
+          "type": "string",
+          "enum": [
+            "apurado",
+            "parcial",
+            "indeterminado"
+          ]
+        }
+      },
+      "required": [
+        "valor_brl",
+        "cobertura"
+      ],
+      "additionalProperties": false
     },
     "ConversaoMe": {
       "type": "object",

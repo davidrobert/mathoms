@@ -3,6 +3,11 @@
 
 export type motivo_ausencia_pgbl = "sem_irpf_processado" | "modelo_simplificado" | "sem_renda_tributavel" | "regime_fiscal_incompleto" | null;
 
+export type componente_exposicao_cambial = {
+  "valor_brl": number;
+  "cobertura": "apurado" | "parcial" | "indeterminado";
+};
+
 export type ConversaoMe = {
   "taxa"?: string | null;
   "taxa_data"?: string | null;
@@ -496,6 +501,16 @@ export type E5AnalysisArtifact = {
     "share_nao_identificado_pct"?: number;
   };
   "programa_milhas"?: Record<string, never>;
+  "kpi_targets"?: Record<string, {
+    "observado_path": string;
+    "base": string;
+    "unidade": string;
+    "limiar"?: number | null;
+    "operador"?: string | null;
+    "procedencia"?: "goal_declarado" | "limiar_canonico" | null;
+    "ref"?: string | null;
+    "motivo"?: string | null;
+  }>;
   "exposicao_cambial"?: {
     "total_brl"?: number;
     "pct_investivel_financeiro"?: number;
@@ -505,7 +520,18 @@ export type E5AnalysisArtifact = {
       "share_pct"?: number;
       "pct_total_cambial"?: number;
     }>;
-    "tier"?: "verde" | "amarelo" | "vermelho" | "empty";
+    "tier"?: "verde" | "amarelo" | "vermelho" | "empty" | "indeterminado";
+    "definicao_versao"?: 1 | 2;
+    "componentes"?: {
+      "caixa_fx": componente_exposicao_cambial;
+      "carteira_lastro_estrangeiro": componente_exposicao_cambial;
+    };
+    "referencia_banda"?: {
+      "tipo": "piso_protecao";
+      "verde_min_pct": number;
+      "amarelo_min_pct": number;
+      "dono_prescricao_alocacao": string;
+    };
     "detalhes"?: Array<{
       "fonte"?: string;
       "nome"?: string;

@@ -126,6 +126,24 @@ def test_perfil_familia_left_sem_buracos_de_fragmento():
     assert "salário-base de R$ 0,00" not in left
 
 
+def test_summaries_s1_omite_residencia_zero():
+    """A40.l6: 'residência própria de R$ 0,00' afirma que a casa não vale nada."""
+    m = {**_build_metrics(), "residencia": 0}
+    s1 = SummariesNarrator(NarrativasContext.from_family_config(_FAMILY_BASE)).narrate(
+        m, _FAMILY_BASE, [], _DECISOES_5
+    )["s1"]
+    assert "residência própria" not in s1
+    assert "R$ 0,00" not in s1
+
+
+def test_summaries_s1_afirma_residencia_quando_ha_valor():
+    m = {**_build_metrics(), "residencia": 800_000}
+    s1 = SummariesNarrator(NarrativasContext.from_family_config(_FAMILY_BASE)).narrate(
+        m, _FAMILY_BASE, [], _DECISOES_5
+    )["s1"]
+    assert "residência própria de" in s1
+
+
 def test_summaries_s4_nunca_localiza_a_residencia():
     """PD-02 virou regra dura em A40.l4 (ADR-319 · §D9): o s4 não cita a
     residência por localização nem quando a família TEM endereço cadastrado —

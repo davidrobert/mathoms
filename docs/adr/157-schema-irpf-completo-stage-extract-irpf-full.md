@@ -5,6 +5,7 @@ title: "Schema IRPF completo (stage `extract_irpf_full`)"
 status: Decidido
 phase: "Sprint A8 · Lane irpf-full-schema"
 date: "2026-04-30"
+amended_at: ["2026-05-22"]
 relates_to: ["[[ADR-090]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-105]]", "[[ADR-111]]", "[[ADR-135]]", "[[ADR-143]]", "[[ADR-165]]", "[[ADR-231]]"]
 supersedes: []
 superseded_by: []

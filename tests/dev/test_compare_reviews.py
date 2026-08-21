@@ -396,3 +396,37 @@ def test_instituicoes_caem_com_posicoes_caindo_nao_dispara() -> None:
 def test_snapshot_de_versao_1_nao_quebra_o_compare() -> None:
     base = {k: v for k, v in _snap_mix({}, []).items() if k != "investimentos_mix"}
     assert _hard(base, base) == []
+
+
+# ─────────── ADR-403 · fronteira de definição do KPI cambial ───────────
+# O gate mora no COMPARADOR, não no produtor: marcador que só o produtor emite
+# é decorativo — nada impede o leitor de subtrair tier de v1 contra tier de v2.
+
+
+def _rd_cambial(versao: int | None, tier: str = "amarelo") -> dict:
+    rd = _report_data()
+    bloco: dict[str, Any] = {"tier": tier, "total_brl": 100.0}
+    if versao is not None:
+        bloco["definicao_versao"] = versao
+    rd["exposicao_cambial"] = bloco
+    return rd
+
+
+def test_mudanca_de_definicao_cambial_reinicia_a_serie():
+    _hard, _soft, notes = compare_reviews(
+        _snap(), _snap(), _rd_cambial(1, "amarelo"), _rd_cambial(2, "verde")
+    )
+    assert any("série reiniciada" in n and "1 → 2" in n for n in notes)
+
+
+def test_mesma_definicao_nao_reinicia():
+    _hard, _soft, notes = compare_reviews(
+        _snap(), _snap(), _rd_cambial(1, "amarelo"), _rd_cambial(1, "verde")
+    )
+    assert not any("série reiniciada" in n for n in notes)
+
+
+def test_baseline_sem_marcador_conta_como_fronteira():
+    """Run pré-ADR-403 não declara versão — comparar com v1 é atravessar a fronteira."""
+    _hard, _soft, notes = compare_reviews(_snap(), _snap(), _rd_cambial(None), _rd_cambial(1))
+    assert any("série reiniciada" in n for n in notes)

@@ -5,6 +5,7 @@ title: "Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE re
 status: Decidido
 phase: A18.l1
 date: "2026-05-21"
+amended_at: ["2026-08-21"]
 relates_to:
   - "[[ADR-097]]"
   - "[[ADR-127]]"
@@ -21,6 +22,7 @@ relates_to:
   - "[[ADR-236]]"
   - "[[ADR-238]]"
   - "[[ADR-240]]"
+  - "[[ADR-407]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -39,6 +41,12 @@ tags:
   - methodology/cerbasi
   - phase/a18
 ---
+
+> **Emenda 2026-08-21 ([[ADR-407]]):** D8 decidiu o stage único e o "despacho interno
+> por `tipo_comprovante`", mas o discriminador nunca foi persistido no payload e o
+> contrato JSON nunca materializou o polimorfismo — `SCHEMA_BY_STAGE` apontava para
+> `crlv.schema.json` e apólice validava contra schema de veículo (25 paths em drift).
+> `apolice.schema.json` nunca existiu. Ver §Emenda ao fim.
 
 ## Contexto
 
@@ -361,3 +369,20 @@ Lane [[A18.l2]] entregue em 5 PRs squash-mergeados em `main` (todos CI verde):
 - UI de proteção (card S_PROTECAO, A19) consome `bens_segurados[].coberturas[]` apenas em V2 — apólice ingerida em V1 fica em DB sem render frontend até A19 mergear.
 - Pagador FK `pagador_family_member_id` resolvida apenas quando UI for adicionada (V2) — V1 captura `pagador_cpf_masked` em texto livre mas não vincula a `family_members`.
 - Apólice combinada Porto V1: cascata Sonnet dispara em ~30% dos casos onde Haiku confunde LMI/cobertura por bem; gate aceitável (custo Sonnet ~3× Haiku, mas só para combinadas).
+
+## Emenda — o contrato JSON do stage polimórfico (2026-08-21)
+
+D8 dizia "despacho interno por `tipo_comprovante: Literal["crlv", "apolice"]` detectado
+em E0", e o despacho **existia** em Python (`_detect_tipo_comprovante` → `_persist_crlv`
+ou `_persist_apolice`). O que não existia era o correspondente no contrato de dados: o
+discriminador não era persistido no payload, `config/schemas/apolice.schema.json` nunca
+foi criado — apesar de `docs/sprint/A18/_README.md` declará-lo entregue — e
+`SCHEMA_BY_STAGE`, que é 1:1, apontava o stage inteiro para `crlv.schema.json`.
+
+Medido em 2026-08-21: payload de apólice produzido por `_build_apolice_payload` reprova
+o schema de veículo com **9 erros / 25 paths em drift**. Não abortava porque o modo
+global é `warn`.
+
+[[ADR-407]] fecha isso com `comprovante_base.schema.json` despachando por discriminador
+declarado, e estende D8: **A18 V2 (imóveis RGI/IPTU) adiciona o valor do enum e o ramo
+no mesmo PR** — valor de enum sem ramo valida contra nada.
