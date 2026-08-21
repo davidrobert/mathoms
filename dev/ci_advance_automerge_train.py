@@ -110,6 +110,20 @@ def eligible_train(prs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(queue, key=lambda pr: pr["createdAt"])
 
 
+def out_of_train_reason(pr: dict[str, Any], runs_for: RunsFetcher) -> str | None:
+    """Motivo de o PR estar fora do trem, ou None se ele concorre à cabeça — fonte
+    única da exclusão. `decide_train` e o `train_head` do watchdog diferem no
+    desfecho (um para na cabeça, o outro a devolve mesmo sem BEHIND) e precisam
+    concordar sobre QUEM ela é: motivo novo aqui vale para os dois. O 403 terminal
+    da ADR-322 §Emenda 2026-08-08 é o terceiro motivo já previsto. `runs_for` é
+    lazy — PR DIRTY sai sem gastar chamada de API."""
+    if pr.get("mergeStateStatus") == "DIRTY":
+        return "conflito de merge — autor precisa rebasar"
+    if required_workflow_failed(runs_for(pr)):
+        return "workflow required em failure no head atual"
+    return None
+
+
 @dataclass(frozen=True)
 class TrainDecision:
     """Resultado de um ciclo: o PR a atualizar, ou por que não há um. `waiting_behind`
@@ -128,21 +142,17 @@ def _behind_in(prs: list[dict[str, Any]]) -> int:
 
 def decide_train(prs: list[dict[str, Any]], runs_for: RunsFetcher = _runs_for_pr) -> TrainDecision:
     """Primeiro PR BEHIND da fila cujo turno chegou, ou o motivo de o trem esperar —
-    DIRTY e workflow required em failure saem do trem (não mergeiam de qualquer
-    forma), e PENDING nunca é pulado: atualizar o próximo enquanto a cabeça
-    roda CI desperdiça runs e pode livelock (ADR-322 §D1). Fila vazia e cabeça
-    segurando são estados distintos: nenhum dos dois atualiza PR, mas só o
-    segundo tem trabalho em voo e fila atrás."""
+    quem out_of_train_reason exclui é pulado, e PENDING nunca é pulado: atualizar
+    o próximo enquanto a cabeça roda CI desperdiça runs e pode livelock
+    (ADR-322 §D1). Fila vazia e cabeça segurando são estados distintos: nenhum
+    dos dois atualiza PR, mas só o segundo tem trabalho em voo e fila atrás."""
     queue = eligible_train(prs)
     for position, pr in enumerate(queue):
-        status = pr.get("mergeStateStatus")
-        if status == "DIRTY":
-            print(f"skip #{pr['number']}: conflito de merge — autor precisa rebasar")
+        reason = out_of_train_reason(pr, runs_for)
+        if reason is not None:
+            print(f"skip #{pr['number']}: {reason}")
             continue
-        if required_workflow_failed(runs_for(pr)):
-            print(f"skip #{pr['number']}: workflow required em failure no head atual")
-            continue
-        if status == "BEHIND":
+        if pr.get("mergeStateStatus") == "BEHIND":
             return TrainDecision(pr, None, 0)
         return TrainDecision(None, pr, _behind_in(queue[position + 1 :]))
     return TrainDecision(None, None, 0)

@@ -7,16 +7,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 import dev.ci_advance_automerge_train as train  # noqa: E402
+import dev.ci_automerge_watchdog as watchdog  # noqa: E402
 from dev.ci_advance_automerge_train import (  # noqa: E402
     decide_train,
     describe_decision,
     eligible_train,
     latest_required_runs,
+    out_of_train_reason,
     required_workflow_failed,
     required_workflows_green,
     select_pr_to_update,
@@ -339,3 +343,101 @@ class TestWatchdogPredicates:
         ]
         head = train_head(prs, _runs_fake({2: [RUN_CI_FAIL]}))
         assert head is not None and head["number"] == 3
+
+
+class TestOutOfTrainReason:
+    def test_pr_limpo_concorre_a_cabeca(self) -> None:
+        assert out_of_train_reason(_pr(1), _runs_fake({})) is None
+
+    def test_dirty_declara_conflito(self) -> None:
+        reason = out_of_train_reason(_pr(1, mergeStateStatus="DIRTY"), _runs_fake({}))
+        assert reason is not None and "conflito de merge" in reason
+
+    def test_required_em_failure_declara_red(self) -> None:
+        reason = out_of_train_reason(_pr(1), _runs_fake({1: [RUN_CI_FAIL]}))
+        assert reason is not None and "workflow required" in reason
+
+    def test_dirty_nao_gasta_chamada_de_runs(self) -> None:
+        """Fetcher é lazy de propósito: o trem roda 2×/h, o watchdog outras 2×/h e a
+        fila real tem tido DIRTY na cabeça — buscar runs de quem já saiu é chamada
+        de API jogada fora numa API onde rate-limit secundário já foi suspeitado."""
+
+        def _explode(pr: dict[str, Any]) -> list[dict[str, Any]]:
+            raise AssertionError(f"runs buscados para PR DIRTY #{pr['number']}")
+
+        assert out_of_train_reason(_pr(1, mergeStateStatus="DIRTY"), _explode) is not None
+
+    def test_skip_impresso_repete_o_motivo_do_predicado(self, capsys: Any) -> None:
+        """A tabela de sintomas do runbook cita `skip #N: conflito de merge` — a linha
+        sai do predicado, não de uma segunda cópia da frase que envelhece sozinha."""
+        prs = [_pr(1, mergeStateStatus="DIRTY"), _pr(2)]
+        decide_train(prs, _runs_fake({}))
+        reason = out_of_train_reason(prs[0], _runs_fake({}))
+        assert f"skip #1: {reason}" in capsys.readouterr().out
+
+
+class TestCabecaUnica:
+    """decide_train e o train_head do watchdog derivam a cabeça em separado. O
+    desfecho difere de propósito (um para nela, o outro a devolve mesmo sem BEHIND);
+    QUEM ela é não pode divergir, senão a issue de stall nomeia um PR e o hold do
+    trem reporta outro. Concordavam por coincidência — as duas repetiam o mesmo par
+    de condições — até out_of_train_reason virar fonte única."""
+
+    @pytest.mark.parametrize("status", ["BLOCKED", "CLEAN", "UNKNOWN", "UNSTABLE", "HAS_HOOKS"])
+    def test_cabeca_nao_behind_e_a_mesma_nos_dois(self, status: str) -> None:
+        prs = [_pr(1, mergeStateStatus=status), _pr(2), _pr(3)]
+        runs = _runs_fake({})
+        head = train_head(prs, runs)
+        assert head is not None and head["number"] == 1
+        assert decide_train(prs, runs).head_on_hold is head
+
+    def test_concordam_sobre_a_cabeca_depois_de_pular_excluidos(self) -> None:
+        prs = [
+            _pr(1, mergeStateStatus="DIRTY"),
+            _pr(2),
+            _pr(3, mergeStateStatus="BLOCKED"),
+        ]
+        runs = _runs_fake({2: [RUN_CI_FAIL]})
+        head = train_head(prs, runs)
+        assert head is not None and head["number"] == 3
+        assert decide_train(prs, runs).head_on_hold is head
+
+    def test_fila_medida_no_incidente(self) -> None:
+        prs = _fila_medida_2026_08_21()
+        runs = _runs_fake({})
+        assert decide_train(prs, runs).head_on_hold is train_head(prs, runs)
+
+    def test_cabeca_behind_sai_em_campo_diferente_e_ainda_e_a_mesma(self) -> None:
+        """As semânticas seguem distintas: com a cabeça BEHIND o trem a devolve para
+        atualizar (`pr`, e `head_on_hold` fica None) e o watchdog a devolve como
+        cabeça. Campos diferentes, mesmo PR."""
+        prs = [_pr(1), _pr(2)]
+        runs = _runs_fake({})
+        decision = decide_train(prs, runs)
+        assert decision.head_on_hold is None
+        assert decision.pr is train_head(prs, runs)
+
+    def test_fila_sem_ninguem_dentro_nao_tem_cabeca_nos_dois(self) -> None:
+        prs = [_pr(1, mergeStateStatus="DIRTY"), _pr(2, mergeStateStatus="DIRTY")]
+        runs = _runs_fake({})
+        assert decide_train(prs, runs).head_on_hold is None
+        assert train_head(prs, runs) is None
+
+    def test_motivo_novo_no_predicado_move_as_duas_cabecas(self, monkeypatch: Any) -> None:
+        """O terceiro motivo já previsto (403 terminal do PR que toca
+        `.github/workflows/**`, ADR-322 §Emenda 2026-08-08) entra em
+        out_of_train_reason e só ali. Quem reinlinar as condições para de enxergá-lo
+        e volta a nomear outra cabeça."""
+
+        def _com_403_terminal(pr: dict[str, Any], runs_for: Any) -> str | None:
+            if pr["number"] == 1:
+                return "403 terminal: update-branch não move este PR"
+            return None
+
+        monkeypatch.setattr(train, "out_of_train_reason", _com_403_terminal)
+        monkeypatch.setattr(watchdog, "out_of_train_reason", _com_403_terminal)
+        prs = [_pr(1, mergeStateStatus="BLOCKED"), _pr(2, mergeStateStatus="BLOCKED"), _pr(3)]
+        runs = _runs_fake({})
+        head = train_head(prs, runs)
+        assert head is not None and head["number"] == 2
+        assert decide_train(prs, runs).head_on_hold is head
