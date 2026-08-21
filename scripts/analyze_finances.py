@@ -2507,16 +2507,30 @@ def _e5_print_summary(legacy: Dict[str, Any]) -> None:
     print("=" * 70)
 
 
-def _e5_validation_block(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
-    """Balde negativo e membro não apurado viram needs_review ([[ADR-394]] §Emendas)."""
+def _e5_review_reasons(
+    patrimonio: Dict[str, Any], investimentos: Dict[str, Any] | None
+) -> list[dict]:
+    """Balde negativo, membro não apurado ([[ADR-394]]) e ativo sem classe ([[ADR-406]])."""
+    from pipeline.domain.services.classificacao_review_reasons import (
+        review_reasons_da_classificacao,
+    )
     from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
     from pipeline.domain.services.investimentos_cobertura import review_reasons_da_cobertura
     from pipeline.domain.services.patrimonio_sign_guard import review_reasons_do_artefato
 
     kwargs = {"stage": "analyze_finances", "artifact_key": E5_ARTIFACT_KEY}
-    reasons = review_reasons_do_artefato(patrimonio, **kwargs) + review_reasons_da_cobertura(
-        patrimonio, **kwargs
+    return (
+        review_reasons_do_artefato(patrimonio, **kwargs)
+        + review_reasons_da_cobertura(patrimonio, **kwargs)
+        + review_reasons_da_classificacao(investimentos, **kwargs)
     )
+
+
+def _e5_validation_block(
+    patrimonio: Dict[str, Any], investimentos: Dict[str, Any] | None = None
+) -> Dict[str, Any]:
+    """`valid: False` é o contrato que o backend lê para pausar (ADR-393 D4)."""
+    reasons = _e5_review_reasons(patrimonio, investimentos)
     return {
         "valid": not reasons,
         "errors": [f"E5: {r['message']} — {r['offending_value']}" for r in reasons],
@@ -2531,7 +2545,7 @@ def _e5_build_result_dict(legacy: Dict[str, Any], warnings) -> Dict[str, Any]:
     patrimonio = legacy["patrimonio"]
     goals = legacy["goals"]
     return {
-        "validation": _e5_validation_block(patrimonio),
+        "validation": _e5_validation_block(patrimonio, legacy.get("investimentos_classes")),
         "files_created": [E5_ARTIFACT_FILENAME],
         "total": 1,
         "score_valor": score.get("valor"),

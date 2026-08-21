@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mathoms.ai/schemas/review_reason/v1.1.json",
+  "$id": "https://mathoms.ai/schemas/review_reason/v1.2.json",
   "title": "ReviewReason — razão estruturada de needs_review (ADR-272)",
   "description": "Schema da projeção dict de pipeline.domain.review_reason.ReviewReason.to_dict(). Vocabulário de `code` é namespaced por origem (extract./dedup./domain.); code novo = membro no enum Python + entrada no array `enum` aqui (sem migration — a coluna DB é String, não Enum SQL). `offending_value` e `message` chegam JÁ redigidos (CPF mascarado, valor monetário truncado) — redação acontece no __post_init__ da dataclass, não no consumidor.",
   "type": "object",
@@ -40,6 +40,9 @@
         "domain.property_identity_uncanonical",
         "domain.balde_patrimonial_negativo",
         "domain.membro_nao_apurado",
+        "domain.ativo_sem_haystack",
+        "domain.ativo_nao_classificado",
+        "domain.instituicao_ausente",
         "domain.property_identity_eixo_por_hint"
       ]
     },
