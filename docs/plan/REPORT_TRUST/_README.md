@@ -313,6 +313,23 @@ Controle positivo obrigatório no mesmo arquivo — fetch OK com zero real **con
 afirmando, senão o remédio trocaria falso-positivo por falso-negativo e a barra
 nunca mais apareceria.
 
+### Follow-up aberto — `measuredCountHooks.test.tsx` é flaky em check obrigatório
+
+Registrado no closeout da Onda A do §r7 (2026-08-21). O arquivo entregue pelo
+PD-6 reprovou o #1564 e foi destravado com **re-run**. Re-run destrava e **não é
+remédio**: o mecanismo pelo qual um teste instável some do radar é exatamente
+esse, até reprovar o PR de outra pessoa — que paga o tempo sem ter causado.
+
+Não foi diagnosticado. O suspeito declarado, **não medido**, é a combinação
+fake timers + MSW (o arquivo exercita `apiFetch` real sob MSW, e o repo tem
+precedente de teste que só falha em máquina rápida). Quem pegar: reproduza com
+`--repeat-each` antes de mexer, e se a causa for tempo, prefira `waitFor` a
+aumentar timeout — aumentar timeout esconde a corrida em vez de fechá-la.
+
+Dono: `product-designer`. Prioridade **P2** — não alcança o usuário, custa CI e
+confiança no gate. Instância da mesma classe que a [[ADR-210]] §Adendo 2026-08-21
+trata no `check_scheduled_workflows`: **gate obrigatório não-hermético**.
+
 ## Sinergia com [[PLAN-data-lineage]] (A26 `paused`)
 
 Cada iteração desta frente re-gera o parecer E6 → produz as **≥20 gerações
