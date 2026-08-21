@@ -450,6 +450,11 @@ de que o classificador entregue rotularia aqueles casos `nao_apurado`.
 
 ### Deferimento datado — 2026-08-19, dono: [[A40.l69]]
 
+> **Rota viva desde 2026-08-21:** a [[A40.l69]] fechou `shipped`, então o dono
+> declarado acima não é rota de trabalho. Os dois itens abaixo estão re-homeados
+> ao §Deferimentos datados do [[PLAN-deterministic-authority]]. O texto e as
+> condições de retomada seguem aqui — é a decisão; lá é o pickup.
+
 Dois itens que esta emenda **não** decide, com condição de retomada:
 
 1. **Trava anti-dupla-contagem no cônjuge dependente.** Bens de dependente vão na
