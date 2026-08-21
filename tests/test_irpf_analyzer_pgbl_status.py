@@ -90,13 +90,13 @@ class TestPgblStatusCapacidadeDisponivel:
         a = IRPFAnalyzer([_decl(rendimento_pj="200000.00")])
         assert a.pgbl_status(2024) == PgblStatus.capacidade_disponivel
         # 12% × 200k = 24k de capacidade
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("24000.00")
+        assert a.pgbl_capacidade_dedutivel(2024).restante == Decimal("24000.00")
 
     def test_completa_com_aporte_parcial_retorna_capacidade_disponivel(self):
         a = IRPFAnalyzer([_decl(rendimento_pj="200000.00", pgbl_aportado="10000.00")])
         assert a.pgbl_status(2024) == PgblStatus.capacidade_disponivel
         # 12% × 200k - 10k = 14k
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("14000.00")
+        assert a.pgbl_capacidade_dedutivel(2024).restante == Decimal("14000.00")
 
     def test_excesso_de_um_declarante_nao_consumo_espaco_do_outro(self):
         acima_do_teto = _decl(rendimento_pj="100000.00", pgbl_aportado="20000.00")
@@ -105,7 +105,7 @@ class TestPgblStatusCapacidadeDisponivel:
             natureza=NaturezaContribuinte.dependente_titular,
         )
         a = IRPFAnalyzer([acima_do_teto, sem_aporte])
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("12000.00")
+        assert a.pgbl_capacidade_dedutivel(2024).restante == Decimal("12000.00")
 
 
 class TestPgblStatusModeloSimplificado:
@@ -143,14 +143,23 @@ class TestPgblStatusNoTeto:
         # 12% × 200k = 24k aportado → capacidade = 0
         a = IRPFAnalyzer([_decl(rendimento_pj="200000.00", pgbl_aportado="24000.00")])
         assert a.pgbl_status(2024) == PgblStatus.no_teto
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("0")
+        assert a.pgbl_capacidade_dedutivel(2024).restante == Decimal("0")
 
     def test_completa_aporte_acima_do_teto_max_zero(self):
         """Edge: aporte acima de 12% trunca via max(0, ...) — vira no_teto."""
         a = IRPFAnalyzer([_decl(rendimento_pj="100000.00", pgbl_aportado="30000.00")])
         # 12% × 100k = 12k; aportado 30k > teto → capacidade truncada a 0
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("0")
+        assert a.pgbl_capacidade_dedutivel(2024).restante == Decimal("0")
         assert a.pgbl_status(2024) == PgblStatus.no_teto
+
+    def test_excesso_sobrevive_ao_clamp_como_fato_proprio(self):
+        """ADR-402: `max(0, ...)` apagava "aportou ACIMA do teto" — o fato acionável."""
+        a = IRPFAnalyzer([_decl(rendimento_pj="100000.00", pgbl_aportado="30000.00")])
+        cap = a.pgbl_capacidade_dedutivel(2024)
+
+        assert cap.excedente_nao_dedutivel == Decimal("18000.00")
+        assert cap.teto == Decimal("12000.00")
+        assert cap.aportado == Decimal("30000.00")
 
 
 class TestPgblStatusSemRendaTributavel:

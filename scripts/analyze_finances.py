@@ -2358,11 +2358,17 @@ def _e5_kpis_completude(analyzer, resolved) -> Dict[str, Any]:
     }
 
 
+# `pgbl_capacidade_dedutivel_brl` é a capacidade RESTANTE e continua string
+# numérica; a desambiguação do zero, neste card, é feita por `pgbl_status`.
 def _e5_kpis_pgbl(analyzer, ultimo: int) -> Dict[str, Any]:
+    """Card B (ADR-196): contrato de wire inalterado — o VO da ADR-402 não vaza aqui."""
     pgbl = analyzer.pgbl_resumo(ultimo)
+    capacidade = analyzer.pgbl_capacidade_dedutivel(ultimo)
     return {
-        "pgbl_capacidade_dedutivel_brl": str(analyzer.pgbl_capacidade_dedutivel(ultimo)),
-        "pgbl_status": analyzer.pgbl_status(ultimo).value,
+        "pgbl_capacidade_dedutivel_brl": str(
+            capacidade.restante if capacidade.restante is not None else 0
+        ),
+        "pgbl_status": capacidade.status.value,
         "pgbl_aportado_brl": str(pgbl.aportado_brl),
         "pgbl_teto_brl": str(pgbl.teto_brl),
     }

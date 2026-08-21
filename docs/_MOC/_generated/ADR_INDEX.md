@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-390 ADRs (ADR-001 a ADR-404) em [`docs/adr/`](../../adr/).
+391 ADRs (ADR-001 a ADR-404) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 333
+- **Decidido**: 334
 - **Proposto**: 53
 - **Roadmap**: 4
 
@@ -547,7 +547,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (67)
+### Decidido (68)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -615,6 +615,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-393]] — Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) · phase A40.l68
 - [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
 - [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
+- [[ADR-402]] — Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado · phase r7.FP-5A
 - [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 
 ### Proposto (15)
