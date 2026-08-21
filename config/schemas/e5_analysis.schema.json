@@ -655,7 +655,7 @@
     },
     "previdencia_pgbl": {
       "type": "object",
-      "description": "Recomendação PGBL (ADR-277/305/375). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null quando não há capacidade declarada no IRPF, caso em que os campos prescritivos nascem ausentes e não zerados (ADR-375 D3/D4 — o valor proxy_receita_pj saiu do vocabulário). nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao.",
+      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ economia_ir_anual não-null. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
       "properties": {
         "status": {
           "type": "string",
@@ -678,6 +678,54 @@
             "number",
             "null"
           ]
+        },
+        "capacidade_restante_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "pgbl_status": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "capacidade_disponivel",
+            "modelo_simplificado",
+            "no_teto",
+            "sem_renda_tributavel",
+            null
+          ]
+        },
+        "pgbl_aportado_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "excedente_nao_dedutivel_anual": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "motivo_ausencia": {
+          "type": "object",
+          "description": "Por que cada campo nasce ausente (ADR-402). Enum fechado; `null` = campo publicado.",
+          "properties": {
+            "teto": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
+            "restante": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
+            "aporte": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
+            "economia": { "$ref": "#/$defs/motivo_ausencia_pgbl" }
+          },
+          "required": [
+            "teto",
+            "restante",
+            "aporte",
+            "economia"
+          ],
+          "additionalProperties": false
         },
         "aporte_mensal": {
           "type": [
@@ -1643,6 +1691,41 @@
           "maximum": 100,
           "description": "Fração da CARTEIRA FINANCEIRA (mesma base de pct_carteira_financeira) cuja classe nenhum degrau decidiu — autoridade em {sem_match, sem_haystack, sem_mapa} (ADR-400). Gradua a supressão da prescrição de alocação: <2% publica tudo, 2-10% derruba next_aporte_classe, >=10% derruba também desvio_max_pct. 'Outros' segue classe legítima; não-classificado deriva da autoridade, não do rótulo."
         },
+        "nao_classificado_itens": {
+          "type": "array",
+          "description": "Posições por trás de nao_classificado_pct (ADR-406 · DE-2/RV7-04). O agregado sozinho não distingue um item grande migrado para a catch-all de mil cortes pequenos — e migração entre baldes preserva Σ, então nenhum check de conservação alcança a classe. `locator` é o investment_id do baseline (sha256 de tipo|instituicao|descricao): PII-free e grepável. Sem valor em BRL por decisão — o peso na carteira é o número que decide o limiar, e redact_pii mascararia o monetário.",
+          "items": {
+            "type": "object",
+            "required": [
+              "locator",
+              "pct_carteira_financeira",
+              "autoridade"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "locator": {
+                "type": "string",
+                "minLength": 1,
+                "description": "investment_id do baseline, ou `h:<sha256[:16]>` da descrição quando ausente."
+              },
+              "pct_carteira_financeira": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Peso do item sobre a CARTEIRA FINANCEIRA (mesma base de nao_classificado_pct, A37.l9). ADR-209: 1.28 = 1,28%."
+              },
+              "autoridade": {
+                "type": "string",
+                "enum": [
+                  "sem_match",
+                  "sem_haystack",
+                  "sem_mapa"
+                ],
+                "description": "Por que a classe não foi decidida (ADR-400). `sem_haystack` é violação de contrato do produtor e nunca escala por limiar."
+              }
+            }
+          }
+        },
         "fonte": {
           "type": "string",
           "enum": [
@@ -1753,6 +1836,34 @@
                   "minLength": 1
                 },
                 "uniqueItems": true
+              },
+              "n_posicoes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Posições de investimento do membro — o denominador que torna `instituicoes` comparável entre runs (ADR-406). Sem ele, uma queda no número de instituições é indistinguível entre corpus menor e identidade perdida (§r7: 18→16 com posições constantes)."
+              },
+              "posicoes_sem_identidade": {
+                "type": "array",
+                "description": "Posições COM VALOR cuja instituição não chegou (ADR-406). Elas somem de `instituicoes` e continuam num balde nomeado — no §r7 a interseção com nao_classificado_itens foi ZERO, e a maior órfã pesava 2,81% da carteira. Posição zerada fica de fora: é posição encerrada, não lacuna de identidade.",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "locator",
+                    "valor"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "locator": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "valor": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Wire legado do E5 é JSON number (ADR-090 §consequências); Decimal em memória."
+                    }
+                  }
+                }
               }
             },
             "additionalProperties": false
@@ -2171,6 +2282,20 @@
     }
   },
   "$defs": {
+    "motivo_ausencia_pgbl": {
+      "description": "Enum fechado de motivos de ausência do card PGBL (ADR-402).",
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "sem_irpf_processado",
+        "modelo_simplificado",
+        "sem_renda_tributavel",
+        "regime_fiscal_incompleto",
+        null
+      ]
+    },
     "ConversaoMe": {
       "type": "object",
       "description": "Carimbo da conversão ME→BRL (ADR-390). Ausência da chave = artefato pré-390.",

@@ -44,7 +44,10 @@ on:
   # comentário seguiu afirmando a cobertura por escrito até 2026-08-08 —
   # a ADR-210 §"Premissa vencida" flagrou, e agora ele descreve o estado
   # real em vez do pretendido. Reabilitar (só o cron diário, ~84 min/mês)
-  # é decisão do owner: docs/sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md.
+  # é decisão do owner, registrada em docs/adr/210-saude-do-test-suite-do-ci.md
+  # §"Adendo 2026-07-31 (A40.l3)" › "Premissa vencida". (O ponteiro antigo
+  # mandava na lane A40.l3, que shipou no #1124 tratando de janela canônica de
+  # 12m — o adendo é que nasceu sob ela; a decisão nunca esteve no arquivo da lane.)
   #
   # Se reabilitar virar necessidade (ex.: deploy automático em main), use
   # `workflow_call` e dispare via release.yml em vez de push:main full.

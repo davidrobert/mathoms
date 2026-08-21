@@ -296,14 +296,14 @@ class TestIRPFAnalyzer:
         )
         a = IRPFAnalyzer([decl])
         # 12% × 200k - 10k = 14k
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("14000.00")
+        assert a.pgbl_capacidade_dedutivel(2024).restante == Decimal("14000.00")
 
     def test_pgbl_capacidade_simplificado_zero(self):
         decl = _build_minimal(
             modelo=ModeloDeclaracao.simplificado, rendimentos_pj_value="200000.00"
         )
         a = IRPFAnalyzer([decl])
-        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("0")
+        assert a.pgbl_capacidade_dedutivel(2024).restante is None  # simplificado: teto inexistente
 
     def test_split_trabalho_capital(self):
         decl = _build_minimal(rendimentos_pj_value="200000.00")

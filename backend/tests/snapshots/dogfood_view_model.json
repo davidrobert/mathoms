@@ -1580,10 +1580,13 @@
         "instituicoes": [
           "Bancoficticio"
         ],
-        "membro": "Alex"
+        "membro": "Alex",
+        "n_posicoes": 100,
+        "posicoes_sem_identidade": []
       }
     ],
     "n_imoveis_total": 1,
+    "nao_classificado_itens": [],
     "nao_classificado_pct": "0.000000",
     "tabela_classes": [
       {
@@ -1820,11 +1823,21 @@
     "aliquota_marginal": null,
     "ano_base": null,
     "aporte_mensal": null,
+    "capacidade_restante_anual": null,
     "economia_ir_anual": null,
+    "excedente_nao_dedutivel_anual": null,
     "fonte_recomendacao": null,
     "limite_pgbl_anual": null,
+    "motivo_ausencia": {
+      "aporte": "sem_irpf_processado",
+      "economia": "sem_irpf_processado",
+      "restante": "sem_irpf_processado",
+      "teto": "sem_irpf_processado"
+    },
     "nota": "Não há IRPF processado para medir o seu espaço dedutível de PGBL. O limite de 12% incide sobre a renda tributável declarada na pessoa física — pró-labore e demais rendimentos tributáveis —, e lucros distribuídos não entram nessa base. Processe a declaração mais recente para que este número apareça.",
     "nota_degradacao": null,
+    "pgbl_aportado_anual": null,
+    "pgbl_status": null,
     "renda_tributavel_anual": null,
     "status": "N/D"
   },

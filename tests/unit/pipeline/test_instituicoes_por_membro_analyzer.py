@@ -156,8 +156,16 @@ class TestNImoveis:
 
 class TestSerialization:
     def test_to_dict_shape(self):
-        m = MembroInstituicoes(membro="david", instituicoes=("Btg", "Xp"))
-        assert m.to_dict() == {"membro": "david", "instituicoes": ["Btg", "Xp"]}
+        # `n_posicoes`/`posicoes_sem_identidade` entraram em [[ADR-406]]: sem o
+        # denominador, uma queda no número de instituições é indistinguível
+        # entre corpus menor e identidade perdida (§r7: 18→16 com posições fixas).
+        m = MembroInstituicoes(membro="david", instituicoes=("Btg", "Xp"), n_posicoes=2)
+        assert m.to_dict() == {
+            "membro": "david",
+            "instituicoes": ["Btg", "Xp"],
+            "n_posicoes": 2,
+            "posicoes_sem_identidade": [],
+        }
 
     def test_legacy_dict_shape(self):
         r = InstituicoesPorMembroAnalyzer().analyze(

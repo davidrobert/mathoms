@@ -6,7 +6,8 @@ status: Decidido
 phase: "Sprint A12 (test health · CI cost)"
 date: "2026-05-14"
 amended_at:
-  ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-05", "2026-08-08"]
+  ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-05", "2026-08-08",
+   "2026-08-21"]
 relates_to:
   - "[[ADR-067]]"
   - "[[ADR-093]]"
@@ -28,6 +29,16 @@ tags:
 ---
 
 # ADR-210 — Saúde do test suite do CI
+
+> **Emenda (2026-08-21) — `S2` reprova PR verde: o watchdog lê `per_page=1` de
+> um índice eventualmente consistente:** o gate reprovou o #1548 com
+> *"budget-alert.yml: último run há 12d (limite 3d)"* enquanto o workflow estava
+> `active` e tinha rodado às 02:25 do mesmo dia — e o mesmo gate passara no
+> #1546 90 min antes. A mesma query devolveu **três respostas diferentes em
+> minutos** (2026-08-06, 2026-08-14, 2026-08-19). **Não reabre a decisão** — a
+> invariante de liveness segue válida e `S2` continua sendo o sinal certo;
+> o que está errado é a **medição**. Correção proposta e ainda **não
+> implementada** no §Adendo 2026-08-21.
 
 > **Emenda (2026-08-08) — o watchdog de duração observa um job só, e o
 > "gatilho de 60%" não é avaliável a partir de um run:** o adendo 2026-08-05
@@ -768,3 +779,35 @@ porque o setup toca `window.matchMedia` e `Element.prototype` sem guarda
 - ADR-114 — code style baseline (lint cycle).
 - ADR-143 — methodology = code (princípio análogo: testes ≡ código,
   têm ciclo de vida).
+
+## Adendo 2026-08-21 — `S2` mede o elemento errado
+
+O sinal `S2` ("sem run agendado dentro da janela") resolve a idade do último run
+por [`dev/check_scheduled_workflows.py`](../../dev/check_scheduled_workflows.py):
+
+```
+repos/{repo}/actions/workflows/{filename}/runs?event=schedule&per_page=1
+```
+
+e confia no **primeiro elemento**. Medido em 2026-08-19, chamadas idênticas a
+essa query devolveram, em poucos minutos: `2026-08-06`, depois `2026-08-14`,
+depois `2026-08-19` (estável na repetição). O índice de runs do GitHub serve
+resultado obsoleto de forma intermitente, e `per_page=1` não tem como perceber.
+
+**Efeito observado:** o `lint-all` do #1548 falhou com *"budget-alert.yml:
+último run há 12d (limite 3d)"* às 13:08; o `budget-alert.yml` estava `active` e
+com run `schedule` bem-sucedido às 02:25 do mesmo dia, e o mesmo gate reportara
+`OK (9 workflows agendados)` no #1546 às 11:40. Descartada a hipótese de
+workflow recriado: os runs recentes e a query do checker resolvem para o
+**mesmo** `workflow_id` (`276754849`).
+
+**Classe do defeito.** É falso **vermelho**, não falso verde — não fere a
+invariante desta camada, que existe contra o falso verde. Mas custa o que o
+§Custo tenta economizar: o PR reprova, alguém re-roda, e o caminho barato de
+desbloquear é o escape hatch `hotfix`/`ops-override`, que **apaga a causa do
+registro** — precedente #1508, contornado sem investigação.
+
+**Correção proposta (não implementada, owner-gated):** pedir uma página pequena
+(`per_page=10`) e tomar `max(run_started_at)`, em vez do primeiro elemento. Não
+muda a semântica do sinal nem o que ele detecta; só impede que uma cabeça
+obsoleta vença a leitura. `S0`/`S1`/`S3` não usam esse endpoint e ficam intactos.

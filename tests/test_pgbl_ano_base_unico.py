@@ -159,16 +159,22 @@ def test_igualdade_de_fonte_ano_base():
     assert previdencia["ano_base"] == irpf_kpis["ano_base_default"] == irpf_kpis["ano_base"]
 
 
+# Pós-ADR-402 a reconciliação é entre grandezas HOMÔNIMAS: a capacidade restante
+# do Card B contra `capacidade_restante_anual`, não contra `limite_pgbl_anual`,
+# que passou a carregar o teto — como o nome sempre disse.
 def test_pgbl_statement_count_eh_um():
     """Regressão dogfood 72883bde: nunca 'capacidade = 0' e 'capacidade > 0'
     no mesmo relatório. Ambas as seções leem o MESMO ano (2024, teto atingido)."""
     irpf_kpis, previdencia = _payloads_do_relatorio(_analyzer_dogfood_shape())
     kpis_capacidade = Decimal(irpf_kpis["pgbl_capacidade_dedutivel_brl"])
-    recomendacao = Decimal(str(previdencia["limite_pgbl_anual"]))
+    recomendacao = Decimal(str(previdencia["capacidade_restante_anual"]))
     contradicao = (kpis_capacidade > 0) != (recomendacao > 0)
     assert not contradicao, f"kpis={kpis_capacidade} vs recomendacao={recomendacao}"
     assert kpis_capacidade == 0
     assert irpf_kpis["pgbl_status"] == PgblStatus.no_teto.value
+    # O teto existe e é positivo — publicá-lo como 0 era o rótulo errado do r7.
+    assert Decimal(str(previdencia["limite_pgbl_anual"])) > 0
+    assert previdencia["pgbl_status"] == PgblStatus.no_teto.value
 
 
 def test_coerencia_status_e_aporte_recomendado():

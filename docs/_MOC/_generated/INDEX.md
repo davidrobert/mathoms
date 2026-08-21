@@ -389,12 +389,14 @@
 | ADR-392 | adr | Decidido |  | endereco_canonical=None não minta PropertyIdentity; match residual é único (titular, código) | `adr/392-endereco-canonical-none-nao-cria-identidade.md` |
 | ADR-393 | adr | Decidido |  | Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) | `adr/393-contrato-de-balanco-de-stage-fan-out.md` |
 | ADR-394 | adr | Decidido |  | Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado | `adr/394-fato-deterministico-e-autoridade-llm-e-hint.md` |
-| ADR-395 | adr | Proposto |  | Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap | `adr/395-cobertura-documental-e-hint-de-inventario.md` |
+| ADR-395 | adr | Decidido |  | Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap | `adr/395-cobertura-documental-e-hint-de-inventario.md` |
 | ADR-396 | adr | Proposto |  | Amostragem de LLM é declarada no call-site, não herdada do config | `adr/396-amostragem-declarada-no-call-site-de-llm.md` |
 | ADR-398 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/398-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
 | ADR-399 | adr | Proposto |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
 | ADR-400 | adr | Proposto |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
-| ADR-404 | adr | Proposto |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |
+| ADR-402 | adr | Decidido |  | Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado | `adr/402-teto-e-capacidade-restante-do-pgbl-sao-campos-distintos.md` |
+| ADR-404 | adr | Decidido |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |
+| ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -927,7 +929,7 @@
 | A40.l66 | lane | shipped | A40 | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | `sprint/A40/lanes/A40-l66-seam-extracao-consolidacao.md` |
 | A40.l67 | lane | shipped | A40 | Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo | `sprint/A40/lanes/A40-l67-guarda-de-publicacao-e5.md` |
 | A40.l68 | lane | open | A40 | Balanço de stage fan-out: documento que some não pode sair como sucesso | `sprint/A40/lanes/A40-l68-balanco-de-fan-out.md` |
-| A40.l69 | lane | open | A40 | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | `sprint/A40/lanes/A40-l69-cobertura-investimentos-por-membro.md` |
+| A40.l69 | lane | shipped | A40 | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | `sprint/A40/lanes/A40-l69-cobertura-investimentos-por-membro.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l70 | lane | shipped | A40 | endereco_canonical=None não cria identidade: match por titular+código ou needs_review | `sprint/A40/lanes/A40-l70-endereco-canonical-nao-cria-identidade.md` |
 | A40.l71 | lane | shipped | A40 | Predicado único da composição patrimonial: o donut e a tabela decidem o negativo explicitamente | `sprint/A40/lanes/A40-l71-predicado-unico-da-composicao.md` |

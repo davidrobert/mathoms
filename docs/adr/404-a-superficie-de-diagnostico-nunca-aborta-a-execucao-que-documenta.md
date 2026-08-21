@@ -2,7 +2,7 @@
 id: ADR-404
 type: adr
 title: "A superfície de diagnóstico nunca aborta a execução que documenta"
-status: Proposto
+status: Decidido
 phase: r7/CTO-6
 date: "2026-08-19"
 relates_to:
@@ -25,6 +25,9 @@ tags:
   - area/observabilidade
 size_lines: 132
 ---
+
+> `Decidido` no closeout da Onda A (#1585). Implementada em #1565 (`a8d57ee1`), com o
+> teste-mãe restaurado em #1579 (`dfb534d3`).
 
 # ADR-404 — A superfície de diagnóstico nunca aborta a execução que documenta
 

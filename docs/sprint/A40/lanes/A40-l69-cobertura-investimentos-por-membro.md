@@ -4,7 +4,9 @@ type: lane
 title: "Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1541
+ship_date: "2026-08-19"
 priority: P0
 branch_slug: a40-l69-cobertura-investimentos-por-membro
 owner: data-engineer
@@ -20,7 +22,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
 ---
@@ -132,7 +134,9 @@ Prescrição suprimida enquanto qualquer membro estiver `nao_apurado` (regra
 unificadora da **ADR-A**): `next_aporte_classe=None` + `desvio_max_pct=None` —
 ambos **já** `Optional` em
 [`alocacao_alvo_deviation.py:122-123`](../../../../pipeline/domain/services/alocacao_alvo_deviation.py)
-— mais `motivo_supressao`, que é **campo novo** (zero ocorrências em `main`). O
+— mais `motivo_supressao`, que ~~é **campo novo** (zero ocorrências em `main`)~~
+**já existe desde o #1534** (26 ocorrências em 23 linhas de 5 arquivos,
+re-medido em `5f73b116`); esta lane o **consome**, não o cria. O
 resto do relatório **não** é suprimido: descrição admite ressalva.
 
 **3b — identidade de membro antes de qualquer agrupamento.** Duas frentes, e a
@@ -144,8 +148,12 @@ segunda é a que fecha o buraco no caminho de investimentos:
   **deixa de virar membro**: o miss do resolver produz `nao_apurado` +
   `needs_review` nomeando o slug, e o valor **não é absorvido pelo titular**.
   Some o `else: membro = membro_raw` da linha 324.
-- **Varredura + gate:** os 31 call-sites de match por substring em chave de
-  membro passam a match exato contra chave canônica; gate reprova call-site novo
+- **Varredura + gate:** ~~os 31 call-sites~~ **35 medidos** com o padrão
+  declarado (`(titular_key|conjuge_key|_TITULAR_KEY|_CONJUGE_KEY)[^=<>!]* in `),
+  **40 convertidos** contando `not in`, de match por substring em chave de
+  membro passam a ~~match exato contra chave canônica~~ **match por token
+  normalizado** — match exato devolve `None` para os dois membros e derruba a
+  resolução (medido antes de codar; ver §3b entregue); gate reprova call-site novo
   (`<key> in <str>` sobre `titular_key`/`conjuge_key`). Resíduo que não couber no
   PR entra em **allowlist datada com dono**, nunca silenciosa.
 
@@ -267,3 +275,77 @@ Ataque adversarial aos PRs de 3a, **depois** do merge deles e **durante** o do
   instituições…" — é da lane de render ([[PLAN-report-trust]] 7e).
 - **Colapso cross-ano** no consolidador: 26→9 itens do cônjuge em 2026-08-12 com
   input idêntico, survivor keyed no ano velho.
+
+## Entregue — 2026-08-19 (#1538 · #1541 · #1542 · #1550)
+
+### 3a — cobertura por membro, em 2 PRs
+
+`cobertura_investimentos[]` (#1541) responde **por membro**, em enum fechado;
+`fonte_investimentos` seguia dizendo `"posicoes_atuais"` para os dois quando só
+um tinha fonte. Membro `nao_apurado` suprime a prescrição e emite
+`review_reason`; o resto do relatório publica. O balde publica `null` (#1542) —
+`0,00` é afirmação sobre o patrimônio da pessoa, e o sistema não a mediu.
+
+O flip foi **separado do campo** de propósito: é contrato com 8+ consumidores, e
+`reserva_liquidez` lê o balde com `.get(k, 0)` que **não** dispara com `None`
+presente — `_dec`/`safe_float` devolve `0.0` e **restaura o bug** dentro da
+reserva, sem ruído. Contrato "None conta zero" travado por teste; a ressalva no
+KPI de reserva fica como follow-up.
+
+### 3b — identidade antes do agrupamento
+
+**A varredura como escrita quebraria a resolução.** A lane pedia match exato
+contra chave canônica; medido antes de codar, a substring compara o **slug**
+(`"david"`) com o **nome completo** (`"David Robert Silva"`) — é o lookup do
+baseline em lista-de-dicts, e match exato devolve `None` para os dois membros.
+O alvo certo é **token normalizado**, que preserva o legítimo e mata a colisão:
+
+| chave | nome | substring | token |
+|---|---|---|---|
+| `ana` | Mariana Souza | casa | não casa |
+| `luis` | Luisa Prado | casa | não casa |
+| `marco` | Marcos Antonio | casa | não casa |
+| `rita` | Margarita Lopes | casa | não casa |
+| `david` | David Robert Silva | casa | casa |
+
+40 sites convertidos; o predicado de posse exclusiva do cônjuge aparecia **10
+vezes** em 2 arquivos e virou `matches_member_exclusively`. Gate
+`dev/check_member_key_substring.py` é **AST**, não regex: a distinção é de
+**tipo** — `chave in string` é o defeito, `chave in coleção` é legítimo, e um
+regex casaria as 3 linhas de membership em coleção do repo.
+
+**Elo 2 · o não-atribuído tem balde próprio.** Tirar do titular sem realocar
+apagaria dinheiro real do `bruto` (o dinheiro existe no artefato de posições; só
+o dono é incerto). `investimentos_nao_atribuidos` fica **dentro do bruto** e vira
+categoria própria da composição, só quando há valor — `Σ composicao == bruto`
+segue fechando, travado por teste.
+
+### Duas tentativas descartadas por medição
+
+- Apagar o `else: membro = membro_raw` do consolidador **não é neutro**: colide
+  com a semântica de membro vazio (colapso no irmão resolvido) e quebrou 8
+  testes. O fix no E5 sozinho entrega o resultado.
+- Ramo explícito na reserva para `None`: a mutação **sobreviveu** (`_dec` já
+  devolve `0.0`). Código que nenhuma mutação mata é cerimônia que apodrece.
+
+### Janela J4 — fechada, sinal `=` no golden, e o motivo importa
+
+Dois rebaselines aditivos, ambos em commit isolado de produção, ambos com zero
+`value_delta`. O sinal ↓-no-titular que esta lane previa **não aparece no
+golden**: a fixture sintética não tem posição órfã, logo o mecanismo é inerte
+ali. O efeito está provado por unidade (titular 130 → 100, balde 30, `bruto` 180
+constante) e aparece no re-run do dogfood. Declarar `=` sem dizer que o golden é
+inerte esconderia exatamente o que a janela existe para expor.
+
+### Prova por mutação — 13 no total
+
+5 do 3a-PR1, 4 do 3a-PR2, 5 do 3b (uma repetida). **Quatro sobreviveram na
+primeira rodada** e só então ganharam teste, com a suíte inteira verde: o wiring
+do serializer, o do bloco `validation`, a categoria no donut e a exclusividade do
+predicado.
+
+### Segue aberto
+
+- **Ressalva no KPI de reserva** para membro `nao_apurado` (hoje conta zero, por
+  decisão declarada) — sem dono; entra se a reserva virar lane.
+- **3c–3f** seguem sem lane, como o plano previa.

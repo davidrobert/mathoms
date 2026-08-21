@@ -13,20 +13,11 @@ from pipeline.domain.services.asset_classifier import (
     classify_asset_outcome,
     merge_asset_keywords,
 )
-
-
-def _safe_float(val) -> float:
-    if val is None:
-        return 0.0
-    if isinstance(val, (int, float)):
-        return float(val)
-    if isinstance(val, str):
-        try:
-            return float(val.replace(",", "."))
-        except ValueError:
-            return 0.0
-    return 0.0
-
+from pipeline.domain.services.posicao_identity import (
+    locator_da_posicao,
+    safe_float,
+    valor_da_posicao,
+)
 
 # Classe de imóveis físicos (ADR-193) — fora da base "carteira financeira" (A37.l9).
 _CLASSE_IMOVEIS_INVESTIMENTO = "Imóveis Investimento"
@@ -98,6 +89,25 @@ class InvestimentosClassesConfig:
 # =============================================================================
 
 
+# Item, não agregado: a migração entre baldes preserva Σ, então o percentual da
+# catch-all é cego POR CONSTRUÇÃO ao caso do §r7 ([[ADR-406]]).
+@dataclass(frozen=True)
+class PosicaoNaoClassificada:
+    """Posição cuja classe nenhum degrau decidiu — locator PII-free + valor."""
+
+    locator: str
+    valor: Decimal
+    autoridade: str
+
+    def to_dict(self, denominador: Decimal) -> dict:
+        pct = float(self.valor / denominador) * 100 if denominador > 0 else 0.0
+        return {
+            "locator": self.locator,
+            "pct_carteira_financeira": round(pct, 4),
+            "autoridade": self.autoridade,
+        }
+
+
 @dataclass(frozen=True)
 class ClasseAtivo:
     categoria: str
@@ -131,6 +141,9 @@ class InvestimentosClassesAnalysis:
     warnings: tuple[OutrosExcessivoWarning, ...] = ()
     # Soma dos investimentos cuja classe NENHUM degrau decidiu ([[ADR-400]]).
     nao_classificado_brl: Decimal = Decimal("0")
+    # As posições por trás dessa soma ([[ADR-406]]) — o agregado sozinho não
+    # distingue um item grande migrado de mil cortes pequenos.
+    nao_classificado_itens: tuple[PosicaoNaoClassificada, ...] = ()
 
     @property
     def nao_classificado_pct(self) -> float:
@@ -148,12 +161,23 @@ class InvestimentosClassesAnalysis:
             "total_financeiro": float(round(self.total_financeiro, 2)),
             "total_imoveis_investimento": float(round(self.total_imoveis_investimento, 2)),
             "nao_classificado_pct": round(self.nao_classificado_pct, 2),
+            "nao_classificado_itens": [
+                i.to_dict(self.total_financeiro) for i in self.nao_classificado_itens
+            ],
         }
 
 
 # =============================================================================
 # Service
 # =============================================================================
+
+
+def _posicao_sem_classe(inv: dict, valor: Decimal, resultado) -> PosicaoNaoClassificada:
+    return PosicaoNaoClassificada(
+        locator=locator_da_posicao(inv),
+        valor=valor,
+        autoridade=resultado.autoridade.value,
+    )
 
 
 class InvestimentosClassesAnalyzer:
@@ -166,7 +190,7 @@ class InvestimentosClassesAnalyzer:
 
     def analyze(self, bens_por_membro: list[dict[str, Any]]) -> InvestimentosClassesAnalysis:
         classes = {cat: 0.0 for cat in self.CATEGORIES}
-        nao_classificado = self._acumular(bens_por_membro or [], classes)
+        itens = self._acumular(bens_por_membro or [], classes)
         total = sum(classes.values())
         total_imoveis = classes.get(_CLASSE_IMOVEIS_INVESTIMENTO, 0.0)
         total_financeiro = total - total_imoveis
@@ -176,57 +200,62 @@ class InvestimentosClassesAnalyzer:
             total_financeiro=Decimal(str(total_financeiro)),
             total_imoveis_investimento=Decimal(str(total_imoveis)),
             warnings=self._build_warnings(classes, total),
-            nao_classificado_brl=Decimal(str(nao_classificado)),
+            nao_classificado_brl=sum((i.valor for i in itens), Decimal("0")),
+            nao_classificado_itens=tuple(itens),
         )
 
     # -- Helpers internos --
 
-    def _acumular(self, bens_por_membro: list, classes: dict[str, float]) -> float:
-        """Soma todos os membros nos baldes; devolve o total não classificado."""
-        nao_classificado = 0.0
+    def _acumular(
+        self, bens_por_membro: list, classes: dict[str, float]
+    ) -> list[PosicaoNaoClassificada]:
+        """Soma todos os membros nos baldes; devolve as posições sem classe."""
+        itens: list[PosicaoNaoClassificada] = []
         for bens in bens_por_membro:
             if not isinstance(bens, dict):
                 continue
-            nao_classificado += self._classify_investments(bens, classes)
+            itens.extend(self._classify_investments(bens, classes))
             self._add_top_level_cripto(bens, classes)
             self._add_contas_bancarias_scalar(bens, classes)
             self._add_imoveis_investimento(bens, classes)
-        return nao_classificado
+        return itens
 
-    def _classify_investments(self, bens: dict[str, Any], classes: dict[str, float]) -> float:
-        """Soma cada investimento no seu balde; devolve o total não classificado."""
-        nao_classificado = 0.0
+    def _classify_investments(
+        self, bens: dict[str, Any], classes: dict[str, float]
+    ) -> list[PosicaoNaoClassificada]:
+        """Soma cada investimento no seu balde; devolve as posições sem classe."""
+        itens: list[PosicaoNaoClassificada] = []
         for inv in bens.get("investimentos", []) or []:
             if not isinstance(inv, dict):
                 continue
-            tipo = str(inv.get("tipo") or "")
-            descricao = str(inv.get("descricao") or inv.get("description") or "")
-            valor = _safe_float(inv.get("valor", inv.get("valor_31_12_ano_base", 0)))
+            valor = valor_da_posicao(inv)
             if valor <= 0:
                 continue
             resultado = classify_asset_outcome(
-                tipo, descricao, keywords=self._config.keywords_por_classe
+                str(inv.get("tipo") or ""),
+                str(inv.get("descricao") or inv.get("description") or ""),
+                keywords=self._config.keywords_por_classe,
             )
-            classes[resultado.classe] = classes.get(resultado.classe, 0.0) + valor
+            classes[resultado.classe] = classes.get(resultado.classe, 0.0) + float(valor)
             if resultado.nao_classificado:
-                nao_classificado += valor
-        return nao_classificado
+                itens.append(_posicao_sem_classe(inv, valor, resultado))
+        return itens
 
     def _add_top_level_cripto(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
-        classes["Cripto"] += _safe_float(bens.get("criptos", 0))
+        classes["Cripto"] += safe_float(bens.get("criptos", 0))
 
     def _add_contas_bancarias_scalar(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
         # `Contas Bancárias` (legado) → `Caixa` (ADR-193). Lista de contas é tratada como investimento.
         contas = bens.get("contas_bancarias")
         if isinstance(contas, (int, float)):
-            classes["Caixa"] += _safe_float(contas)
+            classes["Caixa"] += safe_float(contas)
 
     def _add_imoveis_investimento(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
         residencia_ids = self._config.residencia_property_ids
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, dict):
                 continue
-            valor = _safe_float(
+            valor = safe_float(
                 imovel.get("valor_31_12_ano_base")
                 or imovel.get("valor_irpf")
                 or imovel.get("valor", 0)

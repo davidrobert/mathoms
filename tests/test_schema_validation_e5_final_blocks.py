@@ -9,6 +9,7 @@ import pytest
 
 from pipeline.domain.services.e5_lineage import despesa_total_field
 from pipeline.domain.services.equilibrio_cerbasi_analyzer import EquilibrioCerbasiAnalyzer
+from pipeline.domain.services.irpf_pgbl_capacidade import CapacidadePgbl, PgblStatus
 from pipeline.domain.services.lineage_fields import lineage_block
 from pipeline.domain.services.orcamento_calculator import OrcamentoProspectivoCalculator
 from pipeline.domain.services.previdencia_analyzer import (
@@ -31,7 +32,13 @@ def _previdencia(*, calculada: bool = False) -> dict:
     capacidade = None
     if calculada:
         capacidade = CapacidadePgblIRPF(
-            restante_anual=Decimal("12000"),
+            capacidade=CapacidadePgbl(
+                teto=Decimal("12000"),
+                aportado=Decimal("0"),
+                restante=Decimal("12000"),
+                status=PgblStatus.capacidade_disponivel,
+                excedente_nao_dedutivel=Decimal("0"),
+            ),
             renda_tributavel_anual=Decimal("100000"),
             ano_base=2025,
             fonte="irpf",

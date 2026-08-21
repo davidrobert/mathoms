@@ -2,7 +2,7 @@
 id: ADR-395
 type: adr
 title: "Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap"
-status: Proposto
+status: Decidido
 phase: A40.l73
 date: "2026-08-19"
 relates_to:
@@ -23,6 +23,9 @@ tags:
   - area/financial-planning
   - phase/a40-l73
 ---
+
+> `Decidido` no closeout da Onda A (#1585). Implementada pela [[A40.l73]] em #1549 · #1554
+> (`6917cb0f`) · #1560 (`e6774876`) · #1564 (`143e47b8`) · #1576 (`ff23c03e`).
 
 # ADR-395 — Cobertura documental é hint de inventário
 
