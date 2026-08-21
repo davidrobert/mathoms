@@ -8,7 +8,7 @@
  * caminho de rede que o PDF percorre chega lá.
  */
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 
 import { server } from "../../mocks/server";
@@ -69,7 +69,9 @@ describe("useNeedsReviewCount", () => {
       ),
     );
     render(<NeedsReviewProbe workspaceId="ws-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^unknown$/);
+    await waitFor(() =>
+      expect(screen.getByTestId("probe")).toHaveTextContent(/^unknown$/),
+    );
   });
 
   it("200 → ok com a contagem medida", async () => {
@@ -79,12 +81,16 @@ describe("useNeedsReviewCount", () => {
       ),
     );
     render(<NeedsReviewProbe workspaceId="ws-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:1$/);
+    await waitFor(() =>
+      expect(screen.getByTestId("probe")).toHaveTextContent(/^ok:1$/),
+    );
   });
 
   it("sem workspace não há o que medir → unknown", async () => {
     render(<NeedsReviewProbe />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^unknown$/);
+    await waitFor(() =>
+      expect(screen.getByTestId("probe")).toHaveTextContent(/^unknown$/),
+    );
   });
 });
 
@@ -97,7 +103,9 @@ describe("useParecerRetidoCount", () => {
       ),
     );
     render(<ParecerProbe reportId="report-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:0$/);
+    await waitFor(() =>
+      expect(screen.getByTestId("probe")).toHaveTextContent(/^ok:0$/),
+    );
   });
 
   it("500 é falha de medição → unknown", async () => {
@@ -108,7 +116,9 @@ describe("useParecerRetidoCount", () => {
       ),
     );
     render(<ParecerProbe reportId="report-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^unknown$/);
+    await waitFor(() =>
+      expect(screen.getByTestId("probe")).toHaveTextContent(/^unknown$/),
+    );
   });
 
   it("200 com retenção parcial → ok com a contagem", async () => {
@@ -119,11 +129,15 @@ describe("useParecerRetidoCount", () => {
       ),
     );
     render(<ParecerProbe reportId="report-1" />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:2$/);
+    await waitFor(() =>
+      expect(screen.getByTestId("probe")).toHaveTextContent(/^ok:2$/),
+    );
   });
 
   it("sem `reportId` o sinal está desligado por construção → ok:0", async () => {
     render(<ParecerProbe />);
-    expect(await screen.findByTestId("probe")).toHaveTextContent(/^ok:0$/);
+    await waitFor(() =>
+      expect(screen.getByTestId("probe")).toHaveTextContent(/^ok:0$/),
+    );
   });
 });
