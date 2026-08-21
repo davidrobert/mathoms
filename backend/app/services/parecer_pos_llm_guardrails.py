@@ -15,12 +15,14 @@ from __future__ import annotations
 
 import logging
 import re
+import unicodedata
 from typing import Any, Literal, Mapping, Optional
 
 from backend.app.services.parecer_distiller import tokenize_path_part
 from pipeline.llm.schemas.parecer_planejador import (
     CampoFaltante,
     ParecerPlanejadorOutput,
+    PontoForte,
     Risco,
     Sugestao,
 )
@@ -329,31 +331,147 @@ def filter_campos_faltantes(
     return output.model_copy(update={"campos_faltantes_pediria_se_iterasse": kept}), audit
 
 
+# ----------------------------------------------------------------------
+# (3) Trajetória sem série — coerção pós-LLM (FP-2 D1-B)
+# ----------------------------------------------------------------------
+
+#: Espelha ``ParecerPlanejadorOutput.pontos_fortes`` (min_length=3 · ADR-202 §D5).
+PONTOS_FORTES_MIN = 3
+_DESCRICAO_CAP = 520  # espelha PontoForte.descricao
+
+# Lemmas de VARIAÇÃO NO TEMPO, não de nível. Lista curta, medida sobre o parecer
+# do r7: "trajetor" e "ritmo" saíram (2 falso-positivo / 0 verdadeiro — nomeiam
+# projeção adiante e nível apurado); "tendenc" saiu por não ter ocorrência que
+# permitisse medir e por cobrir prosa de mercado.
+_TRAJETORIA_LEMMAS = (
+    "acelera",
+    "desacelera",
+    "vem crescendo",
+    "vem caindo",
+    "vem melhorando",
+    "vem piorando",
+    "melhorou",
+    "piorou",
+)
+# "pode acelerar a trajetória" projeta adiante — não afirma o passado (falso-positivo
+# medido no risco S4 do r7). A janela cobre o sintagma, não a frase inteira.
+_CONDICIONAL_ANTES = re.compile(
+    r"(pode|podera|poderia|capaz de|permite|ajuda a|contribui para|para|a fim de)\s+\S{0,14}$"
+)
+_JANELA_CONDICIONAL = 42
+
+_RESSALVA_TRAJETORIA = (
+    "Ressalva: leitura do nível apurado na janela — o relatório não traz série "
+    "histórica que sustente afirmação sobre evolução."
+)
+
+
+def _ascii_fold(text: Any) -> str:
+    decomposed = unicodedata.normalize("NFKD", str(text or ""))
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
+
+
+def _afirma_lemma(blob: str, lemma: str) -> bool:
+    """Alguma ocorrência do lemma fora de sintagma condicional."""
+    for match in re.finditer(re.escape(lemma), blob):
+        janela = blob[max(0, match.start() - _JANELA_CONDICIONAL) : match.start()]
+        if not _CONDICIONAL_ANTES.search(janela):
+            return True
+    return False
+
+
+def _lemmas_de_trajetoria_afirmada(*textos: Any) -> list[str]:
+    """Lemmas presentes em forma AFIRMATIVA (fora de sintagma condicional)."""
+    blob = " ".join(_ascii_fold(t) for t in textos)
+    return [lemma for lemma in _TRAJETORIA_LEMMAS if _afirma_lemma(blob, lemma)]
+
+
+def _com_ressalva(ponto: PontoForte, ressalva: str) -> PontoForte:
+    """Reescreve ``descricao`` na forma ressalvada preservando tema e seção (D5)."""
+    espaco = _DESCRICAO_CAP - len(ressalva) - 1
+    base = ponto.descricao
+    if len(base) > espaco:
+        base = base[: espaco - 1].rstrip() + "…"
+    return ponto.model_copy(update={"descricao": f"{base} {ressalva}"})
+
+
+# Degrada, nunca substitui (D5): o piso de 3 é invariante de produto (ADR-202 §D5) e
+# baixá-lo seria trocar o problema de lugar. Remove em ordem de índice enquanto o piso
+# permitir; o excedente fica com a descrição ressalvada.
+def aplicar_piso_pontos_fortes(
+    pontos: list[PontoForte], alvos: list[int], ressalva: str
+) -> tuple[list[PontoForte], int, int]:
+    """``(pontos, removidos, ressalvados)`` respeitando ``PONTOS_FORTES_MIN``."""
+    removiveis = max(0, len(pontos) - PONTOS_FORTES_MIN)
+    a_remover = set(alvos[:removiveis])
+    a_ressalvar = set(alvos[removiveis:])
+    saida = [
+        _com_ressalva(p, ressalva) if i in a_ressalvar else p
+        for i, p in enumerate(pontos)
+        if i not in a_remover
+    ]
+    return saida, len(a_remover), len(a_ressalvar)
+
+
+def _alvos_trajetoria(pontos: list[PontoForte]) -> list[int]:
+    return [
+        i for i, p in enumerate(pontos) if _lemmas_de_trajetoria_afirmada(p.titulo, p.descricao)
+    ]
+
+
+def neutralize_trajetoria_sem_serie(
+    output: ParecerPlanejadorOutput, workspace_id: str
+) -> tuple[ParecerPlanejadorOutput, dict]:
+    """Remove ponto forte que afirma trajetória; o diagnóstico geral só é medido."""
+    pontos_in = list(output.pontos_fortes)
+    diagnostico = _lemmas_de_trajetoria_afirmada(output.diagnostico_geral)
+    pontos, removidos, ressalvados = aplicar_piso_pontos_fortes(
+        pontos_in, _alvos_trajetoria(pontos_in), _RESSALVA_TRAJETORIA
+    )
+    telemetria = {
+        "trajetoria_pontos_fortes_removidos": removidos,
+        "trajetoria_pontos_fortes_ressalvados": ressalvados,
+        "trajetoria_diagnostico_lemmas": diagnostico,
+    }
+    if not (removidos or ressalvados or diagnostico):
+        return output, telemetria
+    logger.warning(
+        "parecer_trajetoria_sem_serie", extra={"workspace_id": workspace_id, **telemetria}
+    )
+    return output.model_copy(update={"pontos_fortes": pontos}), telemetria
+
+
 def guardrails_summary(
     *,
     confianca_rebaixada: int,
     audit: list[dict],
     needs_review_triggered: bool = False,
     sugestoes_antagonicas: int = 0,
+    extra: Optional[Mapping[str, Any]] = None,
 ) -> dict:
     """Telemetria dos guardrails. ``needs_review_triggered`` espelha evidencia/red-line
     (ADR-295) — o fallback do MC nunca promove needs_review (A28.l11 / A40.l49)."""
-    return {
+    summary = {
         "confianca_rebaixada": confianca_rebaixada,
         "field_requests_spurious": sum(1 for a in audit if a["reason"] == REASON_SPURIOUS),
         "field_requests_wrong_path": sum(1 for a in audit if a["reason"] == REASON_WRONG_PATH),
         "needs_review_triggered": needs_review_triggered,
         "sugestoes_antagonicas": sugestoes_antagonicas,
     }
+    summary.update(extra or {})
+    return summary
 
 
 __all__ = [
     "FIELD_PATH_ALIASES",
     "FieldPathState",
+    "PONTOS_FORTES_MIN",
     "REASON_SPURIOUS",
     "REASON_WRONG_PATH",
     "classify_field_path",
     "downgrade_confianca_fallback",
     "filter_campos_faltantes",
+    "aplicar_piso_pontos_fortes",
     "guardrails_summary",
+    "neutralize_trajetoria_sem_serie",
 ]

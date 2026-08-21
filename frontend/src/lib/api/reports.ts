@@ -77,12 +77,18 @@ export interface ComparisonPeriodsRead {
   previous: string;
 }
 
-/** v2.8 (ADR-148) — Entrada do changelog determinístico (uma por seção). */
+/** v2.8 (ADR-148) — Entrada do changelog determinístico (uma por seção).
+ *
+ * FP-2 D1-A: sob `comparison_base_changed` o produtor recolhe o juízo
+ * (`delta_signal: "nao_comparavel"` + `comparabilidade: "base_alterada"`) e
+ * mantém `delta_pct` — some o juízo, não o número. `comparabilidade` é optional
+ * para tolerar payload de backend anterior à regra. */
 export interface ChangelogEntryRead {
   section_id: string;
   summary: string;
-  delta_signal: "up" | "down" | "stable";
+  delta_signal: "up" | "down" | "stable" | "nao_comparavel";
   delta_pct: number | null;
+  comparabilidade?: "comparavel" | "base_alterada";
 }
 
 /** A40.l25 — faceta do bloco de IF que a recalibração moveu.
@@ -114,8 +120,11 @@ export interface RecalibracaoMcData {
 export interface ReportEndpointAugmentations {
   /** v2.8 (ADR-148) — comparativos seção-a-seção. `null` no primeiro relatório. */
   comparisons?: ComparisonItemRead[] | null;
-  /** v2.8 (ADR-148) — changelog determinístico. Permanece no wire, mas a UI
-   * não o consome desde a V0 (SNAPSHOT_CHANGELOG_V3 W4-T07). */
+  /** v2.8 (ADR-148) — changelog determinístico. A LISTA deixou de ser renderizada
+   * na V0 (SNAPSHOT_CHANGELOG_V3 W4-T07), mas o `summary` de cada entrada continua
+   * emendado ao parágrafo de abertura da seção correspondente
+   * (`sectionSummarySource.changelogSuffix` / `conclusionUtils`) — logo o texto
+   * chega ao leitor e a ressalva de base alterada precisa viajar nele. */
   changelog?: ChangelogEntryRead[] | null;
   /** v3 (ADR-190 §Emenda) — períodos reais do par comparado. `null` no primeiro relatório. */
   comparison_periods?: ComparisonPeriodsRead | null;

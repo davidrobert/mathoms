@@ -19,6 +19,7 @@ from backend.app.core.logging import get_logger
 from backend.app.schemas.snapshot_changelog import (
     changelog_entry_to_read,
     comparison_item_to_read,
+    neutralize_changelog_base_changed,
 )
 from backend.app.services.protection_snapshot_builder import protection_bundle_from_snapshot
 from backend.app.services.report_lineage import (
@@ -122,12 +123,15 @@ async def _build_snapshot_diff(
     if not result.has_previous:
         return _SEM_PAR
     items = [comparison_item_to_read(it).model_dump(mode="json") for it in result.items]
-    entries = [changelog_entry_to_read(en).model_dump(mode="json") for en in result.entries]
+    base_changed = _base_de_comparacao_mudou(prev, curr)
+    entries = [changelog_entry_to_read(en) for en in result.entries]
+    if base_changed:
+        entries = neutralize_changelog_base_changed(entries)
     return {
         "comparisons": items,
-        "changelog": entries,
+        "changelog": [en.model_dump(mode="json") for en in entries],
         "comparison_periods": _periods_payload(prev, curr),
-        "comparison_base_changed": _base_de_comparacao_mudou(prev, curr),
+        "comparison_base_changed": base_changed,
         "recalibracao_mc": build_recalibracao_note(prev, curr),
     }
 
