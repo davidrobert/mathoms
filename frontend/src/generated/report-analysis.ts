@@ -501,6 +501,16 @@ export type E5AnalysisArtifact = {
     "share_nao_identificado_pct"?: number;
   };
   "programa_milhas"?: Record<string, never>;
+  "kpi_targets"?: Record<string, {
+    "observado_path": string;
+    "base": string;
+    "unidade": string;
+    "limiar"?: number | null;
+    "operador"?: string | null;
+    "procedencia"?: "goal_declarado" | "limiar_canonico" | null;
+    "ref"?: string | null;
+    "motivo"?: string | null;
+  }>;
   "exposicao_cambial"?: {
     "total_brl"?: number;
     "pct_investivel_financeiro"?: number;
