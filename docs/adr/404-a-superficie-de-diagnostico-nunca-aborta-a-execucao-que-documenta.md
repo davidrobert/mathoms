@@ -2,7 +2,7 @@
 id: ADR-404
 type: adr
 title: "A superfície de diagnóstico nunca aborta a execução que documenta"
-status: Proposto
+status: Decidido
 phase: r7/CTO-6
 date: "2026-08-19"
 relates_to:
