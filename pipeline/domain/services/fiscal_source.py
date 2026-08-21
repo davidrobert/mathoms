@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Iterable, Optional
@@ -10,6 +11,28 @@ from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
 # Codes RFB declaração `pagamentos_efetuados` para PGBL (oficial / patrocinador).
 _PGBL_CODIGOS_DEDUCAO = frozenset({"36"})  # CodigoPagamentoDedutivel.pgbl
+
+_NAO_DIGITO = re.compile(r"\D")
+
+
+# Os dois lados do join `(ano, cnpj)` gravam formatos diferentes: o informe valida
+# `^\d{14}$` (config/schemas/informe_base.schema.json) e o IRPF grava pontuado.
+# Sem normalizar, a chave nunca casa e o dedupe D4 falha aberto — o informe soma
+# por cima da declaração. Mascarado devolve "", que nunca entra no set.
+def _cnpj_digits(v: str | None) -> str:
+    """CNPJ em 14 dígitos, ou ``""`` quando não é CNPJ apurável."""
+    if not v:
+        return ""
+    digits = _NAO_DIGITO.sub("", v)
+    return digits if len(digits) == 14 else ""
+
+
+# Acesso direto: drift de nome deve falhar alto. O `getattr(pag, "codigo", None)`
+# anterior devolvia None em silêncio para TODO pagamento, zerando o cross-check
+# da ADR-238 sem sinal — o schema expõe `codigo_rfb`, nunca `codigo`.
+def _pagamento_codigo(pag) -> str | None:
+    """Código RFB do pagamento, já desembrulhado do enum."""
+    return getattr(pag.codigo_rfb, "value", pag.codigo_rfb)
 
 
 def _to_decimal(v) -> Decimal:
@@ -262,7 +285,7 @@ class FiscalSource:
             if not self._informe_is_pgbl(informe):
                 continue  # VGBL nunca conta
             ano = informe.get("ano_base")
-            cnpj = informe.get("fonte_pagadora_cnpj")
+            cnpj = _cnpj_digits(informe.get("fonte_pagadora_cnpj"))
             if (ano, cnpj) in cobertos_irpf:
                 continue  # declaração vence
             payload = informe.get("previdencia") or {}
@@ -329,7 +352,7 @@ class FiscalSource:
             return None
         ano = int(informe.get("ano_base", 0))
         cnpj = informe.get("fonte_pagadora_cnpj", "")
-        irpf_valor = irpf_por_chave.get((ano, cnpj))
+        irpf_valor = irpf_por_chave.get((ano, _cnpj_digits(cnpj)))
         if irpf_valor is None:
             return None
         payload = informe.get("previdencia") or {}
@@ -363,9 +386,8 @@ class FiscalSource:
             return Decimal("0")
         total = Decimal("0")
         for pag in self.irpf.pagamentos_efetuados or []:
-            codigo = getattr(pag.codigo, "value", pag.codigo) if hasattr(pag, "codigo") else None
-            if codigo in _PGBL_CODIGOS_DEDUCAO:
-                total += _to_decimal(getattr(pag, "valor_pago", 0))
+            if _pagamento_codigo(pag) in _PGBL_CODIGOS_DEDUCAO:
+                total += _to_decimal(pag.valor_pago_brl)
         return total
 
     def _irpf_cnpjs_por_ano(self) -> set[tuple[int, str]]:
@@ -377,10 +399,9 @@ class FiscalSource:
             return set()
         cnpjs: set[tuple[int, str]] = set()
         for pag in self.irpf.pagamentos_efetuados or []:
-            codigo = getattr(pag.codigo, "value", pag.codigo) if hasattr(pag, "codigo") else None
-            if codigo not in _PGBL_CODIGOS_DEDUCAO:
+            if _pagamento_codigo(pag) not in _PGBL_CODIGOS_DEDUCAO:
                 continue
-            cnpj = getattr(pag, "cnpj_beneficiario", None) or getattr(pag, "cnpj", None) or ""
+            cnpj = _cnpj_digits(pag.beneficiario_cpf_cnpj_masked)
             if cnpj:
                 cnpjs.add((ano, cnpj))
         return cnpjs
@@ -394,14 +415,13 @@ class FiscalSource:
             return {}
         out: dict[tuple[int, str], Decimal] = {}
         for pag in self.irpf.pagamentos_efetuados or []:
-            codigo = getattr(pag.codigo, "value", pag.codigo) if hasattr(pag, "codigo") else None
-            if codigo not in _PGBL_CODIGOS_DEDUCAO:
+            if _pagamento_codigo(pag) not in _PGBL_CODIGOS_DEDUCAO:
                 continue
-            cnpj = getattr(pag, "cnpj_beneficiario", None) or getattr(pag, "cnpj", None) or ""
+            cnpj = _cnpj_digits(pag.beneficiario_cpf_cnpj_masked)
             if not cnpj:
                 continue
             chave = (ano, cnpj)
-            out[chave] = out.get(chave, Decimal("0")) + _to_decimal(getattr(pag, "valor_pago", 0))
+            out[chave] = out.get(chave, Decimal("0")) + _to_decimal(pag.valor_pago_brl)
         return out
 
     def _irpf_ano_base(self) -> int | None:

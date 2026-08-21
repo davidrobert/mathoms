@@ -5,7 +5,8 @@ title: "Lifecycle de artifact E2: tombstone por reclassificação + versão de e
 status: Decidido
 phase: A32.l5
 date: "2026-07-07"
-relates_to: ["[[ADR-278]]", "[[ADR-279]]", "[[ADR-281]]", "[[ADR-212]]", "[[ADR-080]]"]
+amended_at: ["2026-08-21"]
+relates_to: ["[[ADR-278]]", "[[ADR-279]]", "[[ADR-281]]", "[[ADR-212]]", "[[ADR-080]]", "[[ADR-408]]"]
 tags:
   - type/adr
   - status/decidido
@@ -16,6 +17,14 @@ tags:
 # ADR-311 — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável
 
 **Status:** Decidido (A32.l5) · **Data:** 2026-07-07
+
+> **Emenda de alcance ([[ADR-408]], 2026-08-21):** o D1 abaixo descreve o
+> tombstone como "restrito por `workspace_id + document_id + stage`". Medido no
+> dogfood, `pipeline_artifacts.document_id` é NULL em **16.292/16.292** rows —
+> esse caminho nunca casou. Quem entrega o D1 hoje é um segundo predicado que
+> esta ADR não menciona (prefixo `<content_hash[:12]>_` na key), e ele **não
+> alcança 2 dos 6 stages** de `_E2_DESCRIPTIVE_STAGES`. A decisão do D1
+> permanece; o alcance dela era menor do que o texto afirma. Ver §Emenda.
 
 ## Contexto
 
@@ -71,6 +80,35 @@ escopo mínimo.
 - Custo LLM de re-extração só quando disparado explicitamente (dirigido).
 - Débito de artifacts stale deixa de acumular silencioso; o restante do
   lifecycle (retenção, lineage) permanece no DATA_LINEAGE.
+
+## Emenda 2026-08-21 — o D1 é no-op em 2 dos 6 stages E2*
+
+`_document_match_conditions` casa por FK **ou** por prefixo `<hash12>_`. A FK
+está morta (16.292/16.292 NULL; nenhum caller E2 popula, e
+`extract_with_llm.py:359,404` passa `document_id=None` literal), então o
+prefixo é o predicado efetivo. Ele cobre 100% de `extract_statements` (2943),
+`extract_invoices` (1502), `extract_irpf_full` (404), `E1.5a` (786),
+`extract_informe_aluguel` (206) e `extract_with_llm` (33) — e **0/282 de
+`extract_informes_anuais`** e **0/348 de `extract_comprovantes_bens`**.
+
+**Por que esses dois, e por que não é esquecimento.** Neles o `artifact_key` é
+identidade de **entidade** derivada do payload extraído — `crlv_<placa>_<ano>`
+e `apolice_<numero>_<ano>` ([[ADR-239]] D7), `<tipo>_<instituicao>_<ano>`
+([[ADR-238]] D3). Não há hash de documento na key porque a key não endereça
+documento. **630 rows** ficam fora do alcance: reclassificar deixa vivo o
+artifact do contrato antigo, que é exatamente a classe que o D1 existe para
+matar.
+
+Corolário do próprio D2 desta ADR: se pôr `PROMPT_VERSION` na key "quebraria o
+dedupe por documento", pôr o hash do documento numa key que endereça entidade
+quebra a supersessão por entidade — `list_latest_keys` faz latest-wins por key,
+e fragmentá-la faz `InformeQuery._fetch_payloads` devolver todas as versões
+(dupla contagem na cascata fiscal). O eixo de proveniência é **coluna**, não
+key. O fix está em [[ADR-408]].
+
+Gate da lacuna: `backend/tests/test_artifact_tombstone.py` passou a exercitar os
+dois stages com as formas reais de key (`xfail(strict=True)` — vira verde e
+força a remoção do marker quando a FK for populada).
 
 ## Alternativas rejeitadas
 

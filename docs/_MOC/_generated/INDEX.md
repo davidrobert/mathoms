@@ -401,6 +401,7 @@
 | ADR-405 | adr | Proposto |  | Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico | `adr/405-retencao-de-artefato-e-per-produtor.md` |
 | ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
 | ADR-407 | adr | Decidido |  | Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape | `adr/407-stage-polimorfico-despacha-schema-por-discriminador.md` |
+| ADR-408 | adr | Proposto |  | Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key | `adr/408-proveniencia-de-artefato-e2-e-fk-resolvida-por-porta.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
