@@ -378,7 +378,7 @@ gate aprovar a corrupção.
 | RV7-04 — reclassificação entre baldes preserva Σ **por construção**, logo os 16 CV são cegos por design: `classify_asset` devolve a mesma catch-all para haystack vazio e para haystack sem keyword (indistinguíveis) | correção | Crítico | P0 | procede | procede-aberto | owner: data-engineer · outcome tipado (`sem_match` ≠ `sem_haystack`); `sem_haystack` é violação de contrato do produtor · dobra em DE-2 |
 | DE-2 — único sensor da catch-all é de **nível** (limiar 5%) e nunca vira `review_reason`; participação observada ~6× abaixo do limiar deixa crescimento de duas ordens passar em silêncio | correção | Crítico | P1 | procede | procede-aberto | owner: data-engineer · gate por **item** (não agregado) + cobertura de identidade de instituição por membro + métrica de mix no changelog |
 | CTO-6 — superfície de diagnóstico compartilha transação e domínio de falha com a transição de estado do run (uma sessão cobre status + `StageReview` + `review_reasons`, sem try/except, enquanto o commit de artefato acima é protegido) | saúde-execução | Crítico | P0 | procede | procede-aberto | owner: senior-cto · sessão separada + try/except p/ diagnóstico; DTO valida no boundary · **ADR nova**: "a superfície de diagnóstico nunca aborta a execução que documenta" (#1535 fechou a instância, não a classe) |
-| RV7-03 / DE-3 — contrato warn-first de [[ADR-393]] D4 é decorativo: `validation.valid` é escrito por 6 produtores com 4 políticas divergentes e `BLOCKING_CODES` é honrado por 1; quem retém o run é `pipeline_task.py:1489` lendo `validation.valid`, e `BLOCKING_CODES` só escolhe rótulo de severidade em `:1155` | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto+data-engineer · predicado de pausa passa a ser `any(code ∈ BLOCKING_CODES)`; produtor emite fato, orquestrador deriva retenção; tabela de política **total** + gate p/ membro novo do enum |
+| RV7-03 / DE-3 — contrato warn-first de [[ADR-393]] D4 é decorativo: `validation.valid` é escrito por 6 produtores com 4 políticas divergentes e `BLOCKING_CODES` é honrado por 1; quem retém o run é `pipeline_task.py:1489` lendo `validation.valid`, e `BLOCKING_CODES` só escolhe rótulo de severidade em `:1155` | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto+data-engineer · **REFUTADO 2026-08-21** → ~~predicado de pausa passa a ser `any(code ∈ BLOCKING_CODES)`~~ — ver §Refutação R2; o primeiro entregável passa a ser **cobertura de emissão por produtor** · produtor emite fato, orquestrador deriva retenção; tabela de política **total** + gate p/ membro novo do enum |
 | CTO-2 — a própria [[ADR-393]] declara D4 entregue e promete kill-switch que não existe no código; o §Estado afirma cobertura que a medição refuta | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto · emendar ADR-393 (`amended_at`) corrigindo o §Estado; kill-switch fica redundante sob a tabela de política |
 | CTO-3 — teste afirma **pertinência em conjunto** e nunca exercita o comportamento (`test_fan_out_balance.py:114-116` afirma "não retém o run" 15 linhas depois de afirmar `valid is False`); o único produtor com teste comportamental é o único que honra `BLOCKING_CODES` | consistência | Alto | P1 | procede | procede-aberto | owner: senior-cto · 1 teste por produtor no formato do E3 + 1 teste de **loop** provando que reason advisory não pausa |
 | DE-5 — invariante de passivo do E1.5 contradiz o prompt shipado no **mesmo PR**: computa Σ dos negativos enquanto o prompt manda transcrever saldo devedor positivo ⇒ predicado vira "declarado ≠ 0" e dispara 100%; rebaixado a `warning`, não vira `review_reason`, não move `valid` | consistência | Crítico | P1 | procede | procede-aberto | owner: data-engineer · referente vira `Σ secao=='dividas_onus'` com fallback datado; rotear `review_reasons` do consolidador ao `detail` do stage (senão [[ADR-394]] D3 fica inerte) |
@@ -520,8 +520,7 @@ PDF é a superfície que sai do produto e é arquivada por terceiros, e o KR-3 d
 já a declara obrigatória por isso), mas a causa registrada teria mandado o executor procurar no
 lugar errado — SSR/hidratação em vez do caminho de rede.
 
-**Nota datada 2026-08-21 — RV7-03/DE-3: a prescrição registrada na tabela é PERIGOSA;
-não a execute como está.** A linha do RV7-03 prescreve *"predicado de pausa passa a ser
+**§Refutação R2 — RV7-03/DE-3: predicado por code desligaria 11 das 14 pausas (datado 2026-08-21).** A linha do RV7-03 prescreve *"predicado de pausa passa a ser
 `any(code ∈ BLOCKING_CODES)`"*. Medido no DB de dogfood antes de implementar, e o gate de blast
 radius reprovou: `stage_reviews` tem **14 pausas históricas**, das quais **11 (79%) vêm de
 `extract_irpf_full`** — produtor cujo bloco `validation` **não tem a chave `review_reasons`**
@@ -532,6 +531,17 @@ esta revisão persegue.
 A estimativa que autorizou a mudança ("o run inteiro do r7 tem 1 `review_reason`") media a
 **tabela**, não a **retenção**: `review_reasons` tem 8 rows (4 blocking, 4 advisory) e não é a
 fonte de quem pausa. Medir o proxy errado é o que fazia a mudança parecer barata.
+
+**Reproduza antes de confiar** (a medição acima é de 2026-08-21; `stage_reviews` cresce a
+cada run):
+
+```bash
+sqlite3 "$MAIN/mathoms.db" "SELECT stage, COUNT(*) FROM stage_reviews GROUP BY 1 ORDER BY 2 DESC;"
+```
+
+O denominador que importa é `stage_reviews` (**quem pausou**), não `review_reasons` (**o que foi
+registrado**): a tabela tem 8 rows e não governa retenção. Foi medir o proxy errado que fez a
+mudança parecer barata.
 
 **Pré-requisito que a especificação não previu:** todo produtor emite `review_reasons` **antes**
 de o predicado passar a chavear por code. A ordem inversa desliga a retenção. RV7-03 permanece
