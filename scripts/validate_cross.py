@@ -576,6 +576,69 @@ def _cv17_renda_passiva_conservacao(e5: dict) -> CrossValidationResult | None:
     )
 
 
+# ADR-403: o card cambial é feito de componentes NOMEADOS, e o veredito não
+# pode ser mais forte que a pior cobertura. Dois erros de conservação distintos,
+# ambos com tolerância zero:
+#   (a) `total_brl` ≠ Σ(componentes apurados) — soma que não fecha;
+#   (b) componente não apurado com `tier` ≠ "indeterminado" — veredito sobre
+#       numerador que o run não fechou. O erro aqui é assimétrico: superestimar
+#       diz "você já está protegido" a quem não está.
+# O componente de carteira e o bucket `Internacional` da tabela de classes
+# medem o MESMO conceito por duas rotas. Divergir é erro de conservação, não
+# diferença tolerada: ou as duas rotas fecham, ou a carteira não pode se
+# declarar `apurado`. É o predicado que impede um v2 futuro de flipar a
+# cobertura sem antes reconciliar os universos (`irpf_bens` × posições atuais).
+def _bucket_internacional_cents(e5: dict) -> int | None:
+    tabela = (e5.get("investimentos") or {}).get("tabela_classes")
+    if not isinstance(tabela, list):
+        return None
+    linhas = [r for r in tabela if isinstance(r, dict) and r.get("categoria") == "Internacional"]
+    return _cents(linhas[0].get("valor")) if linhas else 0
+
+
+def _carteira_reconcilia(e5: dict, carteira: dict | None) -> tuple[bool, str]:
+    """`cobertura == apurado ⇒ carteira == bucket Internacional`."""
+    if not carteira or carteira.get("cobertura") != "apurado":
+        return True, "carteira não apurada — reconciliação não exigível"
+    bucket = _bucket_internacional_cents(e5)
+    if bucket is None:
+        return True, "tabela de classes ausente"
+    valor = _cents(carteira.get("valor_brl"))
+    return (
+        valor == bucket,
+        f"carteira ({valor / 100:,.2f}) == bucket Internacional ({bucket / 100:,.2f})",
+    )
+
+
+def _cv18_exposicao_cambial_cobertura(e5: dict) -> CrossValidationResult | None:
+    bloco = e5.get("exposicao_cambial")
+    componentes = (bloco or {}).get("componentes")
+    if not componentes:
+        return None
+    ok, detalhe = _avalia_cobertura_cambial(e5, bloco, componentes)
+    return CrossValidationResult(
+        "CV18",
+        "Conservação e cobertura da exposição cambial",
+        "info" if ok else "error",
+        ok,
+        detalhe,
+        ["exposicao_cambial", "investimentos"],
+    )
+
+
+def _avalia_cobertura_cambial(e5: dict, bloco: dict, componentes: dict) -> tuple[bool, str]:
+    apurados = {k: c for k, c in componentes.items() if c.get("cobertura") == "apurado"}
+    esperado = sum(_cents(c.get("valor_brl")) for c in apurados.values())
+    total, tier = _cents(bloco.get("total_brl")), bloco.get("tier")
+    reconcilia, nota = _carteira_reconcilia(e5, componentes.get("carteira_lastro_estrangeiro"))
+    coberto = len(apurados) == len(componentes) or tier == "indeterminado"
+    nao_apurados = sorted(set(componentes) - set(apurados))
+    return esperado == total and coberto and reconcilia, (
+        f"Σ(apurados) ({esperado / 100:,.2f}) == total_brl ({total / 100:,.2f}); "
+        f"não apurados={nao_apurados or 'nenhum'}; tier={tier}; {nota}"
+    )
+
+
 _CV_OPTIONAL_CHECKS = (
     _cv1_score_formula,
     _cv2_patrimonio_composicao,
@@ -587,6 +650,7 @@ _CV_OPTIONAL_CHECKS = (
     _cv8_reserva_cobertura,
     _cv16_receita_natureza,
     _cv17_renda_passiva_conservacao,
+    _cv18_exposicao_cambial_cobertura,
 )
 # Classe de RENDER: só avaliável se as narrativas chegaram ao E5. Sem elas,
 # `generate_narratives` degradou (A40.l18 · ADR-357) e rodar estes checks

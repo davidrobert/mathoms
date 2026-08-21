@@ -966,7 +966,7 @@
     },
     "exposicao_cambial": {
       "type": "object",
-      "description": "Exposição cambial (Bloco G plan/RESIDENCIA_E_USO; produzido por exposicao_cambial_analyzer): caixa em moeda estrangeira + ativos com lastro internacional, em BRL. CONCEITO DISTINTO da alocação internacional (A37.l9): exposição cambial mede posições EM MOEDA ESTRANGEIRA sobre investivel_financeiro (posições atuais + caixa); alocação internacional mede a classe 'Internacional' da tabela sobre a carteira financeira da tabela. Numerador E denominador diferem — nunca fundir os dois números.",
+      "description": "Exposição cambial ECONÔMICA em dois componentes nomeados (ADR-403): `componentes.caixa_fx` + `componentes.carteira_lastro_estrangeiro`, cada um com a própria `cobertura`. `total_brl` soma SÓ os componentes apurados; `∃ cobertura ≠ apurado ⇒ tier == \"indeterminado\"` (o piso medido continua publicado, o veredito não). `definicao_versao` (1 = só caixa FX; 2 = caixa FX + carteira com lastro) marca a fronteira: comparar tier entre runs de versões distintas é série reiniciada, nunca delta. `referencia_banda` declara que o tier mede PISO DE PROTEÇÃO — a faixa 20–30% USD da ADR-224 §6 é alvo de ALOCAÇÃO e tem dono próprio (`acoes_int`). CONCEITO DISTINTO da alocação internacional (A37.l9): exposição cambial mede posições EM MOEDA ESTRANGEIRA sobre investivel_financeiro (posições atuais + caixa); alocação internacional mede a classe 'Internacional' da tabela sobre a carteira financeira da tabela. Numerador E denominador diferem — nunca fundir os dois números.",
       "properties": {
         "total_brl": {
           "type": "number",
@@ -1002,9 +1002,52 @@
             "verde",
             "amarelo",
             "vermelho",
-            "empty"
+            "empty",
+            "indeterminado"
           ],
-          "description": "Tier canônico: verde >=10%, amarelo 5-10%, vermelho <5%, empty sem posições."
+          "description": "Tier canônico: verde >=10%, amarelo 5-10%, vermelho <5%, empty sem posições, indeterminado quando algum componente não foi apurado (ADR-403)."
+        },
+        "definicao_versao": {
+          "type": "integer",
+          "enum": [
+            1,
+            2
+          ],
+          "description": "1 = exposição é só caixa FX; 2 = caixa FX + carteira com lastro estrangeiro. Comparar tier entre versões distintas é série reiniciada, nunca delta."
+        },
+        "componentes": {
+          "type": "object",
+          "properties": {
+            "caixa_fx": { "$ref": "#/$defs/componente_exposicao_cambial" },
+            "carteira_lastro_estrangeiro": { "$ref": "#/$defs/componente_exposicao_cambial" }
+          },
+          "required": [
+            "caixa_fx",
+            "carteira_lastro_estrangeiro"
+          ],
+          "additionalProperties": false
+        },
+        "referencia_banda": {
+          "type": "object",
+          "description": "Contra o que o tier mede — piso de proteção, nunca alvo de alocação.",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "enum": [
+                "piso_protecao"
+              ]
+            },
+            "verde_min_pct": { "type": "number" },
+            "amarelo_min_pct": { "type": "number" },
+            "dono_prescricao_alocacao": { "type": "string" }
+          },
+          "required": [
+            "tipo",
+            "verde_min_pct",
+            "amarelo_min_pct",
+            "dono_prescricao_alocacao"
+          ],
+          "additionalProperties": false
         },
         "detalhes": {
           "type": "array",
@@ -2353,6 +2396,26 @@
         "regime_fiscal_incompleto",
         null
       ]
+    },
+    "componente_exposicao_cambial": {
+      "type": "object",
+      "description": "Valor do componente + quanto dele o run conseguiu medir (ADR-403).",
+      "properties": {
+        "valor_brl": { "type": "number" },
+        "cobertura": {
+          "type": "string",
+          "enum": [
+            "apurado",
+            "parcial",
+            "indeterminado"
+          ]
+        }
+      },
+      "required": [
+        "valor_brl",
+        "cobertura"
+      ],
+      "additionalProperties": false
     },
     "ConversaoMe": {
       "type": "object",

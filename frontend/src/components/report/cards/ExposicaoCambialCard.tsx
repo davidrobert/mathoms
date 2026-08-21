@@ -24,11 +24,15 @@ interface ExposicaoCambialCardProps {
   reportId?: string | null;
 }
 
+// O tier mede PISO DE PROTEÇÃO (estoque em moeda forte), NÃO alvo de alocação
+// (ADR-403). Os rótulos antigos — "adequado" / "sub-alocado" — liam a banda como
+// meta de carteira e contradiziam o comparativo de alocação, dono da prescrição.
 const TIER_LABEL: Record<string, string> = {
-  verde: "adequado",
-  amarelo: "abaixo do recomendado",
-  vermelho: "sub-alocado",
+  verde: "acima do piso de proteção",
+  amarelo: "abaixo do piso de proteção",
+  vermelho: "muito abaixo do piso",
   empty: "sem exposição",
+  indeterminado: "não apurado",
 };
 
 // Texto no par `-on-tint` (ADR-372): o fundo é tint de 15% da própria cor, e a
@@ -38,6 +42,7 @@ const TIER_BADGE_CLASS: Record<string, string> = {
   amarelo: "bg-[var(--semantic-warning)]/15 text-[var(--semantic-alert-on-tint)]",
   vermelho: "bg-[var(--semantic-danger)]/15 text-[var(--semantic-loss-on-tint)]",
   empty: "bg-[var(--surface-muted)] text-[var(--surface-muted-foreground)]",
+  indeterminado: "bg-[var(--surface-muted)] text-[var(--surface-muted-foreground)]",
 };
 
 const LASTRO_SOURCE_LABEL: Record<LastroSource, string> = {

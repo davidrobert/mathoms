@@ -1298,10 +1298,27 @@
     "presente": "Consolidação patrimonial"
   },
   "exposicao_cambial": {
+    "componentes": {
+      "caixa_fx": {
+        "cobertura": "apurado",
+        "valor_brl": 0
+      },
+      "carteira_lastro_estrangeiro": {
+        "cobertura": "indeterminado",
+        "valor_brl": 0
+      }
+    },
+    "definicao_versao": 100,
     "detalhes": [],
     "pct_investivel_financeiro": "0.000000",
     "por_moeda": [],
-    "tier": "empty",
+    "referencia_banda": {
+      "amarelo_min_pct": "5.000000",
+      "dono_prescricao_alocacao": "acoes_int",
+      "tipo": "piso_protecao",
+      "verde_min_pct": "10.000000"
+    },
+    "tier": "indeterminado",
     "total_brl": 0
   },
   "fluxo_caixa": {

@@ -396,6 +396,7 @@
 | ADR-399 | adr | Proposto |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
 | ADR-400 | adr | Decidido |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
 | ADR-402 | adr | Decidido |  | Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado | `adr/402-teto-e-capacidade-restante-do-pgbl-sao-campos-distintos.md` |
+| ADR-403 | adr | Decidido |  | Exposição cambial declara seus componentes e a cobertura de cada um; veredito nunca excede a pior cobertura | `adr/403-exposicao-cambial-declara-componentes-e-cobertura.md` |
 | ADR-404 | adr | Decidido |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |
 | ADR-405 | adr | Proposto |  | Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico | `adr/405-retencao-de-artefato-e-per-produtor.md` |
 | ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
