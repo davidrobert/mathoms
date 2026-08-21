@@ -225,15 +225,14 @@ class TestE16Goldens:
     def test_reconcile_ir_pago_within_tolerance(self, fixtures, fixture_name):
         from decimal import Decimal
 
-        d = fixtures[fixture_name]
-        soma = Decimal("0")
-        for fp in d["rendimentos_pj"]:
-            soma += Decimal(fp["ir_retido_brl"])
-            if fp.get("decimo_terceiro_ir_retido_brl") is not None:
-                soma += Decimal(fp["decimo_terceiro_ir_retido_brl"])
-        for fp in d["rendimentos_pf"]:
-            soma += Decimal(fp["ir_recolhido_brl"])
-        ir_pago = Decimal(d["imposto_apurado"]["ir_pago_brl"])
+        from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
+        from pipeline.llm.validators import _soma_retidos_irpf
+
+        # Chama o produtor em vez de reimplementar a fórmula: a cópia local
+        # somava o IR do 13º e envelheceu junto com o bug da ADR-157 §6.
+        d = IRPFFullOutput.model_validate(fixtures[fixture_name])
+        soma = _soma_retidos_irpf(d)
+        ir_pago = d.imposto_apurado.ir_pago_brl
         assert abs(ir_pago - soma) <= Decimal(
             "0.02"
         ), f"{fixture_name}: ir_pago={ir_pago} vs soma_retidos={soma}"
@@ -247,12 +246,14 @@ class TestE16Goldens:
         assert a.anos_base_disponiveis() == [2024]
         assert a.renda_anual_familiar(2024) == Decimal("371800.00")
         assert a.rendimentos_tributaveis(2024) == Decimal("310300.00")
-        # ir_pago = 38000 (PJ) + 1880 (13º RFB tabela exclusiva) + 5500 (PJ) + 2700 (PF) = 48080.
-        assert a.ir_pago_total(2024) == Decimal("48080.00")
-        assert a.renda_liquida_familiar(2024) == Decimal("297720.00")
+        # ir_pago = 38000 (PJ) + 5500 (PJ) + 2700 (PF) = 46200 — só o ajuste anual.
+        # O IR do 13º (1880) é tributação exclusiva na fonte e NÃO compõe o
+        # `ir_pago_brl` do Resumo (ADR-157 §6); a fixture o contabilizava.
+        assert a.ir_pago_total(2024) == Decimal("46200.00")
+        assert a.renda_liquida_familiar(2024) == Decimal("299600.00")
         ali = a.aliquotas(2024)
-        assert round(ali.sobre_tributavel_pct, 2) == Decimal("15.49")
-        assert round(ali.sobre_total_pct, 2) == Decimal("12.93")
+        assert round(ali.sobre_tributavel_pct, 2) == Decimal("14.89")
+        assert round(ali.sobre_total_pct, 2) == Decimal("12.43")
 
     def test_completo_split_pgbl_dependentes(self, fixtures):
         from decimal import Decimal

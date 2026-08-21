@@ -877,12 +877,15 @@ def _scan_free_text_fields_for_pii(output: IRPFFullOutput, r: ValidationResult) 
     _scan_pii_bens_direitos(output, r)
 
 
+# O IR do 13º fica FORA: é tributação exclusiva na fonte (Quadro 3 do
+# comprovante) e não compõe o ajuste anual que `ir_pago_brl` (Quadro 1) reporta.
+# Somá-lo divergia em 100% das declarações com 13º. Mesma regra do anti-13º
+# duplo em `irpf_analyzer._renda_total`.
 def _soma_retidos_irpf(output: IRPFFullOutput) -> Decimal:
+    """Soma dos retidos do ajuste anual — dois termos, per ADR-157 §6."""
     soma = Decimal("0")
     for fp in output.rendimentos_pj:
         soma += fp.ir_retido_brl
-        if fp.decimo_terceiro_ir_retido_brl is not None:
-            soma += fp.decimo_terceiro_ir_retido_brl
     for fp in output.rendimentos_pf:
         soma += fp.ir_recolhido_brl
     return soma
