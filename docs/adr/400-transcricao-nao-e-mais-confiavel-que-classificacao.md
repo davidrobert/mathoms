@@ -2,7 +2,7 @@
 id: ADR-400
 type: adr
 title: "Transcrição não é mais confiável que classificação — a forma da dependência é que decide"
-status: Proposto
+status: Decidido
 phase: DE-1
 date: "2026-08-19"
 relates_to:
@@ -17,12 +17,11 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 396"
   - "transcrição não é mais confiável que classificação"
   - "autoridade declarada no classificador de ativos"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - phase/de-1
 ---

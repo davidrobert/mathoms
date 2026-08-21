@@ -394,7 +394,7 @@
 | ADR-397 | adr | Decidido |  | Registro civil e dependente fiscal são domínios distintos, projetados juntos | `adr/397-registro-civil-e-dependente-fiscal-sao-dominios-distintos.md` |
 | ADR-398 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/398-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
 | ADR-399 | adr | Proposto |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
-| ADR-400 | adr | Proposto |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
+| ADR-400 | adr | Decidido |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
 | ADR-402 | adr | Decidido |  | Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado | `adr/402-teto-e-capacidade-restante-do-pgbl-sao-campos-distintos.md` |
 | ADR-404 | adr | Decidido |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |
 | ADR-405 | adr | Proposto |  | Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico | `adr/405-retencao-de-artefato-e-per-produtor.md` |

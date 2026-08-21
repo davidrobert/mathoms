@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 336
-- **Proposto**: 54
+- **Decidido**: 337
+- **Proposto**: 53
 - **Roadmap**: 4
 
 ## Fundação
@@ -553,7 +553,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (70)
+### Decidido (71)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -622,11 +622,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-394]] — Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado · phase A40.l66
 - [[ADR-397]] — Registro civil e dependente fiscal são domínios distintos, projetados juntos · phase r7.PE-3
 - [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
+- [[ADR-400]] — Transcrição não é mais confiável que classificação — a forma da dependência é que decide · phase DE-1
 - [[ADR-402]] — Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado · phase r7.FP-5A
 - [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 - [[ADR-406]] — Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança · phase r7/DE-2
 
-### Proposto (15)
+### Proposto (14)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -642,7 +643,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
-- [[ADR-400]] — Transcrição não é mais confiável que classificação — a forma da dependência é que decide · phase DE-1
 
 ### Roadmap (1)
 
