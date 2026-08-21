@@ -393,7 +393,7 @@ gate aprovar a corrupção.
 | FP-2 — parecer descreve trajetória em aceleração enquanto o changelog do mesmo payload declara queda, com `comparison_base_changed` verdadeiro; a métrica que ancora o ponto forte nº 1 salta por mudança de base, não por comportamento | solidez-financeira | Crítico | P1 | procede (re-diagnosticado) | **parcial** | #1574 · o parecer NÃO vê o changelog (zero ocorrência de comparison/delta no manifest, distiller e prompt) — eram 2 defeitos: produtor afirmando direção sob base alterada + trajetória derivada de nível. Braço de concentração **deferido** (ver §Deferimento D2, 2026-08-19) |
 | FP-6 — parecer publica `target` **fabricado e mais frouxo** que o alvo declarado em `goals.alocacao_alvo.derived`, subestimando o desvio; e emite duas sugestões P1 que se cancelam por recaírem na mesma comparável com sinais opostos | solidez-financeira | Alto | P1 | procede | **parcial** | #1558 (`b4263e7b`) fecha o braço de **antagonismo**: P1 que aumenta a classe que outra P1 manda reduzir, **sem condição de reconciliação declarada**, cai p/ P2 + `confianca=media` (rebaixa, nunca bloqueia — [[ADR-294]]); a direção vem do **verbo mais próximo**, não da presença — a sugestão medida tem "reduzir" e "ampliar" na mesma frase com 4 classes, e um matcher por presença nunca dispararia. Braço do **`target`** segue aberto — mesmo §Deferimento D3 do PE-2 |
 | FP-4 — prescreve realocar excedente de reserva para risco sem conhecer a taxa da dívida (`endividamento.dividas[].taxa_juros` nulo e ausente dos campos que pediria), violando a única convergência sem exceção das três metodologias; e trata a mesma reserva como ponto forte **e** risco | solidez-financeira | Alto | P1 | procede | **parcial** | #1575 · piso proíbe as DUAS direções sob taxa nula + injeta o pedido da taxa; liquidez excessiva remove o ponto forte de liquidez. Regra por par (seção, tema) **refutada por medição** — ver §Refutação R1. RL2 destravada (parser numérico, v1.5) |
-| FP-5 — `previdencia_pgbl.limite_pgbl_anual` publica zero sobre base positiva (defeito de rótulo que [[ADR-375]] §D4 fechou, reintroduzido) e a nota do bloco afirma o oposto do campo; KPI de exposição cambial ignora a classe internacional, tornando o tier artefato de definição | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner · "não se aplica" com motivo, nunca zero; exposição **econômica** ≠ moeda de custódia |
+| FP-5 — `previdencia_pgbl.limite_pgbl_anual` publica zero sobre base positiva (defeito de rótulo que [[ADR-375]] §D4 fechou, reintroduzido) e a nota do bloco afirma o oposto do campo; KPI de exposição cambial ignora a classe internacional, tornando o tier artefato de definição | solidez-financeira | Alto | P1 | procede | **parcial** | #1567 (`440d4618`, [[ADR-402]]) fecha o braço do **PGBL**: `limite_pgbl_anual` carregava a *capacidade restante* sob o nome de *teto* — o `0.0` era valor correto sob rótulo errado, não aritmética errada. Grandezas separadas + `motivo_ausencia` por campo com precedência; `aliquota_marginal` vira bicondicional com `economia_ir_anual`. Braço da **exposição cambial** segue aberto (#1568, **não mergeado** — a ADR do braço cambial entra com ele) · owner: financial-planner |
 | FP-3 — dois universos de imóveis no mesmo payload com membros exclusivos de cada lado; o limiar canônico de concentração cai **entre** as duas leituras, os dois alertas ficam mudos e o LLM fabrica um limiar próprio; default de IPTU zerado infla o rendimento líquido na direção que [[ADR-216]] proíbe | solidez-financeira | Alto | P1 | procede | procede-aberto | owner: financial-planner+data-engineer · fonte única de estoque imobiliário; suprimir a razão enquanto divergirem >5%; corrigir default |
 | RV6-04 — balde de investimento de um membro publica zero enquanto o artefato a montante lista instituições dele, com a flag de ressalva falsy e `cobertura_completa` verdadeiro; a narrativa **afirma o zero em prosa entregue**, byte-idêntica em 3 runs | completude | Crítico | P0 | procede (3º run) | procede-aberto | owner: data-engineer+financial-planner · portar doutrina [[ADR-240]] ao patrimônio: ressalva + **omitir** linha (omitir ≠ afirmar zero) + suprimir vereditos derivados; CV bloqueante membro-com-fonte × balde-zero · [[A40.l69]] |
 | PD-4 — predicado de vazio da seção de riscos lê só um bundle e ignora a fonte populada, imprimindo "sem riscos cadastrados" enquanto a seção vizinha cita apólices vigentes; copy de vazio **desqualifica** dado que o próprio documento exibe | clareza-ux | Alto | P1 | procede (RV6-20 persiste) | procede-aberto | owner: product-designer · predicado lê as duas fontes; estado **parcial** em vez de vazio; nunca derivar copy de `missing_inputs` |
@@ -564,6 +564,26 @@ normaliza tipo e largura (larguras derivadas de `__table__`). `StageReview` fica
 fail-open trocaria abort ruidoso por retomada silenciosa sobre dado não-revisado. Gate
 `dev/check_diagnostic_session_isolation.py`. **Fica aberto:** RV6-11 é a mesma classe em
 `llm_call_log.stage` e segue com writer fora do sink — lane própria.
+
+**Nota datada 2026-08-21 — FP-5A remediado (#1567 `440d4618`, [[ADR-402]]); o braço cambial
+segue aberto.** O diagnóstico do §r7 subestimava: não era "publica zero sobre base positiva",
+era **valor correto sob rótulo errado**. `IRPFAnalyzer.pgbl_capacidade_dedutivel` devolve
+`Decimal("0")` em declaração simplificada por contrato documentado, e `_analyze_via_irpf`
+publicava esse *restante* num campo chamado *teto*. Consertar só "não publique zero" manteria
+a mentira: quem aportou metade do teto continuaria lendo "Limite PGBL (12%)" com metade do
+valor. Remediado separando as grandezas (`limite_pgbl_anual` = teto; `capacidade_restante_anual`
+= restante), com `motivo_ausencia` **por campo** (enum fechado + precedência) e o invariante
+`campo == 0.0 ⇒ motivo_ausencia[campo] is None`. `aliquota_marginal` passa a ser **bicondicional**
+com `economia_ir_anual`: sem economia publicável ela era ruído citável ao lado de campos nulos.
+Medido no payload do r7: `limite_pgbl_anual` **0.0 → null**, `aliquota_marginal` **positivo →
+null**, `motivo_ausencia.teto = "modelo_simplificado"`, `nota` **1111 → 521 chars** (deixa de
+concatenar dois motivos mutuamente exclusivos). Prova por mutação: 4 reversões, 4 quedas
+(teto→restante 12 falhas; precedência invertida 4; alíquota incondicional 1; nota concatenada 3).
+**Fica aberto:** o braço da **exposição cambial** (#1568) — verde e mergeável, não
+mergeado; a ADR dele entra junto. Precedente que ele reforça: RV2-08 foi declarado fechado 2× e reincidiu, e RV4-72
+declarou `previdencia_pgbl` "correto" e reincidiu; os dois fechamentos foram **por inspeção**,
+não por gate — daí o teste parametrizado `PgblStatus × regime_completo` asserindo coocorrência
+campo↔nota.
 
 **§Deferimento D2 — trava de concentração de lançamento (datado 2026-08-19).**
 O braço de concentração do FP-2 (o brief pedia "lançamento único ≥10% da janela em
