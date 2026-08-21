@@ -1661,6 +1661,108 @@
     "total_financeiro": 8000000,
     "total_imoveis_investimento": 60000000
   },
+  "kpi_targets": {
+    "alocacao_renda_fixa": {
+      "base": "carteira_liquida",
+      "limiar": null,
+      "motivo": "alocação-alvo não declarada para renda fixa",
+      "observado_path": "$.goals.alocacao_alvo.derived.comparaveis[classe=renda_fixa].atual_pct",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "unidade": "pct"
+    },
+    "carteira_trs": {
+      "base": "patrimonio_gerador",
+      "limiar": null,
+      "motivo": "rentabilidade observada não tem alvo canônico (ADR-191 §D5)",
+      "observado_path": "$.ratios.rentabilidade.trs_pct",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "unidade": "pct_aa"
+    },
+    "concentracao_imobiliaria": {
+      "base": "carteira_produtiva",
+      "limiar": 5000,
+      "motivo": null,
+      "observado_path": "$.ratios.concentracao_imobiliaria",
+      "operador": "<",
+      "procedencia": "limiar_canonico",
+      "ref": "RealEstateConfig.concentracao_alerta_pct ([[ADR-340]])",
+      "unidade": "pct"
+    },
+    "despesas_nao_categorizadas": {
+      "base": "despesa_total",
+      "limiar": 1000,
+      "motivo": null,
+      "observado_path": "$.diagnostico_confianca.share_nao_identificado_pct",
+      "operador": "<",
+      "procedencia": "limiar_canonico",
+      "ref": "diagnostico_comportamental_analyzer.NAO_IDENTIFICADO_PARCIAL_PCT",
+      "unidade": "pct"
+    },
+    "exposicao_cambial": {
+      "base": "investivel_financeiro",
+      "limiar": 1000,
+      "motivo": null,
+      "observado_path": "$.exposicao_cambial.pct_investivel_financeiro",
+      "operador": ">=",
+      "procedencia": "limiar_canonico",
+      "ref": "exposicao_cambial_analyzer.THRESHOLD_VERDE_PCT",
+      "unidade": "pct"
+    },
+    "if_progresso": {
+      "base": "patrimonio_alvo",
+      "limiar": null,
+      "motivo": "progresso rumo à IF é acompanhado pelo cone, não por alvo pontual",
+      "observado_path": "$.goals.if_pct",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "unidade": "pct"
+    },
+    "protecao_cobertura": {
+      "base": "renda_anual_ativa",
+      "limiar": null,
+      "motivo": "capital ideal exige inventário de proteção confirmado (ADR-387)",
+      "observado_path": "$.protecao_patrimonial.pct_renda_anual",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "unidade": "pct"
+    },
+    "reserva_cobertura_meses": {
+      "base": "despesa_essencial_mensal",
+      "limiar": 1800,
+      "motivo": null,
+      "observado_path": "$.reserva_emergencia.cobertura_meses",
+      "operador": ">=",
+      "procedencia": "goal_declarado",
+      "ref": "$.reserva_emergencia.meses_alvo",
+      "unidade": "meses"
+    },
+    "taxa_endividamento": {
+      "base": "patrimonio_bruto",
+      "limiar": 2000,
+      "motivo": null,
+      "observado_path": "$.ratios.taxa_endividamento_pct",
+      "operador": "<=",
+      "procedencia": "limiar_canonico",
+      "ref": "scoring.json::thresholds_alertas.endividamento_maximo_pct",
+      "unidade": "pct"
+    },
+    "taxa_poupanca_recorrente": {
+      "base": "receita_recorrente",
+      "limiar": null,
+      "motivo": "duas fontes divergentes para o mesmo limiar (RV2-24)",
+      "observado_path": "$.ratios.taxa_poupanca_recorrente_pct",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "unidade": "pct"
+    }
+  },
   "orcamento_prospectivo": {
     "categorias": {
       "alimentacao": 150000
