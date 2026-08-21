@@ -104,14 +104,18 @@ def workflow_state(repo: str, filename: str) -> str | None:
 
 def last_scheduled_run_age(repo: str, filename: str, ref: date) -> float | None:
     """Idade em dias do run agendado mais recente; None se a API não respondeu."""
-    path = f"repos/{repo}/actions/workflows/{filename}/runs?event=schedule&per_page=1"
+    # página + `max`, não `runs[0]`: o índice serve cabeça obsoleta de forma
+    # intermitente e `per_page=1` não tem como perceber (ADR-210 §Adendo 2026-08-21)
+    path = f"repos/{repo}/actions/workflows/{filename}/runs?event=schedule&per_page=10"
     data = _gh_json(["api", path])
     if data is None:
         return None
     runs = data.get("workflow_runs") or []
     if not runs:
         return float("inf")
-    started = datetime.fromisoformat(runs[0]["run_started_at"].replace("Z", "+00:00"))
+    started = max(
+        datetime.fromisoformat(run["run_started_at"].replace("Z", "+00:00")) for run in runs
+    )
     return (datetime.combine(ref, datetime.min.time(), timezone.utc) - started).days
 
 
