@@ -2,8 +2,10 @@
  * F9 · Smoke tests do ReportShell nativo.
  */
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { server } from "../../mocks/server";
+import { reportSectionHandlers } from "../../mocks/reportSectionHandlers";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ReportModeProvider } from "@/components/report/ReportModeProvider";
 import { ReportShell } from "@/components/report/ReportShell";
@@ -49,6 +51,15 @@ const SAMPLE_DATA: ReportAnalysisData = {
 };
 
 describe("ReportShell", () => {
+  // Estes testes medem o **primeiro paint** do shell: capa, ToC, header,
+  // badge, spinner. Todas as asserções são síncronas — rodam antes de
+  // qualquer fetch de seção resolver. Sem estes handlers, as 5 requests das
+  // seções filhas caíam no `onUnhandledRequest: "error"` e rejeitavam contra
+  // uma árvore já assertada: ruído no log, zero sinal no teste.
+  beforeEach(() => {
+    server.use(...reportSectionHandlers("ws-test"));
+  });
+
   it("renderiza header, TOC e áreas principais em sucesso", () => {
     const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
     render(

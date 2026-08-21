@@ -13,8 +13,10 @@
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { server } from "../../mocks/server";
+import { reportSectionHandlers } from "../../mocks/reportSectionHandlers";
 
 vi.mock("@/lib/WorkspaceProvider", () => ({
   useWorkspace: () => ({
@@ -139,6 +141,15 @@ function buildData(
     ...overrides,
   } as unknown as ReportAnalysisData;
 }
+
+// As asserções deste arquivo leem só o texto entregue via `data` (fixture do
+// produtor). S2/S7 e o card de exposição cambial buscam do backend ao montar —
+// dado que nenhum teste aqui declara. Sem override, essas requests rejeitavam
+// pelo `onUnhandledRequest: "error"` (22 linhas de ruído por run) sem mudar uma
+// asserção sequer. O estado vazio declarado mantém a árvore idêntica.
+beforeEach(() => {
+  server.use(...reportSectionHandlers("ws-1"));
+});
 
 function renderSection(sectionId: string, data: ReportAnalysisData) {
   return render(
