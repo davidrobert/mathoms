@@ -5,6 +5,7 @@ title: "Float monetário persistido e hardening de boundary de schema (patrimoni
 status: Decidido
 phase: "Débito técnico (A12)"
 date: "2026-06-09"
+amended_at: ["2026-06-10"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-114]]"

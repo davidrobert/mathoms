@@ -5,6 +5,7 @@ title: "Janela interativa do relatório é conjunto fechado pré-computado — o
 status: Decidido
 phase: A40.l44
 date: "2026-08-11"
+amended_at: ["2026-08-14"]
 relates_to:
   - "[[ADR-306]]"
   - "[[ADR-333]]"

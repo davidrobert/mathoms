@@ -32,8 +32,21 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ADR_DIR = REPO_ROOT / "docs" / "adr"
 
+_AMENDMENT_KEYWORDS = r"Emenda|Correç[aã]o|Calibraç[aã]o|Errata|Aditamento"
+
 AMENDMENT_HEADING_RE = re.compile(
-    r"^(#{2,4})\s+.*\b(Emenda|Correç[aã]o|Calibraç[aã]o|Errata|Aditamento)\b",
+    rf"^(#{{2,4}})\s+.*\b({_AMENDMENT_KEYWORDS})\b",
+    re.IGNORECASE,
+)
+
+# Emenda anunciada em ênfase (negrito/itálico), com ou sem marcador de lista. O
+# regex de heading não via essa forma, e 3 ADRs a usavam — a de 2026-05-22 na
+# ADR-157 mudou comportamento de pipeline (anti-PII de `error` para `warning`) e
+# ficou invisível ao gate por 3 meses. Exige a data na MESMA linha: sem a âncora
+# do heading, herdar a data da linha seguinte tornaria qualquer menção em prosa
+# um falso positivo.
+AMENDMENT_EMPHASIS_RE = re.compile(
+    rf"^\s*(?:[-*+]\s+)?[*_]{{1,2}}\s*(?:{_AMENDMENT_KEYWORDS})\b",
     re.IGNORECASE,
 )
 DATE_RE = re.compile(r"\b(20\d{2}-\d{2}-\d{2})\b")
@@ -75,17 +88,26 @@ def _foreign_wikilink(heading: str, own_id: str) -> bool:
     return any(link != own_id for link in WIKILINK_RE.findall(heading))
 
 
+def _amendment_date_in_line(line: str, lines: list[str], idx: int) -> str | None:
+    """Data da emenda que ``line`` anuncia, ou ``None`` quando não anuncia uma."""
+    if AMENDMENT_HEADING_RE.match(line):
+        m = DATE_RE.search(line) or DATE_RE.search(_first_content_line_after(lines, idx))
+    elif AMENDMENT_EMPHASIS_RE.match(line):
+        m = DATE_RE.search(line)
+    else:
+        return None
+    return m.group(1) if m else None
+
+
 def _amendment_dates_in_body(body: str, own_id: str) -> set[str]:
     dates: set[str] = set()
     lines = body.splitlines()
     for idx, line in enumerate(lines):
-        if not AMENDMENT_HEADING_RE.match(line):
-            continue
         if _foreign_wikilink(line, own_id):
             continue
-        m = DATE_RE.search(line) or DATE_RE.search(_first_content_line_after(lines, idx))
-        if m:
-            dates.add(m.group(1))
+        data = _amendment_date_in_line(line, lines, idx)
+        if data:
+            dates.add(data)
     return dates
 
 
