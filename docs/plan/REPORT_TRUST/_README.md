@@ -313,7 +313,7 @@ Controle positivo obrigatório no mesmo arquivo — fetch OK com zero real **con
 afirmando, senão o remédio trocaria falso-positivo por falso-negativo e a barra
 nunca mais apareceria.
 
-### Follow-up aberto — `measuredCountHooks.test.tsx` é flaky em check obrigatório
+### Follow-up **fechado** (2026-08-21) — `measuredCountHooks.test.tsx` era flaky em check obrigatório
 
 Registrado no closeout da Onda A do §r7 (2026-08-21). O arquivo entregue pelo
 PD-6 reprovou o #1564 e foi destravado com **re-run**. Re-run destrava e **não é
@@ -329,6 +329,33 @@ aumentar timeout — aumentar timeout esconde a corrida em vez de fechá-la.
 Dono: `product-designer`. Prioridade **P2** — não alcança o usuário, custa CI e
 confiança no gate. Instância da mesma classe que a [[ADR-210]] §Adendo 2026-08-21
 trata no `check_scheduled_workflows`: **gate obrigatório não-hermético**.
+
+**Nota datada 2026-08-21 — diagnosticado e fechado; e o suspeito acima estava
+errado.** Corrigido pelo #1594 (`9ffe94f7`), que trocou `findByTestId` +
+asserção por `waitFor` sobre o texto nas 7 asserções; a medição que faltava
+ficou registrada em comentário pelo #1621.
+
+**O suspeito declarado — "fake timers + MSW" — não procede**, e o próprio
+parágrafo acima já o marcava como *não medido*. O arquivo não usa fake timers,
+nem o `tests/setup.ts` global: zero ocorrências de `useFakeTimers` nos dois. A
+causa é outra e é estrutural, não de ambiente: `findBy*` resolve na **presença**
+do elemento, e o probe existe desde o primeiro render — ainda em `loading`.
+`expect(await screen.findByTestId("probe"))` não esperava o fetch, esperava o
+`<span>`, e a asserção de conteúdo rodava **uma única vez** sobre o DOM daquele
+instante. A folga era de exatamente um `setTimeout(0)` — o que o `asyncWrapper`
+do RTL concede depois do `waitFor`.
+
+Margem **zero**, não "tempo suficiente": medido em head-to-head, um `delay(0)`
+no handler do MSW já derruba o padrão antigo (0/1/2/3/5/10ms falham todos com
+`Received: loading`), e o mesmo handler de 20ms passa com o padrão novo. A
+assinatura no log é `Received: loading` — se fosse override de MSW não aplicado,
+com `onUnhandledRequest: "error"` a leitura seria `unknown`.
+
+**A instrução "prefira `waitFor` a aumentar timeout" se sustentou** — foi
+exatamente o remédio. O que não se sustentou foi o palpite de causa: registrar
+suspeito não medido ao lado da instrução certa fez o diagnóstico começar pela
+pista errada. Vale para o próximo follow-up: ou se mede, ou se declara só o
+sintoma.
 
 ## Sinergia com [[PLAN-data-lineage]] (A26 `paused`)
 

@@ -61,6 +61,22 @@ const PARECER_COM_RETENCAO = {
   retention: { items_dropped_count: 2 },
 };
 
+/** Por que `waitFor` sobre o TEXTO, e não `findByTestId`.
+ *
+ * `findBy*` resolve na PRESENÇA do elemento, e o probe existe desde o primeiro
+ * render — ainda em `loading`. `expect(await screen.findByTestId("probe"))` não
+ * espera o fetch: espera o `<span>`, e a asserção de conteúdo roda uma única
+ * vez sobre o DOM daquele instante. A folga era de exatamente um
+ * `setTimeout(0)` — o que o `asyncWrapper` do RTL concede depois do `waitFor`.
+ *
+ * Margem ZERO, não "tempo suficiente": medido, um `delay(0)` no handler do MSW
+ * já derruba (0/1/2/3/5/10ms falham todos com `Received: loading`). Sob
+ * contenção de CI o fetch não cabe na janela — o run 32500293097 falhou no
+ * attempt 1 e passou no attempt 2 do MESMO SHA, sem mudança nenhuma.
+ *
+ * `Received: loading` é a assinatura desta causa. Se fosse override de MSW não
+ * aplicado, com `onUnhandledRequest: "error"` a leitura seria `unknown`.
+ */
 describe("useNeedsReviewCount", () => {
   it("500 no endpoint de documentos → unknown, nunca zero", async () => {
     server.use(
