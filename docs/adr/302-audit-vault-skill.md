@@ -9,6 +9,10 @@ relates_to:
   - "[[ADR-081]]"
   - "[[ADR-182]]"
   - "[[ADR-247]]"
+  - "[[ADR-343]]"
+amended_at:
+  - "2026-07-03"
+  - "2026-08-21"
 supersedes: []
 superseded_by: []
 aliases:
@@ -21,15 +25,21 @@ tags:
   - area/docs
   - area/tooling
   - phase/a26
-size_lines: 164
+size_lines: 245
 ---
 
-> ADR >150 linhas: procedimento de 5 camadas + emenda datada da amostra
-> rotativa (2026-07-03) — 1 conceito, densidade legítima; split produziria
-> peças órfãs.
+> ADR >150 linhas: procedimento de 5 camadas + 2 emendas datadas (amostra
+> rotativa 2026-07-03; bucket `moc` 2026-08-21) — 1 conceito, densidade
+> legítima; split produziria peças órfãs.
 
 > **Emenda (2026-07-03, achado F17 do run r5):** amostra estratificada da
 > camada 2 passou a ser rotativa (`--run N`) — ver blockquote na camada 2 de §Decisão.
+
+> **Emenda (2026-08-21):** o universo ganha o bucket `moc` — registros com
+> máquina de estado ([[ADR-343]]) no grão de **linha viva**, navegacionais no
+> grão-arquivo; `AUDITS-active` e `SPRINTS-active` ficam fora do universo
+> julgado. Dedup de linha de registro estende a chave para
+> `(path, regra, âncora)`. Ver §Emenda 2026-08-21.
 
 ## Contexto
 
@@ -109,6 +119,10 @@ registro editorial **é** o baseline; dedup entre runs por chave semântica
 JSON separado fica **deferido** (gatilho de crescimento: quando o cross-ref
 manual doer).
 
+> **Emenda 2026-08-21:** para finding sobre **linha de registro**, a chave é
+> `(path, regra, âncora)` com `âncora = <seção rN>/<código>` — código sozinho
+> não é identidade (`F01` reinicia a cada run). Ver §Emenda 2026-08-21.
+
 ## Alternativas consideradas
 
 ### Opção A — Agente novo `vault-auditor`
@@ -177,6 +191,45 @@ correções mergeadas em `main`) e `vault-2026-07-02-r4` (gates 100% verdes,
   empírica).
 - **Escopo puxa histórico congelado** — `archive/` e sprint fechada ficam fora
   do julgamento (gates só); auditar precisão de snapshot gera falso-drift.
+
+## Emenda 2026-08-21 — bucket `moc`: registros com máquina de estado
+
+**Origem:** revisão de método da `lane-closeout` (2026-08-21, IA+PM+CTO). Os 2
+`CLOSE-BLOCK` reais do closeout da Onda A moravam em linha de achado de
+`docs/_MOC/PIPELINE-REVIEWS-active.md` — fora do universo de **ambas** as
+skills. Verde-falso por construção: o escopo era escolhido pelo autor e o
+registro certo ficava fora dele. As unidades com máquina de estado são três:
+lane (`status:`), linha de achado em MOC `*-active.md` (`Disposição` +
+trilha), fase de plano — e a segunda não tinha detector.
+
+**Decisão (co-design `senior-cto` + `information-architect`):**
+
+1. **Bucket `moc` em dois grãos.** Os 4 registros de skills pares
+   ([[ADR-343]]: PIPELINE-REVIEWS, REPORT-REVIEWS, LEDGER-CERTIFY,
+   PARSE-CERTIFY) entram como **linha de seção viva** — emissor puro de fatos
+   locais (`disposicao`, `viva`, status/`ship_pr` da lane citada, lidos do
+   frontmatter **sem rede**); seção com 0 linhas vivas é histórico congelado,
+   fora até de `--full`. Navegacionais/fila (00-INDEX, PLANS-active,
+   OWNER-GATED) entram no grão-arquivo (stride em
+   `SAMPLE_STRIDE_BY_BUCKET`, que passa a ser a **fonte única** dos strides —
+   esta ADR deixa de reenumerá-los).
+2. **Exclusões com motivo.** `AUDITS-active` fica fora do universo julgado: a
+   camada 5 escreve nele todo run e o hot set é `gate-fail ∪ changed` —
+   auto-referência tornaria o critério "2 runs sem mudança → diff vazio"
+   insatisfazível por construção. `SPRINTS-active` fora: sobrepõe o bucket
+   `sprint` e a camada 2 da `lane-closeout` (finding duplicado cross-skill sem
+   chave de dedup comum). `.claude/skills/` entra no bucket `claude` — a
+   skill que audita registros fora do mapa estava, ela própria, fora do mapa.
+3. **Fronteira com [[ADR-343]].** A auditoria julga **o registro** (estado da
+   linha, forma da célula, integridade do ponteiro), **nunca o mérito do
+   achado** — mérito é da cadência da skill dona, e o `--fix` não muda
+   disposição de registro alheio (reporta "reconciliar"). O **detector
+   primário** da linha-zumbi é a `lane-closeout` no merge (`citers_of`
+   alargado para `docs/_MOC/*-active.md`); este bucket é rede de segurança
+   com latência de rotação.
+4. **Atestação, não housekeeping.** Flip `Proposto`→`Decidido` executado pela
+   auditoria exige citação dupla "trecho da ADR + trecho do diff do SHA que
+   implementa" (o escritor canônico do `status:` é o PR de implementação).
 
 ## Gatilho de reabertura
 
