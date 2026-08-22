@@ -113,7 +113,16 @@ POISONED: tuple[RedLineFixture, ...] = (
         _e5(
             endividamento={
                 "dividas": [
-                    {"descricao": "Cartão", "saldo_devedor": 20_000.0, "taxa_juros_aa": 180.0}
+                    {
+                        "descricao": "Cartão",
+                        "saldo_devedor": 20_000.0,
+                        "taxa_juros_aa": 180.0,
+                        # ADR-401: valor presente obriga fonte declarada (bijeção).
+                        "fontes": {
+                            "saldo_devedor": "baseline_irpf",
+                            "taxa_juros_aa": "declarado",
+                        },
+                    }
                 ]
             }
         ),
@@ -316,6 +325,8 @@ CLEAN: tuple[CleanFixture, ...] = (
                         "descricao": "Financiamento",
                         "saldo_devedor": 400_000.0,
                         "taxa_juros_aa": None,
+                        # Taxa ausente => sem chave em `fontes` (bijeção, ADR-401).
+                        "fontes": {"saldo_devedor": "baseline_irpf"},
                     }
                 ]
             },
