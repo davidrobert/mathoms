@@ -390,10 +390,10 @@
 | ADR-393 | adr | Decidido |  | Contrato de balanço de stage fan-out: queued ≡ processed + errors + skipped(motivo) | `adr/393-contrato-de-balanco-de-stage-fan-out.md` |
 | ADR-394 | adr | Decidido |  | Fato determinístico é autoridade; saída de LLM é hint em vocabulário fechado | `adr/394-fato-deterministico-e-autoridade-llm-e-hint.md` |
 | ADR-395 | adr | Decidido |  | Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap | `adr/395-cobertura-documental-e-hint-de-inventario.md` |
-| ADR-396 | adr | Proposto |  | Amostragem de LLM é declarada no call-site, não herdada do config | `adr/396-amostragem-declarada-no-call-site-de-llm.md` |
+| ADR-396 | adr | Decidido |  | Amostragem de LLM é declarada no call-site, não herdada do config | `adr/396-amostragem-declarada-no-call-site-de-llm.md` |
 | ADR-397 | adr | Decidido |  | Registro civil e dependente fiscal são domínios distintos, projetados juntos | `adr/397-registro-civil-e-dependente-fiscal-sao-dominios-distintos.md` |
 | ADR-398 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/398-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
-| ADR-399 | adr | Proposto |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
+| ADR-399 | adr | Decidido |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
 | ADR-400 | adr | Decidido |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
 | ADR-402 | adr | Decidido |  | Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado | `adr/402-teto-e-capacidade-restante-do-pgbl-sao-campos-distintos.md` |
 | ADR-403 | adr | Decidido |  | Exposição cambial declara seus componentes e a cobertura de cada um; veredito nunca excede a pior cobertura | `adr/403-exposicao-cambial-declara-componentes-e-cobertura.md` |
@@ -941,6 +941,7 @@
 | A40.l72 | lane | open | A40 | Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante | `sprint/A40/lanes/A40-l72-guarda-de-contrato-no-render.md` |
 | A40.l73 | lane | shipped | A40 | Produtor do bundle de proteção lê a fonte documental, e o gap_qualitativo reconcilia com os dependentes do IRPF | `sprint/A40/lanes/A40-l73-produtor-do-bundle-le-a-fonte-documental.md` |
 | A40.l74 | lane | shipped | A40 | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | `sprint/A40/lanes/A40-l74-schema-por-forma-de-payload.md` |
+| A40.l75 | lane | open | A40 | O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou | `sprint/A40/lanes/A40-l75-msw-drift-gate-inerte.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
