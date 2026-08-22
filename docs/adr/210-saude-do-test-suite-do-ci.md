@@ -949,11 +949,17 @@ relatório nunca ficava vazio e o auto-close **não podia** disparar. O alerta q
 "se auto-resolve para não apodrecer" apodreceu pelo mesmo mecanismo da #642 —
 desta vez no próprio vigia.
 
-Corrigido em `_worth_an_issue`: exceção já aceita (`WAIVED`) e instrumento mudo
-(`GH`) não abrem nem sustentam Issue. `GH` fica de fora por razão própria —
-ruído de API não pode iniciar o relógio de rot do `S3`. Medido antes/depois: o
-relatório sai de 2 linhas `WAIVED` para **vazio**, então o próximo run do cron
-fecha a #1122.
+Corrigido em `_report`: exceção já aceita (`WAIVED`) e instrumento mudo (`GH`)
+não abrem nem sustentam Issue. `GH` fica de fora por razão própria — ruído de
+API não pode iniciar o relógio de rot do `S3`.
+
+**Medido:** o corpo do relatório sai de 2 linhas `WAIVED` para **vazio**.
+**Ainda não observado:** o fechamento da #1122. O mecanismo está lido — o step
+`github-script` de `budget-alert.yml` fecha toda Issue `ops-watchdog` quando o
+relatório é vazio —, mas o cron roda às 02:00 UTC e o merge (`e96b852c`,
+2026-08-21 17:20 UTC) é posterior ao run do dia. A #1122 seguia aberta no
+instante do merge. Enquanto ninguém observar o fechamento, isto é previsão com
+mecanismo verificado, não resultado.
 
 ### Deferido — a entrada `ops-watchdog`, com precondição
 
@@ -963,7 +969,8 @@ não pode**: com a #1122 aberta há 21 dias, o gate reprova (`exit=1`, medido), 
 como ele roda no próprio PR, **o PR que contém a entrada não consegue mergear a
 si mesmo**. A precondição é o filtro acima estar em `main` e o cron ter fechado
 a #1122. Dono: próxima sessão que tocar este gate. Condição de retomada:
-`gh issue list --label ops-watchdog --state open` vazio.
+`gh issue list --label ops-watchdog --state open` vazio — comando, não juízo,
+para que a retomada não dependa de alguém reler este parágrafo.
 
 ### Deferido — redistribuir os sinais por escopo (revisão `sre-devops`)
 
@@ -995,6 +1002,12 @@ já que 403-permissão é determinístico e não deve ser re-tentado — e os `G
 clusterizam (08-12 ×3, 08-17 ×3), padrão compatível com rate-limit secundário,
 onde retry cego **piora**.
 
+> **O deferimento do retry acima foi resolvido no §Adendo 2026-08-21c, e não
+> por implementação: a medição o rejeitou** (0 recuperações em 10 tentativas
+> de retry reais, 2026-08-17). O parágrafo acima fica como estava — é registro
+> datado do que se sabia em 21b —, mas quem chegar aqui procurando trabalho
+> pegável não deve pegar este. A redistribuição por escopo segue aberta.
+
 Condição de retomada declarada: **A34 G0** (repo público). Com Actions
 ilimitado, o desenho final não é nem redistribuição nem retry, e sim um **job
 próprio, não-required**, rodando `S1`/`S2`/`S3` completos — a restrição que
@@ -1013,6 +1026,13 @@ força tudo isso a caber num step de check obrigatório é o budget.
 - Falso-vermelho custa mais que um `rerun`: `ci_advance_automerge_train.py`
   tira o PR do trem em `required_workflow_failed`, exigindo novo ciclo de
   re-arme.
+
+Os três seguem sem dono nomeado de propósito: pela regra de admissão vigente,
+destino de follow-up é **quem já possui a superfície** — e a superfície dos três
+é esta ADR mais `ci.yml`/`budget-alert.yml`. Lane nova só se algum deles subir
+para P0/P1 alcançando o usuário. Condição comum de retomada: a próxima leva que
+tocar `.github/workflows/**` os resolve de carona, já que o custo de janela de
+merge é pago uma vez ([[ADR-322]] §Emenda 2026-08-08).
 
 ## Adendo 2026-08-21c — a política de leitura, e o canal de falha que 7 de 9 compensadores não têm
 
