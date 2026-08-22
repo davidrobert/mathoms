@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-18 open · 6 in_progress.
+19 open · 6 in_progress.
 
-## Open (18)
+## Open (19)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
@@ -27,6 +27,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l65]] — A base do PGBL perdeu a âncora de declarante: lê o IRPF mais recente, e o teto de 12% é por CPF · priority P1 · área pipeline/financial-planning · branch `a40-l65-base-pgbl-sem-ancora-de-declarante`
 - [[A40.l68]] — Balanço de stage fan-out: documento que some não pode sair como sucesso · priority P1 · área pipeline · branch `a40-l68-balanco-de-fan-out`
 - [[A40.l72]] — Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante · priority P1 · área frontend · branch `a40-l72-guarda-de-contrato-no-render`
+- [[A40.l75]] — O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou · priority P2 · área frontend/testing · branch `a40-l75-msw-drift-gate-inerte`
 
 ## In progress (6)
 
