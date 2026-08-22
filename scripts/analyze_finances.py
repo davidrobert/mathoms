@@ -1502,7 +1502,8 @@ def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) 
                     "saldo_devedor": round(divida_val, 2),
                     # ausência é null, nunca sentinela "N/D"/0 (A37.l4 · DE-07)
                     "parcela_mensal": None,
-                    "taxa_juros": None,
+                    "taxa_juros_aa": None,
+                    "fontes": {"saldo_devedor": "baseline_irpf"},
                 }
             )
 

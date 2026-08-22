@@ -395,6 +395,7 @@
 | ADR-398 | adr | Decidido |  | Eixo decidido por fato é precondição de mint de identidade de imóvel | `adr/398-eixo-de-fato-e-precondicao-de-mint-de-identidade.md` |
 | ADR-399 | adr | Decidido |  | Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número | `adr/399-alvo-de-kpi-tem-procedencia-o-llm-seleciona.md` |
 | ADR-400 | adr | Decidido |  | Transcrição não é mais confiável que classificação — a forma da dependência é que decide | `adr/400-transcricao-nao-e-mais-confiavel-que-classificacao.md` |
+| ADR-401 | adr | Proposto |  | Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio) | `adr/401-item-de-divida-declara-a-fonte-de-cada-campo.md` |
 | ADR-402 | adr | Decidido |  | Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado | `adr/402-teto-e-capacidade-restante-do-pgbl-sao-campos-distintos.md` |
 | ADR-403 | adr | Decidido |  | Exposição cambial declara seus componentes e a cobertura de cada um; veredito nunca excede a pior cobertura | `adr/403-exposicao-cambial-declara-componentes-e-cobertura.md` |
 | ADR-404 | adr | Decidido |  | A superfície de diagnóstico nunca aborta a execução que documenta | `adr/404-a-superficie-de-diagnostico-nunca-aborta-a-execucao-que-documenta.md` |

@@ -152,10 +152,37 @@ export interface EndividamentoData {
    * escrito à mão, que desliga o gate de consumo neste bloco.
    */
   dividas?: Array<{
+    divida_id?: string | null;
     descricao: string;
+    membro?: string | null;
+    tipo?:
+      | "financiamento_imobiliario"
+      | "financiamento_veiculo"
+      | "consignado"
+      | "emprestimo_pessoal"
+      | "cheque_especial"
+      | "cartao_credito"
+      | "credito_rotativo"
+      | "outros"
+      | null;
     saldo_devedor: number;
+    saldo_ano_referencia?: number | null;
     parcela_mensal?: number | null;
-    taxa_juros?: number | null;
+    /**
+     * Percentual absoluto AO ANO (ADR-401). O sufixo `_aa` é load-bearing:
+     * 12,5% a.m. e 12,5% a.a. levam a decisões opostas, e o card renderizava
+     * `%` nu. Renomeado de `taxa_juros`, que nenhum leitor jamais viu com
+     * valor (null em r5/r6/r7).
+     */
+    taxa_juros_aa?: number | null;
+    desembolso_mensal_observado_brl?: number | null;
+    /** Origem declarada por campo — presente ⟺ o campo homônimo não é null. */
+    fontes: {
+      saldo_devedor: "baseline_irpf" | "declarado";
+      parcela_mensal?: "declarado";
+      taxa_juros_aa?: "declarado";
+      desembolso_mensal_observado_brl?: "observado_e4";
+    };
   }>;
   detalhe?: string;
 }
@@ -170,101 +197,21 @@ export type RentabilidadeStatus =
   // presente mas exige "revisar composição" — nunca renderizar sem flag.
   | "suspeito";
 
-// ──────────────────────────────────────────────────────────────────────
-// Real Estate (S4 · ADR-216 · Onda 2)
-//
-// Payload determinístico produzido por
-// pipeline/domain/services/real_estate_metrics.py + real_estate_adapter.
-// ADR-209: campos *_pct são percentuais absolutos (1.7 = 1,7%).
-// ──────────────────────────────────────────────────────────────────────
-
-export type RealEstateOrigemFonte =
-  "informe" | "irpf" | "e3" | "e4" | "manual" | "pro_rata" | "none" | "default";
-
-export type RealEstateConfidence = "high" | "medium" | "low";
-
-export type RealEstateStatusContrato =
-  "atualizado" | "reajuste_pendente" | "sem_renda" | "desconhecido";
-
-export type RealEstateAlertaCode =
-  | "concentracao_alta"
-  | "spread_critico"
-  | "aluguel_sem_dado"
-  | "contrato_reajuste_pendente"
-  | "premissa_if_imoveis";
-
-export interface RealEstateComponenteCalculo {
-  readonly valor: number;
-  readonly origem: RealEstateOrigemFonte;
-  readonly confidence: RealEstateConfidence;
-}
-
-export interface RealEstateBenchmarks {
-  readonly cdi_liquido_pct: number;
-  readonly ntnb_liquido_pct: number;
-  readonly ifix_yield_pct: number;
-  readonly as_of_date: string;
-}
-
-export interface RealEstateImovel {
-  readonly property_id: string;
-  readonly descricao: string;
-  readonly classification: "locado" | "comercial" | "especulacao";
-  readonly valor_imovel: number;
-  readonly valor_imovel_origem: "irpf" | "mercado";
-  readonly aluguel_mensal_bruto: number | null;
-  readonly taxa_administracao_mensal: number | null;
-  readonly iptu_mensal: number | null;
-  readonly condominio_mensal: number | null;
-  readonly ir_retido_mensal: number;
-  readonly meses_locado_no_ano: number | null;
-  readonly vacancia_pct_empirica: number | null;
-  readonly cap_rate_bruto_pct: number | null;
-  readonly cap_rate_liquido_pct: number | null;
-  readonly gap_reajuste_pct: number | null;
-  readonly status_contrato: RealEstateStatusContrato;
-  readonly indice_reajuste: string | null;
-  readonly data_ultimo_reajuste: string | null;
-  readonly endereco_canonical: string | null;
-  readonly imobiliaria_cnpj: string | null;
-  readonly imobiliaria_nome: string | null;
-  readonly origem_aluguel: RealEstateOrigemFonte;
-}
-
-export interface RealEstateExcludedProperty {
-  readonly property_id: string;
-  readonly descricao: string;
-  readonly classification: string;
-  readonly motivo: string;
-}
-
-export interface RealEstateAlerta {
-  readonly code: RealEstateAlertaCode;
-  readonly severity: "info" | "warning" | "critical";
-  readonly context: string;
-}
-
-export interface RealEstateSpreads {
-  readonly vs_cdi: number;
-  readonly vs_ntnb: number;
-  readonly vs_ifix: number;
-}
-
-export interface RealEstateData {
-  readonly cap_rate_liquido_pct: number | null;
-  readonly cap_rate_bruto_pct: number | null;
-  readonly componentes_calculo: Readonly<
-    Record<string, RealEstateComponenteCalculo>
-  >;
-  readonly benchmarks: RealEstateBenchmarks;
-  readonly spreads_pp: RealEstateSpreads;
-  readonly spread_brl_anual: RealEstateSpreads;
-  readonly concentracao_pct: number;
-  readonly valor_total_imoveis: number;
-  readonly imoveis: readonly RealEstateImovel[];
-  readonly excluded_properties: readonly RealEstateExcludedProperty[];
-  readonly alertas: readonly RealEstateAlerta[];
-}
+// Bloco `real_estate` — tipos extraídos para ./report-real-estate (RV6-15,
+// gate T2 de tamanho de arquivo). Re-exportados aqui: import site não muda.
+export type {
+  RealEstateOrigemFonte,
+  RealEstateConfidence,
+  RealEstateStatusContrato,
+  RealEstateAlertaCode,
+  RealEstateComponenteCalculo,
+  RealEstateBenchmarks,
+  RealEstateImovel,
+  RealEstateExcludedProperty,
+  RealEstateAlerta,
+  RealEstateSpreads,
+  RealEstateData,
+} from "./report-real-estate";
 
 /** A33.l4 (ADR-238 §L4) — renda de proventos por (ticker, ano_base) do E5
  * `proventos_por_ativo`. `renda_liquida_brl` = total − IR retido (numerador

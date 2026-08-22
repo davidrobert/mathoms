@@ -18,7 +18,7 @@ disparando aqui é falso-positivo), métrica que o holdout monocultura anterior 
 ~1,5 mês) não tinha — só provava recall, cego a FP (ADR-300 §Item 3).
 
 Eixos secundários variados entre fixtures (para o número do gate não ser dominado por
-uma red line): presença/ausência de dívida cara (RL2 — ``endividamento.dividas[].taxa_juros``),
+uma red line): presença/ausência de dívida cara (RL2 — ``endividamento.dividas[].taxa_juros_aa``),
 concentração imobiliária > 40 (RL7 — ``real_estate.concentracao_pct``), presença de seguro
 (RL6 — ``alertas`` sem ``seguro_vida_ausente``). PII-zero: nenhum CPF, valores sintéticos.
 
@@ -89,7 +89,7 @@ def _add_divida_cara(e5: dict) -> dict:
     """RL2: dívida com taxa mensal > 1,5% conhecida no E5."""
     endiv = e5.setdefault("endividamento", {})
     endiv.setdefault("dividas", []).append(
-        {"descricao": "rotativo cartão", "taxa_juros": "12,90% a.m.", "saldo": 25_000.0}
+        {"descricao": "rotativo cartão", "taxa_juros_aa": "12,90% a.m.", "saldo": 25_000.0}
     )
     return e5
 

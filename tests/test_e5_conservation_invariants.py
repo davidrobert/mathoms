@@ -190,6 +190,23 @@ def test_patrimonio_liquido_equals_bruto_minus_dividas(e5_payload: dict):
     assert _cents(pat["liquido"]) == _cents(pat["bruto"]) - _cents(pat.get("dividas", 0))
 
 
+def test_soma_das_dividas_fecha_com_o_total(e5_payload: dict):
+    """ADR-401: Σ dividas[].saldo_devedor == endividamento.total_dividas, cents exatos.
+
+    Trava a itemização contra a soma. Se divergir, o suspeito nº 1 é o dedup do
+    consolidador (`dividas_dedup`, identidade por `numero_contrato` degradando
+    para `(tipo, credor_norm, descricao_norm)`) discordando da soma que produz
+    `total_dividas` — divergência que antes ficava invisível porque o item era
+    fabricado a partir do agregado por membro e fechava consigo mesmo.
+    """
+    endiv = e5_payload.get("endividamento") or {}
+    itens = endiv.get("dividas") or []
+    if not itens:
+        pytest.skip("corpus sem dívidas — nada a conservar")
+    soma = sum(_cents(d.get("saldo_devedor", 0)) for d in itens)
+    assert soma == _cents(endiv.get("total_dividas", 0))
+
+
 def test_fluxo_liquido_equals_receita_minus_despesa(e5_payload: dict):
     fc = e5_payload["fluxo_caixa"]
     assert _cents(fc["fluxo_liquido"]) == _cents(fc["receita_total"]) - _cents(fc["despesa_total"])

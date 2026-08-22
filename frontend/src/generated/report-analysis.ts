@@ -427,10 +427,21 @@ export type E5AnalysisArtifact = {
     "percentual_patrimonio"?: number;
     "detalhe"?: string;
     "dividas"?: Array<{
+      "divida_id"?: string | null;
       "descricao": string;
+      "membro"?: string | null;
+      "tipo"?: "financiamento_imobiliario" | "financiamento_veiculo" | "consignado" | "emprestimo_pessoal" | "cheque_especial" | "cartao_credito" | "credito_rotativo" | "outros" | null;
       "saldo_devedor": number;
+      "saldo_ano_referencia"?: number | null;
       "parcela_mensal"?: number | null;
-      "taxa_juros"?: number | null;
+      "taxa_juros_aa"?: number | null;
+      "desembolso_mensal_observado_brl"?: number | null;
+      "fontes": {
+        "saldo_devedor": "baseline_irpf" | "declarado";
+        "parcela_mensal"?: "declarado";
+        "taxa_juros_aa"?: "declarado";
+        "desembolso_mensal_observado_brl"?: "observado_e4";
+      };
     }>;
   };
   "previdencia_pgbl"?: {

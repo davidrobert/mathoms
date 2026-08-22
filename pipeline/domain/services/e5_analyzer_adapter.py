@@ -679,14 +679,21 @@ class E5AnalyzerAdapter:
             num_months=num_months,
         )
 
-        # 11. Endividamento — usa nomes de exibição (titular_nome/conjuge_nome)
-        #     para paridade com legado ``analyze_endividamento`` que formata
-        #     "Financiamento imobiliário (David)" (capitalizado).
+        # 11. Endividamento — item é a DÍVIDA do baseline (ADR-301/ADR-401), não
+        #     "um membro que tem dívida". `endiv_members` só alimenta o fallback
+        #     de baseline sem itemização; o nome de exibição sai em `membro`,
+        #     campo tipado, nunca embutido na descrição.
         endiv_members = [
             {"nome": self._identity.titular_nome, "data": members.titular_data},
             {"nome": self._identity.conjuge_nome, "data": members.conjuge_data},
         ]
-        endividamento = self._endividamento.analyze(patrimonio_full, endiv_members)
+        endividamento = self._endividamento.analyze(
+            patrimonio_full,
+            endiv_members,
+            dividas_baseline=(patrimonio_raw or {}).get("dividas"),
+            ano_ref=members.reference_year,
+            identity=self._identity,
+        )
 
         # 12. Previdência — ancora na capacidade PGBL restante do IRPF do
         #     titular quando há declaração (ADR-277, INV-PREV-3); sem IRPF,

@@ -23,6 +23,7 @@ _SUPPORTED_KEYS = {
     "const",
     "description",
     "enum",
+    "exclusiveMinimum",
     "format",
     "items",
     "maxItems",
