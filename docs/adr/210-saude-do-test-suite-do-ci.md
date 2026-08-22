@@ -30,6 +30,16 @@ tags:
 
 # ADR-210 — Saúde do test suite do CI
 
+> **Emenda (2026-08-21c) — o retry foi rejeitado por medição, e o precedente
+> que eu ia copiar era o segundo defeito:** o §Adendo 2026-08-21 deixou aberta
+> a política de leitura de `_run` ("retry com backoff, ou manter o hard-fail").
+> **Nenhum dos dois.** Nos logs de 08-17 o retry de 5s que já existe em
+> `ci_advance_automerge_train.py` recuperou **0 de 10** — 5×503 devolveram 503
+> na segunda tentativa e 5×403 de permissão são determinísticos. A alavanca não
+> é *quantas tentativas*, é *quantas leituras*: 23 → 11 chamadas `gh` por run,
+> falha tipada com a causa, e orçamento de wall-clock. **Não reabre o
+> fail-closed.** Detalhe no §Adendo 2026-08-21c.
+
 > **Emenda (2026-08-21b) — o gate tem CINCO sinais e o quinto bloqueava merge
 > sem estar declarado; e o alerta do próprio vigia apodreceu 21 dias:** varrendo
 > os runs de `ci.yml` de 08-05 a 08-21, 19 falhas do step de liveness se dividem
@@ -1003,3 +1013,127 @@ força tudo isso a caber num step de check obrigatório é o budget.
 - Falso-vermelho custa mais que um `rerun`: `ci_advance_automerge_train.py`
   tira o PR do trem em `required_workflow_failed`, exigindo novo ciclo de
   re-arme.
+
+## Adendo 2026-08-21c — a política de leitura, e o canal de falha que 7 de 9 compensadores não têm
+
+O §Adendo anterior declarou o `GH` como quinto sinal e mediu 7 ocorrências na
+janela 08-05→08-21. O que ficou aberto foi a **política de leitura**: `_run`
+fazia uma tentativa e descartava `returncode`/`stderr`, então qualquer 5xx,
+timeout ou rate-limit virava violação bloqueante indistinguível de permissão.
+A pergunta registrada era binária — retry com backoff, ou manter o hard-fail
+assumido.
+
+### A medição rejeitou o retry, e o precedente citado era o segundo defeito
+
+O argumento a favor do retry era a assimetria com `ci_advance_automerge_train.py::_gh`,
+que faz 1 retry com backoff de 5s "porque a API do GitHub tem falha
+transiente". A assimetria parecia acidental. **Está invertida:** o `_gh` do trem
+loga `rc`+`stderr`, e é por isso que a evidência existia — 08-17 é um dos dois
+dias do cluster `GH`, e nele o trem falhou **10 de 69 runs** contra **0 de 52**
+em 08-16, lendo a mesma API no mesmo CI.
+
+| Classe (tentativa 2 do retry) | Casos | Recuperou? |
+|---|---|---|
+| `HTTP 503: No server is currently available` (GraphQL) | 5 | não — devolveu 503 |
+| `HTTP 403: Resource not accessible by personal access token` | 5 | não — determinístico |
+
+**0 de 10.** O retry do trem não é o padrão a copiar; ele re-tentou 9× um 403 de
+escopo de PAT, que é exatamente a pré-condição (c) do §Adendo anterior
+materializada. A hipótese de teto primário do `GITHUB_TOKEN` (1.000/h/repo)
+também caiu: o trem roda com `secrets.AUTOUPDATE_PAT` (`auto-update-prs.yml:56`),
+pool separado — a aritmética de saturação somava duas contas que não somam. A
+classe medida é **indisponibilidade**, não cota.
+
+### O que entrou
+
+Um PR só em `dev/check_scheduled_workflows.py` + testes, sem tocar
+`.github/workflows/**` (PR nesse path starva a fila enquanto é cabeça do trem,
+[[ADR-322]] §Emenda 2026-08-08). Os escopos `actions: read` + `issues: read` do
+`lint-all` já cobrem tudo — nenhuma permissão nova.
+
+1. **Falha tipada.** `GhFailure(rc, stderr)` no lugar de `None`; a linha `GH`
+   cita o status HTTP. É o que separa "re-rode" (5xx/timeout) de "re-rodar não
+   resolve" (4xx), e o que teria dispensado a varredura de 1000 runs.
+2. **Leitura por família: 23 → 11 chamadas** (medido ao vivo). 1 chamada traz o
+   `state` dos 13 workflows e 1 traz as Issues abertas, filtradas localmente,
+   no lugar de 1 por entrada. Cada chamada é uma exposição a 5xx; a superfície
+   era o multiplicador. Ganho colateral: workflow declarado no manifesto que o
+   Actions não conhece vira `S1` nomeado, não `GH` com mensagem falsa.
+3. **Guarda de truncagem fail-closed.** `gh issue list` ordena newest-first e o
+   `S3` caça a **mais velha**: com >100 Issues abertas a truncagem descartaria
+   exatamente o que o sinal existe para pegar — fail-open por inversão de
+   polaridade, pior que o falso-vermelho que o batch economiza. Página cheia
+   (`len == limit`) e `total_count` acima da página viram `GH`. Hoje são 10
+   Issues, então a guarda ainda não morde; ela existe porque o gate não pode
+   inverter quando o repo crescer.
+4. **Orçamento de wall-clock: 45s no run, 30s→10s por chamada.** Estourar
+   bloqueia com mensagem para toda entrada não medida — nunca pula. E `Reader`
+   sem leitura batch cai em `GH` por construção, então "não li" não tem como
+   virar `S1` fabricado nem pass.
+
+### A aritmética do deadline estava pior do que o registrado
+
+A pré-condição (a) do §Adendo anterior tratava o deadline como custo *do retry*.
+Ele já era custo do gate: 23 × `timeout=30` = **690s** contra o `timeout-minutes: 4`
+(240s) do `lint-all`. Pós-batch, 11 × 30 = **330s** — ainda acima. O batch reduz
+o pior caso em 52% e **não fecha**; quem fecha é o orçamento. Quando o teto do
+job mata o step, o desfecho é job *cancelled*, que não nomeia causa nem
+desbloqueio — pior que a linha `GH` que o gate existe para emitir.
+
+### Pré-condição (b) não vincula, e por quê
+
+Ela fala de retry **semântico** (reler para confirmar violação), cujo gatilho é
+`violação detectada` — e o `nightly` `disabled_manually` produz `S1`+`S2` em
+100% dos runs, então dispararia sempre. Retry **de transporte** tem gatilho
+`rc != 0`, que esse caminho nunca produz: `gh` devolve `rc=0` com
+`state: disabled_manually`. A pré-condição estava certa para o desenho que
+nomeava; não alcança o que estava em disputa. Registrado para que a próxima
+sessão não a use como bloqueio genérico.
+
+### Condição de retomada do retry
+
+Aparecer classe de falha em que retry **recupere** — visível agora que a linha
+`GH` cita `rc`, status e `N falhas / M chamadas`. Até lá, retry adiciona
+latência ao pior caso sem comprar desfecho. O endgame do §Adendo anterior (job
+próprio, não-required, gated por **A34 G0**) segue de pé e não é reaberto aqui.
+
+### Deferido — o canal de falha que o manifesto afirma e 7 de 9 entradas não têm
+
+O manifesto justifica o desenho do `S2` assim: *"Mede run INICIADO, não
+bem-sucedido — falha já tem canal próprio (Issue), não duplique o alerta."*
+**Medido em 2026-08-21: a afirmação vale para 2 das 9 entradas.** Só
+`nightly.yml` (7 steps `if: failure()`) e `security.yml` (1) têm o canal; as
+outras sete têm zero, e nenhum workflow do repo usa gatilho `workflow_run`, ou
+seja não há canal central que as cubra.
+
+A consequência é a mesma classe de fail-open que criou esta camada: um
+compensador que **inicia e falha** todo run é invisível ao `S2` (iniciou) e não
+abre Issue. Demonstração empírica no próprio dado acima — em 08-17 o
+`auto-update-prs.yml` falhou 10× em ~5h, a fila de merge parou, e nada no
+repositório percebeu. É textualmente o incidente de 06-15 que gerou o §camada 4,
+repetido dentro do manifesto que ele produziu.
+
+**Não entra nesta leva** porque o fix mora em `.github/workflows/**` — path que
+starva a fila enquanto é cabeça do trem, e misturá-lo com o gate custaria o
+ciclo inteiro. **Dono:** próxima leva que já tocar `.github/workflows/**`.
+**Condição de aceite:** falha forçada de `auto-update-prs.yml` abre Issue com
+label declarada em `alerts:` no manifesto; e a justificativa do `S2` no
+manifesto passa a dizer para quantas entradas ela vale.
+
+### Follow-ups menores medidos aqui
+
+- **`AUTOUPDATE_PAT` devolveu `403 Resource not accessible`** em `actions/runs`
+  em 08-17 (5 casos) — escopo de PAT, determinístico, e o retry do trem o
+  re-tenta em vão. Dois fixes independentes: corrigir o escopo, e classificar o
+  `_gh` do trem para não re-tentar 4xx.
+- **Asserção de teste que sobreviveu à inversão de sentido:**
+  `test_gh_mudo_dentro_do_ci_e_falha_nao_pass` afirmava `"permissions" in detail`
+  para cobrar a mensagem *"cheque permissions do job"*. O #1613 substituiu essa
+  mensagem por uma que diz o **oposto** ("blip, rate-limit e permissions são
+  indistinguíveis") — e a asserção continuou verde, medindo nada. Agora afirma o
+  status HTTP citado. Substring de prosa não é asserção sobre mecanismo.
+- **Comentários de custo vencidos em `ci.yml`** (`:430` "44s" → 2m04s medido;
+  `:519` "~2s" → 8-10s medido) seguem abertos do §Adendo anterior, mesmo dono
+  (leva que tocar `.github/workflows/**`). Nota para quem for ajustar: o
+  `pre-commit --all-files` domina os 2m04s e varia com cache frio — a folga é
+  menor que a razão 2m04s/4min sugere, então não afrouxe o teto como compensação.
