@@ -408,6 +408,13 @@ Materializa em `.github/scheduled-workflows.yml` (manifesto declarativo dos 9
 workflows agendados, incluindo o `budget-alert.yml` que hospeda o próprio
 watchdog) + `dev/check_scheduled_workflows.py`, com quatro sinais:
 
+> **Snapshot de 2026-07-30 — a tabela abaixo está vencida e fica como está.**
+> Os sinais hoje são **cinco**: o `GH` (instrumento mudo) já bloqueava merge
+> quando esta tabela foi escrita e só foi declarado no §Adendo 2026-08-21b, e
+> o `S1` ganhou uma segunda condição no §Adendo 2026-08-21c. **Tabela vigente
+> no §Adendo 2026-08-21c**; esta permanece como evidência do que a camada
+> afirmava em 07-30 — que é justamente o defeito que os dois adendos medem.
+
 | Sinal | Detecta | Por que existe |
 |---|---|---|
 | `S0` | manifesto ≠ `.github/workflows/*.yml` | senão o manifesto apodrece como apodreceu este texto |
@@ -1013,6 +1020,20 @@ ilimitado, o desenho final não é nem redistribuição nem retry, e sim um **jo
 próprio, não-required**, rodando `S1`/`S2`/`S3` completos — a restrição que
 força tudo isso a caber num step de check obrigatório é o budget.
 
+### Correções deste fechamento (lane-closeout do #1625)
+
+- **`p50 ≈ 0,4s` era inferência, não medição.** O comentário de `CALL_TIMEOUT_S`
+  afirmava "p50 medido"; o que existia era média derivada de wall-clock ÷ número
+  de chamadas do desenho **antigo** (8,59s ÷ 23). Re-medido por chamada no
+  desenho novo: **p50 = 0,68s** (n=11, max 0,83s) — as chamadas batch trazem mais
+  dado e custam mais. Não muda a decisão (10s segue ~15× o p50), muda o que o
+  comentário pode afirmar. Regra que o pegou: número citado se re-mede, não se
+  relê.
+- **`S1` ganhou condição sem ser declarado onde os sinais moram.** Ver a tabela
+  vigente acima. O PR declarou a condição nova no docstring e nesta prosa, mas
+  não no manifesto nem em tabela — repetindo o defeito que o §Adendo 2026-08-21b
+  mede. Corrigido nos dois lugares.
+
 ### Follow-ups menores medidos aqui
 
 - `ci.yml:430` afirma *"observado 44s; 4min dá ~5× buffer"* para o `lint-all`,
@@ -1090,6 +1111,24 @@ Um PR só em `dev/check_scheduled_workflows.py` + testes, sem tocar
    bloqueia com mensagem para toda entrada não medida — nunca pula. E `Reader`
    sem leitura batch cai em `GH` por construção, então "não li" não tem como
    virar `S1` fabricado nem pass.
+
+### Tabela vigente dos sinais (substitui a de §Adendo 2026-07-30)
+
+| Sinal | Detecta | Bloqueia merge? |
+|---|---|---|
+| `S0` | manifesto ≠ `.github/workflows/*.yml` (do disco, sem `gh`) | sim |
+| `S1` | workflow não-`active` **ou** ausente do Actions | sim |
+| `S2` | sem run agendado dentro da janela | sim |
+| `S3` | Issue de alerta além do limite de idade | sim |
+| `GH` | `gh` não respondeu **dentro do CI** — não é sinal sobre o workflow, é sobre a medição | sim, fail-closed |
+| `WAIVER` | waiver datado vencido | sim |
+
+A segunda condição do `S1` nasceu aqui: com a leitura batch, "declarado no
+manifesto e ausente da lista" virou estado **nomeável**. Antes, o `gh api` por
+entrada devolvia 404 indistinguível de blip, e a acusação saía como `GH` com
+mensagem falsa. Declarada também no manifesto — sinal que bloqueia merge e mora
+só no código é a inversão da invariante desta camada, e foi o achado do §Adendo
+2026-08-21b sendo repetido.
 
 ### A aritmética do deadline estava pior do que o registrado
 

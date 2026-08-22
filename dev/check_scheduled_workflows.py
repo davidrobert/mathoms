@@ -23,8 +23,9 @@ _SCHEDULE_RE = re.compile(r"^\s+-\s+cron:", re.MULTILINE)
 _HTTP_STATUS_RE = re.compile(r"HTTP (\d{3})")
 OVERRIDE_LABELS = ("hotfix", "ops-override")
 
-# p50 medido por chamada ≈ 0,4s; acima de 10s a leitura já é patológica e o que
-# interessa é devolver GH legível em vez de segurar o job.
+# p50 medido por chamada = 0,68s (n=11, batch, 2026-08-21; max 0,83s). Acima de
+# 10s a leitura já é patológica e o que interessa é devolver GH legível em vez de
+# segurar o job — ~15× o p50 é folga suficiente.
 CALL_TIMEOUT_S = 10.0
 # Teto agregado do run. Sem ele, N chamadas × timeout excedem o
 # `timeout-minutes: 4` do job `lint-all` e o desfecho vira job *cancelled* — que

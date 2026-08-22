@@ -22,7 +22,12 @@
 #                    `schedule:` no disco. Calculado do DISCO, sem chamar `gh`:
 #                    é o único sinal que um PR pode causar e consertar, e o
 #                    único imune a instabilidade de API.
-#   S1 state       — workflow desabilitado (foi o que aconteceu em 06-15).
+#   S1 state       — workflow desabilitado (foi o que aconteceu em 06-15) OU
+#                    declarado aqui e desconhecido pelo Actions (arquivo que
+#                    nunca chegou a `main`, ou renomeado só neste arquivo).
+#                    A segunda condição entrou em 2026-08-21c junto com a
+#                    leitura batch: antes dela, ausência era indistinguível de
+#                    `gh` mudo e saía como GH com mensagem falsa.
 #   S2 liveness    — nenhum run agendado dentro de `max_age_days`. Pega o que
 #                    S1 não vê: cron que parou de disparar, auto-disable da
 #                    GitHub por 60 dias de inatividade, YAML inválido.
