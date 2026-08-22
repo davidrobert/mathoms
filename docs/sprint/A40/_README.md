@@ -225,7 +225,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (73 no disco · 73 nesta tabela — ver nota ao fim)
+## Lanes (75 no disco · 75 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -342,6 +342,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l73]] | Produtor do bundle de proteção lê a fonte documental, e o `gap_qualitativo` reconcilia com os dependentes do IRPF | P1 | — | aberta 2026-08-19 · item **3c inteiro** da Onda 3 do [[PLAN-deterministic-authority]], por autorização explícita do dono (fora do MVP declarado) · PD-4 / RV6-20 · [[ADR-395]] `Decidido` · `parallel_with` [[A40.l60]] (dormente; divisão de arquivos declarada na lane) · **`shipped` 2026-08-19** (#1549 · #1554 · #1560 · #1564 · #1576) |
 | [[A40.l74]] | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | P1 | — | aberta 2026-08-21 · fecha a metade apólice do problema cujo lado CRLV saiu em #1599 · [[ADR-407]] `Proposto` + emenda datada em [[ADR-239]] §D8 · descobriu 2 consumidores extras do 1:1 (`_schema_version_token` carimbava row de apólice com hash de schema de veículo; `check_artifact_read_keys` lê o mapa por `ast.literal_eval`) · follow-up de `e4_unified` endereçado a [[A40.l58]] · **`shipped` 2026-08-21** (#1604) |
 | [[A40.l75]] | O gate de drift do MSW existe, está fora do CI e compara errado: a [[ADR-069]] afirma uma proteção que nunca rodou | P2 | — | aberta 2026-08-21 · achado da camada 2 do `lane-closeout` no fecho do #1618 (que declarou 129 requests órfãs do MSW em 7 arquivos) · `msw-lint.mjs` existe desde 2026-04-22, **fora do CI**, e contra o snapshot commitado devolve 219/219 + 75/75 — 100% falso-positivo, porque `normalizeUrl` não remove o prefixo `${API}` que o próprio comentário promete remover · 3 defaults pré-escopo de workspace sobrevivem em `handlers.ts` |
+| [[A40.l76]] | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | P1 | — | aberta 2026-08-21 · `document_id` NULL em **16.292/16.292** (re-medido) · [[ADR-408]] `Proposto` (#1607) decide o fix em co-design `data-engineer` + `senior-cto`; [[ADR-311]] emendada com o alcance real do D1 · gate da lacuna já em `main` (#1600, `xfail(strict=True)` que se auto-remove quando a FK popular) · 4 peças em ordem dura: guard de colisão → FK por porta → backfill → predicado |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
