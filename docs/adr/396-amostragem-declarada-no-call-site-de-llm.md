@@ -2,8 +2,8 @@
 id: ADR-396
 type: adr
 title: "Amostragem de LLM é declarada no call-site, não herdada do config"
-status: Proposto
-phase: §r7 PE-2
+status: Decidido
+phase: r7.PE-2
 date: "2026-08-19"
 relates_to:
   - "[[ADR-233]]"
@@ -12,8 +12,19 @@ relates_to:
   - "[[ADR-394]]"
 tags:
   - type/adr
+  - status/decidido
   - area/llm
+aliases:
+  - "ADR 396"
+  - "amostragem declarada no call-site"
 ---
+
+# ADR-396 — Amostragem de LLM é declarada no call-site
+
+> **Decidido em 2026-08-19** na remediação do **PE-2** (P1) do §r7 de
+> [[PIPELINE-REVIEWS-active]]. Entregue integralmente em #1555 (`9d95134c`):
+> gate `dev/check_llm_sampling.py` por assinatura, `temperature` do parecer
+> 0.1→0.0, 5 call-sites corrigidos.
 
 ## Contexto
 
