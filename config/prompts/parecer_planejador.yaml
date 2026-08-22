@@ -15,7 +15,8 @@
 # Coverage gate (dev/check_planner_manifest_coverage.py) cruza:
 #   1. Paths daqui ↔ schema E5 (config/schemas/e5_analysis.schema.json)
 #   2. aligned_with_layout ↔ section_ids em config/report_layout.yaml
-#   3. Snapshot do schema E5 (dev/snapshots/e5_schema_hash.txt) — drift warning
+#   3. Drift do E5 derivado do diff contra HEAD — warning quando o schema
+#      muda e este manifest não (ADR-200 §D3.3; sem baseline em disco)
 #
 # Schema deste arquivo: docs/_schemas/note-planner.schema.json.
 #

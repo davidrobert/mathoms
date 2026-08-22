@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import subprocess
@@ -296,78 +295,54 @@ def check_layout_coverage(
 
 
 # ---------------------------------------------------------------------------
-# Snapshot diff do schema E5
+# Drift E5 schema ↔ manifest (ADR-200 §D3.3)
 # ---------------------------------------------------------------------------
 
 
-def canonical_schema_hash(schema: dict) -> str:
-    blob = json.dumps(schema, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
-
-
-def _git_file_changed_in_head(path: Path) -> bool:
-    """True se o arquivo aparece no diff de HEAD (best-effort, falha => False)."""
-    try:
-        rel = path.relative_to(REPO_ROOT)
-    except ValueError:
-        rel = path
+def _git_changed_paths() -> frozenset[str]:
+    """Paths mudados vs HEAD. Best-effort — sem git utilizável, retorna vazio."""
     try:
         result = subprocess.run(
-            ["git", "-C", str(REPO_ROOT), "diff", "--name-only", "HEAD", "--", str(rel)],
+            ["git", "-C", str(REPO_ROOT), "diff", "--name-only", "HEAD"],
             capture_output=True,
             text=True,
             check=False,
         )
     except (FileNotFoundError, OSError):
-        return False
+        return frozenset()
     if result.returncode != 0:
-        return False
-    files = {line.strip() for line in result.stdout.splitlines() if line.strip()}
-    return str(rel) in files
+        return frozenset()
+    return frozenset(line.strip() for line in result.stdout.splitlines() if line.strip())
 
 
-def _write_snapshot(snapshot_path: Path, current_hash: str) -> None:
-    snapshot_path.parent.mkdir(parents=True, exist_ok=True)
-    snapshot_path.write_text(current_hash + "\n", encoding="utf-8")
-    print(f"[snapshot] regenerado em {snapshot_path} → {current_hash[:12]}…")
+def _repo_relative(path: Path) -> str:
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
 
 
-def _warn_drift(manifest_path: Path, report: CoverageReport) -> None:
-    if _git_file_changed_in_head(manifest_path):
+def _warn_drift(manifest_changed: bool, report: CoverageReport) -> None:
+    if manifest_changed:
         report.warn(
-            "[snapshot] schema E5 mudou (hash divergente do snapshot) e manifest "
-            "também — confirme se o tunning está em sync e regenere snapshot com "
-            "--update-snapshot."
+            "[drift] schema E5 e manifest do parecer mudaram juntos — confirme "
+            "que o tunning do manifest cobre o campo novo."
         )
         return
     report.warn(
-        "[snapshot] schema E5 mudou neste PR; manifest do parecer NÃO foi tocado — "
-        "confirme se é intencional. Para suprimir, rode --update-snapshot após "
-        "revisar."
+        "[drift] schema E5 mudou e o manifest do parecer NÃO foi tocado — "
+        "confirme se o campo novo é irrelevante ao parecer."
     )
 
 
-def _warn_missing_snapshot(snapshot_path: Path, report: CoverageReport) -> None:
-    report.warn(
-        f"[snapshot] hash baseline ausente em {snapshot_path} — "
-        "rode com --update-snapshot para criar."
-    )
-
-
-def check_snapshot_drift(
-    e5_schema: dict,
-    snapshot_path: Path,
+def check_schema_manifest_drift(
+    e5_schema_path: Path,
     manifest_path: Path,
     report: CoverageReport,
-    update: bool,
+    changed_paths: frozenset[str] | None = None,
 ) -> None:
-    current = canonical_schema_hash(e5_schema)
-    if update:
-        _write_snapshot(snapshot_path, current)
+    """Avisa quando o E5 muda sem o manifest. Deriva do diff — sem baseline em disco."""
+    changed = _git_changed_paths() if changed_paths is None else changed_paths
+    if _repo_relative(e5_schema_path) not in changed:
         return
-    if not snapshot_path.exists():
-        _warn_missing_snapshot(snapshot_path, report)
-        return
-    previous = snapshot_path.read_text(encoding="utf-8").strip()
-    if previous != current:
-        _warn_drift(manifest_path, report)
+    _warn_drift(_repo_relative(manifest_path) in changed, report)

@@ -207,12 +207,22 @@ def _field_request_entry(entry, default_reason: str) -> Optional[dict]:
     return {"field_path": path, "motivo": motivo, "reason": reason}
 
 
+def _injected_paths(content_json: dict) -> set[str]:
+    """Paths que o guardrail injetou (FP-4 D3-A) — lidos da telemetria em ``_meta``."""
+    guardrails = (content_json.get("_meta") or {}).get("pos_llm_guardrails") or {}
+    paths = guardrails.get("taxa_divida_injetada_paths") or []
+    return {p for p in paths if isinstance(p, str)}
+
+
 def _iter_field_requests(content_json: dict):
     """Yields ``{field_path, motivo, reason}`` — array ``campos_faltantes_pediria_se_
-    iterasse`` (mantidos pelo filtro 3-vias → llm_declared) + ``_meta.field_request_
-    audit`` (removidos — spurious/wrong_path, A28.l11)."""
+    iterasse`` (mantidos pelo filtro 3-vias → llm_declared, salvo os injetados pelo
+    guardrail → guardrail_injected) + ``_meta.field_request_audit`` (removidos —
+    spurious/wrong_path, A28.l11)."""
+    injetados = _injected_paths(content_json)
     for entry in content_json.get("campos_faltantes_pediria_se_iterasse") or []:
-        row = _field_request_entry(entry, "llm_declared")
+        default = "guardrail_injected" if entry.get("field_path") in injetados else "llm_declared"
+        row = _field_request_entry(entry, default)
         if row:
             yield row
     audit = (content_json.get("_meta") or {}).get("field_request_audit") or []

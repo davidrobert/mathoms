@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Coverage gate do manifest do parecer planejador (ADR-200 §D3 + ADR-206 §6). Cruza manifest YAML, schema E5 e report_layout e detecta drift. Internals em ``dev/_planner_coverage_internals.py``; ``--update-snapshot`` regenera baseline."""
+"""Coverage gate do manifest do parecer planejador (ADR-200 §D3 + ADR-206 §6). Cruza manifest YAML, schema E5 e report_layout e avisa drift derivado do diff. Internals em ``dev/_planner_coverage_internals.py``."""
 
 from __future__ import annotations
 
@@ -16,10 +16,9 @@ if str(REPO_ROOT) not in sys.path:
 
 from dev._planner_coverage_internals import (  # noqa: E402
     CoverageReport,
-    canonical_schema_hash,  # noqa: F401  (re-export para callers/tests)
     check_e5_coverage,
     check_layout_coverage,
-    check_snapshot_drift,
+    check_schema_manifest_drift,
     load_json,
     load_yaml,
     validate_manifest_structure,
@@ -29,7 +28,6 @@ DEFAULT_MANIFEST = REPO_ROOT / "config" / "prompts" / "parecer_planejador.yaml"
 DEFAULT_MANIFEST_SCHEMA = REPO_ROOT / "docs" / "_schemas" / "note-planner.schema.json"
 DEFAULT_E5_SCHEMA = REPO_ROOT / "config" / "schemas" / "e5_analysis.schema.json"
 DEFAULT_REPORT_LAYOUT = REPO_ROOT / "config" / "report_layout.yaml"
-DEFAULT_SNAPSHOT_PATH = REPO_ROOT / "dev" / "snapshots" / "e5_schema_hash.txt"
 
 
 def _load_manifest_or_fail(path: Path, report: CoverageReport) -> dict | None:
@@ -73,7 +71,6 @@ class CoveragePaths:
     manifest_schema: Path
     e5_schema: Path
     layout: Path
-    snapshot: Path
 
 
 def _run_checks(
@@ -81,13 +78,12 @@ def _run_checks(
     manifest: dict,
     e5_schema: dict,
     layout: dict,
-    update_snapshot: bool,
     report: CoverageReport,
 ) -> None:
     check_e5_coverage(manifest, e5_schema, p.e5_schema, report)
     if layout:
         check_layout_coverage(manifest, layout, p.layout, report)
-    check_snapshot_drift(e5_schema, p.snapshot, p.manifest, report, update_snapshot)
+    check_schema_manifest_drift(p.e5_schema, p.manifest, report)
 
 
 def _load_inputs(
@@ -105,22 +101,18 @@ def _load_inputs(
     return manifest, e5_schema, layout
 
 
-def run_coverage(  # noqa: PLR0913 - assinatura compatível com CLI legacy
+def run_coverage(
     manifest_path: Path,
     manifest_schema_path: Path,
     e5_schema_path: Path,
     layout_path: Path,
-    snapshot_path: Path,
-    update_snapshot: bool,
 ) -> CoverageReport:
-    paths = CoveragePaths(
-        manifest_path, manifest_schema_path, e5_schema_path, layout_path, snapshot_path
-    )
+    paths = CoveragePaths(manifest_path, manifest_schema_path, e5_schema_path, layout_path)
     report = CoverageReport()
     manifest, e5_schema, layout = _load_inputs(paths, report)
     if manifest is None or e5_schema is None:
         return report
-    _run_checks(paths, manifest, e5_schema, layout, update_snapshot, report)
+    _run_checks(paths, manifest, e5_schema, layout, report)
     return report
 
 
@@ -149,12 +141,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--manifest-schema", type=Path, default=DEFAULT_MANIFEST_SCHEMA)
     parser.add_argument("--e5-schema", type=Path, default=DEFAULT_E5_SCHEMA)
     parser.add_argument("--report-layout", type=Path, default=DEFAULT_REPORT_LAYOUT)
-    parser.add_argument("--snapshot", type=Path, default=DEFAULT_SNAPSHOT_PATH)
-    parser.add_argument(
-        "--update-snapshot",
-        action="store_true",
-        help="Regenera o hash baseline do schema E5 após mudança intencional.",
-    )
     return parser.parse_args(argv)
 
 
@@ -165,8 +151,6 @@ def main(argv: list[str] | None = None) -> int:
         args.manifest_schema,
         args.e5_schema,
         args.report_layout,
-        args.snapshot,
-        args.update_snapshot,
     )
     return emit_report(report)
 

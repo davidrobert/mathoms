@@ -67,6 +67,7 @@ Pydantic / `$defs`).
 - Delta de tokens do `SYSTEM_PROMPT_TEMPLATE` **< 5%** (teste estático).
 - `PROMPT_VERSION` 1.3.0; `dev/check_prompt_version_bumped.py` verde.
 - `dev/check_planner_manifest_coverage.py` verde **sem** `--update-snapshot`.
+  <!-- 2026-08-21: flag removida junto do baseline versionado; drift do E5 vem do diff. -->
 - Cache key bumpada; teste: cache pré-F4 não é servido pós-bump.
 - JSON Schema do parecer e persistência **inalterados** (zero migração).
 - Limitação "magnitude, não semântica" anotada na [[ADR-279]] (nota §E).
