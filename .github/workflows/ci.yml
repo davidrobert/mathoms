@@ -169,6 +169,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      # check-runs do SHA anterior da branch — predicado (b) do skip-class
+      checks: read
     outputs:
       backend: ${{ steps.filter.outputs.backend_any_changed }}
       frontend: ${{ steps.filter.outputs.frontend_any_changed }}
@@ -180,6 +182,7 @@ jobs:
       migration: ${{ steps.filter.outputs.migration_any_changed }}
       go: ${{ steps.filter.outputs.go_any_changed }}
       dev_tools: ${{ steps.filter.outputs.dev_tools_any_changed }}
+      incoming_main_docs_only: ${{ steps.incoming.outputs.incoming_main_docs_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -188,6 +191,23 @@ jobs:
           # Custo medido do clone completo: ~35 MB / 2.1k commits, poucos
           # segundos — cabe folgado no 1 min que o job já é faturado.
           fetch-depth: 0
+      # Kill switch: sem a var de repo o step nem roda, o output fica vazio, e
+      # os `if:` abaixo usam `!= 'true'` — vazio faz TUDO rodar. Desligar leva
+      # <1min e não passa por PR, que é tarde demais quando o modo de falha é o
+      # próprio caminho de merge.
+      # Fail-open em 3 camadas, cada uma pegando uma classe: `if:` (feature
+      # desligada), `continue-on-error` (step vermelho não reprova `changes`, que
+      # derrubaria `All checks green` de TODO PR do repo) e try/except no script
+      # (decisão indeterminada vira `false`). Nenhuma delas pode CONCEDER skip.
+      - name: Incoming main is docs-only? (ADR-322 skip-class)
+        id: incoming
+        if: vars.CI_SKIP_DOCS_ONLY == 'true' && github.event_name == 'pull_request'
+        continue-on-error: true
+        timeout-minutes: 2
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 dev/incoming_main_docs_only.py --emit
       - name: Detect changed files (SHA-pinned v47.0.6)
         id: filter
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
@@ -663,7 +683,7 @@ jobs:
     # `pipeline_lib`, não `pipeline` (ADR-210 §Adendo 2026-08-05) — este job
     # não precisa re-rodar quando só teste/script de pipeline muda; ver
     # comentário do filtro em `changes` acima.
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline_lib == 'true'
+    if: needs.changes.outputs.incoming_main_docs_only != 'true' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline_lib == 'true')
     services:
       redis:
         image: redis:7-alpine
@@ -871,7 +891,7 @@ jobs:
     # job (paralelizar o render gate), não subir o teto de novo.
     timeout-minutes: 20
     needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.frontend == 'true'
     defaults:
       run:
         working-directory: frontend
@@ -1503,7 +1523,7 @@ jobs:
     name: Go lint (golangci v2 + gofmt + vet)
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.go == 'true'
+    if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -1535,7 +1555,7 @@ jobs:
     name: Go test -race + codegen sync
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.go == 'true'
+    if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
