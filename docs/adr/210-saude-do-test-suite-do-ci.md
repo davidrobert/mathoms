@@ -1081,9 +1081,9 @@ em 08-16, lendo a mesma API no mesmo CI.
 **0 de 10.** O retry do trem não é o padrão a copiar; ele re-tentou 9× um 403 de
 escopo de PAT, que é exatamente a pré-condição (c) do §Adendo anterior
 materializada. A hipótese de teto primário do `GITHUB_TOKEN` (1.000/h/repo)
-também caiu: o trem roda com `secrets.AUTOUPDATE_PAT` (`auto-update-prs.yml:56`),
-pool separado — a aritmética de saturação somava duas contas que não somam. A
-classe medida é **indisponibilidade**, não cota.
+também caiu: o trem roda com `GH_TOKEN: ${{ secrets.AUTOUPDATE_PAT }}`
+(`auto-update-prs.yml:58`), pool separado — a aritmética de saturação somava
+duas contas que não somam. A classe medida é **indisponibilidade**, não cota.
 
 ### O que entrou
 
