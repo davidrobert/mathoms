@@ -10,7 +10,7 @@ procurar** e **como provar**. Achado sem prova não sai do rascunho.
 | Todo PR da lane aparece no `_README` da sprint | `grep "#<N>" docs/sprint/<X>/_README.md`. Lane com 2+ PRs: o `ship_pr` nomeia **um**; os outros vivem no corpo |
 | Todo trabalho deferido tem dono vivo | Camada 1 cobre. Se acendeu, o destino é lane **aberta**, plano, ou dono nomeado — nunca uma ADR `Decidido` sozinha (ADR registra, não executa) |
 | ADR da lane flipou `Proposto` → `Decidido` | `grep "^status:" docs/adr/<NNN>-*.md`. Lane que implementa ADR e fecha com ela `Proposto` é entrega sem decisão |
-| Achado que o PR fechou está marcado fechado | Tabela de achados da sprint/plano: linha `procede-aberto` cujo PR já mergeou é zumbi |
+| Achado que o PR fechou está marcado fechado | Tabela de achados da sprint/plano **e dos registros `docs/_MOC/*-active.md`** (a camada 1 lista os citadores): linha `procede-aberto` cujo PR já mergeou é zumbi. Reconcilie **reportando à cadência da skill dona** — o flip de disposição segue a convenção do registro ([[ADR-343]]), com marcador na própria célula, nunca só nota datada |
 | Escopo que a lane **recusou** está escrito | Recusa não registrada volta como pickup duplicado. O #1341 item 5 é exatamente isso |
 
 ## 2. Corretude — os números ainda são verdade depois do merge?

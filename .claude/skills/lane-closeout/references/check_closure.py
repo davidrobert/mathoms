@@ -34,6 +34,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 SPRINT = REPO_ROOT / "docs" / "sprint"
+MOC = REPO_ROOT / "docs" / "_MOC"
 
 CLOSED_LANE = {"shipped", "cancelled"}
 OPEN_LANE = {"planned", "open", "in_progress", "blocked"}
@@ -379,13 +380,18 @@ def check_stale_blocked(lane: Lane, lanes: dict[str, Lane]) -> list[Finding]:
     ]
 
 
+# Registros `*-active.md` entram desde 2026-08-21: os 2 CLOSE-BLOCK reais da
+# revisão de método moravam em linha de achado da PIPELINE-REVIEWS-active,
+# fora do universo — a linha-zumbi nasce no merge, e este é o único ponto que
+# a vê com latência zero.
 def citers_of(lane_id: str) -> list[str]:
-    """Docs de sprint que citam a lane — universo da camada 3 (contexto, não falha)."""
-    out = []
-    for doc in sorted(SPRINT.glob("*/*.md")) + sorted(SPRINT.glob("*/lanes/*.md")):
-        if f"[[{lane_id}]]" in doc.read_text(encoding="utf-8"):
-            out.append(_rel(doc))
-    return out
+    """Docs de sprint + registros `_MOC/*-active.md` que citam a lane (contexto, não falha)."""
+    universe = (
+        sorted(SPRINT.glob("*/*.md"))
+        + sorted(SPRINT.glob("*/lanes/*.md"))
+        + sorted(MOC.glob("*-active.md"))
+    )
+    return [_rel(doc) for doc in universe if f"[[{lane_id}]]" in doc.read_text(encoding="utf-8")]
 
 
 def audit(lane_ids: list[str], lanes: dict[str, Lane]) -> tuple[list[Finding], dict]:

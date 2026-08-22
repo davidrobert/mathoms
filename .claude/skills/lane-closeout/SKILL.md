@@ -70,9 +70,15 @@ não entram.
 
 ### Camada 2 — Universo semântico
 
-A saída do script traz `docs que citam <lane>`. **É ali que o drift mora** — o
-#1341 corrigiu o `_README` da sprint, o #1340 corrigiu uma *outra* lane. Ler só
-o arquivo da lane é o erro que faz a pergunta do dono render toda vez.
+A saída do script traz `docs que citam <lane>` — desde 2026-08-21 incluindo os
+registros `docs/_MOC/*-active.md`. **É ali que o drift mora** — o #1341
+corrigiu o `_README` da sprint, o #1340 corrigiu uma *outra* lane, e os 2
+CLOSE-BLOCK reais da revisão de método de 2026-08-21 moravam em linha de
+achado da `PIPELINE-REVIEWS-active`. Linha com `Disposição` viva citando a
+lane que você está fechando **se reconcilia agora**: este closeout é o
+detector primário da linha-zumbi (a `audit-vault` só a pega como rede de
+segurança, com latência de rotação). Ler só o arquivo da lane é o erro que
+faz a pergunta do dono render toda vez.
 
 Some a esse conjunto: as ADRs em `adrs:`, o plano em `plan:`, e qualquer doc
 que o PR tocou fora de `docs/sprint/`.
