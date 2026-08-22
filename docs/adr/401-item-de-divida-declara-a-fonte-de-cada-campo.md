@@ -2,7 +2,7 @@
 id: ADR-401
 type: adr
 title: "Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio)"
-status: Proposto
+status: Decidido
 phase: A40 · RV6-15
 date: "2026-08-19"
 relates_to:

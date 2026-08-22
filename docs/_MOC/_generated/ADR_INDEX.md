@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 341
-- **Proposto**: 53
+- **Decidido**: 342
+- **Proposto**: 52
 - **Roadmap**: 4
 
 ## Fundação
@@ -553,7 +553,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (73)
+### Decidido (74)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -623,13 +623,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-397]] — Registro civil e dependente fiscal são domínios distintos, projetados juntos · phase r7.PE-3
 - [[ADR-398]] — Eixo decidido por fato é precondição de mint de identidade de imóvel · phase r7/DE-6
 - [[ADR-400]] — Transcrição não é mais confiável que classificação — a forma da dependência é que decide · phase DE-1
+- [[ADR-401]] — Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio) · phase A40 · RV6-15
 - [[ADR-402]] — Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado · phase r7.FP-5A
 - [[ADR-403]] — Exposição cambial declara seus componentes e a cobertura de cada um; veredito nunca excede a pior cobertura · phase r7.FP-5B
 - [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 - [[ADR-406]] — Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança · phase r7/DE-2
 - [[ADR-407]] — Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape · phase A40.l74
 
-### Proposto (16)
+### Proposto (15)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -645,7 +646,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
-- [[ADR-401]] — Item de dívida declara a fonte de cada campo (fontes por chave, enum próprio) · phase A40 · RV6-15
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
 
 ### Roadmap (1)
