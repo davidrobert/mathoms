@@ -169,7 +169,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      actions: read
+      # check-runs do SHA anterior da branch — predicado (b) do skip-class
+      checks: read
     outputs:
       backend: ${{ steps.filter.outputs.backend_any_changed }}
       frontend: ${{ steps.filter.outputs.frontend_any_changed }}
@@ -190,15 +191,23 @@ jobs:
           # Custo medido do clone completo: ~35 MB / 2.1k commits, poucos
           # segundos — cabe folgado no 1 min que o job já é faturado.
           fetch-depth: 0
-      # Fail-closed: sem merge-commit, sem smoke <24h, ou delta com código
-      # o output fica `false` e os jobs pesados rodam (ADR-322 §Emenda 2026-08-21).
+      # Kill switch: sem a var de repo o step nem roda, o output fica vazio, e
+      # os `if:` abaixo usam `!= 'true'` — vazio faz TUDO rodar. Desligar leva
+      # <1min e não passa por PR, que é tarde demais quando o modo de falha é o
+      # próprio caminho de merge.
+      # Fail-open em 3 camadas, cada uma pegando uma classe: `if:` (feature
+      # desligada), `continue-on-error` (step vermelho não reprova `changes`, que
+      # derrubaria `All checks green` de TODO PR do repo) e try/except no script
+      # (decisão indeterminada vira `false`). Nenhuma delas pode CONCEDER skip.
       - name: Incoming main is docs-only? (ADR-322 skip-class)
         id: incoming
+        if: vars.CI_SKIP_DOCS_ONLY == 'true' && github.event_name == 'pull_request'
+        continue-on-error: true
+        timeout-minutes: 2
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          git fetch origin main --no-tags --quiet || true
-          python3 dev/incoming_main_docs_only.py --github-output
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 dev/incoming_main_docs_only.py --emit
       - name: Detect changed files (SHA-pinned v47.0.6)
         id: filter
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
@@ -547,7 +556,7 @@ jobs:
     # `dev_tools`: 24 módulos de dev/ são importados por tests/ e 6
     # `dev/check_*.py` rodam como step deste job — sem isto, PR que só toca
     # dev/** não roda o gate que testa dev/**.
-    if: needs.changes.outputs.incoming_main_docs_only != 'true' && (needs.changes.outputs.pipeline == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.dev_tools == 'true')
+    if: needs.changes.outputs.pipeline == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.dev_tools == 'true'
     steps:
       - uses: actions/checkout@v4
 
