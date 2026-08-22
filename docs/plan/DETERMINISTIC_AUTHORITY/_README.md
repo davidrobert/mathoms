@@ -48,7 +48,7 @@ As quatro dimensões do pedido mapeiam assim:
 | Corretude | Ondas 1+2 (roteamento por fato + balanço de fan-out) | golden 0a red→green **+ prova por mutação** (flipar `categoria` de item negativo ⇒ baldes byte-idênticos) |
 | Consistência | invariante entre-agregados (4a, escrito RED na Onda 0) + conservação POR EIXO + strict no baseline | teste 4a verde só pós-Onda 1; drift do schema = 0 por ≥7 dias antes do flip |
 | Completude | Onda 3 (dado do casal; zero≠não-medido) + export honesto (REPORT_TRUST) | fixtures red→green: cônjuge nunca publica 0 sem ressalva; doc pulado vira `needs_review` nomeado |
-| Precisão | temp 0 + seed em `extract_*` (cauda da Onda 1) + telemetria por tentativa ([[A42.l7]]) | **KR-0** (gate de saída): 2 runs consecutivos do mesmo corpus com compare = **0 FAIL HARD** não-explicado — comparador pinado, `corpus_grew` desligado, **cache de extração OFF** no run de verificação |
+| Precisão | temp 0 + seed em `extract_*` (cauda da Onda 1) + telemetria por tentativa ([[A42.l7]]) · **falsificado em 2026-08-21**: temp 0 shipou (#1523) e a extração continua divergindo — ver §Baseline e verificação | **KR-0** (gate de saída): 2 runs consecutivos do mesmo corpus com compare = **0 FAIL HARD** não-explicado — comparador pinado, `corpus_grew` desligado, **cache de extração OFF** no run de verificação |
 
 ## Fronteira
 
@@ -602,6 +602,31 @@ export com contagem indisponível mostra "não apurado", nunca CleanBar.
   não-explicado**, comparador pinado, `corpus_grew` desligado, cache de
   extração **OFF** no run de verificação (senão o hit mede o cache, não o
   pipeline). Prova por mutação é gate de **task** (aceite de 1a/1c), não KR.
+
+**Correção datada 2026-08-21 — o fechamento declarado da linha "Precisão" está
+falsificado, e o KR-0 ganha uma dimensão.** `temperature=0.0` + seed entraram no
+call-site de `extract_*` em 2026-08-18 11:36:30 (#1523), e a extração **continua
+não-determinística**. Medido sobre 285 versões de 4 documentos do dogfood,
+decifradas: segmentando pelo marco, 277 versões são do regime anterior e sobram
+8 (2 por documento); **um documento divergiu nas 2 execuções pós-temp0**, em duas
+dimensões — `rendimentos_tributacao_exclusiva` 11↔3 e `pagamentos_efetuados`
+2↔0. Os outros três saíram idênticos em N=2, o que **não** é evidência de
+convergência: divergência é existencial e barata, convergência é universal e
+cara.
+
+Consequência para o KR-0, que é mecânica e não editorial: com cache de extração
+OFF, cada um dos 2 runs re-extrai o IRPF, e os campos derivados do E1.6 divergem
+**entre os runs do próprio gate**. Hoje isso sai como FAIL não-explicado, ou
+alguém declara "explicado" à mão — que é o falso-verde que este plano existe para
+matar. **O KR-0 só é falsificável na dimensão de precisão depois que o
+comparador enxergar variância de extração como canal próprio**, com prova
+positiva a montante (assinatura do artefato de `extract_irpf_full` diferindo sob
+a mesma entrada) e nunca como supressor booleano — o precedente medido de
+supressor que vira catch-all é o `corpus_grew`, que este mesmo plano já desliga.
+
+Registro do débito e donos: §Débito nomeado da [[ADR-405]]. A falsificação do
+limiar de completude que o mesmo achado produziu está na emenda 2026-08-21 da
+[[ADR-266]], com o predicado substituto em [[A42.l13]].
 
 ## Anti-decisões
 

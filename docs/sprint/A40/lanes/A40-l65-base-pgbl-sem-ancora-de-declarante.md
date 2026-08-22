@@ -75,6 +75,15 @@ caminho.
 - Agregação familiar dos 12% (é por CPF; somar declarações é outro defeito).
 - Ausência vs. zero (`sem_irpf_processado` vs. `renda_tributavel_pf_zerada`) —
   `has_renda_tributavel` já é computado e descartado. Follow-up separado.
+- **O predicado de completude que alimenta a eleição do ano** (anotado
+  2026-08-21 por sessão externa, sem tocar §Escopo nem §Critério de aceite).
+  Esta lane torna a âncora determinística **passando pelo** `resolve_ano_base_fiscal`;
+  ela não é dona de `irpf_completude.py`. Medido: `_is_shell_decl` exige *todos*
+  os blocos vazios, então declaração com `pagamentos_efetuados == []` sai
+  `completo` com `nota_degradacao = None` — a âncora fica determinística **sobre
+  documento furado**, e cala. A falsificação do limiar está na emenda 2026-08-21
+  da [[ADR-266]]; o predicado substituto é da [[A42.l13]]. Sem essa anotação, o
+  critério de aceite desta lane passaria com fixture e calaria em produção.
 
 ## Critério de aceite
 
