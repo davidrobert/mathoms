@@ -1,4 +1,4 @@
-"""Watchdog de liveness dos workflows agendados (ADR-210 §camada 4): cobertura do manifesto, os 3 sinais, ciclo de vida do waiver e degradação graciosa offline — sem rede (gh mockado via monkeypatch)."""
+"""Watchdog de liveness dos workflows agendados (ADR-210 §camada 4): cobertura do manifesto, os sinais, ciclo de vida do waiver e degradação graciosa offline — sem rede (leitura injetada via `Reader`)."""
 
 from __future__ import annotations
 
@@ -25,6 +25,12 @@ def _entry(**over) -> dict:
     return {**base, **over}
 
 
+def _reader(gate, **over):
+    """Reader com as leituras batch já injetadas — nenhum teste toca a rede."""
+    base = {"states": {"nightly.yml": "active"}, "issues": []}
+    return gate.Reader("o/r", **{**base, **over})
+
+
 def test_manifesto_cobre_todo_workflow_agendado_do_disco():
     """O manifesto apodrece se um `schedule:` novo puder entrar sem entrada."""
     gate = _load_gate()
@@ -39,18 +45,25 @@ def test_manifesto_denuncia_orfao_e_fantasma():
     assert ("S0", "nightly.yml") in signals
 
 
-def test_s1_pega_workflow_desabilitado(monkeypatch):
+def test_s1_pega_workflow_desabilitado():
     gate = _load_gate()
-    monkeypatch.setattr(gate, "workflow_state", lambda *_: "disabled_manually")
-    found = gate._check_state("o/r", _entry())
+    found = gate._check_state(_reader(gate, states={"nightly.yml": "disabled_manually"}), _entry())
     assert [v.signal for v in found] == ["S1"]
     assert "disabled_manually" in found[0].detail
+
+
+def test_s1_nomeia_workflow_que_o_actions_nao_conhece():
+    """Ausente da lista batch é estado nomeável — virar GH seria mensagem falsa."""
+    gate = _load_gate()
+    found = gate._check_state(_reader(gate, states={"outro.yml": "active"}), _entry())
+    assert [v.signal for v in found] == ["S1"]
+    assert "não conhece" in found[0].detail
 
 
 def test_s2_pega_cron_parado(monkeypatch):
     gate = _load_gate()
     monkeypatch.setattr(gate, "last_scheduled_run_age", lambda *_: 44)
-    found = gate._check_liveness("o/r", _entry(), date(2026, 7, 30))
+    found = gate._check_liveness(_reader(gate), _entry(), date(2026, 7, 30))
     assert [v.signal for v in found] == ["S2"]
     assert "44d" in found[0].detail
 
@@ -58,7 +71,7 @@ def test_s2_pega_cron_parado(monkeypatch):
 def test_s2_tolera_run_dentro_da_janela(monkeypatch):
     gate = _load_gate()
     monkeypatch.setattr(gate, "last_scheduled_run_age", lambda *_: 2)
-    assert gate._check_liveness("o/r", _entry(), date(2026, 7, 30)) == []
+    assert gate._check_liveness(_reader(gate), _entry(), date(2026, 7, 30)) == []
 
 
 def test_s3_pega_issue_apodrecendo(monkeypatch):
@@ -69,7 +82,7 @@ def test_s3_pega_issue_apodrecendo(monkeypatch):
         lambda *_: [{"number": 642, "title": "drift", "age": 46}],
     )
     entry = _entry(alerts=[{"label": "main-smoke-fail", "max_issue_age_days": 7}])
-    found = gate._check_issue_rot("o/r", entry, date(2026, 7, 30))
+    found = gate._check_issue_rot(_reader(gate), entry, date(2026, 7, 30))
     assert [v.signal for v in found] == ["S3"]
     assert "#642" in found[0].detail
 
@@ -81,25 +94,24 @@ def test_s3_ignora_label_sem_limite_de_idade(monkeypatch):
         gate, "stale_alert_issues", lambda *_: [{"number": 1, "title": "x", "age": 90}]
     )
     entry = _entry(alerts=[{"label": "ci-budget"}])
-    assert gate._check_issue_rot("o/r", entry, date(2026, 7, 30)) == []
+    assert gate._check_issue_rot(_reader(gate), entry, date(2026, 7, 30)) == []
 
 
 def test_waiver_vigente_degrada_violacao_para_warning(monkeypatch):
     gate = _load_gate()
-    monkeypatch.setattr(gate, "workflow_state", lambda *_: "disabled_manually")
     monkeypatch.setattr(gate, "last_scheduled_run_age", lambda *_: 44)
     entry = _entry(waiver={"until": "2026-08-13", "reason": "decisão do owner"})
-    found = gate.check_entry("o/r", entry, date(2026, 7, 30))
+    reader = _reader(gate, states={"nightly.yml": "disabled_manually"})
+    found = gate.check_entry(reader, entry, date(2026, 7, 30))
     assert found and all(v.waived for v in found)
 
 
 def test_waiver_vencido_vira_hard_fail(monkeypatch):
     """A exceção não pode apodrecer como apodreceu a Issue que ela cobre."""
     gate = _load_gate()
-    monkeypatch.setattr(gate, "workflow_state", lambda *_: "active")
     monkeypatch.setattr(gate, "last_scheduled_run_age", lambda *_: 0)
     entry = _entry(waiver={"until": "2026-08-13", "reason": "x"})
-    found = gate.check_entry("o/r", entry, date(2026, 8, 20))
+    found = gate.check_entry(_reader(gate), entry, date(2026, 8, 20))
     assert [v.signal for v in found] == ["WAIVER"]
     assert not found[0].waived
 
@@ -116,17 +128,19 @@ def test_gh_mudo_dentro_do_ci_e_falha_nao_pass(monkeypatch):
     """Degradar em silêncio no CI recriaria o fail-open que o gate combate."""
     gate = _load_gate()
     monkeypatch.setenv("GITHUB_ACTIONS", "true")
-    monkeypatch.setattr(gate, "workflow_state", lambda *_: None)
-    found = gate._check_state("o/r", _entry())
+    mudo = gate.GhFailure(1, "HTTP 503: No server is currently available")
+    found = gate._check_state(_reader(gate, states=mudo), _entry())
     assert [v.signal for v in found] == ["GH"]
-    assert "permissions" in found[0].detail
+    # A causa, não um palpite: a versão anterior afirmava "cheque permissions",
+    # errada em 7 de 7 casos medidos (ADR-210 §Adendo 2026-08-21b).
+    assert "503" in found[0].detail
 
 
 def test_gh_mudo_fora_do_ci_segue_gracioso(monkeypatch):
     gate = _load_gate()
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
-    monkeypatch.setattr(gate, "workflow_state", lambda *_: None)
-    assert gate._check_state("o/r", _entry()) == []
+    mudo = gate.GhFailure(1, "HTTP 503: No server is currently available")
+    assert gate._check_state(_reader(gate, states=mudo), _entry()) == []
 
 
 def test_sem_repo_slug_dentro_do_ci_falha(monkeypatch):
@@ -149,6 +163,7 @@ def test_escape_hatch_por_label(monkeypatch):
 def test_modo_report_nunca_falha(monkeypatch):
     gate = _load_gate()
     monkeypatch.setattr(gate, "repo_slug", lambda: "o/r")
+    monkeypatch.setattr(gate.Reader, "for_repo", classmethod(lambda cls, repo: cls(repo)))
     monkeypatch.setattr(gate, "collect", lambda *_: [gate.Violation("S1", "x.yml", "d")])
     monkeypatch.setattr("sys.argv", ["check_scheduled_workflows.py", "--report"])
     assert gate.main() == 0

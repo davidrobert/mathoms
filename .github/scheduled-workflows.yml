@@ -26,8 +26,14 @@
 #   S2 liveness    — nenhum run agendado dentro de `max_age_days`. Pega o que
 #                    S1 não vê: cron que parou de disparar, auto-disable da
 #                    GitHub por 60 dias de inatividade, YAML inválido.
-#                    Mede run INICIADO, não bem-sucedido — falha já tem canal
-#                    próprio (Issue), não duplique o alerta.
+#                    Mede run INICIADO, não bem-sucedido, porque falha teria
+#                    canal próprio (Issue). ATENÇÃO: medido em 2026-08-21, esse
+#                    canal existe em 2 das 9 entradas (só nightly e security
+#                    têm step `if: failure()`; nenhum workflow usa gatilho
+#                    `workflow_run`). Nas outras sete, compensador que INICIA e
+#                    FALHA todo run é invisível aqui — em 08-17 o
+#                    auto-update-prs falhou 10× em ~5h e nada percebeu.
+#                    Deferido com dono e critério em ADR-210 §Adendo 2026-08-21c.
 #   S3 issue-rot   — Issue de alerta aberta além de `max_issue_age_days`. É o
 #                    sinal que teria evitado o incidente: #642 abriu em 06-14 e
 #                    seguia aberta 46 dias depois. Pior, a trava anti-duplicata
@@ -39,13 +45,18 @@
 #                    `gh run rerun --failed`; `hotfix`/`ops-override` apagam a
 #                    causa do registro (precedente #1508) — não use para blip.
 #                    Nunca alimenta a Issue do cron: ruído de API não pode
-#                    iniciar o relógio de rot do S3.
+#                    iniciar o relógio de rot do S3. A linha cita o status HTTP
+#                    desde 2026-08-21c: 5xx/timeout é transitório e re-rodar
+#                    resolve; 4xx é determinístico e re-rodar não resolve.
 #
 # Onde cada um bloqueia: todos, hoje, no gate de PR (ci.yml, job lint-all). A
 # redistribuição por escopo — S0 e waiver offline no PR, S1/S2/S3 dos demais
 # compensadores no cron — está deferida com dono e condição em ADR-210
-# §Adendo 2026-08-21b. Enquanto não acontecer, o gate faz ~25 chamadas `gh`
-# por run de CI, e essa superfície É a fonte do falso-vermelho medido.
+# §Adendo 2026-08-21b. Enquanto não acontecer, o gate faz 11 chamadas `gh` por
+# run (eram 23 até 2026-08-21c, quando state e Issues passaram a ser lidos em
+# 1 chamada cada). Encolher a superfície reduz a exposição, mas NÃO era a causa
+# do falso-vermelho: a classe medida em 08-17 é indisponibilidade (HTTP 503),
+# e retry foi rejeitado por recuperar 0 de 10 — ADR-210 §Adendo 2026-08-21c.
 #
 # `waiver` é exceção datada e auditável. Enquanto `until` não vencer, as
 # violações da entrada viram warning. Depois de vencer, o waiver ele mesmo
