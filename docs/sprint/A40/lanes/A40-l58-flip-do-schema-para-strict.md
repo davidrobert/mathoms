@@ -373,7 +373,11 @@ Não decido pelo `sre-devops`; registro o que a medição obriga a endereçar.
    hipótese de zero**. A ADR desta lane cita esta seção ou remede.
 2. **Ordem dura:** `baseline_patrimonial` e `e2_extract` precisam de fix de
    contrato/produtor **antes** de qualquer janela de baseline — hoje a janela deles
-   não pode fechar. Isso é pré-condição da [[A40.l67]], não desta lane.
+   não pode fechar. **A rota é esta lane** (`owner: sre-devops`), não a
+   [[A40.l67]]: a l67 está `shipped` e o §Deferimento datado dela (2026-08-18)
+   re-homeou o flip dos 2 schemas de baseline **para cá**. Mandar o fix de volta
+   para lá fecharia ciclo sobre lane morta — corrigido no closeout de 2026-08-24,
+   com marcador datado no §Deferimento da l67.
 3. **O §Escopo 3 precisa de emenda:** o kill-switch por env é global e nenhum dos
    dois levers é quente. Ou o runbook ganha "reiniciar o worker" no §5, ou
    `pipeline.json` deixa de ser cacheado para esta chave.
