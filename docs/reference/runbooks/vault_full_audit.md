@@ -6,7 +6,10 @@
 > **Rollback:** N/A — a auditoria é read-only; correções saem em PRs
 > próprios (revert normal de Git, um por fase).
 > **Custo de referência:** ~17k tokens de julgamento por arquivo (empírico
-> run r5). Universo completo do vault vivo = **409 arquivos ≈ 7M tokens**.
+> run r5). Universo completo do vault vivo (re-medido 2026-08-24, auditoria r10):
+> **869 unidades = 607 arquivos + 262 linhas de registro ≈ 10M tokens**.
+> Fonte única: `collect_candidates.py --scope all --full` → bloco `buckets`.
+> **Não copie estes números à mão** — eles envelhecem; rode o coletor.
 
 ---
 
@@ -49,9 +52,9 @@ sua própria triagem (<30min) e seu próprio PR:
 
 | Fase | Escopo | Arquivos | Custo estimado | Quando |
 |---|---|---|---|---|
-| 1 | `reference` | 54 | ~1M tokens | primeiro — é o que agentes leem para decidir |
-| 2 | `plan` + `sprint` + `claude` + `prompt` + `root` | ~58 | ~1M tokens | após triar a Fase 1 |
-| 3 | `adr` | 297 | ~5M tokens | **condicional** — ver §6 |
+| 1 | `reference` | 62 | ~1M tokens | primeiro — é o que agentes leem para decidir |
+| 2 | `plan` + `sprint` + `claude` + `prompt` + `root` + **`moc`** | 409 (147 arquivos + 262 linhas de registro) | ~2,5M tokens | após triar a Fase 1 |
+| 3 | `adr` | 398 | ~7M tokens | **condicional** — ver §6 |
 
 O gate entre fases é deliberado: a taxa de findings da fase anterior é o
 argumento empírico para (ou contra) pagar a próxima.
@@ -149,17 +152,21 @@ DOC-DRIFT viram **um** batch (lane P2); DOC-POLISH ficam listados
 Em outra sessão nova, após triar a Fase 1:
 
 ```
-/audit-vault --full nos escopos plan, sprint, claude, prompt e root,
+/audit-vault --full nos escopos plan, sprint, claude, prompt, root e moc,
 consolidando numa única seção rN
 ```
 
-(O coletor aceita um `--scope` por vez — o agente o roda 5×, uma por
+(O coletor aceita um `--scope` por vez — o agente o roda 6×, uma por
 escopo, e consolida julgamento e triagem. Alternativa sem ambiguidade:
-5 invocações separadas `/audit-vault --scope <X> --full`, ao custo de
+6 invocações separadas `/audit-vault --scope <X> --full`, ao custo de
 repetir gates/síntese em cada uma.)
 
-São 5 escopos pequenos (29 + 12 + 12 + 4 + 1); cabem numa sessão só e numa
-única seção do AUDITS-active. `sprint` cobre apenas a sprint `current`
+São 6 escopos (`plan` 35 + `sprint` 79 + `claude` 23 + `prompt` 6 + `root` 1 +
+`moc` 3 arquivos e 262 linhas de registro = **409 unidades**); cabem numa sessão
+só e numa única seção do AUDITS-active. O bucket `moc` entrou pela
+[[ADR-302]] §Emenda 2026-08-21 e o `SKILL.md` já o lista na Fase 2 — este
+runbook o omitia, fazendo o caminho faseado pular 265 unidades e ainda assim
+concluir §7 com "baseline zerado" (auditoria r10 · F13). `sprint` cobre apenas a sprint `current`
 (fechadas ficam fora por design — auditar histórico congelado gera
 falso-drift).
 
