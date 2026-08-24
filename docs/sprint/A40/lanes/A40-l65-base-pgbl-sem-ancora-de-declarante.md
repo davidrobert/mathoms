@@ -147,13 +147,57 @@ caminho.
 
 ## Escopo
 
-1. `_load_irpf_renda_tributavel` passa por `resolve_ano_base_fiscal` e dedup, em
-   vez de `created_at`.
+> **Emendado em 2026-08-24** pelo ataque medido (#1659). Os três itens seguiam na
+> ordem em que o defeito foi percebido, não na ordem em que é executável: o item 3
+> pressupunha um campo que não existe. Ordem corrigida abaixo; o texto original de
+> cada item está preservado.
+
+1. **`_load_irpf_renda_tributavel` passa por `resolve_ano_base_fiscal` e dedup, em
+   vez de `created_at`.** ✅ **entregue 2026-08-24** — o eixo do ano deixa de ser a
+   ordem de processamento. Ressalva medida: o resolvedor elege **ano**, não
+   artefato; com dois declarantes no ano eleito a escolha entre eles continua
+   sendo por recência, e isso é o item 2.
 2. Âncora de declarante: a base é a do **titular**, resolvido por CPF mascarado
    contra `family_members`. Sem identidade resolvível, a base é ausente — não a
    de quem sobrou.
-3. Gate: a S8 e o Card B não podem publicar sobre anos-base diferentes no mesmo
-   relatório.
+   - Medido: `NaturezaContribuinte` só tem `titular` e `dependente_titular`, e
+     **cada cônjuge é `titular` na própria declaração**. O artefato não sabe quem
+     é o titular da família — a resolução por `family_members` não é preferência
+     de design, é a única via.
+   - Medido: o ano eleito é **familiar** (`anos_base_disponiveis` é a união de
+     todos os declarantes). Se a declaração do titular for de ano diferente do
+     eleito, o par (ano familiar, titular) sai vazio. Esse caso **não** é falha de
+     identidade e não pode sair com o motivo do §Critério 2 — mandaria o usuário
+     conferir um CPF que está correto. Precedência entre os dois eixos é decisão
+     desta lane.
+3. **Pré-requisito do gate: o lado S8 precisa de um ano-base publicável.** Medido:
+   `RendaTributavelPF` não tem campo de ano, o bloco `tributario` do
+   `e5_analysis.schema.json` é `{}` e o snapshot de dogfood não tem a chave. Sem
+   isso o §Critério 3 compara duas ausências.
+   - **Armadilha:** `FinanceiroPJSnapshot.ano_base_coberto` já existe no
+     `CascataInput` e é alimentado por `max(s.ano_base for s in summaries)` sobre
+     **informes PJ**. Usá-lo faz o gate ficar verde medindo outro corpus.
+4. Gate: a S8 e o Card B não podem publicar sobre anos-base diferentes no mesmo
+   relatório. **Depende do item 3.**
+
+> **Achado da execução do §Escopo 1 (2026-08-24):** passar pelo resolvedor exige
+> ler **o corpus**, e aí aparece um segundo eixo de divergência que o §Problema não
+> nomeia. `extract_irpf_full` está em `_WORKSPACE_SCOPED_STAGES`, então o E5 lê
+> **uma row por `artifact_key`** (`DBArtifactStore._get_latest_in_workspace`). Mas
+> a unicidade da tabela é `(pipeline_run_id, stage, artifact_key)` — cada run
+> repete as keys, e o E1.6 churna (285 versões de 4 documentos, medidas no dogfood
+> em 2026-08-21). Uma leitura ingênua de "todas as rows do workspace" daria à S8 um
+> corpus **maior** que o do E5 e reintroduziria a divergência pela porta dos fundos.
+> A implementação espelha o `_get_latest_in_workspace`. Medido, porém: isso é
+> paridade de corpus e custo, **não** guarda de correção — o dedup de
+> `IRPFAnalyzer.from_payloads` já colapsa a duplicata semântica, e não foi possível
+> construir caso em que remover o filtro mude o valor publicado.
+
+> **Nota de concepção, medida:** a S8 e o Card B não divergem só no ano — divergem
+> no **conceito**. `_build_capacidade_pgbl` usa `irpf.rendimentos_tributaveis(ano)`,
+> que soma **todos os declarantes** do ano; a S8 lê **uma** declaração. Um gate de
+> igualdade de ano não fecha essa diferença, e igualar os valores exigiria decidir
+> antes se a base da S8 é por CPF ou familiar — o que o §Fora de escopo já veda.
 
 ## Fora de escopo
 
@@ -172,7 +216,13 @@ caminho.
 
 ## Critério de aceite
 
-- Dois declarantes no workspace → base do PGBL é a do titular, sempre, e não
-  varia com a ordem de processamento.
-- Identidade não resolvível → base ausente com motivo, nunca a de outro CPF.
-- Teste que prova que S8 e Card B citam o **mesmo** ano-base.
+- ~~Dois declarantes no workspace → base do PGBL é a do titular, sempre, e não
+  varia com a ordem de processamento.~~ **Parcial desde 2026-08-24:** o **ano** não
+  varia mais com a ordem de processamento (§Escopo 1). A escolha **entre
+  declarantes do mesmo ano** ainda varia — fecha no §Escopo 2.
+- Identidade não resolvível → base ausente com motivo, nunca a de outro CPF. E o
+  motivo distingue *"identidade não resolvível"* de *"o titular não declarou no ano
+  eleito"* — são causas diferentes e a segunda não é culpa do cadastro.
+- Teste que prova que S8 e Card B citam o **mesmo** ano-base. **Só é escrevível
+  depois do §Escopo 3** — hoje passaria a vazio comparando dois `None`, e o campo
+  homônimo disponível mede informes PJ.
