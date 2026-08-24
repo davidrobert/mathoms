@@ -5,6 +5,7 @@ title: "schema_validation warn → strict: o PR5 que a l5 declarou como outra la
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1668
 ship_date: "2026-08-24"
 priority: P2
 branch_slug: a40-l58-flip-do-schema-para-strict
