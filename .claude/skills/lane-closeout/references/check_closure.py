@@ -86,7 +86,12 @@ SELF_CLOSED_RE = re.compile(
     r"(sem dono|falta de dono|`shipped`|shipou|não absorveu|nao absorveu|recusou)", re.I
 )
 WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)")
-LANE_COUNT_RE = re.compile(r"^(#{2,3}\s*Lanes)\s*\((\d+)\)", re.M)
+# O `(N)` do cabeçalho nem sempre é só o número: a A40 escreve
+# `## Lanes (76 no disco · 76 nesta tabela — ver nota ao fim)`. Exigir `)` logo
+# após os dígitos fazia `search` devolver None e o check **passar calado** —
+# medido em 2026-08-24, com o contador declarando 75 contra 76 no disco. Casa o
+# primeiro inteiro dentro dos parênteses e ignora o resto.
+LANE_COUNT_RE = re.compile(r"^(#{2,3}\s*Lanes)\s*\(\s*(\d+)", re.M)
 
 
 @dataclass

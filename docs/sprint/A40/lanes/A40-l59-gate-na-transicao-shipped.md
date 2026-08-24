@@ -84,6 +84,12 @@ mesma consulta que esta lane já precisa fazer para achar o `ship_pr`.
 
 ## Escopo
 
+> ⚠️ **Corrigido por medição em 2026-08-24 — leia o §Ataque antes do pickup.**
+> O item 1 tem o predicado **errado** (`_README` sozinho; o certo é
+> `_README` ∪ `_HISTORY` — §Ataque §3) e o item 2 cita um número que hoje é
+> outro (§Ataque §6). O texto abaixo fica: é o co-design de 2026-08-12, não um
+> snapshot a reescrever. O §Escopo **efetivo** é este mais o item 4 abaixo.
+
 Hook de pre-commit disparado **pela transição**, não pelo PR:
 
 1. Diff que flipa `status:` de uma lane para `shipped` exige, no mesmo commit:
@@ -95,23 +101,67 @@ Hook de pre-commit disparado **pela transição**, não pelo PR:
    (números, consistência, precisão) continua na skill; o gate cobre só a
    metade estrutural que `check_closure.py` já sabe checar, movida para
    **antes** do commit.
+4. **(2026-08-24)** Gate de **coerência** — não olha diff, olha estado. Entra
+   nesta lane porque é o único dos dois mecanismos que alcança o caso de origem
+   do §Problema (§Ataque §1). Metade `depends_on` **já existe** e está em
+   pre-commit (`dev/check_lane_status_predicate.py`, os dois sentidos); o que
+   falta é o cruzamento **lane não-terminal × entrega já em `origin/main`**, que
+   é o que deixou a [[A40.l5]] `in_progress` com PR0–PR4 mergeados e, por
+   tabela, mascarou o `blocked` da [[A40.l58]]. Só a metade **offline**
+   (hermética, sobre `git log origin/main`) — cruzamento que exija rede é
+   **não-objetivo declarado**, pelo precedente de fragilidade medido em
+   `dev/check_scheduled_workflows.py` (leitura de API obsoleta trava o repo).
 
-## Critério de aceite
+> ⚠️ **Três destes critérios foram corrigidos por medição em 2026-08-24**
+> (§Ataque §1/§3/§4/§5). Itens afetados marcados `⚠️ corrigido`. O item da prova
+> retroativa mandava reproduzir um caso que o §Ataque provou **verde sob o
+> próprio gate** — critério inexecutável governando o pickup.
 
-- **Prova retroativa**: os casos históricos (l7/#1375; as lanes órfãs do #1411)
-  teriam sido barrados — reproduzir cada um contra o hook e citar o resultado.
+- ⚠️ **corrigido** — **Prova retroativa por amostra medida**, não por anedota: o
+  §Ataque §2 mede **23 de 42** transições da A40 que seriam barradas. Reproduzir
+  contra o hook **≥1 caso nomeado de cada eixo** — `ship_pr` ausente no commit do
+  flip (l71/#1511, que trazia o número só no título do commit) e PR não citado
+  (l19/#1241, hoje na linha 732 do `_README`) — citando entrada e veredito.
+- ⚠️ **corrigido** — **Casos negativos declarados, cada um com rota nomeada.**
+  (i) l7/#1375 **não dispara** e não deve: é transição **ausente**, classe do
+  §Escopo item 4 (coerência). (ii) As **6 lanes self-closing** (`ship_pr` == PR
+  do próprio flip) **não podem** disparar — rota é a sequência prescrita abaixo.
+  Caso negativo sem rota nomeada é como gate fecha sintaxe e deixa a classe viva.
+- **Predicado pinado, nos dois eixos** — o §Ataque §3 e §6 mostram que os
+  predicados naturais **discordam em casos vivos**. Declarar por escrito:
+  citação do PR vale em `_README` **∪** `_HISTORY` (senão o gate pune o
+  `split_sprint_history.py`, que o CLAUDE.md manda rodar); e a presença da lane
+  é **linha na tabela §Lanes**, não menção em qualquer lugar do `_README`.
 - Polaridade certa ([[ADR-302]] e a lição da sprint): o gate **impede** o
-  estado ruim de entrar, não o detecta depois.
+  estado ruim de entrar, não o detecta depois — provado por **mutação nos dois
+  sentidos** (planta a violação: vermelho; corrige: verde).
+- ⚠️ **corrigido** — **Superfície declarada.** O §Ataque §5 mede que o CI só
+  roda `pre-commit run --all-files`, onde `git diff --cached` volta vazio: gate
+  de transição **passa vazio no CI** e vive só na máquina de quem commita.
+  Declarar qual é a entrega — local-only assumido, ou step de CI com
+  `--from-ref`. Sem essa linha, "polaridade certa" afirma prevenção sobre
+  mecanismo que talvez não rode.
 - Gate na transição, nunca por PR — lane que vira 2 PRs não pode dar verde
   falso.
-- Falso-positivo declarado: flip de `status` em rebase/revert tem escape
-  documentado (a mesma classe do `--no-verify` proibido: corrigir a causa,
-  nunca bypassar).
+- ⚠️ **corrigido** — Falso-positivo declarado: flip de `status` em rebase/revert
+  tem escape documentado (a mesma classe do `--no-verify` proibido: corrigir a
+  causa, nunca bypassar). **E a classe medida no §Ataque §4** — a lane que fecha
+  a si mesma: no 1º commit local o `ship_pr` ainda não existe (sai do
+  `gh pr create`). Não é impossível, é **ordenação forçada** — commitar o flip
+  **depois** de abrir o PR; 2 das 6 fizeram exatamente isso. A sequência
+  prescrita entra na mensagem de erro do hook, senão o gate é descoberto por
+  quem bate nele.
 
 ## Colisão declarada
 
-`dev/check_closure.py` (da skill) e o hook novo compartilham a definição da
-metade estrutural — extrair a checagem para módulo comum em vez de duplicar.
+> ⚠️ **Corrigido em 2026-08-24 (§Ataque §7).** O caminho é `.claude/skills/
+> lane-closeout/references/check_closure.py`, e ele é **pós-merge por
+> construção** (`resolve_from_pr`/`_merge_sha` partem de um PR já mergeado). No
+> sentido pre-commit não há PR de onde resolver: o compartilhável são os
+> **predicados**, nunca a resolução.
+
+`check_closure.py` (da skill) e o hook novo compartilham a definição da metade
+estrutural — extrair os **predicados** para módulo comum em vez de duplicar.
 
 ## Ataque (2026-08-24) — medido antes do pickup
 
