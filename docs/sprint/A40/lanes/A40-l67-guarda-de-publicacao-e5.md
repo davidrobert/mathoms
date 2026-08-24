@@ -235,7 +235,19 @@ Re-medido em `5f73b116`: o default `patrimonio: dict[str, Any] | None = None`
 (`backend/tests/test_alocacao_bundle_serialization_v2.py:81,91,94`). O achado
 continua válido; só a coordenada estava errada.
 
-### Deferimento datado (2026-08-18) · dono [[A40.l58]]
+### Deferimento datado (2026-08-18) · dono: `data-engineer` — re-homeado em 2026-08-24
+
+> ⚠️ **A rota mudou em 2026-08-24 (a l58 shipou).** O texto abaixo é preservado como
+> escrito; o que envelheceu é o destino, não o conteúdo. Hoje o item se parte em dois:
+>
+> - **O flip em si** não é entregável de lane nenhuma — é procedimento do
+>   [runbook §3.1](../../../reference/runbooks/schema_validation_strict_flip.md),
+>   gated pelo §1.3, que desde a [[ADR-409]] §B é um comando com exit code
+>   (`dev/measure_schema_drift.py --gate`). Qualquer sessão executa quando houver runs.
+> - **`baseline_patrimonial` não pode ser flipado** e o bloqueio não é temporal: o
+>   contrato declara **5 de 13** chaves do payload real. Re-derivá-lo do produtor E1.5c
+>   é §Deferimento datado com dono: `data-engineer` na [[A40.l58]] §Fecho.
+> - `e15_baseline_extract`, o irmão, mede **0/66** e está elegível hoje ([[ADR-409]] §D).
 
 **O flip de `mode_overrides` para strict sai desta lane.** Ele estava na
 §Critério de aceite acima, e era um critério que **esta lane não podia

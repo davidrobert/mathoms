@@ -159,16 +159,27 @@ def resolve_fx_input(
     typed_usd: object | None,
     typed_eur: object | None,
     taxas: Mapping[str, object],
+    observed_at: Mapping[str, object] | None = None,
 ) -> FxQuote | HardcodedFxDefault | None:
     """Monta a entrada do conversor a partir das taxas que o caller já tem."""
     code = moeda.upper()
     typed = {"USD": typed_usd, "EUR": typed_eur}.get(code)
     if typed is not None:
-        return FxQuote(rate=_to_decimal(typed), fonte="market_rate_corrente")
+        data = _as_str_or_none((observed_at or {}).get(code))
+        return FxQuote(rate=_to_decimal(typed), fonte="market_rate_corrente", observed_at=data)
+    legacy = _legacy_taxa(code, taxas)
+    if legacy is not None:
+        return FxQuote(rate=legacy, fonte="market_rate_corrente")
+    return HardcodedFxDefault.for_moeda(code)
+
+
+def _legacy_taxa(code: str, taxas: Mapping[str, object]) -> Decimal | None:
+    """`taxas.json` não versiona data — ali `taxa_data` é nulo porque a data
+    não existe, não porque se perdeu no caminho (ADR-390 D2 · E3)."""
     key = {"USD": "cambio_usd_brl", "EUR": "cambio_eur_brl"}.get(code)
     if key and taxas.get(key) is not None:
-        return FxQuote(rate=_to_decimal(taxas[key]), fonte="market_rate_corrente")
-    return HardcodedFxDefault.for_moeda(code)
+        return _to_decimal(taxas[key])
+    return None
 
 
 def from_informe_entry(entry: Mapping[str, object]) -> ConversaoMeBrl:

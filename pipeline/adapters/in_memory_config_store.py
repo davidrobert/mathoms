@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Optional
 
 from pipeline.domain.protection_bundle import ProtectionBundle
+from pipeline.domain.services.ptax_types import PtaxQuote
 from pipeline.domain.types.config import (
     CategorizationConfig,
     FamilyMembersConfig,
@@ -77,6 +78,11 @@ class InMemoryConfigStore:
                 f"InMemoryConfigStore: no market rate for pair={pair!r} on {observed_at.isoformat()}"
             )
         return rate
+
+    def get_market_quote(self, pair: str, observed_at: date) -> Optional[PtaxQuote]:
+        """Match exato como ``get_market_rate``, mas devolve ``None`` em vez de raise."""
+        rate = self._market_rates.get((pair, observed_at))
+        return None if rate is None else PtaxQuote(rate=rate, observed_at=observed_at)
 
     def get_protection_bundle(self, workspace_id: str) -> ProtectionBundle:
         del workspace_id

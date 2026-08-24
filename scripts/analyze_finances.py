@@ -2137,6 +2137,19 @@ def _load_protection_computation_inputs(ctx, data_analise: str):
         return None
 
 
+def _resolve_market_quote(cs, par: str, quando, observed_out: dict, moeda: str):
+    """Taxa corrente + data da row em ``observed_out``; ``None`` cai no legado."""
+    try:
+        quote = cs.get_market_quote(par, quando)
+    except Exception as exc:  # pragma: no cover — fallback transparente
+        print(f"  [warn] ConfigStore.get_market_quote {par} falhou ({exc}); usando taxas.json")
+        return None
+    if quote is None:
+        return None
+    observed_out[moeda] = quote.observed_at.isoformat()
+    return quote.rate
+
+
 def _e5_build_adapter(life_plan_content: str | None, ctx=None):
     """Carrega configs auxiliares + monta E5AnalyzerAdapter.
 
@@ -2154,6 +2167,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
 
     fiscal_parameters = None
     cambio_usd_brl = None
+    cambio_observed_at: dict[str, str] = {}
     cambio_eur_brl = None
     property_classification_overrides: dict[str, str] = {}
     # ADR-215 P3 (fix de conexão): lê overrides DB-first via resolver injetado
@@ -2182,14 +2196,13 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
             fiscal_parameters = cs.get_fiscal_for_period(year_start, year_end)
         except Exception as exc:  # pragma: no cover — fallback transparente
             print(f"  [warn] ConfigStore.get_fiscal_for_period falhou ({exc}); usando dict legacy")
-        try:
-            cambio_usd_brl = cs.get_market_rate("USD/BRL", TODAY)
-        except Exception as exc:  # pragma: no cover
-            print(f"  [warn] ConfigStore.get_market_rate USD/BRL falhou ({exc}); usando taxas.json")
-        try:
-            cambio_eur_brl = cs.get_market_rate("EUR/BRL", TODAY)
-        except Exception as exc:  # pragma: no cover
-            print(f"  [warn] ConfigStore.get_market_rate EUR/BRL falhou ({exc}); usando taxas.json")
+        # ADR-390 D2 — `get_market_quote` preserva a data da row resolvida;
+        # `get_market_rate` a descartava na fronteira e `taxa_data` saía nulo
+        # em toda via corrente (A40.l63 §Ataque §6).
+        usd = _resolve_market_quote(cs, "USD/BRL", TODAY, cambio_observed_at, "USD")
+        eur = _resolve_market_quote(cs, "EUR/BRL", TODAY, cambio_observed_at, "EUR")
+        cambio_usd_brl = usd if usd is not None else cambio_usd_brl
+        cambio_eur_brl = eur if eur is not None else cambio_eur_brl
 
     # ADR-142 + ADR-222: per-workspace toggle `imoveis_no_if` (default True
     # quando ausente — CLI/teste). Backend popula via `_setup_run_context`.
@@ -2207,6 +2220,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         fiscal_parameters=fiscal_parameters,
         cambio_usd_brl=cambio_usd_brl,
         cambio_eur_brl=cambio_eur_brl,
+        cambio_observed_at=cambio_observed_at,
         property_classification_overrides=property_classification_overrides,
         imoveis_no_if=imoveis_no_if,
         seguradoras_catalog=_load_seguradoras_catalog(ctx),

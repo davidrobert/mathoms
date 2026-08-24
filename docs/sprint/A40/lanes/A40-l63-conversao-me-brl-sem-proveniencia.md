@@ -4,8 +4,9 @@ type: lane
 title: "Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
+ship_pr: 1671
 branch_slug: a40-l63-conversao-me-brl-sem-proveniencia
 owner: data-engineer
 adrs:
@@ -357,3 +358,65 @@ escopo remanescente dela, com uma exceção nomeada.
 `float` (§Fora de escopo da lane, correto — move centavos publicados); `taxa` sai
 como *string* em `to_wire()` (`format(Decimal, "f")`), o que preserva precisão e
 não é o defeito de float que a lane de float-money persegue.
+
+## Fecho (2026-08-24) — o placar do ataque, re-medido depois das correções
+
+> O §Ataque acima fica **como escrito**: é o retrato de `main` em 2026-08-24
+> antes deste fecho, e snapshot datado que alguém reescreve deixa de ser
+> evidência. Esta seção diz o que mudou desde ele.
+
+### Placar re-medido
+
+| # | critério | no ataque | agora |
+| --- | --- | --- | --- |
+| 1 | golden de execução, três vias | **NÃO** — nenhum golden tocava o campo | **SIM** — `tests/test_e5_golden_conversao_me.py`, 3 runs reais sobre o artefato E5 |
+| 2 | `default_hardcoded` + WARNING sem valor | SIM | SIM, agora também no golden (exige remover o `taxas.json` do tenant) |
+| 3 | regressão 245: `moeda` ≡ `saldo_original` | SIM como escrito, com `fonte` contraditório ao lado | **SIM inteiro** — `fonte="baseline_irpf"` ([[ADR-238]] §Emenda) |
+| 4 | GBP → `missing_rate`, fora do total | SIM no produtor; some da exposição no consumidor | SIM no produtor; o consumidor é da [[A40.l50]] (§7 do ataque) |
+| 5 | mutação derruba o gate | **1 de 10** formas plausíveis | **10 de 10**, bateria parametrizada com controle de polaridade |
+| 6 | `conversao` fora de `required` | SIM — e era o que impedia fechar a classe | SIM na **leitura**; obrigatório na **escrita** (`TypeError`) |
+
+### O que foi feito, por §
+
+- **§1 (funil estrutural).** `CaixaDetalhe.conversao` passa a obrigatório e
+  keyword-only. A tensão que o ataque isolou — a mesma ausência codificando
+  "artefato pré-390" e "produtor esqueceu" — resolve-se separando os lados:
+  tipo obrigatório na escrita, schema tolerante na leitura. [[ADR-390]] §E1.
+- **§2 (ratchet).** `_cambio_usd_brl` no `_RATE_ATTR` (a lista vinha do nome do
+  *parâmetro*, não do atributo), `ast.AugAssign` visitado, `Subscript`/`Call`
+  desembrulhados, `backend/` nos scan roots, sink por path e não por basename.
+  3/10 → 10/10, **zero** falso-positivo na árvore real.
+- **§3 (enum).** `taxa_fonte` vira `enum` de verdade + restrição cruzada
+  (`converted` ⇒ `taxa_fonte`; `missing_rate` ⇒ ambos nulos). `identity` fica
+  livre de propósito. [[ADR-390]] §E2.
+- **§5 (`fonte`).** `baseline_irpf` entra no vocabulário. Não era cosmético: a
+  linha de IRPF entrava no card 31/12 com id `extrato:irpf_…` e `data_referencia`
+  nula. [[ADR-238]] §Emenda 2026-08-24.
+- **§6 (`taxa_data`).** Port ganha `get_market_quote` (aditivo). Era
+  inpreenchível porque `get_market_rate` devolve só `Decimal` e descarta a data
+  da row. Testado no caso que importa — cotação de 2026-04-27 lida em 08-11
+  carimba `2026-04-27`. [[ADR-390]] §E3.
+- **§8 (golden).** Três runs, porque as vias são mutuamente exclusivas por
+  desenho. Prova de mutação medida nos dois produtores.
+
+### Fica fora, com dono
+
+- **§4 e §7 → [[A40.l50]]** (`open`, investigação-mãe de exposição cambial):
+  `exposicao_cambial.detalhes` publica `moeda="USD"` ao lado de `saldo_original`
+  em BRL, e a linha `missing_rate` some do card (`por_moeda: ()`, `tier: empty`)
+  em vez de aparecer como "sem cotação". São superfície de consumo, não de
+  conversão — o §Fora de escopo desta lane já se limitava à conversão.
+- **Se e como o snapshot 31/12 do IRPF deve aparecer no card de posições →
+  [[A40.l39]]** (`in_progress`). Hoje ele simplesmente não aparece, o que é
+  honesto mas não necessariamente o que a família quer ver.
+- **`CaixaDetalhe.valor_brl: float`** segue `float`, como o §Fora de escopo
+  original manda — morre na lane de float-money.
+
+### Verificação
+
+```
+dev/check_conversao_me_funnel.py    exit=0, zero ofensor
+pytest tests                        7399 passed
+pytest backend/tests                3611 passed
+pre-commit code-style-baseline      sem regressão P1/P2/P7/P9
+```

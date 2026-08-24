@@ -202,16 +202,26 @@ class CaixaDetalhe:
     valor_brl: float
     tipo: str  # "caixa" | "moeda_estrangeira" | "moeda_estrangeira_irpf"
     # ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1.
+    # ADR-238 §Emenda 2026-08-24 (A40.l63): + "baseline_irpf". A linha do
+    # fallback ADR-245 herdava o default "extrato" e `build_posicao_31_12`
+    # filtra por ele — ela entrava no card 31/12 com id `extrato:irpf_…` e
+    # `data_referencia` nula, afirmando ser posição de extrato bancário.
     fonte: str = "extrato"
     # A40.l39 — fim de período do extrato vencedor (YYYY-MM-DD) + precisão
     # ("dia" | "mes" | "desconhecida"); linha de informe carrega 31/12/ano_base.
     data_referencia: str | None = None
     data_referencia_precisao: str = "desconhecida"
-    # ADR-390 — carimbo da conversão; writer novo sempre preenche.
-    conversao: ConversaoMeBrl | None = None
+    # ADR-390 §Emenda 2026-08-24 (A40.l63) — obrigatório e keyword-only. Era
+    # `| None = None` com o comentário "writer novo sempre preenche": prosa, não
+    # tipo. O §Escopo 4 da lane sustentava o fechamento da classe em "o tipo não
+    # deixa", e o tipo deixava — produtor novo publicava sem carimbo e o schema
+    # validava, porque a ausência da chave também significa "artefato pré-390".
+    # A tensão se resolve separando os lados: obrigatório na ESCRITA (aqui),
+    # tolerante na LEITURA (`conversao` segue fora de `required` no schema).
+    conversao: ConversaoMeBrl = field(kw_only=True)
 
     def to_dict(self) -> dict:
-        payload = {
+        return {
             "conta": self.conta,
             "moeda": self.moeda,
             "saldo_original": round(self.saldo_original, 2),
@@ -220,10 +230,8 @@ class CaixaDetalhe:
             "fonte": self.fonte,
             "data_referencia": self.data_referencia,
             "data_referencia_precisao": self.data_referencia_precisao,
+            "conversao": self.conversao.to_wire(),
         }
-        if self.conversao is not None:
-            payload["conversao"] = self.conversao.to_wire()
-        return payload
 
 
 # Nenhuma conta some do caixa em silêncio: cada exclusão de domínio remanescente

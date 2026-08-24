@@ -252,7 +252,7 @@ promoção a `current`.
 >
 > Registrado aqui porque a nota de 2026-08-11 acima termina em *"o contador de 2
 > re-runs consecutivos pode iniciar"* e, lida sozinha, sugere que ele iniciou.
-## Lanes (75 no disco · 75 nesta tabela — ver nota ao fim)
+## Lanes (76 no disco · 76 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -351,12 +351,12 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l55]] | Medida de linha no papel: 100–110 cpl na prosa do A4 | P3 | — | aberta 2026-08-12 · polish de legibilidade; fix candidato `max-width: 90ch` em `@media print` |
 | [[A40.l56]] | A tabela fiscal de produção: row internamente inconsistente e nenhum golden a atravessa | P1 | — | `shipped` em 6 PRs (#1469 · #1470 · #1473 · #1475 · #1479 · **#1483**) · desbloqueou [[ADR-375]] D5 para `AC ≤ 2025` e a [[A40.l64]] · [[ADR-389]] `Proposto` · nasceu `l50`, renumerada no dia (o #1409 tomou o id em paralelo) |
 | [[A40.l57]] | O parecer lê o contrato antigo do bloco PGBL: guardrail FP-04 morto e âncora que resolve `null` | P2 | — | aberta 2026-08-12 · handoff da [[A40.l7]] **agravado pelo PR2 da [[A40.l34]]** (#1394) · dono `prompt-engineer` · sobe a P1 se dogfood mostrar retenção espúria |
-| [[A40.l58]] | `schema_validation` warn → strict — o PR5 que a [[A40.l5]] declarou como outra lane | P2 | [[A40.l5]] ✅ | aberta 2026-08-12 · **`open` desde 2026-08-17** (era `blocked`; a dep fechou em 08-14 com #1440/#1441/#1450 e o status não acompanhou) · ADR própria antes do PR · dono `sre-devops` |
-| [[A40.l59]] | A transição para `shipped` ganha gate: `ship_pr` no frontmatter e PR visível no `_README` | P2 | — | aberta 2026-08-12 · executa o gatilho de promoção da skill `lane-closeout` (3ª ocorrência + 10 lanes fora desta tabela na medição) · dono `information-architect` |
+| [[A40.l58]] | `schema_validation` warn → strict — o PR5 que a [[A40.l5]] declarou como outra lane | P2 | [[A40.l5]] ✅ | ✅ **`shipped` 2026-08-24** em 5 PRs (#1650 · #1656 · #1664 · #1665 · #1667 · fecho **#1668**) · [[ADR-409]] `Decidido` · **o flip NÃO é entregável de lane** ([[ADR-284]] §Não-decisões: é operacional) — os 4 critérios pediam estar *pronto*, e o go/no-go virou comando (`dev/measure_schema_drift.py --gate`, exit code, sobre o corpus) em vez de agregação de log que nenhum sink coleta · drift medido: **11,8% dos artefatos violam o próprio schema** · 2 deferimentos datados, dono `data-engineer`: contrato do stub de fallback do E2 (classe [[ADR-407]]) e re-derivar `baseline_patrimonial` (declara 5 de 13 chaves do payload real — maior risco de produto) · aberta 2026-08-12, `open` desde 08-17 |
+| [[A40.l59]] | A transição para `shipped` ganha gate: `ship_pr` no frontmatter e PR visível no `_README` | P2 | — | aberta 2026-08-12 · executa o gatilho de promoção da skill `lane-closeout` (3ª ocorrência + 10 lanes fora desta tabela **na medição de 2026-08-12**; re-medido em 2026-08-24 pelo §Ataque da lane: **1** — a l77) · **atacada 2026-08-24** (#1648: só o §Ataque, +98 linhas) · **`shipped` 2026-08-24** (#1661: §Escopo/§Critério corrigidos por medição, gate de coerência no escopo, `dev/check_lane_transition.py` + hook `lane-transition`, e 2 falhas-abertas da skill `lane-closeout` consertadas) · dono `information-architect` |
 | [[A40.l60]] | Conselho de seguro: cobertura recomendada sem ressalva fiduciária + string que afirma invalidez sem fonte | P1 | — | aberta 2026-08-12 no fecho da sessão S6/FP-010 (#1379/#1390) · funde 2 achados verificados (mesmo produtor, mesma classe fiduciária) · KR-E · **PR1 ✅ #1480 (`49c1cb3c`, 2026-08-15) — 3 superfícies + gate `check_coverage_disclaimer` + emenda [[ADR-192]]**; segue `open` pelo **PR2** (separar vida×invalidez), cuja amarra caiu quando a [[A40.l35]] shipou (#1476) — a rota de "declarar não-entregue" fechou · nasceu `l50`, passou por `l58`, renumerada 2× em rebase (ids tomados em `main`) |
 | [[A40.l61]] | ProtectionBundle fail-closed: ausência não vira zero/False | P1 | — | `shipped` (#1443 · `0a343302`) · mitigação do split da l35 · não liga a S9 |
 | [[A40.l62]] | Fontes canônicas + ProtectionComputationSnapshotV1 | P1 | l61 | `shipped` (#1471 · #1474 · `5cc4a02f`) · [[ADR-387]] `Decidido` · não liga a S9 |
-| [[A40.l63]] | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de real, saldo BRL rotulado USD | P1 | — | aberta 2026-08-15 no co-design do P0 nº 2 da [[A40.l50]] · dono `data-engineer` · **não é** a [[A40.l39]], que resolve a superfície e não a conversão · pede ADR própria |
+| [[A40.l63]] | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de real, saldo BRL rotulado USD | P1 | ✅ | aberta 2026-08-15 no co-design do P0 nº 2 da [[A40.l50]] · [[ADR-390]] `Decidido` · escopo shipado no #1494 (2026-08-17) **sem flip de `status`** — 7 dias `open` com o trabalho em `main` · #1658 mediu o entregue (funil era campo opcional; ratchet pegava 3/10) · fecho no #1671 (§Fecho da lane) · §4/§7 do ataque → [[A40.l50]] |
 | [[A40.l64]] | Redutor da Lei 15.270/2025 + IRPFM: a economia de PGBL não pode ser publicada para AC2026 | P1 | l56 ✅ | aberta 2026-08-15 no co-design da [[A40.l56]] · dono `financial-planner` · **`open` desde 2026-08-16** (a condição "até o `regime_completo` existir" foi satisfeita pela l56) · **PR1 ✅ #1501 (`c88206b1`)** — a recusa passou a existir; restam PR2 (`IR(base,ano)`), PR3 (redutor) e PR4 (IRPFM) · ⚠️ o título antigo dizia "a diferencial está errada": **a diferencial nunca foi implementada** ([[ADR-375]] D5 é dívida aberta — ver §Correção de premissa da lane) · pendência do dono: `aliquota_marginal` segue publicada na banda do redutor · a [[ADR-389]] declara modelá-los como não-objetivo |
 | [[A40.l65]] | Base do PGBL perdeu a âncora de declarante: lê o IRPF mais recente por `created_at`, e o teto de 12% é por CPF | P1 | — | aberta 2026-08-17 no co-design da [[A40.l36]], que é o que a torna load-bearing · dono `data-engineer` · dois resolvedores de ano-base no mesmo documento |
 | [[A40.l66]] | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | **P0** | — | aberta 2026-08-17 na Onda 0 do [[PLAN-deterministic-authority]] · FK `plan:` distinta do resto da sprint (exceção do §Critério de admissão da [[A42]]) · RV6-01/02/03 · **`shipped` 2026-08-18** em 5 PRs (#1520 [[ADR-394]] · #1521 contrato · #1522 seam · #1523 cauda · #1524 cap) · o ataque prévio (#1510/#1518) mostrou que os degraus 1–2 mediam 0% e que o critério passava com o catálogo inerte — a hierarquia entregue põe `secao` em primeiro |
@@ -370,6 +370,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l74]] | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | P1 | — | aberta 2026-08-21 · fecha a metade apólice do problema cujo lado CRLV saiu em #1599 · [[ADR-407]] `Proposto` + emenda datada em [[ADR-239]] §D8 · descobriu 2 consumidores extras do 1:1 (`_schema_version_token` carimbava row de apólice com hash de schema de veículo; `check_artifact_read_keys` lê o mapa por `ast.literal_eval`) · follow-up de `e4_unified` endereçado a [[A40.l58]] · **`shipped` 2026-08-21** (#1604) |
 | [[A40.l75]] | O gate de drift do MSW existe, está fora do CI e compara errado: a [[ADR-069]] afirma uma proteção que nunca rodou | P2 | — | aberta 2026-08-21 · achado da camada 2 do `lane-closeout` no fecho do #1618 (que declarou 129 requests órfãs do MSW em 7 arquivos) · `msw-lint.mjs` existe desde 2026-04-22, **fora do CI**, e contra o snapshot commitado devolve 219/219 + 75/75 — 100% falso-positivo, porque `normalizeUrl` não remove o prefixo `${API}` que o próprio comentário promete remover · 3 defaults pré-escopo de workspace sobrevivem em `handlers.ts` |
 | [[A40.l76]] | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | P1 | — | aberta 2026-08-21 · `document_id` NULL em **16.292/16.292** (re-medido) · [[ADR-408]] `Proposto` (#1607) decide o fix em co-design `data-engineer` + `senior-cto`; [[ADR-311]] emendada com o alcance real do D1 · gate da lacuna já em `main` (#1600, `xfail(strict=True)` que se auto-remove quando a FK popular) · 4 peças em ordem dura: guard de colisão → FK por porta → backfill → predicado |
+| [[A40.l77]] | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | P0 | — | aberta 2026-08-24 (#1643) · DE-10 do r7, único P0 do inventário **sem destino** · precede o DE-7 por denominador · entrou nesta tabela em 2026-08-24 pelo closeout da [[A40.l59]], que mediu a lacuna |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -390,6 +391,17 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 > **Quem fechar a sprint tem de resolver isto:** lane fora desta tabela é invisível
 > ao **encerramento administrativo** (flip `sprint_status: done` + contador de
 > lanes). A direção lane→tabela vira gate na [[A40.l59]].
+
+> **Re-medição 2026-08-24 (closeout da [[A40.l59]]):** disco **76**, tabela **76**.
+> A [[A40.l77]] (P0, aberta pelo #1643 no mesmo dia) estava fora — só numa tabela
+> de roteamento do §Inventário do r7 —, e o cabeçalho declarava `75 · 75`. Duas
+> notas sobre o dano, medidas agora e que **corrigem a redação acima**: (a) a lane
+> **não** ficou invisível ao pickup — `SPRINT_CURRENT.md` e `dev/lane_pickup.py` a
+> resolvem pelo frontmatter, inclusive detectando ocupação; o dano é mesmo só o
+> encerramento administrativo; (b) o `check_lane_counter` da skill `lane-closeout`
+> **não pegou** — o `LANE_COUNT_RE` exige `## Lanes (N)` e este cabeçalho tem
+> texto dentro dos parênteses, então `match is None` e o check **falha aberto**.
+> Corrigido no mesmo PR da lane.
 >
 > *Correção de atribuição, 2026-08-12 (#1415):* a redação anterior dizia que "o
 > §Gate de saída lê esta tabela" — **não lê**. O §Gate de saída é enunciado sobre
@@ -1292,7 +1304,7 @@ lane-coletora — item com dono de mentira é o que reaparece como PR corretivo.
 | Nenhum golden atravessa `from_fiscal_parameters` (produção) | crítico do PR1 da l34 | **[[A40.l56]]** (mesmo dono, mesmo objeto) |
 | Parecer lê o contrato antigo do bloco PGBL (FP-04 morto · âncora `null` · resumo S8 · título do bucket) | handoff [[A40.l7]] + PR2 da l34 | **[[A40.l57]]** (P2, gatilho de subida declarado) |
 | `schema_validation` warn → strict | [[A40.l5]] §PR5 ("outra lane") | **[[A40.l58]]** (`open` desde 2026-08-17 — a l5 shipou) |
-| "PR mergeado invisível no `_README`" (3ª ocorrência) + 10 lanes fora da tabela | fecho da l7 · nota do §Lanes | **[[A40.l59]]** (gate na transição) |
+| "PR mergeado invisível no `_README`" (3ª ocorrência) + 10 lanes fora da tabela (2026-08-12; **1** em 2026-08-24) | fecho da l7 · nota do §Lanes | **[[A40.l59]]** (gate na transição) |
 | Faixa marginal: base de cálculo ou rendimento bruto? | co-design interrompido (limite de gasto) | **decidido na emenda 2026-08-13 da [[ADR-375]]** (D6: faixa sobre base de cálculo; teto sobre rendimento bruto) e shippado no #1448 · consumidor restante: [[A40.l37]] |
 | `dev/golden_diff.py` fora de hook e de CI | crítico do PR1 da l34 | **pendência de decisão do dono**: wire como gate ou declarar ferramenta manual — hoje a prosa de lanes o cita como se gateasse |
 | Vault key dos 55 E5 reais · `frontend-e2e` seed/auth · [[ADR-374]] §Deferimento | várias | **owner-gated**, documentados na origem — sem mudança |
@@ -1428,7 +1440,7 @@ abertas na noite da triagem (l75, l76) vêm de outra origem e não cobrem nenhum
 | **DE-8** — top-up IRPF sem quantia declarada | P1 | mesma janela do DE-7 | o próprio §r7 acopla: *"publicar a quantia por membro, e o invariante do DE-7 passa a fechar nos 45"* |
 | **DE-9** — `cobertura_investimentos[].frescor` com zero consumidores | P1 | **triagem do dono** | sem home derivável. Família "afirmar sem qualificar" (a mesma do RV6-04); campo existe para o gate e não para o leitor |
 | **CTO-7** — kill-switch de retenção não deixa rastro | P1 | **triagem do dono — pronto para pegar** | o §r7 já dimensiona: `validation.gates_desligados: [...]` não toca `e5_analysis.schema.json`, nem `dogfood_view_model.json`, nem o codegen, logo **não disputa superfície** com #1591/#1568/#1573 |
-| **CTO-8** — colisão de ID desta onda | P2 | **ponteiro** para [[A40.l59]] + triagem | (b) e (c) da onda r7 já corrigidos; o residual é a tag `status/<lc>` **sem gate** — `build_doc_index.py` lê o campo `status:` e nunca confere a tag, e 7 ADRs desincronizam. Os 5 de lanes alheias ficam registrados, não varridos |
+| **CTO-8** — colisão de ID desta onda | P2 | **ponteiro** para [[A40.l59]] + triagem — *marcador 2026-08-24: a l59 §78-83 declara os escopos **distintos** (alocação de id × registro do entregue) e o §Escopo entregue não tem item de id; o destino real é a §Pendência 13, owner-gated* | (b) e (c) da onda r7 já corrigidos; o residual é a tag `status/<lc>` **sem gate** — `build_doc_index.py` lê o campo `status:` e nunca confere a tag, e 7 ADRs desincronizam. Os 5 de lanes alheias ficam registrados, não varridos |
 
 ### RV7-05 foi re-ancorado, não fechado (medido 2026-08-24)
 

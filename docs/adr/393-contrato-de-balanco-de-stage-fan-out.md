@@ -31,11 +31,16 @@ tags:
 **Status:** Decidido • **Data:** 2026-08-18 • É a **ADR-B** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l68]].
 
-> **Emendada em 2026-08-24 (§D1 é conservação, não detecção):** o §D1 declara
+> **Emendada em 2026-08-24 (b) (2b entregue; o bloqueio declarado era outro):** a
+> [[A40.l68]] §Pendência dizia que o ladder não podia ligar porque `0.0` era
+> sentinela de ausência. Medido: o sentinela **nunca dispara** (0/172). Quem
+> dispara 100% é o `min()` do agregado. Ver §Emenda 2026-08-24 (b).
+
+> **Emendada em 2026-08-24 (a) (§D1 é conservação, não detecção):** o §D1 declara
 > que "`success` passa a exigir o balanço fechado, não só `errors == []`". A
 > exigência existe e é **vácua** — medido por execução. A decisão D1 sobrevive
 > como guarda de regressão; o que cai é a afirmação de que ela detecta.
-> Ver §Emenda 2026-08-24.
+> Ver §Emenda 2026-08-24 (a).
 
 > **Emendada em 2026-08-19 (correção do §Estado, não da decisão):** o §Estado
 > declarava **D4 entregue** e a §D4 prometia um **kill-switch de 1 env var
@@ -228,7 +233,7 @@ kill-switch inexistente e retirado do escopo); **não** entregues **D3** e **D5*
 - O `.xls` do dogfood passa a aparecer como `needs_review` nomeado em vez de
   sumir — o corpus não muda, a **visibilidade** dele muda.
 
-## Emenda 2026-08-24 — D1 é identidade de conservação, não predicado de saúde
+## Emenda 2026-08-24 (a) — D1 é identidade de conservação, não predicado de saúde
 
 Medido no [[A40.l68]] §Ataque, com o stage real sobre um formato que o leitor
 não abre:
@@ -266,3 +271,75 @@ como critério de aceite.
 falham com openpyxl e 168/168 abrem com `xlrd` 2.0.2, já instalado e já usado
 por `route_documents.py:399`, `e2/banks/itau.py:98` e `santander.py`. Ver
 [[A40.l68]] §Deferimento.
+
+## Emenda 2026-08-24 (b) — o ladder do E1.5 mora no arquivo, não no agregado
+
+Item **2b** da [[A40.l68]]. A §Pendência datada da lane dizia que o ladder
+[[ADR-081]] não podia ligar porque `extract_baseline.py` agrega confiança como
+`min(confidences) if confidences else 0.0` e o `0.0` é **sentinela de ausência**
+— um `< 0,7` cru dispararia para todo run sem metadado.
+
+**Medido no corpus, o bloqueio é outro.** Nenhum artefato tem `confidence == 0.0`:
+
+| grão | n | `< 0,7` | leitura |
+|---|---|---|---|
+| agregado (E1.5/E1.5c) | 172 | **172 (100%)** | `min` sobre ~10 arquivos colapsa para o pior |
+| per-arquivo (E1.5a) | 786 | **292 (37%)** | discrimina |
+
+O sentinela mede **0/172**. Quem tornaria o ladder inútil é o `min`: todos os 172
+agregados caem em 0,1–0,15 mesmo quando a maioria dos arquivos extraiu bem.
+
+**E no grão do arquivo a confiança é medição de verdade:**
+
+| faixa | artefatos | mediana de itens extraídos |
+|---|---|---|
+| `>= 0,7` | 494 | **9** |
+| `< 0,7` | 292 | **0** (máx. 3) |
+
+O piso 0,7 da ADR-081 separa exatamente "extração que rendeu" de "documento que
+não rendeu nada" — o mesmo desfecho que a D1 persegue no fan-out, um stage acima.
+
+### Taxa de disparo (o número que a lane exige antes do WARN)
+
+**4 por run** (mediana; min 1, máx 4) sobre 81 runs, com mediana de 10 artefatos
+E1.5a por run. **Zero runs sem disparo.**
+
+### Causa dominante do disparo, declarada e não consertada aqui
+
+Das 292 chaves abaixo do piso, **260 (89%) não são declaração de IRPF**:
+
+| forma da chave | n |
+|---|---|
+| `informerendimentosaluguel` | 88 |
+| `informe_financeiro_pj` | 58 |
+| `irpfrecibo` | 57 |
+| `informe_previdencia_privada` | 57 |
+| `irpfdeclaracao` | **32** |
+
+São documentos com stage próprio ([[ADR-216]], [[ADR-238]]) que o
+`_find_irpf_docs` varre junto porque moram em `income_tax_br/`. Hoje o diretório
+tem **39 declarações + 19 informes/recibos**, e `docs[:_MAX_DOCS_PER_RUN]` corta
+em 10 com ordenação **lexicográfica sobre prefixo de hash** — os informes ganham
+vaga por sorteio. É a truncagem da [[A40.l69]] composta com poluição de classe;
+**fica declarada, com dono `data-engineer`, e não é consertada nesta emenda.**
+
+A confiança baixa nesses casos é o modelo **acertando** ("não é documento de
+baseline"), e é por isso que o desfecho não pode ser pausa.
+
+### D7 — WARN-first aqui significa não tocar `validation.valid`
+
+`extract.low_confidence` já existia no enum e no `review_reason.schema.json`
+desde a [[ADR-272]] — **sem nenhum emissor**. Ganha o primeiro agora, e o
+desfecho é deliberadamente mais fraco que o da D4:
+
+- entra em `validation.review_reasons`, nomeando o documento;
+- **não** entra em `errors` e **não** derruba `validation.valid`.
+
+O motivo é a medição: `validation.valid=False` retém o run
+(`pipeline_task.py:1489`, ver §Emenda 2026-08-19 e RV7-03/DE-3), e 4 disparos por
+run com zero runs limpos transformaria a pausa em ruído permanente — o mesmo
+"gate que dispara sempre ensina a ignorar o gate" que a [[A40.l66]] mediu.
+
+**Ausência ≠ zero:** o agregado passa a devolver `None` quando nenhum arquivo
+reportou confiança. Incidência hoje 0/172, mas `0.0` é medição fabricada e a
+doutrina deste plano é não fabricar.
