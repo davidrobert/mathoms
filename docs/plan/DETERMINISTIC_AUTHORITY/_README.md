@@ -431,6 +431,12 @@ que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
   payload para o hook pós-write validar). Denominador **enumerado** (lista
   declarada de stages fan-out) — prova por mutação: remover o leitor de um
   formato ⇒ motivo "leitor ausente" + doc em `needs_review` + balanço fecha.
+
+> **Marcador 2026-08-24.** 2a mergeado em #1526. O critério acima é satisfeito
+> **e vácuo**: o balanço fecha *porque* a perda é termo do lado direito, e
+> `success` não pode ser `False` por documento perdido. Quem retém o run é
+> `validation.valid`. Ver [[ADR-393]] §Emenda 2026-08-24 e [[A40.l68]] §Ataque.
+> **D3** (denominador enumerado) e **D5** (falha no E0) seguem **não entregues**.
 - 2b. Ladder [[ADR-081]] no E1.5: `confidence < 0,7` → `review_reason` +
   `degraded` — WARN-first com budget medido (§Enforcement).
 
@@ -570,7 +576,7 @@ export com contagem indisponível mostra "não apurado", nunca CleanBar.
 | 1c conservação E1.5c | degraded + review_reason | obrigatório | env var |
 | 1d guarda de sinal E5 | reclassifica → publica; sobrevivente → needs_review | obrigatório | env var |
 | 1e strict baseline | warn ≥7 dias, drift=0 medido | obrigatório | `mode_overrides` |
-| 2a balanço fan-out | skipped(motivo) + needs_review; success=false só com balanço aberto | obrigatório | env var |
+| 2a balanço fan-out | skipped(motivo) + needs_review; ~~success=false só com balanço aberto~~ → **o balanço não abre** ([[ADR-393]] §Emenda 2026-08-24) | obrigatório | ~~env var~~ → **não existe** (§Emenda 2026-08-19) |
 | 2b ladder E1.5 | degraded, nunca abort | obrigatório | env var |
 | 5c verified_ratio | telemetria (2 razões); flip só pós-produção | ≥20 gerações | ADR própria |
 | 5b sanidade pré-LLM | rebaixa confiança + nota | obrigatório | env var |
@@ -583,7 +589,7 @@ export com contagem indisponível mostra "não apurado", nunca CleanBar.
   regra "prescrição exige cobertura, descrição admite ressalva"; local canônico
   dos invariantes (domain service puro; adapter converte; store não conhece
   semântica). Cobre 1a/1b/1c/1d/3a.
-- **ADR-B = [[ADR-393]]** (`Proposto`, 2026-08-18) — "Contrato de balanço de
+- **ADR-B = [[ADR-393]]** (`Decidido`, 2026-08-18; emendada 2026-08-19 e 2026-08-24) — "Contrato de balanço de
   stage fan-out." `queued ≡ processed +
   errors + skipped(motivo)`, 3 estados + piso por identificador declarado,
   resultado tipado do leitor. **Nenhuma emenda à [[ADR-342]]** (escopo distinto;
