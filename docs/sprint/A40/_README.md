@@ -77,6 +77,16 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 > em 2026-08-17. Registrado aqui porque fechar a sprint
 > citando "5 → 0" contaria dois itens inexistentes.
 
+> ⚠️ **A KR-D não fecha — o gate existe como função e não tem chamador (medido 2026-08-21).**
+> O #1569 entregou o **redator**: `redact_cartorial` está wired em
+> `real_estate_metrics_payload.py` e `endividamento_analyzer.py`, e o card parou de
+> interpolar `descricao` (`RealEstateYieldCard.tsx:205` usa `imovelDisplayLabel`). Mas
+> o **scanner** — `scan_view_model_pii`, o termo que a KR mede — tem **zero** chamadas
+> fora do próprio unit test: nada em `.github/`, nada em `.pre-commit-config.yaml`,
+> nada em `dev/`, nada em stage. A KR-D exige *"bloqueio no CI"*; scanner sem
+> chamador não bloqueia nada. Mesma família da KR-A: a função existir **e** o gate
+> rodar são os dois termos do "e". Residual com dono na [[A40.l6]] §Nota datada.
+
 **KR rejeitado deliberadamente:** cobertura (`N% dos achados fechados`) — mede
 burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
@@ -225,6 +235,23 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
+> ### Estado do contador em 2026-08-21 — **0 de 2**, e não por atraso
+>
+> As três condições terminais da cláusula de reinício estão satisfeitas ([[A40.l2]],
+> [[A40.l34]], [[A40.l35]] em `shipped`), então o contador **podia** iniciar desde
+> 2026-08-11. Ele não iniciou porque o critério tem um segundo termo — *"nenhum P0/P1
+> novo aberto nesses 2 re-runs"* — e o r7 (2026-08-18, triagem datada 2026-08-21)
+> abriu **DE-7**, **DE-8**, **DE-9**, **DE-10**, **CTO-7** e **CTO-8**. Três são P0.
+>
+> **Consequência operacional — o r8 não é o próximo passo.** `DE-1` e `DE-2` estão em
+> `remediado — fecha por medição no r8`, logo o r8 é **necessário**; mas disparado com
+> o **DE-10** vivo ele remede o mesmo P0 (cônjuge valendo `110.130,67` num resolver e
+> `0,00` no outro, no mesmo payload) e o contador continua em 0. Ordem: fechar o
+> DE-10 ([[A40.l77]]), depois disparar. Re-run é instrumento de **prova**, não de
+> diagnóstico — rodá-lo antes de remediar custa igual e não move o gate.
+>
+> Registrado aqui porque a nota de 2026-08-11 acima termina em *"o contador de 2
+> re-runs consecutivos pode iniciar"* e, lida sozinha, sugere que ele iniciou.
 ## Lanes (75 no disco · 75 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
@@ -1384,3 +1411,42 @@ Nem ondas, nem gate de saída, nem critério de done. O trabalho executa sob
 mecanismos que o próprio plano já escreveu, e dois tiveram a condição satisfeita
 nesta sessão — a re-medição que o §Deferimento de 2026-08-21 exigia foi cumprida,
 e ela mudou o arquivo-alvo.
+
+## Inventário dos achados do r7 sem hospedeiro (2026-08-21)
+
+O r7 fechou triagem em 2026-08-21 com **6 achados novos** — DE-7, DE-8, DE-9,
+DE-10, CTO-7, CTO-8 — e **nenhum** tem arquivo de lane. `grep` pelos 6 ids sobre
+os 75 arquivos de `lanes/` devolve zero. Isso não é opinião sobre prioridade: é o
+fato de que `SPRINT_CURRENT` deriva de frontmatter e `lane_pickup` cruza
+frontmatter com branch, então **achado sem lane é invisível ao pickup**. As lanes
+abertas na mesma noite (l75, l76) vêm de outra origem e não cobrem nenhum deles.
+
+| Achado | Prio | Destino | Base |
+| --- | --- | --- | --- |
+| **DE-10** — dois resolvers divergem no mesmo payload | P0 | **[[A40.l77]]** (lane nova, aberta aqui) | único P0 do r7 **sem destino nenhum**; precede o DE-7 por denominador |
+| **DE-7** — `nao_atribuidos` = 61% sem linha de cobertura | P0 | **já arbitrado** — §Decisão dos abertos da [[A40.l69]], item 2: *lane nova, janela J5 própria; não hoje* | ponteiro, **não** decisão nova: 3 especialistas + arbitragem decidiram hoje. Falta só o arquivo, na janela |
+| **DE-8** — top-up IRPF sem quantia declarada | P1 | mesma janela do DE-7 | o próprio §r7 acopla: *"publicar a quantia por membro, e o invariante do DE-7 passa a fechar nos 45"* |
+| **DE-9** — `cobertura_investimentos[].frescor` com zero consumidores | P1 | **triagem do dono** | sem home derivável. Família "afirmar sem qualificar" (a mesma do RV6-04); campo existe para o gate e não para o leitor |
+| **CTO-7** — kill-switch de retenção não deixa rastro | P1 | **triagem do dono — pronto para pegar** | o §r7 já dimensiona: `validation.gates_desligados: [...]` não toca `e5_analysis.schema.json`, nem `dogfood_view_model.json`, nem o codegen, logo **não disputa superfície** com #1591/#1568/#1573 |
+| **CTO-8** — colisão de ID desta onda | P2 | **ponteiro** para [[A40.l59]] + triagem | (b) e (c) da onda r7 já corrigidos; o residual é a tag `status/<lc>` **sem gate** — `build_doc_index.py` lê o campo `status:` e nunca confere a tag, e 7 ADRs desincronizam. Os 5 de lanes alheias ficam registrados, não varridos |
+
+### RV7-05 foi re-ancorado, não fechado (medido 2026-08-21)
+
+O §r7 lista o **RV7-05** como P0 `procede-aberto`. A medição diz que a instância
+nomeada **já não existe**: o #1569 (`dfd561b9`, mergeado 2026-08-21) tocou
+exatamente o arquivo que o achado cita, e `RealEstateYieldCard.tsx:205` renderiza
+`imovelDisplayLabel(im)` — não mais `descricao` crua.
+
+O que **sobra** do RV7-05 é a metade que o próprio achado nomeia — *"gate sobre
+payload real"*, com a observação de que *"baseline visual usa fixture sintética e
+não alcança"* — e ela coincide, termo a termo, com os **dois critérios abertos da
+[[A40.l6]]**:
+
+1. `scan_view_model_pii` não tem chamador (nem CI, nem pre-commit, nem stage);
+2. não existe spec renderizada assertando ausência em `body.innerText()` **e** no
+   PDF — a infra existe (`frontend/tests/e2e/helpers/report-pdf.ts`), o teste não.
+
+**Disposição:** o residual vive na [[A40.l6]], que segue `in_progress` com razão.
+Não é lane nova. **Esta é a única re-classificação de severidade deste inventário**
+— se o dono discordar, o caminho é reverter a célula do §r7 e abrir lane própria;
+o resto da tabela é roteamento, não julgamento.
