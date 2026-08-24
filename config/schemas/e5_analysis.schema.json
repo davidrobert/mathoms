@@ -2449,17 +2449,12 @@
                   "null"
                 ]
               },
-              "endereco_canonical": {
+              "endereco_display": {
                 "type": [
                   "string",
                   "null"
-                ]
-              },
-              "imobiliaria_cnpj": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                ],
+                "description": "Endereço canônico minimizado, publicado APENAS quando passa no gate de PII do view-model; null quando a cascata devolveu identificador cartorial (mat:/iptu:/qa:) ou quando o valor carrega PII (A40.l6 · ADR-337 critério 4)."
               },
               "imobiliaria_nome": {
                 "type": [
