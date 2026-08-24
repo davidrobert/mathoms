@@ -1,13 +1,24 @@
 #!/usr/bin/env python3
 """Coleta determinística de candidatos a julgamento LLM para a skill audit-vault (ADR-302).
 
-Candidatos = gate-fail ∪ git-diff(--since) ∪ amostra rotativa dos limpos.
-A amostra dá a cada arquivo uma classe permanente (`sha1(path) % stride`,
-imune a inserções no vault) e rotaciona a classe-alvo com `--run N` (o rN do
-AUDITS-active): em `stride` runs, 100% do bucket é julgado. `--full` (ou
-`--stride 1`) = sweep completo, modo de evento (baseline, pré-beta) — nunca
-cadência recorrente. Não manda os ~956 markdown ao LLM; só o residual.
-`archive/` e sprint fechada ficam fora (gates ainda rodam via pre-commit).
+Candidatos = gate-fail ∪ git-diff(--since) ∪ amostra rotativa dos limpos
+∪ linhas de registro. A amostra dá a cada arquivo uma classe permanente
+(`sha1(path) % stride`, imune a inserções no vault) e rotaciona a classe-alvo
+com `--run N` (o rN do AUDITS-active): em `stride` runs, 100% do bucket é
+julgado. `--full` (ou `--stride 1`) = sweep completo, modo de evento
+(baseline, pré-beta) — nunca cadência recorrente. Não manda os ~956 markdown
+ao LLM; só o residual. `archive/` e sprint fechada ficam fora (gates ainda
+rodam via pre-commit).
+
+O bucket `moc` tem dois grãos (emenda 2026-08-21 da ADR-302): os registros
+com máquina de estado (ADR-343) entram como LINHA de seção viva — emissor
+puro de fatos locais (disposição + status de lane resolvido do frontmatter,
+sem rede); quem decide "é zumbi" é a camada 3. Seção com 0 linhas vivas é
+histórico congelado e fica fora até de `--full`. MOCs navegacionais/fila
+entram no grão-arquivo normal. Fora do universo julgado: AUDITS-active
+(a camada 5 escreve nele todo run — auto-referência deixaria o hot set
+permanentemente sujo) e SPRINTS-active (sobrepõe o bucket `sprint` e a
+camada 2 da lane-closeout).
 
 Uso:
   python3 collect_candidates.py --scope all --run 6
@@ -37,11 +48,32 @@ SAMPLE_STRIDE_BY_BUCKET = {
     "plan": 5,
     "sprint": 5,
     "root": 5,
+    "moc": 5,
     "adr": 20,
     "claude": 20,
     "prompt": 20,
 }
 DEFAULT_SAMPLE_STRIDE = 20
+
+MOC = DOCS / "_MOC"
+
+# Registros com máquina de estado de skills pares (ADR-343), auditados no
+# grão de LINHA de seção viva — arquivo inteiro custa ~95k tokens/run e o
+# residual real são as linhas.
+MOC_REGISTRY_FILES = (
+    "LEDGER-CERTIFY-active.md",
+    "PARSE-CERTIFY-active.md",
+    "PIPELINE-REVIEWS-active.md",
+    "REPORT-REVIEWS-active.md",
+)
+
+RUN_SECTION_RE = re.compile(r"^r\d+\b")
+VIVA_DISPO_RE = re.compile(
+    r"procede-aberto|\bparcial\b|remediado|fechado com ressalva|em observação",
+    re.IGNORECASE,
+)
+LANE_REF_RE = re.compile(r"\[\[(A\d+\.l\d+)\]\]")
+PR_REF_RE = re.compile(r"#(\d{3,5})\b")
 
 GATES = [
     "dev/validate_frontmatter.py",
@@ -52,13 +84,25 @@ GATES = [
 ]
 
 # Buckets sob julgamento. archive/ e sprint fechada são resolvidos em runtime.
+# `moc` (grão-arquivo) = navegacionais/fila, sem tabela de disposição; os
+# registros com máquina de estado entram via `registry_row_candidates`.
 BUCKET_GLOBS: dict[str, list[str]] = {
     "reference": ["docs/reference/**/*.md"],
     "adr": ["docs/adr/*.md"],
     "plan": ["docs/plan/**/*.md"],
-    "claude": ["CLAUDE.md", ".claude/agents/*.md"],
+    "claude": [
+        "CLAUDE.md",
+        ".claude/agents/*.md",
+        ".claude/skills/*/SKILL.md",
+        ".claude/skills/*/references/*.md",
+    ],
     "prompt": ["config/prompts/*.yaml", "config/prompts/*.yml"],
     "root": ["README.md"],
+    "moc": [
+        "docs/_MOC/00-INDEX.md",
+        "docs/_MOC/OWNER-GATED-active.md",
+        "docs/_MOC/PLANS-active.md",
+    ],
 }
 
 PATH_IN_OUTPUT_RE = re.compile(r"(?:docs|config|\.claude)/[\w./-]+\.(?:md|yaml|yml)")
@@ -151,6 +195,86 @@ def rel(p: Path) -> str:
     return p.relative_to(REPO_ROOT).as_posix()
 
 
+def split_run_sections(text: str) -> list[tuple[str, str]]:
+    """(id, corpo) das seções `## rN — …` — só seção de run carrega tabela de achado."""
+    parts = re.split(r"^## +(.+?)\s*$", text, flags=re.MULTILINE)
+    pairs = zip(parts[1::2], parts[2::2])
+    return [(t.split()[0], body) for t, body in pairs if RUN_SECTION_RE.match(t)]
+
+
+def parse_rows(body: str) -> list[dict[str, str]]:
+    """Linhas de tabela como dict coluna→célula (header com `Código` nomeia colunas)."""
+    rows: list[dict[str, str]] = []
+    cols: list[str] = []
+    for line in body.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if cells and cells[0].lower().startswith("código"):
+            cols = [c.lower() for c in cells]
+        elif cols and set(line) - {"|", "-", " ", ":"}:
+            rows.append(dict(zip(cols, cells)))
+    return rows
+
+
+def _lane_status(lane_id: str) -> dict | None:
+    """`status:`/`ship_pr:` lidos localmente do frontmatter da lane (sem rede)."""
+    sprint, lane = lane_id.split(".", 1)
+    lanes_dir = DOCS / "sprint" / sprint / "lanes"
+    hits = sorted(lanes_dir.glob(f"{sprint}-{lane}-*.md")) or sorted(
+        lanes_dir.glob(f"{sprint}-{lane}.md")
+    )
+    if not hits:
+        return None
+    head = hits[0].read_text(encoding="utf-8")[:800]
+    status = re.search(r"^status:\s*(\S+)", head, re.MULTILINE)
+    ship = re.search(r'^ship_pr:\s*"?#?(\d+)', head, re.MULTILINE)
+    return {
+        "status": status.group(1) if status else None,
+        "ship_pr": int(ship.group(1)) if ship else None,
+    }
+
+
+def _row_candidate(path_rel: str, section: str, row: dict[str, str]) -> dict:
+    """Candidato no grão de linha: fatos locais, zero veredito — zumbi é a camada 3."""
+    text = " | ".join(row.values())
+    dispo = row.get("disposição", "")
+    return {
+        "path": path_rel,
+        "bucket": "moc",
+        "reason": ["registry-row"],
+        "anchor": f"{section}/{row['código'].split(' — ')[0].strip(' *`~')}",
+        "disposicao": dispo.strip(" *"),
+        "viva": bool(VIVA_DISPO_RE.search(dispo)),
+        "lanes": {m: _lane_status(m) for m in dict.fromkeys(LANE_REF_RE.findall(text))},
+        "prs": sorted({int(n) for n in PR_REF_RE.findall(text)}),
+    }
+
+
+# Seção 0-viva é histórico congelado — fora, inclusive de `--full` (ADR-302
+# §Riscos: auditar snapshot congelado gera falso-drift). Linha terminal de
+# seção viva ENTRA, marcada `viva: false` — atestação barata do ponteiro na
+# camada 3, nunca re-adjudicação de mérito.
+def rows_from_text(path_rel: str, text: str) -> list[dict]:
+    """Linhas em seção de run viva (≥1 disposição viva)."""
+    out: list[dict] = []
+    for section, body in split_run_sections(text):
+        rows = [r for r in parse_rows(body) if r.get("código")]
+        if any(VIVA_DISPO_RE.search(r.get("disposição", "")) for r in rows):
+            out.extend(_row_candidate(path_rel, section, r) for r in rows)
+    return out
+
+
+def registry_row_candidates() -> list[dict]:
+    """Grão de linha dos registros com máquina de estado (ADR-343) — emissor puro."""
+    out: list[dict] = []
+    for name in MOC_REGISTRY_FILES:
+        path = MOC / name
+        if path.is_file():
+            out.extend(rows_from_text(rel(path), path.read_text(encoding="utf-8")))
+    return out
+
+
 def collect(
     scope: str, since: str | None, run: int = 0, stride_override: int | None = None
 ) -> dict:
@@ -165,7 +289,15 @@ def collect(
         sampled = stratified_sample(files, hot, stride, run)
         candidates.extend({"path": rel(p), "bucket": name, "reason": ["sample"]} for p in sampled)
         buckets_meta[name] = {"universe": len(files), "sampled": len(sampled), "stride": stride}
-    candidates.sort(key=lambda c: (c["bucket"], c["path"]))
+    if scope in ("moc", "all"):
+        row_cands = registry_row_candidates()
+        candidates.extend(row_cands)
+        buckets_meta["moc-linhas"] = {
+            "universe": len(row_cands),
+            "sampled": len(row_cands),
+            "stride": 1,
+        }
+    candidates.sort(key=lambda c: (c["bucket"], c["path"], c.get("anchor", "")))
     return {
         "scope": scope,
         "since": since,
@@ -178,12 +310,49 @@ def collect(
     }
 
 
+# Fixture do self-test: a seção `Convenção` (tabela-template) e a `r0` (0
+# linhas vivas) têm de ficar FORA; `r1` entra inteira, com a terminal marcada.
+_SELF_TEST_REGISTRY = """## Convenção
+| Código | Disposição | Trilha |
+|---|---|---|
+| RV01 — <template> | procede-aberto | <lane> |
+
+## r1 — run vivo
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| RV1-01 — defeito A | correção | Alto | P1 | procede | procede-aberto | [[A40.l7]] · #1375 |
+| RV1-02 — defeito B | clareza | Médio | P2 | procede | procede-fechado | #1234 |
+
+## r0 — run congelado
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| RV0-01 — defeito C | correção | Alto | P1 | procede | procede-fechado | #1000 |
+"""
+
+
+def _self_test_rows() -> str | None:
+    """Prova o parser de linha sobre a fixture (a vault viva muda toda sprint)."""
+    got = rows_from_text("fixture.md", _SELF_TEST_REGISTRY)
+    anchors = [(c["anchor"], c["viva"]) for c in got]
+    if anchors != [("r1/RV1-01", True), ("r1/RV1-02", False)]:
+        return f"esperado r1 vivo+terminal e r0/Convenção fora; veio {anchors}"
+    if list(got[0]["lanes"]) != ["A40.l7"] or got[0]["prs"] != [1375]:
+        return f"refs da linha não extraídas: {got[0]['lanes']} {got[0]['prs']}"
+    return None
+
+
 def self_test(scope: str) -> int:
     """Prova determinismo (mesmo --run → mesmo conjunto) + cobertura 100% em stride runs."""
     a = collect(scope, since=None, run=1)["candidates"]
     b = collect(scope, since=None, run=1)["candidates"]
     if a != b:
         print("self-test FALHOU — coleta não-determinística", file=sys.stderr)
+        return 1
+    if (err := _self_test_rows()) is not None:
+        print(f"self-test FALHOU — grão de linha do bucket moc: {err}", file=sys.stderr)
+        return 1
+    if registry_row_candidates() != registry_row_candidates():
+        print("self-test FALHOU — linhas de registro não-determinísticas", file=sys.stderr)
         return 1
     for name, files in bucket_files(scope).items():
         stride = bucket_stride(name, None)
