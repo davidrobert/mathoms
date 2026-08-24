@@ -83,3 +83,12 @@ def test_lacuna_de_upstream_nao_e_bug_nosso():
 def test_detail_ausente_e_unknown():
     assert reason_from_stage_detail(None) is StageFailureReason.unknown
     assert reason_from_stage_detail({}) is StageFailureReason.unknown
+
+
+def test_abort_de_schema_e_output_invalido_nao_bug_nosso():
+    """O flip `warn→strict` (ADR-284/409) aborta o write com `jsonschema.ValidationError` NUA — sem `error_type`, cairia em `internal_error` e o card acusaria bug nosso por payload rejeitado pelo contrato."""
+    import jsonschema
+
+    exc = jsonschema.ValidationError("payload de E3/x viola e3_reconciled.schema.json")
+    assert not hasattr(exc, "error_type")
+    assert reason_from_exception(exc) is StageFailureReason.output_invalid
