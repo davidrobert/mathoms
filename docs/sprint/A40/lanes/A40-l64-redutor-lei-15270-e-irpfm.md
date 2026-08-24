@@ -55,7 +55,7 @@ tags:
 > | PR | O quê | Estado |
 > |---|---|---|
 > | **PR1** | A recusa vira real: `regime_completo=false` retém `economia_ir_anual` e `aporte_mensal`, com motivo que cita a lei e o ano | ✅ **entregue 2026-08-17** — fecha o §Critério de aceite 1 |
-> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ⬜ |
+> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ✅ **entregue 2026-08-24** |
 > | **PR3** | Contrato tipado do redutor (bandas, coeficientes, vigência) + ADR própria | ⬜ |
 > | **PR4** | IRPFM — confirmar base e abatimentos no texto da lei **antes** de implementar (§Escopo 2) | ⬜ |
 >

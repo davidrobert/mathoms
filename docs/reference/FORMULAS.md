@@ -446,17 +446,28 @@ Abaixo do piso a saída **não é número menor: é "não se aplica" com o motiv
 dedução nunca sai em `--semantic-gain` — é **diferimento**, não ganho: o resgate é
 tributado sobre o **total** (PGBL), não só sobre o rendimento.
 
-### Economia de IR — a diferencial, e por que ela ainda não roda
+### Economia de IR — a diferencial
 
 Forma canônica: `economia = IR(base) − IR(base − aporte)`, sobre `IR(base, ano)`
 progressiva. Ela devolve **zero para o isento por construção**, o que
 `limite × aliquota_marginal` não faz — e é por isso que o instrumento antigo está
 encerrado ([[ADR-375]] §D5).
 
-> **Status: decidido, não implementável ainda.** `fiscal_parameters.ir_brackets`
-> guarda `deducao_brl_cents` em escala **mensal** contra faixas **anuais** (FLAG
-> auto-declarada na migration `e1f2a3b4c5d6`), e o ×12 não resolve — abre degrau de
-> R$ 11,04 em R$ 26.963,20, porque a row é internamente inconsistente. Enquanto a
-> row não for reconciliada ([[A40.l56]]), o substituto honesto da condição 2 é
-> `aliquota_marginal > 0`, que já mata o ramo de dano de sinal. **Nenhum número
-> prescritivo é republicado pelo instrumento antigo com fonte nova.**
+| Grandeza | Fórmula | Onde |
+| --- | --- | --- |
+| Imposto anual devido | `IR(base) = base × alíquota(faixa que CONTÉM a base) − parcela a deduzir`, piso zero | [`irpf_faixa_marginal.ir_devido_anual`](../../pipeline/domain/services/irpf_faixa_marginal.py) |
+| Economia do aporte | `IR(base) − IR(base − aporte)` | [`pgbl_economia_ir.economia_diferencial`](../../pipeline/domain/services/pgbl_economia_ir.py) |
+
+> **Implementada em 2026-08-24 ([[A40.l64]] PR2).** A ressalva anterior —
+> `deducao_brl_cents` em escala mensal contra faixas anuais — **caiu com a
+> [[A40.l56]]**: a row AC2026 que a migration `adr389tabelas` semeia traz parcelas
+> anuais (R$ 2.185,92 · 4.729,91 · 8.105,85 · 10.904,66), e o hook
+> `fiscal-brackets-continuity` guarda a congruência. Sem tabela configurada — o
+> dict legado pré-A7.2b, onde `deducao_brl_cents` é sempre 0 — o analyzer degrada
+> para `restante × aliquota_fallback`, como sempre fez.
+>
+> O diferencial **não modela** o redutor da Lei 15.270/2025 nem o IRPFM. É por isso
+> que a row AC2026 nasce `regime_completo: false` e o card retém a economia
+> ([[ADR-389]] D4); modelá-los é [[A40.l64]] PR3/PR4. O redutor compõe **dentro**
+> de `economia_diferencial`: por ser função do rendimento bruto, ele não se move
+> com o aporte e entra dos dois lados da diferença.
