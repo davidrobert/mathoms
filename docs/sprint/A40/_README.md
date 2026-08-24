@@ -1213,6 +1213,23 @@ inverte o conselho atual de "abrir PR cedo para reservar o ID", que sob
 paralelismo é contraproducente. **Owner-gated**: qualquer opção muda política
 de repo.
 
+> **Marcador de fato, 2026-08-24 — a opção (b) não faz o que o texto acima
+> supõe.** O texto de 2026-08-12 fica: é o registro da medição da escala. O que
+> mudou é conhecimento, não decisão. **Merge driver é client-side**: o
+> `update-branch` do trem (`PUT /pulls/{n}/update-branch`) e o squash rodam no
+> servidor do GitHub, que não lê `.gitattributes` do repo para driver
+> customizado. Medido: `.gitattributes` **não existe** aqui, e o driver `ours`
+> exigiria `git config merge.ours.driver true` **por clone** — que o CLAUDE.md
+> §Git proíbe ao agente configurar. Logo (b) cobriria só o rebase local de quem
+> rodou o config, não o caminho onde a fila trava. Não medi qual fração dos
+> conflitos vem de cada caminho.
+>
+> Metade do custo que esta pendência mede **já foi paga** por outra via: o
+> #1674 tirou o contador agregado dos índices, e a colisão que restava nos
+> gerados era 3 de 4 arquivos por contador. Sobra o `DOC_STATS.md`, que é 100%
+> agregado — não é reformável, só removível. A decisão entre (a), (b), (c) ou
+> "fica como está" segue **owner-gated**, agora com o custo de (b) conhecido.
+
 ## Fora do sprint (disposição explícita)
 
 > ### Uso da exceção da cláusula 2 da [[A42]] — [[A40.l34]], 2026-08-11
