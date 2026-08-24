@@ -12,6 +12,7 @@ import pytest
 
 from pipeline.domain.services.conversao_me import identity_native_brl
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
+from pipeline.domain.services.patrimonio_resolvers import resolve_members
 from pipeline.domain.services.patrimonio_sign_guard import (
     SIGN_GUARD_ENV,
     BaldesPatrimoniais,
@@ -26,6 +27,15 @@ from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
     PatrimonioInputs,
 )
+
+_IDENT = MemberIdentity(
+    titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
+)
+
+
+def _inputs(baseline: dict, **kw) -> PatrimonioInputs:
+    """Injeta `members` — obrigatório desde a [[ADR-410]] D2."""
+    return PatrimonioInputs(baseline=baseline, members=resolve_members(baseline, _IDENT), **kw)
 
 
 def _baldes(**overrides: str) -> BaldesPatrimoniais:
@@ -223,7 +233,7 @@ def config() -> PatrimonioConfig:
 
 
 def _inputs_com_caixa(caixa: float) -> PatrimonioInputs:
-    return PatrimonioInputs(
+    return _inputs(
         baseline={"members": {"david": {"total_bens": 0, "total_dividas": 10_000}}},
         investimentos_atuais={
             "dados": [{"membro": "david", "valor": 200_000.0}],

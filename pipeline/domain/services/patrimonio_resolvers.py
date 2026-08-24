@@ -32,6 +32,7 @@ from pipeline.domain.services.member_key_matcher import (
 from pipeline.domain.services.patrimonio_types import (
     CONSOLIDATED_LIST_KEYS,
     MemberIdentity,
+    MembrosResolvidos,
     investimento_valor,
     parse_ano_31_12,
     resolve_value_year,
@@ -44,12 +45,20 @@ from pipeline.domain.services.patrimonio_types import (
 # =============================================================================
 
 
-def resolve_members(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
-    """Resolve dicts de titular e cônjuge de qualquer baseline suportado.
+def resolve_members(baseline: dict, identity: MemberIdentity) -> MembrosResolvidos:
+    """Resolve titular e cônjuge de qualquer baseline suportado — produtor único."""
+    titular, conjuge = _resolve_members_par(baseline, identity)
+    return MembrosResolvidos(
+        titular=titular,
+        conjuge=conjuge,
+        titular_key=identity.titular_key,
+        conjuge_key=identity.conjuge_key,
+    )
 
-    Retorna tupla ``(titular_data, conjuge_data)``. Se o formato não casar
-    com nenhum resolver, tenta o path consolidated (mais tolerante).
-    """
+
+# Se o formato não casar com nenhum ramo, cai no consolidated (o mais tolerante).
+def _resolve_members_par(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
+    """Despacha entre os 4 formatos de baseline e devolve o par cru."""
     members = baseline.get("members", baseline.get("membros", {}))
 
     if isinstance(members, list):
