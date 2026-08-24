@@ -214,8 +214,16 @@ discriminador ([[ADR-407]] D2), ou o E4 sai do escopo do flip com a razão decla
 | `e2_llm_artifact` | 2 | 0 | 0/1 | GO *(n=2 — não é evidência)* |
 
 O §Critério de aceite pedia *"o drift pré-flip está medido e citado (não
-'acreditamos que zero')"*. **Não é zero: 1.902 dos 16.158 artefatos mapeados
-(11,8%) violam o próprio schema.** Fora de `SCHEMA_BY_STAGE`, 134 artefatos
+'acreditamos que zero')"*. **Não é zero: 1.905 dos 16.158 artefatos mapeados
+(11,8%) violam o próprio schema.**
+
+> 🔧 **Correção de 2026-08-24 (closeout): eram 1.905, não 1.902.** A tabela do corpus
+> inteiro logo abaixo sempre somou 1.905; a prosa carregava o total da **primeira
+> passada**, feita contra a árvore do repo principal (pré-#1604), onde `e5_analysis`
+> media 60 em vez de 63. Ou seja: o parágrafo três acima, que avisa *"medição de flip
+> precisa declarar qual árvore produziu o número"*, citava um número da árvore errada.
+> Re-medido no fecho com `dev/measure_schema_drift.py --all`: **1905/16158**. Os 11
+> vereditos per-schema da [[ADR-409]] §D batem linha a linha. Fora de `SCHEMA_BY_STAGE`, 134 artefatos
 (`extract_members`/`E1`, `review_finances_holistic`/`E6-parecer`) nunca são
 validados — o parecer tem schema em `config/schemas/` e não tem stage mapeado.
 
@@ -540,7 +548,7 @@ modo, duas vezes. O passo irmão em `nightly.yml` fica: o workflow está
 
 #### Por que `backend/tests` NÃO entra — medido, não presumido
 
-`backend/tests` **quebra** em strict: **42 failed / 169** só na superfície de schema
+`backend/tests` **quebra** em strict: **42 falhas** na superfície de schema
 (`-k "schema or artifact_store or pipeline_task or failure_reason"`). A classe é
 legítima e não é drift:
 
