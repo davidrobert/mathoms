@@ -176,3 +176,37 @@ def test_contador_de_lanes_extrai_o_numero_declarado() -> None:
     """Mutação que mata: regex que casa `## Lanes` sem capturar o grupo."""
     assert cc.LANE_COUNT_RE.search("## Lanes (32)\n").group(2) == "32"
     assert cc.LANE_COUNT_RE.search("## Lanes\n") is None
+
+
+# A forma antiga (`\((\d+)\)`) exigia `)` logo após os dígitos e devolvia None no
+# cabeçalho real da A40 — `match is None` faz `check_lane_counter` RETORNAR [], então
+# o check falhava ABERTO. Medido em 2026-08-24: contador dizia 75 com 76 no disco e a
+# camada 1 vinha verde. Este teste mata a volta dessa forma (A40.l59).
+def test_contador_casa_cabecalho_com_texto_dentro_dos_parenteses() -> None:
+    """Mutação que mata: exigir `)` colado ao número — o check passa a falhar aberto."""
+    real = "## Lanes (76 no disco · 76 nesta tabela — ver nota ao fim)\n"
+    match = cc.LANE_COUNT_RE.search(real)
+    assert match is not None, "regex estrito aqui devolve None e o check passa calado"
+    assert match.group(2) == "76"
+
+
+# Incidente 2026-08-21: os 2 CLOSE-BLOCK reais moravam em linha de achado de
+# `docs/_MOC/PIPELINE-REVIEWS-active.md` — fora do universo, a camada 3 nunca
+# releu o registro e o closeout veio verde-falso.
+def test_citers_of_enxerga_registro_moc(tmp_path, monkeypatch) -> None:
+    """Mutação que mata: remover `MOC.glob('*-active.md')` do universo de citadores."""
+    sprint = tmp_path / "docs" / "sprint" / "A40"
+    moc = tmp_path / "docs" / "_MOC"
+    sprint.mkdir(parents=True)
+    moc.mkdir(parents=True)
+    (sprint / "_README.md").write_text("tabela cita [[A40.l7]]\n", encoding="utf-8")
+    (moc / "PIPELINE-REVIEWS-active.md").write_text(
+        "| RV4-12 — defeito | procede-aberto | [[A40.l7]] |\n", encoding="utf-8"
+    )
+    (moc / "00-INDEX.md").write_text("[[A40.l7]] em MOC navegacional\n", encoding="utf-8")
+    monkeypatch.setattr(cc, "SPRINT", tmp_path / "docs" / "sprint")
+    monkeypatch.setattr(cc, "MOC", moc)
+    citers = cc.citers_of("A40.l7")
+    assert any("PIPELINE-REVIEWS-active" in c for c in citers), "registro MOC fora do universo"
+    assert any("_README" in c for c in citers), "universo de sprint não pode regredir"
+    assert not any("00-INDEX" in c for c in citers), "só *-active.md entra — índice não é registro"

@@ -8,11 +8,15 @@ Foco em:
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
+from pipeline.domain.services.conversao_me import FxQuote, convert_me_brl
 from pipeline.domain.services.patrimonio_types import (
     CaixaDetalhe,
     MemberIdentity,
+    MembrosResolvidos,
     PatrimonioConfig,
     PatrimonioInputs,
     get_bens,
@@ -26,6 +30,8 @@ from pipeline.domain.services.patrimonio_types import (
 # =============================================================================
 # safe_float
 # =============================================================================
+
+_SEM_MEMBROS = MembrosResolvidos(titular={}, conjuge={}, titular_key="david", conjuge_key="mariana")
 
 
 def test_safe_float_int():
@@ -134,6 +140,26 @@ def test_patrimonio_config_is_frozen():
 # =============================================================================
 
 
+# ADR-390 §Emenda 2026-08-24 — o carimbo deixou de ser opcional; toda linha
+# publicada diz de onde veio o BRL.
+_CAIXA_DETALHE_ESPERADO = {
+    "conta": "bofa_usd",
+    "moeda": "USD",
+    "saldo_original": 123.46,
+    "valor_brl": 720.0,
+    "tipo": "moeda_estrangeira",
+    "fonte": "extrato",
+    "data_referencia": None,
+    "data_referencia_precisao": "desconhecida",
+    "conversao": {
+        "taxa": "5.83",
+        "taxa_data": None,
+        "taxa_fonte": "market_rate_corrente",
+        "status": "converted",
+    },
+}
+
+
 def test_caixa_detalhe_to_dict_rounds_to_2():
     d = CaixaDetalhe(
         conta="bofa_usd",
@@ -141,17 +167,24 @@ def test_caixa_detalhe_to_dict_rounds_to_2():
         saldo_original=123.4567,
         valor_brl=719.9999,
         tipo="moeda_estrangeira",
+        conversao=convert_me_brl(
+            "123.4567", "USD", FxQuote(rate=Decimal("5.83"), fonte="market_rate_corrente")
+        ),
     )
-    assert d.to_dict() == {
-        "conta": "bofa_usd",
-        "moeda": "USD",
-        "saldo_original": 123.46,
-        "valor_brl": 720.0,
-        "tipo": "moeda_estrangeira",
-        "fonte": "extrato",
-        "data_referencia": None,
-        "data_referencia_precisao": "desconhecida",
-    }
+    assert d.to_dict() == _CAIXA_DETALHE_ESPERADO
+
+
+def test_caixa_detalhe_sem_carimbo_nao_typecheck():
+    """Funil estrutural (ADR-390 D4): antes da emenda isto construía, `to_dict()`
+    omitia a chave e o schema validava — indistinguível de artefato pré-390."""
+    with pytest.raises(TypeError, match="conversao"):
+        CaixaDetalhe(
+            conta="Novo Banco (corrente)",
+            moeda="USD",
+            saldo_original=1000.0,
+            valor_brl=5800.0,
+            tipo="moeda_estrangeira",
+        )
 
 
 # =============================================================================
@@ -160,22 +193,23 @@ def test_caixa_detalhe_to_dict_rounds_to_2():
 
 
 def test_inputs_has_current_positions_false_when_none():
-    inp = PatrimonioInputs(baseline={}, investimentos_atuais=None)
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={}, investimentos_atuais=None)
     assert inp.has_current_positions is False
 
 
 def test_inputs_has_current_positions_false_when_empty_dados():
-    inp = PatrimonioInputs(baseline={}, investimentos_atuais={"dados": []})
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={}, investimentos_atuais={"dados": []})
     assert inp.has_current_positions is False
 
 
 def test_inputs_has_current_positions_false_when_not_dict():
-    inp = PatrimonioInputs(baseline={}, investimentos_atuais="not a dict")  # type: ignore[arg-type]
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={}, investimentos_atuais="not a dict")  # type: ignore[arg-type]
     assert inp.has_current_positions is False
 
 
 def test_inputs_has_current_positions_true_when_dados_nonempty():
     inp = PatrimonioInputs(
+        members=_SEM_MEMBROS,
         baseline={},
         investimentos_atuais={"dados": [{"valor": 1000}]},
     )
@@ -183,7 +217,7 @@ def test_inputs_has_current_positions_true_when_dados_nonempty():
 
 
 def test_inputs_default_caixa_empty():
-    inp = PatrimonioInputs(baseline={})
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={})
     assert inp.caixa_total_brl == 0.0
     assert inp.caixa_detalhes == []
 

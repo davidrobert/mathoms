@@ -30,8 +30,7 @@ function makeImovel(overrides: Partial<RealEstateImovel> = {}): RealEstateImovel
     status_contrato: "atualizado",
     indice_reajuste: "IGPM",
     data_ultimo_reajuste: "2024-08-15",
-    endereco_canonical: "Rua Exemplo, 100 — Vila Madalena",
-    imobiliaria_cnpj: null,
+    endereco_display: "exemplo 100",
     imobiliaria_nome: "QuintoAndar",
     origem_aluguel: "informe",
     ...overrides,
@@ -88,13 +87,13 @@ describe("RealEstateYieldCard", () => {
         makeImovel({
           property_id: "p1",
           descricao: "Imóvel A",
-          endereco_canonical: "Imóvel A",
+          endereco_display: "Imóvel A",
           valor_imovel: 2000000,
         }),
         makeImovel({
           property_id: "p2",
           descricao: "Imóvel B",
-          endereco_canonical: "Imóvel B",
+          endereco_display: "Imóvel B",
           valor_imovel: 1000000,
         }),
       ],
@@ -214,18 +213,20 @@ describe("RealEstateYieldCard", () => {
 
   it("não interpola descrição cartorial no corpo (A40.l6)", () => {
     const cartorial = "Apartamento matrícula 999.999, Rua Exemplo, 100";
+    // `endereco_display: null` é o que o E5 publica para esta descrição: a
+    // cascata devolveria `mat:999999`, e o boundary suprime (§Ataque A1).
     const data = makeData({
       imoveis: [
         makeImovel({
           property_id: "p1",
           descricao: cartorial,
-          endereco_canonical: "Imóvel locado",
+          endereco_display: null,
           valor_imovel: 2000000,
         }),
         makeImovel({
           property_id: "p2",
           descricao: cartorial,
-          endereco_canonical: "Imóvel locado",
+          endereco_display: null,
           valor_imovel: 1000000,
         }),
       ],
@@ -239,8 +240,12 @@ describe("RealEstateYieldCard", () => {
       ],
     });
     render(<RealEstateYieldCard data={data} />);
+    // As DUAS grafias: a crua da descrição e a normalizada que `canonicalize()`
+    // emite. Assertar só a crua ficava verde com `exemplo 100` na tela (§Ataque A4).
     expect(document.body.textContent).not.toContain("matrícula 999.999");
     expect(document.body.textContent).not.toContain("Rua Exemplo, 100");
+    expect(document.body.textContent).not.toContain("exemplo 100");
+    expect(document.body.textContent).not.toContain("999.999");
     expect(screen.getAllByText("Imóvel locado").length).toBeGreaterThan(0);
   });
 
@@ -249,12 +254,12 @@ describe("RealEstateYieldCard", () => {
       imoveis: [
         makeImovel({
           property_id: "p1",
-          endereco_canonical: "Com valor",
+          endereco_display: "Com valor",
           valor_imovel: 2000000,
         }),
         makeImovel({
           property_id: "p2",
-          endereco_canonical: "Zero",
+          endereco_display: "Zero",
           valor_imovel: 0,
         }),
       ],

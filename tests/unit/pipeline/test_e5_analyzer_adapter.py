@@ -15,7 +15,9 @@ from pipeline.artifact_store import InMemoryArtifactStore  # noqa: E402
 from pipeline.domain.services.e5_analyzer_adapter import (  # noqa: E402
     E5AnalysisResult,
     E5AnalyzerAdapter,
+    _extract_me_caixa_from_baseline,
 )
+from pipeline.domain.services.posicao_31_12_builder import build_posicao_31_12
 
 _DAVID_DOB = date(1985, 6, 15)
 
@@ -1100,3 +1102,34 @@ def _ivvb11_holdings_300k() -> dict:
         "total_por_membro": {"david": 500_000, "mariana": 0},
         "dados": [{"nome": "IVVB11", "tipo": "etf", "valor_atual": 300_000.0}],
     }
+
+
+# =============================================================================
+# A40.l63 §Ataque §5 — a linha do fallback ADR-245 herdava `fonte="extrato"` e
+# `build_posicao_31_12` filtra por esse valor: ela entrava no card 31/12 com id
+# `extrato:irpf_…` e `data_referencia` nula, afirmando ser posição de extrato.
+# =============================================================================
+
+_BASELINE_ME_IRPF = {
+    "investimentos_consolidados": [
+        {
+            "descricao": "DEPOSITO EM CONTA CORRENTE EM DOLAR - BANK OF AMERICA",
+            "valores_31_12": {"2024": 250000.00},
+        }
+    ]
+}
+
+
+def test_fallback_245_nao_se_declara_extrato() -> None:
+    _, detalhes = _extract_me_caixa_from_baseline(_BASELINE_ME_IRPF)
+    linha = detalhes[0].to_dict()
+    assert linha["fonte"] == "baseline_irpf"
+    # `moeda` ≡ unidade de `saldo_original` (ADR-245 L3 emendada).
+    assert linha["moeda"] == "BRL"
+    assert linha["conversao"]["taxa_fonte"] == "irpf_ja_em_brl"
+
+
+def test_fallback_245_nao_entra_no_card_31_12_como_extrato() -> None:
+    _, detalhes = _extract_me_caixa_from_baseline(_BASELINE_ME_IRPF)
+    rows = build_posicao_31_12({}, [d.to_dict() for d in detalhes])
+    assert rows == [], f"linha de IRPF publicada como posição de extrato: {rows}"

@@ -34,6 +34,10 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 SPRINT = REPO_ROOT / "docs" / "sprint"
+MOC = REPO_ROOT / "docs" / "_MOC"
+
+sys.path.insert(0, str(REPO_ROOT))
+from dev._lane_closure_predicates import pr_is_cited  # noqa: E402
 
 CLOSED_LANE = {"shipped", "cancelled"}
 OPEN_LANE = {"planned", "open", "in_progress", "blocked"}
@@ -85,7 +89,12 @@ SELF_CLOSED_RE = re.compile(
     r"(sem dono|falta de dono|`shipped`|shipou|não absorveu|nao absorveu|recusou)", re.I
 )
 WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)")
-LANE_COUNT_RE = re.compile(r"^(#{2,3}\s*Lanes)\s*\((\d+)\)", re.M)
+# O `(N)` do cabeçalho nem sempre é só o número: a A40 escreve
+# `## Lanes (76 no disco · 76 nesta tabela — ver nota ao fim)`. Exigir `)` logo
+# após os dígitos fazia `search` devolver None e o check **passar calado** —
+# medido em 2026-08-24, com o contador declarando 75 contra 76 no disco. Casa o
+# primeiro inteiro dentro dos parênteses e ignora o resto.
+LANE_COUNT_RE = re.compile(r"^(#{2,3}\s*Lanes)\s*\(\s*(\d+)", re.M)
 
 
 @dataclass
@@ -253,12 +262,15 @@ def check_ship_trace(lane: Lane) -> list[Finding]:
 
 
 def check_pr_visible_in_sprint(lane: Lane) -> list[Finding]:
-    """CLOSE-DRIFT: o `_README` da sprint não menciona o PR que a lane entregou."""
+    # O registro é `_README` ∪ `_HISTORY`: exigir só o primeiro acusava 4 lanes da A40
+    # (#1118, #1124, #1139, #1269) cujo PR o `split_sprint_history.py` — mandatório no
+    # CLAUDE.md — moveu para o histórico. Predicado único em dev/_lane_closure_predicates.
+    """CLOSE-DRIFT: o registro da sprint não menciona o PR que a lane entregou."""
     pr = lane.fm.get("ship_pr")
     readme = SPRINT / lane.sprint / "_README.md"
     if not isinstance(pr, int) or not readme.exists():
         return []
-    if re.search(rf"#{pr}\b", readme.read_text(encoding="utf-8")):
+    if pr_is_cited(REPO_ROOT / "docs", lane.sprint, pr):
         return []
     return [
         Finding(
@@ -379,13 +391,18 @@ def check_stale_blocked(lane: Lane, lanes: dict[str, Lane]) -> list[Finding]:
     ]
 
 
+# Registros `*-active.md` entram desde 2026-08-21: os 2 CLOSE-BLOCK reais da
+# revisão de método moravam em linha de achado da PIPELINE-REVIEWS-active,
+# fora do universo — a linha-zumbi nasce no merge, e este é o único ponto que
+# a vê com latência zero.
 def citers_of(lane_id: str) -> list[str]:
-    """Docs de sprint que citam a lane — universo da camada 3 (contexto, não falha)."""
-    out = []
-    for doc in sorted(SPRINT.glob("*/*.md")) + sorted(SPRINT.glob("*/lanes/*.md")):
-        if f"[[{lane_id}]]" in doc.read_text(encoding="utf-8"):
-            out.append(_rel(doc))
-    return out
+    """Docs de sprint + registros `_MOC/*-active.md` que citam a lane (contexto, não falha)."""
+    universe = (
+        sorted(SPRINT.glob("*/*.md"))
+        + sorted(SPRINT.glob("*/lanes/*.md"))
+        + sorted(MOC.glob("*-active.md"))
+    )
+    return [_rel(doc) for doc in universe if f"[[{lane_id}]]" in doc.read_text(encoding="utf-8")]
 
 
 def audit(lane_ids: list[str], lanes: dict[str, Lane]) -> tuple[list[Finding], dict]:

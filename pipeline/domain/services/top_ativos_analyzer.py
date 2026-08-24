@@ -104,6 +104,13 @@ class _Candidate:
     autoridade: str | None = None
 
 
+# Defaults de ignorância de `_classify_investimento` (`consolidate_baseline.py:732`):
+# "não sei classificar", não tipo de produto. Como rótulo seriam o "Investimento
+# pelado" que a [[ADR-337]] proíbe. Latente até a [[ADR-410]] D1 — o resolver
+# descartava `tipo`, então `classe` vencia por ausência e ninguém viu.
+_TIPOS_SEM_INFORMACAO = frozenset({"investimento", "investimentos", "outros"})
+
+
 class TopAtivosAnalyzer:
     """Ranking dos N maiores ativos individuais por valor."""
 
@@ -232,8 +239,10 @@ class TopAtivosAnalyzer:
     @staticmethod
     def _fallback_nome(tipo: str, classe: str, instituicao: str) -> str:
         # ADR-337: sem nome do produto, cai na classe (nunca "Investimento" pelado).
-        base = tipo or classe or "Investimento"
-        return f"{base} ({instituicao})" if instituicao else base
+        base = (tipo if tipo.strip().lower() not in _TIPOS_SEM_INFORMACAO else "") or classe
+        return (
+            f"{base or 'Investimento'} ({instituicao})" if instituicao else base or "Investimento"
+        )
 
 
 def _imovel_display_label() -> str:

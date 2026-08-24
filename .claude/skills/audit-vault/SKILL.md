@@ -19,7 +19,19 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
 ## Parâmetros
 
 - `--scope` = `all` (default) · `reference` · `adr` · `plan` · `claude` ·
-  `prompt` · `sprint` · `root`.
+  `prompt` · `sprint` · `root` · `moc`.
+- `moc` (emenda 2026-08-21 da [[ADR-302]]) cobre os MOCs em **dois grãos**: os
+  4 registros com máquina de estado de skills pares ([[ADR-343]] —
+  PIPELINE-REVIEWS/REPORT-REVIEWS/LEDGER-CERTIFY/PARSE-CERTIFY) entram como
+  **linha de seção viva** (o coletor resolve `status:`/`ship_pr:` da lane
+  citada localmente; quem decide "é zumbi" é a camada 3); OWNER-GATED, PLANS e
+  00-INDEX entram no grão-arquivo normal. `AUDITS-active` fica **fora do
+  universo julgado** (a camada 5 escreve nele todo run — auto-referência
+  sujaria o hot set para sempre; a camada 0 continua lendo a última seção) e
+  `SPRINTS-active` também (sobrepõe o bucket `sprint` e a camada 2 da
+  lane-closeout). O **detector primário** da linha-zumbi é a `lane-closeout`
+  no merge (`citers_of` inclui `docs/_MOC/*-active.md`); este bucket é a rede
+  de segurança, com latência de rotação. Receitas e limites: checklist §6.
 - `--mode` = `comprehensive` (default: todos os buckets vivos, 5 dimensões) ·
   `focused` (só o `--scope` dado, dimensão dominante).
 - `--full` = sweep 100% do universo do `--scope` (repassa `--full` ao coletor).
@@ -32,7 +44,7 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
 - `--scope all --full` = **sweep one-shot** (um comando audita TUDO — ~409
   arquivos, ~7M tokens). Contrato de execução obrigatório: **fasear
   internamente na mesma sessão** — Fase 1 `reference` → Fase 2
-  `plan`+`sprint`+`claude`+`prompt`+`root` → Fase 3 `adr` em 4-5 sub-lotes
+  `plan`+`sprint`+`claude`+`prompt`+`root`+`moc` → Fase 3 `adr` em 4-5 sub-lotes
   (`Proposto`/`Roadmap` primeiro) — fechando **1 PR docs-only + 1 subseção rN
   no AUDITS-active por fase ANTES de iniciar a seguinte**. Isso preserva
   triagem <30min/pacote e dá checkpoint (interrupção retoma da fase seguinte,
@@ -48,9 +60,20 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
   fica `procede-aberto` com a pergunta explícita na tabela rN; (b) todo DRIFT
   só é editado com **citação dupla** (trecho do doc + trecho da
   fonte-de-verdade), o mesmo verify que a camada 4 exige de DOC-BLOCK —
-  sem ambos, não edita; (c) DOC-POLISH continua wontfix (não entra no `--fix`).
-  Cada batch sai em **PR docs-only próprio**, separado do PR de síntese da
-  fase, para manter o diff revisável.
+  sem ambos, não edita; (c) DOC-POLISH continua wontfix (não entra no `--fix`);
+  (d) correção que refuta/supersede **prescrição viva em linha de registro**
+  edita **a própria célula** — forma canônica no checklist §6; nota datada
+  abaixo da tabela sozinha não vale (quem lê a tabela antes da nota executa a
+  prescrição morta); (e) flip de ADR `Proposto`→`Decidido` executado pela
+  auditoria é **atestação**, não housekeeping: a citação dupla de (b) vira
+  "trecho da ADR + trecho do diff do **SHA que implementa**" — se a ADR
+  precisa de edição além do `status:`, não é flip, é `procede-aberto` com o
+  SHA nomeado; (f) o `--fix` **nunca muda disposição** de linha de registro:
+  em registro de skill par ([[ADR-343]]), reporta "trilha aponta lane
+  `shipped` — reconciliar" e o flip fica com a cadência da skill dona; no
+  próprio `AUDITS-active`, mudança de disposição é da cadência anti-zumbi
+  (camadas 0/5), nunca do batch. Cada batch sai em **PR docs-only próprio**,
+  separado do PR de síntese da fase, para manter o diff revisável.
 
 `archive/` e sprint fechada ficam **sempre fora** do julgamento (gates ainda
 rodam via pre-commit) — auditar histórico congelado gera falso-drift.
@@ -92,12 +115,18 @@ python3 .claude/skills/audit-vault/references/collect_candidates.py \
 
 `<N>` = número deste run (o `rN` da seção que este run criará no
 AUDITS-active = última seção + 1). Candidatos = `gate-fail ∪ git-diff ∪ amostra
-rotativa`: cada arquivo tem classe permanente `sha1(path) % stride` e o `--run`
-rotaciona a classe-alvo — 100% do bucket é julgado a cada `stride` runs
-(reference/plan/sprint/root: 5 · adr/claude/prompt: 20). Sem `--run`, a amostra
-repete a classe 0 (o bug F17/r5). Reproduzível: `--self-test` prova que o mesmo
-`--run` dá o mesmo conjunto E que a rotação cobre o universo. Para sweep 100%,
-repasse `--full` (ver §Parâmetros); o JSON de saída traz `buckets` com
+rotativa ∪ linhas de registro`: cada arquivo tem classe permanente
+`sha1(path) % stride` e o `--run` rotaciona a classe-alvo — 100% do bucket é
+julgado a cada `stride` runs. Fonte única dos strides:
+`SAMPLE_STRIDE_BY_BUCKET` no próprio coletor (denso onde o sentido muda toda
+sprint; não reenumere em prosa). As linhas de registro (`moc-linhas` no JSON)
+saem **todo run**, fora da rotação — são compactas e o estado muda por evento
+externo ao arquivo. Sem `--run`, a amostra repete a classe 0 (o bug F17/r5).
+Reproduzível: `--self-test` prova que o mesmo `--run` dá o mesmo conjunto, que
+a rotação cobre o universo E que o parser de linha extrai o esperado de uma
+fixture sintética. Para sweep 100%, repasse `--full` (ver §Parâmetros; para
+linhas de registro, `--full` significa "todas as linhas de seção **viva**" —
+seção congelada nunca entra); o JSON de saída traz `buckets` com
 `universe/sampled/stride` — cite essa cobertura no relatório.
 
 ### Camada 3 — Julgamento delegado (só nos candidatos)
@@ -112,6 +141,11 @@ não conserte".
 
 A maioria dos `DOC-BLOCK` (doc contradiz código) o **loop principal** resolve
 sozinho por diff textual — não precisa de especialista.
+
+Candidatos `moc-linhas` julgam **o registro, nunca o mérito do achado**
+(fronteira [[ADR-343]]): estado da linha vs. `lanes`/`prs` já resolvidos pelo
+coletor, forma da célula, integridade do ponteiro. "O achado de fato fechou?"
+é da cadência da skill dona. Receitas: checklist §6.
 
 ### Camada 4 — Verify (só severidade ≥ DOC-BLOCK)
 

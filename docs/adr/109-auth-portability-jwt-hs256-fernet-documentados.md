@@ -26,7 +26,10 @@ size_lines: 79
 migra para Go. Auditoria (2026-04-20) revelou que o estado atual já é
 language-neutral:
 
-- **JWT**: `python-jose` com HS256, payload canônico `{sub, exp, tv}` —
+- **JWT**: **PyJWT** com HS256, payload canônico `{sub, exp, tv}` — a lib
+  migrou de `python-jose` para PyJWT em #357 ([[ADR-230]], `PYSEC-2025-185`);
+  hoje `backend/app/core/security.py:7-8` faz `import jwt`. O **contrato
+  portável** desta ADR (HS256 + `{sub, exp, tv}`) não mudou —
   RFC 7519 puro, qualquer biblioteca Go (`golang-jwt/jwt`), TS
   (`jsonwebtoken`) ou Rust (`jsonwebtoken`) lê sem ajuste.
 - **Fernet** (`cryptography.fernet`): AES-128-CBC + HMAC-SHA256 no formato

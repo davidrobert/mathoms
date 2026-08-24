@@ -140,7 +140,11 @@ confirma no pickup que o diff não toca a superfície da l5.
 - Export/PDF com contagem indisponível mostrando "não apurado" → resíduo da
   [[A40.l22]] (RV6-22).
 - Gate de PII do view-model (7f, RV6-17) → [[A40.l6]], dona do critério 4 da
-  [[ADR-337]].
+  [[ADR-337]]. **Entregue 2026-08-24 (#1673):** `scan_view_model_pii` varre toda
+  string do payload (não uma allowlist de chave), roda sobre o payload produzido
+  e sobre o render (DOM + PDF), e `get_report_data` redige na leitura. Se o 7f
+  desta lane pressupunha construir o gate, o pressuposto caiu — reste conferir se
+  sobra alguma faceta de *contrato* que o gate de PII não cobre.
 - Dar superfície a `patrimonio.imoveis_nao_geradores`: o campo entra no
   invariante 4a da Onda 1 ([[A40.l66]]); **renderizá-lo** é decisão de produto
   com copy própria, e não cabe numa lane de guard.

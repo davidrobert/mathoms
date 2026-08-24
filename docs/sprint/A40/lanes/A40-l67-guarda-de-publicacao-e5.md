@@ -235,7 +235,19 @@ Re-medido em `5f73b116`: o default `patrimonio: dict[str, Any] | None = None`
 (`backend/tests/test_alocacao_bundle_serialization_v2.py:81,91,94`). O achado
 continua válido; só a coordenada estava errada.
 
-### Deferimento datado (2026-08-18) · dono [[A40.l58]]
+### Deferimento datado (2026-08-18) · dono: `data-engineer` — re-homeado em 2026-08-24
+
+> ⚠️ **A rota mudou em 2026-08-24 (a l58 shipou).** O texto abaixo é preservado como
+> escrito; o que envelheceu é o destino, não o conteúdo. Hoje o item se parte em dois:
+>
+> - **O flip em si** não é entregável de lane nenhuma — é procedimento do
+>   [runbook §3.1](../../../reference/runbooks/schema_validation_strict_flip.md),
+>   gated pelo §1.3, que desde a [[ADR-409]] §B é um comando com exit code
+>   (`dev/measure_schema_drift.py --gate`). Qualquer sessão executa quando houver runs.
+> - **`baseline_patrimonial` não pode ser flipado** e o bloqueio não é temporal: o
+>   contrato declara **5 de 13** chaves do payload real. Re-derivá-lo do produtor E1.5c
+>   é §Deferimento datado com dono: `data-engineer` na [[A40.l58]] §Fecho.
+> - `e15_baseline_extract`, o irmão, mede **0/66** e está elegível hoje ([[ADR-409]] §D).
 
 **O flip de `mode_overrides` para strict sai desta lane.** Ele estava na
 §Critério de aceite acima, e era um critério que **esta lane não podia
@@ -251,6 +263,17 @@ Escopo do que foi re-homeado: flip de `schema_validation.mode` para `strict` nos
 **drift = 0 por ≥7 dias de dogfood, com o número citado no PR do flip** —
 critério **temporal** por construção, que nenhuma sessão fecha por esforço.
 A simetrização do contrato que o flip torna executável já shipou no #1529.
+
+> ⚠️ **Marcador de 2026-08-24 — a condição de retomada é inalcançável para 1 dos 2
+> schemas** (medido no §Ataque da [[A40.l58]], PR #1650). `baseline_patrimonial`
+> mede **100% de drift em 91/91 artefatos** do corpus: exige
+> `required: [pipeline_stage, data_processamento]` e o writer
+> (`scripts/consolidate_baseline.py:1003`) não estampa nenhum dos dois — quem
+> estampa é o `BaselineNormalizer`, na **leitura**, dentro do E4. "Drift = 0 por
+> ≥7 dias" não é critério temporal aqui: é **estrutural**, e só fecha depois de um
+> fix de contrato ou de produtor. `e15_baseline_extract` mede **0/66** e segue
+> elegível. O deferimento e o dono não mudam; o que muda é que o flip dos 2
+> schemas **não é um único passo**.
 
 ### Segue aberto
 

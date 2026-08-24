@@ -70,9 +70,9 @@ mergeou` em picos com múltiplos PRs paralelos.
 1. Você (ou um agente) abre PR, deixa verde, roda
    `gh pr merge <N> --squash --auto`.
 2. Outro PR mergea em `main`.
-3. O workflow `Auto-update PR branches` dispara em `push: main`, lista
-   todos os PRs **com auto-merge habilitado**, e chama o endpoint
-   `update-branch` da GitHub API em cada um.
+3. O workflow `Auto-update PR branches` dispara em `push: main` e chama
+   `update-branch` em **exatamente 1** PR (FIFO por `createdAt`, só os
+   com auto-merge, ADR-322 D1). Atualizar todos de uma vez é O(n²) de CI.
 4. GitHub atualiza a branch da PR (merge de `main` na branch — o
    squash-merge final em `main` continua produzindo histórico linear).
 5. Novo CI run dispara automaticamente; quando fica verde, auto-merge

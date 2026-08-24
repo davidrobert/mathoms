@@ -234,3 +234,33 @@ class TestMarketRateRepository:
             s.commit()
             rows = MarketRateRepository(s).list_by_pair("USD/BRL")
             assert [r.observed_at for r in rows] == [date(2026, 1, 1), date(2024, 1, 1)]
+
+
+# ---------------------------------------------------------------------------
+# DBConfigStore.get_market_quote — ADR-390 D2 (A40.l63 §Ataque §6)
+#
+# `get_market_rate` devolvia só o `Decimal`: a data da row resolvida morria na
+# fronteira do port e `taxa_data` saía nulo em toda via corrente. O caso que
+# importa é justamente o desalinhado — cotação de 2026-04-27 lida hoje.
+# ---------------------------------------------------------------------------
+
+
+class TestDBConfigStoreMarketQuote:
+    def test_quote_traz_a_data_da_row_nao_a_do_lookup(self, sync_db):
+        from backend.app.services.db_config_store import DBConfigStore
+
+        with sync_db() as s:
+            s.add(_make_rate(pair="USD/BRL", observed_at=date(2026, 4, 27), rate=Decimal("5.8")))
+            s.commit()
+            quote = DBConfigStore(s).get_market_quote("USD/BRL", date(2026, 8, 11))
+            assert quote is not None
+            assert quote.rate == Decimal("5.8000000000")
+            # 106 dias de defasagem — o rótulo existe justamente para isto
+            # incomodar quem lê o relatório.
+            assert quote.observed_at == date(2026, 4, 27)
+
+    def test_quote_sem_row_devolve_none_em_vez_de_raise(self, sync_db):
+        from backend.app.services.db_config_store import DBConfigStore
+
+        with sync_db() as s:
+            assert DBConfigStore(s).get_market_quote("USD/BRL", date(2026, 8, 11)) is None

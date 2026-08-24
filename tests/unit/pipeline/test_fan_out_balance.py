@@ -7,6 +7,7 @@ sobre corpus incompleto. O mesmo `.xls` sumiu em 3 runs consecutivos.
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -37,10 +38,13 @@ class TestLeitorTipado:
         doc.write_bytes(conteudo)
         assert DocumentTextExtractor().extract_result(doc).outcome is esperado
 
-    def test_xls_legado_e_leitura_falhou_nao_documento_vazio(self, tmp_path: Path) -> None:
-        """O caso do r6: openpyxl não lê `.xls` legado, levanta, e virava `""`."""
+    def test_arquivo_corrompido_e_leitura_falhou_nao_documento_vazio(self, tmp_path: Path) -> None:
+        # NÃO é o caso do r6: bytes-lixo falham em qualquer leitor, então este
+        # teste ficava verde com o roteamento errado E com o certo. O r6 mora
+        # em `TestXlsLegado`, que precisa de BIFF de verdade.
+        """Bytes que não são planilha nenhuma: defeito de leitura, nunca `""`."""
         doc = tmp_path / "extrato.xls"
-        doc.write_bytes(b"conteudo que nao e xlsx")
+        doc.write_bytes(b"conteudo que nao e planilha")
 
         resultado = DocumentTextExtractor().extract_result(doc)
 
@@ -114,6 +118,71 @@ class TestSkipNomeiaODocumento:
     def test_reader_missing_e_warn_first(self) -> None:
         """ADR-393 D4: declara, não retém o run."""
         assert ReviewReasonCode.extract_reader_missing not in BLOCKING_CODES
+
+
+def _xls_biff(path: Path, linhas: list[list[object]]) -> Path:
+    """BIFF de verdade (xlwt). Bytes-lixo com sufixo `.xls` não exercitam o leitor."""
+    import xlwt
+
+    wb = xlwt.Workbook()
+    sh = wb.add_sheet("Extrato")
+    estilo_data = xlwt.easyxf(num_format_str="DD/MM/YYYY")
+    for r, linha in enumerate(linhas):
+        for c, valor in enumerate(linha):
+            if isinstance(valor, datetime):
+                sh.write(r, c, valor, estilo_data)
+            else:
+                sh.write(r, c, valor)
+    wb.save(str(path))
+    return path
+
+
+class TestXlsLegado:
+    """A40.l68 §Ataque C: 168/168 `.xls` do corpus saíam `leitura_falhou` porque
+    o roteamento mandava BIFF para openpyxl, que só lê OOXML."""
+
+    def test_xls_real_e_legivel(self, tmp_path: Path) -> None:
+        doc = _xls_biff(
+            tmp_path / "extrato.xls",
+            [["Data", "Historico", "Valor"], ["01/01/2026", "TED RECEBIDA", 1234.56]],
+        )
+
+        resultado = DocumentTextExtractor().extract_result(doc)
+
+        assert resultado.outcome is ReaderOutcome.ok
+        assert resultado.is_defect is False
+        assert "TED RECEBIDA" in resultado.text
+        assert "1234.56" in resultado.text
+
+    def test_data_nao_sai_como_serial_do_excel(self, tmp_path: Path) -> None:
+        """Serial float (`45678.0`) é ilegível para o LLM — o valor vira ISO."""
+        doc = _xls_biff(tmp_path / "extrato.xls", [[datetime(2026, 1, 15), "SAQUE"]])
+
+        texto = DocumentTextExtractor().extract_result(doc).text
+
+        assert "2026-01-15" in texto
+        assert "46037" not in texto
+
+    def test_mutacao_rotear_xls_para_openpyxl_ressuscita_o_defeito(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Sem esta mutação o teste acima poderia passar por outro motivo."""
+        doc = _xls_biff(tmp_path / "extrato.xls", [["Data", "Valor"], ["01/01/2026", 10]])
+        extractor = DocumentTextExtractor()
+        assert extractor.extract_result(doc).outcome is ReaderOutcome.ok
+
+        original = DocumentTextExtractor._reader_for
+        monkeypatch.setattr(
+            DocumentTextExtractor,
+            "_reader_for",
+            lambda self, suffix: (
+                self._extract_xlsx if suffix == ".xls" else original(self, suffix)
+            ),
+        )
+
+        resultado = extractor.extract_result(doc)
+        assert resultado.outcome is ReaderOutcome.leitura_falhou
+        assert "does not support the old .xls" in resultado.detalhe
 
 
 class TestProvaPorMutacao:

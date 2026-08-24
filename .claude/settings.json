@@ -42,7 +42,11 @@
       "Bash(.venv/bin/python scripts/*.py *)",
       "Bash(python backend/app/scripts/*.py *)",
       "Bash(python3 backend/app/scripts/*.py *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(python3 dev/dump_artifact.py *)",
+      "Bash(.venv/bin/python dev/dump_artifact.py *)",
+      "Bash(python3 dev/audit_member_identity_drift.py *)",
+      "Bash(python3 dev/audit_patrimonio_ano_base_divergence.py *)"
     ]
   }
 }

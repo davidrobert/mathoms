@@ -31,6 +31,7 @@ from pipeline.adapters.fiscal_parsers import (
     fiscal_payload_to_dataclass,
     fiscal_row_to_payload,
 )
+from pipeline.domain.services.ptax_types import PtaxQuote
 from pipeline.domain.types.config import (
     CategorizationConfig,
     FamilyMembersConfig,
@@ -133,6 +134,11 @@ class DBConfigStore:
         rate = MarketRateRepository(self._session).get_rate(pair, observed_at)
         fiscal_cache.store_market_rate_cache(pair, observed_at, rate)
         return rate
+
+    def get_market_quote(self, pair: str, observed_at: date) -> Optional[PtaxQuote]:
+        """Row de ``pair`` em data <= ``observed_at``, com a data preservada (ADR-390 D2)."""
+        row = MarketRateRepository(self._session).get_latest_on_or_before(pair, observed_at)
+        return None if row is None else PtaxQuote(rate=row.rate, observed_at=row.observed_at)
 
     def get_protection_bundle(self, workspace_id: str):
         """Bundle de proteção (ADR-192). Skeleton T02 — calculators T03."""
