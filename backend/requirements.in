@@ -47,7 +47,7 @@ websockets>=12.0
 
 # A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
 python-json-logger>=3.2
-opentelemetry-api>=1.30
+opentelemetry-api>=1.44.0
 opentelemetry-sdk>=1.30
 opentelemetry-exporter-otlp-proto-http>=1.30
 opentelemetry-instrumentation-fastapi>=0.50b0
