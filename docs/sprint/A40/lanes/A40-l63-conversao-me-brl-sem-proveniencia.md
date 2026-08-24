@@ -6,6 +6,7 @@ sprint: A40
 plan: PLAN-report-trust
 status: shipped
 priority: P1
+ship_pr: 1671
 branch_slug: a40-l63-conversao-me-brl-sem-proveniencia
 owner: data-engineer
 adrs:
