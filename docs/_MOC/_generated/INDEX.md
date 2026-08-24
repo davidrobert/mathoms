@@ -947,6 +947,7 @@
 | A40.l75 | lane | open | A40 | O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou | `sprint/A40/lanes/A40-l75-msw-drift-gate-inerte.md` |
 | A40.l76 | lane | open | A40 | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | `sprint/A40/lanes/A40-l76-proveniencia-de-artefato-e2.md` |
 | A40.l77 | lane | open | A40 | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | `sprint/A40/lanes/A40-l77-dois-resolvers-de-membro.md` |
+| A40.l79 | lane | open | A40 | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | `sprint/A40/lanes/A40-l79-row-fiscal-ausente-e-fail-open.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
