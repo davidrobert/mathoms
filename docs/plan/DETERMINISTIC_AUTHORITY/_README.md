@@ -435,7 +435,7 @@ que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
 > **Marcador 2026-08-24.** 2a mergeado em #1526. O critério acima é satisfeito
 > **e vácuo**: o balanço fecha *porque* a perda é termo do lado direito, e
 > `success` não pode ser `False` por documento perdido. Quem retém o run é
-> `validation.valid`. Ver [[ADR-393]] §Emenda 2026-08-24 e [[A40.l68]] §Ataque.
+> `validation.valid`. Ver [[ADR-393]] §Emenda 2026-08-24 (a) e [[A40.l68]] §Ataque.
 > **D3** (denominador enumerado) e **D5** (falha no E0) seguem **não entregues**.
 - 2b. Ladder [[ADR-081]] no E1.5: `confidence < 0,7` → `review_reason` +
   `degraded` — WARN-first com budget medido (§Enforcement).
@@ -576,7 +576,7 @@ export com contagem indisponível mostra "não apurado", nunca CleanBar.
 | 1c conservação E1.5c | degraded + review_reason | obrigatório | env var |
 | 1d guarda de sinal E5 | reclassifica → publica; sobrevivente → needs_review | obrigatório | env var |
 | 1e strict baseline | warn ≥7 dias, drift=0 medido | obrigatório | `mode_overrides` |
-| 2a balanço fan-out | skipped(motivo) + needs_review; ~~success=false só com balanço aberto~~ → **o balanço não abre** ([[ADR-393]] §Emenda 2026-08-24) | obrigatório | ~~env var~~ → **não existe** (§Emenda 2026-08-19) |
+| 2a balanço fan-out | skipped(motivo) + needs_review; ~~success=false só com balanço aberto~~ → **o balanço não abre** ([[ADR-393]] §Emenda 2026-08-24 (a)) | obrigatório | ~~env var~~ → **não existe** (§Emenda 2026-08-19) |
 | 2b ladder E1.5 | degraded, nunca abort | obrigatório | env var |
 | 5c verified_ratio | telemetria (2 razões); flip só pós-produção | ≥20 gerações | ADR própria |
 | 5b sanidade pré-LLM | rebaixa confiança + nota | obrigatório | env var |
