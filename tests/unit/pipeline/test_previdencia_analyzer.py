@@ -141,6 +141,9 @@ class TestSemCapacidadeDeclarada:
 # =============================================================================
 
 
+_ALIQUOTA_FALLBACK = 7.5
+
+
 class TestAliquotaMarginal:
     def test_usa_fallback_quando_sem_faixas(self):
         r = PrevidenciaAnalyzer().analyze({}, capacidade_irpf=_capacidade("4608"))
@@ -211,14 +214,20 @@ class TestAliquotaMarginal:
     # config sem faixas ou tabela de banda única, que devolve o mesmo valor nos
     # dois desenhos. Sem este, o fix não teria gate no ramo autoritativo.
     def test_caminho_irpf_tambem_resolve_a_faixa(self):
-        """O ramo autoritativo usa a mesma regra — senão o fix não alcança quem declarou."""
+        """O ramo autoritativo usa a mesma regra — senão o fix não alcança quem declarou.
+
+        Base TRIBUTADA de propósito: com base isenta a economia é zero, e desde
+        2026-08-24 zero retém o aporte e a marginal sai junto — o teste mediria a
+        supressão, não a resolução de faixa que ele existe para medir.
+        """
         cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_seedado())
-        cap = _capacidade("1000", renda="20000", ano=2025)
+        cap = _capacidade("1000", renda="50000", ano=2025)
 
         r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=cap)
 
-        assert r.aliquota_marginal == 0.0
-        assert r.economia_ir_anual == 0.0
+        assert r.aliquota_marginal == 22.5  # faixa que CONTÉM 50.000, não o topo
+        assert r.aliquota_marginal != _ALIQUOTA_FALLBACK  # nem o fallback do legado
+        assert r.economia_ir_anual > 0
 
     def test_ultima_faixa_sem_limite_captura_alta_renda(self):
         cfg = PrevidenciaConfig.from_fiscal(
