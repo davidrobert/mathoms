@@ -88,13 +88,25 @@ baseline cru ([[ADR-089]]). O calculator afirma coerência de identidade na
 entrada (chaves do value object contra as da config) e **falha alto**: injeção
 obrigatória sozinha não cobre "resolvido com a identidade errada".
 
-**D3 — O membro é value object tipado, o item ainda não.** `MembroPatrimonial`
-frozen em `patrimonio_types.py`, com `to_dict()` preservando a forma legada para
-os analyzers que leem `Mapping`. O contrato **não** vai para
-`config/schemas/`: este dict nasce no adapter, morre nos analyzers do mesmo
-stage e nunca é serializado — schema lá validaria objeto que `DBArtifactStore.write`
-jamais vê. Tipar o **item** (`bens[].*`) toca sete consumidores e fica deferido
-(§Deferimentos).
+**D3 — O contrato tipado é o do *par* de membros, não o de cada membro.**
+`MembrosResolvidos` frozen em `patrimonio_types.py` carrega os dois dicts mais as
+chaves de identidade — é ele que o D2 injeta e sobre o qual a afirmação de
+coerência roda. O contrato **não** vai para `config/schemas/`: este dict nasce no
+adapter, morre nos analyzers do mesmo stage e nunca é serializado — schema lá
+validaria objeto que `DBArtifactStore.write` jamais vê.
+
+> **Ajuste de 2026-08-24, pré-implementação.** A redação original decidia um VO
+> tipado **por membro** (`MembroPatrimonial`). Medido ao executar o PR1: não é
+> implementável sem mudar comportamento. `resolve_members` tem quatro ramos de
+> formato e dois deles **repassam o dict cru do baseline**; e `get_bens`
+> (`patrimonio_types.py:361`) devolve **o próprio membro** quando não há chave
+> `bens`, então as chaves arbitrárias do layout flat *são* lidas como categorias
+> de bem. Um VO de campos fixos as descartaria — perda silenciosa, exatamente a
+> classe que esta nota fecha. O VO por membro só fica seguro depois que os ramos
+> de passthrough morrerem, e vai junto com o item tipado no §Deferimentos.
+
+Tipar o **item** (`bens[].*`) toca sete consumidores e fica deferido
+(§Deferimentos), agora acompanhado do VO por membro.
 
 **D4 — Uma política de ano para o saldo de dívida: o ano do próprio item.**
 Ausência é ausência, nunca `0` — [[ADR-346]] aplicada no grão em que a
@@ -205,13 +217,16 @@ foi publicado — foi exatamente a confusão que o §Ataque A0 da lane pegou.
 
 ## Deferimentos
 
-**Item `bens[]` tipado por completo (2026-08-24, dono: `data-engineer`).** Sete
+**Item `bens[]` tipado + VO por membro (2026-08-24, dono: `data-engineer`).** Sete
 consumidores leem `dict[str, Any]`, e `if item.get("instituicao")` faz
 **presença de chave** ser load-bearing — a mesma família que a [[ADR-394]] §D9
 queimou (`bens` com 4 chaves sempre ⇒ predicado constante). Item tipado com
 `None` explícito mata a família. Fora desta lane porque tocaria sete
-consumidores e atrasaria a J5, que está atrás dela. Condição de retomada: após
-o D1/D2 mergeados e o rebaseline fechado.
+consumidores e atrasaria a J5, que está atrás dela. O VO por membro entra aqui
+pelo motivo do §D3: enquanto `resolve_members` tiver ramos de passthrough, campos
+fixos descartam chave que o layout flat usa como categoria de bem. Condição de
+retomada: após o D1/D2 mergeados, os ramos de passthrough mortos e o rebaseline
+fechado.
 
 **Proveniência do numerador da reserva (2026-08-24, dono: a nomear · P1).**
 `_filter_liquid` pula `valor <= 0`, então membro cujos itens somam zero sai

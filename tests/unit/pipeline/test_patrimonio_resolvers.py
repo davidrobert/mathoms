@@ -686,3 +686,86 @@ def test_consolidated_solo_identity_conjuge_empty(identity_solo: MemberIdentity)
     titular, conjuge = build_members_from_consolidated(baseline, identity_solo)
     assert titular["total_bens"] == 100
     assert conjuge == {}
+
+
+# =============================================================================
+# Proveniência no item — `instituicao` + `ano_base` ([[ADR-410]] D1)
+#
+# Os dois campos já existiam no item que `consolidate_baseline` emite; o
+# resolver os descartava. Era o que fazia duas projeções do mesmo item divergir
+# sem que nenhuma estivesse errada (A40.l77 §Ataque).
+# =============================================================================
+
+
+def _inv(descricao, tipo, dono, instituicao, ano, valor) -> dict:
+    """Item no shape que `consolidate_baseline` emite."""
+    return {
+        "descricao": descricao,
+        "tipo": tipo,
+        "proprietario": dono,
+        "instituicao": instituicao,
+        "valores_31_12": {ano: valor},
+    }
+
+
+def _baseline_com_proveniencia() -> dict:
+    """Titular em 2025, cônjuge em 2023 — anos disjuntos, cada um com instituição."""
+    return {
+        "investimentos_consolidados": [
+            _inv("CDB", "renda_fixa", "david", "itau", "2025", 900_000.0),
+            _inv("FII", "fundo_imobiliario", "mariana", "btgpactual", "2023", 110_000.0),
+        ],
+        "veiculos_consolidados": [
+            {"descricao": "Carro", "proprietario": "david", "valores_31_12": {"2025": 50_000.0}}
+        ],
+        "patrimonio_por_ano": {"2025": {"total_bens": 950_000.0}},
+    }
+
+
+def test_instituicao_da_fonte_chega_ao_item(identity: MemberIdentity):
+    """Sem isto, `instituicoes_por_membro` fabrica lacuna de identidade ([[ADR-406]])."""
+    titular, conjuge = build_members_from_consolidated(_baseline_com_proveniencia(), identity)
+    assert titular["bens"]["investimentos"][0]["instituicao"] == "itau"
+    assert conjuge["bens"]["investimentos"][0]["instituicao"] == "btgpactual"
+
+
+def test_ano_base_do_item_e_o_ano_onde_o_valor_estava(identity: MemberIdentity):
+    """Grão de item, não de membro: o agregado do domicílio mistura datas ([[ADR-383]] §6)."""
+    titular, conjuge = build_members_from_consolidated(_baseline_com_proveniencia(), identity)
+    assert titular["bens"]["investimentos"][0]["ano_base"] == "2025"
+    assert conjuge["bens"]["investimentos"][0]["ano_base"] == "2023"
+
+
+def test_item_sem_ano_nao_ganha_ano_base(identity: MemberIdentity):
+    """`valor` cru não tem data; carimbar uma seria afirmar o que não se mediu."""
+    baseline = {
+        "investimentos_consolidados": [
+            {"descricao": "Fundo", "proprietario": "david", "valor": 1_000.0}
+        ],
+        "patrimonio_por_ano": {"2025": {"total_bens": 1_000.0}},
+    }
+    titular, _ = build_members_from_consolidated(baseline, identity)
+    item = titular["bens"]["investimentos"][0]
+    assert item["valor_31_12_ano_base"] == 1_000.0
+    assert "ano_base" not in item
+
+
+def test_proveniencia_e_aditiva_nao_move_valor(identity: MemberIdentity):
+    """Aceite do PR1: campo novo não altera cent nenhum ([[ADR-410]] §Gate)."""
+    titular, conjuge = build_members_from_consolidated(_baseline_com_proveniencia(), identity)
+    assert titular["bens"]["investimentos"][0]["valor_31_12_ano_base"] == 900_000.0
+    assert conjuge["bens"]["investimentos"][0]["valor_31_12_ano_base"] == 110_000.0
+    assert titular["bens"]["veiculos"][0]["valor_31_12_ano_base"] == 50_000.0
+    assert titular["total_bens"] == 950_000.0
+
+
+def test_item_sem_instituicao_nao_ganha_chave_vazia(identity: MemberIdentity):
+    """Presença de chave é load-bearing em `bens` ([[ADR-394]] §D9) — chave vazia mentiria."""
+    baseline = {
+        "investimentos_consolidados": [
+            {"descricao": "CDB", "proprietario": "david", "valores_31_12": {"2025": 10.0}}
+        ],
+        "patrimonio_por_ano": {"2025": {"total_bens": 10.0}},
+    }
+    titular, _ = build_members_from_consolidated(baseline, identity)
+    assert "instituicao" not in titular["bens"]["investimentos"][0]
