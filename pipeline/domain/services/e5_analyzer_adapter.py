@@ -315,6 +315,7 @@ class E5AnalyzerAdapter:
         taxas: dict | None = None,
         cambio_usd_brl: Decimal | float | None = None,
         cambio_eur_brl: Decimal | float | None = None,
+        cambio_observed_at: dict[str, str] | None = None,
         member_resolver: E5MemberResolver | None = None,
         fluxo_enricher: FluxoCaixaEnricher | None = None,
         if_projector: IFProjector | None = None,
@@ -356,6 +357,8 @@ class E5AnalyzerAdapter:
         self._taxas = taxas or {}
         self._cambio_usd_brl = float(cambio_usd_brl) if cambio_usd_brl is not None else None
         self._cambio_eur_brl = float(cambio_eur_brl) if cambio_eur_brl is not None else None
+        # ADR-390 D2 — data da row de cotação usada, não a data do lookup.
+        self._cambio_observed_at = dict(cambio_observed_at or {})
         # ADR-384 — resolvedor de identidade institucional (raiz de 8 dígitos →
         # code do catálogo); vazio degrada para o token de nome no matcher.
         self._cnpj_raiz_to_code = dict(cnpj_raiz_to_code or {})
@@ -409,6 +412,7 @@ class E5AnalyzerAdapter:
         fiscal_parameters: FiscalParameters | None = None,
         cambio_usd_brl: Decimal | float | None = None,
         cambio_eur_brl: Decimal | float | None = None,
+        cambio_observed_at: dict[str, str] | None = None,
         property_classification_overrides: dict[str, str] | None = None,
         imoveis_no_if: bool = True,
         seguradoras_catalog: Mapping[str, str] | None = None,
@@ -492,6 +496,7 @@ class E5AnalyzerAdapter:
             taxas=taxas,
             cambio_usd_brl=cambio_usd_brl,
             cambio_eur_brl=cambio_eur_brl,
+            cambio_observed_at=cambio_observed_at,
             member_resolver=E5MemberResolver(member_cfg),
             fluxo_enricher=FluxoCaixaEnricher(
                 FluxoEnricherConfig.from_configs(categorization=categorization, scoring=scoring)
@@ -1028,6 +1033,7 @@ class E5AnalyzerAdapter:
             typed_usd=self._cambio_usd_brl,
             typed_eur=self._cambio_eur_brl,
             taxas=self._taxas,
+            observed_at=self._cambio_observed_at,
         )
         hardcoded = resolved if isinstance(resolved, HardcodedFxDefault) else None
         return apply_fx(saldo, moeda, resolved), hardcoded

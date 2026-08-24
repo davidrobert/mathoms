@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Optional, Protocol, runtime_checkable
 
 from pipeline.domain.protection_bundle import ProtectionBundle
+from pipeline.domain.services.ptax_types import PtaxQuote
 from pipeline.domain.types.config import (
     CategorizationConfig,
     FamilyMembersConfig,
@@ -47,6 +48,13 @@ class ConfigStore(Protocol):
 
     def get_market_rate(self, pair: str, observed_at: date) -> Decimal:
         """Última cotação de ``pair`` em ``observed_at`` ou antes (A7.2b)."""
+        ...
+
+    def get_market_quote(self, pair: str, observed_at: date) -> Optional[PtaxQuote]:
+        # ADR-390 D2 exige `taxa_data` = `observed_at` da row usada, nunca a data
+        # do lookup; `get_market_rate` devolve só o Decimal e descarta essa data
+        # na fronteira, o que tornava o campo inpreenchível (A40.l63 §Ataque §6).
+        """Como ``get_market_rate``, mas preserva a data da row. ``None`` = sem row."""
         ...
 
     def get_protection_bundle(self, workspace_id: str) -> ProtectionBundle:
