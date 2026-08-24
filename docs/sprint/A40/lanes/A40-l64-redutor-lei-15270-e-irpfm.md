@@ -95,7 +95,7 @@ tags:
 > | **2027** | **`FiscalParameterNotFound`** |
 > | 2028 | `FiscalParameterNotFound` |
 >
-> [`analyze_finances:2183`](../../../../scripts/analyze_finances.py) captura
+> [`analyze_finances:2184`](../../../../scripts/analyze_finances.py) captura
 > `except Exception`, imprime um `[warn]` e deixa `fiscal_parameters = None` — o
 > construtor vira `PrevidenciaConfig.from_fiscal(FISCAL_CONFIG)`, e `FISCAL_CONFIG`
 > lê `config/parametros_fiscais.json`, **path proibido** e inexistente desde a
