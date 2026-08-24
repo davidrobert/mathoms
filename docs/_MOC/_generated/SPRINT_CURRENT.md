@@ -25,7 +25,6 @@ open · in_progress.
 - [[A40.l72]] — Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante · priority P1 · área frontend · branch `a40-l72-guarda-de-contrato-no-render`
 - [[A40.l75]] — O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou · priority P2 · área frontend/testing · branch `a40-l75-msw-drift-gate-inerte`
 - [[A40.l76]] — A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia · priority P1 · área pipeline/db · branch `a40-l76-proveniencia-de-artefato-e2`
-- [[A40.l77]] — Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload · priority P0 · área pipeline/financial-planning · branch `a40-l77-dois-resolvers-de-membro`
 - [[A40.l79]] — A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 · priority P1 · área pipeline/financial-planning · branch `a40-l79-row-fiscal-ausente-e-fail-open`
 
 ## In progress

@@ -2,7 +2,7 @@
 id: ADR-410
 type: adr
 title: "A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor"
-status: Proposto
+status: Decidido
 phase: A40.l77/DE-10
 date: "2026-08-24"
 relates_to:
@@ -23,14 +23,14 @@ aliases:
   - "DE-10"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
 ---
 
 # ADR-410 — A resolução de membro tem um produtor, e ele é injetado
 
-**Status:** Proposto (A40.l77 · DE-10) • **Data:** 2026-08-24 • **Relaciona**
+**Status:** Decidido (A40.l77 · DE-10) • **Data:** 2026-08-24 • **Relaciona**
 [[ADR-394]] §Emenda (c) D10 (o ano-base é do membro — **premissa** desta nota,
 não objeto dela), [[ADR-089]]/[[ADR-097]] (ISP e config tipada em service de
 domínio), [[ADR-401]] (o item é a dívida), [[ADR-406]] §D2 (custo medido de
