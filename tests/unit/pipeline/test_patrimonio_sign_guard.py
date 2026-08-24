@@ -10,6 +10,7 @@ from decimal import Decimal
 
 import pytest
 
+from pipeline.domain.services.conversao_me import identity_native_brl
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
 from pipeline.domain.services.patrimonio_sign_guard import (
     SIGN_GUARD_ENV,
@@ -231,7 +232,12 @@ def _inputs_com_caixa(caixa: float) -> PatrimonioInputs:
         caixa_total_brl=caixa,
         caixa_detalhes=[
             CaixaDetalhe(
-                conta="itau_cc", moeda="BRL", saldo_original=caixa, valor_brl=caixa, tipo="caixa"
+                conta="itau_cc",
+                moeda="BRL",
+                saldo_original=caixa,
+                valor_brl=caixa,
+                tipo="caixa",
+                conversao=identity_native_brl(caixa),
             )
         ],
     )

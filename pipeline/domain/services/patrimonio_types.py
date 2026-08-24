@@ -207,11 +207,17 @@ class CaixaDetalhe:
     # ("dia" | "mes" | "desconhecida"); linha de informe carrega 31/12/ano_base.
     data_referencia: str | None = None
     data_referencia_precisao: str = "desconhecida"
-    # ADR-390 — carimbo da conversão; writer novo sempre preenche.
-    conversao: ConversaoMeBrl | None = None
+    # ADR-390 §Emenda 2026-08-24 (A40.l63) — obrigatório e keyword-only. Era
+    # `| None = None` com o comentário "writer novo sempre preenche": prosa, não
+    # tipo. O §Escopo 4 da lane sustentava o fechamento da classe em "o tipo não
+    # deixa", e o tipo deixava — produtor novo publicava sem carimbo e o schema
+    # validava, porque a ausência da chave também significa "artefato pré-390".
+    # A tensão se resolve separando os lados: obrigatório na ESCRITA (aqui),
+    # tolerante na LEITURA (`conversao` segue fora de `required` no schema).
+    conversao: ConversaoMeBrl = field(kw_only=True)
 
     def to_dict(self) -> dict:
-        payload = {
+        return {
             "conta": self.conta,
             "moeda": self.moeda,
             "saldo_original": round(self.saldo_original, 2),
@@ -220,10 +226,8 @@ class CaixaDetalhe:
             "fonte": self.fonte,
             "data_referencia": self.data_referencia,
             "data_referencia_precisao": self.data_referencia_precisao,
+            "conversao": self.conversao.to_wire(),
         }
-        if self.conversao is not None:
-            payload["conversao"] = self.conversao.to_wire()
-        return payload
 
 
 # Nenhuma conta some do caixa em silêncio: cada exclusão de domínio remanescente
