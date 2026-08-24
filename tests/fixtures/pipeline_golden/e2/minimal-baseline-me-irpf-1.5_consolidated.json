@@ -1,0 +1,16 @@
+{
+  "pipeline_stage": "E1.5_Baseline_Patrimonial",
+  "data_processamento": "2024-12-31",
+  "membros": ["david"],
+  "patrimonio_por_ano": {
+    "2024": { "total_bens": 500000.0, "total_dividas": 0.0 }
+  },
+  "dividas": [],
+  "investimentos_consolidados": [
+    {
+      "descricao": "DEPOSITO EM CONTA CORRENTE EM DOLAR - BANK OF AMERICA",
+      "proprietario": "david",
+      "valores_31_12": { "2024": 250000.0 }
+    }
+  ]
+}

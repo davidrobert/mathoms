@@ -1,0 +1,23 @@
+{
+  "pipeline_stage": "E1.5_Baseline_Patrimonial",
+  "data_processamento": "2024-12-31",
+  "membros": ["david"],
+  "patrimonio_por_ano": {
+    "2024": { "total_bens": 500000.0, "total_dividas": 0.0 }
+  },
+  "dividas": [],
+  "informe_pf_saldos_31_12": [
+    {
+      "ano_base": 2024,
+      "tipo": "conta_exterior",
+      "descricao": "Wise Multi-Currency Account — USD",
+      "moeda": "USD",
+      "saldo_original": "5210.55",
+      "saldo_brl": "32262.16",
+      "taxa_ptax_aplicada": "6.1917",
+      "ptax_data": "2024-12-31",
+      "ptax_status": "applied",
+      "fonte": "informe_31_12"
+    }
+  ]
+}

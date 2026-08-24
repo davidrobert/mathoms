@@ -1,0 +1,24 @@
+{
+  "banco": "wise",
+  "tipo_conta": "contacorrente",
+  "titular": null,
+  "moeda": "USD",
+  "periodo_cobertura": {
+    "inicio": "2025-01-01",
+    "fim": "2025-01-31"
+  },
+  "saldo_inicial": 0.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 5210.55,
+  "saldo_final_unknown": false,
+  "fontes": ["wise_contacorrente_202501_202501-2_extract.json"],
+  "transacoes_total": 1,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-01-15",
+      "descricao": "Incoming transfer",
+      "valor": 5210.55
+    }
+  ]
+}
