@@ -27,7 +27,9 @@ tags:
 
 > **Aberta em 2026-08-12**, no fechamento da rodada de follow-ups (decisão do
 > dono). Nasceu `l50` e foi renumerada no mesmo dia: o #1409 tomou o id em
-> paralelo — instância viva da classe que a [[A40.l59]] fecha. Origem: co-design e execução do PR1/PR2 da [[A40.l34]] (§Emenda da
+> paralelo — instância viva da classe que a [[A40.l59]] fecha. *(Marcador
+> 2026-08-24: a l59 entregou registro-do-entregue, **não** alocação de id —
+> §78-83 declara os escopos distintos. Colisão de id é a §Pendência 13.)* Origem: co-design e execução do PR1/PR2 da [[A40.l34]] (§Emenda da
 > [[ADR-375]]). Dono: `data-engineer` — os dois itens moram no contrato de
 > `fiscal_parameters` e no substrato golden, o mesmo especialista fecha ambos.
 > Prioridade herdada da severidade na origem; o `product-manager` repriorisa no

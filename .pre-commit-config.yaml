@@ -755,6 +755,19 @@ repos:
         files: ^docs/sprint/.*/lanes/.*\.md$
         pass_filenames: false
 
+      - id: lane-transition
+        # T1/T2 leem `git diff --cached` ⇒ sob `pre-commit run --all-files` (o
+        # único caminho do CI) não há nada staged e eles passam VAZIOS: são
+        # enforcement local, declarado, não gate de merge. C1 é o oposto — lê o
+        # estado da vault inteira e por isso vale nos dois lugares. Daí
+        # `always_run`: a transição só aparece no diff, mas a incoerência de
+        # estado nasce em OUTRO arquivo (o merge que entrega a lane).
+        name: "docs/: transição de lane carrega o registro (ship_pr + PR na sprint)"
+        entry: python3 dev/check_lane_transition.py
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: adr-prose-refs
         name: "docs/: ADR-NNN citada em prosa resolve para arquivo (nunca reserve ID)"
         entry: python3 dev/check_adr_prose_refs.py
