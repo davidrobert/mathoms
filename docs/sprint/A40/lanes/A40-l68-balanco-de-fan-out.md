@@ -151,6 +151,14 @@ Condição de retomada: `confidence` ausente modelado como estado próprio
 do WARN, na forma da [[ADR-393]] §D4. Dono: `data-engineer`. Enquanto isso a lane
 fica `open` — 2a mergeado não fecha a lane.
 
+> **Entregue em 2026-08-24 — e o bloqueio declarado acima estava errado.**
+> Medido: `confidence == 0.0` aparece em **0/172** agregados; o sentinela nunca
+> dispara. Quem dispararia 100% é o `min()` do agregado (172/172 abaixo de 0,7).
+> No grão do **arquivo** o piso discrimina — `< 0,7` ⟺ mediana de **0** itens
+> extraídos, contra **9** acima —, e a taxa é **4 por run**. O ladder shipou
+> ali, com `extract.low_confidence` (que existia no enum desde a [[ADR-272]] e
+> nunca teve emissor). Ver [[ADR-393]] §Emenda 2026-08-24 (b).
+
 ## §Ataque — 2026-08-24
 
 Ataque medido ao 2a já mergeado (#1526 · `4b3bff08`), com a suíte da lane verde
