@@ -16,6 +16,7 @@ from pipeline.domain.services.conversao_me import FxQuote, convert_me_brl
 from pipeline.domain.services.patrimonio_types import (
     CaixaDetalhe,
     MemberIdentity,
+    MembrosResolvidos,
     PatrimonioConfig,
     PatrimonioInputs,
     get_bens,
@@ -29,6 +30,8 @@ from pipeline.domain.services.patrimonio_types import (
 # =============================================================================
 # safe_float
 # =============================================================================
+
+_SEM_MEMBROS = MembrosResolvidos(titular={}, conjuge={}, titular_key="david", conjuge_key="mariana")
 
 
 def test_safe_float_int():
@@ -190,22 +193,23 @@ def test_caixa_detalhe_sem_carimbo_nao_typecheck():
 
 
 def test_inputs_has_current_positions_false_when_none():
-    inp = PatrimonioInputs(baseline={}, investimentos_atuais=None)
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={}, investimentos_atuais=None)
     assert inp.has_current_positions is False
 
 
 def test_inputs_has_current_positions_false_when_empty_dados():
-    inp = PatrimonioInputs(baseline={}, investimentos_atuais={"dados": []})
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={}, investimentos_atuais={"dados": []})
     assert inp.has_current_positions is False
 
 
 def test_inputs_has_current_positions_false_when_not_dict():
-    inp = PatrimonioInputs(baseline={}, investimentos_atuais="not a dict")  # type: ignore[arg-type]
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={}, investimentos_atuais="not a dict")  # type: ignore[arg-type]
     assert inp.has_current_positions is False
 
 
 def test_inputs_has_current_positions_true_when_dados_nonempty():
     inp = PatrimonioInputs(
+        members=_SEM_MEMBROS,
         baseline={},
         investimentos_atuais={"dados": [{"valor": 1000}]},
     )
@@ -213,7 +217,7 @@ def test_inputs_has_current_positions_true_when_dados_nonempty():
 
 
 def test_inputs_default_caixa_empty():
-    inp = PatrimonioInputs(baseline={})
+    inp = PatrimonioInputs(members=_SEM_MEMBROS, baseline={})
     assert inp.caixa_total_brl == 0.0
     assert inp.caixa_detalhes == []
 

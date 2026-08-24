@@ -281,6 +281,35 @@ class RealEstateValuationContext:
     today: date = field(default_factory=date.today)
 
 
+class IdentidadeIncoerenteError(RuntimeError):
+    """Membros resolvidos com identidade diferente da que a config declara."""
+
+
+@dataclass(frozen=True)
+class MembrosResolvidos:
+    """Titular e cônjuge já resolvidos, com as chaves de identidade que os produziram."""
+
+    titular: Mapping[str, Any]
+    conjuge: Mapping[str, Any]
+    titular_key: str
+    conjuge_key: str
+
+    def as_tuple(self) -> tuple[dict, dict]:
+        """Par ``(titular, conjuge)`` — forma que os consumidores legados leem."""
+        return dict(self.titular), dict(self.conjuge)
+
+    # Injeção obrigatória impede DOIS produtores; não impede que o único produtor
+    # tenha rodado com a identidade errada ([[ADR-410]] D2).
+    def afirma_coerencia_com(self, identity: "MemberIdentity") -> None:
+        """Falha alto se o VO foi resolvido com chaves diferentes das da config."""
+        esperado = (identity.titular_key, identity.conjuge_key)
+        recebido = (self.titular_key, self.conjuge_key)
+        if recebido != esperado:
+            raise IdentidadeIncoerenteError(
+                f"members resolvido para {recebido!r}, config declara {esperado!r}"
+            )
+
+
 @dataclass(frozen=True)
 class PatrimonioInputs:
     """Inputs completos para ``PatrimonioCalculator.calculate``.
@@ -290,6 +319,10 @@ class PatrimonioInputs:
     """
 
     baseline: dict
+    # `members` é obrigatório para que "dois produtores da mesma verdade" seja
+    # impossível por construção, e não vigiado por gate ([[ADR-410]] D2): a
+    # calculadora não tem resolver para chamar.
+    members: MembrosResolvidos
     investimentos_atuais: dict | None = None
     caixa_total_brl: float = 0.0
     caixa_detalhes: list[CaixaDetalhe] = field(default_factory=list)

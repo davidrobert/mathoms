@@ -6,6 +6,7 @@ from datetime import date
 from decimal import Decimal
 
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
+from pipeline.domain.services.patrimonio_resolvers import resolve_members
 from pipeline.domain.services.patrimonio_types import (
     MarketValueResolution,
     MemberIdentity,
@@ -13,6 +14,13 @@ from pipeline.domain.services.patrimonio_types import (
     PatrimonioInputs,
     RealEstateValuationContext,
 )
+
+_IDENT = MemberIdentity(titular_key="david", conjuge_key="", titular_nome="David", conjuge_nome="")
+
+
+def _inputs(baseline: dict, **kw) -> PatrimonioInputs:
+    """Injeta `members` — obrigatório desde a [[ADR-410]] D2."""
+    return PatrimonioInputs(baseline=baseline, members=resolve_members(baseline, _IDENT), **kw)
 
 
 def _make_baseline(
@@ -68,7 +76,7 @@ def test_calculator_uses_gross_when_no_valuation_context_retrocompat():
     """Workspace sem context (Onda 2 não rodada) → cat_2 bruto = valor IRPF."""
     p_id = "PID-1"
     imovel = {"property_id": p_id, "valor_31_12_ano_base": 800_000.0}
-    inputs = PatrimonioInputs(baseline=_make_baseline("david", [imovel]))
+    inputs = _inputs(baseline=_make_baseline("david", [imovel]))
     calc = PatrimonioCalculator(_config_with_locado("david", p_id))
     result = calc.calculate(inputs)
     # Sem context, cat_2 entra bruto em investivel_efetivo.
@@ -84,7 +92,7 @@ def test_calculator_uses_net_when_valuation_context_present():
     ctx = _ctx_with(
         _market(p_id, "1200000.00", valuation_date=date(2026, 4, 1)), Decimal("300000.00"), today
     )
-    inputs = PatrimonioInputs(baseline=_make_baseline("david", [imovel]), valuation_context=ctx)
+    inputs = _inputs(baseline=_make_baseline("david", [imovel]), valuation_context=ctx)
     result = PatrimonioCalculator(_config_with_locado("david", p_id)).calculate(inputs)
     assert result["imoveis_geradores"] == 800_000.0  # Tabela cat_2 preserva bruto IRPF.
     assert result["investivel_efetivo"] == 900_000.0  # 1.200.000 − 300.000 = 900.000.
@@ -101,7 +109,7 @@ def test_calculator_fallback_irpf_when_property_not_in_context():
         debts_by_property={p_id: Decimal("200000.00")},
         today=today,
     )
-    inputs = PatrimonioInputs(
+    inputs = _inputs(
         baseline=_make_baseline("david", [imovel]),
         valuation_context=ctx,
     )
@@ -121,7 +129,7 @@ def test_calculator_floors_at_zero_when_debt_exceeds_value():
         debts_by_property={p_id: Decimal("150000.00")},
         today=today,
     )
-    inputs = PatrimonioInputs(
+    inputs = _inputs(
         baseline=_make_baseline("david", [imovel]),
         valuation_context=ctx,
     )
@@ -139,7 +147,7 @@ def test_calculator_split_imoveis_preserves_bruto_in_table():
         Decimal("300000.00"),
         date(2026, 5, 20),
     )
-    inputs = PatrimonioInputs(baseline=_make_baseline("david", [imovel]), valuation_context=ctx)
+    inputs = _inputs(baseline=_make_baseline("david", [imovel]), valuation_context=ctx)
     result = PatrimonioCalculator(_config_with_locado("david", p_id)).calculate(inputs)
     assert result["imoveis_geradores"] == 800_000.0  # bruto IRPF na tabela
     assert result["investivel_efetivo"] == 900_000.0  # líquido econômico no IF

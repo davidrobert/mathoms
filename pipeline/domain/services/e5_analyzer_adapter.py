@@ -143,6 +143,7 @@ from pipeline.domain.services.passive_income_calculator import (
     PassiveIncomeResult,
 )
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
+from pipeline.domain.services.patrimonio_resolvers import resolve_members
 from pipeline.domain.services.patrimonio_types import (
     CaixaContaExcluida,
     CaixaDetalhe,
@@ -589,6 +590,7 @@ class E5AnalyzerAdapter:
         patrimonio_full = self._patrimonio.calculate(
             PatrimonioInputs(
                 baseline=patrimonio_raw,
+                members=resolve_members(patrimonio_raw, self._identity),
                 investimentos_atuais=investimentos_raw,
                 caixa_total_brl=caixa_total,
                 caixa_detalhes=caixa_detalhes,

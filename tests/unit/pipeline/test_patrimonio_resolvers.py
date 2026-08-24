@@ -55,7 +55,7 @@ def test_resolve_members_dict_format(identity: MemberIdentity):
             "mariana": {"total_bens": 500},
         }
     }
-    titular, conjuge = resolve_members(baseline, identity)
+    titular, conjuge = resolve_members(baseline, identity).as_tuple()
     assert titular == {"total_bens": 1000}
     assert conjuge == {"total_bens": 500}
 
@@ -65,7 +65,7 @@ def test_resolve_members_membros_key_alias(identity: MemberIdentity):
     baseline = {
         "membros": {"david": {"x": 1}, "mariana": {"y": 2}},
     }
-    titular, conjuge = resolve_members(baseline, identity)
+    titular, conjuge = resolve_members(baseline, identity).as_tuple()
     assert titular == {"x": 1}
     assert conjuge == {"y": 2}
 
@@ -77,7 +77,7 @@ def test_resolve_members_list_of_dicts(identity: MemberIdentity):
             {"nome": "Mariana Souza", "total_bens": 200},
         ]
     }
-    titular, conjuge = resolve_members(baseline, identity)
+    titular, conjuge = resolve_members(baseline, identity).as_tuple()
     assert titular == {"nome": "David Silva", "total_bens": 100}
     assert conjuge == {"nome": "Mariana Souza", "total_bens": 200}
 
@@ -86,7 +86,7 @@ def test_resolve_members_solo_identity_no_conjuge_returned(
     identity_solo: MemberIdentity,
 ):
     baseline = {"members": {"joao": {"total_bens": 1}, "mariana": {"x": 2}}}
-    titular, conjuge = resolve_members(baseline, identity_solo)
+    titular, conjuge = resolve_members(baseline, identity_solo).as_tuple()
     assert titular == {"total_bens": 1}
     assert conjuge == {}
 
@@ -106,7 +106,7 @@ def test_resolve_members_list_of_strings_with_declarations(
             }
         ],
     }
-    titular, conjuge = resolve_members(baseline, identity)
+    titular, conjuge = resolve_members(baseline, identity).as_tuple()
     assert titular["total_bens"] == 500000
     assert len(titular["bens"]["imoveis"]) == 1
     assert conjuge == {}
@@ -121,7 +121,7 @@ def test_resolve_members_list_of_strings_with_consolidated(
         "imoveis_consolidados": [{"proprietario": "david", "valor": 300000}],
         "patrimonio_por_ano": {"2024": {"total_bens": 300000}},
     }
-    titular, _ = resolve_members(baseline, identity)
+    titular, _ = resolve_members(baseline, identity).as_tuple()
     assert titular["total_bens"] == 300000
 
 
@@ -130,7 +130,7 @@ def test_resolve_members_empty_members_fallback_to_consolidated(
 ):
     """Sem 'members' e sem 'membros' → cai no consolidated."""
     baseline = {"imoveis_consolidados": []}
-    titular, conjuge = resolve_members(baseline, identity)
+    titular, conjuge = resolve_members(baseline, identity).as_tuple()
     # Consolidated com listas vazias → totais zero
     assert titular["total_bens"] == 0
     assert conjuge["total_bens"] == 0
