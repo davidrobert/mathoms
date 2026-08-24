@@ -70,7 +70,7 @@ LLM** — E3/E4 são determinísticos (P0, free tier); a skill re-roda a fatia E
 
 ### Passo 1 — Resolver workspace + run + inventário de artefatos
 
-`scripts/resolve_ledger.py <workspace> [--run <run_id>]` retorna `workspace_id`,
+`.venv/bin/python .claude/skills/ledger-certify/scripts/resolve_ledger.py <workspace> [--run <run_id>]` retorna `workspace_id`,
 o `run_id` alvo, e as keys de artefato por stage: E2 (`extract_bank_documents` +
 baseline), E3 (`reconcile_transactions`), E4 (`categorize_transactions`, 7 keys) —
 lidas via `stage_aliases()` (aceita legado `E3`/`E4` **e** descritivo, ADR-093).
