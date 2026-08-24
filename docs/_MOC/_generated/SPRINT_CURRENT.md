@@ -20,7 +20,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l55]] — Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 · priority P3 · área frontend/report · branch `a40-l55-medida-de-linha-no-papel`
 - [[A40.l57]] — O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null · priority P2 · área llm/pipeline · branch `a40-l57-parecer-le-contrato-antigo-do-pgbl`
 - [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · área pipeline/frontend · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
-- [[A40.l63]] — Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD · priority P1 · área pipeline/money · branch `a40-l63-conversao-me-brl-sem-proveniencia`
 - [[A40.l64]] — Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante · priority P1 · área pipeline/financial-planning · branch `a40-l64-redutor-lei-15270-e-irpfm`
 - [[A40.l65]] — A base do PGBL perdeu a âncora de declarante: lê o IRPF mais recente, e o teto de 12% é por CPF · priority P1 · área pipeline/financial-planning · branch `a40-l65-base-pgbl-sem-ancora-de-declarante`
 - [[A40.l68]] — Balanço de stage fan-out: documento que some não pode sair como sucesso · priority P1 · área pipeline · branch `a40-l68-balanco-de-fan-out`
