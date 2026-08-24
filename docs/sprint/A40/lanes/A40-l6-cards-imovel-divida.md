@@ -408,9 +408,17 @@ pegando `exemplo 100` — a grafia normalizada a que o teste antigo era cego.
 | A10 · RV3-27, perna de origem | **aberto — não é desta lane**, ver abaixo |
 | A11 · camada 2 | **fechado** — RV3-06 e RV3-27 estreitadas |
 
-### Achado novo, fora do §Ataque
+### Achados novos, fora do §Ataque
 
-O lint público **já detectava** o endereço nas fixtures (`_endereco_findings` →
+**Derivado sobre base ausente (§Escopo item 4).** Medido no fecho: com
+`valor_imovel = 0` o produtor emitia `cap_rate_bruto_pct = 0.0` — a linha
+mostrava valor `—` e rendimento "0,00%" ao mesmo tempo. `_safe_div` devolve 0
+quando o denominador é 0, e o sentinela colide com um zero legítimo. O
+**agregado** do mesmo módulo já resolvia por guarda (`if valor_total > _ZERO`);
+o por-imóvel não. Guarda espelhada, com prova por mutação.
+
+
+**O waiver era o buraco.** O lint público **já detectava** o endereço nas fixtures (`_endereco_findings` →
 True): ficava calado por **waiver** no `pii_lint_baseline.json`. A leitura "não
 havia gate" era meia-verdade — havia, e estava dispensado. Baseline 52 → 50.
 

@@ -346,3 +346,25 @@ def test_identificador_de_terceiro_nao_viaja_no_payload():
     imoveis = _payload_com_pii_na_fonte()["imoveis"]
     assert all("imobiliaria_cnpj" not in i for i in imoveis)
     assert all("endereco_canonical" not in i for i in imoveis)
+
+
+def test_valor_zero_nao_produz_cap_rate_zero():
+    """§Escopo l6: não calcular derivado sobre base ausente (classe do RV3-27)."""
+    # `_safe_div` devolve 0 quando o denominador é 0, e isso vira "rende 0,00%"
+    # na MESMA linha em que o valor sai como `—`.
+    p = _property(valor="0")
+    result = calculate_real_estate_metrics(
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
+    )
+    imovel = result_to_payload(result)["imoveis"][0]
+    assert imovel["cap_rate_bruto_pct"] is None
+    assert imovel["cap_rate_liquido_pct"] is None
+    # Contraprova: com valor real o cap rate É calculado.
+    com_valor = result_to_payload(
+        calculate_real_estate_metrics(
+            [_property(valor="1200000")],
+            concentracao_imobiliaria_pct=Decimal("30"),
+            benchmarks=_benchmarks(),
+        )
+    )["imoveis"][0]
+    assert com_valor["cap_rate_bruto_pct"] is not None
