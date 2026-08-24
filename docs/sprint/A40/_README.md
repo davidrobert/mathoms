@@ -249,6 +249,25 @@ promoção a `current`.
 >
 > Registrado aqui porque a nota de 2026-08-11 acima termina em *"o contador de 2
 > re-runs consecutivos pode iniciar"* e, lida sozinha, sugere que ele iniciou.
+
+> **A condição foi satisfeita — e o r8 virou pré-requisito, não sucessor
+> (2026-08-24).** O DE-10 fechou ([[A40.l77]] `shipped`, [[ADR-410]] `Decidido`).
+> A ordem acima autoriza disparar, e medindo o corpus a coisa fica mais dura que
+> "autorizado": **o artefato E5 mais recente é de 2026-08-18**, e o #1550, o #1578
+> e os 4 PRs da l77 mergearam em 19/08 e 24/08. Ou seja, **nenhum artefato do
+> corpus foi produzido por código pós-fix** — todo E5 armazenado mede um eixo que
+> não existe mais.
+>
+> Consequência para o §Inventário abaixo: o **DE-7** não tem substrato para ser
+> medido. Seu número (`nao_atribuidos` = 61% da soma dos baldes) não se verifica
+> contra o run `33514dc4`, que publica `nao_atribuidos: 0,00` e
+> `cobertura_investimentos: []` — porque é anterior ao #1550, e a chave vazia
+> (`total_por_membro = {"": 642.744,79, "david_…": 300.444,46}`, **68,1%**) ainda
+> era absorvida pelo titular. Recomputar com o código de hoje produziria projeção,
+> não medição ([[A40.l77]] §Ataque A0 pegou a mesma confusão).
+>
+> **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
+> obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
 ## Lanes (77 no disco · 77 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
