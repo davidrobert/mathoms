@@ -1160,6 +1160,7 @@ def _extract_me_caixa_from_baseline(baseline: dict) -> tuple[float, list[CaixaDe
                 saldo_original=valor,
                 valor_brl=valor,
                 tipo="moeda_estrangeira_irpf",
+                fonte="baseline_irpf",
                 conversao=conv,
             )
         )

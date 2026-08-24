@@ -202,6 +202,10 @@ class CaixaDetalhe:
     valor_brl: float
     tipo: str  # "caixa" | "moeda_estrangeira" | "moeda_estrangeira_irpf"
     # ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1.
+    # ADR-238 §Emenda 2026-08-24 (A40.l63): + "baseline_irpf". A linha do
+    # fallback ADR-245 herdava o default "extrato" e `build_posicao_31_12`
+    # filtra por ele — ela entrava no card 31/12 com id `extrato:irpf_…` e
+    # `data_referencia` nula, afirmando ser posição de extrato bancário.
     fonte: str = "extrato"
     # A40.l39 — fim de período do extrato vencedor (YYYY-MM-DD) + precisão
     # ("dia" | "mes" | "desconhecida"); linha de informe carrega 31/12/ano_base.
