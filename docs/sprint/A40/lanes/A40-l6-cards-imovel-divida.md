@@ -394,6 +394,16 @@ payload) derruba 4 testes, e o gate cita
 fazer o card voltar a ler `endereco_canonical` deixa DOM **e** PDF vermelhos,
 pegando `exemplo 100` — a grafia normalizada a que o teste antigo era cego.
 
+**Defesa que o §Critério não pedia e o fecho exigiu: redação na LEITURA.** O
+produtor redige desde o #1569, mas o relatório **re-renderiza artefato
+armazenado** — todo E5 anterior ao fix carrega a descrição cartorial crua e saía
+pela rota `/reports/{id}/data`. `get_report_data` passa a redigir o payload
+servido com `redact_view_model`, o gêmeo de escrita do scanner: mesma definição
+de PII nos dois lados, no-op sobre payload limpo. Sem isso a lane fecharia com o
+produtor novo limpo e o acervo exposto. Mutação em
+`backend/tests/test_reports.py`: remover a chamada devolve `999.999 saiu na rota
+/data`.
+
 ### Resposta ao §Ataque
 
 | item | desfecho |
