@@ -403,7 +403,7 @@
 | ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
 | ADR-407 | adr | Decidido |  | Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape | `adr/407-stage-polimorfico-despacha-schema-por-discriminador.md` |
 | ADR-408 | adr | Proposto |  | Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key | `adr/408-proveniencia-de-artefato-e2-e-fk-resolvida-por-porta.md` |
-| ADR-409 | adr | Proposto |  | Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart | `adr/409-fila-de-elegibilidade-do-flip-strict-derivada-de-medicao.md` |
+| ADR-409 | adr | Decidido |  | Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart | `adr/409-fila-de-elegibilidade-do-flip-strict-derivada-de-medicao.md` |
 | ADR-410 | adr | Proposto |  | A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor | `adr/410-a-resolucao-de-membro-tem-um-produtor-e-ele-e-injetado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
@@ -925,7 +925,7 @@
 | A40.l55 | lane | open | A40 | Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 | `sprint/A40/lanes/A40-l55-medida-de-linha-no-papel.md` |
 | A40.l56 | lane | shipped | A40 | A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa | `sprint/A40/lanes/A40-l56-tabela-fiscal-de-producao.md` |
 | A40.l57 | lane | open | A40 | O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null | `sprint/A40/lanes/A40-l57-parecer-le-contrato-antigo-do-pgbl.md` |
-| A40.l58 | lane | in_progress | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
+| A40.l58 | lane | shipped | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
 | A40.l59 | lane | open | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
 | A40.l6 | lane | in_progress | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l60 | lane | open | A40 | Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte | `sprint/A40/lanes/A40-l60-ressalva-e-separacao-do-conselho-de-seguro.md` |

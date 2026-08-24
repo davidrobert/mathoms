@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-20 open · 7 in_progress.
+20 open · 6 in_progress.
 
 ## Open (20)
 
@@ -30,14 +30,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l76]] — A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia · priority P1 · área pipeline/db · branch `a40-l76-proveniencia-de-artefato-e2`
 - [[A40.l77]] — Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload · priority P0 · área pipeline/financial-planning · branch `a40-l77-dois-resolvers-de-membro`
 
-## In progress (7)
+## In progress (6)
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · área frontend/design-system/a11y · branch `a40-l33-contraste-texto-sobre-tint`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l54]] — `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) · priority P2 · área frontend/report · branch `a40-l54-hidden-md-block-no-papel`
-- [[A40.l58]] — schema_validation warn → strict: o PR5 que a l5 declarou como outra lane · priority P2 · área pipeline · branch `a40-l58-flip-do-schema-para-strict`
 - [[A40.l6]] — Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor · priority P0 · área frontend/backend · branch `a40-l6-cards-imovel-divida`
 
 ---

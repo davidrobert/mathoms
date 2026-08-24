@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 342
-- **Proposto**: 54
+- **Decidido**: 343
+- **Proposto**: 53
 - **Roadmap**: 4
 
 ## Fundação
@@ -553,7 +553,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (74)
+### Decidido (75)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -629,8 +629,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-404]] — A superfície de diagnóstico nunca aborta a execução que documenta · phase r7/CTO-6
 - [[ADR-406]] — Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança · phase r7/DE-2
 - [[ADR-407]] — Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape · phase A40.l74
+- [[ADR-409]] — Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart · phase A40.l58
 
-### Proposto (17)
+### Proposto (16)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -647,7 +648,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
-- [[ADR-409]] — Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart · phase A40.l58
 - [[ADR-410]] — A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor · phase A40.l77/DE-10
 
 ### Roadmap (1)

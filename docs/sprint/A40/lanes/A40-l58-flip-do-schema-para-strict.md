@@ -4,7 +4,9 @@ type: lane
 title: "schema_validation warn → strict: o PR5 que a l5 declarou como outra lane"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1668
+ship_date: "2026-08-24"
 priority: P2
 branch_slug: a40-l58-flip-do-schema-para-strict
 owner: sre-devops
@@ -418,7 +420,7 @@ pego pelo teste que eu escrevi para ele: `unreadable` contava como massa e
 devolvia `go=True`. O gate do flip quase nasceu com a doença que existe para
 detectar.
 
-### Deferimento datado (2026-08-24) · dono `data-engineer`
+### Deferimento datado (2026-08-24) · dono: `data-engineer`
 
 **Re-derivar `baseline_patrimonial.schema.json` do produtor E1.5c.** Medido: 8 das
 13 properties declaradas nunca foram emitidas, 8 chaves emitidas não são
@@ -436,15 +438,14 @@ Condição de retomada: é pré-requisito de qualquer flip deste schema, e porta
 que a [[A40.l67]] §Deferimento re-homeou para cá. Não bloqueia os outros 5
 elegíveis.
 
-### Segue aberto nesta lane
+### Estado dos itens (todos roteados — ver §Fecho)
 
-1. ~~**Kill-switch provado por teste**~~ — ✅ 2026-08-24, ver §Passo 2 abaixo.
-2. **`e2_extract`: contrato do stub de fallback** (classe [[ADR-407]]) — o `tipo`
-   já é discriminador declarado.
-3. ~~**Runbook de incidente**~~ — ✅ 2026-08-24, §8 do runbook (ver §Passo 3).
-4. ~~**§Escopo 4 — flip órfão**~~ — ✅ 2026-08-24, ver §Passo 4 abaixo.
-5. **O flip em si** — gated no que a lane não controla: precisa de runs. Último do
-   corpus é 2026-08-18.
+1. ~~**Kill-switch provado por teste**~~ — ✅ 2026-08-24, §Passo 2.
+2. **`e2_extract`: contrato do stub de fallback** — vira §Deferimento datado no §Fecho.
+3. ~~**Runbook de incidente**~~ — ✅ 2026-08-24, §8 do runbook (§Passo 3).
+4. ~~**§Escopo 4 — flip órfão**~~ — ✅ 2026-08-24, §Passo 4.
+5. **O flip em si** — **não é entregável desta lane**; é procedimento operacional do
+   runbook §3. Ver §Fecho.
 
 ### Passo 2 (2026-08-24) — kill-switch provado, e o critério tinha uma metade não testada
 
@@ -556,3 +557,73 @@ ruído, e acoplaria retenção ao contrato do E5.
 execução roda o produtor ponta a ponta), `backend/tests` não. Quem for "completar" o
 trabalho virando o backend vai gastar um dia nessas 42 — está medido aqui para não
 gastar.
+
+## Fecho (2026-08-24) — `shipped` pelo próprio critério, e o flip nunca foi o entregável
+
+> **Correção de leitura minha, registrada porque quase custou a lane.** Eu vinha
+> tratando "nenhum schema flipado" como razão para manter a lane aberta. Reli o
+> §Critério de aceite: **nenhum dos quatro itens exige executar o flip.** Os quatro
+> pedem estar *pronto* para flipar — ADR mergeada, drift medido e citado, kill-switch
+> provado, runbook de incidente. Todos fechados, todos com teste.
+>
+> E a doutrina já estava escrita: a [[ADR-284]] §Não-decisões rejeitou *"flipar strict
+> nesta lane"* pela razão de que **o flip é operacional**, gated por baseline — não
+> entregável de lane. Manter a l58 aberta esperando runs seria manter viva uma lane
+> cujo trabalho acabou, à espera de um evento de calendário: a mesma patologia de
+> status stale que esta lane documenta ter custado 3 dias, na direção oposta.
+
+### O que shipou
+
+| | PR |
+| --- | --- |
+| Drift medido no corpus real — 11,8% dos artefatos violam o próprio schema | #1650 |
+| [[ADR-409]] + `dev/measure_schema_drift.py` + 12 testes | #1656 |
+| Kill-switch provado — 4 testes, 4 mutações | #1664 |
+| `reason_class` do abort corrigido + §8 runbook de incidente | #1665 |
+| §Escopo 4 — `tests/` valida em strict por default | #1667 |
+
+**A alavanca de longo prazo não é o flip; é o gate ter virado comando.** Antes, o
+go/no-go dependia de agregar logs JSON que nenhum sink coleta — na prática ninguém
+conseguia responder *"posso flipar?"*, e é por isso que a fila ficou parada desde
+2026-06-09. Hoje é `dev/measure_schema_drift.py --gate`, com exit code, sobre um
+corpus durável e retroativo. Cada flip vira um PR de 1 linha com o número re-medido
+no corpo, executável por qualquer agente em qualquer sessão. É isso que faz a fila
+andar **sem esta lane existir**.
+
+### O flip em si — procedimento, não lane
+
+Runbook §3.1, gated pelo §1.3. A fila medida está na [[ADR-409]] §D: `e3_reconciled`
+(111 documentos) e `e15_baseline_extract` (11) têm massa para a primeira promoção.
+**Não abro lane para isso** — seria lane cujo critério é esperar o calendário, e a
+§Triagem de fecho desta sprint já recusou lane catch-all. Quando houver runs, o
+comando responde e o PR é de 1 linha.
+
+### Deferimento datado (2026-08-24) · dono: `data-engineer` — contrato do stub de fallback do E2
+
+`generate_llm_fallback` (`scripts/extract_bank_documents.py:101`) persiste um stub sem
+`banco`/`moeda` sob `extract_statements`/`extract_invoices`; por isso `e2_extract` mede
+NO-GO em 6/6 runs. É a **terceira instância da classe da [[ADR-407]]** — stage com N
+formas de payload e mapa 1:1 para schema.
+
+Forma do fix: o `tipo` do stub (`fatura_desconhecida` / `extrato_desconhecido`) já **é**
+discriminador declarado — despacho por `if/then`, nunca afrouxar o `required` nem usar
+`oneOf` (colapsaria o path em `$` e cegaria a telemetria que é o gate).
+
+Condição de retomada: é pré-requisito do flip de `e2_extract`, o schema de maior massa
+(136 documentos, 812 artefatos por run). Não bloqueia os outros elegíveis. Atenção:
+`tests/test_e2_schema_strict_corpus.py` **não alcança** o stub por construção (enumera
+`registry._ALL_PARSERS` e rejeita o shape por asserção) — quem pegar isto precisa de
+cobertura nova, não de rodar o corpus existente.
+
+### Deferimento datado (2026-08-24) · dono: `data-engineer` — re-derivar `baseline_patrimonial` do produtor E1.5c
+
+> Este é o **maior risco de produto** dos dois deferimentos desta lane. Escopo, forma
+> e condição de retomada estão no §Deferimento datado do §Passo 1 (mesmo dono); esta
+> seção existe para que o item não fique visível só dentro do registro de execução.
+
+`baseline_patrimonial`. O contrato do baseline
+patrimonial — a fundação do relatório — declara **5 de 13** chaves do payload real, e 8
+properties que produtor nenhum jamais emitiu. Enquanto assim, mudança de forma no E1.5c
+não é detectada por nada, e o flip desse schema (que a [[A40.l67]] §Deferimento
+re-homeou para cá) permanece impossível. Dos dois deferimentos, **é este que decide se
+o relatório do cliente pode mudar de forma em silêncio.**
