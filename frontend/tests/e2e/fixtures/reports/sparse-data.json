@@ -5,16 +5,8 @@
     "bruto": 320000,
     "liquido": 285000,
     "categorias": [
-      {
-        "nome": "Renda Fixa",
-        "valor": 200000,
-        "percentual": 70.2
-      },
-      {
-        "nome": "Caixa",
-        "valor": 85000,
-        "percentual": 29.8
-      }
+      { "nome": "Renda Fixa", "valor": 200000, "percentual": 70.2 },
+      { "nome": "Caixa", "valor": 85000, "percentual": 29.8 }
     ]
   },
   "score": {
@@ -29,66 +21,31 @@
     "saldo": 13000,
     "receita_despesa_mensal_detalhado": {
       "labels": [
-        "25/08",
-        "25/09",
-        "25/10",
-        "25/11",
-        "25/12",
-        "26/01",
-        "26/02",
-        "26/03",
-        "26/04"
+        "25/08", "25/09", "25/10", "25/11", "25/12",
+        "26/01", "26/02", "26/03", "26/04"
       ],
       "totais_receita": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        12000,
-        12500,
-        13000,
-        26500
+        0, 0, 0, 0, 0,
+        12000, 12500, 13000, 26500
       ],
       "totais_despesa": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        9000,
-        10000,
-        11000,
-        21000
+        0, 0, 0, 0, 0,
+        9000, 10000, 11000, 21000
       ],
       "receita_datasets": [
         {
           "label": "Salário",
           "data": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            10000,
-            10500,
-            11000,
-            22000
+            0, 0, 0, 0, 0,
+            10000, 10500, 11000, 22000
           ],
           "backgroundColor": "#15803D"
         },
         {
           "label": "Outros",
           "data": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            2000,
-            2000,
-            2000,
-            4500
+            0, 0, 0, 0, 0,
+            2000, 2000, 2000, 4500
           ],
           "backgroundColor": "#0891B2"
         }
@@ -97,30 +54,16 @@
         {
           "label": "Moradia",
           "data": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            5000,
-            5500,
-            6000,
-            11000
+            0, 0, 0, 0, 0,
+            5000, 5500, 6000, 11000
           ],
           "backgroundColor": "#B91C1C"
         },
         {
           "label": "Alimentação",
           "data": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            4000,
-            4500,
-            5000,
-            10000
+            0, 0, 0, 0, 0,
+            4000, 4500, 5000, 10000
           ],
           "backgroundColor": "#F4A261"
         }
@@ -169,35 +112,23 @@
   "cenarios_conjuge": {},
   "orcamento_prospectivo": {},
   "pontos_fortes": [
-    {
-      "titulo": "Sem dívidas"
-    }
+    { "titulo": "Sem dívidas" }
   ],
   "pontos_urgentes": [
-    {
-      "titulo": "Reserva de emergência abaixo de 6 meses"
-    },
-    {
-      "titulo": "Concentração total em renda fixa"
-    }
+    { "titulo": "Reserva de emergência abaixo de 6 meses" },
+    { "titulo": "Concentração total em renda fixa" }
   ],
   "tarefas": [
-    {
-      "titulo": "Construir reserva até 6 meses de despesa",
-      "prazo": "2026-12-31"
-    }
+    { "titulo": "Construir reserva até 6 meses de despesa", "prazo": "2026-12-31" }
   ],
   "diagnostico_comportamental": [
-    {
-      "categoria": "Disciplina",
-      "nota": 6
-    }
+    { "categoria": "Disciplina", "nota": 6 }
   ],
   "tarefas_status": {},
   "narrativas": {
     "perfil_familia": "Início de jornada de planejamento; histórico de dados curto (4 meses ativos)."
   },
-  "real_estate": {
+  "real_estate":   {
     "cap_rate_liquido_pct": 0.9,
     "cap_rate_bruto_pct": 1.1,
     "componentes_calculo": {
