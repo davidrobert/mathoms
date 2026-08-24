@@ -51,6 +51,33 @@ class TextExtraction:
         return self.outcome not in (ReaderOutcome.ok, ReaderOutcome.documento_vazio)
 
 
+def _sheet_lines(sheet_name: str, rows, *, budget: int) -> tuple[str, int]:
+    """Uma aba → texto, parando quando o orçamento de chars acaba."""
+    lines: list[str] = [f"=== Sheet: {sheet_name} ==="]
+    usados = 0
+    for row in rows:
+        cells = ["" if c is None else str(c) for c in row]
+        if any(cells):
+            row_text = " | ".join(cells)
+            lines.append(row_text)
+            usados += len(row_text) + 1
+        if usados > budget:
+            lines.append("[... truncated ...]")
+            break
+    return "\n".join(lines), usados
+
+
+def _xls_cell_text(cell, datemode: int, xlrd) -> str:
+    """Célula BIFF → texto. Data em serial float é ilegível para o LLM."""
+    if cell.ctype == xlrd.XL_CELL_DATE:
+        return xlrd.xldate.xldate_as_datetime(cell.value, datemode).isoformat(sep=" ")
+    if cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK):
+        return ""
+    if cell.ctype == xlrd.XL_CELL_NUMBER and float(cell.value).is_integer():
+        return str(int(cell.value))
+    return str(cell.value)
+
+
 class DocumentTextExtractor:
     """Extracts text content from documents for use as LLM prompt input.
 
@@ -115,8 +142,10 @@ class DocumentTextExtractor:
         """Leitor do formato, ou ``None`` quando não existe — o que era `""` mudo."""
         if suffix == ".pdf":
             return self._extract_pdf
-        if suffix in (".xlsx", ".xls"):
-            return self._extract_excel
+        if suffix == ".xlsx":
+            return self._extract_xlsx
+        if suffix == ".xls":
+            return self._extract_xls
         if suffix == ".csv":
             return self._extract_csv
         if suffix in (".json", ".txt", ".md"):
@@ -162,37 +191,56 @@ class DocumentTextExtractor:
 
         return "\n\n".join(pages_text)
 
-    def _extract_excel(self, path: Path) -> str:
-        """Extract text from XLSX/XLS using openpyxl."""
+    def _extract_xlsx(self, path: Path) -> str:
+        """XLSX via openpyxl. O `.xls` legado tem leitor próprio — ver `_extract_xls`."""
         try:
             import openpyxl
         except ImportError as exc:  # vira leitor_indisponivel em extract_result
             raise ImportError("openpyxl não instalado — planilha ilegível") from exc
 
         wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+        try:
+            return self._sheets_to_text(
+                (name, wb[name].iter_rows(values_only=True)) for name in wb.sheetnames
+            )
+        finally:
+            wb.close()
+
+    # openpyxl levanta `InvalidFileException` em BIFF e o motivo virava
+    # `leitura_falhou` — 168/168 dos `.xls` do corpus (A40.l68 §Ataque C).
+    # `xlrd` é o mesmo leitor que os parsers determinísticos já usam.
+    def _extract_xls(self, path: Path) -> str:
+        """`.xls` legado (BIFF) via xlrd — openpyxl não lê este formato."""
+        try:
+            import xlrd
+        except ImportError as exc:  # vira leitor_indisponivel em extract_result
+            raise ImportError("xlrd não instalado — .xls legado ilegível") from exc
+
+        wb = xlrd.open_workbook(path)
+        return self._sheets_to_text(
+            (sheet.name, self._xls_rows(sheet, wb.datemode)) for sheet in wb.sheets()
+        )
+
+    @staticmethod
+    def _xls_rows(sheet, datemode: int):
+        """Linhas do BIFF já em texto — serial de data vira ISO, não `45678.0`."""
+        import xlrd
+
+        for i in range(sheet.nrows):
+            yield [_xls_cell_text(c, datemode, xlrd) for c in sheet.row(i)]
+
+    def _sheets_to_text(self, sheets) -> str:
+        """Planilha → texto: cabeçalho por aba + linhas `a | b`, cortadas em max_chars."""
         sheets_text: list[str] = []
         total_chars = 0
 
-        for sheet_name in wb.sheetnames:
-            ws = wb[sheet_name]
-            rows: list[str] = [f"=== Sheet: {sheet_name} ==="]
-
-            for row in ws.iter_rows(values_only=True):
-                cells = [str(c) if c is not None else "" for c in row]
-                if any(cells):
-                    row_text = " | ".join(cells)
-                    rows.append(row_text)
-                    total_chars += len(row_text) + 1
-
-                if total_chars > self.max_chars:
-                    rows.append("[... truncated ...]")
-                    break
-
-            sheets_text.append("\n".join(rows))
+        for sheet_name, rows in sheets:
+            texto, usados = _sheet_lines(sheet_name, rows, budget=self.max_chars - total_chars)
+            sheets_text.append(texto)
+            total_chars += usados
             if total_chars > self.max_chars:
                 break
 
-        wb.close()
         return "\n\n".join(sheets_text)
 
     def _extract_csv(self, path: Path) -> str:
