@@ -239,6 +239,16 @@ def _safe_div(numerator: Decimal, denominator: Decimal) -> Decimal:
     return numerator / denominator
 
 
+# Base ausente não vira derivado zero: o 0 de `_safe_div` colide com um zero
+# legítimo, e "rende 0,00%" sairia na MESMA linha em que o valor sai como `—`
+# (A40.l6 §Escopo · classe do RV3-27). O agregado já resolvia por guarda.
+def _cap_rate_pct(renda_anual: Decimal, valor: Decimal) -> Decimal | None:
+    """Cap rate em pp, ou ``None`` quando não há base para calcular."""
+    if valor <= _ZERO:
+        return None
+    return _quantize_pct(_safe_div(renda_anual, valor) * _HUNDRED)
+
+
 def _quantize_pct(v: Decimal) -> Decimal:
     """Arredonda percentual para 2 casas decimais."""
     return v.quantize(_PCT_QUANTUM)
@@ -340,8 +350,8 @@ def _compute_property_metrics(
         - vacancia
     )
 
-    cap_rate_bruto_pct = _quantize_pct(_safe_div(aluguel_bruto, prop.valor_imovel) * _HUNDRED)
-    cap_rate_liquido_pct = _quantize_pct(_safe_div(aluguel_liquido, prop.valor_imovel) * _HUNDRED)
+    cap_rate_bruto_pct = _cap_rate_pct(aluguel_bruto, prop.valor_imovel)
+    cap_rate_liquido_pct = _cap_rate_pct(aluguel_liquido, prop.valor_imovel)
 
     # Gap de reajuste — fórmula da FORMULAS.md §D6. Sem índice acumulado disponível
     # nesta camada (vive em market_rates ou fiscal_parameters), deixar None.

@@ -178,6 +178,18 @@ def test_contador_de_lanes_extrai_o_numero_declarado() -> None:
     assert cc.LANE_COUNT_RE.search("## Lanes\n") is None
 
 
+# A forma antiga (`\((\d+)\)`) exigia `)` logo após os dígitos e devolvia None no
+# cabeçalho real da A40 — `match is None` faz `check_lane_counter` RETORNAR [], então
+# o check falhava ABERTO. Medido em 2026-08-24: contador dizia 75 com 76 no disco e a
+# camada 1 vinha verde. Este teste mata a volta dessa forma (A40.l59).
+def test_contador_casa_cabecalho_com_texto_dentro_dos_parenteses() -> None:
+    """Mutação que mata: exigir `)` colado ao número — o check passa a falhar aberto."""
+    real = "## Lanes (76 no disco · 76 nesta tabela — ver nota ao fim)\n"
+    match = cc.LANE_COUNT_RE.search(real)
+    assert match is not None, "regex estrito aqui devolve None e o check passa calado"
+    assert match.group(2) == "76"
+
+
 # Incidente 2026-08-21: os 2 CLOSE-BLOCK reais moravam em linha de achado de
 # `docs/_MOC/PIPELINE-REVIEWS-active.md` — fora do universo, a camada 3 nunca
 # releu o registro e o closeout veio verde-falso.

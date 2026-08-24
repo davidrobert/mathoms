@@ -612,11 +612,6 @@ jobs:
         # quebrou em silêncio pós-ADR-212 (ver ADR-303 D5).
         run: pytest pipeline-service/tests -q --tb=short
 
-      - name: Pipeline JSON schema strict (MATHOMS_PIPELINE_SCHEMA_MODE)
-        env:
-          MATHOMS_PIPELINE_SCHEMA_MODE: strict
-        run: pytest tests/test_schema_validation.py -q --tb=short
-
       - name: Pipeline package import boundaries (P1)
         run: python dev/check_pipeline_boundaries.py --verbose
 

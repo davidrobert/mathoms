@@ -20,6 +20,7 @@ from pipeline.domain.services.investimentos_cobertura import (
     review_reasons_da_cobertura,
 )
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
+from pipeline.domain.services.patrimonio_resolvers import resolve_members
 from pipeline.domain.services.patrimonio_types import (
     MemberIdentity,
     PatrimonioConfig,
@@ -140,16 +141,14 @@ def test_kill_switch_desliga_ressalva_e_supressao(monkeypatch: pytest.MonkeyPatc
 # =============================================================================
 
 
+_IDENTITY = MemberIdentity(
+    titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
+)
+
+
 @pytest.fixture
 def config() -> PatrimonioConfig:
-    return PatrimonioConfig(
-        members=MemberIdentity(
-            titular_key="david",
-            conjuge_key="mariana",
-            titular_nome="David",
-            conjuge_nome="Mariana",
-        )
-    )
+    return PatrimonioConfig(members=_IDENTITY)
 
 
 # O fixture anterior era `baseline={"members": <dict>}` — 1 dos 4 shapes que
@@ -170,9 +169,13 @@ def _baseline_consolidado(*, conjuge_inv: list | None = None) -> dict:
     return {"investimentos_consolidados": itens, "patrimonio_por_ano": {"2025": {}}}
 
 
-def _inputs(totais: dict, *, conjuge_inv: list | None = None) -> PatrimonioInputs:
+def _inputs(
+    totais: dict, *, conjuge_inv: list | None = None, identity: MemberIdentity | None = None
+) -> PatrimonioInputs:
+    baseline = _baseline_consolidado(conjuge_inv=conjuge_inv)
     return PatrimonioInputs(
-        baseline=_baseline_consolidado(conjuge_inv=conjuge_inv),
+        baseline=baseline,
+        members=resolve_members(baseline, identity or _IDENTITY),
         investimentos_atuais={
             "dados": [{"membro": k, "valor": v} for k, v in totais.items()],
             "total_por_membro": totais,
@@ -205,7 +208,7 @@ def test_familia_de_um_titular_nao_ressalva_conjuge_inexistente() -> None:
             titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome=""
         )
     )
-    result = PatrimonioCalculator(cfg).calculate(_inputs({"joao": 100.0}))
+    result = PatrimonioCalculator(cfg).calculate(_inputs({"joao": 100.0}, identity=cfg.members))
 
     assert [c["membro"] for c in result["cobertura_investimentos"]] == ["titular"]
 

@@ -176,8 +176,7 @@
         "status_contrato": "desconhecido",
         "indice_reajuste": null,
         "data_ultimo_reajuste": null,
-        "endereco_canonical": null,
-        "imobiliaria_cnpj": null,
+        "endereco_display": null,
         "imobiliaria_nome": null,
         "origem_aluguel": "irpf"
       }

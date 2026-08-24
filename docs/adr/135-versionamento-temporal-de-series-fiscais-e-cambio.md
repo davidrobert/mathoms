@@ -5,7 +5,7 @@ title: "Versionamento temporal de séries fiscais e câmbio"
 status: Decidido
 phase: "Sprint A7"
 date: "2026-04-26"
-amended_at: ["2026-07-07", "2026-08-15"]
+amended_at: ["2026-07-07", "2026-08-15", "2026-08-24"]
 relates_to: ["[[ADR-090]]", "[[ADR-238]]", "[[ADR-389]]"]
 supersedes: []
 superseded_by: []
@@ -22,9 +22,14 @@ size_lines: 101
 > **Emenda (2026-07-07):** `rate` para pares `*/BRL` é PTAX de **compra** —
 > ver §"Emenda — lado da PTAX em pares */BRL (2026-07-07)".
 >
-> **Emenda (2026-08-15):** `ir_brackets` deixa de existir — a mensal e a anual
-> são duas publicações importadas, não duas escalas ([[ADR-389]]). Ver
-> §"Emenda — ir_brackets vira duas tabelas importadas (2026-08-15)".
+> **Emenda (2026-08-15):** `ir_brackets` ~~deixa de existir~~ **deixará de
+> existir** — a mensal e a anual são duas publicações importadas, não duas
+> escalas ([[ADR-389]]). Ver §"Emenda — ir_brackets vira duas tabelas
+> importadas (2026-08-15)".
+>
+> **Correção (2026-08-24):** a contração **não aconteceu** — a coluna segue
+> viva e nullable. Ver §"Correção — a contração de `ir_brackets` está deferida
+> (2026-08-24)" antes de agir sobre o campo.
 
 # ADR-135 — Versionamento temporal de séries fiscais e câmbio
 
@@ -160,3 +165,34 @@ cujo degrau de R$ 11,04 bloqueou o D5 da [[ADR-375]] por três meses.
 `ir_brackets` é substituído por `ir_brackets_anual` + `ir_brackets_mensal`,
 cada um verbatim da publicação e com proveniência própria; o nome antigo deixa
 de resolver. Contrato, invariantes e política de cache em [[ADR-389]].
+
+## Correção — a contração de `ir_brackets` está deferida (2026-08-24)
+
+Auditoria de vault r10 (F17 · [[ADR-302]]). A emenda de 2026-08-15 anuncia em
+tempo presente que `ir_brackets` "deixa de existir" e que "o nome antigo deixa
+de resolver". Isso descreve o **estado-alvo**, não o presente.
+
+Fonte de verdade — `backend/app/models/fiscal_parameter.py:42-45`:
+
+```python
+# Legado do seed A7.2b — escalas misturadas (tetos anuais, parcelas mensais).
+# Mantido nullable durante a janela expand/contract; leitores novos usam os
+# dois campos acima. Contract em lane própria.
+ir_brackets: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+```
+
+A [[ADR-389]], dona do contrato, ainda é `Proposto`, e a lane do contract
+([[A40.l37]]) está aberta. O campo tem leitores hoje:
+
+```
+$ rg -n "ir_brackets\b" --include="*.py" . | grep -v alembic | grep -v _anual | grep -v _mensal
+backend/app/models/fiscal_parameter.py:45
+backend/tests/test_fiscal_market_repos.py:48
+pipeline/domain/services/irpf_faixa_marginal.py:3
+```
+
+**Consequência da leitura errada nos dois sentidos:** quem confia na emenda
+não trata row legada com `ir_brackets` populado, ou escreve migration de drop
+antes do contract; quem percebe a divergência tende a descartar a ADR inteira.
+O gatilho para reescrever esta seção é a [[ADR-389]] virar `Decidido` com a
+[[A40.l37]] entregue.

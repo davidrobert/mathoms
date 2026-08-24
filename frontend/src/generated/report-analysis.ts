@@ -11,7 +11,7 @@ export type componente_exposicao_cambial = {
 export type ConversaoMe = {
   "taxa"?: string | null;
   "taxa_data"?: string | null;
-  "taxa_fonte"?: string | null;
+  "taxa_fonte"?: "ptax_31_12" | "market_rate_corrente" | "default_hardcoded" | "irpf_ja_em_brl" | null;
   "status": "converted" | "identity" | "missing_rate";
 };
 
@@ -752,8 +752,7 @@ export type E5AnalysisArtifact = {
       "status_contrato": "atualizado" | "reajuste_pendente" | "sem_renda" | "desconhecido";
       "indice_reajuste"?: string | null;
       "data_ultimo_reajuste"?: string | null;
-      "endereco_canonical"?: string | null;
-      "imobiliaria_cnpj"?: string | null;
+      "endereco_display"?: string | null;
       "imobiliaria_nome"?: string | null;
       "origem_aluguel": "informe" | "irpf" | "e3" | "e4" | "manual" | "pro_rata" | "none" | "default";
     }>;

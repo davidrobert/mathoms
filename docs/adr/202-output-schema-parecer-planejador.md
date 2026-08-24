@@ -50,7 +50,7 @@ tags:
 
 - O parecer é consumido por (a) renderer React em `S_parecer`, (b) emissor de `Suggestion` aggregate ([[ADR-153]]), (c) exportador PDF, (d) consumidor de telemetria ([[ADR-206]]), (e) endpoint HTTP retornando DTO tipado. Sem schema canônico, cada consumer infere shape — recipe para drift catastrófico em produto pago.
 - [[ADR-026]] estabelece **Instructor + Pydantic** como padrão para LLM structured output. Schema JSON é a fonte; Pydantic é codegen ou hand-crafted espelhando schema.
-- Plano canônico `docs/plan/PLANNER_REVIEW/_README.md` enumera invariantes obrigatórias: 6+ sections, enums fechados, max 2 P0, regex anti-ticker, hard caps (D-0.2). Sem invariantes codificadas, LLM produz outputs visualmente plausíveis mas inválidos para downstream (ex.: 5 P0 → quebra UI; ticker `MGLU3` no body → quebra sigilo metodológico).
+- Plano canônico `docs/archive/PLANNER_REVIEW-2026-07-09.md` enumera invariantes obrigatórias: 6+ sections, enums fechados, max 2 P0, regex anti-ticker, hard caps (D-0.2). Sem invariantes codificadas, LLM produz outputs visualmente plausíveis mas inválidos para downstream (ex.: 5 P0 → quebra UI; ticker `MGLU3` no body → quebra sigilo metodológico).
 
 ## Alternativas consideradas
 

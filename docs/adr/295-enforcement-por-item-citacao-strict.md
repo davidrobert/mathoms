@@ -12,6 +12,7 @@ relates_to:
   - "[[ADR-202]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-24"]
 aliases: ["ADR 295", "enforcement por-item citação", "strict per-item parecer"]
 tags:
   - type/adr
@@ -22,6 +23,11 @@ tags:
 ---
 
 # ADR-295 — Enforcement por-item da citação verificada no modo strict
+
+> **Correção (2026-08-24):** a camada `value_mismatch` da §Decisão 1 foi
+> substituída por `pairing_mismatch` ([[ADR-296]]), e o desfecho de severidade
+> alta é a **retenção do parecer inteiro**, não a remoção do item ([[ADR-366]]).
+> Ver §"Correção — camadas e desfecho de severidade alta (2026-08-24)".
 
 **Status:** Decidido (A26.l8 — impl. em `parecer_strict_enforcement.py`, #666;
 validada empiricamente no eval 1.8.0→1.9.0) • **Data:** 2026-06-17 •
@@ -110,3 +116,34 @@ não-conformidade continua medida; o que muda é o que o strict faz com ela.
 - **Magnitude/banda como gate de correção:** rejeitada (armadilha de pareamento).
 - **Re-eval golden owner-gated** valida per-parecer <5% + temp=0 0 violações —
   critério de aceite da [[A26.l8]], não desta ADR.
+
+## Correção — camadas e desfecho de severidade alta (2026-08-24)
+
+Auditoria de vault r10 (F04 · [[ADR-302]]). Duas afirmações da §Decisão 1
+deixaram de valer; nenhuma delas reabre a decisão desta ADR — ambas foram
+tomadas por ADRs posteriores que esta nunca registrou.
+
+**1. A camada mudou de nome e de natureza.** A §Decisão 1 lista
+`value_mismatch` entre as camadas que derrubam um item. Fonte de verdade —
+`backend/app/services/parecer_strict_enforcement.py:19-24`:
+
+```python
+# ADR-296: pairing_mismatch (rotulo ↔ root incoerente) substitui value_mismatch.
+_HARD_LAYERS = frozenset({"whitelist_miss", "resolve_null", "pairing_mismatch"})
+```
+
+`value_mismatch` está **zerado por construção** — "prosa não tem R$"
+(`parecer_evidencia.py:88-89`). Testar enforcement contra ela produz verde que
+não exercita nada.
+
+**2. O desfecho de severidade alta é retenção total.** A §Decisão 1 diz que o
+item sai e "os demais seguem". O real é `_withhold_all`
+(`parecer_strict_enforcement.py:139-148`): o parecer **inteiro** é retido,
+`dropped` fica vazio de propósito e o stage devolve `success: False` — como a
+[[ADR-366]] §desfecho já descrevia.
+
+**3. Dois símbolos citados nunca existiram:** `_token_matches` (§Decisão,
+tolerância de abreviação) e o outcome `item_dropped` em
+`EvidenciaVerification.entries`. `rg -l "_token_matches|item_dropped" -g '!docs/**'`
+retorna zero; o implementado é `items_dropped` + `dropped_items` no bloco de
+retenção (`parecer_evidencia.py:140-147`), fora de `entries`.

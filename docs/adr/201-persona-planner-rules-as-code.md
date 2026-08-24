@@ -45,7 +45,7 @@ tags:
 - O parecer LLM precisa de **postura fiduciária explícita**: metodologias de referência (Perini/Cerbasi/AUVP), tom (orientativo, não prescritivo), restrições (sigilo §13 — não citar nomes de metodologistas em output), ordenação de prioridades (P0 com cap, confiança declarada). Sem persona codificada, cada execução LLM produz drift de tom; cada provider/modelo novo exige re-tuning manual.
 - [[ADR-143]] estabelece o princípio **methodology = code**: regras universais de produto vivem em docstrings co-localizados com o código enforcer + ADR canônica capturando o "porquê". A persona do planejador é uma extensão direta — não é metadado de prompt, é regra de produto que orienta como o LLM raciocina sobre dados do cliente.
 - Hoje `.claude/agents/financial-planner.md` contém briefing do subagent usado em dev-time (revisão de features, co-design). Não há equivalente para runtime (stage LLM). Sem separação, ou (a) duplica conteúdo entre 2 arquivos com drift garantido, ou (b) carrega dev-context (BACKLOG, ADRs em voo) pro runtime do stage — overhead + leak de contexto interno pro prompt.
-- Plano canônico: `docs/plan/PLANNER_REVIEW/_README.md` §"Ato 2" especifica persona como rules-as-code com frontmatter versionado + hash SHA-256 registrado no aggregate (auditoria).
+- Plano canônico: `docs/archive/PLANNER_REVIEW-2026-07-09.md` §"Ato 2" especifica persona como rules-as-code com frontmatter versionado + hash SHA-256 registrado no aggregate (auditoria).
 
 ## Alternativas consideradas
 

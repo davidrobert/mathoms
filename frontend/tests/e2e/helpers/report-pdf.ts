@@ -8,6 +8,7 @@ import {
   mockReportPage,
   plannerReviewStub,
   waitForReportReady,
+  type FixtureName,
   type PlannerReviewFixture,
 } from "./mock-report";
 
@@ -41,6 +42,10 @@ export async function setupPrintReport(
   page: Page,
   /** Ausente = default do roteador (404 → empty state), como antes da A40.l22. */
   plannerReview?: PlannerReviewFixture,
+  /** Muta o payload servido — ver `MockOptions.mutateAnalysis` (A40.l6). */
+  mutateAnalysis?: (data: Record<string, unknown>) => void,
+  /** Fixture de origem; ausente = `medium`, que NÃO tem imóveis nem dívidas. */
+  fixture?: FixtureName,
 ): Promise<void> {
   // Theme light é o padrão do PDF (impressão). Injeta antes de qualquer
   // navegação para evitar flash dark→light no PDF gerado.
@@ -50,6 +55,8 @@ export async function setupPrintReport(
 
   const { workspaceId, reportId } = await mockReportPage(page, {
     plannerReview: plannerReview ? plannerReviewStub(plannerReview) : undefined,
+    mutateAnalysis,
+    fixture,
   });
   await page.setViewportSize(REPORT_VIEWPORT);
   await page.goto(`/reports/${reportId}?workspace=${workspaceId}&print=1`);

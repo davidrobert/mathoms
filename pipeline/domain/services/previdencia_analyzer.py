@@ -19,6 +19,7 @@ from typing import Any
 from pipeline.domain.services.brl_prose import fmt_brl_prosa
 from pipeline.domain.services.irpf_analyzer import CapacidadePgbl, PgblStatus
 from pipeline.domain.services.irpf_faixa_marginal import resolve_faixa_marginal
+from pipeline.domain.services.pgbl_economia_ir import economia_diferencial
 from pipeline.domain.types.config import FiscalParameters, IRPFBracket
 
 
@@ -179,6 +180,10 @@ class CapacidadePgblIRPF:
 
 # `Decimal` em memória, `float` no wire: `to_legacy_dict` É a fronteira de
 # serialização do payload E5 (ADR-090 §consequências).
+def _cents(valor: Decimal) -> int:
+    return int(valor * 100)
+
+
 def _round_ou_ausente(valor: Decimal | None) -> float | None:
     return None if valor is None else float(round(valor, 2))
 
@@ -461,10 +466,17 @@ class PrevidenciaAnalyzer:
     ) -> Decimal | None:
         if motivos["economia"] or cap.capacidade.restante is None:
             return None
-        return cap.capacidade.restante * Decimal(str(self._aliquota(cap))) / Decimal("100")
+        if not self._config.irpf_faixas:
+            # Mesma política de `_aliquota_para`: sem tabela não há diferencial a
+            # calcular, e a degradação é do chamador. O produto é o que o caminho
+            # legado (dict pré-A7.2b) sempre publicou.
+            return cap.capacidade.restante * Decimal(str(self._aliquota(cap))) / Decimal("100")
+        return economia_diferencial(
+            cap.renda_tributavel_anual, cap.capacidade.restante, self._config.irpf_faixas
+        )
 
     def _aliquota(self, cap: CapacidadePgblIRPF) -> float:
-        return self._aliquota_para(int(cap.renda_tributavel_anual * 100))
+        return self._aliquota_para(_cents(cap.renda_tributavel_anual))
 
     def _aliquota_para(self, base_calculo_anual_brl_cents: int) -> float:
         """Alíquota marginal; sem tabela configurada, degrada para o fallback declarado."""

@@ -32,6 +32,7 @@ from pipeline.domain.services.member_key_matcher import (
 from pipeline.domain.services.patrimonio_types import (
     CONSOLIDATED_LIST_KEYS,
     MemberIdentity,
+    MembrosResolvidos,
     investimento_valor,
     parse_ano_31_12,
     resolve_value_year,
@@ -44,12 +45,20 @@ from pipeline.domain.services.patrimonio_types import (
 # =============================================================================
 
 
-def resolve_members(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
-    """Resolve dicts de titular e cônjuge de qualquer baseline suportado.
+def resolve_members(baseline: dict, identity: MemberIdentity) -> MembrosResolvidos:
+    """Resolve titular e cônjuge de qualquer baseline suportado — produtor único."""
+    titular, conjuge = _resolve_members_par(baseline, identity)
+    return MembrosResolvidos(
+        titular=titular,
+        conjuge=conjuge,
+        titular_key=identity.titular_key,
+        conjuge_key=identity.conjuge_key,
+    )
 
-    Retorna tupla ``(titular_data, conjuge_data)``. Se o formato não casar
-    com nenhum resolver, tenta o path consolidated (mais tolerante).
-    """
+
+# Se o formato não casar com nenhum ramo, cai no consolidated (o mais tolerante).
+def _resolve_members_par(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
+    """Despacha entre os 4 formatos de baseline e devolve o par cru."""
     members = baseline.get("members", baseline.get("membros", {}))
 
     if isinstance(members, list):
@@ -351,21 +360,35 @@ def anos_base_por_membro(
     )
 
 
-def _resolve_item_valor(item: dict, ano_ref: str) -> float:
-    """Resolve valor de item consolidated tentando 3 conveções.
-
-    Ordem: ``valores_31_12.{ano}`` / ``valores_31_12.31_12_{ano}`` →
-    ``valor_{ano}`` → ``valor``.
-    """
+# O ano era descoberto aqui e esquecido. O ramo `valor` cru não tem ano e devolve
+# `None` — é o que separa "valor de 2023" de "valor sem data" ([[ADR-383]] §6).
+def _resolve_item_valor_e_ano(item: dict, ano_ref: str) -> tuple[float, str | None]:
+    """Valor do item consolidated e o ano em que ele foi encontrado."""
     vals_dict = item.get("valores_31_12", {})
     if isinstance(vals_dict, dict):
         v = vals_dict.get(ano_ref, vals_dict.get(f"31_12_{ano_ref}"))
         if v is not None:
-            return safe_float(v)
+            return safe_float(v), ano_ref
     v = item.get(f"valor_{ano_ref}")
     if v is not None:
-        return safe_float(v)
-    return safe_float(item.get("valor", 0))
+        return safe_float(v), ano_ref
+    return safe_float(item.get("valor", 0)), None
+
+
+def _resolve_item_valor(item: dict, ano_ref: str) -> float:
+    """Só o valor — para quem não precisa da proveniência de ano."""
+    return _resolve_item_valor_e_ano(item, ano_ref)[0]
+
+
+# Os dois campos já vêm da fonte (`consolidate_baseline.py`); descartá-los era o
+# que fazia duas projeções do mesmo item divergirem ([[ADR-410]] D1).
+def _com_proveniencia(entry: dict, item: dict, ano: str | None) -> dict:
+    """Carimba no entry o ano-base do próprio item e a instituição da fonte."""
+    if ano:
+        entry["ano_base"] = ano
+    if item.get("instituicao"):
+        entry["instituicao"] = item["instituicao"]
+    return entry
 
 
 def _is_conjuge_exclusive(item: dict, identity: MemberIdentity) -> bool:
@@ -392,25 +415,30 @@ def _is_conjuge_exclusive(item: dict, identity: MemberIdentity) -> bool:
     return False
 
 
+def _descricao_do_imovel(item: dict) -> str:
+    """Descrição rica do imóvel: própria → `dados_completos.imovel` → endereço."""
+    descricao = item.get("descricao", "")
+    if descricao:
+        return descricao
+    dc = item.get("dados_completos", {})
+    if isinstance(dc, dict) and dc.get("imovel"):
+        return dc["imovel"]
+    return item.get("endereco", "") or ""
+
+
 def _imovel_entry_from_consolidated(item: dict, ano_ref: str) -> dict:
     """Monta entry de imóvel consolidated preservando descrição rica + property_id."""
-    descricao = item.get("descricao", "")
-    if not descricao:
-        dc = item.get("dados_completos", {})
-        if isinstance(dc, dict):
-            descricao = dc.get("imovel", "")
-        if not descricao:
-            descricao = item.get("endereco", "")
+    valor, ano = _resolve_item_valor_e_ano(item, ano_ref)
     entry = {
-        "descricao": descricao or "",
+        "descricao": _descricao_do_imovel(item),
         "endereco": item.get("endereco", ""),
         "tipo": item.get("tipo", ""),
-        "valor_31_12_ano_base": _resolve_item_valor(item, ano_ref),
+        "valor_31_12_ano_base": valor,
     }
     pid = item.get("property_id")
     if isinstance(pid, str) and pid:
         entry["property_id"] = pid
-    return entry
+    return _com_proveniencia(entry, item, ano)
 
 
 def _split_imoveis(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tuple[list, list]:
@@ -448,11 +476,13 @@ def _split_investimentos(
 
     if isinstance(inv_raw, list):
         for inv in inv_raw:
+            valor, ano = _resolve_item_valor_e_ano(inv, ano_ref)
             entry = {
                 "descricao": inv.get("descricao", ""),
                 "tipo": inv.get("tipo", ""),
-                "valor_31_12_ano_base": _resolve_item_valor(inv, ano_ref),
+                "valor_31_12_ano_base": valor,
             }
+            _com_proveniencia(entry, inv, ano)
             if _is_conjuge_exclusive(inv, identity):
                 conjuge_inv.append(entry)
             else:
@@ -488,10 +518,12 @@ def _split_veiculos(baseline: dict, identity: MemberIdentity, ano_ref: str) -> t
     titular: list[dict] = []
     conjuge: list[dict] = []
     for v in baseline.get("veiculos_consolidados", []) or []:
+        valor, ano = _resolve_item_valor_e_ano(v, ano_ref)
         entry = {
             "descricao": v.get("descricao", ""),
-            "valor_31_12_ano_base": _resolve_item_valor(v, ano_ref),
+            "valor_31_12_ano_base": valor,
         }
+        _com_proveniencia(entry, v, ano)
         if _is_conjuge_exclusive(v, identity):
             conjuge.append(entry)
         else:

@@ -351,3 +351,36 @@ class TestDedupByPropertyId:
             )
         )
         assert r.top_ativos[0].membro == "Casal"
+
+
+# =============================================================================
+# Precedência do fallback de nome ([[ADR-337]] · regressão achada na [[ADR-410]] D1)
+#
+# `tipo` é categoria da FONTE e pode ser o literal "investimento". Enquanto o
+# resolver o descartava, `classe` vencia por ausência; com o produtor único o
+# campo chegou e a precedência errada apareceu como rótulo pior no relatório.
+# =============================================================================
+
+
+def test_fallback_de_nome_prefere_a_classe_ao_tipo_generico():
+    bens = {
+        "investimentos": [
+            {
+                "descricao": "CDB",
+                "tipo": "investimento",
+                "instituicao": "Bancoficticio",
+                "valor_31_12_ano_base": 100_000.0,
+            }
+        ]
+    }
+    r = TopAtivosAnalyzer().analyze([("Alex", bens)])
+    assert r.top_ativos[0].nome == "Renda Fixa (Bancoficticio)"
+
+
+def test_tipo_especifico_continua_vencendo_a_classe():
+    """Contra-prova: só a sentinela de ignorância é ignorada, não `tipo` em geral."""
+    from pipeline.domain.services.top_ativos_analyzer import TopAtivosAnalyzer as _T
+
+    assert _T._fallback_nome("Tesouro IPCA+", "Renda Fixa", "Btg") == "Tesouro IPCA+ (Btg)"
+    assert _T._fallback_nome("outros", "FIIs", "Btg") == "FIIs (Btg)"
+    assert _T._fallback_nome("", "", "") == "Investimento"

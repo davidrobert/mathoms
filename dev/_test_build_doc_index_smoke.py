@@ -239,7 +239,7 @@ def _assert_deterministic_order(build_fn: Callable[[list], str], note_cls: type)
 
 
 _PLAN_RICH_FRAGMENTS: tuple[str, ...] = (
-    "2 planos detectados",
+    "Planos detectados",
     "## Em execução (`in_progress`)",
     "## Pausados (`paused`)",
     "### PLAN-x — Plano X",
@@ -316,8 +316,9 @@ def _assert_plan_with_lanes(plan_build_fn: Callable[[list], str], note_cls: type
     """Test 10: plan + lanes ligadas — contagem por status correta + sprints derivadas."""
     out = plan_build_fn(_plan_with_lanes_fixture(note_cls))
     bad: list[str] = []
-    if "1 done · 1 in_progress · 1 open · 0 blocked" not in out:
-        bad.append("test10: contagem de lanes errada (esperado 1 done · 1 in_progress · 1 open)")
+    # Sem contagem por desenho (A40.l59): o agregado era ponto de contenção de merge.
+    if "done · in_progress · open" not in out:
+        bad.append("test10: linha de status de lane errada (esperado 'done · in_progress · open')")
     if "Sprints envolvidas: A10, A11, A12" not in out:
         bad.append("test10: união de sprints declaradas+derivadas errada (esperado A10, A11, A12)")
     if "_Lanes serão linkadas após Fase 4" in out:
