@@ -161,7 +161,11 @@ diverge:
 | `instituicao` | **ausente** | presente |
 | `tipo` | presente | **ausente** |
 | `ano_base` (topo do membro) | presente | **ausente** |
-| top-up do titular | guardado por `mesmo_ano` ([`:587`](../../../../pipeline/domain/services/patrimonio_resolvers.py)) | **sem guarda** ([`:317`](../../../../pipeline/domain/services/e5_member_resolver.py)) |
+| top-up do titular | guardado por `mesmo_ano` ([`:587`](../../../../pipeline/domain/services/patrimonio_resolvers.py)) | **sem guarda** (`e5_member_resolver.py:317`) |
+
+> Os `arquivo:linha` do lado B ficam **sem link**: `e5_member_resolver.py` foi
+> deletado pelo PR2 desta lane ([[ADR-410]] D1). A medição continua válida — foi
+> feita antes da deleção, sobre `47c0988e` —, mas o alvo não existe mais.
 
 **Nenhum dos dois é superset do outro.** Isso muda o §Escopo 1: "declarar um
 autoritativo e remover o outro" perde dado nos **dois** sentidos, e os dois desfechos

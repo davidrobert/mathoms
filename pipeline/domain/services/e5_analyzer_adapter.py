@@ -3,7 +3,7 @@
 
 Compõe os domain services extraídos em A1/A3c/A5a/A5b/A5c:
 
-- :class:`E5MemberResolver` (A5c) — resolve titular/cônjuge do baseline.
+- :func:`resolve_members` ([[ADR-410]] D1) — produtor único de titular/cônjuge.
 - :class:`MemberAnalyzer` (A3c) — patrimônio por membro (helpers).
 - :class:`PatrimonioCalculator` (A1) — patrimônio consolidado.
 - :class:`EmergencyReserveCalculator` (A1) — reserva emergência.
@@ -68,11 +68,6 @@ from pipeline.domain.services.diagnostico_comportamental_analyzer import (
     DiagnosticoItem,
 )
 from pipeline.domain.services.e5_lineage import build_e5_lineage
-from pipeline.domain.services.e5_member_resolver import (
-    E5MemberResolver,
-    MemberResolverConfig,
-    ResolvedMembers,
-)
 from pipeline.domain.services.endividamento_analyzer import (
     EndividamentoAnalysis,
     EndividamentoAnalyzer,
@@ -148,6 +143,7 @@ from pipeline.domain.services.patrimonio_types import (
     CaixaContaExcluida,
     CaixaDetalhe,
     MemberIdentity,
+    MembrosResolvidos,
     PatrimonioConfig,
     PatrimonioInputs,
     normalize_data_referencia,
@@ -220,7 +216,7 @@ class E5AnalysisResult:
     """
 
     # Inputs resolvidos.
-    members: ResolvedMembers
+    members: MembrosResolvidos
     receitas: dict[str, Any]
     despesas: dict[str, Any]
     fluxo_mensal_raw: dict[str, Any]
@@ -317,7 +313,6 @@ class E5AnalyzerAdapter:
         cambio_usd_brl: Decimal | float | None = None,
         cambio_eur_brl: Decimal | float | None = None,
         cambio_observed_at: dict[str, str] | None = None,
-        member_resolver: E5MemberResolver | None = None,
         fluxo_enricher: FluxoCaixaEnricher | None = None,
         if_projector: IFProjector | None = None,
         if_projector_config: IFProjectorConfig | None = None,
@@ -363,7 +358,6 @@ class E5AnalyzerAdapter:
         # ADR-384 — resolvedor de identidade institucional (raiz de 8 dígitos →
         # code do catálogo); vazio degrada para o token de nome no matcher.
         self._cnpj_raiz_to_code = dict(cnpj_raiz_to_code or {})
-        self._member_resolver = member_resolver or E5MemberResolver()
         self._fluxo_enricher = fluxo_enricher or FluxoCaixaEnricher()
         self._if_projector = if_projector
         self._if_projector_config = if_projector_config
@@ -435,8 +429,7 @@ class E5AnalyzerAdapter:
         Quando ambos None, USD/EUR usam HardcodedFxDefault nomeado
         (ADR-390 D3) — pos-A7.5, sem fallback de disco.
         """
-        member_cfg = MemberResolverConfig.from_family(family)
-        identity = cls._build_identity(family, member_cfg)
+        identity = MemberIdentity.from_family(family)
         # ADR-215 §1: classificação user-driven em `workspace_property_overrides`
         # (gravado via UI P5 / endpoint P4) é fonte ÚNICA. Adapter extrai o
         # subset `residencia_principal` em `residencia_property_ids` para os
@@ -463,8 +456,8 @@ class E5AnalyzerAdapter:
                     titular_dob=titular_dob,
                     conjuge_dob=conjuge_dob,
                     reference_date=reference_date,
-                    titular_key=member_cfg.titular_key,
-                    conjuge_key=member_cfg.conjuge_key,
+                    titular_key=identity.titular_key,
+                    conjuge_key=identity.conjuge_key,
                 )
                 if_projector = IFProjector(if_cfg)
                 if_projector_config_built = if_cfg
@@ -482,9 +475,9 @@ class E5AnalyzerAdapter:
             cenarios_cfg = CenariosConjugeConfig.from_configs(
                 goals=goals,
                 titular_dob=titular_dob,
-                titular_key=member_cfg.titular_key,
-                conjuge_key=member_cfg.conjuge_key,
-                conjuge_nome=(member_cfg.conjuge_key or "").title(),
+                titular_key=identity.titular_key,
+                conjuge_key=identity.conjuge_key,
+                conjuge_nome=(identity.conjuge_key or "").title(),
                 reference_date=reference_date,
             )
             cenarios_analyzer = CenariosConjugeAnalyzer(cenarios_cfg)
@@ -498,7 +491,6 @@ class E5AnalyzerAdapter:
             cambio_usd_brl=cambio_usd_brl,
             cambio_eur_brl=cambio_eur_brl,
             cambio_observed_at=cambio_observed_at,
-            member_resolver=E5MemberResolver(member_cfg),
             fluxo_enricher=FluxoCaixaEnricher(
                 FluxoEnricherConfig.from_configs(categorization=categorization, scoring=scoring)
             ),
@@ -566,8 +558,9 @@ class E5AnalyzerAdapter:
         patrimonio_raw = store.read("categorize_transactions", _E4_PATRIMONIO_KEY) or {}
         investimentos_raw = store.read("categorize_transactions", _E4_INVESTIMENTOS_KEY) or {}
 
-        # 2. Resolve membros do baseline.
-        members = self._member_resolver.resolve(patrimonio_raw)
+        # 2. Resolve membros do baseline — produtor único ([[ADR-410]] D1).
+        members = resolve_members(patrimonio_raw, self._identity)
+        titular_data, conjuge_data = members.as_tuple()
 
         # 3. Enriquece fluxo. `data_corte` vem do `reference_date` do run (nunca de
         #    `date.today()` no ponto de uso): transação posterior sai dos agregados
@@ -590,7 +583,7 @@ class E5AnalyzerAdapter:
         patrimonio_full = self._patrimonio.calculate(
             PatrimonioInputs(
                 baseline=patrimonio_raw,
-                members=resolve_members(patrimonio_raw, self._identity),
+                members=members,
                 investimentos_atuais=investimentos_raw,
                 caixa_total_brl=caixa_total,
                 caixa_detalhes=caixa_detalhes,
@@ -659,11 +652,9 @@ class E5AnalyzerAdapter:
             patrimonio=patrimonio_full,
             investimentos_atuais=investimentos_raw,
             bens_por_membro={
-                self._identity.titular_key: members.titular_data,
+                self._identity.titular_key: titular_data,
                 **(
-                    {self._identity.conjuge_key: members.conjuge_data}
-                    if self._identity.conjuge_key
-                    else {}
+                    {self._identity.conjuge_key: conjuge_data} if self._identity.conjuge_key else {}
                 ),
             },
         )
@@ -691,14 +682,14 @@ class E5AnalyzerAdapter:
         #     de baseline sem itemização; o nome de exibição sai em `membro`,
         #     campo tipado, nunca embutido na descrição.
         endiv_members = [
-            {"nome": self._identity.titular_nome, "data": members.titular_data},
-            {"nome": self._identity.conjuge_nome, "data": members.conjuge_data},
+            {"nome": self._identity.titular_nome, "data": titular_data},
+            {"nome": self._identity.conjuge_nome, "data": conjuge_data},
         ]
         endividamento = self._endividamento.analyze(
             patrimonio_full,
             endiv_members,
             dividas_baseline=(patrimonio_raw or {}).get("dividas"),
-            ano_ref=members.reference_year,
+            ano_ref=None,
             identity=self._identity,
         )
 
@@ -713,8 +704,8 @@ class E5AnalyzerAdapter:
         #     endividamento (linhas 552-554). O campo ``membro`` no JSON sai
         #     como "David"/"Mariana" (de ``family_members.nome_curto``), não
         #     como o key cru "david_robert_..." — relatório consome direto.
-        titular_bens = members.titular_data.get("bens") or members.titular_data
-        conjuge_bens = members.conjuge_data.get("bens") or members.conjuge_data
+        titular_bens = titular_data.get("bens") or titular_data
+        conjuge_bens = conjuge_data.get("bens") or conjuge_data
         bens_list = [titular_bens, conjuge_bens]
         bens_por_membro = [
             (self._identity.titular_nome, titular_bens),
@@ -862,32 +853,6 @@ class E5AnalyzerAdapter:
             despesa_mensal_media_brl=despesa,
             proventos=proventos,
             distribuicao_pj_signal=_distribuicao_pj_signal_from_fluxo(fluxo_legacy),
-        )
-
-    # -- Helpers de config --
-
-    @staticmethod
-    def _build_identity(family: dict | None, member_cfg: MemberResolverConfig) -> MemberIdentity:
-        """Extrai nomes de exibição (nome_curto) do ``family_members.json``."""
-        fam = family or {}
-        membros = fam.get("membros", {}) or {}
-        titular_key = member_cfg.titular_key
-        conjuge_key = member_cfg.conjuge_key
-        titular_nome = (
-            membros.get(titular_key, {}).get("nome_curto", titular_key.title())
-            if isinstance(membros, dict)
-            else titular_key.title()
-        )
-        conjuge_nome = (
-            membros.get(conjuge_key, {}).get("nome_curto", conjuge_key.title())
-            if isinstance(membros, dict) and conjuge_key
-            else (conjuge_key.title() if conjuge_key else "")
-        )
-        return MemberIdentity(
-            titular_key=titular_key,
-            conjuge_key=conjuge_key,
-            titular_nome=titular_nome,
-            conjuge_nome=conjuge_nome,
         )
 
     # ADR-383 (A40.l41) — fase observacional: o pool atual declarado é sempre
