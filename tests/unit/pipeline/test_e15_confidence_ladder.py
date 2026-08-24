@@ -90,6 +90,51 @@ class TestProvaPorMutacao:
         assert sum(1 for c in (0.97, 0.95, 0.15) if c < _CONFIDENCE_FLOOR) == 1
 
 
+def _ctx_com_um_irpf(tmp_path: Path):
+    """Workspace mínimo do E1.5: config de LLM + um IRPF em `income_tax_br/`."""
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+    from tests._llm_stage_fixtures import make_llm_ctx
+
+    ctx = make_llm_ctx(tmp_path)
+    irpf = tmp_path / "data" / "income_tax_br"
+    irpf.mkdir(parents=True)
+    (irpf / "irpfdeclaracao_2024.pdf").write_text("x")
+    return ctx
+
+
+def _dubles_do_e15(saida):
+    """Os três dublês do E1.5: leitor de texto, cliente LLM e a chamada."""
+    from unittest.mock import patch
+
+    from tests._llm_stage_fixtures import make_llm_call_result
+
+    alvo = "pipeline.llm.text_extractor.DocumentTextExtractor.extract"
+    cliente = "pipeline.llm.litellm_client.LLMService"
+    return (
+        patch(alvo, return_value="IRPF 2024"),
+        patch(f"{cliente}._ensure_client"),
+        patch(f"{cliente}.call", return_value=make_llm_call_result(saida)),
+    )
+
+
+def _rodar_e15(tmp_path: Path, confidence: float):
+    """Roda o stage de verdade com o LLM dublado devolvendo `confidence`."""
+    from contextlib import ExitStack
+
+    from pipeline.stages.extract_baseline import run
+    from tests._llm_stage_fixtures import make_e15_output
+
+    ctx = _ctx_com_um_irpf(tmp_path)
+    saida = make_e15_output()
+    saida.confidence = confidence
+    with ExitStack() as pilha:
+        for duble in _dubles_do_e15(saida):
+            pilha.enter_context(duble)
+        return run(ctx)
+
+
 class TestLadderNoStageDeVerdade:
     # As classes acima chamam o helper direto — provam a regra, não o elo. Este
     # roda `extract_baseline.run()` e olha o bloco `validation` que o
@@ -97,32 +142,7 @@ class TestLadderNoStageDeVerdade:
     """O ladder visto pelo bloco `validation` que o orquestrador lê."""
 
     def _run(self, tmp_path: Path, confidence: float):
-        import sys
-        from unittest.mock import patch
-
-        sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-        from tests._llm_stage_fixtures import make_e15_output, make_llm_call_result, make_llm_ctx
-
-        ctx = make_llm_ctx(tmp_path)
-        (tmp_path / "data" / "income_tax_br").mkdir(parents=True)
-        (tmp_path / "data" / "income_tax_br" / "irpfdeclaracao_2024.pdf").write_text("x")
-        saida = make_e15_output()
-        saida.confidence = confidence
-
-        with (
-            patch(
-                "pipeline.llm.text_extractor.DocumentTextExtractor.extract",
-                return_value="IRPF 2024",
-            ),
-            patch("pipeline.llm.litellm_client.LLMService._ensure_client"),
-            patch(
-                "pipeline.llm.litellm_client.LLMService.call",
-                return_value=make_llm_call_result(saida),
-            ),
-        ):
-            from pipeline.stages.extract_baseline import run
-
-            return run(ctx)
+        return _rodar_e15(tmp_path, confidence)
 
     def test_confianca_baixa_aparece_no_bloco_validation(self, tmp_path: Path) -> None:
         resultado = self._run(tmp_path, 0.35)
