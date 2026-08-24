@@ -35,7 +35,6 @@ open · in_progress.
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l54]] — `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) · priority P2 · área frontend/report · branch `a40-l54-hidden-md-block-no-papel`
-- [[A40.l6]] — Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor · priority P0 · área frontend/backend · branch `a40-l6-cards-imovel-divida`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

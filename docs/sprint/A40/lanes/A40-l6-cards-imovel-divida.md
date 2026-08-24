@@ -4,15 +4,17 @@ type: lane
 title: "Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a40-l6-cards-imovel-divida
+ship_pr: 1673
+ship_date: "2026-08-24"
 adrs: ["[[ADR-337]]"]
 depends_on: ["[[A40.l5]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/frontend
   - area/backend
