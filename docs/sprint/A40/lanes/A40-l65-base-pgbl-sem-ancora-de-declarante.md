@@ -153,7 +153,7 @@ caminho.
 > cada item está preservado.
 
 1. **`_load_irpf_renda_tributavel` passa por `resolve_ano_base_fiscal` e dedup, em
-   vez de `created_at`.** ✅ **entregue 2026-08-24** — o eixo do ano deixa de ser a
+   vez de `created_at`.** ✅ **entregue 2026-08-24** (#1672) — o eixo do ano deixa de ser a
    ordem de processamento. Ressalva medida: o resolvedor elege **ano**, não
    artefato; com dois declarantes no ano eleito a escolha entre eles continua
    sendo por recência, e isso é o item 2.
@@ -217,7 +217,7 @@ caminho.
 ## Critério de aceite
 
 - ~~Dois declarantes no workspace → base do PGBL é a do titular, sempre, e não
-  varia com a ordem de processamento.~~ **Parcial desde 2026-08-24:** o **ano** não
+  varia com a ordem de processamento.~~ **Parcial desde 2026-08-24 (#1672):** o **ano** não
   varia mais com a ordem de processamento (§Escopo 1). A escolha **entre
   declarantes do mesmo ano** ainda varia — fecha no §Escopo 2.
 - Identidade não resolvível → base ausente com motivo, nunca a de outro CPF. E o
