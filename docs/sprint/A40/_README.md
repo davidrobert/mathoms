@@ -77,7 +77,7 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 > em 2026-08-17. Registrado aqui porque fechar a sprint
 > citando "5 → 0" contaria dois itens inexistentes.
 
-> ⚠️ **A KR-D não fecha — o gate existe como função e não tem chamador (medido 2026-08-21).**
+> ⚠️ **A KR-D não fecha — o gate existe como função e não tem chamador (medido 2026-08-24).**
 > O #1569 entregou o **redator**: `redact_cartorial` está wired em
 > `real_estate_metrics_payload.py` e `endividamento_analyzer.py`, e o card parou de
 > interpolar `descricao` (`RealEstateYieldCard.tsx:205` usa `imovelDisplayLabel`). Mas
@@ -235,7 +235,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-> ### Estado do contador em 2026-08-21 — **0 de 2**, e não por atraso
+> ### Estado do contador em 2026-08-24 — **0 de 2**, e não por atraso
 >
 > As três condições terminais da cláusula de reinício estão satisfeitas ([[A40.l2]],
 > [[A40.l34]], [[A40.l35]] em `shipped`), então o contador **podia** iniciar desde
@@ -1412,14 +1412,14 @@ mecanismos que o próprio plano já escreveu, e dois tiveram a condição satisf
 nesta sessão — a re-medição que o §Deferimento de 2026-08-21 exigia foi cumprida,
 e ela mudou o arquivo-alvo.
 
-## Inventário dos achados do r7 sem hospedeiro (2026-08-21)
+## Inventário dos achados do r7 sem hospedeiro (2026-08-24)
 
 O r7 fechou triagem em 2026-08-21 com **6 achados novos** — DE-7, DE-8, DE-9,
 DE-10, CTO-7, CTO-8 — e **nenhum** tem arquivo de lane. `grep` pelos 6 ids sobre
 os 75 arquivos de `lanes/` devolve zero. Isso não é opinião sobre prioridade: é o
 fato de que `SPRINT_CURRENT` deriva de frontmatter e `lane_pickup` cruza
 frontmatter com branch, então **achado sem lane é invisível ao pickup**. As lanes
-abertas na mesma noite (l75, l76) vêm de outra origem e não cobrem nenhum deles.
+abertas na noite da triagem (l75, l76) vêm de outra origem e não cobrem nenhum deles.
 
 | Achado | Prio | Destino | Base |
 | --- | --- | --- | --- |
@@ -1430,7 +1430,7 @@ abertas na mesma noite (l75, l76) vêm de outra origem e não cobrem nenhum dele
 | **CTO-7** — kill-switch de retenção não deixa rastro | P1 | **triagem do dono — pronto para pegar** | o §r7 já dimensiona: `validation.gates_desligados: [...]` não toca `e5_analysis.schema.json`, nem `dogfood_view_model.json`, nem o codegen, logo **não disputa superfície** com #1591/#1568/#1573 |
 | **CTO-8** — colisão de ID desta onda | P2 | **ponteiro** para [[A40.l59]] + triagem | (b) e (c) da onda r7 já corrigidos; o residual é a tag `status/<lc>` **sem gate** — `build_doc_index.py` lê o campo `status:` e nunca confere a tag, e 7 ADRs desincronizam. Os 5 de lanes alheias ficam registrados, não varridos |
 
-### RV7-05 foi re-ancorado, não fechado (medido 2026-08-21)
+### RV7-05 foi re-ancorado, não fechado (medido 2026-08-24)
 
 O §r7 lista o **RV7-05** como P0 `procede-aberto`. A medição diz que a instância
 nomeada **já não existe**: o #1569 (`dfd561b9`, mergeado 2026-08-21) tocou
