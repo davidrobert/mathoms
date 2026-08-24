@@ -31,6 +31,11 @@ tags:
 **Status:** Decidido • **Data:** 2026-08-18 • É a **ADR-B** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l68]].
 
+> **Emendada em 2026-08-24 (c) (D3 e D5 entregues):** o §Estado dizia "sem dono
+> nomeado". Entregues: `FAN_OUT_STAGES` declarado, com gate que falha FECHADO no
+> stage novo, e o E0 recusando formato sem leitor pela mesma fonte única. A
+> [[A40.l68]] fecha aqui. Ver §Emenda 2026-08-24 (c).
+
 > **Emendada em 2026-08-24 (b) (2b entregue; o bloqueio declarado era outro):** a
 > [[A40.l68]] §Pendência dizia que o ladder não podia ligar porque `0.0` era
 > sentinela de ausência. Medido: o sentinela **nunca dispara** (0/172). Quem
@@ -172,6 +177,11 @@ do plano, registrada em §Anti-decisões ("NÃO ampliar [[A42.l4]] nem emendar
 
 ## Estado de implementação (2026-08-18)
 
+> **Superado em 2026-08-24 (c):** as três emendas datadas abaixo corrigem este
+> snapshot. Estado corrente: **D1 D2 D3 D4 D5 D6 entregues** — D1 como guarda de
+> regressão (§Emenda (a)), D4 sem kill-switch (§Emenda 2026-08-19). O snapshot
+> fica como registro do que era verdade em 18/08.
+
 `Decidido` refere-se à **decisão**, não à cobertura. Entregue na [[A40.l68]] 2a
 (#1526 · `4b3bff08`): **D1** (balanço), **D2** (leitor tipado), **D4**
 (WARN-first). **Não** entregues: **D3** (denominador enumerado de stages
@@ -223,6 +233,9 @@ declarativo é um segundo lugar para a verdade morar.
 **§Estado corrigido:** entregues **D1** (balanço) e **D2** (leitor tipado); **D4
 parcial** (code declarado e fora de `BLOCKING_CODES`; retenção **não** desligada,
 kill-switch inexistente e retirado do escopo); **não** entregues **D3** e **D5**.
+
+> **D3 e D5 entregues em 2026-08-24** — ver §Emenda 2026-08-24 (c). Esta linha é
+> o estado de 19/08.
 
 ## Consequências
 
@@ -343,3 +356,58 @@ run com zero runs limpos transformaria a pausa em ruído permanente — o mesmo
 **Ausência ≠ zero:** o agregado passa a devolver `None` quando nenhum arquivo
 reportou confiança. Incidência hoje 0/172, mas `0.0` é medição fabricada e a
 doutrina deste plano é não fabricar.
+
+## Emenda 2026-08-24 (c) — D3 e D5 entregues; o resíduo da §D2 vira gate
+
+O §Estado declarava **D3** e **D5** "não entregues — sem dono nomeado". Ambos
+entram agora, e o que os une é uma **fonte única**: `READABLE_SUFFIXES` em
+`pipeline/llm/text_extractor.py`, derivada do mesmo mapa que `_reader_for`
+consulta. Quem decide o que tem leitor passa a ser um lugar só.
+
+### D5 — o E0 recusa na entrada
+
+Medido antes: `route_documents.py` coletava **todo** arquivo não-oculto do
+inbox, **sem nenhum filtro de formato**. Um `.docx`/`.ofx`/`.zip` era
+classificado, roteado para `data/`, e ali sumia — o allowlist de sufixos do
+`_find_unprocessed_docs` nunca o enfileira, então o balanço da D1 fecha sobre um
+denominador que jamais o contou. É a metade da **DE-4** que nasce **antes** da
+fila.
+
+Agora o formato sem leitor devolve `status: "unreadable_format"`, **fica no
+inbox** e ganha **contador próprio** no tally do run — somar em `skipped`
+(integridade) apagaria a única classe que o operador resolve instalando um
+extrator. Incidência no corpus de hoje: **0/1377**. É guarda que falha fechado
+para o formato novo, não correção de regressão viva.
+
+### D3 — denominador enumerado, com gate que falha fechado
+
+`FAN_OUT_STAGES` em `pipeline/stage_spec.py`, partido em dois conjuntos que
+tornam o resíduo da §D2 **verificável** em vez de prosa:
+
+| conjunto | n | significado |
+|---|---|---|
+| `FAN_OUT_STAGES_TYPED_READER` | 1 | usa `extract_result` — distingue "sem leitor" de "vazio" |
+| `FAN_OUT_STAGES_UNTYPED_READER` | 6 | ainda no `extract() -> str`, herda a cegueira |
+
+`dev/check_fan_out_reader_contract.py` (pre-commit, full-scan) reprova quando um
+módulo usa o `DocumentTextExtractor` sem estar classificado, quando um stage
+declarado tipado deixa de chamar `extract_result`, quando um stage sai da
+cegueira sem **mover** a linha, e quando um conjunto nomeia stage que não existe
+no `STAGE_REGISTRY`. As quatro condições foram provadas por mutação.
+
+Sair da cegueira é mover a linha entre conjuntos, nunca apagá-la — o número
+**1/7** é a métrica de progresso da §D2.
+
+**A §D2 nunca enumerou o 7º consumidor.** `family_member_pii_service.py` é
+serviço de backend, não stage, e ficou de fora das duas contagens ("cinco",
+depois "sete") porque as duas mediram só `pipeline/stages/`. Entra no
+`NAO_STAGE_ALLOWLIST` do gate **com o motivo escrito** — não tem fila de fan-out
+nem contrato de retorno de stage, então o balanço não se aplica a ele.
+
+### Corolário do `.xls`, fora das decisões mas dentro da lane
+
+O único defeito de leitor medido no corpus era o `.xls`: 168/168 falhavam em
+openpyxl e 168/168 abrem em `xlrd`, que o repo já tinha. O roteamento foi
+corrigido, e com ele os **seis** stages ainda cegos pararam de descartar `.xls`
+em silêncio — o conserto de um leitor beneficia quem herda a cegueira sem que
+eles saiam dela.
