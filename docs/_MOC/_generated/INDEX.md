@@ -403,7 +403,7 @@
 | ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
 | ADR-407 | adr | Decidido |  | Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape | `adr/407-stage-polimorfico-despacha-schema-por-discriminador.md` |
 | ADR-408 | adr | Proposto |  | Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key | `adr/408-proveniencia-de-artefato-e2-e-fk-resolvida-por-porta.md` |
-| ADR-409 | adr | Proposto |  | Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart | `adr/409-fila-de-elegibilidade-do-flip-strict-derivada-de-medicao.md` |
+| ADR-409 | adr | Decidido |  | Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart | `adr/409-fila-de-elegibilidade-do-flip-strict-derivada-de-medicao.md` |
 | ADR-410 | adr | Proposto |  | A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor | `adr/410-a-resolucao-de-membro-tem-um-produtor-e-ele-e-injetado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |

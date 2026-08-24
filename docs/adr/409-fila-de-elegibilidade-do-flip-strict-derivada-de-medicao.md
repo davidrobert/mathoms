@@ -2,7 +2,7 @@
 id: ADR-409
 type: adr
 title: "Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart"
-status: Proposto
+status: Decidido
 phase: A40.l58
 date: "2026-08-24"
 relates_to:
@@ -20,14 +20,14 @@ aliases:
   - "rollback de schema exige restart"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/observability
 ---
 
 # ADR-409 — Fila de elegibilidade do flip `warn→strict` é derivada de medição no corpus, e o rollback exige restart
 
-**Status:** Proposto (A40.l58) • **Data:** 2026-08-24 • **Relaciona** [[ADR-284]]
+**Status:** Decidido (A40.l58 · PRs #1656/#1664/#1665/#1667) • **Data:** 2026-08-24 • **Relaciona** [[ADR-284]]
 (mode_overrides, enforcement, telemetria — a decisão que esta complementa),
 [[ADR-407]] (stage polimórfico despacha por discriminador), [[ADR-212]] (hook
 pós-write), [[ADR-093]] (nomes de stage), [[ADR-110]] (logs JSON).
@@ -221,6 +221,9 @@ E1.5c, gatilho `data-engineer`. Fica como §Deferimento datado com dono na
   2026-08-18.
 
 ## Critério de aceite
+
+> ✅ **Os cinco fechados em 2026-08-24** — `Proposto` → `Decidido`. Cada um tem
+> teste, não prosa; ver §Passo 2 e §Passo 4 da [[A40.l58]].
 
 - `dev/measure_schema_drift.py --schema X --days 7 --gate` sai 0 para schema sem
   drift com massa, e ≠ 0 com qualquer drift.

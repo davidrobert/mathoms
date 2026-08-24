@@ -90,6 +90,21 @@ Janela mínima: **7 dias corridos** com pipeline ativo. Critério **binário**:
 0 records para o schema alvo (strict não tem tolerância — qualquer WARN no
 baseline vira run abortado pós-flip).
 
+**Desde 2026-08-24 ([[ADR-409]] §B) isto é um comando, não uma agregação de log:**
+
+```bash
+python3 dev/measure_schema_drift.py --schema <alvo> --days 7 --gate
+```
+
+Exit `0` = GO, exit `1` = NO-GO. O predicado inclui duas guardas que o §2 sozinho
+não tinha: **janela sem artefato não é GO** (é ausência de medição — a cadência do
+dogfood é ~2 runs/semana) e **artefato ilegível não é GO**. O instrumento também
+reporta `documents` distintos — cite a massa em **documentos**, não em artefatos, no
+PR do flip: 6 artefatos do mesmo documento em 6 runs não são 6 evidências.
+
+A **fila de elegibilidade** medida está na [[ADR-409]] §D. Não a copie para cá: ela
+se re-mede com o comando acima, e fila copiada apodrece no primeiro run novo.
+
 ## 2. Pré-check — medir violações atuais em `warn`
 
 Os records são WARNING no logger `mathoms.pipeline.schema_validation` (JSON
