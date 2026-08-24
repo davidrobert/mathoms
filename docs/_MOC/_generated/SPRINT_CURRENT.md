@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-20 open · 6 in_progress.
+19 open · 6 in_progress.
 
-## Open (20)
+## Open (19)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
@@ -19,7 +19,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l51]] — Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando · priority P1 · área frontend/pipeline/financial-planning · branch `a40-l51-followups-orfaos`
 - [[A40.l55]] — Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 · priority P3 · área frontend/report · branch `a40-l55-medida-de-linha-no-papel`
 - [[A40.l57]] — O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null · priority P2 · área llm/pipeline · branch `a40-l57-parecer-le-contrato-antigo-do-pgbl`
-- [[A40.l59]] — A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README · priority P2 · área docs · branch `a40-l59-gate-na-transicao-shipped`
 - [[A40.l60]] — Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte · priority P1 · área pipeline/frontend · branch `a40-l60-ressalva-e-separacao-do-conselho-de-seguro`
 - [[A40.l63]] — Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD · priority P1 · área pipeline/money · branch `a40-l63-conversao-me-brl-sem-proveniencia`
 - [[A40.l64]] — Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante · priority P1 · área pipeline/financial-planning · branch `a40-l64-redutor-lei-15270-e-irpfm`
