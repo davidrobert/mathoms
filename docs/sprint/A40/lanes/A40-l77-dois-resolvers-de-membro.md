@@ -9,6 +9,7 @@ priority: P0
 branch_slug: a40-l77-dois-resolvers-de-membro
 adrs:
   - "[[ADR-394]]"
+  - "[[ADR-410]]"
 depends_on: []
 tags:
   - type/lane
@@ -233,3 +234,75 @@ são incomparáveis por construção. Ou o gate cobre só o subconjunto comum �
 dois eixos de drift acima —, ou a **unificação de campos vem antes do gate**. Isso é
 input do co-design do §Escopo 1, não substituto dele: a decisão de autoridade continua
 sendo o primeiro entregável.
+
+## Co-design — 2026-08-24 (fechado)
+
+`data-engineer` + `senior-cto` em paralelo, com as premissas do §Ataque. Decisão
+registrada em [[ADR-410]] (`Proposto`). O §Escopo 1 está **cumprido**; o que
+resta da lane é execução.
+
+**Convergiram:** produtor único, `patrimonio_resolvers` é o canônico, portar
+`instituicao`, enterrar o resolver morto de `analyze_finances.py`, fixture de
+dois membros em anos disjuntos como **precondição** de qualquer critério, prova
+por mutação nos **dois** membros, sem backfill do corpus.
+
+**Divergiram em três pontos; o `senior-cto` fechou** (anti-loop do CLAUDE.md):
+
+| ponto | veredito |
+| --- | --- |
+| ADR nova vs. emenda à [[ADR-394]] | **ADR nova**, com restrição dura: não reenuncia o D10, cita-o como premissa. Teste de falseamento aplicado na escrita |
+| `E5MemberResolver` sobrevive como costura de DI? | **Não** — concedeu ao `data-engineer`: `PatrimonioInputs.members` obrigatório move a costura para value object e mata a resolução por dentro do calculator, que é a violação de DIP real |
+| forma do gate | estrutural + contradição (do `data-engineer`), **mais** conservação: o D1 unifica o produtor do *item*, não o da *agregação*, então "com um produtor duas superfícies não podem discordar" é falso |
+
+### Três correções ao §Ataque
+
+1. **O §C caçou fantasma já nomeado.** A [[ADR-406]] §D2 (2026-08-21, dono
+   `data-engineer`) mediu o mesmo mecanismo no corpus do r7 — autoridades
+   **idênticas** (`keyword` 25 · `sem_match` 3), "é dívida, não bug; registrado
+   para o próximo agente não caçar fantasma". A medição do §C mostra o dano
+   *possível*; a do r7, o *realizado* = zero. **`tipo` não é justificativa para
+   nada nesta lane** — a única razão de portá-lo é unicidade de produtor.
+2. **O mecanismo do §C estava impreciso.** `classify_asset_outcome` **concatena**
+   `tipo` e `descricao` numa haystack única (`asset_classifier.py:256`); não há
+   precedência de `tipo`, quem decide é `EVALUATION_ORDER`.
+3. **A ordem do §Escopo 3 estava trocada.** O gate de valor não depende de
+   unificação de campos — os dois lados publicam valor por membro. O bloqueio é
+   a **fixture**: `minimal-baseline-1.5_consolidated.json` é solo, mono-ano e
+   sem `investimentos_consolidados`. A fixture precede o gate.
+
+### O que a lane ganhou de escopo
+
+- **Não precisa da J5** — razão categórica em [[ADR-410]] §Consequências.
+- **Três políticas de ano para o saldo da mesma dívida** no mesmo payload
+  (§Contexto da ADR). Fechadas pelo D4.
+- **O ramo dict do E1.5 v2** é dupla-contagem latente e sai dos resolvers (D5).
+- **DE-9 (`frescor` sem leitor)** entra como D6 — o campo é alimentado por
+  `ano_base`, que só o produtor sobrevivente emite.
+- **Um quarto resíduo órfão**: `MemberAnalyzer` (`member_analyzer.py`) — zero
+  instanciação viva, só docstrings, export e testes próprios. Confirmar que os
+  helpers não são origem de `patrimonio_types.investimento_valor` antes de
+  deletar.
+
+### O que saiu de escopo
+
+O `_dec(None) == 0` da reserva **não é achado** — é desenho datado, travado por
+`test_reserva_conta_membro_nao_apurado_como_zero` ("Contrato, não
+implementação"), com a ressalva de KPI já nomeada como follow-up da [[A40.l69]].
+Vai para a lane P1 do §Deferimentos da [[ADR-410]], junto com a proveniência de
+`_filter_liquid` — mesmo objeto de decisão.
+
+### Execução (3 PRs, uma janela de rebaseline)
+
+1. **PR1 — aditivo, nenhum consumidor flipa.** `instituicao` + `ano_base` por
+   item nos entries do canônico; value object de membro; `PatrimonioInputs.members`
+   obrigatório com afirmação de identidade. **Aceite: delta zero em cents** — e é
+   por isso que a deleção do segundo resolver **não** cabe aqui: ela flipa os
+   cinco consumidores e move `tabela_classes`. Razão do sequenciamento
+   (`senior-cto`): *se o PR1 mover número, você achou um acoplamento que o PR2
+   esconderia*.
+2. **PR2 — o número se move, uma vez só.** Flipa os cinco consumidores do adapter
+   para o canônico, deleta `E5MemberResolver` e os resolvers órfãos, entra a
+   fixture de dois membros, `frescor` ganha leitor (DE-9), e o rebaseline
+   não-monetário é provado com `dev/golden_diff.py` (`value_delta == 0` em todo
+   campo monetário; diff restrito a `top_ativos[].autoridade`).
+3. **PR3** — os três gates, com o denominador do gate de contradição declarado.
