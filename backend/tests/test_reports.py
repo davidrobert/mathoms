@@ -696,6 +696,15 @@ async def test_get_report_data_isolation_across_workspaces(
 _CARTORIAL = "Apartamento matrícula 999.999, Rua Exemplo, 100, CEP 00000-000, CPF 123.456.789-09"
 
 
+def _e5_com_pii_cartorial() -> dict:
+    """Shape de artefato gravado ANTES do fix — descrição cartorial crua."""
+    return {
+        "periodo_dados": "202601-202604",
+        "endividamento": {"dividas": [{"descricao": _CARTORIAL, "saldo_devedor": 1000.0}]},
+        "real_estate": {"imoveis": [{"descricao": _CARTORIAL, "endereco_canonical": _CARTORIAL}]},
+    }
+
+
 @pytest.mark.asyncio
 async def test_report_data_redige_pii_de_artefato_armazenado(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
@@ -704,16 +713,7 @@ async def test_report_data_redige_pii_de_artefato_armazenado(
     # O produtor redige desde o #1569, mas o relatório re-renderiza artefato
     # armazenado — sem redação na leitura, todo E5 anterior ao fix sai por aqui.
     rid = await _seed_report(
-        auth_client,
-        analysis_payload={
-            "periodo_dados": "202601-202604",
-            "endividamento": {"dividas": [{"descricao": _CARTORIAL, "saldo_devedor": 1000.0}]},
-            "real_estate": {
-                "imoveis": [{"descricao": _CARTORIAL, "endereco_canonical": _CARTORIAL}]
-            },
-        },
-        tmp_path=tmp_path,
-        db=db,
+        auth_client, analysis_payload=_e5_com_pii_cartorial(), tmp_path=tmp_path, db=db
     )
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
     assert resp.status_code == 200
