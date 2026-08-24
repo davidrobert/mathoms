@@ -71,10 +71,19 @@ def reason_from_exception(exc: BaseException) -> StageFailureReason:
     # classificador escrito só sobre `error_type` jogaria o hard-stop de budget
     # (ADR-173) em `unknown` — e `budget_exhausted` é justamente o membro cuja
     # copy o cliente não pode confundir com falha técnica transitória.
+    import jsonschema
+
     from pipeline.llm.call_hooks import LLMBudgetExceededError
 
     if isinstance(exc, LLMBudgetExceededError):
         return StageFailureReason.budget_exhausted
+    # ADR-284/409 — o abort do flip `warn→strict` chega aqui como
+    # `jsonschema.ValidationError` NUA (vem de `DBArtifactStore.write`, não de um
+    # provider), logo sem `error_type`. Sem este ramo cai em `internal_error` e o
+    # card diz "bug nosso" para um payload REJEITADO PELO CONTRATO — a mesma
+    # distinção que `LLMErrorType.validation → output_invalid` já faz acima.
+    if isinstance(exc, jsonschema.ValidationError):
+        return StageFailureReason.output_invalid
     error_type = getattr(exc, "error_type", None)
     if isinstance(error_type, LLMErrorType):
         return _REASON_BY_LLM_ERROR[error_type]

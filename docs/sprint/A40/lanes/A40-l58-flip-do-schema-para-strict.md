@@ -438,15 +438,72 @@ elegíveis.
 
 ### Segue aberto nesta lane
 
-1. **Kill-switch provado por teste** (§Critério de aceite) — os dois levers do
-   §C, incluindo a despromoção global da env.
+1. ~~**Kill-switch provado por teste**~~ — ✅ 2026-08-24, ver §Passo 2 abaixo.
 2. **`e2_extract`: contrato do stub de fallback** (classe [[ADR-407]]) — o `tipo`
    já é discriminador declarado.
-3. **§Escopo 4 — flip órfão:** a suíte de `tests/` roda em `warn` hoje; só o passo
+3. ~~**Runbook de incidente**~~ — ✅ 2026-08-24, §8 do runbook (ver §Passo 3).
+4. **§Escopo 4 — flip órfão:** a suíte de `tests/` roda em `warn` hoje; só o passo
    `Pipeline JSON schema strict` do CI roda strict, e sobre **1 arquivo**. O
    `nightly` que rodava o outro está `disabled_manually`. Medir o custo de virar a
    suíte inteira antes de decidir.
-4. **Runbook de incidente** (§Critério de aceite) — o que fazer quando um run de
-   cliente aborta por schema.
 5. **O flip em si** — gated no que a lane não controla: precisa de runs. Último do
    corpus é 2026-08-18.
+
+### Passo 2 (2026-08-24) — kill-switch provado, e o critério tinha uma metade não testada
+
+O §Critério de aceite pede *"com a env de rollback setada, payload inválido volta a
+**logar-e-passar** — teste, não prosa"*. Medido: a metade **passar** já estava coberta
+(`test_env_global_vence_override`); a metade **logar**, não. Um rollback que passasse
+**calado** era indistinguível do correto — e tiraria do operador o sinal de drift
+exatamente quando ele precisa dele para decidir se re-promove.
+
+Quatro testes novos, cada um com a mutação que o mata registrada:
+
+| teste | mutação que o derruba |
+| --- | --- |
+| `test_rollback_por_env_volta_a_logar_E_passar` | `_emit_drift_records` para de emitir |
+| `test_lever_de_emergencia_despromove_TODOS_os_schemas` | precedência invertida (override vence env) |
+| `test_revert_no_disco_so_vale_apos_restart` | `load_json_config` deixa de cachear |
+| `test_rollback_por_env_faz_o_store_persistir_apesar_do_override` | env deixa de vencer no caminho do store |
+
+O terceiro é **tripwire entre runbook e código**: se alguém implementar hot-reload de
+`pipeline.json`, ele fica vermelho e o §5 perde o "restart" **no mesmo PR**, em vez de
+o runbook seguir pedindo um passo que virou inútil.
+
+O segundo pinna o blast radius que a [[ADR-409]] §C declara: com **2** schemas
+promovidos, a env de emergência despromove **os dois**. Enquanto houver 1, os dois
+levers empatam — é do 2º em diante que a escolha do lever passa a importar.
+
+**Resíduo que eu mesmo criei e corrigi:** o §1.1 do runbook ganhou `# 6 passed
+(2026-08-24)` no closeout; com estes testes viraria 7. Contador pinado em runbook
+apodrece a cada teste novo e treina o operador a ignorar a divergência — trocado por
+`# verde`.
+
+### Passo 3 (2026-08-24) — runbook de incidente, e o defeito que ele revelou
+
+§8 novo no [runbook](../../../reference/runbooks/schema_validation_strict_flip.md):
+confirmar o abort (30s) → decidir rollback × fix-forward **pela medição** → executar
+→ fechar. Escrito sobre campos conferidos no DB e no snapshot OpenAPI, não de
+memória — a primeira versão citava `POST /v1/pipeline/runs/{id}/resume`, e a rota real
+é `/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/resume`.
+
+**O defeito que escrever o runbook revelou.** O §8.1 precisava dizer ao on-call por
+qual `reason_class` filtrar. Medido: o abort do flip gravava **`internal_error`** —
+"bug nosso" — e não `output_invalid`.
+
+A causa é estreita e provável: `reason_from_exception` classificava por
+`error_type`, um atributo de erro de **provider**. A `ValidationError` do flip vem
+de `DBArtifactStore.write`, é **nua**, e caía no ramo genérico. A ironia é que
+`_run_stage_with_retry` **já sabe** que é erro de schema — usa
+`_is_schema_validation_error(exc)` duas linhas antes, para não gastar backoff — e
+descarta essa informação na linha seguinte.
+
+O módulo já carregava a doutrina certa para o caso irmão:
+`LLMErrorType.validation → output_invalid`, com o comentário *"é output REJEITADO
+pelo schema, não bug nosso"*. O fix aplica a mesma regra ao abort de contrato; não
+inventa política.
+
+Consequência se tivéssemos flipado antes: o primeiro incidente real apareceria no
+card de `/admin/metrics` como defeito de código, e o on-call filtraria pela classe
+errada. Runs anteriores a 2026-08-24 têm o `reason_class` errado gravado — o §8.1
+avisa para não confiar nele em triagem retroativa.
