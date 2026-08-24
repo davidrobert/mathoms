@@ -217,8 +217,7 @@
         "status_contrato": "atualizado",
         "indice_reajuste": "IGP-M",
         "data_ultimo_reajuste": "2025-08-15",
-        "endereco_canonical": "Rua das Acácias, 100",
-        "imobiliaria_cnpj": null,
+        "endereco_display": "acacias 100",
         "imobiliaria_nome": "Imobiliária Centro",
         "origem_aluguel": "informe"
       },
@@ -241,8 +240,7 @@
         "status_contrato": "atualizado",
         "indice_reajuste": "IGP-M",
         "data_ultimo_reajuste": "2025-08-15",
-        "endereco_canonical": "Rua das Acácias, 100",
-        "imobiliaria_cnpj": null,
+        "endereco_display": "acacias 100",
         "imobiliaria_nome": "Imobiliária Centro",
         "origem_aluguel": "informe"
       }

@@ -300,7 +300,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l3]] | Janela canônica: todo número rotulado 12m lê `janela_12m` | P0 | — | RV3-02, RV3-16, RV3-17 |
 | [[A40.l4]] | Entrega de narrativas de seção + re-triagem do que passa a aparecer | P0 | — | RV3-03, **RV3-33 (7 inertes)** |
 | [[A40.l5]] | Codegen do view-model + gate de contrato (mata a classe) | P1 | — | RV3-09, RV3-26, RV3-12, RV3-22 |
-| [[A40.l6]] | Cards de imóvel e dívida: PII cartorial + contrato + zero-como-valor | P0 | l5 | RV3-06, RV3-12, RV3-27 |
+| [[A40.l6]] | Cards de imóvel e dívida: PII cartorial + contrato + zero-como-valor | P0 | l5 | `shipped` #1673 (2026-08-24) · o gate de PII passa a chavear no VALOR, não no nome do campo; `endereco_display` só publica canonical que passa nele; redação também na LEITURA; verificação renderizada em DOM + PDF · [[ADR-337]] §Emenda 2026-08-24 · 2 itens fora de escopo declarados no §Fecho (RV3-27 origem ⇒ [[ADR-385]]; `descricao_sample` no console) |
 | [[A40.l7]] | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa incoerente | P1 | — | RV3-04, RV3-05, RV3-15, RV3-28 |
 | [[A40.l8]] | Cobertura do manifest do parecer (dado renderizado inalcançável) | P1 | — | RV3-08 |
 | [[A40.l9]] | Materialização de config run-scoped (input zerado silenciosamente) | **P1** | — | RV3-11 |

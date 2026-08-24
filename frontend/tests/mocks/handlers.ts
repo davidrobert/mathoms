@@ -189,7 +189,7 @@ export const handlers = [
         titular_key: "titular",
         codigo_rfb: "12",
         descricao_sample: null,
-        endereco_canonical: null,
+        endereco_display: null,
         first_seen_year: 2024,
         low_confidence: false,
         classification: "residencia_principal",

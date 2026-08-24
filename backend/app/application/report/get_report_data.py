@@ -32,6 +32,7 @@ from backend.app.services.snapshot_pair_loader import load_snapshot_pair
 from pipeline.artifact_store import stage_aliases
 from pipeline.domain.services.snapshot_changelog import build_comparison
 from pipeline.domain.types.snapshot_changelog import SnapshotChangelogConfig
+from pipeline.observability.view_model_pii import redact_view_model
 
 logger = get_logger(__name__)
 
@@ -78,7 +79,11 @@ async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession
         await _build_snapshot_diff(db, workspace_id=workspace_id, current_artifact_id=artifact.id)
     )
 
-    return JSONResponse(content=payload)
+    # Redação na LEITURA (A40.l6 · [[ADR-337]] c4): o produtor redige desde o
+    # #1569, mas o relatório re-renderiza artefato ARMAZENADO — todo E5 anterior
+    # ao fix carrega a descrição cartorial crua e sairia por aqui. No-op sobre
+    # payload limpo; mesma definição de PII usada na escrita.
+    return JSONResponse(content=redact_view_model(payload))
 
 
 # Nada no schema afirma que `analysis_artifact_id` é um artefato de análise: a

@@ -192,8 +192,7 @@ const IMOVEL_NULLABLE_NUMBER_FIELDS = [
 const IMOVEL_NULLABLE_STRING_FIELDS = [
   "indice_reajuste",
   "data_ultimo_reajuste",
-  "endereco_canonical",
-  "imobiliaria_cnpj",
+  "endereco_display",
   "imobiliaria_nome",
 ] as const;
 
