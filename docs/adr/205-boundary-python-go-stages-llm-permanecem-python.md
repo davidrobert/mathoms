@@ -35,7 +35,7 @@ tags:
 
 ## Contexto
 
-- Plano canônico `docs/plan/PLANNER_REVIEW/_README.md` Premissa 3 declara explicitamente: "Go pode substituir Python no stage runtime. Inteligência mora em manifests + persona + schemas (language-agnostic); stage é I/O orquestrador (~100-200 linhas) portável." Arquitetura-alvo pós-A6 ([[ADR-113]]) prevê serviços Go progressivamente substituindo serviços Python para componentes CPU-bound, latência-sensitive, ou de alta concorrência.
+- Plano canônico `docs/archive/PLANNER_REVIEW-2026-07-09.md` Premissa 3 declara explicitamente: "Go pode substituir Python no stage runtime. Inteligência mora em manifests + persona + schemas (language-agnostic); stage é I/O orquestrador (~100-200 linhas) portável." Arquitetura-alvo pós-A6 ([[ADR-113]]) prevê serviços Go progressivamente substituindo serviços Python para componentes CPU-bound, latência-sensitive, ou de alta concorrência.
 - Stages LLM são fundamentalmente diferentes de outros stages do pipeline:
   - **I/O bound** (latência dominada por roundtrip ao provider Anthropic/OpenAI; tens-of-seconds vs. tens-of-ms).
   - **Ecossistema maduro existe em Python:** LiteLLM ([[ADR-024]]), Instructor ([[ADR-026]]), Anthropic SDK oficial, OpenAI SDK oficial, `pydantic` para validação Pydantic — quase tudo é Python-first ou Python-only no estado da arte 2026.

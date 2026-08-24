@@ -46,7 +46,7 @@ Os 3 artefatos E3 são da **mesma conta C6 Bank** do mesmo titular: o CSV `c6ban
 
 ### Cadeia técnica
 
-1. **E0** (`backend/app/services/document_classification.py`) classificou como `bank_statement` com `bank_code=""` e `period` derivado do nome — sem detectar overlap de conteúdo.
+1. **E0** (`backend/app/services/documents/document_classification.py`) classificou como `bank_statement` com `bank_code=""` e `period` derivado do nome — sem detectar overlap de conteúdo.
 2. **E2** extraiu transações para cada PDF/CSV. Sem dedup cross-document.
 3. **E3** (`pipeline/domain/services/reconciliation_service.py:_dedup` linha 145-155) deduplica **intra-statement** (loop sobre `stmt.transactions` por statement). **Não há dedup cross-statement.**
 4. **E4** (`pipeline/domain/services/cash_flow_builder.py::build_fluxo_mensal` linha 209-268): `receita_por_mes[mes][origem] += t.valor` direto, **sem `seen_transactions: set` nem hash**. Idem `build_despesas_unified` e `build_receitas_unified`.

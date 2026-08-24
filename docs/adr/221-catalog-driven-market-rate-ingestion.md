@@ -356,7 +356,7 @@ PR fundacional **(W1)** — Bacen SGS only, USD/BRL + CDI:
   cria 2 catalog rows (USD/BRL → série Bacen 1, CDI → série Bacen 12),
   `status='pending'`, `backfill_from='2021-05-18'`.
 - Hook de invalidação de cache (D5) em
-  `backend/app/services/fiscal_cache.py`.
+  `backend/app/services/storage/fiscal_cache.py`.
 - Registro em [`docs/reference/STATELESS_AUDIT.md`](../reference/STATELESS_AUDIT.md)
   §2 para o Redis lock.
 - Testes: golden de extração contra fixture Bacen capturada (não bate

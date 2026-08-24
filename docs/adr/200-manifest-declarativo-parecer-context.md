@@ -37,7 +37,7 @@ tags:
 
 - O parecer LLM consome **subset filtrado e formatado** do snapshot E5 (`analise_financeira-5_analysis.json`) como exec context. Sem um contrato declarativo, esse subset vive embutido no código Python do orchestrator: cada novo campo do E5 que vira input do parecer requer alteração de código (push de string, format hint, branch `if`).
 - Pattern de manifest YAML já existe em produção: `config/prompts/section_summaries.yaml` ([[ADR-144]]). Espelhar esse pattern é o caminho de menor surpresa.
-- Plano canônico: `docs/plan/PLANNER_REVIEW/_README.md` §"Ato 2" especifica `config/prompts/parecer_planejador.yaml` como **single-source-of-truth do exec context**, separado da persona (rules-as-code, [[ADR-201]]) e do output schema ([[ADR-202]]).
+- Plano canônico: `docs/archive/PLANNER_REVIEW-2026-07-09.md` §"Ato 2" especifica `config/prompts/parecer_planejador.yaml` como **single-source-of-truth do exec context**, separado da persona (rules-as-code, [[ADR-201]]) e do output schema ([[ADR-202]]).
 - Sem coverage gate, manifest e E5 schema podem drift silenciosamente: campo novo no E5 viaja pro LLM sem CI gate; campo removido do E5 ainda referenciado no manifest produz `null` no prompt → hallucination. [[ADR-188]] (learning loop) é precedente de "telemetria de drift como signal de evolução".
 
 ## Alternativas consideradas
