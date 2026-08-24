@@ -149,6 +149,29 @@ class MemberIdentity:
     def key_inv_conjuge(self) -> str:
         return "investimentos_conjuge"
 
+    @classmethod
+    def from_family(cls, family: dict | None = None) -> "MemberIdentity":
+        """Chaves e nomes de exibição a partir de ``family_members`` (DB, [[ADR-137]])."""
+        fam = family or {}
+        membros = fam.get("membros", {}) or {}
+        if not isinstance(membros, dict):
+            membros = {}
+        titular_key = str(fam.get("titular", "david"))
+        conjuge_key = next(
+            (k for k, v in membros.items() if isinstance(v, dict) and v.get("papel") == "conjuge"),
+            "",
+        )
+        return cls(
+            titular_key=titular_key,
+            conjuge_key=conjuge_key,
+            titular_nome=membros.get(titular_key, {}).get("nome_curto", titular_key.title()),
+            conjuge_nome=(
+                membros.get(conjuge_key, {}).get("nome_curto", conjuge_key.title())
+                if conjuge_key
+                else ""
+            ),
+        )
+
     def role_of(self, member_key: str) -> str:
         return "conjuge" if self.conjuge_key and member_key == self.conjuge_key else "titular"
 
