@@ -1440,7 +1440,7 @@ abertas na noite da triagem (l75, l76) vêm de outra origem e não cobrem nenhum
 | **DE-8** — top-up IRPF sem quantia declarada | P1 | mesma janela do DE-7 | o próprio §r7 acopla: *"publicar a quantia por membro, e o invariante do DE-7 passa a fechar nos 45"* |
 | **DE-9** — `cobertura_investimentos[].frescor` com zero consumidores | P1 | **triagem do dono** | sem home derivável. Família "afirmar sem qualificar" (a mesma do RV6-04); campo existe para o gate e não para o leitor |
 | **CTO-7** — kill-switch de retenção não deixa rastro | P1 | **triagem do dono — pronto para pegar** | o §r7 já dimensiona: `validation.gates_desligados: [...]` não toca `e5_analysis.schema.json`, nem `dogfood_view_model.json`, nem o codegen, logo **não disputa superfície** com #1591/#1568/#1573 |
-| **CTO-8** — colisão de ID desta onda | P2 | **ponteiro** para [[A40.l59]] + triagem | (b) e (c) da onda r7 já corrigidos; o residual é a tag `status/<lc>` **sem gate** — `build_doc_index.py` lê o campo `status:` e nunca confere a tag, e 7 ADRs desincronizam. Os 5 de lanes alheias ficam registrados, não varridos |
+| **CTO-8** — colisão de ID desta onda | P2 | **ponteiro** para [[A40.l59]] + triagem — *marcador 2026-08-24: a l59 §78-83 declara os escopos **distintos** (alocação de id × registro do entregue) e o §Escopo entregue não tem item de id; o destino real é a §Pendência 13, owner-gated* | (b) e (c) da onda r7 já corrigidos; o residual é a tag `status/<lc>` **sem gate** — `build_doc_index.py` lê o campo `status:` e nunca confere a tag, e 7 ADRs desincronizam. Os 5 de lanes alheias ficam registrados, não varridos |
 
 ### RV7-05 foi re-ancorado, não fechado (medido 2026-08-24)
 

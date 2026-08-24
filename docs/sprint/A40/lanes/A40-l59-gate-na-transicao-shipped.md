@@ -249,6 +249,13 @@ Os dois predicados naturais **discordam no único caso vivo**: *"id aparece no
 acusa a l77. Pinar qual é o predicado é parte do escopo, não detalhe de
 implementação — e a l77 é o caso de teste pronto.
 
+> **Fecho da instância, 2026-08-24 (mesma sprint, algumas horas depois).** O
+> closeout desta lane fechou os dois: a l77 ganhou linha na tabela §Lanes e o
+> cabeçalho virou `76 · 76`. As duas frases acima seguem no presente **porque
+> descrevem o estado medido no ataque** — reproduzível em
+> `git show 7ed61f04:docs/sprint/A40/_README.md`. O predicado escolhido foi o
+> estrito (linha de tabela), e é o que o `check_creation` implementa.
+
 ### 7. Correções ao §Colisão
 
 `check_closure.py` (461 linhas) **é pós-merge por construção**: `resolve_from_pr`
@@ -260,3 +267,50 @@ nunca a resolução — "extrair para módulo comum" subestima o corte. Some-se 
 
 Número desatualizado no cabeçalho da skill: as `shipped` sem `ship_pr` são
 **134**, não ~159 (backfill parcial desde então).
+
+## Entrega (2026-08-24)
+
+`dev/check_lane_transition.py` + `dev/_lane_closure_predicates.py`, no pre-commit
+como `lane-transition`. Três checagens, todas provadas por **mutação nos dois
+sentidos** (planta a violação: vermelho; restaura: verde) e por 15 testes em
+`tests/dev/test_check_lane_transition.py`:
+
+| | O quê | Superfície |
+| --- | --- | --- |
+| **T1** | flip para `shipped` exige `ship_pr` + `ship_date` **e** o PR no registro | diff staged — **local-only** |
+| **T2** | lane nova exige **linha de tabela** no `_README` | diff staged — **local-only** |
+| **C1** | lane não-terminal cujo `ship_pr` já está mergeado em `origin/main` | estado — **vale também no CI** |
+
+### Superfície declarada — a resposta ao §Critério
+
+O §Ataque §5 mediu que o CI só roda `pre-commit run --all-files`, onde
+`git diff --cached` volta vazio. **T1 e T2 herdam isso e são enforcement local,
+declarado — não gate de merge.** C1 não: lê o estado da vault inteira, então é a
+única das três que vale nos dois lugares. Foi por isso que o par transição +
+coerência entrou junto: sem C1 a lane entregaria só mecanismo que o CI não vê.
+
+Nenhum step novo de CI com `--from-ref` — decisão consciente: a superfície de
+Actions é orçamento (a sprint está a 544% do teto) e C1 já dá cobertura de merge
+para a metade que importa.
+
+### Deferimento datado — a metade que exige rede · dono `information-architect`
+
+O caso-bandeira ([[A40.l7]]/#1375) **não é alcançado por nenhuma das três**, e
+isso está declarado no docstring do módulo em vez de disfarçado: no instante do
+defeito a lane não tinha `ship_pr` nem flip, e o único vínculo entre PR e lane era
+o **id no assunto do commit**. Medido: esse sinal tem 38/42 de recall na A40, mas
+dispara falso em commit que apenas MENCIONA a lane (o #1643 diz *"abre a l77"*) —
+não serve como gate duro. Fechar essa metade exige cruzar branch↔PR pela API.
+
+**Condição de retomada:** quando existir fonte hermética de "PR mergeado desta
+branch" (hoje não existe — squash-merge não deixa a branch como ancestral), ou
+quando a classe reincidir ≥3× com o C1 já em `main`. Enquanto isso, gate
+obrigatório que depende de rede **pisca**: o `check_scheduled_workflows` travou
+todo merge do repo em 2026-08-24 lendo réplica obsoleta com HTTP 200.
+
+### Achado colateral — a camada 1 da skill falhava aberta
+
+`check_lane_counter` nunca acusou o contador errado da A40 porque
+`LANE_COUNT_RE` exigia `## Lanes (N)` e o cabeçalho real tem texto dentro dos
+parênteses ⇒ `match is None` ⇒ `return []`. Corrigido no mesmo PR; provado por
+mutação. Era a razão de a camada 1 dar verde sobre `75 · 75` com 76 no disco.
