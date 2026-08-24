@@ -438,8 +438,7 @@ elegíveis.
 
 ### Segue aberto nesta lane
 
-1. **Kill-switch provado por teste** (§Critério de aceite) — os dois levers do
-   §C, incluindo a despromoção global da env.
+1. ~~**Kill-switch provado por teste**~~ — ✅ 2026-08-24, ver §Passo 2 abaixo.
 2. **`e2_extract`: contrato do stub de fallback** (classe [[ADR-407]]) — o `tipo`
    já é discriminador declarado.
 3. **§Escopo 4 — flip órfão:** a suíte de `tests/` roda em `warn` hoje; só o passo
@@ -450,3 +449,33 @@ elegíveis.
    cliente aborta por schema.
 5. **O flip em si** — gated no que a lane não controla: precisa de runs. Último do
    corpus é 2026-08-18.
+
+### Passo 2 (2026-08-24) — kill-switch provado, e o critério tinha uma metade não testada
+
+O §Critério de aceite pede *"com a env de rollback setada, payload inválido volta a
+**logar-e-passar** — teste, não prosa"*. Medido: a metade **passar** já estava coberta
+(`test_env_global_vence_override`); a metade **logar**, não. Um rollback que passasse
+**calado** era indistinguível do correto — e tiraria do operador o sinal de drift
+exatamente quando ele precisa dele para decidir se re-promove.
+
+Quatro testes novos, cada um com a mutação que o mata registrada:
+
+| teste | mutação que o derruba |
+| --- | --- |
+| `test_rollback_por_env_volta_a_logar_E_passar` | `_emit_drift_records` para de emitir |
+| `test_lever_de_emergencia_despromove_TODOS_os_schemas` | precedência invertida (override vence env) |
+| `test_revert_no_disco_so_vale_apos_restart` | `load_json_config` deixa de cachear |
+| `test_rollback_por_env_faz_o_store_persistir_apesar_do_override` | env deixa de vencer no caminho do store |
+
+O terceiro é **tripwire entre runbook e código**: se alguém implementar hot-reload de
+`pipeline.json`, ele fica vermelho e o §5 perde o "restart" **no mesmo PR**, em vez de
+o runbook seguir pedindo um passo que virou inútil.
+
+O segundo pinna o blast radius que a [[ADR-409]] §C declara: com **2** schemas
+promovidos, a env de emergência despromove **os dois**. Enquanto houver 1, os dois
+levers empatam — é do 2º em diante que a escolha do lever passa a importar.
+
+**Resíduo que eu mesmo criei e corrigi:** o §1.1 do runbook ganhou `# 6 passed
+(2026-08-24)` no closeout; com estes testes viraria 7. Contador pinado em runbook
+apodrece a cada teste novo e treina o operador a ignorar a divergência — trocado por
+`# verde`.
