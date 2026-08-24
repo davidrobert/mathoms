@@ -80,6 +80,22 @@ def scan_view_model_pii(payload: object) -> tuple[ViewModelPiiHit, ...]:
     return tuple(hits)
 
 
+# Redigir só no produtor deixa exposto tudo que já está gravado: o relatório
+# re-renderiza artefato ARMAZENADO, e o anterior ao fix carrega a descrição
+# cartorial crua que `/reports/{id}/data` serve (A40.l6). Leitura e escrita
+# passam a usar a MESMA definição de PII — duas divergiriam. No-op sobre
+# payload limpo: só reescreve string que o scanner acusaria.
+def redact_view_model(node: object) -> object:
+    """Gêmeo de escrita de ``scan_view_model_pii`` — redige o que ele acusaria."""
+    if isinstance(node, dict):
+        return {key: redact_view_model(value) for key, value in node.items()}
+    if isinstance(node, list):
+        return [redact_view_model(item) for item in node]
+    if isinstance(node, str) and cartorial_pii_tipos(node):
+        return redact_cartorial(node)
+    return node
+
+
 def _walk(node: object, path: str, hits: list[ViewModelPiiHit]) -> None:
     if isinstance(node, dict):
         for key, value in node.items():
@@ -97,5 +113,6 @@ __all__ = [
     "ViewModelPiiHit",
     "cartorial_pii_tipos",
     "redact_cartorial",
+    "redact_view_model",
     "scan_view_model_pii",
 ]

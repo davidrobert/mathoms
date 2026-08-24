@@ -688,3 +688,59 @@ async def test_get_report_data_isolation_across_workspaces(
     # B autentica no próprio workspace mas o report vive no workspace do auth_client.
     # `get_current_workspace` passa (B é owner de ws_b), depois query retorna None (report não é de ws_b).
     assert resp.status_code == 404
+
+
+# ────────── Redação de PII na LEITURA (A40.l6 · ADR-337 critério 4) ──────────
+
+
+_CARTORIAL = "Apartamento matrícula 999.999, Rua Exemplo, 100, CEP 00000-000, CPF 123.456.789-09"
+
+
+@pytest.mark.asyncio
+async def test_report_data_redige_pii_de_artefato_armazenado(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """Artefato gravado antes do fix carrega descrição cartorial crua."""
+    # O produtor redige desde o #1569, mas o relatório re-renderiza artefato
+    # armazenado — sem redação na leitura, todo E5 anterior ao fix sai por aqui.
+    rid = await _seed_report(
+        auth_client,
+        analysis_payload={
+            "periodo_dados": "202601-202604",
+            "endividamento": {"dividas": [{"descricao": _CARTORIAL, "saldo_devedor": 1000.0}]},
+            "real_estate": {
+                "imoveis": [{"descricao": _CARTORIAL, "endereco_canonical": _CARTORIAL}]
+            },
+        },
+        tmp_path=tmp_path,
+        db=db,
+    )
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
+    assert resp.status_code == 200
+    servido = resp.text
+    for proibido in ("999.999", "Rua Exemplo, 100", "00000-000", "123.456.789-09"):
+        assert proibido not in servido, f"{proibido} saiu na rota /data"
+    # Contraprova: a rota devolveu o payload, não um vazio que passaria trivialmente.
+    assert resp.json()["endividamento"]["dividas"][0]["saldo_devedor"] == 1000.0
+
+
+@pytest.mark.asyncio
+async def test_report_data_nao_altera_payload_limpo(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """A redação é no-op sobre dado limpo — não é um filtro que come texto."""
+    limpo = {
+        "periodo_dados": "202601-202604",
+        "endividamento": {
+            "dividas": [{"descricao": "Financiamento imobiliário", "saldo_devedor": 1000.0}]
+        },
+        "real_estate": {
+            "imoveis": [{"descricao": "Imóvel locado", "endereco_display": "exemplo 100"}]
+        },
+    }
+    rid = await _seed_report(auth_client, analysis_payload=limpo, tmp_path=tmp_path, db=db)
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["endividamento"]["dividas"][0]["descricao"] == "Financiamento imobiliário"
+    assert body["real_estate"]["imoveis"][0]["endereco_display"] == "exemplo 100"
