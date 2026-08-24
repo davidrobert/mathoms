@@ -86,14 +86,6 @@
       "type": "PLACA"
     },
     {
-      "path": "frontend/tests/e2e/fixtures/reports/degraded.json",
-      "type": "ENDERECO"
-    },
-    {
-      "path": "frontend/tests/e2e/fixtures/reports/long-strings.json",
-      "type": "ENDERECO"
-    },
-    {
       "path": "frontend/tests/pages/residencia-section.test.tsx",
       "type": "ENDERECO"
     },

@@ -77,6 +77,16 @@ interface MockOptions {
    * sem isso o assert só alcança o estado vazio.
    */
   plannerReview?: PlannerReviewStub;
+  /**
+   * Muta o payload da análise em memória antes de servi-lo.
+   *
+   * Existe para o gate de PII do view-model (A40.l6 · ADR-337 c4): a fixture
+   * precisa CARREGAR PII cartorial para que "não aparece no render" seja
+   * medida e não tautologia — e uma fixture com PII em disco seria varrida
+   * pelo `lint_no_real_pii`. Mutar em memória mantém o repo limpo e o teste
+   * honesto.
+   */
+  mutateAnalysis?: (data: Record<string, unknown>) => void;
 }
 
 /** Contagem única em toda a superfície de teste: seção, banner, `/pipeline` e
@@ -184,9 +194,9 @@ function parecerResponse(kind: PlannerReviewFixture) {
   };
 }
 
-function loadFixture(name: FixtureName): unknown {
+function loadFixture(name: FixtureName): Record<string, unknown> {
   const raw = readFileSync(join(FIXTURES_DIR, `${name}.json`), "utf-8");
-  return JSON.parse(raw);
+  return JSON.parse(raw) as Record<string, unknown>;
 }
 
 function buildReportResponse(
@@ -291,6 +301,7 @@ export async function mockReportPage(
   const workspaceId = opts.workspaceId ?? MOCK_WORKSPACE_ID;
   const reportId = opts.reportId ?? MOCK_REPORT_ID;
   const data = loadFixture(opts.fixture ?? "medium");
+  opts.mutateAnalysis?.(data as Record<string, unknown>);
   const plannerReview = opts.plannerReview ?? PLANNER_REVIEW_NOT_GENERATED;
 
   // Token para passar pelo auth gate da página

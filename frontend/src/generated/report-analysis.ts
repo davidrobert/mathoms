@@ -752,8 +752,7 @@ export type E5AnalysisArtifact = {
       "status_contrato": "atualizado" | "reajuste_pendente" | "sem_renda" | "desconhecido";
       "indice_reajuste"?: string | null;
       "data_ultimo_reajuste"?: string | null;
-      "endereco_canonical"?: string | null;
-      "imobiliaria_cnpj"?: string | null;
+      "endereco_display"?: string | null;
       "imobiliaria_nome"?: string | null;
       "origem_aluguel": "informe" | "irpf" | "e3" | "e4" | "manual" | "pro_rata" | "none" | "default";
     }>;
