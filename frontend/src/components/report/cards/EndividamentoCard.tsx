@@ -58,7 +58,7 @@ export function EndividamentoCard({
 
           {dividas.length > 0 && (
             <>
-            <div className="space-y-3 sm:hidden">
+            <div className="space-y-3 md:hidden print:hidden">
               {dividas.map((d, idx) => (
                 <article
                   key={`divida-m-${idx}`}
@@ -71,7 +71,7 @@ export function EndividamentoCard({
                 </article>
               ))}
             </div>
-            <div className="hidden overflow-x-auto sm:block print:block">
+            <div className="hidden overflow-x-auto md:block print:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--surface-border)] text-left">

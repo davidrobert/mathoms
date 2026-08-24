@@ -8,6 +8,7 @@ date: "2026-04-22"
 relates_to: []
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-24"]
 aliases: ["ADR 116"]
 tags:
   - area/auth
@@ -19,6 +20,12 @@ size_lines: 196
 ---
 
 # ADR-116 — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local)
+
+> **Correção (2026-08-24):** as chaves do YAML de operador na §Decisão 3 estão
+> erradas (`email`/`password_hash`; o loader exige `username`/`hashed_password`
+> e falha-fast), e a §Decisão 2 descreve um `delete_user(mode=…)` que não
+> existe. Ver §"Correção — chaves do YAML de operador e API de remoção
+> (2026-08-24)".
 
 **Status:** Decidido (F7F-Local) • **Data:** 2026-04-22
 
@@ -212,3 +219,34 @@ Alternativas consideradas:
   `dev/check_forbidden_paths.py` ALLOWLIST
 - `docker-compose.dev.yml` (ADR-041 Traefik) ganha service `frontend-ops`
   bind em `127.0.0.1:3100`
+
+## Correção — chaves do YAML de operador e API de remoção (2026-08-24)
+
+Auditoria de vault r10 (F12 · [[ADR-302]]). A decisão (auth local por
+yaml+bcrypt+JWT, anonimização default) vale; os nomes concretos divergiram do
+que foi implementado.
+
+### 1. `username` / `hashed_password`, não `email` / `password_hash`
+
+`backend/app/core/internal_ops_auth.py:99-105`:
+
+```python
+username = str(item.get("username", "")).strip()
+hashed = str(item.get("hashed_password", "")).strip()
+if not username or not hashed:
+    raise InternalOpsConfigError(f"Operador sem username/hashed_password em {target}: {item!r}")
+```
+
+É **fail-fast**, não tolerante: quem copiar o snippet da §Decisão 3 não sobe o
+console interno. `config/internal_operators.example.yaml` e
+`backend/app/api/admin/login.py:49-50` (`operators.get(payload.username)`)
+confirmam, e o `RUNBOOK.md` §7.2 já documentava a forma certa — esta ADR era a
+fonte divergente. O payload do login é `{username, password}`.
+
+### 2. Não existe `internal_ops.delete_user(mode=…)`
+
+A §Decisão 2 descreve uma função única parametrizada por
+`mode: "anonymize" | "hard_delete"`. O implementado são duas funções separadas,
+exportadas em `backend/app/services/internal_ops/__init__.py`:
+`anonymize_user` e `hard_delete_user`. A semântica (anonimização como default,
+hard delete como exceção) foi preservada; só a forma da API mudou.

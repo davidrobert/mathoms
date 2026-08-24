@@ -18,6 +18,16 @@ _TEST_FERNET_KEY = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
 os.environ.setdefault("MATHOMS_FERNET_KEY", _TEST_FERNET_KEY)
 os.environ["MATHOMS_FERNET_KEYS"] = ""
 
+# A40.l58 §Escopo 4 — a suíte valida contrato em `strict` por default, sem depender
+# de o CI lembrar de exportar a env. Antes, `config/pipeline.json` deixava `tests/`
+# em `warn`: payload que violava o schema logava-e-passava, e o único passo strict do
+# CI cobria **1 arquivo**. Medido em 2026-08-24: com a chave virada a suíte dá o mesmo
+# resultado (7391/7391), então o custo é zero e o ganho é prospectivo — 23 validações
+# por run deixam de aceitar drift em silêncio.
+# `setdefault` de propósito: quem quiser reproduzir produção roda com
+# `MATHOMS_PIPELINE_SCHEMA_MODE=warn` e vence esta linha.
+os.environ.setdefault("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+
 
 @pytest.fixture(autouse=True)
 def _reset_pipeline_common_globals():

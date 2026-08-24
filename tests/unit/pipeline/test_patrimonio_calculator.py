@@ -11,15 +11,29 @@ Foca em:
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
+from pipeline.domain.services.conversao_me import (
+    FxQuote,
+    convert_me_brl,
+    identity_native_brl,
+)
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
+from pipeline.domain.services.patrimonio_resolvers import resolve_members
 from pipeline.domain.services.patrimonio_types import (
     CaixaDetalhe,
+    IdentidadeIncoerenteError,
     MemberIdentity,
     PatrimonioConfig,
     PatrimonioInputs,
 )
+
+
+def _conv_usd(orig: str, rate: str, fonte: str = "market_rate_corrente"):
+    """Carimbo de conversão para fixture — ADR-390 exige que a linha diga a origem."""
+    return convert_me_brl(orig, "USD", FxQuote(rate=Decimal(rate), fonte=fonte))
 
 
 @pytest.fixture
@@ -50,6 +64,20 @@ def config_no_keyword(identity: MemberIdentity) -> PatrimonioConfig:
     return PatrimonioConfig(members=identity)
 
 
+_IDENT_PADRAO = MemberIdentity(
+    titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
+)
+
+
+def _inputs(baseline: dict, *, identity: MemberIdentity | None = None, **kw) -> PatrimonioInputs:
+    """Injeta `members` — obrigatório desde a [[ADR-410]] D2; a calculadora não resolve."""
+    return PatrimonioInputs(
+        baseline=baseline,
+        members=resolve_members(baseline, identity or _IDENT_PADRAO),
+        **kw,
+    )
+
+
 # =============================================================================
 # Output shape / paridade
 # =============================================================================
@@ -57,7 +85,7 @@ def config_no_keyword(identity: MemberIdentity) -> PatrimonioConfig:
 
 def test_output_has_all_required_keys(config: PatrimonioConfig):
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline={"members": {}}))
+    result = calc.calculate(_inputs(baseline={"members": {}}))
     required_keys = {
         "bruto",
         "dividas",
@@ -87,7 +115,7 @@ def test_output_uses_role_keyed_inv_keys(identity_solo: MemberIdentity):
     """ADR-338: key_inv_* é role-keyed fixo, nunca derivado do nome do membro."""
     cfg = PatrimonioConfig(members=identity_solo)
     calc = PatrimonioCalculator(cfg)
-    result = calc.calculate(PatrimonioInputs(baseline={"members": {"joao": {}}}))
+    result = calc.calculate(_inputs(baseline={"members": {"joao": {}}}, identity=identity_solo))
     assert "investimentos_titular" in result
     # conjuge_key vazia → chave role-keyed "investimentos_conjuge" ainda aparece
     assert "investimentos_conjuge" in result
@@ -129,7 +157,7 @@ def test_irpf_only_basic_totals(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
 
     assert result["fonte_investimentos"] == "irpf"
     assert result["bruto"] == 1_200_000.0  # total_bens IRPF
@@ -155,7 +183,7 @@ def test_irpf_only_residencia_without_keyword_match(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert result["residencia"] == 0.0
     assert result["imoveis_investimento"] == 500_000.0
 
@@ -172,7 +200,7 @@ def test_irpf_only_no_keyword_in_config(config_no_keyword: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config_no_keyword)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert result["residencia"] == 0.0
     assert result["imoveis_investimento"] == 500_000.0
 
@@ -189,7 +217,7 @@ def test_irpf_only_conjuge_imovel_pode_ser_residencia(config: PatrimonioConfig):
             },
         }
     }
-    result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(config).calculate(_inputs(baseline=baseline))
     assert result["residencia"] == 500_000.0
     assert result["imoveis_investimento"] == 0.0
 
@@ -207,7 +235,7 @@ def test_irpf_only_caixa_floored_at_zero(config: PatrimonioConfig):
             "mariana": {"total_bens": 0, "bens": {}},
         }
     }
-    result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(config).calculate(_inputs(baseline=baseline))
     assert result["caixa_total_brl"] == 0.0
 
 
@@ -227,7 +255,7 @@ def test_irpf_contas_bancarias_as_scalar(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert result["investimentos_titular"] == 30_000.0
 
 
@@ -250,7 +278,7 @@ def test_irpf_titular_extras_summed(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert result["investimentos_titular"] == 600.0
 
 
@@ -273,7 +301,7 @@ def test_irpf_conjuge_only_outros_summed(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert result["investimentos_conjuge"] == 300.0
 
 
@@ -309,7 +337,7 @@ def test_current_positions_recomputes_bruto(config: PatrimonioConfig):
     }
     calc = PatrimonioCalculator(config)
     result = calc.calculate(
-        PatrimonioInputs(
+        _inputs(
             baseline=baseline,
             investimentos_atuais=inv_atuais,
             caixa_total_brl=50_000,
@@ -329,7 +357,7 @@ def test_current_positions_unattributed_vai_para_balde_proprio(config: Patrimoni
         "total_por_membro": {"david": 100, "mariana": 50, "": 30},
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+    result = calc.calculate(_inputs(baseline=baseline, investimentos_atuais=inv_atuais))
     assert result["investimentos_titular"] == 100.0  # era 130 (100 + 30 absorvidos)
     assert result["investimentos_conjuge"] == 50.0
     assert result["investimentos_nao_atribuidos"] == 30.0
@@ -347,7 +375,7 @@ def test_pl_ressalva_when_sem_marcacao_not_irpf_covered(config: PatrimonioConfig
         "posicoes_sem_marcacao_por_membro": {"david": ["PETR4", "VALE3"]},
     }
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
+        _inputs(baseline=baseline, investimentos_atuais=inv_atuais)
     )
     assert result["pl_ressalva"] is True
     assert result["posicoes_sem_marcacao"] == {"count": 2, "tickers": ["PETR4", "VALE3"]}
@@ -366,7 +394,7 @@ def test_pl_ressalva_false_when_irpf_fallback_covers(config: PatrimonioConfig):
         "posicoes_sem_marcacao_por_membro": {"david": ["PETR4"]},
     }
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
+        _inputs(baseline=baseline, investimentos_atuais=inv_atuais)
     )
     assert result["fonte_investimentos"] == "posicoes_atuais+irpf"
     assert result["pl_ressalva"] is False
@@ -377,7 +405,7 @@ def test_no_ressalva_when_all_valued(config: PatrimonioConfig):
     baseline = {"members": {"david": {}, "mariana": {}}}
     inv_atuais = {"dados": [{"valor": 1}], "total_por_membro": {"david": 200_000}}
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
+        _inputs(baseline=baseline, investimentos_atuais=inv_atuais)
     )
     assert result["pl_ressalva"] is False
     assert result["posicoes_sem_marcacao"] == {"count": 0, "tickers": []}
@@ -394,11 +422,12 @@ def test_current_positions_caixa_from_adapter(config: PatrimonioConfig):
             saldo_original=10_000.0,
             valor_brl=58_000.0,
             tipo="moeda_estrangeira",
+            conversao=_conv_usd("10000", "5.80"),
         )
     ]
     calc = PatrimonioCalculator(config)
     result = calc.calculate(
-        PatrimonioInputs(
+        _inputs(
             baseline=baseline,
             investimentos_atuais=inv_atuais,
             caixa_total_brl=58_000.0,
@@ -426,6 +455,7 @@ def test_caixa_total_vs_me_split(config: PatrimonioConfig):
             saldo_original=30_000.0,
             valor_brl=30_000.0,
             tipo="caixa",
+            conversao=identity_native_brl("30000"),
         ),
         CaixaDetalhe(
             conta="bofa_usd",
@@ -433,11 +463,12 @@ def test_caixa_total_vs_me_split(config: PatrimonioConfig):
             saldo_original=10_000.0,
             valor_brl=58_000.0,
             tipo="moeda_estrangeira",
+            conversao=_conv_usd("10000", "5.80"),
         ),
     ]
     calc = PatrimonioCalculator(config)
     result = calc.calculate(
-        PatrimonioInputs(
+        _inputs(
             baseline=baseline,
             investimentos_atuais=inv_atuais,
             caixa_total_brl=88_000.0,
@@ -467,7 +498,7 @@ def test_current_positions_member_without_positions_falls_back_to_irpf(
         "total_por_membro": {"david": 300_000, "mariana": 0},
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+    result = calc.calculate(_inputs(baseline=baseline, investimentos_atuais=inv_atuais))
 
     assert result["investimentos_titular"] == 300_000.0
     assert result["investimentos_conjuge"] == 250_000.0
@@ -487,7 +518,7 @@ def test_current_positions_substring_member_match(config: PatrimonioConfig):
         },
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+    result = calc.calculate(_inputs(baseline=baseline, investimentos_atuais=inv_atuais))
 
     assert result["investimentos_titular"] == 300_000.0
     assert result["investimentos_conjuge"] == 85_000.0
@@ -509,7 +540,7 @@ def test_current_positions_no_fallback_when_both_have_positions(
         "total_por_membro": {"david": 100, "mariana": 50},
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+    result = calc.calculate(_inputs(baseline=baseline, investimentos_atuais=inv_atuais))
 
     assert result["investimentos_titular"] == 100.0
     assert result["investimentos_conjuge"] == 50.0
@@ -529,7 +560,7 @@ def test_current_positions_empty_dados_treated_as_irpf(config: PatrimonioConfig)
     }
     inv_atuais = {"dados": [], "total_por_membro": {"david": 9999}}  # ignorado
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+    result = calc.calculate(_inputs(baseline=baseline, investimentos_atuais=inv_atuais))
     assert result["fonte_investimentos"] == "irpf"
     assert result["investimentos_titular"] == 80.0
 
@@ -542,7 +573,7 @@ def test_current_positions_empty_dados_treated_as_irpf(config: PatrimonioConfig)
 def test_composicao_has_6_categories(config: PatrimonioConfig):
     baseline = {"members": {"david": {}, "mariana": {}}}
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert len(result["composicao"]) == 6
 
 
@@ -567,7 +598,7 @@ def test_composicao_sorted_descending(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     valores = [c["valor"] for c in result["composicao"]]
     assert valores == sorted(valores, reverse=True)
 
@@ -594,7 +625,7 @@ def test_composicao_pct_sums_to_100(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     total_pct = sum(c["pct"] for c in result["composicao"])
     assert total_pct == pytest.approx(100.0, abs=0.001)
 
@@ -602,7 +633,7 @@ def test_composicao_pct_sums_to_100(config: PatrimonioConfig):
 def test_composicao_zero_total_all_pcts_zero(config: PatrimonioConfig):
     baseline = {"members": {"david": {}, "mariana": {}}}
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     for c in result["composicao"]:
         assert c["pct"] == 0.0
 
@@ -611,7 +642,7 @@ def test_composicao_alias_tabela_categorias(config: PatrimonioConfig):
     """``tabela_categorias`` é alias de ``composicao`` (mesma ref)."""
     baseline = {"members": {"david": {}, "mariana": {}}}
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert result["composicao"] is result["tabela_categorias"]
 
 
@@ -634,7 +665,7 @@ def test_investivel_financeiro_excludes_imoveis_e_veiculos(config: PatrimonioCon
             "mariana": {"total_bens": 0, "bens": {}},
         }
     }
-    result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(config).calculate(_inputs(baseline=baseline))
     # 500k investimentos = cat_3 puro. cat_6 (caixa residual) = 0 (residual=0 aqui).
     assert result["investivel_financeiro"] == 500_000.0
     # Toggle on default + zero imóveis geradores → efetivo = financeiro.
@@ -661,7 +692,7 @@ def test_investivel_efetivo_inclui_imoveis_geradores_quando_toggle_on(config: Pa
         include_real_estate_in_if=True,
     )
     baseline = _baseline_with_imoveis([{"property_id": "p-locado", "valor": 200_000}])
-    result = PatrimonioCalculator(cfg).calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(cfg).calculate(_inputs(baseline=baseline))
     assert result["investivel_financeiro"] == 500_000.0
     assert result["investivel_efetivo"] == 700_000.0  # 500k cat_3 + 200k cat_2
 
@@ -681,7 +712,7 @@ def test_investivel_efetivo_exclui_nao_geradores_sempre(config: PatrimonioConfig
         {"valor": 50_000},
     ]
     result = PatrimonioCalculator(cfg).calculate(
-        PatrimonioInputs(baseline=_baseline_with_imoveis(imoveis, 1_250_000))
+        _inputs(baseline=_baseline_with_imoveis(imoveis, 1_250_000))
     )
     assert result["investivel_efetivo"] == result["investivel_financeiro"]
     assert result["imoveis_nao_geradores"] == 1_250_000.0
@@ -695,7 +726,7 @@ def test_investivel_efetivo_toggle_off_exclui_cat2(config: PatrimonioConfig):
         include_real_estate_in_if=False,
     )
     baseline = _baseline_with_imoveis([{"property_id": "p-locado", "valor": 200_000}])
-    result = PatrimonioCalculator(cfg).calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(cfg).calculate(_inputs(baseline=baseline))
     assert result["investivel_efetivo"] == 500_000.0
     assert result["imoveis_geradores"] == 200_000.0
 
@@ -714,7 +745,7 @@ def test_dividas_accepts_dividas_alias(config: PatrimonioConfig):
         }
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
     assert result["dividas"] == 200.0
     assert result["liquido"] == 800.0
 
@@ -723,7 +754,9 @@ def test_solo_identity_no_conjuge_category(identity_solo: MemberIdentity):
     cfg = PatrimonioConfig(members=identity_solo)
     calc = PatrimonioCalculator(cfg)
     result = calc.calculate(
-        PatrimonioInputs(baseline={"members": {"joao": {"total_bens": 1000, "bens": {}}}})
+        _inputs(
+            baseline={"members": {"joao": {"total_bens": 1000, "bens": {}}}}, identity=identity_solo
+        )
     )
     # Categoria do cônjuge existe mas com valor 0 + nome vazio
     cats = {c["categoria"] for c in result["composicao"]}
@@ -788,7 +821,7 @@ def test_calculator_uses_baseline_imoveis_e_veiculos(config: PatrimonioConfig):
         property_classification_overrides={"prop-residencia-fix": "residencia_principal"},
     )
     calc = PatrimonioCalculator(cfg)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline))
 
     soma_composicao = sum(c["valor"] for c in result["composicao"])
     total_bens = baseline["patrimonio_por_ano"]["2024"]["total_bens"]
@@ -849,7 +882,9 @@ def test_adr145_residencia_via_property_id_override(config_anon: PatrimonioConfi
             "conjuge": {"total_bens": 200_000, "bens": {"imoveis": c_im}},
         }
     }
-    result = PatrimonioCalculator(config_anon).calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(config_anon).calculate(
+        _inputs(baseline=baseline, identity=config_anon.members)
+    )
     assert result["residencia"] == 500_000.0
     assert result["imoveis_investimento"] == 300_000.0
 
@@ -877,7 +912,7 @@ def test_adr145_investimentos_irpf_includes_contas_bancarias(config_anon: Patrim
         }
     }
     calc = PatrimonioCalculator(config_anon)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = calc.calculate(_inputs(baseline=baseline, identity=config_anon.members))
     assert (
         result["investimentos_titular"] == 250_000.0
     ), "investimentos titular = investimentos[] + contas_bancarias[]"
@@ -901,7 +936,9 @@ def test_adr145_solo_titular_conjuge_bucket_is_zero():
             }
         }
     }
-    result = PatrimonioCalculator(config_solo).calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(config_solo).calculate(
+        _inputs(baseline=baseline, identity=config_solo.members)
+    )
     # ADR-338: chave role-keyed investimentos_titular (sem conjuge_key, é só titular)
     assert result["investimentos_titular"] == 100_000.0
     assert result.get("investimentos_conjuge") == 0.0  # bucket cônjuge ausente == 0
@@ -930,7 +967,7 @@ _SALDOS_MISTOS: list[dict] = [
 def test_caixa_me_detalhe_filtra_apenas_moedas_estrangeiras(config: PatrimonioConfig):
     """BRL fica fora — só ME entra no breakdown S1."""
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=_baseline_with_wise(_SALDOS_MISTOS))
+        _inputs(baseline=_baseline_with_wise(_SALDOS_MISTOS))
     )
     assert len(result["caixa_me_detalhe"]) == 2
     assert {e["moeda"] for e in result["caixa_me_detalhe"]} == {"USD", "EUR"}
@@ -948,9 +985,7 @@ def test_caixa_me_detalhe_preserva_ptax_status(config: PatrimonioConfig):
             "taxa_ptax_aplicada": None,
         }
     ]
-    result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=_baseline_with_wise(saldos))
-    )
+    result = PatrimonioCalculator(config).calculate(_inputs(baseline=_baseline_with_wise(saldos)))
     item = result["caixa_me_detalhe"][0]
     assert item["ptax_status"] == "missing"
     assert item["saldo_brl"] is None
@@ -960,7 +995,7 @@ def test_caixa_me_detalhe_preserva_ptax_status(config: PatrimonioConfig):
 def test_caixa_me_detalhe_vazio_quando_sem_informe_pf(config: PatrimonioConfig):
     """Baseline sem `informe_pf_saldos_31_12` → lista vazia (não crash)."""
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline={"members": {"david": {}, "mariana": {}}})
+        _inputs(baseline={"members": {"david": {}, "mariana": {}}})
     )
     assert result["caixa_me_detalhe"] == []
     assert result["wise_fiscal_flags"] == []
@@ -973,7 +1008,7 @@ def test_wise_fiscal_flags_passthrough(config: PatrimonioConfig):
         {"code": "GCAP", "severity": "atencao", "title": "Variação cambial", "descricao": "..."},
     ]
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
+        _inputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
     )
     assert result["wise_fiscal_flags"] == flags
 
@@ -981,9 +1016,7 @@ def test_wise_fiscal_flags_passthrough(config: PatrimonioConfig):
 def test_caixa_me_detalhe_default_moeda_usd_quando_ausente(config: PatrimonioConfig):
     """Entry malformado sem `moeda` é tratado como BRL (filtrado fora)."""
     saldos = [{"descricao": "broken entry", "saldo_original": "100.00"}]  # sem moeda
-    result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=_baseline_with_wise(saldos))
-    )
+    result = PatrimonioCalculator(config).calculate(_inputs(baseline=_baseline_with_wise(saldos)))
     assert result["caixa_me_detalhe"] == []  # defaultado pra BRL → não conta
 
 
@@ -1021,6 +1054,7 @@ _CAIXA_DETALHES_POSICAO: list[CaixaDetalhe] = [
         valor_brl=6191.70,
         tipo="moeda_estrangeira",
         fonte="informe_31_12",  # overridada — não deve repetir
+        conversao=_conv_usd("1000", "6.1917", fonte="ptax_31_12"),
     ),
     CaixaDetalhe(
         conta="itau (contacorrente)",
@@ -1028,13 +1062,14 @@ _CAIXA_DETALHES_POSICAO: list[CaixaDetalhe] = [
         saldo_original=2000.0,
         valor_brl=2000.0,
         tipo="caixa",
+        conversao=identity_native_brl("2000"),
     ),
 ]
 
 
 def _calculate_posicao(config: PatrimonioConfig) -> list[dict]:
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(
+        _inputs(
             baseline=_baseline_with_wise(_SALDOS_POSICAO),
             investimentos_atuais={"dados": [{"valor": 1}], "total_por_membro": {}},
             caixa_total_brl=8191.70,
@@ -1066,7 +1101,7 @@ def test_posicao_31_12_row_do_informe_carrega_ptax_e_nudge(config: PatrimonioCon
 
 def test_posicao_31_12_vazio_sem_informe_nem_extrato(config: PatrimonioConfig):
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline={"members": {"david": {}, "mariana": {}}})
+        _inputs(baseline={"members": {"david": {}, "mariana": {}}})
     )
     assert result["posicao_31_12"] == []
     assert result["cbe_obrigatorio"] is False
@@ -1075,7 +1110,7 @@ def test_posicao_31_12_vazio_sem_informe_nem_extrato(config: PatrimonioConfig):
 def test_cbe_obrigatorio_derivado_da_flag(config: PatrimonioConfig):
     flags = [{"code": "CBE", "severity": "info", "title": "CBE", "descricao": "..."}]
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
+        _inputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
     )
     assert result["cbe_obrigatorio"] is True
 
@@ -1083,6 +1118,44 @@ def test_cbe_obrigatorio_derivado_da_flag(config: PatrimonioConfig):
 def test_cbe_obrigatorio_false_com_outras_flags(config: PatrimonioConfig):
     flags = [{"code": "GCAP", "severity": "atencao", "title": "GCAP", "descricao": "..."}]
     result = PatrimonioCalculator(config).calculate(
-        PatrimonioInputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
+        _inputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
     )
     assert result["cbe_obrigatorio"] is False
+
+
+# =============================================================================
+# Injeção obrigatória + coerência de identidade ([[ADR-410]] D2)
+#
+# `members` obrigatório torna "dois produtores da mesma verdade" impossível por
+# construção. Não cobre o único produtor ter rodado com a identidade errada —
+# essa é a guarda abaixo.
+# =============================================================================
+
+
+def test_calculator_nao_tem_resolver_para_chamar():
+    """O módulo não importa `resolve_members`: resolver por dentro deixou de ser possível."""
+    from pipeline.domain.services import patrimonio_calculator as pc
+
+    assert not hasattr(pc, "resolve_members")
+
+
+def test_members_e_obrigatorio_em_patrimonio_inputs():
+    with pytest.raises(TypeError, match="members"):
+        PatrimonioInputs(baseline={})  # type: ignore[call-arg]
+
+
+def test_identidade_do_vo_diferente_da_config_falha_alto(config: PatrimonioConfig):
+    """Injeção impede dois produtores; não impede resolver com a identidade errada."""
+    outra = MemberIdentity(titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome="")
+    baseline = {"members": {"joao": {"total_bens": 10.0}}}
+    inputs = _inputs(baseline=baseline, identity=outra)
+
+    with pytest.raises(IdentidadeIncoerenteError, match="joao"):
+        PatrimonioCalculator(config).calculate(inputs)
+
+
+def test_identidade_coerente_passa(config: PatrimonioConfig):
+    """Contra-prova: mesma identidade nos dois lados não levanta nada."""
+    baseline = {"members": {"david": {"total_bens": 10.0}}}
+    result = PatrimonioCalculator(config).calculate(_inputs(baseline=baseline))
+    assert result["bruto"] >= 0

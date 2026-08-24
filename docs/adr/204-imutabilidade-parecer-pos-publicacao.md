@@ -38,7 +38,7 @@ tags:
   - **LLM provider deprecate model** ([[ADR-144]] CTO-G1 — persona drift). Re-geração silenciosa produz output diferente; cliente não sabe.
   - **Persona evolui** ([[ADR-201]] bump). Re-gerar parecer antigo com persona nova distorce histórico metodológico — auditor CFP não consegue reconstituir o "porquê" da recomendação original.
   - **Auditoria CVM/LGPD/contestação legal:** sem hash imutável + lineage congelado, defesa fica em "we don't know exactly what was shown".
-- Plano canônico `docs/plan/PLANNER_REVIEW/_README.md` Premissa 6 (sigilo §13) + risco crítico PD1 (sigilo vazando) implicam parecer auditável; sem imutabilidade, auditoria é teatro.
+- Plano canônico `docs/archive/PLANNER_REVIEW-2026-07-09.md` Premissa 6 (sigilo §13) + risco crítico PD1 (sigilo vazando) implicam parecer auditável; sem imutabilidade, auditoria é teatro.
 
 ## Alternativas consideradas
 

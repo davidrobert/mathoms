@@ -86,15 +86,39 @@ soma `das_simples` em `despesas_impostos` — decisão correta na ausência da m
 
 ### Item B — PD-20: meta de TRS não é configurável (ex-`A40.l4` §Residual)
 
-`RatiosCalculator()` roda com `RentabilidadeConfig()` default (5,0%);
-`PassiveIncomeConfig.trs_meta_pct`, construído do goal do cliente, nunca é lido.
-`S7IndependenciaSection.tsx` imprime o default, não a meta real da família.
+> 🛑 **Prescrição REFUTADA — não execute (§Refutação R1, 2026-08-24).** As três
+> premissas caíram com a [[A40.l47]] (#1459, `shipped` 2026-08-14) e a ação
+> prescrita virou **proibida**. Ver §Refutação R1 abaixo antes de qualquer coisa.
 
-- Ler `trs_meta_pct` do config já construído (`e5_analyzer_adapter.py:1148` já
-  monta `PassiveIncomeConfig` a partir do goal — o fio já está pago).
-- **Bound explícito:** o wizard aceita `trs_pct` 0–20. Fora de faixa razoável ⇒ usa
+~~`RatiosCalculator()` roda com `RentabilidadeConfig()` default (5,0%);
+`PassiveIncomeConfig.trs_meta_pct`, construído do goal do cliente, nunca é lido.
+`S7IndependenciaSection.tsx` imprime o default, não a meta real da família.~~
+
+- ~~Ler `trs_meta_pct` do config já construído (`e5_analyzer_adapter.py:1148` já
+  monta `PassiveIncomeConfig` a partir do goal — o fio já está pago).~~
+- ~~**Bound explícito:** o wizard aceita `trs_pct` 0–20. Fora de faixa razoável ⇒ usa
   a referência de 5% e **declara qual usou** — não propagar meta absurda ao
-  cálculo.
+  cálculo.~~
+
+#### §Refutação R1 (2026-08-24 · auditoria r10 · F16)
+
+| Premissa do Item B | Estado real |
+|---|---|
+| `RentabilidadeConfig()` tem default 5,0% | **Não existe.** `ratios_calculator.py:77-87`: "A40.l47 **removeu** `meta_pct`"; o config só tem `suspeito_threshold_pct` |
+| `PassiveIncomeConfig.trs_meta_pct` existe e não é lido | **Campo removido** (#1452). `passive_income_calculator.py:32-34` registra a remoção |
+| `e5_analyzer_adapter.py:1148` monta o config a partir do goal | `_passive_income_config_from_goals` **foi removida** (`:1266-1270`) |
+| `S7IndependenciaSection.tsx` imprime o default | O comparador saiu (`:327-330`) |
+
+A ação prescrita — mapear `goals.trs_pct` em meta de rentabilidade — é
+**exatamente o defeito** que a [[ADR-191]] §Emenda 2026-08-14 (`Decidido`)
+proíbe: `trs_pct` é **taxa de saque** (decumulação), não yield-alvo
+(acumulação), e o card deixou de publicar meta de retorno. O "bound 0–20" da
+prescrição reforçava a leitura errada — 0–20 é a faixa do **saque**.
+
+**O que sobra de PD-20 é uma pergunta ao owner, não uma tarefa:** a família
+deve poder configurar alguma meta neste card, e qual grandeza seria? Enquanto
+não houver resposta, o Item B não tem escopo executável. `_README.md` §PD-20
+continua roteando para cá — reconciliar junto.
 - Micro-gate `financial-planner` no PR (só o bound de faixa), não co-design de
   sessão.
 - Sinal de delta: variável por workspace, mas **declarado por caso** — a mudança é

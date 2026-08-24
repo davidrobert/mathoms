@@ -6,10 +6,17 @@ const CLASS_LABEL: Record<RealEstateImovel["classification"], string> = {
   especulacao: "Imóvel em especulação",
 };
 
-/** Rótulo curto para a tabela/cards — nunca a descrição cartorial (A40.l6). */
-export function imovelDisplayLabel(im: Pick<RealEstateImovel, "endereco_canonical" | "classification">): string {
-  const canonical = im.endereco_canonical?.trim();
-  if (canonical) return canonical;
+/** Rótulo curto para a tabela/cards (A40.l6).
+ *
+ * Lê `endereco_display`, que o E5 só publica quando o valor passa no gate de PII
+ * — nunca `endereco_canonical`, cuja cascata devolve `mat:`/`iptu:` (§Ataque A1).
+ * Ausente ⇒ classe: cobre payload antigo, anterior ao campo.
+ */
+export function imovelDisplayLabel(
+  im: Pick<RealEstateImovel, "endereco_display" | "classification">,
+): string {
+  const display = im.endereco_display?.trim();
+  if (display) return display;
   return CLASS_LABEL[im.classification] ?? "Imóvel";
 }
 

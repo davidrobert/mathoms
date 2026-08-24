@@ -63,8 +63,17 @@ em 2026-06-12. Mesma chamada com `mode="latest_batch"`; o dry-run retorna
 ## Apply
 
 Mesmo bloco com `apply=True` + `await db.commit()` após o resultado `ok`.
-Audit entry `suggestions.backfill_supersede` é gravada em
-`logs/internal_ops_audit.log`.
+Audit entry `suggestions.backfill_supersede` é gravada na **tabela**
+`internal_ops_audit` — `append_audit` faz `db.add(_to_row(record))`
+(`backend/app/services/internal_ops/audit.py:68-70`), e o commit é do endpoint
+([[ADR-309]] D2). O sink `logs/internal_ops_audit.log` foi descontinuado na
+migration `a31l1opsaudit`. Para conferir:
+
+```sql
+SELECT * FROM internal_ops_audit
+ WHERE action = 'suggestions.backfill_supersede'
+ ORDER BY created_at DESC LIMIT 1;
+```
 
 ## Rollback
 

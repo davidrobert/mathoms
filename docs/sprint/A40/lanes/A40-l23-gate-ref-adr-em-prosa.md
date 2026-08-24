@@ -15,7 +15,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p2
   - area/docs
 ---

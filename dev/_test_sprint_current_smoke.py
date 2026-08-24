@@ -18,10 +18,10 @@ except (
 
 _SPRINT_READY_FRAGMENTS: tuple[str, ...] = (
     "SPRINT_CURRENT — Lanes da sprint corrente — A11",
-    "1 ready · 1 in_progress.",
-    "## Ready (1)",
+    "ready · in_progress.",
+    "## Ready",
     "- [[A11.W2]] — Apply security findings · priority P0 · branch `a11-w2-security`",
-    "## In progress (1)",
+    "## In progress",
     "- [[A11.W4]] — Performance audit · priority P1",
 )
 

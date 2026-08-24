@@ -5,7 +5,22 @@ from __future__ import annotations
 from decimal import Decimal
 
 from pipeline.domain.services.real_estate_metrics import RealEstateMetricsResult
-from pipeline.observability.view_model_pii import redact_cartorial
+from pipeline.observability.view_model_pii import cartorial_pii_tipos, redact_cartorial
+
+# Níveis da cascata de `canonicalize` que NÃO são endereço: `mat:`/`iptu:`/`qa:`
+# devolvem o identificador cartorial COMO canonical ([[ADR-225]] §1). Publicá-lo
+# é exibir matrícula como rótulo do imóvel — o defeito que a A40.l6 §Ataque A1
+# mediu. Fora da cascata, a coluna guarda a forma da ERA em que a row nasceu
+# ([[ADR-385]]), então a forma não pode ser presumida: o gate decide.
+_CASCADE_NAO_ENDERECO = ("mat:", "iptu:", "qa:")
+
+
+def endereco_exibivel(endereco_canonical: str | None) -> str | None:
+    """Canonical só quando passa no próprio gate de PII; senão ``None`` (A40.l6)."""
+    canonical = (endereco_canonical or "").strip()
+    if not canonical or canonical.startswith(_CASCADE_NAO_ENDERECO):
+        return None
+    return None if cartorial_pii_tipos(canonical) else canonical
 
 
 def _decimal_to_payload(v: Decimal | None) -> float | None:
@@ -53,8 +68,10 @@ def result_to_payload(result: RealEstateMetricsResult) -> dict[str, object]:
             "status_contrato": p.status_contrato,
             "indice_reajuste": p.indice_reajuste,
             "data_ultimo_reajuste": p.data_ultimo_reajuste,
-            "endereco_canonical": p.endereco_canonical,
-            "imobiliaria_cnpj": p.imobiliaria_cnpj,
+            "endereco_display": endereco_exibivel(p.endereco_canonical),
+            # `imobiliaria_cnpj` NÃO viaja: identificador de terceiro que
+            # superfície nenhuma renderiza. Precedente do próprio pipeline —
+            # `extract_informe_aluguel` publica `imobiliaria_cnpj_present: bool`.
             "imobiliaria_nome": p.imobiliaria_nome,
             "origem_aluguel": p.origem_aluguel,
         }
@@ -86,4 +103,4 @@ def result_to_payload(result: RealEstateMetricsResult) -> dict[str, object]:
     }
 
 
-__all__ = ["result_to_payload"]
+__all__ = ["endereco_exibivel", "result_to_payload"]

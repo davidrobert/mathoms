@@ -566,7 +566,7 @@ Duas implementações concretas (pós-[[ADR-212]]):
 | Classe | Onde | Uso |
 |---|---|---|
 | `InMemoryArtifactStore` | `pipeline/artifact_store.py` | **Obrigatória** em testes de domain services + goldens |
-| `DBArtifactStore` | `backend/app/services/db_artifact_store.py` | Web/Celery — caminho único em produção; sessão SQLAlchemy injetada pelo chamador |
+| `DBArtifactStore` | `backend/app/services/storage/db_artifact_store.py` | Web/Celery — caminho único em produção; sessão SQLAlchemy injetada pelo chamador |
 
 `DBArtifactStore` vive em `backend/` (não `pipeline/`) porque depende de SQLAlchemy —
 `dev/check_pipeline_boundaries.py` proíbe SQLAlchemy dentro de `pipeline/`.
@@ -1359,7 +1359,7 @@ Regra original mantida e estendida:
   (enforçado por `dev/check_pipeline_boundaries.py`).
 - `pipeline-service/` (novo, A6f.1) é o **único** com acesso a framework;
   `pipeline/` continua sendo lib pura.
-- `backend/app/services/db_artifact_store.py` (SQLAlchemy) fica em
+- `backend/app/services/storage/db_artifact_store.py` (SQLAlchemy) fica em
   `backend/`, não em `pipeline/` (preservando R1).
 
 ### 17.5 Resumo de princípios (R1-R20)

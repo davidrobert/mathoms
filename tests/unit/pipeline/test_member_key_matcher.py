@@ -69,7 +69,7 @@ def test_resolve_members_nao_troca_pessoa_por_colisao_de_slug() -> None:
         ]
     }
 
-    titular, conjuge = resolve_members(baseline, identity)
+    titular, conjuge = resolve_members(baseline, identity).as_tuple()
 
     assert titular.get("nome") == "Ana Prado", "substring dava 'Mariana Souza' aqui"
     assert conjuge.get("nome") == "Mariana Souza"
@@ -82,7 +82,7 @@ def test_resolve_members_preserva_o_caso_legitimo() -> None:
     )
     baseline = {"members": [{"nome": "David Robert Silva"}, {"nome": "Mariana Souza"}]}
 
-    titular, conjuge = resolve_members(baseline, identity)
+    titular, conjuge = resolve_members(baseline, identity).as_tuple()
 
     assert titular["nome"] == "David Robert Silva"
     assert conjuge["nome"] == "Mariana Souza"
