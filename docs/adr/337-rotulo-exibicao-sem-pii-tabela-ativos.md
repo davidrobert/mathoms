@@ -134,8 +134,10 @@ que a UI passou a renderizar: a mesma string dá 4 hits em `descricao` e **0** e
 1. **O predicado do gate é o VALOR, não o nome do campo.**
    `scan_view_model_pii` varre **toda string** do payload. Allowlist de chave
    não sobrevive a mudança de render, e foi assim que a PII atravessou. Custo
-   medido: 631 strings nas 6 fixtures de relatório, 2 hits, zero
-   falso-positivo.
+   medido **antes** do fix: 631 strings nas 6 fixtures de relatório, 2 hits —
+   os **dois reais**, ambos em `endereco_canonical`. Zero falso-positivo é o
+   número que importa aqui, e ele se sustenta: re-medido depois do fix, 629
+   strings e **0 hits**.
 2. **A UI lê `endereco_display`**, campo que o E5 publica **apenas** quando o
    valor passa no próprio gate. Cascata cartorial (`mat:`/`iptu:`/`qa:`) e
    qualquer resto com PII ⇒ `null` ⇒ o card cai para o rótulo de classe.

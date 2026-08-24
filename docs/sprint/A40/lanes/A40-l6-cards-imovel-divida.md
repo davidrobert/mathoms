@@ -378,13 +378,21 @@ a item. **O que sobra está declarado abaixo, com dono, e não é da l6.**
 
 ### KR-D — os dois termos
 
-**1. O gate tem chamador — três, e nenhum é o próprio teste.**
+**1. O gate tem chamador, e três gates cobrem a classe.**
 
-| chamador | o que cobre |
-| --- | --- |
-| `tests/test_real_estate_metrics_payload.py` | o payload que `result_to_payload` PRODUZ |
-| `tests/utils/lint_no_real_pii.py` | as fixtures commitadas (2 waivers queimados) |
-| `reports/pii-cartorial.@critical.spec.ts` | o que a tela e o PDF RENDERIZAM |
+Distinção que a primeira redação desta seção borrou: `scan_view_model_pii` ganhou
+**um** chamador de produção; os outros dois são gates **independentes** sobre a
+mesma classe, com detectores próprios. Medido: `rg -l scan_view_model_pii` fora
+de `.md` devolve 3 arquivos — o módulo, seu unit test, e o chamador novo.
+
+| gate | chama `scan_view_model_pii`? | o que cobre |
+| --- | --- | --- |
+| `tests/test_real_estate_metrics_payload.py` | **sim** | o payload que `result_to_payload` PRODUZ |
+| `tests/utils/lint_no_real_pii.py` | não — detectores próprios | as fixtures commitadas (2 waivers queimados) |
+| `reports/pii-cartorial.@critical.spec.ts` | não — assere o render | o que a tela e o PDF RENDERIZAM |
+
+Os dois primeiros rodam em jobs de `all-green.needs`, então fixture cartorial ⇒
+EXIT≠0 ⇒ merge bloqueado — que é o termo literal da KR-D.
 
 Mutação medida: restaurar o comportamento do #1569 (canonical cru + CNPJ no
 payload) derruba 4 testes, e o gate cita
