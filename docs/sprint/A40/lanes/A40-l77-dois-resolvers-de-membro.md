@@ -111,12 +111,38 @@ via `e5_analyzer_adapter.py`.
 ## Ataque — 2026-08-24
 
 Medido sobre `origin/main` (`47c0988e`; os commits que entraram durante a sessão são
-docs-only e não tocam os resolvers). Baseline sintético no shape do **produtor real**
-— [`consolidate_baseline.py:246`](../../../../scripts/consolidate_baseline.py) emite
-`investimentos_consolidados` como **lista** de itens com `proprietario` e
-`valores_31_12: {ano: valor}`. Zero PII, zero DB. O decrypt do run `33514dc4` exigiria
-a `MATHOMS_FERNET_KEY`; a instância já estava medida na triagem, então o que se mede
-aqui é a **classe**.
+docs-only e não tocam os resolvers), em duas frentes: baseline sintético no shape do
+**produtor real** — [`consolidate_baseline.py:246`](../../../../scripts/consolidate_baseline.py)
+emite `investimentos_consolidados` como **lista** de itens com `proprietario` e
+`valores_31_12: {ano: valor}` — e o **artefato guardado** do run `33514dc4`, lido com
+`dev/dump_artifact.py`.
+
+### A0 — a divergência é prospectiva; no payload guardado os dois lados dizem `0,00`
+
+A tabela do §Problema apresenta `110.130,67` e `0,00` como dois valores **no mesmo
+payload**. O artefato do run `33514dc4` (`data_analise: 2026-08-18`) não mostra isso:
+
+| campo do artefato | valor |
+| --- | --- |
+| `patrimonio.investimentos_conjuge` | **0,0** |
+| `investimentos.total_financeiro` | `1.225.224,28` (= só o titular) |
+| `investimentos.instituicoes_por_membro[1]` | 3 instituições da cônjuge, **sem campo `n_posicoes`** |
+
+O run é de **2026-08-18**; o #1578 mergeou em **2026-08-19 19:19Z**. Os dois resolvers
+estavam no eixo do domicílio quando ele rodou, então **ambos** publicaram `0,00`. Os
+`110.130,67` são o que `resolve_members` produz **hoje** ao reprocessar aquele baseline
+— re-computação num commit posterior, não leitura do payload. E `n_posicoes` não existe
+no artefato: as linhas de `instituicoes_por_membro` têm só `membro` e `instituicoes`.
+
+Nada disso desfaz o defeito — o §Ataque A abaixo mede a divergência na `main` de hoje.
+O que muda é **o que conta como prova**: a divergência aparece no **próximo run**, não
+no `33514dc4`. O §Critério 1 ("no mesmo payload, cônjuge tem um valor") não é
+verificável contra esse artefato — precisa de run novo. Isso reforça a ordem que o
+[`_README`](../_README.md) já fixou (fechar o DE-10 antes de disparar o r8): o r8 seria
+o **primeiro** run a exibir o split, não mais um que o remede.
+
+Mesma família do §r7 da [[A40.l69]], onde a taxa declarada pela [[ADR-394]] era
+projeção do mecanismo pretendido, não medição do código que shipou.
 
 ### A — a instância confere, a premissa não
 
