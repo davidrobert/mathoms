@@ -223,3 +223,22 @@ class TestValidationErrorNuncaRetenta:
         assert result is None
         assert attempts == 3  # 1 tentativa + 2 retries (STAGE_RETRY_CONFIGS["E2-llm"])
         assert len(sleeps) == 2
+
+
+@pytest.mark.asyncio
+async def test_rollback_por_env_faz_o_store_persistir_apesar_do_override(
+    db: AsyncSession, monkeypatch, caplog
+):
+    """A40.l58 no caminho do store (não o de ``validate_dict``): com o schema promovido e a env de rollback setada (ADR-409 §C), o write inválido volta a persistir E segue emitindo drift — rollback calado tiraria do operador o sinal de re-promoção."""
+    caplog.set_level(logging.WARNING, logger="mathoms.pipeline.schema_validation")
+    _patch_schema_validation(monkeypatch, {"e3_reconciled.schema.json": "strict"})
+    monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "warn")
+    ws_id, run_id = await _seed(db, email="rollback-env@test.com")
+
+    outcome, persisted = await _run(db, lambda c: _write_invalid_e3(c, ws_id, run_id))
+
+    assert (outcome, persisted) == ("persisted", True)
+    drift = _drift_records(caplog)
+    assert drift, "rollback não pode silenciar a telemetria de drift"
+    assert drift[0].mode == "warn"
+    _assert_drift_context(drift[0], ws_id, run_id)

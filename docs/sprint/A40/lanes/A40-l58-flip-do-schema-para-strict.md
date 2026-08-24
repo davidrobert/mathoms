@@ -4,10 +4,11 @@ type: lane
 title: "schema_validation warn → strict: o PR5 que a l5 declarou como outra lane"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P2
 branch_slug: a40-l58-flip-do-schema-para-strict
 owner: sre-devops
+adrs: ["[[ADR-409]]"]
 depends_on:
   - "[[A40.l5]]"
 tags:
@@ -386,3 +387,123 @@ Não decido pelo `sre-devops`; registro o que a medição obriga a endereçar.
 5. **Elegíveis medidos hoje**, se e quando houver runs: `e3_reconciled` (111 docs,
    0/555) e `e15_baseline_extract` (11 docs, 0/66) são os dois únicos com massa
    para uma primeira promoção.
+
+## Execução (2026-08-24) — [[ADR-409]] `Proposto` + o gate vira comando
+
+> `open` → `in_progress`. O §Escopo 2 fechou no §Ataque acima; esta seção registra
+> o que a ADR decidiu e o que sobra.
+
+### Entregue
+
+**[[ADR-409]] `Proposto`** — decide a fila e o lever, e **não** executa flip:
+
+- **§A** — unidade per-schema confirmada; o *flip global* do §Escopo 3 desta lane
+  fica **revogado** (encaminhamento 2 da §Coordenação RV6-06). Não supersede a
+  [[ADR-284]] — conforma.
+- **§B** — o go/no-go do runbook §2 passa a ser
+  [`dev/measure_schema_drift.py`](../../../../dev/measure_schema_drift.py) sobre
+  `pipeline_artifacts`, não a agregação de logs: durável, retroativo, re-medível
+  por 1 comando e usável como gate de PR (`--gate` → exit ≠ 0).
+- **§C** — dois levers de rollback, **ambos exigindo restart**, declarados por
+  situação; hot-reload de `pipeline.json` recusado com razão.
+- **§D** — a fila de elegibilidade é a medição: 5 elegíveis, 1 recusado por massa
+  (`e2_llm_artifact`, n=2 em 1 run), 2 a reavaliar, 3 bloqueados.
+- **§E/§F** — `e2_extract` e `baseline_patrimonial` saem do balde "drift" e viram
+  **defeito de contrato nomeado**.
+
+**Predicado de GO com duas guardas que não são óbvias:** janela sem artefato não é
+GO (é ausência de medição — a cadência do dogfood é ~2 runs/semana), e artefato
+ilegível não é GO. A segunda nasceu de um **falso-verde no próprio instrumento**,
+pego pelo teste que eu escrevi para ele: `unreadable` contava como massa e
+devolvia `go=True`. O gate do flip quase nasceu com a doença que existe para
+detectar.
+
+### Deferimento datado (2026-08-24) · dono `data-engineer`
+
+**Re-derivar `baseline_patrimonial.schema.json` do produtor E1.5c.** Medido: 8 das
+13 properties declaradas nunca foram emitidas, 8 chaves emitidas não são
+declaradas (3 delas em 100% dos artefatos), sobreposição de **5 de 13**. Não é
+drift — é contrato de outro payload.
+
+Escopo: declarar as 13 chaves reais (`resumo`, `_meta`, `itens`,
+`informe_pf_saldos_31_12`, `wise_fiscal_flags`, `payload_version`,
+`prompt_version`, `validation` + as 5 que já existem), decidir
+`additionalProperties`, aposentar as 8 fantasmas, e tirar os 2 `required` da era
+disco **junto** com o resto — nunca sozinhos ([[ADR-409]] §F recusa a correção
+mínima: torna o número verde sem tornar o contrato real).
+
+Condição de retomada: é pré-requisito de qualquer flip deste schema, e portanto do
+que a [[A40.l67]] §Deferimento re-homeou para cá. Não bloqueia os outros 5
+elegíveis.
+
+### Segue aberto nesta lane
+
+1. ~~**Kill-switch provado por teste**~~ — ✅ 2026-08-24, ver §Passo 2 abaixo.
+2. **`e2_extract`: contrato do stub de fallback** (classe [[ADR-407]]) — o `tipo`
+   já é discriminador declarado.
+3. ~~**Runbook de incidente**~~ — ✅ 2026-08-24, §8 do runbook (ver §Passo 3).
+4. **§Escopo 4 — flip órfão:** a suíte de `tests/` roda em `warn` hoje; só o passo
+   `Pipeline JSON schema strict` do CI roda strict, e sobre **1 arquivo**. O
+   `nightly` que rodava o outro está `disabled_manually`. Medir o custo de virar a
+   suíte inteira antes de decidir.
+5. **O flip em si** — gated no que a lane não controla: precisa de runs. Último do
+   corpus é 2026-08-18.
+
+### Passo 2 (2026-08-24) — kill-switch provado, e o critério tinha uma metade não testada
+
+O §Critério de aceite pede *"com a env de rollback setada, payload inválido volta a
+**logar-e-passar** — teste, não prosa"*. Medido: a metade **passar** já estava coberta
+(`test_env_global_vence_override`); a metade **logar**, não. Um rollback que passasse
+**calado** era indistinguível do correto — e tiraria do operador o sinal de drift
+exatamente quando ele precisa dele para decidir se re-promove.
+
+Quatro testes novos, cada um com a mutação que o mata registrada:
+
+| teste | mutação que o derruba |
+| --- | --- |
+| `test_rollback_por_env_volta_a_logar_E_passar` | `_emit_drift_records` para de emitir |
+| `test_lever_de_emergencia_despromove_TODOS_os_schemas` | precedência invertida (override vence env) |
+| `test_revert_no_disco_so_vale_apos_restart` | `load_json_config` deixa de cachear |
+| `test_rollback_por_env_faz_o_store_persistir_apesar_do_override` | env deixa de vencer no caminho do store |
+
+O terceiro é **tripwire entre runbook e código**: se alguém implementar hot-reload de
+`pipeline.json`, ele fica vermelho e o §5 perde o "restart" **no mesmo PR**, em vez de
+o runbook seguir pedindo um passo que virou inútil.
+
+O segundo pinna o blast radius que a [[ADR-409]] §C declara: com **2** schemas
+promovidos, a env de emergência despromove **os dois**. Enquanto houver 1, os dois
+levers empatam — é do 2º em diante que a escolha do lever passa a importar.
+
+**Resíduo que eu mesmo criei e corrigi:** o §1.1 do runbook ganhou `# 6 passed
+(2026-08-24)` no closeout; com estes testes viraria 7. Contador pinado em runbook
+apodrece a cada teste novo e treina o operador a ignorar a divergência — trocado por
+`# verde`.
+
+### Passo 3 (2026-08-24) — runbook de incidente, e o defeito que ele revelou
+
+§8 novo no [runbook](../../../reference/runbooks/schema_validation_strict_flip.md):
+confirmar o abort (30s) → decidir rollback × fix-forward **pela medição** → executar
+→ fechar. Escrito sobre campos conferidos no DB e no snapshot OpenAPI, não de
+memória — a primeira versão citava `POST /v1/pipeline/runs/{id}/resume`, e a rota real
+é `/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/resume`.
+
+**O defeito que escrever o runbook revelou.** O §8.1 precisava dizer ao on-call por
+qual `reason_class` filtrar. Medido: o abort do flip gravava **`internal_error`** —
+"bug nosso" — e não `output_invalid`.
+
+A causa é estreita e provável: `reason_from_exception` classificava por
+`error_type`, um atributo de erro de **provider**. A `ValidationError` do flip vem
+de `DBArtifactStore.write`, é **nua**, e caía no ramo genérico. A ironia é que
+`_run_stage_with_retry` **já sabe** que é erro de schema — usa
+`_is_schema_validation_error(exc)` duas linhas antes, para não gastar backoff — e
+descarta essa informação na linha seguinte.
+
+O módulo já carregava a doutrina certa para o caso irmão:
+`LLMErrorType.validation → output_invalid`, com o comentário *"é output REJEITADO
+pelo schema, não bug nosso"*. O fix aplica a mesma regra ao abort de contrato; não
+inventa política.
+
+Consequência se tivéssemos flipado antes: o primeiro incidente real apareceria no
+card de `/admin/metrics` como defeito de código, e o on-call filtraria pela classe
+errada. Runs anteriores a 2026-08-24 têm o `reason_class` errado gravado — o §8.1
+avisa para não confiar nele em triagem retroativa.

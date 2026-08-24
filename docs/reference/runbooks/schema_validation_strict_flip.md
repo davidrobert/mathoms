@@ -30,7 +30,7 @@ Todos verificáveis; sem exceção informal.
 Verificação rápida:
 
 ```bash
-pytest backend/tests/test_db_artifact_store_schema_strict.py -q   # 6 passed (2026-08-24)
+pytest backend/tests/test_db_artifact_store_schema_strict.py -q   # verde
 ```
 
 ### 1.2. Corpus golden verde em strict para o schema alvo
@@ -193,6 +193,81 @@ fechada sem rollback + linha registrada no §7. Próximo schema da fila repete
 | Data | Schema | Operador | Violações pré-flip (7d) | Resultado |
 | ---- | ------ | -------- | ----------------------- | --------- |
 | —    | —      | —        | —                       | —         |
+
+## 8. Incidente — um run de cliente abortou por schema
+
+> Gatilho `sre-devops`. Este é o único modo de falha que o flip **introduz**: em
+> `strict`, `DBArtifactStore.write` levanta `jsonschema.ValidationError`, o stage
+> falha para aquele workspace e o **dado não corrompe** — o write não acontece.
+
+### 8.1. Confirmar que é abort de schema (30s)
+
+O erro é **não-retryable por desenho** ([[ADR-284]] §A) — não houve backoff, a
+falha é do primeiro attempt. Três sinais, em ordem de custo:
+
+```sql
+-- 1. o run e o stage onde parou
+SELECT id, status, failed_at_stage, failure_reason FROM pipeline_runs
+ WHERE status = 'failed' ORDER BY started_at DESC LIMIT 5;
+
+-- 2. o erro do stage (a mensagem do raise nomeia stage/key/schema)
+SELECT stage, status, errors FROM pipeline_stage_logs
+ WHERE pipeline_run_id = '<run_id>' AND status = 'failed';
+```
+
+A mensagem do raise é
+`payload de <stage>/<key> viola <schema> em modo strict`. O `reason_class`
+gravado é **`output_invalid`** — contrato rejeitado, não bug nosso.
+
+> ⚠️ Runs anteriores a 2026-08-24 gravaram `internal_error` para este caso: a
+> `ValidationError` chega **nua** (vem do store, não de um provider) e caía no
+> ramo genérico. Corrigido junto com este runbook; ao triar incidente antigo,
+> não confie no `reason_class`.
+
+3. Os **paths** em drift estão no logger `mathoms.pipeline.schema_validation`
+   com `mode=strict, outcome=reject` — é o §4 deste runbook.
+
+### 8.2. Decidir: rollback ou fix-forward
+
+A pergunta que decide é **se o drift era conhecido**:
+
+```bash
+python3 dev/measure_schema_drift.py --schema <alvo> --days 7
+```
+
+| medição | leitura | ação |
+| --- | --- | --- |
+| o path que abortou **não** aparecia na janela do flip | drift novo — um writer mudou, ou chegou documento de forma nova | **rollback** (§5) e reabra a janela |
+| o path **aparecia** e o flip foi feito assim mesmo | o gate foi contornado | **rollback** (§5) + postmortem do PR de flip |
+| drift só neste workspace, contido, com fix trivial no writer | caso único | fix-forward, **avisando** que o schema segue `strict` |
+
+Na dúvida, **rollback**. O custo de reabrir a janela é dias; o de manter cliente
+com run abortado é confiança.
+
+### 8.3. Executar
+
+1. **Rollback** — §5. Lembre do **restart**: reverter `mode_overrides` no disco
+   não muda o modo do worker vivo (`pipeline.json` é cacheado). Se precisar de
+   segundos e não puder esperar deploy, use
+   `MATHOMS_PIPELINE_SCHEMA_MODE=warn` + restart — mas ele é **global** e
+   despromove todo schema já promovido ([[ADR-409]] §C). Registre no §7 quais
+   voltaram a `warn`.
+2. **Retomar o run** —
+   `POST /api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/resume`
+   (path conferido no snapshot
+   [`docs/reference/api/v1/openapi.json`](../api/v1/openapi.json), não de memória).
+   O `failed_at_stage` é preservado justamente para isto; não é preciso
+   reprocessar do zero.
+3. **Confirmar** — o run completa e `measure_schema_drift --days 1` mostra o path
+   de volta como WARN (mensurável), não como abort.
+
+### 8.4. Depois
+
+- Linha no §7 com data, schema, path que abortou e desfecho.
+- Se o drift era novo: o writer mudou sem o contrato acompanhar — a correção é do
+  produtor ou do schema, com gatilho `data-engineer`, **antes** de reabrir a
+  janela.
+- A janela de baseline do schema **reinicia**. Não se re-promove no mesmo dia.
 
 ## O que este runbook NÃO cobre
 
