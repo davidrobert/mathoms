@@ -77,15 +77,12 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 > em 2026-08-17. Registrado aqui porque fechar a sprint
 > citando "5 → 0" contaria dois itens inexistentes.
 
-> ⚠️ **A KR-D não fecha — o gate existe como função e não tem chamador (medido 2026-08-24).**
-> O #1569 entregou o **redator**: `redact_cartorial` está wired em
-> `real_estate_metrics_payload.py` e `endividamento_analyzer.py`, e o card parou de
-> interpolar `descricao` (`RealEstateYieldCard.tsx:205` usa `imovelDisplayLabel`). Mas
-> o **scanner** — `scan_view_model_pii`, o termo que a KR mede — tem **zero** chamadas
-> fora do próprio unit test: nada em `.github/`, nada em `.pre-commit-config.yaml`,
-> nada em `dev/`, nada em stage. A KR-D exige *"bloqueio no CI"*; scanner sem
-> chamador não bloqueia nada. Mesma família da KR-A: a função existir **e** o gate
-> rodar são os dois termos do "e". Residual com dono na [[A40.l6]] §Nota datada.
+> ✅ **KR-D fecha (2026-08-24, #1673).** Fixture cartorial sintética ⇒ EXIT≠0 em
+> `Pipeline tests (tests/)`, que está em `all-green.needs` — o termo literal da KR.
+> Três gates independentes cobrem a classe, cada um com prova por mutação. O painel
+> "não fecha" de 2026-08-24 e sua resolução foram para
+> [`_HISTORY`](_HISTORY.md#kr-d-de-não-fecha-a-fecha-2026-08-24) — a medição estava
+> certa **pelo motivo errado**, e isso vale registro. Detalhe em [[A40.l6]] §Fecho.
 
 **KR rejeitado deliberadamente:** cobertura (`N% dos achados fechados`) — mede
 burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
@@ -1337,7 +1334,7 @@ emendadas por §Infra de CI tocada durante a sprint.
 | ADR | Estado | Lane | Escopo |
 |---|---|---|---|
 | **[[ADR-354]]** | `Proposto` (aberta em #1114) · flip a `Decidido` no merge da [[A40.l2]] | [[A40.l2]] | Identidade de transação (K4) exclui atributos de proveniência do documento |
-| [[ADR-337]] | `Decidido` · emenda na [[A40.l6]] | [[A40.l6]] | Critério 4 (gate de PII no view-model) não existe |
+| [[ADR-337]] | `Decidido` · **2 emendas** na [[A40.l6]] (`amended_at` 2026-08-19, 2026-08-24) | [[A40.l6]] `shipped` #1673 | ~~Critério 4 (gate de PII no view-model) não existe~~ → **existe e é executável**. A 1ª emenda escreveu o critério; a 2ª corrigiu-o: o predicado chaveia no **valor**, não no nome do campo, e a redação roda também na **leitura** (artefato já gravado) |
 | [[ADR-351]] | `Proposto` · flip na [[A40.l12]] | [[A40.l12]] | Retorno de principal não é renda recorrente |
 | [[ADR-353]] | `Proposto` · flip na [[A40.l11]] | [[A40.l11]] | Confiança do diagnóstico — **bloqueado** até o campo-portador ter consumidor |
 | [[ADR-357]] | `Decidido (A40.l18)` · **emendada** 2026-08-07 — flip quitado no PR2 da [[A40.l20]] (#1278), por decisão do dono: a condição (merge do **writer**, `b8460274`/#1258) já estava cumprida e a lane `shipped` | [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l21]] | Criticidade de stage e degradação do run — add-on advisory não veta o entregável. **A mais carregada da sprint: 4 lanes** |
