@@ -4,7 +4,9 @@ type: lane
 title: "Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1684
+ship_date: "2026-08-24"
 priority: P0
 branch_slug: a40-l77-dois-resolvers-de-membro
 adrs:
@@ -14,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -101,13 +103,24 @@ via `e5_analyzer_adapter.py`.
 
 ## Fora de escopo
 
-- **DE-7** (`nao_atribuidos` = 61% sem linha de cobertura) — arbitrado em 2026-08-21
-  para **janela J5 própria**; exige rebaseline de golden, do snapshot do view-model e
-  re-derivação de `tests/test_e5_conservation_invariants.py`. Esta lane é o
-  pré-requisito dele, não o hospedeiro.
-- **DE-8** (top-up IRPF sem quantia declarada) — mesma janela do DE-7.
-- **Idempotência do eixo de atribuição** (2 runs, 15 itens divergem) — roteada para a
-  [[A42]] pela arbitragem de 2026-08-21.
+Rotas revalidadas no closeout de 2026-08-24 — lane `shipped` não hospeda
+deferimento órfão.
+
+- **DE-7** (`nao_atribuidos` = 61% sem linha de cobertura) — **dono:
+  `data-engineer`**; arbitrado em 2026-08-21 para **janela J5 própria**, e
+  rastreado no §Inventário dos achados do r7 do [`_README`](../_README.md), que
+  é o registro vivo. Exige rebaseline de golden, do snapshot do view-model e
+  re-derivação de `tests/test_e5_conservation_invariants.py` — nada disso foi
+  preciso aqui, o que é a razão de as duas janelas serem separadas. Esta lane
+  **destrava** o DE-7 (mudou o denominador dele) e lhe entrega a fixture pronta;
+  nunca foi o hospedeiro.
+- **DE-8** (top-up IRPF sem quantia declarada) — **dono: `data-engineer`**,
+  mesma janela e mesmo registro do DE-7.
+- **Idempotência do eixo de atribuição** (2 runs, 15 itens divergem) — **dono:
+  `data-engineer`**, roteada para a [[A42]] pela arbitragem de 2026-08-21.
+- Os três §Deferimentos da [[ADR-410]] (item `bens[]` tipado + VO por membro;
+  proveniência do numerador da reserva; `autoridade` que não separa produtor de
+  substring) carregam dono e condição de retomada na própria nota.
 
 ## Ataque — 2026-08-24
 
@@ -310,3 +323,56 @@ Vai para a lane P1 do §Deferimentos da [[ADR-410]], junto com a proveniência d
    não-monetário é provado com `dev/golden_diff.py` (`value_delta == 0` em todo
    campo monetário; diff restrito a `top_ativos[].autoridade`).
 3. **PR3** — os três gates, com o denominador do gate de contradição declarado.
+
+## Entregue — 2026-08-24
+
+Quatro PRs sequenciais, recortados para o delta ser **atribuível**: os dois
+primeiros fecharam com delta zero em cents provado, então qualquer movimento de
+número no terceiro é imputável só ao flip.
+
+| PR | o quê | delta |
+| --- | --- | --- |
+| [#1669](https://github.com/davidrobert/mathoms/pull/1669) | item carimba `instituicao` + `ano_base` do próprio item | **zero em cents** |
+| [#1676](https://github.com/davidrobert/mathoms/pull/1676) | `PatrimonioInputs.members` obrigatório + coerência de identidade | **zero em cents** |
+| [#1677](https://github.com/davidrobert/mathoms/pull/1677) | produtor único; 3 resolvers deletados; fixture de 2 membros | 1.409 linhas removidas |
+| [#1684](https://github.com/davidrobert/mathoms/pull/1684) | os três gates no payload, com denominador declarado | — |
+
+**Nenhum rebaseline de golden ou snapshot na lane inteira.** O dogfood é
+domicílio de um membro, então o flip não move os números dele — o que reforça
+que a fixture de dois membros era precondição, não acessório.
+
+### Efeito medido, ponta a ponta
+
+| | antes | depois |
+| --- | --- | --- |
+| `investimentos.total_financeiro` | 900.000 | **1.010.000** |
+| `patrimonio.investimentos_conjuge` | 0,0 | **110.000** |
+| `cobertura_investimentos` | só `titular` | `titular` `frescor:2025` + `conjuge` `frescor:2023` |
+| `instituicoes_por_membro` | um membro com as duas instituições | um membro cada |
+
+### Três achados que a execução trouxe e o co-design não previu
+
+1. **A estimativa do D2 estava errada por ~28×.** "Duas call-sites" eram **59**
+   construções — 2 em produção (uma delas docstring) e 57 em teste. A decisão
+   seguiu certa; só não coube junto da prova de delta zero.
+2. **O D3 não era implementável como escrito.** VO tipado por membro descartaria
+   as chaves que o layout flat usa como categoria de bem — perda silenciosa, a
+   própria classe que a nota fecha. Ajustado pré-implementação; ver [[ADR-410]] §D3.
+3. **`tipo` restaurado expôs uma regressão latente de rótulo.** `_fallback_nome`
+   preferia `tipo`, e o `tipo` do dogfood é o default de ignorância
+   `"investimento"` — virava o *"Investimento pelado"* que a [[ADR-337]] proíbe.
+   Enquanto o resolver descartava o campo, `classe` vencia **por ausência**.
+   Corrigido na raiz: sentinela de ignorância conta como `tipo` ausente.
+
+### O que continua aberto, com dono
+
+Os três §Deferimentos da [[ADR-410]]: item `bens[]` tipado + VO por membro
+(bloqueados enquanto houver ramos de passthrough em `resolve_members`), a lane
+P1 da proveniência do numerador da reserva (`_filter_liquid` + ressalva de KPI
+do balde `None`), e o `autoridade` que não distingue produtor de substring
+(território [[ADR-400]]).
+
+**O DE-7 destrava.** Esta lane era o pré-requisito dele por mover
+`total_financeiro`, que é o denominador da ressalva que ele publica — e o
+denominador acabou de mudar de 900.000 para 1.010.000 no caso de dois membros. A
+fixture construída aqui é reaproveitada inteira por ele.
