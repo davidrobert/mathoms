@@ -5,7 +5,7 @@ title: "Limite PGBL tem um produtor, e a prescrição exige evidência declarada
 status: Decidido
 phase: A40
 date: "2026-08-11"
-amended_at: ["2026-08-11", "2026-08-13", "2026-08-14", "2026-08-15", "2026-08-17"]
+amended_at: ["2026-08-11", "2026-08-13", "2026-08-14", "2026-08-15", "2026-08-17", "2026-08-24"]
 relates_to:
   - "[[ADR-236]]"
   - "[[ADR-135]]"
@@ -26,6 +26,25 @@ tags:
 ---
 
 # ADR-375 — Limite PGBL tem um produtor, e a prescrição exige evidência declarada
+
+> ### Emenda 2026-08-24 — o D5 deixa de ser afirmação e passa a rodar
+>
+> O §D5 afirma que a economia diferencial **encerra** o `limite × alíquota
+> marginal`. Medido no ataque à [[A40.l64]] (2026-08-24): o instrumento encerrado
+> continuava sendo o único que rodava — não existia `IR(base, ano)` no domínio, e
+> `previdencia_analyzer._economia` fazia `restante × marginal`. A ADR descrevia
+> como feito algo que nunca foi implementado.
+>
+> Agora existe: `irpf_faixa_marginal.ir_devido_anual` (a tabela aplicada, com a
+> parcela a deduzir que já vivia em `IRPFBracket`) e
+> `pgbl_economia_ir.economia_diferencial`. **O contrato nunca faltou** — faltava a
+> função. Sem tabela configurada (dict legado pré-A7.2b) a degradação para
+> `restante × aliquota_fallback` permanece, declarada.
+>
+> Consequência que o D5 previa e agora se observa: base isenta devolve **zero**, e
+> zero é fato publicado sem motivo de ausência (invariante da [[ADR-402]]) — não
+> silêncio. O redutor da Lei 15.270/2025 e o IRPFM seguem fora ([[A40.l64]]
+> PR3/PR4), e é por isso que AC2026 continua retido por `regime_completo: false`.
 
 > ### Emenda 2026-08-14 — requisito previdenciário deixa de ser absoluto
 >

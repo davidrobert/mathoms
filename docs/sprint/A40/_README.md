@@ -252,7 +252,7 @@ promoção a `current`.
 >
 > Registrado aqui porque a nota de 2026-08-11 acima termina em *"o contador de 2
 > re-runs consecutivos pode iniciar"* e, lida sozinha, sugere que ele iniciou.
-## Lanes (76 no disco · 76 nesta tabela — ver nota ao fim)
+## Lanes (77 no disco · 77 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -371,6 +371,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l75]] | O gate de drift do MSW existe, está fora do CI e compara errado: a [[ADR-069]] afirma uma proteção que nunca rodou | P2 | — | aberta 2026-08-21 · achado da camada 2 do `lane-closeout` no fecho do #1618 (que declarou 129 requests órfãs do MSW em 7 arquivos) · `msw-lint.mjs` existe desde 2026-04-22, **fora do CI**, e contra o snapshot commitado devolve 219/219 + 75/75 — 100% falso-positivo, porque `normalizeUrl` não remove o prefixo `${API}` que o próprio comentário promete remover · 3 defaults pré-escopo de workspace sobrevivem em `handlers.ts` |
 | [[A40.l76]] | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | P1 | — | aberta 2026-08-21 · `document_id` NULL em **16.292/16.292** (re-medido) · [[ADR-408]] `Proposto` (#1607) decide o fix em co-design `data-engineer` + `senior-cto`; [[ADR-311]] emendada com o alcance real do D1 · gate da lacuna já em `main` (#1600, `xfail(strict=True)` que se auto-remove quando a FK popular) · 4 peças em ordem dura: guard de colisão → FK por porta → backfill → predicado |
 | [[A40.l77]] | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | P0 | — | aberta 2026-08-24 (#1643) · DE-10 do r7, único P0 do inventário **sem destino** · precede o DE-7 por denominador · entrou nesta tabela em 2026-08-24 pelo closeout da [[A40.l59]], que mediu a lacuna |
+| [[A40.l79]] | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | P1 | — | aberta 2026-08-24 no ataque às l64/l65 (#1659) · medido: 2027 levanta `FiscalParameterNotFound`, o `except Exception` cai no dict legado e `regime_completo` defaulta `True` ⇒ R$ 630,00 de economia inexistente no caso do §Critério 1 da [[A40.l64]] · o golden não pega porque `fiscal_store_do_seed` tem clamp que a produção não tem |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).

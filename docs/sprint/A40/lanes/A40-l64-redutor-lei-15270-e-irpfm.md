@@ -55,7 +55,7 @@ tags:
 > | PR | O quê | Estado |
 > |---|---|---|
 > | **PR1** | A recusa vira real: `regime_completo=false` retém `economia_ir_anual` e `aporte_mensal`, com motivo que cita a lei e o ano | ✅ **entregue 2026-08-17** — fecha o §Critério de aceite 1 |
-> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ⬜ |
+> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ✅ **entregue 2026-08-24** (#1672) |
 > | **PR3** | Contrato tipado do redutor (bandas, coeficientes, vigência) + ADR própria | ⬜ |
 > | **PR4** | IRPFM — confirmar base e abatimentos no texto da lei **antes** de implementar (§Escopo 2) | ⬜ |
 >
@@ -267,6 +267,39 @@ A [[A40.l56]] entrega o desbloqueio do D5 **qualificado**: liberado para
 - Caso acima de R$ 600k exercita o IRPFM e não publica economia que o mínimo
   absorve.
 - `regime_completo` de AC2026 vira `true` só quando os dois componentes existem.
+
+## Deferimento datado — 2026-08-24: PR3 e PR4 exigem o texto da norma
+
+O **PR2 fechou** (a economia é diferencial de fato). O que resta desta lane não é
+trabalho de engenharia parado por capacidade: é trabalho **parado por leitura de
+norma**, e registrá-lo assim é o que impede que alguém o pegue e invente número.
+
+**O que falta ler**, nesta ordem:
+
+1. **O piso da banda anual do redutor.** A tabela do §Problema desta lane não
+   fecha consigo mesma: `8.429,73 − 0,095575 × 60.000` = **R$ 2.695,23**, e o teto
+   declarado na mesma linha é **R$ 2.694,15** — R$ 1,08 de diferença exatamente na
+   borda em que o contrato tipado do §Escopo 1 precisa ser contínuo. A banda mensal
+   fecha a R$ 0,005 (`978,62 − 0,133145 × 5.000` = 312,895 vs. teto 312,89), então
+   o defeito é só do lado anual. Não dá para tipar o contrato sem decidir qual dos
+   dois números a norma diz.
+2. **Base e abatimentos do IRPFM** (§Escopo 2) — a própria lane já exigia
+   confirmar no texto da lei **antes** de implementar.
+
+**Dono deste deferimento:** owner-gated, registrado em
+[`OWNER-GATED-active.md`](../../../_MOC/OWNER-GATED-active.md). **Condição de
+retomada:** alguém com acesso ao DOU ler a Lei 15.270/2025 e carimbar (a) o piso
+da banda anual do redutor e (b) a composição da base do IRPFM. Com esses dois
+números, PR3 e PR4 são execução direta — o seam já existe:
+`pgbl_economia_ir.economia_diferencial` (#1672) é onde o redutor compõe, porque sendo
+função do rendimento **bruto** ele não se move com o aporte e entra dos dois lados
+da diferença.
+
+**Enquanto não acontecer, nada regride:** a row AC2026 nasce
+`regime_completo: false`, o card retém `economia_ir_anual` e `aporte_mensal` com
+motivo que cita a lei e o ano, e o §Critério 3 segue aberto por construção. O
+risco que **não** é coberto por este deferimento é o da [[A40.l79]] — a recusa
+desarma sozinha em 2027-01-01, e isso vale mesmo que esta lane nunca feche.
 
 ## Fora de escopo
 
