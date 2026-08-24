@@ -7,6 +7,7 @@ plan: PLAN-report-trust
 status: shipped
 priority: P1
 ship_pr: 1671
+ship_date: "2026-08-24"
 branch_slug: a40-l63-conversao-me-brl-sem-proveniencia
 owner: data-engineer
 adrs:
@@ -420,3 +421,52 @@ pytest tests                        7399 passed
 pytest backend/tests                3611 passed
 pre-commit code-style-baseline      sem regressão P1/P2/P7/P9
 ```
+
+## Correção do closeout (2026-08-24) — o §7 do meu ataque foi medido na árvore errada
+
+> O §Ataque e o §Fecho ficam **como escritos**. Esta seção corrige um número
+> que publiquei falso, na forma que a própria lane pratica: acrescentar, nunca
+> reescrever snapshot datado.
+
+**O erro.** As probes do §4 e do §7 rodaram com
+`sys.path.insert(0, "<repo>/mathoms.ai")` — o **repo principal**, não este
+worktree. Aquela árvore estava em `agent/r7-priorizacao-decidida/20260819-0936`
+(`e442dbad`, **2026-08-19**), e o [#1568](https://github.com/davidrobert/mathoms/pull/1568)
+([[ADR-403]], componentes + cobertura da exposição cambial) mergeou em
+**2026-08-21**. `grep -c "componentes|Cobertura"` naquela árvore: **0**. Medi
+contra um estado dois dias velho e chamei de `main`.
+
+**O que sobrevive à re-medição** (worktree em `main`, `b96cf3ca`):
+
+| afirmação do §7 | re-medido |
+| --- | --- |
+| `por_moeda: ()` — a linha some | **confirmado** |
+| `tier: "empty"` | **falso** — é `indeterminado` |
+| *"a família lê «sem exposição cambial»"* | **exagerado** — `indeterminado` é exatamente a abstenção que a [[ADR-403]] construiu |
+
+**O defeito real é outro, e mais afiado.**
+`exposicao_cambial_analyzer._componentes` fixa a cobertura por constante:
+
+```python
+"caixa_fx": ComponenteExposicao(caixa, Cobertura.apurado),
+```
+
+Ela nunca consulta `conversao.status`. Medido com carteira apurada e uma linha
+GBP de £8.000 em `missing_rate`: `caixa_fx = {"valor_brl": 0.0, "cobertura":
+"apurado"}` — o componente **declara ter apurado** um caixa cambial que
+descartou a única posição que tinha. Com USD ao lado, idem: `5800.0` e
+`apurado`, com a GBP invisível. A [[ADR-403]] construiu o mecanismo que
+distingue "sem base" de "zero medido"; a linha `missing_rate` não o alimenta.
+
+O §4 **não muda**: re-medido em `main`, `exposicao_cambial.detalhes[0]` segue
+`{"moeda": "USD", "saldo_original": 250000.0, "valor_brl": 250000.0}` — BRL
+rotulado USD, câmbio implícito 1,00.
+
+**Nada disto reabre esta lane** — segue `shipped`, e nenhum dos dois toca a
+conversão. O que muda é o texto da rota na [[A40.l50]], corrigido no mesmo PR.
+
+**Lição de método, custou o achado:** em worktree, probe que faz
+`sys.path.insert` com caminho absoluto do repo principal mede a branch **daquele**
+worktree, não a sua. Use `sys.path.insert(0, ".")` e rode do worktree. Mesma
+família do que a [[A40.l58]] registrou ("a primeira passada usou a árvore do
+repo principal, que estava numa branch de agosto/19").

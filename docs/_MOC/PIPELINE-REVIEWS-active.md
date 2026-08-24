@@ -140,7 +140,7 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 | RV2-05 — CV16/CV17 (conservação `severity=error`, ADR-330/336) fora do gate `_CONSERVATION_CHECKS` (`validate_cross.py:479`); falha não pausa run | correção | Médio | P2 | procede (latente) | procede-aberto | owner: data-engineer/senior-cto · [[A42.l4]] (residual adotado; agravado por RV4-20) |
 | RV2-06 — money/pct string vs number no view-model E5 (`ratios.rentabilidade_pct` str vs `ratios.taxa_poupanca_recorrente_pct` float) | consistência | Médio | P2 | procede | procede-aberto | owner: data-engineer · re-teste RV05 (ADR-090) |
 | RV2-07 — PII como CHAVE de dict em `fluxo_caixa.por_fonte_detalhado` (label nominal vira key; instável + vaza) | consistência | Médio | P2 | procede | procede-aberto | owner: data-engineer · re-teste RV02 (fonte_id canônico) |
-| RV2-08 — `exposicao_cambial` conta só caixa ME, omite bucket Internacional da carteira (divergência de classificação; `asset_classifier` sem keyword) | solidez-financeira | Médio | P2 | procede | procede-aberto | owner: financial-planner/data-engineer · ADR-193 |
+| RV2-08 — `exposicao_cambial` conta só caixa ME, omite bucket Internacional da carteira (divergência de classificação; `asset_classifier` sem keyword) | solidez-financeira | Médio | P2 | procede | procede-aberto | owner: financial-planner/data-engineer · ADR-193 · **re-triagem pedida 2026-08-24** (closeout [[A40.l63]]): a premissa mudou com a [[ADR-403]] — o bucket **é** medido e publicado como componente próprio (`carteira_lastro_estrangeiro`, via `_sum_ativos_internacionais`), mas fica **fora de `total_brl`** por D1 (observacional em v1). "Omite" é falso quanto à medida e verdadeiro quanto ao total; qual dos dois o achado cobrava é decisão do dono, não minha |
 | RV2-09 — parecer `riscos[0]` rotula `reserva_emergencia.receita_pj_pct` (=PJ/(PJ+CLT)) como "% da receita" (base trocada) | qualidade-llm | Médio | P2 | procede | procede-aberto | owner: prompt-engineer · anotar escalar no exec-context |
 | RV2-10 — riscos citam % na prosa com `ancoras=[]` e escapam do `evidencia_verification` (só R$/$.path cobertos) | qualidade-llm | Médio | P2 | procede | procede-aberto | owner: prompt-engineer · re-teste RV07 (ampliado a %) |
 | RV2-11 — `_meta.evidencia_verification.item_index` out-of-range vs `riscos[]` (índice posicional stale pós enforce_strict_per_item) | qualidade-llm | Médio | P2 | procede | procede-aberto | owner: prompt-engineer · id estável por item |
@@ -681,7 +681,17 @@ null**, `motivo_ausencia.teto = "modelo_simplificado"`, `nota` **1111 → 521 ch
 concatenar dois motivos mutuamente exclusivos). Prova por mutação: 4 reversões, 4 quedas
 (teto→restante 12 falhas; precedência invertida 4; alíquota incondicional 1; nota concatenada 3).
 **Fica aberto:** o braço da **exposição cambial** (#1568) — verde e mergeável, não
-mergeado; a ADR dele entra junto. Precedente que ele reforça: RV2-08 foi declarado fechado 2× e reincidiu, e RV4-72
+mergeado; a ADR dele entra junto.
+
+> **Nota datada 2026-08-24 (closeout da [[A40.l63]]).** O "fica aberto" acima
+> venceu **no mesmo dia** em que foi escrito: o #1568 mergeou em 2026-08-21T15:53
+> (`6c546d7b`) e a [[ADR-403]] está `Decidido`. A linha de FP-5 na tabela deste
+> mesmo arquivo já o registra fechado citando esse SHA — o parágrafo e a tabela
+> se contradiziam. **Não há braço cambial pendente do FP-5.** O que segue aberto
+> na superfície de exposição é outro item, com dono: `caixa_fx` declara
+> `cobertura: apurado` sem consultar `conversao.status`, então linha em
+> `missing_rate` sai do total com o componente ainda dizendo que apurou —
+> registrado na [[A40.l50]] (`open`). Precedente que ele reforça: RV2-08 foi declarado fechado 2× e reincidiu, e RV4-72
 declarou `previdencia_pgbl` "correto" e reincidiu; os dois fechamentos foram **por inspeção**,
 não por gate — daí o teste parametrizado `PgblStatus × regime_completo` asserindo coocorrência
 campo↔nota.

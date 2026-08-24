@@ -278,14 +278,24 @@ exposição cambial e a l63 se limitava à conversão:
    *exposição* é o comportamento correto. O defeito é confinado a `detalhes[]`,
    a única sub-superfície que carrega `saldo_original`.
 
-2. **A linha `missing_rate` some do card em vez de aparecer como "sem
-   cotação".** GBP 8.000 sem cotação, medido ponta a ponta: `valor_brl: 0.0`
-   (não `null`), e `_sum_caixa_estrangeiro` descarta `valor <= 0` ⇒
-   `por_moeda: ()`, `tier: "empty"`. A família com £8.000 lê "sem exposição
-   cambial". O produtor acertou (não inventar BRL é o certo); **nenhum
-   consumidor foi ensinado o status novo**, então "desconhecido" renderiza como
-   "zero". As duas sub-superfícies do mesmo card discordam: `detalhes` tem a
-   linha, `por_moeda` não.
+2. **`caixa_fx` declara `apurado` sobre um caixa cambial que descartou posição.**
+   `_componentes` fixa a cobertura por constante —
+   `ComponenteExposicao(caixa, Cobertura.apurado)` — e **nunca consulta
+   `conversao.status`**. Medido em `main` (`b96cf3ca`), carteira apurada, uma
+   linha GBP de £8.000 em `missing_rate`: `caixa_fx = {"valor_brl": 0.0,
+   "cobertura": "apurado"}`. Com USD ao lado: `5800.0` + `apurado`, GBP
+   invisível. `_sum_caixa_estrangeiro` descarta `valor <= 0` e a linha some de
+   `por_moeda`, enquanto `detalhes` a mantém — as duas sub-superfícies do card
+   discordam. A [[ADR-403]] construiu exatamente o mecanismo que distingue "sem
+   base" de "zero medido"; **a linha `missing_rate` não o alimenta**.
+
+   > **Correção datada 2026-08-24.** A primeira redação deste item (PR #1671)
+   > dizia `tier: "empty"` e *"a família lê «sem exposição cambial»"*. Ambos
+   > falsos: aquela medição rodou contra a árvore do repo principal, em
+   > `agent/r7-priorizacao-decidida/20260819-0936` (**2026-08-19**), dois dias
+   > antes do #1568 mergear. Em `main` o `tier` é `indeterminado` — que é a
+   > abstenção correta, não uma asserção de ausência. Ver §Correção do closeout
+   > da [[A40.l63]].
 
 ## Abertos latentes
 
