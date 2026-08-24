@@ -252,6 +252,17 @@ Escopo do que foi re-homeado: flip de `schema_validation.mode` para `strict` nos
 critério **temporal** por construção, que nenhuma sessão fecha por esforço.
 A simetrização do contrato que o flip torna executável já shipou no #1529.
 
+> ⚠️ **Marcador de 2026-08-24 — a condição de retomada é inalcançável para 1 dos 2
+> schemas** (medido no §Ataque da [[A40.l58]], PR #1650). `baseline_patrimonial`
+> mede **100% de drift em 91/91 artefatos** do corpus: exige
+> `required: [pipeline_stage, data_processamento]` e o writer
+> (`scripts/consolidate_baseline.py:1003`) não estampa nenhum dos dois — quem
+> estampa é o `BaselineNormalizer`, na **leitura**, dentro do E4. "Drift = 0 por
+> ≥7 dias" não é critério temporal aqui: é **estrutural**, e só fecha depois de um
+> fix de contrato ou de produtor. `e15_baseline_extract` mede **0/66** e segue
+> elegível. O deferimento e o dono não mudam; o que muda é que o flip dos 2
+> schemas **não é um único passo**.
+
 ### Segue aberto
 
 - **Copy/banner do estado de ressalva** no relatório: 7a/7e no

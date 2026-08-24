@@ -30,7 +30,7 @@ Todos verificáveis; sem exceção informal.
 Verificação rápida:
 
 ```bash
-pytest backend/tests/test_db_artifact_store_schema_strict.py -q   # 5 passed
+pytest backend/tests/test_db_artifact_store_schema_strict.py -q   # 6 passed (2026-08-24)
 ```
 
 ### 1.2. Corpus golden verde em strict para o schema alvo
@@ -66,6 +66,23 @@ resolvidos **ou aceitos por escrito** na linha do §7:
   real-parse (faturas PDF com layout sintético dedicado; XLS binário via
   `xlwt` dev-dep). Para `e2_extract` e `e2_llm_artifact`, a pré-condição de
   corpus está integralmente fechada — o gate restante é só o baseline (§1.3).
+
+> ⚠️ **Correção de 2026-08-24 — o ✅ acima afirma cobertura sobre o corpus de
+> parsers, e o stage tem writer que não é parser.** Medido no §Ataque da
+> [[A40.l58]] (PR #1650): `e2_extract` drifta em **6/6 runs** da última janela,
+> 54 artefatos, sempre `required $.banco` + `$.moeda`. A causa não é vocabulário
+> — é `generate_llm_fallback` (`scripts/extract_bank_documents.py:101`), que
+> persiste um stub sem `banco`/`moeda` sob `extract_statements`/`extract_invoices`
+> quando nenhum parser reconhece o documento. Mesma classe da [[ADR-407]] (stage
+> polimórfico com mapa 1:1 para schema).
+>
+> **O corpus 22/22 não o alcança por construção:**
+> `tests/test_e2_schema_strict_corpus.py:353` enumera `registry._ALL_PARSERS`, e o
+> `:363` **rejeita o shape por asserção** (`assert ... not
+> result.get("requires_llm_fallback")`). Flipar `e2_extract` hoje aborta o write
+> exatamente dos documentos que o parser não soube ler — o run morre em E2
+> **antes** de o fallback LLM existir. Pré-condição de corpus de `e2_extract`:
+> **reaberta**. Mudança de pré-condição revisa com `data-engineer` (§Owner).
 
 ### 1.3. Baseline de 7 dias zero-WARN para o schema alvo
 
@@ -145,7 +162,21 @@ Janela de observação: **48h ou ≥10 runs** (o que vier depois).
 em workspace que não tinha WARN no baseline.
 
 1. Revert do PR de config (a linha do `mode_overrides`) — `gh pr revert` ou
-   PR manual de 1 linha. Deploy de config. RTO ~minutos.
+   PR manual de 1 linha. Deploy de config **+ restart do worker** (ver correção
+   abaixo). RTO ~minutos.
+
+> ⚠️ **Correção de 2026-08-24 — sem restart, este rollback é inerte.** Medido no
+> §Ataque da [[A40.l58]] (PR #1650): `load_json_config` cacheia `pipeline.json` em
+> `_config_cache` (`scripts/pipeline_common.py:146`), então **reverter
+> `mode_overrides` no disco não muda o modo efetivo do processo que está
+> rodando** — segue `strict`, e o incidente continua. Só a limpeza do cache
+> (≡ restart do worker) aplica o revert.
+>
+> O lever alternativo `MATHOMS_PIPELINE_SCHEMA_MODE=warn` **funciona**, e é
+> **global**: medido com 2 schemas em `mode_overrides`, a env derruba o strict dos
+> dois. Enquanto houver 1 schema promovido os dois levers são equivalentes; do 2º
+> em diante ele despromove tudo em silêncio. Escolha do lever é decisão da ADR da
+> [[A40.l58]] — até lá, **nenhum dos dois é quente**.
 2. O artefato rejeitado **não foi escrito** — não há dado a reparar. O run
    falhado retoma via UI (resume de stage) após o revert.
 3. Abra issue com o `validation_path` rejeitado e workspace; o drift volta a
