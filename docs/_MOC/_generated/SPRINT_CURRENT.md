@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-18 open · 6 in_progress.
+open · in_progress.
 
-## Open (18)
+## Open
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
@@ -28,7 +28,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l76]] — A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia · priority P1 · área pipeline/db · branch `a40-l76-proveniencia-de-artefato-e2`
 - [[A40.l77]] — Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload · priority P0 · área pipeline/financial-planning · branch `a40-l77-dois-resolvers-de-membro`
 
-## In progress (6)
+## In progress
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · área frontend/design-system/a11y · branch `a40-l33-contraste-texto-sobre-tint`

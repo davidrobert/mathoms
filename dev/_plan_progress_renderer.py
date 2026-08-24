@@ -88,20 +88,19 @@ def _format_adrs_canonical(plan: PlanLike) -> str:
     return ", ".join(str(a) for a in raw)
 
 
+# Sem contagem: o número é função de TODAS as lanes do plano, então dois PRs que mexem
+# em lanes distintas colidem nesta linha — e quando os dois incrementam o mesmo status, o
+# merge sai limpo e MENTE (lost update). Os status presentes carregam o sinal editorial
+# ("este plano tem lane bloqueada?") sem virar ponto de contenção (A40.l59, 2026-08-24).
 def _format_lanes_line(plan_lanes: list[LaneLike]) -> str:
-    """Frase resumo das lanes do plano."""
+    """Status de lane presentes no plano, na ordem canônica — sem contagem."""
     if not plan_lanes:
         return "_(sem lanes vinculadas por `plan:`)_"
     counts = _count_lanes_by_status(plan_lanes)
-    parts = [
-        f"{counts['done']} done",
-        f"{counts['in_progress']} in_progress",
-        f"{counts['open']} open",
-        f"{counts['blocked']} blocked",
-    ]
+    parts = [name for name in ("done", "in_progress", "open", "blocked") if counts[name]]
     if counts["other"]:
-        parts.append(f"{counts['other']} outras")
-    return " · ".join(parts)
+        parts.append("outras")
+    return " · ".join(parts) if parts else "_(sem lanes vinculadas por `plan:`)_"
 
 
 def _format_pause_metadata(plan: PlanLike) -> str | None:
@@ -138,9 +137,8 @@ def _ordered_present_statuses(plans: list[PlanLike]) -> list[str]:
 
 
 def _plan_count_line(plans: list[PlanLike]) -> str:
-    """Linha 'N planos detectados em docs/plan/.' (ou singular)."""
-    noun = "plano detectado" if len(plans) == 1 else "planos detectados"
-    return f"{len(plans)} {noun} em [`docs/plan/`](../../plan/)."
+    """Ponteiro para `docs/plan/` — sem contagem, pela mesma razão de `_format_lanes_line`."""
+    return "Planos detectados em [`docs/plan/`](../../plan/)."
 
 
 def _f4_pending_note(lanes: list[LaneLike]) -> str | None:
