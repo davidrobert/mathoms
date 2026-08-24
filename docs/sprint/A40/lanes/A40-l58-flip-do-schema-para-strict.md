@@ -442,10 +442,7 @@ elegíveis.
 2. **`e2_extract`: contrato do stub de fallback** (classe [[ADR-407]]) — o `tipo`
    já é discriminador declarado.
 3. ~~**Runbook de incidente**~~ — ✅ 2026-08-24, §8 do runbook (ver §Passo 3).
-4. **§Escopo 4 — flip órfão:** a suíte de `tests/` roda em `warn` hoje; só o passo
-   `Pipeline JSON schema strict` do CI roda strict, e sobre **1 arquivo**. O
-   `nightly` que rodava o outro está `disabled_manually`. Medir o custo de virar a
-   suíte inteira antes de decidir.
+4. ~~**§Escopo 4 — flip órfão**~~ — ✅ 2026-08-24, ver §Passo 4 abaixo.
 5. **O flip em si** — gated no que a lane não controla: precisa de runs. Último do
    corpus é 2026-08-18.
 
@@ -507,3 +504,55 @@ Consequência se tivéssemos flipado antes: o primeiro incidente real apareceria
 card de `/admin/metrics` como defeito de código, e o on-call filtraria pela classe
 errada. Runs anteriores a 2026-08-24 têm o `reason_class` errado gravado — o §8.1
 avisa para não confiar nele em triagem retroativa.
+
+### Passo 4 (2026-08-24) — o flip órfão fecha em `tests/`, e o backend fica de fora com razão medida
+
+`tests/conftest.py` passa a fazer
+`os.environ.setdefault("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")`. `setdefault` de
+propósito: quem quiser reproduzir produção roda com `=warn` e vence a linha.
+
+**A decisão veio da medição, não do escopo escrito.** Rodei a suíte nos dois modos
+antes de tocar em nada:
+
+| | resultado |
+| --- | --- |
+| `tests/` em `warn` (como o CI rodava) | 7391 passed, 38 skipped |
+| `tests/` em `strict` | **7391 passed, 38 skipped** |
+
+Custo zero hoje. O ganho é **prospectivo**, e eu o quantifiquei instrumentando
+`validate_dict` durante um run inteiro: **23 chamadas por run rodavam em `warn`
+vindas do config** — 23 pontos onde um payload em drift passaria calado. Com a chave
+virada, viram falha.
+
+> Isto **refuta** a nota que eu carregava de agosto (*"em strict a contagem sobe,
+> 6238 → 6272"*). Era verdade em 2026-08-11; os contadores convergiram desde então.
+> Contagem lembrada não substitui contagem medida.
+
+**Tripwire:** `tests/test_suite_valida_em_strict.py` — prova a env, o **modo efetivo**
+(que é o que o hook de write consulta, não a env em si) e o **efeito** (payload
+inválido devolve `False`, não `True`). Removida a linha do conftest, os 3 caem.
+
+**Passo de CI removido:** `Pipeline JSON schema strict (MATHOMS_PIPELINE_SCHEMA_MODE)`
+rodava `tests/test_schema_validation.py` em strict — agora é o mesmo arquivo, no mesmo
+modo, duas vezes. O passo irmão em `nightly.yml` fica: o workflow está
+`disabled_manually`, e mexer nele seria editar código morto.
+
+#### Por que `backend/tests` NÃO entra — medido, não presumido
+
+`backend/tests` **quebra** em strict: **42 failed / 169** só na superfície de schema
+(`-k "schema or artifact_store or pipeline_task or failure_reason"`). A classe é
+legítima e não é drift:
+
+```python
+store.write("E5", "analise", {"v": 1})   # test_db_artifact_store_retention.py:124
+```
+
+São payloads **sintéticos deliberados**, de testes sobre mecânica de storage
+(retenção, overwrite, escopo por workspace) que não têm relação com o contrato do E5.
+Torná-los schema-válidos exigiria construir payload E5 completo em teste de retenção —
+ruído, e acoplaria retenção ao contrato do E5.
+
+⇒ A fronteira do flip é **onde produtor real é exercitado**: `tests/` sim (o golden de
+execução roda o produtor ponta a ponta), `backend/tests` não. Quem for "completar" o
+trabalho virando o backend vai gastar um dia nessas 42 — está medido aqui para não
+gastar.
