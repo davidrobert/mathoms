@@ -368,3 +368,60 @@ Tudo acima é **desta lane** — ela é dona do critério 4 da [[ADR-337]] e seg
    `endereco_canonical: "Imóvel locado"` por `"exemplo 100"` e ajustar a última
    asserção para `getAllByText("exemplo 100")` — 15/15 verdes.
 3. `rg -c scan_view_model_pii .pre-commit-config.yaml .github/ dev/ scripts/ backend/` — zero.
+
+## Fecho — 2026-08-24
+
+Os dois termos abertos da KR-D estão entregues, e o §Ataque foi respondido item
+a item. **O que sobra está declarado abaixo, com dono, e não é da l6.**
+
+### KR-D — os dois termos
+
+**1. O gate tem chamador — três, e nenhum é o próprio teste.**
+
+| chamador | o que cobre |
+| --- | --- |
+| `tests/test_real_estate_metrics_payload.py` | o payload que `result_to_payload` PRODUZ |
+| `tests/utils/lint_no_real_pii.py` | as fixtures commitadas (2 waivers queimados) |
+| `reports/pii-cartorial.@critical.spec.ts` | o que a tela e o PDF RENDERIZAM |
+
+Mutação medida: restaurar o comportamento do #1569 (canonical cru + CNPJ no
+payload) derruba 4 testes, e o gate cita
+`real_estate.imoveis[1].imobiliaria_cnpj: IDENTIFICADOR` sem imprimir o valor.
+
+**2. A verificação renderizada existe e mede as duas superfícies.** Mutação:
+fazer o card voltar a ler `endereco_canonical` deixa DOM **e** PDF vermelhos,
+pegando `exemplo 100` — a grafia normalizada a que o teste antigo era cego.
+
+### Resposta ao §Ataque
+
+| item | desfecho |
+| --- | --- |
+| A1 · PII migrou para campo não-varrido | **fechado** — gate varre toda string; `endereco_display` só publica o que passa nele |
+| A2 · emenda contradizia a decisão 2 | **fechado** — [[ADR-337]] §Emenda 2026-08-24 (`amended_at`) |
+| A3 · dois testes afirmavam o oposto | **fechado** — o canonical minimizado é exceção escrita e escopada; a descrição crua segue redigida |
+| A4 · asserção verde com endereço na tela | **fechado** — fixtures derivadas do produtor; teste assere as duas grafias |
+| A5 · fixtures do repo carregavam endereço+CEP | **fechado** — derivadas de `canonicalize`; lint estrito devolve 0 |
+| A6 · gate fechava grafia, não classe | **fechado** — `MATR.`, `R.`, `(IPTU): x`, CPF sem máscara (mod-11) |
+| A7 · prova de mutação não mutava o gate | **fechado** — `monkeypatch` no detector + 1 caso por regex |
+| A8 · spec especificada contra o DOM pré-#1569 | **fechado** — spec escrita contra o DOM de hoje |
+| A9 · §Escopo item 5 (`md`) | **fechado** — e mediu que o `sm` era load-bearing: a folha tem 703px, então `md:hidden` sozinho entrega o stack mobile ao PDF. Par correto é `md:hidden print:hidden`; o gate `hidden-md-on-paper` virou direcional |
+| A10 · RV3-27, perna de origem | **aberto — não é desta lane**, ver abaixo |
+| A11 · camada 2 | **fechado** — RV3-06 e RV3-27 estreitadas |
+
+### Achado novo, fora do §Ataque
+
+O lint público **já detectava** o endereço nas fixtures (`_endereco_findings` →
+True): ficava calado por **waiver** no `pii_lint_baseline.json`. A leitura "não
+havia gate" era meia-verdade — havia, e estava dispensado. Baseline 52 → 50.
+
+### Fica aberto, com dono nomeado
+
+- **RV3-27, perna `data-engineer` (§Ataque A10).** A exibição fecha aqui (`0` ⇒
+  `—`); a **origem do zero** depende da [[ADR-385]] sair de `Proposto`. Esta
+  lane não a decide — decidir de passagem é o que o §Problema alerta.
+- **`descricao_sample` cru no console de config.**
+  `config/MarketValueSection.tsx:19` e `imoveis/financiamentos-review/page.tsx:35`
+  renderizam `p.descricao_sample ?? p.endereco_canonical`. É a **API de
+  properties**, superfície distinta do relatório (não exportável, não é o
+  artefato do §Problema) — mas é a mesma classe. Sem dono; candidata a lane
+  própria, não a alargamento silencioso desta.

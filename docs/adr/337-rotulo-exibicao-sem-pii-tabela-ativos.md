@@ -4,7 +4,7 @@ type: adr
 title: "Rótulo de exibição sem PII para ativos — sanitização na fonte E5 (React + prompt)"
 status: Decidido
 date: "2026-07-15"
-amended_at: ["2026-08-19"]
+amended_at: ["2026-08-19", "2026-08-24"]
 relates_to:
   - "[[ADR-332]]"
   - "[[ADR-319]]"
@@ -113,3 +113,49 @@ em `real_estate.imoveis[]`, `excluded_properties[]` e
    (prova de mutação).
 4. Valor de imóvel `0` no card é ausência (`—`), não "o bem vale zero"
    ([[ADR-356]] D7). O `s1` omite a parcela de residência quando o valor é 0.
+
+## Emenda 2026-08-24 — o item 2 contradizia a decisão 2, e o gate era cego (A40.l6)
+
+> **Sinal:** a emenda de 2026-08-19 foi medida no §Ataque da [[A40.l6]] e dois
+> dos seus quatro itens estavam errados. Esta emenda os corrige; os itens 1 e 4
+> seguem válidos como escritos.
+
+**O que a medição mostrou.** `endereco_canonical` não é rótulo curado: é
+`canonicalize(descricao)`, uma cascata que devolve `mat:<matrícula>`,
+`qa:<código>` ou `iptu:<inscrição>` quando a descrição não tem logradouro. O
+item 2 da emenda anterior, portanto, **autorizava exibir matrícula como rótulo
+do imóvel** — exatamente o que a decisão 2 do corpo proíbe. E o item 3 fixava o
+gate numa allowlist de chave (`descricao`/`detalhe`), que não alcança o campo
+que a UI passou a renderizar: a mesma string dá 4 hits em `descricao` e **0** em
+`endereco_canonical`.
+
+**O que esta emenda decide:**
+
+1. **O predicado do gate é o VALOR, não o nome do campo.**
+   `scan_view_model_pii` varre **toda string** do payload. Allowlist de chave
+   não sobrevive a mudança de render, e foi assim que a PII atravessou. Custo
+   medido: 631 strings nas 6 fixtures de relatório, 2 hits, zero
+   falso-positivo.
+2. **A UI lê `endereco_display`**, campo que o E5 publica **apenas** quando o
+   valor passa no próprio gate. Cascata cartorial (`mat:`/`iptu:`/`qa:`) e
+   qualquer resto com PII ⇒ `null` ⇒ o card cai para o rótulo de classe.
+   `endereco_canonical` **não viaja** no payload do relatório.
+3. **Endereço próprio da família, na forma minimizada, é exceção escrita e
+   escopada.** A decisão 1 do corpo ("imóvel → classe apenas") vale para
+   `top_ativos[].nome`, cujo consumidor é o prompt do parecer. O card de
+   imóveis não é lido por LLM nenhum (medido: `parecer_planejador.yaml` não
+   referencia `real_estate`), e a família precisa reconhecer a própria linha na
+   tabela. O que **nunca** é publicado é identidade-para-transacionar —
+   matrícula, inscrição municipal, CPF/CNPJ de terceiro; `imobiliaria_cnpj` sai
+   do payload, seguindo o padrão que `extract_informe_aluguel` já usa
+   (`imobiliaria_cnpj_present: bool`).
+4. **Redação também na LEITURA.** `get_report_data` redige o payload servido.
+   Redigir só no produtor deixa exposto todo artefato **já gravado**, e o
+   relatório re-renderiza artefato armazenado. Escrita e leitura usam a mesma
+   função — duas definições de PII divergiriam.
+5. **A prova de mutação muta o gate.** A anterior passava `keys=frozenset()`,
+   isto é, mutava o argumento do chamador sem exercitar regex nenhuma. E o
+   gate ganhou chamador: o payload de `result_to_payload` em `tests/`, o lint
+   público sobre as fixtures commitadas (com os 2 waivers de endereço
+   queimados) e a spec renderizada `reports/pii-cartorial.@critical.spec.ts`,
+   que assere ausência no DOM **e** na camada de texto do PDF.
