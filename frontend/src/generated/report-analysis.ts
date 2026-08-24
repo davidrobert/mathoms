@@ -11,7 +11,7 @@ export type componente_exposicao_cambial = {
 export type ConversaoMe = {
   "taxa"?: string | null;
   "taxa_data"?: string | null;
-  "taxa_fonte"?: string | null;
+  "taxa_fonte"?: "ptax_31_12" | "market_rate_corrente" | "default_hardcoded" | "irpf_ja_em_brl" | null;
   "status": "converted" | "identity" | "missing_rate";
 };
 

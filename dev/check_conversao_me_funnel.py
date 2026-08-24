@@ -74,6 +74,16 @@ def _enclosing_function(stack: list[ast.AST]) -> str:
     return "<module>"
 
 
+def _multiplies_by_rate(node: ast.AST) -> bool:
+    """`x * cambio` e `x *= cambio` — a segunda forma escapava por não ser BinOp,
+    e `+=`/`*=` é o idioma dominante da própria função que este gate protege."""
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mult):
+        return _is_rate_expr(node.left) or _is_rate_expr(node.right)
+    if isinstance(node, ast.AugAssign) and isinstance(node.op, ast.Mult):
+        return _is_rate_expr(node.value)
+    return False
+
+
 def _scan_file(path: Path) -> list[tuple[int, str]]:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     hits: list[tuple[int, str]] = []
@@ -82,14 +92,8 @@ def _scan_file(path: Path) -> list[tuple[int, str]]:
     class Visitor(ast.NodeVisitor):
         def generic_visit(self, node: ast.AST) -> None:
             stack.append(node)
-            if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mult):
-                if _is_rate_expr(node.left) or _is_rate_expr(node.right):
-                    hits.append((node.lineno, _enclosing_function(stack)))
-            # `valor_brl *= cambio` não é BinOp — e `+=`/`*=` é o idioma
-            # dominante da própria função que este gate protege.
-            if isinstance(node, ast.AugAssign) and isinstance(node.op, ast.Mult):
-                if _is_rate_expr(node.value):
-                    hits.append((node.lineno, _enclosing_function(stack)))
+            if _multiplies_by_rate(node):
+                hits.append((node.lineno, _enclosing_function(stack)))
             super().generic_visit(node)
             stack.pop()
 

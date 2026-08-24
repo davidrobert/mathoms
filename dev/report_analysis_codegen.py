@@ -24,7 +24,13 @@ _SUPPORTED_KEYS = {
     "description",
     "enum",
     "exclusiveMinimum",
+    "else",
     "format",
+    # `if`/`then`/`else` restringem *quais instâncias* são válidas, não *quais
+    # campos existem* — o tipo TS emitido é a união de todas as formas válidas,
+    # que é exatamente a forma incondicional. Validação-only: o renderer os
+    # ignora de propósito (A40.l63 · ADR-390 D1).
+    "if",
     "items",
     "maxItems",
     "maximum",
@@ -35,6 +41,7 @@ _SUPPORTED_KEYS = {
     "pattern",
     "patternProperties",
     "prefixItems",
+    "then",
     "properties",
     "required",
     "title",

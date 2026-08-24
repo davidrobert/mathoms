@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from decimal import Decimal
+from pathlib import Path
+
+import pytest
+from jsonschema import Draft202012Validator
 
 from pipeline.domain.services.conversao_me import (
     FxQuote,
@@ -12,6 +17,7 @@ from pipeline.domain.services.conversao_me import (
     convert_me_brl,
     from_informe_entry,
     identity_already_brl,
+    identity_native_brl,
     missing_rate,
     resolve_fx_input,
     warn_hardcoded,
@@ -99,3 +105,79 @@ def test_warn_hardcoded_has_no_money_in_extra(caplog):
     assert record.n_linhas == 3
     assert not hasattr(record, "valor")
     assert not hasattr(record, "valor_brl")
+
+
+# =============================================================================
+# A40.l63 §Ataque §3 — o enum fechado vivia so na `description` do schema e no
+# `Literal` (hint, nao checado em runtime). `taxa_fonte="chute"` validava.
+# =============================================================================
+
+_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[3] / "config" / "schemas" / "e5_analysis.schema.json"
+)
+
+
+def _conversao_validator():
+    full = json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
+    schema = {"$defs": full["$defs"], **full["$defs"]["ConversaoMe"]}
+    return Draft202012Validator(schema)
+
+
+def _valid(instance: dict) -> bool:
+    return not list(_conversao_validator().iter_errors(instance))
+
+
+@pytest.mark.parametrize(
+    "taxa_fonte",
+    ["chute_do_agente", "", "MARKET_RATE_CORRENTE", "ptax", "market_rate"],
+)
+def test_taxa_fonte_fora_do_enum_reprova(taxa_fonte: str) -> None:
+    assert not _valid({"status": "converted", "taxa": "5.80", "taxa_fonte": taxa_fonte})
+
+
+def test_carimbo_nao_pode_se_contradizer() -> None:
+    # `converted` sem dizer de onde veio a taxa.
+    assert not _valid({"status": "converted", "taxa": "5.80", "taxa_fonte": None})
+    # `missing_rate` carregando taxa aplicada.
+    assert not _valid({"status": "missing_rate", "taxa": "5.80", "taxa_fonte": "ptax_31_12"})
+
+
+def test_informe_sem_taxa_divulgada_segue_valido() -> None:
+    """O emissor converteu e nao revelou a taxa — `converted` sem `taxa` e honesto."""
+    conv = from_informe_entry(
+        {"moeda": "USD", "saldo_original": 1000, "saldo_brl": 5480.0, "ptax_data": "2024-12-31"}
+    )
+    assert conv.status == "converted" and conv.taxa is None
+    assert _valid(conv.to_wire())
+
+
+def test_todo_produtor_real_valida_contra_o_schema() -> None:
+    """Se o enum novo reprovasse um produtor vivo, o gate seria falso-positivo."""
+    produtores = [
+        apply_fx(
+            1000,
+            "USD",
+            resolve_fx_input("USD", typed_usd=Decimal("5.42"), typed_eur=None, taxas={}),
+        ),
+        apply_fx(1000, "USD", resolve_fx_input("USD", typed_usd=None, typed_eur=None, taxas={})),
+        apply_fx(1000, "GBP", resolve_fx_input("GBP", typed_usd=None, typed_eur=None, taxas={})),
+        from_informe_entry(
+            {
+                "moeda": "USD",
+                "saldo_original": 1000,
+                "saldo_brl": 5480.0,
+                "taxa_ptax_aplicada": 5.48,
+                "ptax_data": "2024-12-31",
+            }
+        ),
+        identity_already_brl(250000),
+        identity_native_brl(1000),
+    ]
+    assert {p.taxa_fonte for p in produtores} >= {
+        "market_rate_corrente",
+        "default_hardcoded",
+        "ptax_31_12",
+        "irpf_ja_em_brl",
+    }
+    for conv in produtores:
+        assert _valid(conv.to_wire()), conv
