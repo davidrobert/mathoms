@@ -177,3 +177,208 @@ repo mais gateia, reporta como `$` em vez de `$.apolices[].premio_total_brl`.
 Consequência para o critério desta lane: "drift pré-flip medido e citado" **não é
 satisfazível** para `e4_unified` no desenho atual. Ou o schema migra para despacho por
 discriminador ([[ADR-407]] D2), ou o E4 sai do escopo do flip com a razão declarada.
+
+## Ataque (2026-08-24) — o drift foi medido; três alvos do flip são inelegíveis por construção
+
+> Medido **antes do pickup**, com o código de `main` (`47c0988e`) contra o corpus
+> real (16.292 artefatos, `pipeline_artifacts`), em `MATHOMS_PIPELINE_SCHEMA_MODE=strict`,
+> usando a **mesma chave do gate** — `_count_drift_paths`/`_validation_paths` de
+> [`schema_drift_telemetry.py`](../../../../scripts/schema_drift_telemetry.py), não uma
+> reimplementação. Lane segue `open`; nada de código foi tocado.
+>
+> **Cuidado de método que muda o resultado:** a primeira passada usou a árvore do
+> repo principal, que estava numa branch de agosto/19 — pré-#1604. Ali
+> `extract_comprovantes_bens` ainda apontava para `crlv.schema.json` e o drift
+> saía 25 paths. Contra `main` de hoje o mapa é `comprovante_base.schema.json` e o
+> retrato é outro. Medição de flip precisa declarar **qual árvore** produziu o número.
+
+### §2 do runbook, executado — a janela de 7 dias que o §1.3 exige
+
+Último write do corpus: **2026-08-18**. Janela 2026-08-12..08-18, 6 runs, **1 workspace**.
+
+| schema | artef. | drift | runs c/ drift | veredito |
+| --- | ---: | ---: | ---: | --- |
+| `e2_extract` | 812 | 54 (6,7%) | 6/6 | **NO-GO** |
+| `comprovante_base` | 36 | 36 (100%) | 6/6 | NO-GO *(histórico — ver abaixo)* |
+| `baseline_patrimonial` | 6 | 6 (100%) | 6/6 | **NO-GO estrutural** |
+| `e4_unified` | 35 | 5 (14%) | 5/5 | NO-GO *(path `$`, indiagnosticável)* |
+| `e5_analysis` | 5 | 5 (100%) | 5/5 | NO-GO *(histórico — ver abaixo)* |
+| `e15_baseline_extract` | 66 | 0 | 0/6 | GO |
+| `e3_reconciled` | 555 | 0 | 0/5 | GO |
+| `e16_irpf_full` | 24 | 0 | 0/6 | GO |
+| `informe_base` | 30 | 0 | 0/6 | GO |
+| `informe_aluguel` | 18 | 0 | 0/6 | GO |
+| `e2_llm_artifact` | 2 | 0 | 0/1 | GO *(n=2 — não é evidência)* |
+
+O §Critério de aceite pedia *"o drift pré-flip está medido e citado (não
+'acreditamos que zero')"*. **Não é zero: 1.902 dos 16.158 artefatos mapeados
+(11,8%) violam o próprio schema.** Fora de `SCHEMA_BY_STAGE`, 134 artefatos
+(`extract_members`/`E1`, `review_finances_holistic`/`E6-parecer`) nunca são
+validados — o parecer tem schema em `config/schemas/` e não tem stage mapeado.
+
+### A1 — `baseline_patrimonial` não pode ser flipado, e é o alvo declarado da [[A40.l67]]
+
+**100% de drift em 91/91 artefatos do corpus inteiro**, incluindo o run mais
+recente. Causa medida, não inferida:
+
+[`baseline_patrimonial.schema.json:6`](../../../../config/schemas/baseline_patrimonial.schema.json)
+exige `required: ["pipeline_stage", "data_processamento"]`, com
+`pipeline_stage` travado em `const: "E1.5_Baseline_Patrimonial"` — nome de stage
+da era disco, que nem existe no vocabulário da [[ADR-093]]. O writer
+([`consolidate_baseline.py:1003`](../../../../scripts/consolidate_baseline.py)) não
+estampa nenhum dos dois. Quem estampa é o `BaselineNormalizer`, e ele roda **na
+leitura, dentro do E4**
+([`e4_categorizer_adapter.py:272`](../../../../pipeline/domain/services/e4_categorizer_adapter.py))
+— em memória, nunca reescrito no artefato.
+
+**É o mesmo defeito que a [[ADR-284]] §D removeu do `e2_extract`** — *"`required`
+exigia `pipeline_stage`, que **nenhum** writer estampa (vestígio da era disco;
+pós-[[ADR-212]] o stage é coluna do DB) — todo write E2 em prod geraria WARN de
+ruído"*. A ADR fechou a **instância** e deixou a **classe**: varri os 30 schemas
+de `config/schemas/`, e `baseline_patrimonial` é o único outro com o vestígio.
+
+Consequência dura para a coordenação declarada no §RV6-06 acima: o item 1e do
+[[PLAN-deterministic-authority]], materializado na [[A40.l67]], promete flipar
+`baseline_patrimonial` *"com drift medido por ≥7 dias de dogfood"*. **A baseline
+zero-WARN é inalcançável sem consertar antes o schema ou o produtor** — flipar
+aborta *todo* write de `consolidate_baseline`, ou seja, todo run, em E1.5c.
+
+E o irmão que a mesma lane carrega tem veredito **oposto**: `e15_baseline_extract`
+mede **0/66 na janela**. Os dois alvos de uma lane só, um elegível e outro
+estruturalmente inelegível, e nenhum dos dois medido até aqui.
+
+### A2 — o drift de `e2_extract` não é vocabulário: é um segundo produtor sob o mesmo stage
+
+O §1.2 do [runbook](../../../reference/runbooks/schema_validation_strict_flip.md)
+declara `e2_extract` com a pré-condição de corpus *"integralmente fechada — o gate
+restante é só o baseline (§1.3)"*. Medido: drift em **6/6 runs** da janela, 54
+artefatos, 9 `artifact_key` distintas, sempre os mesmos dois paths — `required
+$.banco` e `$.moeda`.
+
+Os 9 payloads têm **um único shape**, e não é o de nenhum parser:
+
+```
+['arquivo_origem', 'nota', 'requires_llm_fallback', 'texto_extraido_preview', 'tipo', 'transacoes']
+```
+
+É o stub de
+[`generate_llm_fallback`](../../../../scripts/extract_bank_documents.py) (`:101`) —
+escrito quando o parser determinístico não reconhece o documento, com `tipo` em
+`{fatura_desconhecida, extrato_desconhecido}` e **sem `banco`, sem `moeda`**. Ele
+é persistido sob `extract_statements`/`extract_invoices`, logo validado contra o
+contrato dos parsers.
+
+**Isto é a terceira instância da classe da [[ADR-407]]** (stage polimórfico com
+mapa 1:1 para schema): a [[A40.l74]] fechou `crlv`×`apolice`, o §Aporte acima
+deixa `e4_unified` aberto, e ninguém nomeou o E2. É também a de **pior blast
+radius**: flipar `e2_extract` aborta o write exatamente dos documentos que o
+parser não soube ler — o run morre em E2 **antes** de o fallback LLM existir.
+
+O gate não podia ver isso. [`test_e2_schema_strict_corpus.py:353`](../../../../tests/test_e2_schema_strict_corpus.py)
+enumera `registry._ALL_PARSERS`, e o stub não é parser registrado; pior, o helper
+do corpus **rejeita o shape por asserção** (`:363`,
+`assert ... not result.get("requires_llm_fallback")`). O instrumento que o runbook
+cita como prova de fechamento **exclui o caso que falha em produção, por
+construção** — e o `22/22` continua verde.
+
+### A3 — o rollback canônico do runbook é inerte no worker que está rodando
+
+`load_json_config` **cacheia** `pipeline.json` em `_config_cache`
+([`pipeline_common.py:146`](../../../../scripts/pipeline_common.py)). Medido, no
+mesmo processo:
+
+| passo | modo efetivo |
+| --- | --- |
+| repo como está | `warn` |
+| `mode_overrides={"e2_extract.schema.json":"strict"}` gravado no disco | **`warn`** |
+| idem, após limpar o cache (≡ restart do worker) | `strict` |
+| **revert da linha no disco** (= §5 do runbook) | **`strict`** ← o rollback não aconteceu |
+| idem, após restart | `warn` |
+
+O §5 diz *"revert do PR de config … Deploy de config. RTO ~minutos"* e **não
+manda reiniciar o worker**. Seguido à letra, o rollback não surte efeito e o
+incidente continua.
+
+O lever do §Escopo 3 desta lane (`MATHOMS_PIPELINE_SCHEMA_MODE=warn`) **funciona**
+— e é global: medido, com dois schemas em `mode_overrides`, a env derruba o strict
+**dos dois**. Enquanto houver 1 schema promovido os dois levers são equivalentes;
+a partir do 2º, o kill-switch da lane despromove silenciosamente tudo. A tensão
+que o §RV6-06 enquadrou como disputa de doutrina tem, portanto, um lastro
+mecânico medido: **hoje nenhum dos dois levers é quente**, e o que a ADR desta
+lane precisa decidir inclui *"reinicia o worker"* escrito no runbook.
+
+### A4 — a baseline de 7 dias não tem conteúdo estatístico, e agora está vazia
+
+O corpus inteiro tem **1 workspace**. Na janela, "n artefatos" é o mesmo documento
+repetido por run:
+
+| schema | artef. na janela | documentos distintos |
+| --- | ---: | ---: |
+| `baseline_patrimonial` | 6 | **1** |
+| `e5_analysis` | 5 | **1** |
+| `e2_llm_artifact` | 2 | **2** (1 run) |
+| `informe_aluguel` | 18 | 3 |
+| `e16_irpf_full` | 24 | 4 |
+| `informe_base` | 30 | 5 |
+| `e15_baseline_extract` | 66 | 11 |
+| `e3_reconciled` | 555 | 111 |
+
+Um "GO" daqui afirma *"o conjunto de documentos desta família não drifta"*, não
+*"nenhum cliente drifta"* — e o blast radius do flip é todo cliente. Para
+`e2_llm_artifact` (n=2, 1 run) o zero-WARN não é evidência de nada.
+
+Pior: a cadência é de ~2 runs/semana e **o último run foi em 2026-08-18 — seis
+dias sem nenhum**. O §Aporte da [[A40.l74]] declara o merge dela (2026-08-21) como
+*"dia 0"* da baseline de `crlv`/`apolice`; medido, esse dia 0 tem **zero runs
+dentro**. O §1.3 pede *"7 dias corridos **com pipeline ativo**"*.
+
+### O que a medição REFUTOU — não re-litigar
+
+Levantei estas hipóteses e elas **caíram**; ficam registradas para a próxima
+sessão não gastar a rodada de novo.
+
+- **A telemetria não é inerte.** Emiti um record real pelo `MathomsJsonFormatter`
+  de produção: o filtro `jq` do §2 casa, e `logger`, `schema_name`,
+  `validation_path`, `workspace_id`, `validator_keyword` e `occurrence_count`
+  sobrevivem. Nome de campo em `validation_path` (`…locatario_cpf_cnpj`,
+  `…valor_brl`) passa sem mascaramento — a denylist da [[ADR-273]] casa **chave**,
+  e é o que a [[ADR-284]] §B decidiu de propósito. `setup_logging()` é chamado no
+  worker Celery ([`worker.py:134`](../../../../backend/app/worker.py)).
+- **O enforcement strict é real:** `backend/tests/test_db_artifact_store_schema_strict.py`
+  → 6 passed (o §1.1 do runbook diz "5 passed" — envelheceu, não é defeito).
+- **O golden do E5 não é cego aos blocos que driftam.** Instrumentei
+  `validate_dict` durante `tests/test_e5_golden_execution.py`: os 4 payloads
+  carregam `gap_qualitativo` n=2, `escopo_cobertura` com as 4 chaves,
+  `fluxo_caixa.janelas` n=4, e `endividamento.dividas` n=1 em 2 deles — e passam em
+  strict. Logo o drift de `e5_analysis` no corpus é **histórico** (o schema andou
+  22 apertos em 180 dias; o último em 08-21, depois do último run), não lacuna de
+  produtor.
+- **`comprovante_base` 100% também é histórico, não fix inerte:** o produtor
+  estampa `tipo_comprovante`
+  ([`extract_comprovantes_bens.py:170,218`](../../../../pipeline/stages/extract_comprovantes_bens.py)).
+  Os 36 artefatos são pré-#1604 medidos contra o schema pós-#1604.
+- **Churn de schema NÃO torna a janela de 7 dias inalcançável.** Contei os commits
+  que *apertam* contrato (linha nova em `required` / `additionalProperties:false`)
+  em 180 dias: o maior intervalo sem aperto é de 23 a 116 dias por schema. O
+  gargalo é atividade de pipeline, não cadência de schema.
+- **A [[A40.l66]] estava certa sobre negativo em balde de ativo:** 3 ocorrências no
+  corpus inteiro (`$.imoveis_consolidados[].valores_31_12`, `minimum`), todas em
+  ≤2026-08-16, nenhuma depois do fix de 08-18.
+
+### Encaminhamento — o que muda no §Escopo desta lane
+
+Não decido pelo `sre-devops`; registro o que a medição obriga a endereçar.
+
+1. **O §Escopo 2 está satisfeito** (o drift está medido acima) e **derruba a
+   hipótese de zero**. A ADR desta lane cita esta seção ou remede.
+2. **Ordem dura:** `baseline_patrimonial` e `e2_extract` precisam de fix de
+   contrato/produtor **antes** de qualquer janela de baseline — hoje a janela deles
+   não pode fechar. Isso é pré-condição da [[A40.l67]], não desta lane.
+3. **O §Escopo 3 precisa de emenda:** o kill-switch por env é global e nenhum dos
+   dois levers é quente. Ou o runbook ganha "reiniciar o worker" no §5, ou
+   `pipeline.json` deixa de ser cacheado para esta chave.
+4. **O §1.2 do runbook precisa de correção datada** — o ✅ de `e2_extract` não
+   cobre `generate_llm_fallback`, e o gate 22/22 não pode alcançá-lo.
+5. **Elegíveis medidos hoje**, se e quando houver runs: `e3_reconciled` (111 docs,
+   0/555) e `e15_baseline_extract` (11 docs, 0/66) são os dois únicos com massa
+   para uma primeira promoção.
