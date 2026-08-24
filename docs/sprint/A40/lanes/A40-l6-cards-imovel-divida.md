@@ -47,12 +47,23 @@ a regra de copy (ausência ⇒ `—`).
 
 - UI exibe rótulo curto derivado (`endereco_canonical`), não `descricao` bruta.
   Descrição completa, se necessária, atrás de disclosure **com redação**.
+  > **Contradito pela medição — ver §Ataque A1/A2.** `endereco_canonical` não é
+  > rótulo curado: é `canonicalize(descricao)`, cuja cascata devolve
+  > `mat:<matrícula>` ou `iptu:<inscrição>` quando não há logradouro. O campo não
+  > é redigido nem varrido pelo gate.
 - Emenda [[ADR-337]]: criar o critério 4 — gate de PII sobre o view-model.
 - Alinhar o tipo ao contrato E5 (consequência da [[A40.l5]]).
 - Valor ausente ⇒ `—`, e **não** calcular derivados sobre base ausente.
 - Tabela → cards abaixo de `md` (descrição longa quebra a tabela em mobile).
+  > **Não entregue — ver §Ataque A9.** Os dois cards trocam em `sm`, não `md`; e
+  > a string longa migrou para `endereco_canonical`, que é a coluna da tabela.
 
 ## Critério de aceite
+
+> **Satisfazível com a PII na tela — ver §Ataque §Consequência.** Os três
+> critérios abaixo estão escritos contra o campo `descricao` e a grafia crua; a
+> PII exibida hoje está em `endereco_canonical`, na grafia normalizada. O
+> predicado precisa mudar de campo, não só de superfície.
 
 - KR-D: gate bloqueia fixture sintética com identificador de terceiro + matrícula +
   endereço no campo de descrição, citando o dot-path ofensor.
@@ -133,7 +144,8 @@ ferramenta mede ocupação, não progresso. O status segue `in_progress` com raz
 - [[ADR-337]] emendada (+29 linhas).
 - Testes de componente (`RealEstateYieldCard.test.tsx`, `imovelDisplay.test.ts`).
 
-**Aberto — são os dois termos da KR-D, e nenhum é cosmético:**
+**Aberto — são os dois termos da KR-D, e nenhum é cosmético** (o §Ataque
+2026-08-24 confirma os dois e acrescenta que fechá-los não fecha a KR-D — A1):
 
 1. **O gate não tem chamador.** `scan_view_model_pii`
    (`pipeline/observability/view_model_pii.py:61`) é chamado **só** pelo próprio
@@ -153,3 +165,206 @@ O §r7 registra isso do lado de fora como resíduo do RV7-05 — *"gate sobre pa
 real"*, *"baseline visual usa fixture sintética e não alcança"*. É o mesmo item,
 visto de duas atas. Roteamento em [`_README`](../_README.md) §Inventário dos achados
 do r7 sem hospedeiro.
+
+## Ataque — 2026-08-24
+
+Medido sobre `origin/main` (`1318ad18`) com PII **sintética** — os placeholders
+canônicos da [[ADR-319]] (`999.999`, `Rua Exemplo, 100`, `00000-000`,
+`123.456.789-09`). Zero DB, zero workspace real.
+
+**O que a §Nota datada acerta, reproduzido:** `scan_view_model_pii` tem **zero**
+chamadores fora do próprio teste (`.pre-commit-config.yaml`, `.github/`, `dev/`,
+`scripts/`, `backend/`, `pipeline/stages/` — nenhuma ocorrência); não há spec em
+`frontend/tests/e2e/` assertando ausência de PII. `redact_cartorial` está wired
+nos dois produtores e `RealEstateYieldCard.tsx:205` renderiza
+`imovelDisplayLabel(im)`.
+
+**O que a medição acrescenta: os dois itens abertos não são os únicos, e o gate
+não fecharia a KR-D mesmo com chamador.** O #1569 não removeu a PII da tela — ele
+a **trocou de campo**, e o campo novo é o que nem o redator nem o gate tocam.
+
+### A1 — a PII migrou para `endereco_canonical`, que não é redigido nem varrido
+
+`endereco_canonical` não é rótulo curado: é
+`canonicalize(descricao)` (`property_identity_enricher.py:50`) — uma **cascata**
+(`endereco_canonicalizer.py:174-179`) que, quando a descrição não tem
+logradouro+número, cai em `mat:<matrícula>`, `qa:<código>` ou
+`iptu:<inscrição>`. Medido:
+
+| descrição sintética | `endereco_canonical` resultante | `cartorial_pii_tipos` do canonical |
+| --- | --- | --- |
+| com logradouro | `exemplo 100` | `()` |
+| só matrícula | `mat:999999` | `()` |
+| só inscrição municipal | `iptu:9999999999` | `()` |
+| abreviado (`R.`/`MATR.`) | `exemplo 100` | `()` |
+
+O valor viaja intacto até a tela: `real_estate_adapter.py:200` →
+`real_estate_metrics_payload.py` (que redige **só** `descricao`, l.39 e l.77) →
+`imovelDisplay.ts:11` → `RealEstateYieldCard.tsx:205`. E
+`DESCRIPTION_KEYS = {"descricao","detalhe"}` (`view_model_pii.py:14`) **não
+inclui** `endereco_canonical`. A mesma string, medida nas duas chaves:
+
+```
+scan_view_model_pii(...imoveis[0].descricao)           -> 4 hit(s)
+scan_view_model_pii(...imoveis[0].endereco_canonical)  -> 0 hit(s)
+```
+
+⇒ A **matrícula** — um dos três itens que a KR-D manda bloquear — sai de um campo
+redigido e vira o **rótulo do imóvel**, num campo que o gate não olha. Wire o
+gate hoje e a KR-D fecha verde com `mat:999999` na tela.
+
+### A2 — a emenda da [[ADR-337]] autoriza o que a decisão 2 do corpo proíbe
+
+Corpo, decisão 2: *"**Nenhum** CPF/CNPJ/matrícula/IPTU/endereço de terceiro chega
+ao payload E5"*. Emenda 2026-08-19, item 2: *"A UI lê o rótulo curto
+(`endereco_canonical` ou classe)"*. Medido acima, `endereco_canonical` **é**
+matrícula ou inscrição municipal em dois dos quatro níveis da cascata — e
+`imoveis[].imobiliaria_cnpj` chega ao payload cru (o próprio
+`cartorial_pii_tipos` o classifica `IDENTIFICADOR` quando apontado nele). A
+emenda não emendou a decisão 2; ela abriu uma exceção sem dizer que abriu.
+
+### A3 — os dois testes do #1569 afirmam o oposto sobre a mesma string
+
+| arquivo:linha | asserção |
+| --- | --- |
+| `tests/unit/pipeline/test_view_model_pii.py:45` | `assert "Rua Exemplo" not in redacted` |
+| `frontend/tests/components/imovelDisplay.test.ts:9` | `.toBe("Rua Exemplo, 100")` |
+
+Mesmo PR. O lado Python trata `Rua Exemplo, 100` como PII que **precisa sumir**;
+o lado TypeScript trata a mesma string como o rótulo que **precisa aparecer**.
+Os dois verdes.
+
+### A4 — a asserção de PII do card fica verde com o logradouro na tela (mutação)
+
+`RealEstateYieldCard.test.tsx:215-244` sobrescreve
+`endereco_canonical: "Imóvel locado"` nos dois imóveis. Produção **nunca** emite
+esse valor: `CLASS_LABEL` só entra quando o canonical é vazio
+(`imovelDisplay.ts:11-13`). Mutação plausível — trocar pelo valor que
+`canonicalize()` emite para **aquela mesma descrição cartorial** (`exemplo 100`):
+
+```
+✓ expect(body.textContent).not.toContain("matrícula 999.999")   // verde
+✓ expect(body.textContent).not.toContain("Rua Exemplo, 100")    // verde
+✓ expect(body.textContent).toContain("exemplo 100")             // verde
+```
+
+Verde com logradouro **e** número no `body`. A causa não é o override: é que a
+asserção compara a grafia **crua** e o card renderiza a grafia **normalizada**
+que a cascata produz. Substring sobre a forma errada não vê a forma exibida.
+O instrumento é cego ao efeito **por construção**, não por descuido.
+
+### A5 — as fixtures e2e do próprio repo já carregam endereço + CEP no campo renderizado
+
+`frontend/tests/e2e/fixtures/reports/degraded.json` e `long-strings.json` trazem
+em `imoveis[0].endereco_canonical` um logradouro completo com número, bairro,
+cidade e CEP. Varredura sobre as 6 fixtures de relatório:
+
+| keys varridas | hits |
+| --- | --- |
+| `{descricao, detalhe}` (gate de hoje) | **0** |
+| `+ endereco_canonical` | **4** (`ENDERECO`+`CEP` × 2 fixtures) |
+
+O caso que a KR-D quer bloquear já está commitado no repo, e o gate — se
+chamado — diz que está limpo.
+
+### A6 — `redact_cartorial` fecha grafia, não classe
+
+Dois dos quatro tipos atravessam, e `cartorial_pii_tipos` devolve `()` (limpo)
+nos dois:
+
+- `INSCRICAO MUNICIPAL (IPTU): 999.999.9999` — intacto. `_CONTRATO` exige o
+  número **colado** ao rótulo; o `(IPTU): ` no meio quebra o match.
+- `R. Exemplo, 100` / `MATR. 999999` / CPF sem máscara `12345678909` — intactos.
+  `_ENDERECO` abrevia só `Av.`; `_CONTRATO` exige a palavra inteira;
+  `contains_identifier` (`pii_patterns.py`) casa só CPF/CNPJ **mascarados**.
+
+A fixture `_CARTORIAL` está grafada exatamente como cada regex espera. O verde
+mede a grafia da fixture, não a classe: gate por regex fecha sintaxe, não classe.
+
+### A7 — a prova de mutação do gate não muta o gate
+
+`test_remover_as_keys_faz_a_fixture_passar` passa `keys=frozenset()`: muta o
+**argumento do chamador**, não o gate. Nenhuma regex é exercitada por essa
+prova. E como o gate não tem chamador em produção, "removê-lo" (o que o §Critério
+pede) não muda **nada** observável exceto o próprio teste dele — o gate é hoje o
+seu único consumidor.
+
+### A8 — a verificação renderizada está especificada contra o DOM pré-#1569
+
+O §Critério manda testar as duas superfícies porque *"o print CSS não força
+`details[open]`"*. Medido: o `<details>` do card (`RealEstateExcluded`,
+`RealEstateYieldCard.tsx:339-350`) hoje renderiza `{e.classification} —
+{e.motivo}` — **sem `descricao`**. A PII que está na tela
+(`endereco_canonical`) está na tabela/card sempre visível, que sai nas **duas**
+superfícies. Escrever a spec exatamente como está posta testaria um bloco
+colapsado que não carrega mais PII e não veria o rótulo que carrega. (Precedente
+de `[open]` forçado no print existe e é escopado por classe:
+`SParecer.print.css`.)
+
+### A9 — §Escopo item 5 não foi entregue, e a razão dele mudou de campo
+
+"Tabela → cards abaixo de `md`". Medido: os dois cards trocam em **`sm`** —
+`RealEstateYieldCard.tsx:166,171` e `EndividamentoCard.tsx:61,74`, ambos de
+#1569. Entre 640 e 768px a tabela renderiza. O item foi escrito porque
+"descrição longa quebra a tabela"; a descrição saiu, mas as fixtures do A5
+mostram que a **string longa foi junto com a PII** para `endereco_canonical`, que
+é exatamente a coluna da tabela. O item segue aberto e ninguém registrou a
+mudança.
+
+### A10 — RV3-27: o aviso da própria lane se realizou
+
+O §Problema avisa que fechar só a exibição "converteria a linha fantasma em `—` e
+deixaria o override preso vivo — a lane ficaria verde sobre o defeito". Medido:
+`valorApurado` (0 ⇒ `—`) shipou em #1569 e a [[ADR-385]] segue **`Proposto`**
+(`date: 2026-08-11`). A perna de exibição fechou; a perna de origem não. O
+blockquote não é premonição — é o estado de hoje.
+
+### A11 — camada 2: o registro de review contradiz a medição nos dois sentidos
+
+`docs/_MOC/REPORT-REVIEWS-active.md`:
+
+- **RV3-06** (l.121) segue `procede-aberto` com a justificativa *"critério 4 da
+  ADR-337 inexistente"*. O critério **existe** (`amended_at: ["2026-08-19"]`) e a
+  instância nomeada (`RealEstateYieldCard.tsx:194,303,373`) não existe mais.
+  Fechar a linha também seria errado: o residual medido (A1–A2) não é o que a
+  linha descreve.
+- **RV3-27** (l.142) segue `procede-aberto` com dono *"data-engineer (origem do
+  zero) + product-designer"*. A perna do `product-designer` shipou; a do
+  `data-engineer` é o A10, e é a que continua viva.
+
+### Consequência para o §Critério de aceite
+
+Os três critérios são satisfazíveis com a PII na tela:
+
+1. *"gate bloqueia fixture sintética com identificador + matrícula + endereço **no
+   campo de descrição**"* — a descrição já sai redigida; a matrícula que sobra
+   está em `endereco_canonical`, fora do escopo da frase.
+2. *"removê-lo faz a fixture passar"* — A7: sem chamador, remover não muda nada.
+3. *"assere que não aparecem em `page.inner_text('body')` nem no PDF"* — A4: a
+   asserção por substring da grafia crua é verde com a grafia normalizada na
+   tela.
+
+O critério precisa mudar de **campo** (não só de superfície): o predicado é
+"nenhum campo de texto do view-model que a UI renderiza carrega PII cartorial",
+com `endereco_canonical` e `imobiliaria_cnpj` dentro, e a fixture derivada do
+**produtor** (`canonicalize()`), não escrita à mão.
+
+### Encaminhamento
+
+Tudo acima é **desta lane** — ela é dona do critério 4 da [[ADR-337]] e segue
+`in_progress`. Não roteio nada para fora. Duas amarras vivas a respeitar:
+
+- A [[A40.l72]] (`open`) declara "Gate de PII do view-model (7f, RV6-17) →
+  [[A40.l6]]" — o alcance do gate decidido aqui é pré-condição dela.
+- A perna `data-engineer` do RV3-27 (A10) depende da [[ADR-385]] sair de
+  `Proposto`. Fechar a lane pelo lado da exibição sem dizer isso é o cenário que
+  o próprio §Problema descreve.
+
+### Como reproduzir
+
+1. `PYTHONPATH=. python3 _scratch/ataque_l6_medicao.py` — cascata, redação e
+   varredura (script efêmero; o corpo está nas tabelas acima).
+2. A4: em `RealEstateYieldCard.test.tsx:222,228`, trocar
+   `endereco_canonical: "Imóvel locado"` por `"exemplo 100"` e ajustar a última
+   asserção para `getAllByText("exemplo 100")` — 15/15 verdes.
+3. `rg -c scan_view_model_pii .pre-commit-config.yaml .github/ dev/ scripts/ backend/` — zero.
