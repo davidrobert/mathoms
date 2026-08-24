@@ -4,10 +4,12 @@ type: lane
 title: "Balanço de stage fan-out: documento que some não pode sair como sucesso"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l68-balanco-de-fan-out
 owner: data-engineer
+ship_pr: 1663
+ship_date: "2026-08-24"
 adrs:
   - "[[ADR-081]]"
   - "[[ADR-393]]"
@@ -19,7 +21,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---
@@ -277,6 +279,13 @@ continua vivo — hoje em `extract_baseline.py:169`, não `:161`.
 
 ## §Deferimento datado — roteamento do `.xls` · 2026-08-24
 
+> **Executado no mesmo dia** — ver §Fecho. As três decisões abaixo foram
+> tomadas: (1) `.xls` roteia para `xlrd` no extrator, sem duplicar o roteamento
+> dos parsers determinísticos; (2) **não** entra membro novo no enum para "lib
+> errada" — de dentro do leitor a condição é indistinguível de arquivo
+> corrompido; (3) a população que chega ao fan-out não foi contável e isso ficou
+> declarado, não estimado.
+
 **Dono: `data-engineer`** (owner da lane). Aberto pelo §Ataque C; sem lane, sem
 ADR e sem disposição de review até aqui — o RV6-10 fechou "com ressalva" por
 nomear o skip, e o sintoma de origem (documento financeiro permanentemente
@@ -302,3 +311,37 @@ Condição de retomada — três decisões que não são do closeout:
    `n=3` do RV6-10 prova que ao menos um chega.
 
 Enquanto isso a lane fica `open` — junto com o 2b da §Pendência datada.
+
+## §Fecho — 2026-08-24
+
+Os quatro itens abertos foram fechados item a item, cada um com medição própria.
+
+| item | o que era | PR |
+|---|---|---|
+| **2a** balanço + leitor tipado | entregue em 18/08 | [#1526] |
+| **`.xls`** (§Deferimento, §Ataque C) | 168/168 ilegíveis; leitor já no repo | [#1655] |
+| **2b** ladder [[ADR-081]] no E1.5 | §Pendência datada | [#1657] |
+| **D3** denominador enumerado + **D5** falha no E0 | [[ADR-393]] §Estado: "sem dono nomeado" | [#1663] |
+
+Registro nas emendas datadas da [[ADR-393]]: **(a)** D1 é conservação, não
+detecção · **(b)** o ladder mora no arquivo, não no agregado · **(c)** D3/D5
+entregues e o resíduo da §D2 vira gate.
+
+**Duas premissas da lane não sobreviveram à medição, e as duas estão corrigidas
+por marcador, não por reescrita:**
+
+1. O §Problema dizia que o `.xls` era **leitor ausente**. É **leitor errado** —
+   `xlrd` já estava instalado e já era usado por três módulos irmãos. O
+   diagnóstico de 2a estava certo sobre a cegueira e errado sobre a causa.
+2. A §Pendência do 2b dizia que o `0.0` sentinela bloqueava o ladder. O sentinela
+   mede **0/172**. Quem bloqueava era o `min()` do agregado.
+
+**O que fica aberto, com dono:** a poluição de classe no `_find_irpf_docs` —
+`income_tax_br/` tem 39 declarações + 19 informes/recibos e o corte é em 10 por
+ordem lexicográfica de hash, então 89% dos disparos do ladder são documentos com
+stage próprio. É a truncagem da [[A40.l69]] composta, declarada na [[ADR-393]]
+§Emenda 2026-08-24 (b) com dono `data-engineer`. **Não é resíduo desta lane** —
+é lane da mesma família, e o ladder mede o sintoma sem depender do conserto.
+
+Os **seis** stages do `FAN_OUT_STAGES_UNTYPED_READER` seguem cegos por decisão
+declarada (§D2), agora com gate que impede o sétimo entrar calado.

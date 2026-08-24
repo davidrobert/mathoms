@@ -436,7 +436,11 @@ que o leitor guarda; e **cura do estado durável** (artefatos do run corrompido
 > **e vácuo**: o balanço fecha *porque* a perda é termo do lado direito, e
 > `success` não pode ser `False` por documento perdido. Quem retém o run é
 > `validation.valid`. Ver [[ADR-393]] §Emenda 2026-08-24 (a) e [[A40.l68]] §Ataque.
-> **D3** (denominador enumerado) e **D5** (falha no E0) seguem **não entregues**.
+>
+> **Onda 2 fechada em 2026-08-24.** 2b entregue no grão do arquivo (#1657) —
+> o bloqueio que a lane declarava (`0.0` sentinela) mede 0/172; quem bloqueava
+> era o `min()` do agregado. **D3** e **D5** entregues (#1663), com gate que
+> falha fechado no stage novo. Ver [[A40.l68]] §Fecho.
 - 2b. Ladder [[ADR-081]] no E1.5: `confidence < 0,7` → `review_reason` +
   `degraded` — WARN-first com budget medido (§Enforcement).
 
