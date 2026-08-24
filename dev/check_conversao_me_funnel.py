@@ -16,21 +16,55 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 SINK = Path("pipeline/domain/services/conversao_me.py")
-SCAN_ROOTS = (REPO / "pipeline", REPO / "scripts")
+SCAN_ROOTS = (REPO / "pipeline", REPO / "scripts", REPO / "backend")
 ALLOWLIST: dict[tuple[str, str], str] = {
     ("scripts/analyze_finances.py", "_load_caixa_from_e3_saldos"): "legacy-disk",
     ("pipeline/domain/services/wise_fiscal_flags.py", "_soma_non_usd_em_usd"): "cbe-cross-usd",
 }
-_RATE_NAME = re.compile(r"^(cambio|ptax)", re.I)
-_RATE_ATTR = frozenset({"rate", "cambio_usd", "cambio_eur", "cambio_usd_brl", "cambio_eur_brl"})
+# O `_?` não é cosmético: a lista nasceu do *parâmetro* de ``__init__``
+# (``cambio_usd_brl``) enquanto a instância guarda ``self._cambio_usd_brl`` — o
+# atributo que um produtor novo de fato multiplicaria era o único invisível
+# (A40.l63 §Ataque, medido 3/10).
+_RATE_NAME = re.compile(r"^_?(cambio|ptax)\w*$|^(usd|eur|gbp)_brl$", re.I)
+_RATE_ATTR = frozenset(
+    {
+        "rate",
+        "taxa",
+        "cambio_usd",
+        "cambio_eur",
+        "cambio_usd_brl",
+        "cambio_eur_brl",
+        "_cambio_usd_brl",
+        "_cambio_eur_brl",
+    }
+)
+_RATE_KEY = re.compile(r"^(cambio|ptax)", re.I)
 
 
 def _is_rate_expr(node: ast.AST) -> bool:
-    if isinstance(node, ast.Name) and _RATE_NAME.match(node.id):
-        return True
+    """Reconhece a taxa mesmo embrulhada em call/subscript/cast."""
+    if isinstance(node, ast.Name):
+        return bool(_RATE_NAME.match(node.id))
     if isinstance(node, ast.Attribute):
         return node.attr in _RATE_ATTR or bool(_RATE_NAME.match(node.attr))
+    if isinstance(node, ast.Subscript):
+        return _is_rate_key(node.slice)
+    if isinstance(node, ast.Call):
+        # `safe_float(self._taxas.get("cambio_usd_brl", 5.80))` — a taxa é
+        # nomeada pela *chave*, não por um Name; sem isto a linha pré-390
+        # reentra apenas trocando o local por uma resolução inline.
+        return any(_is_rate_expr(a) or _is_rate_key(a) for a in node.args) or _is_rate_expr(
+            node.func
+        )
     return False
+
+
+def _is_rate_key(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and bool(_RATE_KEY.match(node.value))
+    )
 
 
 def _enclosing_function(stack: list[ast.AST]) -> str:
@@ -50,6 +84,11 @@ def _scan_file(path: Path) -> list[tuple[int, str]]:
             stack.append(node)
             if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mult):
                 if _is_rate_expr(node.left) or _is_rate_expr(node.right):
+                    hits.append((node.lineno, _enclosing_function(stack)))
+            # `valor_brl *= cambio` não é BinOp — e `+=`/`*=` é o idioma
+            # dominante da própria função que este gate protege.
+            if isinstance(node, ast.AugAssign) and isinstance(node.op, ast.Mult):
+                if _is_rate_expr(node.value):
                     hits.append((node.lineno, _enclosing_function(stack)))
             super().generic_visit(node)
             stack.pop()
@@ -72,7 +111,7 @@ def offenders(roots: tuple[Path, ...] = SCAN_ROOTS) -> list[str]:
     for path in iter_py(roots):
         rel = path.relative_to(REPO) if path.is_relative_to(REPO) else path
         rel_s = str(rel)
-        if path.name == SINK.name:
+        if rel_s == str(SINK):
             continue
         for lineno, fn in _scan_file(path):
             why = ALLOWLIST.get((rel_s, fn))
