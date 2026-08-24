@@ -5,6 +5,7 @@ title: "A resolução de membro tem um produtor, e ele é injetado — não reso
 status: Decidido
 phase: A40.l77/DE-10
 date: "2026-08-24"
+amended_at: ["2026-08-24"]
 relates_to:
   - "[[ADR-089]]"
   - "[[ADR-097]]"
@@ -42,6 +43,11 @@ domínio), [[ADR-401]] (o item é a dívida), [[ADR-406]] §D2 (custo medido de
 > constrói** — objetos que a [[ADR-394]] não toca. Teste de falseamento aplicado
 > na escrita: se a §Decisão coubesse em *"o D10 também vale para o segundo
 > resolver"*, isto seria emenda à 394 e não nota nova.
+
+> **Emenda 2026-08-24 (§Estado de execução).** D1, D2 e D3 shipparam com a
+> [[A40.l77]]. **D4 ficou parcial, D5 e D6 não foram executados** — a decisão
+> continua valendo, a execução não aconteceu. Ver §Emenda ao final antes de
+> assumir qualquer um dos três como vigente em código.
 
 ## Contexto
 
@@ -245,3 +251,24 @@ unificação, então não entram no rebaseline desta nota.
 produtor declarou o tipo" de "casei substring em texto livre", embora a
 [[ADR-400]] diga que o degrau 1 é `tipo`. Registrado aqui para não se perder;
 decisão é da 400.
+
+## Emenda 2026-08-24 — estado de execução por decisão
+
+Achado pelo closeout da [[A40.l77]], que perguntou o que a vault afirma contra o
+que o diff entregou. `Decidido` diz que a decisão está tomada; **não** diz que o
+código a implementa. Sem esta tabela, D5 e D6 leem-se como vigentes.
+
+| decisão | estado | evidência |
+| --- | --- | --- |
+| **D1** produtor único | ✅ shipado | `e5_member_resolver.py` não existe em `main`; 3 resolvers enterrados (#1677) |
+| **D2** resolução injetada | ✅ shipado | `PatrimonioInputs.members` obrigatório; o calculator não importa o resolver (#1676) |
+| **D3** VO do par | ✅ shipado | `MembrosResolvidos` em `patrimonio_types` (#1676) |
+| **D4** um eixo de ano para dívida | ⚠️ **parcial** | `endividamento` recebe `ano_ref=None` e degrada para o ano do item (#1677), **mas** `_split_dividas` (`patrimonio_resolvers.py:542`) segue em `saldo.get(ano_ref, 0)` — ano-exato-senão-**zero**. Das três políticas que o §Contexto nomeia, sobraram **duas** |
+| **D5** ramo dict sai dos resolvers | ❌ **não executado** | `elif isinstance(inv_raw, dict)` vivo em `patrimonio_resolvers.py:491`; `baseline_normalizer.py` com zero ocorrências de `review_reason` |
+| **D6** `frescor` ganha leitor | ❌ **não executado** | `frescor` aparece só em `frontend/src/generated/report-analysis.ts:355` (o tipo gerado). Zero consumidor em `narrativas/` ou componente — o **DE-9 segue exatamente como estava** |
+
+**Dono do resto (2026-08-24): `data-engineer`.** D4-resto e D5 são contrato de
+dados; D6 precisa de par com `product-designer` para a copy da superfície de
+degradação. Condição de retomada: junto do DE-7/DE-8 na janela J5, que já é do
+mesmo dono — D5 em particular é dupla-contagem **latente** (sem produtor hoje),
+não regressão ativa, e por isso não bloqueia.

@@ -341,7 +341,11 @@ número no terceiro é imputável só ao flip.
 domicílio de um membro, então o flip não move os números dele — o que reforça
 que a fixture de dois membros era precondição, não acessório.
 
-### Efeito medido, ponta a ponta
+### Efeito medido — na fixture sintética, não em produção
+
+**O substrato é `dois-membros-anos-disjuntos-1.5_consolidated.json`** rodado por
+`run_e3_e4_e5`, não um run de dogfood. Os valores são os da fixture (900k / 110k),
+não patrimônio de ninguém.
 
 | | antes | depois |
 | --- | --- | --- |
@@ -349,6 +353,28 @@ que a fixture de dois membros era precondição, não acessório.
 | `patrimonio.investimentos_conjuge` | 0,0 | **110.000** |
 | `cobertura_investimentos` | só `titular` | `titular` `frescor:2025` + `conjuge` `frescor:2023` |
 | `instituicoes_por_membro` | um membro com as duas instituições | um membro cada |
+
+> **Não existe medição de produção pós-fix, e não é descuido.** O artefato E5 mais
+> recente do corpus é de 2026-08-18; esta lane mergeou em 24/08 (#1686 registra a
+> lacuna). O efeito em produção só se mede no **r8** — o mesmo run que o DE-7 e o
+> DE-8 esperam. Ler esta tabela como número de produção é o erro que o §Ataque A0
+> pegou um nível acima.
+
+### O que a [[ADR-410]] decide e esta lane **não** executou
+
+O §Escopo 2 era "executar a decisão". Executou D1, D2 e D3; **D4 ficou parcial,
+D5 e D6 não começaram** — ver [[ADR-410]] §Emenda 2026-08-24, que traz a evidência
+de cada um. Resumo, com dono:
+
+| | estado | dono |
+| --- | --- | --- |
+| **D4** um eixo de ano para saldo de dívida | parcial — `_split_dividas` ainda faz ano-exato-senão-zero | **`data-engineer`**, janela J5 |
+| **D5** ramo dict sai dos resolvers | não executado — dupla-contagem **latente** (sem produtor hoje) | **`data-engineer`**, janela J5 |
+| **D6** `frescor` ganha leitor (DE-9) | não executado — o campo segue sem consumidor | **`data-engineer`** + `product-designer` (copy) |
+
+Nenhum dos três bloqueia o fecho do **DE-10**, que era a tese da lane: o defeito
+de dois produtores está morto, provado por mutação e por gate. Os três são
+trabalho adjacente que a ADR decidiu de uma vez e a lane não coube.
 
 ### Três achados que a execução trouxe e o co-design não previu
 
