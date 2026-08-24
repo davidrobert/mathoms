@@ -293,9 +293,16 @@ Vai para a lane P1 do §Deferimentos da [[ADR-410]], junto com a proveniência d
 
 ### Execução (3 PRs, uma janela de rebaseline)
 
-1. **PR1** — `instituicao` + `ano_base` por item no canônico; value object de
-   membro; `PatrimonioInputs.members` obrigatório + afirmação de identidade;
-   deleta o segundo e o terceiro resolvers. **Aceite: delta zero em cents.**
-2. **PR2** — fixture de dois membros; `frescor` ganha leitor (DE-9); rebaseline
-   não-monetário provado com `dev/golden_diff.py`.
+1. **PR1 — aditivo, nenhum consumidor flipa.** `instituicao` + `ano_base` por
+   item nos entries do canônico; value object de membro; `PatrimonioInputs.members`
+   obrigatório com afirmação de identidade. **Aceite: delta zero em cents** — e é
+   por isso que a deleção do segundo resolver **não** cabe aqui: ela flipa os
+   cinco consumidores e move `tabela_classes`. Razão do sequenciamento
+   (`senior-cto`): *se o PR1 mover número, você achou um acoplamento que o PR2
+   esconderia*.
+2. **PR2 — o número se move, uma vez só.** Flipa os cinco consumidores do adapter
+   para o canônico, deleta `E5MemberResolver` e os resolvers órfãos, entra a
+   fixture de dois membros, `frescor` ganha leitor (DE-9), e o rebaseline
+   não-monetário é provado com `dev/golden_diff.py` (`value_delta == 0` em todo
+   campo monetário; diff restrito a `top_ativos[].autoridade`).
 3. **PR3** — os três gates, com o denominador do gate de contradição declarado.
