@@ -30,7 +30,7 @@ Todos verificáveis; sem exceção informal.
 Verificação rápida:
 
 ```bash
-pytest backend/tests/test_db_artifact_store_schema_strict.py -q   # 6 passed (2026-08-24)
+pytest backend/tests/test_db_artifact_store_schema_strict.py -q   # verde
 ```
 
 ### 1.2. Corpus golden verde em strict para o schema alvo
