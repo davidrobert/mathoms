@@ -266,3 +266,31 @@ bytes `%PDF`, não sufixo.
 
 A §Pendência datada segue válida: `min(confidences) if confidences else 0.0`
 continua vivo — hoje em `extract_baseline.py:169`, não `:161`.
+
+## §Deferimento datado — roteamento do `.xls` · 2026-08-24
+
+**Dono: `data-engineer`** (owner da lane). Aberto pelo §Ataque C; sem lane, sem
+ADR e sem disposição de review até aqui — o RV6-10 fechou "com ressalva" por
+nomear o skip, e o sintoma de origem (documento financeiro permanentemente
+ausente do corpus) ficou sem rota.
+
+`_reader_for` manda `.xls` para openpyxl e é o **único** lugar do repo que faz
+isso: `route_documents.py:399`, `e2/banks/itau.py:98` e `santander.py` já usam
+`xlrd`. Medido no corpus de fan-out: **168/168 falham com openpyxl, 168/168
+abrem com `xlrd` 2.0.2** (já instalado).
+
+Condição de retomada — três decisões que não são do closeout:
+
+1. Rotear `.xls` para `xlrd` é fix de duas linhas, mas parte dos `.xls` de
+   internet banking é **tabela HTML** (`e2/banks/itau.py:429`) — a forma certa é
+   reusar o roteamento que os parsers determinísticos já têm, não duplicar.
+2. O enum de `ReaderOutcome` não tem estado para "roteado para a lib errada":
+   168 documentos legíveis saem rotulados `leitura_falhou`, que lê como
+   "documento quebrado". Decidir se vira motivo próprio ou fica no `detalhe`.
+3. Medir antes do flip quantos `.xls` **chegam** ao fan-out — só chega o que o
+   parser determinístico não gravou. Não foi possível contar em 2026-08-24: dos
+   workspaces com corpus em disco, só 1 tem chaves de `pipeline_artifacts` que
+   casam com os stems, e não há stub `requires_llm_fallback` vivo no DB. O
+   `n=3` do RV6-10 prova que ao menos um chega.
+
+Enquanto isso a lane fica `open` — junto com o 2b da §Pendência datada.

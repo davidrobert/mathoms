@@ -5,7 +5,7 @@ title: "Contrato de balanço de stage fan-out: queued ≡ processed + errors + s
 status: Decidido
 phase: A40.l68
 date: "2026-08-18"
-amended_at: ["2026-08-19"]
+amended_at: ["2026-08-19", "2026-08-24"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-097]]"
@@ -30,6 +30,12 @@ tags:
 
 **Status:** Decidido • **Data:** 2026-08-18 • É a **ADR-B** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l68]].
+
+> **Emendada em 2026-08-24 (§D1 é conservação, não detecção):** o §D1 declara
+> que "`success` passa a exigir o balanço fechado, não só `errors == []`". A
+> exigência existe e é **vácua** — medido por execução. A decisão D1 sobrevive
+> como guarda de regressão; o que cai é a afirmação de que ela detecta.
+> Ver §Emenda 2026-08-24.
 
 > **Emendada em 2026-08-19 (correção do §Estado, não da decisão):** o §Estado
 > declarava **D4 entregue** e a §D4 prometia um **kill-switch de 1 env var
@@ -221,3 +227,42 @@ kill-switch inexistente e retirado do escopo); **não** entregues **D3** e **D5*
 - Os **seis** stages fora do escopo seguem cegos até lane própria.
 - O `.xls` do dogfood passa a aparecer como `needs_review` nomeado em vez de
   sumir — o corpus não muda, a **visibilidade** dele muda.
+
+## Emenda 2026-08-24 — D1 é identidade de conservação, não predicado de saúde
+
+Medido no [[A40.l68]] §Ataque, com o stage real sobre um formato que o leitor
+não abre:
+
+```
+success  : True    balanco : {queued:1, processed:0, errors:0, skipped:1, fecha:True}
+artefatos: 0       validation.valid : False   ← quem retém o run
+```
+
+`queued ≡ processed + errors + skipped` é **identidade de conservação**: fechada
+sob realocação entre as parcelas, satisfeita por qualquer distribuição —
+inclusive `processed = 0`. O balanço fecha **porque a perda é termo do lado
+direito**. As cinco saídas de `_process_one_e2_llm_document` devolvem exatamente
+um não-`None` cada, então `fecha` é tautologia em todo estado alcançável, e
+`success = errors == 0 and fecha` **não pode ser `False` por documento perdido**
+— só por exceção não capturada.
+
+**O que muda.** O §D1 segue valendo como **guarda de regressão** do caminho de
+drop que o #1526 deletou (`return None, None, summary`). O que cai é a
+afirmação de que `success` mudou de significado: quem retém o run é
+`validation.valid=False` (`pipeline_task.py:1489`), o canal da A28.l8 que a D4
+estendeu — e o `success=True` é justamente o token que roteia para lá
+(`if result.success and _has_validation_errors(result)`). **D1 contribui zero
+detecção; D2 e D4 fazem o trabalho.**
+
+**Regra que sai daqui, para o denominador enumerado da D3:** identidade de
+conservação nunca é gate de saúde. Gate de saúde precisa de predicado sobre a
+**distribuição** (`processed > 0`, ou `skipped/queued` sob teto), não sobre a
+soma. Nenhum dos 15 testes da lane asserta `run()["success"]` — todos chamam
+`_fan_out_balance` com listas montadas à mão, e a `TestProvaPorMutacao` asserta
+`balanco["fecha"] is True` para o documento perdido, codificando a vacuidade
+como critério de aceite.
+
+**Fora desta emenda, com dono:** o `.xls` do RV6-10 segue inextraível — 168/168
+falham com openpyxl e 168/168 abrem com `xlrd` 2.0.2, já instalado e já usado
+por `route_documents.py:399`, `e2/banks/itau.py:98` e `santander.py`. Ver
+[[A40.l68]] §Deferimento.
