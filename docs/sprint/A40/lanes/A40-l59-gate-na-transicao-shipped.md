@@ -112,3 +112,101 @@ Hook de pre-commit disparado **pela transição**, não pelo PR:
 
 `dev/check_closure.py` (da skill) e o hook novo compartilham a definição da
 metade estrutural — extrair a checagem para módulo comum em vez de duplicar.
+
+## Ataque (2026-08-24) — medido antes do pickup
+
+Método: as 42 transições da A40 que declaram `ship_pr` foram rodadas contra o
+predicado do §Escopo 1, reconstruindo a árvore no commit que introduziu
+`status: shipped` (`git show <flip>:<arquivo>`). Os casos retroativos do
+§Critério foram reproduzidos um a um.
+
+### 1. O caso-bandeira do §Problema não é reproduzível — e não por acaso
+
+**[[A40.l7]]/#1375 fica verde sob este gate nos dois instantes.** Medido:
+
+- `#1375` (`29087eb1`) **não tocou `docs/sprint/A40`** — nem o arquivo da lane,
+  nem o `_README`. Não houve flip de `status`. Gate de transição não dispara:
+  não existe diff de transição.
+- `#1376` (`34de8f14`), o PR corretivo, flipou `status: shipped` **e** inseriu
+  `#1375` no `_README` no mesmo commit (`grep -c` no `_README`: 0 antes, 1
+  depois). Sob o §Escopo 1 esse commit **passa**.
+
+O caso citado como origem da lane é, na verdade, a **variante de transição
+ausente** que a própria lane isola no caso da [[A40.l58]]. Isso reordena o
+escopo: o gate de coerência descrito como *"par natural"* não é
+complemento — é **o único dos dois que pega o caso-bandeira**. O §Escopo,
+como está, entrega um gate que não teria evitado o evento que o motivou.
+
+### 2. A classe do §Escopo 1 está viva — 23 de 42 transições seriam barradas
+
+| Eixo | Transições | Exemplos |
+| --- | --- | --- |
+| Passam | 19 | — |
+| `ship_pr` ausente no commit do flip | 13 | l1 #1118 · l16 #1159 · l18 #1258 · l71 #1511 |
+| PR não citado no `_README`/`_HISTORY` | 10 | l19 #1241 · l27 #1265 · l56 #1483 · l69 #1578 |
+
+Spot-checks contra formato de citação (o predicado não é artefato de `grep`):
+`#1241` está ausente do `_README` no commit do flip e hoje vive na linha 732;
+a l71 flipou em #1517 com o número **no título do commit** (*"shipped #1511"*)
+e sem o campo no frontmatter — que só entrou em #1533.
+
+**55% é piso, não teto.** A medição roda sobre commits **squashados** de `main`
+— a visão permissiva, onde flip e `ship_pr` de PRs distintos aparecem juntos.
+O hook roda por commit local, antes do squash.
+
+### 3. `_README` é o denominador errado (conflito com política mandatória)
+
+O §Escopo 1 exige o PR *"presente no `_README` da sprint"*. Medido na A40: **24
+números de PR vivem só no `_HISTORY`**, e 4 lanes `shipped` (l1 #1118, l3 #1124,
+l4 #1139, l28 #1269) têm o `ship_pr` citado **apenas lá**. Não é desleixo — é o
+`split_sprint_history.py` que o CLAUDE.md **manda** rodar, e que o
+`check_sprint_readme_size.py` cobra. Gate que só olha `_README` pune a política
+e cria incentivo a inflar o arquivo que outro gate pune. **O predicado é
+`_README` ∪ `_HISTORY`.**
+
+### 4. Falso-positivo não declarado: a lane que fecha a si mesma
+
+O §Critério declara escape só para rebase/revert. Falta a classe medida: **6 das
+42 têm `ship_pr` == o PR do próprio flip** (l2 #1368, l20 #1278, l23 #1334,
+l24 #1157, l26 #1339, l32 #1335). No primeiro commit local o número **ainda não
+existe** — sai do `gh pr create`. Não é impossível, é **ordenação forçada**
+(commitar o flip depois de abrir o PR): 2 das 6 fizeram exatamente isso. As
+outras 4 seriam barradas. O escape precisa estar no §Critério, com a sequência
+prescrita — senão o gate é descoberto por quem bate nele.
+
+### 5. O gate não existe no CI
+
+O único caminho de enforcement no CI é `pre-commit run --all-files`
+([ci.yml:503](../../../../.github/workflows/ci.yml)); **nenhum workflow usa
+`--from-ref`/`--to-ref`**. O precedente da casa para gate de diff é
+`dev/check_float_money.py`, que lê `git diff --cached` — vazio sob
+`--all-files` ⇒ **passa vazio no CI**. Um gate de transição herda isso: roda só
+na máquina de quem commita, em worktree que pode nem ter `pre-commit install`.
+Decisão a tomar no co-design, não a descobrir depois: ou se aceita gate
+local-only (e o §Critério diz isso), ou entra um step de CI com `--from-ref`.
+
+### 6. O §Escopo 2 está certo — mas o predicado decide o veredito
+
+Direção lane→tabela, medida hoje: **as 10 órfãs de 2026-08-12 foram fechadas**
+(#1497 e seguintes). Mas a classe tem **instância viva de 2 dias**: a
+[[A40.l77]], criada pelo #1643 em 2026-08-24, **não tem linha na tabela §Lanes**
+— só numa tabela de roteamento do §Inventário do r7 (linha 1426). E o cabeçalho
+da §Lanes ainda declara **"75 no disco · 75 nesta tabela"** com 76 no disco: o
+contador à mão drifta junto.
+
+Os dois predicados naturais **discordam no único caso vivo**: *"id aparece no
+`_README`"* dá 76/76 limpo (gate no-op); *"id tem linha na tabela §Lanes"*
+acusa a l77. Pinar qual é o predicado é parte do escopo, não detalhe de
+implementação — e a l77 é o caso de teste pronto.
+
+### 7. Correções ao §Colisão
+
+`check_closure.py` (461 linhas) **é pós-merge por construção**: `resolve_from_pr`
+e `_merge_sha(pr)` resolvem lanes a partir de um PR **já mergeado**. No sentido
+pre-commit não há PR de onde resolver. O compartilhável são os **predicados**,
+nunca a resolução — "extrair para módulo comum" subestima o corte. Some-se que
+`dev/_lane_table_parsers.py` já existe (hoje só consumido pelo
+`migrate_lanes_tables.py`) e resolve a metade de parsing do §Escopo 2.
+
+Número desatualizado no cabeçalho da skill: as `shipped` sem `ship_pr` são
+**134**, não ~159 (backfill parcial desde então).
