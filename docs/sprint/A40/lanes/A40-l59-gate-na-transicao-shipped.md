@@ -4,8 +4,10 @@ type: lane
 title: "A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P2
+ship_pr: 1661
+ship_date: "2026-08-24"
 branch_slug: a40-l59-gate-na-transicao-shipped
 owner: information-architect
 adrs:
@@ -14,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p2
   - area/docs
 ---
