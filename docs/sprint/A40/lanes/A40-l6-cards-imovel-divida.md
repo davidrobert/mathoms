@@ -117,3 +117,39 @@ que a l4 deixou de afirmar na tabela da S4 por já estar sob suspeita (fonte que
 - **Aceite vigente:** a tabela da S4 suprime a contagem quando a fonte é suspeita,
   em vez de afirmar número órfão. Prova por mutação: restaurar o f-string
   incondicional deixa o teste vermelho.
+
+## Nota datada — 2026-08-21: o que o #1569 fechou e o que sobra
+
+O #1569 (`dfd561b9`) mergeou e a branch foi apagada, então `lane_pickup` responde
+`LIVRE`. **Isso não quer dizer que a lane está abandonada nem que está pronta** — a
+ferramenta mede ocupação, não progresso. O status segue `in_progress` com razão.
+
+**Entregue e verificado:**
+
+- `RealEstateYieldCard.tsx:205` renderiza `imovelDisplayLabel(im)`; a `descricao`
+  crua saiu do card. Fecha a instância nomeada pelo **RV7-05** do §r7.
+- `redact_cartorial` wired em `real_estate_metrics_payload.py` e
+  `endividamento_analyzer.py`.
+- [[ADR-337]] emendada (+29 linhas).
+- Testes de componente (`RealEstateYieldCard.test.tsx`, `imovelDisplay.test.ts`).
+
+**Aberto — são os dois termos da KR-D, e nenhum é cosmético:**
+
+1. **O gate não tem chamador.** `scan_view_model_pii`
+   (`pipeline/observability/view_model_pii.py:61`) é chamado **só** pelo próprio
+   unit test. Zero ocorrências em `.github/`, `.pre-commit-config.yaml`, `dev/` ou
+   em qualquer stage (medido 2026-08-21). O §Critério de aceite pede *"gate bloqueia
+   fixture sintética… citando o dot-path ofensor"* e a KR-D pede *"bloqueio no CI"*;
+   scanner sem chamador não bloqueia. Mesma família de "faceta inerte" que esta
+   sprint já catalogou.
+2. **Não existe a verificação renderizada.** O §Critério de aceite pede spec
+   assertando ausência em `page.inner_text('body')` **e** no PDF, justamente porque
+   as duas superfícies divergem (o print CSS não força `details[open]`). Não há spec
+   em `frontend/tests/e2e/` citando `cartorial`/`matrícula`. A infra existe e está
+   pronta para usar: `frontend/tests/e2e/helpers/report-pdf.ts` (`pdfToText`,
+   `pdftotextInstalado`).
+
+O §r7 registra isso do lado de fora como resíduo do RV7-05 — *"gate sobre payload
+real"*, *"baseline visual usa fixture sintética e não alcança"*. É o mesmo item,
+visto de duas atas. Roteamento em [`_README`](../_README.md) §Inventário dos achados
+do r7 sem hospedeiro.
