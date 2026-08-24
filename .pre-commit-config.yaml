@@ -181,6 +181,16 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: fan-out-reader-contract
+        # ADR-393 D3: o denominador é ENUMERADO. Full-scan e independente do
+        # diff porque o ofensor entra como stage NOVO, não como edição dos
+        # existentes — descobrir por reflexão ficaria verde exatamente aí.
+        name: "Stage que lê documento é classificado no fan-out (ADR-393 D3)"
+        entry: python3 dev/check_fan_out_reader_contract.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: diagnostic-session-isolation
         # CTO-6 (§r7): o run 140ac8d7 morreu em 12/18 porque a row de
         # `review_reasons` dividia transação com `run.status = needs_review`.

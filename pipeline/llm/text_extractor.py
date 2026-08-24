@@ -67,6 +67,24 @@ def _sheet_lines(sheet_name: str, rows, *, budget: int) -> tuple[str, int]:
     return "\n".join(lines), usados
 
 
+# Fonte única de "este formato tem leitor" (ADR-393 D5). O E0 consulta a mesma
+# constante para recusar na ENTRADA o que ninguém consegue ler — descobrir no
+# meio do fan-out é tarde: o documento já foi aceito, contado e prometido.
+_READER_BY_SUFFIX: dict[str, str] = {
+    ".pdf": "_extract_pdf",
+    ".xlsx": "_extract_xlsx",
+    ".xls": "_extract_xls",
+    ".csv": "_extract_csv",
+    ".json": "_extract_plain",
+    ".txt": "_extract_plain",
+    ".md": "_extract_plain",
+}
+
+# Imagens não passam por `_reader_for` — vão como conteúdo multimodal via
+# `extract_image_bytes`, e por isso contam como legíveis.
+READABLE_SUFFIXES: frozenset[str] = frozenset(_READER_BY_SUFFIX) | frozenset(IMAGE_EXTENSIONS)
+
+
 def _xls_cell_text(cell, datemode: int, xlrd) -> str:
     """Célula BIFF → texto. Data em serial float é ilegível para o LLM."""
     if cell.ctype == xlrd.XL_CELL_DATE:
@@ -140,17 +158,8 @@ class DocumentTextExtractor:
 
     def _reader_for(self, suffix: str):
         """Leitor do formato, ou ``None`` quando não existe — o que era `""` mudo."""
-        if suffix == ".pdf":
-            return self._extract_pdf
-        if suffix == ".xlsx":
-            return self._extract_xlsx
-        if suffix == ".xls":
-            return self._extract_xls
-        if suffix == ".csv":
-            return self._extract_csv
-        if suffix in (".json", ".txt", ".md"):
-            return self._extract_plain
-        return None
+        nome = _READER_BY_SUFFIX.get(suffix)
+        return getattr(self, nome) if nome else None
 
     def _extract_plain(self, path: Path) -> str:
         return path.read_text(encoding="utf-8")[: self.max_chars]
