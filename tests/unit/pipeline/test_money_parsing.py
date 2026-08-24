@@ -159,7 +159,6 @@ class TestParidadeEntreParsers:
 
     @staticmethod
     def _parsers():
-        from pipeline.domain.services.e5_member_resolver import _safe_float as mr
         from pipeline.domain.services.endividamento_analyzer import _safe_float as en
         from pipeline.domain.services.if_projector import _safe_float as ifp
         from pipeline.domain.services.member_analyzer import _safe_decimal as ma
@@ -168,7 +167,6 @@ class TestParidadeEntreParsers:
 
         return {
             "consolidate_baseline.safe_float": cb,
-            "e5_member_resolver._safe_float": mr,
             "endividamento_analyzer._safe_float": en,
             "if_projector._safe_float": ifp,
             "member_analyzer._safe_decimal": ma,

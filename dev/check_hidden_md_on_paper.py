@@ -7,6 +7,18 @@ some sem par. Variante que o papel deve receber usa `sm:` (640px) ou
 `@media print` (`print:table-cell`). Chrome de app e dialog ficam em
 `md:` e entram no allowlist nomeado.
 
+As duas direções têm companheiros DIFERENTES, e é o `print:` que decide,
+não o breakpoint (A40.l6):
+
+- `hidden … md:block` — a variante quer APARECER no papel ⇒ `print:block`.
+- `md:hidden` — o stack mobile quer SUMIR do papel ⇒ `print:hidden`.
+
+Sem o segundo, `md:hidden` só tinha um remédio (`sm:hidden`), que amarra o
+breakpoint de tela à largura da folha. O gate é DIRECIONAL: aceitar
+qualquer `print:` em qualquer direção deixaria passar
+`hidden md:block print:hidden`, que some das duas superfícies. Cada
+direção só aceita o seu companheiro.
+
 Prova por mutação: `tests/dev/test_check_hidden_md_on_paper.py` injeta
 um `hidden md:block` sem `print:` e exige EXIT≠0.
 """
@@ -35,14 +47,18 @@ ALLOWLIST = frozenset(
 # `hidden … md:block|table|table-cell|grid|flex|inline-*` — o display só
 # aparece a partir de 768px. `md:hidden` é o par que some no desktop e
 # portanto é o que o papel recebe; em dado isso é o stack, não a tabela.
-HIDE_UNTIL_MD = re.compile(
-    r"hidden(?:\s+[A-Za-z0-9:\[\]/%_.-]+)*\s+md:(?:block|table|table-cell|grid|flex|inline-block|inline-flex)"
-    r"|md:hidden"
-)
+_DISPLAY = r"block|table|table-cell|grid|flex|inline-block|inline-flex"
 
-# Companheiro que desoculta no papel. Tem de estar NA MESMA linha — o
-# `print:table-cell` do Top15 mora no mesmo className que o `md:table-cell`.
-PRINT_UNHIDE = re.compile(r"print:(?:block|table|table-cell|grid|flex|inline-block|inline-flex)")
+# Direção A — variante que só aparece no desktop. O papel (703px) não a recebe.
+APARECE_NO_MD = re.compile(rf"hidden(?:\s+[A-Za-z0-9:\[\]/%_.-]+)*\s+md:(?:{_DISPLAY})")
+# Direção B — stack que só some no desktop. O papel o recebe junto com a tabela.
+SOME_NO_MD = re.compile(r"md:hidden")
+
+HIDE_UNTIL_MD = re.compile(f"{APARECE_NO_MD.pattern}|{SOME_NO_MD.pattern}")
+
+# Companheiro que RESOLVE o papel — na mesma linha, e ESPECÍFICO da direção.
+PRINT_UNHIDE = re.compile(rf"print:(?:{_DISPLAY})")
+PRINT_HIDE = re.compile(r"print:hidden")
 
 
 def iter_surfaces(root: Path = SCAN_ROOT) -> list[Path]:
@@ -59,9 +75,12 @@ def rel_report(path: Path, root: Path) -> str:
 
 
 def line_offends(line: str) -> bool:
-    if not HIDE_UNTIL_MD.search(line):
-        return False
-    return PRINT_UNHIDE.search(line) is None
+    """Cada direção exige o SEU companheiro de `print:` — o outro não salva."""
+    if APARECE_NO_MD.search(line):
+        return PRINT_UNHIDE.search(line) is None
+    if SOME_NO_MD.search(line):
+        return PRINT_HIDE.search(line) is None
+    return False
 
 
 def offenders(root: Path = SCAN_ROOT) -> list[tuple[Path, int, str]]:

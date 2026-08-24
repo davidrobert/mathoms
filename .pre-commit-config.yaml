@@ -181,6 +181,16 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: fan-out-reader-contract
+        # ADR-393 D3: o denominador é ENUMERADO. Full-scan e independente do
+        # diff porque o ofensor entra como stage NOVO, não como edição dos
+        # existentes — descobrir por reflexão ficaria verde exatamente aí.
+        name: "Stage que lê documento é classificado no fan-out (ADR-393 D3)"
+        entry: python3 dev/check_fan_out_reader_contract.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: diagnostic-session-isolation
         # CTO-6 (§r7): o run 140ac8d7 morreu em 12/18 porque a row de
         # `review_reasons` dividia transação com `run.status = needs_review`.
@@ -753,6 +763,19 @@ repos:
         entry: python3 dev/check_lane_status_predicate.py
         language: system
         files: ^docs/sprint/.*/lanes/.*\.md$
+        pass_filenames: false
+
+      - id: lane-transition
+        # T1/T2 leem `git diff --cached` ⇒ sob `pre-commit run --all-files` (o
+        # único caminho do CI) não há nada staged e eles passam VAZIOS: são
+        # enforcement local, declarado, não gate de merge. C1 é o oposto — lê o
+        # estado da vault inteira e por isso vale nos dois lugares. Daí
+        # `always_run`: a transição só aparece no diff, mas a incoerência de
+        # estado nasce em OUTRO arquivo (o merge que entrega a lane).
+        name: "docs/: transição de lane carrega o registro (ship_pr + PR na sprint)"
+        entry: python3 dev/check_lane_transition.py
+        language: system
+        always_run: true
         pass_filenames: false
 
       - id: adr-prose-refs

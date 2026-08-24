@@ -58,8 +58,7 @@ export interface RealEstateImovel {
   readonly status_contrato: RealEstateStatusContrato;
   readonly indice_reajuste: string | null;
   readonly data_ultimo_reajuste: string | null;
-  readonly endereco_canonical: string | null;
-  readonly imobiliaria_cnpj: string | null;
+  readonly endereco_display: string | null;
   readonly imobiliaria_nome: string | null;
   readonly origem_aluguel: RealEstateOrigemFonte;
 }

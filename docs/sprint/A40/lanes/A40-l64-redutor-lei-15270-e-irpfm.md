@@ -55,7 +55,7 @@ tags:
 > | PR | O quê | Estado |
 > |---|---|---|
 > | **PR1** | A recusa vira real: `regime_completo=false` retém `economia_ir_anual` e `aporte_mensal`, com motivo que cita a lei e o ano | ✅ **entregue 2026-08-17** — fecha o §Critério de aceite 1 |
-> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ⬜ |
+> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ✅ **entregue 2026-08-24** (#1672) |
 > | **PR3** | Contrato tipado do redutor (bandas, coeficientes, vigência) + ADR própria | ⬜ |
 > | **PR4** | IRPFM — confirmar base e abatimentos no texto da lei **antes** de implementar (§Escopo 2) | ⬜ |
 >
@@ -75,6 +75,121 @@ tags:
 >
 > Aberta em 2026-08-15 no co-design da l56 (`financial-planner`; escopo fechado
 > por `senior-cto`).
+
+> ## ⚠️ Ataque medido — 2026-08-24: **a recusa desarma sozinha em 2027-01-01**
+>
+> Medido contra `main` (`7ed61f04`). Nada implementado — só medição. O PR1 segue
+> entregue e correto **para 2026**; o que abaixo se mede é o que ele não cobre.
+>
+> ### 1 · A recusa é fail-open no eixo do ano, e a data do desarme já está marcada
+>
+> A seed de `fiscal_parameters` cobre **2024–2026** com `effective_to = date(year, 12, 31)`
+> (`y3z4a5b6c7d8_seed_fiscal_2024_2026.py:74`), e
+> [`list_covering_period`](../../../../backend/app/repositories/fiscal_parameter_repository.py)
+> não tem clamp: o predicado é `effective_from <= início AND (effective_to IS NULL
+> OR effective_to >= fim)`. Rodado sobre SQLite com as 3 rows da seed:
+>
+> | período pedido | resultado |
+> |---|---|
+> | 2026 | row `year=2026` |
+> | **2027** | **`FiscalParameterNotFound`** |
+> | 2028 | `FiscalParameterNotFound` |
+>
+> [`analyze_finances:2184`](../../../../scripts/analyze_finances.py) captura
+> `except Exception`, imprime um `[warn]` e deixa `fiscal_parameters = None` — o
+> construtor vira `PrevidenciaConfig.from_fiscal(FISCAL_CONFIG)`, e `FISCAL_CONFIG`
+> lê `config/parametros_fiscais.json`, **path proibido** e inexistente desde a
+> A7.2b ⇒ `{}` ⇒ `irpf_faixas=()` e `regime_completo=True` (default do dataclass).
+>
+> Medido no caso exato do §Critério de aceite 1 (bruto anual R$ 70.000):
+>
+> | config | `economia_ir_anual` | `aporte_mensal` | `aliquota_marginal` |
+> |---|---|---|---|
+> | AC2026 · row presente (hoje) | **ausente** com motivo | ausente | ausente |
+> | **AC2027 · row ausente** | **R$ 630,00** | R$ 700,00 | 7,5% (fallback) |
+> | AC2027 · row semeada sem o marcador | R$ 2.310,00 | R$ 700,00 | 27,5% |
+>
+> O default `True` está **certo** para o dict legado — o comentário em
+> `PrevidenciaConfig` argumenta isso e o argumento se sustenta. O defeito é que
+> **"row ausente" cai no mesmo ramo que "legado sem defeito medido"**: um ano sem
+> seed é indistinguível de um workspace pré-A7.2b, e o silêncio favorece publicar.
+>
+> ### 2 · O golden que certifica a recusa não pode ficar vermelho nesse eixo
+>
+> `fiscal_store_do_seed(year)` ([`tests/pipeline_golden_substrate.py:143`](../../../../tests/pipeline_golden_substrate.py))
+> faz `tabelas[max(a for a in tabelas if a <= year)]` e devolve
+> `InMemoryConfigStore(fiscal_by_year={year: fiscal})`. Rodado:
+>
+> | `fiscal_store_do_seed(ano)` | `regime_completo` |
+> |---|---|
+> | 2026 | `False` |
+> | 2027 | `False` |
+> | 2030 | `False` |
+>
+> **O clamp é invenção da fixture; a produção não o tem.** A fixture foi endurecida
+> contra exatamente o rollover que a produção ainda sofre — e o comentário dela
+> nomeia o risco (*"`{2026: fp}` passa hoje e vira KeyError silencioso em 2027 —
+> engolido pelo `except Exception`"*). Consertaram a fixture, não o caminho de
+> produção. Logo `test_regime_incompleto_retem_a_economia_no_payload` fica **verde
+> para sempre** nesse eixo: instrumento cego ao efeito por construção.
+>
+> ### 3 · O §Critério de aceite 1 já passa — e passa cego à banda
+>
+> A retenção chaveia no marcador do **ano**, não na banda do redutor. Medido com
+> bruto anual R$ 300.000 (fora da banda, onde a diferencial ingênua está **certa**):
+> AC2026 retém igual, com o mesmo `regime_fiscal_incompleto`. Ou seja, o critério
+> não distingue "redutor modelado certo" de "redutor não modelado" — e continuaria
+> passando com o PR2/PR3 implementados **errados**.
+>
+> ### 4 · O §Critério 1 contradiz o invariante da [[ADR-402]] assim que o redutor existir
+>
+> Modelado o redutor, a resposta honesta para bruto R$ 70.000 é **economia = R$ 0,00**
+> (o redutor zera o IR com e sem o aporte). Mas o invariante da [[ADR-402]] —
+> declarado no `e5_analysis.schema.json` e enforçado por
+> `test_zero_publicado_nunca_carrega_motivo_de_ausencia` — é `campo == 0 ⇒ motivo is None`:
+> o zero legítimo sai **como número, sem motivo**. É exatamente o que o §Critério 1
+> proíbe (*"'não se aplica' com motivo, nunca um número"*).
+>
+> ⇒ **§Critério 1 e §Critério 3 estão em tensão**: o 3 pede que o regime fique
+> completo; o 1 proíbe a saída que um regime completo produz. Um dos dois muda antes
+> do PR3, e é decisão de domínio (`financial-planner`), não de implementação.
+>
+> ### 5 · O PR2 é mais barato do que a lane sugere — o insumo já está no contrato
+>
+> `IRPFBracket` carrega `deducao_brl_cents`, então `IR(base) = base × alíquota − dedução`
+> sai de `FiscalParameters.ir_brackets_anual` **hoje**. Não falta contrato: falta a
+> função. `resolve_faixa_marginal` devolver só a alíquota é escolha do D6, não
+> limitação. Confirmada a dívida do D5: `_economia` segue
+> `restante × alíquota_marginal / 100`
+> ([`previdencia_analyzer.py`](../../../../pipeline/domain/services/previdencia_analyzer.py)).
+>
+> ### 6 · A tabela do redutor **nesta lane** não fecha no piso da banda anual
+>
+> Conferidas as duas bandas contra os próprios coeficientes da lane:
+>
+> | banda | no piso | topo declarado | diferença |
+> |---|---|---|---|
+> | mensal (`978,62 − 0,133145 × R`) | R$ 312,895 em R$ 5.000 | R$ 312,89 | **R$ 0,005** |
+> | anual (`8.429,73 − 0,095575 × R`) | R$ 2.695,23 em R$ 60.000 | R$ 2.694,15 | **R$ 1,08** |
+>
+> As duas zeram no teto da banda (R$ 7.350 / R$ 88.200). A mensal fecha ao centavo;
+> a anual não. O §Escopo 1 pede contrato tipado com bandas e coeficientes — quem
+> transcrever precisa **decidir qual dos dois números é o piso anual**, e um teste
+> de continuidade na borda reprova a tabela como está escrita aqui. Não é conferência
+> do texto da lei: é a tabela desta lane discordando de si mesma.
+>
+> ### Encaminhamento
+>
+> Os itens 1 e 2 **não são desta lane**: valem mesmo que o redutor nunca seja
+> modelado. E **não têm dono declarado** — a [[A40.l56]] está `shipped`, e o
+> §Deferimento dela é sobre conferir os valores de 2024-2026 no DOU, não sobre
+> semear anos futuros. Rotear para lá fecharia ciclo sobre lane morta. Precisa de
+> lane própria, e o conserto barato não é semear 2027: é **fechar o fail-open** —
+> "row ausente" tem de ser distinguível de "dict legado", porque a seed vai
+> envelhecer de novo em 2028.
+>
+> Os itens 3, 4 e 6 são desta lane e são de **decisão**, não de código — o 4 precisa
+> do `financial-planner` antes do PR3.
 
 ## Problema
 
@@ -152,6 +267,39 @@ A [[A40.l56]] entrega o desbloqueio do D5 **qualificado**: liberado para
 - Caso acima de R$ 600k exercita o IRPFM e não publica economia que o mínimo
   absorve.
 - `regime_completo` de AC2026 vira `true` só quando os dois componentes existem.
+
+## Deferimento datado — 2026-08-24: PR3 e PR4 exigem o texto da norma
+
+O **PR2 fechou** (a economia é diferencial de fato). O que resta desta lane não é
+trabalho de engenharia parado por capacidade: é trabalho **parado por leitura de
+norma**, e registrá-lo assim é o que impede que alguém o pegue e invente número.
+
+**O que falta ler**, nesta ordem:
+
+1. **O piso da banda anual do redutor.** A tabela do §Problema desta lane não
+   fecha consigo mesma: `8.429,73 − 0,095575 × 60.000` = **R$ 2.695,23**, e o teto
+   declarado na mesma linha é **R$ 2.694,15** — R$ 1,08 de diferença exatamente na
+   borda em que o contrato tipado do §Escopo 1 precisa ser contínuo. A banda mensal
+   fecha a R$ 0,005 (`978,62 − 0,133145 × 5.000` = 312,895 vs. teto 312,89), então
+   o defeito é só do lado anual. Não dá para tipar o contrato sem decidir qual dos
+   dois números a norma diz.
+2. **Base e abatimentos do IRPFM** (§Escopo 2) — a própria lane já exigia
+   confirmar no texto da lei **antes** de implementar.
+
+**Dono deste deferimento:** owner-gated, registrado em
+[`OWNER-GATED-active.md`](../../../_MOC/OWNER-GATED-active.md). **Condição de
+retomada:** alguém com acesso ao DOU ler a Lei 15.270/2025 e carimbar (a) o piso
+da banda anual do redutor e (b) a composição da base do IRPFM. Com esses dois
+números, PR3 e PR4 são execução direta — o seam já existe:
+`pgbl_economia_ir.economia_diferencial` (#1672) é onde o redutor compõe, porque sendo
+função do rendimento **bruto** ele não se move com o aporte e entra dos dois lados
+da diferença.
+
+**Enquanto não acontecer, nada regride:** a row AC2026 nasce
+`regime_completo: false`, o card retém `economia_ir_anual` e `aporte_mensal` com
+motivo que cita a lei e o ano, e o §Critério 3 segue aberto por construção. O
+risco que **não** é coberto por este deferimento é o da [[A40.l79]] — a recusa
+desarma sozinha em 2027-01-01, e isso vale mesmo que esta lane nunca feche.
 
 ## Fora de escopo
 

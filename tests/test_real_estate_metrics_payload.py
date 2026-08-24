@@ -41,10 +41,14 @@ def _property(
     meses_locado: int | None = 12,
     ir_carne_leao: str | None = None,
     descricao: str = "Apto",
+    endereco_canonical: str | None = None,
+    imobiliaria_cnpj: str | None = None,
 ) -> PropertyInput:
     return PropertyInput(
         property_id=property_id,
         descricao=descricao,
+        endereco_canonical=endereco_canonical,
+        imobiliaria_cnpj=imobiliaria_cnpj,
         classification=classification,
         valor_imovel=Decimal(valor),
         aluguel_bruto_anual=Decimal(aluguel) if aluguel is not None else None,
@@ -289,3 +293,78 @@ def test_result_to_payload_redige_descricao_cartorial():
     assert "999.999" not in desc
     assert "00000-000" not in desc
     assert "Rua Exemplo" not in desc
+
+
+# ───────────────── Gate de PII no view-model (A40.l6 · ADR-337 c4) ───────────
+
+
+_CARTORIAL = "Apartamento matrícula 999.999, Rua Exemplo, 100, CEP 00000-000, CPF 123.456.789-09"
+
+
+def _payload_com_pii_na_fonte() -> dict:
+    """Payload produzido pelo caminho REAL a partir de entrada cartorial crua."""
+    props = [
+        _property(property_id="p1", descricao=_CARTORIAL, endereco_canonical="mat:999999"),
+        _property(
+            property_id="p2",
+            descricao=_CARTORIAL,
+            endereco_canonical="exemplo 100",
+            imobiliaria_cnpj="11.222.333/0001-81",
+        ),
+        _property(property_id="p3", classification="residencia_principal", descricao=_CARTORIAL),
+    ]
+    result = calculate_real_estate_metrics(
+        props, concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
+    )
+    return result_to_payload(result)
+
+
+def test_gate_de_pii_roda_sobre_o_payload_produzido():
+    """O chamador de produção do gate. Sem ele, `scan_view_model_pii` só testa a si mesmo."""
+    from pipeline.observability.view_model_pii import scan_view_model_pii
+
+    hits = scan_view_model_pii({"real_estate": _payload_com_pii_na_fonte()})
+    assert hits == (), "PII no view-model: " + "; ".join(h.format() for h in hits)
+
+
+def test_o_gate_veria_a_pii_se_ela_atravessasse():
+    """Contraprova: a fixture CARREGA PII — verde acima é redação, não fixture limpa."""
+    from pipeline.observability.view_model_pii import cartorial_pii_tipos
+
+    assert cartorial_pii_tipos(_CARTORIAL) != ()
+
+
+def test_cascata_cartorial_nao_vira_rotulo():
+    """§Ataque A1: `mat:999999` chegava à tela como 'rótulo curto'."""
+    por_id = {i["property_id"]: i for i in _payload_com_pii_na_fonte()["imoveis"]}
+    assert por_id["p1"]["endereco_display"] is None
+    assert por_id["p2"]["endereco_display"] == "exemplo 100"
+
+
+def test_identificador_de_terceiro_nao_viaja_no_payload():
+    """§Ataque A2: CNPJ da imobiliária ia no artefato exportável sem ser renderizado."""
+    imoveis = _payload_com_pii_na_fonte()["imoveis"]
+    assert all("imobiliaria_cnpj" not in i for i in imoveis)
+    assert all("endereco_canonical" not in i for i in imoveis)
+
+
+def test_valor_zero_nao_produz_cap_rate_zero():
+    """§Escopo l6: não calcular derivado sobre base ausente (classe do RV3-27)."""
+    # `_safe_div` devolve 0 quando o denominador é 0, e isso vira "rende 0,00%"
+    # na MESMA linha em que o valor sai como `—`.
+    p = _property(valor="0")
+    result = calculate_real_estate_metrics(
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
+    )
+    imovel = result_to_payload(result)["imoveis"][0]
+    assert imovel["cap_rate_bruto_pct"] is None
+    assert imovel["cap_rate_liquido_pct"] is None
+    # Contraprova: com valor real o cap rate É calculado.
+    com_valor = result_to_payload(
+        calculate_real_estate_metrics(
+            [_property(valor="1200000")],
+            concentracao_imobiliaria_pct=Decimal("30"),
+            benchmarks=_benchmarks(),
+        )
+    )["imoveis"][0]
+    assert com_valor["cap_rate_bruto_pct"] is not None

@@ -102,7 +102,14 @@ a prescrição aparecer.
 ### Follow-up P1 que esta lane destravou — [[A40.l65]]
 
 Com o pró-labore fora, **a base perdeu a âncora do titular**.
-`_read_latest_workspace_artifact` pega o IRPF mais recente por `created_at`, sem
-resolver ano-base e sem dedup — e o artifact é **por declarante**. Numa família
+~~`_read_latest_workspace_artifact` pega o IRPF mais recente por `created_at`, sem
+resolver ano-base e sem dedup~~ — e o artifact é **por declarante**. Numa família
 de dois, a base do PGBL vira a declaração de quem foi processado por último, e o
 teto de 12% é por CPF, não por família.
+
+> **Metade fechou em 2026-08-24 (#1672).** O eixo do **ano** já não depende da
+> ordem de processamento: `_read_latest_workspace_artifact` deixou de existir, e
+> a S8 passa por `resolve_ano_base_fiscal` com a mesma partição e dedup do E5
+> ([[A40.l65]] §Escopo 1). **Segue aberto** o eixo do **declarante** — com dois
+> declarantes no ano eleito a escolha ainda é por recência, e o teto de 12%
+> continua sendo por CPF ([[A40.l65]] §Escopo 2).

@@ -84,7 +84,9 @@ Checklist **Sprint A** — execução pode ser em **staging** ou **produção** 
 
 ## 5. Disaster recovery (RPO / RTO)
 
-Valores de referência estão em [SLO.md](SLO.md). Procedimentos de backup, restore e off-site: tarefas **7E.2–7E.4** e [BACKLOG.md](../BACKLOG.md#f7--produção--lgpd).
+**Runbook canônico: [runbooks/disaster_recovery.md](runbooks/disaster_recovery.md)** — declara `RPO ≤ 24h · RTO de DR ≤ 4h`, custódia da chave Fernet (§1), RPO/RTO (§2) e a distinção DR ≠ rollback. Vá direto para lá numa perda de host.
+
+(O ponteiro anterior mandava a [SLO.md](SLO.md) e ao `BACKLOG.md`; a SLO devolvia para cá — circular — e o BACKLOG virou shim de ~40 linhas sem as tarefas 7E.2–7E.4.)
 
 **Rollback do cutover [[ADR-212]] (pipeline DB-only):** procedimento dedicado em
 [runbooks/pipeline_rollback.md](runbooks/pipeline_rollback.md) — janela ~30min
@@ -758,6 +760,7 @@ um escritor por vez. **1 ocorrência = rollback.**
 - [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [runbooks/schema_validation_strict_flip.md](runbooks/schema_validation_strict_flip.md) — flip warn→strict per-schema (gate por baseline 7d + rollback de 1 linha, ADR-284)
 - [runbooks/override_legacy_drop.md](runbooks/override_legacy_drop.md) — ADR-282 Fase E: drop destrutivo do hash legado de override (gates G1/G2/G2b/G3 + backup/PITR + sign-off do owner; drafts da migration destrutiva e do sentinela G3 em apêndice — drop gated por go/no-go)
+- [runbooks/disaster_recovery.md](runbooks/disaster_recovery.md) — **DR canônico**: `RPO ≤ 24h · RTO ≤ 4h`, custódia da chave Fernet, ordem de restore e a fronteira DR ≠ rollback ([[ADR-228]])
 - [runbooks/vault_full_audit.md](runbooks/vault_full_audit.md) — auditoria full (100%) do vault: 3 fases ou one-shot `/audit-vault --scope all --full` (modo de evento, ADR-302)
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
 - [BACKLOG.md](../BACKLOG.md) — 7E (operational readiness) · F7F-Local

@@ -403,6 +403,8 @@
 | ADR-406 | adr | Decidido |  | Gate por item da catch-all: migração entre baldes preserva Σ e nenhum check de conservação a alcança | `adr/406-gate-por-item-da-catch-all-de-classes-de-ativo.md` |
 | ADR-407 | adr | Decidido |  | Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape | `adr/407-stage-polimorfico-despacha-schema-por-discriminador.md` |
 | ADR-408 | adr | Proposto |  | Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key | `adr/408-proveniencia-de-artefato-e2-e-fk-resolvida-por-porta.md` |
+| ADR-409 | adr | Decidido |  | Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart | `adr/409-fila-de-elegibilidade-do-flip-strict-derivada-de-medicao.md` |
+| ADR-410 | adr | Decidido |  | A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor | `adr/410-a-resolucao-de-membro-tem-um-produtor-e-ele-e-injetado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -923,18 +925,18 @@
 | A40.l55 | lane | open | A40 | Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 | `sprint/A40/lanes/A40-l55-medida-de-linha-no-papel.md` |
 | A40.l56 | lane | shipped | A40 | A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa | `sprint/A40/lanes/A40-l56-tabela-fiscal-de-producao.md` |
 | A40.l57 | lane | open | A40 | O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null | `sprint/A40/lanes/A40-l57-parecer-le-contrato-antigo-do-pgbl.md` |
-| A40.l58 | lane | open | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
-| A40.l59 | lane | open | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
-| A40.l6 | lane | in_progress | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
+| A40.l58 | lane | shipped | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
+| A40.l59 | lane | shipped | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
+| A40.l6 | lane | shipped | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l60 | lane | open | A40 | Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte | `sprint/A40/lanes/A40-l60-ressalva-e-separacao-do-conselho-de-seguro.md` |
 | A40.l61 | lane | shipped | A40 | ProtectionBundle fail-closed: ausência de insumo não vira zero/False e filho conta como dependente | `sprint/A40/lanes/A40-l61-protection-bundle-fail-closed.md` |
 | A40.l62 | lane | shipped | A40 | ProtectionComputationSnapshotV1: fontes run-scoped e computabilidade por categoria | `sprint/A40/lanes/A40-l62-protection-computation-snapshot-v1.md` |
-| A40.l63 | lane | open | A40 | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD | `sprint/A40/lanes/A40-l63-conversao-me-brl-sem-proveniencia.md` |
+| A40.l63 | lane | shipped | A40 | Conversão ME→BRL não registra proveniência: taxa hardcoded indistinguível de taxa real, e saldo BRL rotulado como USD | `sprint/A40/lanes/A40-l63-conversao-me-brl-sem-proveniencia.md` |
 | A40.l64 | lane | open | A40 | Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante | `sprint/A40/lanes/A40-l64-redutor-lei-15270-e-irpfm.md` |
 | A40.l65 | lane | open | A40 | A base do PGBL perdeu a âncora de declarante: lê o IRPF mais recente, e o teto de 12% é por CPF | `sprint/A40/lanes/A40-l65-base-pgbl-sem-ancora-de-declarante.md` |
 | A40.l66 | lane | shipped | A40 | Seam extração/consolidação: o fato decide ativo vs. passivo, o rótulo do LLM vira hint | `sprint/A40/lanes/A40-l66-seam-extracao-consolidacao.md` |
 | A40.l67 | lane | shipped | A40 | Guarda de publicação no E5: nenhum balde de patrimônio publica negativo, e o schema deixa de aceitá-lo | `sprint/A40/lanes/A40-l67-guarda-de-publicacao-e5.md` |
-| A40.l68 | lane | open | A40 | Balanço de stage fan-out: documento que some não pode sair como sucesso | `sprint/A40/lanes/A40-l68-balanco-de-fan-out.md` |
+| A40.l68 | lane | shipped | A40 | Balanço de stage fan-out: documento que some não pode sair como sucesso | `sprint/A40/lanes/A40-l68-balanco-de-fan-out.md` |
 | A40.l69 | lane | shipped | A40 | Cobertura de investimentos por membro: zero apurado não é o mesmo que não apurado | `sprint/A40/lanes/A40-l69-cobertura-investimentos-por-membro.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l70 | lane | shipped | A40 | endereco_canonical=None não cria identidade: match por titular+código ou needs_review | `sprint/A40/lanes/A40-l70-endereco-canonical-nao-cria-identidade.md` |
@@ -944,6 +946,8 @@
 | A40.l74 | lane | shipped | A40 | Stage com dois produtores, schema 1:1: apólice validava contra o schema de veículo, e o mapa mentia em três lugares | `sprint/A40/lanes/A40-l74-schema-por-forma-de-payload.md` |
 | A40.l75 | lane | open | A40 | O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou | `sprint/A40/lanes/A40-l75-msw-drift-gate-inerte.md` |
 | A40.l76 | lane | open | A40 | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | `sprint/A40/lanes/A40-l76-proveniencia-de-artefato-e2.md` |
+| A40.l77 | lane | shipped | A40 | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | `sprint/A40/lanes/A40-l77-dois-resolvers-de-membro.md` |
+| A40.l79 | lane | open | A40 | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | `sprint/A40/lanes/A40-l79-row-fiscal-ausente-e-fail-open.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |

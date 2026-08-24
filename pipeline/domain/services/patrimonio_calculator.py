@@ -86,7 +86,6 @@ from pipeline.domain.services.patrimonio_imovel_classifier import (
 )
 from pipeline.domain.services.patrimonio_resolvers import (
     investimentos_from_irpf,
-    resolve_members,
     rv_ressalva,
 )
 from pipeline.domain.services.patrimonio_sign_guard import aplicar_guarda_aos_componentes
@@ -142,8 +141,8 @@ class PatrimonioCalculator:
     def calculate(self, inputs: PatrimonioInputs) -> dict[str, Any]:
         """Produz dict paridade com ``scripts/analyze_finances.analyze_patrimonio``."""
         identity = self._config.members
-
-        titular_data, conjuge_data = resolve_members(inputs.baseline, identity)
+        inputs.members.afirma_coerencia_com(identity)
+        titular_data, conjuge_data = inputs.members.as_tuple()
 
         total_bens_irpf = safe_float(titular_data.get("total_bens", 0)) + safe_float(
             conjuge_data.get("total_bens", 0)

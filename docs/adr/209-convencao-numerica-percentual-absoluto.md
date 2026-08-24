@@ -32,7 +32,7 @@ tags:
 
 ## Contexto
 
-- Brainstorm 2026-05-12 do plano `docs/plan/PLANNER_REVIEW/_README.md` (achado **DE-I.2** do `data-engineer`) identificou que o E5 (`config/schemas/e5_analysis.schema.json`) tem risco de inconsistência de unidades de percentual entre campos `*_pct`: alguns absolutos (`44.7` = 44,7%), outros fracionais (`0.447` = 44,7%).
+- Brainstorm 2026-05-12 do plano `docs/archive/PLANNER_REVIEW-2026-07-09.md` (achado **DE-I.2** do `data-engineer`) identificou que o E5 (`config/schemas/e5_analysis.schema.json`) tem risco de inconsistência de unidades de percentual entre campos `*_pct`: alguns absolutos (`44.7` = 44,7%), outros fracionais (`0.447` = 44,7%).
 - Classificado como **bloqueador do Ato 4** ("Sem isso, hallucination numérica garantida: LLM dirá 'rentabilidade 0,45% ao ano' quando real é 45%").
 - Auditoria executada nesta lane (`_scratch/pr2_pct_audit_20260513-1012.md`) cobriu 25+ services em `pipeline/domain/services/`, 7 schemas em `config/schemas/`, 12+ tipos no frontend e todos os scripts `e5_*`. **Conclusão:** a convenção **atual de produção é uniformemente ABSOLUTA**. Não há campo emitindo fracional para o E5. Mas:
   - A convenção **nunca foi codificada como regra** (ADR-143 cobre methodology, não convenção numérica de contrato).
@@ -141,7 +141,7 @@ ADR vira `Decidido (A12 — pré-PLANNER_REVIEW Ato 4)` no merge.
 
 ## Referências
 
-- Achado DE-I.2 — `docs/plan/PLANNER_REVIEW/_README.md` §Pré-requisitos bloqueantes
+- Achado DE-I.2 — `docs/archive/PLANNER_REVIEW-2026-07-09.md` §Pré-requisitos bloqueantes
 - Auditoria — `_scratch/pr2_pct_audit_20260513-1012.md`
 - Pattern análogo — [[ADR-090]] (Money nunca é float)
 - Methodology = code — [[ADR-143]]

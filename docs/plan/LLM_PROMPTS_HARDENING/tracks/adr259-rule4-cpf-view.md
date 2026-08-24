@@ -29,7 +29,7 @@ tags:
    default") — a decisão está **tomada**; este track conforma, não reabre.
 2. `backend/app/services/family_member_pii_service.py` — rules 1-3 vivas:
    CPF extraído por regex do documento original e cifrado em
-   `FamilyMember.cpf_encrypted` via `backend/app/services/vault.py` (Fernet).
+   `FamilyMember.cpf_encrypted` via `backend/app/services/security/vault.py` (Fernet).
 3. `backend/app/services/audit.py` (`AuditAction`) + model
    `backend/app/models/audit_log.py` — trilha de auditoria existente
    (precedente de uso: `override_v2_dualread_snapshot`).
