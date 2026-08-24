@@ -239,12 +239,22 @@ kill-switch inexistente e retirado do escopo); **não** entregues **D3** e **D5*
 
 ## Consequências
 
-- `extract_with_llm` passa a devolver `skipped: list[...]`; leitores do bloco
-  precisam tolerar a chave nova (aditiva).
-- `success=true` com balanço aberto passa a ser impossível por construção.
-- Os **seis** stages fora do escopo seguem cegos até lane própria.
+- `extract_with_llm` passa a devolver **`skipped_docs: list[...]`**; leitores do
+  bloco precisam tolerar a chave nova (aditiva). **Nunca `skipped`** — essa chave
+  já existia como **booleano** nos early-returns do stage, e reusá-la para a
+  lista era a ambiguidade de contrato que o #1526 evitou renomeando.
+- `success=true` com balanço aberto passa a ser impossível por construção —
+  e **vácuo**, porque a perda é termo do lado direito (§Emenda 2026-08-24 (a)).
+- Os **seis** stages fora do escopo seguem cegos até lane própria; a razão
+  `1/7` é gateada desde a §Emenda 2026-08-24 (c).
 - O `.xls` do dogfood passa a aparecer como `needs_review` nomeado em vez de
   sumir — o corpus não muda, a **visibilidade** dele muda.
+
+> **Correção 2026-08-24 (closeout).** Duas linhas acima nasceram erradas ou
+> envelheceram: a chave é `skipped_docs` (o texto dizia `skipped`, que é
+> justamente o nome que o #1526 recusou), e **o corpus MUDOU** — o `.xls` não
+> ficou só visível, ficou legível: 168/168 extraem depois do roteamento para
+> `xlrd` (#1655). A frase "o corpus não muda" valia entre 18/08 e 24/08.
 
 ## Emenda 2026-08-24 (a) — D1 é identidade de conservação, não predicado de saúde
 
@@ -408,6 +418,9 @@ nem contrato de retorno de stage, então o balanço não se aplica a ele.
 
 O único defeito de leitor medido no corpus era o `.xls`: 168/168 falhavam em
 openpyxl e 168/168 abrem em `xlrd`, que o repo já tinha. O roteamento foi
-corrigido, e com ele os **seis** stages ainda cegos pararam de descartar `.xls`
-em silêncio — o conserto de um leitor beneficia quem herda a cegueira sem que
-eles saiam dela.
+corrigido, e com ele os **seis** stages ainda cegos deixam de descartar `.xls`
+em silêncio **se algum aparecer**: medido no closeout, há **zero** `.xls` em
+`income_tax_br/`, `real_estate/` e `vehicles/` — as três pastas que o
+`extract_baseline` varre. O ganho para quem herda a cegueira é **latente**, não
+observado; o conserto do leitor vale por si, no `extract_with_llm`, onde os 168
+estão.
