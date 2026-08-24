@@ -75,6 +75,11 @@ async def _run_do_workspace(db, ws_id: str) -> str:
     return run.id
 
 
+def _ano_do(content: dict) -> str:
+    """Tolerante de propósito: o teste do ramo de degradação usa payload sem ficha."""
+    return str((content.get("contribuinte") or {}).get("ano_base", "malformado"))
+
+
 def _artifact(ws_id: str, run_id: str, content: dict, *, created_at: datetime):
     from backend.app.models.pipeline_artifact import PipelineArtifact
 
@@ -82,7 +87,7 @@ def _artifact(ws_id: str, run_id: str, content: dict, *, created_at: datetime):
         workspace_id=ws_id,
         pipeline_run_id=run_id,
         stage="extract_irpf_full",
-        artifact_key=f"irpfdeclaracao_{content['contribuinte']['ano_base']}_{uuid4().hex[:6]}",
+        artifact_key=f"irpfdeclaracao_{_ano_do(content)}_{uuid4().hex[:6]}",
         content_json=content,
         created_at=created_at,
     )
@@ -96,6 +101,13 @@ async def _ws_com_perfil(db):
     row.business_profile_json = {"regime": "simples", "anexo_simples": "III"}
     await db.commit()
     return ws
+
+
+def _cascata(ws_id: str):
+    from backend.app.core.database import SyncSessionLocal
+
+    with SyncSessionLocal() as sync_db:
+        return build_cascata_input_sync(ws_id, db=sync_db)
 
 
 def _base_pgbl(ws_id: str) -> Decimal:
@@ -145,3 +157,67 @@ async def test_sem_irpf_a_base_e_zero(db):
     ws = await _ws_com_perfil(db)
 
     assert _base_pgbl(ws.id) == Decimal("0")
+
+
+# =============================================================================
+# A40.l65 §Escopo 3 — o lado S8 publica o ano que SOMOU (proveniência)
+#
+# Sem isto o §Critério 3 compara duas ausências: `RendaTributavelPF` não tinha
+# campo de ano nenhum. Publicar o ano ELEITO não serviria — o ramo de fallback
+# (ano eleito sem declaração) continuaria mudo, que é justamente o que precisa
+# ficar visível. Decisão: `senior-cto` (D6-a1, co-design 2026-08-24).
+# =============================================================================
+
+
+@pytest.mark.asyncio
+async def test_a_cascata_publica_o_ano_que_somou(db):
+    ws = await _ws_com_perfil(db)
+    await _seed(db, ws.id, primeiro=_DE_2024, segundo=_DE_2023)
+
+    inp = _cascata(ws.id)
+
+    assert inp.renda_tributavel_pf_ano_base == 2024
+    # Falsificável: sem o par, o ano poderia vir de qualquer lugar.
+    assert inp.renda_tributavel_pf_irpf_anual.amount == Decimal("200000")
+
+
+@pytest.mark.asyncio
+async def test_sem_irpf_o_ano_e_ausente_nao_zero(db):
+    """Ausência declarada — `0` seria um ano, e ano nenhum é o fato."""
+    ws = await _ws_com_perfil(db)
+
+    assert _cascata(ws.id).renda_tributavel_pf_ano_base is None
+
+
+class _RecordingLogger:
+    """Recorder imune a `propagate=False` do namespace mathoms.* — caplog não vê."""
+
+    def __init__(self) -> None:
+        self.warnings: list[tuple[str, dict]] = []
+
+    def warning(self, msg: str, *args, extra=None, **kwargs) -> None:
+        self.warnings.append((msg, extra or {}))
+
+
+@pytest.mark.asyncio
+async def test_o_ramo_de_degradacao_deixa_de_ser_mudo(db, monkeypatch):
+    """Payload que não parseia: a S8 volta ao artifact mais recente — declarando.
+
+    Antes era silencioso: nenhum gate podia distinguir "resolveu o ano" de
+    "desistiu e pegou o último". O `ano_base` do VO fica `None` junto, porque o
+    payload malformado não tem `contribuinte.ano_base` legível.
+    """
+    import backend.app.services.tributario_input_builder as mod
+
+    recorder = _RecordingLogger()
+    monkeypatch.setattr(mod, "logger", recorder)
+
+    ws = await _ws_com_perfil(db)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(_artifact(ws.id, run_id, {"lixo": True}, created_at=_HOJE))
+    await db.commit()
+
+    _cascata(ws.id)
+
+    eventos = [m for m, _ in recorder.warnings]
+    assert "tributario_irpf_ano_base_nao_resolvido" in eventos
