@@ -55,7 +55,7 @@ tags:
 > | PR | O quê | Estado |
 > |---|---|---|
 > | **PR1** | A recusa vira real: `regime_completo=false` retém `economia_ir_anual` e `aporte_mensal`, com motivo que cita a lei e o ano | ✅ **entregue 2026-08-17** — fecha o §Critério de aceite 1 |
-> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ✅ **entregue 2026-08-24** |
+> | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ✅ **entregue 2026-08-24** (#1672) |
 > | **PR3** | Contrato tipado do redutor (bandas, coeficientes, vigência) + ADR própria | ⬜ |
 > | **PR4** | IRPFM — confirmar base e abatimentos no texto da lei **antes** de implementar (§Escopo 2) | ⬜ |
 >
@@ -291,7 +291,7 @@ norma**, e registrá-lo assim é o que impede que alguém o pegue e invente núm
 retomada:** alguém com acesso ao DOU ler a Lei 15.270/2025 e carimbar (a) o piso
 da banda anual do redutor e (b) a composição da base do IRPFM. Com esses dois
 números, PR3 e PR4 são execução direta — o seam já existe:
-`pgbl_economia_ir.economia_diferencial` é onde o redutor compõe, porque sendo
+`pgbl_economia_ir.economia_diferencial` (#1672) é onde o redutor compõe, porque sendo
 função do rendimento **bruto** ele não se move com o aporte e entra dos dois lados
 da diferença.
 
