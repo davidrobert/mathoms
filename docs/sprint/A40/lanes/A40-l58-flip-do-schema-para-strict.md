@@ -4,10 +4,11 @@ type: lane
 title: "schema_validation warn → strict: o PR5 que a l5 declarou como outra lane"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P2
 branch_slug: a40-l58-flip-do-schema-para-strict
 owner: sre-devops
+adrs: ["[[ADR-409]]"]
 depends_on:
   - "[[A40.l5]]"
 tags:
@@ -386,3 +387,66 @@ Não decido pelo `sre-devops`; registro o que a medição obriga a endereçar.
 5. **Elegíveis medidos hoje**, se e quando houver runs: `e3_reconciled` (111 docs,
    0/555) e `e15_baseline_extract` (11 docs, 0/66) são os dois únicos com massa
    para uma primeira promoção.
+
+## Execução (2026-08-24) — [[ADR-409]] `Proposto` + o gate vira comando
+
+> `open` → `in_progress`. O §Escopo 2 fechou no §Ataque acima; esta seção registra
+> o que a ADR decidiu e o que sobra.
+
+### Entregue
+
+**[[ADR-409]] `Proposto`** — decide a fila e o lever, e **não** executa flip:
+
+- **§A** — unidade per-schema confirmada; o *flip global* do §Escopo 3 desta lane
+  fica **revogado** (encaminhamento 2 da §Coordenação RV6-06). Não supersede a
+  [[ADR-284]] — conforma.
+- **§B** — o go/no-go do runbook §2 passa a ser
+  [`dev/measure_schema_drift.py`](../../../../dev/measure_schema_drift.py) sobre
+  `pipeline_artifacts`, não a agregação de logs: durável, retroativo, re-medível
+  por 1 comando e usável como gate de PR (`--gate` → exit ≠ 0).
+- **§C** — dois levers de rollback, **ambos exigindo restart**, declarados por
+  situação; hot-reload de `pipeline.json` recusado com razão.
+- **§D** — a fila de elegibilidade é a medição: 5 elegíveis, 1 recusado por massa
+  (`e2_llm_artifact`, n=2 em 1 run), 2 a reavaliar, 3 bloqueados.
+- **§E/§F** — `e2_extract` e `baseline_patrimonial` saem do balde "drift" e viram
+  **defeito de contrato nomeado**.
+
+**Predicado de GO com duas guardas que não são óbvias:** janela sem artefato não é
+GO (é ausência de medição — a cadência do dogfood é ~2 runs/semana), e artefato
+ilegível não é GO. A segunda nasceu de um **falso-verde no próprio instrumento**,
+pego pelo teste que eu escrevi para ele: `unreadable` contava como massa e
+devolvia `go=True`. O gate do flip quase nasceu com a doença que existe para
+detectar.
+
+### Deferimento datado (2026-08-24) · dono `data-engineer`
+
+**Re-derivar `baseline_patrimonial.schema.json` do produtor E1.5c.** Medido: 8 das
+13 properties declaradas nunca foram emitidas, 8 chaves emitidas não são
+declaradas (3 delas em 100% dos artefatos), sobreposição de **5 de 13**. Não é
+drift — é contrato de outro payload.
+
+Escopo: declarar as 13 chaves reais (`resumo`, `_meta`, `itens`,
+`informe_pf_saldos_31_12`, `wise_fiscal_flags`, `payload_version`,
+`prompt_version`, `validation` + as 5 que já existem), decidir
+`additionalProperties`, aposentar as 8 fantasmas, e tirar os 2 `required` da era
+disco **junto** com o resto — nunca sozinhos ([[ADR-409]] §F recusa a correção
+mínima: torna o número verde sem tornar o contrato real).
+
+Condição de retomada: é pré-requisito de qualquer flip deste schema, e portanto do
+que a [[A40.l67]] §Deferimento re-homeou para cá. Não bloqueia os outros 5
+elegíveis.
+
+### Segue aberto nesta lane
+
+1. **Kill-switch provado por teste** (§Critério de aceite) — os dois levers do
+   §C, incluindo a despromoção global da env.
+2. **`e2_extract`: contrato do stub de fallback** (classe [[ADR-407]]) — o `tipo`
+   já é discriminador declarado.
+3. **§Escopo 4 — flip órfão:** a suíte de `tests/` roda em `warn` hoje; só o passo
+   `Pipeline JSON schema strict` do CI roda strict, e sobre **1 arquivo**. O
+   `nightly` que rodava o outro está `disabled_manually`. Medir o custo de virar a
+   suíte inteira antes de decidir.
+4. **Runbook de incidente** (§Critério de aceite) — o que fazer quando um run de
+   cliente aborta por schema.
+5. **O flip em si** — gated no que a lane não controla: precisa de runs. Último do
+   corpus é 2026-08-18.
