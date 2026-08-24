@@ -5,10 +5,26 @@
     "bruto": 1500000,
     "liquido": 1200000,
     "categorias": [
-      { "nome": "Imóveis Residenciais e Comerciais Diversificados", "valor": 800000, "percentual": 53.3 },
-      { "nome": "Renda Fixa — Tesouro IPCA+ 2045 / CDBs Bancos Médios", "valor": 350000, "percentual": 23.3 },
-      { "nome": "Renda Variável Internacional & Local (BDRs)", "valor": 250000, "percentual": 16.7 },
-      { "nome": "Caixa & Equivalentes em Múltiplas Instituições", "valor": 100000, "percentual": 6.7 }
+      {
+        "nome": "Imóveis Residenciais e Comerciais Diversificados",
+        "valor": 800000,
+        "percentual": 53.3
+      },
+      {
+        "nome": "Renda Fixa — Tesouro IPCA+ 2045 / CDBs Bancos Médios",
+        "valor": 350000,
+        "percentual": 23.3
+      },
+      {
+        "nome": "Renda Variável Internacional & Local (BDRs)",
+        "valor": 250000,
+        "percentual": 16.7
+      },
+      {
+        "nome": "Caixa & Equivalentes em Múltiplas Instituições",
+        "valor": 100000,
+        "percentual": 6.7
+      }
     ]
   },
   "score": {
@@ -23,36 +39,91 @@
     "saldo": 72000,
     "receita_despesa_mensal_detalhado": {
       "labels": [
-        "26/01", "26/02", "26/03", "26/04", "26/05", "26/06",
-        "26/07", "26/08", "26/09", "26/10", "26/11", "26/12",
-        "27/01", "27/02"
+        "26/01",
+        "26/02",
+        "26/03",
+        "26/04",
+        "26/05",
+        "26/06",
+        "26/07",
+        "26/08",
+        "26/09",
+        "26/10",
+        "26/11",
+        "26/12",
+        "27/01",
+        "27/02"
       ],
       "totais_receita": [
-        18000, 19000, 20000, 18500, 19500, 20500,
-        21000, 19000, 20000, 21000, 22000, 23000,
-        21500, 22500
+        18000,
+        19000,
+        20000,
+        18500,
+        19500,
+        20500,
+        21000,
+        19000,
+        20000,
+        21000,
+        22000,
+        23000,
+        21500,
+        22500
       ],
       "totais_despesa": [
-        12000, 13000, 14000, 13500, 14500, 15000,
-        15500, 14000, 15000, 16000, 16500, 17000,
-        16000, 16500
+        12000,
+        13000,
+        14000,
+        13500,
+        14500,
+        15000,
+        15500,
+        14000,
+        15000,
+        16000,
+        16500,
+        17000,
+        16000,
+        16500
       ],
       "receita_datasets": [
         {
           "label": "Salário CLT (Empresa Multinacional de Tecnologia Brasileira)",
           "data": [
-            14000, 14500, 15000, 14000, 15000, 15500,
-            16000, 14500, 15500, 16000, 16500, 17000,
-            16500, 17000
+            14000,
+            14500,
+            15000,
+            14000,
+            15000,
+            15500,
+            16000,
+            14500,
+            15500,
+            16000,
+            16500,
+            17000,
+            16500,
+            17000
           ],
           "backgroundColor": "#15803D"
         },
         {
           "label": "Aluguéis Residenciais Múltiplas Unidades",
           "data": [
-            4000, 4500, 5000, 4500, 4500, 5000,
-            5000, 4500, 4500, 5000, 5500, 6000,
-            5000, 5500
+            4000,
+            4500,
+            5000,
+            4500,
+            4500,
+            5000,
+            5000,
+            4500,
+            4500,
+            5000,
+            5500,
+            6000,
+            5000,
+            5500
           ],
           "backgroundColor": "#0891B2"
         }
@@ -61,18 +132,40 @@
         {
           "label": "Moradia (Condomínio + IPTU + Manutenção Estrutural)",
           "data": [
-            5000, 5500, 6000, 5500, 6000, 6500,
-            6500, 6000, 6500, 7000, 7000, 7500,
-            7000, 7000
+            5000,
+            5500,
+            6000,
+            5500,
+            6000,
+            6500,
+            6500,
+            6000,
+            6500,
+            7000,
+            7000,
+            7500,
+            7000,
+            7000
           ],
           "backgroundColor": "#B91C1C"
         },
         {
           "label": "Alimentação & Refeições Externas Frequentes",
           "data": [
-            4000, 4500, 5000, 4500, 5000, 5500,
-            5500, 5000, 5500, 5500, 6000, 6000,
-            5500, 5500
+            4000,
+            4500,
+            5000,
+            4500,
+            5000,
+            5500,
+            5500,
+            5000,
+            5500,
+            5500,
+            6000,
+            6000,
+            5500,
+            5500
           ],
           "backgroundColor": "#F4A261"
         }
@@ -156,28 +249,38 @@
   },
   "equilibrio_cerbasi": {
     "presente": 0.55,
-    "futuro": 0.30,
+    "futuro": 0.3,
     "padrao_vida": 0.15
   },
   "cenarios_conjuge": {},
   "orcamento_prospectivo": {},
   "pontos_fortes": [
-    { "titulo": "Diversificação patrimonial sólida com múltiplas classes de ativos balanceadas estrategicamente entre renda fixa indexada à inflação e renda variável local e internacional" }
+    {
+      "titulo": "Diversificação patrimonial sólida com múltiplas classes de ativos balanceadas estrategicamente entre renda fixa indexada à inflação e renda variável local e internacional"
+    }
   ],
   "pontos_urgentes": [
-    { "titulo": "Reserva de emergência incompleta — cobertura atual de 4 meses está abaixo do mínimo recomendado de 6 meses pela metodologia Perini para perfil de baixa volatilidade de receita" }
+    {
+      "titulo": "Reserva de emergência incompleta — cobertura atual de 4 meses está abaixo do mínimo recomendado de 6 meses pela metodologia Perini para perfil de baixa volatilidade de receita"
+    }
   ],
   "tarefas": [
-    { "titulo": "Revisar alocação de renda variável internacional considerando hedge cambial estruturado", "prazo": "2026-05-15" }
+    {
+      "titulo": "Revisar alocação de renda variável internacional considerando hedge cambial estruturado",
+      "prazo": "2026-05-15"
+    }
   ],
   "diagnostico_comportamental": [
-    { "categoria": "Disciplina de Aporte Mensal Recorrente Automatizada", "nota": 8 }
+    {
+      "categoria": "Disciplina de Aporte Mensal Recorrente Automatizada",
+      "nota": 8
+    }
   ],
   "tarefas_status": {},
   "narrativas": {
     "perfil_familia": "Família com perfil moderado-arrojado, foco em independência financeira de longo prazo via dividendos e juros sobre capital próprio, com horizonte de 25 anos para constituir patrimônio capaz de gerar renda passiva equivalente a 80% da renda atual."
   },
-  "real_estate":   {
+  "real_estate": {
     "cap_rate_liquido_pct": 1.3,
     "cap_rate_bruto_pct": 1.7,
     "componentes_calculo": {
@@ -225,8 +328,7 @@
         "status_contrato": "atualizado",
         "indice_reajuste": "IGP-M",
         "data_ultimo_reajuste": "2025-08-15",
-        "endereco_canonical": "Avenida Engenheiro Luís Carlos Berrini, 1500, Conjunto 142, Bloco B, Bairro Cidade Monções, São Paulo — Capital, CEP 04571-000",
-        "imobiliaria_cnpj": null,
+        "endereco_display": "engenheiro luis carlos berrini 1500",
         "imobiliaria_nome": "Administradora Predial e Intermediação Imobiliária do Litoral Norte Sociedade Limitada",
         "origem_aluguel": "informe"
       },
@@ -249,8 +351,7 @@
         "status_contrato": "reajuste_pendente",
         "indice_reajuste": "IGP-M",
         "data_ultimo_reajuste": "2025-08-15",
-        "endereco_canonical": "Praça Quinze de Novembro, sem número, Edifício Memorial da República, Distrito Federal",
-        "imobiliaria_cnpj": null,
+        "endereco_display": null,
         "imobiliaria_nome": "Gestão Patrimonial e Locação Corporativa Associados",
         "origem_aluguel": "informe"
       }
