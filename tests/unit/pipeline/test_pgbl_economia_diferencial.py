@@ -18,6 +18,7 @@ from pipeline.domain.services.irpf_analyzer import CapacidadePgbl, PgblStatus  #
 from pipeline.domain.services.pgbl_economia_ir import economia_diferencial  # noqa: E402
 from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
     CapacidadePgblIRPF,
+    MotivoAusenciaPgbl,
     PrevidenciaAnalyzer,
     PrevidenciaConfig,
 )
@@ -104,3 +105,57 @@ class TestFiacaoNoAnalyzer:
         r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("4608", "38400"))
 
         assert r.economia_ir_anual == Decimal("4608") * Decimal("7.5") / Decimal("100")
+
+
+# =============================================================================
+# Defeito vivo destravado pelo PR2 — economia zero NÃO autoriza prescrever aporte
+#
+# `aporte_mensal` era gateado pelo MOTIVO, não pela economia. Com o diferencial,
+# base isenta passou a devolver economia R$ 0,00 legítima — e o card seguia
+# prescrevendo aporte ao lado dela. A ADR-375 D4 cond. 2 exige
+# `IR(base) − IR(base − aporte) > 0` para prescrever; o gate não expressava isso.
+# Decisão do `financial-planner` (2026-08-24): motivo próprio no campo `aporte`,
+# último na precedência — é o único que coexiste com campos publicados.
+# =============================================================================
+
+
+class TestEconomiaZeroNaoPrescreve:
+    def _isento(self):
+        cfg = PrevidenciaConfig(irpf_faixas=ANUAL_2026)
+        return PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("2400", "20000"))
+
+    def test_aporte_e_retido_com_motivo_proprio(self):
+        r = self._isento()
+
+        assert r.aporte_mensal is None
+        assert r.motivo_ausencia["aporte"] == MotivoAusenciaPgbl.sem_imposto_a_reduzir
+
+    def test_a_economia_zero_continua_publicada_sem_motivo(self):
+        """Invariante ADR-402: reter a prescrição não apaga o fato medido."""
+        r = self._isento()
+
+        assert r.economia_ir_anual == Decimal("0")
+        assert r.motivo_ausencia["economia"] is None
+
+    def test_marginal_sai_junto_do_aporte(self):
+        """Marginal sem economia POSITIVA convida a reconstruir a prescrição retida."""
+        r = self._isento()
+
+        assert r.aliquota_marginal is None
+
+    def test_o_teto_do_irpf_sobrevive(self):
+        """Falsificável: sem isto o teste passaria por ausência de capacidade."""
+        r = self._isento()
+
+        assert r.limite_pgbl_anual == Decimal("2400")
+        assert r.motivo_ausencia["teto"] is None
+
+    def test_economia_positiva_segue_prescrevendo(self):
+        """Braço de controle: o gate novo não pode calar o caso que deve falar."""
+        cfg = PrevidenciaConfig(irpf_faixas=ANUAL_2026)
+        r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("6720", "56000"))
+
+        assert r.economia_ir_anual > 0
+        assert r.aporte_mensal is not None
+        assert r.aliquota_marginal is not None
+        assert r.motivo_ausencia["aporte"] is None
