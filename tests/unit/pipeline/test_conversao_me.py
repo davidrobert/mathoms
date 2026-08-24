@@ -11,6 +11,7 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from pipeline.domain.services.conversao_me import (
+    ConversaoMeBrl,
     FxQuote,
     HardcodedFxDefault,
     apply_fx,
@@ -151,28 +152,34 @@ def test_informe_sem_taxa_divulgada_segue_valido() -> None:
     assert _valid(conv.to_wire())
 
 
-def test_todo_produtor_real_valida_contra_o_schema() -> None:
-    """Se o enum novo reprovasse um produtor vivo, o gate seria falso-positivo."""
-    produtores = [
-        apply_fx(
-            1000,
-            "USD",
-            resolve_fx_input("USD", typed_usd=Decimal("5.42"), typed_eur=None, taxas={}),
-        ),
-        apply_fx(1000, "USD", resolve_fx_input("USD", typed_usd=None, typed_eur=None, taxas={})),
-        apply_fx(1000, "GBP", resolve_fx_input("GBP", typed_usd=None, typed_eur=None, taxas={})),
-        from_informe_entry(
-            {
-                "moeda": "USD",
-                "saldo_original": 1000,
-                "saldo_brl": 5480.0,
-                "taxa_ptax_aplicada": 5.48,
-                "ptax_data": "2024-12-31",
-            }
-        ),
+_INFORME_ENTRY = {
+    "moeda": "USD",
+    "saldo_original": 1000,
+    "saldo_brl": 5480.0,
+    "taxa_ptax_aplicada": 5.48,
+    "ptax_data": "2024-12-31",
+}
+
+
+def _todos_os_produtores_reais() -> list[ConversaoMeBrl]:
+    def fx(moeda: str, typed=None):
+        return apply_fx(
+            1000, moeda, resolve_fx_input(moeda, typed_usd=typed, typed_eur=None, taxas={})
+        )
+
+    return [
+        fx("USD", Decimal("5.42")),
+        fx("USD"),
+        fx("GBP"),
+        from_informe_entry(_INFORME_ENTRY),
         identity_already_brl(250000),
         identity_native_brl(1000),
     ]
+
+
+def test_todo_produtor_real_valida_contra_o_schema() -> None:
+    """Se o enum novo reprovasse um produtor vivo, o gate seria falso-positivo."""
+    produtores = _todos_os_produtores_reais()
     assert {p.taxa_fonte for p in produtores} >= {
         "market_rate_corrente",
         "default_hardcoded",

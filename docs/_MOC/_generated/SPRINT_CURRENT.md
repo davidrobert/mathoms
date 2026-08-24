@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-19 open · 6 in_progress.
+18 open · 6 in_progress.
 
-## Open (19)
+## Open (18)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
