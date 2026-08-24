@@ -11,8 +11,15 @@ Foca em:
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
+from pipeline.domain.services.conversao_me import (
+    FxQuote,
+    convert_me_brl,
+    identity_native_brl,
+)
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
 from pipeline.domain.services.patrimonio_types import (
     CaixaDetalhe,
@@ -20,6 +27,11 @@ from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
     PatrimonioInputs,
 )
+
+
+def _conv_usd(orig: str, rate: str, fonte: str = "market_rate_corrente"):
+    """Carimbo de conversão para fixture — ADR-390 exige que a linha diga a origem."""
+    return convert_me_brl(orig, "USD", FxQuote(rate=Decimal(rate), fonte=fonte))
 
 
 @pytest.fixture
@@ -394,6 +406,7 @@ def test_current_positions_caixa_from_adapter(config: PatrimonioConfig):
             saldo_original=10_000.0,
             valor_brl=58_000.0,
             tipo="moeda_estrangeira",
+            conversao=_conv_usd("10000", "5.80"),
         )
     ]
     calc = PatrimonioCalculator(config)
@@ -426,6 +439,7 @@ def test_caixa_total_vs_me_split(config: PatrimonioConfig):
             saldo_original=30_000.0,
             valor_brl=30_000.0,
             tipo="caixa",
+            conversao=identity_native_brl("30000"),
         ),
         CaixaDetalhe(
             conta="bofa_usd",
@@ -433,6 +447,7 @@ def test_caixa_total_vs_me_split(config: PatrimonioConfig):
             saldo_original=10_000.0,
             valor_brl=58_000.0,
             tipo="moeda_estrangeira",
+            conversao=_conv_usd("10000", "5.80"),
         ),
     ]
     calc = PatrimonioCalculator(config)
@@ -1021,6 +1036,7 @@ _CAIXA_DETALHES_POSICAO: list[CaixaDetalhe] = [
         valor_brl=6191.70,
         tipo="moeda_estrangeira",
         fonte="informe_31_12",  # overridada — não deve repetir
+        conversao=_conv_usd("1000", "6.1917", fonte="ptax_31_12"),
     ),
     CaixaDetalhe(
         conta="itau (contacorrente)",
@@ -1028,6 +1044,7 @@ _CAIXA_DETALHES_POSICAO: list[CaixaDetalhe] = [
         saldo_original=2000.0,
         valor_brl=2000.0,
         tipo="caixa",
+        conversao=identity_native_brl("2000"),
     ),
 ]
 

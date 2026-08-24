@@ -8,8 +8,11 @@ Foco em:
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
+from pipeline.domain.services.conversao_me import FxQuote, convert_me_brl
 from pipeline.domain.services.patrimonio_types import (
     CaixaDetalhe,
     MemberIdentity,
@@ -134,6 +137,26 @@ def test_patrimonio_config_is_frozen():
 # =============================================================================
 
 
+# ADR-390 §Emenda 2026-08-24 — o carimbo deixou de ser opcional; toda linha
+# publicada diz de onde veio o BRL.
+_CAIXA_DETALHE_ESPERADO = {
+    "conta": "bofa_usd",
+    "moeda": "USD",
+    "saldo_original": 123.46,
+    "valor_brl": 720.0,
+    "tipo": "moeda_estrangeira",
+    "fonte": "extrato",
+    "data_referencia": None,
+    "data_referencia_precisao": "desconhecida",
+    "conversao": {
+        "taxa": "5.83",
+        "taxa_data": None,
+        "taxa_fonte": "market_rate_corrente",
+        "status": "converted",
+    },
+}
+
+
 def test_caixa_detalhe_to_dict_rounds_to_2():
     d = CaixaDetalhe(
         conta="bofa_usd",
@@ -141,17 +164,24 @@ def test_caixa_detalhe_to_dict_rounds_to_2():
         saldo_original=123.4567,
         valor_brl=719.9999,
         tipo="moeda_estrangeira",
+        conversao=convert_me_brl(
+            "123.4567", "USD", FxQuote(rate=Decimal("5.83"), fonte="market_rate_corrente")
+        ),
     )
-    assert d.to_dict() == {
-        "conta": "bofa_usd",
-        "moeda": "USD",
-        "saldo_original": 123.46,
-        "valor_brl": 720.0,
-        "tipo": "moeda_estrangeira",
-        "fonte": "extrato",
-        "data_referencia": None,
-        "data_referencia_precisao": "desconhecida",
-    }
+    assert d.to_dict() == _CAIXA_DETALHE_ESPERADO
+
+
+def test_caixa_detalhe_sem_carimbo_nao_typecheck():
+    """Funil estrutural (ADR-390 D4): antes da emenda isto construía, `to_dict()`
+    omitia a chave e o schema validava — indistinguível de artefato pré-390."""
+    with pytest.raises(TypeError, match="conversao"):
+        CaixaDetalhe(
+            conta="Novo Banco (corrente)",
+            moeda="USD",
+            saldo_original=1000.0,
+            valor_brl=5800.0,
+            tipo="moeda_estrangeira",
+        )
 
 
 # =============================================================================
