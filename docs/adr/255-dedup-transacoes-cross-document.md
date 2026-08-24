@@ -89,7 +89,9 @@ Em `pipeline/domain/services/cash_flow_builder.py`:
   > **Nota (audit r6, 2026-07-03):** `compute_transaction_hash` (chave v1)
   > foi substituído por `compute_identity_hash(..., natural_key_v2)` em
   > `pipeline/domain/services/_tx_identity.py`, com as flags v2 ligadas
-  > (`dedup_natural_key_v2=True` em `e4_categorizer_adapter.py`) — ver
+  > (`dedup_natural_key_v2=True` resolvido pela feature flag em
+  > `scripts/categorize_transactions.py`; o **default do parâmetro** em
+  > `e4_categorizer_adapter.py:129` é `False` — auditoria r10 · F23) — ver
   > [[ADR-282]] (natural key v2) e [[ADR-287]] (flip do dedup E4).
 
 ### Sufixos de roteamento PIX (iteração 2 — refinamento de Camada A)
@@ -195,7 +197,7 @@ Camada A **permanece após** Camada B. Se geração de hash em E3 quebrar por bu
 Runs históricos em `pipeline_artifacts` têm cash_flow inflado. Estratégia:
 
 1. **Audit script** (`dev/audit_duplicate_transactions.py`): itera `pipeline_artifacts` stage=E3, decryptar com `_maybe_decrypt`, contar `(data, valor, descricao_lower)` em múltiplos `artifact_keys` do mesmo workspace; output: `workspace_id | n_dups | sample`. Roda em ~5min para o universo todo.
-2. **Recompute E4** (`backend/app/services/internal_ops/recompute_e4.py`): recomputa só stage E4 a partir do E3 existente — determinístico, **sem custo LLM**. Marca `pipeline_runs.stale = true` em E5/E6/parecer; regen on-demand quando workspace abre report. Idempotente, revisitável.
+2. **Recompute E4** (`dev/recompute_e4_for_run.py`): recomputa só stage E4 a partir do E3 existente — determinístico, **sem custo LLM**. Marca `pipeline_runs.stale = true` em E5/E6/parecer; regen on-demand quando workspace abre report. Idempotente, revisitável.
 3. RTO ~30min para todos workspaces afetados.
 
 ## Consequências
@@ -251,8 +253,9 @@ Surface no console interno (`/ops/workspaces/<id>/pipeline`) para o operador inv
 5. **Transferência intra-titular** — mesmo titular, mesmo banco, CC→poupança no mesmo dia/valor → 2 linhas preservadas (tipo_conta diferente).
 6. **Parcelamento** — `"PARC 3/12"` e `"PARC 4/12"` mesmo dia/valor → 2 linhas (descricao_norm preserva token N/M).
 7. **Schema aditivo** — `validate_dict(payload_e4_pre_pr2, "e4_unified.schema.json")` em strict mode continua válido (payload sem `transaction_hash` aceito).
+   > ⚠️ **Não verificado por construção (auditoria r10 · F23).** O `$defs.transactionIdentity` desenhado abaixo **não** entrou em `config/schemas/e4_unified.schema.json` (`$defs` não existe no arquivo; `grep -c transaction_hash` = 0). Os campos trafegam apenas por `additionalProperties: true`, então este critério passa porque o schema **desconhece** o campo — nos dois sentidos. Fechar exige adicionar o `$defs` ou retirar a afirmação.
 8. **Goldens E3/E4** (`tests/test_e{3,4}_golden_execution.py`) verdes após regen.
-9. **Backfill** — `recompute_e4 --workspace-id <id>` corrige cash_flow sem chamar LLM; `pipeline_runs.stale=true` em E5/E6/parecer; regen on-demand quando user abre report.
+9. **Backfill** — `python3 dev/recompute_e4_for_run.py --workspace-id <uuid> --run-id <uuid> --apply` corrige cash_flow sem chamar LLM (**ambos** os ids são `required`, `dev/recompute_e4_for_run.py:99-101`; sem `--apply` é dry-run). Procedimento completo: [`runbooks/recompute_e4_dedup.md`](../reference/runbooks/recompute_e4_dedup.md); `pipeline_runs.stale=true` em E5/E6/parecer; regen on-demand quando user abre report.
 10. **Telemetria** — log JSON `mathoms.pipeline.dedup` emitido com counts (sem PII).
 11. **Defesa em profundidade** — Camada A roda mesmo com `transaction_hash` presente em todas as txs (idempotente).
 12. **Sufixos de roteamento PIX** (iteração 2) — `"Pix recebido de X"` e `"Pix recebido de X — Salários PJ"` no mesmo dia/banco/titular/tipo_conta/valor produzem **mesmo** `transaction_hash`. Análogo para sufixos ` — 13 Salário`, ` — TRANSF ENVIADA PIX`, ` — Boleto`, ` — NFS \d+`, ` SIMPLES NACIONAL` (DARF). Whitelist conservadora — outros sufixos pós- ` — ` (ex.: `"— Aluguel apto 12"`) **não** sofrem strip.
@@ -286,9 +289,9 @@ Decisão (A) por: determinismo absoluto (goldens estáveis), custo cirúrgico (~
 
 ## Próximos passos
 
-- **PR1 (entregue em #429)**: helper `pipeline/domain/services/_tx_identity.py` + dedup K4 + `DedupReport` em `cash_flow_builder` × 3 funções + log JSON + goldens E4 regenerados + teste cross-doc (`tests/test_e4_cross_doc_dedup.py`). **Sem schema bump.** Camada A shipou em 2026-05-22.
+- **PR1 (entregue em #429)**: helper `pipeline/domain/services/_tx_identity.py` + dedup K4 + `DedupReport` em `cash_flow_builder` × 3 funções + log JSON + goldens E4 regenerados + teste cross-doc (o arquivo `tests/test_e4_cross_doc_dedup.py` **nunca existiu** sob esse nome — auditoria r10 · F23; a cobertura cross-documento viva é `tests/unit/pipeline/test_cross_document_collapser.py`). **Sem schema bump.** Camada A shipou em 2026-05-22.
 - **PR2 (entregue em #429)**: campos `source_doc_id` + `transaction_hash` em `ClassifiedTransaction`; geração em `e3_serialization`; schema E4 aditivo; builders preferem field, fallback computed. Goldens regeneram. Teste explícito de aditividade do schema.
-- **PR3 (entregue em #429)**: `dev/audit_duplicate_transactions.py` + `backend/app/services/internal_ops/recompute_e4.py`. Marca `pipeline_runs.stale=true`. Runbook em `docs/reference/runbooks/`.
+- **PR3 (entregue em #429)**: `dev/audit_duplicate_transactions.py` + `dev/recompute_e4_for_run.py`. Marca `pipeline_runs.stale=true`. Runbook em `docs/reference/runbooks/`.
 - **PR4 — iteração 2 (este escopo)**: refinar `normalize_descricao` em `_tx_identity.py` com strip de sufixos PIX whitelistados; estender `compute_transaction_hash` correspondentemente; testes unitários cobrindo critério #12 (sufixos colapsam) + regressão #6 (parcelamento preservado) + #3 (casal titular distinto preservado); regen goldens E3/E4; recompute_e4 no workspace `1b9f2cf5-…` para validar critério #13. Após verde, **flip ADR-255 → Decidido**.
 - **Follow-up tracked separadamente**: detecção upstream de overlap de conteúdo em E0/E2 (estender [[ADR-228]]) — preventiva, não substitui defesa em E4. Trigger: confirmar com product-designer + financial-planner se UX é flag-and-mark ou block-and-replace.
 - **Follow-up tracked separadamente**: melhorar classificador de banco em E0 para PDFs C6 "extrato-da-sua-conta-{ULID}" (snapshots cumulativos do app C6 PJ) — reduz casos de `bank_code=""` que escapam de fuzzy dedup. Causa raiz upstream: o parser de E0 não reconhece o cabeçalho/layout do PDF "extrato completo" do C6.
