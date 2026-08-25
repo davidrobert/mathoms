@@ -413,6 +413,31 @@ def _fail_campo_novo(path: str, report: CoverageReport) -> None:
 # Hard-fail, não warn: o `warn` anterior não tinha destinatário. Escopo é o campo NOVO —
 # o débito herdado sai como contagem, para ficar visível sem virar allowlist de ~90
 # linhas, que é carimbada de uma vez e vira decoração.
+def _paths_projetados(manifest_path: Path) -> set[str]:
+    """Paths que o manifest declara, com o wildcard de lista normalizado."""
+    return {
+        path.replace("[*]", "") for _section, path in iter_manifest_paths(load_yaml(manifest_path))
+    }
+
+
+def _pendentes(_folhas: set[str], projetados: set[str]):
+    """Filtro de folhas sem projeção nem escape — reusado pelo débito e pelo campo novo."""
+
+    def aplica(alvo: set[str]) -> list[str]:
+        return [p for p in alvo if not _coberto_pelo_manifest(p, projetados) and not _escapado(p)]
+
+    return aplica
+
+
+def _warn_debito_herdado(pendentes: list[str], report: CoverageReport) -> None:
+    """Contagem, não allowlist: ~90 linhas de escape seriam carimbadas de uma vez."""
+    if pendentes:
+        report.warn(
+            f"[drift] {len(pendentes)} folhas do E5 fora do manifest e sem razão declarada "
+            "(débito herdado, não bloqueia). Campo NOVO bloqueia."
+        )
+
+
 def check_schema_manifest_drift(
     e5_schema_path: Path,
     manifest_path: Path,
@@ -424,22 +449,12 @@ def check_schema_manifest_drift(
     """Campo novo no E5 é projetado no manifest ou escapado com razão (A40.l83 · RV8-05b)."""
     del changed_paths  # a decisão deixou de derivar de "o arquivo mudou?"
     rel = _repo_relative(e5_schema_path)
+    folhas = _e5_leaf_paths(load_json(e5_schema_path))
+    pendente = _pendentes(folhas, _paths_projetados(manifest_path))
+    _warn_debito_herdado(pendente(folhas), report)
     baseline = _baseline_ref(rel)
-    atual = load_json(e5_schema_path)
-    projetados = {
-        path.replace("[*]", "") for _section, path in iter_manifest_paths(load_yaml(manifest_path))
-    }
-    folhas = _e5_leaf_paths(atual)
-    herdado = [p for p in folhas if not _coberto_pelo_manifest(p, projetados) and not _escapado(p)]
-    if herdado:
-        report.warn(
-            f"[drift] {len(herdado)} folhas do E5 fora do manifest e sem razão declarada "
-            "(débito herdado, não bloqueia). Campo NOVO bloqueia."
-        )
     if baseline is None or baseline == "HEAD":
         _sem_baseline(report, strict_baseline)
         return
-    antes = _e5_leaf_paths(_schema_at(baseline, rel) or {})
-    for path in sorted(folhas - antes):
-        if not _coberto_pelo_manifest(path, projetados) and not _escapado(path):
-            _fail_campo_novo(path, report)
+    for path in sorted(pendente(folhas - _e5_leaf_paths(_schema_at(baseline, rel) or {}))):
+        _fail_campo_novo(path, report)
