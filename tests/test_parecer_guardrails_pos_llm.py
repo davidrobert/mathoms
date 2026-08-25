@@ -189,6 +189,14 @@ def make_output(
 # -----------------------------------------------------------------------
 
 
+def _filtra(output, e5, *, catalogo=None):
+    """Por default assume todo path pedido citável (ADR-206 §Emenda 2026-08-25)."""
+    campos = output.campos_faltantes_pediria_se_iterasse or []
+    todos = frozenset(c.field_path for c in campos if c.field_path)
+    paths = todos if catalogo is None else catalogo
+    return filter_campos_faltantes(output, e5, WS, catalog_paths=paths)
+
+
 class TestDowngradeConfiancaFallback:
     def test_parcial_downgrades_anchored_items_and_drops_impacto(self):
         """Critério de aceite: parcial + alta ancorado em $.if_monte_carlo.* →
@@ -267,7 +275,7 @@ def _campos_3_vias() -> list[CampoFaltante]:
 class TestFilterCamposFaltantes3Vias:
     def test_spurious_removed_wrong_path_reannotated_absent_kept(self, alias_sintetico):
         output = make_output(campos=_campos_3_vias())
-        result, audit = filter_campos_faltantes(output, E5_PARCIAL, WS)
+        result, audit = _filtra(output, E5_PARCIAL)
 
         kept = result.campos_faltantes_pediria_se_iterasse
         assert [c.field_path for c in kept] == ["$.protecao_patrimonial.apolices"]
@@ -288,7 +296,7 @@ class TestFilterCamposFaltantes3Vias:
                 CampoFaltante(field_path=_ALIAS_ERRADO, motivo="quantos dependentes a família tem")
             ]
         )
-        result, audit = filter_campos_faltantes(output, e5_sem_irpf, WS)
+        result, audit = _filtra(output, e5_sem_irpf)
         assert audit == []
         assert len(result.campos_faltantes_pediria_se_iterasse) == 1
 
@@ -297,19 +305,19 @@ class TestFilterCamposFaltantes3Vias:
         output = make_output(
             campos=[CampoFaltante(field_path=None, motivo="path fora do subset suportado")]
         )
-        result, audit = filter_campos_faltantes(output, E5_PARCIAL, WS)
+        result, audit = _filtra(output, E5_PARCIAL)
         assert audit == []
         assert len(result.campos_faltantes_pediria_se_iterasse) == 1
 
     def test_absent_campos_is_noop(self):
         output = make_output(campos=None)
-        result, audit = filter_campos_faltantes(output, E5_PARCIAL, WS)
+        result, audit = _filtra(output, E5_PARCIAL)
         assert result is output
         assert audit == []
 
     def test_summary_counts_and_never_needs_review(self, alias_sintetico):
         output = make_output(campos=_campos_3_vias())
-        _, audit = filter_campos_faltantes(output, E5_PARCIAL, WS)
+        _, audit = _filtra(output, E5_PARCIAL)
         summary = guardrails_summary(confianca_rebaixada=2, audit=audit)
         assert summary == {
             "confianca_rebaixada": 2,
@@ -332,7 +340,7 @@ class TestColecaoVaziaNaoEhSpuria:
         e5 = {**E5_PARCIAL, "protecao_patrimonial": {"bens_com_gap_cobertura": []}}
         path = "$.protecao_patrimonial.bens_com_gap_cobertura[*]"
         output = make_output(campos=[CampoFaltante(field_path=path, motivo="bens sem cobertura")])
-        result, audit = filter_campos_faltantes(output, e5, WS)
+        result, audit = _filtra(output, e5)
         assert audit == []
         assert [c.field_path for c in result.campos_faltantes_pediria_se_iterasse] == [path]
 
@@ -348,7 +356,7 @@ class TestColecaoVaziaNaoEhSpuria:
         }
         path = "$.composicao_familiar.membros[*].idade"
         output = make_output(campos=[CampoFaltante(field_path=path, motivo="idade exata")])
-        result, audit = filter_campos_faltantes(output, e5, WS)
+        result, audit = _filtra(output, e5)
         assert audit == []
         assert [c.field_path for c in result.campos_faltantes_pediria_se_iterasse] == [path]
 
@@ -357,7 +365,7 @@ class TestColecaoVaziaNaoEhSpuria:
         e5 = {**E5_PARCIAL, "composicao_familiar": {"membros": [{}, {"faixa_etaria": "0-17"}]}}
         path = "$.composicao_familiar.membros[*].faixa_etaria"
         output = make_output(campos=[CampoFaltante(field_path=path, motivo="faixa dos membros")])
-        _, audit = filter_campos_faltantes(output, e5, WS)
+        _, audit = _filtra(output, e5)
         assert [a["reason"] for a in audit] == [REASON_SPURIOUS]
 
 
@@ -371,14 +379,14 @@ class TestSentinelasDeAusencia:
     def test_nd_string_sentinel_is_kept_as_genuine(self):
         """Regressão dogfood: taxa_juros_aa "N/D" fazia o pedido legítimo ser removido."""
         output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros_aa"))
-        result, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        result, audit = _filtra(output, E5_COM_SENTINELAS)
         assert audit == []
         kept = result.campos_faltantes_pediria_se_iterasse
         assert [c.field_path for c in kept] == ["$.endividamento.dividas[0].taxa_juros_aa"]
 
     def test_nd_sentinel_not_counted_in_spurious_telemetry(self):
         output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros_aa"))
-        _, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        _, audit = _filtra(output, E5_COM_SENTINELAS)
         summary = guardrails_summary(confianca_rebaixada=0, audit=audit)
         assert summary["field_requests_spurious"] == 0
 
@@ -394,14 +402,14 @@ class TestSentinelasDeAusencia:
                 ),
             ]
         )
-        result, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        result, audit = _filtra(output, E5_COM_SENTINELAS)
         assert audit == []
         assert len(result.campos_faltantes_pediria_se_iterasse) == 2
 
     def test_real_value_at_sibling_path_still_spurious(self):
         """Sentinela não afrouxa a via 1: valor real presente continua espúrio."""
         output = make_output(campos=self._um_campo("$.endividamento.total_dividas"))
-        result, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        result, audit = _filtra(output, E5_COM_SENTINELAS)
         assert [a["reason"] for a in audit] == [REASON_SPURIOUS]
         assert result.campos_faltantes_pediria_se_iterasse == []
 
@@ -413,7 +421,7 @@ class TestSentinelasDeAusencia:
                 CampoFaltante(field_path=_ALIAS_ERRADO, motivo="quantos dependentes a família tem")
             ]
         )
-        result, audit = filter_campos_faltantes(output, e5, WS)
+        result, audit = _filtra(output, e5)
         assert audit == []
         assert len(result.campos_faltantes_pediria_se_iterasse) == 1
 
