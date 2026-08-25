@@ -1,14 +1,12 @@
 {
   "_comment": "Parâmetros de scoring financeiro — ranges, pesos, classificações. Fonte única consumida por scripts/analyze_finances.py. Documentação em methodology.md §SCORE FINANCEIRO. Não duplicar ranges/pesos em outros arquivos.",
   "_ultima_atualizacao": "2026-07-15",
-
   "_escala": {
     "min": 0,
     "max": 10,
     "decimais": 1,
     "_nota": "Escala 0-10 com 1 decimal. Decisão 2026-04-27 — escala 0-100 do template antigo descontinuada."
   },
-
   "_metodologia": {
     "_descricao": "Cada critério é justificado por pelo menos uma das três metodologias-pilar do produto (Perini/Cerbasi/AUVP).",
     "taxa_poupanca_recorrente": {
@@ -32,7 +30,6 @@
       "racional": "FIN-05 (ADR-340): substitui a antiga 'diversificacao' (contagem de buckets de origem — proxy invertido que premiava residência/veículos ilíquidos e double-contava carteira por CPF do casal). Agora = imóveis de renda (cat_2) sobre a carteira produtiva (investível financeiro + cat_2, FIXA), invertido — alta concentração em imóvel ilíquido = nota baixa. Mede quanto do capital produtivo está travado; residência/veículos ficam fora do denominador (não são carteira). Peso menor (1.0). Diversificação de carteira por classe (RF/ações/FIIs) fica para `goal.alocacao_alvo.v2:derived.desvio_max_pct` (futuro)."
     }
   },
-
   "score_componentes": {
     "_comment": "Cada componente tem range [min, max] para interpolação linear 0→10, peso, e citação metodológica. 'invertido' inverte a escala (valor alto = nota baixa).",
     "taxa_poupanca_recorrente": {
@@ -83,15 +80,33 @@
       "fonte": "concentração de classe ilíquida na carteira produtiva (base carteira, ADR-340)."
     }
   },
-
   "score_classificacao": [
-    {"min": 0,  "max": 2,  "label": "Crítico"},
-    {"min": 2,  "max": 4,  "label": "Atenção"},
-    {"min": 4,  "max": 6,  "label": "Regular"},
-    {"min": 6,  "max": 8,  "label": "Bom"},
-    {"min": 8,  "max": 10, "label": "Excelente"}
+    {
+      "min": 0,
+      "max": 2,
+      "label": "Crítico"
+    },
+    {
+      "min": 2,
+      "max": 4,
+      "label": "Atenção"
+    },
+    {
+      "min": 4,
+      "max": 6,
+      "label": "Regular"
+    },
+    {
+      "min": 6,
+      "max": 8,
+      "label": "Bom"
+    },
+    {
+      "min": 8,
+      "max": 10,
+      "label": "Excelente"
+    }
   ],
-
   "reserva_emergencia": {
     "_definicao": "Reserva-alvo = custo_essencial_mensal × meses_alvo. Cobertura atual = reserva_liquida_disponivel ÷ custo_essencial_mensal. Documentação completa em methodology.md §RESERVA DE EMERGÊNCIA e FORMULAS.md.",
     "_base_calculo": {
@@ -99,56 +114,134 @@
         "_nota_metodo": "FP-04 (ADR-306): label morto (zero leitor — o cálculo usa base_denominador/janela do ADR-306, não este campo); conformado à política real de base temporal (média 12m documentada).",
         "metodo": "media_12m_documentados",
         "categorias_in": [
-          "moradia", "alimentacao", "transporte", "saude", "seguros",
-          "servicos_domesticos", "educacao", "suporte_familiar", "financiamentos"
+          "moradia",
+          "alimentacao",
+          "transporte",
+          "saude",
+          "seguros",
+          "servicos_domesticos",
+          "educacao",
+          "suporte_familiar",
+          "financiamentos"
         ],
         "categorias_out": [
-          "lazer_viagens", "vestuario", "assinaturas", "melhoria_reforma",
-          "reserva_desejos", "financeiro"
+          "lazer_viagens",
+          "vestuario",
+          "assinaturas",
+          "melhoria_reforma",
+          "reserva_desejos",
+          "financeiro"
         ],
         "impostos": {
-          "incluir": ["IPTU", "IPVA", "IRPF"],
-          "excluir": ["DAS Simples Nacional", "DARF PJ", "GPS INSS PJ"]
+          "incluir": [
+            "IPTU",
+            "IPVA",
+            "IRPF"
+          ],
+          "excluir": [
+            "DAS Simples Nacional",
+            "DARF PJ",
+            "GPS INSS PJ"
+          ]
         }
       },
       "meses_alvo_por_perfil_renda": {
-        "clt_estavel":      {"meses": 6,  "criterio": "receita_pj_pct < 10% E ≥2 fontes CLT independentes na família"},
-        "clt_unica_fonte":  {"meses": 12, "criterio": "receita_pj_pct < 10% E 1 única fonte de renda"},
-        "renda_mista":      {"meses": 12, "criterio": "10% ≤ receita_pj_pct < 30%"},
-        "pj_relevante":     {"meses": 12, "criterio": "30% ≤ receita_pj_pct < 60%"},
-        "pj_dominante":     {"meses": 18, "criterio": "receita_pj_pct ≥ 60%"}
+        "clt_estavel": {
+          "meses": 6,
+          "criterio": "receita_pj_pct < 10% E ≥2 fontes CLT independentes na família"
+        },
+        "clt_unica_fonte": {
+          "meses": 12,
+          "criterio": "receita_pj_pct < 10% E 1 única fonte de renda"
+        },
+        "renda_mista": {
+          "meses": 12,
+          "criterio": "10% ≤ receita_pj_pct < 30%"
+        },
+        "pj_relevante": {
+          "meses": 12,
+          "criterio": "30% ≤ receita_pj_pct < 60%"
+        },
+        "pj_dominante": {
+          "meses": 18,
+          "criterio": "receita_pj_pct ≥ 60%"
+        }
       }
     },
-    "niveis_meses": [3, 6, 12, 24],
+    "niveis_meses": [
+      3,
+      6,
+      12,
+      24
+    ],
     "classificacao": [
-      {"minimo_meses": 24, "label": "Excessiva",    "acao": "realocar_excedente"},
-      {"minimo_meses": 12, "label": "Robusta",      "acao": "manter"},
-      {"minimo_meses": 6,  "label": "Adequada",     "acao": "manter_se_clt"},
-      {"minimo_meses": 3,  "label": "Mínima",       "acao": "completar_para_alvo"},
-      {"minimo_meses": 0,  "label": "Insuficiente", "acao": "prioridade_maxima"}
+      {
+        "minimo_meses": 24,
+        "label": "Excessiva",
+        "acao": "realocar_excedente"
+      },
+      {
+        "minimo_meses": 12,
+        "label": "Robusta",
+        "acao": "manter"
+      },
+      {
+        "minimo_meses": 6,
+        "label": "Adequada",
+        "acao": "manter_se_clt"
+      },
+      {
+        "minimo_meses": 3,
+        "label": "Mínima",
+        "acao": "completar_para_alvo"
+      },
+      {
+        "minimo_meses": 0,
+        "label": "Insuficiente",
+        "acao": "prioridade_maxima"
+      }
     ]
   },
-
   "cerbasi": {
     "_comment": "Equilíbrio Cerbasi: presente (gastos correntes / estilo de vida) vs futuro (capital alocado para construir patrimônio). 'Futuro' canônico Cerbasi = aporte/poupança/educação dos filhos. 'reserva_desejos' (consumo planejado) e 'financeiro' (atrito: IOF/anuidade/juros) NÃO são 'futuro' — foram removidos em 2026-04-27 após auditoria (item S3).",
     "categorias_presente": [
-      "moradia", "alimentacao", "transporte", "saude", "lazer_viagens",
-      "servicos_domesticos", "assinaturas", "vestuario",
-      "seguros", "melhoria_reforma", "suporte_familiar",
-      "reserva_desejos", "financeiro"
+      "moradia",
+      "alimentacao",
+      "transporte",
+      "saude",
+      "lazer_viagens",
+      "servicos_domesticos",
+      "assinaturas",
+      "vestuario",
+      "seguros",
+      "melhoria_reforma",
+      "suporte_familiar",
+      "reserva_desejos",
+      "financeiro"
     ],
     "categorias_futuro": [
       "educacao"
     ],
     "_aporte_como_futuro": "O 'capital alocado para o futuro' canônico Cerbasi (aportes em RF/RV/FIIs/previdência) NÃO vive em despesas — vive em fluxo de aportes (`investimentos-4_unified.json`). analyze_finances.py soma `aporte_mensal_recorrente_brl` ao numerador de 'futuro' antes de classificar. Apenas 'educacao' é despesa que conta como futuro (educação dos filhos / cursos profissionalizantes que geram renda).",
     "classificacao": [
-      {"minimo_futuro_pct": 30, "label": "Investidor"},
-      {"minimo_futuro_pct": 20, "label": "Equilibrado"},
-      {"minimo_futuro_pct": 10, "label": "Endividado consciente"},
-      {"minimo_futuro_pct": 0,  "label": "Gastador"}
+      {
+        "minimo_futuro_pct": 30,
+        "label": "Investidor"
+      },
+      {
+        "minimo_futuro_pct": 20,
+        "label": "Equilibrado"
+      },
+      {
+        "minimo_futuro_pct": 10,
+        "label": "Endividado consciente"
+      },
+      {
+        "minimo_futuro_pct": 0,
+        "label": "Gastador"
+      }
     ]
   },
-
   "thresholds_alertas": {
     "_comment": "Thresholds para pontos urgentes e diagnóstico comportamental.",
     "reserva_minima_meses": 6,
@@ -158,16 +251,78 @@
     "consumo_consciente_min": 2000,
     "pontos_fortes_taxa_poupanca_min_pct": 30
   },
-
   "asset_class_keywords": {
     "_comment": "Taxonomia canônica de 8 buckets financeiros (ADR-193). Avaliação em ordem de especialização: Cripto → Previdência → FIIs → Internacional → Ações BR → Renda Fixa → Fundos → Caixa. Ver pipeline/domain/services/asset_classifier.py para defaults e EVALUATION_ORDER. Imóveis Investimento + Outros são buckets terminais (sem keywords).",
-    "Cripto": ["cripto", "bitcoin", "ethereum", "binance", "btc", "eth", "hashdex"],
-    "Previdência": ["pgbl", "vgbl", "previdencia", "previdência"],
-    "FIIs": ["fii", "fiis", "fundo imobiliario", "fundo imobiliário"],
-    "Internacional": ["usd", "dolar", "dólar", "ivvb", "global", "moeda estrangeira", "exterior"],
-    "Ações BR": ["acoes", "ações", "acao", "ação", "itsa", "brkm", "petr", "etf", "participacao societaria", "participação societária"],
-    "Renda Fixa": ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "debênture", "certificado de deposito", "cra", "cri", "poupanca", "poupança", "cofrinhos"],
-    "Fundos": ["fic ", " fim", " fia", "fundo de investimento", "alaska", "constellation", "western", "safari", "dna energy"],
-    "Caixa": ["conta corrente", "picpay", "nubank", "saldo em conta", "conta de deposito"]
+    "Cripto": [
+      "cripto",
+      "bitcoin",
+      "ethereum",
+      "binance",
+      "btc",
+      "eth",
+      "hashdex"
+    ],
+    "Previdência": [
+      "pgbl",
+      "vgbl",
+      "previdencia",
+      "previdência"
+    ],
+    "FIIs": [
+      "fii",
+      "fiis",
+      "fundo imobiliario",
+      "fundo imobiliário"
+    ],
+    "Internacional": [
+      "usd",
+      "dolar",
+      "dólar",
+      "ivvb",
+      "global",
+      "moeda estrangeira",
+      "exterior"
+    ],
+    "Ações BR": [
+      "acoes",
+      "ações",
+      "acao",
+      "ação",
+      "itsa",
+      "brkm",
+      "petr",
+      "etf",
+      "participacao societaria",
+      "participação societária"
+    ],
+    "Renda Fixa": [
+      "renda fixa",
+      "cdb",
+      "rdb",
+      "lci",
+      "lca",
+      "tesouro",
+      "debenture",
+      "debênture",
+      "certificado de deposito",
+      "cra",
+      "cri",
+      "poupanca",
+      "poupança",
+      "cofrinhos"
+    ],
+    "Fundos": [
+      "fic ",
+      " fim",
+      " fia",
+      "fundo de investimento"
+    ],
+    "Caixa": [
+      "conta corrente",
+      "picpay",
+      "nubank",
+      "saldo em conta",
+      "conta de deposito"
+    ]
   }
 }

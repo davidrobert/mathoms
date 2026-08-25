@@ -477,9 +477,14 @@ def _split_investimentos(
     if isinstance(inv_raw, list):
         for inv in inv_raw:
             valor, ano = _resolve_item_valor_e_ano(inv, ano_ref)
+            # `tipo` NÃO entra: metade do codomínio de `_classify_investimento`
+            # é default de grupo RFB (`renda_fixa` do 04, `investimento` do
+            # fall-through) indistinguível de evidência, e o classificador o
+            # trataria como fato — 11 de 61 posições migraram de classe assim
+            # ([[A40.l82]] · RV8-01). Volta quando o degrau 1 da [[ADR-400]]
+            # separar presunção de fato no produtor.
             entry = {
                 "descricao": inv.get("descricao", ""),
-                "tipo": inv.get("tipo", ""),
                 "valor_31_12_ano_base": valor,
             }
             _com_proveniencia(entry, inv, ano)
