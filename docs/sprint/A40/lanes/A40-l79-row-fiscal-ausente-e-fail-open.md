@@ -55,8 +55,30 @@ redutor da Lei 15.270/2025 zera):
 
 | config | `economia_ir_anual` | `aporte_mensal` | `aliquota_marginal` |
 |---|---|---|---|
-| AC2026 · row presente (hoje) | ausente com motivo | ausente | ausente |
+| AC2026 · row presente (à época) | ausente com motivo | ausente | ausente |
 | **AC2027 · row ausente** | **R$ 630,00** | R$ 700,00 | 7,5% (fallback) |
+
+> ### ⚠️ Re-medido em 2026-08-25 — o flip da [[A40.l64]] AGRAVOU este defeito
+>
+> A tabela acima é de 2026-08-24, quando AC2026 era `regime_completo: false`. O
+> #1722 flipou para `true`, e o eixo do dano mudou de lugar.
+>
+> **Antes:** o fail-open trocava *retenção* por *publicação* — visível, porque a
+> row incompleta era a exceção e o `True` do legado destoava.
+>
+> **Agora:** `regime_completo: true` é o estado NORMAL, e o legado devolve o mesmo
+> `True`. O marcador deixou de distinguir qualquer coisa. O fail-open passa a
+> trocar o número **certo** por um **errado**, sem sinal nenhum:
+>
+> | AC2027, bruto R$ 70.000, base R$ 56.000 | `economia_ir_anual` | `aliquota_marginal` |
+> |---|---|---|
+> | row presente | **R$ 1.891,19** (com redutor) | 27,5% |
+> | **row ausente → legado** | **R$ 630,00** | 7,5% (fallback) |
+>
+> O legado não tem tabela, não tem redutor e não tem piso de IRPFM — e nada nisso
+> é observável, porque o único campo que sinalizava incompletude agora diz `true`
+> nos dois casos. **A severidade subiu: de "publica quando deveria reter" para
+> "publica errado sem deixar rastro".**
 
 **O default `True` está certo para o dict legado** — o comentário em
 `PrevidenciaConfig` argumenta que presumir incompleto reteria a prescrição de
@@ -69,11 +91,16 @@ publicar.
 
 `fiscal_store_do_seed(year)` ([`tests/pipeline_golden_substrate.py`](../../../../tests/pipeline_golden_substrate.py))
 faz `tabelas[max(a for a in tabelas if a <= year)]` — **clamp que só a fixture
-tem**. Medido: devolve `regime_completo=False` em 2026, 2027 e 2030. O comentário
-da fixture nomeia o risco (*"vira KeyError silencioso em 2027 — engolido pelo
-`except Exception`"*): endureceram a fixture contra o rollover que a produção
-sofre. Logo `test_regime_incompleto_retem_a_economia_no_payload` fica verde para
-sempre nesse eixo.
+tem**, e a produção não. O comentário da fixture nomeia o risco (*"vira KeyError
+silencioso em 2027 — engolido pelo `except Exception`"*): endureceram a fixture
+contra o rollover que a produção sofre.
+
+> **Atualizado em 2026-08-25.** O #1722 fez a fixture compor as três migrations, e
+> ela agora devolve `regime_completo=True` para 2026+ — alinhada à produção nesse
+> campo. **O clamp continua lá**, então o eixo do rollover segue cego: a fixture
+> resolve 2027 e 2030 servindo a linha de 2026, enquanto
+> `list_covering_period` levanta. O golden não pode ficar vermelho por este
+> defeito, e é isso que esta lane tem de consertar.
 
 ## Escopo
 

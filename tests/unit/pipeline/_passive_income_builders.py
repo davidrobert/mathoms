@@ -38,9 +38,12 @@ def contribuinte(ano_base: int = 2024, nome: str = "Test") -> Contribuinte:
     )
 
 
-def imposto(ir_pago: str = "0") -> ImpostoApurado:
+# `base_calculo_brl` deixou de ser decorativo com a [[ADR-414]]: é ele que indexa a
+# tabela progressiva. Zerá-lo por default fazia a economia de PGBL degenerar a zero
+# em TODO golden que use este builder — cobertura perdida em silêncio.
+def imposto(ir_pago: str = "0", base_calculo: str = "0") -> ImpostoApurado:
     return ImpostoApurado(
-        base_calculo_brl="0",
+        base_calculo_brl=base_calculo,
         ir_devido_brl="0",
         deducoes_totais_brl="0",
         ir_pago_brl=ir_pago,
@@ -103,6 +106,7 @@ def exterior_rend(valor: str) -> RendimentoExterior:
 def decl(
     *,
     ano_base: int = 2024,
+    base_calculo: str = "0",
     isentos: list | None = None,
     exclusiva_list: list | None = None,
     exterior: list | None = None,
@@ -114,7 +118,7 @@ def decl(
         rendimentos_tributacao_exclusiva=exclusiva_list or [],
         rendimentos_exterior=exterior or [],
         bens_direitos=bens or [],
-        imposto_apurado=imposto(),
+        imposto_apurado=imposto(base_calculo=base_calculo),
         confidence=0.95,
     )
 

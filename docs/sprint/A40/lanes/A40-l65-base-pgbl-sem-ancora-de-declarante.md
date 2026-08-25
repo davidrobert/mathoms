@@ -4,9 +4,11 @@ type: lane
 title: "A base do PGBL perdeu a âncora de declarante: lê o IRPF mais recente, e o teto de 12% é por CPF"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l65-base-pgbl-sem-ancora-de-declarante
+ship_pr: 1711
+ship_date: "2026-08-25"
 owner: data-engineer
 adrs:
   - "[[ADR-236]]"
@@ -15,7 +17,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/financial-planning

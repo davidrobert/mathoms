@@ -4,9 +4,11 @@ type: lane
 title: "Redutor da Lei 15.270/2025 e IRPFM: a economia diferencial de PGBL está errada para AC2026 em diante"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l64-redutor-lei-15270-e-irpfm
+ship_pr: 1722
+ship_date: "2026-08-25"
 owner: financial-planner
 adrs:
   - "[[ADR-375]]"
@@ -16,7 +18,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/financial-planning
