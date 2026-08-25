@@ -5,7 +5,7 @@
 # Regenerar: ver docs/reference/runbooks/python_dependencies.md
 fastapi>=0.115
 uvicorn[standard]>=0.30
-sqlalchemy[asyncio]>=2.0
+sqlalchemy[asyncio]>=2.0.52
 alembic>=1.13
 PyJWT>=2.10
 cryptography>=50.0.0  # SEC-03: GHSA-537c-gmf6-5ccf (OpenSSL estático no wheel <48.0.1); CVE-2026-69247 (oráculo Bleichenbacher em pkcs7_decrypt_*, <50.0.0)
