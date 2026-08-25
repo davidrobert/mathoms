@@ -1083,6 +1083,7 @@
 | MOC-sprint-a8 | moc | done |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
 | MOC-sprint-a9 | moc | done |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
 | PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
+| PLAN-ci-trust | plan | in_progress |  | CI Trust — o veredito do CI precisa ser confiável nos dois sentidos | `plan/CI_TRUST/_README.md` |
 | PLAN-competitive-pierre | plan | in_progress |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
 | PLAN-deterministic-authority | plan | draft |  | Autoridade determinística sobre rótulo de LLM — remediação r6 (baseline, fan-out, dado do casal, render) | `plan/DETERMINISTIC_AUTHORITY/_README.md` |
@@ -1171,6 +1172,8 @@
 | TRACK-category-overrides-policy-adr | track | consumed | A11 | Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes) | `sprint/A11/tracks/category-overrides-policy-adr.md` |
 | TRACK-category-overrides-schema-delta | track | consumed | A11 | Track Category Overrides W2 — Schema delta (updated_by_user_id + DTO version fields) | `sprint/A11/tracks/category-overrides-schema-delta.md` |
 | TRACK-category-overrides-ui-refactor | track | consumed | A11 | Track Category Overrides W4 — UI refactor (CategoriesTab + useCategoriesAndMembers) | `sprint/A11/tracks/category-overrides-ui-refactor.md` |
+| TRACK-ci-trust-onda0-governanca | track | ready |  | Track Onda 0 — registro e válvula: detector pós-merge, auditoria de bypass, ADR de merge-protection, PR 0 do trem | `plan/CI_TRUST/tracks/ci-trust-onda0-governanca.md` |
+| TRACK-ci-trust-onda1-workflows | track | ready |  | Track Onda 1 — leva única de .github/workflows/**: inertes, canal de falha 9/9, endgame do watchdog (heartbeat), security-green, nightly por job | `plan/CI_TRUST/tracks/ci-trust-onda1-workflows.md` |
 | TRACK-citacao-deterministica | track | ready | A27 | Track A26.l9 — citação determinística (LLM emite path+rótulo; pipeline renderiza valor) | `sprint/A27/tracks/citacao-deterministica.md` |
 | TRACK-competitor-pierre-poc | track | ready | A11 | Track Competitor POC — Pierre Finance API + MCP benchmark | `sprint/A11/tracks/competitor-pierre-poc.md` |
 | TRACK-decision-code-autogen | track | consumed | A12 | Track Decision.code server-generated — PR único cross-cutting | `sprint/A12/tracks/decision-code-autogen.md` |

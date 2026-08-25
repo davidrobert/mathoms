@@ -2,7 +2,7 @@
 type: moc
 title: OWNER-GATED-active — Fila de itens travados no owner
 aliases: ["OWNER-GATED", "owner-gated", "owner-queue"]
-last_review: "2026-07-09"
+last_review: "2026-08-25"
 ---
 
 # OWNER-GATED-active — Fila de itens travados no owner
@@ -32,11 +32,19 @@ last_review: "2026-07-09"
 - **G0 ([[A34.l1]]) é decisão isolada** — não misturar com as sessões
   acima; tem brief próprio e inclui escolha irreversível.
 
+## 0. Datas duras — o que vence e o que quebra quando vencer
+
+| Data | Item | O que quebra | Doc-fonte |
+|---|---|---|---|
+| ~2026-09-20 | Decidir Organization + merge queue nativo (amarra o destino do `AUTOUPDATE_PAT`) | Sem decisão, a rotação do PAT vira obrigatória até 10-05; e nada de payback longo deveria entrar no trem até lá | [[PLAN-ci-trust]] §Onda 2 |
+| ~2026-10-07 | `AUTOUPDATE_PAT` expira (criado 2026-07-09, política ≤90d) | Trem de auto-merge para (PRs BEHIND congelam); o kick do watchdog morre junto e o `S2` fica **verde** — fail-open no próprio deadline | [[PLAN-ci-trust]] §Datas duras · [runbook](../reference/runbooks/automerge_train.md) §2 |
+| 2026-10-15 | Waiver do `nightly.yml` vence | Hard-fail em **todo** merge do repo, por desenho (precedente 08-13/14: 7 bypasses) | [[PLAN-ci-trust]] §Onda 1 — remove o waiver antes (não renova; a razão FinOps caducou) |
+
 ## 1. Decisão estratégica
 
 | Item | O que falta | Prep pronto? | O que destrava | Tempo est. | Doc-fonte |
 |---|---|---|---|---|---|
-| Gate G0 do repo público | Decidir 6 ADRs: [[ADR-313]] licença · [[ADR-314]] escopo IP · [[ADR-315]] rewrite+FREEZE · [[ADR-316]] metadados/in-place×repo-novo · [[ADR-317]] mailmap · [[ADR-318]] idioma | ✅ [brief pré-mortem](../plan/PUBLIC_RELEASE/w0-decision-brief.md) | Toda a execução W1+ da A34 ([[PLAN-public-release]]) | ~1-2h | [[A34.l1]] |
+| Gate G0 do repo público | **⚠️ ULTRAPASSADO PELO FATO (2026-08-25): o repo JÁ está `PUBLIC`** sem G0 decidido e sem W3 (rewrite — 99 branches `agent/*` remotas, e-mails reais e PII no commit inicial visíveis) nem W4 (metadados). Reconciliar [[PLAN-public-release]]/A34 com a realidade — decidir: voltar a privado até W3/W4 OU aceitar o risco por escrito — é **P0 e vem antes** das 6 ADRs: [[ADR-313]] · [[ADR-314]] · [[ADR-315]] · [[ADR-316]] · [[ADR-317]] · [[ADR-318]] | ✅ [brief pré-mortem](../plan/PUBLIC_RELEASE/w0-decision-brief.md) | Toda a execução W1+ da A34 ([[PLAN-public-release]]); e a premissa "$0" da Onda 1 do [[PLAN-ci-trust]] | ~1-2h | [[A34.l1]] |
 | Escopo de IP competitivo | Por questão: plano competitivo mover×redigir · prompts split×genericizar · pricing faixas×remover | depende de G0 | Saneamento W1 de IP | — | [[A34.l12]] |
 | Tabela fiscal IRPF conferida no ato | Ler IN RFB 2.174/2024 e IN RFB 2.299/2025 no DOU e conferir as 6 tabelas (3 anos × mensal/anual) contra o corpo do #1479; carimbar `source` com `verificacao: "ato lido"` | ✅ valores semeados e travados por gate de continuidade; nível de verificação já gravado por row | Retira a única afirmação fiscal do produto apoiada em portal + convergência, não no ato. **Não bloqueia nada hoje** — o dado declara o próprio nível | ~1h | [[A40.l56]] |
 | Bordas das bandas do redutor + exclusões finas do IRPFM | Conferir no DOU a **inclusividade** das bordas (R$ 60.000,00 / 88.200,00) e a composição das exclusões do art. 16-A | ✅ **não bloqueia mais**: o R$ 1,08 do piso anual era construção da norma (o clamp do art. 11-A absorve — o imposto só sai de zero em ~R$ 60.003,92), e o detector do IRPFM usa `REND_upper`, cujo erro cai sempre para SUPRIMIR | precisão fina; PR3 e PR4 já entregues sem isso | ~1h | [[A40.l64]] |

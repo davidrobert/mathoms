@@ -1,0 +1,148 @@
+{
+  "captured_at": "2026-08-25",
+  "pr": 1508,
+  "timeline_events": [
+    {
+      "event": "auto_merge_disabled",
+      "actor": "davidrobert",
+      "created_at": "2026-08-17T19:56:37Z"
+    },
+    {
+      "event": "merged",
+      "actor": "davidrobert",
+      "created_at": "2026-08-17T19:56:42Z"
+    },
+    {
+      "event": "closed",
+      "actor": "davidrobert",
+      "created_at": "2026-08-17T19:56:42Z"
+    },
+    {
+      "event": "head_ref_deleted",
+      "actor": "davidrobert",
+      "created_at": "2026-08-17T19:56:43Z"
+    }
+  ],
+  "head_ca4c97b5_check_runs": [
+    {
+      "name": "All checks green",
+      "conclusion": "failure",
+      "started_at": "2026-08-17T20:07:11Z",
+      "completed_at": "2026-08-17T20:07:15Z"
+    },
+    {
+      "name": "Open Security Issue (schedule only)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:55:15Z",
+      "completed_at": "2026-08-17T19:55:15Z"
+    },
+    {
+      "name": "Frontend print visual diff (PDF)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:53Z",
+      "completed_at": "2026-08-17T19:54:52Z"
+    },
+    {
+      "name": "Go test -race + codegen sync",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:53Z",
+      "completed_at": "2026-08-17T19:54:52Z"
+    },
+    {
+      "name": "Go lint (golangci v2 + gofmt + vet)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:53Z",
+      "completed_at": "2026-08-17T19:54:52Z"
+    },
+    {
+      "name": "Frontend E2E (Playwright + backend real)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:53Z",
+      "completed_at": "2026-08-17T19:54:52Z"
+    },
+    {
+      "name": "Frontend checks (ESLint + tsc + Vitest + report render)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:53Z",
+      "completed_at": "2026-08-17T19:54:52Z"
+    },
+    {
+      "name": "Lint (pre-commit + ruff + style baseline + PII + tenancy)",
+      "conclusion": "success",
+      "started_at": "2026-08-17T19:54:55Z",
+      "completed_at": "2026-08-17T19:57:00Z"
+    },
+    {
+      "name": "Backend tests (backend/tests/)",
+      "conclusion": "success",
+      "started_at": "2026-08-17T19:54:56Z",
+      "completed_at": "2026-08-17T20:07:08Z"
+    },
+    {
+      "name": "Pipeline tests (tests/)",
+      "conclusion": "failure",
+      "started_at": "2026-08-17T19:54:56Z",
+      "completed_at": "2026-08-17T19:57:27Z"
+    },
+    {
+      "name": "npm audit (prod deps)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:45Z",
+      "completed_at": "2026-08-17T19:54:45Z"
+    },
+    {
+      "name": "gitleaks (full git history)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:45Z",
+      "completed_at": "2026-08-17T19:54:45Z"
+    },
+    {
+      "name": "Trivy IaC config scan",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:45Z",
+      "completed_at": "2026-08-17T19:54:45Z"
+    },
+    {
+      "name": "pip-audit (Python deps)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:45Z",
+      "completed_at": "2026-08-17T19:54:45Z"
+    },
+    {
+      "name": "npm audit (dev deps — informativo)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:45Z",
+      "completed_at": "2026-08-17T19:54:45Z"
+    },
+    {
+      "name": "Trivy filesystem scan",
+      "conclusion": "success",
+      "started_at": "2026-08-17T19:54:47Z",
+      "completed_at": "2026-08-17T19:55:15Z"
+    },
+    {
+      "name": "Frontend visual snapshots (relatório nativo)",
+      "conclusion": "skipped",
+      "started_at": "2026-08-17T19:54:32Z",
+      "completed_at": "2026-08-17T19:54:32Z"
+    },
+    {
+      "name": "Title (Conventional Commits)",
+      "conclusion": "success",
+      "started_at": "2026-08-17T19:54:36Z",
+      "completed_at": "2026-08-17T19:54:48Z"
+    },
+    {
+      "name": "Detect changed paths",
+      "conclusion": "success",
+      "started_at": "2026-08-17T19:54:35Z",
+      "completed_at": "2026-08-17T19:54:52Z"
+    },
+    {
+      "name": "Detect changed paths (security gating)",
+      "conclusion": "success",
+      "started_at": "2026-08-17T19:54:36Z",
+      "completed_at": "2026-08-17T19:54:45Z"
+    }
+  ]
+}

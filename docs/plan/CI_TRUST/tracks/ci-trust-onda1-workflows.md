@@ -1,0 +1,121 @@
+---
+id: TRACK-ci-trust-onda1-workflows
+type: track
+title: "Track Onda 1 — leva única de .github/workflows/**: inertes, canal de falha 9/9, endgame do watchdog (heartbeat), security-green, nightly por job"
+plan: PLAN-ci-trust
+status: ready
+created_at: "2026-08-25"
+agent_role: sre-devops
+tags:
+  - type/track
+  - area/ci
+  - status/ready
+  - priority/p1
+---
+
+# Track Onda 1 — `ci-trust-onda1-workflows`
+
+> Executa a **Onda 1 do [[PLAN-ci-trust]]**. Pré-requisito: track
+> [TRACK-ci-trust-onda0-governanca](ci-trust-onda0-governanca.md) mergeado — o PR 3
+> daqui muda a função de veredito do gate, e o **rollback nomeado é o bypass
+> sancionado + Issue do detector** (só existem após a Onda 0). PRs de
+> `.github/workflows/**` na ordem de risco **1 → 2 → 3**; mudança de veredito
+> do `all-green` viaja **sozinha**. Com o PR 0 da Onda 0 no ar, PR nesse path
+> não starva mais a fila (403 vira skip daquele PR).
+
+## PR 1 — inertes (nenhum muda veredito)
+
+- `timeout-minutes`: go-lint 6 · go-test 8 · all-green 2 (hoje sem teto —
+  default 360min; observados 58s / 1m41s / <1min).
+- Teto do `pipeline-tests` 5→8min + comentário re-medido (mediana 3m15s =
+  65% do teto atual; comentário afirma "54s"). Idem `lint-all` (comentário
+  "44s" → mediana 2m06s). Regra: número citado se re-mede, não se relê —
+  citar run ids.
+- `concurrency` do nightly: cron pesado 06:00 cancela `main-smoke` 05:30 em
+  voo (mesmo group + `cancel-in-progress: true`; cancelamento não abre Issue
+  porque `if: failure()` não dispara). Diferenciar group por cron
+  (`nightly-${{ github.event.schedule || github.ref }}`) ou
+  `cancel-in-progress: false` para `schedule`. **Pré-req do religamento.**
+- Encolher a legenda de sinais no `budget-alert.yml` (pós-#1613/#1625,
+  `WAIVED` e `GH` não aparecem mais na Issue).
+- Fecha os §Follow-ups menores de [[ADR-210]] §21b/§21c (blockquote de
+  fechamento em cada um).
+
+## PR 2 — canal de falha 9/9 (KR-F)
+
+- Cada workflow do manifesto ganha step `if: failure()` → abre/atualiza Issue
+  com label declarada em `alerts:` (hoje 2/9 têm; em 08-17 o
+  `auto-update-prs` falhou 10× em ~5h e nada percebeu). `issues: write`
+  revisado job a job (privilégio mínimo).
+- Justificativa do `S2` no manifesto passa a dizer "9 de 9".
+- Zumbis LLM: key-check **fail-closed em `schedule`** (substitui o waiver
+  datado da Onda 0 OU convive até o owner criar os secrets).
+- Aceite por **falha forçada**: quebrar `auto-update-prs` num branch de teste
+  ⇒ Issue abre com a label declarada.
+
+## PR 3 — endgame do watchdog (heartbeat-Issue), sozinho
+
+Retoma [[ADR-210]] §Adendo 2026-08-21b (condição A34 G0 satisfeita — repo
+público) com o desenho fechado no co-design `sre-devops` de 2026-08-25:
+
+- **Cron mantém UMA Issue `ops-watchdog` que nunca fecha**; corpo
+  máquina-legível: `violations`, `checked: M/N`, idade da violação mais
+  antiga, **pré-vencimentos** (AUTOUPDATE_PAT, waivers — warning ≤14d; hoje
+  waiver só tem 2 estados: válido / hard-fail repo-wide, e foi isso que
+  produziu 7 bypasses em 08-14).
+- **Gate de PR = sinais offline (S0 + waiver vencido) + 1 chamada** ao
+  endpoint de **Issues** (fora do índice de runs, onde moram as 6/7 leituras
+  obsoletas medidas). Reprova se: Issue ausente (**fail-closed** — hoje
+  ausência é verde) · `updatedAt` > máx · `violations > 0` · `checked < N`.
+- Job não-required roda S1/S2/S3 completos; tem `if: failure()` → Issue
+  (senão é o 10º compensador invisível); **não** entra em `all-green.needs`.
+- **Modos residuais R1–R5 declarados na emenda** (a fonte é o co-design
+  registrado no plano): R1 verdito rebaixado ⇒ mitigação `checked: M/N`; R2
+  latência = `max_age` (troca aceita); R3 Issue fechada à mão ⇒ fail-closed
+  ruidoso (válvula = waiver offline); R4 corpo e gate consomem a **mesma**
+  função `--report` + teste de mutação (violação sintética aparece no corpo e
+  reprova o gate); R5 canal de falha do próprio job.
+- **Supersedure**: a entrada `ops-watchdog` com `max_issue_age_days: 3`
+  deferida no §21b é **incompatível** com Issue que nunca fecha (no 4º dia,
+  idade>3 = hard-fail permanente). Fechar o deferimento **por supersedure**
+  (precedente: §21c fez isso com o retry), com blockquote no §21b. "Rot"
+  passa a ser idade da violação mais antiga **no corpo**, não idade da Issue.
+- Emenda datada na [[ADR-210]] no mesmo PR (`amended_at` + blockquote de
+  sinal; keyword `Emenda`, não `Adendo` — o gate não reconhece "Adendo").
+
+## security-green (junto do PR 2 ou próprio)
+
+- Job agregador `security-green` em `security.yml` (`if: always()`, aceita
+  `skipped` — espelho exato do `all-green`) → adicionado como required
+  context no Ruleset. `all-green` **não pode** ter `needs:` de outro workflow
+  — é por isso que o agregador mora no próprio security.yml.
+- `pip-audit` + `npm-audit-prod` passam a gatear de fato (hoje o cabeçalho
+  afirma "bloqueia merge" e nada consome o resultado — exposição medida de
+  até 28d entre CVE e consequência, em repo público de fintech).
+- Trade-off aceito e documentado: CVE publicada upstream trava o repo até
+  bump/waiver (runbook "Ignorar CVE em npm audit" já existe).
+- `security` no manifesto: `max_issue_age_days` 21 → 7.
+- Aceite por detecção: CVE sintética em dep de teste reprova o agregador;
+  commit com segredo falso conhecido é barrado (critério G2 de
+  [[PLAN-public-release]]).
+
+## Religar o nightly — POR JOB (ação owner + acompanhamento)
+
+Ordem: `main-smoke` → **7 runs verdes** → `lineage-eval` → pesados
+(lighthouse/cross-browser/visual-full/backup-drill). Religar tudo de uma vez
+reativa o gate fail-open do `lineage-eval` (produtor morto desde 06-15) e
+pode travar merges no mesmo dia — o loop que já reincidiu (#638/#647).
+Depois: **remover** (não renovar) o waiver do nightly no manifesto — a Onda 1
+tira o objeto dele e a razão FinOps caducou ("544% do orçamento" num repo
+público). KR-C fecha aqui; KR-G fecha quando o lineage-eval religado provar
+por mutação que produtor morto ⇒ gate ≠ 0.
+
+## Aceite do track
+
+1. PR 1/2/3 mergeados **sem bypass**, na ordem, com PR 3 sozinho.
+2. KR-A: 7 dias sem falso-vermelho de instrumento **e** contagem pareada ≥
+   baseline (19 sinais verdadeiros em 08-05→08-21).
+3. KR-F: falha forçada abre Issue em 9/9.
+4. KR-D: security-green required + prova por detecção.
+5. KR-C: 7 noites de main-smoke verdes; waiver removido do manifesto.
+6. Mediana open→merge não regrediu (KR-H) — medir antes/depois em janela 14d.

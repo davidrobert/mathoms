@@ -6,8 +6,14 @@ status: Decidido
 phase: "Sprint A12 (test health · CI cost)"
 date: "2026-05-14"
 amended_at:
-  ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-05", "2026-08-08",
-   "2026-08-21"]
+  - "2026-05-19"
+  - "2026-07-30"
+  - "2026-07-31"
+  - "2026-08-03"
+  - "2026-08-05"
+  - "2026-08-08"
+  - "2026-08-21"
+  - "2026-08-25"
 relates_to:
   - "[[ADR-067]]"
   - "[[ADR-093]]"
@@ -29,6 +35,13 @@ tags:
 ---
 
 # ADR-210 — Saúde do test suite do CI
+
+> **Emenda (2026-08-25) — o orçamento de Actions deixou de vincular:** o repo
+> está `PUBLIC` (verificado 2026-08-25) e runner standard não fatura. A
+> restrição que dimensionou a camada 2 (triggers), a camada 4 (liveness como
+> *step* em vez de job) e o gating do endgame do §Adendo 2026-08-21b caiu. As
+> decisões e medições datadas ficam como estão; a execução do endgame mora em
+> [[PLAN-ci-trust]]. Detalhe no §Emenda 2026-08-25.
 
 > **Emenda (2026-08-21c) — o retry foi rejeitado por medição, e o precedente
 > que eu ia copiar era o segundo defeito:** o §Adendo 2026-08-21 deixou aberta
@@ -1020,6 +1033,15 @@ ilimitado, o desenho final não é nem redistribuição nem retry, e sim um **jo
 próprio, não-required**, rodando `S1`/`S2`/`S3` completos — a restrição que
 força tudo isso a caber num step de check obrigatório é o budget.
 
+> **Retomado em [[PLAN-ci-trust]] (2026-08-25).** A condição declarada está
+> satisfeita: o repo é `PUBLIC` (§Emenda 2026-08-25). O parágrafo acima fica
+> como estava; a execução — job não-required + gate de PR reduzido a sinais
+> offline + heartbeat-Issue — mora no plano (track `ci-trust-onda1-workflows`,
+> PR 3). Atenção herdada: a entrada `ops-watchdog` com `max_issue_age_days: 3`
+> deferida acima é **incompatível** com o desenho de heartbeat (Issue que
+> nunca fecha estoura idade no 4º dia) — o PR 3 a fecha **por supersedure**,
+> precedente do §Adendo 2026-08-21c com o retry.
+
 ### Correções deste fechamento (lane-closeout do #1625)
 
 - **`p50 ≈ 0,4s` era inferência, não medição.** O comentário de `CALL_TIMEOUT_S`
@@ -1196,3 +1218,25 @@ manifesto passa a dizer para quantas entradas ela vale.
   (leva que tocar `.github/workflows/**`). Nota para quem for ajustar: o
   `pre-commit --all-files` domina os 2m04s e varia com cache frio — a folga é
   menor que a razão 2m04s/4min sugere, então não afrouxe o teto como compensação.
+
+## Emenda 2026-08-25 — o orçamento deixou de vincular
+
+O repo está **`PUBLIC`** (verificado 2026-08-25: `gh repo view --json
+visibility,isInOrganization` → `PUBLIC`, `isInOrganization: false`; a página
+carrega deslogada). Actions em runner standard de repo público não fatura.
+
+**O que esta emenda muda:** a premissa de orçamento (2.000 min/mês, medida a
+544% em 2026-07-30) deixou de vincular as decisões que ela dimensionou —
+camada 2 (remoção de triggers), camada 4 (liveness como *step* dentro do
+`lint-all` em vez de job próprio: o comentário de custo "job novo custaria
+1 min × ~900 runs/mês" perdeu o objeto) e o gating do endgame do §Adendo
+2026-08-21b (condição A34 G0 — **satisfeita**). A razão FinOps do waiver do
+`nightly.yml` ("544% do orçamento") caducou antes da data do waiver.
+
+**O que ela NÃO muda:** as medições e decisões datadas ficam como registro; a
+execução do endgame e o religamento da rede moram em [[PLAN-ci-trust]] (Ondas
+0–2), não aqui. Duas ressalvas medidas: (a) estado de pagamento da **conta**
+ainda bloqueia job start mesmo em repo público (annotation de 2026-08-21:
+"recent account payments have failed…"); (b) público **não** destrava merge
+queue nativo — exige Organization (`isInOrganization: false`), então a
+[[ADR-322]] continua vigente até a decisão estrutural do plano.
