@@ -40,6 +40,8 @@ class FiscalParameter(Base):
     # ADR-414 D3: redutor da Lei 15.270/2025 — indexa o BRUTO, não a base.
     redutor_anual: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     redutor_mensal: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    # Piso do IRPFM (art. 16-A) — NULL/0 = ano sem imposto mínimo.
+    irpfm_limiar_brl_cents: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     regime_completo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     componentes_ausentes: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     # Legado do seed A7.2b — escalas misturadas (tetos anuais, parcelas mensais).
