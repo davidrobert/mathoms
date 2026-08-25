@@ -254,6 +254,22 @@ ficou cego. **Corpus com cardinalidade real segue aberto** — [[A40.l85]].
    projetar os campos de incerteza). Sai como contagem no gate novo em vez de virar
    allowlist, que seria carimbada de uma vez.
 
+### Achado do closeout: a [[ADR-353]] está `Proposto` e esta lane ampliou o raio dela
+
+`status: Proposto` desde 2026-07-27, mas o código está **vivo em produção** —
+`NAO_IDENTIFICADO_PARCIAL_PCT = 10.0` e `NAO_IDENTIFICADO_INSUFICIENTE_PCT = 30.0`
+governam `_apply_confianca_gate` e o campo `diagnostico_confianca` que o E5 publica.
+
+Até esta lane, o consumidor era só o diagnóstico comportamental. Agora o **parecer**
+também consome o veredito: o `narrative_hint` do bloco de incerteza manda condicionar
+toda prescrição a `diagnostico_confianca.nivel`, e um teste
+(`tests/test_parecer_projecao_incerteza.py`) trava essa dependência.
+
+**Não flipei o status** — os critérios de aceite da ADR-353 são do dono dela, e afirmar
+que foram cumpridos seria exatamente a inferência que este closeout existe para pegar.
+Fica nomeado: decisão shipada e agora load-bearing para duas superfícies, declarada
+como proposta.
+
 ### Prova de fecho (predicado do r9)
 
 Mantido como o §Critério define, e agora aferível: parecer com ≥1 ressalva em item de

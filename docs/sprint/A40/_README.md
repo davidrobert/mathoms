@@ -268,7 +268,7 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (83 no disco · 83 nesta tabela — ver nota ao fim)
+## Lanes (85 no disco · 83 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
