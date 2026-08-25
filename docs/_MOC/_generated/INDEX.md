@@ -410,6 +410,7 @@
 | ADR-413 | adr | Decidido |  | Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado | `adr/413-derivado-versionado-e-derivado-de-contrato.md` |
 | ADR-414 | adr | Decidido |  | Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada | `adr/414-rendimento-bruto-e-base-de-calculo-sao-variaveis-distintas.md` |
 | ADR-415 | adr | Decidido |  | Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação | `adr/415-protecao-de-main-bypass-sancionado-e-auditado.md` |
+| ADR-416 | adr | Proposto |  | Rodada unificada de certificação e revisão: um run, um painel, um entregável, três registros | `adr/416-rodada-unificada-certificacao-revisao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -1107,6 +1108,7 @@
 | PLAN-tributario-pj | plan | done |  | Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto) | `plan/TRIBUTARIO_PJ/_README.md` |
 | runbook-python-dependencies | runbook | ativo |  | Runbook — Dependências Python (pip-tools lockfile com hashes) | `reference/runbooks/python_dependencies.md` |
 | runbook-stuck-pipeline-runs | runbook | ativo |  | Runbook — Run de pipeline travado (órfão de dispatch + heartbeat) | `reference/runbooks/stuck_pipeline_runs.md` |
+| runbook-unified-certify-review | runbook | ativo |  | Runbook — Rodada unificada: ledger-certify + pipeline-review + report-review | `reference/runbooks/unified_certify_review.md` |
 | TRACK-a11-w2-t04-stuck-runs-heartbeat | track | ready | A11 | W2-T04 — Stuck-runs detector + last_heartbeat_at | `sprint/A11/tracks/a11-w2-t04-stuck-runs-heartbeat.md` |
 | TRACK-a11-w2-t05-prompt-version-gate | track | ready | A11 | W2-T05 — extract_with_llm incremental + PROMPT_VERSION gate CI | `sprint/A11/tracks/a11-w2-t05-prompt-version-gate.md` |
 | TRACK-a11-w2-t06-stage-to-suffix-descriptive | track | ready | A11 | W2-T06 — _STAGE_TO_SUFFIX cobre keys descritivas (paridade legacy ↔ descritivo) | `sprint/A11/tracks/a11-w2-t06-stage-to-suffix-descriptive.md` |

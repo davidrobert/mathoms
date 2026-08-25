@@ -15,6 +15,11 @@
 | `pipeline-review` | **Dispara** um run completo do pipeline de um workspace no ambiente local e avalia a saúde da EXECUÇÃO + o relatório como saída desse run, com tabela prioridade/dificuldade/risco, delegando aos especialistas com verificação adversarial. | Rodar o pipeline de um workspace e analisar; revisar a saúde de um run; gerar relatório novo e criticá-lo. **≠ `report-review`**, que julga um relatório JÁ existente sem disparar run. Recebe workspace por email ou uuid. | [.claude/skills/pipeline-review/SKILL.md](../../.claude/skills/pipeline-review/SKILL.md) | [[ADR-302]] (classe) |
 | `report-review` | Julga o RELATÓRIO JÁ ENTREGUE de um workspace (view-model E5 + parecer + renderer) sob rubrica de PRODUTO — atende a família? a recomendação nº 1 é a certa? — com lentes em paralelo + **braço cego** (lê só os dados determinísticos, sem o parecer, para testar convergência) → clusters → céticos adversariais → crítico de completude que audita o próprio processo. **Não dispara run, não custa API.** | Criticar um relatório que já existe; testar se a recomendação nº 1 se sustenta sem o parecer LLM; medir o mérito de produto do artefato entregue. **≠ `pipeline-review`**, que **dispara** um run completo (~25 min, ~US$2) e avalia a saúde da EXECUÇÃO. Recebe workspace por email ou uuid (+ `report_id` opcional). | [.claude/skills/report-review/SKILL.md](../../.claude/skills/report-review/SKILL.md) | [[ADR-302]] (classe) |
 
+**Encadear três delas numa rodada só** (`ledger-certify` → `pipeline-review` →
+`report-review`, com um entregável e três registros): não é skill nova, é operador de
+composição — [[ADR-416]] decide, e
+[runbook-unified-certify-review](runbooks/unified_certify_review.md) executa.
+
 Adicionar uma skill nova: crie `.claude/skills/<nome>/SKILL.md` (frontmatter `name` +
 `description`), acrescente uma linha aqui, e — se for a **primeira** de uma classe
 nova de procedimento — abra ADR; instâncias conformes à classe já decidida ([[ADR-302]])

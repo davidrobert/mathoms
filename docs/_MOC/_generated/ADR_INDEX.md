@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-405 ADRs (ADR-001 a ADR-415) em [`docs/adr/`](../../adr/).
+406 ADRs (ADR-001 a ADR-416) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 348
-- **Proposto**: 53
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -383,6 +383,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-247]] — Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero · phase A11
 - [[ADR-343]] — Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico
 - [[ADR-413]] — Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado · phase A40.l59
+
+### Proposto (1)
+
+- [[ADR-416]] — Rodada unificada de certificação e revisão: um run, um painel, um entregável, três registros
 
 ## domain
 
