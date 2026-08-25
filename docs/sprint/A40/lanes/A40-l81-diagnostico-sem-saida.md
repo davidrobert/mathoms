@@ -205,5 +205,18 @@ de usuário para aviso-sem-pausa. `StageReview` continua exclusivo do contrato d
 pausa — publicar aviso de run completo ali passaria a pedir aprovação para um run
 que não parou, e `resume_run` depende disso.
 
-**Retenção conferida:** `review_reasons.pipeline_run_id` já é FK
-`ON DELETE CASCADE` ([[ADR-371]]) — a row morre com o run. Nada a fazer.
+**Retenção — metade conferida, metade não (corrigido no closeout de 2026-08-25).**
+A frase original desta seção dizia *"Retenção conferida … Nada a fazer"*, e o
+"nada a fazer" era **inferência**: eu tinha medido só o FK do run.
+
+- **Fecha:** `review_reasons.pipeline_run_id` é FK `ON DELETE CASCADE`
+  ([[ADR-371]]) — a row morre com o run que a gerou.
+- **Não fecha:** `reset_workspace_from_stage` deleta `pipeline_artifacts` por
+  `(workspace_id, stage)` e **preserva o run**, logo não alcança
+  `review_reasons`. A row sobrevive apontando por `artifact_key` para artefato
+  que não existe mais — ponteiro morto, não quebra de integridade. Era
+  exatamente a segunda pergunta do §Volume e retenção desta lane, e ficou sem
+  resposta até o closeout. **O D1 multiplicou a superfície**: de 3 ocorrências
+  persistidas por run para 46.
+
+Deferido com dono — `data-engineer`, condição no [[ADR-411]] §Deferimento 2.

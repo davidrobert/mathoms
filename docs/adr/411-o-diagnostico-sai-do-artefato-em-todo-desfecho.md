@@ -2,7 +2,7 @@
 id: ADR-411
 type: adr
 title: "O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row"
-status: Proposto
+status: Decidido
 phase: A40.l81/RV8-09
 date: "2026-08-24"
 relates_to:
@@ -21,14 +21,14 @@ aliases:
   - "RV8-09"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/observability
 ---
 
 # ADR-411 — O diagnóstico sai do artefato em todo desfecho
 
-**Status:** Proposto (A40.l81 · RV8-09) • **Data:** 2026-08-24 • **Relaciona**
+**Status:** Decidido (A40.l81 · RV8-09 · #1697) • **Data:** 2026-08-24 • **Relaciona**
 [[ADR-272]] (a razão tipada e a tabela consultável), [[ADR-404]] (a superfície de
 diagnóstico nunca aborta a execução que documenta — **restrição**, não objeto
 desta nota), [[ADR-357]] (WARN-first: o stage entrega e a degradação é derivada),
@@ -37,9 +37,7 @@ desta nota), [[ADR-357]] (WARN-first: o stage entrega e a degradação é deriva
 > **Esta nota não reabre a ADR-404.** A ordem *controle primeiro e sozinho,
 > analítico depois em sessão própria e fail-open* continua intacta. Aqui se
 > decide **em quantos desfechos** o analítico roda, **em que canal** a razão é
-> procurada, e **o que identifica** uma row. Teste de falseamento: se a §Decisão
-> coubesse em *"chamar o sink também no ramo de sucesso"*, isto seria emenda à
-> 404 — não cabe, porque D2b e D3 mudam canal e chave.
+> procurada, e **o que identifica** uma row.
 
 ## Contexto — medido, não herdado
 
@@ -70,14 +68,13 @@ A causa não é o `_drop_unknown_codes`: os dois códigos estão na allowlist. S
 **46 ocorrências emitidas, 3 persistidas — 6,5% de cobertura.** A lane
 dimensionou o caso pelas 4 do `consolidate_baseline`; o volume dominante são as
 39 de `reconcile_transactions` + `extract_baseline`, que já estavam no canal
-certo e só precisavam que o sink rodasse fora do ramo de pausa.
+certo e só esperavam o sink sair do ramo de pausa.
 
 **(ii) o `consolidate_baseline` não escreve no canal que o sink lê.** O `detail`
-dele — `{success, files_created, imoveis, veiculos, investimentos, dividas}` —
-**não tem bloco `validation` nenhum**. As 4 razões existem só dentro do artefato.
-Mover a chamada do sink, sozinho, colheria **zero** para este stage: o canal
-estava vazio. Este é o achado que a lane não tinha, e sem ele o fix ficaria
-verde sobre o caso que lhe deu origem.
+dele **não tem bloco `validation` nenhum** — as 4 razões existem só dentro do
+artefato. Mover a chamada do sink, sozinho, colheria **zero** para este stage.
+Este é o achado que a lane não tinha, e sem ele o fix ficaria verde sobre o caso
+que lhe deu origem.
 
 ## Decisão
 
@@ -114,7 +111,7 @@ caminho de **coleção**, não de item — não multiplica row por imóvel.
 **completou** NÃO vira `StageReview`. `resume_run` só libera a retomada com zero
 reviews `pending`, e publicar aviso ali passaria a pedir aprovação para um run
 que não parou. A superfície do usuário para aviso-sem-pausa fica **deferida** com
-dono e data (§Deferimento), na forma da [[ADR-356]] — não implícita.
+dono e data (§Deferimento 1), na forma da [[ADR-356]] — não implícita.
 
 **D5 — a tabela ganha leitor no mesmo ato.** `review_snapshot` passa a projetar
 `(stage, locator, code) → Σ occurrence_count` e `compare_reviews` ganha perna que
@@ -138,15 +135,24 @@ comportamento correto.
 ## Consequências
 
 - Volume: rows por run deixam de ser função da pausa. No run medido, 46
-  ocorrências em ~8 rows. O cap `_REVIEW_REASON_ROW_CAP` segue defensivo.
+  ocorrências em **10** rows `(run, code, locator)` — contadas, não estimadas
+  (o "~8" da versão `Proposto` era inferência). O cap
+  `_REVIEW_REASON_ROW_CAP` segue defensivo.
 - Retenção: `review_reasons.pipeline_run_id` é FK `ON DELETE CASCADE`
   ([[ADR-371]]) — a row morre com o run que a gerou. Nada a fazer.
 - Rows históricas ficam com `locator` **vazio**, não nulo: a chave compara por
   igualdade e `NULL = NULL` é falso em SQL — locator nulo quebraria a
   idempotência do redelivery do Celery. `""` significa "não colhido".
 
-## Deferimento — superfície de usuário para aviso-sem-pausa (D4)
+## Deferimento 1 — superfície de usuário para aviso-sem-pausa (D4)
 
 **Dono:** owner • **Condição:** decisão de produto sobre como o relatório mostra
 aviso de run entregue. Até lá o aviso vive na tabela e no snapshot, e
 `StageReview` segue exclusivo da pausa.
+
+## Deferimento 2 — a poda por stage não alcança a tabela
+
+**Dono:** `data-engineer` • **Condição:** quando o r9 medir quantas rows de
+`review_reasons` sobrevivem a um `reset_workspace_from_stage` num workspace real.
+Só então se sabe se o remédio é cascatear pela poda, expirar por idade, ou nada.
+Decidir agora seria escolher política sobre volume não medido.
