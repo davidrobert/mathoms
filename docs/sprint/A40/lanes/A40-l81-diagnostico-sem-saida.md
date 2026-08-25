@@ -220,3 +220,44 @@ A frase original desta seção dizia *"Retenção conferida … Nada a fazer"*, 
   persistidas por run para 46.
 
 Deferido com dono — `data-engineer`, condição no [[ADR-411]] §Deferimento 2.
+
+## Medição de fecho — 2026-08-25 (run `7164ddee`)
+
+Run determinístico (`skip_llm`, sem custo de API) sobre o workspace de dogfood.
+**A/B no mesmo corpus, mesmo dia, diferindo só no código que o worker carregava:**
+
+| run | worker | rows de stages que ENTREGARAM | `locator` preenchido | total |
+|---|---|---:|---:|---:|
+| `b4e0bb73` | subiu 24/08 18:12 — **pré-l81** | **0** | 0/2 | 2 rows / Σ3 |
+| `7164ddee` | reiniciado, código da l81 | **5** (Σocc 32) | **7/7** | 7 rows / Σ37 |
+
+As 5 rows vêm de `consolidate_baseline` (2) e `reconcile_transactions` (3) — os
+dois stages que **entregaram** e cuja razão nunca chegava à tabela. O predicado
+do §Critério está satisfeito.
+
+**O primeiro run mediu código velho, e quase virou falso negativo contra o fix.**
+O Celery importa os módulos no start do processo: o worker rodava havia 19h,
+desde antes de a l81 existir no checkout. O discriminador foi o `locator` vazio —
+o código da l81 sempre o preenche.
+
+A armadilha irmã também estava presente e foi corrigida antes de medir: o DB de
+dev estava **3 migrations atrás**, sem a coluna `locator`. Como o sink é
+fail-open por decisão da [[ADR-404]], o `INSERT` teria sido engolido pelo
+`except` e a tabela ficaria vazia **em silêncio** — falso negativo contra o
+próprio fix. Ordem que vale para a classe: conferir `alembic_version` do DB que
+vai rodar, e a idade do processo do worker, **antes** de medir.
+
+**Defeito achado pela medição e corrigido no mesmo ato:** a row do
+`consolidate_baseline` chegava com `locator = validation.review_reasons`, mas a
+razão nasce em `imoveis_consolidados[]`. O produtor carimba a posição real (D2b)
+e o re-harvest do orquestrador sobrescrevia por cima. Invertida a ordem em
+`_reasons_in`; teste de regressão escrito **antes** do fix.
+
+**Limite declarado.** O checkout que executou estava em `origin/main` + PR2 da
+[[A40.l80]] (não mergeada), que toca `investimentos_cobertura.py` — um produtor
+de razão. Os 6 arquivos do mecanismo da l81 foram verificados **bit-idênticos** a
+`origin/main`, então o veredito do predicado é limpo; as **contagens** valem para
+o SHA `548e651a`, não como baseline de `main`.
+
+**Residual:** a perna de diagnóstico do `compare_reviews` continua cega até
+existir baseline em snapshot v3, que exige run com LLM.
