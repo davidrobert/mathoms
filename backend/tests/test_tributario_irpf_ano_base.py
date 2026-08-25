@@ -44,9 +44,15 @@ def _fonte_pj(tributavel: str) -> dict:
     }
 
 
-def _declaracao(*, ano_base: int, cpf_final: str, tributavel: str) -> dict:
+def _declaracao(
+    *, ano_base: int, cpf_final: str, tributavel: str, dependentes: list[str] | None = None
+) -> dict:
     return {
         "contribuinte": _contribuinte(ano_base=ano_base, cpf_final=cpf_final),
+        "dependentes": [
+            {"cpf_masked": f"***.***.***-{d}", "nome": f"Dep {d}", "relacao": "conjuge"}
+            for d in (dependentes or [])
+        ],
         "rendimentos_pj": [_fonte_pj(tributavel)],
         "rendimentos_pf": [],
         "imposto_apurado": {
@@ -207,7 +213,8 @@ async def test_o_ramo_de_degradacao_deixa_de_ser_mudo(db, monkeypatch):
     "desistiu e pegou o último". O `ano_base` do VO fica `None` junto, porque o
     payload malformado não tem `contribuinte.ano_base` legível.
     """
-    import backend.app.services.tributario_input_builder as mod
+    # O logger mudou de módulo na extração do reader — patch segue o produtor.
+    import backend.app.services.tributario_irpf_reader as mod
 
     recorder = _RecordingLogger()
     monkeypatch.setattr(mod, "logger", recorder)
@@ -221,3 +228,123 @@ async def test_o_ramo_de_degradacao_deixa_de_ser_mudo(db, monkeypatch):
 
     eventos = [m for m, _ in recorder.warnings]
     assert "tributario_irpf_ano_base_nao_resolvido" in eventos
+
+
+# =============================================================================
+# A40.l65 §Escopo 2 — a base é a do TITULAR, nunca a de quem sobrou
+#
+# Decisão de escopo (2026-08-25): a âncora vai para a S8, onde a lane a coloca.
+# A variante do card do E5 (motivos `titular_nao_identificado` /
+# `titular_sem_declaracao_no_ano` do D5 do `financial-planner`) exigiria mover o
+# Card B para agregação por titular — que o §Fora de escopo desta lane VEDA.
+# =============================================================================
+
+
+async def _titular_com_cpf(db, ws_id: str, cpf: str = "123.456.789-11"):
+    from backend.app.models.family_member import FamilyMember
+    from backend.app.services.security.vault import get_vault
+
+    db.add(
+        FamilyMember(
+            workspace_id=ws_id,
+            key="titular",
+            full_name="Titular",
+            short_name="Tit",
+            role="titular",
+            cpf_encrypted=get_vault().encrypt(cpf),
+        )
+    )
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_com_dois_declarantes_a_base_e_a_do_titular(db):
+    """O caso que dá nome à lane: sem âncora a base era de quem foi processado
+    por último — aqui, o cônjuge, cuja declaração é a mais recente."""
+    ws = await _ws_com_perfil(db)
+    await _titular_com_cpf(db, ws.id)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+            created_at=_HOJE - timedelta(hours=2),
+        )
+    )
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="22", tributavel="90000"),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("200000")
+
+
+@pytest.mark.asyncio
+async def test_titular_como_dependente_da_conjunta(db):
+    """Declaração conjunta com o titular como dependente: a base sai, é a dela."""
+    ws = await _ws_com_perfil(db)
+    await _titular_com_cpf(db, ws.id)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="22", tributavel="150000", dependentes=["11"]),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("150000")
+
+
+@pytest.mark.asyncio
+async def test_sem_cadastro_e_dois_declarantes_a_base_e_ausente(db):
+    """Base de OUTRO CPF é pior que base nenhuma — erro de identidade, não de
+    aritmética. Sem cadastro do titular, escolher seria cara-ou-coroa."""
+    ws = await _ws_com_perfil(db)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+            created_at=_HOJE - timedelta(hours=2),
+        )
+    )
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="22", tributavel="90000"),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("0")
+
+
+@pytest.mark.asyncio
+async def test_sem_cadastro_e_UM_declarante_a_base_sai(db):
+    """Braço de controle: suprimir aqui tiraria a base de todo declarante único
+    para prevenir um erro que exige dois declarantes para existir."""
+    ws = await _ws_com_perfil(db)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("200000")
