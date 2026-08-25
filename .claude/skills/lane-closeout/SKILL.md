@@ -141,10 +141,19 @@ Nunca responda "está tudo certo" sem ter rodado a camada 1 e lido a camada 2.
 - **Não audita a vault** — isso é `audit-vault` (escopo bucket, amostra
   rotativa, síntese em `AUDITS-active.md`). Aqui o escopo é 1 lane e o gatilho
   é o merge.
-- **Não é gate.** `check_closure.py` não está no pre-commit e não bloqueia
-  commit. Se a classe estrutural voltar a escapar depois de N usos, aí sim vale
-  promovê-la a gate na **transição** (diff que flipa `status: shipped`) —
-  gatear por PR fica verde-falso quando a lane vira 2 PRs.
+- **Não é gate — mas a metade estrutural já é, desde 2026-08-24.** Este
+  `check_closure.py` continua fora do pre-commit e não bloqueia commit. O
+  gatilho de promoção que esta seção previa **foi executado** pela [[A40.l59]]:
+  `dev/check_lane_transition.py`, hook `lane-transition`, cobre `ship_pr` +
+  `ship_date` + PR no registro da sprint (`_README` ∪ `_HISTORY`), lane nova sem
+  linha de tabela, e lane não-terminal cujo `ship_pr` já mergeou.
+  **Não reconstrua o gate** — estenda o que existe.
+
+  Efeito medido em 2026-08-25, um dia depois: das 49 transições da A40, as **44
+  anteriores** ao gate dão 19 passa / 25 barra; as **5 posteriores** dão
+  5 passa / **0 barra**. Limite herdado e declarado: `T1`/`T2` leem
+  `git diff --cached`, logo passam vazios sob `pre-commit run --all-files` (o
+  caminho do CI) — são enforcement local. Só o `C1` lê estado e vale nos dois.
 - **Não cria lane nem ADR automaticamente.** Propõe; o pickup é decisão do
   dono.
 

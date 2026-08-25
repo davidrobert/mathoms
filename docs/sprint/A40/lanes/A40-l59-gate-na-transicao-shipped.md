@@ -295,7 +295,7 @@ Nenhum step novo de CI com `--from-ref` — decisão consciente: a superfície d
 Actions é orçamento (a sprint está a 544% do teto) e C1 já dá cobertura de merge
 para a metade que importa.
 
-### Deferimento datado — a metade que exige rede · dono `information-architect`
+### Deferimento datado — a metade que exige rede · dono: `information-architect`
 
 O caso-bandeira ([[A40.l7]]/#1375) **não é alcançado por nenhuma das três**, e
 isso está declarado no docstring do módulo em vez de disfarçado: no instante do
@@ -308,7 +308,8 @@ não serve como gate duro. Fechar essa metade exige cruzar branch↔PR pela API.
 branch" (hoje não existe — squash-merge não deixa a branch como ancestral), ou
 quando a classe reincidir ≥3× com o C1 já em `main`. Enquanto isso, gate
 obrigatório que depende de rede **pisca**: o `check_scheduled_workflows` travou
-todo merge do repo em 2026-08-24 lendo réplica obsoleta com HTTP 200.
+todo merge do repo em 2026-08-24 lendo réplica obsoleta com HTTP 200. O limite
+está registrado em [[ADR-413]] §Limite declarado.
 
 ### Achado colateral — a camada 1 da skill falhava aberta
 
@@ -316,3 +317,21 @@ todo merge do repo em 2026-08-24 lendo réplica obsoleta com HTTP 200.
 `LANE_COUNT_RE` exigia `## Lanes (N)` e o cabeçalho real tem texto dentro dos
 parênteses ⇒ `match is None` ⇒ `return []`. Corrigido no mesmo PR; provado por
 mutação. Era a razão de a camada 1 dar verde sobre `75 · 75` com 76 no disco.
+
+## Re-medição do closeout (2026-08-25) — o gate está segurando em produção
+
+Os números do §Ataque são de **2026-08-24** e ficam: são o retrato que motivou a
+lane. Re-medidos um dia depois, com o gate já em `main`:
+
+| | passa | barra |
+| --- | --- | --- |
+| As **44** transições da A40 **anteriores** ao gate (`6d3721ee`) | 19 | **25** |
+| As **5** transições **posteriores** | **5** | **0** |
+
+A classe não morreu por si — ela continuou produzindo até o gate entrar (de 42
+transições em 08-24 para 49 em 08-25, e de 23 para 25 barradas). Depois do gate,
+**nenhuma** transição nova deixou de carregar o registro: l6 (#1673), l63 (#1671),
+l68 (#1663), l77 (#1684), l81 (#1697).
+
+O `C1` (coerência) roda limpo na vault viva: **0 achados** — nenhuma lane
+não-terminal declara `ship_pr` já mergeado.
