@@ -142,9 +142,14 @@ class EvidenciaVerification:
     # ADR-304: sinal auditável por item ofensor (padrão ADR-097 D1).
     number_in_prose_warnings: list[NumberInProseWarning] = field(default_factory=list)
 
+    # NÃO é "cobertura de citação": `missing_path` só existe para âncora EMITIDA, e item
+    # com `ancoras: []` não gera entry nenhuma — então num parecer sem âncora alguma este
+    # número só pode dar 0. Medido no run r8: `coverage_failed: 0` com 17 de 21 itens sem
+    # âncora, e o painel exibindo 100% de cobertura. "Houve âncora?" é `itens_sem_ancora`;
+    # os dois só medem cobertura quando lidos JUNTOS (A40.l83 · RV8-07b).
     @property
     def coverage_failed(self) -> int:
-        """Citações sem path verificável (missing_path) — gap de cobertura."""
+        """Citações emitidas cujo path não verifica (missing_path)."""
         return self.failures_by_layer.get(_COVERAGE_LAYER, 0)
 
     @property
@@ -202,6 +207,9 @@ def resolve_evidencia_mode(manifest_mode: str) -> str:
     return mode if mode in _VALID_MODES else "warn"
 
 
+# `itens_sem_ancora` + `itens_total` entram AO LADO de `coverage_failed`, não no lugar
+# dele — pergunta diferente, ver a property. Vão CRUS: enviar só o percentual perderia o
+# denominador, que é o que distingue "menos âncoras por item" de "menos itens".
 def log_evidencia_kpi(verification: "EvidenciaVerification", workspace_id: str) -> None:
     """KPI de citação por geração (A26.l6) — cobertura vs. correção, PII-free, gate-auditável."""
     logger.info(
@@ -211,6 +219,8 @@ def log_evidencia_kpi(verification: "EvidenciaVerification", workspace_id: str) 
             "verified": verification.verified,
             "coverage_failed": verification.coverage_failed,
             "correctness_failed": verification.correctness_failed,
+            "itens_sem_ancora": verification.itens_sem_ancora,
+            "itens_total": verification.itens_total,
         },
     )
 

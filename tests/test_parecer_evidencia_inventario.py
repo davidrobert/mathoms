@@ -14,10 +14,13 @@ Módulo próprio porque ``tests/test_parecer_evidencia_path.py`` está em 484 li
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from backend.app.services.parecer_evidencia import (
     PROSE_INVENTORY_VERSION,
+    log_evidencia_kpi,
     verify_evidencia,
 )
 from backend.app.services.parecer_prose_money import (
@@ -258,3 +261,18 @@ class TestEstratificadorDoSummary:
         """Muda quando o conjunto de campos muda — é o que torna a janela do PR3
         comparável. A l31 sincroniza a enumeração da R22 e bumpa para 3."""
         assert PROSE_INVENTORY_VERSION == 2
+
+
+class TestKpiPublicadoCarregaADensidade:
+    """A40.l83 · RV8-07b — o painel lê o log, não o artefato."""
+
+    def test_kpi_logado_traz_itens_sem_ancora_e_o_denominador(self, caplog):
+        """Sem os dois, o painel exibia 100% de cobertura e zero falhas sobre um parecer
+        com 17 de 21 itens sem citação nenhuma: `coverage_failed` é cego a item que não
+        emitiu âncora, então ali ele só podia dar 0."""
+        verification = _verify(_with_ancora(make_canned_output(), ancoras=[]))
+        with caplog.at_level(logging.INFO, logger="mathoms.llm.parecer_planejador"):
+            log_evidencia_kpi(verification, "ws-teste")
+        registro = next(r for r in caplog.records if r.message == "parecer_evidencia_kpi")
+        assert registro.coverage_failed == 0
+        assert registro.itens_sem_ancora == registro.itens_total > 0
