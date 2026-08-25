@@ -233,6 +233,14 @@ class IRPFAnalyzer:
         decls = self._by_year(ano)
         return _sum(_renda_tributavel(d) for d in decls)
 
+    def base_calculo_anual(self, ano: int) -> Decimal:
+        """Base de cálculo DECLARADA do ano (ADR-414 D2) — soma, não derivação."""
+        return _sum(d.imposto_apurado.base_calculo_brl for d in self._by_year(ano))
+
+    def ir_devido_declarado(self, ano: int) -> Decimal:
+        """Imposto que a declaração diz ter apurado — testemunha do D3, não insumo."""
+        return _sum(d.imposto_apurado.ir_devido_brl for d in self._by_year(ano))
+
     def ir_pago_total(self, ano: int) -> Decimal:
         return _sum(d.imposto_apurado.ir_pago_brl for d in self._by_year(ano))
 

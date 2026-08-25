@@ -40,6 +40,7 @@ def _previdencia(*, calculada: bool = False) -> dict:
                 excedente_nao_dedutivel=Decimal("0"),
             ),
             renda_tributavel_anual=Decimal("100000"),
+            base_calculo_anual=Decimal("100000"),
             ano_base=2025,
             fonte="irpf",
         )
