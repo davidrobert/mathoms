@@ -31,7 +31,10 @@ def _column_limit(name: str) -> int:
 
 # Larguras derivadas do model. `stage` NÃO entra: o valor é do orquestrador
 # (nome de `STAGE_REGISTRY`), nunca do produtor — truncá-lo esconderia bug nosso.
-CLIPPED_COLUMNS = ("code", "artifact_key")
+# `locator` entra: é derivado das CHAVES do artefato, e produtor com chave longa
+# não pode derrubar o INSERT (ADR-411 D3). A cabeça sobrevive, que é o prefixo
+# que aponta a coleção.
+CLIPPED_COLUMNS = ("code", "artifact_key", "locator")
 _DOCUMENT_ID_MAX = _column_limit("document_id")
 
 # `offending_value`/`expected`/`message` são `Text` (sem largura declarada). O
@@ -66,13 +69,16 @@ class ReviewReasonRow(BaseModel):
     code: str
     stage: str
     artifact_key: str = ""
+    # Preenchido pela colheita (ADR-411 D3), não pelo produtor: quem caminha o
+    # artefato é quem sabe o caminho. Ausente = row não veio da colheita.
+    locator: str = ""
     document_id: str | None = None
     offending_value: str = ""
     expected: str = ""
     message: str = ""
     occurrence_count: int = 1
 
-    @field_validator("code", "stage", "artifact_key", mode="before")
+    @field_validator("code", "stage", "artifact_key", "locator", mode="before")
     @classmethod
     def _identity_text(cls, value: Any) -> str:
         return "" if value is None else str(value)
