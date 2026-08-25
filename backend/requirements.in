@@ -21,7 +21,7 @@ aiosqlite>=0.20
 #   síncrono) + scripts. config.py.sync_database_url emite postgresql+psycopg://
 #   explícito. Wheel binário traz libpq embarcado → runtime sem libpq5 apt dep.
 #   psycopg2-binary (legado, modo manutenção) saiu em A20.L8.
-asyncpg>=0.29
+asyncpg>=0.31.0
 psycopg[binary]>=3.2
 greenlet>=3.0
 httpx>=0.27
@@ -41,7 +41,7 @@ xlrd>=2.0.1       # .xls files (OLE2/BIFF format — xlrd 2.x dropped xlsx suppo
 playwright>=1.47.0
 
 # Phase 5 — Task Queue + Real-time
-celery[redis]>=5.4.0
+celery[redis]>=5.6.3
 redis>=5.0.0
 websockets>=12.0
 

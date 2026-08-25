@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from typing import Any, Iterator, Mapping
 
 from backend.app.services.parecer_citation_catalog import (
+    CatalogEntry,
     build_citation_catalog,
-    render_citation_catalog,
+    render_grouped_entries,
+    select_catalog_entries,
 )
 from backend.app.services.parecer_manifest import ManifestData
 from pipeline.llm.prompts._sanitization import contains_injection_pattern
@@ -341,15 +344,141 @@ def surviving_sections(
     return [manifest.sections[i] for i in kept], hard_cut
 
 
-def _render_catalog_block(manifest: ManifestData, e5_data: Mapping[str, Any]) -> str:
-    """Catálogo de citação (A26.l1) — vazio se emit desligado."""
+# ----------------------------------------------------------------------
+# Folhas R$ que o corpo renderizado contém (movido da A40.l30 pela A40.l83)
+# ----------------------------------------------------------------------
+# Mora AQUI, e não no instrumento de ancorabilidade, porque quem sabe o que o
+# corpo contém é quem o renderiza. Enquanto morava lá, produção precisava
+# importar um módulo de medição para semear o catálogo — dependência invertida,
+# e a classe exata de drift que a l83 fecha: instrumento e produção respondendo
+# "o que o modelo vê?" por caminhos diferentes.
+
+_MONEY_FORMAT = "brl"
+_MONEY_PREFIX = "R$"
+_LIST_WILDCARD = "[*]"
+
+
+@dataclass(frozen=True)
+class VisibleMoneyLeaf:
+    """Folha monetária que o modelo VÊ no corpo, com a seção que a projeta."""
+
+    path: str
+    section_id: str
+
+
+def _renders_money(value: Any) -> bool:
+    """Pergunta ao MESMO formatter do renderer se a folha imprime "R$ ...". `None` vira
+    "—" e sentinela ("N/D"/""/"nan") volta como string crua — nenhuma dá token R$.
+    Reusar `format_value` em vez de reimplementar a coerção evita que o instrumento
+    derive do renderer sem ninguém notar."""
+    return str(format_value(value, _MONEY_FORMAT)).lstrip("-").startswith(_MONEY_PREFIX)
+
+
+def _format_key(block: Mapping[str, Any]) -> str:
+    """`scalar` declara `value_format`; `key_value`/`table` declaram `format` por campo."""
+    return "value_format" if block.get("format") == "scalar" else "format"
+
+
+def _field_money_paths(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> Iterator[str]:
+    """Folhas R$ de bloco `key_value`/`scalar`. Campo cujo valor é dict/list NÃO conta:
+    `_render_field` achata em folhas cruas e o format é ignorado (sem prefixo R$)."""
+    on_null_skips = block.get("on_null", "skip") == "skip"
+    format_key = _format_key(block)
+    for field in declared_fields(block):
+        if field.get(format_key) != _MONEY_FORMAT:
+            continue
+        value = walk_path(e5_data, field["path"])
+        if value is None and on_null_skips:
+            continue
+        if isinstance(value, (Mapping, list)) or not _renders_money(value):
+            continue
+        yield field["path"]
+
+
+def declared_fields(block: Mapping[str, Any]) -> list[dict]:
+    if block.get("format") == "scalar":
+        return [dict(block)] if block.get("path") else []
+    return list(block.get("fields", []) or [])
+
+
+def _list_root(path: str) -> str:
+    """`$.a.b[*]` → `$.a.b`. O manifest declara a lista com wildcard; o catálogo indexa
+    (`$.a.b[5].valor`, via `_iter_list_money_leaf_paths`). Sem normalizar o sufixo,
+    path↔path nunca casa e TODA linha de tabela apareceria inancorável — FP de 100%."""
+    return path[: -len(_LIST_WILDCARD)] if path.endswith(_LIST_WILDCARD) else path
+
+
+def _row_money_paths(row: Mapping[str, Any], root: str, index: int, cols: list[dict]):
+    for col in cols:
+        if _renders_money(row.get(col["path"])):
+            yield f"{root}[{index}].{col['path']}"
+
+
+# Fonte de inancorabilidade ESTRUTURAL, não de bytes: o corpo renderiza `max_rows` (10 em
+# `tabela_classes`, 15 em `top_ativos`) e o catálogo pega `_MAX_LIST_ITEMS = 5` — e pega
+# **por maior valor** (`_top_money_indices`), não por posição. Logo há linha visível sem
+# rota por *ranking*, que nenhum ajuste de `max_bytes` resolve.
+def _table_money_paths(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> Iterator[str]:
+    """Folhas R$ de bloco `table` — o path efetivo é `{block.path}[i].{col.path}`."""
+    path = block.get("path")
+    rows = walk_path(e5_data, path) if path else None
+    if not isinstance(rows, list):
+        return
+    cols = [c for c in block.get("columns", []) if c.get("format") == _MONEY_FORMAT]
+    root = _list_root(path)
+    for i, row in enumerate(rows[: int(block.get("max_rows", 10))]):
+        if isinstance(row, Mapping):
+            yield from _row_money_paths(row, root, i, cols)
+
+
+def _block_money_paths(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> Iterator[str]:
+    if block.get("format") == "table":
+        yield from _table_money_paths(block, e5_data)
+        return
+    yield from _field_money_paths(block, e5_data)
+
+
+def _leaves_of(sections: list[dict], e5_data: Mapping[str, Any]) -> list[VisibleMoneyLeaf]:
+    return [
+        VisibleMoneyLeaf(path=path, section_id=str(section.get("id", "")))
+        for section in sections
+        for block in section.get("blocks", []) or []
+        for path in _block_money_paths(block, e5_data)
+    ]
+
+
+def iter_visible_money_paths(
+    manifest: ManifestData, e5_data: Mapping[str, Any]
+) -> list[VisibleMoneyLeaf]:
+    """Folhas R$ que o modelo vê no CORPO (pré-catálogo, pós-eviction), em ordem."""
+    sections, _hard_cut = surviving_sections(manifest, e5_data)
+    return _leaves_of(sections, e5_data)
+
+
+# Produção renderiza o segundo; o instrumento de ancorabilidade mede os dois. Ter
+# dois produtores era o que deixava a medição divergir do que o modelo de fato
+# recebe — o par que a lane mediu como 30 construídas vs 16 renderizadas.
+def citation_catalog_for(
+    manifest: ManifestData, e5_data: Mapping[str, Any]
+) -> tuple[list[CatalogEntry], list[CatalogEntry]]:
+    """``(construído, renderizado)`` — produtor ÚNICO do catálogo (A40.l83)."""
     cfg = manifest.citation_catalog
     if not cfg.emit:
-        return ""
-    entries = build_citation_catalog(
-        e5_data, section_whitelist=manifest.tools_section_whitelist, max_entries=cfg.max_entries
+        return [], []
+    seed = [leaf.path for leaf in iter_visible_money_paths(manifest, e5_data)]
+    construido = build_citation_catalog(
+        e5_data,
+        section_whitelist=manifest.tools_section_whitelist,
+        max_entries=cfg.max_entries,
+        seed_paths=seed,
     )
-    return render_citation_catalog(entries, max_bytes=cfg.max_bytes)
+    return construido, select_catalog_entries(construido, max_bytes=cfg.max_bytes)
+
+
+def _render_catalog_block(manifest: ManifestData, e5_data: Mapping[str, Any]) -> str:
+    """Catálogo de citação (A26.l1) — vazio se emit desligado."""
+    _construido, renderizado = citation_catalog_for(manifest, e5_data)
+    return render_grouped_entries(renderizado) if renderizado else ""
 
 
 def distill_exec_context(manifest: ManifestData, e5_data: Mapping[str, Any]) -> str:

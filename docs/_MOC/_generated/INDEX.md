@@ -408,6 +408,7 @@
 | ADR-411 | adr | Decidido |  | O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row | `adr/411-o-diagnostico-sai-do-artefato-em-todo-desfecho.md` |
 | ADR-412 | adr | Proposto |  | Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais | `adr/412-base-canonica-unica-papel-ternario-e-produtor-do-eixo-de-posicoes.md` |
 | ADR-413 | adr | Decidido |  | Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado | `adr/413-derivado-versionado-e-derivado-de-contrato.md` |
+| ADR-414 | adr | Decidido |  | Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada | `adr/414-rendimento-bruto-e-base-de-calculo-sao-variaveis-distintas.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -950,6 +951,7 @@
 | A40.l75 | lane | open | A40 | O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou | `sprint/A40/lanes/A40-l75-msw-drift-gate-inerte.md` |
 | A40.l76 | lane | open | A40 | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | `sprint/A40/lanes/A40-l76-proveniencia-de-artefato-e2.md` |
 | A40.l77 | lane | shipped | A40 | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | `sprint/A40/lanes/A40-l77-dois-resolvers-de-membro.md` |
+| A40.l78 | lane | in_progress | A40 | Mover código não deixa citação órfã: gate no lado do código, não no do doc | `sprint/A40/lanes/A40-l78-gate-citacao-orfa-de-codigo.md` |
 | A40.l79 | lane | open | A40 | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | `sprint/A40/lanes/A40-l79-row-fiscal-ausente-e-fail-open.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l80 | lane | open | A40 | Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' | `sprint/A40/lanes/A40-l80-denominador-amputado.md` |

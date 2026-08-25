@@ -413,6 +413,29 @@
               }
             }
           }
+        },
+        "bases": {
+          "type": "object",
+          "description": "A40.l80 ([[ADR-412]] §D1): bases canônicas publicadas com seus termos. Chaves fechadas no enum `BaseFinanceira` (pipeline/domain/services/bases_financeiras.py) — base nova exige tocar schema E produtor, que é o ponto. Cobre o EIXO DE POSIÇÕES; é vocabulário distinto de `kpi_targets[].base` (interseção vazia, ver ADR-412). `carteira_com_titular_identificado` só vale como extremo inferior de intervalo declarado, nunca como denominador de número publicado sozinho.",
+          "properties": {
+            "carteira_financeira_familia": {
+              "$ref": "#/$defs/BaseDeclarada"
+            },
+            "carteira_produtiva_familia": {
+              "$ref": "#/$defs/BaseDeclarada"
+            },
+            "carteira_com_titular_identificado": {
+              "$ref": "#/$defs/BaseDeclarada"
+            },
+            "patrimonio_liquido": {
+              "$ref": "#/$defs/BaseDeclarada"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "atribuicao_investimentos": {
+          "$ref": "#/$defs/AtribuicaoInvestimentos"
         }
       }
     },
@@ -845,7 +868,7 @@
     },
     "previdencia_pgbl": {
       "type": "object",
-      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto > sem_imposto_a_reduzir). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ aporte_mensal não-null — a marginal permite reconstruir a prescrição (alíquota × aporte), então segue o APORTE, não o sinal da economia (emenda ADR-402 2026-08-24). `sem_imposto_a_reduzir` é o único motivo que nomeia conclusão de cálculo em vez de insumo faltante, e o único que coexiste com campos publicados: retém `aporte` quando a economia é zero COM espaço restante — em `no_teto` (restante 0) o aporte zero segue publicado como fato, porque ali a causa é o teto consumido, não a ausência de imposto. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
+      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto > irpfm_pode_vincular > sem_imposto_a_reduzir). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ aporte_mensal não-null — a marginal permite reconstruir a prescrição (alíquota × aporte), então segue o APORTE, não o sinal da economia (emenda ADR-402 2026-08-24). `sem_imposto_a_reduzir` é o único motivo que nomeia conclusão de cálculo em vez de insumo faltante, e o único que coexiste com campos publicados: retém `aporte` quando a economia é zero COM espaço restante — em `no_teto` (restante 0) o aporte zero segue publicado como fato, porque ali a causa é o teto consumido, não a ausência de imposto. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
       "properties": {
         "status": {
           "type": "string",
@@ -2666,6 +2689,7 @@
         "modelo_simplificado",
         "sem_renda_tributavel",
         "regime_fiscal_incompleto",
+        "irpfm_pode_vincular",
         "sem_imposto_a_reduzir",
         null
       ]
@@ -3010,6 +3034,10 @@
         },
         "cobertura_meses": {
           "type": "number"
+        },
+        "investimentos_nao_atribuidos": {
+          "type": "number",
+          "description": "A40.l80 ([[ADR-412]] §D4): fatia líquida sem titular identificado. MESMO nome do balde do patrimônio, sem sinônimo — a §Consistência da lane morre no primeiro sinônimo. Entra em `total_liquido` (invariante `total_liquido == Σ componentes`, [[ADR-279]]): publicar e não somar quebraria o invariante."
         }
       },
       "required": [],
@@ -3598,6 +3626,58 @@
         "count",
         "meses"
       ]
+    },
+    "BaseDeclarada": {
+      "type": "object",
+      "description": "A40.l80 ([[ADR-412]] §D1): um denominador canônico, com os TERMOS que o formam em dados. Publicar os termos é o que torna a base auditável só do payload — sem isso é preciso ler código-fonte para saber o que entra em 'carteira produtiva'.",
+      "properties": {
+        "termos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Nomes dos termos somados, na ordem em que o produtor os acumula. Prefixo '-' marca termo subtraído (ex.: '-dividas')."
+        },
+        "valor_brl": {
+          "type": "number"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "AtribuicaoInvestimentos": {
+      "type": "object",
+      "description": "A40.l80 ([[ADR-412]] §D5): eixo de ATRIBUIÇÃO — quanto da carteira financeira tem titular identificado. ORTOGONAL a `cobertura_investimentos`, que particiona PESSOAS ('este membro foi medido?'); este particiona DINHEIRO. `status` reusa o vocabulário fechado de `componente_exposicao_cambial` ([[ADR-403]]) em vez de instalar um terceiro vocabulário de cobertura no mesmo payload.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "apurado",
+            "parcial",
+            "indeterminado"
+          ],
+          "description": "`apurado` = fatia sem dono é zero; `parcial` = existe fatia sem dono; `indeterminado` = nada foi atribuído."
+        },
+        "pct_carteira_financeira": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Fatia sem titular sobre `carteira_financeira_familia`. Absoluto (ADR-209): 48.13 = 48,13%."
+        },
+        "piso_pct": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Piso de materialidade vigente ([[ADR-406]] §D1 herdado): abaixo dele a fatia é ignorada em silêncio."
+        },
+        "motivo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "`null` quando a fatia está abaixo do piso; texto quando cruza e a ressalva é devida."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

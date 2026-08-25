@@ -34,6 +34,7 @@ def _nota(status: PgblStatus, restante: str = "0") -> str:
             excedente_nao_dedutivel=Decimal("0"),
         ),
         renda_tributavel_anual=_RENDA,
+        base_calculo_anual=_RENDA,
         ano_base=2024,
         fonte="irpf_pgbl_capacidade",
     )

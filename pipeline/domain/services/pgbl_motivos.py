@@ -30,6 +30,10 @@ class MotivoAusenciaPgbl(str, Enum):
     # único que coexiste com campos publicados (a economia zero fica). Por isso
     # é o último da precedência: qualquer insumo faltante o cala.
     sem_imposto_a_reduzir = "sem_imposto_a_reduzir"
+    # Acima do piso do IRPFM a dedução do PGBL reduz o IR-tabela, que é ABATIDO
+    # do mínimo — a economia líquida some enquanto o mínimo vincula. Prescrever
+    # ali é conselho com o SINAL invertido, no público principal do produto.
+    irpfm_pode_vincular = "irpfm_pode_vincular"
 
 
 # Precedência declarada: o primeiro que se aplica é o dominante e CALA os demais.
@@ -40,6 +44,7 @@ PRECEDENCIA_MOTIVO_PGBL: tuple[MotivoAusenciaPgbl, ...] = (
     MotivoAusenciaPgbl.modelo_simplificado,
     MotivoAusenciaPgbl.sem_renda_tributavel,
     MotivoAusenciaPgbl.regime_fiscal_incompleto,
+    MotivoAusenciaPgbl.irpfm_pode_vincular,
     MotivoAusenciaPgbl.sem_imposto_a_reduzir,
 )
 
@@ -74,7 +79,7 @@ def motivo_dominante(
 # `null` não carrega a razão de ser `null`, então "nota derivada do campo" é
 # inexequível. O motivo dominante é o pivô comum.
 def _motivos_por_campo(
-    cap: "CapacidadePgblIRPF", regime_completo: bool
+    cap: "CapacidadePgblIRPF", regime_completo: bool, irpfm_vincula: bool = False
 ) -> dict[str, MotivoAusenciaPgbl | None]:
     """Aplica a precedência aos 4 campos. Fonte única do que é ausência e por quê."""
     if cap.pgbl_status == PgblStatus.modelo_simplificado:
@@ -83,6 +88,15 @@ def _motivos_por_campo(
     # COMPLETA tem base tributável — a dedução de 12% não tem sobre o que incidir.
     if cap.pgbl_status == PgblStatus.sem_renda_tributavel or cap.capacidade.teto is None:
         return dict.fromkeys(CAMPOS_MOTIVO_PGBL, MotivoAusenciaPgbl.sem_renda_tributavel)
+    if irpfm_vincula:
+        # Mesma polaridade de `regime_fiscal_incompleto`: anula a PRESCRIÇÃO e
+        # preserva o FATO — o espaço de 12% vem do IRPF e não depende do mínimo.
+        return {
+            "teto": None,
+            "restante": None,
+            "aporte": MotivoAusenciaPgbl.irpfm_pode_vincular,
+            "economia": MotivoAusenciaPgbl.irpfm_pode_vincular,
+        }
     if not regime_completo:
         # Anula prescrição (ADR-375 D4) e PRESERVA o fato: o espaço de 12% vem do
         # IRPF e não depende da completude do regime do ano corrente.

@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterator, Mapping
+from typing import Any, Iterator, Mapping, Sequence
 
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 from pipeline.llm.value_formatter import FormatHint, format_value
@@ -64,6 +64,11 @@ _NAO_CITAVEL_ESTIMATIVA = frozenset({"caminho_p10", "caminho_p50", "caminho_p90"
 
 # Densidade de citação esperada (narrative_hints), não valor R$ — prompt-engineer
 # 2026-06-16. Raiz fora desta lista cai no fim, truncada primeiro sob max_bytes.
+# FALLBACK desde a A40.l83: ordena apenas o que o modelo NÃO vê no corpo. Era a
+# ordem primária, e sozinha produzia catálogo disjunto do corpo — medido no E5
+# real do run r8, as raízes visíveis (fluxo_caixa, investimentos,
+# consumo_consciente, patrimonio, exposicao_cambial) e as renderizadas
+# (reserva_emergencia, endividamento) não tinham UMA interseção: 0 de 36.
 _PRIORITY_ROOTS = (
     "reserva_emergencia",
     "endividamento",
@@ -208,6 +213,24 @@ def _priority_key(entry: CatalogEntry) -> tuple[int, str]:
     return (rank, entry.path)
 
 
+def _catalog_order(entries: list[CatalogEntry], seed_paths: Sequence[str]) -> list[CatalogEntry]:
+    """Ordem do catálogo: o que o modelo VÊ no corpo primeiro (na ordem em que vê),
+    depois ``_PRIORITY_ROOTS``. A semente é o conjunto visível porque é ELE que o
+    modelo precisa citar — priorizar por densidade esperada ranqueava um universo
+    (o E5 inteiro) para servir a outro (o corpo renderizado), e sob ``max_bytes``
+    os dois não se encontravam."""
+    seed_rank = {path: i for i, path in enumerate(seed_paths)}
+
+    def key(entry: CatalogEntry) -> tuple[int, int | str, str]:
+        seeded = seed_rank.get(entry.path)
+        if seeded is not None:
+            return (0, seeded, "")
+        rank, path = _priority_key(entry)
+        return (1, rank, path)
+
+    return sorted(entries, key=key)
+
+
 def _entry_for(
     drill: PlannerDrillDown, path: str, labels: Mapping[str, Any]
 ) -> CatalogEntry | None:
@@ -225,12 +248,17 @@ def _entry_for(
     )
 
 
+# ``seed_paths`` são as folhas R$ que o modelo vê no corpo (A40.l83): entram
+# primeiro e por isso sobrevivem ao corte de ``max_bytes``. Semente que não resolve
+# no verificador não vira entry — a ordem não contorna o contrato de que todo path
+# listado passa o verify por construção.
 def build_citation_catalog(
     e5_data: Mapping[str, Any],
     *,
     section_whitelist: frozenset[str],
     max_entries: int = 30,
     labels: Mapping[str, Any] | None = None,
+    seed_paths: Sequence[str] = (),
 ) -> list[CatalogEntry]:
     """Folhas monetárias resolvíveis pelo verificador, priorizadas e capadas."""
     from backend.app.services.parecer_manifest import load_manifest
@@ -238,8 +266,7 @@ def build_citation_catalog(
     resolved = labels if labels is not None else load_manifest().citation_labels
     drill = PlannerDrillDown(e5_data=e5_data, section_whitelist=section_whitelist, format_hints={})
     entries = [e for p in _iter_money_leaf_paths(e5_data) if (e := _entry_for(drill, p, resolved))]
-    entries.sort(key=_priority_key)
-    return entries[:max_entries]
+    return _catalog_order(entries, seed_paths)[:max_entries]
 
 
 def _render_line(entry: CatalogEntry) -> str:
@@ -248,7 +275,8 @@ def _render_line(entry: CatalogEntry) -> str:
     return f"- `{entry.path}` → {entry.display_value}"
 
 
-def _render_grouped(entries: list[CatalogEntry]) -> str:
+def render_grouped_entries(entries: list[CatalogEntry]) -> str:
+    """Bloco markdown agrupado por raiz — exatamente o que o modelo lê."""
     head = f"{_CATALOG_HEADER}\n{_CATALOG_INSTRUCTION}"
     lines: list[str] = []
     current_root: str | None = None
@@ -269,7 +297,7 @@ def select_catalog_entries(entries: list[CatalogEntry], *, max_bytes: int) -> li
     """Entries que CABEM no bloco — as que o modelo de fato recebe."""
     selected: list[CatalogEntry] = []
     for entry in entries:
-        projection = _render_grouped(selected + [entry])
+        projection = render_grouped_entries(selected + [entry])
         if selected and len(projection.encode("utf-8")) > max_bytes:
             break
         selected.append(entry)
@@ -280,7 +308,7 @@ def render_citation_catalog(entries: list[CatalogEntry], *, max_bytes: int) -> s
     """Bloco markdown agrupado por raiz; trunca por entry (prioridade) sem órfãos."""
     if not entries:
         return ""
-    return _render_grouped(select_catalog_entries(entries, max_bytes=max_bytes))
+    return render_grouped_entries(select_catalog_entries(entries, max_bytes=max_bytes))
 
 
 __all__ = [
@@ -288,5 +316,6 @@ __all__ = [
     "ancora_format_hint",
     "build_citation_catalog",
     "render_citation_catalog",
+    "render_grouped_entries",
     "select_catalog_entries",
 ]
