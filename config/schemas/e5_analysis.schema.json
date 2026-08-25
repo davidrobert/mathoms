@@ -868,7 +868,7 @@
     },
     "previdencia_pgbl": {
       "type": "object",
-      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto > sem_imposto_a_reduzir). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ aporte_mensal não-null — a marginal permite reconstruir a prescrição (alíquota × aporte), então segue o APORTE, não o sinal da economia (emenda ADR-402 2026-08-24). `sem_imposto_a_reduzir` é o único motivo que nomeia conclusão de cálculo em vez de insumo faltante, e o único que coexiste com campos publicados: retém `aporte` quando a economia é zero COM espaço restante — em `no_teto` (restante 0) o aporte zero segue publicado como fato, porque ali a causa é o teto consumido, não a ausência de imposto. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
+      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto > irpfm_pode_vincular > sem_imposto_a_reduzir). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ aporte_mensal não-null — a marginal permite reconstruir a prescrição (alíquota × aporte), então segue o APORTE, não o sinal da economia (emenda ADR-402 2026-08-24). `sem_imposto_a_reduzir` é o único motivo que nomeia conclusão de cálculo em vez de insumo faltante, e o único que coexiste com campos publicados: retém `aporte` quando a economia é zero COM espaço restante — em `no_teto` (restante 0) o aporte zero segue publicado como fato, porque ali a causa é o teto consumido, não a ausência de imposto. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
       "properties": {
         "status": {
           "type": "string",
@@ -2689,6 +2689,7 @@
         "modelo_simplificado",
         "sem_renda_tributavel",
         "regime_fiscal_incompleto",
+        "irpfm_pode_vincular",
         "sem_imposto_a_reduzir",
         null
       ]

@@ -80,6 +80,7 @@ class PrevidenciaConfig:
     # ADR-414 D4. VO zerado (default) = ano sem redutor — o caminho legado nunca
     # o conhece, e AC <= 2025 também não tem.
     redutor: RedutorIRPF = field(default_factory=RedutorIRPF)
+    irpfm_limiar_brl_cents: int = 0
 
     @classmethod
     def from_fiscal(cls, fiscal: dict | None = None) -> "PrevidenciaConfig":
@@ -119,6 +120,7 @@ class PrevidenciaConfig:
             # na fonte e é consumida pela cascata da S8 ([[A40.l37]]).
             irpf_faixas=fiscal.ir_brackets_anual.faixas,
             redutor=fiscal.redutor_anual,
+            irpfm_limiar_brl_cents=fiscal.irpfm_limiar_brl_cents,
             regime_completo=fiscal.regime_completo,
             componentes_ausentes=fiscal.componentes_ausentes,
             ano_fiscal=fiscal.year,
@@ -146,6 +148,10 @@ class CapacidadePgblIRPF:
     # só existe se alguma parseou. Optional aqui seria ramo que não dispara, e cair
     # no bruto é o defeito que a ADR-414 fecha.
     base_calculo_anual: Decimal
+    # Limite SUPERIOR do `REND` do IRPFM: o maior bruto entre as declarações do
+    # ano (tributável + isentos + exclusiva). Superior porque as exclusões do
+    # art. 16-A só REDUZEM — logo, abaixo do piso o mínimo certamente não vincula.
+    rend_upper_anual: Decimal = Decimal("0")
     nota_degradacao: str | None = None  # ADR-305 D3: existe ano mais recente não usado
 
     @property
@@ -341,6 +347,17 @@ def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal | None) -> 
     return f"{capacidade} {_NOTA_DIFERIMENTO} {_NOTA_PROXY_ANO_CORRENTE}"
 
 
+# Nomeia o mecanismo, não a nossa incapacidade: o cliente precisa entender que o
+# PGBL não deixou de valer — o benefício é reabsorvido pelo mínimo enquanto ele
+# vincular, e isso muda com o perfil de renda dele.
+_NOTA_IRPFM = (
+    "Sua renda total do ano fica na faixa do imposto mínimo (IRPFM, Lei 15.270/2025): "
+    "acima de R$ 600 mil, o IR devido pela tabela é abatido do mínimo, então reduzir "
+    "o imposto com PGBL não gera economia líquida enquanto o mínimo vincular. "
+    "Prescrever aporte aqui seria conselho com o sinal invertido."
+)
+
+
 def _nota_do_motivo(
     dominante: MotivoAusenciaPgbl | None,
     cap: CapacidadePgblIRPF,
@@ -352,6 +369,8 @@ def _nota_do_motivo(
         return _NOTA_SIMPLIFICADO.format(ano=ano)
     if dominante == MotivoAusenciaPgbl.sem_renda_tributavel:
         return _NOTA_SEM_RENDA.format(ano=ano)
+    if dominante == MotivoAusenciaPgbl.irpfm_pode_vincular:
+        return f"{_NOTA_IRPFM} {_nota_capacidade_irpf(cap, cap.capacidade.restante)}"
     fato = _nota_capacidade_irpf(cap, cap.capacidade.restante)
     if dominante == MotivoAusenciaPgbl.regime_fiscal_incompleto:
         return f"{_nota_regime_incompleto(config)} {fato}"
@@ -375,7 +394,7 @@ class PrevidenciaAnalyzer:
         return self._analyze_via_irpf(capacidade_irpf)
 
     def _analyze_via_irpf(self, cap: CapacidadePgblIRPF) -> PrevidenciaAnalysis:
-        motivos = _motivos_por_campo(cap, self._config.regime_completo)
+        motivos = _motivos_por_campo(cap, self._config.regime_completo, self._irpfm_vincula(cap))
         economia = self._economia(cap, motivos)
         motivos = _com_motivo_de_economia_nula(motivos, economia, cap.capacidade.restante)
         return PrevidenciaAnalysis(
@@ -417,6 +436,12 @@ class PrevidenciaAnalyzer:
     # Reter prescrição não é apagar fato: a capacidade de 12% vem do IRPF e não
     # depende do regime do ano corrente. O que sai são os dois campos que a
     # ADR-375 D4 nomeia — "prescrever PGBL" (aporte) e "publicar economia de IR".
+    # Limiar `0` = ano sem IRPFM (AC <= 2025) ⇒ nunca vincula. A vigência vem do
+    # DADO da row, nunca de `if year >= 2026` ([[ADR-414]] D5).
+    def _irpfm_vincula(self, cap: CapacidadePgblIRPF) -> bool:
+        limiar = self._config.irpfm_limiar_brl_cents
+        return limiar > 0 and _cents(cap.rend_upper_anual) >= limiar
+
     def _economia(
         self, cap: CapacidadePgblIRPF, motivos: dict[str, MotivoAusenciaPgbl | None]
     ) -> Decimal | None:

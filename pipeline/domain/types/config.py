@@ -177,6 +177,9 @@ class FiscalParameters:
     # vigência — a row mentiria sobre si mesma sempre que o ano faltasse lá.
     redutor_anual: RedutorIRPF = field(default_factory=RedutorIRPF)
     redutor_mensal: RedutorIRPF = field(default_factory=RedutorIRPF)
+    # Piso do IRPFM (art. 16-A). `0` = ano sem imposto mínimo — a vigência vem do
+    # DADO, não de `if year >= 2026`, mesma política do redutor ([[ADR-414]] D5).
+    irpfm_limiar_brl_cents: int = 0
     # ADR-389 D4: completude do regime é DADO, para o consumidor recusar lendo a
     # row em vez de `if year >= 2026`. AC2026 nasce incompleto (redutor da Lei
     # 15.270/2025 + IRPFM não modelados — [[A40.l64]]).

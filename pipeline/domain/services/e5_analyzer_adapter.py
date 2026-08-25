@@ -1233,6 +1233,7 @@ def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | No
         renda_tributavel_anual=irpf.rendimentos_tributaveis(resolved.ano),
         # ADR-414 D2: base DECLARADA, somada no ano — nunca derivada do bruto.
         base_calculo_anual=irpf.base_calculo_anual(resolved.ano),
+        rend_upper_anual=irpf.maior_renda_total_declarante(resolved.ano),
         ano_base=resolved.ano,
         fonte="irpf_pgbl_capacidade",
         nota_degradacao=resolved.nota_degradacao,
