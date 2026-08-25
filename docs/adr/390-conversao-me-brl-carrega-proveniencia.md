@@ -5,6 +5,7 @@ title: "Conversão ME→BRL carrega taxa, data, fonte e status; ausência é exp
 status: Decidido
 phase: A40.l63
 date: "2026-08-17"
+amended_at: ["2026-08-24"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-135]]"
@@ -28,6 +29,9 @@ tags:
 
 # ADR-390 — Conversão ME→BRL carrega proveniência
 
+> ⚠️ **Emendada em 2026-08-24** ([[A40.l63]] §Ataque) — D2, D4 e D5 descreviam
+> garantias que o código não dava. Ver §Emenda no fim.
+>
 > **Decidido em 2026-08-17** no PR de implementação da [[A40.l63]].
 > Origem: co-design `data-engineer` + `senior-cto`.
 > Generaliza a [[ADR-387]] D3 para conversão cambial. **Não** decide qual
@@ -128,3 +132,80 @@ Golden das três vias com `taxa_fonte` distinto. `default_hardcoded` com
 `moeda` ≡ unidade de `saldo_original`. GBP sem row → `missing_rate`.
 Mutação (multiplicação crua num produtor) derruba o gate. Seed 5.80 ≠
 hardcoded (fonte diferente).
+
+## Emenda 2026-08-24 — três garantias eram prosa, não contrato (A40.l63)
+
+O ataque à lane mediu o entregue contra o decidido e achou três frases desta
+ADR que o código não sustentava. Nada aqui reverte a decisão; tudo aperta a
+implementação até ela dizer a verdade.
+
+### E1 — D4 «via nova não produz a coluna sem o VO» era falsa
+
+`CaixaDetalhe.conversao` nasceu `ConversaoMeBrl | None = None`, com o
+comentário *"writer novo sempre preenche"*. Medido: produtor novo construía a
+linha sem carimbo, `to_dict()` omitia a chave e o schema validava — payload
+indistinguível de artefato pré-390, que é justamente o que D5 diz que a
+ausência significa.
+
+**A tensão entre D4 e D5 é real** e a ADR original as tratava como compatíveis.
+Uma única ausência não codifica "legado" e "produtor esqueceu" ao mesmo tempo.
+Resolve-se separando os lados:
+
+- **escrita** — `conversao` é obrigatório e keyword-only. Esquecer levanta
+  `TypeError` na construção. *Este* é o funil por tipo que D4 promete.
+- **leitura** — `conversao` segue fora de `required` no schema (D5 intacta).
+  Artefato pré-390 continua validando.
+
+O ratchet de D4 continua backstop, e passou de **3/10** para **10/10** formas
+plausíveis de reintrodução (bateria em `tests/dev/test_check_conversao_me_funnel.py`).
+O miss decisivo era de método: `_RATE_ATTR` foi escrito a partir do nome do
+*parâmetro* de `__init__` (`cambio_usd_brl`), não do atributo que a instância
+carrega (`self._cambio_usd_brl`).
+
+### E2 — D2: o enum de `taxa_fonte` não era enum
+
+A tabela de D2 lista quatro valores fechados. Eles viviam em `Literal` Python
+(hint, não checado em runtime), na união do TS escrito à mão e na `description`
+do schema — **em nenhum `enum`**. `taxa_fonte="chute_do_agente"` validava.
+Agora é `enum` de verdade, e o carimbo ganha restrição cruzada:
+
+- `converted` ⇒ `taxa_fonte` presente;
+- `missing_rate` ⇒ `taxa` e `taxa_fonte` nulos;
+- `identity` fica livre **de propósito** — `identity_native_brl` traz `taxa=1`
+  sem fonte, `identity_already_brl` traz fonte sem taxa, e os dois são honestos.
+
+`converted` com `taxa` nula segue válido: cobre o informe cujo emissor converteu
+e não divulgou a taxa.
+
+### E3 — D2: `taxa_data` era inpreenchível na via corrente
+
+D2 exige `taxa_data` = `observed_at` **da row usada, nunca a data do lookup**.
+Medido: `taxa_data` era `null` em *toda* via de extrato; só `ptax_31_12` o
+preenchia, e essa já trazia a data antes da ADR. O campo não adicionou
+informação nenhuma.
+
+A causa não era o produtor, era a fronteira: `ConfigStore.get_market_rate(pair,
+observed_at) -> Decimal` devolve só a taxa e descarta a data da row que
+resolveu (*"última cotação em data <= observed_at"*). Sem mudar o port, D2 é
+inatingível.
+
+**Decisão:** o port ganha `get_market_quote(pair, observed_at) -> PtaxQuote |
+None`, aditivo — `get_market_rate` fica intacto para os demais chamadores.
+`PtaxQuote` já existia (`ptax_types.py`) e já era o shape que
+`WisePtaxConverter` produzia; o port apenas para de achatá-lo.
+
+Permanecem nulos, e é o comportamento certo:
+
+| via | `taxa_data` | por quê |
+| --- | --- | --- |
+| `taxas.json` legacy | `null` | o arquivo não versiona data — o dado não existe, não foi perdido |
+| `default_hardcoded` | `null` | `5.80`/`6.35` são constante de política, não observação |
+
+### E4 — o vocabulário de `fonte` não tinha termo para baseline IRPF
+
+Fora do escopo original da ADR, mas na mesma linha: o fallback [[ADR-245]]
+herdava `fonte="extrato"`, e `build_posicao_31_12` filtra por esse valor — a
+posição de IRPF entrava no card 31/12 com id `extrato:irpf_…` e
+`data_referencia` nula, afirmando ser posição de extrato bancário. Ver §Emenda
+da [[ADR-238]]. Se e como o snapshot 31/12 do IRPF *deve* aparecer naquele card
+é pergunta da [[A40.l39]].

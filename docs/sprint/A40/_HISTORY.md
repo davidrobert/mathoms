@@ -537,3 +537,37 @@ viraram regra na skill `report-review`; dois viram trabalho aqui:
 - **Ninguém renderizou tela nem PDF** → toda lane de `clareza-ux` desta sprint
   exige **uma passada de verificação renderizada** (navegador ou `pdftotext`) no
   critério de aceite. Sem isso, a lane fecha sobre inferência de código.
+
+## KR-D: de "não fecha" a fecha (2026-08-24)
+
+Painel encerrado, movido de [`_README`](_README.md) no closeout da [[A40.l6]].
+Os dois blockquotes ficam **na ordem original e sem reescrita**: o primeiro era
+medição correta no instante em que foi feita, e o valor do registro está
+justamente em mostrar que ela estava certa **pelo motivo errado**.
+
+> ⚠️ **A KR-D não fecha — o gate existe como função e não tem chamador (medido 2026-08-24).**
+> O #1569 entregou o **redator**: `redact_cartorial` está wired em
+> `real_estate_metrics_payload.py` e `endividamento_analyzer.py`, e o card parou de
+> interpolar `descricao` (`RealEstateYieldCard.tsx:205` usa `imovelDisplayLabel`). Mas
+> o **scanner** — `scan_view_model_pii`, o termo que a KR mede — tem **zero** chamadas
+> fora do próprio unit test: nada em `.github/`, nada em `.pre-commit-config.yaml`,
+> nada em `dev/`, nada em stage. A KR-D exige *"bloqueio no CI"*; scanner sem
+> chamador não bloqueia nada. Mesma família da KR-A: a função existir **e** o gate
+> rodar são os dois termos do "e". Residual com dono na [[A40.l6]] §Nota datada.
+
+> ✅ **Resolvido 2026-08-24 — a KR-D fecha (#1673).** O blockquote acima **não se
+> reescreve**: era medição correta no instante em que foi feita. O que mudou é o
+> mundo. A medição também estava **certa pelo motivo errado** — o defeito não era
+> "scanner sem chamador", era **scanner varrendo o nome do campo**:
+> `endereco_canonical` (= `canonicalize(descricao)`, cascata que devolve
+> `mat:<matrícula>`/`iptu:<inscrição>`) era o que o card renderizava, e dar um
+> chamador ao gate antigo teria fechado a KR **com a matrícula na tela**.
+>
+> Estado medido hoje, pelo instrumento que a própria KR nomeia (*"fixture
+> sintética com identificador de terceiro + matrícula + endereço ⇒ bloqueio no
+> CI"*): `tests/unit/pipeline/test_view_model_pii.py` e
+> `tests/test_real_estate_metrics_payload.py` rodam em `Pipeline tests (tests/)`,
+> que está em `all-green.needs` — fixture cartorial ⇒ EXIT≠0 ⇒ merge bloqueado.
+> Três gates independentes cobrem a classe (payload produzido, lint público com os
+> 2 waivers queimados, spec renderizada em DOM + PDF), cada um com prova por
+> mutação. Detalhe em [[A40.l6]] §Fecho · [[ADR-337]] §Emenda 2026-08-24.

@@ -28,6 +28,24 @@ def test_md_hidden_stack_without_print_fails(tmp_path: Path) -> None:
     assert main(["--root", str(tmp_path)]) == 1
 
 
+def test_md_hidden_com_print_hidden_passa(tmp_path: Path) -> None:
+    """A40.l6: o stack mobile some do papel — companheiro correto da direção `md:hidden`."""
+    ok = tmp_path / "MdPair.tsx"
+    ok.write_text(
+        '<div className="space-y-3 md:hidden print:hidden">cards</div>\n'
+        '<div className="hidden overflow-x-auto md:block print:block">tabela</div>\n'
+    )
+    assert main(["--root", str(tmp_path)]) == 0
+
+
+def test_companheiro_da_direcao_errada_nao_salva() -> None:
+    """O gate é direcional: `print:` qualquer não basta (A40.l6)."""
+    # Direção A quer APARECER no papel; `print:hidden` some das duas superfícies.
+    assert line_offends('className="hidden md:block print:hidden"')
+    # Direção B quer SUMIR do papel; `print:block` empurra o stack mobile pra folha.
+    assert line_offends('className="space-y-3 md:hidden print:block"')
+
+
 def test_sm_pair_passes(tmp_path: Path) -> None:
     ok = tmp_path / "SmPair.tsx"
     ok.write_text(

@@ -21,8 +21,19 @@ O stage `extract_irpf_full` (E1.6) injeta as tabelas código→categoria no
 declaração se houver YAML correspondente; senão o ano-base mais recente
 disponível. Sem nenhum YAML, o loader falha-fast.
 
-Editar/adicionar YAML **não** exige bump de `PROMPT_VERSION` — o cache LLM
-(ADR-307) usa hash do conteúdo do prompt, que já muda com o YAML.
+Editar/adicionar YAML **não** exige bump de `PROMPT_VERSION` por causa de cache:
+**o e16 não usa o cache LLM.** `LLMService.call` tem `use_cache: bool = False`
+(`pipeline/llm/litellm_client.py:149`) e `extract_irpf_full._call_llm` não o passa
+— a [[ADR-307]] §D2 liga o cache **opt-in por call-site**, e a V1 só em
+`extract_comprovantes_bens`. Não há cache key a invalidar.
+
+> ⚠️ **Consequência em aberto (auditoria r10 · F19):** sem bump, as tabelas de
+> dois anos-base gravam a **mesma** `prompt_version` em `llm_call_log`, que é
+> justamente o eixo de estratificação previsto pela [[ADR-260]]. O campo
+> `version:` do YAML é código morto (`_parse_rfb_yaml` não o lê). Decidir se a
+> troca anual passa a bumpar `PROMPT_VERSION` — ou a ganhar canal próprio — é
+> chamada do owner; este runbook só registra que a razão anterior (cache) era
+> falsa.
 
 ## Fonte
 
@@ -67,5 +78,5 @@ Fichas relevantes:
 ## Rollback
 
 Reverter o PR basta: sem o YAML do ano novo, `resolve_rfb_codes` volta ao
-ano-base mais recente remanescente. Nenhum flush de cache LLM é necessário
-(prompt novo = cache key nova; entradas antigas expiram sozinhas).
+ano-base mais recente remanescente. Nenhum flush de cache LLM é necessário —
+**o e16 não usa cache** (ver §acima).

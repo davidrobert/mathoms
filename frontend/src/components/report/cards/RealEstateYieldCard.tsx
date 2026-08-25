@@ -163,12 +163,12 @@ function RealEstateImoveisTable({ imoveis }: { imoveis: readonly RealEstateImove
         * página não rola horizontalmente: as colunas Cap líq./Status ficavam
         * inalcançáveis. No papel o `report-print.css` devolve `overflow:
         * visible` — lá não há gesto de rolagem. */}
-      <div className="mt-3 space-y-3 sm:hidden">
+      <div className="mt-3 space-y-3 md:hidden print:hidden">
         {top.map((im) => (
           <RealEstateMobileItem key={`m-${im.property_id}`} im={im} />
         ))}
       </div>
-      <div className="hidden overflow-x-auto sm:block print:block">
+      <div className="hidden overflow-x-auto md:block print:block">
       <table className="w-full text-sm">
         <caption className="sr-only">
           Imóveis de investimento ordenados por valor IRPF descendente — cap rate líquido por imóvel

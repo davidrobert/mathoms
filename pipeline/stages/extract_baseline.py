@@ -102,6 +102,11 @@ def _output_to_baseline_json(output) -> dict:
 
 _MAX_DOCS_PER_RUN = 10
 
+# ADR-081: abaixo disso o documento vai para revisão humana. Medido no corpus:
+# `confidence < 0,7` ⟺ mediana de 0 itens extraídos (contra 9 acima do piso) —
+# é o piso que separa extração que rendeu do documento que não rendeu nada.
+_CONFIDENCE_FLOOR = 0.7
+
 
 def _artifact_key_for(doc: Path) -> str:
     """Stem usado como artifact_key — casamento em disco via filename.
@@ -166,10 +171,35 @@ def _aggregate_baselines(per_file: list[dict]) -> dict:
         },
         "_meta": {
             "source": "E1.5-llm",
-            "confidence": min(confidences) if confidences else 0.0,
+            # `0.0` aqui era sentinela de ausência lida como medição — o mesmo
+            # "zero ≠ não medido" que a ADR-393 combate. `min` sobre N arquivos
+            # colapsa para o pior: o agregado NÃO é o grão do ladder (ADR-081).
+            "confidence": min(confidences) if confidences else None,
             "notes": "\n".join(notes_parts) if notes_parts else None,
         },
     }
+
+
+# ADR-081 no grão do ARQUIVO, não do agregado: `min` sobre N arquivos colapsa
+# para o pior e mediria 100% dos runs. WARN-first — `extract.low_confidence`
+# está fora de BLOCKING_CODES e NÃO entra em `errors`: pausar todo run que tem
+# um documento fraco ensina o operador a ignorar a pausa (ADR-357 · A40.l66).
+def _low_confidence_reason(doc: Path, output, *, artifact_key: str) -> dict | None:
+    """Extração abaixo do piso vira review_reason nomeando o documento (ADR-272)."""
+    from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+
+    conf = getattr(output, "confidence", None)
+    if not isinstance(conf, (int, float)) or conf >= _CONFIDENCE_FLOOR:
+        return None
+    return ReviewReason(
+        code=ReviewReasonCode.extract_low_confidence,
+        stage="extract_baseline",
+        artifact_key=artifact_key,
+        document_id=None,
+        offending_value=f"confidence={conf}",
+        expected=f"confidence >= {_CONFIDENCE_FLOOR}",
+        message=f"baseline extraído com confiança abaixo do piso — {doc.name} requer revisão",
+    ).to_dict()
 
 
 def run(ctx: WorkspaceContext) -> dict:
@@ -303,6 +333,10 @@ def run(ctx: WorkspaceContext) -> dict:
                 document_id=None,
             )
             review_reasons.extend(rr.to_dict() for rr in reasons)
+
+        ladder = _low_confidence_reason(doc, output, artifact_key=_artifact_key_for(doc))
+        if ladder is not None:
+            review_reasons.append(ladder)
 
         emit_item_progress(
             ctx.pipeline_run_id,

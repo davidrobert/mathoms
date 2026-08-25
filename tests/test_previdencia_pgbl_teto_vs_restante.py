@@ -131,10 +131,15 @@ def test_nota_coocorre_com_o_motivo_e_exclui_os_demais(status, regime_completo):
 
 
 @pytest.mark.parametrize("status,regime_completo", _MATRIZ)
-def test_aliquota_marginal_e_bicondicional_com_economia(status, regime_completo):
-    """Marginal sem economia publicável é ruído citável que convida a reconstrução."""
+def test_aliquota_marginal_e_bicondicional_com_o_aporte(status, regime_completo):
+    """Emenda ADR-402 2026-08-24: a marginal segue o APORTE, não a economia.
+
+    É o aporte que ela permite reconstruir (`alíquota × aporte`). Antes seguia
+    `economia is not None`, e com o diferencial isso publicava a marginal ao lado
+    de uma economia zero cujo aporte tinha acabado de ser retido.
+    """
     r = _analise(status, regime_completo)
-    assert (r.aliquota_marginal is not None) == (r.economia_ir_anual is not None)
+    assert (r.aliquota_marginal is not None) == (r.aporte_mensal is not None)
 
 
 def test_teto_e_doze_por_cento_da_base_nao_a_capacidade_restante():

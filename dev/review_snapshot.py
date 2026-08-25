@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "3"  # v3: `review_reasons` (A40.l81 · ADR-411 D5)
 
 # Seções do view-model E5 cuja ausência/esvaziamento é regressão.
 _SECTION_KEYS = (
@@ -120,6 +120,21 @@ def _needs_review_map(rows: list[dict]) -> dict[str, int]:
     return {r["doc_type"]: r["n"] for r in rows if r.get("doc_type")}
 
 
+# PII-safe por construção: `stage` é nome de STAGE_REGISTRY, `code` é membro de
+# `ReviewReasonCode` e `locator` é caminho de chave do artefato. `message` e
+# `offending_value` — os campos que carregam valor e nome — NÃO entram.
+#
+# Chaveado pelo TRIO e não só pelo code: é o que deixa o leitor ver a razão mudar
+# de posição sem mudar de total — drift que um mapa por code esconde.
+def _review_reasons_map(rows: list[dict]) -> dict[str, int]:
+    """`stage|locator|code` → Σ occurrence_count (ADR-411 D5)."""
+    out: dict[str, int] = {}
+    for row in rows:
+        key = f"{row.get('stage', '')}|{row.get('locator') or '?'}|{row.get('code', '')}"
+        out[key] = out.get(key, 0) + int(row.get("occurrence_count") or 0)
+    return dict(sorted(out.items()))
+
+
 def _run_health(report_data: dict, meta: dict) -> dict:
     costs, calls = meta.get("costs", []), meta.get("calls", [])
     run = meta.get("run", {})
@@ -191,6 +206,7 @@ def _snapshot_body(
         "run_id": run_id,
         "run_health": _run_health(report_data, meta),
         "needs_review": _needs_review_map(meta.get("needs_review", [])),
+        "review_reasons": _review_reasons_map(meta.get("review_reasons", [])),
         "cross_validation": _cv_snapshot(cv_results),
         "sections": _sections_map(report_data),
         "investimentos_mix": _mix_investimentos(report_data),

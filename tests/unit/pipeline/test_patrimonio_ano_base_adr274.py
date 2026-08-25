@@ -7,10 +7,6 @@ import logging
 import pytest
 
 import scripts.consolidate_baseline as e15
-from pipeline.domain.services.e5_member_resolver import (
-    E5MemberResolver,
-    MemberResolverConfig,
-)
 from pipeline.domain.services.patrimonio_resolvers import (
     _resolve_ano_ref,
     _resolve_summary_year,
@@ -141,17 +137,9 @@ def test_consolidated_imoveis_not_zeroed_on_divergence():
     assert veiculos[0]["valor_31_12_ano_base"] == 80_000.0
 
 
-# =============================================================================
-# E5MemberResolver — segundo path com o mesmo bug
-# =============================================================================
-
-
-def test_member_resolver_not_zeroed_on_divergence():
-    r = E5MemberResolver(MemberResolverConfig(titular_key="david", conjuge_key="mariana")).resolve(
-        _divergent_baseline()
-    )
-    assert r.reference_year == "2024"  # ano-base, não exercício
-    assert r.titular_data["bens"]["imoveis"][0]["valor_31_12_ano_base"] == 500_000.0
+# O "segundo path com o mesmo bug" que esta seção cobria era o `E5MemberResolver`,
+# deletado pela [[ADR-410]] D1: não há segundo path. O que sobra do caso está em
+# `test_consolidated_imoveis_not_zeroed_on_divergence`, sobre o produtor único.
 
 
 # =============================================================================

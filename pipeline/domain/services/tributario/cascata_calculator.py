@@ -121,6 +121,8 @@ class CascataInput:
     # "exceto pró-labore" e entregava o total — foi o nome que causou a soma
     # dupla da [[A40.l36]].
     renda_tributavel_pf_irpf_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
+    # Data o valor acima; ≠ `FinanceiroPJSnapshot.ano_base_coberto` (informes PJ).
+    renda_tributavel_pf_ano_base: Optional[int] = None
     imoveis_alugados_count: int = 0
     receita_aluguel_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
     # ADR-238 (A17 L1 plumbing): snapshot de informes previdência. Default None

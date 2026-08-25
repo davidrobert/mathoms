@@ -5,7 +5,7 @@ title: "Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financei
 status: Decidido
 phase: A17.informes-avulsos
 date: "2026-05-21"
-amended_at: ["2026-05-29", "2026-08-12"]
+amended_at: ["2026-05-29", "2026-08-12", "2026-08-24"]
 relates_to:
   - "[[ADR-157]]"
   - "[[ADR-216]]"
@@ -41,6 +41,9 @@ tags:
 
 > **Correção (2026-05-29):** `data_adesao` deixou de ser hard-fail em regime
 > regressivo — ver §"Correção — `data_adesao` não é hard-fail em regressivo".
+>
+> ⚠️ **Emenda (2026-08-24):** o vocabulário de `CaixaDetalhe.fonte` ganha o
+> terceiro termo `baseline_irpf`. Ver §Emenda no fim.
 >
 > **Emenda (2026-08-12):** a cláusula de D5 "informe 31/12 vence extrato D+1"
 > foi superseded pela separação de visões da [[ADR-382]] — ver §"Emenda —
@@ -260,3 +263,32 @@ institucional que o match exigia vira resolução por CNPJ-raiz na
 `FiscalSource` e o snapshot 31/12 dos informes alimentando
 `consolidate_baseline`. D4 ("declaração entregue vence informe") permanece,
 agora explicitamente **dentro da mesma data-alvo** ([[ADR-383]] §2).
+
+## Emenda — `fonte` ganha `baseline_irpf` (2026-08-24 · A40.l63)
+
+D5 fechou o vocabulário de `CaixaDetalhe.fonte` em **`extrato` | `informe_31_12`**.
+Nenhum dos dois descreve uma linha vinda do baseline IRPF, e a linha do fallback
+[[ADR-245]] herdava o default `"extrato"`.
+
+Não era rótulo errado apenas: `build_posicao_31_12` **filtra `caixa_detalhes` por
+`fonte == "extrato"`**. Medido no §Ataque da [[A40.l63]], a posição de IRPF
+entrava no card 31/12 como
+
+```
+id               "extrato:irpf_deposito_em_conta_corrente_em_dolar_..."
+fonte            "extrato"
+data_referencia  null
+```
+
+afirmando ser posição de extrato bancário sem data, quando extrato nenhum existe.
+
+**`baseline_irpf` entra como terceiro termo.** Com ele o filtro do card exclui a
+linha naturalmente, e o valor segue publicado em `patrimonio.caixa_detalhes` e em
+`exposicao_cambial`.
+
+**Não decide** se o snapshot 31/12 do IRPF *deveria* aparecer no card de posições
+— e com que data e proveniência. Essa é a pergunta da [[A40.l39]]
+(`posicao-visoes-corrente-fiscal`); o §Fora de escopo da l63 se limita à conversão.
+
+**Permanece vigente:** `informe_31_12` vence `extrato` para a mesma conta; a
+emenda só acrescenta um valor, não altera precedência entre os dois existentes.

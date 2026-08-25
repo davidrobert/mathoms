@@ -1144,6 +1144,31 @@ def _commit_needs_review_pause(
         db.commit()
 
 
+# A colheita caminha o `detail` INTEIRO (ADR-411 D2), não `validation.review_reasons`:
+# razão aninhada por item é invisível ao caminho de topo, e um sink que só o
+# leia fecha metade e fica verde.
+def _reasons_of(result, stage_name: str) -> list[dict]:
+    """Razão do desfecho, colhida em qualquer posição do detail e normalizada."""
+    # Import tardio: `pipeline.*` só resolve após `_bootstrap_pipeline_sys_path()`.
+    from pipeline.domain.review_reason_harvest import harvest_review_reasons
+
+    return sanitize_review_reasons(
+        harvest_review_reasons(result.detail if result is not None else None),
+        stage_name=stage_name,
+    )
+
+
+# Chamado DEPOIS do commit de controle de cada desfecho (ADR-404 · ADR-411 D6).
+# Antes dele, gravaria diagnóstico de uma transição que pode não ter acontecido.
+def _record_stage_diagnostics(
+    run_id: str, ws_id: str, stage_name: str, reasons: list[dict]
+) -> None:
+    """Sink analítico do desfecho — sessão própria, fail-open, nunca levanta."""
+    if not reasons:
+        return
+    record_review_reasons(run_id=run_id, workspace_id=ws_id, stage_name=stage_name, reasons=reasons)
+
+
 # Ordem obrigatória (ADR-404): controle commita primeiro e sozinho; o analítico
 # vem depois, em sessão própria. O inverso grava razão de pausa para um run que
 # pode nunca ter pausado.
@@ -1151,7 +1176,7 @@ def _record_stage_needs_review(
     run_id: str, stage_name: str, log_id: str, result, elapsed_ms: int
 ) -> None:
     validation = result.detail.get("validation", {}) if result.detail else {}
-    reasons = sanitize_review_reasons(validation.get("review_reasons"), stage_name=stage_name)
+    reasons = _reasons_of(result, stage_name)
     native = validation.get("issues") or None
     workspace_id, issues = _workspace_and_issues(run_id, stage_name, native, reasons)
     _commit_needs_review_pause(
@@ -1163,9 +1188,7 @@ def _record_stage_needs_review(
         legacy_text=_legacy_validation_text(validation),
         issues=issues,
     )
-    record_review_reasons(
-        run_id=run_id, workspace_id=workspace_id, stage_name=stage_name, reasons=reasons
-    )
+    _record_stage_diagnostics(run_id, workspace_id, stage_name, reasons)
     publish_needs_review(run_id, stage_name)
 
 
@@ -1286,6 +1309,10 @@ def _record_stage_result(
             stage_log.errors = result.error
         elif not outcome.delivered:
             stage_log.errors = _summarize_per_doc_errors(result.detail)
+        # Lido AQUI, não recebido por parâmetro: o sink abaixo é o único
+        # consumidor, e call-site que passasse o workspace errado gravaria
+        # diagnóstico no tenant de outro. A sessão já está aberta.
+        ws_id = db.get(PipelineRun, run_id).workspace_id
         db.commit()
 
     # FORA do ramo `delivered` (ADR-366 §Alternativas rejeitadas): o desfecho do
@@ -1295,11 +1322,23 @@ def _record_stage_result(
     # abaixo, que mantinha o membro `retido` inalcançável em produção. O artifact
     # já está commitado neste ponto (`commit_artifacts_on_degrade`, ADR-357 §6).
     _persist_planner_review_if_applicable(run_id, stage_name, result)
+    delivered = _publish_stage_outcome(run_id, stage_name, result, completed_pct, outcome)
+    # ÚLTIMA linha de propósito (ADR-411 D6): todo write de CONTROLE deste
+    # desfecho — stage_log, planner review, `failed_at_stage` — já commitou.
+    # Um sink acima desta linha gravaria diagnóstico de transição que ainda
+    # pode falhar. Aqui, e não nos dois call-sites do loop, porque ramo novo
+    # que esquecesse a chamada é exatamente o defeito que esta lane fecha.
+    _record_stage_diagnostics(run_id, ws_id, stage_name, _reasons_of(result, stage_name))
+    return delivered
 
+
+def _publish_stage_outcome(
+    run_id: str, stage_name: str, result, completed_pct: int, outcome: "StageOutcome"
+) -> bool:
+    """Publica o evento do desfecho e marca `failed_at_stage`. True se ENTREGOU."""
     if outcome.delivered:
         publish_stage_completed(run_id, stage_name, completed_pct)
         return True
-
     publish_stage_failed(run_id, stage_name, result.error or "Unknown error", completed_pct)
     # ADR-357 §3 — `failed_at_stage` NÃO é populado em degradação: preenchido ao
     # lado de um status entregue, ele mentiria para todo leitor futuro (e o

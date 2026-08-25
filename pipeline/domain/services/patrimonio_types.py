@@ -149,6 +149,29 @@ class MemberIdentity:
     def key_inv_conjuge(self) -> str:
         return "investimentos_conjuge"
 
+    @classmethod
+    def from_family(cls, family: dict | None = None) -> "MemberIdentity":
+        """Chaves e nomes de exibição a partir de ``family_members`` (DB, [[ADR-137]])."""
+        fam = family or {}
+        membros = fam.get("membros", {}) or {}
+        if not isinstance(membros, dict):
+            membros = {}
+        titular_key = str(fam.get("titular", "david"))
+        conjuge_key = next(
+            (k for k, v in membros.items() if isinstance(v, dict) and v.get("papel") == "conjuge"),
+            "",
+        )
+        return cls(
+            titular_key=titular_key,
+            conjuge_key=conjuge_key,
+            titular_nome=membros.get(titular_key, {}).get("nome_curto", titular_key.title()),
+            conjuge_nome=(
+                membros.get(conjuge_key, {}).get("nome_curto", conjuge_key.title())
+                if conjuge_key
+                else ""
+            ),
+        )
+
     def role_of(self, member_key: str) -> str:
         return "conjuge" if self.conjuge_key and member_key == self.conjuge_key else "titular"
 
@@ -202,16 +225,26 @@ class CaixaDetalhe:
     valor_brl: float
     tipo: str  # "caixa" | "moeda_estrangeira" | "moeda_estrangeira_irpf"
     # ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1.
+    # ADR-238 §Emenda 2026-08-24 (A40.l63): + "baseline_irpf". A linha do
+    # fallback ADR-245 herdava o default "extrato" e `build_posicao_31_12`
+    # filtra por ele — ela entrava no card 31/12 com id `extrato:irpf_…` e
+    # `data_referencia` nula, afirmando ser posição de extrato bancário.
     fonte: str = "extrato"
     # A40.l39 — fim de período do extrato vencedor (YYYY-MM-DD) + precisão
     # ("dia" | "mes" | "desconhecida"); linha de informe carrega 31/12/ano_base.
     data_referencia: str | None = None
     data_referencia_precisao: str = "desconhecida"
-    # ADR-390 — carimbo da conversão; writer novo sempre preenche.
-    conversao: ConversaoMeBrl | None = None
+    # ADR-390 §Emenda 2026-08-24 (A40.l63) — obrigatório e keyword-only. Era
+    # `| None = None` com o comentário "writer novo sempre preenche": prosa, não
+    # tipo. O §Escopo 4 da lane sustentava o fechamento da classe em "o tipo não
+    # deixa", e o tipo deixava — produtor novo publicava sem carimbo e o schema
+    # validava, porque a ausência da chave também significa "artefato pré-390".
+    # A tensão se resolve separando os lados: obrigatório na ESCRITA (aqui),
+    # tolerante na LEITURA (`conversao` segue fora de `required` no schema).
+    conversao: ConversaoMeBrl = field(kw_only=True)
 
     def to_dict(self) -> dict:
-        payload = {
+        return {
             "conta": self.conta,
             "moeda": self.moeda,
             "saldo_original": round(self.saldo_original, 2),
@@ -220,10 +253,8 @@ class CaixaDetalhe:
             "fonte": self.fonte,
             "data_referencia": self.data_referencia,
             "data_referencia_precisao": self.data_referencia_precisao,
+            "conversao": self.conversao.to_wire(),
         }
-        if self.conversao is not None:
-            payload["conversao"] = self.conversao.to_wire()
-        return payload
 
 
 # Nenhuma conta some do caixa em silêncio: cada exclusão de domínio remanescente
@@ -273,6 +304,35 @@ class RealEstateValuationContext:
     today: date = field(default_factory=date.today)
 
 
+class IdentidadeIncoerenteError(RuntimeError):
+    """Membros resolvidos com identidade diferente da que a config declara."""
+
+
+@dataclass(frozen=True)
+class MembrosResolvidos:
+    """Titular e cônjuge já resolvidos, com as chaves de identidade que os produziram."""
+
+    titular: Mapping[str, Any]
+    conjuge: Mapping[str, Any]
+    titular_key: str
+    conjuge_key: str
+
+    def as_tuple(self) -> tuple[dict, dict]:
+        """Par ``(titular, conjuge)`` — forma que os consumidores legados leem."""
+        return dict(self.titular), dict(self.conjuge)
+
+    # Injeção obrigatória impede DOIS produtores; não impede que o único produtor
+    # tenha rodado com a identidade errada ([[ADR-410]] D2).
+    def afirma_coerencia_com(self, identity: "MemberIdentity") -> None:
+        """Falha alto se o VO foi resolvido com chaves diferentes das da config."""
+        esperado = (identity.titular_key, identity.conjuge_key)
+        recebido = (self.titular_key, self.conjuge_key)
+        if recebido != esperado:
+            raise IdentidadeIncoerenteError(
+                f"members resolvido para {recebido!r}, config declara {esperado!r}"
+            )
+
+
 @dataclass(frozen=True)
 class PatrimonioInputs:
     """Inputs completos para ``PatrimonioCalculator.calculate``.
@@ -282,6 +342,10 @@ class PatrimonioInputs:
     """
 
     baseline: dict
+    # `members` é obrigatório para que "dois produtores da mesma verdade" seja
+    # impossível por construção, e não vigiado por gate ([[ADR-410]] D2): a
+    # calculadora não tem resolver para chamar.
+    members: MembrosResolvidos
     investimentos_atuais: dict | None = None
     caixa_total_brl: float = 0.0
     caixa_detalhes: list[CaixaDetalhe] = field(default_factory=list)

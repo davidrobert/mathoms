@@ -59,8 +59,14 @@ def _aloc_conclusion(partes: list[str], derived: Mapping[str, Any], M: Mapping[s
     if desvio is not None:
         frases.append(f"Maior desvio: {fmt_num(desvio)} pp.")
     next_classe = derived.get("next_aporte_classe")
+    # `next_aporte_classe` vazio tem DUAS causas e elas dizem o oposto: carteira
+    # alinhada, ou prescrição suprimida por ignorância ([[ADR-400]] §D6). Ler as
+    # duas como "aderente" publica elogio sobre carteira desalinhada — medido em
+    # [[A40.l82]]: "Maior desvio: 30,3 pp. Carteira aderente ao alvo."
     if next_classe:
         frases.append(f"Próximo aporte: {_aloc_classe_label(str(next_classe))}.")
+    elif derived.get("motivo_supressao"):
+        frases.append("Próximo aporte não indicado: parte da carteira sem classe definida.")
     elif desvio is not None:
         frases.append("Carteira aderente ao alvo.")
     modo = str(M.get("aloc_rebalanceamento") or "").replace("_", " ")

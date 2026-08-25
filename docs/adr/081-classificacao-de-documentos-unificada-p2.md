@@ -25,7 +25,7 @@ size_lines: 31
 
 **Decisão:**
 
-1. **Módulo único** ``backend/app/services/document_classification.py`` expõe:
+1. **Módulo único** ``backend/app/services/documents/document_classification.py`` expõe:
    - ``classify_document(path, base_dir, use_llm=…) -> dict`` — regex sobre preview de conteúdo → LLM opcional → ``needs_review`` se confiança < 0,7;
    - ``ClassificationResult`` (Pydantic) com ``.as_dict()`` compatível com o formato histórico;
    - ``classification_can_route_to_data(dict)`` — gate para mover inbox → ``data/`` (exige ``dest_group`` + ``e0_doc_type`` e ``needs_review=False``);

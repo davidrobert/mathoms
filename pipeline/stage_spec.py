@@ -413,3 +413,34 @@ def run_scoped_upstream_reads(scheduled: list[str]) -> frozenset[str]:
         if producer in scheduled_descriptive
     }
     return frozenset(reads - produced)
+
+
+# ADR-393 D3 — denominador ENUMERADO, nunca descoberto por reflexão. Um gate que
+# se descobre sozinho cresce sozinho e falha ABERTO no stage novo: a direção
+# errada do erro. Stage que faz fan-out sobre N documentos entra aqui de
+# propósito, e `dev/check_fan_out_reader_contract.py` reprova quem consome o
+# `DocumentTextExtractor` sem estar classificado em nenhum dos dois conjuntos.
+
+# Fan-out com leitor TIPADO: sabe distinguir "sem leitor" de "documento vazio" e
+# declara o destino de cada documento enfileirado.
+FAN_OUT_STAGES_TYPED_READER: frozenset[str] = frozenset(
+    {
+        "extract_with_llm",
+    }
+)
+
+# Fan-out que ainda consome o wrapper `extract() -> str` e herda a cegueira
+# declarada na ADR-393 §D2: documento cujo leitor falha vira `""` e some sem
+# distinção. Sair daqui é mover para o conjunto acima, nunca deletar a linha.
+FAN_OUT_STAGES_UNTYPED_READER: frozenset[str] = frozenset(
+    {
+        "extract_baseline",
+        "extract_comprovantes_bens",
+        "extract_informe_aluguel",
+        "extract_informes_anuais",
+        "extract_irpf_full",
+        "extract_members",
+    }
+)
+
+FAN_OUT_STAGES: frozenset[str] = FAN_OUT_STAGES_TYPED_READER | FAN_OUT_STAGES_UNTYPED_READER

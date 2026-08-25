@@ -83,7 +83,7 @@ produção; W3 e W4 são gate pré-GA.
 |---|---|---|---|
 | PR-1 | [[ADR-221]] mergeada como `Proposto` | CLAUDE.md §"Política operacional" | PR de implementação sem ADR fere a regra. **Esta sessão.** |
 | PR-2 | Celery Beat rodando em produção | `backend/app/worker.py:52` (3 tasks ativas) | Sem Beat, cron daily não tem onde rodar. **✅ existe.** |
-| PR-3 | Redis disponível para lock (D7 da ADR) + cache (D5) | `backend/app/services/fiscal_cache.py` | Sem Redis, dedup multi-worker degrada para "best effort"; cache continua falhando aberto. **✅ existe.** |
+| PR-3 | Redis disponível para lock (D7 da ADR) + cache (D5) | `backend/app/services/storage/fiscal_cache.py` | Sem Redis, dedup multi-worker degrada para "best effort"; cache continua falhando aberto. **✅ existe.** |
 | PR-4 | `market_rates` table com schema [[ADR-135]] | Sprint A7 | Modelo de escrita assume tabela existente. **✅ produção.** |
 
 Todos os pré-requisitos exceto PR-1 já estão em produção. PR-1 é
@@ -127,7 +127,7 @@ e CDI (os pairs com maior impacto imediato no produto).
    },
    ```
 9. Hook de invalidação de cache (ADR-221 D5) em
-   `backend/app/services/fiscal_cache.py`:
+   `backend/app/services/storage/fiscal_cache.py`:
    ```python
    def on_market_rate_published(pair: str, observed_at: date) -> None:
        for offset in range(8):

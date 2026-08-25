@@ -208,7 +208,7 @@ def _soft_changes(base: dict, cur: dict, sup: dict) -> list[str]:
     bnr, cnr = sum(base.get("needs_review", {}).values()), sum(cur.get("needs_review", {}).values())
     if cnr > bnr and not sup["corpus_grew"]:
         out.append(f"needs_review {bnr} -> {cnr}")
-    return out + _cost_changes(base, cur)
+    return out + _diagnostic_changes(base, cur, sup) + _cost_changes(base, cur)
 
 
 def _render_regressed(b: dict | None, c: dict | None) -> bool:
@@ -263,6 +263,41 @@ def _identidade_regression(base: dict, cur: dict) -> list[str]:
     return []
 
 
+# A tabela `review_reasons` ganha leitor aqui (ADR-411 D5). Leitura TOLERANTE de
+# propósito: baseline em schema v2 não tem a chave, e lê-la como `{}` diria "o
+# canal morreu" sobre um run que nunca a escreveu — veredito fabricado.
+def _sem_diagnostico(snap: dict) -> bool:
+    return "review_reasons" not in snap
+
+
+# Prova de fecho da A40.l81: num run sem pausa a tabela não pode ficar vazia se
+# algum stage emitiu razão. Vazia depois de cheia é o sink tendo voltado a rodar
+# só no ramo de pausa.
+def _diagnostic_regression(base: dict, cur: dict) -> list[str]:
+    """HARD: o canal emudeceu — tinha razão, agora não tem nenhuma."""
+    if _sem_diagnostico(base) or _sem_diagnostico(cur):
+        return []
+    b, c = base["review_reasons"], cur["review_reasons"]
+    if b and not c:
+        return [f"review_reasons {sum(b.values())} ocorrência(s) -> tabela VAZIA (canal mudo)"]
+    return []
+
+
+def _diagnostic_changes(base: dict, cur: dict, sup: dict) -> list[str]:
+    """SOFT: a razão cresceu, ou apareceu numa posição nova."""
+    if _sem_diagnostico(base) or _sem_diagnostico(cur):
+        return ["snapshot sem `review_reasons` (baseline pré-ADR-411) — perna de diagnóstico CEGA"]
+    b, c = base["review_reasons"], cur["review_reasons"]
+    out = []
+    novas = sorted(set(c) - set(b))
+    if novas:
+        out.append(f"review_reasons: {len(novas)} posição(ões) nova(s) — {', '.join(novas[:3])}")
+    bt, ct = sum(b.values()), sum(c.values())
+    if ct > bt and not sup["corpus_grew"]:
+        out.append(f"review_reasons {bt} -> {ct} ocorrências (corpus não cresceu)")
+    return out
+
+
 def _hard_regressions(
     base: dict, cur: dict, base_rd: dict, cur_rd: dict, sup: dict, band: float
 ) -> tuple[list[str], list[str]]:
@@ -272,6 +307,7 @@ def _hard_regressions(
     hard += _tx_regression(base, cur, sup) + _section_regressions(base, cur, sup)
     hard += _parecer_regressions(base, cur, sup)
     hard += _reclassificacao_regression(base, cur) + _identidade_regression(base, cur)
+    hard += _diagnostic_regression(base, cur)
     gone, drift = _value_drift(base_rd, cur_rd, band)
     return hard + gone, drift
 
