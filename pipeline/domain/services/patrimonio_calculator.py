@@ -66,8 +66,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.bases_financeiras import PapelMembro, publicar_bases
 from pipeline.domain.services.investimentos_cobertura import (
-    atribuir_por_membro,
     cobertura_de_membros,
     valor_publicavel,
 )
@@ -206,9 +206,10 @@ class PatrimonioCalculator:
         )
 
         patrimonio_liquido = patrimonio_bruto - total_dividas
+        # Regressão do #1550: o termo entrou no bruto e não aqui ([[ADR-412]] §D0).
         investivel_financeiro = max(
             0.0,
-            investimentos_titular + investimentos_conjuge + caixa_total_brl,
+            investimentos_titular + investimentos_conjuge + caixa_total_brl + nao_atribuidos,
         )
         cat2_efetivo = self._compute_cat2_efetivo(
             titular_bens=titular_bens,
@@ -268,6 +269,18 @@ class PatrimonioCalculator:
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
             "guarda_de_sinal": guarda.to_dict(),
             "investimentos_nao_atribuidos": round(nao_atribuidos, 2),
+            **publicar_bases(
+                {
+                    "investimentos_titular": investimentos_titular,
+                    "investimentos_conjuge": investimentos_conjuge,
+                    "investimentos_nao_atribuidos": nao_atribuidos,
+                    "caixa_total_brl": caixa_total_brl,
+                    "carteira_financeira_familia": investivel_financeiro,
+                    "cat2_efetivo": cat2_efetivo,
+                    "bruto": patrimonio_bruto,
+                    "dividas": total_dividas,
+                }
+            ),
             "cobertura_investimentos": [c.to_dict() for c in cobertura],
             "pl_ressalva": ressalva["pl_ressalva"],
             "posicoes_sem_marcacao": ressalva["posicoes_sem_marcacao"],
@@ -336,18 +349,11 @@ class PatrimonioCalculator:
 
         if inputs.has_current_positions:
             assert inputs.investimentos_atuais is not None  # narrow para type-checker
-            totais = inputs.investimentos_atuais.get("total_por_membro", {}) or {}
-
-            atribuicao = atribuir_por_membro(
-                totais,
-                titular_key=identity.titular_key,
-                conjuge_key=identity.conjuge_key,
-                valor_de=safe_float,
-            )
-            titular_val = float(atribuicao.titular_brl)
-            conjuge_val = float(atribuicao.conjuge_brl)
-            titular_atribuido = atribuicao.titular_atribuido
-            conjuge_atribuido = atribuicao.conjuge_atribuido
+            carteira = inputs.carteira
+            titular_val = float(carteira[PapelMembro.titular].total_brl)
+            conjuge_val = float(carteira[PapelMembro.conjuge].total_brl)
+            titular_atribuido = carteira[PapelMembro.titular].atribuido
+            conjuge_atribuido = carteira[PapelMembro.conjuge].atribuido
 
             titular_fb = False
             conjuge_fb = False
@@ -367,7 +373,7 @@ class PatrimonioCalculator:
             sem = inputs.investimentos_atuais.get("posicoes_sem_marcacao_por_membro", {})
             ressalva = rv_ressalva(sem, identity, titular_fb=titular_fb, conjuge_fb=conjuge_fb)
             fonte = "posicoes_atuais+irpf" if (titular_fb or conjuge_fb) else "posicoes_atuais"
-            ressalva["nao_atribuido"] = float(atribuicao.nao_atribuido_brl)
+            ressalva["nao_atribuido"] = float(carteira[PapelMembro.sem_dono].total_brl)
             ressalva["cobertura"] = cobertura_de_membros(
                 tem_conjuge=bool(identity.conjuge_key),
                 titular=(titular_val, titular_atribuido, titular_fb, ano_titular),

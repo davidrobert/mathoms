@@ -70,6 +70,13 @@ _NON_MONETARY_SUFFIXES = (
     "idade_if",
     "_aa",
     "_count",
+    # A40.l80: número de VERSÃO não é dinheiro. Monetário-por-default lia
+    # `base_versao=1` como R$ 0,01 e o snapshot o publicava como 100. Sufixo, e
+    # não entrada exata, porque `definicao_versao` ([[ADR-403]]) e
+    # `score_version` ([[ADR-217]]) tinham o mesmo defeito latente — fechar por
+    # instância deixaria o próximo campo de versão nascer com o mesmo bug.
+    "_versao",
+    "_version",
 )
 _NON_MONETARY_PREFIXES = (
     "idade_",

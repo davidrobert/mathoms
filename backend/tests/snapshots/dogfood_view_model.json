@@ -1140,6 +1140,11 @@
           },
           {
             "artifact_key": "analise_financeira",
+            "field": "reserva_emergencia.composicao_liquida.investimentos_nao_atribuidos",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
             "field": "reserva_emergencia.composicao_liquida.investimentos_titular",
             "stage": "E5"
           }
@@ -1315,7 +1320,7 @@
         "valor_brl": 0
       }
     },
-    "definicao_versao": 100,
+    "definicao_versao": 1,
     "detalhes": [],
     "pct_investivel_financeiro": "0.000000",
     "por_moeda": [],
@@ -1802,6 +1807,40 @@
     "trs_efetiva_pct": "0.000000"
   },
   "patrimonio": {
+    "base_versao": 1,
+    "bases": {
+      "carteira_com_titular_identificado": {
+        "termos": [
+          "investimentos_titular",
+          "investimentos_conjuge",
+          "caixa_total_brl"
+        ],
+        "valor_brl": 13000000
+      },
+      "carteira_financeira_familia": {
+        "termos": [
+          "investimentos_titular",
+          "investimentos_conjuge",
+          "investimentos_nao_atribuidos",
+          "caixa_total_brl"
+        ],
+        "valor_brl": 13000000
+      },
+      "carteira_produtiva_familia": {
+        "termos": [
+          "carteira_financeira_familia",
+          "cat2_efetivo"
+        ],
+        "valor_brl": 13000000
+      },
+      "patrimonio_liquido": {
+        "termos": [
+          "bruto",
+          "-dividas"
+        ],
+        "valor_brl": 58000000
+      }
+    },
     "bruto": 73000000,
     "caixa_detalhes": [],
     "caixa_exclusoes": [],
@@ -2021,7 +2060,7 @@
     "economic_dependencies": [],
     "fiscal_rules": [],
     "incomes": [],
-    "input_contract_version": 100,
+    "input_contract_version": 1,
     "inputs_digest_sha256": "<volatile>",
     "member_profiles": [],
     "pipeline_run_id": null,
@@ -2061,6 +2100,7 @@
       "caixa_moeda_estrangeira": 0,
       "cobertura_meses": "53.300000",
       "investimentos_conjuge": 0,
+      "investimentos_nao_atribuidos": 0,
       "investimentos_titular": 8000000,
       "total_liquido": 8000000
     },

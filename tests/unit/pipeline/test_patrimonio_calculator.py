@@ -15,6 +15,7 @@ from decimal import Decimal
 
 import pytest
 
+from pipeline.domain.services.carteira_por_papel import build_carteira_por_papel
 from pipeline.domain.services.conversao_me import (
     FxQuote,
     convert_me_brl,
@@ -71,9 +72,15 @@ _IDENT_PADRAO = MemberIdentity(
 
 def _inputs(baseline: dict, *, identity: MemberIdentity | None = None, **kw) -> PatrimonioInputs:
     """Injeta `members` — obrigatório desde a [[ADR-410]] D2; a calculadora não resolve."""
+    ident = identity or _IDENT_PADRAO
     return PatrimonioInputs(
         baseline=baseline,
-        members=resolve_members(baseline, identity or _IDENT_PADRAO),
+        members=resolve_members(baseline, ident),
+        carteira=build_carteira_por_papel(
+            kw.get("investimentos_atuais"),
+            titular_key=ident.titular_key,
+            conjuge_key=ident.conjuge_key,
+        ),
         **kw,
     )
 
@@ -1159,3 +1166,81 @@ def test_identidade_coerente_passa(config: PatrimonioConfig):
     baseline = {"members": {"david": {"total_bens": 10.0}}}
     result = PatrimonioCalculator(config).calculate(_inputs(baseline=baseline))
     assert result["bruto"] >= 0
+
+
+# ---------------------------------------------------------------------------
+# A40.l80 PR2 ([[ADR-412]] §D0/§D1): a base declarada e o termo restaurado
+# ---------------------------------------------------------------------------
+
+
+def _com_orfao(valor_orfao: float = 100_000.0):
+    """Inputs com fatia sem dono > 0 — sem ela os asserts abaixo são vacuosos."""
+    return _inputs(
+        {},
+        investimentos_atuais={
+            "dados": [
+                {"membro": _IDENT_PADRAO.titular_key, "valor": 900_000.0},
+                {"membro": "", "valor": valor_orfao},
+            ],
+            "total_por_membro": {
+                _IDENT_PADRAO.titular_key: 900_000.0,
+                "": valor_orfao,
+            },
+        },
+    )
+
+
+def test_investivel_financeiro_inclui_a_fatia_sem_dono(config: PatrimonioConfig):
+    """Mata: a regressão do #1550 — o termo entrou no bruto e não aqui."""
+    result = PatrimonioCalculator(config).calculate(_com_orfao())
+
+    orfa = result["investimentos_nao_atribuidos"]
+    assert orfa > 0, "fixture sem fatia órfã torna este teste vacuoso"
+
+    # `None` é estado real: `valor_publicavel` recusa publicar 0,00 sobre membro
+    # que ninguém mediu. É por isso que `publicar_bases` lê valores CRUS — ler o
+    # dict publicado faria a base sair menor que o número que ela diz explicar.
+    esperado = (
+        (result["investimentos_titular"] or 0)
+        + (result["investimentos_conjuge"] or 0)
+        + (result["caixa_total_brl"] or 0)
+        + orfa
+    )
+    assert round(result["investivel_financeiro"], 2) == round(esperado, 2)
+
+
+def test_bruto_e_investivel_usam_o_mesmo_conjunto_de_termos(config: PatrimonioConfig):
+    # A assimetria intra-arquivo de `:209-212` vs `:403-416` é o que a lane
+    # nomeia: um consumidor incluía o termo e o outro não, sem que superfície
+    # nenhuma declarasse que a base havia encolhido.
+    """Fecha a CLASSE, não a instância: nenhum dos dois pode ignorar a órfã."""
+    sem = PatrimonioCalculator(config).calculate(_com_orfao(0.0))
+    com = PatrimonioCalculator(config).calculate(_com_orfao(100_000.0))
+
+    delta_bruto = com["bruto"] - sem["bruto"]
+    delta_investivel = com["investivel_financeiro"] - sem["investivel_financeiro"]
+    assert round(delta_bruto, 2) == round(
+        delta_investivel, 2
+    ), "bruto e investível reagiram diferente à mesma fatia órfã — a assimetria voltou"
+
+
+def test_bases_publicadas_sao_o_enum_inteiro_e_reproduzem_os_numeros(config: PatrimonioConfig):
+    """Mata: publicar 3 de 4 (o `$def` tem `required: []` e aceitaria calado)."""
+    from pipeline.domain.services.bases_financeiras import BASE_VERSAO_CORRENTE, BaseFinanceira
+
+    result = PatrimonioCalculator(config).calculate(_com_orfao())
+    bases = result["bases"]
+
+    assert set(bases) == {b.value for b in BaseFinanceira}
+    assert result["base_versao"] == BASE_VERSAO_CORRENTE
+    assert bases["carteira_financeira_familia"]["valor_brl"] == result["investivel_financeiro"]
+    assert bases["carteira_produtiva_familia"]["valor_brl"] == result["investivel_efetivo"]
+    assert bases["patrimonio_liquido"]["valor_brl"] == result["liquido"]
+
+    spread = (
+        bases["carteira_financeira_familia"]["valor_brl"]
+        - bases["carteira_com_titular_identificado"]["valor_brl"]
+    )
+    assert round(spread, 2) == round(
+        result["investimentos_nao_atribuidos"], 2
+    ), "o spread entre a base cheia e a amputada É a fatia sem dono"

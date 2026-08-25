@@ -27,8 +27,10 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from pipeline.domain.services.asset_classifier import merge_asset_keywords
+from pipeline.domain.services.carteira_por_papel import CarteiraPorPapel
 from pipeline.domain.services.patrimonio_types import MemberIdentity, safe_float
 from pipeline.domain.services.reserva_liquidez import (
+    FallbackIrpfPorPapel,
     ReservaLiquida,
     build_reserva_liquida,
 )
@@ -179,16 +181,15 @@ class EmergencyReserveCalculator:
         *,
         fluxo: dict,
         patrimonio: dict,
-        investimentos_atuais: dict | None = None,
-        bens_por_membro: Mapping[str, dict] | None = None,
+        carteira: CarteiraPorPapel | None = None,
+        fallback_irpf: FallbackIrpfPorPapel | None = None,
     ) -> dict:
         """Produz o bloco ``reserva_emergencia`` do payload E5."""
         base = _resolve_base_mensal(fluxo)
         liquidez = build_reserva_liquida(
             patrimonio,
-            investimentos_atuais,
-            bens_por_membro,
-            identity=self._config.members,
+            carteira or CarteiraPorPapel.vazia(),
+            fallback_irpf or FallbackIrpfPorPapel(),
             keywords=self._config.keywords_por_classe,
         )
         perfil = self._resolve_perfil(fluxo)
@@ -220,10 +221,7 @@ class EmergencyReserveCalculator:
     def _build_payload(
         self, base: _BaseMensal, liquidez: ReservaLiquida, perfil: _PerfilRenda
     ) -> dict:
-        componentes = liquidez.componentes(
-            incluir_caixa_me=self._config.incluir_caixa_me,
-            solo=not self._config.members.conjuge_key,
-        )
+        componentes = liquidez.componentes(incluir_caixa_me=self._config.incluir_caixa_me)
         total_liquida = sum(componentes.values(), _ZERO)
         cobertura_meses = float(total_liquida / base.valor) if base.valor > 0 else 0.0
         return {

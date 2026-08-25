@@ -338,6 +338,13 @@ l68 (#1663), l77 (#1684), l81 (#1697).
 O `C1` (coerência) roda limpo na vault viva: **0 achados** — nenhuma lane
 não-terminal declara `ship_pr` já mergeado.
 
+> **Re-medido às 14h do mesmo dia: 6 posteriores, ainda 0 barradas** (a l82
+> fechou no intervalo), e 50 transições no total. O quadro acima fica como
+> medição das 9h. O número do lado **posterior** cresce a cada lane que fecha —
+> é agregado, e agregado congelado em doc apodrece: é literalmente a [[ADR-413]]
+> D2 aplicada a esta própria seção. O lado **anterior** (19/25) é histórico e
+> não muda. O que a lane afirma é a **direção**, não a contagem.
+
 ## Verificação do §Critério (2026-08-25) — item a item contra `main`
 
 Fecho da lane. Cada critério conferido no que está mergeado, não no que a lane

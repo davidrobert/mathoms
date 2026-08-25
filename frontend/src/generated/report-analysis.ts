@@ -380,6 +380,7 @@ export type E5AnalysisArtifact = {
       "patrimonio_liquido"?: BaseDeclarada;
     };
     "atribuicao_investimentos"?: AtribuicaoInvestimentos;
+    "base_versao"?: number;
   };
   "fluxo_caixa": {
     "data_corte": string;

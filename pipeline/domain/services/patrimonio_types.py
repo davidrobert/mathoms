@@ -18,8 +18,10 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from enum import Enum
-from typing import Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal, Mapping
+
+if TYPE_CHECKING:
+    from pipeline.domain.services.carteira_por_papel import CarteiraPorPapel
 
 from pipeline.domain.services.conversao_me import ConversaoMeBrl
 from pipeline.domain.services.money_parsing import valor_monetario_float
@@ -125,20 +127,6 @@ def resolve_value_year(baseline: dict, summary_year: str) -> str:
 # =============================================================================
 
 
-# `sem_dono` existe porque o domínio é ternário e `role_of` é binária: o `else`
-# dela devolve `titular` para chave que não casa ninguém, afirmando posse que
-# ninguém mediu. O enum sozinho NÃO trava a omissão do terceiro caso — não há
-# mypy nem pyright em gate, e o mixin `str` mantém `PapelMembro.titular ==
-# "titular"` verdadeiro, então um if/else binário segue calado. Quem trava é o
-# teste de exaustividade sobre `set(PapelMembro)`, que o PR2 traz.
-class PapelMembro(str, Enum):
-    """Papel de uma posição — ternário ([[ADR-412]] §D2)."""
-
-    titular = "titular"
-    conjuge = "conjuge"
-    sem_dono = "sem_dono"
-
-
 @dataclass(frozen=True)
 class MemberIdentity:
     """Identidade dos dois membros da família (titular + cônjuge).
@@ -186,12 +174,6 @@ class MemberIdentity:
                 else ""
             ),
         )
-
-    def role_of(self, member_key: str) -> str:
-        return "conjuge" if self.conjuge_key and member_key == self.conjuge_key else "titular"
-
-    def inv_key(self, member_key: str) -> str:
-        return f"investimentos_{self.role_of(member_key)}"
 
 
 @dataclass(frozen=True)
@@ -361,6 +343,9 @@ class PatrimonioInputs:
     # impossível por construção, e não vigiado por gate ([[ADR-410]] D2): a
     # calculadora não tem resolver para chamar.
     members: MembrosResolvidos
+    # Mesmo motivo de `members`: com a carteira injetada, a calculadora não tem
+    # resolver de titularidade para chamar ([[ADR-412]] §D3).
+    carteira: "CarteiraPorPapel"
     investimentos_atuais: dict | None = None
     caixa_total_brl: float = 0.0
     caixa_detalhes: list[CaixaDetalhe] = field(default_factory=list)

@@ -16,11 +16,11 @@ import pytest
 
 from pipeline.domain.services.bases_financeiras import (
     BaseFinanceira,
+    PapelMembro,
     chave_de_componente,
     publicavel_sozinha,
     termos_da_base,
 )
-from pipeline.domain.services.patrimonio_types import MemberIdentity, PapelMembro
 from scripts.pipeline_common import validate_dict
 from tests.fixtures.e5_fluxo_minimo import FLUXO_CAIXA_MINIMO
 
@@ -75,27 +75,24 @@ def test_so_a_base_amputada_e_proibida_sozinha():
     assert proibidas == {BaseFinanceira.carteira_com_titular_identificado}
 
 
-# -- PapelMembro: compatível em VALOR com o que `role_of` devolve hoje --------
+# -- PapelMembro ------------------------------------------------------------
 
 
-def test_tripwire_role_of_ainda_e_binaria_ate_o_pr2():
-    """TRIPWIRE: fica vermelho no PR2; a ação lá é DELETAR, nunca relaxar."""
-    identity = MemberIdentity("david", "mariana", "David", "Mariana")
-    devolvidos = {
-        identity.role_of("david"),
-        identity.role_of("mariana"),
-        identity.role_of("ninguem"),
-    }
-    assert devolvidos == {"titular", "conjuge"}
-    assert PapelMembro.sem_dono.value not in devolvidos
+# `role_of` MORREU no C2 deste PR. O tripwire que a vigiava foi DELETADO junto,
+# nunca relaxado ([[ADR-412]] §Emenda E8). O que resta é o que ainda importa:
+# a string publicada não pode se mover.
+def test_papel_membro_preserva_as_strings_publicadas():
+    assert PapelMembro.titular.value == "titular"
+    assert PapelMembro.conjuge.value == "conjuge"
     assert len(PapelMembro) == 3
 
 
-def test_papel_membro_preserva_os_valores_de_hoje():
-    """Migrar o call-site no PR2 não pode mover string publicada."""
-    identity = MemberIdentity("david", "mariana", "David", "Mariana")
-    assert PapelMembro.titular.value == identity.role_of("david")
-    assert PapelMembro.conjuge.value == identity.role_of("mariana")
+def test_nao_existe_produtor_binario_de_papel():
+    """Mata: ressuscitar `role_of`/`inv_key`, que colapsavam o terceiro caso."""
+    from pipeline.domain.services.patrimonio_types import MemberIdentity
+
+    assert not hasattr(MemberIdentity, "role_of")
+    assert not hasattr(MemberIdentity, "inv_key")
 
 
 # -- número-neutralidade: ausente valida, presente valida, lixo NÃO valida ----

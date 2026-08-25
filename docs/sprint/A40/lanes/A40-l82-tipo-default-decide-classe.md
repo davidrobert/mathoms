@@ -169,7 +169,10 @@ Fixa" legítimo para `Fundos` — errado sob subjacente > veículo.
   `investment_id` run-a-run sobre o mesmo corpus.
 - **`tipo_proveniencia`** (campo companheiro, enum de quatro derivado
   mecanicamente de qual `return` de `_classify_investimento` disparou) —
-  **dono: `data-engineer`**, aditivo, delta zero em cents, sem janela.
+  **dono: `data-engineer`**, aditivo, delta zero em cents, ~~sem janela~~ —
+  **janela dada no fechamento** (ver o bullet retratado abaixo e [[ADR-400]]
+  §"A contenção tem custo medido"): o campo passa a ter custo corrente de
+  R$ 25.337,34 em KPI publicado.
 - ~~**Reserva de emergência** — o RV8-01 **não** a contamina hoje.~~
   **Retratado no fechamento (2026-08-25): a conclusão estava invertida.** As duas
   premissas eram verdadeiras — o titular usa mesmo `_positions_for_member` (medido:
