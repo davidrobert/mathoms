@@ -5,7 +5,8 @@ title: "Vault de documentação operacional Obsidian-friendly em `docs/`"
 status: Decidido
 phase: A11.5
 date: "2026-05-07"
-relates_to: ["[[ADR-076]]", "[[ADR-109]]", "[[ADR-114]]", "[[ADR-143]]"]
+relates_to: ["[[ADR-076]]", "[[ADR-109]]", "[[ADR-114]]", "[[ADR-143]]", "[[ADR-412]]"]
+amended_at: ["2026-08-25"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 182"]
@@ -20,6 +21,12 @@ size_lines: 66
 ---
 
 # ADR-182 — Vault de documentação operacional Obsidian-friendly em `docs/`
+
+> ⚠️ **Emendada em 2026-08-25 pela [[ADR-412]]** — o padrão "gera, commita,
+> snapshot gateia" desta ADR foi importado de [[ADR-076]]/[[ADR-109]], onde o
+> derivado muda quando um **contrato** muda. Em `docs/_MOC/_generated/**` a entrada
+> é a vault inteira, e o derivado muda numa fração grande dos commits — o snapshot
+> deixa de ser gate e vira ponto de contenção de merge. Ver §Emenda ao fim.
 
 **Status:** Decidido (Sprint A11.5) • **Data:** 2026-05-07 • **Relaciona** [ADR-076](#adr-076--design-tokens-unificados-site--relatório), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a), [ADR-114](#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
 
@@ -83,3 +90,20 @@ Migração em 5 fases sequenciais (~26-28h em ~3 dias calendário), detalhada no
 - [ ] Product-manager review da UX final da vault (graph view, taxonomia de tags, onboarding) antes de promoção a `Decidido`.
 
 **Plano de implementação:** [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md).
+
+## Emenda 2026-08-25 — o padrão não vale para derivado do corpus inteiro
+
+Medido na fila de auto-merge (2026-08-24): `main` recebe ~7-9 merges/hora contra
+ciclos de CI de ~7 min, e todo PR que toca `docs/**` regenera
+`docs/_MOC/_generated/**`. Além do conflito visível, os **contadores agregados**
+produziam *lost update silencioso* — dois PRs incrementando o mesmo número
+mergeiam **limpo** e o resultado fica errado.
+
+A [[ADR-412]] refina o padrão desta ADR em quatro pontos: derivado versionado é
+derivado de **contrato** (D1); derivado versionado **não carrega agregado** (D2);
+derivado 100% agregado é **removível**, não reformável (D3); e ao desversionar, o
+gate migra do snapshot para o **self-test do gerador** (D4).
+
+O que muda no escopo desta ADR: `DOC_STATS.md` sai da vault, e a §Sprints dele passa
+a viver na coluna `status` do `INDEX.md`. Os demais índices continuam versionados —
+são listas, uma linha por nota, e o merge de linha resolve os casos disjuntos.
