@@ -225,8 +225,7 @@
         "status_contrato": "atualizado",
         "indice_reajuste": "IGP-M",
         "data_ultimo_reajuste": "2025-08-15",
-        "endereco_canonical": "Avenida Engenheiro Luís Carlos Berrini, 1500, Conjunto 142, Bloco B, Bairro Cidade Monções, São Paulo — Capital, CEP 04571-000",
-        "imobiliaria_cnpj": null,
+        "endereco_display": "engenheiro luis carlos berrini 1500",
         "imobiliaria_nome": "Administradora Predial e Intermediação Imobiliária do Litoral Norte Sociedade Limitada",
         "origem_aluguel": "informe"
       },
@@ -249,8 +248,7 @@
         "status_contrato": "reajuste_pendente",
         "indice_reajuste": "IGP-M",
         "data_ultimo_reajuste": "2025-08-15",
-        "endereco_canonical": "Praça Quinze de Novembro, sem número, Edifício Memorial da República, Distrito Federal",
-        "imobiliaria_cnpj": null,
+        "endereco_display": null,
         "imobiliaria_nome": "Gestão Patrimonial e Locação Corporativa Associados",
         "origem_aluguel": "informe"
       }

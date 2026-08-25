@@ -146,15 +146,15 @@ def _blocked_lanes(lanes: list[LaneLike]) -> list[LaneLike]:
     return [lane for lane in lanes if lane.status == _LANE_STATUS_BLOCKED]
 
 
+# Sem contagem: o valor é função da vault INTEIRA, então dois PRs disjuntos colidem na
+# mesma linha — e quando ambos incrementam, o merge fica limpo e MENTE (lost update).
+# A lista de status logo abaixo carrega a mesma informação, uma linha por lane, e o merge
+# de linha do git resolve os casos disjuntos sozinho (A40.l59 §fila de merge, 2026-08-24).
 def _summary_line(by_status: dict[str, list[LaneLike]], blocked: int = 0) -> str:
-    """Frase 'N ready · M in_progress · K open · J blocked' (omite zeros)."""
-    parts: list[str] = []
-    for status in _STATUS_DISPLAY_ORDER:
-        count = len(by_status.get(status, []))
-        if count:
-            parts.append(f"{count} {status}")
+    """Frase 'ready · in_progress · open · blocked' — status presentes, sem contagem."""
+    parts = [status for status in _STATUS_DISPLAY_ORDER if by_status.get(status)]
     if blocked:
-        parts.append(f"{blocked} blocked")
+        parts.append("blocked")
     if not parts:
         return "Nenhuma lane prontidão atual."
     return " · ".join(parts) + "."
@@ -230,7 +230,7 @@ def _render_status_section(
 ) -> list[str]:
     """Renderiza um h2 de status + bullets de lanes ordenadas por id."""
     heading = _STATUS_HEADINGS.get(status, status)
-    out: list[str] = [f"## {heading} ({len(bucket)})", ""]
+    out: list[str] = [f"## {heading}", ""]
     for lane in sorted(bucket, key=_lane_sort_key):
         out.append(_format_lane_line(lane, status_by_id))
     out.append("")
@@ -240,7 +240,7 @@ def _render_status_section(
 def _render_blocked_section(bucket: list[LaneLike], status_by_id: dict[str, str]) -> list[str]:
     """Lanes `blocked` com o bloqueador à vista — esconder a lane esconde o destravamento."""
     out: list[str] = [
-        f"## Blocked ({len(bucket)})",
+        "## Blocked",
         "",
         "_Não pegáveis. Listadas porque `blocked` que fica stale some daqui "
         "justamente quando a dependência ship e a lane vira pegável._",
@@ -269,7 +269,7 @@ def _render_inspection_bucket(
     status: str, bucket: list[LaneLike], status_by_id: dict[str, str]
 ) -> list[str]:
     """Um h3 de status dentro da listagem de inspeção."""
-    out: list[str] = [f"### {status} ({len(bucket)})", ""]
+    out: list[str] = [f"### {status}", ""]
     for lane in sorted(bucket, key=_lane_sort_key):
         out.append(_format_lane_line(lane, status_by_id))
     out.append("")

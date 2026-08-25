@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from pipeline.domain.services.conversao_me import FxQuote, convert_me_brl
 from pipeline.domain.services.informe_extrato_override import (
     ExtratoPosicao,
     InformeExtratoDivergencia,
@@ -19,6 +20,10 @@ def _detalhe(**overrides) -> CaixaDetalhe:
         saldo_original=5200.00,
         valor_brl=32200.00,
         tipo="moeda_estrangeira",
+        # ADR-390 §Emenda 2026-08-24 — o carimbo deixou de ser opcional.
+        conversao=convert_me_brl(
+            "5200.00", "USD", FxQuote(rate=Decimal("6.1923"), fonte="market_rate_corrente")
+        ),
     )
     base.update(overrides)
     return CaixaDetalhe(**base)

@@ -22,6 +22,22 @@ _RUN = {
 _COSTS = [{"cost_usd_cents": 180, "tool_iterations": 1}]
 _CALLS = [{"stage": "parecer"}, {"stage": "narrativas"}]
 _NR = [{"doc_type": "extratoconta", "n": 2}]
+
+
+# Forma do run `d0f6260a`: mesmo stage, duas posições, dois códigos (ADR-411).
+def _rr(locator: str, code: str, occ: int = 2) -> dict:
+    return {
+        "stage": "consolidate_baseline",
+        "locator": locator,
+        "code": code,
+        "occurrence_count": occ,
+    }
+
+
+_RR = [
+    _rr("validation.review_reasons", "domain.baseline_divergence"),
+    _rr("imoveis_consolidados[].review_reasons", "domain.property_identity_uncanonical"),
+]
 _SENTINEL = object()
 
 
@@ -52,12 +68,13 @@ def _cv_failing(fail: str) -> list[dict]:
     ]
 
 
-def _meta(run: dict | None, calls: Any) -> dict:
+def _meta(run: dict | None, calls: Any, reasons: Any = _SENTINEL) -> dict:
     return {
         "run": run or dict(_RUN),
         "needs_review": _NR,
         "costs": _COSTS,
         "calls": _CALLS if calls is _SENTINEL else calls,
+        "review_reasons": _RR if reasons is _SENTINEL else reasons,
     }
 
 
@@ -68,12 +85,13 @@ def _snap(
     run: dict | None = None,
     calls: Any = _SENTINEL,
     parecer: Any = _SENTINEL,
+    reasons: Any = _SENTINEL,
 ) -> dict:
     return build_snapshot(
         run_id="run-1",
         report_data=report_data or _report_data(),
         cv_results=cv_results if cv_results is not None else _cv(),
-        meta=_meta(run, calls),
+        meta=_meta(run, calls, reasons),
         parecer={"secoes": list(range(10))} if parecer is _SENTINEL else parecer,
     )
 

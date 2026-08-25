@@ -275,17 +275,39 @@
           "type": "object",
           "description": "A40.l67 (ADR-394 §Emenda 2026-08-18): veredito da guarda de sinal dos baldes patrimoniais. `reclassificados` saíram do ativo para dívida de curto prazo (patrimônio líquido inalterado); `baldes_negativos` são os físicos que sobreviveram e publicam com ressalva.",
           "properties": {
-            "modo": { "type": "string", "enum": ["enforce", "warn", "off"] },
-            "cobertura_completa": { "type": "boolean" },
-            "motivo_supressao": { "type": ["string", "null"] },
-            "dividas_curto_prazo_brl": { "type": "number", "minimum": 0 },
+            "modo": {
+              "type": "string",
+              "enum": [
+                "enforce",
+                "warn",
+                "off"
+              ]
+            },
+            "cobertura_completa": {
+              "type": "boolean"
+            },
+            "motivo_supressao": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "dividas_curto_prazo_brl": {
+              "type": "number",
+              "minimum": 0
+            },
             "reclassificados": {
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "balde": { "type": "string" },
-                  "montante_brl": { "type": "number", "minimum": 0 }
+                  "balde": {
+                    "type": "string"
+                  },
+                  "montante_brl": {
+                    "type": "number",
+                    "minimum": 0
+                  }
                 }
               }
             },
@@ -294,19 +316,29 @@
               "items": {
                 "type": "object",
                 "properties": {
-                  "balde": { "type": "string" },
-                  "valor_brl": { "type": "number" }
+                  "balde": {
+                    "type": "string"
+                  },
+                  "valor_brl": {
+                    "type": "number"
+                  }
                 }
               }
             }
           }
         },
         "investimentos_titular": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "description": "A40.l69 (ADR-394 §Emenda (b) D7): `null` = membro não apurado. Zero publicado é afirmação sobre o patrimônio da pessoa; `null` não afirma. Quem diz qual dos dois é `cobertura_investimentos[]`."
         },
         "investimentos_conjuge": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "description": "A40.l69 (ADR-394 §Emenda (b) D7): `null` = membro não apurado — ver `investimentos_titular`."
         },
         "investimentos_nao_atribuidos": {
@@ -320,14 +352,45 @@
           "items": {
             "type": "object",
             "properties": {
-              "membro": { "type": "string", "enum": ["titular", "conjuge"] },
-              "status": { "type": "string", "enum": ["apurado", "zero_apurado", "nao_apurado"] },
-              "fonte": { "type": ["string", "null"], "enum": ["posicoes_atuais", "irpf", null] },
+              "membro": {
+                "type": "string",
+                "enum": [
+                  "titular",
+                  "conjuge"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "apurado",
+                  "zero_apurado",
+                  "nao_apurado"
+                ]
+              },
+              "fonte": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "posicoes_atuais",
+                  "irpf",
+                  null
+                ]
+              },
               "frescor": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "A40.l69 (ADR-394 §Emenda (c)): ano-base da fonte deste membro. `fonte` responde de ONDE, `frescor` responde de QUANDO — o ano-base é por membro, e cônjuges declaram em anos distintos. Defasagem não é estado do enum: `status` diz se mediu, `frescor` diz quando (ADR-383 §6)."
               },
-              "motivo": { "type": ["string", "null"] }
+              "motivo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             }
           }
         },
@@ -411,11 +474,17 @@
               "minimum": 0
             },
             "primeiro_mes": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "pattern": "^[0-9]{4}-[0-9]{2}$"
             },
             "ultimo_mes": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "pattern": "^[0-9]{4}-[0-9]{2}$"
             }
           }
@@ -453,26 +522,58 @@
           "properties": {
             "3m": {
               "allOf": [
-                { "$ref": "#/$defs/FluxoJanelaInterativa" },
-                { "properties": { "janela": { "const": "3m" } } }
+                {
+                  "$ref": "#/$defs/FluxoJanelaInterativa"
+                },
+                {
+                  "properties": {
+                    "janela": {
+                      "const": "3m"
+                    }
+                  }
+                }
               ]
             },
             "6m": {
               "allOf": [
-                { "$ref": "#/$defs/FluxoJanelaInterativa" },
-                { "properties": { "janela": { "const": "6m" } } }
+                {
+                  "$ref": "#/$defs/FluxoJanelaInterativa"
+                },
+                {
+                  "properties": {
+                    "janela": {
+                      "const": "6m"
+                    }
+                  }
+                }
               ]
             },
             "12m": {
               "allOf": [
-                { "$ref": "#/$defs/FluxoJanelaInterativa" },
-                { "properties": { "janela": { "const": "12m" } } }
+                {
+                  "$ref": "#/$defs/FluxoJanelaInterativa"
+                },
+                {
+                  "properties": {
+                    "janela": {
+                      "const": "12m"
+                    }
+                  }
+                }
               ]
             },
             "ytd": {
               "allOf": [
-                { "$ref": "#/$defs/FluxoJanelaInterativa" },
-                { "properties": { "janela": { "const": "ytd" } } }
+                {
+                  "$ref": "#/$defs/FluxoJanelaInterativa"
+                },
+                {
+                  "properties": {
+                    "janela": {
+                      "const": "ytd"
+                    }
+                  }
+                }
               ]
             }
           }
@@ -744,7 +845,7 @@
     },
     "previdencia_pgbl": {
       "type": "object",
-      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ economia_ir_anual não-null. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
+      "description": "Recomendação PGBL (ADR-277/305/375/395). `limite_pgbl_anual` é o TETO (12% × base tributável das declarações completas); `capacidade_restante_anual` é max(0, teto − aportado) — grandezas distintas que colapsavam no mesmo campo. `motivo_ausencia` é objeto POR CAMPO com enum fechado e precedência declarada (sem_irpf_processado > modelo_simplificado > sem_renda_tributavel > regime_fiscal_incompleto > sem_imposto_a_reduzir). Invariantes: campo null ⟺ motivo do campo não-null; campo == 0 ⇒ motivo do campo null; aliquota_marginal não-null ⟺ aporte_mensal não-null — a marginal permite reconstruir a prescrição (alíquota × aporte), então segue o APORTE, não o sinal da economia (emenda ADR-402 2026-08-24). `sem_imposto_a_reduzir` é o único motivo que nomeia conclusão de cálculo em vez de insumo faltante, e o único que coexiste com campos publicados: retém `aporte` quando a economia é zero COM espaço restante — em `no_teto` (restante 0) o aporte zero segue publicado como fato, porque ali a causa é o teto consumido, não a ausência de imposto. nota_degradacao NÃO é motivo de ausência — tem dono semântico próprio (ADR-305 D3) e espelha irpf_kpis.ano_base_nota_degradacao. ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4.",
       "properties": {
         "status": {
           "type": "string",
@@ -803,10 +904,18 @@
           "type": "object",
           "description": "Por que cada campo nasce ausente (ADR-402). Enum fechado; `null` = campo publicado.",
           "properties": {
-            "teto": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
-            "restante": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
-            "aporte": { "$ref": "#/$defs/motivo_ausencia_pgbl" },
-            "economia": { "$ref": "#/$defs/motivo_ausencia_pgbl" }
+            "teto": {
+              "$ref": "#/$defs/motivo_ausencia_pgbl"
+            },
+            "restante": {
+              "$ref": "#/$defs/motivo_ausencia_pgbl"
+            },
+            "aporte": {
+              "$ref": "#/$defs/motivo_ausencia_pgbl"
+            },
+            "economia": {
+              "$ref": "#/$defs/motivo_ausencia_pgbl"
+            }
           },
           "required": [
             "teto",
@@ -1058,7 +1167,11 @@
       "description": "Alvo de cada KPI publicável, com PROCEDÊNCIA declarada ([[ADR-399]] · §r7 PE-2/FP-6). Produzido por pipeline/domain/services/kpi_target_catalog.py, que é o LEITOR ÚNICO de cada limiar. Existe porque o parecer autorava `metricas[].target` como string livre: sobre `ratios.concentracao_imobiliaria` byte-idêntico em dois runs, o alvo migrou de '< 30%' para '< 35%', ATRAVESSANDO o valor observado (violação virou conformidade sem o dado mudar), e o canon do repo é 50%. Precedência: `goal_declarado` (a família escolheu) vence `limiar_canonico` (doutrina do produto) — publicar alvo mais frouxo que o compromisso da família é o produto absolvendo-a da própria meta. INVARIANTE: ou a entrada tem `procedencia`+`limiar`, ou tem `motivo` — nunca ambos, nunca nenhum. `limiar: null` é órfão legítimo (alvo sem fonte única), e órfão publica motivo, NUNCA um número inventado.",
       "additionalProperties": {
         "type": "object",
-        "required": ["observado_path", "base", "unidade"],
+        "required": [
+          "observado_path",
+          "base",
+          "unidade"
+        ],
         "properties": {
           "observado_path": {
             "type": "string",
@@ -1068,26 +1181,48 @@
             "type": "string",
             "description": "Denominador declarado (ex.: carteira_produtiva, patrimonio_bruto). Alvo sem base é indefensável mesmo quando o número está certo."
           },
-          "unidade": {"type": "string", "description": "pct | meses | pct_aa."},
+          "unidade": {
+            "type": "string",
+            "description": "pct | meses | pct_aa."
+          },
           "limiar": {
-            "type": ["number", "null"],
+            "type": [
+              "number",
+              "null"
+            ],
             "description": "Valor-alvo. `null` ⇒ órfão; ver `motivo`."
           },
           "operador": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Comparador do alvo (<, <=, >=). Carrega a polaridade: sem ele, 34,86 contra 50 é ambíguo."
           },
           "procedencia": {
-            "type": ["string", "null"],
-            "enum": ["goal_declarado", "limiar_canonico", null],
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "goal_declarado",
+              "limiar_canonico",
+              null
+            ],
             "description": "Origem do limiar. Ausente ⇔ órfão."
           },
           "ref": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Ponteiro auditável para a fonte (JSONPath de goals, ou constante de código/config)."
           },
           "motivo": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Por que é órfão, em texto legível ao usuário. Órfão por DECISÃO de domínio (ex.: rentabilidade observada não tem comparador canônico) não é lacuna de implementação."
           }
         }
@@ -1147,8 +1282,12 @@
         "componentes": {
           "type": "object",
           "properties": {
-            "caixa_fx": { "$ref": "#/$defs/componente_exposicao_cambial" },
-            "carteira_lastro_estrangeiro": { "$ref": "#/$defs/componente_exposicao_cambial" }
+            "caixa_fx": {
+              "$ref": "#/$defs/componente_exposicao_cambial"
+            },
+            "carteira_lastro_estrangeiro": {
+              "$ref": "#/$defs/componente_exposicao_cambial"
+            }
           },
           "required": [
             "caixa_fx",
@@ -1166,9 +1305,15 @@
                 "piso_protecao"
               ]
             },
-            "verde_min_pct": { "type": "number" },
-            "amarelo_min_pct": { "type": "number" },
-            "dono_prescricao_alocacao": { "type": "string" }
+            "verde_min_pct": {
+              "type": "number"
+            },
+            "amarelo_min_pct": {
+              "type": "number"
+            },
+            "dono_prescricao_alocacao": {
+              "type": "string"
+            }
           },
           "required": [
             "tipo",
@@ -1970,7 +2115,10 @@
                 ]
               },
               "autoridade": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "enum": [
                   "conclusivo",
                   "presuntivo",
@@ -2301,17 +2449,12 @@
                   "null"
                 ]
               },
-              "endereco_canonical": {
+              "endereco_display": {
                 "type": [
                   "string",
                   "null"
-                ]
-              },
-              "imobiliaria_cnpj": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                ],
+                "description": "Endereço canônico minimizado, publicado APENAS quando passa no gate de PII do view-model; null quando a cascata devolveu identificador cartorial (mat:/iptu:/qa:) ou quando o valor carrega PII (A40.l6 · ADR-337 critério 4)."
               },
               "imobiliaria_nome": {
                 "type": [
@@ -2523,6 +2666,7 @@
         "modelo_simplificado",
         "sem_renda_tributavel",
         "regime_fiscal_incompleto",
+        "sem_imposto_a_reduzir",
         null
       ]
     },
@@ -2530,7 +2674,9 @@
       "type": "object",
       "description": "Valor do componente + quanto dele o run conseguiu medir (ADR-403).",
       "properties": {
-        "valor_brl": { "type": "number" },
+        "valor_brl": {
+          "type": "number"
+        },
         "cobertura": {
           "type": "string",
           "enum": [
@@ -2548,7 +2694,7 @@
     },
     "ConversaoMe": {
       "type": "object",
-      "description": "Carimbo da conversão ME→BRL (ADR-390). Ausência da chave = artefato pré-390.",
+      "description": "Carimbo da conversao ME->BRL (ADR-390). Ausencia da chave = artefato pre-390. `converted` exige `taxa_fonte`; `missing_rate` exige ambos nulos (A40.l63).",
       "additionalProperties": false,
       "required": [
         "status"
@@ -2571,7 +2717,14 @@
             "string",
             "null"
           ],
-          "description": "ptax_31_12 | market_rate_corrente | default_hardcoded | irpf_ja_em_brl"
+          "enum": [
+            "ptax_31_12",
+            "market_rate_corrente",
+            "default_hardcoded",
+            "irpf_ja_em_brl",
+            null
+          ],
+          "description": "Fonte da taxa. Enum fechado (ADR-390 D1); antes vivia so na description e `\"chute\"` validava."
         },
         "status": {
           "type": "string",
@@ -2580,6 +2733,48 @@
             "identity",
             "missing_rate"
           ]
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "const": "converted"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "taxa_fonte"
+        ],
+        "properties": {
+          "taxa_fonte": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "properties": {
+            "status": {
+              "const": "missing_rate"
+            }
+          },
+          "required": [
+            "status"
+          ]
+        },
+        "then": {
+          "properties": {
+            "taxa": {
+              "type": "null"
+            },
+            "taxa_fonte": {
+              "type": "null"
+            }
+          }
         }
       }
     },
@@ -3216,62 +3411,125 @@
       "additionalProperties": false,
       "properties": {
         "janela": {
-          "enum": ["3m", "6m", "12m", "ytd"]
+          "enum": [
+            "3m",
+            "6m",
+            "12m",
+            "ytd"
+          ]
         },
         "janela_meses": {
           "type": "integer",
           "minimum": 0
         },
         "mes_inicio": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[0-9]{4}-[0-9]{2}$"
         },
         "mes_fim": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[0-9]{4}-[0-9]{2}$"
         },
-        "receita_total": { "type": "number" },
-        "despesa_total": { "type": "number" },
-        "receita_mensal_media": { "type": "number" },
-        "despesa_mensal_media": { "type": "number" },
-        "despesa_consumo_mensal_media": { "type": "number" },
-        "transferencia_patrimonial_mensal": { "type": "number" },
+        "receita_total": {
+          "type": "number"
+        },
+        "despesa_total": {
+          "type": "number"
+        },
+        "receita_mensal_media": {
+          "type": "number"
+        },
+        "despesa_mensal_media": {
+          "type": "number"
+        },
+        "despesa_consumo_mensal_media": {
+          "type": "number"
+        },
+        "transferencia_patrimonial_mensal": {
+          "type": "number"
+        },
         "tabela_receitas_por_fonte_mensal": {
           "type": "array",
-          "items": { "$ref": "#/$defs/FluxoReceitaRow" }
+          "items": {
+            "$ref": "#/$defs/FluxoReceitaRow"
+          }
         },
         "tabela_receita_por_natureza_mensal": {
           "type": "array",
-          "items": { "$ref": "#/$defs/FluxoNaturezaRow" }
+          "items": {
+            "$ref": "#/$defs/FluxoNaturezaRow"
+          }
         },
         "tabela_consumo_por_categoria_mensal": {
           "type": "array",
-          "items": { "$ref": "#/$defs/FluxoConsumoRow" }
+          "items": {
+            "$ref": "#/$defs/FluxoConsumoRow"
+          }
         }
       }
     },
     "FluxoReceitaRow": {
       "type": "object",
-      "required": ["fonte", "total", "mensal_media", "participacao_pct"],
+      "required": [
+        "fonte",
+        "total",
+        "mensal_media",
+        "participacao_pct"
+      ],
       "additionalProperties": false,
       "properties": {
-        "fonte": { "type": "string", "minLength": 1 },
-        "total": { "type": "number" },
-        "mensal_media": { "type": "number" },
-        "participacao_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+        "fonte": {
+          "type": "string",
+          "minLength": 1
+        },
+        "total": {
+          "type": "number"
+        },
+        "mensal_media": {
+          "type": "number"
+        },
+        "participacao_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
       }
     },
     "FluxoNaturezaRow": {
       "type": "object",
-      "required": ["natureza", "total", "mensal_media", "participacao_pct"],
+      "required": [
+        "natureza",
+        "total",
+        "mensal_media",
+        "participacao_pct"
+      ],
       "additionalProperties": false,
       "properties": {
         "natureza": {
-          "enum": ["receita_pj", "receita_clt", "receita_aluguel", "receita_outras"]
+          "enum": [
+            "receita_pj",
+            "receita_clt",
+            "receita_aluguel",
+            "receita_outras"
+          ]
         },
-        "total": { "type": "number" },
-        "mensal_media": { "type": "number" },
-        "participacao_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+        "total": {
+          "type": "number"
+        },
+        "mensal_media": {
+          "type": "number"
+        },
+        "participacao_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
       }
     },
     "FluxoConsumoRow": {
@@ -3285,10 +3543,21 @@
       ],
       "additionalProperties": false,
       "properties": {
-        "categoria": { "type": "string", "minLength": 1 },
-        "total": { "type": "number" },
-        "mensal_media": { "type": "number" },
-        "participacao_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "categoria": {
+          "type": "string",
+          "minLength": 1
+        },
+        "total": {
+          "type": "number"
+        },
+        "mensal_media": {
+          "type": "number"
+        },
+        "participacao_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
         "participacao_acumulada_pct": {
           "type": "number",
           "minimum": 0,

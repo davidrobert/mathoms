@@ -24,7 +24,7 @@ size_lines: 76
 > ⚠️ **Fallback disco superseded por [[ADR-212]] PR3b** (2026-05-14; banner
 > adicionado no audit r6, 2026-07-03): o "fallback limpo para
 > `DiskArtifactStore`" descrito abaixo **morreu** — readers consultam
-> apenas `pipeline_artifacts` (`backend/app/services/artifact_reader.py`:
+> apenas `pipeline_artifacts` (`backend/app/services/storage/artifact_reader.py`:
 > "fallback disco morreu"). Permanece válido: readers user-facing leem via
 > ArtifactStore/DB, nunca parseiam disco.
 

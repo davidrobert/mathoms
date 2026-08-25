@@ -96,7 +96,10 @@ emitirem WARN em todo write. O merge desta lane é o dia 0 da baseline.
 ## Follow-ups (não entram nesta lane)
 
 - **`e4_unified.schema.json` cai na mesma D2** — 5 ramos em `oneOf`, drift sempre em `$`,
-  cobrindo 7 artifact keys do E4. Endereçado a [[A40.l58]], que é o dono do flip.
+  cobrindo 7 artifact keys do E4. Endereçado à l58 quando ela era o dono do flip;
+  **re-roteado em 2026-08-24** com o `shipped` dela: o `e4_unified` está declarado
+  **bloqueado** na [[ADR-409]] §D, e o fix é o mesmo desta lane — despacho por
+  discriminador ([[ADR-407]] D2), dono: `data-engineer`.
 - **`_schema_to_validate` falha aberta no ausente e fechada no corrompido.** A assimetria
   é acidente, não política, mas `validate_dict` tem callers fora do mapa e o blast radius
   não está medido. Fechado por gate aqui; o flip do runtime fica em aberto ([[ADR-407]]

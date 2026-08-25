@@ -168,7 +168,7 @@ Marque cada item. Ao final registre a execução (e snapshots de gate) na §5.
       (`categorization_learning_loop` + `_apply_engine`)
 - [ ] **A9.5** Reprocessar E4 → aparece `AuditAction.override_v2_dualread_snapshot` no
       `audit_log` com `v1_fallback_count=0` e `v2_match_count>=1`:
-      `sqlite3 mathoms.db "SELECT details FROM audit_log WHERE action='override.v2_dualread_snapshot' ORDER BY created_at DESC LIMIT 1;"`
+      `sqlite3 mathoms-smoke.db "SELECT details FROM audit_logs WHERE action='override.v2_dualread_snapshot' ORDER BY created_at DESC LIMIT 1;"`
 - [ ] **A9.6** Snapshot datado do gate (janela de observação ≥1 sprint): anotar
       `v1_fallback/v2_match/divergence` desta rodada na seção 5 — evidência do gate da l5
 

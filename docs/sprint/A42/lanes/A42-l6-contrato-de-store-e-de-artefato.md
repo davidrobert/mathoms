@@ -102,7 +102,11 @@ O mecanismo do flip não é escolha de nenhuma das três pernas: a [[ADR-284]]
 [`schema_validation_strict_flip.md`](../../../reference/runbooks/schema_validation_strict_flip.md)
 fecha o global (*"nunca global de uma vez"*). Quem flipar em 1e segue esse gate.
 
-Terceira perna da disposição: [[A40.l58]].
+Terceira perna da disposição: era a l58, **fechada em 2026-08-24**. O que ela deixou
+para quem flipar em 1e: a [[ADR-409]] `Decidido` (fila de elegibilidade + os dois levers
+de rollback, ambos exigindo restart) e o gate como comando —
+`dev/measure_schema_drift.py --schema <alvo> --days 7 --gate`, exit ≠ 0 com qualquer
+drift. Não há mais lane a consultar; há runbook e comando.
 
 ## Critério de aceite
 

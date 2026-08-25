@@ -24,7 +24,7 @@ size_lines: 121
 
 **Contexto:** A infra de progresso em tempo real (WebSocket + `emit_stage_activity`
 em `pipeline/live_progress.py` + `publish_stage_activity` em
-`backend/app/services/events.py` + `usePipelineWS` no frontend) está madura e
+`backend/app/services/pipeline/events.py` + `usePipelineWS` no frontend) está madura e
 cobre transporte, fallback (polling 2s) e heartbeat de conexão (ADR-030-WS).
 O `PipelineStageActivity` em `frontend/src/lib/api/pipeline.ts` já declara os
 campos `itemsDone`, `itemsTotal`, `currentItem` — e o `LiveActivityDetail` em

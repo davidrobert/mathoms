@@ -26,6 +26,12 @@ class RendaTributavelPF:
     rendimentos_pf_total: Money
     fontes_pj: int
     fontes_pf: int
+    # PROVENIÊNCIA, não eleição: é o `contribuinte.ano_base` da declaração que foi
+    # de fato somada, não o ano que `resolve_ano_base_fiscal` elegeu. Valor anual
+    # sem o ano a que se refere é VO incompleto — e é só assim que o ramo de
+    # fallback do leitor (quando o ano eleito não tem declaração) fica visível:
+    # publicando o ano ELEITO ele continuaria mudo (A40.l65 §Escopo 3).
+    ano_base: int | None = None
 
     @property
     def has_renda_tributavel(self) -> bool:
@@ -46,7 +52,14 @@ def extract_renda_tributavel_pf(irpf_artifact: dict[str, Any] | None) -> RendaTr
         rendimentos_pf_total=pf_total,
         fontes_pj=_count_valid(pj_items, field="rendimentos_tributaveis_brl"),
         fontes_pf=_count_valid(pf_items, field="valor_brl"),
+        ano_base=_ano_base_do(irpf_artifact),
     )
+
+
+def _ano_base_do(irpf_artifact: dict[str, Any]) -> int | None:
+    contribuinte = irpf_artifact.get("contribuinte")
+    ano = (contribuinte or {}).get("ano_base") if isinstance(contribuinte, dict) else None
+    return ano if isinstance(ano, int) else None
 
 
 def _sum_money(items: list[Any], *, field: str) -> Money:

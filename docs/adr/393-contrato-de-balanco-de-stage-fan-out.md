@@ -5,7 +5,7 @@ title: "Contrato de balanço de stage fan-out: queued ≡ processed + errors + s
 status: Decidido
 phase: A40.l68
 date: "2026-08-18"
-amended_at: ["2026-08-19"]
+amended_at: ["2026-08-19", "2026-08-24"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-097]]"
@@ -30,6 +30,22 @@ tags:
 
 **Status:** Decidido • **Data:** 2026-08-18 • É a **ADR-B** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l68]].
+
+> **Emendada em 2026-08-24 (c) (D3 e D5 entregues):** o §Estado dizia "sem dono
+> nomeado". Entregues: `FAN_OUT_STAGES` declarado, com gate que falha FECHADO no
+> stage novo, e o E0 recusando formato sem leitor pela mesma fonte única. A
+> [[A40.l68]] fecha aqui. Ver §Emenda 2026-08-24 (c).
+
+> **Emendada em 2026-08-24 (b) (2b entregue; o bloqueio declarado era outro):** a
+> [[A40.l68]] §Pendência dizia que o ladder não podia ligar porque `0.0` era
+> sentinela de ausência. Medido: o sentinela **nunca dispara** (0/172). Quem
+> dispara 100% é o `min()` do agregado. Ver §Emenda 2026-08-24 (b).
+
+> **Emendada em 2026-08-24 (a) (§D1 é conservação, não detecção):** o §D1 declara
+> que "`success` passa a exigir o balanço fechado, não só `errors == []`". A
+> exigência existe e é **vácua** — medido por execução. A decisão D1 sobrevive
+> como guarda de regressão; o que cai é a afirmação de que ela detecta.
+> Ver §Emenda 2026-08-24 (a).
 
 > **Emendada em 2026-08-19 (correção do §Estado, não da decisão):** o §Estado
 > declarava **D4 entregue** e a §D4 prometia um **kill-switch de 1 env var
@@ -161,6 +177,11 @@ do plano, registrada em §Anti-decisões ("NÃO ampliar [[A42.l4]] nem emendar
 
 ## Estado de implementação (2026-08-18)
 
+> **Superado em 2026-08-24 (c):** as três emendas datadas abaixo corrigem este
+> snapshot. Estado corrente: **D1 D2 D3 D4 D5 D6 entregues** — D1 como guarda de
+> regressão (§Emenda (a)), D4 sem kill-switch (§Emenda 2026-08-19). O snapshot
+> fica como registro do que era verdade em 18/08.
+
 `Decidido` refere-se à **decisão**, não à cobertura. Entregue na [[A40.l68]] 2a
 (#1526 · `4b3bff08`): **D1** (balanço), **D2** (leitor tipado), **D4**
 (WARN-first). **Não** entregues: **D3** (denominador enumerado de stages
@@ -213,11 +234,193 @@ declarativo é um segundo lugar para a verdade morar.
 parcial** (code declarado e fora de `BLOCKING_CODES`; retenção **não** desligada,
 kill-switch inexistente e retirado do escopo); **não** entregues **D3** e **D5**.
 
+> **D3 e D5 entregues em 2026-08-24** — ver §Emenda 2026-08-24 (c). Esta linha é
+> o estado de 19/08.
+
 ## Consequências
 
-- `extract_with_llm` passa a devolver `skipped: list[...]`; leitores do bloco
-  precisam tolerar a chave nova (aditiva).
-- `success=true` com balanço aberto passa a ser impossível por construção.
-- Os **seis** stages fora do escopo seguem cegos até lane própria.
+- `extract_with_llm` passa a devolver **`skipped_docs: list[...]`**; leitores do
+  bloco precisam tolerar a chave nova (aditiva). **Nunca `skipped`** — essa chave
+  já existia como **booleano** nos early-returns do stage, e reusá-la para a
+  lista era a ambiguidade de contrato que o #1526 evitou renomeando.
+- `success=true` com balanço aberto passa a ser impossível por construção —
+  e **vácuo**, porque a perda é termo do lado direito (§Emenda 2026-08-24 (a)).
+- Os **seis** stages fora do escopo seguem cegos até lane própria; a razão
+  `1/7` é gateada desde a §Emenda 2026-08-24 (c).
 - O `.xls` do dogfood passa a aparecer como `needs_review` nomeado em vez de
   sumir — o corpus não muda, a **visibilidade** dele muda.
+
+> **Correção 2026-08-24 (closeout).** Duas linhas acima nasceram erradas ou
+> envelheceram: a chave é `skipped_docs` (o texto dizia `skipped`, que é
+> justamente o nome que o #1526 recusou), e **o corpus MUDOU** — o `.xls` não
+> ficou só visível, ficou legível: 168/168 extraem depois do roteamento para
+> `xlrd` (#1655). A frase "o corpus não muda" valia entre 18/08 e 24/08.
+
+## Emenda 2026-08-24 (a) — D1 é identidade de conservação, não predicado de saúde
+
+Medido no [[A40.l68]] §Ataque, com o stage real sobre um formato que o leitor
+não abre:
+
+```
+success  : True    balanco : {queued:1, processed:0, errors:0, skipped:1, fecha:True}
+artefatos: 0       validation.valid : False   ← quem retém o run
+```
+
+`queued ≡ processed + errors + skipped` é **identidade de conservação**: fechada
+sob realocação entre as parcelas, satisfeita por qualquer distribuição —
+inclusive `processed = 0`. O balanço fecha **porque a perda é termo do lado
+direito**. As cinco saídas de `_process_one_e2_llm_document` devolvem exatamente
+um não-`None` cada, então `fecha` é tautologia em todo estado alcançável, e
+`success = errors == 0 and fecha` **não pode ser `False` por documento perdido**
+— só por exceção não capturada.
+
+**O que muda.** O §D1 segue valendo como **guarda de regressão** do caminho de
+drop que o #1526 deletou (`return None, None, summary`). O que cai é a
+afirmação de que `success` mudou de significado: quem retém o run é
+`validation.valid=False` (`pipeline_task.py:1489`), o canal da A28.l8 que a D4
+estendeu — e o `success=True` é justamente o token que roteia para lá
+(`if result.success and _has_validation_errors(result)`). **D1 contribui zero
+detecção; D2 e D4 fazem o trabalho.**
+
+**Regra que sai daqui, para o denominador enumerado da D3:** identidade de
+conservação nunca é gate de saúde. Gate de saúde precisa de predicado sobre a
+**distribuição** (`processed > 0`, ou `skipped/queued` sob teto), não sobre a
+soma. Nenhum dos 15 testes da lane asserta `run()["success"]` — todos chamam
+`_fan_out_balance` com listas montadas à mão, e a `TestProvaPorMutacao` asserta
+`balanco["fecha"] is True` para o documento perdido, codificando a vacuidade
+como critério de aceite.
+
+**Fora desta emenda, com dono:** o `.xls` do RV6-10 segue inextraível — 168/168
+falham com openpyxl e 168/168 abrem com `xlrd` 2.0.2, já instalado e já usado
+por `route_documents.py:399`, `e2/banks/itau.py:98` e `santander.py`. Ver
+[[A40.l68]] §Deferimento.
+
+## Emenda 2026-08-24 (b) — o ladder do E1.5 mora no arquivo, não no agregado
+
+Item **2b** da [[A40.l68]]. A §Pendência datada da lane dizia que o ladder
+[[ADR-081]] não podia ligar porque `extract_baseline.py` agrega confiança como
+`min(confidences) if confidences else 0.0` e o `0.0` é **sentinela de ausência**
+— um `< 0,7` cru dispararia para todo run sem metadado.
+
+**Medido no corpus, o bloqueio é outro.** Nenhum artefato tem `confidence == 0.0`:
+
+| grão | n | `< 0,7` | leitura |
+|---|---|---|---|
+| agregado (E1.5/E1.5c) | 172 | **172 (100%)** | `min` sobre ~10 arquivos colapsa para o pior |
+| per-arquivo (E1.5a) | 786 | **292 (37%)** | discrimina |
+
+O sentinela mede **0/172**. Quem tornaria o ladder inútil é o `min`: todos os 172
+agregados caem em 0,1–0,15 mesmo quando a maioria dos arquivos extraiu bem.
+
+**E no grão do arquivo a confiança é medição de verdade:**
+
+| faixa | artefatos | mediana de itens extraídos |
+|---|---|---|
+| `>= 0,7` | 494 | **9** |
+| `< 0,7` | 292 | **0** (máx. 3) |
+
+O piso 0,7 da ADR-081 separa exatamente "extração que rendeu" de "documento que
+não rendeu nada" — o mesmo desfecho que a D1 persegue no fan-out, um stage acima.
+
+### Taxa de disparo (o número que a lane exige antes do WARN)
+
+**4 por run** (mediana; min 1, máx 4) sobre 81 runs, com mediana de 10 artefatos
+E1.5a por run. **Zero runs sem disparo.**
+
+### Causa dominante do disparo, declarada e não consertada aqui
+
+Das 292 chaves abaixo do piso, **260 (89%) não são declaração de IRPF**:
+
+| forma da chave | n |
+|---|---|
+| `informerendimentosaluguel` | 88 |
+| `informe_financeiro_pj` | 58 |
+| `irpfrecibo` | 57 |
+| `informe_previdencia_privada` | 57 |
+| `irpfdeclaracao` | **32** |
+
+São documentos com stage próprio ([[ADR-216]], [[ADR-238]]) que o
+`_find_irpf_docs` varre junto porque moram em `income_tax_br/`. Hoje o diretório
+tem **39 declarações + 19 informes/recibos**, e `docs[:_MAX_DOCS_PER_RUN]` corta
+em 10 com ordenação **lexicográfica sobre prefixo de hash** — os informes ganham
+vaga por sorteio. É a truncagem da [[A40.l69]] composta com poluição de classe;
+**fica declarada, com dono `data-engineer`, e não é consertada nesta emenda.**
+
+A confiança baixa nesses casos é o modelo **acertando** ("não é documento de
+baseline"), e é por isso que o desfecho não pode ser pausa.
+
+### D7 — WARN-first aqui significa não tocar `validation.valid`
+
+`extract.low_confidence` já existia no enum e no `review_reason.schema.json`
+desde a [[ADR-272]] — **sem nenhum emissor**. Ganha o primeiro agora, e o
+desfecho é deliberadamente mais fraco que o da D4:
+
+- entra em `validation.review_reasons`, nomeando o documento;
+- **não** entra em `errors` e **não** derruba `validation.valid`.
+
+O motivo é a medição: `validation.valid=False` retém o run
+(`pipeline_task.py:1489`, ver §Emenda 2026-08-19 e RV7-03/DE-3), e 4 disparos por
+run com zero runs limpos transformaria a pausa em ruído permanente — o mesmo
+"gate que dispara sempre ensina a ignorar o gate" que a [[A40.l66]] mediu.
+
+**Ausência ≠ zero:** o agregado passa a devolver `None` quando nenhum arquivo
+reportou confiança. Incidência hoje 0/172, mas `0.0` é medição fabricada e a
+doutrina deste plano é não fabricar.
+
+## Emenda 2026-08-24 (c) — D3 e D5 entregues; o resíduo da §D2 vira gate
+
+O §Estado declarava **D3** e **D5** "não entregues — sem dono nomeado". Ambos
+entram agora, e o que os une é uma **fonte única**: `READABLE_SUFFIXES` em
+`pipeline/llm/text_extractor.py`, derivada do mesmo mapa que `_reader_for`
+consulta. Quem decide o que tem leitor passa a ser um lugar só.
+
+### D5 — o E0 recusa na entrada
+
+Medido antes: `route_documents.py` coletava **todo** arquivo não-oculto do
+inbox, **sem nenhum filtro de formato**. Um `.docx`/`.ofx`/`.zip` era
+classificado, roteado para `data/`, e ali sumia — o allowlist de sufixos do
+`_find_unprocessed_docs` nunca o enfileira, então o balanço da D1 fecha sobre um
+denominador que jamais o contou. É a metade da **DE-4** que nasce **antes** da
+fila.
+
+Agora o formato sem leitor devolve `status: "unreadable_format"`, **fica no
+inbox** e ganha **contador próprio** no tally do run — somar em `skipped`
+(integridade) apagaria a única classe que o operador resolve instalando um
+extrator. Incidência no corpus de hoje: **0/1377**. É guarda que falha fechado
+para o formato novo, não correção de regressão viva.
+
+### D3 — denominador enumerado, com gate que falha fechado
+
+`FAN_OUT_STAGES` em `pipeline/stage_spec.py`, partido em dois conjuntos que
+tornam o resíduo da §D2 **verificável** em vez de prosa:
+
+| conjunto | n | significado |
+|---|---|---|
+| `FAN_OUT_STAGES_TYPED_READER` | 1 | usa `extract_result` — distingue "sem leitor" de "vazio" |
+| `FAN_OUT_STAGES_UNTYPED_READER` | 6 | ainda no `extract() -> str`, herda a cegueira |
+
+`dev/check_fan_out_reader_contract.py` (pre-commit, full-scan) reprova quando um
+módulo usa o `DocumentTextExtractor` sem estar classificado, quando um stage
+declarado tipado deixa de chamar `extract_result`, quando um stage sai da
+cegueira sem **mover** a linha, e quando um conjunto nomeia stage que não existe
+no `STAGE_REGISTRY`. As quatro condições foram provadas por mutação.
+
+Sair da cegueira é mover a linha entre conjuntos, nunca apagá-la — o número
+**1/7** é a métrica de progresso da §D2.
+
+**A §D2 nunca enumerou o 7º consumidor.** `family_member_pii_service.py` é
+serviço de backend, não stage, e ficou de fora das duas contagens ("cinco",
+depois "sete") porque as duas mediram só `pipeline/stages/`. Entra no
+`NAO_STAGE_ALLOWLIST` do gate **com o motivo escrito** — não tem fila de fan-out
+nem contrato de retorno de stage, então o balanço não se aplica a ele.
+
+### Corolário do `.xls`, fora das decisões mas dentro da lane
+
+O único defeito de leitor medido no corpus era o `.xls`: 168/168 falhavam em
+openpyxl e 168/168 abrem em `xlrd`, que o repo já tinha. O roteamento foi
+corrigido, e com ele os **seis** stages ainda cegos deixam de descartar `.xls`
+em silêncio **se algum aparecer**: medido no closeout, há **zero** `.xls` em
+`income_tax_br/`, `real_estate/` e `vehicles/` — as três pastas que o
+`extract_baseline` varre. O ganho para quem herda a cegueira é **latente**, não
+observado; o conserto do leitor vale por si, no `extract_with_llm`, onde os 168
+estão.

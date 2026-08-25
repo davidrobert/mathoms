@@ -32,7 +32,7 @@ const aProperty = (classification: string | null) => ({
   titular_key: "david",
   codigo_rfb: "11",
   descricao_sample: "Apto",
-  endereco_canonical: null,
+  endereco_display: null,
   first_seen_year: 2024,
   low_confidence: false,
   classification,

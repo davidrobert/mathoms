@@ -24,6 +24,7 @@ from pipeline.domain.services.tributario.cascata_calculator import (
     PrevidenciaSnapshot,
 )
 from pipeline.domain.services.tributario.irpf_renda_tributavel import (
+    RendaTributavelPF,
     extract_renda_tributavel_pf,
 )
 
@@ -69,12 +70,12 @@ def build_cascata_input_sync(workspace_id: str, *, db: SyncSession) -> CascataIn
     """Constrói ``CascataInput`` a partir de DB+artifacts (ADR-236 §D4 + A17 L1+L2)."""
     run_id = _resolve_e4_run_id(workspace_id, db=db)
     bp = _load_business_profile(workspace_id, db=db)
-    irpf_total = _load_irpf_renda_tributavel(workspace_id, db=db)
+    irpf = _load_irpf_renda_tributavel(workspace_id, db=db)
     pj_totals = _load_pj_totals(workspace_id, run_id, db=db)
     imoveis = _load_imoveis(workspace_id, run_id, db=db)
     previdencia = _load_previdencia_snapshot(workspace_id, db=db)
     financeiro_pj = _load_financeiro_pj_snapshot(workspace_id, db=db)
-    inp = _assemble_input(bp, irpf_total, pj_totals, imoveis, previdencia, financeiro_pj)
+    inp = _assemble_input(bp, irpf, pj_totals, imoveis, previdencia, financeiro_pj)
     return replace(inp, inputs_run_scoped_disponiveis=run_id is not None)
 
 
@@ -156,9 +157,9 @@ def _load_business_profile(workspace_id: str, *, db: SyncSession) -> Optional[Bu
         return None
 
 
-def _load_irpf_renda_tributavel(workspace_id: str, *, db: SyncSession) -> Money:
-    irpf_artifact = _read_latest_workspace_artifact(workspace_id, _IRPF_STAGES, db=db)
-    return extract_renda_tributavel_pf(irpf_artifact).total
+def _load_irpf_renda_tributavel(workspace_id: str, *, db: SyncSession) -> RendaTributavelPF:
+    declaracoes = _read_workspace_artifacts(workspace_id, _IRPF_STAGES, db=db)
+    return extract_renda_tributavel_pf(_irpf_do_ano_base(workspace_id, declaracoes))
 
 
 def _load_pj_totals(
@@ -254,14 +255,15 @@ def _bp_fields(bp: Optional[BusinessProfile] = None) -> dict:
 def _assemble_input(
     # ``bp`` Optional: workspace sem perfil → calculator fallback "perfil_incompleto".
     bp: Optional[BusinessProfile],
-    irpf_total: Money,
+    irpf: RendaTributavelPF,
     pj: _PJTotals,
     imoveis: tuple[int, Decimal],
     previdencia: Optional[PrevidenciaSnapshot] = None,
     financeiro_pj: Optional[FinanceiroPJSnapshot] = None,
 ) -> CascataInput:
     return CascataInput(
-        renda_tributavel_pf_irpf_anual=irpf_total,
+        renda_tributavel_pf_irpf_anual=irpf.total,
+        renda_tributavel_pf_ano_base=irpf.ano_base,
         imoveis_alugados_count=imoveis[0],
         receita_aluguel_anual=Money.brl(imoveis[1]),
         previdencia_snapshot=previdencia,
@@ -333,19 +335,123 @@ def _read_run_artifact(
     return read_artifact_content(row.content_json) if row else None
 
 
-def _read_latest_workspace_artifact(
+#: Payload de `extract_irpf_full` + o `created_at` que desempata o dedup.
+_Declaracao = tuple[dict, str]
+
+
+# Uma row por `artifact_key`, a mais recente — o MESMO corpus que o E5 enxerga.
+# `extract_irpf_full` está em `_WORKSPACE_SCOPED_STAGES`, então o `DBArtifactStore`
+# resolve cada key por `_get_latest_in_workspace` (`created_at desc, id desc`).
+# A unicidade é `(pipeline_run_id, stage, artifact_key)`: cada run repete as
+# mesmas keys, e o E1.6 churna (285 versões de 4 documentos medidas no dogfood em
+# 2026-08-21), então ler todas as rows custaria um decrypt Fernet por versão.
+#
+# Medido: isto é paridade de corpus e custo, NÃO um guarda de correção — o dedup
+# de `IRPFAnalyzer.from_payloads` já colapsa a duplicata semântica, e remover
+# este filtro não muda o valor publicado em nenhum caso que soubemos construir.
+# Não há teste aqui porque um teste que passa com e sem o filtro nomearia um
+# mecanismo que não exercita.
+def _read_workspace_artifacts(
     workspace_id: str, stages: tuple[str, ...], *, db: SyncSession
-) -> Optional[dict]:
-    row = (
-        db.query(PipelineArtifact)
+) -> list[_Declaracao]:
+    """Versão corrente de cada ``artifact_key`` do workspace, mais recente primeiro."""
+    return _primeira_por_key(_rows_de_artefato(workspace_id, stages, db=db))
+
+
+def _rows_de_artefato(workspace_id: str, stages: tuple[str, ...], *, db: SyncSession) -> list:
+    return (
+        db.query(
+            PipelineArtifact.artifact_key,
+            PipelineArtifact.content_json,
+            PipelineArtifact.created_at,
+        )
         .filter(
             PipelineArtifact.workspace_id == workspace_id,
             PipelineArtifact.stage.in_(stages),
         )
         .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
-        .first()
+        .all()
     )
-    return read_artifact_content(row.content_json) if row else None
+
+
+def _primeira_por_key(rows: list) -> list[_Declaracao]:
+    """Decripta só a row vencedora de cada key — o E1.6 churna e o resto é custo."""
+    vistos: set[str] = set()
+    correntes: list[_Declaracao] = []
+    for artifact_key, content_json, created_at in rows:
+        if artifact_key not in vistos:
+            vistos.add(artifact_key)
+            correntes.append((read_artifact_content(content_json), str(created_at)))
+    return correntes
+
+
+# A40.l65 §Escopo 1: o ano-base sai do MESMO resolvedor que o E5 e o Card B usam
+# (ADR-305 D1/D2), não do `created_at` mais recente. Antes disto a S8 podia
+# publicar sobre o ano X enquanto o Card B publicava sobre o Y — dois resolvedores
+# do mesmo corpus no mesmo documento, a classe que nomeia a ADR-375.
+def _irpf_do_ano_base(workspace_id: str, declaracoes: list[_Declaracao]) -> Optional[dict]:
+    """Declaração do ano-base fiscal eleito; entre as do ano, a mais recente."""
+    if not declaracoes:
+        return None
+    ano = _resolve_ano_base_das(declaracoes)
+    if ano is None:
+        _warn_ano_base_nao_resolvido(workspace_id, declaracoes)
+        # Sem ano eleito não há o que resolver (payloads que não parseiam). Manter
+        # o comportamento anterior é degradação declarada — publicar AUSÊNCIA aqui
+        # é decisão do §Escopo 2, que é dono da semântica de base ausente.
+        return declaracoes[0][0]
+    do_ano = [payload for payload, _ in declaracoes if _ano_base_de(payload) == ano]
+    if not do_ano:
+        # Só ocorre com payload sem `contribuinte.ano_base` legível — o schema
+        # exige o campo, então é artefato malformado, não família sem declaração.
+        _warn_ano_base_nao_resolvido(workspace_id, declaracoes, eleito=ano)
+        return declaracoes[0][0]
+    return do_ano[0]
+
+
+# Os dois ramos de degradação eram MUDOS: a S8 voltava a publicar o ano da ordem
+# de processamento sem deixar rastro, e nenhum gate podia ver. O VO publica o ano
+# que somou (proveniência), e este log nomeia por que ele divergiu do eleito.
+def _warn_ano_base_nao_resolvido(
+    workspace_id: str, declaracoes: list[_Declaracao], eleito: Optional[int] = None
+) -> None:
+    logger.warning(
+        "tributario_irpf_ano_base_nao_resolvido",
+        extra={
+            "workspace_id": workspace_id,
+            "ano_eleito": eleito,
+            "declaracoes": len(declaracoes),
+            "ano_publicado": _ano_base_de(declaracoes[0][0]) if declaracoes else None,
+        },
+    )
+
+
+# `partition_irpf_payloads` é a mesma partição que o E5 aplica: PJ (ADR-268) e
+# schema-inválido saem, para 1 artifact ruim não derrubar a resolução do workspace
+# inteiro — sem ela um payload malformado devolvia a S8 em silêncio para a leitura
+# por `created_at`. `from_payloads` dedupa, e o tie-break por `created_at` é o "e
+# dedup" do §Escopo 1: sem ele o vencedor sairia por índice de lista.
+def _resolve_ano_base_das(declaracoes: list[_Declaracao]) -> Optional[int]:
+    from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer, partition_irpf_payloads
+    from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
+
+    validos, chaves, _skipped = partition_irpf_payloads(
+        [payload for payload, _ in declaracoes],
+        [created_at for _, created_at in declaracoes],
+    )
+    if not validos:
+        return None
+    try:
+        analyzer = IRPFAnalyzer.from_payloads(validos, tie_break_keys=chaves)
+    except Exception:
+        return None
+    resolvido = resolve_ano_base_fiscal(analyzer.estados_completude())
+    return resolvido.ano if resolvido else None
+
+
+def _ano_base_de(payload: dict) -> Optional[int]:
+    contribuinte = payload.get("contribuinte") if isinstance(payload, dict) else None
+    return (contribuinte or {}).get("ano_base")
 
 
 # =============================================================================

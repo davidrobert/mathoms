@@ -95,11 +95,14 @@ from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.workspace import Workspace
 from backend.app.services import goal_service
+from backend.app.schemas.dto.goal.if_goal import IFGoalResponse
 
 router = APIRouter(prefix="/workspaces/{workspace_id}")  # /api/v1 é prepended no mount (settings.API_PREFIX)
 
 
-@router.get("/goals/if")
+# response_model é OBRIGATÓRIO em endpoint JSON (ADR-102 R18 · ADR-109) —
+# backend/tests/test_openapi_response_models.py bloqueia o merge sem ele.
+@router.get("/goals/if", response_model=IFGoalResponse)
 async def get_if_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -297,20 +300,21 @@ from backend.tests import factories
 @pytest.mark.asyncio
 async def test_goals_tenant_isolation(client, db):
     # Setup: 2 workspaces independentes
+    # make_workspace JÁ cria a membership owner (factories/builders.py:118-135).
+    # Chamar make_workspace_member para o mesmo owner viola uq_workspace_member
+    # e levanta IntegrityError. Use skip_membership=True nos testes negativos.
     user_a = await factories.make_user(db)
     ws_a = await factories.make_workspace(db, owner=user_a)
-    await factories.make_workspace_member(db, workspace=ws_a, user=user_a, role="owner")
 
     user_b = await factories.make_user(db)
     ws_b = await factories.make_workspace(db, owner=user_b)
-    await factories.make_workspace_member(db, workspace=ws_b, user=user_b, role="owner")
 
     token_a = create_access_token(user_a.id)
     token_b = create_access_token(user_b.id)
 
     # User A cria goal no ws_a
     resp = await client.put(
-        f"/api/workspaces/{ws_a.id}/goals/if",
+        f"/api/v1/workspaces/{ws_a.id}/goals/if",
         json={"renda_passiva_mensal_brl": 30000, "trs_pct": 5.0, ...},
         headers={"Authorization": f"Bearer {token_a}"},
     )
@@ -318,14 +322,14 @@ async def test_goals_tenant_isolation(client, db):
 
     # User B NÃO deve ver
     resp = await client.get(
-        f"/api/workspaces/{ws_a.id}/goals/if",
+        f"/api/v1/workspaces/{ws_a.id}/goals/if",
         headers={"Authorization": f"Bearer {token_b}"},
     )
     assert resp.status_code == 403  # não 404
 
     # User A NÃO consegue acessar ws_b
     resp = await client.get(
-        f"/api/workspaces/{ws_b.id}/goals/if",
+        f"/api/v1/workspaces/{ws_b.id}/goals/if",
         headers={"Authorization": f"Bearer {token_a}"},
     )
     assert resp.status_code == 403
@@ -337,7 +341,9 @@ async def test_goals_tenant_isolation(client, db):
 
 Antes de aprovar uma PR que adiciona/modifica endpoint ou service:
 
-- [ ] Endpoint usa prefix `/api/workspaces/{workspace_id}/...`
+- [ ] Router declara prefix **relativo** `/workspaces/{workspace_id}/...` (o `/api/v1` vem do mount — ADR-108); URL efetiva `/api/v1/workspaces/...`
+- [ ] Endpoint JSON tem `response_model=` explícito (ou `response_class`/204) — ADR-102 R18 · ADR-109
+- [ ] Rodou `make update-openapi-snapshot` e comitou o diff, se mexeu em contrato
 - [ ] Endpoint depende de `get_current_workspace` (não de `_get_workspace(user)` legado)
 - [ ] **Endpoints de escrita** têm `dependencies=[Depends(require_write_role)]` (F9)
 - [ ] **Endpoints de gestão de membros** têm `dependencies=[Depends(require_member_admin_role)]` (F9)
@@ -352,11 +358,27 @@ Antes de aprovar uma PR que adiciona/modifica endpoint ou service:
 
 ## 8. Migração de endpoints legados
 
-Endpoints pré-F8 (ex: `/api/documents`, `/api/reports`, `/api/config`) ainda usam `_get_workspace(user)` helpers privados duplicados. **Não precisam ser migrados já**, mas:
+> **Estado em 2026-08-24 (auditoria r10 · F28):** a dívida de `_get_workspace`
+> está **quitada** — `rg -n "_get_workspace" backend/app/` retorna **zero**, e os
+> três nominados (`config.py`, `documents.py`, `reports.py`) já dependem de
+> `get_current_workspace`. O deadline F8.4 venceu com a fase concluída
+> ([`PHASES.md`](PHASES.md)). Esta seção fica como **procedimento de referência**
+> para migração de endpoint legado, não como descrição do presente.
+
+O que **de fato** resta são **6 queries sem escopo** no baseline
+(`scripts/lint/tenancy_baseline.txt`) — natureza diferente de `_get_workspace`:
+
+| arquivo | ocorrências |
+|---|---|
+| `backend/app/api/config.py` | 4 (`FamilyMember` ×2, `Category` ×2) |
+| `backend/app/api/pipeline.py` | 1 (`PipelineRun`) |
+| `backend/app/services/seed.py` | 1 (`Report`) |
+
+Regras que continuam valendo:
 
 - Quando tocar o arquivo, migre também.
-- Endpoints migrados saem do baseline (`scripts/lint/tenancy_baseline.txt`).
-- Deadline rígido de migração completa: **F8.4 (cutover CLI → Web)**.
+- Endpoints migrados saem do baseline (`scripts/lint/tenancy_baseline.txt`) —
+  o objetivo declarado no topo do arquivo é **esvaziá-lo**.
 
 ### Passos da migração de um endpoint legado
 

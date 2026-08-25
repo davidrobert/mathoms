@@ -246,6 +246,57 @@ publicados e consome re-run por ganho ortogonal.
 Cambial (R$ 83.869,92) e em caixa, além da tabela sob o header falso. Nada se
 perde ao removê-las do S1.
 
+### Desfecho dos 4 achados acima (2026-08-24) — e o que **voltou** para esta lane
+
+Os quatro viraram a [[A40.l63]] + [[ADR-390]]. Fechados lá: taxa hardcoded vira
+`taxa_fonte="default_hardcoded"` com WARNING; `moeda` passa a ser a unidade de
+`saldo_original`; `taxa_data` carrega a data da row (o port ganhou
+`get_market_quote` — `get_market_rate` devolvia só `Decimal` e descartava a
+data, o que tornava o achado nº 3 inendereçável); `CaixaDetalhe.conversao` é
+obrigatório por tipo.
+
+**Correção ao enum sugerido acima:** a [[ADR-390]] fechou em `ptax_31_12` |
+`market_rate_corrente` | `default_hardcoded` | **`irpf_ja_em_brl`**.
+`nao_convertido` **não** é fonte — virou `status="missing_rate"`. Quem ler o
+parágrafo "Forma sugerida do fix" acima vai implementar o enum errado.
+
+**Correção ao achado nº 2:** *"O card renderiza `US$ <valor em BRL>`"* é falso.
+Medido no §Ataque da l63: `patrimonio.caixa_detalhes` tem **zero**
+renderizadores no frontend — só duas declarações de tipo. O raio real era maior
+e noutro lugar (a agregação por moeda, que é renderizada).
+
+**Dois achados voltam para cá**, porque são superfície de **consumo** de
+exposição cambial e a l63 se limitava à conversão:
+
+1. **`exposicao_cambial.detalhes` ainda publica BRL rotulado como USD.**
+   `_detalhes_caixa` emite `moeda=_moeda_exposicao(d)` (reinferida por keyword
+   na descrição) **ao lado do `saldo_original` em BRL**, com
+   `saldo_original == valor_brl` ⇒ câmbio implícito 1,00. A contradição que a
+   l63 matou em `caixa_detalhes` mudou de endereço, não morreu. Ressalva de
+   desenho: `por_moeda` está **certo** — o dinheiro é denominado em dólar e o
+   IRPF só reporta o equivalente em BRL; reinferir a moeda para efeito de
+   *exposição* é o comportamento correto. O defeito é confinado a `detalhes[]`,
+   a única sub-superfície que carrega `saldo_original`.
+
+2. **`caixa_fx` declara `apurado` sobre um caixa cambial que descartou posição.**
+   `_componentes` fixa a cobertura por constante —
+   `ComponenteExposicao(caixa, Cobertura.apurado)` — e **nunca consulta
+   `conversao.status`**. Medido em `main` (`b96cf3ca`), carteira apurada, uma
+   linha GBP de £8.000 em `missing_rate`: `caixa_fx = {"valor_brl": 0.0,
+   "cobertura": "apurado"}`. Com USD ao lado: `5800.0` + `apurado`, GBP
+   invisível. `_sum_caixa_estrangeiro` descarta `valor <= 0` e a linha some de
+   `por_moeda`, enquanto `detalhes` a mantém — as duas sub-superfícies do card
+   discordam. A [[ADR-403]] construiu exatamente o mecanismo que distingue "sem
+   base" de "zero medido"; **a linha `missing_rate` não o alimenta**.
+
+   > **Correção datada 2026-08-24.** A primeira redação deste item (PR #1671)
+   > dizia `tier: "empty"` e *"a família lê «sem exposição cambial»"*. Ambos
+   > falsos: aquela medição rodou contra a árvore do repo principal, em
+   > `agent/r7-priorizacao-decidida/20260819-0936` (**2026-08-19**), dois dias
+   > antes do #1568 mergear. Em `main` o `tier` é `indeterminado` — que é a
+   > abstenção correta, não uma asserção de ausência. Ver §Correção do closeout
+   > da [[A40.l63]].
+
 ## Abertos latentes
 
 - **Fallback de câmbio sem proveniência.** `e5_analyzer_adapter.py:861-869` embute
