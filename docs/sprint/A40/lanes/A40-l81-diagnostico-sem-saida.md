@@ -4,18 +4,21 @@ type: lane
 title: "Diagnóstico sem canal de saída: o stage que não pausa entrega razão no artefato e ela não chega nem à tabela nem ao usuário"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1697
+ship_date: "2026-08-25"
 priority: P0
 branch_slug: a40-l81-diagnostico-sem-saida
 adrs:
   - "[[ADR-357]]"
   - "[[ADR-404]]"
   - "[[ADR-272]]"
+  - "[[ADR-411]]"
 depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/observability
@@ -161,3 +164,46 @@ de artefatos alcança a tabela. Row de diagnóstico que sobrevive ao run que a g
 Achado RV8-09 do §r8 de [[PIPELINE-REVIEWS-active]] (run `d0f6260a`, 2026-08-24).
 Cru off-git em `storage/<uuid>/reviews/20260824-2235-d0f6260a/`. As medições acima
 foram refeitas nesta lane, não copiadas da revisão.
+
+## Fecho — 2026-08-25 (#1697 · [[ADR-411]])
+
+**A lane tinha a causa pela metade, e a metade que faltava invalidava o fix que
+ela desenhou.** Ao medir os `detail` de todos os stages do run `d0f6260a`:
+
+| stage | desfecho | Σ occ no `detail` | persistido |
+|---|---|---:|---:|
+| `extract_baseline` | entregou | 11 | 0 |
+| `reconcile_transactions` | entregou | 28 | 0 |
+| `analyze_finances` | **pausou** | 3 | 3 |
+| `consolidate_baseline` | entregou | 0 (no artefato: 4) | 0 |
+
+Duas correções ao enunciado:
+
+1. **A escala.** Não são 4 ocorrências perdidas: são **43 de 46** (6,5% de
+   cobertura). O volume dominante — 39 — vem de `reconcile_transactions` e
+   `extract_baseline`, que já emitiam no canal certo e só precisavam que o sink
+   rodasse fora do ramo de pausa. A lane dimensionou o caso pelo stage errado.
+2. **O canal.** O `detail` do `consolidate_baseline` **não tem bloco `validation`
+   nenhum** — as 4 razões existem só dentro do artefato. O §Escopo desta lane
+   dizia "sink em todo desfecho · encanamento"; sozinho ele colheria **zero**
+   para o stage que deu origem ao achado. Faltava o produtor declarar no canal
+   que o sink lê ([[ADR-411]] D2b).
+
+**As três armadilhas, todas alcançadas.** A tabela ganhou leitor (coletor →
+snapshot → `compare_reviews`, perna HARD quando o canal emudece). As duas formas
+estão cobertas por um caminhamento único, usado por sink, produtor e gate. E o
+gate não é cego pela mesma metade: **medido por mutação** — sink só na pausa
+reprova 5/6, colheita só no topo reprova 3/6.
+
+**Um número do §Critério estava errado.** "4 razões ⇒ 4 rows" é **2 rows** com
+`occurrence_count` 2 sob a consolidação da [[ADR-272]] Fase 2. O predicado que o
+gate mede é Σ `occurrence_count`; `count(rows) == 4` reprovaria o comportamento
+correto.
+
+**Fica deferido, com dono e condição** ([[ADR-411]] §Deferimento): a superfície
+de usuário para aviso-sem-pausa. `StageReview` continua exclusivo do contrato de
+pausa — publicar aviso de run completo ali passaria a pedir aprovação para um run
+que não parou, e `resume_run` depende disso.
+
+**Retenção conferida:** `review_reasons.pipeline_run_id` já é FK
+`ON DELETE CASCADE` ([[ADR-371]]) — a row morre com o run. Nada a fazer.

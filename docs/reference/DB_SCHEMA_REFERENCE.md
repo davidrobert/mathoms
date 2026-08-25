@@ -1372,6 +1372,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `stage` | `VARCHAR(50)` | no | — | — |
 | `code` | `VARCHAR(64)` | no | — | — |
 | `artifact_key` | `VARCHAR(255)` | no | `''` | — |
+| `locator` | `VARCHAR(255)` | no | server: `` | — |
 | `document_id` | `VARCHAR(36)` | yes | — | FK→documents.id |
 | `offending_value` | `TEXT` | no | `''` | — |
 | `expected` | `TEXT` | no | `''` | — |
@@ -2924,6 +2925,7 @@ type ReviewReason struct {
 	Stage string `db:"stage" json:"stage"`
 	Code string `db:"code" json:"code"`
 	ArtifactKey string `db:"artifact_key" json:"artifact_key"`
+	Locator string `db:"locator" json:"locator"`
 	DocumentId *string `db:"document_id" json:"document_id"`
 	OffendingValue string `db:"offending_value" json:"offending_value"`
 	Expected string `db:"expected" json:"expected"`

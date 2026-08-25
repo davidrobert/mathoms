@@ -29,6 +29,10 @@ class ReviewReason(Base):
     stage: Mapped[str] = mapped_column(String(50), nullable=False)
     code: Mapped[str] = mapped_column(String(64), nullable=False)
     artifact_key: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    # Caminho da COLEÇÃO que continha a razão no artefato (ADR-411 D3) — parte
+    # da identidade da row junto de (run, code). Vazio, nunca nulo: a chave
+    # compara por igualdade e `NULL = NULL` é falso em SQL.
+    locator: Mapped[str] = mapped_column(String(255), nullable=False, default="", server_default="")
     document_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("documents.id", ondelete="SET NULL"), nullable=True
     )
