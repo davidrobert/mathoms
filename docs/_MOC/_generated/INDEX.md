@@ -409,6 +409,7 @@
 | ADR-412 | adr | Proposto |  | Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais | `adr/412-base-canonica-unica-papel-ternario-e-produtor-do-eixo-de-posicoes.md` |
 | ADR-413 | adr | Decidido |  | Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado | `adr/413-derivado-versionado-e-derivado-de-contrato.md` |
 | ADR-414 | adr | Decidido |  | Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada | `adr/414-rendimento-bruto-e-base-de-calculo-sao-variaveis-distintas.md` |
+| ADR-415 | adr | Proposto |  | Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação | `adr/415-protecao-de-main-bypass-sancionado-e-auditado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
