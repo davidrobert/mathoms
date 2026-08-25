@@ -140,13 +140,40 @@ def _tabelas_da_migration_adr389() -> dict:
 
 # Deriva da constante da MIGRATION, não de literais aqui: golden com execução
 # real sobre tabela fantasiada mede a fantasia.
+def _ano_inicial_regime_completo() -> int:
+    import importlib.util
+
+    caminho = (
+        Path(__file__).resolve().parents[1]
+        / "backend"
+        / "alembic"
+        / "versions"
+        / "adr414flip_ac2026.py"
+    )
+    spec = importlib.util.spec_from_file_location("_adr414flip_golden", caminho)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.ANO_INICIAL_REGIME_COMPLETO
+
+
+# A ADR-389 semeou AC2026 incompleto; a migration do flip o completou. A fixture
+# compõe as DUAS, senão afirma uma retenção que a produção deixou de fazer —
+# divergência fixture↔produção medida no ataque à A40.l64.
+def _dados_efetivos(tabelas: dict, year: int) -> dict:
+    dados = dict(tabelas[max(a for a in tabelas if a <= year)])
+    if year >= _ano_inicial_regime_completo():
+        dados["regime_completo"] = True
+        dados["componentes_ausentes"] = []
+    return dados
+
+
 def fiscal_store_do_seed(year: int):
     """``InMemoryConfigStore`` com as tabelas que a migration ADR-389 grava."""
     from pipeline.adapters.fiscal_parsers import fiscal_payload_to_dataclass
     from pipeline.adapters.in_memory_config_store import InMemoryConfigStore
 
     tabelas = _tabelas_da_migration_adr389()
-    dados = tabelas[max(a for a in tabelas if a <= year)]
+    dados = _dados_efetivos(tabelas, year)
     fiscal = fiscal_payload_to_dataclass(
         {
             "year": year,

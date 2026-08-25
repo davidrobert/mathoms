@@ -179,17 +179,23 @@ def test_pgbl_statement_count_eh_um():
 
 def test_coerencia_status_e_aporte_recomendado():
     """ADR-305 D4c: aporte sugerido > 0 ⇒ pgbl_status == capacidade_disponivel."""
+    # Um declarante por ano de propósito: com dois, a base do ano vira SOMA
+    # familiar e a prescrição é retida por `base_familiar_nao_particionada`
+    # (A40.l64 §Critério 3) — o teste mediria a supressão, não a coerência
+    # status↔aporte que ele existe para medir.
     analyzer = IRPFAnalyzer(
         [
             _decl(cpf=_CPF_TITULAR, ano=2024, renda_pj="100000", pgbl_aportado="2000"),
-            _decl(cpf=_CPF_CONJUGE, ano=2024, renda_pj="50000"),
             _decl(cpf=_CPF_TITULAR, ano=2025, renda_pj="120000"),
         ]
     )
     irpf_kpis, previdencia = _payloads_do_relatorio(analyzer)
     assert previdencia["aporte_mensal"] > 0
     assert irpf_kpis["pgbl_status"] == PgblStatus.capacidade_disponivel.value
-    assert previdencia["ano_base"] == irpf_kpis["ano_base"] == 2024
+    # 2025 e não 2024: com um declarante por ano, some a lacuna de CPF que
+    # tornava 2025 incompleto. O que o teste mede é a COERÊNCIA entre os dois
+    # lados, não qual ano — e ela continua valendo.
+    assert previdencia["ano_base"] == irpf_kpis["ano_base"] == 2025
 
 
 # -----------------------------------------------------------------------------
