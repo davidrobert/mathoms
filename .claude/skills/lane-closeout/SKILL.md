@@ -149,9 +149,15 @@ Nunca responda "está tudo certo" sem ter rodado a camada 1 e lido a camada 2.
   linha de tabela, e lane não-terminal cujo `ship_pr` já mergeou.
   **Não reconstrua o gate** — estenda o que existe.
 
-  Efeito medido em 2026-08-25, um dia depois: das 49 transições da A40, as **44
-  anteriores** ao gate dão 19 passa / 25 barra; as **5 posteriores** dão
-  5 passa / **0 barra**. Limite herdado e declarado: `T1`/`T2` leem
+  Efeito, medido em 2026-08-25 e **re-medido no mesmo dia** porque o número anda:
+  as transições da A40 **anteriores** ao gate (`6d3721ee`) dão **19 passa / 25
+  barra** — esse lado é histórico e não muda; as **posteriores** deram 5/0 pela
+  manhã e **6 passa / 0 barra** à tarde. Não congele a contagem aqui: o lado
+  novo cresce a cada lane que fecha. O que vale é a **direção** — nenhuma
+  transição posterior ao gate deixou de carregar o registro — e ela se
+  re-verifica cruzando `ship_pr` do frontmatter com o `_README`/`_HISTORY` no
+  commit do flip, separando pelo merge do gate. Limite herdado e declarado:
+  `T1`/`T2` leem
   `git diff --cached`, logo passam vazios sob `pre-commit run --all-files` (o
   caminho do CI) — são enforcement local. Só o `C1` lê estado e vale nos dois.
 - **Não cria lane nem ADR automaticamente.** Propõe; o pickup é decisão do
