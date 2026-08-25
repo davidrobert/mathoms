@@ -114,6 +114,8 @@ Hook de pre-commit disparado **pela transição**, não pelo PR:
    **não-objetivo declarado**, pelo precedente de fragilidade medido em
    `dev/check_scheduled_workflows.py` (leitura de API obsoleta trava o repo).
 
+## Critério de aceite
+
 > ⚠️ **Três destes critérios foram corrigidos por medição em 2026-08-24**
 > (§Ataque §1/§3/§4/§5). Itens afetados marcados `⚠️ corrigido`. O item da prova
 > retroativa mandava reproduzir um caso que o §Ataque provou **verde sob o
@@ -335,3 +337,25 @@ l68 (#1663), l77 (#1684), l81 (#1697).
 
 O `C1` (coerência) roda limpo na vault viva: **0 achados** — nenhuma lane
 não-terminal declara `ship_pr` já mergeado.
+
+## Verificação do §Critério (2026-08-25) — item a item contra `main`
+
+Fecho da lane. Cada critério conferido no que está mergeado, não no que a lane
+afirma.
+
+| Critério | Onde vive em `main` | ✓ |
+| --- | --- | --- |
+| Prova retroativa **por amostra**, ≥1 caso por eixo | `test_flip_sem_ship_pr_acusa_caso_a40_l71` (#1511, número só no assunto do commit) e `test_flip_com_pr_nao_citado_acusa_caso_a40_l19` (#1241) | ✅ |
+| Casos negativos **com rota nomeada** | `test_caso_bandeira_l7_nao_dispara_e_isso_e_declarado` e `test_self_closing_na_ordem_prescrita_passa` | ✅ |
+| Predicado pinado nos **dois** eixos | `sprint_record` lê `_README` ∪ `_HISTORY`; `test_mencao_em_prosa_nao_substitui_linha_de_tabela` fixa o eixo estrito | ✅ |
+| Polaridade por **mutação nos dois sentidos** | as 3 checagens plantadas e restauradas no repo real durante a entrega; `doc-index-self-test` idem | ✅ |
+| **Superfície declarada** (local-only × CI) | §Entrega §Superfície: `T1`/`T2` local-only por lerem `git diff --cached`; `C1` vale no CI | ✅ |
+| Gate na **transição**, nunca por PR | `check_lane_transition.py` não recebe PR: lê o diff staged e o estado | ✅ |
+| Falso-positivo declarado + **self-closing** | a sequência prescrita (`gh pr create` → flip com `ship_pr`) está na **mensagem de erro** do hook, não só na doc | ✅ |
+
+**Defeito encontrado neste fecho, e corrigido aqui:** o heading
+`## Critério de aceite` **sumiu no `6d3721ee`** — foi o meu próprio edit, que
+substituiu o bloco e não repôs a linha do heading. Os critérios ficaram órfãos
+dentro do §Escopo por um dia. Medido: `grep -c '^## Critério de aceite'` dá 1 em
+`7ed61f04` e 0 em `6d3721ee`. Gate nenhum pega heading que some — nem a camada 1,
+que rodou verde duas vezes sobre este arquivo.
