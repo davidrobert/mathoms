@@ -5,6 +5,7 @@ title: "Base canônica única para carteira financeira, `Papel` ternário e prod
 status: Proposto
 phase: A40.l80
 date: "2026-08-25"
+amended_at: ["2026-08-25"]
 relates_to:
   - "[[ADR-279]]"
   - "[[ADR-335]]"
@@ -28,6 +29,11 @@ tags:
 ---
 
 # ADR-412 — Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais
+
+> **Emendada 2026-08-25** (co-design `senior-cto` + `financial-planner`): a **D5
+> perde a retenção** — a razão nasce advisory; a **D6(b) troca de régua**; a **D7
+> ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
+> ganha obrigação recíproca** para superfície read-time. Ver §Emenda no fim.
 
 > **Proposto.** Abre a implementação da [[A40.l80]] (RV8-02/03/04/06/10). Ao flipar
 > para `Decidido`: emenda datada em [[ADR-335]] §Emenda (autonomia vira intervalo
@@ -303,3 +309,134 @@ base canônica mistura fontes de frescor distinto. Fica como §Deferido datado n
   calibrar o instrumento para não ver o efeito da correção.
 - **Allowlistar `reserva_liquidez.py:187` no gate** — fecha instância e mantém a
   cegueira estrutural; o próximo parâmetro se chama `chave` ou `mk`.
+
+## Emenda — co-design `senior-cto` + `financial-planner` (2026-08-25)
+
+Duas premissas do texto original caíram na verificação, e o repo mudou **embaixo
+da ADR** entre a redação e o merge.
+
+### E1 — a retenção sai da D5: a razão nasce **advisory**
+
+O texto original manda emitir `domain.investimento_sem_titularidade` como razão de
+**retenção**, e o §Riscos aceita "o PR3 retém o run do dogfood por desenho". As duas
+frases **contradizem a D7**, e o mecanismo é duro:
+
+- `scripts/analyze_finances.py:2001` — `"valid": not reasons`. **Qualquer** razão do
+  E5 retém, independente de `BLOCKING_CODES`. O E5 é produtor divergente de política
+  de pausa e não está caracterizado em `tests/unit/pipeline/test_validation_block_policy.py`.
+- `backend/app/tasks/pipeline_task.py:1797-1798` — `if paused_for_review: return`,
+  antes de `_finalize_run` e `_run_post_processing`. Run retido **não cria row em
+  `reports`**, e pausar em `analyze_finances` mata `generate_narratives`,
+  `validate_cross` e `review_finances_holistic` — os três artefatos que o r9 lê.
+
+Logo o PR3, como escrito, **torna a D7 inalcançável exatamente no run que a motivou**:
+o intervalo não é renderizado, a supressão não é vista, o parecer não roda. E a
+"Prova de fecho" da [[A40.l80]] (nenhum `pontos_fortes` apoiado em banda com fatia
+órfã) fica **inverificável por construção**.
+
+**O argumento que sustentava a retenção venceu há dois commits.** [[ADR-406]] §D4
+retinha porque advisory seria *inerte* — *"`record_review_reasons` só roda quando
+`validation.valid` é falso"*. Desde `954f892f` ([[ADR-411]], A40.l81, mergeada
+2026-08-25), `pipeline_task.py:1331` chama `_record_stage_diagnostics` na **última
+linha do caminho de sucesso**, em run `completed`. O canal advisory existe.
+
+**Decisão:** a razão vai para coleção irmã no `detail`, **fora de
+`validation.review_reasons`**; `harvest_review_reasons` a colhe e persiste no
+desfecho `completed`. O `locator` distingue as classes — **não** invente campo
+`severity`. A retenção **sai do PR3**. Quem quiser retenção abre PR6 depois do r9
+medido, e aí é o DE-3 decidindo a política de pausa do E5 inteira.
+
+**Follow-up obrigatório:** emenda datada em [[ADR-406]] §D4 — o rationale está
+factualmente vencido, e sem a emenda a próxima lane reinstala retenção pelo mesmo
+argumento morto. E caracterize o E5 em `test_validation_block_policy.py`: é o
+produtor divergente que ninguém cobre.
+
+### E2 — a D8 fica, mas ganha obrigação recíproca
+
+Mantida **sem flag de runtime**. A premissa "multi-tenant, o PR2 move todos os
+workspaces de uma vez" que motivava reabrir a D8 é **falsa hoje**:
+`docs/reference/RUNBOOK.md:118` — *"Pré-produção, Mathoms roda single-tenant"*.
+Kill-switch instantâneo contém dano a usuário em produção; não há usuário. E flag
+na base poria `os.environ` dentro do cálculo de um domain service, contra
+CLAUDE.md §Dependências e contra a [[ADR-089]]/[[ADR-097]] D2 que a própria D3 invoca.
+
+**O buraco real da D8 não era a falta de flag — é a superfície read-time.**
+`backend/app/application/exposicao_cambial_v2.py:53-60` tem `_tier_from_pct`
+**sem a perna `indeterminado`** que o E5 tem em `exposicao_cambial_analyzer.py:133-136`.
+O card **já hoje** publica veredito de faixa que o E5 recusa, na mesma tela. Flag
+nenhuma consertaria: ela recomporia artefato antigo com código novo — o híbrido sem
+rótulo que a D8 diz evitar.
+
+**Acrescente à D8:** *superfície read-time que consome base canônica lê
+`patrimonio.bases`/`base_versao` do artefato e degrada para `indeterminado` quando a
+série é anterior à corrente.* E `_tier_from_pct` do card **entra no PR2** junto de
+`:286`. Gate que fecha classe: enumerar **produtores de tier de exposição cambial** e
+falhar se algum não tiver a perna de supressão — enumerar leitores de
+`investivel_financeiro` não pega este, porque ele lê a chave, não a função.
+
+### E3 — a D7 ganha objeto: suprime-se veredito e **prescrição dimensionada**, nunca a medida
+
+Correção de premissa: **25,4 meses não é "o número correto"** — é o **extremo
+inferior** de um intervalo. A D0 rejeita trocar de denominador e a D4 mantém a fatia
+dentro de `total_liquido`; o par é *medida = base cheia declarada / avaliação =
+extremo conservador*.
+
+**Regra geral** (substitui as supressões ad-hoc): medida publicada como intervalo
+declarado; **veredito avaliado no extremo conservador em relação à ação que ele
+autoriza**; prescrição dimensionada suprimida quando o spread cruza o degrau
+acionável (E4). Reserva ("realocar", reduz liquidez) e autonomia → extremo inferior;
+prazo de IF → o prazo mais longo; exposição cambial ("protegido") → pct menor.
+
+**O cone de IF NÃO é suprimido** — é desenhado no extremo conservador e rotulado
+como piso. Errar para "vai demorar mais" faz poupar mais; suprimir o cone custa o
+artefato mais mobilizador do relatório sem ganho de honestidade.
+
+**A prosa morre no produtor, não em regra pós-LLM.**
+`pipeline/domain/services/pontos_fortes_analyzer.py:178-181` escreve
+`f"Cobertura de {cobertura:.0f} meses, acima do alvo de {meses_alvo:.0f} meses — o
+excedente pode ser realocado"`. É texto determinístico já pronto: regra pós-LLM não
+o alcança. E `parecer_planejador.yaml:299-301` projeta `$.reserva_emergencia` inteiro
+em `format: raw` — campo `motivo_supressao` ao lado seria inerte, que é `tier:
+indeterminado` outra vez. **Número suprimido sai da projeção**, e **legenda de limiar
+nunca acompanha número suprimido**.
+
+**Piso de utilidade — regra de composição, não limiar:** com **≥3 vereditos
+suprimidos pela mesma causa**, o relatório promove a causa a **manchete única com
+tarefa única** na capa, e para de repetir ressalva por card. Cinco ressalvas
+espalhadas ensinam que *o relatório está quebrado*; uma manchete ensina que *falta um
+dado da família*. É isto — e não a pausa do E5 — que entrega "pedir o dado antes":
+o relatório existe e carrega o pedido.
+
+Permanecem **íntegros e sem ressalva** (dependem só do denominador, não contaminado):
+`custo_essencial_mensal`, `meses_alvo`, `alvo_brl`, `nivel_6_meses`/`nivel_12_meses`.
+Suprimi-los junto seria supressão por atacado.
+
+### E4 — a D6(b) troca de régua: **meses da quantidade acionável**
+
+O braço (b) original ("1 mês em reserva/autonomia") dispara sempre a 44 meses de
+cobertura — gate que sempre dispara é gate morto. E o critério de flip de rótulo é
+**cego por construção em faixa aberta**: `"Excessiva"` não tem teto
+(`config/scoring.json:124`, `minimo_meses: 24`), logo nenhum erro flipa nada acima
+de 24 meses — a mesma cegueira estrutural que deixou `check_member_key_substring.py`
+verde por 7 semanas.
+
+A régua passa a medir **o que vira ação**: excedente sobre o alvo (piso **6 meses**,
+um degrau de `niveis_meses`, constante que o relatório já publica) ou déficit até o
+alvo (piso **1 mês**, onde o original estava certo). Materialidade **automática**
+quando o intervalo cruza o alvo.
+
+**Medido no run:** o erro na cobertura é 1,73×, mas o erro na **quantidade acionável**
+é **3,50×** (excedente 25,9 vs 7,4 meses) — subtrair o alvo amplifica. E a folga sobre
+o corte cai de **83% para 5,8%**: o rótulo é invariante, mas a redundância que o
+sustenta cai pela metade (a 25,4 o segundo braço `cobertura >= meses_alvo * 2` **não**
+dispara, e é correto que não dispare). Spread de 18,5 meses = **3 degraus** ⇒ suprime
+a prescrição com folga. O rótulo qualitativo **permanece** (invariante nos dois
+extremos, e o custo de oportunidade de reserva grande demais é real — calar
+completamente também erraria).
+
+**Dívida adjacente descoberta, não resolvida aqui:** `config/methodology.md:216-217`
+condiciona "realocar excedente" a **duas** condições — excedente material **E** desvio
+de alocação acima de `desvio_max_pct`. A segunda **não está implementada**
+(`pontos_fortes_analyzer.py:173` dispara só com `excessiva`). O produto prescreve
+rebalanceamento por aporte sem checar a condição de desvio que ele mesmo escreveu.
+§Deferido datado com dono.
