@@ -662,6 +662,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `ir_brackets_mensal` | `JSON` | yes | — | — |
 | `redutor_anual` | `JSON` | yes | — | — |
 | `redutor_mensal` | `JSON` | yes | — | — |
+| `irpfm_limiar_brl_cents` | `INTEGER` | yes | — | — |
 | `regime_completo` | `BOOLEAN` | no | `True` | — |
 | `componentes_ausentes` | `JSON` | yes | — | — |
 | `ir_brackets` | `JSON` | yes | — | — |
@@ -2448,6 +2449,7 @@ type FiscalParameter struct {
 	IrBracketsMensal json.RawMessage `db:"ir_brackets_mensal" json:"ir_brackets_mensal"`
 	RedutorAnual json.RawMessage `db:"redutor_anual" json:"redutor_anual"`
 	RedutorMensal json.RawMessage `db:"redutor_mensal" json:"redutor_mensal"`
+	IrpfmLimiarBrlCents *int `db:"irpfm_limiar_brl_cents" json:"irpfm_limiar_brl_cents"`
 	RegimeCompleto bool `db:"regime_completo" json:"regime_completo"`
 	ComponentesAusentes json.RawMessage `db:"componentes_ausentes" json:"componentes_ausentes"`
 	IrBrackets json.RawMessage `db:"ir_brackets" json:"ir_brackets"`

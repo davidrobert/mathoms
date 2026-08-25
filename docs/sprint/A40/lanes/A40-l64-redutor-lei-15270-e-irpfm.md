@@ -56,8 +56,8 @@ tags:
 > |---|---|---|
 > | **PR1** | A recusa vira real: `regime_completo=false` retém `economia_ir_anual` e `aporte_mensal`, com motivo que cita a lei e o ano | ✅ **entregue 2026-08-17** — fecha o §Critério de aceite 1 |
 > | **PR2** | `IR(base, ano)` existe e o D5 vira diferencial de fato — a dívida da [[ADR-375]] D5 | ✅ **entregue 2026-08-24** (#1672) |
-> | **PR3** | Contrato tipado do redutor (bandas, coeficientes, vigência) + ADR própria | ⬜ |
-> | **PR4** | IRPFM — confirmar base e abatimentos no texto da lei **antes** de implementar (§Escopo 2) | ⬜ |
+> | **PR3** | Contrato tipado do redutor (bandas, coeficientes, vigência) + ADR própria | ✅ **entregue 2026-08-25** (#1703, [[ADR-414]]) |
+> | **PR4** | IRPFM — detector de vinculação (não o cálculo) | ✅ **entregue 2026-08-25** |
 >
 > O §Critério 3 (`regime_completo` de AC2026 vira `true`) **não** é do PR1 e segue
 > aberto: vira `true` só depois do PR3 + PR4.
@@ -267,6 +267,34 @@ A [[A40.l56]] entrega o desbloqueio do D5 **qualificado**: liberado para
 - Caso acima de R$ 600k exercita o IRPFM e não publica economia que o mínimo
   absorve.
 - `regime_completo` de AC2026 vira `true` só quando os dois componentes existem.
+
+## Fecho do deferimento — 2026-08-25
+
+O §Deferimento abaixo **caiu**, e não por alguém ter lido o DOU: caiu porque a
+medição mostrou que **o piso da banda anual nunca precisou dele**.
+
+- **Redutor (PR3).** O `financial-planner` conferiu em fonte primária (RFB,
+  orientação de dez/2025 + Exemplos de Aplicação nº 4) e o R$ 1,08 **não era erro**:
+  R$ 2.694,15 é o imposto no piso da banda **sobre a base após o desconto
+  simplificado**, e a reta foi ancorada no intercepto. O art. 11-A limita a redução
+  ao imposto apurado, então **o clamp absorve** — o imposto só sai de zero em
+  ~R$ 60.003,92 de bruto. Um teste de continuidade na borda **reprovaria a norma**,
+  não o código; por isso ele não foi escrito.
+- **IRPFM (PR4).** O produto **não precisa do IRPFM ao centavo para não errar o
+  sinal**. Entregue como **detector**: `REND_upper` (tributável + isentos +
+  exclusiva, o **maior por declarante** — o mínimo é por CPF) contra o piso que
+  vive na row. Acima, retém prescrição com motivo próprio; abaixo, publica. As
+  exclusões do art. 16-A só **reduzem** REND, então o limite é superior e o erro
+  cai sempre para o lado de suprimir, nunca de prescrever.
+
+**O que ficou owner-gated, menor:** conferir no DOU a **inclusividade das bordas**
+das bandas e a composição fina das exclusões do IRPFM — nenhuma das duas bloqueia,
+porque o clamp e o limite superior já garantem a polaridade. Linha atualizada em
+[`OWNER-GATED-active.md`](../../../_MOC/OWNER-GATED-active.md).
+
+**§Critério 3 destravado:** os dois componentes de `componentes_ausentes` existem.
+Virar `regime_completo: true` para AC2026 passa a ser decisão de operação — flip da
+row —, não de engenharia.
 
 ## Deferimento datado — 2026-08-24: PR3 e PR4 exigem o texto da norma
 
