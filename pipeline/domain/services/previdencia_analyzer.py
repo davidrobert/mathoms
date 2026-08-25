@@ -152,6 +152,11 @@ class CapacidadePgblIRPF:
     # ano (tributável + isentos + exclusiva). Superior porque as exclusões do
     # art. 16-A só REDUZEM — logo, abaixo do piso o mínimo certamente não vincula.
     rend_upper_anual: Decimal = Decimal("0")
+    # Quantas declarações compõem a base do ano. > 1 ⇒ a base é SOMA familiar, e
+    # a progressividade não é aditiva (`IR(a+b) > IR(a)+IR(b)`) ⇒ a economia sai
+    # superestimada. Enquanto a apuração por declaração não existir ([[ADR-414]]
+    # §Limitação), o número é retido em vez de publicado com viés conhecido.
+    declaracoes_no_ano: int = 1
     nota_degradacao: str | None = None  # ADR-305 D3: existe ano mais recente não usado
 
     @property
@@ -350,6 +355,15 @@ def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal | None) -> 
 # Nomeia o mecanismo, não a nossa incapacidade: o cliente precisa entender que o
 # PGBL não deixou de valer — o benefício é reabsorvido pelo mínimo enquanto ele
 # vincular, e isso muda com o perfil de renda dele.
+# Declara que a limitação é NOSSA. O cliente não tem o que corrigir — e dizer
+# "não se aplica" aqui seria empurrar para ele um problema de modelagem.
+_NOTA_BASE_FAMILIAR = (
+    "Sua família tem mais de uma declaração de IRPF neste ano-base. O imposto é "
+    "apurado por declaração, e ainda não separamos a base de cada uma — somar as "
+    "duas superestimaria a economia, porque a tabela é progressiva. Preferimos não "
+    "publicar um número que sabemos estar alto."
+)
+
 _NOTA_IRPFM = (
     "Sua renda total do ano fica na faixa do imposto mínimo (IRPFM, Lei 15.270/2025): "
     "acima de R$ 600 mil, o IR devido pela tabela é abatido do mínimo, então reduzir "
@@ -369,6 +383,8 @@ def _nota_do_motivo(
         return _NOTA_SIMPLIFICADO.format(ano=ano)
     if dominante == MotivoAusenciaPgbl.sem_renda_tributavel:
         return _NOTA_SEM_RENDA.format(ano=ano)
+    if dominante == MotivoAusenciaPgbl.base_familiar_nao_particionada:
+        return f"{_NOTA_BASE_FAMILIAR} {_nota_capacidade_irpf(cap, cap.capacidade.restante)}"
     if dominante == MotivoAusenciaPgbl.irpfm_pode_vincular:
         return f"{_NOTA_IRPFM} {_nota_capacidade_irpf(cap, cap.capacidade.restante)}"
     fato = _nota_capacidade_irpf(cap, cap.capacidade.restante)

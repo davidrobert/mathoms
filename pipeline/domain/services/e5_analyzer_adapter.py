@@ -1218,6 +1218,8 @@ def _faixa_ref_fiscal(irpf: IRPFAnalyzer | None, reference_date: date) -> date:
     return date(ano, 12, 31)
 
 
+# VO inteiro (ADR-402): teto, aportado, restante e status saem da mesma leitura.
+# A base é DECLARADA e somada no ano ([[ADR-414]] D2), nunca derivada do bruto.
 def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | None:
     """Capacidade PGBL do ano-base fiscal único (ADR-266/277/305/375). ``None`` quando
     não há IRPF ou ano-base resolvível → analyzer devolve ausência declarada."""
@@ -1227,13 +1229,11 @@ def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | No
     if resolved is None:
         return None
     return CapacidadePgblIRPF(
-        # VO inteiro (ADR-402): teto, aportado, restante e status vêm da mesma
-        # leitura — `pgbl_status` era uma segunda passada sobre as declarações.
         capacidade=irpf.pgbl_capacidade_dedutivel(resolved.ano),
         renda_tributavel_anual=irpf.rendimentos_tributaveis(resolved.ano),
-        # ADR-414 D2: base DECLARADA, somada no ano — nunca derivada do bruto.
         base_calculo_anual=irpf.base_calculo_anual(resolved.ano),
         rend_upper_anual=irpf.maior_renda_total_declarante(resolved.ano),
+        declaracoes_no_ano=len(irpf.declarations_for_year(resolved.ano)),
         ano_base=resolved.ano,
         fonte="irpf_pgbl_capacidade",
         nota_degradacao=resolved.nota_degradacao,

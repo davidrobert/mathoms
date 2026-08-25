@@ -92,3 +92,49 @@ class TestDetector:
         assert "IRPFM" in nota and "15.270" in nota
         # Explica o mecanismo, não só declara ausência.
         assert "abatido do mínimo" in nota
+
+
+# =============================================================================
+# A40.l64 §Critério 3 — o que torna o flip do AC2026 SEGURO
+#
+# Flipar `regime_completo` liga a publicação. Com 2+ declarações no ano a base do
+# card é SOMA familiar e a progressividade não é aditiva (`IR(a+b) > IR(a)+IR(b)`),
+# então a economia sairia SUPERESTIMADA. Publica-se onde está certo; recusa-se
+# onde se sabe enviesado ([[ADR-414]] §Limitação).
+# =============================================================================
+
+
+class TestBaseFamiliarNaoParticionada:
+    def _com(self, n: int):
+        cap = _cap("100000", renda="300000")
+        from dataclasses import replace
+
+        return PrevidenciaAnalyzer(_cfg()).analyze(
+            {}, capacidade_irpf=replace(cap, declaracoes_no_ano=n)
+        )
+
+    def test_duas_declaracoes_retem_a_prescricao(self):
+        r = self._com(2)
+
+        assert r.economia_ir_anual is None
+        assert r.aporte_mensal is None
+        assert r.motivo_ausencia["economia"] == MotivoAusenciaPgbl.base_familiar_nao_particionada
+
+    def test_uma_declaracao_publica(self):
+        """Braço de controle: o flip existe para ESTE caso — sem ele nada muda."""
+        r = self._com(1)
+
+        assert r.economia_ir_anual is not None
+        assert r.motivo_ausencia["economia"] is None
+
+    def test_o_fato_do_irpf_sobrevive_nos_dois(self):
+        assert self._com(2).limite_pgbl_anual > 0
+        assert self._com(1).limite_pgbl_anual > 0
+
+    def test_a_nota_diz_que_a_limitacao_e_nossa(self):
+        # O cliente não tem o que corrigir — "não se aplica" empurraria para ele um
+        # problema de modelagem nosso.
+        nota = self._com(2).nota
+
+        assert "mais de uma declaração" in nota
+        assert "superestimaria" in nota

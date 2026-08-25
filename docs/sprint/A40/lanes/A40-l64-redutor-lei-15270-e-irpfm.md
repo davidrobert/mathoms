@@ -267,6 +267,28 @@ A [[A40.l56]] entrega o desbloqueio do D5 **qualificado**: liberado para
 - Caso acima de R$ 600k exercita o IRPFM e não publica economia que o mínimo
   absorve.
 - `regime_completo` de AC2026 vira `true` só quando os dois componentes existem.
+  ✅ **flipado em 2026-08-25** (migration `adr414flip`).
+
+  > **O que torna o flip seguro é o que ele NÃO liga.** A base do card ainda soma as
+  > declarações do ano, e a progressividade não é aditiva (`IR(a+b) > IR(a)+IR(b)`),
+  > então com 2+ declarantes a economia sairia **superestimada**. Publicar economia
+  > alta é a mis-sale que esta lane existe para impedir. Por isso o flip vem com
+  > supressão própria: `base_familiar_nao_particionada` retém a prescrição nesses
+  > workspaces, com nota que diz que a limitação é **nossa** — o cliente não tem o
+  > que corrigir.
+  >
+  > **Resultado:** declarante único passa a receber o número, correto; casal segue
+  > sem número, agora pela causa certa. Estritamente melhor que antes, nunca pior.
+  >
+  > A remoção da supressão depende da apuração **por declaração** ([[ADR-414]]
+  > §Limitação), que por sua vez depende da unificação de conceito vedada pelo
+  > §Fora de escopo da [[A40.l65]].
+  >
+  > **Efeito colateral medido:** com AC2026 completo, **nenhum ano do seed é
+  > incompleto**, e `regime_fiscal_incompleto` deixa de ser alcançável por ano. O
+  > mecanismo continua vivo — é o que protegerá o ano em que uma norma nova entrar,
+  > e é do que a [[A40.l79]] depende —, então os goldens que o provavam passaram a
+  > usar row **sintética** em vez de depender de qual ano está incompleto.
 
 ## Fecho do deferimento — 2026-08-25
 

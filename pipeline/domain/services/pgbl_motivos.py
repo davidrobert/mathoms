@@ -34,6 +34,9 @@ class MotivoAusenciaPgbl(str, Enum):
     # do mínimo — a economia líquida some enquanto o mínimo vincula. Prescrever
     # ali é conselho com o SINAL invertido, no público principal do produto.
     irpfm_pode_vincular = "irpfm_pode_vincular"
+    # Limitação NOSSA, não do dado: a base soma as declarações do ano e a
+    # progressividade não é aditiva. Só ocorre com 2+ declarantes.
+    base_familiar_nao_particionada = "base_familiar_nao_particionada"
 
 
 # Precedência declarada: o primeiro que se aplica é o dominante e CALA os demais.
@@ -45,6 +48,7 @@ PRECEDENCIA_MOTIVO_PGBL: tuple[MotivoAusenciaPgbl, ...] = (
     MotivoAusenciaPgbl.sem_renda_tributavel,
     MotivoAusenciaPgbl.regime_fiscal_incompleto,
     MotivoAusenciaPgbl.irpfm_pode_vincular,
+    MotivoAusenciaPgbl.base_familiar_nao_particionada,
     MotivoAusenciaPgbl.sem_imposto_a_reduzir,
 )
 
@@ -78,6 +82,12 @@ def motivo_dominante(
 # nunca é escrita ao lado do campo, e o campo nunca é lido a partir da nota —
 # `null` não carrega a razão de ser `null`, então "nota derivada do campo" é
 # inexequível. O motivo dominante é o pivô comum.
+# Anula a PRESCRIÇÃO e preserva o FATO: teto e restante vêm do IRPF e não dependem
+# do regime, do mínimo nem de quantas declarações compõem a base.
+def _so_prescricao(motivo: MotivoAusenciaPgbl) -> dict[str, MotivoAusenciaPgbl | None]:
+    return {"teto": None, "restante": None, "aporte": motivo, "economia": motivo}
+
+
 def _motivos_por_campo(
     cap: "CapacidadePgblIRPF", regime_completo: bool, irpfm_vincula: bool = False
 ) -> dict[str, MotivoAusenciaPgbl | None]:
@@ -89,23 +99,11 @@ def _motivos_por_campo(
     if cap.pgbl_status == PgblStatus.sem_renda_tributavel or cap.capacidade.teto is None:
         return dict.fromkeys(CAMPOS_MOTIVO_PGBL, MotivoAusenciaPgbl.sem_renda_tributavel)
     if irpfm_vincula:
-        # Mesma polaridade de `regime_fiscal_incompleto`: anula a PRESCRIÇÃO e
-        # preserva o FATO — o espaço de 12% vem do IRPF e não depende do mínimo.
-        return {
-            "teto": None,
-            "restante": None,
-            "aporte": MotivoAusenciaPgbl.irpfm_pode_vincular,
-            "economia": MotivoAusenciaPgbl.irpfm_pode_vincular,
-        }
+        return _so_prescricao(MotivoAusenciaPgbl.irpfm_pode_vincular)
+    if cap.declaracoes_no_ano > 1:
+        return _so_prescricao(MotivoAusenciaPgbl.base_familiar_nao_particionada)
     if not regime_completo:
-        # Anula prescrição (ADR-375 D4) e PRESERVA o fato: o espaço de 12% vem do
-        # IRPF e não depende da completude do regime do ano corrente.
-        return {
-            "teto": None,
-            "restante": None,
-            "aporte": MotivoAusenciaPgbl.regime_fiscal_incompleto,
-            "economia": MotivoAusenciaPgbl.regime_fiscal_incompleto,
-        }
+        return _so_prescricao(MotivoAusenciaPgbl.regime_fiscal_incompleto)
     return dict.fromkeys(CAMPOS_MOTIVO_PGBL, None)
 
 
