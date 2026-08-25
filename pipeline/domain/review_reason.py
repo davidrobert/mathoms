@@ -58,6 +58,11 @@ class ReviewReasonCode(str, enum.Enum):
     domain_ativo_sem_haystack = "domain.ativo_sem_haystack"
     domain_ativo_nao_classificado = "domain.ativo_nao_classificado"
     domain_instituicao_ausente = "domain.instituicao_ausente"
+    # [[ADR-412]] §D5: presença de medição SEM etiqueta de pessoa. NÃO é
+    # `domain.membro_nao_apurado` — aquele é ausência de medição de pessoa que
+    # existe, e fica FORA da base; este fica DENTRO. A remediação difere: um pede
+    # documento, o outro pede reconciliação de titularidade.
+    domain_investimento_sem_titularidade = "domain.investimento_sem_titularidade"
     # DE-6 ([[ADR-398]]): o eixo ativo do item veio do `categoria_hint`, não de
     # um fato — mint de identidade recusado, porque rotular converteria um
     # passivo em ativo do patrimônio bruto.
