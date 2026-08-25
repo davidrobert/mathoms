@@ -12,6 +12,7 @@ adrs:
   - "[[ADR-340]]"
   - "[[ADR-394]]"
   - "[[ADR-406]]"
+  - "[[ADR-412]]"
 depends_on: []
 tags:
   - type/lane
@@ -32,6 +33,60 @@ tags:
 > antes do PR de implementação** (CLAUDE.md §Política operacional). Co-design
 > `financial-planner` (a decisão de domínio) + `data-engineer` (enum/contrato)
 > **antes** de escrever o fix.
+
+## Correções à lane (2026-08-25 · re-medição no run `d0f6260a`)
+
+> A decisão está fechada em **[[ADR-412]]** (`Proposto`). Esta seção retrata o que
+> a re-medição refutou — nada abaixo foi apagado, e onde o texto original diverge,
+> **esta seção prevalece**.
+
+**A tese central se sustenta** (fatia órfã = 48,13% de `investimentos.total_financeiro`;
+concentração 66,79% → 50,62% na base cheia, delta 16,17 p.p.). O que não reproduziu:
+
+| # | Está escrito | Medido | Leia assim |
+|---|---|---|---|
+| C1 | "a banda cambial cruzou para **verde**" | `tier == "indeterminado"`. **Verde é estruturalmente inalcançável**: `_tier` (`exposicao_cambial_analyzer.py:133-136`) curto-circuita porque `carteira_lastro_estrangeiro` é fixado `Cobertura.indeterminado` incondicionalmente (`:287-292`) desde o #1568 ([[ADR-403]]) — `_tier_from_pct` é código morto em produção | o **pct** cruzou o limiar verde (12,55% ≥ `THRESHOLD_VERDE_PCT`); quem publicou "faixa verde" foi a **prosa do parecer**, não o campo |
+| C2 | "o denominador caiu **44,4%**" | 44,4% é razão **cross-run** (r7→r8) e mistura amputação com crescimento de corpus | **dentro do r8 a amputação é 49,03%** (base atual = 50,97% da cheia). Não são intercambiáveis |
+| C3 | "a banda volta de verde para amarelo"; "não conserte a banda de volta para verde" | **inobservável** — sob o fix `tier` não se move, segue `indeterminado` | procure o movimento em `pct_investivel_financeiro` (12,55% → 6,40%) e na prosa do parecer. A ausência de flip em `tier` **não** significa que o fix não pegou |
+| C4 | corte "composição × runway" | o corte é **domiciliar × por-pessoa** — reserva e autonomia têm denominador de despesa do **domicílio**, logo querem base cheia | [[ADR-412]] §D0. E **neste caso é somar um termo**: `git log -L` mostra regressão do #1550, não escolha de design |
+| C5 | §Raio de explosão | omite o **bloco IF inteiro** (`investivel_efetivo:219` → `if_projector`, cone MC, `cenarios_conjuge`), `exposicao_cambial_v2.py:286` (recomputa no read) e `HeroKpiGrid.tsx:85-88` | autonomia e IF movem **mais** que a concentração |
+| C6 | "`kpi_targets[].base` não é honrado pelos produtores" | os 10 targets **têm** `base` preenchida — e ela é **incoerente**: `concentracao_imobiliaria` declara `carteira_produtiva` e `exposicao_cambial` declara `investivel_financeiro` para denominadores que compartilham o mesmo termo amputado | o problema é o **vocabulário** do campo, não o preenchimento. Senão o fix vira "preencher o campo" |
+| C7 | RV8-06: "abrir o enum `membro` + terceira `CoberturaMembro`" | `CoberturaStatus(linha.get("status"))` (`:144,236`) levanta `ValueError` em **leitor antigo lendo artefato novo**; e `cobertura_investimentos` particiona **pessoas**, a órfã particiona **dinheiro** | **rejeitado** — eixo separado `patrimonio.atribuicao_investimentos` + `Papel` ternário ([[ADR-412]] §D2/§D5) |
+| C8 | §Corretude: identidade da reserva | **já fecha hoje, em 0,00%, sobre o defeito** — fecha *porque* a órfã foi absorvida sob rótulo de membro | gate de soma contra defeito que preserva soma. O predicado que discrimina é **partição por item** |
+| C9 | — | **o terceiro resolver não está na lane** — ver §abaixo | driver primário do RV8-06 |
+| C10 | §Rastro | [[ADR-394]] §D8 declara denominador de 35 sites em 4 arquivos; `reserva_liquidez.py` não está nele | é o inventário do **regex**, não da classe. Emenda datada devida ao flipar a [[ADR-412]] |
+
+### C9 — o terceiro resolver (achado desta sessão, ausente do texto original)
+
+`reserva_liquidez.py:177-191` (`_positions_for_member`) resolve titularidade por
+conta própria, com convenção **invertida** — o docstring `:180` declara: *"sem membro
+atribuído → titular (convenção legado)"*. É a afirmação que `atribuir_por_membro`
+documenta ter removido (`investimentos_cobertura.py:177`).
+
+Medido executando `_filter_liquid` sobre os itens reais, delta 0,00:
+
+- **58,64%** do que a reserva rotula "titular" é dinheiro sem dono
+- `composicao_liquida.investimentos_titular` = **2,42×** `patrimonio.investimentos_titular`
+- `cobertura_meses` publica **43,9** contra **25,4** na partição correta — **18,5 meses
+  inflados**, sob veredito `avaliacao_liquidity: "Excessiva"` (alvo 18)
+- ramo culpado: `elif not membro and member_key == identity.titular_key` (`:189-190`) —
+  15 das 18 posições têm `membro` vazio e carregam 68,1% do valor
+
+**Sinal oposto ao do patrimônio:** o patrimônio **exclui** a órfã sem declarar; a
+reserva a **inclui sob rótulo de pessoa**. No mesmo payload, a composição publica a
+linha "Investimentos sem titular identificado" (16,6% do bruto, maior que os dois
+membros nomeados somados) enquanto a reserva chama esse dinheiro de titular. As duas
+correções são opostas e precisam ser decididas juntas — uma sozinha reabre a outra.
+
+Um único commit na história (`b1df6d64`, 2026-07-06, A28.l1 #787), **nenhum teste**,
+**zero menções no vault**. O gate `dev/check_member_key_substring.py` varre o arquivo
+e sai `0` porque identifica a chave pelo **nome da variável**
+(`_KEY_SUFFIXES = ("titular_key","conjuge_key")`) e ali ela se chama `member_key` —
+verde por 7 semanas sobre instância viva da classe que [[ADR-394]] §D8 fechou.
+
+**Não** troque a substring de `:187` por `matches_member_key` como o fix: com
+`membro == ""` a substring é `False`, e **100% do excedente vem do ramo `:189-190`**.
+Seria fix mal-mirado com gate verde por cima.
 
 ## O fato, medido no r8 (run `d0f6260a`)
 

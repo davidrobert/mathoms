@@ -11,7 +11,7 @@
 |---|---|
 | "O que mudou nos últimos 14 dias?" | [docs/_MOC/_generated/CHANGELOG_RECENT.md](_MOC/_generated/CHANGELOG_RECENT.md) |
 | "Cronologia completa de uma sprint" | `docs/sprint/<X>/changelog/` (1 arquivo por entrada) |
-| "Inventário atual" | [docs/_MOC/_generated/DOC_STATS.md](_MOC/_generated/DOC_STATS.md) |
+| "Inventário atual" | [docs/_MOC/_generated/INDEX.md](_MOC/_generated/INDEX.md) |
 
 ## Quando criar uma entrada
 

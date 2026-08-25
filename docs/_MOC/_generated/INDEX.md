@@ -406,6 +406,8 @@
 | ADR-409 | adr | Decidido |  | Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart | `adr/409-fila-de-elegibilidade-do-flip-strict-derivada-de-medicao.md` |
 | ADR-410 | adr | Decidido |  | A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor | `adr/410-a-resolucao-de-membro-tem-um-produtor-e-ele-e-injetado.md` |
 | ADR-411 | adr | Decidido |  | O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row | `adr/411-o-diagnostico-sai-do-artefato-em-todo-desfecho.md` |
+| ADR-412 | adr | Proposto |  | Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais | `adr/412-base-canonica-unica-papel-ternario-e-produtor-do-eixo-de-posicoes.md` |
+| ADR-413 | adr | Decidido |  | Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado | `adr/413-derivado-versionado-e-derivado-de-contrato.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -953,6 +955,8 @@
 | A40.l80 | lane | open | A40 | Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' | `sprint/A40/lanes/A40-l80-denominador-amputado.md` |
 | A40.l81 | lane | shipped | A40 | Diagnóstico sem canal de saída: o stage que não pausa entrega razão no artefato e ela não chega nem à tabela nem ao usuário | `sprint/A40/lanes/A40-l81-diagnostico-sem-saida.md` |
 | A40.l82 | lane | open | A40 | Um default de grupo RFB decide a classe de 13% da carteira, com confiança plena e sem sinal | `sprint/A40/lanes/A40-l82-tipo-default-decide-classe.md` |
+| A40.l83 | lane | open | A40 | Parecer cego em três eixos: não recebe a incerteza, não consegue citar o que recebe, e o guardrail que deveria pegar isso inverte o diagnóstico | `sprint/A40/lanes/A40-l83-parecer-cego.md` |
+| A40.l84 | lane | open | A40 | O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou | `sprint/A40/lanes/A40-l84-guard-na-camada-errada.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
@@ -1040,42 +1044,42 @@
 | F7.f | lane | shipped | F7 | Console interno (operadores) | `sprint/F7/lanes/F7-f-console-interno.md` |
 | MARKETING-landing-copy-draft-v1 | marketing-draft | draft |  | Landing copy draft v1 — pilares ADR-183 (Fase 4.B COMPETITIVE_PIERRE) | `_marketing/landing-copy-draft-v1.md` |
 | MOC-a40-historico | moc |  |  | Sprint A40 — histórico: o que foi decidido, medido e encerrado | `sprint/A40/_HISTORY.md` |
-| MOC-sprint-a10 | moc |  |  | Sprint A10 — goals.json cutover final | `sprint/A10/_README.md` |
-| MOC-sprint-a11 | moc |  |  | Sprint A11 — Platform review execution | `sprint/A11/_README.md` |
-| MOC-sprint-a12 | moc |  |  | Sprint A12 — Categorization learning loop + post-A11 follow-up | `sprint/A12/_README.md` |
-| MOC-sprint-a15 | moc |  |  | Sprint A15 — FU-3 Imóvel financiado (Debt aggregate + valor_mercado override) | `sprint/A15/_README.md` |
-| MOC-sprint-a16 | moc |  |  | Sprint A16 — Flips ADR-235 nu_proprietario + ADR-236 Tributário PJ Cascata Fiscal | `sprint/A16/_README.md` |
-| MOC-sprint-a17 | moc |  |  | Sprint A17 — Ingestão de Informes de Rendimentos anuais avulsos (4 ondas) | `sprint/A17/_README.md` |
-| MOC-sprint-a18 | moc |  |  | Sprint A18 — Comprovantes de Bem (CRLV) + Apólices polimórficas + FIPE refresh (3 lanes coordenadas) | `sprint/A18/_README.md` |
-| MOC-sprint-a19 | moc |  |  | Sprint A19 — Card S_PROTECAO (4º pilar AUVP Proteção Patrimonial) | `sprint/A19/_README.md` |
-| MOC-sprint-a20 | moc |  |  | Sprint A20 — Docker dev↔prod parity + P0 production gates | `sprint/A20/_README.md` |
-| MOC-sprint-a21 | moc |  |  | Sprint A21 — Launch Trust: número confiável + gates de F3/LGPD abertos | `sprint/A21/_README.md` |
-| MOC-sprint-a22 | moc |  |  | Sprint A22 — Launch Trust: Parecer defensável (F3) | `sprint/A22/_README.md` |
-| MOC-sprint-a23 | moc |  |  | Sprint A23 — Data Lineage backbone (walking skeleton) | `sprint/A23/_README.md` |
-| MOC-sprint-a24 | moc |  |  | Sprint A24 — Data Lineage: extração limpa + walking skeleton | `sprint/A24/_README.md` |
-| MOC-sprint-a25 | moc |  |  | Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM | `sprint/A25/_README.md` |
-| MOC-sprint-a26 | moc |  |  | Sprint A26 — Data Lineage: consolidação | `sprint/A26/_README.md` |
-| MOC-sprint-a27 | moc |  |  | Sprint A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer, ponta a ponta | `sprint/A27/_README.md` |
-| MOC-sprint-a28 | moc |  |  | Sprint A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam | `sprint/A28/_README.md` |
-| MOC-sprint-a29 | moc |  |  | Sprint A29 — Review UX: conferência de pipeline centrada em documentos | `sprint/A29/_README.md` |
-| MOC-sprint-a30 | moc |  |  | Sprint A30 — Ops FinOps: budget LLM editável no console interno | `sprint/A30/_README.md` |
-| MOC-sprint-a31 | moc |  |  | Sprint A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado | `sprint/A31/_README.md` |
-| MOC-sprint-a32 | moc |  |  | Sprint A32 — Review de reconciliação confiável: falsos positivos zerados + lifecycle de artifact + a tela diz de quem é o erro | `sprint/A32/_README.md` |
-| MOC-sprint-a33 | moc |  |  | Sprint A33 — Autonomia total: débito executável sem nenhuma ação do owner (LLM hardening + fechamento A17 + retenção) | `sprint/A33/_README.md` |
-| MOC-sprint-a34 | moc |  |  | Sprint A34 — Public Release: tornar o repo público in-place com segurança e qualidade de referência | `sprint/A34/_README.md` |
-| MOC-sprint-a35 | moc |  |  | Sprint A35 — Continuidade não some quando o número de conta não extrai (follow-up A32, issue #860) | `sprint/A35/_README.md` |
-| MOC-sprint-a36 | moc |  |  | Sprint A36 — Follow-up da auditoria r4: itens de mérito sem rastreio | `sprint/A36/_README.md` |
-| MOC-sprint-a37 | moc |  |  | Sprint A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 | `sprint/A37/_README.md` |
-| MOC-sprint-a38 | moc |  |  | Sprint A38 — Ingestão confiável: certificação de parse dos layouts 2026 (Wise/Santander/Itaú) | `sprint/A38/_README.md` |
-| MOC-sprint-a39 | moc |  |  | Sprint A39 — Parse correctness: fechar a dívida de verificação da ingestão E0→E2 | `sprint/A39/_README.md` |
-| MOC-sprint-a40 | moc |  |  | Sprint A40 — Report trust: o dado que entrou tem de chegar ao usuário | `sprint/A40/_README.md` |
-| MOC-sprint-a41 | moc |  |  | Sprint A41 — Governança de chamada LLM: fechar a rota alternativa ao choke-point | `sprint/A41/_README.md` |
-| MOC-sprint-a42 | moc |  |  | Sprint A42 — Provabilidade da ingestão e do razão: fechar o falso-verde do instrumento | `sprint/A42/_README.md` |
-| MOC-sprint-a43 | moc |  |  | Sprint A43 — Compatibilidade AI-native: Mathoms confiável no ChatGPT, Codex e clientes MCP | `sprint/A43/_README.md` |
-| MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
-| MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
-| MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
-| MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
+| MOC-sprint-a10 | moc | done |  | Sprint A10 — goals.json cutover final | `sprint/A10/_README.md` |
+| MOC-sprint-a11 | moc | done |  | Sprint A11 — Platform review execution | `sprint/A11/_README.md` |
+| MOC-sprint-a12 | moc | done |  | Sprint A12 — Categorization learning loop + post-A11 follow-up | `sprint/A12/_README.md` |
+| MOC-sprint-a15 | moc | done |  | Sprint A15 — FU-3 Imóvel financiado (Debt aggregate + valor_mercado override) | `sprint/A15/_README.md` |
+| MOC-sprint-a16 | moc | done |  | Sprint A16 — Flips ADR-235 nu_proprietario + ADR-236 Tributário PJ Cascata Fiscal | `sprint/A16/_README.md` |
+| MOC-sprint-a17 | moc | done |  | Sprint A17 — Ingestão de Informes de Rendimentos anuais avulsos (4 ondas) | `sprint/A17/_README.md` |
+| MOC-sprint-a18 | moc | done |  | Sprint A18 — Comprovantes de Bem (CRLV) + Apólices polimórficas + FIPE refresh (3 lanes coordenadas) | `sprint/A18/_README.md` |
+| MOC-sprint-a19 | moc | done |  | Sprint A19 — Card S_PROTECAO (4º pilar AUVP Proteção Patrimonial) | `sprint/A19/_README.md` |
+| MOC-sprint-a20 | moc | paused |  | Sprint A20 — Docker dev↔prod parity + P0 production gates | `sprint/A20/_README.md` |
+| MOC-sprint-a21 | moc | done |  | Sprint A21 — Launch Trust: número confiável + gates de F3/LGPD abertos | `sprint/A21/_README.md` |
+| MOC-sprint-a22 | moc | done |  | Sprint A22 — Launch Trust: Parecer defensável (F3) | `sprint/A22/_README.md` |
+| MOC-sprint-a23 | moc | done |  | Sprint A23 — Data Lineage backbone (walking skeleton) | `sprint/A23/_README.md` |
+| MOC-sprint-a24 | moc | done |  | Sprint A24 — Data Lineage: extração limpa + walking skeleton | `sprint/A24/_README.md` |
+| MOC-sprint-a25 | moc | done |  | Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM | `sprint/A25/_README.md` |
+| MOC-sprint-a26 | moc | paused |  | Sprint A26 — Data Lineage: consolidação | `sprint/A26/_README.md` |
+| MOC-sprint-a27 | moc | candidate |  | Sprint A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer, ponta a ponta | `sprint/A27/_README.md` |
+| MOC-sprint-a28 | moc | done |  | Sprint A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam | `sprint/A28/_README.md` |
+| MOC-sprint-a29 | moc | done |  | Sprint A29 — Review UX: conferência de pipeline centrada em documentos | `sprint/A29/_README.md` |
+| MOC-sprint-a30 | moc | done |  | Sprint A30 — Ops FinOps: budget LLM editável no console interno | `sprint/A30/_README.md` |
+| MOC-sprint-a31 | moc | done |  | Sprint A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado | `sprint/A31/_README.md` |
+| MOC-sprint-a32 | moc | done |  | Sprint A32 — Review de reconciliação confiável: falsos positivos zerados + lifecycle de artifact + a tela diz de quem é o erro | `sprint/A32/_README.md` |
+| MOC-sprint-a33 | moc | done |  | Sprint A33 — Autonomia total: débito executável sem nenhuma ação do owner (LLM hardening + fechamento A17 + retenção) | `sprint/A33/_README.md` |
+| MOC-sprint-a34 | moc | paused |  | Sprint A34 — Public Release: tornar o repo público in-place com segurança e qualidade de referência | `sprint/A34/_README.md` |
+| MOC-sprint-a35 | moc | done |  | Sprint A35 — Continuidade não some quando o número de conta não extrai (follow-up A32, issue #860) | `sprint/A35/_README.md` |
+| MOC-sprint-a36 | moc | candidate |  | Sprint A36 — Follow-up da auditoria r4: itens de mérito sem rastreio | `sprint/A36/_README.md` |
+| MOC-sprint-a37 | moc | done |  | Sprint A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 | `sprint/A37/_README.md` |
+| MOC-sprint-a38 | moc | done |  | Sprint A38 — Ingestão confiável: certificação de parse dos layouts 2026 (Wise/Santander/Itaú) | `sprint/A38/_README.md` |
+| MOC-sprint-a39 | moc | done |  | Sprint A39 — Parse correctness: fechar a dívida de verificação da ingestão E0→E2 | `sprint/A39/_README.md` |
+| MOC-sprint-a40 | moc | current |  | Sprint A40 — Report trust: o dado que entrou tem de chegar ao usuário | `sprint/A40/_README.md` |
+| MOC-sprint-a41 | moc | candidate |  | Sprint A41 — Governança de chamada LLM: fechar a rota alternativa ao choke-point | `sprint/A41/_README.md` |
+| MOC-sprint-a42 | moc | candidate |  | Sprint A42 — Provabilidade da ingestão e do razão: fechar o falso-verde do instrumento | `sprint/A42/_README.md` |
+| MOC-sprint-a43 | moc | candidate |  | Sprint A43 — Compatibilidade AI-native: Mathoms confiável no ChatGPT, Codex e clientes MCP | `sprint/A43/_README.md` |
+| MOC-sprint-a6 | moc | done |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
+| MOC-sprint-a7 | moc | done |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
+| MOC-sprint-a8 | moc | done |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
+| MOC-sprint-a9 | moc | done |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
 | PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | in_progress |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
