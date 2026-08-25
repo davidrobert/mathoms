@@ -2,7 +2,7 @@
 id: ADR-415
 type: adr
 title: "Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação"
-status: Proposto
+status: Decidido
 phase: PLAN-ci-trust Onda 0
 date: "2026-08-25"
 relates_to:
@@ -17,13 +17,13 @@ aliases:
   - "bypass do ruleset"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/ci
 ---
 
 # ADR-415 — Proteção de main: squash-only, bypass sancionado e auditado
 
-**Status:** Proposto • **Data:** 2026-08-25 • **Relaciona** [[ADR-210]], [[ADR-322]], [[ADR-320]] • **Plano:** [[PLAN-ci-trust]] §Onda 0
+**Status:** Decidido • **Data:** 2026-08-25 • **Relaciona** [[ADR-210]], [[ADR-322]], [[ADR-320]] • **Plano:** [[PLAN-ci-trust]] §Onda 0
 
 ## Contexto
 
@@ -85,7 +85,9 @@ naquele instante — bypass administrativo, sancionado por
 - **D1 — `allowed_merge_methods: ["squash"]`.** Uma chamada `gh api`; elimina
   a divergência com o `CLAUDE.md` e restaura a premissa de que a [[ADR-322]]
   §Emenda 2026-08-21 depende. Consequência aceita: rebase-merge deixa de ser
-  possível pela UI.
+  possível pela UI. **Aplicado em 2026-08-25**, verificado ao vivo
+  (`allowed_merge_methods: ["squash"]`, `strict: true`, 2 required checks e o
+  `bypass_actor` preservados). Backup do estado anterior tomado antes do PUT.
 - **D2 — `bypass_actors` permanece, e o bypass vira uso *sancionado e
   nomeado*.** Ele é o único rollback existente para a operação de maior blast
   radius do repo: uma mudança que brique o `all-green` só pode ser revertida
