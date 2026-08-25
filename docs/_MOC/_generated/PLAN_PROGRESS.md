@@ -9,6 +9,13 @@ Planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
+### PLAN-ci-trust — CI Trust — o veredito do CI precisa ser confiável nos dois sentidos
+
+- Status: `in_progress` · Sprint atual: A40
+- Sprints envolvidas: A40
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-210]], [[ADR-322]]
+
 ### PLAN-competitive-pierre — Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
 
 - Status: `in_progress` · Sprint atual: —
