@@ -80,6 +80,7 @@ export type ReservaComposicaoLiquida = {
   "caixa_moeda_estrangeira"?: number;
   "total_liquido"?: number;
   "cobertura_meses"?: number;
+  "investimentos_nao_atribuidos"?: number;
 };
 
 export type ReservaExcluida = {
@@ -223,6 +224,18 @@ export type ConsolidacaoCrossDocumento = {
   }>;
 };
 
+export type BaseDeclarada = {
+  "termos"?: Array<string>;
+  "valor_brl"?: number;
+};
+
+export type AtribuicaoInvestimentos = {
+  "status"?: "apurado" | "parcial" | "indeterminado";
+  "pct_carteira_financeira"?: number;
+  "piso_pct"?: number;
+  "motivo"?: string | null;
+};
+
 export type ProtecaoPatrimonialApoliceResumo = {
   "apolice_numero": string;
   "seguradora": string;
@@ -360,6 +373,13 @@ export type E5AnalysisArtifact = {
       "count"?: number;
       "tickers"?: Array<string>;
     };
+    "bases"?: {
+      "carteira_financeira_familia"?: BaseDeclarada;
+      "carteira_produtiva_familia"?: BaseDeclarada;
+      "carteira_com_titular_identificado"?: BaseDeclarada;
+      "patrimonio_liquido"?: BaseDeclarada;
+    };
+    "atribuicao_investimentos"?: AtribuicaoInvestimentos;
   };
   "fluxo_caixa": {
     "data_corte": string;
