@@ -27,7 +27,6 @@ open · in_progress.
 - [[A40.l76]] — A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia · priority P1 · área pipeline/db · branch `a40-l76-proveniencia-de-artefato-e2`
 - [[A40.l79]] — A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 · priority P1 · área pipeline/financial-planning · branch `a40-l79-row-fiscal-ausente-e-fail-open`
 - [[A40.l80]] — Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' · priority P0 · área pipeline/financial-planning/report · branch `a40-l80-denominador-amputado`
-- [[A40.l82]] — Um default de grupo RFB decide a classe de 13% da carteira, com confiança plena e sem sinal · priority P0 · área pipeline/financial-planning · branch `a40-l82-tipo-default-decide-classe`
 - [[A40.l83]] — Parecer cego em três eixos: não recebe a incerteza, não consegue citar o que recebe, e o guardrail que deveria pegar isso inverte o diagnóstico · priority P0 · área pipeline/llm/report · branch `a40-l83-parecer-cego`
 - [[A40.l84]] — O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou · priority P0 · área backend/pipeline · branch `a40-l84-guard-na-camada-errada`
 
