@@ -138,6 +138,12 @@ ausência de flip. O gate proposto pela [[A40.l59]] dispara *na transição para
 `shipped`*, então **não pegaria este caso**: é o mesmo desenho pelo qual o
 caso-bandeira da própria l59 fica verde.
 
+> *Marcador 2026-08-25: o gate deixou de ser "proposto" — a [[A40.l59]] shipou
+> (`lane-transition`, #1661). A análise acima **continua valendo**: o `T1` de
+> fato não pega transição ausente. O que a l59 entregou a mais foi o `C1`, que lê
+> estado em vez de diff — mas ele exige `ship_pr` declarado, e no instante medido
+> aqui esta lane não tinha. É o limite declarado em [[ADR-413]] §Limite.*
+
 ### 1 · «porque o tipo não deixa» — o tipo deixa
 
 O §Escopo 4 sustenta o fechamento da classe no funil estrutural: *"via nova não

@@ -12,7 +12,7 @@ indicadas e so depois faca buscas estreitas com `rg`.
 | Backend/API/pipeline | [`CONTEXT_BACKEND`](CONTEXT_BACKEND.md) | [`ARCHITECTURE`](../../reference/ARCHITECTURE.md), [`PIPELINE_ARTIFACTS`](../../reference/PIPELINE_ARTIFACTS.md) |
 | Frontend/relatorio | [`CONTEXT_FRONTEND`](CONTEXT_FRONTEND.md) | [`PRODUCT`](../../reference/PRODUCT.md), [`COPY_GUIDELINES`](../../reference/COPY_GUIDELINES.md) |
 | Produto/dominio financeiro | [`CONTEXT_PRODUCT`](CONTEXT_PRODUCT.md) | [`FORMULAS`](../../reference/FORMULAS.md), [`reference/rules`](../../reference/rules/) |
-| Documentacao/vault | [`CONTEXT_DOCS`](CONTEXT_DOCS.md) | [`00-INDEX`](../00-INDEX.md), [`DOC_STATS`](DOC_STATS.md) |
+| Documentacao/vault | [`CONTEXT_DOCS`](CONTEXT_DOCS.md) | [`00-INDEX`](../00-INDEX.md), [`INDEX`](INDEX.md) |
 
 Regra de economia: evite `rg docs` amplo. Prefira `rg <termo> docs/reference docs/plan`
 ou o bucket indicado pelo pack. Consulte `docs/archive/**` apenas para arqueologia.

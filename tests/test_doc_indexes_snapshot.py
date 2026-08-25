@@ -38,7 +38,6 @@ def regenerated() -> dict[str, str]:
         "CHANGELOG_RECENT.md",
         "ROADMAP.md",
         "PLAN_PROGRESS.md",
-        "DOC_STATS.md",
         "CONTEXT_INDEX.md",
         "CONTEXT_ENGINEERING.md",
         "CONTEXT_BACKEND.md",

@@ -25,8 +25,25 @@ from dev.build_doc_index import regenerate_all
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# Índices navegáveis: uma linha por item, ordenada — merge de linha resolve casos disjuntos.
-NAVEGAVEIS = ("SPRINT_CURRENT.md", "PLAN_PROGRESS.md", "ADR_INDEX.md")
+# TODOS os gerados, derivados do próprio `regenerate_all` — lista à mão envelhece, e o
+# ponto do teste é justamente que nenhum deles volte a carregar agregado. O `DOC_STATS.md`
+# saiu do gerador em 2026-08-25 por ser 100% agregado: não era reformável, só removível.
+# `INDEX.md` é o resíduo DECLARADO e de outra classe: uma tabela só, ordenada por id, em
+# que duas notas novas caem adjacentes — duas inserções no mesmo ponto conflitam por
+# natureza do merge de linha, não por agregado. `strict=True` de propósito: se algum dia
+# alguém resolver a adjacência, este teste reprova e avisa em vez de mentir verde.
+_RESIDUO_ADJACENCIA = {"INDEX.md"}
+
+
+def _param(nome: str):
+    if nome in _RESIDUO_ADJACENCIA:
+        return pytest.param(
+            nome, marks=pytest.mark.xfail(strict=True, reason="adjacência de linha-de-item")
+        )
+    return nome
+
+
+NAVEGAVEIS = tuple(_param(n) for n in sorted(regenerate_all(bdi.DOCS)))
 
 
 _LANE_FM = (

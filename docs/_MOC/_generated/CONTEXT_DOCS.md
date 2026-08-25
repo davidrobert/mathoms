@@ -8,7 +8,6 @@ Use para editar docs, criar plano/ADR/lane/track ou investigar a organizacao da 
 ## Leia primeiro
 
 - [`00-INDEX`](../00-INDEX.md) - entrada editorial da vault.
-- [`DOC_STATS`](DOC_STATS.md) - inventario compacto.
 - [`SPRINT_CURRENT`](SPRINT_CURRENT.md) - trabalho ativo.
 - [`PLAN_PROGRESS`](PLAN_PROGRESS.md) - planos canonicos e lanes ligadas.
 - [`CHANGELOG_RECENT`](CHANGELOG_RECENT.md) - entregas recentes.
