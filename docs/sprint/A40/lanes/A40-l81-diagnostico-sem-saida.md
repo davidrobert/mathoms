@@ -226,7 +226,7 @@ Deferido com dono — `data-engineer`, condição no [[ADR-411]] §Deferimento 2
 Run determinístico (`skip_llm`, sem custo de API) sobre o workspace de dogfood.
 **A/B no mesmo corpus, mesmo dia, diferindo só no código que o worker carregava:**
 
-| run | worker | rows de stages que ENTREGARAM | `locator` preenchido | total |
+| run | worker | rows de stages que ENTREGARAM | `locator` **não-vazio** | total |
 |---|---|---:|---:|---:|
 | `b4e0bb73` | subiu 24/08 18:12 — **pré-l81** | **0** | 0/2 | 2 rows / Σ3 |
 | `7164ddee` | reiniciado, código da l81 | **5** (Σocc 32) | **7/7** | 7 rows / Σ37 |
@@ -234,6 +234,12 @@ Run determinístico (`skip_llm`, sem custo de API) sobre o workspace de dogfood.
 As 5 rows vêm de `consolidate_baseline` (2) e `reconcile_transactions` (3) — os
 dois stages que **entregaram** e cuja razão nunca chegava à tabela. O predicado
 do §Critério está satisfeito.
+
+> A coluna mede **não-vazio**, não **correto**. Neste mesmo run a row
+> `consolidate_baseline / domain.property_identity_uncanonical` saiu com
+> `validation.review_reasons`, e a razão nasce em `imoveis_consolidados[]` — é o
+> defeito descrito abaixo. Ler 7/7 como "locator certo" seria ler o número por
+> um rótulo que ele não tem.
 
 **O primeiro run mediu código velho, e quase virou falso negativo contra o fix.**
 O Celery importa os módulos no start do processo: o worker rodava havia 19h,
@@ -258,6 +264,15 @@ e o re-harvest do orquestrador sobrescrevia por cima. Invertida a ordem em
 de razão. Os 6 arquivos do mecanismo da l81 foram verificados **bit-idênticos** a
 `origin/main`, então o veredito do predicado é limpo; as **contagens** valem para
 o SHA `548e651a`, não como baseline de `main`.
+
+**Segundo limite, e o mais importante: o fix do `locator` nunca rodou em run.**
+O run `7164ddee` começou 17:30 e o fix foi commitado 17:37 — sete minutos depois.
+Nenhum run foi disparado desde o merge do #1721 (medido: zero rows em
+`pipeline_runs` com `started_at` posterior). Logo o comportamento pós-fix está
+provado por **teste unitário**, não por execução. O predicado de fecho da lane
+não depende disso — ele conta rows de stages que entregaram, eixo que o fix não
+toca —, mas a coluna de `locator` da tabela acima é evidência **pré-fix**.
+Retomada: o próximo run com o worker carregando `aa4b2d98` fecha este eixo.
 
 **Residual:** a perna de diagnóstico do `compare_reviews` continua cega até
 existir baseline em snapshot v3, que exige run com LLM.
