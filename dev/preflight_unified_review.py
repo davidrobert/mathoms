@@ -33,12 +33,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from sqlalchemy import text  # noqa: E402
 
 from backend.app.core.database import SyncSessionLocal  # noqa: E402
+from backend.app.models.pipeline_run import PipelineRunStatus  # noqa: E402
 
-# `paused` NAO existe em PipelineRunStatus (literal morto no guard de
-# resolve_workspace.py); `needs_review` e `resuming` existem, nao sao terminais, e
-# um run parado neles bloqueia disparo novo.
-RUN_EM_VOO = ("pending", "running", "resuming", "needs_review")
-RUN_TERMINAL = ("completed", "partial_failure", "failed", "cancelled")
+# Terminal e a lista curta e estavel; "em voo" e o COMPLEMENTO, para status novo
+# no enum entrar bloqueante por default em vez de sumir do guard.
+RUN_TERMINAL = {
+    PipelineRunStatus.completed,
+    PipelineRunStatus.partial_failure,
+    PipelineRunStatus.failed,
+    PipelineRunStatus.cancelled,
+}
+RUN_EM_VOO = tuple(s.value for s in PipelineRunStatus if s not in RUN_TERMINAL)
 
 # Hard-stop da ADR-173 e a 110% do cap; abaixo disso um run de ~US$3 ainda estoura.
 BUDGET_HARD_STOP = Decimal("1.10")
