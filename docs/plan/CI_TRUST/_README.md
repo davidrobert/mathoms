@@ -90,7 +90,7 @@ nativo: exige Organization (ver item 2.0).
 | Runs `ci.yml` | 1.412 — 66,5% success · 24,8% cancelled (trem/concurrency) · 8,7% failure |
 | **Bypasses do Ruleset** | **64/611 avaliações em 08-05→08-25 (16%)**; 0 até 08-08; correlação 9/9 com dias de defeito de CI ([evidence/rule-suites-2026-08-25.json](evidence/rule-suites-2026-08-25.json)) |
 | Falso-vermelho | ~40% das falhas de required check amostradas são instrumento (6/15) |
-| Gate na prática | `required_approving_review_count: 0` — **CI é o único gate**; `allowed_merge_methods` inclui `merge` e `rebase` (contra CLAUDE.md e contra o predicado 3 de [[ADR-322]] §Emenda 2026-08-21) |
+| Gate na prática | `required_approving_review_count: 0` — **CI é o único gate**. `allowed_merge_methods` incluía `merge` e `rebase` (contra CLAUDE.md e contra o predicado 3 de [[ADR-322]] §Emenda 2026-08-21); **corrigido para `["squash"]` em 2026-08-25** ([[ADR-415]] D1) |
 | main | 11d sem medição; 3 últimas medições (dispatch) FALHARAM — hipótese mais barata: os 64 merges sem gate, não "gates não compõem" |
 | Baseline do watchdog (08-05→08-21) | 19 falhas do step: 7 `GH` · 5 waiver vencido (gate correto) · 7 `S2` obsoleto |
 | security.yml | 14/14 falhas semanais até 08-22 → fix #1691 **validado** (dispatch 32876789176, `gitleaks full-history` success) |
@@ -128,10 +128,32 @@ no *momento do merge* é outro instrumento (item 0.2).
 | 1.5 | `security-green` agregador (`if: always()`, espelho do all-green) required no Ruleset; `security` `max_issue_age_days` 21→7 | fecha a exposição de 28d; o cabeçalho do security.yml passa a ser verdade em vez de ser corrigido para menos | idem |
 | 2.x | ver §Onda 2 | — | lanes `planned`; promoção por consumidor datado |
 
-## Onda 0 — registro e válvula (esta semana; nenhum item depende de outro; zero janela de workflow exceto o detector)
+## Onda 0 — registro e válvula ✅ **FECHADA em 2026-08-25** (PRs #1723 + #1729)
 
 Executa como **track self-contained** (precedente: runbooks do
 [[PLAN-public-release]]); não abre lane na A40 (cláusula de admissão da A42).
+
+**O primeiro run real do detector falhou e denunciou o próprio merge que o
+entregou** — os dois fatos mais úteis da onda:
+
+1. `313aae28` (o merge do #1723) saiu **`absent`**: o trem fez `update-branch`
+   19s antes do merge e, no head novo, `Lint`/`Pipeline tests` ainda rodavam
+   com `All checks green` inexistente. É a corrida #1331/#1332, que uma
+   varredura anterior dera como ausente por medir o estado *eventual*. Suíte
+   completa rodada em `main` depois: **7.650 + 3.526 testes verdes** — defeito
+   de processo, não regressão. Fechar a classe é item da Onda 2.
+2. O run **falhou** porque a label `merge-protection` não existia
+   (`gh issue create --label` aborta e o `gh` não a cria). Como o caminho de
+   escrita só é alcançado quando **há** merge sem gate, a ausência ficaria
+   latente por semanas e explodiria no primeiro incidente.
+
+Um ataque adversarial achou mais seis da mesma família — instrumento afirmando
+mais do que mediu —, corrigidos no #1729: registro que se sobrescrevia; sweep
+que dizia "0 bypasses" sob um 403 estrutural; causa "403 é PAT sem escopo
+workflow" acusada para qualquer 4xx; 429/rate-limit tratados como veredito
+definitivo; teto de recusas disfarçado de fila esgotada; `check-runs` sem
+filtro de nome (que daria `absent` **falso**). Mutação no detector: de **3 de
+8** para **8 de 8** mordendo.
 
 - **PR 0** (`dev/` puro): 403 não-fatal por PR + classificação 4xx/5xx sem
   retry de 4xx — implementa o que [[ADR-322]] §Emenda 2026-08-08 já decidiu.
@@ -146,21 +168,30 @@ Executa como **track self-contained** (precedente: runbooks do
   (`rule-suites` paginado + `rulesets/{id}/history`) **foi para a Onda 1** —
   workflow com `schedule:` não mergeia a si mesmo (bootstrap do S1, medido).
   **Backfill dos 64 SHAs feito na entrega** — a janela de auditoria é finita.
-- **ADR nova `Proposto` de merge-protection**: squash-only; bypass como uso
-  sancionado nomeado (com Issue automática via detector); cadência de
-  auditoria; re-decisão datada se aparecer admin novo. ID alocado na escrita.
-- **Waiver datado nos 2 zumbis LLM** no manifesto.
+- **[[ADR-415]] `Decidido`**: squash-only; bypass como uso sancionado nomeado
+  (com Issue automática via detector); cadência de auditoria; re-decisão
+  datada se aparecer admin novo.
+- **Waiver datado nos 2 zumbis LLM** no manifesto — provado por execução que
+  não é inerte (`MATHOMS_WATCHDOG_TODAY=2026-10-16` ⇒ `exit=1` nomeando as 3
+  entradas, mesmo sem violação).
 - Evidência: capturada em 2026-08-25 ([evidence/](evidence/)) — rule-suites
   `time_period=month` (64 bypasses) + timeline do #1508.
 
-**Aceite da Onda 0**: detector provado por mutação (5 mutações, cada uma
-derruba teste — inclusive "ler check-run do SHA de main em vez do head", que
-tornaria o detector ruído puro); inventário do backfill publicado
-([evidence/backfill-inventario-2026-08-25.md](evidence/backfill-inventario-2026-08-25.md):
-**53/64 sem gate — 46 `late`, 7 `red`**); `allowed_merge_methods` = `["squash"]`
-via `gh api` **após** a ADR-415 mergear; ADR-415 `Proposto→Decidido`; PRs da
-onda mergeados **sem bypass** (se a Onda 0 precisar de bypass, falhou no
-objeto).
+**Aceite da Onda 0 — verificado:**
+
+| critério | estado |
+|---|---|
+| Detector provado por mutação | ✅ 8 de 8 mordem (incl. "ler check-run do SHA de main", que tornaria o detector ruído puro) |
+| Inventário do backfill publicado | ✅ [53/64 sem gate — 46 `late`, 7 `red`](evidence/backfill-inventario-2026-08-25.md) |
+| `allowed_merge_methods = ["squash"]` | ✅ aplicado e verificado ao vivo (strict, required checks e bypass actor preservados) |
+| [[ADR-415]] `Proposto → Decidido` | ✅ |
+| PRs da onda mergeados sem bypass | ✅ — **mas o critério estava errado** |
+
+**Correção do critério, registrada porque ela é o achado:** "mergeado sem
+bypass" é necessário e **não suficiente**. O #1723 não teve bypass e ainda
+assim entrou sem gate, pela corrida do `update-branch`. O critério correto é o
+veredito do próprio detector sobre o SHA de merge — e por ele os dois merges
+seguintes (#1729 e o vizinho) entraram **`gated`**.
 
 ## Onda 1 — gate confiável + rede religada (leva única de `.github/workflows/**`, PRs na ordem 1 → 2 → 3)
 
@@ -195,7 +226,8 @@ de latência (KR-H); decidir à parte, provavelmente gate por label/path.
 | Item | P | O quê |
 |---|---|---|
 | 2.0 **gate de decisão: Organization + merge queue** | P0 da onda | ADR `Proposto` owner-gated (desenho `senior-cto`+`sre-devops`). Público **não basta** — merge queue exige org. Decisão até ~2026-09-20 amarra a rotação do PAT (org ⇒ PAT morre; senão rotacionar até 10-05). Princípio até lá: **nada de payback longo dentro do trem** (GitHub App, features de trem); investir só no que sobrevive (detector, canais de falha, heartbeat, manifesto, auditoria) |
-| 2.1 starvation por classificação de run | P1 | Só se 2.0 = não. `required_workflow_failed` por JOB; watchdog com `gh run rerun --failed` capado |
+| 2.1 **fechar a corrida do `update-branch`** | **P0** | **Observada em produção 2026-08-25**, não é mais risco teórico: o merge do #1723 entrou `absent` porque o trem trocou o head 19s antes e o auto-merge não esperou o run novo virar *pending required*. O trem precisa esperar esse estado, ou desarmar/re-armar o auto-merge em volta do `update-branch`. Custo a declarar: latência na fila (KR-H). Sobrevive à decisão 2.0 apenas se ela for "não" — merge queue nativo dissolve a classe |
+| 2.1b starvation por classificação de run | P1 | Só se 2.0 = não. `required_workflow_failed` por JOB; watchdog com `gh run rerun --failed` capado |
 | 2.2 índices `_generated` no CI | — | **Não decidir ainda**, mas o backfill (2026-08-25) já estreitou: dos 64 bypasses, **7 entraram com o required check VERMELHO** (#1399, #1453, #1459, #1494, #1505, #1508, #1701) e 46 com ele concluindo depois do merge. Há material suficiente para explicar `main` vermelha sem invocar "gates não compõem". Falta cruzar com as 3 medições falhas; depois disso, se sobrar drift, rotear a `information-architect` |
 | 2.3 hooks diff-based inertes no CI | P1 | float-money per-line etc. sob `--all-files` — step `--commit-range` (padrão golden-rebaseline-isolation) + inventário da classe |
 | 2.4 ligar `vars.CI_SKIP_DOCS_ONLY` | P2 | Dependência DURA de 1.4 (≥7 main-smoke verdes; [[ADR-322]] §Emenda 2026-08-21 item 4 — a trava é protocolo, nada a enforça); predicado no runbook; aceite: hit rate medido + 0 skips com predicado 5 sobre SHA não-success |

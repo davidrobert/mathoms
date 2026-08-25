@@ -30,6 +30,7 @@ PR_LIST_FIELDS = (
 
 RunsFetcher = Callable[[dict[str, Any]], list[dict[str, Any]]]
 _HTTP_STATUS_RE = re.compile(r"HTTP (\d{3})")
+_RATE_LIMIT_RE = re.compile(r"rate limit|abuse detection|secondary", re.IGNORECASE)
 
 
 class GhCallFailed(RuntimeError):
@@ -47,8 +48,21 @@ class GhCallFailed(RuntimeError):
         super().__init__(self.describe())
 
     @property
+    def is_rate_limited(self) -> bool:
+        """429, e o 403 que o GitHub usa para rate limit secundário — 4xx pelo
+        número, transiente pelo mecanismo. A medição que motivou o corte por
+        classe (0 de 10 recuperados) é sobre 403 de ESCOPO de PAT; tratar a
+        faixa 4xx inteira como definitiva estenderia a conclusão a uma classe
+        que ela não mediu, e retry é justamente o remédio desta."""
+        if self.status == 429:
+            return True
+        return self.status == 403 and bool(_RATE_LIMIT_RE.search(self.stderr))
+
+    @property
     def is_verdict(self) -> bool:
         """True quando a API respondeu recusando (4xx) — re-tentar não muda."""
+        if self.is_rate_limited:
+            return False
         return self.status is not None and 400 <= self.status < 500
 
     def describe(self) -> str:
@@ -158,6 +172,16 @@ def out_of_train_reason(pr: dict[str, Any], runs_for: RunsFetcher) -> str | None
 
 
 @dataclass(frozen=True)
+class Refusal:
+    """PR cujo update-branch a API recusou, com a causa OBSERVADA. Guardar só o
+    número obrigaria a linha final a supor o motivo — e ela supunha 403."""
+
+    number: int
+    status: int | None
+    detail: str
+
+
+@dataclass(frozen=True)
 class TrainDecision:
     """Resultado de um ciclo: o PR a atualizar, ou por que não há um. `waiting_behind`
     conta elegíveis em BEHIND atrás da cabeça — mesmo predicado do `gh pr list` do
@@ -170,7 +194,12 @@ class TrainDecision:
     pr: dict[str, Any] | None
     head_on_hold: dict[str, Any] | None
     waiting_behind: int
-    refused: tuple[int, ...] = ()
+    refused: tuple[Refusal, ...] = ()
+
+    @property
+    def hit_refusal_cap(self) -> bool:
+        """Ciclo interrompido pelo teto: sobrou fila não tentada."""
+        return len(self.refused) >= MAX_REFUSALS_PER_RUN
 
 
 def _behind_in(prs: list[dict[str, Any]]) -> int:
@@ -207,17 +236,32 @@ def update_branch(number: int) -> None:
     _gh("api", "-X", "PUT", f"repos/{{owner}}/{{repo}}/pulls/{number}/update-branch")
 
 
-def _attempt_update(number: int, updater: Callable[[int], None]) -> bool:
-    """False só quando a API RECUSA (4xx). 5xx sobe: indisponibilidade não é
-    veredito sobre este PR, e engolir viraria skip de um PR que estava são."""
+def _attempt_update(number: int, updater: Callable[[int], None]) -> Refusal | None:
+    """A recusa (4xx que não seja rate limit), ou None se o update passou. 5xx e
+    rate limit sobem: indisponibilidade não é veredito sobre este PR, e engolir
+    viraria skip de um PR que estava são."""
     try:
         updater(number)
     except GhCallFailed as failure:
         if not failure.is_verdict:
             raise
         print(f"skip #{number}: update-branch recusado — {failure.describe()}")
-        return False
-    return True
+        return Refusal(number, failure.status, failure.describe())
+    return None
+
+
+def _refusal_cause(refused: tuple[Refusal, ...]) -> str:
+    """A causa que o operador lê sai do STATUS observado. Afirmar "403 é PAT sem
+    escopo workflow" para um 404/422 seria inventar diagnóstico — e a própria
+    ADR-322 §Emenda 2026-08-25 registra que o mecanismo do 403 continua em
+    disputa, então nem para o 403 a frase pode fechar a questão."""
+    if all(r.status == 403 for r in refused):
+        return (
+            "403 costuma ser PAT sem escopo `workflow` diante de merge que toca "
+            ".github/workflows/** — nesse caso o autor rebasa da própria conta "
+            "(ADR-322 §Emenda 2026-08-08)"
+        )
+    return "; ".join(f"#{r.number}: {r.detail}" for r in refused)
 
 
 def advance_train(
@@ -227,27 +271,44 @@ def advance_train(
 ) -> TrainDecision:
     """Decide, atualiza, e tenta o PRÓXIMO quando a API recusa — o 403 é terminal
     para aquele PR e nunca para o run (ADR-322 §Emenda 2026-08-25)."""
-    # `updater=None` resolvido no corpo: default de assinatura liga o símbolo na
-    # definição do módulo e um monkeypatch de `update_branch` não seria visto —
-    # o teste chamaria a API de verdade (aconteceu ao escrever este fix).
+    # `updater=None` resolvido no corpo: default de assinatura ligaria o símbolo
+    # na definição, e o monkeypatch do teste chamaria a API de verdade.
     apply_update = updater or update_branch
-    candidates, refused = list(prs), []
+    candidates: list[dict[str, Any]] = list(prs)
+    refused: list[Refusal] = []
     while len(refused) < MAX_REFUSALS_PER_RUN:
         decision = decide_train(candidates, runs_for)
-        if decision.pr is None or _attempt_update(decision.pr["number"], apply_update):
+        recusa = _cycle_outcome(decision, apply_update)
+        if recusa is None:
             return replace(decision, refused=tuple(refused))
-        refused.append(decision.pr["number"])
-        candidates = [pr for pr in candidates if pr["number"] != decision.pr["number"]]
+        refused.append(recusa)
+        candidates = [pr for pr in candidates if pr["number"] != recusa.number]
     return TrainDecision(None, None, 0, tuple(refused))
 
 
-def _refused_phrase(refused: tuple[int, ...]) -> str:
-    listed = ", ".join(f"#{n}" for n in refused)
-    return (
-        f"{len(refused)} update-branch recusado(s) em {listed} — 403 é PAT sem escopo "
-        "`workflow` contra merge que toca .github/workflows/**; o autor rebasa da "
-        "própria conta (ADR-322 §Emenda 2026-08-08)"
-    )
+def _cycle_outcome(decision: TrainDecision, apply_update: Callable[[int], None]) -> Refusal | None:
+    """Recusa a registrar, ou None quando o ciclo termina (nada a atualizar, ou
+    update aceito) — os dois desfechos que encerram `advance_train`."""
+    if decision.pr is None:
+        return None
+    return _attempt_update(decision.pr["number"], apply_update)
+
+
+def _no_head_phrase(decision: TrainDecision) -> str:
+    """Teto de recusas e fila esgotada NÃO compartilham frase. Foi dizer "trem
+    em dia" sobre 5 PRs esperando que custou 22min de diagnóstico em 08-21; um
+    teto que se disfarça de fila vazia é a mesma classe, com outro nome."""
+    if decision.hit_refusal_cap:
+        return (
+            f"teto de {MAX_REFUSALS_PER_RUN} recusas atingido — a fila NÃO foi "
+            "esgotada; os demais PRs não chegaram a ser tentados neste ciclo"
+        )
+    return "nada mais a atualizar" if decision.refused else "trem em dia: nenhum PR elegível BEHIND"
+
+
+def _refused_phrase(refused: tuple[Refusal, ...]) -> str:
+    listed = ", ".join(f"#{r.number}" for r in refused)
+    return f"{len(refused)} update-branch recusado(s) em {listed} — {_refusal_cause(refused)}"
 
 
 def _outcome_phrase(decision: TrainDecision) -> str:
@@ -255,11 +316,7 @@ def _outcome_phrase(decision: TrainDecision) -> str:
         return f"update-branch #{decision.pr['number']} — {decision.pr['title']}"
     head = decision.head_on_hold
     if head is None:
-        return (
-            "nada mais a atualizar"
-            if decision.refused
-            else "trem em dia: nenhum PR elegível BEHIND"
-        )
+        return _no_head_phrase(decision)
     atras = (
         f"{decision.waiting_behind} PR(s) elegível(is) BEHIND atrás"
         if decision.waiting_behind
