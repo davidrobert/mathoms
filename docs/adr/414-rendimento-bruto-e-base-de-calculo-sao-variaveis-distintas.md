@@ -1,5 +1,5 @@
 ---
-id: ADR-412
+id: ADR-414
 type: adr
 title: "Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada"
 status: Decidido
@@ -15,7 +15,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 412"
+  - "ADR 414"
   - "bruto vs base de cálculo"
   - "base declarada do PGBL"
 tags:
@@ -25,7 +25,7 @@ tags:
   - area/financial-planning
 ---
 
-# ADR-412 — Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada
+# ADR-414 — Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada
 
 ## Contexto
 

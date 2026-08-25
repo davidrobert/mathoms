@@ -131,7 +131,7 @@ class CapacidadePgblIRPF:
     """Capacidade PGBL do titular lida do IRPF (ADR-277/395)."""
 
     capacidade: CapacidadePgbl
-    # BRUTO: indexa o redutor da Lei 15.270/2025 (ADR-412 D1) e é o que os 12% do
+    # BRUTO: indexa o redutor da Lei 15.270/2025 (ADR-414 D1) e é o que os 12% do
     # teto PGBL usam. NÃO indexa a tabela progressiva.
     renda_tributavel_anual: Decimal
     ano_base: int
@@ -140,7 +140,7 @@ class CapacidadePgblIRPF:
     # é ela que indexa a tabela e a alíquota marginal. OBRIGATÓRIA: o campo é
     # `required` no schema e16, então declaração que parseia sempre a tem — e o `cap`
     # só existe se alguma parseou. Optional aqui seria ramo que não dispara, e cair
-    # no bruto é o defeito que a ADR-412 fecha.
+    # no bruto é o defeito que a ADR-414 fecha.
     base_calculo_anual: Decimal
     nota_degradacao: str | None = None  # ADR-305 D3: existe ano mais recente não usado
 
@@ -423,12 +423,12 @@ class PrevidenciaAnalyzer:
             # calcular, e a degradação é do chamador. O produto é o que o caminho
             # legado (dict pré-A7.2b) sempre publicou.
             return cap.capacidade.restante * Decimal(str(self._aliquota(cap))) / Decimal("100")
-        # ADR-412 D2: a tabela indexa a BASE declarada, nunca o bruto.
+        # ADR-414 D2: a tabela indexa a BASE declarada, nunca o bruto.
         return economia_diferencial(
             cap.base_calculo_anual, cap.capacidade.restante, self._config.irpf_faixas
         )
 
-    # ADR-412 D1: a faixa marginal é da BASE, não do bruto — o D6 da ADR-375 sempre
+    # ADR-414 D1: a faixa marginal é da BASE, não do bruto — o D6 da ADR-375 sempre
     # falou de base (`base_calculo_anual_brl_cents`); era o call-site que divergia.
     def _aliquota(self, cap: CapacidadePgblIRPF) -> float:
         return self._aliquota_para(_cents(cap.base_calculo_anual))
