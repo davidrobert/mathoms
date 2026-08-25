@@ -5,7 +5,7 @@ title: "Vault de documentação operacional Obsidian-friendly em `docs/`"
 status: Decidido
 phase: A11.5
 date: "2026-05-07"
-relates_to: ["[[ADR-076]]", "[[ADR-109]]", "[[ADR-114]]", "[[ADR-143]]", "[[ADR-412]]"]
+relates_to: ["[[ADR-076]]", "[[ADR-109]]", "[[ADR-114]]", "[[ADR-143]]", "[[ADR-413]]"]
 amended_at: ["2026-08-25"]
 supersedes: []
 superseded_by: []
@@ -22,7 +22,7 @@ size_lines: 66
 
 # ADR-182 — Vault de documentação operacional Obsidian-friendly em `docs/`
 
-> ⚠️ **Emendada em 2026-08-25 pela [[ADR-412]]** — o padrão "gera, commita,
+> ⚠️ **Emendada em 2026-08-25 pela [[ADR-413]]** — o padrão "gera, commita,
 > snapshot gateia" desta ADR foi importado de [[ADR-076]]/[[ADR-109]], onde o
 > derivado muda quando um **contrato** muda. Em `docs/_MOC/_generated/**` a entrada
 > é a vault inteira, e o derivado muda numa fração grande dos commits — o snapshot
@@ -99,7 +99,7 @@ ciclos de CI de ~7 min, e todo PR que toca `docs/**` regenera
 produziam *lost update silencioso* — dois PRs incrementando o mesmo número
 mergeiam **limpo** e o resultado fica errado.
 
-A [[ADR-412]] refina o padrão desta ADR em quatro pontos: derivado versionado é
+A [[ADR-413]] refina o padrão desta ADR em quatro pontos: derivado versionado é
 derivado de **contrato** (D1); derivado versionado **não carrega agregado** (D2);
 derivado 100% agregado é **removível**, não reformável (D3); e ao desversionar, o
 gate migra do snapshot para o **self-test do gerador** (D4).
