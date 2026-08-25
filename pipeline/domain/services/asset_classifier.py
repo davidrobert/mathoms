@@ -83,16 +83,15 @@ _DEFAULT_KEYWORDS: dict[str, tuple[str, ...]] = {
         "poupança",
         "cofrinhos",
     ),
+    # Só token de instrumento: `fia`/`fic`/`fim` generalizam para qualquer
+    # família. Os 5 nomes de gestora que viviam aqui eram corpus-fitting —
+    # acertavam UM domicílio e erravam calados no próximo ([[A40.l82]]; mesma
+    # família do corte de `instituicao` na [[ADR-400]]).
     "Fundos": (
         "fic ",
         " fim",
         " fia",
         "fundo de investimento",
-        "alaska",
-        "constellation",
-        "western",
-        "safari",
-        "dna energy",
     ),
     "Caixa": ("conta corrente", "picpay", "nubank", "saldo em conta", "conta de deposito"),
 }
