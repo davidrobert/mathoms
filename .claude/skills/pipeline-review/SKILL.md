@@ -66,7 +66,11 @@ se `make pipeline-run` não existir mais.
 1. **Resolver + baseline:** `.venv/bin/python .claude/skills/pipeline-review/scripts/resolve_workspace.py <workspace>`.
    Guarde o `workspace_id`, o `latest_report` (para identificar o report NOVO
    depois) e o `latest_run`. Se `active_run` não for `null`, **PARE** — há um run
-   em andamento; não dispare outro.
+   em voo; não dispare outro. O guard deriva "em voo" como **complemento** dos
+   quatro status terminais (`pending`/`running`/`resuming`/`needs_review`), então
+   status novo no enum entra bloqueante por default. Em `needs_review` o run está
+   **pausado**, não morto: retome por `resume_pipeline_run` (o resume entra no
+   stage **seguinte** — o pausado não re-roda, declare isso) ou marque-o terminal.
 2. **Disparar run completo:** `make pipeline-run WS=<workspace_id> SKIP_LLM=0`.
    Capture o `Run <uuid> disparado` do stdout — esse é o `run_id`. Não use `RESET`
    (destrutivo); um run completo recomputa `FULL_ORDER` e sobrescreve os artifacts.
@@ -76,11 +80,20 @@ se `make pipeline-run` não existir mais.
    ```bash
    for i in $(seq 1 45); do
      ST=$(sqlite3 mathoms.db "SELECT status FROM pipeline_runs WHERE id='<run_id>';")
-     [ "$ST" = completed ] || [ "$ST" = failed ] || [ "$ST" = cancelled ] && { echo "$ST"; break; }
+     case "$ST" in
+       completed|partial_failure|failed|cancelled) echo "terminal: $ST"; break ;;
+       needs_review) echo "PAUSADO em needs_review — retome, não espere"; break ;;
+     esac
      sleep 80
    done
    ```
-   (Em Postgres, use `psql`.) **Se `failed`/`cancelled` → PARE**, reporte o
+   (Em Postgres, use `psql`.) O enum tem **oito** status e o predicado tem de
+   nomear os quatro terminais: um loop que quebra só em `completed|failed|cancelled`
+   gira para sempre em `partial_failure` — que é **terminal** — e em `needs_review`,
+   que **pausa** o run (armadilha abaixo). **Só `completed` é verde:**
+   `partial_failure` é terminal e **não** autoriza análise; alimentar as pernas de
+   razão e de produto com run parcial produz achado falso nos três eixos de uma vez.
+   Em `failed`/`cancelled`/`partial_failure` → **PARE**, reporte o
    `failed_at_stage`/`failure_reason`, e não analise um relatório parcial.
 4. **Confirmar + achar o report novo:** `completed` → pegue o report deste run:
    `sqlite3 mathoms.db "SELECT id FROM reports WHERE pipeline_run_id='<run_id>';"`.

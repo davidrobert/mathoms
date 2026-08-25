@@ -19,6 +19,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 from sqlalchemy import text
 
 from backend.app.core.database import SyncSessionLocal
+from backend.app.models.pipeline_run import PipelineRunStatus
+
+# Terminal e a lista curta e estavel; "em voo" e o COMPLEMENTO, para status novo
+# no enum entrar como bloqueante por default em vez de sumir do guard. A versao
+# anterior filtrava `paused` (que nunca existiu em PipelineRunStatus) e omitia
+# `needs_review` e `resuming`: um run pausado aguardando revisao era reportado
+# como `active_run: null` e a skill autorizava disparar run por cima.
+TERMINAL = {
+    PipelineRunStatus.completed,
+    PipelineRunStatus.partial_failure,
+    PipelineRunStatus.failed,
+    PipelineRunStatus.cancelled,
+}
+EM_VOO = tuple(s.value for s in PipelineRunStatus if s not in TERMINAL)
 
 
 def _resolve_id(db, workspace: str) -> str | None:
@@ -65,8 +79,9 @@ def main() -> int:
             ),
             "active_run": _one(
                 db,
-                "SELECT id, status FROM pipeline_runs WHERE workspace_id = :ws "
-                "AND status IN ('running','pending','paused') LIMIT 1",
+                "SELECT id, status, paused_at_stage FROM pipeline_runs WHERE workspace_id = :ws "
+                f"AND status IN ({','.join(repr(s) for s in EM_VOO)}) "
+                "ORDER BY started_at DESC LIMIT 1",
                 ws,
             ),
             "docs": (

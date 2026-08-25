@@ -44,6 +44,22 @@ tem de ser um **defeito**, não um dado. Discriminador de workspace na seção =
 Achado que pertence a um vizinho **vai para o MOC do vizinho**, não para este.
 A cadência anti-zumbi não cruza registros.
 
+## Namespace de código
+
+Códigos `RV*` anteriores à rodada unificada `U1` são **ambíguos** entre este
+registro e {vizinho}: `RV4-08` nomeia defeitos distintos nos dois, e o §r4 do
+[[REPORT-REVIEWS-active]] já cita um `RV5-02` que mora no vizinho. Cite sempre
+**qualificado** — `RV4-08 (PIPELINE §r4)` — porque o par `(registro, rodada)`
+desambigua.
+
+A ambiguidade é inofensiva e **não se conserta renomeando**: o dedup deste registro
+é `(dimensão, evidência-âncora, regra)` e nunca dependeu do código, e os códigos são
+identificadores duráveis já citados em commit e trilha de owner.
+
+A partir de `U1` o prefixo é o do **registro de destino** — `LC*` razão · `PV*`
+execução · `RR*` produto ([[ADR-416]] D3), com o procedimento em
+[runbook-unified-certify-review](../reference/runbooks/unified_certify_review.md).
+
 ## Convenção de rastreamento (timeless)
 
 1. **Cobertura 100%.** Cada rodada cobre **todos** os achados sistêmicos —
