@@ -63,6 +63,20 @@ jobs:
         with:
           fetch-depth: 1
 
+      # A label é PRÉ-REQUISITO do detector, não decoração: `gh issue create
+      # --label X` aborta com "could not add label: 'X' not found" e o gh não
+      # a cria sozinho. Como o caminho de escrita só é alcançado quando há
+      # merge sem gate, a ausência ficaria latente por semanas e explodiria
+      # exatamente no primeiro incidente — foi o que aconteceu no run
+      # 32887693308. `--force` torna o step idempotente.
+      - name: Garantir a label da auditoria
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create merge-protection --force \
+            --description "Merge em main sem gate no SHA que entrou (ADR-415)" \
+            --color B60205
+
       - name: Auditar o SHA que entrou em main
         if: github.event_name == 'push'
         env:

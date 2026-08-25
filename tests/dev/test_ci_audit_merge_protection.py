@@ -4,6 +4,7 @@ Casos ancorados em merges reais de 2026-08-25. Sem rede — `gh` nunca é chamad
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -39,6 +40,7 @@ def _fake_gh(
     checks: dict[str, list[dict]],
     suites: list[dict] | None = None,
     suites_error: str | None = None,
+    existing_issue: bool = False,
 ) -> Any:
     """Runner que responde aos 3 endpoints reais, por prefixo de path."""
     calls: list[str] = []
@@ -56,8 +58,15 @@ def _fake_gh(
         return None
 
     def run(args: list[str]) -> str:
-        path = args[1] if len(args) > 1 else ""
-        calls.append(path)
+        # Grava a chamada INTEIRA: gravar `args[1]` registrava "create" para
+        # `["issue","create",...]`, e o guard de dry-run (que procurava por
+        # "issue") passava sem nunca casar nada. 5 mutações sobreviviam.
+        calls.append(" ".join(args))
+        if args[0] == "issue":
+            return json.dumps([{"number": 99}] if existing_issue else [])
+        return _api_response(args[1] if len(args) > 1 else "")
+
+    def _api_response(path: str) -> str:
         if "rulesets/rule-suites" in path:
             return _suites_page(path)
         return _match(path, pulls, "pulls") or _match(path, checks, "check-runs") or json.dumps([])
@@ -187,9 +196,109 @@ class TestIssueBody:
         assert not MergeVerdict("s", 1, GATED, "").is_ungated
 
 
+def _writes(run: Any) -> list[str]:
+    return [c for c in run.calls if c.startswith(("issue create", "issue edit", "issue comment"))]
+
+
+class TestEfeitoDaIssue:
+    """A Issue é a ÚNICA saída do detector em produção, e era invisível à suíte:
+    o fake gravava `args[1]` (= "create"), então o guard de dry-run casava
+    nada e 5 mutações do lado da escrita sobreviviam."""
+
+    def _ungated(self, existing_issue: bool = False) -> Any:
+        return _fake_gh(
+            pulls={"s1": [{"number": 7, "head": {"sha": "h1"}, "merged_at": MERGE_TS}]},
+            checks={"h1": [_check(conclusion="failure")]},
+            suites=[],
+            existing_issue=existing_issue,
+        )
+
+    def test_sha_sem_gate_escreve_issue(self) -> None:
+        run = self._ungated()
+        assert audit.main(["--sha", "s1"], run) == 0
+        assert len(_writes(run)) == 1
+
+    def test_corpo_da_issue_carrega_a_linha_do_sha(self) -> None:
+        run = self._ungated()
+        audit.main(["--sha", "s1"], run)
+        assert "s1" in _writes(run)[0] and "**red**" in _writes(run)[0]
+
+    def test_issue_criada_com_o_label_que_o_workflow_garante(self) -> None:
+        """Afirmar `--label {AUDIT_LABEL}` seria ler a mesma constante dos dois
+        lados: renomear a constante passaria (mutação medida sobrevivendo). O
+        elo real é o workflow, que CRIA a label — se os dois divergirem, o
+        `gh issue create` aborta com 'label not found' no primeiro incidente."""
+        workflow = (REPO_ROOT / ".github/workflows/merge-audit.yml").read_text(encoding="utf-8")
+        criada = re.search(r"gh label create (\S+)", workflow)
+        assert criada is not None, "workflow deixou de garantir a label"
+        assert criada.group(1) == audit.AUDIT_LABEL
+        run = self._ungated()
+        audit.main(["--sha", "s1"], run)
+        assert f"--label {criada.group(1)}" in _writes(run)[0]
+
+    def test_sha_gateado_nao_escreve_nada(self) -> None:
+        run = _fake_gh(
+            pulls={"s1": [{"number": 7, "head": {"sha": "h1"}, "merged_at": MERGE_TS}]},
+            checks={"h1": [_check()]},
+        )
+        assert audit.main(["--sha", "s1"], run) == 0
+        assert _writes(run) == []
+
+    def test_segundo_merge_sem_gate_ACRESCENTA_em_vez_de_substituir(self) -> None:
+        """`issue edit --body` troca o corpo inteiro: com um merge por dia, o
+        registro guardaria só o último — a ADR-415 promete o contrário."""
+        run = self._ungated(existing_issue=True)
+        audit.main(["--sha", "s1"], run)
+        assert _writes(run)[0].startswith("issue comment 99")
+
+
+class TestSweepNaoAfirmaSemMedir:
+    """`rulesets/rule-suites` exige Administration:read, que o GITHUB_TOKEN não
+    pode receber — o 403 é o caso esperado, não o excepcional."""
+
+    def test_sem_leitura_nao_imprime_contagem_e_sai_diferente_de_zero(self, capsys: Any) -> None:
+        run = _fake_gh(pulls={}, checks={}, suites_error="HTTP 403: not accessible")
+        rc = audit.main(["--sweep"], run)
+        out = capsys.readouterr()
+        assert rc != 0
+        assert "0 merge(s)" not in out.out
+        assert "NÃO MEDIDO" in out.err
+
+    def test_com_leitura_afirma_a_contagem(self, capsys: Any) -> None:
+        run = _fake_gh(pulls={}, checks={}, suites=[])
+        assert audit.main(["--sweep"], run) == 0
+        assert "0 merge(s)" in capsys.readouterr().out
+
+
+class TestTruncagemNaoEZero:
+    def test_paginas_cheias_ate_o_teto_viram_erro(self) -> None:
+        """Sair pelo teto com páginas cheias é truncagem silenciosa — a mesma
+        classe do `time_period=day` que a ADR-415 §D4 denuncia."""
+        cheia = [{"result": "pass", "after_sha": f"x{i}", "actor_name": "y"} for i in range(100)]
+
+        def run(args: list[str]) -> str:
+            return json.dumps(cheia)
+
+        with pytest.raises(RuntimeError, match="truncada"):
+            audit.bypass_index(run)
+
+
+class TestCheckRunQuery:
+    def test_filtra_por_nome_e_pede_pagina_grande(self) -> None:
+        """Default é `per_page=30` e um head real traz 20 check-runs: passar de
+        30 empurraria o gate para fora da página e daria `absent` falso."""
+        run = _fake_gh(
+            pulls={"s": [{"number": 1, "head": {"sha": "h"}, "merged_at": MERGE_TS}]},
+            checks={"h": [_check()]},
+        )
+        verdict_for_sha(run, "s")
+        chamada = next(c for c in run.calls if "check-runs" in c)
+        assert "per_page=100" in chamada and "check_name=" in chamada
+
+
 @pytest.mark.parametrize("modo", [["--sha", "s1"], ["--sweep"]])
 class TestMain:
     def test_nao_escreve_issue_em_dry_run(self, modo: list[str], capsys: Any) -> None:
         run = _fake_gh(pulls={}, checks={}, suites=[])
-        assert audit.main([*modo, "--dry-run"], run) == 0
-        assert not any(c.startswith("issue") for c in run.calls)
+        audit.main([*modo, "--dry-run"], run)
+        assert _writes(run) == []

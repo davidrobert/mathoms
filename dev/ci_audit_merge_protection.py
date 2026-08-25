@@ -11,6 +11,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable
+from urllib.parse import quote
 
 GATE_CHECK = "All checks green"
 AUDIT_LABEL = "merge-protection"
@@ -86,7 +87,11 @@ def _pull_for(run: Runner, sha: str) -> dict[str, Any] | None:
 
 
 def _gate_check_of(run: Runner, head_sha: str) -> dict[str, Any] | None:
-    runs = _api(run, f"repos/{{owner}}/{{repo}}/commits/{head_sha}/check-runs") or {}
+    """Filtra pelo NOME na própria query: o default é `per_page=30` e um head
+    real já traz 20 check-runs — passar de 30 empurraria o gate para fora da
+    página e produziria `absent` falso, que é o veredito mais alarmante."""
+    query = f"per_page=100&check_name={quote(GATE_CHECK)}"
+    runs = _api(run, f"repos/{{owner}}/{{repo}}/commits/{head_sha}/check-runs?{query}") or {}
     matches = [c for c in runs.get("check_runs", []) if c.get("name") == GATE_CHECK]
     return matches[0] if matches else None
 
@@ -104,17 +109,20 @@ def verdict_for_sha(run: Runner, sha: str) -> MergeVerdict:
 def bypass_index(run: Runner, period: str = SWEEP_PERIOD) -> dict[str, str]:
     """SHA → ator dos merges com `result: bypass`. Pagina até esgotar: o default
     da API é `time_period=day` e uma página só — foi assim que uma leitura viu
-    2 de 64 bypasses em 2026-08-25 (ADR-415 §D4)."""
+    2 de 64 bypasses em 2026-08-25 (ADR-415 §D4). Sair pelo teto é truncagem
+    silenciosa, a mesma classe que a ADR denuncia: vira erro."""
     found: dict[str, str] = {}
     for page in range(1, SWEEP_MAX_PAGES + 1):
         query = f"per_page=100&time_period={period}&page={page}"
         suites = _api(run, f"repos/{{owner}}/{{repo}}/rulesets/rule-suites?{query}") or []
         if not suites:
-            break
+            return found
         for suite in suites:
             if suite.get("result") == "bypass":
                 found[suite["after_sha"]] = suite.get("actor_name") or "?"
-    return found
+    raise RuntimeError(
+        f"rule-suites: {SWEEP_MAX_PAGES} páginas cheias em `{period}` — leitura truncada"
+    )
 
 
 def _safe_bypass_index(
@@ -156,21 +164,30 @@ def _find_issue(run: Runner) -> int | None:
     return issues[0]["number"] if issues else None
 
 
-def _write_issue(run: Runner, number: int | None, body: str) -> None:
+def _write_issue(run: Runner, number: int | None, body: str, append: bool) -> None:
+    """Cria, ou ACRESCENTA ao registro. `issue edit --body` substitui o corpo:
+    usá-lo por merge apagaria o merge anterior, e a ADR-415 §Consequências
+    promete que nenhum deixa de existir no registro."""
     if number is None:
         args = ["issue", "create", "--title", AUDIT_ISSUE_TITLE, "--label", AUDIT_LABEL]
         run([*args, "--body", body])
         return
-    run(["issue", "edit", str(number), "--body", body])
+    run(
+        ["issue", "comment", str(number), "--body", body]
+        if append
+        else ["issue", "edit", str(number), "--body", body]
+    )
 
 
-def upsert_issue(run: Runner, lines: list[str], note: str | None, dry_run: bool) -> None:
+def upsert_issue(
+    run: Runner, lines: list[str], note: str | None, dry_run: bool, append: bool = False
+) -> None:
     body = _issue_body(lines, note)
     number = _find_issue(run)
     if dry_run:
-        print(f"[dry-run] issue {'edit ' + str(number) if number else 'create'}:\n{body}")
+        print(f"[dry-run] issue {'append ' + str(number) if number else 'create'}:\n{body}")
         return
-    _write_issue(run, number, body)
+    _write_issue(run, number, body, append)
 
 
 def audit_shas(
@@ -197,18 +214,25 @@ def _run_sha_mode(run: Runner, sha: str, dry_run: bool) -> int:
         print(f"gate ok: {sha[:8]} entrou com `{GATE_CHECK}` verde antes do merge")
         return 0
     print("\n".join(lines))
-    upsert_issue(run, lines, note, dry_run)
+    upsert_issue(run, lines, note, dry_run, append=True)
     return 0
 
 
 def _run_sweep_mode(run: Runner, period: str, dry_run: bool) -> int:
+    """Sem leitura, não há contagem. Imprimir `0 bypasses` depois de um 403
+    seria o instrumento cometendo a falta que ele existe para denunciar — e
+    `rulesets/rule-suites` exige Administration:read, que o `GITHUB_TOKEN` não
+    pode receber (não existe na chave `permissions:`), então esse 403 é o caso
+    esperado, não o excepcional. Sai != 0 para o run ficar vermelho."""
     shas, note = _sweep_shas(run, period)
     if note:
-        print(f"rule-suites indisponível: {note}", file=sys.stderr)
+        print(f"NÃO MEDIDO: rule-suites indisponível — {note}", file=sys.stderr)
+        print("sweep abortado: sem leitura de rule-suites não há contagem a afirmar")
+        return 2
     print(f"sweep {period}: {len(shas)} merge(s) com bypass do Ruleset")
     lines, _ = audit_shas(run, shas, period) if shas else ([], None)
     if lines:
-        upsert_issue(run, lines, note, dry_run)
+        upsert_issue(run, lines, None, dry_run)
     return 0
 
 
