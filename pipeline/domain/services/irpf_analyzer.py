@@ -228,6 +228,14 @@ class IRPFAnalyzer:
         decls = self._by_year(ano)
         return _sum(_renda_total(d) for d in decls)
 
+    # IRPFM é POR CONTRIBUINTE (art. 16-A): o MAX espelha a norma. A soma familiar
+    # suprimiria um casal de 350k+350k, em que nenhum dos dois cruza o piso — falso
+    # positivo justamente no ICP do produto.
+    def maior_renda_total_declarante(self, ano: int) -> Decimal:
+        """Maior `REND` bruto entre as declarações do ano — limite SUPERIOR do IRPFM."""
+        decls = self._by_year(ano)
+        return max((_renda_total(d) for d in decls), default=Decimal("0"))
+
     def rendimentos_tributaveis(self, ano: int) -> Decimal:
         """Apenas rendimentos tributáveis (PJ + PF + exterior) — base RFB."""
         decls = self._by_year(ano)
