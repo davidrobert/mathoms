@@ -41,7 +41,7 @@ xlrd>=2.0.1       # .xls files (OLE2/BIFF format — xlrd 2.x dropped xlsx suppo
 playwright>=1.47.0
 
 # Phase 5 — Task Queue + Real-time
-celery[redis]>=5.4.0
+celery[redis]>=5.6.3
 redis>=5.0.0
 websockets>=12.0
 
