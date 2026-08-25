@@ -18,6 +18,22 @@ from tests.test_parecer_guardrails_pos_llm import (
 )
 
 
+def _filtra(output, e5, *, catalogo=None):
+    """Wrapper de teste. Por default assume que TODO path pedido era citável — assim o
+    teste que não é sobre o catálogo mede exatamente o que media antes da A40.l83, e só
+    quem quer exercitar `out_of_catalog` passa `catalogo` explícito."""
+    paths = (
+        catalogo
+        if catalogo is not None
+        else frozenset(
+            c.field_path
+            for c in (output.campos_faltantes_pediria_se_iterasse or [])
+            if c.field_path
+        )
+    )
+    return filter_campos_faltantes(output, e5, WS, catalog_paths=paths)
+
+
 class TestDowngradePorLemmaS7:
     def test_s7_lemma_without_mc_anchor_downgrades(self):
         risco = _risco_mc("alta").model_copy(
@@ -88,7 +104,7 @@ class TestFieldRequestAno:
     def test_year_in_motivo_uncovered_is_kept_not_spurious(self):
         e5 = _e5_irpf(por_ano={"2024": "completo", "2025": "incompleto"})
         output = make_output(campos=_pedido("KPI de renda tributável para 2025 está indisponível"))
-        result, audit = filter_campos_faltantes(output, e5, WS)
+        result, audit = _filtra(output, e5)
         assert audit == []
         kept = result.campos_faltantes_pediria_se_iterasse
         assert [c.field_path for c in kept] == ["$.irpf_kpis.renda_tributavel_total_brl"]
@@ -96,5 +112,5 @@ class TestFieldRequestAno:
     def test_year_in_motivo_when_year_completo_still_spurious(self):
         e5 = _e5_irpf(por_ano={"2024": "completo"})
         output = make_output(campos=_pedido("detalhar o KPI de renda tributável de 2024"))
-        _, audit = filter_campos_faltantes(output, e5, WS)
+        _, audit = _filtra(output, e5)
         assert [a["reason"] for a in audit] == [REASON_SPURIOUS]

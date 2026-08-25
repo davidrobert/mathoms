@@ -31,6 +31,10 @@ VALID_FIELD_REQUEST_REASONS: frozenset[str] = frozenset(
         "llm_declared",
         "field_request_spurious",
         "field_request_wrong_path",
+        # A40.l83 · RV8-16: path existe no E5 mas o corte por bytes o deixou fora do
+        # catálogo — o modelo não tinha rota de citação. Sinaliza TRUNCAMENTO DE
+        # CONTEXTO, não alucinação; era contado como spurious, invertendo o diagnóstico.
+        "field_request_out_of_catalog",
         # FP-4 D3-A: pedido que o GUARDRAIL injetou, não o LLM. Sem este reason o
         # dashboard top-10 (ADR-206 §D4) contaria como demanda do modelo um campo que
         # ele nunca pediu — a mesma classe de fabricação que a lane está fechando.

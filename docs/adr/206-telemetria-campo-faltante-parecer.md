@@ -15,6 +15,7 @@ relates_to:
   - "[[ADR-203]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-25"]
 aliases:
   - "ADR 206"
   - "Telemetria campo faltante parecer"
@@ -31,6 +32,11 @@ tags:
 # ADR-206 — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188)
 
 **Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+
+> **Emenda de contrato (2026-08-25):** o enum de `reason` ganha um terceiro valor,
+> `field_request_out_of_catalog`, e ele **não remove** o pedido do output. O filtro
+> perguntava ao E5 sobre uma afirmação que o modelo fez a respeito do **catálogo** —
+> universos diferentes, e o falso-positivo resultante invertia o diagnóstico. Ver §Emenda.
 
 ## Contexto
 
@@ -173,3 +179,38 @@ Cada tier dispara workflow diferente:
 - **Critérios exatos de tier 1/2/3** (50/20/aparição) — `product-manager` calibra após 1 mês de dado.
 - **Política de retenção `planner_field_requests`** (default: indefinida; reavaliar quando >10M rows) — `data-engineer`.
 - **Dashboard ferramenta** (Grafana, Metabase, SQL ad-hoc) — `sre-devops` decide.
+
+## Emenda 2026-08-25 — o predicado consultava o universo errado (A40.l83 · RV8-16)
+
+O filtro pós-LLM classificava como `field_request_spurious` todo pedido cujo
+`field_path` resolvesse não-nulo no E5. Mas o que o modelo afirma ao preencher
+`campos_faltantes_pediria_se_iterasse[]` não é *"este dado não existe"* — o prompt
+manda literalmente **"conceito ausente daqui [do catálogo] → não ancore; declare em
+campos_faltantes"**. A afirmação é sobre o **catálogo de citação**; o predicado
+perguntava ao **E5**. Path cortado por `max_bytes` existe no E5, virava `present`, e
+o pedido legítimo era marcado como espúrio e **removido do output do usuário**.
+
+Medido no run `d0f6260a` (2026-08-24): **2 de 2** pedidos marcados
+`field_request_spurious` eram legítimos. Um era path cortado do catálogo; o outro era
+`'desconhecida'`, placeholder de domínio ausente de `_ABSENCE_SENTINELS`. O contador
+que deveria sinalizar **truncamento de contexto** era lido como "o modelo alucinou
+path" — a inversão que motiva esta emenda.
+
+**O que muda:**
+
+1. `reason` aceita `field_request_out_of_catalog` (path resolve no E5, mas ficou fora
+   do catálogo **renderizado**). O enum vive sob `additionalProperties: false`, então
+   isto é mudança de contrato — schema, `VALID_FIELD_REQUEST_REASONS` e esta emenda
+   andam juntos.
+2. **Este reason audita sem remover.** Os outros dois removem o pedido; este o mantém,
+   porque ele é legítimo e é a única pista, no output, de que o contexto truncou.
+3. `filter_campos_faltantes` passa a exigir `catalog_paths` como keyword **obrigatório**.
+   Com default, um call-site novo herdaria em silêncio a pergunta ao universo errado.
+4. `_ABSENCE_SENTINELS` ganha `desconhecida`/`desconhecido`/`indisponivel`. O
+   discriminador é a **posição**, não a palavra: sentinela ocupa o lugar do dado
+   (`faixa_etaria="desconhecida"`), valor categórico **é** o dado
+   (`categoria="nao_identificado"` é um balde real de despesa, e ficou de fora de
+   propósito — incluí-lo faria o erro simétrico).
+
+**O que não muda:** a polaridade. Path presente no E5 **e** citável segue `spurious`.
+A emenda estreita o predicado; não o afrouxa.

@@ -55,11 +55,21 @@ FIELD_PATH_ALIASES: dict[str, str] = {}
 
 REASON_SPURIOUS = "field_request_spurious"
 REASON_WRONG_PATH = "field_request_wrong_path"
+# Path que resolve no E5 mas ficou fora do catálogo RENDERIZADO: sinaliza truncamento de
+# contexto, não alucinação. AUDITA sem remover — ver ADR-206 §Emenda 2026-08-25.
+REASON_OUT_OF_CATALOG = "field_request_out_of_catalog"
+_REASONS_QUE_REMOVEM = frozenset({REASON_SPURIOUS, REASON_WRONG_PATH})
 
 # Sentinelas de ausência do vocabulário real do E5 (A37.l4 · CTO-02). O boundary
 # normaliza produtores novos para null, mas artefatos antigos ainda carregam
 # "N/D" string em campo numérico — espelha pipeline/llm/value_formatter.
-_ABSENCE_SENTINELS = frozenset({"", "N/D", "nan"})
+# O discriminador é a POSIÇÃO, não a palavra: sentinela ocupa o lugar do dado
+# (`faixa_etaria="desconhecida"`); valor categórico É o dado (`categoria=
+# "nao_identificado"` é balde real de despesa, e ficou FORA de propósito — incluí-lo
+# faria o erro simétrico). Lista e medição: ADR-206 §Emenda 2026-08-25.
+_ABSENCE_SENTINELS = frozenset(
+    {"", "N/D", "nan", "desconhecida", "desconhecido", "indisponivel", "indisponível"}
+)
 
 
 FieldPathState = Literal["missing", "empty", "present"]
@@ -122,10 +132,8 @@ def _reach(node: Any, parts: list[str]) -> Any:
 
 
 def classify_field_path(e5_data: Mapping[str, Any], path: str) -> FieldPathState:
-    """3 estados. ``missing``: nenhum ramo do path existe — pedido espúrio de
-    verdade. ``empty``: o path existe e não rende dado (coleção vazia, null,
-    sentinela) — observação VÁLIDA do planejador, nunca espúria. ``present``:
-    ao menos um valor real."""
+    """3 estados: ``missing`` (nenhum ramo existe) · ``empty`` (existe e não rende dado —
+    observação VÁLIDA do planejador) · ``present`` (ao menos um valor real)."""
     if not path.startswith("$."):
         return "missing"
     reached = _reach(e5_data, path[2:].split("."))
@@ -257,7 +265,7 @@ def _motivo_year_uncovered(campo: CampoFaltante, e5_data: Mapping[str, Any]) -> 
 
 
 def _classify_campo(
-    campo: CampoFaltante, e5_data: Mapping[str, Any]
+    campo: CampoFaltante, e5_data: Mapping[str, Any], catalog_paths: frozenset[str]
 ) -> tuple[Optional[str], Optional[str]]:
     """``(reason, alias_path)`` — reason ``None`` = genuinamente ausente (mantém)."""
     if campo.field_path is None:
@@ -265,7 +273,9 @@ def _classify_campo(
     if _motivo_year_uncovered(campo, e5_data):
         return None, None
     if classify_field_path(e5_data, campo.field_path) == "present":
-        return REASON_SPURIOUS, None
+        if campo.field_path in catalog_paths:
+            return REASON_SPURIOUS, None
+        return REASON_OUT_OF_CATALOG, None
     alias = FIELD_PATH_ALIASES.get(campo.field_path)
     if alias is not None and classify_field_path(e5_data, alias) == "present":
         return REASON_WRONG_PATH, alias
@@ -286,10 +296,8 @@ def _audit_entry(campo: CampoFaltante, reason: str, alias: Optional[str] = None)
 def _log_empty_field_path(
     campo: CampoFaltante, e5_data: Mapping[str, Any], workspace_id: str
 ) -> None:
-    """``empty`` é pedido legítimo sobre coleção vazia/sentinela — telemetria só.
-    NÃO vira entrada em ``_meta.field_request_audit``: o enum do schema tem 2
-    valores + ``additionalProperties: false``, e promover ``empty`` a
-    ``PlannerFieldRequest.reason`` é mudança de contrato (ADR-206)."""
+    """``empty`` é pedido legítimo — telemetria só, sem entrada em ``field_request_audit``
+    (promovê-lo a ``reason`` seria mudança de contrato; ver ADR-206)."""
     if campo.field_path is None:
         return
     if classify_field_path(e5_data, campo.field_path) != "empty":
@@ -301,31 +309,43 @@ def _log_empty_field_path(
 
 
 def _partition_campos(
-    campos: list[CampoFaltante], e5_data: Mapping[str, Any], workspace_id: str
+    campos: list[CampoFaltante],
+    e5_data: Mapping[str, Any],
+    workspace_id: str,
+    catalog_paths: frozenset[str],
 ) -> tuple[list[CampoFaltante], list[dict]]:
     """Separa mantidos de auditados, emitindo a telemetria de cada decisão."""
     kept: list[CampoFaltante] = []
     audit: list[dict] = []
     for campo in campos:
-        reason, alias = _classify_campo(campo, e5_data)
+        reason, alias = _classify_campo(campo, e5_data, catalog_paths)
         if reason is None:
             kept.append(campo)
             _log_empty_field_path(campo, e5_data, workspace_id)
             continue
+        # Audita sem remover: removê-lo apagava do usuário a única pista de truncamento.
+        if reason not in _REASONS_QUE_REMOVEM:
+            kept.append(campo)
         audit.append(_audit_entry(campo, reason, alias))
         logger.warning(reason, extra={"workspace_id": workspace_id, "field_path": campo.field_path})
     return kept, audit
 
 
+# `catalog_paths` obrigatório de propósito: com default, call-site novo herdaria em
+# silêncio a pergunta ao universo errado. Passe o catálogo RENDERIZADO (o construído tem
+# entries que o corte por bytes nunca mostrou ao modelo).
 def filter_campos_faltantes(
-    output: ParecerPlanejadorOutput, e5_data: Mapping[str, Any], workspace_id: str
+    output: ParecerPlanejadorOutput,
+    e5_data: Mapping[str, Any],
+    workspace_id: str,
+    *,
+    catalog_paths: frozenset[str],
 ) -> tuple[ParecerPlanejadorOutput, list[dict]]:
-    """Filtro 3-vias (A28.l11): remove pedido espúrio/path errado antes de gravar
-    ``PlannerFieldRequest``; mantém o genuinamente ausente. Retorna (output, audit)."""
+    """Filtro 4-vias: remove espúrio/path errado, mantém ausente e fora-de-catálogo."""
     campos = output.campos_faltantes_pediria_se_iterasse
     if not campos:
         return output, []
-    kept, audit = _partition_campos(campos, e5_data, workspace_id)
+    kept, audit = _partition_campos(campos, e5_data, workspace_id, catalog_paths)
     if not audit:
         return output, []
     return output.model_copy(update={"campos_faltantes_pediria_se_iterasse": kept}), audit

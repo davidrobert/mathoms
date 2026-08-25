@@ -18,7 +18,7 @@ from backend.app.core.llm_metrics import get_llm_metrics_emitter
 from backend.app.models.planner_review import ParecerRetentionReason
 from backend.app.services.parecer_antagonismo import rebaixa_sugestoes_antagonicas
 from backend.app.services.parecer_context_sanitizer import sanitize_e5_for_parecer
-from backend.app.services.parecer_distiller import distill_exec_context
+from backend.app.services.parecer_distiller import citation_catalog_for, distill_exec_context
 from backend.app.services.parecer_evidencia import (
     EVIDENCIA_VERIFICATION_VERSION,
     EvidenciaVerification,
@@ -675,12 +675,14 @@ def _apply_pos_llm_guardrails(
     raw: ParecerPlanejadorOutput,
     e5_data: Mapping[str, Any],
     config: ParecerOrchestratorConfig,
+    manifest: ManifestData,
 ) -> tuple[ParecerPlanejadorOutput, list[dict], dict]:
     """Guardrails determinísticos A28.l11 — rebaixam/removem, nunca needs_review."""
     ws = config.workspace_id
     raw, downgraded = downgrade_confianca_fallback(raw, e5_data, ws)
     raw, divida = piso_prescricao_divida(raw, e5_data, ws)
-    raw, audit = filter_campos_faltantes(raw, e5_data, ws)
+    catalog_paths = frozenset(e.path for e in citation_catalog_for(manifest, e5_data)[1])
+    raw, audit = filter_campos_faltantes(raw, e5_data, ws, catalog_paths=catalog_paths)
     raw, antagonicas = _rebaixa_antagonismo(raw, ws)
     raw, trajetoria = neutralize_trajetoria_sem_serie(raw, ws)
     raw, contradicao = neutralize_autocontradicao(raw, e5_data, ws)
@@ -784,7 +786,9 @@ def _generate_with_llm(
         )
     # A28.l11 — pós-validação, pré-finalize: rebaixamento de confiança sob premissa
     # fallback + filtro 3-vias de campos_faltantes. Coerce, nunca needs_review.
-    raw, field_request_audit, pos_llm_guardrails = _apply_pos_llm_guardrails(raw, e5_data, config)
+    raw, field_request_audit, pos_llm_guardrails = _apply_pos_llm_guardrails(
+        raw, e5_data, config, manifest
+    )
     final = finalize_output(
         output=stamp_ancora_values(raw, tools),  # ADR-296: snapshot path→valor_renderizado
         workspace_id=config.workspace_id,
