@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-403 ADRs (ADR-001 a ADR-413) em [`docs/adr/`](../../adr/).
+402 ADRs (ADR-001 a ADR-412) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 346
-- **Proposto**: 53
+- **Proposto**: 52
 - **Roadmap**: 4
 
 ## Fundação
@@ -376,12 +376,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## docs
 
-### Decidido (4)
+### Decidido (3)
 
 - [[ADR-234]] — Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) · phase A15
 - [[ADR-247]] — Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero · phase A11
 - [[ADR-343]] — Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico
-- [[ADR-413]] — Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado · phase A40.l59
 
 ## domain
 
@@ -554,7 +553,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (77)
+### Decidido (78)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -633,8 +632,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-409]] — Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart · phase A40.l58
 - [[ADR-410]] — A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor · phase A40.l77/DE-10
 - [[ADR-411]] — O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row · phase A40.l81/RV8-09
+- [[ADR-412]] — Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada · phase A40.l64
 
-### Proposto (16)
+### Proposto (15)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -651,7 +651,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
-- [[ADR-412]] — Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais · phase A40.l80
 
 ### Roadmap (1)
 
