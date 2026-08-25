@@ -15,6 +15,16 @@ tags:
 
 # Track Onda 0 — `ci-trust-onda0-governanca`
 
+> **Em execução (2026-08-25).** `status: ready` porque o enum de track é
+> `ready|consumed|cancelled` e o pendente é uma ação pós-merge (aplicar
+> `allowed_merge_methods` no Ruleset); vira `consumed` quando a onda fechar.
+> Entregue até aqui: PR 0 (#1723, recusa não mata o run) · ADR-415
+> `Proposto` + waiver dos zumbis LLM · detector pós-merge + backfill.
+> **O backfill mediu 53 dos 64 bypasses sem gate: 46 `late` (o required check
+> concluiu DEPOIS do merge) e 7 `red` (check vermelho no head).** Inventário
+> em [../evidence/backfill-inventario-2026-08-25.md](../evidence/backfill-inventario-2026-08-25.md).
+> Dois desvios do desenho original, ambos por medição — ver §Desvios.
+
 > Executa a **Onda 0 do [[PLAN-ci-trust]]**. Baseline que motiva: **64
 > bypasses administrativos do Ruleset em 08-05→08-25 (16% dos pushes em
 > `main`)**, zero registrados, com `main` sem medição de CI há 11 dias.
@@ -96,6 +106,27 @@ sem secret (skip com warning). Waiver datado em `.github/scheduled-workflows.yml
 com reason "sem secret → não mede nada; vencimento força re-decisão do owner"
 — usa o mecanismo de exceção datada que o repo já tem, sem janela de
 workflow. O fail-closed em `schedule` entra na leva da Onda 1.
+
+## Desvios do desenho, medidos na execução (2026-08-25)
+
+1. **O detector não pode ler check-runs do SHA de `main`.** O squash cria
+   commit novo e os checks ficam no head do PR: `commits/<sha-de-main>/check-runs`
+   devolve `[]` para **todo** merge — um detector escrito assim diria `absent`
+   em 100% dos casos e seria ruído puro. O fluxo correto é
+   `commits/{sha}/pulls` → `head.sha` → `check-runs`. Coberto por teste com
+   mutação (trocar o head pelo SHA de main derruba 3 testes).
+2. **O sweep agendado saiu deste PR.** Workflow com `schedule:` precisa de
+   entrada no manifesto (S0) **e** que o Actions já conheça o arquivo (S1) —
+   e o Actions só o conhece após o merge, então um PR que nasça agendado não
+   mergeia a si mesmo. É o mesmo bootstrap que a [[ADR-210]] §Adendo
+   2026-08-21b registrou para a entrada `ops-watchdog`. Medido: com a entrada
+   no manifesto, `check_scheduled_workflows` sai `exit=1` com
+   `[S1] merge-audit.yml: declarado no manifesto mas o Actions não conhece o
+   arquivo`. Um waiver de bootstrap resolveria, mas viraria dívida datada que
+   trava o repo se ninguém a remover. Decisão: o braço `push: main` (que cobre
+   todos os merges) entra agora; o sweep agendado + `rulesets/{id}/history`
+   entra na leva da Onda 1, com o arquivo já em `main`. Rodável à mão nesse
+   intervalo: `--sweep --period month`.
 
 ## Aceite
 

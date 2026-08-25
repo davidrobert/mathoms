@@ -158,12 +158,36 @@ workflows:
     max_age_days: 12 # semanal
     why: "Paridade cross-provider do parecer planejador (ADR-208)."
     adr: ADR-208
+    waiver:
+      until: "2026-10-15"
+      reason: >-
+        NÃO MEDE NADA HOJE. Sem `ANTHROPIC_API_KEY_CROSS_PROVIDER` e
+        `OPENAI_API_KEY_CROSS_PROVIDER` no repo, o key-check pula as duas
+        pernas da matriz e o run conclui `success` — verificado no log de
+        2026-08-24 (dois `##[warning] ... ausente — skip`). O S2 mede run
+        INICIADO, então a entrada fica verde afirmando uma cobertura que não
+        existe: é a classe de fail-open que esta camada existe para matar,
+        morando dentro do manifesto que ela produziu. O waiver não conserta —
+        ele torna a dívida datada e força a re-decisão do owner (criar os
+        secrets, ou aceitar por escrito que a paridade cross-provider não é
+        medida). Enquanto isso o fail-closed em `schedule` está desenhado no
+        track da Onda 1 do PLAN-ci-trust. Vence junto com o waiver do nightly
+        de propósito: as duas decisões são do owner e batendo na mesma sessão.
 
   - file: planner-golden-monthly.yml
     crons: ["0 6 1 * *"]
     max_age_days: 40 # mensal
     why: "Golden do parecer com LLM real — drift de modelo entre versões."
     adr: ADR-208
+    waiver:
+      until: "2026-10-15"
+      reason: >-
+        NÃO MEDE NADA HOJE, mesma classe da entrada acima e nunca mediu: sem
+        `ANTHROPIC_API_KEY_GOLDEN_MONTHLY` o job pula e o run conclui
+        `success` (log de 2026-08-01). O golden com LLM real do parecer, que a
+        ADR-208 declara como detector de drift de modelo, jamais executou —
+        então "drift não detectado" nunca significou "não houve drift".
+        Re-decisão do owner na mesma sessão da entrada acima.
 
   - file: branch-cleanup.yml
     crons: ["0 6 1 * *"]

@@ -6,13 +6,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Callable
 
 EXCLUDED_LABELS = {"wip", "do-not-merge", "blocked"}
+# Recusas toleradas por ciclo. Quando o merge de main traz mudança em
+# `.github/workflows/**`, TODOS os PRs BEHIND recusam pela mesma causa —
+# varrer a fila inteira gasta chamadas sem mudar desfecho, e o run seguinte
+# (~15min) tenta de novo. Três dá amostra para o operador ver que é sistêmico.
+MAX_REFUSALS_PER_RUN = 3
 # Workflows que hospedam os required checks do Ruleset: job "All checks
 # green" vive no workflow CI; job "Title (Conventional Commits)" no PR
 # Quality. Estado lido via API de Actions (escopo Actions:Read) porque
@@ -23,24 +29,49 @@ PR_LIST_FIELDS = (
 )
 
 RunsFetcher = Callable[[dict[str, Any]], list[dict[str, Any]]]
+_HTTP_STATUS_RE = re.compile(r"HTTP (\d{3})")
+
+
+class GhCallFailed(RuntimeError):
+    """Falha de `gh` com o status HTTP preservado. A classe do erro decide o
+    desfecho: 4xx é veredito da API (permissão, escopo, estado do PR) e repetir
+    só gasta relógio; 5xx é indisponibilidade e pode ceder. Medido em
+    2026-08-17: o retry cego re-tentou 9× um 403 de escopo de PAT e recuperou
+    0 de 10 ([[ADR-210]] §Adendo 2026-08-21c)."""
+
+    def __init__(self, returncode: int, stderr: str) -> None:
+        self.returncode = returncode
+        self.stderr = stderr
+        found = _HTTP_STATUS_RE.search(stderr)
+        self.status = int(found.group(1)) if found else None
+        super().__init__(self.describe())
+
+    @property
+    def is_verdict(self) -> bool:
+        """True quando a API respondeu recusando (4xx) — re-tentar não muda."""
+        return self.status is not None and 400 <= self.status < 500
+
+    def describe(self) -> str:
+        head = f"HTTP {self.status}" if self.status else f"rc={self.returncode}"
+        first_line = self.stderr.strip().splitlines()[0] if self.stderr.strip() else ""
+        return f"{head}: {first_line[:140]}" if first_line else head
 
 
 def _gh(*args: str) -> str:
-    """gh CLI com 1 retry (backoff 5s) — API do GitHub tem falha transiente."""
+    """gh CLI com 1 retry (backoff 5s) reservado a falha NÃO-determinística —
+    4xx sai na primeira tentativa, com a causa na exceção."""
+    failure = GhCallFailed(-1, "nenhuma tentativa executada")
     for attempt in (1, 2):
         result = subprocess.run(["gh", *args], capture_output=True, text=True)
         if result.returncode == 0:
             return result.stdout
-        print(
-            f"gh {args[0]} falhou (rc={result.returncode}, tentativa {attempt}): "
-            f"{result.stderr.strip()}",
-            file=sys.stderr,
-        )
+        failure = GhCallFailed(result.returncode, result.stderr)
+        print(f"gh {args[0]} falhou (tentativa {attempt}): {failure.describe()}", file=sys.stderr)
+        if failure.is_verdict:
+            break
         if attempt == 1:
             time.sleep(5)
-    raise subprocess.CalledProcessError(
-        result.returncode, result.args, result.stdout, result.stderr
-    )
+    raise failure
 
 
 def list_open_prs() -> list[dict[str, Any]]:
@@ -114,9 +145,11 @@ def out_of_train_reason(pr: dict[str, Any], runs_for: RunsFetcher) -> str | None
     """Motivo de o PR estar fora do trem, ou None se ele concorre à cabeça — fonte
     única da exclusão. `decide_train` e o `train_head` do watchdog diferem no
     desfecho (um para na cabeça, o outro a devolve mesmo sem BEHIND) e precisam
-    concordar sobre QUEM ela é: motivo novo aqui vale para os dois. O 403 terminal
-    da ADR-322 §Emenda 2026-08-08 é o terceiro motivo já previsto. `runs_for` é
-    lazy — PR DIRTY sai sem gastar chamada de API."""
+    concordar sobre QUEM ela é: motivo novo aqui vale para os dois. `runs_for` é
+    lazy — PR DIRTY sai sem gastar chamada de API. A recusa 403 do update-branch
+    **não** entra aqui (versão anterior deste texto a previa): não é propriedade
+    do PR e sim de uma tentativa, invisível ao watchdog, que compartilha este
+    predicado — ela vive em `advance_train` (ADR-322 §Emenda 2026-08-25)."""
     if pr.get("mergeStateStatus") == "DIRTY":
         return "conflito de merge — autor precisa rebasar"
     if required_workflow_failed(runs_for(pr)):
@@ -129,11 +162,15 @@ class TrainDecision:
     """Resultado de um ciclo: o PR a atualizar, ou por que não há um. `waiting_behind`
     conta elegíveis em BEHIND atrás da cabeça — mesmo predicado do `gh pr list` do
     runbook §1, não promessa de que todos sejam atualizáveis (um deles pode estar
-    red no head e sair do trem quando chegar a vez dele)."""
+    red no head e sair do trem quando chegar a vez dele). `refused` lista os PRs
+    cujo update-branch a API recusou neste ciclo: eles não são fila em andamento
+    nem fila vazia, e a linha final precisa dizer isso — foi "trem em dia"
+    afirmado sobre 5 PRs esperando que custou 22min de diagnóstico em 08-21."""
 
     pr: dict[str, Any] | None
     head_on_hold: dict[str, Any] | None
     waiting_behind: int
+    refused: tuple[int, ...] = ()
 
 
 def _behind_in(prs: list[dict[str, Any]]) -> int:
@@ -170,15 +207,59 @@ def update_branch(number: int) -> None:
     _gh("api", "-X", "PUT", f"repos/{{owner}}/{{repo}}/pulls/{number}/update-branch")
 
 
-def describe_decision(decision: TrainDecision) -> str:
-    """Linha final do run. Fila vazia e cabeça segurando tiveram a mesma frase até
-    2026-08-21 ("trem em dia") — ela afirmava zero elegível BEHIND com 5 esperando
-    atrás do #1569, e fez enfileiramento saudável parecer trem parado."""
+def _attempt_update(number: int, updater: Callable[[int], None]) -> bool:
+    """False só quando a API RECUSA (4xx). 5xx sobe: indisponibilidade não é
+    veredito sobre este PR, e engolir viraria skip de um PR que estava são."""
+    try:
+        updater(number)
+    except GhCallFailed as failure:
+        if not failure.is_verdict:
+            raise
+        print(f"skip #{number}: update-branch recusado — {failure.describe()}")
+        return False
+    return True
+
+
+def advance_train(
+    prs: list[dict[str, Any]],
+    runs_for: RunsFetcher = _runs_for_pr,
+    updater: Callable[[int], None] | None = None,
+) -> TrainDecision:
+    """Decide, atualiza, e tenta o PRÓXIMO quando a API recusa — o 403 é terminal
+    para aquele PR e nunca para o run (ADR-322 §Emenda 2026-08-25)."""
+    # `updater=None` resolvido no corpo: default de assinatura liga o símbolo na
+    # definição do módulo e um monkeypatch de `update_branch` não seria visto —
+    # o teste chamaria a API de verdade (aconteceu ao escrever este fix).
+    apply_update = updater or update_branch
+    candidates, refused = list(prs), []
+    while len(refused) < MAX_REFUSALS_PER_RUN:
+        decision = decide_train(candidates, runs_for)
+        if decision.pr is None or _attempt_update(decision.pr["number"], apply_update):
+            return replace(decision, refused=tuple(refused))
+        refused.append(decision.pr["number"])
+        candidates = [pr for pr in candidates if pr["number"] != decision.pr["number"]]
+    return TrainDecision(None, None, 0, tuple(refused))
+
+
+def _refused_phrase(refused: tuple[int, ...]) -> str:
+    listed = ", ".join(f"#{n}" for n in refused)
+    return (
+        f"{len(refused)} update-branch recusado(s) em {listed} — 403 é PAT sem escopo "
+        "`workflow` contra merge que toca .github/workflows/**; o autor rebasa da "
+        "própria conta (ADR-322 §Emenda 2026-08-08)"
+    )
+
+
+def _outcome_phrase(decision: TrainDecision) -> str:
     if decision.pr is not None:
         return f"update-branch #{decision.pr['number']} — {decision.pr['title']}"
     head = decision.head_on_hold
     if head is None:
-        return "trem em dia: nenhum PR elegível BEHIND"
+        return (
+            "nada mais a atualizar"
+            if decision.refused
+            else "trem em dia: nenhum PR elegível BEHIND"
+        )
     atras = (
         f"{decision.waiting_behind} PR(s) elegível(is) BEHIND atrás"
         if decision.waiting_behind
@@ -190,14 +271,24 @@ def describe_decision(decision: TrainDecision) -> str:
     )
 
 
+def describe_decision(decision: TrainDecision) -> str:
+    """Linha final do run. Fila vazia e cabeça segurando tiveram a mesma frase até
+    2026-08-21 ("trem em dia") — ela afirmava zero elegível BEHIND com 5 esperando
+    atrás do #1569, e fez enfileiramento saudável parecer trem parado. Recusa é o
+    terceiro estado: dizer "trem em dia" depois de recusar 3 updates recriaria
+    exatamente aquele defeito."""
+    parts = [_refused_phrase(decision.refused)] if decision.refused else []
+    parts.append(_outcome_phrase(decision))
+    return " · ".join(parts)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="só decide, não atualiza")
     args = parser.parse_args()
-    decision = decide_train(list_open_prs())
+    prs = list_open_prs()
+    decision = decide_train(prs) if args.dry_run else advance_train(prs)
     print(describe_decision(decision))
-    if decision.pr is not None and not args.dry_run:
-        update_branch(decision.pr["number"])
     return 0
 
 
