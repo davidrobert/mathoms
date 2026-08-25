@@ -36,7 +36,12 @@ from backend.app.services.parecer_ancorabilidade import (
     measure_block_coverage,
 )
 from backend.app.services.parecer_citation_catalog import _MAX_LIST_ITEMS, _PRIORITY_ROOTS
-from backend.app.services.parecer_distiller import _render_section_body, surviving_sections
+from backend.app.services.parecer_distiller import (
+    _render_section_body,
+    citation_catalog_for,
+    distill_exec_context,
+    surviving_sections,
+)
 from backend.app.services.parecer_manifest import load_manifest
 from tests.test_parecer_planejador_golden import make_workspace_e5
 
@@ -229,7 +234,13 @@ _SNAPSHOT_COMMENT = (
     "A40.l30 item 2 — folhas R$ visíveis no corpo do exec context sem rota de citação no "
     "catálogo RENDERIZADO. Gate por diff de conjunto: um #1004 futuro aparece aqui. "
     "Rebaseline: MATHOMS_UPDATE_SNAPSHOT=1 pytest tests/test_parecer_ancorabilidade.py "
-    "— US$ 0, in-process."
+    "— US$ 0, in-process. ESTE CORPUS LÊ OTIMISTA: na A40.l83 o mesmo instrumento deu "
+    "92,9% aqui e 86,1% no E5 real do run r8 (antes do fix: 39,3% aqui, 0% lá). O motivo "
+    "é cardinalidade — `paths_projetados_sem_dado_no_corpus` abaixo lista 16 paths que "
+    "produção fornece e este corpus não, e onde produção tem 31 linhas de endividamento "
+    "e 28 de reserva o corpus tem 2 e 4. São as duas raízes que consomem o catálogo, "
+    "então o colapso medido em produção é IRREPRODUZÍVEL aqui. Enquanto esse déficit "
+    "existir, um verde neste snapshot não é evidência sobre produção."
 )
 
 
@@ -265,6 +276,33 @@ def _snapshot_payload(manifest, e5) -> dict:
         "inancoraveis": sorted(report.inancoraveis),
         "paths_projetados_sem_dado_no_corpus": sorted(iter_uncovered_paths(manifest, e5)),
     }
+
+
+# -----------------------------------------------------------------------
+# A40.l83 — a semente é o corpo, e o produtor é único
+# -----------------------------------------------------------------------
+
+
+class TestCatalogoSemeadoPeloCorpo:
+    def test_semente_ocupa_o_prefixo_do_catalogo(self, manifest, e5):
+        """A ordem primária é o corpo; `_PRIORITY_ROOTS` só ordena o resto. Sem isto o
+        catálogo volta a ranquear o E5 inteiro para servir ao corpo, e sob `max_bytes`
+        os dois se separam — 0 de 36 no E5 real do run r8."""
+        construido, _renderizado = citation_catalog_for(manifest, e5)
+        paths = [entry.path for entry in construido]
+        visiveis = [leaf.path for leaf in iter_visible_money_paths(manifest, e5)]
+        semeados = [p for p in visiveis if p in paths]
+        assert paths[: len(semeados)] == semeados
+
+    def test_instrumento_mede_o_bloco_que_producao_emite(self, manifest, e5):
+        """Produtor único: todo path que o instrumento conta como rota está no exec
+        context que o modelo recebe. Dois produtores era o que permitia a medição
+        divergir do prompt real."""
+        _construido, renderizado = citation_catalog_for(manifest, e5)
+        contexto = distill_exec_context(manifest, e5)
+        assert renderizado
+        for entry in renderizado:
+            assert f"`{entry.path}`" in contexto
 
 
 class TestSnapshotDeAncorabilidade:
