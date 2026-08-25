@@ -23,6 +23,7 @@ from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
     PrevidenciaConfig,
 )
 from pipeline.domain.types.config import IRPFBracket  # noqa: E402
+from tests.unit.pipeline.test_irpf_redutor import ANUAL_2026 as REDUTOR_2026  # noqa: E402
 
 
 # Derivada da MIGRATION, nunca de literais: a cópia à mão divergia em centavos
@@ -37,7 +38,7 @@ def _anual_da_seed(ano: int = 2026) -> tuple[IRPFBracket, ...]:
 ANUAL_2026 = _anual_da_seed()
 
 
-def _capacidade(restante: str, renda: str) -> CapacidadePgblIRPF:
+def _capacidade(restante: str, renda: str, base: str | None = None) -> CapacidadePgblIRPF:
     resto = Decimal(restante)
     teto = max(Decimal(renda) * Decimal("0.12"), resto)
     return CapacidadePgblIRPF(
@@ -49,6 +50,7 @@ def _capacidade(restante: str, renda: str) -> CapacidadePgblIRPF:
             excedente_nao_dedutivel=Decimal("0"),
         ),
         renda_tributavel_anual=Decimal(renda),
+        base_calculo_anual=Decimal(base) if base is not None else Decimal(renda),
         ano_base=2024,
         fonte="irpf_pgbl_capacidade",
     )
@@ -159,3 +161,97 @@ class TestEconomiaZeroNaoPrescreve:
         assert r.aporte_mensal is not None
         assert r.aliquota_marginal is not None
         assert r.motivo_ausencia["aporte"] is None
+
+
+# =============================================================================
+# ADR-414 — o imposto incide sobre a BASE declarada, não sobre o bruto
+# =============================================================================
+
+
+class TestBaseDeCalculoDeclarada:
+    def test_economia_usa_a_base_nao_o_bruto(self):
+        """Mesmo bruto, bases diferentes ⇒ economias diferentes. O bruto não decide."""
+        cfg = PrevidenciaConfig(irpf_faixas=ANUAL_2026)
+        sem_deducao = PrevidenciaAnalyzer(cfg).analyze(
+            {}, capacidade_irpf=_capacidade("8400", "70000", base="70000")
+        )
+        com_deducao = PrevidenciaAnalyzer(cfg).analyze(
+            {}, capacidade_irpf=_capacidade("8400", "70000", base="50000")
+        )
+
+        assert sem_deducao.economia_ir_anual != com_deducao.economia_ir_anual
+        # 70.000 → faixa terminal dos dois lados: 8.400 × 27,5%.
+        assert sem_deducao.economia_ir_anual == Decimal("2310.00")
+        # 50.000 → 41.600 atravessa o degrau 22,5% → 15%.
+        assert com_deducao.economia_ir_anual == Decimal("1634.06")
+
+    def test_marginal_resolve_a_faixa_da_base(self):
+        """ADR-375 D6 sempre falou de base; o call-site é que passava o bruto."""
+        cfg = PrevidenciaConfig(irpf_faixas=ANUAL_2026)
+        r = PrevidenciaAnalyzer(cfg).analyze(
+            {}, capacidade_irpf=_capacidade("8400", "70000", base="50000")
+        )
+
+        assert r.aliquota_marginal == 22.5  # faixa de 50.000, não a de 70.000
+        assert r.aliquota_marginal != 27.5
+
+    # O teste `test_sem_base_declarada_nao_publica_economia` foi REMOVIDO junto
+    # com a decisão de tornar `base_calculo_anual` obrigatória: ele construía um
+    # estado que o tipo não representa mais. Teste de ramo que não dispara mede a
+    # si mesmo — a garantia passou a ser do construtor.
+
+
+# =============================================================================
+# ADR-414 D4 — o redutor compõe dos dois lados, e o clamp é POR LADO
+# =============================================================================
+
+
+class TestComposicaoDoRedutor:
+    def test_o_caso_do_codesign_fecha_ao_centavo(self):
+        """Bruto R$ 70.000, base R$ 50.000, aporte R$ 8.400.
+
+        Número calculado à mão pelo `financial-planner` no co-design de
+        2026-08-24, antes de existir código: economia real R$ 1.404,67 contra
+        R$ 1.634,06 da diferencial sem redutor — superestimativa de 14%.
+
+        Mecânica: o lado SEM aporte tem IR 3.144,15 e redutor 1.739,48 (não
+        clipa) ⇒ 1.404,67. O lado COM aporte tem IR 1.510,09 e o mesmo redutor
+        de 1.739,48, que CLIPA em 1.510,09 ⇒ zero.
+        """
+        com = economia_diferencial(
+            Decimal("50000"),
+            Decimal("8400"),
+            ANUAL_2026,
+            bruto_anual=Decimal("70000"),
+            redutor=REDUTOR_2026,
+        )
+        sem = economia_diferencial(Decimal("50000"), Decimal("8400"), ANUAL_2026)
+
+        assert com == Decimal("1404.67")
+        assert sem == Decimal("1634.06")
+        assert com < sem  # o redutor só pode REDUZIR a economia publicada
+
+    def test_acima_da_banda_o_redutor_nao_muda_nada(self):
+        """Bruto > 88.200: redutor zero dos dois lados ⇒ diferencial intacta."""
+        args = (Decimal("95000"), Decimal("11400"), ANUAL_2026)
+        com = economia_diferencial(*args, bruto_anual=Decimal("95000"), redutor=REDUTOR_2026)
+
+        assert com == economia_diferencial(*args)
+
+    def test_banda_1_zera_a_economia(self):
+        """Ambos os lados clipam ⇒ economia exatamente zero, não 'quase zero'."""
+        economia = economia_diferencial(
+            Decimal("40000"),
+            Decimal("6000"),
+            ANUAL_2026,
+            bruto_anual=Decimal("55000"),
+            redutor=REDUTOR_2026,
+        )
+
+        assert economia == Decimal("0")
+
+    def test_sem_redutor_o_comportamento_e_o_de_antes(self):
+        """AC <= 2025 não tem redutor — e não pode regredir."""
+        assert economia_diferencial(
+            Decimal("50000"), Decimal("8400"), ANUAL_2026, bruto_anual=Decimal("70000")
+        ) == Decimal("1634.06")
