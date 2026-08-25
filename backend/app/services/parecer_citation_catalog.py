@@ -37,6 +37,11 @@ _MONEY_KEY_TOKENS = (
     "gasto",
     "limite",
     "capital",
+    # A40.l83 · RV8-05: sem ele, `investimentos_nao_atribuidos` (e os irmãos
+    # `_titular`/`_conjuge`) não eram folha citável — o manifest declarava `format: brl`
+    # e este predicado, que adivinha pelo NOME, discordava. Raio medido no E5 real: +6
+    # entries, todas monetárias.
+    "investimento",
     "premio",
     "folga",
     "caixa",
