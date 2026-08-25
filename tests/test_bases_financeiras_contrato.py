@@ -16,11 +16,12 @@ import pytest
 
 from pipeline.domain.services.bases_financeiras import (
     BaseFinanceira,
+    PapelMembro,
     chave_de_componente,
     publicavel_sozinha,
     termos_da_base,
 )
-from pipeline.domain.services.patrimonio_types import MemberIdentity, PapelMembro
+from pipeline.domain.services.patrimonio_types import MemberIdentity
 from scripts.pipeline_common import validate_dict
 from tests.fixtures.e5_fluxo_minimo import FLUXO_CAIXA_MINIMO
 
