@@ -268,7 +268,7 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (77 no disco · 77 nesta tabela — ver nota ao fim)
+## Lanes (80 no disco · 80 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -390,6 +390,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l79]] | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | P1 | — | aberta 2026-08-24 no ataque às l64/l65 (#1659) · medido: 2027 levanta `FiscalParameterNotFound`, o `except Exception` cai no dict legado e `regime_completo` defaulta `True` ⇒ R$ 630,00 de economia inexistente no caso do §Critério 1 da [[A40.l64]] · o golden não pega porque `fiscal_store_do_seed` tem clamp que a produção não tem |
 | [[A40.l80]] | Denominador amputado: metade da carteira financeira não tem dono, o investível a exclui e o bruto a inclui no mesmo arquivo | P0 | — | aberta 2026-08-24 · cluster do §r8 (RV8-02/03/04/06/10) · **decisão antes do código**: os consumidores não querem a mesma base — composição (concentração, banda cambial) quer a base cheia, runway (autonomia) talvez queira a certificada · reabre [[ADR-335]] §Emenda e [[ADR-340]] ⇒ ADR `Proposto` obrigatória, co-design `financial-planner` + `data-engineer` · ordem dura: abrir o enum de `membro` (RV8-06) **antes** de mexer em número, senão não há onde declarar a ressalva · move componente de score e a banda cambial volta de verde para amarela — isso é a correção, não regressão |
 | [[A40.l81]] | Diagnóstico sem canal de saída: o stage que não pausa entrega razão no artefato e ela não chega nem à tabela nem ao usuário | P0 | — | aberta 2026-08-24 · RV8-09 do §r8 · **primeiro da fila**: é o que torna RV8-01/RV8-19 observáveis sem outra revisão manual · re-medido: 4 razões no artefato do `consolidate_baseline`, 0 rows na tabela (as 2 da tabela vêm do único stage que pausou) · não é `_drop_unknown_codes` — os códigos estão na allowlist · **três armadilhas**: a tabela é write-only (consertar só a escrita repete RV8-17/RV8-12), as razões têm duas formas e o sink só lê a de topo, e o gate óbvio é cego pela mesma metade · ordem da [[ADR-404]] é restrição dura |
+| [[A40.l82]] | Um default de grupo RFB decide a classe de 13% da carteira, com confiança plena e sem sinal | P0 | — | aberta 2026-08-25 · **RV8-01 do §r8**, o achado nº 1 · origem [[A40.l77]] §RV8-01 (aquela lane registra a regressão, esta conserta; a l77 não reabre) · medido: 11 de 61 posições migram `Fundos`→`Renda Fixa`, R$ 174.636,71, com `autoridade: keyword` e zero `review_reason` · os itens são FIA/FIC FIM rotulados `renda_fixa` pelo **default do grupo 04** em `_classify_investimento` · co-design fechado pelo `senior-cto` em 2026-08-25: reverter pela assimetria de visibilidade, 5 marcas de gestora no mesmo PR, gate estrutural com expiração datada · **não vai para a J5** — modo de falha oposto ao do DE-7 (redistribui vs. soma) |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
