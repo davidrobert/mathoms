@@ -54,7 +54,12 @@ class ExposicaoCambialResponse(BaseModel):
     # taxa em [0..100], não monetária — share do investível financeiro
     pct_investivel_financeiro: Optional[float] = None
     por_moeda: list[ExposicaoCambialPorMoedaDTO]
-    tier: Optional[str] = None  # verde | amarelo | vermelho | empty — None sem base
+    # O vocabulário sai do comentário e vira contrato (A40.l80): `indeterminado`
+    # é o estado que o E5 publica quando algum componente não é apurado, e o card
+    # tem de poder dizê-lo em vez de julgar faixa por conta própria.
+    tier: Optional[Literal["verde", "amarelo", "vermelho", "indeterminado", "empty"]] = Field(
+        default=None, description="Faixa de proteção; `indeterminado` = veredito suprimido."
+    )
     alvo_moeda_forte_brl: Optional[Decimal] = Field(
         None,
         description=(
