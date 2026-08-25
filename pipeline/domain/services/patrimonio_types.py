@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
+from enum import Enum
 from typing import Any, Literal, Mapping
 
 from pipeline.domain.services.conversao_me import ConversaoMeBrl
@@ -122,6 +123,20 @@ def resolve_value_year(baseline: dict, summary_year: str) -> str:
 # =============================================================================
 # Value objects
 # =============================================================================
+
+
+# `sem_dono` existe porque o domínio é ternário e `role_of` é binária: o `else`
+# dela devolve `titular` para chave que não casa ninguém, afirmando posse que
+# ninguém mediu. O enum sozinho NÃO trava a omissão do terceiro caso — não há
+# mypy nem pyright em gate, e o mixin `str` mantém `PapelMembro.titular ==
+# "titular"` verdadeiro, então um if/else binário segue calado. Quem trava é o
+# teste de exaustividade sobre `set(PapelMembro)`, que o PR2 traz.
+class PapelMembro(str, Enum):
+    """Papel de uma posição — ternário ([[ADR-412]] §D2)."""
+
+    titular = "titular"
+    conjuge = "conjuge"
+    sem_dono = "sem_dono"
 
 
 @dataclass(frozen=True)
