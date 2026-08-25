@@ -35,12 +35,11 @@ desta nota), [[ADR-357]] (WARN-first: o stage entrega e a degradação é deriva
 [[ADR-343]] (o snapshot PII-safe que passa a ler a tabela).
 
 > **Esta nota não reabre a ADR-404.** A ordem *controle primeiro e sozinho,
-> analítico depois em sessão própria e fail-open* continua valendo, intacta.
-> Aqui se decide **em quantos desfechos** o analítico roda, **onde** a razão é
-> procurada dentro do artefato, e **o que identifica** uma row. Teste de
-> falseamento aplicado na escrita: se a §Decisão coubesse em *"chamar o sink
-> também no ramo de sucesso"*, isto seria emenda à 404 e não nota nova — não
-> cabe, porque D2 e D3 mudam a colheita e a chave.
+> analítico depois em sessão própria e fail-open* continua intacta. Aqui se
+> decide **em quantos desfechos** o analítico roda, **em que canal** a razão é
+> procurada, e **o que identifica** uma row. Teste de falseamento: se a §Decisão
+> coubesse em *"chamar o sink também no ramo de sucesso"*, isto seria emenda à
+> 404 — não cabe, porque D2b e D3 mudam canal e chave.
 
 ## Contexto — medido, não herdado
 
@@ -52,14 +51,33 @@ o artefato guardado, não sobre a prosa da revisão:
 | `validation.review_reasons` | `domain.baseline_divergence` | 2 |
 | `imoveis_consolidados[].review_reasons` | `domain.property_identity_uncanonical` | 2 |
 
-`validation` **não carrega a chave `valid`** — logo `_has_validation_errors` é
-falso, o stage entrega, e o run inteiro fecha `completed`. A tabela
-`review_reasons` do mesmo run tem 2 rows, **ambas de `analyze_finances`** — o
-único stage que pausou. Cobertura do stage WARN-first: **0 de 4**.
+A tabela `review_reasons` do mesmo run tem 2 rows, **ambas de
+`analyze_finances`** — o único stage que pausou.
 
-A causa não é o `_drop_unknown_codes`: os dois códigos estão na allowlist. É que
-`record_review_reasons` tem call-site único dentro de `_record_stage_needs_review`,
-que só roda no desfecho `needs_review`.
+A causa não é o `_drop_unknown_codes`: os dois códigos estão na allowlist. São
+**duas** causas, e a segunda só apareceu ao medir os `detail` do run inteiro:
+
+**(i) o sink só roda no ramo de pausa.** `record_review_reasons` tem call-site
+único dentro de `_record_stage_needs_review`. Medido em todos os stages do run:
+
+| stage | desfecho | Σ occ no `detail` | persistido |
+|---|---|---:|---:|
+| `extract_baseline` | entregou | 11 | 0 |
+| `reconcile_transactions` | entregou | 28 | 0 |
+| `analyze_finances` | **pausou** | 3 | 3 |
+| `consolidate_baseline` | entregou | 0 (no artefato: 4) | 0 |
+
+**46 ocorrências emitidas, 3 persistidas — 6,5% de cobertura.** A lane
+dimensionou o caso pelas 4 do `consolidate_baseline`; o volume dominante são as
+39 de `reconcile_transactions` + `extract_baseline`, que já estavam no canal
+certo e só precisavam que o sink rodasse fora do ramo de pausa.
+
+**(ii) o `consolidate_baseline` não escreve no canal que o sink lê.** O `detail`
+dele — `{success, files_created, imoveis, veiculos, investimentos, dividas}` —
+**não tem bloco `validation` nenhum**. As 4 razões existem só dentro do artefato.
+Mover a chamada do sink, sozinho, colheria **zero** para este stage: o canal
+estava vazio. Este é o achado que a lane não tinha, e sem ele o fix ficaria
+verde sobre o caso que lhe deu origem.
 
 ## Decisão
 
@@ -68,14 +86,23 @@ que produz `detail` — entregue, degradado, falho ou pausado — materializa a 
 O ramo de pausa deixa de ser o portão do analítico. Desfecho por exceção
 (`result is None`) não tem `detail` e colhe zero por construção, não por omissão.
 
-**D2 — a colheita caminha o artefato inteiro, e o caminhamento é um só.** A razão
+**D2 — a colheita caminha o payload inteiro, e o caminhamento é um só.** A razão
 é procurada em **qualquer** posição (`validation.review_reasons` e as coleções
-aninhadas como `imoveis_consolidados[].review_reasons`), não no caminho de topo.
-A alternativa — promover a razão de item no produtor — foi **rejeitada**: fecharia
-o `property_identity_enricher` e deixaria a classe aberta para o próximo produtor
-que aninhar. O gate usa **a mesma função** de caminhamento que o sink; um
-predicado que caminhasse por conta própria certificaria o meio-fix, que é o
-defeito que [[A40.l59]] e [[A40.l25]] já registraram.
+aninhadas como `imoveis_consolidados[].review_reasons`), nunca só no caminho de
+topo. O gate usa **a mesma função** que o sink; um predicado que caminhasse por
+conta própria certificaria o meio-fix, que é o defeito que [[A40.l59]] e
+[[A40.l25]] já registraram. Mora em `pipeline/domain/` porque o produtor também a
+usa (D2b) e `pipeline/**` não importa `backend/`.
+
+**D2b — o `detail` é o canal, e o produtor declara nele o que o payload carrega.**
+O sink lê o `detail` do stage, não o artefato. Ler o artefato de volta foi
+**rejeitado**: as duas formas coexistiriam sem chave de dedup honesta — as 2
+razões de imóvel do run medido têm conteúdo **idêntico** (mesmo `code`, mesmo
+`offending_value`), então dedup por conteúdo colapsaria 2 em 1 e perderia uma
+ocorrência real. Logo o produtor que só materializa razão dentro do artefato
+passa a declará-la no `detail`, **colhida com a função de D2** — nunca montada à
+mão a partir do caminho de topo, que deixaria 2 de 4 para trás. Sem `valid`: quem
+decide pausa é o orquestrador ([[ADR-357]] §2).
 
 **D3 — a posição entra na identidade da row.** A chave de consolidação passa de
 `(run, code)` para `(run, code, locator)`, onde `locator` é o caminho da coleção
@@ -103,23 +130,21 @@ acontecido.
 
 ## Correção de um número do critério da lane
 
-O critério de aceite da [[A40.l81]] diz *"4 razões no artefato ⇒ 4 rows"*. Sob a
-consolidação da [[ADR-272]] Fase 2 isso é **2 rows** (uma por `code`, agora por
-`(code, locator)`) com `occurrence_count` 2 cada. O predicado honesto — e o que o
-gate mede — é **Σ `occurrence_count` por `(code, locator)`**, não contagem de
-rows. Um gate escrito como `count(rows) == 4` reprovaria o comportamento correto.
+O critério da [[A40.l81]] diz *"4 razões no artefato ⇒ 4 rows"*. Sob a
+consolidação da [[ADR-272]] Fase 2 isso é **2 rows** (uma por `(code, locator)`)
+com `occurrence_count` 2 cada. O predicado honesto — e o que o gate mede — é
+**Σ `occurrence_count`**, não contagem de rows: `count(rows) == 4` reprovaria o
+comportamento correto.
 
 ## Consequências
 
-- Volume: rows por run deixam de ser função da pausa. O cap
-  `_REVIEW_REASON_ROW_CAP` segue defensivo; o locator é de coleção e a
-  cardinalidade real fica na ordem de dezenas.
+- Volume: rows por run deixam de ser função da pausa. No run medido, 46
+  ocorrências em ~8 rows. O cap `_REVIEW_REASON_ROW_CAP` segue defensivo.
 - Retenção: `review_reasons.pipeline_run_id` é FK `ON DELETE CASCADE`
-  ([[ADR-371]]) — row de diagnóstico morre com o run que a gerou. Nada a fazer.
-- Rows históricas ficam com `locator` **vazio**, não nulo: a chave de
-  consolidação compara por igualdade, e `NULL = NULL` é falso em SQL — locator
-  nulo quebraria a idempotência que torna o redelivery do Celery seguro. `""`
-  significa "não colhido"; o leitor o mostra como caminho desconhecido.
+  ([[ADR-371]]) — a row morre com o run que a gerou. Nada a fazer.
+- Rows históricas ficam com `locator` **vazio**, não nulo: a chave compara por
+  igualdade e `NULL = NULL` é falso em SQL — locator nulo quebraria a
+  idempotência do redelivery do Celery. `""` significa "não colhido".
 
 ## Deferimento — superfície de usuário para aviso-sem-pausa (D4)
 
