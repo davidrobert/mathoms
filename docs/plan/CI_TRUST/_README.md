@@ -138,11 +138,14 @@ Executa como **track self-contained** (precedente: runbooks do
   Dissolve a classe "PR de CI starva a fila" **sem** alargar o PAT (escopo
   Workflows foi rejeitado no co-design: PAT que escreve workflow exfiltra
   secrets — inaceitável compondo com 1.x/secrets LLM em repo público).
-- **Detector pós-merge + sweep de bypass** (um job só, `push: main`, ~10s):
-  classifica cada SHA em check-ausente / check-failure (**P0, revert**) /
-  bypass (cruza rule-suites); sweep diário no budget-alert
-  (`time_period=week`, paginado, dedupe) + diff de `rulesets/{id}/history`.
-  **Backfill dos 64 SHAs na entrega** — a janela de auditoria é finita.
+- **Detector pós-merge** (`dev/ci_audit_merge_protection.py` + workflow
+  `merge-audit`, `push: main`, ~10s): resolve SHA de main → PR → **head** →
+  check-run e classifica em `gated` / `late` / `red` / `absent` / `unknown`.
+  O predicado é o veredito **no momento do merge**; ler só `conclusion`
+  diria "ok" em 46 dos 53 casos medidos. O sweep agendado
+  (`rule-suites` paginado + `rulesets/{id}/history`) **foi para a Onda 1** —
+  workflow com `schedule:` não mergeia a si mesmo (bootstrap do S1, medido).
+  **Backfill dos 64 SHAs feito na entrega** — a janela de auditoria é finita.
 - **ADR nova `Proposto` de merge-protection**: squash-only; bypass como uso
   sancionado nomeado (com Issue automática via detector); cadência de
   auditoria; re-decisão datada se aparecer admin novo. ID alocado na escrita.
@@ -150,11 +153,14 @@ Executa como **track self-contained** (precedente: runbooks do
 - Evidência: capturada em 2026-08-25 ([evidence/](evidence/)) — rule-suites
   `time_period=month` (64 bypasses) + timeline do #1508.
 
-**Aceite da Onda 0**: detector provado por mutação (merge sintético com
-required check FAILURE ⇒ Issue); inventário do backfill publicado (explica ou
-não o vermelho de main — decide o item 2.2); `allowed_merge_methods` =
-`["squash"]` via `gh api`; ADR mergeada `Proposto→Decidido`; PRs da onda
-mergeados **sem bypass** (se a Onda 0 precisar de bypass, falhou no objeto).
+**Aceite da Onda 0**: detector provado por mutação (5 mutações, cada uma
+derruba teste — inclusive "ler check-run do SHA de main em vez do head", que
+tornaria o detector ruído puro); inventário do backfill publicado
+([evidence/backfill-inventario-2026-08-25.md](evidence/backfill-inventario-2026-08-25.md):
+**53/64 sem gate — 46 `late`, 7 `red`**); `allowed_merge_methods` = `["squash"]`
+via `gh api` **após** a ADR-415 mergear; ADR-415 `Proposto→Decidido`; PRs da
+onda mergeados **sem bypass** (se a Onda 0 precisar de bypass, falhou no
+objeto).
 
 ## Onda 1 — gate confiável + rede religada (leva única de `.github/workflows/**`, PRs na ordem 1 → 2 → 3)
 
@@ -190,7 +196,7 @@ de latência (KR-H); decidir à parte, provavelmente gate por label/path.
 |---|---|---|
 | 2.0 **gate de decisão: Organization + merge queue** | P0 da onda | ADR `Proposto` owner-gated (desenho `senior-cto`+`sre-devops`). Público **não basta** — merge queue exige org. Decisão até ~2026-09-20 amarra a rotação do PAT (org ⇒ PAT morre; senão rotacionar até 10-05). Princípio até lá: **nada de payback longo dentro do trem** (GitHub App, features de trem); investir só no que sobrevive (detector, canais de falha, heartbeat, manifesto, auditoria) |
 | 2.1 starvation por classificação de run | P1 | Só se 2.0 = não. `required_workflow_failed` por JOB; watchdog com `gh run rerun --failed` capado |
-| 2.2 índices `_generated` no CI | — | **Não decidir ainda**: esperar backfill 0.2 + 7 noites verdes — a hipótese barata para o vermelho de main são os 64 merges sem gate. Se sobrar drift, rotear a `information-architect` |
+| 2.2 índices `_generated` no CI | — | **Não decidir ainda**, mas o backfill (2026-08-25) já estreitou: dos 64 bypasses, **7 entraram com o required check VERMELHO** (#1399, #1453, #1459, #1494, #1505, #1508, #1701) e 46 com ele concluindo depois do merge. Há material suficiente para explicar `main` vermelha sem invocar "gates não compõem". Falta cruzar com as 3 medições falhas; depois disso, se sobrar drift, rotear a `information-architect` |
 | 2.3 hooks diff-based inertes no CI | P1 | float-money per-line etc. sob `--all-files` — step `--commit-range` (padrão golden-rebaseline-isolation) + inventário da classe |
 | 2.4 ligar `vars.CI_SKIP_DOCS_ONLY` | P2 | Dependência DURA de 1.4 (≥7 main-smoke verdes; [[ADR-322]] §Emenda 2026-08-21 item 4 — a trava é protocolo, nada a enforça); predicado no runbook; aceite: hit rate medido + 0 skips com predicado 5 sobre SHA não-success |
 

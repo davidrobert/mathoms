@@ -4,7 +4,7 @@ type: adr
 title: "Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)"
 status: Decidido
 date: "2026-07-09"
-amended_at: ["2026-08-08", "2026-08-21"]
+amended_at: ["2026-08-08", "2026-08-21", "2026-08-25"]
 relates_to:
   - "[[ADR-210]]"
   - "[[ADR-320]]"
@@ -18,6 +18,12 @@ tags:
 ---
 
 # ADR-322 — Trem de auto-merge serializado com identidade real
+
+> **Emenda 2026-08-25 (implementação do que a §Emenda 2026-08-08 decidiu):** o
+> 403 do `update_branch` deixou de matar o run — a recusa é terminal para
+> **aquele PR**, o ciclo tenta o próximo, e a linha final nomeia os recusados em
+> vez de dizer "trem em dia". `_gh` passou a classificar 4xx (veredito, sem
+> retry) contra 5xx. D1 e D2 não reabrem. Ver §Emenda 2026-08-25.
 
 > **Emendada em 2026-08-21** — skip-class `incoming_main_docs_only` nos jobs
 > pesados do CI, decidida por **invariante** (a árvore de código não mudou E o
@@ -207,3 +213,45 @@ pelo step summary.
 4. D1 (1 PR/run) e D4 (`strict` ligado) **não reabrem**. O skip é inerte
    enquanto o compensador noturno estiver `disabled_manually` — é a mesma
    trava da [[ADR-210]] camada 4.
+
+## Emenda 2026-08-25 — o 403 vira terminal para o PR, como a §Emenda 2026-08-08 decidiu
+
+A §Emenda 2026-08-08 declarou o invariante — *"o 403 é terminal para **aquele
+PR**, nunca para o **run**"* — e registrou que `update_branch` sem tratamento o
+viola. O tratamento não existia até aqui: `_gh` levantava, `main()` não tratava,
+o processo saía 1 e **nenhum outro PR da fila era atualizado naquele run**.
+Executado em [[PLAN-ci-trust]] §Onda 0.
+
+**O que passa a valer:**
+
+1. **`advance_train` é o ciclo** (`decide → tenta → recusou? próximo`), com teto
+   de `MAX_REFUSALS_PER_RUN = 3`. Recusa **não é atualização**, então o teto de
+   1 update por run (**D1**) continua valendo, e um head `PENDING` continua
+   segurando a fila: quem a recusa pula é o PR recusado, não a espera.
+2. **`_gh` classifica antes de re-tentar.** 4xx é veredito da API (permissão,
+   escopo, estado do PR) e sai na primeira tentativa; 5xx mantém o retry único.
+   Medição que fecha a questão: em 2026-08-17 o retry cego re-tentou 9× um 403
+   de escopo de PAT e recuperou **0 de 10** ([[ADR-210]] §Adendo 2026-08-21c).
+   `GhCallFailed` carrega `status`, de modo que a causa aparece na linha em vez
+   de exigir varredura de runs.
+3. **5xx no update-branch sobe.** Indisponibilidade não é veredito sobre o PR —
+   engolir viraria skip de um PR são, tirando-o do trem sem motivo.
+4. **A linha final ganha o terceiro estado.** Dizer "trem em dia" após recusar
+   3 updates recriaria o defeito que o #1609 corrigiu (a frase afirmava zero
+   elegível BEHIND com 5 esperando). `TrainDecision.refused` carrega os números
+   e a frase nomeia a causa e o desbloqueio (autor rebasa da própria conta).
+
+**Onde a recusa NÃO mora, e por quê.** A versão anterior do docstring de
+`out_of_train_reason` previa o 403 como "terceiro motivo" daquele predicado.
+Está errado: o predicado é propriedade do **PR** e é compartilhado com o
+`train_head` do watchdog, que nunca tenta um update e portanto não pode
+observar a recusa — declará-la ali obrigaria a persistir estado entre
+processos. Ela é propriedade de uma **tentativa**, e vive em `advance_train`.
+
+**Fora do escopo desta emenda (registrado para não ser relido como resolvido):**
+a tensão de mecanismo que a §Emenda 2026-08-08 deixou aberta — se o 403 é
+disparado pelo PR-cabeça ou por qualquer merge de `main` que traga mudança em
+`.github/workflows/**`. O fix é indiferente às duas leituras: em ambas o run
+sobrevive e a fila anda. Também **rejeitado**: dar escopo `workflow` ao
+`AUTOUPDATE_PAT` — um PAT que escreve workflow pode escrever um workflow que
+exfiltra os secrets do repo, e o repo é público ([[PLAN-ci-trust]] §Onda 0).

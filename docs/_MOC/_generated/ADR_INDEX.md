@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-404 ADRs (ADR-001 a ADR-414) em [`docs/adr/`](../../adr/).
+405 ADRs (ADR-001 a ADR-415) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 347
-- **Proposto**: 53
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -349,9 +349,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético · phase A34
 - [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-363]] — Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem · phase A40
+- [[ADR-415]] — Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação · phase PLAN-ci-trust Onda 0
 
 ## dados
 
