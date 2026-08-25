@@ -259,6 +259,28 @@ e `merge_asset_keywords` deixa o scoring **sobrescrever a classe inteira**. Medi
 cortar só o default seria **no-op em produção**. `test_scoring_do_repo_nao_diverge_do_default`
 passa a travar a divergência.
 
+### A contenção tem custo medido, e ele tem sinal
+
+Medido no fechamento da [[A40.l82]], delegando a `build_reserva_liquida` sobre o
+mesmo run: a reserva da cônjuge cai **R$ 25.337,34** (110.130,67 → 84.793,33,
+`fonte=irpf`; o titular vem de `posicoes` e fica idêntico nos três cenários). O
+movimento é **inteiramente do `tipo`** — o corte das cinco marcas é zero na reserva,
+porque `Fundos` e `Outros` são ambos ilíquidos.
+
+O item é uma **poupança**, e `poupanca` sai do ramo `if "poupanca" in desc_lower` —
+**evidência, não default de grupo**. A `descricao` armazenada (104 chars) *não* contém
+a palavra: `_classify_investimento` casou contra outra string, e o `tipo` ficou como
+**único portador** daquela evidência. Descartá-lo em bloco descartou junto o que era
+fato.
+
+Isto não reabre a contenção — 25k de subavaliação declarada é melhor que 174k de
+superavaliação muda, a banda de cobertura não mudou (43,9 → 42,8 meses, "Excessiva"),
+e a assimetria de visibilidade que a decidiu continua valendo. O que muda é o **status
+de `tipo_proveniencia`**: ele deixa de ser melhoria aditiva sem prazo e passa a ter
+**custo corrente medido em KPI publicado**. A separação default↔evidência não é só
+pré-condição de um degrau futuro; é o conserto de um número que hoje está errado com
+sinal e magnitude conhecidos.
+
 ## Deferimentos (2026-08-25)
 
 **`classify_asset_outcome` deixar de aceitar `tipo: str` posicional — dono
@@ -272,7 +294,9 @@ fora do caminho de classificação da E5. **Sem relógio de propósito**: waiver
 travando o repo é dívida pior que a que ele cobre — a condição é a existência do
 degrau 1, verificável, não uma data.
 
-**`tipo_proveniencia` como campo companheiro — dono `data-engineer`, aditivo.** Enum
+**`tipo_proveniencia` como campo companheiro — dono `data-engineer`, aditivo, com
+custo corrente de R$ 25.337,34 em KPI publicado (§"A contenção tem custo medido").**
+Enum
 fechado derivado mecanicamente de qual `return` disparou (`declarado`,
 `derivado_de_evidencia`, `default_de_grupo`, `desconhecido`). **Não** muda o valor de
 `tipo`, que entra no hash de identidade (`_identity_key` → `investment_id`, publicado

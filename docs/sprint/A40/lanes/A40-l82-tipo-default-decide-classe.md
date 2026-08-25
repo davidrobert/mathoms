@@ -4,7 +4,9 @@ type: lane
 title: "Um default de grupo RFB decide a classe de 13% da carteira, com confiança plena e sem sinal"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1698
+ship_date: "2026-08-25"
 priority: P0
 branch_slug: a40-l82-tipo-default-decide-classe
 adrs:
@@ -14,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -39,13 +41,20 @@ tags:
 
 O r8 (run `d0f6260a`, 2026-08-24) abriu como achado **nº 1, Crítico P0**:
 **11 de 61 posições migram** de `Fundos` para `Renda Fixa` — **R$ 174.636,71,
-13,1% da carteira** — com `autoridade: "keyword"` (confiança plena), zero
+13,1%** sobre a carteira **pós-resolver** (ano-base por membro, Σ 1.335.354,95) —
+com `autoridade: "keyword"` (confiança plena), zero
 `review_reason`, `nao_classificado_pct` parado e nenhum golden quebrado.
 
 | | sem `tipo` | com `tipo` (produção hoje) |
 | --- | --- | --- |
 | Fundos | 12 | **2** |
 | Renda Fixa | 21 | **32** |
+
+> **Duas bases, ambas certas.** A tabela 61×3 do #1698 mede os **itens crus**
+> (maior ano por item, Σ 1.946.473,20) e dá **R$ 323.936,08 · 16,6%**. Esta lane
+> mede **pós-resolver** (ano-base por membro, Σ 1.335.354,95) e dá **R$ 174.636,71
+> · 13,1%**. Quem cruzar os dois documentos vê dois percentuais para "a mesma
+> coisa" — são recortes diferentes do mesmo fato, não divergência.
 
 ### Os itens são fundos de ações rotulados renda fixa
 
@@ -161,8 +170,49 @@ Fixa" legítimo para `Fundos` — errado sob subjacente > veículo.
 - **`tipo_proveniencia`** (campo companheiro, enum de quatro derivado
   mecanicamente de qual `return` de `_classify_investimento` disparou) —
   **dono: `data-engineer`**, aditivo, delta zero em cents, sem janela.
-- **Reserva de emergência** — o RV8-01 **não** a contamina hoje: o titular usa
-  `_positions_for_member` (18 posições E4) e o item da cônjuge que migra é uma
-  `poupanca`, genuinamente líquida. O que contamina a reserva dele são os
-  **R$ 642.744,79 não-atribuídos** entrando por `not membro → titular` — isso é
-  **RV8-04**, defeito anterior e 25× maior. **Dono: `data-engineer`.**
+- ~~**Reserva de emergência** — o RV8-01 **não** a contamina hoje.~~
+  **Retratado no fechamento (2026-08-25): a conclusão estava invertida.** As duas
+  premissas eram verdadeiras — o titular usa mesmo `_positions_for_member` (medido:
+  `726.500,16 [posicoes]`, **idêntico** nos três cenários) e o item da cônjuge é
+  mesmo uma `poupanca` genuinamente líquida. Mas é **por ser líquida** que tirá-la
+  custa: sem `tipo` ela cai em `Outros`, sai de `_LIQUID_BUCKETS` e a reserva da
+  cônjuge **cai R$ 25.337,34** (110.130,67 → 84.793,33, `fonte=irpf`). O movimento é
+  **todo do `tipo`** — o corte das cinco marcas é **zero** na reserva, porque
+  `Fundos` e `Outros` são ambos ilíquidos.
+  **Por que importa:** `poupanca` sai do ramo `if "poupanca" in desc_lower` —
+  **evidência**, não default de grupo — e a `descricao` armazenada (104 chars) *não*
+  contém a palavra. `tipo` era o **único portador**. A contenção descartou o campo em
+  bloco e levou junto o que era fato: a reserva agora **subavalia** com sinal e
+  magnitude conhecidos. Não reabre a decisão (25k declarado < 174k mudo; banda
+  "Excessiva" mantida, 43,9 → 42,8 meses), mas **dá janela** ao
+  `tipo_proveniencia` — ver [[ADR-400]] §"A contenção tem custo medido".
+- **RV8-04 — R$ 642.744,79 não-atribuídos** entrando na reserva do titular por
+  `not membro → titular`: defeito **anterior** a esta lane e 25× maior que o de cima.
+  **Dono: `data-engineer`**, janela própria.
+
+## Entregue
+
+`shipped` em 2026-08-25 via **#1698** (`2fd2e60e`), CI verde. Os três itens do
+§Escopo saíram no mesmo PR:
+
+| item | o quê |
+|---|---|
+| 1. Contenção | `tipo` sai da entry em `patrimonio_resolvers`; as 5 marcas saem de `_DEFAULT_KEYWORDS` **e** de `config/scoring.json` (só do default seria **no-op** — `merge_asset_keywords` deixa o scoring sobrescrever a classe inteira) |
+| 2. Gate | `tests/unit/pipeline/test_classe_de_ativo_nao_le_tipo.py` — comportamental, parametrizado sobre as keywords **de produção**, com auto-falseabilidade e afirmação de direção |
+| 3. Emenda | [[ADR-400]] §2026-08-25 — presunção derivada de *default* ≠ derivada de *fato*; o degrau 1 fica bloqueado até o produtor separar os dois |
+
+**Σ preservado nas três colunas** (194.647.320 cents) — a contenção redistribui,
+nunca soma. Mutação executada nas duas direções: re-injetar `tipo` deixa **7
+vermelhos**; o campo voltar como `tipo_rfb` deixa **4 vermelhos** e o teste
+*estrutural* **verde** — é por isso que ele ficou como diagnóstico nomeado, e não
+como o gate.
+
+Um quarto edit entrou por medição, não por desenho: o corte cruza
+`INCERTEZA_APORTE_MIN_PCT` (1,18% → 3,08%) e **ativaria** um defeito latente do
+`alocacao_narrator`, que publicaria *"Maior desvio: 30,3 pp. Carteira aderente ao
+alvo."* — duas frases contraditórias. `next_aporte_classe` passa a `None` com
+`motivo_supressao`.
+
+⚠️ **Golden e snapshot intactos é falta de cobertura, não estabilidade** — o golden
+não tem `investimentos_consolidados` e o dogfood é domicílio de um membro. É a mesma
+cegueira que deixou a regressão entrar pela [[A40.l77]].
