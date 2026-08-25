@@ -193,44 +193,144 @@ def test_tool_enum_referencia_key_ausente(fixtures: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 3) Drift E5 ↔ manifest (derivado do diff — ADR-200 §D3.3)
+# 3) Drift E5 ↔ manifest — campo NOVO bloqueia (A40.l83 · RV8-05b)
 # ---------------------------------------------------------------------------
+# O contrato mudou de "warn quando o arquivo mudou" para "fail quando existe campo
+# NOVO sem projeção nem razão". O antigo derivava de `git diff HEAD`, vazio sob
+# `pre-commit --all-files` — só existia no pre-commit local do commit exato.
 
 
-def _drift_report(changed: set[str]) -> internals.CoverageReport:
+E5_SCHEMA = internals.REPO_ROOT / "config" / "schemas" / "e5_analysis.schema.json"
+MANIFEST = internals.REPO_ROOT / "config" / "prompts" / "parecer_planejador.yaml"
+
+# Schema/manifest sintéticos: o contrato é "campo novo sem projeção bloqueia", e amarrar
+# a asserção a um campo real do repo faria o teste medir o estado da branch em vez do
+# contrato — foi o que aconteceu na primeira versão destes testes.
+_SCHEMA_BASE = {"properties": {"patrimonio": {"properties": {"bruto": {"type": "number"}}}}}
+_MANIFEST_FAKE = {
+    "context_sections": [
+        {
+            "id": "s",
+            "blocks": [{"format": "key_value", "fields": [{"path": "$.patrimonio.bruto"}]}],
+        }
+    ]
+}
+
+
+def _sintetico(tmp_path: Path, schema: dict, manifest: dict) -> tuple[Path, Path]:
+    sp, mp = tmp_path / "e5.schema.json", tmp_path / "manifest.yaml"
+    sp.write_text(json.dumps(schema), encoding="utf-8")
+    mp.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+    return sp, mp
+
+
+def _drift(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    *,
+    atual: dict,
+    baseline: dict | None,
+    manifest: dict | None = None,
+) -> internals.CoverageReport:
+    sp, mp = _sintetico(tmp_path, atual, manifest if manifest is not None else _MANIFEST_FAKE)
+    monkeypatch.setattr(internals, "_schema_at", lambda ref, rel: baseline)
     report = internals.CoverageReport()
-    internals.check_schema_manifest_drift(
-        internals.REPO_ROOT / "config" / "schemas" / "e5_analysis.schema.json",
-        internals.REPO_ROOT / "config" / "prompts" / "parecer_planejador.yaml",
-        report,
-        changed_paths=frozenset(changed),
-    )
+    internals.check_schema_manifest_drift(sp, mp, report)
     return report
 
 
-def test_drift_schema_sem_manifest_emite_warning() -> None:
-    """E5 mudou e o manifest não — warning que pede justificativa."""
-    report = _drift_report({"config/schemas/e5_analysis.schema.json"})
-    assert report.ok, "Drift do schema E5 é warning, não erro"
-    assert any("NÃO foi tocado" in w for w in report.warnings), report.warnings
+def test_estado_atual_do_repo_nao_bloqueia() -> None:
+    """Sem campo novo, o gate passa — o débito herdado sai como contagem, não como erro."""
+    if internals._baseline_ref(internals._repo_relative(E5_SCHEMA)) in (None, "HEAD"):
+        pytest.skip(
+            "sem `origin/main` alcançável (checkout raso): esta asserção é sobre o repo "
+            "vigente e passaria vazia. A invocação real do gate cobre isto no lint-all, "
+            "que faz o fetch da base."
+        )
+    report = internals.CoverageReport()
+    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report)
+    assert report.ok, report.errors
+    assert any("débito herdado" in w for w in report.warnings), report.warnings
 
 
-def test_drift_schema_com_manifest_emite_warning_brando() -> None:
-    """Ambos mudaram — warning pede confirmação de sync, sem acusar omissão."""
-    report = _drift_report(
-        {
-            "config/schemas/e5_analysis.schema.json",
-            "config/prompts/parecer_planejador.yaml",
-        }
+def test_campo_novo_sem_projecao_bloqueia(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """O manifest é whitelist: campo que ele não declara não chega ao modelo."""
+    atual = json.loads(json.dumps(_SCHEMA_BASE))
+    atual["properties"]["incerteza_nova"] = {"type": "number"}
+    report = _drift(monkeypatch, tmp_path, atual=atual, baseline=_SCHEMA_BASE)
+    assert not report.ok
+    assert any("`$.incerteza_nova`" in e for e in report.errors), report.errors
+
+
+def test_campo_novo_projetado_passa(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Projetar é a saída principal — campo coberto não exige escape."""
+    atual = json.loads(json.dumps(_SCHEMA_BASE))
+    atual["properties"]["incerteza_nova"] = {"type": "number"}
+    manifest = json.loads(json.dumps(_MANIFEST_FAKE))
+    manifest["context_sections"][0]["blocks"][0]["fields"].append({"path": "$.incerteza_nova"})
+    report = _drift(monkeypatch, tmp_path, atual=atual, baseline=_SCHEMA_BASE, manifest=manifest)
+    assert report.ok, report.errors
+
+
+def test_campo_novo_escapado_com_razao_passa(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A segunda saída é declarar a razão — ato consciente que o `warn` não exigia."""
+    atual = json.loads(json.dumps(_SCHEMA_BASE))
+    atual["properties"]["_lineage"] = {"type": "object"}
+    report = _drift(monkeypatch, tmp_path, atual=atual, baseline=_SCHEMA_BASE)
+    assert report.ok, report.errors
+
+
+def test_campo_preexistente_nao_bloqueia(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Polaridade: o gate mira o campo NOVO. Débito herdado vira contagem, não erro —
+    senão a saída barata seria escapar 92 paths de uma vez, e o escape viraria decoração."""
+    atual = json.loads(json.dumps(_SCHEMA_BASE))
+    atual["properties"]["ja_existia_sem_projecao"] = {"type": "number"}
+    report = _drift(monkeypatch, tmp_path, atual=atual, baseline=atual)
+    assert report.ok, report.errors
+    assert any("débito herdado" in w for w in report.warnings), report.warnings
+
+
+def test_escape_cobre_a_subarvore() -> None:
+    """Declarar `$.narrativas` vale por suas folhas — senão o escape não escaparia nada."""
+    assert internals._escapado("$.narrativas.resumo_executivo")
+    assert not internals._escapado("$.patrimonio.bruto")
+
+
+def test_sem_baseline_bloqueia_sob_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Instrumento mudo é hard-fail sob `strict` (precedente `check_scheduled_workflows`):
+    degradar em silêncio recriaria o fail-open que esta lane fecha."""
+    monkeypatch.setattr(internals, "_schema_at", lambda ref, rel: None)
+    report = internals.CoverageReport()
+    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report, strict_baseline=True)
+    assert not report.ok
+    assert any("inalcançável" in e for e in report.errors), report.errors
+
+
+def test_clone_raso_bloqueia_sob_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Cenário REAL do checkout raso: `origin/main` ausente e `HEAD` presente — comparar
+    com HEAD devolve zero campos novos e o gate ficaria verde sem ter medido nada."""
+    real = internals._schema_at
+    monkeypatch.setattr(
+        internals,
+        "_schema_at",
+        lambda ref, rel: None if ref == "origin/main" else real(ref, rel),
     )
-    assert any("mudaram juntos" in w for w in report.warnings), report.warnings
-    assert not any("NÃO foi tocado" in w for w in report.warnings)
+    report = internals.CoverageReport()
+    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report, strict_baseline=True)
+    assert not report.ok, "baseline degradado para HEAD passou batido — gate cego"
+    assert any("inalcançável" in e for e in report.errors), report.errors
 
 
-def test_sem_mudanca_no_schema_nao_emite_drift() -> None:
-    """Sem o E5 no diff, o gate silencia — nada de warning herdado de PR alheio."""
-    report = _drift_report({"config/report_layout.yaml"})
-    assert not any(w.startswith("[drift]") for w in report.warnings), report.warnings
+def test_sem_baseline_degrada_sem_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Chamada de biblioteca (teste, script) avisa em vez de travar — a rigidez é da
+    INVOCAÇÃO do gate, que a liga via `strict_baseline`."""
+    monkeypatch.setattr(internals, "_schema_at", lambda ref, rel: None)
+    report = internals.CoverageReport()
+    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report, strict_baseline=False)
+    assert report.ok, report.errors
+    assert any("inalcançável" in w for w in report.warnings), report.warnings
 
 
 def test_git_changed_paths_le_diff_real(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

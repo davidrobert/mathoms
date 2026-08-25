@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -79,11 +80,12 @@ def _run_checks(
     e5_schema: dict,
     layout: dict,
     report: CoverageReport,
+    strict_baseline: bool = False,
 ) -> None:
     check_e5_coverage(manifest, e5_schema, p.e5_schema, report)
     if layout:
         check_layout_coverage(manifest, layout, p.layout, report)
-    check_schema_manifest_drift(p.e5_schema, p.manifest, report)
+    check_schema_manifest_drift(p.e5_schema, p.manifest, report, strict_baseline=strict_baseline)
 
 
 def _load_inputs(
@@ -106,13 +108,15 @@ def run_coverage(
     manifest_schema_path: Path,
     e5_schema_path: Path,
     layout_path: Path,
+    *,
+    strict_baseline: bool = False,
 ) -> CoverageReport:
     paths = CoveragePaths(manifest_path, manifest_schema_path, e5_schema_path, layout_path)
     report = CoverageReport()
     manifest, e5_schema, layout = _load_inputs(paths, report)
     if manifest is None or e5_schema is None:
         return report
-    _run_checks(paths, manifest, e5_schema, layout, report)
+    _run_checks(paths, manifest, e5_schema, layout, report, strict_baseline)
     return report
 
 
@@ -151,6 +155,9 @@ def main(argv: list[str] | None = None) -> int:
         args.manifest_schema,
         args.e5_schema,
         args.report_layout,
+        # Só a INVOCAÇÃO do gate é estrita. Chamada de biblioteca (teste, script) não
+        # herda a rigidez pelo ambiente — ver `_sem_baseline`.
+        strict_baseline=bool(os.environ.get("CI")),
     )
     return emit_report(report)
 
