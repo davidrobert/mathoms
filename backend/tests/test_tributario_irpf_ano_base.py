@@ -44,9 +44,15 @@ def _fonte_pj(tributavel: str) -> dict:
     }
 
 
-def _declaracao(*, ano_base: int, cpf_final: str, tributavel: str) -> dict:
+def _declaracao(
+    *, ano_base: int, cpf_final: str, tributavel: str, dependentes: list[str] | None = None
+) -> dict:
     return {
         "contribuinte": _contribuinte(ano_base=ano_base, cpf_final=cpf_final),
+        "dependentes": [
+            {"cpf_masked": f"***.***.***-{d}", "nome": f"Dep {d}", "relacao": "conjuge"}
+            for d in (dependentes or [])
+        ],
         "rendimentos_pj": [_fonte_pj(tributavel)],
         "rendimentos_pf": [],
         "imposto_apurado": {
@@ -207,7 +213,8 @@ async def test_o_ramo_de_degradacao_deixa_de_ser_mudo(db, monkeypatch):
     "desistiu e pegou o último". O `ano_base` do VO fica `None` junto, porque o
     payload malformado não tem `contribuinte.ano_base` legível.
     """
-    import backend.app.services.tributario_input_builder as mod
+    # O logger mudou de módulo na extração do reader — patch segue o produtor.
+    import backend.app.services.tributario_irpf_reader as mod
 
     recorder = _RecordingLogger()
     monkeypatch.setattr(mod, "logger", recorder)
@@ -221,3 +228,219 @@ async def test_o_ramo_de_degradacao_deixa_de_ser_mudo(db, monkeypatch):
 
     eventos = [m for m, _ in recorder.warnings]
     assert "tributario_irpf_ano_base_nao_resolvido" in eventos
+
+
+# =============================================================================
+# A40.l65 §Escopo 2 — a base é a do TITULAR, nunca a de quem sobrou
+#
+# Decisão de escopo (2026-08-25): a âncora vai para a S8, onde a lane a coloca.
+# A variante do card do E5 (motivos `titular_nao_identificado` /
+# `titular_sem_declaracao_no_ano` do D5 do `financial-planner`) exigiria mover o
+# Card B para agregação por titular — que o §Fora de escopo desta lane VEDA.
+# =============================================================================
+
+
+async def _titular_com_cpf(db, ws_id: str, cpf: str = "123.456.789-11"):
+    from backend.app.models.family_member import FamilyMember
+    from backend.app.services.security.vault import get_vault
+
+    db.add(
+        FamilyMember(
+            workspace_id=ws_id,
+            key="titular",
+            full_name="Titular",
+            short_name="Tit",
+            role="titular",
+            cpf_encrypted=get_vault().encrypt(cpf),
+        )
+    )
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_com_dois_declarantes_a_base_e_a_do_titular(db):
+    """O caso que dá nome à lane: sem âncora a base era de quem foi processado
+    por último — aqui, o cônjuge, cuja declaração é a mais recente."""
+    ws = await _ws_com_perfil(db)
+    await _titular_com_cpf(db, ws.id)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+            created_at=_HOJE - timedelta(hours=2),
+        )
+    )
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="22", tributavel="90000"),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("200000")
+
+
+@pytest.mark.asyncio
+async def test_titular_como_dependente_da_conjunta(db):
+    """Declaração conjunta com o titular como dependente: a base sai, é a dela."""
+    ws = await _ws_com_perfil(db)
+    await _titular_com_cpf(db, ws.id)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="22", tributavel="150000", dependentes=["11"]),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("150000")
+
+
+@pytest.mark.asyncio
+async def test_sem_cadastro_e_dois_declarantes_a_base_e_ausente(db):
+    """Base de OUTRO CPF é pior que base nenhuma — erro de identidade, não de
+    aritmética. Sem cadastro do titular, escolher seria cara-ou-coroa."""
+    ws = await _ws_com_perfil(db)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+            created_at=_HOJE - timedelta(hours=2),
+        )
+    )
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="22", tributavel="90000"),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("0")
+
+
+@pytest.mark.asyncio
+async def test_sem_cadastro_e_UM_declarante_a_base_sai(db):
+    """Braço de controle: suprimir aqui tiraria a base de todo declarante único
+    para prevenir um erro que exige dois declarantes para existir."""
+    ws = await _ws_com_perfil(db)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    assert _base_pgbl(ws.id) == Decimal("200000")
+
+
+# =============================================================================
+# A40.l65 §Escopo 4 — o gate de coerência entre S8 e Card B
+#
+# Desenho do `senior-cto` (D8): o gate PRIMÁRIO é o invariante do produtor — há um
+# resolvedor e a segunda superfície o consome. O teste comparativo existe como
+# REGRESSÃO DE FIAÇÃO, não como o gate: igualdade entre duas superfícies que
+# resolvem independentemente fica verde enquanto elas concordarem por acidente.
+# =============================================================================
+
+
+def _ano_eleito_pelo_resolvedor(ws_id: str) -> int | None:
+    """O MESMO resolvedor que alimenta `previdencia_pgbl.ano_base` no Card B."""
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.tributario_irpf_reader import (
+        _read_workspace_artifacts,
+        _resolve_ano_base_das,
+    )
+
+    with SyncSessionLocal() as sync_db:
+        decls = _read_workspace_artifacts(ws_id, ("extract_irpf_full",), db=sync_db)
+    return _resolve_ano_base_das(decls)
+
+
+@pytest.mark.asyncio
+async def test_s8_e_card_b_elegem_o_mesmo_ano_base(db):
+    """Nomeado pelo que mede: MESMO ANO, nunca "mesma base" — são conceitos distintos."""
+    ws = await _ws_com_perfil(db)
+    await _titular_com_cpf(db, ws.id)
+    await _seed(db, ws.id, primeiro=_DE_2024, segundo=_DE_2023)
+
+    assert _cascata(ws.id).renda_tributavel_pf_ano_base == _ano_eleito_pelo_resolvedor(ws.id)
+
+
+@pytest.mark.asyncio
+async def test_a_base_da_s8_e_por_declaracao_a_do_card_b_e_familiar(db):
+    # A S8 lê UMA declaração (a do titular); o Card B soma todos os declarantes.
+    # Igualar os números exige decidir se a base é por CPF ou familiar — o que o
+    # §Fora de escopo VEDA. Esta asserção obriga a reabrir a decisão.
+    """Asserção de DESIGUALDADE, deliberada."""
+    ws = await _ws_com_perfil(db)
+    await _titular_com_cpf(db, ws.id)
+    run_id = await _run_do_workspace(db, ws.id)
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+            created_at=_HOJE - timedelta(hours=2),
+        )
+    )
+    db.add(
+        _artifact(
+            ws.id,
+            run_id,
+            _declaracao(ano_base=2024, cpf_final="22", tributavel="90000"),
+            created_at=_HOJE,
+        )
+    )
+    await db.commit()
+
+    base_s8 = _base_pgbl(ws.id)
+
+    assert base_s8 == Decimal("200000")  # só o titular
+    assert base_s8 != Decimal("290000")  # a soma familiar que o Card B usaria
+
+
+@pytest.mark.asyncio
+async def test_a_base_vem_do_vencedor_do_dedup_nao_da_row_mais_recente(db):
+    # O E1.6 churna: a versão mais nova do mesmo documento pode vir com fichas
+    # vazias. Medido antes do fix — o dedup elegia a completa (200.000) e a S8
+    # publicava 0,00, porque lia a lista CRUA por recência.
+    """Re-extração DEGRADADA mais recente não pode derrubar a base."""
+    ws = await _ws_com_perfil(db)
+    await _titular_com_cpf(db, ws.id)
+    run_id = await _run_do_workspace(db, ws.id)
+
+    completa = _artifact(
+        ws.id,
+        run_id,
+        _declaracao(ano_base=2024, cpf_final="11", tributavel="200000"),
+        created_at=_HOJE - timedelta(days=3),
+    )
+    completa.artifact_key = "irpfdeclaracao_2024_v1"
+    degradado = _declaracao(ano_base=2024, cpf_final="11", tributavel="0")
+    degradado["rendimentos_pj"] = []  # ficha vazia — o churn medido do E1.6
+    recente = _artifact(ws.id, run_id, degradado, created_at=_HOJE)
+    recente.artifact_key = "irpfdeclaracao_2024_v2"
+    db.add(completa)
+    db.add(recente)
+    await db.commit()
+
+    # Vence o vencedor do DEDUP, não a row mais recente: ler a lista crua aqui
+    # publicava 0,00 sobre uma declaração que o dedup tinha rejeitado.
+    assert _base_pgbl(ws.id) == Decimal("200000")

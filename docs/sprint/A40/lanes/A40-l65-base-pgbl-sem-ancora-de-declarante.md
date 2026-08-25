@@ -159,7 +159,34 @@ caminho.
    sendo por recência, e isso é o item 2.
 2. Âncora de declarante: a base é a do **titular**, resolvido por CPF mascarado
    contra `family_members`. Sem identidade resolvível, a base é ausente — não a
-   de quem sobrou.
+   de quem sobrou. ✅ **entregue 2026-08-25**
+
+   > **Decisão de escopo (2026-08-25):** a âncora foi para **`_load_irpf_renda_tributavel`
+   > (S8)**, onde este §Escopo a coloca — não para `_build_capacidade_pgbl` (card do
+   > E5). O D5 do `financial-planner` desenhou dois motivos (`titular_nao_identificado`,
+   > `titular_sem_declaracao_no_ano`) que só existem no card do E5, e implementá-los
+   > lá exigiria escopar a capacidade ao titular enquanto `irpf_kpis` segue familiar.
+   > **Medido:** isso reprova `test_pgbl_statement_count_eh_um`, que existe para
+   > impedir *"capacidade = 0 e capacidade > 0 no mesmo relatório"* ([[ADR-305]] D4c).
+   > Servir o D5 exige mover o Card B junto — a agregação familiar que o §Fora de
+   > escopo desta lane **veda**. O D5 não está errado: responde uma pergunta que
+   > esta lane não autoriza. Fica como rota para quando a unificação de conceito for
+   > decidida (§Escopo 4 / [[A40.l77]]).
+
+   **Como ficou, medido:**
+   - titular cadastrado → sua declaração, seja como **contribuinte** ou como
+     **dependente** da conjunta (o caso brasileiro comum que o `financial-planner`
+     corrigiu no D5);
+   - sem cadastro e **uma** declaração → ela mesma; suprimir aqui tiraria a base de
+     todo declarante único para prevenir um erro que exige **dois** para existir;
+   - sem cadastro e **duas ou mais** → base **ausente** + `WARNING`. Base de outro
+     CPF é pior que base nenhuma: é erro de identidade, não de aritmética;
+   - dois membros com `role: titular` → cadastro ambíguo, não elege (mesma política
+     de `protection_snapshot_compute._primary_subject`).
+
+   **Limite conhecido:** a máscara preserva **2 dígitos**, então o casamento colide
+   em ~1% com 2 declarantes e ~5,9% com 4. Workspace é família, então 2 é o caso
+   comum. Não é "resolvido por CPF" no sentido forte — é o que o dado permite.
    - Medido: `NaturezaContribuinte` só tem `titular` e `dependente_titular`, e
      **cada cônjuge é `titular` na própria declaração**. O artefato não sabe quem
      é o titular da família — a resolução por `family_members` não é preferência
@@ -213,6 +240,26 @@ caminho.
   documento furado**, e cala. A falsificação do limiar está na emenda 2026-08-21
   da [[ADR-266]]; o predicado substituto é da [[A42.l13]]. Sem essa anotação, o
   critério de aceite desta lane passaria com fixture e calaria em produção.
+
+> ## Correção do §Escopo 1 — 2026-08-25: o dedup não alcançava o valor
+>
+> O §Escopo 1 dizia *"passa por `resolve_ano_base_fiscal` **e dedup**"*, e a
+> primeira entrega cumpriu só a metade: o ano era eleito sobre o corpus **dedupado**
+> e o valor era lido da lista **crua**, por recência.
+>
+> **Medido:** com duas versões da mesma declaração (re-upload sob `artifact_key`
+> diferente), o dedup elegia a versão completa — **R$ 200.000** — e a S8 publicava
+> **R$ 0,00**, porque a row mais recente era uma re-extração degradada com a ficha
+> vazia. Não é hipótese: o E1.6 churna (285 versões de 4 documentos medidas no
+> dogfood em 2026-08-21, com listas oscilando entre vazia e preenchida).
+>
+> Corrigido: o **mesmo** `IRPFAnalyzer` elege o ano e serve o valor.
+>
+> **Como o defeito apareceu:** aplicando a mutação que o `senior-cto` prescreveu
+> para provar o gate (`tie_break_keys=chaves → None`). Ela **não derrubou** o teste
+> — e investigar o porquê revelou que o tie-break decide o vencedor do dedup, mas o
+> dedup nunca chegava ao valor publicado. O critério de falsificação estava certo
+> como método e errado como predicado: supunha um caminho que o código não tinha.
 
 ## Critério de aceite
 
