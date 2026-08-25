@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 347
-- **Proposto**: 54
+- **Decidido**: 348
+- **Proposto**: 53
 - **Roadmap**: 4
 
 ## Fundação
@@ -344,15 +344,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## ci
 
-### Decidido (2)
+### Decidido (3)
 
 - [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético · phase A34
 - [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
+- [[ADR-415]] — Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação · phase PLAN-ci-trust Onda 0
 
-### Proposto (2)
+### Proposto (1)
 
 - [[ADR-363]] — Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem · phase A40
-- [[ADR-415]] — Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação · phase PLAN-ci-trust Onda 0
 
 ## dados
 

@@ -3,8 +3,9 @@ id: TRACK-ci-trust-onda0-governanca
 type: track
 title: "Track Onda 0 — registro e válvula: detector pós-merge, auditoria de bypass, ADR de merge-protection, PR 0 do trem"
 plan: PLAN-ci-trust
-status: ready
+status: consumed
 created_at: "2026-08-25"
+consumed_at: "2026-08-25"
 agent_role: sre-devops
 tags:
   - type/track
@@ -15,10 +16,10 @@ tags:
 
 # Track Onda 0 — `ci-trust-onda0-governanca`
 
-> **Em execução (2026-08-25).** `status: ready` porque o enum de track é
-> `ready|consumed|cancelled` e o pendente é uma ação pós-merge (aplicar
-> `allowed_merge_methods` no Ruleset); vira `consumed` quando a onda fechar.
-> Entregue até aqui: PR 0 (#1723, recusa não mata o run) · ADR-415
+> **CONSUMIDO em 2026-08-25.** PRs #1723 (entrega) e #1729 (correção do que o
+> primeiro run real expôs); Ruleset em `["squash"]`; [[ADR-415]] `Decidido`.
+> Os dois merges seguintes ao fix entraram **gateados**, verificados pelo
+> próprio detector. Entregue: PR 0 (recusa não mata o run) · ADR-415
 > `Proposto` + waiver dos zumbis LLM · detector pós-merge + backfill.
 > **O backfill mediu 53 dos 64 bypasses sem gate: 46 `late` (o required check
 > concluiu DEPOIS do merge) e 7 `red` (check vermelho no head).** Inventário

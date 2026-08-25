@@ -409,7 +409,7 @@
 | ADR-412 | adr | Proposto |  | Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais | `adr/412-base-canonica-unica-papel-ternario-e-produtor-do-eixo-de-posicoes.md` |
 | ADR-413 | adr | Decidido |  | Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado | `adr/413-derivado-versionado-e-derivado-de-contrato.md` |
 | ADR-414 | adr | Decidido |  | Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada | `adr/414-rendimento-bruto-e-base-de-calculo-sao-variaveis-distintas.md` |
-| ADR-415 | adr | Proposto |  | Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação | `adr/415-protecao-de-main-bypass-sancionado-e-auditado.md` |
+| ADR-415 | adr | Decidido |  | Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação | `adr/415-protecao-de-main-bypass-sancionado-e-auditado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -1173,7 +1173,7 @@
 | TRACK-category-overrides-policy-adr | track | consumed | A11 | Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes) | `sprint/A11/tracks/category-overrides-policy-adr.md` |
 | TRACK-category-overrides-schema-delta | track | consumed | A11 | Track Category Overrides W2 — Schema delta (updated_by_user_id + DTO version fields) | `sprint/A11/tracks/category-overrides-schema-delta.md` |
 | TRACK-category-overrides-ui-refactor | track | consumed | A11 | Track Category Overrides W4 — UI refactor (CategoriesTab + useCategoriesAndMembers) | `sprint/A11/tracks/category-overrides-ui-refactor.md` |
-| TRACK-ci-trust-onda0-governanca | track | ready |  | Track Onda 0 — registro e válvula: detector pós-merge, auditoria de bypass, ADR de merge-protection, PR 0 do trem | `plan/CI_TRUST/tracks/ci-trust-onda0-governanca.md` |
+| TRACK-ci-trust-onda0-governanca | track | consumed |  | Track Onda 0 — registro e válvula: detector pós-merge, auditoria de bypass, ADR de merge-protection, PR 0 do trem | `plan/CI_TRUST/tracks/ci-trust-onda0-governanca.md` |
 | TRACK-ci-trust-onda1-workflows | track | ready |  | Track Onda 1 — leva única de .github/workflows/**: inertes, canal de falha 9/9, endgame do watchdog (heartbeat), security-green, nightly por job | `plan/CI_TRUST/tracks/ci-trust-onda1-workflows.md` |
 | TRACK-citacao-deterministica | track | ready | A27 | Track A26.l9 — citação determinística (LLM emite path+rótulo; pipeline renderiza valor) | `sprint/A27/tracks/citacao-deterministica.md` |
 | TRACK-competitor-pierre-poc | track | ready | A11 | Track Competitor POC — Pierre Finance API + MCP benchmark | `sprint/A11/tracks/competitor-pierre-poc.md` |
