@@ -37,7 +37,7 @@ def _anual_da_seed(ano: int = 2026) -> tuple[IRPFBracket, ...]:
 ANUAL_2026 = _anual_da_seed()
 
 
-def _capacidade(restante: str, renda: str) -> CapacidadePgblIRPF:
+def _capacidade(restante: str, renda: str, base: str | None = None) -> CapacidadePgblIRPF:
     resto = Decimal(restante)
     teto = max(Decimal(renda) * Decimal("0.12"), resto)
     return CapacidadePgblIRPF(
@@ -49,6 +49,7 @@ def _capacidade(restante: str, renda: str) -> CapacidadePgblIRPF:
             excedente_nao_dedutivel=Decimal("0"),
         ),
         renda_tributavel_anual=Decimal(renda),
+        base_calculo_anual=Decimal(base) if base is not None else Decimal(renda),
         ano_base=2024,
         fonte="irpf_pgbl_capacidade",
     )
@@ -159,3 +160,41 @@ class TestEconomiaZeroNaoPrescreve:
         assert r.aporte_mensal is not None
         assert r.aliquota_marginal is not None
         assert r.motivo_ausencia["aporte"] is None
+
+
+# =============================================================================
+# ADR-412 — o imposto incide sobre a BASE declarada, não sobre o bruto
+# =============================================================================
+
+
+class TestBaseDeCalculoDeclarada:
+    def test_economia_usa_a_base_nao_o_bruto(self):
+        """Mesmo bruto, bases diferentes ⇒ economias diferentes. O bruto não decide."""
+        cfg = PrevidenciaConfig(irpf_faixas=ANUAL_2026)
+        sem_deducao = PrevidenciaAnalyzer(cfg).analyze(
+            {}, capacidade_irpf=_capacidade("8400", "70000", base="70000")
+        )
+        com_deducao = PrevidenciaAnalyzer(cfg).analyze(
+            {}, capacidade_irpf=_capacidade("8400", "70000", base="50000")
+        )
+
+        assert sem_deducao.economia_ir_anual != com_deducao.economia_ir_anual
+        # 70.000 → faixa terminal dos dois lados: 8.400 × 27,5%.
+        assert sem_deducao.economia_ir_anual == Decimal("2310.00")
+        # 50.000 → 41.600 atravessa o degrau 22,5% → 15%.
+        assert com_deducao.economia_ir_anual == Decimal("1634.06")
+
+    def test_marginal_resolve_a_faixa_da_base(self):
+        """ADR-375 D6 sempre falou de base; o call-site é que passava o bruto."""
+        cfg = PrevidenciaConfig(irpf_faixas=ANUAL_2026)
+        r = PrevidenciaAnalyzer(cfg).analyze(
+            {}, capacidade_irpf=_capacidade("8400", "70000", base="50000")
+        )
+
+        assert r.aliquota_marginal == 22.5  # faixa de 50.000, não a de 70.000
+        assert r.aliquota_marginal != 27.5
+
+    # O teste `test_sem_base_declarada_nao_publica_economia` foi REMOVIDO junto
+    # com a decisão de tornar `base_calculo_anual` obrigatória: ele construía um
+    # estado que o tipo não representa mais. Teste de ramo que não dispara mede a
+    # si mesmo — a garantia passou a ser do construtor.
