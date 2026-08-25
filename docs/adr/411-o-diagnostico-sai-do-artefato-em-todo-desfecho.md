@@ -81,10 +81,9 @@ verde sobre o caso que lhe deu origem.
 
 ## Decisão
 
-**D1 — o sink roda no caminho de saída, não num ramo.** Todo desfecho de stage
-que produz `detail` — entregue, degradado, falho ou pausado — materializa a razão.
-O ramo de pausa deixa de ser o portão do analítico. Desfecho por exceção
-(`result is None`) não tem `detail` e colhe zero por construção, não por omissão.
+**D1 — o sink roda no caminho de saída, não num ramo.** Todo desfecho que produz
+`detail` — entregue, degradado, falho ou pausado — materializa a razão. Desfecho
+por exceção (`result is None`) colhe zero por construção, não por omissão.
 
 **D2 — a colheita caminha o payload inteiro, e o caminhamento é um só.** A razão
 é procurada em **qualquer** posição (`validation.review_reasons` e as coleções
@@ -148,6 +147,6 @@ comportamento correto.
 
 ## Deferimento — superfície de usuário para aviso-sem-pausa (D4)
 
-**Dono:** owner • **Condição de retomada:** quando houver decisão de produto sobre
-como o relatório mostra aviso de run entregue. Até lá o aviso vive na tabela e no
-snapshot, lido por operador, e `StageReview` segue exclusivo da pausa.
+**Dono:** owner • **Condição:** decisão de produto sobre como o relatório mostra
+aviso de run entregue. Até lá o aviso vive na tabela e no snapshot, e
+`StageReview` segue exclusivo da pausa.
