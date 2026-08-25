@@ -66,6 +66,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.atribuicao_review_reasons import atribuicao_investimentos
 from pipeline.domain.services.bases_financeiras import PapelMembro, publicar_bases
 from pipeline.domain.services.investimentos_cobertura import (
     cobertura_de_membros,
@@ -271,6 +272,11 @@ class PatrimonioCalculator:
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
             "guarda_de_sinal": guarda.to_dict(),
             "investimentos_nao_atribuidos": round(nao_atribuidos, 2),
+            "atribuicao_investimentos": atribuicao_investimentos(
+                orfa=nao_atribuidos,
+                cheia=investivel_financeiro,
+                identificada=investivel_financeiro - nao_atribuidos,
+            ),
             **publicar_bases(
                 {
                     "investimentos_titular": investimentos_titular,
