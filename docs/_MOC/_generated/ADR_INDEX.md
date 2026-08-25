@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-402 ADRs (ADR-001 a ADR-412) em [`docs/adr/`](../../adr/).
+403 ADRs (ADR-001 a ADR-413) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 345
+- **Decidido**: 346
 - **Proposto**: 53
 - **Roadmap**: 4
 
@@ -376,11 +376,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## docs
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-234]] — Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) · phase A15
 - [[ADR-247]] — Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero · phase A11
 - [[ADR-343]] — Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico
+- [[ADR-413]] — Derivado versionado é derivado de contrato, e derivado versionado não carrega valor agregado · phase A40.l59
 
 ## domain
 
