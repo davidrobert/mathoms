@@ -144,6 +144,17 @@ def _join(lines: list[str]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+# A nota de sprint declara `sprint_status`, não `status`, e a coluna saía vazia nas 36
+# linhas `MOC-sprint-*`. É onde a §Sprints do antigo DOC_STATS.md passa a viver: mesma
+# informação, 1:1, derivada da própria nota — sem agregado e sem arquivo novo (A40.l59).
+def _index_status(note: Note) -> str:
+    if note.status:
+        return note.status
+    if note.id.startswith("MOC-sprint-"):
+        return str(note.raw.get("sprint_status") or "")
+    return ""
+
+
 def build_index_md(notes: list[Note]) -> str:
     """Gera INDEX.md — 1 linha por nota em tabela markdown."""
     lines = _header("Índice geral da vault")
@@ -155,7 +166,7 @@ def build_index_md(notes: list[Note]) -> str:
     for note in sorted(notes, key=lambda n: (n.type, n.id, _rel_path(n))):
         sprint = note.sprint or ""
         lines.append(
-            f"| {note.id} | {note.type} | {note.status} | {sprint} "
+            f"| {note.id} | {note.type} | {_index_status(note)} | {sprint} "
             f"| {note.title} | `{_rel_path(note)}` |"
         )
     return _join(lines)
@@ -171,7 +182,6 @@ try:
     )
     from _changelog_recent_renderer import render_changelog_recent  # noqa: E402
     from _context_pack_renderer import render_context_packs  # noqa: E402
-    from _doc_stats_renderer import render_doc_stats  # noqa: E402
     from _plan_progress_renderer import render_plan_progress  # noqa: E402
     from _sprint_current_renderer import render_sprint_current  # noqa: E402
 except ModuleNotFoundError:  # pragma: no cover
@@ -182,7 +192,6 @@ except ModuleNotFoundError:  # pragma: no cover
     )
     from dev._changelog_recent_renderer import render_changelog_recent  # noqa: E402
     from dev._context_pack_renderer import render_context_packs  # noqa: E402
-    from dev._doc_stats_renderer import render_doc_stats  # noqa: E402
     from dev._plan_progress_renderer import render_plan_progress  # noqa: E402
     from dev._sprint_current_renderer import render_sprint_current  # noqa: E402
 
@@ -284,11 +293,6 @@ def build_roadmap_md(notes: list[Note]) -> str:
     return _join(lines)
 
 
-def build_doc_stats_md(notes: list[Note]) -> str:
-    """Gera DOC_STATS.md — inventário compacto da vault."""
-    return _join(render_doc_stats(notes, _header))
-
-
 def build_plan_progress_md(notes: list[Note]) -> str:
     """Gera PLAN_PROGRESS.md — sub-agrupa plans por status + lista lanes por plano."""
     plans = [n for n in notes if n.type == "plan"]
@@ -311,7 +315,6 @@ def regenerate_all(docs_root: Path) -> dict[str, str]:
         "CHANGELOG_RECENT.md": build_changelog_recent_md(notes),
         "ROADMAP.md": build_roadmap_md(notes),
         "PLAN_PROGRESS.md": build_plan_progress_md(notes),
-        "DOC_STATS.md": build_doc_stats_md(notes),
         **build_context_pack_md(),
     }
 

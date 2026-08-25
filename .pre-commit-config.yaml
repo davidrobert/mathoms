@@ -808,6 +808,20 @@ repos:
         files: ^docs/.*\.md$
         pass_filenames: false
 
+      - id: doc-index-self-test
+        # O `doc-index` acima prova que o SNAPSHOT está em sync; este prova que o
+        # GERADOR está certo. A distinção passa a importar quando um derivado deixa
+        # de ser versionado: sem snapshot, o `--check` não tem o que comparar e o
+        # `--self-test` vira o único gate do renderer. Ele existia desde sempre e
+        # não rodava em lugar nenhum (medido 2026-08-24: zero hits em
+        # `.pre-commit-config.yaml`, `.github/workflows/` e `Makefile`).
+        # Dispara só quando o gerador muda; 0,066s, dentro do `lint-all` já pago.
+        name: "dev/build_doc_index.py: smoke tests do gerador (--self-test)"
+        entry: python3 dev/build_doc_index.py --self-test
+        language: system
+        files: ^dev/(build_doc_index|_[a-z_]+_renderer)\.py$
+        pass_filenames: false
+
       - id: doc-token-cost
         name: "docs/: benchmark de tokens sem regressão >5% vs latest"
         entry: python3 dev/benchmark_doc_token_cost.py --check

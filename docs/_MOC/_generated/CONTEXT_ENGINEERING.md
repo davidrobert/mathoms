@@ -10,7 +10,6 @@ Use para tarefas que cruzam arquitetura, tests, CI, contratos ou varios buckets.
 - [`SPRINT_CURRENT.md`](SPRINT_CURRENT.md) - lanes ativas e prontas.
 - [`PLAN_PROGRESS.md`](PLAN_PROGRESS.md) - planos canonicos abertos e status.
 - [`ADR_INDEX.md`](ADR_INDEX.md) - decisoes vigentes por area.
-- [`DOC_STATS.md`](DOC_STATS.md) - tamanho da vault antes de buscar.
 - [`CLAUDE.md`](../../../CLAUDE.md) - invariantes de agente e protocolo git.
 
 ## Onde procurar

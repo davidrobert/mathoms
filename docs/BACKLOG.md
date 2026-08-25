@@ -37,4 +37,4 @@ Conteúdo completo (2358 linhas, pré-shim): [docs/archive/BACKLOG-pre-shim-2026
 ## Nota histórica
 
 A migração ADR-182 preservou o backup completo em `docs/archive/`.
-Inventário atual da vault: [docs/_MOC/_generated/DOC_STATS.md](_MOC/_generated/DOC_STATS.md).
+Inventário atual da vault: [docs/_MOC/_generated/INDEX.md](_MOC/_generated/INDEX.md).
