@@ -405,6 +405,7 @@
 | ADR-408 | adr | Proposto |  | Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key | `adr/408-proveniencia-de-artefato-e2-e-fk-resolvida-por-porta.md` |
 | ADR-409 | adr | Decidido |  | Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart | `adr/409-fila-de-elegibilidade-do-flip-strict-derivada-de-medicao.md` |
 | ADR-410 | adr | Decidido |  | A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor | `adr/410-a-resolucao-de-membro-tem-um-produtor-e-ele-e-injetado.md` |
+| ADR-411 | adr | Decidido |  | O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row | `adr/411-o-diagnostico-sai-do-artefato-em-todo-desfecho.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -949,6 +950,9 @@
 | A40.l77 | lane | shipped | A40 | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | `sprint/A40/lanes/A40-l77-dois-resolvers-de-membro.md` |
 | A40.l79 | lane | open | A40 | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | `sprint/A40/lanes/A40-l79-row-fiscal-ausente-e-fail-open.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
+| A40.l80 | lane | open | A40 | Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' | `sprint/A40/lanes/A40-l80-denominador-amputado.md` |
+| A40.l81 | lane | shipped | A40 | Diagnóstico sem canal de saída: o stage que não pausa entrega razão no artefato e ela não chega nem à tabela nem ao usuário | `sprint/A40/lanes/A40-l81-diagnostico-sem-saida.md` |
+| A40.l82 | lane | open | A40 | Um default de grupo RFB decide a classe de 13% da carteira, com confiança plena e sem sinal | `sprint/A40/lanes/A40-l82-tipo-default-decide-classe.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |

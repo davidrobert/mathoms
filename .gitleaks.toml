@@ -64,11 +64,33 @@ regexes = [
     # Fernet key placeholders em docs/runbooks
     '''<MATHOMS_FERNET_KEY>''',
     '''<FERNET_KEY_PLACEHOLDER>''',
+    # --- Falso-positivo de `generic-api-key` sobre IDENTIFICADOR de código (#1184) ---
+    # A regra casa por proximidade de keyword (`api`, `KEY`) + entropia, e o "segredo"
+    # extraído é o nome do símbolo. Allowlist por SÍMBOLO, não por commit: suprimir o
+    # commit inteiro esconderia segredo real que estivesse no mesmo diff, e a entrada
+    # por símbolo fica visivelmente obsoleta se alguém renomear.
+    # `import { declareLastroOverride as apiDeclare, fetchExposicaoCambialV2 }` — alias TS
+    '''fetchExposicaoCambialV2''',
+    # `global _KEY_F1F2_TITULAR, _KEY_F1F2_CONJUGE` — nome de global em Python
+    '''_KEY_F1F2_CONJUGE''',
 ]
 
 # Baseline de commits SHAs históricos com matches conhecidos.
 # Popular via: `gitleaks detect --report-path .gitleaks-baseline.json`
 # Entries adicionadas após análise de matches legítimos.
+#
+# Populado em 2026-08-24 pela triagem da Issue #1184, com autorização explícita do
+# dono. Só entram commits cujo segredo é REAL e cujo risco residual foi confirmado
+# nulo — falso-positivo de identificador vai em `regexes` acima, nunca aqui.
 commits = [
-    # Placeholder — popular após primeiro run real com false-positive conhecido
+    # `.env` + `backend/.env` com `FIN_FERNET_KEY`. Dev-only e JÁ ROTACIONADA: o
+    # commit `90279c68` (2026-04-20) registra "A chave era só de dev (nunca usada em
+    # prod)" e "Chave antiga está revogada de facto". Prefixo `FIN_` é anterior ao
+    # rename do produto — zero referências no HEAD. Regressão barrada por
+    # `dev/check_forbidden_paths.py`, que bloqueia `.env` no staging.
+    "ae340c60a3cae397d4bdbab7e32e9cf2258d877e",
+    # `Makefile:58` — chave de smoke hardcoded no target `smoke-seed`. Prática já
+    # remediada no HEAD: o Makefile gera `$(ephemeral_fernet)` em runtime e escreve
+    # em `$(SMOKE_DIR)/fernet.key`. Nunca tocou dado de produção (SQLite local).
+    "f7b824edc880fe4a5b84a0141e9072627f2dab5f",
 ]

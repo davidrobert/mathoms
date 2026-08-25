@@ -273,12 +273,20 @@ por mutação nos **dois** membros, sem backfill do corpus.
 
 ### Três correções ao §Ataque
 
-1. **O §C caçou fantasma já nomeado.** A [[ADR-406]] §D2 (2026-08-21, dono
-   `data-engineer`) mediu o mesmo mecanismo no corpus do r7 — autoridades
-   **idênticas** (`keyword` 25 · `sem_match` 3), "é dívida, não bug; registrado
-   para o próximo agente não caçar fantasma". A medição do §C mostra o dano
-   *possível*; a do r7, o *realizado* = zero. **`tipo` não é justificativa para
-   nada nesta lane** — a única razão de portá-lo é unicidade de produtor.
+1. ~~**O §C caçou fantasma já nomeado.**~~ **RETRATADA em 2026-08-25 — o §C
+   estava certo e eu o desfiz por medição da variável errada.** Eu havia escrito
+   que a [[ADR-406]] §D2 mediu o mesmo mecanismo no corpus do r7 e achou
+   "autoridades **idênticas**", logo `tipo` não justificaria nada. O D2 mediu
+   **autoridade**; o que muda é a **classe**. Re-medido no run `d0f6260a`:
+
+   | | sem `tipo` | com `tipo` |
+   | --- | --- | --- |
+   | autoridade (o que o D2 leu) | `keyword` 56 · `sem_match` 5 | `keyword` 57 · `sem_match` 4 |
+   | **classe** (o que importava) | Fundos 12 · Renda Fixa 21 | **Fundos 2 · Renda Fixa 32** |
+
+   **11 de 61 posições migram, R$ 174.636,71.** A autoridade quase não se move
+   porque casou keyword nos dois casos — só mudou **qual** balde. Virou o
+   **RV8-01** do r8, Crítico P0, e a regressão é desta lane. Ver §RV8-01 abaixo.
 2. **O mecanismo do §C estava impreciso.** `classify_asset_outcome` **concatena**
    `tipo` e `descricao` numa haystack única (`asset_classifier.py:256`); não há
    precedência de `tipo`, quem decide é `EVALUATION_ORDER`.
@@ -337,9 +345,14 @@ número no terceiro é imputável só ao flip.
 | [#1677](https://github.com/davidrobert/mathoms/pull/1677) | produtor único; 3 resolvers deletados; fixture de 2 membros | 1.409 linhas removidas |
 | [#1684](https://github.com/davidrobert/mathoms/pull/1684) | os três gates no payload, com denominador declarado | — |
 
-**Nenhum rebaseline de golden ou snapshot na lane inteira.** O dogfood é
-domicílio de um membro, então o flip não move os números dele — o que reforça
-que a fixture de dois membros era precondição, não acessório.
+**Nenhum rebaseline de golden ou snapshot na lane inteira.**
+
+> ⚠️ **Isso não provou que nada mudou — foi o sintoma de que nada conseguia ver
+> (medido em 2026-08-25).** O dogfood é domicílio de um membro e o golden não tem
+> `investimentos_consolidados`, então **nenhum dos dois consegue exibir** uma
+> migração de classe. O r8 mediu 11 posições mudando de balde sem que um único
+> instrumento disparasse. Ausência de rebaseline é evidência de cobertura, não de
+> estabilidade — e aqui a cobertura não existia.
 
 ### Efeito medido — na fixture sintética, não em produção
 
@@ -402,3 +415,49 @@ do balde `None`), e o `autoridade` que não distingue produtor de substring
 `total_financeiro`, que é o denominador da ressalva que ele publica — e o
 denominador acabou de mudar de 900.000 para 1.010.000 no caso de dois membros. A
 fixture construída aqui é reaproveitada inteira por ele.
+
+## RV8-01 — a lane introduziu uma regressão de classe (2026-08-25)
+
+O r8 (run `d0f6260a`) abriu como achado **nº 1, Crítico P0**, uma regressão que
+**esta lane causou**: ao unificar o produtor, o §Escopo 2 passou a propagar `tipo`
+ao classificador, e o `tipo` de 10 itens está **errado**.
+
+Medido, reclassificando os mesmos 61 itens do baseline do r8 com e sem `tipo`:
+
+| | sem `tipo` | com `tipo` (produção hoje) |
+| --- | --- | --- |
+| Fundos | 12 | **2** |
+| Renda Fixa | 21 | **32** |
+
+**11 de 61 posições migram · R$ 174.636,71 · 13,1% da carteira.** Todas com
+`autoridade: "keyword"` — confiança plena. Zero `review_reason`,
+`nao_classificado_pct` parado, nenhum golden quebrado.
+
+### Os itens que migram são fundos de ações rotulados renda fixa
+
+```
+WESTERN ASSET FIA BDR NIVEL I       ← FIA = Fundo de Investimento em Ações
+ALASKA BLACK INSTITUCIONAL FIA BDR  ← FIA
+CONSTELLATION INSTITUCIONAL         ← fundo de ações
+ALASKA BLACK FIC FIA - BDR          ← FIC FIA
+SAFARI 30 FIC FIM II                ← FIM = multimercado
+```
+
+A `descricao` diz `FIA`/`FIM` literalmente e estava **certa**; o `tipo` diz
+`renda_fixa` e está **errado**. A lane tornou o campo errado autoritativo sobre o
+certo — `EVALUATION_ORDER` põe `Renda Fixa` antes de `Fundos`, e o haystack
+concatenado passou a conter "renda fixa" vindo do `tipo`.
+
+Origem provável do rótulo: `_classify_investimento`
+([`consolidate_baseline.py:711`](../../../../scripts/consolidate_baseline.py))
+tem `return "renda_fixa"` como **default do grupo 04 da RFB** — não como
+evidência. É a mesma família do `return "investimento"` que esta lane já tratou
+como sentinela de ignorância no `_fallback_nome`; o que passou despercebido é que
+**`renda_fixa` também é um default**, e não só um fato.
+
+### Co-design aberto em 2026-08-25
+
+`financial-planner` (um FIA/FIM pertence a "Fundos" ou ao balde do subjacente? o
+dano de 13% no balde errado é contenção ou próxima release?) + `data-engineer`
+(default e fato saem no mesmo campo — é defeito de contrato? qual a forma da
+ausência? cabe fora da J5?). A decisão precede o fix.

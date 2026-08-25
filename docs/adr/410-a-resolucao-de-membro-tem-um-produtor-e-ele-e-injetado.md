@@ -5,7 +5,7 @@ title: "A resolução de membro tem um produtor, e ele é injetado — não reso
 status: Decidido
 phase: A40.l77/DE-10
 date: "2026-08-24"
-amended_at: ["2026-08-24"]
+amended_at: ["2026-08-24", "2026-08-25"]
 relates_to:
   - "[[ADR-089]]"
   - "[[ADR-097]]"
@@ -207,9 +207,11 @@ foi publicado — foi exatamente a confusão que o §Ataque A0 da lane pegou.
   `unattributed → titular` que a [[ADR-394]] §D8 cortou. E escreve a terceira
   cópia da regra num arquivo que se quer apagar.
 - **Resolver canônico novo, com os dois virando fachadas finas.** É o movimento
-  que já produziu os dois resíduos órfãos que o D1 enterra. Com `tipo` medido
-  inerte pela [[ADR-406]] §D2, o superset é o produtor atual mais um campo —
-  módulo novo seria diff maior e duas janelas de rebaseline.
+  que já produziu os dois resíduos órfãos que o D1 enterra. O superset é o
+  produtor atual mais um campo, e módulo novo seria diff maior e duas janelas de
+  rebaseline. (A redação original dizia "com `tipo` medido inerte pela
+  [[ADR-406]] §D2" — **premissa retratada**, ver §Emenda 2026-08-25. A conclusão
+  sobre a topologia não dependia dela.)
 - **Manter os dois com contrato escrito.** Contratar a divergência não a impede.
   O precedente da [[ADR-392]] §D3 (dois resolvers obedecendo a mesma regra) não
   autoriza aqui: lá o segundo é duplo de teste implementando o mesmo *port*, com
@@ -272,3 +274,40 @@ dados; D6 precisa de par com `product-designer` para a copy da superfície de
 degradação. Condição de retomada: junto do DE-7/DE-8 na janela J5, que já é do
 mesmo dono — D5 em particular é dupla-contagem **latente** (sem produtor hoje),
 não regressão ativa, e por isso não bloqueia.
+
+## Emenda 2026-08-25 — `tipo` não era inerte, e a premissa que dizia isso media outra variável
+
+O r8 (run `d0f6260a`) abriu como **RV8-01, Crítico P0**: a propagação de `tipo`
+que o **D1** trouxe **move 11 de 61 posições de classe**, R$ 174.636,71 (13,1% da
+carteira), todas de `Fundos` para `Renda Fixa`, com `autoridade: "keyword"` e zero
+`review_reason`.
+
+**O corpo desta nota citava a [[ADR-406]] §D2 como prova de que `tipo` era
+inerte.** O D2 mediu **autoridade** e concluiu "não muda resultado". Re-medido no
+corpus do r8:
+
+| | sem `tipo` | com `tipo` |
+| --- | --- | --- |
+| autoridade (o que o D2 leu) | `keyword` 56 · `sem_match` 5 | `keyword` 57 · `sem_match` 4 |
+| **classe** (o que importava) | Fundos 12 · Renda Fixa 21 | **Fundos 2 · Renda Fixa 32** |
+
+A autoridade quase não se move porque casou keyword nos dois casos — mudou **qual**
+balde. A conclusão do D2 é verdadeira da variável que ele leu e falsa da que
+decide o relatório.
+
+**O que isto NÃO invalida.** D1 (produtor único), D2 (injeção) e D3 (VO do par)
+seguem válidos: a topologia não dependia da inércia de `tipo`, e o §Alternativas
+usava a premissa como reforço, não como razão. O que cai é a inferência de que
+propagar o campo era neutro.
+
+**O que fica em aberto.** Os itens que migram são fundos de ações e multimercado
+(`FIA`, `FIC FIM` na descrição) rotulados `renda_fixa` — o `tipo` está **errado**,
+e a `descricao` estava certa. Origem provável: `_classify_investimento`
+(`consolidate_baseline.py:711`) emite `return "renda_fixa"` como **default do
+grupo 04 da RFB**, indistinguível de valor derivado de evidência — mesma família
+do `return "investimento"` que esta lane já tratou como sentinela.
+
+**Co-design aberto em 2026-08-25** (`financial-planner` + `data-engineer`): qual
+sinal decide a classe, o que é a ausência no campo `tipo`, e se a contenção é
+reverter a propagação ou publicar ressalva. **A decisão precede o fix** e não é
+desta nota.

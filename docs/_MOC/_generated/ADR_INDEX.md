@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-400 ADRs (ADR-001 a ADR-410) em [`docs/adr/`](../../adr/).
+401 ADRs (ADR-001 a ADR-411) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 344
+- **Decidido**: 345
 - **Proposto**: 52
 - **Roadmap**: 4
 
@@ -553,7 +553,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (76)
+### Decidido (77)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -631,6 +631,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-407]] — Stage com N formas de payload despacha schema por discriminador declarado, nunca por shape · phase A40.l74
 - [[ADR-409]] — Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart · phase A40.l58
 - [[ADR-410]] — A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor · phase A40.l77/DE-10
+- [[ADR-411]] — O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row · phase A40.l81/RV8-09
 
 ### Proposto (15)
 

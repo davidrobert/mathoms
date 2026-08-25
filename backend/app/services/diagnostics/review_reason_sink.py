@@ -20,21 +20,23 @@ from pipeline.domain.review_reason import ReviewReasonCode
 
 logger = get_logger("pipeline.diagnostics")
 
-# Cap de rows por (run, code) — proteção contra row explosion (ADR-272 Fase 2).
-# Consolidamos para 1 row por (run, code) somando occurrence_count cross-doc; o cap
-# é defensivo (há só ~20 ReviewReasonCode, então <=20 rows por run na prática).
+# Cap de rows por (run, code, locator) — proteção contra row explosion (ADR-272
+# Fase 2 · ADR-411 D3). Consolidamos para 1 row por chave somando
+# occurrence_count cross-doc; o cap é defensivo (há só ~20 ReviewReasonCode e o
+# locator é caminho de COLEÇÃO, não de item, então a cardinalidade real é dezenas).
 _REVIEW_REASON_ROW_CAP = 50
 
 _KNOWN_CODES = frozenset(c.value for c in ReviewReasonCode)
 
 
-def _existing_review_reason(db, *, run_id: str, workspace_id: str, code: str):
-    """Row já materializada para (run, code) — autoflush torna add anterior visível na mesma transação."""
+def _existing_review_reason(db, *, run_id: str, workspace_id: str, code: str, locator: str):
+    """Row já materializada para (run, code, locator) — autoflush torna add anterior visível na mesma transação."""
     return db.execute(
         select(ReviewReason).where(
             ReviewReason.workspace_id == workspace_id,
             ReviewReason.pipeline_run_id == run_id,
             ReviewReason.code == code,
+            ReviewReason.locator == locator,
         )
     ).scalar_one_or_none()
 
@@ -79,6 +81,7 @@ def _new_review_reason_row(
         stage=stage_name,
         code=payload["code"],
         artifact_key=payload.get("artifact_key", "") or "",
+        locator=payload.get("locator", "") or "",
         document_id=payload.get("document_id"),
         offending_value=payload.get("offending_value", "") or "",
         expected=payload.get("expected", "") or "",
@@ -90,12 +93,18 @@ def _new_review_reason_row(
 def _apply_one_reason(
     db, payload: dict, *, run_id: str, workspace_id: str, stage_name: str, can_insert: bool
 ) -> bool:
-    """Bump (run, code) existente ou insere nova row se can_insert. Retorna True se inseriu."""
+    """Bump (run, code, locator) existente ou insere nova row se can_insert. Retorna True se inseriu."""
     code = payload.get("code")
     if not code:
         return False
     inc = int(payload.get("occurrence_count", 1) or 1)
-    existing = _existing_review_reason(db, run_id=run_id, workspace_id=workspace_id, code=code)
+    existing = _existing_review_reason(
+        db,
+        run_id=run_id,
+        workspace_id=workspace_id,
+        code=code,
+        locator=payload.get("locator", "") or "",
+    )
     if existing is not None:
         existing.occurrence_count += inc
         return False
@@ -116,7 +125,7 @@ def _apply_one_reason(
 def _materialize_review_reasons(
     db, *, run_id: str, workspace_id: str, stage_name: str, reasons: list[dict]
 ) -> int:
-    """1 row por (run, code), somando occurrence_count (ADR-272 Fase 2). Retorna nº inseridas."""
+    """1 row por (run, code, locator), somando occurrence_count (ADR-272 Fase 2 · ADR-411 D3). Retorna nº inseridas."""
     inserted = 0
     known_docs = _resolvable_document_ids(db, workspace_id, reasons)
     for payload in reasons:
@@ -133,8 +142,8 @@ def _materialize_review_reasons(
 
 
 def _drop_unknown_codes(rows: list[dict], stage_name: str) -> list[dict]:
-    """Code fora de `ReviewReasonCode` não entra: `(run, code)` é a chave de
-    consolidação, e code fabricado a envenena. O sinal vai para o log — é onde
+    """Code fora de `ReviewReasonCode` não entra: `(run, code, locator)` é a
+    chave de consolidação, e code fabricado a envenena. O sinal vai para o log — é onde
     o operador lê, já que a tabela não tem consumidor de UI hoje. Doutrina
     herdada de `_warn_unmapped` (`pipeline/domain/review_reason_projection.py`)."""
     known = [r for r in rows if r.get("code") in _KNOWN_CODES]
@@ -194,7 +203,7 @@ def _log_sink_ok(*, run_id: str, stage_name: str, written: int, attempted: int) 
 # normalizada — chamá-la aqui mantém o sink seguro standalone sem duplicar o
 # warning que o call-site do orquestrador já emitiu.
 def record_review_reasons(*, run_id: str, workspace_id: str, stage_name: str, reasons: Any) -> int:
-    """Materializa a razão de `needs_review` em sessão própria. Nunca levanta."""
+    """Materializa a razão do DESFECHO do stage em sessão própria. Nunca levanta."""
     rows = _drop_unknown_codes(sanitize_review_reasons(reasons, stage_name=stage_name), stage_name)
     if not rows:
         return 0

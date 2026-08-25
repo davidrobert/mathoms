@@ -111,6 +111,19 @@ async def _fetch_run_meta(
     return (run[0] if run else {}), nr, costs, calls
 
 
+async def _fetch_review_reasons(db, run_id: str) -> list[dict]:
+    """A tabela `review_reasons` do run — o primeiro leitor que ela tem (ADR-411 D5).
+
+    Sem consumidor, escrever nela repetia RV8-17: payload com zero leitores.
+    """
+    return await _rows(
+        db,
+        "SELECT stage, locator, code, occurrence_count FROM review_reasons "
+        "WHERE pipeline_run_id = :r ORDER BY stage, locator, code",
+        {"r": run_id},
+    )
+
+
 async def _fetch_stage_logs(db, run_id: str) -> list[dict]:
     """Stage logs com a revisão do executor — a fonte da frase de escopo (ADR-362)."""
     return await _rows(
@@ -167,8 +180,15 @@ async def main() -> None:
         cv = _dump_cross_validation(data, out_dir)
         run, nr, costs, calls = await _fetch_run_meta(db, ws, run_id)
         stage_rows = await _fetch_stage_logs(db, run_id)
+        reasons = await _fetch_review_reasons(db, run_id)
     _write_run_meta(run_id, run, nr, cv, costs, calls, out_dir, stage_rows)
-    meta = {"run": run, "needs_review": nr, "costs": costs, "calls": calls}
+    meta = {
+        "run": run,
+        "needs_review": nr,
+        "costs": costs,
+        "calls": calls,
+        "review_reasons": reasons,
+    }
     snapshot = build_snapshot(
         run_id=str(run_id),
         report_data=data,

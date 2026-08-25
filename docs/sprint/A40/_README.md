@@ -268,7 +268,7 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (77 no disco · 77 nesta tabela — ver nota ao fim)
+## Lanes (80 no disco · 80 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -388,6 +388,9 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l76]] | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | P1 | — | aberta 2026-08-21 · `document_id` NULL em **16.292/16.292** (re-medido) · [[ADR-408]] `Proposto` (#1607) decide o fix em co-design `data-engineer` + `senior-cto`; [[ADR-311]] emendada com o alcance real do D1 · gate da lacuna já em `main` (#1600, `xfail(strict=True)` que se auto-remove quando a FK popular) · 4 peças em ordem dura: guard de colisão → FK por porta → backfill → predicado |
 | [[A40.l77]] | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | P0 | ✅ **#1684** | **shipped 2026-08-24** em 4 PRs (#1669 → #1676 → #1677 → #1684) sob a [[ADR-410]] (`Decidido`): produtor único de membro, injetado, com os 3 resolvers mortos enterrados e 3 gates no payload (**D4 parcial, D5 e D6 não executados** — [[ADR-410]] §Emenda 2026-08-24, dono `data-engineer` na J5) · aberta 2026-08-24 (#1643) como DE-10 do r7 · medido **na fixture sintética de 2 membros** (não em produção — não há artefato pós-fix; ver a nota do r8 acima): `total_financeiro` 900.000 → **1.010.000**, `investimentos_conjuge` 0,0 → **110.000** · **zero rebaseline** de golden ou snapshot · **destrava o DE-7** |
 | [[A40.l79]] | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | P1 | — | aberta 2026-08-24 no ataque às l64/l65 (#1659) · medido: 2027 levanta `FiscalParameterNotFound`, o `except Exception` cai no dict legado e `regime_completo` defaulta `True` ⇒ R$ 630,00 de economia inexistente no caso do §Critério 1 da [[A40.l64]] · o golden não pega porque `fiscal_store_do_seed` tem clamp que a produção não tem |
+| [[A40.l80]] | Denominador amputado: metade da carteira financeira não tem dono, o investível a exclui e o bruto a inclui no mesmo arquivo | P0 | — | aberta 2026-08-24 · cluster do §r8 (RV8-02/03/04/06/10) · **decisão antes do código**: os consumidores não querem a mesma base — composição (concentração, banda cambial) quer a base cheia, runway (autonomia) talvez queira a certificada · reabre [[ADR-335]] §Emenda e [[ADR-340]] ⇒ ADR `Proposto` obrigatória, co-design `financial-planner` + `data-engineer` · ordem dura: abrir o enum de `membro` (RV8-06) **antes** de mexer em número, senão não há onde declarar a ressalva · move componente de score e a banda cambial volta de verde para amarela — isso é a correção, não regressão |
+| [[A40.l81]] | Diagnóstico sem canal de saída: o stage que não pausa entrega razão no artefato e ela não chega nem à tabela nem ao usuário | P0 | ✅ **#1697** | **shipped 2026-08-25** sob a [[ADR-411]] (`Proposto`): sink em todo desfecho, colheita em qualquer posição, `locator` na chave da row, e a tabela ganha o **primeiro leitor** (`compare_reviews`) · **a lane tinha a causa pela metade** — remedido, são **43 de 46 ocorrências perdidas (6,5% de cobertura)**, não 4, e o `detail` do `consolidate_baseline` não tem bloco `validation` nenhum, então mover o sink sozinho colheria **zero** para o stage que deu origem ao achado · gate medido por mutação (sink só na pausa reprova 5/6; colheita só no topo, 3/6) · **2 deferimentos com dono** ([[ADR-411]]): superfície de usuário para aviso-sem-pausa (owner) e a poda por stage que não alcança a tabela (`data-engineer`, achado no closeout — `reset_workspace_from_stage` preserva o run e deixa a row com ponteiro morto) · **closeout 2026-08-25**: ADR flipada para `Decidido`, linha RV8-09 do §r8 reconciliada para `remediado — fecha por medição no r9`, e 1 número da ADR corrigido (10 rows, não ~8) · aberta 2026-08-24 · RV8-09 do §r8 · **primeiro da fila**: é o que torna RV8-01/RV8-19 observáveis sem outra revisão manual · re-medido: 4 razões no artefato do `consolidate_baseline`, 0 rows na tabela (as 2 da tabela vêm do único stage que pausou) · não é `_drop_unknown_codes` — os códigos estão na allowlist · **três armadilhas**: a tabela é write-only (consertar só a escrita repete RV8-17/RV8-12), as razões têm duas formas e o sink só lê a de topo, e o gate óbvio é cego pela mesma metade · ordem da [[ADR-404]] é restrição dura |
+| [[A40.l82]] | Um default de grupo RFB decide a classe de 13% da carteira, com confiança plena e sem sinal | P0 | — | aberta 2026-08-25 · **RV8-01 do §r8**, o achado nº 1 · origem [[A40.l77]] §RV8-01 (aquela lane registra a regressão, esta conserta; a l77 não reabre) · medido: 11 de 61 posições migram `Fundos`→`Renda Fixa`, R$ 174.636,71, com `autoridade: keyword` e zero `review_reason` · os itens são FIA/FIC FIM rotulados `renda_fixa` pelo **default do grupo 04** em `_classify_investimento` · co-design fechado pelo `senior-cto` em 2026-08-25: reverter pela assimetria de visibilidade, 5 marcas de gestora no mesmo PR, gate estrutural com expiração datada · **não vai para a J5** — modo de falha oposto ao do DE-7 (redistribui vs. soma) |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -1212,6 +1215,23 @@ prática registrada em memória de agente; elevá-la a texto do CLAUDE.md §ADRs
 inverte o conselho atual de "abrir PR cedo para reservar o ID", que sob
 paralelismo é contraproducente. **Owner-gated**: qualquer opção muda política
 de repo.
+
+> **Marcador de fato, 2026-08-24 — a opção (b) não faz o que o texto acima
+> supõe.** O texto de 2026-08-12 fica: é o registro da medição da escala. O que
+> mudou é conhecimento, não decisão. **Merge driver é client-side**: o
+> `update-branch` do trem (`PUT /pulls/{n}/update-branch`) e o squash rodam no
+> servidor do GitHub, que não lê `.gitattributes` do repo para driver
+> customizado. Medido: `.gitattributes` **não existe** aqui, e o driver `ours`
+> exigiria `git config merge.ours.driver true` **por clone** — que o CLAUDE.md
+> §Git proíbe ao agente configurar. Logo (b) cobriria só o rebase local de quem
+> rodou o config, não o caminho onde a fila trava. Não medi qual fração dos
+> conflitos vem de cada caminho.
+>
+> Metade do custo que esta pendência mede **já foi paga** por outra via: o
+> #1674 tirou o contador agregado dos índices, e a colisão que restava nos
+> gerados era 3 de 4 arquivos por contador. Sobra o `DOC_STATS.md`, que é 100%
+> agregado — não é reformável, só removível. A decisão entre (a), (b), (c) ou
+> "fica como está" segue **owner-gated**, agora com o custo de (b) conhecido.
 
 ## Fora do sprint (disposição explícita)
 
