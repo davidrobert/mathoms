@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-401 ADRs (ADR-001 a ADR-411) em [`docs/adr/`](../../adr/).
+402 ADRs (ADR-001 a ADR-412) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 345
-- **Proposto**: 52
+- **Proposto**: 53
 - **Roadmap**: 4
 
 ## Fundação
@@ -633,7 +633,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-410]] — A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor · phase A40.l77/DE-10
 - [[ADR-411]] — O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row · phase A40.l81/RV8-09
 
-### Proposto (15)
+### Proposto (16)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -650,6 +650,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
+- [[ADR-412]] — Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais · phase A40.l80
 
 ### Roadmap (1)
 
