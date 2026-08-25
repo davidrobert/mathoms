@@ -152,7 +152,11 @@ aviso de run entregue. Até lá o aviso vive na tabela e no snapshot, e
 
 ## Deferimento 2 — a poda por stage não alcança a tabela
 
-**Dono:** `data-engineer` • **Condição:** quando o r9 medir quantas rows de
-`review_reasons` sobrevivem a um `reset_workspace_from_stage` num workspace real.
-Só então se sabe se o remédio é cascatear pela poda, expirar por idade, ou nada.
-Decidir agora seria escolher política sobre volume não medido.
+**Dono:** `data-engineer` • **Medido 2026-08-25** (run `7164ddee`): **7 rows por
+run**, contra 2 antes do D1. O eixo de **volume está refutado** — 7 rows de
+diagnóstico não justificam política de expiração. O que sobra é semântico: depois
+de um `reset_workspace_from_stage`, essas rows apontam por `artifact_key` para
+artefato deletado. **Condição de retomada:** se algum leitor futuro resolver
+`artifact_key` em vez de só exibi-lo. Hoje o único leitor é o
+`review_snapshot`, que projeta `stage|locator|code` e **não** toca
+`artifact_key` — logo o ponteiro morto não é observável por ninguém.

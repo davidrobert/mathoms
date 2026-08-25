@@ -38,12 +38,21 @@ def _child_path(path: str, key: str) -> str:
 # Copia o dict: o payload caminhado é o que o stage vai persistir como artefato,
 # e carimbar `locator` in-place o contaminaria com campo que o schema do produtor
 # não declara.
+#
+# O `locator` do ITEM vence o do caminhamento (`{"locator": ...}` ANTES do
+# `**item`). O produtor que colhe o próprio payload (D2b) já carimbou a posição
+# real — `imoveis_consolidados[].review_reasons` — e a joga em
+# `detail.validation.review_reasons`; o orquestrador colhe o detail de novo e,
+# com a ordem invertida, re-carimbava por cima com o caminho de TOPO. Medido no
+# run `7164ddee`: a row do `consolidate_baseline` chegava com
+# `validation.review_reasons`, devolvendo ao operador o ponteiro que a D3 existe
+# para não perder.
 def _reasons_in(collection: Any, locator: str) -> list[dict[str, Any]]:
     """Razões da coleção, carimbadas com o caminho onde foram achadas."""
     if not isinstance(collection, list):
         return []
     return [
-        {**item, "locator": locator}
+        {"locator": locator, **item}
         for item in collection
         if isinstance(item, dict) and item.get("code")
     ]

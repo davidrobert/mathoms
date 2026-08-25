@@ -86,3 +86,27 @@ def test_colheita_nao_contamina_o_payload_persistido() -> None:
     _validation_block(payload)
     assert "locator" not in payload["validation"]["review_reasons"][0]
     assert "locator" not in payload["imoveis_consolidados"][0]["review_reasons"][0]
+
+
+# ── A40.l81 pós-medição: o locator do item sobrevive ao re-harvest ────────
+
+
+def test_locator_do_item_sobrevive_ao_reharvest_do_orquestrador() -> None:
+    # O produtor colhe e carimba o caminho do ITEM; o orquestrador colhe o
+    # `detail` de novo e re-carimbava por cima com o caminho de TOPO — o
+    # operador recebia o ponteiro que a ADR-411 D3 existe para não perder.
+    """Medido no run `7164ddee`: a row saiu com `validation.review_reasons`."""
+    payload = {
+        "imoveis_consolidados": [
+            {"review_reasons": [_razao("domain.property_identity_uncanonical")]}
+        ]
+    }
+    detail = {"success": True, "validation": _validation_block(payload)}
+    colhidas = harvest_review_reasons(detail)
+    assert [r["locator"] for r in colhidas] == ["imoveis_consolidados[].review_reasons"]
+
+
+def test_razao_sem_locator_previo_recebe_o_do_caminhamento() -> None:
+    """O par do teste acima: quem nunca passou pelo produtor é carimbado aqui."""
+    detail = {"validation": {"review_reasons": [_razao("domain.baseline_divergence")]}}
+    assert harvest_review_reasons(detail)[0]["locator"] == "validation.review_reasons"
