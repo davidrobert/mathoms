@@ -18,9 +18,11 @@ import pytest
 
 from backend.app.services.parecer_evidencia import (
     PROSE_INVENTORY_VERSION,
-    _extract_money_tokens,
-    _extract_usd_tokens,
     verify_evidencia,
+)
+from backend.app.services.parecer_prose_money import (
+    extract_money_tokens,
+    extract_usd_tokens,
 )
 from pipeline.llm.schemas.parecer_planejador import Ancora
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
@@ -202,18 +204,18 @@ class TestDedupeDeSpan:
         ],
     )
     def test_um_valor_conta_um_token(self, prosa):
-        assert len(_extract_money_tokens([prosa])) == 1
+        assert len(extract_money_tokens([prosa])) == 1
 
     def test_valores_distintos_seguem_contando_separado(self):
-        assert len(_extract_money_tokens(["R$ 500,00 e depois 300 reais"])) == 2
+        assert len(extract_money_tokens(["R$ 500,00 e depois 300 reais"])) == 2
 
     def test_token_vencedor_preserva_o_multiplicador(self):
         """O match com prefixo R$ vence, e é o que lê "mil" corretamente."""
-        assert _extract_money_tokens(["R$ 720 mil reais"])[0].cents == 72_000_000
+        assert extract_money_tokens(["R$ 720 mil reais"])[0].cents == 72_000_000
 
     def test_numero_nao_monetario_segue_ignorado(self):
         prosa = "Cobertura de 2,1 meses, 44,7% da renda, meta 25× até 2030 em 6 meses."
-        assert _extract_money_tokens([prosa]) == []
+        assert extract_money_tokens([prosa]) == []
 
 
 class TestUnidadesSeparadas:
@@ -230,7 +232,7 @@ class TestUnidadesSeparadas:
 
     @pytest.mark.parametrize("prosa", ["US$ 50.000", "USD 1.000", "50 mil dólares"])
     def test_formas_de_moeda_estrangeira_detectadas(self, prosa):
-        assert len(_extract_usd_tokens([prosa])) == 1
+        assert len(extract_usd_tokens([prosa])) == 1
 
     def test_metricas_contam_em_chave_propria_e_nao_poluem_pureza_de_prosa(self):
         """``valor_atual``/``target`` são "string formatada" POR CONTRATO e contêm R$
