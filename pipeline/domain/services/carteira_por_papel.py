@@ -92,7 +92,22 @@ def build_carteira_por_papel(
     if not dados and not totais:
         return CarteiraPorPapel.vazia()
 
-    posicoes: dict[PapelMembro, list[dict]] = {p: [] for p in PapelMembro}
+    posicoes = _posicoes_por_papel(dados, titular_key=titular_key, conjuge_key=conjuge_key)
+    somas, chaves = _agregado_por_papel(totais, titular_key=titular_key, conjuge_key=conjuge_key)
+    return CarteiraPorPapel(
+        baldes={
+            papel: BaldeDoPapel(
+                papel, somas[papel], tuple(posicoes[papel]), frozenset(chaves[papel])
+            )
+            for papel in PapelMembro
+        }
+    )
+
+
+def _posicoes_por_papel(
+    dados: list, *, titular_key: str, conjuge_key: str
+) -> dict[PapelMembro, list[dict]]:
+    out: dict[PapelMembro, list[dict]] = {p: [] for p in PapelMembro}
     for pos in dados:
         if isinstance(pos, dict):
             papel = papel_da_chave(
@@ -100,20 +115,8 @@ def build_carteira_por_papel(
                 titular_key=titular_key,
                 conjuge_key=conjuge_key,
             )
-            posicoes[papel].append(pos)
-
-    somas, chaves = _agregado_por_papel(totais, titular_key=titular_key, conjuge_key=conjuge_key)
-    return CarteiraPorPapel(
-        baldes={
-            papel: BaldeDoPapel(
-                papel=papel,
-                total_brl=somas[papel],
-                posicoes=tuple(posicoes[papel]),
-                chaves=frozenset(chaves[papel]),
-            )
-            for papel in PapelMembro
-        }
-    )
+            out[papel].append(pos)
+    return out
 
 
 def _agregado_por_papel(

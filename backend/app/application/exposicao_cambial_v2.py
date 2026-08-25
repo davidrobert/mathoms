@@ -333,6 +333,15 @@ def _alvo_verde(denom: Decimal) -> Decimal:
     return round(denom * Decimal(str(THRESHOLD_VERDE_PCT)) / 100, 2)
 
 
+def _tier_de(inputs: _E5Inputs, total: Decimal, pct: float) -> str:
+    return _tier(
+        pct,
+        has_data=total > Decimal(0),
+        cobertura_apurada=inputs.cobertura_apurada,
+        serie_corrente=inputs.serie_corrente,
+    )
+
+
 # Só o caso COM base: sem base é decidido no chamador, para o estado degradado não
 # depender de um campo esquecido na construção do DTO.
 def _build_response(
@@ -349,12 +358,7 @@ def _build_response(
         total_brl=round(total, 2),
         pct_investivel_financeiro=round(pct, 2),
         por_moeda=_build_por_moeda_dtos(por_moeda, total),
-        tier=_tier(
-            pct,
-            has_data=total > Decimal(0),
-            cobertura_apurada=inputs.cobertura_apurada,
-            serie_corrente=inputs.serie_corrente,
-        ),
+        tier=_tier_de(inputs, total, pct),
         alvo_moeda_forte_brl=_alvo_verde(inputs.investivel_denom),
         ativos_contribuintes=ativos,
         source_run_id=str(artifact.pipeline_run_id) if artifact.pipeline_run_id else None,

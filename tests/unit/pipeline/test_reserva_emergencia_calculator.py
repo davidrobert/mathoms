@@ -141,6 +141,15 @@ def test_rf_sem_liquidez_diaria_excluida(config: ReservaEmergenciaConfig):
     assert result["excluido_da_reserva"]["investimentos_nao_liquidos"] == 20_000.0
 
 
+def _sem_bens() -> FallbackIrpfPorPapel:
+    """Fallback IRPF vazio nos dois papéis — `sem_dono` nunca tem campo."""
+    return FallbackIrpfPorPapel(titular=_bens(investimentos=[]), conjuge=_bens(investimentos=[]))
+
+
+def _carteira(dados: list[dict]) -> object:
+    return build_carteira_por_papel({"dados": dados}, titular_key="david", conjuge_key="mariana")
+
+
 def test_caixa_me_excluida_por_default(config: ReservaEmergenciaConfig):
     """Caixa ME só entra com finalidade explícita = reserva."""
     calc = EmergencyReserveCalculator(config)
@@ -153,11 +162,8 @@ def test_caixa_me_excluida_por_default(config: ReservaEmergenciaConfig):
             {"conta": "wise", "moeda": "USD", "valor_brl": 50_000, "tipo": "moeda_estrangeira"},
         ],
     }
-    bens = {"david": _bens(investimentos=[]), "mariana": _bens(investimentos=[])}
     result = calc.calculate(
-        fluxo={"despesa_mensal_media": 1_000},
-        patrimonio=patrimonio,
-        fallback_irpf=FallbackIrpfPorPapel(titular=bens.get("david"), conjuge=bens.get("mariana")),
+        fluxo={"despesa_mensal_media": 1_000}, patrimonio=patrimonio, fallback_irpf=_sem_bens()
     )
     assert result["total_liquida"] == 10_000.0
     assert result["composicao_liquida"]["caixa"] == 10_000.0
@@ -209,15 +215,11 @@ def test_posicoes_atuais_tem_precedencia_sobre_irpf(config: ReservaEmergenciaCon
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
         patrimonio={"investimentos_titular": 99_999, "investimentos_conjuge": 0},
-        carteira=build_carteira_por_papel(
-            {
-                "dados": [
-                    {"nome": "CDB LIQUIDEZ DIARIA", "membro": "david", "valor_atual": 12_000},
-                    {"nome": "ACOES PETR4", "membro": "david", "valor_atual": 40_000},
-                ]
-            },
-            titular_key="david",
-            conjuge_key="mariana",
+        carteira=_carteira(
+            [
+                {"nome": "CDB LIQUIDEZ DIARIA", "membro": "david", "valor_atual": 12_000},
+                {"nome": "ACOES PETR4", "membro": "david", "valor_atual": 40_000},
+            ]
         ),
         fallback_irpf=FallbackIrpfPorPapel(
             titular=_bens(investimentos=[{"descricao": "CDB ANTIGO IRPF", "valor": 77_000}]),

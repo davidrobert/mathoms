@@ -206,8 +206,7 @@ class PatrimonioCalculator:
         )
 
         patrimonio_liquido = patrimonio_bruto - total_dividas
-        # Regressão do #1550: o termo entrou em `_compute_bruto` e foi esquecido
-        # aqui, no mesmo PR ([[ADR-412]] §D0).
+        # Regressão do #1550: o termo entrou no bruto e não aqui ([[ADR-412]] §D0).
         investivel_financeiro = max(
             0.0,
             investimentos_titular + investimentos_conjuge + caixa_total_brl + nao_atribuidos,
@@ -271,14 +270,16 @@ class PatrimonioCalculator:
             "guarda_de_sinal": guarda.to_dict(),
             "investimentos_nao_atribuidos": round(nao_atribuidos, 2),
             **publicar_bases(
-                titular=investimentos_titular,
-                conjuge=investimentos_conjuge,
-                sem_dono=nao_atribuidos,
-                caixa=caixa_total_brl,
-                carteira_financeira=investivel_financeiro,
-                cat2_efetivo=cat2_efetivo,
-                bruto=patrimonio_bruto,
-                dividas=total_dividas,
+                {
+                    "investimentos_titular": investimentos_titular,
+                    "investimentos_conjuge": investimentos_conjuge,
+                    "investimentos_nao_atribuidos": nao_atribuidos,
+                    "caixa_total_brl": caixa_total_brl,
+                    "carteira_financeira_familia": investivel_financeiro,
+                    "cat2_efetivo": cat2_efetivo,
+                    "bruto": patrimonio_bruto,
+                    "dividas": total_dividas,
+                }
             ),
             "cobertura_investimentos": [c.to_dict() for c in cobertura],
             "pl_ressalva": ressalva["pl_ressalva"],

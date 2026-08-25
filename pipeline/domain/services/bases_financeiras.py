@@ -101,38 +101,17 @@ BASE_VERSAO_CORRENTE = 1
 # Recebe valores CRUS, nunca o dict publicado: lá `valor_publicavel` já pode ter
 # virado `None` para membro não apurado, e a base sairia menor que o número que
 # ela diz explicar.
-def publicar_bases(
-    *,
-    titular: float,
-    conjuge: float,
-    sem_dono: float,
-    caixa: float,
-    carteira_financeira: float,
-    cat2_efetivo: float,
-    bruto: float,
-    dividas: float,
-) -> dict[str, dict]:
-    """Bloco `bases` + `base_versao` a partir dos valores crus; `-` subtrai."""
-    valores = {
-        "investimentos_titular": titular,
-        "investimentos_conjuge": conjuge,
-        "investimentos_nao_atribuidos": sem_dono,
-        "caixa_total_brl": caixa,
-        "carteira_financeira_familia": carteira_financeira,
-        "cat2_efetivo": cat2_efetivo,
-        "bruto": bruto,
-        "dividas": dividas,
-    }
+def publicar_bases(valores_crus: Mapping[str, float]) -> dict[str, dict]:
+    """Bloco `bases` + `base_versao`; prefixo `-` no termo subtrai."""
     return {
-        "bases": {
-            base.value: {
-                "termos": list(termos_da_base(base)),
-                "valor_brl": round(_somar_termos(termos_da_base(base), valores), 2),
-            }
-            for base in BaseFinanceira
-        },
+        "bases": {base.value: _base_declarada(base, valores_crus) for base in BaseFinanceira},
         "base_versao": BASE_VERSAO_CORRENTE,
     }
+
+
+def _base_declarada(base: BaseFinanceira, valores: Mapping[str, float]) -> dict:
+    termos = termos_da_base(base)
+    return {"termos": list(termos), "valor_brl": round(_somar_termos(termos, valores), 2)}
 
 
 def _somar_termos(termos: tuple[str, ...], valores: Mapping[str, float]) -> float:

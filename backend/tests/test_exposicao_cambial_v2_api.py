@@ -22,6 +22,25 @@ from backend.app.models import (
 # endpoint que devolvia zero em produção. `posicoes` não tem onde morar — o E5 publica
 # agregados, não posições individuais (elas vivem no E4); o parâmetro segue na
 # assinatura para os testes que documentam a lacuna.
+# A40.l80: o card só julga faixa com TODOS os componentes apurados — o mesmo
+# predicado do `_tier` do E5. Sem isso, `indeterminado`.
+def _componentes(cobertura: str) -> dict:
+    return {
+        "componentes": {
+            "caixa_fx": {"valor_brl": 0.0, "cobertura": cobertura},
+            "carteira_lastro_estrangeiro": {"valor_brl": 0.0, "cobertura": cobertura},
+        }
+    }
+
+
+def _patrimonio(caixa_detalhes: list[dict], investivel: Decimal, serie_corrente: bool) -> dict:
+    # str porque JSON column não serializa Decimal nativamente; _to_decimal lê string corretamente
+    out = {"caixa_detalhes": caixa_detalhes, "investivel_financeiro": str(investivel)}
+    if serie_corrente:
+        out["base_versao"] = 1
+    return out
+
+
 def _e5_payload(
     *,
     posicoes: list[dict],
@@ -31,24 +50,10 @@ def _e5_payload(
     serie_corrente: bool = True,
 ) -> dict:
     """Shape REAL do artefato E5 — as chaves que `e5_serialization` emite."""
-    patrimonio = {
-        "caixa_detalhes": caixa_detalhes,
-        # str porque JSON column não serializa Decimal nativamente; _to_decimal lê string corretamente
-        "investivel_financeiro": str(investivel),
-    }
-    if serie_corrente:
-        patrimonio["base_versao"] = 1
     payload = {
-        "patrimonio": patrimonio,
+        "patrimonio": _patrimonio(caixa_detalhes, investivel, serie_corrente),
         "investimentos": {"total_financeiro": str(investivel), "tabela_classes": []},
-        # A40.l80: o card só julga faixa com TODOS os componentes apurados — o
-        # mesmo predicado do `_tier` do E5. Sem isso, `indeterminado`.
-        "exposicao_cambial": {
-            "componentes": {
-                "caixa_fx": {"valor_brl": 0.0, "cobertura": cobertura},
-                "carteira_lastro_estrangeiro": {"valor_brl": 0.0, "cobertura": cobertura},
-            }
-        },
+        "exposicao_cambial": _componentes(cobertura),
     }
     assert "dados" not in payload["investimentos"], (
         "o E5 não publica posições individuais — se passou a publicar, ligue o braço de "
