@@ -16,6 +16,7 @@ relates_to:
   - "[[ADR-206]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-24"]
 aliases:
   - "ADR 200"
   - "Manifest parecer planejador"
@@ -31,13 +32,19 @@ tags:
 
 # ADR-200 — Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml`
 
+> **Correção (2026-08-24):** o esqueleto YAML da §D1 **não valida** contra o
+> schema vigente, e a regra de bump da §D4 nomeia um campo que não existe
+> (`manifest_version`; o real é `version`, com fail-open silencioso). Ver
+> §"Correção — contrato real do manifest e regra de bump (2026-08-24)" **antes**
+> de editar `config/prompts/parecer_planejador.yaml`.
+
 **Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 
 - O parecer LLM consome **subset filtrado e formatado** do snapshot E5 (`analise_financeira-5_analysis.json`) como exec context. Sem um contrato declarativo, esse subset vive embutido no código Python do orchestrator: cada novo campo do E5 que vira input do parecer requer alteração de código (push de string, format hint, branch `if`).
 - Pattern de manifest YAML já existe em produção: `config/prompts/section_summaries.yaml` ([[ADR-144]]). Espelhar esse pattern é o caminho de menor surpresa.
-- Plano canônico: `docs/plan/PLANNER_REVIEW/_README.md` §"Ato 2" especifica `config/prompts/parecer_planejador.yaml` como **single-source-of-truth do exec context**, separado da persona (rules-as-code, [[ADR-201]]) e do output schema ([[ADR-202]]).
+- Plano canônico: `docs/archive/PLANNER_REVIEW-2026-07-09.md` §"Ato 2" especifica `config/prompts/parecer_planejador.yaml` como **single-source-of-truth do exec context**, separado da persona (rules-as-code, [[ADR-201]]) e do output schema ([[ADR-202]]).
 - Sem coverage gate, manifest e E5 schema podem drift silenciosamente: campo novo no E5 viaja pro LLM sem CI gate; campo removido do E5 ainda referenciado no manifest produz `null` no prompt → hallucination. [[ADR-188]] (learning loop) é precedente de "telemetria de drift como signal de evolução".
 
 ## Alternativas consideradas
@@ -159,3 +166,55 @@ Mistura desses 4 = "manifest vazando pra persona" (CTO-G2 no plano canônico). C
 **Decisão pendente para outros especialistas:**
 - **Conteúdo concreto do manifest V1** (quais campos do E5 entram, em que ordem) — `data-engineer` co-design no Ato 2, baseado em protótipos V1/V2 em `_scratch/planner_parecer_campos*.md`.
 - **PR-2 normalização de unidades pct E5** — bloqueador documentado no plano §Pré-requisitos.
+
+## Correção — contrato real do manifest e regra de bump (2026-08-24)
+
+Auditoria de vault r10 (F05/F06 · [[ADR-302]]). A decisão desta ADR — manifest
+declarativo em vez de montagem imperativa — **continua válida**. O que
+divergiu foi o contrato concreto: o esqueleto e o nome do campo de versão.
+
+### 1. O esqueleto da §D1 reprova no validador
+
+A §D2 nomeia `docs/_schemas/note-planner.schema.json` como o validador. Ele é
+`additionalProperties: false`, e nenhuma chave de topo do esqueleto existe:
+
+```
+$ python3 -c "…jsonschema.validate(<esqueleto §D1>, note-planner.schema.json)"
+REPROVA: Additional properties are not allowed
+('description','manifest_version','schema_version','sections' were unexpected)
+```
+
+Contrato vigente (`required` do schema): `version`, `output_schema`,
+`input_schema_ref`, `persona`, `context_sections`, `tools`,
+`max_tool_iterations`, `max_total_input_tokens`, `max_exec_context_bytes`,
+`hard_caps`, `gating`. Dentro de `context_sections`, cada seção exige
+`id`/`title`/`blocks`/`eviction_priority`, e o `field_ref` exige
+`path`/`label`/`format` — **não** existe `as`.
+
+Os `format` hints também não são mais o conjunto fechado que a §D1 declara:
+o enum vigente tem 7 (`raw`, `brl`, `pct`, `percent2`, `int`, `string`,
+`iso_date`). Quem seguir o esqueleto reprova no hook `planner-manifest-coverage`.
+
+### 2. A regra de bump da §D4 aponta para um campo inexistente
+
+A §D4 manda bumpar `manifest_version` "na mudança breaking". O campo real é
+`version` (`config/prompts/parecer_planejador.yaml:98`), lido com **fail-open**:
+
+```python
+version=str(raw.get("version", "0.0"))   # backend/app/services/parecer_manifest.py:134
+```
+
+Quem escrever `manifest_version:` recebe `"0.0"` sem erro — congelando a cache
+key e gravando `"0.0"` no aggregate.
+
+E "só em breaking" está errado por outro motivo: o YAML **é prompt**
+(`narrative_hints` é renderizado no exec context), e `version` entra na cache
+key com TTL de 7 dias. Editar um hint sem bumpar serve o parecer antigo por
+até uma semana. Medido: **5 de 20** commits do arquivo mudaram o manifest sem
+tocar `version:`. Nenhum gate exige o bump — é a lacuna que
+`dev/measure_parecer_ancoragem.py` herda ao estratificar por
+`(prompt_version, manifest_version)`.
+
+*Ajuste menor:* a §Implementação aponta o parser para
+`pipeline/llm/manifest_loader.py` (marcado "futuro"); o loader entregue vive em
+`backend/app/services/parecer_manifest.py`.

@@ -34,7 +34,7 @@ tags:
 
 - Exec context inicial do parecer (manifest [[ADR-200]]) é **filtrado** para custo/latência. Não cabe E5 inteiro (~50-200KB) no system prompt — input cost explode. Mas LLM pode genuinamente precisar de detalhe pontual: "qual a composição exata da categoria 'Custos fixos' para fundamentar o risco P0 que estou prestes a emitir?". Sem drill-down, LLM ou (a) alucina o detalhe, ou (b) emite sugestão genérica de baixo valor.
 - Pattern de **tool use híbrido** (LLM emite tool_call → orchestrator executa → retorno injetado no contexto → LLM continua) é nativo em Anthropic SDK e abstraído por LiteLLM ([[ADR-024]]). Risco: tool use mal-instrumentado vira loop infinito ou ataque de path traversal (LLM pede `$..*` que retorna E5 inteiro — derrota propósito da filtragem).
-- Plano canônico `docs/plan/PLANNER_REVIEW/_README.md` §"Ato 4" especifica 2 tools (`get_e5_section`, `get_e5_jsonpath`), cap de 6 iterações, whitelist de paths, cache em sessão, audit trail.
+- Plano canônico `docs/archive/PLANNER_REVIEW-2026-07-09.md` §"Ato 4" especifica 2 tools (`get_e5_section`, `get_e5_jsonpath`), cap de 6 iterações, whitelist de paths, cache em sessão, audit trail.
 
 ## Alternativas consideradas
 

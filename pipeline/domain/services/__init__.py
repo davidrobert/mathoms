@@ -72,11 +72,6 @@ from pipeline.domain.services.e5_analyzer_adapter import (
     E5AnalysisResult,
     E5AnalyzerAdapter,
 )
-from pipeline.domain.services.e5_member_resolver import (
-    E5MemberResolver,
-    MemberResolverConfig,
-    ResolvedMembers,
-)
 from pipeline.domain.services.endividamento_analyzer import (
     DividaItem,
     EndividamentoAnalysis,
@@ -304,9 +299,6 @@ __all__ = [
     "PontoForteItem",
     "PontosFortesAnalyzer",
     "PontosFortesConfig",
-    "E5MemberResolver",
-    "MemberResolverConfig",
-    "ResolvedMembers",
     "FluxoCaixaEnriched",
     "FluxoCaixaEnricher",
     "FluxoEnricherConfig",

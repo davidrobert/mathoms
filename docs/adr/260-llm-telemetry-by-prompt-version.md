@@ -62,7 +62,7 @@ Revisão paralela do plano [[PLAN-llm-prompts-hardening]] em 2026-05-22 (`data-e
 
 1. **Persistência SQL precede OTLP** — `LLMCallLog` ganha colunas `confidence` + `needs_review` antes de emit OTLP. Desbloqueia análise SQL imediata sem depender de dashboard `ops.mathoms.ai` (plano [[PLAN-internal-admin]]).
 2. **Labels compostos `{prompt_name, prompt_version}`** — slug embutido em `PROMPT_VERSION` é redundância. [[ADR-233]] já decidiu semver puro (`1.0.0`); coordenada de dimensão vem do label `prompt_name` ("e15_baseline", "parecer_planejador"), não da string.
-3. **Pipeline NÃO emite OTLP** — boundary [CLAUDE.md] §"Pipeline não importa framework". `pipeline/llm/` retorna `LLMRunSummary` agregado; emit OTLP fica em `backend/app/services/document_processor.py` (ou orchestrator stage runner).
+3. **Pipeline NÃO emite OTLP** — boundary [CLAUDE.md] §"Pipeline não importa framework". `pipeline/llm/` retorna `LLMRunSummary` agregado; emit OTLP fica em `backend/app/services/documents/document_processor.py` (ou orchestrator stage runner).
 
 ## Decisão
 
@@ -111,7 +111,7 @@ ORDER BY prompt_name, prompt_version;
 
 ### 3. OTLP `mathoms.llm.*` com labels compostos (W3-T01)
 
-Emit em `backend/app/services/document_processor.py` (ou orchestrator) após cada chamada LLM:
+Emit em `backend/app/services/documents/document_processor.py` (ou orchestrator) após cada chamada LLM:
 
 | Métrica | Tipo | Labels |
 |---|---|---|
@@ -129,7 +129,7 @@ Emit em `backend/app/services/document_processor.py` (ou orchestrator) após cad
 
 - **Migration Alembic**: 2 colunas em `llm_call_log` (aditivo, nullable + default). Rollback simples.
 - **3 helpers em `pipeline/llm/litellm_client.py`**: `_extract_confidence`, `_extract_needs_review`, `_record_call_log` extend.
-- **1 ponto de emit OTLP novo** em `backend/app/services/document_processor.py`.
+- **1 ponto de emit OTLP novo** em `backend/app/services/documents/document_processor.py`.
 - **6 métricas OTLP novas** (5 extends + 1 nova `parecer.riscos_truncados`).
 - **Dashboards downstream**: SQL query desbloqueada imediato; dashboard `ops.mathoms.ai` é follow-up no plano [[PLAN-internal-admin]] (não bloqueia esta ADR).
 

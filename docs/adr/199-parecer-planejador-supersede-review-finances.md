@@ -63,8 +63,8 @@ tags:
 ## Contexto
 
 - Stage `review_finances` (E7-review-llm, [[ADR-128]]) produz hoje o artifact `("E7-review", "review_llm")` que **não é consumido por nenhum endpoint nem componente React** — output órfão descoberto no brainstorm 2026-05-12. O custo LLM é pago, o lineage é mantido, e nenhum cliente vê o resultado.
-- Brainstorm consolidado em `docs/plan/PLANNER_REVIEW/_README.md` propõe substituir `review_finances` por um **parecer holístico orientativo** que (a) é renderizado em seção própria do relatório, (b) emite `Suggestion` aggregate ([[ADR-153]]) com `dedup_key` estável, (c) tem persona versionada (rules-as-code, estende [[ADR-143]]), (d) tem manifest declarativo espelhando [[ADR-144]], (e) reusa `Decision` event-sourced ([[ADR-136]]) para sugestões que viram compromissos.
-- Plano canônico: `docs/plan/PLANNER_REVIEW/_README.md` §"Decisão central" formaliza substituição (não complementação) porque coexistência informal duplicaria custo LLM, ambiguidade narrativa, dois prompts pra manter sincronizados, dois schemas, dois artifacts.
+- Brainstorm consolidado em `docs/archive/PLANNER_REVIEW-2026-07-09.md` propõe substituir `review_finances` por um **parecer holístico orientativo** que (a) é renderizado em seção própria do relatório, (b) emite `Suggestion` aggregate ([[ADR-153]]) com `dedup_key` estável, (c) tem persona versionada (rules-as-code, estende [[ADR-143]]), (d) tem manifest declarativo espelhando [[ADR-144]], (e) reusa `Decision` event-sourced ([[ADR-136]]) para sugestões que viram compromissos.
+- Plano canônico: `docs/archive/PLANNER_REVIEW-2026-07-09.md` §"Decisão central" formaliza substituição (não complementação) porque coexistência informal duplicaria custo LLM, ambiguidade narrativa, dois prompts pra manter sincronizados, dois schemas, dois artifacts.
 
 ## Alternativas consideradas
 
@@ -159,7 +159,7 @@ Output validado por `config/schemas/parecer_planejador.schema.json`: 6+ sections
 - **Critério de aceite:**
   - ADRs filhas ([[ADR-200]] a [[ADR-208]]) também `Proposto` antes do PR de Ato 2.
   - [[ADR-128]] marca `superseded_by: [[ADR-199]]` neste PR de Ato 1.
-  - Plano canônico `docs/plan/PLANNER_REVIEW/_README.md` referenciado em cada ADR filha.
+  - Plano canônico `docs/archive/PLANNER_REVIEW-2026-07-09.md` referenciado em cada ADR filha.
 - **Gates CI:** `dev/validate_frontmatter.py`, `dev/check_doc_filename_id.py`, `dev/check_doc_links.py`, `dev/check_adr_anchors.py`, `dev/build_doc_index.py --check`.
 
 **Decisão pendente para outros especialistas:**

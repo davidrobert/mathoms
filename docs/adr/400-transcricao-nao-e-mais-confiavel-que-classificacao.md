@@ -5,7 +5,7 @@ title: "Transcrição não é mais confiável que classificação — a forma da
 status: Decidido
 phase: DE-1
 date: "2026-08-19"
-amended_at: ["2026-08-21"]
+amended_at: ["2026-08-21", "2026-08-25"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-097]]"
@@ -30,6 +30,12 @@ tags:
 # ADR-400 — Transcrição não é mais confiável que classificação
 
 > **Emendada em 2026-08-21** (§Emenda — o gatilho é re-extração, não o #1521).
+
+> **Emenda 2026-08-25 (§Degrau 1 bloqueado).** O r8 refutou empiricamente a ordem
+> declarada no §Decisão item 3: com `PRESUNTIVO` no degrau 1 e `KEYWORD` no degrau 2,
+> o degrau 1 **reproduziria o RV8-01 com etiqueta melhor**. A causa não é a ordem —
+> é `_classify_investimento` emitir default e fato no mesmo campo. **Não construa o
+> degrau 1 antes de ler a §Emenda ao final.**
 
 ## Contexto
 
@@ -191,3 +197,83 @@ e qualquer bump de `PROMPT_VERSION`. Uma guarda desenhada a partir da redação
 antiga cobriria a minoria dos casos. A decisão desta ADR **não muda**: o remédio
 já é a autoridade declarada no resultado, que independe do gatilho. O que muda é
 onde procurar quando a classe migrar sem diff no classificador.
+
+## Emenda 2026-08-25 — presunção derivada de *default* não é presunção derivada de *fato*
+
+O **RV8-01** do r8 (run `d0f6260a`) mediu: propagar `tipo` ao classificador move
+**11 de 61 posições** de `Fundos` para `Renda Fixa` — R$ 174.636,71 — com
+`autoridade: "keyword"` e zero `review_reason`. Contido pela [[A40.l82]].
+
+### O que esta ADR já sabia, e o que faltava
+
+O §"Por que o degrau 1 é `tipo` e tem duas camadas" **já nomeia** `renda_fixa` como
+metade do codomínio que "herda a degeneração de `codigo`" — cinco dias antes do
+incidente, com o valor exato escrito. O conhecimento existia; o que faltava era um
+**gate ligando a declaração à entrada da função**. Enquanto
+`classify_asset_outcome(tipo: str, …)` aceitar string nua naquele slot, qualquer
+produtor passa uma presunção e recebe `KEYWORD` de volta.
+
+### A ordem declarada está com um degrau no lugar errado
+
+O §Decisão item 3 põe `CONCLUSIVO` e `PRESUNTIVO` no **degrau 1**, e `KEYWORD`/`TICKER`
+no **degrau 2**. Sob essa ordem, quando o degrau 1 nascer, `tipo="renda_fixa"` (uma
+presunção) venceria `descricao="…FIC FIM"` (uma keyword) — **exatamente o RV8-01**,
+com rótulo mais bonito. O r8 é a evidência empírica de que a estratificação declarada
+em 2026-08-19 não sobrevive ao corpus real.
+
+### A decisão, e ela não é "reordenar o enum"
+
+**Presunção derivada de default não é presunção derivada de fato.**
+`_classify_investimento` (`scripts/consolidate_baseline.py:711`) tem **três `return`
+de ignorância** — `renda_fixa` (grupo 04), `participacao_societaria` (grupo 03) e
+`investimento` (fall-through) — e nenhum é distinguível, do outro lado do contrato,
+de um `return` por evidência. Logo:
+
+**O degrau 1 não pode ser construído enquanto o produtor não separar default de
+evidência.** Até lá `PRESUNTIVO` não tem produtor legítimo, e qualquer produtor
+erguido sobre o `tipo` de hoje estaria **fabricando autoridade**. `PRESUNTIVO` abaixo
+de `KEYWORD` é **consequência** dessa separação, não a decisão — reordenar sem separar
+troca um rótulo errado por outro.
+
+Isso responde por escrito a pergunta de contrato que o co-design da [[A40.l82]]
+levantou: **sim, é defeito de contrato, e o conserto é do produtor, não do
+classificador.**
+
+### Supersede o §Deferido de 2026-08-19 sobre marca como keyword
+
+Aquele deferimento dizia que as cinco casas de fundo em `Fundos` "saem quando o degrau
+1 entrar". **Saíram antes**, em 2026-08-25, com evidência nova: são corpus-fitting que
+acerta um domicílio e erra calado no próximo — zero cobertura para B2B2C. Medido no
+corpus do r8, das cinco só **`CONSTELLATION INSTITUCIONAL`** dependia de marca; as
+outras têm token de instrumento (`fia`, `fic `, ` fim`) na descrição. Cair em
+`SEM_MATCH` é o desfecho **correto**: o produto não sabe o que é aquela string e deve
+dizê-lo.
+
+`picpay`/`nubank` em `Caixa` **permanecem** — não foram medidas neste corpus, e cortar
+sem medir é a mesma classe de erro na direção oposta.
+
+### Uma segunda fonte de verdade, agora gateada
+
+As mesmas cinco marcas viviam **também** em `config/scoring.json::asset_class_keywords`,
+e `merge_asset_keywords` deixa o scoring **sobrescrever a classe inteira**. Medido:
+cortar só o default seria **no-op em produção**. `test_scoring_do_repo_nao_diverge_do_default`
+passa a travar a divergência.
+
+## Deferimentos (2026-08-25)
+
+**`classify_asset_outcome` deixar de aceitar `tipo: str` posicional — dono
+`data-engineer`, janela J5.** Value object tipado no boundary ([[ADR-089]]/[[ADR-097]]
+D2): enquanto a assinatura aceitar string nua, o próximo produtor repete o RV8-01 sem
+saber. É **pré-condição do degrau 1**, não trabalho paralelo a ele.
+
+**`tipo` volta a ser autoritativo quando o degrau 1 existir — dono `data-engineer`.**
+Até lá o gate `tests/unit/pipeline/test_classe_de_ativo_nao_le_tipo.py` mantém o campo
+fora do caminho de classificação da E5. **Sem relógio de propósito**: waiver que vence
+travando o repo é dívida pior que a que ele cobre — a condição é a existência do
+degrau 1, verificável, não uma data.
+
+**`tipo_proveniencia` como campo companheiro — dono `data-engineer`, aditivo.** Enum
+fechado derivado mecanicamente de qual `return` disparou (`declarado`,
+`derivado_de_evidencia`, `default_de_grupo`, `desconhecido`). **Não** muda o valor de
+`tipo`, que entra no hash de identidade (`_identity_key` → `investment_id`, publicado
+como `locator` durável). É o produtor que falta para `CONCLUSIVO`/`PRESUNTIVO`.

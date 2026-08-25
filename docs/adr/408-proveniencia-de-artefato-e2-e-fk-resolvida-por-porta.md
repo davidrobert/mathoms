@@ -25,7 +25,14 @@ tags:
 (2026-08-21), em todos os 24 nomes de stage. A coluna, a FK
 (`ON DELETE SET NULL`) e o índice `ix_pipeline_artifacts_document_id` existem
 desde [[ADR-082]]; `DBArtifactStore.write` aceita `document_id` e nenhum caller
-E2 passa — `extract_with_llm.py:359,404` passa `document_id=None` literal.
+E2 passa — o call-site é `extract_with_llm.py:314`
+(`store.write("extract_with_llm", safe_stem, e2_json)`), que **omite** o kwarg.
+
+> ⚠️ **Não confundir com `:359,404` (auditoria r10 · F08).** Essas duas linhas
+> são `document_id=None` dentro de `ReviewReason`, e o comentário logo acima
+> de `:404` registra que preencher ali **viola a FK** — foi exatamente o que o
+> #1535 fechou ([[ADR-371]]). A §Decisão 1 vale para `:314`; mexer em
+> `:359,404` reintroduz o defeito.
 
 **Três consumidores degradam calados sobre essa aresta vazia:**
 

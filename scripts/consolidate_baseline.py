@@ -1011,4 +1011,19 @@ def main_with_store(ctx) -> dict:
         "veiculos": len(consolidated.get("veiculos_consolidados", [])),
         "investimentos": len(consolidated.get("investimentos_consolidados", [])),
         "dividas": len(consolidated.get("dividas", [])),
+        "validation": _validation_block(consolidated),
     }
+
+
+# SEM `valid`: o stage é WARN-first e ENTREGA (ADR-357 §2). Declarar `valid`
+# aqui o faria pausar, que é decisão do orquestrador e não do produtor.
+#
+# O bloco é COLHIDO do payload, não montado à mão: as razões de imóvel nascem
+# dentro de `imoveis_consolidados[]` (`property_identity_enricher`), e uma lista
+# montada à mão a partir de `review_reasons` de topo deixaria 2 de 4 para trás —
+# medido no run `d0f6260a` (ADR-411 D2).
+def _validation_block(consolidated: dict) -> Dict[str, Any]:
+    """Declara no `detail` o que o artefato carrega — o sink lê o detail."""
+    from pipeline.domain.review_reason_harvest import harvest_review_reasons
+
+    return {"review_reasons": harvest_review_reasons(consolidated)}

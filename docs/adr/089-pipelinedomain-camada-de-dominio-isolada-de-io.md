@@ -41,6 +41,13 @@ pipeline/domain/
                                EmergencyReserveCalculator, FinancialScoreCalculator
 ```
 
+> **Onde estão hoje (auditoria r10 · F29):** `calculators.py` está marcado
+> `DEPRECATED` no topo do próprio arquivo — só `CashFlowAggregator` sobrevive
+> como re-export. Os canônicos são `patrimonio_calculator`,
+> `reserva_emergencia_calculator` e `financial_score_calculator`, conforme
+> `pipeline/domain/lineage_registry.py` ([[ADR-145]]). O layout acima é o
+> desenho de origem da camada, preservado como registro.
+
 - **Value objects** (`Money`, `Transaction`, `Investment`, `Baseline`) são
   frozen dataclasses — "modificar" produz novo objeto via
   `dataclasses.replace`. `BankStatement.transactions` é `list` mutável

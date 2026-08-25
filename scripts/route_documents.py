@@ -813,6 +813,10 @@ def _routing_dict_from_classify_document(clf: dict, filename: str) -> dict | Non
     }
 
 
+# Fonte única do que tem leitor — a mesma que o fan-out consulta (ADR-393 D5).
+from pipeline.llm.text_extractor import READABLE_SUFFIXES  # noqa: E402
+
+
 def route_file(
     filepath: Path,
     base: Path,
@@ -837,6 +841,20 @@ def route_file(
     if size < min_size:
         log("WARN", f"Arquivo '{filename}' muito pequeno ({size} bytes) — NÃO roteado")
         return {"file": filename, "status": "skipped", "reason": f"too_small ({size}B)"}
+
+    # ADR-393 D5: formato sem leitor é recusado na ENTRADA. Roteá-lo para
+    # `data/` o faz sumir depois — nenhum stage de fan-out o enfileira, e o
+    # balanço fecha sobre um denominador que nunca o contou.
+    if ext not in READABLE_SUFFIXES:
+        log(
+            "WARN", f"Formato sem leitor: '{filename}' ({ext or 'sem extensão'}) — mantido no inbox"
+        )
+        return {
+            "file": filename,
+            "status": "unreadable_format",
+            "dest": "(inbox)",
+            "reason": f"nenhum extrator para '{ext or 'sem extensão'}'",
+        }
 
     classification = None
     classify_document = None
@@ -999,6 +1017,10 @@ def route_all(
         "inbox_review": 0,
         "llm_classified": 0,
         "skipped": 0,
+        # ADR-393 D5: formato sem leitor. Contador próprio porque somar em
+        # `skipped` (integridade) apagaria a única classe que o operador
+        # resolve instalando um extrator.
+        "unreadable_format": 0,
         "details": [],
         "by_dest": {
             "financial_statements": 0,
@@ -1044,6 +1066,8 @@ def route_all(
                 stats["inbox_review"] += 1
         elif status == "skipped":
             stats["skipped"] += 1
+        elif status == "unreadable_format":
+            stats["unreadable_format"] += 1
 
     if total_files > 0:
         emit_item_progress(
@@ -1090,6 +1114,7 @@ def _write_inbox_log(base: Path, today: str, stats: dict) -> None:
 | Duplicatas ignoradas | {stats['duplicates']} |
 | Não identificados | {stats['unidentified']} |
 | Pulados (integridade) | {stats['skipped']} |
+| Formato sem leitor | {stats['unreadable_format']} |
 | financial_statements/ | {by_dest['financial_statements']} |
 | income_tax_br/ | {by_dest['income_tax_br']} |
 | real_estate/ | {by_dest['real_estate']} |

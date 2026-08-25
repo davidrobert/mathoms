@@ -41,7 +41,7 @@ tags:
 
 Sprint A11 W2-T01 (`docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` linhas 300-309) atribui prioridade P0 ao fechamento desse gap. Finding origem DE-003 (data-engineer 2026-05-06).
 
-Hoje a base Fernet já existe em produção via [`backend/app/services/vault.py`](../../backend/app/services/security/vault.py) — singleton com `MATHOMS_FERNET_KEY`, fail-fast se ausente, usado para PDF passwords + LLM keys + `workspaces.cpf_encrypted`. W3-T04 ([[ADR-171]]) propõe MultiFernet rotation cobrindo essa chave.
+Hoje a base Fernet já existe em produção via [`backend/app/services/security/vault.py`](../../backend/app/services/security/vault.py) — singleton com `MATHOMS_FERNET_KEY`, fail-fast se ausente, usado para PDF passwords + LLM keys + `workspaces.cpf_encrypted`. W3-T04 ([[ADR-171]]) propõe MultiFernet rotation cobrindo essa chave.
 
 ### Trade-offs
 
@@ -79,7 +79,7 @@ Schemas em `config/schemas/*.schema.json` **não** mudam — rejeitam sentinel n
 
 ### D2 — Chave Fernet
 
-**Reusar `MATHOMS_FERNET_KEY`** via wrapper `backend/app/services/crypto.py`:
+**Reusar `MATHOMS_FERNET_KEY`** via wrapper `backend/app/services/security/crypto.py`:
 
 ```python
 from backend.app.services.vault import get_vault
@@ -201,7 +201,7 @@ Mais delicado: exige schema awareness do encrypt path. Quebra schemas se campo n
 ## Gates desta ADR
 
 - **PR de implementação:**
-  - Cria `backend/app/services/crypto.py` (encrypt_artifact_payload + decrypt_artifact_payload + kid helper).
+  - Cria `backend/app/services/security/crypto.py` (encrypt_artifact_payload + decrypt_artifact_payload + kid helper).
   - Adiciona setting `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS` em `backend/app/core/config.py`.
   - Patch `backend/app/services/storage/db_artifact_store.py` (encrypt em write pós-validate; decrypt em read).
   - Cria `dev/migrate_encrypt_existing_artifacts.py` (idempotent, batch, --dry-run default).
@@ -220,7 +220,7 @@ Mais delicado: exige schema awareness do encrypt path. Quebra schemas se campo n
 
 Flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 após merge de:
 
-- [PR #359](https://github.com/davidrobert/mathoms/pull/359) (commit `d096107`) — implementação completa: `backend/app/services/crypto.py` (encrypt/decrypt + sentinel com `kid`), hook em `DBArtifactStore.write/read`, setting `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS`, `dev/migrate_encrypt_existing_artifacts.py`, 21 tests novos, todos os AC §"Gates desta ADR" verdes.
+- [PR #359](https://github.com/davidrobert/mathoms/pull/359) (commit `d096107`) — implementação completa: `backend/app/services/security/crypto.py` (encrypt/decrypt + sentinel com `kid`), hook em `DBArtifactStore.write/read`, setting `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS`, `dev/migrate_encrypt_existing_artifacts.py`, 21 tests novos, todos os AC §"Gates desta ADR" verdes.
 
 ### Estado entregue
 

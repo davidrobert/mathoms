@@ -31,7 +31,7 @@ tags:
 
 > **Co-design (Fase 0 fechada 2026-05-30).** Forma de schema/persistência revisada por `data-engineer`; boundary `pipeline/domain` ↔ adapter e modelo de unificação revisados por `senior-cto`. Decisão de unificação **resolvida**: destino único (uma tabela, uma projeção) com produtores **desacoplados** via protocolo `ToReviewReason` (ver §"Unificação"). Plano operacional de implementação: [[TRACK-adr272-review-reasons]].
 
-> **Escopo: pipeline/extração apenas.** Esta ADR cobre os `needs_review` setados em `pipeline/**` (extração LLM, stages, services de domínio). O mundo de **document-upload/classificação** (`backend/app/services/document_classification.py`, `document_upload_service.py`, `document_duplicates.py`, modelos `Document`/`Debt`) tem UX de revisão própria e **fica fora** — assim a garantia de completude (todo `needs_review` tem `ReviewReason`) é honesta e auditável por um gate de superfície fechada.
+> **Escopo: pipeline/extração apenas.** Esta ADR cobre os `needs_review` setados em `pipeline/**` (extração LLM, stages, services de domínio). O mundo de **document-upload/classificação** (`backend/app/services/documents/document_classification.py`, `document_upload_service.py`, `document_duplicates.py`, modelos `Document`/`Debt`) tem UX de revisão própria e **fica fora** — assim a garantia de completude (todo `needs_review` tem `ReviewReason`) é honesta e auditável por um gate de superfície fechada.
 
 > **Emenda 2026-07-10 (A36.l3).** O mecanismo de pausa desta ADR passa a ser
 > consumido pelo E7 (`validate_cross`): um check de **conservação** violado emite

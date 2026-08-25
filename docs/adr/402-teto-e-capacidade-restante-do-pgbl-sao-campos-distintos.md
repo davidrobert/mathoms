@@ -5,6 +5,7 @@ title: "Teto e capacidade restante do PGBL são campos distintos; ausência carr
 status: Decidido
 phase: r7.FP-5A
 date: "2026-08-19"
+amended_at: ["2026-08-24"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-189]]"
@@ -26,6 +27,41 @@ tags:
 ---
 
 # ADR-402 — Teto e capacidade restante do PGBL são campos distintos; ausência carrega motivo tipado
+
+> ### ⚠️ Emenda 2026-08-24 — economia zero não autoriza prescrever, e a marginal segue o aporte
+>
+> Quando a [[A40.l64]] PR2 (#1672) trocou `restante × alíquota_marginal` pelo
+> diferencial `IR(base) − IR(base − aporte)`, um caso novo passou a existir:
+> **economia legitimamente zero** (base isenta — o cliente já não paga IR). Medido
+> em `main`: o card publicava `economia_ir_anual: 0,00` **ao lado de**
+> `aporte_mensal: 200,00`. Prescrição sem benefício, que é o que a [[ADR-375]] D4
+> cond. 2 proíbe (*"exige `IR(base) − IR(base − aporte) > 0`"*).
+>
+> A causa era estrutural: `aporte_mensal` era gateado pelo **motivo**, e o motivo
+> é derivado **antes** do cálculo — não podia conhecer o resultado.
+>
+> **D6 · `sem_imposto_a_reduzir` entra no enum, no campo `aporte`.** É o único
+> valor que nomeia **conclusão de cálculo** em vez de insumo faltante, e o único
+> que **coexiste com campos publicados** — a economia zero continua publicada como
+> fato, sem motivo (o invariante `campo == 0 ⇒ motivo null` segue intacto). Por
+> isso é o **último** da precedência: qualquer insumo faltante o cala.
+>
+> **Guarda medida:** só se aplica com `restante > 0`. Em `no_teto` (restante zero)
+> a economia também é zero, mas a causa é o **teto consumido** — ali o aporte zero
+> é a resposta (*"não aporte mais"*), publicada como fato. Atribuir
+> `sem_imposto_a_reduzir` nomearia a causa errada, e foi o que a primeira versão
+> desta correção fez até `test_inv_prev_3_no_teto_recomenda_zero` reprovar.
+>
+> **D7 · a bicondicional da marginal muda de par.** Era `aliquota_marginal
+> não-null ⟺ economia_ir_anual não-null`; passa a ser **⟺ `aporte_mensal`
+> não-null**. A razão do §D5 original não muda — marginal publicada convida o
+> leitor a reconstruir a prescrição por `alíquota × aporte` —, mas o par certo
+> sempre foi o **aporte**, que é o que ela reconstrói. Com economia zero e aporte
+> retido, o par antigo deixava a marginal publicada exatamente onde ela mais
+> engana.
+>
+> Decisão de domínio por `financial-planner` (D1/D2 do co-design de 2026-08-24);
+> forma ratificada contra o invariante existente.
 
 ## Contexto
 

@@ -30,7 +30,7 @@ cron (`scan_and_create_notifications`) desconectado do lifecycle da
 Task. F7B.5 vai consumir audit log completo em produção — formalizar o
 padrão antes de espalhar reduz retrabalho.
 
-`backend/app/services/events.py` já existe mas é Redis pub/sub para
+`backend/app/services/pipeline/events.py` já existe mas é Redis pub/sub para
 **progresso de pipeline stages** (publish_stage_started/completed) —
 escopo diferente; tentar unificar cria acoplamento inútil.
 
