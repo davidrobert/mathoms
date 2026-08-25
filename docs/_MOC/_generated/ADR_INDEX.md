@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-403 ADRs (ADR-001 a ADR-413) em [`docs/adr/`](../../adr/).
+404 ADRs (ADR-001 a ADR-414) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 346
+- **Decidido**: 347
 - **Proposto**: 53
 - **Roadmap**: 4
 
@@ -554,7 +554,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (77)
+### Decidido (78)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -633,6 +633,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-409]] — Fila de elegibilidade do flip warn→strict é derivada de medição no corpus, e o rollback exige restart · phase A40.l58
 - [[ADR-410]] — A resolução de membro tem um produtor, e ele é injetado — não resolvido por dentro do consumidor · phase A40.l77/DE-10
 - [[ADR-411]] — O diagnóstico sai do artefato em todo desfecho, e a posição da razão é parte da identidade da row · phase A40.l81/RV8-09
+- [[ADR-414]] — Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada · phase A40.l64
 
 ### Proposto (16)
 

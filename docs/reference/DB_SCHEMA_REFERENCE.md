@@ -660,6 +660,9 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `year` | `INTEGER` | no | — | INDEX |
 | `ir_brackets_anual` | `JSON` | yes | — | — |
 | `ir_brackets_mensal` | `JSON` | yes | — | — |
+| `redutor_anual` | `JSON` | yes | — | — |
+| `redutor_mensal` | `JSON` | yes | — | — |
+| `irpfm_limiar_brl_cents` | `INTEGER` | yes | — | — |
 | `regime_completo` | `BOOLEAN` | no | `True` | — |
 | `componentes_ausentes` | `JSON` | yes | — | — |
 | `ir_brackets` | `JSON` | yes | — | — |
@@ -2008,6 +2011,8 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `fiscal_parameters.ir_brackets`
 - `fiscal_parameters.ir_brackets_anual`
 - `fiscal_parameters.ir_brackets_mensal`
+- `fiscal_parameters.redutor_anual`
+- `fiscal_parameters.redutor_mensal`
 - `fiscal_rule_sets.parameters_json`
 - `goals.derived_json`
 - `goals.params_json`
@@ -2442,6 +2447,9 @@ type FiscalParameter struct {
 	Year int `db:"year" json:"year"`
 	IrBracketsAnual json.RawMessage `db:"ir_brackets_anual" json:"ir_brackets_anual"`
 	IrBracketsMensal json.RawMessage `db:"ir_brackets_mensal" json:"ir_brackets_mensal"`
+	RedutorAnual json.RawMessage `db:"redutor_anual" json:"redutor_anual"`
+	RedutorMensal json.RawMessage `db:"redutor_mensal" json:"redutor_mensal"`
+	IrpfmLimiarBrlCents *int `db:"irpfm_limiar_brl_cents" json:"irpfm_limiar_brl_cents"`
 	RegimeCompleto bool `db:"regime_completo" json:"regime_completo"`
 	ComponentesAusentes json.RawMessage `db:"componentes_ausentes" json:"componentes_ausentes"`
 	IrBrackets json.RawMessage `db:"ir_brackets" json:"ir_brackets"`

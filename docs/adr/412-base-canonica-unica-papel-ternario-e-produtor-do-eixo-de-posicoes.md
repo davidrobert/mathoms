@@ -33,7 +33,11 @@ tags:
 > **Emendada 2026-08-25** (co-design `senior-cto` + `financial-planner`): a **D5
 > perde a retenção** — a razão nasce advisory; a **D6(b) troca de régua**; a **D7
 > ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
-> ganha obrigação recíproca** para superfície read-time. Ver §Emenda no fim.
+> ganha obrigação recíproca** para superfície read-time.
+>
+> **Emenda 2, mesmo dia** (medido no PR1 #1710): a **§D9 mandava afrouxar o que a
+> §D1 manda fechar**; `despesa_essencial_domicilio` **sai** do enum; e o enum
+> **não** trava sozinho a omissão do terceiro caso. Ver as duas §Emenda no fim.
 
 > **Proposto.** Abre a implementação da [[A40.l80]] (RV8-02/03/04/06/10). Ao flipar
 > para `Decidido`: emenda datada em [[ADR-335]] §Emenda (autonomia vira intervalo
@@ -228,10 +232,10 @@ na suíte (`tests/conftest.py:29`) exige **`required` depois**.
 | PR | Conteúdo | Move número? |
 |---|---|---|
 | **PR0** | esta ADR | não |
-| **PR1** | `BaseFinanceira`, `Papel`, `$defs`, chaves **opcionais**, `additionalProperties` afrouxado | **não** |
+| **PR1** | `BaseFinanceira`, `PapelMembro`, `$defs`, chaves **opcionais**, `additionalProperties` **mantido** (ver §Emenda E5) | **não** |
 | **PR2** | **núcleo**: `CarteiraPorPapel` injetado; morte de `_positions_for_member` e `role_of`; restauração do termo; `patrimonio.bases`; `exposicao_cambial_v2.py:286` no mesmo PR | **sim** |
 | **PR3** | `atribuicao_investimentos`, code de retenção, piso, supressões, intervalos | sim (retenção) |
-| **PR4** | `required` + `kpi_targets[].base` estreitado ao enum + gates | não |
+| **PR4** | `required` + gates; `kpi_targets[].base` **não** estreita ao enum (§Emenda E5) | não |
 | **PR5** | manifest do parecer + `PROMPT_VERSION` + regra pós-LLM + donut + `HeroKpiGrid`/`WaterfallIfChart` + DTO/OpenAPI | prosa/UI |
 
 `exposicao_cambial_v2.py:286` **não é efeito colateral**: é segundo produtor do mesmo
@@ -440,3 +444,64 @@ de alocação acima de `desvio_max_pct`. A segunda **não está implementada**
 (`pontos_fortes_analyzer.py:173` dispara só com `excessiva`). O produto prescreve
 rebalanceamento por aporte sem checar a condição de desvio que ele mesmo escreveu.
 §Deferido datado com dono.
+
+
+## Emenda 2 — o que o PR1 mediu e a §D9 errava (2026-08-25)
+
+### E5 — a §D9 mandava afrouxar o que a §D1 manda fechar
+
+O PR1 (#1710) **declarou** as chaves novas e **manteve** `additionalProperties: false`.
+A §D9 pedia o contrário, e afrouxar seria regressão — é a guarda que sustenta os
+dois melhores gates do PR (mutação: afrouxar `bases` ou remover o `enum` de
+`status` deixa exatamente 2 testes vermelhos).
+
+Medido: `properties.patrimonio` **não declara** `additionalProperties` (= `true`),
+logo `bases` e `atribuicao_investimentos` **já eram aceitos** antes do PR —
+declará-los não afrouxou nada, e `bases` chega **fechado** nas chaves do enum,
+região **mais restritiva** que o status quo. O único afrouxamento real foi
+`investimentos_nao_atribuidos` em `$defs.ReservaComposicaoLiquida`. A §D1 sempre
+disse `additionalProperties: false` sobre o enum; **a §D9 é que estava errada**.
+
+Consequências que corrigem a tabela: `atribuicao_investimentos` **antecipou-se do
+PR3 para o PR1** (schema-only, número-neutro); e `kpi_targets[].base` **não pode
+ser "estreitado ao enum" no PR4** — os dois vocabulários são **disjuntos**
+(interseção medida: vazia). `BaseFinanceira` cobre o **eixo de posições**;
+`kpi_targets[].base` nomeia denominadores de outra natureza
+(`patrimonio_bruto`, `renda_anual_ativa`, `receita_recorrente`…), a maioria sem
+membro representável. Unificar exigiria mover campo `required` e publicado — fora
+do contrato número-neutro. Registrar a disjunção é a decisão; convergir, não.
+
+### E6 — `despesa_essencial_domicilio` sai do enum
+
+A tabela da §D1 a listava entre as bases "já existentes". Medido, ela descreve
+**dois denominadores diferentes**: a reserva cai para `despesa_mensal_media` no
+fallback (`base_denominador="despesa_total"`, `custo_essencial=0`,
+`reserva_emergencia_calculator.py:310-316`) e a autonomia divide por
+`despesa_consumo_brl / n_meses` (ex-aporte, [[ADR-333]],
+`ratios_calculator.py:285-288`). Declarar um termo só seria afirmação falsa.
+
+Isso expõe um vão na §D0: ela agrupou reserva e autonomia como "domiciliares"
+**sem medir** que não compartilham denominador. **§Deferido datado (2026-08-25):**
+decidir se são uma base com fallback declarado ou duas bases distintas — dono da
+[[A40.l80]], condição de retomada: antes de qualquer superfície declarar
+`base` para reserva ou autonomia.
+
+### E7 — o enum não trava a omissão do terceiro caso sozinho
+
+A §D2 dizia que `Papel` faz "omitir o terceiro caso virar erro de tipo em todo
+call-site". **Falso neste repo:** não há `mypy` nem `pyright` em pre-commit ou CI,
+e o mixin `str` mantém `PapelMembro.titular == "titular"` verdadeiro — um
+`if/else` binário segue funcionando calado depois da migração. Quem trava é o
+**teste de exaustividade sobre `set(PapelMembro)`**, que o PR2 traz junto com a
+morte de `role_of`. O enum é condição necessária, não suficiente.
+
+Corolário para o PR2: `reserva_liquidez.py:62` e `patrimonio_types.inv_key`
+montam a chave por f-string sobre o papel; com enum isso vira
+`investimentos_PapelMembro.sem_dono`. O PR1 já entregou `chave_de_componente`
+para isso — **use o mapa, nunca a f-string**.
+
+### E8 — tripwire nomeado
+
+`tests/test_bases_financeiras_contrato.py::test_tripwire_role_of_ainda_e_binaria_ate_o_pr2`
+fica **vermelho** quando o PR2 aplica o fix da §D2. A ação correta é **deletar o
+teste junto com `role_of`** — nunca relaxar o assert.

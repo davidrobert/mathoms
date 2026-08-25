@@ -30,7 +30,7 @@ from pipeline.domain.services.pgbl_motivos import (
     _prescreve,
     motivo_dominante,
 )
-from pipeline.domain.types.config import FiscalParameters, IRPFBracket
+from pipeline.domain.types.config import FiscalParameters, IRPFBracket, RedutorIRPF
 
 
 def _to_cents(reais: float) -> int:
@@ -77,6 +77,10 @@ class PrevidenciaConfig:
     regime_completo: bool = True
     componentes_ausentes: tuple[str, ...] = ()
     ano_fiscal: int | None = None
+    # ADR-414 D4. VO zerado (default) = ano sem redutor — o caminho legado nunca
+    # o conhece, e AC <= 2025 também não tem.
+    redutor: RedutorIRPF = field(default_factory=RedutorIRPF)
+    irpfm_limiar_brl_cents: int = 0
 
     @classmethod
     def from_fiscal(cls, fiscal: dict | None = None) -> "PrevidenciaConfig":
@@ -115,6 +119,8 @@ class PrevidenciaConfig:
             # ADR-389 D2: a base da DAA é a tabela ANUAL — a mensal serve o IRRF
             # na fonte e é consumida pela cascata da S8 ([[A40.l37]]).
             irpf_faixas=fiscal.ir_brackets_anual.faixas,
+            redutor=fiscal.redutor_anual,
+            irpfm_limiar_brl_cents=fiscal.irpfm_limiar_brl_cents,
             regime_completo=fiscal.regime_completo,
             componentes_ausentes=fiscal.componentes_ausentes,
             ano_fiscal=fiscal.year,
@@ -131,9 +137,21 @@ class CapacidadePgblIRPF:
     """Capacidade PGBL do titular lida do IRPF (ADR-277/395)."""
 
     capacidade: CapacidadePgbl
+    # BRUTO: indexa o redutor da Lei 15.270/2025 (ADR-414 D1) e é o que os 12% do
+    # teto PGBL usam. NÃO indexa a tabela progressiva.
     renda_tributavel_anual: Decimal
     ano_base: int
     fonte: str
+    # BASE de cálculo DECLARADA (`imposto_apurado.base_calculo_brl` somado no ano):
+    # é ela que indexa a tabela e a alíquota marginal. OBRIGATÓRIA: o campo é
+    # `required` no schema e16, então declaração que parseia sempre a tem — e o `cap`
+    # só existe se alguma parseou. Optional aqui seria ramo que não dispara, e cair
+    # no bruto é o defeito que a ADR-414 fecha.
+    base_calculo_anual: Decimal
+    # Limite SUPERIOR do `REND` do IRPFM: o maior bruto entre as declarações do
+    # ano (tributável + isentos + exclusiva). Superior porque as exclusões do
+    # art. 16-A só REDUZEM — logo, abaixo do piso o mínimo certamente não vincula.
+    rend_upper_anual: Decimal = Decimal("0")
     nota_degradacao: str | None = None  # ADR-305 D3: existe ano mais recente não usado
 
     @property
@@ -329,6 +347,17 @@ def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: Decimal | None) -> 
     return f"{capacidade} {_NOTA_DIFERIMENTO} {_NOTA_PROXY_ANO_CORRENTE}"
 
 
+# Nomeia o mecanismo, não a nossa incapacidade: o cliente precisa entender que o
+# PGBL não deixou de valer — o benefício é reabsorvido pelo mínimo enquanto ele
+# vincular, e isso muda com o perfil de renda dele.
+_NOTA_IRPFM = (
+    "Sua renda total do ano fica na faixa do imposto mínimo (IRPFM, Lei 15.270/2025): "
+    "acima de R$ 600 mil, o IR devido pela tabela é abatido do mínimo, então reduzir "
+    "o imposto com PGBL não gera economia líquida enquanto o mínimo vincular. "
+    "Prescrever aporte aqui seria conselho com o sinal invertido."
+)
+
+
 def _nota_do_motivo(
     dominante: MotivoAusenciaPgbl | None,
     cap: CapacidadePgblIRPF,
@@ -340,6 +369,8 @@ def _nota_do_motivo(
         return _NOTA_SIMPLIFICADO.format(ano=ano)
     if dominante == MotivoAusenciaPgbl.sem_renda_tributavel:
         return _NOTA_SEM_RENDA.format(ano=ano)
+    if dominante == MotivoAusenciaPgbl.irpfm_pode_vincular:
+        return f"{_NOTA_IRPFM} {_nota_capacidade_irpf(cap, cap.capacidade.restante)}"
     fato = _nota_capacidade_irpf(cap, cap.capacidade.restante)
     if dominante == MotivoAusenciaPgbl.regime_fiscal_incompleto:
         return f"{_nota_regime_incompleto(config)} {fato}"
@@ -363,7 +394,7 @@ class PrevidenciaAnalyzer:
         return self._analyze_via_irpf(capacidade_irpf)
 
     def _analyze_via_irpf(self, cap: CapacidadePgblIRPF) -> PrevidenciaAnalysis:
-        motivos = _motivos_por_campo(cap, self._config.regime_completo)
+        motivos = _motivos_por_campo(cap, self._config.regime_completo, self._irpfm_vincula(cap))
         economia = self._economia(cap, motivos)
         motivos = _com_motivo_de_economia_nula(motivos, economia, cap.capacidade.restante)
         return PrevidenciaAnalysis(
@@ -405,6 +436,12 @@ class PrevidenciaAnalyzer:
     # Reter prescrição não é apagar fato: a capacidade de 12% vem do IRPF e não
     # depende do regime do ano corrente. O que sai são os dois campos que a
     # ADR-375 D4 nomeia — "prescrever PGBL" (aporte) e "publicar economia de IR".
+    # Limiar `0` = ano sem IRPFM (AC <= 2025) ⇒ nunca vincula. A vigência vem do
+    # DADO da row, nunca de `if year >= 2026` ([[ADR-414]] D5).
+    def _irpfm_vincula(self, cap: CapacidadePgblIRPF) -> bool:
+        limiar = self._config.irpfm_limiar_brl_cents
+        return limiar > 0 and _cents(cap.rend_upper_anual) >= limiar
+
     def _economia(
         self, cap: CapacidadePgblIRPF, motivos: dict[str, MotivoAusenciaPgbl | None]
     ) -> Decimal | None:
@@ -415,12 +452,19 @@ class PrevidenciaAnalyzer:
             # calcular, e a degradação é do chamador. O produto é o que o caminho
             # legado (dict pré-A7.2b) sempre publicou.
             return cap.capacidade.restante * Decimal(str(self._aliquota(cap))) / Decimal("100")
+        # ADR-414 D2: a tabela indexa a BASE declarada, nunca o bruto.
         return economia_diferencial(
-            cap.renda_tributavel_anual, cap.capacidade.restante, self._config.irpf_faixas
+            cap.base_calculo_anual,
+            cap.capacidade.restante,
+            self._config.irpf_faixas,
+            bruto_anual=cap.renda_tributavel_anual,
+            redutor=self._config.redutor,
         )
 
+    # ADR-414 D1: a faixa marginal é da BASE, não do bruto — o D6 da ADR-375 sempre
+    # falou de base (`base_calculo_anual_brl_cents`); era o call-site que divergia.
     def _aliquota(self, cap: CapacidadePgblIRPF) -> float:
-        return self._aliquota_para(_cents(cap.renda_tributavel_anual))
+        return self._aliquota_para(_cents(cap.base_calculo_anual))
 
     def _aliquota_para(self, base_calculo_anual_brl_cents: int) -> float:
         """Alíquota marginal; sem tabela configurada, degrada para o fallback declarado."""

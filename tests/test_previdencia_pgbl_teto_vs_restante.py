@@ -54,6 +54,7 @@ def _cap(status: PgblStatus, *, aportado: str = "0") -> CapacidadePgblIRPF:
     return CapacidadePgblIRPF(
         capacidade=_vo(status, aportado=aportado),
         renda_tributavel_anual=_RENDA,
+        base_calculo_anual=_RENDA,
         ano_base=2024,
         fonte="irpf_pgbl_capacidade",
     )
@@ -197,6 +198,7 @@ def test_excedente_nao_dedutivel_sobrevive_ao_clamp():
             excedente_nao_dedutivel=Decimal("9000"),
         ),
         renda_tributavel_anual=_RENDA,
+        base_calculo_anual=_RENDA,
         ano_base=2024,
         fonte="irpf_pgbl_capacidade",
     )

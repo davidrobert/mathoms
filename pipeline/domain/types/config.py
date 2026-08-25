@@ -133,6 +133,35 @@ class TabelaProgressiva:
     motivo_divergencia_x12: str = ""
 
 
+# O redutor da Lei 15.270/2025 NÃO cabe em `ir_brackets`: a tabela progressiva
+# indexa a BASE de cálculo e o redutor indexa o rendimento BRUTO ([[ADR-414]] D1).
+# São duas publicações com vigências distintas — a mensal vale de 01/01/2026, a
+# anual só a partir do exercício 2027 (AC2026) — e AC <= 2025 tem redutor ZERO nas
+# duas. Sem esse eixo o PR3 desarmaria o D5 para 2024/2025, hoje correto.
+@dataclass(frozen=True)
+class RedutorIRPF:
+    """Redutor do imposto apurado, função do rendimento bruto ([[ADR-414]] D3)."""
+
+    # Banda 1 (bruto <= piso): redutor = todo o imposto apurado.
+    # Banda 2 (até o teto): `intercepto − coeficiente × bruto`. Acima: zero.
+    # O art. 11-A limita a redução ao imposto apurado, então o efetivo é sempre
+    # `min(redutor, IR)` — clamp POR LADO, e é ele que produz a não-linearidade.
+
+    piso_bruto_brl_cents: int = 0
+    teto_bruto_brl_cents: int = 0
+    intercepto_brl_cents: int = 0
+    # Reais por real de rendimento. `Decimal` porque compõe valor monetário.
+    coeficiente: Decimal = Decimal("0")
+    vigencia_ref: str = ""
+    source: str = ""
+
+    @property
+    def vigente(self) -> bool:
+        """Row de ano sem redutor publica o VO zerado — não `None`, para o
+        consumidor não confundir 'não existe' com 'não carregou'."""
+        return self.teto_bruto_brl_cents > 0
+
+
 @dataclass(frozen=True)
 class FiscalParameters:
     """Parâmetros fiscais vigentes em um período (stub A7.2b — ADR-135)."""
@@ -143,6 +172,14 @@ class FiscalParameters:
     lucro_presumido_aliquota: Decimal = Decimal("0")
     ir_brackets_anual: TabelaProgressiva = field(default_factory=TabelaProgressiva)
     ir_brackets_mensal: TabelaProgressiva = field(default_factory=TabelaProgressiva)
+    # ADR-414 D3: co-localizados na row porque `regime_completo` afirma sobre ELA.
+    # Em tabela própria, virar `true` seria afirmação sobre outra tabela com outra
+    # vigência — a row mentiria sobre si mesma sempre que o ano faltasse lá.
+    redutor_anual: RedutorIRPF = field(default_factory=RedutorIRPF)
+    redutor_mensal: RedutorIRPF = field(default_factory=RedutorIRPF)
+    # Piso do IRPFM (art. 16-A). `0` = ano sem imposto mínimo — a vigência vem do
+    # DADO, não de `if year >= 2026`, mesma política do redutor ([[ADR-414]] D5).
+    irpfm_limiar_brl_cents: int = 0
     # ADR-389 D4: completude do regime é DADO, para o consumidor recusar lendo a
     # row em vez de `if year >= 2026`. AC2026 nasce incompleto (redutor da Lei
     # 15.270/2025 + IRPFM não modelados — [[A40.l64]]).
