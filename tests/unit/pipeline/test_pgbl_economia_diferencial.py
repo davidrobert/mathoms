@@ -23,6 +23,7 @@ from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
     PrevidenciaConfig,
 )
 from pipeline.domain.types.config import IRPFBracket  # noqa: E402
+from tests.unit.pipeline.test_irpf_redutor import ANUAL_2026 as REDUTOR_2026  # noqa: E402
 
 
 # Derivada da MIGRATION, nunca de literais: a cópia à mão divergia em centavos
@@ -198,3 +199,59 @@ class TestBaseDeCalculoDeclarada:
     # com a decisão de tornar `base_calculo_anual` obrigatória: ele construía um
     # estado que o tipo não representa mais. Teste de ramo que não dispara mede a
     # si mesmo — a garantia passou a ser do construtor.
+
+
+# =============================================================================
+# ADR-414 D4 — o redutor compõe dos dois lados, e o clamp é POR LADO
+# =============================================================================
+
+
+class TestComposicaoDoRedutor:
+    def test_o_caso_do_codesign_fecha_ao_centavo(self):
+        """Bruto R$ 70.000, base R$ 50.000, aporte R$ 8.400.
+
+        Número calculado à mão pelo `financial-planner` no co-design de
+        2026-08-24, antes de existir código: economia real R$ 1.404,67 contra
+        R$ 1.634,06 da diferencial sem redutor — superestimativa de 14%.
+
+        Mecânica: o lado SEM aporte tem IR 3.144,15 e redutor 1.739,48 (não
+        clipa) ⇒ 1.404,67. O lado COM aporte tem IR 1.510,09 e o mesmo redutor
+        de 1.739,48, que CLIPA em 1.510,09 ⇒ zero.
+        """
+        com = economia_diferencial(
+            Decimal("50000"),
+            Decimal("8400"),
+            ANUAL_2026,
+            bruto_anual=Decimal("70000"),
+            redutor=REDUTOR_2026,
+        )
+        sem = economia_diferencial(Decimal("50000"), Decimal("8400"), ANUAL_2026)
+
+        assert com == Decimal("1404.67")
+        assert sem == Decimal("1634.06")
+        assert com < sem  # o redutor só pode REDUZIR a economia publicada
+
+    def test_acima_da_banda_o_redutor_nao_muda_nada(self):
+        """Bruto > 88.200: redutor zero dos dois lados ⇒ diferencial intacta."""
+        args = (Decimal("95000"), Decimal("11400"), ANUAL_2026)
+        com = economia_diferencial(*args, bruto_anual=Decimal("95000"), redutor=REDUTOR_2026)
+
+        assert com == economia_diferencial(*args)
+
+    def test_banda_1_zera_a_economia(self):
+        """Ambos os lados clipam ⇒ economia exatamente zero, não 'quase zero'."""
+        economia = economia_diferencial(
+            Decimal("40000"),
+            Decimal("6000"),
+            ANUAL_2026,
+            bruto_anual=Decimal("55000"),
+            redutor=REDUTOR_2026,
+        )
+
+        assert economia == Decimal("0")
+
+    def test_sem_redutor_o_comportamento_e_o_de_antes(self):
+        """AC <= 2025 não tem redutor — e não pode regredir."""
+        assert economia_diferencial(
+            Decimal("50000"), Decimal("8400"), ANUAL_2026, bruto_anual=Decimal("70000")
+        ) == Decimal("1634.06")

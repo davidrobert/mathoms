@@ -111,6 +111,18 @@ contrato tipado do redutor é co-localizado em `FiscalParameters`, com o teto de
 banda **derivado**, nunca armazenado: guardá-lo reproduziria na row a capacidade
 de discordar de si mesma.
 
+**Vigência assimétrica, e é ela que protege os anos antigos:** o redutor mensal
+vale de 01/01/2026; o anual só a partir do exercício 2027 (AC2026). AC ≤ 2025
+recebe o VO **zerado** — que o parser lê como *"não há redutor"*, nunca como
+*"não carregou"*. Sem esse eixo o PR3 desarmaria o D5 para 2024/2025, hoje
+liberado e correto.
+
+Verificação da composição: o caso calculado **à mão** pelo `financial-planner` no
+co-design (bruto R$ 70.000, base R$ 50.000, aporte R$ 8.400 ⇒ **R$ 1.404,67**
+contra R$ 1.634,06 sem redutor) fecha ao centavo contra a row semeada. A mecânica
+é o clamp **por lado**: o lado sem aporte não clipa (IR 3.144,15 vs redutor
+1.739,48) e o lado com aporte clipa (IR 1.510,09 ⇒ zero).
+
 ### D5 · IRPFM fica fora
 
 Base própria (renda **total** recebida, não tributável) e deduções próprias.

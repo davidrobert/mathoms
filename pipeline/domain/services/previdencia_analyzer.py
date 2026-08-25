@@ -30,7 +30,7 @@ from pipeline.domain.services.pgbl_motivos import (
     _prescreve,
     motivo_dominante,
 )
-from pipeline.domain.types.config import FiscalParameters, IRPFBracket
+from pipeline.domain.types.config import FiscalParameters, IRPFBracket, RedutorIRPF
 
 
 def _to_cents(reais: float) -> int:
@@ -77,6 +77,9 @@ class PrevidenciaConfig:
     regime_completo: bool = True
     componentes_ausentes: tuple[str, ...] = ()
     ano_fiscal: int | None = None
+    # ADR-414 D4. VO zerado (default) = ano sem redutor — o caminho legado nunca
+    # o conhece, e AC <= 2025 também não tem.
+    redutor: RedutorIRPF = field(default_factory=RedutorIRPF)
 
     @classmethod
     def from_fiscal(cls, fiscal: dict | None = None) -> "PrevidenciaConfig":
@@ -115,6 +118,7 @@ class PrevidenciaConfig:
             # ADR-389 D2: a base da DAA é a tabela ANUAL — a mensal serve o IRRF
             # na fonte e é consumida pela cascata da S8 ([[A40.l37]]).
             irpf_faixas=fiscal.ir_brackets_anual.faixas,
+            redutor=fiscal.redutor_anual,
             regime_completo=fiscal.regime_completo,
             componentes_ausentes=fiscal.componentes_ausentes,
             ano_fiscal=fiscal.year,
@@ -425,7 +429,11 @@ class PrevidenciaAnalyzer:
             return cap.capacidade.restante * Decimal(str(self._aliquota(cap))) / Decimal("100")
         # ADR-414 D2: a tabela indexa a BASE declarada, nunca o bruto.
         return economia_diferencial(
-            cap.base_calculo_anual, cap.capacidade.restante, self._config.irpf_faixas
+            cap.base_calculo_anual,
+            cap.capacidade.restante,
+            self._config.irpf_faixas,
+            bruto_anual=cap.renda_tributavel_anual,
+            redutor=self._config.redutor,
         )
 
     # ADR-414 D1: a faixa marginal é da BASE, não do bruto — o D6 da ADR-375 sempre
