@@ -43,6 +43,7 @@ from typing import Any, Mapping
 
 from pipeline.artifact_store import ArtifactStore
 from pipeline.domain.protection_bundle import ProtectionBundle
+from pipeline.domain.services.carteira_por_papel import build_carteira_por_papel
 from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeAnalyzer,
     CenariosConjugeConfig,
@@ -180,6 +181,7 @@ from pipeline.domain.services.reserva_emergencia_calculator import (
     EmergencyReserveCalculator,
     ReservaEmergenciaConfig,
 )
+from pipeline.domain.services.reserva_liquidez import FallbackIrpfPorPapel
 from pipeline.domain.services.top_ativos_analyzer import (
     TopAtivosAnalyzer,
     TopAtivosConfig,
@@ -557,6 +559,13 @@ class E5AnalyzerAdapter:
         fluxo_mensal = store.read("categorize_transactions", _E4_FLUXO_KEY) or {}
         patrimonio_raw = store.read("categorize_transactions", _E4_PATRIMONIO_KEY) or {}
         investimentos_raw = store.read("categorize_transactions", _E4_INVESTIMENTOS_KEY) or {}
+        # Produtor único do eixo B ([[ADR-412]] §D3): particiona uma vez e é
+        # injetado; nenhum consumidor resolve titularidade por dentro.
+        carteira = build_carteira_por_papel(
+            investimentos_raw,
+            titular_key=self._identity.titular_key,
+            conjuge_key=self._identity.conjuge_key,
+        )
 
         # 2. Resolve membros do baseline — produtor único ([[ADR-410]] D1).
         members = resolve_members(patrimonio_raw, self._identity)
@@ -650,13 +659,14 @@ class E5AnalyzerAdapter:
         reserva = self._reserva.calculate(
             fluxo=fluxo_legacy,
             patrimonio=patrimonio_full,
-            investimentos_atuais=investimentos_raw,
-            bens_por_membro={
-                self._identity.titular_key: titular_data,
-                **(
-                    {self._identity.conjuge_key: conjuge_data} if self._identity.conjuge_key else {}
-                ),
-            },
+            carteira=carteira,
+            # O eixo B não substitui o IRPF: no dogfood o balde do cônjuge vem
+            # inteiramente daqui, e tratar a carteira como resposta completa o
+            # zeraria — com a identidade de conservação fechando mesmo assim.
+            fallback_irpf=FallbackIrpfPorPapel(
+                titular=titular_data,
+                conjuge=conjuge_data if self._identity.conjuge_key else None,
+            ),
         )
 
         # 9. Score (paridade com ``calculate_score``) — cobertura_despesas lê

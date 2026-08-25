@@ -1140,6 +1140,11 @@
           },
           {
             "artifact_key": "analise_financeira",
+            "field": "reserva_emergencia.composicao_liquida.investimentos_nao_atribuidos",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
             "field": "reserva_emergencia.composicao_liquida.investimentos_titular",
             "stage": "E5"
           }
@@ -2061,6 +2066,7 @@
       "caixa_moeda_estrangeira": 0,
       "cobertura_meses": "53.300000",
       "investimentos_conjuge": 0,
+      "investimentos_nao_atribuidos": 0,
       "investimentos_titular": 8000000,
       "total_liquido": 8000000
     },

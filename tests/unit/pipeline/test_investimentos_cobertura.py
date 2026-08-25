@@ -315,16 +315,16 @@ def test_titular_nao_absorve_o_valor_do_conjuge_nao_resolvido(config: Patrimonio
 
 def test_reserva_conta_membro_nao_apurado_como_zero() -> None:
     """Contrato, não implementação: a reserva não conta dinheiro que ninguém mediu."""
-    from pipeline.domain.services.patrimonio_types import MemberIdentity
-    from pipeline.domain.services.reserva_liquidez import build_reserva_liquida
-
-    identity = MemberIdentity(
-        titular_key="david", conjuge_key="mariana", titular_nome="D", conjuge_nome="M"
+    from pipeline.domain.services.carteira_por_papel import CarteiraPorPapel
+    from pipeline.domain.services.reserva_liquidez import (
+        FallbackIrpfPorPapel,
+        build_reserva_liquida,
     )
-    patrimonio = {"investimentos_titular": 100.0, "investimentos_conjuge": None}
-    reserva = build_reserva_liquida(patrimonio, None, None, identity=identity)
 
-    assert reserva.componentes(incluir_caixa_me=False, solo=False)["investimentos_conjuge"] == 0
+    patrimonio = {"investimentos_titular": 100.0, "investimentos_conjuge": None}
+    reserva = build_reserva_liquida(patrimonio, CarteiraPorPapel.vazia(), FallbackIrpfPorPapel())
+
+    assert reserva.componentes(incluir_caixa_me=False)["investimentos_conjuge"] == 0
 
 
 def test_nao_atribuido_vira_categoria_e_a_composicao_segue_fechando(

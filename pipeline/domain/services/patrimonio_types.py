@@ -172,12 +172,6 @@ class MemberIdentity:
             ),
         )
 
-    def role_of(self, member_key: str) -> str:
-        return "conjuge" if self.conjuge_key and member_key == self.conjuge_key else "titular"
-
-    def inv_key(self, member_key: str) -> str:
-        return f"investimentos_{self.role_of(member_key)}"
-
 
 @dataclass(frozen=True)
 class PatrimonioConfig:
