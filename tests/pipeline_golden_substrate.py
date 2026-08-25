@@ -159,11 +159,35 @@ def _ano_inicial_regime_completo() -> int:
 # A ADR-389 semeou AC2026 incompleto; a migration do flip o completou. A fixture
 # compõe as DUAS, senão afirma uma retenção que a produção deixou de fazer —
 # divergência fixture↔produção medida no ataque à A40.l64.
+def _modulo_da_migration(nome: str):
+    import importlib.util
+
+    caminho = Path(__file__).resolve().parents[1] / "backend" / "alembic" / "versions" / nome
+    spec = importlib.util.spec_from_file_location(f"_golden_{nome}", caminho)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _redutor_da_migration() -> dict:
+    return _modulo_da_migration("adr414redutor_lei_15270.py").REDUTOR_POR_ANO[2026]["anual"]
+
+
+def _limiar_irpfm_da_migration() -> int:
+    return _modulo_da_migration("adr414irpfm_limiar.py")._LIMIAR_2026_CENTS
+
+
 def _dados_efetivos(tabelas: dict, year: int) -> dict:
     dados = dict(tabelas[max(a for a in tabelas if a <= year)])
     if year >= _ano_inicial_regime_completo():
         dados["regime_completo"] = True
         dados["componentes_ausentes"] = []
+        # Compor SÓ o `regime_completo` deixava o golden rodando um regime que não
+        # existe: completo, mas sem redutor e sem piso do IRPFM. A produção tem os
+        # três. É a mesma divergência fixture↔produção que o ataque a esta lane
+        # mediu — recriada ao compor uma migration e esquecer as outras duas.
+        dados["redutor_anual"] = _redutor_da_migration()
+        dados["irpfm_limiar_brl_cents"] = _limiar_irpfm_da_migration()
     return dados
 
 
@@ -181,6 +205,8 @@ def fiscal_store_do_seed(year: int):
             "ir_brackets_mensal": dados["mensal"],
             "regime_completo": dados["regime_completo"],
             "componentes_ausentes": dados["componentes_ausentes"],
+            "redutor_anual": dados.get("redutor_anual") or {},
+            "irpfm_limiar_brl_cents": dados.get("irpfm_limiar_brl_cents") or 0,
             "lucro_presumido_aliquota": "0.32",
         }
     )

@@ -48,6 +48,11 @@ def _irpf_com_renda_tributavel() -> dict:
     return decl(
         ano_base=_ANO_BASE_IRPF,
         exterior=[exterior_rend(f"{_RENDA_ANUAL_NA_FAIXA_DE_15:.2f}")],
+        # Base DECLARADA = bruto menos o desconto simplificado de 20%. Zerá-la fazia
+        # a economia degenerar a zero e o golden parava de exercitar a tabela
+        # progressiva — cobertura perdida em silêncio quando a [[ADR-414]] tornou a
+        # base load-bearing.
+        base_calculo=f"{_RENDA_ANUAL_NA_FAIXA_DE_15 * 0.8:.2f}",
     ).model_dump(mode="json")
 
 
@@ -106,6 +111,21 @@ def test_golden_atravessa_o_construtor_de_producao(analise_com_config_store):
     """Aceite da lane: ≥1 execução golden passa por `from_fiscal_parameters`."""
     assert _aliquota(analise_com_config_store) != _ALIQUOTA_DO_FALLBACK_LEGADO
     assert _previdencia(analise_com_config_store)["economia_ir_anual"] is not None
+
+
+def test_o_redutor_da_row_alcanca_o_payload(analise_com_config_store):
+    # Compor só o `regime_completo` e esquecer redutor e IRPFM deixava o golden
+    # rodando um regime que não existe — completo, mas sem os dois. Com o redutor
+    # ativo, bruto de 40.000 fica na banda 1 e o imposto zera.
+    """Gate da composição da fixture: ela tem de carregar as TRÊS migrations."""
+    bloco = _previdencia(analise_com_config_store)
+
+    assert bloco["economia_ir_anual"] == 0.0
+    assert bloco["motivo_ausencia"]["aporte"] == "sem_imposto_a_reduzir"
+    # Zero legítimo é FATO publicado sem motivo (invariante ADR-402).
+    assert bloco["motivo_ausencia"]["economia"] is None
+    # E o fato do IRPF sobrevive.
+    assert bloco["limite_pgbl_anual"] > 0
 
 
 def test_a_aliquota_publicada_nao_e_a_do_fallback(analise_com_config_store):
