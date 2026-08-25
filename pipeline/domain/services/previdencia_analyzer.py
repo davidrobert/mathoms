@@ -30,7 +30,7 @@ from pipeline.domain.services.pgbl_motivos import (
     _prescreve,
     motivo_dominante,
 )
-from pipeline.domain.types.config import FiscalParameters, IRPFBracket
+from pipeline.domain.types.config import FiscalParameters, IRPFBracket, RedutorIRPF
 
 
 def _to_cents(reais: float) -> int:
@@ -77,6 +77,9 @@ class PrevidenciaConfig:
     regime_completo: bool = True
     componentes_ausentes: tuple[str, ...] = ()
     ano_fiscal: int | None = None
+    # ADR-414 D4. VO zerado (default) = ano sem redutor — o caminho legado nunca
+    # o conhece, e AC <= 2025 também não tem.
+    redutor: RedutorIRPF = field(default_factory=RedutorIRPF)
 
     @classmethod
     def from_fiscal(cls, fiscal: dict | None = None) -> "PrevidenciaConfig":
@@ -115,6 +118,7 @@ class PrevidenciaConfig:
             # ADR-389 D2: a base da DAA é a tabela ANUAL — a mensal serve o IRRF
             # na fonte e é consumida pela cascata da S8 ([[A40.l37]]).
             irpf_faixas=fiscal.ir_brackets_anual.faixas,
+            redutor=fiscal.redutor_anual,
             regime_completo=fiscal.regime_completo,
             componentes_ausentes=fiscal.componentes_ausentes,
             ano_fiscal=fiscal.year,
@@ -131,9 +135,17 @@ class CapacidadePgblIRPF:
     """Capacidade PGBL do titular lida do IRPF (ADR-277/395)."""
 
     capacidade: CapacidadePgbl
+    # BRUTO: indexa o redutor da Lei 15.270/2025 (ADR-414 D1) e é o que os 12% do
+    # teto PGBL usam. NÃO indexa a tabela progressiva.
     renda_tributavel_anual: Decimal
     ano_base: int
     fonte: str
+    # BASE de cálculo DECLARADA (`imposto_apurado.base_calculo_brl` somado no ano):
+    # é ela que indexa a tabela e a alíquota marginal. OBRIGATÓRIA: o campo é
+    # `required` no schema e16, então declaração que parseia sempre a tem — e o `cap`
+    # só existe se alguma parseou. Optional aqui seria ramo que não dispara, e cair
+    # no bruto é o defeito que a ADR-414 fecha.
+    base_calculo_anual: Decimal
     nota_degradacao: str | None = None  # ADR-305 D3: existe ano mais recente não usado
 
     @property
@@ -415,12 +427,19 @@ class PrevidenciaAnalyzer:
             # calcular, e a degradação é do chamador. O produto é o que o caminho
             # legado (dict pré-A7.2b) sempre publicou.
             return cap.capacidade.restante * Decimal(str(self._aliquota(cap))) / Decimal("100")
+        # ADR-414 D2: a tabela indexa a BASE declarada, nunca o bruto.
         return economia_diferencial(
-            cap.renda_tributavel_anual, cap.capacidade.restante, self._config.irpf_faixas
+            cap.base_calculo_anual,
+            cap.capacidade.restante,
+            self._config.irpf_faixas,
+            bruto_anual=cap.renda_tributavel_anual,
+            redutor=self._config.redutor,
         )
 
+    # ADR-414 D1: a faixa marginal é da BASE, não do bruto — o D6 da ADR-375 sempre
+    # falou de base (`base_calculo_anual_brl_cents`); era o call-site que divergia.
     def _aliquota(self, cap: CapacidadePgblIRPF) -> float:
-        return self._aliquota_para(_cents(cap.renda_tributavel_anual))
+        return self._aliquota_para(_cents(cap.base_calculo_anual))
 
     def _aliquota_para(self, base_calculo_anual_brl_cents: int) -> float:
         """Alíquota marginal; sem tabela configurada, degrada para o fallback declarado."""

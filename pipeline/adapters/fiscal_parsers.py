@@ -6,7 +6,12 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Mapping
 
-from pipeline.domain.types.config import FiscalParameters, IRPFBracket, TabelaProgressiva
+from pipeline.domain.types.config import (
+    FiscalParameters,
+    IRPFBracket,
+    RedutorIRPF,
+    TabelaProgressiva,
+)
 
 
 def _decimal(value: Any) -> Decimal:
@@ -30,6 +35,8 @@ def fiscal_row_to_payload(row: Any) -> dict[str, Any]:
     return {
         "year": int(row.year),
         "ir_brackets_anual": dict(row.ir_brackets_anual or {}),
+        "redutor_anual": dict(getattr(row, "redutor_anual", None) or {}),
+        "redutor_mensal": dict(getattr(row, "redutor_mensal", None) or {}),
         "ir_brackets_mensal": dict(row.ir_brackets_mensal or {}),
         "regime_completo": bool(row.regime_completo),
         "componentes_ausentes": list(row.componentes_ausentes or []),
@@ -85,6 +92,20 @@ def _payload_tabela(raw: Any) -> TabelaProgressiva:
     )
 
 
+def _payload_redutor(raw: Any) -> RedutorIRPF:
+    """Ausente ⇒ VO ZERADO, não `None`: ano sem redutor é fato, não falta de carga."""
+    if not isinstance(raw, Mapping):
+        return RedutorIRPF()
+    return RedutorIRPF(
+        piso_bruto_brl_cents=int(raw.get("piso_bruto_brl_cents") or 0),
+        teto_bruto_brl_cents=int(raw.get("teto_bruto_brl_cents") or 0),
+        intercepto_brl_cents=int(raw.get("intercepto_brl_cents") or 0),
+        coeficiente=_decimal(raw.get("coeficiente")),
+        vigencia_ref=str(raw.get("vigencia_ref") or ""),
+        source=str(raw.get("source") or ""),
+    )
+
+
 def fiscal_payload_to_dataclass(payload: Mapping[str, Any]) -> FiscalParameters:
     """Dict (cache ou seed) → :class:`FiscalParameters` frozen."""
     return FiscalParameters(
@@ -94,6 +115,8 @@ def fiscal_payload_to_dataclass(payload: Mapping[str, Any]) -> FiscalParameters:
         lucro_presumido_aliquota=_decimal(payload.get("lucro_presumido_aliquota")),
         ir_brackets_anual=_payload_tabela(payload.get("ir_brackets_anual")),
         ir_brackets_mensal=_payload_tabela(payload.get("ir_brackets_mensal")),
+        redutor_anual=_payload_redutor(payload.get("redutor_anual")),
+        redutor_mensal=_payload_redutor(payload.get("redutor_mensal")),
         regime_completo=bool(payload.get("regime_completo", True)),
         componentes_ausentes=tuple(payload.get("componentes_ausentes") or ()),
         effective_from=_date_or_none(payload.get("effective_from")),

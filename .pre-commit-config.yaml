@@ -784,6 +784,19 @@ repos:
         language: system
         files: ^(docs/.*\.md|CLAUDE\.md|\.claude/agents/.*\.md)$
 
+      # always_run + pass_filenames: false de propósito. O gatilho deste hook é
+      # DELEÇÃO/RENAME de arquivo de código, e o pre-commit não passa path
+      # deletado na lista de staged (diff-filter exclui D) — um `files:` de
+      # código nunca dispararia na deleção pura, que é justamente o caso que
+      # cria citação órfã. O script lê `git diff --cached --name-status -M`
+      # sozinho; custa ~70ms quando não há deleção de código.
+      - id: doc-code-paths
+        name: "docs/: mover código não deixa citação órfã em ADR/reference"
+        entry: python3 dev/check_doc_code_paths.py
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: doc-links
         name: "docs/: wikilinks [[X]] resolvem"
         entry: python3 dev/check_doc_links.py

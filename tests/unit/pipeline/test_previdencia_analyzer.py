@@ -310,6 +310,7 @@ def _capacidade(restante: str, renda: str = "38400", ano: int = 2024) -> Capacid
             excedente_nao_dedutivel=Decimal("0"),
         ),
         renda_tributavel_anual=Decimal(renda),
+        base_calculo_anual=Decimal(renda),
         ano_base=ano,
         fonte="irpf_pgbl_capacidade",
     )
