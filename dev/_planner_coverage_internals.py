@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -322,27 +323,118 @@ def _repo_relative(path: Path) -> str:
         return str(path)
 
 
-def _warn_drift(manifest_changed: bool, report: CoverageReport) -> None:
-    if manifest_changed:
-        report.warn(
-            "[drift] schema E5 e manifest do parecer mudaram juntos — confirme "
-            "que o tunning do manifest cobre o campo novo."
+# Campo do E5 que o parecer NÃO recebe por decisão, com a razão. Entrar aqui é o ato
+# consciente que o `warn` anterior não exigia — três ADRs passaram por ele sem que
+# ninguém decidisse nada, e os seis campos de incerteza da A40 chegaram ao r8 invisíveis
+# ao parecer (A40.l83 · RV8-05b).
+E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
+    "$._lineage": "rastro de proveniência do pipeline — insumo de debug, não de conselho",
+    "$.narrativas": "texto já destilado em outra superfície; projetá-lo duplicaria prosa",
+    "$.protection_computation_inputs_v1": "insumos crus do cálculo de proteção; o parecer lê o resultado",
+}
+
+
+def _e5_leaf_paths(schema: dict, prefix: str = "$") -> set[str]:
+    """Folhas do schema E5 em JSONPath — o universo que o manifest decide projetar."""
+    out: set[str] = set()
+    for key, value in (schema.get("properties") or {}).items():
+        path = f"{prefix}.{key}"
+        sub = value.get("properties") if isinstance(value, dict) else None
+        out.update(_e5_leaf_paths(value, path) if isinstance(sub, dict) else {path})
+    return out
+
+
+def _schema_at(ref: str, rel_path: str) -> dict | None:
+    """Schema E5 como estava em `ref`. None quando o ref não existe (clone raso, fork)."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "show", f"{ref}:{rel_path}"],
+            capture_output=True,
+            text=True,
+            check=False,
         )
-        return
-    report.warn(
-        "[drift] schema E5 mudou e o manifest do parecer NÃO foi tocado — "
-        "confirme se o campo novo é irrelevante ao parecer."
+    except (FileNotFoundError, OSError):
+        return None
+    if result.returncode != 0:
+        return None
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+# O check anterior derivava de ``git diff HEAD``, VAZIO em CI (o job roda
+# `pre-commit --all-files` sobre árvore limpa): o gate só existia no pre-commit local do
+# commit exato que tocava o schema. Comparar com a base de merge é o que o faz existir.
+def _baseline_ref(rel_path: str) -> str | None:
+    """`origin/main` quando alcançável, senão `HEAD`."""
+    for ref in ("origin/main", "HEAD"):
+        if _schema_at(ref, rel_path) is not None:
+            return ref
+    return None
+
+
+def _escapado(path: str) -> bool:
+    """Escape declarado cobre a SUBÁRVORE: `$.narrativas` vale por suas folhas."""
+    return any(path == key or path.startswith(f"{key}.") for key in E5_FIELDS_FORA_DO_PARECER)
+
+
+def _coberto_pelo_manifest(path: str, projetados: set[str]) -> bool:
+    """Path coberto por projeção própria ou de um ancestral/descendente declarado."""
+    return any(
+        path == q or path.startswith(f"{q}.") or q.startswith(f"{path}.") for q in projetados
     )
 
 
+# Precedente `check_scheduled_workflows`: instrumento mudo degrada para warning FORA do
+# CI (clone raso, fork) e BLOQUEIA dentro dele. Degradar em silêncio no CI recriaria o
+# fail-open que esta lane fecha — o gate anterior derivava de `git diff HEAD`, que é
+# vazio sob `pre-commit --all-files`, e por isso nunca existiu no CI.
+def _sem_baseline(report: CoverageReport) -> None:
+    msg = (
+        "[drift] `origin/main` inalcançável — campo novo no E5 não pôde ser aferido. "
+        "Em CI, garanta `git fetch --no-tags --depth=1 origin main` antes do gate."
+    )
+    (report.fail if os.environ.get("CI") else report.warn)(msg)
+
+
+def _fail_campo_novo(path: str, report: CoverageReport) -> None:
+    report.fail(
+        f"[drift] `{path}` é campo NOVO no schema E5 e o manifest do parecer não o "
+        "projeta. O manifest é whitelist: campo não declarado não chega ao modelo, e "
+        "ele só ressalva o que recebe. Projete-o em config/prompts/parecer_planejador.yaml "
+        "ou declare a razão em E5_FIELDS_FORA_DO_PARECER (dev/_planner_coverage_internals.py)."
+    )
+
+
+# Hard-fail, não warn: o `warn` anterior não tinha destinatário. Escopo é o campo NOVO —
+# o débito herdado sai como contagem, para ficar visível sem virar allowlist de ~90
+# linhas, que é carimbada de uma vez e vira decoração.
 def check_schema_manifest_drift(
     e5_schema_path: Path,
     manifest_path: Path,
     report: CoverageReport,
     changed_paths: frozenset[str] | None = None,
 ) -> None:
-    """Avisa quando o E5 muda sem o manifest. Deriva do diff — sem baseline em disco."""
-    changed = _git_changed_paths() if changed_paths is None else changed_paths
-    if _repo_relative(e5_schema_path) not in changed:
+    """Campo novo no E5 é projetado no manifest ou escapado com razão (A40.l83 · RV8-05b)."""
+    del changed_paths  # a decisão deixou de derivar de "o arquivo mudou?"
+    rel = _repo_relative(e5_schema_path)
+    baseline = _baseline_ref(rel)
+    atual = load_json(e5_schema_path)
+    projetados = {
+        path.replace("[*]", "") for _section, path in iter_manifest_paths(load_yaml(manifest_path))
+    }
+    folhas = _e5_leaf_paths(atual)
+    herdado = [p for p in folhas if not _coberto_pelo_manifest(p, projetados) and not _escapado(p)]
+    if herdado:
+        report.warn(
+            f"[drift] {len(herdado)} folhas do E5 fora do manifest e sem razão declarada "
+            "(débito herdado, não bloqueia). Campo NOVO bloqueia."
+        )
+    if baseline is None or baseline == "HEAD":
+        _sem_baseline(report)
         return
-    _warn_drift(_repo_relative(manifest_path) in changed, report)
+    antes = _e5_leaf_paths(_schema_at(baseline, rel) or {})
+    for path in sorted(folhas - antes):
+        if not _coberto_pelo_manifest(path, projetados) and not _escapado(path):
+            _fail_campo_novo(path, report)
