@@ -10,6 +10,7 @@ from decimal import Decimal
 
 import pytest
 
+from pipeline.domain.services.carteira_por_papel import build_carteira_por_papel
 from pipeline.domain.services.investimentos_cobertura import (
     COBERTURA_ENV,
     CoberturaStatus,
@@ -173,13 +174,18 @@ def _inputs(
     totais: dict, *, conjuge_inv: list | None = None, identity: MemberIdentity | None = None
 ) -> PatrimonioInputs:
     baseline = _baseline_consolidado(conjuge_inv=conjuge_inv)
+    ident = identity or _IDENTITY
+    atuais = {
+        "dados": [{"membro": k, "valor": v} for k, v in totais.items()],
+        "total_por_membro": totais,
+    }
     return PatrimonioInputs(
         baseline=baseline,
-        members=resolve_members(baseline, identity or _IDENTITY),
-        investimentos_atuais={
-            "dados": [{"membro": k, "valor": v} for k, v in totais.items()],
-            "total_por_membro": totais,
-        },
+        members=resolve_members(baseline, ident),
+        carteira=build_carteira_por_papel(
+            atuais, titular_key=ident.titular_key, conjuge_key=ident.conjuge_key
+        ),
+        investimentos_atuais=atuais,
         caixa_total_brl=0.0,
     )
 

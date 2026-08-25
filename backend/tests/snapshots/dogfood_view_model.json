@@ -1320,7 +1320,7 @@
         "valor_brl": 0
       }
     },
-    "definicao_versao": 100,
+    "definicao_versao": 1,
     "detalhes": [],
     "pct_investivel_financeiro": "0.000000",
     "por_moeda": [],
@@ -1807,6 +1807,40 @@
     "trs_efetiva_pct": "0.000000"
   },
   "patrimonio": {
+    "base_versao": 1,
+    "bases": {
+      "carteira_com_titular_identificado": {
+        "termos": [
+          "investimentos_titular",
+          "investimentos_conjuge",
+          "caixa_total_brl"
+        ],
+        "valor_brl": 13000000
+      },
+      "carteira_financeira_familia": {
+        "termos": [
+          "investimentos_titular",
+          "investimentos_conjuge",
+          "investimentos_nao_atribuidos",
+          "caixa_total_brl"
+        ],
+        "valor_brl": 13000000
+      },
+      "carteira_produtiva_familia": {
+        "termos": [
+          "carteira_financeira_familia",
+          "cat2_efetivo"
+        ],
+        "valor_brl": 13000000
+      },
+      "patrimonio_liquido": {
+        "termos": [
+          "bruto",
+          "-dividas"
+        ],
+        "valor_brl": 58000000
+      }
+    },
     "bruto": 73000000,
     "caixa_detalhes": [],
     "caixa_exclusoes": [],
@@ -2026,7 +2060,7 @@
     "economic_dependencies": [],
     "fiscal_rules": [],
     "incomes": [],
-    "input_contract_version": 100,
+    "input_contract_version": 1,
     "inputs_digest_sha256": "<volatile>",
     "member_profiles": [],
     "pipeline_run_id": null,

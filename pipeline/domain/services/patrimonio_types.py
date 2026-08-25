@@ -18,7 +18,10 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from typing import Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal, Mapping
+
+if TYPE_CHECKING:
+    from pipeline.domain.services.carteira_por_papel import CarteiraPorPapel
 
 from pipeline.domain.services.conversao_me import ConversaoMeBrl
 from pipeline.domain.services.money_parsing import valor_monetario_float
@@ -340,6 +343,9 @@ class PatrimonioInputs:
     # impossível por construção, e não vigiado por gate ([[ADR-410]] D2): a
     # calculadora não tem resolver para chamar.
     members: MembrosResolvidos
+    # Mesmo motivo de `members`: com a carteira injetada, a calculadora não tem
+    # resolver de titularidade para chamar ([[ADR-412]] §D3).
+    carteira: "CarteiraPorPapel"
     investimentos_atuais: dict | None = None
     caixa_total_brl: float = 0.0
     caixa_detalhes: list[CaixaDetalhe] = field(default_factory=list)

@@ -9,6 +9,7 @@ saber o que entra em "carteira produtiva".
 from __future__ import annotations
 
 from enum import Enum
+from typing import Mapping
 
 
 # `sem_dono` existe porque o domínio é ternário e `role_of` é binária: o `else`
@@ -89,3 +90,56 @@ CHAVE_DE_COMPONENTE: dict[PapelMembro, str] = {
 def chave_de_componente(papel: PapelMembro) -> str:
     """Chave publicada do balde daquele papel, nunca derivada por f-string."""
     return CHAVE_DE_COMPONENTE[papel]
+
+
+# Fronteira de série ([[ADR-412]] §D8): superfície read-time que recompõe artefato
+# antigo com código novo produziria híbrido sem rótulo. Ausência do campo é "não
+# sei", nunca "série corrente".
+BASE_VERSAO_CORRENTE = 1
+
+
+# Recebe valores CRUS, nunca o dict publicado: lá `valor_publicavel` já pode ter
+# virado `None` para membro não apurado, e a base sairia menor que o número que
+# ela diz explicar.
+def publicar_bases(
+    *,
+    titular: float,
+    conjuge: float,
+    sem_dono: float,
+    caixa: float,
+    carteira_financeira: float,
+    cat2_efetivo: float,
+    bruto: float,
+    dividas: float,
+) -> dict[str, dict]:
+    """Bloco `bases` + `base_versao` a partir dos valores crus; `-` subtrai."""
+    valores = {
+        "investimentos_titular": titular,
+        "investimentos_conjuge": conjuge,
+        "investimentos_nao_atribuidos": sem_dono,
+        "caixa_total_brl": caixa,
+        "carteira_financeira_familia": carteira_financeira,
+        "cat2_efetivo": cat2_efetivo,
+        "bruto": bruto,
+        "dividas": dividas,
+    }
+    return {
+        "bases": {
+            base.value: {
+                "termos": list(termos_da_base(base)),
+                "valor_brl": round(_somar_termos(termos_da_base(base), valores), 2),
+            }
+            for base in BaseFinanceira
+        },
+        "base_versao": BASE_VERSAO_CORRENTE,
+    }
+
+
+def _somar_termos(termos: tuple[str, ...], valores: Mapping[str, float]) -> float:
+    total = 0.0
+    for termo in termos:
+        negativo = termo.startswith("-")
+        nome = termo[1:] if negativo else termo
+        valor = float(valores.get(nome) or 0.0)
+        total += -valor if negativo else valor
+    return total

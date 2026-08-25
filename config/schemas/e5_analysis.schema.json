@@ -436,6 +436,11 @@
         },
         "atribuicao_investimentos": {
           "$ref": "#/$defs/AtribuicaoInvestimentos"
+        },
+        "base_versao": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "A40.l80 ([[ADR-412]] §D8): fronteira de série das bases. IRMÃO de `bases`, nunca dentro — o `$def` de `bases` é fechado nas chaves do enum. Superfície read-time que recompõe artefato antigo com código novo produziria híbrido sem rótulo; AUSÊNCIA do campo é 'não sei', nunca 'série corrente'."
         }
       }
     },

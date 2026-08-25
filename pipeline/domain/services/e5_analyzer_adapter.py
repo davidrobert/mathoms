@@ -594,6 +594,7 @@ class E5AnalyzerAdapter:
                 baseline=patrimonio_raw,
                 members=members,
                 investimentos_atuais=investimentos_raw,
+                carteira=carteira,
                 caixa_total_brl=caixa_total,
                 caixa_detalhes=caixa_detalhes,
             )
