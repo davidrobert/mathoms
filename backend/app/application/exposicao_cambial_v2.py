@@ -10,6 +10,11 @@ from typing import Any, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.base_declarada import (
+    cobertura_apurada,
+    denominador_declarado,
+    serie_corrente,
+)
 from backend.app.models import PipelineArtifact
 from backend.app.models.asset_catalog import AssetCatalog, WorkspaceAssetOverride
 from backend.app.models.report import Report
@@ -48,11 +53,24 @@ class _E5Inputs:
     caixa_detalhes: list[dict]
     investivel_denom: Decimal
     base_disponivel: bool
+    cobertura_apurada: bool = False
+    serie_corrente: bool = False
 
 
-def _tier_from_pct(pct: float, has_data: bool) -> str:
+# A perna de supressão é de COBERTURA DE COMPONENTE, não de pct: o E5 devolve
+# `indeterminado` sempre que algum componente não é apurado
+# (`exposicao_cambial_analyzer.py:133-136`), e este card publicava faixa na mesma
+# tela em que o relatório recusava julgar. Portar uma perna de pct o deixaria em
+# `amarelo` — divergência viva com aparência de consertada ([[ADR-412]] §Emenda E2).
+#
+# `serie_corrente=False` (artefato sem `base_versao`) também suprime: recompor
+# artefato de base antiga com código novo é o híbrido sem rótulo da §D8, e
+# ausência é "não sei", nunca "série corrente".
+def _tier(pct: float, has_data: bool, *, cobertura_apurada: bool, serie_corrente: bool) -> str:
     if not has_data:
         return "empty"
+    if not (cobertura_apurada and serie_corrente):
+        return "indeterminado"
     if pct >= THRESHOLD_VERDE_PCT:
         return "verde"
     if pct >= THRESHOLD_AMARELO_PCT:
@@ -283,11 +301,13 @@ def _extract_e5_inputs(artifact: PipelineArtifact) -> _E5Inputs:
     patrimonio = payload.get("patrimonio")
     if not isinstance(patrimonio, dict):
         return _E5Inputs([], [], Decimal(0), base_disponivel=False)
-    denom = _to_decimal(patrimonio.get("investivel_financeiro") or patrimonio.get("investivel"))
+    denom = denominador_declarado(patrimonio)
     return _E5Inputs(
         posicoes=_posicoes_do_payload(payload.get("investimentos")),
         caixa_detalhes=patrimonio.get("caixa_detalhes") or [],
         investivel_denom=denom,
+        cobertura_apurada=cobertura_apurada(payload.get("exposicao_cambial")),
+        serie_corrente=serie_corrente(patrimonio),
         # Presença da chave, não do conteúdo: lista vazia é "sem moeda estrangeira";
         # chave ausente é drift de shape, e drift não pode virar "zero exposição".
         base_disponivel="caixa_detalhes" in patrimonio and denom > Decimal(0),
@@ -313,6 +333,15 @@ def _alvo_verde(denom: Decimal) -> Decimal:
     return round(denom * Decimal(str(THRESHOLD_VERDE_PCT)) / 100, 2)
 
 
+def _tier_de(inputs: _E5Inputs, total: Decimal, pct: float) -> str:
+    return _tier(
+        pct,
+        has_data=total > Decimal(0),
+        cobertura_apurada=inputs.cobertura_apurada,
+        serie_corrente=inputs.serie_corrente,
+    )
+
+
 # Só o caso COM base: sem base é decidido no chamador, para o estado degradado não
 # depender de um campo esquecido na construção do DTO.
 def _build_response(
@@ -329,7 +358,7 @@ def _build_response(
         total_brl=round(total, 2),
         pct_investivel_financeiro=round(pct, 2),
         por_moeda=_build_por_moeda_dtos(por_moeda, total),
-        tier=_tier_from_pct(pct, has_data=total > Decimal(0)),
+        tier=_tier_de(inputs, total, pct),
         alvo_moeda_forte_brl=_alvo_verde(inputs.investivel_denom),
         ativos_contribuintes=ativos,
         source_run_id=str(artifact.pipeline_run_id) if artifact.pipeline_run_id else None,

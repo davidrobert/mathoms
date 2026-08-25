@@ -10,6 +10,7 @@ from decimal import Decimal
 
 import pytest
 
+from pipeline.domain.services.carteira_por_papel import build_carteira_por_papel
 from pipeline.domain.services.conversao_me import identity_native_brl
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
 from pipeline.domain.services.patrimonio_resolvers import resolve_members
@@ -35,7 +36,16 @@ _IDENT = MemberIdentity(
 
 def _inputs(baseline: dict, **kw) -> PatrimonioInputs:
     """Injeta `members` — obrigatório desde a [[ADR-410]] D2."""
-    return PatrimonioInputs(baseline=baseline, members=resolve_members(baseline, _IDENT), **kw)
+    return PatrimonioInputs(
+        baseline=baseline,
+        members=resolve_members(baseline, _IDENT),
+        carteira=build_carteira_por_papel(
+            kw.get("investimentos_atuais"),
+            titular_key=_IDENT.titular_key,
+            conjuge_key=_IDENT.conjuge_key,
+        ),
+        **kw,
+    )
 
 
 def _baldes(**overrides: str) -> BaldesPatrimoniais:

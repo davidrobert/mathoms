@@ -4730,12 +4730,20 @@
           "tier": {
             "anyOf": [
               {
+                "enum": [
+                  "verde",
+                  "amarelo",
+                  "vermelho",
+                  "indeterminado",
+                  "empty"
+                ],
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
+            "description": "Faixa de prote\u00e7\u00e3o; `indeterminado` = veredito suprimido.",
             "title": "Tier"
           },
           "total_brl": {

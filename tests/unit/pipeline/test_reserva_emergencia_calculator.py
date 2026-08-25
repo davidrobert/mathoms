@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import pytest
 
+from pipeline.domain.services.carteira_por_papel import build_carteira_por_papel
 from pipeline.domain.services.patrimonio_types import MemberIdentity
 from pipeline.domain.services.reserva_emergencia_calculator import (
     EmergencyReserveCalculator,
     ReservaClassificacao,
     ReservaEmergenciaConfig,
 )
+from pipeline.domain.services.reserva_liquidez import FallbackIrpfPorPapel
 
 
 @pytest.fixture
@@ -92,10 +94,9 @@ def test_acoes_fii_exterior_excluidos_do_numerador(config: ReservaEmergenciaConf
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 10_000},
         patrimonio={"investimentos_titular": 500_000, "investimentos_conjuge": 0},
-        bens_por_membro={
-            "david": _bens(investimentos=_CARTEIRA_MISTA),
-            "mariana": _bens(investimentos=[]),
-        },
+        fallback_irpf=FallbackIrpfPorPapel(
+            titular=_bens(investimentos=_CARTEIRA_MISTA), conjuge=_bens(investimentos=[])
+        ),
     )
     assert result["total_liquida"] == 60_000.0
     assert result["composicao_liquida"]["investimentos_titular"] == 60_000.0
@@ -108,13 +109,13 @@ def test_conta_corrente_e_poupanca_entram_como_liquidez(config: ReservaEmergenci
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 5_000},
         patrimonio={"investimentos_titular": 30_000, "investimentos_conjuge": 0},
-        bens_por_membro={
-            "david": _bens(
+        fallback_irpf=FallbackIrpfPorPapel(
+            titular=_bens(
                 investimentos=[{"descricao": "POUPANCA BANCO Y", "valor": 10_000}],
                 contas=[{"descricao": "CONTA CORRENTE BANCO Y", "valor": 20_000}],
             ),
-            "mariana": _bens(investimentos=[]),
-        },
+            conjuge=_bens(investimentos=[]),
+        ),
     )
     assert result["total_liquida"] == 30_000.0
 
@@ -125,19 +126,28 @@ def test_rf_sem_liquidez_diaria_excluida(config: ReservaEmergenciaConfig):
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
         patrimonio={"investimentos_titular": 30_000, "investimentos_conjuge": 0},
-        bens_por_membro={
-            "david": _bens(
+        fallback_irpf=FallbackIrpfPorPapel(
+            titular=_bens(
                 investimentos=[
                     {"descricao": "TESOURO SELIC", "valor": 10_000},
                     {"descricao": "DEBENTURE VALE", "valor": 15_000},
                     {"descricao": "CRA AGRO XP", "valor": 5_000},
                 ]
             ),
-            "mariana": _bens(investimentos=[]),
-        },
+            conjuge=_bens(investimentos=[]),
+        ),
     )
     assert result["total_liquida"] == 10_000.0
     assert result["excluido_da_reserva"]["investimentos_nao_liquidos"] == 20_000.0
+
+
+def _sem_bens() -> FallbackIrpfPorPapel:
+    """Fallback IRPF vazio nos dois papéis — `sem_dono` nunca tem campo."""
+    return FallbackIrpfPorPapel(titular=_bens(investimentos=[]), conjuge=_bens(investimentos=[]))
+
+
+def _carteira(dados: list[dict]) -> object:
+    return build_carteira_por_papel({"dados": dados}, titular_key="david", conjuge_key="mariana")
 
 
 def test_caixa_me_excluida_por_default(config: ReservaEmergenciaConfig):
@@ -152,9 +162,8 @@ def test_caixa_me_excluida_por_default(config: ReservaEmergenciaConfig):
             {"conta": "wise", "moeda": "USD", "valor_brl": 50_000, "tipo": "moeda_estrangeira"},
         ],
     }
-    bens = {"david": _bens(investimentos=[]), "mariana": _bens(investimentos=[])}
     result = calc.calculate(
-        fluxo={"despesa_mensal_media": 1_000}, patrimonio=patrimonio, bens_por_membro=bens
+        fluxo={"despesa_mensal_media": 1_000}, patrimonio=patrimonio, fallback_irpf=_sem_bens()
     )
     assert result["total_liquida"] == 10_000.0
     assert result["composicao_liquida"]["caixa"] == 10_000.0
@@ -175,7 +184,9 @@ def test_caixa_me_entra_com_finalidade_reserva(identity: MemberIdentity):
                 {"conta": "wise", "moeda": "USD", "valor_brl": 50_000, "tipo": "moeda_estrangeira"}
             ],
         },
-        bens_por_membro={"david": _bens(investimentos=[]), "mariana": _bens(investimentos=[])},
+        fallback_irpf=FallbackIrpfPorPapel(
+            titular=_bens(investimentos=[]), conjuge=_bens(investimentos=[])
+        ),
     )
     assert result["total_liquida"] == 50_000.0
     assert result["excluido_da_reserva"]["caixa_moeda_estrangeira"] == 0.0
@@ -191,7 +202,9 @@ def test_caixa_residual_sem_detalhes_fica_fora(config: ReservaEmergenciaConfig):
             "investimentos_conjuge": 0,
             "caixa_moeda_estrangeira": 50_000,
         },
-        bens_por_membro={"david": _bens(investimentos=[]), "mariana": _bens(investimentos=[])},
+        fallback_irpf=FallbackIrpfPorPapel(
+            titular=_bens(investimentos=[]), conjuge=_bens(investimentos=[])
+        ),
     )
     assert result["total_liquida"] == 0.0
     assert result["excluido_da_reserva"]["caixa_nao_classificado"] == 50_000.0
@@ -202,16 +215,16 @@ def test_posicoes_atuais_tem_precedencia_sobre_irpf(config: ReservaEmergenciaCon
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
         patrimonio={"investimentos_titular": 99_999, "investimentos_conjuge": 0},
-        investimentos_atuais={
-            "dados": [
+        carteira=_carteira(
+            [
                 {"nome": "CDB LIQUIDEZ DIARIA", "membro": "david", "valor_atual": 12_000},
                 {"nome": "ACOES PETR4", "membro": "david", "valor_atual": 40_000},
             ]
-        },
-        bens_por_membro={
-            "david": _bens(investimentos=[{"descricao": "CDB ANTIGO IRPF", "valor": 77_000}]),
-            "mariana": _bens(investimentos=[]),
-        },
+        ),
+        fallback_irpf=FallbackIrpfPorPapel(
+            titular=_bens(investimentos=[{"descricao": "CDB ANTIGO IRPF", "valor": 77_000}]),
+            conjuge=_bens(investimentos=[]),
+        ),
     )
     assert result["total_liquida"] == 12_000.0
     assert result["excluido_da_reserva"]["investimentos_nao_liquidos"] == 40_000.0

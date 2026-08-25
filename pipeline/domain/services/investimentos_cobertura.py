@@ -150,51 +150,6 @@ def motivo_supressao_da_cobertura(patrimonio: dict) -> str | None:
     return motivo_supressao_por_cobertura(coberturas)
 
 
-@dataclass(frozen=True)
-class AtribuicaoPorMembro:
-    """Totais por papel + o que não coube em ninguém ([[ADR-394]] §Emenda (b) D8)."""
-
-    titular_brl: Decimal
-    conjuge_brl: Decimal
-    nao_atribuido_brl: Decimal
-    titular_atribuido: bool
-    conjuge_atribuido: bool
-
-
-def _papel_da_chave(chave: str, titular_key: str, conjuge_key: str) -> str:
-    """`"titular"` | `"conjuge"` | `""` — o vazio é órfão, não titular."""
-    from pipeline.domain.services.member_key_matcher import matches_member_key
-
-    if not chave:
-        return ""
-    if titular_key and matches_member_key(titular_key, chave):
-        return "titular"
-    if conjuge_key and matches_member_key(conjuge_key, chave):
-        return "conjuge"
-    return ""
-
-
-# Chave que não casa titular nem cônjuge NÃO é do titular. Somar ao titular
-# afirmava posse que ninguém mediu — o montante sai em `nao_atribuido_brl`.
-def atribuir_por_membro(
-    totais: dict, *, titular_key: str, conjuge_key: str, valor_de
-) -> AtribuicaoPorMembro:
-    """Distribui `total_por_membro` entre titular, cônjuge e não-atribuído."""
-    somas = {"titular": Decimal("0"), "conjuge": Decimal("0"), "": Decimal("0")}
-    vistos: set[str] = set()
-    for member_key, value in (totais or {}).items():
-        papel = _papel_da_chave(str(member_key).lower(), titular_key, conjuge_key)
-        somas[papel] += Decimal(str(valor_de(value)))
-        vistos.add(papel)
-    return AtribuicaoPorMembro(
-        titular_brl=somas["titular"],
-        conjuge_brl=somas["conjuge"],
-        nao_atribuido_brl=somas[""],
-        titular_atribuido="titular" in vistos,
-        conjuge_atribuido="conjuge" in vistos,
-    )
-
-
 def motivo_supressao_e5(patrimonio: dict) -> str | None:
     """Prescrição cai se a guarda de sinal OU a cobertura por membro falarem."""
     from pipeline.domain.services.patrimonio_sign_guard import motivo_supressao_do_patrimonio
@@ -244,8 +199,6 @@ def review_reasons_da_cobertura(patrimonio: dict, *, stage: str, artifact_key: s
 
 __all__ = [
     "COBERTURA_ENV",
-    "AtribuicaoPorMembro",
-    "atribuir_por_membro",
     "CoberturaMembro",
     "CoberturaStatus",
     "MembroObservado",

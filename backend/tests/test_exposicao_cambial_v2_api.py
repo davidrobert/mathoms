@@ -22,20 +22,38 @@ from backend.app.models import (
 # endpoint que devolvia zero em produção. `posicoes` não tem onde morar — o E5 publica
 # agregados, não posições individuais (elas vivem no E4); o parâmetro segue na
 # assinatura para os testes que documentam a lacuna.
+# A40.l80: o card só julga faixa com TODOS os componentes apurados — o mesmo
+# predicado do `_tier` do E5. Sem isso, `indeterminado`.
+def _componentes(cobertura: str) -> dict:
+    return {
+        "componentes": {
+            "caixa_fx": {"valor_brl": 0.0, "cobertura": cobertura},
+            "carteira_lastro_estrangeiro": {"valor_brl": 0.0, "cobertura": cobertura},
+        }
+    }
+
+
+def _patrimonio(caixa_detalhes: list[dict], investivel: Decimal, serie_corrente: bool) -> dict:
+    # str porque JSON column não serializa Decimal nativamente; _to_decimal lê string corretamente
+    out = {"caixa_detalhes": caixa_detalhes, "investivel_financeiro": str(investivel)}
+    if serie_corrente:
+        out["base_versao"] = 1
+    return out
+
+
 def _e5_payload(
     *,
     posicoes: list[dict],
     caixa_detalhes: list[dict],
     investivel: Decimal,
+    cobertura: str = "apurado",
+    serie_corrente: bool = True,
 ) -> dict:
     """Shape REAL do artefato E5 — as chaves que `e5_serialization` emite."""
     payload = {
-        "patrimonio": {
-            "caixa_detalhes": caixa_detalhes,
-            # str porque JSON column não serializa Decimal nativamente; _to_decimal lê string corretamente
-            "investivel_financeiro": str(investivel),
-        },
+        "patrimonio": _patrimonio(caixa_detalhes, investivel, serie_corrente),
         "investimentos": {"total_financeiro": str(investivel), "tabela_classes": []},
+        "exposicao_cambial": _componentes(cobertura),
     }
     assert "dados" not in payload["investimentos"], (
         "o E5 não publica posições individuais — se passou a publicar, ligue o braço de "
@@ -259,3 +277,69 @@ async def test_exposicao_cambial_tier_vermelho_below_5_pct(auth_client: AsyncCli
     data = resp.json()
     assert data["pct_investivel_financeiro"] < 5.0
     assert data["tier"] == "vermelho"
+
+
+@pytest.mark.asyncio
+async def test_card_suprime_veredito_quando_o_e5_recusa(auth_client: AsyncClient, db):
+    """A40.l80: o card publicava faixa na mesma tela em que o relatório dizia
+    `indeterminado`. Mata: remover a perna de cobertura de `_tier`."""
+    payload = _e5_payload(
+        posicoes=[],
+        caixa_detalhes=[
+            {"conta": "Wise USD", "moeda": "USD", "valor_brl": 60000.0, "saldo_original": 12000.0},
+        ],
+        investivel=Decimal("500000"),
+        cobertura="indeterminado",
+    )
+    await _seed_e5_artifact(db, auth_client.ws_id, payload)
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert data["tier"] == "indeterminado"
+    # A MEDIDA continua publicada — suprime-se o veredito, nunca o número.
+    assert data["total_brl"] is not None
+    assert data["pct_investivel_financeiro"] is not None
+
+
+@pytest.mark.asyncio
+async def test_card_degrada_em_artefato_sem_base_versao(auth_client: AsyncClient, db):
+    """Mata: recompor artefato de base antiga com código novo — o híbrido sem
+    rótulo da [[ADR-412]] §D8. Ausência é "não sei", nunca "série corrente"."""
+    payload = _e5_payload(
+        posicoes=[],
+        caixa_detalhes=[
+            {"conta": "Wise USD", "moeda": "USD", "valor_brl": 60000.0, "saldo_original": 12000.0},
+        ],
+        investivel=Decimal("500000"),
+        serie_corrente=False,
+    )
+    await _seed_e5_artifact(db, auth_client.ws_id, payload)
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert data["tier"] == "indeterminado"
+
+
+@pytest.mark.asyncio
+async def test_card_le_a_base_declarada_e_nao_o_campo_legado(auth_client: AsyncClient, db):
+    """Mata: recompor o denominador em vez de ler `patrimonio.bases`, o que faria
+    o card divergir do relatório na mesma tela."""
+    payload = _e5_payload(
+        posicoes=[],
+        caixa_detalhes=[
+            {"conta": "Wise USD", "moeda": "USD", "valor_brl": 50000.0, "saldo_original": 10000.0},
+        ],
+        investivel=Decimal("250000"),
+    )
+    payload["patrimonio"]["bases"] = {
+        "carteira_financeira_familia": {"termos": [], "valor_brl": 500000.0}
+    }
+    await _seed_e5_artifact(db, auth_client.ws_id, payload)
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    # 50k sobre a base DECLARADA (500k) = 10%, não sobre o legado (250k) = 20%.
+    assert data["pct_investivel_financeiro"] == 10.0

@@ -17,8 +17,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from pipeline.domain.services.asset_classifier import classify_asset
+from pipeline.domain.services.bases_financeiras import PapelMembro, chave_de_componente
+from pipeline.domain.services.carteira_por_papel import CarteiraPorPapel
 from pipeline.domain.services.patrimonio_types import (
-    MemberIdentity,
     get_bens,
     investimento_valor,
     safe_float,
@@ -46,24 +47,43 @@ class LiquidezMembro:
     fonte: str  # "posicoes" | "irpf" | "agregado_sem_itens"
 
 
+# O eixo B (posições atuais) NÃO substitui o eixo IRPF: no dogfood o balde do
+# cônjuge vem inteiramente do braço IRPF, e tratar a carteira como resposta
+# completa o zeraria — com a identidade de conservação fechando mesmo assim,
+# porque os dois lados cairiam juntos. `sem_dono` não tem campo aqui de
+# propósito: não há pessoa cujo IRPF consultar.
+@dataclass(frozen=True)
+class FallbackIrpfPorPapel:
+    """Bens IRPF por papel; `sem_dono` nunca tem fallback."""
+
+    titular: dict | None = None
+    conjuge: dict | None = None
+
+    def para(self, papel: PapelMembro) -> dict | None:
+        return {PapelMembro.titular: self.titular, PapelMembro.conjuge: self.conjuge}.get(papel)
+
+
 @dataclass(frozen=True)
 class ReservaLiquida:
-    """Numerador decomposto: membros + caixa E3 por tipo + residual excluído."""
+    """Numerador decomposto: papéis + caixa E3 por tipo + residual excluído."""
 
-    por_membro: dict[str, LiquidezMembro]
+    por_papel: dict[PapelMembro, LiquidezMembro]
     caixa_brl: Decimal
     caixa_me: Decimal
     caixa_nao_classificado: Decimal
 
-    def componentes(self, *, incluir_caixa_me: bool, solo: bool) -> dict[str, Decimal]:
+    # Sempre os TRÊS papéis: shape estável dispensa `.get()` no leitor, e o
+    # `solo` sumiu porque um balde ausente e um balde zero diziam a mesma coisa
+    # por caminhos diferentes. `chave_de_componente`, nunca f-string ([[ADR-412]]
+    # §Emenda E7): `f"investimentos_{PapelMembro.sem_dono}"` vira
+    # `investimentos_PapelMembro.sem_dono` e o `$def` fechado rejeita os três.
+    def componentes(self, *, incluir_caixa_me: bool) -> dict[str, Decimal]:
         """Componentes quantizados a cents — ``total_liquido == Σ componentes``
         exato por construção (invariante check_lineage_sum, ADR-279)."""
         out = {
-            f"investimentos_{role}": m.valor_liquido.quantize(_CENT)
-            for role, m in self.por_membro.items()
+            chave_de_componente(papel): self.por_papel[papel].valor_liquido.quantize(_CENT)
+            for papel in PapelMembro
         }
-        if solo:
-            out.setdefault("investimentos_conjuge", _ZERO)
         out["caixa"] = self.caixa_brl.quantize(_CENT)
         out["caixa_moeda_estrangeira"] = (
             self.caixa_me.quantize(_CENT) if incluir_caixa_me else _ZERO
@@ -71,49 +91,28 @@ class ReservaLiquida:
         return out
 
     def investimentos_nao_liquidos(self) -> Decimal:
-        return sum((m.valor_excluido for m in self.por_membro.values()), _ZERO)
+        return sum((m.valor_excluido for m in self.por_papel.values()), _ZERO)
 
 
 def build_reserva_liquida(
     patrimonio: dict,
-    investimentos_atuais: dict | None,
-    bens_por_membro: Mapping[str, dict] | None,
+    carteira: CarteiraPorPapel,
+    fallback_irpf: FallbackIrpfPorPapel,
     *,
-    identity: MemberIdentity,
     keywords: Mapping[str, tuple[str, ...]] | None = None,
 ) -> ReservaLiquida:
-    """Aplica o filtro de liquidez por membro e decompõe o caixa E3 por tipo."""
-    por_membro = _liquidez_por_membro(
-        patrimonio, investimentos_atuais, bens_por_membro, identity, keywords
-    )
-    return _com_caixa_por_tipo(patrimonio, por_membro)
+    """Aplica o filtro de liquidez por papel e decompõe o caixa E3 por tipo."""
+    por_papel = _liquidez_por_papel(patrimonio, carteira, fallback_irpf, keywords)
+    return _com_caixa_por_tipo(patrimonio, por_papel)
 
 
 # Balde `None` = membro não apurado ([[ADR-394]] §Emenda (b) D7). A reserva não
 # conta dinheiro que ninguém mediu, então ele entra como zero — `_dec` já o faz, e
 # um ramo explícito seria cerimônia que nenhuma mutação mata. O contrato "None
 # conta zero" é travado por teste; a ressalva no KPI é follow-up da [[A40.l69]].
-def _liquidez_por_membro(
-    patrimonio: dict,
-    investimentos_atuais: dict | None,
-    bens_por_membro: Mapping[str, dict] | None,
-    identity: MemberIdentity,
-    keywords: Mapping[str, tuple[str, ...]] | None,
-) -> dict[str, LiquidezMembro]:
-    return {
-        identity.role_of(member_key): _liquidez_membro(
-            member_key,
-            identity=identity,
-            keywords=keywords,
-            aggregate=_dec(patrimonio.get(identity.inv_key(member_key), 0)),
-            investimentos_atuais=investimentos_atuais,
-            bens=(bens_por_membro or {}).get(member_key),
-        )
-        for member_key in _member_keys(identity)
-    }
-
-
-def _com_caixa_por_tipo(patrimonio: dict, por_membro: dict[str, LiquidezMembro]) -> ReservaLiquida:
+def _com_caixa_por_tipo(
+    patrimonio: dict, por_papel: dict[PapelMembro, LiquidezMembro]
+) -> ReservaLiquida:
     caixa_brl, caixa_me = _split_caixa_detalhes(patrimonio.get("caixa_detalhes") or [])
     # CTO-02: caixa TOTAL menos as parcelas classificadas (BRL + ME) = resíduo
     # não classificado. Lê `caixa_total_brl` com fallback ao alias legado.
@@ -122,31 +121,40 @@ def _com_caixa_por_tipo(patrimonio: dict, por_membro: dict[str, LiquidezMembro])
     )
     nao_classificado = caixa_total - caixa_brl - caixa_me
     return ReservaLiquida(
-        por_membro=por_membro,
+        por_papel=por_papel,
         caixa_brl=caixa_brl,
         caixa_me=caixa_me,
         caixa_nao_classificado=max(_ZERO, nao_classificado),
     )
 
 
-def _member_keys(identity: MemberIdentity) -> list[str]:
-    keys = [identity.titular_key]
-    if identity.conjuge_key:
-        keys.append(identity.conjuge_key)
-    return keys
-
-
-def _liquidez_membro(
-    member_key: str,
-    *,
-    identity: MemberIdentity,
+def _liquidez_por_papel(
+    patrimonio: dict,
+    carteira: CarteiraPorPapel,
+    fallback_irpf: FallbackIrpfPorPapel,
     keywords: Mapping[str, tuple[str, ...]] | None,
-    aggregate: Decimal,
-    investimentos_atuais: dict | None,
+) -> dict[PapelMembro, LiquidezMembro]:
+    return {
+        papel: _liquidez_do_papel(
+            papel,
+            keywords=keywords,
+            posicoes=list(carteira[papel].posicoes),
+            bens=fallback_irpf.para(papel),
+            aggregate=_dec(patrimonio.get(chave_de_componente(papel), 0)),
+        )
+        for papel in PapelMembro
+    }
+
+
+def _liquidez_do_papel(
+    papel: PapelMembro,
+    *,
+    keywords: Mapping[str, tuple[str, ...]] | None,
+    posicoes: list[dict],
     bens: dict | None,
+    aggregate: Decimal,
 ) -> LiquidezMembro:
-    items = _positions_for_member(member_key, identity, investimentos_atuais)
-    fonte = "posicoes"
+    items, fonte = posicoes, "posicoes"
     if not items and bens is not None:
         items, fonte = _irpf_items(get_bens(bens)), "irpf"
     if not items:
@@ -172,23 +180,6 @@ def _filter_liquid(
         else:
             excluido += valor
     return liquido, excluido
-
-
-def _positions_for_member(
-    member_key: str, identity: MemberIdentity, investimentos_atuais: dict | None
-) -> list[dict]:
-    """Posições atuais do membro; sem membro atribuído → titular (convenção legado)."""
-    dados = (investimentos_atuais or {}).get("dados") or []
-    out: list[dict] = []
-    for pos in dados:
-        if not isinstance(pos, dict):
-            continue
-        membro = str(pos.get("membro") or "").lower()
-        if member_key and member_key in membro:
-            out.append(pos)
-        elif not membro and member_key == identity.titular_key:
-            out.append(pos)
-    return out
 
 
 def _irpf_items(bens: dict) -> list[dict]:
@@ -237,4 +228,9 @@ def _split_caixa_detalhes(detalhes: list) -> tuple[Decimal, Decimal]:
     return caixa, moeda_estrangeira
 
 
-__all__ = ["LiquidezMembro", "ReservaLiquida", "build_reserva_liquida"]
+__all__ = [
+    "FallbackIrpfPorPapel",
+    "LiquidezMembro",
+    "ReservaLiquida",
+    "build_reserva_liquida",
+]

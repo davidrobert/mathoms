@@ -22,6 +22,7 @@ from pipeline.domain.services.reserva_emergencia_calculator import (
     EmergencyReserveCalculator,
     ReservaEmergenciaConfig,
 )
+from pipeline.domain.services.reserva_liquidez import FallbackIrpfPorPapel
 from scripts.pipeline_common import validate_dict
 from tests.fixtures.e5_fluxo_minimo import FLUXO_CAIXA_MINIMO
 
@@ -67,11 +68,11 @@ def _reserva_do_produtor(*, com_renda_pj: bool = False) -> dict:
     return calculator.calculate(
         fluxo=fluxo,
         patrimonio={"investimentos_titular": 30_000, "caixa_total_brl": 0},
-        bens_por_membro={
-            "titular": {
+        fallback_irpf=FallbackIrpfPorPapel(
+            titular={
                 "bens": {"investimentos": [{"descricao": "CDB LIQUIDEZ DIARIA", "valor": 30_000}]}
             }
-        },
+        ),
     )
 
 
