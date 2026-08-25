@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -386,16 +385,20 @@ def _coberto_pelo_manifest(path: str, projetados: set[str]) -> bool:
     )
 
 
-# Precedente `check_scheduled_workflows`: instrumento mudo degrada para warning FORA do
-# CI (clone raso, fork) e BLOQUEIA dentro dele. Degradar em silêncio no CI recriaria o
-# fail-open que esta lane fecha — o gate anterior derivava de `git diff HEAD`, que é
-# vazio sob `pre-commit --all-files`, e por isso nunca existiu no CI.
-def _sem_baseline(report: CoverageReport) -> None:
+# Precedente `check_scheduled_workflows`: instrumento mudo degrada para warning quando
+# o baseline é legitimamente inalcançável (clone raso, fork) e BLOQUEIA na invocação do
+# gate. Degradar em silêncio recriaria o fail-open que esta lane fecha.
+#
+# `strict` é PARÂMETRO e não leitura de `os.environ["CI"]` aqui dentro: a variável vale
+# para o processo inteiro, então ler env dentro da biblioteca fazia qualquer teste que
+# tocasse este módulo hard-falhar sob CI por motivo ambiental — medido no #1716, onde 4
+# testes de COBERTURA quebraram por causa do baseline. Quem invoca o gate decide.
+def _sem_baseline(report: CoverageReport, strict: bool) -> None:
     msg = (
         "[drift] `origin/main` inalcançável — campo novo no E5 não pôde ser aferido. "
         "Em CI, garanta `git fetch --no-tags --depth=1 origin main` antes do gate."
     )
-    (report.fail if os.environ.get("CI") else report.warn)(msg)
+    (report.fail if strict else report.warn)(msg)
 
 
 def _fail_campo_novo(path: str, report: CoverageReport) -> None:
@@ -415,6 +418,8 @@ def check_schema_manifest_drift(
     manifest_path: Path,
     report: CoverageReport,
     changed_paths: frozenset[str] | None = None,
+    *,
+    strict_baseline: bool = False,
 ) -> None:
     """Campo novo no E5 é projetado no manifest ou escapado com razão (A40.l83 · RV8-05b)."""
     del changed_paths  # a decisão deixou de derivar de "o arquivo mudou?"
@@ -432,7 +437,7 @@ def check_schema_manifest_drift(
             "(débito herdado, não bloqueia). Campo NOVO bloqueia."
         )
     if baseline is None or baseline == "HEAD":
-        _sem_baseline(report)
+        _sem_baseline(report, strict_baseline)
         return
     antes = _e5_leaf_paths(_schema_at(baseline, rel) or {})
     for path in sorted(folhas - antes):

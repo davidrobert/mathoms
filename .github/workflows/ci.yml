@@ -473,7 +473,11 @@ jobs:
       # `origin/main` o gate não teria com o que comparar — ficaria inerte exatamente
       # como o `warn` que ele substitui. Um ref, profundidade 1: ~1s.
       - name: Base de merge para gates que comparam com main
-        run: git fetch --no-tags --depth=1 origin main
+        # Refspec explícito: o checkout do Actions configura `remote.origin.fetch`
+        # só para o ref do PR, então `git fetch origin main` depende do update
+        # oportunista do git para criar `refs/remotes/origin/main`. Nomear o
+        # destino tira a dependência da versão do git.
+        run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
 
       - name: Setup Python
         uses: actions/setup-python@v5

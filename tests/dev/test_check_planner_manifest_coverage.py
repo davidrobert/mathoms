@@ -234,7 +234,6 @@ def _drift(
 ) -> internals.CoverageReport:
     sp, mp = _sintetico(tmp_path, atual, manifest if manifest is not None else _MANIFEST_FAKE)
     monkeypatch.setattr(internals, "_schema_at", lambda ref, rel: baseline)
-    monkeypatch.delenv("CI", raising=False)
     report = internals.CoverageReport()
     internals.check_schema_manifest_drift(sp, mp, report)
     return report
@@ -242,6 +241,12 @@ def _drift(
 
 def test_estado_atual_do_repo_nao_bloqueia() -> None:
     """Sem campo novo, o gate passa — o débito herdado sai como contagem, não como erro."""
+    if internals._baseline_ref(internals._repo_relative(E5_SCHEMA)) in (None, "HEAD"):
+        pytest.skip(
+            "sem `origin/main` alcançável (checkout raso): esta asserção é sobre o repo "
+            "vigente e passaria vazia. A invocação real do gate cobre isto no lint-all, "
+            "que faz o fetch da base."
+        )
     report = internals.CoverageReport()
     internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report)
     assert report.ok, report.errors
@@ -293,39 +298,37 @@ def test_escape_cobre_a_subarvore() -> None:
     assert not internals._escapado("$.patrimonio.bruto")
 
 
-def test_sem_baseline_bloqueia_dentro_do_ci(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Instrumento mudo é hard-fail no CI (precedente `check_scheduled_workflows`):
+def test_sem_baseline_bloqueia_sob_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Instrumento mudo é hard-fail sob `strict` (precedente `check_scheduled_workflows`):
     degradar em silêncio recriaria o fail-open que esta lane fecha."""
     monkeypatch.setattr(internals, "_schema_at", lambda ref, rel: None)
-    monkeypatch.setenv("CI", "true")
     report = internals.CoverageReport()
-    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report)
+    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report, strict_baseline=True)
     assert not report.ok
     assert any("inalcançável" in e for e in report.errors), report.errors
 
 
-def test_clone_raso_bloqueia_no_ci(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Cenário REAL do CI: `origin/main` ausente e `HEAD` presente — comparar com HEAD
-    devolve zero campos novos e o gate ficaria verde sem ter medido nada."""
+def test_clone_raso_bloqueia_sob_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Cenário REAL do checkout raso: `origin/main` ausente e `HEAD` presente — comparar
+    com HEAD devolve zero campos novos e o gate ficaria verde sem ter medido nada."""
     real = internals._schema_at
     monkeypatch.setattr(
         internals,
         "_schema_at",
         lambda ref, rel: None if ref == "origin/main" else real(ref, rel),
     )
-    monkeypatch.setenv("CI", "true")
     report = internals.CoverageReport()
-    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report)
+    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report, strict_baseline=True)
     assert not report.ok, "baseline degradado para HEAD passou batido — gate cego"
     assert any("inalcançável" in e for e in report.errors), report.errors
 
 
-def test_sem_baseline_degrada_fora_do_ci(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Fora do CI (clone raso, fork) o gate avisa em vez de travar o dev."""
+def test_sem_baseline_degrada_sem_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Chamada de biblioteca (teste, script) avisa em vez de travar — a rigidez é da
+    INVOCAÇÃO do gate, que a liga via `strict_baseline`."""
     monkeypatch.setattr(internals, "_schema_at", lambda ref, rel: None)
-    monkeypatch.delenv("CI", raising=False)
     report = internals.CoverageReport()
-    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report)
+    internals.check_schema_manifest_drift(E5_SCHEMA, MANIFEST, report, strict_baseline=False)
     assert report.ok, report.errors
     assert any("inalcançável" in w for w in report.warnings), report.warnings
 
