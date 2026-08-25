@@ -1,0 +1,78 @@
+# Auditoria da proteção de main (ADR-415)
+#
+# Por que existe: entre 2026-08-05 e 08-25, 64 merges (16% dos pushes em
+# `main`) entraram por bypass do Ruleset e NENHUM deixou registro. O backfill
+# mediu 53 deles sem gate — 46 com o required check concluindo DEPOIS do
+# merge e 7 com ele VERMELHO, incluindo o #1508, que quebrou a main.
+#
+# O que ele mede: o veredito do required check NO MOMENTO DO MERGE, para o
+# SHA que entrou. Verde que chega depois não protegeu nada — ler só
+# `conclusion` diria "ok" em 46 dos 53 casos.
+#
+# Por que não é um step em workflow existente: a auditoria precisa rodar
+# justamente nos dias em que a infra falha, e acoplá-la ao trem
+# (`auto-update-prs`, único outro workflow em `push: main`) a mataria junto
+# com ele — o 403 do PAT o derrubou 10× em ~5h em 2026-08-17. O custo é ~10s
+# por merge e Actions em repo público não fatura (ADR-210 §Emenda 2026-08-25).
+#
+# Ressalva declarada: ler `rulesets/rule-suites` exige permissão de
+# administração, que o `GITHUB_TOKEN` não tem. O braço de enriquecimento
+# (quem deu o bypass) degrada com a lacuna DITA na Issue; o veredito do SHA,
+# que é o instrumento primário, não depende dele.
+
+# SEM `schedule:` de propósito, nesta primeira versão. O gate de liveness
+# exige que todo workflow agendado esteja no manifesto (S0) E que o Actions já
+# conheça o arquivo (S1) — e o Actions só o conhece depois do merge, então um
+# PR que nasça agendado não consegue mergear a si mesmo. É o mesmo bootstrap
+# que a ADR-210 §Adendo 2026-08-21b registrou para a entrada `ops-watchdog`.
+# O braço `push: main` cobre todos os merges; o sweep agendado (retenção curta
+# da API + `rulesets/{id}/history`) entra na leva da Onda 1, com o arquivo já
+# em `main`. Rodável à mão enquanto isso: `--sweep --period month`.
+name: Merge audit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      period:
+        description: "Janela do índice de bypass (day|week|month)"
+        default: week
+
+permissions:
+  contents: read
+
+concurrency:
+  # Não cancela: cada merge é um SHA distinto a auditar, e cancelar o
+  # anterior perderia o veredito dele para sempre.
+  group: merge-audit-${{ github.event_name }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: SHA mergeado foi gateado?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # commits/{sha}/pulls
+      checks: read # commits/{sha}/check-runs
+      pull-requests: read # PR do SHA
+      issues: write # Issue de auditoria
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Auditar o SHA que entrou em main
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 dev/ci_audit_merge_protection.py --sha "${{ github.sha }}"
+
+      - name: Sweep de bypasses do período
+        if: github.event_name != 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 dev/ci_audit_merge_protection.py --sweep \
+            --period "${{ inputs.period || 'week' }}"
