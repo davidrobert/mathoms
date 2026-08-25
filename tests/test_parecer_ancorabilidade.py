@@ -235,7 +235,7 @@ _SNAPSHOT_COMMENT = (
     "catálogo RENDERIZADO. Gate por diff de conjunto: um #1004 futuro aparece aqui. "
     "Rebaseline: MATHOMS_UPDATE_SNAPSHOT=1 pytest tests/test_parecer_ancorabilidade.py "
     "— US$ 0, in-process. ESTE CORPUS LÊ OTIMISTA: na A40.l83 o mesmo instrumento deu "
-    "92,9% aqui e 86,1% no E5 real do run r8 (antes do fix: 39,3% aqui, 0% lá). O motivo "
+    "92,9% aqui e 86,5% no E5 real do run r8 (antes do fix: 39,3% aqui, 0% lá). O motivo "
     "é cardinalidade — `paths_projetados_sem_dado_no_corpus` abaixo lista 16 paths que "
     "produção fornece e este corpus não, e onde produção tem 31 linhas de endividamento "
     "e 28 de reserva o corpus tem 2 e 4. São as duas raízes que consomem o catálogo, "

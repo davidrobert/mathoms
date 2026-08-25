@@ -102,7 +102,14 @@
 # cardinalidade escala com o cliente (quem tem mais dívidas nunca via
 # investimentos). Semear leva a 52,8% no mesmo orçamento; com `max_bytes` 2400,
 # a 86,1%. Subir bytes SEM semear compra 25% a 3,1× o orçamento.
-version: "2.2.0"
+# 2.3.0 — A40.l83 (RV8-05): projeta os seis campos de incerteza que existiam no E5
+# e que o manifest (whitelist) nunca declarou — investimentos_nao_atribuidos,
+# cobertura_investimentos, nao_classificado_pct, diagnostico_confianca,
+# guarda_de_sinal e pl_ressalva. Medido no run r8: o modelo ressalvou 3 de 3
+# lacunas declaradas e 0 de 1 não declarada, e o diagnóstico estava em
+# `insuficiente` (30,7% de despesa não identificada) sem que o parecer soubesse.
+# Nenhum limiar novo: os hints consomem o veredito da ADR-353 e da ADR-394 §Emenda.
+version: "2.3.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -189,7 +196,42 @@ context_sections:
           - {path: "$.exposicao_cambial.total_brl", label: "Exposição cambial total", format: "brl"}
           - {path: "$.exposicao_cambial.pct_investivel_financeiro", label: "% do investível financeiro (posições atuais + caixa)", format: "percent2"}
           - {path: "$.exposicao_cambial.tier", label: "Tier (verde >=10% / amarelo 5-10% / vermelho <5%)", format: "string"}
+      # A40.l83 · RV8-05: o manifest é WHITELIST — o que não está declarado não entra.
+      # Os seis campos de incerteza construídos ao longo da A40 existiam no E5 e nenhum
+      # era projetado. Medido no run r8: o modelo ressalvou 3 de 3 lacunas que o payload
+      # declarou e 0 de 1 da que ele não declarou — o defeito é de PROJEÇÃO, não de
+      # prompt, e consertar o prompt seria consertar o lado errado. Nenhum limiar novo
+      # é inventado aqui: `diagnostico_confianca.nivel` é o veredito da [[ADR-353]] e
+      # `guarda_de_sinal.motivo_supressao` é o da [[ADR-394]] §Emenda (sobrevivente
+      # negativo suprime a prescrição). NÃO confundir com o `motivo_supressao` de
+      # `$.goals.alocacao_alvo.derived`, que é da [[ADR-400]] e é outro campo.
+      # O parecer passa a RECEBÊ-LOS.
+      - format: "key_value"
+        title: "Cobertura e incerteza do retrato (o que os números NÃO cobrem)"
+        fields:
+          - {path: "$.patrimonio.investimentos_nao_atribuidos", label: "Investimentos sem dono atribuído", format: "brl"}
+          - {path: "$.patrimonio.pl_ressalva", label: "Patrimônio líquido sob ressalva", format: "raw"}
+          - {path: "$.investimentos.nao_classificado_pct", label: "% da carteira que nenhum degrau classificou", format: "percent2"}
+          - {path: "$.diagnostico_confianca.nivel", label: "Confiança do diagnóstico (alta / parcial >10% / insuficiente >30%, ADR-353)", format: "string"}
+          - {path: "$.diagnostico_confianca.share_nao_identificado_pct", label: "% de despesa não identificada", format: "percent2"}
+          - {path: "$.patrimonio.guarda_de_sinal.modo", label: "Guarda de sinal — modo", format: "string"}
+          - {path: "$.patrimonio.guarda_de_sinal.cobertura_completa", label: "Guarda de sinal — cobertura completa", format: "raw"}
+          - {path: "$.patrimonio.guarda_de_sinal.motivo_supressao", label: "Motivo de supressão da prescrição (null = nada suprimido)", format: "string"}
+      # Sem a coluna `membro`: a postura de PII deste manifest é PAPEL, não identidade
+      # (ver $.composicao_familiar, que projeta papel + faixa etária e nenhum nome). O
+      # que sustenta a ressalva é status/fonte/frescor, não quem é o titular.
+      - format: "table"
+        title: "Cobertura de investimentos por titular (fonte e frescor do dado que sustenta o retrato)"
+        path: "$.patrimonio.cobertura_investimentos[*]"
+        columns:
+          - {path: "status", label: "Status", format: "raw"}
+          - {path: "fonte", label: "Fonte", format: "raw"}
+          - {path: "frescor", label: "Frescor (ano do dado)", format: "raw"}
+          - {path: "motivo", label: "Motivo", format: "raw"}
+        max_rows: 8
     narrative_hints:
+      - "Leia $.diagnostico_confianca.nivel antes de prescrever: 'insuficiente' (>30%) torna a prescrição provisória, com ressalva no item; 'parcial' (>10%) exige ressalva onde a base pesa. É veredito do motor (ADR-353) — não recalcule."
+      - "guarda_de_sinal.motivo_supressao não-nulo = prescrição já suprimida a montante (ADR-394): declare o motivo, não reintroduza. Com investimentos_nao_atribuidos>0 ou nao_classificado_pct>0, todo % de carteira declara a incompletude."
       - "Concentração imobiliária = RISCO: cite $.ratios.concentracao_imobiliaria (base carteira produtiva, SSOT ADR-340), NÃO o pct de tabela_classes[imóveis] (COMPOSIÇÃO, base total investido). Dois números legítimos; risco usa o de risco."
       - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
       - "Rótulo de base obrigatório (A37.l9): todo percentual citado declara a base. Peso de classe financeira (Internacional/RF/Ações/FIIs) sai da coluna '% da carteira financeira' — nunca rotule 'carteira financeira' número de base com imóvel."
@@ -642,15 +684,16 @@ evidencia_verification_mode: "strict"
 # emit:false reproduz o exec context pré-A26 byte-a-byte.
 # A40.l83: `max_bytes` é o ORÇAMENTO; `max_entries` deixou de ser controle de custo
 # (a semente do corpo pode passar de 30 folhas e ser clipada antes do corte por
-# bytes). Um knob só decide o custo. 2400 é joelho medido no E5 real do run r8:
-# 1600→52,8%, 2400→86,1% e nada acima de 2400 compra ancorabilidade — só entries
-# que o modelo não vê no corpo.
+# bytes). Um knob só decide o custo. 2600 é joelho RE-MEDIDO no E5 real do run r8
+# após a projeção dos campos de incerteza (RV8-05) — o joelho ANDA quando o
+# manifest projeta mais dinheiro visível: era 2400 com 36 folhas visíveis, é 2600
+# com 37. 1600→52,8% · 2600→86,5%, e nada acima compra ancorabilidade.
 citation_catalog:
   emit: true
   format: "flat_path_list"
   monetary_only: true
   max_entries: 60
-  max_bytes: 2400
+  max_bytes: 2600
 
 # A40.l49 — rótulo do chip por folha, não por bloco. rotulo_id é o que o LLM
 # copia; label é o texto do chip (finalize). Path ausente daqui = fail-open.

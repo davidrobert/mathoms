@@ -1,10 +1,10 @@
 {
-  "_comment": "A40.l30 item 2 — folhas R$ visíveis no corpo do exec context sem rota de citação no catálogo RENDERIZADO. Gate por diff de conjunto: um #1004 futuro aparece aqui. Rebaseline: MATHOMS_UPDATE_SNAPSHOT=1 pytest tests/test_parecer_ancorabilidade.py — US$ 0, in-process. ESTE CORPUS LÊ OTIMISTA: na A40.l83 o mesmo instrumento deu 92,9% aqui e 86,1% no E5 real do run r8 (antes do fix: 39,3% aqui, 0% lá). O motivo é cardinalidade — `paths_projetados_sem_dado_no_corpus` abaixo lista 16 paths que produção fornece e este corpus não, e onde produção tem 31 linhas de endividamento e 28 de reserva o corpus tem 2 e 4. São as duas raízes que consomem o catálogo, então o colapso medido em produção é IRREPRODUZÍVEL aqui. Enquanto esse déficit existir, um verde neste snapshot não é evidência sobre produção.",
+  "_comment": "A40.l30 item 2 — folhas R$ visíveis no corpo do exec context sem rota de citação no catálogo RENDERIZADO. Gate por diff de conjunto: um #1004 futuro aparece aqui. Rebaseline: MATHOMS_UPDATE_SNAPSHOT=1 pytest tests/test_parecer_ancorabilidade.py — US$ 0, in-process. ESTE CORPUS LÊ OTIMISTA: na A40.l83 o mesmo instrumento deu 92,9% aqui e 86,5% no E5 real do run r8 (antes do fix: 39,3% aqui, 0% lá). O motivo é cardinalidade — `paths_projetados_sem_dado_no_corpus` abaixo lista 16 paths que produção fornece e este corpus não, e onde produção tem 31 linhas de endividamento e 28 de reserva o corpus tem 2 e 4. São as duas raízes que consomem o catálogo, então o colapso medido em produção é IRREPRODUZÍVEL aqui. Enquanto esse déficit existir, um verde neste snapshot não é evidência sobre produção.",
   "corpus": "make_workspace_e5 (sintético, PII-zero)",
   "parametros_geradores": {
-    "manifest_version": "2.2.0",
+    "manifest_version": "2.3.0",
     "max_exec_context_bytes": 16384,
-    "catalogo_max_bytes": 2400,
+    "catalogo_max_bytes": 2600,
     "catalogo_max_entries": 60,
     "max_list_items": 5,
     "priority_roots": [
@@ -21,8 +21,8 @@
   "medicao": {
     "visiveis": 28,
     "ancoraveis": 26,
-    "catalogo_construido": 37,
-    "catalogo_renderizado": 30,
+    "catalogo_construido": 38,
+    "catalogo_renderizado": 33,
     "hard_cut": false
   },
   "inancoraveis": [
@@ -38,12 +38,21 @@
     "$.consumo_consciente.teto_sugerido",
     "$.consumo_consciente.total_pontuais",
     "$.consumo_consciente.total_pontuais_janela",
+    "$.diagnostico_confianca.nivel",
+    "$.diagnostico_confianca.share_nao_identificado_pct",
     "$.fluxo_caixa.despesa_mensal_essencial",
     "$.fluxo_caixa.janela",
     "$.fluxo_caixa.janela_meses",
     "$.fluxo_caixa.receita_one_time",
     "$.fluxo_caixa.receita_recorrente",
+    "$.investimentos.nao_classificado_pct",
     "$.irpf_kpis.dependentes",
+    "$.patrimonio.cobertura_investimentos[*]",
+    "$.patrimonio.guarda_de_sinal.cobertura_completa",
+    "$.patrimonio.guarda_de_sinal.modo",
+    "$.patrimonio.guarda_de_sinal.motivo_supressao",
+    "$.patrimonio.investimentos_nao_atribuidos",
+    "$.patrimonio.pl_ressalva",
     "$.premissas_economicas.status",
     "$.ratios.concentracao_imobiliaria"
   ]
