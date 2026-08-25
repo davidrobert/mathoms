@@ -95,7 +95,14 @@
 # 2.0.5 — A40.l49 PR1 (ADR-296 emenda): citation_labels path→{rotulo_id,label};
 # pairing do verificador deixa o root e passa a cruzar rotulo ↔ rotulo_id do
 # mapa. Hints de emissão alinhados (rotulo = id da linha, não o grupo).
-version: "2.1.0"
+# 2.2.0 — A40.l83 (RV8-07): o catálogo passa a ser SEMEADO pelas folhas R$ que o
+# corpo renderiza, e só depois pelas `_PRIORITY_ROOTS`. Medido no E5 real do run
+# r8: as raízes visíveis e as priorizadas não tinham UMA interseção — 0 de 36
+# folhas visíveis tinham rota de citação, e o catálogo colapsava em 2 raízes cuja
+# cardinalidade escala com o cliente (quem tem mais dívidas nunca via
+# investimentos). Semear leva a 52,8% no mesmo orçamento; com `max_bytes` 2400,
+# a 86,1%. Subir bytes SEM semear compra 25% a 3,1× o orçamento.
+version: "2.2.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -633,12 +640,17 @@ evidencia_verification_mode: "strict"
 # de adivinhar JSONPath (telemetria 1.5.0: 79% das falhas eram whitelist_miss).
 # Bloco computado por parecer_citation_catalog.py; aqui só a intenção declarativa.
 # emit:false reproduz o exec context pré-A26 byte-a-byte.
+# A40.l83: `max_bytes` é o ORÇAMENTO; `max_entries` deixou de ser controle de custo
+# (a semente do corpo pode passar de 30 folhas e ser clipada antes do corte por
+# bytes). Um knob só decide o custo. 2400 é joelho medido no E5 real do run r8:
+# 1600→52,8%, 2400→86,1% e nada acima de 2400 compra ancorabilidade — só entries
+# que o modelo não vê no corpo.
 citation_catalog:
   emit: true
   format: "flat_path_list"
   monetary_only: true
-  max_entries: 30
-  max_bytes: 1600
+  max_entries: 60
+  max_bytes: 2400
 
 # A40.l49 — rótulo do chip por folha, não por bloco. rotulo_id é o que o LLM
 # copia; label é o texto do chip (finalize). Path ausente daqui = fail-open.
