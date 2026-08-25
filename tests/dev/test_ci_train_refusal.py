@@ -106,7 +106,7 @@ class TestRecusaNaoMataORun:
         )
         assert tentados == [1, 2]
         assert decision.pr is not None and decision.pr["number"] == 2
-        assert decision.refused == (1,)
+        assert [r.number for r in decision.refused] == [1]
         assert "skip #1" in capsys.readouterr().out
 
     def test_fila_inteira_recusando_para_no_teto_sem_dizer_trem_em_dia(self) -> None:
@@ -116,7 +116,7 @@ class TestRecusaNaoMataORun:
             prs, _runs_fake({}), _updater_that_refuses({1, 2, 3, 4, 5}, tentados)
         )
         assert len(tentados) == train.MAX_REFUSALS_PER_RUN
-        assert decision.pr is None and decision.refused == (1, 2, 3)
+        assert decision.pr is None and [r.number for r in decision.refused] == [1, 2, 3]
         assert "trem em dia" not in describe_decision(decision)
 
     def test_5xx_no_update_sobe_e_nao_vira_skip(self) -> None:
@@ -149,7 +149,7 @@ class TestRecusaNaoMataORun:
         decision = train.advance_train(prs, _runs_fake({}), _updater_that_refuses({1}, []))
         assert decision.pr is None
         assert decision.head_on_hold is not None and decision.head_on_hold["number"] == 2
-        assert decision.refused == (1,)
+        assert [r.number for r in decision.refused] == [1]
 
     def test_linha_final_nomeia_os_recusados_e_a_causa(self) -> None:
         decision = train.advance_train(
@@ -157,3 +157,66 @@ class TestRecusaNaoMataORun:
         )
         linha = describe_decision(decision)
         assert "#1" in linha and "workflow" in linha and "update-branch #2" in linha
+
+
+class TestCausaSaiDoStatusObservado:
+    """A linha final acusava "403 é PAT sem escopo workflow" para QUALQUER 4xx —
+    404, 422 e 429 recebiam o mesmo diagnóstico inventado."""
+
+    @pytest.mark.parametrize("status", [404, 422])
+    def test_4xx_que_nao_e_403_nao_recebe_o_diagnostico_do_403(self, status: int) -> None:
+        decision = train.advance_train(
+            [_pr(1), _pr(2)], _runs_fake({}), _updater_that_refuses({1}, [], status=status)
+        )
+        linha = describe_decision(decision)
+        assert "PAT sem escopo" not in linha
+        assert str(status) in linha
+
+    def test_403_ainda_explica_o_caso_provavel_sem_fechar_a_questao(self) -> None:
+        decision = train.advance_train([_pr(1)], _runs_fake({}), _updater_that_refuses({1}, []))
+        linha = describe_decision(decision)
+        assert "workflow" in linha and "costuma ser" in linha
+
+    def test_refusal_carrega_status_e_causa(self) -> None:
+        decision = train.advance_train([_pr(1)], _runs_fake({}), _updater_that_refuses({1}, []))
+        assert decision.refused[0].status == 403
+        assert "403" in decision.refused[0].detail
+
+
+class TestRateLimitNaoEVeredito:
+    """429 e o 403 de rate limit secundário são 4xx pelo número e transientes
+    pelo mecanismo — a medição de 0/10 recuperados é sobre 403 de ESCOPO."""
+
+    def test_429_sobe_em_vez_de_virar_skip(self) -> None:
+        tentados: list[int] = []
+        with pytest.raises(train.GhCallFailed):
+            train.advance_train(
+                [_pr(1), _pr(2)], _runs_fake({}), _updater_that_refuses({1}, tentados, status=429)
+            )
+        assert tentados == [1]
+
+    def test_403_de_rate_limit_secundario_nao_e_veredito(self) -> None:
+        falha = train.GhCallFailed(1, "gh: You have exceeded a secondary rate limit (HTTP 403)")
+        assert falha.is_rate_limited and not falha.is_verdict
+
+    def test_403_de_escopo_continua_veredito(self) -> None:
+        assert _refusal(403).is_verdict and not _refusal(403).is_rate_limited
+
+
+class TestTetoNaoSeDisfarcaDeFilaVazia:
+    def test_teto_declara_que_a_fila_nao_foi_esgotada(self) -> None:
+        """`nada mais a atualizar` com 2 PRs nunca tentados é a mesma classe do
+        'trem em dia' de 08-21: enfileiramento vivo lido como fila vazia."""
+        prs = [_pr(n) for n in (1, 2, 3, 4, 5)]
+        decision = train.advance_train(
+            prs, _runs_fake({}), _updater_that_refuses({1, 2, 3, 4, 5}, [])
+        )
+        linha = describe_decision(decision)
+        assert decision.hit_refusal_cap
+        assert "NÃO foi" in linha and "teto" in linha
+        assert "nada mais a atualizar" not in linha
+
+    def test_fila_realmente_esgotada_nao_fala_em_teto(self) -> None:
+        decision = train.advance_train([_pr(1)], _runs_fake({}), _updater_that_refuses({1}, []))
+        linha = describe_decision(decision)
+        assert not decision.hit_refusal_cap and "teto" not in linha

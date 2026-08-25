@@ -100,17 +100,43 @@ naquele instante — bypass administrativo, sancionado por
   (inexequível: o dono é admin) e sim o **registro automático**: todo bypass
   vira Issue com o SHA e o veredito do check-run no momento do merge (D3).
 - **D3 — o SHA mergeado é a unidade de verificação.** Um job em `push: main`
-  lê o check-run `All checks green` **no SHA que entrou** e classifica em três:
-  `ausente` (corrida/outage), `failure` (**P0 — pede revert**) e `bypass`
-  (cruzado com rule-suites). O predicado é *o veredito no momento do merge*:
-  run que fecha verde depois **não** reclassifica — foi lendo o estado
-  eventual que uma varredura de 40 PRs concluiu "38/40 íntegros" no mesmo
-  período em que 64 merges passavam sem gate.
-- **D4 — a auditoria de bypass é diária, paginada e com `time_period=week`.**
-  O default `day` mais página única vê ~2 de 64. O sweep também compara
-  `rulesets/{id}/history`: desabilitar o ruleset, mergear e reabilitar é
-  bypass que **não** aparece em rule-suites, e sem esse braço a auditoria
-  fecha a porta e deixa a janela.
+  resolve SHA de `main` → PR → **head** → check-run `All checks green` (o
+  squash cria commit novo: check-runs do SHA de `main` são sempre vazios) e
+  classifica em **cinco** vereditos, quatro deles "não gateado":
+
+  | veredito | significado | ação |
+  |---|---|---|
+  | `gated` | verde **e** concluído antes do merge | nenhuma |
+  | `late` | verde concluído **depois** do merge | Issue — **classe dominante** (46 de 53 no backfill) |
+  | `red` | check vermelho no head | Issue — **pede revert** |
+  | `absent` | nenhum check-run no head | Issue — corrida/outage |
+  | `unknown` | sem PR associado, ou sem timestamp para ordenar | Issue |
+
+  O predicado é *o veredito no momento do merge*: run que fecha verde depois
+  **não** reclassifica — foi lendo o estado eventual que uma varredura de 40
+  PRs concluiu "38/40 íntegros" no mesmo período em que 64 merges passavam sem
+  gate. `bypass` **não** é veredito: é enriquecimento opcional da causa, e a
+  ausência dele não impede a detecção (corrida e outage não deixam rastro em
+  rule-suites).
+- **D4 — a auditoria de bypass é paginada e com `time_period=week`.** O default
+  `day` mais página única vê ~2 de 64; página cheia até o teto é truncagem e
+  vira erro, não silêncio. **Sem leitura não há contagem**: quando
+  `rule-suites` responde 403 — o caso *esperado* sob `GITHUB_TOKEN`, que não
+  pode receber `Administration: read` porque essa permissão não existe na
+  chave `permissions:` do Actions — o sweep aborta com código ≠ 0 em vez de
+  imprimir "0 bypasses", que seria o instrumento cometendo a falta que ele
+  existe para denunciar.
+
+  > **Fase — o que existe hoje e o que é da Onda 1.** O braço `push: main`
+  > está em produção desde 2026-08-25. O **agendamento diário** e a comparação
+  > de `rulesets/{id}/history` (desabilitar o ruleset, mergear e reabilitar é
+  > bypass que não aparece em rule-suites) **ainda não existem**: workflow com
+  > `schedule:` precisa de entrada no manifesto (S0) e que o Actions já conheça
+  > o arquivo (S1), e o Actions só o conhece após o merge — um PR que nasça
+  > agendado não mergeia a si mesmo. Entram na leva da Onda 1 do
+  > [[PLAN-ci-trust]], junto com o token que consiga ler `rule-suites`. Até lá
+  > o sweep é rodável à mão com credencial de admin
+  > (`--sweep --period month`).
 - **D5 — `required_approving_review_count` continua 0.** Num repo de um humano
   com N agentes, exigir aprovação converte 550 merges/25d numa fila de
   aprovação e o resultado previsível é **mais** bypass, não mais qualidade.
@@ -133,8 +159,10 @@ naquele instante — bypass administrativo, sancionado por
 
 ## Consequências
 
-- Todo bypass passa a custar uma Issue e um follow-up; nenhum deixa de existir
-  no registro por decurso de prazo.
+- Todo merge sem gate passa a custar uma Issue e um follow-up; nenhum deixa de
+  existir no registro por decurso de prazo. **O registro ACRESCENTA** (uma
+  entrada por merge): `issue edit --body` substituiria o corpo inteiro e
+  guardaria só o último — a promessa desta linha exige append.
 - `main` ganha, pela primeira vez desde a remoção do `push: main`
   ([[ADR-210]] §camada 2), um sinal contínuo — ainda que só sobre o veredito
   do gate, não sobre a suíte.
@@ -144,3 +172,29 @@ naquele instante — bypass administrativo, sancionado por
   `main` vem desses merges ou de gates que não compõem.
 - KR-B do [[PLAN-ci-trust]] só começa a contar quando D3/D4 estão no ar: uma
   janela de 30 dias não é auditável com retenção de API menor que ela.
+- **A label `merge-protection` é pré-requisito operacional, não decoração.**
+  `gh issue create --label X` aborta se a label não existir e o `gh` não a
+  cria; como o caminho de escrita só é alcançado quando há merge sem gate, a
+  ausência fica latente e explode no primeiro incidente — foi o que aconteceu
+  no primeiro run real (32887693308). O workflow a garante com
+  `gh label create --force`, e um teste amarra o nome que ele cria ao que o
+  script pede.
+
+## Validação do primeiro run — o detector denunciou o merge que o entregou
+
+O PR que trouxe esta ADR (#1723) foi mergeado às 19:06:31Z. O trem havia feito
+`update-branch` **19 segundos antes**, criando o head `75246ac7`; nesse head,
+`Lint` e `Pipeline tests` ainda rodavam (`completed_at: null`) e
+`All checks green` **nem existia**. O run de `merge-audit` no push classificou
+o próprio merge como **`absent`**.
+
+Isto não é bypass: é a corrida do `update-branch` que a memória do repo já
+descrevia (#1331/#1332) e que uma varredura anterior, medindo estado
+*eventual*, havia declarado ausente. Medindo no instante do merge, ela apareceu
+no primeiro merge observado. A suíte completa foi rodada em `main` depois
+(7.650 + 3.526 testes, verde): o defeito é de **processo**, não regressão —
+o SHA que entrou nunca foi verificado, e desta vez deu certo por sorte.
+
+Consequência para o critério de aceite da Onda 0: "mergeado sem bypass" é
+condição necessária e **não suficiente**. O critério correto é o veredito do
+próprio detector sobre o SHA de merge.
