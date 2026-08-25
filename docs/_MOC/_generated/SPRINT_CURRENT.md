@@ -26,6 +26,7 @@ open · in_progress.
 - [[A40.l75]] — O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou · priority P2 · área frontend/testing · branch `a40-l75-msw-drift-gate-inerte`
 - [[A40.l76]] — A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia · priority P1 · área pipeline/db · branch `a40-l76-proveniencia-de-artefato-e2`
 - [[A40.l79]] — A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 · priority P1 · área pipeline/financial-planning · branch `a40-l79-row-fiscal-ausente-e-fail-open`
+- [[A40.l80]] — Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' · priority P0 · área pipeline/financial-planning/report · branch `a40-l80-denominador-amputado`
 
 ## In progress
 
