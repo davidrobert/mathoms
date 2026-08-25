@@ -241,6 +241,26 @@ caminho.
   da [[ADR-266]]; o predicado substituto é da [[A42.l13]]. Sem essa anotação, o
   critério de aceite desta lane passaria com fixture e calaria em produção.
 
+> ## Correção do §Escopo 1 — 2026-08-25: o dedup não alcançava o valor
+>
+> O §Escopo 1 dizia *"passa por `resolve_ano_base_fiscal` **e dedup**"*, e a
+> primeira entrega cumpriu só a metade: o ano era eleito sobre o corpus **dedupado**
+> e o valor era lido da lista **crua**, por recência.
+>
+> **Medido:** com duas versões da mesma declaração (re-upload sob `artifact_key`
+> diferente), o dedup elegia a versão completa — **R$ 200.000** — e a S8 publicava
+> **R$ 0,00**, porque a row mais recente era uma re-extração degradada com a ficha
+> vazia. Não é hipótese: o E1.6 churna (285 versões de 4 documentos medidas no
+> dogfood em 2026-08-21, com listas oscilando entre vazia e preenchida).
+>
+> Corrigido: o **mesmo** `IRPFAnalyzer` elege o ano e serve o valor.
+>
+> **Como o defeito apareceu:** aplicando a mutação que o `senior-cto` prescreveu
+> para provar o gate (`tie_break_keys=chaves → None`). Ela **não derrubou** o teste
+> — e investigar o porquê revelou que o tie-break decide o vencedor do dedup, mas o
+> dedup nunca chegava ao valor publicado. O critério de falsificação estava certo
+> como método e errado como predicado: supunha um caminho que o código não tinha.
+
 ## Critério de aceite
 
 - ~~Dois declarantes no workspace → base do PGBL é a do titular, sempre, e não

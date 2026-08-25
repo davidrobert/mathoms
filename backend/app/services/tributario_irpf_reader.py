@@ -81,14 +81,20 @@ def _irpf_do_ano_base(
     """Declaração do TITULAR no ano-base fiscal eleito (A40.l65 §Escopo 1+2)."""
     if not declaracoes:
         return None
-    ano = _resolve_ano_base_das(declaracoes)
+    analyzer = _analyzer_das(declaracoes)
+    ano = _ano_eleito(analyzer)
     if ano is None:
         _warn_ano_base_nao_resolvido(workspace_id, declaracoes)
         # Sem ano eleito não há o que resolver (payloads que não parseiam). Manter
         # o comportamento anterior é degradação declarada — publicar AUSÊNCIA aqui
         # é decisão do §Escopo 2, que é dono da semântica de base ausente.
         return declaracoes[0][0]
-    do_ano = [payload for payload, _ in declaracoes if _ano_base_de(payload) == ano]
+    # Vencedores do DEDUP, não a lista crua. Medido: re-extração degradada mais
+    # recente derrubava a base de 200.000 para 0,00 enquanto o dedup elegia a
+    # versão completa — e o E1.6 churna (285 versões de 4 docs, dogfood
+    # 2026-08-21). Eleger o ano sobre o corpus dedupado e ler o VALOR do cru é
+    # publicar o fragmento que o dedup rejeitou.
+    do_ano = [d.model_dump(mode="json") for d in analyzer.declarations_for_year(ano)]
     if not do_ano:
         # Só ocorre com payload sem `contribuinte.ano_base` legível — o schema
         # exige o campo, então é artefato malformado, não família sem declaração.
@@ -135,14 +141,11 @@ def _warn_ano_base_nao_resolvido(
     )
 
 
-# `partition_irpf_payloads` é a mesma partição que o E5 aplica: PJ (ADR-268) e
-# schema-inválido saem, para 1 artifact ruim não derrubar a resolução do workspace
-# inteiro — sem ela um payload malformado devolvia a S8 em silêncio para a leitura
-# por `created_at`. `from_payloads` dedupa, e o tie-break por `created_at` é o "e
-# dedup" do §Escopo 1: sem ele o vencedor sairia por índice de lista.
-def _resolve_ano_base_das(declaracoes: list[_Declaracao]) -> Optional[int]:
+# O MESMO analyzer elege o ano e serve o valor. Separá-los faria a eleição rodar
+# sobre o corpus dedupado e a leitura sobre o cru — e aí a S8 publica fragmento que
+# o dedup rejeitou.
+def _analyzer_das(declaracoes: list[_Declaracao]):
     from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer, partition_irpf_payloads
-    from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
 
     validos, chaves, _skipped = partition_irpf_payloads(
         [payload for payload, _ in declaracoes],
@@ -151,11 +154,23 @@ def _resolve_ano_base_das(declaracoes: list[_Declaracao]) -> Optional[int]:
     if not validos:
         return None
     try:
-        analyzer = IRPFAnalyzer.from_payloads(validos, tie_break_keys=chaves)
+        return IRPFAnalyzer.from_payloads(validos, tie_break_keys=chaves)
     except Exception:
+        return None
+
+
+def _ano_eleito(analyzer) -> Optional[int]:
+    from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
+
+    if analyzer is None:
         return None
     resolvido = resolve_ano_base_fiscal(analyzer.estados_completude())
     return resolvido.ano if resolvido else None
+
+
+def _resolve_ano_base_das(declaracoes: list[_Declaracao]) -> Optional[int]:
+    """Mesma cadeia de `_irpf_do_ano_base` — consumido pelo gate do §Escopo 4."""
+    return _ano_eleito(_analyzer_das(declaracoes))
 
 
 def _ano_base_de(payload: dict) -> Optional[int]:
