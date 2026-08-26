@@ -11,6 +11,7 @@ from backend.app.application.pipeline_run._common import fetch_review, fetch_run
 from backend.app.core.logging import get_logger
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.schemas.pipeline import StageReviewActionRequest, StageReviewResponse
+from backend.app.services.pipeline.dispatch_contract import TERMINAL_STATUSES
 
 logger = get_logger("mathoms.pipeline.review")
 
@@ -45,6 +46,17 @@ def _log_review_action(review: StageReview, *, workspace_id: str, action: str) -
     )
 
 
+async def _require_run_aberto(workspace_id: str, run_id: str, *, db: AsyncSession) -> None:
+    """ADR-417 D2 §Corolário — sem isto, `approve` num run já terminal mutava filho de run
+    morto E emitia `review_action`, poluindo o KR1 da A29.l1 (aprovação cega vs. resolução
+    construtiva) com decisões sobre runs que ninguém vai retomar."""
+    run = await fetch_run(workspace_id, run_id, db=db)
+    if run.status in TERMINAL_STATUSES:
+        raise ConflictError(
+            f"Esta execução já foi encerrada (status: {run.status}) — não há mais o que conferir."
+        )
+
+
 async def action_review(
     workspace_id: str,
     run_id: str,
@@ -53,7 +65,7 @@ async def action_review(
     *,
     db: AsyncSession,
 ) -> StageReviewResponse:
-    await fetch_run(workspace_id, run_id, db=db)
+    await _require_run_aberto(workspace_id, run_id, db=db)
     review = await fetch_review(run_id, review_id, db=db)
 
     if review.status != StageReviewStatus.pending:

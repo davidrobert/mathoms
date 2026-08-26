@@ -39,6 +39,7 @@ from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.schemas.dto.document.mapper import extract_e0_doc_type
 from backend.app.services.diagnostics.review_reason_boundary import sanitize_review_reasons
 from backend.app.services.diagnostics.review_reason_sink import record_review_reasons
+from backend.app.services.pipeline.dispatch_contract import TERMINAL_STATUSES
 from backend.app.services.pipeline.events import (
     publish_needs_review,
     publish_run_cancelled,
@@ -555,12 +556,10 @@ _CRASH_RUN_STATUSES = (
 # REL-03 — estados terminais: um redelivery não deve re-executar o pipeline.
 # ``running``/``resuming``/``pending``/``needs_review`` ficam de fora de
 # propósito (crash-recovery e resume legítimos precisam re-entrar).
-_TERMINAL_RUN_STATUSES = (
-    PipelineRunStatus.completed,
-    PipelineRunStatus.failed,
-    PipelineRunStatus.partial_failure,
-    PipelineRunStatus.cancelled,
-)
+# ADR-417 D7: a lista deixou de viver aqui. Cópia local é o modo de falha que o
+# `dispatch_contract` existe para fechar — quem edita a tupla de lá não sabe que
+# há outra aqui.
+_TERMINAL_RUN_STATUSES = TERMINAL_STATUSES
 
 # A37.l12 (EXEC-01) — marcador de conclusão de stage por (run_id, stage).
 # Redelivery (acks_late; crash/sleep do host) re-executa a task do zero; sem
