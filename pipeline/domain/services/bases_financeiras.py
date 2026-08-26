@@ -32,6 +32,7 @@ class BaseFinanceira(str, Enum):
     carteira_financeira_familia = "carteira_financeira_familia"
     carteira_produtiva_familia = "carteira_produtiva_familia"
     carteira_com_titular_identificado = "carteira_com_titular_identificado"
+    carteira_produtiva_com_titular_identificado = "carteira_produtiva_com_titular_identificado"
     patrimonio_liquido = "patrimonio_liquido"
 
 
@@ -53,6 +54,14 @@ TERMOS_DA_BASE: dict[BaseFinanceira, tuple[str, ...]] = {
         "investimentos_conjuge",
         "caixa_total_brl",
     ),
+    # O bloco IF consome `investivel_efetivo` = carteira financeira + cat_2. Sem
+    # esta base o extremo conservador do IF sairia com base NÃO declarada, ou
+    # remontada dos termos sem citar o nome — a terceira fuga que a própria
+    # §Consequências da [[ADR-412]] nomeia.
+    BaseFinanceira.carteira_produtiva_com_titular_identificado: (
+        "carteira_com_titular_identificado",
+        "cat2_efetivo",
+    ),
     BaseFinanceira.patrimonio_liquido: ("bruto", "-dividas"),
 }
 
@@ -60,7 +69,10 @@ TERMOS_DA_BASE: dict[BaseFinanceira, tuple[str, ...]] = {
 # sob o rótulo "quanto a família tem" ([[ADR-412]] §D0). Só vale como extremo
 # inferior de intervalo declarado — nunca como denominador de número sozinho.
 BASES_SO_COMO_EXTREMO_DE_INTERVALO: frozenset[BaseFinanceira] = frozenset(
-    {BaseFinanceira.carteira_com_titular_identificado}
+    {
+        BaseFinanceira.carteira_com_titular_identificado,
+        BaseFinanceira.carteira_produtiva_com_titular_identificado,
+    }
 )
 
 

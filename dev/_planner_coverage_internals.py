@@ -330,6 +330,17 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     "$._lineage": "rastro de proveniência do pipeline — insumo de debug, não de conselho",
     "$.narrativas": "texto já destilado em outra superfície; projetá-lo duplicaria prosa",
     "$.protection_computation_inputs_v1": "insumos crus do cálculo de proteção; o parecer lê o resultado",
+    # A40.l80 ([[ADR-412]] §D0): base que AMPUTA a fatia sem titular. Ambas têm
+    # `publicavel_sozinha() is False` — só valem como extremo inferior de um
+    # intervalo declarado. Projetá-las cruas convidaria o modelo a citar o número
+    # amputado como se fosse o patrimônio da família, que é o defeito da lane.
+    # O parecer recebe o INTERVALO e o motivo, não a ponta.
+    "$.patrimonio.bases.carteira_com_titular_identificado": (
+        "extremo conservador de intervalo; o parecer recebe o intervalo, nunca a ponta amputada"
+    ),
+    "$.patrimonio.bases.carteira_produtiva_com_titular_identificado": (
+        "extremo conservador de intervalo; o parecer recebe o intervalo, nunca a ponta amputada"
+    ),
 }
 
 

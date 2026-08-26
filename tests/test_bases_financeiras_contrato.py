@@ -70,9 +70,32 @@ def test_base_amputada_e_a_cheia_diferem_exatamente_pela_fatia_sem_dono():
     assert cheia - amputada == {"investimentos_nao_atribuidos"}
 
 
-def test_so_a_base_amputada_e_proibida_sozinha():
+# Termo pode nomear OUTRA base (`carteira_produtiva_familia` = carteira financeira
+# + cat_2). Comparar sem resolver acusaria divergência onde só há indireção.
+def _resolver(base: BaseFinanceira) -> set[str]:
+    out: set[str] = set()
+    for termo in termos_da_base(base):
+        nome = termo.lstrip("-")
+        vizinha = next((b for b in BaseFinanceira if b.value == nome), None)
+        out |= _resolver(vizinha) if vizinha else {termo}
+    return out
+
+
+# Mata: proibir uma base que não tem par cheio (piso sem intervalo é número
+# amputado com outro nome), ou liberar uma amputada como denominador sozinho.
+def test_toda_base_proibida_tem_um_par_cheio_que_a_contem():
     proibidas = {b for b in BaseFinanceira if not publicavel_sozinha(b)}
-    assert proibidas == {BaseFinanceira.carteira_com_titular_identificado}
+    assert proibidas, "sem base proibida, o intervalo declarado não tem extremo"
+
+    for piso in proibidas:
+        alvo = _resolver(piso) | {"investimentos_nao_atribuidos"}
+        pares = [b for b in BaseFinanceira if publicavel_sozinha(b) and _resolver(b) == alvo]
+        assert len(pares) == 1, f"{piso.value} não tem par cheio único: {pares}"
+
+
+def test_base_amputada_nunca_e_publicavel_sozinha():
+    """A base que amputa a fatia sem dono só vale como extremo de intervalo."""
+    assert not publicavel_sozinha(BaseFinanceira.carteira_com_titular_identificado)
 
 
 # -- PapelMembro ------------------------------------------------------------
