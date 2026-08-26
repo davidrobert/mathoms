@@ -257,3 +257,36 @@ async def test_flip_no_op_do_service_vira_conflito_nao_sucesso(
 
     assert resp.status_code == 409
     assert (await _reler(db, run_id)).status == PipelineRunStatus.needs_review
+
+
+# NINGUÉM zera `paused_at_stage`: o único write é a pausa (`pipeline_task.py:1141`),
+# `_flip_run_to_resuming` o preserva de propósito (A40.l27 — "a única cópia durável do
+# ponto de retomada") e nada mais o toca. Logo o par do D4 também é verdadeiro para quem
+# PAUSOU, foi conferido, RETOMOU e só então foi interrompido — que é interrupção.
+@pytest.mark.xfail(
+    strict=True,
+    reason="ADR-417 D4 em escalação: a derivação nao e solida porque NINGUEM zera "
+    "`paused_at_stage`. Este xfail se auto-remove quando o mecanismo correto entrar — "
+    "`strict` faz o teste REPROVAR se passar a passar.",
+)
+@pytest.mark.asyncio
+async def test_run_retomado_e_depois_interrompido_nao_pode_ler_como_descarte(
+    auth_client: AsyncClient, db: AsyncSession
+):
+    """Interrupção pós-retomada não pode ser lida como descarte."""
+    ws_id = auth_client.ws_id
+    run = PipelineRun(
+        workspace_id=ws_id,
+        status=PipelineRunStatus.running,
+        tier_at_run="premium",
+        paused_at_stage="analyze_finances",  # resíduo da pausa já conferida e retomada
+    )
+    db.add(run)
+    await db.commit()
+
+    resp = await auth_client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run.id}/cancel")
+
+    assert resp.status_code == 200
+    assert "parará" in resp.json()["detail"]  # o backend acerta: leu o status ANTES do flip
+    depois = await _reler(db, run.id)
+    assert not discarded_at_review(depois.status, depois.paused_at_stage)
