@@ -98,6 +98,13 @@ um pelo service, um pela rota HTTP.
 **Completude** — o par `(completed, pending)` deixa de ser alcançável por
 **qualquer** caminho. Teste de fecho em `_finalize_run`, não só de entrada.
 
+> ⚠️ **O predicado é `(completed, pending)`, nunca "terminal + pending".** Registrado
+> pela [[A40.l87]] em 2026-08-26: a [[ADR-417]] D3 sanciona `(cancelled, pending)` —
+> quando alguém **descarta** uma pausa, as `StageReview` ficam `pending` de propósito,
+> porque ninguém decidiu e ninguém vai decidir. Escrever o fecho como "terminal +
+> pending" morde esse resíduo e as duas lanes passam a se refutar. Há teste em
+> `backend/tests/test_needs_review_exit_door.py` provando que os dois pares convivem.
+
 **Consistência** — o comentário de `pipeline_task.py:1129-1132` passa a descrever
 o que o código faz. Hoje ele afirma cobertura que a medição refuta; se o fix não
 alcançar todos os caminhos, o comentário é **corrigido para a verdade menor**, não

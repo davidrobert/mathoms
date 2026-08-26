@@ -26,7 +26,7 @@ tags:
 
 # A40.l87 — Porta de saída da pausa
 
-> **Canônica:** [[ADR-417]] (`Proposto` — flippa a `Decidido` no merge do PR2).
+> **PR1 mergeado 2026-08-26** (#1740, `f9e13def`). **Canônica:** [[ADR-417]].
 > Aberta 2026-08-26 no desbloqueio do preflight da [[runbook-unified-certify-review]].
 > Admissão retro-registrada 2026-08-26 (§Fora do sprint), precedente [[A40.l46]].
 
