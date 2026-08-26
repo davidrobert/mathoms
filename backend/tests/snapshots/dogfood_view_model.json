@@ -1832,6 +1832,13 @@
         ],
         "valor_brl": 13000000
       },
+      "carteira_produtiva_com_titular_identificado": {
+        "termos": [
+          "carteira_com_titular_identificado",
+          "cat2_efetivo"
+        ],
+        "valor_brl": 0
+      },
       "carteira_produtiva_familia": {
         "termos": [
           "carteira_financeira_familia",
