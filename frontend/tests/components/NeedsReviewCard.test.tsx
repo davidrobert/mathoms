@@ -22,7 +22,9 @@ describe("<NeedsReviewCard />", () => {
       />,
     );
     expect(screen.getByRole("button", { name: /revisar agora/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cancelar execução/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /descartar este processamento/i }),
+    ).toBeInTheDocument();
   });
 
   it("pluraliza contagem quando pendingCount > 1", () => {
@@ -68,7 +70,10 @@ describe("<NeedsReviewCard />", () => {
     ).toHaveAttribute("href", "/pipeline/runs/run-abc/reviews");
   });
 
-  it("Cancelar execução chama onCancel", async () => {
+  /** O rótulo anterior era "Cancelar execução" — errado duas vezes: nada estava
+   *  executando, e o backend recusava cancelar a pausa, então o clique virava banner
+   *  de erro com o nome cru do status (ADR-417 D1). Este assert falha na copy antiga. */
+  it("oferece o verbo de descarte e o encaminha", async () => {
     const user = userEvent.setup();
     const onCancel = vi.fn();
     render(
@@ -79,7 +84,8 @@ describe("<NeedsReviewCard />", () => {
         onCancel={onCancel}
       />,
     );
-    await user.click(screen.getByRole("button", { name: /cancelar execução/i }));
+    expect(screen.queryByRole("button", { name: /cancelar execução/i })).toBeNull();
+    await user.click(screen.getByRole("button", { name: /descartar este processamento/i }));
     expect(onCancel).toHaveBeenCalledOnce();
   });
 });

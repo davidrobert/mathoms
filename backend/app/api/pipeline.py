@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.pipeline_run import (
@@ -30,7 +30,9 @@ from backend.app.application.pipeline_run import (
     trigger_pipeline as _trigger_pipeline,
 )
 from backend.app.core.database import get_db
+from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace, require_write_role
+from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.pipeline import (
     NewDocCountResponse,
@@ -100,10 +102,16 @@ async def get_run(
 )
 async def cancel_run(
     run_id: str,
+    request: Request,
     workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> RunActionResponse:
-    return await _cancel_run(workspace.id, run_id, db=db)
+    # Ator + request viajam porque o cancelamento de uma PAUSA é ato deliberado, e o
+    # "quem" é a metade que importa dele (ADR-417 D4). Vai para o `AuditLog`.
+    return await _cancel_run(
+        workspace.id, run_id, db=db, actor_user_id=current_user.id, request=request
+    )
 
 
 @router.post(

@@ -195,16 +195,20 @@ async def test_orfao_em_resuming_e_cancelavel(db: AsyncSession) -> None:
 
 
 @pytest.mark.asyncio
-async def test_needs_review_nao_e_cancelavel_nem_colhido(db: AsyncSession) -> None:
-    """Pausa é estado legítimo: nem a varredura nem o cancel a tocam. Alargar o
-    predicado até aqui mataria run que só espera o usuário."""
+async def test_needs_review_nao_e_colhido_mas_e_cancelavel(db: AsyncSession) -> None:
+    """A varredura continua sem tocar a pausa — expirar por tempo descartaria trabalho que
+    o usuário ainda pretende conferir. O que mudou (ADR-417 D1) é o **cancel manual**: a
+    versão anterior deste teste assertava `is False`, e era ela que mantinha verde o botão
+    "Cancelar execução" que devolvia 409 em produção desde 2026-04-21."""
     from backend.app.services.pipeline.pipeline_service import cancel_pipeline_run
 
     run = await _make_run(db, status=PipelineRunStatus.needs_review, celery_task_id=None)
 
     assert detect_undispatched_runs.run() == {"reaped": 0}
-    assert cancel_pipeline_run(run.id) is False
     assert (await _reload(db, run.id)).status == PipelineRunStatus.needs_review
+
+    assert cancel_pipeline_run(run.id) is True
+    assert (await _reload(db, run.id)).status == PipelineRunStatus.cancelled
 
 
 @pytest.mark.asyncio
@@ -238,9 +242,12 @@ def test_todo_status_pre_dispatch_tem_relogio() -> None:
 
 
 def test_cancelavel_cobre_os_pre_dispatch_mais_running() -> None:
+    """A asserção `needs_review not in CANCELLABLE_STATUSES` vivia aqui e **pinava a
+    crença errada**: enquanto ela passava, o botão "Cancelar execução" do
+    `NeedsReviewCard` respondia 409 em produção. Substituída pela tabela exaustiva de
+    saídas em `test_needs_review_exit_door.py` (ADR-417 D7), que falha por ausência."""
     assert set(PRE_DISPATCH_STATUSES) <= set(CANCELLABLE_STATUSES)
     assert PipelineRunStatus.running in CANCELLABLE_STATUSES
-    assert PipelineRunStatus.needs_review not in CANCELLABLE_STATUSES
 
 
 # `WARNING` por run colhido (espelhando `_log_stuck_run`) **e** uma agregada com a

@@ -49,6 +49,10 @@ class AuditAction(str, enum.Enum):
     document_retry_unlock = "document.retry_unlock"
     document_update_classification = "document.update_classification"
 
+    # Pipeline — quem abandonou um run, e o que ficou por conferir (ADR-417 D4).
+    # Mutação: NÃO entra em READ_ACCESS_ACTIONS, sobrevive ao purge de leitura.
+    pipeline_run_cancel = "pipeline.run_cancel"
+
     # Storage / workspace
     workspace_purge = "workspace.purge"
     workspace_export = "workspace.export"
