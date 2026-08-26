@@ -57,3 +57,11 @@ export function cancelCopyFor(
     opts.runs.some((r) => Boolean(r.report_id)),
   );
 }
+
+/** Descartado numa pausa, e não interrompido em execução — espelha
+ *  `dispatch_contract.discarded_at_review`. Lê o estado GRAVADO no instante terminal:
+ *  a versão anterior derivava de `paused_at_stage`, que NINGUÉM zera e por isso
+ *  sobrevive à retomada (ADR-417 D4 §Alternativa refutada). `null` é desconhecido. */
+export function foiDescartadoNaConferencia(run: PipelineRunResponse): boolean {
+  return run.status === "cancelled" && run.cancelled_from_status === "needs_review";
+}

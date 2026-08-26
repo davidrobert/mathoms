@@ -23,6 +23,7 @@ from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.schemas.pipeline import PipelineRunRequest, PipelineRunResponse
 from backend.app.services.pipeline.dispatch_contract import (
+    EXECUTOR_VIVO_STATUSES,
     PRE_DISPATCH_STATUSES,
     undispatched_threshold,
 )
@@ -36,6 +37,12 @@ from backend.app.services.pipeline.pipeline_service import (
 _logger = logging.getLogger("mathoms.pipeline.trigger")
 
 _ACTIVE_RUN_MESSAGE = "Já existe uma execução ativa neste workspace. Cancele ou aguarde."
+#: "aguarde" seria mentira: a pausa espera uma PESSOA, não um relógio. As duas saídas
+#: sancionadas estão nomeadas, e a segunda passou a existir na A40.l87 (ADR-417 D1).
+_PAUSED_RUN_MESSAGE = (
+    "Há um processamento pausado aguardando sua conferência (execução {run_id}). "
+    "Retome ou descarte antes de iniciar outro."
+)
 _DISPATCH_FAILED_MESSAGE = (
     "Não foi possível enfileirar a execução — o serviço de processamento está "
     "indisponível. Tente novamente em alguns instantes."
@@ -121,6 +128,15 @@ async def _compensate_undispatched_run(run_id: str, *, reason: str, db: AsyncSes
         )
 
 
+# Sem isto, disparar por cima era silencioso e destrutivo: a pausa nunca mais seria
+# retomada e as `stage_reviews` dela ficavam `pending` órfãs, sem varredura que as
+# colhesse. A mensagem nomeia a saída — nunca "aguarde", porque não há o que esperar.
+def _reject_if_pausa_viva(blocking: PipelineRun) -> None:
+    """A pausa é o único estado bloqueante que não segura executor (ADR-417 D5)."""
+    if blocking.status == PipelineRunStatus.needs_review:
+        raise ConflictError(_PAUSED_RUN_MESSAGE.format(run_id=blocking.id))
+
+
 async def _check_no_active_run(workspace_id: str, *, db: AsyncSession) -> None:
     """UX-level fast-path. O guard authoritativo é o partial unique index
     ``ux_pipeline_runs_ws_active`` (migração i4c5d6e7f8a9)."""
@@ -130,12 +146,13 @@ async def _check_no_active_run(workspace_id: str, *, db: AsyncSession) -> None:
     result = await db.execute(
         select(PipelineRun).where(
             PipelineRun.workspace_id == workspace_id,
-            PipelineRun.status.in_([PipelineRunStatus.running, *PRE_DISPATCH_STATUSES]),
+            PipelineRun.status.in_([*EXECUTOR_VIVO_STATUSES, PipelineRunStatus.needs_review]),
         )
     )
     blocking = result.scalars().first()
     if blocking is None:
         return
+    _reject_if_pausa_viva(blocking)
     if await _heal_undispatched_run(blocking, db=db):
         return
     raise ConflictError(_ACTIVE_RUN_MESSAGE)

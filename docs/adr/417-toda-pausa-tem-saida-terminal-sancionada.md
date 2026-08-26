@@ -2,7 +2,7 @@
 id: ADR-417
 type: adr
 title: "Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review"
-status: Proposto
+status: Decidido
 phase: A40
 date: "2026-08-26"
 relates_to:
@@ -18,14 +18,14 @@ aliases:
   - "descartar processamento pausado"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/pipeline
 ---
 
 # ADR-417 — Toda pausa tem saída terminal sancionada
 
-**Status:** Proposto • **Data:** 2026-08-26 • **Relaciona** [[ADR-359]], [[ADR-411]], [[ADR-404]], [[ADR-172]] • **Lane:** [[A40.l87]]
+**Status:** Decidido (A40.l87) • **Data:** 2026-08-26 • **Relaciona** [[ADR-359]], [[ADR-411]], [[ADR-404]], [[ADR-172]] • **Lane:** [[A40.l87]]
 
 ## Contexto
 
@@ -203,6 +203,11 @@ Estado bloqueado por decisão humana não vira lock de DB — "o usuário viajou
 não pode ser "o workspace parou". A correção do executor duplo é a guarda em
 `_flip_run_to_resuming`, não o índice.
 
+> **Entregue no PR2:** o fast-path recusa com 409 que nomeia as duas saídas, e
+> `_flip_run_to_resuming` ganhou a guarda de executor concorrente — é **ela**, não o
+> índice, que fecha o executor duplo, porque a pausa não segura executor: ela é uma
+> **pretensão** a virar um, e o resume é o instante em que essa pretensão é exercida.
+>
 > **§Deferimento datado 2026-08-26 — alargar o índice parcial.** Dono
 > `data-engineer`. Condição de retomada: evidência de corrida real
 > trigger↔resume que o fast-path não pegou. **Armadilha a carregar:**

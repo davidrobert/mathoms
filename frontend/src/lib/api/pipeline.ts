@@ -44,6 +44,9 @@ export interface PipelineRunResponse {
   /** A40.l27 — motivo nomeado pelo backend. Ver `pipelineFailureReason.ts`. */
   failure_reason: string | null;
   paused_at_stage: string | null;
+  /** ADR-417 D4 — estado do run no instante terminal. `null` = desconhecido (row
+   *  anterior à coluna), nunca "interrompido". */
+  cancelled_from_status: string | null;
   tier_at_run: string;
   total_documents: number | null;
   incremental: boolean;

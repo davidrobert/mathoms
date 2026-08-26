@@ -71,6 +71,16 @@ CANCELLABLE_STATUSES: tuple[PipelineRunStatus, ...] = (
 )
 
 
+#: Estados em que um executor existe ou está prestes a existir. É o predicado de
+#: "o workspace está ocupado" — usado pelo fast-path do trigger e pela guarda do resume
+#: (ADR-417 D5). `needs_review` NÃO entra: a pausa não segura executor; ela é uma
+#: pretensão ao direito de virar um, e quem gateia essa pretensão é a guarda do resume.
+EXECUTOR_VIVO_STATUSES: tuple[PipelineRunStatus, ...] = (
+    PipelineRunStatus.running,
+    *PRE_DISPATCH_STATUSES,
+)
+
+
 class RunExit(str, Enum):
     """Como um estado de run sai de si mesmo."""
 
@@ -99,12 +109,24 @@ RUN_EXIT_BY_STATUS: dict[PipelineRunStatus, tuple[RunExit, ...]] = {
 }
 
 
+def discarded_at_review(cancelled_from_status: str | None) -> bool:
+    """Run DESCARTADO numa pausa, e não interrompido em execução (ADR-417 D4).
+
+    Lê o estado GRAVADO no instante terminal. `None` é *desconhecido* — row anterior à
+    coluna —, nunca "interrompido": afirmar o desfecho de um run que não o registrou
+    seria a mesma invenção que a derivação por `paused_at_stage` cometia.
+    """
+    return cancelled_from_status == PipelineRunStatus.needs_review.value
+
+
 __all__ = [
     "CANCELLABLE_STATUSES",
     "DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES",
+    "EXECUTOR_VIVO_STATUSES",
     "PRE_DISPATCH_STATUSES",
     "RUN_EXIT_BY_STATUS",
     "RunExit",
     "TERMINAL_STATUSES",
+    "discarded_at_review",
     "undispatched_threshold",
 ]
