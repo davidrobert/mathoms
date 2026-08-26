@@ -42,10 +42,13 @@ uma skill sozinha responde — nesse caso invoque a skill.
 
 Se você está retomando uma rodada interrompida:
 
-1. Leia `storage/<uuid>/reviews/U<n>-<data>-<run8>/_state.json`.
-2. **Se `fired_at` está preenchido, o run JÁ foi disparado** — anexe-se ao `run_id`
-   registrado. **Nunca dispare de novo**: crash entre disparar e registrar é o caso
-   que duplica um run de 60 minutos e o gasto de API dele.
+1. Leia `storage/<uuid>/reviews/U<n>-<data>/_state.json`.
+2. **Se `fired_at` está preenchido, o run JÁ foi disparado** — mesmo com `run_id`
+   ainda `null`. **Nunca dispare de novo.** Com `run_id` preenchido, anexe-se a ele;
+   com `run_id` null, procure o run do workspace com `started_at >= fired_at` e
+   **adote-o**. O `run_id` só passa a existir **depois** do disparo — quem o cunha é o
+   trigger —, então a janela entre disparar e registrar é real, e é exatamente ela que
+   duplica um run de 60 minutos e o gasto de API dele.
 3. Retome da primeira fase cujo checkpoint não está `done`.
 4. Se `appends` mostra 1 ou 2 dos 3 MOCs escritos, o commit do §5 F5 falhou pela
    metade — **reverta os appends parciais** e refaça os três juntos.
@@ -67,7 +70,7 @@ Se você está retomando uma rodada interrompida:
 ## 4. Estado durável
 
 Arquivo único, no diretório cru da rodada:
-`storage/<uuid>/reviews/U<n>-<data>-<run8>/_state.json`.
+`storage/<uuid>/reviews/U<n>-<data>/_state.json`.
 
 ```json
 {
@@ -82,9 +85,10 @@ Arquivo único, no diretório cru da rodada:
 }
 ```
 
-**Regra write-ahead (a única que não pode sair errada):** grave `fired_at` **e**
-`run_id` **antes** de disparar o run. A intenção precede o efeito; a retomada lê a
-intenção. F5 é a **única** fase que toca o git e é a **última** — os três appends
+**Regra write-ahead (a única que não pode sair errada):** grave `fired_at` **antes**
+de disparar. O `run_id` não existe nesse instante — o trigger o cunha —, então grave-o
+imediatamente **depois**, e deixe a retomada resolver a janela pelo `started_at`
+(§2 item 2). A intenção precede o efeito; a retomada lê a **intenção**, nunca o efeito. F5 é a **única** fase que toca o git e é a **última** — os três appends
 num commit só, para a rodada nunca existir pela metade em `main`.
 
 ## 5. Fases
@@ -109,9 +113,13 @@ no cabeçalho do entregável. Os dois `WARN` que mudam o que se pode afirmar:
 
 ### F1 — Alocação de `U<n>` e do diretório cru
 
-**Ação:** aloque o próximo `U<n>` **escrevendo** a linha no ledger do §9 (menção em
-prosa não reserva). Crie `storage/<uuid>/reviews/U<n>-<data>-<run8>/` — o `<run8>`
-entra depois de F2; até lá use `pending`. Escreva o `_state.json` inicial.
+**Ação:** reserve o próximo `U<n>` **no `_state.json`** (menção em prosa não reserva).
+A linha do ledger do §9 é git, e por isso entra só na F5 junto com os três appends —
+reservar em dois lugares e fases é o preço de a F5 ser a única fase que toca o git.
+
+Crie `storage/<uuid>/reviews/U<n>-<data>/`, **sem** o `run8`: ele não existe na F1, e
+renomear o diretório na F2 quebraria o path que a §2 manda ler na retomada. O `run8`
+vive dentro do `_state.json` e nos cabeçalhos das três seções.
 
 **Snapshot de seleção E2** (pré-condição de F3.a, e só vale se tirado agora, antes
 do run): grave o mapa `{(stage_canônico, artifact_key) → (id, byte_size)}` das rows
@@ -348,7 +356,7 @@ Cabeçalho idêntico nas três seções, mudando só qual `§rN` é "este":
 
 > Rodada unificada **U<n>** · [[LEDGER-CERTIFY-active]] §r<a> · [[PIPELINE-REVIEWS-active]] §r<b> · [[REPORT-REVIEWS-active]] §r<c> (este).
 > Run `<run8>` · executor `<sha8>` · preflight: <n> WARN declarados.
-> Cru + síntese com valores: storage/<uuid>/reviews/U<n>-<data>-<run8>/ (off-git).
+> Cru + síntese com valores: storage/<uuid>/reviews/U<n>-<data>/ (off-git).
 > Cobertura: matriz 7×3 — <n> células sem cobertura, com motivo.
 
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
@@ -372,6 +380,24 @@ tem disposição, não tem cobertura.
 Append-only, datado. Só o que é furo **do encadeamento** — furo de uma skill vai para
 o MOC dela.
 
+- **2026-08-26 (F0–F2 do `U1`).** Três defeitos deste runbook só apareceram ao
+  executá-lo, e os três são da mesma família — **regra escrita sem exercitar o
+  relógio**: o write-ahead mandava gravar um id que ainda não existe; a F1 mandava
+  escrever no git numa fase que a F5 declara ser a única a tocar o git; e o nome do
+  diretório embutia um `run8` desconhecido na F1, quebrando o path da retomada.
+  Corrigidos acima. **Runbook não exercitado é hipótese**, e a primeira execução é
+  parte da entrega, não a validação dela.
+- **2026-08-26 (limpeza de pré-condição do `U1`).** Havia **dois** runs pausados, e o
+  check `run-em-voo` mostra só o mais recente — encerrar um deixaria o outro. Pior: um
+  run em `needs_review` **não tem porta de saída** (`cancel_pipeline_run` recusa por
+  desenho e as ações de produto só retomam, gastando LLM), então foi preciso escrever
+  `cancelled` pela ORM. Mesma patologia que a [[A40.l27]] consertou para `resuming`.
+- **2026-08-26 (gate `sync-main` over-bloqueia).** O gate reprovou o disparo do `U1`
+  porque o checkout estava 1 commit atrás de `origin/main` — e o delta era **um único
+  arquivo em `dev/`**, que o pipeline não importa. O predicado mede *distância*; o que
+  importa é se os commits ausentes tocam `pipeline/`, `backend/`, `scripts/` ou
+  `config/`. Disparado com desvio **declarado e medido** no `_state.json`. Refinar o
+  predicado é candidato a lane; enquanto não for, todo override vai declarado.
 - **2026-08-25 (preparação, antes do `U1`).** O guard de run em voo da
   `pipeline-review` filtrava um literal inexistente e omitia dois status não-terminais;
   o predicado de poll omitia um status terminal. Ambos consertados derivando do enum.
