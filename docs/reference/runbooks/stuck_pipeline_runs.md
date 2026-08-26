@@ -207,13 +207,31 @@ processo nesse intervalo deixa a linha em `resuming`.
   **cancele pela UI ou pelo endpoint** — `resuming` passou a ser cancelável.
 - **NÃO faça:** `UPDATE ... SET status='needs_review'` à mão. Ver §7.
 
+## 6.1 Pausa que ninguém vai conferir (`needs_review`)
+
+Não é órfão — é pausa legítima esperando uma pessoa. Vira problema quando a pessoa
+decidiu **não** conferir: até 2026-08-26 a única saída era retomar (o que roda tudo a
+jusante e paga LLM), porque o cancel recusava `needs_review`. Dois runs do dogfood
+ficaram assim em 2026-08-25 e foram resolvidos por escrita direta no DB.
+
+- **Sintoma:** `status='needs_review'` com `paused_at_stage` preenchido e `sem_dono`
+  irrelevante (não há executor). Não bloqueia disparo novo — a pausa fica órfã em
+  silêncio, e as `stage_reviews` dela seguem `pending` para sempre.
+- **Ação:** **cancele pela UI ou pelo endpoint** — a [[ADR-417]] D1 tornou a pausa
+  cancelável, e o botão "Descartar este processamento" do card é essa chamada. O run
+  vira `cancelled` com `paused_at_stage` preservado, que é o que distingue *descartado*
+  de *interrompido* no histórico (D4). As `stage_reviews` ficam `pending` de propósito:
+  ninguém decidiu, e o par `(cancelled, pending)` é resíduo sancionado (D3).
+- **NÃO faça:** `UPDATE ... SET status='cancelled'` à mão. Era o contorno de 2026-08-25
+  e deixou de ter desculpa quando a porta passou a existir.
+
 ## 7. Ações e seus limites
 
 | Ação | Quando | Efeito | Irreversível? |
 | --- | --- | --- | --- |
 | **Esperar** | `inspect ping` responde **e** task_id em `active`/`reserved` (§1.2) | nenhum | não |
 | **Subir o broker** | `PING` falha | órfãos se curam no próximo trigger | não |
-| **Cancelar** (UI/endpoint) | `sem_dono = true`, ou `resuming` zumbi | `status='cancelled'`; libera o workspace | **sim** — o run não volta |
+| **Cancelar** (UI/endpoint) | `sem_dono = true`, `resuming` zumbi, **ou pausa que ninguém vai conferir** | `status='cancelled'`; libera o workspace | **sim** — o run não volta |
 | **Revogar com terminate** | §5 passo 2, task_id em `active` | mata o executor vivo | **sim** — trabalho parcial perdido |
 | **Re-disparar** | após o run estar terminal | novo run | não, mas re-custa LLM |
 | **Reiniciar o worker** | worker não responde ao `inspect` mas o broker está vivo | tasks em voo morrem | **sim** para o que estava em voo |

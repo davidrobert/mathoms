@@ -153,6 +153,54 @@ resoluções anteriores exigiram ORM.
 a `Decidido` no merge do **PR2**, não do PR1: até o trigger recusar, a decisão
 está pela metade.
 
+## Registro de execução
+
+**PR1 entregue 2026-08-26.** Commits: `a1c950b0` (docs) · `9c6e8ab7` (backend) ·
+`b7fcaaf6` (frontend + preflight).
+
+### Cinco asserções pinavam a crença errada, não duas
+
+O enunciado nomeava duas. A implementação achou **cinco**, e todas passavam
+enquanto o botão devolvia 409 em produção:
+
+| Arquivo | O que pinava |
+|---|---|
+| `test_detect_undispatched_runs.py:243` | `needs_review not in CANCELLABLE_STATUSES` |
+| `test_detect_undispatched_runs.py` §`nao_e_cancelavel_nem_colhido` | `cancel_pipeline_run(...) is False` |
+| `NeedsReviewCard.test.tsx` §fiação | `expect(onCancel).toHaveBeenCalledOnce()` — nunca o desfecho |
+| `NeedsReviewCard.test.tsx` §regressão ADR-158 | botão `/cancelar execução/i` presente |
+| `HistoryRow` (ausência) | nenhuma cobertura do par `(cancelled, paused_at_stage)` |
+
+Nenhuma foi apagada: as quatro primeiras foram **substituídas** com o registro de
+por que existiam. Prova de mutação: tirar `needs_review` da tupla derruba 6
+testes; tirar a guarda de terminalidade derruba 1 **com `review_action` emitido e
+HTTP 200** no log; devolver o rótulo antigo derruba 2 no frontend.
+
+**Snapshot OpenAPI inalterado** — é o que prova que D2 não alargou a superfície da
+API. Se um dia produzir diff, alguém escorregou para a opção (a).
+
+### Achado novo: a pausa some da tela ao recarregar
+
+Medido durante a implementação, **não estava no enunciado**. O card só renderiza
+ao vivo: `handleWSEvent` (`page.tsx:154`) faz `setActiveRun(updated)` incondicional
+quando chega o evento `needs_review`. Mas no **carregamento** da página
+(`page.tsx:241`) o `activeRun` sai de `ACTIVE_STATUSES`, que **não inclui**
+`needs_review` — então quem recarrega perde o card, vê o `TriggerCard` convidando
+a disparar de novo, e a pausa fica acessível só pelo link "Revisar" da linha de
+histórico.
+
+É a rampa de orfanamento inteira numa tela: a superfície que pede a decisão some,
+e a que a contradiz aparece. **Dono: PR2 desta lane** — o 409 do fast-path é
+exatamente o que fecha isso, e o card na carga é o par de leitura dele.
+
+### O que o PR1 deliberadamente não fez
+
+- Guarda de run ativo em `_flip_run_to_resuming` (executor duplo) — **PR2**.
+- `needs_review` no fast-path `_check_no_active_run` — **PR2**, e nunca antes do PR1.
+- Índice parcial — [[ADR-417]] D5 §Deferimento, dono `data-engineer`.
+- `action_review` segue acima do teto de 20 linhas do P1: dívida **preexistente**,
+  não ampliada (o guard saiu para `_require_run_aberto`).
+
 ## Delegação
 
 Co-design feito 2026-08-26 (`product-manager` + `senior-cto`, convergentes em
