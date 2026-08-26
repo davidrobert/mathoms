@@ -4,9 +4,11 @@ type: lane
 title: "A pausa não tem porta de saída, e o botão que o produto já oferece devolve 409 há quatro meses"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: needs-review-porta-de-saida
+ship_pr: 1743
+ship_date: "2026-08-26"
 adrs:
   - "[[ADR-417]]"
   - "[[ADR-359]]"
@@ -17,7 +19,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -26,7 +28,8 @@ tags:
 
 # A40.l87 — Porta de saída da pausa
 
-> **PR1 mergeado 2026-08-26** (#1740, `f9e13def`). **Canônica:** [[ADR-417]].
+> ✅ **Entregue em 2 PRs, 2026-08-26:** **#1740** (a porta · `f9e13def`) e **#1743**
+> (a pré-condição e o estado gravado). **Canônica:** [[ADR-417]] (`Decidido`).
 > Aberta 2026-08-26 no desbloqueio do preflight da [[runbook-unified-certify-review]].
 > Admissão retro-registrada 2026-08-26 (§Fora do sprint), precedente [[A40.l46]].
 
