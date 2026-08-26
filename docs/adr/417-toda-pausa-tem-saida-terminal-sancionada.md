@@ -126,23 +126,69 @@ decidir*. A fila da UI é chaveada por status do **run**
 > **`(completed, pending)`**, nunca *"terminal + pending"*. Escrito como
 > "terminal", morde o resíduo que esta ADR sanciona e as duas se refutam.
 
-### D4 — o descarte é distinguível do cancelamento, por derivação
+### D4 — o descarte é distinguível por estado GRAVADO, nunca por resíduo
 
-O par `(status == cancelled, paused_at_stage IS NOT NULL)` **é** o
-discriminador: `cancel_pipeline_run` grava apenas `status` e `completed_at`,
-logo `paused_at_stage` sobrevive ao cancelamento. Zero migração, legível pela
-UI, e **com leitor no mesmo PR** (a linha de contexto do histórico passa a
-dizer "descartado durante a conferência", não "cancelado").
+`pipeline_runs` ganha **`cancelled_from_status`** (`String(20)`, nullable): o status do
+run no instante em que virou terminal. Writer **único**, dentro da sessão de
+`cancel_pipeline_run`, no mesmo `commit` do flip — o service já lê `run.status` na
+guarda, imediatamente antes de sobrescrevê-lo, então não há janela.
 
-Recusado `failure_reason`: o vocabulário dele significa "o sistema falhou" e
-tem read path no DTO — abandono deliberado ali passaria a contar em métrica de
-confiabilidade. Recusada coluna nova: `pipeline_runs` não tem coluna de ator,
-então uma coluna registraria o *porquê* sem o *quem*, que é a metade que
-importa num ato deliberado.
+Não é `Enum(...)`: um segundo tipo enum nativo no Postgres traz o
+`ALTER TYPE ... ADD VALUE` cujo custo o D3 já recusa. Grave `.value`. Forma precedente:
+`tier_at_run` (`String(20)`), `failure_reason` (`String(50)`).
 
-**Quem** abandonou vai no `AuditLog` (ação nova em `AuditAction`), que já é a
-resposta do repo para "quem fez o quê", já sobrevive ao purge de leitura
-([[ADR-275]] D5) e não exige migração.
+**Sem backfill.** Rows `cancelled` legadas ficam `NULL` para sempre, e `NULL` significa
+*desconhecido* — nunca "interrompido". Inferir o valor delas seria commitar dentro de uma
+migração exatamente a derivação que a §abaixo refuta, onde ela deixa de ser reversível.
+
+**Motivo e ator continuam fora da linha do run.** Quem abandonou vai para o `AuditLog`
+(ação nova em `AuditAction`), que já é a resposta do repo para "quem fez o quê", já
+sobrevive ao purge de leitura ([[ADR-275]] D5) e não exige migração. A coluna carrega
+**estado do ciclo de vida**, não motivo: são fatos de grãos diferentes, e o lugar do
+ciclo de vida de um run é a linha do run.
+
+`failure_reason` fica recusado por dois motivos, não um. O conhecido: abandono deliberado
+ali contaminaria métrica de confiabilidade, e o campo tem read path no DTO. O estrutural,
+mais forte: `failure_reason` é campo de **motivo**, e o que falta aqui é **estado** —
+discriminar exigiria escrever valor nos dois casos (cancelado de `running` e de
+`needs_review`), e nesse ponto a coluna de estado já existe, com o nome errado, dentro de
+um módulo chamado `pipeline_failure_reasons.py`.
+
+**Gate, de graça pela estrutura do D7:** `test_todo_estado_escapavel_sai_pela_rota` já
+parametriza sobre os estados escapáveis; a asserção `cancelled_from_status == status` faz
+estado novo cujo writer alguém esqueça **falhar por ausência**.
+
+#### Alternativa considerada e refutada: derivar de `paused_at_stage`
+
+A primeira redação deste D4 dizia que `(cancelled, paused_at_stage IS NOT NULL)` bastava,
+"zero migração". **Está errado, e a medição fica registrada aqui para que a proposta não
+volte em seis meses vinda de quem só vê a coluna e a acha redundante:**
+
+1. `rg 'paused_at_stage *= *None|paused_at_stage=None' backend/app` devolve **zero**.
+   O único write é a pausa (`pipeline_task.py`, `run.paused_at_stage = stage_name`).
+2. `_flip_run_to_resuming` o **preserva de propósito** — [[A40.l27]] parou de zerá-lo
+   porque é *"a única cópia durável do ponto de retomada"*. Um campo cuja função declarada
+   é **sobreviver** não pode discriminar **quando** algo terminou.
+3. Logo o par também é verdadeiro para o run que pausou → foi conferido → **retomou** →
+   foi interrompido em execução. Isso é interrupção, e o histórico o rotularia
+   "Descartado durante a conferência".
+
+O erro de fundo é de grão, e é o mesmo que o D3 rejeita: `paused_at_stage` é **resíduo de
+um momento passado**, não **estado no momento terminal** — derivar um fato sobre a
+terminação a partir de um fato sobre o histórico.
+
+Duas outras derivações foram consideradas e também refutadas. **Última linha de
+`pipeline_stage_logs`:** resume que despacha e morre antes de escrever qualquer log deixa
+a última linha em `needs_review`, rotulando "descartado" uma interrupção de resume.
+**Ler o `AuditLog` como projeção:** ele é gravado *depois* do flip, em outra transação
+(crash no meio dá `cancelled` sem linha de audit), acopla rendering de produto a uma
+tabela com política de retenção, e é o anti-padrão "audit como banco de aplicação" —
+audit registra o **ato**, não é fonte consultável de estado.
+
+**O que NÃO depende da coluna, e por isso ficou de pé:** o `detail` da resposta HTTP
+(`cancel_run` lê `run.status` **antes** do flip) e a copy do diálogo (`cancelCopyFor` lê
+`status === needs_review` no instante do clique). Leitura de **estado vivo** é correta por
+construção; só a leitura de resíduo caiu.
 
 ### D5 — disparar sobre pausa viva é recusado, em fast-path; o índice não muda
 

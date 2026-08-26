@@ -82,9 +82,12 @@ abandonou · guarda de terminalidade em `action_review` · tabela exaustiva de
 saída por estado + teste de endpoint por estado escapável · copy do card, do
 confirm e da linha de histórico · preflight e runbook param de ensinar o ORM.
 
-**PR2 — a pré-condição.** `needs_review` no fast-path `_check_no_active_run`,
-com 409 que nomeia a saída · guarda de run ativo em `_flip_run_to_resuming`
-(é ela, não o índice, que fecha o executor duplo).
+**PR2 — a pré-condição e o estado gravado.** `needs_review` no fast-path
+`_check_no_active_run`, com 409 que nomeia a saída · guarda de run ativo em
+`_flip_run_to_resuming` (é ela, não o índice, que fecha o executor duplo) ·
+**coluna `pipeline_runs.cancelled_from_status`** + writer + os dois leitores
+([[ADR-417]] D4, reescrito em 2026-08-26) · card da pausa no **carregamento** da
+página, não só ao vivo · gatilho `data-engineer` (migração Alembic).
 
 **PR2 nunca antes de PR1.** Bloquear o trigger sem porta converte "pausa" em
 "workspace tijolado" — o incidente de origem da [[ADR-359]], agora enforçado
@@ -193,11 +196,45 @@ histórico.
 e a que a contradiz aparece. **Dono: PR2 desta lane** — o 409 do fast-path é
 exatamente o que fecha isso, e o card na carga é o par de leitura dele.
 
+### O D4 foi refutado por medição durante a execução, e reescrito antes do merge
+
+A 1ª redação do D4 dizia que `(cancelled, paused_at_stage IS NOT NULL)` discriminava
+descarte de interrupção, "zero migração". **Não discrimina:** ninguém nunca zera
+`paused_at_stage` — `rg 'paused_at_stage *= *None' backend/app` devolve zero, e a
+[[A40.l27]] o preserva **de propósito** no resume, por ser "a única cópia durável do
+ponto de retomada". Logo o par também vale para quem pausou → conferiu → **retomou** →
+foi interrompido, que é interrupção.
+
+Erro de grão, e o mesmo que o D3 rejeita: resíduo de um momento passado usado como
+estado no momento terminal.
+
+**Linha de corte no PR1** (decisão `senior-cto`, escalação de 1 rodada): *o que lê
+status vivo fica, o que lê resíduo sai.* Ficou `cancelCopyFor` (lê `status` no instante
+do clique) e o `detail` da rota (lê antes do flip) — corretos por construção. Saíram
+`discarded_at_review`, `foiDescartadoNaConferencia` e os 2 call-sites do `HistoryRow`.
+Run `cancelled` volta a ficar **sem linha de contexto**, que é a paridade com `main`:
+zero rótulo errado embarcado, zero regressão.
+
+Isso **não** viola o critério "discriminador com leitor no mesmo PR" do
+`product-manager`: sem discriminador não há órfão. O critério volta a morder no PR2,
+onde coluna + writer + os dois leitores entram juntos.
+
+A ADR foi **reescrita in place, não emendada** — `Proposto` nunca vigorou, e emendar
+fabricaria uma história que não aconteceu. Se estivesse `Decidido` em `main`, a resposta
+inverteria. A §"Alternativa considerada e refutada" da [[ADR-417]] carrega os três fatos
+medidos, mais duas outras derivações testadas e recusadas (última linha de
+`pipeline_stage_logs`; `AuditLog` como projeção).
+
+**Pin de regressão do PR2:** o teste
+`test_run_retomado_e_depois_interrompido_nao_pode_ler_como_descarte` — teste-antes-do-fix,
+que mora no PR que corrige, não no que remove.
+
 ### O que o PR1 deliberadamente não fez
 
 - Guarda de run ativo em `_flip_run_to_resuming` (executor duplo) — **PR2**.
 - `needs_review` no fast-path `_check_no_active_run` — **PR2**, e nunca antes do PR1.
 - Índice parcial — [[ADR-417]] D5 §Deferimento, dono `data-engineer`.
+- Coluna `cancelled_from_status` e os leitores do discriminador — **PR2** (ver acima).
 - `action_review` segue acima do teto de 20 linhas do P1: dívida **preexistente**,
   não ampliada (o guard saiu para `_require_run_aberto`).
 
