@@ -74,6 +74,12 @@ class PipelineRun(Base):
     )
     failure_reason: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
+    # ADR-417 D4 — estado do run no instante em que virou terminal. NÃO é motivo (isso
+    # fica no `AuditLog`) e NÃO é derivável: `paused_at_stage` nunca é zerado, então
+    # sobrevive à retomada e não discrimina o momento terminal. NULL = desconhecido
+    # (row anterior à coluna), nunca "interrompido".
+    cancelled_from_status: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+
     workspace = relationship("Workspace", back_populates="pipeline_runs")
     stage_logs = relationship(
         "PipelineStageLog",

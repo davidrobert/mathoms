@@ -8,6 +8,7 @@ import { frasePecasRetidas } from "@/lib/parecerRetencaoCopy";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { deriveFailedStage } from "./failedStage";
+import { foiDescartadoNaConferencia } from "./cancelCopy";
 import { degradedRunCaveat } from "./degradedStage";
 import { parecerItensRetidosNoRun } from "./parecerRetencao";
 
@@ -41,6 +42,17 @@ function RunContextLine({ run }: { run: PipelineRunResponse }) {
   }
   if (run.status === "needs_review") {
     return <span className="text-xs text-warning">Revisão pendente</span>;
+  }
+  // ADR-417 D4 — leitor do estado gravado. Sem ele, "Cancelado" cobre dois atos
+  // distintos e o histórico não distingue quem interrompeu de quem desistiu.
+  if (foiDescartadoNaConferencia(run)) {
+    return (
+      <span className="text-sm text-muted-foreground truncate">
+        {run.paused_at_stage
+          ? `Descartado durante a conferência em ${stageName(run.paused_at_stage)}`
+          : "Descartado durante a conferência"}
+      </span>
+    );
   }
   // A40.l22 — run que ENTREGOU o parecer com itens retidos. Fica por último:
   // `partial_failure` acima já fala do parecer que não saiu, e um run pode
@@ -145,6 +157,7 @@ export function HistoryRow({
     isFailed ||
     run.status === "partial_failure" ||
     run.status === "needs_review" ||
+    foiDescartadoNaConferencia(run) ||
     parecerItensRetidosNoRun(run) > 0;
   const borderClass = highlighted
     ? "border-primary ring-1 ring-primary/40"

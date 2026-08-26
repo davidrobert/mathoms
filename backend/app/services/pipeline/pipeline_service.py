@@ -20,7 +20,10 @@ from backend.app.core.config import settings
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
-from backend.app.services.pipeline.dispatch_contract import CANCELLABLE_STATUSES
+from backend.app.services.pipeline.dispatch_contract import (
+    CANCELLABLE_STATUSES,
+    EXECUTOR_VIVO_STATUSES,
+)
 from backend.app.services.pipeline.events import publish_run_cancelled
 from backend.app.services.pipeline.pipeline_failure_reasons import (
     DISPATCH_FAILED,
@@ -254,6 +257,27 @@ def _log_dispatch_failure(run_id: str, ws_id: str, reason: str, exc: Exception) 
 # de pausa passava a existir só na memória do processo que morreu. Com a coluna intacta o
 # zumbi segue diagnosticável; zerá-la tornava `_stages_after_paused(None)` → `[]` →
 # `_mark_run_completed`, i.e. run reportando sucesso sem executar nada.
+# Havia ZERO guarda neste ponto: a pausa é invisível ao índice parcial e (antes do
+# fast-path) ao trigger, então pausa P + trigger N + resume P punha dois workers
+# escrevendo artefatos no mesmo workspace — a falha que a A40.l27 nomeou para `resuming`.
+def _reject_if_executor_concorrente(db, ws_id: str, run_id: str) -> None:
+    """A pausa é uma pretensão a virar executor; aqui ela é exercida (ADR-417 D5)."""
+    outro = (
+        db.query(PipelineRun)
+        .filter(
+            PipelineRun.workspace_id == ws_id,
+            PipelineRun.id != run_id,
+            PipelineRun.status.in_(EXECUTOR_VIVO_STATUSES),
+        )
+        .first()
+    )
+    if outro is not None:
+        raise ValueError(
+            f"Outra execução está ativa neste workspace (run {outro.id[:8]}, "
+            f"status {outro.status}). Aguarde o término dela antes de retomar."
+        )
+
+
 def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
@@ -261,6 +285,8 @@ def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
             raise ValueError("Run not found")
         if run.status != PipelineRunStatus.needs_review:
             raise ValueError(f"Run is not paused for review (status: {run.status})")
+
+        _reject_if_executor_concorrente(db, ws_id, run_id)
 
         paused_stage = run.paused_at_stage
         tier = run.tier_at_run or "free"
@@ -351,6 +377,10 @@ def cancel_pipeline_run(run_id: str) -> bool:
         if run.status not in CANCELLABLE_STATUSES:
             return False
 
+        # ADR-417 D4 — writer ÚNICO, no mesmo commit do flip. A guarda acima acabou de
+        # ler `run.status`; gravá-lo aqui não tem janela. Derivar depois é impossível:
+        # `paused_at_stage` nunca é zerado e por isso não discrimina o momento terminal.
+        run.cancelled_from_status = str(getattr(run.status, "value", run.status))
         run.status = PipelineRunStatus.cancelled
         run.completed_at = datetime.now(timezone.utc)
         db.commit()

@@ -40,6 +40,7 @@ import { FailedRunCard } from "./_components/FailedRunCard";
 import { ActiveRunCard } from "./_components/ActiveRunCard";
 import { TriggerCard } from "./_components/TriggerCard";
 import { cancelCopyFor } from "./_components/cancelCopy";
+import { ACTIVE_STATUSES, resolveActiveRun } from "./_components/resolveActiveRun";
 import { NeedsReviewCard } from "./_components/NeedsReviewCard";
 import { RunHistoryList } from "./_components/RunHistoryList";
 import { useDeepLinkScroll } from "./_components/useDeepLinkScroll";
@@ -59,7 +60,6 @@ import {
   setDismissedPartialRunId,
 } from "./_components/dismissedPartialRun";
 
-const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
 
 /** Banner dispensável: esconde o run já dispensado e limpa dispensa órfã. */
 function resolveDismissable(
@@ -239,10 +239,9 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       setIsPremium(tierData.tier === "premium");
       setHasIfGoal(ifGoalHas);
 
-      const active = runsData.runs.find((r) => ACTIVE_STATUSES.has(r.status));
-      setActiveRun(active ?? null);
+      setActiveRun(resolveActiveRun(runsData.runs));
 
-      if (!active) {
+      if (!resolveActiveRun(runsData.runs)) {
         // Anuncia só o mais recente entre falhado e parcial — nunca os dois.
         const notable = runsData.runs.find(
           (r) => r.status === "failed" || r.status === "partial_failure"

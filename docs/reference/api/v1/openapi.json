@@ -7594,6 +7594,17 @@
       },
       "PipelineRunResponse": {
         "properties": {
+          "cancelled_from_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled From Status"
+          },
           "celery_task_id": {
             "anyOf": [
               {

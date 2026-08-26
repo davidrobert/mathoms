@@ -85,6 +85,7 @@ const pipelineRun: PipelineRunResponse = {
   failed_at_stage: null,
   failure_reason: null,
   paused_at_stage: null,
+  cancelled_from_status: null,
   tier_at_run: "free",
   total_documents: 1,
   incremental: false,

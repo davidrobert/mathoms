@@ -137,6 +137,9 @@ class PipelineRunResponse(BaseModel):
     # a distinção que eles compram não chega a operador nem a usuário.
     failure_reason: Optional[str] = None
     paused_at_stage: Optional[str] = None
+    # ADR-417 D4 — sem read path aqui o frontend não alcança a coluna e o discriminador
+    # volta a ser derivação. `None` = desconhecido (row anterior à coluna).
+    cancelled_from_status: Optional[str] = None
     tier_at_run: str = "free"
     total_documents: Optional[int] = None
     incremental: bool = False

@@ -5,7 +5,10 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { cancelCopyFor } from "@/app/(app)/pipeline/_components/cancelCopy";
+import {
+  cancelCopyFor,
+  foiDescartadoNaConferencia,
+} from "@/app/(app)/pipeline/_components/cancelCopy";
 import { makeRun } from "../factories";
 
 const pausado = (n = 2) =>
@@ -59,5 +62,47 @@ describe("cancelCopyFor", () => {
       runs: [makeRun({ report_id: "rel-1" })],
     });
     expect(copy.description).not.toMatch(/de onde parou|continuar de onde/i);
+  });
+});
+
+describe("foiDescartadoNaConferencia", () => {
+  it("lê o estado GRAVADO no instante terminal", () => {
+    expect(
+      foiDescartadoNaConferencia(
+        makeRun({ status: "cancelled", cancelled_from_status: "needs_review" }),
+      ),
+    ).toBe(true);
+  });
+
+  it("interrompido em execução não é descarte, MESMO com `paused_at_stage` preenchido", () => {
+    // O caso que refutou a derivação: ninguém zera `paused_at_stage`, então ele
+    // sobrevive à retomada. Só o estado gravado discrimina.
+    expect(
+      foiDescartadoNaConferencia(
+        makeRun({
+          status: "cancelled",
+          cancelled_from_status: "running",
+          paused_at_stage: "analyze_finances",
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("row legada (`null`) é desconhecida, nunca interrompida", () => {
+    expect(
+      foiDescartadoNaConferencia(
+        makeRun({
+          status: "cancelled",
+          cancelled_from_status: null,
+          paused_at_stage: "analyze_finances",
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("pausa ainda viva não é descarte", () => {
+    expect(
+      foiDescartadoNaConferencia(makeRun({ status: "needs_review", cancelled_from_status: null })),
+    ).toBe(false);
   });
 });

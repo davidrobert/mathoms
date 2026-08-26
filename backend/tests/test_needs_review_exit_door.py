@@ -22,9 +22,11 @@ from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.services.audit import READ_ACCESS_ACTIONS, AuditAction
 from backend.app.services.pipeline.dispatch_contract import (
     CANCELLABLE_STATUSES,
+    EXECUTOR_VIVO_STATUSES,
     RUN_EXIT_BY_STATUS,
     TERMINAL_STATUSES,
     RunExit,
+    discarded_at_review,
 )
 
 _CANCEL = "backend.app.application.pipeline_run.cancel_run.cancel_pipeline_run"
@@ -156,7 +158,11 @@ async def test_todo_estado_escapavel_sai_pela_rota(
     resp = await auth_client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run.id}/cancel")
 
     assert resp.status_code == 200, resp.text
-    assert (await _reler(db, run.id)).status in TERMINAL_STATUSES
+    depois = await _reler(db, run.id)
+    assert depois.status in TERMINAL_STATUSES
+    # ADR-417 D4 — o writer tem de cobrir TODO estado escapável; esquecer um novo
+    # reprova aqui, pelo mesmo mecanismo de ausência do `RUN_EXIT_BY_STATUS`.
+    assert depois.cancelled_from_status == status.value
 
 
 @pytest.mark.asyncio
@@ -255,3 +261,109 @@ async def test_flip_no_op_do_service_vira_conflito_nao_sucesso(
 
     assert resp.status_code == 409
     assert (await _reler(db, run_id)).status == PipelineRunStatus.needs_review
+
+
+# ── D4 (PR2): o estado terminal é GRAVADO, e por isso discrimina ──────────────
+
+
+@pytest.mark.asyncio
+async def test_descarte_grava_o_estado_do_instante_terminal(
+    auth_client: AsyncClient, db: AsyncSession
+):
+    ws_id = auth_client.ws_id
+    run_id = await _run_pausado(db, ws_id)
+
+    await auth_client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/cancel")
+
+    assert discarded_at_review((await _reler(db, run_id)).cancelled_from_status)
+
+
+# O caso que refutou a derivacao por `paused_at_stage`: quem pausou, conferiu, RETOMOU
+# e so entao foi interrompido tem `paused_at_stage` preenchido (ninguem o zera) e NAO e
+# descarte. O `xfail(strict=True)` que marcava esta lacuna sai junto com o fix.
+@pytest.mark.asyncio
+async def test_retomado_e_depois_interrompido_nao_le_como_descarte(
+    auth_client: AsyncClient, db: AsyncSession
+):
+    ws_id = auth_client.ws_id
+    run = PipelineRun(
+        workspace_id=ws_id,
+        status=PipelineRunStatus.running,
+        tier_at_run="premium",
+        paused_at_stage="analyze_finances",  # resíduo da pausa já conferida e retomada
+    )
+    db.add(run)
+    await db.commit()
+
+    await auth_client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run.id}/cancel")
+
+    depois = await _reler(db, run.id)
+    assert depois.paused_at_stage == "analyze_finances"
+    assert not discarded_at_review(depois.cancelled_from_status)
+
+
+@pytest.mark.asyncio
+async def test_row_legada_sem_coluna_e_desconhecida_nao_interrompida(
+    auth_client: AsyncClient, db: AsyncSession
+):
+    """`None` nunca vira afirmação: run anterior à coluna não recebe rótulo nenhum."""
+    ws_id = auth_client.ws_id
+    run = PipelineRun(
+        workspace_id=ws_id,
+        status=PipelineRunStatus.cancelled,
+        tier_at_run="free",
+        paused_at_stage="analyze_finances",
+        cancelled_from_status=None,
+    )
+    db.add(run)
+    await db.commit()
+
+    assert not discarded_at_review((await _reler(db, run.id)).cancelled_from_status)
+
+
+# ── D5: a pausa bloqueia disparo novo, e o resume recusa executor concorrente ──
+
+
+@pytest.mark.asyncio
+async def test_trigger_sobre_pausa_viva_recusa_nomeando_a_saida(
+    auth_client_with_doc: AsyncClient, db: AsyncSession
+):
+    """Antes, disparar por cima era silencioso E destrutivo: a pausa nunca mais seria
+    retomada e as `stage_reviews` dela ficavam `pending` órfãs, sem varredura."""
+    auth_client = auth_client_with_doc
+    ws_id = auth_client.ws_id
+    run_id = await _run_pausado(db, ws_id)
+
+    resp = await auth_client.post(f"/api/workspaces/{ws_id}/pipeline/run", json={})
+
+    assert resp.status_code == 409
+    detalhe = resp.json()["detail"]
+    assert "pausado" in detalhe.lower()
+    assert "descarte" in detalhe.lower()  # nomeia a saída, nunca "aguarde"
+    assert run_id[:8] in detalhe
+
+
+@pytest.mark.asyncio
+async def test_resume_recusa_quando_outro_executor_esta_vivo(
+    auth_client: AsyncClient, db: AsyncSession
+):
+    """Fecha o executor duplo: a pausa é invisível ao índice parcial, então a guarda
+    tem de morar no instante em que a pretensão a executor é exercida."""
+    from backend.app.services.pipeline.pipeline_service import resume_pipeline_run
+
+    ws_id = auth_client.ws_id
+    pausado = await _run_pausado(db, ws_id)
+    db.add(PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running, tier_at_run="free"))
+    await db.commit()
+
+    with pytest.raises(ValueError, match="ativa"):
+        resume_pipeline_run(pausado, ws_id)
+
+    assert (await _reler(db, pausado)).status == PipelineRunStatus.needs_review
+
+
+def test_executor_vivo_nao_inclui_a_pausa() -> None:
+    """A pausa não segura executor — ela é uma PRETENSÃO a virar um. Incluí-la aqui
+    faria a guarda do resume recusar o próprio run que está retomando."""
+    assert PipelineRunStatus.needs_review not in EXECUTOR_VIVO_STATUSES
+    assert set(EXECUTOR_VIVO_STATUSES) < set(CANCELLABLE_STATUSES)
