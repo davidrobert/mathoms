@@ -34,7 +34,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 
 PREDICATE_TS = REPO / "frontend/src/components/report/utils/visibleCompositionRows.ts"
-PRODUCER_PY = REPO / "pipeline/domain/services/patrimonio_calculator.py"
+# A40.l80: o produtor saiu de `patrimonio_calculator.py` (teto de 500 linhas) para
+# `patrimonio_composicao.py`. O path é fixo aqui de propósito — buscar o rótulo na
+# árvore inteira casaria com teste e fixture —, mas isso torna o gate cego a uma
+# mudança de arquivo: quem mover o produtor de novo tem de mover esta linha junto.
+PRODUCER_PY = REPO / "pipeline/domain/services/patrimonio_composicao.py"
 FRONTEND_SRC = REPO / "frontend/src"
 
 _TS_LABEL = re.compile(r'CATEGORIA_RESIDENCIA_LABEL\s*=\s*"([^"]+)"')

@@ -1993,6 +1993,16 @@ def _e5_review_reasons(
     )
 
 
+def _e5_advisory_reasons(patrimonio: Dict[str, Any]) -> list[dict]:
+    """Razões que DIAGNOSTICAM sem reter ([[ADR-412]] §Emenda E1)."""
+    from pipeline.domain.services.atribuicao_review_reasons import review_reasons_da_atribuicao
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
+
+    return review_reasons_da_atribuicao(
+        patrimonio, stage="analyze_finances", artifact_key=E5_ARTIFACT_KEY
+    )
+
+
 def _e5_validation_block(
     patrimonio: Dict[str, Any], investimentos: Dict[str, Any] | None = None
 ) -> Dict[str, Any]:
@@ -2013,6 +2023,12 @@ def _e5_build_result_dict(legacy: Dict[str, Any], warnings) -> Dict[str, Any]:
     goals = legacy["goals"]
     return {
         "validation": _e5_validation_block(patrimonio, legacy.get("investimentos_classes")),
+        # ADVISORY ([[ADR-412]] §Emenda E1): IRMÃ de `validation`, nunca dentro.
+        # `harvest_review_reasons` colhe qualquer chave `review_reasons` em
+        # qualquer profundidade do `detail`, mas `valid = not reasons` só olha
+        # `_e5_review_reasons` — logo isto diagnostica sem reter. Reter faria o
+        # run não produzir `reports`, parecer nem cross-validation.
+        "review_reasons": _e5_advisory_reasons(patrimonio),
         "files_created": [E5_ARTIFACT_FILENAME],
         "total": 1,
         "score_valor": score.get("valor"),

@@ -66,6 +66,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.atribuicao_review_reasons import atribuicao_investimentos
 from pipeline.domain.services.bases_financeiras import PapelMembro, publicar_bases
 from pipeline.domain.services.investimentos_cobertura import (
     cobertura_de_membros,
@@ -73,6 +74,7 @@ from pipeline.domain.services.investimentos_cobertura import (
 )
 from pipeline.domain.services.member_key_matcher import matches_member_key
 from pipeline.domain.services.patrimonio_caixa import caixa_me_from_detalhes, compute_caixa
+from pipeline.domain.services.patrimonio_composicao import build_composicao
 from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_COMERCIAL,
     CLASSIFICATION_DESCONHECIDO,
@@ -219,7 +221,8 @@ class PatrimonioCalculator:
         )
         investivel_efetivo = max(0.0, investivel_financeiro + cat2_efetivo)
 
-        composicao = self._build_composicao(
+        composicao = build_composicao(
+            identity=self._config.members,
             residencia=residencia,
             imoveis_investimento=imoveis_investimento,
             investimentos_titular=investimentos_titular,
@@ -269,6 +272,11 @@ class PatrimonioCalculator:
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
             "guarda_de_sinal": guarda.to_dict(),
             "investimentos_nao_atribuidos": round(nao_atribuidos, 2),
+            "atribuicao_investimentos": atribuicao_investimentos(
+                orfa=nao_atribuidos,
+                cheia=investivel_financeiro,
+                identificada=investivel_financeiro - nao_atribuidos,
+            ),
             **publicar_bases(
                 {
                     "investimentos_titular": investimentos_titular,
@@ -421,79 +429,3 @@ class PatrimonioCalculator:
                 + nao_atribuidos
             )
         return total_bens_irpf
-
-    def _build_composicao(
-        self,
-        *,
-        residencia: float,
-        imoveis_investimento: float,
-        investimentos_titular: float,
-        investimentos_conjuge: float,
-        caixa: float,
-        veiculos: float,
-        nao_atribuidos: float = 0.0,
-    ) -> list[dict]:
-        """Monta as 6 categorias visíveis + percentuais via largest-remainder
-        (soma=100%).
-
-        Categorias retornadas — paridade legado, materializa 6 das 7 buckets
-        de ADR-145: Residência (#1), Imóveis Investimento (#2), Investimentos
-        Titular (#3), Investimentos Cônjuge (#4), Caixa + ME (#6), Veículos
-        (#7). Bucket #5 (Criptoativos) consolida em #3/#6 conforme regra de
-        ADR-145 (crypto direta IRPF → bucket investimentos do titular;
-        Hashdex/FIC FIM → bucket investimentos titular). Quando o pipeline
-        recebe extratos de exchange (Binance), a separação visual aparece
-        no doughnut de ``investimentos_classes`` — não nesta composição.
-        """
-        identity = self._config.members
-        # ADR-215 P3: rename visível do bucket cat_2 — "Imóveis Investimento"
-        # → "Imóveis de Renda". Comunica o critério econômico real (geração de
-        # caixa). `template_key` interno (`imoveis_investimento`) é estável
-        # ([[ADR-145]] proíbe rename de key); só o label exibido muda.
-        composicao = [
-            {"categoria": "Residência", "valor": residencia},
-            {"categoria": "Imóveis de Renda", "valor": imoveis_investimento},
-            {
-                "categoria": f"Investimentos {identity.titular_nome}",
-                "valor": investimentos_titular,
-            },
-            {
-                "categoria": f"Investimentos {identity.conjuge_nome}",
-                "valor": investimentos_conjuge,
-            },
-            {"categoria": "Caixa e Moeda Estrangeira", "valor": caixa},
-            {"categoria": "Veículos", "valor": veiculos},
-        ]
-        # Só aparece quando existe: categoria permanente com 0,00 em todo run
-        # sadio seria ruído no donut de toda família bem resolvida.
-        if nao_atribuidos:
-            composicao.append(
-                {"categoria": "Investimentos sem titular identificado", "valor": nao_atribuidos}
-            )
-        self._apply_percentuals_largest_remainder(composicao)
-        composicao.sort(key=lambda x: x["valor"], reverse=True)
-        return composicao
-
-    @staticmethod
-    def _apply_percentuals_largest_remainder(composicao: list[dict]) -> None:
-        """Aplica percentuais usando o método do maior resto (soma exata = 100%).
-
-        Mutates ``composicao`` in-place adicionando ``pct`` em cada entry.
-        Quando total = 0, atribui pct = 0.0 para todos.
-        """
-        total_nonzero = sum(c["valor"] for c in composicao)
-        if total_nonzero <= 0:
-            for comp in composicao:
-                comp["pct"] = 0.0
-            return
-
-        raw_pcts = [(c["valor"] / total_nonzero) * 100 for c in composicao]
-        floored = [int(p * 100) / 100.0 for p in raw_pcts]
-        remainders = [(raw_pcts[i] - floored[i], i) for i in range(len(composicao))]
-        remainder_sum = round(100.0 - sum(floored), 2)
-        steps = int(round(remainder_sum / 0.01))
-        remainders.sort(key=lambda x: -x[0])
-        for j in range(min(steps, len(remainders))):
-            floored[remainders[j][1]] += 0.01
-        for i, comp in enumerate(composicao):
-            comp["pct"] = round(floored[i], 2)

@@ -43,6 +43,7 @@
         "domain.ativo_sem_haystack",
         "domain.ativo_nao_classificado",
         "domain.instituicao_ausente",
+        "domain.investimento_sem_titularidade",
         "domain.property_identity_eixo_por_hint"
       ]
     },

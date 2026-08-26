@@ -1807,6 +1807,12 @@
     "trs_efetiva_pct": "0.000000"
   },
   "patrimonio": {
+    "atribuicao_investimentos": {
+      "motivo": null,
+      "pct_carteira_financeira": "0.000000",
+      "piso_pct": "1.000000",
+      "status": "apurado"
+    },
     "base_versao": 1,
     "bases": {
       "carteira_com_titular_identificado": {
