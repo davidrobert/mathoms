@@ -5,7 +5,7 @@ title: "Sprint A40 — Report trust: o dado que entrou tem de chegar ao usuário
 aliases: ["A40", "Sprint A40"]
 sprint_status: current
 date: "2026-07-30"
-date_target: "2026-08-17"
+date_target: "2026-09-05"
 theme: "report-trust"
 ---
 
@@ -174,7 +174,10 @@ medido da mesma lane. Isto **não** adiciona cláusula ao gate de
 lane, e transformá-las em checklist de lane produziria gate satisfazível por não
 construir a superfície. É insumo operacional da execução do gate, e vive aqui.
 
-**Data-alvo: `2026-08-17`** (`date_target` no frontmatter; precedente de campo é
+**Data-alvo: `2026-09-05`** — ~~`2026-08-17`~~, movida em 2026-08-26 no commit que
+abriu as quatro lanes da rodada unificada **U1** (ver §Fora do sprint). Manter data
+vencida enquanto se abre lane nova esvazia o único gatilho computável do tripwire da
+[[A40.l21]]. (`date_target` no frontmatter; precedente de campo é
 o `closed:` da [[MOC-sprint-a33]], único de 35 MOCs de sprint a datar
 encerramento). É **alvo, não compromisso**: existe para dar aritmética ao
 tripwire, não para forçar corte.
@@ -268,7 +271,7 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (86 no disco · 84 nesta tabela — ver nota ao fim)
+## Lanes (90 no disco · 88 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -397,6 +400,10 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l85]] | O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar | P1 | — | aberta 2026-08-25 no fecho da [[A40.l83]] · o mesmo instrumento dá **92,9%** no corpus sintético e **86,5%** no E5 real; antes do fix dava 39,3% contra **0%** · a causa é cardinalidade: onde produção tem **31** linhas de endividamento e **28** de reserva, o corpus tem **2** e **4** — e são as duas raízes que consomem o catálogo, logo o colapso é estruturalmente irreproduzível ali · medido: reverter a semente custa **86,5pp** em produção e **7,2pp** no sintético, e o delta do sintético ENCOLHEU (era 53,6pp) quando o orçamento subiu · **armadilha**: `make_workspace_e5` tem raio de 11 arquivos, incluindo golden e PII scan |
 | [[A40.l86]] | Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo | P2 | — | aberta 2026-08-25 no fecho da [[A40.l83]] · `format: brl` declarado no manifest vs `_MONEY_KEY_TOKENS` casando substring de nome · discordam em 3 campos medidos no E5 real: `investimentos_nao_atribuidos` (resolvido no #1714 com token novo), `transferencia_patrimonial` e `teto_sugerido` (seguem inancoráveis) · adicionar token remedia instância, não classe · **armadilha**: o catálogo é BRL-only por construção e caminha o E5 inteiro, não só o projetado — trocar heurística por declaração ENCOLHERIA o catálogo |
 | [[A40.l87]] | A pausa não tem porta de saída, e o botão que o produto já oferece devolve 409 há quatro meses | P1 | ✅ **#1740 · #1743** | aberta 2026-08-26 no desbloqueio do preflight da [[runbook-unified-certify-review]] · admissão retro-registrada (§Fora do sprint), precedente [[A40.l46]] · [[ADR-417]] `Proposto` em co-design `product-manager` + `senior-cto` (convergentes) · **a decisão de produto já existia**: `NeedsReviewCard.tsx:63` oferece "Cancelar execução" desde **2026-04-21** e o backend responde 409 — o comentário que diz "é decisão de produto" entrou 3 meses depois · dois falsos-verdes pinam a crença (teste do card assere fiação, não desfecho; `test_detect_undispatched_runs.py:243` assere a exclusão) · **o buraco é executor duplo, não só orfanamento**: `_flip_run_to_resuming` não checa run ativo e a pausa é invisível ao índice e ao fast-path · 2 PRs em ordem dura (porta → bloqueio); o índice parcial **não muda** ([[A40.l27]] é precedente) · `parallel_with` [[A40.l84]] com partição declarada — o predicado dela é `(completed, pending)`, **nunca** "terminal + pending", senão morde o resíduo sancionado  · **`shipped` 2026-08-26** em 2 PRs sob a [[ADR-417]] (`Decidido`): #1740 a porta (tupla + tabela exaustiva de saídas + guarda de terminalidade no `action_review`) e #1743 a pré-condição (409 no trigger nomeando as saídas + guarda de executor concorrente no resume + coluna `cancelled_from_status` + card da pausa sobrevivendo ao reload) · **o D4 foi refutado por medição DENTRO da lane**: a 1ª redação derivava o descarte de `paused_at_stage`, que ninguém zera — reescrito in place (a ADR era `Proposto`, nunca vigorou) com §Alternativa refutada carregando as 3 medições · 5 mecanismos, 5 mutações, todas reprovando · **índice parcial NÃO muda** (D5 §Deferimento, dono `data-engineer`: a migração quebraria hoje no dogfood) · aviso de colisão de predicado escrito DENTRO da [[A40.l84]]|
+| [[A40.l88]] | Consumidor ausente no entregue: o produto emite a ressalva, a seção e o aviso — e nenhum dos três chega ao leitor | P0 | — | aberta 2026-08-26 pela rodada unificada **U1** ([[ADR-416]]) · RR5-01+RR5-03+RR5-04 · **render puro, não zera o contador** · onda 1 |
+| [[A40.l89]] | Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica | P0 | — | aberta 2026-08-26 pela **U1** · RR5-02 · **retomada do §Deferimento D3**, não locus novo · muta E5+prompt · onda 2, atrás da l91 |
+| [[A40.l90]] | A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar | P0 | — | aberta 2026-08-26 pela **U1** · PV9-06 · PR1 é emenda datada da [[ADR-399]] · muta E5 · onda 2, atrás da l89 (ordem forçada) |
+| [[A40.l91]] | A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos | P0 | — | aberta 2026-08-26 pela **U1** · PV9-16 · **cabeça da janela de rebaseline** da onda 2 · muta E5 |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -1240,6 +1247,25 @@ de repo.
 > "fica como está" segue **owner-gated**, agora com o custo de (b) conhecido.
 
 ## Fora do sprint (disposição explícita)
+
+> ### Admissão retro-registrada — [[A40.l88]], [[A40.l89]], [[A40.l90]], [[A40.l91]], 2026-08-26
+>
+> Quatro lanes abertas pela rodada unificada **U1** ([[ADR-416]]), todas **P0 que alcança o
+> usuário** e nenhuma com dono de arquivo em lane viva — dentro da cláusula de exceção, ao
+> contrário da [[A40.l87]]. A alternativa era a [[A42]], e o **critério de admissão dela as
+> exclui por escrito**: entra ingestão, razão, contrato de store ou instrumento de
+> certificação, *"fora dessas quatro não entra, ainda que seja P0"*. Render e E5 estão fora.
+> Pôr as quatro lá exigiria emendar o critério da A42 — trade pior que admitir aqui.
+>
+> **A `date_target` foi movida no mesmo commit** (2026-08-17 → 2026-09-05). Abrir quatro
+> lanes sobre uma data vencida há nove dias transformaria o único gatilho computável do
+> tripwire da [[A40.l21]] em ficção — que é o argumento que a própria [[A42]] usa contra a
+> fusão. Custo declarado, não escondido.
+>
+> **Moeda do contador de 2 re-runs:** a [[A40.l88]] é render puro e **não zera**; as outras
+> três mutam E5 e zeram. Por isso a l88 é onda 1, e as demais compartilham **uma** janela de
+> rebaseline, na ordem l91 → l89 → l90.
+
 
 > ### Admissão retro-registrada — [[A40.l87]], 2026-08-26
 >

@@ -26,6 +26,25 @@ tags:
 > num ponto de entrada.** O outro caminho está documentado no runbook como ação
 > operacional, o que normaliza o contorno.
 
+> **Re-âncora datada — 2026-08-26 (rodada unificada **U1**, [[ADR-416]] ·
+> [[PIPELINE-REVIEWS-active]] §r9 PV9-29).** O sítio moveu: `_flip_run_to_resuming` está em
+> `backend/app/services/pipeline/pipeline_service.py:281` (era `:262`) e já carrega
+> `_reject_if_executor_concorrente` na `:289`, entregue pelo PR2 da [[A40.l87]] (#1743,
+> `shipped` em 2026-08-26). **O predicado desta lane continua ausente**: nenhuma linha da
+> função consulta `stage_reviews` — medido em `origin/main`, zero ocorrências.
+>
+> **Não há absorção, e a distinção importa.** As duas lanes tocam a mesma função com
+> **predicados disjuntos** — a l87 barra executor concorrente, esta barra review pendente.
+> Fundi-las apagaria a partição que as duas pagaram para declarar, e escrever o fecho desta
+> como *"terminal + pending"* morderia o resíduo sancionado da [[ADR-417]] D3. O que muda
+> aqui é só o sítio de inserção e o rebase; `parallel_with` vira registro histórico, porque
+> a lane irmã é terminal.
+>
+> A **U1** também mediu o agravante: o `resume_run` lê a contagem numa sessão e o flip
+> acontece em outra — duas sessões, nenhuma atomicidade, TOCTOU por construção. E a
+> [[ADR-417]] introduziu um **segundo ator** sobre o estado pausado, então aprovar-e-retomar
+> e cancelar agora competem pelo mesmo run.
+
 ## O fato, medido no r8
 
 `pipeline_service.resume_pipeline_run` (`:292`) chama `_flip_run_to_resuming`

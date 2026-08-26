@@ -40,6 +40,32 @@ Três formas do mesmo defeito, uma por camada:
 Nenhum desses é bug de cálculo. Todos são **instrumento mentindo**, que é o defeito
 que precede e esconde todos os outros — daí a Onda 1 ser instrumento, não fix.
 
+> ### O `ledger-certify` r5 do rito de abertura **já rodou** — 2026-08-26
+>
+> A rodada unificada **U1** ([[ADR-416]]) executou o `ledger-certify` em modo entregue sobre
+> um run real: [[LEDGER-CERTIFY-active]] §r5. **O r5 que esta sprint exige antes do primeiro
+> pickup existe**, e o achado que ele produziu é insumo do rito, não a 13ª lane.
+>
+> **`LC5-01` (Crítico) carimba duas lanes:**
+>
+> - **[[A42.l5]]** — `sobrevive`, com escopo estreitado. Continua dona da chave de artefato
+>   *period-free*; **deixa de ser** a lane que fecha a classe cross-documento.
+> - **[[A42.l10]]** — `sobrevive`, com a atribuição de fecho **falsificada** (ver o bloco
+>   datado lá). A leitura *"amplifica, não causa"* segue de pé.
+>
+> **O que o r5 mediu e nenhuma lane cobria:** colapsador e detector derivam `direction` de
+> funções distintas, e o residual do numerador da KR-B da [[A40]] é **100% ponto cego do
+> remediador** — rodar o colapsador até convergir não move o número. O alvo do fix deixa de
+> ser whitelist e passa a ser **paridade de chave**.
+>
+> **Consequência para a [[A40]], owner-gated:** a KR-B é medida no modo entregue e, com o
+> ponto cego, a métrica literal **tem piso** e não fecha. As duas saídas honestas são
+> declarar a KR-B com o ponto cego nomeado e classificado como *explicado*, roteando o fix
+> para cá; ou declarar a KR-B não atingida. O fix **não** é saída dentro da A40 — mutaria E3
+> e zeraria o contador de re-runs, que é o caso adversarial que esta sprint codifica.
+>
+> A ampliação de escopo da [[A42.l3]] (itens 6–9) veio da mesma rodada e está registrada lá.
+
 ## Por que esta sprint existe (e não é lane da A40)
 
 O `_README` da [[A40]] §Fora do sprint declara os achados de E0→E2 explicitamente
@@ -124,7 +150,7 @@ grafo honesto até lá.
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
 | [[A42.l1]] | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | **P0** | 0 | — |
-| [[A42.l3]] | Harness de certificação: falso-verde para dentro | P1 | 1 | — |
+| [[A42.l3]] | Harness de certificação: falso-verde para dentro — **+4 itens da U1** (`layer_ok` verde sobre ponto cego, checksum auto-consistente, resíduo E2→E3 não computado, CV de severidade constante) | P1 | 1 | — |
 | [[A42.l4]] | Check que não consegue avaliar evapora em vez de virar `skipped` | P2 | 1 | — |
 | [[A42.l2]] | Parsers line-oriented: âncora de fidelidade + supressão vira verdict do gate | P1 | 1 | [[A42.l3]] |
 | [[A42.l6]] | Contrato do store: política de escopo, retenção de órfão e validação de artefato | P1 | 2 | [[A42.l5]] |
