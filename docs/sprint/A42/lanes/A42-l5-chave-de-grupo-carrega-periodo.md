@@ -26,6 +26,14 @@ tags:
 > [[A40.l2]] (#1368) — se esta lane exigir mudança de decisão, a forma é emenda
 > datada a ela, escrita nesta lane.
 
+> 🔴 **O fecho da classe não é desta lane — medido em 2026-08-26** (rodada unificada **U1**,
+> [[ADR-416]] · [[LEDGER-CERTIFY-active]] §r5, **LC5-01**). A [[A42.l10]] atribuía a esta
+> lane o fecho da classe cross-documento; a atribuição está **falsificada** e a frase lá está
+> tachada com o bloco de sinal. Esta lane continua dona da **chave de artefato** (period-free)
+> e do que ela fecha; o fecho do numerador da KR-B depende de **paridade de chave** entre
+> colapsador e detector, que é outro sítio. Sem este registro, esta lane shippa e alguém
+> carimba a classe como fechada.
+
 > **Serialização atrás de [[A40.l2]] quitada 2026-08-14** — a l2 shipou (#1368);
 > `depends_on` saiu. A razão da ordem (reagrupar *period-free* **muta input de
 > hash sem tocar a função de hash**) **continua válida como cautela de

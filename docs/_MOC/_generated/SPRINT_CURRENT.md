@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-open · in_progress.
+open · in_progress · blocked.
 
 ## Open
 
@@ -28,6 +28,8 @@ open · in_progress.
 - [[A40.l84]] — O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou · priority P0 · área backend/pipeline · branch `a40-l84-guard-na-camada-errada`
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
+- [[A40.l88]] — Consumidor ausente no entregue: o produto emite a ressalva, a seção e o aviso — e nenhum dos três chega ao leitor · priority P0 · área frontend/report · branch `a40-l88-consumidor-ausente-no-entregue`
+- [[A40.l91]] — A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos · priority P0 · área pipeline/financial-planning · branch `a40-l91-base-da-meta-if`
 
 ## In progress
 
@@ -37,6 +39,13 @@ open · in_progress.
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l54]] — `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) · priority P2 · área frontend/report · branch `a40-l54-hidden-md-block-no-papel`
 - [[A40.l78]] — Mover código não deixa citação órfã: gate no lado do código, não no do doc · priority P2 · área docs · branch `a40-l78-gate-doc-code-paths`
+
+## Blocked
+
+_Não pegáveis. Listadas porque `blocked` que fica stale some daqui justamente quando a dependência ship e a lane vira pegável._
+
+- [[A40.l89]] — Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica · priority P0 · área pipeline/llm · ⛔ dep pendente: A40.l91 (open) · branch `a40-l89-wiring-do-catalogo-de-alvo`
+- [[A40.l90]] — A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar · priority P0 · área pipeline/financial-planning · ⛔ dep pendente: A40.l89 (blocked) · branch `a40-l90-limiar-de-risco-le-o-catalogo`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

@@ -40,7 +40,22 @@ que o razão trata como conta distinta.
 **A relação causal precisa ser dita com cuidado, e o §r4 já a mediu:** a
 misclassificação **amplifica, não causa**. Com classificação perfeita a classe
 **permanece**, porque o banco emite legitimamente extrato mensal e consolidado anual
-da mesma conta. Quem fecha a classe é a [[A42.l5]] (chave period-free); esta lane
+da mesma conta. > 🔴 **Falsificado por medição — rodada unificada U1, 2026-08-26**
+> ([[ADR-416]] · [[LEDGER-CERTIFY-active]] §r5, **LC5-01**).
+>
+> Fechar a [[A42.l5]] **não move o número**. O residual do numerador cross-grupo (sombra
+> 317 → entregue 7) é **100% ponto cego do remediador**: colapsador e detector derivam
+> `direction` de funções distintas — o detector usa o balde E4
+> (`dev/ledger_cross_group.py`), e o colapsador passa `tipo=None` a `derive_direction`
+> (`pipeline/domain/services/cross_document_collapser.py`), contra o contrato escrito em
+> `pipeline/domain/services/_tx_identity.py` (*"não derivar do sinal cru: fatura inverte"*).
+> A causa **não** é a chave carregar período.
+>
+> **O que sobrevive:** a leitura *"a misclassificação amplifica, não causa"* continua válida
+> e é o que esta lane entrega. Cai só a atribuição do fecho. A frase original fica abaixo,
+> tachada — ela é evidência do que se acreditava em 2026-08-04.
+
+~~Quem fecha a classe é a [[A42.l5]] (chave period-free); esta lane~~ — ver bloco acima.
 reduz a **incidência** e tem um ganho colateral relevante: classificação correta manda
 o documento ao parser determinístico, e a perna de LLM **deixa de existir** — o que
 elimina de origem o par nativo↔escalado que produz as ocorrências medidas hoje.

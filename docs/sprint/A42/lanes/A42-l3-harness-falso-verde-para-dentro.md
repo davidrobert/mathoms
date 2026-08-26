@@ -18,7 +18,7 @@ tags:
   - area/pipeline
 ---
 
-# A42.l3 — `harness-falso-verde-para-dentro` (LC05, LC06, PC13, RV4-17, RV4-18, RV4-45)
+# A42.l3 — `harness-falso-verde-para-dentro` (LC05, LC06, PC13, RV4-17, RV4-18, RV4-45, + LC5-02, LC5-03, LC5-06, PV9-04)
 
 > **Origem:** [[LEDGER-CERTIFY-active]] §r4 2026-08-04 — LC05, LC06 (ambos Alto,
 > classe `[skill]`) · [[PARSE-CERTIFY-active]] §r2 — PC13 · [[PIPELINE-REVIEWS-active]]
@@ -127,3 +127,45 @@ O princípio único: **"não consegui avaliar" é um estado, não um sucesso.**
   esse número e declara o que fez com o numerador `cross_group` (re-freeze ou
   pin de comparabilidade). Sem essa declaração o KR-B residual da A40 perde o
   referente.
+
+---
+
+## Ampliação de escopo — rodada unificada U1, 2026-08-26
+
+> Os itens do §Escopo acima são a redação de 2026-08-04 e **não mudam**. A numeração
+> continua daqui, porque o `_README` da sprint cita "o item 1 desta lane" nominalmente.
+>
+> **Origem dos itens novos:** rodada unificada **U1** ([[ADR-416]]) ·
+> [[LEDGER-CERTIFY-active]] §r5 — **LC5-02**, **LC5-03**, **LC5-06** ·
+> [[PIPELINE-REVIEWS-active]] §r9 — **PV9-04**.
+
+A `U1` rodou o harness em modo entregue sobre um run real e achou **mais quatro**
+falso-verdes na mesma família dos itens 1–5 — o instrumento afirmando verde onde não mediu:
+
+6. **`layer_ok` sai verde com PONTO CEGO impresso duas linhas acima.** `paridade_fecha` é
+   auto-identidade (partição do próprio conjunto do colapsador), não comparação com o
+   detector; `sem_ponto_cego` existe e está **fora** do predicado agregado
+   (`dev/ledger_collapse_layer.py`). O token que um gate leria é o verde.
+7. **O checksum por grupo prova auto-consistência do produtor, não conservação E2→E3.**
+   `_ledger_verdict` lê três campos escritos pelo mesmo produtor e nunca confronta
+   `carregadas` com o input E2 (`dev/ledger_certify_core.py`). Saída medida: 97/97 grupos
+   `conservado` impressos ao lado de *"E2→E3: count não fecha"*.
+8. **O veredito E2→E3 afirma "resíduo = perda" sem computá-lo, e com o sinal invertido.**
+   Aritmética sobre a própria saída: as exclusões declaradas **excedem** o gap em 13 rows, e
+   há 23 rows entre "semeado" e "conservação" que nenhuma linha declara.
+9. **A suíte de cross-validation tem severidade constante** (`info` em 17/17, `passed` em
+   17/17), com dois passes por **isenção**. `falhas=[]` é tautologia — e a `U1` consumiu esse
+   vazio como evidência de correção antes de medir a constante. (PV9-04; o destino é
+   PIPELINE, mas o conserto mora no mesmo instrumento e por isso entra aqui.)
+
+**Re-medição da colisão com a [[A40.l2]]** — o blockquote 🔴 de 2026-08-05 **não é editado**;
+ele é evidência do que se sabia então. O que mudou no mundo: a `U1` mediu que o residual do
+numerador da KR-B é **100% ponto cego do colapsador** (LC5-01), logo a prova que a colisão
+protege **não pode fechar** enquanto a paridade de chave não for corrigida. A cautela segue
+válida em forma mais forte: reescrever o veredito antes de a KR-B ser **re-declarada** na
+[[A40]] invalida uma prova que já se sabe ter piso.
+
+**Teste de corte aplicado:** os itens 6–8 tocam os mesmos arquivos e o mesmo predicado dos
+itens 1–5 ⇒ ampliam esta lane. O item 9 toca outro arquivo, e entra por dono compartilhado
+(instrumento de certificação) — se na execução ele se mostrar separável, vira lane irmã com
+`depends_on` nesta, e não item órfão.
