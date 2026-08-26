@@ -161,8 +161,10 @@ está pela metade.
 
 ## Registro de execução
 
-**PR1 entregue 2026-08-26.** Commits: `a1c950b0` (docs) · `9c6e8ab7` (backend) ·
-`b7fcaaf6` (frontend + preflight).
+**PR1 entregue 2026-08-26** — commit de merge `f9e13def` (#1740), em 4 commits (docs ·
+backend · frontend+preflight · correção do D4). Os SHAs pré-merge **não** são ancestrais
+de `main`: a branch foi rebaseada e o merge é squash, então `git show` deles falha em
+clone novo. O par auditável é `(#1740, f9e13def)`.
 
 ### Cinco asserções pinavam a crença errada, não duas
 
@@ -228,16 +230,19 @@ inverteria. A §"Alternativa considerada e refutada" da [[ADR-417]] carrega os t
 medidos, mais duas outras derivações testadas e recusadas (última linha de
 `pipeline_stage_logs`; `AuditLog` como projeção).
 
-**Pin de regressão do PR2:** o teste
-`test_run_retomado_e_depois_interrompido_nao_pode_ler_como_descarte` — teste-antes-do-fix,
-que mora no PR que corrige, não no que remove.
+**Pin de regressão, entregue no PR2:** `test_retomado_e_depois_interrompido_nao_le_como_descarte`
+— teste-antes-do-fix, que mora no PR que corrige, não no que remove. O
+`xfail(strict=True)` do PR1 saiu por ter passado a passar, que é como foi desenhado.
 
 ### O que o PR1 deliberadamente não fez
 
-- Guarda de run ativo em `_flip_run_to_resuming` (executor duplo) — **PR2**.
-- `needs_review` no fast-path `_check_no_active_run` — **PR2**, e nunca antes do PR1.
-- Índice parcial — [[ADR-417]] D5 §Deferimento, dono `data-engineer`.
-- Coluna `cancelled_from_status` e os leitores do discriminador — **PR2** (ver acima).
+> Registro histórico do recorte do PR1. **Os três primeiros itens foram entregues pelo
+> PR2 (#1743)**; só o índice parcial segue deferido.
+
+- ~~Guarda de run ativo em `_flip_run_to_resuming` (executor duplo)~~ — ✅ #1743.
+- ~~`needs_review` no fast-path `_check_no_active_run`~~ — ✅ #1743.
+- ~~Coluna `cancelled_from_status` e os leitores do discriminador~~ — ✅ #1743.
+- Índice parcial — **segue deferido**: [[ADR-417]] D5 §Deferimento, dono `data-engineer`.
 - `action_review` segue acima do teto de 20 linhas do P1: dívida **preexistente**,
   não ampliada (o guard saiu para `_require_run_aberto`).
 
