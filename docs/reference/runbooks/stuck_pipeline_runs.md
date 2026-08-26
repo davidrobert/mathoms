@@ -215,13 +215,17 @@ jusante e paga LLM), porque o cancel recusava `needs_review`. Dois runs do dogfo
 ficaram assim em 2026-08-25 e foram resolvidos por escrita direta no DB.
 
 - **Sintoma:** `status='needs_review'` com `paused_at_stage` preenchido e `sem_dono`
-  irrelevante (não há executor). Não bloqueia disparo novo — a pausa fica órfã em
-  silêncio, e as `stage_reviews` dela seguem `pending` para sempre.
+  irrelevante (não há executor). **Bloqueia disparo novo** desde a [[ADR-417]] D5: o
+  trigger responde 409 nomeando as duas saídas. Antes não bloqueava, e a pausa ficava
+  órfã em silêncio com as `stage_reviews` dela `pending` para sempre.
 - **Ação:** **cancele pela UI ou pelo endpoint** — a [[ADR-417]] D1 tornou a pausa
   cancelável, e o botão "Descartar este processamento" do card é essa chamada. O run
-  vira `cancelled` com `paused_at_stage` preservado, que é o que distingue *descartado*
-  de *interrompido* no histórico (D4). As `stage_reviews` ficam `pending` de propósito:
-  ninguém decidiu, e o par `(cancelled, pending)` é resíduo sancionado (D3).
+  vira `cancelled` e grava `cancelled_from_status='needs_review'`, que é o que distingue
+  *descartado* de *interrompido* no histórico (D4). As `stage_reviews` ficam `pending` de
+  propósito: ninguém decidiu, e o par `(cancelled, pending)` é resíduo sancionado (D3).
+- **NÃO leia `paused_at_stage` como discriminador.** Ele nunca é zerado e sobrevive à
+  retomada, então um run que pausou, foi conferido, retomou e só então foi interrompido
+  também o tem preenchido ([[ADR-417]] D4 §Alternativa refutada).
 - **NÃO faça:** `UPDATE ... SET status='cancelled'` à mão. Era o contorno de 2026-08-25
   e deixou de ter desculpa quando a porta passou a existir.
 
