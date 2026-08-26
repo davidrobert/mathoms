@@ -257,3 +257,51 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 > reduz a folga); na reserva o cancelamento é estruturalmente impossível. Sintoma de
 > produto: o relatório afirma folga confortável **e** reserva insuficiente ao mesmo
 > tempo — incoerência interna visível ao usuário.
+
+---
+
+## r5 — ws-1b9f2cf5-2026-08-26
+
+> Rodada unificada **U1** ([[ADR-416]]) · [[PIPELINE-REVIEWS-active]] §r9 · [[REPORT-REVIEWS-active]] §r5.
+> Run `c97b97c2` `completed` 18/18 · executor `1eb6a8bf` · modo **entregue** (`--entregue --run`)
+> sobre o E3 persistido do run pinado, com a sombra no mesmo processo.
+> Zero-write provado (artefatos e overrides idênticos antes/depois).
+> Cru + síntese com valores: `storage/<uuid>/reviews/U1-2026-08-26/` (off-git).
+> Cobertura: matriz dimensão × registro — 2 células declaradas N/A sem motivo escrito
+> (§Débito de método do [runbook](../reference/runbooks/unified_certify_review.md)).
+
+**Manchete: o enforce da [[A40.l2]] funciona no artefato entregue, e a KR-B não fecha por
+um motivo que o próprio harness imprime.** Primeira medição com sombra e entregue no mesmo
+run: numerador cross-grupo **317 → 7** (−97,8%), com `cobertura=OK` nos dois. O carrier
+`tipo_conta` fechou por inteiro. O critério da KR-B exige `entregue=0`; o residual é **uma
+classe única** e o bloco de paridade da camada já o nomeia — `só no detector 7 ⚠️ PONTO CEGO`.
+
+**A causa-raiz mudou o alvo do fix.** O colapsador e o detector derivam `direction` de
+funções diferentes: o detector usa o balde E4; o colapsador chama `derive_direction` com
+`tipo=None`, inferindo do sinal — exatamente o que o contrato da função proíbe por escrito
+("não derivar do sinal cru: fatura inverte"). O docstring do colapsador afirma chave
+idêntica à do detector; é falsa no 4º componente. **O residual não está bloqueado por falta
+de entrada de whitelist — está bloqueado porque o remediador não enxerga a classe.**
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC5-01 — colapsador e detector derivam `direction` de funções distintas (`ledger_cross_group.py:21` usa o balde E4; `cross_document_collapser.py:125-129` passa `tipo=None` a `derive_direction`, contra o contrato em `_tx_identity.py:139`); o residual do numerador KR-B é 100% ponto cego do remediador | correção | Crítico | P0 | procede (causa-raiz fechada; reclassifica LC-01 do §r4) | procede-aberto | paridade de chave, **não** whitelist: `_collapse_key` honra `tipo`, ou o detector deriva pela mesma função. Teste de paridade sobre corpus com estorno de fatura |
+| LC5-02 — `layer_ok` sai verde com PONTO CEGO impresso a duas linhas: `paridade_fecha` é auto-identidade (partição do próprio conjunto do colapsador), e `sem_ponto_cego` existe **fora** do predicado agregado (`ledger_collapse_layer.py:68-70`, `:90-99`) | contrato | Alto | P0 | procede (novo) | procede-aberto | `layer_ok` inclui `sem_ponto_cego`; se o ponto cego for tolerado, o token verde muda de nome e o gate lê o específico |
+| LC5-03 — o checksum por grupo prova auto-consistência do produtor, não conservação E2→E3: `_ledger_verdict` lê três campos escritos pelo mesmo produtor e `carregadas` nunca é confrontado com o input E2. 97/97 grupos saem `conservado` ao lado de "E2→E3: count não fecha" | contrato | Alto | P0 | procede (novo) | procede-aberto | ancorar `carregadas` fora do artefato; sem reconciliar, teto do grupo é `coberto-sem-verificação` |
+| LC5-04 — o veredito E2→E3 afirma "resíduo = perda" sem computá-lo, e o sinal está invertido: as exclusões declaradas **excedem** o gap em 13 rows, e há 23 rows entre "semeado" e "conservação" sem linha que as declare | contrato | Alto | P1 | procede (novo) | procede-aberto | imprimir a cadeia inteira com resíduo **assinado** e falha dura em resíduo ≠ 0; `dups` sai da linha do gap |
+| LC5-05 — o artefato E3 carrega dois contadores de dedup que discordam: o campo escalar soma 543 e está populado em 3 grupos; `Σ remocoes[].count` soma 1153 e está populado amplamente | contrato | Alto | P1 | procede (novo) | procede-aberto | um só contador no contrato (`remocoes{}` tem motivo); deprecar o escalar com invariante durante a janela |
+| LC5-06 — o catch-all `_non_ledger_verdict` carimba `coberto` em balde que não sabe ler: procura três containers e o payload de `patrimonio` e de `fluxo_mensal_detalhado` não tem nenhum ⇒ "0 itens · coberto" com o payload completo em mãos | conservação | Alto | P1 | procede (LC05 do §r4 reproduzido no U1) | procede-aberto | dona [[A42.l3]] · registry `{balde → checker \| não-verificável(motivo)}` com default `não-verificável`. Override aplicado nesta rodada em 2 baldes; `seguros` e `pontos_milhas` **não** se rebaixam |
+| LC5-07 — o eixo E3 rotula `n_tx` um número que é `total + dups` (`ledger_certify_core.py:197-202`); o bloco de drift compara inflado contra inflado | clareza-ux | Médio | P2 | procede (novo) | procede-aberto | imprimir os dois, ou renomear. Nome que promete contagem de transação entrega contagem de transação |
+| LC5-08 — o comparador vetorial mede janela **cortada** contra razão **cru** e emite divergência falsa: o enricher reatribui as séries ao resultado do corte de provisionado antes de janelar (`fluxo_caixa_enricher.py:341-346` → `:376`), e o razão soma o artefato E4 pré-corte | contrato | Alto | P1 | procede (mecanismo fechado; **refuta** a leitura inicial de defeito de produto) | procede-aberto | o comparador aplica `split_provisionado` ao razão antes de somar e declara a data de corte; delta residual pós-corte vira falha dura |
+| LC5-09 — 31 grupos só no persistido carregam **prefixo de banco vazio** na `artifact_key`, e os 4 grupos com drift de contagem concentram exatamente a massa do colapso da camada | consistência | Médio | P2 | procede (novo) | procede-aberto | invariante no adapter: o write do E3 nunca persiste `banco` vazio quando o E2 o traz |
+| LC-02 (§r4) — cobertura de `natural_key` | consistência | — | — | **rebaixado a sintoma** | fecha como achado próprio | a elegibilidade é computada **uma vez por artefato**: artefato com `banco` ou `titular` vazio perde 100% das chaves. A queda medida não é regressão gradual — é um punhado de artefatos virando o bit, e é LC5-01/LC5-09 medidos de outro ângulo |
+
+**Refutados / reenquadrados nesta rodada.** A divergência de receita entre janela e razão
+**não** era defeito de produto (LC5-08). O mês futuro na série do razão é E3/E4 **correto por
+desenho** — o provisionado é fato e fica no ledger; o E5 já corta — logo reportá-lo como
+defeito sugeriria a correção errada (truncar o ledger).
+
+**Positivos verificados.** Zero-write do harness provado por contagem antes/depois ·
+determinismo do categorizador sobre o E3 do próprio run **fecha ao centavo** nos dois baldes
+transacionais, com o pin de overrides estável ⇒ sem confundidor de drift de regra aprendida ·
+E3→E4 conserva count e valor.

@@ -906,3 +906,91 @@ sem alteração de prioridade — registrado para não decaírem em silêncio.
 | RV6-04 (r7) braço prosa · FP-5 (r7) PGBL · FP-3 (r7) eixo dos agregados | — | — | — | — | **fechados** | prosa respondeu ao dado; PGBL publica ausência com motivo; agregados de imóvel batem por correção de eixo de ano-base |
 | DE-4 · DE-5 · DE-8 · DE-9 · RV7-03/DE-3 (r7) | — | — | P1 | — | **procede-aberto (não re-medido no r8)** | mantidos sem alteração de prioridade; registrados para não decaírem em silêncio |
 | Refutados nesta rodada | — | — | — | **refutado** | fechado | instituição fora do haystack como causa da migração de classe; `desconhecido` como eixo da divergência de imóveis; endereço/terceiro verbatim em descrição de imóvel; cache servindo payload anterior; contaminação de trajetória no parecer; dois models no mesmo stage (é cascata deliberada); tabela de custo vazia como anomalia (é desenho — o defeito é o consumidor, RV8-12/RV8-14) |
+
+---
+
+## r9 — ws-1b9f2cf5-2026-08-26
+
+> Rodada unificada **U1** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r5 · [[REPORT-REVIEWS-active]] §r5.
+> Run `c97b97c2` `completed` 18/18 · 25,5 min · executor `1eb6a8bf` · report `97a76360`.
+> Painel: 5 lentes com eixo primário + braço cego com trava · 7 céticos (**1 confirmado /
+> 6 parciais / 0 refutados** — *zero sobreviveu inteiro*) · crítico de completude: sim.
+> Cru + síntese com valores: `storage/<uuid>/reviews/U1-2026-08-26/` (off-git).
+
+**A rodada procede sobre 6 avisos retidos.** O run pausou em `analyze_finances` com 4 ativos
+materiais na catch-all de classificação, a fração não classificada da carteira acima do piso
+agregado, 1 posição sem instituição e 1 investimento sem titularidade — **zero errors**.
+Aprovado pelo caminho sancionado e retomado. Toda linha de `solidez-financeira` e as
+perguntas Q2/Q4/Q6 herdam a condição.
+
+**Desvio de gate declarado.** O `sync-main` reprovou (checkout 1 commit atrás de
+`origin/main`) e o delta medido era **um arquivo em `dev/`**, que o pipeline não importa.
+Disparado com o desvio escrito no estado durável. O executor real do run confirma
+byte-identidade do código de pipeline com `origin/main`; o `-dirty` vem de dois sidecars
+SQLite, nenhum código.
+
+**Manchete: a proveniência afirma sobre um substrato que ela não observa.** Nenhum dos campos
+do bloco de proveniência lê a tabela de artefatos consumidos; `execucao_mista` deriva das
+revisões dos stages **executados** e é `false` por construção em run completo. O cético
+refutou a leitura forte — a partição binária de um stage era **reuso legítimo** (ele
+curto-circuita com `skipped` quando não há documento novo) — e o defeito do **claim**
+sobreviveu inteiro.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| PV9-01 — o bloco de proveniência não tem predicado sobre insumo e chama a si mesmo de proveniência: `mixed_execution` itera as rows do próprio run, e nenhum dos campos de `provenance_context` deriva de `pipeline_artifacts` | contrato | Alto | P1 | PARCIAL (execução mista refutada; o claim sobrevive) · inerte-para-usuário | procede-aberto · agrega DE-4 do §r7 | predicado ortogonal `insumo_herdado`, com quebra por run de origem. "Auto-contido" é conjunção de quatro termos, não um |
+| PV9-02 — `_SKIPPED` do `run_scope` **nunca casa**: o produtor mapeia `skipped` para `completed` de propósito (ADR-357 §2), então `skipped_stages()` não vê skip auto-declarado e o escopo publica `full` contando stage que computou zero | saúde-execução | Médio | P2 | procede (novo) | procede-aberto | mapa exaustivo `status → classe` que falhe por ausência, forma do `RUN_EXIT_BY_STATUS` da [[ADR-417]] |
+| PV9-03 — `run_scope` derruba silenciosamente o stage que pausou o run e os que degradaram; o whitelist de status **falha aberto** e `scope_kind` devolve `full` para run interrompido por decisão humana | saúde-execução | Alto | P1 | procede (novo) | procede-aberto | `provenance_lines` ganha linha obrigatória de pausa: quem pausou, quantas issues, resolvido por qual ação |
+| PV9-04 — a suíte de cross-validation tem **severidade constante**: `info` em 17/17, `passed` em 17/17. Dois passam por **isenção** declarada. `falhas=[]` é tautologia, não evidência de correção | contrato | Alto | P1 | procede (novo) | procede-aberto | pelo menos um check com severidade capaz de reprovar, ou o consumidor para de ler a lista vazia como verde |
+| PV9-05 — contador de guardrail que só pode dar zero: a tabela de alias que o alimenta está **vazia** desde o r7, e o classificador só emite a razão por lookup nela. Enquanto isso o parecer pediu um path alegando ausência de um fato que existe em outro path | contrato | Alto | P1 | procede (novo) | procede-aberto | antes de ler contador em zero como verde, verificar se ele **pode** ser não-zero |
+| PV9-06 — `pontos_urgentes` é a superfície determinística de risco e tem **4 regras hard-coded**, nenhuma lendo `kpi_targets`; o catálogo canônico de limiar ([[ADR-399]], declarado "leitor único") é **órfão** — existe no tipo gerado e em nenhum componente | completude | Alto | P0 | procede (novo; **corrige o alvo** da leitura inicial, que acusava `alertas`) | procede-aberto | as regras passam a derivar de `kpi_targets`; limiar com `procedencia` declarada tem de alcançar superfície |
+| PV9-07 — o veredito determinístico de perfil de renda existe no produtor e **não chega ao parecer**: o manifest projeta os valores absolutos por natureza e não o enum classificado nem o percentual. O modelo autora o veredito de resiliência sem ver o veredito que o pipeline já calculou | qualidade-llm | Alto | P1 | procede (novo) | procede-aberto | projetar `perfil_renda` + o percentual no exec context |
+| PV9-08 — a mesma composição de renda é precificada como **força** num ponto forte e como o **motivo de elevar o alvo de reserva** no ponto forte anterior, no mesmo output | solidez-financeira | Alto | P1 | PARCIAL (o eixo de regime procede e tem lastro; a contradição interna é o achado) | procede-aberto | guardrail de autocontradição passa a **agir**, e a chave deixa de ser `(seção, tema)` — o par mais caro é cross-section |
+| PV9-09 — o guardrail de autocontradição contou 3 pares e agiu em **zero**; o de sugestão antagônica **disparou** e não alcançou nenhuma superfície nem o brief da rodada | qualidade-llm | Médio | P2 | procede (novo) | procede-aberto | contador que dispara sem consumidor é telemetria morta |
+| PV9-10 — ponto forte de trajetória **sobrevive no E5** depois que o guardrail o removeu do parecer, e renderiza na tela e no print, enquanto a comparação registra queda no patrimônio líquido | correção | Alto | P1 | procede (novo) | procede-aberto | o guardrail roda sobre o conjunto unificado de pontos fortes, não só sobre o ramo LLM |
+| PV9-11 — o separador de transferência patrimonial está **inerte nas quatro janelas** (`transferencia_patrimonial_mensal = 0.0` e consumo == despesa média), enquanto o ranking de gastos pontuais traz uma conversão cambial e um depósito rotulado como aporte | correção | Alto | P1 | procede (novo) | procede-aberto | a taxa de poupança e a classificação de equilíbrio orçamentário herdam base de despesa inflada por movimento patrimonial ([[ADR-333]]) |
+| PV9-12 — a mesma moeda entra como **despesa e como ativo**: uma conversão cambial conta como gasto pontual e o saldo resultante conta como caixa em exposição cambial; o maior pontual da janela tem descrição de instituição e categoria não identificada | correção | Médio | P2 | procede (novo) | procede-aberto | medir a fração de despesa com contraparte em conta própria — gateado por LC5-06 |
+| PV9-13 — `folga_mensal` remove 100% dos gastos pontuais e a prescrição de teto **ancora nela**; duas sobras publicadas na mesma janela divergem em ~19 pp e a maior é a que prescreve | consistência | Alto | P1 | procede (novo) | procede-aberto | invariante proposto: `\|folga_mensal − taxa_poupança × receita recorrente\| ≤ ε` — falha hoje |
+| PV9-14 — a definição de exposição cambial **impressa na página** não é a implementada: o componente de lastro estrangeiro vale zero com cobertura `indeterminado`, e o denominador consome o zero. A prescrição aponta a **perna errada** — a de caixa já excede o alvo declarado | correção | Alto | P0 | procede (novo; agrava RV8-03) | procede-aberto | quando a cobertura é indeterminada o componente não contribui com zero: ou suprime a banda, ou publica por perna com a cega marcada |
+| PV9-15 — o tier cambial **troca de sinal entre runs** porque a base é amputada: no §r8 cruzou para verde e virou ponto forte; neste run saiu amarelo e virou risco. O parecer lê o campo corretamente — não é alucinação | correção | Alto | P0 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-02/RV8-03) | procede-aberto | corrigir o denominador no produtor; consertar no prompt seria consertar o lado errado |
+| PV9-16 — `if_meta` é composta pela fórmula **bruta** e consumida nos slots **líquidos**: os três campos publicados fecham a identidade bruta ao centavo, mas o gap e o progresso são as fórmulas líquidas | correção | Alto | P0 | procede (novo) | procede-aberto | inspecionar se a meta é declarada pelo dono ou derivada; o progresso carrega o maior peso do score |
+| PV9-17 — limiar **suprimido** no registro reaparece como referência em prosa determinística e como alvo no parecer | contrato | Alto | P1 | procede (novo) | procede-aberto | prosa só cita limiar cujo `kpi_targets[*].limiar` seja não-nulo; se `null`, a frase perde o comparador |
+| PV9-18 — prescrição de realocação aponta para alvo que o motor **suprimiu com motivo publicado**, e a própria página confirma a supressão duas seções abaixo | consistência | Médio | P2 | procede (novo) | procede-aberto | com o destino suprimido, nenhuma prosa pode conter o lema da classe defasada |
+| PV9-19 — o parecer declara **ausente** a alocação-alvo que a família declarou, e a tabela por classe está renderizada | qualidade-llm | Médio | P2 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-05) | procede-aberto | o custo da whitelist do manifest não é campo faltante genérico — é a prescrição de rebalanceamento inteira |
+| PV9-20 — a precondição de regime oficial de previdência se perde na travessia E5 → parecer: o E5 a codifica e o parecer reproduz só a metade do modelo de declaração | solidez-financeira | Médio | P2 | procede (novo) | procede-aberto | a precondição vira campo estruturado, não prosa em nota |
+| PV9-21 — o corte de provisionado e a consolidação cross-documento **não alcançam nenhuma superfície de render**: o dado existe, o tipo existe, o destino não | completude | Alto | P1 | procede (novo) | procede-aberto | check de cross-validation no molde do CV9 (destino declarado × site de render), aplicado aos dois |
+| PV9-22 — a consolidação declara `count` por mês e **nenhum valor**, enquanto a camada computa os cents removíveis e os descarta | contrato | Médio | P2 | procede (novo) | procede-aberto | o bloco ganha `cents` no schema |
+| PV9-23 — a média mensal da janela divide por mês **parcial**: todo run feito no meio do mês subdeclara as três médias | correção | Médio | P2 | procede (novo) | procede-aberto | ponderar o último mês pela fração decorrida, ou excluí-lo e declarar o rótulo real — escolher **uma** e travar com golden |
+| PV9-24 — a janela mistura duas fontes para a mesma grandeza e a tabela **descarta resíduo negativo**: categoria com líquido ≤ 0 some da tabela e permanece no total, e o resíduo negativo desaparece da normalização | consistência | Médio | P2 | procede (novo) | procede-aberto | fonte única, ou emitir resíduo negativo explicitamente. Mutação: injetar categoria de líquido negativo |
+| PV9-25 — a máquina de tools do parecer não tem **loop**: o cliente LLM não aceita `tools` e a chamada é single-shot, enquanto o system prompt instrui o modelo a citar valores "retornados por tool" | contrato | Médio | P2 | PARCIAL (o bloco `tools:` **é** carregado e o enum governa a whitelist de resolução; o "vestigial" cai) · JÁ-CONHECIDO (RV4-43) | procede-aberto | decidir num PR só: ou o loop existe, ou a instrução sai do prompt e do manifest |
+| PV9-26 — **três** caminhos de eval real do parecer nunca executaram: 20 runs verdes pulando por secret ausente, e o comparador do golden **nunca teve baseline** (o diretório não existe). O pin do modelo se justifica citando um deles | contrato | Alto | P1 | **CONFIRMADO** · inerte-para-usuário | procede-aberto | owner-gated para os secrets; **não** owner-gated: workflow que reporta sucesso sobre skip |
+| PV9-27 — `schema_validation_drift` em 6 de 18 stages, todos passando em modo `warn` | contrato | Médio | P2 | PARCIAL (a [[ADR-409]] já decidiu a fila e **rejeita** o flip global; os 6 colapsam em 4 schemas já classificados) | procede-aberto | sobra **uma** linha nova: o schema do E5 estava em "reavaliar após 1 run novo" e **este é o run novo** — o drift persiste |
+| PV9-28 — a telemetria de review rotula aprovação de 6 warnings como `approve_clean`, e o ramo legado conta **toda linha como erro**: o rótulo é função de qual coluna está preenchida, não do conteúdo | contrato | Médio | P2 | procede (novo) | procede-aberto | três baldes; alinhar o discriminante ao do gate de pausa — se aviso pausa o run, aviso não é "clean" |
+| PV9-29 — a guarda de review pendente vive **fora da transação** que ela protege: o use case lê a contagem numa sessão e o flip acontece em outra. TOCTOU por construção, agravado agora que existe um segundo ator sobre o estado pausado | saúde-execução | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-08) | procede-aberto | o predicado mora no flip, dentro da transação; a checagem HTTP fica, rebaixada a UX |
+| PV9-30 — `StageSpec.writes` é contrato **consumido e sabidamente falso**, e a falsidade está numa docstring em vez de num gate: um stage declara escrever um artefato que nunca existe, e o validador de ordenação valida contra ele | contrato | Alto | P1 | procede (novo) | procede-aberto | tornar `writes` verdadeiro e gatear: `writes ≠ ∅ ⇒ artefato emitido`. **É o X5 corrigido** |
+| PV9-31 — o `stage` do log de chamada LLM interpola filename de documento, incluindo razão social de terceiro; e o campo é a **chave de junção** do único caminho de FinOps que resta, então a auditoria nunca sai zero-mismatch | contrato | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-11, com consequência nova) | procede-aberto | `stage` volta a ser identificador; discriminador de documento em coluna própria, por hash |
+| PV9-32 — `riscos` **saturou o cap do schema**: o máximo declarado e o produzido são o mesmo número. Truncagem-por-cap é indistinguível de "existem N riscos" | qualidade-llm | Médio | P2 | procede (novo) | procede-aberto | emitir sinal quando o cap morde |
+| PV9-33 — o cenário de estresse contradiz o próprio apêndice na unidade e aterrissa no mesmo ano do cenário central, o que faz o teste parecer inerte | consistência | Médio | P2 | procede (novo) | procede-aberto | um só cálculo de delta alimentando seção e apêndice |
+| PV9-34 — ausência de dado do cônjuge renderizada como **zero**, na frase anterior à que afirma que sem a renda dela o aporte cai um terço | correção | Alto | P1 | procede (novo) | procede-aberto | traço + "não apurada"; bloquear o cenário de estresse quando o insumo que ele estressa está ausente |
+| PV9-35 — duas tabelas do mesmo relatório dão respostas **mutuamente exclusivas** sobre titularidade: uma publica a fatia sem dono, a outra atribui membro nomeado a todas as linhas | consistência | Alto | P0 | procede (novo) | procede-aberto | uma só função de atribuição alimentando as duas; fallback visível na célula |
+| PV9-36 — "renda passiva" tem três valores e dois significados, com o rótulo trocado na tabela de metas | clareza-ux | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de RV4-13: a inversão chegou ao **rótulo**) | procede-aberto | um rótulo por número: recebida vs. potencial pela regra de retirada |
+| PV9-37 — `run_meta` declara uma temperatura que o código não usa, e errado no sentido pessimista | contrato | Baixo | P3 | procede (novo) | procede-aberto | o gerador lê a constante em vez de repeti-la em prosa |
+| PV9-38 — o painel do entregável lê um sink em sunset e imprime custo zero ao lado do custo real | clareza-ux | Baixo | P3 | procede (novo) | procede-aberto | a linha de custo sai só da tabela viva |
+| RV8-09 · RV8-32 (§r8) | — | — | — | — | **fechados** | mantidos como fechados; não re-medidos nesta rodada |
+| RV8-01 · RV8-02 · RV8-03 · RV8-05 · RV8-07 · RV8-11 · RV8-19 (§r8) | — | — | — | — | **procede-aberto (re-ancorados acima)** | PV9-15/14 re-medem RV8-02/03; PV9-19 re-mede RV8-05; PV9-31 re-mede RV8-11 |
+| Demais linhas do §r8 não re-medidas neste run | — | — | — | — | **procede-aberto (sem alteração)** | registrado para não decaírem em silêncio |
+
+**Refutados nesta rodada** (taxa de refutação ≠ 0 é requisito de calibração): execução
+materialmente mista como causa da partição binária — o stage curto-circuita por ausência de
+trabalho · `alertas` como superfície determinística de risco — nunca carregou limiar, e o
+docstring declara lista vazia como empty state honesto · "máquina de tools vestigial" — o
+bloco é carregado e governa a whitelist de resolução · promover o drift de schema a `fail` —
+decisão já tomada e explicitamente rejeitada · filtrar o gate de sincronia por path — `dev/`
+**é** o instrumento, e o commit que de fato contaminou a rodada estaria dentro da whitelist
+proposta.
+
+**Positivos verificados.** Run `completed` 18/18 · determinismo do categorizador fecha ao
+centavo sobre o E3 do próprio run · zero-write do harness provado · as três superfícies de
+render geram sem truncagem e o PDF de produção sai íntegro · ancoragem monetária do parecer
+sem órfãos (com a ressalva de denominador em [[REPORT-REVIEWS-active]] §r5) · o guardrail de
+dívida absteve-se corretamente em 4 de 4 quando a taxa estava ausente.

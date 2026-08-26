@@ -373,13 +373,58 @@ tem disposição, não tem cobertura.
 
 | U | Data | ws8 | run8 | Seções | PR | Estado |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | — | (nenhuma rodada executada) |
+| **U1** | 2026-08-26 | `1b9f2cf5` | `c97b97c2` | LEDGER §r5 · PIPELINE §r9 · REPORT §r5 | (esta PR) | fechada |
 
 ## 10. Débito de método (cross-cutting)
 
 Append-only, datado. Só o que é furo **do encadeamento** — furo de uma skill vai para
 o MOC dela.
 
+- **2026-08-26 (fecho do `U1`) — doze furos do encadeamento, achados pelo crítico de
+  completude.** Os quatro primeiros são de instrumento e os dois últimos são da *forma* de
+  rodar em painel:
+  1. **Condição declarada exige enumeração.** A rodada escreveu "procede sobre 6 avisos
+     retidos" e **não enumerou os 6** no brief das lentes. Eu os havia medido e não os
+     passei adiante. Condição que não se enumera não se desconta — todo veredito de
+     `solidez-financeira` ficou condicionado a um conjunto anônimo.
+  2. **A tabela de condicionamento é chaveada pelo consumidor, não pelo produtor.** Ela teve
+     7 linhas — os baldes do E4 — enquanto toda decisão da rodada é tomada sobre os blocos do
+     E5. Medido: a maioria das âncoras verificadas do parecer repousa em base sem veredito ou
+     explicitamente não-dimensionável, e mesmo assim gerou prescrição publicada. O furo do
+     bloco de proteção não foi lapso; foi consequência estrutural. **Linha = bloco do extrato
+     de decisão; bloco sem linha ⇒ `sem-veredito`, e alavanca ancorada nele é inelegível a
+     nº 1 por default.**
+  3. **Refutar instrumento reabre o condicionamento.** Um dos cross-checks caiu como defeito
+     de produto e virou defeito do instrumento, e a tabela que usava esse achado como defeito
+     aberto de um balde — e dele derivava o sinal do viés — **nunca foi re-rodada**. A regra
+     de sobrevivência ao pior extremo rodou contra um extremo sem fonte. Não basta anotar a
+     refutação.
+  4. **Toda medição publica seu comando.** O brief entregou sete resultados e zero caminhos
+     de re-medição, sobre um run cujo próprio `run_meta` declara reprodutibilidade não
+     garantida. Isso torna os achados irrefutáveis pelo próximo revisor — o oposto de
+     evidência.
+  5. **Superfície cronometrada e descartada não é superfície observada.** O PDF foi capturado
+     e só os dumps de texto foram disponibilizados às lentes; a viewport mobile teve captura
+     de imagem e **nenhum** dump de texto, ficando integralmente não observada.
+  6. **Particionar por lente cria costura, e a costura é onde a evaporação acontece.** A
+     pergunta "qual é a ação nº 1" foi roteada para uma lente, e a superfície de plano de ação
+     caiu entre duas — ninguém a leu, e ela continha a resposta. Uma review de relatório lê a
+     página de cima a baixo e bate nisso na primeira passada. **Conserto: varredura explícita
+     "nenhuma lente reivindicou isto" sobre a superfície renderizada, antes de fechar a matriz.**
+  7. **Inventário de ação é plural.** Antes de responder "qual a nº 1", listar todos os
+     inventários que a superfície publica e reconciliá-los. A rodada respondeu pelo menor.
+  8. **Regra de admissibilidade é filtro, não peso.** Procedência nula retira a alavanca;
+     nenhum argumento *a fortiori* a traz de volta. Uma lente aplicou a regra errada.
+  9. **Verificador auto-declarado mede o denominador dele.** O fechamento de ancoragem cobriu
+     cerca de metade dos numerais reais, porque o schema não permite âncora em vários campos.
+  10. **Suíte de checks com severidade constante não é gate** (PIPELINE §r9 PV9-04).
+  11. **Contador de guardrail só é evidência se o mecanismo estiver vivo** (PV9-05).
+  12. **Re-medir a distância para `main` no fecho, não só no preflight.** O `main` andou 5
+      commits durante a rodada e um deles **fechou um achado** que já havia sido reportado
+      como aberto. O `run_meta` declarava o desvio e nada foi condicionado a ele. O gate
+      imprime `git log --oneline <executor>..origin/main` — nomeia o delta em vez de contá-lo
+      — e achado cuja âncora caia em `git diff --name-only` do intervalo sai marcado
+      `re-verificar contra HEAD`.
 - **2026-08-26 (F0–F2 do `U1`).** Três defeitos deste runbook só apareceram ao
   executá-lo, e os três são da mesma família — **regra escrita sem exercitar o
   relógio**: o write-ahead mandava gravar um id que ainda não existe; a F1 mandava
