@@ -34,6 +34,69 @@ tags:
 > `financial-planner` (a decisão de domínio) + `data-engineer` (enum/contrato)
 > **antes** de escrever o fix.
 
+## Entregue (2026-08-26) — a correção está em `main`, o relatório ainda não mudou
+
+Sete PRs mergeados. **O defeito está corrigido**; o que falta é a comunicação do
+resíduo ao leitor.
+
+| PR | merge | o quê |
+|---|---|---|
+| [#1702](https://github.com/davidrobert/mathoms/pull/1702) | `8b2c7a61` | [[ADR-412]] `Proposto` + retrato desta lane |
+| [#1705](https://github.com/davidrobert/mathoms/pull/1705) | `a873b42f` | Emenda 1 — a retenção tornava a decisão inalcançável |
+| [#1710](https://github.com/davidrobert/mathoms/pull/1710) | `7565c6e6` | PR1 — `BaseFinanceira`, `PapelMembro`, `$defs` |
+| [#1713](https://github.com/davidrobert/mathoms/pull/1713) | `be5adfe0` | Emenda 2 — a §D9 mandava afrouxar o que a §D1 fecha |
+| [#1727](https://github.com/davidrobert/mathoms/pull/1727) | `e8bd8448` | **PR2 — o núcleo. Move dinheiro.** |
+| [#1735](https://github.com/davidrobert/mathoms/pull/1735) | `f2cca647` | PR3a — `atribuicao_investimentos` + razão advisory |
+| [#1741](https://github.com/davidrobert/mathoms/pull/1741) | `9fd524ba` | PR3b substrato — schema, 5ª base, predicado único |
+
+**Os dois sinais opostos do defeito, fechados:** o patrimônio **excluía** a fatia
+sem titular do investível sem declarar (regressão do #1550, em que o termo entrou
+em `_compute_bruto` e foi esquecido 190 linhas adiante no mesmo PR); a reserva a
+**incluía sob rótulo de pessoa** (`_positions_for_member`, "convenção legado").
+Morreram os dois resolvers binários sobre domínio ternário, mais um quarto
+(`atribuir_por_membro`). O card cambial parou de publicar faixa que o relatório
+recusa julgar.
+
+## Falta — PR3b (produtores), PR4, PR5
+
+**Mapeado e verificado, não escrito.** O plano completo está no §Ataque acima; o
+que segue é o que a medição acrescentou e **não pode ser esquecido**:
+
+- **Supressão por `None` PIORA o relatório.** Medido: `S7IndependenciaSection.tsx:95`
+  faz `((goals.if_pct as number) ?? 0).toFixed(1)` e renderiza **"0,0%"**;
+  `HeroKpiGrid.reservaQuality` tem *fallback local* e **re-deriva "excelente"**;
+  `_liquidez_excessiva` vira falso e **desarma** `neutralize_autocontradicao`,
+  libertando o LLM a elogiar a reserva. Morre a **prescrição dimensionada**, nunca
+  a descrição — precedente `alocacao_alvo_deviation.suprimir_prescricao`.
+- **A supressão se aplica ao OBJETO, não ao dict.** `e5_analyzer_adapter.py:675` e
+  `:754` leem o **atributo** de `IFProjection`; suprimir no dict publicado é
+  **no-op** nos dois consumidores mais consequentes.
+- **A mesma frase de prescrição existe em DOIS produtores** —
+  `pontos_urgentes_analyzer.py:246` e `scripts/analyze_finances.py:1219`. Consertar
+  só o domain service instala divergência stage↔legado.
+- **O cone sai do escopo.** `if_monte_carlo._GATE_IF_PCT_MIN = 0.15` apaga o cone
+  inteiro numa banda que o piso atravessa — re-simular no piso **deletaria** o
+  artefato que a §Emenda E3 decidiu preservar. **§Deferido datado (2026-08-26)**,
+  dono da lane, condição de retomada: antes de qualquer superfície publicar
+  intervalo de IF.
+- **A manchete é condição do `financial-planner`**: com ≥3 prescrições suprimidas
+  pela mesma causa, o relatório promove a causa a **manchete única com tarefa
+  única** na capa. Cinco ressalvas espalhadas ensinam que *o relatório está
+  quebrado*; uma manchete ensina que *falta um dado da família*.
+
+## Follow-ups nomeados, fora desta lane
+
+- **Emenda datada em [[ADR-406]] §D4** — o rationale (*"razão que não retém é
+  descartada no chão"*) está factualmente vencido desde `954f892f` ([[ADR-411]]),
+  que pôs `_record_stage_diagnostics` no caminho de sucesso. Sem a emenda, a
+  próxima lane reinstala retenção pelo mesmo argumento morto.
+- **Caracterizar o E5 em `tests/unit/pipeline/test_validation_block_policy.py`** —
+  é o quarto produtor divergente de política de pausa e o único não coberto;
+  `valid = not reasons` ignora `BLOCKING_CODES`.
+- **`desvio_max_pct` não implementado** — `config/methodology.md:216-217` condiciona
+  "realocar excedente" a DUAS condições, e `pontos_fortes_analyzer.py:173` só
+  checa uma.
+
 ## Correções à lane (2026-08-25 · re-medição no run `d0f6260a`)
 
 > A decisão está fechada em **[[ADR-412]]** (`Proposto`). Esta seção retrata o que
