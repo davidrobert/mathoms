@@ -64,6 +64,14 @@ A camada 3 **nunca** re-verifica o que este script cobre. Escopo é a lane
 pedida: as ~159 lanes `shipped` legadas sem `ship_pr` são dívida histórica e
 não entram.
 
+**Três desfechos, não dois** (desde 2026-08-26): `exit 0` estrutural limpo ·
+`exit 1` achados · **`exit 2` NÃO VERIFICADO** — nenhuma lane no escopo, a
+camada 1 não olhou nada. O terceiro existe porque escopo vazio saía como
+"estrutural: 0 achados" + `exit 0`: a Onda 0 do `PLAN-ci-trust`, que entregou
+por **track** e não por lane, recebeu esse verde em 3 PRs sem uma única
+asserção ter rodado. Em `exit 2`, vá direto às camadas 2-4 e **não** registre
+"camada 1 limpa".
+
 > ⚠️ Verde aqui **não responde a pergunta do dono**. O script não lê sentido:
 > não sabe se um número virou falso nem se um critério de aceite está
 > invertido. Verde na camada 1 é pré-requisito, nunca veredito.
@@ -162,6 +170,13 @@ Nunca responda "está tudo certo" sem ter rodado a camada 1 e lido a camada 2.
   caminho do CI) — são enforcement local. Só o `C1` lê estado e vale nos dois.
 - **Não cria lane nem ADR automaticamente.** Propõe; o pickup é decisão do
   dono.
+- **Não conhece `track`.** `check_closure.py` indexa só
+  `docs/sprint/*/lanes/*.md`; entrega via `docs/**/tracks/*.md` cai em
+  `exit 2` (acima). Suporte a track foi avaliado em 2026-08-26 e **não** feito:
+  track é ~10% do churn de doc (107 toques contra 930 de lane em 90d), e o
+  achado que ele pegaria no caso real — follow-up "vai para a Onda 1" ausente
+  no track de destino — foi pego pelas camadas 2-4. Reabrir se track virar
+  veículo majoritário de entrega.
 
 ## Critério de aceite
 
