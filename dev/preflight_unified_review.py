@@ -60,6 +60,12 @@ FIX_BUDGET_ESTOURADO = (
     "elevar o cap e decisao do dono (update_workspace_llm_budget, nunca UPDATE cru)"
 )
 FIX_BUDGET_PERTO = "confirme com o dono antes de disparar"
+FIX_ATRAS_EM_MAIN = "git pull --ff-only — senao a rodada mede o codigo de ontem (licao do §r8)"
+FIX_ATRAS_FORA_DE_MAIN = (
+    "NAO puxe na branch alheia — coordene com a sessao dona, ou rode de um checkout em main"
+)
+FIX_ADIANTE = "rodar sobre codigo nao-mergeado pode ser a decisao certa; declare o executor no entregavel (licao do §r6)"
+FIX_SUJO = "trabalho de outra sessao? git stash push -- <arquivos>"
 
 
 @dataclass(frozen=True)
@@ -93,25 +99,34 @@ def check_checkout(root: Path) -> Check:
     return Check("checkout", PASS, str(root))
 
 
-def check_sync_main() -> Check:
+def _posicao_vs_main() -> tuple[str, int, int, int]:
     _sh("git fetch --quiet origin")
-    atras = _sh("git rev-list --count HEAD..origin/main") or "?"
-    if atras != "0":
+    branch = _sh("git rev-parse --abbrev-ref HEAD")
+    atras = _sh("git rev-list --count HEAD..origin/main")
+    adiante = _sh("git rev-list --count origin/main..HEAD")
+    sujos = len([ln for ln in _sh("git status --porcelain").splitlines() if ln])
+    return branch, int(atras or 0), int(adiante or 0), sujos
+
+
+def check_sync_main() -> Check:
+    """Distingue "atras de main" de "fora de main" — a remediacao dos dois e oposta."""
+    branch, atras, adiante, sujos = _posicao_vs_main()
+    em_main = branch == "main"
+    if atras and em_main:
         return Check(
-            "sync-main",
-            FAIL,
-            f"HEAD esta {atras} commits atras de origin/main",
-            "git pull --ff-only — senao a rodada mede o codigo de ontem (licao do §r8)",
+            "sync-main", FAIL, f"HEAD esta {atras} commits atras de origin/main", FIX_ATRAS_EM_MAIN
         )
-    sujos = [ln for ln in _sh("git status --porcelain").splitlines() if ln]
+    if atras:
+        detalhe = f"branch `{branch}` (de outra sessao) esta {atras} commits atras de origin/main"
+        return Check("sync-main", FAIL, detalhe, FIX_ATRAS_FORA_DE_MAIN)
+    if adiante:
+        detalhe = (
+            f"HEAD = origin/main + {adiante} commit(s) de `{branch}` — a rodada mede ESSE codigo"
+        )
+        return Check("sync-main", WARN, detalhe, FIX_ADIANTE)
     if sujos:
-        return Check(
-            "sync-main",
-            WARN,
-            f"{len(sujos)} arquivo(s) sujo(s)",
-            "trabalho de outra sessao? git stash push -- <arquivos>",
-        )
-    return Check("sync-main", PASS, "HEAD == origin/main, tree limpo")
+        return Check("sync-main", WARN, f"em `{branch}`, {sujos} arquivo(s) sujo(s)", FIX_SUJO)
+    return Check("sync-main", PASS, f"`{branch}` == origin/main, tree limpo")
 
 
 def check_caffeinate() -> Check:
