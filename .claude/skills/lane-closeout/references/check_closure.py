@@ -430,7 +430,10 @@ def _resolve(args: argparse.Namespace, lanes: dict[str, Lane]) -> list[str]:
 
 
 def _render(findings: list[Finding], context: dict, lane_ids: list[str]) -> None:
-    print(f"lanes no escopo: {', '.join(lane_ids) or '(nenhuma)'}\n")
+    if not lane_ids:
+        print(_NAO_VERIFICADO)
+        return
+    print(f"lanes no escopo: {', '.join(lane_ids)}\n")
     if not findings:
         print("estrutural: 0 achados. A metade SEMÂNTICA continua por verificar.\n")
     for f in findings:
@@ -441,6 +444,21 @@ def _render(findings: list[Finding], context: dict, lane_ids: list[str]) -> None
         print(f"docs que citam {lane_id} (releia na camada 3): {len(docs)}")
         for doc in docs:
             print(f"        {doc}")
+
+
+_NAO_VERIFICADO = """\
+NÃO VERIFICADO: nenhuma lane no escopo — a camada 1 não olhou nada.
+
+Isto não é "0 achados". Causas usuais:
+  - o PR entrega por **track** (`docs/**/tracks/*.md`) ou plano, não por lane
+    — este script só indexa `docs/sprint/*/lanes/*.md`;
+  - o `ship_pr` da lane não aponta para este PR e o diff não tocou o arquivo
+    dela;
+  - o id passado em `--lane` não existe.
+
+A metade estrutural fica SEM cobertura. Vá direto às camadas 2-4 da skill
+(universo semântico, 4 dimensões, citação dupla) — e não registre "camada 1
+limpa" no closeout."""
 
 
 def main() -> int:
@@ -454,6 +472,24 @@ def main() -> int:
     lanes = index_lanes()
     lane_ids = [i for i in _resolve(args, lanes) if i in lanes]
     findings, context = audit(lane_ids, lanes)
+    # Escopo vazio NÃO é escopo limpo. Até 2026-08-26 os dois saíam como
+    # "estrutural: 0 achados" + exit 0 — e a Onda 0 do PLAN-ci-trust, que
+    # entregou por track (não por lane), recebeu esse verde em 3 PRs sem que
+    # uma única asserção tivesse rodado. É a classe que a própria skill
+    # adverte ("verde na camada 1 é pré-requisito, nunca veredito"), aqui
+    # dentro do instrumento. Exit 2 = não medido; 1 = achados; 0 = limpo.
+    if not lane_ids:
+        if args.json:
+            print(
+                json.dumps(
+                    {"lanes": [], "findings": [], "citers": {}, "status": "nao_verificado"},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        else:
+            print(_NAO_VERIFICADO)
+        return 2
 
     if args.json:
         print(
