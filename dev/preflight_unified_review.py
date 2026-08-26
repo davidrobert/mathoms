@@ -258,6 +258,15 @@ def _run_em_voo(db, ws: str):
     )
 
 
+# "marque terminal" nao existia como acao sancionada quando este texto foi escrito, e
+# mandava direto para a escrita ORM. A ADR-417 D1 abriu a porta; o texto passa a nomea-la.
+FIX_PAUSADO = (
+    "retome por resume_pipeline_run, ou descarte por "
+    "POST /workspaces/<ws>/pipeline/runs/<id>/cancel — nao dispare por cima, "
+    "nao escreva status no DB"
+)
+
+
 def check_run_em_voo(db, ws: str) -> Check:
     """O guard de resolve_workspace.py filtra 'paused' (inexistente) e omite estes dois."""
     row = _run_em_voo(db, ws)
@@ -270,7 +279,7 @@ def check_run_em_voo(db, ws: str) -> Check:
             "run-em-voo",
             FAIL,
             f"run {row['id'][:8]} PAUSADO em needs_review (stage {row['paused_at_stage']})",
-            "retome por resume_pipeline_run ou marque terminal — nao dispare por cima",
+            FIX_PAUSADO,
         )
     return Check(
         "run-em-voo",

@@ -206,3 +206,31 @@ describe("<HistoryRow /> — parecer parcialmente retido @A40.l22", () => {
     assertNoSeriousViolations(await axe(container));
   });
 });
+
+describe("run descartado na conferência (ADR-417 D4)", () => {
+  it("distingue descarte de interrupção na linha de contexto", () => {
+    render(
+      <HistoryRow
+        run={makeRun({
+          status: "cancelled",
+          paused_at_stage: "analyze_finances",
+          report_id: null,
+        })}
+        onRetry={() => {}}
+        triggering={false}
+      />,
+    );
+    expect(screen.getByText(/descartado durante a conferência/i)).toBeInTheDocument();
+  });
+
+  it("cancelado sem pausa não ganha a linha — o par é o discriminador inteiro", () => {
+    render(
+      <HistoryRow
+        run={makeRun({ status: "cancelled", paused_at_stage: null, report_id: null })}
+        onRetry={() => {}}
+        triggering={false}
+      />,
+    );
+    expect(screen.queryByText(/descartado durante a conferência/i)).toBeNull();
+  });
+});

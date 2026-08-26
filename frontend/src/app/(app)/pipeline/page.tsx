@@ -39,6 +39,7 @@ import type { UserWorkspace } from "@/lib/api";
 import { FailedRunCard } from "./_components/FailedRunCard";
 import { ActiveRunCard } from "./_components/ActiveRunCard";
 import { TriggerCard } from "./_components/TriggerCard";
+import { cancelCopyFor } from "./_components/cancelCopy";
 import { NeedsReviewCard } from "./_components/NeedsReviewCard";
 import { RunHistoryList } from "./_components/RunHistoryList";
 import { useDeepLinkScroll } from "./_components/useDeepLinkScroll";
@@ -109,6 +110,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const [isPremium, setIsPremium] = useState(false);
   const [freeTierSkippedRun, setFreeTierSkippedRun] = useState<PipelineRunResponse | null>(null);
   const [pendingReviewCount, setPendingReviewCount] = useState<number>(0);
+  const cancelCopy = cancelCopyFor(activeRun, { pendingCount: pendingReviewCount, runs });
   const [liveStageActivity, setLiveStageActivity] =
     useState<PipelineStageActivity | null>(null);
   /** `null` enquanto carrega; `false` = sem meta IF configurada — bloqueia trigger. */
@@ -487,9 +489,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         <ConfirmDialog
           open={cancelOpen}
           onOpenChange={setCancelOpen}
-          title="Cancelar execução atual?"
-          description="O pipeline será interrompido ao final da etapa em execução. Etapas já concluídas serão mantidas."
-          confirmLabel="Cancelar execução"
+          {...cancelCopy}
           variant="destructive"
           onConfirm={handleCancel}
         />

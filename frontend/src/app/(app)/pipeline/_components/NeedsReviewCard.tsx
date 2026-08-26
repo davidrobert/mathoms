@@ -61,9 +61,12 @@ export function NeedsReviewCard({
             Revisar agora
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
+          {/* "Cancelar execução" era o rótulo errado — nada está executando. E o
+              substantivo é o que o card já ensina duas linhas acima. Até 2026-08-26
+              este botão devolvia 409: o backend recusava cancelar a pausa (ADR-417 D1). */}
           <Button size="sm" variant="outline" onClick={onCancel}>
             <X className="mr-2 h-4 w-4" />
-            Cancelar execução
+            Descartar este processamento
           </Button>
         </div>
       </CardContent>
