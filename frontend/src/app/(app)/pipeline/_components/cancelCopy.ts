@@ -57,10 +57,3 @@ export function cancelCopyFor(
     opts.runs.some((r) => Boolean(r.report_id)),
   );
 }
-
-/** Descartado numa pausa, e não interrompido em execução — derivado, espelhando
- *  `dispatch_contract.discarded_at_review`: o backend grava só `status` e
- *  `completed_at` no cancelamento, então `paused_at_stage` sobrevive. */
-export function foiDescartadoNaConferencia(run: PipelineRunResponse): boolean {
-  return run.status === "cancelled" && Boolean(run.paused_at_stage);
-}

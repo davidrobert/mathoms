@@ -5,10 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import {
-  cancelCopyFor,
-  foiDescartadoNaConferencia,
-} from "@/app/(app)/pipeline/_components/cancelCopy";
+import { cancelCopyFor } from "@/app/(app)/pipeline/_components/cancelCopy";
 import { makeRun } from "../factories";
 
 const pausado = (n = 2) =>
@@ -62,34 +59,5 @@ describe("cancelCopyFor", () => {
       runs: [makeRun({ report_id: "rel-1" })],
     });
     expect(copy.description).not.toMatch(/de onde parou|continuar de onde/i);
-  });
-});
-
-describe("foiDescartadoNaConferencia", () => {
-  it("cancelado COM pausa é descarte", () => {
-    expect(
-      foiDescartadoNaConferencia(
-        makeRun({ status: "cancelled", paused_at_stage: "analyze_finances" }),
-      ),
-    ).toBe(true);
-  });
-
-  it("cancelado SEM pausa é interrupção — o par é o discriminador inteiro", () => {
-    expect(
-      foiDescartadoNaConferencia(
-        makeRun({ status: "cancelled", paused_at_stage: null }),
-      ),
-    ).toBe(false);
-  });
-
-  it("pausa ainda viva não é descarte", () => {
-    expect(
-      foiDescartadoNaConferencia(
-        makeRun({
-          status: "needs_review",
-          paused_at_stage: "analyze_finances",
-        }),
-      ),
-    ).toBe(false);
   });
 });

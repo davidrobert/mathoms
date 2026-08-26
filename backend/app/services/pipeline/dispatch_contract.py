@@ -99,17 +99,6 @@ RUN_EXIT_BY_STATUS: dict[PipelineRunStatus, tuple[RunExit, ...]] = {
 }
 
 
-def discarded_at_review(status: PipelineRunStatus | str, paused_at_stage: str | None) -> bool:
-    """Run descartado numa pausa, e não interrompido em execução (ADR-417 D4).
-
-    Derivado, não persistido: `cancel_pipeline_run` grava só `status` e `completed_at`,
-    então `paused_at_stage` sobrevive ao cancelamento e o par discrimina sozinho. Uma
-    coluna nova registraria o *porquê* sem o *quem* — e `failure_reason` faria abandono
-    deliberado contar em métrica de confiabilidade.
-    """
-    return status == PipelineRunStatus.cancelled and bool(paused_at_stage)
-
-
 __all__ = [
     "CANCELLABLE_STATUSES",
     "DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES",
@@ -117,6 +106,5 @@ __all__ = [
     "RUN_EXIT_BY_STATUS",
     "RunExit",
     "TERMINAL_STATUSES",
-    "discarded_at_review",
     "undispatched_threshold",
 ]
