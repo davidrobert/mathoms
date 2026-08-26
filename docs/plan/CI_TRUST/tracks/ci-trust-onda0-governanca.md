@@ -10,7 +10,7 @@ agent_role: sre-devops
 tags:
   - type/track
   - area/ci
-  - status/ready
+  - status/consumed
   - priority/p0
 ---
 
@@ -138,7 +138,16 @@ workflow. O fail-closed em `schedule` entra na leva da Onda 1.
    required check FAILURE ⇒ Issue aberta com classificação certa.
 4. Inventário do backfill dos 64 publicado (comentário na Issue de auditoria
    + linha no plano).
-5. Todos os PRs deste track mergeados **sem bypass** — se a Onda 0 precisar
-   de bypass para entrar, falhou no próprio objeto.
-6. Labels novas declaradas em `alerts:` no manifesto (KR-F conta 9/9 ao fim
-   da Onda 1).
+5. ❌ **FALHOU, e está registrado.** O #1723 entrou por **bypass
+   administrativo** (`rule-suite 3817455583`: `result: bypass`,
+   `required_status_checks: fail`). O auto-teste deste item cumpriu o papel:
+   apontou o próprio objeto. Disposição: 1º incidente sob a [[ADR-415]],
+   registrado na Issue #1728; a causa (corrida do `update-branch`) virou o
+   item **2.1 P0** da Onda 2. A primeira leitura deste item o carimbou ✅
+   afirmando "não teve bypass" — falso, corrigido no closeout de 2026-08-26.
+6. ⚠️ **Inalcançável por construção, redirecionado.** A label
+   `merge-protection` não pode ser declarada em `alerts:` do manifesto: o S0
+   só admite entrada para workflow **agendado**, e o `merge-audit.yml` não tem
+   `schedule:` (ver §Desvios). Logo a rot da Issue de auditoria não é vigiada
+   por ninguém hoje. Dono: PR 3 da Onda 1 — o corpo do heartbeat passa a
+   listá-la. O KR-F (9/9) segue contando só os agendados do manifesto.

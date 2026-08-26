@@ -169,9 +169,9 @@ class TestAuditShas:
 
 
 class TestBypassIndex:
-    def test_pagina_ate_esgotar(self) -> None:
-        """O default da API é `time_period=day` + 1 página — foi assim que uma
-        leitura viu 2 de 64 bypasses em 2026-08-25 (ADR-415 §D4)."""
+    def test_le_a_janela_certa_e_filtra_so_bypass(self) -> None:
+        """O default da API é `time_period=day` — foi assim que uma leitura viu
+        2 de 64 bypasses em 2026-08-25 (ADR-415 §D4)."""
         run = _fake_gh(
             pulls={},
             checks={},
@@ -182,7 +182,27 @@ class TestBypassIndex:
         )
         assert audit.bypass_index(run) == {"a": "x"}
         assert any("time_period=week" in c for c in run.calls)
-        assert any("page=2" in c for c in run.calls), "parou na primeira página"
+
+    def test_pagina_cheia_continua_paginando(self) -> None:
+        """Página parcial é fim da leitura; página CHEIA obriga a buscar a
+        próxima — parar nela perderia bypass silenciosamente."""
+        chamadas: list[str] = []
+        cheia = [
+            {"result": "bypass", "after_sha": f"p1-{i}", "actor_name": "x"}
+            for i in range(audit.PAGE_SIZE)
+        ]
+
+        def run(args: list[str]) -> str:
+            chamadas.append(" ".join(args))
+            pagina = int(args[1].split("&page=")[1])
+            if pagina == 1:
+                return json.dumps(cheia)
+            return json.dumps([{"result": "bypass", "after_sha": "p2", "actor_name": "y"}])
+
+        achados = audit.bypass_index(run)
+        assert "p2" in achados, "parou na primeira página mesmo ela vindo cheia"
+        assert len(achados) == audit.PAGE_SIZE + 1
+        assert len(chamadas) == 2, "não parou na página parcial"
 
 
 class TestIssueBody:
@@ -268,6 +288,21 @@ class TestSweepNaoAfirmaSemMedir:
         run = _fake_gh(pulls={}, checks={}, suites=[])
         assert audit.main(["--sweep"], run) == 0
         assert "0 merge(s)" in capsys.readouterr().out
+
+
+class TestSweepTambemAcrescenta:
+    """O modo `--sha` acrescenta; se o `--sweep` sobrescrevesse, um sweep
+    apagaria os merges que o pós-merge registrou entre dois sweeps."""
+
+    def test_sweep_com_issue_existente_acrescenta(self) -> None:
+        run = _fake_gh(
+            pulls={"s1": [{"number": 7, "head": {"sha": "h1"}, "merged_at": MERGE_TS}]},
+            checks={"h1": [_check(conclusion="failure")]},
+            suites=[{"result": "bypass", "after_sha": "s1", "actor_name": "x"}],
+            existing_issue=True,
+        )
+        assert audit.main(["--sweep"], run) == 0
+        assert _writes(run)[0].startswith("issue comment 99")
 
 
 class TestTruncagemNaoEZero:

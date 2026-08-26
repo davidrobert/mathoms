@@ -5,6 +5,7 @@ title: "Proteção de main: squash-only, bypass sancionado e auditado, e o SHA m
 status: Decidido
 phase: PLAN-ci-trust Onda 0
 date: "2026-08-25"
+amended_at: ["2026-08-26"]
 relates_to:
   - "[[ADR-210]]"
   - "[[ADR-322]]"
@@ -22,6 +23,14 @@ tags:
 ---
 
 # ADR-415 — Proteção de main: squash-only, bypass sancionado e auditado
+
+> **Emenda 2026-08-26 (correção de fato, não de decisão):** a §Validação
+> afirmava que o merge do #1723 *"não é bypass"*. É — `rule-suite 3817455583`
+> registra `result: bypass` com `required_status_checks: fail`. Corrida do
+> `update-branch` e bypass não são alternativas: a primeira deixou o check
+> `expected`, o segundo liberou o merge. O closeout do plano pegou. D1–D6 não
+> reabrem; o que muda é o registro do 1º incidente sob a vigência desta ADR e
+> os denominadores das taxas de bypass. Ver §Validação e §Contexto.
 
 **Status:** Decidido • **Data:** 2026-08-25 • **Relaciona** [[ADR-210]], [[ADR-322]], [[ADR-320]] • **Plano:** [[PLAN-ci-trust]] §Onda 0
 
@@ -43,12 +52,15 @@ declara o predicado 3 do skip docs-only como dependente de squash-only
 calado"*); a condição que ela teme já vale.
 
 **Segundo: 64 merges entraram sem gate e nada os registrou.** Varredura de
-2026-08-25 sobre `rulesets/rule-suites` com `time_period=month` (611
-avaliações, 08-05→08-25):
+2026-08-25 sobre `rulesets/rule-suites` com `time_period=month` — **611
+avaliações capturadas, 07-27→08-25**. A taxa depende do recorte, e os dois
+números só coexistem se o denominador estiver escrito: **zero** bypass em 214
+avaliações até 08-08 07:53; **16,1%** (64/397) a partir daí; 10,5% sobre o
+total, que mistura os dois regimes.
 
 | Data | Bypasses | Defeito de CI documentado no mesmo dia |
 |---|---:|---|
-| 08-05 → 08-08 06:37 | **0** | — |
+| 07-27 → 08-08 07:53 | **0** (214 avaliações) | — |
 | 08-08 | 13 | 403 do PAT starva a fila ([[ADR-322]] §Emenda 2026-08-08) |
 | 08-12 | 15 | cluster `GH` no gate de liveness |
 | 08-14 | 7 | waiver de `nightly`+`security` venceu em 08-13 |
@@ -60,8 +72,8 @@ avaliações, 08-05→08-25):
 Três leituras que a janela certa produz e a janela default (`day`, que devolve
 2 dos 64) esconde:
 
-1. **É mudança de regime, não taxa de fundo** — zero até 08-08, 16% dos pushes
-   em `main` depois.
+1. **É mudança de regime, não taxa de fundo** — zero em 214 avaliações até
+   08-08 07:53, 16,1% dos pushes (64/397) depois.
 2. **9 de 9 dias com bypass coincidem com um dia de defeito de CI
    documentado.** O bypass não é indisciplina: é a válvula de escape da
    não-confiabilidade do gate. Remover a válvula sem consertar o gate teria
@@ -188,15 +200,44 @@ O PR que trouxe esta ADR (#1723) foi mergeado às 19:06:31Z. O trem havia feito
 `update-branch` **19 segundos antes**, criando o head `75246ac7`; nesse head,
 `Lint` e `Pipeline tests` ainda rodavam (`completed_at: null`) e
 `All checks green` **nem existia**. O run de `merge-audit` no push classificou
-o próprio merge como **`absent`**.
+o próprio merge como **`absent`** (run 32887693308, 19:06:37Z — ~6s após o
+merge).
 
-Isto não é bypass: é a corrida do `update-branch` que a memória do repo já
-descrevia (#1331/#1332) e que uma varredura anterior, medindo estado
-*eventual*, havia declarado ausente. Medindo no instante do merge, ela apareceu
-no primeiro merge observado. A suíte completa foi rodada em `main` depois
-(7.650 + 3.526 testes, verde): o defeito é de **processo**, não regressão —
-o SHA que entrou nunca foi verificado, e desta vez deu certo por sorte.
+**O veredito é uma leitura datada, e isto é propriedade do predicado, não
+defeito.** Re-medido em 08-26 com o check-run já concluído, o mesmo SHA devolve
+**`late`** (205s). O que muda entre `absent` e `late` é *quando se olha*; o que
+não muda é que o SHA **não foi gateado** — as duas classes estão em `UNGATED`.
+Ao citar um veredito, cite o run e o instante.
 
-Consequência para o critério de aceite da Onda 0: "mergeado sem bypass" é
-condição necessária e **não suficiente**. O critério correto é o veredito do
-próprio detector sobre o SHA de merge.
+**Correção de 2026-08-26 (o closeout refutou a primeira leitura desta seção).**
+A versão original afirmava *"isto não é bypass: é a corrida do `update-branch`"*.
+A fonte primária diz o contrário, e é a mesma de onde saíram os 64:
+
+```
+gh api repos/davidrobert/mathoms/rulesets/rule-suites/3817455583
+→ result: "bypass" · actor_name: "davidrobert"
+→ rule_evaluations[0]: {required_status_checks, "fail",
+   "Required status check \"All checks green\" is expected."}
+```
+
+**Corrida e bypass não são alternativas — são camadas.** A corrida do
+`update-branch` produziu o check `expected` (que *é* o `fail` do
+`required_status_checks`); o merge entrou porque o `bypass_actor` admin o
+liberou. Escrever "não é X, é Y" negava justamente o lado que o endpoint
+registra. Que o rótulo `bypass` **discrimina** está medido: no mesmo dia e com
+o mesmo ator, 46 avaliações saíram `pass` e 3 `bypass` — ele não carimba todo
+push de admin.
+
+O que a versão original acertou: a suíte completa foi rodada em `main` depois
+(7.650 + 3.526 testes, verde), então o defeito é de **processo**, não
+regressão — o SHA que entrou nunca foi verificado, e desta vez deu certo.
+
+**Enquadramento sob D2:** este bypass **não** é nenhum dos dois usos
+sancionados (não era rollback de gate brickado nem indisponibilidade
+repo-wide), logo pela própria ADR é **incidente** — o 1º sob a vigência dela,
+registrado na Issue #1728.
+
+Consequência para o critério de aceite da Onda 0: "mergeado sem bypass" era
+**duplamente** inadequado — não suficiente (a corrida entra sem bypass) e,
+aqui, nem verdadeiro. O critério correto é o veredito do detector sobre o SHA
+de merge, cruzado com o `result` do rule-suite daquele push.

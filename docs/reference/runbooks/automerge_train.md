@@ -48,11 +48,17 @@ gh run list --commit "$(gh pr view <N> --json headRefOid --jq .headRefOid)" \
   --json status,conclusion,name
 ```
 
-**A última linha do `--dry-run` separa os três estados** — `update-branch #N`
-(vai andar agora), `trem segurando: cabeça #N …` (cabeça em voo, fila atrás:
+**A última linha do `--dry-run` separa os estados** — `update-branch #N` (vai
+andar agora), `trem segurando: cabeça #N …` (cabeça em voo, fila atrás:
 esperar), `trem em dia: nenhum PR elegível BEHIND` (fila vazia de verdade).
 Até 2026-08-21 os dois últimos compartilhavam a mesma frase, e o hold com 5
 PRs esperando aparecia como trem parado.
+
+Desde 2026-08-25 ([[ADR-322]] §Emenda 2026-08-25) há mais dois, ambos
+precedidos de `N update-branch recusado(s) em #…`: **teto de recusas atingido**
+(`teto de 3 recusas atingido — a fila NÃO foi esgotada`) e **fila esgotada após
+recusas** (`nada mais a atualizar`). A distinção importa: no primeiro caso
+sobraram PRs que nem chegaram a ser tentados.
 
 | Sintoma | Causa provável | Ação |
 | --- | --- | --- |
@@ -63,6 +69,8 @@ PRs esperando aparecia como trem parado.
 | `All checks green` FAILURE em ~2-5s, 0 steps | Budget de Actions esgotado (runner não inicia) OU agregador stale de run superseded | §4 |
 | PR verde, up-to-date, sem auto-merge | GitHub desabilitou auto-merge silenciosamente (agregador stale) | §4 |
 | Trem parado com cabeça vermelha | Required check FAILURE real — o trem pula; PR sai da fila | autor corrige o PR |
+| `N update-branch recusado(s) em #…` com `HTTP 403` | PAT sem escopo `workflow` diante de merge que traz mudança em `.github/workflows/**`. Desde 2026-08-25 a recusa é terminal só para aquele PR: **o run continua e tenta o próximo** | autor do PR recusado rebasa e pusha da própria conta (~30s) — push normal não passa pela API de update-branch. **Não** dar escopo `workflow` ao PAT: ele passaria a poder escrever um workflow que exfiltra os secrets do repo |
+| `teto de 3 recusas atingido` | Merge de `main` trouxe mudança de workflow: **todos** os PRs BEHIND recusam pela mesma causa | esperar o run seguinte (~15min) ou rebasar os PRs afetados à mão; o teto existe para não varrer a fila inteira em vão |
 
 ## 2. PAT ausente/expirado (causa nº 1 de trem parado)
 

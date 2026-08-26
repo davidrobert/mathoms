@@ -18,6 +18,7 @@ AUDIT_LABEL = "merge-protection"
 AUDIT_ISSUE_TITLE = "CI: merge sem gate em main — auditoria da proteção (ADR-415)"
 SWEEP_PERIOD = "week"
 SWEEP_MAX_PAGES = 8
+PAGE_SIZE = 100
 
 GATED = "gated"
 LATE = "late"
@@ -113,13 +114,13 @@ def bypass_index(run: Runner, period: str = SWEEP_PERIOD) -> dict[str, str]:
     silenciosa, a mesma classe que a ADR denuncia: vira erro."""
     found: dict[str, str] = {}
     for page in range(1, SWEEP_MAX_PAGES + 1):
-        query = f"per_page=100&time_period={period}&page={page}"
+        query = f"per_page={PAGE_SIZE}&time_period={period}&page={page}"
         suites = _api(run, f"repos/{{owner}}/{{repo}}/rulesets/rule-suites?{query}") or []
-        if not suites:
-            return found
         for suite in suites:
             if suite.get("result") == "bypass":
                 found[suite["after_sha"]] = suite.get("actor_name") or "?"
+        if len(suites) < PAGE_SIZE:
+            return found  # página parcial (ou vazia) = fim real da leitura
     raise RuntimeError(
         f"rule-suites: {SWEEP_MAX_PAGES} páginas cheias em `{period}` — leitura truncada"
     )
@@ -232,7 +233,9 @@ def _run_sweep_mode(run: Runner, period: str, dry_run: bool) -> int:
     print(f"sweep {period}: {len(shas)} merge(s) com bypass do Ruleset")
     lines, _ = audit_shas(run, shas, period) if shas else ([], None)
     if lines:
-        upsert_issue(run, lines, None, dry_run)
+        # append também aqui: o sweep reporta a janela, e substituir o corpo
+        # apagaria os merges que o modo `--sha` registrou entre dois sweeps.
+        upsert_issue(run, lines, None, dry_run, append=True)
     return 0
 
 

@@ -21,7 +21,7 @@ aliases: ["PLANS-active", "plans-active"]
 | [`PLAN-ledger-integrity`](../plan/LEDGER_INTEGRITY/_README.md) | **`draft`.** Conservação do razão E3/E4 (origem: certificação `ledger-certify` r2, [[LEDGER-CERTIFY-active]]). Owna LC-01 (ledger de contagem, [[ADR-347]] Proposto) + LC-03; **roteia** LC-02 → lane própria `depends_on` A39.l9 (co-autoria ADR-346 step 4b) e LC-04/LC-05 → [[PLAN-data-lineage]]. Prioridade≠ordem: LC-01 1º por estar desbloqueado, LC-02 mais material mas gated. |
 | [`PLAN-competitive-pierre`](../plan/COMPETITIVE_PIERRE/_README.md) | [[A43]]: MCP/OAuth read-only para ChatGPT+Codex. |
 | [`PLAN-deterministic-authority`](../plan/DETERMINISTIC_AUTHORITY/_README.md) | **`draft`.** Remediação r6: fato > rótulo LLM; destrava o gate da A40. |
-| [`PLAN-ci-trust`](../plan/CI_TRUST/_README.md) | 64 bypasses/17d no Ruleset + falso-vermelho de instrumento no gate required + nightly off 72d. Onda 0 = detector pós-merge + ADR de merge-protection. |
+| [`PLAN-ci-trust`](../plan/CI_TRUST/_README.md) | **Onda 0 ✅ fechada 2026-08-25** (detector pós-merge, [[ADR-415]], squash-only). Corrente: Onda 1 (leva de `.github/workflows/**`). 64 bypasses do Ruleset em 17d; nightly off 72d. |
 
 ## Pausados relevantes
 
