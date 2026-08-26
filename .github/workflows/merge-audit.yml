@@ -33,6 +33,11 @@ name: Merge audit
 on:
   push:
     branches: [main]
+  # ⚠️ O braço de sweep NÃO funciona com o `github.token`: `rule-suites` exige
+  # `Administration: read`, permissão que não existe na chave `permissions:` do
+  # Actions. Disparado assim, ele aborta com rc=2 ("não medido") — que é o
+  # comportamento correto, e não um bug. Ele passa a valer quando a Onda 1
+  # trouxer um token de admin (PR 4 do track `ci-trust-onda1-workflows`).
   workflow_dispatch:
     inputs:
       period:

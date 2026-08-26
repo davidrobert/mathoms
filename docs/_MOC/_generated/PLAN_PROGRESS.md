@@ -14,7 +14,7 @@ Planos detectados em [`docs/plan/`](../../plan/).
 - Status: `in_progress` · Sprint atual: A40
 - Sprints envolvidas: A40
 - Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-210]], [[ADR-322]]
+- ADRs canônicas: [[ADR-210]], [[ADR-322]], [[ADR-415]]
 
 ### PLAN-competitive-pierre — Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
 

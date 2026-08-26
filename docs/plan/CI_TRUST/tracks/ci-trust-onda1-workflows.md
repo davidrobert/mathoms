@@ -83,6 +83,30 @@ público) com o desenho fechado no co-design `sre-devops` de 2026-08-25:
 - Emenda datada na [[ADR-210]] no mesmo PR (`amended_at` + blockquote de
   sinal; keyword `Emenda`, não `Adendo` — o gate não reconhece "Adendo").
 
+## PR 4 — sweep agendado de bypass (herdado da Onda 0)
+
+A Onda 0 entregou o braço `push: main` do `merge-audit` e **adiou este** por
+bootstrap: workflow com `schedule:` precisa de entrada no manifesto (S0) e que
+o Actions já conheça o arquivo (S1), e ele só o conhece após o merge. Com
+`merge-audit.yml` já em `main`, a trava caiu. Escopo:
+
+- `schedule:` diário no `merge-audit.yml` + entrada no
+  `.github/scheduled-workflows.yml` (`max_age_days: 3`) com `alerts:` para a
+  label `merge-protection` — o que também resolve o aceite 6 da Onda 0, hoje
+  inalcançável (a label da Issue de auditoria não é vigiada por ninguém).
+- Comparação de `rulesets/{id}/history`: desabilitar o ruleset, mergear e
+  reabilitar é bypass que **não** aparece em `rule-suites`. Sem esse braço a
+  auditoria fecha a porta e deixa a janela — e o **KR-B** fica contável por
+  uma janela que ele mesmo declara cega ([[ADR-415]] D4).
+- **Pré-requisito de token, e é bloqueante:** `rule-suites` exige
+  `Administration: read`, que o `GITHUB_TOKEN` **não pode receber** (a chave
+  `permissions:` do Actions não tem esse escopo). Sem um token de admin, o
+  sweep aborta com `rc=2` por desenho — correto, mas inerte. Decidir junto ao
+  item 2.0 (Organization): se o repo migrar, reavaliar a credencial ali.
+
+Aceite: falha forçada (remover o token) ⇒ `rc=2` e nenhuma contagem impressa;
+com token, o sweep lista os bypasses do período e a Issue acumula.
+
 ## security-green (junto do PR 2 ou próprio)
 
 - Job agregador `security-green` em `security.yml` (`if: always()`, aceita

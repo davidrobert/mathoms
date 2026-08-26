@@ -13,6 +13,7 @@ pause_reason: null
 adrs_canonical:
   - "[[ADR-210]]"
   - "[[ADR-322]]"
+  - "[[ADR-415]]"
 relates_to:
   - "[[PLAN-public-release]]"
 tags:
@@ -45,8 +46,8 @@ coisa que não mediu* — a tese da A42 aplicada à camada de entrega.
    ~40% das falhas de required check amostradas na janela são instrumento, não
    código.
 2. **A válvula de escape virou regime**: **64 bypasses administrativos do
-   Ruleset em 17 dias (611 avaliações, 16% dos pushes em `main`)** — zero até
-   2026-08-08, e 9 de 9 dias com bypass coincidem com dia de defeito de CI
+   Ruleset em 17 dias** — zero em 214 avaliações até 2026-08-08 07:53, e
+   **16,1% dos pushes** (64/397) a partir daí, e 9 de 9 dias com bypass coincidem com dia de defeito de CI
    documentado (403 do PAT, cluster `GH`, waiver vencido, `S2` obsoleto,
    billing lock). A assinatura dominante nos casos amostrados é required check
    **"expected"** (nunca reportou), não "vermelho ignorado" — o bypass é a
@@ -88,7 +89,7 @@ nativo: exige Organization (ver item 2.0).
 |---|---|
 | Merges (08-01→08-25) | 550 (22/dia) · open→merge mediana 0,2h · p90 6,9h · p99 48,8h |
 | Runs `ci.yml` | 1.412 — 66,5% success · 24,8% cancelled (trem/concurrency) · 8,7% failure |
-| **Bypasses do Ruleset** | **64/611 avaliações em 08-05→08-25 (16%)**; 0 até 08-08; correlação 9/9 com dias de defeito de CI ([evidence/rule-suites-2026-08-25.json](evidence/rule-suites-2026-08-25.json)) |
+| **Bypasses do Ruleset** | **64** em 611 avaliações capturadas (07-27→08-25). O denominador importa: **zero** em 214 avaliações até 08-08 07:53, e **16,1%** (64/397) a partir daí — 10,5% sobre o total, número que mistura os dois regimes. Correlação 9/9 com dias de defeito de CI ([evidence/rule-suites-2026-08-25.json](evidence/rule-suites-2026-08-25.json)) |
 | Falso-vermelho | ~40% das falhas de required check amostradas são instrumento (6/15) |
 | Gate na prática | `required_approving_review_count: 0` — **CI é o único gate**. `allowed_merge_methods` incluía `merge` e `rebase` (contra CLAUDE.md e contra o predicado 3 de [[ADR-322]] §Emenda 2026-08-21); **corrigido para `["squash"]` em 2026-08-25** ([[ADR-415]] D1) |
 | main | 11d sem medição; 3 últimas medições (dispatch) FALHARAM — hipótese mais barata: os 64 merges sem gate, não "gates não compõem" |
@@ -136,7 +137,7 @@ Executa como **track self-contained** (precedente: runbooks do
 **O primeiro run real do detector falhou e denunciou o próprio merge que o
 entregou** — os dois fatos mais úteis da onda:
 
-1. `313aae28` (o merge do #1723) saiu **`absent`**: o trem fez `update-branch`
+1. `313aae28` (o merge do #1723) saiu **`absent`** no run 32887693308 (19:06:37Z; re-medido em 08-26, com o check já concluído, dá `late` de 205s — as duas classes são "não gateado", e o veredito é leitura do instante): o trem fez `update-branch`
    19s antes do merge e, no head novo, `Lint`/`Pipeline tests` ainda rodavam
    com `All checks green` inexistente. É a corrida #1331/#1332, que uma
    varredura anterior dera como ausente por medir o estado *eventual*. Suíte
@@ -185,13 +186,27 @@ filtro de nome (que daria `absent` **falso**). Mutação no detector: de **3 de
 | Inventário do backfill publicado | ✅ [53/64 sem gate — 46 `late`, 7 `red`](evidence/backfill-inventario-2026-08-25.md) |
 | `allowed_merge_methods = ["squash"]` | ✅ aplicado e verificado ao vivo (strict, required checks e bypass actor preservados) |
 | [[ADR-415]] `Proposto → Decidido` | ✅ |
-| PRs da onda mergeados sem bypass | ✅ — **mas o critério estava errado** |
+| PRs da onda mergeados sem bypass | ❌ **falhou** — o #1723 entrou **por bypass** (ver abaixo) |
 
-**Correção do critério, registrada porque ela é o achado:** "mergeado sem
-bypass" é necessário e **não suficiente**. O #1723 não teve bypass e ainda
-assim entrou sem gate, pela corrida do `update-branch`. O critério correto é o
-veredito do próprio detector sobre o SHA de merge — e por ele os dois merges
-seguintes (#1729 e o vizinho) entraram **`gated`**.
+**O critério de aceite falhou, e a primeira leitura dele também.** O track
+escreveu "mergeados sem bypass" como auto-teste (*"se a Onda 0 precisar de
+bypass para entrar, falhou no próprio objeto"*). Ele falhou nos dois níveis:
+
+1. **O #1723 entrou por bypass administrativo** — `rule-suite 3817455583`:
+   `result: bypass`, `actor_name: davidrobert`,
+   `required_status_checks: fail ("All checks green" is expected)`. A versão
+   anterior deste parágrafo afirmava que *"não teve bypass"*; era falso, e o
+   closeout de 2026-08-26 pegou. Corrida e bypass não são alternativas: a
+   corrida do `update-branch` deixou o check `expected`, e o privilégio de
+   bypass liberou o merge. É o **1º incidente sob a vigência da [[ADR-415]]**
+   (não se enquadra em nenhum dos dois usos sancionados de D2) — registrado na
+   Issue #1728.
+2. **O critério, mesmo verdadeiro, seria insuficiente** — a corrida sozinha faz
+   um SHA entrar sem gate sem nenhum bypass.
+
+Critério correto, usado daqui em diante: **veredito do detector sobre o SHA de
+merge, cruzado com o `result` do rule-suite daquele push**. Por ele, os merges
+do #1729 (`16aaaec3`) e do #1730 (`dffc63c9`) entraram **`gated`**.
 
 ## Onda 1 — gate confiável + rede religada (leva única de `.github/workflows/**`, PRs na ordem 1 → 2 → 3)
 
@@ -217,7 +232,9 @@ da [[ADR-210]] que acompanha o PR:
   R5 o job não-required tem `if: failure()` → Issue com label em `alerts:` e
   **não** entra em `all-green.needs`.
 
-Itens da onda: 1.1–1.5 do mapa acima. `frontend-e2e` em `all-green.needs`
+Itens da onda: 1.1–1.5 do mapa acima, **mais o PR 4 (sweep agendado +
+`rulesets/{id}/history` + token de admin)**, herdado da Onda 0 — o bootstrap
+que o adiou caiu quando o `merge-audit.yml` chegou em `main`. `frontend-e2e` em `all-green.needs`
 **não entra de carona** — timeout de 30min contra mediana de 12min é decisão
 de latência (KR-H); decidir à parte, provavelmente gate por label/path.
 
@@ -244,7 +261,7 @@ budget-alert (depende da §Premissa) · migrar PAT→GitHub App (payback morto s
 | Data | Item | O que quebra | Mitigação no plano |
 |---|---|---|---|
 | ~2026-10-07 | AUTOUPDATE_PAT expira | Trem para **e** o kick do watchdog morre junto; `S2` fica verde (fail-open no deadline) | Pré-vencimento no heartbeat (warning ≤14d) — PR 3; decisão 2.0 até ~09-20 |
-| 2026-10-15 | Waiver do nightly vence | Hard-fail em TODO merge, por desenho (precedente 08-13: 7 bypasses) | Onda 1 **remove** o waiver antes (não renova); warning T-30d no heartbeat |
+| 2026-10-15 | **3 waivers** vencem juntos (nightly + 2 entradas LLM) | Hard-fail em TODO merge, por desenho — 3 violações simultâneas (precedente 08-13: 7 bypasses no dia seguinte) | Onda 1 **remove** o do nightly; os 2 LLM dependem da decisão de secrets (item 1.3). Warning T-30d no heartbeat |
 
 ## Correções de registro produzidas por esta investigação
 

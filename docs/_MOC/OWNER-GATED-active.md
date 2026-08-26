@@ -38,7 +38,8 @@ last_review: "2026-08-25"
 |---|---|---|---|
 | ~2026-09-20 | Decidir Organization + merge queue nativo (amarra o destino do `AUTOUPDATE_PAT`) | Sem decisão, a rotação do PAT vira obrigatória até 10-05; e nada de payback longo deveria entrar no trem até lá | [[PLAN-ci-trust]] §Onda 2 |
 | ~2026-10-07 | `AUTOUPDATE_PAT` expira (criado 2026-07-09, política ≤90d) | Trem de auto-merge para (PRs BEHIND congelam); o kick do watchdog morre junto e o `S2` fica **verde** — fail-open no próprio deadline | [[PLAN-ci-trust]] §Datas duras · [runbook](../reference/runbooks/automerge_train.md) §2 |
-| 2026-10-15 | Waiver do `nightly.yml` vence | Hard-fail em **todo** merge do repo, por desenho (precedente 08-13/14: 7 bypasses) | [[PLAN-ci-trust]] §Onda 1 — remove o waiver antes (não renova; a razão FinOps caducou) |
+| 2026-10-15 | **Três** waivers vencem juntos: `nightly.yml` + as 2 entradas LLM (`llm-cross-provider-smoke`, `planner-golden-monthly`) | Hard-fail em **todo** merge do repo, por desenho — e o vencimento é *por entrada*, então são 3 violações simultâneas (precedente 08-13/14: o vencimento anterior produziu 7 bypasses no dia seguinte) | [[PLAN-ci-trust]] §Onda 1 remove o do nightly; os 2 LLM dependem da decisão de secrets abaixo |
+| ~2026-10-15 | **Decidir os 3 secrets LLM** (`ANTHROPIC_API_KEY_CROSS_PROVIDER`, `OPENAI_API_KEY_CROSS_PROVIDER`, `ANTHROPIC_API_KEY_GOLDEN_MONTHLY`) | Sem eles os 2 workflows agendados rodam **verdes sem medir nada** (skip por secret ausente) e o manifesto os declara como cobertura viva. Criar os secrets, ou aceitar por escrito que a paridade cross-provider e o golden do parecer não são medidos | [[PLAN-ci-trust]] §Onda 1 item 1.3 |
 
 ## 1. Decisão estratégica
 

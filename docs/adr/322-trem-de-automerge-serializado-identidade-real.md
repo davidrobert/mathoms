@@ -229,7 +229,13 @@ Executado em [[PLAN-ci-trust]] §Onda 0.
    1 update por run (**D1**) continua valendo, e um head `PENDING` continua
    segurando a fila: quem a recusa pula é o PR recusado, não a espera.
 2. **`_gh` classifica antes de re-tentar.** 4xx é veredito da API (permissão,
-   escopo, estado do PR) e sai na primeira tentativa; 5xx mantém o retry único.
+   escopo, estado do PR) e sai na primeira tentativa — **exceto 429 e o 403 de
+   rate limit secundário**, que são 4xx pelo número e transientes pelo
+   mecanismo, e mantêm o retry como os 5xx. O recorte importa porque a medição
+   que fundamenta o corte (0 de 10 recuperados) é sobre 403 de **escopo de
+   PAT**; estendê-la à faixa 4xx inteira alcançaria uma classe que ela não
+   mediu, e justamente aquela em que o retry é o remédio. 5xx mantém o retry
+   único.
    Medição que fecha a questão: em 2026-08-17 o retry cego re-tentou 9× um 403
    de escopo de PAT e recuperou **0 de 10** ([[ADR-210]] §Adendo 2026-08-21c).
    `GhCallFailed` carrega `status`, de modo que a causa aparece na linha em vez
