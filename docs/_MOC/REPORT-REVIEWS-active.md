@@ -308,3 +308,94 @@ tributário e de milhas são declaradas, não silenciosas.
 6. **Um cético morreu por limite de gasto de API** e seu cluster foi fechado pelo
    loop principal. Painel sem orçamento reservado perde cluster silenciosamente —
    e o loop só percebeu porque conferiu a lista de vereditos contra a de clusters.
+
+---
+
+## r5 — ws-1b9f2cf5-2026-08-26
+
+> Rodada unificada **U1** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r5 · [[PIPELINE-REVIEWS-active]] §r9.
+> Objeto: report `97a76360` sobre run `c97b97c2` — **produzido nesta rodada**, não pré-existente.
+> Lentes: 5 + braço cego · céticos: 7 (**1 confirmado / 6 parciais / 0 refutados** — zero
+> sobreviveu inteiro) · crítico de completude: sim.
+> **Cobertura de `clareza-ux` observada**, não inferida: tela, print e PDF capturados.
+> Cru + síntese com valores + render: `storage/<uuid>/reviews/U1-2026-08-26/` (off-git).
+
+**Manchete: o produto gera a ressalva e a descarta na entrega.** Cinco notas metodológicas
+foram produzidas e **nenhuma renderiza** — o tipo existe no frontend e nenhum componente
+itera o array. Elas carregam a disclosure de incerteza inteira, incluindo a que declara o
+diagnóstico patrimonial com confiança **insuficiente**. O cético refutou o "0 de 5" no
+sentido estrito (uma converge com um risco que é renderizado) e manteve **Crítico**: quatro
+de cinco se perdem inteiras, num run que pausou com seis avisos retidos.
+
+**Segundo eixo: o produtor suprime o limiar e a entrega o republica.** Quatro alvos de KPI
+estão suprimidos com `procedencia: null` e motivo nomeado. **Três dos quatro vazaram** — a
+tabela de métricas renderizada publica alvo para dois deles, e o plano de ação renderiza uma
+decisão fixando alvo pontual para exatamente a métrica que o produtor declara sem alvo
+canônico.
+
+**A rodada procede sobre 6 avisos retidos** (§[[PIPELINE-REVIEWS-active]] §r9). Toda linha de
+`solidez-financeira` e as perguntas Q2/Q4/Q6 herdam a condição.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| RR5-01 — `notas_metodologicas` não tem renderer: o tipo é declarado e nenhum componente itera o array; tier premium, sem truncagem no backend. A nota que declara a confiança do diagnóstico como insuficiente não alcança quem lê o diagnóstico | completude | Crítico | P0 | PARCIAL (1 de 5 converge com um risco renderizado; 4 de 5 se perdem) | procede-aberto | renderizar no bloco do parecer; gate no smoke E2E asserindo ≥1 nota quando o payload traz ≥1 |
+| RR5-02 — o produtor suprime o limiar por falta de procedência, o LLM o republica como alvo, e a superfície entrega: 3 de 4 supressões vazaram para a tabela de métricas e para o plano de ação | contrato | Crítico | P0 | procede (novo — a célula que ninguém reivindicou) | procede-aberto | prosa e plano só publicam alvo cujo limiar seja não-nulo; supressão é contrato, não sugestão |
+| RR5-03 — a seção de proteção está **desligada no layout** (`enabled: false`) e a ação nº 1 do parecer é seguro de vida: o relatório não tem nenhuma superfície de cobertura de seguro | completude | Crítico | P0 | procede (novo) | procede-aberto | ligar a seção, ou a prescrição declara que o pilar não é exibível neste relatório |
+| RR5-04 — o PDF entrega 5 de 12 riscos e **apaga o aviso de que há mais**: o CSS de print esconde o resumo e tenta abrir o bloco com uma propriedade inerte; a metade que funciona é a que esconde. O comentário no componente registra a crença oposta, e com base nela a legenda foi enfraquecida | completude | Alto | P0 | procede (novo) | procede-aberto | estado real em vez de CSS: bloco aberto sob mídia print, ou lista plana. Restaurar a legenda "N de M" |
+| RR5-05 — o classificador de desfecho do run ignora a pausa: testa apenas status terminal e ausência de stage degradado, não olha o stage log que permanece pausado nem a review aprovada com aviso ⇒ classifica o run como completo, o único valor que autoriza a barra de "sem pendências" | correção | Alto | P1 | PARCIAL · **inerte nesta configuração** (3 outros sinais dispararam) | procede-aberto | o caminho é vivo: run aprovado com N avisos e sem os outros sinais imprime a afirmação de ausência. É a metade user-facing de PV9-28 |
+| RR5-06 — a lacuna de classificação é modelada como **classe de alocação com alvo zero**, ganhando desvio em pp e barra como qualquer classe conhecida; a nota funde classe conhecida deliberadamente fora do plano com ativo desconhecido sob o mesmo rótulo | clareza-ux | Alto | P1 | procede (mede RV8-17 por outro flanco: o agregado **é** consumido, com semântica trocada; sem consumidor segue a **itemização**) | procede-aberto | sai da tabela de desvio e vira faixa de incerteza, com traço em Alvo/Desvio + lista dos itens + CTA de classificar |
+| RR5-07 — o painel de qualidade tem 5 slots e nenhum expressa as 4 classes de lacuna que pausaram o run | completude | Médio | P2 | PARCIAL — "conjunto fechado" **cai**: a frase é cardinal, o trade-off é decisão registrada ([[ADR-357]]), e duas das três linhas deste run declaram o conjunto aberto | procede-aberto | o termo vivo migrou para RR5-05; aqui resta o slot ausente para lacuna de atribuição |
+| RR5-08 — a reserva é "excessiva" no card e "bem dimensionada" em dois pontos fortes, no mesmo pilar e com a mesma confiança | clareza-ux | Alto | P1 | procede (novo) | procede-aberto | cobertura acima da meta renderiza **um** rótulo; a composição marca a fatia sem dono como ressalva, não como linha de membro |
+| RR5-09 — a meta de IF não declara qual custo mensal ela financia, e o relatório publica três, com razão de mais de 3× entre o maior e o menor | solidez-financeira | Alto | P1 | procede (novo) | procede-aberto | a regra codificada está **certa**; o defeito é de divulgação. O card nomeia o denominador e exibe a cobertura contra os três |
+| RR5-10 — o KPI de patrimônio investível contradiz a definição publicada no apêndice do mesmo relatório, e circulam **cinco denominadores** sem tabela de equivalência | consistência | Alto | P1 | procede (novo; vizinho de RV4-18) | procede-aberto | renomear o KPI para o que ele mede, ou trazer a fórmula para a face do card |
+| RR5-11 — três números diferentes para "despesa sem categoria", **dois deles declarando a mesma base**; é a métrica que dispara o CTA nº 1 e o P1 do parecer | consistência | Alto | P1 | procede (novo) | procede-aberto | denominador nomeado por superfície, explícito no rótulo |
+| RR5-12 — o banner de qualidade publica a fração **menor**, em janela não rotulada, na primeira linha que a família lê sobre confiabilidade | clareza-ux | Médio | P2 | procede (novo) | procede-aberto | a regra permite janela completa **apenas com rótulo** |
+| RR5-13 — ancoragem existe só para dinheiro e a prosa migrou para percentual: um literal monetário nos corpos textuais contra dezenas de percentuais, todos estruturalmente inverificáveis | qualidade-llm | Alto | P1 | procede (novo) | procede-aberto | admitir folhas de percentual no catálogo de citação e estender a verificação |
+| RR5-14 — ancorabilidade **por item** é de um terço, e o instrumento mede a **oferta** (folhas com rota) e não o **consumo** (itens que citam) | qualidade-llm | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-07) | procede-aberto | acrescenta: as raízes citadas subiram de duas para seis — a semeadura da [[A40.l83]] **funcionou**; o que não fechou é a cobertura por item |
+| RR5-15 — `pontos_fortes` e `metricas` não têm slot de âncora nem de confiança no schema: a classe de item mais persuasiva do parecer é a única inverificável, e a regra de rebaixar confiança não tem onde pousar | qualidade-llm | Alto | P1 | procede (novo) | procede-aberto | bump breaking do schema de output |
+| RR5-16 — a instrução de declarar incompletude em todo percentual de carteira tem adesão **zero** e nenhum contador; a regra escrita para impedir o falso-positivo conhecido é hint sem medição | qualidade-llm | Alto | P1 | procede (novo) | procede-aberto | promover a guardrail contável e rebaixar a confiança do item ofensor |
+| RR5-17 — a ressalva de lacuna cobre 2 de 4 classes: o parecer nunca recebe os **avisos** que fizeram o run pausar, só os campos | completude | Alto | P1 | procede (novo) | procede-aberto | bloco de avisos retidos no manifest + hint de ressalva obrigatória |
+| RR5-18 — códigos internos de tipo de documento vazam como rótulo de instituição em 12 de 19 linhas, na tabela cuja pergunta é "onde meu dinheiro está" | clareza-ux | Alto | P1 | procede (novo; família de RV8-24) | procede-aberto | rótulo = instituição · produto traduzido; sufixo técnico só em auditoria |
+| RR5-19 — mobile: a página tem ~1,6× a altura do desktop, sem índice, e a tabela de maiores ativos perde a coluna que desambigua exatamente abaixo do breakpoint | clareza-ux | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-27) | procede-aberto | acrescenta o mecanismo e que **não é defeito de mobile**: para imóvel não há desambiguador em nenhum breakpoint |
+| RR5-20 — agência e número de conta em claro, enquanto o CPF é mascarado no mesmo documento — inclusive no PDF que circula por e-mail | clareza-ux | Médio | P2 | procede (novo) | procede-aberto | mesma política dos dois lados |
+| RR5-21 — quem imprime pelo navegador leva um documento com o link de sair e o e-mail de login no cabeçalho | consistência | Médio | P2 | procede (novo) | procede-aberto | esconder o shell da aplicação em mídia print, onde o índice já é escondido |
+| RR5-22 — no PDF, colunas estreitas quebram palavras no meio, inclusive nos cabeçalhos das duas tabelas mais orientadas a ação | clareza-ux | Médio | P2 | procede (novo) · **caveat declarado**: lido do texto extraído, não do PDF renderizado | procede-aberto | revisar larguras em print; confirmação visual antes de dimensionar |
+| RR5-23 — o contador de próximos passos não reconcilia com nenhuma lista visível, e há três inventários de ação concorrentes na mesma página | consistência | Médio | P2 | procede (MEDIÇÃO-DE-CONHECIDO de RV4-12) | procede-aberto | um inventário por relatório, com identidade estável entre parecer e plano de ação |
+| RR5-24 — chave crua do payload como rótulo de chip de evidência: o mapa de tradução falha **aberto**, então toda âncora nova entra em produção como identificador | clareza-ux | Médio | P2 | procede (novo) | procede-aberto | preencher a chave e trocar o fallback para falha fechada; teste cruzando o enum com o mapa |
+| RR5-25 — a legenda do gráfico usa slug de categoria enquanto a tabela duas seções abaixo usa o rótulo humano correto; o mapa já existe | clareza-ux | Médio | P2 | procede (novo) | procede-aberto | a legenda consome o mesmo mapa |
+| RR5-26 — separador decimal en-US convive com pt-BR **dentro da mesma tabela**, com a linha de total no formato certo e as linhas no errado | consistência | Médio | P2 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-25) | procede-aberto | acrescenta: alcança coluna determinística e KPI, não só prosa gerada. Gate possível barrando percentual formatado sem o helper |
+| RR5-27 — o token de seção nomeia duas coisas na mesma página: nenhuma âncora está morta, e o problema é pior — alvo **vivo** apontando para a seção errada | clareza-ux | Médio | P2 | procede (novo) | procede-aberto | desacoplar os namespaces |
+| RR5-28 — o índice salta um número, tem título em inglês e aninha conteúdo de pessoa física sob um cabeçalho de pessoa jurídica que é stub sem dados | clareza-ux | Médio | P2 | procede (novo) | procede-aberto | renumerar (o número é editorial, a âncora permanece); promover os filhos a irmãos |
+| RR5-29 — o único desambiguador de imóvel é o rótulo cru, e existe numa só tabela; na tabela onde a distinção decide concentração, os rótulos são idênticos | clareza-ux | Médio | P2 | procede (MEDIÇÃO-DE-CONHECIDO de RV8-24 + RV8-27) | procede-aberto | apelido de imóvel no cadastro, usado nas duas |
+| RR5-30 — o glossário publica um ideal **central** que a escada de classificação, monotônica, não persegue | solidez-financeira | Baixo | P3 | procede (novo) | procede-aberto | ou a escada vira faixa com teto, ou o glossário para de anunciar o ideal |
+| RV4-12 · RV4-13 · RV4-15 · RV4-16 · RV4-18 (§r4) | — | — | P1/P2 | — | **procede-aberto (re-ancorados acima)** | RR5-23 mede RV4-12; RR5-13/PV9-36 medem RV4-13; RR5-30 mede RV4-15; RR5-10 vizinha RV4-18 |
+
+**Q6 — a divergência não existia, e a correção é do método.** O braço cego escolheu
+reconstruir a base de custo de vida; o parecer prescreve seguro de vida. A rodada leu isso
+como divergência porque comparou o braço cego contra o inventário de **um item** do E5, em
+vez de contra a lista de sugestões de execução do parecer — onde as duas escolhas são o **P0
+e o P1 da mesma lista**. O desempate é **categórico**: o alvo de cobertura de proteção tem
+procedência nula por regime, e pela regra 2 da própria rodada isso torna a alavanca
+**inadmissível — retirada**, não "não dimensionada". A lente de materialidade aplicou a regra
+de sobrevivência ao pior extremo a uma alavanca que a regra de admissibilidade já havia
+removido; **admissibilidade é filtro, não peso**. Veredito: **o braço cego acertou**; a
+alavanca de seguro sai como `condicionada`, com a medição que a destrava nomeada pelo próprio
+produto. Ironia medida: a decisão do plano de ação renderizado **já é** categorizar as
+despesas — o braço cego redescobriu o que o relatório prescreve, e ninguém notou porque
+ninguém leu aquela seção.
+
+**Refutados / rebaixados nesta rodada:** "conjunto fechado" no painel de qualidade (frase
+cardinal + decisão registrada) · "diversificação de fontes é falsa" (o eixo é regime e tem
+lastro determinístico — o achado é a contradição interna, PV9-08) · `alertas` como superfície
+de risco (alvo errado; o correto é PV9-06) · "notas 0 de 5 entregues" (uma converge com um
+risco renderizado).
+
+**Débito de método da r5.** Registrado no §Débito de método do
+[runbook](../reference/runbooks/unified_certify_review.md) — doze itens, entre eles: a
+condição declarada ("procede sobre N avisos") não foi enumerada no brief das lentes; a tabela
+de condicionamento foi chaveada na taxonomia do **produtor** (7 baldes) quando toda decisão é
+tomada sobre a do **consumidor** (23 blocos), deixando a maioria das âncoras de decisão sem
+graduação; o PDF foi capturado e **não foi disponibilizado** às lentes; a viewport mobile
+ficou sem dump de texto; nenhuma das medições publicou seu comando de re-medição; e
+particionar por lente criou uma costura — o plano de ação renderizado caiu entre duas lentes
+e ninguém o leu.
