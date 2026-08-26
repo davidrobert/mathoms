@@ -71,6 +71,10 @@ export type ReservaEmergencia = {
   "cobertura_meses"?: number;
   "avaliacao_liquidity"?: string;
   "niveis"?: Array<string>;
+  "piso_cobertura_meses"?: number;
+  "base_do_piso"?: "carteira_financeira_familia" | "carteira_produtiva_familia" | "carteira_com_titular_identificado" | "carteira_produtiva_com_titular_identificado" | "patrimonio_liquido";
+  "prescricao_realocacao_suprimida"?: boolean;
+  "motivo_supressao"?: string | null;
 };
 
 export type ReservaComposicaoLiquida = {
@@ -112,6 +116,11 @@ export type Goals = {
   "janela"?: string;
   "janela_meses"?: number;
   "alocacao_alvo"?: AlocacaoAlvoE5;
+  "piso_if_pct"?: number;
+  "teto_if_gap"?: number;
+  "prazo_anos_realista_teto"?: number | null;
+  "base_do_piso"?: "carteira_financeira_familia" | "carteira_produtiva_familia" | "carteira_com_titular_identificado" | "carteira_produtiva_com_titular_identificado" | "patrimonio_liquido";
+  "motivo_supressao"?: string | null;
 };
 
 export type AlocacaoAlvoE5 = {
@@ -378,6 +387,7 @@ export type E5AnalysisArtifact = {
       "carteira_produtiva_familia"?: BaseDeclarada;
       "carteira_com_titular_identificado"?: BaseDeclarada;
       "patrimonio_liquido"?: BaseDeclarada;
+      "carteira_produtiva_com_titular_identificado"?: BaseDeclarada;
     };
     "atribuicao_investimentos"?: AtribuicaoInvestimentos;
     "base_versao"?: number;
@@ -432,6 +442,11 @@ export type E5AnalysisArtifact = {
       "cobertura_despesa_essencial_pct": number | null;
       "status": "ok" | "sem_irpf" | "gerador_zero" | "sem_dados_essencial" | "suspeito";
     };
+    "autonomia_financeira_meses"?: number;
+    "cobertura_despesas_meses"?: number;
+    "concentracao_imobiliaria"?: number;
+    "piso_autonomia_financeira_meses"?: number;
+    "base_do_piso"?: "carteira_financeira_familia" | "carteira_produtiva_familia" | "carteira_com_titular_identificado" | "carteira_produtiva_com_titular_identificado" | "patrimonio_liquido";
   };
   "goals"?: Goals;
   "orcamento_prospectivo"?: {

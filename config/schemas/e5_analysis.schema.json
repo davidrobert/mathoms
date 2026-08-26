@@ -429,6 +429,9 @@
             },
             "patrimonio_liquido": {
               "$ref": "#/$defs/BaseDeclarada"
+            },
+            "carteira_produtiva_com_titular_identificado": {
+              "$ref": "#/$defs/BaseDeclarada"
             }
           },
           "required": [],
@@ -699,6 +702,34 @@
               }
             }
           ]
+        },
+        "autonomia_financeira_meses": {
+          "type": "number",
+          "description": "A40.l80: DECLARADO agora — `ratios` nunca o declarou, e o silêncio não era permissão, era ausência de gate."
+        },
+        "cobertura_despesas_meses": {
+          "type": "number",
+          "description": "Alias de `autonomia_financeira_meses` ([[ADR-335]])."
+        },
+        "concentracao_imobiliaria": {
+          "type": "number",
+          "description": "cat_2 sobre a carteira produtiva ([[ADR-340]], SSOT)."
+        },
+        "piso_autonomia_financeira_meses": {
+          "type": "number",
+          "minimum": 0,
+          "description": "A40.l80 ([[ADR-412]] §D7): autonomia sobre a base sem a fatia órfã — extremo conservador."
+        },
+        "base_do_piso": {
+          "type": "string",
+          "enum": [
+            "carteira_financeira_familia",
+            "carteira_produtiva_familia",
+            "carteira_com_titular_identificado",
+            "carteira_produtiva_com_titular_identificado",
+            "patrimonio_liquido"
+          ],
+          "description": "A40.l80 ([[ADR-412]] §D1): base do EXTREMO CONSERVADOR do intervalo. Chave do enum `BaseFinanceira`."
         }
       }
     },
@@ -3015,6 +3046,33 @@
           "items": {
             "type": "string"
           }
+        },
+        "piso_cobertura_meses": {
+          "type": "number",
+          "minimum": 0,
+          "description": "A40.l80 ([[ADR-412]] §D7): cobertura recomputada sobre a base sem a fatia órfã — extremo CONSERVADOR em relação à ação que o veredito autoriza (realocar excedente REDUZ liquidez). `cobertura_meses` segue publicada: o intervalo é [piso ; medida]."
+        },
+        "base_do_piso": {
+          "type": "string",
+          "enum": [
+            "carteira_financeira_familia",
+            "carteira_produtiva_familia",
+            "carteira_com_titular_identificado",
+            "carteira_produtiva_com_titular_identificado",
+            "patrimonio_liquido"
+          ],
+          "description": "A40.l80 ([[ADR-412]] §D1): base do EXTREMO CONSERVADOR do intervalo. Chave do enum `BaseFinanceira`."
+        },
+        "prescricao_realocacao_suprimida": {
+          "type": "boolean",
+          "description": "A40.l80: `true` quando o spread cruza o degrau acionável (6 meses de excedente). Suprime QUANTO realocar, nunca o rótulo — `avaliacao_liquidity` permanece, senão `HeroKpiGrid.reservaQuality` re-deriva o veredito localmente e `_liquidez_excessiva` desarma o guard do parecer."
+        },
+        "motivo_supressao": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "A40.l80: por que a PRESCRIÇÃO DIMENSIONADA foi suprimida. `null` = não suprimida. A descrição sobrevive; morre o quanto-mover (precedente `alocacao_alvo_deviation.suprimir_prescricao`)."
         }
       },
       "required": [],
@@ -3156,6 +3214,40 @@
         },
         "alocacao_alvo": {
           "$ref": "#/$defs/AlocacaoAlvoE5"
+        },
+        "piso_if_pct": {
+          "type": "number",
+          "minimum": 0,
+          "description": "A40.l80 ([[ADR-412]] §D7): progresso recomputado sobre a carteira produtiva sem a fatia órfã. `if_pct` NUNCA vira `null` — `S7IndependenciaSection` faz `?? 0` e renderizaria 0,0%, afirmação falsa pior que o número contaminado."
+        },
+        "teto_if_gap": {
+          "type": "number",
+          "description": "A40.l80: gap no extremo conservador (maior). Monetário, como `if_gap`."
+        },
+        "prazo_anos_realista_teto": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "A40.l80: prazo no extremo conservador — o MAIS LONGO, porque errar para 'vai demorar mais' faz poupar mais. `null` segue o vocabulário de `prazo_anos_realista`."
+        },
+        "base_do_piso": {
+          "type": "string",
+          "enum": [
+            "carteira_financeira_familia",
+            "carteira_produtiva_familia",
+            "carteira_com_titular_identificado",
+            "carteira_produtiva_com_titular_identificado",
+            "patrimonio_liquido"
+          ],
+          "description": "A40.l80 ([[ADR-412]] §D1): base do EXTREMO CONSERVADOR do intervalo. Chave do enum `BaseFinanceira`."
+        },
+        "motivo_supressao": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "A40.l80: por que a PRESCRIÇÃO DIMENSIONADA foi suprimida. `null` = não suprimida. A descrição sobrevive; morre o quanto-mover (precedente `alocacao_alvo_deviation.suprimir_prescricao`)."
         }
       },
       "required": [],
