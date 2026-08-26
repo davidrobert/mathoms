@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-406 ADRs (ADR-001 a ADR-416) em [`docs/adr/`](../../adr/).
+407 ADRs (ADR-001 a ADR-417) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 348
-- **Proposto**: 54
+- **Proposto**: 55
 - **Roadmap**: 4
 
 ## Fundação
@@ -324,7 +324,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-387]] — ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria · phase A40.l62
 - [[ADR-395]] — Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap · phase A40.l73
 
-### Proposto (7)
+### Proposto (8)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
@@ -333,6 +333,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 - [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
 - [[ADR-389]] — As tabelas mensal e anual do IRPF são duas fontes importadas, não duas escalas de uma · phase A40.l56
+- [[ADR-417]] — Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review · phase A40
 
 ## categorization
 

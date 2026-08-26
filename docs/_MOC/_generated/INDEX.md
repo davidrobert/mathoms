@@ -411,6 +411,7 @@
 | ADR-414 | adr | Decidido |  | Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada | `adr/414-rendimento-bruto-e-base-de-calculo-sao-variaveis-distintas.md` |
 | ADR-415 | adr | Decidido |  | Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação | `adr/415-protecao-de-main-bypass-sancionado-e-auditado.md` |
 | ADR-416 | adr | Proposto |  | Rodada unificada de certificação e revisão: um run, um painel, um entregável, três registros | `adr/416-rodada-unificada-certificacao-revisao.md` |
+| ADR-417 | adr | Proposto |  | Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review | `adr/417-toda-pausa-tem-saida-terminal-sancionada.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -963,6 +964,7 @@
 | A40.l84 | lane | open | A40 | O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou | `sprint/A40/lanes/A40-l84-guard-na-camada-errada.md` |
 | A40.l85 | lane | open | A40 | O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar | `sprint/A40/lanes/A40-l85-corpus-de-cardinalidade-real.md` |
 | A40.l86 | lane | open | A40 | Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo | `sprint/A40/lanes/A40-l86-duas-fontes-de-monetariedade.md` |
+| A40.l87 | lane | in_progress | A40 | A pausa não tem porta de saída, e o botão que o produto já oferece devolve 409 há quatro meses | `sprint/A40/lanes/A40-l87-porta-de-saida-da-pausa.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |

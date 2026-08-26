@@ -1,0 +1,160 @@
+---
+id: A40.l87
+type: lane
+title: "A pausa não tem porta de saída, e o botão que o produto já oferece devolve 409 há quatro meses"
+sprint: A40
+plan: PLAN-deterministic-authority
+status: in_progress
+priority: P1
+branch_slug: needs-review-porta-de-saida
+adrs:
+  - "[[ADR-417]]"
+  - "[[ADR-359]]"
+  - "[[ADR-411]]"
+depends_on: []
+parallel_with:
+  - "[[A40.l84]]"
+tags:
+  - type/lane
+  - sprint/a40
+  - status/in-progress
+  - priority/p1
+  - area/backend
+  - area/pipeline
+  - area/frontend
+---
+
+# A40.l87 — Porta de saída da pausa
+
+> **Canônica:** [[ADR-417]] (`Proposto` — flippa a `Decidido` no merge do PR2).
+> Aberta 2026-08-26 no desbloqueio do preflight da [[runbook-unified-certify-review]].
+> Admissão retro-registrada 2026-08-26 (§Fora do sprint), precedente [[A40.l46]].
+
+## O fato, medido
+
+`PipelineRunStatus.needs_review` é o **único estado não-terminal sem saída que
+não seja completar o run**. `resume` roda todos os stages a jusante e paga LLM;
+`cancel` recusa, porque `needs_review` está fora de `CANCELLABLE_STATUSES`.
+
+O comentário em `dispatch_contract.py` justifica a exclusão dizendo que
+*"cancelá-la é decisão de produto, não de operação"* — **uma decisão que já
+tinha sido tomada, três meses antes, na única superfície que o usuário toca**:
+
+- `NeedsReviewCard.tsx:63` renderiza **"Cancelar execução"**; `page.tsx:442` o
+  monta exatamente em `activeRun.status === "needs_review"`.
+- O clique cai em 409 `"Execução não pode ser cancelada (status: needs_review)"`
+  e vira banner de erro **com o nome cru do status**.
+- O card existe desde **2026-04-21**; o comentário entrou em **2026-08-07**.
+
+O confirm (`page.tsx:490`) diz *"interrompido ao final da etapa em execução"* —
+numa pausa não há etapa executando. A copy está errada mesmo se a API passasse.
+
+### Dois falsos-verdes pinam a crença
+
+`frontend/tests/components/NeedsReviewCard.test.tsx:71` assere apenas
+`expect(onCancel).toHaveBeenCalledOnce()` — fiação, nunca desfecho: passa no CI
+e falha em produção. `backend/tests/test_detect_undispatched_runs.py:243`
+assere literalmente `needs_review not in CANCELLABLE_STATUSES`.
+
+### O buraco é maior que orfanamento: é executor duplo
+
+`_flip_run_to_resuming` (`pipeline_service.py:257`) checa **só** que *este* run
+é `needs_review`; zero consulta a run ativo. A pausa é invisível ao índice
+parcial `ux_pipeline_runs_ws_active` (`IN ('pending','running')`) **e** ao
+fast-path `_check_no_active_run`. Caminho: pausa P → trigger N passa → aprovar
+as reviews de P → resume P → **dois workers escrevendo artefatos no mesmo
+workspace**. É a falha que a [[A40.l27]] nomeou para `resuming`.
+
+### O que forçou
+
+Dois runs do dogfood parados em `needs_review` no `analyze_finances` desde
+2026-08-25 bloquearam o preflight da rodada unificada (check `run-em-voo`).
+A remediação escrita dizia *"retome … ou marque terminal"* — e "marque
+terminal" não existia. Resolveu-se por escrita ORM direta, contornando um guard
+deliberado. Mesma classe do contorno que a [[A40.l84]] nomeia no runbook.
+
+## Escopo — dois PRs, ordem não-invertível
+
+**PR1 — a porta.** `needs_review` em `CANCELLABLE_STATUSES` + comentário
+reescrito · `cancel_run` honra o `bool` de `cancel_pipeline_run` (hoje descarta
+e responde sucesso sobre no-op) · `AuditAction` nova registrando **quem**
+abandonou · guarda de terminalidade em `action_review` · tabela exaustiva de
+saída por estado + teste de endpoint por estado escapável · copy do card, do
+confirm e da linha de histórico · preflight e runbook param de ensinar o ORM.
+
+**PR2 — a pré-condição.** `needs_review` no fast-path `_check_no_active_run`,
+com 409 que nomeia a saída · guarda de run ativo em `_flip_run_to_resuming`
+(é ela, não o índice, que fecha o executor duplo).
+
+**PR2 nunca antes de PR1.** Bloquear o trigger sem porta converte "pausa" em
+"workspace tijolado" — o incidente de origem da [[ADR-359]], agora enforçado
+por código.
+
+## Restrição — o índice parcial não muda
+
+Precedente literal: a [[A40.l27]] pôs `resuming` no fast-path e **não** no
+índice. Ver [[ADR-417]] D5 §Deferimento datado (dono `data-engineer`), que
+carrega a armadilha: `CREATE UNIQUE INDEX` sobre o predicado alargado **falha
+hoje** no dogfood, que tem 2+ linhas nele.
+
+## Partição de arquivos vs. [[A40.l84]] (`open`, P0, paralela)
+
+| Esta lane | [[A40.l84]] |
+|---|---|
+| `dispatch_contract.py` | `resume_run.py` |
+| `cancel_run.py` · `action_review.py` | `pipeline_service.py::_flip_run_to_resuming` |
+| `api/pipeline.py` (rota de cancel) | `pipeline_task.py::_finalize_run` |
+| `NeedsReviewCard.tsx` · `page.tsx` · `HistoryRow.tsx` | runbook `stuck_pipeline_runs.md` §resume |
+
+**Sobreposição declarada:** as duas tocam `pipeline_service.py` e o runbook.
+A l84 muda `_flip_run_to_resuming`; o PR2 desta lane acrescenta ali a guarda de
+run ativo. Quem chegar depois rebaseia — não são o mesmo predicado.
+
+> **Colisão a evitar, e é a razão de as duas serem `parallel_with`:** o
+> predicado de fecho da l84 é **`(completed, pending)`**, nunca *"terminal +
+> pending"*. Esta lane cria `(cancelled, pending)` como **resíduo sancionado**
+> ([[ADR-417]] D3). Escrito como "terminal", morde o resíduo e as duas se
+> refutam.
+
+## Critério de aceite
+
+**Corretude** — `POST /runs/{id}/cancel` sobre run `needs_review` responde 200 e
+o run fica `cancelled`. Teste por **duas entradas** (use case *e* rota HTTP): a
+guarda é duplicada, e alargar só o service deixa o endpoint em 409 com o teste
+de service verde — verde-falso literal, documentado em `cancel_run.py:16-18`.
+
+**Botão morto** — teste de frontend que **falha hoje** (o card chama cancel e
+recebe 409) e passa depois. Escrito antes do fix.
+
+**Completude da classe** — tabela exaustiva sobre `PipelineRunStatus`: membro
+novo falha **por ausência**. A asserção de `test_detect_undispatched_runs.py:243`
+é apagada e substituída por ela. Teste de tabela não basta sozinho ([[A40.l27]]):
+acompanha um teste de **endpoint** por estado manualmente escapável.
+
+**Consistência** — o comentário de `dispatch_contract.py` passa a descrever o
+que o código faz. Enquanto ele afirmar a política contrária, todo agente que
+abrir o arquivo lê "não mexa" — é a patologia RV8-08 da [[A40.l84]].
+
+**Precisão** — o histórico distingue run **descartado** de run **interrompido**,
+por derivação `(cancelled, paused_at_stage IS NOT NULL)`, e o discriminador tem
+**leitor no mesmo PR** (`RunContextLine`). Sem leitor, é falso-verde da classe
+que a [[A40.l81]] fechou.
+
+**Não-regressão da l84** — teste provando que o predicado `(completed, pending)`
+**não** morde `(cancelled, pending)`. Nenhuma `StageReview` é apagada nem muda
+de status.
+
+**Prova de fecho** — reproduzir 2026-08-25: run pausado ⇒ preflight `run-em-voo`
+em FAIL ⇒ resolver **por chamada de API, sem nenhuma escrita direta no DB** ⇒
+PASS. É o que prova que a porta é **usável**, não apenas existente; as duas
+resoluções anteriores exigiram ORM.
+
+**Concluído** — PR1 e PR2 mergeados em `main` com CI verde. A [[ADR-417]] flippa
+a `Decidido` no merge do **PR2**, não do PR1: até o trigger recusar, a decisão
+está pela metade.
+
+## Delegação
+
+Co-design feito 2026-08-26 (`product-manager` + `senior-cto`, convergentes em
+D1/D2/D3). `data-engineer` é gatilho obrigatório **se** o §Deferimento de D5
+(índice parcial) for retomado — não antes.

@@ -268,7 +268,7 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (85 no disco · 83 nesta tabela — ver nota ao fim)
+## Lanes (86 no disco · 84 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -396,6 +396,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l84]] | O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou | P0 | — | aberta 2026-08-25 · RV8-08 do §r8 · guard de `pending` só em `resume_run.py:21-33`; `pipeline_service` não consulta `stage_reviews` · medido: os 2 pares `(completed, pending)` do DB são o r7 e o r8, e o r7 é o **baseline de compare** do r8 · o runbook documenta o contorno como ação operacional · **escopo inclui** dar à skill uma ação de aprovação, senão o fix quebra em silêncio e o operador contorna por caminho pior |
 | [[A40.l85]] | O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar | P1 | — | aberta 2026-08-25 no fecho da [[A40.l83]] · o mesmo instrumento dá **92,9%** no corpus sintético e **86,5%** no E5 real; antes do fix dava 39,3% contra **0%** · a causa é cardinalidade: onde produção tem **31** linhas de endividamento e **28** de reserva, o corpus tem **2** e **4** — e são as duas raízes que consomem o catálogo, logo o colapso é estruturalmente irreproduzível ali · medido: reverter a semente custa **86,5pp** em produção e **7,2pp** no sintético, e o delta do sintético ENCOLHEU (era 53,6pp) quando o orçamento subiu · **armadilha**: `make_workspace_e5` tem raio de 11 arquivos, incluindo golden e PII scan |
 | [[A40.l86]] | Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo | P2 | — | aberta 2026-08-25 no fecho da [[A40.l83]] · `format: brl` declarado no manifest vs `_MONEY_KEY_TOKENS` casando substring de nome · discordam em 3 campos medidos no E5 real: `investimentos_nao_atribuidos` (resolvido no #1714 com token novo), `transferencia_patrimonial` e `teto_sugerido` (seguem inancoráveis) · adicionar token remedia instância, não classe · **armadilha**: o catálogo é BRL-only por construção e caminha o E5 inteiro, não só o projetado — trocar heurística por declaração ENCOLHERIA o catálogo |
+| [[A40.l87]] | A pausa não tem porta de saída, e o botão que o produto já oferece devolve 409 há quatro meses | P1 | — | aberta 2026-08-26 no desbloqueio do preflight da [[runbook-unified-certify-review]] · admissão retro-registrada (§Fora do sprint), precedente [[A40.l46]] · [[ADR-417]] `Proposto` em co-design `product-manager` + `senior-cto` (convergentes) · **a decisão de produto já existia**: `NeedsReviewCard.tsx:63` oferece "Cancelar execução" desde **2026-04-21** e o backend responde 409 — o comentário que diz "é decisão de produto" entrou 3 meses depois · dois falsos-verdes pinam a crença (teste do card assere fiação, não desfecho; `test_detect_undispatched_runs.py:243` assere a exclusão) · **o buraco é executor duplo, não só orfanamento**: `_flip_run_to_resuming` não checa run ativo e a pausa é invisível ao índice e ao fast-path · 2 PRs em ordem dura (porta → bloqueio); o índice parcial **não muda** ([[A40.l27]] é precedente) · `parallel_with` [[A40.l84]] com partição declarada — o predicado dela é `(completed, pending)`, **nunca** "terminal + pending", senão morde o resíduo sancionado |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -1240,6 +1241,26 @@ de repo.
 
 ## Fora do sprint (disposição explícita)
 
+> ### Admissão retro-registrada — [[A40.l87]], 2026-08-26
+>
+> Lane **P1**, logo **fora** da cláusula de exceção (que cobre só P0 que alcança
+> o usuário). Entra pelo precedente de admissão retro-registrada da [[A40.l46]],
+> e o custo fica declarado aqui.
+>
+> **Por que não coube em lane existente.** A cláusula 1 (*destino é quem possui a
+> superfície*) apontaria para a [[A40.l84]], que é dona do vizinho
+> `resume_run.py`. Recusado: são skills e arquivos disjuntos (invariante de
+> backend vs. superfície de produto + copy), a l84 já carrega 4 pontos de decisão
+> abertos, e — decisivo — as duas produzem pares `(status_de_run, pending)` que
+> **se refutam se escritos como uma coisa só**. A amarra correta não é fundir: é
+> uma ADR para as duas ([[ADR-417]] D3) e `parallel_with` com partição declarada.
+>
+> **Custo declarado:** nenhum atraso ao gate de saída. A lane não disputa janela
+> de rebaseline (não toca número publicado) e é **pré-condição de instrumento** —
+> sem ela, cada pausa do dogfood custa uma escrita manual no DB e contamina a
+> janela de re-run do §Gate de saída.
+
+
 > ### Uso da exceção da cláusula 2 da [[A42]] — [[A40.l34]], 2026-08-11
 >
 > A [[A42]] §Critério de admissão cláusula 2 exige registrar o **custo** quando
@@ -1387,6 +1408,7 @@ emendadas por §Infra de CI tocada durante a sprint.
 | **[[ADR-341]]** | `Decidido` (A37.l1) · a [[A40.l30]] **estende**, não reabre | [[A40.l30]], [[A40.l31]] | Contrato do exec context do parecer. D1-D4 são exatamente o que #1004 mudou (cap 8192→16384, 6→10 seções, hints fora do corpo) — e o que dobrou a superfície monetária que o modelo vê sem ampliar a ancorável |
 | [[ADR-296]] | `Decidido` (A26.l9) | [[A40.l30]], [[A40.l31]] | Citação determinística: LLM emite `(claim, path, rótulo)` e o pipeline renderiza o valor. É a ADR cuja densidade mediana **11** foi medida no holdout sintético — o número que **não** deve ser confundido com o `5` do dogfood |
 | [[ADR-356]] | `Decidido (A40.l4)` · **emendada** 2026-08-05 (registro do flip + dono do deferimento do `s1`) | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. Flip feito com o residual da re-triagem nomeado e portado pelo §Gate de saída e encerramento |
+| **[[ADR-417]]** | `Proposto` (aberta em co-design, **antes** do PR de implementação) · flip a `Decidido` no merge do **PR2**, não do PR1 — até o trigger recusar, a decisão está pela metade | [[A40.l87]] | Toda pausa tem saída terminal sancionada, e abandonar é decisão de **run**, não de review. Reverte uma cláusula lateral da [[ADR-359]] (a exclusão de `needs_review` de `CANCELLABLE_STATUSES`) sem supersedê-la; sanciona o par `(cancelled, pending)` que a [[A40.l84]] **não** pode proibir |
 | [[ADR-355]] | `Decidido` | [[A40.l24]] | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages |
 | **[[ADR-360]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1156) · residual em [[A40.l25]] e [[A40.l26]] | Seed do cone Monte Carlo é constante de modelo versionada, não entropia do SO. Rejeita seed derivado do input por quebrar monotonicidade em patrimônio/aporte |
 | **[[ADR-361]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1162) · residual em [[A40.l25]], [[A40.l28]] e [[A40.l29]] | Percentil de tempo-até-o-evento só é publicável como ano se a taxa de sucesso o define — censura declarada na base cheia |
