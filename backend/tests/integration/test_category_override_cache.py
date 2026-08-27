@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import time
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -16,26 +16,37 @@ from backend.app.application.categorization import (
 )
 from backend.app.core.security import create_access_token
 from backend.app.models.category_template import CategoryTemplate
-from backend.app.services.category_resolver import resolve_categories
+from backend.app.services.category_resolver import (
+    ACTIVE_TEMPLATE_VERSION,
+    resolve_categories,
+)
 from backend.app.services.storage import category_cache
 from backend.tests import factories
 
 
+# ``ops`` registra cada operação com o desfecho porque "a releitura deu miss" é o
+# efeito da invalidação — o estado final do dict sozinho não distingue miss de
+# hit em valor coincidentemente igual.
 class _FakeRedis:
     """Stub in-process: get/set/delete/scan_iter via dict — exercita o path completo do cache."""
 
     def __init__(self) -> None:
         self._store: dict[str, str] = {}
+        self.ops: list[tuple[str, str, str]] = []
 
     def get(self, key: str) -> str | None:
-        return self._store.get(key)
+        raw = self._store.get(key)
+        self.ops.append(("get", key, "miss" if raw is None else "hit"))
+        return raw
 
     def set(self, key: str, value: str, ex: int | None = None) -> None:
+        self.ops.append(("set", key, "stored"))
         self._store[key] = value
 
     def delete(self, *keys: str) -> int:
         n = 0
         for k in keys:
+            self.ops.append(("delete", k, "deleted" if k in self._store else "absent"))
             if k in self._store:
                 del self._store[k]
                 n += 1
@@ -94,25 +105,43 @@ def fake_redis(monkeypatch) -> _FakeRedis:
     return fake
 
 
+async def _resolver(db: AsyncSession, ws_id: str):
+    return await db.run_sync(lambda s: resolve_categories(ws_id, s))
+
+
+def _assert_miss_reaquece_com(resolvidas, fake: _FakeRedis, chave: str, label: str) -> None:
+    """A releitura foi um miss e o cache voltou carregando ``label``."""
+    deu_miss = ("get", chave, "miss") in fake.ops
+    assert deu_miss, f"releitura pós-invalidate deveria dar miss; ops={fake.ops}"
+    assert next(c.label for c in resolvidas if c.key == "moradia") == label
+    reaquecido = json.loads(fake._store[chave])
+    no_cache = next(p["label"] for p in reaquecido if p["key"] == "moradia")
+    assert no_cache == label, f"cache reaqueceu com {no_cache!r}; próximo hit serviria o antigo"
+
+
+# O assert de latência que morava aqui (``elapsed_ms < 100`` sobre ``time.monotonic``)
+# media carga da máquina, não invalidação: falhou com 143 ms numa execução concorrente
+# de `pytest backend/tests` em 2026-08-27, sem nenhuma mudança de backend envolvida, e
+# passava isolado. E o nome prometia invalidação enquanto o assert media latência —
+# invalidação quebrada com write rápido passava (ADR-210 §saúde do test suite).
 @pytest.mark.asyncio
-async def test_upsert_invalidates_cache_within_100ms(
+async def test_upsert_invalida_cache_e_proxima_resolucao_da_miss(
     db: AsyncSession, fake_redis: _FakeRedis, seeded_workspace
 ) -> None:
+    """Pós-upsert: a chave some, a releitura dá miss, o cache reaquece com o label novo."""
     _, ws = seeded_workspace
-    await db.run_sync(lambda s: resolve_categories(ws.id, s))
-    assert _cached_keys(fake_redis), "primeira resolução deveria popular o cache"
-
-    t0 = time.monotonic()
+    await _resolver(db, ws.id)
+    chave = category_cache.resolved_cache_key(ws.id, ACTIVE_TEMPLATE_VERSION)
+    assert _cached_keys(fake_redis) == [chave], "primeira resolução deveria popular o cache"
     override_id = await CategoryOverrideService(db).upsert(
         CategoryOverrideConfig(
             workspace_id=ws.id, template_key="moradia", label_override="Casa Renomeada"
         )
     )
-    elapsed_ms = (time.monotonic() - t0) * 1000.0
-    assert override_id and elapsed_ms < 100.0, f"upsert demorou {elapsed_ms:.1f} ms"
+    assert override_id
     assert _cached_keys(fake_redis) == [], "cache deveria estar vazio pós-invalidate"
-    refreshed = await db.run_sync(lambda s: resolve_categories(ws.id, s))
-    assert next(c.label for c in refreshed if c.key == "moradia") == "Casa Renomeada"
+    fake_redis.ops.clear()
+    _assert_miss_reaquece_com(await _resolver(db, ws.id), fake_redis, chave, "Casa Renomeada")
 
 
 @pytest.mark.asyncio
