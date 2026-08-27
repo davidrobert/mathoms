@@ -447,8 +447,15 @@ jobs:
     # Fail-fast por step: lint quebra rápido, fixar um por vez é OK.
     name: Lint (pre-commit + ruff + style baseline + PII + tenancy)
     runs-on: ubuntu-latest
-    # Tighten 8→4min: observado 44s; 4min dá ~5× buffer e detecta hangs cedo.
-    timeout-minutes: 4
+    # Teto = detector de HANG, dimensionado a ~2× a mediana (ADR-210 §Adendo
+    # 2026-08-03). Re-medido 2026-08-27 em 8 runs success: mediana 138s, máx
+    # 169s — o teto de 4min (240s) estava ABAIXO de 2× a mediana, e o
+    # comentário anterior ("observado 44s; ~5× buffer") citava um número de
+    # antes do gate de liveness e do code-style entrarem neste job.
+    # ATENÇÃO ao re-dimensionar: o `pre-commit --all-files` domina o tempo e
+    # varia com cache frio, então a folga real é menor que a razão sugere —
+    # não use este teto para compensar falso-vermelho (ADR-210 §21c).
+    timeout-minutes: 5
     needs: changes
     # `|| docs` porque os gates do vault moram no `pre-commit` deste job e
     # `any_code` exclui `docs/**` — ver o bloco `docs:` no filtro. Os steps
@@ -546,7 +553,8 @@ jobs:
         # Step dentro do lint-all (e não job próprio) de propósito: job novo
         # custaria 1 min faturado × ~900 runs/mês pelo arredondamento do GH,
         # que é exatamente o desperdício que a medição de 2026-07-30 achou.
-        # Como step, custa ~2s do setup já pago.
+        # Como step, custa ~5-10s do setup já pago (re-medido 2026-08-21c;
+        # o comentário dizia ~2s, de antes da leitura por família).
         # Resíduo fechado em 2026-08-08: o `if` do job passou a incluir
         # `|| docs == 'true'`, então PR docs-only roda este gate também. O cron
         # diário em budget-alert.yml continua sendo a rede para repo parado —
@@ -559,8 +567,12 @@ jobs:
   pipeline-tests:
     name: Pipeline tests (tests/)
     runs-on: ubuntu-latest
-    # Tighten 10→5min: observado 54s; 5min dá ~5× buffer.
-    timeout-minutes: 5
+    # Re-medido 2026-08-27 em 4 runs success: mediana 202s, máx 227s — o teto
+    # de 5min (300s) deixava o job em 67% da mediana, acima do gatilho de 60%
+    # da ADR-210 §Adendo 2026-08-08(b), e o comentário anterior ("observado
+    # 54s") era ~3,7× menor que a realidade. 8min ≈ 2,4× a mediana; teto mais
+    # alto não custa minutos faturados (só adia a detecção de hang).
+    timeout-minutes: 8
     needs: changes
     # `pipeline` cobre mudança em tests/, scripts/, pipeline/, config/.
     # backend/ também porque importa pipeline/** e tem guardrail próprio.
@@ -1528,6 +1540,9 @@ jobs:
   go-lint:
     name: Go lint (golangci v2 + gofmt + vet)
     runs-on: ubuntu-latest
+    # Sem teto o default é 360min — 1100× a mediana medida (19s, n=3 em
+    # 2026-08-27). Hang de rede no download do toolchain queimaria 6h.
+    timeout-minutes: 6
     needs: changes
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
@@ -1560,6 +1575,9 @@ jobs:
   go-test:
     name: Go test -race + codegen sync
     runs-on: ubuntu-latest
+    # Mediana 66s (n=3, 2026-08-27); `govulncheck` baixa módulo e DB de vulns
+    # pela rede, que é o caminho plausível de hang.
+    timeout-minutes: 8
     needs: changes
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
@@ -1626,6 +1644,10 @@ jobs:
     # aceita `skipped` — só morde quem pediu o gate e o viu falhar.
     name: All checks green
     runs-on: ubuntu-latest
+    # Só agrega resultados: mediana 4s (n=8, 2026-08-27). É o required check
+    # do Ruleset — um hang aqui trava a fila inteira, e o default de 360min
+    # deixaria isso durar um dia útil inteiro.
+    timeout-minutes: 2
     needs:
       - changes
       - lint-all
