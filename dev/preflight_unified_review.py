@@ -260,10 +260,15 @@ def _run_em_voo(db, ws: str):
 
 # "marque terminal" nao existia como acao sancionada quando este texto foi escrito, e
 # mandava direto para a escrita ORM. A ADR-417 D1 abriu a porta; o texto passa a nomea-la.
+# A versao anterior mandava "retome por resume_pipeline_run" e "descarte por POST": o
+# descarte tinha rota e a retomada apontava para uma funcao de servico. Essa assimetria era
+# a forma operacional do RV8-08 — a A40.l84 fechou a funcao, entao as duas saidas passam
+# pela rota, e as duas exigem decisao registrada.
 FIX_PAUSADO = (
-    "retome por resume_pipeline_run, ou descarte por "
-    "POST /workspaces/<ws>/pipeline/runs/<id>/cancel — nao dispare por cima, "
-    "nao escreva status no DB"
+    "resolva pela rota: confira (POST /workspaces/<ws>/pipeline/runs/<id>/reviews/<rev>) "
+    "e retome (POST .../resume), OU descarte (POST .../cancel). "
+    "resolve_pause.py --list faz os tres. Nao dispare por cima, "
+    "nao escreva em pipeline_runs nem em stage_reviews pelo DB"
 )
 
 
@@ -412,11 +417,21 @@ def _checks_de_ambiente(root: Path, base_frontend: str) -> list[Check]:
     ]
 
 
+def check_par_completed_pending(db) -> Check:
+    """Prova de fecho da A40.l84 — delega ao gate, que tem CLI propria."""
+    from dev.check_par_completed_pending import pares_no_banco, veredito
+
+    nivel, detalhe = veredito(pares_no_banco(db))
+    fix = "o guard da A40.l84 foi contornado — nao analise este run; investigue por onde"
+    return Check("par-completed-pending", nivel, detalhe, fix if nivel == FAIL else None)
+
+
 def _checks_de_workspace(db, ws: str, root: Path) -> list[Check]:
     return [
         Check("workspace", PASS, ws),
         check_executor_revision(db),
         check_run_em_voo(db, ws),
+        check_par_completed_pending(db),
         check_budget(db, ws),
         check_baselines(root, ws),
     ]

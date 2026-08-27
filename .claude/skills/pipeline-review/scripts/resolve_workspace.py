@@ -5,7 +5,8 @@ então funciona em SQLite local e Postgres. Rode a partir da RAIZ do repo (carre
 ``.env``): ``.venv/bin/python .claude/skills/pipeline-review/scripts/resolve_workspace.py <workspace>``.
 
 Saída: JSON em stdout com ``workspace_id``, ``latest_report``, ``latest_run``,
-``active_run`` (bloqueante), ``docs``, ``needs_review``. Exit 1 se não resolver.
+``active_run`` (bloqueante), ``docs``, ``documents_needs_review`` e
+``pending_stage_reviews`` (resolva-as por ``resolve_pause.py``). Exit 1 se não resolver.
 """
 
 from __future__ import annotations
@@ -54,6 +55,20 @@ def _one(db, sql: str, ws: str) -> dict | None:
     return dict(row) if row else None
 
 
+def _pendentes(db, ws: str) -> list[dict]:
+    """Conferências sem decisão do run pausado — o que `resolve_pause.py` vai resolver."""
+    rows = db.execute(
+        text(
+            "SELECT sr.id AS review_id, sr.stage FROM stage_reviews sr "
+            "JOIN pipeline_runs r ON r.id = sr.pipeline_run_id "
+            "WHERE r.workspace_id = :ws AND r.status = 'needs_review' "
+            "AND sr.status NOT IN ('approved', 'edited')"
+        ),
+        {"ws": ws},
+    ).mappings()
+    return [dict(r) for r in rows]
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print("uso: resolve_workspace.py <email|uuid>", file=sys.stderr)
@@ -89,7 +104,10 @@ def main() -> int:
                     text("SELECT COUNT(*) FROM documents WHERE workspace_id = :ws"), {"ws": ws}
                 ).scalar()
             ),
-            "needs_review": (
+            # Renomeada: a chave dizia `needs_review` e contava DOCUMENTOS, homônima do
+            # status do RUN logo acima. Quem lia o JSON via `needs_review: 0` e concluía
+            # que não havia pausa.
+            "documents_needs_review": (
                 db.execute(
                     text(
                         "SELECT COUNT(*) FROM documents WHERE workspace_id = :ws AND needs_review = 1"
@@ -97,6 +115,7 @@ def main() -> int:
                     {"ws": ws},
                 ).scalar()
             ),
+            "pending_stage_reviews": _pendentes(db, ws),
         }
     print(json.dumps(out, ensure_ascii=False, default=str, indent=2))
     return 0
