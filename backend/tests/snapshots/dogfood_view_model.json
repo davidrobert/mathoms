@@ -1694,7 +1694,7 @@
       "base": "patrimonio_gerador",
       "limiar": null,
       "motivo": "rentabilidade observada não tem alvo canônico (ADR-191 §D5)",
-      "observado_path": "$.ratios.rentabilidade.trs_pct",
+      "observado_path": "$.ratios.rentabilidade.valor_pct",
       "operador": null,
       "procedencia": null,
       "ref": null,

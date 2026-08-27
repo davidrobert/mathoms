@@ -72,6 +72,28 @@ class KpiTarget:
     ref: Optional[str] = None
     motivo: Optional[str] = None
 
+    # O estado `limiar=42.0, procedencia=None` — número sem fonte auditável — é
+    # exatamente o defeito que esta ADR existe para impedir, e era representável:
+    # os dois invariantes da suíte olhavam `procedencia`/`motivo` sem pinar
+    # `limiar`. Só `_orfao()` produzia `procedencia=None`, então o consumidor não
+    # conseguia distinguir "órfão" de "número órfão de fonte" pela chave errada.
+    def __post_init__(self) -> None:
+        resolvido = self.limiar is not None
+        acompanhantes = {
+            "operador": self.operador,
+            "procedencia": self.procedencia,
+            "ref": self.ref,
+        }
+        faltando = [nome for nome, v in acompanhantes.items() if (v is None) == resolvido]
+        if faltando or resolvido == (self.motivo is not None):
+            raise ValueError(
+                f"KpiTarget inconsistente em {self.observado_path!r}: "
+                f"limiar={self.limiar!r} exige "
+                f"{'operador+procedencia+ref e motivo=None' if resolvido else 'motivo e operador/procedencia/ref=None'}; "
+                f"got operador={self.operador!r} procedencia={self.procedencia!r} "
+                f"ref={self.ref!r} motivo={self.motivo!r}"
+            )
+
 
 # Limiar que vive em constante de código/config; `ref` aponta o leitor único.
 # Tupla: (chave, observado_path, base, unidade, limiar, operador, ref)
@@ -117,9 +139,14 @@ _CANONICOS = (
 #
 # Tupla: (chave, observado_path, base, unidade, motivo)
 _ORFAOS_DOMINIO = (
+    # `trs_pct` não existe em `ratios.rentabilidade` — o campo é `valor_pct`
+    # ([[ADR-191]] §D3). Pior que erro de digitação: `trs_pct` é o nome da chave de
+    # **saque** (`goals.trs_pct`, [[ADR-191]] §Emenda 2026-08-14), então o path errado
+    # importava a colisão de nomes para dentro do catálogo. Path que não resolve é a
+    # mesma classe de defeito que o alvo fabricado (`analyze_finances.py` §kpi_targets).
     (
         "carteira_trs",
-        "$.ratios.rentabilidade.trs_pct",
+        "$.ratios.rentabilidade.valor_pct",
         "patrimonio_gerador",
         "pct_aa",
         "rentabilidade observada não tem alvo canônico (ADR-191 §D5)",
