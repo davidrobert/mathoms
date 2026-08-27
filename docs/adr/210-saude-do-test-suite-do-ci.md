@@ -1062,10 +1062,26 @@ força tudo isso a caber num step de check obrigatório é o budget.
   medido em **2m04s**; `ci.yml:519` afirma que o step de liveness *"custa ~2s"*,
   medido em 8-10s. Comentário de custo vencido faz o próximo ajuste de timeout
   partir da premissa errada.
+
+  > **Fechado em 2026-08-27** ([[PLAN-ci-trust]] §Onda 1, PR 1). Os dois
+  > comentários foram re-medidos e reescritos com n e data. De carona, o que a
+  > re-medição revelou: o teto do `lint-all` (4min) estava **abaixo** de 2× a
+  > mediana (138s), critério do §Adendo 2026-08-03 — subiu para 5min; e o
+  > `pipeline-tests` estava em **67%** da mediana contra o teto, acima do
+  > gatilho de 60% do §Adendo 2026-08-08(b) — teto para 8min. Também ganharam
+  > teto os 3 jobs que rodavam com o default de 360min (`go-lint`, `go-test`,
+  > `all-green`).
 - A legenda de sinais dentro de `budget-alert.yml` precisa **encolher** (não
   crescer): pós-filtro, `WAIVED` e `GH` não podem mais aparecer naquela Issue.
   Fica para a leva que já tocar `.github/workflows/**` — PR que toca esse path
   starva a fila enquanto é cabeça do trem ([[ADR-322]] §Emenda 2026-08-08).
+
+  > **Fechado em 2026-08-27** ([[PLAN-ci-trust]] §Onda 1, PR 1). A legenda
+  > perdeu a linha do `WAIVED` e ganhou a nota de por que os dois não aparecem
+  > ali — o corpo é gatilho de abertura **e** de auto-close, e `WAIVED`
+  > mantinha a Issue viva para sempre (#1122, 21 dias). A starvation que o
+  > parágrafo temia deixou de valer: desde a §Emenda 2026-08-25 da
+  > [[ADR-322]], o 403 é terminal só para o PR e o run continua.
 - Falso-vermelho custa mais que um `rerun`: `ci_advance_automerge_train.py`
   tira o PR do trem em `required_workflow_failed`, exigindo novo ciclo de
   re-arme.
