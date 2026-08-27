@@ -8,13 +8,37 @@ import { ProtecaoGapQualitativo } from "./SProtecao/ProtecaoGapQualitativo";
 import { ProtecaoGapVeiculos } from "./SProtecao/ProtecaoGapVeiculos";
 import { ProtecaoKpiHero } from "./SProtecao/ProtecaoKpiHero";
 import { readProtecaoPatrimonial } from "../utils/reportContractGuards";
+import type { ProtecaoPatrimonialData } from "@/types/protecao";
+
+/** Existe cobertura contratada a mostrar?
+ *
+ * A40.l88 — `readProtecaoPatrimonial` é guarda de SHAPE, não de vazio: o
+ * produtor emite o bloco completo mesmo para workspace sem apólice (cenário
+ * G6-b do `protecao_analyzer`, medido em 2026-08-27 — 11 chaves, prêmio 0,00).
+ * Ligar a seção sem este predicado publicaria "Seguros — Cobertura Contratada"
+ * zerada, com veredito "Atenção", para todo cliente sem apólice: é a objeção
+ * que travou o flip na A40.l7, e ela estava certa.
+ *
+ * `gap_qualitativo` fica DE FORA: com zero apólice ele acende sempre, então
+ * incluí-lo devolveria a seção a todo mundo pela porta dos fundos. O cadastro
+ * manual entra — declara cobertura que o cliente afirmou ter.
+ */
+function temCoberturaContratada(protecao: ProtecaoPatrimonialData): boolean {
+  return (
+    protecao.apolices_vigentes.length > 0 ||
+    protecao.apolices_vencendo.length > 0 ||
+    protecao.apolices_vencidas.length > 0 ||
+    protecao.bens_com_gap_cobertura.length > 0 ||
+    (protecao.escopo_cobertura?.categorias_somente_no_cadastro.length ?? 0) > 0
+  );
+}
 
 /** S_PROTECAO — 4º pilar AUVP (ADR-240). Renderiza apenas quando workspace
- *  tem apólices ingeridas (`protecao_patrimonial` presente). Subgrupos:
- *  Bens (auto V1) + Pessoas-V2 placeholder + PJ-V2 placeholder. */
+ *  tem cobertura contratada. Subgrupos: Bens (auto V1) + Pessoas-V2
+ *  placeholder + PJ-V2 placeholder. */
 export function S_ProtecaoSection({ data }: { data: ReportAnalysisData }) {
   const protecao = readProtecaoPatrimonial(data.protecao_patrimonial);
-  if (!protecao) {
+  if (!protecao || !temCoberturaContratada(protecao)) {
     return null;
   }
   return (
@@ -31,7 +55,10 @@ export function S_ProtecaoSection({ data }: { data: ReportAnalysisData }) {
           nome da seção preservaria a mentira. O link text é idêntico ao
           `shortLabel` e ao prefixo do <h2>, para o leitor procurar no índice a
           mesma string que clicou. */}
-      <p className="mt-4 text-style-caption text-muted" data-testid="protecao-crosslink-s8">
+      <p
+        className="mt-4 text-style-caption text-muted"
+        data-testid="protecao-crosslink-s8"
+      >
         A base dedutível de PGBL está em{" "}
         <a href="#S8" className="underline">
           Carga Tributária PJ

@@ -965,7 +965,7 @@
 | A40.l85 | lane | open | A40 | O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar | `sprint/A40/lanes/A40-l85-corpus-de-cardinalidade-real.md` |
 | A40.l86 | lane | open | A40 | Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo | `sprint/A40/lanes/A40-l86-duas-fontes-de-monetariedade.md` |
 | A40.l87 | lane | shipped | A40 | A pausa não tem porta de saída, e o botão que o produto já oferece devolve 409 há quatro meses | `sprint/A40/lanes/A40-l87-porta-de-saida-da-pausa.md` |
-| A40.l88 | lane | open | A40 | Consumidor ausente no entregue: o produto emite a ressalva, a seção e o aviso — e nenhum dos três chega ao leitor | `sprint/A40/lanes/A40-l88-consumidor-ausente-no-entregue.md` |
+| A40.l88 | lane | shipped | A40 | Consumidor ausente no entregue: o produto emite a ressalva, a seção e o aviso — e nenhum dos três chega ao leitor | `sprint/A40/lanes/A40-l88-consumidor-ausente-no-entregue.md` |
 | A40.l89 | lane | blocked | A40 | Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica | `sprint/A40/lanes/A40-l89-wiring-do-catalogo-de-alvo.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A40.l90 | lane | blocked | A40 | A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar | `sprint/A40/lanes/A40-l90-limiar-de-risco-le-o-catalogo.md` |
