@@ -29,6 +29,10 @@ from backend.app.services.pipeline.pipeline_failure_reasons import (
     DISPATCH_FAILED,
     RUN_SETUP_FAILED,
 )
+from backend.app.services.pipeline.stage_review_gate import (
+    pending_review_message,
+    pending_reviews,
+)
 from backend.app.services.security.vault import get_vault
 from backend.app.services.storage import StorageService
 
@@ -278,6 +282,13 @@ def _reject_if_executor_concorrente(db, ws_id: str, run_id: str) -> None:
         )
 
 
+def _reject_if_review_pendente(db, run_id: str) -> None:
+    """A retomada exige decisão registrada em toda entrada (ADR-404 D2 §Emenda 2026-08-27)."""
+    pendentes = pending_reviews(db, run_id)
+    if pendentes:
+        raise ValueError(pending_review_message(run_id, pendentes))
+
+
 def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
@@ -287,6 +298,12 @@ def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
             raise ValueError(f"Run is not paused for review (status: {run.status})")
 
         _reject_if_executor_concorrente(db, ws_id, run_id)
+        # DEPOIS da guarda de executor (A40.l87), não antes: o `_run_pausado` dos testes
+        # dela tem review `pending`, e inverter a ordem troca a mensagem que eles asseram.
+        # Mesma sessão do UPDATE abaixo — contar noutra sessão era TOCTOU por construção
+        # (medido na U1/PV9-29). Recusa ANTES do flip: nada foi tocado, não há ação
+        # forward a reverter (ADR-359 §2) e `paused_at_stage` segue íntegro.
+        _reject_if_review_pendente(db, run_id)
 
         paused_stage = run.paused_at_stage
         tier = run.tier_at_run or "free"
@@ -307,12 +324,33 @@ def _stages_after_paused(paused_stage: str | None) -> list[str]:
     return []
 
 
-def _mark_run_completed(run_id: str) -> None:
+def _reject_review_pendente_no_fecho(run_id: str, paused_stage: str | None) -> None:
+    """Camada, não alternativa — e reverter ANTES de levantar (ADR-359 §2)."""
     with SyncSessionLocal() as db:
-        run = db.get(PipelineRun, run_id)
-        run.status = PipelineRunStatus.completed
-        run.completed_at = datetime.now(timezone.utc)
+        pendentes = pending_reviews(db, run_id)
+    if not pendentes:
+        return
+    # Levantar sobre `resuming` + `celery_task_id IS NULL` entregaria o run ao ceifador de
+    # órfãos (`periodic_tasks._flip_undispatched_atomic`), que grava `failed` com
+    # DISPATCH_UNCONFIRMED — dispatch que nunca chegou a ser tentado.
+    _revert_resuming_to_needs_review(run_id, paused_stage or pendentes[0][0])
+    raise ValueError(pending_review_message(run_id, pendentes))
+
+
+# Inalcançável pelo único caller (`resume_pipeline_run`, três linhas após o guard de
+# entrada). Fica como camada porque este era o único escritor de `completed` sem filtro
+# algum — gravava por cima de qualquer status, `cancelled` inclusive.
+def _mark_run_completed(run_id: str, paused_stage: str | None) -> None:
+    _reject_review_pendente_no_fecho(run_id, paused_stage)
+    with SyncSessionLocal() as db:
+        result = db.execute(
+            update(PipelineRun)
+            .where(PipelineRun.id == run_id, PipelineRun.status == PipelineRunStatus.resuming)
+            .values(status=PipelineRunStatus.completed, completed_at=datetime.now(timezone.utc))
+        )
         db.commit()
+    if result.rowcount != 1:
+        logger.warning("Conclusão de resume no-op run=%s — status já não era `resuming`", run_id)
 
 
 def resume_pipeline_run(run_id: str, ws_id: str) -> None:
@@ -321,7 +359,7 @@ def resume_pipeline_run(run_id: str, ws_id: str) -> None:
     remaining_stages = _stages_after_paused(paused_stage)
 
     if not remaining_stages:
-        _mark_run_completed(run_id)
+        _mark_run_completed(run_id, paused_stage)
         return
 
     _dispatch_resume(run_id, ws_id, remaining_stages, tier, paused_stage)

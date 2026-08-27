@@ -5,6 +5,7 @@ title: "A superfície de diagnóstico nunca aborta a execução que documenta"
 status: Decidido
 phase: r7/CTO-6
 date: "2026-08-19"
+amended_at: ["2026-08-27"]
 relates_to:
   - "[[ADR-110]]"
   - "[[ADR-111]]"
@@ -13,6 +14,8 @@ relates_to:
   - "[[ADR-273]]"
   - "[[ADR-309]]"
   - "[[ADR-371]]"
+  - "[[ADR-359]]"
+  - "[[ADR-417]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -23,11 +26,17 @@ tags:
   - status/decidido
   - area/pipeline
   - area/observabilidade
-size_lines: 132
+size_lines: 222
 ---
 
 > `Decidido` no closeout da Onda A (#1585). Implementada em #1565 (`a8d57ee1`), com o
 > teste-mãe restaurado em #1579 (`dfb534d3`).
+>
+> **Emenda 2026-08-27 ([[A40.l84]] · RV8-08):** o D2 dizia *"`resume_run` recusa"* e foi
+> lido como a camada literal — o predicado vivia só no use case HTTP e o service era
+> caminho vivo. Dois runs de dogfood completaram sobre conferência que ninguém aprovou.
+> D2 passa a valer para a **operação** de retomada, em toda entrada, e ganha o fecho no
+> desfecho que ENTREGA. Ver §Emenda ao final.
 
 # ADR-404 — A superfície de diagnóstico nunca aborta a execução que documenta
 
@@ -158,3 +167,56 @@ Idem `AuditLog` e `InternalOpsAudit`.
   pediu para cortá-lo; foi mantido porque cortá-lo deixaria `LLMCallLog`,
   `PipelineRunCost` e `ArtifactLineageEdge` sem enforcement algum, e o self-test
   do gate prova que ele não é vácuo.
+
+## Emenda 2026-08-27 — D2 vale para a OPERAÇÃO de retomada, não para uma camada
+
+D2 diz *"`resume_run` recusa a retomada enquanto houver `StageReview` `pending`"*. Em
+2026-08-19 `resume_run` e "retomar" eram sinônimos operacionais: `resume_pipeline_run`
+tinha **um** caller de produção, e era o próprio use case HTTP. A distinção virou
+load-bearing quando um procedimento de operador documentado passou a importar o service
+direto.
+
+**A leitura literal torna o D2 auto-refutante na data em que foi escrito.** O D2 argumenta
+por contrafactual — *se* `StageReview` fosse fail-open, `pending == 0` e o gate cai. Mas o
+desfecho proibido (*"o pipeline avança sobre output que ninguém revisou"*) já era
+alcançável por caminho vivo, **sem nenhum fail-open**. Medido no DB de dogfood: dois runs
+`(completed, pending)`, r7 (2026-08-18, `extract_with_llm`) e r8 (2026-08-24,
+`analyze_finances`) — e o r7 é o **baseline de comparação** do r8 na §r8 de
+[[PIPELINE-REVIEWS-active]]. Todo veredito de regressão daquela revisão foi medido contra
+um run que completou sobre conferência não resolvida.
+
+**D2 passa a ler:** a retomada é recusada com qualquer `StageReview` sem decisão
+registrada, em **toda entrada** — rota HTTP e chamada direta a `resume_pipeline_run` —, e
+**nenhum desfecho que ENTREGA** (`completed`, `partial_failure`) é gravado sobre
+conferência pendente. O predicado vive em `stage_review_gate.py` e é consultado **na mesma
+sessão** do `UPDATE` que flipa o status: contar numa sessão enquanto outra flipa era TOCTOU
+por construção.
+
+**O predicado é `NOT IN (approved, edited)`, não `== pending`.** Restritivo por default:
+membro novo do enum destravaria calado — o mesmo modo de falha que a [[ADR-417]] D3 evitou
+ao recusar `dismissed`.
+
+**O fecho é `(completed, pending)`, escrito por status LISTADO.** `(cancelled, pending)` é
+resíduo sancionado ([[ADR-417]] D3) e `(failed, pending)` diz a verdade — ninguém decidiu e
+o run morreu. Escrito como *"terminal + pending"*, o fecho morderia a D3 e as duas lanes se
+refutariam. `DELIVERING_STATUSES` é tupla literal, nunca derivada de "terminal menos X".
+
+**`_finalize_run` re-estaciona, não levanta.** Exceção ali abortaria a task **depois** do
+trabalho feito, e o `on_failure` gravaria `failed` — convertendo "ninguém decidiu" em
+"morreu", a alternativa que a [[ADR-359]] §2 rejeitou. Re-estacionar não cria aresta nova
+na máquina de estados: `running→needs_review` e `resuming→needs_review` já existem e já
+estão na tabela do [[ADR-417]] D7. E `needs_review` está fora de `_POST_PROCESS_STATUSES`,
+então nenhum relatório nasce sobre output não conferido — de graça.
+
+**As duas rows históricas ficam.** Não são backfilladas: `approved` forjaria uma decisão
+humana que não houve, e a rota sancionada recusa por desenho (`action_review` não aceita
+ação sobre run terminal). São a evidência do RV8-08, e uma delas é o baseline da outra.
+Congeladas por id em `dev/check_par_completed_pending.py`, que mede **quais**, nunca
+quantos.
+
+**§Custo aceito.** A skill `pipeline-review` deixa de poder retomar sem decidir —
+comportamento desejado. Por isso a emenda **vem acompanhada** da saída explícita nas
+superfícies que ensinavam o contorno (`SKILL.md`, `FIX_PAUSADO` do preflight, runbook
+§6.1), e da proibição nomeada de `UPDATE stage_reviews SET status='approved'`. Fechar sem
+dar a saída troca um defeito por outro pior: o operador contorna forjando decisão humana,
+que some da telemetria `review_action` (KR1 da A29.l1).

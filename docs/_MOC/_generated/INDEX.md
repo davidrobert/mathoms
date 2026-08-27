@@ -962,7 +962,7 @@
 | A40.l81 | lane | shipped | A40 | Diagnóstico sem canal de saída: o stage que não pausa entrega razão no artefato e ela não chega nem à tabela nem ao usuário | `sprint/A40/lanes/A40-l81-diagnostico-sem-saida.md` |
 | A40.l82 | lane | shipped | A40 | Um default de grupo RFB decide a classe de 13% da carteira, com confiança plena e sem sinal | `sprint/A40/lanes/A40-l82-tipo-default-decide-classe.md` |
 | A40.l83 | lane | shipped | A40 | Parecer cego em três eixos: não recebe a incerteza, não consegue citar o que recebe, e o guardrail que deveria pegar isso inverte o diagnóstico | `sprint/A40/lanes/A40-l83-parecer-cego.md` |
-| A40.l84 | lane | open | A40 | O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou | `sprint/A40/lanes/A40-l84-guard-na-camada-errada.md` |
+| A40.l84 | lane | shipped | A40 | O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou | `sprint/A40/lanes/A40-l84-guard-na-camada-errada.md` |
 | A40.l85 | lane | open | A40 | O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar | `sprint/A40/lanes/A40-l85-corpus-de-cardinalidade-real.md` |
 | A40.l86 | lane | open | A40 | Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo | `sprint/A40/lanes/A40-l86-duas-fontes-de-monetariedade.md` |
 | A40.l87 | lane | shipped | A40 | A pausa não tem porta de saída, e o botão que o produto já oferece devolve 409 há quatro meses | `sprint/A40/lanes/A40-l87-porta-de-saida-da-pausa.md` |

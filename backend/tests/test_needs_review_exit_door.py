@@ -367,3 +367,75 @@ def test_executor_vivo_nao_inclui_a_pausa() -> None:
     faria a guarda do resume recusar o próprio run que está retomando."""
     assert PipelineRunStatus.needs_review not in EXECUTOR_VIVO_STATUSES
     assert set(EXECUTOR_VIVO_STATUSES) < set(CANCELLABLE_STATUSES)
+
+
+# ── A40.l84: a retomada exige decisão registrada em TODA entrada ──────────────
+
+
+@pytest.mark.asyncio
+async def test_resume_pelo_service_recusa_review_sem_decisao(
+    auth_client: AsyncClient, db: AsyncSession
+):
+    """RV8-08: o predicado vivia só no use case HTTP e o service era caminho vivo — dois
+    runs de dogfood completaram sobre review que ninguém aprovou."""
+    from backend.app.services.pipeline.pipeline_service import resume_pipeline_run
+
+    ws_id = auth_client.ws_id
+    run_id = await _run_pausado(db, ws_id)
+
+    # `match` no nome do stage: `PipelineDispatchError` é `RuntimeError`, então sem o
+    # guard o teste fica vermelho por não levantar `ValueError`; e o nome do stage prova
+    # que a mensagem é a DESTE predicado, não a da guarda de executor concorrente.
+    with pytest.raises(ValueError, match="analyze_finances"):
+        resume_pipeline_run(run_id, ws_id)
+
+    run = await _reler(db, run_id)
+    assert run.status == PipelineRunStatus.needs_review  # nem `resuming`, nem `failed`
+    assert run.paused_at_stage == "analyze_finances"  # ADR-359 §2: não houve forward
+    assert (await _review_do_run(db, run_id)).status == StageReviewStatus.pending
+
+
+@pytest.mark.asyncio
+async def test_review_edited_destrava_a_retomada(auth_client: AsyncClient, db: AsyncSession):
+    """O predicado é `NOT IN (approved, edited)`: editar É decidir. Escrito como
+    `== pending`, membro novo do enum destravaria calado (ADR-417 D3)."""
+    ws_id = auth_client.ws_id
+    run_id = await _run_pausado(db, ws_id)
+    review = await _review_do_run(db, run_id)
+    review.status = StageReviewStatus.edited
+    await db.commit()
+
+    with patch("backend.app.services.pipeline.pipeline_service._dispatch_resume") as dispatch:
+        resp = await auth_client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/resume")
+
+    assert resp.status_code == 202
+    dispatch.assert_called_once()
+    assert (await _reler(db, run_id)).status == PipelineRunStatus.resuming
+
+
+# Camada em `_mark_run_completed`, o único escritor de `completed` sem filtro algum.
+# Levantar sobre `resuming` + `celery_task_id IS NULL` entregaria o run ao ceifador de
+# órfãos, que grava `failed`/DISPATCH_UNCONFIRMED — compensar é REVERTER (ADR-359 §2). O
+# guard de entrada torna este ramo inalcançável pelo caller; a chamada direta é o único
+# caminho de teste, e guard sem caminho de teste não conta para o fecho.
+@pytest.mark.asyncio
+async def test_fecho_do_resume_reverte_a_pausa_antes_de_levantar(
+    auth_client: AsyncClient, db: AsyncSession
+):
+    from backend.app.services.pipeline.pipeline_service import _mark_run_completed
+
+    ws_id = auth_client.ws_id
+    run_id = await _run_pausado(db, ws_id)
+    run = await _reler(db, run_id)
+    run.status = PipelineRunStatus.resuming
+    await db.commit()
+
+    with pytest.raises(ValueError, match="analyze_finances"):
+        _mark_run_completed(run_id, "analyze_finances")
+
+    depois = await _reler(db, run_id)
+    assert depois.status == PipelineRunStatus.needs_review
+    assert depois.paused_at_stage == "analyze_finances"  # nunca NULL (A40.l27)
+    assert (PipelineRunStatus.completed, StageReviewStatus.pending) not in await _pares_run_review(
+        db
+    )

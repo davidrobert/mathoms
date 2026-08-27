@@ -26,9 +26,9 @@ from pathlib import Path
 # Tabelas cuja row EXPLICA a execução. Ausência degrada a observabilidade e não
 # muda o que o sistema faz — logo, nunca pode custar a execução.
 #
-# `StageReview` está FORA de propósito: `resume_run` exige zero reviews `pending`
-# para liberar a retomada, então status sem review deixa o humano retomar sem
-# revisar. É contrato de pausa, não diagnóstico. `AuditLog`/`InternalOpsAudit`
+# `StageReview` está FORA de propósito: a retomada é recusada com qualquer review sem
+# decisão, em TODA entrada (ADR-404 D2 §Emenda 2026-08-27), então status sem review
+# deixa o humano retomar sem revisar. É contrato de pausa, não diagnóstico. `AuditLog`/`InternalOpsAudit`
 # também estão fora — trilha de compliance tem de ser durável.
 DIAGNOSTIC_MODELS = frozenset(
     {

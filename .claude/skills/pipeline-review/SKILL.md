@@ -69,8 +69,24 @@ se `make pipeline-run` não existir mais.
    em voo; não dispare outro. O guard deriva "em voo" como **complemento** dos
    quatro status terminais (`pending`/`running`/`resuming`/`needs_review`), então
    status novo no enum entra bloqueante por default. Em `needs_review` o run está
-   **pausado**, não morto: retome por `resume_pipeline_run` (o resume entra no
-   stage **seguinte** — o pausado não re-roda, declare isso) ou marque-o terminal.
+   **pausado**, não morto — e tem **duas** saídas, ambas pela rota, via
+   `resolve_pause.py`:
+
+   ```bash
+   .venv/bin/python .claude/skills/pipeline-review/scripts/resolve_pause.py <workspace> --list
+   ```
+
+   - **(a) conferir e retomar** — leia os `validation_issues` de cada conferência,
+     `--approve <review_id>` (ou `--edit <review_id> --payload <arquivo.json>`) em
+     **cada** uma, e só então `--resume`. O resume entra no stage **seguinte**: o
+     pausado não re-roda, e a cauda inteira re-executa e re-custa LLM — declare isso
+     no relatório.
+   - **(b) descartar** — `--cancel --reason "<por quê>"`. Irreversível.
+
+   Chamar `resume_pipeline_run` direto **não é saída**: com conferência sem decisão
+   ele recusa em qualquer entrada ([[ADR-404]] D2 §Emenda 2026-08-27). Aprovar em
+   massa sem ler os `validation_issues` é aprovação cega, e o run seguinte herda o
+   defeito — se você não vai conferir, a resposta certa é **(b)**.
 2. **Disparar run completo:** `make pipeline-run WS=<workspace_id> SKIP_LLM=0`.
    Capture o `Run <uuid> disparado` do stdout — esse é o `run_id`. Não use `RESET`
    (destrutivo); um run completo recomputa `FULL_ORDER` e sobrescreve os artifacts.
@@ -82,7 +98,7 @@ se `make pipeline-run` não existir mais.
      ST=$(sqlite3 mathoms.db "SELECT status FROM pipeline_runs WHERE id='<run_id>';")
      case "$ST" in
        completed|partial_failure|failed|cancelled) echo "terminal: $ST"; break ;;
-       needs_review) echo "PAUSADO em needs_review — retome, não espere"; break ;;
+       needs_review) echo "PAUSADO — resolve_pause.py --list; conferir+retomar OU --cancel"; break ;;
      esac
      sleep 80
    done

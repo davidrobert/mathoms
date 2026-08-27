@@ -165,7 +165,7 @@ def _stage(run_id, log_id):
 
     def test_stage_review_convive_com_a_transicao(self):
         """Decisão explícita da ADR-404: `StageReview` é contrato de pausa —
-        `resume_run` exige zero reviews `pending` —, não diagnóstico."""
+        a retomada recusa review sem decisão em toda entrada —, não diagnóstico."""
         src = """
 def _pause(run_id, stage):
     with SyncSessionLocal() as db:

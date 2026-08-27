@@ -300,8 +300,14 @@ class TestResume:
         await db.commit()
 
         resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}/resume")
+
+        # Asserção pelo DESFECHO, não por substring (A40.l84 §Precisão): o erro tem de
+        # nomear QUAL conferência e o que fazer, senão manda o operador para o contorno.
         assert resp.status_code == 409
-        assert "pendentes" in resp.json()["detail"].lower()
+        detalhe = resp.json()["detail"]
+        assert "E1" in detalhe and review.id[:8] in detalhe
+        assert "/cancel" in detalhe  # a outra saída, nomeada
+        assert (await db.get(PipelineRun, run.id)).status == PipelineRunStatus.needs_review
 
     @pytest.mark.asyncio
     async def test_resume_not_in_needs_review(self, auth_user, db: AsyncSession):

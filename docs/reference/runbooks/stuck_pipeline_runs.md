@@ -3,11 +3,14 @@ id: runbook-stuck-pipeline-runs
 type: runbook
 title: "Runbook — Run de pipeline travado (órfão de dispatch + heartbeat)"
 status: ativo
-date: "2026-08-07"
+date: "2026-08-27"
 relates_to:
   - "[[ADR-359]]"
   - "[[ADR-172]]"
   - "[[A40.l27]]"
+  - "[[ADR-404]]"
+  - "[[ADR-417]]"
+  - "[[A40.l84]]"
 tags:
   - type/runbook
   - area/backend
@@ -194,7 +197,8 @@ vivo no mesmo workspace**, os dois escrevendo artefatos. O custo aceito pela [[A
 
 ## 6. Órfão em `resuming` (é status, não `failure_reason`)
 
-`resume_pipeline_run` flippa `needs_review` → `resuming` e só então despacha. Morte do
+`resume_pipeline_run` recusa enquanto houver `StageReview` sem decisão ([[ADR-404]] D2
+§Emenda 2026-08-27) e só então flippa `needs_review` → `resuming` e despacha. Morte do
 processo nesse intervalo deixa a linha em `resuming`.
 
 - **Sintoma:** a UI mostra `ActiveRunCard` girando indefinidamente (`resuming` está em
@@ -218,16 +222,31 @@ ficaram assim em 2026-08-25 e foram resolvidos por escrita direta no DB.
   irrelevante (não há executor). **Bloqueia disparo novo** desde a [[ADR-417]] D5: o
   trigger responde 409 nomeando as duas saídas. Antes não bloqueava, e a pausa ficava
   órfã em silêncio com as `stage_reviews` dela `pending` para sempre.
-- **Ação:** **cancele pela UI ou pelo endpoint** — a [[ADR-417]] D1 tornou a pausa
-  cancelável, e o botão "Descartar este processamento" do card é essa chamada. O run
-  vira `cancelled` e grava `cancelled_from_status='needs_review'`, que é o que distingue
-  *descartado* de *interrompido* no histórico (D4). As `stage_reviews` ficam `pending` de
-  propósito: ninguém decidiu, e o par `(cancelled, pending)` é resíduo sancionado (D3).
+- **Ação A — conferir e retomar.** Aprove (ou edite) **cada** `StageReview` pendente e só
+  então retome. Pela UI: a tela de review do run. Por script:
+  `.venv/bin/python .claude/skills/pipeline-review/scripts/resolve_pause.py <ws> --list`,
+  depois `--approve <review_id>` em cada uma e `--resume`. **Custa:** o resume entra no
+  stage *seguinte* ao pausado e re-executa toda a cauda, re-pagando LLM.
+- **Ação B — descartar.** **Cancele pela UI ou pelo endpoint** — a [[ADR-417]] D1 tornou a
+  pausa cancelável, e o botão "Descartar este processamento" do card é essa chamada
+  (`resolve_pause.py <ws> --cancel --reason "..."` faz o mesmo). O run vira `cancelled` e
+  grava `cancelled_from_status='needs_review'`, que é o que distingue *descartado* de
+  *interrompido* no histórico (D4). As `stage_reviews` ficam `pending` de propósito:
+  ninguém decidiu, e o par `(cancelled, pending)` é resíduo sancionado (D3).
+- **Não existe terceira saída.** Chamar `resume_pipeline_run` direto era a que existia até
+  2026-08-27, e ela produzia `(completed, pending)`: o run completava sobre conferência que
+  ninguém aprovou. Dois runs do dogfood (r7 e r8) nasceram assim e ficam **preservados**
+  como evidência — ver `dev/check_par_completed_pending.py`.
 - **NÃO leia `paused_at_stage` como discriminador.** Ele nunca é zerado e sobrevive à
   retomada, então um run que pausou, foi conferido, retomou e só então foi interrompido
   também o tem preenchido ([[ADR-417]] D4 §Alternativa refutada).
 - **NÃO faça:** `UPDATE ... SET status='cancelled'` à mão. Era o contorno de 2026-08-25
   e deixou de ter desculpa quando a porta passou a existir.
+- **NÃO faça:** `UPDATE stage_reviews SET status='approved'` à mão. É o contorno **novo**
+  que o fecho da [[A40.l84]] cria pressão para inventar, e mente pior que o anterior: pula
+  a guarda de run terminal, pula o conflito de review já processada, grava `approved` com
+  `reviewed_at` NULL, e some da telemetria `review_action` que o KR1 da A29.l1 usa para
+  distinguir aprovação cega de resolução construtiva. Use a Ação A.
 
 ## 7. Ações e seus limites
 
@@ -236,10 +255,12 @@ ficaram assim em 2026-08-25 e foram resolvidos por escrita direta no DB.
 | **Esperar** | `inspect ping` responde **e** task_id em `active`/`reserved` (§1.2) | nenhum | não |
 | **Subir o broker** | `PING` falha | órfãos se curam no próximo trigger | não |
 | **Cancelar** (UI/endpoint) | `sem_dono = true`, `resuming` zumbi, **ou pausa que ninguém vai conferir** | `status='cancelled'`; libera o workspace | **sim** — o run não volta |
+| **Aprovar/editar conferência** (UI/`resolve_pause.py --approve`) | pausa que você **vai** conferir | `stage_reviews` decidida; emite `review_action` | não, mas a decisão fica no histórico |
+| **Retomar** (UI/`resolve_pause.py --resume`) | zero conferências sem decisão | roda a cauda a partir do stage *seguinte* | não, mas **re-custa LLM** |
 | **Revogar com terminate** | §5 passo 2, task_id em `active` | mata o executor vivo | **sim** — trabalho parcial perdido |
 | **Re-disparar** | após o run estar terminal | novo run | não, mas re-custa LLM |
 | **Reiniciar o worker** | worker não responde ao `inspect` mas o broker está vivo | tasks em voo morrem | **sim** para o que estava em voo |
-| **`UPDATE` manual de `status`** | — | — | **proibido** — burla os UPDATEs condicionais que protegem contra corrida; use as superfícies |
+| **`UPDATE` manual de `status`** (em `pipeline_runs` **ou** `stage_reviews`) | — | — | **proibido** — burla os UPDATEs condicionais que protegem contra corrida, e em `stage_reviews` forja decisão humana; use as superfícies |
 
 Toda linha de ação pressupõe §1.2 executado. Cancelar sem medir a fila é o modo de falha
 central deste runbook.
@@ -285,6 +306,8 @@ oriente o re-disparo.
 - [[ADR-359]] — dispatch falha alto; compensar é reverter; vocabulário de `failure_reason`
 - [[ADR-172]] — detector de heartbeat via Celery Beat
 - [[A40.l27]] — varredura de órfão pré-dispatch, cancel de `resuming`, read path
+- [[ADR-404]] §Emenda 2026-08-27 ([[A40.l84]]) — a retomada exige decisão registrada em
+  toda entrada; `(completed, pending)` deixa de ser alcançável
 - `backend/app/tasks/periodic_tasks.py` — `detect_stuck_runs`, `detect_undispatched_runs`
 - `backend/app/services/pipeline/dispatch_contract.py` — estados pré-dispatch + threshold
 - `backend/app/services/pipeline/pipeline_service.py` — `cancel_pipeline_run`, resume

@@ -328,8 +328,13 @@ async def test_resume_blocked_with_pending_reviews(client: AsyncClient, db: Asyn
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
     resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/resume")
+
+    # O 409 agora vem da tradução do `ValueError` do service (A40.l84): a contagem saiu
+    # deste use case, que a fazia numa sessão enquanto o flip acontecia em outra.
     assert resp.status_code == 409
-    assert "reviews pendentes" in resp.json()["detail"]
+    detalhe = resp.json()["detail"]
+    assert review_id[:8] in detalhe
+    assert "/cancel" in detalhe
 
 
 @pytest.mark.asyncio
