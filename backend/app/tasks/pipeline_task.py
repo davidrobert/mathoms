@@ -54,6 +54,7 @@ from backend.app.services.pipeline.pipeline_adapter import (
     build_tasks_payload_sync,
 )
 from backend.app.services.pipeline.retry_config import get_retry_config
+from backend.app.services.pipeline.stage_review_gate import repark_stage_if_undecided
 from backend.app.services.report_tasks_snapshot_service import (
     build_snapshot_sync,
 )
@@ -1125,10 +1126,13 @@ def _mark_stage_log_needs_review(db, log_id: str, result, elapsed_ms: int) -> No
     stage_log.output_summary = result.detail
 
 
-# `StageReview` fica do lado do CONTROLE de propósito (ADR-404): `resume_run` só
-# libera a retomada com zero reviews `pending`, então status sem review deixaria
-# o humano retomar sem revisar nada — falha silenciosa pior que a barulhenta.
-# Falhar aqui é falhar a execução, e deve ser alto: nada de try/except.
+# `StageReview` fica do lado do CONTROLE de propósito (ADR-404 D2): a retomada é recusada
+# com qualquer review sem decisão em TODA entrada — rota HTTP e chamada direta a
+# `resume_pipeline_run` (§Emenda 2026-08-27) —, e nenhum desfecho que ENTREGA
+# (`completed`/`partial_failure`) é gravado sobre review pendente. `(cancelled, pending)` é
+# resíduo sancionado (ADR-417 D3) e `(failed, pending)` diz a verdade: o run morreu.
+# Status sem review deixaria o humano retomar sem revisar nada — falha silenciosa pior que
+# a barulhenta. Falhar aqui é falhar a execução, e deve ser alto: nada de try/except.
 def _commit_needs_review_pause(
     run_id: str, stage_name: str, log_id: str, result, elapsed_ms: int, *, legacy_text, issues
 ) -> None:
@@ -1622,20 +1626,47 @@ def _terminal_status(db, run: PipelineRun, *, has_failure: bool) -> PipelineRunS
     return PipelineRunStatus.failed
 
 
-def _finalize_run(run_id: str, has_failure: bool) -> PipelineRunStatus:
-    """Seta o desfecho terminal do ``PipelineRun``, publica evento e o retorna."""
+#: Desfechos que NÃO publicam evento de fim. Antes eram `return` dentro do bloco `with`;
+#: extraída a sessão, a cláusula tem de ser explícita ou run cancelado emite
+#: `run_completed`. `needs_review` entra pelo repark abaixo.
+_SEM_PUBLICACAO = (PipelineRunStatus.cancelled, PipelineRunStatus.needs_review)
+
+
+def _repark(run: PipelineRun, pausa: str) -> None:
+    """Devolve o run à pausa que uma porta a montante deixou passar (A40.l84)."""
+    run.status = PipelineRunStatus.needs_review
+    run.paused_at_stage = pausa
+    run.current_stage = None
+
+
+def _commit_run_outcome(run_id: str, has_failure: bool) -> PipelineRunStatus:
+    """Grava o desfecho — ou re-estaciona a pausa quando a ENTREGA esbarra em review sem
+    decisão. Não levanta: exceção aqui viraria `failed` pelo ``on_failure`` (ADR-359)."""
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
-        if run.status in (PipelineRunStatus.cancelled, PipelineRunStatus.needs_review):
+        if run.status in _SEM_PUBLICACAO:
             return run.status
+        # `_terminal_status` PRIMEIRO: gatear por posição transformaria `(failed, pending)`
+        # em `needs_review`, que é "terminal + pending" e morde a ADR-417 D3.
         status = _terminal_status(db, run, has_failure=has_failure)
-        run.status = status
-        run.completed_at = datetime.now(timezone.utc)
-        run.current_stage = None
+        pausa = repark_stage_if_undecided(db, run, status)
+        if pausa:
+            _repark(run, pausa)
+            status = PipelineRunStatus.needs_review
+        else:
+            run.status = status
+            run.completed_at = datetime.now(timezone.utc)
+            run.current_stage = None
         db.commit()
+    return status
+
+
+def _finalize_run(run_id: str, has_failure: bool) -> PipelineRunStatus:
+    """Seta o desfecho terminal do ``PipelineRun``, publica evento e o retorna."""
+    status = _commit_run_outcome(run_id, has_failure)
     if status is PipelineRunStatus.failed:
         publish_run_failed(run_id)
-    else:
+    elif status not in _SEM_PUBLICACAO:
         publish_run_completed(run_id, status=status.value)
     return status
 

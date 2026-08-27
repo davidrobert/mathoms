@@ -9,11 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.base.errors import ConflictError
 from backend.app.application.pipeline_run._common import fetch_run
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
-from backend.app.models.stage_review import StageReview, StageReviewStatus
+from backend.app.models.stage_review import StageReview
 from backend.app.schemas.pipeline import RunActionResponse
 from backend.app.services.audit import AuditAction, audit_log
 from backend.app.services.pipeline.dispatch_contract import CANCELLABLE_STATUSES
 from backend.app.services.pipeline.pipeline_service import cancel_pipeline_run
+from backend.app.services.pipeline.stage_review_gate import REVIEW_DECIDIDA
 
 _DETAIL_DISCARDED = "Processamento descartado. As conferências pendentes deixam de ser necessárias."
 _DETAIL_INTERRUPTED = "Cancelamento solicitado. Pipeline parará após a etapa atual."
@@ -30,7 +31,7 @@ async def _pending_reviews(run_id: str, *, db: AsyncSession) -> int:
         .select_from(StageReview)
         .where(
             StageReview.pipeline_run_id == run_id,
-            StageReview.status == StageReviewStatus.pending,
+            StageReview.status.notin_(REVIEW_DECIDIDA),
         )
     )
     return result.scalar() or 0
