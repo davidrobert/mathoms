@@ -11,13 +11,14 @@ from backend.app.services.parecer_citation_catalog import ancora_format_hint
 from pipeline.llm.schemas.parecer_planejador import (
     Ancora,
     Metadata,
+    Metrica,
     ParecerPlanejadorOutput,
     PontoForte,
     Risco,
     Sugestao,
 )
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
-from pipeline.llm.value_formatter import format_value
+from pipeline.llm.value_formatter import _coerce_number, format_value
 
 # Termos sigilo §13 — camada 2 de defesa (persona é 1, UI é 3 — ADR-207).
 _FORBIDDEN_TERMS = (
@@ -204,6 +205,80 @@ def stamp_ancora_values(
     for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
         update[horizon] = [_stamp_item(s, drill, labels) for s in getattr(output, horizon)]
     return output.model_copy(update=update)
+
+
+# Unidade do catálogo → (hint do formatter, fator para a escala de exibição). Fechado
+# de propósito: unidade nova sem entrada aqui renderizaria pelo ramo errado e ninguém
+# veria. A paridade com o catálogo é gateada em teste, no molde do `_BASE_POR_DENOMINADOR`.
+# `ratio_0_1` existe porque `protecao_custo_premio` guarda razão 0–1: é aqui que ela vira
+# ponto percentual, e é a única conversão de escala do estampador.
+_UNIDADE_RENDER: Mapping[str, tuple[str, float]] = {
+    "pct": ("pct", 1.0),
+    "pct_aa": ("pct", 1.0),
+    "meses": ("meses", 1.0),
+    "ano": ("int", 1.0),
+    "ratio_0_1": ("pct", 100.0),
+}
+
+# `<=`/`>=` viram os glifos que a família lê; `<`/`>` passam.
+_OPERADOR_GLIFO = {"<=": "≤", ">=": "≥", "<": "<", ">": ">"}
+
+
+# A escala roda sobre o número COERCIDO, não sobre o tipo que veio do payload: o
+# observado de `protecao_custo_premio` chega como a string "0.005686", e um guard por
+# `isinstance(float)` deixaria o fator sem aplicar — publicando 0,0% no lugar de 0,6%,
+# que é exatamente o erro de 100× que a renomeação da chave existe para fechar.
+def _render_valor(valor, unidade: str) -> Optional[str]:
+    render = _UNIDADE_RENDER.get(unidade)
+    if render is None or valor is None:
+        return None
+    hint, fator = render
+    numero = _coerce_number(valor)
+    if fator != 1.0:
+        return format_value(numero * fator, hint) if numero is not None else None
+    return format_value(valor, hint)
+
+
+def _render_target(alvo: Mapping) -> Optional[str]:
+    """Alvo publicável exige procedência E limiar E operador — a conjunção é o ponto.
+    `procedencia` sozinha não renderiza; `limiar` sozinho é número sem fonte, que é o
+    defeito que a [[ADR-399]] fecha."""
+    if not (alvo.get("procedencia") and alvo.get("limiar") is not None and alvo.get("operador")):
+        return None
+    valor = _render_valor(alvo["limiar"], alvo.get("unidade", ""))
+    if valor is None:
+        return None
+    return f"{_OPERADOR_GLIFO.get(alvo['operador'], alvo['operador'])} {valor}"
+
+
+def _stamp_metrica(metrica: Metrica, drill: PlannerDrillDown, alvos: Mapping) -> Metrica:
+    alvo = alvos.get(metrica.metrica_key)
+    if not isinstance(alvo, Mapping):
+        # Chave do enum sem entrada no catálogo: não se inventa rótulo nem número.
+        return metrica.model_copy(update={"target_motivo": "alvo não resolvido para este KPI"})
+    observado = drill.get_e5_jsonpath(alvo["observado_path"])
+    return metrica.model_copy(
+        update={
+            "nome": alvo["rotulo"],
+            "valor_atual": (
+                _render_valor(observado.value, alvo["unidade"]) if observado.found else None
+            ),
+            "target": _render_target(alvo),
+            "target_motivo": alvo.get("motivo"),
+        }
+    )
+
+
+def stamp_metrica_targets(
+    output: ParecerPlanejadorOutput, drill: PlannerDrillDown, alvos: Mapping
+) -> ParecerPlanejadorOutput:
+    """[[ADR-399]] D1: nome, valor observado e alvo saem do catálogo, não do modelo."""
+    # O LLM já não pode emiti-los (``SkipJsonSchema``); aqui eles são escritos. Alvo de
+    # KPI órfão fica ``None`` e o motivo vai junto — o item perde o comparador e
+    # continua publicado como observacional.
+    return output.model_copy(
+        update={"metricas": [_stamp_metrica(m, drill, alvos) for m in output.metricas]}
+    )
 
 
 def finalize_output(

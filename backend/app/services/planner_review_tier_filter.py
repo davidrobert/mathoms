@@ -131,11 +131,24 @@ def _sugestao_dto(raw: Mapping[str, Any]) -> SugestaoDTO:
     )
 
 
+# REGRA SUBTRATIVA (A40.l89 · [[ADR-399]] D1): a leitura só REMOVE afirmação, nunca
+# acrescenta número a documento já entregue. Artefato sem `metrica_key` é de era
+# anterior ao carimbo determinístico — o `target` que ele carrega foi autorado pelo
+# LLM, e 42 dos 51 pareceres persistidos publicam assim um alvo prescritivo para uma
+# métrica que o catálogo declara órfã. Suprimir na leitura cobre os legados E o PDF
+# (mesma rota), sem mutar artefato (ADR-204 §D1) e sem recomputar o catálogo aqui —
+# recomputar carimbaria a config de hoje sobre um E5 antigo.
+#
+# `.get()` e não `[...]`: com `exclude_none=True` no dump do stage, campo nulo não vira
+# `null` no artefato — a CHAVE SOME. `raw["target"]` levantaria KeyError, que vira 500
+# na rota do relatório, e nenhuma fixture pega porque todas fornecem `target`.
 def _metrica_dto(raw: Mapping[str, Any]) -> MetricaDTO:
+    derivada = bool(raw.get("metrica_key"))
     return MetricaDTO(
-        nome=raw["nome"],
-        valor_atual=raw["valor_atual"],
-        target=raw["target"],
+        nome=raw.get("nome") or "",
+        valor_atual=raw.get("valor_atual"),
+        target=raw.get("target") if derivada else None,
+        target_motivo=raw.get("target_motivo") if derivada else None,
         frequencia_revisao=raw["frequencia_revisao"],
         section_id=raw["section_id"],
         tema_canonico=raw.get("tema_canonico"),

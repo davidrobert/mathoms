@@ -535,24 +535,32 @@
     "metrica": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["nome", "valor_atual", "target", "frequencia_revisao", "section_id"],
+      "required": ["metrica_key", "frequencia_revisao", "section_id"],
       "properties": {
+        "metrica_key": {
+          "type": "string",
+          "enum": ["taxa_poupanca_recorrente", "reserva_cobertura_meses", "alocacao_renda_fixa", "concentracao_imobiliaria", "exposicao_cambial", "carteira_trs", "taxa_endividamento", "if_progresso", "if_prazo_ano", "despesas_nao_categorizadas", "protecao_custo_premio", "renda_passiva_cobertura", "aliquota_efetiva_ir"],
+          "description": "Identidade do KPI no vocabulário fechado de `kpi_target_catalog` ([[ADR-399]] D1). O LLM SELECIONA a chave; `nome`, `valor_atual` e `target` são estampados no pós-LLM a partir de `kpi_targets` do E5. Métrica fora do enum não é emitível — é o cap estrutural contra a fabricação, e por isso não há chave de escape."
+        },
         "nome": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 80
+          "maxLength": 80,
+          "description": "Rótulo publicado da métrica. ESCRITO PELO FINALIZE a partir de `kpi_targets[].rotulo` — fora do tool schema (SkipJsonSchema), porque rótulo autorado não é gateável e carrega domínio."
         },
         "valor_atual": {
-          "type": "string",
-          "minLength": 1,
+          "type": ["string", "null"],
           "maxLength": 60,
-          "description": "Valor atual formatado (orchestrator usa value_formatter compartilhado — ADR-203 §D8). Ex.: 'R$ 12,3k/mês', '4,7%', '6,2 meses'."
+          "description": "Valor atual formatado (value_formatter compartilhado — ADR-203 §D8). ESCRITO PELO FINALIZE, resolvendo `observado_path` do catálogo; o modelo não pode emiti-lo."
         },
         "target": {
-          "type": "string",
-          "minLength": 1,
+          "type": ["string", "null"],
           "maxLength": 60,
-          "description": "Valor-alvo formatado."
+          "description": "Valor-alvo formatado. ESCRITO PELO FINALIZE a partir do limiar com procedência; `null` quando o KPI é órfão — o item perde o comparador e `target_motivo` diz por quê."
+        },
+        "target_motivo": {
+          "type": ["string", "null"],
+          "maxLength": 200,
+          "description": "Por que não há alvo publicável. Órfão é fato esperado, não anomalia: a linha segue publicada como observacional e a célula do comparador mostra este texto — vazio o leitor lê como 'não mediram'."
         },
         "frequencia_revisao": {"$ref": "#/$defs/frequencia_revisao"},
         "section_id": {"$ref": "#/$defs/section_id"},

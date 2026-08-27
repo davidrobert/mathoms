@@ -28,17 +28,17 @@ open · in_progress · blocked.
 - [[A40.l84]] — O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou · priority P0 · área backend/pipeline · branch `a40-l84-guard-na-camada-errada`
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
-- [[A40.l89]] — Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica · priority P0 · área pipeline/llm · branch `a40-l89-wiring-do-catalogo-de-alvo`
 
 ## In progress
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
+- [[A40.l89]] — Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica · priority P0 · área pipeline/llm · branch `a40-l89-wiring-do-catalogo-de-alvo`
 
 ## Blocked
 
 _Não pegáveis. Listadas porque `blocked` que fica stale some daqui justamente quando a dependência ship e a lane vira pegável._
 
-- [[A40.l90]] — A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar · priority P0 · área pipeline/financial-planning · ⛔ dep pendente: A40.l89 (open) · branch `a40-l90-limiar-de-risco-le-o-catalogo`
+- [[A40.l90]] — A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar · priority P0 · área pipeline/financial-planning · ⛔ dep pendente: A40.l89 (in_progress) · branch `a40-l90-limiar-de-risco-le-o-catalogo`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

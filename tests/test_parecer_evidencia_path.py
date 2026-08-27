@@ -484,4 +484,4 @@ class TestPromptTokenBudget:
         # Tripwire: bump obriga a reconferir o budget acima. 2.2.0 → 2.3.0 é
         # bump de AMOSTRAGEM (ADR-396), não de texto — o template não mudou e
         # o delta segue 0%.
-        assert PROMPT_VERSION == "2.3.0"
+        assert PROMPT_VERSION == "2.4.0"

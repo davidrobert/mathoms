@@ -90,6 +90,7 @@ function premiumResponse(): PlannerReviewResponse {
           nome: "Concentração imobiliária",
           valor_atual: "70%",
           target: "45%",
+          target_motivo: null,
           frequencia_revisao: "trimestral",
           section_id: "S4",
           tema_canonico: "Alocação",

@@ -10,6 +10,8 @@ from typing import Annotated, Literal, Optional
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 from pydantic.json_schema import SkipJsonSchema
 
+from pipeline.domain.services.kpi_target_catalog import METRICA_KEYS
+
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
 
@@ -38,6 +40,12 @@ TemaCanonico = Literal[
     "Convergência metodológica",
 ]
 FrequenciaRevisao = Literal["mensal", "trimestral", "semestral", "anual"]
+
+# Derivado do catálogo, e não redigitado, porque enum copiado envelhece calado: a
+# chave nova entraria no produtor e o contrato do LLM seguiria oferecendo o conjunto
+# antigo. Vocabulário fechado é o cap estrutural da [[ADR-399]] — métrica fora dele
+# não é emitível, e por isso não há chave de escape.
+MetricaKey = Literal[METRICA_KEYS]
 SectionId = Literal[
     "S1",
     "S2",
@@ -312,11 +320,25 @@ class Sugestao(BaseModel):
 
 
 class Metrica(BaseModel):
-    nome: str = Field(..., min_length=3, max_length=80)
-    valor_atual: str = Field(..., min_length=1, max_length=60)
-    target: str = Field(..., min_length=1, max_length=60)
+    """O LLM seleciona a identidade do KPI; não autora número nem rótulo ([[ADR-399]] D1)."""
+
+    # `nome`/`valor_atual`/`target` saem do contrato enviado ao modelo via
+    # ``SkipJsonSchema`` e são estampados no pós-LLM a partir de ``kpi_targets``.
+    # Sem ``exclude``: eles PRECISAM ir para o artefato — o que não podem é ser
+    # emitidos. Fechar o canal é o que difere de pedir comportamento: a persona já
+    # dizia "não invente números" (R1) e o modelo violou em 8 de 10 casos, porque
+    # campo obrigatório cujo valor não existe no payload é máquina de fabricação.
+
+    metrica_key: MetricaKey
     frequencia_revisao: FrequenciaRevisao
     section_id: SectionId
+    nome: SkipJsonSchema[str] = ""
+    valor_atual: SkipJsonSchema[Optional[str]] = None
+    target: SkipJsonSchema[Optional[str]] = None
+    # Por que não há alvo. Órfão é fato esperado, não anomalia — a linha segue
+    # publicada como observacional, e a célula do comparador mostra este texto em vez
+    # de ficar vazia (vazio o leitor lê como "não mediram").
+    target_motivo: SkipJsonSchema[Optional[str]] = None
     ancora_metodologica: Optional[AncoraMetodologica] = None
     tema_canonico: Optional[TemaCanonico] = None
 

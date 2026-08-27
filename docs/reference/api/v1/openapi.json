@@ -6852,7 +6852,7 @@
       },
       "MetricaDTO": {
         "additionalProperties": false,
-        "description": "M\u00e9trica observ\u00e1vel \u2014 sem ancora user-facing.",
+        "description": "M\u00e9trica observ\u00e1vel \u2014 sem ancora user-facing; alvo derivado do cat\u00e1logo.",
         "properties": {
           "frequencia_revisao": {
             "enum": [
@@ -6887,8 +6887,26 @@
             "type": "string"
           },
           "target": {
-            "title": "Target",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "target_motivo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Motivo"
           },
           "tema_canonico": {
             "anyOf": [
@@ -6913,14 +6931,19 @@
             "title": "Tema Canonico"
           },
           "valor_atual": {
-            "title": "Valor Atual",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor Atual"
           }
         },
         "required": [
           "nome",
-          "valor_atual",
-          "target",
           "frequencia_revisao",
           "section_id"
         ],

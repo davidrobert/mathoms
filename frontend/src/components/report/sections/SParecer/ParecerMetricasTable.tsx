@@ -12,8 +12,11 @@ interface ParecerMetricasTableProps {
 }
 
 /** Tenta extrair número do valor formatado (ex.: "4%" → 4). Retorna null se
- *  não der pra parsear — UI omite a mini-trilha nesse caso. */
-function extractNumber(formatted: string): number | null {
+ *  não der pra parsear — UI omite a mini-trilha nesse caso. Aceita `null` porque
+ *  KPI órfão não tem alvo: sem a guarda, `.replace` de `null` derruba a página
+ *  inteira (o único ErrorBoundary é de rota). */
+function extractNumber(formatted: string | null): number | null {
+  if (!formatted) return null;
   const cleaned = formatted.replace(/[^0-9,.-]/g, "").replace(",", ".");
   const n = parseFloat(cleaned);
   return Number.isFinite(n) ? n : null;
@@ -83,10 +86,28 @@ function MetricaRow({ metrica }: { metrica: Metrica }) {
     : null;
 
   return (
-    <tr className="border-t border-[var(--surface-border)]">
+    <tr
+      className="border-t border-[var(--surface-border)]"
+      data-alvo={metrica.target ? "presente" : "ausente"}
+    >
       <td className="py-2 pr-4 font-medium">{metrica.nome}</td>
-      <td className="py-2 pr-4 font-mono text-xs">{metrica.valor_atual}</td>
-      <td className="py-2 pr-4 font-mono text-xs">{metrica.target}</td>
+      <td className="py-2 pr-4 font-mono text-xs">{metrica.valor_atual ?? "—"}</td>
+      <td className="py-2 pr-4 min-w-[9rem] text-xs">
+        {metrica.target ? (
+          <span className="font-mono">{metrica.target}</span>
+        ) : (
+          <>
+            <span className="font-medium text-[var(--surface-muted-foreground)]">
+              Não afirmamos um alvo
+            </span>
+            {metrica.target_motivo && (
+              <span className="mt-0.5 block text-[11px] text-[var(--surface-muted-foreground)]">
+                {metrica.target_motivo}
+              </span>
+            )}
+          </>
+        )}
+      </td>
       <td className="py-2 pr-4">
         {pct !== null ? (
           <progress
@@ -96,9 +117,12 @@ function MetricaRow({ metrica }: { metrica: Metrica }) {
             className="parecer-progress h-1.5 w-24"
           />
         ) : (
-          <span className="text-[10px] text-[var(--surface-muted-foreground)]">
-            —
-          </span>
+          <>
+            <span aria-hidden="true" className="text-[10px] text-[var(--surface-muted-foreground)]">
+              —
+            </span>
+            <span className="sr-only">Sem trilha</span>
+          </>
         )}
       </td>
       <td className="py-2 pr-4 text-xs capitalize">{metrica.frequencia_revisao}</td>

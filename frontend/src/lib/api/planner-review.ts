@@ -109,8 +109,15 @@ export interface Sugestao {
 
 export interface Metrica {
   nome: string;
-  valor_atual: string;
-  target: string;
+  /** `| null`, nunca opcional: `response_model` materializa defaults, então o wire
+   *  sempre manda a chave — com `null` quando não há valor (ADR-399 D1). */
+  valor_atual: string | null;
+  /** Alvo derivado do catálogo. `null` = KPI órfão (sem alvo canônico) OU parecer de
+   *  era anterior ao carimbo, cujo alvo autorado a leitura suprime. */
+  target: string | null;
+  /** Por que não há alvo. Célula vazia o leitor lê como "não mediram" — afirmação
+   *  diferente de "não afirmamos um alvo". */
+  target_motivo: string | null;
   frequencia_revisao: FrequenciaRevisao;
   section_id: PlannerSectionId;
   tema_canonico: TemaCanonico | null;

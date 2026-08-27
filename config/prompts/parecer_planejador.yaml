@@ -109,7 +109,7 @@
 # lacunas declaradas e 0 de 1 não declarada, e o diagnóstico estava em
 # `insuficiente` (30,7% de despesa não identificada) sem que o parecer soubesse.
 # Nenhum limiar novo: os hints consomem o veredito da ADR-353 e da ADR-394 §Emenda.
-version: "2.3.0"
+version: "2.4.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 

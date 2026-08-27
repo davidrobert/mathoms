@@ -32,6 +32,7 @@ from backend.app.services.parecer_finalization import (
     finalize_output,
     severity_from_prioridade,
     stamp_ancora_values,
+    stamp_metrica_targets,
     validate_anti_sigilo,
 )
 from backend.app.services.parecer_guardrails_divida import (
@@ -63,7 +64,13 @@ from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
-_SCHEMA_VERSION = "1.0"  # bump em mudança breaking do output schema (ADR-202)
+# 1.1 (A40.l89 · ADR-399 D1): `Metrica` ganha `metrica_key` required e perde
+# `nome`/`valor_atual`/`target` do contrato de saída. O bump é load-bearing e NÃO é
+# gateado: `check_prompt_version_bumped` só descobre arquivo que já declara
+# `PROMPT_VERSION`, e `pipeline/llm/schemas/parecer_planejador.py` não declara. Sem
+# ele, envelope gerado sob o contrato antigo seria servido por 7 dias de TTL com
+# `metrica_key` ausente — e re-rodar o stage cairia no mesmo cache.
+_SCHEMA_VERSION = "1.1"  # bump em mudança breaking do output schema (ADR-202)
 # Allowlist de forma p/ o código de classificação em `_exc_label` — o valor vem de
 # `LLMErrorType`, mas a asserção de forma é barata e fecha a classe de vazamento inteira.
 _SAFE_ERROR_CODE_RE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
@@ -789,6 +796,11 @@ def _generate_with_llm(
     raw, field_request_audit, pos_llm_guardrails = _apply_pos_llm_guardrails(
         raw, e5_data, config, manifest
     )
+    # ADR-399 D1: o alvo e o observado da métrica saem do catálogo do E5, não do
+    # modelo — que já não pode emiti-los. Lê `kpi_targets` do payload; NUNCA chama
+    # `build_kpi_targets` aqui: só o produtor conhece a config efetiva por workspace
+    # (ADR-134/D4), e recomputar no backend carimbaria config de hoje sobre E5 antigo.
+    raw = stamp_metrica_targets(raw, tools, e5_data.get("kpi_targets") or {})
     final = finalize_output(
         output=stamp_ancora_values(raw, tools),  # ADR-296: snapshot path→valor_renderizado
         workspace_id=config.workspace_id,
