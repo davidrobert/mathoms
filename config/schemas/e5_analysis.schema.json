@@ -3128,7 +3128,35 @@
       "description": "União dos produtores reais do E5 (A40.l5 PR2): IFProjection.to_legacy_dict + enriquecimento de renda passiva + alvo de alocação do adapter DB enriquecido no stage. Não é derivado da fixture _GOALS_MIN.",
       "properties": {
         "if_meta": {
-          "type": "number"
+          "type": "number",
+          "description": "A40.l91 ([[ADR-418]] §D1): meta OPERACIONAL — a base única de `if_pct`, `if_gap` e `prazo_anos_realista`. Igual a `if_meta_bruta` quando nenhum ativo gerador está fora de `investivel_efetivo`. Qual base é esta está em `if_meta_base`, não em prosa."
+        },
+        "if_meta_bruta": {
+          "type": "number",
+          "description": "A40.l91 ([[ADR-418]] §D3): `renda_alvo_mensal × 12 ÷ TRS`, sem desconto. Didática — o patrimônio total que sustenta o alvo. É a `derived.if_meta_brl` do Goal."
+        },
+        "if_meta_base": {
+          "type": "string",
+          "enum": [
+            "renda_alvo_bruta",
+            "renda_alvo_liquida_de_renda_externa",
+            "renda_externa_cobre_alvo"
+          ],
+          "description": "A40.l91 ([[ADR-418]] §D3): de que base saiu `if_meta`. Chave do enum `BaseDaMetaIF` (pipeline/domain/services/if_projector.py). Vocabulário PRÓPRIO — interseção vazia com `BaseFinanceira` (eixo de posições, ADR-412) e com `kpi_targets[].base`."
+        },
+        "renda_passiva_fora_do_investivel_mensal_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "A40.l91 ([[ADR-418]] §D2): renda passiva mensal de ativo que `investivel_efetivo` NÃO conta, e que por isso desconta a meta. Hoje: o balde `alugueis` quando `patrimonio.imoveis_no_if` é false; `0` quando true. **Chave ausente = não medido** (renda passiva degradada) — nunca zero implícito. Presente ⇒ `goals.janela` presente, porque a mensalização é a do ano-base IRPF (ADR-306)."
+        },
+        "renda_passiva_fora_origem": {
+          "type": "string",
+          "enum": [
+            "cat2_no_numerador",
+            "sem_gerador_excluido",
+            "residual_irpf_com_haircut"
+          ],
+          "description": "A40.l91 ([[ADR-418]] §D2): procedência do termo. `residual_irpf_com_haircut` avisa que a fonte é o balde RESIDUAL do IRPF com haircut por constantes de `RealEstateConfig`, não o líquido por-imóvel — teto por imóvel é §Deferido."
         },
         "if_trs": {
           "type": "number"
@@ -3137,7 +3165,11 @@
           "type": "number"
         },
         "if_pct": {
-          "type": "number"
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "A40.l91 ([[ADR-418]] §D5): `null` quando a meta clampou em zero — a renda de fora cobre o alvo sozinha e o progresso deixa de ser mensurável. Nem 0% (contradiz `if_gap`/prazo) nem 100% (concederia a banda de topo de um componente de peso 2,0 a carteira financeira que pode ser zero). `if_meta_base` diz qual caso é."
         },
         "if_gap": {
           "type": "number"
