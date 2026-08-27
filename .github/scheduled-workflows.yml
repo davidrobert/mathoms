@@ -31,14 +31,21 @@
 #   S2 liveness    — nenhum run agendado dentro de `max_age_days`. Pega o que
 #                    S1 não vê: cron que parou de disparar, auto-disable da
 #                    GitHub por 60 dias de inatividade, YAML inválido.
-#                    Mede run INICIADO, não bem-sucedido, porque falha teria
-#                    canal próprio (Issue). ATENÇÃO: medido em 2026-08-21, esse
-#                    canal existe em 2 das 9 entradas (só nightly e security
-#                    têm step `if: failure()`; nenhum workflow usa gatilho
-#                    `workflow_run`). Nas outras sete, compensador que INICIA e
-#                    FALHA todo run é invisível aqui — em 08-17 o
-#                    auto-update-prs falhou 10× em ~5h e nada percebeu.
-#                    Deferido com dono e critério em ADR-210 §Adendo 2026-08-21c.
+#                    Mede run INICIADO, não bem-sucedido, porque falha tem
+#                    canal próprio (Issue). Desde 2026-08-27 a afirmação é
+#                    verdadeira para **9 das 9** entradas: cada uma declara
+#                    `alerts:` e o workflow correspondente tem step
+#                    `if: failure()` chamando `dev/ci_report_workflow_failure.py`.
+#                    Era 2 de 9 (só nightly e security) quando isto foi medido
+#                    em 2026-08-21 — e o buraco tinha consequência: em 08-17 o
+#                    auto-update-prs falhou 10× em ~5h, a fila de merge parou,
+#                    e nada percebeu. Fechado pelo KR-F do PLAN-ci-trust
+#                    (ADR-210 §Adendo 2026-08-21c, deferimento retomado).
+#                    LIMITE que permanece: `if: failure()` só dispara se um
+#                    step ANTERIOR do job falhou. Job que NÃO recebe runner
+#                    (budget, outage, fila abandonada) não passa por lá — essa
+#                    classe segue coberta só pelo S2, que é justamente o que
+#                    ele mede.
 #   S3 issue-rot   — Issue de alerta aberta além de `max_issue_age_days`. É o
 #                    sinal que teria evitado o incidente: #642 abriu em 06-14 e
 #                    seguia aberta 46 dias depois. Pior, a trava anti-duplicata
@@ -141,17 +148,26 @@ workflows:
     max_age_days: 2
     why: "Avança o trem de auto-merge (ADR-322); sem ele PRs congelam BEHIND."
     adr: ADR-322
+    alerts:
+      - label: ops-train
+        max_issue_age_days: 3
 
   - file: automerge-watchdog.yml
     crons: ["5,35 * * * *"]
     max_age_days: 2
     why: "Destrava PR com auto-merge preso (agregador stale, check fantasma)."
     adr: ADR-322
+    alerts:
+      - label: ops-train
+        max_issue_age_days: 3
 
   - file: stale.yml
     crons: ["30 6 * * *"]
     max_age_days: 3
     why: "Higiene de Issues/PRs parados."
+    alerts:
+      - label: ops-hygiene
+        max_issue_age_days: 14
 
   - file: llm-cross-provider-smoke.yml
     crons: ["0 6 * * 1"]
@@ -173,6 +189,9 @@ workflows:
         medida). Enquanto isso o fail-closed em `schedule` está desenhado no
         track da Onda 1 do PLAN-ci-trust. Vence junto com o waiver do nightly
         de propósito: as duas decisões são do owner e batendo na mesma sessão.
+    alerts:
+      - label: ops-llm-eval
+        max_issue_age_days: 14
 
   - file: planner-golden-monthly.yml
     crons: ["0 6 1 * *"]
@@ -188,8 +207,14 @@ workflows:
         ADR-208 declara como detector de drift de modelo, jamais executou —
         então "drift não detectado" nunca significou "não houve drift".
         Re-decisão do owner na mesma sessão da entrada acima.
+    alerts:
+      - label: ops-llm-eval
+        max_issue_age_days: 14
 
   - file: branch-cleanup.yml
     crons: ["0 6 1 * *"]
     max_age_days: 40 # mensal
     why: "Relatório de branches órfãs."
+    alerts:
+      - label: ops-hygiene
+        max_issue_age_days: 14
