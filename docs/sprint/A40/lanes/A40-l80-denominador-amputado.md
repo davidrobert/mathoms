@@ -112,6 +112,18 @@ PR3b, mantido aqui como registro do porquê):
 - **Caracterizar o E5 em `tests/unit/pipeline/test_validation_block_policy.py`** —
   é o quarto produtor divergente de política de pausa e o único não coberto;
   `valid = not reasons` ignora `BLOCKING_CODES`.
+- **`neutralize_autocontradicao` é praticamente inerte em produção** — ele arma em
+  `(section_id, tema_canonico) == ("S4", "Liquidez")` (`parecer_guardrails_divida.py:159-160`),
+  mas o bloco de reserva/liquidez do manifest é `aligned_with_layout: "S1"`
+  (`config/prompts/parecer_planejador.yaml`, seção `saude_balanco`) e **S4 é "Real Estate"**
+  (`config/report_layout.yaml`). Nenhuma seção projetada ao modelo é rotulada S4, então o par
+  só casa se o modelo errar o rótulo. É o guardrail que a [[ADR-412]] §Emenda E3 cita como
+  razão para **não** suprimir `avaliacao_liquidity` ("desarma `neutralize_autocontradicao`,
+  libertando o LLM a elogiar a reserva") — o argumento se apoia num guardrail que provavelmente
+  nunca disparou. Dono: `prompt-engineer`. **Não consertar de raspão**: trocar `S4`→`S1` muda
+  quais pontos fortes são removidos, é mudança de comportamento sobre saída de LLM, e o r7 já
+  mediu que casar por esse par dá 2/5 com um falso-positivo. Achado de 2026-08-27, ao atacar
+  a §Prova de fecho desta lane.
 - **`desvio_max_pct` não implementado** — `config/methodology.md:216-217` condiciona
   "realocar excedente" a DUAS condições, e `pontos_fortes_analyzer.py:173` só
   checa uma.
@@ -186,6 +198,10 @@ Seria fix mal-mirado com gate verde por cima.
 | C13 | §Prova de fecho: "`cobertura_investimentos` contém linha para a fatia órfã" | **superfície proibida** pela [[ADR-412]] §D5 e pela própria C7 desta lane: `cobertura_investimentos[]` particiona **pessoas** e fica fechado em `["titular","conjuge"]`, porque `CoberturaStatus(linha.get("status"))` levanta `ValueError` em leitor antigo lendo artefato novo | o predicado é `patrimonio.atribuicao_investimentos.motivo != null` — eixo irmão que o PR3a já entregou, com piso próprio (`PISO_AGREGADO_PCT = 1.0`) e razão advisory |
 | C14 | §Precisão: "`kpi_targets[].base` já existe e **não é honrado pelos produtores**" | os 10 alvos **têm** `base` preenchida (C6 já dizia). O defeito é pior e é outro: **base declarada ≠ denominador usado**. `protecao_cobertura` declara `renda_anual_ativa` e o produtor divide por `renda_anual_liquida_brl` (`protecao_analyzer.py:470`); `_reserva` fixa `despesa_essencial_mensal` no código (`kpi_target_catalog.py:181`) enquanto o produtor publica o discriminador como **dado variável** — `base_denominador ∈ {custo_essencial, despesa_total}` (`reserva_emergencia_calculator.py:333-350`, publicado em `:278`) | em workspace sem categoria essencial documentada, o catálogo declara base essencial sobre denominador de despesa **total**. O valor certo já está no payload, a um `_leaf()` de distância |
 | C15 | §Falta: "a §D9 **pede** `kpi_targets[].base` estreitado ao enum… quem pegar decide: converge ou reescreve" | a §D9 foi **reescrita in-place** por `be5adfe0` (#1713) e hoje diz o contrário; a §E5 **já decidiu**: *"Registrar a disjunção é a decisão; convergir, não"*. O ramo "converge" está morto | resta **um** ramo, não dois: reescrever o critério de Precisão. E convergir seria **falso** — `carteira_produtiva` (denominador real `investivel_financeiro + imoveis_investimento` = 73M no dogfood) ≠ `carteira_produtiva_familia` (13M), divergência de 5,6× **com o toggle IF ligado** |
+
+| C16 | §Prova de fecho: "nenhum `pontos_fortes` se apoia em banda cuja base tenha fatia órfã acima do piso" | lida como **magnitude**, a regra é **inerte e de sinal trocado**. O numerador (`caixa_fx`) está nas duas bases (`caixa_total_brl` é termo comum); a base-piso é **estritamente menor**; e o veredito é `>=` numa escada **sem teto** (`_tier_from_pct`). Logo `pct_piso >= pct_cheia` **sempre** — o pct publicado **já é o extremo conservador**, e a fatia órfã só torna um elogio cambial *mais* verdadeiro. A própria lane mediu ao contrário: 12,55% (amputada) → 6,40% (cheia) — **a amputação inflava a banda** | o que sobra é o argumento de **sujeito** ("a exposição de quem"), que não é privativo do câmbio e **não se seleciona por lemma cambial**. E não há corpus: zero `pontos_fortes` de LLM no repo, `PontoForte` sem discriminador estrutural (sem `metrica_key`, sem `TemaCanonico` cambial, cambial mora em S1) — lemma nasceria cego, que foi o que matou `"trajetor"`/`"ritmo"` no guardrail de trajetória |
+
+**A metade a-montante foi entregue** ([#1780](https://github.com/davidrobert/mathoms/pull/1780)): a §D7 mandava o manifest *"parar de reensinar o limiar na label"* e isso nunca fora feito — `parecer_planejador.yaml` entregava `"Tier (verde >=10% / amarelo 5-10% / vermelho <5%)"` ao lado do `pct` cru, e o modelo declarava a faixa sozinho. Era a quarta cópia de um limiar cujo leitor único é `kpi_target_catalog` ([[ADR-399]]). Junto, `atribuicao_investimentos.{motivo,pct_carteira_financeira}` passaram a ser **projetados** — o eixo existia desde o PR3a e o modelo só via o valor em BRL. Labels que reensinam limiar: **2 → 1**.
 
 **Agravante de processo, para o closeout:** a formulação refutada em C11 não é
 prosa envelhecida — ela foi **reinscrita** em `a28055a7` (#1758, 2026-08-27), dois
