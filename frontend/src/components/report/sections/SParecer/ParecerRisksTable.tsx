@@ -156,9 +156,14 @@ export function ParecerRisksTable({
 
 /** Disclosure dos riscos que a tela colapsa.
  *
- * `hidden` (e não desmontagem condicional) porque a linha precisa estar no DOM
- * para o `@media print` conseguir revelá-la — é o que o `<details>` anterior
- * impedia: o slot fechado da UA não cede a `display` de autor.
+ * O colapso é `hidden print:flex` — classe, nunca o atributo `hidden` nem um
+ * `<details>` fechado. Os dois são `display:none !important` na folha da UA, e
+ * `!important` de UA vence `!important` de autor: nenhum `@media print` os
+ * revela. Medido sob `emulateMedia({media:"print"})`, que reprovou a primeira
+ * tentativa desta lane (com o atributo) nos três engines.
+ *
+ * A linha fica montada no DOM de propósito: desmontar no colapso deixaria o
+ * print sem o que revelar.
  */
 function RiscosColapsados({
   extra,
@@ -184,9 +189,10 @@ function RiscosColapsados({
       </button>
       <ul
         id="parecer-risks-extra"
-        className="parecer-risks-extra mt-2 flex flex-col gap-2"
+        className={`parecer-risks-extra mt-2 flex-col gap-2 ${
+          expandido ? "flex" : "hidden print:flex"
+        }`}
         data-testid="parecer-risks-extra"
-        hidden={!expandido}
       >
         {extra.map((r, idx) => (
           <RiscoRow key={`extra-${r.section_id}-${idx}`} risco={r} />

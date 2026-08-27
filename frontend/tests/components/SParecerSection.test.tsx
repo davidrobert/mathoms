@@ -848,19 +848,20 @@ describe("ParecerRisksTable — o rótulo do disclosure não pode mentir", () =>
     expect(caption!.textContent).toContain("8 riscos");
   });
 
-  // O `@media print` do `SParecer.print.css` revela `.parecer-risks-extra` e
-  // apaga o prefixo "Mostrando N de". jsdom não aplica media query de print —
-  // o que este teste garante é a PRÉ-CONDIÇÃO que faltava: as 3 linhas existem
-  // no DOM mesmo colapsadas, num elemento comum que o autor consegue sobrepor.
-  // A revelação em si é assertada sob `emulateMedia({media:"print"})` no
-  // `parecer-degradacao.@critical.spec.ts`.
-  it("colapsado, as linhas ocultas seguem no DOM para o print revelar", async () => {
+  // jsdom não aplica media query de print — a revelação é assertada sob
+  // `emulateMedia({media:"print"})` no `parecer-degradacao.@critical.spec.ts`.
+  // Aqui ficam as duas PRÉ-CONDIÇÕES sem as quais aquele gate não teria o que
+  // medir: as linhas existem no DOM colapsadas, e o colapso é classe — nunca o
+  // atributo `hidden`, que a folha da UA declara `!important` e nenhum
+  // `@media print` de autor sobrepõe.
+  it("colapsado, as linhas seguem no DOM sob um colapso que o print sobrepõe", async () => {
     const { container } = await renderTable(oitoRiscos());
     const extra = container.querySelector(
       '[data-testid="parecer-risks-extra"]',
     )!;
 
-    expect(extra.hasAttribute("hidden")).toBe(true);
+    expect(extra.hasAttribute("hidden")).toBe(false);
+    expect(extra.className).toContain("print:flex");
     expect(extra.querySelectorAll("li")).toHaveLength(3);
     expect(container.querySelectorAll("li")).toHaveLength(8);
   });
@@ -876,9 +877,7 @@ describe("ParecerRisksTable — o rótulo do disclosure não pode mentir", () =>
 
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(
-      container
-        .querySelector('[data-testid="parecer-risks-extra"]')!
-        .hasAttribute("hidden"),
-    ).toBe(false);
+      container.querySelector('[data-testid="parecer-risks-extra"]')!.className,
+    ).not.toContain("hidden");
   });
 });

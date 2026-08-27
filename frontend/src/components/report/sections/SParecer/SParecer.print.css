@@ -11,18 +11,13 @@
     display: none !important;
   }
 
-  /* A40.l88 — a lista extra de riscos é `<ul hidden>`, elemento comum: o
-     `!important` do autor vence o `[hidden] { display: none }` da UA e as
-     linhas imprimem. A versão anterior declarava `--details-open: 1` num
-     `<details>`, custom property que nada lê: escondia o summary e não
-     expandia nada, e o PDF saía com o top-5 e sem aviso de truncagem. */
-  .parecer-risks-extra[hidden] {
-    display: flex !important;
-  }
-  .parecer-risks-toggle {
-    display: none !important;
-  }
-  /* Legenda "Mostrando N de M" descreve a partição da TELA. */
+  /* A40.l88 — o colapso dos riscos extras vive em `hidden print:flex` no
+     componente, não aqui: revelar precisa vencer o `display:none` do colapso, e
+     a versão anterior tentava isso contra um `<details>` fechado com uma custom
+     property que nada lê. Aqui ficam só as duas afirmações que descrevem a TELA
+     e não podem sobrar no papel — o botão que não se clica e a legenda de
+     partição de uma lista que o print entrega inteira. */
+  .parecer-risks-toggle,
   .parecer-print-only-screen {
     display: none !important;
   }
