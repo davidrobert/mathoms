@@ -382,9 +382,15 @@ duas regras e não discrimina. É o mesmo ponto cego do §3, noutro eixo.
 4. **PR1 deixa de se justificar como "emenda que estreita isenção"** (§6–§7). Se a emenda for feita, o texto tem de descrever o que o D4 realmente diz.
 5. **§8 precede o §Critério "delta de golden declarado"** — ou o delta será declarado por um instrumento que lê o campo da lane como dinheiro.
 6. **§Escopo ganhou os itens 5 e 6 em 2026-08-27** (§Acolhimento). O item 5 traz uma
-   emenda da [[ADR-191]] §D6 para o PR1 — que passa a carregar **duas** emendas datadas se
-   a da [[ADR-399]] sobreviver à correção 4. Elas têm ADRs, gates e provas distintos:
-   avaliar **separar em PR1a/PR1b** antes de escrever.
+   **emenda datada da [[ADR-191]] §D6** para o PR1.
+   > **Resolvido na mesma data, depois de escrito** (#1775, que reescreveu os itens 1-4):
+   > a condicional original — *"duas emendas datadas **se** a da [[ADR-399]] sobreviver à
+   > correção 4"* — **não sobreviveu**. A correção 4 se resolveu contra a emenda: o PR1
+   > abre **ADR nova `Proposto`**, porque emendar a [[ADR-399]] para "estreitar uma isenção
+   > que ela não deu" poria descrição falsa no registro permanente.
+   Continuam sendo **dois artefatos de ADR** no mesmo PR (a nota `Proposto` nova + a emenda
+   da [[ADR-191]]), com gates e provas distintos — a pergunta **PR1a/PR1b permanece**, com
+   conteúdo outro. O ID da nota nova **não é alocado aqui**; quem executar aloca na escrita.
 
 ### Encaminhamento
 
