@@ -1,6 +1,6 @@
 """Ports — protocols read-only consumidos pelo pipeline (boundary stable, ADR-134)."""
 
-from pipeline.ports.config_store import ConfigStore
+from pipeline.ports.config_store import ConfigStore, FiscalParametersAusentes
 from pipeline.ports.economic_assumptions_resolver import EconomicAssumptionsResolver
 from pipeline.ports.property_identity_resolver import PropertyIdentityResolver
 from pipeline.ports.property_overrides_resolver import PropertyOverridesResolver
@@ -9,6 +9,7 @@ from pipeline.ports.tributario_section_resolver import TributarioSectionResolver
 
 __all__ = [
     "ConfigStore",
+    "FiscalParametersAusentes",
     "EconomicAssumptionsResolver",
     "PropertyIdentityResolver",
     "PropertyOverridesResolver",

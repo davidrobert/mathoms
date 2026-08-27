@@ -20,6 +20,8 @@ from typing import Any, Dict, List, Tuple
 import scripts.pipeline_common as _pc
 from pipeline.domain.services.member_key_matcher import matches_member_key
 from pipeline.domain.services.money_parsing import valor_monetario_float
+from pipeline.domain.types.config import FiscalParameters
+from pipeline.ports.config_store import FiscalParametersAusentes
 
 _logger = logging.getLogger("mathoms.pipeline.e5")
 
@@ -1637,7 +1639,17 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
             year_start = _date(TODAY.year, 1, 1)
             year_end = _date(TODAY.year, 12, 31)
             fiscal_parameters = cs.get_fiscal_for_period(year_start, year_end)
-        except Exception as exc:  # pragma: no cover — fallback transparente
+        except FiscalParametersAusentes:
+            # AUSÊNCIA não é falha, e não pode virar dict legado: o legado presume
+            # `regime_completo=True`, não tem tabela, redutor nem piso de IRPFM — e
+            # desde o flip do AC2026 esse `True` é indistinguível do estado normal,
+            # então a prescrição sairia ERRADA sem rastro ([[A40.l79]]).
+            fiscal_parameters = FiscalParameters(year=TODAY.year, tabela_ausente=True)
+            print(
+                f"  [warn] sem row de fiscal_parameters para {TODAY.year}; "
+                "prescrição PGBL retida (nenhuma tabela para o ano)"
+            )
+        except Exception as exc:  # pragma: no cover — falha do store, não ausência
             print(f"  [warn] ConfigStore.get_fiscal_for_period falhou ({exc}); usando dict legacy")
         # ADR-390 D2 — `get_market_quote` preserva a data da row resolvida;
         # `get_market_rate` a descartava na fronteira e `taxa_data` saía nulo
