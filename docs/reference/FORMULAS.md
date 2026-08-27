@@ -21,11 +21,21 @@ fórmula ficar ambígua entre este doc, `methodology.md` e `scoring.json`,
 
 | Conceito | Fórmula | Onde no código |
 | --- | --- | --- |
-| IF meta bruta | `if_meta_bruta_brl = renda_passiva_mensal_brl × 12 / (trs_pct/100)`. Didático — patrimônio total que sustenta o alvo. | E5 JSON · `independencia_financeira.meta_bruta` · schema `goal.if.v2` |
-| IF meta líquida | `if_meta_liquida_brl = MAX(0, (renda_passiva_mensal_brl − renda_passiva_atual_mensal_brl) × 12 / (trs_pct/100))`. Operacional — quanto **falta** acumular. **Métrica usada em `progresso_if`.** | E5 JSON · `independencia_financeira.meta_liquida` |
-| Progresso IF (%) | `progresso_if_pct = investivel_efetivo / if_meta_liquida × 100` | E5 JSON · `goals.if_pct` · score |
-| Gap IF | `if_gap_brl = MAX(0, if_meta_liquida − investivel_efetivo)` | E5 JSON · `goals.if_gap` |
+| IF meta bruta | `if_meta_bruta = renda_alvo_mensal × 12 / (trs_pct/100)`. Didática — patrimônio total que sustenta o alvo, sem desconto. Produzida por `compute_if_derived`. | E5 JSON · `goals.if_meta_bruta` · Goal `derived.if_meta_brl` |
+| Renda passiva fora do investível — [[ADR-418]] | `renda_passiva_fora_do_investivel_mensal = alugueis ÷ 12 se NÃO workspace.imoveis_no_if senão 0`. Renda de ativo que o numerador **não conta**. | E5 JSON · `goals.renda_passiva_fora_do_investivel_mensal_brl` |
+| **IF meta (operacional)** — [[ADR-418]] | `if_meta = MAX(0, if_meta_bruta − renda_passiva_fora_do_investivel_mensal × 12 / (trs_pct/100))`. **Base única** de `if_pct`, `if_gap` e `prazo_anos_realista`. Qual base é esta vai publicada em `goals.if_meta_base`. | E5 JSON · `goals.if_meta` · `compor_meta_if` |
+| Progresso IF (%) | `progresso_if_pct = investivel_efetivo / if_meta × 100` | E5 JSON · `goals.if_pct` · score |
+| Gap IF | `if_gap_brl = MAX(0, if_meta − investivel_efetivo)` | E5 JSON · `goals.if_gap` |
 | Prazo realista (anos) | Ver §Tempo até a meta abaixo — três ramos, um deles **retido por escolha** | E5 JSON · `goals.prazo_anos_realista` · `solve_prazo_anos` |
+
+**O invariante é o par, não a fórmula** ([[ADR-418]] §D1). Renda passiva de ativo **dentro**
+de `investivel_efetivo` não desconta a meta — descontar contaria o ativo duas vezes
+([[ADR-142]]). Renda de ativo **fora** desconta — não descontar cobra a exclusão duas vezes.
+Com `imoveis_no_if = true` o termo é zero e `if_meta == if_meta_bruta`; com `false` (o
+**default** desde [[ADR-223]]) o aluguel observado entra no desconto.
+
+`goal.if` **v2** ([[ADR-140]], `renda_passiva_atual_mensal_brl`) segue **candidato, não em
+produção** — o termo do desconto é observado pelo pipeline, não declarado pela família.
 
 ### Tempo até a meta — [[ADR-373]]
 

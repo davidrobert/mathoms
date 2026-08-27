@@ -90,6 +90,7 @@ from pipeline.domain.services.fluxo_caixa_enricher import (
     Janela12m,
 )
 from pipeline.domain.services.if_projector import (
+    BaseDaMetaIF,
     IFProjection,
     IFProjector,
     IFProjectorConfig,
@@ -254,6 +255,7 @@ __all__ = [
     "CategorizationResult",
     "E4CategorizerAdapter",
     "IFProjection",
+    "BaseDaMetaIF",
     "IFProjector",
     "IFProjectorConfig",
     "extract_if_meta_from_text",

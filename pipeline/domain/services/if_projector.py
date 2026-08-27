@@ -9,6 +9,7 @@ import math
 import re
 from dataclasses import dataclass
 from datetime import date
+from enum import Enum
 
 from pipeline.domain.services.money_parsing import (
     parse_valor_monetario,
@@ -184,6 +185,35 @@ def extract_renda_passiva_from_text(content: str) -> float:
 
 
 # =============================================================================
+# Base da meta — [[ADR-418]]
+# =============================================================================
+
+
+# Vocabulário PRÓPRIO, interseção vazia com `BaseFinanceira` (ADR-412, eixo de
+# posições) e com `kpi_targets[].base`. Lá a base é um conjunto de ativos; aqui é
+# o que foi descontado da renda-alvo antes de capitalizar.
+class BaseDaMetaIF(str, Enum):
+    """De que base saiu a meta publicada em ``if_meta`` ([[ADR-418]] §D3)."""
+
+    renda_alvo_bruta = "renda_alvo_bruta"
+    renda_alvo_liquida_de_renda_externa = "renda_alvo_liquida_de_renda_externa"
+
+
+# O invariante é o par, não a fórmula ([[ADR-418]] §D1): renda de ativo DENTRO do
+# numerador não desconta (dupla-contagem, ADR-142) e renda de ativo FORA desconta
+# (senão a exclusão é cobrada duas vezes). Capitalização é linear, então descontar a
+# renda e capitalizar equivale a capitalizar o termo e subtrair da bruta.
+def compor_meta_if(
+    *, meta_bruta: float, renda_passiva_fora_do_investivel_mensal: float, if_trs_pct: float
+) -> float:
+    """Meta operacional: a bruta menos o que ativo FORA do numerador já paga."""
+    if if_trs_pct <= 0 or renda_passiva_fora_do_investivel_mensal <= 0:
+        return meta_bruta
+    capitalizacao = 12.0 / (if_trs_pct / 100.0)
+    return max(0.0, meta_bruta - renda_passiva_fora_do_investivel_mensal * capitalizacao)
+
+
+# =============================================================================
 # Result
 # =============================================================================
 
@@ -247,7 +277,11 @@ class IFProjection:
 
     # `prazo_anos_realista is None` = ausência medida; idade/ano projetados
     # acompanham em None (nunca aritmética sobre sentinela — era 999 → 1040).
+    # `if_meta` é a meta OPERACIONAL — a que `if_pct`/`if_gap`/`solve_prazo` usam.
+    # A bruta segue publicada ao lado ([[ADR-418]] §D3): sem ela, auditar de que base
+    # o progresso saiu exige ler código-fonte, que é como o PV9-16 nasceu.
     if_meta: float
+    if_meta_bruta: float
     if_trs: float
     if_trs_monthly_value: float
     if_pct: float
@@ -266,11 +300,27 @@ class IFProjection:
     tem_conjuge_datado: bool = False
     titular_key: str = "david"
     conjuge_key: str = ""
+    # Zero quando todo ativo gerador está DENTRO do numerador — o caso do toggle
+    # `imoveis_no_if = true`. Publicado mesmo em zero: "descontei nada" é afirmação,
+    # e chave ausente seria "não sei" ([[ADR-418]] §D3).
+    renda_passiva_fora_do_investivel_mensal: float = 0.0
+    if_meta_base: BaseDaMetaIF = BaseDaMetaIF.renda_alvo_bruta
 
+    def _base_da_meta_dict(self) -> dict:
+        """Bloco que nomeia a base de ``if_meta`` ([[ADR-418]] §D3)."""
+        return {
+            "if_meta_bruta": round(self.if_meta_bruta, 2),
+            "if_meta_base": self.if_meta_base.value,
+            "renda_passiva_fora_do_investivel_mensal_brl": round(
+                self.renda_passiva_fora_do_investivel_mensal, 2
+            ),
+        }
+
+    # Chaves sempre presentes; `null` sem prazo projetado (distinga por `is None`).
     def to_legacy_dict(self) -> dict:
-        # Chaves sempre presentes; `null` sem prazo projetado (distinga por `is None`).
         out: dict = {
             "if_meta": round(self.if_meta, 2),
+            **self._base_da_meta_dict(),
             "if_trs": round(self.if_trs, 2),
             "if_trs_monthly_value": round(self.if_trs_monthly_value, 2),
             "if_pct": round(self.if_pct, 2),
@@ -337,18 +387,38 @@ class IFProjector:
     def __init__(self, config: IFProjectorConfig) -> None:
         self._config = config
 
-    def project(self, investivel: float) -> IFProjection:
+    def project(
+        self,
+        investivel: float,
+        *,
+        renda_passiva_fora_do_investivel_mensal: float = 0.0,
+    ) -> IFProjection:
         cfg = self._config
         if_trs_monthly = (cfg.if_trs_pct / 100.0) / 12.0
+        # A renda-alvo DECLARADA sai da meta BRUTA, sempre. Deriva-la da operacional
+        # faria o campo virar "o que ainda falta receber por mês" sob o rótulo do alvo
+        # — e o `EstrategiaAporteCard` o lê como alvo ([[ADR-418]] §D3).
         if_trs_value = cfg.if_meta * if_trs_monthly
 
-        if_pct = (investivel / cfg.if_meta * 100) if cfg.if_meta > 0 else 0.0
+        # Uma base só para os dois consumidores e para o prazo ([[ADR-418]] §D1).
+        meta = compor_meta_if(
+            meta_bruta=cfg.if_meta,
+            renda_passiva_fora_do_investivel_mensal=renda_passiva_fora_do_investivel_mensal,
+            if_trs_pct=cfg.if_trs_pct,
+        )
+        base = (
+            BaseDaMetaIF.renda_alvo_liquida_de_renda_externa
+            if meta != cfg.if_meta
+            else BaseDaMetaIF.renda_alvo_bruta
+        )
+
+        if_pct = (investivel / meta * 100) if meta > 0 else 0.0
         # `FORMULAS.md:26-27` manda MAX(0, ·). Gap negativo é número que não existe no
         # domínio ("precisa acumular menos que zero") e NÃO fica só no JSON:
         # `summaries_narrator:283` e `charts_narrator:229,385,390` o formatam como moeda
         # em prosa. O `WaterfallIfChart.tsx:39` já clampava no fallback — o frontend
         # estava mais correto que o domínio (review financial-planner do PR #1417).
-        if_gap = max(0.0, cfg.if_meta - investivel)
+        if_gap = max(0.0, meta - investivel)
 
         # Taxa mensal equivalente da anual composta.
         retorno_anual = cfg.retorno_real_anual_pct / 100.0
@@ -356,7 +426,7 @@ class IFProjector:
 
         prazo_anos = self._solve_prazo(
             investivel=investivel,
-            if_meta=cfg.if_meta,
+            if_meta=meta,
             r=r,
             aporte_mensal=cfg.aporte_mensal,
         )
@@ -367,7 +437,10 @@ class IFProjector:
         renda_passiva_current = investivel * taxa / 12
 
         return IFProjection(
-            if_meta=cfg.if_meta,
+            if_meta=meta,
+            if_meta_bruta=cfg.if_meta,
+            if_meta_base=base,
+            renda_passiva_fora_do_investivel_mensal=renda_passiva_fora_do_investivel_mensal,
             if_trs=cfg.if_trs_pct,
             if_trs_monthly_value=if_trs_value,
             if_pct=if_pct,

@@ -12,9 +12,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services.if_projector import (  # noqa: E402
     MOTIVO_SEM_TRAJETORIA,
+    BaseDaMetaIF,
     IFProjection,
     IFProjector,
     IFProjectorConfig,
+    compor_meta_if,
     extract_if_meta_from_text,
     extract_if_trs_from_text,
     extract_renda_passiva_from_text,
@@ -207,6 +209,9 @@ class TestLegacyDict:
 
         required = {
             "if_meta",
+            "if_meta_bruta",
+            "if_meta_base",
+            "renda_passiva_fora_do_investivel_mensal_brl",
             "if_trs",
             "if_trs_monthly_value",
             "if_pct",
@@ -235,3 +240,90 @@ class TestLegacyDict:
         # idade_conjuge_if só aparece quando há cônjuge.
         assert "idade_titular_if" in d
         assert "idade_conjuge_if" not in d
+
+
+# =============================================================================
+# Base da meta — [[ADR-418]] / A40.l91 (PV9-16)
+# =============================================================================
+
+
+class TestBaseDaMetaIF:
+    """O invariante é o par numerador↔meta, não a fórmula ([[ADR-418]] §D1)."""
+
+    def test_sem_renda_externa_a_meta_e_a_bruta(self):
+        p = IFProjector(_config(if_meta=5_000_000, if_trs_pct=4.0)).project(investivel=1_000_000)
+
+        assert p.if_meta == p.if_meta_bruta == 5_000_000
+        assert p.if_meta_base is BaseDaMetaIF.renda_alvo_bruta
+        assert p.renda_passiva_fora_do_investivel_mensal == 0.0
+
+    def test_renda_externa_desconta_a_meta_capitalizada(self):
+        # 10k/mês a 4% de retirada = 10k × 12 / 0,04 = 3M a menos de patrimônio.
+        p = IFProjector(_config(if_meta=5_000_000, if_trs_pct=4.0)).project(
+            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=10_000.0
+        )
+
+        assert p.if_meta == pytest.approx(2_000_000.0)
+        assert p.if_meta_bruta == 5_000_000
+        assert p.if_meta_base is BaseDaMetaIF.renda_alvo_liquida_de_renda_externa
+
+    def test_identidade_da_composicao_fecha_ao_centavo(self):
+        """`if_meta == if_meta_bruta − termo × 12 ÷ TRS` — o que o CV5 afirma."""
+        p = IFProjector(_config(if_meta=5_000_000, if_trs_pct=5.0)).project(
+            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=3_333.33
+        )
+
+        esperado = p.if_meta_bruta - p.renda_passiva_fora_do_investivel_mensal * 12 / 0.05
+        assert abs(p.if_meta - esperado) < 0.01
+
+    def test_gap_e_progresso_leem_a_mesma_base(self):
+        """A identidade `gap = meta − investível` fecha ao centavo (§Critério A40.l91)."""
+        p = IFProjector(_config(if_meta=5_000_000, if_trs_pct=4.0)).project(
+            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=5_000.0
+        )
+
+        assert abs(p.if_gap - (p.if_meta - 1_000_000)) < 0.01
+        assert p.if_pct == pytest.approx(1_000_000 / p.if_meta * 100)
+
+    def test_mutacao_renda_externa_move_o_progresso_para_cima(self):
+        """Prova por mutação (§Critério A40.l91): mais renda externa ⇒ mais progresso."""
+        cfg = _config(if_meta=5_000_000, if_trs_pct=4.0)
+        antes = IFProjector(cfg).project(investivel=1_000_000)
+        depois = IFProjector(cfg).project(
+            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=4_000.0
+        )
+
+        assert depois.if_pct > antes.if_pct
+        assert depois.if_gap < antes.if_gap
+        assert depois.if_meta < antes.if_meta
+
+    def test_renda_alvo_declarada_nao_se_move_com_o_desconto(self):
+        """`if_trs_monthly_value` é o alvo DECLARADO — sai da bruta, sempre ([[ADR-418]] §D3)."""
+        cfg = _config(if_meta=5_000_000, if_trs_pct=4.0)
+        antes = IFProjector(cfg).project(investivel=1_000_000)
+        depois = IFProjector(cfg).project(
+            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=4_000.0
+        )
+
+        assert depois.if_trs_monthly_value == antes.if_trs_monthly_value
+
+    def test_meta_nunca_fica_negativa(self):
+        """Renda externa acima do alvo zera a meta em vez de virar número inexistente."""
+        p = IFProjector(_config(if_meta=1_000_000, if_trs_pct=4.0)).project(
+            investivel=500_000, renda_passiva_fora_do_investivel_mensal=99_000.0
+        )
+
+        assert p.if_meta == 0.0
+        assert p.if_gap == 0.0
+        assert p.prazo_anos_realista == 0.0
+
+    def test_trs_ausente_nao_capitaliza_o_desconto(self):
+        """TRS zero não pode virar divisão por zero nem descontar às cegas."""
+        assert (
+            compor_meta_if(
+                meta_bruta=1_000_000.0,
+                renda_passiva_fora_do_investivel_mensal=5_000.0,
+                if_trs_pct=0.0,
+            )
+            == 1_000_000.0
+        )

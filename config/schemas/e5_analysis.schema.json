@@ -3128,7 +3128,25 @@
       "description": "União dos produtores reais do E5 (A40.l5 PR2): IFProjection.to_legacy_dict + enriquecimento de renda passiva + alvo de alocação do adapter DB enriquecido no stage. Não é derivado da fixture _GOALS_MIN.",
       "properties": {
         "if_meta": {
-          "type": "number"
+          "type": "number",
+          "description": "A40.l91 ([[ADR-418]] §D1): meta OPERACIONAL — a base única de `if_pct`, `if_gap` e `prazo_anos_realista`. Igual a `if_meta_bruta` quando nenhum ativo gerador está fora de `investivel_efetivo`. Qual base é esta está em `if_meta_base`, não em prosa."
+        },
+        "if_meta_bruta": {
+          "type": "number",
+          "description": "A40.l91 ([[ADR-418]] §D3): `renda_alvo_mensal × 12 ÷ TRS`, sem desconto. Didática — o patrimônio total que sustenta o alvo. É a `derived.if_meta_brl` do Goal."
+        },
+        "if_meta_base": {
+          "type": "string",
+          "enum": [
+            "renda_alvo_bruta",
+            "renda_alvo_liquida_de_renda_externa"
+          ],
+          "description": "A40.l91 ([[ADR-418]] §D3): de que base saiu `if_meta`. Chave do enum `BaseDaMetaIF` (pipeline/domain/services/if_projector.py). Vocabulário PRÓPRIO — interseção vazia com `BaseFinanceira` (eixo de posições, ADR-412) e com `kpi_targets[].base`."
+        },
+        "renda_passiva_fora_do_investivel_mensal_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "A40.l91 ([[ADR-418]] §D2): renda passiva mensal de ativo que `investivel_efetivo` NÃO conta, e que por isso desconta a meta. Hoje: o balde `alugueis` quando `patrimonio.imoveis_no_if` é false; `0` quando true. Publicado mesmo em zero — 'descontei nada' é afirmação, chave ausente seria 'não sei'."
         },
         "if_trs": {
           "type": "number"

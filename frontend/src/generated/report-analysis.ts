@@ -95,6 +95,9 @@ export type ReservaExcluida = {
 
 export type Goals = {
   "if_meta"?: number;
+  "if_meta_bruta"?: number;
+  "if_meta_base"?: "renda_alvo_bruta" | "renda_alvo_liquida_de_renda_externa";
+  "renda_passiva_fora_do_investivel_mensal_brl"?: number;
   "if_trs"?: number;
   "if_trs_monthly_value"?: number;
   "if_pct"?: number;

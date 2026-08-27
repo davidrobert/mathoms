@@ -16,6 +16,7 @@ from pipeline.domain.services.e5_analyzer_adapter import (  # noqa: E402
     E5AnalysisResult,
     E5AnalyzerAdapter,
     _extract_me_caixa_from_baseline,
+    _renda_passiva_fora_do_investivel,
 )
 from pipeline.domain.services.posicao_31_12_builder import build_posicao_31_12
 
@@ -1133,3 +1134,60 @@ def test_fallback_245_nao_entra_no_card_31_12_como_extrato() -> None:
     _, detalhes = _extract_me_caixa_from_baseline(_BASELINE_ME_IRPF)
     rows = build_posicao_31_12({}, [d.to_dict() for d in detalhes])
     assert rows == [], f"linha de IRPF publicada como posição de extrato: {rows}"
+
+
+# =============================================================================
+# Termo excluído da meta IF — [[ADR-418]] §D2 / A40.l91
+# =============================================================================
+
+
+def _passive_income(*, alugueis: Decimal, status: str = "ok"):
+    from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
+
+    return PassiveIncomeResult(
+        renda_passiva_anual_brl=alugueis,
+        renda_passiva_mensal_brl=alugueis / 12,
+        renda_passiva_por_fonte_brl={"alugueis": alugueis, "dividendos": Decimal("0")},
+        renda_ativa_pj_excluida_brl=Decimal("0"),
+        ganho_capital_excluido_brl=Decimal("0"),
+        patrimonio_gerador_brl=Decimal("1000000"),
+        trs_efetiva_pct=Decimal("1.2"),
+        ano_referencia_irpf=2024,
+        defasagem_meses=8,
+        acumuladores_pct_gerador=Decimal("0"),
+        status=status,
+    )
+
+
+class TestRendaPassivaForaDoInvestivel:
+    """Qual metade do invariante vale depende do toggle ([[ADR-418]] §D1)."""
+
+    def test_toggle_true_nao_desconta_nada(self):
+        """cat_2 DENTRO do numerador: descontar o aluguel contaria o imóvel 2× (ADR-142)."""
+        termo = _renda_passiva_fora_do_investivel(
+            {"imoveis_no_if": True}, _passive_income(alugueis=Decimal("120000"))
+        )
+
+        assert termo == 0.0
+
+    def test_toggle_false_desconta_o_aluguel_observado(self):
+        """cat_2 FORA do numerador: não descontar cobra a exclusão 2× ([[ADR-418]])."""
+        termo = _renda_passiva_fora_do_investivel(
+            {"imoveis_no_if": False}, _passive_income(alugueis=Decimal("120000"))
+        )
+
+        assert termo == pytest.approx(10_000.0)
+
+    def test_passive_income_degradado_nao_desconta(self):
+        """Status != ok é ausência de medida; descontar seria inventar o termo."""
+        termo = _renda_passiva_fora_do_investivel(
+            {"imoveis_no_if": False}, _passive_income(alugueis=Decimal("120000"), status="sem_irpf")
+        )
+
+        assert termo == 0.0
+
+    def test_toggle_ausente_e_conservador(self):
+        """Payload sem o toggle não pode descontar às cegas — o default é não descontar."""
+        termo = _renda_passiva_fora_do_investivel({}, _passive_income(alugueis=Decimal("120000")))
+
+        assert termo == 0.0

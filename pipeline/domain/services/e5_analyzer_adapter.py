@@ -635,7 +635,10 @@ class E5AnalyzerAdapter:
         if_projection: IFProjection | None = None
         if self._if_projector is not None:
             if_projection = self._if_projector.project(
-                investivel=float(patrimonio_full.get("investivel_efetivo", 0))
+                investivel=float(patrimonio_full.get("investivel_efetivo", 0)),
+                renda_passiva_fora_do_investivel_mensal=_renda_passiva_fora_do_investivel(
+                    patrimonio_full, passive_income
+                ),
             )
 
         # 7b. Monte Carlo IF — cone de cenários (N3).
@@ -1158,6 +1161,21 @@ def _resolve_valor_31_12(item: dict) -> float:
         latest_year = max(vals.keys())
         return safe_float(vals.get(latest_year, 0))
     return safe_float(item.get("valor", 0))
+
+
+# [[ADR-418]] §D2 — o termo que a meta desconta: renda passiva de ativo que o
+# numerador NÃO conta. Hoje o único eixo de exclusão é ``imoveis_no_if``; eixo novo
+# entra AQUI, e eixo que não passe por aqui reabre a dupla-penalidade.
+def _renda_passiva_fora_do_investivel(
+    patrimonio_full: dict, passive_income: PassiveIncomeResult | None
+) -> float:
+    """Aluguel observado quando cat_2 está fora de ``investivel_efetivo``; senão ``0``."""
+    if passive_income is None or passive_income.status != "ok":
+        return 0.0
+    if bool(patrimonio_full.get("imoveis_no_if", True)):
+        return 0.0
+    alugueis_anual = passive_income.renda_passiva_por_fonte_brl.get("alugueis")
+    return float(alugueis_anual or 0) / 12.0
 
 
 # =============================================================================
