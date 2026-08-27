@@ -13,6 +13,7 @@ relates_to:
   - "[[ADR-357]]"
   - "[[ADR-371]]"
   - "[[ADR-404]]"
+amended_at: ["2026-08-27"]
 supersedes: []
 superseded_by: []
 aliases:
@@ -25,6 +26,13 @@ tags:
   - area/pipeline
   - area/observability
 ---
+
+
+> **Correção datada 2026-08-27 ([[A40.l84]] · closeout do #1771):** a premissa do D4
+> estava escrita na forma **por camada** (*"`resume_run` só libera…"*) que a
+> [[ADR-404]] §Emenda refutou. O **argumento** do D4 não muda; a premissa passa a
+> dizer "toda entrada". Era o quinto sítio da mesma afirmação, e o único que o
+> #1771 deixou passar.
 
 # ADR-411 — O diagnóstico sai do artefato em todo desfecho
 
@@ -108,8 +116,9 @@ o caminho), nunca nasce impreenchível pelo produtor. Cardinalidade: o locator �
 caminho de **coleção**, não de item — não multiplica row por imóvel.
 
 **D4 — `StageReview` continua significando uma coisa só.** Aviso de run que
-**completou** NÃO vira `StageReview`. `resume_run` só libera a retomada com zero
-reviews `pending`, e publicar aviso ali passaria a pedir aprovação para um run
+**completou** NÃO vira `StageReview`. A retomada só é liberada com zero reviews sem
+decisão — em **toda entrada**, não só pela rota HTTP ([[ADR-404]] D2 §Emenda
+2026-08-27) —, e publicar aviso ali passaria a pedir aprovação para um run
 que não parou. A superfície do usuário para aviso-sem-pausa fica **deferida** com
 dono e data (§Deferimento 1), na forma da [[ADR-356]] — não implícita.
 

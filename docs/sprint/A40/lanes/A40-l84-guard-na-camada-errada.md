@@ -164,12 +164,26 @@ em vez de substring.
 
 1. **`_finalize_run` não é o único escritor de `completed`.** `_mark_run_completed`
    (`pipeline_service.py`) grava direto, sem passar por ele, quando `_stages_after_paused`
-   devolve `[]` — o que acontece com o stage pausado sendo o último do `FULL_ORDER`
-   (`review_finances_holistic`, 17 de 18). **Medido por execução**, não inferido: o par
-   `(completed, pending)` nasce num salto. Ganhou guard próprio, que **reverte a pausa
-   antes de levantar** — levantar sobre `resuming` + `celery_task_id IS NULL` entregaria o
-   run ao ceifador de órfãos, que grava `failed`/`DISPATCH_UNCONFIRMED` sobre um dispatch
-   que nunca foi tentado.
+   devolve `[]`. O **mecanismo** foi medido por execução: o par `(completed, pending)`
+   nasce num salto. Ganhou guard próprio, que **reverte a pausa antes de levantar** —
+   levantar sobre `resuming` + `celery_task_id IS NULL` entregaria o run ao ceifador de
+   órfãos, que grava `failed`/`DISPATCH_UNCONFIRMED` sobre um dispatch que nunca foi
+   tentado.
+> **Correção de precisão — 2026-08-27, no closeout.** A redação original desta alínea
+> dizia que o `[]` "acontece com o stage pausado sendo o último do `FULL_ORDER`
+> (`review_finances_holistic`, 17 de 18)" e chamava isso de **medido**. O mecanismo foi
+> medido; **essa rota específica, não** — e ela está **inerte hoje**. `_stages_after_paused`
+> devolve `[]` para **quatro** entradas, medidas agora: o último do `FULL_ORDER`, um nome
+> **legado** (`"E5"` → `[]`), um nome desconhecido, e `None`. Só **4 stages emitem bloco
+> `validation`** e portanto podem pausar — `extract_baseline`, `extract_members`,
+> `extract_irpf_full`, `extract_with_llm` —, todos na **cabeça** do `FULL_ORDER`; o
+> `parecer_planejador` emite **zero**, então pausa natural no último stage não dispara.
+> **As rotas vivas são as outras três** — `paused_at_stage` legado (a [[ADR-093]] mantém
+> `STAGE_RENAME_MAP` e rows anteriores ao F9.4 existem), desconhecido, ou `NULL` (a
+> [[A40.l27]] parou de zerar, rows anteriores não). Isso **justifica mais** o guard, não
+> menos; o que não se sustentava era o adjetivo "medido" sobre a rota nomeada. Erro da
+> mesma classe que esta lane existe para fechar: afirmação mais forte que a medição.
+
 2. **`_finalize_run` recusar `completed` era a resposta errada.** Levantar ali aborta a
    task **depois** do trabalho feito, e o `on_failure` grava `failed` — converte "ninguém
    decidiu" em "morreu", a alternativa que a [[ADR-359]] §2 rejeitou. Ele **re-estaciona**
@@ -198,7 +212,13 @@ caminho próprio de flip, este só chama o service, e o 409 continua vindo da tr
 **Consistência — eram cinco sítios, não um.** A afirmação de que "`resume_run` exige zero
 reviews `pending`" estava em `pipeline_task.py`, no comentário que justifica a exclusão de
 `StageReview` do `dev/check_diagnostic_session_isolation.py`, no teste desse gate, na
-[[ADR-411]] e na §r7 deste MOC — além da própria [[ADR-404]] D2. Isso **inverte** o custo
+[[ADR-411]] D4 e na §r7 de [[PIPELINE-REVIEWS-active]] — além da própria [[ADR-404]] D2.
+
+> **Correção — 2026-08-27, no closeout.** O #1771 corrigiu **quatro** dos cinco: a
+> [[ADR-411]] D4 ficou de fora e seguiu publicando a formulação por camada. A frase de
+> fecho dizia "os cinco passam a descrever o que o código faz" e era **falsa no momento em
+> que foi escrita**. Corrigida no PR de closeout. O achado é da própria classe da lane —
+> e apareceu no painel que eu mesmo escrevi. Isso **inverte** o custo
 da alternativa que o §Critério oferecia: "corrigir o comentário para a verdade menor"
 custaria cinco edits e enfraqueceria a razão de um gate; tornar o invariante verdadeiro
 custou um. Os cinco passam a descrever o que o código faz.

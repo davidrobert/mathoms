@@ -3,8 +3,7 @@ id: RULE-ordem-do-plano-por-irreversibilidade
 type: domain-rule
 concept: "Ordem dos itens do plano de ação por tier de irreversibilidade"
 canonical_adr: "[[ADR-367]]"
-enforcer_modules:
-  - pipeline/domain/services/pontos_urgentes_analyzer.py
+enforcer_modules: []
 formula_ref: null
 tags:
   - type/domain-rule
@@ -12,6 +11,17 @@ tags:
 ---
 
 # RULE — Ordem do plano por irreversibilidade
+
+> **Sem enforcer (medido 2026-08-27).** A [[ADR-367]] está **`Proposto`** e nada
+> nesta nota está implementado: `rg 'tier|sorted|irrevers'
+> pipeline/domain/services/pontos_urgentes_analyzer.py` devolve **zero**. Não há
+> mapa `code → tier`, não há `sorted` no `return` de `analyze`, não há gradação da
+> reserva, e o "teste de cobertura do vocabulário" citado em §Manutenção não
+> existe. O `enforcer_modules` apontava o analyzer como se a regra vigorasse —
+> nota canônica descrevendo código ausente é pior que nota ausente, porque quem
+> consulta o índice de regras conclui que o comportamento está garantido.
+> A tabela de tiers abaixo é a **decisão proposta**, não o estado do código.
+> Origem: §Ataque da [[A40.l90]] + co-design `financial-planner`/`senior-cto`.
 
 **Conceito.** Os itens de `pontos_urgentes` são ordenados por **tier de
 irreversibilidade**, constante por regra e indexado pelo `code` do item. Dentro do
@@ -50,10 +60,12 @@ registra por que **não** há helper compartilhado com `suggestion_rules` (eixo 
 severidade ≠ eixo de irreversibilidade; e `rule_reserva_insuficiente` está
 dormente por `meses_cobertura` × `cobertura_meses`, RULE de outra lane).
 
-**Enforcer.**
-- [`pipeline/domain/services/pontos_urgentes_analyzer.py`](../../../pipeline/domain/services/pontos_urgentes_analyzer.py) —
-  mapa `code → tier`, o `sorted` estável no `return` de `analyze`, e a gradação
-  da reserva.
+**Enforcer.** **Nenhum** — ver o bloco de sinal no topo. Quando a [[ADR-367]] for
+implementada, o enforcer previsto é
+[`pipeline/domain/services/pontos_urgentes_analyzer.py`](../../../pipeline/domain/services/pontos_urgentes_analyzer.py)
+(mapa `code → tier`, `sorted` estável no `return` de `analyze`, gradação da
+reserva), e esta linha volta a `enforcer_modules` no frontmatter.
 
-**Manutenção.** Regra nova = `code` novo + entrada no mapa de tier + linha nesta
-nota. Sem entrada no mapa, o teste de cobertura do vocabulário falha.
+**Manutenção.** Quando houver enforcer: regra nova = `code` novo + entrada no mapa
+de tier + linha nesta nota, com teste de cobertura do vocabulário — que **também
+ainda não existe**.
