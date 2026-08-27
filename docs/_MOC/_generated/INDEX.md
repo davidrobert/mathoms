@@ -907,16 +907,16 @@
 | A40.l30 | lane | shipped | A40 | Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho | `sprint/A40/lanes/A40-l30-ancorabilidade-do-exec-context.md` |
 | A40.l31 | lane | planned | A40 | Gerador ancora em vez de digitar: correção guiada pelo mecanismo, com o eval como gate de saída | `sprint/A40/lanes/A40-l31-gerador-ancora-em-vez-de-digitar.md` |
 | A40.l32 | lane | shipped | A40 | Proveniência do executor: qual código computou este run | `sprint/A40/lanes/A40-l32-proveniencia-do-executor-do-run.md` |
-| A40.l33 | lane | in_progress | A40 | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | `sprint/A40/lanes/A40-l33-contraste-texto-sobre-tint.md` |
+| A40.l33 | lane | shipped | A40 | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | `sprint/A40/lanes/A40-l33-contraste-texto-sobre-tint.md` |
 | A40.l34 | lane | shipped | A40 | Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis | `sprint/A40/lanes/A40-l34-base-do-limite-pgbl.md` |
 | A40.l35 | lane | shipped | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
 | A40.l36 | lane | open | A40 | Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes | `sprint/A40/lanes/A40-l36-double-count-na-base-da-cascata-s8.md` |
 | A40.l37 | lane | open | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
 | A40.l38 | lane | shipped | A40 | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
-| A40.l39 | lane | in_progress | A40 | Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal | `sprint/A40/lanes/A40-l39-posicao-visoes-corrente-fiscal.md` |
+| A40.l39 | lane | open | A40 | Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal | `sprint/A40/lanes/A40-l39-posicao-visoes-corrente-fiscal.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l40 | lane | shipped | A40 | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | `sprint/A40/lanes/A40-l40-identidade-institucional-cnpj-raiz.md` |
-| A40.l41 | lane | in_progress | A40 | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
+| A40.l41 | lane | open | A40 | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
 | A40.l42 | lane | shipped | A40 | Safra IRPF errada: baseline pegajoso — E1.5c re-consolida o próprio output do run anterior e ignora o E1.5 fresco | `sprint/A40/lanes/A40-l42-safra-irpf-baseline-pegajoso.md` |
 | A40.l43 | lane | shipped | A40 | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | `sprint/A40/lanes/A40-l43-perfil-familia-prosa-sobre-pessoas.md` |
 | A40.l44 | lane | shipped | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
@@ -929,7 +929,7 @@
 | A40.l50 | lane | open | A40 | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | `sprint/A40/lanes/A40-l50-abertos-da-investigacao-de-exposicao-cambial.md` |
 | A40.l51 | lane | open | A40 | Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando | `sprint/A40/lanes/A40-l51-followups-orfaos-da-l43.md` |
 | A40.l53 | lane | shipped | A40 | Gate visual de seções está cego: a captura do Playwright reinicia o desenho do chart — e o mesmo defeito imprimia o gráfico pela metade no PDF | `sprint/A40/lanes/A40-l53-gate-visual-secoes-cego.md` |
-| A40.l54 | lane | in_progress | A40 | `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) | `sprint/A40/lanes/A40-l54-hidden-md-block-no-papel.md` |
+| A40.l54 | lane | shipped | A40 | `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) | `sprint/A40/lanes/A40-l54-hidden-md-block-no-papel.md` |
 | A40.l55 | lane | open | A40 | Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 | `sprint/A40/lanes/A40-l55-medida-de-linha-no-papel.md` |
 | A40.l56 | lane | shipped | A40 | A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa | `sprint/A40/lanes/A40-l56-tabela-fiscal-de-producao.md` |
 | A40.l57 | lane | open | A40 | O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null | `sprint/A40/lanes/A40-l57-parecer-le-contrato-antigo-do-pgbl.md` |
@@ -955,7 +955,7 @@
 | A40.l75 | lane | open | A40 | O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou | `sprint/A40/lanes/A40-l75-msw-drift-gate-inerte.md` |
 | A40.l76 | lane | open | A40 | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | `sprint/A40/lanes/A40-l76-proveniencia-de-artefato-e2.md` |
 | A40.l77 | lane | shipped | A40 | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | `sprint/A40/lanes/A40-l77-dois-resolvers-de-membro.md` |
-| A40.l78 | lane | in_progress | A40 | Mover código não deixa citação órfã: gate no lado do código, não no do doc | `sprint/A40/lanes/A40-l78-gate-citacao-orfa-de-codigo.md` |
+| A40.l78 | lane | shipped | A40 | Mover código não deixa citação órfã: gate no lado do código, não no do doc | `sprint/A40/lanes/A40-l78-gate-citacao-orfa-de-codigo.md` |
 | A40.l79 | lane | open | A40 | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | `sprint/A40/lanes/A40-l79-row-fiscal-ausente-e-fail-open.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l80 | lane | open | A40 | Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' | `sprint/A40/lanes/A40-l80-denominador-amputado.md` |

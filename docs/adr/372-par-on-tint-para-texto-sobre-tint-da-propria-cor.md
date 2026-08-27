@@ -4,7 +4,7 @@ type: adr
 title: "Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma"
 status: Decidido
 date: "2026-08-08"
-amended_at: ["2026-08-13"]
+amended_at: ["2026-08-13", "2026-08-27"]
 relates_to: ["[[ADR-076]]", "[[ADR-117]]", "[[ADR-143]]", "[[ADR-236]]"]
 tags:
   - type/adr
@@ -54,11 +54,12 @@ não serve como texto sobre ela mesma nesta profundidade".
 **D1 — Toda cor usada como texto sobre tint de si mesma ganha um par
 `--X-on-tint`.** A correção é sempre na cor do **texto**, nunca afrouxando o
 tint: o tint carrega o significado visual (severidade), o texto carrega a
-legibilidade. Cada par difere da base em **exatamente um tema** — o que reprova
-— para não mexer no que já está bom.
+legibilidade. Cada par difere da base **nos temas em que ela reprova** — em
+geral um só, às vezes os dois — para não mexer no que já está bom.
 
 | token | light | dark | difere em |
 | --- | --- | --- | --- |
+| `--brand-accent-on-tint` | `#166534` | = base | light |
 | `--semantic-gain-on-tint` | `#166534` | = base | light |
 | `--semantic-alert-on-tint` | `#984C11` | = base | light |
 | `--semantic-loss-on-tint` | = base | `#FDA4AF` | dark |
@@ -176,3 +177,23 @@ de o call-site virar 30%.
   detecta par inseguro de tokens diferentes.
 - **Só corrigir `loss` no dark** (o achado que abriu a varredura). Rejeitada
   depois de medir: seria fechar a instância mais branda e deixar 1,86:1 de pé.
+
+> **Emenda 2026-08-27 — a tabela da D1 tinha 6 linhas para 7 pares, e a prosa
+> contradizia a própria tabela.** Correção de registro no fecho da [[A40.l33]];
+> nenhuma decisão muda.
+
+## Emenda 2026-08-27 — a D1 descrevia 6 pares e a regra "exatamente um tema"
+
+Dois erros de registro, achados ao re-medir os tokens no fecho da [[A40.l33]]:
+
+1. **Faltava `--brand-accent-on-tint`** na tabela. Ele nasceu na §Emenda
+   2026-08-13 (aplicação mecânica da D1 sobre a sintaxe `/15`) e nunca entrou
+   aqui. Medido em `design-tokens/tokens.json`: **7 chaves `*_on_tint` por
+   modo, 14 no total** — light `#15803D` → `#166534`; dark `#4ADE80` = base.
+2. **A prosa dizia "exatamente um tema" e a própria tabela já a desmentia** na
+   linha do `--brand-secondary-on-tint` (`difere em: ambos`). Os tokens
+   confirmam a tabela e contradizem a frase. Reescrita para *"nos temas em que
+   ela reprova"*, que é o que a D1 sempre fez.
+
+Nenhum call-site muda; `check_tint_contrast` seguia medindo os 7 pares o tempo
+todo (`ok — 37 par(es)`, EXIT=0 em 2026-08-27). O que estava errado era a ADR.

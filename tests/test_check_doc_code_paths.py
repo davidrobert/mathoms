@@ -39,9 +39,9 @@ def repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _run(repo: Path) -> subprocess.CompletedProcess[str]:
+def _run(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(repo / "dev" / GATE.name)],
+        [sys.executable, str(repo / "dev" / GATE.name), *args],
         cwd=repo,
         capture_output=True,
         text=True,
@@ -101,3 +101,50 @@ def test_gate_do_repo_real_esta_verde() -> None:
         [sys.executable, str(GATE)], cwd=GATE.parent.parent, capture_output=True, text=True
     )
     assert result.returncode == 0, result.stdout
+
+
+def test_since_ve_o_commit_que_o_indice_ja_esqueceu(repo: Path) -> None:
+    """`--since` é o único modo que alcança deleção já commitada."""
+    # o índice fica vazio de propósito: se `--since` cair no `--cached`, morre
+    _git(repo, "rm", "-q", "backend/app/services/vault.py")
+    _git(repo, "commit", "-qm", "deleta o cofre")
+    assert _run(repo).returncode == 0
+    result = _run(repo, "--since", "HEAD^")
+    assert result.returncode == 1, result.stdout
+    assert "docs/adr/001-x.md" in result.stdout
+
+
+def test_all_audita_o_acervo_e_nao_gateia(repo: Path) -> None:
+    """`--all` acha a órfã que nenhum diff produziu, e sai 0 por desenho."""
+    _git(repo, "rm", "-q", "backend/app/services/vault.py")
+    _git(repo, "commit", "-qm", "deleta o cofre")
+    result = _run(repo, "--all")
+    assert result.returncode == 0, result.stdout
+    assert "backend/app/services/vault.py" in result.stdout
+    assert "1 citação(ões) sem alvo" in result.stdout
+
+
+def test_link_markdown_sem_backtick_nao_e_visto(repo: Path) -> None:
+    """Limite declarado: `_docs_citing` casa backtick, não link markdown."""
+    # pinado: ampliar o gate obriga a reescrever a §"O que a lane NÃO fecha"
+    (repo / "docs/adr/003-z.md").write_text(
+        "o cofre está em [vault.py](../../backend/app/services/vault.py)\n"
+    )
+    _git(repo, "rm", "-q", "docs/adr/001-x.md")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "so link markdown")
+    _git(repo, "rm", "-q", "backend/app/services/vault.py")
+    assert _run(repo).returncode == 0
+
+
+def test_citacao_fora_do_backtick_e_a_saida_historica(repo: Path) -> None:
+    """Menção histórica sai do backtick e mantém o nome — é a saída anunciada."""
+    # sem isto a instrução impressa era inexequível: marcar sem tirar o backtick
+    # não suprimia nada (a linha da ADR-196 já dizia "removido pela ADR-375")
+    (repo / "docs/adr/001-x.md").write_text(
+        "O cofre vivia em backend/app/services/vault.py (removido pela [[ADR-9]]).\n"
+    )
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "vira mencao historica")
+    _git(repo, "rm", "-q", "backend/app/services/vault.py")
+    assert _run(repo).returncode == 0
