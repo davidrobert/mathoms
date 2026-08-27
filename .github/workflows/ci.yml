@@ -769,7 +769,7 @@ jobs:
           MARKER_FILTER='-m "not migration and not perf"'
           if [ "${{ needs.changes.outputs.migration }}" = "true" ]; then
             MARKER_FILTER='-m "not perf"'
-            echo "::notice::Migration paths tocados; rodando suíte completa (sem deselect)."
+            echo "::notice::Migration paths tocados; rodando migration tests (deselect só de perf)."
           fi
           # `--durations=25` (#1160): custo zero em minutos e imprime no log o
           # que a investigação do falso vermelho do #1157 teve de reconstruir

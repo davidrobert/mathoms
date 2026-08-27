@@ -304,10 +304,23 @@ def _is_budget_compare(cmp_node: ast.Compare, nomes: set[str]) -> bool:
     return any(_is_numeric_literal(lado) for lado in lados)
 
 
-def _tem_marker_perf(node: ast.FunctionDef | ast.AsyncFunctionDef, source: str) -> bool:
-    if "pytest.mark.perf" in source and re.search(r"^pytestmark\s*=", source, re.M):
-        return True
-    return any("perf" == getattr(d, "attr", None) for d in node.decorator_list)
+def _menciona_perf(node: ast.AST) -> bool:
+    """Expressão traz o marker ``perf`` (cobre `@pytest.mark.perf` e a forma chamada)."""
+    return any(isinstance(s, ast.Attribute) and s.attr == "perf" for s in ast.walk(node))
+
+
+# Casar `"pytest.mark.perf" in source` isentava o ARQUIVO: um benchmark marcado
+# apagava o gate para todos os vizinhos dele. Isenção é por nó — decorador da
+# própria função, ou `pytestmark` do módulo.
+def _module_marks_perf(tree: ast.AST) -> bool:
+    """Módulo inteiro declarado benchmark via ``pytestmark``."""
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        alvos = {t.id for t in node.targets if isinstance(t, ast.Name)}
+        if "pytestmark" in alvos and _menciona_perf(node.value):
+            return True
+    return False
 
 
 _MSG_WALLCLOCK = (
@@ -318,13 +331,14 @@ _MSG_WALLCLOCK = (
 )
 
 
-def _find_wallclock_budget_assert(tree: ast.AST, source: str) -> list[tuple[int, str]]:
+def _find_wallclock_budget_assert(tree: ast.AST) -> list[tuple[int, str]]:
     """`assert elapsed < N` sobre `time.*()` — mede carga da máquina, não o código."""
     findings: list[tuple[int, str]] = []
+    modulo_perf = _module_marks_perf(tree)
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        if _tem_marker_perf(node, source):
+        if modulo_perf or any(_menciona_perf(dec) for dec in node.decorator_list):
             continue
         nomes = _clock_derived_names(node)
         for stmt in ast.walk(node):
@@ -344,7 +358,7 @@ def _all_findings(tree: ast.AST, source: str, test_file: Path) -> list[tuple[int
         + _find_migration_tests_without_marker(source, test_file)
         + _find_orphan_cutover_tests(source, test_file)
         + _find_bcrypt_in_test(source, test_file)
-        + _find_wallclock_budget_assert(tree, source)
+        + _find_wallclock_budget_assert(tree)
     )
 
 

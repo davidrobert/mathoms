@@ -13,7 +13,7 @@ from dev.check_test_health import _find_wallclock_budget_assert
 
 
 def _achados(source: str) -> list[tuple[int, str]]:
-    return _find_wallclock_budget_assert(ast.parse(source), source)
+    return _find_wallclock_budget_assert(ast.parse(source))
 
 
 def test_elapsed_ms_contra_literal_e_pego() -> None:
@@ -84,5 +84,37 @@ def test_lista_de_janelas_em_segundos_nao_e_relogio() -> None:
         "def test_x():\n"
         "    janelas = agir()\n"
         "    assert janelas == [60, 300, 900, 3600, 3600]\n"
+    )
+    assert _achados(fonte) == []
+
+
+def test_perf_de_um_vizinho_nao_isenta_o_arquivo() -> None:
+    """Falha aberta do casamento por substring: um `perf` no arquivo apagava o gate para todos."""
+    fonte = (
+        "import time\n"
+        "import pytest\n"
+        "pytestmark = pytest.mark.migration\n"
+        "@pytest.mark.perf\n"
+        "def test_benchmark():\n"
+        "    t0 = time.monotonic()\n"
+        "    agir()\n"
+        "    assert (time.monotonic() - t0) < 1.0\n"
+        "def test_vizinho():\n"
+        "    t0 = time.monotonic()\n"
+        "    agir()\n"
+        "    assert (time.monotonic() - t0) < 1.0\n"
+    )
+    assert len(_achados(fonte)) == 1
+
+
+def test_pytestmark_perf_isenta_o_modulo() -> None:
+    fonte = (
+        "import time\n"
+        "import pytest\n"
+        "pytestmark = pytest.mark.perf\n"
+        "def test_x():\n"
+        "    t0 = time.monotonic()\n"
+        "    agir()\n"
+        "    assert (time.monotonic() - t0) < 1.0\n"
     )
     assert _achados(fonte) == []
