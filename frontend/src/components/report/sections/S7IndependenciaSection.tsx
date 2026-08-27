@@ -5,7 +5,7 @@ import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
 import { RecalibracaoMcNote } from "./RecalibracaoMcNote";
-import { Stat } from "./S7Stat";
+import { MetaIfSublabel, Stat } from "./S7Stat";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { AcumuladoresBanner } from "../AcumuladoresBanner";
@@ -61,8 +61,10 @@ export function S7IndependenciaSection({
   const monteCarloIF = readMonteCarloData(data.if_monte_carlo);
   const premissas = readPremissasEconomicas(data.premissas_economicas);
   const irpfKpis = useIrpfKpis(data);
-  const labels = (data.fluxo_caixa as { receita_despesa_mensal_detalhado?: { labels?: string[] } } | undefined)
-    ?.receita_despesa_mensal_detalhado?.labels;
+  const labels = (
+    data.fluxo_caixa as
+      { receita_despesa_mensal_detalhado?: { labels?: string[] } } | undefined
+  )?.receita_despesa_mensal_detalhado?.labels;
   const primaryYear = derivePrimaryYear(labels);
 
   return (
@@ -91,10 +93,39 @@ export function S7IndependenciaSection({
 
       {hasIfStats(goals) && (
         <div className="md:col-span-2 grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Stat label="Meta IF" value={<MonetaryValue value={goals.if_meta as number | undefined} compact />} />
-          <Stat label="Progresso" value={`${((goals.if_pct as number) ?? 0).toFixed(1)}%`} />
+          <Stat
+            label="Meta IF"
+            value={
+              <MonetaryValue
+                value={goals.if_meta as number | undefined}
+                compact
+              />
+            }
+            sublabel={
+              <MetaIfSublabel
+                alvoMensal={goals.if_trs_monthly_value as number | undefined}
+                rendaForaMensal={
+                  goals.renda_passiva_fora_do_investivel_mensal_brl as
+                    number | undefined
+                }
+                formatCurrency={formatCurrency}
+              />
+            }
+          />
+          <Stat
+            label="Progresso"
+            value={`${((goals.if_pct as number) ?? 0).toFixed(1)}%`}
+          />
           <Stat label="Ano projetado" value={String(goals.ano_if ?? "—")} />
-          <Stat label="Gap" value={<MonetaryValue value={goals.if_gap as number | undefined} compact />} />
+          <Stat
+            label="Gap"
+            value={
+              <MonetaryValue
+                value={goals.if_gap as number | undefined}
+                compact
+              />
+            }
+          />
         </div>
       )}
 
@@ -157,16 +188,18 @@ function IFMonteCarloBlock({
         {monteCarloIF.sigma_procedencia === "fallback_codigo" && (
           <> (padrão do modelo, não calibrada à sua carteira)</>
         )}
-        {monteCarloIF.aporte_mensal_usado && monteCarloIF.aporte_mensal_usado > 0 ? (
+        {monteCarloIF.aporte_mensal_usado &&
+        monteCarloIF.aporte_mensal_usado > 0 ? (
           <>
-            {" "}considerando aporte mensal de{" "}
-            <strong>{formatCurrency(monteCarloIF.aporte_mensal_usado)}</strong>{" "}
+            {" "}
+            considerando aporte mensal de{" "}
+            <strong>
+              {formatCurrency(monteCarloIF.aporte_mensal_usado)}
+            </strong>{" "}
             mantido em termos reais.
           </>
         ) : (
-          <>
-            {" "}sem aporte mensal — só o patrimônio atual compondo.
-          </>
+          <> sem aporte mensal — só o patrimônio atual compondo.</>
         )}
         {/* ADR-369 D2 — a data é da família, não nossa: a legenda nomeia o
             prazo declarado e o ano que ele fixa. Sem prazo declarado a cláusula
@@ -225,15 +258,14 @@ function PremissasFallbackAlert({
       >
         <p>
           Projeção baseada em premissas de mercado padrão, não calibradas à sua
-          carteira ({degrade.classesIndisponiveis}/{degrade.classesTotal} classes sem
-          premissa vigente) — trate as probabilidades como referência, não como
-          previsão.
+          carteira ({degrade.classesIndisponiveis}/{degrade.classesTotal}{" "}
+          classes sem premissa vigente) — trate as probabilidades como
+          referência, não como previsão.
         </p>
       </Alert>
     </div>
   );
 }
-
 
 /** A8.3 — Bloco de KPIs de TRS efetiva (4 cards) + caption + 2 banners + empty states. */
 function PassiveIncomeBlock({
@@ -247,7 +279,10 @@ function PassiveIncomeBlock({
   if (passiveIncome.status === "sem_irpf") return <SemIrpfEmptyState />;
   if (passiveIncome.status === "gerador_zero") return <GeradorZeroEmptyState />;
   return (
-    <PassiveIncomeOkBlock data={passiveIncome} progressoIfPct={progressoIfPct} />
+    <PassiveIncomeOkBlock
+      data={passiveIncome}
+      progressoIfPct={progressoIfPct}
+    />
   );
 }
 
@@ -271,8 +306,8 @@ function PassiveIncomeOkBlock({
 
       {progressoIfPct < PHASE_ACUMULACAO && (
         <p className="text-xs text-[var(--surface-muted-foreground)] mt-2">
-          Carteira em acumulação — yield baixo é esperado nesta fase. Retorno total
-          inclui valorização, não só dividendo.
+          Carteira em acumulação — yield baixo é esperado nesta fase. Retorno
+          total inclui valorização, não só dividendo.
         </p>
       )}
 
@@ -280,7 +315,10 @@ function PassiveIncomeOkBlock({
         <AcumuladoresBanner pct={acumuladoresPct} />
       )}
       {defasagem >= DEFASAGEM_WARNING_THRESHOLD && (
-        <DefasagemWarningBanner ano={data.ano_referencia_irpf} meses={defasagem} />
+        <DefasagemWarningBanner
+          ano={data.ano_referencia_irpf}
+          meses={defasagem}
+        />
       )}
     </>
   );
@@ -301,13 +339,16 @@ function RendaPassivaStat({ data }: { data: PassiveIncomeData }) {
       value={
         <span className="inline-flex items-baseline gap-1">
           <MonetaryValue value={data.renda_passiva_mensal_brl} compact />
-          <span className="text-xs text-[var(--surface-muted-foreground)]">/mês</span>
+          <span className="text-xs text-[var(--surface-muted-foreground)]">
+            /mês
+          </span>
         </span>
       }
       sublabel={
         <span className="text-sm">
           {formatCurrency(data.renda_passiva_anual_brl)} / ano
-          {data.ano_referencia_irpf !== null && ` · IRPF ${data.ano_referencia_irpf}`}
+          {data.ano_referencia_irpf !== null &&
+            ` · IRPF ${data.ano_referencia_irpf}`}
         </span>
       }
     />
@@ -347,7 +388,10 @@ function TrsEfetivaStat({ data }: { data: PassiveIncomeData }) {
       label={
         <span className="inline-flex items-center gap-1">
           TRS efetiva
-          <InfoTooltip ariaLabel="Sobre TRS efetiva" content={TRS_EFETIVA_TOOLTIP} />
+          <InfoTooltip
+            ariaLabel="Sobre TRS efetiva"
+            content={TRS_EFETIVA_TOOLTIP}
+          />
         </span>
       }
       value={`${data.trs_efetiva_pct.toFixed(1)}%`}
@@ -365,22 +409,24 @@ function AcumuladoresStat({ acumuladoresPct }: { acumuladoresPct: number }) {
       label="Em acumuladores"
       value={
         <span
-          className={isZero ? "text-[var(--surface-muted-foreground)]" : undefined}
+          className={
+            isZero ? "text-[var(--surface-muted-foreground)]" : undefined
+          }
         >
           {`${acumuladoresPct.toFixed(0)}%`}
         </span>
       }
       tone={isHigh ? "warning" : "neutral"}
       sublabel={
-        isZero
-          ? "Sem ETFs/fundos acumuladores"
-          : isHigh
-            ? (
-              <span className="text-[var(--semantic-alert-on-tint)]">
-                &gt;40% subestima TRS
-              </span>
-            )
-            : "ETFs/fundos sem distribuição"
+        isZero ? (
+          "Sem ETFs/fundos acumuladores"
+        ) : isHigh ? (
+          <span className="text-[var(--semantic-alert-on-tint)]">
+            &gt;40% subestima TRS
+          </span>
+        ) : (
+          "ETFs/fundos sem distribuição"
+        )
       }
     />
   );
