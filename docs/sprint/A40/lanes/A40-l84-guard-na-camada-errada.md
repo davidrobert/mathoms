@@ -4,17 +4,20 @@ type: lane
 title: "O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1771
+ship_date: "2026-08-27"
 priority: P0
 branch_slug: a40-l84-guard-na-camada-errada
 adrs:
   - "[[ADR-404]]"
   - "[[ADR-359]]"
+  - "[[ADR-417]]"
 depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/backend
   - area/pipeline
