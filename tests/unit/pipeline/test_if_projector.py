@@ -325,6 +325,8 @@ class TestBaseDaMetaIF:
         assert p.if_meta == 0.0
         assert p.if_gap == 0.0
         assert p.prazo_anos_realista == 0.0
+        # 0% aqui contradiria o gap e o prazo, que já dizem "chegou".
+        assert p.if_pct == 100.0
 
     def test_trs_ausente_nao_capitaliza_o_desconto(self):
         """TRS zero não pode virar divisão por zero nem descontar às cegas."""

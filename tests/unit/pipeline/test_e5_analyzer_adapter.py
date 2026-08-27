@@ -16,6 +16,7 @@ from pipeline.domain.services.e5_analyzer_adapter import (  # noqa: E402
     E5AnalysisResult,
     E5AnalyzerAdapter,
     _extract_me_caixa_from_baseline,
+    _monte_carlo_config,
     _renda_passiva_fora_do_investivel,
 )
 from pipeline.domain.services.posicao_31_12_builder import build_posicao_31_12
@@ -1186,8 +1187,28 @@ class TestRendaPassivaForaDoInvestivel:
 
         assert termo is None
 
-    def test_toggle_ausente_e_conservador(self):
-        """Payload sem o toggle não pode descontar às cegas — o default é não descontar."""
+    def test_toggle_ausente_nao_e_medida(self):
+        """Sem o toggle não se sabe o par numerador↔meta — `None`, não zero medido."""
         termo = _renda_passiva_fora_do_investivel({}, _passive_income(alugueis=Decimal("120000")))
 
-        assert termo == 0.0
+        assert termo is None
+
+
+class TestConeMiraAMesmaMeta:
+    """O cone Monte Carlo lê a meta OPERACIONAL, não a bruta da config ([[ADR-418]] §D1)."""
+
+    def test_config_do_cone_ancora_na_meta_publicada(self):
+        from pipeline.domain.services.if_projector import IFProjector, IFProjectorConfig
+
+        cfg = IFProjectorConfig(
+            if_meta=5_000_000.0, if_trs_pct=4.0, titular_dob=_DAVID_DOB, aporte_mensal=10_000.0
+        )
+        projecao = IFProjector(cfg).project(
+            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=5_000.0
+        )
+        assert projecao.if_meta != cfg.if_meta  # a mutação de fato move a meta
+
+        mc = _monte_carlo_config(cfg=cfg, if_projection=projecao, investivel=1_000_000)
+
+        assert mc.meta_if == Decimal(str(projecao.if_meta))
+        assert mc.meta_if != Decimal(str(cfg.if_meta))

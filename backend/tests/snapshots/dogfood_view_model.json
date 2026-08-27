@@ -1581,6 +1581,8 @@
     "idade_titular_if": null,
     "if_gap": 87000000,
     "if_meta": 100000000,
+    "if_meta_base": "renda_alvo_bruta",
+    "if_meta_bruta": 100000000,
     "if_pct": "13.000000",
     "if_trs": "4.000000",
     "if_trs_monthly_value": 333333,

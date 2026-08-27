@@ -645,15 +645,12 @@ class E5AnalyzerAdapter:
         monte_carlo_if: MonteCarloIFResult | None = None
         if if_projection is not None and self._if_projector_config is not None:
             _cfg = self._if_projector_config
-            _investivel = float(patrimonio_full.get("investivel_efetivo", 0))
-            _mc_cfg = IFMonteCarloConfig(
-                patrimonio_investivel=Decimal(str(max(0.0, _investivel))),
-                meta_if=Decimal(str(max(0.0, _cfg.if_meta))),
-                retorno_real_esperado=_cfg.retorno_real_anual_pct / 100.0,
-                aporte_mensal=Decimal(str(max(0.0, _cfg.aporte_mensal))),
-            )
             monte_carlo_if = run_monte_carlo_if(
-                _mc_cfg,
+                _monte_carlo_config(
+                    cfg=_cfg,
+                    if_projection=if_projection,
+                    investivel=float(patrimonio_full.get("investivel_efetivo", 0)),
+                ),
                 ano_base=self._reference_date.year,
                 prazo_declarado=_prazo_declarado_do_goal(_cfg),
             )
@@ -1163,6 +1160,21 @@ def _resolve_valor_31_12(item: dict) -> float:
     return safe_float(item.get("valor", 0))
 
 
+# [[ADR-418]] §D1 — o cone mira a MESMA meta que a barra de progresso e o gap. Ler
+# `cfg.if_meta` (a bruta) aqui deixava o Monte Carlo numa base e o resto da seção noutra:
+# duas metas para a mesma família, que é o defeito que a ADR fecha.
+def _monte_carlo_config(
+    *, cfg: IFProjectorConfig, if_projection: IFProjection, investivel: float
+) -> IFMonteCarloConfig:
+    """Config do cone, ancorada na meta operacional publicada."""
+    return IFMonteCarloConfig(
+        patrimonio_investivel=Decimal(str(max(0.0, investivel))),
+        meta_if=Decimal(str(max(0.0, if_projection.if_meta))),
+        retorno_real_esperado=cfg.retorno_real_anual_pct / 100.0,
+        aporte_mensal=Decimal(str(max(0.0, cfg.aporte_mensal))),
+    )
+
+
 # [[ADR-418]] §D2 — o termo que a meta desconta: renda passiva de ativo que o
 # numerador NÃO conta. Hoje o único eixo de exclusão é ``imoveis_no_if``; eixo novo
 # entra AQUI, e eixo que não passe por aqui reabre a dupla-penalidade.
@@ -1172,7 +1184,10 @@ def _renda_passiva_fora_do_investivel(
     """Aluguel observado quando cat_2 está fora do numerador; ``0`` dentro, ``None`` sem medida."""
     if passive_income is None or passive_income.status != "ok":
         return None
-    if bool(patrimonio_full.get("imoveis_no_if", True)):
+    imoveis_no_if = patrimonio_full.get("imoveis_no_if")
+    if imoveis_no_if is None:
+        return None
+    if bool(imoveis_no_if):
         return 0.0
     alugueis_anual = passive_income.renda_passiva_por_fonte_brl.get("alugueis")
     return float(alugueis_anual or 0) / 12.0

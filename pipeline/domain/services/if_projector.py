@@ -213,6 +213,16 @@ def compor_meta_if(
     return max(0.0, meta_bruta - renda_passiva_fora_do_investivel_mensal * capitalizacao)
 
 
+# `cfg.if_meta` tem `exclusiveMinimum: 0` no Goal, então `meta <= 0` era ramo morto —
+# até a [[ADR-418]] tornar a meta descontável. Devolver 0% aí contradiria `if_gap` e
+# `prazo_anos_realista`, que já dizem "chegou": é a classe de defeito que esta lane mata.
+def _progresso_if_pct(*, investivel: float, meta: float, meta_bruta: float) -> float:
+    """Percentual da meta operacional; meta zerada por renda externa é meta atingida."""
+    if meta > 0:
+        return investivel / meta * 100
+    return 100.0 if meta_bruta > 0 else 0.0
+
+
 # =============================================================================
 # Result
 # =============================================================================
@@ -416,7 +426,7 @@ class IFProjector:
             else BaseDaMetaIF.renda_alvo_bruta
         )
 
-        if_pct = (investivel / meta * 100) if meta > 0 else 0.0
+        if_pct = _progresso_if_pct(investivel=investivel, meta=meta, meta_bruta=cfg.if_meta)
         # `FORMULAS.md:26-27` manda MAX(0, ·). Gap negativo é número que não existe no
         # domínio ("precisa acumular menos que zero") e NÃO fica só no JSON:
         # `summaries_narrator:283` e `charts_narrator:229,385,390` o formatam como moeda
