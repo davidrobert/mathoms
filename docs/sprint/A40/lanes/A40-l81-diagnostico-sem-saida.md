@@ -260,7 +260,7 @@ e o re-harvest do orquestrador sobrescrevia por cima. Invertida a ordem em
 `_reasons_in`; teste de regressão escrito **antes** do fix.
 
 **Limite declarado.** O checkout que executou estava em `origin/main` + PR2 da
-[[A40.l80]] (não mergeada), que toca `investimentos_cobertura.py` — um produtor
+[[A40.l80]] (mergeada em 2026-08-27), que toca `investimentos_cobertura.py` — um produtor
 de razão. Os 6 arquivos do mecanismo da l81 foram verificados **bit-idênticos** a
 `origin/main`, então o veredito do predicado é limpo; as **contagens** valem para
 o SHA `548e651a`, não como baseline de `main`.
