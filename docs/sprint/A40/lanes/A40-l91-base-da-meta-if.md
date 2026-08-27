@@ -7,6 +7,7 @@ plan: PLAN-deterministic-authority
 status: in_progress
 priority: P0
 branch_slug: a40-l91-base-da-meta-if
+ship_pr: 1753
 owner: financial-planner
 depends_on: []
 adrs:
