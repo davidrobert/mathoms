@@ -4,7 +4,9 @@ type: lane
 title: "A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1750
+ship_date: "2026-08-26"
 priority: P1
 branch_slug: a40-l79-row-fiscal-ausente-e-fail-open
 owner: data-engineer
@@ -15,7 +17,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/financial-planning
@@ -116,6 +118,39 @@ contra o rollover que a produção sofre.
    separar "row não existe" de "ConfigStore quebrou".
 4. Gate que não seja o golden atual: a fixture não pode clampar o eixo que o
    teste existe para vigiar.
+
+## Entregue — 2026-08-26
+
+**A causa raiz era de vocabulário.** As duas implementações do `ConfigStore`
+levantavam exceções **diferentes** para a mesma condição — `FiscalParameterNotFound`
+no DB, `KeyError` na in-memory — e o consumidor no pipeline **não pode importar
+nenhuma das duas** ([[ADR-089]]). Sem tipo comum, *"não há row para o ano"* era
+indistinguível de *"o store quebrou"*, e o `except Exception` tratava as duas
+igual: cair no dict legado.
+
+`FiscalParametersAusentes` passa a viver no **port**, e as duas implementações a
+levantam. Aí o consumidor consegue separar:
+
+| condição | antes | agora |
+|---|---|---|
+| row ausente | dict legado ⇒ **R$ 630,00** sem rastro | recusa com `sem_tabela_fiscal_do_ano` |
+| store quebrado | dict legado + `[warn]` | inalterado — é falha, não ausência |
+
+O motivo é **próprio**, não `regime_fiscal_incompleto`: aquele **afirma** sobre um
+regime conhecido (*"o redutor não está modelado"*); aqui não se conhece nada. A
+nota diz o que falta do **nosso** lado — o cliente não tem o que corrigir — e o
+espaço de 12% do IRPF continua publicado.
+
+**O clamp da fixture caiu.** `fiscal_store_do_seed` servia a linha de 2026 para
+2027 e 2030; a produção resolve por vigência e **levanta**. Agora a fixture levanta
+também, e dois testes parametrizados falham se alguém a fizer resolver ano que a
+seed não cobre.
+
+> **A fiação quase ficou sem gate.** Os primeiros testes construíam o VO direto e
+> provavam a **regra**; a mutação de reverter o `except` do `analyze_finances`
+> passava com tudo verde. `TestFiacaoNoAnalyzeFinances` roda o E5 com store sem row
+> e assere o motivo no payload — aí a mutação mata. Regra testada e fiação sem
+> teste é o modo de falha que esta sprint viu mais vezes.
 
 ## Critério de aceite
 

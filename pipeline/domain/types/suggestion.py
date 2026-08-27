@@ -63,6 +63,13 @@ VALID_CATEGORIES = frozenset({"alvo_if", "carteira", "protecao", "comportamental
 # voltam — `section_id` órfão produz âncora morta no relatório e em /acao.
 # Apêndices (APP_A..APP_E) ficam fora: vivem em §estrategico.appendices e não
 # hospedam SuggestionCallout.
+# Seção habilitada que NÃO é alvo de âncora. `S_PROTECAO` entrou no relatório em
+# A40.l88 como render puro: o parecer segue sem ela em `parecer_planejador.schema.json`,
+# e ampliar o enum da LLM sem renderer de callout criaria emissor sem leitor — a
+# classe que aquela lane fechou. Tirar um id daqui exige adicioná-lo NOS DOIS lados
+# no mesmo PR, com bump de PROMPT_VERSION.
+SECOES_SEM_ANCORA = frozenset({"S_PROTECAO"})
+
 VALID_SECTION_IDS = frozenset(
     {
         "S1",

@@ -8,6 +8,7 @@ saber o que entra em "carteira produtiva".
 
 from __future__ import annotations
 
+from decimal import Decimal
 from enum import Enum
 from typing import Mapping
 
@@ -122,15 +123,24 @@ def publicar_bases(valores_crus: Mapping[str, float]) -> dict[str, dict]:
 
 
 def _base_declarada(base: BaseFinanceira, valores: Mapping[str, float]) -> dict:
-    termos = termos_da_base(base)
-    return {"termos": list(termos), "valor_brl": round(_somar_termos(termos, valores), 2)}
+    return {
+        "termos": list(termos_da_base(base)),
+        "valor_brl": float(round(_valor_da_base(base, valores), 2)),
+    }
 
 
-def _somar_termos(termos: tuple[str, ...], valores: Mapping[str, float]) -> float:
-    total = 0.0
-    for termo in termos:
+# Termo pode nomear OUTRA base (`carteira_produtiva_familia` = carteira financeira
+# + cat_2). Sem resolver a referência, a base derivada sai ZERO quando o chamador
+# não pré-computou a intermediária — foi assim que
+# `carteira_produtiva_com_titular_identificado` saiu 0 no primeiro dogfood.
+def _valor_da_base(base: BaseFinanceira, valores: Mapping[str, float]) -> Decimal:
+    total = Decimal("0")
+    for termo in termos_da_base(base):
         negativo = termo.startswith("-")
         nome = termo[1:] if negativo else termo
-        valor = float(valores.get(nome) or 0.0)
+        vizinha = next((b for b in BaseFinanceira if b.value == nome), None)
+        valor = (
+            _valor_da_base(vizinha, valores) if vizinha else Decimal(str(valores.get(nome) or 0.0))
+        )
         total += -valor if negativo else valor
     return total

@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Literal, Mapping
 
+from pipeline.domain.services.bases_financeiras import BaseFinanceira
 from pipeline.domain.services.concentracao_imobiliaria import (
     compute_concentracao_imobiliaria_pct,
 )
@@ -120,6 +121,9 @@ class FinancialRatios:
     # (sem imóvel ilíquido). `to_legacy_dict` emite o nome antigo como alias
     # deprecated por 1 ciclo.
     autonomia_financeira_meses: float
+    # A40.l80 ([[ADR-412]] §D7): extremo conservador. Autonomia autoriza gastar o
+    # fôlego, então o conservador é o extremo INFERIOR.
+    piso_autonomia_financeira_meses: float = 0.0
     # C11-Fase2 / FIN-05 ([[ADR-340]]): SSOT da concentração imobiliária —
     # cat_2 / carteira produtiva. Ver `_calc_concentracao_imobiliaria`.
     concentracao_imobiliaria_pct: float = 0.0
@@ -130,14 +134,23 @@ class FinancialRatios:
     janela: str = "full"
     rentabilidade: RentabilidadeRatio | None = None
 
+    # A40.l80 ([[ADR-412]] §D7): a medida, o alias legado e o extremo conservador
+    # saem juntos — quem lê a autonomia tem de ver o intervalo no mesmo lugar.
+    def _autonomia_com_intervalo(self) -> dict:
+        return {
+            "autonomia_financeira_meses": round(self.autonomia_financeira_meses, 2),
+            # ADR-335: alias deprecated por 1 ciclo (view-model/consumidores antigos).
+            "cobertura_despesas_meses": round(self.autonomia_financeira_meses, 2),
+            "piso_autonomia_financeira_meses": round(self.piso_autonomia_financeira_meses, 2),
+            "base_do_piso": BaseFinanceira.carteira_com_titular_identificado.value,
+        }
+
     def to_legacy_dict(self) -> dict:
         return {
             "taxa_poupanca_recorrente_pct": round(self.taxa_poupanca_recorrente_pct, 2),
             "taxa_poupanca_total_pct": round(self.taxa_poupanca_total_pct, 2),
             "taxa_endividamento_pct": round(self.taxa_endividamento_pct, 2),
-            "autonomia_financeira_meses": round(self.autonomia_financeira_meses, 2),
-            # ADR-335: alias deprecated por 1 ciclo (view-model/consumidores antigos).
-            "cobertura_despesas_meses": round(self.autonomia_financeira_meses, 2),
+            **self._autonomia_com_intervalo(),
             # C11-Fase2 / FIN-05 ([[ADR-340]]): campo canônico de concentração imobiliária.
             "concentracao_imobiliaria": round(self.concentracao_imobiliaria_pct, 2),
             "rentabilidade_pct": _format_pct_or_nd(self.rentabilidade_pct),
@@ -196,6 +209,9 @@ class RatiosCalculator:
             taxa_poupanca_recorrente_pct=poupanca.recorrente_pct_value,
             taxa_poupanca_total_pct=poupanca.geral_pct_value,
             taxa_endividamento_pct=_calc_endividamento(patrimonio),
+            piso_autonomia_financeira_meses=_calc_piso_autonomia(
+                patrimonio, _despesa_consumo_mensal(window)
+            ),
             autonomia_financeira_meses=_calc_autonomia_financeira(
                 patrimonio, _despesa_consumo_mensal(window)
             ),
@@ -298,6 +314,16 @@ def _calc_autonomia_financeira(
     # permanece no denominador (não é transferência discricionária).
     investivel = _safe_float(patrimonio.get("investivel_financeiro", 0))
     return investivel / despesa_consumo_mensal if despesa_consumo_mensal > 0 else 0.0
+
+
+# Lê a base DECLARADA pelo produtor do patrimônio, nunca remonta o denominador —
+# remontar sem citar o nome é a terceira fuga que a §Consequências da [[ADR-412]]
+# nomeia, e é invisível a qualquer varredura por nome de campo.
+def _calc_piso_autonomia(patrimonio: _PatrimonioPayload, despesa_consumo_mensal: float) -> float:
+    bases = patrimonio.get("bases") or {}
+    declarada = bases.get(BaseFinanceira.carteira_com_titular_identificado.value) or {}
+    piso = _safe_float(declarada.get("valor_brl", 0))
+    return piso / despesa_consumo_mensal if despesa_consumo_mensal > 0 else 0.0
 
 
 def _calc_concentracao_imobiliaria(patrimonio: _PatrimonioPayload) -> float:

@@ -4,6 +4,12 @@
  * 3 cenários ADR-240 G6:
  *   a) Workspace com seguros (owner case) — renderiza todos os subgrupos
  *   b) Workspace sem apólices — seção retorna null (não renderiza)
+ *
+ * A40.l88: o cenário (b) só cobria payload de SHAPE quebrado (`{}` e
+ * `undefined`). O caso que a produção entrega — bloco completo, zero apólice
+ * (G6-b do `protecao_analyzer`) — não tinha teste, e foi essa lacuna que
+ * sustentou a crença de que o `return null` já era hide-when-empty. Não era:
+ * `readProtecaoPatrimonial` valida forma. O predicado de vazio nasceu aqui.
  *   c) Combinada multi-bem — renderiza ambos bens em ProtecaoApolices
  */
 import { describe, expect, it } from "vitest";
@@ -13,7 +19,9 @@ import type { ReportAnalysisData } from "@/lib/api/reports";
 import type { ProtecaoPatrimonialData } from "@/types/protecao";
 import { S_ProtecaoSection } from "@/components/report/sections/S_ProtecaoSection";
 
-function makeProtecao(over?: Partial<ProtecaoPatrimonialData>): ProtecaoPatrimonialData {
+function makeProtecao(
+  over?: Partial<ProtecaoPatrimonialData>,
+): ProtecaoPatrimonialData {
   return {
     premio_total_anual_brl: "4750.00",
     premio_decomposicao: { auto: "4100.00", residencial: "650.00" },
@@ -38,7 +46,11 @@ function makeProtecao(over?: Partial<ProtecaoPatrimonialData>): ProtecaoPatrimon
     ],
     gap_qualitativo: [
       { categoria: "vida", flag: true, rationale: "dependentes_menores_18" },
-      { categoria: "saude", flag: false, rationale: "evidencia_pagamento_saude" },
+      {
+        categoria: "saude",
+        flag: false,
+        rationale: "evidencia_pagamento_saude",
+      },
     ],
     apolices_vigentes: [
       {
@@ -69,7 +81,35 @@ function makeProtecao(over?: Partial<ProtecaoPatrimonialData>): ProtecaoPatrimon
 }
 
 function makeData(over?: Partial<ReportAnalysisData>): ReportAnalysisData {
-  return { protecao_patrimonial: makeProtecao(), ...over } as ReportAnalysisData;
+  return {
+    protecao_patrimonial: makeProtecao(),
+    ...over,
+  } as ReportAnalysisData;
+}
+
+/** G6-b medido em 2026-08-27: `compute_protecao` devolve as 11 chaves com
+ *  prêmio 0,00 e `saude` acesa para workspace sem nenhuma apólice. */
+function semCobertura(
+  over?: Partial<ProtecaoPatrimonialData>,
+): ReportAnalysisData {
+  return makeData({
+    protecao_patrimonial: makeProtecao({
+      premio_total_anual_brl: "0.00",
+      premio_decomposicao: {},
+      pct_renda_anual: "0.000000",
+      bens_com_gap_cobertura: [],
+      gap_qualitativo: [
+        { categoria: "vida", flag: true, rationale: "sem_apolice_vida" },
+        { categoria: "saude", flag: true, rationale: "sem_apolice_saude" },
+      ],
+      apolices_vigentes: [],
+      apolices_vencendo: [],
+      apolices_vencidas: [],
+      corretoras_count: 0,
+      seguradoras_count: 0,
+      ...over,
+    }),
+  });
 }
 
 describe("S_ProtecaoSection", () => {
@@ -80,7 +120,9 @@ describe("S_ProtecaoSection", () => {
       expect(screen.getByTestId("protecao-kpi-g")).toBeInTheDocument();
       // KPI B em faixa "ok" (2.375% entre 1% e 3%)
       expect(screen.getByTestId("protecao-kpi-b")).toHaveTextContent("2.38%");
-      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent("Faixa observada");
+      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent(
+        "Faixa observada",
+      );
     });
 
     it("renderiza tabela de gap por veículo com badge correto", () => {
@@ -95,7 +137,9 @@ describe("S_ProtecaoSection", () => {
       // Vida flag=true → renderiza
       expect(screen.getByTestId("protecao-chip-vida")).toBeInTheDocument();
       // Saúde flag=false → NÃO renderiza
-      expect(screen.queryByTestId("protecao-chip-saude")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("protecao-chip-saude"),
+      ).not.toBeInTheDocument();
     });
 
     it("renderiza tabela de apólices vigentes", () => {
@@ -118,7 +162,9 @@ describe("S_ProtecaoSection", () => {
   describe("Cenário B — workspace sem apólices", () => {
     it("retorna null quando protecao_patrimonial está incompleto", () => {
       const { container } = render(
-        <S_ProtecaoSection data={{ protecao_patrimonial: {} } as ReportAnalysisData} />,
+        <S_ProtecaoSection
+          data={{ protecao_patrimonial: {} } as ReportAnalysisData}
+        />,
       );
       expect(container.firstChild).toBeNull();
     });
@@ -128,6 +174,68 @@ describe("S_ProtecaoSection", () => {
         <S_ProtecaoSection data={{} as ReportAnalysisData} />,
       );
       expect(container.firstChild).toBeNull();
+    });
+
+    // O caso que a produção entrega: shape íntegro, zero apólice. Sem este
+    // predicado, ligar a seção publicaria "Seguros — Cobertura Contratada"
+    // zerada com veredito "Atenção" para todo cliente sem apólice.
+    it("retorna null com bloco COMPLETO e zero apólice (G6-b)", () => {
+      const { container } = render(<S_ProtecaoSection data={semCobertura()} />);
+      expect(container.firstChild).toBeNull();
+    });
+
+    // `gap_qualitativo` acende sozinho na ausência de apólice: se ele contasse
+    // como cobertura, a seção voltaria para todo mundo pela porta dos fundos.
+    it("gap qualitativo aceso não basta para abrir a seção", () => {
+      const { container } = render(
+        <S_ProtecaoSection
+          data={semCobertura({
+            gap_qualitativo: [
+              {
+                categoria: "vida",
+                flag: true,
+                rationale: "dependentes_menores_18",
+              },
+            ],
+          })}
+        />,
+      );
+      expect(container.firstChild).toBeNull();
+    });
+
+    it("apólice vencida sozinha abre a seção — cobertura que expirou é fato", () => {
+      render(
+        <S_ProtecaoSection
+          data={semCobertura({
+            apolices_vencidas: [
+              {
+                apolice_numero: "VENC-1",
+                seguradora: "porto",
+                vigencia_inicio: "2024-01-01",
+                vigencia_fim: "2025-01-01",
+                premio_total_brl: "900.00",
+                bens_count: 1,
+              },
+            ],
+          })}
+        />,
+      );
+      expect(screen.getByTestId("protecao-apolice-VENC-1")).toBeInTheDocument();
+    });
+
+    it("cobertura só no cadastro manual abre a seção", () => {
+      render(
+        <S_ProtecaoSection
+          data={semCobertura({
+            escopo_cobertura: {
+              premio_inclui_cadastro_manual: false,
+              categorias_somente_no_cadastro: ["vida"],
+              veredito_pct_renda_suprimido: true,
+            },
+          })}
+        />,
+      );
+      expect(screen.getByTestId("protecao-kpi-hero")).toBeInTheDocument();
     });
   });
 
@@ -159,7 +267,9 @@ describe("S_ProtecaoSection", () => {
         }),
       });
       render(<S_ProtecaoSection data={data} />);
-      expect(screen.queryByTestId("protecao-gap-qualitativo")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("protecao-gap-qualitativo"),
+      ).not.toBeInTheDocument();
     });
 
     it("não renderiza metadata multi-corretor quando count=1", () => {
@@ -167,7 +277,9 @@ describe("S_ProtecaoSection", () => {
         protecao_patrimonial: makeProtecao({ corretoras_count: 1 }),
       });
       render(<S_ProtecaoSection data={data} />);
-      expect(screen.queryByTestId("protecao-multi-corretor")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("protecao-multi-corretor"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -177,7 +289,9 @@ describe("S_ProtecaoSection", () => {
         protecao_patrimonial: makeProtecao({ pct_renda_anual: "0.005000" }),
       });
       render(<S_ProtecaoSection data={data} />);
-      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent("Atenção");
+      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent(
+        "Atenção",
+      );
     });
 
     it("3% < pct ≤ 5% → ok-forte", () => {
@@ -185,7 +299,9 @@ describe("S_ProtecaoSection", () => {
         protecao_patrimonial: makeProtecao({ pct_renda_anual: "0.040000" }),
       });
       render(<S_ProtecaoSection data={data} />);
-      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent("Bem dimensionado");
+      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent(
+        "Bem dimensionado",
+      );
     });
 
     it("pct > 5% → atenção", () => {
@@ -193,7 +309,9 @@ describe("S_ProtecaoSection", () => {
         protecao_patrimonial: makeProtecao({ pct_renda_anual: "0.070000" }),
       });
       render(<S_ProtecaoSection data={data} />);
-      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent("Atenção");
+      expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent(
+        "Atenção",
+      );
     });
   });
 });
@@ -214,13 +332,19 @@ describe("KPI B — escopo declarado (ADR-240 §Emenda 2026-08-08)", () => {
   it("emite o veredito de faixa quando o escopo documental é completo", () => {
     render(<S_ProtecaoSection data={makeData()} />);
     expect(screen.getByTestId("protecao-kpi-b-sinal")).toBeInTheDocument();
-    expect(screen.queryByTestId("protecao-kpi-b-escopo")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("protecao-kpi-b-escopo"),
+    ).not.toBeInTheDocument();
   });
 
   it("suprime o veredito quando há cobertura fora dos documentos", () => {
     render(<S_ProtecaoSection data={comEscopoParcial()} />);
-    expect(screen.queryByTestId("protecao-kpi-b-sinal")).not.toBeInTheDocument();
-    expect(screen.getByTestId("protecao-kpi-b-escopo")).toHaveTextContent(/não avaliamos a faixa/);
+    expect(
+      screen.queryByTestId("protecao-kpi-b-sinal"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("protecao-kpi-b-escopo")).toHaveTextContent(
+      /não avaliamos a faixa/,
+    );
   });
 
   it("mantém o valor do KPI visível — suprime o julgamento, não o dado", () => {
@@ -231,7 +355,11 @@ describe("KPI B — escopo declarado (ADR-240 §Emenda 2026-08-08)", () => {
   it("artifact antigo sem o bloco segue emitindo o veredito", () => {
     const semEscopo = makeProtecao();
     delete semEscopo.escopo_cobertura;
-    render(<S_ProtecaoSection data={{ protecao_patrimonial: semEscopo } as ReportAnalysisData} />);
+    render(
+      <S_ProtecaoSection
+        data={{ protecao_patrimonial: semEscopo } as ReportAnalysisData}
+      />,
+    );
     expect(screen.getByTestId("protecao-kpi-b-sinal")).toBeInTheDocument();
   });
 });

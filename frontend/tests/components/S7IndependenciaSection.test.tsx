@@ -23,7 +23,9 @@ import type {
 } from "@/lib/api";
 import type { IrpfKpis } from "@/types/irpf";
 
-function makePassiveIncome(overrides: Partial<PassiveIncomeData> = {}): PassiveIncomeData {
+function makePassiveIncome(
+  overrides: Partial<PassiveIncomeData> = {},
+): PassiveIncomeData {
   return {
     status: "ok",
     renda_passiva_anual_brl: 24_000,
@@ -46,9 +48,17 @@ function makePassiveIncome(overrides: Partial<PassiveIncomeData> = {}): PassiveI
   };
 }
 
-function makeData(overrides: Partial<ReportAnalysisData> = {}): ReportAnalysisData {
+function makeData(
+  overrides: Partial<ReportAnalysisData> = {},
+): ReportAnalysisData {
   return {
-    goals: { if_meta: 5_000_000, if_pct: 30, if_trs: 5, ano_if: 2040, if_gap: 4_000_000 },
+    goals: {
+      if_meta: 5_000_000,
+      if_pct: 30,
+      if_trs: 5,
+      ano_if: 2040,
+      if_gap: 4_000_000,
+    },
     passive_income: makePassiveIncome(),
     ...overrides,
   };
@@ -74,38 +84,59 @@ const IRPF_KPIS: IrpfKpis = {
 describe("<S7IndependenciaSection /> · localização PGBL", () => {
   it("declara o IRPF ausente sem número nem âncora morta", () => {
     render(<S7IndependenciaSection data={makeData()} />);
-    expect(screen.getByTestId("s7-pgbl-without-irpf")).toHaveTextContent(/não há declaração de IRPF processada/i);
-    expect(screen.queryByRole("link", { name: /Otimização Tributária/i })).toBeNull();
-    expect(screen.getByRole("link", { name: /Importar declaração de IRPF/i }))
-      .toHaveAttribute("href", "/documents");
+    expect(screen.getByTestId("s7-pgbl-without-irpf")).toHaveTextContent(
+      /não há declaração de IRPF processada/i,
+    );
+    expect(
+      screen.queryByRole("link", { name: /Otimização Tributária/i }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("link", { name: /Importar declaração de IRPF/i }),
+    ).toHaveAttribute("href", "/documents");
   });
 
   it("aponta para o Card B quando há IRPF processado", () => {
     const data = makeData({
       irpf_kpis: IRPF_KPIS as unknown as Record<string, unknown>,
-      fluxo_caixa: { receita_despesa_mensal_detalhado: { labels: ["2024-12"] } },
+      fluxo_caixa: {
+        receita_despesa_mensal_detalhado: { labels: ["2024-12"] },
+      },
     });
     render(<S7IndependenciaSection data={data} />);
-    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/IRPF de 2024/i);
-    expect(screen.getByRole("link", { name: /Otimização Tributária/i }))
-      .toHaveAttribute("href", "#S_IRPF_OTIMIZACAO");
+    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(
+      /IRPF de 2024/i,
+    );
+    expect(
+      screen.getByRole("link", { name: /Otimização Tributária/i }),
+    ).toHaveAttribute("href", "#S_IRPF_OTIMIZACAO");
     expect(screen.queryByText(/defasado em/i)).toBeNull();
   });
 
   it("preserva o aviso de defasagem maior ou igual a dois anos", () => {
     const data = makeData({
-      irpf_kpis: { ...IRPF_KPIS, ano_base: 2022 } as unknown as Record<string, unknown>,
-      fluxo_caixa: { receita_despesa_mensal_detalhado: { labels: ["2025-12"] } },
+      irpf_kpis: { ...IRPF_KPIS, ano_base: 2022 } as unknown as Record<
+        string,
+        unknown
+      >,
+      fluxo_caixa: {
+        receita_despesa_mensal_detalhado: { labels: ["2025-12"] },
+      },
     });
     render(<S7IndependenciaSection data={data} />);
-    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/defasado em 3 anos/i);
-    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(/IRPF mais recente/i);
+    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(
+      /defasado em 3 anos/i,
+    );
+    expect(screen.getByTestId("s7-pgbl-location")).toHaveTextContent(
+      /IRPF mais recente/i,
+    );
   });
 });
 
 describe("<S7IndependenciaSection /> · empty states", () => {
   it("renderiza empty state sem_irpf com CTA Importar IRPF", () => {
-    const data = makeData({ passive_income: makePassiveIncome({ status: "sem_irpf" }) });
+    const data = makeData({
+      passive_income: makePassiveIncome({ status: "sem_irpf" }),
+    });
     render(<S7IndependenciaSection data={data} />);
     expect(
       screen.getByRole("heading", { level: 3, name: /Importe seu IRPF/i }),
@@ -116,10 +147,15 @@ describe("<S7IndependenciaSection /> · empty states", () => {
   });
 
   it("renderiza empty state gerador_zero (sem CTA)", () => {
-    const data = makeData({ passive_income: makePassiveIncome({ status: "gerador_zero" }) });
+    const data = makeData({
+      passive_income: makePassiveIncome({ status: "gerador_zero" }),
+    });
     render(<S7IndependenciaSection data={data} />);
     expect(
-      screen.getByRole("heading", { level: 3, name: /TRS efetiva começa quando há patrimônio/i }),
+      screen.getByRole("heading", {
+        level: 3,
+        name: /TRS efetiva começa quando há patrimônio/i,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -128,7 +164,9 @@ describe("<S7IndependenciaSection /> · empty states", () => {
     render(<S7IndependenciaSection data={data} />);
     // O label "TRS efetiva" só aparece dentro do bloco PassiveIncomeOk;
     // botão "Sobre TRS efetiva" tem aria-label específico que cobre ausência.
-    expect(screen.queryByRole("button", { name: /Sobre TRS efetiva/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /Sobre TRS efetiva/i }),
+    ).toBeNull();
   });
 });
 
@@ -156,8 +194,11 @@ describe("<S7IndependenciaSection /> · banners condicionais", () => {
       passive_income: makePassiveIncome({ acumuladores_pct_gerador: 60 }),
     });
     render(<S7IndependenciaSection data={data} />);
-    expect(screen.getByText(/sua carteira de renda está em ativos sem distribuição/i))
-      .toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /sua carteira de renda está em ativos sem distribuição/i,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("AcumuladoresBanner some quando pct <= 40", () => {
@@ -166,13 +207,18 @@ describe("<S7IndependenciaSection /> · banners condicionais", () => {
     });
     render(<S7IndependenciaSection data={data} />);
     expect(
-      screen.queryByText(/sua carteira de renda está em ativos sem distribuição/i),
+      screen.queryByText(
+        /sua carteira de renda está em ativos sem distribuição/i,
+      ),
     ).toBeNull();
   });
 
   it("DefasagemWarningBanner aparece quando defasagem >= 15m", () => {
     const data = makeData({
-      passive_income: makePassiveIncome({ defasagem_meses: 18, ano_referencia_irpf: 2023 }),
+      passive_income: makePassiveIncome({
+        defasagem_meses: 18,
+        ano_referencia_irpf: 2023,
+      }),
     });
     render(<S7IndependenciaSection data={data} />);
     expect(screen.getByText(/IRPF de 2023 desatualizado/i)).toBeInTheDocument();
@@ -180,7 +226,10 @@ describe("<S7IndependenciaSection /> · banners condicionais", () => {
 
   it("DefasagemWarningBanner some quando defasagem < 15m", () => {
     const data = makeData({
-      passive_income: makePassiveIncome({ defasagem_meses: 12, ano_referencia_irpf: 2024 }),
+      passive_income: makePassiveIncome({
+        defasagem_meses: 12,
+        ano_referencia_irpf: 2024,
+      }),
     });
     render(<S7IndependenciaSection data={data} />);
     expect(screen.queryByText(/desatualizado/i)).toBeNull();
@@ -201,7 +250,9 @@ describe("<S7IndependenciaSection /> · loop visual KPI↔banner", () => {
       passive_income: makePassiveIncome({ acumuladores_pct_gerador: 0 }),
     });
     render(<S7IndependenciaSection data={data} />);
-    expect(screen.getByText(/Sem ETFs\/fundos acumuladores/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Sem ETFs\/fundos acumuladores/i),
+    ).toBeInTheDocument();
   });
 });
 
@@ -236,7 +287,9 @@ describe("<S7IndependenciaSection /> · matriz fase × acumuladores × defasagem
           render(<S7IndependenciaSection data={data} />);
           // 4 KPIs sempre presentes em status ok — usamos getAllByText pois
           // "Renda passiva" também aparece no NarrativeChartCard.
-          expect(screen.getAllByText(/Renda passiva/i).length).toBeGreaterThan(0);
+          expect(screen.getAllByText(/Renda passiva/i).length).toBeGreaterThan(
+            0,
+          );
           expect(screen.getByText(/Patrimônio investido/i)).toBeInTheDocument();
           expect(screen.getByText(/Em acumuladores/i)).toBeInTheDocument();
         });
@@ -257,7 +310,9 @@ describe("<S7IndependenciaSection /> · acessibilidade (label + tooltip)", () =>
 
 // ─── A28.l9 — ressalva de premissas fallback no Monte Carlo ───
 
-function makeMonteCarlo(overrides: Partial<IFMonteCarloData> = {}): IFMonteCarloData {
+function makeMonteCarlo(
+  overrides: Partial<IFMonteCarloData> = {},
+): IFMonteCarloData {
   return {
     // ADR-369 D1 — cenário nomeado: favorável é o ano mais CEDO (2036), adverso
     // é o mais tarde (2044). O fixture antigo lia `p10_ano_if: 2044`, que era
@@ -290,13 +345,15 @@ function makePremissasEconomicas(
       {
         classe_auvp: "renda_fixa",
         status: classStatus,
-        retorno_real_esperado_pct_anual: classStatus === "emitted" ? "4.5" : null,
+        retorno_real_esperado_pct_anual:
+          classStatus === "emitted" ? "4.5" : null,
         sigma_anual_pct: null,
         fonte: null,
         fonte_origem: null,
         effective_from: null,
         justificativa: null,
-        razao_indisponivel: classStatus === "indisponivel" ? "sem premissa" : null,
+        razao_indisponivel:
+          classStatus === "indisponivel" ? "sem premissa" : null,
       },
     ],
   };
@@ -352,9 +409,7 @@ describe("IFMonteCarloBlock · premissas fallback (A28.l9)", () => {
   it("prazo declarado presente: nomeia o dono da data e o ano-alvo", () => {
     const data = makeData({ if_monte_carlo: makeMonteCarlo() });
     render(<S7IndependenciaSection data={data} />);
-    expect(
-      screen.getByText(/15 anos que você declarou/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/15 anos que você declarou/)).toBeInTheDocument();
     expect(screen.getByText(/2041/)).toBeInTheDocument();
   });
 
@@ -408,7 +463,9 @@ describe("<S7IndependenciaSection /> · gate do bloco de stats de IF", () => {
   });
 
   it("basta UM KPI presente para o bloco aparecer", () => {
-    const data = makeData({ goals: { if_pct: 30 } } as Partial<ReportAnalysisData>);
+    const data = makeData({
+      goals: { if_pct: 30 },
+    } as Partial<ReportAnalysisData>);
     render(<S7IndependenciaSection data={data} />);
     expect(screen.getByText("Meta IF")).toBeInTheDocument();
     expect(screen.getByText("Progresso")).toBeInTheDocument();
@@ -456,5 +513,124 @@ describe("<S7IndependenciaSection /> · sem alvo de retorno", () => {
     expect(TRS_EFETIVA_TOOLTIP).not.toMatch(/retirada sustentável/i);
     expect(TRS_EFETIVA_TOOLTIP).not.toMatch(/\b4%/);
     expect(TRS_EFETIVA_TOOLTIP).not.toMatch(/alvo/i);
+  });
+});
+
+/**
+ * A40.l91 ([[ADR-418]] §D3) — o card de "Meta IF" publicava um número sem dizer qual
+ * renda mensal ele sustenta nem de que base o gap e o progresso saíram. Auditar a base
+ * exigia ler código-fonte, que é como o PV9-16 nasceu.
+ */
+describe("S7 — a Meta IF nomeia a base e o que ela financia", () => {
+  it("nomeia a renda-alvo mensal que a meta sustenta", () => {
+    const data = makeData({
+      goals: {
+        if_meta: 5_000_000,
+        if_pct: 30,
+        if_trs: 5,
+        ano_if: 2040,
+        if_gap: 4_000_000,
+        if_trs_monthly_value: 20_833,
+      },
+    } as Partial<ReportAnalysisData>);
+
+    render(<S7IndependenciaSection data={data} />);
+
+    expect(
+      screen.getByText(/financia .*\/mês — a renda-alvo declarada/),
+    ).toBeInTheDocument();
+  });
+
+  it("declara o desconto quando a meta é líquida de renda fora da carteira", () => {
+    const data = makeData({
+      goals: {
+        if_meta: 4_000_000,
+        if_pct: 30,
+        if_trs: 5,
+        ano_if: 2040,
+        if_gap: 3_000_000,
+        if_trs_monthly_value: 20_833,
+        if_meta_base: "renda_alvo_liquida_de_renda_externa",
+        renda_passiva_fora_do_investivel_mensal_brl: 4_166,
+      },
+    } as Partial<ReportAnalysisData>);
+
+    render(<S7IndependenciaSection data={data} />);
+
+    expect(
+      screen.getByText(/já descontados .*\/mês de bens fora desta carteira/),
+    ).toBeInTheDocument();
+  });
+
+  it("não inventa desconto quando o termo é zero ou não foi medido", () => {
+    const data = makeData({
+      goals: {
+        if_meta: 5_000_000,
+        if_pct: 30,
+        if_trs: 5,
+        ano_if: 2040,
+        if_gap: 4_000_000,
+        if_trs_monthly_value: 20_833,
+        renda_passiva_fora_do_investivel_mensal_brl: 0,
+      },
+    } as Partial<ReportAnalysisData>);
+
+    render(<S7IndependenciaSection data={data} />);
+
+    expect(screen.queryByText(/já descontados/)).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * A40.l91 ([[ADR-418]] §D5) — `if_pct` é `null` quando a meta clampa em zero. O `?? 0`
+ * anterior renderizava "0,0%": a afirmação oposta ao fato, e o mesmo modo de falha que a
+ * ADR-412 §D7 já nomeava para o piso.
+ */
+describe("S7 — progresso ausente não vira 0,0%", () => {
+  const semProgresso = {
+    if_meta: 0,
+    if_meta_bruta: 5_000_000,
+    if_meta_base: "renda_externa_cobre_alvo",
+    if_pct: null,
+    if_gap: 0,
+    if_trs: 5,
+    ano_if: 2040,
+  };
+
+  it("renderiza traço, não zero", () => {
+    render(
+      <S7IndependenciaSection
+        data={makeData({ goals: semProgresso } as Partial<ReportAnalysisData>)}
+      />,
+    );
+
+    expect(screen.queryByText("0.0%")).not.toBeInTheDocument();
+    expect(screen.queryByText("0,0%")).not.toBeInTheDocument();
+  });
+
+  it("nomeia por que o progresso não saiu", () => {
+    render(
+      <S7IndependenciaSection
+        data={makeData({ goals: semProgresso } as Partial<ReportAnalysisData>)}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        /renda de bens fora desta carteira já cobre a renda-alvo/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("não afirma fase de acumulação sem progresso apurado", () => {
+    render(
+      <S7IndependenciaSection
+        data={makeData({ goals: semProgresso } as Partial<ReportAnalysisData>)}
+      />,
+    );
+
+    expect(
+      screen.queryByText(/Carteira em acumulação/),
+    ).not.toBeInTheDocument();
   });
 });

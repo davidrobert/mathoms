@@ -11,8 +11,9 @@ open · in_progress · blocked.
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
-- [[A40.l36]] — Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes · priority P1 · área pipeline/financial-planning · branch `a40-l36-double-count-base-cascata-s8`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
+- [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
+- [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l46]] — Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup · priority P2 · área frontend · branch `a40-l46-residuos-perfil-identidade`
 - [[A40.l48]] — Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo · priority P2 · área pipeline · branch `a40-l48-polaridade-de-comparacao-nao-monotonica`
 - [[A40.l50]] — Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado · priority P1 · área report/pipeline/financial-planning · branch `a40-l50-abertos-exposicao-cambial`
@@ -23,28 +24,21 @@ open · in_progress · blocked.
 - [[A40.l72]] — Guarda de contrato no render: o relatório deixa de fechar 100% sobre payload que viola invariante · priority P1 · área frontend · branch `a40-l72-guarda-de-contrato-no-render`
 - [[A40.l75]] — O gate de drift do MSW existe, está fora do CI e compara errado: a ADR-069 afirma uma proteção que nunca rodou · priority P2 · área frontend/testing · branch `a40-l75-msw-drift-gate-inerte`
 - [[A40.l76]] — A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia · priority P1 · área pipeline/db · branch `a40-l76-proveniencia-de-artefato-e2`
-- [[A40.l79]] — A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 · priority P1 · área pipeline/financial-planning · branch `a40-l79-row-fiscal-ausente-e-fail-open`
 - [[A40.l80]] — Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' · priority P0 · área pipeline/financial-planning/report · branch `a40-l80-denominador-amputado`
 - [[A40.l84]] — O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou · priority P0 · área backend/pipeline · branch `a40-l84-guard-na-camada-errada`
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
-- [[A40.l88]] — Consumidor ausente no entregue: o produto emite a ressalva, a seção e o aviso — e nenhum dos três chega ao leitor · priority P0 · área frontend/report · branch `a40-l88-consumidor-ausente-no-entregue`
-- [[A40.l91]] — A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos · priority P0 · área pipeline/financial-planning · branch `a40-l91-base-da-meta-if`
 
 ## In progress
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
-- [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · área frontend/design-system/a11y · branch `a40-l33-contraste-texto-sobre-tint`
-- [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
-- [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
-- [[A40.l54]] — `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) · priority P2 · área frontend/report · branch `a40-l54-hidden-md-block-no-papel`
-- [[A40.l78]] — Mover código não deixa citação órfã: gate no lado do código, não no do doc · priority P2 · área docs · branch `a40-l78-gate-doc-code-paths`
+- [[A40.l91]] — A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos · priority P0 · área pipeline/financial-planning · branch `a40-l91-base-da-meta-if`
 
 ## Blocked
 
 _Não pegáveis. Listadas porque `blocked` que fica stale some daqui justamente quando a dependência ship e a lane vira pegável._
 
-- [[A40.l89]] — Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica · priority P0 · área pipeline/llm · ⛔ dep pendente: A40.l91 (open) · branch `a40-l89-wiring-do-catalogo-de-alvo`
+- [[A40.l89]] — Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica · priority P0 · área pipeline/llm · ⛔ dep pendente: A40.l91 (in_progress) · branch `a40-l89-wiring-do-catalogo-de-alvo`
 - [[A40.l90]] — A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar · priority P0 · área pipeline/financial-planning · ⛔ dep pendente: A40.l89 (blocked) · branch `a40-l90-limiar-de-risco-le-o-catalogo`
 
 ---

@@ -170,14 +170,18 @@ class PontosFortesAnalyzer:
         # C5-C1: reserva muito acima do alvo (motor marca "Excessiva", ou ≥2× o alvo) não
         # é "no alvo" — reconhece a robustez mas sinaliza o excedente realocável em vez de
         # celebrar over-provisioning (custo de oportunidade; UX-06/FIN-03).
-        excessiva = avaliacao == "excessiva" or (meses_alvo > 0 and cobertura >= meses_alvo * 2)
+        # O segundo braço avalia no EXTREMO CONSERVADOR: com fatia sem dono, a
+        # cobertura medida infla, e "≥2× o alvo" dispararia sobre número que a
+        # atribuição não sustenta ([[ADR-412]] §D7).
+        piso = _safe_float((reserva or {}).get("piso_cobertura_meses", cobertura))
+        prescricao_suprimida = bool((reserva or {}).get("motivo_supressao"))
+        excessiva = avaliacao == "excessiva" or (meses_alvo > 0 and piso >= meses_alvo * 2)
         if excessiva:
             out.append(
                 PontoForteItem(
                     titulo="Reserva de Emergência Robusta",
-                    descricao=(
-                        f"Cobertura de {cobertura:.0f} meses, acima do alvo de {meses_alvo:.0f} "
-                        "meses do perfil — o excedente pode ser realocado para a classe mais defasada."
+                    descricao=_descricao_reserva_robusta(
+                        cobertura, meses_alvo, prescricao_suprimida
                     ),
                     icone="emergency",
                 )
@@ -235,10 +239,7 @@ class PontosFortesAnalyzer:
             out.append(
                 PontoForteItem(
                     titulo="Autonomia Financeira Ampla",
-                    descricao=(
-                        f"Patrimônio financeiro cobre {autonomia:.0f} meses "
-                        "de despesas — margem de segurança ampla."
-                    ),
+                    descricao=_descricao_autonomia(autonomia, prescricao_suprimida, ampla=True),
                     icone="patrimony",
                 )
             )
@@ -246,9 +247,7 @@ class PontosFortesAnalyzer:
             out.append(
                 PontoForteItem(
                     titulo="Autonomia Financeira Sólida",
-                    descricao=(
-                        f"Patrimônio financeiro cobre {autonomia:.0f} meses de despesas correntes."
-                    ),
+                    descricao=_descricao_autonomia(autonomia, prescricao_suprimida, ampla=False),
                     icone="patrimony",
                 )
             )
@@ -294,3 +293,28 @@ class PontosFortesAnalyzer:
             )
 
         return out
+
+
+_PENDENCIA = "Quanto movimentar depende de identificar o titular das posições sem dono."
+
+
+# A prosa determinística morre no PRODUTOR ([[ADR-412]] §Emenda E3): regra
+# pós-LLM não alcança texto que já saiu pronto daqui. Some a MAGNITUDE e a
+# prescrição; o título e `meses_alvo` sobrevivem — eles não dependem do
+# numerador contaminado.
+def _descricao_reserva_robusta(cobertura: float, meses_alvo: float, suprimida: bool) -> str:
+    if suprimida:
+        return f"Acima do alvo de {meses_alvo:.0f} meses do perfil. {_PENDENCIA}"
+    return (
+        f"Cobertura de {cobertura:.0f} meses, acima do alvo de {meses_alvo:.0f} "
+        "meses do perfil — o excedente pode ser realocado para a classe mais defasada."
+    )
+
+
+def _descricao_autonomia(autonomia: float, suprimida: bool, *, ampla: bool) -> str:
+    if suprimida:
+        cauda = "margem de segurança ampla." if ampla else "margem de segurança sólida."
+        return f"Patrimônio financeiro cobre as despesas correntes com {cauda} {_PENDENCIA}"
+    if ampla:
+        return f"Patrimônio financeiro cobre {autonomia:.0f} meses de despesas — margem ampla."
+    return f"Patrimônio financeiro cobre {autonomia:.0f} meses de despesas correntes."

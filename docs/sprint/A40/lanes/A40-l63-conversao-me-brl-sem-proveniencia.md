@@ -416,6 +416,12 @@ não é o defeito de float que a lane de float-money persegue.
 - **Se e como o snapshot 31/12 do IRPF deve aparecer no card de posições →
   [[A40.l39]]** (`in_progress`). Hoje ele simplesmente não aparece, o que é
   honesto mas não necessariamente o que a família quer ver.
+  > *Nota datada 2026-08-27:* o roteamento estava **de um lado só** — a
+  > [[A40.l39]] nunca registrou este item, e esta lane já era terminal
+  > (`shipped`), logo ninguém o executaria. Aterrissou no §Aberto da l39 no
+  > fecho de 2026-08-27, junto com o P0 do rodapé de PTAX que a [[A40.l50]]
+  > roteou para lá em 2026-08-14 pelo mesmo caminho. O estado da l39 aqui
+  > (`in_progress`) também venceu: ela voltou a `open`.
 - **`CaixaDetalhe.valor_brl: float`** segue `float`, como o §Fora de escopo
   original manda — morre na lane de float-money.
 

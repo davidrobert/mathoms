@@ -514,6 +514,13 @@ _EXPECTED_PAYLOAD_KEYS = {
     "cobertura_meses",
     "avaliacao_liquidity",
     "niveis",
+    # A40.l80 ([[ADR-412]] §D7): o intervalo declarado. A MEDIDA fica; o piso
+    # entra ao lado, e `motivo_supressao` marca a PRESCRIÇÃO suprimida —
+    # `avaliacao_liquidity` permanece de propósito.
+    "piso_cobertura_meses",
+    "base_do_piso",
+    "prescricao_realocacao_suprimida",
+    "motivo_supressao",
 }
 
 

@@ -3,7 +3,9 @@ id: A40.l33
 type: lane
 title: "Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição"
 sprint: A40
-status: in_progress
+status: shipped
+ship_pr: 1436
+ship_date: "2026-08-13"
 priority: P1
 branch_slug: a40-l33-contraste-texto-sobre-tint
 adrs:
@@ -14,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/frontend
   - area/design-system
@@ -37,12 +39,20 @@ light), e o pior par vivia num branch que a fixture `medium` não monta.
 
 ## Escopo
 
-Entregue nos PRs [#1320](https://github.com/davidrobert/mathoms/pull/1320)
-(código + gate) e [#1323](https://github.com/davidrobert/mathoms/pull/1323)
-(documentação).
+Entregue em **5 PRs**: [#1320](https://github.com/davidrobert/mathoms/pull/1320)
+(código + gate), [#1323](https://github.com/davidrobert/mathoms/pull/1323)
+(documentação + [[ADR-372]]), [#1432](https://github.com/davidrobert/mathoms/pull/1432)
+(as outras duas sintaxes de tint — §Ataque),
+[#1434](https://github.com/davidrobert/mathoms/pull/1434) (cor semântica como
+foreground sobre card liso + `check_foreground_contrast`) e
+[#1436](https://github.com/davidrobert/mathoms/pull/1436) (o gate passa a ler
+`style={{ color }}` — sem ele os 1,88:1 de `CpfField`/`MarketValueStaleness`
+seguiriam invisíveis).
 
-- **6 pares `-on-tint`** em `design-tokens/tokens.json`, cada um diferindo da
-  base em exatamente um tema — o que reprova ([[ADR-372]] D1).
+- **7 pares `-on-tint`** em `design-tokens/tokens.json` (contados no fecho de
+  2026-08-27: 7 chaves `*_on_tint` por modo, 14 no total), cada um diferindo da
+  base **em pelo menos um** tema — o que reprova ([[ADR-372]] D1). Eram 6 na
+  redação original; `--brand-accent-on-tint` nasceu no #1432.
 - **18 call-sites migrados**, trocando a cor do texto, nunca afrouxando o tint.
 - **`dev/check_tint_contrast.py`** — gate que mede em vez de proibir a forma
   (D2), com resolução de alias (D3) e `NAMED_PAIRS` para o que o pareamento por
@@ -54,7 +64,8 @@ Entregue nos PRs [#1320](https://github.com/davidrobert/mathoms/pull/1320)
 
 ## Critério de aceite
 
-- [x] `python3 dev/check_tint_contrast.py` → 0 violações (27 pares medidos)
+- [x] `python3 dev/check_tint_contrast.py` → 0 violações (**37** pares medidos
+      em 2026-08-27; eram 27 antes do #1432)
 - [x] Mutação: reverter um call-site para a cor base faz o gate falhar nomeando
       ratio, tema e o par a usar
 - [x] `a11y.@critical.spec.ts` verde nos dois temas
@@ -176,9 +187,13 @@ nasceria vermelho e seria desligado na mesma semana. O valor está no
 sinal de "apareceu caso novo que o axe não consegue decidir". O buraco real é
 que hoje esse número não é nem observado.
 
-*Nota de método:* a versão anterior deste item dizia que Playwright não roda
-neste worktree. **Falso** — era memória vencida de outra sessão; `node_modules`
-é diretório real e o `a11y.@critical.spec.ts` roda em 46s (20 testes, verde). O
+*Nota de método (medida em 2026-08-13, no worktree daquela sessão):* a versão
+anterior deste item dizia que Playwright não roda neste worktree. **Falso** —
+era memória vencida de outra sessão; `node_modules` era diretório real e o
+`a11y.@critical.spec.ts` rodava em 46s (20 testes, verde). **A afirmação é
+por-worktree, não do repo:** no worktree do fecho (2026-08-27)
+`frontend/node_modules` não existia até um `npm ci` explícito. Trate como
+"instalável", não como "presente". O
 que atrapalha é o `webServer` do `playwright.config.ts` com `url` fixo em 3000 e
 `reuseExistingServer: !CI`: com um servidor de outro worktree na 3000, o
 Playwright **reusa o servidor errado** em silêncio. Use
@@ -194,7 +209,18 @@ o tint de 6%; 4,84:1 sobre `--report-alert-warning-bg`), então é margem fina, 
 defeito. Os 5 call-sites de card que reprovavam são conjunto **diferente** e já
 foram corrigidos sem tocar na calibragem aprovada na [[A40.l22]].
 *Retomar quando:* houver mudança visual planejada no S_parecer, ou se o âmbar
-aparecer sobre fundo novo — `--surface-muted` dá 4,18:1 com o token atual.
+aparecer sobre fundo novo — `--surface-muted` dá **4,58:1** com o token atual.
+
+> **Correção de 2026-08-27 (fecho da lane).** A redação original dizia
+> **4,18:1**, e 4,18 *reprova* AA — o número invertia o gatilho de retomada. Re-medido
+> por duas implementações independentes (a `contrast_ratio` do próprio gate e uma
+> luminância WCAG escrita do zero): `#B45309` (`--report-alert-warning-text`) sobre
+> `#F1F5F9` (`--surface-muted`) = **4,584**; sobre `#FFFFFF` (`--surface-card`) =
+> 5,022. Não é drift: `git log` de `tokens.css` mostra `#B45309` escrito em
+> `e6341737` (2026-04-24) e nunca mais alterado, e o blob do commit-merge do #1323
+> — o PR que escreveu a frase — já trazia os dois hexes idênticos aos de hoje. O
+> 4,18 **nunca reproduziu**. O deferimento continua válido; o que muda é que a
+> margem é maior do que a frase dizia.
 *Nota:* a forma recomendada é aliasar por `var()`, o que exige alargar o
 `tokenMap` de `parecerToneContrast.test.ts` (hoje casa só `#[0-9A-Fa-f]{6}`) e
 resolver indireção também no gate.
@@ -208,7 +234,7 @@ badge Fator-R o delta foi 699px de 887.184 (0,0008), muito abaixo do
 precisa rebaselinar**, e se precisar, gere no runner Linux e **olhe as PNGs**:
 baseline commitada sem inspeção congela estado quebrado e o gate vira fail-open.
 
-**3. 24 dos 37 membros de `report_palette` sem consumidor.** A varredura passou
+**3. 27 dos 37 membros de `report_palette` sem consumidor.** A varredura passou
 por dois deles (`--report-surface-warning-text`, `--report-badge-yellow-text`) e
 a proposta inicial era deletá-los. **Recusado:** `report_palette` é espelho
 deliberado do `EXEMPLO_DE_RELATORIO.html` ([[ADR-117]] diz isso na própria
@@ -216,7 +242,41 @@ deliberado do `EXEMPLO_DE_RELATORIO.html` ([[ADR-117]] diz isso na própria
 orfanaria `--report-badge-yellow-bg` do seu par e escolheria arbitrariamente
 dois membros de famílias simétricas.
 *Retomar quando:* houver decisão de política — `report_palette` deve espelhar o
-mockup ou refletir o uso? É lane própria, com [[ADR-117]] na mesa. Os outros
+mockup ou refletir o uso? É lane própria, com [[ADR-117]] na mesa. **Rota viva
+e verificada no fecho:** [[A40.l46]] item 2 (`status: open`), cujo §Critério de
+aceite exige *"decisão registrada (token restaurado, emenda à [[ADR-117]], ou…)"*.
+
+> **Re-medição de 2026-08-27 (fecho da lane).** A redação dizia **24 de 37** e a
+> dívida é maior: **27 de 37**. Denominador reproduz (31 folhas hex + 6
+> gradientes no modo `light`); órfão = token ausente de todo
+> `frontend/src/**/*.{ts,tsx,css}` descontando o próprio `tokens.css`
+> (declaração não é consumo). Distribuição: 6 `alert` · 6 `badge` ·
+> 9 `surface_ext` · 4 `table` · 2 `gradient` (`card-feature`, `card-success` —
+> os outros 4 gradientes têm consumidor). Os outros
 dois "mortos" encontrados de passagem: `--report-alert-success-text` e
 `--report-gradient-card-feature` (este citado como fundo do `variant="feature"`,
 que na verdade resolve para `var(--surface-card)`).
+
+## Fecho — 2026-08-27 · `shipped` em #1436
+
+Lane fechada pelo procedimento da skill `lane-closeout`. Os 5 critérios foram
+**re-exercitados**, não relidos:
+
+| critério | como foi provado agora |
+| --- | --- |
+| gate limpo | `check_tint_contrast` → `ok — 37 par(es)` · `check_foreground_contrast` → `ok — 578 uso(s)`, ambos EXIT=0 |
+| mutação nomeia ratio/tema/par | 3 call-sites revertidos para a cor base numa cópia fiel da árvore: `CreateRuleDialog` → `1.99:1 em light … use --semantic-alert-on-tint`; `CpfField` (sintaxe `style={{color}}`, a do #1436) → `1.88:1`; `MarketValueStaleness` → `1.88:1`. Os dois eixos de staleness do `NAMED_PAIRS` também falham fechado (trocar o fg e mudar só o percentual) |
+| `a11y.@critical` verde nos 2 temas | não é verde de job: run 33001843977, job `Frontend checks`, **step** `Report render gate` = `success`, `76 passed / 2 skipped` — os 2 skips são os declarados de `SECTIONS_NOT_IN_MEDIUM_FIXTURE` |
+| enforcement chega ao merge | `.pre-commit-config.yaml` declara `tint-contrast` e `foreground-contrast` com `pass_filenames: false`; `lint-all` roda `pre-commit run --all-files` (sem os dois no `SKIP`) e está em `all-green.needs` |
+
+**Três números da própria lane não reproduziram** e foram corrigidos in place com
+a medição datada: 6→7 pares `-on-tint`, 27→37 pares medidos, 24→27 órfãos de
+`report_palette`, e o `4,18:1` do §Deferido 1 (que **invertia** o gatilho de
+retomada) → `4,584:1`.
+
+**O que segue aberto, com dono** — §Aberto item 3 (o `axe` descarta
+`results.incomplete`, 65 nós/tema) e os 3 itens do §Deferido, todos sob
+`dono: David Robert` declarado no cabeçalho das seções. Rotas verificadas no
+fecho: §Deferido 3 → [[A40.l46]] item 2 (`open`, escopo confere); §Deferido 2 →
+condição *não* satisfeita (o job `frontend-visual` seguia `skipped` no último
+run medido).

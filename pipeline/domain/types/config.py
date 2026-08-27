@@ -180,6 +180,11 @@ class FiscalParameters:
     # Piso do IRPFM (art. 16-A). `0` = ano sem imposto mínimo — a vigência vem do
     # DADO, não de `if year >= 2026`, mesma política do redutor ([[ADR-414]] D5).
     irpfm_limiar_brl_cents: int = 0
+    # Não existe row de `fiscal_parameters` para o ano. Distinto de
+    # `regime_completo=False`, que é uma AFIRMAÇÃO sobre um regime conhecido:
+    # aqui não se conhece nada. Sem este campo, ausência virava o dict legado e
+    # o consumidor não tinha como perceber ([[A40.l79]]).
+    tabela_ausente: bool = False
     # ADR-389 D4: completude do regime é DADO, para o consumidor recusar lendo a
     # row em vez de `if year >= 2026`. AC2026 nasce incompleto (redutor da Lei
     # 15.270/2025 + IRPFM não modelados — [[A40.l64]]).

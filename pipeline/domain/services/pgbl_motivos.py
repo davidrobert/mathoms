@@ -26,6 +26,10 @@ class MotivoAusenciaPgbl(str, Enum):
     modelo_simplificado = "modelo_simplificado"
     sem_renda_tributavel = "sem_renda_tributavel"
     regime_fiscal_incompleto = "regime_fiscal_incompleto"
+    # Não há tabela fiscal para o ano. `regime_fiscal_incompleto` AFIRMA sobre um
+    # regime conhecido; aqui não se conhece nada — e o legado, que presumia
+    # completo, publicava número errado sem rastro ([[A40.l79]]).
+    sem_tabela_fiscal_do_ano = "sem_tabela_fiscal_do_ano"
     # Único motivo que nomeia CONCLUSÃO de cálculo, não insumo faltante — e o
     # único que coexiste com campos publicados (a economia zero fica). Por isso
     # é o último da precedência: qualquer insumo faltante o cala.
@@ -46,6 +50,7 @@ PRECEDENCIA_MOTIVO_PGBL: tuple[MotivoAusenciaPgbl, ...] = (
     MotivoAusenciaPgbl.sem_irpf_processado,
     MotivoAusenciaPgbl.modelo_simplificado,
     MotivoAusenciaPgbl.sem_renda_tributavel,
+    MotivoAusenciaPgbl.sem_tabela_fiscal_do_ano,
     MotivoAusenciaPgbl.regime_fiscal_incompleto,
     MotivoAusenciaPgbl.irpfm_pode_vincular,
     MotivoAusenciaPgbl.base_familiar_nao_particionada,
@@ -62,6 +67,7 @@ FRAGMENTO_CANONICO_MOTIVO: dict[MotivoAusenciaPgbl, str] = {
     MotivoAusenciaPgbl.modelo_simplificado: "modelo simplificado",
     MotivoAusenciaPgbl.sem_renda_tributavel: "Sem renda tributável",
     MotivoAusenciaPgbl.regime_fiscal_incompleto: "não se aplica ao ano-calendário",
+    MotivoAusenciaPgbl.sem_tabela_fiscal_do_ano: "sem tabela fiscal",
 }
 
 
@@ -89,7 +95,10 @@ def _so_prescricao(motivo: MotivoAusenciaPgbl) -> dict[str, MotivoAusenciaPgbl |
 
 
 def _motivos_por_campo(
-    cap: "CapacidadePgblIRPF", regime_completo: bool, irpfm_vincula: bool = False
+    cap: "CapacidadePgblIRPF",
+    regime_completo: bool,
+    irpfm_vincula: bool = False,
+    tabela_ausente: bool = False,
 ) -> dict[str, MotivoAusenciaPgbl | None]:
     """Aplica a precedência aos 4 campos. Fonte única do que é ausência e por quê."""
     if cap.pgbl_status == PgblStatus.modelo_simplificado:
@@ -98,12 +107,27 @@ def _motivos_por_campo(
     # COMPLETA tem base tributável — a dedução de 12% não tem sobre o que incidir.
     if cap.pgbl_status == PgblStatus.sem_renda_tributavel or cap.capacidade.teto is None:
         return dict.fromkeys(CAMPOS_MOTIVO_PGBL, MotivoAusenciaPgbl.sem_renda_tributavel)
-    if irpfm_vincula:
-        return _so_prescricao(MotivoAusenciaPgbl.irpfm_pode_vincular)
-    if cap.declaracoes_no_ano > 1:
-        return _so_prescricao(MotivoAusenciaPgbl.base_familiar_nao_particionada)
-    if not regime_completo:
-        return _so_prescricao(MotivoAusenciaPgbl.regime_fiscal_incompleto)
+    return _motivo_que_retem_prescricao(cap, regime_completo, irpfm_vincula, tabela_ausente)
+
+
+# Tabela ordenada: o primeiro predicado verdadeiro vence. Estes quatro anulam a
+# PRESCRIÇÃO e preservam o FATO — teto e restante vêm do IRPF e não dependem de
+# nenhum deles.
+def _motivo_que_retem_prescricao(
+    cap: "CapacidadePgblIRPF",
+    regime_completo: bool,
+    irpfm_vincula: bool,
+    tabela_ausente: bool,
+) -> dict[str, MotivoAusenciaPgbl | None]:
+    ordem = (
+        (irpfm_vincula, MotivoAusenciaPgbl.irpfm_pode_vincular),
+        (cap.declaracoes_no_ano > 1, MotivoAusenciaPgbl.base_familiar_nao_particionada),
+        (tabela_ausente, MotivoAusenciaPgbl.sem_tabela_fiscal_do_ano),
+        (not regime_completo, MotivoAusenciaPgbl.regime_fiscal_incompleto),
+    )
+    for aplica, motivo in ordem:
+        if aplica:
+            return _so_prescricao(motivo)
     return dict.fromkeys(CAMPOS_MOTIVO_PGBL, None)
 
 

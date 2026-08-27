@@ -21,7 +21,7 @@ from pipeline.domain.types.config import (  # noqa: E402
     InstitutionsCatalog,
     TransferInternalConfig,
 )
-from pipeline.ports import ConfigStore  # noqa: E402
+from pipeline.ports import ConfigStore, FiscalParametersAusentes  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Protocol shape
@@ -69,8 +69,12 @@ def test_in_memory_config_store_fiscal_lookup_by_year():
 
 
 def test_in_memory_config_store_fiscal_missing_year_raises():
+    # As duas implementações levantavam exceções DIFERENTES para a mesma condição,
+    # e o pipeline não pode importar nenhuma das duas — então "não há row para o
+    # ano" era indistinguível de "o store quebrou".
+    """Ausência fala a língua do PORT, não `KeyError` (A40.l79)."""
     store = InMemoryConfigStore()
-    with pytest.raises(KeyError, match="year=2025"):
+    with pytest.raises(FiscalParametersAusentes, match="year=2025"):
         store.get_fiscal_for_period(date(2025, 1, 1), date(2025, 12, 31))
 
 

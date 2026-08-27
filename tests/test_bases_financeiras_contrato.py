@@ -184,3 +184,37 @@ def test_chave_de_componente_casa_o_schema(schema: dict):
     props = schema["$defs"]["ReservaComposicaoLiquida"]["properties"]
     for papel in PapelMembro:
         assert chave_de_componente(papel.value) in props
+
+
+# Mata: `_somar_termos` não resolver referência entre bases. Sem isso a base
+# derivada sai ZERO quando o chamador não pré-computa a intermediária — foi
+# exatamente assim que `carteira_produtiva_com_titular_identificado` saiu 0 no
+# primeiro dogfood, e nenhum teste pegou: só a auditoria do snapshot.
+_VALORES = {
+    "investimentos_titular": 100.0,
+    "investimentos_conjuge": 50.0,
+    "investimentos_nao_atribuidos": 200.0,
+    "caixa_total_brl": 10.0,
+    "cat2_efetivo": 40.0,
+    "bruto": 1000.0,
+    "dividas": 300.0,
+}
+
+
+def _referencias(base: BaseFinanceira) -> list[str]:
+    nomes = {b.value for b in BaseFinanceira}
+    return [t.lstrip("-") for t in termos_da_base(base) if t.lstrip("-") in nomes]
+
+
+def test_base_que_referencia_outra_resolve_o_valor():
+    from pipeline.domain.services.bases_financeiras import publicar_bases
+
+    bases = publicar_bases(_VALORES)["bases"]
+
+    for base in BaseFinanceira:
+        for nome in _referencias(base):
+            valor = bases[base.value]["valor_brl"]
+            assert valor > 0, f"{base.value} saiu ZERO — a referência não resolveu"
+            assert (
+                valor > bases[nome]["valor_brl"]
+            ), f"{base.value} não é maior que a base que ela contém"
