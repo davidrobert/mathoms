@@ -690,7 +690,15 @@ class E5AnalyzerAdapter:
 
         # 9. Score (paridade com ``calculate_score``) — cobertura_despesas lê
         #    a reserva canônica (FORMULAS.md §Reserva · A28.l1).
-        score_goals = {"if_pct": if_projection.if_pct if if_projection else 0.0}
+        #
+        # `progresso_if` grada no EXTREMO CONSERVADOR ([[ADR-412]] §D7): o score
+        # não pode premiar progresso que depende de saber de quem é o dinheiro.
+        # `cobertura_despesas` NÃO muda — range [3, 12] satura em nota 10 nos dois
+        # extremos do corpus, então movê-la seria golden andando sem sinal.
+        # `score_version` NÃO sobe: mudou o observado de um input, não a fórmula
+        # ([[ADR-217]] §D3).
+        _if_para_score = if_projection_piso or if_projection
+        score_goals = {"if_pct": _if_para_score.if_pct if _if_para_score else 0.0}
         score = self._score.calculate(
             ratios=ratios_dict,
             patrimonio=patrimonio_full,

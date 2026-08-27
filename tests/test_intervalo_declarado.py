@@ -110,3 +110,46 @@ def test_campos_que_dependem_so_do_denominador_ficam_intactos():
 
     for campo in ("custo_essencial_mensal", "meses_alvo", "alvo_brl", "nivel_6_meses"):
         assert r.get(campo) is not None, f"{campo} não depende do numerador contaminado"
+
+
+# -- o score grada no extremo conservador -----------------------------------
+
+
+def _score(if_pct: float) -> dict:
+    from pipeline.domain.services.financial_score_calculator import (
+        FinancialScoreCalculator,
+        FinancialScoreConfig,
+    )
+
+    return FinancialScoreCalculator(FinancialScoreConfig.default()).calculate(
+        ratios={"taxa_poupanca_recorrente_pct": 20.0, "taxa_endividamento_pct": 10.0},
+        patrimonio={"bruto": 1_000_000.0},
+        goals={"if_pct": if_pct},
+        fluxo={},
+        reserva={"cobertura_meses": 50.0, "piso_cobertura_meses": 50.0},
+    )
+
+
+# `cobertura_despesas` NÃO entra: range [3, 12] satura em nota 10 nos dois
+# extremos do corpus, então movê-la seria golden andando sem sinal.
+def test_progresso_if_grada_no_piso_e_cobertura_nao_muda():
+    """[[ADR-412]] §D7: o score não premia progresso que depende de saber o dono."""
+    medida, piso = _score(60.0), _score(20.0)
+    notas = lambda r: {c["code"]: c["nota"] for c in r["componentes"]}  # noqa: E731
+
+    assert piso["valor"] < medida["valor"]
+    assert notas(piso)["progresso_if"] < notas(medida)["progresso_if"]
+    assert notas(piso)["cobertura_despesas"] == notas(medida)["cobertura_despesas"]
+
+
+# O teste acima exercita o CALCULADOR; este exercita a FIAÇÃO. No dogfood a fatia
+# órfã é 0, então medida == piso e nenhum golden discrimina — sem esta asserção
+# estrutural, trocar o piso pela medida no adapter passaria despercebido.
+def test_o_adapter_alimenta_o_score_com_o_piso():
+    """Mata: `score_goals` voltar a ler `if_projection.if_pct`."""
+    import pathlib
+
+    fonte = pathlib.Path("pipeline/domain/services/e5_analyzer_adapter.py").read_text()
+
+    assert "_if_para_score = if_projection_piso or if_projection" in fonte
+    assert '"if_pct": if_projection.if_pct if if_projection else 0.0' not in fonte
