@@ -15,10 +15,13 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+import pytest
+
 from pipeline.domain.services.kpi_target_catalog import (
     METRICA_KEYS,
     PROCEDENCIA_CANONICO,
     PROCEDENCIA_GOAL,
+    KpiTarget,
     build_kpi_targets,
 )
 
@@ -123,7 +126,13 @@ def test_orfaos_por_decisao_de_dominio_nunca_ganham_alvo() -> None:
     decisão, não por lacuna — publicar número aqui seria regressão, não melhoria."""
     alvos = build_kpi_targets(_e5(), scoring=SCORING)
 
-    for chave in ("carteira_trs", "protecao_cobertura", "taxa_poupanca_recorrente"):
+    for chave in (
+        "carteira_trs",
+        "protecao_custo_premio",
+        "taxa_poupanca_recorrente",
+        "if_prazo_ano",
+        "aliquota_efetiva_ir",
+    ):
         assert alvos[chave]["limiar"] is None
         assert alvos[chave]["motivo"]
 
@@ -210,7 +219,75 @@ def test_protecao_declara_a_renda_pela_qual_o_produtor_divide() -> None:
     """A base da proteção nomeia um campo real de `ProtecaoInput`."""
     from pipeline.domain.services.protecao_analyzer import ProtecaoInput
 
-    base = build_kpi_targets(_e5(), scoring=SCORING)["protecao_cobertura"]["base"]
+    # A chave passou a nomear o conceito que o payload de fato publica
+    # (prêmio/renda), não "cobertura" — que não tem agregado no schema, por desenho
+    # da [[ADR-387]]. A asserção de base segue idêntica.
+    base = build_kpi_targets(_e5(), scoring=SCORING)["protecao_custo_premio"]["base"]
 
     assert f"{base}_brl" in ProtecaoInput.__dataclass_fields__, f"`{base}` não nomeia campo"
     assert base != "renda_anual_ativa"
+
+
+_COMUM = {"observado_path": "$.ratios.x", "base": "b", "unidade": "pct", "rotulo": "X"}
+
+# Estados que o construtor tem de recusar. O 1º é o defeito que a ADR-399 fecha e
+# que a suíte antiga aceitava calada: os dois invariantes existentes olham
+# `procedencia`/`motivo` sem pinar `limiar`, e o do golden pina `operador`/`ref` sem
+# pinar `procedencia`. Como os dois predicados colapsam em 1 bit no produtor,
+# nenhuma mutação de payload discrimina qual chave o consumidor usou.
+_ESTADOS_PROIBIDOS = [
+    ("numero sem fonte", {"limiar": 42.0, "operador": "<", "ref": "algum.lugar"}),
+    ("fonte sem numero", {"procedencia": PROCEDENCIA_CANONICO}),
+    (
+        "resolvido e orfao",
+        {
+            "limiar": 42.0,
+            "operador": "<",
+            "procedencia": PROCEDENCIA_CANONICO,
+            "ref": "r",
+            "motivo": "também órfão",
+        },
+    ),
+]
+
+
+@pytest.mark.parametrize("caso,kwargs", _ESTADOS_PROIBIDOS, ids=[c for c, _ in _ESTADOS_PROIBIDOS])
+def test_estado_sem_procedencia_e_irrepresentavel(caso: str, kwargs: dict) -> None:
+    with pytest.raises(ValueError):
+        KpiTarget(**_COMUM, **kwargs)
+
+
+def test_estados_legitimos_continuam_construiveis() -> None:
+    KpiTarget(**_COMUM, limiar=1.0, operador="<", procedencia=PROCEDENCIA_CANONICO, ref="r")
+    KpiTarget(**_COMUM, motivo="sem alvo canônico")
+
+
+def test_todo_kpi_publica_rotulo_proprio() -> None:
+    """O nome da métrica sai do catálogo, não do LLM. Rótulo autorado não é
+    gateável, e ele carrega domínio: cobrir 100% da despesa *essencial* é o marco
+    de segurança, não a independência — o qualificador é a diferença entre as duas."""
+    alvos = build_kpi_targets(_e5(), scoring=SCORING)
+
+    rotulos = {chave: alvo["rotulo"] for chave, alvo in alvos.items()}
+    assert all(rotulos.values()), f"chave sem rótulo: {[k for k, v in rotulos.items() if not v]}"
+    assert len(set(rotulos.values())) == len(rotulos), "dois KPIs com o mesmo rótulo"
+    assert "essencial" in rotulos["renda_passiva_cobertura"].lower()
+
+
+def test_cobertura_de_renda_passiva_sem_medicao_e_orfa_nunca_zero() -> None:
+    """`status != "ok"` significa insumo faltando, não renda passiva ausente.
+    Publicar 0% ali é a leitura mais assustadora que o relatório sabe emitir, e
+    seria falsa — ausência declarada vence zero medido."""
+    medido = {
+        "ratios": {"rentabilidade": {"status": "ok", "cobertura_despesa_essencial_pct": 15.06}}
+    }
+    sem_insumo = {
+        "ratios": {"rentabilidade": {"status": "sem_irpf", "cobertura_despesa_essencial_pct": 0.0}}
+    }
+
+    com = build_kpi_targets({**_e5(), **medido}, scoring=SCORING)["renda_passiva_cobertura"]
+    sem = build_kpi_targets({**_e5(), **sem_insumo}, scoring=SCORING)["renda_passiva_cobertura"]
+
+    assert com["limiar"] == 100.0 and com["procedencia"] == PROCEDENCIA_CANONICO
+    assert com["operador"] == ">=" and com["base"] == "despesa_essencial_mensal_12m"
+    assert sem["limiar"] is None and sem["motivo"], "status degradado tem de suprimir o alvo"

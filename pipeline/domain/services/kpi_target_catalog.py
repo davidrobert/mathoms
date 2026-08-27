@@ -39,8 +39,11 @@ from pipeline.domain.services.exposicao_cambial_analyzer import THRESHOLD_VERDE_
 from pipeline.domain.services.real_estate_metrics import RealEstateConfig
 
 #: Vocabulário fechado de KPI. O LLM escolhe uma destas chaves; não inventa alvo.
-#: Chave nova aqui exige fonte determinística OU motivo de órfão — nunca um número
-#: escolhido na hora.
+#: Regra de admissão (A40.l89): admite-se chave quando **(a)** existe fonte
+#: determinística única para o limiar, **ou (b)** a ausência de alvo é ela própria
+#: regra de domínio decidida e vale publicar ao usuário. Nunca um número escolhido
+#: na hora — e nunca uma chave de escape genérica, que seria (a) com outro nome:
+#: métrica fora deste enum não é emitível, e é esse o cap estrutural da [[ADR-399]].
 METRICA_KEYS = (
     "taxa_poupanca_recorrente",
     "reserva_cobertura_meses",
@@ -50,8 +53,11 @@ METRICA_KEYS = (
     "carteira_trs",
     "taxa_endividamento",
     "if_progresso",
+    "if_prazo_ano",
     "despesas_nao_categorizadas",
-    "protecao_cobertura",
+    "protecao_custo_premio",
+    "renda_passiva_cobertura",
+    "aliquota_efetiva_ir",
 )
 
 PROCEDENCIA_GOAL = "goal_declarado"
@@ -63,24 +69,63 @@ class KpiTarget:
     """Alvo de um KPI com procedência auditável — ``limiar is None`` ⇒ órfão."""
 
     # `motivo` diz por que é órfão e é o texto que a UI mostra no lugar do alvo.
+    # `rotulo` é o nome publicado da métrica: fica aqui, e não no LLM, porque
+    # rótulo autorado não é gateável — e o rótulo carrega domínio. O caso que
+    # obriga: cobrir 100% da despesa *essencial* é o marco de segurança, não a
+    # independência (que se mede contra o custo de vida total); publicar
+    # "cobertura da renda passiva" sem o qualificador ensina a família a se
+    # declarar independente cedo demais.
     observado_path: str
     base: str
     unidade: str
+    rotulo: str
     limiar: Optional[float] = None
     operador: Optional[str] = None
     procedencia: Optional[str] = None
     ref: Optional[str] = None
     motivo: Optional[str] = None
 
+    # O estado `limiar=42.0, procedencia=None` — número sem fonte auditável — é
+    # exatamente o defeito que esta ADR existe para impedir, e era representável:
+    # os dois invariantes da suíte olhavam `procedencia`/`motivo` sem pinar
+    # `limiar`. Só `_orfao()` produzia `procedencia=None`, então o consumidor não
+    # conseguia distinguir "órfão" de "número órfão de fonte" pela chave errada.
+    def __post_init__(self) -> None:
+        resolvido = self.limiar is not None
+        acompanhantes = {
+            "operador": self.operador,
+            "procedencia": self.procedencia,
+            "ref": self.ref,
+        }
+        faltando = [nome for nome, v in acompanhantes.items() if (v is None) == resolvido]
+        if faltando or resolvido == (self.motivo is not None):
+            raise ValueError(
+                f"KpiTarget inconsistente em {self.observado_path!r}: "
+                f"limiar={self.limiar!r} exige "
+                f"{'operador+procedencia+ref e motivo=None' if resolvido else 'motivo e operador/procedencia/ref=None'}; "
+                f"got operador={self.operador!r} procedencia={self.procedencia!r} "
+                f"ref={self.ref!r} motivo={self.motivo!r}"
+            )
+
+
+# Cobertura da renda passiva sobre a despesa essencial. O limiar 100 não é doutrina
+# escolhida: é o **ponto fixo da própria razão** (numerador = denominador), o único
+# número que não seria uma escolha. Base declarada porque o payload tem dois
+# denominadores de despesa essencial — `fluxo_caixa.despesa_mensal_essencial` e
+# `reserva_emergencia.custo_essencial_mensal`. Não é o FP-6 (lá eram dois
+# *conceitos* sob o mesmo nome): são as mesmas categorias em janelas distintas, e os
+# dois consumidores já preferem 12m.
+COBERTURA_ESSENCIAL_ALVO_PCT = 100.0
 
 # Limiar que vive em constante de código/config; `ref` aponta o leitor único.
-# Tupla: (chave, observado_path, base, unidade, limiar, operador, ref)
+# Tupla: (chave, observado_path, base, unidade, rotulo, limiar, operador, ref)
 _CANONICOS = (
     (
         "exposicao_cambial",
         "$.exposicao_cambial.pct_investivel_financeiro",
         "investivel_financeiro",
         "pct",
+        "Exposição cambial (% do investível financeiro)",
         THRESHOLD_VERDE_PCT,
         ">=",
         "exposicao_cambial_analyzer.THRESHOLD_VERDE_PCT",
@@ -90,6 +135,7 @@ _CANONICOS = (
         "$.diagnostico_confianca.share_nao_identificado_pct",
         "despesa_total",
         "pct",
+        "Despesas não identificadas (% do total, 12m)",
         NAO_IDENTIFICADO_PARCIAL_PCT,
         "<",
         "diagnostico_comportamental_analyzer.NAO_IDENTIFICADO_PARCIAL_PCT",
@@ -104,35 +150,61 @@ _CANONICOS = (
 #   e ambos comparam yield de fluxo com retorno TOTAL (yield + ganho de capital),
 #   induzindo "vender growth para perseguir dividend yield" — o erro de iniciante
 #   que a métrica existe para evitar.
-# - `protecao_cobertura` — [[ADR-387]] proíbe afirmar capital ideal sem segurado,
+# - `protecao_custo_premio` — [[ADR-387]] proíbe afirmar capital ideal sem segurado,
 #   dependência econômica e inventário confirmados. O publicado ("≥ 60 meses de
 #   renda") era 2 a 4× mais frouxo que o canon (10× renda anual × fator + dívidas),
 #   na única métrica cujo erro é irreversível para terceiros (os dependentes).
+#   A chave chamava-se `protecao_cobertura` e **nomeava um conceito que o payload
+#   não publica**: não existe agregado de capital segurado no schema — por desenho,
+#   é a própria ADR-387. O que `pct_renda_anual` entrega é prêmio/renda, carga do
+#   seguro no orçamento. Medido: 6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM, logo é
+#   **razão 0–1**, e estava declarada `pct`: quem lesse pelo contrato publicaria
+#   0,0057% no lugar de 0,57%, erro de 100× que nenhum gate via. Cobertura de
+#   capital continua sendo tratada qualitativamente por `gap_qualitativo`.
 # - `taxa_poupanca_recorrente` — RV2-24: `poupanca_referencia_pct` (25) e
 #   `pontos_fortes_taxa_poupanca_min_pct` (30) descrevem o mesmo conceito sem
 #   precedência declarada. O resolver NÃO escolhe: escolher seria inventar regra de
 #   domínio com carimbo de procedência — pior que o alvo do LLM por parecer autoritativo.
 # - `if_progresso` — o alvo é o par (ano declarado, 100%); o ano sozinho promete
 #   estado futuro sem a probabilidade do cone, que a persona proíbe (R20).
+# - `if_prazo_ano` — mesma razão pelo outro lado. O ano declarado (2041) é
+#   `goal_declarado` legítimo, mas o "atual" só existe como percentil de um cone
+#   estocástico, e `if_monte_carlo` intercala a flag `_censurado` ao lado de cada
+#   ano de propósito ([[ADR-361]]). Uma linha `alvo 2041 / atual 2036` descarta a
+#   censura **e** a probabilidade, e transforma mediana de simulação em medição. O
+#   par honesto (prob × prazo) já é publicado pela narrativa.
+# - `aliquota_efetiva_ir` — "monitorar tendência" **é** a regra: alíquota efetiva é
+#   descritiva, não normativa, e o limiar dependeria do regime (PJ vs CLT). Admitida
+#   por (b): a ausência de alvo é a decisão, e o sinal vale publicado.
 #
-# Tupla: (chave, observado_path, base, unidade, motivo)
+# Tupla: (chave, observado_path, base, unidade, rotulo, motivo)
 _ORFAOS_DOMINIO = (
+    # `trs_pct` não existe em `ratios.rentabilidade` — o campo é `valor_pct`
+    # ([[ADR-191]] §D3). Pior que erro de digitação: `trs_pct` é o nome da chave de
+    # **saque** (`goals.trs_pct`, [[ADR-191]] §Emenda 2026-08-14), então o path errado
+    # importava a colisão de nomes para dentro do catálogo. Path que não resolve é a
+    # mesma classe de defeito que o alvo fabricado (`analyze_finances.py` §kpi_targets).
     (
         "carteira_trs",
-        "$.ratios.rentabilidade.trs_pct",
+        "$.ratios.rentabilidade.valor_pct",
         "patrimonio_gerador",
         "pct_aa",
+        "Rentabilidade da carteira (TRS efetiva)",
         "rentabilidade observada não tem alvo canônico (ADR-191 §D5)",
     ),
     (
-        "protecao_cobertura",
+        "protecao_custo_premio",
         "$.protecao_patrimonial.pct_renda_anual",
         # LÍQUIDA, não ativa: `_pct_renda` divide por `renda_anual_liquida_brl`
         # (`protecao_analyzer.py:470`), resolvida IRPF-first por
         # `resolve_renda_anual_liquida`. Declarar "ativa" era o modo de falha que a
         # [[ADR-399]] existe para impedir — observado de uma base sob rótulo de outra.
         "renda_anual_liquida",
-        "pct",
+        # E é razão 0–1, não `pct`: 6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM. Sob `pct`
+        # o leitor publicaria 0,0057% no lugar de 0,57% — o mesmo modo de falha do
+        # rótulo de base, um andar abaixo, na unidade.
+        "ratio_0_1",
+        "Custo dos seguros sobre a renda anual",
         "capital ideal exige inventário de proteção confirmado (ADR-387)",
     ),
     (
@@ -140,6 +212,7 @@ _ORFAOS_DOMINIO = (
         "$.ratios.taxa_poupanca_recorrente_pct",
         "receita_recorrente",
         "pct",
+        "Taxa de poupança recorrente (12m)",
         "duas fontes divergentes para o mesmo limiar (RV2-24)",
     ),
     (
@@ -147,7 +220,24 @@ _ORFAOS_DOMINIO = (
         "$.goals.if_pct",
         "patrimonio_alvo",
         "pct",
+        "Progresso rumo à independência financeira",
         "progresso rumo à IF é acompanhado pelo cone, não por alvo pontual",
+    ),
+    (
+        "if_prazo_ano",
+        "$.if_monte_carlo.ano_if_cenario_central",
+        "cone_monte_carlo",
+        "ano",
+        "Ano projetado da independência (cenário central)",
+        "ano de IF é percentil de cone; alvo pontual promete estado futuro sem a probabilidade",
+    ),
+    (
+        "aliquota_efetiva_ir",
+        "$.ratios.aliquota_efetiva_ir_pct",
+        "renda_tributavel",
+        "pct",
+        "Alíquota efetiva de IR (consolidada)",
+        "alíquota efetiva é descritiva; o alvo depende do regime e não é canônico",
     ),
 )
 
@@ -176,8 +266,10 @@ def _comparavel(e5: Mapping[str, Any], classe: str) -> Optional[Mapping[str, Any
     return None
 
 
-def _orfao(observado_path: str, base: str, unidade: str, motivo: str) -> KpiTarget:
-    return KpiTarget(observado_path=observado_path, base=base, unidade=unidade, motivo=motivo)
+def _orfao(observado_path: str, base: str, unidade: str, rotulo: str, motivo: str) -> KpiTarget:
+    return KpiTarget(
+        observado_path=observado_path, base=base, unidade=unidade, rotulo=rotulo, motivo=motivo
+    )
 
 
 # A reserva tem DOIS denominadores e publica qual usou: `_base_from_window` cai para
@@ -202,12 +294,14 @@ def _base_da_reserva(e5: Mapping[str, Any]) -> str:
 def _reserva(e5: Mapping[str, Any]) -> KpiTarget:
     meses = _num(_leaf(e5, "reserva_emergencia", "meses_alvo"))
     path, base = "$.reserva_emergencia.cobertura_meses", _base_da_reserva(e5)
+    rotulo = "Cobertura da reserva de emergência"
     if meses is None:
-        return _orfao(path, base, "meses", "alvo de reserva não computado para este perfil")
+        return _orfao(path, base, "meses", rotulo, "alvo de reserva não computado para este perfil")
     return KpiTarget(
         observado_path=path,
         base=base,
         unidade="meses",
+        rotulo=rotulo,
         limiar=meses,
         operador=">=",
         procedencia=PROCEDENCIA_GOAL,
@@ -224,12 +318,14 @@ def _alocacao_renda_fixa(e5: Mapping[str, Any]) -> KpiTarget:
     alvo = _num(comp.get("alvo_pct")) if comp else None
     path = "$.goals.alocacao_alvo.derived.comparaveis[classe=renda_fixa].atual_pct"
     base = "carteira_liquida"
+    rotulo = "Alocação em renda fixa (carteira líquida)"
     if alvo is None:
-        return _orfao(path, base, "pct", "alocação-alvo não declarada para renda fixa")
+        return _orfao(path, base, "pct", rotulo, "alocação-alvo não declarada para renda fixa")
     return KpiTarget(
         observado_path=path,
         base=base,
         unidade="pct",
+        rotulo=rotulo,
         limiar=alvo,
         operador="<=",
         procedencia=PROCEDENCIA_GOAL,
@@ -242,6 +338,7 @@ def _concentracao_imobiliaria(alerta_pct: float) -> KpiTarget:
         observado_path="$.ratios.concentracao_imobiliaria",
         base="carteira_produtiva",
         unidade="pct",
+        rotulo="Concentração imobiliária (carteira produtiva)",
         limiar=alerta_pct,
         operador="<",
         procedencia=PROCEDENCIA_CANONICO,
@@ -254,16 +351,53 @@ def _endividamento(scoring: Mapping[str, Any]) -> KpiTarget:
     alertas = scoring.get("thresholds_alertas") or {}
     maximo = _num(alertas.get("endividamento_maximo_pct"))
     path, base = "$.ratios.taxa_endividamento_pct", "patrimonio_bruto"
+    rotulo = "Taxa de endividamento (% do patrimônio bruto)"
     if maximo is None:
-        return _orfao(path, base, "pct", "limiar de endividamento ausente do scoring")
+        return _orfao(path, base, "pct", rotulo, "limiar de endividamento ausente do scoring")
     return KpiTarget(
         observado_path=path,
         base=base,
         unidade="pct",
+        rotulo=rotulo,
         limiar=maximo,
         operador="<=",
         procedencia=PROCEDENCIA_CANONICO,
         ref="scoring.json::thresholds_alertas.endividamento_maximo_pct",
+    )
+
+
+# `status != "ok"` suprime a linha inteira em vez de publicar o número: sob
+# `sem_irpf`/`gerador_zero`/`sem_dados_essencial` a razão cai para perto de zero por
+# falta de insumo, não por falta de renda passiva — e "0% de cobertura" é a leitura
+# mais assustadora que o relatório sabe emitir. Ausência declarada > zero medido.
+_COBERTURA_ARGS = (
+    "$.ratios.rentabilidade.cobertura_despesa_essencial_pct",
+    "despesa_essencial_mensal_12m",
+    "pct",
+    "Renda passiva sobre a despesa essencial",
+)
+
+
+def _cobertura_medida(e5: Mapping[str, Any]) -> bool:
+    rent = _leaf(e5, "ratios", "rentabilidade")
+    if not isinstance(rent, Mapping) or rent.get("status") != "ok":
+        return False
+    return _num(rent.get("cobertura_despesa_essencial_pct")) is not None
+
+
+def _renda_passiva_cobertura(e5: Mapping[str, Any]) -> KpiTarget:
+    path, base, unidade, rotulo = _COBERTURA_ARGS
+    if not _cobertura_medida(e5):
+        return _orfao(*_COBERTURA_ARGS, "cobertura da renda passiva não medida neste período")
+    return KpiTarget(
+        observado_path=path,
+        base=base,
+        unidade=unidade,
+        rotulo=rotulo,
+        limiar=COBERTURA_ESSENCIAL_ALVO_PCT,
+        operador=">=",
+        procedencia=PROCEDENCIA_CANONICO,
+        ref="kpi_target_catalog.COBERTURA_ESSENCIAL_ALVO_PCT",
     )
 
 
@@ -273,18 +407,25 @@ def _tabelados() -> dict[str, KpiTarget]:
             observado_path=path,
             base=base,
             unidade=unidade,
+            rotulo=rotulo,
             limiar=limiar,
             operador=operador,
             procedencia=PROCEDENCIA_CANONICO,
             ref=ref,
         )
-        for chave, path, base, unidade, limiar, operador, ref in _CANONICOS
+        for chave, path, base, unidade, rotulo, limiar, operador, ref in _CANONICOS
     }
     orfaos = {
-        chave: _orfao(path, base, unidade, motivo)
-        for chave, path, base, unidade, motivo in _ORFAOS_DOMINIO
+        chave: _orfao(path, base, unidade, rotulo, motivo)
+        for chave, path, base, unidade, rotulo, motivo in _ORFAOS_DOMINIO
     }
     return {**canonicos, **orfaos}
+
+
+def _alerta_concentracao(override: Optional[float] = None) -> float:
+    if override is not None:
+        return override
+    return float(RealEstateConfig().concentracao_alerta_pct)
 
 
 # `concentracao_alerta_pct` entra por parâmetro (e não é lido de um global) porque é
@@ -297,16 +438,13 @@ def build_kpi_targets(
     concentracao_alerta_pct: Optional[float] = None,
 ) -> dict[str, dict[str, Any]]:
     """Resolve o alvo de cada KPI do vocabulário a partir do payload E5 + config."""
-    alerta = (
-        concentracao_alerta_pct
-        if concentracao_alerta_pct is not None
-        else float(RealEstateConfig().concentracao_alerta_pct)
-    )
+    alerta = _alerta_concentracao(concentracao_alerta_pct)
     alvos: dict[str, KpiTarget] = {
         "reserva_cobertura_meses": _reserva(e5),
         "alocacao_renda_fixa": _alocacao_renda_fixa(e5),
         "concentracao_imobiliaria": _concentracao_imobiliaria(alerta),
         "taxa_endividamento": _endividamento(scoring),
+        "renda_passiva_cobertura": _renda_passiva_cobertura(e5),
         **_tabelados(),
     }
     return {chave: asdict(alvo) for chave, alvo in alvos.items()}
