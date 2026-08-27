@@ -4,10 +4,11 @@ type: lane
 title: "A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a40-l91-base-da-meta-if
 ship_pr: 1753
+ship_date: "2026-08-27"
 owner: financial-planner
 depends_on: []
 adrs:
@@ -16,7 +17,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
