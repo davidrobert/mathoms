@@ -158,6 +158,36 @@ Mesmo bloco, mesma unidade; a diferença é o sufixo `_pct` no nome. E
 `concentracao_imobiliaria` é justamente a primeira dimensão do §Escopo 3 — o número que
 esta lane vai mover.
 
+E a prova mais curta de que o classificador não descreve a grandeza: **o mesmo número, da
+mesma fonte, aparece duas vezes no mesmo golden com valores diferentes.**
+
+| campo | valor no golden |
+|---|---|
+| `reserva_emergencia.meses_alvo` | `18` |
+| `kpi_targets.reserva_cobertura_meses.limiar` (= `$.reserva_emergencia.meses_alvo`) | `1800` |
+
+`meses_alvo` está em `_NON_MONETARY_EXACT`; `limiar` não. Dezoito meses e mil e
+oitocentos meses no mesmo arquivo.
+
+### §9 — a metade implementável do §Escopo 2 **não** é número-neutro
+
+Das duas regras que têm limiar no catálogo, só uma é neutra:
+
+| regra | limiar hoje | limiar do catálogo | efeito |
+|---|---|---|---|
+| `endividamento_alto` | `scoring…endividamento_maximo_pct` = **20** | `taxa_endividamento` = **20** (mesma chave) | **neutro** |
+| `reserva_insuficiente` | `scoring…reserva_minima_meses` = **6** | `reserva_cobertura_meses` = **18** (`goal_declarado`) | **3×** |
+
+A precedência da [[ADR-399]] é *alvo da família vence doutrina do produto*, então derivar
+do catálogo **é** a leitura certa — mas o piso do item de reserva vai de 6 para 18 meses,
+e a polaridade dele é a que [[ADR-412]] §D7 protege (*"morre a magnitude, nunca o item"*):
+ele passa a disparar onde hoje cala. Um workspace com 10 meses de cobertura hoje está
+conforme e passaria a emitir "Reforçar reserva de emergência".
+
+**No dogfood não aparece** (53,3 meses ≥ 18 nas duas leituras), então a taxa de disparo
+que o PR1 tem de declarar **não pode ser medida nesse workspace** — ele é conforme sob as
+duas regras e não discrimina. É o mesmo ponto cego do §3, noutro eixo.
+
 ### O que se confirma da lane
 
 - A refutação já registrada de `build_alertas` **procede**: três condições
