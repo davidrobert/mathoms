@@ -63,14 +63,17 @@ recusa julgar.
 ## Falta — PR4 e PR5
 
 **Critério de aceite: 2 de 5 fechados.** ✅ Consistência (bases publicadas com
-termos) · ✅ Corretude (intervalo + identidade). Faltam ❌ Completude (gate que
-enumera consumidores do denominador), ❌ Precisão (`kpi_targets[].base`) e
-❌ Prova de fecho (regra pós-LLM sobre `pontos_fortes`).
+termos) · ✅ Corretude (intervalo + identidade). Faltam ❌ Completude, ❌ Precisão
+e ❌ Prova de fecho.
 
-**Armadilha do PR4, medida:** a §D9 pede `kpi_targets[].base` "estreitado ao
-enum", e isso é **inalcançável como escrito** — os dois vocabulários têm
-interseção **vazia** ([[ADR-412]] §Emenda E5). Quem pegar decide: converge os
-vocabulários ou reescreve o critério de Precisão.
+> **Leia §Correções (2026-08-27) antes de escrever o PR4/PR5.** Os três critérios
+> abertos estavam redigidos de formas que o código mergeado ou a própria
+> [[ADR-412]] já tinham tornado inexequíveis — **C11** (Completude enumera número
+> publicado, não leitor), **C12** (`motivo` colide com a XOR de `kpi_targets[]`),
+> **C13** (a Prova de fecho nomeia superfície que a §D5 proíbe), **C14** (o defeito
+> de Precisão é base *declarada* ≠ denominador *usado*) e **C15** (a §E5 já matou o
+> ramo "converge os vocabulários"). Construir o gate como o texto original o
+> descreve entrega **verde sobre o defeito**.
 
 O que a medição acrescentou e **não pode ser esquecido** (já implementado no
 PR3b, mantido aqui como registro do porquê):
@@ -163,6 +166,56 @@ verde por 7 semanas sobre instância viva da classe que [[ADR-394]] §D8 fechou.
 **Não** troque a substring de `:187` por `matches_member_key` como o fix: com
 `membro == ""` a substring é `False`, e **100% do excedente vem do ramo `:189-190`**.
 Seria fix mal-mirado com gate verde por cima.
+
+## Correções à lane (2026-08-27 · medição contra `main` `951f4ca8`)
+
+> Segunda re-medição, agora **contra o entregue** (9 PRs em `main`). Nada abaixo
+> foi apagado; onde o texto original diverge, esta seção prevalece. Ela toca o
+> **§Critério de aceite**, que a seção de 2026-08-25 não alcançava: a tabela
+> C1–C10 cobria §Corretude (C8) e `kpi_targets[].base` (C6), nunca §Completude
+> nem §Prova de fecho. Os três critérios abertos estavam escritos de formas que o
+> código mergeado ou a própria [[ADR-412]] já tinham tornado inexequíveis.
+
+| # | Está escrito | Medido | Leia assim |
+|---|---|---|---|
+| C11 | §Completude: "gate que **enumera os consumidores** de `investivel_financeiro`" (§Falta e §Critério de aceite) | a [[ADR-412]] §Consequências **já refutou essa formulação por escrito**: *"O critério de Completude escrito na lane fecha só instância… **Não enumere leitores — enumere números publicados**"*, e nomeia três fugas — `investivel_efetivo` (hub do bloco IF), parâmetro renomeado (`if_projector.project(investivel=…)`) e denominador remontado dos termos sem citar o nome | o gate mede **número publicado**, não leitor: *toda razão publicada reproduz ao recomputar numerador ÷ base declarada, em cents*. Escrever o gate como a lane pedia entrega verde sobre o defeito |
+| C12 | §Precisão: "`motivo` deixa de ser `null` quando a fatia órfã cruza o piso" | **colide com invariante publicada**: `kpi_targets[]` exige XOR entre `procedencia`+`limiar` e `motivo` (schema §`kpi_targets`), enforçada em `tests/unit/pipeline/test_kpi_target_catalog.py:135` e `tests/test_e5_golden_execution.py:320`. Os dois alvos que importam (`exposicao_cambial`, `concentracao_imobiliaria`) têm `procedencia` — setar `motivo` deixa **dois testes vermelhos** | a ressalva de base precisa de **campo próprio**; `motivo` é "por que este alvo é órfão", não "sobre que base ele foi medido" |
+| C13 | §Prova de fecho: "`cobertura_investimentos` contém linha para a fatia órfã" | **superfície proibida** pela [[ADR-412]] §D5 e pela própria C7 desta lane: `cobertura_investimentos[]` particiona **pessoas** e fica fechado em `["titular","conjuge"]`, porque `CoberturaStatus(linha.get("status"))` levanta `ValueError` em leitor antigo lendo artefato novo | o predicado é `patrimonio.atribuicao_investimentos.motivo != null` — eixo irmão que o PR3a já entregou, com piso próprio (`PISO_AGREGADO_PCT = 1.0`) e razão advisory |
+| C14 | §Precisão: "`kpi_targets[].base` já existe e **não é honrado pelos produtores**" | os 10 alvos **têm** `base` preenchida (C6 já dizia). O defeito é pior e é outro: **base declarada ≠ denominador usado**. `protecao_cobertura` declara `renda_anual_ativa` e o produtor divide por `renda_anual_liquida_brl` (`protecao_analyzer.py:470`); `_reserva` fixa `despesa_essencial_mensal` no código (`kpi_target_catalog.py:181`) enquanto o produtor publica o discriminador como **dado variável** — `base_denominador ∈ {custo_essencial, despesa_total}` (`reserva_emergencia_calculator.py:333-350`, publicado em `:278`) | em workspace sem categoria essencial documentada, o catálogo declara base essencial sobre denominador de despesa **total**. O valor certo já está no payload, a um `_leaf()` de distância |
+| C15 | §Falta: "a §D9 **pede** `kpi_targets[].base` estreitado ao enum… quem pegar decide: converge ou reescreve" | a §D9 foi **reescrita in-place** por `be5adfe0` (#1713) e hoje diz o contrário; a §E5 **já decidiu**: *"Registrar a disjunção é a decisão; convergir, não"*. O ramo "converge" está morto | resta **um** ramo, não dois: reescrever o critério de Precisão. E convergir seria **falso** — `carteira_produtiva` (denominador real `investivel_financeiro + imoveis_investimento` = 73M no dogfood) ≠ `carteira_produtiva_familia` (13M), divergência de 5,6× **com o toggle IF ligado** |
+
+**Agravante de processo, para o closeout:** a formulação refutada em C11 não é
+prosa envelhecida — ela foi **reinscrita** em `a28055a7` (#1758, 2026-08-27), dois
+dias *depois* da [[ADR-412]] que a refuta. A cláusula de precedência da seção de
+2026-08-25 não a alcançava, porque C1–C10 não declarava divergência sobre
+§Completude. Quem lesse só o topo do §Falta construiria o gate errado.
+
+**Armadilha do PR4, atualizada:** não é escolher entre convergir e reescrever (C15
+matou o primeiro ramo). É que **três** dos vocabulários de "base" coexistem por
+decisão declarada — `BaseFinanceira` (eixo de posições), `BaseDaMetaIF`
+([[ADR-418]], eixo da meta) e `kpi_targets[].base` (eixo dos alvos, único **aberto**:
+`type: string` sem `enum`, enquanto o campo irmão `procedencia` no mesmo bloco já é
+enum). Fechar o terceiro contra o vocabulário que os produtores realmente publicam
+é o trabalho de Precisão; fundi-lo aos outros dois é o que a §E5 proíbe.
+
+**O §Deferimento da [[ADR-412]] §E6 dispara no PR4.** Ele adia *"decidir se
+[reserva e autonomia] são uma base com fallback declarado ou duas bases
+distintas"*, com dono desta lane e **condição de retomada: "antes de qualquer
+superfície declarar `base` para reserva ou autonomia"** — que é exatamente o que
+fechar `kpi_targets[].base` faz (`_reserva` declara `despesa_essencial_mensal`).
+A medição de C14 já entrega a resposta: são **duas bases distintas**, e a da
+reserva já carrega o fallback **como campo publicado** (`base_denominador ∈
+{custo_essencial, despesa_total}`), enquanto a autonomia divide por
+`despesa_consumo_brl ÷ n_meses` (ex-aporte, [[ADR-333]], `ratios_calculator.py`).
+Formalizar isso é **emenda datada na [[ADR-412]]**, e ela viaja com o PR de código
+que declara a base — não antes, senão a ADR decide sobre superfície que não existe.
+
+**Fora do escopo, já com dono:** o segundo produtor que particiona posição por
+membro com a convenção invertida — `fonte_precedencia_arbiter.py` (`membro =
+_slug(pos.get("membro")) or membro_default`, alimentado com
+`membro_default=self._identity.titular_key`) — é da [[A40.l41]], que está `open` e
+o nomeia explicitamente. **Não re-homear aqui.**
+
 
 ## O fato, medido no r8 (run `d0f6260a`)
 
