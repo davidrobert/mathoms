@@ -164,6 +164,28 @@ if_meta = MAX(0, if_meta_bruta − renda_passiva_fora_do_investivel_mensal × 12
 maior e gap menor; é correção, e move o score (`progresso_if` tem peso 2,0 — o maior,
 empatado com `taxa_poupanca_recorrente`; 25% da nota).
 
+## Follow-up medido, fora do escopo desta lane (2026-08-27)
+
+**`/plano` publica um segundo progresso de IF, e ele diverge do relatório em 14,91 pp
+hoje** — no mesmo run, com a mesma meta. A causa é o numerador, não a base:
+
+| Superfície | Numerador | Denominador | Progresso no run da U1 |
+| --- | --- | --- | --- |
+| Relatório S7 | `investivel_efetivo` | meta operacional | **35,76%** |
+| `/plano` (`IFHeroCard`) | `patrimonio_liquido` | `derived.if_meta_brl` (bruta) | **50,68%** |
+
+`patrimonio_liquido ÷ investivel_efetivo` = **1,4170** — o `/plano` conta residência e
+veículos rumo à independência, que a [FORMULAS.md](../../../reference/FORMULAS.md) §Patrimônio
+exclui explicitamente da métrica de `progresso_if`. Produtor:
+`backend/app/application/goal/compute_if_projection.py:24`, alimentado por
+`usePlanoOverview.loadLatestPatrimonioSnapshot` (que lê `reports[].patrimonio_liquido`).
+
+**Não corrigido aqui, e a divergência é anterior a esta lane** — a [[ADR-418]] mexe no
+denominador e este eixo é o numerador, com produtor em `backend/app/application/` e
+contrato de API próprio (`IFGoalComputeResponse`). **Dono: `financial-planner`** (qual
+patrimônio conta para IF é regra de domínio), com `senior-cto` no contrato. Condição de
+retomada: qualquer lane que toque `compute_if_projection` ou o hero de `/plano`.
+
 ## Critério de aceite
 
 - A medição do item 1 está escrita no PR, com o comando que a reproduz.

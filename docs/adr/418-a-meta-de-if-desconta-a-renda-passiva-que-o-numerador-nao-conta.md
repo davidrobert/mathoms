@@ -98,10 +98,16 @@ extensão, e um eixo novo que não passe por ele reabre o defeito.
 ### D3 — A base vai publicada, em dados
 
 Precedente [[ADR-412]]: *"uma base é o conjunto de termos que forma um denominador, não o
-número"*. `goals` passa a publicar `if_meta_bruta`, `if_meta_base` (enum fechado) e
-`renda_passiva_fora_do_investivel_mensal_brl`. Auditar de que base o progresso saiu passa a
-ser possível **só pelo payload** — que é como a U1 chegou a este achado e não conseguiu
-fechá-lo.
+número"*. `goals` passa a publicar `if_meta_bruta` e `if_meta_base` (enum fechado)
+**sempre**, e `renda_passiva_fora_do_investivel_mensal_brl` **quando o termo foi apurado**.
+Auditar de que base o progresso saiu passa a ser possível **só pelo payload** — que é como a
+U1 chegou a este achado e não conseguiu fechá-lo.
+
+O termo é **ternário**, não um número com zero implícito: `None` = a renda passiva não foi
+apurada (a chave não sai), `0.0` = foi apurada e não há nada fora do numerador, `>0` =
+desconta. Publicar `0` sem apuração afirmaria ausência que ninguém mediu — e seria campo
+mensalizado sem rótulo de janela ([[ADR-306]]), já que a janela do IRPF só existe em `goals`
+quando a renda passiva está `ok`.
 
 `if_meta` continua sendo a meta **operacional** (a que os dois consumidores usam), agora
 nomeada. `if_trs_monthly_value` segue sendo a renda-alvo **declarada**, e passa a derivar
@@ -130,8 +136,9 @@ produtores independentes (o Goal, o toggle e o IRPF).
 ## Consequências
 
 - Golden do dogfood: delta **`=`** (o workspace medido está em `imoveis_no_if = true`, onde o
-  termo é zero e a meta não se move ao centavo). O rebaseline é de **forma** — três chaves
-  novas em `goals` —, não de valor.
+  termo é zero e a meta não se move ao centavo). O rebaseline é de **forma** — duas chaves
+  novas em `goals` (`if_meta_bruta` e `if_meta_base`; a terceira não sai porque a fixture não
+  tem IRPF) —, não de valor.
 - Workspaces em default (`false`) com aluguel observado passam a ver progresso **maior** e
   gap **menor**. É correção, e move o score.
 - `alugueis` é balde **residual** em `_renda_passiva_observada` (absorve o que o split
