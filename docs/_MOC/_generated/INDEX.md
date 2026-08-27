@@ -412,6 +412,7 @@
 | ADR-415 | adr | Decidido |  | Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação | `adr/415-protecao-de-main-bypass-sancionado-e-auditado.md` |
 | ADR-416 | adr | Proposto |  | Rodada unificada de certificação e revisão: um run, um painel, um entregável, três registros | `adr/416-rodada-unificada-certificacao-revisao.md` |
 | ADR-417 | adr | Decidido |  | Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review | `adr/417-toda-pausa-tem-saida-terminal-sancionada.md` |
+| ADR-418 | adr | Decidido |  | A meta de IF desconta exatamente a renda passiva que o numerador não conta | `adr/418-a-meta-de-if-desconta-a-renda-passiva-que-o-numerador-nao-conta.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
