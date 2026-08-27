@@ -40,6 +40,20 @@ decidir", e onde estavam os 20 DOC-BLOCK da r10 sem exceção. Lane e plano
 citam arquivo que a própria lane vai criar; ali path não-resolvido é o estado
 normal.
 
+O BACKTICK É A AFIRMAÇÃO
+========================
+`_docs_citing` casa ``` `path` ```, com backtick, e é isso que dá a saída
+histórica: backtick diz "existe hoje"; menção sem backtick é história e o gate
+não a lê. A instrução impressa até 2026-08-27 mandava "marque a linha como
+histórico" sem dizer isso — e marcar sem tirar o backtick não suprimia nada,
+o que deixava a saída anunciada inexequível (a linha da ADR-196 já dizia
+"removido pela ADR-375" e seguia sendo acusada). Pinado em
+`test_citacao_fora_do_backtick_e_a_saida_historica`.
+
+Consequência: link markdown sem backtick também é invisível — declarado como
+não-coberto na lane A40.l78, pinado em
+`test_link_markdown_sem_backtick_nao_e_visto`.
+
 Uso:
     python3 dev/check_doc_code_paths.py                 # pre-commit (staged)
     python3 dev/check_doc_code_paths.py --since HEAD~5  # range
@@ -160,8 +174,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\n{len(orphans)} path(s) de código com citação órfã em ADR/reference.")
     print("Escolha por citação — as duas saídas são legítimas:")
     print("  · atualize o path, se o doc descreve onde a coisa mora HOJE;")
-    print('  · deixe como está e marque a linha como histórico (ex.: "deletado')
-    print('    pela ADR-129", "renomeado na F9.4") — corrigir história é revisionismo.')
+    print("  · vire menção histórica: TIRE o backtick e mantenha o nome (ex.:")
+    print('    "vivia em backend/app/x.py, removido pela ADR-129"). O backtick é')
+    print("    a afirmação de que o path existe hoje; sem ele o gate não lê a")
+    print("    linha como citação. Apagar o nome seria revisionismo — não é isso.")
     return 1
 
 

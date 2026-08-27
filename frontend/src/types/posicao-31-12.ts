@@ -11,7 +11,10 @@ export interface Posicao3112Row {
   moeda: string;
   /** Valor na moeda original — null para contas BRL (sem linha secundária). */
   valor_original: number | null;
-  /** Valor convertido a BRL pela PTAX compra 31/12; null quando PTAX ausente. */
+  /** BRL da linha. Em `fonte: "informe_31_12"`, convertido pela PTAX compra
+   * de 31/12 (`ptax_data`/`ptax_status` preenchidos). Em `fonte: "extrato"`,
+   * é o `valor_brl` do E3 copiado cru, com PTAX nula — a linha não é 31/12
+   * (posicao_31_12_builder.py::_posicao_from_extrato). */
   valor_brl: number | null;
   fonte: "informe_31_12" | "extrato" | string;
   /** Data ISO da cotação PTAX usada (footnote). */
