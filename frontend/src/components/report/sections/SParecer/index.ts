@@ -3,6 +3,7 @@
 export { ParecerHeroDiagnostico } from "./ParecerHeroDiagnostico";
 export { ParecerHorizonteList } from "./ParecerHorizonteList";
 export { ParecerMetricasTable } from "./ParecerMetricasTable";
+export { ParecerNotasMetodologicas } from "./ParecerNotasMetodologicas";
 export { ParecerMovimentoCard } from "./ParecerMovimentoCard";
 export { ParecerRisksTable } from "./ParecerRisksTable";
 export { PontosFortesList } from "./PontosFortesList";

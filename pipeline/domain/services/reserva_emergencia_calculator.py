@@ -27,6 +27,11 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from pipeline.domain.services.asset_classifier import merge_asset_keywords
+from pipeline.domain.services.bases_financeiras import (
+    BaseFinanceira,
+    PapelMembro,
+    chave_de_componente,
+)
 from pipeline.domain.services.carteira_por_papel import CarteiraPorPapel
 from pipeline.domain.services.patrimonio_types import MemberIdentity, safe_float
 from pipeline.domain.services.reserva_liquidez import (
@@ -34,6 +39,7 @@ from pipeline.domain.services.reserva_liquidez import (
     ReservaLiquida,
     build_reserva_liquida,
 )
+from pipeline.domain.services.supressao_por_atribuicao import SupressaoPorAtribuicao
 
 _ZERO = Decimal("0")
 
@@ -183,8 +189,10 @@ class EmergencyReserveCalculator:
         patrimonio: dict,
         carteira: CarteiraPorPapel | None = None,
         fallback_irpf: FallbackIrpfPorPapel | None = None,
+        supressao: SupressaoPorAtribuicao | None = None,
     ) -> dict:
         """Produz o bloco ``reserva_emergencia`` do payload E5."""
+        self._supressao = supressao or SupressaoPorAtribuicao.do_patrimonio(patrimonio)
         base = _resolve_base_mensal(fluxo)
         liquidez = build_reserva_liquida(
             patrimonio,
@@ -230,8 +238,35 @@ class EmergencyReserveCalculator:
             "excluido_da_reserva": self._build_excluidos(liquidez),
             "total_liquida": _legacy_number(total_liquida),
             "cobertura_meses": round(cobertura_meses, 1),
+            # `avaliacao_liquidity` PERMANECE: sumir faria `HeroKpiGrid.reservaQuality`
+            # re-derivar "excelente" por fallback local e desarmaria
+            # `neutralize_autocontradicao` ([[ADR-412]] §Emenda E3).
             "avaliacao_liquidity": self._classify(cobertura_meses, perfil.meses_alvo),
             "niveis": [f"{n} meses" for n in sorted(self._config.niveis_meses)],
+            **self._intervalo(componentes, base, perfil, cobertura_meses),
+        }
+
+    # O piso é SUBTRAÇÃO, não recomputo: `componentes()` já traz o balde sem dono
+    # dentro do numerador, então tirá-lo dá o extremo conservador sem tocar no
+    # filtro de liquidez.
+    def _intervalo(
+        self,
+        componentes: dict,
+        base: _BaseMensal,
+        perfil: _PerfilRenda,
+        cobertura_meses: float,
+    ) -> dict:
+        sem_dono = componentes.get(chave_de_componente(PapelMembro.sem_dono), _ZERO)
+        piso_total = sum(componentes.values(), _ZERO) - sem_dono
+        piso = float(piso_total / base.valor) if base.valor > 0 else 0.0
+        motivo = self._supressao.de_reserva(
+            medida_meses=cobertura_meses, piso_meses=piso, meses_alvo=float(perfil.meses_alvo)
+        )
+        return {
+            "piso_cobertura_meses": round(piso, 1),
+            "base_do_piso": BaseFinanceira.carteira_com_titular_identificado.value,
+            "prescricao_realocacao_suprimida": motivo is not None,
+            "motivo_supressao": motivo,
         }
 
     def _payload_base(self, base: _BaseMensal, perfil: _PerfilRenda, total: Decimal) -> dict:

@@ -8,6 +8,7 @@ import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
 import { IrpfRendaSection } from "./sections/IrpfRendaSection";
 import { IrpfOtimizacaoSection } from "./sections/IrpfOtimizacaoSection";
 import { S9RiscosSection } from "./sections/S9RiscosSection";
+import { S_ProtecaoSection } from "./sections/S_ProtecaoSection";
 import { S10SinteseSection } from "./sections/S10SinteseSection";
 import { PlanoDeAcaoSection } from "./sections/PlanoDeAcao";
 import { SParecerSection } from "./sections/SParecer";
@@ -22,13 +23,28 @@ import {
 /** Conjunto de IDs de seções com renderer concreto. Mantém o shell desacoplado
  *  do dispatcher. ADR-157 inclui as seções IRPF (degrada gracioso quando
  *  workspaces não têm `irpf_kpis`). Modo USA (U1-U4) removido em ADR-168.
- *  ADR-199 / ADR-208 inclui S_parecer (Parecer do Planejador). */
+ *  ADR-199 / ADR-208 inclui S_parecer (Parecer do Planejador). A40.l88 inclui
+ *  S_PROTECAO — o componente estava completo desde a A19 e nenhum dispatch o
+ *  alcançava; o hide-when-empty dele mora em `temCoberturaContratada`. */
 export const MIGRATED_SECTIONS: ReadonlySet<string> = new Set([
-  "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10",
-  "S_IRPF_RENDA", "S_IRPF_OTIMIZACAO",
+  "S1",
+  "S2",
+  "S_PROTECAO",
+  "S3",
+  "S4",
+  "S7",
+  "S8",
+  "S9",
+  "S10",
+  "S_IRPF_RENDA",
+  "S_IRPF_OTIMIZACAO",
   "S_parecer",
   "plano_de_acao",
-  "APP_A", "APP_B", "APP_C", "APP_D", "APP_E",
+  "APP_A",
+  "APP_B",
+  "APP_C",
+  "APP_D",
+  "APP_E",
 ]);
 
 interface MigratedSectionProps {
@@ -57,6 +73,8 @@ export function MigratedSection({
           reportId={reportId}
         />
       );
+    case "S_PROTECAO":
+      return <S_ProtecaoSection data={data} />;
     case "S3":
       return <S3InvestimentosSection data={data} />;
     case "S4":

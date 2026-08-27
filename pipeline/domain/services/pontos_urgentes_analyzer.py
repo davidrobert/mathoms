@@ -236,16 +236,24 @@ class PontosUrgentesAnalyzer:
         cfg = self._config
         out: list[PontoUrgenteItem] = []
 
-        cobertura = _safe_float(reserva.get("cobertura_meses", 0)) if reserva else 0.0
+        # Polaridade INVERTIDA em relação à reserva excessiva: este item autoriza
+        # AUMENTAR liquidez, então o conservador é o extremo INFERIOR — ele deve
+        # continuar disparando, e pode passar a disparar onde não disparava.
+        # Morre a MAGNITUDE, nunca o item ([[ADR-412]] §D7).
+        # Fallback é a MEDIDA, nunca zero: payload legado sem piso publicado
+        # dispararia "reserva insuficiente" em todo run.
+        cobertura = (
+            _safe_float(reserva.get("piso_cobertura_meses", reserva.get("cobertura_meses", 0)))
+            if reserva
+            else 0.0
+        )
+        suprimida = bool((reserva or {}).get("motivo_supressao"))
         if cobertura < cfg.reserva_minima_meses:
             out.append(
                 PontoUrgenteItem(
                     prioridade="Alta",
                     acao="Reforçar reserva de emergência",
-                    impacto=(
-                        f"Cobertura atual de {cobertura:.0f} meses — "
-                        f"abaixo do mínimo de {cfg.reserva_minima_meses:.0f}"
-                    ),
+                    impacto=_impacto_reserva(cobertura, cfg.reserva_minima_meses, suprimida),
                     prazo="Imediato",
                     code="reserva_insuficiente",
                 )
@@ -287,3 +295,14 @@ class PontosUrgentesAnalyzer:
             )
 
         return out
+
+
+# A prosa morre no PRODUTOR, e a MESMA frase existe em `scripts/analyze_finances.py`
+# — consertar só aqui instalaria divergência stage↔legado ([[ADR-412]] §Emenda E2).
+def _impacto_reserva(cobertura: float, minimo: float, suprimida: bool) -> str:
+    if suprimida:
+        return (
+            f"Abaixo do mínimo de {minimo:.0f} meses. O quanto falta depende de "
+            "identificar o titular das posições sem dono."
+        )
+    return f"Cobertura atual de {cobertura:.0f} meses — abaixo do mínimo de {minimo:.0f}"

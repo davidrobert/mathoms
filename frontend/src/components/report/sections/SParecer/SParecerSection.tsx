@@ -18,6 +18,7 @@ import { copyDaAusencia } from "@/lib/parecerAusenciaCopy";
 import { ParecerHeroDiagnostico } from "./ParecerHeroDiagnostico";
 import { ParecerHorizonteList } from "./ParecerHorizonteList";
 import { ParecerMetricasTable } from "./ParecerMetricasTable";
+import { ParecerNotasMetodologicas } from "./ParecerNotasMetodologicas";
 import { ReprocessarParecerLink } from "./ParecerRetencaoNota";
 import { ParecerRisksTable } from "./ParecerRisksTable";
 import { PontosFortesList } from "./PontosFortesList";
@@ -45,7 +46,9 @@ export function SParecerSection({
             Carregando parecer…
           </p>
         )}
-        {state.kind === "not_generated" && <ParecerEmptyState code={state.code} />}
+        {state.kind === "not_generated" && (
+          <ParecerEmptyState code={state.code} />
+        )}
         {state.kind === "error" && (
           <p
             role="alert"
@@ -74,7 +77,10 @@ export function SParecerSection({
 function CadastrarChaveIaLink() {
   return (
     <p className="mt-2 text-sm">
-      <Link href="/config?tab=llm" className="text-[var(--brand-primary)] underline">
+      <Link
+        href="/config?tab=llm"
+        className="text-[var(--brand-primary)] underline"
+      >
         Cadastrar sua chave de IA
       </Link>{" "}
       <span className="text-[var(--surface-muted-foreground)]">
@@ -94,7 +100,9 @@ function ParecerEmptyState({ code }: { code: ParecerAbsenceCode }) {
       <h3 className="font-heading text-base font-semibold text-[var(--surface-foreground)]">
         {titulo}
       </h3>
-      <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">{corpo}</p>
+      <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">
+        {corpo}
+      </p>
       {cta === "reprocessar" && <ReprocessarParecerLink />}
       {cta === "chave_ia" && <CadastrarChaveIaLink />}
     </>
@@ -134,7 +142,8 @@ const RETAINED_BODY: Record<string, string> = {
 // "retido", não "não foi publicado": COPY_GUIDELINES §2.2 `@2026-08-06` bane o
 // segundo por colidir com o estado `Publicado` da ADR-204 — e §11 põe o guia
 // acima do código.
-const RETAINED_FALLBACK = "O parecer deste relatório foi retido antes da publicação.";
+const RETAINED_FALLBACK =
+  "O parecer deste relatório foi retido antes da publicação.";
 
 function ParecerRetainedState({ reason }: { reason?: string }) {
   // Motivo desconhecido cai no fallback — classe nova jamais apaga a seção.
@@ -163,23 +172,25 @@ interface ParecerBodyProps {
   onMutate: () => Promise<void>;
 }
 
+// Defensive: content.meta pode estar ausente em mocks/fixtures legados ou em
+// erro de serialização parcial. Trate como gated=0 nesses casos.
+const SEM_GATING = {
+  pontos_fortes: 0,
+  riscos: 0,
+  sugestoes_execucao: 0,
+  sugestoes_taticas: 0,
+  sugestoes_estrategicas: 0,
+  metricas: 0,
+  notas_metodologicas: 0,
+};
+
 function ParecerBody({
   content,
   itensRetidos,
   workspaceId,
   onMutate,
 }: ParecerBodyProps) {
-  // Defensive: content.meta pode estar ausente em mocks/fixtures legados
-  // ou em casos de erro de serialização parcial. Trate como gated=0 nesses casos.
-  const gated = content.meta?.gated_counts ?? {
-    pontos_fortes: 0,
-    riscos: 0,
-    sugestoes_execucao: 0,
-    sugestoes_taticas: 0,
-    sugestoes_estrategicas: 0,
-    metricas: 0,
-    notas_metodologicas: 0,
-  };
+  const gated = content.meta?.gated_counts ?? SEM_GATING;
 
   return (
     <>
@@ -187,6 +198,11 @@ function ParecerBody({
         diagnostico={content.diagnostico_geral}
         meta={content.meta}
         itensRetidos={itensRetidos}
+      />
+
+      <ParecerNotasMetodologicas
+        notas={content.notas_metodologicas}
+        gatedCount={gated.notas_metodologicas}
       />
 
       <div className="grid gap-6 md:grid-cols-2">
