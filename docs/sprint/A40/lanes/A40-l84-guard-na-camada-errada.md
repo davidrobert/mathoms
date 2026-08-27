@@ -146,3 +146,113 @@ por contorno.
 RV8-08 do §r8 de [[PIPELINE-REVIEWS-active]] (run `d0f6260a`, 2026-08-24) —
 achado que a **própria revisão** produziu ao se apoiar no contorno. Medições
 refeitas nesta lane.
+
+## Fecho — 2026-08-27
+
+**Corretude.** `resume_pipeline_run` levanta com conferência sem decisão e o run permanece
+`needs_review` (nem `resuming`, nem `failed`), com `paused_at_stage` íntegro: a recusa é
+**antes** do flip, então não há ação forward a compensar ([[ADR-359]] §2). Teste por
+entrada: `test_resume_pelo_service_recusa_review_sem_decisao` (service) e
+`test_resume_blocked_with_pending_reviews` + `test_resume_requires_no_pending_reviews`
+(rota), estes dois reescritos para asserir o **desfecho** — 409 nomeando stage e review —
+em vez de substring.
+
+**Completude — e a rota da linha do §r8 estava incompleta em dois pontos.**
+
+1. **`_finalize_run` não é o único escritor de `completed`.** `_mark_run_completed`
+   (`pipeline_service.py`) grava direto, sem passar por ele, quando `_stages_after_paused`
+   devolve `[]` — o que acontece com o stage pausado sendo o último do `FULL_ORDER`
+   (`review_finances_holistic`, 17 de 18). **Medido por execução**, não inferido: o par
+   `(completed, pending)` nasce num salto. Ganhou guard próprio, que **reverte a pausa
+   antes de levantar** — levantar sobre `resuming` + `celery_task_id IS NULL` entregaria o
+   run ao ceifador de órfãos, que grava `failed`/`DISPATCH_UNCONFIRMED` sobre um dispatch
+   que nunca foi tentado.
+2. **`_finalize_run` recusar `completed` era a resposta errada.** Levantar ali aborta a
+   task **depois** do trabalho feito, e o `on_failure` grava `failed` — converte "ninguém
+   decidiu" em "morreu", a alternativa que a [[ADR-359]] §2 rejeitou. Ele **re-estaciona**
+   a pausa, e só sobre desfecho que ENTREGA. `needs_review` está fora de
+   `_POST_PROCESS_STATUSES`, então nenhum relatório nasce sobre output não conferido — de
+   graça, sem tocar caller nenhum.
+
+**O escopo é `(completed, pending)`, e há teste que o prova.** `DELIVERING_STATUSES` é
+tupla **listada** (`completed`, `partial_failure`), nunca derivada de "terminal menos X".
+`test_finalize_grava_failed_mesmo_com_review_pendente` é o que impede o próximo refactor de
+reescrever o fecho como "terminal + pending" e morder o resíduo sancionado da [[ADR-417]]
+D3. Mutação nos dois eixos: sem o guard, o teste de repark reprova; com o gate alargado
+para `failed`, o teste de escopo reprova — e cada mutação reprova **só** o teste que a mede.
+
+**O predicado é `NOT IN (approved, edited)`, não `== pending`.** Restritivo por default:
+membro futuro do enum destravaria calado, o modo de falha que a [[ADR-417]] D3 evitou ao
+recusar `dismissed`. `edited` destrava, e há teste.
+
+**A cópia da camada HTTP foi substituída, não duplicada.** `resume_run.py` contava numa
+`AsyncSession` enquanto `_flip_run_to_resuming` flipava numa `SyncSessionLocal` — TOCTOU
+por construção, medido na U1 (PV9-29). O predicado passou para dentro da sessão do
+`UPDATE`. Não há o falso-verde que a [[A40.l27]] pagou com o cancel: aquele use case tem
+caminho próprio de flip, este só chama o service, e o 409 continua vindo da tradução do
+`ValueError`.
+
+**Consistência — eram cinco sítios, não um.** A afirmação de que "`resume_run` exige zero
+reviews `pending`" estava em `pipeline_task.py`, no comentário que justifica a exclusão de
+`StageReview` do `dev/check_diagnostic_session_isolation.py`, no teste desse gate, na
+[[ADR-411]] e na §r7 deste MOC — além da própria [[ADR-404]] D2. Isso **inverte** o custo
+da alternativa que o §Critério oferecia: "corrigir o comentário para a verdade menor"
+custaria cinco edits e enfraqueceria a razão de um gate; tornar o invariante verdadeiro
+custou um. Os cinco passam a descrever o que o código faz.
+
+**Precisão.** O erro nomeia quantas conferências, **quais** (stage + id de review) e as
+**duas** saídas com a rota de cada uma, além de dizer que a retomada re-custa LLM e que não
+se escreve no DB. Verificado ponta-a-ponta contra a API, não só em teste.
+
+**A skill ganhou a saída, e a primeira execução real pagou.**
+`.claude/skills/pipeline-review/scripts/resolve_pause.py` faz `--list`/`--approve`/`--edit`/
+`--resume`/`--cancel --reason` pelo `ASGITransport` contra o app real — mesma autorização,
+mesmas guardas, mesma telemetria `review_action`. Sem `--approve-all`: aprovar em massa sem
+ler os `validation_issues` é aprovação cega, e quem não vai conferir tem `--cancel`.
+Exercitado num harness sintético (nunca no dogfood): `--list` 200 → `--resume` **409** com
+a mensagem precisa → `--approve` grava `approved` + `reviewed_at` → `--resume` flipa
+`resuming` e, com o dispatch morto, **compensa de volta** para `needs_review` preservando
+`paused_at_stage` → `--cancel` grava `cancelled_from_status='needs_review'`. A execução
+achou três defeitos que revisão de código não pegaria: coluna `cost_usd` (o certo é
+`cost_usd_cents`, int por [[ADR-090]]), corpo não-JSON do 500 estourando `resp.json()`, e o
+`--list` indexando o corpo às cegas — mostrava `TypeError` no lugar do 403.
+
+**As 2 rows históricas: ANOTADAS, não backfilladas.** Runs
+`33514dc4-115b-45fe-8976-03e25ba971c8` (r7, `extract_with_llm`, review `064426fd`) e
+`d0f6260a-10f5-4b9c-82d0-dcf36650b995` (r8, `analyze_finances`, review `bdbcdf63`).
+`approved` forjaria uma decisão humana que não houve — mesma doutrina que a [[ADR-417]] D3
+usou para recusar `dismissed` — e a rota sancionada recusa por desenho (`action_review` não
+aceita ação sobre run terminal), então o backfill só sairia por `UPDATE` cru, que o runbook
+proíbe. São a evidência do RV8-08, e uma é o baseline da outra.
+
+**Prova de fecho.** `dev/check_par_completed_pending.py` mede **quais**, não quantos: os 2
+ids ficam congelados e qualquer id novo reprova. Contador diria "2, ok" com uma row nova
+entrando e outra saindo por `ON DELETE CASCADE`. Banco sem runs é **WARN, não PASS** — gate
+fechando sobre ausência de dado é o modo de falha do gate Fernet. Os três ramos verificados
+contra dados reais (PASS no dogfood, WARN em banco vazio, FAIL com par sintético). Tem CLI
+própria de propósito: o `preflight_unified_review` que o consome **não é citado por nenhuma
+`SKILL.md`**, e predicado que só roda dentro da rodada unificada morre quando a rodada para
+de acontecer — mesma classe do `nightly` desabilitado.
+
+## Aberto — 2026-08-27
+
+1. **`resume_run` responde 500 em falha de dispatch, não 409.** Medido no harness:
+   `PipelineDispatchError` é `RuntimeError`, e o use case só traduz `ValueError`. A
+   **compensação está correta** (o run volta a `needs_review` com `paused_at_stage`
+   intacto), mas o operador recebe `Internal Server Error` em texto puro. É superfície da
+   [[ADR-359]], não deste predicado — não expandi o escopo. Dono: `sre-devops`.
+2. **`_finalize_run` continua `db.get` + atribuição**, sem `UPDATE ... WHERE status=<esperado>`
+   + `rowcount` — é o único escritor de status do repo sem essa forma. Com dois executores
+   no mesmo run, uma pausa commitada por `_commit_needs_review_pause` entre o `SELECT` do
+   guard e a atribuição é sobrescrita. **Plausível, não confirmado**: `reject_on_worker_lost`
+   implica worker morto, não vivo em paralelo. Retomar com evidência de duplo-dispatch.
+   Dono: `data-engineer`.
+3. **`_mark_run_started` continua flipando `needs_review` → `running` sem consultar nada.**
+   O fecho contém o **desfecho** (repark), não o **desperdício**: cada redelivery re-executa
+   a cauda e re-paga LLM antes de re-estacionar. O discriminante existe e não é usado —
+   resume legítimo chega em `resuming`, redelivery-sobre-pausa chega em `needs_review`.
+   Mexer nisso toca crash-recovery; lane própria. Dono: `senior-cto`.
+4. **Índice `stage_reviews (pipeline_run_id, status)` não foi criado.** `_finalize_run`
+   ganhou uma query por run em caminho quente sob transação. `pipeline_run_id` já tem
+   índice; o composto não existe e em SQLite local não se mede. Conferir o plano em
+   Postgres. Dono: `data-engineer`.
