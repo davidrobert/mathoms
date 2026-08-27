@@ -35,6 +35,12 @@ tags:
 
 > **Não muta E5 nem E3.** É render puro — **não zera o contador de 2 re-runs** da
 > [[A40.l2]]. Por isso é a onda 1: mergeia a qualquer momento da janela.
+>
+> ⚠️ **O diff entregue toca `pipeline/`, e a afirmação continua de pé** — verificado no
+> closeout, porque quem vir o path vai duvidar dela. `SECOES_SEM_ANCORA` é constante de
+> vocabulário lida **só pelo teste de paridade** (zero leitores em `pipeline/`, `backend/`
+> ou `scripts/`); `VALID_SECTION_IDS` não mudou. Nenhum artefato de E5 muda de forma ou
+> de valor, logo o contador segue intacto.
 
 ## ✅ Entregue em 2026-08-27 — os quatro itens, e a premissa que caiu no caminho
 
