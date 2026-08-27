@@ -37,8 +37,8 @@ tags:
 > **predicados disjuntos** — a l87 barra executor concorrente, esta barra review pendente.
 > Fundi-las apagaria a partição que as duas pagaram para declarar, e escrever o fecho desta
 > como *"terminal + pending"* morderia o resíduo sancionado da [[ADR-417]] D3. O que muda
-> aqui é só o sítio de inserção e o rebase; `parallel_with` vira registro histórico, porque
-> a lane irmã é terminal.
+> aqui é só o sítio de inserção e o rebase. A lane irmã é **terminal**, então a paralelização
+> que a prosa desta lane descrevia deixou de existir — não há campo de frontmatter a mexer.
 >
 > A **U1** também mediu o agravante: o `resume_run` lê a contagem numa sessão e o flip
 > acontece em outra — duas sessões, nenhuma atomicidade, TOCTOU por construção. E a
