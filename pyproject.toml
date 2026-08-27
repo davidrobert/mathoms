@@ -42,6 +42,7 @@ markers = [
     "migration: testa código de migration Alembic específica (one-shot); roda só em PR que toca backend/alembic/versions/ ou quando MATHOMS_RUN_MIGRATION_TESTS=1",
     "lineage_eval: eval real de localização via lineage com LLM (ADR-281 A25.l4); roda no job nightly lineage-eval (MATHOMS_RUN_LINEAGE_EVAL=1 + ANTHROPIC_API_KEY); skip em CI normal",
     "llm_eval: eval real do evidencia_path com LLM (A26.l1); roda fora do PR gate (MATHOMS_RUN_LLM_EVAL=1 + ANTHROPIC_API_KEY) por custo/flakiness; skip em CI normal",
+    "perf: benchmark com orçamento de relógio; deselecionado do gate de PR (ci.yml roda -m \"not perf\") porque falha por carga da máquina. Roda só no nightly, que precisa estar habilitado — teste marcado assim não guarda merge nenhum (ADR-210).",
 ]
 
 # ---------------------------------------------------------------------------

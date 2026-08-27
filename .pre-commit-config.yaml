@@ -370,9 +370,10 @@ repos:
         # Detecta anti-padrões que custam tempo de CI sem dar sinal:
         # parametrize que recomputa scan caro, soft-fail s/ env de hard-fail
         # ativo, migration test sem marker, teste descartável pós-cutover,
-        # bcrypt prod-grade em test individual. Ver dev/check_test_health.py
+        # bcrypt prod-grade em test individual, orçamento de relógio em assert
+        # (mede carga da máquina, não regressão). Ver dev/check_test_health.py
         # e ADR-203 §Política de testes saudáveis.
-        name: "Anti-padrões de teste (recomputo, soft-fail órfão, migration sem marker)"
+        name: "Anti-padrões de teste (recomputo, soft-fail órfão, migration sem marker, relógio em assert)"
         entry: python3 dev/check_test_health.py
         language: system
         pass_filenames: false

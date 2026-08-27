@@ -628,7 +628,9 @@ jobs:
           # W6-T03/F9.5 (ADR-093): hard-fail se identificador de stage legado
           # vazar como string literal fora das ilhas permitidas.
           MATHOMS_ENFORCE_STAGE_RENAME: "1"
-        run: pytest tests/ -q --tb=short
+        # `-m "not perf"`: benchmark com orçamento de relógio mede carga do runner,
+        # não regressão (pyproject.toml §markers). Fora do gate obrigatório.
+        run: pytest tests/ -q --tb=short -m "not perf"
 
       - name: Run pipeline-service tests (ADR-303)
         # Suíte não rodava em nenhum workflow — foi assim que o modo HTTP
@@ -762,9 +764,11 @@ jobs:
           # pyproject.toml §markers). PR que toca migration habilita o step
           # condicional abaixo. `test_alembic_guardrails.py` (drift/idempot.)
           # NÃO é gated — sempre roda.
-          MARKER_FILTER='-m "not migration"'
+          # `not perf` fica em ambos os ramos: benchmark de relógio mede carga do
+          # runner, não regressão, e PR que toca migration não é motivo para readmiti-lo.
+          MARKER_FILTER='-m "not migration and not perf"'
           if [ "${{ needs.changes.outputs.migration }}" = "true" ]; then
-            MARKER_FILTER=""
+            MARKER_FILTER='-m "not perf"'
             echo "::notice::Migration paths tocados; rodando suíte completa (sem deselect)."
           fi
           # `--durations=25` (#1160): custo zero em minutos e imprime no log o
