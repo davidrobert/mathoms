@@ -522,6 +522,18 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: emitter-without-reader
+        # Polaridade inversa do hook acima: aquele pega leitor sem emissor,
+        # este pega o que o produtor emite e o entregue não consome (A40.l88 ·
+        # U1 RR5-01/03/04). `always_run` porque as três direções cruzam
+        # arquivos distintos — DTO, dispatcher e CSS — e um `files:` que
+        # enumerasse os três falharia aberto no quarto.
+        name: "Campo/seção/CSS emitido tem consumidor no entregue (A40.l88)"
+        entry: python3 dev/check_emitter_without_reader.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: chart-conclusion-parity
         # audit-vault r3 (F12) + r4 (F13) · ADR-117/ADR-122 — YAML declarado
         # source-of-truth mas o consumidor real é conclusionUtils.ts (BUILDERS
