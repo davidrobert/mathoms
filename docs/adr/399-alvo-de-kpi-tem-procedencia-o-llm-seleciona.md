@@ -5,6 +5,7 @@ title: "Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não
 status: Decidido
 phase: r7.PE-2/FP-6
 date: "2026-08-19"
+amended_at: ["2026-08-27"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-134]]"
@@ -31,6 +32,12 @@ aliases:
 > **Decidido em 2026-08-19** na remediação de **PE-2** + **FP-6** (P1) do §r7 de
 > [[PIPELINE-REVIEWS-active]]. Implementação **em ondas** — ver §Estado de
 > implementação antes de §Consequências.
+>
+> ⚠️ **Emendada em 2026-08-27** ([[A40.l89]]): o vocabulário fecha em **13 chaves**
+> (entram `renda_passiva_cobertura`, `if_prazo_ano`, `aliquota_efetiva_ir`;
+> `protecao_cobertura` vira `protecao_custo_premio`), o enum passa a ser **fechado de
+> verdade** — sem chave de escape —, e a correção alcança o artefato **congelado** por
+> supressão na leitura. Ver §Emenda 2026-08-27.
 
 ## Contexto
 
@@ -169,3 +176,57 @@ RV2-01 o path resolvível por métrica **sem** tocar `monetary_only`. Este traba
 **destrava** a ancoragem de percentual; não é destravado por ela. O **PE-1**
 (rota de âncora de citação) segue aberto por mérito próprio, mas deixa de ser
 bloqueante — e encolhe, porque perde a exigência de curar limiar normativo.
+
+## Emenda 2026-08-27 — o enum fecha em 13 chaves, e a leitura subtrai
+
+> **A D1 não muda: o LLM seleciona, não autora.** O que muda é o *tamanho* do
+> vocabulário, o *nome* de uma chave, e o *alcance* da correção.
+
+**E1 — corrigir o vocabulário, não abrir exceção.** Das 10 métricas publicadas no run
+da U1, **4 estavam fora** do enum de 10 chaves. Fechar sem corrigir apagaria 4 linhas do
+painel; abrir uma chave de escape genérica devolveria ao modelo os campos que a D1
+fechou — a máquina de fabricação **realojada de `target` para `valor_atual`**, num campo
+que a D1 fechou de propósito e junto ("renda passiva mensal *projetada*" é R$/mês **sem
+produtor no payload**, publicado ao lado de números derivados e lido como medido).
+
+Regra de admissão, agora explícita: admite-se chave quando **(a)** existe fonte
+determinística única para o limiar, **ou (b)** a ausência de alvo é ela própria regra de
+domínio decidida e vale publicar ao usuário.
+
+| chave | veredito |
+|---|---|
+| `renda_passiva_cobertura` | **admitida** por (a) — limiar **100 `>=`**, que não é doutrina: é o **ponto fixo da razão** (numerador = denominador), o único número que não seria uma escolha. Base declarada `despesa_essencial_mensal_12m`; `status != "ok"` ⇒ órfã, **nunca 0%** |
+| `if_prazo_ano` | **admitida** por (b) — o "atual" só existe como percentil de cone, e [[ADR-361]] intercala a flag de censura ao lado de cada ano |
+| `aliquota_efetiva_ir` | **admitida** por (b) — "monitorar tendência" *é* a regra; alíquota efetiva é descritiva, e o limiar dependeria do regime |
+| renda passiva mensal *projetada* | **recusada** — sem produtor no payload, não entra |
+
+**E2 — `protecao_cobertura` → `protecao_custo_premio`.** A chave nomeava um conceito que
+o payload **não publica**: não existe agregado de capital segurado no schema, por desenho
+— é a própria [[ADR-387]]. O que `pct_renda_anual` entrega é prêmio/renda. Medido:
+6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM, logo **razão 0–1** declarada como `pct`; quem
+lesse pelo contrato publicaria 0,0057% no lugar de 0,57%. Agora `unidade: ratio_0_1`,
+base `renda_anual_liquida`.
+
+**E3 — `rotulo` entra no catálogo.** O nome da métrica carrega domínio e rótulo autorado
+não é gateável: cobrir 100% da despesa **essencial** é o marco de segurança, não a
+independência (medida contra o custo de vida total). Publicar sem o qualificador ensina a
+família a se declarar independente cedo demais.
+
+**E4 — a correção alcança o artefato congelado, por SUPRESSÃO.** A D1 corrige o
+write-path e não toca os **51 pareceres persistidos**, dos quais 42 publicam alvo
+prescritivo para métrica que este catálogo declara órfã. A leitura passa a servir `target`
+apenas quando o artefato traz `metrica_key`. **Backfill e derivação-na-leitura ficam
+recusados**: o artefato é o registro forense do regime em que foi gerado ([[ADR-204]]
+§D1/§D7), e recomputar o catálogo no backend reimplementaria a resolução de config
+efetiva por workspace — o que a D4 existe para impedir — além de carimbar config de hoje
+sobre E5 antigo. A regra é subtrativa: **a leitura só remove afirmação, nunca acrescenta
+número a documento entregue.**
+
+**E5 — o cap estrutural é o enum, e ele não tem escape.** Métrica fora do vocabulário
+**não é emitível**. Chave nova exige passar pela regra de admissão acima — nunca um
+número escolhido na hora, nunca um balde genérico.
+
+**Fora desta emenda, com endereço:** o alvo determinístico do plano de ação
+(`suggestion_rules.trs_target_pct`) e a prosa da E5 que entrega limiar ao modelo são
+**leitores isentos pela D4** e migram para a [[A40.l90]], sob emenda própria — ver
+§Deferimento datado 2026-08-27 da [[A40.l89]].
