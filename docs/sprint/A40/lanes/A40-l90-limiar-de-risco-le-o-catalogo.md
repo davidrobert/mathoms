@@ -76,12 +76,44 @@ medida sobre os runs de referência **declarada antes do flip** (doutrina WARN-f
 
 ## Escopo
 
-1. **PR1 — emenda datada da [[ADR-399]]**, estreitando a isenção da D4 à superfície de risco,
-   com a taxa de disparo medida e escrita.
-2. As quatro regras passam a derivar limiar do catálogo.
-3. As três dimensões sem regra (concentração imobiliária, desvio de alocação, exposição
-   cambial) ganham regra que **lê** o catálogo, não que fixa número.
-4. Invariante: `count(kpi_targets rompidos) > 0 ⟹ len(pontos_urgentes) > 0`. Falha hoje.
+> **Itens 1-4 reescritos em 2026-08-27** — a redação anterior era inexecutável em três
+> pontos e falsa num quarto. O texto original está preservado em §Correção datada
+> §C-5; o porquê de cada mudança, em §Ataque medido §1-§5.
+
+1. **PR1 — ADR nova `Proposto`** (não emenda da [[ADR-399]]): a superfície determinística
+   de risco deriva gatilho de **doutrina**, nunca de alvo declarado; aresta `kpi_key` em
+   `PontoUrgenteItem`; gate de cobertura do vocabulário. A [[ADR-399]] §D4 **renuncia**
+   escopo em vez de proibir (§7 do ataque, adotado pela §Emenda 2026-08-27 da própria
+   ADR-399), então não há isenção a estreitar — e emendá-la para "estreitar uma isenção
+   que ela não deu" poria descrição falsa no registro permanente. **O ID não é alocado
+   aqui**; quem executar aloca na escrita (`ls docs/adr/ | tail`).
+2. **Uma regra deriva do catálogo, não quatro:** `endividamento_alto`, que é
+   **número-neutro** (já lê `scoring.json::thresholds_alertas.endividamento_maximo_pct`,
+   a mesma chave que `_endividamento` usa). As outras três **não têm limiar a derivar**:
+   `seguro_vida` e `rentabilidade_nao_medida` mapeiam órfãos por decisão de domínio
+   ([[ADR-387]]; [[ADR-191]] §D5) e nem sequer são threshold (predicado booleano de gap e
+   sentinela `== "N/D"`); e `reserva_insuficiente` vai para §Deferimento (abaixo). As duas
+   órfãs ganham **registro** da decisão — docstring e `motivo` na copy, não número.
+3. **As dimensões sem regra derivam de uma regra de enumeração, não de um número em
+   prosa:** `METRICA_KEYS` menos as chaves com regra, menos as órfãs por decisão. Hoje dá
+   **quatro** (a redação anterior dizia três e omitia `despesas_nao_categorizadas`), mas o
+   número muda quando o catálogo mudar — e mudou: `METRICA_KEYS` foi de 10 para 13 chaves
+   entre 26 e 27/08.
+   **Elegibilidade não é `limiar` não-nulo.** É `limiar` não-nulo **e medida com cobertura
+   apurada**: `exposicao_cambial` tem `limiar: 1000` e `tier: "indeterminado"` — uma regra
+   sobre ela emitiria ponto urgente **Alta** sobre universo não apurado, fabricando o
+   veredito que o produtor deliberadamente suprimiu. Enquanto o catálogo não carregar o
+   qualificador de cobertura (achado roteado à [[A40.l89]]), ela **não é elegível**.
+4. **Invariante por chave, sobre o registro de gatilho — não sobre `kpi_targets[]`:** para
+   todo limiar de doutrina que emite item, rompê-lo sem emitir o item correspondente ⇒
+   vermelho. **Não** chaveia em `procedencia == "limiar_canonico"`: esse rótulo já está
+   comprovadamente errado uma vez (`reserva_cobertura_meses` carimbada `goal_declarado`
+   sobre número de `scoring.json`), e consertá-lo quebraria o invariante. A forma
+   existencial anterior (`count(rompidos) > 0 ⟹ len(pontos_urgentes) > 0`) **não falha
+   hoje** — passa com o defeito inteiro presente (§1-§3 do ataque).
+   O invariante lê o **artefato E5**, nunca o snapshot do view-model: com a escala mista
+   do §8, `taxa_endividamento` sai falso-conforme e `reserva_cobertura_meses` sai
+   falso-rompido.
 5. **`trs_target_pct = 4.0` cai, junto com a regra que o lê.**
    [`suggestion_config.py:14`](../../../../pipeline/domain/services/suggestion_config.py) e
    [`rule_trs_desalinhada`](../../../../pipeline/domain/services/suggestion_rules.py)
@@ -153,19 +185,65 @@ relatório tem linha **sem comparador** para taxa de poupança e, no mesmo docum
 afirmando 30%. É contradição menor que a de hoje (alvo fabricado **+** prosa), e ela fecha
 aqui.
 
+## Deferimento datado 2026-08-27 — `reserva_insuficiente`
+
+**Dono:** `financial-planner`. **Condição de retomada:** o merge do hotfix de estampagem
+da [[A40.l89]] (branch `agent/a40-l89-hotfix-estampagem/20260827-1636`), que corrige a
+procedência de `reserva_cobertura_meses` para `limiar_canonico`.
+
+Sai do §Escopo 2 porque é **inexecutável hoje**, não porque é caro. O catálogo publica
+`meses_alvo` com `procedencia: "goal_declarado"`, e o número vem de
+`scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda`, chaveado por
+`_perfil_por_pct` sobre a renda **observada** — não há leitor de
+`Goal(RESERVA_EMERGENCIA)` em `pipeline/`. Derivar dela hoje é herdar um carimbo falso:
+doutrina usando o crachá da família, e a precedência da [[ADR-399]] §D2 passaria a operar
+sobre isso na direção que **absolve** a família da própria meta.
+
+> **Não é a forma da RV2-24** (correção da sessão da [[A40.l89]], 2026-08-27, aceita).
+> Em `taxa_poupanca_recorrente` as duas chaves dizem "referência" e podem disparar no
+> mesmo relatório — definições **rivais** do mesmo limiar, e por isso o resolver se recusa
+> a arbitrar. Aqui não há rivalidade: `reserva_minima_meses` (6) é **piso de alerta**
+> (`pontos_urgentes_analyzer.py:251`) e `meses_alvo` (12/18) é **alvo por perfil de
+> risco** — papéis distintos, ambos legítimos. O defeito é a **procedência mentida**, não
+> a divergência de fontes. Isso reforça o gatilho ficar em 6: não há o que arbitrar.
+
+**Aberto, dono `financial-planner`:** `_perfil_por_pct` nunca retorna `clt_estavel`, então
+o ramo de 6 meses do *alvo* é inalcançável e o piso efetivo dele é 12. Se 6 deve ser
+alcançável é decisão de domínio — o remédio é contagem de fontes de renda, que o fluxo v1
+não tem.
+
+E quando for retomada, o gatilho **não** se move: a [[ADR-399]] §D2 fecha com *"publica-se
+o declarado como `target` e **o limiar vira `risco`**"* — doutrina vai para o canal risco,
+que é esta superfície. A [[ADR-367]] (`Proposto`) já decidiu no título: *"o alvo da reserva
+gradua **sem mover o gatilho**"*. O alvo gradua `prioridade`/`prazo`; o piso decide
+existência.
+
 ## Fora de escopo
 
 - O alvo republicado pelo parecer → [[A40.l89]], que vai na frente.
-- O denominador de cada limiar (que base cada número mede) → [[A40.l80]], entregue, com
-  resíduo declarado.
+- O denominador de cada limiar (que base cada número mede) → [[A40.l80]], que está `open`,
+  **não entregue** — e que recebeu o §8 do ataque (`is_monetary`), **gate de entrada desta
+  lane**: hoje `dev/check_golden_rebaseline_isolation.py` não cobre
+  `backend/tests/snapshots/`, então "delta de golden declarado" é inexequível.
+- A [[ADR-367]] (`Proposto`, gradação + tier de irreversibilidade) e a RULE note dela, que
+  declarava enforcer inexistente — corrigida em 2026-08-27, fora desta lane.
 
 ## Critério de aceite
 
-- O invariante do item 4 é teste e falha por mutação: romper um limiar canônico sem emitir
-  ponto urgente ⇒ vermelho.
-- A emenda da [[ADR-399]] traz `amended_at` e blockquote de sinal (gate
-  `check_adr_amendment_signal`).
-- Delta de golden declarado; a taxa de disparo pós-flip bate com a medida no PR1.
+- O invariante do item 4 é teste **por chave** e falha por mutação **parametrizada sobre
+  todas as chaves elegíveis** — não sobre uma. Romper um gatilho de doutrina sem emitir o
+  item correspondente ⇒ vermelho. Prova de que discrimina: a mutação só-concentração, que
+  hoje fica verde, tem de ficar vermelha.
+- **Gate estático de cobertura:** toda chave elegível está coberta por regra **ou** por
+  dispensa declarada com motivo. É ele — não o invariante de payload — que pega "o catálogo
+  ganhou chave nova e ninguém leu", que é como este catálogo nasceu órfão.
+- **Nenhuma regra emite sobre medida suprimida.** Mutação: `tier: "indeterminado"` com
+  `pct = 0` ⇒ zero pontos urgentes de cambial.
+- A ADR nova do item 1 está `Proposto` antes do PR de implementação e flippa no merge.
+  **Não** há emenda da [[ADR-399]] por este eixo (§7 do ataque).
+- Delta de golden declarado — **e só depois que a [[A40.l80]] puser
+  `backend/tests/snapshots/` sob a disciplina de rebaseline**. Hoje o critério é
+  inexequível: o golden que esta lane rebaselinaria não tem gate.
 - **`rg trs_target_pct` devolve zero ocorrências** — a constante e a regra que a lê saem
   juntas (§Escopo 5). Constante órfã reprova: é o meio-corte que a [[ADR-161]] §Emenda
   2026-08-11 já teve de emendar uma vez. O `kind` `trs_desalinhada` permanece nos tipos
@@ -308,3 +386,112 @@ duas regras e não discrimina. É o mesmo ponto cego do §3, noutro eixo.
   irmão existir, o que é decisão de contrato, não remendo de lista.
 - **Condição de retomada do §Deferimento D3 medida hoje: satisfeita.** `gh pr list
   --state open` devolve **zero** PRs — nenhum rebaseline de golden em voo.
+
+## Correção datada do §Ataque — 2026-08-27, pós-especialistas
+
+> **Nada acima foi apagado.** Quatro afirmações que publiquei nos #1766/#1767 não se
+> sustentam; ficam onde estão, anotadas aqui. Origem: co-design com `financial-planner`,
+> `data-engineer`, `product-manager` e `senior-cto`, com **toda** refutação remedida por
+> mim contra `main` `1647578f`.
+
+### C-1 — `exposicao_cambial` **não** está rompido. São dois canônicos, não três.
+
+`exposicao_cambial.tier == "indeterminado"` e
+`componentes.carteira_lastro_estrangeiro.cobertura == "indeterminado"`. O produtor
+**suprimiu o veredito**; o `0%` é piso de medida, não fato sobre o patrimônio. Comparar
+`0 >= 10` e concluir "rompido" é fabricar veredito sobre medida que o produtor se recusou
+a julgar.
+
+Pior como processo: a [[A40.l80]] §C1 **já registrava o mecanismo desde 2026-08-25** —
+`carteira_lastro_estrangeiro` é fixado `Cobertura.indeterminado` incondicionalmente desde
+o #1568 ([[ADR-403]]), e `_tier_from_pct` é código morto em produção. O §Ataque re-derivou
+como achado o que uma lane P0 viva da mesma sprint já havia refutado por escrito.
+
+**Rompidos de fato: `concentracao_imobiliaria` (82,19% vs 50%) e `taxa_endividamento`
+(20,55% vs ≤20%).** O §1 do ataque (o invariante passa com o defeito presente) **não muda**
+— 2 > 0 e `len(pontos_urgentes) == 2`.
+
+### C-2 — o §9 errou a magnitude e a natureza do número.
+
+- **`meses_alvo` não é alvo da família.** Sai de `_meses_alvo_from_scoring`
+  ([`reserva_emergencia_calculator.py:135-143`](../../../../pipeline/domain/services/reserva_emergencia_calculator.py)),
+  que lê `scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda`, com
+  o perfil **derivado da composição de renda observada** (`:213-225`). Não há leitor de
+  `Goal(RESERVA_EMERGENCIA)` no pipeline. O catálogo carimba `procedencia: "goal_declarado"`
+  sobre `limiar_canonico` — **procedência falsa**, e é achado da [[A40.l89]], não desta lane:
+  o §Escopo 2 dela chaveia em `procedencia: null`, então ela passa no próprio critério sobre
+  entrada mentirosa.
+- **O "3×" é falso no caso comum.** `_perfil_por_pct` (`:352-361`) **nunca retorna
+  `clt_estavel`** — o comentário declara que a contagem de fontes não existe no fluxo v1.
+  O ramo de 6 meses é inalcançável; o piso do alvo é **12**, e 18 só em `pj_dominante`.
+  A magnitude é **2×** no caso alcançável comum.
+- **A conclusão do §9 sobrevive por outra rota, mais forte.** A [[ADR-399]] §D2 fecha com
+  *"publica-se o declarado como `target` e **o limiar vira `risco`**"* — a precedência
+  "família vence doutrina" governa o canal `target`; o mesmo parágrafo roteia a doutrina
+  para o canal **risco**, que é esta superfície. O piso de risco segue **6**. E a
+  [[ADR-367]] (`Proposto`) já decidiu isso no título: *"o alvo da reserva gradua **sem mover
+  o gatilho**"*.
+
+### C-3 — o §8 mediu 5 de 26, e a consequência que lhe atribuí não é alcançável.
+
+**A classe é 5× maior.** 26 de 198 classificações monetárias estão erradas (**13,1%**), em
+9 famílias — medido com o `_monetary_paths` do próprio teste:
+
+| path | grandeza real | golden publica |
+|---|---|---|
+| `kpi_targets.*.limiar` (5) | pct / meses | ×100 |
+| `score.valor` (1) | nota 5,9/10 | `590` |
+| `score.componentes[].valor` (5) | pct / meses | ×100 |
+| `score.breakdown[].valor` (5) | nota 0-10 | ×100 |
+| `score.breakdown[].contribuicao` (5) | pontos | `250` = 2,50 pts |
+| `investimentos.top_ativos[].posicao` (2) | **ordinal** | rank 1 → `100` |
+| `…instituicoes_por_membro[].n_posicoes` (1) | **contagem** | 1 → `100` |
+| `ratios.concentracao_imobiliaria` (1) | pct | `8219` |
+| `consumo_consciente.equivalente_meses_aporte` (1) | meses | ×100 |
+
+**E o "over-gated" era falso.** Escrevi que `check_manifest` exigiria manifesto e gravaria
+"50% → 45%" como `old_cents: 5000`. Medido: `golden_diff` **não é invocado em CI nenhum**,
+`tests/fixtures/pipeline_golden/rebaseline_manifest.yaml` está **vazio (`[]`)**, e
+`dev/check_golden_rebaseline_isolation.py:23` fixa
+`_GOLDEN_PREFIX = "tests/fixtures/pipeline_golden/"` — que **não cobre**
+`backend/tests/snapshots/dogfood_view_model.json`. O cenário era hipotético.
+
+O que sobra é pior e é real: **o golden que esta lane vai rebaselinar não tem gate nenhum**,
+e o delta pode viajar no mesmo commit do código que o produziu. E a [[A40.l80]] não pode
+fechar por sufixo — `top_ativos[].posicao` e `n_posicoes` não têm irmão `unidade`, e
+`score.componentes[].unidade` está no schema e **não é emitido** (`None` no payload).
+
+### C-4 — duas afirmações de estado que envelheceram.
+
+- **A [[A40.l80]] está `open`/P0**, não `shipped` — escrevi `shipped` no §Encaminhamento.
+  Ela é dona viva de `dev/golden_diff.py` (o comentário do sufixo é assinado `# A40.l80:`),
+  o que muda o roteamento do §8: é **item dela**, não lane nova.
+- **A [[ADR-399]] agora tem `amended_at: ["2026-08-27"]`** — a [[A40.l89]] mergeou a §Emenda
+  no #1773, que cita este ataque. A frase do §7 ("não tem `amended_at`") descrevia
+  `f91df375` e vale só para aquele commit. **O argumento do §7 segue de pé** e a própria
+  §Emenda o adota: o D4 renuncia escopo, não proíbe.
+
+### C-5 — texto original dos §Escopo 1-4, preservado
+
+Reescritos em 2026-08-27. O que estava escrito, verbatim:
+
+> 1. **PR1 — emenda datada da [[ADR-399]]**, estreitando a isenção da D4 à superfície de
+>    risco, com a taxa de disparo medida e escrita.
+> 2. As quatro regras passam a derivar limiar do catálogo.
+> 3. As três dimensões sem regra (concentração imobiliária, desvio de alocação, exposição
+>    cambial) ganham regra que **lê** o catálogo, não que fixa número.
+> 4. Invariante: `count(kpi_targets rompidos) > 0 ⟹ len(pontos_urgentes) > 0`. Falha hoje.
+
+Por que cada um caiu: **1** — não há isenção a estreitar (§7), e a §Emenda 2026-08-27 da
+[[ADR-399]] adotou essa leitura; **2** — 3 das 4 regras não têm limiar a derivar (§4) e
+`reserva_insuficiente` está sob procedência falsa; **3** — eram quatro, não três (§5), e
+"ter `limiar`" não basta como elegibilidade; **4** — não falha hoje (§1-§3), e chavear em
+`procedencia` seria ancorar num rótulo comprovadamente falível.
+
+### O que o ataque afirmou e **sobrevive** integralmente
+
+§1, §2, §3 (o invariante passa com o defeito presente; a mutação do §Critério fica verde;
+é infalsificável no dogfood), §4 (2 das 4 regras mapeiam órfãos por decisão), §5 (a
+enumeração saiu do run, não do catálogo), §6 (a citação é a redação aposentada), §7 (o D4
+renuncia escopo — adotado pela §Emenda da [[ADR-399]]), e o núcleo do §8 (`limiar` é
+classificado como dinheiro; a unidade não é endereçável por nome).

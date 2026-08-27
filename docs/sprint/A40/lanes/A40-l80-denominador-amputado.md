@@ -217,6 +217,68 @@ _slug(pos.get("membro")) or membro_default`, alimentado com
 o nomeia explicitamente. **Não re-homear aqui.**
 
 
+## Acolhimento — a classe de `is_monetary` não fecha por sufixo (2026-08-27)
+
+> **Escrito do lado que recebe.** Achado do §Ataque da [[A40.l90]] (#1766/#1767),
+> roteado para cá por co-design (`data-engineer`, `product-manager`, `senior-cto`):
+> esta lane está `open`, é dona assinada de `dev/golden_diff.py` — o comentário que
+> instalou o sufixo é literalmente `# A40.l80:` — e **previu esta classe por escrito**
+> (*"fechar por instância deixaria o próximo campo de versão nascer com o mesmo bug"*).
+> Este é o próximo campo, e ele **não é endereçável por sufixo**.
+
+**Medido contra `main` `1647578f`, com o `_monetary_paths` do próprio teste de
+snapshot: 26 de 198 classificações monetárias estão erradas (13,1%), em 9 famílias.**
+
+| path | grandeza real | golden publica |
+|---|---|---|
+| `kpi_targets.*.limiar` (5) | pct / meses | 50% → `5000`; 18 meses → `1800` |
+| `score.valor` (1) | nota 5,9/10 | `590` |
+| `score.componentes[].valor` (5) | pct / meses | ×100 |
+| `score.breakdown[].valor` (5) | nota 0-10 | ×100 |
+| `score.breakdown[].contribuicao` (5) | pontos | `250` = 2,50 pts |
+| `investimentos.top_ativos[].posicao` (2) | **ordinal** | rank 1 → `100` |
+| `…instituicoes_por_membro[].n_posicoes` (1) | **contagem** | 1 → `100` |
+| `ratios.concentracao_imobiliaria` (1) | pct | `8219` |
+| `consumo_consciente.equivalente_meses_aporte` (1) | meses | ×100 |
+
+**Por que sufixo não alcança.** `is_monetary` chaveia no *leaf*; a grandeza é **dado**,
+não nome. `kpi_targets[].limiar` carrega três unidades no mesmo leaf (`pct`, `meses`,
+`pct_aa`). E ler o irmão `unidade` cobre só 5 dos 26: `top_ativos[].posicao` e
+`n_posicoes` não têm irmão, `score.componentes[].unidade` está no schema e **não é
+emitido** (`None` no payload), e em `parecer_planejador.schema.json` `unidade ∈ {ano, mes}`
+é **janela temporal** ao lado de `valor_estimado_brl`, que **é** dinheiro — a regra
+fliparia um campo `_brl` para não-monetário, falso-negativo na direção cara.
+
+**Prova mais curta:** o mesmo número, da mesma fonte, sai duas vezes no golden —
+`reserva_emergencia.meses_alvo` = `18` (está em `_NON_MONETARY_EXACT`) e
+`kpi_targets.reserva_cobertura_meses.limiar` = `1800` (não está).
+
+### O que precede tudo: o golden não tem gate
+
+`dev/check_golden_rebaseline_isolation.py:23` fixa
+`_GOLDEN_PREFIX = "tests/fixtures/pipeline_golden/"` — **não cobre**
+`backend/tests/snapshots/dogfood_view_model.json`, que é onde `kpi_targets` e `score`
+vivem. `golden_diff` **não é invocado em CI nenhum** e
+`tests/fixtures/pipeline_golden/rebaseline_manifest.yaml` está **vazio (`[]`)**. Ou seja:
+o delta de golden pode viajar no mesmo commit do código que o produziu, sem violar gate.
+
+**Isto é gate de entrada da [[A40.l90]]** (veredito `senior-cto`): ela não pode declarar
+"delta de golden declarado" sobre um golden sem disciplina.
+
+### Ordem e amarra
+
+Vai **antes** da [[A40.l89]] e da [[A40.l90]]: toca `dev/`, `config/schemas/**`
+(anotação) e `backend/tests/snapshots/` — **não** `pipeline/`/`scripts/`/`backend/app/`,
+logo **não muta E5 e não zera o contador de 2 re-runs** do §Gate de saída. O rebaseline é
+auditável por construção: todo valor muda de `v` para `v/100`, e isso deve ser o critério
+de aceite do PR, não inspeção ocular.
+
+**Forma:** ADR nova `Proposto` (grandeza declarada no contrato, não inferida do nome).
+Recusadas: [[ADR-090]] (rege *como* dinheiro se representa, não *quais* campos são) e
+[[ADR-399]] (rege procedência do limiar; é produtor de 5 dos 26). **O ID não é alocado
+aqui** — quem executar aloca na escrita (`ls docs/adr/ | tail`), pela regra do CLAUDE.md
+de nunca reservar ID.
+
 ## O fato, medido no r8 (run `d0f6260a`)
 
 `patrimonio.investimentos_nao_atribuidos` é **48,1% de `investimentos.total_financeiro`** —
