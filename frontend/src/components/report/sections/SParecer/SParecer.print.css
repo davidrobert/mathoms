@@ -2,7 +2,7 @@
  *
  * Regras:
  * - Esconder ações interativas (.parecer-action — promover/descartar);
- * - Forçar `<details>` abertos para listar todos riscos;
+ * - Revelar a lista de riscos que a tela colapsa (A40.l88);
  * - Disclaimer fiduciário sempre visível;
  * - Lista de descartadas histórica oculta (clutter sem ação).
  */
@@ -11,17 +11,15 @@
     display: none !important;
   }
 
-  /* `[open]` forçado em todos `<details>` da seção parecer. */
-  details.parecer-details {
-    /* Override stateful; Playwright renderiza com este open=true. */
-    --details-open: 1;
-  }
-  details.parecer-details > summary {
-    /* Esconde "Ver mais N risco(s)…" — conteúdo já aparece expandido. */
-    display: none;
-  }
-  details.parecer-details > :not(summary) {
-    display: block !important;
+  /* A40.l88 — o colapso dos riscos extras vive em `hidden print:flex` no
+     componente, não aqui: revelar precisa vencer o `display:none` do colapso, e
+     a versão anterior tentava isso contra um `<details>` fechado com uma custom
+     property que nada lê. Aqui ficam só as duas afirmações que descrevem a TELA
+     e não podem sobrar no papel — o botão que não se clica e a legenda de
+     partição de uma lista que o print entrega inteira. */
+  .parecer-risks-toggle,
+  .parecer-print-only-screen {
+    display: none !important;
   }
 
   /* Garante quebra de página antes da seção parecer quando necessário. */

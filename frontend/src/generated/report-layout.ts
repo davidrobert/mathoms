@@ -176,6 +176,10 @@ export const LAYOUT: ReportLayout = {
             "num": "2"
           },
           {
+            "section_id": "S_PROTECAO",
+            "num": "2.5"
+          },
+          {
             "section_id": "S3",
             "num": "3"
           }
@@ -400,7 +404,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "S_PROTECAO",
         "title": "Seguros — Cobertura Contratada",
-        "enabled": false,
+        "enabled": true,
         "summary": true,
         "summary_source": null,
         "divider_before": true,

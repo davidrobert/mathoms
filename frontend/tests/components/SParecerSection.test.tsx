@@ -11,10 +11,10 @@
  */
 import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { SParecerSection } from "@/components/report/sections/SParecer";
-import type { PlannerReviewResponse } from "@/lib/api";
+import type { NotaMetodologica, PlannerReviewResponse } from "@/lib/api";
 import { DELIMITACAO_DE_DANO } from "@/lib/parecerAusenciaCopy";
 import { server } from "../mocks/server";
 
@@ -183,7 +183,10 @@ function parcialResponse(dropped = 2): PlannerReviewResponse {
       ...base,
       riscos: [
         base.riscos[0],
-        { ...base.riscos[0], titulo: "Cobertura de seguro abaixo do necessário" },
+        {
+          ...base.riscos[0],
+          titulo: "Cobertura de seguro abaixo do necessário",
+        },
       ],
     },
   };
@@ -196,6 +199,76 @@ function serve(body: PlannerReviewResponse) {
     ),
   );
 }
+
+describe("<SParecerSection /> — ressalvas metodológicas @A40.l88", () => {
+  function nota(titulo: string, conteudo: string): NotaMetodologica {
+    return { titulo, conteudo, temas_canonicos: ["Diagnóstico de dados"] };
+  }
+
+  function comNotas(notas: ReturnType<typeof nota>[], gated = 0) {
+    const body = premiumResponse();
+    body.content!.notas_metodologicas = notas;
+    body.content!.meta.gated_counts = {
+      ...body.content!.meta.gated_counts,
+      notas_metodologicas: gated,
+    };
+    return body;
+  }
+
+  // O defeito medido na U1: o parecer emitia 5 notas — uma delas declarando o
+  // diagnóstico patrimonial com confiança insuficiente — e nenhuma tinha
+  // renderer. O produto entregava o diagnóstico e descartava a ressalva.
+  it("as notas emitidas chegam ao leitor", async () => {
+    serve(
+      comNotas([
+        nota(
+          "Confiança do diagnóstico",
+          "Parte da carteira não foi classificada.",
+        ),
+        nota(
+          "Divergência entre lentes",
+          "Há leituras alternativas para a alocação.",
+        ),
+      ]),
+    );
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    const bloco = await screen.findByTestId("parecer-notas-metodologicas");
+    expect(bloco).toHaveTextContent("Confiança do diagnóstico");
+    expect(bloco).toHaveTextContent("Parte da carteira não foi classificada.");
+    expect(screen.getAllByTestId("parecer-nota")).toHaveLength(2);
+  });
+
+  // Ressalva que chega depois da conclusão já falhou: o leitor decidiu.
+  it("a ressalva precede os riscos na ordem de leitura", async () => {
+    serve(comNotas([nota("Confiança do diagnóstico", "Cobertura parcial.")]));
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    const bloco = await screen.findByTestId("parecer-notas-metodologicas");
+    const riscos = screen.getByTestId("parecer-risks-table");
+    expect(bloco.compareDocumentPosition(riscos) & 4).toBe(4);
+  });
+
+  // `FREE_TIER_LIMITS.notas = 0`: o servidor entrega zero e conta 5. Sem o
+  // contador o leitor free não saberia que existem ressalvas — seria o mesmo
+  // silêncio, agora por política em vez de por bug.
+  it("tier que não recebe nota nenhuma ainda declara que elas existem", async () => {
+    serve(comNotas([], 5));
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    const bloco = await screen.findByTestId("parecer-notas-metodologicas");
+    expect(bloco).toHaveTextContent("+5 no Premium");
+    expect(screen.queryAllByTestId("parecer-nota")).toHaveLength(0);
+  });
+
+  it("parecer sem ressalva não abre bloco vazio", async () => {
+    serve(comNotas([]));
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await screen.findByTestId("parecer-risks-table");
+    expect(screen.queryByTestId("parecer-notas-metodologicas")).toBeNull();
+  });
+});
 
 describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
   it("declara a nota de retenção acima do diagnóstico, em texto no DOM", async () => {
@@ -225,17 +298,21 @@ describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
 
   it("caption separa os 3 contadores pelo substantivo — 'riscos' vs 'itens do parecer'", async () => {
     const body = parcialResponse(2);
-    body.content!.meta.gated_counts = { ...body.content!.meta.gated_counts, riscos: 3 };
+    body.content!.meta.gated_counts = {
+      ...body.content!.meta.gated_counts,
+      riscos: 3,
+    };
     serve(body);
     render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
 
     const caption = await screen.findByTestId("parecer-risks-caption");
-    // A40.l7 — era "Mostrando 2 de 2 riscos". A partição saiu da caption
-    // porque `Mostrando 5 de 8` é FALSO no PDF, onde o print expande o
-    // `<details>` e as 8 linhas imprimem. Quem declara a partição é o
-    // `<summary>`, que o print esconde.
+    // Sem partição (2 riscos, nada colapsa) a caption é só o total. O prefixo
+    // "Mostrando N de" só entra quando há linha oculta NA TELA — A40.l88
+    // corrigiu a crença da A40.l7 de que o print expandia o `<details>`.
     expect(caption).toHaveTextContent("2 riscos");
-    expect(caption).toHaveTextContent("2 itens do parecer retidos na conferência");
+    expect(caption).toHaveTextContent(
+      "2 itens do parecer retidos na conferência",
+    );
     expect(caption).toHaveTextContent("+3 no Premium");
     // O contador de retenção NÃO pode se apresentar como contador de riscos —
     // o item retido pode ter sido uma sugestão.
@@ -251,7 +328,9 @@ describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
     await waitFor(() => {
       expect(screen.getByTestId("parecer-hero")).toBeInTheDocument();
     });
-    expect(screen.queryByTestId("parecer-retencao-parcial")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("parecer-retencao-parcial"),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByTestId("parecer-risks-caption-retidos"),
     ).not.toBeInTheDocument();
@@ -272,7 +351,9 @@ describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
     await waitFor(() => {
       expect(screen.getByTestId("parecer-hero")).toBeInTheDocument();
     });
-    expect(screen.queryByTestId("parecer-retencao-parcial")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("parecer-retencao-parcial"),
+    ).not.toBeInTheDocument();
   });
 
   it("não vaza vocabulário de operador no estado parcial", async () => {
@@ -305,8 +386,13 @@ describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
 });
 
 function absence404(code: string) {
-  return http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
-    HttpResponse.json({ detail: { code, message: "sem parecer" } }, { status: 404 }),
+  return http.get(
+    `${API}/workspaces/:wsId/reports/:reportId/planner-review`,
+    () =>
+      HttpResponse.json(
+        { detail: { code, message: "sem parecer" } },
+        { status: 404 },
+      ),
   );
 }
 
@@ -350,57 +436,72 @@ describe("<SParecerSection /> @ADR-199", () => {
     },
   ] as const;
 
-  it.each(CASOS)("404 $code renderiza copy e CTA próprios", async ({ code, titulo, cta }) => {
-    server.use(absence404(code));
+  it.each(CASOS)(
+    "404 $code renderiza copy e CTA próprios",
+    async ({ code, titulo, cta }) => {
+      server.use(absence404(code));
 
-    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+      render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
-    });
-    expect(screen.getByText(titulo)).toBeInTheDocument();
-    expect(screen.getByTestId("parecer-empty")).toHaveAttribute("data-absence-code", code);
-    // Título é heading: no PDF em A4 nenhum <h2> de seção chega, então este é o
-    // único rótulo do bloco naquela superfície (test.fixme em print.@critical).
-    expect(screen.getByRole("heading", { level: 3, name: titulo })).toBeInTheDocument();
-    for (const outro of CASOS.filter((c) => c.cta && c.cta !== cta)) {
-      expect(screen.queryByText(outro.cta!)).not.toBeInTheDocument();
-    }
-    if (cta) expect(screen.getByText(cta)).toBeInTheDocument();
-  });
+      await waitFor(() => {
+        expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+      });
+      expect(screen.getByText(titulo)).toBeInTheDocument();
+      expect(screen.getByTestId("parecer-empty")).toHaveAttribute(
+        "data-absence-code",
+        code,
+      );
+      // Título é heading: no PDF em A4 nenhum <h2> de seção chega, então este é o
+      // único rótulo do bloco naquela superfície (test.fixme em print.@critical).
+      expect(
+        screen.getByRole("heading", { level: 3, name: titulo }),
+      ).toBeInTheDocument();
+      for (const outro of CASOS.filter((c) => c.cta && c.cta !== cta)) {
+        expect(screen.queryByText(outro.cta!)).not.toBeInTheDocument();
+      }
+      if (cta) expect(screen.getByText(cta)).toBeInTheDocument();
+    },
+  );
 
   // O cliente aprende UM idioma de delimitação — a mesma regra que o comentário
   // do `ParecerRetencaoNota` já estabelece para a retenção. Três redações para o
   // mesmo fato é o que faz o leitor achar que são fatos diferentes.
-  it.each(CASOS)("404 $code fecha com a delimitação de dano literal", async ({ code }) => {
-    server.use(absence404(code));
+  it.each(CASOS)(
+    "404 $code fecha com a delimitação de dano literal",
+    async ({ code }) => {
+      server.use(absence404(code));
 
-    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+      render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
-    });
-    expect(screen.getByTestId("parecer-empty").textContent).toContain(
-      DELIMITACAO_DE_DANO,
-    );
-  });
+      await waitFor(() => {
+        expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+      });
+      expect(screen.getByTestId("parecer-empty").textContent).toContain(
+        DELIMITACAO_DE_DANO,
+      );
+    },
+  );
 
   // Falha e vazio não podem dividir o idioma visual: borda tracejada centralizada
   // é "ainda não há nada aqui", e diria isso sobre uma geração que quebrou.
-  it.each(CASOS)("404 $code separa falha de vazio no peso visual", async ({ code }) => {
-    server.use(absence404(code));
+  it.each(CASOS)(
+    "404 $code separa falha de vazio no peso visual",
+    async ({ code }) => {
+      server.use(absence404(code));
 
-    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+      render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
-    });
-    const ehFalha = code.startsWith("generation_") || code.startsWith("parecer_artifact");
-    const alerta = screen
-      .getByTestId("parecer-empty")
-      .closest("[data-alert-severity='warning']");
-    expect(alerta !== null).toBe(ehFalha);
-  });
+      await waitFor(() => {
+        expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+      });
+      const ehFalha =
+        code.startsWith("generation_") || code.startsWith("parecer_artifact");
+      const alerta = screen
+        .getByTestId("parecer-empty")
+        .closest("[data-alert-severity='warning']");
+      expect(alerta !== null).toBe(ehFalha);
+    },
+  );
 
   // `tier` é BYOK, não plano: "premium" ⟺ chave de IA decriptável
   // (`_classify_llm_config`). Enquadrar por plano acusaria de downgrade quem
@@ -422,18 +523,23 @@ describe("<SParecerSection /> @ADR-199", () => {
 
   // "por um planejador" afirmaria agente humano e contradiria o disclaimer
   // fiduciário que roda na MESMA seção.
-  it.each(CASOS)("404 $code não promete um planejador humano", async ({ code }) => {
-    server.use(absence404(code));
+  it.each(CASOS)(
+    "404 $code não promete um planejador humano",
+    async ({ code }) => {
+      server.use(absence404(code));
 
-    const { container } = render(
-      <SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />,
-    );
+      const { container } = render(
+        <SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />,
+      );
 
-    await waitFor(() => {
-      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
-    });
-    expect(container.innerHTML).not.toMatch(/por um planejador|planejador (vai|irá)/i);
-  });
+      await waitFor(() => {
+        expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+      });
+      expect(container.innerHTML).not.toMatch(
+        /por um planejador|planejador (vai|irá)/i,
+      );
+    },
+  );
 
   it("nenhuma copy de ausência promete o que a anterior prometia", async () => {
     server.use(absence404("not_generated_yet"));
@@ -447,7 +553,9 @@ describe("<SParecerSection /> @ADR-199", () => {
     });
     // A copy antiga afirmava entrega futura para QUALQUER ausência — falso para
     // o premium cujo run tentou e não entregou. É o defeito que a lane fecha.
-    expect(container.innerHTML).not.toContain("Próximo relatório premium incluirá");
+    expect(container.innerHTML).not.toContain(
+      "Próximo relatório premium incluirá",
+    );
   });
 
   it("report_not_found vira erro, não ausência de parecer", async () => {
@@ -549,7 +657,9 @@ describe("<SParecerSection /> @ADR-199", () => {
       expect(screen.getByTestId("parecer-retained")).toBeInTheDocument();
     });
     expect(
-      screen.getByText("O parecer deste relatório foi retido antes da publicação."),
+      screen.getByText(
+        "O parecer deste relatório foi retido antes da publicação.",
+      ),
     ).toBeInTheDocument();
     // COPY_GUIDELINES §2.2 `@2026-08-06` bane "não publicado" (colide com o
     // estado `Publicado` da ADR-204) — era a redação anterior deste fallback.
@@ -662,10 +772,18 @@ describe("ParecerRisksTable — o rótulo do disclosure não pode mentir", () =>
     };
   }
 
+  function oitoRiscos() {
+    return [
+      ...Array.from({ length: 5 }, (_, i) => risco("Crítica", `C${i}`)),
+      risco("Baixa", "B1"),
+      risco("Baixa", "B2"),
+      risco("Baixa", "B3"),
+    ];
+  }
+
   async function renderTable(riscos: ReturnType<typeof risco>[]) {
-    const { ParecerRisksTable } = await import(
-      "@/components/report/sections/SParecer/ParecerRisksTable"
-    );
+    const { ParecerRisksTable } =
+      await import("@/components/report/sections/SParecer/ParecerRisksTable");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return render(<ParecerRisksTable riscos={riscos as any} />);
   }
@@ -674,7 +792,9 @@ describe("ParecerRisksTable — o rótulo do disclosure não pode mentir", () =>
     const { container } = await renderTable(
       Array.from({ length: 6 }, (_, i) => risco("Crítica", `Crítico ${i}`)),
     );
-    expect(container.querySelector("details")).toBeNull();
+    expect(
+      container.querySelector('[data-testid="parecer-risks-extra"]'),
+    ).toBeNull();
     expect(container.querySelectorAll("li")).toHaveLength(6);
   });
 
@@ -686,8 +806,10 @@ describe("ParecerRisksTable — o rótulo do disclosure não pode mentir", () =>
       risco("Baixa", "B2"),
     ];
     const { container } = await renderTable(riscos);
-    const summary = container.querySelector("summary");
-    expect(summary!.textContent).toBe("Ver mais 3 riscos de severidade média e baixa");
+    const toggle = container.querySelector(".parecer-risks-toggle");
+    expect(toggle!.textContent).toBe(
+      "Ver mais 3 riscos de severidade média e baixa",
+    );
   });
 
   it("só Baixa escondida: singular e severidade única", async () => {
@@ -696,23 +818,66 @@ describe("ParecerRisksTable — o rótulo do disclosure não pode mentir", () =>
       risco("Baixa", "B1"),
     ];
     const { container } = await renderTable(riscos);
-    expect(container.querySelector("summary")!.textContent).toBe(
+    expect(container.querySelector(".parecer-risks-toggle")!.textContent).toBe(
       "Ver mais 1 risco de severidade baixa",
     );
   });
 
-  it("caption declara o total, que é o que o PDF de fato imprime", async () => {
-    const riscos = [
-      ...Array.from({ length: 5 }, (_, i) => risco("Crítica", `C${i}`)),
-      risco("Baixa", "B1"),
-      risco("Baixa", "B2"),
-      risco("Baixa", "B3"),
-    ];
-    const { container } = await renderTable(riscos);
-    const caption = container.querySelector('[data-testid="parecer-risks-caption"]');
-    expect(caption!.textContent).toContain("8 riscos");
+  // A40.l88 (U1 · RR5-04) — a asserção anterior era "caption declara o total,
+  // que é o que o PDF de fato imprime". O PDF **não** imprimia os 8: o print CSS
+  // escondia o `<summary>` e a custom property que ele declarava para expandir o
+  // `<details>` era inerte. Teste e código carregavam a mesma crença invertida.
+  it("com lista partida na tela, a caption declara N de M", async () => {
+    const { container } = await renderTable(oitoRiscos());
+    const caption = container.querySelector(
+      '[data-testid="parecer-risks-caption"]',
+    );
+
+    expect(caption!.textContent).toContain("Mostrando 5 de 8 riscos");
+  });
+
+  it("expandido na tela, a caption volta a ser só o total", async () => {
+    const { container } = await renderTable(oitoRiscos());
+
+    fireEvent.click(container.querySelector(".parecer-risks-toggle")!);
+
+    const caption = container.querySelector(
+      '[data-testid="parecer-risks-caption"]',
+    );
     expect(caption!.textContent).not.toContain("Mostrando");
-    // No print o `<details>` expande: 8 linhas impressas sob a caption.
+    expect(caption!.textContent).toContain("8 riscos");
+  });
+
+  // jsdom não aplica media query de print — a revelação é assertada sob
+  // `emulateMedia({media:"print"})` no `parecer-degradacao.@critical.spec.ts`.
+  // Aqui ficam as duas PRÉ-CONDIÇÕES sem as quais aquele gate não teria o que
+  // medir: as linhas existem no DOM colapsadas, e o colapso é classe — nunca o
+  // atributo `hidden`, que a folha da UA declara `!important` e nenhum
+  // `@media print` de autor sobrepõe.
+  it("colapsado, as linhas seguem no DOM sob um colapso que o print sobrepõe", async () => {
+    const { container } = await renderTable(oitoRiscos());
+    const extra = container.querySelector(
+      '[data-testid="parecer-risks-extra"]',
+    )!;
+
+    expect(extra.hasAttribute("hidden")).toBe(false);
+    expect(extra.className).toContain("print:flex");
+    expect(extra.querySelectorAll("li")).toHaveLength(3);
     expect(container.querySelectorAll("li")).toHaveLength(8);
+  });
+
+  it("o toggle declara o estado para leitor de tela", async () => {
+    const { container } = await renderTable(oitoRiscos());
+    const toggle = container.querySelector(".parecer-risks-toggle")!;
+
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(toggle.getAttribute("aria-controls")).toBe("parecer-risks-extra");
+
+    fireEvent.click(toggle);
+
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(
+      container.querySelector('[data-testid="parecer-risks-extra"]')!.className,
+    ).not.toContain("hidden");
   });
 });

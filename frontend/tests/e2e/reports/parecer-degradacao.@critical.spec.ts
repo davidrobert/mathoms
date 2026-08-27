@@ -68,6 +68,46 @@ async function abrir(
   await waitForReportReady(page);
 }
 
+/** Stub com lista partida: 5 Críticas (nunca colapsam) + 3 Baixas atrás do
+ *  disclosure. A fixture compartilhada tem 2 riscos — com ela o caminho de
+ *  truncagem nunca é exercitado, e foi por isso que o PDF pôde sair com 5 de
+ *  12 sem nenhum gate acusar (A40.l88 · U1 RR5-04). Stub local de propósito:
+ *  mexer na fixture compartilhada moveria baseline de todo spec de relatório. */
+function stubComRiscosColapsados() {
+  const stub = plannerReviewStub("parcial");
+  const content = (
+    stub.body as { content: { riscos: Record<string, unknown>[] } }
+  ).content;
+  const base = content.riscos[0];
+  content.riscos = [
+    ...Array.from({ length: 5 }, (_, i) => ({
+      ...base,
+      severidade: "Crítica",
+      titulo: `Risco crítico ${i + 1}`,
+    })),
+    ...Array.from({ length: 3 }, (_, i) => ({
+      ...base,
+      severidade: "Baixa",
+      titulo: `Risco de cauda ${i + 1}`,
+    })),
+  ];
+  return stub;
+}
+
+async function abrirComRiscosColapsados(
+  page: Page,
+  opts: { print?: boolean } = {},
+) {
+  await page.addInitScript(() => localStorage.setItem("theme", "light"));
+  if (opts.print) await page.emulateMedia({ media: "print" });
+  const { workspaceId, reportId } = await mockReportPage(page, {
+    plannerReview: stubComRiscosColapsados(),
+  });
+  await page.setViewportSize(VIEWPORT);
+  await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+  await waitForReportReady(page);
+}
+
 function secao(page: Page) {
   return page.locator("section#S_parecer[data-report-section]");
 }
@@ -90,10 +130,9 @@ test.describe("S_parecer — retenção parcial @critical", () => {
     await expect(nota).toContainText("Os números das demais seções não mudam.");
 
     const caption = page.getByTestId("parecer-risks-caption");
-    // A40.l7 — era "Mostrando 2 de 2 riscos". A partição saiu da caption: no
-    // PDF o print expande o `<details>` e as N linhas imprimem, então
-    // "Mostrando 5 de 8" era falso no artefato que o cliente arquiva. Quem
-    // declara a partição é o `<summary>`, que o print esconde.
+    // 2 riscos não colapsam: sem linha oculta, a caption é só o total. O
+    // prefixo "Mostrando N de" e a revelação no print são assertados no
+    // describe de riscos colapsados abaixo (A40.l88).
     await expect(caption).toContainText("2 riscos");
     await expect(caption).toContainText(
       `${PARECER_ITENS_RETIDOS} itens do parecer retidos`,
@@ -113,7 +152,9 @@ test.describe("S_parecer — retenção parcial @critical", () => {
     );
     // "leitura", não "precisão" — item retido afeta completude.
     await expect(banner).toContainText("a leitura deste relatório");
-    expect(await banner.innerText()).not.toMatch(/precis[ãa]o deste relat[óo]rio/);
+    expect(await banner.innerText()).not.toMatch(
+      /precis[ãa]o deste relat[óo]rio/,
+    );
     // Zero banner novo: a linha nasce na <ul> que já existia.
     const lista = banner.getByLabel("Pendências de qualidade de dados");
     await expect(lista.locator("> li")).toHaveCount(1);
@@ -133,7 +174,9 @@ test.describe("S_parecer — retenção parcial @critical", () => {
     await expect(nota.locator("[title]")).toHaveCount(0);
   });
 
-  test("<md: a nota é linha própria e a caption não estoura", async ({ page }) => {
+  test("<md: a nota é linha própria e a caption não estoura", async ({
+    page,
+  }) => {
     await abrir(page, "parcial", { viewport: MOBILE });
 
     const nota = page.getByTestId("parecer-retencao-parcial");
@@ -148,7 +191,9 @@ test.describe("S_parecer — retenção parcial @critical", () => {
     );
     // Documento não rola na horizontal.
     const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
     );
     expect(overflow).toBeLessThanOrEqual(1);
   });
@@ -172,7 +217,9 @@ test.describe("S_parecer — retido inteiro @critical", () => {
     const estado = page.getByTestId("parecer-retained");
     await expect(estado).toBeVisible();
     await expect(estado).toContainText("Parecer retido neste relatório");
-    await expect(estado).toContainText("Os números das demais seções não mudam.");
+    await expect(estado).toContainText(
+      "Os números das demais seções não mudam.",
+    );
     // A copy de "ainda não gerado" mente aqui.
     await expect(page.getByTestId("parecer-empty")).toHaveCount(0);
   });
@@ -184,7 +231,9 @@ test.describe("S_parecer — retido inteiro @critical", () => {
 
     const estado = page.getByTestId("parecer-retained");
     await expect(estado).toBeVisible();
-    await expect(estado).toContainText("Os números das demais seções não mudam.");
+    await expect(estado).toContainText(
+      "Os números das demais seções não mudam.",
+    );
     // Sem a delimitação, o terceiro que recebe o PDF generaliza a lacuna do
     // add-on para o relatório inteiro — o dano real.
     const texto = await estado.innerText();
@@ -202,5 +251,54 @@ test.describe("S_parecer — retido inteiro @critical", () => {
     if ((await banner.count()) > 0) {
       expect(await banner.innerText()).not.toMatch(/parecer/i);
     }
+  });
+});
+
+/**
+ * A40.l88 (U1 · RR5-04) — o PDF entregava o top-5 de uma lista maior e nenhum
+ * aviso. O `@media print` declarava `--details-open: 1` num `<details>`, custom
+ * property que nada lê: escondia o `<summary>` e não expandia. A metade que
+ * funcionava era só a que apagava o aviso.
+ *
+ * jsdom não aplica media query de print — `toBeVisible` sob
+ * `emulateMedia({media:"print"})` é o único instrumento que mede esta metade.
+ */
+test.describe("S_parecer — riscos colapsados @critical", () => {
+  test("tela: a caption declara N de M e as 3 linhas ficam atrás do toggle", async ({
+    page,
+  }) => {
+    await abrirComRiscosColapsados(page);
+
+    await expect(page.getByTestId("parecer-risks-caption")).toContainText(
+      "Mostrando 5 de 8 riscos",
+    );
+    const extra = page.getByTestId("parecer-risks-extra");
+    await expect(extra).toBeHidden();
+    await expect(page.locator(".parecer-risks-toggle")).toContainText(
+      "Ver mais 3 riscos de severidade baixa",
+    );
+
+    await page.locator(".parecer-risks-toggle").click();
+    await expect(extra).toBeVisible();
+    await expect(page.getByTestId("parecer-risks-caption")).not.toContainText(
+      "Mostrando",
+    );
+  });
+
+  test("print: as 8 linhas aparecem e a legenda de partição sai", async ({
+    page,
+  }) => {
+    await abrirComRiscosColapsados(page);
+    await page.emulateMedia({ media: "print" });
+
+    await expect(page.getByTestId("parecer-risks-extra")).toBeVisible();
+    await expect(page.locator(".parecer-risks-toggle")).toBeHidden();
+    for (let i = 1; i <= 3; i += 1) {
+      await expect(secao(page)).toContainText(`Risco de cauda ${i}`);
+    }
+    // A caption não pode dizer "Mostrando 5 de 8" numa página que imprime 8.
+    const caption = await page.getByTestId("parecer-risks-caption").innerText();
+    expect(caption).not.toContain("Mostrando");
+    expect(caption).toContain("8 riscos");
   });
 });
