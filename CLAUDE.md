@@ -314,6 +314,15 @@ mistura doc + código, a regra normal volta a valer.
     entregue) — delete em vez de manter rodando
   - `bcrypt.hashpw` em test individual quando o `_fast_bcrypt_for_tests`
     fixture (session autouse, rounds=4) está disponível
+  - Orçamento de relógio em `assert` (`assert elapsed_ms < 100` sobre
+    `time.monotonic`/`perf_counter`/`time.time`) — falha por carga da
+    máquina, não por regressão, e passa se o mecanismo quebrar mas for
+    rápido. Meça o **efeito** (chave invalidada + releitura em `miss`) ou o
+    **mecanismo** (chamadas Python constantes em `n`, via `sys.setprofile`),
+    não o relógio. `@pytest.mark.perf` é válvula de escape declarada, não
+    default: o gate de PR deselecciona (`-m "not perf"`) e só o `nightly.yml`
+    roda sem filtro — com ele desabilitado, teste `perf` não roda em lugar
+    nenhum ([[ADR-210]] §Emenda 2026-08-27)
   Ao adicionar teste, pergunte: "esse teste dá sinal proporcional ao
   custo de CI?" Se o sinal vem só ocasionalmente (deprecation gate
   futuro, migration one-shot já mergeada), use marker/skipif em vez
