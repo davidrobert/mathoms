@@ -187,19 +187,18 @@ def test_escala_de_unidade_independe_do_tipo_que_veio_do_payload(valor, unidade,
 # persistidos cujas entradas têm 8 campos e nenhum `rotulo` — e regenerar SÓ o parecer
 # sobre o E5 do run base (ADR-291) é operação normal. Indexar com `[]` derrubava o stage
 # com KeyError DEPOIS de pagar o LLM e ANTES de `_write_cache`: cada retry pagava de novo.
-# A fixture é produzida pelo CATÁLOGO DAQUELA ERA, não escrita à mão.
+#
+# A forma da era anterior é reproduzida REMOVENDO do produtor atual o campo que o #1770
+# acrescentou — não escrevendo o dict à mão (que codificaria a minha suposição sobre a
+# forma) e não via `git show` do commit daquela era: `actions/checkout@v4` clona raso, o
+# commit não existe no runner, e o teste morria de `CalledProcessError` só no CI.
 def _alvos_da_era_sem_rotulo(e5: dict) -> dict:
-    import subprocess
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
 
-    fonte = subprocess.run(
-        ["git", "show", "48a97492:pipeline/domain/services/kpi_target_catalog.py"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    ns: dict = {}
-    exec(compile(fonte, "catalogo_pre_1770", "exec"), ns)  # noqa: S102
-    return ns["build_kpi_targets"](e5, scoring=SCORING_STAMP)
+    atuais = build_kpi_targets(e5, scoring=SCORING_STAMP)
+    return {
+        chave: {k: v for k, v in alvo.items() if k != "rotulo"} for chave, alvo in atuais.items()
+    }
 
 
 SCORING_STAMP = {"thresholds_alertas": {"endividamento_maximo_pct": 20}}
