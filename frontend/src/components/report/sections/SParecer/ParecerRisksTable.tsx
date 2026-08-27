@@ -1,8 +1,12 @@
 "use client";
 
 // ADR-199 Ato 5 §5b — Tabela densa de riscos (top-5 visível + expand).
-// `<details>` HTML nativo para "ver baixa severidade"; React state só para
-// filtros (não usados no MVP). Print CSS força `[open]` para PDF.
+// A40.l88 (U1 · RR5-04): o expand é estado React, não `<details>`. O print CSS
+// que "forçava [open]" declarava uma custom property que ninguém lê — o PDF
+// escondia o summary e NÃO expandia, então saía com 5 linhas de 12 e sem aviso
+// nenhum. Estado em elemento comum é o que `@media print` consegue sobrepor.
+
+import { useState } from "react";
 
 import { AlertOctagon, AlertTriangle, Info } from "lucide-react";
 
@@ -58,20 +62,23 @@ const TOP_LIMIT = 5;
 /** Partição visível/colapsado — Crítica e Alta nunca colapsam. */
 // `slice(TOP_LIMIT)` era cego à severidade: com 6 riscos Críticos, o 6º ia
 // para trás de um `<summary>` que dizia "de baixa severidade" (A40.l7 · RV3-15).
-// O dano é na TELA — o leitor decide não expandir e não lê uma Crítica. No PDF
-// o summary é escondido por SParecer.print.css e as linhas imprimem todas.
-function partitionBySeveridade(riscos: Risco[]): { visible: Risco[]; extra: Risco[] } {
+function partitionBySeveridade(riscos: Risco[]): {
+  visible: Risco[];
+  extra: Risco[];
+} {
   const sorted = sortBySeveridade(riscos);
-  const nuncaColapsa = sorted.filter((r) => SEVERIDADE_RANK[r.severidade] <= 1).length;
+  const nuncaColapsa = sorted.filter(
+    (r) => SEVERIDADE_RANK[r.severidade] <= 1,
+  ).length;
   const corte = Math.max(TOP_LIMIT, nuncaColapsa);
   return { visible: sorted.slice(0, corte), extra: sorted.slice(corte) };
 }
 
 /** Rótulo do disclosure, derivado da composição real do conjunto colapsado. */
 function fraseSeveridadesOcultas(extra: Risco[]): string {
-  const rotulos = [...new Set(sortBySeveridade(extra).map((r) => r.severidade))].map((s) =>
-    s.toLowerCase(),
-  );
+  const rotulos = [
+    ...new Set(sortBySeveridade(extra).map((r) => r.severidade)),
+  ].map((s) => s.toLowerCase());
   const lista =
     rotulos.length > 1
       ? `${rotulos.slice(0, -1).join(", ")} e ${rotulos[rotulos.length - 1]}`
@@ -102,9 +109,11 @@ export function ParecerRisksTable({
   gatedCount = 0,
   retidosCount = 0,
 }: ParecerRisksTableProps) {
+  const [expandido, setExpandido] = useState(false);
   if (riscos.length === 0 && gatedCount === 0) return null;
 
   const { visible, extra } = partitionBySeveridade(riscos);
+  const ocultosNaTela = expandido ? 0 : extra.length;
 
   return (
     <section
@@ -122,6 +131,7 @@ export function ParecerRisksTable({
         </h3>
         <RisksCaption
           total={riscos.length}
+          ocultosNaTela={ocultosNaTela}
           gatedCount={gatedCount}
           retidosCount={retidosCount}
         />
@@ -134,18 +144,61 @@ export function ParecerRisksTable({
       </ul>
 
       {extra.length > 0 && (
-        <details className="mt-3 parecer-details">
-          <summary className="cursor-pointer text-xs font-medium text-[var(--brand-accent)] hover:underline">
-            {fraseSeveridadesOcultas(extra)}
-          </summary>
-          <ul className="mt-2 flex flex-col gap-2">
-            {extra.map((r, idx) => (
-              <RiscoRow key={`extra-${r.section_id}-${idx}`} risco={r} />
-            ))}
-          </ul>
-        </details>
+        <RiscosColapsados
+          extra={extra}
+          expandido={expandido}
+          onToggle={() => setExpandido((aberto) => !aberto)}
+        />
       )}
     </section>
+  );
+}
+
+/** Disclosure dos riscos que a tela colapsa.
+ *
+ * O colapso é `hidden print:flex` — classe, nunca o atributo `hidden` nem um
+ * `<details>` fechado. Os dois são `display:none !important` na folha da UA, e
+ * `!important` de UA vence `!important` de autor: nenhum `@media print` os
+ * revela. Medido sob `emulateMedia({media:"print"})`, que reprovou a primeira
+ * tentativa desta lane (com o atributo) nos três engines.
+ *
+ * A linha fica montada no DOM de propósito: desmontar no colapso deixaria o
+ * print sem o que revelar.
+ */
+function RiscosColapsados({
+  extra,
+  expandido,
+  onToggle,
+}: {
+  extra: Risco[];
+  expandido: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        className="parecer-risks-toggle mt-3 cursor-pointer text-xs font-medium text-[var(--brand-accent)] hover:underline"
+        aria-expanded={expandido}
+        aria-controls="parecer-risks-extra"
+        onClick={onToggle}
+      >
+        {expandido
+          ? "Ocultar os riscos adicionais"
+          : fraseSeveridadesOcultas(extra)}
+      </button>
+      <ul
+        id="parecer-risks-extra"
+        className={`parecer-risks-extra mt-2 flex-col gap-2 ${
+          expandido ? "flex" : "hidden print:flex"
+        }`}
+        data-testid="parecer-risks-extra"
+      >
+        {extra.map((r, idx) => (
+          <RiscoRow key={`extra-${r.section_id}-${idx}`} risco={r} />
+        ))}
+      </ul>
+    </>
   );
 }
 
@@ -158,10 +211,12 @@ export function ParecerRisksTable({
  */
 function RisksCaption({
   total,
+  ocultosNaTela,
   gatedCount,
   retidosCount,
 }: {
   total: number;
+  ocultosNaTela: number;
   gatedCount: number;
   retidosCount: number;
 }) {
@@ -170,10 +225,16 @@ function RisksCaption({
       className="flex flex-wrap gap-x-2 text-xs text-[var(--surface-muted-foreground)]"
       data-testid="parecer-risks-caption"
     >
-      {/* Só o total: "Mostrando 5 de 8" era FALSO no PDF, onde o print expande
-          o `<details>` e as 8 linhas imprimem (A40.l7). Na tela nada se perde —
-          o `<summary>` logo abaixo já declara a partição. */}
+      {/* "Mostrando N de" só existe enquanto a lista está partida NA TELA — o
+          print revela as linhas ocultas, então o prefixo sai do PDF pela regra
+          `.parecer-print-only-screen`. É a mesma afirmação medida nas duas
+          superfícies, não uma legenda escolhida por crença sobre a outra. */}
       <span className="whitespace-nowrap">
+        {ocultosNaTela > 0 && (
+          <span className="parecer-print-only-screen">
+            Mostrando {total - ocultosNaTela} de{" "}
+          </span>
+        )}
         {total} {total === 1 ? "risco" : "riscos"}
       </span>
       {retidosCount > 0 && (

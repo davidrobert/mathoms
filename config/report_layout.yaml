@@ -101,12 +101,11 @@ navigation:
         - {section_id: "perfil"}
         - {section_id: "S1", num: "1"}
         - {section_id: "S2", num: "2"}
-        # S_PROTECAO entra aqui (pós-S2, ordem AUVP · ADR-240 D1, num "2.5")
-        # QUANDO a seção for ligada. Enquanto `enabled: false`, a entrada NÃO
-        # pode existir: nav e ToC entregavam âncora morta — e o título da
-        # seção — em 100% dos relatórios (RV3-04, A40.l7). Reinserir no mesmo
-        # PR que flipa `enabled: true`; `validate_nav_targets` no codegen
-        # cobra os dois lados e falha antes de emitir.
+        # Pós-S2, ordem AUVP (ADR-240 D1). Reinserida em A40.l88 no mesmo PR
+        # que flipou `enabled: true` — que é o que `validate_nav_targets` exige
+        # nos dois sentidos. A entrada saiu na A40.l7 porque a seção estava
+        # desligada e a âncora morria em 100% dos relatórios (RV3-04).
+        - {section_id: "S_PROTECAO", num: "2.5"}
         - {section_id: "S3", num: "3"}
     - label: "Detalhes"
       links:
@@ -255,13 +254,15 @@ estrategico:
     # Posicionamento AUVP: S2 (Reserva) → S_PROTECAO (Proteção) → S4 (Patrimônio)
     # → S3 (Investimentos). Reordenação S3↔S4 é débito P2.1 (visual review
     # exige snapshots novos; mantemos ordem atual para não quebrar diff de PDF).
-    # Cards e charts em enabled:false até P3 (componente React) ligar.
+    # Cards e charts seguem enabled:false: quem renderiza é o componente React
+    # `S_ProtecaoSection` (dispatch em MIGRATED_SECTIONS), não o pipeline de
+    # cards do shell. A condição escrita abaixo foi satisfeita em A40.l88.
     # Título user-facing não atribui (§13.1): "Pilar AUVP" chegava ao cliente
     # pelo TOC. "Seguros" em vez de "Proteção Patrimonial" porque o segundo
     # lê como blindagem patrimonial (holding/sucessão) — que mora na S9.
     - id: "S_PROTECAO"
       title: "Seguros — Cobertura Contratada"
-      enabled: false  # P3 liga quando S_ProtecaoSection.tsx existir
+      enabled: true  # A40.l88 — S_ProtecaoSection.tsx existe e tem hide-when-empty
       summary: true
       # E5.N não produz narrativa de proteção patrimonial (ADR-240 é card).
       summary_source: null

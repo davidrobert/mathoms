@@ -4,7 +4,9 @@ type: lane
 title: "A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1750
+ship_date: "2026-08-26"
 priority: P1
 branch_slug: a40-l79-row-fiscal-ausente-e-fail-open
 owner: data-engineer
@@ -15,7 +17,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/financial-planning

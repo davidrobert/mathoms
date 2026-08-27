@@ -21,6 +21,7 @@ from pipeline.domain.services.suggestion_rules import (
 )
 from pipeline.domain.types.suggestion import (
     KIND_TO_CATEGORY,
+    SECOES_SEM_ANCORA,
     VALID_KINDS,
     VALID_SECTION_IDS,
     SuggestionDraft,
@@ -318,7 +319,14 @@ class TestSectionIdVocabulary:
 
     def test_vocabulario_do_dominio_nao_deriva_do_layout(self):
         """Cópia à mão em `types/suggestion.py` ↔ seções habilitadas do YAML."""
-        assert VALID_SECTION_IDS == _enabled_layout_section_ids()
+        assert VALID_SECTION_IDS == _enabled_layout_section_ids() - SECOES_SEM_ANCORA
+
+    def test_secao_sem_ancora_existe_e_e_desconhecida_do_parecer(self):
+        """A exclusão não é waiver: id que sumiu do layout, ou que o parecer passou
+        a conhecer, deixa de ser 'habilitada sem âncora' e a linha tem de cair —
+        senão a lista envelhece como allowlist e volta a esconder drift real."""
+        assert SECOES_SEM_ANCORA <= _enabled_layout_section_ids()
+        assert not SECOES_SEM_ANCORA & _parecer_schema_section_enum()
 
     def test_vocabulario_do_dominio_bate_com_enum_do_parecer(self):
         """Mesmo vocabulário na superfície LLM (ADR-200) — âncora é a mesma."""
