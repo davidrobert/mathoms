@@ -141,3 +141,64 @@ class TestManifestoTemProdutor:
         """Era 2 de 9 em 2026-08-21; o KR-F fecha em 9 de 9."""
         sem = [w["file"] for w in self._manifesto() if not (w.get("alerts") or [])]
         assert not sem, f"entradas sem canal de falha: {sem}"
+
+
+class TestSecurityGreenAgrega:
+    """O cabeçalho do security.yml afirmava "bloqueia merge se algum scan
+    falhar" enquanto NENHUM job dele era required — `pip-audit` e
+    `npm-audit-prod` se declaravam "gate blocking" e ninguém consumia o
+    resultado. O agregador é quem torna a afirmação verdadeira."""
+
+    def _workflow(self) -> dict:
+        import yaml
+
+        return yaml.safe_load((REPO_ROOT / ".github/workflows/security.yml").read_text())
+
+    def _jobs_que_se_declaram_blocking(self) -> set[str]:
+        """Lê o TEXTO, não o YAML parseado: os jobs se declaram blocking em
+        COMENTÁRIO (`# pip-audit é gate blocking`), que o `safe_load` descarta.
+        A primeira versão deste teste parseava e por isso não via nada —
+        tirar `pip-audit` do agregador passava batido."""
+        texto = (REPO_ROOT / ".github/workflows/security.yml").read_text(encoding="utf-8")
+        atual, achados = None, set()
+        for linha in texto.splitlines():
+            if (
+                linha.startswith("  ")
+                and linha.strip().endswith(":")
+                and not linha.startswith("    ")
+            ):
+                atual = linha.strip().rstrip(":")
+            elif atual and "blocking" in linha.lower() and "não" not in linha.lower():
+                achados.add(atual)
+        return achados - {"security-green"}
+
+    def test_todo_job_que_se_declara_blocking_esta_no_agregador(self) -> None:
+        blocking = self._jobs_que_se_declaram_blocking()
+        assert blocking, "o teste deixou de encontrar jobs blocking — âncora quebrou"
+        orfaos = blocking - set(self._workflow()["jobs"]["security-green"]["needs"])
+        assert not orfaos, f"jobs que se declaram blocking e ficaram fora: {orfaos}"
+
+    def test_scans_de_cve_de_producao_estao_no_agregador(self) -> None:
+        """Conjunto mínimo fixado por DECISÃO, não por comentário: derivar só
+        da palavra "blocking" deixa o gate encolher em silêncio se alguém
+        reescrever o comentário junto com o `needs:`."""
+        agregados = set(self._workflow()["jobs"]["security-green"]["needs"])
+        minimo = {"changes", "trivy-fs", "trivy-config", "pip-audit", "npm-audit-prod"}
+        assert minimo <= agregados, f"saíram do agregador: {minimo - agregados}"
+
+    def test_aceita_skipped_senao_trava_pr_docs_only(self) -> None:
+        """Path-filter pula área que o PR não toca; exigir `success` de job
+        pulado travaria todo PR docs-only — mesmo motivo do `all-green`."""
+        passo = self._workflow()["jobs"]["security-green"]["steps"][0]["run"]
+        assert '"$result" != "skipped"' in passo
+
+    def test_roda_mesmo_com_upstream_vermelho(self) -> None:
+        """Sem `if: always()`, o agregador é SKIPPED quando um scan falha — e
+        skipped conta como verde para branch protection: o gate viraria
+        decorativo exatamente no caso que ele existe para pegar."""
+        assert self._workflow()["jobs"]["security-green"]["if"] == "always()"
+
+    def test_informativo_fica_de_fora(self) -> None:
+        """`npm-audit-dev` é continue-on-error: CVE em devDependency não vai
+        para produção, e incluí-lo transformaria ruído em bloqueio de merge."""
+        assert "npm-audit-dev" not in self._workflow()["jobs"]["security-green"]["needs"]

@@ -15,9 +15,17 @@
 # docs/reference/runbooks/security_gates.md.
 #
 # Triggers:
-#   - pull_request em main: bloqueia merge se algum scan falhar.
+#   - pull_request em main: bloqueia merge via `security-green` (agregador no
+#     fim deste arquivo, required no Ruleset `main-protection`).
+#     ATÉ 2026-08-27 ESTE TEXTO ERA FALSO: dizia "bloqueia merge se algum scan
+#     falhar", mas NENHUM job daqui era required — só o gitleaks de PR, que
+#     vive em ci.yml. `pip-audit` e `npm-audit-prod` se declaravam "gate
+#     blocking" e ninguém consumia o resultado: a exposição medida entre uma
+#     CVE entrar por PR e ter qualquer consequência era o cron semanal (≤7d)
+#     mais o rot da Issue (21d) = até 28 dias, em repo público.
 #     Gating por path-filter (changes job) — docs-only / area-only pula
-#     scans irrelevantes (cobertura preservada pelo schedule semanal).
+#     scans irrelevantes (cobertura preservada pelo schedule semanal), e o
+#     agregador aceita `skipped` pelo mesmo motivo que o `all-green` aceita.
 #   - schedule sábado 03:00 UTC: roda TODOS os scans (sem gating).
 #     Detecta CVE divulgada entre PRs; failure abre Issue.
 #   - workflow_dispatch: rerun manual (também sem gating — escolha
@@ -287,6 +295,49 @@ jobs:
           # v2.3.9 já hardcoda 8.24.3, mas fixar aqui blinda contra drift do default
           # do action em bump futuro (ver ADR-230 §D3 — paridade local↔CI).
           GITLEAKS_VERSION: "8.24.3"
+
+  # Espelho do `all-green` do ci.yml: required check único que agrega os scans.
+  # `all-green` NÃO pode ter `needs:` de outro workflow — daí o agregador viver
+  # aqui. Aceita `skipped` pelo mesmo motivo dele: path-filter pula área que o
+  # PR não toca, e exigir `success` de job pulado travaria todo PR docs-only.
+  # `npm-audit-dev` fica FORA de propósito: é `continue-on-error` e informativo
+  # (CVE em devDependency não vai para produção) — incluí-lo transformaria ruído
+  # de dev em bloqueio de merge.
+  security-green:
+    name: Security green
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: always()
+    needs:
+      - changes
+      - trivy-fs
+      - trivy-config
+      - pip-audit
+      - npm-audit-prod
+    steps:
+      - name: Agrega os scans
+        run: |
+          fail=0
+          for job in changes trivy-fs trivy-config pip-audit npm-audit-prod; do
+            case "$job" in
+              changes) result="${{ needs.changes.result }}" ;;
+              trivy-fs) result="${{ needs.trivy-fs.result }}" ;;
+              trivy-config) result="${{ needs.trivy-config.result }}" ;;
+              pip-audit) result="${{ needs.pip-audit.result }}" ;;
+              npm-audit-prod) result="${{ needs.npm-audit-prod.result }}" ;;
+            esac
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              echo "✗ $job: $result"
+              fail=1
+            else
+              echo "✓ $job: $result"
+            fi
+          done
+          if [[ "$fail" == "1" ]]; then
+            echo "::error title=Security green::scan de segurança falhou — veja os jobs acima. Para CVE sem fix disponível, o caminho é o runbook (docs/reference/runbooks/security_gates.md), não o bypass."
+            exit 1
+          fi
+          echo "todos os scans de segurança verdes ou pulados por path-filter"
 
   open-issue-on-schedule-failure:
     name: Open Security Issue (schedule only)
