@@ -99,7 +99,11 @@ determinísticas do próprio produto se contradizendo, o que é a tese da [[A40.
 lane. A justificativa de ordem acima diz *qual lane vai primeiro*, não *onde (d) mora*: a
 redação original conflatou sequenciamento com propriedade.
 
-Agrava: a linha é **fóssil**. A regra não dispara hoje (`if_pct` 35,76 < 50; `trs` 1,74 < 4,6);
+Agrava: a linha é **fóssil**. A regra não dispara hoje (`if_pct` 35,76 < 50; `trs` 1,74 < 4,6
+— par medido no **run da U1**, `storage/<uuid>/`, off-git; na fixture
+`dogfood_view_model.json` a regra também não dispara, mas pela guarda **anterior**, com
+`goals.taxa_retirada_efetiva_pct` ausente — re-medido no closeout de 2026-08-27, ver
+[[A40.l90]] §Acolhimento);
 o 4,0% persiste porque a `Decision` D01 foi aceita em 2026-05-06 e `_top5_decisions_stmt`
 projeta sem revalidar. Corrigir o produtor **não apaga a linha já persistida**.
 
