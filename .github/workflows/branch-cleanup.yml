@@ -106,3 +106,18 @@ jobs:
               --body "$REPORT"
             echo "Issue criada"
           fi
+
+      # Canal de falha do compensador (ADR-210 §camada 4, KR-F do PLAN-ci-trust).
+      # O `S2` do watchdog mede run INICIADO, não bem-sucedido: sem este step,
+      # um compensador que inicia e falha todo run é invisível. Em 2026-08-17 o
+      # `auto-update-prs` falhou 10x em ~5h, a fila parou, e nada percebeu.
+      # LIMITE declarado: `if: failure()` só dispara se um step ANTERIOR deste
+      # job falhou — job que nao recebe runner (budget, outage) nao passa por
+      # aqui, e essa classe continua coberta so pelo `S2`.
+      - name: Canal de falha — registra em Issue rotulada
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 dev/ci_report_workflow_failure.py \
+            --workflow branch-cleanup.yml --label ops-hygiene
