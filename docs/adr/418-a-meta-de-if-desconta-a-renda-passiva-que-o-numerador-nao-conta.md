@@ -195,6 +195,15 @@ receber o mesmo termo — é o §D2 aplicado a um eixo que já existia.
   **magnitude e durabilidade**, e a resposta dela é o haircut do §D2, não o zero: zerar é o
   haircut de 100% aplicado ao componente de maior peso do score.
 
+## Desvio de protocolo, declarado
+
+O CLAUDE.md §"ADR `Proposto` antes de PR P0/P1" pede ADR `Proposto` **num PR anterior** ao de
+implementação, flipando a `Decidido` no merge. Esta nasceu `Decidido` dentro do próprio PR de
+implementação (#1753). O desvio teve custo mensurável **nesta lane**: entre a escrita e o
+merge, o co-design `financial-planner` inverteu o §D2 (o predicado lia o toggle, não a
+exclusão) e criou o §D5 — exatamente a janela que o estado `Proposto` existe para sinalizar.
+Registrado para que o próximo P0 de invariante não repita.
+
 ## Consequências
 
 - Golden do dogfood: delta **`=`** (o workspace medido está em `imoveis_no_if = true`, onde o
