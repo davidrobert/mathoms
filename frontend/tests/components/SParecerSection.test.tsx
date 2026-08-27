@@ -14,7 +14,7 @@ import { http, HttpResponse } from "msw";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { SParecerSection } from "@/components/report/sections/SParecer";
-import type { PlannerReviewResponse } from "@/lib/api";
+import type { NotaMetodologica, PlannerReviewResponse } from "@/lib/api";
 import { DELIMITACAO_DE_DANO } from "@/lib/parecerAusenciaCopy";
 import { server } from "../mocks/server";
 
@@ -201,7 +201,7 @@ function serve(body: PlannerReviewResponse) {
 }
 
 describe("<SParecerSection /> — ressalvas metodológicas @A40.l88", () => {
-  function nota(titulo: string, conteudo: string) {
+  function nota(titulo: string, conteudo: string): NotaMetodologica {
     return { titulo, conteudo, temas_canonicos: ["Diagnóstico de dados"] };
   }
 
