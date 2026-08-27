@@ -4,7 +4,7 @@ type: lane
 title: "Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: blocked
+status: open
 priority: P0
 branch_slug: a40-l89-wiring-do-catalogo-de-alvo
 owner: prompt-engineer
@@ -16,7 +16,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p0
   - area/pipeline
   - area/llm
