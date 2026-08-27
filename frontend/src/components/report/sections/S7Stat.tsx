@@ -36,3 +36,31 @@ export function Stat({
     </div>
   );
 }
+
+/** [[ADR-418]] §D3 — nomeia o que a meta financia e o que foi descontado dela.
+ *  Sem isso o card publica "Meta IF" sem dizer de que base o gap e o progresso saíram,
+ *  e sem dizer qual renda mensal aquele patrimônio sustenta (A40.l91 §Escopo 3). */
+export function MetaIfSublabel({
+  alvoMensal,
+  rendaForaMensal,
+  formatCurrency,
+}: {
+  alvoMensal?: number;
+  rendaForaMensal?: number;
+  formatCurrency: (v: number) => string;
+}) {
+  if (typeof alvoMensal !== "number") return null;
+  return (
+    <>
+      <span className="block">
+        financia {formatCurrency(alvoMensal)}/mês — a renda-alvo declarada
+      </span>
+      {typeof rendaForaMensal === "number" && rendaForaMensal > 0 && (
+        <span className="block">
+          já descontados {formatCurrency(rendaForaMensal)}/mês de bens fora
+          desta carteira
+        </span>
+      )}
+    </>
+  );
+}

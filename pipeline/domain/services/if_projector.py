@@ -9,7 +9,16 @@ import math
 import re
 from dataclasses import dataclass
 from datetime import date
+from enum import Enum
 
+from pipeline.domain.services.base_da_meta_if import (
+    BaseDaMetaIF,
+    OrigemRendaFora,
+    RendaPassivaFora,
+    base_da_meta,
+    compor_meta_if,
+    progresso_if_pct,
+)
 from pipeline.domain.services.money_parsing import (
     parse_valor_monetario,
     valor_monetario_float,
@@ -184,6 +193,11 @@ def extract_renda_passiva_from_text(content: str) -> float:
 
 
 # =============================================================================
+# Base da meta — [[ADR-418]]
+# =============================================================================
+
+
+# =============================================================================
 # Result
 # =============================================================================
 
@@ -247,10 +261,16 @@ class IFProjection:
 
     # `prazo_anos_realista is None` = ausência medida; idade/ano projetados
     # acompanham em None (nunca aritmética sobre sentinela — era 999 → 1040).
+    # `if_meta` é a meta OPERACIONAL — a que `if_pct`/`if_gap`/`solve_prazo` usam.
+    # A bruta segue publicada ao lado ([[ADR-418]] §D3): sem ela, auditar de que base
+    # o progresso saiu exige ler código-fonte, que é como o PV9-16 nasceu.
     if_meta: float
+    if_meta_bruta: float
     if_trs: float
     if_trs_monthly_value: float
-    if_pct: float
+    # `None` quando a meta clampou em zero: progresso deixa de ser mensurável, não vira
+    # 0% nem 100% ([[ADR-418]] §D5).
+    if_pct: float | None
     if_gap: float
     prazo_anos_realista: float | None
     idade_titular_if: int | None
@@ -266,14 +286,34 @@ class IFProjection:
     tem_conjuge_datado: bool = False
     titular_key: str = "david"
     conjuge_key: str = ""
+    # Ternário ([[ADR-418]] §D3): valor `0.0` é "medi e não há nada fora"; `None` é "não
+    # medi" (renda passiva degradada), e aí a chave não sai — publicá-la em zero afirmaria
+    # ausência que ninguém apurou. Como o valor só existe com a renda passiva medida, a
+    # chave só aparece onde `goals` já carrega o rótulo de janela do IRPF (ADR-306).
+    renda_passiva_fora: RendaPassivaFora | None = None
+    if_meta_base: BaseDaMetaIF = BaseDaMetaIF.renda_alvo_bruta
 
+    def base_da_meta_dict(self) -> dict:
+        """Bloco que nomeia a base de ``if_meta`` ([[ADR-418]] §D3)."""
+        bloco = {
+            "if_meta_bruta": round(self.if_meta_bruta, 2),
+            "if_meta_base": self.if_meta_base.value,
+        }
+        if self.renda_passiva_fora is not None:
+            bloco["renda_passiva_fora_do_investivel_mensal_brl"] = round(
+                self.renda_passiva_fora.mensal, 2
+            )
+            bloco["renda_passiva_fora_origem"] = self.renda_passiva_fora.origem.value
+        return bloco
+
+    # Chaves sempre presentes; `null` sem prazo projetado (distinga por `is None`).
     def to_legacy_dict(self) -> dict:
-        # Chaves sempre presentes; `null` sem prazo projetado (distinga por `is None`).
         out: dict = {
             "if_meta": round(self.if_meta, 2),
+            **self.base_da_meta_dict(),
             "if_trs": round(self.if_trs, 2),
             "if_trs_monthly_value": round(self.if_trs_monthly_value, 2),
-            "if_pct": round(self.if_pct, 2),
+            "if_pct": _round_opt(self.if_pct, 2),
             "if_gap": round(self.if_gap, 2),
             "prazo_anos_realista": _round_opt(self.prazo_anos_realista, 1),
             # ADR-338: chave role-keyed (era idade_<nome>_if + alias morto "david_idade_if").
@@ -337,18 +377,35 @@ class IFProjector:
     def __init__(self, config: IFProjectorConfig) -> None:
         self._config = config
 
-    def project(self, investivel: float) -> IFProjection:
+    def project(
+        self,
+        investivel: float,
+        *,
+        renda_passiva_fora: RendaPassivaFora | None = None,
+    ) -> IFProjection:
         cfg = self._config
         if_trs_monthly = (cfg.if_trs_pct / 100.0) / 12.0
+        # A renda-alvo DECLARADA sai da meta BRUTA, sempre. Deriva-la da operacional
+        # faria o campo virar "o que ainda falta receber por mês" sob o rótulo do alvo
+        # — e o `EstrategiaAporteCard` o lê como alvo ([[ADR-418]] §D3).
         if_trs_value = cfg.if_meta * if_trs_monthly
 
-        if_pct = (investivel / cfg.if_meta * 100) if cfg.if_meta > 0 else 0.0
+        # Uma base só para os dois consumidores e para o prazo ([[ADR-418]] §D1).
+        termo = renda_passiva_fora.mensal if renda_passiva_fora else None
+        meta = compor_meta_if(
+            meta_bruta=cfg.if_meta,
+            renda_passiva_fora_do_investivel_mensal=termo,
+            if_trs_pct=cfg.if_trs_pct,
+        )
+        base = base_da_meta(meta=meta, meta_bruta=cfg.if_meta)
+
+        if_pct = progresso_if_pct(investivel=investivel, meta=meta)
         # `FORMULAS.md:26-27` manda MAX(0, ·). Gap negativo é número que não existe no
         # domínio ("precisa acumular menos que zero") e NÃO fica só no JSON:
         # `summaries_narrator:283` e `charts_narrator:229,385,390` o formatam como moeda
         # em prosa. O `WaterfallIfChart.tsx:39` já clampava no fallback — o frontend
         # estava mais correto que o domínio (review financial-planner do PR #1417).
-        if_gap = max(0.0, cfg.if_meta - investivel)
+        if_gap = max(0.0, meta - investivel)
 
         # Taxa mensal equivalente da anual composta.
         retorno_anual = cfg.retorno_real_anual_pct / 100.0
@@ -356,7 +413,7 @@ class IFProjector:
 
         prazo_anos = self._solve_prazo(
             investivel=investivel,
-            if_meta=cfg.if_meta,
+            if_meta=meta,
             r=r,
             aporte_mensal=cfg.aporte_mensal,
         )
@@ -367,7 +424,10 @@ class IFProjector:
         renda_passiva_current = investivel * taxa / 12
 
         return IFProjection(
-            if_meta=cfg.if_meta,
+            if_meta=meta,
+            if_meta_bruta=cfg.if_meta,
+            if_meta_base=base,
+            renda_passiva_fora=renda_passiva_fora,
             if_trs=cfg.if_trs_pct,
             if_trs_monthly_value=if_trs_value,
             if_pct=if_pct,

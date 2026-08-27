@@ -79,6 +79,7 @@ def _reserva_do_produtor(*, com_renda_pj: bool = False) -> dict:
 def _if_projection() -> IFProjection:
     return IFProjection(
         if_meta=1_000_000,
+        if_meta_bruta=1_000_000,
         if_trs=4,
         if_trs_monthly_value=3_333.33,
         if_pct=30,

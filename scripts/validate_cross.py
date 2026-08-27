@@ -219,23 +219,29 @@ def _cv4_taxa_poupanca(e5: dict) -> CrossValidationResult | None:
     )
 
 
-def _cv5_if_monthly(e5: dict) -> CrossValidationResult | None:
+# [[ADR-418]] §D4 — a versão anterior afirmava `if_meta × TRS/12 == if_trs_monthly_value`
+# sobre dois campos em que o SEGUNDO deriva do primeiro: não podia falhar, e passou
+# `info`/`passed` em todo run enquanto a composição da meta estava errada no regime
+# default. O check agora cruza três produtores independentes — o Goal (`if_meta_bruta`),
+# o toggle `imoveis_no_if` e o IRPF (o termo descontado). Artefato pré-ADR-418 não tem os
+# campos e devolve `None`: ausência é "não sei", nunca "bate".
+def _cv5_if_meta_composicao(e5: dict) -> CrossValidationResult | None:
     goals = e5.get("goals", {})
-    if_meta = goals.get("if_meta", 0)
-    if_trs = goals.get("if_trs", 0)
-    if_monthly = goals.get("if_trs_monthly_value", 0)
-    if if_meta <= 0 or if_trs <= 0:
+    if_meta, if_trs = goals.get("if_meta", 0), goals.get("if_trs", 0)
+    if_meta_bruta = goals.get("if_meta_bruta")
+    fora_mensal = goals.get("renda_passiva_fora_do_investivel_mensal_brl")
+    if if_meta <= 0 or if_trs <= 0 or if_meta_bruta is None or fora_mensal is None:
         return None
-    expected_monthly = (if_meta * if_trs / 100) / 12
-    diff = abs(expected_monthly - if_monthly)
-    threshold = _QA_THRESHOLDS.get("cv_if_monthly_diff_max", 500)
+    diff = abs(max(0.0, if_meta_bruta - fora_mensal * 12 / (if_trs / 100)) - if_meta)
+    threshold = _QA_THRESHOLDS.get("cv_if_meta_composicao_diff_max", 0.01)
     return CrossValidationResult(
         "CV5",
-        "IF meta × TRS = renda mensal",
+        "IF meta = bruta − renda passiva fora do investível",
         "warning" if diff > threshold else "info",
         diff <= threshold,
-        f"Meta R$ {if_meta:,.0f} × {if_trs}% / 12 = R$ {expected_monthly:,.0f}/mês, "
-        f"reportado: R$ {if_monthly:,.0f}/mês",
+        f"base={goals.get('if_meta_base', '?')}, "
+        f"razão meta/bruta={(if_meta / if_meta_bruta if if_meta_bruta else 0):.4f}, "
+        f"resíduo da composição R$ {diff:,.2f} (tolerância R$ {threshold:,.2f})",
         ["goals"],
     )
 
@@ -644,7 +650,7 @@ _CV_OPTIONAL_CHECKS = (
     _cv2_patrimonio_composicao,
     _cv3_fluxo_aritmetica,
     _cv4_taxa_poupanca,
-    _cv5_if_monthly,
+    _cv5_if_meta_composicao,
     _cv6_if_progress,
     _cv7_endividamento,
     _cv8_reserva_cobertura,

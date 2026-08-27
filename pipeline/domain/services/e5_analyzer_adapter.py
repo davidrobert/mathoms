@@ -112,6 +112,8 @@ from pipeline.domain.services.if_projector import (
     IFProjection,
     IFProjector,
     IFProjectorConfig,
+    OrigemRendaFora,
+    RendaPassivaFora,
 )
 from pipeline.domain.services.informe_extrato_override import (
     ExtratoPosicao,
@@ -648,27 +650,33 @@ class E5AnalyzerAdapter:
         if_projection_piso: IFProjection | None = None
         if self._if_projector is not None:
             if_projection = self._if_projector.project(
-                investivel=float(patrimonio_full.get("investivel_efetivo", 0))
+                investivel=float(patrimonio_full.get("investivel_efetivo", 0)),
+                renda_passiva_fora=_renda_passiva_fora_do_investivel(
+                    patrimonio_full, passive_income
+                ),
             )
             # `project` é PURA — a segunda chamada com o piso custa ~0 e dá o
             # extremo conservador sem duplicar fórmula ([[ADR-412]] §D7).
+            # O piso mira a MESMA meta ([[ADR-418]] §D1): sem o termo, o extremo
+            # conservador media numerador menor contra denominador maior, e o leitor não
+            # atribuiria a queda. É o §D2 violado por um eixo que já existe.
             if_projection_piso = self._if_projector.project(
-                investivel=_piso_produtivo(patrimonio_full)
+                investivel=_piso_produtivo(patrimonio_full),
+                renda_passiva_fora=_renda_passiva_fora_do_investivel(
+                    patrimonio_full, passive_income
+                ),
             )
 
         # 7b. Monte Carlo IF — cone de cenários (N3).
         monte_carlo_if: MonteCarloIFResult | None = None
         if if_projection is not None and self._if_projector_config is not None:
             _cfg = self._if_projector_config
-            _investivel = float(patrimonio_full.get("investivel_efetivo", 0))
-            _mc_cfg = IFMonteCarloConfig(
-                patrimonio_investivel=Decimal(str(max(0.0, _investivel))),
-                meta_if=Decimal(str(max(0.0, _cfg.if_meta))),
-                retorno_real_esperado=_cfg.retorno_real_anual_pct / 100.0,
-                aporte_mensal=Decimal(str(max(0.0, _cfg.aporte_mensal))),
-            )
             monte_carlo_if = run_monte_carlo_if(
-                _mc_cfg,
+                _monte_carlo_config(
+                    cfg=_cfg,
+                    if_projection=if_projection,
+                    investivel=float(patrimonio_full.get("investivel_efetivo", 0)),
+                ),
                 ano_base=self._reference_date.year,
                 prazo_declarado=_prazo_declarado_do_goal(_cfg),
             )
@@ -1185,6 +1193,61 @@ def _resolve_valor_31_12(item: dict) -> float:
         latest_year = max(vals.keys())
         return safe_float(vals.get(latest_year, 0))
     return safe_float(item.get("valor", 0))
+
+
+# [[ADR-418]] §D1 — o cone mira a MESMA meta que a barra de progresso e o gap. Ler
+# `cfg.if_meta` (a bruta) aqui deixava o Monte Carlo numa base e o resto da seção noutra:
+# duas metas para a mesma família, que é o defeito que a ADR fecha.
+def _monte_carlo_config(
+    *, cfg: IFProjectorConfig, if_projection: IFProjection, investivel: float
+) -> IFMonteCarloConfig:
+    """Config do cone, ancorada na meta operacional publicada."""
+    return IFMonteCarloConfig(
+        patrimonio_investivel=Decimal(str(max(0.0, investivel))),
+        meta_if=Decimal(str(max(0.0, if_projection.if_meta))),
+        retorno_real_esperado=cfg.retorno_real_anual_pct / 100.0,
+        aporte_mensal=Decimal(str(max(0.0, cfg.aporte_mensal))),
+    )
+
+
+# Bruto→líquido pelas MESMAS constantes de ``RealEstateConfig`` que a seção de imóveis
+# usa (co-design `financial-planner`): segundo conjunto de premissas de vacância num
+# segundo módulo é como o próximo defeito de base nasce. Cobre os três termos que se
+# aplicam sem dado por-imóvel; IPTU, condomínio e taxa de administração ficam de fora e
+# tornam o haircut CONSERVADOR (desconta menos que o real).
+_HAIRCUT_ALUGUEL_BRUTO_PARA_LIQUIDO = 1.0 - (0.275 + 0.15 + 0.01)
+
+
+# [[ADR-418]] §D2 — o termo que a meta desconta: renda passiva de ativo que o numerador
+# NÃO conta. Hoje o único eixo de exclusão é ``imoveis_no_if``; eixo novo entra AQUI, e
+# eixo que não passe por aqui reabre a dupla-penalidade.
+#
+# O predicado é "renda produzida por ativo que o numerador exclui" — NÃO "renda quando o
+# toggle é false". Ler só o toggle inflava o KPI de maior peso sobre premissa falsa: o
+# balde ``alugueis`` é RESIDUAL (`passive_income_calculator:233`) e carrega todo o
+# carnê-leão PF→PF (`irpf_analyzer._alugueis_pf`), que no ICP inclui renda de trabalho
+# autônomo recebida de pessoa física. Família SEM imóvel de renda, no default `false`,
+# com qualquer linha PF→PF via a meta cair por renda que não é aluguel de ativo nenhum
+# que tenha sido excluído (co-design `financial-planner`).
+def _renda_passiva_fora_do_investivel(
+    patrimonio_full: dict, passive_income: PassiveIncomeResult | None
+) -> RendaPassivaFora | None:
+    """Aluguel líquido dos geradores excluídos; zero se não há exclusão, ``None`` sem medida."""
+    if passive_income is None or passive_income.status != "ok":
+        return None
+    imoveis_no_if = patrimonio_full.get("imoveis_no_if")
+    if imoveis_no_if is None:
+        return None
+    if bool(imoveis_no_if):
+        return RendaPassivaFora(0.0, OrigemRendaFora.cat2_no_numerador)
+    # Sem gerador excluído não há o que creditar — e é aqui que a contaminação morre.
+    if float(patrimonio_full.get("imoveis_geradores") or 0) <= 0:
+        return RendaPassivaFora(0.0, OrigemRendaFora.sem_gerador_excluido)
+    bruto_mensal = float(passive_income.renda_passiva_por_fonte_brl.get("alugueis") or 0) / 12.0
+    return RendaPassivaFora(
+        max(0.0, bruto_mensal * _HAIRCUT_ALUGUEL_BRUTO_PARA_LIQUIDO),
+        OrigemRendaFora.residual_irpf_com_haircut,
+    )
 
 
 # =============================================================================
