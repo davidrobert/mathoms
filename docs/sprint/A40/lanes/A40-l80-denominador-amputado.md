@@ -34,10 +34,11 @@ tags:
 > `financial-planner` (a decisão de domínio) + `data-engineer` (enum/contrato)
 > **antes** de escrever o fix.
 
-## Entregue (2026-08-26) — a correção está em `main`, o relatório ainda não mudou
+## Entregue (2026-08-27) — a correção está em `main` e o relatório já mudou
 
-Sete PRs mergeados. **O defeito está corrigido**; o que falta é a comunicação do
-resíduo ao leitor.
+Nove PRs mergeados. **O defeito está corrigido** e o relatório publica o
+intervalo em vez do ponto. O que falta são os gates de completude/precisão e a
+manchete na capa.
 
 | PR | merge | o quê |
 |---|---|---|
@@ -48,6 +49,8 @@ resíduo ao leitor.
 | [#1727](https://github.com/davidrobert/mathoms/pull/1727) | `e8bd8448` | **PR2 — o núcleo. Move dinheiro.** |
 | [#1735](https://github.com/davidrobert/mathoms/pull/1735) | `f2cca647` | PR3a — `atribuicao_investimentos` + razão advisory |
 | [#1741](https://github.com/davidrobert/mathoms/pull/1741) | `9fd524ba` | PR3b substrato — schema, 5ª base, predicado único |
+| [#1742](https://github.com/davidrobert/mathoms/pull/1742) | `e561e673` | registro do entregue no vault |
+| [#1757](https://github.com/davidrobert/mathoms/pull/1757) | `891c2424` | **PR3b produtores — o relatório muda** |
 
 **Os dois sinais opostos do defeito, fechados:** o patrimônio **excluía** a fatia
 sem titular do investível sem declarar (regressão do #1550, em que o termo entrou
@@ -57,10 +60,20 @@ Morreram os dois resolvers binários sobre domínio ternário, mais um quarto
 (`atribuir_por_membro`). O card cambial parou de publicar faixa que o relatório
 recusa julgar.
 
-## Falta — PR3b (produtores), PR4, PR5
+## Falta — PR4 e PR5
 
-**Mapeado e verificado, não escrito.** O plano completo está no §Ataque acima; o
-que segue é o que a medição acrescentou e **não pode ser esquecido**:
+**Critério de aceite: 2 de 5 fechados.** ✅ Consistência (bases publicadas com
+termos) · ✅ Corretude (intervalo + identidade). Faltam ❌ Completude (gate que
+enumera consumidores do denominador), ❌ Precisão (`kpi_targets[].base`) e
+❌ Prova de fecho (regra pós-LLM sobre `pontos_fortes`).
+
+**Armadilha do PR4, medida:** a §D9 pede `kpi_targets[].base` "estreitado ao
+enum", e isso é **inalcançável como escrito** — os dois vocabulários têm
+interseção **vazia** ([[ADR-412]] §Emenda E5). Quem pegar decide: converge os
+vocabulários ou reescreve o critério de Precisão.
+
+O que a medição acrescentou e **não pode ser esquecido** (já implementado no
+PR3b, mantido aqui como registro do porquê):
 
 - **Supressão por `None` PIORA o relatório.** Medido: `S7IndependenciaSection.tsx:95`
   faz `((goals.if_pct as number) ?? 0).toFixed(1)` e renderiza **"0,0%"**;
