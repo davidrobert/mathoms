@@ -103,7 +103,14 @@ Precedente literal: a [[A40.l27]] pôs `resuming` no fast-path e **não** no
 carrega a armadilha: `CREATE UNIQUE INDEX` sobre o predicado alargado **falha
 hoje** no dogfood, que tem 2+ linhas nele.
 
-## Partição de arquivos vs. [[A40.l84]] (`open`, P0, paralela)
+## Partição de arquivos vs. [[A40.l84]] (`shipped` 2026-08-27, P0)
+
+> **Nota datada — 2026-08-27.** A [[A40.l84]] **shipou** (#1771 · `07cd5c66`); a
+> paralelização descrita abaixo é histórica. A partição **se sustentou**: nenhuma
+> das duas reescreveu predicado da outra, e a colisão avisada no blockquote foi
+> evitada — o fecho da l84 é `(completed, pending)` por tupla LISTADA, com teste
+> dedicado provando que `(failed, pending)` sobrevive. A sobreposição prevista em
+> `pipeline_service.py` se resolveu por rebase, como escrito.
 
 | Esta lane | [[A40.l84]] |
 |---|---|
