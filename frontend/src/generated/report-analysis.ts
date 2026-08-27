@@ -96,11 +96,12 @@ export type ReservaExcluida = {
 export type Goals = {
   "if_meta"?: number;
   "if_meta_bruta"?: number;
-  "if_meta_base"?: "renda_alvo_bruta" | "renda_alvo_liquida_de_renda_externa";
+  "if_meta_base"?: "renda_alvo_bruta" | "renda_alvo_liquida_de_renda_externa" | "renda_externa_cobre_alvo";
   "renda_passiva_fora_do_investivel_mensal_brl"?: number;
+  "renda_passiva_fora_origem"?: "cat2_no_numerador" | "sem_gerador_excluido" | "residual_irpf_com_haircut";
   "if_trs"?: number;
   "if_trs_monthly_value"?: number;
-  "if_pct"?: number;
+  "if_pct"?: number | null;
   "if_gap"?: number;
   "prazo_anos_realista"?: number | null;
   "idade_titular_if"?: number | null;

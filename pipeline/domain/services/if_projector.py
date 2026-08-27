@@ -11,6 +11,14 @@ from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 
+from pipeline.domain.services.base_da_meta_if import (
+    BaseDaMetaIF,
+    OrigemRendaFora,
+    RendaPassivaFora,
+    base_da_meta,
+    compor_meta_if,
+    progresso_if_pct,
+)
 from pipeline.domain.services.money_parsing import (
     parse_valor_monetario,
     valor_monetario_float,
@@ -189,40 +197,6 @@ def extract_renda_passiva_from_text(content: str) -> float:
 # =============================================================================
 
 
-# Vocabulário PRÓPRIO, interseção vazia com `BaseFinanceira` (ADR-412, eixo de
-# posições) e com `kpi_targets[].base`. Lá a base é um conjunto de ativos; aqui é
-# o que foi descontado da renda-alvo antes de capitalizar.
-class BaseDaMetaIF(str, Enum):
-    """De que base saiu a meta publicada em ``if_meta`` ([[ADR-418]] §D3)."""
-
-    renda_alvo_bruta = "renda_alvo_bruta"
-    renda_alvo_liquida_de_renda_externa = "renda_alvo_liquida_de_renda_externa"
-
-
-# O invariante é o par, não a fórmula ([[ADR-418]] §D1): renda de ativo DENTRO do
-# numerador não desconta (dupla-contagem, ADR-142) e renda de ativo FORA desconta
-# (senão a exclusão é cobrada duas vezes). Capitalização é linear, então descontar a
-# renda e capitalizar equivale a capitalizar o termo e subtrair da bruta.
-def compor_meta_if(
-    *, meta_bruta: float, renda_passiva_fora_do_investivel_mensal: float | None, if_trs_pct: float
-) -> float:
-    """Meta operacional: a bruta menos o que ativo FORA do numerador já paga."""
-    if if_trs_pct <= 0 or not renda_passiva_fora_do_investivel_mensal:
-        return meta_bruta
-    capitalizacao = 12.0 / (if_trs_pct / 100.0)
-    return max(0.0, meta_bruta - renda_passiva_fora_do_investivel_mensal * capitalizacao)
-
-
-# `cfg.if_meta` tem `exclusiveMinimum: 0` no Goal, então `meta <= 0` era ramo morto —
-# até a [[ADR-418]] tornar a meta descontável. Devolver 0% aí contradiria `if_gap` e
-# `prazo_anos_realista`, que já dizem "chegou": é a classe de defeito que esta lane mata.
-def _progresso_if_pct(*, investivel: float, meta: float, meta_bruta: float) -> float:
-    """Percentual da meta operacional; meta zerada por renda externa é meta atingida."""
-    if meta > 0:
-        return investivel / meta * 100
-    return 100.0 if meta_bruta > 0 else 0.0
-
-
 # =============================================================================
 # Result
 # =============================================================================
@@ -294,7 +268,9 @@ class IFProjection:
     if_meta_bruta: float
     if_trs: float
     if_trs_monthly_value: float
-    if_pct: float
+    # `None` quando a meta clampou em zero: progresso deixa de ser mensurável, não vira
+    # 0% nem 100% ([[ADR-418]] §D5).
+    if_pct: float | None
     if_gap: float
     prazo_anos_realista: float | None
     idade_titular_if: int | None
@@ -310,34 +286,34 @@ class IFProjection:
     tem_conjuge_datado: bool = False
     titular_key: str = "david"
     conjuge_key: str = ""
-    # Ternário ([[ADR-418]] §D3): `0.0` é "medi e não há nada fora" (o caso do toggle
-    # `imoveis_no_if = true`); `None` é "não medi" (renda passiva degradada), e aí a
-    # chave não sai — publicá-la em zero afirmaria ausência que ninguém apurou. Como
-    # `0.0` só ocorre com a renda passiva medida, a chave só aparece onde `goals` já
-    # carrega o rótulo de janela do IRPF (ADR-306).
-    renda_passiva_fora_do_investivel_mensal: float | None = None
+    # Ternário ([[ADR-418]] §D3): valor `0.0` é "medi e não há nada fora"; `None` é "não
+    # medi" (renda passiva degradada), e aí a chave não sai — publicá-la em zero afirmaria
+    # ausência que ninguém apurou. Como o valor só existe com a renda passiva medida, a
+    # chave só aparece onde `goals` já carrega o rótulo de janela do IRPF (ADR-306).
+    renda_passiva_fora: RendaPassivaFora | None = None
     if_meta_base: BaseDaMetaIF = BaseDaMetaIF.renda_alvo_bruta
 
-    def _base_da_meta_dict(self) -> dict:
+    def base_da_meta_dict(self) -> dict:
         """Bloco que nomeia a base de ``if_meta`` ([[ADR-418]] §D3)."""
         bloco = {
             "if_meta_bruta": round(self.if_meta_bruta, 2),
             "if_meta_base": self.if_meta_base.value,
         }
-        if self.renda_passiva_fora_do_investivel_mensal is not None:
+        if self.renda_passiva_fora is not None:
             bloco["renda_passiva_fora_do_investivel_mensal_brl"] = round(
-                self.renda_passiva_fora_do_investivel_mensal, 2
+                self.renda_passiva_fora.mensal, 2
             )
+            bloco["renda_passiva_fora_origem"] = self.renda_passiva_fora.origem.value
         return bloco
 
     # Chaves sempre presentes; `null` sem prazo projetado (distinga por `is None`).
     def to_legacy_dict(self) -> dict:
         out: dict = {
             "if_meta": round(self.if_meta, 2),
-            **self._base_da_meta_dict(),
+            **self.base_da_meta_dict(),
             "if_trs": round(self.if_trs, 2),
             "if_trs_monthly_value": round(self.if_trs_monthly_value, 2),
-            "if_pct": round(self.if_pct, 2),
+            "if_pct": _round_opt(self.if_pct, 2),
             "if_gap": round(self.if_gap, 2),
             "prazo_anos_realista": _round_opt(self.prazo_anos_realista, 1),
             # ADR-338: chave role-keyed (era idade_<nome>_if + alias morto "david_idade_if").
@@ -405,7 +381,7 @@ class IFProjector:
         self,
         investivel: float,
         *,
-        renda_passiva_fora_do_investivel_mensal: float | None = None,
+        renda_passiva_fora: RendaPassivaFora | None = None,
     ) -> IFProjection:
         cfg = self._config
         if_trs_monthly = (cfg.if_trs_pct / 100.0) / 12.0
@@ -415,18 +391,15 @@ class IFProjector:
         if_trs_value = cfg.if_meta * if_trs_monthly
 
         # Uma base só para os dois consumidores e para o prazo ([[ADR-418]] §D1).
+        termo = renda_passiva_fora.mensal if renda_passiva_fora else None
         meta = compor_meta_if(
             meta_bruta=cfg.if_meta,
-            renda_passiva_fora_do_investivel_mensal=renda_passiva_fora_do_investivel_mensal,
+            renda_passiva_fora_do_investivel_mensal=termo,
             if_trs_pct=cfg.if_trs_pct,
         )
-        base = (
-            BaseDaMetaIF.renda_alvo_liquida_de_renda_externa
-            if meta != cfg.if_meta
-            else BaseDaMetaIF.renda_alvo_bruta
-        )
+        base = base_da_meta(meta=meta, meta_bruta=cfg.if_meta)
 
-        if_pct = _progresso_if_pct(investivel=investivel, meta=meta, meta_bruta=cfg.if_meta)
+        if_pct = progresso_if_pct(investivel=investivel, meta=meta)
         # `FORMULAS.md:26-27` manda MAX(0, ·). Gap negativo é número que não existe no
         # domínio ("precisa acumular menos que zero") e NÃO fica só no JSON:
         # `summaries_narrator:283` e `charts_narrator:229,385,390` o formatam como moeda
@@ -454,7 +427,7 @@ class IFProjector:
             if_meta=meta,
             if_meta_bruta=cfg.if_meta,
             if_meta_base=base,
-            renda_passiva_fora_do_investivel_mensal=renda_passiva_fora_do_investivel_mensal,
+            renda_passiva_fora=renda_passiva_fora,
             if_trs=cfg.if_trs_pct,
             if_trs_monthly_value=if_trs_value,
             if_pct=if_pct,

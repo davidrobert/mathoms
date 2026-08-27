@@ -580,3 +580,57 @@ describe("S7 — a Meta IF nomeia a base e o que ela financia", () => {
     expect(screen.queryByText(/já descontados/)).not.toBeInTheDocument();
   });
 });
+
+/**
+ * A40.l91 ([[ADR-418]] §D5) — `if_pct` é `null` quando a meta clampa em zero. O `?? 0`
+ * anterior renderizava "0,0%": a afirmação oposta ao fato, e o mesmo modo de falha que a
+ * ADR-412 §D7 já nomeava para o piso.
+ */
+describe("S7 — progresso ausente não vira 0,0%", () => {
+  const semProgresso = {
+    if_meta: 0,
+    if_meta_bruta: 5_000_000,
+    if_meta_base: "renda_externa_cobre_alvo",
+    if_pct: null,
+    if_gap: 0,
+    if_trs: 5,
+    ano_if: 2040,
+  };
+
+  it("renderiza traço, não zero", () => {
+    render(
+      <S7IndependenciaSection
+        data={makeData({ goals: semProgresso } as Partial<ReportAnalysisData>)}
+      />,
+    );
+
+    expect(screen.queryByText("0.0%")).not.toBeInTheDocument();
+    expect(screen.queryByText("0,0%")).not.toBeInTheDocument();
+  });
+
+  it("nomeia por que o progresso não saiu", () => {
+    render(
+      <S7IndependenciaSection
+        data={makeData({ goals: semProgresso } as Partial<ReportAnalysisData>)}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        /renda de bens fora desta carteira já cobre a renda-alvo/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("não afirma fase de acumulação sem progresso apurado", () => {
+    render(
+      <S7IndependenciaSection
+        data={makeData({ goals: semProgresso } as Partial<ReportAnalysisData>)}
+      />,
+    );
+
+    expect(
+      screen.queryByText(/Carteira em acumulação/),
+    ).not.toBeInTheDocument();
+  });
+});

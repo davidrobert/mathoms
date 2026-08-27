@@ -112,10 +112,7 @@ export function S7IndependenciaSection({
               />
             }
           />
-          <Stat
-            label="Progresso"
-            value={`${((goals.if_pct as number) ?? 0).toFixed(1)}%`}
-          />
+          <ProgressoStat goals={goals} />
           <Stat label="Ano projetado" value={String(goals.ano_if ?? "—")} />
           <Stat
             label="Gap"
@@ -137,12 +134,35 @@ export function S7IndependenciaSection({
 
       <PassiveIncomeBlock
         passiveIncome={passiveIncome}
-        progressoIfPct={(goals?.if_pct as number | undefined) ?? 0}
+        progressoIfPct={
+          typeof goals?.if_pct === "number" ? goals.if_pct : undefined
+        }
       />
 
       <PgblLocationNote irpfKpis={irpfKpis} primaryYear={primaryYear} />
     </ReportSection>
   );
+}
+
+// [[ADR-418]] §D5 — `if_pct` é `null` quando a meta clampou em zero (a renda de fora
+// cobre o alvo sozinha). O `?? 0` anterior renderizaria "0,0%", que é a afirmação
+// oposta ao fato — o mesmo modo de falha que a [[ADR-412]] §D7 já nomeava.
+function ProgressoStat({ goals }: { goals: Record<string, unknown> }) {
+  const pct = goals.if_pct;
+  if (typeof pct !== "number") {
+    return (
+      <Stat
+        label="Progresso"
+        value="—"
+        sublabel={
+          goals.if_meta_base === "renda_externa_cobre_alvo"
+            ? "sua renda de bens fora desta carteira já cobre a renda-alvo"
+            : "não apurado"
+        }
+      />
+    );
+  }
+  return <Stat label="Progresso" value={`${pct.toFixed(1)}%`} />;
 }
 
 /** N3 — Bloco do cone de probabilidade Monte Carlo (P10/P50/P90). */
@@ -273,7 +293,7 @@ function PassiveIncomeBlock({
   progressoIfPct,
 }: {
   passiveIncome: PassiveIncomeData | undefined;
-  progressoIfPct: number;
+  progressoIfPct?: number;
 }) {
   if (!passiveIncome) return null;
   if (passiveIncome.status === "sem_irpf") return <SemIrpfEmptyState />;
@@ -291,7 +311,7 @@ function PassiveIncomeOkBlock({
   progressoIfPct,
 }: {
   data: PassiveIncomeData;
-  progressoIfPct: number;
+  progressoIfPct?: number;
 }) {
   const acumuladoresPct = data.acumuladores_pct_gerador;
   const defasagem = data.defasagem_meses ?? 0;
@@ -304,12 +324,13 @@ function PassiveIncomeOkBlock({
         <AcumuladoresStat acumuladoresPct={acumuladoresPct} />
       </div>
 
-      {progressoIfPct < PHASE_ACUMULACAO && (
-        <p className="text-xs text-[var(--surface-muted-foreground)] mt-2">
-          Carteira em acumulação — yield baixo é esperado nesta fase. Retorno
-          total inclui valorização, não só dividendo.
-        </p>
-      )}
+      {typeof progressoIfPct === "number" &&
+        progressoIfPct < PHASE_ACUMULACAO && (
+          <p className="text-xs text-[var(--surface-muted-foreground)] mt-2">
+            Carteira em acumulação — yield baixo é esperado nesta fase. Retorno
+            total inclui valorização, não só dividendo.
+          </p>
+        )}
 
       {acumuladoresPct > ACUMULADORES_THRESHOLD && (
         <AcumuladoresBanner pct={acumuladoresPct} />

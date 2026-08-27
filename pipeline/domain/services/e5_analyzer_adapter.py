@@ -112,6 +112,8 @@ from pipeline.domain.services.if_projector import (
     IFProjection,
     IFProjector,
     IFProjectorConfig,
+    OrigemRendaFora,
+    RendaPassivaFora,
 )
 from pipeline.domain.services.informe_extrato_override import (
     ExtratoPosicao,
@@ -649,14 +651,20 @@ class E5AnalyzerAdapter:
         if self._if_projector is not None:
             if_projection = self._if_projector.project(
                 investivel=float(patrimonio_full.get("investivel_efetivo", 0)),
-                renda_passiva_fora_do_investivel_mensal=_renda_passiva_fora_do_investivel(
+                renda_passiva_fora=_renda_passiva_fora_do_investivel(
                     patrimonio_full, passive_income
                 ),
             )
             # `project` é PURA — a segunda chamada com o piso custa ~0 e dá o
             # extremo conservador sem duplicar fórmula ([[ADR-412]] §D7).
+            # O piso mira a MESMA meta ([[ADR-418]] §D1): sem o termo, o extremo
+            # conservador media numerador menor contra denominador maior, e o leitor não
+            # atribuiria a queda. É o §D2 violado por um eixo que já existe.
             if_projection_piso = self._if_projector.project(
-                investivel=_piso_produtivo(patrimonio_full)
+                investivel=_piso_produtivo(patrimonio_full),
+                renda_passiva_fora=_renda_passiva_fora_do_investivel(
+                    patrimonio_full, passive_income
+                ),
             )
 
         # 7b. Monte Carlo IF — cone de cenários (N3).
@@ -1202,22 +1210,44 @@ def _monte_carlo_config(
     )
 
 
-# [[ADR-418]] §D2 — o termo que a meta desconta: renda passiva de ativo que o
-# numerador NÃO conta. Hoje o único eixo de exclusão é ``imoveis_no_if``; eixo novo
-# entra AQUI, e eixo que não passe por aqui reabre a dupla-penalidade.
+# Bruto→líquido pelas MESMAS constantes de ``RealEstateConfig`` que a seção de imóveis
+# usa (co-design `financial-planner`): segundo conjunto de premissas de vacância num
+# segundo módulo é como o próximo defeito de base nasce. Cobre os três termos que se
+# aplicam sem dado por-imóvel; IPTU, condomínio e taxa de administração ficam de fora e
+# tornam o haircut CONSERVADOR (desconta menos que o real).
+_HAIRCUT_ALUGUEL_BRUTO_PARA_LIQUIDO = 1.0 - (0.275 + 0.15 + 0.01)
+
+
+# [[ADR-418]] §D2 — o termo que a meta desconta: renda passiva de ativo que o numerador
+# NÃO conta. Hoje o único eixo de exclusão é ``imoveis_no_if``; eixo novo entra AQUI, e
+# eixo que não passe por aqui reabre a dupla-penalidade.
+#
+# O predicado é "renda produzida por ativo que o numerador exclui" — NÃO "renda quando o
+# toggle é false". Ler só o toggle inflava o KPI de maior peso sobre premissa falsa: o
+# balde ``alugueis`` é RESIDUAL (`passive_income_calculator:233`) e carrega todo o
+# carnê-leão PF→PF (`irpf_analyzer._alugueis_pf`), que no ICP inclui renda de trabalho
+# autônomo recebida de pessoa física. Família SEM imóvel de renda, no default `false`,
+# com qualquer linha PF→PF via a meta cair por renda que não é aluguel de ativo nenhum
+# que tenha sido excluído (co-design `financial-planner`).
 def _renda_passiva_fora_do_investivel(
     patrimonio_full: dict, passive_income: PassiveIncomeResult | None
-) -> float | None:
-    """Aluguel observado quando cat_2 está fora do numerador; ``0`` dentro, ``None`` sem medida."""
+) -> RendaPassivaFora | None:
+    """Aluguel líquido dos geradores excluídos; zero se não há exclusão, ``None`` sem medida."""
     if passive_income is None or passive_income.status != "ok":
         return None
     imoveis_no_if = patrimonio_full.get("imoveis_no_if")
     if imoveis_no_if is None:
         return None
     if bool(imoveis_no_if):
-        return 0.0
-    alugueis_anual = passive_income.renda_passiva_por_fonte_brl.get("alugueis")
-    return float(alugueis_anual or 0) / 12.0
+        return RendaPassivaFora(0.0, OrigemRendaFora.cat2_no_numerador)
+    # Sem gerador excluído não há o que creditar — e é aqui que a contaminação morre.
+    if float(patrimonio_full.get("imoveis_geradores") or 0) <= 0:
+        return RendaPassivaFora(0.0, OrigemRendaFora.sem_gerador_excluido)
+    bruto_mensal = float(passive_income.renda_passiva_por_fonte_brl.get("alugueis") or 0) / 12.0
+    return RendaPassivaFora(
+        max(0.0, bruto_mensal * _HAIRCUT_ALUGUEL_BRUTO_PARA_LIQUIDO),
+        OrigemRendaFora.residual_irpf_com_haircut,
+    )
 
 
 # =============================================================================

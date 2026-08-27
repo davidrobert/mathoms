@@ -16,6 +16,8 @@ from pipeline.domain.services.if_projector import (  # noqa: E402
     IFProjection,
     IFProjector,
     IFProjectorConfig,
+    OrigemRendaFora,
+    RendaPassivaFora,
     compor_meta_if,
     extract_if_meta_from_text,
     extract_if_trs_from_text,
@@ -254,22 +256,28 @@ class TestBaseDaMetaIF:
 
         assert p.if_meta == p.if_meta_bruta == 5_000_000
         assert p.if_meta_base is BaseDaMetaIF.renda_alvo_bruta
-        assert p.renda_passiva_fora_do_investivel_mensal is None
+        assert p.renda_passiva_fora is None
         assert "renda_passiva_fora_do_investivel_mensal_brl" not in p.to_legacy_dict()
 
     def test_termo_medido_em_zero_e_publicado(self):
         """`0.0` é medida ("nada fora"); `None` é ausência de medida ([[ADR-418]] §D3)."""
         p = IFProjector(_config()).project(
-            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=0.0
+            investivel=1_000_000,
+            renda_passiva_fora=RendaPassivaFora(0.0, OrigemRendaFora.sem_gerador_excluido),
         )
 
-        assert p.to_legacy_dict()["renda_passiva_fora_do_investivel_mensal_brl"] == 0.0
+        d = p.to_legacy_dict()
+        assert d["renda_passiva_fora_do_investivel_mensal_brl"] == 0.0
+        assert d["renda_passiva_fora_origem"] == "sem_gerador_excluido"
         assert p.if_meta_base is BaseDaMetaIF.renda_alvo_bruta
 
     def test_renda_externa_desconta_a_meta_capitalizada(self):
         # 10k/mês a 4% de retirada = 10k × 12 / 0,04 = 3M a menos de patrimônio.
         p = IFProjector(_config(if_meta=5_000_000, if_trs_pct=4.0)).project(
-            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=10_000.0
+            investivel=1_000_000,
+            renda_passiva_fora=RendaPassivaFora(
+                10_000.0, OrigemRendaFora.residual_irpf_com_haircut
+            ),
         )
 
         assert p.if_meta == pytest.approx(2_000_000.0)
@@ -279,16 +287,23 @@ class TestBaseDaMetaIF:
     def test_identidade_da_composicao_fecha_ao_centavo(self):
         """`if_meta == if_meta_bruta − termo × 12 ÷ TRS` — o que o CV5 afirma."""
         p = IFProjector(_config(if_meta=5_000_000, if_trs_pct=5.0)).project(
-            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=3_333.33
+            investivel=1_000_000,
+            renda_passiva_fora=RendaPassivaFora(
+                3_333.33, OrigemRendaFora.residual_irpf_com_haircut
+            ),
         )
 
-        esperado = p.if_meta_bruta - (p.renda_passiva_fora_do_investivel_mensal or 0) * 12 / 0.05
+        esperado = (
+            p.if_meta_bruta
+            - (p.renda_passiva_fora.mensal if p.renda_passiva_fora else 0) * 12 / 0.05
+        )
         assert abs(p.if_meta - esperado) < 0.01
 
     def test_gap_e_progresso_leem_a_mesma_base(self):
         """A identidade `gap = meta − investível` fecha ao centavo (§Critério A40.l91)."""
         p = IFProjector(_config(if_meta=5_000_000, if_trs_pct=4.0)).project(
-            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=5_000.0
+            investivel=1_000_000,
+            renda_passiva_fora=RendaPassivaFora(5_000.0, OrigemRendaFora.residual_irpf_com_haircut),
         )
 
         assert abs(p.if_gap - (p.if_meta - 1_000_000)) < 0.01
@@ -299,7 +314,8 @@ class TestBaseDaMetaIF:
         cfg = _config(if_meta=5_000_000, if_trs_pct=4.0)
         antes = IFProjector(cfg).project(investivel=1_000_000)
         depois = IFProjector(cfg).project(
-            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=4_000.0
+            investivel=1_000_000,
+            renda_passiva_fora=RendaPassivaFora(4_000.0, OrigemRendaFora.residual_irpf_com_haircut),
         )
 
         assert depois.if_pct > antes.if_pct
@@ -311,7 +327,8 @@ class TestBaseDaMetaIF:
         cfg = _config(if_meta=5_000_000, if_trs_pct=4.0)
         antes = IFProjector(cfg).project(investivel=1_000_000)
         depois = IFProjector(cfg).project(
-            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=4_000.0
+            investivel=1_000_000,
+            renda_passiva_fora=RendaPassivaFora(4_000.0, OrigemRendaFora.residual_irpf_com_haircut),
         )
 
         assert depois.if_trs_monthly_value == antes.if_trs_monthly_value
@@ -319,14 +336,20 @@ class TestBaseDaMetaIF:
     def test_meta_nunca_fica_negativa(self):
         """Renda externa acima do alvo zera a meta em vez de virar número inexistente."""
         p = IFProjector(_config(if_meta=1_000_000, if_trs_pct=4.0)).project(
-            investivel=500_000, renda_passiva_fora_do_investivel_mensal=99_000.0
+            investivel=500_000,
+            renda_passiva_fora=RendaPassivaFora(
+                99_000.0, OrigemRendaFora.residual_irpf_com_haircut
+            ),
         )
 
         assert p.if_meta == 0.0
         assert p.if_gap == 0.0
         assert p.prazo_anos_realista == 0.0
-        # 0% aqui contradiria o gap e o prazo, que já dizem "chegou".
-        assert p.if_pct == 100.0
+        # Nem 0% (contradiria gap e prazo) nem 100% (concederia a banda de topo de um
+        # componente de peso 2,0 a carteira financeira que pode ser zero).
+        assert p.if_pct is None
+        assert p.if_meta_base is BaseDaMetaIF.renda_externa_cobre_alvo
+        assert p.to_legacy_dict()["if_pct"] is None
 
     def test_trs_ausente_nao_capitaliza_o_desconto(self):
         """TRS zero não pode virar divisão por zero nem descontar às cegas."""

@@ -165,6 +165,46 @@ if_meta = MAX(0, if_meta_bruta − renda_passiva_fora_do_investivel_mensal × 12
 maior e gap menor; é correção, e move o score (`progresso_if` tem peso 2,0 — o maior,
 empatado com `taxa_poupanca_recorrente`; 25% da nota).
 
+## O co-design achou um defeito que o fix tinha introduzido (2026-08-27)
+
+`financial-planner`, autorizado pelo dono. **Confirmou o §D1** e achou um **bloqueante** —
+que eu verifiquei no código antes de agir.
+
+**O predicado estava errado.** O §D2 diz *"renda produzida por ativo que o numerador
+exclui"*; o código lia *"renda quando o toggle é `false`"*. Não é o mesmo predicado, e a
+diferença inverte o sinal do defeito: o balde `alugueis` é **residual**
+(`passive_income_calculator:233`) e carrega `_alugueis_pf = Σ rendimentos_pf` — **todo o
+carnê-leão PF→PF**, que no ICP inclui renda de trabalho autônomo recebida de pessoa física.
+Família **sem imóvel de renda**, no default `false`, veria a meta cair por renda que não vem
+de ativo excluído nenhum. Isso **infla** o KPI de maior peso sobre premissa falsa — e a
+§Motivação da [[ADR-223]] diz que superestimar progresso de IF é mais danoso que subestimar.
+
+Quatro correções, todas com teste:
+
+| Item | Antes | Depois |
+| --- | --- | --- |
+| Gate | só o toggle | `imoveis_geradores > 0` — mata a contaminação |
+| Valor | aluguel **bruto** | líquido, pelas mesmas constantes de `RealEstateConfig` |
+| Procedência | ausente | `renda_passiva_fora_origem` publicado |
+| Meta clampada | `if_pct = 100%` | `if_pct = null` + base `renda_externa_cobre_alvo` |
+| Piso | lia a meta **bruta** | mesma base do headline |
+
+O `100%` era erro meu: uma família com carteira financeira **zero** e aluguel suficiente
+receberia 100% de independência — zero liquidez, concentração total num ativo ilíquido que o
+próprio workspace excluiu por não bater a TRS, e peso 2,0 saturando a banda de topo.
+
+O piso (`if_projection_piso`) veio **no merge da [[A40.l80]]** e violava o §D2 no mesmo
+arquivo; não existia quando escrevi o fix.
+
+**A [[ADR-142]] já decidia isso desde 2026-04-27** (§Decisão: *"Se `imoveis_no_if = false`
+(…) deve **incluir aluguéis líquidos**"*), no corpo de uma ADR `Decidido`. A [[ADR-418]]
+não decide metodologia nova — ela liga o produtor que nunca existiu para a metade `false`
+do invariante. O §Contexto foi corrigido.
+
+**§Deferido (dono `financial-planner`):** o teto `min(residual, Σ aluguel_líquido por
+imóvel)` não entra aqui — `calculate_real_estate_metrics` vive em `backend/app/services/` e
+`pipeline/**` não importa `backend/` ([[ADR-089]]).
+
 ## Follow-up medido, fora do escopo desta lane (2026-08-27)
 
 **`/plano` publica um segundo progresso de IF, e ele diverge do relatório em 14,91 pp
@@ -180,6 +220,13 @@ veículos rumo à independência, que a [FORMULAS.md](../../../reference/FORMULA
 exclui explicitamente da métrica de `progresso_if`. Produtor:
 `backend/app/application/goal/compute_if_projection.py:24`, alimentado por
 `usePlanoOverview.loadLatestPatrimonioSnapshot` (que lê `reports[].patrimonio_liquido`).
+
+**Confirmado pelo co-design `financial-planner` como P1** (não P0: não corrompe dado
+gravado — o pipeline está certo, `/plano` é read-side —, audiência menor que a do relatório,
+e o fix é troca de leitura no frontend). Achado extra do co-design: a fonte nem é fixa —
+`plano/meta-if/page.tsx:70-75` faz `reports.find(r => r.patrimonio_liquido != null)`, o
+**primeiro** report com valor não-nulo, não o mais recente. E o fix não é trocar o campo: é
+**parar de remontar o KPI no read-side** e ler `goals.if_pct` do payload E5 publicado.
 
 **Não corrigido aqui, e a divergência é anterior a esta lane** — a [[ADR-418]] mexe no
 denominador e este eixo é o numerador, com produtor em `backend/app/application/` e

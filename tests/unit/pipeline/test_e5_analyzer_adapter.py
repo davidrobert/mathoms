@@ -19,6 +19,7 @@ from pipeline.domain.services.e5_analyzer_adapter import (  # noqa: E402
     _monte_carlo_config,
     _renda_passiva_fora_do_investivel,
 )
+from pipeline.domain.services.if_projector import OrigemRendaFora  # noqa: E402
 from pipeline.domain.services.posicao_31_12_builder import build_posicao_31_12
 
 _DAVID_DOB = date(1985, 6, 15)
@@ -1161,28 +1162,60 @@ def _passive_income(*, alugueis: Decimal, status: str = "ok"):
 
 
 class TestRendaPassivaForaDoInvestivel:
-    """Qual metade do invariante vale depende do toggle ([[ADR-418]] §D1)."""
+    # Não "renda quando o toggle é false" — a diferença é o defeito que o co-design
+    # `financial-planner` pegou antes do merge.
+    """O predicado é "renda de ativo que o numerador EXCLUI" ([[ADR-418]] §D2)."""
 
     def test_toggle_true_nao_desconta_nada(self):
         """cat_2 DENTRO do numerador: descontar o aluguel contaria o imóvel 2× (ADR-142)."""
         termo = _renda_passiva_fora_do_investivel(
-            {"imoveis_no_if": True}, _passive_income(alugueis=Decimal("120000"))
+            {"imoveis_no_if": True, "imoveis_geradores": 900_000.0},
+            _passive_income(alugueis=Decimal("120000")),
         )
 
-        assert termo == 0.0
+        assert termo.mensal == 0.0
+        assert termo.origem is OrigemRendaFora.cat2_no_numerador
 
-    def test_toggle_false_desconta_o_aluguel_observado(self):
+    def test_gerador_excluido_desconta_o_aluguel_liquido(self):
         """cat_2 FORA do numerador: não descontar cobra a exclusão 2× ([[ADR-418]])."""
         termo = _renda_passiva_fora_do_investivel(
-            {"imoveis_no_if": False}, _passive_income(alugueis=Decimal("120000"))
+            {"imoveis_no_if": False, "imoveis_geradores": 900_000.0},
+            _passive_income(alugueis=Decimal("120000")),
         )
 
-        assert termo == pytest.approx(10_000.0)
+        # 10k/mês bruto − (27,5% IR + 15% vacância + 1% manutenção) = 56,5% do bruto.
+        assert termo.mensal == pytest.approx(5_650.0)
+        assert termo.origem is OrigemRendaFora.residual_irpf_com_haircut
+
+    def test_sem_gerador_excluido_nao_desconta_apesar_do_residual(self):
+        # O balde `alugueis` é RESIDUAL e carrega todo o carnê-leão PF→PF — que no ICP
+        # inclui renda de trabalho autônomo recebida de pessoa física. Família SEM imóvel
+        # de renda, no default `false`, veria a meta cair por renda que não vem de ativo
+        # nenhum que tenha sido excluído: infla o KPI de maior peso sobre premissa falsa.
+        """A contaminação morre aqui."""
+        termo = _renda_passiva_fora_do_investivel(
+            {"imoveis_no_if": False, "imoveis_geradores": 0.0},
+            _passive_income(alugueis=Decimal("120000")),
+        )
+
+        assert termo.mensal == 0.0
+        assert termo.origem is OrigemRendaFora.sem_gerador_excluido
+
+    def test_haircut_e_conservador_nunca_desconta_o_bruto(self):
+        """Descontar bruto superestimaria o crédito — e o termo é capitalizado por 12÷TRS."""
+        bruto_mensal = 10_000.0
+        termo = _renda_passiva_fora_do_investivel(
+            {"imoveis_no_if": False, "imoveis_geradores": 900_000.0},
+            _passive_income(alugueis=Decimal("120000")),
+        )
+
+        assert termo.mensal < bruto_mensal
 
     def test_passive_income_degradado_nao_e_medida(self):
         """Status != ok é ausência de medida — `None`, nunca zero (o zero afirma)."""
         termo = _renda_passiva_fora_do_investivel(
-            {"imoveis_no_if": False}, _passive_income(alugueis=Decimal("120000"), status="sem_irpf")
+            {"imoveis_no_if": False, "imoveis_geradores": 900_000.0},
+            _passive_income(alugueis=Decimal("120000"), status="sem_irpf"),
         )
 
         assert termo is None
@@ -1198,13 +1231,18 @@ class TestConeMiraAMesmaMeta:
     """O cone Monte Carlo lê a meta OPERACIONAL, não a bruta da config ([[ADR-418]] §D1)."""
 
     def test_config_do_cone_ancora_na_meta_publicada(self):
-        from pipeline.domain.services.if_projector import IFProjector, IFProjectorConfig
+        from pipeline.domain.services.if_projector import (
+            IFProjector,
+            IFProjectorConfig,
+            RendaPassivaFora,
+        )
 
         cfg = IFProjectorConfig(
             if_meta=5_000_000.0, if_trs_pct=4.0, titular_dob=_DAVID_DOB, aporte_mensal=10_000.0
         )
         projecao = IFProjector(cfg).project(
-            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=5_000.0
+            investivel=1_000_000,
+            renda_passiva_fora=RendaPassivaFora(5_000.0, OrigemRendaFora.residual_irpf_com_haircut),
         )
         assert projecao.if_meta != cfg.if_meta  # a mutação de fato move a meta
 
@@ -1212,3 +1250,26 @@ class TestConeMiraAMesmaMeta:
 
         assert mc.meta_if == Decimal(str(projecao.if_meta))
         assert mc.meta_if != Decimal(str(cfg.if_meta))
+
+
+class TestPisoMiraAMesmaMeta:
+    """O extremo conservador lê a MESMA meta que o headline ([[ADR-418]] §D1)."""
+
+    def test_piso_e_headline_compartilham_a_meta(self):
+        # O leitor veria a queda e não conseguiria atribuí-la: parte vem da fatia sem dono
+        # (o que o piso existe para mostrar) e parte da base da meta (o que ele não deveria
+        # misturar). Eixo que não passa pelo §D2 reabre o defeito, e este eixo já existia.
+        """Sem isto o piso mediria numerador menor contra denominador maior."""
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        adapter = E5AnalyzerAdapter.from_configs(
+            goals={"independencia_financeira": {"if_meta": 5_000_000, "trs_pct": 4.0}},
+            titular_dob=_DAVID_DOB,
+        )
+
+        result = adapter.analyze_via_store(store)
+
+        assert result.if_projection is not None
+        assert result.if_projection_piso is not None
+        assert result.if_projection_piso.if_meta == result.if_projection.if_meta
+        assert result.if_projection_piso.if_meta_base is result.if_projection.if_meta_base
