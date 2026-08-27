@@ -145,7 +145,7 @@ passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
 mutou. A auditoria de mesa abaixo **não** substitui esse rito — só deixa o
 grafo honesto até lá.
 
-## Lanes (12)
+## Lanes (13)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
@@ -161,6 +161,7 @@ grafo honesto até lá.
 | [[A42.l10]] | Misclassificação na classificação amplifica o carrier de duplicação | P1 | 3 | [[A41.l2]] |
 | [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | — |
 | [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
+| [[A42.l13]] | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | P1 | 2 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,

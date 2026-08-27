@@ -334,7 +334,7 @@ mover as 12 lanes muda `SPRINT_CURRENT.md` em **zero linhas** (todas `planned`),
 renumeração toca **304 ocorrências em 23 arquivos** com 40% fora de qualquer gate, e
 nenhuma sprint acima de ~11 lanes fechou pelo próprio gate na história do repo.
 
-- **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **12 lanes**
+- **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **13 lanes**
   `planned` em 4 ondas (0–3), teto de capacidade 14. Declara o **critério de admissão**
   em 5 cláusulas, fechando a §Pendência de decisão nº 10 da [[A40]].
 
