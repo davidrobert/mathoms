@@ -1578,6 +1578,7 @@
   },
   "goals": {
     "ano_if": null,
+    "base_do_piso": "carteira_produtiva_com_titular_identificado",
     "idade_titular_if": null,
     "if_gap": 87000000,
     "if_meta": 100000000,
@@ -1585,9 +1586,12 @@
     "if_trs": "4.000000",
     "if_trs_monthly_value": 333333,
     "motivo_prazo_indefinido": "você ainda não declarou quanto pretende aportar por mês, e o prazo até a meta é consequência direta desse número",
+    "piso_if_pct": "13.000000",
     "prazo_anos_realista": null,
+    "prazo_anos_realista_teto": null,
     "renda_passiva_estimada_4pct": 43333,
-    "retorno_esperado_pct_aa": "6.000000"
+    "retorno_esperado_pct_aa": "6.000000",
+    "teto_if_gap": 87000000
   },
   "if_monte_carlo": {
     "ano_alvo_declarado": null,
@@ -1837,7 +1841,7 @@
           "carteira_com_titular_identificado",
           "cat2_efetivo"
         ],
-        "valor_brl": 0
+        "valor_brl": 13000000
       },
       "carteira_produtiva_familia": {
         "termos": [
@@ -2085,12 +2089,14 @@
   "ratios": {
     "aliquota_efetiva_ir_pct": "N/D",
     "autonomia_financeira_meses": "86.670000",
+    "base_do_piso": "carteira_com_titular_identificado",
     "cobertura_despesas_meses": "86.670000",
     "concentracao_imobiliaria": 8219,
     "janela": "12m",
     "janela_meses": 1,
     "janela_n_meses": 1,
     "janela_referencia": "2026-01 a 2026-01",
+    "piso_autonomia_financeira_meses": "86.670000",
     "rentabilidade": {
       "ano_base": null,
       "cobertura_despesa_essencial_pct": null,
@@ -2107,6 +2113,7 @@
     "alvo_brl": 2700000,
     "avaliacao_liquidity": "Excessiva",
     "base_denominador": "custo_essencial",
+    "base_do_piso": "carteira_com_titular_identificado",
     "cobertura_meses": "53.300000",
     "composicao_liquida": {
       "caixa": 0,
@@ -2128,6 +2135,7 @@
     "janela": "12m",
     "janela_meses": 1,
     "meses_alvo": 18,
+    "motivo_supressao": null,
     "niveis": [
       "3 meses",
       "6 meses",
@@ -2137,6 +2145,8 @@
     "nivel_12_meses": "18000.000000",
     "nivel_6_meses": "9000.000000",
     "perfil_renda": "pj_dominante",
+    "piso_cobertura_meses": "53.300000",
+    "prescricao_realocacao_suprimida": false,
     "receita_pj_pct": "100.000000",
     "total_liquida": 8000000
   },

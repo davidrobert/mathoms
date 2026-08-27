@@ -43,6 +43,7 @@ from typing import Any, Mapping
 
 from pipeline.artifact_store import ArtifactStore
 from pipeline.domain.protection_bundle import ProtectionBundle
+from pipeline.domain.services.bases_financeiras import BaseFinanceira
 from pipeline.domain.services.carteira_por_papel import build_carteira_por_papel
 from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeAnalyzer,
@@ -189,6 +190,15 @@ from pipeline.domain.services.top_ativos_analyzer import (
 )
 from pipeline.domain.types.config import FiscalParameters
 
+
+# Lê a base DECLARADA, nunca remonta o denominador — remontar sem citar o nome é
+# a fuga que nenhuma varredura por campo enxerga ([[ADR-412]] §Consequências).
+def _piso_produtivo(patrimonio: dict) -> float:
+    bases = patrimonio.get("bases") or {}
+    declarada = bases.get(BaseFinanceira.carteira_produtiva_com_titular_identificado.value) or {}
+    return float(declarada.get("valor_brl") or 0.0)
+
+
 # =============================================================================
 # Stage keys
 # =============================================================================
@@ -284,6 +294,8 @@ class E5AnalysisResult:
     # parecer emitia os dois fatos da mesma família sem reconciliar. ``None``
     # quando o workspace não declara membros.
     composicao_familiar: dict[str, Any] | None = None
+    # A40.l80 ([[ADR-412]] §D7): mesma projeção sobre a base sem a fatia sem dono.
+    if_projection_piso: IFProjection | None = None
 
 
 # =============================================================================
@@ -633,9 +645,15 @@ class E5AnalyzerAdapter:
         # 7. IF projection — ADR-142 + ADR-215 §6 enforce: usa
         # ``investivel_efetivo`` (cat_3+4+5+6 + cat_2 geradores se toggle).
         if_projection: IFProjection | None = None
+        if_projection_piso: IFProjection | None = None
         if self._if_projector is not None:
             if_projection = self._if_projector.project(
                 investivel=float(patrimonio_full.get("investivel_efetivo", 0))
+            )
+            # `project` é PURA — a segunda chamada com o piso custa ~0 e dá o
+            # extremo conservador sem duplicar fórmula ([[ADR-412]] §D7).
+            if_projection_piso = self._if_projector.project(
+                investivel=_piso_produtivo(patrimonio_full)
             )
 
         # 7b. Monte Carlo IF — cone de cenários (N3).
@@ -806,6 +824,7 @@ class E5AnalyzerAdapter:
             reserva=reserva,
             score=score,
             if_projection=if_projection,
+            if_projection_piso=if_projection_piso,
             ratios=ratios_result,
             orcamento=orcamento,
             endividamento=endividamento,
