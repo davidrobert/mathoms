@@ -1316,10 +1316,19 @@ step de pipeline e nos **dois** ramos do `MARKER_FILTER` do backend — PR que
 toca migration não é motivo para readmitir benchmark). Ressalva honesta: o
 único lugar que roda a suíte sem filtro é o `nightly.yml`, que está
 `disabled_manually` desde 2026-06-15 (verificado 2026-08-27 via `gh workflow
-list --all`). **Enquanto o nightly não voltar, teste marcado `perf` não roda em
+list --all`; segue desabilitado depois do #1748, que mexeu no nightly mas não o
+religou). **Enquanto o nightly não voltar, teste marcado `perf` não roda em
 lugar nenhum** — o marker é saída de emergência declarada, não o caminho
 recomendado. O caminho recomendado é medir o mecanismo, como os dois casos
 acima mostram ser possível.
+
+**Quem destrava:** o religamento do nightly **tem dono e rota** — item **1.4**
+de [[PLAN-ci-trust]] (Onda 1), "Nightly religado **por job** (main-smoke → 7
+verdes → lineage-eval → pesados) e waiver **removido**", marcado *ação owner* em
+`docs/plan/CI_TRUST/tracks/ci-trust-onda1-workflows.md` §"Religar o nightly —
+POR JOB". Registrar aqui para que a condição acima não vire deferimento órfão:
+quando o 1.4 executar, os testes `perf` passam a rodar sem nenhuma outra ação, e
+quem executa o 1.4 precisa saber que herdou esse marker.
 
 **Gate:** 6º detector em `dev/check_test_health.py`
 (`_find_wallclock_budget_assert`), com testes em
