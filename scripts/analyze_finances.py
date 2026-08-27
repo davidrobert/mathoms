@@ -1212,13 +1212,18 @@ def analyze_pontos_urgentes(
     _endiv_max = safe_float(_alertas_cfg.get("endividamento_maximo_pct", 20))
 
     # Check: emergency reserve below minimum
-    cobertura = reserva.get("cobertura_meses", 0)
+    # Mesma polaridade e mesma frase do `pontos_urgentes_analyzer` — os dois
+    # produtores mudam juntos ([[ADR-412]] §Emenda E2).
+    from pipeline.domain.services.pontos_urgentes_analyzer import _impacto_reserva
+
+    cobertura = reserva.get("piso_cobertura_meses", reserva.get("cobertura_meses", 0))
+    _suprimida = bool(reserva.get("motivo_supressao"))
     if cobertura < _reserva_min:
         urgentes.append(
             {
                 "prioridade": "Alta",
                 "acao": "Reforçar reserva de emergência",
-                "impacto": f"Cobertura atual de {cobertura:.0f} meses — abaixo do mínimo de {_reserva_min:.0f}",
+                "impacto": _impacto_reserva(cobertura, _reserva_min, _suprimida),
                 "prazo": "Imediato",
             }
         )
@@ -1713,7 +1718,7 @@ def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
         "investimentos_classes": investimentos_dict,
         "investimentos_warnings": investimentos_warnings,
         "fluxo": result.fluxo_enriched.to_legacy_dict(),
-        "goals": result.if_projection.to_legacy_dict() if result.if_projection else {},
+        "goals": _goals_com_intervalo(result),
         "ratios": result.ratios.to_legacy_dict(),
         "score": result.score,
         "orcamento": result.orcamento.to_legacy_dict(),
@@ -2003,6 +2008,31 @@ def _e5_review_reasons(
         + review_reasons_da_cobertura(patrimonio, **kwargs)
         + review_reasons_da_classificacao(investimentos, **kwargs)
     )
+
+
+# O intervalo entra ao lado da medida — `if_pct` e `if_gap` NUNCA viram `None`:
+# `S7IndependenciaSection.tsx:95` faz `?? 0` e renderizaria "0,0%", afirmação
+# falsa pior que o número contaminado ([[ADR-412]] §Emenda E3).
+def _goals_com_intervalo(result: Any) -> Dict[str, Any]:
+    from pipeline.domain.services.bases_financeiras import BaseFinanceira
+
+    if not result.if_projection:
+        return {}
+    goals = result.if_projection.to_legacy_dict()
+    piso = getattr(result, "if_projection_piso", None)
+    if piso is None:
+        return goals
+    return {
+        **goals,
+        "piso_if_pct": round(piso.if_pct, 2),
+        "teto_if_gap": round(piso.if_gap, 2),
+        "prazo_anos_realista_teto": _round_opt_local(piso.prazo_anos_realista),
+        "base_do_piso": BaseFinanceira.carteira_produtiva_com_titular_identificado.value,
+    }
+
+
+def _round_opt_local(valor: float | None) -> float | None:
+    return None if valor is None else round(valor, 1)
 
 
 def _e5_advisory_reasons(patrimonio: Dict[str, Any]) -> list[dict]:
