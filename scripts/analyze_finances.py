@@ -1212,13 +1212,18 @@ def analyze_pontos_urgentes(
     _endiv_max = safe_float(_alertas_cfg.get("endividamento_maximo_pct", 20))
 
     # Check: emergency reserve below minimum
-    cobertura = reserva.get("cobertura_meses", 0)
+    # Mesma polaridade e mesma frase do `pontos_urgentes_analyzer` — os dois
+    # produtores mudam juntos ([[ADR-412]] §Emenda E2).
+    from pipeline.domain.services.pontos_urgentes_analyzer import _impacto_reserva
+
+    cobertura = reserva.get("piso_cobertura_meses", reserva.get("cobertura_meses", 0))
+    _suprimida = bool(reserva.get("motivo_supressao"))
     if cobertura < _reserva_min:
         urgentes.append(
             {
                 "prioridade": "Alta",
                 "acao": "Reforçar reserva de emergência",
-                "impacto": f"Cobertura atual de {cobertura:.0f} meses — abaixo do mínimo de {_reserva_min:.0f}",
+                "impacto": _impacto_reserva(cobertura, _reserva_min, _suprimida),
                 "prazo": "Imediato",
             }
         )
