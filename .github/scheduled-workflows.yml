@@ -135,7 +135,13 @@ workflows:
     adr: ADR-319
     alerts:
       - label: security
-        max_issue_age_days: 21
+        # 21 → 7 em 2026-08-27: enquanto nada daqui gateava merge, a Issue era
+        # o ÚNICO canal e 21 dias era a tolerância para triar. Com o
+        # `security-green` required, uma CVE que entre por PR é barrada na
+        # hora — a Issue passa a cobrir só o que o cron semanal acha (CVE
+        # divulgada entre PRs), e aí 21 dias de rot em cima de ≤7 de cron
+        # somava até 28 dias de exposição em repo público.
+        max_issue_age_days: 7
     # Waiver REMOVIDO em 2026-08-14: a causa dele deixou de existir. Ele
     # cobria "seis Issues `security` abertas desde 2026-05-23 sem triagem";
     # medido hoje restam DUAS (#1279 de 08-08 e #1184 de 08-03), ambas dentro
