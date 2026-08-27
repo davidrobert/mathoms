@@ -296,6 +296,35 @@ de entrada de whitelist — está bloqueado porque o remediador não enxerga a c
 | LC5-09 — 31 grupos só no persistido carregam **prefixo de banco vazio** na `artifact_key`, e os 4 grupos com drift de contagem concentram exatamente a massa do colapso da camada | consistência | Médio | P2 | procede (novo) | procede-aberto | invariante no adapter: o write do E3 nunca persiste `banco` vazio quando o E2 o traz |
 | LC-02 (§r4) — cobertura de `natural_key` | consistência | — | — | **rebaixado a sintoma** | fecha como achado próprio | a elegibilidade é computada **uma vez por artefato**: artefato com `banco` ou `titular` vazio perde 100% das chaves. A queda medida não é regressão gradual — é um punhado de artefatos virando o bit, e é LC5-01/LC5-09 medidos de outro ângulo |
 
+**Atribuição fechada por medição — 2026-08-26, mesmo run.** O `LC5-01` deixa de ser mecanismo
+nomeado e passa a ser **atribuição integral**, e o escopo é maior do que o numerador sugeria.
+
+- **As 7 do numerador: 7/7, 14/14 rows.** Para cada ocorrência, o `direction` do detector
+  (`debit`, vindo do balde `despesas`) contra `derive_direction(tipo=None, valor, tipo_conta)`
+  do colapsador (`credit`). **Zero coincidências, zero indeterminadas.** Todas com a mesma
+  assinatura: conta não-`fatura`, valor guardado positivo — `_infer_tipo` devolve `credito`
+  porque o balde E4 carrega **magnitude**, e o `abs` da despesa destrói o sinal que a
+  inferência precisa. O comentário em `ledger_cross_group.py:18` nomeia essa exata razão para
+  o detector **não** derivar do item; o colapsador deriva.
+- **A divergência é sistemática, não confinada:** **1.591 de 4.296** rows transacionais do run
+  (**37,0%**) são mis-chaveadas, todas no sentido `debit`→`credit`. Por `tipo_conta`:
+  `extratoconta` 1.353 · `extrato` 201 · variantes USD/EUR/global 35 · `investment_report` 2.
+  As 754 rows de receita **coincidem** — não há divergência no sentido inverso.
+
+**O que isso muda.** As 7 são a ponta visível: o subconjunto do mis-chaveamento que também é
+colisão cross-proveniência. O fix não destrava 7 ocorrências — **corrige a chave de mais de um
+terço do corpus transacional**, e é o que explica a assimetria nos dois sentidos que o bloco
+de paridade reporta (`só no detector 7` · `só no colapsador 84` · `154 rows fora do campo de
+visão do detector`).
+
+**Sinal adjacente, não perseguido:** dentro de `despesas`, 1.951 rows **coincidem** — ou seja,
+o balde carrega valores com convenção de sinal mista. Registrado para quem pegar o fix; não é
+o defeito desta linha.
+
+**Re-medir com:** `dev/certify_ledger_local.py <ws> --entregue --run <id>` para o numerador, e o
+join `direction do balde × derive_direction(tipo=None, …)` sobre `X._tx_rows(baldes)` para a
+população. Ambos read-only.
+
 **Refutados / reenquadrados nesta rodada.** A divergência de receita entre janela e razão
 **não** era defeito de produto (LC5-08). O mês futuro na série do razão é E3/E4 **correto por
 desenho** — o provisionado é fato e fica no ledger; o E5 já corta — logo reportá-lo como

@@ -18,6 +18,16 @@ from pipeline.domain.types.config import (
 )
 
 
+# As duas implementações levantavam exceções DIFERENTES para a mesma condição —
+# `FiscalParameterNotFound` no DB, `KeyError` na in-memory —, e o consumidor no
+# pipeline não pode importar nenhuma das duas (ADR-089: `pipeline/` não importa
+# backend). Sem vocabulário no PORT, "não há row para o ano" era indistinguível de
+# "o store quebrou", e o `except Exception` de `analyze_finances` tratava as duas
+# como a mesma coisa: cair no dict legado ([[A40.l79]]).
+class FiscalParametersAusentes(LookupError):
+    """Não há row de `fiscal_parameters` cobrindo o período — ausência, não falha."""
+
+
 @runtime_checkable
 class ConfigStore(Protocol):
     """Boundary única para leitura de configs do pipeline (ADR-134)."""
@@ -43,7 +53,7 @@ class ConfigStore(Protocol):
         ...
 
     def get_fiscal_for_period(self, period_start: date, period_end: date) -> FiscalParameters:
-        """Parâmetros fiscais vigentes em ``[period_start, period_end]`` (A7.2b)."""
+        """Parâmetros fiscais do período; ``FiscalParametersAusentes`` se não há row."""
         ...
 
     def get_market_rate(self, pair: str, observed_at: date) -> Decimal:

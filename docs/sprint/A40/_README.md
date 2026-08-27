@@ -57,7 +57,7 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 | KR | Métrica | Como se mede |
 |---|---|---|
 | **KR-A · Contrato de leitura** | ~~Leituras órfãs conhecidas **5 → 0**~~ → **2 → 0** (remedido, ver nota) *e* existe gate que hard-falha quando a próxima aparece | `dev/check_view_model_contract.py` (novo) cruzando schema E5 × tipos do frontend × readers Python. Prova do gate: fixture com chave órfã ⇒ EXIT≠0 |
-| **KR-B · Não-duplicação do razão** | Duplicação cross-grupo **não-explicada = 0** no corpus dogfood | **Modo entregue** de `dev/certify_ledger_local.py --entregue --run <id>` (E3 persistido daquele run). A sombra (default, E2→E3 com enforce omitido) **não pontua**. Baseline congelado pela [[A40.l1]] **antes** de qualquer fix. Anti-Goodhart: whitelist em **linha separada**; cortadas do colapso **não** entram em explicadas |
+| **KR-B · Não-duplicação do razão** — 🔴 **NÃO ATINGIDA** (2026-08-26, ver §Declaração final) | Duplicação cross-grupo **não-explicada = 0** no corpus dogfood | **Modo entregue** de `dev/certify_ledger_local.py --entregue --run <id>` (E3 persistido daquele run). A sombra (default, E2→E3 com enforce omitido) **não pontua**. Baseline congelado pela [[A40.l1]] **antes** de qualquer fix. Anti-Goodhart: whitelist em **linha separada**; cortadas do colapso **não** entram em explicadas |
 | **KR-C · Entrega visível** | Nº de seções que **renderizam** parágrafo == nº de seções com narrativa **emitida** (hoje **0 de 16**) *e* 0 âncoras de nav sem alvo | Teste de render (Vitest/RTL) sobre payload golden + assert bidirecional nav↔seções em `ReportShell.tsx`. CV9 redefinido para medir **entrega**, não geração |
 | **KR-D · PII zero no entregue** | 0 violações no view-model; critério 4 da [[ADR-337]] existe e é executável | Gate de PII sobre o view-model. Fixture sintética com identificador de terceiro + matrícula + endereço ⇒ bloqueio no CI |
 | **KR-E · Honestidade da recomendação** | 0 recomendações no topo do plano cuja premissa o próprio payload contesta, sem pendência pareada | Predicado determinístico `premissa → campo E5` em teste sobre payload golden |
@@ -158,6 +158,55 @@ em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomad
 > Anti-vacuidade ok (sombra>0). KR-B **não atingida**. Não se troca a métrica; triagem
 > das 7 fica para quem retomar. O baseline 261 da l1 era o cru de 2026-07-30 — o
 > numerador sombra andou com o corpus.
+
+> ### 🔴 Declaração final — 2026-08-26, rodada unificada **U1** ([[ADR-416]])
+>
+> **KR-B: NÃO ATINGIDA. O número tem piso, e o piso agora tem procedência.**
+>
+> Medição no run `c97b97c2` ([[LEDGER-CERTIFY-active]] §r5), sombra e entregue no mesmo
+> processo, `cobertura=OK` nos dois: **sombra 317 · entregue 7**. Anti-vacuidade satisfeita
+> (sombra > 0). O critério exige `entregue = 0`.
+>
+> **O que a U1 acrescenta às medições anteriores é a causa, não o número.** As 7 já haviam
+> sido contadas em 2026-08-17 e a triagem ficou "para quem retomar". O `LC5-01` fez a triagem
+> e ela não é sobre as ocorrências — é sobre o **remediador**: colapsador e detector derivam
+> `direction` de funções distintas. O detector usa o balde E4
+> (`dev/ledger_cross_group.py`); o colapsador passa `tipo=None` a `derive_direction`
+> (`pipeline/domain/services/cross_document_collapser.py`), contra o contrato escrito em
+> `pipeline/domain/services/_tx_identity.py` (*"não derivar do sinal cru: fatura inverte"*).
+> O bloco de paridade do próprio harness imprime o veredito: **`só no detector 7 ⚠️ PONTO
+> CEGO`**. As 7 do numerador **são** exatamente esse conjunto.
+>
+> **Atribuição fechada em 2026-08-26** ([[LEDGER-CERTIFY-active]] §r5): a divergência de
+> `direction` é **7/7** nas ocorrências do numerador e **1.591 de 4.296 rows (37,0%)** no
+> corpus transacional do run. O piso não é um acidente de sete linhas — é um mis-chaveamento
+> sistemático de mais de um terço das rows.
+>
+> **Consequência dura: rodar o colapsador até convergir não move o número.** O residual não
+> está bloqueado por falta de entrada de whitelist; está bloqueado porque o único mecanismo de
+> remediação da camada não enxerga a classe. O alvo do fix deixa de ser whitelist e passa a
+> ser **paridade de chave** — e isso muta E3.
+>
+> **Por que as 7 NÃO são classificadas como explicadas.** A opção foi considerada e é
+> inexecutável, por duas razões independentes:
+>
+> 1. **O anti-Goodhart escrito acima proíbe.** Contar ocorrência como explicada por ter sido
+>    *medida* é o movimento que este mesmo §Estado veta desde 2026-08-11. Nomear o mecanismo
+>    é medir melhor, não corrigir.
+> 2. **O harness rejeita mecanicamente.** As 7 são `carrier-shaped`, e
+>    `dev/ledger_cross_group.py:268` torna o carrier *"INALCANÇÁVEL pela whitelist por
+>    construção — erro, não warning"*: a entrada levanta `ValueError`. Não existe redação de
+>    whitelist que feche esta KR sem o fix.
+>
+> **Roteamento do fix: [[A42]], não A40.** Corrigir a paridade muta E3, a montante de todo run
+> E0→E6, logo **zeraria o contador de 2 re-runs** — exatamente o argumento que recusou fundir
+> as duas sprints. O achado está carimbado no rito de abertura da A42 (§`ledger-certify` r5),
+> onde estreita o escopo da [[A42.l5]] e falsifica a atribuição de fecho da [[A42.l10]].
+>
+> **Efeito no encerramento da A40:** a sprint pode fechar **sem** a KR-B, com ela declarada
+> não atingida e o fix roteado. O que **não** é aceitável é fechá-la relatando a KR-B como
+> atingida, ou silenciando o piso. O contador de 2 re-runs segue governado pelas outras
+> cláusulas — a KR-B deixa de ser condição de parada e vira dívida com endereço.
 
 **§Estado dos KRs — obrigação de leitura honesta.** Se o flip escorregar, a **KR-B é
 reportada não atingida**. É proibido ler as 261 ocorrências como "explicadas" por estarem
@@ -271,7 +320,7 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (90 no disco · 88 nesta tabela — ver nota ao fim)
+## Lanes (90 no disco · 90 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.

@@ -66,3 +66,23 @@ jobs:
 
           # Limita # de operações por run (rate-limit safety).
           operations-per-run: 60
+
+      # Checkout condicional: o script do canal vive no repo, mas este job não
+      # precisa da árvore no caminho feliz — pagar ~2s em todo run agendado
+      # para cobrir o run que falha seria custo sem contrapartida.
+      - uses: actions/checkout@v4
+        if: failure()
+
+      # Canal de falha do compensador (ADR-210 §camada 4, KR-F do PLAN-ci-trust).
+      # O `S2` do watchdog mede run INICIADO, não bem-sucedido: sem este step,
+      # um compensador que inicia e falha todo run é invisível.
+      # LIMITE declarado: `if: failure()` só dispara se um step ANTERIOR deste
+      # job falhou — job que nao recebe runner (budget, outage) nao passa por
+      # aqui, e essa classe continua coberta so pelo `S2`.
+      - name: Canal de falha — registra em Issue rotulada
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 dev/ci_report_workflow_failure.py \
+            --workflow stale.yml --label ops-hygiene
