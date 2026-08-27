@@ -14,6 +14,7 @@ amended_at:
   - "2026-08-08"
   - "2026-08-21"
   - "2026-08-25"
+  - "2026-08-27"
 relates_to:
   - "[[ADR-067]]"
   - "[[ADR-093]]"
@@ -35,6 +36,15 @@ tags:
 ---
 
 # ADR-210 — Saúde do test suite do CI
+
+> **Emenda (2026-08-27) — orçamento de relógio em `assert` vira anti-padrão
+> catalogado (6º detector):** dois testes afirmavam latência sobre
+> `time.monotonic()`/`time.time()` dentro do gate obrigatório. Ambos falhavam o
+> teste da própria política ("esse teste dá sinal proporcional ao custo de
+> CI?"): um flakou por carga da máquina (143 ms contra teto de 100, em suíte
+> concorrente, sem mudança de backend), e o outro era **cego à regressão que
+> nomeava** — de-vetorizado, o Monte Carlo de 10 000 leva 0,038 s e o teto de
+> 2 s passava com folga de 50×. Detalhe no §Emenda 2026-08-27.
 
 > **Emenda (2026-08-25) — o orçamento de Actions deixou de vincular:** o repo
 > está `PUBLIC` (verificado 2026-08-25) e runner standard não fatura. A
@@ -187,6 +197,7 @@ Script novo bloqueia commit quando detecta anti-padrões catalogados:
 | Migration test sem marker | `test_*_migration.py` ou import de `alembic.versions.*` sem `@pytest.mark.migration` | Adicionar `pytestmark = pytest.mark.migration` |
 | Test pós-cutover órfão | Docstring com `Após a Sprint <id>` cujo cutover já passou | Deletar arquivo + código testado |
 | bcrypt prod-grade em test | `bcrypt.hashpw(...)`/`bcrypt.gensalt()` em test individual e conftest sem `_fast_bcrypt_for_tests` | Adotar o fixture autouse session-scope |
+| Orçamento de relógio em `assert` | `assert` compara valor derivado de `time.monotonic/perf_counter/time()` contra literal numérico, sem `@pytest.mark.perf` | Medir o mecanismo (efeito observável, custo no interpretador); senão marcar `perf` ou remover |
 
 Heurísticas conservadoras (falsos negativos OK; falsos positivos custam
 crédito do gate). Allowlist via padrão `@functools.lru_cache` no source
@@ -1256,3 +1267,73 @@ ainda bloqueia job start mesmo em repo público (annotation de 2026-08-21:
 "recent account payments have failed…"); (b) público **não** destrava merge
 queue nativo — exige Organization (`isInOrganization: false`), então a
 [[ADR-322]] continua vigente até a decisão estrutural do plano.
+## Emenda 2026-08-27 — orçamento de relógio é anti-padrão, não teste de perf
+
+**O caso de origem.** `test_upsert_invalidates_cache_within_100ms`
+(`backend/tests/integration/test_category_override_cache.py`) media
+`time.monotonic()` em volta de `CategoryOverrideService.upsert` e afirmava
+`elapsed_ms < 100.0`. Em 2026-08-27 falhou com **143 ms** numa execução de
+`pytest backend/tests -q` (14 min) concorrente com outras suítes, e passou
+isolado (7 passed em 2s). O PR em voo não tocou nenhum arquivo de backend.
+
+**Os dois defeitos são independentes**, e o segundo é o pior:
+
+1. **Falha por carga, não por regressão.** Orçamento de relógio numa suíte
+   paralela (`-n auto`) mede contenção de CPU do runner. Em CI vira flake, e
+   flake em gate obrigatório treina o time a re-rodar em vez de ler.
+2. **Não exercita o mecanismo que nomeia.** O nome prometia invalidação de
+   cache; o `assert` media latência. Invalidação quebrada com write rápido
+   passava — é o modo de falha de `feedback: teste nomeia mecanismo sem
+   exercitar`, agora com instância medida.
+
+**A varredura achou a classe inteira, e ela tem dois membros** (`grep -rn
+'elapsed_ms\|time.monotonic\|perf_counter\|time.time()' backend/tests/ tests/`;
+frontend limpo). O segundo, `test_vetorizacao_10k_menos_de_2s`
+(`tests/test_if_projector_v2.py`), guardava a vetorização do Monte Carlo com
+`elapsed < 2.0`. **Medido:** o run real leva 0,03 s — folga de ~67×. E,
+de-vetorizando `_compute_patrimonios` para um loop por caminho, o run leva
+**0,038 s**: o teto de 2 s passaria com folga de 50× sobre exatamente a
+regressão que o teste existia para pegar. Orçamento generoso não é
+conservador; é inerte.
+
+**A saída não é afrouxar o teto — é trocar de instrumento.** Os dois testes
+agora medem mecanismo, sem relógio na asserção:
+
+- *Invalidação*: a chave do workspace some do cache; a releitura dá **`miss`**
+  (o `_FakeRedis` passou a registrar o desfecho de cada operação, porque o
+  estado final do dict não distingue miss de hit em valor coincidentemente
+  igual); o cache reaquece com o label novo. Sob mutação de
+  `invalidate_resolved_categories`, o teste falha.
+- *Vetorização*: com a simulação vetorizada, o trabalho por caminho vive no
+  numpy e o custo **no interpretador é constante em `n`** — 349 chamadas Python
+  (via `sys.setprofile`) para n ∈ {100, 200, 1 000, 10 000, 50 000}. Sob a
+  mesma mutação de de-vetorização, 100× o `n` leva 652 → 30 352 chamadas e o
+  teste falha por 23× de margem. Independente de carga por construção.
+
+**Marker `perf` — válvula de escape, com a limitação declarada.**
+`pyproject.toml` registra `perf`; `ci.yml` deselecciona (`-m "not perf"` no
+step de pipeline e nos **dois** ramos do `MARKER_FILTER` do backend — PR que
+toca migration não é motivo para readmitir benchmark). Ressalva honesta: o
+único lugar que roda a suíte sem filtro é o `nightly.yml`, que está
+`disabled_manually` desde 2026-06-15 (verificado 2026-08-27 via `gh workflow
+list --all`; segue desabilitado depois do #1748, que mexeu no nightly mas não o
+religou). **Enquanto o nightly não voltar, teste marcado `perf` não roda em
+lugar nenhum** — o marker é saída de emergência declarada, não o caminho
+recomendado. O caminho recomendado é medir o mecanismo, como os dois casos
+acima mostram ser possível.
+
+**Quem destrava:** o religamento do nightly **tem dono e rota** — item **1.4**
+de [[PLAN-ci-trust]] (Onda 1), "Nightly religado **por job** (main-smoke → 7
+verdes → lineage-eval → pesados) e waiver **removido**", marcado *ação owner* em
+`docs/plan/CI_TRUST/tracks/ci-trust-onda1-workflows.md` §"Religar o nightly —
+POR JOB". Registrar aqui para que a condição acima não vire deferimento órfão:
+quando o 1.4 executar, os testes `perf` passam a rodar sem nenhuma outra ação, e
+quem executa o 1.4 precisa saber que herdou esse marker.
+
+**Gate:** 6º detector em `dev/check_test_health.py`
+(`_find_wallclock_budget_assert`), com testes em
+`tests/dev/test_check_test_health.py` cobrindo as três formas reais (derivação
+por atribuição, orçamento escondido em `and`, subtração de duas leituras) e os
+dois falsos-positivos que a suíte já contém (`result.duration_ms == 7.0` como
+dado, lista de janelas de lockout em segundos). Pós-correção o gate roda limpo
+sobre `backend/tests/` + `tests/` — a classe não tem mais membros.

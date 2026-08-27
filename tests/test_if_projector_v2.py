@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import time
+import sys
 from decimal import Decimal
 
 import pytest
@@ -80,13 +80,40 @@ def test_p10_le_p50_le_p90():
     )
 
 
-def test_vetorizacao_10k_menos_de_2s():
-    """10 000 simulações devem rodar em menos de 2 segundos."""
-    cfg = _config(pv=600_000, fv=2_000_000, n=10_000)
-    inicio = time.time()
-    run_monte_carlo_if(cfg, ano_base=2026, prazo_declarado=_prazo(65 - 35))
-    elapsed = time.time() - inicio
-    assert elapsed < 2.0, f"Monte Carlo demorou {elapsed:.2f}s (limite: 2s)"
+def _simulacao_com(n: int):
+    cfg = _config(pv=600_000, fv=2_000_000, n=n)
+    return lambda: run_monte_carlo_if(cfg, ano_base=2026, prazo_declarado=_prazo(65 - 35))
+
+
+def _chamadas_python(fn) -> int:
+    """Quantas funções Python ``fn`` chama — trabalho no interpretador, não no numpy."""
+    total = 0
+
+    def _contar(_frame, evento, _arg):
+        nonlocal total
+        total += evento == "call"
+
+    anterior = sys.getprofile()
+    sys.setprofile(_contar)
+    try:
+        fn()
+    finally:
+        sys.setprofile(anterior)
+    return total
+
+
+# Substitui `assert elapsed < 2.0` sobre `time.time()`, que media carga da máquina em vez
+# de vetorização: passava com folga de ~67× (30 ms contra teto de 2 s) e só acusaria a
+# de-vetorização depois que ela já estivesse lenta o bastante. O trabalho por caminho vive
+# no numpy, então o custo no interpretador é constante em `n` — medido em 2026-08-27: 349
+# chamadas para n ∈ {100, 200, 1 000, 10 000, 50 000}. Trocando `_compute_patrimonios` por
+# um loop por caminho: 752 (n=100) → 4 352 (n=1 000). ADR-210 §saúde do test suite.
+def test_simulacao_e_vetorizada_custo_no_interpretador_nao_escala_com_n():
+    """100× mais simulações não pode nem dobrar as chamadas Python (loop por caminho)."""
+    _simulacao_com(100)()  # aquece: a 1ª chamada importa numpy e inflaria a medição
+    poucas = _chamadas_python(_simulacao_com(100))
+    muitas = _chamadas_python(_simulacao_com(10_000))
+    assert muitas < poucas * 2, f"100× o n levou {poucas} → {muitas} chamadas Python"
 
 
 def test_termos_reais_escala_independente():

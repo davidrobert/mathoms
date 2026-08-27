@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Detecta anti-padrões de teste que custam tempo de CI sem dar sinal.
+"""Detecta anti-padrões de teste que custam tempo de CI sem dar sinal ou dão sinal errado.
 
 Roda em pre-commit (AST/regex em backend/tests/ + tests/). Modo --profile
 está reservado para nightly (não implementado em pre-commit). Política
@@ -243,6 +243,125 @@ def _find_bcrypt_in_test(source: str, path: Path) -> list[tuple[int, str]]:
     return findings
 
 
+_CLOCK_FUNCS = {
+    "monotonic",
+    "monotonic_ns",
+    "perf_counter",
+    "perf_counter_ns",
+    "process_time",
+    "process_time_ns",
+    "time",
+    "time_ns",
+}
+
+
+def _is_clock_call(node: ast.AST) -> bool:
+    """Call é leitura de relógio (``time.perf_counter()``, ``monotonic()``…)?"""
+    if not isinstance(node, ast.Call):
+        return False
+    fn = node.func
+    if isinstance(fn, ast.Attribute):
+        return fn.attr in _CLOCK_FUNCS and isinstance(fn.value, ast.Name) and fn.value.id == "time"
+    return isinstance(fn, ast.Name) and fn.id in _CLOCK_FUNCS
+
+
+def _reads_clock(node: ast.AST, nomes: set[str]) -> bool:
+    """Expressão lê relógio direto ou via nome já derivado de relógio."""
+    for sub in ast.walk(node):
+        if _is_clock_call(sub):
+            return True
+        if isinstance(sub, ast.Name) and sub.id in nomes:
+            return True
+    return False
+
+
+def _clock_derived_names(node: ast.FunctionDef | ast.AsyncFunctionDef) -> set[str]:
+    """Nomes cujo valor veio de leitura de relógio (propaga por atribuição)."""
+    nomes: set[str] = set()
+    for stmt in ast.walk(node):
+        if not isinstance(stmt, (ast.Assign, ast.AnnAssign)) or stmt.value is None:
+            continue
+        if not _reads_clock(stmt.value, nomes):
+            continue
+        alvos = stmt.targets if isinstance(stmt, ast.Assign) else [stmt.target]
+        nomes |= {t.id for t in alvos if isinstance(t, ast.Name)}
+    return nomes
+
+
+def _is_numeric_literal(node: ast.AST) -> bool:
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, (int, float)) and not isinstance(node.value, bool)
+    if isinstance(node, ast.BinOp):
+        return _is_numeric_literal(node.left) and _is_numeric_literal(node.right)
+    return False
+
+
+def _is_budget_compare(cmp_node: ast.Compare, nomes: set[str]) -> bool:
+    """Compara duração de relógio contra literal numérico — orçamento de latência."""
+    lados = [cmp_node.left, *cmp_node.comparators]
+    if not any(_reads_clock(lado, nomes) for lado in lados):
+        return False
+    return any(_is_numeric_literal(lado) for lado in lados)
+
+
+def _menciona_perf(node: ast.AST) -> bool:
+    """Expressão traz o marker ``perf`` (cobre `@pytest.mark.perf` e a forma chamada)."""
+    return any(isinstance(s, ast.Attribute) and s.attr == "perf" for s in ast.walk(node))
+
+
+# Casar `"pytest.mark.perf" in source` isentava o ARQUIVO: um benchmark marcado
+# apagava o gate para todos os vizinhos dele. Isenção é por nó — decorador da
+# própria função, ou `pytestmark` do módulo.
+def _module_marks_perf(tree: ast.AST) -> bool:
+    """Módulo inteiro declarado benchmark via ``pytestmark``."""
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        alvos = {t.id for t in node.targets if isinstance(t, ast.Name)}
+        if "pytestmark" in alvos and _menciona_perf(node.value):
+            return True
+    return False
+
+
+_MSG_WALLCLOCK = (
+    "`assert` compara duração de relógio contra literal — orçamento de latência falha por "
+    "carga da máquina, não por regressão, e passa se o mecanismo quebrar mas for rápido. "
+    "Prefira medir o mecanismo (chamadas, efeito observável). Se o orçamento tiver de "
+    "existir, marque `@pytest.mark.perf` (fora do gate de PR) ou remova. ADR-210."
+)
+
+
+def _find_wallclock_budget_assert(tree: ast.AST) -> list[tuple[int, str]]:
+    """`assert elapsed < N` sobre `time.*()` — mede carga da máquina, não o código."""
+    findings: list[tuple[int, str]] = []
+    modulo_perf = _module_marks_perf(tree)
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if modulo_perf or any(_menciona_perf(dec) for dec in node.decorator_list):
+            continue
+        nomes = _clock_derived_names(node)
+        for stmt in ast.walk(node):
+            if not isinstance(stmt, ast.Assert):
+                continue
+            comps = [c for c in ast.walk(stmt.test) if isinstance(c, ast.Compare)]
+            if any(_is_budget_compare(c, nomes) for c in comps):
+                findings.append((stmt.lineno, _MSG_WALLCLOCK))
+    return findings
+
+
+def _all_findings(tree: ast.AST, source: str, test_file: Path) -> list[tuple[int, str]]:
+    """Roda todos os detectores catalogados (ADR-210) sobre um arquivo de teste."""
+    return (
+        _find_parametrize_ignoring_arg(tree, source)
+        + _find_soft_fail_without_active_hardfail(source, test_file)
+        + _find_migration_tests_without_marker(source, test_file)
+        + _find_orphan_cutover_tests(source, test_file)
+        + _find_bcrypt_in_test(source, test_file)
+        + _find_wallclock_budget_assert(tree)
+    )
+
+
 def _check_file(test_file: Path) -> tuple[int, str | None]:
     try:
         source = test_file.read_text(encoding="utf-8")
@@ -253,13 +372,7 @@ def _check_file(test_file: Path) -> tuple[int, str | None]:
     except SyntaxError as exc:
         return 0, f"ERR: {test_file}: {exc}"
     rel = test_file.relative_to(REPO_ROOT).as_posix()
-    findings = (
-        _find_parametrize_ignoring_arg(tree, source)
-        + _find_soft_fail_without_active_hardfail(source, test_file)
-        + _find_migration_tests_without_marker(source, test_file)
-        + _find_orphan_cutover_tests(source, test_file)
-        + _find_bcrypt_in_test(source, test_file)
-    )
+    findings = _all_findings(tree, source, test_file)
     for line_no, msg in findings:
         print(f"{rel}:{line_no}: {msg}")
     return len(findings), None
