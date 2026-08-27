@@ -310,8 +310,48 @@ não serve como gate duro. Fechar essa metade exige cruzar branch↔PR pela API.
 branch" (hoje não existe — squash-merge não deixa a branch como ancestral), ou
 quando a classe reincidir ≥3× com o C1 já em `main`. Enquanto isso, gate
 obrigatório que depende de rede **pisca**: o `check_scheduled_workflows` travou
-todo merge do repo em 2026-08-24 lendo réplica obsoleta com HTTP 200. O limite
-está registrado em [[ADR-413]] §Limite declarado.
+todo merge do repo em 2026-08-24 lendo réplica obsoleta com HTTP 200.
+~~O limite está registrado em [[ADR-413]] §Limite declarado.~~
+
+> **Correção 2026-08-27 — a citação da [[ADR-413]] era falsa.** Aquela ADR é
+> *"Derivado versionado é derivado de contrato"*, e o §Limite declarado dela fala
+> de adjacência de linha em índice gerado e do `_README` de sprint; `rg -n
+> 'branch|rede|API|PR merg' docs/adr/413-*.md` não devolve nada sobre branch↔PR.
+> O limite **nunca esteve registrado em ADR nenhuma** — vivia só neste arquivo.
+
+> ### ✅ Retomada executada — 2026-08-27
+>
+> **A fonte hermética existe, e não é a API.** O predicado é
+> `ancestral(origin/main) ∨ patch-id(merge-base..tip) ∈ patch-ids(origin/main)`:
+> o diff **agregado** da branch casa o commit de squash em `main`. Zero rede,
+> zero `git fetch` dentro da sonda (buscar ali é o modo de falha do
+> `check_scheduled_workflows` citado acima).
+>
+> Não virou gate: entrou como **2º degrau do `dev/lane_pickup.py`**, irmão do
+> TERMINAL — muda o rótulo, não a evidência. Gate de pre-commit foi recusado por
+> medição: o dano acontece **antes de existir diff** (quem lê OCUPADA e vai
+> embora não commita nada), e varrer 897 branches em todo commit é o precedente
+> que travou o repo.
+>
+> **Medido antes/depois** — a prova é por conjunto, não por contagem:
+>
+> | | antes | depois |
+> | --- | --- | --- |
+> | `--sprint A40`, linhas `ocupação [branch]` | 263 | **2** (as 2 reais, na [[A40.l91]]) |
+> | `--sprint A40`, tempo | 2m34s | **47s** |
+> | `A40.l80` (P0), sinais | 12 (11 fantasma) | **1** — o worktree com 2 arq. sujos |
+>
+> Mordida provada por 3 mutações, cada uma derrubando um teste distinto:
+> indeciso virando "entregue" (o fail-open clássico), o veredito voltando a
+> contar branch entregue, e o patch-id casando sempre. E o **outro lado** está
+> travado: branch com commit que nunca virou PR **continua** segurando OCUPADA —
+> sem esse caso o teste só saberia dizer LIVRE.
+>
+> **Limites declarados** no docstring do módulo, não implícitos: `origin/main`
+> defasado e rebase só produzem falso-OCUPADA (conservador, nunca o inverso);
+> branch com commit único porém **superado** sai como viva de propósito (julgar
+> "superado" é mérito, e é do humano — foi o caso da [[A40.l36]] hoje); e o
+> filtro de token continua cego a branch que não nomeia a lane.
 
 ### Achado colateral — a camada 1 da skill falhava aberta
 

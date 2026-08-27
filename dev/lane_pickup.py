@@ -14,6 +14,29 @@
 #
 # Barato de propósito (~80 tokens de saída, precedente ADR-281): a alternativa é
 # reler o _README da sprint e os arquivos de lane, ~40k tokens que respondem pior.
+#
+# 2026-08-27 — o 2º degrau: ENTREGA. Squash-merge nunca deixa a branch ancestral
+# de `main`, então branch de lane já entregue citava a lane para sempre. Medido:
+# 897 branches `agent/`/`claude/` locais, 522 não-ancestrais; a A40.l80 (P0)
+# respondia OCUPADA com 12 sinais, 11 deles branch entregue, e o único sinal vivo
+# (worktree com 2 arquivos sujos) ficava soterrado. No `--sprint A40`: 263 linhas
+# de `ocupação [branch]` → 2, e 2m34s → 47s.
+#
+# O predicado é HERMÉTICO — zero rede, e nenhum `git fetch` (buscar dentro de uma
+# sonda é como o `check_scheduled_workflows` travou todo merge do repo em
+# 2026-08-24). Fecha a condição de retomada que a A40.l59 §Deferimento declarava
+# inexistente: o patch-id do diff agregado `merge-base..tip` casa o do commit de
+# squash em `main`.
+#
+# LIMITES DECLARADOS:
+#  · `origin/main` defasado só produz falso-OCUPADA (conservador). Nunca o inverso.
+#  · Rebase/conflito muda o patch-id ⇒ branch entregue pode seguir contada como
+#    viva. Conservador também.
+#  · Branch com commit único porém SUPERADO (o caso da A40.l36) sai como viva, de
+#    propósito: julgar "superado" é julgar mérito, e isso é do humano.
+#  · O filtro de token continua cego a branch que não nomeia a lane —
+#    `_mentions("a40-l39", "claude/finalize-lanes-l33-l39-l41-…")` é falso. Uma
+#    saída limpa convence mais que a de antes; isto NÃO ficou melhor.
 
 from __future__ import annotations
 
@@ -25,6 +48,11 @@ from pathlib import Path
 from typing import Any, Iterable, NamedTuple
 
 import yaml
+
+try:  # script direto vs. import como `dev.*` (padrão de dev/check_lane_transition.py)
+    import _lane_branch_delivery as _delivery  # noqa: E402
+except ModuleNotFoundError:  # pragma: no cover
+    from dev import _lane_branch_delivery as _delivery  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS = REPO_ROOT / "docs"
@@ -107,10 +135,16 @@ def collect_lanes(docs_root: Path) -> dict[str, dict[str, Any]]:
     return lanes
 
 
+_WORKTREES: list[Path] | None = None
+
+
 def _worktree_paths() -> list[Path]:
     """Worktrees do clone — inclui os que nenhuma branch remota revela."""
-    out = _git("worktree", "list", "--porcelain")
-    return [Path(line[9:]) for line in out.splitlines() if line.startswith("worktree ")]
+    global _WORKTREES
+    if _WORKTREES is None:
+        out = _git("worktree", "list", "--porcelain")
+        _WORKTREES = [Path(line[9:]) for line in out.splitlines() if line.startswith("worktree ")]
+    return _WORKTREES
 
 
 def _slug_of(lane_id: str, front: dict[str, Any]) -> str:
@@ -135,15 +169,58 @@ def _mentions(token: str, text: str) -> bool:
     return re.search(rf"(?<![0-9a-z]){re.escape(token)}(?![0-9a-z])", text.lower()) is not None
 
 
-def _refs_mentioning(token: str) -> list[Occupancy]:
+# Só ADICIONA linhas. Não existe flag que desligue a classificação: um
+# `--sem-fantasma` recriaria o estado de hoje e viraria default em máquina lenta.
+_MOSTRAR_ENTREGUES = False
+
+ENTREGUE = "branch-entregue"
+# Lane terminal não paga o pré-computo: o veredito já é TERMINAL. As refs dela
+# ficam contadas, não listadas — 251 linhas mortas num `--sprint` afogam o sinal.
+NAO_CLASSIFICADA = "branch-nao-classificada"
+
+
+# 2º degrau, irmão do TERMINAL: o predicado mora em `_lane_branch_delivery`
+# (responsabilidade própria, e o gate futuro importa de lá em vez de gemear).
+def _classificar(refs: list[str]) -> tuple[list[Occupancy], list[Degradacao]]:
+    """Rotula cada ref como ocupação viva ou branch já entregue em `main`."""
+    vivas, entregues, motivos = _delivery.classificar(refs)
+    signals = [Occupancy("branch", r) for r in vivas]
+    signals += [Occupancy(ENTREGUE, r) for r in entregues]
+    return signals, [Degradacao("entrega", m) for m in motivos]
+
+
+def _refs_mentioning(
+    tokens: Iterable[str], *, classificar: bool = True
+) -> tuple[list[Occupancy], list[Degradacao]]:
     out = _git("for-each-ref", "--format=%(refname:short)", "refs/heads", "refs/remotes")
-    hits = [ref for ref in out.splitlines() if _mentions(token, ref)]
-    return [Occupancy("branch", ref) for ref in hits]
+    hits = [ref for ref in out.splitlines() if any(_mentions(t, ref) for t in tokens)]
+    if not hits:
+        return [], []
+    # Lane terminal já responde TERMINAL pelo 1º degrau: classificar não muda o
+    # veredito e custa o pré-computo inteiro. Medido: era 90% do tempo do
+    # `--sprint A40`, e as branches antigas estouravam a janela, virando sonda
+    # cega em lane que ninguém vai pegar.
+    if not classificar:
+        return [Occupancy(NAO_CLASSIFICADA, ref) for ref in hits], []
+    return _classificar(hits)
+
+
+# O HEAD de um worktree não depende do token da lane, e a varredura pergunta
+# 2 tokens × N lanes. Sem memo, `--sprint A40` fazia ~3.780 `rev-parse` para
+# 21 worktrees. O cache vive um processo — não há estado entre execuções.
+_HEAD_DE_WORKTREE: dict[str, tuple[str, str | None]] = {}
+
+
+def _head_de(path: Path) -> tuple[str, str | None]:
+    chave = str(path)
+    if chave not in _HEAD_DE_WORKTREE:
+        _HEAD_DE_WORKTREE[chave] = _git_probe("rev-parse", "--abbrev-ref", "HEAD", cwd=path)
+    return _HEAD_DE_WORKTREE[chave]
 
 
 def _sonda_worktree(path: Path, token: str) -> tuple[Occupancy | None, Degradacao | None]:
     """Um worktree: sinal, degradação, ou nenhum dos dois (não cita a lane)."""
-    branch, erro = _git_probe("rev-parse", "--abbrev-ref", "HEAD", cwd=path)
+    branch, erro = _head_de(path)
     cita_pelo_path = _mentions(token, path.name)
     if erro is not None:
         # Path pode citar a lane e o git ter falhado: reportar mesmo assim, senão
@@ -206,8 +283,11 @@ def occupancy_signals(
     tokens = {_short_id(lane_id), _slug_of(lane_id, front).lower()}
     signals: list[Occupancy] = []
     degradacoes: list[Degradacao] = []
+    terminal = front.get("status") in TERMINAL_STATUS
+    sinais_ref, cegas_ref = _refs_mentioning(sorted(tokens), classificar=not terminal)
+    signals.extend(sinais_ref)
+    degradacoes.extend(cegas_ref)
     for token in sorted(tokens):
-        signals.extend(_refs_mentioning(token))
         sinais_wt, cegas = _worktrees_mentioning(token)
         signals.extend(sinais_wt)
         degradacoes.extend(cegas)
@@ -234,7 +314,7 @@ def _verdict(
 ) -> str:
     if front.get("status") in TERMINAL_STATUS:
         return f"TERMINAL ({front.get('status')}) — nada a pegar"
-    if signals:
+    if [s for s in signals if s.source not in _RESUMOS]:
         return "OCUPADA — não pegue sem falar com quem está nela"
     if front.get("status") == "planned":
         return "NÃO LIBERADA — `planned` é liberação por-lane, decisão do dono"
@@ -278,6 +358,7 @@ def _linhas_de_degradacao(degradacoes: list[Degradacao]) -> list[str]:
 def _report_unknown(lane_id: str) -> tuple[str, int]:
     """Id ausente da vault local ainda pode estar TOMADO por outra sessão."""
     signals, degradacoes = occupancy_signals(lane_id, {})
+    signals = [s for s in signals if s.source not in _RESUMOS]
     if not signals:
         cabeca = f"{lane_id}: não existe no vault e nenhum sinal de ocupação — id livre."
         if degradacoes:
@@ -302,9 +383,32 @@ def report(lane_id: str, lanes: dict[str, dict[str, Any]]) -> tuple[str, int]:
         f"  {front.get('title', '')}",
         f"  veredito: {verdict}",
     ]
-    out.extend(f"  ocupação [{s.source}]: {s.detail}" for s in signals)
+    out.extend(f"  ocupação [{s.source}]: {s.detail}" for s in signals if s.source not in _RESUMOS)
+    out.extend(_linhas_resumidas(signals))
     out.extend(_linhas_de_degradacao(degradacoes))
     return ("\n".join(out), 0 if verdict.startswith(("LIVRE", "PEGÁVEL")) else 1)
+
+
+# A evidência não some — some o RUÍDO. Listar 11 refs entregues empurra o sinal
+# vivo (o worktree sujo) para fora da primeira tela, que foi o dano medido na
+# A40.l80. Quem quiser os nomes tem `--todas-as-branches`, que só ADICIONA linhas.
+_RESUMOS = {
+    ENTREGUE: "branch(es) já entregue(s) em `main`, ignorada(s)",
+    NAO_CLASSIFICADA: "branch(es) citando a lane — terminal, não classificadas",
+}
+
+
+def _linhas_resumidas(signals: list[Occupancy]) -> list[str]:
+    linhas = []
+    for source, texto in _RESUMOS.items():
+        refs = [s for s in signals if s.source == source]
+        if not refs:
+            continue
+        if _MOSTRAR_ENTREGUES:
+            linhas.extend(f"  [{source}] {s.detail}" for s in refs)
+        else:
+            linhas.append(f"  ({len(refs)} {texto} — `--todas-as-branches` lista)")
+    return linhas
 
 
 def _sprint_of(front: dict[str, Any]) -> str:
@@ -320,11 +424,23 @@ def _scan(lanes: dict[str, dict[str, Any]], sprint: str) -> tuple[str, int]:
     return ("\n\n".join(blocks), 0)
 
 
-def main(argv: list[str] | None = None) -> int:
+def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("lane", nargs="?", help="id da lane, ex.: A40.l35")
     parser.add_argument("--sprint", help="varre todas as lanes de uma sprint, ex.: A40")
+    parser.add_argument(
+        "--todas-as-branches",
+        action="store_true",
+        help="lista as branches já entregues em vez de resumi-las (não muda o veredito)",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = _parser()
     args = parser.parse_args(argv)
+    global _MOSTRAR_ENTREGUES
+    _MOSTRAR_ENTREGUES = args.todas_as_branches
     lanes = collect_lanes(DOCS)
     if args.sprint:
         text, code = _scan(lanes, args.sprint)
