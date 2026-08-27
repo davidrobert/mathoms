@@ -17,6 +17,7 @@ from pipeline.domain.types.config import (
     ReportLayout,
     TransferConfig,
 )
+from pipeline.ports.config_store import FiscalParametersAusentes
 
 
 class InMemoryConfigStore:
@@ -66,7 +67,9 @@ class InMemoryConfigStore:
         """Retorna a row cujo ano coincide com ``period_start.year`` ou raise."""
         params = self._fiscal_by_year.get(period_start.year)
         if params is None:
-            raise KeyError(f"InMemoryConfigStore: no fiscal params for year={period_start.year}")
+            raise FiscalParametersAusentes(
+                f"InMemoryConfigStore: no fiscal params for year={period_start.year}"
+            )
         del period_end
         return params
 

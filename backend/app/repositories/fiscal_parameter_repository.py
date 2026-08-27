@@ -8,13 +8,16 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.fiscal_parameter import FiscalParameter
+from pipeline.ports.config_store import FiscalParametersAusentes
 
 
 class FiscalParameterAmbiguous(RuntimeError):
     """Mais de uma row de ``fiscal_parameters`` cobre o período solicitado."""
 
 
-class FiscalParameterNotFound(RuntimeError):
+class FiscalParameterNotFound(FiscalParametersAusentes):
+    # Herda do port para o pipeline distinguir ausência de falha sem importar
+    # backend ([[A40.l79]]). O nome antigo fica: é o que os call-sites capturam.
     """Nenhuma row de ``fiscal_parameters`` cobre o período solicitado."""
 
 

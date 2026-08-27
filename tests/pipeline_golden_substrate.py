@@ -7,6 +7,8 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from pipeline.ports.config_store import FiscalParametersAusentes
+
 _REPO = Path(__file__).resolve().parents[1]
 _LEGACY_CONFIGS = _REPO / "tests" / "fixtures" / "legacy_configs"
 
@@ -178,7 +180,15 @@ def _limiar_irpfm_da_migration() -> int:
 
 
 def _dados_efetivos(tabelas: dict, year: int) -> dict:
-    dados = dict(tabelas[max(a for a in tabelas if a <= year)])
+    # SEM clamp `max(a <= year)`. Ele era invenção da fixture: a produção resolve
+    # por vigência (`effective_from/to`) e LEVANTA em ano não semeado. Servir a
+    # linha de 2026 para 2027 deixava o golden verde num eixo em que a produção
+    # falha — a divergência fixture↔produção que a [[A40.l79]] fecha.
+    if year not in tabelas:
+        raise FiscalParametersAusentes(
+            f"seed da migration ADR-389 não cobre {year}; anos: {sorted(tabelas)}"
+        )
+    dados = dict(tabelas[year])
     if year >= _ano_inicial_regime_completo():
         dados["regime_completo"] = True
         dados["componentes_ausentes"] = []
