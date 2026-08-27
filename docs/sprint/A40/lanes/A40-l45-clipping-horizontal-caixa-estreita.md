@@ -172,6 +172,10 @@ runs **no mesmo runner** que deu para separar o que era desta lane (S2-light,
   sobrevive porque a variante mobile é completa — por acidente, não por
   desenho. [[ADR-381]] D1 fixa a regra; a varredura dos call-sites existentes
   não entra nesta lane. **→ [[A40.l54]]** (aberta 2026-08-12).
+  > *Nota datada 2026-08-27:* o "hoje" acima é de 2026-08-12 e venceu. A
+  > [[A40.l54]] está `shipped` (#1516, 2026-08-18): eram **4** call-sites com
+  > perda de dado, não 2, e os quatro foram convertidos para `sm:`/`print:`. O
+  > ponteiro fica; a afirmação de estado não vale mais no presente.
 
 ## Regressão 2 — `min-w-0` desalinhou o gráfico, e só no Linux
 

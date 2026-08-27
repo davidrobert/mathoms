@@ -4,7 +4,7 @@ type: lane
 title: "Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: open
 priority: P1
 branch_slug: a40-l39-posicao-visoes-corrente-fiscal
 adrs:
@@ -16,7 +16,7 @@ depends_on: ["[[A40.l38]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/open
   - priority/p1
   - area/pipeline
   - area/frontend
@@ -59,6 +59,75 @@ Dois PRs + ADR:
   **Renda Anual e Impostos**, levando o alerta CBE. Spec de UI:
   `product-designer` (pendente — bloqueado por limite de spend em
   2026-08-11; obrigatório antes do PR-b).
+
+
+## Aberto — 2026-08-27 · dono: David Robert
+
+Estado medido no fecho das lanes de contraste/papel (skill `lane-closeout`).
+A lane **volta a `open`**: `in_progress` significa "branch/PR aberta"
+(§Predicado do `_README`) e não há branch remota — `git for-each-ref
+refs/remotes/origin/agent/ | grep a40-l39` é vazio; as duas locais são
+fantasma. `depends_on: [[A40.l38]]` está `shipped`, então `open` é o valor
+correto.
+
+### O PR-b não começou — e três itens de outras lanes já foram roteados p/ cá
+
+Nenhum estava registrado neste arquivo até hoje. **Os três chegam de lanes que
+não podem mais executá-los.**
+
+| item | origem | estado da origem |
+| --- | --- | --- |
+| **P0 · rodapé de PTAX** — o rodapé afirma conversão pela PTAX de 31/12 em linhas cujo saldo é de 26/03, 22/07 e 11/08/2026 | [[A40.l50]] §P0, roteado em **2026-08-14** | `open`, mas declarou explicitamente *"não é lane desta … abrir PR aqui conflita no arquivo que ela está partindo"* |
+| **Se e como o snapshot 31/12 do IRPF deve aparecer no card de posições** — hoje não aparece, o que é honesto mas talvez não seja o que a família quer ver | [[A40.l63]] §Roteamento | **`shipped`** — terminal, não executa mais nada |
+| **Qual taxa a coluna "31/12" usa** | [[A40.l63]] §Fora de escopo | **`shipped`** |
+
+**Correção de enquadramento que a l39 herda junto com o P0** (co-design
+`financial-planner` + `senior-cto` na l50, 2026-08-14): a linha de extrato tem
+**dois** erros, não um — taxa errada *e* **data errada**. Por isso *"converter
+tudo pela PTAX de 31/12"* está **vetado**: aplicar PTAX de 31/12/2025 a saldo de
+agosto/2026 não aplica regra fiscal nenhuma, fabrica um número que não
+corresponde a posição alguma, com aparência de autoridade fiscal. O split desta
+lane é o que resolve — não a footnote.
+
+### O que o PR-a deixou inerte (medido em 2026-08-27)
+
+O #1399 propagou 3 campos e **nenhum consumidor os lê**. Não é defeito do PR-a
+(era plumbing declarado); é o tamanho real do que falta.
+
+| campo | estado |
+| --- | --- |
+| `id` estável | `PosicaoInformeCard.tsx:92` continua com `key={`${row.instituicao}-${row.moeda}-${idx}`}`; `row.id` tem **0** ocorrências no frontend |
+| `data_referencia` / `_precisao` | 4 ocorrências no `frontend/src`, **todas declaração de tipo** (`types/posicao-31-12.ts:8-9`, `generated/report-analysis.ts:25-26`). Zero uso |
+| contrato | `posicao_31_12` **não existe** em `config/schemas/e5_analysis.schema.json` (0 ocorrências). Os campos novos não têm schema |
+
+**O `id` também não serve de natural key no diff, que era a 2ª justificativa
+para criá-lo.** `dev/golden_diff.py::_NATURAL_KEYS` é tupla **ordenada** com
+`"fonte"` antes de `"id"`, e `_natural_key` retorna no 1º match — toda row de
+`posicao_31_12` tem `fonte`, então o diff cai em posicional. E `golden_diff` não
+é invocado por `.github/workflows/` nem pelo `.pre-commit-config.yaml`.
+
+### O bloqueador do critério de aceite: a superfície não tem golden
+
+`backend/tests/snapshots/dogfood_view_model.json` traz `posicao_31_12` com
+**0 itens**. Há teste de componente com rows sintéticas
+(`frontend/tests/components/PosicaoInformeCard.test.tsx`), mas o caminho de
+snapshot/golden — o que provaria o critério *"PR-a: goldens/snapshot idênticos
+exceto campos aditivos"* e protegeria o split — **nunca exercitou o card**.
+Construir o PR-b sem esse substrato é desenhar a fotografia corrente contra
+dados inventados, que é exatamente a classe que a sprint existe para matar.
+
+**Ordem que isto impõe ao PR-b:** substrato de golden com as duas famílias de
+linha (informe 31/12 e extrato corrente) **antes** do split visual, não depois.
+
+### Bloqueador 1 do PR-b segue vivo
+
+`IrpfRendaSection.tsx:28` continua `if (!kpis) return null` — confirmado hoje.
+A decisão já está tomada (§Bloqueadores resolvidos: relaxar para
+`kpis || fechamentoRows.length > 0`); falta executar.
+
+### [[ADR-382]] segue `Proposto`
+
+15 dias sem PR-b. A ADR não vigora; nada nela pode ser citado como decidido.
 
 ## Critério de aceite
 
