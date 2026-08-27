@@ -177,6 +177,11 @@ em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomad
 > O bloco de paridade do próprio harness imprime o veredito: **`só no detector 7 ⚠️ PONTO
 > CEGO`**. As 7 do numerador **são** exatamente esse conjunto.
 >
+> **Atribuição fechada em 2026-08-26** ([[LEDGER-CERTIFY-active]] §r5): a divergência de
+> `direction` é **7/7** nas ocorrências do numerador e **1.591 de 4.296 rows (37,0%)** no
+> corpus transacional do run. O piso não é um acidente de sete linhas — é um mis-chaveamento
+> sistemático de mais de um terço das rows.
+>
 > **Consequência dura: rodar o colapsador até convergir não move o número.** O residual não
 > está bloqueado por falta de entrada de whitelist; está bloqueado porque o único mecanismo de
 > remediação da camada não enxerga a classe. O alvo do fix deixa de ser whitelist e passa a
