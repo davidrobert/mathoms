@@ -11,6 +11,7 @@ owner: financial-planner
 depends_on:
   - "[[A40.l89]]"
 adrs:
+  - "[[ADR-191]]"
   - "[[ADR-399]]"
   - "[[ADR-416]]"
 tags:
@@ -81,6 +82,76 @@ medida sobre os runs de referência **declarada antes do flip** (doutrina WARN-f
 3. As três dimensões sem regra (concentração imobiliária, desvio de alocação, exposição
    cambial) ganham regra que **lê** o catálogo, não que fixa número.
 4. Invariante: `count(kpi_targets rompidos) > 0 ⟹ len(pontos_urgentes) > 0`. Falha hoje.
+5. **`trs_target_pct = 4.0` cai, junto com a regra que o lê.**
+   [`suggestion_config.py:14`](../../../../pipeline/domain/services/suggestion_config.py) e
+   [`rule_trs_desalinhada`](../../../../pipeline/domain/services/suggestion_rules.py)
+   (`suggestion_rules.py:87-115`, `section_id="S7"`) são o alvo **determinístico** do plano
+   de ação para `carteira_trs` — a chave que o catálogo declara **órfã por decisão**
+   ([[ADR-191]] §D5). Forma: **emenda datada da [[ADR-191]] §D6** no PR1, não da
+   [[ADR-399]] — ver §Acolhimento abaixo.
+6. **A prosa do exec context deixa de afirmar limiar que o catálogo se recusa a arbitrar.**
+   [`pontos_fortes_analyzer.py:121`](../../../../pipeline/domain/services/pontos_fortes_analyzer.py)
+   entrega ao modelo `"acima da referência de 30%"` como afirmação da própria E5, na seção
+   `sintese` do exec context (`eviction_priority: 1` — a última a sair do corpo).
+
+## Acolhimento do §Deferimento datado 2026-08-27 da [[A40.l89]]
+
+> **Escrito do lado que recebe.** A disposição já estava em **dois** lugares — a
+> [[ADR-399]] §Emenda 2026-08-27 (*"o alvo determinístico do plano de ação
+> (`suggestion_rules.trs_target_pct`) e a prosa da E5 que entrega limiar ao modelo são
+> leitores isentos pela D4 e migram para a [[A40.l90]], sob emenda própria"*) e o
+> §Deferimento datado da [[A40.l89]]. Faltava o lado que executa; sem ele a lane não sabia
+> que ganhou superfície.
+
+**Por que a [[ADR-191]] e não a [[ADR-399]].** A [[ADR-399]] §D4 já **renuncia** a estes
+leitores — não há isenção a estreitar por este eixo (é o §7 do ataque, que segue valendo).
+Quem eles contradizem é a [[ADR-191]] §D6, cujo **Aceite** diz *"nenhuma superfície do
+relatório compara a TRS efetiva com um alvo de retorno … nos dois consumidores"*.
+`rule_trs_desalinhada` é o **terceiro**, com `section_id="S7"` — dentro do escopo que o
+aceite declarou, fora do que ele mediu. A emenda datada corrige a contagem, não a decisão.
+
+**O veredito de domínio (`financial-planner`): são dois conceitos com o mesmo acrônimo.**
+A **regra dos 4%** (SWR, estudo Trinity) é taxa de **decumulação** sobre patrimônio
+investível;
+`goals.taxa_retirada_efetiva_pct` (= `PassiveIncomeResult.trs_efetiva_pct`) é **yield
+observado**. Prescrever *"reduzir a taxa de retirada"* sobre um yield é conselho
+**inexecutável** — a família não escolhe quanto os ativos pagam. O órfão está certo; o que
+cai é a regra, junto com a constante. Precedente de forma no **mesmo arquivo**: FP-010
+removeu `rule_seguros_insuficientes` **com** `seguros_renda_pj_threshold_brl`
+([[ADR-161]] §Emenda 2026-08-11) — constante sem a regra que a lê é o que sobra quando se
+corta pela metade.
+
+**A linha viva hoje é FÓSSIL, e corrigir o produtor não a apaga.** A regra não dispara no
+dogfood (`if_pct` 35,76 < 50; `trs` 1,74 < 4,6 = 4,0 × 1,15); *"Reduzir taxa de retirada
+para 4.0% ao ano"* persiste porque a `Decision` D01 foi aceita em 2026-05-06 e
+[`_top5_decisions_stmt`](../../../../backend/app/services/pipeline/pipeline_adapter.py)
+(`pipeline_adapter.py:136-155`) projeta **sem revalidar** contra o run corrente. O destino
+das `Decision` já aceitas **não é desta lane** — a [[A40.l89]] o endereçou a *ciclo de vida
+de `Decision`*, sem lane. Consequência aceita: o PR desta lane fecha o produtor e a linha
+persistida continua no relatório de quem já aceitou.
+
+### As duas prosas não são simétricas — medido
+
+O §Deferimento da l89 nomeia `pontos_fortes_analyzer.py:121` **e** `:158`. Medidos, só um
+contradiz o catálogo:
+
+| linha | prosa entregue | chave lida (`scoring.json::thresholds_alertas`) | veredito |
+|---|---|---|---|
+| `:121` | *"acima da referência de 30%"* | `pontos_fortes_taxa_poupanca_min_pct` = **30** | **contradiz** — rival de `poupanca_referencia_pct` = **25**, e o catálogo se **recusa** a arbitrar ⇒ `taxa_poupanca_recorrente` é órfã |
+| `:158` | *"abaixo do teto de 20%"* | `endividamento_maximo_pct` = **20** | **número-neutro** — é a **mesma chave** que `_endividamento` do catálogo lê (`kpi_target_catalog.py:352`) |
+
+Então o `:158` **não cai**: ele já é o catálogo por outro caminho, e removê-lo custaria
+informação sem resolver contradição nenhuma. O que ele exige é o **gate** que impede a
+neutralidade de se desfazer em silêncio se as duas fontes divergirem — mesmo par do §9,
+onde `endividamento_alto` é neutro e `reserva_insuficiente` é 3×.
+
+Os predicados são **estritos** (`taxa_poup > 30`, `endiv < 20`, `pontos_fortes_analyzer.py:115,140`);
+`≥ 30%` / `< 20%` na redação de origem é abreviação, não o operador.
+
+**Residual herdado, já declarado pela [[A40.l89]]:** entre o merge dela e o desta lane o
+relatório tem linha **sem comparador** para taxa de poupança e, no mesmo documento, prosa
+afirmando 30%. É contradição menor que a de hoje (alvo fabricado **+** prosa), e ela fecha
+aqui.
 
 ## Fora de escopo
 
@@ -95,6 +166,20 @@ medida sobre os runs de referência **declarada antes do flip** (doutrina WARN-f
 - A emenda da [[ADR-399]] traz `amended_at` e blockquote de sinal (gate
   `check_adr_amendment_signal`).
 - Delta de golden declarado; a taxa de disparo pós-flip bate com a medida no PR1.
+- **`rg trs_target_pct` devolve zero ocorrências** — a constante e a regra que a lê saem
+  juntas (§Escopo 5). Constante órfã reprova: é o meio-corte que a [[ADR-161]] §Emenda
+  2026-08-11 já teve de emendar uma vez. O `kind` `trs_desalinhada` permanece nos tipos
+  sem produtor, com o registro datado — forma de [`suggestion.py`](../../../../pipeline/domain/types/suggestion.py) (`:38` o kind, `:44-46` a razão — *"kind sem produtor é inerte, kind removido é mudança de contrato"*).
+- A emenda da [[ADR-191]] §D6 traz `amended_at` + blockquote de sinal, e **reescreve o
+  Aceite** de *"nos dois consumidores"* para o número que ela passa a medir. Emenda que
+  corrige a decisão sem corrigir a contagem do aceite deixa o mesmo gate falso.
+- **Nenhuma prosa do exec context afirma limiar de KPI órfão** — prova por mutação sobre a
+  seção `sintese` renderizada, não por leitura do analyzer: trocar
+  `pontos_fortes_taxa_poupanca_min_pct` faz o texto entregue ao modelo mudar hoje, e não
+  deve mudar depois (§Escopo 6).
+- **`:158` fica, e ganha gate de neutralidade**: se `endividamento_maximo_pct` deixar de
+  ser a chave que `_endividamento` lê, vermelho. Sem isso a neutralidade medida hoje se
+  desfaz em silêncio.
 - Concluído = PR mergeado em `main` com CI verde.
 
 ## Ataque medido (2026-08-27)
@@ -127,7 +212,7 @@ nem componente React.
 | 1 | **O invariante do §Escopo 4 não falha hoje — ele passa com o defeito inteiro presente.** No snapshot: 3 limiares canônicos rompidos, `pontos_urgentes` publica 2 itens ⇒ `count>0 ⟹ len>0` é **`True`**. A lane afirma "Falha hoje". Não falha. |
 | 2 | **A mutação que o §Critério 1 exige que fique vermelha fica verde.** Rodado o produtor real com concentração rompida (82,19% vs 50%) e todo o resto conforme: `pontos_urgentes = ['rentabilidade_nao_medida']`, `len=1` ⇒ invariante **verde**. O §Escopo 4 é uma implicação **existencial**; o §Critério 1 descreve uma implicação **por chave**. Os dois textos não são o mesmo predicado. |
 | 3 | **E no workspace de referência o invariante é infalsificável.** Ele só discrimina quando as quatro regras fixas estão *todas* caladas — o que exige `rentabilidade_pct != "N/D"`. No dogfood, `ratios.rentabilidade_pct == "N/D"`, então `rentabilidade_nao_medida` dispara sempre e o consequente é satisfeito por uma regra que não compara limiar nenhum. |
-| 4 | **§Escopo 2 é inimplementável para 2 das 4 regras.** `seguro_vida` ↔ `protecao_cobertura` e `rentabilidade_nao_medida` ↔ `carteira_trs` são **órfãos por decisão de domínio** ([[ADR-387]]; [[ADR-191]] §D5): o catálogo publica `limiar=None` de propósito, e o docstring do `kpi_target_catalog` diz que pôr número ali "seria **regressão**, não melhoria". Nenhuma das duas é threshold: uma é predicado booleano de gap ([[ADR-240]] KPI F), a outra é sentinela `== "N/D"`. Não há limiar a derivar. |
+| 4 | **§Escopo 2 é inimplementável para 2 das 4 regras.** `seguro_vida` ↔ `protecao_custo_premio` (a chave chamava-se `protecao_cobertura` até a [[ADR-399]] §Emenda 2026-08-27 E2 — **nome corrigido aqui em 2026-08-27**) e `rentabilidade_nao_medida` ↔ `carteira_trs` são **órfãos por decisão de domínio** ([[ADR-387]]; [[ADR-191]] §D5): o catálogo publica `limiar=None` de propósito, e o docstring do `kpi_target_catalog` diz que pôr número ali "seria **regressão**, não melhoria". Nenhuma das duas é threshold: uma é predicado booleano de gap ([[ADR-240]] KPI F), a outra é sentinela `== "N/D"`. Não há limiar a derivar. |
 | 5 | **São quatro dimensões sem regra, não três.** O §Escopo 3 lista concentração, alocação e cambial; falta `despesas_nao_categorizadas` (`limiar_canonico`, 10%, `<`, ref `NAO_IDENTIFICADO_PARCIAL_PCT`). Ela não aparece porque a enumeração foi feita a partir do que estava **rompido** no run, não a partir do **catálogo** — e ela estava conforme. |
 | 6 | **A citação da [[ADR-399]] é a redação aposentada.** A lane cita a ADR como declarada *"leitor único de cada limiar"*. A linha 115 da própria ADR diz: *"Redação anterior dizia 'leitor único de cada constante', o que a medição refuta"*. O D4 vigente é **Leitor único do limiar _na rota do `target` publicado_**, e o parágrafo seguinte abre com **"O escopo é essa rota, não o repo."** |
 | 7 | **Não há isenção a estreitar, logo não há violação por omissão.** O D4 diz que os leitores pré-existentes *"permanecem — não foram unificados e **não estão no escopo desta ADR**"*. Isso é **renúncia de escopo**, não proibição. A [[ADR-399]] não tem `amended_at`, e o §Estado de implementação (2026-08-21) se declara *"Registro de fato, **não** emenda"*. A frase da lane — "sem a emenda, a lane viola por omissão uma decisão vigente" — é falsa. |
@@ -204,6 +289,10 @@ duas regras e não discrimina. É o mesmo ponto cego do §3, noutro eixo.
 3. **§Escopo 3 passa de três para quatro dimensões** (§5).
 4. **PR1 deixa de se justificar como "emenda que estreita isenção"** (§6–§7). Se a emenda for feita, o texto tem de descrever o que o D4 realmente diz.
 5. **§8 precede o §Critério "delta de golden declarado"** — ou o delta será declarado por um instrumento que lê o campo da lane como dinheiro.
+6. **§Escopo ganhou os itens 5 e 6 em 2026-08-27** (§Acolhimento). O item 5 traz uma
+   emenda da [[ADR-191]] §D6 para o PR1 — que passa a carregar **duas** emendas datadas se
+   a da [[ADR-399]] sobreviver à correção 4. Elas têm ADRs, gates e provas distintos:
+   avaliar **separar em PR1a/PR1b** antes de escrever.
 
 ### Encaminhamento
 
