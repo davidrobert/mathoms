@@ -99,6 +99,23 @@ a prescrição aparecer.
   discriminar quatro grandezas (canônica, `receita×32%`, pró-labore-only,
   double-count) em vez de uma. Com IRPF = 0 as duas primeiras coincidiam.
 
+> ## ⚠️ Status possivelmente vencido — medido em 2026-08-26
+>
+> Anotado pelo closeout da [[A40.l65]], **sem tocar §Escopo nem §Critério**: esta
+> lane está `status: open` sem `ship_pr`, mas **o código que ela descreve está em
+> `main`**.
+>
+> Medido em `pipeline/domain/services/tributario/cascata_calculator.py`:
+> `outras_rendas_tributaveis_pf_anual` **não existe mais** e
+> `renda_tributavel_pf_irpf_anual` aparece 2×. O pró-labore não entra mais na base
+> do PGBL — que é o defeito nomeado no título.
+>
+> **Não flipei o status**: o rename é *uma* parte do escopo, e só quem conhece a
+> lane sabe se o resto entrou. Mas quem consultar o frontmatter hoje conclui que o
+> defeito segue vivo, e ele não segue. Precedente do risco: o §Problema da
+> [[A40.l65]] afirmava a entrega desta lane no passado enquanto o `status` dizia o
+> contrário.
+
 ### Follow-up P1 que esta lane destravou — [[A40.l65]]
 
 Com o pró-labore fora, **a base perdeu a âncora do titular**.
