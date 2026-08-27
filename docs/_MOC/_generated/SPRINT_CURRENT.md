@@ -29,7 +29,6 @@ open · in_progress · blocked.
 - [[A40.l84]] — O invariante é declarado global em comentário e enforçado num só ponto de entrada: run completa sobre review que ninguém aprovou · priority P0 · área backend/pipeline · branch `a40-l84-guard-na-camada-errada`
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
-- [[A40.l88]] — Consumidor ausente no entregue: o produto emite a ressalva, a seção e o aviso — e nenhum dos três chega ao leitor · priority P0 · área frontend/report · branch `a40-l88-consumidor-ausente-no-entregue`
 - [[A40.l91]] — A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos · priority P0 · área pipeline/financial-planning · branch `a40-l91-base-da-meta-if`
 
 ## In progress
