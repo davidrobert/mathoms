@@ -18,7 +18,7 @@ from pipeline.llm.schemas.parecer_planejador import (
     Sugestao,
 )
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
-from pipeline.llm.value_formatter import format_value
+from pipeline.llm.value_formatter import _coerce_number, format_value
 
 # Termos sigilo §13 — camada 2 de defesa (persona é 1, UI é 3 — ADR-207).
 _FORBIDDEN_TERMS = (
@@ -224,13 +224,19 @@ _UNIDADE_RENDER: Mapping[str, tuple[str, float]] = {
 _OPERADOR_GLIFO = {"<=": "≤", ">=": "≥", "<": "<", ">": ">"}
 
 
+# A escala roda sobre o número COERCIDO, não sobre o tipo que veio do payload: o
+# observado de `protecao_custo_premio` chega como a string "0.005686", e um guard por
+# `isinstance(float)` deixaria o fator sem aplicar — publicando 0,0% no lugar de 0,6%,
+# que é exatamente o erro de 100× que a renomeação da chave existe para fechar.
 def _render_valor(valor, unidade: str) -> Optional[str]:
     render = _UNIDADE_RENDER.get(unidade)
     if render is None or valor is None:
         return None
     hint, fator = render
-    escalado = valor * fator if isinstance(valor, (int, float)) and fator != 1.0 else valor
-    return format_value(escalado, hint)
+    numero = _coerce_number(valor)
+    if fator != 1.0:
+        return format_value(numero * fator, hint) if numero is not None else None
+    return format_value(valor, hint)
 
 
 def _render_target(alvo: Mapping) -> Optional[str]:

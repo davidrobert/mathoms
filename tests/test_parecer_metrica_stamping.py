@@ -8,6 +8,8 @@ mediria o dict do teste, não o produtor.
 
 from __future__ import annotations
 
+import pytest
+
 from backend.app.services.parecer_orchestrator import (
     ParecerOrchestratorConfig,
     generate_parecer,
@@ -146,3 +148,26 @@ def test_toda_unidade_do_catalogo_tem_renderer():
 
     sem_renderer = unidades - set(_UNIDADE_RENDER)
     assert not sem_renderer, f"unidade do catálogo sem renderer: {sorted(sem_renderer)}"
+
+
+# O observado de `protecao_custo_premio` chega do payload como STRING ("0.005686") e a
+# unidade é razão 0–1. Um guard por `isinstance(float)` na escala deixaria o fator sem
+# aplicar e publicaria 0,0% no lugar de 0,6% — o erro de 100× que a renomeação da chave
+# existe para fechar, reintroduzido no renderer. Foi assim que ele passou despercebido
+# na primeira escrita: os testes de unidade usavam float.
+@pytest.mark.parametrize(
+    "valor,unidade,esperado",
+    [
+        ("0.005686", "ratio_0_1", "0,6%"),
+        (0.005686, "ratio_0_1", "0,6%"),
+        ("16.37", "pct", "16,4%"),
+        (2036, "ano", "2036"),
+        (1.74, "pct_aa", "1,7%"),
+        ("N/D", "ratio_0_1", None),
+        (None, "pct", None),
+    ],
+)
+def test_escala_de_unidade_independe_do_tipo_que_veio_do_payload(valor, unidade, esperado):
+    from backend.app.services.parecer_finalization import _render_valor
+
+    assert _render_valor(valor, unidade) == esperado
