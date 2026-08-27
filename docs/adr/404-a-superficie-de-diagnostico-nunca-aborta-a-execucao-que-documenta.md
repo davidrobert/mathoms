@@ -26,7 +26,7 @@ tags:
   - status/decidido
   - area/pipeline
   - area/observabilidade
-size_lines: 222
+size_lines: 229
 ---
 
 > `Decidido` no closeout da Onda A (#1585). Implementada em #1565 (`a8d57ee1`), com o
@@ -169,6 +169,13 @@ Idem `AuditLog` e `InternalOpsAudit`.
   do gate prova que ele não é vácuo.
 
 ## Emenda 2026-08-27 — D2 vale para a OPERAÇÃO de retomada, não para uma camada
+
+> **Por que 222 linhas e não um split** (CLAUDE.md §ADRs: >150 exige justificativa):
+> a emenda **corrige a leitura do D2**, não decide assunto novo. Split criaria uma
+> terceira nota sobre o mesmo estado pausado — ao lado da [[ADR-359]] e da
+> [[ADR-417]] —, e quem abrisse o D2 continuaria lendo a formulação refutada sem
+> ponteiro no corpo. É exatamente a fragmentação que a [[ADR-417]] D2 recusou para
+> as portas de saída do run.
 
 D2 diz *"`resume_run` recusa a retomada enquanto houver `StageReview` `pending`"*. Em
 2026-08-19 `resume_run` e "retomar" eram sinônimos operacionais: `resume_pipeline_run`
