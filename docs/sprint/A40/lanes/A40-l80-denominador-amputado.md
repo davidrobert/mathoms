@@ -36,9 +36,10 @@ tags:
 
 ## Entregue (2026-08-27) — a correção está em `main` e o relatório já mudou
 
-Nove PRs mergeados. **O defeito está corrigido** e o relatório publica o
+Onze PRs mergeados. **O defeito está corrigido** e o relatório publica o
 intervalo em vez do ponto. O que falta são os gates de completude/precisão e a
-manchete na capa.
+manchete na capa — e os critérios que os descreviam estavam inexequíveis, ver
+§Correções (2026-08-27).
 
 | PR | merge | o quê |
 |---|---|---|
@@ -51,6 +52,8 @@ manchete na capa.
 | [#1741](https://github.com/davidrobert/mathoms/pull/1741) | `9fd524ba` | PR3b substrato — schema, 5ª base, predicado único |
 | [#1742](https://github.com/davidrobert/mathoms/pull/1742) | `e561e673` | registro do entregue no vault |
 | [#1757](https://github.com/davidrobert/mathoms/pull/1757) | `891c2424` | **PR3b produtores — o relatório muda** |
+| [#1768](https://github.com/davidrobert/mathoms/pull/1768) | `ac7834b8` | §Correções C11–C15 — os 3 critérios abertos estavam inexequíveis |
+| [#1769](https://github.com/davidrobert/mathoms/pull/1769) | `48a97492` | **C14 — a base declarada vira o denominador usado.** Move o payload |
 
 **Os dois sinais opostos do defeito, fechados:** o patrimônio **excluía** a fatia
 sem titular do investível sem declarar (regressão do #1550, em que o termo entrou
