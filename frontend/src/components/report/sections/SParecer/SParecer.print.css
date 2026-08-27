@@ -2,7 +2,7 @@
  *
  * Regras:
  * - Esconder ações interativas (.parecer-action — promover/descartar);
- * - Forçar `<details>` abertos para listar todos riscos;
+ * - Revelar a lista de riscos que a tela colapsa (A40.l88);
  * - Disclaimer fiduciário sempre visível;
  * - Lista de descartadas histórica oculta (clutter sem ação).
  */
@@ -11,17 +11,20 @@
     display: none !important;
   }
 
-  /* `[open]` forçado em todos `<details>` da seção parecer. */
-  details.parecer-details {
-    /* Override stateful; Playwright renderiza com este open=true. */
-    --details-open: 1;
+  /* A40.l88 — a lista extra de riscos é `<ul hidden>`, elemento comum: o
+     `!important` do autor vence o `[hidden] { display: none }` da UA e as
+     linhas imprimem. A versão anterior declarava `--details-open: 1` num
+     `<details>`, custom property que nada lê: escondia o summary e não
+     expandia nada, e o PDF saía com o top-5 e sem aviso de truncagem. */
+  .parecer-risks-extra[hidden] {
+    display: flex !important;
   }
-  details.parecer-details > summary {
-    /* Esconde "Ver mais N risco(s)…" — conteúdo já aparece expandido. */
-    display: none;
+  .parecer-risks-toggle {
+    display: none !important;
   }
-  details.parecer-details > :not(summary) {
-    display: block !important;
+  /* Legenda "Mostrando N de M" descreve a partição da TELA. */
+  .parecer-print-only-screen {
+    display: none !important;
   }
 
   /* Garante quebra de página antes da seção parecer quando necessário. */
