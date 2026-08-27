@@ -43,8 +43,9 @@ PARECER_CONTENT_TYPE = "ParecerPlanejadorContent"
 WAIVED: dict[str, tuple[str, str]] = {
     "PARECER_FIELD:version": (
         "discriminador v1/v2 do payload; o comentário do DTO afirma um dispatch "
-        "por content.version que nenhum renderer faz — achado fora do escopo da l88",
-        "A40.l88",
+        "por content.version que nenhum renderer faz — decidir se o dispatch existe "
+        "ou se o campo sai; retomada ao tocar o dispatch de `ancoras`",
+        "senior-cto",
     ),
 }
 

@@ -17,6 +17,16 @@ import pytest
 from dev import lane_pickup
 from dev.lane_pickup import Occupancy, _pending_deps, _verdict
 
+
+# Os memos do tool vivem um processo (é CLI); numa suíte, vivem a sessão inteira
+# e vazariam worktree de um teste para o seguinte.
+@pytest.fixture(autouse=True)
+def _limpa_memos() -> None:
+    lane_pickup._HEAD_DE_WORKTREE.clear()
+    lane_pickup._WORKTREES = None
+    lane_pickup._delivery.JANELA.update(piso=None, pids=set())
+
+
 _OCUPADA = [Occupancy("worktree", "a40-l35-bundle [agent/...] · 20 arq. sujos")]
 
 
@@ -256,3 +266,112 @@ def test_remedio_do_prune_so_aparece_quando_e_registro_orfao() -> None:
     corrompido = [lane_pickup.Degradacao("worktree", "y: fatal: not a git repository")]
     assert any("prune" in ln for ln in lane_pickup._linhas_de_degradacao(orfao))
     assert not any("prune" in ln for ln in lane_pickup._linhas_de_degradacao(corrompido))
+
+
+# --- Classificação de entrega (squash-merge deixa a branch viva para sempre) ---
+
+
+def _repo_com_lane(tmp_path: Path) -> Path:
+    """Repo sintético com `origin/main` e uma branch de lane."""
+    import subprocess
+
+    def git(*a: str, cwd: Path = tmp_path) -> str:
+        return subprocess.run(
+            ["git", *a], cwd=cwd, capture_output=True, text=True, check=True
+        ).stdout
+
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    (tmp_path / "f.txt").write_text("base\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    git("update-ref", "refs/remotes/origin/main", "HEAD")
+    return tmp_path
+
+
+@pytest.fixture
+def repo_git(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    repo = _repo_com_lane(tmp_path)
+    monkeypatch.setattr(lane_pickup, "REPO_ROOT", repo)
+    # o predicado de entrega tem REPO_ROOT próprio (dependência em um sentido só)
+    monkeypatch.setattr(lane_pickup._delivery, "REPO_ROOT", repo)
+    return repo
+
+
+def _git(repo: Path, *a: str) -> str:
+    import subprocess
+
+    return subprocess.run(["git", *a], cwd=repo, capture_output=True, text=True, check=True).stdout
+
+
+def test_branch_squash_mergeada_para_de_segurar_a_lane(repo_git: Path) -> None:
+    """O caso que motivou: squash-merge nunca deixa a branch ancestral de main."""
+    _git(repo_git, "checkout", "-q", "-b", "agent/a99-l1-x/2026")
+    (repo_git / "g.txt").write_text("trabalho\n")
+    _git(repo_git, "add", "-A")
+    _git(repo_git, "commit", "-qm", "parte 1")
+    (repo_git / "g.txt").write_text("trabalho\nmais\n")
+    _git(repo_git, "commit", "-qam", "parte 2")
+    # squash em main: MESMO conteúdo, commit novo — a branch não vira ancestral
+    _git(repo_git, "checkout", "-q", "main")
+    _git(repo_git, "merge", "-q", "--squash", "agent/a99-l1-x/2026")
+    _git(repo_git, "commit", "-qm", "squash (#1)")
+    _git(repo_git, "update-ref", "refs/remotes/origin/main", "HEAD")
+
+    assert lane_pickup._delivery.ancestral_de_main("agent/a99-l1-x/2026") is False
+    sinais, cegas = lane_pickup._refs_mentioning(["a99-l1"])
+    assert cegas == []
+    assert [s.source for s in sinais] == [lane_pickup.ENTREGUE]
+    assert lane_pickup._verdict({"status": "open"}, [], sinais) == "LIVRE"
+
+
+def test_branch_com_trabalho_nao_entregue_continua_segurando(repo_git: Path) -> None:
+    """O outro lado da mutação: sem isto o gate só sabe dizer LIVRE."""
+    _git(repo_git, "checkout", "-q", "-b", "agent/a99-l2-y/2026")
+    (repo_git / "h.txt").write_text("nunca virou PR\n")
+    _git(repo_git, "add", "-A")
+    _git(repo_git, "commit", "-qm", "trabalho solto")
+
+    sinais, _ = lane_pickup._refs_mentioning(["a99-l2"])
+    assert [s.source for s in sinais] == ["branch"]
+    assert lane_pickup._verdict({"status": "open"}, [], sinais).startswith("OCUPADA")
+
+
+def test_sonda_indecisa_conta_como_viva(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`--is-ancestor` sai 1 p/ 'não é' e 128 p/ erro; colapsar os dois é fail-open."""
+    monkeypatch.setattr(lane_pickup._delivery, "ancestral_de_main", lambda ref: None)
+    sinais, cegas = lane_pickup._classificar(["agent/a99-l3-z/2026"])
+    assert [s.source for s in sinais] == ["branch"]
+    assert len(cegas) == 1
+    assert lane_pickup._verdict({"status": "open"}, [], sinais).startswith("OCUPADA")
+
+
+def test_entregue_nao_some_da_evidencia(repo_git: Path) -> None:
+    """Muda o rótulo, não a evidência — a política do degrau TERMINAL."""
+    sinais = [Occupancy(lane_pickup.ENTREGUE, "agent/a99-l4-w/2026")]
+    monkey = lane_pickup._linhas_resumidas(sinais)
+    assert "1 branch(es) já entregue(s)" in monkey[0]
+    lane_pickup._MOSTRAR_ENTREGUES = True
+    try:
+        assert "agent/a99-l4-w/2026" in lane_pickup._linhas_resumidas(sinais)[0]
+    finally:
+        lane_pickup._MOSTRAR_ENTREGUES = False
+
+
+def test_cli_roda_como_script(tmp_path: Path) -> None:
+    """O import quebrou o CLI e a suíte passou — pytest põe a raiz no sys.path."""
+    # medido em 2026-08-27, no refactor que extraiu `_lane_branch_delivery`:
+    # `from dev import ...` passa no teste e explode no uso real
+    import subprocess
+    import sys
+
+    raiz = Path(lane_pickup.__file__).resolve().parent.parent
+    done = subprocess.run(
+        [sys.executable, str(raiz / "dev" / "lane_pickup.py"), "--help"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+    assert done.returncode == 0, done.stderr
+    assert "--todas-as-branches" in done.stdout

@@ -35,6 +35,12 @@ tags:
 
 > **Não muta E5 nem E3.** É render puro — **não zera o contador de 2 re-runs** da
 > [[A40.l2]]. Por isso é a onda 1: mergeia a qualquer momento da janela.
+>
+> ⚠️ **O diff entregue toca `pipeline/`, e a afirmação continua de pé** — verificado no
+> closeout, porque quem vir o path vai duvidar dela. `SECOES_SEM_ANCORA` é constante de
+> vocabulário lida **só pelo teste de paridade** (zero leitores em `pipeline/`, `backend/`
+> ou `scripts/`); `VALID_SECTION_IDS` não mudou. Nenhum artefato de E5 muda de forma ou
+> de valor, logo o contador segue intacto.
 
 ## ✅ Entregue em 2026-08-27 — os quatro itens, e a premissa que caiu no caminho
 
@@ -98,16 +104,32 @@ a mais, não classe nova. **Print intacto**: sob `emulateMedia({media:"print"})`
 a entrada do ToC mede altura 0 e "Seguros" não aparece no texto do PDF, então
 **nenhuma baseline de print muda**. Só a sidebar de tela ganha uma linha.
 
-### Follow-ups com dono
+### Deferimentos datados — 2026-08-27
 
-1. **Índice runtime-aware** — filtrar nav/ToC por seção efetivamente
-   renderizada, cobrindo os 3 ids de uma vez. Move baseline visual de tela de
-   todo relatório, então precisa do `workflow_dispatch` de rebaseline.
+O heading anterior dizia "follow-ups **com dono**" e não nomeava nenhum: o
+closeout pegou os três como trabalho deferido em lane fechada sem rota, que é o
+modo pelo qual eles sumiriam. Cada um agora carrega dono e condição de retomada.
+
+1. **Índice runtime-aware** — `buildNavGroups` filtra por `enabled: false`
+   estático, não por render efetivo, então seção com hide-when-empty deixa
+   âncora morta no ToC. Medido na fixture esparsa: `{S4, APP_C, S_PROTECAO}`.
+   **dono: `information-architect`** (é estrutura de ToC/âncora, não visual).
+   **Retomada:** quando houver janela de `workflow_dispatch` de rebaseline
+   visual — o fix move baseline de tela de todo relatório, e os 3 ids se
+   resolvem de uma vez. Classe da [[ADR-167]], anterior a esta lane; o que a
+   l88 acrescentou foi o terceiro membro e a medição.
 2. **Ressalva atrás de paywall** — `FREE_TIER_LIMITS.notas = 0` esconde do tier
-   free exatamente as limitações da análise. É decisão de política (ADR-208 §D2),
-   não render; esta lane só passou a declarar o contador.
-3. **`content.version` sem leitor** — waived no gate com motivo. O comentário do
-   DTO afirma um dispatch v1/v2 que nenhum renderer faz.
+   free exatamente as limitações da análise. **owner-gated**: é política de tier
+   ([[ADR-208]] §D2), não render. Esta lane só passou a declarar o contador, que
+   é o mínimo para o leitor free saber que existem ressalvas.
+   **Retomada:** na próxima revisão de o que o tier free vê.
+3. **`content.version` sem leitor** — waived em
+   `dev/check_emitter_without_reader.py` (`WAIVED["PARECER_FIELD:version"]`). O
+   comentário do DTO afirma um dispatch v1/v2 por `content.version` que nenhum
+   renderer faz. **dono: `senior-cto`** — a decisão é se o dispatch deve existir
+   ou se o campo sai. **Retomada:** ao tocar o dispatch de `ancoras` (v1 sem
+   `ancoras` usa `evidencia_path`), que é o que o comentário descreve. Enquanto
+   isso o waiver segura: ele **falha** se o campo ganhar leitor e a linha ficar.
 
 ## O fato, medido (2026-08-26)
 

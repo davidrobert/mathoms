@@ -861,7 +861,16 @@ Ele cruza o frontmatter (status, `depends_on` + terminalidade, amarra parcial)
 com a **ocupação viva** — worktree, branch local e remota, e arquivo de lane
 não-commitado dentro de outro worktree. Custa ~80 tokens; ler o `_README` da
 sprint custa dezenas de milhares e responde pior (precedente [[ADR-281]]).
-`--sprint A40` varre a sprint inteira. **`SPRINT_CURRENT.md` não vê ocupação**
+`--sprint A40` varre a sprint inteira.
+
+**Branch já entregue não conta como ocupação** (2026-08-27). Squash-merge nunca
+deixa a branch ancestral de `main`, então ela cita a lane para sempre: a
+`A40.l80` (P0) respondia `OCUPADA` com 12 sinais, **11 deles branch entregue**, e
+o único sinal vivo — worktree com 2 arquivos sujos — ficava soterrado. O tool
+classifica por patch-id do diff agregado (hermético, sem rede) e resume os
+entregues numa linha; `--todas-as-branches` lista. **Não-classificado conta como
+VIVO** de propósito, e branch com commit único porém *superado* também — julgar
+"superado" é mérito, e é seu. Ver o §Limites no docstring do módulo. **`SPRINT_CURRENT.md` não vê ocupação**
 — ele deriva do frontmatter, e `status` não tem escritor no pickup: sessão que
 abriu worktree e ainda não commitou é invisível nele, em `git for-each-ref` e
 em `gh pr list`. Caso medido em 2026-08-13: a `A40.l35` estava `open` com
