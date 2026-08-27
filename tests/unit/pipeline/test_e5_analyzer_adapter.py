@@ -1178,13 +1178,13 @@ class TestRendaPassivaForaDoInvestivel:
 
         assert termo == pytest.approx(10_000.0)
 
-    def test_passive_income_degradado_nao_desconta(self):
-        """Status != ok é ausência de medida; descontar seria inventar o termo."""
+    def test_passive_income_degradado_nao_e_medida(self):
+        """Status != ok é ausência de medida — `None`, nunca zero (o zero afirma)."""
         termo = _renda_passiva_fora_do_investivel(
             {"imoveis_no_if": False}, _passive_income(alugueis=Decimal("120000"), status="sem_irpf")
         )
 
-        assert termo == 0.0
+        assert termo is None
 
     def test_toggle_ausente_e_conservador(self):
         """Payload sem o toggle não pode descontar às cegas — o default é não descontar."""

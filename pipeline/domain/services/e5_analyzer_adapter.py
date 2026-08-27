@@ -1168,10 +1168,10 @@ def _resolve_valor_31_12(item: dict) -> float:
 # entra AQUI, e eixo que não passe por aqui reabre a dupla-penalidade.
 def _renda_passiva_fora_do_investivel(
     patrimonio_full: dict, passive_income: PassiveIncomeResult | None
-) -> float:
-    """Aluguel observado quando cat_2 está fora de ``investivel_efetivo``; senão ``0``."""
+) -> float | None:
+    """Aluguel observado quando cat_2 está fora do numerador; ``0`` dentro, ``None`` sem medida."""
     if passive_income is None or passive_income.status != "ok":
-        return 0.0
+        return None
     if bool(patrimonio_full.get("imoveis_no_if", True)):
         return 0.0
     alugueis_anual = passive_income.renda_passiva_por_fonte_brl.get("alugueis")

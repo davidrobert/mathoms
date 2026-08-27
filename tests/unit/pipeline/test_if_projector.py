@@ -211,7 +211,6 @@ class TestLegacyDict:
             "if_meta",
             "if_meta_bruta",
             "if_meta_base",
-            "renda_passiva_fora_do_investivel_mensal_brl",
             "if_trs",
             "if_trs_monthly_value",
             "if_pct",
@@ -255,7 +254,17 @@ class TestBaseDaMetaIF:
 
         assert p.if_meta == p.if_meta_bruta == 5_000_000
         assert p.if_meta_base is BaseDaMetaIF.renda_alvo_bruta
-        assert p.renda_passiva_fora_do_investivel_mensal == 0.0
+        assert p.renda_passiva_fora_do_investivel_mensal is None
+        assert "renda_passiva_fora_do_investivel_mensal_brl" not in p.to_legacy_dict()
+
+    def test_termo_medido_em_zero_e_publicado(self):
+        """`0.0` é medida ("nada fora"); `None` é ausência de medida ([[ADR-418]] §D3)."""
+        p = IFProjector(_config()).project(
+            investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=0.0
+        )
+
+        assert p.to_legacy_dict()["renda_passiva_fora_do_investivel_mensal_brl"] == 0.0
+        assert p.if_meta_base is BaseDaMetaIF.renda_alvo_bruta
 
     def test_renda_externa_desconta_a_meta_capitalizada(self):
         # 10k/mês a 4% de retirada = 10k × 12 / 0,04 = 3M a menos de patrimônio.
@@ -273,7 +282,7 @@ class TestBaseDaMetaIF:
             investivel=1_000_000, renda_passiva_fora_do_investivel_mensal=3_333.33
         )
 
-        esperado = p.if_meta_bruta - p.renda_passiva_fora_do_investivel_mensal * 12 / 0.05
+        esperado = p.if_meta_bruta - (p.renda_passiva_fora_do_investivel_mensal or 0) * 12 / 0.05
         assert abs(p.if_meta - esperado) < 0.01
 
     def test_gap_e_progresso_leem_a_mesma_base(self):
@@ -324,6 +333,17 @@ class TestBaseDaMetaIF:
                 meta_bruta=1_000_000.0,
                 renda_passiva_fora_do_investivel_mensal=5_000.0,
                 if_trs_pct=0.0,
+            )
+            == 1_000_000.0
+        )
+
+    def test_termo_nao_medido_nao_desconta(self):
+        """`None` não pode virar zero silencioso nem desconto às cegas."""
+        assert (
+            compor_meta_if(
+                meta_bruta=1_000_000.0,
+                renda_passiva_fora_do_investivel_mensal=None,
+                if_trs_pct=4.0,
             )
             == 1_000_000.0
         )

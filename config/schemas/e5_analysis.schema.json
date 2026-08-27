@@ -3146,7 +3146,7 @@
         "renda_passiva_fora_do_investivel_mensal_brl": {
           "type": "number",
           "minimum": 0,
-          "description": "A40.l91 ([[ADR-418]] §D2): renda passiva mensal de ativo que `investivel_efetivo` NÃO conta, e que por isso desconta a meta. Hoje: o balde `alugueis` quando `patrimonio.imoveis_no_if` é false; `0` quando true. Publicado mesmo em zero — 'descontei nada' é afirmação, chave ausente seria 'não sei'."
+          "description": "A40.l91 ([[ADR-418]] §D2): renda passiva mensal de ativo que `investivel_efetivo` NÃO conta, e que por isso desconta a meta. Hoje: o balde `alugueis` quando `patrimonio.imoveis_no_if` é false; `0` quando true. **Chave ausente = não medido** (renda passiva degradada) — nunca zero implícito. Presente ⇒ `goals.janela` presente, porque a mensalização é a do ano-base IRPF (ADR-306)."
         },
         "if_trs": {
           "type": "number"

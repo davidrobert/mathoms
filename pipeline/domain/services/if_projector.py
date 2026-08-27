@@ -204,10 +204,10 @@ class BaseDaMetaIF(str, Enum):
 # (senão a exclusão é cobrada duas vezes). Capitalização é linear, então descontar a
 # renda e capitalizar equivale a capitalizar o termo e subtrair da bruta.
 def compor_meta_if(
-    *, meta_bruta: float, renda_passiva_fora_do_investivel_mensal: float, if_trs_pct: float
+    *, meta_bruta: float, renda_passiva_fora_do_investivel_mensal: float | None, if_trs_pct: float
 ) -> float:
     """Meta operacional: a bruta menos o que ativo FORA do numerador já paga."""
-    if if_trs_pct <= 0 or renda_passiva_fora_do_investivel_mensal <= 0:
+    if if_trs_pct <= 0 or not renda_passiva_fora_do_investivel_mensal:
         return meta_bruta
     capitalizacao = 12.0 / (if_trs_pct / 100.0)
     return max(0.0, meta_bruta - renda_passiva_fora_do_investivel_mensal * capitalizacao)
@@ -300,21 +300,25 @@ class IFProjection:
     tem_conjuge_datado: bool = False
     titular_key: str = "david"
     conjuge_key: str = ""
-    # Zero quando todo ativo gerador está DENTRO do numerador — o caso do toggle
-    # `imoveis_no_if = true`. Publicado mesmo em zero: "descontei nada" é afirmação,
-    # e chave ausente seria "não sei" ([[ADR-418]] §D3).
-    renda_passiva_fora_do_investivel_mensal: float = 0.0
+    # Ternário ([[ADR-418]] §D3): `0.0` é "medi e não há nada fora" (o caso do toggle
+    # `imoveis_no_if = true`); `None` é "não medi" (renda passiva degradada), e aí a
+    # chave não sai — publicá-la em zero afirmaria ausência que ninguém apurou. Como
+    # `0.0` só ocorre com a renda passiva medida, a chave só aparece onde `goals` já
+    # carrega o rótulo de janela do IRPF (ADR-306).
+    renda_passiva_fora_do_investivel_mensal: float | None = None
     if_meta_base: BaseDaMetaIF = BaseDaMetaIF.renda_alvo_bruta
 
     def _base_da_meta_dict(self) -> dict:
         """Bloco que nomeia a base de ``if_meta`` ([[ADR-418]] §D3)."""
-        return {
+        bloco = {
             "if_meta_bruta": round(self.if_meta_bruta, 2),
             "if_meta_base": self.if_meta_base.value,
-            "renda_passiva_fora_do_investivel_mensal_brl": round(
-                self.renda_passiva_fora_do_investivel_mensal, 2
-            ),
         }
+        if self.renda_passiva_fora_do_investivel_mensal is not None:
+            bloco["renda_passiva_fora_do_investivel_mensal_brl"] = round(
+                self.renda_passiva_fora_do_investivel_mensal, 2
+            )
+        return bloco
 
     # Chaves sempre presentes; `null` sem prazo projetado (distinga por `is None`).
     def to_legacy_dict(self) -> dict:
@@ -391,7 +395,7 @@ class IFProjector:
         self,
         investivel: float,
         *,
-        renda_passiva_fora_do_investivel_mensal: float = 0.0,
+        renda_passiva_fora_do_investivel_mensal: float | None = None,
     ) -> IFProjection:
         cfg = self._config
         if_trs_monthly = (cfg.if_trs_pct / 100.0) / 12.0
