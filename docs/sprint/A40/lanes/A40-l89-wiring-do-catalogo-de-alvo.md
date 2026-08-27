@@ -110,10 +110,13 @@ projeta sem revalidar. Corrigir o produtor **não apaga a linha já persistida**
 | `Decision` aceita não revalida contra o run corrente | ciclo de vida de `Decision` | `financial-planner` | próxima lane que toque `Suggestion`/`Decision` |
 | seleção do painel: piso determinístico das rompidas | `PLAN-deterministic-authority` §Onda 5 | `financial-planner` + `prompt-engineer` | stamping desta lane em `main` |
 
-> ⚠️ **A l90 ainda não foi editada do lado dela.** O worktree dela estava ocupado por sessão
-> viva em 2026-08-27 (`agent/a40-l90-ataque-p2/…`), e editar arquivo de terceiro sob sessão
-> ativa é a armadilha conhecida. **Quem retomar a l90 precisa acolher o §Escopo acima** — até
-> lá a disposição está escrita só deste lado.
+> ✅ **Acolhido do lado da l90 em 2026-08-27** — [[A40.l90]] §Escopo 5-6 + §Acolhimento. A
+> ocupação que barrou a primeira tentativa (`agent/a40-l90-ataque-p2/…`) era **stale**: o
+> único commit da branch é patch-idêntico ao `f91df375` já em `main` (#1767) e o worktree
+> estava limpo. Duas correções que o lado que recebe mediu e este lado não: a emenda é da
+> **[[ADR-191]] §D6** (a [[ADR-399]] §D4 *renuncia* a estes leitores — não há isenção a
+> estreitar), e das duas prosas só a `:121` contradiz o catálogo — a `:158` lê a **mesma
+> chave** que `_endividamento` lê, e fica.
 
 **Residual declarado, para o próximo revisor não o achar sozinho:** entre o merge desta lane e
 o da l90, o relatório terá linha **sem comparador** para taxa de poupança e, no mesmo
