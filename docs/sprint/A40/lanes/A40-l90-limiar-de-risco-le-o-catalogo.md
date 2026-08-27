@@ -153,8 +153,17 @@ removeu `rule_seguros_insuficientes` **com** `seguros_renda_pj_threshold_brl`
 ([[ADR-161]] §Emenda 2026-08-11) — constante sem a regra que a lê é o que sobra quando se
 corta pela metade.
 
-**A linha viva hoje é FÓSSIL, e corrigir o produtor não a apaga.** A regra não dispara no
-dogfood (`if_pct` 35,76 < 50; `trs` 1,74 < 4,6 = 4,0 × 1,15); *"Reduzir taxa de retirada
+**A linha viva hoje é FÓSSIL, e corrigir o produtor não a apaga.** A regra não dispara —
+**re-medido em 2026-08-27 no closeout**, rodando `rule_trs_desalinhada` sobre
+`backend/tests/snapshots/dogfood_view_model.json` (a mesma fixture do §Ataque: `8219` e
+`20.550000` reproduzem): retorno **`None`**, pela **primeira** guarda
+(`goals.taxa_retirada_efetiva_pct` **ausente** no payload), não pelo limiar. O par
+`if_pct` 35,76 / `trs` 1,74 herdado do §Deferimento da [[A40.l89]] **não é desta fixture** —
+aqui `goals.if_pct` = **13,0** e `passive_income.trs_efetiva_pct` = **0,0**; aquele par vem
+do run da U1 (`storage/<uuid>/`, off-git), outro estado de workspace. O limiar de disparo
+**é** 4,6 (= 4,0 × 1,15, conferido no `SuggestionGeneratorConfig`) — o que estava errado era
+a *variável*, não a aritmética, e a conclusão sobrevive por margem maior: falha na guarda
+anterior. *"Reduzir taxa de retirada
 para 4.0% ao ano"* persiste porque a `Decision` D01 foi aceita em 2026-05-06 e
 [`_top5_decisions_stmt`](../../../../backend/app/services/pipeline/pipeline_adapter.py)
 (`pipeline_adapter.py:136-155`) projeta **sem revalidar** contra o run corrente. O destino
@@ -171,6 +180,11 @@ contradiz o catálogo:
 |---|---|---|---|
 | `:121` | *"acima da referência de 30%"* | `pontos_fortes_taxa_poupanca_min_pct` = **30** | **contradiz** — rival de `poupanca_referencia_pct` = **25**, e o catálogo se **recusa** a arbitrar ⇒ `taxa_poupanca_recorrente` é órfã |
 | `:158` | *"abaixo do teto de 20%"* | `endividamento_maximo_pct` = **20** | **número-neutro** — é a **mesma chave** que `_endividamento` do catálogo lê (`kpi_target_catalog.py:352`) |
+
+A própria [[ADR-399]] §D4 corrobora a assimetria ao enumerar seus isentos: ela nomeia
+*"`pontos_fortes_analyzer.py:66`"* — o leitor de `endividamento_maximo_pct`, que alimenta a
+`:158` — e **não** nomeia a linha `:65` (`pontos_fortes_taxa_poupanca_min_pct`), que alimenta
+a `:121`. A lista de isenção da D4 já separava as duas; ninguém tinha lido a lista.
 
 Então o `:158` **não cai**: ele já é o catálogo por outro caminho, e removê-lo custaria
 informação sem resolver contradição nenhuma. O que ele exige é o **gate** que impede a
