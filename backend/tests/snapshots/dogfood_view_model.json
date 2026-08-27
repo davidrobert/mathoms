@@ -1737,12 +1737,12 @@
     },
     "exposicao_cambial": {
       "base": "investivel_financeiro",
-      "limiar": 1000,
-      "motivo": null,
+      "limiar": null,
+      "motivo": "exposição cambial sem cobertura apurada",
       "observado_path": "$.exposicao_cambial.pct_investivel_financeiro",
-      "operador": ">=",
-      "procedencia": "limiar_canonico",
-      "ref": "exposicao_cambial_analyzer.THRESHOLD_VERDE_PCT",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
       "rotulo": "Exposição cambial (% do investível financeiro)",
       "unidade": "pct"
     },
@@ -1796,8 +1796,8 @@
       "motivo": null,
       "observado_path": "$.reserva_emergencia.cobertura_meses",
       "operador": ">=",
-      "procedencia": "goal_declarado",
-      "ref": "$.reserva_emergencia.meses_alvo",
+      "procedencia": "limiar_canonico",
+      "ref": "scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda",
       "rotulo": "Cobertura da reserva de emergência",
       "unidade": "meses"
     },

@@ -377,33 +377,57 @@ def test_e5_kpi_target_nao_depende_do_valor_observado(e5_tenant_with_baseline: P
 # próprio codificaria a mesma suposição errada sobre a forma do path e passaria.
 # Achado que originou o gate (A40.l89): `carteira_trs` apontava para
 # `ratios.rentabilidade.trs_pct`, que nunca existiu — o campo é `valor_pct`.
-# Só `value_absent` é defeito de path. `value_null` é a folha existindo sem medição
-# (fixture sem IRPF ⇒ `rentabilidade` nula) — estado que o `status != "ok"` já trata,
-# e exigi-lo aqui reprovaria o payload honesto. `path_not_whitelisted` é limite
-# conhecido do resolver com o predicado `[classe=...]`, não path quebrado.
+# A whitelist vem do MANIFESTO DE PRODUÇÃO, não das raízes dos próprios paths que se
+# quer testar. Derivá-la do alvo do teste torna `path_not_whitelisted` inalcançável por
+# construção — e tornou: duas das 13 chaves não resolvem sob a whitelist real, e o gate
+# passou verde assim mesmo. Gate que fabrica a própria precondição mede a si mesmo.
+#
+# `value_null` segue aceito de propósito (folha existe, sem medição na fixture — estado
+# que o `status != "ok"` trata). `value_absent` é path quebrado; `path_not_whitelisted` é
+# path que o parecer NUNCA consegue ler. Os dois reprovam.
+_RESOLUCAO_REPROVA = {"value_absent", "path_not_whitelisted"}
+
+
 def _paths_ausentes(payload: dict) -> dict:
+    from backend.app.services.parecer_manifest import load_manifest
     from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 
     alvos = payload["kpi_targets"]
-    raizes = {
-        alvo["observado_path"].removeprefix("$.").split(".")[0].split("[")[0]
-        for alvo in alvos.values()
-    }
-    drill = PlannerDrillDown(e5_data=payload, section_whitelist=frozenset(raizes))
+    drill = PlannerDrillDown(
+        e5_data=payload, section_whitelist=load_manifest().tools_section_whitelist
+    )
     resultados = {c: drill.get_e5_jsonpath(a["observado_path"]) for c, a in alvos.items()}
     return {
         chave: (alvos[chave]["observado_path"], r.reason)
         for chave, r in resultados.items()
-        if not r.found and r.reason == "value_absent"
+        if not r.found and r.reason in _RESOLUCAO_REPROVA
     }
+
+
+# Duas chaves NÃO resolvem pelo resolver de produção, e isso é dívida DECLARADA, não
+# descuido. O estampador já as trata sem fabricar (observado ausente ⇒ sem alvo, com
+# motivo), mas publicar KPI cujo observado o parecer jamais consegue ler é defeito com
+# dono. Igualdade de CONJUNTO, não `⊆`: consertar uma sem tirá-la daqui reprova, e um
+# terceiro ofensor reprova. Allowlist que só cresce falha aberta.
+_RESOLUCAO_DIVIDA_DECLARADA = {
+    # `diagnostico_confianca` é chave top-level real do E5, mas está fora das seções de
+    # `get_e5_section` do manifest — ampliar a whitelist muda a superfície que o modelo
+    # pode ler e exige bump próprio. Dono: prompt-engineer.
+    "despesas_nao_categorizadas",
+    # `comparaveis[classe=renda_fixa]` usa predicado de filtro, que o `_JSONPATH_RE` de
+    # `planner_drill_down` não admite. Exige publicar a folha em ponto fixo no E5 ou
+    # estender o subset de JSONPath. Dono: data-engineer.
+    "alocacao_renda_fixa",
+}
 
 
 def test_todo_observado_path_do_catalogo_resolve_no_payload(e5_tenant_with_baseline: Path):
     """Alvo pareado a observado inexistente é FP-6 em forma pior: o comparador
     aparece com um dos lados fabricado pela ausência."""
-    from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
-
     payload = _payload_do_run(e5_tenant_with_baseline)
     nao_resolvem = _paths_ausentes(payload)
 
-    assert not nao_resolvem, f"observado_path que não resolve: {nao_resolvem}"
+    assert set(nao_resolvem) == _RESOLUCAO_DIVIDA_DECLARADA, (
+        f"conjunto de `observado_path` irresolvíveis mudou: {nao_resolvem} "
+        f"(declarado: {sorted(_RESOLUCAO_DIVIDA_DECLARADA)})"
+    )

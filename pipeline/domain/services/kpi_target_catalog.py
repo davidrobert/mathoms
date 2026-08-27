@@ -121,16 +121,6 @@ COBERTURA_ESSENCIAL_ALVO_PCT = 100.0
 # Tupla: (chave, observado_path, base, unidade, rotulo, limiar, operador, ref)
 _CANONICOS = (
     (
-        "exposicao_cambial",
-        "$.exposicao_cambial.pct_investivel_financeiro",
-        "investivel_financeiro",
-        "pct",
-        "Exposição cambial (% do investível financeiro)",
-        THRESHOLD_VERDE_PCT,
-        ">=",
-        "exposicao_cambial_analyzer.THRESHOLD_VERDE_PCT",
-    ),
-    (
         "despesas_nao_categorizadas",
         "$.diagnostico_confianca.share_nao_identificado_pct",
         "despesa_total",
@@ -291,6 +281,15 @@ def _base_da_reserva(e5: Mapping[str, Any]) -> str:
     return _BASE_POR_DENOMINADOR.get(declarado, _BASE_DENOMINADOR_INDETERMINADO)
 
 
+# DOUTRINA, não declaração da família — por isso `limiar_canonico`. `meses_alvo` sai de
+# `scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda`, chaveado
+# por perfil **derivado da composição de renda observada**
+# (`reserva_emergencia_calculator._perfil_por_pct`), e não há leitor de
+# `Goal(RESERVA_EMERGENCIA)` em `pipeline/` — o goal existe só no backend. Carimbar
+# `goal_declarado` punha a doutrina usando o crachá da família, e a precedência da
+# [[ADR-399]] D2 (declarado vence doutrina) passaria a operar sobre uma mentira, na
+# direção que absolve. Quando o Goal virar legível aqui, volta a `goal_declarado` — e aí
+# a precedência significa o que promete. Achado da sessão da [[A40.l90]].
 def _reserva(e5: Mapping[str, Any]) -> KpiTarget:
     meses = _num(_leaf(e5, "reserva_emergencia", "meses_alvo"))
     path, base = "$.reserva_emergencia.cobertura_meses", _base_da_reserva(e5)
@@ -304,8 +303,8 @@ def _reserva(e5: Mapping[str, Any]) -> KpiTarget:
         rotulo=rotulo,
         limiar=meses,
         operador=">=",
-        procedencia=PROCEDENCIA_GOAL,
-        ref="$.reserva_emergencia.meses_alvo",
+        procedencia=PROCEDENCIA_CANONICO,
+        ref="scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda",
     )
 
 
@@ -401,6 +400,34 @@ def _renda_passiva_cobertura(e5: Mapping[str, Any]) -> KpiTarget:
     )
 
 
+# Cobertura incompleta SUPRIME o comparador, não só o veredito. O produtor já se recusa
+# a julgar quando o universo é parcial ([[ADR-403]]: `tier` vira `indeterminado` e o
+# componente declara `cobertura: indeterminado`), mas o limiar seguia publicado com
+# `limiar_canonico` — o que faria o parecer afirmar "0% contra ≥ 10%" com o selo de
+# autoridade do produto sobre uma medida que o produtor não julgou. É pior que o alvo
+# autorado pelo LLM, porque o carimbo é do produto. Achado da sessão da [[A40.l90]].
+def _exposicao_cambial(e5: Mapping[str, Any]) -> KpiTarget:
+    bloco = _leaf(e5, "exposicao_cambial")
+    path = "$.exposicao_cambial.pct_investivel_financeiro"
+    base, rotulo = "investivel_financeiro", "Exposição cambial (% do investível financeiro)"
+    coberturas = (_leaf(bloco, "componentes") or {}) if isinstance(bloco, Mapping) else {}
+    incompleta = any(
+        isinstance(c, Mapping) and c.get("cobertura") != "apurado" for c in coberturas.values()
+    )
+    if not isinstance(bloco, Mapping) or bloco.get("tier") == "indeterminado" or incompleta:
+        return _orfao(path, base, "pct", rotulo, "exposição cambial sem cobertura apurada")
+    return KpiTarget(
+        observado_path=path,
+        base=base,
+        unidade="pct",
+        rotulo=rotulo,
+        limiar=THRESHOLD_VERDE_PCT,
+        operador=">=",
+        procedencia=PROCEDENCIA_CANONICO,
+        ref="exposicao_cambial_analyzer.THRESHOLD_VERDE_PCT",
+    )
+
+
 def _tabelados() -> dict[str, KpiTarget]:
     canonicos = {
         chave: KpiTarget(
@@ -445,6 +472,7 @@ def build_kpi_targets(
         "concentracao_imobiliaria": _concentracao_imobiliaria(alerta),
         "taxa_endividamento": _endividamento(scoring),
         "renda_passiva_cobertura": _renda_passiva_cobertura(e5),
+        "exposicao_cambial": _exposicao_cambial(e5),
         **_tabelados(),
     }
     return {chave: asdict(alvo) for chave, alvo in alvos.items()}

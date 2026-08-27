@@ -220,6 +220,20 @@ _UNIDADE_RENDER: Mapping[str, tuple[str, float]] = {
     "ratio_0_1": ("pct", 100.0),
 }
 
+# O hint `meses` do formatter compartilhado arredonda para inteiro
+# (`value_formatter._format_unit`), mas `cobertura_meses` é produzido com 1 casa
+# (`reserva_emergencia_calculator`). Sobre um alvo inteiro isso publica
+# "6 meses ≥ 6 meses" para uma cobertura de 5,6 — **violação renderizada como
+# conformidade**, que é a primeira linha do que a [[ADR-399]] existe para impedir.
+# A casa decimal fica só nesta rota; o formatter compartilhado não muda, porque os
+# outros consumidores dele comparam contra nada.
+_CASA_DECIMAL_SIGNIFICATIVA = {"meses"}
+
+
+def _render_meses(numero: float) -> str:
+    return f"{numero:.1f}".replace(".", ",") + " meses"
+
+
 # `<=`/`>=` viram os glifos que a família lê; `<`/`>` passam.
 _OPERADOR_GLIFO = {"<=": "≤", ">=": "≥", "<": "<", ">": ">"}
 
@@ -234,6 +248,8 @@ def _render_valor(valor, unidade: str) -> Optional[str]:
         return None
     hint, fator = render
     numero = _coerce_number(valor)
+    if unidade in _CASA_DECIMAL_SIGNIFICATIVA:
+        return _render_meses(numero) if numero is not None else None
     if fator != 1.0:
         return format_value(numero * fator, hint) if numero is not None else None
     return format_value(valor, hint)
@@ -251,20 +267,52 @@ def _render_target(alvo: Mapping) -> Optional[str]:
     return f"{_OPERADOR_GLIFO.get(alvo['operador'], alvo['operador'])} {valor}"
 
 
+# Rótulo de último recurso quando o payload é de era anterior ao `rotulo` (#1770) ou não
+# publica `kpi_targets`. A chave não é bonita, mas **identifica** — linha sem nome é pior
+# que linha com nome técnico: a tabela sai anônima e o leitor não sabe o que observar.
+_SEM_OBSERVADO = "valor observado não disponível neste run"
+
+
+def _rotulo_de(alvo: Mapping, chave: str) -> str:
+    return alvo.get("rotulo") or chave.replace("_", " ").capitalize()
+
+
+def _sem_entrada_no_catalogo(metrica: Metrica) -> Metrica:
+    """E5 anterior ao #1591 não publica `kpi_targets`: não se inventa número, mas a
+    linha precisa de identidade — 67 artefatos do dogfood caem aqui."""
+    return metrica.model_copy(
+        update={
+            "nome": _rotulo_de({}, metrica.metrica_key),
+            "target_motivo": "alvo não resolvido para este KPI",
+        }
+    )
+
+
+# Comparador exige os DOIS lados. Publicar alvo prescritivo ao lado de um observado vazio
+# é o comparador com um lado fabricado pela ausência — a mesma classe de defeito que a
+# [[ADR-399]] fecha, pela outra ponta.
+def _par(alvo: Mapping, valor: Optional[str]) -> dict:
+    if valor is None:
+        return {"target": None, "target_motivo": alvo.get("motivo") or _SEM_OBSERVADO}
+    return {"target": _render_target(alvo), "target_motivo": alvo.get("motivo")}
+
+
 def _stamp_metrica(metrica: Metrica, drill: PlannerDrillDown, alvos: Mapping) -> Metrica:
     alvo = alvos.get(metrica.metrica_key)
     if not isinstance(alvo, Mapping):
-        # Chave do enum sem entrada no catálogo: não se inventa rótulo nem número.
-        return metrica.model_copy(update={"target_motivo": "alvo não resolvido para este KPI"})
-    observado = drill.get_e5_jsonpath(alvo["observado_path"])
+        return _sem_entrada_no_catalogo(metrica)
+    # `.get()` em TODO campo: `rotulo` nasceu no #1770 e `kpi_targets` existe desde o
+    # #1591 — há uma janela de E5 persistidos sem ele. Indexar com `[]` derrubava o stage
+    # com KeyError, DEPOIS de pagar a chamada LLM e ANTES de `_write_cache`, então cada
+    # retry pagava de novo. Regenerar só o parecer sobre E5 do run base (ADR-291) é a
+    # operação normal, não o caso raro.
+    observado = drill.get_e5_jsonpath(alvo.get("observado_path") or "")
+    valor = _render_valor(observado.value, alvo.get("unidade") or "") if observado.found else None
     return metrica.model_copy(
         update={
-            "nome": alvo["rotulo"],
-            "valor_atual": (
-                _render_valor(observado.value, alvo["unidade"]) if observado.found else None
-            ),
-            "target": _render_target(alvo),
-            "target_motivo": alvo.get("motivo"),
+            "nome": _rotulo_de(alvo, metrica.metrica_key),
+            "valor_atual": valor,
+            **_par(alvo, valor),
         }
     )
 
