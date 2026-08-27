@@ -31,8 +31,14 @@ ALVO_RF_DO_LLM = 55.0
 SCORING: dict[str, Any] = {"thresholds_alertas": {"endividamento_maximo_pct": 20}}
 
 
+# `base_denominador` acompanha o payload porque o produtor SEMPRE o publica
+# (`reserva_emergencia_calculator.py:278`); fixture sem ele mediria o ramo de série
+# anterior em vez do corrente.
 def _e5(
-    *, alvo_rf: Optional[float] = ALVO_RF_DECLARADO, meses_alvo: Optional[int] = 18
+    *,
+    alvo_rf: Optional[float] = ALVO_RF_DECLARADO,
+    meses_alvo: Optional[int] = 18,
+    base_denominador: str = "custo_essencial",
 ) -> dict[str, Any]:
     comparaveis: list[dict[str, Any]] = []
     if alvo_rf is not None:
@@ -44,7 +50,7 @@ def _e5(
         ]
     return {
         "ratios": {"concentracao_imobiliaria": CONCENTRACAO_OBSERVADA},
-        "reserva_emergencia": {"meses_alvo": meses_alvo},
+        "reserva_emergencia": {"meses_alvo": meses_alvo, "base_denominador": base_denominador},
         "goals": {"alocacao_alvo": {"derived": {"comparaveis": comparaveis}}},
     }
 
@@ -133,3 +139,78 @@ def test_todo_kpi_do_vocabulario_tem_entrada() -> None:
         assert alvo["base"], chave
         # Invariante: ou tem procedência declarada, ou tem motivo. Nunca nenhum.
         assert bool(alvo["procedencia"]) != bool(alvo["motivo"]), chave
+
+
+# ---------------------------------------------------------------------------
+# A40.l80 §Correções C14 — base DECLARADA tem de ser o denominador USADO
+# ---------------------------------------------------------------------------
+
+
+# Mede o discriminador NO produtor em vez de copiar os literais para cá: copiados,
+# teste e catálogo compartilhariam a mesma crença, e regime novo no produtor
+# nasceria com o catálogo calado e o teste verde.
+def _regimes_do_produtor() -> dict[str, str]:
+    """Discriminador que o produtor emite em cada regime, medido nele."""
+    from pipeline.domain.services.reserva_emergencia_calculator import _base_from_window
+
+    janela = {"despesa_mensal_media": 10_000.0}
+    com = {**janela, "despesa_mensal_essencial": 6_000.0}
+    sem = {**janela, "despesa_mensal_essencial": 0.0}
+    kw = {"janela": "full", "janela_meses": 12}
+    return {
+        "essencial": _base_from_window(com, **kw).base_denominador,
+        "fallback": _base_from_window(sem, **kw).base_denominador,
+    }
+
+
+def _base_da_reserva(**kw: Any) -> str:
+    return build_kpi_targets(_e5(**kw), scoring=SCORING)["reserva_cobertura_meses"]["base"]
+
+
+# Mata: `base` fixa "essencial" sobre denominador de despesa TOTAL. O defeito só
+# existe no regime de fallback, e o dogfood roda em `custo_essencial` — o golden
+# nunca o exercitaria, e foi por isso que ele sobreviveu.
+def test_base_da_reserva_segue_o_discriminador_que_o_produtor_publica() -> None:
+    """Cada regime do produtor publica a base que ele de fato dividiu."""
+    regimes = _regimes_do_produtor()
+
+    essencial = _base_da_reserva(base_denominador=regimes["essencial"])
+    fallback = _base_da_reserva(base_denominador=regimes["fallback"])
+
+    assert essencial == "despesa_essencial_mensal"
+    assert fallback == "despesa_mensal_media"
+    assert essencial != fallback, "os dois regimes publicariam a mesma base — é o C14 de volta"
+
+
+# Fecha a CLASSE, não a instância: regime novo no produtor não pode cair calado no
+# ramo de série anterior, que é o que um `.get()` com default faria.
+def test_todo_regime_do_produtor_e_conhecido_pelo_catalogo() -> None:
+    """Nenhum discriminador que o produtor emite vira `indeterminado`."""
+    from pipeline.domain.services.kpi_target_catalog import _BASE_POR_DENOMINADOR
+
+    for regime, discriminador in _regimes_do_produtor().items():
+        assert discriminador in _BASE_POR_DENOMINADOR, f"regime {regime} desconhecido do catálogo"
+
+
+def test_discriminador_ausente_nao_afirma_essencialidade() -> None:
+    """Artefato de série anterior (ADR-412 §D8): ausência é "não sei", nunca essencial."""
+    e5 = _e5()
+    del e5["reserva_emergencia"]["base_denominador"]
+
+    base = build_kpi_targets(e5, scoring=SCORING)["reserva_cobertura_meses"]["base"]
+
+    assert base == "despesas_mensais"
+    assert "essencial" not in base
+
+
+# Casa a base ao NOME DO CAMPO que o produtor divide, não a um rótulo escolhido à
+# mão — declarar "ativa" sobre um pct que sai de `renda_anual_liquida_brl` é o modo
+# de falha que a ADR-399 existe para impedir.
+def test_protecao_declara_a_renda_pela_qual_o_produtor_divide() -> None:
+    """A base da proteção nomeia um campo real de `ProtecaoInput`."""
+    from pipeline.domain.services.protecao_analyzer import ProtecaoInput
+
+    base = build_kpi_targets(_e5(), scoring=SCORING)["protecao_cobertura"]["base"]
+
+    assert f"{base}_brl" in ProtecaoInput.__dataclass_fields__, f"`{base}` não nomeia campo"
+    assert base != "renda_anual_ativa"

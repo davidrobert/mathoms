@@ -127,7 +127,11 @@ _ORFAOS_DOMINIO = (
     (
         "protecao_cobertura",
         "$.protecao_patrimonial.pct_renda_anual",
-        "renda_anual_ativa",
+        # LÍQUIDA, não ativa: `_pct_renda` divide por `renda_anual_liquida_brl`
+        # (`protecao_analyzer.py:470`), resolvida IRPF-first por
+        # `resolve_renda_anual_liquida`. Declarar "ativa" era o modo de falha que a
+        # [[ADR-399]] existe para impedir — observado de uma base sob rótulo de outra.
+        "renda_anual_liquida",
         "pct",
         "capital ideal exige inventário de proteção confirmado (ADR-387)",
     ),
@@ -176,9 +180,28 @@ def _orfao(observado_path: str, base: str, unidade: str, motivo: str) -> KpiTarg
     return KpiTarget(observado_path=observado_path, base=base, unidade=unidade, motivo=motivo)
 
 
+# A reserva tem DOIS denominadores e publica qual usou: `_base_from_window` cai para
+# `despesa_mensal_media` quando não há despesa essencial documentada
+# (`reserva_emergencia_calculator.py:333-350`). Fixar "essencial" no catálogo declarava
+# base essencial sobre despesa TOTAL em todo workspace no fallback — e o discriminador
+# já estava no payload, a um `_leaf` de distância ([[A40.l80]] §Correções C14).
+# Chave ausente é artefato de série anterior ([[ADR-412]] §D8): responde com o nome do
+# campo que carrega o valor, que não afirma essencialidade.
+_BASE_POR_DENOMINADOR = {
+    "custo_essencial": "despesa_essencial_mensal",
+    "despesa_total": "despesa_mensal_media",
+}
+_BASE_DENOMINADOR_INDETERMINADO = "despesas_mensais"
+
+
+def _base_da_reserva(e5: Mapping[str, Any]) -> str:
+    declarado = _leaf(e5, "reserva_emergencia", "base_denominador")
+    return _BASE_POR_DENOMINADOR.get(declarado, _BASE_DENOMINADOR_INDETERMINADO)
+
+
 def _reserva(e5: Mapping[str, Any]) -> KpiTarget:
     meses = _num(_leaf(e5, "reserva_emergencia", "meses_alvo"))
-    path, base = "$.reserva_emergencia.cobertura_meses", "despesa_essencial_mensal"
+    path, base = "$.reserva_emergencia.cobertura_meses", _base_da_reserva(e5)
     if meses is None:
         return _orfao(path, base, "meses", "alvo de reserva não computado para este perfil")
     return KpiTarget(

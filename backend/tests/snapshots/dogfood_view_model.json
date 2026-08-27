@@ -1741,7 +1741,7 @@
       "unidade": "pct"
     },
     "protecao_cobertura": {
-      "base": "renda_anual_ativa",
+      "base": "renda_anual_liquida",
       "limiar": null,
       "motivo": "capital ideal exige inventário de proteção confirmado (ADR-387)",
       "observado_path": "$.protecao_patrimonial.pct_renda_anual",
