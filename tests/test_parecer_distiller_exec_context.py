@@ -275,9 +275,14 @@ def test_exposicao_cambial_projetada_com_base_propria():
     próprio (posições em moeda estrangeira ÷ investível financeiro) — nunca
     fundida com a alocação internacional da tabela."""
     ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
-    assert "Exposição cambial total: R$ 52.000,00" in ctx
-    assert "% do investível financeiro (posições atuais + caixa): 2,16%" in ctx
-    assert "Tier (verde >=10% / amarelo 5-10% / vermelho <5%): vermelho" in ctx
+    assert "R$ 52.000,00" in ctx
+    assert "2,16%" in ctx
+    assert "vermelho" in ctx
+    # A40.l80 (ADR-412 §D7): a label do tier não reensina o limiar, e a do pct
+    # declara a base. Asserção sobre o CONCEITO projetado, não sobre o texto.
+    assert "Exposição cambial APURADA" in ctx
+    assert "% da carteira financeira cheia" in ctx
+    assert ">=10%" not in ctx.split("Tier apurado")[1][:120]
 
 
 def test_hints_de_base_presentes():
