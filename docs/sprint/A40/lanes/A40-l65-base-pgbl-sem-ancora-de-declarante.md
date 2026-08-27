@@ -267,11 +267,15 @@ caminho.
 
 - ~~Dois declarantes no workspace → base do PGBL é a do titular, sempre, e não
   varia com a ordem de processamento.~~ **Parcial desde 2026-08-24 (#1672):** o **ano** não
-  varia mais com a ordem de processamento (§Escopo 1). A escolha **entre
-  declarantes do mesmo ano** ainda varia — fecha no §Escopo 2.
+  varia mais com a ordem de processamento (§Escopo 1). ✅ **Completo desde
+  2026-08-25 (#1711)**: a escolha entre declarantes do mesmo ano também deixou de
+  variar — `test_com_dois_declarantes_a_base_e_a_do_titular` prova.
 - Identidade não resolvível → base ausente com motivo, nunca a de outro CPF. E o
   motivo distingue *"identidade não resolvível"* de *"o titular não declarou no ano
   eleito"* — são causas diferentes e a segunda não é culpa do cadastro.
-- Teste que prova que S8 e Card B citam o **mesmo** ano-base. **Só é escrevível
-  depois do §Escopo 3** — hoje passaria a vazio comparando dois `None`, e o campo
-  homônimo disponível mede informes PJ.
+- Teste que prova que S8 e Card B citam o **mesmo** ano-base. ✅ **entregue
+  2026-08-25 (#1711)** — `test_s8_e_card_b_elegem_o_mesmo_ano_base`. O §Escopo 3
+  criou `renda_tributavel_pf_ano_base`, que era o pré-requisito: sem ele o teste
+  compararia dois `None`. Vem com asserção **deliberada de desigualdade de valor**
+  (`test_a_base_da_s8_e_por_declaracao_a_do_card_b_e_familiar`), que impede alguém
+  de igualar os números sem passar pela decisão que o §Fora de escopo veda.

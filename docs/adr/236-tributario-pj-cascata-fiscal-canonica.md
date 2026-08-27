@@ -6,7 +6,7 @@ status: Decidido
 phase: A16.tributario-pj-cascata
 date: "2026-05-20"
 decided_at: "2026-05-21"
-amended_at: ["2026-07-15", "2026-08-08", "2026-08-17"]
+amended_at: ["2026-07-15", "2026-08-08", "2026-08-17", "2026-08-27"]
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-157]]"
@@ -153,7 +153,7 @@ Os valores que **mudam ao longo do tempo** derivam de transações + IRPF, **nã
 | `folha_pj_mensal_brl` | E4 | Label `folha_pj` — débito com keyword `SALARIO`/`FOLHA`/`PAGAMENTO FUNCIONARIO` **em workspace com `pj_source_mapping` populado E ≥1 receita PJ observada**. Sem essas precondições, classifier emite warning tipado `FolhaPJProxyUnavailable` (ADR-097 D1) e label não é atribuída — telemetria distingue "ausência real" de "proxy desabilitado". |
 | `iss_pago_mensal_brl` | E4 | Label nova `iss` — débito com keyword `\bISS\b` ancorada (só aplicável em Presumido com ISS destacado). |
 | `receita_pj_anual_brl` | E3 (reconcile_transactions) | Soma de créditos PJ na janela 12m móvel. **Já calculado** em `scripts/generate_narratives.py:472` (renomeado de `e5n_narrativas.py`, F9.4 · [[ADR-093]]). |
-| `outras_rendas_tributaveis_pf_anual_brl` | E1.6 ([[ADR-157]] `extract_irpf_full`) | Soma de `rendimentos_pj[].rendimentos_tributaveis_brl` + `rendimentos_pf[].valor_brl` (nomes canônicos do schema [config/schemas/e16_irpf_full.schema.json](../../config/schemas/e16_irpf_full.schema.json), ficha "Rendimentos Tributáveis" do IRPF). **Não** inclui `rendimentos_tributacao_exclusiva` (13º), `rendimentos_isentos` (lucros distribuídos) ou `rendimentos_exterior` (FU V2). |
+| `renda_tributavel_pf_irpf_anual_brl` (renomeado — ver §Emenda 2026-08-17) | E1.6 ([[ADR-157]] `extract_irpf_full`) | **Total** de `rendimentos_pj[].rendimentos_tributaveis_brl` + `rendimentos_pf[].valor_brl` (nomes canônicos do schema [config/schemas/e16_irpf_full.schema.json](../../config/schemas/e16_irpf_full.schema.json), ficha "Rendimentos Tributáveis" do IRPF). **Não** inclui `rendimentos_tributacao_exclusiva` (13º), `rendimentos_isentos` (lucros distribuídos) ou `rendimentos_exterior` (FU V2). |
 | `fator_r_pct` | Calculator (D3) | `(folha_pj_mensal_brl + pro_labore_mensal_brl) × 12 / receita_pj_anual_brl × 100`. |
 
 **Discriminador V1 — opção (b) `pj_source_mapping` proxy.** A ADR originalmente assumiu `account_type=PJ`/`member_key=titular_pj` no modelo de transação/conta — esses conceitos **não existem** no `transaction_classifier.py` atual (operam-se sobre `descricao_raw` + `tipo_conta` + sinal de `valor`). Sessão de scouting 2026-05-21 (pós-P1) analisou 3 opções com `senior-cto`: (a) extensão de modelo (`BankAccount.account_kind` + `FamilyMember.is_titular_pj`, ~1.5d, schema migration cross-stack), (b) proxy via `pj_source_mapping` já consumido por `IncomeOriginResolver` ([pipeline/domain/services/income_origin_resolver.py:106-145](../../pipeline/domain/services/income_origin_resolver.py:106), ~0.5d), (c) reformular §D2 para descrição-only (~0.5d, mas frágil em multi-membro). Decidido (b) para V1 — reusa infra testada desde A3a; `pj_source_mapping` vira contrato de 2 consumidores (`IncomeOriginResolver` legado + `TransactionClassifier` novo). Upgrade-path para (a) preservado: se gate dogfood mostrar precisão `<90%`, FU adiciona schema explícito sem perder telemetria. Limitação aceita: `folha_pj` é o discriminador mais fraco em (b) — débito-side não passa pelo `pj_source_mapping` (que é fonte de receita); mitigação via precondições + warning tipado.
@@ -177,7 +177,7 @@ class CascataInput:
     folha_pj_mensal: Money
     das_pago_mensal: Money
     iss_pago_mensal: Money
-    outras_rendas_tributaveis_pf_anual: Money
+    renda_tributavel_pf_irpf_anual: Money  # TOTAL do IRPF (§Emenda 2026-08-17)
 
 @dataclass(frozen=True)
 class CascataOutput:
@@ -259,7 +259,7 @@ Workspace sem `BusinessProfile` completo: narrator retorna `{"context": "Perfil 
     - = Lucros distribuídos (isentos) → R$ C
     - **Carga total: W%**
 3. **Base PGBL** — bloco separado:
-    - "Renda tributável PF anual: R$ X (pró-labore + outras rendas tributáveis IRPF)"
+    - "Renda tributável PF anual: R$ X (total dos rendimentos tributáveis declarados no IRPF, do ano-base)"
     - "Limite dedução PGBL (12%): R$ Y/ano"
     - Flag amarelo se `tipo_declaracao_ir="simplificada"`: "PGBL não dedutível — desconto simplificado escolhido"
 4. **Decision triggers** — 0-5 callouts com break-even explícito quando aplicável (D6).
@@ -450,3 +450,31 @@ faria a identidade. Três testes de guarda travam isso.
 Campo renomeado para `renda_tributavel_pf_irpf_anual`: o nome anterior
 (`outras_rendas_tributaveis_pf_anual`) prometia "exceto pró-labore" e entregava o
 total. **Foi o nome que causou a soma.**
+
+> **Emenda 2026-08-27 — três lugares vigentes ainda prescreviam a composição que
+> a §Emenda 2026-08-17 revogou.** Correção de registro no fecho da [[A40.l36]];
+> nenhuma decisão muda.
+
+## Emenda 2026-08-27 — o §D2, o §D3 e o §D5 contradiziam a emenda anterior
+
+A §Emenda 2026-08-17 decidiu **fonte única** (a base é o *total* do IRPF) e
+declarou que o nome antigo *"foi o nome que causou a soma"*. O #1491 aplicou
+isso no código e corrigiu o §D3 no ponto de saída — e deixou **três** pontos de
+entrada intactos, todos em seções de Decisão vigentes, não em snapshot datado:
+
+| onde | dizia | agora |
+| --- | --- | --- |
+| §D2, tabela de inputs | `outras_rendas_tributaveis_pf_anual_brl` · "Soma de…" | `renda_tributavel_pf_irpf_anual_brl` · "**Total** de…" |
+| §D3, `dataclass CascataInput` | `outras_rendas_tributaveis_pf_anual: Money` | `renda_tributavel_pf_irpf_anual: Money` |
+| §D5, spec de render do card | *"R$ X (pró-labore + outras rendas tributáveis IRPF)"* | *"R$ X (total dos rendimentos tributáveis declarados no IRPF, do ano-base)"* |
+
+**Por que é emenda e não typo.** O §D5 **é** a spec de render: quem re-derivar o
+card a partir dele reescreve o copy de volta ao defeito, e a suíte fica verde —
+`tests/test_cascata_renda_pf_base.py` mede aritmética, não prosa. O §D3 é a
+fonte do `CascataInput`: re-derivar dali reintroduz o nome que a emenda anterior
+acusa de causa raiz. Os dois lados da mesma porta de regressão estavam abertos.
+
+**Limite declarado:** a frase que o card entrega ao leitor continua **sem gate** —
+`rg -n "total dos rendimentos tributáveis" frontend/tests/` não devolve nada, e
+`CascataFiscalCard.test.tsx` afirma só o rótulo do bloco (*"Base para dedução
+PGBL"*), idêntico antes e depois do #1491. Roteado no §Aberto da [[A40.l36]].

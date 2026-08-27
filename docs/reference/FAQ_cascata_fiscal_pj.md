@@ -54,18 +54,29 @@ O calculator ([pipeline/domain/services/tributario/cascata_calculator.py](../../
 
 Material amador frequentemente afirma que **base PGBL = `receita_pj × 32%`**. **Está errado.**
 
-A base PGBL é a soma da ficha **"Rendimentos Tributáveis"** do IRPF da pessoa física:
+A base PGBL é o **total** da ficha **"Rendimentos Tributáveis"** do IRPF da pessoa física, do ano-base declarado:
 
 ```
-base_pgbl_anual = pro_labore_anual_tributavel
-                + outras_rendas_tributaveis_pf_anual  (aluguéis, juros tributáveis, etc.)
+base_pgbl_anual = total_rendimentos_tributaveis_irpf
+                = rendimentos_pj + rendimentos_pf   (do IRPF, não do fluxo)
 ```
 
-**Lucros distribuídos são isentos** — não entram. **Receita da PJ não entra direto.** O pró-labore só entra na parte que aparece na ficha de rendimentos tributáveis do IRPF (líquido de INSS empregado).
+**Lucros distribuídos são isentos** — não entram. **Receita da PJ não entra direto.** O pró-labore **já está dentro** desse total, na parte que aparece na ficha (líquido de INSS empregado) — ele **não se soma** por fora, e o fluxo do extrato não compõe a base.
+
+> **Correção 2026-08-27.** Até aqui esta página publicava
+> `base_pgbl_anual = pro_labore_anual_tributavel + outras_rendas_tributaveis_pf_anual`.
+> Essa soma **conta o pró-labore duas vezes**, porque ele já integra o total do
+> IRPF. Medido na [[A40.l36]] com pró-labore de R$ 144k/ano presente nas duas
+> fontes: a base ia a R$ 318k em vez de R$ 174k (inflava **+82,8%**) e o teto de
+> dedução a R$ 38.160 em vez de R$ 20.880. O produto foi corrigido em
+> 2026-08-18 (#1491); esta página ficou 9 dias atrás dele. Decisão canônica:
+> [[ADR-236]] §Emenda 2026-08-17, *"Fonte única"*.
+
+**Sem IRPF processado, a base não existe** — ausência não é `R$ 0` nem é o pró-labore do extrato. A saída é `pgbl_aplicavel=False` com motivo ([[ADR-236]] §Emenda 2026-08-17 §3).
 
 A confusão com **32%** vem de outro lugar: é a **presunção de lucro** do regime Lucro Presumido para serviços, base de IRPJ/CSLL na PJ. Conceito completamente independente do limite PGBL.
 
-**Consequência prática:** sócio com pró-labore de R$ 1.500/mês e R$ 40k/mês de lucros isentos tem base PGBL ≈ R$ 18k/ano. Limite dedutível: 12% × R$ 18k ≈ **R$ 2,2k/ano**, independente de a receita PJ ser R$ 500k ou R$ 5M.
+**Consequência prática:** o que fixa o teto é o **total tributável declarado**, não a receita da PJ — R$ 500k ou R$ 5M de faturamento dão o mesmo limite se a ficha do IRPF for a mesma. Sócio cujo IRPF declara R$ 18k de rendimentos tributáveis no ano-base tem limite dedutível de 12% × R$ 18k ≈ **R$ 2,2k/ano**. Se o IRPF **não** foi processado, o Mathoms não estima a base pelo pró-labore do extrato: ele declara a base ausente. Derivar R$ 18k de um pró-labore de R$ 1.500/mês é exatamente o impostor *"pró-labore-only"* que o gate de [`tests/test_cascata_renda_pf_base.py`](../../tests/test_cascata_renda_pf_base.py) rejeita.
 
 **Quando o PGBL fica zero mesmo com renda real:**
 

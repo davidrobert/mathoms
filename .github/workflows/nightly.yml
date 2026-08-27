@@ -43,7 +43,17 @@ on:
     types: [labeled, synchronize]
 
 concurrency:
-  group: nightly-${{ github.ref }}
+  # O group inclui o CRON de propósito. Com `nightly-${{ github.ref }}` puro,
+  # os dois crons compartilhavam group (mesmo `ref`) e `cancel-in-progress`
+  # matava o `main-smoke` de 05:30 quando o bloco pesado de 06:00 entrava —
+  # o GH atrasa schedule rotineiramente 5-15min e o main-smoke tem teto de
+  # 20min, então a sobreposição é o caso normal, não o raro. Pior: o
+  # cancelamento NÃO abre Issue (os alertas são `if: failure()`), então a
+  # perda de cobertura seria silenciosa — a mesma classe que a camada 4 da
+  # ADR-210 existe para matar. Os dois crons não se substituem: cancelar um
+  # pelo outro é perda, não dedupe. Fora de `schedule` (dispatch, PR por
+  # label) o group cai no `ref` e o dedupe continua valendo.
+  group: nightly-${{ github.event.schedule || github.ref }}
   cancel-in-progress: true
 
 # A34.l13 (ADR-320): default read no workflow; os 4 jobs que abrem Issue de

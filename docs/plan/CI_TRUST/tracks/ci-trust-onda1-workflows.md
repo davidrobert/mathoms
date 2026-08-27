@@ -23,7 +23,14 @@ tags:
 > do `all-green` viaja **sozinha**. Com o PR 0 da Onda 0 no ar, PR nesse path
 > não starva mais a fila (403 vira skip daquele PR).
 
-## PR 1 — inertes (nenhum muda veredito)
+## PR 1 — inertes (nenhum muda veredito) ✅ **entregue 2026-08-27**
+
+> Re-medição (n=8 runs success, 2026-08-27) que mudou dois números do plano:
+> `lint-all` mediana **138s** — o teto de 4min estava **abaixo** de 2× a
+> mediana, critério da [[ADR-210]] §Adendo 2026-08-03, e subiu para 5min;
+> `pipeline-tests` mediana **202s** = **67%** do teto, acima do gatilho de 60%
+> do §Adendo 2026-08-08(b), teto para 8min. `go-lint` (19s), `go-test` (66s) e
+> `all-green` (4s) ganharam teto — rodavam com o default de 360min.
 
 - `timeout-minutes`: go-lint 6 · go-test 8 · all-green 2 (hoje sem teto —
   default 360min; observados 58s / 1m41s / <1min).
