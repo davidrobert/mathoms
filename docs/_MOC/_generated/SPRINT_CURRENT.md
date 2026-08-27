@@ -13,6 +13,8 @@ open · in_progress · blocked.
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l36]] — Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes · priority P1 · área pipeline/financial-planning · branch `a40-l36-double-count-base-cascata-s8`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
+- [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
+- [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l46]] — Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup · priority P2 · área frontend · branch `a40-l46-residuos-perfil-identidade`
 - [[A40.l48]] — Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo · priority P2 · área pipeline · branch `a40-l48-polaridade-de-comparacao-nao-monotonica`
 - [[A40.l50]] — Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado · priority P1 · área report/pipeline/financial-planning · branch `a40-l50-abertos-exposicao-cambial`
@@ -34,11 +36,6 @@ open · in_progress · blocked.
 ## In progress
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
-- [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · área frontend/design-system/a11y · branch `a40-l33-contraste-texto-sobre-tint`
-- [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
-- [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
-- [[A40.l54]] — `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) · priority P2 · área frontend/report · branch `a40-l54-hidden-md-block-no-papel`
-- [[A40.l78]] — Mover código não deixa citação órfã: gate no lado do código, não no do doc · priority P2 · área docs · branch `a40-l78-gate-doc-code-paths`
 
 ## Blocked
 
