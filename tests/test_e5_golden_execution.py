@@ -326,14 +326,18 @@ def _assert_alvo_bem_formado(chave: str, alvo: dict) -> None:
         assert alvo["operador"] and alvo["ref"], f"{chave}: limiar sem comparador/fonte"
 
 
-def _kpi_targets_do_run(tenant: Path) -> dict:
+def _payload_do_run(tenant: Path) -> dict:
     from scripts.analyze_finances import main_with_store as e5_mws
     from scripts.categorize_transactions import main_with_store as e4_mws
 
     ctx = _new_e5_ctx(tenant, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_MIN)
     e4_mws(ctx)
     e5_mws(ctx)
-    return ctx.artifact_store.read("E5", "analise_financeira")["kpi_targets"]
+    return ctx.artifact_store.read("E5", "analise_financeira")
+
+
+def _kpi_targets_do_run(tenant: Path) -> dict:
+    return _payload_do_run(tenant)["kpi_targets"]
 
 
 # Guard do wiring: sem ele, remover a chamada a `build_kpi_targets` em
@@ -365,3 +369,41 @@ def test_e5_kpi_target_nao_depende_do_valor_observado(e5_tenant_with_baseline: P
     endiv = alvos["taxa_endividamento"]
     assert endiv["limiar"] is not None, "scoring não chegou ao catálogo"
     assert endiv["procedencia"] == "limiar_canonico" and endiv["operador"]
+
+
+# `analyze_finances` declara em comentário que "path que não resolve é a mesma classe
+# de defeito que o alvo fabricado" — e nada media. Media-se aqui, contra o payload do
+# run real e pelo **resolver de produção**, não por um walker de teste: um walker
+# próprio codificaria a mesma suposição errada sobre a forma do path e passaria.
+# Achado que originou o gate (A40.l89): `carteira_trs` apontava para
+# `ratios.rentabilidade.trs_pct`, que nunca existiu — o campo é `valor_pct`.
+# Só `value_absent` é defeito de path. `value_null` é a folha existindo sem medição
+# (fixture sem IRPF ⇒ `rentabilidade` nula) — estado que o `status != "ok"` já trata,
+# e exigi-lo aqui reprovaria o payload honesto. `path_not_whitelisted` é limite
+# conhecido do resolver com o predicado `[classe=...]`, não path quebrado.
+def _paths_ausentes(payload: dict) -> dict:
+    from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+
+    alvos = payload["kpi_targets"]
+    raizes = {
+        alvo["observado_path"].removeprefix("$.").split(".")[0].split("[")[0]
+        for alvo in alvos.values()
+    }
+    drill = PlannerDrillDown(e5_data=payload, section_whitelist=frozenset(raizes))
+    resultados = {c: drill.get_e5_jsonpath(a["observado_path"]) for c, a in alvos.items()}
+    return {
+        chave: (alvos[chave]["observado_path"], r.reason)
+        for chave, r in resultados.items()
+        if not r.found and r.reason == "value_absent"
+    }
+
+
+def test_todo_observado_path_do_catalogo_resolve_no_payload(e5_tenant_with_baseline: Path):
+    """Alvo pareado a observado inexistente é FP-6 em forma pior: o comparador
+    aparece com um dos lados fabricado pela ausência."""
+    from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+
+    payload = _payload_do_run(e5_tenant_with_baseline)
+    nao_resolvem = _paths_ausentes(payload)
+
+    assert not nao_resolvem, f"observado_path que não resolve: {nao_resolvem}"

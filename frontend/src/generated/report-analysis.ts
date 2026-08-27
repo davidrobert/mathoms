@@ -556,6 +556,7 @@ export type E5AnalysisArtifact = {
     "observado_path": string;
     "base": string;
     "unidade": string;
+    "rotulo": string;
     "limiar"?: number | null;
     "operador"?: string | null;
     "procedencia"?: "goal_declarado" | "limiar_canonico" | null;

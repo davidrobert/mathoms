@@ -1680,6 +1680,17 @@
     "total_imoveis_investimento": 60000000
   },
   "kpi_targets": {
+    "aliquota_efetiva_ir": {
+      "base": "renda_tributavel",
+      "limiar": null,
+      "motivo": "alíquota efetiva é descritiva; o alvo depende do regime e não é canônico",
+      "observado_path": "$.ratios.aliquota_efetiva_ir_pct",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "rotulo": "Alíquota efetiva de IR (consolidada)",
+      "unidade": "pct"
+    },
     "alocacao_renda_fixa": {
       "base": "carteira_liquida",
       "limiar": null,
@@ -1688,6 +1699,7 @@
       "operador": null,
       "procedencia": null,
       "ref": null,
+      "rotulo": "Alocação em renda fixa (carteira líquida)",
       "unidade": "pct"
     },
     "carteira_trs": {
@@ -1698,6 +1710,7 @@
       "operador": null,
       "procedencia": null,
       "ref": null,
+      "rotulo": "Rentabilidade da carteira (TRS efetiva)",
       "unidade": "pct_aa"
     },
     "concentracao_imobiliaria": {
@@ -1708,6 +1721,7 @@
       "operador": "<",
       "procedencia": "limiar_canonico",
       "ref": "RealEstateConfig.concentracao_alerta_pct ([[ADR-340]])",
+      "rotulo": "Concentração imobiliária (carteira produtiva)",
       "unidade": "pct"
     },
     "despesas_nao_categorizadas": {
@@ -1718,6 +1732,7 @@
       "operador": "<",
       "procedencia": "limiar_canonico",
       "ref": "diagnostico_comportamental_analyzer.NAO_IDENTIFICADO_PARCIAL_PCT",
+      "rotulo": "Despesas não identificadas (% do total, 12m)",
       "unidade": "pct"
     },
     "exposicao_cambial": {
@@ -1728,7 +1743,19 @@
       "operador": ">=",
       "procedencia": "limiar_canonico",
       "ref": "exposicao_cambial_analyzer.THRESHOLD_VERDE_PCT",
+      "rotulo": "Exposição cambial (% do investível financeiro)",
       "unidade": "pct"
+    },
+    "if_prazo_ano": {
+      "base": "cone_monte_carlo",
+      "limiar": null,
+      "motivo": "ano de IF é percentil de cone; alvo pontual promete estado futuro sem a probabilidade",
+      "observado_path": "$.if_monte_carlo.ano_if_cenario_central",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "rotulo": "Ano projetado da independência (cenário central)",
+      "unidade": "ano"
     },
     "if_progresso": {
       "base": "patrimonio_alvo",
@@ -1738,9 +1765,10 @@
       "operador": null,
       "procedencia": null,
       "ref": null,
+      "rotulo": "Progresso rumo à independência financeira",
       "unidade": "pct"
     },
-    "protecao_cobertura": {
+    "protecao_custo_premio": {
       "base": "renda_anual_liquida",
       "limiar": null,
       "motivo": "capital ideal exige inventário de proteção confirmado (ADR-387)",
@@ -1748,6 +1776,18 @@
       "operador": null,
       "procedencia": null,
       "ref": null,
+      "rotulo": "Custo dos seguros sobre a renda anual",
+      "unidade": "ratio_0_1"
+    },
+    "renda_passiva_cobertura": {
+      "base": "despesa_essencial_mensal_12m",
+      "limiar": null,
+      "motivo": "cobertura da renda passiva não medida neste período",
+      "observado_path": "$.ratios.rentabilidade.cobertura_despesa_essencial_pct",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "rotulo": "Renda passiva sobre a despesa essencial",
       "unidade": "pct"
     },
     "reserva_cobertura_meses": {
@@ -1758,6 +1798,7 @@
       "operador": ">=",
       "procedencia": "goal_declarado",
       "ref": "$.reserva_emergencia.meses_alvo",
+      "rotulo": "Cobertura da reserva de emergência",
       "unidade": "meses"
     },
     "taxa_endividamento": {
@@ -1768,6 +1809,7 @@
       "operador": "<=",
       "procedencia": "limiar_canonico",
       "ref": "scoring.json::thresholds_alertas.endividamento_maximo_pct",
+      "rotulo": "Taxa de endividamento (% do patrimônio bruto)",
       "unidade": "pct"
     },
     "taxa_poupanca_recorrente": {
@@ -1778,6 +1820,7 @@
       "operador": null,
       "procedencia": null,
       "ref": null,
+      "rotulo": "Taxa de poupança recorrente (12m)",
       "unidade": "pct"
     }
   },

@@ -1229,7 +1229,8 @@
         "required": [
           "observado_path",
           "base",
-          "unidade"
+          "unidade",
+          "rotulo"
         ],
         "properties": {
           "observado_path": {
@@ -1242,7 +1243,11 @@
           },
           "unidade": {
             "type": "string",
-            "description": "pct | meses | pct_aa."
+            "description": "pct | meses | pct_aa | ano | ratio_0_1. `ratio_0_1` existe porque `protecao_custo_premio` publica prêmio/renda como razão 0–1 e estava declarado `pct` — quem lesse pelo contrato publicaria 0,0057% no lugar de 0,57%."
+          },
+          "rotulo": {
+            "type": "string",
+            "description": "Nome publicado da métrica. Vive no catálogo, e não no LLM, porque rótulo autorado não é gateável e o rótulo carrega domínio: cobrir 100% da despesa ESSENCIAL é o marco de segurança, não a independência (que se mede contra o custo de vida total). Publicar sem o qualificador ensina a família a se declarar independente cedo demais."
           },
           "limiar": {
             "type": [
