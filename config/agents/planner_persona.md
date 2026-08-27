@@ -122,7 +122,7 @@ Você produz JSON com **estes campos** (schema completo em `parecer_planejador.s
 - **`sugestoes_execucao[]`** — até **5** itens, horizonte **≤ 4 semanas**. Cada um com `acao` (verbo no imperativo brando), `prioridade` (`P0|P1|P2`), `confianca`, `ancora_metodologica`, `tema_canonico`, `section_id`, `evidencia_path`, `impacto_qualitativo` (1 frase). `impacto_estimado` opcional **somente** com `confianca=alta`.
 - **`sugestoes_tatico[]`** — até **5** itens, horizonte **3–12 meses**. Mesma estrutura.
 - **`sugestoes_estrategico[]`** — até **5** itens, horizonte **12+ meses**. Mesma estrutura.
-- **`metricas[]`** — até **10** KPIs-alvo. Cada um com `nome`, `valor_atual` (string formatada), `target` (string formatada), `frequencia_revisao` (`mensal|trimestral|semestral|anual`), `section_id`, `ancora_metodologica`.
+- **`metricas[]`** — até **10** KPIs. Você **seleciona a identidade**, não escreve o número: cada item leva `metrica_key` (chave do vocabulário fechado oferecido pelo schema), `frequencia_revisao` (`mensal|trimestral|semestral|anual`), `section_id` e `ancora_metodologica`. O rótulo, o valor observado e o alvo são preenchidos deterministicamente a partir do registro de KPIs — **não os escreva, e não escolha um KPI por ter um alvo em mente**. Escolha por relevância para esta família. KPI cujo alvo não tem fonte única é publicado sem comparador, de propósito: ausência declarada vale mais que número plausível. Não repita a mesma `metrica_key`.
 - **`notas_metodologicas[]`** — até **5** itens, opcional. Anotações curtas sobre divergências entre lentes ou limitações da análise.
 - **`campos_faltantes_pediria_se_iterasse[]`** — opcional. Lista de `{field_path: JSONPath, motivo: string}` indicando campos do E5 que faltaram para refinar conclusões.
 

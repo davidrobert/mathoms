@@ -32,6 +32,7 @@ from pipeline.llm.schemas.parecer_planejador import (
     CampoFaltante,
     ImpactoEstimado,
     Metadata,
+    Metrica,
     ParecerPlanejadorOutput,
     PontoForte,
     Risco,
@@ -168,6 +169,7 @@ def make_output(
     riscos: list[Risco] | None = None,
     sugestoes: list[Sugestao] | None = None,
     campos: list[CampoFaltante] | None = None,
+    metricas: list[Metrica] | None = None,
 ) -> ParecerPlanejadorOutput:
     return ParecerPlanejadorOutput(
         version="2.0",
@@ -178,15 +180,10 @@ def make_output(
         sugestoes_execucao=sugestoes or [],
         sugestoes_taticas=[],
         sugestoes_estrategicas=[],
-        metricas=[],
+        metricas=metricas or [],
         notas_metodologicas=[],
         campos_faltantes_pediria_se_iterasse=campos,
     )
-
-
-# -----------------------------------------------------------------------
-# (1) Rebaixamento de confiança sob premissa fallback
-# -----------------------------------------------------------------------
 
 
 def _filtra(output, e5, *, catalogo=None):
@@ -235,11 +232,6 @@ class TestDowngradeConfiancaFallback:
         result, count = downgrade_confianca_fallback(output, E5_PARCIAL, WS)
         assert count == 0
         assert result.sugestoes_execucao[0].confianca == "media"
-
-
-# -----------------------------------------------------------------------
-# (2) Filtro 3-vias de campos_faltantes
-# -----------------------------------------------------------------------
 
 
 # O par real civil→fiscal ($.composicao_familiar.dependentes →
@@ -424,11 +416,6 @@ class TestSentinelasDeAusencia:
         result, audit = _filtra(output, e5)
         assert audit == []
         assert len(result.campos_faltantes_pediria_se_iterasse) == 1
-
-
-# -----------------------------------------------------------------------
-# (3) End-to-end via generate_parecer (LLM fake) — nunca needs_review
-# -----------------------------------------------------------------------
 
 
 @dataclass

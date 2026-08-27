@@ -249,3 +249,68 @@ def test_constants_are_sensible():
     assert FREE_TIER_LIMITS.riscos is not None
     assert PREMIUM_TIER_LIMITS.pontos_fortes is None
     assert PREMIUM_TIER_LIMITS.riscos is None
+
+
+# ---------------------------------------------------------------------------
+# A40.l89 · ADR-399 D1 — regra subtrativa na leitura, e as duas eras de artefato
+# ---------------------------------------------------------------------------
+
+
+def _artifact_com_metrica(metrica: dict) -> dict:
+    artifact = _artifact()
+    artifact["metricas"] = [metrica]
+    return artifact
+
+
+def test_artefato_legado_nao_serve_alvo_autorado_pelo_llm():
+    """Era anterior ao carimbo: 42 dos 51 pareceres persistidos publicam alvo
+    prescritivo para métrica que o catálogo declara órfã. A leitura suprime — e só
+    suprime: o observado e a linha permanecem."""
+    legado = _metrica()  # sem `metrica_key`, com `target` autorado
+
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(legado), tier="premium")
+
+    assert content.metricas[0].target is None, "alvo de era pré-carimbo não pode ser servido"
+    assert content.metricas[0].nome == "TRS", "a métrica continua publicada"
+    assert content.metricas[0].valor_atual == "0.5%", "a leitura remove afirmação, não sinal"
+
+
+def test_artefato_carimbado_serve_o_alvo_derivado():
+    derivado = {**_metrica(), "metrica_key": "carteira_trs", "target": "≥ 18 meses"}
+
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(derivado), tier="premium")
+
+    assert content.metricas[0].target == "≥ 18 meses"
+
+
+def test_orfa_carimbada_leva_o_motivo_ate_o_dto():
+    """Sem `target_motivo` no wire a célula do comparador fica vazia, e vazio o leitor
+    lê como "não mediram" — afirmação diferente de "não afirmamos um alvo"."""
+    orfa = {
+        **_metrica(),
+        "metrica_key": "carteira_trs",
+        "target": None,
+        "target_motivo": "rentabilidade observada não tem alvo canônico (ADR-191 §D5)",
+    }
+
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(orfa), tier="premium")
+
+    assert content.metricas[0].target is None
+    assert content.metricas[0].target_motivo
+
+
+# A chave SOME do artefato quando o valor é None (`exclude_none=True` no dump do
+# stage), então o leitor precisa de `.get()`. Com `raw["target"]` isto era KeyError,
+# que vira 500 na rota do relatório — e nenhuma fixture pegava, porque todas as
+# fixtures fornecem `target`. A fixture aqui é produzida PELO PRODUTOR, não à mão.
+def test_chave_ausente_no_artefato_nao_derruba_a_rota():
+    from pipeline.llm.schemas.parecer_planejador import Metrica
+
+    dump = Metrica(
+        metrica_key="carteira_trs", frequencia_revisao="trimestral", section_id="S7"
+    ).model_dump(mode="json", exclude_none=True)
+    assert "target" not in dump, "o produtor precisa mesmo omitir a chave — senão o teste é vácuo"
+
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(dump), tier="premium")
+
+    assert content.metricas[0].target is None

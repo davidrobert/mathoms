@@ -134,18 +134,21 @@ def _stub_pontos_fortes() -> list[PontoForte]:
     ]
 
 
+def _stub_metrica() -> Metrica:
+    return Metrica(
+        metrica_key="taxa_poupanca_recorrente",
+        nome="Métrica X",
+        valor_atual="100",
+        target="200",
+        frequencia_revisao="mensal",
+        section_id="S7",
+    )
+
+
 def _stub_required_lists() -> dict:
     return {
         "pontos_fortes": _stub_pontos_fortes(),
-        "metricas": [
-            Metrica(
-                nome="Métrica X",
-                valor_atual="100",
-                target="200",
-                frequencia_revisao="mensal",
-                section_id="S7",
-            )
-        ],
+        "metricas": [_stub_metrica()],
         "notas_metodologicas": [
             NotaMetodologica(
                 titulo="Nota",

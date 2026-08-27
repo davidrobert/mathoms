@@ -113,13 +113,20 @@ class SugestaoDTO(BaseModel):
 
 
 class MetricaDTO(BaseModel):
-    """Métrica observável — sem ancora user-facing."""
+    """Métrica observável — sem ancora user-facing; alvo derivado do catálogo."""
+
+    # `target` é Optional porque KPI órfão não tem alvo publicável ([[ADR-399]] D3) e
+    # porque a leitura suprime o alvo de artefato de era anterior ao carimbo. Nunca
+    # `undefined` no wire: `response_model` materializa defaults, então o TS lê
+    # `string | null`. `target_motivo` acompanha para a célula não ficar vazia — vazio
+    # o leitor lê como "não mediram", afirmação diferente de "não afirmamos".
 
     model_config = ConfigDict(extra="forbid")
 
     nome: str
-    valor_atual: str
-    target: str
+    valor_atual: Optional[str] = None
+    target: Optional[str] = None
+    target_motivo: Optional[str] = None
     frequencia_revisao: FrequenciaRevisao
     section_id: SectionId
     tema_canonico: Optional[TemaCanonico] = None

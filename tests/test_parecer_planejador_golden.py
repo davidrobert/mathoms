@@ -365,6 +365,7 @@ def make_canned_output(workspace_id: str = "ws-golden") -> ParecerPlanejadorOutp
 
     metricas = [
         Metrica(
+            metrica_key="reserva_cobertura_meses",
             nome="Cobertura essencial da reserva",
             valor_atual="2,1 meses",
             target="6+ meses",
@@ -374,6 +375,7 @@ def make_canned_output(workspace_id: str = "ws-golden") -> ParecerPlanejadorOutp
             tema_canonico="Liquidez",
         ),
         Metrica(
+            metrica_key="taxa_endividamento",
             nome="Abate PGBL real vs limite",
             valor_atual="6,9%",
             target="12,0%",

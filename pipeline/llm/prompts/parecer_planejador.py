@@ -11,7 +11,7 @@ from __future__ import annotations
 #   espelham parecer_red_lines v1.4; prevenção reduz needs_review, validador segue defesa.
 #   Ao recalibrar parecer_red_lines, atualize a REGRA 14 no mesmo PR (simetria prompt↔validador).
 # 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
-PROMPT_VERSION = "2.3.0"
+PROMPT_VERSION = "2.4.0"
 
 # Amostragem do parecer — mora aqui, e não no orquestrador, porque este módulo é
 # varrido por `check_prompt_version_bumped.py`: re-afinar a amostragem sem bumpar
