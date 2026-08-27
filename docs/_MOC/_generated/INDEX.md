@@ -955,7 +955,7 @@
 | A40.l76 | lane | open | A40 | A FK de proveniência do E2 nunca foi populada: o tombstone erra 630 rows e duas ADRs descrevem uma aresta vazia | `sprint/A40/lanes/A40-l76-proveniencia-de-artefato-e2.md` |
 | A40.l77 | lane | shipped | A40 | Dois resolvers de membro sobre o mesmo baseline: o fix do eixo de ano chegou em um e o cônjuge vale 110k e 0,00 no mesmo payload | `sprint/A40/lanes/A40-l77-dois-resolvers-de-membro.md` |
 | A40.l78 | lane | shipped | A40 | Mover código não deixa citação órfã: gate no lado do código, não no do doc | `sprint/A40/lanes/A40-l78-gate-citacao-orfa-de-codigo.md` |
-| A40.l79 | lane | open | A40 | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | `sprint/A40/lanes/A40-l79-row-fiscal-ausente-e-fail-open.md` |
+| A40.l79 | lane | shipped | A40 | A recusa do regime fiscal é fail-open: sem row do ano o default republica, e a seed vence em 2026-12-31 | `sprint/A40/lanes/A40-l79-row-fiscal-ausente-e-fail-open.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l80 | lane | open | A40 | Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' | `sprint/A40/lanes/A40-l80-denominador-amputado.md` |
 | A40.l81 | lane | shipped | A40 | Diagnóstico sem canal de saída: o stage que não pausa entrega razão no artefato e ela não chega nem à tabela nem ao usuário | `sprint/A40/lanes/A40-l81-diagnostico-sem-saida.md` |

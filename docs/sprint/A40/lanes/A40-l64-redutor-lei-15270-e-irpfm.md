@@ -288,9 +288,14 @@ A [[A40.l56]] entrega o desbloqueio do D5 **qualificado**: liberado para
   >
   > **Efeito colateral medido:** com AC2026 completo, **nenhum ano do seed é
   > incompleto**, e `regime_fiscal_incompleto` deixa de ser alcançável por ano. O
-  > mecanismo continua vivo — é o que protegerá o ano em que uma norma nova entrar,
-  > e é do que a [[A40.l79]] depende —, então os goldens que o provavam passaram a
-  > usar row **sintética** em vez de depender de qual ano está incompleto.
+  > mecanismo continua vivo — é o que protegerá o ano em que uma norma nova entrar
+  > —, então os goldens que o provavam passaram a usar row **sintética** em vez de
+  > depender de qual ano está incompleto.
+  >
+  > **Correção 2026-08-26:** este parágrafo dizia que a [[A40.l79]] *dependia* deste
+  > mecanismo. Ela não depende: construiu motivo **próprio**
+  > (`sem_tabela_fiscal_do_ano`), porque `regime_fiscal_incompleto` **afirma** sobre
+  > um regime conhecido e ausência de row não conhece nada.
 
 ## Fecho do deferimento — 2026-08-25
 
@@ -352,6 +357,10 @@ da diferença.
 motivo que cita a lei e o ano, e o §Critério 3 segue aberto por construção. O
 risco que **não** é coberto por este deferimento é o da [[A40.l79]] — a recusa
 desarma sozinha em 2027-01-01, e isso vale mesmo que esta lane nunca feche.
+
+> **Fechado em 2026-08-26** pela própria [[A40.l79]] (#1750). O parágrafo acima é
+> de 2026-08-24 e fica como registro: a ausência de row já não cai no dict legado,
+> e passou a recusar com motivo próprio.
 
 ## Fora de escopo
 
