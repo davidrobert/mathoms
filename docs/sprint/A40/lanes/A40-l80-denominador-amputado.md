@@ -143,9 +143,16 @@ o #1782 criou para matá-lo.
 > produtor é predicado **+ inferência de moeda**, e a opção ingênua faria 83% da exposição
 > sair rotulada `BRL`. A fixture era cúmplice — fixava `valor_brl: 0.0` e não trazia
 > `por_moeda`, e com ela **nenhum dos 11 testes caía** sobre a divergência de 6×.
-> **Fica aberto:** a perna de posições do card é **código morto** (`_posicoes_do_payload` lê
-> `investimentos["dados"]`, ausente do schema) — inofensiva hoje, híbrido no dia em que a
-> fonte for ligada ([[ADR-224]] §5). Dono: `data-engineer`.
+> **Resolvido como COBERTURA, não como remoção (#1801).** A perna de posições do card é
+> código morto (`_posicoes_do_payload` lê `investimentos["dados"]`, ausente do schema), mas
+> **não** foi deletada: é encanamento de uma feature declarada ([[ADR-224]] §5), e o risco
+> real — virar híbrido quando a fonte for ligada — já tinha tripwire
+> (`test_braco_de_ativos_nao_chega_ao_endpoint...`). O que faltava era o tripwire **nomear a
+> decisão**: desde o #1794 a perna de caixa é consumida do artefato, que é **v1**; ligar
+> posições soma ao total algo que a v1 exclui, então quem quebrar o teste escolhe entre
+> declarar `definicao_versao=2` **com** o de-dup obrigatório da [[ADR-403]] §D4, ou manter a
+> perna fora do total. **A terceira opção — somar as duas sob o marcador do produtor — é a
+> que não existe**, porque aquele marcador rotula a computação dele, não a do card.
 
 **O E5 e o card read-time divergiam no NUMERADOR.** A linha de caixa em moeda
 estrangeira vinda do IRPF (`moeda_estrangeira_irpf`, que nasce com `moeda="BRL"`)

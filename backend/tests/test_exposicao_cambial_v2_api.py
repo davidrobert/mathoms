@@ -293,14 +293,19 @@ async def test_a_linha_do_irpf_entra_no_numerador(auth_client: AsyncClient, db):
 
 
 @pytest.mark.asyncio
+# O braço nunca é alimentado: `_posicoes_do_payload` lê `investimentos["dados"]`, chave que
+# o schema de `investimentos` NÃO tem, então ele devolve `[]` sempre.
+#
+# A DECISÃO QUE ESPERA QUEM QUEBRAR ESTE TESTE ([[ADR-403]] §D3 · [[ADR-412]] §E10): desde o
+# #1794 a perna de caixa é CONSUMIDA do artefato, que é v1 (só caixa FX). Ligar a perna de
+# posições soma ao total algo que a v1 exclui — o card vira produtor de definição NOVA. Ou
+# ele declara `definicao_versao=2` e ganha o de-dup caixa↔carteira que a §D4 torna
+# obrigatório, ou a perna não entra no total. O que não existe é a terceira opção
+# silenciosa: somar as duas sob o marcador do produtor, que rotula a computação DELE.
 async def test_braco_de_ativos_nao_chega_ao_endpoint_enquanto_e5_nao_publica_posicoes(
     auth_client: AsyncClient, db
 ):
-    """Tripwire: nenhuma posição alcança o endpoint — o E5 publica agregados."""
-    # Catálogo e override resolvem lastro (coberto em unidade no
-    # `test_exposicao_cambial_v2_binding.py`), mas o braço nunca é alimentado. Este teste
-    # QUEBRA quando a fonte for ligada ao artefato E4 — quebrar é o ponto: força quem
-    # ligar a asserir o novo comportamento em vez de herdar cobertura que media o vazio.
+    """Tripwire: nenhuma posição alcança o endpoint — quebrar é o ponto."""
     await _seed_catalog_entry(db, ticker="IVVB11", lastro_moeda="USD")
     payload = _e5_payload(posicoes=[], caixa_detalhes=[], investivel=Decimal("500000"))
     await _seed_e5_artifact(db, auth_client.ws_id, payload)
