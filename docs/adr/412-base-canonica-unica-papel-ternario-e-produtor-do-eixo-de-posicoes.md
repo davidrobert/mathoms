@@ -5,7 +5,7 @@ title: "Base canônica única para carteira financeira, `Papel` ternário e prod
 status: Decidido
 phase: A40.l80
 date: "2026-08-25"
-amended_at: ["2026-08-25", "2026-08-28", "2026-08-29"]
+amended_at: ["2026-08-25", "2026-08-28", "2026-08-29", "2026-08-30"]
 relates_to:
   - "[[ADR-279]]"
   - "[[ADR-335]]"
@@ -34,6 +34,10 @@ tags:
 > perde a retenção** — a razão nasce advisory; a **D6(b) troca de régua**; a **D7
 > ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
 > ganha obrigação recíproca** para superfície read-time.
+>
+> **Emenda 6 (2026-08-30):** o §Escopo do flip listava como fora-de-escopo **três** itens
+> que PRs posteriores da própria lane fecharam em horas — lista de escopo é snapshot, e
+> esta envelheceu no mesmo dia. Ver §E12.
 >
 > **Emenda 5 (2026-08-29):** a §D8 mandava a superfície read-time **ler** o marcador de
 > série e degradar — e não proibiu **recomputar** o número que o marcador rotula. Foi por
@@ -572,11 +576,11 @@ disjunção corrigida (§E11).
 | fora do escopo | dono |
 |---|---|
 | razão fabricada em consumidor TS (`WaterfallIfChart` re-deriva `if_pct` suprimido; `HeroKpiGrid` inventa razão sobre 5ª base) | [[A40.l80]] + gate em `check_view_model_contract.py` |
-| `kpi_targets[].base` deixar de ser `type: string` — como **par discriminado** `{eixo, membro}`, nunca enum plano | [[A40.l89]], dona do catálogo |
-| o numerador cambial em disputa entre E5 e card read-time (12,0% × 2,0%) | `data-engineer` |
+| `kpi_targets[].base` deixar de ser `type: string` — como **par discriminado** `{eixo, membro}`, nunca enum plano | **sem dono vivo**: a [[A40.l89]] arquivou (`shipped`) — ver §E12 |
+| ~~o numerador cambial em disputa entre E5 e card read-time~~ | **FECHADO no #1794** — ver §E12 |
 | §Deferimento §E6 (reserva × autonomia são duas bases distintas — a medição do C14 já respondeu) | [[A40.l80]] |
 | cone de Monte Carlo (§Deferido datado 2026-08-26) | [[A40.l80]] |
-| `BASE_VERSAO_CORRENTE` nunca bumpado | `data-engineer` — ver §E11 |
+| ~~`BASE_VERSAO_CORRENTE` nunca bumpado~~ | **FECHADO no #1799** — ver §E12 |
 
 ## Emenda 4 — a disjunção da §E5 não existe mais (2026-08-28)
 
@@ -638,3 +642,28 @@ Mudança de blast radius, registrada por emenda de uma linha lá.
 `_posicoes_do_payload` lê `investimentos["dados"]`, chave que o schema de `investimentos` não
 tem, então ela devolve `[]` sempre. Hoje é inofensiva; vira híbrido no dia em que a fonte for
 ligada ([[ADR-224]] §5). Dono: `data-engineer`.
+
+## Emenda 6 — o §Escopo do flip envelheceu no mesmo dia (2026-08-30)
+
+### E12 — lista de escopo é snapshot, e três das seis linhas caíram em horas
+
+O §Escopo do flip (2026-08-28) declarou em lista fechada o que esta decisão **não** cobre.
+Foi o instrumento certo — e envelheceu no mesmo ciclo, porque PRs da própria [[A40.l80]]
+fecharam três dos itens listados:
+
+| linha do §Escopo | o que aconteceu |
+|---|---|
+| numerador cambial em disputa (12,0% × 2,0%) | **fechado no #1794**: o card passou a CONSUMIR o `por_moeda` do artefato — a regra da §E10 |
+| `BASE_VERSAO_CORRENTE` nunca bumpado | **fechado no #1799**, e **não por bump**: `bases_reproduzem` degrada sobre o defeito, e o congelamento de `TERMOS_DA_BASE` exige bump só em base existente |
+| dono de `kpi_targets[].base` = [[A40.l89]] | a l89 **arquivou** (`shipped`, `ship_pr: 1779`). O item continua aberto e agora **sem dono vivo** |
+
+Correção de ponteiro no mesmo ato: a linha do `BASE_VERSAO_CORRENTE` dizia *"ver §E11"*, e
+a §E11 é sobre a disjunção de vocabulários — **zero menções** a `base_versao`. Ponteiro
+para seção que não trata do assunto é pior que ponteiro ausente: quem segue conclui que leu.
+
+**A lição, e é por que esta emenda existe em vez de uma edição silenciosa:** a lista de
+escopo é mais forte que "vibe" (era esse o argumento do flip) e mais frágil que invariante —
+ela é **datada e precisa de releitura a cada PR da lane que a cita**. Um item que fecha não
+some da lista; ele é riscado com o PR que o fechou, senão o próximo leitor herda um mapa de
+trabalho que já foi feito. Mesma família do que o §"Agravante de processo" desta ADR já
+registrou sobre o #1758 reinscrever a formulação refutada.

@@ -137,7 +137,7 @@ o #1782 criou para matá-lo.
 
 ### A cambial está bloqueada por defeito maior que o rótulo (2026-08-28)
 
-> **Resolvido em 2026-08-29 (#1791), pela decisão do `data-engineer`.** O card **consome** o
+> **Resolvido em 2026-08-29 ([#1794](https://github.com/davidrobert/mathoms/pull/1794)), pela decisão do `data-engineer`.** O card **consome** o
 > `por_moeda` do artefato em vez de recomputar — *superfície read-time só recomputa a perna
 > que tem input read-time* ([[ADR-412]] §E10). Importar o predicado **não bastava**: o
 > produtor é predicado **+ inferência de moeda**, e a opção ingênua faria 83% da exposição
@@ -220,7 +220,7 @@ PR3b, mantido aqui como registro do porquê):
 - **Caracterizar o E5 em `tests/unit/pipeline/test_validation_block_policy.py`** —
   é o quarto produtor divergente de política de pausa e o único não coberto;
   `valid = not reasons` ignora `BLOCKING_CODES`.
-- **✅ FECHADO (#1798) — `BASE_VERSAO_CORRENTE` nunca bumpado.** O remédio não foi
+- **✅ FECHADO ([#1799](https://github.com/davidrobert/mathoms/pull/1799)) — `BASE_VERSAO_CORRENTE` nunca bumpado.** O remédio não foi
   bumpar: um escalar **não retro-rotula** (fundiria a janela defeituosa com a correta,
   marcaria todo o corpus como não-corrente e degradaria o card cambial sem corrigir um
   centavo), e aquilo **não foi mudança de significado, foi bug** — a base publicava
