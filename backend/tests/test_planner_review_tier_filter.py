@@ -272,7 +272,10 @@ def test_artefato_legado_nao_serve_alvo_autorado_pelo_llm():
 
     assert content.metricas[0].target is None, "alvo de era pré-carimbo não pode ser servido"
     assert content.metricas[0].nome == "TRS", "a métrica continua publicada"
-    assert content.metricas[0].valor_atual == "0.5%", "a leitura remove afirmação, não sinal"
+    # `valor_atual` cai junto: é a MESMA classe de fabricação (saíram do tool schema no
+    # mesmo movimento). Deixá-lo ao lado de "Não afirmamos um alvo" faz o número LER como
+    # medido — pior que suprimir os dois.
+    assert content.metricas[0].valor_atual is None, "observado autorado também não se serve"
 
 
 def test_artefato_carimbado_serve_o_alvo_derivado():

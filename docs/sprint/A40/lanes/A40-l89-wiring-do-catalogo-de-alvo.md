@@ -110,7 +110,7 @@ projeta sem revalidar. Corrigir o produtor **não apaga a linha já persistida**
 | item | casa | dono | condição de retomada |
 |---|---|---|---|
 | `trs_target_pct = 4.0` na rota do plano de ação | [[A40.l90]] §Escopo | `financial-planner` | emenda da [[ADR-399]] §D4 no PR1 da l90 |
-| prosa `≥ 30%` / `< 20%` no exec context (`pontos_fortes_analyzer.py:121,158`) | [[A40.l90]], mesma emenda | `financial-planner` + `prompt-engineer` | idem |
+| prosa `≥ 30%` / `< 20%` no exec context (`pontos_fortes_analyzer.py:121`) | [[A40.l90]], mesma emenda | `financial-planner` + `prompt-engineer` | idem |
 | `Decision` aceita não revalida contra o run corrente | ciclo de vida de `Decision` | `financial-planner` | próxima lane que toque `Suggestion`/`Decision` |
 | seleção do painel: piso determinístico das rompidas | `PLAN-deterministic-authority` §Onda 5 | `financial-planner` + `prompt-engineer` | stamping desta lane em `main` |
 
@@ -147,8 +147,73 @@ Se o escopo exigir mudar o que a D4 isenta, a forma é emenda — e aí a lane �
   lê como "não mediram", que é afirmação diferente de "não afirmamos um alvo").
 - Todo `observado_path` do catálogo resolve para folha existente no payload do golden, pelo
   **resolver de produção**.
-- Delta de golden declarado `↑`/`↓`/`=`; rebaseline silencioso reprova.
+- Delta de golden declarado `↑`/`↓`/`=` **no corpo do PR**, com o diff inspecionado item a
+  item. **Ressalva medida (2026-08-27):** "rebaseline silencioso reprova" **não é verdade
+  para este arquivo**. `dev/check_golden_rebaseline_isolation.py` fixa
+  `_GOLDEN_PREFIX = "tests/fixtures/pipeline_golden/"` e **não cobre**
+  `backend/tests/snapshots/`; `golden_diff` não é invocado em workflow nenhum. Logo o
+  delta viaja no mesmo commit do código sem violar gate — a declaração aqui é **editorial,
+  não enforçada**. Estender o prefixo é da [[A40.l80]], dona assinada do `golden_diff.py`;
+  não se duplica o gate deste lado.
 - **Cap:** se a condição de retomada do D3 (*"nenhum rebaseline de golden em voo"*) não
   estiver satisfeita quando a janela abrir, esta lane e a [[A40.l90]] caem **juntas** para a
   A43 — não se separam.
 - Concluído = PR mergeado em `main` com CI verde.
+
+## Correção datada 2026-08-27 — o que a revisão adversarial pegou DEPOIS do merge
+
+> Rodada sobre o diff já mergeado (#1770 + #1772), com 4 lentes independentes e uma
+> passada de refutação. **Cinco defeitos confirmados por repro**, dois deles P0. Fica
+> registrado porque o padrão importa mais que os itens: **o gate e o critério que teriam
+> pego três deles fui eu que escrevi, e escrevi de um jeito que não pegava.**
+
+| # | defeito | por que passou |
+|---|---|---|
+| 1 | `alvo["rotulo"]` derrubava o stage com `KeyError` sobre E5 gravado entre #1591 e #1770 — **depois** de pagar o LLM e **antes** do `_write_cache`, logo cada retry pagava de novo | o guard testava a entrada AUSENTE do catálogo, não o campo ausente DENTRO dela; `rotulo` nasceu no #1770 e `kpi_targets` existe desde o #1591 |
+| 2 | o gate de `observado_path` construía a `section_whitelist` **a partir dos próprios paths que ia testar** ⇒ `path_not_whitelisted` inalcançável por construção | gate que fabrica a própria precondição mede a si mesmo; sob a whitelist real, **2 das 13** chaves não resolvem |
+| 3 | 67 E5 do dogfood não publicam `kpi_targets` ⇒ ramo órfão com `nome=""` ⇒ até 10 linhas **anônimas** na tabela | `nome` perdeu `min_length` ao sair do tool schema; `""` valida e persiste |
+| 4 | `5,6` renderizava `"6 meses"` contra `"≥ 6 meses"` — **violação lida como conformidade** | o hint `meses` do formatter compartilhado arredonda para inteiro, e o observado tem 1 casa |
+| 5 | a leitura suprimia `target` e continuava servindo `valor_atual` autorado | o §Critério pedia os **dois**; o código entregou um. O observado fabricado ao lado de "Não afirmamos um alvo" LÊ como medido |
+
+Todos corrigidos e provados por mutação. As duas chaves irresolvíveis do #2 viraram
+**dívida declarada por igualdade de conjunto** em `tests/test_e5_golden_execution.py` —
+consertar uma sem removê-la de lá reprova, e uma terceira reprova.
+
+### Achados da sessão da [[A40.l90]] — dois eixos que o §Escopo 2 não cobria
+
+O §Escopo 2 chaveia em `procedencia: null` para o item perder o comparador. Há **dois
+jeitos de o comparador ser ilícito sem a procedência ser nula**, e os dois estavam vivos:
+
+| eixo | o que estava errado | correção |
+|---|---|---|
+| **procedência mentida** | `reserva_cobertura_meses` carimbava `goal_declarado` sobre `meses_alvo`, que sai de `scoring.json::_base_calculo.meses_alvo_por_perfil_renda` chaveado por perfil de renda **observada** — e **não existe leitor de `Goal(RESERVA_EMERGENCIA)` no pipeline**. Doutrina usando o crachá da família, com a precedência da [[ADR-399]] D2 operando sobre isso na direção que **absolve** | vira `limiar_canonico` com `ref` na chave real; volta a `goal_declarado` quando o Goal for legível pelo pipeline |
+| **medida suprimida** | `exposicao_cambial` publicava `limiar` + `limiar_canonico` mesmo com `tier: indeterminado` e `carteira_lastro_estrangeiro.cobertura: indeterminado` ([[ADR-403]]). Depois do wiring, o parecer afirmaria "0% contra ≥ 10%" **com o selo de autoridade do produto** sobre medida que o produtor se recusou a julgar — pior que o alvo autorado pelo LLM | sai da tabela estática e vira resolver com guarda de cobertura, no molde do `_renda_passiva_cobertura` |
+
+**Predicado que fecha os dois, adotado:** nenhum `target` publicado quando o comparador
+não é licenciado — seja por **procedência ausente**, seja por **medida suprimida**.
+
+Ressalva ao enquadramento recebido: a analogia com a RV2-24 **não procede**.
+`thresholds_alertas.reserva_minima_meses` (6) é lido por `pontos_urgentes_analyzer.py:251`
+como **piso de alerta**; `meses_alvo` (12/18) é **alvo por perfil**. Piso e alvo são
+conceitos distintos, não duas definições rivais do mesmo limiar. O defeito é a procedência
+mentida, não a divergência de fontes.
+
+**Delta de golden desta correção: `↓`** — o `dogfood_view_model.json` perde um alvo
+publicado (`exposicao_cambial.limiar` 1000 → `null`). Como o `limiar` é classificado como
+**dinheiro** pelo instrumento do snapshot ([[A40.l90]] §8), o diff aparece como delta
+monetário; é artefato do classificador, não valor de dinheiro.
+
+### Segue aberto, com dono
+
+| item | dono | por quê |
+|---|---|---|
+| `diagnostico_confianca` fora da whitelist de `get_e5_section` | `prompt-engineer` | ampliar a whitelist muda a superfície que o modelo lê; exige bump próprio |
+| predicado `[classe=…]` não admitido por `_JSONPATH_RE` | `data-engineer` | ou o E5 publica a folha em ponto fixo, ou o subset de JSONPath cresce |
+| `metrica_key` repetida (sem `uniqueItems` nem validator) | `prompt-engineer` | com o vocabulário fechado, duas linhas iguais ficam byte-idênticas exceto pela coluna Revisão |
+| barra de progresso ignora a polaridade do operador | `product-designer` | pré-existente, mas agora sobre alvo autoritativo: para `<`/`<=` a barra **enche conforme piora** |
+| `clt_estavel` (6 meses) é inalcançável — `_perfil_por_pct` nunca o retorna (exige contagem de fontes que o fluxo v1 não tem), então o piso real do alvo de reserva é 12 | `financial-planner` | se 6 meses deve ser alcançável é decisão de domínio, não de wiring |
+| `Goal(RESERVA_EMERGENCIA)` não tem leitor no pipeline — a precedência "declarado vence doutrina" ([[ADR-399]] D2) não tem como operar para reserva | `data-engineer` | enquanto isso, a entrada é honestamente `limiar_canonico` |
+
+**A casa decimal de `meses` é mudança visível ao usuário** e ficou nesta rota apenas (o
+formatter compartilhado não mudou, porque os outros consumidores dele não comparam contra
+nada). Se a preferência do domínio for outra forma, é decisão de `financial-planner`.

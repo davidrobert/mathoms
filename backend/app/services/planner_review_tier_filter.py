@@ -146,7 +146,11 @@ def _metrica_dto(raw: Mapping[str, Any]) -> MetricaDTO:
     derivada = bool(raw.get("metrica_key"))
     return MetricaDTO(
         nome=raw.get("nome") or "",
-        valor_atual=raw.get("valor_atual"),
+        # `valor_atual` sai JUNTO com `target`: os dois foram tirados do tool schema no
+        # mesmo movimento e são a mesma classe de fabricação. Suprimir só o alvo deixa o
+        # observado autorado ao lado de uma célula que disclaimeia o alvo — o que faz o
+        # número restante LER como medido. O critério de aceite da lane pede os dois.
+        valor_atual=raw.get("valor_atual") if derivada else None,
         target=raw.get("target") if derivada else None,
         target_motivo=raw.get("target_motivo") if derivada else None,
         frequencia_revisao=raw["frequencia_revisao"],

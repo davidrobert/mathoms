@@ -34,12 +34,22 @@ from tests.test_parecer_guardrails_pos_llm import (
 # fantasma: mediria o dict do teste, não o produtor. `reserva_cobertura_meses` é
 # usada porque é uma das 3 chaves que flipam por payload; as 4 órfãs de domínio são
 # inflexíveis e forçariam justamente o hand-edit que este desenho evita.
-def _e5_com_reserva(meses_alvo):
+def _estampa(e5, alvos):
+    from backend.app.services.parecer_finalization import stamp_metrica_targets
+    from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+
+    if alvos is None:
+        alvos = e5["kpi_targets"]
+    drill = PlannerDrillDown(e5_data=e5, section_whitelist=frozenset({"reserva_emergencia"}))
+    return stamp_metrica_targets(make_output(metricas=[_metrica_reserva()]), drill, alvos)
+
+
+def _e5_com_reserva(meses_alvo, cobertura=42.8):
     from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
 
     e5 = {
         **E5_COMPLETO,
-        "reserva_emergencia": {"meses_alvo": meses_alvo, "cobertura_meses": 42.8},
+        "reserva_emergencia": {"meses_alvo": meses_alvo, "cobertura_meses": cobertura},
     }
     e5["kpi_targets"] = build_kpi_targets(
         e5, scoring={"thresholds_alertas": {"endividamento_maximo_pct": 20}}
@@ -58,9 +68,9 @@ def test_alvo_com_fonte_e_estampado_do_catalogo():
     result = _generate(make_output(metricas=[_metrica_reserva()]), _e5_com_reserva(18))
 
     metrica = result.output.metricas[0]
-    assert metrica.target == "≥ 18 meses", "alvo tem de vir do `meses_alvo` declarado"
+    assert metrica.target == "≥ 18,0 meses", "alvo tem de vir do `meses_alvo` declarado"
     assert metrica.nome == "Cobertura da reserva de emergência"
-    assert metrica.valor_atual == "43 meses"
+    assert metrica.valor_atual == "42,8 meses"
     assert metrica.target_motivo is None
 
 
@@ -73,7 +83,7 @@ def test_fonte_orfa_tira_o_comparador_e_mantem_a_metrica():
     assert metrica.target is None, "KPI sem procedência não pode publicar alvo"
     assert metrica.target_motivo, "órfão sem motivo entrega célula vazia ao leitor"
     assert (
-        metrica.valor_atual == "43 meses"
+        metrica.valor_atual == "42,8 meses"
     ), "o observado permanece — órfão perde o alvo, não o sinal"
     assert result.status == "Gerado", "órfão é fato esperado, nunca needs_review"
 
@@ -96,7 +106,7 @@ def test_estampagem_precede_o_cache():
     primeiro, segundo = _gera(cache, e5), _gera(cache, e5)
 
     assert segundo.cache_hit is True, "sem cache hit o mutante é vacuoso"
-    assert primeiro.output.metricas[0].target == segundo.output.metricas[0].target == "≥ 18 meses"
+    assert primeiro.output.metricas[0].target == segundo.output.metricas[0].target == "≥ 18,0 meses"
 
 
 # No produtor, `limiar is None` e `procedencia is None` colapsam em 1 bit — varridas
@@ -130,7 +140,7 @@ def test_numero_sem_procedencia_nao_vira_alvo_publicado():
     saida = stamp_metrica_targets(make_output(metricas=[_metrica_reserva()]), drill, alvos)
 
     assert saida.metricas[0].target is None, "número sem procedência não pode ser publicado"
-    assert saida.metricas[0].valor_atual == "43 meses", "o observado permanece"
+    assert saida.metricas[0].valor_atual == "42,8 meses", "o observado permanece"
 
 
 # Fecha a CLASSE, não a instância: unidade nova no catálogo sem entrada no renderer
@@ -171,3 +181,55 @@ def test_escala_de_unidade_independe_do_tipo_que_veio_do_payload(valor, unidade,
     from backend.app.services.parecer_finalization import _render_valor
 
     assert _render_valor(valor, unidade) == esperado
+
+
+# `kpi_targets` existe desde o #1591; `rotulo` nasceu no #1770. Há uma janela de E5
+# persistidos cujas entradas têm 8 campos e nenhum `rotulo` — e regenerar SÓ o parecer
+# sobre o E5 do run base (ADR-291) é operação normal. Indexar com `[]` derrubava o stage
+# com KeyError DEPOIS de pagar o LLM e ANTES de `_write_cache`: cada retry pagava de novo.
+#
+# A forma da era anterior é reproduzida REMOVENDO do produtor atual o campo que o #1770
+# acrescentou — não escrevendo o dict à mão (que codificaria a minha suposição sobre a
+# forma) e não via `git show` do commit daquela era: `actions/checkout@v4` clona raso, o
+# commit não existe no runner, e o teste morria de `CalledProcessError` só no CI.
+def _alvos_da_era_sem_rotulo(e5: dict) -> dict:
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    atuais = build_kpi_targets(e5, scoring=SCORING_STAMP)
+    return {
+        chave: {k: v for k, v in alvo.items() if k != "rotulo"} for chave, alvo in atuais.items()
+    }
+
+
+SCORING_STAMP = {"thresholds_alertas": {"endividamento_maximo_pct": 20}}
+
+
+def test_e5_de_era_sem_rotulo_nao_derruba_o_stage():
+    """Campo ausente DENTRO da entrada do catálogo — não a entrada ausente."""
+    e5 = _e5_com_reserva(6)
+    alvos = _alvos_da_era_sem_rotulo(e5)
+    assert "rotulo" not in alvos["reserva_cobertura_meses"], "fixture não reproduz a era antiga"
+
+    saida = _estampa(e5, alvos)
+
+    assert saida.metricas[0].nome, "linha sem identidade é pior que nome técnico"
+    assert saida.metricas[0].target == "≥ 6,0 meses"
+
+
+def test_payload_sem_kpi_targets_publica_linha_com_identidade():
+    """67 E5 do dogfood não têm `kpi_targets`: todo parecer regenerado sobre eles caía
+    no ramo órfão com `nome=""` — até 10 linhas anônimas na tabela."""
+    saida = _estampa(_e5_com_reserva(6), {})
+
+    assert saida.metricas[0].nome, "coluna Métrica em branco"
+    assert saida.metricas[0].target is None
+    assert saida.metricas[0].target_motivo
+
+
+# 5,6 meses contra alvo 6 renderizava "6 meses ≥ 6 meses": violação lida como
+# conformidade, que é a primeira linha do que a ADR-399 existe para impedir.
+def test_meses_preserva_a_casa_que_decide_o_veredito():
+    saida = _estampa(_e5_com_reserva(6, cobertura=5.6), None)
+
+    assert saida.metricas[0].valor_atual == "5,6 meses"
+    assert saida.metricas[0].target == "≥ 6,0 meses"

@@ -291,3 +291,51 @@ def test_cobertura_de_renda_passiva_sem_medicao_e_orfa_nunca_zero() -> None:
     assert com["limiar"] == 100.0 and com["procedencia"] == PROCEDENCIA_CANONICO
     assert com["operador"] == ">=" and com["base"] == "despesa_essencial_mensal_12m"
     assert sem["limiar"] is None and sem["motivo"], "status degradado tem de suprimir o alvo"
+
+
+# Achados da sessão da A40.l90 sobre o critério de aceite DESTA lane: o §Escopo chaveia em
+# `procedencia: null` para o item perder o comparador, mas há dois jeitos de o comparador
+# ser ilícito sem a procedência ser nula.
+
+
+def test_alvo_de_reserva_nao_usa_o_cracha_da_familia_para_doutrina() -> None:
+    """`meses_alvo` vem de `scoring.json` chaveado por perfil de renda OBSERVADA
+    (`_perfil_por_pct`), e não existe leitor de `Goal(RESERVA_EMERGENCIA)` no pipeline.
+    Carimbar `goal_declarado` faria a precedência da ADR-399 D2 — declarado vence
+    doutrina — operar sobre uma afirmação falsa, na direção que absolve a família."""
+    alvo = build_kpi_targets(_e5(), scoring=SCORING)["reserva_cobertura_meses"]
+
+    assert alvo["procedencia"] == PROCEDENCIA_CANONICO
+    assert "scoring.json" in alvo["ref"], "a procedência tem de apontar a fonte real"
+
+
+_CAMBIAL_APURADO = {
+    "exposicao_cambial": {
+        "tier": "verde",
+        "pct_investivel_financeiro": 12.0,
+        "componentes": {"caixa_fx": {"cobertura": "apurado"}},
+    }
+}
+_CAMBIAL_SUPRIMIDO = {
+    "exposicao_cambial": {
+        "tier": "indeterminado",
+        "pct_investivel_financeiro": 0.0,
+        "componentes": {
+            "caixa_fx": {"cobertura": "apurado"},
+            "carteira_lastro_estrangeiro": {"cobertura": "indeterminado"},
+        },
+    }
+}
+
+
+def test_cobertura_incompleta_suprime_o_comparador_nao_so_o_veredito() -> None:
+    """[[ADR-403]]: com universo parcial o produtor recusa o veredito (`tier`
+    indeterminado). Publicar o limiar assim mesmo faz o parecer afirmar "0% contra ≥ 10%"
+    com o SELO do produto sobre medida que o produtor não julgou — pior que o alvo
+    autorado pelo LLM, porque o carimbo é nosso."""
+    com = build_kpi_targets({**_e5(), **_CAMBIAL_APURADO}, scoring=SCORING)["exposicao_cambial"]
+    sem = build_kpi_targets({**_e5(), **_CAMBIAL_SUPRIMIDO}, scoring=SCORING)["exposicao_cambial"]
+
+    assert com["limiar"] is not None and com["procedencia"] == PROCEDENCIA_CANONICO
+    assert sem["limiar"] is None, "limiar canônico sobre medida suprimida é autoridade falsa"
+    assert sem["motivo"]
