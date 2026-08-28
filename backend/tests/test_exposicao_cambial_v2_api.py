@@ -24,13 +24,27 @@ from backend.app.models import (
 # assinatura para os testes que documentam a lacuna.
 # A40.l80: o card só julga faixa com TODOS os componentes apurados — o mesmo
 # predicado do `_tier` do E5. Sem isso, `indeterminado`.
-def _componentes(cobertura: str) -> dict:
-    return {
-        "componentes": {
-            "caixa_fx": {"valor_brl": 0.0, "cobertura": cobertura},
-            "carteira_lastro_estrangeiro": {"valor_brl": 0.0, "cobertura": cobertura},
-        }
-    }
+# A40.l80: o bloco vem do PRODUTOR, não escrito à mão. Antes ele fixava
+# `valor_brl: 0.0` e não trazia `por_moeda` — estado que produção nunca emite, e que
+# escondia a divergência de 6× entre o E5 e este card (a linha `moeda_estrangeira_irpf`
+# nasce com `moeda="BRL"` e o card a descartava). Com a fixture fabricada, nenhum dos
+# testes caía.
+#
+# `cobertura` continua sobrescrita à mão porque o produtor fixa
+# `carteira_lastro_estrangeiro` em `indeterminado` incondicionalmente (ADR-403 §D1): sem o
+# override, os ramos de tier `verde`/`amarelo`/`vermelho` seriam inalcançáveis. Eles
+# testam regime que produção HOJE não alcança — está declarado, não é acidente.
+def _componentes(cobertura: str, caixa_detalhes: list[dict], investivel: Decimal) -> dict:
+    from pipeline.domain.services.exposicao_cambial_analyzer import compute_exposicao_cambial
+
+    publicado = compute_exposicao_cambial(
+        caixa_detalhes=caixa_detalhes,
+        investimentos_atuais=None,
+        investivel_financeiro=float(investivel),
+    ).to_dict()
+    for componente in publicado["componentes"].values():
+        componente["cobertura"] = cobertura
+    return publicado
 
 
 def _patrimonio(caixa_detalhes: list[dict], investivel: Decimal, serie_corrente: bool) -> dict:
@@ -53,7 +67,7 @@ def _e5_payload(
     payload = {
         "patrimonio": _patrimonio(caixa_detalhes, investivel, serie_corrente),
         "investimentos": {"total_financeiro": str(investivel), "tabela_classes": []},
-        "exposicao_cambial": _componentes(cobertura),
+        "exposicao_cambial": _componentes(cobertura, caixa_detalhes, investivel),
     }
     assert "dados" not in payload["investimentos"], (
         "o E5 não publica posições individuais — se passou a publicar, ligue o braço de "
@@ -222,6 +236,60 @@ async def test_exposicao_cambial_aggregates_caixa_estrangeira(auth_client: Async
     assert data["tier"] == "verde"  # 10% bate threshold
     moedas = {pm["moeda"]: pm["valor_brl"] for pm in data["por_moeda"]}
     assert moedas == {"USD": "50000.00"}
+
+
+# A linha do IRPF: já convertida, logo `moeda == "BRL"` — e era por ela que o card divergia.
+_CAIXA_COM_IRPF = [
+    {"conta": "Wise USD", "moeda": "USD", "valor_brl": 100000.0},
+    {
+        "tipo": "moeda_estrangeira_irpf",
+        "conta": "deposito em dolar",
+        "moeda": "BRL",
+        "valor_brl": 500000.0,
+    },
+]
+
+
+def _PAYLOAD_COM_IRPF() -> dict:
+    return _e5_payload(posicoes=[], caixa_detalhes=_CAIXA_COM_IRPF, investivel=Decimal("5000000"))
+
+
+# A40.l80 §Prova de fecho (P1): nenhum teste alimentava linha `moeda_estrangeira_irpf`, e
+# era por ela que o card divergia do produtor em 6×. `moeda` é UNIDADE DE MEDIDA
+# ([[ADR-245]] §L3) — a linha nasce com `"BRL"` porque o saldo já vem convertido —, e o
+# card a classificava como "não é exposição".
+@pytest.mark.asyncio
+async def test_card_publica_o_MESMO_numero_que_o_produtor(auth_client: AsyncClient, db):
+    """Paridade E5 ↔ card sobre a linha que o card descartava."""
+    from pipeline.domain.services.exposicao_cambial_analyzer import compute_exposicao_cambial
+
+    do_produtor = compute_exposicao_cambial(
+        caixa_detalhes=_CAIXA_COM_IRPF, investimentos_atuais=None, investivel_financeiro=5_000_000.0
+    ).to_dict()
+    await _seed_e5_artifact(db, auth_client.ws_id, _PAYLOAD_COM_IRPF())
+
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert Decimal(data["total_brl"]) == Decimal(str(do_produtor["total_brl"]))
+    assert data["pct_investivel_financeiro"] == do_produtor["pct_investivel_financeiro"]
+    assert {pm["moeda"] for pm in data["por_moeda"]} == {
+        linha["moeda"] for linha in do_produtor["por_moeda"]
+    }
+
+
+@pytest.mark.asyncio
+async def test_a_linha_do_irpf_entra_no_numerador(auth_client: AsyncClient, db):
+    """Sem ela o card publicaria 2,0% onde o produtor publica 12,0% — 6×, subdeclarando."""
+    await _seed_e5_artifact(db, auth_client.ws_id, _PAYLOAD_COM_IRPF())
+
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert data["pct_investivel_financeiro"] == 12.0, "a linha do IRPF saiu do numerador"
+    assert Decimal(data["total_brl"]) == Decimal("600000.00")
 
 
 @pytest.mark.asyncio

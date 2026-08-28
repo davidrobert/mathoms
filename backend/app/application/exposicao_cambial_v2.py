@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.base_declarada import (
     cobertura_apurada,
     denominador_declarado,
+    por_moeda_publicado,
     serie_corrente,
 )
 from backend.app.models import PipelineArtifact
@@ -55,6 +56,8 @@ class _E5Inputs:
     base_disponivel: bool
     cobertura_apurada: bool = False
     serie_corrente: bool = False
+    # A40.l80: o `por_moeda` que o PRODUTOR publicou, não recomputado aqui.
+    caixa_do_artefato: tuple[tuple[str, Decimal], ...] = ()
 
 
 # A perna de supressão é de COBERTURA DE COMPONENTE, não de pct: o E5 devolve
@@ -230,19 +233,13 @@ def _aggregate_positions(
 
 
 def _aggregate_caixa(
-    caixa_detalhes: list[dict],
+    inputs: _E5Inputs,
 ) -> tuple[dict[str, Decimal], list[ExposicaoCambialAtivoDTO]]:
     por_moeda: dict[str, Decimal] = {}
-    contribuintes: list[ExposicaoCambialAtivoDTO] = []
-    for d in caixa_detalhes or []:
-        moeda = str(d.get("moeda") or "").upper()
-        if not moeda or moeda == "BRL":
-            continue
-        valor = _to_decimal(d.get("valor_brl"))
-        if valor <= Decimal(0):
-            continue
-        por_moeda[moeda] = por_moeda.get(moeda, Decimal(0)) + valor
-        contribuintes.append(_caixa_to_dto(d))
+    for moeda, valor in inputs.caixa_do_artefato:
+        if moeda:
+            por_moeda[moeda] = por_moeda.get(moeda, Decimal(0)) + valor
+    contribuintes = [_caixa_to_dto(d) for d in inputs.caixa_detalhes or []]
     return por_moeda, contribuintes
 
 
@@ -305,6 +302,7 @@ def _extract_e5_inputs(artifact: PipelineArtifact) -> _E5Inputs:
     return _E5Inputs(
         posicoes=_posicoes_do_payload(payload.get("investimentos")),
         caixa_detalhes=patrimonio.get("caixa_detalhes") or [],
+        caixa_do_artefato=por_moeda_publicado(payload.get("exposicao_cambial")),
         investivel_denom=denom,
         cobertura_apurada=cobertura_apurada(payload.get("exposicao_cambial")),
         serie_corrente=serie_corrente(patrimonio),
@@ -372,7 +370,7 @@ async def _aggregate_all(
     inputs = _extract_e5_inputs(artifact)
     catalog = await _load_catalog(db, version=1)
     overrides = await _load_overrides(db, workspace_id)
-    por_caixa, caixa_dtos = _aggregate_caixa(inputs.caixa_detalhes)
+    por_caixa, caixa_dtos = _aggregate_caixa(inputs)
     por_ativos, ativo_dtos = _aggregate_positions(inputs.posicoes, catalog, overrides)
     return _merge_por_moeda(por_caixa, por_ativos), caixa_dtos + ativo_dtos, inputs
 

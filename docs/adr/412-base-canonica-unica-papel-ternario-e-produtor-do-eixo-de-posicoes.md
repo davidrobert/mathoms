@@ -5,7 +5,7 @@ title: "Base canônica única para carteira financeira, `Papel` ternário e prod
 status: Decidido
 phase: A40.l80
 date: "2026-08-25"
-amended_at: ["2026-08-25", "2026-08-28"]
+amended_at: ["2026-08-25", "2026-08-28", "2026-08-29"]
 relates_to:
   - "[[ADR-279]]"
   - "[[ADR-335]]"
@@ -34,6 +34,10 @@ tags:
 > perde a retenção** — a razão nasce advisory; a **D6(b) troca de régua**; a **D7
 > ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
 > ganha obrigação recíproca** para superfície read-time.
+>
+> **Emenda 5 (2026-08-29):** a §D8 mandava a superfície read-time **ler** o marcador de
+> série e degradar — e não proibiu **recomputar** o número que o marcador rotula. Foi por
+> esse vão que o card cambial publicou 2,0% contra os 12,0% do produtor. Ver §E10.
 >
 > **`Decidido` em 2026-08-28**, com **§Escopo do flip** declarando em lista fechada o que
 > esta decisão cobre e o que **não** cobre. As duas emendas que o cabeçalho exigia foram
@@ -601,3 +605,36 @@ em três vocabulários. O detector correspondente — todo campo cujo nome case
 `^base($|_)|_base$` tem `enum`/`$ref` ou consta de allowlist com o eixo nomeado — é lane
 nova, dono `data-engineer`. É o mesmo mecanismo que a §E9 já nomeou: *base nova toca três
 lugares enforçados e um não-enforçado, e é o não-enforçado que envelhece calado.*
+
+## Emenda 5 — o vão da §D8: ler o marcador não basta (2026-08-29)
+
+### E10 — superfície read-time só recomputa a perna que tem input read-time
+
+A §D8 construiu `base_versao` para impedir "híbrido sem rótulo" e mandou a superfície
+read-time **ler** o marcador e degradar. `exposicao_cambial_v2.py` fazia isso — e
+**recomputava o numerador ao mesmo tempo**, que é o híbrido com aparência de rotulado: o
+marcador rotula a computação do **produtor**, e a superfície o colava na sua própria.
+
+**Medido:** o E5 publicava **12,0%** e o card **2,0%** para a mesma família, no mesmo badge.
+O card filtrava a perna de caixa por `moeda != "BRL"`, usando como classificador de
+exposição o campo que a [[ADR-245]] §L3 decidiu ser **unidade de medida** — a linha
+`moeda_estrangeira_irpf` nasce em BRL porque o saldo já vem convertido.
+
+O erro não é "conservador": a linha continua no **denominador** de todas as bases, então
+`(N−x)/D` fica **estritamente abaixo** das duas leituras coerentes. E o custo é de conselho —
+dizer "você tem 2%" empurra **compra** de moeda forte (IOF, spread, evento tributário) para
+uma família que já tem 12%.
+
+**A regra:** superfície read-time **só recomputa a perna que tem input read-time**; toda
+outra ela **consome** do artefato. Corolário: importar o predicado do produtor **não basta**
+quando o produtor é predicado **+ inferência** — aqui, importar só `_is_caixa_me` faria 83%
+da exposição sair rotulada `BRL` no `por_moeda`.
+
+**Consequência para a [[ADR-403]] §D1:** o bloco `componentes`/`por_moeda` deixa de ser
+apenas evidência publicada e passa a ser **contrato consumido** por uma segunda superfície.
+Mudança de blast radius, registrada por emenda de uma linha lá.
+
+**O que esta emenda NÃO fecha, e tem dono:** a perna de posições do card é **código morto** —
+`_posicoes_do_payload` lê `investimentos["dados"]`, chave que o schema de `investimentos` não
+tem, então ela devolve `[]` sempre. Hoje é inofensiva; vira híbrido no dia em que a fonte for
+ligada ([[ADR-224]] §5). Dono: `data-engineer`.
