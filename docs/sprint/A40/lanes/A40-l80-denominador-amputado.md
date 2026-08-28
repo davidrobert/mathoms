@@ -213,8 +213,20 @@ PR3b, mantido aqui como registro do porquê):
 - **Caracterizar o E5 em `tests/unit/pipeline/test_validation_block_policy.py`** —
   é o quarto produtor divergente de política de pausa e o único não coberto;
   `valid = not reasons` ignora `BLOCKING_CODES`.
-- **`BASE_VERSAO_CORRENTE` nunca foi bumpado, e um PR desta lane mudou o valor de
-  base publicada sem ele** — a fronteira de série da [[ADR-412]] §D8 existe para impedir
+- **✅ FECHADO (#1798) — `BASE_VERSAO_CORRENTE` nunca bumpado.** O remédio não foi
+  bumpar: um escalar **não retro-rotula** (fundiria a janela defeituosa com a correta,
+  marcaria todo o corpus como não-corrente e degradaria o card cambial sem corrigir um
+  centavo), e aquilo **não foi mudança de significado, foi bug** — a base publicava
+  `valor_brl` contradizendo o `termos` ao lado dela. Entraram **G1** (`bases_reproduzem`:
+  toda base soma os próprios termos em cents, sem golden e sem rebaseline jamais) e **G2**
+  (congela `TERMOS_DA_BASE` por série; termo de base existente exige bump, membro novo
+  não). Achado no caminho: `cat2_efetivo` **não era publicado** embora fosse termo de duas
+  bases — a promessa da §D1 de auditar "só do payload" era falsa para 2 das 6.
+  **Fica aberto, menor:** `_piso_produtivo` (`e5_analyzer_adapter.py:198`) lê `valor_brl`
+  cru e poderia exigir reprodução antes de consumir; a semântica da degradação é decisão
+  de domínio e não foi inventada aqui. Dono: `data-engineer`.
+- ~~**`BASE_VERSAO_CORRENTE` nunca foi bumpado, e um PR desta lane mudou o valor de
+  base publicada sem ele**~~ (histórico abaixo, preservado) — a fronteira de série da [[ADR-412]] §D8 existe para impedir
   "híbrido sem rótulo", e foi isso que embarcou. `git log -S` mostra a constante definida
   no #1727 e **nunca mais tocada**; o #1757 (`891c2424`) trocou `_somar_termos` por
   `_valor_da_base`, que resolve referência entre bases — o **valor** das bases derivadas
