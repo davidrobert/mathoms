@@ -54,6 +54,15 @@ _NON_MONETARY_EXACT = frozenset(
         "taxa_poupanca_recorrente",
         "taxa_poupanca_total",
         "meses_alvo",  # alvo da reserva em meses (A28.l1), não R$
+        # A40.l93: valor-alvo de `kpi_targets.*`. A unidade mora no IRMÃO `unidade`
+        # (pct | pct_aa | meses | ano | ratio_0_1), nunca no nome — nenhum sufixo a
+        # carrega, então a entrada é exata, como `saldo_ano_referencia`. Monetário-por-
+        # default publicava 4 alvos ×100 no snapshot do view-model: 50 (pct) como
+        # R$ 5.000, 10 (pct) como R$ 1.000, 20 (pct) como R$ 2.000 e — o pior —
+        # 18 MESES como R$ 1.800. A isenção é segura enquanto nenhum membro do enum de
+        # `unidade` for monetário, e isso é asserido em
+        # tests/test_parecer_metrica_stamping.py, não confiado.
+        "limiar",
         # ADR-360 — proveniência do Monte Carlo. Monetário-por-default trataria
         # `seed_usado=360` como R$ 3,60 e reportaria delta_cents fantasma.
         "seed_usado",

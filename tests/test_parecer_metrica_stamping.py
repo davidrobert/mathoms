@@ -277,3 +277,36 @@ def test_meses_preserva_a_casa_que_decide_o_veredito():
 
     assert saida.metricas[0].valor_atual == "5,6 meses"
     assert saida.metricas[0].target == "≥ 6,0 meses"
+
+
+# `limiar` está isento do classificador monetário do `golden_diff` (A40.l93) porque a
+# unidade mora no irmão `unidade`, e nenhum membro do enum é dinheiro. No dia em que um
+# KPI publicar alvo em R$, a isenção vira o bug de volta EM SILÊNCIO — este teste o
+# transforma em vermelho no commit que o introduz. É a asserção mais barata do pacote.
+def _golden_diff_module():
+    """Carrega `dev/golden_diff.py` fora de pacote, como o snapshot do view-model faz."""
+    import importlib.util
+    import sys
+    from pathlib import Path as _P
+
+    raiz = _P(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("golden_diff", raiz / "dev" / "golden_diff.py")
+    modulo = importlib.util.module_from_spec(spec)
+    # Registrar ANTES de executar: os `@dataclass` do módulo resolvem anotações via
+    # `sys.modules[cls.__module__]`. Mesmo padrão de test_report_view_model_snapshot.py.
+    sys.modules["golden_diff"] = modulo
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+def test_isencao_de_limiar_no_golden_diff_exige_enum_de_unidade_nao_monetario():
+    golden_diff = _golden_diff_module()
+
+    assert not golden_diff.is_monetary("kpi_targets.reserva_cobertura_meses.limiar")
+    # Se `limiar` deixar de ser isento, a asserção acima cai e este teste some junto —
+    # daí o par: a isenção só se justifica enquanto TODA unidade for adimensional.
+    monetarias = {"brl", "usd", "eur", "reais", "moeda"}
+    assert not (_enum_do_schema("unidade") & monetarias), (
+        "unidade monetária no enum + `limiar` isento no golden_diff = alvo em R$ lido "
+        "como número puro, sem ninguém acusar"
+    )
