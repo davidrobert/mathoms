@@ -8,132 +8,23 @@ from decimal import Decimal
 import pytest
 from httpx import AsyncClient
 
+from backend.app.application.exposicao_cambial_v2 import _tier
 from backend.app.models import (
     AssetCatalog,
     PipelineArtifact,
     PipelineRun,
     WorkspaceAssetOverride,
 )
-
-
-# Até 2026-08 esta fixture fabricava `patrimonio_full`/`investimentos_atuais`, nomes de
-# variável interna do domínio. Nenhum artefato jamais os teve: a fixture e o código
-# compartilhavam a mesma crença errada, e a suíte ficou verde três meses sobre um
-# endpoint que devolvia zero em produção. `posicoes` não tem onde morar — o E5 publica
-# agregados, não posições individuais (elas vivem no E4); o parâmetro segue na
-# assinatura para os testes que documentam a lacuna.
-# A40.l80: o card só julga faixa com TODOS os componentes apurados — o mesmo
-# predicado do `_tier` do E5. Sem isso, `indeterminado`.
-# A40.l80: o bloco vem do PRODUTOR, não escrito à mão. Antes ele fixava
-# `valor_brl: 0.0` e não trazia `por_moeda` — estado que produção nunca emite, e que
-# escondia a divergência de 6× entre o E5 e este card (a linha `moeda_estrangeira_irpf`
-# nasce com `moeda="BRL"` e o card a descartava). Com a fixture fabricada, nenhum dos
-# testes caía.
-#
-# `cobertura` continua sobrescrita à mão porque o produtor fixa
-# `carteira_lastro_estrangeiro` em `indeterminado` incondicionalmente (ADR-403 §D1): sem o
-# override, os ramos de tier `verde`/`amarelo`/`vermelho` seriam inalcançáveis. Eles
-# testam regime que produção HOJE não alcança — está declarado, não é acidente.
-def _componentes(cobertura: str, caixa_detalhes: list[dict], investivel: Decimal) -> dict:
-    from pipeline.domain.services.exposicao_cambial_analyzer import compute_exposicao_cambial
-
-    publicado = compute_exposicao_cambial(
-        caixa_detalhes=caixa_detalhes,
-        investimentos_atuais=None,
-        investivel_financeiro=float(investivel),
-    ).to_dict()
-    for componente in publicado["componentes"].values():
-        componente["cobertura"] = cobertura
-    return publicado
-
-
-def _patrimonio(caixa_detalhes: list[dict], investivel: Decimal, serie_corrente: bool) -> dict:
-    # str porque JSON column não serializa Decimal nativamente; _to_decimal lê string corretamente
-    out = {"caixa_detalhes": caixa_detalhes, "investivel_financeiro": str(investivel)}
-    if serie_corrente:
-        out["base_versao"] = 1
-    return out
-
-
-def _e5_payload(
-    *,
-    posicoes: list[dict],
-    caixa_detalhes: list[dict],
-    investivel: Decimal,
-    cobertura: str = "apurado",
-    serie_corrente: bool = True,
-) -> dict:
-    """Shape REAL do artefato E5 — as chaves que `e5_serialization` emite."""
-    payload = {
-        "patrimonio": _patrimonio(caixa_detalhes, investivel, serie_corrente),
-        "investimentos": {"total_financeiro": str(investivel), "tabela_classes": []},
-        "exposicao_cambial": _componentes(cobertura, caixa_detalhes, investivel),
-    }
-    assert "dados" not in payload["investimentos"], (
-        "o E5 não publica posições individuais — se passou a publicar, ligue o braço de "
-        "ativos do V2 em vez de reintroduzir a fixture fictícia"
-    )
-    return payload
-
-
-def _pos_ivvb11(montante: Decimal) -> dict:
-    return {
-        "ticker": "IVVB11",
-        "descricao": "IVVB11",
-        "valor": str(montante),
-        "tipo": "Internacional",
-        "classe": "Internacional",
-    }
-
-
-def _caixa_usd(conta: str, montante: Decimal) -> dict:
-    return {"conta": conta, "moeda": "USD", "valor_brl": str(montante), "saldo_original": "0"}
-
-
-async def _seed_e5_artifact(db, workspace_id: str, payload: dict) -> PipelineArtifact:
-    run = PipelineRun(
-        workspace_id=workspace_id,
-        status="success",
-    )
-    db.add(run)
-    await db.flush()
-    art = PipelineArtifact(
-        workspace_id=workspace_id,
-        pipeline_run_id=run.id,
-        stage="analyze_finances",
-        artifact_key="analise_financeira",
-        content_json=payload,
-    )
-    db.add(art)
-    await db.commit()
-    return art
-
-
-async def _seed_override(db, workspace_id: str, match_kind: str, key: str, moeda: str) -> None:
-    override = WorkspaceAssetOverride(
-        workspace_id=workspace_id,
-        match_kind=match_kind,
-        asset_match_key=key,
-        lastro_moeda=moeda,
-        override_source="user_manual",
-    )
-    db.add(override)
-    await db.commit()
-
-
-async def _seed_catalog_entry(db, *, ticker: str, lastro_moeda: str = "USD") -> None:
-    """Seed direto na tabela (test DB usa Base.metadata.create_all, sem rodar seed da migration)."""
-    entry = AssetCatalog(
-        catalog_version=1,
-        ticker=ticker,
-        cnpj=None,
-        match_keyword=None,
-        asset_class="Internacional",
-        lastro_moeda=lastro_moeda,
-        lastro_source="catalog",
-    )
-    db.add(entry)
-    await db.commit()
+from backend.tests.helpers.exposicao_cambial_fixtures import (
+    _caixa_usd,
+    _componentes,
+    _e5_payload,
+    _patrimonio,
+    _pos_ivvb11,
+    _seed_catalog_entry,
+    _seed_e5_artifact,
+    _seed_override,
+)
 
 
 @pytest.mark.asyncio
@@ -376,6 +267,53 @@ async def test_card_suprime_veredito_quando_o_e5_recusa(auth_client: AsyncClient
     # A MEDIDA continua publicada — suprime-se o veredito, nunca o número.
     assert data["total_brl"] is not None
     assert data["pct_investivel_financeiro"] is not None
+
+
+# Tabela inteira em vez do caso único: o defeito era de ORDEM entre duas pernas, e
+# ordem só se prova varrendo o produto delas. As duas primeiras linhas são o par que
+# discrimina — mesma cobertura recusada, `has_data` opostos.
+@pytest.mark.parametrize(
+    ("has_data", "cobertura_apurada", "serie_corrente", "esperado"),
+    [
+        (False, False, True, "indeterminado"),
+        (True, False, True, "indeterminado"),
+        (False, True, False, "indeterminado"),
+        (True, True, False, "indeterminado"),
+        (False, True, True, "empty"),
+        (True, True, True, "verde"),
+    ],
+)
+def test_recusa_tem_precedencia_sobre_vazio(has_data, cobertura_apurada, serie_corrente, esperado):
+    """`indeterminado` ("não sei") vence `empty` ("não tem") em toda combinação."""
+    tier = _tier(99.0, has_data, cobertura_apurada=cobertura_apurada, serie_corrente=serie_corrente)
+    assert tier == esperado
+
+
+# O par `cobertura=indeterminado ∧ total=0` nunca era montado: as duas fixtures de
+# supressão semeavam R$ 60.000 de caixa, então `has_data` era sempre True e a ordem das
+# pernas ficava indistinguível. Sobre esse par o card devolvia `empty`, e a UI troca o
+# badge pela frase "Nenhum ativo com lastro fora do real": afirmação positiva de ausência
+# sobre a perna que o produtor recusou apurar. O produtor decide ao contrário e diz por
+# quê em `tests/unit/pipeline/test_exposicao_cambial_analyzer.py` — "sem posições
+# medidas, 'sem exposição' seria afirmação".
+@pytest.mark.asyncio
+async def test_numerador_zerado_nao_apaga_a_recusa_do_produtor(auth_client: AsyncClient, db):
+    """Mata: devolver a perna de `has_data` para antes da de cobertura em `_tier`."""
+    payload = _e5_payload(
+        posicoes=[],
+        caixa_detalhes=[],
+        investivel=Decimal("500000"),
+        cobertura="indeterminado",
+    )
+    await _seed_e5_artifact(db, auth_client.ws_id, payload)
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert data["total_brl"] in (0, "0", "0.00", 0.0)
+    assert (
+        data["tier"] == "indeterminado"
+    ), "numerador zerado sobre cobertura não apurada é 'não sei', nunca 'não tem'"
 
 
 @pytest.mark.asyncio

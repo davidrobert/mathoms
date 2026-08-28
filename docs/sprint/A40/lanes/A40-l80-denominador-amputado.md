@@ -104,7 +104,26 @@ quatro predicados medíveis no lugar dele; dois estão em `main`:
 | **P1** | paridade de definição entre os dois produtores do numerador | ✅ [#1794](https://github.com/davidrobert/mathoms/pull/1794) — o card **consome** o `por_moeda` do artefato |
 | **P2** | frescor mata a prescrição dimensionada, **nunca** a medida | ✅ [#1803](https://github.com/davidrobert/mathoms/pull/1803) — `alvo_moeda_forte_brl` some com motivo quando há linha `baseline_irpf`; pct e total ficam |
 | **P3** | o **sujeito** na capa: com ≥3 prescrições suprimidas pela mesma causa, manchete única com tarefa única | ❌ componente novo — [[ADR-412]] §Emenda E3 já o desenha |
-| **P4** | projeção, não pós-LLM: nenhuma label reensina limiar | 🟡 [#1780](https://github.com/davidrobert/mathoms/pull/1780) levou de 2 para 1. **O sobrevivente é o piso**, não dívida: `diagnostico_confianca.nivel` mantém os degraus por decisão da [[ADR-353]], cujo hint manda "não recalcule" |
+| **P4** | projeção, não pós-LLM: nenhuma label reensina limiar | 🟡 [#1780](https://github.com/davidrobert/mathoms/pull/1780) levou de 2 para 1, e o sobrevivente **é acionável** — ver a correção abaixo |
+
+> **Correção (2026-08-28) — o "piso" do P4 era auto-atribuição minha.** Escrevi
+> nesta tabela que o degrau sobrevivente ficava "por decisão da [[ADR-353]], cujo hint
+> manda 'não recalcule'". Medido: a [[ADR-353]] está em **`status: Proposto`** — não há
+> decisão —, e `grep -ci recalcul` nela dá **0**. O hint mora em
+> `config/prompts/parecer_planejador.yaml:268`, texto que a **própria A40** escreveu na
+> l83. Atribuí a uma ADR o que eu mesmo tinha posto no prompt.
+>
+> O que sobrevive da minha conclusão: a escada 10/30 **tem** dono real — a [[ADR-353]]
+> a define e nomeia as constantes `NAO_IDENTIFICADO_PARCIAL_PCT` /
+> `NAO_IDENTIFICADO_INSUFICIENTE_PCT`, e o `_CANONICOS` do
+> `kpi_target_catalog.py` já declara o **leitor único** por `ref`. Então a
+> **instrução** ("leia o veredito do motor, não recalcule") fica.
+>
+> O que cai: a **régua**. O `yaml:250` soletra `>10%` / `>30%` dentro do label de
+> projeção — quarta cópia de uma constante que já tem leitor único declarado, e é
+> exatamente o que o P4 proíbe. Logo o P4 **não está no piso**: sai a régua do label,
+> fica a instrução: limiar em label de prompt é **input do modelo**, não documentação —
+> o defeito é de **projeção**, e eu o reclassifiquei como doutrina alheia.
 
 **A raiz do P2 era de publicação, não de regra**, e vale para quem pegar o P3: `CaixaDetalhe`
 já carregava `fonte="baseline_irpf"`, e `_detalhes_caixa` publicava o **nome da conta**
@@ -360,6 +379,7 @@ Seria fix mal-mirado com gate verde por cima.
 
 | C16 | §Prova de fecho: "nenhum `pontos_fortes` se apoia em banda cuja base tenha fatia órfã acima do piso" | lida como **magnitude**, a regra é **inerte e de sinal trocado**. O numerador (`caixa_fx`) está nas duas bases (`caixa_total_brl` é termo comum); a base-piso é **estritamente menor**; e o veredito é `>=` numa escada **sem teto** (`_tier_from_pct`). Logo `pct_piso >= pct_cheia` **sempre** — o pct publicado **já é o extremo conservador**, e a fatia órfã só torna um elogio cambial *mais* verdadeiro. A própria lane mediu ao contrário: 12,55% (amputada) → 6,40% (cheia) — **a amputação inflava a banda** | o que sobra é o argumento de **sujeito** ("a exposição de quem"), que não é privativo do câmbio e **não se seleciona por lemma cambial**. E não há corpus: zero `pontos_fortes` de LLM no repo, `PontoForte` sem discriminador estrutural (sem `metrica_key`, sem `TemaCanonico` cambial, cambial mora em S1) — lemma nasceria cego, que foi o que matou `"trajetor"`/`"ritmo"` no guardrail de trajetória |
 | C17 | 9 datas desta lane e das ADR-403/412 stampadas **1 e 2 dias à frente** (`2026-08-29`/`2026-08-30` em `amended_at`, em heading de emenda e no placar), com todos os PRs mergeados em `2026-08-27`/`2026-08-28` | `check_adr_amendment_signal` leu o mesmo `amended_at` e ficou **verde**: ele exige que a data do heading **exista** no frontmatter, nunca que ela seja **possível**. Varredura de `docs/**` no mesmo dia: **zero dívida histórica** — os 2 arquivos ofensores eram os da sessão | datas corrigidas para o dia real (por `git blame` do commit que as trouxe) + `dev/check_future_dated_evidence.py` cobrindo `date`/`ship_date`/`amended_at` em todo `docs/**`. A/B contra `origin/main`: reprova os 2 arquivos; verde depois da correção. `date_target` fica fora — alvo de plano não é evidência |
+| C18 | o card cambial decidia `empty` **antes** de checar cobertura; o produtor decide o contrário e diz por quê no próprio teste ("sem posições medidas, 'sem exposição' seria afirmação") | com as pernas invertidas, numerador zerado sobre cobertura não apurada saía `empty` — e aí a UI **não degrada**: zera o badge e escreve *"Nenhum ativo com lastro fora do real"*. A supressão do veredito virava **afirmação positiva de ausência** sobre a perna que o produtor recusou fechar, o oposto da §E3. A fixture era o gate outra vez: os dois testes de supressão semeavam R$ 60.000, então `has_data` era sempre `True` e o par `cobertura=indeterminado ∧ total=0` nunca era montado | ordem invertida para casar o produtor + caso de **rota** (endpoint sobre o par) + **tabela-verdade** das 6 combinações — defeito de ordem só se prova varrendo o produto das pernas. Reverter deixa 3 vermelhos. Zero mudança no frontend: `indeterminado` já tinha rótulo e badge |
 
 **A metade a-montante foi entregue** ([#1780](https://github.com/davidrobert/mathoms/pull/1780)): a §D7 mandava o manifest *"parar de reensinar o limiar na label"* e isso nunca fora feito — `parecer_planejador.yaml` entregava `"Tier (verde >=10% / amarelo 5-10% / vermelho <5%)"` ao lado do `pct` cru, e o modelo declarava a faixa sozinho. Era a quarta cópia de um limiar cujo leitor único é `kpi_target_catalog` ([[ADR-399]]). Junto, `atribuicao_investimentos.{motivo,pct_carteira_financeira}` passaram a ser **projetados** — o eixo existia desde o PR3a e o modelo só via o valor em BRL. Labels que reensinam limiar: **2 → 1**.
 
