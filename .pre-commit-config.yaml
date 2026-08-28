@@ -692,6 +692,16 @@ repos:
         language: system
         files: ^docs/adr/.*\.md$
 
+      # O gate acima exige que a data do heading EXISTA em `amended_at`; nunca
+      # que ela seja possível. Em 2026-08-28 uma sessão stampou 9 datas 1 e 2
+      # dias à frente e ele ficou verde sobre as duas ADRs afetadas.
+      - id: future-dated-evidence
+        name: "docs/: date/ship_date/amended_at não podem afirmar futuro"
+        entry: python3 dev/check_future_dated_evidence.py
+        language: system
+        files: ^docs/.*\.md$
+        pass_filenames: false
+
       # `always_run`: duplicata é propriedade do CONJUNTO de notas. Gate que só
       # roda sobre os arquivos do diff não vê o par quando os dois lados chegam
       # por PRs distintos — que é exatamente como a colisão de 2026-08-19

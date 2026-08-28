@@ -5,7 +5,7 @@ title: "Exposição cambial declara seus componentes e a cobertura de cada um; v
 status: Decidido
 phase: r7.FP-5B
 date: "2026-08-19"
-amended_at: ["2026-08-29"]
+amended_at: ["2026-08-28"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-193]]"
@@ -29,7 +29,7 @@ tags:
 
 # ADR-403 — Exposição cambial declara seus componentes e a cobertura de cada um
 
-> **Emendada 2026-08-29** ([[A40.l80]] · [[ADR-412]] §E10): o bloco `componentes`/`por_moeda`
+> **Emendada 2026-08-28** ([[A40.l80]] · [[ADR-412]] §E10): o bloco `componentes`/`por_moeda`
 > da §D1 deixa de ser só **evidência publicada** e passa a ser **contrato consumido** — o
 > card read-time o lê em vez de recomputar a perna de caixa. Mudança de blast radius: quem
 > alterar a forma desse bloco move dois consumidores, não um.

@@ -537,7 +537,12 @@ Convenções:
   aceito. Caso de origem: [[ADR-345]].
 - **Emenda datada:** emendar ADR (`## Emenda/Correção/Calibração ... YYYY-MM-DD`)
   exige `amended_at: ["YYYY-MM-DD"]` no frontmatter + blockquote de sinal
-  no topo (padrão ADR-027). Gate: `dev/check_adr_amendment_signal.py`.
+  no topo (padrão ADR-027). Gate: `dev/check_adr_amendment_signal.py` — ele
+  exige que a data do heading **exista** em `amended_at`, nunca que ela seja
+  **possível**. Data no futuro é assunto do
+  `dev/check_future_dated_evidence.py`, que cobre `date`/`ship_date`/
+  `amended_at` em todo `docs/**` — esses três afirmam fato ocorrido.
+  `date_target` é alvo de plano e fica fora.
 - **Tamanho:** `size_lines` no frontmatter (auto-gerado). ADR > 150
   linhas → justificativa explícita ou split.
 - **ÍNDICE:** [`docs/_MOC/_generated/ADR_INDEX.md`](docs/_MOC/_generated/ADR_INDEX.md)
@@ -552,6 +557,7 @@ python3 dev/check_doc_filename_id.py    # filename ↔ id
 python3 dev/check_doc_links.py          # wikilinks resolvem
 python3 dev/check_adr_anchors.py        # anchors históricos + slug
 python3 dev/check_adr_amendment_signal.py  # emenda datada exige amended_at
+python3 dev/check_future_dated_evidence.py # date/ship_date/amended_at não afirmam futuro
 python3 dev/build_doc_index.py --check  # _generated/ sincronizado
 python3 dev/validate_adr_format.py      # formato Status/Data (legado, mantido)
 ```
