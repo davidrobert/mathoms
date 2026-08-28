@@ -157,3 +157,49 @@ def _valor_da_base(base: BaseFinanceira, valores: Mapping[str, float]) -> Decima
         )
         total += -valor if negativo else valor
     return total
+
+
+# A40.l80 ([[ADR-412]] §D8): degrada sobre o DEFEITO, não sobre um proxy de "o código
+# mudou". `base_versao` é escalar e não retro-rotula — entre o #1741 e o #1757 a
+# `carteira_produtiva_com_titular_identificado` publicou `valor_brl` contradizendo o
+# `termos` ao lado dela, e nenhum marcador saberia dizer qual janela estava errada. Mas o
+# bloco é AUTO-VALIDÁVEL: `termos` e `valor_brl` vivem no mesmo objeto.
+#
+# Mora no domínio, não no backend, porque `pipeline/` não pode importar `backend/` — e é
+# o `pipeline` que precisa dele para não consumir base que não reproduz.
+def bases_reproduzem(patrimonio: Mapping[str, object]) -> bool:
+    """Toda base publicada soma exatamente os termos que ela declara, em cents."""
+    bases = (patrimonio or {}).get("bases")
+    if not isinstance(bases, dict) or not bases:
+        return False
+    return all(_base_reproduz(bases[nome], bases, patrimonio) for nome in bases)
+
+
+def _base_reproduz(bloco: object, bases: dict, patrimonio: Mapping[str, object]) -> bool:
+    if not isinstance(bloco, dict) or not isinstance(bloco.get("termos"), list):
+        return False
+    soma = sum((_termo_publicado(t, bases, patrimonio) for t in bloco["termos"]), Decimal("0"))
+    return _em_cents(soma) == _em_cents(_num(bloco.get("valor_brl")))
+
+
+def _termo_publicado(termo: str, bases: dict, patrimonio: Mapping[str, object]) -> Decimal:
+    negativo = termo.startswith("-")
+    nome = termo[1:] if negativo else termo
+    vizinha = bases.get(nome)
+    bruto = (
+        _num(vizinha.get("valor_brl"))
+        if isinstance(vizinha, dict)
+        else _num((patrimonio or {}).get(nome))
+    )
+    return -bruto if negativo else bruto
+
+
+def _num(valor: object) -> Decimal:
+    try:
+        return Decimal(str(valor or 0))
+    except Exception:
+        return Decimal("0")
+
+
+def _em_cents(valor: Decimal) -> int:
+    return int((valor * 100).quantize(Decimal("1")))

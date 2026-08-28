@@ -221,3 +221,119 @@ def test_base_que_referencia_outra_resolve_o_valor():
             assert (
                 valor > bases[nome]["valor_brl"]
             ), f"{base.value} não é maior que a base que ela contém"
+
+
+# ---------------------------------------------------------------------------
+# G1 — auto-consistência: `valor_brl` soma exatamente os `termos` declarados
+# ---------------------------------------------------------------------------
+
+
+# Entre o #1741 e o #1757, `carteira_produtiva_com_titular_identificado` publicou
+# `valor_brl` = só `cat2_efetivo`, CONTRADIZENDO o `termos` ao lado dela no mesmo bloco —
+# e nenhum teste caiu, porque o que existia só checava `> 0` e monotonicidade. Este gate
+# não precisa de golden e NUNCA precisa de rebaseline: ele compara o bloco consigo mesmo.
+def test_toda_base_reproduz_sobre_os_proprios_termos():
+    from backend.app.application.base_declarada import bases_reproduzem
+    from pipeline.domain.services.bases_financeiras import publicar_bases
+
+    patrimonio = {**_VALORES, **publicar_bases(_VALORES)}
+
+    assert bases_reproduzem(patrimonio)
+
+
+# É o que acontece no golden do dogfood, onde `cat2_efetivo` é 0: a base derivada
+# reproduz mesmo se o termo sumir do payload.
+def test_o_gate_de_reproducao_nao_e_vacuoso():
+    """Cada termo cru é NÃO-NULO — com termo zero a soma bate por acidente."""
+    from pipeline.domain.services.bases_financeiras import BaseFinanceira, termos_da_base
+
+    nomes = {b.value for b in BaseFinanceira}
+    crus = {t.lstrip("-") for b in BaseFinanceira for t in termos_da_base(b)} - nomes
+
+    ausentes = sorted(t for t in crus if not _VALORES.get(t))
+    assert not ausentes, f"termos nulos na fixture tornam o gate vacuoso: {ausentes}"
+
+
+def test_valor_que_contradiz_os_termos_reprova():
+    from backend.app.application.base_declarada import bases_reproduzem
+    from pipeline.domain.services.bases_financeiras import BaseFinanceira, publicar_bases
+
+    publicado = publicar_bases(_VALORES)
+    alvo = BaseFinanceira.carteira_produtiva_com_titular_identificado.value
+    # Exatamente o defeito do #1741: a derivada publica só o termo cru.
+    publicado["bases"][alvo]["valor_brl"] = _VALORES["cat2_efetivo"]
+
+    assert not bases_reproduzem({**_VALORES, **publicado})
+
+
+def test_termo_que_some_do_payload_reprova():
+    """O leitor resolve termo cru em `patrimonio`; ausente, ele NÃO pode passar calado."""
+    from backend.app.application.base_declarada import bases_reproduzem
+    from pipeline.domain.services.bases_financeiras import publicar_bases
+
+    sem_termo = {k: v for k, v in _VALORES.items() if k != "cat2_efetivo"}
+
+    assert not bases_reproduzem({**sem_termo, **publicar_bases(_VALORES)})
+
+
+# ---------------------------------------------------------------------------
+# G2 — congelamento de DEFINIÇÃO: termo de base existente exige bump de série
+# ---------------------------------------------------------------------------
+
+# Congelado em `BASE_VERSAO_CORRENTE == 1`. O bump responde a "a DEFINIÇÃO de alguma base
+# publicada mudou?", nunca a "quantos membros o enum tem": adicionar membro é
+# número-neutro (o #1782 é prova), e bumpar nele jogaria `serie_corrente()` em `False` no
+# corpus inteiro, degradando o card cambial para `indeterminado` sem corrigir um centavo.
+_TERMOS_CONGELADOS = {
+    1: {
+        "carteira_financeira_familia": (
+            "investimentos_titular",
+            "investimentos_conjuge",
+            "investimentos_nao_atribuidos",
+            "caixa_total_brl",
+        ),
+        "carteira_produtiva_familia": ("carteira_financeira_familia", "cat2_efetivo"),
+        "carteira_com_titular_identificado": (
+            "investimentos_titular",
+            "investimentos_conjuge",
+            "caixa_total_brl",
+        ),
+        "carteira_produtiva_com_titular_identificado": (
+            "carteira_com_titular_identificado",
+            "cat2_efetivo",
+        ),
+        "carteira_produtiva_fixa": ("carteira_financeira_familia", "imoveis_investimento"),
+        "patrimonio_liquido": ("bruto", "-dividas"),
+    }
+}
+
+
+# Foi o que o #1757 fez ao trocar `_somar_termos` por `_valor_da_base`: o VALOR das
+# derivadas mudou sob `base_versao: 1` inalterado, e nada reprovou.
+def test_termo_de_base_existente_nao_muda_sem_bump_de_serie():
+    """Mudar o que uma base SIGNIFICA sem mover `base_versao` embarca híbrido sem rótulo."""
+    from pipeline.domain.services.bases_financeiras import BASE_VERSAO_CORRENTE, termos_da_base
+
+    congelado = _TERMOS_CONGELADOS.get(BASE_VERSAO_CORRENTE)
+    assert congelado is not None, (
+        f"`BASE_VERSAO_CORRENTE` virou {BASE_VERSAO_CORRENTE} e ninguém congelou os termos "
+        "desta série — acrescente a entrada em `_TERMOS_CONGELADOS`"
+    )
+
+    for base in BaseFinanceira:
+        if base.value not in congelado:
+            continue  # membro NOVO é número-neutro: entra sem bump, por decisão
+        assert termos_da_base(base) == congelado[base.value], (
+            f"`{base.value}` mudou de definição sob `base_versao={BASE_VERSAO_CORRENTE}`. "
+            "Bumpe `BASE_VERSAO_CORRENTE` e congele a série nova."
+        )
+
+
+def test_membro_novo_entra_sem_bump():
+    """A polaridade oposta: adição pura é número-neutra e NÃO pode exigir bump."""
+    from pipeline.domain.services.bases_financeiras import BASE_VERSAO_CORRENTE
+
+    congelado = _TERMOS_CONGELADOS[BASE_VERSAO_CORRENTE]
+    novos = {b.value for b in BaseFinanceira} - set(congelado)
+
+    assert all(n not in congelado for n in novos), "membro novo não pode estar no congelado"
