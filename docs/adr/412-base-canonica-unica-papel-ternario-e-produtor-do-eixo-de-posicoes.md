@@ -5,7 +5,7 @@ title: "Base canônica única para carteira financeira, `Papel` ternário e prod
 status: Decidido
 phase: A40.l80
 date: "2026-08-25"
-amended_at: ["2026-08-25", "2026-08-28", "2026-08-29", "2026-08-30"]
+amended_at: ["2026-08-25", "2026-08-28"]
 relates_to:
   - "[[ADR-279]]"
   - "[[ADR-335]]"
@@ -35,11 +35,11 @@ tags:
 > ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
 > ganha obrigação recíproca** para superfície read-time.
 >
-> **Emenda 6 (2026-08-30):** o §Escopo do flip listava como fora-de-escopo **três** itens
+> **Emenda 6 (2026-08-28):** o §Escopo do flip listava como fora-de-escopo **três** itens
 > que PRs posteriores da própria lane fecharam em horas — lista de escopo é snapshot, e
 > esta envelheceu no mesmo dia. Ver §E12.
 >
-> **Emenda 5 (2026-08-29):** a §D8 mandava a superfície read-time **ler** o marcador de
+> **Emenda 5 (2026-08-28):** a §D8 mandava a superfície read-time **ler** o marcador de
 > série e degradar — e não proibiu **recomputar** o número que o marcador rotula. Foi por
 > esse vão que o card cambial publicou 2,0% contra os 12,0% do produtor. Ver §E10.
 >
@@ -610,7 +610,7 @@ em três vocabulários. O detector correspondente — todo campo cujo nome case
 nova, dono `data-engineer`. É o mesmo mecanismo que a §E9 já nomeou: *base nova toca três
 lugares enforçados e um não-enforçado, e é o não-enforçado que envelhece calado.*
 
-## Emenda 5 — o vão da §D8: ler o marcador não basta (2026-08-29)
+## Emenda 5 — o vão da §D8: ler o marcador não basta (2026-08-28)
 
 ### E10 — superfície read-time só recomputa a perna que tem input read-time
 
@@ -643,7 +643,7 @@ Mudança de blast radius, registrada por emenda de uma linha lá.
 tem, então ela devolve `[]` sempre. Hoje é inofensiva; vira híbrido no dia em que a fonte for
 ligada ([[ADR-224]] §5). Dono: `data-engineer`.
 
-## Emenda 6 — o §Escopo do flip envelheceu no mesmo dia (2026-08-30)
+## Emenda 6 — o §Escopo do flip envelheceu no mesmo dia (2026-08-28)
 
 ### E12 — lista de escopo é snapshot, e três das seis linhas caíram em horas
 

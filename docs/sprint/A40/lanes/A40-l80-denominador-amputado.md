@@ -94,7 +94,7 @@ recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobil
 > call-sites + `make update-openapi-snapshot`. O custo alto do card é **semântico**, e é
 > outro: o numerador está em disputa.
 
-### O substituto da §Prova de fecho — placar (2026-08-30)
+### O substituto da §Prova de fecho — placar (2026-08-28)
 
 O critério original é inerte na perna da magnitude (C16). O `financial-planner` desenhou
 quatro predicados medíveis no lugar dele; dois estão em `main`:
@@ -154,7 +154,7 @@ o #1782 criou para matá-lo.
 
 ### A cambial está bloqueada por defeito maior que o rótulo (2026-08-28)
 
-> **Resolvido em 2026-08-29 ([#1794](https://github.com/davidrobert/mathoms/pull/1794)), pela decisão do `data-engineer`.** O card **consome** o
+> **Resolvido em 2026-08-28 ([#1794](https://github.com/davidrobert/mathoms/pull/1794)), pela decisão do `data-engineer`.** O card **consome** o
 > `por_moeda` do artefato em vez de recomputar — *superfície read-time só recomputa a perna
 > que tem input read-time* ([[ADR-412]] §E10). Importar o predicado **não bastava**: o
 > produtor é predicado **+ inferência de moeda**, e a opção ingênua faria 83% da exposição
@@ -359,6 +359,7 @@ Seria fix mal-mirado com gate verde por cima.
 | C15 | §Falta: "a §D9 **pede** `kpi_targets[].base` estreitado ao enum… quem pegar decide: converge ou reescreve" | a §D9 foi **reescrita in-place** por `be5adfe0` (#1713) e hoje diz o contrário; a §E5 **já decidiu**: *"Registrar a disjunção é a decisão; convergir, não"*. O ramo "converge" está morto | resta **um** ramo, não dois: reescrever o critério de Precisão. E convergir seria **falso** — `carteira_produtiva` (denominador real `investivel_financeiro + imoveis_investimento` = 73M no dogfood) ≠ `carteira_produtiva_familia` (13M), divergência de 5,6× **com o toggle IF ligado** |
 
 | C16 | §Prova de fecho: "nenhum `pontos_fortes` se apoia em banda cuja base tenha fatia órfã acima do piso" | lida como **magnitude**, a regra é **inerte e de sinal trocado**. O numerador (`caixa_fx`) está nas duas bases (`caixa_total_brl` é termo comum); a base-piso é **estritamente menor**; e o veredito é `>=` numa escada **sem teto** (`_tier_from_pct`). Logo `pct_piso >= pct_cheia` **sempre** — o pct publicado **já é o extremo conservador**, e a fatia órfã só torna um elogio cambial *mais* verdadeiro. A própria lane mediu ao contrário: 12,55% (amputada) → 6,40% (cheia) — **a amputação inflava a banda** | o que sobra é o argumento de **sujeito** ("a exposição de quem"), que não é privativo do câmbio e **não se seleciona por lemma cambial**. E não há corpus: zero `pontos_fortes` de LLM no repo, `PontoForte` sem discriminador estrutural (sem `metrica_key`, sem `TemaCanonico` cambial, cambial mora em S1) — lemma nasceria cego, que foi o que matou `"trajetor"`/`"ritmo"` no guardrail de trajetória |
+| C17 | 9 datas desta lane e das ADR-403/412 stampadas **1 e 2 dias à frente** (`2026-08-29`/`2026-08-30` em `amended_at`, em heading de emenda e no placar), com todos os PRs mergeados em `2026-08-27`/`2026-08-28` | `check_adr_amendment_signal` leu o mesmo `amended_at` e ficou **verde**: ele exige que a data do heading **exista** no frontmatter, nunca que ela seja **possível**. Varredura de `docs/**` no mesmo dia: **zero dívida histórica** — os 2 arquivos ofensores eram os da sessão | datas corrigidas para o dia real (por `git blame` do commit que as trouxe) + `dev/check_future_dated_evidence.py` cobrindo `date`/`ship_date`/`amended_at` em todo `docs/**`. A/B contra `origin/main`: reprova os 2 arquivos; verde depois da correção. `date_target` fica fora — alvo de plano não é evidência |
 
 **A metade a-montante foi entregue** ([#1780](https://github.com/davidrobert/mathoms/pull/1780)): a §D7 mandava o manifest *"parar de reensinar o limiar na label"* e isso nunca fora feito — `parecer_planejador.yaml` entregava `"Tier (verde >=10% / amarelo 5-10% / vermelho <5%)"` ao lado do `pct` cru, e o modelo declarava a faixa sozinho. Era a quarta cópia de um limiar cujo leitor único é `kpi_target_catalog` ([[ADR-399]]). Junto, `atribuicao_investimentos.{motivo,pct_carteira_financeira}` passaram a ser **projetados** — o eixo existia desde o PR3a e o modelo só via o valor em BRL. Labels que reensinam limiar: **2 → 1**.
 
