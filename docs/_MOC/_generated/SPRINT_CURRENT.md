@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-open · in_progress · blocked.
+open · in_progress.
 
 ## Open
 
@@ -27,17 +27,12 @@ open · in_progress · blocked.
 - [[A40.l80]] — Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' · priority P0 · área pipeline/financial-planning/report · branch `a40-l80-denominador-amputado`
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
+- [[A40.l90]] — A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar · priority P0 · área pipeline/financial-planning · branch `a40-l90-limiar-de-risco-le-o-catalogo`
+- [[A40.l92]] — A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora · priority P0 · área frontend/relatorio · branch `a40-l92-polaridade-do-comparador`
 
 ## In progress
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
-- [[A40.l89]] — Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica · priority P0 · área pipeline/llm · branch `a40-l89-wiring-do-catalogo-de-alvo`
-
-## Blocked
-
-_Não pegáveis. Listadas porque `blocked` que fica stale some daqui justamente quando a dependência ship e a lane vira pegável._
-
-- [[A40.l90]] — A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar · priority P0 · área pipeline/financial-planning · ⛔ dep pendente: A40.l89 (in_progress) · branch `a40-l90-limiar-de-risco-le-o-catalogo`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
