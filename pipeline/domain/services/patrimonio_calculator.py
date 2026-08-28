@@ -285,6 +285,7 @@ class PatrimonioCalculator:
                     "caixa_total_brl": caixa_total_brl,
                     "carteira_financeira_familia": investivel_financeiro,
                     "cat2_efetivo": cat2_efetivo,
+                    "imoveis_investimento": imoveis_investimento,
                     "bruto": patrimonio_bruto,
                     "dividas": total_dividas,
                 }

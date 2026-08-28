@@ -145,6 +145,10 @@ class FinancialRatios:
             "base_do_piso": BaseFinanceira.carteira_com_titular_identificado.value,
         }
 
+    # A40.l80 §Completude: `base_concentracao_imobiliaria` nomeia a base AO LADO do
+    # número, e o nome carrega o da própria razão — chave irmã genérica (`base_do_piso`
+    # já é irmã aqui) seria atribuída ao número errado. É `carteira_produtiva_fixa`, não
+    # `_familia`: o denominador é cat_2 COMPLETO e toggle-independente ([[ADR-340]]).
     def to_legacy_dict(self) -> dict:
         return {
             "taxa_poupanca_recorrente_pct": round(self.taxa_poupanca_recorrente_pct, 2),
@@ -153,6 +157,7 @@ class FinancialRatios:
             **self._autonomia_com_intervalo(),
             # C11-Fase2 / FIN-05 ([[ADR-340]]): campo canônico de concentração imobiliária.
             "concentracao_imobiliaria": round(self.concentracao_imobiliaria_pct, 2),
+            "base_concentracao_imobiliaria": BaseFinanceira.carteira_produtiva_fixa.value,
             "rentabilidade_pct": _format_pct_or_nd(self.rentabilidade_pct),
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
             "janela_referencia": self.janela_referencia,

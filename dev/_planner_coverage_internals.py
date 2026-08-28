@@ -341,6 +341,15 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     "$.patrimonio.bases.carteira_produtiva_com_titular_identificado": (
         "extremo conservador de intervalo; o parecer recebe o intervalo, nunca a ponta amputada"
     ),
+    # A40.l80 §Completude: esta base existe para AUDITAR o denominador da
+    # concentração ([[ADR-340]]) — o parecer já recebe `ratios.concentracao_imobiliaria`
+    # e o hint que nomeia a base. O valor cru é rastro de auditoria do gate
+    # `tests/test_cobertura_de_base.py`, não insumo de conselho; projetá-lo daria ao
+    # modelo um segundo número de "carteira produtiva" para confundir com o primeiro,
+    # que é exatamente o defeito que declarar a base foi feito para matar.
+    "$.patrimonio.bases.carteira_produtiva_fixa": (
+        "rastro de auditoria do denominador da concentração; o parecer recebe a razão"
+    ),
 }
 
 

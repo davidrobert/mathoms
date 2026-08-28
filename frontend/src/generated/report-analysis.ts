@@ -392,6 +392,7 @@ export type E5AnalysisArtifact = {
       "carteira_com_titular_identificado"?: BaseDeclarada;
       "patrimonio_liquido"?: BaseDeclarada;
       "carteira_produtiva_com_titular_identificado"?: BaseDeclarada;
+      "carteira_produtiva_fixa"?: BaseDeclarada;
     };
     "atribuicao_investimentos"?: AtribuicaoInvestimentos;
     "base_versao"?: number;
@@ -449,6 +450,7 @@ export type E5AnalysisArtifact = {
     "autonomia_financeira_meses"?: number;
     "cobertura_despesas_meses"?: number;
     "concentracao_imobiliaria"?: number;
+    "base_concentracao_imobiliaria"?: "carteira_produtiva_fixa";
     "piso_autonomia_financeira_meses"?: number;
     "base_do_piso"?: "carteira_financeira_familia" | "carteira_produtiva_familia" | "carteira_com_titular_identificado" | "carteira_produtiva_com_titular_identificado" | "patrimonio_liquido";
   };
