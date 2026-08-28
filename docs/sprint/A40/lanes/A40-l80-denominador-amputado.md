@@ -63,11 +63,30 @@ Morreram os dois resolvers binários sobre domínio ternário, mais um quarto
 (`atribuir_por_membro`). O card cambial parou de publicar faixa que o relatório
 recusa julgar.
 
-## Falta — PR4 e PR5
+## Falta — o resto do PR4 e o PR5
 
-**Critério de aceite: 2 de 5 fechados.** ✅ Consistência (bases publicadas com
-termos) · ✅ Corretude (intervalo + identidade). Faltam ❌ Completude, ❌ Precisão
-e ❌ Prova de fecho.
+**Critério de aceite: 2 fechados, 2 parciais, 1 refutado.** ✅ Consistência (bases
+publicadas com termos) · ✅ Corretude (intervalo + identidade) · 🟡 **Completude**
+(o gate existe e morde — [#1782](https://github.com/davidrobert/mathoms/pull/1782) —
+mas cobre **1 de 4** razões) · 🟡 **Precisão** (as duas declarações falsas medidas
+foram corrigidas em [#1769](https://github.com/davidrobert/mathoms/pull/1769); falta
+fechar `kpi_targets[].base` no schema) · ❌ **Prova de fecho** — a perna a-montante
+saiu em [#1780](https://github.com/davidrobert/mathoms/pull/1780), e a regra pós-LLM
+como o critério a escreve é **inerte e de sinal trocado** (C16).
+
+**O que falta na Completude, nomeado.** O gate (`tests/test_cobertura_de_base.py`)
+recompõe `numerador ÷ base declarada` em cents, e hoje só `concentracao_imobiliaria`
+declara. Faltam três, em ordem de custo:
+
+| razão | o que falta | custo |
+|---|---|---|
+| `exposicao_cambial.pct_investivel_financeiro` | declarar `carteira_financeira_familia`; numerador (`total_brl`) e base já são publicados | baixo — recompute fecha só do payload |
+| `ratios.autonomia_financeira_meses` | declarar a base do NUMERADOR **e publicar a despesa usada** — hoje o divisor (`despesa_consumo_brl ÷ n_meses`) não sai no bloco, então o recompute é impossível | médio |
+| `pct_investivel_financeiro` do card V2 | o DTO tem `extra="forbid"` — sem migrar o contrato, o nome da base **não tem como ser publicado nunca** | alto, e é decisão de contrato |
+
+**Fora do alcance de gate de artefato:** `HeroKpiGrid.tsx` fabrica `financeiro ÷
+liquido` no consumidor, sobre uma **quinta** base que nenhum produtor declara. O
+docstring do gate declara esse eixo como não-fechado.
 
 > **Leia §Correções (2026-08-27) antes de escrever o PR4/PR5.** Os três critérios
 > abertos estavam redigidos de formas que o código mergeado ou a própria
@@ -202,6 +221,23 @@ Seria fix mal-mirado com gate verde por cima.
 | C16 | §Prova de fecho: "nenhum `pontos_fortes` se apoia em banda cuja base tenha fatia órfã acima do piso" | lida como **magnitude**, a regra é **inerte e de sinal trocado**. O numerador (`caixa_fx`) está nas duas bases (`caixa_total_brl` é termo comum); a base-piso é **estritamente menor**; e o veredito é `>=` numa escada **sem teto** (`_tier_from_pct`). Logo `pct_piso >= pct_cheia` **sempre** — o pct publicado **já é o extremo conservador**, e a fatia órfã só torna um elogio cambial *mais* verdadeiro. A própria lane mediu ao contrário: 12,55% (amputada) → 6,40% (cheia) — **a amputação inflava a banda** | o que sobra é o argumento de **sujeito** ("a exposição de quem"), que não é privativo do câmbio e **não se seleciona por lemma cambial**. E não há corpus: zero `pontos_fortes` de LLM no repo, `PontoForte` sem discriminador estrutural (sem `metrica_key`, sem `TemaCanonico` cambial, cambial mora em S1) — lemma nasceria cego, que foi o que matou `"trajetor"`/`"ritmo"` no guardrail de trajetória |
 
 **A metade a-montante foi entregue** ([#1780](https://github.com/davidrobert/mathoms/pull/1780)): a §D7 mandava o manifest *"parar de reensinar o limiar na label"* e isso nunca fora feito — `parecer_planejador.yaml` entregava `"Tier (verde >=10% / amarelo 5-10% / vermelho <5%)"` ao lado do `pct` cru, e o modelo declarava a faixa sozinho. Era a quarta cópia de um limiar cujo leitor único é `kpi_target_catalog` ([[ADR-399]]). Junto, `atribuicao_investimentos.{motivo,pct_carteira_financeira}` passaram a ser **projetados** — o eixo existia desde o PR3a e o modelo só via o valor em BRL. Labels que reensinam limiar: **2 → 1**.
+
+**PR4 entregue** ([#1782](https://github.com/davidrobert/mathoms/pull/1782)): o gate de
+Completude achou defeito no primeiro uso. `ratios.concentracao_imobiliaria` divide por
+**73.000.000** e **nenhuma** das 5 bases publicadas continha esse valor — as quatro de
+carteira valem 13.000.000, porque `carteira_produtiva_familia` soma `cat2_efetivo` (só
+imóveis **geradores**, zera com o toggle off) enquanto a concentração usa cat_2
+**completo** e é toggle-independente ([[ADR-340]]). **5,6× sob o mesmo rótulo "carteira
+produtiva"** — o RV8-02 um nível acima, como a §"Por que isto não é somar um termo" desta
+lane previu. Entrou a 6ª base `carteira_produtiva_fixa`, número-neutra.
+
+**Duas lições do gate, para quem escrever o resto dele.** (1) **A fixture é o gate**: o
+golden do dogfood tem `nao_atribuidos = 0` e `cat2_efetivo = 0`, o que faz 4 das 6 bases
+valerem o mesmo número — recompute rodado ali passa com **qualquer** base substituída,
+inclusive a amputada. A fixture do gate sai com as seis duas-a-duas distintas, e há teste
+que verifica isso. (2) **O gate lê a declaração do produtor**, nunca um membro do enum
+escrito no teste: a primeira versão fixava o membro e **passava** com a homônima trocada
+no produtor — cega exatamente na classe que existe para pegar.
 
 **Agravante de processo, para o closeout:** a formulação refutada em C11 não é
 prosa envelhecida — ela foi **reinscrita** em `a28055a7` (#1758, 2026-08-27), dois
