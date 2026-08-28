@@ -404,32 +404,16 @@ def _paths_ausentes(payload: dict) -> dict:
     }
 
 
-# Duas chaves NÃO resolvem pelo resolver de produção, e isso é dívida DECLARADA, não
-# descuido. O estampador já as trata sem fabricar (observado ausente ⇒ sem alvo, com
-# motivo), mas publicar KPI cujo observado o parecer jamais consegue ler é defeito com
-# dono. Igualdade de CONJUNTO, não `⊆`: consertar uma sem tirá-la daqui reprova, e um
-# terceiro ofensor reprova. Allowlist que só cresce falha aberta.
-_RESOLUCAO_DIVIDA_DECLARADA = {
-    # `diagnostico_confianca` é chave top-level real do E5, mas está fora das seções de
-    # `get_e5_section` do manifest — a mesma frozenset é a `section_whitelist` do
-    # resolver. Ampliar o enum exige bump do manifest, e o bump exigia primeiro que o
-    # gate de versão cobrisse `config/prompts/*.yaml` (A40.l93, Onda 1 → Onda 3).
-    "despesas_nao_categorizadas",
-    # `alocacao_renda_fixa` SAIU em 2026-08-28 (A40.l93): a folha
-    # `derived.renda_fixa_atual_pct` publica o observado em ponto fixo e o predicado
-    # `[classe=renda_fixa]` deixou de existir. O subset do `_JSONPATH_RE` NÃO foi
-    # alargado — alargá-lo daria capacidade de filtro ao modelo para servir um
-    # consumidor interno que não precisa de query.
-}
-
-
+# A allowlist `_RESOLUCAO_DIVIDA_DECLARADA` MORREU em 2026-08-28 (A40.l93): as duas
+# chaves que ela carregava foram consertadas — `alocacao_renda_fixa` publica a folha em
+# ponto fixo `derived.renda_fixa_atual_pct`, e `diagnostico_confianca` entrou no enum de
+# `get_e5_section` (manifest 2.6.0). Sem elas a estrutura de allowlist não pode
+# sobreviver: dívida declarada que fica sem ofensor vira estado permanente protegido
+# por teste, e o próximo ofensor entra nela em vez de ser consertado.
 def test_todo_observado_path_do_catalogo_resolve_no_payload(e5_tenant_with_baseline: Path):
     """Alvo pareado a observado inexistente é FP-6 em forma pior: o comparador
     aparece com um dos lados fabricado pela ausência."""
     payload = _payload_do_run(e5_tenant_with_baseline)
     nao_resolvem = _paths_ausentes(payload)
 
-    assert set(nao_resolvem) == _RESOLUCAO_DIVIDA_DECLARADA, (
-        f"conjunto de `observado_path` irresolvíveis mudou: {nao_resolvem} "
-        f"(declarado: {sorted(_RESOLUCAO_DIVIDA_DECLARADA)})"
-    )
+    assert nao_resolvem == {}, f"`observado_path` irresolvível pelo resolver: {nao_resolvem}"
