@@ -308,3 +308,45 @@ def test_canonical_version_regex(version: str, valid: bool) -> None:
 )
 def test_suggest_bump(current: str, expected: str) -> None:
     assert gate._suggest_bump(current) == expected
+
+
+# =============================================================================
+# Ref de comparação ausente — o gate falhava ABERTO (A40.l93)
+# =============================================================================
+
+
+def _gate_com_ref(repo: Path, ref: str) -> tuple[int, str]:
+    """Roda o gate no mini-repo com ``MATHOMS_PROMPT_VERSION_BASE=<ref>``."""
+    cwd, old = os.getcwd(), os.environ.get("MATHOMS_PROMPT_VERSION_BASE")
+    os.environ["MATHOMS_PROMPT_VERSION_BASE"] = ref
+    gate.UPSTREAM_REF = ref
+    os.chdir(repo)
+    try:
+        return _capture_main([])
+    finally:
+        os.chdir(cwd)
+        if old is None:
+            os.environ.pop("MATHOMS_PROMPT_VERSION_BASE", None)
+        else:
+            os.environ["MATHOMS_PROMPT_VERSION_BASE"] = old
+        gate.UPSTREAM_REF = os.environ.get("MATHOMS_PROMPT_VERSION_BASE", "origin/main")
+
+
+# A prova de vermelho do fix: a MESMA árvore que passa sob `main` tem de reprovar
+# sob ref inexistente. Sem o par, o teste não distingue "gate ligado" de "gate mudo".
+def test_ref_inexistente_reprova_em_vez_de_passar(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    target = repo / "pipeline" / "llm" / "prompts" / "alpha.py"
+    target.write_text(
+        '"""Alpha prompt."""\n\n'
+        'PROMPT_VERSION = "1.0.1"\n\n'
+        'SYSTEM_PROMPT = """system v2"""\n'
+        'USER_PROMPT_TEMPLATE = """user v1"""\n'
+    )
+
+    assert _gate_com_ref(repo, "main")[0] == 0, "árvore de controle deveria passar"
+
+    code, err = _gate_com_ref(repo, "refs/heads/nao-existe")
+    assert code == 1
+    assert "MATHOMS_PROMPT_VERSION_BASE" in err
+    assert "refs/heads/nao-existe" in err

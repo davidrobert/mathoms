@@ -59,11 +59,29 @@ def _read_local(path: Path) -> str | None:
 
 
 def _read_upstream(path: Path) -> str | None:
-    """Lê ``{UPSTREAM_REF}:<path>``. None se arquivo é novo ou ref ausente."""
+    """Lê ``{UPSTREAM_REF}:<path>``. None quando o arquivo é novo nessa ref."""
     rc, out = _run_git(["show", f"{UPSTREAM_REF}:{path.as_posix()}"])
     if rc != 0:
         return None
     return out
+
+
+# `_read_upstream` devolvia `None` para DOIS casos — arquivo novo e ref inexistente —
+# e `_check_bump` tratava os dois como OK. Ref que não resolve desligava o gate inteiro
+# em silêncio: todo arquivo vira "novo", nenhum bump é cobrado. Hoje o único consumidor
+# é o pre-commit local (não há job de CI para este hook), onde `origin/main` costuma
+# existir — mas a condição é ambiente, não invariante, e ampliar a cobertura de um
+# instrumento que pode estar desligado é o defeito que a A40.l93 fecha nos outros três.
+def _upstream_ref_error() -> str | None:
+    """Devolve mensagem se ``UPSTREAM_REF`` não resolve para um commit."""
+    rc, _ = _run_git(["rev-parse", "--verify", "--quiet", f"{UPSTREAM_REF}^{{commit}}"])
+    if rc == 0:
+        return None
+    return (
+        f"ref de comparação {UPSTREAM_REF!r} não resolve para um commit — o gate não "
+        f"consegue saber o que mudou e falharia ABERTO. Rode `git fetch origin`, ou "
+        f"aponte MATHOMS_PROMPT_VERSION_BASE para uma ref local (ex.: HEAD)."
+    )
 
 
 def _is_prompt_module(path: Path) -> bool:
@@ -156,8 +174,12 @@ def _errors_for(path: Path) -> list[str]:
 def main(argv: list[str]) -> int:
     if os.environ.get("MATHOMS_SKIP_PROMPT_VERSION_CHECK"):
         return 0
-    files = _filter_to_prompt_files(argv) if argv else _discover_prompts()
-    errors = [e for f in files for e in _errors_for(f)]
+    ref_error = _upstream_ref_error()
+    if ref_error:
+        errors = [ref_error]
+    else:
+        files = _filter_to_prompt_files(argv) if argv else _discover_prompts()
+        errors = [e for f in files for e in _errors_for(f)]
     if not errors:
         return 0
     print("ERRO: gate PROMPT_VERSION (W2-T05 · ADR-233) — falhou:", file=sys.stderr)
