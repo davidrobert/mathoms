@@ -29,8 +29,41 @@ tags:
 > [[PIPELINE-REVIEWS-active]] §r9 — **PV9-06** (Alto, P0).
 > Cru + síntese: `storage/<uuid>/reviews/U1-2026-08-26/` (off-git).
 
-> **Muta E5 ⇒ zera o contador de 2 re-runs.** Serializada atrás da [[A40.l89]]; a ordem é
-> forçada, não preferência — ver §Fora de escopo lá.
+> **Muta E5 ⇒ zera o contador de 2 re-runs.** Serializada atrás da [[A40.l89]] — que
+> **entregou** (`shipped`, `ship_pr: 1779`), destravando esta lane.
+
+> ## Leia antes de pegar (2026-08-28)
+>
+> A lane virou `open` e aparece no `SPRINT_CURRENT`. O `lane_pickup` imprime 4 linhas e
+> **nenhuma** do corpo, então estas duas ficam aqui em cima de propósito.
+>
+> **1. O §Escopo 1-4 foi reescrito em 2026-08-27. Não execute a redação de memória.**
+> Três itens eram inexecutáveis e **um era falso** — o §Escopo 4 declarava o invariante
+> `count(kpi_targets rompidos) > 0 ⟹ len(pontos_urgentes) > 0` como *"Falha hoje"*, e ele
+> **passa**, com o defeito inteiro presente (3 limiares rompidos, 2 pontos urgentes). O
+> inexecutável você descobre tentando; o falso você **herda**. Texto original preservado
+> em §Correção datada §C-5; o porquê de cada um em §Ataque medido §1-§5.
+>
+> **2. O §Critério "delta de golden declarado" promete um gate que não existe — e o hook
+> que deveria enforçá-lo roda VERDE E CEGO.** Não é gate ausente, que se percebe: o
+> `golden-rebaseline-isolation` roda no pre-commit (`.pre-commit-config.yaml:287`) e
+> reporta sucesso sobre um caminho que ele não olha, porque
+> `dev/check_golden_rebaseline_isolation.py:23` fixa
+> `_GOLDEN_PREFIX = "tests/fixtures/pipeline_golden/"` — e o golden desta lane é
+> `backend/tests/snapshots/dogfood_view_model.json`.
+>
+> **Condição de saída, com duas metades — satisfazer uma só deixa a promessa igualmente
+> falsa:**
+>
+> | falta | o que sobra se só ela for consertada |
+> |---|---|
+> | `_GOLDEN_PREFIX` cobrir `backend/tests/snapshots/` | o hook deixa de ser cego, e **nada produz** o delta |
+> | `golden_diff` ser invocado em **algum** workflow (hoje: zero em `.github/`, `Makefile` e `.pre-commit-config.yaml`) | há produtor, e o hook **segue sem enxergar** o arquivo |
+>
+> **Dono:** [[A40.l80]] (`open`, dona assinada de `dev/golden_diff.py`). Enquanto as duas
+> metades não entrarem, quem executar esta lane vai declarar o delta na prosa do PR e
+> chamar isso de enforçado. Mesmo argumento, escrito por inteiro, no §Critério da
+> [[A40.l89]] (bloco *"editorial, não enforçada"*).
 
 ## O fato, medido (2026-08-26)
 
