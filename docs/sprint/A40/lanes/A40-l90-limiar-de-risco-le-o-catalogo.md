@@ -99,11 +99,28 @@ medida sobre os runs de referência **declarada antes do flip** (doutrina WARN-f
    **quatro** (a redação anterior dizia três e omitia `despesas_nao_categorizadas`), mas o
    número muda quando o catálogo mudar — e mudou: `METRICA_KEYS` foi de 10 para 13 chaves
    entre 26 e 27/08.
-   **Elegibilidade não é `limiar` não-nulo.** É `limiar` não-nulo **e medida com cobertura
-   apurada**: `exposicao_cambial` tem `limiar: 1000` e `tier: "indeterminado"` — uma regra
-   sobre ela emitiria ponto urgente **Alta** sobre universo não apurado, fabricando o
-   veredito que o produtor deliberadamente suprimiu. Enquanto o catálogo não carregar o
-   qualificador de cobertura (achado roteado à [[A40.l89]]), ela **não é elegível**.
+   **Elegibilidade voltou a ser `limiar` não-nulo — o produtor absorveu a cobertura
+   (atualizado 2026-08-28).** O #1779 (`4fbfb91b`) entregou o achado roteado à
+   [[A40.l89]]: `exposicao_cambial` saiu da tabela estática `_CANONICOS` e virou
+   [`_exposicao_cambial(e5)`](../../../../pipeline/domain/services/kpi_target_catalog.py),
+   que devolve **órfão com motivo** quando `tier == "indeterminado"` **ou** qualquer
+   componente tem `cobertura != "apurado"`. Medido no golden depois do merge:
+   `limiar: null`, `procedencia: null`, `motivo: "exposição cambial sem cobertura
+   apurada"`.
+   Consequência para esta lane: o predicado composto que eu tinha escrito (`limiar`
+   não-nulo **e** cobertura apurada) **colapsa** — a cobertura passou a ser condição de
+   existência do limiar, no produtor, que é onde devia estar. A regra desta lane lê
+   `limiar is not None` e pronto. `exposicao_cambial` segue inelegível **hoje**, mas por
+   ser órfã, não por falta de qualificador; volta a ser elegível sozinha no dia em que a
+   cobertura for apurada, sem esta lane mudar nada.
+   **Aberto e é desta lane: `_alocacao_renda_fixa` publica `operador="<="`** — afirma que
+   ter **menos** renda fixa que o alvo é conforme, o que é falso nas três metodologias e
+   erra na direção que machuca (família sub-protegida em drawdown). Está **mascarado**
+   porque o `observado_path` carrega o predicado `[classe=renda_fixa]` e o `_JSONPATH_RE`
+   do verificador não casa `=`. **Consertar o path sem consertar o operador ativa um
+   comparador doutrinariamente errado com o selo do produto** — se o PR desta lane
+   publicar `rf_atual_pct` em ponto fixo, os dois vão juntos. Origem: painel de fecho da
+   [[A40.l89]] (2026-08-28).
 4. **Invariante por chave, sobre o registro de gatilho — não sobre `kpi_targets[]`:** para
    todo limiar de doutrina que emite item, rompê-lo sem emitir o item correspondente ⇒
    vermelho. **Não** chaveia em `procedencia == "limiar_canonico"`: esse rótulo já está
