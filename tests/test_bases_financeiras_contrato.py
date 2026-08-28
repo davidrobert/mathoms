@@ -196,6 +196,9 @@ _VALORES = {
     "investimentos_nao_atribuidos": 200.0,
     "caixa_total_brl": 10.0,
     "cat2_efetivo": 40.0,
+    # Maior que `cat2_efetivo` de propósito: geradores ⊆ cat_2 completo, e é essa
+    # diferença que separa `carteira_produtiva_fixa` da `carteira_produtiva_familia`.
+    "imoveis_investimento": 90.0,
     "bruto": 1000.0,
     "dividas": 300.0,
 }
