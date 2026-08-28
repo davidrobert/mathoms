@@ -320,7 +320,7 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (91 no disco · 90 nesta tabela — ver nota ao fim)
+## Lanes (92 no disco · 92 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -454,6 +454,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l92]] | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | P0 | — | aberta 2026-08-28 pelo painel de fecho da [[A40.l89]] · **pré-existente, agravada**: a barra agora visualiza `limiar_canonico` com procedência, não alvo do LLM · medido: `taxa_endividamento` 45% contra `≤ 20%` ⇒ **trilha 100% cheia numa violação de 25pp** · diagnóstico é de **contrato**, não CSS — `operador` existe no `KpiTarget` e não viaja no wire, e a regex do front come o glifo · **não muta E5** ⇒ fora da janela de rebaseline · co-donos `product-designer` + `data-engineer` |
 | [[A40.l90]] | A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar | P0 | — | aberta 2026-08-26 pela **U1** · PV9-06 · PR1 = **ADR nova `Proposto`** (#1775 — a [[ADR-399]] §D4 *renuncia* escopo em vez de proibir, logo não há isenção a estreitar) **+ emenda datada da [[ADR-191]] §D6** (#1773, recebida da l89); dois artefatos de ADR com gates distintos ⇒ avaliar PR1a/PR1b · muta E5 · onda 2, atrás da l89 (ordem forçada) |
 | [[A40.l91]] | A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos | P0 | ✅ **#1753** | aberta 2026-08-26 pela **U1** · PV9-16 · **cabeça da janela de rebaseline** da onda 2 · muta E5 · **medida 2026-08-27: derivada** (resíduo R$ 0,00 contra a identidade bruta no `derived_json`; nenhum dos 5 inputs a declara) · **a pergunta binária da lane era estreita**: descontar a renda passiva OBSERVADA seria dupla-contagem — o `patrimonio_gerador` que a produz é **93,10%** de `investivel_efetivo`, e os 4,68 pp de ganho viriam inteiros de contar o mesmo ativo duas vezes · **o que decide é o par numerador↔meta, não a fórmula**, e o numerador é governado por `imoveis_no_if` · com o toggle `true` (o run da U1) o número publicado está **certo**; com `false` — o **default** desde a [[ADR-223]], 6 dos 7 workspaces medidos e `set_at` nulo em 7/7 — cat_2 sai do numerador e a meta não se move: meta **+9,56%**, progresso **−1,74 pp**, gap **×1,119** · imagem espelhada do anti-dupla-contagem da [[ADR-142]], que existia só na `description` de um schema **candidato** · [[ADR-418]]: uma base só (`compor_meta_if`), termo **ternário** (`None` não-medi ≠ `0.0` medi-e-não-há), base publicada em dados (`if_meta_base`/`if_meta_bruta`, enum `BaseDaMetaIF`) · `CV5` deixa de ser tautologia (afirmava identidade entre dois campos em que o 2º deriva do 1º — `info`/`passed` em todo run, sem poder falhar) · **3 vazamentos da base única achados na revisão do próprio fix**: o cone Monte Carlo mirava a bruta, `if_pct` devolvia 0% com meta zerada (contradizendo gap e prazo) e toggle ausente virava zero medido · **delta de golden `=`** — o dogfood está em `imoveis_no_if = true`, o rebaseline do snapshot é de forma (2 chaves), nenhum valor muda · **co-design `financial-planner` (autorizado pelo dono) achou um bloqueante no próprio fix**: o predicado lia o toggle e não a exclusão real, e o balde `alugueis` é residual (carrega carnê-leão PF→PF, inclusive renda de trabalho autônomo) — família SEM imóvel de renda veria a meta cair, **invertendo** o sinal do defeito para superdeclaração, que a [[ADR-223]] nomeia como o erro mais caro. Invisível ao CI: o dogfood está no regime onde o ramo é inerte · 4 correções com teste (gate de exclusão real · líquido em vez de bruto · `if_pct = null` em vez de 100% na meta clampada · piso lendo a mesma base) · a [[ADR-142]] §Decisão **já decidia** isso desde 2026-04-27 — a [[ADR-418]] liga o produtor que faltava, não decide metodologia nova · **`shipped` 2026-08-27** |
+| [[A40.l93]] | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | P0 | — | aberta 2026-08-28 para executar o §Fecho da [[A40.l89]], que fechou **com ressalva** · executa a rota decidida pelo painel, **não reabre decisão** · quatro ondas: (1) `check_prompt_version_bumped` passa a cobrir `config/prompts/*.yaml` — o `version:` alimenta `manifest_version`, que entra na chave de cache do parecer com **TTL de 7 dias** (N2) · (2) contrato E5 num PR só (folha em ponto fixo para a alocação RF + o operador **N1** + enum de `unidade`/`operador` + `limiar` fora do classificador monetário) — separar produziria três rebaselines de snapshot em vez de um · (3) `diagnostico_confianca` no enum de `get_e5_section` + bump (R1) · (4) gate de `observado_path` + morte da `_RESOLUCAO_DIVIDA_DECLARADA` · **medido 2026-08-28**: as duas chaves devolvem `path_not_whitelisted` pelo resolver de produção, por causas **diferentes** sob o mesmo `reason` · **muta E5** ⇒ janela de rebaseline |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -497,6 +498,14 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 > rg -No '^\| \[\[A40\.l[0-9]+\]\]' docs/sprint/A40/_README.md | sort -u | wc -l
 > ```
 >
+> **Re-medição 2026-08-28 (abertura da [[A40.l93]]):** disco **92**, tabela **92**.
+> O cabeçalho declarava `91 · 90` e **a segunda metade estava errada em `origin/main`**:
+> a tabela já listava **91** ids únicos. Alguém acrescentou linha sem mexer no cabeçalho,
+> e nada pega isso — o `check_lane_counter` da skill `lane-closeout` compara o número
+> declarado contra o **disco**, não contra a própria tabela, então subdeclarar a tabela
+> passa calado. Corrigido aqui para `92 · 92`; a falha do check fica registrada e não é
+> desta lane resolver. Os comandos de re-medição abaixo continuam válidos.
+
 > *O `sort -u` não é enfeite (corrigido no #1415):* este arquivo tem **duas**
 > tabelas cuja linha começa com `| [[A40.lN]]` — esta e a das lanes da Onda 1 já em
 > `main` (§Onda 1: l1, l3, l4). Sem ele o comando devolvia **3 a mais** que o número
