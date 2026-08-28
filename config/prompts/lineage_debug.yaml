@@ -18,10 +18,12 @@
 # US$ 0.10/call (log warning). Telemetria: logger mathoms.llm.lineage_eval +
 # artefato JSON por caso no CI.
 
+# 1.2.0: renumerada de `1.2` em 2026-08-28 (A40.l93) — semver puro da ADR-233,
+#      agora cobrado pelo gate de bump. Divide um bucket de telemetria, uma vez.
 # 1.2: model_id claude-sonnet-4-20250514 → claude-sonnet-4-6 (EOL 2026-06-15;
 #      ADR-289). Baseline ainda era placeholder — primeiro baseline real do
 #      nightly deve ser capturado já sob o modelo novo.
-version: "1.2"
+version: "1.2.0"
 model_id: "anthropic/claude-sonnet-4-6"
 temperature: 0.0
 seed: 281

@@ -5,7 +5,7 @@ title: "Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump"
 status: Decidido
 phase: A11.W2
 date: "2026-05-20"
-amended_at: ["2026-05-22"]
+amended_at: ["2026-05-22", "2026-08-28"]
 relates_to:
   - "[[ADR-093]]"
   - "[[ADR-157]]"
@@ -25,6 +25,12 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> ⚠️ **Emendada em 2026-08-28** ([[A40.l93]]): o escopo do gate deixa de ser
+> "arquivo `.py` em `pipeline/llm/{prompts,schemas}`" e passa a ser **"declaração
+> cuja `version` entra em chave de cache que não hasheia o texto do prompt"** — o que
+> traz `config/prompts/*.yaml` para dentro, por lista declarada. Ver
+> §Emenda 2026-08-28.
 
 ## Contexto
 
@@ -183,3 +189,66 @@ Esta errata é pré-requisito de [[ADR-260]] (telemetria) — sem migration, lab
 - Snapshot `_archive/llm_call_log_pre_semver_migration_<date>.csv` commitado.
 - Gate `dev/check_prompt_version_bumped.py` em modo estrito.
 - ADR-233 + esta errata flipam para `Decidido` no PR de fechamento da W2-T01.
+
+## Emenda 2026-08-28 — o critério é a chave de cache, não o diretório
+
+**Origem:** achado **N2** do painel de fecho da [[A40.l89]], executado pela [[A40.l93]].
+
+`config/prompts/parecer_planejador.yaml` declara `version:`, que vira
+`manifest_version` e entra na chave do cache Redis do parecer com **TTL de 7 dias**
+(`parecer_orchestrator.compute_cache_key`). O gate não alcançava o arquivo: editar o
+manifest sem bump servia parecer gerado sob o manifest anterior por uma semana. Mesma
+forma em `config/prompts/section_summaries.yaml` (chave da narrativa de seção, TTL 24h).
+
+### O critério de admissão, e por que não é o diretório
+
+Admite-se um arquivo quando **a `version` dele entra numa chave de cache que não
+hasheia o texto do prompt**. O cache genérico de resposta LLM ([[ADR-307]]) hasheia
+`system_prompt` + `user_prompt` renderizados e **se auto-invalida**; prompt que passa
+só por ele não precisa do bump manual. Foi por isso que `config/prompts/*.yaml` inteiro
+não entrou por glob: `e16_codigos_rfb_2024.yaml` é tabela injetada no user prompt e já
+protegida pelo hash; `chart_conclusions.yaml` tem `version:` **sem leitor nenhum**.
+
+Glob cobraria bump nesses dois — falso positivo em toda edição editorial — e, pior,
+produziria **garantia falsa**: quem lesse o hook assumiria cobertura onde não há cache
+a proteger.
+
+### Igualdade de conjunto, não allowlist
+
+Todo `.yaml` de `config/prompts/` tem de estar em `YAML_VERSIONADO` **ou** em
+`YAML_SEM_CACHE_VERSIONADO`, cada entrada com o motivo em uma linha. Arquivo novo em
+nenhuma das duas **reprova**, pedindo o veredito. A razão é o próprio N2: allowlist que
+só cresce falha aberta, e foi assim que o manifest ficou de fora por meses.
+
+### Duas correções ao instrumento, exigidas pela ampliação
+
+1. **O gate falhava aberto com ref irresolvível.** `_read_upstream` devolvia `None`
+   tanto para "arquivo novo" quanto para "ref não existe", e `_check_bump` tratava os
+   dois como OK — ref quebrada desligava o gate **inteiro** em silêncio. Agora
+   `git rev-parse --verify` roda antes e falha alto, nomeando
+   `MATHOMS_PROMPT_VERSION_BASE`. Ampliar a cobertura de um instrumento que pode estar
+   desligado seria a classe de defeito que a l93 fecha nos outros três.
+2. **Presença é checagem local.** No `.py` a ausência da constante significa "não é
+   prompt" (auto-discovery); no YAML a lista **é** a declaração de que aquela `version`
+   é load-bearing, então ausência é contradição e o gate a nomeia. Essa checagem lê só
+   o disco e roda **fora** do ramo que exige a ref — sobrevive a clone raso, ao
+   contrário da guarda equivalente do `.py`, que vive dentro de `_check_bump`.
+
+### Formato: uma classe só
+
+Os cinco YAMLs com `version` usavam `"1.1"`, `1`, `"1.2"`, `"2.5.0"`. Migraram para
+semver puro (`section_summaries` `1.1`→`1.1.0`, `lineage_debug` `1.2`→`1.2.0`) em
+commit próprio, **antes** do que estende o gate. Manter duas disciplinas de formato é
+o que a §Migration de 2026-05-22 já rejeitou uma vez, pela mesma razão (bucket-splitting
+na telemetria por `prompt_version`). Custo aceito e medido: uma invalidação de 24h na
+narrativa de seção e um bucket de telemetria dividido.
+
+### O que esta emenda NÃO faz
+
+- **Não cria job de CI.** O gate vive só no pre-commit — `rg 'prompt_version_bumped'
+  .github/workflows/` é vazio. Quem citar "gate de CI" a partir daqui está citando o
+  título da ADR, não o entregue.
+- **Não resolve a atribuição do e16.** Editar as tabelas RFB muda o prompt sem bumpar
+  `pipeline/llm/schemas/e16_irpf_full.py::PROMPT_VERSION`. O cache está protegido pelo
+  hash da [[ADR-307]]; o defeito é de **atribuição** (dois prompts distintos carimbados
+  com a mesma `prompt_version` em `LLMCallLog`). Follow-up com dono, fora da l93.

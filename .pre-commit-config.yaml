@@ -523,6 +523,17 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: kpi-path-legivel-pelo-parecer
+        # A40.l93. `always_run` porque as fontes são QUATRO — catálogo, enum do
+        # manifest, regex do resolver e schema E5 — e a quinta chega quando alguém
+        # mover a whitelist; um `files:` que enumerasse as quatro falharia aberto na
+        # quinta (mesma razão escrita no hook abaixo). ~1s a frio.
+        name: "observado_path/ref de kpi_targets é legível pelo resolver do parecer (A40.l93)"
+        entry: python3 dev/check_kpi_path_legivel_pelo_parecer.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: emitter-without-reader
         # Polaridade inversa do hook acima: aquele pega leitor sem emissor,
         # este pega o que o produtor emite e o entregue não consome (A40.l88 ·
@@ -618,7 +629,12 @@ repos:
         entry: python3 dev/check_prompt_version_bumped.py
         language: system
         pass_filenames: true
-        files: ^pipeline/llm/(prompts|schemas)/.*\.py$
+        # `files:` largo e o SCRIPT decide quem é prompt versionado (A40.l93 · N2).
+        # Glob de config/prompts/ aqui cobraria bump de tabela RFB e de template
+        # determinístico — falso positivo em toda edição editorial, e garantia falsa
+        # para quem lesse o hook. A igualdade de conjunto do script exige veredito
+        # para todo .yaml do diretório, e é o largo que a faz disparar em arquivo novo.
+        files: ^(pipeline/llm/(prompts|schemas)/.*\.py|config/prompts/.*\.yaml)$
 
       - id: code-style-baseline
         # ADR-114 / A6g.6 slice 5 — gate de regressão das categorias do

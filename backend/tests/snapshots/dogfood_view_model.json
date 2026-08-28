@@ -1695,8 +1695,8 @@
     "alocacao_renda_fixa": {
       "base": "carteira_liquida",
       "limiar": null,
-      "motivo": "alocação-alvo não declarada para renda fixa",
-      "observado_path": "$.goals.alocacao_alvo.derived.comparaveis[classe=renda_fixa].atual_pct",
+      "motivo": "desvio de alocação é bidirecional e soma zero entre classes; acompanhado por severidade e destino do próximo aporte, no card Alocação · Atual vs Alvo",
+      "observado_path": "$.goals.alocacao_alvo.derived.renda_fixa_atual_pct",
       "operador": null,
       "procedencia": null,
       "ref": null,
@@ -1716,7 +1716,7 @@
     },
     "concentracao_imobiliaria": {
       "base": "carteira_produtiva_fixa",
-      "limiar": 5000,
+      "limiar": "50.000000",
       "motivo": null,
       "observado_path": "$.ratios.concentracao_imobiliaria",
       "operador": "<",
@@ -1727,7 +1727,7 @@
     },
     "despesas_nao_categorizadas": {
       "base": "despesa_total",
-      "limiar": 1000,
+      "limiar": "10.000000",
       "motivo": null,
       "observado_path": "$.diagnostico_confianca.share_nao_identificado_pct",
       "operador": "<",
@@ -1793,7 +1793,7 @@
     },
     "reserva_cobertura_meses": {
       "base": "despesa_essencial_mensal",
-      "limiar": 1800,
+      "limiar": "18.000000",
       "motivo": null,
       "observado_path": "$.reserva_emergencia.cobertura_meses",
       "operador": ">=",
@@ -1804,7 +1804,7 @@
     },
     "taxa_endividamento": {
       "base": "patrimonio_bruto",
-      "limiar": 2000,
+      "limiar": "20.000000",
       "motivo": null,
       "observado_path": "$.ratios.taxa_endividamento_pct",
       "operador": "<=",

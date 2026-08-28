@@ -33,6 +33,7 @@ open · in_progress.
 ## In progress
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
+- [[A40.l93]] — Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava · priority P0 · área pipeline/llm · branch `a40-l93-fecho-residuais`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

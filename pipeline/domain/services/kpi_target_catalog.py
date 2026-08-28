@@ -202,6 +202,41 @@ _ORFAOS_DOMINIO = (
         "Custo dos seguros sobre a renda anual",
         "capital ideal exige inventário de proteção confirmado (ADR-387)",
     ),
+    # QUINTO órfão por decisão de domínio, e o único que já teve alvo publicado. O
+    # catálogo afirmava `operador="<="` sobre o par (atual, alvo): **menos** renda fixa
+    # que o alvo estaria conforme. Falso nas três metodologias de referência e falso na
+    # direção que machuca — família sub-protegida em drawdown vende ativo de risco na
+    # baixa. Ficava mascarado porque o `observado_path` usava predicado de filtro e
+    # nunca resolvia; consertar o path sem o operador ATIVARIA o comparador errado com
+    # o selo do produto ([[A40.l89]] §Fecho, achado N1; co-design `financial-planner`).
+    #
+    # Nenhum operador escalar diz a verdade aqui: desvio de alocação é bidirecional e
+    # **soma zero** entre classes comparáveis (denominador único), com sub e
+    # sobrealocação diferindo em natureza, urgência e remédio. Um teto ou um piso
+    # colapsa os dois. E a banda de ±2pp do motor NÃO serve de régua: é piso de
+    # ACIONABILIDADE (a [[ADR-400]] a reusa literalmente assim) e a [[ADR-141]]
+    # §Emenda item 10 difere a calibração relativa para pós-dogfood — publicá-la como
+    # `limiar_canonico` promoveria limiar interno a doutrina sem a doutrina existir.
+    #
+    # A linha segue publicada como observacional, com o observado em ponto fixo: o alvo
+    # declarado não some do produto, ele vive no card Alocação · Atual vs Alvo (S3) com
+    # direção, desvio assinado, severidade e destino do próximo aporte. O que sai é uma
+    # cópia escalar de menor resolução — e é justamente ela que não sabe dizer a verdade.
+    #
+    # Efeito colateral, e não é pequeno: sem comparador, dois estados que fabricariam
+    # conformidade deixam de existir — carteira líquida zero (`_pct_of` devolve 0,0 e
+    # "0% ≤ 44,4%" leria conforme) e supressão declarada pela [[ADR-394]]/[[ADR-400]],
+    # em que o produtor se recusa a julgar o desvio e o comparador o recriaria por
+    # outra porta. Os dois estão VIVOS na fixture do golden hoje.
+    (
+        "alocacao_renda_fixa",
+        "$.goals.alocacao_alvo.derived.renda_fixa_atual_pct",
+        "carteira_liquida",
+        "pct",
+        "Alocação em renda fixa (carteira líquida)",
+        "desvio de alocação é bidirecional e soma zero entre classes; acompanhado por "
+        "severidade e destino do próximo aporte, no card Alocação · Atual vs Alvo",
+    ),
     (
         "taxa_poupanca_recorrente",
         "$.ratios.taxa_poupanca_recorrente_pct",
@@ -248,17 +283,6 @@ def _leaf(payload: Mapping[str, Any], *caminho: str) -> Any:
 
 def _num(valor: Any) -> Optional[float]:
     return float(valor) if isinstance(valor, (int, float)) and not isinstance(valor, bool) else None
-
-
-def _comparavel(e5: Mapping[str, Any], classe: str) -> Optional[Mapping[str, Any]]:
-    """Join por ``classe``, nunca por índice — a lista é ordenada por desvio."""
-    derived = _leaf(e5, "goals", "alocacao_alvo", "derived")
-    if not isinstance(derived, Mapping):
-        return None
-    for item in derived.get("comparaveis") or ():
-        if isinstance(item, Mapping) and item.get("classe") == classe:
-            return item
-    return None
 
 
 def _orfao(observado_path: str, base: str, unidade: str, rotulo: str, motivo: str) -> KpiTarget:
@@ -310,30 +334,6 @@ def _reserva(e5: Mapping[str, Any]) -> KpiTarget:
         operador=">=",
         procedencia=PROCEDENCIA_CANONICO,
         ref="scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda",
-    )
-
-
-# Casar as duas pontas na mesma base é o que fecha o FP-6: o parecer publicava
-# observado de `tabela_classes` (base carteira financeira) contra alvo de
-# `comparaveis` (base carteira líquida), e o desvio saía ~10pp menor que o
-# `desvio_pp` que o motor já havia calculado.
-def _alocacao_renda_fixa(e5: Mapping[str, Any]) -> KpiTarget:
-    comp = _comparavel(e5, "renda_fixa")
-    alvo = _num(comp.get("alvo_pct")) if comp else None
-    path = "$.goals.alocacao_alvo.derived.comparaveis[classe=renda_fixa].atual_pct"
-    base = "carteira_liquida"
-    rotulo = "Alocação em renda fixa (carteira líquida)"
-    if alvo is None:
-        return _orfao(path, base, "pct", rotulo, "alocação-alvo não declarada para renda fixa")
-    return KpiTarget(
-        observado_path=path,
-        base=base,
-        unidade="pct",
-        rotulo=rotulo,
-        limiar=alvo,
-        operador="<=",
-        procedencia=PROCEDENCIA_GOAL,
-        ref="$.goals.alocacao_alvo.derived.comparaveis[classe=renda_fixa].alvo_pct",
     )
 
 
@@ -476,7 +476,6 @@ def build_kpi_targets(
     alerta = _alerta_concentracao(concentracao_alerta_pct)
     alvos: dict[str, KpiTarget] = {
         "reserva_cobertura_meses": _reserva(e5),
-        "alocacao_renda_fixa": _alocacao_renda_fixa(e5),
         "concentracao_imobiliaria": _concentracao_imobiliaria(alerta),
         "taxa_endividamento": _endividamento(scoring),
         "renda_passiva_cobertura": _renda_passiva_cobertura(e5),

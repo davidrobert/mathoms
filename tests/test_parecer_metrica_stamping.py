@@ -160,6 +160,50 @@ def test_toda_unidade_do_catalogo_tem_renderer():
     assert not sem_renderer, f"unidade do catálogo sem renderer: {sorted(sem_renderer)}"
 
 
+def _enum_do_schema(campo: str) -> set:
+    import json
+    from pathlib import Path as _P
+
+    raiz = _P(__file__).resolve().parents[1]
+    schema = json.loads((raiz / "config" / "schemas" / "e5_analysis.schema.json").read_text())
+    props = schema["properties"]["kpi_targets"]["additionalProperties"]["properties"]
+    return set(props[campo]["enum"])
+
+
+# A40.l93 fechou `unidade` e `operador` como enum no schema E5, e enum é uma TERCEIRA
+# cópia do vocabulário — o teste acima cobria só a ponta esquerda. A cadeia inteira:
+# produzidas ⊆ enum == renderer. Igualdade no meio de propósito: enum que declarasse
+# unidade sem renderer prometeria contrato que o consumidor não honra, e renderer sem
+# enum seria capacidade morta que ninguém pode declarar.
+def test_enum_de_unidade_casa_o_renderer_e_cobre_o_produzido():
+    from backend.app.services.parecer_finalization import _UNIDADE_RENDER
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    alvos = build_kpi_targets(
+        E5_COMPLETO, scoring={"thresholds_alertas": {"endividamento_maximo_pct": 20}}
+    )
+    enum = _enum_do_schema("unidade")
+
+    assert enum == set(_UNIDADE_RENDER)
+    assert {alvo["unidade"] for alvo in alvos.values()} <= enum
+
+
+# Assimetria deliberada com a unidade: o enum de operador é subconjunto ESTRITO do
+# glifo. `>` existe no renderer e não no contrato — ampliar é ato do produtor que
+# precisar, e consumidor mais permissivo que o contrato é a direção segura.
+def test_enum_de_operador_e_subconjunto_do_glifo_e_cobre_o_produzido():
+    from backend.app.services.parecer_finalization import _OPERADOR_GLIFO
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    alvos = build_kpi_targets(
+        E5_COMPLETO, scoring={"thresholds_alertas": {"endividamento_maximo_pct": 20}}
+    )
+    enum = _enum_do_schema("operador") - {None}
+
+    assert enum < set(_OPERADOR_GLIFO), "enum de operador tem símbolo que o renderer não sabe"
+    assert {a["operador"] for a in alvos.values() if a["operador"]} <= enum
+
+
 # O observado de `protecao_custo_premio` chega do payload como STRING ("0.005686") e a
 # unidade é razão 0–1. Um guard por `isinstance(float)` na escala deixaria o fator sem
 # aplicar e publicaria 0,0% no lugar de 0,6% — o erro de 100× que a renomeação da chave
@@ -233,3 +277,36 @@ def test_meses_preserva_a_casa_que_decide_o_veredito():
 
     assert saida.metricas[0].valor_atual == "5,6 meses"
     assert saida.metricas[0].target == "≥ 6,0 meses"
+
+
+# `limiar` está isento do classificador monetário do `golden_diff` (A40.l93) porque a
+# unidade mora no irmão `unidade`, e nenhum membro do enum é dinheiro. No dia em que um
+# KPI publicar alvo em R$, a isenção vira o bug de volta EM SILÊNCIO — este teste o
+# transforma em vermelho no commit que o introduz. É a asserção mais barata do pacote.
+def _golden_diff_module():
+    """Carrega `dev/golden_diff.py` fora de pacote, como o snapshot do view-model faz."""
+    import importlib.util
+    import sys
+    from pathlib import Path as _P
+
+    raiz = _P(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("golden_diff", raiz / "dev" / "golden_diff.py")
+    modulo = importlib.util.module_from_spec(spec)
+    # Registrar ANTES de executar: os `@dataclass` do módulo resolvem anotações via
+    # `sys.modules[cls.__module__]`. Mesmo padrão de test_report_view_model_snapshot.py.
+    sys.modules["golden_diff"] = modulo
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+def test_isencao_de_limiar_no_golden_diff_exige_enum_de_unidade_nao_monetario():
+    golden_diff = _golden_diff_module()
+
+    assert not golden_diff.is_monetary("kpi_targets.reserva_cobertura_meses.limiar")
+    # Se `limiar` deixar de ser isento, a asserção acima cai e este teste some junto —
+    # daí o par: a isenção só se justifica enquanto TODA unidade for adimensional.
+    monetarias = {"brl", "usd", "eur", "reais", "moeda"}
+    assert not (_enum_do_schema("unidade") & monetarias), (
+        "unidade monetária no enum + `limiar` isento no golden_diff = alvo em R$ lido "
+        "como número puro, sem ninguém acusar"
+    )

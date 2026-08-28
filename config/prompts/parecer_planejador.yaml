@@ -109,7 +109,31 @@
 # lacunas declaradas e 0 de 1 não declarada, e o diagnóstico estava em
 # `insuficiente` (30,7% de despesa não identificada) sem que o parecer soubesse.
 # Nenhum limiar novo: os hints consomem o veredito da ADR-353 e da ADR-394 §Emenda.
-version: "2.5.0"
+# 2.4.0 — A40.l89 (#1772, [[ADR-399]] D1): bump ATÔMICO com `PROMPT_VERSION` e
+# `_SCHEMA_VERSION` quando `metricas[].target`/`valor_atual`/`nome` saíram do tool
+# schema e o alvo passou a ser derivado. Nenhuma linha do manifest mudou: o bump existe
+# porque o cache é chaveado por `manifest_version` e o contrato do output mudou.
+# Backfillado em 2026-08-28 (A40.l93) — 2.4.0 e 2.5.0 subiram sem linha aqui, e
+# `manifest_version` é persistido no aggregate `PlannerReview` para AUDITORIA: duas das
+# três últimas versões auditáveis não tinham significado registrado em lugar nenhum.
+# 2.5.0 — A40.l80 (#1780, [[ADR-412]] §D7): o manifest para de reensinar o limiar na
+# label. A do `tier` entregava "verde >=10% / amarelo 5-10% / vermelho <5%" ao lado do
+# `pct` cru — régua e número juntos, e o modelo declarava conformidade sozinho. O limiar
+# tem leitor único ([[ADR-399]]); repeti-lo aqui era a quarta cópia. Junto, a base do
+# pct passa a ser declarada na própria label, e entram as duas folhas de atribuição
+# incompleta da carteira.
+# 2.6.0 — A40.l93 (R1 do §Fecho da A40.l89): `diagnostico_confianca` entra no enum de
+# `get_e5_section`. MINOR pela ADR-233 ("regra adicional não-breaking"), não patch: muda
+# o que o resolver consegue resolver. Precedente deste arquivo não serve de árbitro —
+# 2.0.2 projetou uma seção inteira nova como PATCH e 2.5.0 foi correção de label como
+# MINOR; os dois não podem estar certos sob a mesma ADR.
+#
+# Este bump COBRA a frota, e a diferença com o 2.0.3 é declarada: lá o rename já
+# invalidava pelo hash do E5; aqui não há nada mais invalidando, então cada
+# (workspace, snapshot E5) que pedir parecer dentro dos 7 dias regenera uma vez. É o
+# preço de a whitelist ter contradito o manifest, e procurar caminho mais barato seria
+# o defeito N2 pela outra ponta.
+version: "2.6.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -650,6 +674,20 @@ tools:
           - "alertas"
           - "consumo_consciente"
           - "diagnostico_comportamental"
+          # Sibling do anterior, e o produtor é o mesmo objeto: `.itens()` e
+          # `.confianca()` de `DiagnosticoComportamentalAnalyzer`. Ficar de fora era
+          # CONTRADIÇÃO do manifest, não recato: a seção já é injetada no exec context
+          # (`$.diagnostico_confianca.nivel` + `.share_nao_identificado_pct`) e um
+          # `narrative_hint` manda lê-la antes de prescrever. A whitelist governa só o
+          # re-ler sob demanda — e, como o parecer é chamada SINGLE-SHOT (`LLMService
+          # .call` não tem parâmetro `tools`), ela é whitelist de resolver server-side,
+          # não superfície do modelo. Delta de folhas: ZERO — o produtor devolve dict
+          # literal de duas chaves, as duas já projetadas. Seguro também no catálogo de
+          # citação por PREDICADO, não por estrutura: `nivel` é string e
+          # `share_nao_identificado_pct` contém "pct", que curto-circuita
+          # `_is_money_key`. Quem renomear esse campo para algo sem "pct" move o
+          # catálogo.
+          - "diagnostico_confianca"
           - "programa_milhas"
           - "irpf_kpis"
           - "passive_income"

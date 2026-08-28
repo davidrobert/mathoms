@@ -5,7 +5,7 @@ title: "Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não
 status: Decidido
 phase: r7.PE-2/FP-6
 date: "2026-08-19"
-amended_at: ["2026-08-27"]
+amended_at: ["2026-08-27", "2026-08-28"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-134]]"
@@ -32,6 +32,12 @@ aliases:
 > **Decidido em 2026-08-19** na remediação de **PE-2** + **FP-6** (P1) do §r7 de
 > [[PIPELINE-REVIEWS-active]]. Implementação **em ondas** — ver §Estado de
 > implementação antes de §Consequências.
+>
+> ⚠️ **Emendada em 2026-08-28** ([[A40.l93]]): o **path do observado é requisito do
+> catálogo** — alvo cujo observado o resolver do parecer não consegue ler é o comparador
+> com um lado fabricado pela ausência —, `alocacao_renda_fixa` vira o **quinto órfão por
+> decisão de domínio**, e `unidade`/`operador` fecham como enum. Ver
+> §Emenda 2026-08-28.
 >
 > ⚠️ **Emendada em 2026-08-27** ([[A40.l89]]): o vocabulário fecha em **13 chaves**
 > (entram `renda_passiva_cobertura`, `if_prazo_ano`, `aliquota_efetiva_ir`;
@@ -230,3 +236,107 @@ número escolhido na hora, nunca um balde genérico.
 (`suggestion_rules.trs_target_pct`) e a prosa da E5 que entrega limiar ao modelo são
 **leitores isentos pela D4** e migram para a [[A40.l90]], sob emenda própria — ver
 §Deferimento datado 2026-08-27 da [[A40.l89]].
+
+## Emenda 2026-08-28 — o path é requisito, e a alocação perde o comparador
+
+> **A D1 e a D3 não mudam.** O que muda é: um requisito novo sobre `observado_path`, um
+> quinto órfão por (b), e o fecho do vocabulário de `unidade`/`operador`.
+
+**Origem:** §Fecho da [[A40.l89]] (painel de 2026-08-28), executado pela [[A40.l93]].
+Duas das 13 chaves publicavam alvo cujo `observado_path` o resolver de **produção**
+(`PlannerDrillDown` com `load_manifest().tools_section_whitelist`) devolvia
+`path_not_whitelisted`, por causas diferentes sob o mesmo `reason`.
+
+### E6 — `observado_path` legível pelo resolver é requisito, e a rota é ponto fixo
+
+Alvo pareado a observado que o parecer **nunca** consegue ler é o defeito da D1 pela
+outra ponta: o comparador aparece com um dos lados fabricado pela ausência. `_par`
+publica `target: null` + motivo, então não há número inventado — mas a linha nasce
+inútil, e o alvo fica publicado no artefato sem par possível.
+
+`alocacao_renda_fixa` usava `comparaveis[classe=renda_fixa].atual_pct` — **predicado de
+filtro**, que o `_JSONPATH_RE` do `planner_drill_down` recusa por desenho (o subset
+rejeita filtro e recursive descent). A rota é publicar a folha em **ponto fixo**
+(`goals.alocacao_alvo.derived.renda_fixa_atual_pct`), **não** alargar o subset: o
+guardrail é declarado, e alargá-lo daria capacidade de filtro **ao modelo** para servir
+um consumidor interno que não precisa de query.
+
+Gate: `dev/check_kpi_path_legivel_pelo_parecer.py` (pre-commit), que mede a metade
+decidível sem payload — sintaxe + raiz na whitelist — e **declara no nome e no docstring
+que não cobre `value_absent`**, que continua com
+`tests/test_e5_golden_execution.py::test_todo_observado_path_do_catalogo_resolve_no_payload`.
+A allowlist `_RESOLUCAO_DIVIDA_DECLARADA` daquele teste foi **deletada**: sem ofensor,
+ela viraria estado permanente protegido por teste.
+
+### E7 — `alocacao_renda_fixa` é órfã por (b), e o operador que ela tinha era falso
+
+O catálogo publicava `operador="<="` sobre o par (atual, alvo): **menos** renda fixa que
+o alvo estaria conforme. Falso nas três metodologias de referência, e falso na direção
+que machuca — a família sub-protegida vende ativo de risco na baixa. Ficava mascarado
+pelo path irresolvível: consertar E6 sozinho **ativaria** o comparador errado com o selo
+do produto.
+
+Co-design `financial-planner`: **nenhum operador escalar diz a verdade aqui.** Desvio de
+alocação é bidirecional e **soma zero** entre classes comparáveis (denominador único), e
+as duas direções diferem em natureza, urgência e remédio — sub-alocar é risco de ruína,
+súbito, com sinal direto (o próximo aporte vai para a classe); sobrealocar é custo de
+oportunidade, lento, e na metodologia dona nunca é achado autônomo. Um teto ou um piso
+colapsa os dois.
+
+**E a banda de ±2pp do motor não serve de régua.** `SEVERITY_ALINHADO_MAX_PP` é piso de
+**acionabilidade** — a [[ADR-400]] o reusa literalmente assim ("a incerteza não pode ser
+maior que a menor diferença que o produto trata como acionável") — e a [[ADR-141]]
+§Emenda item 10 difere a calibração **relativa** para pós-dogfood. Publicá-lo como
+`limiar` com `procedencia: limiar_canonico` promoveria limiar interno a doutrina sem a
+doutrina ter sido decidida: é o modo de falha desta ADR com o ator trocado — não o LLM
+fabricando, o produto carimbando.
+
+Admitida por **(b)**, ao lado de `if_progresso` e `if_prazo_ano`, que são órfãos pela
+**mesma forma**: o alvo é um par, e publicar um lado sozinho promete o que a outra
+dimensão nega. A linha segue publicada como observacional, com o observado em ponto fixo
+— o alvo declarado pela família **não some do produto**: vive no card Alocação · Atual vs
+Alvo (S3), com direção, desvio assinado, severidade e destino do próximo aporte. O que
+sai é uma cópia escalar de menor resolução, e é ela que não sabe dizer a verdade.
+
+**A D2 continua certa para alocação, e o critério fica escrito** (a [[A40.l89]] §Fecho já
+registrou que ela está **errada para reserva**, onde a regra é `max(declarado, canonico)`):
+*o declarado vence quando é a **definição** da métrica e a doutrina não tem piso
+independente; o canônico vence quando a doutrina define **piso de sobrevivência** e a
+declaração pode ficar abaixo dele.* Em alocação, `desvio_pp = atual − alvo_declarado`:
+substituir por doutrina não aperta a métrica, **apaga** a métrica. Em reserva existe piso
+canônico independente. Critério, não lista de exceções — lista quebra na próxima métrica.
+
+**Efeito colateral que não é pequeno.** Sem comparador, dois estados que fabricariam
+conformidade deixam de ser representáveis: **denominador zero** (`_pct_of` devolve `0.0`
+quando a carteira líquida é ≤ 0, e "0% ≤ 44,4%" leria conforme) e **supressão declarada**
+([[ADR-394]]/[[ADR-400]]: o produtor se recusa a julgar o desvio, e o comparador o
+recriaria por outra porta). Os dois estão vivos na fixture do golden hoje.
+
+### E8 — `unidade` e `operador` fecham como enum
+
+`procedencia` já era enum; os outros dois eram string livre com o vocabulário só na
+`description` — assimetria sem razão. A proteção que o enum compra é **assimétrica e
+medida**: unidade fora de `_UNIDADE_RENDER` faz `_render_valor` devolver `None` e a
+métrica sai **sem valor e sem alvo, em silêncio**; operador desconhecido é
+**renderizado literal** por `_OPERADOR_GLIFO.get(op, op)`, com cara de autoridade.
+
+`unidade` = `{pct, pct_aa, meses, ano, ratio_0_1}`, **igual** ao renderer. `operador` =
+`{<, <=, >=, null}`, subconjunto **estrito** do glifo (`>` fica de fora: ampliar é ato
+deliberado do produtor que precisar, e consumidor mais permissivo que o contrato é a
+direção segura). Paridade de três vias gateada em
+`tests/test_parecer_metrica_stamping.py`.
+
+Banda de tolerância **não cabe como símbolo novo**: `~=` esconderia dois números num
+`limiar` escalar e o leitor não saberia de que lado está. Qualquer banda exige mudança de
+**forma** (`limiar_min`/`limiar_max`, ou `limiar` + `tolerancia_pp`) e paga emenda de
+contrato de todo jeito — o enum fechado força essa conversa em vez de deixar passar
+`~= 40%` significando nada.
+
+### O que esta emenda NÃO faz
+
+- **Não conserta o denominador zero em `comparaveis[].atual_pct`.** O card S3 continua
+  publicando `0,0%` para carteira líquida zero, e a folha nova é cópia fiel disso de
+  propósito: consertar só a cópia daria duas respostas para o mesmo fato. É defeito
+  pré-existente do card, com dono, fora desta lane.
+- **Não toca a D4.** Os leitores pré-existentes de `endividamento_maximo_pct` e
+  `concentracao_alerta_pct` permanecem.

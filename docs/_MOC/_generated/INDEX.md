@@ -972,6 +972,7 @@
 | A40.l90 | lane | open | A40 | A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar | `sprint/A40/lanes/A40-l90-limiar-de-risco-le-o-catalogo.md` |
 | A40.l91 | lane | shipped | A40 | A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos | `sprint/A40/lanes/A40-l91-base-da-meta-if.md` |
 | A40.l92 | lane | open | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
+| A40.l93 | lane | in_progress | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
 | A41.l4 | lane | planned | A41 | Gate fecha a rota alternativa ao choke-point: import do SDK fora de pipeline/llm hard-falha | `sprint/A41/lanes/A41-l4-gate-rota-alternativa-ao-choke-point.md` |

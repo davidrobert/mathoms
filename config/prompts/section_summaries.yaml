@@ -2,7 +2,9 @@
 # Section summaries — prompts LLM (ADR-144 · v2.9 · revisado v2.9.1)
 # ==============================================================================
 # Numeração dupla: v2.9.x = revisão editorial do conteúdo (histórico abaixo);
-# a chave `version:` (1.1) é a prompt-version de máquina (cache/telemetria).
+# a chave `version:` (1.1.0) é a prompt-version de máquina (cache/telemetria).
+# Semver puro desde 2026-08-28 (A40.l93): a ADR-233 já exige X.Y.Z e o gate de bump
+# passou a cobrir este arquivo. `1.1` -> `1.1.0` invalida a chave uma vez (TTL 24h).
 #
 # Para cada section_id do `report_layout.yaml`, define system + user prompt
 # template para o `SectionSummaryGenerator` (LiteLLM + Instructor).
@@ -33,7 +35,7 @@
 #   (24h) expirar.
 # ==============================================================================
 
-version: "1.1"
+version: "1.1.0"
 
 system_prompt: |
   Você edita relatórios de planejamento patrimonial pessoal para a Mathoms.

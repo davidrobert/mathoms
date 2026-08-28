@@ -33,6 +33,15 @@ noção de direção. Para as **4 chaves com operador de teto** (`<` / `<=`) —
 `concentracao_imobiliaria`, `taxa_endividamento`, `alocacao_renda_fixa`,
 `despesas_nao_categorizadas` — **a barra enche conforme a métrica piora**.
 
+> **Correção de escopo recebida da [[A40.l93]], 2026-08-28 — são 3, não 4.**
+> `alocacao_renda_fixa` deixou de publicar alvo: virou órfã por decisão de domínio
+> ([[ADR-399]] §Emenda 2026-08-28), porque desvio de alocação é bidirecional e nenhum
+> operador escalar o exprime. Sem `target` não há trilha, então a chave sai da lista
+> desta lane. **As 3 que ficam são as que importam** — `concentracao_imobiliaria`,
+> `taxa_endividamento`, `despesas_nao_categorizadas` —, e o caso medido abaixo é uma
+> delas. O diagnóstico da lane (o `operador` não viaja no wire e o front re-deriva por
+> regex sobre a string renderizada) **não muda**.
+
 Caso medido: `taxa_endividamento` 45% contra `≤ 20%` ⇒ `extractNumber("≤ 20,0%") = 20` ⇒
 `pct = min(100, 225) = 100` ⇒ **trilha 100% cheia sobre uma violação de 25pp**. Barra cheia
 é a gramática visual universal de "meta atingida".

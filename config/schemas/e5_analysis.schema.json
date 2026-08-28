@@ -1264,7 +1264,14 @@
           },
           "unidade": {
             "type": "string",
-            "description": "pct | meses | pct_aa | ano | ratio_0_1. `ratio_0_1` existe porque `protecao_custo_premio` publica prêmio/renda como razão 0–1 e estava declarado `pct` — quem lesse pelo contrato publicaria 0,0057% no lugar de 0,57%."
+            "description": "pct | meses | pct_aa | ano | ratio_0_1. `ratio_0_1` existe porque `protecao_custo_premio` publica prêmio/renda como razão 0–1 e estava declarado `pct` — quem lesse pelo contrato publicaria 0,0057% no lugar de 0,57%. Fechado como enum em 2026-08-28 (A40.l93): unidade fora de `_UNIDADE_RENDER` faz `_render_valor` devolver `None` e a métrica sai SEM valor e SEM alvo, em silêncio — o enum troca o sumiço silencioso por falha alta no boundary. Paridade de três vias (produzidas ⊆ enum == _UNIDADE_RENDER) gateada em tests/test_parecer_metrica_stamping.py.",
+            "enum": [
+              "pct",
+              "pct_aa",
+              "meses",
+              "ano",
+              "ratio_0_1"
+            ]
           },
           "rotulo": {
             "type": "string",
@@ -1282,7 +1289,13 @@
               "string",
               "null"
             ],
-            "description": "Comparador do alvo (<, <=, >=). Carrega a polaridade: sem ele, 34,86 contra 50 é ambíguo."
+            "description": "Comparador do alvo (<, <=, >=). Carrega a polaridade: sem ele, 34,86 contra 50 é ambíguo. Fechado como enum em 2026-08-28 (A40.l93) refletindo o que o catálogo produz — `>` fica de fora de propósito: ampliar é ato deliberado, no commit do produtor que precisar, com prova de vermelho. O consumidor é mais permissivo que o contrato (`_OPERADOR_GLIFO` conhece os 4), e essa é a direção segura. Operador desconhecido não some: `_OPERADOR_GLIFO.get(op, op)` o RENDERIZA literal, com cara de autoridade. Banda de tolerância não cabe aqui como símbolo novo — esconderia dois números num `limiar` escalar; exigiria mudança de FORMA, e o enum fechado força essa conversa.",
+            "enum": [
+              "<",
+              "<=",
+              ">=",
+              null
+            ]
           },
           "procedencia": {
             "type": [
@@ -3419,6 +3432,13 @@
           "items": {
             "$ref": "#/$defs/AlocacaoComparable"
           }
+        },
+        "renda_fixa_atual_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "A40.l93: `comparaveis[classe=renda_fixa].atual_pct` em ponto fixo, para o resolver do parecer, cujo subset de JSONPath não admite predicado de filtro (alargá-lo daria capacidade de filtro ao MODELO para servir um consumidor interno). Cópia do dict já serializado, não recomputo. `null` quando a lista não traz a classe — série anterior a esta folha. O par `renda_fixa_alvo_pct` NÃO existe: `alocacao_renda_fixa` é órfã por decisão de domínio ([[ADR-399]] §Emenda 2026-08-28), logo `ref` é `null` e a folha nasceria sem leitor."
         },
         "desvio_max_pct": {
           "type": [

@@ -132,7 +132,9 @@ def test_diff_without_bump_fails(tmp_path: Path) -> None:
     code, err = _gate_in_repo(repo)
     assert code == 1
     assert "alpha.py" in err
-    assert "PROMPT_VERSION continua '1.0.0'" in err
+    # A mensagem deixou de nomear a constante quando o gate passou a cobrir YAML
+    # também (A40.l93): a mesma frase serve `PROMPT_VERSION` e `version:`.
+    assert "a versão continua '1.0.0'" in err
     assert "1.0.1" in err  # sugestão de bump
 
 
@@ -308,3 +310,144 @@ def test_canonical_version_regex(version: str, valid: bool) -> None:
 )
 def test_suggest_bump(current: str, expected: str) -> None:
     assert gate._suggest_bump(current) == expected
+
+
+# =============================================================================
+# Ref de comparação ausente — o gate falhava ABERTO (A40.l93)
+# =============================================================================
+
+
+def _gate_com_ref(repo: Path, ref: str) -> tuple[int, str]:
+    """Roda o gate no mini-repo com ``MATHOMS_PROMPT_VERSION_BASE=<ref>``."""
+    cwd, old = os.getcwd(), os.environ.get("MATHOMS_PROMPT_VERSION_BASE")
+    os.environ["MATHOMS_PROMPT_VERSION_BASE"] = ref
+    gate.UPSTREAM_REF = ref
+    os.chdir(repo)
+    try:
+        return _capture_main([])
+    finally:
+        os.chdir(cwd)
+        if old is None:
+            os.environ.pop("MATHOMS_PROMPT_VERSION_BASE", None)
+        else:
+            os.environ["MATHOMS_PROMPT_VERSION_BASE"] = old
+        gate.UPSTREAM_REF = os.environ.get("MATHOMS_PROMPT_VERSION_BASE", "origin/main")
+
+
+# A prova de vermelho do fix: a MESMA árvore que passa sob `main` tem de reprovar
+# sob ref inexistente. Sem o par, o teste não distingue "gate ligado" de "gate mudo".
+def test_ref_inexistente_reprova_em_vez_de_passar(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    target = repo / "pipeline" / "llm" / "prompts" / "alpha.py"
+    target.write_text(
+        '"""Alpha prompt."""\n\n'
+        'PROMPT_VERSION = "1.0.1"\n\n'
+        'SYSTEM_PROMPT = """system v2"""\n'
+        'USER_PROMPT_TEMPLATE = """user v1"""\n'
+    )
+
+    assert _gate_com_ref(repo, "main")[0] == 0, "árvore de controle deveria passar"
+
+    code, err = _gate_com_ref(repo, "refs/heads/nao-existe")
+    assert code == 1
+    assert "MATHOMS_PROMPT_VERSION_BASE" in err
+    assert "refs/heads/nao-existe" in err
+
+
+# =============================================================================
+# YAML de config/prompts/ — o gate cobria só .py (A40.l93 · N2 do fecho da l89)
+# =============================================================================
+
+
+def _seed_yaml(repo: Path, nome: str, corpo: str) -> Path:
+    d = repo / "config" / "prompts"
+    d.mkdir(parents=True, exist_ok=True)
+    alvo = d / nome
+    alvo.write_text(corpo)
+    return alvo
+
+
+_MANIFEST_V1 = 'version: "2.5.0"\n\nsections:\n  - id: "patrimonio"\n'
+
+
+def _repo_com_manifest(tmp_path: Path) -> tuple[Path, Path]:
+    """Mini-repo com o manifest do parecer já commitado em `main`."""
+    repo = _make_repo(tmp_path)
+    alvo = _seed_yaml(repo, "parecer_planejador.yaml", _MANIFEST_V1)
+    _seed_yaml(repo, "section_summaries.yaml", 'version: "1.1.0"\n')
+    _seed_yaml(repo, "lineage_debug.yaml", 'version: "1.2.0"\n')
+    _seed_yaml(repo, "chart_conclusions.yaml", "templates: {}\n")
+    _seed_yaml(repo, "e15_secoes_rfb_2024.yaml", "secoes: []\n")
+    _seed_yaml(repo, "e16_codigos_rfb_2024.yaml", "ano_base: 2024\n")
+    _run_git(repo, "add", ".")
+    _run_git(repo, "commit", "-q", "-m", "seed yaml")
+    return repo, alvo
+
+
+# O caso que originou a extensão: `version:` do manifest vira `manifest_version`, que
+# entra na chave do cache do parecer com TTL de 7 dias. Sem o gate, editar servia
+# parecer gerado sob o manifest anterior por uma semana.
+def test_manifest_yaml_sem_bump_reprova(tmp_path: Path) -> None:
+    repo, alvo = _repo_com_manifest(tmp_path)
+    alvo.write_text(_MANIFEST_V1 + '  - id: "fluxo_caixa"\n')
+
+    code, err = _gate_in_repo(repo)
+    assert code == 1
+    assert "config/prompts/parecer_planejador.yaml" in err, "a mensagem tem de NOMEAR o arquivo"
+    assert "2.5.0" in err and "2.5.1" in err
+
+
+def test_manifest_yaml_com_bump_passa(tmp_path: Path) -> None:
+    repo, alvo = _repo_com_manifest(tmp_path)
+    alvo.write_text(_MANIFEST_V1.replace("2.5.0", "2.6.0") + '  - id: "fluxo_caixa"\n')
+
+    code, err = _gate_in_repo(repo)
+    assert code == 0, f"unexpected fail: {err}"
+
+
+def test_yaml_version_nao_semver_reprova(tmp_path: Path) -> None:
+    repo, alvo = _repo_com_manifest(tmp_path)
+    alvo.write_text(_MANIFEST_V1.replace('"2.5.0"', '"2.5"'))
+
+    code, err = _gate_in_repo(repo)
+    assert code == 1
+    assert "formato canônico" in err
+
+
+# Hermético por construção: lê só o disco local, então tem de reprovar mesmo com a ref
+# de comparação inexistente. A primeira escrita punha esta checagem em `_errors_for`,
+# atrás do check de ref — o comentário afirmava hermeticidade que o call-site negava.
+def test_version_removida_reprova_sem_ref(tmp_path: Path) -> None:
+    repo, alvo = _repo_com_manifest(tmp_path)
+    alvo.write_text('sections:\n  - id: "patrimonio"\n')
+
+    code, err = _gate_com_ref(repo, "refs/heads/nao-existe")
+    assert code == 1
+    assert "config/prompts/parecer_planejador.yaml" in err
+    assert "YAML_VERSIONADO" in err
+
+
+# Allowlist que só cresce falha aberta — é como o N2 nasceu. Igualdade de conjunto.
+def test_yaml_novo_nao_declarado_reprova(tmp_path: Path) -> None:
+    repo, _ = _repo_com_manifest(tmp_path)
+    _seed_yaml(repo, "prompt_novo.yaml", 'version: "1.0.0"\n')
+
+    code, err = _gate_in_repo(repo)
+    assert code == 1
+    assert "prompt_novo.yaml" in err and "não declarado" in err
+
+
+# `version:` indentado é chave de bloco aninhado, não a versão de topo — a tolerância
+# `^\s*` do padrão .py faria o gate ler a chave errada.
+@pytest.mark.parametrize(
+    "corpo,esperado",
+    [
+        ('version: "2.5.0"\n', "2.5.0"),
+        ("version: 1\n", "1"),
+        ('bloco:\n  version: "9.9.9"\n', None),
+        ('# a chave `version:` (1.1) é a de máquina\nversion: "3.0.0"\n', "3.0.0"),
+    ],
+)
+def test_yaml_version_regex_ancorado_na_coluna_zero(corpo: str, esperado: str | None) -> None:
+    match = gate.YAML_VERSION_RE.search(corpo)
+    assert (match.group(1) if match else None) == esperado

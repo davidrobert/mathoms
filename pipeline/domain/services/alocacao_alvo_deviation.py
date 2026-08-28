@@ -127,6 +127,27 @@ class AlocacaoCaixaInfo:
         }
 
 
+# Nome longo, e o curto é armadilha medida: `rf_pos_pct`/`rf_pre_pct`/`rf_ipca_pct`
+# vivem em `goals.alocacao_alvo`, UM NÍVEL acima de `derived`, e na fixture do golden
+# somam 40 (declarado) enquanto esta folha vale 44,44 (renormalizado por
+# `_normalized_targets`, 40/90). Dois quase-homônimos a um nível de distância com
+# valores diferentes é a forma exata do C14 que a [[A40.l80]] pagou. `rf_` ainda tem um
+# terceiro sentido no próprio bloco (`rf_comparacao`).
+#
+# CÓPIA do dict já serializado, nunca recomputo: é o `round(..., 2)` que divergiria
+# primeiro, e sem segunda computação não há de onde divergir.
+#
+# `renda_fixa_alvo_pct` NÃO é publicada: com `alocacao_renda_fixa` órfã por decisão de
+# domínio ([[ADR-399]] §Emenda 2026-08-28), o `ref` é `None` e a folha nasceria sem
+# leitor — a classe que a [[A40.l88]] fechou.
+def _atual_pct_da_classe(comparaveis: list[dict], classe: str) -> Optional[float]:
+    """Folha em ponto fixo para o resolver do parecer, que não admite predicado."""
+    for row in comparaveis:
+        if row.get("classe") == classe:
+            return row.get("atual_pct")
+    return None
+
+
 @dataclass(frozen=True)
 class AlocacaoDeviationResult:
     comparaveis: tuple[AlocacaoComparableRow, ...]
@@ -143,8 +164,10 @@ class AlocacaoDeviationResult:
     motivo_supressao: Optional[str] = None
 
     def to_dict(self) -> dict:
+        comparaveis = [row.to_dict() for row in self.comparaveis]
         return {
-            "comparaveis": [row.to_dict() for row in self.comparaveis],
+            "comparaveis": comparaveis,
+            "renda_fixa_atual_pct": _atual_pct_da_classe(comparaveis, "renda_fixa"),
             "desvio_max_pct": _round_or_none(self.desvio_max_pct),
             "next_aporte_classe": self.next_aporte_classe,
             "carteira_liquida_brl": _json_number(self.carteira_liquida_brl),
