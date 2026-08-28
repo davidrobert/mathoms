@@ -81,10 +81,10 @@ recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobil
 
 | razão | estado | nota |
 |---|---|---|
-| `ratios.concentracao_imobiliaria` | ✅ #1782 | declarou a 6ª base `carteira_produtiva_fixa` |
+| `ratios.concentracao_imobiliaria` | ✅ #1782 · #1788 | 6ª base `carteira_produtiva_fixa`; o catálogo parou de declarar a homônima 5,6× menor |
 | `ratios.autonomia_financeira_meses` | ✅ #1785 | o divisor virou **campo publicado**; recompute fecha dentro de `ratios` |
 | `ratios.piso_autonomia_financeira_meses` | ✅ #1785 | declarava base desde o PR3b e nunca fora recomposto |
-| `exposicao_cambial.pct_investivel_financeiro` (+ card V2) | 🔴 **bloqueada** | ver §abaixo — o defeito é no **numerador**, não no rótulo |
+| `exposicao_cambial.pct_investivel_financeiro` (+ card V2) | 🟡 **desbloqueada** | o numerador foi unificado (#1791); falta declarar o rótulo, que agora é seguro |
 
 > **Correção de custo (2026-08-28).** As duas linhas anteriores desta tabela estavam
 > erradas e foram refutadas por medição: (i) a autonomia **não** era "médio, recompute
@@ -138,7 +138,17 @@ o #1782 criou para matá-lo.
 
 ### A cambial está bloqueada por defeito maior que o rótulo (2026-08-28)
 
-**O E5 e o card read-time divergem no NUMERADOR.** A linha de caixa em moeda
+> **Resolvido em 2026-08-29 (#1791), pela decisão do `data-engineer`.** O card **consome** o
+> `por_moeda` do artefato em vez de recomputar — *superfície read-time só recomputa a perna
+> que tem input read-time* ([[ADR-412]] §E10). Importar o predicado **não bastava**: o
+> produtor é predicado **+ inferência de moeda**, e a opção ingênua faria 83% da exposição
+> sair rotulada `BRL`. A fixture era cúmplice — fixava `valor_brl: 0.0` e não trazia
+> `por_moeda`, e com ela **nenhum dos 11 testes caía** sobre a divergência de 6×.
+> **Fica aberto:** a perna de posições do card é **código morto** (`_posicoes_do_payload` lê
+> `investimentos["dados"]`, ausente do schema) — inofensiva hoje, híbrido no dia em que a
+> fonte for ligada ([[ADR-224]] §5). Dono: `data-engineer`.
+
+**O E5 e o card read-time divergiam no NUMERADOR.** A linha de caixa em moeda
 estrangeira vinda do IRPF (`moeda_estrangeira_irpf`, que nasce com `moeda="BRL"`)
 entra no total do E5 e é **descartada** pelo V2 — medido: **12,0% contra 2,0%** no
 shape que o próprio produtor constrói. Os dois renderizam o **mesmo badge do mesmo
