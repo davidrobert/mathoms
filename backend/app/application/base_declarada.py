@@ -44,3 +44,22 @@ def _decimal(valor: Any) -> Decimal:
         return Decimal(str(valor)) if valor is not None else Decimal(0)
     except (InvalidOperation, ValueError, TypeError):
         return Decimal(0)
+
+
+# A40.l80 ([[ADR-412]] §E10): superfície read-time só recomputa a perna que tem input
+# read-time. A de caixa não tem — ela CONSOME o que o produtor publicou. Recomputá-la aqui
+# filtrando `moeda != "BRL"` descartava a linha `moeda_estrangeira_irpf`, que nasce em BRL
+# porque o saldo já vem convertido ([[ADR-245]] §L3: `moeda` é unidade de medida, não
+# classificador de exposição) — o card publicava 2,0% contra os 12,0% do produtor.
+def por_moeda_publicado(exposicao_cambial: object) -> tuple[tuple[str, Decimal], ...]:
+    """`por_moeda` como o E5 o publicou, sem reclassificar linha nenhuma."""
+    if not isinstance(exposicao_cambial, dict):
+        return ()
+    linhas = exposicao_cambial.get("por_moeda")
+    if not isinstance(linhas, list):
+        return ()
+    return tuple(
+        (str(linha.get("moeda") or "").upper(), _decimal(linha.get("valor_brl")))
+        for linha in linhas
+        if isinstance(linha, dict) and _decimal(linha.get("valor_brl")) > Decimal(0)
+    )
