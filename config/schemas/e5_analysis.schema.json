@@ -346,6 +346,10 @@
           "minimum": 0,
           "description": "A40.l69 (ADR-394 §Emenda (b) D8): posições cujo membro o resolver não canonicalizou. Somavam ao titular — afirmação de posse que ninguém mediu. Entram no `bruto` e na `composicao` como categoria própria (só quando > 0), nunca no balde de uma pessoa."
         },
+        "cat2_efetivo": {
+          "type": "number",
+          "description": "A40.l80 ([[ADR-412]] §D1): cat_2 efetivo no IF — termo de `carteira_produtiva_familia` e `carteira_produtiva_com_titular_identificado`. Publicado para que `bases[*].valor_brl` seja verificável SÓ do payload; sem ele o leitor teria de ler código-fonte para somar os termos das duas."
+        },
         "cobertura_investimentos": {
           "type": "array",
           "description": "A40.l69 (ADR-394 §Emenda (b) D7): cobertura por membro. `fonte_investimentos` descreve o caminho do cálculo no domicílio; este campo responde se CADA membro foi medido. `nao_apurado` ≠ `zero_apurado`.",

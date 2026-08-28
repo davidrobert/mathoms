@@ -272,6 +272,10 @@ class PatrimonioCalculator:
             # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
             "guarda_de_sinal": guarda.to_dict(),
             "investimentos_nao_atribuidos": round(nao_atribuidos, 2),
+            # A40.l80: termo de `carteira_produtiva_*`. Sem ele publicado, a promessa da
+            # [[ADR-412]] §D1 — "a base passa a ser auditável só do payload" — era falsa
+            # para 2 das 6 bases: o leitor teria de ler código-fonte para somar os termos.
+            "cat2_efetivo": round(cat2_efetivo, 2),
             "atribuicao_investimentos": atribuicao_investimentos(
                 orfa=nao_atribuidos,
                 cheia=investivel_financeiro,

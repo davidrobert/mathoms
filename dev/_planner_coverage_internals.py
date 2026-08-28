@@ -350,6 +350,12 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     # A40.l80 §Completude: rótulo de auditoria da base do pct — o manifest já entrega o
     # pct com a base nomeada na própria label (#1780). Projetar o campo daria ao modelo um
     # segundo lugar de onde tirar o mesmo nome.
+    # A40.l80: termo de base publicado para tornar o bloco `bases` auditável só do
+    # payload. É rastro de auditoria, não insumo de conselho — o parecer recebe o
+    # patrimônio, não os termos que somam cada denominador.
+    "$.patrimonio.cat2_efetivo": (
+        "termo de base; rastro de auditoria do bloco `bases`, não insumo de conselho"
+    ),
     "$.exposicao_cambial.base_pct_investivel_financeiro": (
         "rótulo de auditoria; a label do pct já nomeia a base ao modelo"
     ),

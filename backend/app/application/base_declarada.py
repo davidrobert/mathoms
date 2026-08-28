@@ -11,7 +11,11 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from pipeline.domain.services.bases_financeiras import BASE_VERSAO_CORRENTE, BaseFinanceira
+from pipeline.domain.services.bases_financeiras import (
+    BASE_VERSAO_CORRENTE,
+    BaseFinanceira,
+    bases_reproduzem,
+)
 
 
 def denominador_declarado(patrimonio: dict, *, legado: str = "investivel_financeiro") -> Decimal:
@@ -63,3 +67,6 @@ def por_moeda_publicado(exposicao_cambial: object) -> tuple[tuple[str, Decimal],
         for linha in linhas
         if isinstance(linha, dict) and _decimal(linha.get("valor_brl")) > Decimal(0)
     )
+
+
+__all__ = ["bases_reproduzem", "cobertura_apurada", "denominador_declarado", "serie_corrente"]
