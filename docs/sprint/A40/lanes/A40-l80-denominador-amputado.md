@@ -237,7 +237,17 @@ PR3b, mantido aqui como registro do porquê):
   publicada mudou de significado?"* — e a forma barata é congelar em fixture o par
   (termos, valor) por base e reprovar quando um valor se move sem o bump. Dono:
   `data-engineer`. Achado de 2026-08-28.
-- **`neutralize_autocontradicao` é praticamente inerte em produção** — ele arma em
+- **✅ FECHADO (#1800) — `neutralize_autocontradicao` armava em seção que o modelo nunca
+  vê.** `_SECAO_LIQUIDEZ` valia `"S4"`; o manifest projeta S1/S2/S3/S7/S8/S9/S10 e a
+  reserva é `aligned_with_layout: "S1"`. Com o sinal do E5 **vivo** no golden
+  (`avaliacao_liquidity == "Excessiva"`), ele nunca disparou — e a [[ADR-412]] §Emenda E3
+  apoiava-se nele para **não** suprimir `avaliacao_liquidity`. A suíte codificava o
+  defeito: 4 testes fixavam `"S4"` e passavam. O conserto veio com **gate de classe** — a
+  seção em que um guardrail arma tem de ser uma que o manifest projeta —, porque os testes
+  agora importam a constante e passariam com qualquer valor. **Não mudou** o seletor
+  `(section_id, tema_canonico)`, que o r7 mediu em 2/5 com um falso-positivo: estreitá-lo
+  é outra decisão, com dono `prompt-engineer`.
+- ~~**`neutralize_autocontradicao` é praticamente inerte em produção**~~ (histórico) — ele arma em
   `(section_id, tema_canonico) == ("S4", "Liquidez")` (`parecer_guardrails_divida.py:159-160`),
   mas o bloco de reserva/liquidez do manifest é `aligned_with_layout: "S1"`
   (`config/prompts/parecer_planejador.yaml`, seção `saude_balanco`) e **S4 é "Real Estate"**
