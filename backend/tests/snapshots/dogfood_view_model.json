@@ -1695,8 +1695,8 @@
     "alocacao_renda_fixa": {
       "base": "carteira_liquida",
       "limiar": null,
-      "motivo": "alocação-alvo não declarada para renda fixa",
-      "observado_path": "$.goals.alocacao_alvo.derived.comparaveis[classe=renda_fixa].atual_pct",
+      "motivo": "desvio de alocação é bidirecional e soma zero entre classes; acompanhado por severidade e destino do próximo aporte, no card Alocação · Atual vs Alvo",
+      "observado_path": "$.goals.alocacao_alvo.derived.renda_fixa_atual_pct",
       "operador": null,
       "procedencia": null,
       "ref": null,
