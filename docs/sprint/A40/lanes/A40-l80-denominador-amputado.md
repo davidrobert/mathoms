@@ -65,11 +65,10 @@ recusa julgar.
 
 ## Falta — o resto do PR4 e o PR5
 
-**Critério de aceite: 2 fechados, 2 parciais, 1 refutado.** ✅ Consistência (bases
-publicadas com termos) · ✅ Corretude (intervalo + identidade) · 🟡 **Completude**
-(o gate existe e morde — [#1782](https://github.com/davidrobert/mathoms/pull/1782),
-[#1785](https://github.com/davidrobert/mathoms/pull/1785) — e cobre **3 de 4** razões;
-a 4ª está **bloqueada por defeito maior**, ver abaixo) · 🟡 **Precisão** (as duas declarações falsas medidas
+**Critério de aceite: 3 fechados, 1 parcial, 1 refutado.** ✅ Consistência (bases
+publicadas com termos) · ✅ Corretude (intervalo + identidade) · ✅ **Completude**
+(o gate morde e cobre **4 de 4** razões — #1782, #1785, #1794, #1795; a 4ª exigiu
+unificar o numerador antes, porque rótulo declara denominador) · 🟡 **Precisão** (as duas declarações falsas medidas
 foram corrigidas em [#1769](https://github.com/davidrobert/mathoms/pull/1769); falta
 fechar `kpi_targets[].base` no schema) · ❌ **Prova de fecho** — a perna a-montante
 saiu em [#1780](https://github.com/davidrobert/mathoms/pull/1780), e a regra pós-LLM
@@ -84,7 +83,7 @@ recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobil
 | `ratios.concentracao_imobiliaria` | ✅ #1782 · #1788 | 6ª base `carteira_produtiva_fixa`; o catálogo parou de declarar a homônima 5,6× menor |
 | `ratios.autonomia_financeira_meses` | ✅ #1785 | o divisor virou **campo publicado**; recompute fecha dentro de `ratios` |
 | `ratios.piso_autonomia_financeira_meses` | ✅ #1785 | declarava base desde o PR3b e nunca fora recomposto |
-| `exposicao_cambial.pct_investivel_financeiro` (+ card V2) | 🟡 **desbloqueada** | o numerador foi unificado (#1791); falta declarar o rótulo, que agora é seguro |
+| `exposicao_cambial.pct_investivel_financeiro` (+ card V2) | ✅ #1794 · #1795 | numerador unificado, base declarada, e o catálogo **lê** a declaração do produtor |
 
 > **Correção de custo (2026-08-28).** As duas linhas anteriores desta tabela estavam
 > erradas e foram refutadas por medição: (i) a autonomia **não** era "médio, recompute
