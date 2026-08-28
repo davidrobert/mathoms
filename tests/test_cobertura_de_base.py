@@ -124,3 +124,64 @@ def test_a_base_da_concentracao_nao_e_a_homonima(patrimonio: dict, ratios: dict)
 
     assert declarada != familia, "a razão declara a homônima — 5,6× menor no dogfood"
     assert patrimonio["bases"][declarada]["valor_brl"] != patrimonio["bases"][familia]["valor_brl"]
+
+
+# ---------------------------------------------------------------------------
+# Autonomia — a medida E o piso, cada um sobre a base que declara
+# ---------------------------------------------------------------------------
+
+
+# Sem sufixo `_brl` no parâmetro: este arquivo é domínio `float` (o `ratios` inteiro é),
+# e nome monetário sobre float é o P5 do ratchet — mesmo precedente de `base_da_meta_if`,
+# onde o identificador interno perde o sufixo e a CHAVE publicada o mantém.
+def _meses(base: float, divisor: float) -> float:
+    """`max(0, base)` porque `investivel_financeiro` carrega clamp que a base não tem."""
+    return round(max(0.0, base) / divisor, 2)
+
+
+# O divisor é PUBLICADO (`autonomia_denominador_mensal_brl`) em vez de remontado de
+# `fluxo_caixa`: `_resolve_window` tem fallback — sem `janela_12m` o `n_meses` vira 0 e a
+# despesa sai de outro nó —, então recompute cross-bloco erraria exatamente ali.
+def test_autonomia_reproduz_sobre_a_base_que_declara(ratios: dict, patrimonio: dict) -> None:
+    """A MEDIDA declara sua base; até o #1782 só o piso declarava a dele."""
+    declarada = ratios["base_autonomia_financeira"]
+    assert declarada in {b.value for b in BaseFinanceira}, f"base fora do enum: {declarada}"
+
+    base = patrimonio["bases"][declarada]["valor_brl"]
+    divisor = ratios["autonomia_denominador_mensal_brl"]
+
+    assert _meses(base, divisor) == ratios["autonomia_financeira_meses"]
+
+
+def test_piso_da_autonomia_reproduz_sobre_a_base_que_declara(
+    ratios: dict, patrimonio: dict
+) -> None:
+    """`base_do_piso` existia desde o PR3b e nunca fora recomposto — só declarado."""
+    base = patrimonio["bases"][ratios["base_do_piso"]]["valor_brl"]
+    divisor = ratios["autonomia_denominador_mensal_brl"]
+
+    assert _meses(base, divisor) == ratios["piso_autonomia_financeira_meses"]
+
+
+# Sem isto o par (medida, piso) poderia declarar a mesma base e os dois testes acima
+# passariam — o intervalo colapsaria num ponto sem ninguém notar.
+def test_medida_e_piso_declaram_bases_DIFERENTES(ratios: dict) -> None:
+    """O piso é o extremo amputado; medida e piso iguais é intervalo degenerado."""
+    assert ratios["base_autonomia_financeira"] != ratios["base_do_piso"]
+    assert ratios["autonomia_financeira_meses"] > ratios["piso_autonomia_financeira_meses"]
+
+
+def test_nenhuma_OUTRA_base_reproduz_a_autonomia(ratios: dict, patrimonio: dict) -> None:
+    """Mesma trava do gate da concentração: a declarada tem de ser a única."""
+    divisor = ratios["autonomia_denominador_mensal_brl"]
+    medida = ratios["autonomia_financeira_meses"]
+
+    reproduzem = [
+        nome
+        for nome, base in patrimonio["bases"].items()
+        if _meses(base["valor_brl"], divisor) == medida
+    ]
+
+    assert reproduzem == [
+        ratios["base_autonomia_financeira"]
+    ], f"mais de uma base reproduz a autonomia — o gate não discrimina: {reproduzem}"

@@ -730,6 +730,17 @@
           "minimum": 0,
           "description": "A40.l80 ([[ADR-412]] §D7): autonomia sobre a base sem a fatia órfã — extremo conservador."
         },
+        "base_autonomia_financeira": {
+          "type": "string",
+          "enum": [
+            "carteira_financeira_familia"
+          ],
+          "description": "A40.l80 §Completude ([[ADR-412]]): base da MEDIDA de autonomia, ao lado dela — `base_do_piso` declara só o extremo conservador. O numerador é `max(0, base)`: `investivel_financeiro` carrega clamp que `_valor_da_base` não aplica, e com soma negativa os dois divergem; declarar o clamp mantém a base número-neutra. Gate: `tests/test_cobertura_de_base.py`."
+        },
+        "autonomia_denominador_mensal_brl": {
+          "type": "number",
+          "description": "A40.l80 §Completude: o divisor que a autonomia de fato usou (consumo mensal ex-aporte, ADR-333). Publicado para o recompute fechar DENTRO de `ratios` — remontá-lo de `fluxo_caixa` erraria no fallback de `_resolve_window`, onde `n_meses` vira 0 e a despesa sai de outro nó."
+        },
         "base_do_piso": {
           "type": "string",
           "enum": [
