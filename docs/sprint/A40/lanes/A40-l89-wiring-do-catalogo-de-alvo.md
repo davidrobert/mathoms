@@ -275,6 +275,30 @@ o motivo é coerência entre veredito e número exibido, não magnitude.
 **Enquanto R6 não existir, `limiar_canonico` é a entrada honesta** — o hotfix acertou, e a
 inércia da D2 para reserva é hoje proteção, não bug.
 
+### Executado pela [[A40.l93]] em 2026-08-28 — o que saiu das duas tabelas acima
+
+> As tabelas §Segue aberto e §Rota dos residuais são **painel datado de 2026-08-28** e
+> ficam como estão — snapshot que alguém atualiza deixa de ser evidência. Esta subseção
+> diz o que foi executado **depois** delas, e onde a execução **divergiu da rota
+> decidida**: sem isso, quem ler a rota segue instrução que já não descreve o repo.
+
+Entregue em [#1796](https://github.com/davidrobert/mathoms/pull/1796) (`64bd7a07`).
+**Dois dos seis** itens do §Segue aberto fecharam; os outros quatro seguem, com a rota
+inalterada.
+
+| item das tabelas | desfecho |
+|---|---|
+| **N2** — gate de versão não cobre `config/prompts/*.yaml` | ✅ por **lista declarada**, não glob: o critério é *"a `version` entra em chave de cache que não hasheia o texto do prompt"*. Junto, o gate deixou de **falhar aberto** com ref irresolvível — ampliar cobertura de instrumento que pode estar desligado seria a mesma classe. [[ADR-233]] §Emenda 2026-08-28 |
+| **R1** — `diagnostico_confianca` fora da whitelist | ✅ manifest `2.6.0`. **Mais barato do que "bloqueado por N2" sugeria por uma razão a mais:** o parecer é chamada **single-shot** (`LLMService.call` não tem parâmetro `tools`), então o bloco `tools:` é whitelist de **resolver server-side**, não superfície do modelo |
+| **R2** — predicado `[classe=…]` | ✅ **com desvio de rota, em dois pontos.** A rota dizia `rf_atual_pct` **+** `rf_alvo_pct`; foi entregue **só** `renda_fixa_atual_pct`. (a) o prefixo `rf_` era colisão **medida** — `rf_pos_pct`/`rf_pre_pct`/`rf_ipca_pct` vivem um nível acima e somam **40** contra **44,44** renormalizado, que é o C14 da [[A40.l80]] nascendo de novo; (b) a folha do alvo não foi publicada porque, com N1 resolvido por órfão, `ref` é `null` e ela nasceria **sem leitor** |
+| **N1** — `operador="<="` da alocação | ✅ **e a forma do remédio não estava decidida nesta tabela** — o painel nomeou o defeito, não a cura. `financial-planner` **recusou** `\|atual − alvo\|` contra 2pp: `SEVERITY_ALINHADO_MAX_PP` é piso de **acionabilidade** ([[ADR-400]] o reusa assim) e a [[ADR-141]] §Emenda item 10 difere a calibração relativa — publicá-lo como `limiar_canonico` promoveria limiar interno a doutrina. Virou **órfão por (b)**, a forma que `if_progresso`/`if_prazo_ano` já têm. [[ADR-399]] §Emenda 2026-08-28 |
+| **R3 · R5 · R6** | seguem abertos, rota **inalterada** |
+| **R4** — polaridade da barra | segue aberto na [[A40.l92]], mas o **escopo dela caiu de 4 para 3 chaves de teto**: sem alvo, `alocacao_renda_fixa` não tem trilha |
+
+**Efeito que a tabela não previa:** sem comparador, dois estados que fabricariam
+conformidade deixam de ser representáveis — denominador zero e supressão declarada
+([[ADR-394]]/[[ADR-400]]). Os dois estavam **vivos na fixture do golden**.
+
 ### Remédio para o padrão dos gates auto-referentes
 
 Quatro instâncias nesta sessão, um autor: whitelist derivada do alvo do teste; fixtures
