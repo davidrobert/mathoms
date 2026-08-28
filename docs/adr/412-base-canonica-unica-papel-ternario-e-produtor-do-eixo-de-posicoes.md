@@ -2,7 +2,7 @@
 id: ADR-412
 type: adr
 title: "Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais"
-status: Proposto
+status: Decidido
 phase: A40.l80
 date: "2026-08-25"
 amended_at: ["2026-08-25", "2026-08-28"]
@@ -22,7 +22,7 @@ aliases:
   - "Papel ternário"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
   - area/report
@@ -34,6 +34,14 @@ tags:
 > perde a retenção** — a razão nasce advisory; a **D6(b) troca de régua**; a **D7
 > ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
 > ganha obrigação recíproca** para superfície read-time.
+>
+> **`Decidido` em 2026-08-28**, com **§Escopo do flip** declarando em lista fechada o que
+> esta decisão cobre e o que **não** cobre. As duas emendas que o cabeçalho exigia foram
+> escritas ([[ADR-335]] §Emenda 2, [[ADR-394]] §Emenda 2026-08-28). A lane continua `open`:
+> o que falta é dívida de **prova**, e prova mora no §Critério de aceite dela, não aqui.
+>
+> **Emenda 4 (2026-08-28):** a §E5 mede "interseção vazia" entre `BaseFinanceira` e
+> `kpi_targets[].base`. **Refutado** — o #1782 criou a colisão. Ver §E11.
 >
 > **Emenda 3 (2026-08-28):** a tabela da **§D1 descrevia 3 dos 6 membros** do enum —
 > faltavam `carteira_produtiva_com_titular_identificado` (#1710) e
@@ -543,3 +551,53 @@ Publicá-la é número-neutro; o gate `tests/test_cobertura_de_base.py` recompõ
 não é gateada por nada — tabela em prosa não tem detector. Base nova toca três lugares
 enforçados (enum, `TERMOS_DA_BASE`, schema) e um não-enforçado (esta tabela), e é o
 não-enforçado que envelhece calado.
+
+## Escopo do flip para `Decidido` (2026-08-28)
+
+`status` é propriedade da **decisão**, não do grau de enforcement da implementação. Treze
+PRs mergeados — dois deles movendo dinheiro — são a evidência de que a decisão foi tomada.
+Manter `Proposto` dava cobertura retórica para reabrir a §D0 ou a §D4 alegando
+provisoriedade, e isso **já aconteceu**: a §Consequências refutou por escrito a formulação
+da §Completude e ela foi **reinscrita dois dias depois** (`a28055a7`, #1758).
+
+**Cobre:** D0–D9 conforme emendadas, incluindo `carteira_produtiva_fixa` (§E9) e a
+disjunção corrigida (§E11).
+
+**NÃO cobre** — cada item com dono, e nenhum deles é dúvida sobre esta decisão:
+
+| fora do escopo | dono |
+|---|---|
+| razão fabricada em consumidor TS (`WaterfallIfChart` re-deriva `if_pct` suprimido; `HeroKpiGrid` inventa razão sobre 5ª base) | [[A40.l80]] + gate em `check_view_model_contract.py` |
+| `kpi_targets[].base` deixar de ser `type: string` — como **par discriminado** `{eixo, membro}`, nunca enum plano | [[A40.l89]], dona do catálogo |
+| o numerador cambial em disputa entre E5 e card read-time (12,0% × 2,0%) | `data-engineer` |
+| §Deferimento §E6 (reserva × autonomia são duas bases distintas — a medição do C14 já respondeu) | [[A40.l80]] |
+| cone de Monte Carlo (§Deferido datado 2026-08-26) | [[A40.l80]] |
+| `BASE_VERSAO_CORRENTE` nunca bumpado | `data-engineer` — ver §E11 |
+
+## Emenda 4 — a disjunção da §E5 não existe mais (2026-08-28)
+
+### E11 — o #1782 criou a colisão que a §E5 media como impossível
+
+A §E5 decidiu **não convergir** `BaseFinanceira` e `kpi_targets[].base`, e sustentou a
+decisão numa medição: *"interseção medida: vazia"*. **A decisão continua certa; a medição
+não.** Ao criar `carteira_produtiva_fixa` (§E9) para desambiguar o denominador da
+concentração, o #1782 deixou o catálogo declarando `"carteira_produtiva"` — string que
+**não é membro do enum**, cujo vizinho mais próximo vale **5,6× menos** — para o **mesmo**
+`observado_path` que o produtor passou a declarar corretamente. Duas declarações
+divergentes do mesmo número, no mesmo payload. Corrigido no #1788, com gate que compara as
+duas superfícies derivando o par pela convenção do produtor.
+
+**O que isso ensina sobre a §E5, e é o que fica:** os eixos são legítimos e não devem
+fundir — `carteira_financeira ÷ despesa` não é comparável a `renda_alvo_bruta`. Mas
+`kpi_targets[].base` **não é um quarto eixo**: é uma união **não-tipada** de quatro
+(posições, meta de IF, despesa, renda) mais uma entrada que nem base é (`cone_monte_carlo`
+é procedência ocupando o campo de denominador). Fechá-lo "num enum próprio" **cunharia** o
+quarto vocabulário que a §E5 temia. A forma correta é par discriminado `{eixo, membro}`,
+validado contra o enum daquele eixo — e o dono é quem tem a janela de rebaseline do
+catálogo, a [[A40.l89]].
+
+**E o que impede um quinto aparecer, hoje: nada.** O payload já carrega dez campos de base
+em três vocabulários. O detector correspondente — todo campo cujo nome case
+`^base($|_)|_base$` tem `enum`/`$ref` ou consta de allowlist com o eixo nomeado — é lane
+nova, dono `data-engineer`. É o mesmo mecanismo que a §E9 já nomeou: *base nova toca três
+lugares enforçados e um não-enforçado, e é o não-enforçado que envelhece calado.*

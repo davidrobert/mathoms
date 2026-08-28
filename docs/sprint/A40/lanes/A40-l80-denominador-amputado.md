@@ -95,6 +95,47 @@ recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobil
 > call-sites + `make update-openapi-snapshot`. O custo alto do card é **semântico**, e é
 > outro: o numerador está em disputa.
 
+### Decisões dos especialistas (2026-08-28)
+
+Três especialistas revisaram os abertos. Duas premissas minhas caíram, e eles acharam uma
+**regressão que o #1782 introduziu** — corrigida no #1788.
+
+**`data-engineer` — o card para de computar, e consome.** Importar `_is_caixa_me` (o que
+esta lane prescrevia) **não basta**: o produtor é `_sum_caixa_estrangeiro` = predicado
+**+ inferência de moeda**, e a opção ingênua faz **83% da exposição aparecer rotulada
+BRL** no `por_moeda`. Decisão: o V2 **consome** `componentes.caixa_fx`, `por_moeda` e
+`detalhes` do artefato, e mantém posse só da perna com input read-time. Regra geral:
+*superfície read-time só recomputa a perna que tem input read-time.* Isso é o **vão da
+§E2** — ela mandou ler o marcador de série e degradar, e não proibiu recomputar o número
+que o marcador rotula. **E o predicado já estava decidido:** a [[ADR-245]] §L3 fixou
+`moeda` ≡ unidade de medida; o card usá-la como classificador é violação de ADR `Decidido`.
+**P0 novo:** a perna de posições do V2 é **código morto** — lê `investimentos.dados`, que
+não existe no schema; a superfície read-time não tem conteúdo read-time vivo e ainda ganha
+o paint.
+
+**`financial-planner` — o elogio vive; morre a prescrição, e quem a mata é o FRESCOR.**
+O argumento de sujeito **não seleciona**: `caixa_total_brl` fica *ao lado* dos baldes de
+papel, então **100% do numerador cambial está fora do eixo de titularidade** — um critério
+de sujeito reprovaria sempre, em qualquer família. Gate morto. O sujeito pertence à
+**capa** (manchete única, §E3), não a regra pós-LLM por item. O que morre por item é a
+**prescrição dimensionada** quando há linha de fonte anual no numerador; a medida nunca.
+E o erro caro é o oposto do que esta lane supunha: *"você tem 2%"* empurra **compra** de
+moeda forte (IOF, spread, evento tributário) para quem já tem 12%; *"você tem 12%,
+confirme"* empurra conferência grátis.
+
+**`senior-cto` — flip com escopo, e o gate certo não é banir divisão.** A [[ADR-412]] vai a
+`Decidido` com §Escopo do flip datado (#1789), com as duas emendas que ela mesma exigia
+([[ADR-335]], [[ADR-394]]). Sobre o `HeroKpiGrid`: **não** proibir divisão em `.tsx` — são
+~30 sites, ~20 viram exceção no dia 1, e allowlist de 20 nasce falha-aberta. A classe que
+dói é *"consumidor não fabrica fallback de campo publicado"*, ela tem alvo estreito e
+**já tem casa** em `dev/check_view_model_contract.py`, que parseia TS. O caso vivo é
+`WaterfallIfChart.tsx:40`, que re-deriva `if_pct` — derrotando a §D7 desta própria ADR.
+
+**A regressão que eles acharam (#1788):** `kpi_targets[].base` declarava
+`"carteira_produtiva"` — fora do enum, vizinho **5,6× menor** — para o **mesmo**
+`observado_path` que o produtor declarava `carteira_produtiva_fixa`. O C14 na entrada que
+o #1782 criou para matá-lo.
+
 ### A cambial está bloqueada por defeito maior que o rótulo (2026-08-28)
 
 **O E5 e o card read-time divergem no NUMERADOR.** A linha de caixa em moeda
