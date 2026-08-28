@@ -4,7 +4,7 @@ type: adr
 title: "Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência"
 status: Decidido
 date: "2026-07-14"
-amended_at: ["2026-07-16"]
+amended_at: ["2026-07-16", "2026-08-28"]
 relates_to:
   - "[[ADR-142]]"
   - "[[ADR-215]]"
@@ -18,6 +18,10 @@ tags:
 ---
 
 # ADR-335 — Autonomia financeira exclui imóvel ilíquido
+
+> **Emendada 2026-08-28** ([[A40.l80]] · [[ADR-412]] §D7): a autonomia deixa de ser um
+> número e passa a ser **intervalo declarado** — medida sobre a base cheia, piso sobre a
+> base com titular identificado, com a base de cada ponta nomeada em campo. Ver §Emenda 2.
 
 > Cluster **E1** (P1) da re-review dogfood 2026-07-13 · PLAN-dogfood-report-fix.
 > Decisão de domínio adjudicada pelo `financial-planner` (2026-07-14), endossada pelo owner.
@@ -144,3 +148,30 @@ permanece no denominador. Payload legado sem `despesa_consumo` cai em `despesa_t
   semi-contratual (previdência contratada, consórcio) **reabre** a base do denominador.
 - **Golden:** `autonomia_financeira_meses` **sobe** (denominador menor); delta rastreado
   no rebaseline isolado. Nenhum ponto-forte "colchão robusto" pode reativar indevidamente.
+
+## Emenda 2 — a autonomia vira intervalo declarado ([[A40.l80]], 2026-08-28)
+
+A [[ADR-412]] §D7 exigia esta emenda ao flipar para `Decidido`, e ela é o registro do que
+a [[A40.l80]] entregou.
+
+**O que muda.** Metade da carteira financeira pode não ter titular identificado, e o
+numerador da autonomia (`investivel_financeiro`) a inclui. Publicar um número só afirmaria
+fôlego sobre dinheiro cujo dono ninguém apurou. A autonomia passa a publicar **três
+campos**: a medida (`autonomia_financeira_meses`, base `carteira_financeira_familia`), o
+extremo conservador (`piso_autonomia_financeira_meses`, base
+`carteira_com_titular_identificado`) e o divisor que ambos usaram
+(`autonomia_denominador_mensal_brl`). **O spread é o diagnóstico.**
+
+**Por que o extremo inferior é o conservador aqui:** a autonomia autoriza *gastar* o
+fôlego. Errar para mais convida a família a consumir reserva que talvez não seja dela —
+por isso o veredito se avalia no piso, e a **prescrição dimensionada** (quanto realocar)
+morre quando o spread cruza o degrau acionável ([[ADR-412]] §Emenda E4). A **medida nunca
+morre** (§E3).
+
+**O denominador desta emenda não muda** — segue `despesa_consumo ÷ n_meses` da emenda de
+2026-07-16. O que muda é que ele passa a ser **publicado**: recompô-lo a partir de
+`fluxo_caixa` erra no fallback de `_resolve_window` (sem `janela_12m`, `n_meses` vira 0 e
+a despesa sai de outro nó), e o gate de cobertura de base precisa fechar dentro do bloco.
+
+**Sem bump de `score_version`** pelo mesmo motivo da emenda anterior: autonomia entra no
+score só como fallback, e declarar base é número-neutro.

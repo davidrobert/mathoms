@@ -5,7 +5,7 @@ title: "Fato determinístico é autoridade; saída de LLM é hint em vocabulári
 status: Decidido
 phase: A40.l66
 date: "2026-08-18"
-amended_at: ["2026-08-18", "2026-08-19", "2026-08-21"]
+amended_at: ["2026-08-18", "2026-08-19", "2026-08-21", "2026-08-28"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-090]]"
@@ -30,6 +30,10 @@ tags:
 ---
 
 # ADR-394 — Fato determinístico é autoridade; saída de LLM é hint
+
+> **Emendada 2026-08-28** ([[A40.l80]] · [[ADR-412]]): o inventário de "35 sites em 4
+> arquivos" da §D8 é o denominador do **regex**, não o da **classe** — e a diferença
+> deixou uma instância viva por 7 semanas sob gate verde. Ver §Emenda 2026-08-28.
 
 **Status:** Decidido (A40.l66) • **Data:** 2026-08-18 • É a **ADR-A** do
 [[PLAN-deterministic-authority]] (§ADRs a abrir), aberta pela [[A40.l66]].
@@ -522,3 +526,31 @@ imóvel ou veículo jamais alcançou o E1.5a neste workspace.
 aplicada um stage acima. O pipeline afirmava um patrimônio sobre um conjunto de
 documentos que ele silenciosamente reduziu — a mesma classe de "afirma o que não
 mediu" que D7/D9 decidiram no E5, agora na porta de entrada.
+
+## Emenda — o inventário da §D8 é do regex, não da classe ([[A40.l80]], 2026-08-28)
+
+A [[ADR-412]] exigia esta emenda ao flipar para `Decidido`. O que a medição da
+[[A40.l80]] achou:
+
+**`dev/check_member_key_substring.py` varria `reserva_liquidez.py`, lia a linha ofensora e
+saía `0`** — porque identifica a chave de membro pelo **nome da variável**
+(`_KEY_SUFFIXES = ("titular_key", "conjuge_key")`), e ali ela se chamava `member_key`.
+Verde por **7 semanas** sobre instância viva da classe que esta §D8 declarava fechada.
+
+O código ofensor (`_positions_for_member`) resolvia titularidade por conta própria com a
+convenção **invertida** — *"sem membro atribuído → titular"*, exatamente o
+`unattributed → titular` que a §D8 proíbe. Medido: **58,64%** do que a reserva rotulava
+"titular" era dinheiro sem dono, e `cobertura_meses` publicava **43,9** contra **25,4** na
+partição correta. Morreu na [[A40.l80]] PR2 (#1727), substituído pelo produtor único
+`CarteiraPorPapel` com `Papel` ternário ([[ADR-412]] §D2/§D3).
+
+**A correção de leitura, que é o que esta emenda registra:** quando um inventário de ADR
+vier como "N sites em M arquivos", ele é o denominador do **instrumento que o mediu**, não
+o da classe — a menos que o instrumento classifique pela **origem do valor**, e não pelo
+nome do identificador. Gate que classifica por nome fecha **sintaxe**, não classe; o
+próximo parâmetro se chama `chave`, `owner_key` ou `mk` e reabre a mesma porta.
+
+**Não allowliste a linha** — isso fecha a instância e mantém a cegueira. O rider correto,
+já registrado na §Consequências da [[ADR-412]], é fazer o gate classificar pela origem do
+valor (parâmetro ligado a `identity.titular_key`/`conjuge_key`), resolvível
+intra-procedimentalmente no AST que ele já constrói.
