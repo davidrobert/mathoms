@@ -32,6 +32,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping, Optional
 
+from pipeline.domain.services.bases_financeiras import BaseFinanceira
 from pipeline.domain.services.diagnostico_comportamental_analyzer import (
     NAO_IDENTIFICADO_PARCIAL_PCT,
 )
@@ -332,10 +333,16 @@ def _alocacao_renda_fixa(e5: Mapping[str, Any]) -> KpiTarget:
     )
 
 
+# `carteira_produtiva_fixa`, NUNCA a string livre `"carteira_produtiva"`: aquela não é
+# membro do enum, e o vizinho mais próximo (`carteira_produtiva_familia`) vale 5,6× MENOS
+# no dogfood — 13.000.000 contra 73.000.000. O produtor do número já declara a base certa
+# em `ratios.base_concentracao_imobiliaria`; duas declarações divergentes para o MESMO
+# `observado_path` é o C14 (declarada ≠ usada) na entrada que o #1782 criou para
+# desambiguar.
 def _concentracao_imobiliaria(alerta_pct: float) -> KpiTarget:
     return KpiTarget(
         observado_path="$.ratios.concentracao_imobiliaria",
-        base="carteira_produtiva",
+        base=BaseFinanceira.carteira_produtiva_fixa.value,
         unidade="pct",
         rotulo="Concentração imobiliária (carteira produtiva)",
         limiar=alerta_pct,
