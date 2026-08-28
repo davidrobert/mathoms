@@ -252,10 +252,16 @@ def _sum_ativos_internacionais(
     return total, [_ativo_detalhe(p, v) for p, v in pairs]
 
 
+# A40.l80: `fonte` publicava o NOME DA CONTA e o schema já tinha `nome` para isso, vazio.
+# A procedência real (`baseline_irpf` para a linha do fallback ADR-245) era descartada na
+# publicação — o marcador existia a montante em `CaixaDetalhe.fonte` e morria aqui. Sem ele
+# não há como o card saber que parte do numerador é foto anual, e a prescrição dimensionada
+# ("compre R$ X em moeda forte") sai sobre saldo não confirmado.
 def _detalhes_caixa(caixa_detalhes: list[dict]) -> list[dict[str, Any]]:
     return [
         {
-            "fonte": d.get("conta", ""),
+            "nome": d.get("conta", ""),
+            "fonte": d.get("fonte", "extrato"),
             "moeda": _moeda_exposicao(d),
             "saldo_original": d.get("saldo_original"),
             "valor_brl": d.get("valor_brl"),
@@ -337,4 +343,23 @@ def veredito_suprimido(bloco: object) -> bool:
     componentes = bloco.get("componentes") or {}
     return any(
         isinstance(c, dict) and c.get("cobertura") != "apurado" for c in componentes.values()
+    )
+
+
+# [[ADR-412]] §D7: suprime-se a PRESCRIÇÃO DIMENSIONADA, nunca a medida. Linha de fonte
+# anual no numerador não desqualifica o pct — desqualifica o "compre R$ X", que é a única
+# saída que autoriza gastar dinheiro sobre saldo que ninguém confirmou.
+MOTIVO_FONTE_ANUAL = (
+    "Parte do saldo em moeda forte vem da declaração de IRPF e não foi confirmada por "
+    "extrato — confirme o saldo atual antes de comprar mais."
+)
+
+
+def numerador_tem_fonte_anual(bloco: object) -> bool:
+    """Alguma linha do numerador veio de foto anual (baseline IRPF), não de extrato."""
+    if not isinstance(bloco, dict):
+        return False
+    return any(
+        isinstance(d, dict) and d.get("fonte") == "baseline_irpf"
+        for d in (bloco.get("detalhes") or [])
     )

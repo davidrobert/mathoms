@@ -119,7 +119,10 @@ def test_detalhes_inclui_contas_e_ativos():
     detalhes_caixa = [d for d in r.detalhes if d.get("tipo") == "caixa"]
     detalhes_ativos = [d for d in r.detalhes if d.get("tipo") != "caixa"]
     assert len(detalhes_caixa) == 1
-    assert detalhes_caixa[0]["fonte"] == "Wise USD"
+    # A40.l80: `fonte` é PROCEDÊNCIA (`extrato` | `baseline_irpf`), e o nome da conta
+    # passou a ocupar `nome` — o campo que o schema já tinha e que ficava vazio.
+    assert detalhes_caixa[0]["nome"] == "Wise USD"
+    assert detalhes_caixa[0]["fonte"] == "extrato"
     assert len(detalhes_ativos) == 1
     assert detalhes_ativos[0]["moeda"] == "USD"
 

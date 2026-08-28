@@ -243,6 +243,9 @@ _CAIXA_COM_IRPF = [
     {"conta": "Wise USD", "moeda": "USD", "valor_brl": 100000.0},
     {
         "tipo": "moeda_estrangeira_irpf",
+        # `fonte` é o que `_extract_me_caixa_from_baseline` de fato grava — sem ele a
+        # fixture não reproduz o shape do produtor e a supressão não arma.
+        "fonte": "baseline_irpf",
         "conta": "deposito em dolar",
         "moeda": "BRL",
         "valor_brl": 500000.0,
@@ -416,3 +419,40 @@ async def test_card_le_a_base_declarada_e_nao_o_campo_legado(auth_client: AsyncC
 
     # 50k sobre a base DECLARADA (500k) = 10%, não sobre o legado (250k) = 20%.
     assert data["pct_investivel_financeiro"] == 10.0
+
+
+# A40.l80 §Prova de fecho (P2, co-design `financial-planner`): frescor mata a PRESCRIÇÃO
+# DIMENSIONADA, nunca a medida. Dizer "compre R$ X" sobre saldo que veio de foto anual e
+# nunca foi confirmado empurra IOF, spread e evento tributário; dizer "confirme o saldo"
+# custa uma conferência de extrato. A medida sobrevive porque suprimi-la faria o card
+# afirmar ausência de exposição — o defeito que `_sem_base_response` já documenta.
+@pytest.mark.asyncio
+async def test_foto_anual_no_numerador_suprime_o_ALVO_e_preserva_a_medida(
+    auth_client: AsyncClient, db
+):
+    """A prescrição dimensionada morre; `total_brl` e o pct ficam."""
+    await _seed_e5_artifact(db, auth_client.ws_id, _PAYLOAD_COM_IRPF())
+
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert data["alvo_moeda_forte_brl"] is None, "o alvo saiu sobre saldo não confirmado"
+    assert data["alvo_suprimido_motivo"], "suprimir sem dizer por quê é silêncio, não ressalva"
+    assert Decimal(data["total_brl"]) == Decimal("600000.00")
+    assert data["pct_investivel_financeiro"] == 12.0
+
+
+@pytest.mark.asyncio
+async def test_sem_foto_anual_o_alvo_e_emitido(auth_client: AsyncClient, db):
+    """Polaridade oposta: sem a linha do IRPF a prescrição continua — não é supressão geral."""
+    caixa = [{"conta": "Wise USD", "moeda": "USD", "valor_brl": 100000.0}]
+    payload = _e5_payload(posicoes=[], caixa_detalhes=caixa, investivel=Decimal("5000000"))
+    await _seed_e5_artifact(db, auth_client.ws_id, payload)
+
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert data["alvo_moeda_forte_brl"] is not None
+    assert data["alvo_suprimido_motivo"] is None

@@ -4676,6 +4676,18 @@
             "description": "Quanto o piso verde representa em reais para este patrim\u00f4nio. Vem do backend para o threshold n\u00e3o passar a existir em dois lugares.",
             "title": "Alvo Moeda Forte Brl"
           },
+          "alvo_suprimido_motivo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Por que o alvo dimensionado n\u00e3o foi emitido; `None` quando ele existe.",
+            "title": "Alvo Suprimido Motivo"
+          },
           "ativos_contribuintes": {
             "items": {
               "$ref": "#/components/schemas/ExposicaoCambialAtivoDTO"

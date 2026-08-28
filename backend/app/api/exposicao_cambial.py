@@ -8,12 +8,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.application.exposicao_cambial_v2 import (
-    compute_exposicao_cambial_v2,
+from backend.app.application.asset_override_store import (
     delete_asset_override,
     list_asset_overrides,
     upsert_asset_override,
 )
+from backend.app.application.exposicao_cambial_v2 import compute_exposicao_cambial_v2
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace
