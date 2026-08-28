@@ -70,9 +70,9 @@ publicadas com termos) · ✅ Corretude (intervalo + identidade) · ✅ **Comple
 (o gate morde e cobre **4 de 4** razões — #1782, #1785, #1794, #1795; a 4ª exigiu
 unificar o numerador antes, porque rótulo declara denominador) · 🟡 **Precisão** (as duas declarações falsas medidas
 foram corrigidas em [#1769](https://github.com/davidrobert/mathoms/pull/1769); falta
-fechar `kpi_targets[].base` no schema) · ❌ **Prova de fecho** — a perna a-montante
-saiu em [#1780](https://github.com/davidrobert/mathoms/pull/1780), e a regra pós-LLM
-como o critério a escreve é **inerte e de sinal trocado** (C16).
+fechar `kpi_targets[].base` no schema) · 🟡 **Prova de fecho** — o critério **como escrito** segue
+refutado (C16: inerte e de sinal trocado), mas o **substituto** desenhado pelo
+`financial-planner` está **2 de 4 entregue** — ver §abaixo.
 
 **O que falta na Completude, nomeado.** O gate (`tests/test_cobertura_de_base.py`)
 recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobiliaria`
@@ -93,6 +93,23 @@ recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobil
 > **entrada** do DTO, não o crescimento dele; o custo mecânico é 1 campo opcional + 2
 > call-sites + `make update-openapi-snapshot`. O custo alto do card é **semântico**, e é
 > outro: o numerador está em disputa.
+
+### O substituto da §Prova de fecho — placar (2026-08-30)
+
+O critério original é inerte na perna da magnitude (C16). O `financial-planner` desenhou
+quatro predicados medíveis no lugar dele; dois estão em `main`:
+
+| # | predicado | estado |
+|---|---|---|
+| **P1** | paridade de definição entre os dois produtores do numerador | ✅ [#1794](https://github.com/davidrobert/mathoms/pull/1794) — o card **consome** o `por_moeda` do artefato |
+| **P2** | frescor mata a prescrição dimensionada, **nunca** a medida | ✅ [#1803](https://github.com/davidrobert/mathoms/pull/1803) — `alvo_moeda_forte_brl` some com motivo quando há linha `baseline_irpf`; pct e total ficam |
+| **P3** | o **sujeito** na capa: com ≥3 prescrições suprimidas pela mesma causa, manchete única com tarefa única | ❌ componente novo — [[ADR-412]] §Emenda E3 já o desenha |
+| **P4** | projeção, não pós-LLM: nenhuma label reensina limiar | 🟡 [#1780](https://github.com/davidrobert/mathoms/pull/1780) levou de 2 para 1. **O sobrevivente é o piso**, não dívida: `diagnostico_confianca.nivel` mantém os degraus por decisão da [[ADR-353]], cujo hint manda "não recalcule" |
+
+**A raiz do P2 era de publicação, não de regra**, e vale para quem pegar o P3: `CaixaDetalhe`
+já carregava `fonte="baseline_irpf"`, e `_detalhes_caixa` publicava o **nome da conta**
+naquele campo enquanto o schema tinha `nome` vazio ao lado. Procedência que existe a
+montante e morre na publicação faz trabalho de contrato parecer trabalho de domínio.
 
 ### Decisões dos especialistas (2026-08-28)
 
