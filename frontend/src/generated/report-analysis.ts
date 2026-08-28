@@ -452,6 +452,8 @@ export type E5AnalysisArtifact = {
     "concentracao_imobiliaria"?: number;
     "base_concentracao_imobiliaria"?: "carteira_produtiva_fixa";
     "piso_autonomia_financeira_meses"?: number;
+    "base_autonomia_financeira"?: "carteira_financeira_familia";
+    "autonomia_denominador_mensal_brl"?: number;
     "base_do_piso"?: "carteira_financeira_familia" | "carteira_produtiva_familia" | "carteira_com_titular_identificado" | "carteira_produtiva_com_titular_identificado" | "patrimonio_liquido";
   };
   "goals"?: Goals;

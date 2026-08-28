@@ -127,6 +127,11 @@ class FinancialRatios:
     # C11-Fase2 / FIN-05 ([[ADR-340]]): SSOT da concentração imobiliária —
     # cat_2 / carteira produtiva. Ver `_calc_concentracao_imobiliaria`.
     concentracao_imobiliaria_pct: float = 0.0
+    # A40.l80 §Completude: o divisor que a autonomia de fato usou, carregado para ser
+    # publicado — sem ele o recompute do gate teria de remontar a janela a partir de
+    # `fluxo_caixa`, e erraria no fallback de `_resolve_window`. `Decimal` porque é
+    # dinheiro (ADR-090); o `float` do wire sai só no `to_legacy_dict`.
+    despesa_consumo_mensal: Decimal = Decimal("0")
     rentabilidade_pct: Decimal | None = None
     aliquota_efetiva_ir_pct: Decimal | None = None
     janela_referencia: str = "N/D"
@@ -139,6 +144,16 @@ class FinancialRatios:
     def _autonomia_com_intervalo(self) -> dict:
         return {
             "autonomia_financeira_meses": round(self.autonomia_financeira_meses, 2),
+            # A40.l80 §Completude: a base da MEDIDA, ao lado dela — `base_do_piso` declara só
+            # o extremo conservador. O numerador é `max(0, base)`: `investivel_financeiro`
+            # carrega um clamp (`patrimonio_calculator.py:212`) que `_valor_da_base` não
+            # aplica, e com soma negativa os dois divergem. Declarar o clamp aqui mantém a
+            # base número-neutra em vez de mudá-la para caber na medida.
+            "base_autonomia_financeira": BaseFinanceira.carteira_financeira_familia.value,
+            # O divisor viaja junto: recompor cross-bloco a partir de `fluxo_caixa` erra no
+            # regime de fallback de `_resolve_window` (sem `janela_12m`, `n_meses` vira 0 e a
+            # despesa sai de outro nó). Publicado, o recompute fecha dentro de `ratios`.
+            "autonomia_denominador_mensal_brl": float(round(self.despesa_consumo_mensal, 2)),
             # ADR-335: alias deprecated por 1 ciclo (view-model/consumidores antigos).
             "cobertura_despesas_meses": round(self.autonomia_financeira_meses, 2),
             "piso_autonomia_financeira_meses": round(self.piso_autonomia_financeira_meses, 2),
@@ -220,6 +235,7 @@ class RatiosCalculator:
             autonomia_financeira_meses=_calc_autonomia_financeira(
                 patrimonio, _despesa_consumo_mensal(window)
             ),
+            despesa_consumo_mensal=_despesa_consumo_mensal_dec(window),
             concentracao_imobiliaria_pct=_calc_concentracao_imobiliaria(patrimonio),
             rentabilidade_pct=_resolve_rentabilidade(passive_income),
             aliquota_efetiva_ir_pct=_resolve_aliquota_ir(irpf, passive_income),
@@ -301,6 +317,15 @@ def _calc_endividamento(patrimonio: _PatrimonioPayload) -> float:
     bruto = _safe_float(patrimonio.get("bruto", 0))
     dividas = _safe_float(patrimonio.get("dividas", 0))
     return _ratio_pct(dividas, bruto)
+
+
+# Par declarado: o `float` alimenta as razões (domínio legado do módulo) e o `Decimal`
+# viaja para publicação — dinheiro não é float (ADR-090), e converter só no wire evita
+# fronteira mista no meio do cálculo.
+def _despesa_consumo_mensal_dec(window: _Window) -> Decimal:
+    """Consumo mensal ex-aporte em `Decimal` — mesma janela que as razões usaram."""
+    n = window.n_meses
+    return window.despesa_consumo_brl / n if n > 0 else Decimal("0")
 
 
 def _despesa_consumo_mensal(window: _Window) -> float:
