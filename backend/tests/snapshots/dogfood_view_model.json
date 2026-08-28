@@ -1682,7 +1682,7 @@
   },
   "kpi_targets": {
     "aliquota_efetiva_ir": {
-      "base": "renda_tributavel",
+      "base": "renda_anual_familiar",
       "limiar": null,
       "motivo": "alíquota efetiva é descritiva; o alvo depende do regime e não é canônico",
       "observado_path": "$.ratios.aliquota_efetiva_ir_pct",
@@ -2144,6 +2144,7 @@
     "aliquota_efetiva_ir_pct": "N/D",
     "autonomia_denominador_mensal_brl": 150000,
     "autonomia_financeira_meses": "86.670000",
+    "base_aliquota_efetiva_ir_pct": "renda_anual_familiar",
     "base_autonomia_financeira": "carteira_financeira_familia",
     "base_concentracao_imobiliaria": "carteira_produtiva_fixa",
     "base_do_piso": "carteira_com_titular_identificado",

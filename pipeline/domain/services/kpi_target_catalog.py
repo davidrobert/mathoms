@@ -264,7 +264,7 @@ _ORFAOS_DOMINIO = (
     (
         "aliquota_efetiva_ir",
         "$.ratios.aliquota_efetiva_ir_pct",
-        "renda_tributavel",
+        "renda_anual_familiar",
         "pct",
         "Alíquota efetiva de IR (consolidada)",
         "alíquota efetiva é descritiva; o alvo depende do regime e não é canônico",
