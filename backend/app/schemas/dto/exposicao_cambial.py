@@ -67,6 +67,13 @@ class ExposicaoCambialResponse(BaseModel):
             "backend para o threshold não passar a existir em dois lugares."
         ),
     )
+    # A40.l80 ([[ADR-412]] §D7): com foto anual no numerador o ALVO some e o motivo ocupa o
+    # lugar dele. A medida (`total_brl`, `pct`) nunca some — o que morre é o "compre R$ X",
+    # única saída que autoriza gastar dinheiro sobre saldo que ninguém confirmou.
+    alvo_suprimido_motivo: Optional[str] = Field(
+        default=None,
+        description="Por que o alvo dimensionado não foi emitido; `None` quando ele existe.",
+    )
     ativos_contribuintes: list[ExposicaoCambialAtivoDTO]
     catalog_version: int = 1
     source_run_id: Optional[str] = None

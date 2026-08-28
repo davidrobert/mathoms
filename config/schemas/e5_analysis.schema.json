@@ -1438,10 +1438,12 @@
             "type": "object",
             "properties": {
               "fonte": {
-                "type": "string"
+                "type": "string",
+                "description": "A40.l80: PROCEDÊNCIA da linha (`extrato` | `baseline_irpf` | `informe_31_12`), não o nome da conta — esse é `nome`. `baseline_irpf` é foto anual (ADR-245) e suprime a prescrição dimensionada do card, nunca a medida (ADR-412 §D7)."
               },
               "nome": {
-                "type": "string"
+                "type": "string",
+                "description": "Nome da conta. Antes da A40.l80 este campo ficava vazio e o nome ia em `fonte`."
               },
               "moeda": {
                 "type": "string"
