@@ -448,8 +448,21 @@ cuja base tenha fatia órfã acima do piso.
 
 `backend/tests/test_report_view_model_snapshot.py` e as baselines visuais de print
 vão precisar de rebaseline. **Olhe as imagens** — baseline commitada sem olhar já
-passou defeito neste repo. O hook `Rebaseline de golden isolado de código de
-produção (G-c)` exige commits separados. Se algum DTO mudar,
+passou defeito neste repo.
+
+> **Correção (2026-08-28): o hook G-c NÃO cobre este golden.**
+> `dev/check_golden_rebaseline_isolation.py:23` fixa
+> `_GOLDEN_PREFIX = "tests/fixtures/pipeline_golden/"`, e o snapshot que esta seção
+> nomeia vive em `backend/tests/snapshots/` — fora do prefixo, como `dev/snapshots/`.
+> Separar o rebaseline do código de produção aqui é **disciplina, não gate**, e a
+> frase anterior fez três PRs desta lane (#1769, #1780, #1782) declararem no corpo
+> "commit isolado (hook G-c)" como se um gate tivesse enforçado. A separação foi
+> feita e está certa; a **atribuição ao hook era falsa**.
+> Estender o prefixo é trabalho desta lane — ela é dona assinada de `dev/golden_diff.py`
+> (§abaixo) —, mas é **arquivo diferente** (`check_golden_rebaseline_isolation.py`),
+> então a rota escrita na [[A40.l89]] (*"estender o prefixo é da [[A40.l80]], dona
+> assinada do `golden_diff.py`"*) encadeia dois arquivos distintos. Confirme a
+> titularidade antes de pegar. Se algum DTO mudar,
 `make update-openapi-snapshot`. Se o manifest do parecer mudar, bump de
 `PROMPT_VERSION`.
 
