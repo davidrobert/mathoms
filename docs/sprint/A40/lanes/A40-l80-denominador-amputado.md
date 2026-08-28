@@ -104,7 +104,7 @@ quatro predicados medíveis no lugar dele; dois estão em `main`:
 | **P1** | paridade de definição entre os dois produtores do numerador | ✅ [#1794](https://github.com/davidrobert/mathoms/pull/1794) — o card **consome** o `por_moeda` do artefato |
 | **P2** | frescor mata a prescrição dimensionada, **nunca** a medida | ✅ [#1803](https://github.com/davidrobert/mathoms/pull/1803) — `alvo_moeda_forte_brl` some com motivo quando há linha `baseline_irpf`; pct e total ficam |
 | **P3** | o **sujeito** na capa: com ≥3 prescrições suprimidas pela mesma causa, manchete única com tarefa única | ❌ componente novo — [[ADR-412]] §Emenda E3 já o desenha |
-| **P4** | projeção, não pós-LLM: nenhuma label reensina limiar | 🟡 [#1780](https://github.com/davidrobert/mathoms/pull/1780) levou de 2 para 1, e o sobrevivente **é acionável** — ver a correção abaixo |
+| **P4** | projeção, não pós-LLM: nenhuma label reensina limiar | ✅ #1808 — **zero** labels com régua no manifest inteiro. O #1780 levou de 2 para 1 e o gate media só o bloco cambial; o sobrevivente era o excluído |
 
 > **Correção (2026-08-28) — o "piso" do P4 era auto-atribuição minha.** Escrevi
 > nesta tabela que o degrau sobrevivente ficava "por decisão da [[ADR-353]], cujo hint
@@ -124,6 +124,14 @@ quatro predicados medíveis no lugar dele; dois estão em `main`:
 > exatamente o que o P4 proíbe. Logo o P4 **não está no piso**: sai a régua do label,
 > fica a instrução: limiar em label de prompt é **input do modelo**, não documentação —
 > o defeito é de **projeção**, e eu o reclassifiquei como doutrina alheia.
+>
+> **Fechado no #1808.** O teste que media o eixo repetia a mesma frase falsa no comentário
+> e se escusava do caso por ela — enquanto o critério que ele próprio enunciava (*régua ao
+> lado do número cru*) descrevia exatamente o excluído: a label do `nivel` trazia a escada e
+> o `share_nao_identificado_pct` era projetado na linha seguinte. Medido antes de mexer:
+> **uma única label em todo o manifest** tinha régua, e era essa. O gate deixou de olhar só
+> `$.exposicao_cambial.` e passou a varrer o manifest inteiro — recorte escolhido depois de
+> conhecer o ofensor não é gate.
 
 **A raiz do P2 era de publicação, não de regra**, e vale para quem pegar o P3: `CaixaDetalhe`
 já carregava `fonte="baseline_irpf"`, e `_detalhes_caixa` publicava o **nome da conta**
