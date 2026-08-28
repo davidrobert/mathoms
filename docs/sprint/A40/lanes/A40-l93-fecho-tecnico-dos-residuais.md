@@ -4,7 +4,9 @@ type: lane
 title: "Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: in_progress
+status: shipped
+ship_pr: 1796
+ship_date: "2026-08-28"
 priority: P0
 branch_slug: a40-l93-fecho-residuais
 owner: data-engineer
@@ -16,7 +18,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/llm
