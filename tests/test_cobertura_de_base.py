@@ -234,3 +234,24 @@ def test_o_par_medido_existe_na_fixture(patrimonio: dict, ratios: dict) -> None:
     ]
 
     assert pares, "nenhum kpi_target casou declaração de produtor — gate vacuoso"
+
+
+def test_cambial_declara_a_base_e_o_catalogo_a_LE(patrimonio: dict) -> None:
+    """A 4ª razão: produtor declara, catálogo consome — nenhum dos dois inventa."""
+    from pipeline.domain.services.exposicao_cambial_analyzer import compute_exposicao_cambial
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    denom = patrimonio["bases"][BaseFinanceira.carteira_financeira_familia.value]["valor_brl"]
+    publicado = compute_exposicao_cambial(
+        caixa_detalhes=[{"tipo": "caixa_moeda_estrangeira", "moeda": "USD", "valor_brl": 90_000.0}],
+        investimentos_atuais=None,
+        investivel_financeiro=denom,
+    ).to_dict()
+
+    declarada = publicado["base_pct_investivel_financeiro"]
+    assert declarada in {b.value for b in BaseFinanceira}
+    assert _cents(round(publicado["total_brl"] / denom * 100.0, 2)) == _cents(
+        publicado["pct_investivel_financeiro"]
+    )
+    alvo = build_kpi_targets({"exposicao_cambial": publicado}, scoring={})["exposicao_cambial"]
+    assert alvo["base"] == declarada, "catálogo e produtor declaram bases diferentes"

@@ -1325,6 +1325,13 @@
           "type": "number",
           "description": "Percentual absoluto (ADR-209) da exposição cambial sobre patrimonio.investivel_financeiro (investimentos posições atuais + caixa). Rótulo de base obrigatório ao citar (A37.l9)."
         },
+        "base_pct_investivel_financeiro": {
+          "type": "string",
+          "enum": [
+            "carteira_financeira_familia"
+          ],
+          "description": "A40.l80 §Completude ([[ADR-412]]): base do denominador do pct, NOMEADA ao lado do número. O recompute do gate usa `max(0, base)` — `investivel_financeiro` carrega clamp que `_valor_da_base` não aplica. O catálogo de KPI LÊ esta declaração em vez de escrever a sua."
+        },
         "por_moeda": {
           "type": "array",
           "items": {

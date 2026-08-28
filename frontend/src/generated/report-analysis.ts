@@ -570,6 +570,7 @@ export type E5AnalysisArtifact = {
   "exposicao_cambial"?: {
     "total_brl"?: number;
     "pct_investivel_financeiro"?: number;
+    "base_pct_investivel_financeiro"?: "carteira_financeira_familia";
     "por_moeda"?: Array<{
       "moeda"?: string;
       "valor_brl"?: number;

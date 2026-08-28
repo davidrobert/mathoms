@@ -347,6 +347,12 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     # `tests/test_cobertura_de_base.py`, não insumo de conselho; projetá-lo daria ao
     # modelo um segundo número de "carteira produtiva" para confundir com o primeiro,
     # que é exatamente o defeito que declarar a base foi feito para matar.
+    # A40.l80 §Completude: rótulo de auditoria da base do pct — o manifest já entrega o
+    # pct com a base nomeada na própria label (#1780). Projetar o campo daria ao modelo um
+    # segundo lugar de onde tirar o mesmo nome.
+    "$.exposicao_cambial.base_pct_investivel_financeiro": (
+        "rótulo de auditoria; a label do pct já nomeia a base ao modelo"
+    ),
     "$.patrimonio.bases.carteira_produtiva_fixa": (
         "rastro de auditoria do denominador da concentração; o parecer recebe a razão"
     ),

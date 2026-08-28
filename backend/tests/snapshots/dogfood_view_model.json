@@ -1310,6 +1310,7 @@
     "presente": "Consolidação patrimonial"
   },
   "exposicao_cambial": {
+    "base_pct_investivel_financeiro": "carteira_financeira_familia",
     "componentes": {
       "caixa_fx": {
         "cobertura": "apurado",
@@ -1736,14 +1737,14 @@
       "unidade": "pct"
     },
     "exposicao_cambial": {
-      "base": "investivel_financeiro",
+      "base": "carteira_financeira_familia",
       "limiar": null,
       "motivo": "exposição cambial sem cobertura apurada",
       "observado_path": "$.exposicao_cambial.pct_investivel_financeiro",
       "operador": null,
       "procedencia": null,
       "ref": null,
-      "rotulo": "Exposição cambial (% do investível financeiro)",
+      "rotulo": "Exposição cambial (% da carteira financeira da família)",
       "unidade": "pct"
     },
     "if_prazo_ano": {
