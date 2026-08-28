@@ -1895,6 +1895,13 @@
         ],
         "valor_brl": 13000000
       },
+      "carteira_produtiva_fixa": {
+        "termos": [
+          "carteira_financeira_familia",
+          "imoveis_investimento"
+        ],
+        "valor_brl": 73000000
+      },
       "patrimonio_liquido": {
         "termos": [
           "bruto",
@@ -2134,6 +2141,7 @@
   "ratios": {
     "aliquota_efetiva_ir_pct": "N/D",
     "autonomia_financeira_meses": "86.670000",
+    "base_concentracao_imobiliaria": "carteira_produtiva_fixa",
     "base_do_piso": "carteira_com_titular_identificado",
     "cobertura_despesas_meses": "86.670000",
     "concentracao_imobiliaria": 8219,

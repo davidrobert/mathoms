@@ -34,6 +34,7 @@ class BaseFinanceira(str, Enum):
     carteira_produtiva_familia = "carteira_produtiva_familia"
     carteira_com_titular_identificado = "carteira_com_titular_identificado"
     carteira_produtiva_com_titular_identificado = "carteira_produtiva_com_titular_identificado"
+    carteira_produtiva_fixa = "carteira_produtiva_fixa"
     patrimonio_liquido = "patrimonio_liquido"
 
 
@@ -62,6 +63,18 @@ TERMOS_DA_BASE: dict[BaseFinanceira, tuple[str, ...]] = {
     BaseFinanceira.carteira_produtiva_com_titular_identificado: (
         "carteira_com_titular_identificado",
         "cat2_efetivo",
+    ),
+    # A base da concentração imobiliária ([[ADR-340]]) NÃO é a `carteira_produtiva_familia`:
+    # aquela soma `cat2_efetivo` (só imóveis GERADORES, e zero quando o toggle
+    # `include_real_estate_in_if` está off), enquanto a concentração divide por cat_2
+    # COMPLETO e é toggle-independente por decisão — o docstring de
+    # `concentracao_imobiliaria.py` diz "FIXA/toggle-independente", e vago/especulação
+    # entra porque é ainda mais ilíquido. Medido no dogfood: 73.000.000 contra
+    # 13.000.000 da homônima, 5,6× — dois denominadores sob o mesmo nome "carteira
+    # produtiva", que é o defeito RV8-02 um nível acima. Declará-la é número-neutro.
+    BaseFinanceira.carteira_produtiva_fixa: (
+        "carteira_financeira_familia",
+        "imoveis_investimento",
     ),
     BaseFinanceira.patrimonio_liquido: ("bruto", "-dividas"),
 }

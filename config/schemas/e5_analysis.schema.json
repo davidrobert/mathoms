@@ -432,6 +432,9 @@
             },
             "carteira_produtiva_com_titular_identificado": {
               "$ref": "#/$defs/BaseDeclarada"
+            },
+            "carteira_produtiva_fixa": {
+              "$ref": "#/$defs/BaseDeclarada"
             }
           },
           "required": [],
@@ -714,6 +717,13 @@
         "concentracao_imobiliaria": {
           "type": "number",
           "description": "cat_2 sobre a carteira produtiva ([[ADR-340]], SSOT)."
+        },
+        "base_concentracao_imobiliaria": {
+          "type": "string",
+          "enum": [
+            "carteira_produtiva_fixa"
+          ],
+          "description": "A40.l80 §Completude ([[ADR-412]]): base do denominador da concentração, NOMEADA ao lado do número. É `carteira_produtiva_fixa` (investível financeiro + cat_2 COMPLETO, toggle-independente), NÃO `carteira_produtiva_familia` — aquela soma `cat2_efetivo`, que conta só imóveis geradores e zera com o toggle off. Medido no dogfood: 73.000.000 contra 13.000.000, 5,6%. O gate `test_cobertura_de_base` recomputa numerador ÷ base declarada em cents."
         },
         "piso_autonomia_financeira_meses": {
           "type": "number",

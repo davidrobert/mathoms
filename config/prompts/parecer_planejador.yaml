@@ -109,7 +109,7 @@
 # lacunas declaradas e 0 de 1 não declarada, e o diagnóstico estava em
 # `insuficiente` (30,7% de despesa não identificada) sem que o parecer soubesse.
 # Nenhum limiar novo: os hints consomem o veredito da ADR-353 e da ADR-394 §Emenda.
-version: "2.4.0"
+version: "2.5.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -190,12 +190,21 @@ context_sections:
           - {path: "$.investimentos.total_imoveis_investimento", label: "Imóveis de investimento na tabela", format: "brl"}
           - {path: "$.investimentos.fonte", label: "Fonte da tabela (irpf_bens = foto 31/12; difere do patrimonio)", format: "string"}
       # A37.l9 (CTO-04/PE-05): exposição cambial ≠ alocação internacional.
+      # A40.l80 · [[ADR-412]] §D7: o manifest PARA de reensinar o limiar na label. A
+      # label do `tier` entregava "verde >=10% / amarelo 5-10% / vermelho <5%" ao lado
+      # do `pct` cru — o modelo recebia régua e número e declarava conformidade
+      # sozinho, fabricando "faixa verde" que o campo recusa (o `tier` é constante
+      # `indeterminado` desde o #1568). O limiar tem LEITOR ÚNICO ([[ADR-399]]:
+      # `kpi_target_catalog`); repeti-lo aqui era a quarta cópia, que é exatamente o
+      # que aquele módulo existe para impedir. E a base do pct passa a ser declarada
+      # na própria label, como o hint "rótulo de base obrigatório" (A37.l9) já exige
+      # de todo percentual: ela é a carteira CHEIA e inclui a fatia sem dono.
       - format: "key_value"
         title: "Exposição cambial (posições em moeda estrangeira — caixa FX + ativos com lastro internacional)"
         fields:
-          - {path: "$.exposicao_cambial.total_brl", label: "Exposição cambial total", format: "brl"}
-          - {path: "$.exposicao_cambial.pct_investivel_financeiro", label: "% do investível financeiro (posições atuais + caixa)", format: "percent2"}
-          - {path: "$.exposicao_cambial.tier", label: "Tier (verde >=10% / amarelo 5-10% / vermelho <5%)", format: "string"}
+          - {path: "$.exposicao_cambial.total_brl", label: "Exposição cambial APURADA (só caixa em ME; lastro de carteira fica fora)", format: "brl"}
+          - {path: "$.exposicao_cambial.pct_investivel_financeiro", label: "% da carteira financeira cheia (INCLUI a fatia sem dono atribuído)", format: "percent2"}
+          - {path: "$.exposicao_cambial.tier", label: "Tier apurado pelo motor (rótulo, não limiar)", format: "string"}
       # A40.l83 · RV8-05: o manifest é WHITELIST — o que não está declarado não entra.
       # Os seis campos de incerteza construídos ao longo da A40 existiam no E5 e nenhum
       # era projetado. Medido no run r8: o modelo ressalvou 3 de 3 lacunas que o payload
@@ -210,6 +219,8 @@ context_sections:
         title: "Cobertura e incerteza do retrato (o que os números NÃO cobrem)"
         fields:
           - {path: "$.patrimonio.investimentos_nao_atribuidos", label: "Investimentos sem dono atribuído", format: "brl"}
+          - {path: "$.patrimonio.atribuicao_investimentos.pct_carteira_financeira", label: "% da carteira financeira sem dono atribuído", format: "percent2"}
+          - {path: "$.patrimonio.atribuicao_investimentos.motivo", label: "Motivo de atribuição incompleta (null = fatia órfã abaixo do piso)", format: "string"}
           - {path: "$.patrimonio.pl_ressalva", label: "Patrimônio líquido sob ressalva", format: "raw"}
           - {path: "$.investimentos.nao_classificado_pct", label: "% da carteira que nenhum degrau classificou", format: "percent2"}
           - {path: "$.diagnostico_confianca.nivel", label: "Confiança do diagnóstico (alta / parcial >10% / insuficiente >30%, ADR-353)", format: "string"}
