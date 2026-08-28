@@ -19,6 +19,7 @@ from __future__ import annotations
 import pytest
 
 from backend.app.services.parecer_guardrails_divida import (
+    _SECAO_LIQUIDEZ,
     neutralize_autocontradicao,
     piso_prescricao_divida,
 )
@@ -73,7 +74,7 @@ def _pf(tema: str = "Saúde de balanço", section: str = "S10", i: int = 0) -> P
     )
 
 
-def _risco(tema: str = "Liquidez", section: str = "S4") -> Risco:
+def _risco(tema: str = "Liquidez", section: str = _SECAO_LIQUIDEZ) -> Risco:
     return Risco(
         severidade="Média",
         titulo="Risco identificado na seção",
@@ -216,14 +217,14 @@ class TestPisoDeDuasDirecoes:
 class TestAutocontradicao:
     def test_r2_liquidez_excessiva_remove_ponto_forte_de_liquidez(self):
         """O sinal vem do E5 — contradição sobre o MESMO objeto medido."""
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", "S4", 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
         out, tel = neutralize_autocontradicao(_output(pontos=pontos), E5_LIQUIDEZ_EXCESSIVA, WS)
         assert len(out.pontos_fortes) == 4
         assert all(p.tema_canonico != "Liquidez" for p in out.pontos_fortes)
         assert tel["autocontradicao_removidos"] == 1
 
     def test_liquidez_adequada_nao_dispara(self):
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", "S4", 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
         out, tel = neutralize_autocontradicao(_output(pontos=pontos), E5_TAXA_CONHECIDA, WS)
         assert len(out.pontos_fortes) == 5
         assert tel["autocontradicao_removidos"] == 0
@@ -232,7 +233,7 @@ class TestAutocontradicao:
         """R1 refutada por medição no r7: o par (seção, tema) é BALDE, não assunto —
         casava 2/5 pontos fortes com 1 falso-positivo (S2 + "Equilíbrio presente-futuro"
         aproxima poupança alta de gasto com saúde alto). Vira contagem para o r8."""
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", "S4", 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
         out, tel = neutralize_autocontradicao(
             _output(pontos=pontos, riscos=[_risco()]), E5_TAXA_CONHECIDA, WS
         )
@@ -241,7 +242,7 @@ class TestAutocontradicao:
         assert tel["autocontradicao_pares_secao_tema"] == 1
 
     def test_par_e_contado_mesmo_quando_r2_ja_removeu(self):
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", "S4", 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
         _, tel = neutralize_autocontradicao(
             _output(pontos=pontos, riscos=[_risco()]), E5_LIQUIDEZ_EXCESSIVA, WS
         )
@@ -249,16 +250,16 @@ class TestAutocontradicao:
         assert tel["autocontradicao_pares_secao_tema"] == 1
 
     def test_piso_degrada_com_ressalva(self):
-        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", "S4", 2)]
+        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", _SECAO_LIQUIDEZ, 2)]
         out, tel = neutralize_autocontradicao(_output(pontos=pontos), E5_LIQUIDEZ_EXCESSIVA, WS)
         assert len(out.pontos_fortes) == PONTOS_FORTES_MIN
         assert tel["autocontradicao_removidos"] == 0
         assert tel["autocontradicao_ressalvados"] == 1
         assert "também consta como risco" in out.pontos_fortes[2].descricao
-        assert out.pontos_fortes[2].section_id == "S4"
+        assert out.pontos_fortes[2].section_id == _SECAO_LIQUIDEZ
 
     def test_saida_revalida_no_schema(self):
-        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", "S4", 2)]
+        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", _SECAO_LIQUIDEZ, 2)]
         out, _ = neutralize_autocontradicao(_output(pontos=pontos), E5_LIQUIDEZ_EXCESSIVA, WS)
         ParecerPlanejadorOutput.model_validate(out.model_dump())
 
@@ -283,7 +284,7 @@ class TestCallSiteOrchestrator:
     def _resultado(self):
         from tests.test_parecer_guardrails_pos_llm import _generate
 
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", "S4", 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
         sug = _sug("Amortizar o saldo devedor do financiamento com o excedente de caixa.")
         e5 = {**E5_TAXA_NULA, "reserva_emergencia": {"avaliacao_liquidity": "Excessiva"}}
         return _generate(_output(pontos=pontos, riscos=[_risco()], taticas=[sug]), e5)
@@ -329,3 +330,33 @@ class TestCallSiteOrchestrator:
             result.pos_llm_guardrails,
             schema["properties"]["_meta"]["properties"]["pos_llm_guardrails"],
         )
+
+
+# ---------------------------------------------------------------------------
+# A40.l80 — guardrail não arma em seção que o modelo nunca vê
+# ---------------------------------------------------------------------------
+
+
+# `_SECAO_LIQUIDEZ` valeu `"S4"` desde que o guardrail nasceu. O manifest projeta seções
+# alinhadas a S1/S2/S3/S7/S8/S9/S10 — **S4 nunca** —, e a reserva vive em `saude_balanco`
+# (`aligned_with_layout: "S1"`). Resultado medido: com o sinal do E5 VIVO no golden
+# (`avaliacao_liquidity == "Excessiva"`), o guardrail não disparava. A [[ADR-412]] §Emenda
+# E3 apoia-se nele para NÃO suprimir `avaliacao_liquidity`.
+#
+# Este teste é o que separa o conserto da tautologia: os testes acima importam a constante,
+# logo passariam com qualquer valor — inclusive `"S4"` de volta.
+def test_guardrail_arma_em_secao_que_o_manifest_projeta():
+    """Seção que o manifest não projeta é seção que o modelo não rotula — regra morta."""
+    from backend.app.services.parecer_manifest import load_manifest
+
+    projetadas = {
+        s.get("aligned_with_layout")
+        for s in load_manifest().sections
+        if s.get("aligned_with_layout")
+    }
+
+    assert projetadas, "manifest sem seções alinhadas — o teste ficaria vacuoso"
+    assert _SECAO_LIQUIDEZ in projetadas, (
+        f"o guardrail arma em `{_SECAO_LIQUIDEZ}`, que o manifest não projeta — "
+        f"o modelo nunca rotula assim e a regra nasce morta. Projetadas: {sorted(projetadas)}"
+    )

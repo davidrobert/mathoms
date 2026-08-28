@@ -156,7 +156,13 @@ _RESSALVA_CONTRADICAO = (
     "Ressalva: este tema também consta como risco nesta edição — leia os dois em conjunto."
 )
 _LIQUIDEZ_EXCESSIVA = "excessiva"
-_SECAO_LIQUIDEZ = "S4"
+# S1, não S4. O manifest projeta seções alinhadas a S1/S2/S3/S7/S8/S9/S10 — **S4 nunca** —,
+# e o bloco de reserva (`saude_balanco`) é `aligned_with_layout: "S1"`. Armado em S4, este
+# guardrail só dispararia se o modelo errasse o rótulo: medido no golden, o sinal do E5 está
+# VIVO (`avaliacao_liquidity == "Excessiva"`) e ele nunca disparou. A [[ADR-412]] §Emenda E3
+# apoia-se nele para NÃO suprimir `avaliacao_liquidity` — o argumento dependia de um
+# mecanismo que provavelmente nunca rodou.
+_SECAO_LIQUIDEZ = "S1"
 _TEMA_LIQUIDEZ = "Liquidez"
 
 
