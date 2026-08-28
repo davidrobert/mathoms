@@ -298,11 +298,13 @@ que a revisão adversarial rende.
 O `check_closure.py` levantou `CLOSE-BLOCK-05` em **3** linhas da [[A40.l90]]. Julgadas uma
 a uma:
 
-- **`:106` era rota real e está SATISFEITA.** A l90 declara uma regra inelegível "enquanto o
-  catálogo não carregar o qualificador de cobertura (achado roteado à l89)". O #1779 o
-  entregou: `_exposicao_cambial` devolve órfão com motivo quando `tier == "indeterminado"`
-  ou qualquer componente tem `cobertura != "apurado"`. Avisado à sessão viva da l90 em
-  2026-08-28; **não editei o arquivo dela** (worktree ocupado).
+- **`:106` era rota real e está SATISFEITA — e a linha já não existe.** A l90 declarava uma
+  regra inelegível "enquanto o catálogo não carregar o qualificador de cobertura (achado
+  roteado à l89)". O #1779 o entregou: `_exposicao_cambial` devolve órfão com motivo quando
+  `tier == "indeterminado"` ou qualquer componente tem `cobertura != "apurado"`. Avisada, a
+  sessão dona removeu a linha no **#1789** — o predicado composto dela **colapsou** para
+  `limiar is not None`, porque a cobertura virou condição de existência do limiar **no
+  produtor**. **Re-medido em 2026-08-28, pós-merge: o gate levanta 2, não 3.**
 - **`:161` e `:197` são falso-positivo do gate** — citam procedência ("herdado do
   §Deferimento da l89", "já declarado pela l89"), não rota futura. **Limite conhecido do
   `CLOSE-BLOCK-05`: ele não distingue "roteado PARA X" de "herdado DE X".** Fica
