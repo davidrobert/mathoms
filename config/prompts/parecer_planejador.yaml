@@ -133,7 +133,7 @@
 # (workspace, snapshot E5) que pedir parecer dentro dos 7 dias regenera uma vez. É o
 # preço de a whitelist ter contradito o manifest, e procurar caminho mais barato seria
 # o defeito N2 pela outra ponta.
-version: "2.6.0"
+version: "2.7.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -247,7 +247,7 @@ context_sections:
           - {path: "$.patrimonio.atribuicao_investimentos.motivo", label: "Motivo de atribuição incompleta (null = fatia órfã abaixo do piso)", format: "string"}
           - {path: "$.patrimonio.pl_ressalva", label: "Patrimônio líquido sob ressalva", format: "raw"}
           - {path: "$.investimentos.nao_classificado_pct", label: "% da carteira que nenhum degrau classificou", format: "percent2"}
-          - {path: "$.diagnostico_confianca.nivel", label: "Confiança do diagnóstico (alta / parcial >10% / insuficiente >30%, ADR-353)", format: "string"}
+          - {path: "$.diagnostico_confianca.nivel", label: "Confiança do diagnóstico — veredito ordinal do motor (ADR-353)", format: "string"}
           - {path: "$.diagnostico_confianca.share_nao_identificado_pct", label: "% de despesa não identificada", format: "percent2"}
           - {path: "$.patrimonio.guarda_de_sinal.modo", label: "Guarda de sinal — modo", format: "string"}
           - {path: "$.patrimonio.guarda_de_sinal.cobertura_completa", label: "Guarda de sinal — cobertura completa", format: "raw"}
@@ -265,7 +265,7 @@ context_sections:
           - {path: "motivo", label: "Motivo", format: "raw"}
         max_rows: 8
     narrative_hints:
-      - "Leia $.diagnostico_confianca.nivel antes de prescrever: 'insuficiente' (>30%) torna a prescrição provisória, com ressalva no item; 'parcial' (>10%) exige ressalva onde a base pesa. É veredito do motor (ADR-353) — não recalcule."
+      - "Leia $.diagnostico_confianca.nivel antes de prescrever: 'insuficiente' torna a prescrição provisória, com ressalva no item; 'parcial' exige ressalva onde a base pesa. É veredito do motor (ADR-353) — não recalcule."
       - "guarda_de_sinal.motivo_supressao não-nulo = prescrição já suprimida a montante (ADR-394): declare o motivo, não reintroduza. Com investimentos_nao_atribuidos>0 ou nao_classificado_pct>0, todo % de carteira declara a incompletude."
       - "Concentração imobiliária = RISCO: cite $.ratios.concentracao_imobiliaria (base carteira produtiva, SSOT ADR-340), NÃO o pct de tabela_classes[imóveis] (COMPOSIÇÃO, base total investido). Dois números legítimos; risco usa o de risco."
       - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."

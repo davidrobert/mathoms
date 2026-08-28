@@ -72,10 +72,13 @@ def test_hints_de_incerteza_so_citam_path_projetado():
 # A40.l80 · ADR-412 §D7 — o manifest para de reensinar o limiar
 # ---------------------------------------------------------------------------
 
-# `$.diagnostico_confianca.nivel` mantém os degraus na label por decisão da ADR-353
-# (é veredito ordinal do motor, e o hint manda "não recalcule"). Este teste NÃO fecha
-# esse eixo: ele mede o bloco cambial, onde a régua vinha ao lado do número cru e
-# autorizava o modelo a declarar conformidade sozinho.
+# Este comentário afirmava que `$.diagnostico_confianca.nivel` mantinha os degraus "por
+# decisão da ADR-353", e escopava o teste ao bloco cambial por isso. Medido em
+# 2026-08-28: a ADR-353 está em `status: Proposto` — não há decisão — e o "não recalcule"
+# é texto que a própria A40 pôs no prompt (l83), não dela. Pior, o critério que o próprio
+# comentário enunciava — régua AO LADO do número cru — descrevia o caso excluído: a label
+# do `nivel` trazia a escada e o `share_nao_identificado_pct` era projetado na linha
+# seguinte. O teste se escusava justamente do que ele definia.
 _LIMIAR_NA_LABEL = re.compile(r">=\s*\d|<=\s*\d|<\s*\d+\s*%|>\s*\d+\s*%|\d+\s*-\s*\d+\s*%")
 
 
@@ -85,26 +88,27 @@ def test_campo_de_atribuicao_e_projetado(path):
     assert path in _paths_declarados(load_manifest())
 
 
-def _labels_do_bloco_cambial(manifest) -> list[str]:
+def _labels_projetadas(manifest) -> list[tuple[str, str]]:
     return [
-        f.get("label") or ""
+        (str(f.get("path") or ""), f.get("label") or "")
         for section in manifest.sections
         for block in section.get("blocks", []) or []
         for f in declared_fields(block)
-        if str(f.get("path") or "").startswith("$.exposicao_cambial.")
     ]
 
 
-# O limiar canônico tem leitor único (`kpi_target_catalog`, ADR-399); repeti-lo no
-# manifest era a quarta cópia. O `tier` publicado é constante `indeterminado` desde o
-# #1568, então a faixa que o parecer afirmava não vinha do campo — vinha da label.
-def test_bloco_cambial_nao_reensina_o_limiar():
-    """Mata: régua na label ao lado do pct cru — o modelo declarava a faixa sozinho."""
-    labels = _labels_do_bloco_cambial(load_manifest())
+# O escopo é o MANIFEST INTEIRO, não um bloco: limiar canônico tem leitor único
+# (`kpi_target_catalog`, ADR-399), então repeti-lo em qualquer label é cópia a mais. A
+# versão anterior media só `$.exposicao_cambial.` e passava verde com o único ofensor
+# restante do manifest fora do recorte — gate que escolhe o alvo depois de conhecer o
+# ofensor não é gate.
+def test_nenhuma_label_do_manifest_reensina_limiar():
+    """Mata: régua na label ao lado do número cru — o modelo declara a faixa sozinho."""
+    projetadas = _labels_projetadas(load_manifest())
 
-    assert labels, "bloco cambial sumiu do manifest — o teste ficaria vacuoso"
-    ofensores = [lbl for lbl in labels if _LIMIAR_NA_LABEL.search(lbl)]
-    assert not ofensores, f"label do bloco cambial reensina limiar: {ofensores}"
+    assert projetadas, "manifest sem labels — o teste ficaria vacuoso"
+    ofensores = [(p, lbl) for p, lbl in projetadas if _LIMIAR_NA_LABEL.search(lbl)]
+    assert not ofensores, f"label reensina limiar: {ofensores}"
 
 
 def test_label_do_pct_cambial_declara_a_base():
