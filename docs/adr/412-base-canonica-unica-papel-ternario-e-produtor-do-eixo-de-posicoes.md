@@ -5,7 +5,7 @@ title: "Base canônica única para carteira financeira, `Papel` ternário e prod
 status: Proposto
 phase: A40.l80
 date: "2026-08-25"
-amended_at: ["2026-08-25"]
+amended_at: ["2026-08-25", "2026-08-28"]
 relates_to:
   - "[[ADR-279]]"
   - "[[ADR-335]]"
@@ -34,6 +34,11 @@ tags:
 > perde a retenção** — a razão nasce advisory; a **D6(b) troca de régua**; a **D7
 > ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
 > ganha obrigação recíproca** para superfície read-time.
+>
+> **Emenda 3 (2026-08-28):** a tabela da **§D1 descrevia 3 dos 6 membros** do enum —
+> faltavam `carteira_produtiva_com_titular_identificado` (#1710) e
+> `carteira_produtiva_fixa` (#1782), e ela ainda listava `despesa_essencial_domicilio`,
+> que a §E6 removeu. Ver §E9.
 >
 > **Emenda 2, mesmo dia** (medido no PR1 #1710): a **§D9 mandava afrouxar o que a
 > §D1 manda fechar**; `despesa_essencial_domicilio` **sai** do enum; e o enum
@@ -505,3 +510,36 @@ para isso — **use o mapa, nunca a f-string**.
 `tests/test_bases_financeiras_contrato.py::test_tripwire_role_of_ainda_e_binaria_ate_o_pr2`
 fica **vermelho** quando o PR2 aplica o fix da §D2. A ação correta é **deletar o
 teste junto com `role_of`** — nunca relaxar o assert.
+
+## Emenda 3 — a tabela da §D1 não descrevia o enum que shipou (2026-08-28)
+
+### E9 — o enum tem SEIS membros; a §D1 lista três certos
+
+A tabela da §D1 é a descrição canônica de `BaseFinanceira`, e divergiu do código em
+três pontos ao mesmo tempo — dois por omissão de base que shipou, um por listar base
+que a própria ADR removeu:
+
+| membro (código, 2026-08-28) | na tabela §D1? |
+|---|---|
+| `carteira_financeira_familia` | ✅ |
+| `carteira_produtiva_familia` | ✅ |
+| `carteira_com_titular_identificado` | ✅ |
+| `carteira_produtiva_com_titular_identificado` | ❌ **ausente** — shipou no PR1 (#1710) |
+| `carteira_produtiva_fixa` | ❌ **ausente** — shipou no PR4 (#1782) |
+| `patrimonio_liquido` | ✅ |
+| `despesa_essencial_domicilio` | ⚠️ **listada e inexistente** — a §E6 a removeu |
+
+`carteira_produtiva_fixa` = `carteira_financeira_familia + imoveis_investimento`. Ela
+existe porque o denominador da concentração imobiliária ([[ADR-340]]) **não é** a
+`carteira_produtiva_familia`: aquela soma `cat2_efetivo`, que conta só imóveis
+**geradores** e zera com `include_real_estate_in_if` off, enquanto a concentração usa
+cat_2 **completo** e é toggle-independente por decisão. Medido no dogfood: **73.000.000
+contra 13.000.000**, 5,6× — dois denominadores sob o mesmo nome "carteira produtiva".
+Publicá-la é número-neutro; o gate `tests/test_cobertura_de_base.py` recompõe
+`numerador ÷ base declarada` em cents e a exige.
+
+**Por que a divergência sobreviveu a 12 PRs:** a paridade enum↔schema É gateada
+(`test_chaves_de_bases_no_schema_sao_exatamente_o_enum`), mas a paridade **enum↔ADR**
+não é gateada por nada — tabela em prosa não tem detector. Base nova toca três lugares
+enforçados (enum, `TERMOS_DA_BASE`, schema) e um não-enforçado (esta tabela), e é o
+não-enforçado que envelhece calado.
