@@ -4,7 +4,7 @@ type: lane
 title: "A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: blocked
+status: open
 priority: P0
 branch_slug: a40-l90-limiar-de-risco-le-o-catalogo
 owner: financial-planner
@@ -17,7 +17,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p0
   - area/pipeline
   - area/financial-planning

@@ -4,7 +4,9 @@ type: lane
 title: "Wiring do catálogo de alvo: o produtor suprime o limiar por falta de procedência e o parecer o republica"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: in_progress
+status: shipped
+ship_pr: 1779
+ship_date: "2026-08-27"
 priority: P0
 branch_slug: a40-l89-wiring-do-catalogo-de-alvo
 owner: prompt-engineer
@@ -16,7 +18,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/llm
@@ -203,7 +205,7 @@ publicado (`exposicao_cambial.limiar` 1000 → `null`). Como o `limiar` é class
 **dinheiro** pelo instrumento do snapshot ([[A40.l90]] §8), o diff aparece como delta
 monetário; é artefato do classificador, não valor de dinheiro.
 
-### Segue aberto, com dono
+### Segue aberto — com dono E rota (painel de 2026-08-28)
 
 | item | dono | por quê |
 |---|---|---|
@@ -217,3 +219,104 @@ monetário; é artefato do classificador, não valor de dinheiro.
 **A casa decimal de `meses` é mudança visível ao usuário** e ficou nesta rota apenas (o
 formatter compartilhado não mudou, porque os outros consumidores dele não comparam contra
 nada). Se a preferência do domínio for outra forma, é decisão de `financial-planner`.
+
+## Entregue em 3 PRs
+
+`ship_pr` nomeia o **#1779** porque é o que deixou `main` no estado atual (o schema pede um;
+os demais vivem aqui e na tabela do `_README`). Os três, em ordem:
+
+| PR | commit | o que entregou |
+|---|---|---|
+| [#1770](https://github.com/davidrobert/mathoms/pull/1770) | `0f4ad12d` | catálogo correto e completo — invariante de forma, path da TRS, vocabulário 10→13, `rotulo`, `protecao_custo_premio`, gate de `observado_path` |
+| [#1772](https://github.com/davidrobert/mathoms/pull/1772) | `78b06986` | o canal fecha — `metrica_key` required, `nome`/`valor_atual`/`target` fora do tool schema, estampagem no finalize, read-path subtrativo, bump atômico de `PROMPT_VERSION` + `_SCHEMA_VERSION` |
+| [#1779](https://github.com/davidrobert/mathoms/pull/1779) | `4fbfb91b` | **hotfix de 7 defeitos** que os dois primeiros introduziram — 2 P0 do autor, 2 P0 achados pela sessão da [[A40.l90]], 3 P1 |
+
+## Fecho — painel de 2026-08-28 (financial-planner · senior-cto · data-engineer)
+
+**Veredito: FECHADO COM RESSALVA.** Os 3 PRs estão em `main` com CI verde e os três P0
+foram verificados no `origin/main`, não pelo PR. `FECHADO` puro exigiria "nada aberto sem
+dono"; aqui há dono **e** rota, mas R1/R2 não são estado de repouso — são KPI publicado
+cujo observado o parecer **nunca** consegue ler.
+
+### Decisões tomadas
+
+**Render de `meses` — mantém 1 casa nos dois lados** (`53,3` / `≥ 18,0`). `pct` já rende
+`≤ 20,0%` para limiar inteiro; fazer `meses` diferente seria a única unidade com alvo em
+forma distinta do observado na mesma tabela, para corrigir uma falsa-precisão que o glifo
+`≥` já neutraliza.
+
+**Direção do arredondamento (P2, novo).** `cobertura_meses` usa `round(x, 1)` half-even e
+`_classify` roda sobre o float cru: `5.96` publica `6,0 meses / ≥ 6,0 meses` **e**
+`avaliacao_liquidity: "Insuficiente"` — o relatório se contradiz na mesma tela. Cobertura
+em meses é medida de sobrevivência: `ROUND_FLOOR`. A janela é ~1,5 dia de custo essencial;
+o motivo é coerência entre veredito e número exibido, não magnitude.
+
+### Achados NOVOS do painel, que não estavam nos seis
+
+| # | achado | consequência |
+|---|---|---|
+| N1 | **`_alocacao_renda_fixa` publica `operador="<="`** — afirma que **menos** RF que o alvo está conforme, falso nas três metodologias e na direção que machuca (família sub-protegida em drawdown) | está mascarado porque R2 impede o observado de resolver. **Consertar o path de R2 sem o operador ATIVA um comparador doutrinariamente errado com o selo do produto** — a classe que esta lane existe para fechar, a um commit de distância |
+| N2 | **`check_prompt_version_bumped` não cobre `config/prompts/*.yaml`** — `manifest_version` sai do `version:` do YAML e entra na chave de cache com TTL de 7 dias | **terceira instância** da mesma classe nesta lane. Bloqueia R1, cujo remédio é edição de manifest |
+| N3 | **`clt_unica_fonte` é rótulo factualmente falso** — o código o escolhe por *ausência de medição* de fontes, não por ter medido fonte única; publica "renda de fonte única" para casal com dois salários | mesmo modo de falha da ADR-399 (observado de uma base sob rótulo de outra), um andar acima |
+| N4 | **R1 é mais barato do que este lado supôs** — a seção `diagnostico_confianca` **já é injetada** no exec context pelo manifest, com `narrative_hint` próprio. A whitelist só controla o **re-ler sob demanda**. Delta de superfície: **zero folhas novas** | ampliar o enum não é concessão de leitura, é **remoção de contradição** do manifest |
+| N5 | **R6 é mais barato do que o registro sugere** — falta **uma entrada** em `_GOAL_TYPE_MAP` + um serializer; model, DTO, schema e ADR-263 já existem | quando executada, exige **emenda datada à ADR-399** (muda a procedência publicada da reserva) |
+
+### Rota dos residuais (substitui a lista de donos soltos)
+
+| item | rota decidida | dono |
+|---|---|---|
+| **R1** `diagnostico_confianca` fora da whitelist | acrescentar ao enum de `get_e5_section` + bump do `version:` do YAML. **Bloqueado por N2** | `prompt-engineer` |
+| **R2** predicado `[classe=…]` | **folha em ponto fixo** (`rf_atual_pct` + `rf_alvo_pct` em `AlocacaoDerived`), não estender o `_JSONPATH_RE` — o subset é guardrail declarado, e alargá-lo dá filtro ao **modelo** para servir um consumidor interno. **Vai junto com N1** | `data-engineer` |
+| **R3** `metrica_key` duplicada | **dedupe subtrativo no finalize, keep-first**, com contador. **Não** `uniqueItems` nem validator hard-fail: as linhas diferem em `frequencia_revisao`, e hard-fail reabre a reask storm ([[ADR-292]]/[[ADR-294]]). ≤30 linhas ⇒ bug fix, não lane | `prompt-engineer` decide, backend implementa |
+| **R4** polaridade da barra | **lane própria** — o defeito é de **contrato**, não de CSS: `operador` existe no `KpiTarget` e **não viaja no wire**, então o front re-deriva por regex sobre a string renderizada. Mitigação imediata: suprimir a trilha quando o operador for de teto | `product-designer` + `data-engineer` |
+| **R5** `clt_estavel` inalcançável | piso de 12 é **doutrina defensável e fica**. Mas a faixa inalcançável **sai do `scoring.json`** (config viva que ninguém seleciona convida o próximo a "consertar" `_perfil_por_pct` e afrouxar o piso de toda família CLT), e o rótulo N3 é renomeado | `financial-planner` |
+| **R6** `Goal(RESERVA_EMERGENCIA)` sem leitor | lane própria. **E a ADR-399 D2 precisa de emenda ANTES**: "declarado vence doutrina" está certa para alocação e **errada para reserva** — declarado mais frouxo que o canônico não licencia. Regra correta: `limiar = max(declarado, canonico)` | `data-engineer` + `financial-planner` |
+
+**Enquanto R6 não existir, `limiar_canonico` é a entrada honesta** — o hotfix acertou, e a
+inércia da D2 para reserva é hoje proteção, não bug.
+
+### Remédio para o padrão dos gates auto-referentes
+
+Quatro instâncias nesta sessão, um autor: whitelist derivada do alvo do teste; fixtures
+`float` contra guard de `float`; critério keyado no único eixo pensado; teste com
+`git show` morrendo em clone raso.
+
+**Decidido: emenda datada à [[ADR-210]]** — *gate novo entra com prova de vermelho*: o PR
+que introduz gate ou teste-de-invariante cola no corpo o caso que ele deve reprovar,
+**reprovando**. Recusadas: ADR nova (a casa existe — a ADR-210 já é a de "teste que custa
+CI sem dar sinal"), gate meta (indecidível, e seria escrito pelo mesmo autor com a mesma
+premissa) e revisão adversarial pré-merge obrigatória (é o que pegou 5 dos 7, e é a mais
+cara — vira imposto permanente; fica como prática opcional).
+
+**Declarado junto com a regra, senão ela vira o próximo falso-verde:** ela teria pego o
+gate de whitelist e as fixtures `float`; **não** teria pego os dois P0 achados pela sessão
+da l90 (procedência mentida, medida suprimida) — esses são julgamento de domínio, e são o
+que a revisão adversarial rende.
+
+### Rotas que apontam para esta lane, agora que ela fechou
+
+O `check_closure.py` levantou `CLOSE-BLOCK-05` em **3** linhas da [[A40.l90]]. Julgadas uma
+a uma:
+
+- **`:106` era rota real e está SATISFEITA.** A l90 declara uma regra inelegível "enquanto o
+  catálogo não carregar o qualificador de cobertura (achado roteado à l89)". O #1779 o
+  entregou: `_exposicao_cambial` devolve órfão com motivo quando `tier == "indeterminado"`
+  ou qualquer componente tem `cobertura != "apurado"`. Avisado à sessão viva da l90 em
+  2026-08-28; **não editei o arquivo dela** (worktree ocupado).
+- **`:161` e `:197` são falso-positivo do gate** — citam procedência ("herdado do
+  §Deferimento da l89", "já declarado pela l89"), não rota futura. **Limite conhecido do
+  `CLOSE-BLOCK-05`: ele não distingue "roteado PARA X" de "herdado DE X".** Fica
+  registrado; não se muda texto correto para calar gate.
+
+### Por que o flip da l90 vem neste PR
+
+O predicado de `status` (`lane-status-predicate`) falha **nos dois sentidos** e lê o índice
+**global** (`pass_filenames: false`). Em `origin/main` o par era consistente — l89
+`in_progress` + l90 `blocked`. Flipar só um lado quebra o gate na árvore de quem flipou:
+l89 `shipped` deixa a l90 "blocked com dep terminal"; l90 `open` sozinha vira "open com dep
+pendente". **Deadlock: nenhuma das duas sessões commita o próprio flip isolado.**
+
+Os dois vão juntos aqui para `main` ir de (l89 `in_progress`, l90 `blocked`) a
+(l89 `shipped`, l90 `open`) **sem passar por estado inválido**. Da l90 mudou **só** o
+frontmatter (2 linhas: `status` + a tag); corpo, §Escopo e o `:106` são da sessão dona e
+ficaram intactos — combinado com ela antes do commit.
