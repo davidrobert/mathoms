@@ -78,6 +78,11 @@ def _to_decimal(val) -> Decimal:
 # A40.l47 removeu ``meta_pct``: a TRS efetiva é valor OBSERVADO e não se compara com
 # alvo de retorno — o único percentual que a família configura (``goals.trs_pct``) é
 # taxa de saque ([[ADR-191]] §emenda 2026-08-14).
+# Nome do próprio método produtor (`IRPFAnalyzer.renda_anual_familiar`): quem lê o
+# rótulo chega na fórmula por `grep`, sem adivinhar qual parcela ele nomeia.
+_BASE_ALIQUOTA_EFETIVA_IR = "renda_anual_familiar"
+
+
 @dataclass(frozen=True)
 class RentabilidadeConfig:
     """Guardrail de sanidade do card Rentabilidade ([[ADR-191]] §D3)."""
@@ -160,6 +165,9 @@ class FinancialRatios:
             "base_do_piso": BaseFinanceira.carteira_com_titular_identificado.value,
         }
 
+    # C14: o denominador da alíquota efetiva é a renda BRUTA da família — tributável +
+    # isentos + exclusiva (`irpf_analyzer._renda_total`). O catálogo declarava só a
+    # parcela tributável, e com dividendos isentos as duas leituras divergem 4×.
     # A40.l80 §Completude: `base_concentracao_imobiliaria` nomeia a base AO LADO do
     # número, e o nome carrega o da própria razão — chave irmã genérica (`base_do_piso`
     # já é irmã aqui) seria atribuída ao número errado. É `carteira_produtiva_fixa`, não
@@ -175,6 +183,7 @@ class FinancialRatios:
             "base_concentracao_imobiliaria": BaseFinanceira.carteira_produtiva_fixa.value,
             "rentabilidade_pct": _format_pct_or_nd(self.rentabilidade_pct),
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
+            "base_aliquota_efetiva_ir_pct": _BASE_ALIQUOTA_EFETIVA_IR,
             "janela_referencia": self.janela_referencia,
             "janela_n_meses": self.janela_n_meses,
             "janela": self.janela,
