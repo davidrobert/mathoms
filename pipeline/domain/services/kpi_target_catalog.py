@@ -36,7 +36,11 @@ from pipeline.domain.services.bases_financeiras import BaseFinanceira
 from pipeline.domain.services.diagnostico_comportamental_analyzer import (
     NAO_IDENTIFICADO_PARCIAL_PCT,
 )
-from pipeline.domain.services.exposicao_cambial_analyzer import THRESHOLD_VERDE_PCT
+from pipeline.domain.services.exposicao_cambial_analyzer import (
+    THRESHOLD_VERDE_PCT,
+    base_declarada_do_pct,
+    veredito_suprimido,
+)
 from pipeline.domain.services.real_estate_metrics import RealEstateConfig
 
 #: Vocabulário fechado de KPI. O LLM escolhe uma destas chaves; não inventa alvo.
@@ -416,12 +420,9 @@ def _renda_passiva_cobertura(e5: Mapping[str, Any]) -> KpiTarget:
 def _exposicao_cambial(e5: Mapping[str, Any]) -> KpiTarget:
     bloco = _leaf(e5, "exposicao_cambial")
     path = "$.exposicao_cambial.pct_investivel_financeiro"
-    base, rotulo = "investivel_financeiro", "Exposição cambial (% do investível financeiro)"
-    coberturas = (_leaf(bloco, "componentes") or {}) if isinstance(bloco, Mapping) else {}
-    incompleta = any(
-        isinstance(c, Mapping) and c.get("cobertura") != "apurado" for c in coberturas.values()
-    )
-    if not isinstance(bloco, Mapping) or bloco.get("tier") == "indeterminado" or incompleta:
+    base = base_declarada_do_pct(bloco)
+    rotulo = "Exposição cambial (% da carteira financeira da família)"
+    if veredito_suprimido(bloco):
         return _orfao(path, base, "pct", rotulo, "exposição cambial sem cobertura apurada")
     return KpiTarget(
         observado_path=path,

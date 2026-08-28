@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Any
 
 from pipeline.domain.services.asset_classifier import classify_asset
+from pipeline.domain.services.bases_financeiras import BaseFinanceira
 from pipeline.domain.services.conversao_me import infer_declared_me_currency
 
 # ADR-193 + co-design G: bucket "Internacional" = lastro forte.
@@ -120,6 +121,10 @@ class ExposicaoCambialResult:
             "referencia_banda": self.referencia_banda.to_dict(),
             "total_brl": float(round(self.total_brl, 2)),
             "pct_investivel_financeiro": round(self.pct_investivel_financeiro, 2),
+            # A40.l80 §Completude: a base ao lado do número, com o nome da própria razão.
+            # O numerador do RECOMPUTE é `max(0, base)` — `investivel_financeiro` carrega
+            # clamp (`patrimonio_calculator.py:212`) que `_valor_da_base` não aplica.
+            "base_pct_investivel_financeiro": (BaseFinanceira.carteira_financeira_familia.value),
             "por_moeda": [_moeda_dict(pm) for pm in self.por_moeda],
             "tier": self.tier,
             "detalhes": list(self.detalhes),
@@ -310,4 +315,26 @@ def compute_exposicao_cambial(
         tier=_tier(pct, has_data=total > _ZERO, componentes=componentes),
         detalhes=tuple(_detalhes_caixa(caixa_detalhes) + ativos_detalhes),
         componentes=componentes,
+    )
+
+
+# O produtor é dono do NOME da chave que ele publica — quem consome a base declarada não
+# reescreve a string. Catálogo e produtor declarando bases diferentes para o mesmo
+# `observado_path` é o defeito do #1788 ([[ADR-412]] §E11).
+def base_declarada_do_pct(bloco: object) -> str:
+    """A base que este produtor declarou; o enum só cobre artefato de série anterior."""
+    declarado = bloco.get("base_pct_investivel_financeiro") if isinstance(bloco, dict) else None
+    return str(declarado or BaseFinanceira.carteira_financeira_familia.value)
+
+
+# O predicado de cobertura é deste produtor — é o mesmo que `_tier` usa. Reescrevê-lo no
+# consumidor instalaria duas regras para a mesma pergunta, que é a família de defeito que
+# o #1794 acabou de fechar na perna de caixa.
+def veredito_suprimido(bloco: object) -> bool:
+    """`tier` indeterminado ou componente sem cobertura apurada — não há faixa a afirmar."""
+    if not isinstance(bloco, dict) or bloco.get("tier") == "indeterminado":
+        return True
+    componentes = bloco.get("componentes") or {}
+    return any(
+        isinstance(c, dict) and c.get("cobertura") != "apurado" for c in componentes.values()
     )
