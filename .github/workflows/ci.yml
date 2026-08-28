@@ -526,7 +526,11 @@ jobs:
         # e o env deste job é só lint; o gate roda com venv completo no job
         # de pipeline (step "Lineage rule_refs", ci.yml §pipeline-tests).
         env:
-          SKIP: lineage-refs
+          # `kpi-path-legivel-pelo-parecer` importa `kpi_target_catalog` de verdade,
+          # e a cadeia chega em `pipeline.llm` → pydantic, que este env não tem
+          # (mesma classe de `lineage-refs`, precedente da A24.l5). Cobertura de CI
+          # vem do step homônimo em `pipeline-tests`, que roda com venv completo.
+          SKIP: lineage-refs,kpi-path-legivel-pelo-parecer
         run: pre-commit run --all-files
 
       - name: code style baseline regression
@@ -648,6 +652,13 @@ jobs:
 
       - name: Lineage rule_refs resolvem por import real (ADR-281 · A24.l5)
         run: python dev/check_lineage_refs.py
+
+      # Skipado no job Lint (import real de `pipeline.llm` → pydantic). O filtro
+      # `pipeline` deste job cobre as QUATRO fontes que o gate cruza: catálogo
+      # (`pipeline/**`), enum do manifest e schema E5 (`config/**/*.yaml`,
+      # `config/schemas/**`) e regex do resolver (`pipeline/**`).
+      - name: observado_path/ref de kpi_targets é legível pelo resolver do parecer (A40.l93)
+        run: python dev/check_kpi_path_legivel_pelo_parecer.py
 
       - name: Lineage eval gate — superfície bloqueada com Issue lineage-eval-fail aberta (ADR-281 · A25.l4)
         if: github.event_name == 'pull_request'
