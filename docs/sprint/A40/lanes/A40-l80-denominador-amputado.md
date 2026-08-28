@@ -67,22 +67,54 @@ recusa julgar.
 
 **Critério de aceite: 2 fechados, 2 parciais, 1 refutado.** ✅ Consistência (bases
 publicadas com termos) · ✅ Corretude (intervalo + identidade) · 🟡 **Completude**
-(o gate existe e morde — [#1782](https://github.com/davidrobert/mathoms/pull/1782) —
-mas cobre **1 de 4** razões) · 🟡 **Precisão** (as duas declarações falsas medidas
+(o gate existe e morde — [#1782](https://github.com/davidrobert/mathoms/pull/1782),
+[#1785](https://github.com/davidrobert/mathoms/pull/1785) — e cobre **3 de 4** razões;
+a 4ª está **bloqueada por defeito maior**, ver abaixo) · 🟡 **Precisão** (as duas declarações falsas medidas
 foram corrigidas em [#1769](https://github.com/davidrobert/mathoms/pull/1769); falta
 fechar `kpi_targets[].base` no schema) · ❌ **Prova de fecho** — a perna a-montante
 saiu em [#1780](https://github.com/davidrobert/mathoms/pull/1780), e a regra pós-LLM
 como o critério a escreve é **inerte e de sinal trocado** (C16).
 
 **O que falta na Completude, nomeado.** O gate (`tests/test_cobertura_de_base.py`)
-recompõe `numerador ÷ base declarada` em cents, e hoje só `concentracao_imobiliaria`
-declara. Faltam três, em ordem de custo:
+recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobiliaria`
+(#1782), `autonomia_financeira_meses` e `piso_autonomia_financeira_meses` (#1785).
 
-| razão | o que falta | custo |
+| razão | estado | nota |
 |---|---|---|
-| `exposicao_cambial.pct_investivel_financeiro` | declarar `carteira_financeira_familia`; numerador (`total_brl`) e base já são publicados | baixo — recompute fecha só do payload |
-| `ratios.autonomia_financeira_meses` | declarar a base do NUMERADOR **e publicar a despesa usada** — hoje o divisor (`despesa_consumo_brl ÷ n_meses`) não sai no bloco, então o recompute é impossível | médio |
-| `pct_investivel_financeiro` do card V2 | o DTO tem `extra="forbid"` — sem migrar o contrato, o nome da base **não tem como ser publicado nunca** | alto, e é decisão de contrato |
+| `ratios.concentracao_imobiliaria` | ✅ #1782 | declarou a 6ª base `carteira_produtiva_fixa` |
+| `ratios.autonomia_financeira_meses` | ✅ #1785 | o divisor virou **campo publicado**; recompute fecha dentro de `ratios` |
+| `ratios.piso_autonomia_financeira_meses` | ✅ #1785 | declarava base desde o PR3b e nunca fora recomposto |
+| `exposicao_cambial.pct_investivel_financeiro` (+ card V2) | 🔴 **bloqueada** | ver §abaixo — o defeito é no **numerador**, não no rótulo |
+
+> **Correção de custo (2026-08-28).** As duas linhas anteriores desta tabela estavam
+> erradas e foram refutadas por medição: (i) a autonomia **não** era "médio, recompute
+> impossível" — o divisor fechava por `fluxo_caixa.janela_12m`, e o que faltava era
+> torná-lo self-contained (o cross-bloco erra no fallback de `_resolve_window`); (ii) o
+> card V2 **não** é "alto por causa do `extra=forbid`" — esse `model_config` governa a
+> **entrada** do DTO, não o crescimento dele; o custo mecânico é 1 campo opcional + 2
+> call-sites + `make update-openapi-snapshot`. O custo alto do card é **semântico**, e é
+> outro: o numerador está em disputa.
+
+### A cambial está bloqueada por defeito maior que o rótulo (2026-08-28)
+
+**O E5 e o card read-time divergem no NUMERADOR.** A linha de caixa em moeda
+estrangeira vinda do IRPF (`moeda_estrangeira_irpf`, que nasce com `moeda="BRL"`)
+entra no total do E5 e é **descartada** pelo V2 — medido: **12,0% contra 2,0%** no
+shape que o próprio produtor constrói. Os dois renderizam o **mesmo badge do mesmo
+card**, e o erro é assimétrico no sentido perigoso: o card **subestima** a proteção
+cambial da família.
+
+Publicar `base` nesse número seria maquiagem — **o rótulo declara o denominador**, e o
+defeito está no numerador. Ordem correta: o card passa a usar o mesmo predicado
+`_is_caixa_me` do produtor (não uma segunda regra escrita à mão), e **só então** o
+rótulo. Dono: `data-engineer` (contrato entre produtores) — a decisão é qual dos dois
+predicados é o certo, não como nomear a base.
+
+**Colateral medido no mesmo lugar:** a fixture de `test_exposicao_cambial_v2_api.py`
+fabrica estados que produção não alcança — `carteira_lastro_estrangeiro` nasce
+`Cobertura.indeterminado` hardcoded, então **3 de 7 asserções de tier cobrem regime
+impossível**, com a suíte verde. Se a divergência acima fosse introduzida hoje, nenhum
+dos testes cairia: nenhum alimenta linha `moeda_estrangeira_irpf`.
 
 **Fora do alcance de gate de artefato:** `HeroKpiGrid.tsx` fabrica `financeiro ÷
 liquido` no consumidor, sobre uma **quinta** base que nenhum produtor declara. O
@@ -131,6 +163,18 @@ PR3b, mantido aqui como registro do porquê):
 - **Caracterizar o E5 em `tests/unit/pipeline/test_validation_block_policy.py`** —
   é o quarto produtor divergente de política de pausa e o único não coberto;
   `valid = not reasons` ignora `BLOCKING_CODES`.
+- **`BASE_VERSAO_CORRENTE` nunca foi bumpado, e um PR desta lane mudou o valor de
+  base publicada sem ele** — a fronteira de série da [[ADR-412]] §D8 existe para impedir
+  "híbrido sem rótulo", e foi isso que embarcou. `git log -S` mostra a constante definida
+  no #1727 e **nunca mais tocada**; o #1757 (`891c2424`) trocou `_somar_termos` por
+  `_valor_da_base`, que resolve referência entre bases — o **valor** das bases derivadas
+  (`carteira_produtiva_*`) mudou de significado sob `base_versao: 1`. O remédio **não** é
+  acoplar o bump a `len(BaseFinanceira)`: adição de membro é número-neutra (o #1782 é
+  prova) e bumpar nela jogaria `serie_corrente()` em `False` no corpus inteiro,
+  degradando o card para `indeterminado`. O bump responde a *"o valor de alguma base
+  publicada mudou de significado?"* — e a forma barata é congelar em fixture o par
+  (termos, valor) por base e reprovar quando um valor se move sem o bump. Dono:
+  `data-engineer`. Achado de 2026-08-28.
 - **`neutralize_autocontradicao` é praticamente inerte em produção** — ele arma em
   `(section_id, tema_canonico) == ("S4", "Liquidez")` (`parecer_guardrails_divida.py:159-160`),
   mas o bloco de reserva/liquidez do manifest é `aligned_with_layout: "S1"`
