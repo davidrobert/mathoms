@@ -185,3 +185,52 @@ def test_nenhuma_OUTRA_base_reproduz_a_autonomia(ratios: dict, patrimonio: dict)
     assert reproduzem == [
         ratios["base_autonomia_financeira"]
     ], f"mais de uma base reproduz a autonomia — o gate não discrimina: {reproduzem}"
+
+
+# ---------------------------------------------------------------------------
+# Coerência entre superfícies — o catálogo não pode declarar outra base que o produtor
+# ---------------------------------------------------------------------------
+
+
+# O gate deriva o par pela CONVENÇÃO do produtor (`$.<bloco>.<x>` ⇒ `<bloco>.base_<x>`),
+# não por lista escrita à mão: assim toda razão que passar a declarar base entra sozinha,
+# e o gate mede classe em vez de instância. Foi por não existir que `kpi_targets[].base`
+# declarou `"carteira_produtiva"` (fora do enum, vizinho 5,6× menor) para o MESMO
+# `observado_path` que o produtor declarava `carteira_produtiva_fixa`.
+def _declaracao_do_produtor(e5: dict, observado_path: str) -> str | None:
+    partes = observado_path.removeprefix("$.").split(".")
+    if len(partes) != 2:
+        return None
+    bloco, folha = partes
+    return (e5.get(bloco) or {}).get(f"base_{folha}")
+
+
+def test_catalogo_declara_a_MESMA_base_que_o_produtor(patrimonio: dict, ratios: dict) -> None:
+    """Duas declarações divergentes para o mesmo número é o C14 um nível acima."""
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    e5 = {"patrimonio": patrimonio, "ratios": ratios}
+    alvos = build_kpi_targets(e5, scoring={})
+
+    divergentes = {
+        chave: (alvo["base"], do_produtor)
+        for chave, alvo in alvos.items()
+        if (do_produtor := _declaracao_do_produtor(e5, alvo["observado_path"]))
+        and alvo["base"] != do_produtor
+    }
+
+    assert not divergentes, f"catálogo e produtor declaram bases diferentes: {divergentes}"
+
+
+def test_o_par_medido_existe_na_fixture(patrimonio: dict, ratios: dict) -> None:
+    """Sem ao menos um par casado o teste acima é vacuoso — passaria com zero comparações."""
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    e5 = {"patrimonio": patrimonio, "ratios": ratios}
+    pares = [
+        chave
+        for chave, alvo in build_kpi_targets(e5, scoring={}).items()
+        if _declaracao_do_produtor(e5, alvo["observado_path"])
+    ]
+
+    assert pares, "nenhum kpi_target casou declaração de produtor — gate vacuoso"
