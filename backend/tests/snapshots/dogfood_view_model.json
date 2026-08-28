@@ -1714,7 +1714,7 @@
       "unidade": "pct_aa"
     },
     "concentracao_imobiliaria": {
-      "base": "carteira_produtiva",
+      "base": "carteira_produtiva_fixa",
       "limiar": 5000,
       "motivo": null,
       "observado_path": "$.ratios.concentracao_imobiliaria",
