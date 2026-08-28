@@ -35,6 +35,10 @@ from backend.app.services.lastro_resolver import (
 from backend.app.services.security.crypto import read_artifact_content
 from pipeline.artifact_store import stage_aliases
 from pipeline.domain.services.asset_classifier import classify_asset
+from pipeline.domain.services.exposicao_cambial_analyzer import (
+    MOTIVO_FONTE_ANUAL,
+    numerador_tem_fonte_anual,
+)
 
 # Contrato de leitura (gate: dev/check_artifact_read_keys.py) — as chaves lidas do
 # payload precisam existir no schema do stage. Declarado, nunca inferido da query.
@@ -58,6 +62,8 @@ class _E5Inputs:
     serie_corrente: bool = False
     # A40.l80: o `por_moeda` que o PRODUTOR publicou, não recomputado aqui.
     caixa_do_artefato: tuple[tuple[str, Decimal], ...] = ()
+    # A40.l80: alguma linha do numerador é foto anual (baseline IRPF), não extrato.
+    fonte_anual: bool = False
 
 
 # A perna de supressão é de COBERTURA DE COMPONENTE, não de pct: o E5 devolve
@@ -303,6 +309,7 @@ def _extract_e5_inputs(artifact: PipelineArtifact) -> _E5Inputs:
         posicoes=_posicoes_do_payload(payload.get("investimentos")),
         caixa_detalhes=patrimonio.get("caixa_detalhes") or [],
         caixa_do_artefato=por_moeda_publicado(payload.get("exposicao_cambial")),
+        fonte_anual=numerador_tem_fonte_anual(payload.get("exposicao_cambial")),
         investivel_denom=denom,
         cobertura_apurada=cobertura_apurada(payload.get("exposicao_cambial")),
         serie_corrente=serie_corrente(patrimonio),
@@ -324,6 +331,16 @@ def _metricas(por_moeda: dict[str, Decimal], denom: Decimal) -> tuple[Decimal, f
     """Total em BRL e seu percentual sobre o investível financeiro."""
     total = sum(por_moeda.values(), Decimal(0))
     return total, float(total / denom * 100)
+
+
+# §D7: o alvo e o motivo são excludentes — um ocupa o lugar do outro, nunca os dois.
+def _alvo_ou_motivo(inputs: _E5Inputs) -> dict:
+    if inputs.fonte_anual:
+        return {"alvo_moeda_forte_brl": None, "alvo_suprimido_motivo": MOTIVO_FONTE_ANUAL}
+    return {
+        "alvo_moeda_forte_brl": _alvo_verde(inputs.investivel_denom),
+        "alvo_suprimido_motivo": None,
+    }
 
 
 def _alvo_verde(denom: Decimal) -> Decimal:
@@ -357,7 +374,7 @@ def _build_response(
         pct_investivel_financeiro=round(pct, 2),
         por_moeda=_build_por_moeda_dtos(por_moeda, total),
         tier=_tier_de(inputs, total, pct),
-        alvo_moeda_forte_brl=_alvo_verde(inputs.investivel_denom),
+        **_alvo_ou_motivo(inputs),
         ativos_contribuintes=ativos,
         source_run_id=str(artifact.pipeline_run_id) if artifact.pipeline_run_id else None,
         computed_at=datetime.now(timezone.utc),
@@ -373,109 +390,6 @@ async def _aggregate_all(
     por_caixa, caixa_dtos = _aggregate_caixa(inputs)
     por_ativos, ativo_dtos = _aggregate_positions(inputs.posicoes, catalog, overrides)
     return _merge_por_moeda(por_caixa, por_ativos), caixa_dtos + ativo_dtos, inputs
-
-
-def _to_override_response(row: WorkspaceAssetOverride) -> AssetOverrideResponse:
-    return AssetOverrideResponse(
-        id=row.id,
-        workspace_id=row.workspace_id,
-        match_kind=row.match_kind,
-        asset_match_key=row.asset_match_key,
-        lastro_moeda=row.lastro_moeda,
-        override_source=row.override_source,
-        created_at=row.created_at,
-        updated_at=row.updated_at,
-        created_by_user_id=row.created_by_user_id,
-    )
-
-
-async def _find_override(
-    db: AsyncSession, workspace_id: str, match_kind: str, asset_match_key: str
-) -> Optional[WorkspaceAssetOverride]:
-    stmt = select(WorkspaceAssetOverride).where(
-        WorkspaceAssetOverride.workspace_id == workspace_id,
-        WorkspaceAssetOverride.match_kind == match_kind,
-        WorkspaceAssetOverride.asset_match_key == asset_match_key,
-    )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()
-
-
-def _new_override_row(
-    workspace_id: str, command: AssetOverrideCommand, user_id: Optional[str] = None
-) -> WorkspaceAssetOverride:
-    now = datetime.now(timezone.utc)
-    return WorkspaceAssetOverride(
-        workspace_id=workspace_id,
-        match_kind=command.match_kind,
-        asset_match_key=command.asset_match_key,
-        lastro_moeda=command.lastro_moeda,
-        override_source="user_manual",
-        created_by_user_id=user_id,
-        created_at=now,
-        updated_at=now,
-    )
-
-
-async def _create_override(
-    db: AsyncSession,
-    workspace_id: str,
-    command: AssetOverrideCommand,
-    user_id: Optional[str] = None,
-) -> WorkspaceAssetOverride:
-    row = _new_override_row(workspace_id, command, user_id)
-    db.add(row)
-    await db.commit()
-    await db.refresh(row)
-    return row
-
-
-async def _update_override(
-    db: AsyncSession,
-    existing: WorkspaceAssetOverride,
-    lastro_moeda: str,
-    user_id: Optional[str] = None,
-) -> WorkspaceAssetOverride:
-    existing.lastro_moeda = lastro_moeda
-    existing.updated_at = datetime.now(timezone.utc)
-    if user_id is not None:
-        existing.created_by_user_id = user_id
-    await db.commit()
-    await db.refresh(existing)
-    return existing
-
-
-async def upsert_asset_override(
-    workspace_id: str,
-    command: AssetOverrideCommand,
-    db: AsyncSession,
-    user_id: Optional[str] = None,
-) -> AssetOverrideResponse:
-    """Upsert sticky pattern ADR-215 — mesma `(ws, kind, key)` atualiza in-place."""
-    existing = await _find_override(db, workspace_id, command.match_kind, command.asset_match_key)
-    if existing is None:
-        row = await _create_override(db, workspace_id, command, user_id)
-    else:
-        row = await _update_override(db, existing, command.lastro_moeda, user_id)
-    return _to_override_response(row)
-
-
-async def delete_asset_override(
-    workspace_id: str, match_kind: str, asset_match_key: str, db: AsyncSession
-) -> bool:
-    """Remove override per-workspace. Retorna True se removeu, False se não existia."""
-    existing = await _find_override(db, workspace_id, match_kind, asset_match_key)
-    if existing is None:
-        return False
-    await db.delete(existing)
-    await db.commit()
-    return True
-
-
-async def list_asset_overrides(workspace_id: str, db: AsyncSession) -> list[AssetOverrideResponse]:
-    stmt = select(WorkspaceAssetOverride).where(WorkspaceAssetOverride.workspace_id == workspace_id)
-    result = await db.execute(stmt)
-    return [_to_override_response(r) for r in result.scalars().all()]
 
 
 async def compute_exposicao_cambial_v2(
