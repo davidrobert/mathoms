@@ -618,7 +618,12 @@ repos:
         entry: python3 dev/check_prompt_version_bumped.py
         language: system
         pass_filenames: true
-        files: ^pipeline/llm/(prompts|schemas)/.*\.py$
+        # `files:` largo e o SCRIPT decide quem é prompt versionado (A40.l93 · N2).
+        # Glob de config/prompts/ aqui cobraria bump de tabela RFB e de template
+        # determinístico — falso positivo em toda edição editorial, e garantia falsa
+        # para quem lesse o hook. A igualdade de conjunto do script exige veredito
+        # para todo .yaml do diretório, e é o largo que a faz disparar em arquivo novo.
+        files: ^(pipeline/llm/(prompts|schemas)/.*\.py|config/prompts/.*\.yaml)$
 
       - id: code-style-baseline
         # ADR-114 / A6g.6 slice 5 — gate de regressão das categorias do
