@@ -75,11 +75,15 @@ class _E5Inputs:
 # `serie_corrente=False` (artefato sem `base_versao`) também suprime: recompor
 # artefato de base antiga com código novo é o híbrido sem rótulo da §D8, e
 # ausência é "não sei", nunca "série corrente".
+# A recusa vem ANTES do vazio, como no produtor: `empty` afirma ausência ("você não
+# tem"), `indeterminado` recusa medir ("não sei"). Invertidas, numerador zerado sobre
+# cobertura não apurada saía `empty`, e a UI troca o badge pela frase "Nenhum ativo com
+# lastro fora do real" — afirmação positiva sobre a perna que o produtor não fechou.
 def _tier(pct: float, has_data: bool, *, cobertura_apurada: bool, serie_corrente: bool) -> str:
-    if not has_data:
-        return "empty"
     if not (cobertura_apurada and serie_corrente):
         return "indeterminado"
+    if not has_data:
+        return "empty"
     if pct >= THRESHOLD_VERDE_PCT:
         return "verde"
     if pct >= THRESHOLD_AMARELO_PCT:

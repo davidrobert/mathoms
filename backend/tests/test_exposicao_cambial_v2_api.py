@@ -8,6 +8,7 @@ from decimal import Decimal
 import pytest
 from httpx import AsyncClient
 
+from backend.app.application.exposicao_cambial_v2 import _tier
 from backend.app.models import (
     AssetCatalog,
     PipelineArtifact,
@@ -266,6 +267,53 @@ async def test_card_suprime_veredito_quando_o_e5_recusa(auth_client: AsyncClient
     # A MEDIDA continua publicada — suprime-se o veredito, nunca o número.
     assert data["total_brl"] is not None
     assert data["pct_investivel_financeiro"] is not None
+
+
+# Tabela inteira em vez do caso único: o defeito era de ORDEM entre duas pernas, e
+# ordem só se prova varrendo o produto delas. As duas primeiras linhas são o par que
+# discrimina — mesma cobertura recusada, `has_data` opostos.
+@pytest.mark.parametrize(
+    ("has_data", "cobertura_apurada", "serie_corrente", "esperado"),
+    [
+        (False, False, True, "indeterminado"),
+        (True, False, True, "indeterminado"),
+        (False, True, False, "indeterminado"),
+        (True, True, False, "indeterminado"),
+        (False, True, True, "empty"),
+        (True, True, True, "verde"),
+    ],
+)
+def test_recusa_tem_precedencia_sobre_vazio(has_data, cobertura_apurada, serie_corrente, esperado):
+    """`indeterminado` ("não sei") vence `empty` ("não tem") em toda combinação."""
+    tier = _tier(99.0, has_data, cobertura_apurada=cobertura_apurada, serie_corrente=serie_corrente)
+    assert tier == esperado
+
+
+# O par `cobertura=indeterminado ∧ total=0` nunca era montado: as duas fixtures de
+# supressão semeavam R$ 60.000 de caixa, então `has_data` era sempre True e a ordem das
+# pernas ficava indistinguível. Sobre esse par o card devolvia `empty`, e a UI troca o
+# badge pela frase "Nenhum ativo com lastro fora do real": afirmação positiva de ausência
+# sobre a perna que o produtor recusou apurar. O produtor decide ao contrário e diz por
+# quê em `tests/unit/pipeline/test_exposicao_cambial_analyzer.py` — "sem posições
+# medidas, 'sem exposição' seria afirmação".
+@pytest.mark.asyncio
+async def test_numerador_zerado_nao_apaga_a_recusa_do_produtor(auth_client: AsyncClient, db):
+    """Mata: devolver a perna de `has_data` para antes da de cobertura em `_tier`."""
+    payload = _e5_payload(
+        posicoes=[],
+        caixa_detalhes=[],
+        investivel=Decimal("500000"),
+        cobertura="indeterminado",
+    )
+    await _seed_e5_artifact(db, auth_client.ws_id, payload)
+    data = (
+        await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial")
+    ).json()
+
+    assert data["total_brl"] in (0, "0", "0.00", 0.0)
+    assert (
+        data["tier"] == "indeterminado"
+    ), "numerador zerado sobre cobertura não apurada é 'não sei', nunca 'não tem'"
 
 
 @pytest.mark.asyncio
