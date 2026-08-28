@@ -160,6 +160,50 @@ def test_toda_unidade_do_catalogo_tem_renderer():
     assert not sem_renderer, f"unidade do catálogo sem renderer: {sorted(sem_renderer)}"
 
 
+def _enum_do_schema(campo: str) -> set:
+    import json
+    from pathlib import Path as _P
+
+    raiz = _P(__file__).resolve().parents[1]
+    schema = json.loads((raiz / "config" / "schemas" / "e5_analysis.schema.json").read_text())
+    props = schema["properties"]["kpi_targets"]["additionalProperties"]["properties"]
+    return set(props[campo]["enum"])
+
+
+# A40.l93 fechou `unidade` e `operador` como enum no schema E5, e enum é uma TERCEIRA
+# cópia do vocabulário — o teste acima cobria só a ponta esquerda. A cadeia inteira:
+# produzidas ⊆ enum == renderer. Igualdade no meio de propósito: enum que declarasse
+# unidade sem renderer prometeria contrato que o consumidor não honra, e renderer sem
+# enum seria capacidade morta que ninguém pode declarar.
+def test_enum_de_unidade_casa_o_renderer_e_cobre_o_produzido():
+    from backend.app.services.parecer_finalization import _UNIDADE_RENDER
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    alvos = build_kpi_targets(
+        E5_COMPLETO, scoring={"thresholds_alertas": {"endividamento_maximo_pct": 20}}
+    )
+    enum = _enum_do_schema("unidade")
+
+    assert enum == set(_UNIDADE_RENDER)
+    assert {alvo["unidade"] for alvo in alvos.values()} <= enum
+
+
+# Assimetria deliberada com a unidade: o enum de operador é subconjunto ESTRITO do
+# glifo. `>` existe no renderer e não no contrato — ampliar é ato do produtor que
+# precisar, e consumidor mais permissivo que o contrato é a direção segura.
+def test_enum_de_operador_e_subconjunto_do_glifo_e_cobre_o_produzido():
+    from backend.app.services.parecer_finalization import _OPERADOR_GLIFO
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    alvos = build_kpi_targets(
+        E5_COMPLETO, scoring={"thresholds_alertas": {"endividamento_maximo_pct": 20}}
+    )
+    enum = _enum_do_schema("operador") - {None}
+
+    assert enum < set(_OPERADOR_GLIFO), "enum de operador tem símbolo que o renderer não sabe"
+    assert {a["operador"] for a in alvos.values() if a["operador"]} <= enum
+
+
 # O observado de `protecao_custo_premio` chega do payload como STRING ("0.005686") e a
 # unidade é razão 0–1. Um guard por `isinstance(float)` na escala deixaria o fator sem
 # aplicar e publicaria 0,0% no lugar de 0,6% — o erro de 100× que a renomeação da chave

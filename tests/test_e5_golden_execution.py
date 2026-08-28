@@ -411,13 +411,15 @@ def _paths_ausentes(payload: dict) -> dict:
 # terceiro ofensor reprova. Allowlist que só cresce falha aberta.
 _RESOLUCAO_DIVIDA_DECLARADA = {
     # `diagnostico_confianca` é chave top-level real do E5, mas está fora das seções de
-    # `get_e5_section` do manifest — ampliar a whitelist muda a superfície que o modelo
-    # pode ler e exige bump próprio. Dono: prompt-engineer.
+    # `get_e5_section` do manifest — a mesma frozenset é a `section_whitelist` do
+    # resolver. Ampliar o enum exige bump do manifest, e o bump exigia primeiro que o
+    # gate de versão cobrisse `config/prompts/*.yaml` (A40.l93, Onda 1 → Onda 3).
     "despesas_nao_categorizadas",
-    # `comparaveis[classe=renda_fixa]` usa predicado de filtro, que o `_JSONPATH_RE` de
-    # `planner_drill_down` não admite. Exige publicar a folha em ponto fixo no E5 ou
-    # estender o subset de JSONPath. Dono: data-engineer.
-    "alocacao_renda_fixa",
+    # `alocacao_renda_fixa` SAIU em 2026-08-28 (A40.l93): a folha
+    # `derived.renda_fixa_atual_pct` publica o observado em ponto fixo e o predicado
+    # `[classe=renda_fixa]` deixou de existir. O subset do `_JSONPATH_RE` NÃO foi
+    # alargado — alargá-lo daria capacidade de filtro ao modelo para servir um
+    # consumidor interno que não precisa de query.
 }
 
 

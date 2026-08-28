@@ -13,6 +13,7 @@ autorando.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Optional
 
 import pytest
@@ -20,16 +21,12 @@ import pytest
 from pipeline.domain.services.kpi_target_catalog import (
     METRICA_KEYS,
     PROCEDENCIA_CANONICO,
-    PROCEDENCIA_GOAL,
     KpiTarget,
     build_kpi_targets,
 )
 
 # Valor observado do par r5/r7 — o número que o alvo do LLM atravessou.
 CONCENTRACAO_OBSERVADA = 34.86
-ALVO_RF_DECLARADO = 51.55
-# O que o LLM publicou no r7 para renda fixa: mais frouxo que o declarado.
-ALVO_RF_DO_LLM = 55.0
 
 SCORING: dict[str, Any] = {"thresholds_alertas": {"endividamento_maximo_pct": 20}}
 
@@ -39,22 +36,15 @@ SCORING: dict[str, Any] = {"thresholds_alertas": {"endividamento_maximo_pct": 20
 # anterior em vez do corrente.
 def _e5(
     *,
-    alvo_rf: Optional[float] = ALVO_RF_DECLARADO,
     meses_alvo: Optional[int] = 18,
     base_denominador: str = "custo_essencial",
 ) -> dict[str, Any]:
-    comparaveis: list[dict[str, Any]] = []
-    if alvo_rf is not None:
-        # Ordem propositalmente NÃO-canônica: o resolver casa por `classe`, e um
-        # join por índice passaria neste payload e quebraria no próximo.
-        comparaveis = [
-            {"classe": "acoes_br", "alvo_pct": 25.77, "atual_pct": 13.04},
-            {"classe": "renda_fixa", "alvo_pct": alvo_rf, "atual_pct": 82.30},
-        ]
+    # Sem bloco de alocação: desde a A40.l93 o catálogo não lê `comparaveis` — a
+    # entrada de RF é órfã por decisão de domínio e o observado é folha em ponto fixo,
+    # resolvida pelo parecer, não pelo catálogo.
     return {
         "ratios": {"concentracao_imobiliaria": CONCENTRACAO_OBSERVADA},
         "reserva_emergencia": {"meses_alvo": meses_alvo, "base_denominador": base_denominador},
-        "goals": {"alocacao_alvo": {"derived": {"comparaveis": comparaveis}}},
     }
 
 
@@ -67,24 +57,38 @@ def test_alvo_e_o_limiar_canonico_nao_o_do_llm() -> None:
     assert CONCENTRACAO_OBSERVADA < alvo["limiar"]
 
 
-def test_alvo_declarado_pela_familia_nao_e_afrouxado() -> None:
-    """FP-6: o parecer publicou 55% contra os 51,55% que a família declarou."""
-    alvo = build_kpi_targets(_e5(), scoring=SCORING)["alocacao_renda_fixa"]
+# O par (51,55 declarado, 82,30 observado) é o caso do FP-6, e é onde o `operador="<="`
+# que o catálogo publicava até a A40.l93 mentia: `82,30 <= 51,55` é falso, então a
+# família SOBREALOCADA aparecia como violação — e a SUB-alocada, que é a direção que
+# machuca, aparecia como conforme. As duas direções são testadas porque um operador
+# escalar só erra em uma delas: testar só a sub deixaria `>=` passar.
+@pytest.mark.parametrize("atual_rf,rotulo", [(13.04, "sub-alocada"), (82.30, "sobrealocada")])
+def test_alocacao_rf_nunca_publica_comparador(atual_rf: float, rotulo: str) -> None:
+    """Desvio de alocação é bidirecional: nenhuma das direções ganha veredito."""
+    e5 = _e5()
+    e5["goals"] = {"alocacao_alvo": {"derived": {"renda_fixa_atual_pct": atual_rf}}}
 
-    assert alvo["limiar"] == ALVO_RF_DECLARADO
-    assert alvo["procedencia"] == PROCEDENCIA_GOAL
-    assert alvo["limiar"] < ALVO_RF_DO_LLM, "alvo publicado nunca é mais frouxo que o declarado"
+    alvo = build_kpi_targets(e5, scoring=SCORING)["alocacao_renda_fixa"]
+
+    assert alvo["limiar"] is None, f"carteira {rotulo} não pode receber alvo pontual"
+    assert alvo["operador"] is None and alvo["procedencia"] is None
+    assert "bidirecional" in alvo["motivo"]
+    # O sinal permanece: a linha segue publicada, com o observado em ponto fixo.
+    assert alvo["observado_path"].endswith(".renda_fixa_atual_pct")
 
 
 # A mutação é a prova. Sem ela, um resolver que retornasse constantes hardcoded
 # passaria nos dois testes acima.
 def test_mutacao_na_fonte_move_o_alvo() -> None:
     padrao = build_kpi_targets(_e5(), scoring=SCORING)
-    mutado_goal = build_kpi_targets(_e5(alvo_rf=40.0), scoring=SCORING)
+    mutado_reserva = build_kpi_targets(_e5(meses_alvo=6), scoring=SCORING)
     mutado_canon = build_kpi_targets(_e5(), scoring=SCORING, concentracao_alerta_pct=45.0)
 
-    assert mutado_goal["alocacao_renda_fixa"]["limiar"] == 40.0
-    assert padrao["alocacao_renda_fixa"]["limiar"] != mutado_goal["alocacao_renda_fixa"]["limiar"]
+    assert mutado_reserva["reserva_cobertura_meses"]["limiar"] == 6.0
+    assert (
+        padrao["reserva_cobertura_meses"]["limiar"]
+        != mutado_reserva["reserva_cobertura_meses"]["limiar"]
+    )
     assert mutado_canon["concentracao_imobiliaria"]["limiar"] == 45.0
     assert (
         padrao["concentracao_imobiliaria"]["limiar"]
@@ -104,29 +108,22 @@ def test_alvo_nao_depende_do_valor_observado() -> None:
     assert alvo_a == alvo_b
 
 
-def test_join_por_classe_e_nao_por_indice() -> None:
-    e5 = _e5()
-    e5["goals"]["alocacao_alvo"]["derived"]["comparaveis"].reverse()
-
-    alvo = build_kpi_targets(e5, scoring=SCORING)["alocacao_renda_fixa"]
-
-    assert alvo["limiar"] == ALVO_RF_DECLARADO
-
-
 def test_fonte_ausente_vira_orfao_com_motivo_nunca_numero() -> None:
-    alvos = build_kpi_targets(_e5(alvo_rf=None, meses_alvo=None), scoring={})
+    alvos = build_kpi_targets(_e5(meses_alvo=None), scoring={})
 
-    for chave in ("alocacao_renda_fixa", "reserva_cobertura_meses", "taxa_endividamento"):
+    for chave in ("reserva_cobertura_meses", "taxa_endividamento"):
         assert alvos[chave]["limiar"] is None, f"{chave} sem fonte não pode publicar número"
         assert alvos[chave]["motivo"], f"{chave} órfão precisa dizer por quê"
 
 
 def test_orfaos_por_decisao_de_dominio_nunca_ganham_alvo() -> None:
-    """TRS (ADR-191 §D5), proteção (ADR-387) e poupança (RV2-24) são órfãos por
-    decisão, não por lacuna — publicar número aqui seria regressão, não melhoria."""
+    """TRS (ADR-191 §D5), proteção (ADR-387), poupança (RV2-24) e alocação
+    ([[ADR-399]] §Emenda 2026-08-28) são órfãos por decisão, não por lacuna —
+    publicar número aqui seria regressão, não melhoria."""
     alvos = build_kpi_targets(_e5(), scoring=SCORING)
 
     for chave in (
+        "alocacao_renda_fixa",
         "carteira_trs",
         "protecao_custo_premio",
         "taxa_poupanca_recorrente",
@@ -339,3 +336,94 @@ def test_cobertura_incompleta_suprime_o_comparador_nao_so_o_veredito() -> None:
     assert com["limiar"] is not None and com["procedencia"] == PROCEDENCIA_CANONICO
     assert sem["limiar"] is None, "limiar canônico sobre medida suprimida é autoridade falsa"
     assert sem["motivo"]
+
+
+# ---------------------------------------------------------------------------
+# A40.l93 — as premissas de `dev/check_kpi_path_legivel_pelo_parecer.py`
+# ---------------------------------------------------------------------------
+
+
+def _derived_do_produtor() -> dict[str, Any]:
+    """Bloco `derived` construído pelo PRODUTOR — não escrito à mão."""
+    from pipeline.domain.services.alocacao_alvo_deviation import AlocacaoAlvoDeviationCalculator
+
+    return (
+        AlocacaoAlvoDeviationCalculator()
+        .calculate(
+            [{"categoria": "Renda Fixa", "valor": 100}, {"categoria": "Ações BR", "valor": 200}],
+            {
+                "rf_pos_pct": 20,
+                "rf_pre_pct": 10,
+                "rf_ipca_pct": 10,
+                "acoes_br_pct": 25,
+                "acoes_int_pct": 15,
+                "fiis_pct": 10,
+                "caixa_pct": 10,
+            },
+        )
+        .to_dict()
+    )
+
+
+def _e5_rico() -> dict[str, Any]:
+    e5 = _e5()
+    e5["goals"] = {"alocacao_alvo": {"derived": _derived_do_produtor()}}
+    return e5
+
+
+# O gate enumera os paths com payload VAZIO, porque pre-commit não roda o pipeline.
+# Isso só é válido enquanto o catálogo não escolher path por ramo — se escolhesse, o
+# gate mediria um lado e ficaria calado sobre o outro. É premissa, não garantia.
+def test_observado_path_e_invariante_ao_payload() -> None:
+    vazio = build_kpi_targets({}, scoring={})
+    rico = build_kpi_targets(_e5_rico(), scoring=SCORING)
+
+    assert {k: v["observado_path"] for k, v in vazio.items()} == {
+        k: v["observado_path"] for k, v in rico.items()
+    }
+
+
+# O `ref`, ao contrário, NÃO é invariante — foi medido mudando de `None` para um path
+# com predicado justamente na chave que tinha o defeito. O gate o checa quando está
+# presente sob payload vazio; esta metade cega mora aqui, com payload do produtor.
+#
+# Importa o predicado DO GATE em vez de reescrevê-lo: predicado próprio codificaria a
+# mesma suposição errada sobre a forma do path e passaria — foi assim que o gate
+# original da l89 mediu a si mesmo.
+def _predicado_do_gate():
+    import importlib.util
+
+    caminho = Path(__file__).resolve().parents[3] / "dev" / "check_kpi_path_legivel_pelo_parecer.py"
+    spec = importlib.util.spec_from_file_location("_gate_kpi_path", caminho)
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+# HOJE nenhum `ref` de produção é JSONPath — o único que era virou `None` com a
+# entrada órfã. Sem este caso, o teste abaixo passaria VAZIO e ninguém saberia: canal
+# sem tráfego não é verde. Aqui o predicado é exercido contra o path que existia.
+def test_predicado_do_gate_rejeita_o_ref_com_predicado_que_existia() -> None:
+    gate = _predicado_do_gate()
+    from backend.app.services.parecer_manifest import load_manifest
+
+    historico = "$.goals.alocacao_alvo.derived.comparaveis[classe=renda_fixa].alvo_pct"
+    erro = gate._erro_de(
+        "alocacao_renda_fixa", "ref", historico, load_manifest().tools_section_whitelist
+    )
+
+    assert erro is not None and "subset de JSONPath" in erro
+
+
+def test_nenhum_ref_de_producao_e_ilegivel_pelo_resolver() -> None:
+    gate = _predicado_do_gate()
+    from backend.app.services.parecer_manifest import load_manifest
+
+    whitelist = load_manifest().tools_section_whitelist
+    ilegiveis = [
+        erro
+        for chave, alvo in build_kpi_targets(_e5_rico(), scoring=SCORING).items()
+        if isinstance(alvo["ref"], str) and alvo["ref"].startswith("$.")
+        if (erro := gate._erro_de(chave, "ref", alvo["ref"], whitelist)) is not None
+    ]
+    assert not ilegiveis, f"ponteiro auditável que ninguém consegue seguir: {ilegiveis}"

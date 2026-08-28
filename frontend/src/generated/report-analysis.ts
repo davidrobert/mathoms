@@ -151,6 +151,7 @@ export type AlocacaoAlvoE5 = {
 
 export type AlocacaoDerived = {
   "comparaveis"?: Array<AlocacaoComparable>;
+  "renda_fixa_atual_pct"?: number | null;
   "desvio_max_pct"?: number | null;
   "next_aporte_classe"?: string | null;
   "carteira_liquida_brl"?: number;
@@ -559,10 +560,10 @@ export type E5AnalysisArtifact = {
   "kpi_targets"?: Record<string, {
     "observado_path": string;
     "base": string;
-    "unidade": string;
+    "unidade": "pct" | "pct_aa" | "meses" | "ano" | "ratio_0_1";
     "rotulo": string;
     "limiar"?: number | null;
-    "operador"?: string | null;
+    "operador"?: "<" | "<=" | ">=" | null;
     "procedencia"?: "goal_declarado" | "limiar_canonico" | null;
     "ref"?: string | null;
     "motivo"?: string | null;

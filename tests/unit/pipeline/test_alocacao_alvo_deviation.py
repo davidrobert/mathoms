@@ -211,3 +211,36 @@ class TestContratoToDict:
             [_classe("Renda Fixa", -10.0), _classe("Inexistente", 500.0)], ALVO_V2_PADRAO
         )
         assert result.carteira_liquida_brl == Decimal("0")
+
+
+# ---------------------------------------------------------------------------
+# A40.l93 — folha em ponto fixo para o resolver do parecer
+# ---------------------------------------------------------------------------
+
+
+class TestFolhaEmPontoFixo:
+    # Fixture de DÍZIMA de propósito: sobre inteiros o teste passa vacuamente, porque
+    # cópia e recomputo dariam o mesmo número. É o `round(..., 2)` que divergiria
+    # primeiro, e só uma dízima o expõe. A fixture é o gate.
+    def test_folha_e_copia_byte_a_byte_do_dict_serializado(self):
+        result = CALC.calculate(
+            [_classe("Renda Fixa", 100.0), _classe("Ações BR", 200.0)], ALVO_V2_PADRAO
+        ).to_dict()
+        linha = next(c for c in result["comparaveis"] if c["classe"] == "renda_fixa")
+
+        assert linha["atual_pct"] == pytest.approx(33.33)  # 1/3 — dízima
+        assert result["renda_fixa_atual_pct"] == linha["atual_pct"]
+
+    # A lista é ordenada por magnitude de desvio, então índice não serve de join —
+    # foi o predicado `[classe=renda_fixa]` que o resolver do parecer recusa. A folha
+    # herda a mesma disciplina: casa por `classe`.
+    def test_casa_por_classe_e_nao_por_indice(self):
+        # RF quase no alvo (44,5% contra 44,44%) e FIIs muito fora: a ordenação por
+        # magnitude joga renda_fixa para o fim da lista.
+        result = CALC.calculate(
+            [_classe("Renda Fixa", 445.0), _classe("FIIs", 555.0)], ALVO_V2_PADRAO
+        ).to_dict()
+
+        assert result["comparaveis"][0]["classe"] != "renda_fixa", "fixture não discrimina"
+        linha = next(c for c in result["comparaveis"] if c["classe"] == "renda_fixa")
+        assert result["renda_fixa_atual_pct"] == linha["atual_pct"]
