@@ -49,11 +49,74 @@ conforme. Na fixture: `atual_pct = 0.0` contra `limiar = 44.44` ⇒ `0.0 <= 44.4
 **conforme**, com o selo de autoridade do produto, sobre uma carteira que não tem renda
 fixa nenhuma. Consertar o path sem consertar o operador **ativa** esse comparador.
 
-## Escopo — quatro ondas, sequenciadas por colisão de arquivo
+## Entregue — quatro ondas
 
-Ver §Ondas abaixo. A separação não é editorial: a Onda 2 inteira mora nos mesmos dois
-arquivos (`kpi_target_catalog.py` + `e5_analysis.schema.json`) e quebrá-la produziria três
-rebaselines de snapshot em vez de um.
+| onda | o que entrou |
+|---|---|
+| **1** | `dev/check_prompt_version_bumped.py` passa a cobrir `config/prompts/*.yaml` por **lista declarada** (N2), com igualdade de conjunto sobre o diretório · `_read_upstream` deixa de **falhar aberto** com ref irresolvível · `section_summaries`/`lineage_debug` migram para semver puro · emenda datada à [[ADR-233]] |
+| **2** | folha `derived.renda_fixa_atual_pct` em ponto fixo (R2) · `alocacao_renda_fixa` vira **órfã por decisão de domínio** (N1) · `unidade`/`operador` viram enum no schema E5 · `kpi_targets[].limiar` sai do classificador monetário do `golden_diff` |
+| **3** | `diagnostico_confianca` no enum de `get_e5_section` + manifest `2.5.0 → 2.6.0` + backfill do changelog de 2.4.0/2.5.0 (R1) |
+| **4** | `dev/check_kpi_path_legivel_pelo_parecer.py` (pre-commit) · `_RESOLUCAO_DIVIDA_DECLARADA` **deletada** |
+
+## As seis medições que mudaram o desenho
+
+1. **A rota do N1 no prompt desta lane era `|atual − alvo|` contra 2pp; o
+   `financial-planner` a recusou.** `SEVERITY_ALINHADO_MAX_PP` é piso de
+   **acionabilidade** — a [[ADR-400]] o reusa literalmente assim — e a [[ADR-141]]
+   §Emenda item 10 diz textualmente que "calibração relativa é roadmap pós-dogfood".
+   Publicá-lo como `limiar_canonico` promoveria limiar interno a doutrina sem a doutrina
+   existir: o modo de falha da [[ADR-399]] com o ator trocado. Adotado **órfão por (b)**,
+   que é a forma que `if_progresso`/`if_prazo_ano` já têm.
+2. **O painel previu delta de golden `↓`; medido, é `=`.** O dogfood **não tem**
+   `goals.alocacao_alvo`, então `derived` nunca é montado, a folha nova não aparece no
+   snapshot e a entrada já era órfã. O ramo que esta lane conserta é **inerte no
+   workspace medido** — mesmo padrão da [[A40.l91]].
+3. **O painel afirmou que `_par` sobrescreve o motivo de domínio por `_SEM_OBSERVADO`.
+   Refutado:** [`parecer_finalization.py:296`](../../../../backend/app/services/parecer_finalization.py)
+   é `alvo.get("motivo") or _SEM_OBSERVADO` — o motivo do catálogo tem precedência. O que
+   se perdia sem o fix do path era o `valor_atual`, não o motivo.
+4. **O parecer é chamada SINGLE-SHOT.** `LLMService.call` não tem parâmetro `tools` e
+   `_invoke_parecer_llm` não passa nenhum. O bloco `tools:` do manifest é whitelist de
+   **resolver server-side**, não capacidade do modelo — o que torna a Onda 3 mais barata
+   do que o registro sugeria, e torna falsa a frase "amplia a superfície de leitura do
+   modelo".
+5. **A fixture do golden exibe os dois estados que fabricariam conformidade:**
+   `carteira_liquida_brl: 0.0` (denominador zero) e
+   `motivo_supressao: cobertura_incompleta` (supressão declarada da
+   [[ADR-394]]/[[ADR-400]]). Sob o `operador="<="` que existia, os dois publicariam
+   "conforme". Ambos deixam de ser representáveis com a entrada órfã.
+6. **`rf_*` era colisão medida, não estética.** `rf_pos_pct + rf_pre_pct + rf_ipca_pct`
+   = **40** em `goals.alocacao_alvo`, um nível acima, contra **44,44** renormalizado em
+   `derived` — dois quase-homônimos com valores diferentes é o C14 que a [[A40.l80]]
+   pagou. Daí `renda_fixa_atual_pct`.
+
+## Prova de vermelho (a disciplina herdada, exercida)
+
+| gate | caso que reprova | onde está |
+|---|---|---|
+| ref irresolvível no gate de versão | a MESMA árvore que passa sob `main` reprova sob ref inexistente | `tests/dev/test_check_prompt_version_bumped.py` |
+| YAML sem bump / sem `version:` / não declarado | 5 casos, mini-repo git hermético (sem rede, imune a clone raso) | idem |
+| `observado_path` ilegível | catálogo de `HEAD` antes do fix, nomeando as 2 chaves com `reason` diferente | transcript no corpo do PR |
+| predicado do gate | o path com `[classe=renda_fixa]` que existia | `tests/unit/pipeline/test_kpi_target_catalog.py` |
+| isenção de `limiar` no `golden_diff` | comentar a entrada ⇒ vermelho | `tests/test_parecer_metrica_stamping.py` |
+| emenda da ADR-233/399 | tirar a data de `amended_at` ⇒ o gate acusa | mutação manual, re-medida |
+
+**Um erro do autor, pego pela própria prova:** a checagem de presença de `version:` nasceu
+dentro de `_errors_for`, **atrás** do check de ref — e o comentário ao lado dela afirmava
+que ela "sobrevive a clone raso". O transcript mostrou o curto-circuito. Movida para
+junto da igualdade de conjunto, que lê só o disco local.
+
+## Follow-ups com dono (nenhum fica sem endereço)
+
+| item | por quê | dono |
+|---|---|---|
+| **Denominador zero em `comparaveis[].atual_pct`** | carteira líquida ≤ 0 publica `0,0%` no card S3 — ausência disfarçada de medida. A folha nova é cópia fiel disso **de propósito**: consertar só a cópia daria duas respostas para o mesmo fato | `product-designer` + `data-engineer` |
+| **`check_lane_counter` não vê a própria tabela** | compara o número declarado contra o **disco**; subdeclarar a metade "nesta tabela" passa calado, e passou (`91 · 90` com 91 no disco e 91 na tabela) | quem mexer na skill `lane-closeout` |
+| **`check_golden_rebaseline_isolation` não cobre `backend/tests/snapshots/`** | `_GOLDEN_PREFIX` fixa `tests/fixtures/pipeline_golden/`; 74 de 76 commits que tocaram o snapshot desde 2026-05-01 misturam código. Estender hoje reprovaria 97% do fluxo | [[A40.l80]] (ressalva herdada) |
+| **Atribuição de `prompt_version` no e16** | editar as tabelas RFB muda o prompt sem bumpar `e16_irpf_full.PROMPT_VERSION`. Cache protegido pelo hash da [[ADR-307]]; o defeito é de **atribuição** em `LLMCallLog` | `prompt-engineer` |
+| **Tool loop anunciado e não ligado** | o prompt do parecer diz "Cap: 6 iterações" e o orquestrador não passa `tools`. Classe declarado-mas-inerte | `prompt-engineer` |
+| **`build_section_summary_cache_key` órfã** | sem chamador, e é a variante **sem** version — duas chaves canônicas para a mesma coisa, uma errada | qualquer um, 1 linha |
+| **Divergência `percent2` vs `pct` na mesma folha** | o manifest declara `percent2` para `share_nao_identificado_pct` e `ancora_format_hint()` deriva `pct` pelo nome: `30,70%` vs `30,7%` | `prompt-engineer` |
 
 ## Fora de escopo — com rota herdada do §Fecho da l89
 
@@ -62,6 +125,7 @@ rebaselines de snapshot em vez de um.
 | **R3** `metrica_key` duplicada | bug fix ≤30 linhas, PR próprio. Dedupe **subtrativo no finalize, keep-first**, com contador em log estruturado. **Não** `uniqueItems` (as linhas diferem em `frequencia_revisao`/`section_id`), **não** validator hard-fail (reabre a reask storm — [[ADR-292]]/[[ADR-294]]) | `prompt-engineer` decide |
 | **R4** polaridade da trilha | já é a [[A40.l92]], aberta | `product-designer` |
 | **R5** `clt_estavel` inalcançável + **N3** `clt_unica_fonte` rotulado por ausência de medição | decisão de domínio antes de tocar `scoring.json` — remover config viva sem veredito converte defeito de alcance em decisão de produto tomada por engenharia | `financial-planner` |
+| **Checagem doutrina × alvo de alocação declarado** | hoje não existe, e com a D2 valendo para alocação o produto não questiona o plano da família. A camada de sobrevivência é protegida **fora** desta métrica (reserva, canônica; caixa fora do denominador do desvio). Conteúdo do wizard de metas, não deste catálogo | `financial-planner` |
 | **R6** `Goal(RESERVA_EMERGENCIA)` sem leitor em `pipeline/` | lane própria, **e exige emenda datada à [[ADR-399]] D2 ANTES**: "declarado vence doutrina" está certa para alocação e **errada para reserva**. Regra correta: `limiar = max(declarado, canonico)` | `data-engineer` + `financial-planner` |
 
 ## Disciplina herdada (não é opcional)
