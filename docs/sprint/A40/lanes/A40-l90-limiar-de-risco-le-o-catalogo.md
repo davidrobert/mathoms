@@ -565,3 +565,89 @@ Por que cada um caiu: **1** — não há isenção a estreitar (§7), e a §Emen
 enumeração saiu do run, não do catálogo), §6 (a citação é a redação aposentada), §7 (o D4
 renuncia escopo — adotado pela §Emenda da [[ADR-399]]), e o núcleo do §8 (`limiar` é
 classificado como dinheiro; a unidade não é endereçável por nome).
+
+## Segundo ataque medido (2026-08-28) — alvo: o §Escopo que este ataque reescreveu
+
+> Docs-only, sobre `main` `8262d045`. **Nenhum código tocado.** O primeiro ataque
+> (#1766/#1767) atacou a redação de outro; este ataca a **minha**, escrita no #1775, mais
+> as premissas que envelheceram nas ~30 PRs que a [[A40.l80]] e a [[A40.l93]] mergearam
+> desde então.
+
+### §0 — O gate de entrada desta lane **não foi entregue**, e a l80 shipou sem ele
+
+Testado com a **própria função do gate**, não por leitura de config:
+
+| verificação | resultado |
+|---|---|
+| `is_golden("backend/tests/snapshots/dogfood_view_model.json")` | **`False`** |
+| `is_golden("tests/fixtures/pipeline_golden/x.json")` | `True` |
+| `rg -l golden_diff .github/ Makefile .pre-commit-config.yaml` | **vazio** |
+
+As **duas** metades da condição de saída seguem abertas. A [[A40.l80]] mergeou 15+ PRs
+neste intervalo — incluindo o #1784, que **registrou** este achado em doc e não o
+consertou — e segue `open`/P0, ocupada por 2 worktrees. **O §Critério "delta de golden
+declarado" continua inexequível.**
+
+### §1 — A [[A40.l93]] consertou o §8 do primeiro ataque por **entrada exata**: 5 de 26
+
+`"limiar"` entrou em `_NON_MONETARY_EXACT`. Funciona para os 5 `limiar` — e é exatamente
+a forma que o comentário da **própria [[A40.l80]]** rejeita por escrito no mesmo arquivo
+(*"fechar por instância deixaria o próximo campo de versão nascer com o mesmo bug"*).
+
+**Restam 21, em 6 famílias**, medidos com o `_monetary_paths` do teste de snapshot:
+
+| ocorrências | path | grandeza real |
+|---|---|---|
+| 5 | `score.componentes[].valor` | pct / meses |
+| 5 | `score.breakdown[].valor` | nota 0-10 |
+| 5 | `score.breakdown[].contribuicao` | pontos |
+| 2 | `investimentos.top_ativos[].posicao` | **ordinal** (rank 1 → `100`) |
+| 1 | `investimentos.instituicoes_por_membro[].n_posicoes` | **contagem** |
+| 1 | `ratios.concentracao_imobiliaria` | pct (`8219`) |
+| 1 | `score.valor` | nota (`590`) |
+| 1 | `consumo_consciente.equivalente_meses_aporte` | meses |
+
+O último item é o que morde **esta** lane: `ratios.concentracao_imobiliaria` é a primeira
+dimensão do §Escopo 3 — o número que esta lane vai mover — e o conserto não a alcançou.
+
+### §2 — A guarda que protege essa isenção promete um universal e testa um existencial
+
+O comentário em `dev/golden_diff.py` justifica a entrada exata dizendo que a isenção *"é
+segura enquanto nenhum membro do enum de `unidade` for monetário"*, e o teste que ele cita
+existe (`tests/test_parecer_metrica_stamping.py:302` — verifiquei; minha primeira busca
+olhou `backend/tests/` e deu falso-negativo). Mas o que ele **assere** é:
+
+```python
+monetarias = {"brl", "usd", "eur", "reais", "moeda"}
+assert not (_enum_do_schema("unidade") & monetarias)
+```
+
+O comentário do próprio teste diz *"a isenção só se justifica enquanto **TODA** unidade for
+adimensional"* — universal positivo. O código testa **não-interseção com uma lista fechada
+de 5 nomes** — existencial negativo. Passam livres: `gbp`, `chf`, `jpy`, `dolar`, `real`,
+`centavos`, `cents`, `currency`, `money`, `monetario`, `valor`.
+
+**É a mesma forma exata do defeito que esta lane existe para consertar** — o §Escopo 4
+declarava um universal por chave e implementava um existencial (§1-§3 do primeiro ataque).
+Aqui ela reaparece **na guarda que protege o conserto do meu próprio achado**.
+
+Remédio que casa a intenção declarada: inverter para `enum ⊆ {pct, pct_aa, meses, ano,
+ratio_0_1, …}` — allowlist de adimensionais. Unidade nova falha **fechada** até alguém
+classificá-la; a denylist deixa passar tudo que não foi previsto.
+
+### §3 — A condição de retomada do §Deferimento **foi satisfeita**
+
+`reserva_cobertura_meses` agora publica `procedencia: "limiar_canonico"` com
+`ref: "scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda"` — a
+chave real. O carimbo falso morreu.
+
+**`reserva_insuficiente` volta a ser executável** e sai do §Deferimento por *inexequível*.
+O que **permanece** é a decisão de domínio: piso 6 (doutrina, canal `risco` da [[ADR-399]]
+§D2) decide existência; alvo gradua. A [[ADR-367]] segue **`Proposto`** e continua sendo
+quem já decidiu isso.
+
+### §4 — O que do meu §Escopo **sobrevive** à re-medição
+
+- **§Escopo 2 segue número-neutro.** `_endividamento` lê `thresholds_alertas.endividamento_maximo_pct` = **20**, a mesma chave da regra; o observado segue **20,55**. A neutralidade sobreviveu a ~30 PRs.
+- **§Escopo 3 segue correto na forma.** `METRICA_KEYS` tem **13** chaves e só **4** têm limiar (`concentracao_imobiliaria`, `despesas_nao_categorizadas`, `reserva_cobertura_meses`, `taxa_endividamento`) — a regra de enumeração continua sendo a redação certa, e o número em prosa teria envelhecido de novo.
+- **`exposicao_cambial` segue órfã** (`motivo: "exposição cambial sem cobertura apurada"`), logo inelegível pelo predicado simples — como o #1789 previu.
