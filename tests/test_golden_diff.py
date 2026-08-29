@@ -41,7 +41,6 @@ def test_is_monetary_default_and_non_monetary_allowlist():
     assert is_monetary("patrimonio.bruto")
     assert is_monetary("patrimonio.composicao[Caixa].valor")
     assert is_monetary("goals.if_meta")
-    assert is_monetary("score.valor")  # valor é monetário-por-default (manifesto justifica)
     assert not is_monetary("ratios.taxa_endividamento_pct")
     assert not is_monetary("score.max")
     assert not is_monetary("if_kpis.idade_david")
@@ -50,6 +49,28 @@ def test_is_monetary_default_and_non_monetary_allowlist():
     assert not is_monetary("rentabilidade.retorno_real_anual_pct")
     assert not is_monetary("_report_lineage.source_document_count")
     assert not is_monetary("e3.transacoes_total")
+
+
+# A40.l80 (destrava A40.l90): as 6 famílias que o classificador lia como R$ no snapshot
+# do view-model — 21 campos. `score.valor` ERA asserido como monetário aqui, com a
+# justificativa "o manifesto justifica"; isso se reverte porque justificar um delta de
+# PONTOS como dinheiro é escrever `adr`/`rationale`/`ref` falsos — a mesma armadilha que
+# `ratios.concentracao_imobiliaria` armava para a A40.l90.
+def test_as_seis_familias_de_falso_monetario():
+    assert not is_monetary("score.valor")
+    assert not is_monetary("score.breakdown[0].contribuicao")
+    assert not is_monetary("investimentos.top_ativos[0].posicao")  # ordinal
+    assert not is_monetary("investimentos.instituicoes_por_membro[0].n_posicoes")  # contagem
+    assert not is_monetary("ratios.concentracao_imobiliaria")  # razão publicada sem `_pct`
+    assert not is_monetary("consumo_consciente.equivalente_meses_aporte")  # unidade no MEIO
+
+
+# Cada regra nova AFROUXA o monetário-por-default; estas são as portas que ficam
+# fechadas, e sem elas o alargamento vira buraco por onde dinheiro passa mudo.
+def test_marcador_de_moeda_vence_bloco_e_token():
+    assert is_monetary("score.premio_brl")
+    assert is_monetary("patrimonio.caixa_me_brl")
+    assert is_monetary("investimentos.top_ativos[0].valor")
 
 
 def test_unchanged_is_classified():

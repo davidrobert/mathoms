@@ -74,15 +74,22 @@ def test_payload_sem_remocoes_nao_estoura():
     assert consolidacao_cross_documento([{"remocoes": {}}, {}]) is None
 
 
-# `is_monetary` é monetário-por-DEFAULT: só `count` e leaves string sobrevivem. Este teste é o
-# que impede alguém de "simplificar" `meses` para escalar ou mapa — as duas formas passariam
-# no resto da suíte e sairiam 100× erradas no snapshot e no `delta_cents`.
+# `is_monetary` é monetário-por-DEFAULT, e é isso que torna a forma perigosa.
+#
+# A40.l80 (2026-08-28): `meses` DEIXOU de ser monetário — a unidade passou a ser lida como
+# TOKEN e não só como sufixo, então o leaf `meses` casa a mesma regra que `cobertura_meses`
+# já casava. A inconsistência era do classificador, não desta forma.
+#
+# A armadilha NÃO sumiu, mudou de campo: `mes` continua monetário (`mes` não é a unidade,
+# é a chave que CARREGA o mês), e é ele que seria multiplicado por 100 se virasse número.
+# Logo a escolha da LISTA com `mes` string segue justificada — só que pelo leaf de dentro,
+# não pelo nome do bloco.
 @pytest.mark.parametrize(
     "campo,esperado",
-    [("count", False), ("meses", True), ("mes", True)],
+    [("count", False), ("meses", False), ("mes", True)],
 )
 def test_armadilha_do_is_monetary_esta_documentada_pelo_teste(campo, esperado):
-    """`meses` É monetário no `golden_diff` — por isso a forma é LISTA, com `mes` string."""
+    """`mes` é monetário no `golden_diff` — por isso a forma é LISTA, com `mes` string."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "dev"))
     import golden_diff
 
