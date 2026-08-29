@@ -119,7 +119,8 @@ condição de parada.
 > **Três dos seis entram na cláusula de reinício abaixo, pelo argumento mecânico da
 > [[A40.l2]]** — não por gravidade, e sim porque **mutam E3/E5 a montante de todo run**:
 > [[A40.l94]] (folga mensal · E5), [[A40.l95]] (numerador da concentração · E5) e
-> [[A42.l15]] (canonicalização da identidade de investimento · E3/E1.5c). É a mesma extensão
+> [[A42.l15]] (identidade de investimento · E3/E1.5c — **não** canonicalização: essa rota foi
+> vetada por medição em 2026-08-29, ver a lane). É a mesma extensão
 > que a l34 e a l35 receberam em 2026-08-11. **O contador de 2 re-runs só inicia depois de as
 > três estarem terminais** — **quatro desde 2026-08-29**, com a entrada da [[A40.l96]]
 > (ver o parágrafo seguinte).
