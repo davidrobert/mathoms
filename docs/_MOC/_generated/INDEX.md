@@ -414,6 +414,7 @@
 | ADR-417 | adr | Decidido |  | Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review | `adr/417-toda-pausa-tem-saida-terminal-sancionada.md` |
 | ADR-418 | adr | Decidido |  | A meta de IF desconta exatamente a renda passiva que o numerador não conta | `adr/418-a-meta-de-if-desconta-a-renda-passiva-que-o-numerador-nao-conta.md` |
 | ADR-419 | adr | Proposto |  | O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI | `adr/419-gatilho-de-risco-deriva-de-doutrina-nao-de-alvo.md` |
+| ADR-420 | adr | Proposto |  | Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio | `adr/420-numerador-da-concentracao-imobiliaria-e-imobilizacao-patrimonial.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -975,7 +976,7 @@
 | A40.l92 | lane | open | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
 | A40.l93 | lane | shipped | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
 | A40.l94 | lane | open | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
-| A40.l95 | lane | open | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
+| A40.l95 | lane | in_progress | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
 | A40.l96 | lane | in_progress | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
