@@ -178,7 +178,10 @@ diagnóstico e descarta a ressalva do próprio modelo sobre ele.
 ## Fora de escopo
 
 - O **conteúdo** da ressalva e o limiar que ela cita → [[A40.l89]] (o alvo republicado).
-- A regra de risco que deveria ter emitido o ponto urgente → [[A40.l90]].
+- ~~A regra de risco que deveria ter emitido o ponto urgente~~ → [[A40.l90]], **ENTREGUE
+  2026-08-29** (#1814): `concentracao_imobiliaria_alta` emite nos degraus 75/50, com
+  `kpi_key` declarado e gate estático de cobertura. No dogfood a concentração estava em
+  **82,19% contra limiar de 50%** e a superfície determinística não dizia nada.
 - Baseline visual regenerada sem inspeção — inspecionar a olho, nunca `--update` cego.
 
 ## Sequência de entrega (ordem dura)
