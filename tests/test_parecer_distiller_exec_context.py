@@ -226,7 +226,7 @@ def test_field_probes_blocos_densos_reformatados():
     assert "**Despesas por categoria (12m)**" in ctx
     assert "moradia: 1333.33" in ctx
     assert "Folga mensal: R$ 15.000,00" in ctx
-    # [[ADR-420]]: o teto saiu do payload, logo saiu do exec context.
+    # [[ADR-422]]: o teto saiu do payload, logo saiu do exec context.
     assert "Teto sugerido" not in ctx
     assert "Análise: Identificados 40 gastos pontuais" in ctx
 

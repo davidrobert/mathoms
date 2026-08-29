@@ -195,7 +195,7 @@ export function resolveConsolidacaoCrossDoc(
  * - `historico` — inventário acumulado, D6 ("`total_pontuais` **(tabela)** segue
  *   full-period"). Rótulo sempre `HISTORICO`, porque o campo `janela` deste
  *   bloco descreve a janela da FOLGA, não a do total.
- * - `equivalente` — [[ADR-420]] moveu-o para a janela (pontuais da janela ÷
+ * - `equivalente` — [[ADR-422]] moveu-o para a janela (pontuais da janela ÷
  *   folga), logo ele NÃO herda mais `HISTORICO`: o rótulo é o da folga.
  * - `rotuloFolga` — base de `folga_mensal`/`folga_pct`, que o E5 deriva da
  *   janela canônica (D1). `null` sem declaração: sem rótulo inventado.

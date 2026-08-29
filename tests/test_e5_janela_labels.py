@@ -173,7 +173,7 @@ def test_base_canonica_da_reserva_vem_da_janela_12m(payloads: list[dict]):
             assert reserva["despesas_mensais"] == pytest.approx(j12m["despesa_mensal_media"])
 
 
-# RR6-01 / ADR-420 — `folga_mensal` devolvia `pontuais_janela/n` ao numerador e
+# RR6-01 / ADR-422 — `folga_mensal` devolvia `pontuais_janela/n` ao numerador e
 # publicava um SEGUNDO "quanto sobra" sobre o MESMO denominador da taxa de
 # poupança, divergindo dela por exatamente a provisão do gasto pontual; era o
 # maior dos dois que prescrevia. `teto_sugerido` era o complemento aritmético do
@@ -202,7 +202,7 @@ def test_fixture_discrimina_folga(payloads: list[dict]):
 
 
 def test_folga_mensal_nao_soma_pontual_realizado(payloads: list[dict]):
-    """ADR-420 — folga é a poupança da janela, medida sobre ``despesa_consumo``."""
+    """ADR-422 — folga é a poupança da janela, medida sobre ``despesa_consumo``."""
     for payload in payloads:
         consumo = payload["consumo_consciente"]
         j12m = payload["fluxo_caixa"]["janela_12m"]
@@ -224,6 +224,6 @@ def test_folga_pct_nao_diverge_da_taxa_de_poupanca(payloads: list[dict]):
 
 
 def test_teto_sugerido_nao_e_publicado(payloads: list[dict]):
-    """ADR-420 — teto saía de ``despesa_recorrente × 1,15`` sobre base bruta."""
+    """ADR-422 — teto saía de ``despesa_recorrente × 1,15`` sobre base bruta."""
     for payload in payloads:
         assert "teto_sugerido" not in payload["consumo_consciente"]

@@ -2944,7 +2944,7 @@
     },
     "ConsumoConsciente": {
       "type": "object",
-      "description": "ConsumoConsciente.to_legacy_dict (A40.l5 PR2). A janela da folga e a janela dos pontuais ficam declaradas para impedir mistura full-period × 12m (ADR-306 D6). `folga_mensal` é a poupança da janela sobre `despesa_consumo` (ADR-420); `teto_sugerido` foi removido do contrato pela mesma ADR.",
+      "description": "ConsumoConsciente.to_legacy_dict (A40.l5 PR2). A janela da folga e a janela dos pontuais ficam declaradas para impedir mistura full-period × 12m (ADR-306 D6). `folga_mensal` é a poupança da janela sobre `despesa_consumo` (ADR-422); `teto_sugerido` foi removido do contrato pela mesma ADR.",
       "properties": {
         "itens": {
           "type": "array",

@@ -133,7 +133,7 @@
 # (workspace, snapshot E5) que pedir parecer dentro dos 7 dias regenera uma vez. É o
 # preço de a whitelist ter contradito o manifest, e procurar caminho mais barato seria
 # o defeito N2 pela outra ponta.
-# 2.8.0 — A40.l94 ([[ADR-420]], RR6-01): `teto_sugerido` sai do exec context porque sai
+# 2.8.0 — A40.l94 ([[ADR-422]], RR6-01): `teto_sugerido` sai do exec context porque sai
 # do payload. Ele era `despesa_recorrente × 1,15` sobre base BRUTA e o modelo o recebia
 # rotulado "Teto sugerido de consumo mensal": no dogfood, R$ 45.519,51 contra despesa
 # real de R$ 72.459,30/mês — o parecer ancorava conselho de contenção num teto 37%

@@ -68,7 +68,7 @@ class TestConfig:
         assert cfg.consumo_min == 5000.0
 
     def test_meta_de_aporte_nao_entra_mais_na_config(self):
-        """[[ADR-420]] — a meta saiu; o adapter ainda passa `goals`, sem efeito."""
+        """[[ADR-422]] — a meta saiu; o adapter ainda passa `goals`, sem efeito."""
         cfg = ConsumoConscienteConfig.from_configs(
             goals={"aportes": {"meta_aporte_mensal": 10_000}}
         )
@@ -205,7 +205,7 @@ class TestContaCartao:
 
 class TestEquivalenteMesesPoupanca:
     def test_mede_pontuais_da_janela_contra_a_folga(self):
-        """[[ADR-420]] — numerador e denominador na MESMA janela, e ambos no card."""
+        """[[ADR-422]] — numerador e denominador na MESMA janela, e ambos no card."""
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
@@ -238,7 +238,7 @@ class TestEquivalenteMesesPoupanca:
 
 
 # =============================================================================
-# Folga ([[ADR-420]])
+# Folga ([[ADR-422]])
 # =============================================================================
 
 
@@ -325,7 +325,7 @@ class TestJanela:
         assert r.janela_meses == 12
 
     def test_folga_e_a_poupanca_da_janela(self):
-        """[[ADR-420]] — folga == receita_rec_mensal − despesa_consumo_mensal."""
+        """[[ADR-422]] — folga == receita_rec_mensal − despesa_consumo_mensal."""
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         fluxo = {
             "janela_12m": {

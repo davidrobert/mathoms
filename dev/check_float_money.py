@@ -103,7 +103,7 @@ LLM_SCHEMAS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
         "quando o schema churnar por outro motivo"
     ),
     ("pipeline/domain/services/consumo_consciente_calculator.py", "total_pontuais"): (
-        "A40.l94 ([[ADR-420]]): NÃO é campo — é PARÂMETRO de `_build_analise`, que "
+        "A40.l94 ([[ADR-422]]): NÃO é campo — é PARÂMETRO de `_build_analise`, que "
         "ganhou um argumento e passou a ser quebrado em várias linhas pelo formatter, "
         "então `total_pontuais: float,` re-aparece como linha adicionada. O scan de "
         "`pipeline/llm/schemas/**` já filtra essa forma (`_SCHEMA_FIELD_FLOAT` exige "
@@ -112,7 +112,7 @@ LLM_SCHEMAS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
         "e merece revisão própria — não cabe no PR que a descobriu"
     ),
     ("pipeline/domain/services/consumo_consciente_calculator.py", "despesa_consumo_mensal"): (
-        "A40.l94 ([[ADR-420]]): `_ConsumoWindow` é float end-to-end desde A5b — "
+        "A40.l94 ([[ADR-422]]): `_ConsumoWindow` é float end-to-end desde A5b — "
         "`receita_rec_mensal`/`despesa_mensal_media` já eram float e são legado fora "
         "do alcance do gate (diff-based). Esta entrada existe porque a lane RENOMEOU "
         "`despesa_mensal_media` para `despesa_consumo_mensal` (a folga passou a medir "

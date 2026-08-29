@@ -95,7 +95,7 @@ class ConsumoConscienteConfig:
 
     ``consumo_min`` ← ``scoring.json::thresholds_alertas.consumo_consciente_min``
     (default R$ 2000); ``recurrent_categories`` era hardcoded no legado.
-    ``goals.json::aportes.meta_aporte_mensal`` saiu em [[ADR-420]]: era o
+    ``goals.json::aportes.meta_aporte_mensal`` saiu em [[ADR-422]]: era o
     denominador do equivalente, e meta é EDITÁVEL pelo usuário — número de
     diagnóstico que se move sem que nada tenha acontecido no mundo não é
     auditável.
@@ -151,7 +151,7 @@ class ConsumoConsciente:
     folga_pct: float
     analise: str
     # Folga derivada da janela canônica (ADR-306 §D1); pontuais da janela
-    # expostos para o inventário e para o gate de base ([[ADR-420]]).
+    # expostos para o inventário e para o gate de base ([[ADR-422]]).
     janela: str = "full"
     janela_meses: int = 0
     pontuais_janela: float = 0.0
@@ -198,7 +198,7 @@ class ConsumoConscienteCalculator:
         pontuais_janela = sum(
             c.valor for c in candidates if _dentro_da_janela(c.mes, window.mes_inicio)
         )
-        # ADR-420: a folga É a poupança da janela. Devolver ``pontuais_janela/n``
+        # ADR-422: a folga É a poupança da janela. Devolver ``pontuais_janela/n``
         # ao numerador — o que a ADR-306 §D6 prescrevia — publicava um segundo
         # "quanto sobra" sobre o MESMO denominador da taxa de poupança, maior
         # dela por exatamente a provisão do gasto pontual, e era o maior dos dois
@@ -210,7 +210,7 @@ class ConsumoConscienteCalculator:
             if window.receita_rec_mensal > 0
             else 0.0
         )
-        # ADR-420: numerador e denominador na MESMA janela. Media contra o aporte
+        # ADR-422: numerador e denominador na MESMA janela. Media contra o aporte
         # DECLARADO (`goals.meta_aporte_mensal`) sobre o estoque full-period —
         # duas bases e um denominador editável pelo usuário; no dogfood o fator
         # de inflação era 4,9× (46,1 meses onde a poupança sustenta 4,1).

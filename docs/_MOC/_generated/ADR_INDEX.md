@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-411 ADRs (ADR-001 a ADR-421) em [`docs/adr/`](../../adr/).
+412 ADRs (ADR-001 a ADR-422) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 351
-- **Proposto**: 56
+- **Proposto**: 57
 - **Roadmap**: 4
 
 ## Fundação
@@ -404,6 +404,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (1)
 
 - [[ADR-306]] — Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco · phase A28
+
+### Proposto (1)
+
+- [[ADR-422]] — A folga é a poupança da janela, não a poupança mais o gasto pontual realizado · phase A40
 
 ## frontend
 

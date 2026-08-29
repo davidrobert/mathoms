@@ -35,13 +35,13 @@ function KpiTerm({ children }: { readonly children: ReactNode }) {
  * - Gastos pontuais → agregado histórico (D6: "`total_pontuais` **(tabela)**
  *   segue full-period"). Mesma base da prosa do E5, que também fala do período
  *   completo — o card fica internamente coerente.
- * - Equivalente em meses de poupança → janela ([[ADR-420]]): é
+ * - Equivalente em meses de poupança → janela ([[ADR-422]]): é
  *   `total_pontuais_janela ÷ folga mensal`, e os dois estão no card, então o
  *   leitor reproduz a conta. Media contra o aporte DECLARADO sobre o estoque
  *   full-period: duas bases, denominador editável pelo usuário.
  * - Folga mensal → janela canônica (D1), que é de onde o E5 a deriva. Rótulo
  *   lido do campo `janela`; ausente ⇒ sem rótulo inventado. Ela é a taxa de
- *   poupança da janela ([[ADR-420]]) — o hero imprime o mesmo veredito em
+ *   poupança da janela ([[ADR-422]]) — o hero imprime o mesmo veredito em
  *   percentual, e os dois têm de continuar batendo.
  *
  * Trocar o KPI de pontuais para a base de janela (+ ritmo mensal) muda o que a
@@ -132,7 +132,7 @@ function TabelaHeader({
  *  folga + equivalente = janela canônica (D1); escopo da lista declarado em
  *  cima dela.
  *
- *  O "Teto sugerido" saiu em [[ADR-420]]: era `despesa_recorrente × 1,15` sobre
+ *  O "Teto sugerido" saiu em [[ADR-422]]: era `despesa_recorrente × 1,15` sobre
  *  base bruta e prescrevia 37% ABAIXO do gasto real da família. Teto de verdade
  *  é escopo do `OrcamentoProspectivoCard`.
  *
