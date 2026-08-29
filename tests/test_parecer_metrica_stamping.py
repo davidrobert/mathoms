@@ -299,14 +299,24 @@ def _golden_diff_module():
     return modulo
 
 
+# Escrito À MÃO, nunca derivado do enum que ele testa: allowlist que se deriva da
+# própria fonte que deveria julgar fabrica a precondição e nunca reprova. Unidade nova
+# entra aqui por decisão humana — e é esse o ponto do gate.
+#
+# A prosa antiga prometia universal ("enquanto TODA unidade for adimensional") e o código
+# testava existencial (não-interseção com denylist fechada de 5: brl/usd/eur/reais/moeda).
+# `gbp`, `dolar`, `centavos` e `currency` passavam livres. Achado da sessão da A40.l90.
+_ADIMENSIONAIS = frozenset({"pct", "pct_aa", "meses", "ano", "ratio_0_1"})
+
+
 def test_isencao_de_limiar_no_golden_diff_exige_enum_de_unidade_nao_monetario():
     golden_diff = _golden_diff_module()
 
     assert not golden_diff.is_monetary("kpi_targets.reserva_cobertura_meses.limiar")
-    # Se `limiar` deixar de ser isento, a asserção acima cai e este teste some junto —
-    # daí o par: a isenção só se justifica enquanto TODA unidade for adimensional.
-    monetarias = {"brl", "usd", "eur", "reais", "moeda"}
-    assert not (_enum_do_schema("unidade") & monetarias), (
-        "unidade monetária no enum + `limiar` isento no golden_diff = alvo em R$ lido "
-        "como número puro, sem ninguém acusar"
+    fora = _enum_do_schema("unidade") - _ADIMENSIONAIS
+    assert not fora, (
+        f"unidade não declarada adimensional no enum: {sorted(fora)}. `limiar` é isento "
+        "no golden_diff, então alvo nessa unidade sairia lido como número puro sem "
+        "ninguém acusar. Se a unidade nova É adimensional, adicione-a a _ADIMENSIONAIS "
+        "aqui — deliberadamente à mão. Se for monetária, `limiar` não pode seguir isento."
     )

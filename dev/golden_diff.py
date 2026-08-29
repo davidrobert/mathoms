@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
@@ -67,6 +68,10 @@ _NON_MONETARY_EXACT = frozenset(
         # `seed_usado=360` como R$ 3,60 e reportaria delta_cents fantasma.
         "seed_usado",
         "n_simulacoes_usado",
+        # A40.l80: ORDINAL (rank no top de ativos). `posicao=1` virava R$ 1,00 e o
+        # snapshot publicava 100. Entrada exata e não prefixo: não há família de
+        # ordinais aqui, e `posicao_*` monetário é plausível num domínio de carteira.
+        "posicao",
     }
 )
 _NON_MONETARY_SUFFIXES = (
@@ -99,19 +104,62 @@ _NON_MONETARY_PREFIXES = (
     # monetário-por-default leria `prob_if_ate_horizonte=0.44` como R$ 0,44 e
     # reportaria delta_cents fantasma — terceiro remendo da mesma classe.
     "prob_",
+    # A40.l80 (destrava A40.l90): `n_*` é CONTAGEM. `n_posicoes=1` virava R$ 1,00 e
+    # o snapshot o publicava como 100. Prefixo porque `n_imoveis_total` e
+    # `janela_n_meses` já estavam como entrada exata — a família existe.
+    "n_",
+    # Concentração é sempre RAZÃO. `ratios.concentracao_imobiliaria` publica 82,19 e
+    # o classificador lia R$ 82,19 — mover o campo reportava delta monetário
+    # FABRICADO, o que bloquearia a A40.l90 com justificativa falsa no manifesto.
+    # A causa fica a montante e está roteada: o produtor calcula
+    # `concentracao_imobiliaria_pct` e publica a chave SEM o `_pct`
+    # (`ratios_calculator.py`), então o nome publicado perde a unidade que a
+    # propriedade interna carrega.
+    "concentracao_",
 )
 
+# Blocos inteiros que não publicam dinheiro. Diferente de `_NON_MONETARY_PREFIXES`,
+# que olha a FOLHA: aqui o discriminante é o BLOCO, e ele é NECESSÁRIO, não conveniente
+# — `score.*` ([[ADR-217]]) publica pontos em `valor` e `contribuicao`, dois nomes que
+# em OUTROS blocos são dinheiro (`investimentos.tabela_classes[].valor`,
+# `patrimonio.composicao[].valor`). Nenhuma regra por folha consegue separar os dois.
+_NON_MONETARY_NAMESPACES = ("score.",)
+
+# Unidade é TOKEN, não sufixo. `equivalente_meses_aporte` carrega `meses` no meio e
+# escapava de `_NON_MONETARY_SUFFIXES`; fechar por entrada exata deixaria o próximo
+# `<algo>_meses_<algo>` nascer com o mesmo bug — a lição que `_versao` já registrou.
+# Raio de explosão medido contra `config/schemas/e5_analysis.schema.json` (2026-08-28):
+# 7 nomes mudam de classe e nenhum é monetário; zero toca `*_brl` ou `valor`.
+_NON_MONETARY_UNIT_TOKENS = frozenset({"pct", "meses", "anos", "idade", "aa", "ano", "ratio"})
+
 ClassifyFn = Callable[[str], bool]
+
+
+# O marcador de moeda na folha VENCE o bloco. Sem isto, declarar `score.` como
+# namespace abriria a porta que o design fecha: um `score.premio_brl` futuro passaria
+# mudo. Namespace afrouxa o monetário-por-default, e este é o preço de mantê-lo alto.
+_MARCADORES_MONETARIOS = ("_brl", "_usd", "_eur", "_reais", "_cents")
+
+
+def _bloco_nao_monetario(path: str) -> bool:
+    leaf = path.rsplit(".", 1)[-1].split("[", 1)[0]
+    if leaf.endswith(_MARCADORES_MONETARIOS):
+        return False
+    return re.sub(r"\[[^\]]*\]", "", path).startswith(_NON_MONETARY_NAMESPACES)
 
 
 def is_monetary(path: str) -> bool:
     """``True`` se o campo (dot-path) é monetário — monetário-por-default."""
     leaf = path.rsplit(".", 1)[-1].split("[", 1)[0]
+    if _bloco_nao_monetario(path):
+        return False
     if leaf in _NON_MONETARY_EXACT:
         return False
     if leaf.endswith(_NON_MONETARY_SUFFIXES):
         return False
     if leaf.startswith(_NON_MONETARY_PREFIXES):
+        return False
+    if set(leaf.split("_")) & _NON_MONETARY_UNIT_TOKENS:
         return False
     return True
 
