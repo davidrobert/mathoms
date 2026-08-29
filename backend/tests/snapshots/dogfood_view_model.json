@@ -2068,6 +2068,17 @@
       "origem_premissa": "derivado_e5",
       "prazo": "Próximo trimestre",
       "prioridade": "Média"
+    },
+    {
+      "acao": "Reduzir concentração imobiliária",
+      "code": "concentracao_imobiliaria_alta",
+      "dado_faltante": null,
+      "elegibilidade": "computavel",
+      "impacto": "82,2% da carteira produtiva em imóveis, acima do limite de 50% — patrimônio pouco líquido e exposto a ativo único. O ajuste é direcional, via destino dos próximos aportes.",
+      "kpi_key": "concentracao_imobiliaria",
+      "origem_premissa": "derivado_e5",
+      "prazo": "Próximo trimestre",
+      "prioridade": "Alta"
     }
   ],
   "pontos_urgentes_retidos": [],
@@ -2312,10 +2323,18 @@
       "n": 2,
       "p": "média",
       "t": "Consolidar dados de rentabilidade dos investimentos"
+    },
+    {
+      "e": "Próximo trimestre",
+      "impacto": "82,2% da carteira produtiva em imóveis, acima do limite de 50% — patrimônio pouco líquido e exposto a ativo único. O ajuste é direcional, via destino dos próximos aportes.",
+      "n": 3,
+      "p": "alta",
+      "t": "Reduzir concentração imobiliária"
     }
   ],
   "tarefas_status": {
     "1": "pendente",
-    "2": "pendente"
+    "2": "pendente",
+    "3": "pendente"
   }
 }
