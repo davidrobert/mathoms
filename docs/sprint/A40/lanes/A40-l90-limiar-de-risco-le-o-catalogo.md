@@ -4,7 +4,9 @@ type: lane
 title: "A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: shipped
+ship_pr: 1816
+ship_date: "2026-08-29"
 priority: P0
 branch_slug: a40-l90-limiar-de-risco-le-o-catalogo
 owner: financial-planner
@@ -18,7 +20,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -458,6 +460,58 @@ duas regras e não discrimina. É o mesmo ponto cego do §3, noutro eixo.
   irmão existir, o que é decisão de contrato, não remendo de lista.
 - **Condição de retomada do §Deferimento D3 medida hoje: satisfeita.** `gh pr list
   --state open` devolve **zero** PRs — nenhum rebaseline de golden em voo.
+
+## Fecho — 2026-08-29 (FECHADO COM RESSALVA)
+
+**Cinco PRs, todo o §Escopo de código entregue.** O que resta é o §Deferimento datado,
+com dono e condição — não é resíduo silencioso.
+
+| PR | commit | o quê |
+|---|---|---|
+| #1812 | `d0adce52` | [[ADR-419]] `Proposto` — gatilho de risco deriva de doutrina; `kpi_key`; gate de cobertura |
+| #1813 | `79f39e17` | registro tipado + `kpi_key` no item + invariante por chave + gate estático |
+| #1814 | `03368832` | concentração imobiliária graduada nos degraus 75/50 ratificados |
+| #1815 | `a272531a` | alvo de TRS sai do plano de ação (+ [[ADR-191]] §Emenda 2026-08-29) |
+| #1816 | `63aed78c` | prosa do exec context para de afirmar limiar órfão |
+
+### O §Escopo, item a item
+
+1. **ADR** — [[ADR-419]] `Proposto`, ID alocado na escrita. ✅
+2. **Uma regra deriva** — `endividamento_alto`, número-neutro (delta de golden mediu
+   **zero valor movido**). As duas órfãs por decisão ficam sem `kpi_key`, com registro. ✅
+3. **Dimensões sem regra** — a regra de enumeração **provou seu valor**: o número foi de
+   4 para 2 sozinho, porque `exposicao_cambial` e `alocacao_renda_fixa` viraram órfãs no
+   intervalo. `concentracao_imobiliaria` ganhou regra; `despesas_nao_categorizadas` ficou
+   em `DISPENSADAS` com motivo (decisão de domínio: é confiança do diagnóstico, e a ação é
+   do produto). ✅
+4. **Invariante por chave + gate de cobertura** — ambos provados por mutação, **cada um
+   pela sua causa**. `test_forma_existencial_nao_discrimina` congela a medição que motivou
+   a lane. ✅
+5. **`trs_target_pct` cai com a regra** — `rg` devolve zero; o `kind` permanece com nota
+   datada. Emenda da [[ADR-191]] corrige a **contagem** do Aceite (eram três consumidores,
+   não dois). ✅
+6. **Prosa do exec context** — sai a afirmação do limiar órfão; a linha vizinha de
+   endividamento **fica** (fonte única) e ganha gate de neutralidade. ✅
+
+### Ressalva — o que continua aberto, com dono
+
+**Gradação da reserva** → §Deferimento datado 2026-08-27, dono `financial-planner`.
+A condição de retomada **foi satisfeita** (o #1779 corrigiu a procedência), mas o item
+segue fora desta lane por decisão do `senior-cto`: a [[ADR-367]] fica fora da l90 porque
+seu §D3 é frontend. Implementar só o lado do pipeline deixaria o `HeroKpiGrid` pintando a
+reserva de verde ao lado de um risco Média **no mesmo payload** — a contradição
+cross-superfície que esta lane existe para matar.
+
+### Achados colaterais, com destino
+
+- **Off-by-one no detector de arquivo longo:** `detect_long_file` faz
+  `lines = src.count("\n") + 1` e reprova em `> 500`, então arquivo com **500 linhas
+  reais** conta 501 — o limite efetivo é **499**, embora a mensagem diga `max 500`.
+  Registrado, não corrigido: mexeria na baseline de todos.
+- **Divergência de fronteira em `concentracao_imobiliaria`:** o catálogo publica
+  `operador: "<"` (50,00 é rompido) e `parecer_red_lines` usa `> 50` (50,00 não é).
+  Discordam em **um único ponto da reta, e exatamente no degrau**. Esta lane seguiu a
+  red-line, que é a doutrina ratificada e a que hard-blocka o parecer.
 
 ## Correção datada do §Ataque — 2026-08-27, pós-especialistas
 
