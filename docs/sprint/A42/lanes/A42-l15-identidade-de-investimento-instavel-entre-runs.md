@@ -17,7 +17,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a42
-  - status/in_progress
+  - status/in-progress
   - priority/p0
   - area/dados
   - area/pipeline
