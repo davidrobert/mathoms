@@ -192,19 +192,23 @@ export function resolveConsolidacaoCrossDoc(
 /** Leitura de `consumo_consciente` (ADR-306 D1 + D6). Duas bases coexistem no
  * mesmo card e o seletor as devolve **já emparelhadas com o próprio rótulo**:
  *
- * - `historico`/`equivalente` — inventário acumulado, D6 ("`total_pontuais`
- *   **(tabela)** segue full-period"). Rótulo sempre `HISTORICO`, porque o campo
- *   `janela` deste bloco descreve a janela da FOLGA, não a do total.
- * - `rotuloFolga` — base de `folga_mensal`/`folga_pct`/`teto_sugerido`, que o
- *   E5 deriva da janela canônica (D1). `null` sem declaração: sem rótulo
- *   inventado.
+ * - `historico` — inventário acumulado, D6 ("`total_pontuais` **(tabela)** segue
+ *   full-period"). Rótulo sempre `HISTORICO`, porque o campo `janela` deste
+ *   bloco descreve a janela da FOLGA, não a do total.
+ * - `equivalente` — [[ADR-422]] moveu-o para a janela (pontuais da janela ÷
+ *   folga), logo ele deixou de herdar `HISTORICO` e passou a compartilhar a
+ *   janela da folga. Como é a MESMA janela, ele não carrega rótulo próprio:
+ *   duplicá-lo abriria a porta para os dois divergirem em silêncio.
+ * - `rotuloFolga` — base de `folga_mensal`/`folga_pct`, que o E5 deriva da
+ *   janela canônica (D1). `null` sem declaração: sem rótulo inventado.
  *
  * A troca do KPI de pontuais para a base de janela (+ ritmo mensal) é mudança
  * de domínio no que a família vê e saiu para a lane A40.l15 — aqui o par
  * (valor, rótulo) é o full rotulado, coerente com a prosa do E5. */
 export interface ConsumoBases {
   readonly historico: ValorComJanela;
-  readonly equivalente: ValorComJanela;
+  /** Rotulado por `rotuloFolga` — mesma janela, um rótulo só. */
+  readonly equivalente: number | undefined;
   readonly rotuloFolga: JanelaRotulo | null;
 }
 
@@ -213,10 +217,7 @@ export function resolveConsumoBases(consumo: unknown): ConsumoBases | null {
   const bloco = consumo as Record<string, unknown>;
   return {
     historico: { valor: numberAt(bloco, "total_pontuais"), rotulo: HISTORICO },
-    equivalente: {
-      valor: numberAt(bloco, "equivalente_meses_aporte"),
-      rotulo: HISTORICO,
-    },
+    equivalente: numberAt(bloco, "equivalente_meses_poupanca"),
     rotuloFolga: parseJanelaRotulo(bloco.janela, bloco.janela_meses),
   };
 }

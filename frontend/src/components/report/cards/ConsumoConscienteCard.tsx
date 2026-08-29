@@ -32,12 +32,17 @@ function KpiTerm({ children }: { readonly children: ReactNode }) {
 /** KPIs do E5 — **duas** bases coexistem no card, cada uma com rótulo impresso
  * ao lado do próprio número (ADR-306 §Emenda A40.l3: tooltip não conta):
  *
- * - Gastos pontuais + equivalente em meses de aporte → agregado histórico
- *   (D6: "`total_pontuais` **(tabela)** segue full-period"). Mesma base da
- *   prosa do E5, que também fala do período completo — o card fica
- *   internamente coerente.
- * - Folga mensal + teto sugerido → janela canônica (D1), que é de onde o E5 os
- *   deriva. Rótulo lido do campo `janela`; ausente ⇒ sem rótulo inventado.
+ * - Gastos pontuais → agregado histórico (D6: "`total_pontuais` **(tabela)**
+ *   segue full-period"). Mesma base da prosa do E5, que também fala do período
+ *   completo — o card fica internamente coerente.
+ * - Equivalente em meses de poupança → janela ([[ADR-422]]): é
+ *   `total_pontuais_janela ÷ folga mensal`, e os dois estão no card, então o
+ *   leitor reproduz a conta. Media contra o aporte DECLARADO sobre o estoque
+ *   full-period: duas bases, denominador editável pelo usuário.
+ * - Folga mensal → janela canônica (D1), que é de onde o E5 a deriva. Rótulo
+ *   lido do campo `janela`; ausente ⇒ sem rótulo inventado. Ela é a taxa de
+ *   poupança da janela ([[ADR-422]]) — o hero imprime o mesmo veredito em
+ *   percentual, e os dois têm de continuar batendo.
  *
  * Trocar o KPI de pontuais para a base de janela (+ ritmo mensal) muda o que a
  * família vê e exige co-change no E5 — saiu para a lane A40.l15. */
@@ -47,7 +52,7 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
   const historico = janelaBadgeLabel(bases.historico.rotulo);
   const folga = janelaBadgeLabel(bases.rotuloFolga);
   return (
-    <dl className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+    <dl className="grid grid-cols-2 gap-4 text-sm md:grid-cols-3">
       <div>
         <KpiTerm>
           Gastos pontuais
@@ -59,11 +64,11 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
       </div>
       <div>
         <KpiTerm>
-          Equiv. meses de aporte
-          {historico && <JanelaBadge label={historico} />}
+          Equiv. meses de poupança
+          {folga && <JanelaBadge label={folga} />}
         </KpiTerm>
         <dd className="mt-1 font-mono text-lg font-semibold tabular-nums">
-          {bases.equivalente.valor?.toFixed(1).replace(".", ",") ?? "—"}
+          {bases.equivalente?.toFixed(1).replace(".", ",") ?? "—"}
         </dd>
       </div>
       <div>
@@ -76,15 +81,6 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
         </dd>
         <dd className="text-xs text-[var(--surface-muted-foreground)]">
           {formatPct(consumo.folga_pct)} da receita
-        </dd>
-      </div>
-      <div>
-        <KpiTerm>
-          Teto sugerido
-          {folga && <JanelaBadge label={folga} />}
-        </KpiTerm>
-        <dd className="mt-1 text-lg font-semibold">
-          <MonetaryValue value={consumo.teto_sugerido} />
         </dd>
       </div>
     </dl>
@@ -132,9 +128,13 @@ function TabelaHeader({
  *
  *  ADR-306 D1/D6 (A40.l3) — regra de apresentação: nenhum par de valores
  *  monetários de bases diferentes fica visualmente adjacente sem rótulo
- *  **impresso**. Pontuais + equivalente = agregado histórico (D6), mesma base
- *  da prosa do E5; folga + teto = janela canônica (D1); escopo da lista
- *  declarado em cima dela.
+ *  **impresso**. Pontuais = agregado histórico (D6), mesma base da prosa do E5;
+ *  folga + equivalente = janela canônica (D1); escopo da lista declarado em
+ *  cima dela.
+ *
+ *  O "Teto sugerido" saiu em [[ADR-422]]: era `despesa_recorrente × 1,15` sobre
+ *  base bruta e prescrevia 37% ABAIXO do gasto real da família. Teto de verdade
+ *  é escopo do `OrcamentoProspectivoCard`.
  *
  *  O toggle vive ao lado do título da lista (não no header do card) para
  *  evitar leitura ambígua: a lista responde ao período selecionado, os KPIs

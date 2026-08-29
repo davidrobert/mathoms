@@ -22,12 +22,15 @@ def _fluxo(
     rec_rec_mensal: float = 20_000,
     desp_mensal: float = 15_000,
     n_meses: int = 12,
+    transferencia: float = 0.0,
 ) -> dict:
+    """``despesa_consumo`` é o TOTAL da janela ex-transferência ([[ADR-333]])."""
     return {
         "janela_12m": {
             "receita_recorrente_mensal": rec_rec_mensal,
             "despesa_mensal_media": desp_mensal,
             "n_meses": n_meses,
+            "despesa_consumo": desp_mensal * n_meses - transferencia,
         }
     }
 
@@ -64,11 +67,12 @@ class TestConfig:
         )
         assert cfg.consumo_min == 5000.0
 
-    def test_from_goals_overrides_aporte(self):
+    def test_meta_de_aporte_nao_entra_mais_na_config(self):
+        """[[ADR-422]] — a meta saiu; o adapter ainda passa `goals`, sem efeito."""
         cfg = ConsumoConscienteConfig.from_configs(
             goals={"aportes": {"meta_aporte_mensal": 10_000}}
         )
-        assert cfg.aporte_mensal == 10_000.0
+        assert not hasattr(cfg, "aporte_mensal")
 
     def test_recurrent_categories_defaults(self):
         cfg = ConsumoConscienteConfig.from_configs()
@@ -117,9 +121,8 @@ class TestFiltragem:
         assert len(r.itens) == 1
         assert r.itens[0].descricao == "Viagem"
 
-    def test_das_simples_nao_infla_pontuais_nem_folga(self):
-        """DAS real (R$ 5k/guia) fica fora de ``total_pontuais`` — senão a folga
-        mensal sobe pelo valor do tributo e o teto sugerido cai (A40.l4)."""
+    def test_das_simples_nao_infla_pontuais(self):
+        """DAS real (R$ 5k/guia) fica fora de ``total_pontuais`` (A40.l4)."""
         cfg = ConsumoConscienteConfig.from_configs()
         despesas = _despesas(
             das_simples=[_txn("2026-01-20", "SIMPLES NACIONAL", 5539)],
@@ -200,49 +203,91 @@ class TestContaCartao:
 # =============================================================================
 
 
-class TestEquivalenteAporte:
-    def test_calculado_quando_aporte_configurado(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000, aporte_mensal=5000)
-        r = ConsumoConscienteCalculator(cfg).calculate(
-            _fluxo(),
-            _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
-        )
-        # 15k / 5k = 3.0
-        assert r.equivalente_meses_aporte == 3.0
-
-    def test_zero_quando_sem_aporte(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000, aporte_mensal=0)
-        r = ConsumoConscienteCalculator(cfg).calculate(
-            _fluxo(),
-            _despesas(lazer=[_txn("2026-01-05", "X", 5000)]),
-        )
-        assert r.equivalente_meses_aporte == 0.0
-
-
-# =============================================================================
-# Folga / teto sugerido
-# =============================================================================
-
-
-class TestFolgaETeto:
-    def test_folga_positiva_com_receita_maior(self):
+class TestEquivalenteMesesPoupanca:
+    def test_mede_pontuais_da_janela_contra_a_folga(self):
+        """[[ADR-422]] — numerador e denominador na MESMA janela, e ambos no card."""
         cfg = ConsumoConscienteConfig(consumo_min=1000)
-        # receita 20k, despesa total 15k → folga positiva.
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
-            _despesas(),  # sem pontuais
+            _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
+        )
+        # folga 5k/mês; pontuais da janela 15k ⇒ 3,0 meses de poupança.
+        assert r.folga_mensal == 5_000.0
+        assert r.equivalente_meses_poupanca == 3.0
+
+    def test_zero_quando_folga_nao_positiva(self):
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=10_000, desp_mensal=10_000),
+            _despesas(lazer=[_txn("2026-01-05", "X", 5000)]),
+        )
+        assert r.equivalente_meses_poupanca == 0.0
+
+    def test_meta_de_aporte_editavel_nao_move_o_diagnostico(self):
+        """A meta é editável pelo usuário; diagnóstico que se move com ela não é auditável."""
+        cfg_a = ConsumoConscienteConfig.from_configs(
+            goals={"aportes": {"meta_aporte_mensal": 5_000}}
+        )
+        cfg_b = ConsumoConscienteConfig.from_configs(
+            goals={"aportes": {"meta_aporte_mensal": 50_000}}
+        )
+        args = (_fluxo(), _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]))
+        a = ConsumoConscienteCalculator(cfg_a).calculate(*args)
+        b = ConsumoConscienteCalculator(cfg_b).calculate(*args)
+        assert a.equivalente_meses_poupanca == b.equivalente_meses_poupanca
+
+
+# =============================================================================
+# Folga ([[ADR-422]])
+# =============================================================================
+
+
+class TestFolga:
+    def test_folga_positiva_com_receita_maior(self):
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
+            _despesas(),
         )
         assert r.folga_mensal == 5_000.0
         assert r.folga_pct == 25.0
 
-    def test_teto_sugerido_eh_115pct_das_recorrentes(self):
+    def test_pontual_realizado_nao_volta_para_a_folga(self):
+        """RR6-01 — devolvê-lo publicava um 2º "quanto sobra" sobre o mesmo denominador."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        sem_pontual = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000), _despesas()
+        )
+        com_pontual = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
+            _despesas(lazer=[_txn("2026-01-05", "VIAGEM", 24_000)]),
+        )
+        assert com_pontual.pontuais_janela == 24_000.0
+        assert com_pontual.folga_mensal == sem_pontual.folga_mensal
+
+    def test_folga_usa_despesa_consumo_nao_a_bruta(self):
+        """[[ADR-333]] — aporte na janela não é consumo, logo não deprime a folga."""
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
-            _fluxo(desp_mensal=10_000),
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000, transferencia=60_000),
             _despesas(),
         )
-        # Despesas 10k, sem pontuais → recorrentes = 10k → teto = 11500
-        assert r.teto_sugerido == pytest.approx(11_500.0)
+        # despesa_consumo = 15k×12 − 60k = 120k ⇒ 10k/mês ⇒ folga 10k (não 5k).
+        assert r.folga_mensal == 10_000.0
+
+    def test_despesa_consumo_ausente_degrada_para_a_bruta(self):
+        """Payload anterior à [[ADR-333]]: ``.get(..., 0)`` daria folga == receita inteira."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        fluxo = {
+            "janela_12m": {
+                "receita_recorrente_mensal": 20_000,
+                "despesa_mensal_media": 15_000,
+                "n_meses": 12,
+            }
+        }
+        assert (
+            ConsumoConscienteCalculator(cfg).calculate(fluxo, _despesas()).folga_mensal == 5_000.0
+        )
 
     def test_folga_zero_quando_receita_zero(self):
         cfg = ConsumoConscienteConfig(consumo_min=1000)
@@ -276,17 +321,17 @@ class TestJanela:
         r = ConsumoConscienteCalculator(cfg).calculate(fluxo, despesas)
         assert r.total_pontuais == 8_400.0
         assert r.pontuais_janela == 2_400.0
-        assert r.folga_mensal == pytest.approx(10_000 - (8_000 - 2_400 / 12))
         assert r.janela == "12m"
         assert r.janela_meses == 12
 
-    def test_folga_reconciliavel_com_base_canonica(self):
-        """folga == receita_rec_mensal − despesa_mensal_media + pontuais_janela/n."""
+    def test_folga_e_a_poupanca_da_janela(self):
+        """[[ADR-422]] — folga == receita_rec_mensal − despesa_consumo_mensal."""
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         fluxo = {
             "janela_12m": {
                 "receita_recorrente_mensal": 12_000,
                 "despesa_mensal_media": 9_000,
+                "despesa_consumo": 9_000 * 12,
                 "n_meses": 12,
                 "periodo": "2025-07 a 2026-06",
             }
@@ -294,8 +339,8 @@ class TestJanela:
         r = ConsumoConscienteCalculator(cfg).calculate(
             fluxo, _despesas(lazer=[_txn("2025-12-10", "VIAGEM", 3_600)])
         )
-        esperado = 12_000 - 9_000 + r.pontuais_janela / 12
-        assert r.folga_mensal == pytest.approx(esperado)
+        assert r.pontuais_janela == 3_600.0
+        assert r.folga_mensal == pytest.approx(3_000.0)
 
     def test_fallback_ao_periodo_completo_sem_janela(self):
         cfg = ConsumoConscienteConfig(consumo_min=1000)
@@ -316,13 +361,16 @@ class TestJanela:
 
 class TestAnalise:
     def test_texto_quando_ha_itens(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000, aporte_mensal=5000)
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
-            _fluxo(),
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 5_000)]),
         )
         assert "Identificados 1 gastos" in r.analise
-        assert "1.0 meses" in r.analise
+        # A prosa declara as DUAS janelas — era a única superfície com total nu.
+        assert "somando R$ 5.000,00" in r.analise
+        assert "Na janela de 12 meses são R$ 5.000,00" in r.analise
+        assert "1.0 meses de poupança" in r.analise
 
     def test_texto_quando_sem_itens(self):
         r = ConsumoConscienteCalculator().calculate(_fluxo(), _despesas())
@@ -348,13 +396,14 @@ class TestResult:
         required = {
             "itens",
             "total_pontuais",
-            "equivalente_meses_aporte",
+            "equivalente_meses_poupanca",
             "folga_mensal",
             "folga_pct",
-            "teto_sugerido",
             "analise",
         }
         assert required.issubset(d.keys())
+        assert "teto_sugerido" not in d
+        assert "equivalente_meses_aporte" not in d
 
     def test_item_to_dict_has_all_fields(self):
         item = GastoPontualItem(

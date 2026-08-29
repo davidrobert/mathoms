@@ -133,7 +133,15 @@
 # (workspace, snapshot E5) que pedir parecer dentro dos 7 dias regenera uma vez. É o
 # preço de a whitelist ter contradito o manifest, e procurar caminho mais barato seria
 # o defeito N2 pela outra ponta.
-version: "2.7.0"
+# 2.8.0 — A40.l94 ([[ADR-422]], RR6-01): `teto_sugerido` sai do exec context porque sai
+# do payload. Ele era `despesa_recorrente × 1,15` sobre base BRUTA e o modelo o recebia
+# rotulado "Teto sugerido de consumo mensal": no dogfood, R$ 45.519,51 contra despesa
+# real de R$ 72.459,30/mês — o parecer ancorava conselho de contenção num teto 37%
+# abaixo do gasto observado. MINOR pela mesma leitura da 2.5.0 (remoção de régua da
+# label, não quebra de contrato de output). A `folga_mensal` que fica ao lado mudou de
+# VALOR sem mudar de nome — passou a ser a taxa de poupança da janela —, e é por isso
+# que o bump cobra a frota: parecer em cache dentro dos 7 dias citaria a folga velha.
+version: "2.8.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -327,10 +335,9 @@ context_sections:
           - {path: "$.consumo_consciente.analise", label: "Análise", format: "string"}
           - {path: "$.consumo_consciente.total_pontuais", label: "Total de gastos pontuais (período)", format: "brl"}
           - {path: "$.consumo_consciente.total_pontuais_janela", label: "Total de gastos pontuais (janela)", format: "brl"}
-          - {path: "$.consumo_consciente.equivalente_meses_aporte", label: "Equivalente em meses de aporte", format: "raw"}
+          - {path: "$.consumo_consciente.equivalente_meses_poupanca", label: "Pontuais da janela em meses de poupança", format: "raw"}
           - {path: "$.consumo_consciente.folga_mensal", label: "Folga mensal", format: "brl"}
           - {path: "$.consumo_consciente.folga_pct", label: "Folga (% da renda recorrente)", format: "percent2"}
-          - {path: "$.consumo_consciente.teto_sugerido", label: "Teto sugerido de consumo mensal", format: "brl"}
           - {path: "$.consumo_consciente.janela", label: "Janela do diagnóstico", format: "string"}
           - {path: "$.consumo_consciente.janela_meses", label: "Meses na janela do diagnóstico", format: "int"}
     narrative_hints:

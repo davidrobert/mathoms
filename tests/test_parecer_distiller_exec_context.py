@@ -121,10 +121,9 @@ _DENSE_CONSUMO_CONSCIENTE = {
     ],
     "total_pontuais": 260_000.0,
     "total_pontuais_janela": 120_000.0,
-    "equivalente_meses_aporte": 8.7,
+    "equivalente_meses_poupanca": 8.7,
     "folga_mensal": 15_000.0,
     "folga_pct": 27.3,
-    "teto_sugerido": 28_750.0,
     "analise": "Identificados 40 gastos pontuais relevantes no período analisado.",
     "janela": "12m",
     "janela_meses": 12,
@@ -227,7 +226,8 @@ def test_field_probes_blocos_densos_reformatados():
     assert "**Despesas por categoria (12m)**" in ctx
     assert "moradia: 1333.33" in ctx
     assert "Folga mensal: R$ 15.000,00" in ctx
-    assert "Teto sugerido de consumo mensal: R$ 28.750,00" in ctx
+    # [[ADR-422]]: o teto saiu do payload, logo saiu do exec context.
+    assert "Teto sugerido" not in ctx
     assert "Análise: Identificados 40 gastos pontuais" in ctx
 
 

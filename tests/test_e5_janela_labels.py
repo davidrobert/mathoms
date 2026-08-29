@@ -25,10 +25,17 @@ from tests.pipeline_golden_substrate import (
 _REPO = Path(__file__).resolve().parents[1]
 _FIX = _REPO / "tests" / "fixtures" / "pipeline_golden"
 _E3_MIXED = _FIX / "e3" / "minimal-conta-com-despesa-3_reconciled.json"
+_E3_PONTUAIS = _FIX / "e3" / "pontuais-com-aporte-3_reconciled.json"
 _BASELINE = _FIX / "e2" / "minimal-baseline-1.5_consolidated.json"
 _DOGFOOD = _FIX / "dogfood"
 
 _JANELA_VOCAB = re.compile(r"^(3m|6m|12m|ytd|full|irpf(_\d{4})?)$")
+
+_PONTUAIS_KEYWORDS = {
+    "lazer_viagens": ["CINEMA"],
+    "aporte_investimento": ["APORTE CDB"],
+    "moradia": ["ALUGUEL"],
+}
 
 # Valores mensais por natureza — quantia mensal contratual/planejada, não
 # mensalização de série temporal (ADR-306 §D1 família iv).
@@ -76,26 +83,39 @@ def _inherits_interactive_window(path: str) -> bool:
     return path.startswith(".fluxo_caixa.janelas.") and ".tabela_" in path
 
 
-@pytest.fixture(scope="module")
-def payloads(tmp_path_factory) -> list[dict]:
-    minimal_root = tmp_path_factory.mktemp("janela_minimal")
-    write_e5_config(minimal_root, expense_keywords={"lazer": ["CINEMA"]})
-    minimal = run_e3_e4_e5(
-        minimal_root,
+def _payload_minimal(root: Path) -> dict:
+    write_e5_config(root, expense_keywords={"lazer": ["CINEMA"]})
+    return run_e3_e4_e5(
+        root,
         e3_payloads={"minimal-conta-com-despesa": load_fixture(_E3_MIXED)},
         baseline=load_fixture(_BASELINE),
     )
-    dogfood_root = tmp_path_factory.mktemp("janela_dogfood")
-    write_e5_config(dogfood_root)
-    dogfood = run_dogfood_pipeline(
-        dogfood_root,
+
+
+def _payload_dogfood(root: Path) -> dict:
+    write_e5_config(root)
+    return run_dogfood_pipeline(
+        root,
         raw_baseline=load_fixture(_DOGFOOD / "baseline-1.5.json"),
         e2_extracts={
             "extrato-a": load_fixture(_DOGFOOD / "extrato-a-2_extract.json"),
             "extrato-b": load_fixture(_DOGFOOD / "extrato-b-2_extract.json"),
         },
     )
-    return [minimal, dogfood]
+
+
+def _payload_pontuais(root: Path) -> dict:
+    write_e5_config(root, expense_keywords=_PONTUAIS_KEYWORDS)
+    return run_e3_e4_e5(root, e3_payloads={"pontuais-com-aporte": load_fixture(_E3_PONTUAIS)})
+
+
+@pytest.fixture(scope="module")
+def payloads(tmp_path_factory) -> list[dict]:
+    return [
+        _payload_minimal(tmp_path_factory.mktemp("janela_minimal")),
+        _payload_dogfood(tmp_path_factory.mktemp("janela_dogfood")),
+        _payload_pontuais(tmp_path_factory.mktemp("janela_pontuais")),
+    ]
 
 
 def test_todo_campo_mensal_tem_rotulo_de_janela(payloads: list[dict]):
@@ -153,15 +173,57 @@ def test_base_canonica_da_reserva_vem_da_janela_12m(payloads: list[dict]):
             assert reserva["despesas_mensais"] == pytest.approx(j12m["despesa_mensal_media"])
 
 
-def test_folga_mensal_reconcilia_com_base_canonica(payloads: list[dict]):
-    """ADR-306 §D6 — folga derivável algebricamente da janela 12m."""
+# RR6-01 / ADR-422 — `folga_mensal` devolvia `pontuais_janela/n` ao numerador e
+# publicava um SEGUNDO "quanto sobra" sobre o MESMO denominador da taxa de
+# poupança, divergindo dela por exatamente a provisão do gasto pontual; era o
+# maior dos dois que prescrevia. `teto_sugerido` era o complemento aritmético do
+# mesmo erro: 37% abaixo do gasto real no dogfood.
+#
+# Os dois goldens anteriores têm `total_pontuais_janela == 0` e `n_meses == 1` —
+# com o termo zerado, folga e poupança coincidem qualquer que seja a fórmula e o
+# gate nasce verde (RR6-07). Daí `test_fixture_discrimina_folga` vir ANTES: ele
+# vigia a fixture, sem a qual os três testes abaixo passam por vacuidade.
+def test_fixture_discrimina_folga(payloads: list[dict]):
+    """A fixture É o gate — sem um payload que separe os 4 eixos, o invariante é vácuo."""
+    discriminantes = [
+        p
+        for p in payloads
+        if p["consumo_consciente"]["total_pontuais_janela"] > 0
+        and p["consumo_consciente"]["total_pontuais"]
+        > p["consumo_consciente"]["total_pontuais_janela"]
+        and p["fluxo_caixa"]["janela_12m"]["transferencia_patrimonial"] > 0
+        and p["fluxo_caixa"]["janela_12m"]["n_meses"] > 1
+    ]
+    assert discriminantes, (
+        "nenhum payload separa pontuais-na-janela × pontuais-full × "
+        "transferência patrimonial × n_meses>1 — o invariante da folga passaria "
+        "sem exercitar nenhum dos termos que ele existe para vigiar"
+    )
+
+
+def test_folga_mensal_nao_soma_pontual_realizado(payloads: list[dict]):
+    """ADR-422 — folga é a poupança da janela, medida sobre ``despesa_consumo``."""
     for payload in payloads:
         consumo = payload["consumo_consciente"]
         j12m = payload["fluxo_caixa"]["janela_12m"]
         n = j12m["n_meses"]
-        esperado = (
-            j12m["receita_recorrente_mensal"]
-            - j12m["despesa_mensal_media"]
-            + (consumo["total_pontuais_janela"] / n if n else 0.0)
+        assert n > 0, "janela sem meses — payload inválido para o invariante"
+        poupanca_mensal = (j12m["receita_recorrente"] - j12m["despesa_consumo"]) / n
+        assert consumo["folga_mensal"] == pytest.approx(poupanca_mensal, abs=0.02)
+
+
+def test_folga_pct_nao_diverge_da_taxa_de_poupanca(payloads: list[dict]):
+    """O par (folga_pct, taxa_poupanca_recorrente) é UM veredito, não dois."""
+    for payload in payloads:
+        j12m = payload["fluxo_caixa"]["janela_12m"]
+        if not j12m["receita_recorrente"]:
+            continue
+        assert payload["consumo_consciente"]["folga_pct"] == pytest.approx(
+            j12m["taxa_poupanca_recorrente"], abs=0.1
         )
-        assert consumo["folga_mensal"] == pytest.approx(esperado, abs=0.02)
+
+
+def test_teto_sugerido_nao_e_publicado(payloads: list[dict]):
+    """ADR-422 — teto saía de ``despesa_recorrente × 1,15`` sobre base bruta."""
+    for payload in payloads:
+        assert "teto_sugerido" not in payload["consumo_consciente"]

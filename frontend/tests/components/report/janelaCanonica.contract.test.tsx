@@ -264,12 +264,15 @@ describe("fixture janela-divergente — self-check de divergência", () => {
     );
   });
 
-  it("a prosa do E5 fala do período completo (D6), igual ao KPI de pontuais", () => {
-    // Coerência interna do card: headline, equivalente e prosa na MESMA base.
-    // (A prosa vem do calculator em produção; a fixture reproduz o texto real,
-    // inclusive o formato en-US que o `f"{v:,.2f}"` emite — follow-up A40.l15.)
-    expect(String(consumo.analise)).toContain("no período analisado");
-    expect(String(consumo.analise)).toContain("20.8 meses de aporte");
+  it("a prosa do E5 declara as DUAS janelas, cada valor com a sua", () => {
+    // [[ADR-420]]: a prosa era a única superfície que citava um total NU. Agora
+    // ela nomeia o acumulado (D6) e a janela (D1), e o equivalente sai da janela.
+    // (A prosa vem do calculator em produção; a fixture reproduz o texto real.)
+    const analise = String(consumo.analise);
+    expect(analise).toContain("no período analisado, somando R$ 250.000,00");
+    expect(analise).toContain("Na janela de 12 meses são R$ 96.000,00");
+    expect(analise).toContain("5.1 meses de poupança");
+    expect(analise).not.toContain("meses de aporte");
   });
 
   it("narrativas não sombreiam o builder determinístico", () => {
@@ -289,8 +292,18 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     // ramo antigo o colava no total acumulado (D6).
     expect(bases?.historico.valor).toBe(consumo.total_pontuais);
     expect(bases?.historico.rotulo.tipo).toBe("full");
-    expect(bases?.equivalente.valor).toBe(consumo.equivalente_meses_aporte);
-    expect(bases?.equivalente.rotulo.tipo).toBe("full");
+    expect(bases?.rotuloFolga?.tipo).toBe("12m");
+  });
+
+  it("equivalente segue a JANELA — ADR-420 mudou a base dele junto com o valor", () => {
+    // Antes media o estoque full contra o aporte declarado e herdava `full`.
+    // Agora é `total_pontuais_janela ÷ folga`, então o rótulo é o da folga.
+    const bases = resolveConsumoBases(consumo);
+    // Não-vácuo: a fixture DECLARA o campo, senão `toBe(undefined)` passa sozinho.
+    expect(consumo.equivalente_meses_poupanca).toBe(5.1);
+    expect(bases?.equivalente).toBe(consumo.equivalente_meses_poupanca);
+    // Sem rótulo próprio: compartilha a janela da folga, e um rótulo só impede
+    // que os dois divirjam em silêncio.
     expect(bases?.rotuloFolga?.tipo).toBe("12m");
   });
 
@@ -828,7 +841,7 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
     const dl = document.querySelector("dl")?.textContent ?? "";
     expect(dl).toContain(V.pontuaisFull);
     expect(dl).not.toContain(V.pontuais12m);
-    expect(dl).toContain("20,8");
+    expect(dl).toContain("5,1");
   });
 
   it("rótulo de janela é texto IMPRESSO, não tooltip", () => {
@@ -836,7 +849,6 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
     // medido no PDF real. O rótulo tem de estar no DOM impresso.
     render(<ConsumoConscienteCard consumo={consumo} />);
     expect(badges()).toEqual([
-      "todo o período documentado",
       "todo o período documentado",
       "últimos 12 meses documentados",
       "últimos 12 meses documentados",
@@ -852,6 +864,8 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
     expect(termos[0]).toContain("todo o período documentado");
     expect(termos[2]).toContain("Folga mensal");
     expect(termos[2]).toContain("últimos 12 meses documentados");
+    expect(termos[1]).toContain("Equiv. meses de poupança");
+    expect(termos[1]).toContain("últimos 12 meses documentados");
   });
 
   it("escopo da LISTA é declarado (toggle próprio, default 3M)", () => {
@@ -861,20 +875,17 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
     expect(escopo).toContain("Lista: últimos 3M");
   });
 
-  it("sem janela declarada: folga/teto ficam sem rótulo inventado", () => {
+  it("sem janela declarada: folga/equivalente ficam sem rótulo inventado", () => {
     const semJanela = {
       ...consumo,
       janela: undefined,
       janela_meses: undefined,
     };
     render(<ConsumoConscienteCard consumo={semJanela} />);
-    expect(badges()).toEqual([
-      "todo o período documentado",
-      "todo o período documentado",
-    ]);
+    expect(badges()).toEqual(["todo o período documentado"]);
   });
 
-  it("janela irpf_<ano> rotula folga/teto como ano-base, não como período completo", () => {
+  it("janela irpf_<ano> rotula folga/equivalente como ano-base, não como período completo", () => {
     // I1: o rótulo vem do CAMPO `janela` (D2 criou o campo justamente para a UI
     // não inferir a base pela posição do bloco).
     render(
@@ -882,10 +893,16 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
         consumo={{ ...consumo, janela: "irpf_2024", janela_meses: 12 }}
       />,
     );
-    expect(badges().slice(2)).toEqual([
+    expect(badges().slice(1)).toEqual([
       "ano-base IRPF 2024",
       "ano-base IRPF 2024",
     ]);
+  });
+
+  it("o teto sugerido não é renderizado — saiu do contrato na ADR-420", () => {
+    render(<ConsumoConscienteCard consumo={consumo} />);
+    const dl = document.querySelector("dl")?.textContent ?? "";
+    expect(dl).not.toContain("Teto sugerido");
   });
 });
 

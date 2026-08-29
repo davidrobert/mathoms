@@ -5,7 +5,7 @@ title: "Política de base temporal de mensalização no E5 — janela canônica 
 status: Decidido
 phase: A28
 date: "2026-07-03"
-amended_at: ["2026-07-31", "2026-08-11", "2026-08-14"]
+amended_at: ["2026-07-31", "2026-08-11", "2026-08-14", "2026-08-29"]
 relates_to:
   - "[[ADR-191]]"
   - "[[ADR-090]]"
@@ -54,6 +54,13 @@ tags:
 > **movimento**, **fechamento** e **não-posterioridade à data de corte do run** —
 > ver §Emenda 2026-08-11 no fim desta nota, com o deferimento datado da cláusula
 > de fechamento.
+
+> **Emenda 2026-08-29 (A40.l94) — o termo de pontuais do D6 fica SUPERADO por
+> [[ADR-422]].** A fórmula que D6 fixou (`… − (despesa_mensal_media − pontuais_janela/n)`)
+> é `poupança_mensal + pontual_mensal`: ela devolvia o gasto pontual **realizado**
+> ao numerador e publicava um SEGUNDO "quanto sobra" sobre o mesmo denominador da
+> taxa de poupança, 19,4 pp acima dela. Ver §Emenda 2026-08-29 no fim desta nota.
+> **O resto de D6 e a nota de leitura sobre a fronteira D1/D6 continuam de pé.**
 
 > **Emenda de vocabulário (A40.l44, 2026-08-14).** O vocabulário canônico de
 > D1/D2 continua `12m | full | irpf_<ano>`; a projeção descritiva e interativa
@@ -125,6 +132,10 @@ base) para explicabilidade.
 à janela 12m; `folga_mensal = receita_recorrente_mensal_12m −
 (despesa_mensal_media_12m − pontuais_janela/n)` — derivável algebricamente da base
 canônica (teste de reconciliação). `total_pontuais` (tabela) segue full-period.
+
+> ⚠️ **A fórmula acima está SUPERADA desde 2026-08-29 ([[ADR-422]] D1).** O que
+> permanece de D6: os pontuais da folga são os da **janela** (nunca full-period), e
+> `total_pontuais` (tabela) segue full-period. Ver §Emenda 2026-08-29.
 
 **D7 — Perini com bases mistas declaradas.** Cobertura = renda passiva mensal
 (`irpf_<ano>`) ÷ despesa essencial (`12m`). Mistura aceita; rótulos obrigatórios
@@ -210,3 +221,35 @@ score, reserva, Cerbasi ou Perini: servem só aos dois detalhamentos
 históricos da [[A40.l44]], sempre acompanhadas de `janela_meses`,
 `mes_inicio` e `mes_fim` impressos. “3M” nomeia a seleção; não promete
 três meses civis contíguos.
+
+
+## Emenda 2026-08-29 — o termo de pontuais do D6 (A40.l94 · [[ADR-422]])
+
+D6 consertou uma **mistura de base** real: antes dele, `pontuais_janela` era o
+acumulado full-period diluído por um denominador de 12 meses. Esse conserto está
+de pé e não é reaberto.
+
+O que D6 **não** examinou é se somar o pontual de volta ao numerador é certo. A
+fórmula que ele fixou reduz-se a `folga_mensal ≡ poupança_mensal + pontual_mensal`
+— o gasto pontual **realizado** reclassificado como sobra recuperável. O efeito
+publicado é que a mesma página emite dois "quanto sobra" sobre o **mesmo**
+denominador (`janela_12m.receita_recorrente == equilibrio_cerbasi.componentes.base`),
+divergindo por exatamente `total_pontuais_janela` — 19,4 pp no corpus de dogfood — e
+a **maior das duas é a que prescreve**, porque `teto_sugerido` sai da mesma
+subtração e o parecer ancora conselho de contenção nela.
+
+A [[ADR-422]] substitui o termo: `folga_mensal = receita_recorrente_mensal_12m −
+despesa_consumo_mensal_12m` (base [[ADR-333]]), o que faz o invariante
+`|folga − taxa_poupança × receita| ≤ ε` valer por construção. `teto_sugerido` sai
+do contrato e `equivalente_meses_aporte` vira `equivalente_meses_poupanca`.
+
+**Lição de método que vale além deste campo.** D6 pediu um "teste de reconciliação"
+e ele foi escrito reconstruindo a própria fórmula
+(`test_folga_mensal_reconcilia_com_base_canonica`, `tests/test_e5_janela_labels.py`):
+teste e código compartilhavam a crença errada. E ele rodava sobre os dois únicos
+goldens do repo, ambos com `total_pontuais_janela == 0` e `n_meses == 1` — com o
+termo zerado, folga e poupança coincidem **qualquer que seja a fórmula**. Medido: o
+invariante correto passa nos dois COM o defeito presente. Nenhuma fixture do repo
+tinha um único gasto pontual ≥ R$ 2.000. Um invariante que reconstrói a expressão
+do produtor não é segunda testemunha; e sem fixture que separe os termos, ele não é
+gate nenhum.
