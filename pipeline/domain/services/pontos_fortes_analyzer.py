@@ -116,10 +116,16 @@ class PontosFortesAnalyzer:
             out.append(
                 PontoForteItem(
                     titulo="Taxa de Poupança Elevada",
-                    descricao=(
-                        f"Poupança recorrente de {fmt_percent(taxa_poup)} da renda — "
-                        f"acima da referência de {cfg.poupanca_forte_min_pct:.0f}%."
-                    ),
+                    # A prosa NÃO nomeia o limiar (A40.l90 · [[ADR-419]]). O catálogo
+                    # declara `taxa_poupanca_recorrente` **órfã por decisão**:
+                    # `poupanca_referencia_pct` (25) e `pontos_fortes_taxa_poupanca_min_pct`
+                    # (30) descrevem o mesmo conceito sem precedência declarada, e o
+                    # resolver se recusa a arbitrar — escolher seria inventar regra de
+                    # domínio. Esta linha vai para o exec context como afirmação da
+                    # própria E5, então dizer "acima da referência de 30%" entregava ao
+                    # modelo um limiar que o produtor canônico se recusa a publicar. O
+                    # gatilho segue em 30; o que sai é a AFIRMAÇÃO do número.
+                    descricao=f"Poupança recorrente de {fmt_percent(taxa_poup)} da renda.",
                     icone="savings",
                 )
             )
