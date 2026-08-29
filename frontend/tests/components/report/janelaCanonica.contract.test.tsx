@@ -301,8 +301,10 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     const bases = resolveConsumoBases(consumo);
     // Não-vácuo: a fixture DECLARA o campo, senão `toBe(undefined)` passa sozinho.
     expect(consumo.equivalente_meses_poupanca).toBe(5.1);
-    expect(bases?.equivalente.valor).toBe(consumo.equivalente_meses_poupanca);
-    expect(bases?.equivalente.rotulo?.tipo).toBe("12m");
+    expect(bases?.equivalente).toBe(consumo.equivalente_meses_poupanca);
+    // Sem rótulo próprio: compartilha a janela da folga, e um rótulo só impede
+    // que os dois divirjam em silêncio.
+    expect(bases?.rotuloFolga?.tipo).toBe("12m");
   });
 
   it("consumo SEM bloco/rótulo de janela: valor full E rótulo full, nunca full sob 12m", () => {

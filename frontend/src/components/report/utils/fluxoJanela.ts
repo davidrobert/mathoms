@@ -196,7 +196,9 @@ export function resolveConsolidacaoCrossDoc(
  *   full-period"). Rótulo sempre `HISTORICO`, porque o campo `janela` deste
  *   bloco descreve a janela da FOLGA, não a do total.
  * - `equivalente` — [[ADR-422]] moveu-o para a janela (pontuais da janela ÷
- *   folga), logo ele NÃO herda mais `HISTORICO`: o rótulo é o da folga.
+ *   folga), logo ele deixou de herdar `HISTORICO` e passou a compartilhar a
+ *   janela da folga. Como é a MESMA janela, ele não carrega rótulo próprio:
+ *   duplicá-lo abriria a porta para os dois divergirem em silêncio.
  * - `rotuloFolga` — base de `folga_mensal`/`folga_pct`, que o E5 deriva da
  *   janela canônica (D1). `null` sem declaração: sem rótulo inventado.
  *
@@ -205,7 +207,8 @@ export function resolveConsolidacaoCrossDoc(
  * (valor, rótulo) é o full rotulado, coerente com a prosa do E5. */
 export interface ConsumoBases {
   readonly historico: ValorComJanela;
-  readonly equivalente: ValorComJanela;
+  /** Rotulado por `rotuloFolga` — mesma janela, um rótulo só. */
+  readonly equivalente: number | undefined;
   readonly rotuloFolga: JanelaRotulo | null;
 }
 
@@ -214,10 +217,7 @@ export function resolveConsumoBases(consumo: unknown): ConsumoBases | null {
   const bloco = consumo as Record<string, unknown>;
   return {
     historico: { valor: numberAt(bloco, "total_pontuais"), rotulo: HISTORICO },
-    equivalente: {
-      valor: numberAt(bloco, "equivalente_meses_poupanca"),
-      rotulo: parseJanelaRotulo(bloco.janela, bloco.janela_meses),
-    },
+    equivalente: numberAt(bloco, "equivalente_meses_poupanca"),
     rotuloFolga: parseJanelaRotulo(bloco.janela, bloco.janela_meses),
   };
 }

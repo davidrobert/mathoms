@@ -68,7 +68,7 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
           {folga && <JanelaBadge label={folga} />}
         </KpiTerm>
         <dd className="mt-1 font-mono text-lg font-semibold tabular-nums">
-          {bases.equivalente.valor?.toFixed(1).replace(".", ",") ?? "—"}
+          {bases.equivalente?.toFixed(1).replace(".", ",") ?? "—"}
         </dd>
       </div>
       <div>

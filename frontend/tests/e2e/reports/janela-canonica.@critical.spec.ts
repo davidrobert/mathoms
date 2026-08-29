@@ -263,14 +263,16 @@ test.describe("janela canônica de fluxo @critical", () => {
     // da prosa do E5 logo abaixo. A troca para base de janela é a lane A40.l15.
     await expect(kpis).toContainText(PONTUAIS_FULL);
     await expect(kpis).not.toContainText(PONTUAIS_12M);
-    await expect(kpis).toContainText("20,8");
+    // [[ADR-422]] — equivalente = pontuais da janela ÷ folga (96.000/19.000).
+    await expect(kpis).toContainText("5,1");
+    // O teto saiu do contrato: era `despesa_recorrente × 1,15` sobre base bruta.
+    await expect(kpis).not.toContainText("Teto sugerido");
 
-    // Rótulos IMPRESSOS, um por base: histórico (pontuais/equivalente) e janela
-    // da folga (folga/teto).
+    // Rótulos IMPRESSOS, um por base: histórico (pontuais) e janela canônica
+    // (folga + equivalente, que compartilham a mesma janela).
     const badges = consumoCard(page).locator("[data-janela-badge]");
-    await expect(badges).toHaveCount(4);
+    await expect(badges).toHaveCount(3);
     expect(await badges.allInnerTexts()).toEqual([
-      "todo o período documentado",
       "todo o período documentado",
       "últimos 12 meses documentados",
       "últimos 12 meses documentados",
@@ -357,7 +359,6 @@ test.describe("janela canônica de fluxo @critical", () => {
     expect(
       await consumoCard(page).locator("[data-janela-badge]").allInnerTexts(),
     ).toEqual([
-      "todo o período documentado",
       "todo o período documentado",
       "últimos 12 meses documentados",
       "últimos 12 meses documentados",
