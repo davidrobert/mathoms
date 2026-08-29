@@ -111,8 +111,18 @@ projeta sem revalidar. Corrigir o produtor **não apaga a linha já persistida**
 
 | item | casa | dono | condição de retomada |
 |---|---|---|---|
-| `trs_target_pct = 4.0` na rota do plano de ação | [[A40.l90]] §Escopo | `financial-planner` | emenda da [[ADR-399]] §D4 no PR1 da l90 |
-| prosa `≥ 30%` / `< 20%` no exec context (`pontos_fortes_analyzer.py:121`) | [[A40.l90]], mesma emenda | `financial-planner` + `prompt-engineer` | idem |
+| ~~`trs_target_pct = 4.0` na rota do plano de ação~~ | [[A40.l90]] | — | **ENTREGUE 2026-08-29** (#1815) |
+| ~~prosa `≥ 30%` / `< 20%` no exec context~~ | [[A40.l90]] | — | **ENTREGUE 2026-08-29** (#1816) |
+> **Nota de reconciliação 2026-08-29 — a forma prescrita nesta tabela era falsa.**
+> As duas primeiras linhas mandavam *"emenda da [[ADR-399]] §D4 no PR1 da l90"*. A l90
+> mediu que o §D4 **renuncia** escopo em vez de isentar (*"o escopo é essa rota, não o
+> repo… não estão no escopo desta ADR"*), logo não havia isenção a estreitar — e emendá-la
+> poria descrição falsa no registro permanente. A forma entregue foi outra: **[[ADR-419]]
+> nova** (`Proposto`, #1812) para o canal de gatilho de risco, e **emenda da [[ADR-191]]
+> §D6** (#1815) para o `trs_target_pct`, porque quem o alvo de TRS contradiz é o Aceite da
+> 191 — que contava *"dois consumidores"* e eram **três**. A prosa do exec context saiu
+> sem emenda: o limiar que ela afirmava já era órfão declarado.
+
 | `Decision` aceita não revalida contra o run corrente | ciclo de vida de `Decision` | `financial-planner` | próxima lane que toque `Suggestion`/`Decision` |
 | seleção do painel: piso determinístico das rompidas | `PLAN-deterministic-authority` §Onda 5 | `financial-planner` + `prompt-engineer` | stamping desta lane em `main` |
 

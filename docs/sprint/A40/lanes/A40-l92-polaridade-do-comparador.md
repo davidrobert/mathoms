@@ -82,7 +82,17 @@ publica — decidir antes de implementar.
 
 ## Fora de escopo
 
-- A polaridade das **regras determinísticas de risco** → [[A40.l90]].
+- ~~A polaridade das **regras determinísticas de risco** → [[A40.l90]]~~ — **rota morta
+  desde 2026-08-29**: a l90 fechou (`shipped`). O trabalho **volta para esta lane**, que é
+  a dona do assunto; rota de trabalho futuro aponta para dono vivo, nunca para uma lane só
+  porque o tema nasceu lá.
+  **O que a l90 deixou pronto como substrato** (#1813/#1814): a polaridade do gatilho
+  virou **dado tipado** — `RiskTrigger.operador` com `conforme()`/`rompido()` em
+  [`risk_trigger_registry.py`](../../../../pipeline/domain/services/risk_trigger_registry.py),
+  e a §Fronteira registra que `<=` e `<` divergem em 50,00 exato para o mesmo conceito.
+  **O que falta é exatamente o §Critério desta lane:** esse operador **não chega ao
+  front** — o wire ganhou `kpi_key`, não `operador`. Então "a polaridade chega ao front
+  como dado, não por parsing da string" segue aberto, agora com o produtor já tipado.
 - Não muta E5 ⇒ **não entra na janela de rebaseline** e não zera o contador de 2 re-runs.
 
 ## Critério de aceite
