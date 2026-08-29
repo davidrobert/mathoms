@@ -336,7 +336,6 @@ export interface ConsumoConscienteData {
   equivalente_meses_aporte?: number;
   folga_mensal?: number;
   folga_pct?: number;
-  teto_sugerido?: number;
   analise?: string;
 }
 

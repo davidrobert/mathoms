@@ -844,7 +844,6 @@
     "equivalente_meses_aporte": 20.8,
     "folga_mensal": 19000.0,
     "folga_pct": 20.7,
-    "teto_sugerido": 83950.0,
     "janela": "12m",
     "janela_meses": 12,
     "analise": "Identificados 12 gastos pontuais ≥ R$ 2.000 no período analisado. O total de R$ 250.000,00 equivale a 20.8 meses de aporte."

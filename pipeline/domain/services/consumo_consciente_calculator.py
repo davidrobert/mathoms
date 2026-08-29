@@ -3,7 +3,7 @@
 
 Extrai ``analyze_consumo_consciente`` (e5_analyze.py:2039) em domain service
 puro. Varre transações de despesas, exclui categorias recorrentes, mantém
-items com valor ≥ threshold e agrega métricas (folga mensal, teto sugerido,
+items com valor ≥ threshold e agrega métricas (folga mensal,
 equivalente-meses-aporte).
 
 Função pura, recebe dicts + config tipada (R9/ISP). Sem I/O.
@@ -38,7 +38,7 @@ def _safe_float(val) -> float:
 @dataclass(frozen=True)
 class _ConsumoWindow:
     receita_rec_mensal: float
-    despesa_mensal_media: float
+    despesa_consumo_mensal: float
     n_meses: float
     janela: str
     mes_inicio: str
@@ -48,6 +48,19 @@ def _periodo_inicio(periodo: str) -> str:
     """Extrai o mês inicial de ``"YYYY-MM a YYYY-MM"`` (vazio se malformado)."""
     inicio = periodo.split(" a ")[0].strip()
     return inicio if len(inicio) == 7 else ""
+
+
+def _consumo_mensal(j12m: dict[str, Any], n_meses: float) -> float:
+    """Despesa de consumo mensal da janela — ``despesa_consumo`` ([[ADR-333]]).
+
+    Chave ausente (payload anterior à ADR-333) degrada para a despesa bruta:
+    ``.get("despesa_consumo", 0)`` daria folga == receita inteira.
+    """
+    if n_meses <= 0:
+        return 0.0
+    bruto_mensal = _safe_float(j12m.get("despesa_mensal_media", 0))
+    consumo = j12m.get("despesa_consumo")
+    return _safe_float(consumo) / n_meses if consumo is not None else bruto_mensal
 
 
 def _dentro_da_janela(mes: str, mes_inicio: str) -> bool:
@@ -90,7 +103,6 @@ class ConsumoConscienteConfig:
     consumo_min: float = 2000.0
     recurrent_categories: frozenset[str] = _DEFAULT_RECURRENT
     aporte_mensal: float = 0.0
-    teto_multiplier: float = 1.15
 
     @classmethod
     def from_configs(
@@ -142,10 +154,9 @@ class ConsumoConsciente:
     equivalente_meses_aporte: float
     folga_mensal: float
     folga_pct: float
-    teto_sugerido: float
     analise: str
-    # ADR-306 §D6 — folga derivada da janela canônica; pontuais da janela
-    # expostos para o teste de reconciliação algébrica.
+    # Folga derivada da janela canônica (ADR-306 §D1); pontuais da janela
+    # expostos para o inventário e para o gate de base ([[ADR-420]]).
     janela: str = "full"
     janela_meses: int = 0
     pontuais_janela: float = 0.0
@@ -158,7 +169,6 @@ class ConsumoConsciente:
             "equivalente_meses_aporte": self.equivalente_meses_aporte,
             "folga_mensal": round(self.folga_mensal, 2),
             "folga_pct": self.folga_pct,
-            "teto_sugerido": round(self.teto_sugerido, 2),
             "analise": self.analise,
             "janela": self.janela,
             "janela_meses": self.janela_meses,
@@ -192,20 +202,21 @@ class ConsumoConscienteCalculator:
 
         window = self._resolve_janela(fluxo)
 
-        # ADR-306 §D6: pontuais da folga restritos à janela canônica —
-        # misturar pontuais full-period com denominador 12m inflava a folga.
         pontuais_janela = sum(
             c.valor for c in candidates if _dentro_da_janela(c.mes, window.mes_inicio)
         )
-        pontual_mensal = pontuais_janela / window.n_meses if window.n_meses > 0 else 0.0
-        despesas_recorrentes_mensal = window.despesa_mensal_media - pontual_mensal
-        folga_mensal = window.receita_rec_mensal - despesas_recorrentes_mensal
+        # ADR-420: a folga É a poupança da janela. Devolver ``pontuais_janela/n``
+        # ao numerador — o que a ADR-306 §D6 prescrevia — publicava um segundo
+        # "quanto sobra" sobre o MESMO denominador da taxa de poupança, maior
+        # dela por exatamente a provisão do gasto pontual, e era o maior dos dois
+        # que prescrevia (RR6-01). Base é ``despesa_consumo`` (ADR-333): com a
+        # bruta, o aporte da janela reintroduz a divergência por outro termo.
+        folga_mensal = window.receita_rec_mensal - window.despesa_consumo_mensal
         folga_pct = (
-            round((folga_mensal / window.receita_rec_mensal * 100), 1)
+            round((folga_mensal / window.receita_rec_mensal * 100), 2)
             if window.receita_rec_mensal > 0
             else 0.0
         )
-        teto_sugerido = despesas_recorrentes_mensal * cfg.teto_multiplier
 
         analise = self._build_analise(
             n_candidates=len(candidates),
@@ -219,7 +230,6 @@ class ConsumoConscienteCalculator:
             equivalente_meses_aporte=equivalente,
             folga_mensal=folga_mensal,
             folga_pct=folga_pct,
-            teto_sugerido=teto_sugerido,
             analise=analise,
             janela=window.janela,
             janela_meses=int(window.n_meses),
@@ -261,16 +271,17 @@ class ConsumoConscienteCalculator:
     def _resolve_janela(self, fluxo: dict[str, Any]) -> "_ConsumoWindow":
         j12m = fluxo.get("janela_12m") if isinstance(fluxo, dict) else None
         if j12m:
+            n_meses = _safe_float(j12m.get("n_meses", 12)) or 12.0
             return _ConsumoWindow(
                 receita_rec_mensal=_safe_float(j12m.get("receita_recorrente_mensal", 0)),
-                despesa_mensal_media=_safe_float(j12m.get("despesa_mensal_media", 0)),
-                n_meses=_safe_float(j12m.get("n_meses", 12)) or 12.0,
+                despesa_consumo_mensal=_consumo_mensal(j12m, n_meses),
+                n_meses=n_meses,
                 janela="12m",
                 mes_inicio=_periodo_inicio(str(j12m.get("periodo", ""))),
             )
         return _ConsumoWindow(
             receita_rec_mensal=_safe_float((fluxo or {}).get("receita_recorrente_mensal", 0)),
-            despesa_mensal_media=_safe_float((fluxo or {}).get("despesa_mensal_media", 0)),
+            despesa_consumo_mensal=_safe_float((fluxo or {}).get("despesa_mensal_media", 0)),
             n_meses=_safe_float((fluxo or {}).get("num_months", 12)) or 12.0,
             janela="full",
             mes_inicio="",

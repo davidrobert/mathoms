@@ -36,7 +36,6 @@ export type ConsumoConsciente = {
   "equivalente_meses_aporte"?: number;
   "folga_mensal"?: number;
   "folga_pct"?: number;
-  "teto_sugerido"?: number;
   "analise"?: string;
   "janela"?: "full" | "12m";
   "janela_meses"?: number;

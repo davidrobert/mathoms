@@ -195,9 +195,8 @@ export function resolveConsolidacaoCrossDoc(
  * - `historico`/`equivalente` — inventário acumulado, D6 ("`total_pontuais`
  *   **(tabela)** segue full-period"). Rótulo sempre `HISTORICO`, porque o campo
  *   `janela` deste bloco descreve a janela da FOLGA, não a do total.
- * - `rotuloFolga` — base de `folga_mensal`/`folga_pct`/`teto_sugerido`, que o
- *   E5 deriva da janela canônica (D1). `null` sem declaração: sem rótulo
- *   inventado.
+ * - `rotuloFolga` — base de `folga_mensal`/`folga_pct`, que o E5 deriva da
+ *   janela canônica (D1). `null` sem declaração: sem rótulo inventado.
  *
  * A troca do KPI de pontuais para a base de janela (+ ritmo mensal) é mudança
  * de domínio no que a família vê e saiu para a lane A40.l15 — aqui o par

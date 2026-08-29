@@ -102,6 +102,17 @@ LLM_SCHEMAS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
         "reabriria risco de reask storm (ADR-292/294) sem eval — reavaliar "
         "quando o schema churnar por outro motivo"
     ),
+    ("pipeline/domain/services/consumo_consciente_calculator.py", "despesa_consumo_mensal"): (
+        "A40.l94 ([[ADR-420]]): `_ConsumoWindow` é float end-to-end desde A5b — "
+        "`receita_rec_mensal`/`despesa_mensal_media` já eram float e são legado fora "
+        "do alcance do gate (diff-based). Esta entrada existe porque a lane RENOMEOU "
+        "`despesa_mensal_media` para `despesa_consumo_mensal` (a folga passou a medir "
+        "sobre `despesa_consumo`, ADR-333), e a linha re-aparece como adicionada. "
+        "Nenhum float monetário novo entrou: converter o calculator para Decimal "
+        "mexeria no arredondamento de `folga_mensal`/`total_pontuais` em todo golden "
+        "e é lane própria — misturá-la aqui esconderia a mudança de base atrás de "
+        "um rebaseline de tipo"
+    ),
     ("pipeline/domain/services/if_projector.py", "aporte_mensal"): (
         "A40.l26 (ADR-373): o `IFProjector` é float end-to-end desde A5a — "
         "`IFProjectorConfig.if_meta`/`aporte_mensal` e todo o `project()` já "
