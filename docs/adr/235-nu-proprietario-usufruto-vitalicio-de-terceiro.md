@@ -6,6 +6,7 @@ status: Decidido
 phase: A16
 date: "2026-05-20"
 decided_at: "2026-05-20"
+amended_at: ["2026-08-29"]
 relates_to:
   - "[[ADR-142]]"
   - "[[ADR-143]]"
@@ -17,6 +18,8 @@ relates_to:
   - "[[ADR-216]]"
   - "[[ADR-225]]"
   - "[[ADR-227]]"
+  - "[[ADR-340]]"
+  - "[[ADR-420]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -36,6 +39,11 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda 2026-08-29 ([[A40.l95]] · `RR6-02` da rodada U2):** o item **4** do §Decisão
+> ("Concentração total vs renda") nunca teve produtor, e a métrica que shipou faz o
+> **oposto** dele. A cláusula ganhou dono — ver
+> [§Emenda](#emenda--o-item-4-era-cláusula-não-financiada-e-ganhou-dono-2026-08-29).
 
 ## Contexto
 
@@ -138,3 +146,35 @@ Rejeitada. Perde sinal estruturado para o parecer LLM ([[ADR-199]] lê schema, n
 - **FU-1 · `valor_mercado_consolidado` para nu-propriedade.** Estender `property_market_value` ([[ADR-227]]) para captura opcional do valor pleno futuro (user-declared, conservador). Sinaliza salto patrimonial esperado sem prometer precisão atuarial.
 - **FU-2 · Aviso de seguro de vida no parecer E6.** Heurística: se workspace tem `classification = nu_proprietario` em ≥1 imóvel e `family_members` indica dependentes, parecer recomenda revisar cobertura para ITCMD da consolidação.
 - **FU-3 · Eventual `expected_extinction_year` se demanda materializar.** Critério: ≥10 workspaces solicitando captura. Reabre via ADR sucessora — não esta.
+
+## Emenda — o item 4 era cláusula não-financiada, e ganhou dono (2026-08-29)
+
+**Medido no ataque ao `RR6-02`:** não existe, em lugar nenhum do repo, uma "concentração
+imobiliária total" de denominador PL. Três fontes independentes: nenhum produtor no código ou
+no schema; `ratios` publica **uma única** chave de concentração (mais a base dela); e o item 4
+não é citado em nenhum outro doc da vault — só na linha que o enuncia aqui.
+
+Pior: a métrica que shipou faz o **oposto** do item 4. `compute_concentracao_imobiliaria_pct`
+([[ADR-340]]) soma cat_2 **completo** no numerador, e o rótulo que a acompanha em sete sítios é
+"imóveis de **renda**". A nu-propriedade entrou exatamente onde esta ADR disse que ela não
+entraria, e o KPI cruza o limiar por causa dela.
+
+**Não houve colisão de decisões.** A base que a [[ADR-340]] shipou —
+`investivel_financeiro + cat_2` — exclui residência e veículos (logo **não** é PL) e inclui
+não-geradores (logo **não** é "de renda"): é uma **terceira** base, que não existia quando esta
+nota foi escrita, e sobre a qual o item 4 é **silente**. O que fez parecer colisão foi a frase
+falsa da [[ADR-340]] ("cat_2 = imóveis de renda"), retratada na emenda datada dela.
+
+**A disposição.** A [[ADR-420]] (`Proposto`) **financia** as duas metades do item 4: publica
+`ratios.imobilizacao_patrimonial_pct` sobre `patrimonio_liquido` (a primeira) e tira
+`nu_proprietario` do numerador da concentração (a segunda). O nome recusa "concentração
+total" de propósito — dois `concentracao_*` com bases distintas recriariam o defeito que a
+[[A40.l80]] gastou 11 PRs matando. **A intenção do item 4 é honrada; o rótulo dele, não.**
+
+**Achado de forma sobre esta própria nota, registrado para não se repetir.** O §Decisão afirma
+que os sinais a surfaçar foram *"resgatados da análise do `financial-planner` e **movidos para
+critério de aceite**"* — e os itens **1** ("bucket Ilíquido condicional") e **4** não foram: os
+nove critérios de aceite não os mencionam, e nenhum gate podia detectar a ausência. Cláusula de
+§Decisão sem correspondente no §Critério de aceite é **declaração não-financiada** — nunca teve
+produtor nem detector, e a ausência dela é indetectável por construção. O item 1 **segue sem
+dono**: não há bucket "Ilíquido condicional" no breakdown de liquidez.
