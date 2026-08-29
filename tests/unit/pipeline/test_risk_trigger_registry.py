@@ -31,10 +31,35 @@ _PROTECAO_SEM_GAP = {
 }
 
 
-def _analyze(*, endiv: float, cobertura: float, rentabilidade=7.2):
+# Um observado conforme e um rompido POR GATILHO. Derivado da chave, não enumerado no
+# corpo do teste: gatilho novo sem entrada aqui levanta `KeyError` na coleta, que é o
+# sinal certo — o parametrize passaria calado sobre uma chave não coberta.
+_CAMPO = {
+    "reserva_cobertura_meses": "cobertura",
+    "taxa_endividamento": "endiv",
+    "concentracao_imobiliaria": "conc",
+}
+_CONFORME = {
+    "reserva_cobertura_meses": 53.3,
+    "taxa_endividamento": 5.0,
+    "concentracao_imobiliaria": 30.0,
+}
+_CONCENTRACOES = (30.0, 50.0, 50.1, 60.0, 75.0, 75.1, 82.19, 99.0)
+_ROMPIDO = {
+    "reserva_cobertura_meses": 1.0,
+    "taxa_endividamento": 45.0,
+    "concentracao_imobiliaria": 82.19,
+}
+
+
+def _analyze(*, endiv: float, cobertura: float, conc: float = 30.0, rentabilidade=7.2):
     analyzer = PontosUrgentesAnalyzer(PontosUrgentesConfig.from_scoring(SCORING))
     return analyzer.analyze(
-        {"taxa_endividamento_pct": endiv, "rentabilidade_pct": rentabilidade},
+        {
+            "taxa_endividamento_pct": endiv,
+            "rentabilidade_pct": rentabilidade,
+            "concentracao_imobiliaria": conc,
+        },
         {"piso_cobertura_meses": cobertura},
         {},
         _PROTECAO_SEM_GAP,
@@ -42,17 +67,16 @@ def _analyze(*, endiv: float, cobertura: float, rentabilidade=7.2):
 
 
 def _observado_conforme(kpi_key: str) -> float:
-    return {"reserva_cobertura_meses": 53.3, "taxa_endividamento": 5.0}[kpi_key]
+    return _CONFORME[kpi_key]
 
 
 def _observado_rompido(kpi_key: str) -> float:
-    return {"reserva_cobertura_meses": 1.0, "taxa_endividamento": 45.0}[kpi_key]
+    return _ROMPIDO[kpi_key]
 
 
 def _kwargs(kpi_key: str, observado: float) -> dict:
-    campo = {"reserva_cobertura_meses": "cobertura", "taxa_endividamento": "endiv"}[kpi_key]
-    base = {"endiv": 5.0, "cobertura": 53.3}
-    base[campo] = observado
+    base = {"endiv": 5.0, "cobertura": 53.3, "conc": 30.0}
+    base[_CAMPO[kpi_key]] = observado
     return base
 
 
@@ -95,11 +119,13 @@ def test_forma_existencial_nao_discrimina():
     analyzer = PontosUrgentesAnalyzer(PontosUrgentesConfig.from_scoring(SCORING))
     # `rentabilidade_pct == "N/D"` satisfaz o consequente sem comparar limiar nenhum —
     # é o estado do workspace de referência, onde o invariante antigo é infalsificável.
+    # Todo gatilho conforme, e a lista não fica vazia: `rentabilidade_pct == "N/D"` é
+    # sentinela e dispara sem comparar limiar. O consequente não depende dos gatilhos.
     itens = analyzer.analyze(
         {
             "taxa_endividamento_pct": 5.0,
             "rentabilidade_pct": "N/D",
-            "concentracao_imobiliaria": 82.19,
+            "concentracao_imobiliaria": 30.0,
         },
         {"piso_cobertura_meses": 53.3},
         {},
@@ -141,3 +167,80 @@ def test_regra_que_nao_compara_limiar_nao_declara_kpi_key():
     )
     sem_limiar = {"seguro_vida", "rentabilidade_nao_medida"}
     assert {i.kpi_key for i in itens if i.code in sem_limiar} == {None}
+
+
+# ---------------------------------------------------------------------------
+# Concentração imobiliária — degraus REUSADOS, graduação e supressão
+# ---------------------------------------------------------------------------
+
+
+def _analyze_conc(conc: float, patrimonio: dict | None = None):
+    analyzer = PontosUrgentesAnalyzer(PontosUrgentesConfig.from_scoring(SCORING))
+    itens = analyzer.analyze(
+        {"taxa_endividamento_pct": 5.0, "rentabilidade_pct": 7.2, "concentracao_imobiliaria": conc},
+        {"piso_cobertura_meses": 53.3},
+        patrimonio or {},
+        _PROTECAO_SEM_GAP,
+    )
+    return [i for i in itens if i.code == "concentracao_imobiliaria_alta"]
+
+
+@pytest.mark.parametrize(
+    "conc,esperado",
+    [(30.0, None), (50.0, None), (50.1, "Média"), (75.0, "Média"), (75.1, "Alta"), (82.19, "Alta")],
+)
+def test_graduacao_nos_degraus_ratificados(conc: float, esperado):
+    itens = _analyze_conc(conc)
+    assert [i.prioridade for i in itens] == ([esperado] if esperado else [])
+
+
+def test_nunca_prazo_imediato():
+    # [[ADR-340]] §Emenda: a meta é direcional via aporte, sem exigir liquidação, então
+    # prometer prazo imediato para ação que não existe é o alarme falso que esta lane
+    # existe para evitar.
+    assert [i.prazo for i in _analyze_conc(99.0)] == ["Próximo trimestre"]
+
+
+def test_supressao_por_atribuicao_torna_o_item_nao_verificavel():
+    suprimido = {"guarda_de_sinal": {"motivo_supressao": "balde_negativo: investimentos"}}
+    (item,) = _analyze_conc(82.19, suprimido)
+    assert item.elegibilidade == "nao_verificavel"
+    # A copy não afirma o percentual sobre denominador amputado ([[ADR-412]]).
+    assert "82" not in item.impacto
+
+
+def test_copy_nao_prescreve_no_eixo_de_rendimento():
+    """O eixo do rendimento é o `spread_critico`; duplicá-lo daria duas prescrições."""
+    (item,) = _analyze_conc(82.19)
+    proibidas = ("rende", "rentabilidade", "yield", "cap rate", "aluguel")
+    assert not [t for t in proibidas if t in item.impacto.lower()]
+
+
+def test_degraus_pareados_com_a_red_line():
+    """Divergir faria a determinística contradizer o hard-block do parecer."""
+    # Mede o COMPORTAMENTO dos dois produtores, não a igualdade de duas constantes: é o
+    # predicado que precisa concordar, não o número.
+    from backend.app.services.parecer_red_lines import _severidade_exigida_concentracao
+
+    gatilho = build_risk_triggers(SCORING)["concentracao_imobiliaria"]
+    for conc in _CONCENTRACOES:
+        exigida = _severidade_exigida_concentracao({"ratios": {"concentracao_imobiliaria": conc}})
+        assert gatilho.rompido(conc) == (
+            exigida is not None
+        ), f"conc={conc}: determinística e red-line discordam sobre haver concentração"
+
+
+def test_degrau_de_severidade_pareado_com_a_red_line():
+    """Sem isto, mover só o 75 emitiria Média onde a RL7 exige Alta — subdiagnóstico."""
+    from backend.app.services.parecer_red_lines import (
+        _SEVERIDADE_ALTA,
+        _severidade_exigida_concentracao,
+    )
+
+    gatilho = build_risk_triggers(SCORING)["concentracao_imobiliaria"]
+    for conc in _CONCENTRACOES:
+        exigida = _severidade_exigida_concentracao({"ratios": {"concentracao_imobiliaria": conc}})
+        assert gatilho.severo(conc) == (exigida == _SEVERIDADE_ALTA), (
+            f"conc={conc}: severidade divergente — severo={gatilho.severo(conc)}, "
+            f"red-line exige {exigida}"
+        )
