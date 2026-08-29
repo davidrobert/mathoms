@@ -35,6 +35,9 @@ Category = Literal[
 # FP-003: `dolarizacao_atrasada` removida — USA modo deletado em ADR-168.
 KIND_TO_CATEGORY: dict[str, Category] = {
     # v1 (ADR-153)
+    # Sem produtor desde 2026-08-29 (A40.l90 · [[ADR-191]] §Emenda): `rule_trs_desalinhada`
+    # e `trs_target_pct` saíram juntos. O kind PERMANECE — kind sem produtor é inerte,
+    # kind removido é mudança de contrato, e há sugestões persistidas com ele.
     "trs_desalinhada": "alvo_if",
     "reserva_insuficiente": "protecao",
     "alocacao_fora_alvo": "carteira",
