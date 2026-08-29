@@ -226,6 +226,9 @@ def test_cv18_exige_reconciliacao_quando_a_carteira_se_declara_apurada():
     ).to_dict()
     bloco["componentes"]["carteira_lastro_estrangeiro"]["cobertura"] = "apurado"
     bloco["total_brl"] = 1000.0
+    # Cobertura completa ⇒ o veredito destrava (PV10-01). Sem isto a fixture testaria
+    # a discordância tier×cobertura, não a reconciliação que o nome do teste promete.
+    bloco["tier"] = "verde"
 
     assert _cv18_e5(_e5(bloco, Decimal("900"))).passed
     assert not _cv18_e5(_e5(bloco, Decimal("42"))).passed
@@ -238,3 +241,57 @@ def test_cv18_nao_exige_reconciliacao_com_carteira_nao_apurada():
     ).to_dict()
 
     assert _cv18_e5(_e5(bloco, Decimal("42"))).passed
+
+
+# =============================================================================
+# PV10-01 — o termo de cobertura discrimina, e o produtor v1 não o exercita
+# =============================================================================
+
+
+# Era o lado que o `or` absorvia. Um v2 que reconcilia os universos e esquece de
+# destravar `_tier` para de publicar banda em silêncio — e o check dizia verde.
+def test_cv18_pega_veredito_fraco_demais_para_a_cobertura():
+    """Cobertura completa com a faixa suprimida: o artefato contradiz a si mesmo."""
+    bloco = _compute(caixa=[_caixa("USD", Decimal("100"))]).to_dict()
+    bloco["componentes"]["carteira_lastro_estrangeiro"]["cobertura"] = "apurado"
+
+    assert bloco["tier"] == "indeterminado"
+    assert not _cv18(bloco).passed
+
+
+# Trava o falso-positivo simétrico: exigir cobertura completa aqui reprovaria 100%
+# dos runs de produção, que é exatamente o que `_componentes` declara não medir.
+def test_cv18_aceita_cobertura_incompleta_com_veredito_suprimido():
+    """O estado SANCIONADO da v1 (ADR-403): não apurou, não afirma faixa — e passa."""
+    bloco = _compute(caixa=[_caixa("USD", Decimal("100"))]).to_dict()
+
+    assert bloco["componentes"]["carteira_lastro_estrangeiro"]["cobertura"] != "apurado"
+    assert bloco["tier"] == "indeterminado"
+    assert _cv18(bloco).passed
+
+
+# O que a rodada U2 (§r10 PV10-01) não mediu: os contraexemplos de CV18 são todos
+# dicts editados à mão. Varrendo os INPUTS do produtor, ele emite UM único par
+# (cobertura, tier) — `carteira` é fixada `indeterminado` em `_componentes` desde
+# #1568 — logo CV18 publica `passed: true` em todo run e não poderia fazer diferente.
+# Este teste é o tripwire: quando a v2 destravar a carteira, ele reprova e obriga
+# quem fizer isso a reler CV18 em vez de herdar um check que nunca disparou.
+def test_produtor_v1_emite_uma_unica_forma_de_cobertura():
+    formas = set()
+    for caixa in ([], [_caixa("USD", Decimal("100"))], [_caixa("EUR", Decimal("9999"))]):
+        for posicoes in (None, [], [_pos("ETF global", Decimal("900"))]):
+            for denom in (0, 100, 1_000_000):
+                d = _compute(caixa=caixa, posicoes=posicoes, denom=denom).to_dict()
+                cobs = tuple(sorted((k, c["cobertura"]) for k, c in d["componentes"].items()))
+                formas.add((cobs, d["tier"]))
+                assert _cv18(d).passed, "produtor v1 não deveria conseguir reprovar CV18"
+
+    assert formas == {
+        (
+            (
+                ("caixa_fx", "apurado"),
+                ("carteira_lastro_estrangeiro", "indeterminado"),
+            ),
+            "indeterminado",
+        )
+    }

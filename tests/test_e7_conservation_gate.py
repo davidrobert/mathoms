@@ -82,3 +82,59 @@ def test_stage_run_limpo_valido(tmp_path: Path) -> None:
     store.seed("analyze_finances", "analise_financeira", _e5(bruto=1000.0, comp_valor=1000.0))
     result = stage.run(_ctx(tmp_path, store))
     assert result["validation"]["valid"] is True
+
+
+# ── CV18 observado disparando: a evidência que o §r10 declarou fraca ──
+#
+# O PV10-01 leu o predicado no código e nunca o viu reprovar num run. Aqui ele é
+# observado ATRAVESSANDO o stage: reprova, chega ao payload como `errors_count`,
+# e — o que muda a leitura do PV10-03 — **não pausa**, porque CV18 está fora de
+# `_CONSERVATION_CHECKS`. Um `severity="error"` que não gateia é exatamente o que
+# a linha de resumo "17/17 OK" conflaciona com gate.
+
+
+def _e5_cambial(*, tier: str, carteira_apurada: bool = False) -> dict:
+    cobertura = "apurado" if carteira_apurada else "indeterminado"
+    e5 = _e5(bruto=1000.0, comp_valor=1000.0)
+    e5["exposicao_cambial"] = {
+        "componentes": {
+            "caixa_fx": {"valor_brl": 100.0, "cobertura": "apurado"},
+            "carteira_lastro_estrangeiro": {"valor_brl": 0.0, "cobertura": cobertura},
+        },
+        "total_brl": 100.0,
+        "tier": tier,
+    }
+    return e5
+
+
+def test_stage_cv18_reprova_veredito_forte_demais(tmp_path: Path) -> None:
+    """Banda afirmada sobre cobertura incompleta: CV18 falha `error` no run inteiro."""
+    store = InMemoryArtifactStore()
+    store.seed("analyze_finances", "analise_financeira", _e5_cambial(tier="verde"))
+    result = stage.run(_ctx(tmp_path, store))
+
+    cv18 = next(r for r in result["results"] if r["check_id"] == "CV18")
+    assert cv18["passed"] is False
+    assert cv18["severity"] == "error"
+    assert result["errors_count"] == 1
+
+
+def test_stage_cv18_reprovado_nao_pausa_o_run(tmp_path: Path) -> None:
+    """CV18 é advisory: reprova e o run segue. Medido, não inferido do código."""
+    store = InMemoryArtifactStore()
+    store.seed("analyze_finances", "analise_financeira", _e5_cambial(tier="verde"))
+    result = stage.run(_ctx(tmp_path, store))
+
+    assert result["validation"]["valid"] is True
+    assert result["validation"]["errors"] == []
+
+
+def test_stage_cv18_passa_no_estado_sancionado_da_v1(tmp_path: Path) -> None:
+    """Cobertura incompleta + veredito suprimido é o run de produção — verde."""
+    store = InMemoryArtifactStore()
+    store.seed("analyze_finances", "analise_financeira", _e5_cambial(tier="indeterminado"))
+    result = stage.run(_ctx(tmp_path, store))
+
+    cv18 = next(r for r in result["results"] if r["check_id"] == "CV18")
+    assert cv18["passed"] is True
+    assert result["errors_count"] == 0
