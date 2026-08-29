@@ -1234,7 +1234,7 @@
   },
   "consumo_consciente": {
     "analise": "Nenhum gasto pontual relevante ≥ R$ 2.000 identificado no período analisado — padrão de consumo dentro dos limites recorrentes.",
-    "equivalente_meses_aporte": 0,
+    "equivalente_meses_aporte": "0.000000",
     "folga_mensal": 150000,
     "folga_pct": "50.000000",
     "itens": [],
@@ -1631,7 +1631,7 @@
           "Bancoficticio"
         ],
         "membro": "Alex",
-        "n_posicoes": 100,
+        "n_posicoes": 1,
         "posicoes_sem_identidade": []
       }
     ],
@@ -1660,7 +1660,7 @@
         "membro": "Alex",
         "nome": "Imóvel de investimento",
         "pct_carteira": "88.240000",
-        "posicao": 100,
+        "posicao": 1,
         "tipo_origem": "imovel",
         "valor": 60000000
       },
@@ -1671,7 +1671,7 @@
         "membro": "Alex",
         "nome": "Renda Fixa (Bancoficticio)",
         "pct_carteira": "11.760000",
-        "posicao": 200,
+        "posicao": 2,
         "tipo_origem": "investimento",
         "valor": 8000000
       }
@@ -2149,7 +2149,7 @@
     "base_concentracao_imobiliaria": "carteira_produtiva_fixa",
     "base_do_piso": "carteira_com_titular_identificado",
     "cobertura_despesas_meses": "86.670000",
-    "concentracao_imobiliaria": 8219,
+    "concentracao_imobiliaria": "82.190000",
     "janela": "12m",
     "janela_meses": 1,
     "janela_n_meses": 1,
@@ -2211,39 +2211,39 @@
   "score": {
     "breakdown": [
       {
-        "contribuicao": 250,
+        "contribuicao": "2.500000",
         "dimensao": "Taxa Poupança Recorrente",
         "max": 10,
         "peso": "0.250000",
-        "valor": 1000
+        "valor": "10.000000"
       },
       {
-        "contribuicao": 188,
+        "contribuicao": "1.880000",
         "dimensao": "Cobertura Despesas (meses)",
         "max": 10,
         "peso": "0.187500",
-        "valor": 1000
+        "valor": "10.000000"
       },
       {
-        "contribuicao": 122,
+        "contribuicao": "1.220000",
         "dimensao": "Taxa Endividamento",
         "max": 10,
         "peso": "0.187500",
-        "valor": 650
+        "valor": "6.500000"
       },
       {
-        "contribuicao": 28,
+        "contribuicao": "0.280000",
         "dimensao": "Progresso Independência Financeira",
         "max": 10,
         "peso": "0.250000",
-        "valor": 110
+        "valor": "1.100000"
       },
       {
-        "contribuicao": 4,
+        "contribuicao": "0.040000",
         "dimensao": "Concentração Imobiliária",
         "max": 10,
         "peso": "0.125000",
-        "valor": 30
+        "valor": "0.300000"
       }
     ],
     "classificacao": "Regular",
@@ -2254,7 +2254,7 @@
         "nota": "10.000000",
         "peso": "2.000000",
         "status": "emitted",
-        "valor": 5000
+        "valor": "50.000000"
       },
       {
         "code": "cobertura_despesas",
@@ -2262,7 +2262,7 @@
         "nota": "10.000000",
         "peso": "1.500000",
         "status": "emitted",
-        "valor": 5330
+        "valor": "53.300000"
       },
       {
         "code": "taxa_endividamento",
@@ -2270,7 +2270,7 @@
         "nota": "6.500000",
         "peso": "1.500000",
         "status": "emitted",
-        "valor": 2055
+        "valor": "20.550000"
       },
       {
         "code": "progresso_if",
@@ -2278,7 +2278,7 @@
         "nota": "1.100000",
         "peso": "2.000000",
         "status": "emitted",
-        "valor": 1300
+        "valor": "13.000000"
       },
       {
         "code": "concentracao_imobiliaria",
@@ -2286,7 +2286,7 @@
         "nota": "0.300000",
         "peso": "1.000000",
         "status": "emitted",
-        "valor": 8219
+        "valor": "82.190000"
       }
     ],
     "conclusion": "A classificação 'Regular' reflete melhora em Taxa Poupança Recorrente e Cobertura Despesas (meses).",
@@ -2294,7 +2294,7 @@
     "formula": "Score = (Taxa Poupança Recorrente×2 + Cobertura Despesas (meses)×1.5 + Taxa Endividamento×1.5 + Progresso Independência Financeira×2 + Concentração Imobiliária×1) / 8",
     "max": 10,
     "score_version": "2.1",
-    "valor": 590
+    "valor": "5.900000"
   },
   "tarefas": [
     {
