@@ -20,12 +20,27 @@ import argparse
 import subprocess
 import sys
 
-_GOLDEN_PREFIX = "tests/fixtures/pipeline_golden/"
+# O critério, para o PRÓXIMO arquivo se classificar sozinho: é golden de VALOR quando
+# o conteúdo é output medido do sistema e o número É a evidência — cimentá-lo junto da
+# mudança que o produziu destrói a auditabilidade. NÃO é golden quando o arquivo é
+# CATRACA de dívida (`dev/code_style_baseline.json`, `dev/sigilo_terms_baseline.json`,
+# `dev/pipeline_log_pii_baseline.json`): ali andar junto do código é o fluxo correto,
+# e exigir isolamento só somaria atrito sem ganho de auditoria.
+#
+# A40.l80 (destrava A40.l90): `backend/tests/snapshots/dogfood_view_model.json` (233
+# numéricos, o view-model publicado) estava FORA — o hook rodava verde e cego sobre o
+# único golden que a A40.l90 iria rebaselinar. Fechar só esse arquivo seria fechar por
+# instância; o conjunto abaixo é o critério aplicado.
+_GOLDEN_PREFIXES = (
+    "tests/fixtures/pipeline_golden/",
+    "backend/tests/snapshots/",
+    "dev/snapshots/",
+)
 _PRODUCTION_PREFIXES = ("pipeline/", "scripts/", "backend/app/")
 
 
 def is_golden(path: str) -> bool:
-    return path.startswith(_GOLDEN_PREFIX)
+    return path.startswith(_GOLDEN_PREFIXES)
 
 
 def is_production(path: str) -> bool:

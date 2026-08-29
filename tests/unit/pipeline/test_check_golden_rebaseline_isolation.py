@@ -31,6 +31,31 @@ def test_classification():
     assert not is_production("docs/plan/DATA_LINEAGE/_README.md")
 
 
+# A40.l80 (destrava A40.l90): o hook rodava VERDE E CEGO sobre o view-model — cegueira
+# passa por conformidade, ausência não. O critério que separa golden de valor (o número
+# É a evidência) de catraca de dívida (anda junto do código por desenho) vive no módulo;
+# este teste o exercita nos dois sentidos, senão "estendi o prefixo" viraria afirmação.
+_VIEW_MODEL = "backend/tests/snapshots/dogfood_view_model.json"
+_ANCORABILIDADE = "dev/snapshots/parecer_ancorabilidade.json"
+_CATRACA = "dev/code_style_baseline.json"
+
+
+def test_golden_de_valor_esta_dentro_e_catraca_fora():
+    assert is_golden(_VIEW_MODEL), "o view-model publicado é golden de valor"
+    assert is_golden(_ANCORABILIDADE)
+    assert not is_golden(_CATRACA), "catraca de dívida anda junto do código por desenho"
+
+
+def test_view_model_junto_de_producao_e_violacao():
+    """Mata: devolver `_GOLDEN_PREFIXES` a um único prefixo."""
+    assert violation([_VIEW_MODEL, _PRODUCTION]) is not None
+
+
+def test_catraca_junto_de_producao_continua_legitima():
+    """O fluxo normal é corrigir o código e atualizar a catraca no MESMO commit."""
+    assert violation([_CATRACA, _PRODUCTION]) is None
+
+
 def test_mixed_commit_is_violation():
     msg = violation([_GOLDEN, _MANIFEST, _PRODUCTION])
     assert msg is not None
