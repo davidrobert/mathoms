@@ -5,7 +5,7 @@ title: "Exposição cambial declara seus componentes e a cobertura de cada um; v
 status: Decidido
 phase: r7.FP-5B
 date: "2026-08-19"
-amended_at: ["2026-08-28"]
+amended_at: ["2026-08-28", "2026-08-29"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-193]]"
@@ -33,6 +33,13 @@ tags:
 > da §D1 deixa de ser só **evidência publicada** e passa a ser **contrato consumido** — o
 > card read-time o lê em vez de recomputar a perna de caixa. Mudança de blast radius: quem
 > alterar a forma desse bloco move dois consumidores, não um.
+>
+> **Emendada 2026-08-29** ([[A42.l16]] · `PV10-01` do §r10): a §D7 ganha o eixo que
+> faltava. O termo de cobertura do CV18 era uma disjunção absorvente sobre dois predicados
+> que este produtor define como negação um do outro — não discriminava nada. Passa a exigir
+> **equivalência** entre veredito publicado e cobertura publicada. O título continua valendo
+> ("veredito nunca excede a pior cobertura"); o que muda é que **ficar aquém também é
+> discordância**.
 
 ## Contexto
 
@@ -124,6 +131,22 @@ diagnóstico de **estoque** e deixa de prescrever aporte em classe.
 `carteira.cobertura == apurado ⇒ carteira == bucket Internacional`. Divergir é
 erro de conservação, não diferença tolerada — é o predicado que impede um v2
 futuro de flipar a cobertura sem reconciliar os universos.
+
+> **Emenda 2026-08-29 ([[A42.l16]]) — o eixo de cobertura era inerte.** A terceira
+> perna do check dizia `cobertura completa OR tier == indeterminado`, e o `_tier` desta
+> mesma ADR define `indeterminado` como **exatamente** "algum componente não apurado":
+> os dois lados eram `P` e `¬P`, verdadeiros por construção em todo artefato emitido.
+> Passa a exigir **equivalência**, que discorda nos dois sentidos — veredito forte demais
+> (o dano assimétrico que motivou esta ADR) e veredito fraco demais (cobertura completa
+> com a faixa suprimida: uma v2 que reconcilie os universos e não destrave `_tier`
+> pararia de publicar banda em silêncio).
+>
+> A afirmação desta ADR de que *"os gates aqui são provados por mutação"* fica
+> **qualificada**: as mutações eram todas de **payload**. Varrendo 60 combinações dos
+> inputs do produtor, ele emite uma **única** forma de cobertura e CV18 reprova em **0** —
+> as três pernas são constantes sob a v1. A inertidão é consequência sancionada de a v1
+> não medir a carteira, e agora está pinada por tripwire
+> (`test_produtor_v1_emite_uma_unica_forma_de_cobertura`), não implícita.
 
 ## Alternativas rejeitadas
 

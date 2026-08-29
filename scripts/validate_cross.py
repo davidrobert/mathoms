@@ -632,12 +632,24 @@ def _cv18_exposicao_cambial_cobertura(e5: dict) -> CrossValidationResult | None:
     )
 
 
+# [[ADR-403]] §D7 (emenda 2026-08-29 · PV10-01) — era `completa or tier == "indeterminado"`,
+# e o produtor define `indeterminado` como EXATAMENTE "cobertura incompleta" (`_tier`), o que
+# torna os dois disjuntos `P ∨ ¬P` para todo artefato que ele emite. O termo passava a não
+# discriminar nada. A equivalência discrimina as duas discordâncias: veredito FORTE demais
+# (banda afirmada sobre numerador que o run não fechou — o dano assimétrico da ADR) e veredito
+# FRACO demais (cobertura completa com a faixa suprimida — um v2 que reconcilia os universos e
+# esquece de destravar `_tier` deixaria de publicar banda em silêncio).
+def _tier_concorda_com_cobertura(apurados: dict, componentes: dict, tier: object) -> bool:
+    """O veredito publicado diz o mesmo que a cobertura publicada — nos dois sentidos."""
+    return (len(apurados) == len(componentes)) == (tier != "indeterminado")
+
+
 def _avalia_cobertura_cambial(e5: dict, bloco: dict, componentes: dict) -> tuple[bool, str]:
     apurados = {k: c for k, c in componentes.items() if c.get("cobertura") == "apurado"}
     esperado = sum(_cents(c.get("valor_brl")) for c in apurados.values())
     total, tier = _cents(bloco.get("total_brl")), bloco.get("tier")
     reconcilia, nota = _carteira_reconcilia(e5, componentes.get("carteira_lastro_estrangeiro"))
-    coberto = len(apurados) == len(componentes) or tier == "indeterminado"
+    coberto = _tier_concorda_com_cobertura(apurados, componentes, tier)
     nao_apurados = sorted(set(componentes) - set(apurados))
     return esperado == total and coberto and reconcilia, (
         f"Σ(apurados) ({esperado / 100:,.2f}) == total_brl ({total / 100:,.2f}); "
