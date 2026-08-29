@@ -119,10 +119,21 @@ merge `47970706`) abriu três P0 cuja causa-raiz cai **exatamente** na tese dest
   juntas), e no relatório `Internacional` cai de R$ 34.857,23 para **R$ 423,56** com os totais
   publicados **idênticos ao centavo**.
 - [[A42.l16]] — o check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra
-  a política escrita 400 linhas acima no mesmo módulo.
+  a política escrita 400 linhas acima no mesmo módulo. **`shipped` 2026-08-29 (#1827) — e a
+  lane refutou este enunciado:** o caso perigoso (banda afirmada sobre cobertura incompleta)
+  **já reprovava**, com teste desde o #1568; o que o `or` deixa passar é o estado
+  **sancionado** pela [[ADR-403]], e a política do CV5 citada aqui **não se aplica** a esse
+  ponto (não há ausência quando o tier é `indeterminado`). O defeito real é de outro sinal —
+  os dois disjuntos eram `P` e `¬P` e o termo **não discriminava nada**; medido, o produtor
+  emite uma única forma e CV18 reprovava em **0 de 60** combinações de input.
 
-**Estado:** as três entram como `planned`, seguindo o padrão das 13 anteriores — lanes
-planejadas numa sprint `candidate`. **Não flipei `sprint_status` para `current`:** só existe
+**Estado (2026-08-29, na abertura):** as três entram como `planned`, seguindo o padrão das
+13 anteriores — lanes planejadas numa sprint `candidate`.
+
+> **Atualização 2026-08-29:** a [[A42.l16]] foi executada **fora** da sprint corrente e
+> está `shipped` (#1827). As outras duas seguem `planned`. A decisão sobre `sprint_status`
+> abaixo **não mudou** — continua do dono.
+ **Não flipei `sprint_status` para `current`:** só existe
 uma sprint corrente por vez ([[A40]]), e duas são **erro duro** em
 `dev/build_doc_index.py::_multi_current_error`. Ativar a A42 exigiria pausar ou encerrar a
 A40 — cujo §Gate de saída **não está satisfeito** (contador em 0/2, ver o §Gate de saída da
@@ -193,7 +204,7 @@ grafo honesto até lá.
 | [[A42.l13]] | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | P1 | 2 | — |
 | [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** | **P0** | 1 | — |
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
-| [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** | **P0** | 1 | — |
+| [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
