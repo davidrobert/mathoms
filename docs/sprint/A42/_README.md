@@ -114,8 +114,10 @@ merge `47970706`) abriu três P0 cuja causa-raiz cai **exatamente** na tese dest
   produção pela primeira vez: a skill vinha sendo citada como propriedade do que o run
   publicou, e o próprio relatório dela mede que os dois substratos divergem.
 - [[A42.l15]] — `investment_id` é hash de campos que o extrator LLM reescreve, com **23,5%**
-  de estabilidade entre dois runs do mesmo documento. Dano vivo: duas pernas **HARD**
-  cross-run do comparador disparam com ruído de extrator.
+  de estabilidade entre dois runs do mesmo documento. Dano vivo, remedido em 2026-08-29: o
+  comparador dispara em **todo par consecutivo, por perna diferente a cada vez** (não as duas
+  juntas), e no relatório `Internacional` cai de R$ 34.857,23 para **R$ 423,56** com os totais
+  publicados **idênticos ao centavo**.
 - [[A42.l16]] — o check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra
   a política escrita 400 linhas acima no mesmo módulo.
 
@@ -190,7 +192,7 @@ grafo honesto até lá.
 | [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
 | [[A42.l13]] | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | P1 | 2 | — |
 | [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** | **P0** | 1 | — |
-| [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; duas pernas HARD do comparador disparam com ruído de extrator · **U2 `LC6-02`** | **P0** | 1 | — |
+| [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
 | [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** | **P0** | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
