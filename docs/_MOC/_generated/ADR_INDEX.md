@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-410 ADRs (ADR-001 a ADR-420) em [`docs/adr/`](../../adr/).
+411 ADRs (ADR-001 a ADR-421) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 351
-- **Proposto**: 55
+- **Proposto**: 56
 - **Roadmap**: 4
 
 ## Fundação
@@ -710,6 +710,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-315]] — Estratégia de rewrite de histórico git para release pública
 - [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs)
 - [[ADR-317]] — Identidade de autoria no mailmap público
+
+## tooling
+
+### Proposto (1)
+
+- [[ADR-421]] — Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual
 
 ## Outras
 
