@@ -1,0 +1,166 @@
+{
+  "banco": "itau",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-03-01",
+    "fim": "2026-03-31"
+  },
+  "saldo_inicial": 0.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 144000.0,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "itau_extratoconta_202503_202603-2_extract.json"
+  ],
+  "transacoes_total": 29,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-03-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-03-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-03-20",
+      "descricao": "INGRESSO CINEMA SHOPPING",
+      "valor": -30000.0
+    },
+    {
+      "data": "2025-04-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-04-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-05-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-05-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-06-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-07-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-07-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-10-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-10-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "INGRESSO CINEMA SHOPPING",
+      "valor": -9000.0
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-11-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2026-01-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "APORTE CDB TESOURO",
+      "valor": -12000.0
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "PIX recebido",
+      "valor": 20000.0
+    },
+    {
+      "data": "2026-03-08",
+      "descricao": "ALUGUEL APARTAMENTO",
+      "valor": -5000.0
+    }
+  ]
+}
