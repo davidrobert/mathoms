@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-408 ADRs (ADR-001 a ADR-418) em [`docs/adr/`](../../adr/).
+409 ADRs (ADR-001 a ADR-419) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 351
-- **Proposto**: 53
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -643,7 +643,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-414]] — Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada · phase A40.l64
 - [[ADR-418]] — A meta de IF desconta exatamente a renda passiva que o numerador não conta · phase A40
 
-### Proposto (15)
+### Proposto (16)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -660,6 +660,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-382]] — Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 · phase A40.l39
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
+- [[ADR-419]] — O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI
 
 ### Roadmap (1)
 

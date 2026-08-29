@@ -13,6 +13,7 @@ depends_on:
 adrs:
   - "[[ADR-191]]"
   - "[[ADR-399]]"
+  - "[[ADR-419]]"
   - "[[ADR-416]]"
 tags:
   - type/lane
@@ -113,7 +114,8 @@ medida sobre os runs de referência **declarada antes do flip** (doutrina WARN-f
 > pontos e falsa num quarto. O texto original está preservado em §Correção datada
 > §C-5; o porquê de cada mudança, em §Ataque medido §1-§5.
 
-1. **PR1 — ADR nova `Proposto`** (não emenda da [[ADR-399]]): a superfície determinística
+1. **PR1 — [[ADR-419]] `Proposto`** (escrita 2026-08-29; ID alocado na escrita, nunca
+   reservado): a superfície determinística
    de risco deriva gatilho de **doutrina**, nunca de alvo declarado; aresta `kpi_key` em
    `PontoUrgenteItem`; gate de cobertura do vocabulário. A [[ADR-399]] §D4 **renuncia**
    escopo em vez de proibir (§7 do ataque, adotado pela §Emenda 2026-08-27 da própria
