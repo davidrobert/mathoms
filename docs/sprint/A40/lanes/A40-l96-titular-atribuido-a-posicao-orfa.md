@@ -120,19 +120,43 @@ independentes.
 `serialize_family_members` monta o mesmo mapa a partir da tabela `bank_accounts`
 (`backend/app/services/config_materializer.py:83-99`) — e é **este** que vira
 `ctx.load_config("family_members.json")`, que é o que o E4 consome
-(`scripts/categorize_transactions.py:1074`). A tabela `bank_accounts` tem **0
+(`scripts/categorize_transactions.py:1074`). A rota completa, verificada elo a
+elo no closeout (não inferida): `build_config_overrides_from_db`
+(`backend/app/services/pipeline/pipeline_adapter.py:740`) → `_family_members_override`
+(`:715-729`) → `serialize_family_members` → `config_overrides["family_members.json"]`
+→ `ctx.load_config`. **O E1 não reinjeta nada nessa rota:** `extract_members.py:211`
+faz apenas `store.write("extract_members", "members", family_json)`. A tabela `bank_accounts` tem **0
 rows no banco inteiro**: o único escritor é `family_member_repository.add_account`,
 alcançável apenas por `POST /family-members/{id}/accounts` e pelo import de
 config (`backend/app/api/config.py:345`) — **nunca pelo pipeline**. Medido:
 `serialize_family_members` devolve `['familia', 'membros', 'titular']`, sem
 `banco_membro` e sem `contas`.
 
-**D2 — predicado: `ambiguous` conta CONTAS, não MEMBROS.**
-`AccountResolver._resolve_inner` devolve `ambiguous` quando
-`len(contas_bank) > 1`, sem olhar se todas pertencem ao mesmo membro. No corpus,
-`itau` tem 2 contas — **ambas `david`** — e `rico` tem 2 contas — **ambas
-`david`**. Não há ambiguidade: o conjunto de candidatos é um singleton. O
-predicado correto é `len({c.member_key for c in contas_bank}) > 1`.
+**D2 — predicado: `ambiguous` conta CONTAS, não MEMBROS — e isso está
+ENCODADO, não esquecido.** `AccountResolver._resolve_inner` devolve `ambiguous`
+quando `len(contas_bank) > 1`, sem olhar se todas pertencem ao mesmo membro. No
+corpus, `itau` tem 2 contas — **ambas `david`** — e `rico` tem 2 contas —
+**ambas `david`**. O conjunto de candidatos é um singleton.
+
+> **Correção do closeout (2026-08-29).** A redação anterior desta subseção dizia
+> *"o predicado correto é `len({c.member_key for c in contas_bank}) > 1`"*, como
+> se fosse descuido. **Não é.** Existe teste que fixa o comportamento:
+> `tests/unit/pipeline/test_account_resolver.py:66-69`,
+> `test_none_account_number_with_two_same_member_still_ambiguous`, monta
+> `_acc("david","itau","123456")` + `_acc("david","itau","789012")` e afirma
+> `confidence == "ambiguous"`. Tratar D2 como bug faria o PR2 inverter um teste
+> deliberado sem reabrir a decisão.
+>
+> **O que é defeito de verdade é a divergência ADR↔teste.** A [[ADR-226]]
+> declara o caso na lista de aceite do próprio plano de implementação como
+> *"ambiguous (**2+ membros** sem account_number)"* — em **membros** —, enquanto
+> o §Decisão em prosa fala em *"múltiplas **contas** no mesmo banco sem
+> identificador"*. O teste seguiu a prosa; a lista de casos diz o oposto. **Não
+> há decisão única a respeitar: há duas, em conflito, dentro da mesma ADR.** O
+> PR2 reabre isso com **emenda datada à [[ADR-226]]**, com o `financial-planner`
+> decidindo a pergunta de domínio: duas contas do mesmo dono no mesmo banco são
+> ambiguidade de **titularidade** (a pergunta do consolidator) ou de **conta**
+> (outra pergunta)?
 
 **D3 — espaço de chave: a saída do resolver de conta não é canonicalizada.**
 O consolidator canonicaliza `membro_raw` do artefato E2 via `MemberNameResolver`
@@ -142,19 +166,34 @@ O consolidator canonicaliza `membro_raw` do artefato E2 via `MemberNameResolver`
 (`'david_robert_camargo_ferreira_campos'`). `papel_da_chave('david')` →
 **`sem_dono`**.
 
-### Contrafactual — nenhuma dupla move o número
+### Contrafactual — os **oito** subconjuntos
 
-| cenário | titular | cônjuge | **órfão** | `pct_carteira_financeira` |
-|---|---|---|---|---|
-| hoje (medido) | 31,85% | 0,00% | **68,15%** | **49,03%** |
-| D1 só (wiring) | 31,85% | 0,00% | **68,15%** | 49,03% |
-| D1+D2 (predicado) | 31,85% | 0,00% | **68,15%** | 49,03% |
-| **D1+D2+D3** | **99,87%** | 0,00% | **0,13%** | **~0,10%** |
+> **Correção do closeout (2026-08-29).** A tabela anterior tinha 4 linhas e
+> afirmava que *"qualquer subconjunto próprio dos três deixa o número publicado
+> idêntico"*. **A afirmação era falsa** — generalizei de 2 dos 6 subconjuntos
+> próprios não-vazios que eu tinha medido. `{D1,D3}` **move**, e é justamente o
+> conserto que um PR2 prudente tentaria, por ser o que **não** toca a decisão
+> encodada em teste (ver D2).
 
-É a propriedade que trava a ordem do conserto: **qualquer subconjunto próprio
-dos três deixa o número publicado idêntico**, e um PR que feche só D1 sai verde
-no relatório sem ter mudado nada. O resíduo de 0,13% é a Binance, que não tem
-registro de conta em fonte alguma — órfã legítima.
+| subconjunto | **órfão** | `pct_carteira_financeira` | base |
+|---|---|---|---|
+| ∅ (hoje) | **68,15%** | **49,03%** | medido |
+| `{D1}` | 68,15% | 49,03% | medido |
+| `{D2}` | 68,15% | 49,03% | medido — sem D1 o resolver não tem contas nem `banco_membro`; devolve `unknown` nas 5 instituições |
+| `{D3}` | 68,15% | 49,03% | idem |
+| `{D1,D2}` | 68,15% | 49,03% | medido |
+| **`{D1,D3}`** | **46,25%** | **~33,3%** | **medido** |
+| `{D2,D3}` | 68,15% | 49,03% | idem `{D2}` |
+| **`{D1,D2,D3}`** | **0,13%** | **~0,10%** | medido |
+
+**Cinco dos seis subconjuntos próprios não-vazios são inertes.** O sexto,
+`{D1,D3}`, é pior que inerte: move o publicado de 49,03% para ~33,3% e
+**continua acima do `piso_pct: 1.0`** — as 8 superfícies seguem acesas, o risco
+Alta segue impresso e a realocação segue suprimida, enquanto o PR parece
+progresso. É esse o caminho que o critério de aceite tem de barrar.
+
+O resíduo de 0,13% no fecho completo é a Binance, que não tem registro de conta
+em fonte alguma — órfã legítima.
 
 ### Raio de alcance do número falso — 8 superfícies
 
@@ -234,14 +273,18 @@ o vazio.**
 - O mapa instituição→membro extraído no E1 alcança o E4 **no espaço de chave
   canônico** — verificável por `banco_membro`/`contas` não-vazios no
   `family_members.json` materializado de um run novo.
-- `AccountResolver` só devolve `ambiguous` quando os `member_key` das contas da
-  instituição **divergem**: teste com 2 contas do mesmo membro devolvendo
-  `fallback_bank`, e com 2 membros distintos devolvendo `ambiguous`.
+- **A divergência ADR↔teste sobre `ambiguous` é resolvida por decisão, não por
+  patch**: emenda datada à [[ADR-226]] escolhendo entre *"2+ membros"* (lista de
+  casos do plano) e *"múltiplas contas"* (prosa do §Decisão), e
+  `tests/unit/pipeline/test_account_resolver.py:66-69` passa a refletir a
+  escolha — invertido **ou** mantido com o porquê no nome. Reverter o teste sem
+  a emenda não é aceite.
 - A saída do `AccountResolver` passa pelo `MemberNameResolver` antes de virar
   `membro` — teste que casa a chave curta do E1 com a chave canônica do E5.
 - **Gate de não-inércia:** teste que falha se qualquer *um* dos três for
-  revertido. O contrafactual de §Medição é a fixture, e ela discrimina os 4
-  estados. Sem isso, dois dos três regridem em silêncio.
+  revertido, **e que reprova explicitamente `{D1,D3}`** — o subconjunto que
+  move o número sem resolver o problema. A fixture é a tabela dos **oito**
+  subconjuntos de §Contrafactual, não os 4 estados da versão anterior.
 - Run novo do workspace `1b9f2cf5` publica `atribuicao_investimentos` abaixo do
   piso, sem o risco Alta e sem `prescricao_realocacao_suprimida`.
 - Ainda vale, para o resíduo legítimo (Binance): **fallback visível na célula**
