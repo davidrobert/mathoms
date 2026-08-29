@@ -34,7 +34,7 @@ tags:
 > card read-time o lê em vez de recomputar a perna de caixa. Mudança de blast radius: quem
 > alterar a forma desse bloco move dois consumidores, não um.
 >
-> **Emendada 2026-08-29** ([[A40.l94]] · `PV10-01` do §r10): a §D7 ganha o eixo que
+> **Emendada 2026-08-29** ([[A42.l16]] · `PV10-01` do §r10): a §D7 ganha o eixo que
 > faltava. O termo de cobertura do CV18 era uma disjunção absorvente sobre dois predicados
 > que este produtor define como negação um do outro — não discriminava nada. Passa a exigir
 > **equivalência** entre veredito publicado e cobertura publicada. O título continua valendo
@@ -132,7 +132,7 @@ diagnóstico de **estoque** e deixa de prescrever aporte em classe.
 erro de conservação, não diferença tolerada — é o predicado que impede um v2
 futuro de flipar a cobertura sem reconciliar os universos.
 
-> **Emenda 2026-08-29 ([[A40.l94]]) — o eixo de cobertura era inerte.** A terceira
+> **Emenda 2026-08-29 ([[A42.l16]]) — o eixo de cobertura era inerte.** A terceira
 > perna do check dizia `cobertura completa OR tier == indeterminado`, e o `_tier` desta
 > mesma ADR define `indeterminado` como **exatamente** "algum componente não apurado":
 > os dois lados eram `P` e `¬P`, verdadeiros por construção em todo artefato emitido.

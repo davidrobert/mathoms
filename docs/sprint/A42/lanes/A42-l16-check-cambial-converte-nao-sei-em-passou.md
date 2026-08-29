@@ -3,17 +3,18 @@ id: A42.l16
 type: lane
 title: "O check de cobertura cambial converte 'não sei o tier' em 'passou'"
 sprint: A42
-status: planned
+status: in_progress
 priority: P0
 branch_slug: a42-l16-check-cambial-converte-nao-sei-em-passou
 owner: senior-cto
 depends_on: []
 adrs:
+  - "[[ADR-403]]"
   - "[[ADR-418]]"
 tags:
   - type/lane
   - sprint/a42
-  - status/planned
+  - status/in-progress
   - priority/p0
   - area/pipeline
 ---
@@ -68,3 +69,105 @@ remédio; CV1/CV2/CV3/CV6 não. Ver `PV10-03`. Decida se a lane cobre só o CV18
 - **Prove que o check reprova no cenário certo** com `tests/test_e7_conservation_gate.py` — a
   U2 leu o gate no código e **nunca o observou disparando**, e isso está declarado como
   evidência fraca no §r10.
+
+---
+
+## Medição (2026-08-29) — o enunciado de origem não sobreviveu inteiro
+
+> **Tudo abaixo é medido, não lido.** A U2 declarou evidência fraca por ter lido o gate no
+> código sem observá-lo disparar; esta seção é o que o disparo mostrou.
+
+### A tabela-verdade completa do termo, sobre o payload do run real
+
+| cobertura | `tier` | `coberto` | leitura |
+| --- | --- | --- | --- |
+| completa | afirma faixa | ✅ passa | correto |
+| completa | `indeterminado` | ⚠️ **passava** | **o buraco real** — veredito fraco demais |
+| incompleta | afirma faixa | ✅ **reprova** | o caso perigoso — **já reprovava** |
+| incompleta | `indeterminado` | ✅ passa | estado **sancionado** da v1 ([[ADR-403]]) |
+
+**A linha 3 refuta o enunciado.** *"Quanto menos o sistema sabe, mais fácil o check passa"*
+descreve um efeito real do `or`, mas o caso que ele deixa passar é a linha 4 — cobertura
+incompleta **com o veredito suprimido**, que é exatamente o que a [[ADR-403]] decidiu que o
+produto deve fazer (*"cobertura incompleta suprime o VEREDITO, não a medida"*). A banda
+afirmada sobre numerador que o run não fechou — o dano assimétrico que motivou a ADR — **já
+reprovava**, com teste desde o #1568 (`test_cv18_pega_veredito_forte_demais_para_a_cobertura`).
+
+### O defeito que sobra, e é de outro sinal
+
+`_tier` define `indeterminado` como **exatamente** "algum componente não apurado". Logo os
+dois disjuntos são `P` e `¬P` para todo artefato que o produtor emite: `coberto` era
+`P ∨ ¬P` — um termo que **não discriminava nada**. Não é escotilha; é decoração. Mesma
+família que a [[ADR-418]] §D4 condenou neste arquivo, na forma de disjunção absorvente em
+vez de recompute de produtor único.
+
+### A pergunta que a lane mandava medir
+
+> *"Se `indeterminado` é o tier default do dogfood, a escotilha está aberta SEMPRE — não só
+> neste run. Isso muda a severidade."*
+
+Varridas **60 combinações dos inputs de `compute_exposicao_cambial`** (caixa vazio / 1 moeda
+/ 2 moedas × posições ausentes / vazias / ETF / custódia estrangeira × 5 denominadores):
+
+- o produtor emite **uma única** forma — `caixa_fx=apurado`,
+  `carteira_lastro_estrangeiro=indeterminado`, `tier=indeterminado`;
+- **CV18 reprovou em 0 das 60**;
+- as outras duas pernas são igualmente constantes sob o produtor: `Σ(apurados)` soma só
+  `caixa_fx`, que **é** `total_brl` por construção; `_carteira_reconcilia` devolve `True`
+  sem medir enquanto a carteira não se declara apurada.
+
+Não é que a escotilha esteja sempre aberta escondendo veredito errado: **CV18 inteiro é
+inerte fim-a-fim** desde `6c546d7b` (2026-08-21) e publicou `passed: true` em todo run
+porque não podia fazer diferente. Seus únicos contraexemplos são dicts editados à mão nos
+próprios testes. A [[ADR-403]] afirma *"os gates aqui são provados por mutação"*: as
+mutações existiam e eram todas de **payload** — nenhuma de **produtor**. É a distinção entre
+"o predicado está certo" e "o predicado pode pegar uma regressão".
+
+### O critério de aceite de origem está refutado
+
+> *"Ausência devolve `None`, nunca `True`."*
+
+`None` é a resposta certa quando o check **não é avaliável** — é o que `_cv18` já faz sem
+`componentes` (artefato pré-#1568). Com `tier == indeterminado` **não há ausência**: o run
+sabe que a cobertura é incompleta e sabe qual é o tier. Devolver `None` ali apagaria o check
+de **100% dos runs** — trocaria um termo inerte por um **check** inerte, perdendo junto a
+conservação e a reconciliação. A política do CV5 citada na origem (*"ausência é 'não sei',
+nunca 'bate'"*) continua certa e **não se aplica a este ponto**.
+
+### Escopo decidido: só o CV18
+
+A classe (`PV10-03` — 4 de 17 checks gateiam e são recompute de produtor único) **não** entra:
+promover ou recompor `_CONSERVATION_CHECKS` muda comportamento de pausa de run e pede
+decisão própria. Fica um insumo medido para ela, abaixo.
+
+## Entregue
+
+1. **`or` → equivalência** (`_tier_concorda_com_cobertura`): o veredito publicado diz o
+   mesmo que a cobertura publicada, **nos dois sentidos**. Preserva as linhas 1, 3 e 4 e
+   fecha a 2 — uma v2 que reconcilie os universos e esqueça de destravar `_tier` pararia de
+   publicar banda em silêncio, e o check dizia verde.
+2. **Tripwire de produtor** (`test_produtor_v1_emite_uma_unica_forma_de_cobertura`): pina a
+   inertidão medida. No dia em que a v2 destravar a carteira, ele reprova e obriga quem
+   fizer isso a reler CV18 em vez de herdar um check que nunca disparou.
+3. **CV18 observado disparando**, em `tests/test_e7_conservation_gate.py`: atravessa
+   `stage.run()`, chega ao payload como `errors_count` — **e não pausa**.
+4. **[[ADR-403]] §D7 emendada** (2026-08-29). Nenhum ID de ADR novo alocado.
+
+## Insumo medido para o `PV10-03`
+
+A nota de *"evidência fraca"* daquela linha diz que a prova barata existe e **não foi
+usada**. Ela existe **e estava em uso**: `test_stage_pausa_em_conservacao_violada` observa
+CV2 reprovando e pausando via `stage.run()` desde o **#941** (`67e4f2b9`, 2026-07-10,
+[[A36.l3]]), no arquivo que a linha nomeia. O que **não** era observado é o outro lado, e
+agora está: CV18 emite `severity="error"`, reprova no stage e **não pausa**, por estar fora
+de `_CONSERVATION_CHECKS`. Um `error` que não gateia é exatamente o que a linha de resumo
+"17/17 OK" conflaciona com gate. A substância do `PV10-03` não é afetada.
+
+## Verificação
+
+- `pytest tests -q` — 7912 passed, 38 skipped, 2 xfailed
+- A/B contra o `or` original: **um** teste discrimina o fix
+  (`test_cv18_pega_veredito_fraco_demais_para_a_cobertura` reprova sem, passa com); os
+  outros 26 passam nos dois lados — a fixture de reconciliação foi tornada internamente
+  consistente para deixar de testar dois eixos ao mesmo tempo.
+- **Não muta E5** ⇒ fora de qualquer janela de rebaseline.
