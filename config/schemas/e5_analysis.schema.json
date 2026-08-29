@@ -2958,9 +2958,6 @@
         "total_pontuais_janela": {
           "type": "number"
         },
-        "equivalente_meses_aporte": {
-          "type": "number"
-        },
         "folga_mensal": {
           "type": "number"
         },
@@ -2980,6 +2977,9 @@
         "janela_meses": {
           "type": "integer",
           "minimum": 0
+        },
+        "equivalente_meses_poupanca": {
+          "type": "number"
         }
       },
       "required": [],

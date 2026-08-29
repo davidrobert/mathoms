@@ -335,7 +335,7 @@ context_sections:
           - {path: "$.consumo_consciente.analise", label: "Análise", format: "string"}
           - {path: "$.consumo_consciente.total_pontuais", label: "Total de gastos pontuais (período)", format: "brl"}
           - {path: "$.consumo_consciente.total_pontuais_janela", label: "Total de gastos pontuais (janela)", format: "brl"}
-          - {path: "$.consumo_consciente.equivalente_meses_aporte", label: "Equivalente em meses de aporte", format: "raw"}
+          - {path: "$.consumo_consciente.equivalente_meses_poupanca", label: "Pontuais da janela em meses de poupança", format: "raw"}
           - {path: "$.consumo_consciente.folga_mensal", label: "Folga mensal", format: "brl"}
           - {path: "$.consumo_consciente.folga_pct", label: "Folga (% da renda recorrente)", format: "percent2"}
           - {path: "$.consumo_consciente.janela", label: "Janela do diagnóstico", format: "string"}

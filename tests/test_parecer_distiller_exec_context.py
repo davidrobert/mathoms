@@ -121,7 +121,7 @@ _DENSE_CONSUMO_CONSCIENTE = {
     ],
     "total_pontuais": 260_000.0,
     "total_pontuais_janela": 120_000.0,
-    "equivalente_meses_aporte": 8.7,
+    "equivalente_meses_poupanca": 8.7,
     "folga_mensal": 15_000.0,
     "folga_pct": 27.3,
     "analise": "Identificados 40 gastos pontuais relevantes no período analisado.",

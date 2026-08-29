@@ -67,11 +67,12 @@ class TestConfig:
         )
         assert cfg.consumo_min == 5000.0
 
-    def test_from_goals_overrides_aporte(self):
+    def test_meta_de_aporte_nao_entra_mais_na_config(self):
+        """[[ADR-420]] — a meta saiu; o adapter ainda passa `goals`, sem efeito."""
         cfg = ConsumoConscienteConfig.from_configs(
             goals={"aportes": {"meta_aporte_mensal": 10_000}}
         )
-        assert cfg.aporte_mensal == 10_000.0
+        assert not hasattr(cfg, "aporte_mensal")
 
     def test_recurrent_categories_defaults(self):
         cfg = ConsumoConscienteConfig.from_configs()
@@ -202,23 +203,38 @@ class TestContaCartao:
 # =============================================================================
 
 
-class TestEquivalenteAporte:
-    def test_calculado_quando_aporte_configurado(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000, aporte_mensal=5000)
+class TestEquivalenteMesesPoupanca:
+    def test_mede_pontuais_da_janela_contra_a_folga(self):
+        """[[ADR-420]] — numerador e denominador na MESMA janela, e ambos no card."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
-            _fluxo(),
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
         )
-        # 15k / 5k = 3.0
-        assert r.equivalente_meses_aporte == 3.0
+        # folga 5k/mês; pontuais da janela 15k ⇒ 3,0 meses de poupança.
+        assert r.folga_mensal == 5_000.0
+        assert r.equivalente_meses_poupanca == 3.0
 
-    def test_zero_quando_sem_aporte(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000, aporte_mensal=0)
+    def test_zero_quando_folga_nao_positiva(self):
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
-            _fluxo(),
+            _fluxo(rec_rec_mensal=10_000, desp_mensal=10_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 5000)]),
         )
-        assert r.equivalente_meses_aporte == 0.0
+        assert r.equivalente_meses_poupanca == 0.0
+
+    def test_meta_de_aporte_editavel_nao_move_o_diagnostico(self):
+        """A meta é editável pelo usuário; diagnóstico que se move com ela não é auditável."""
+        cfg_a = ConsumoConscienteConfig.from_configs(
+            goals={"aportes": {"meta_aporte_mensal": 5_000}}
+        )
+        cfg_b = ConsumoConscienteConfig.from_configs(
+            goals={"aportes": {"meta_aporte_mensal": 50_000}}
+        )
+        args = (_fluxo(), _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]))
+        a = ConsumoConscienteCalculator(cfg_a).calculate(*args)
+        b = ConsumoConscienteCalculator(cfg_b).calculate(*args)
+        assert a.equivalente_meses_poupanca == b.equivalente_meses_poupanca
 
 
 # =============================================================================
@@ -345,13 +361,16 @@ class TestJanela:
 
 class TestAnalise:
     def test_texto_quando_ha_itens(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000, aporte_mensal=5000)
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
-            _fluxo(),
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 5_000)]),
         )
         assert "Identificados 1 gastos" in r.analise
-        assert "1.0 meses" in r.analise
+        # A prosa declara as DUAS janelas — era a única superfície com total nu.
+        assert "somando R$ 5.000,00" in r.analise
+        assert "Na janela de 12 meses são R$ 5.000,00" in r.analise
+        assert "1.0 meses de poupança" in r.analise
 
     def test_texto_quando_sem_itens(self):
         r = ConsumoConscienteCalculator().calculate(_fluxo(), _despesas())
@@ -377,13 +396,14 @@ class TestResult:
         required = {
             "itens",
             "total_pontuais",
-            "equivalente_meses_aporte",
+            "equivalente_meses_poupanca",
             "folga_mensal",
             "folga_pct",
             "analise",
         }
         assert required.issubset(d.keys())
         assert "teto_sugerido" not in d
+        assert "equivalente_meses_aporte" not in d
 
     def test_item_to_dict_has_all_fields(self):
         item = GastoPontualItem(

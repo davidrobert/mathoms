@@ -33,12 +33,12 @@ export type ConsumoConsciente = {
   "itens"?: Array<GastoPontualItem>;
   "total_pontuais"?: number;
   "total_pontuais_janela"?: number;
-  "equivalente_meses_aporte"?: number;
   "folga_mensal"?: number;
   "folga_pct"?: number;
   "analise"?: string;
   "janela"?: "full" | "12m";
   "janela_meses"?: number;
+  "equivalente_meses_poupanca"?: number;
 };
 
 export type GastoPontualItem = {

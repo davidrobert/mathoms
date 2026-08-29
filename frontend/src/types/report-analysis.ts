@@ -333,7 +333,11 @@ export interface ConsumoConscienteData {
   /** ADR-306 D2 — rótulo da janela ("12m" | "full"). */
   janela?: string;
   janela_meses?: number;
-  equivalente_meses_aporte?: number;
+  /** [[ADR-420]] — `total_pontuais_janela` ÷ folga mensal: numerador e
+   * denominador na MESMA janela. Media contra o aporte DECLARADO (meta
+   * editável) sobre o estoque full-period — duas bases, e um diagnóstico
+   * que se movia quando o usuário editava a meta. */
+  equivalente_meses_poupanca?: number;
   folga_mensal?: number;
   folga_pct?: number;
   analise?: string;

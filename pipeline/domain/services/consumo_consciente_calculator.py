@@ -91,33 +91,28 @@ _DEFAULT_RECURRENT = frozenset(
 
 @dataclass(frozen=True)
 class ConsumoConscienteConfig:
-    """Threshold + categorias recorrentes + aporte mensal.
+    """Threshold + categorias recorrentes.
 
-    Sources no legado:
-    - ``consumo_min`` ← ``scoring.json::thresholds_alertas.consumo_consciente_min``
-      (default R$ 2000)
-    - ``recurrent_categories`` — hardcoded no legado
-    - ``aporte_mensal`` ← ``goals.json::aportes.meta_aporte_mensal``
+    ``consumo_min`` ← ``scoring.json::thresholds_alertas.consumo_consciente_min``
+    (default R$ 2000); ``recurrent_categories`` era hardcoded no legado.
+    ``goals.json::aportes.meta_aporte_mensal`` saiu em [[ADR-420]]: era o
+    denominador do equivalente, e meta é EDITÁVEL pelo usuário — número de
+    diagnóstico que se move sem que nada tenha acontecido no mundo não é
+    auditável.
     """
 
     consumo_min: float = 2000.0
     recurrent_categories: frozenset[str] = _DEFAULT_RECURRENT
-    aporte_mensal: float = 0.0
 
     @classmethod
     def from_configs(
         cls,
         *,
         scoring: dict | None = None,
-        goals: dict | None = None,
+        goals: dict | None = None,  # noqa: ARG003 - assinatura estável p/ o adapter
     ) -> "ConsumoConscienteConfig":
         alertas = (scoring or {}).get("thresholds_alertas") or {}
-        aportes = (goals or {}).get("aportes") or {}
-
-        return cls(
-            consumo_min=_safe_float(alertas.get("consumo_consciente_min", 2000)),
-            aporte_mensal=_safe_float(aportes.get("meta_aporte_mensal", 0)),
-        )
+        return cls(consumo_min=_safe_float(alertas.get("consumo_consciente_min", 2000)))
 
 
 # =============================================================================
@@ -151,7 +146,7 @@ class GastoPontualItem:
 class ConsumoConsciente:
     itens: tuple[GastoPontualItem, ...]
     total_pontuais: float
-    equivalente_meses_aporte: float
+    equivalente_meses_poupanca: float
     folga_mensal: float
     folga_pct: float
     analise: str
@@ -166,7 +161,7 @@ class ConsumoConsciente:
             "itens": [i.to_dict() for i in self.itens],
             "total_pontuais": round(self.total_pontuais, 2),
             "total_pontuais_janela": round(self.pontuais_janela, 2),
-            "equivalente_meses_aporte": self.equivalente_meses_aporte,
+            "equivalente_meses_poupanca": self.equivalente_meses_poupanca,
             "folga_mensal": round(self.folga_mensal, 2),
             "folga_pct": self.folga_pct,
             "analise": self.analise,
@@ -198,8 +193,6 @@ class ConsumoConscienteCalculator:
         candidates.sort(key=lambda x: x.valor, reverse=True)
         total_pontuais = sum(c.valor for c in candidates)
 
-        equivalente = round(total_pontuais / cfg.aporte_mensal, 1) if cfg.aporte_mensal > 0 else 0.0
-
         window = self._resolve_janela(fluxo)
 
         pontuais_janela = sum(
@@ -217,17 +210,23 @@ class ConsumoConscienteCalculator:
             if window.receita_rec_mensal > 0
             else 0.0
         )
+        # ADR-420: numerador e denominador na MESMA janela. Media contra o aporte
+        # DECLARADO (`goals.meta_aporte_mensal`) sobre o estoque full-period —
+        # duas bases e um denominador editável pelo usuário; no dogfood o fator
+        # de inflação era 4,9× (46,1 meses onde a poupança sustenta 4,1).
+        equivalente = round(pontuais_janela / folga_mensal, 1) if folga_mensal > 0 else 0.0
 
         analise = self._build_analise(
             n_candidates=len(candidates),
             total_pontuais=total_pontuais,
+            pontuais_janela=pontuais_janela,
             equivalente_meses=equivalente,
         )
 
         return ConsumoConsciente(
             itens=tuple(candidates),
             total_pontuais=total_pontuais,
-            equivalente_meses_aporte=equivalente,
+            equivalente_meses_poupanca=equivalente,
             folga_mensal=folga_mensal,
             folga_pct=folga_pct,
             analise=analise,
@@ -288,16 +287,22 @@ class ConsumoConscienteCalculator:
         )
 
     def _build_analise(
-        self, *, n_candidates: int, total_pontuais: float, equivalente_meses: float
+        self,
+        *,
+        n_candidates: int,
+        total_pontuais: float,
+        pontuais_janela: float,
+        equivalente_meses: float,
     ) -> str:
         cfg = self._config
         minimo = fmt_brl_prosa(cfg.consumo_min)
         if n_candidates > 0:
             total = fmt_brl_prosa(total_pontuais, decimals=2)
+            janela = fmt_brl_prosa(pontuais_janela, decimals=2)
             return (
                 f"Identificados {n_candidates} gastos pontuais ≥ {minimo} "
-                f"no período analisado. O total de {total} equivale a "
-                f"{equivalente_meses:.1f} meses de aporte."
+                f"no período analisado, somando {total}. Na janela de 12 meses são "
+                f"{janela}, equivalentes a {equivalente_meses:.1f} meses de poupança."
             )
         return (
             f"Nenhum gasto pontual relevante ≥ {minimo} identificado "

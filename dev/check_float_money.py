@@ -102,6 +102,15 @@ LLM_SCHEMAS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
         "reabriria risco de reask storm (ADR-292/294) sem eval — reavaliar "
         "quando o schema churnar por outro motivo"
     ),
+    ("pipeline/domain/services/consumo_consciente_calculator.py", "total_pontuais"): (
+        "A40.l94 ([[ADR-420]]): NÃO é campo — é PARÂMETRO de `_build_analise`, que "
+        "ganhou um argumento e passou a ser quebrado em várias linhas pelo formatter, "
+        "então `total_pontuais: float,` re-aparece como linha adicionada. O scan de "
+        "`pipeline/llm/schemas/**` já filtra essa forma (`_SCHEMA_FIELD_FLOAT` exige "
+        '`=` ou fim de linha, "filtra parâmetro de função: `c: float,` tem vírgula"); '
+        "o scan diff-based não tem o filtro. Estreitar `FIELD_FLOAT` é mudança de gate "
+        "e merece revisão própria — não cabe no PR que a descobriu"
+    ),
     ("pipeline/domain/services/consumo_consciente_calculator.py", "despesa_consumo_mensal"): (
         "A40.l94 ([[ADR-420]]): `_ConsumoWindow` é float end-to-end desde A5b — "
         "`receita_rec_mensal`/`despesa_mensal_media` já eram float e são legado fora "

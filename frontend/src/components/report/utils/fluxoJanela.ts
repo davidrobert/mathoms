@@ -192,9 +192,11 @@ export function resolveConsolidacaoCrossDoc(
 /** Leitura de `consumo_consciente` (ADR-306 D1 + D6). Duas bases coexistem no
  * mesmo card e o seletor as devolve **já emparelhadas com o próprio rótulo**:
  *
- * - `historico`/`equivalente` — inventário acumulado, D6 ("`total_pontuais`
- *   **(tabela)** segue full-period"). Rótulo sempre `HISTORICO`, porque o campo
- *   `janela` deste bloco descreve a janela da FOLGA, não a do total.
+ * - `historico` — inventário acumulado, D6 ("`total_pontuais` **(tabela)** segue
+ *   full-period"). Rótulo sempre `HISTORICO`, porque o campo `janela` deste
+ *   bloco descreve a janela da FOLGA, não a do total.
+ * - `equivalente` — [[ADR-420]] moveu-o para a janela (pontuais da janela ÷
+ *   folga), logo ele NÃO herda mais `HISTORICO`: o rótulo é o da folga.
  * - `rotuloFolga` — base de `folga_mensal`/`folga_pct`, que o E5 deriva da
  *   janela canônica (D1). `null` sem declaração: sem rótulo inventado.
  *
@@ -213,8 +215,8 @@ export function resolveConsumoBases(consumo: unknown): ConsumoBases | null {
   return {
     historico: { valor: numberAt(bloco, "total_pontuais"), rotulo: HISTORICO },
     equivalente: {
-      valor: numberAt(bloco, "equivalente_meses_aporte"),
-      rotulo: HISTORICO,
+      valor: numberAt(bloco, "equivalente_meses_poupanca"),
+      rotulo: parseJanelaRotulo(bloco.janela, bloco.janela_meses),
     },
     rotuloFolga: parseJanelaRotulo(bloco.janela, bloco.janela_meses),
   };

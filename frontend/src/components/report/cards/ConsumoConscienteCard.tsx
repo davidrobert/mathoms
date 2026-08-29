@@ -32,10 +32,13 @@ function KpiTerm({ children }: { readonly children: ReactNode }) {
 /** KPIs do E5 — **duas** bases coexistem no card, cada uma com rótulo impresso
  * ao lado do próprio número (ADR-306 §Emenda A40.l3: tooltip não conta):
  *
- * - Gastos pontuais + equivalente em meses de aporte → agregado histórico
- *   (D6: "`total_pontuais` **(tabela)** segue full-period"). Mesma base da
- *   prosa do E5, que também fala do período completo — o card fica
- *   internamente coerente.
+ * - Gastos pontuais → agregado histórico (D6: "`total_pontuais` **(tabela)**
+ *   segue full-period"). Mesma base da prosa do E5, que também fala do período
+ *   completo — o card fica internamente coerente.
+ * - Equivalente em meses de poupança → janela ([[ADR-420]]): é
+ *   `total_pontuais_janela ÷ folga mensal`, e os dois estão no card, então o
+ *   leitor reproduz a conta. Media contra o aporte DECLARADO sobre o estoque
+ *   full-period: duas bases, denominador editável pelo usuário.
  * - Folga mensal → janela canônica (D1), que é de onde o E5 a deriva. Rótulo
  *   lido do campo `janela`; ausente ⇒ sem rótulo inventado. Ela é a taxa de
  *   poupança da janela ([[ADR-420]]) — o hero imprime o mesmo veredito em
@@ -61,8 +64,8 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
       </div>
       <div>
         <KpiTerm>
-          Equiv. meses de aporte
-          {historico && <JanelaBadge label={historico} />}
+          Equiv. meses de poupança
+          {folga && <JanelaBadge label={folga} />}
         </KpiTerm>
         <dd className="mt-1 font-mono text-lg font-semibold tabular-nums">
           {bases.equivalente.valor?.toFixed(1).replace(".", ",") ?? "—"}
@@ -125,8 +128,8 @@ function TabelaHeader({
  *
  *  ADR-306 D1/D6 (A40.l3) — regra de apresentação: nenhum par de valores
  *  monetários de bases diferentes fica visualmente adjacente sem rótulo
- *  **impresso**. Pontuais + equivalente = agregado histórico (D6), mesma base
- *  da prosa do E5; folga = janela canônica (D1); escopo da lista declarado em
+ *  **impresso**. Pontuais = agregado histórico (D6), mesma base da prosa do E5;
+ *  folga + equivalente = janela canônica (D1); escopo da lista declarado em
  *  cima dela.
  *
  *  O "Teto sugerido" saiu em [[ADR-420]]: era `despesa_recorrente × 1,15` sobre

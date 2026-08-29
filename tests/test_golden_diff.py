@@ -62,7 +62,7 @@ def test_as_seis_familias_de_falso_monetario():
     assert not is_monetary("investimentos.top_ativos[0].posicao")  # ordinal
     assert not is_monetary("investimentos.instituicoes_por_membro[0].n_posicoes")  # contagem
     assert not is_monetary("ratios.concentracao_imobiliaria")  # razão publicada sem `_pct`
-    assert not is_monetary("consumo_consciente.equivalente_meses_aporte")  # unidade no MEIO
+    assert not is_monetary("consumo_consciente.equivalente_meses_poupanca")  # unidade no MEIO
 
 
 # Cada regra nova AFROUXA o monetário-por-default; estas são as portas que ficam
