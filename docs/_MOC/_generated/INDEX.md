@@ -990,7 +990,7 @@
 | A42.l13 | lane | planned | A42 | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | `sprint/A42/lanes/A42-l13-completude-por-ficha.md` |
 | A42.l14 | lane | in_progress | A42 | Os vereditos de conservação certificam a re-derivação, não o artefato entregue | `sprint/A42/lanes/A42-l14-conservacao-certifica-a-rederivacao.md` |
 | A42.l15 | lane | in_progress | A42 | Identidade de investimento é hash de campos que o extrator LLM reescreve | `sprint/A42/lanes/A42-l15-identidade-de-investimento-instavel-entre-runs.md` |
-| A42.l16 | lane | in_progress | A42 | O check de cobertura cambial converte 'não sei o tier' em 'passou' | `sprint/A42/lanes/A42-l16-check-cambial-converte-nao-sei-em-passou.md` |
+| A42.l16 | lane | shipped | A42 | O check de cobertura cambial converte 'não sei o tier' em 'passou' | `sprint/A42/lanes/A42-l16-check-cambial-converte-nao-sei-em-passou.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
