@@ -487,6 +487,15 @@ vivem. `golden_diff` **não é invocado em CI nenhum** e
 `tests/fixtures/pipeline_golden/rebaseline_manifest.yaml` está **vazio (`[]`)**. Ou seja:
 o delta de golden pode viajar no mesmo commit do código que o produziu, sem violar gate.
 
+> **Resolvido em 2026-08-29 ([#1811](https://github.com/davidrobert/mathoms/pull/1811)),
+> nas duas metades.** `_GOLDEN_PREFIXES` passou a `('tests/fixtures/pipeline_golden/',
+> 'backend/tests/snapshots/', 'dev/snapshots/')` — com o **critério** escrito no módulo,
+> para o próximo arquivo se classificar sozinho (golden de valor × catraca de dívida) —,
+> e `dev/check_golden_delta_declarado.py` entrou no `ci.yml`, lendo os prefixos **do**
+> gate irmão para as duas listas não divergirem em silêncio. O parágrafo acima fica como
+> estava: ele descreve o estado que motivou o trabalho, e reescrevê-lo apagaria a
+> evidência de por que a A40.l90 ficou bloqueada.
+
 **Isto é gate de entrada da [[A40.l90]]** (veredito `senior-cto`): ela não pode declarar
 "delta de golden declarado" sobre um golden sem disciplina.
 
@@ -632,7 +641,13 @@ passou defeito neste repo.
 > (§abaixo) —, mas é **arquivo diferente** (`check_golden_rebaseline_isolation.py`),
 > então a rota escrita na [[A40.l89]] (*"estender o prefixo é da [[A40.l80]], dona
 > assinada do `golden_diff.py`"*) encadeia dois arquivos distintos. Confirme a
-> titularidade antes de pegar. Se algum DTO mudar,
+> titularidade antes de pegar.
+>
+> **Feito em 2026-08-29 ([#1811](https://github.com/davidrobert/mathoms/pull/1811)),
+> pela própria l80, a pedido da sessão da [[A40.l90]].** A titularidade se confirmou: os
+> dois arquivos saíram no mesmo PR porque são **duas metades da mesma promessa** —
+> consertar só uma deixa a promessa igualmente falsa. A partir daqui, separar rebaseline
+> de código de produção neste golden **é gate**, não disciplina. Se algum DTO mudar,
 `make update-openapi-snapshot`. Se o manifest do parecer mudar, bump de
 `PROMPT_VERSION`.
 

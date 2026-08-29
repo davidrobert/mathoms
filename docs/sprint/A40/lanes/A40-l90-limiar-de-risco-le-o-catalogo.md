@@ -67,6 +67,15 @@ tags:
 > metades não entrarem, quem executar esta lane vai declarar o delta na prosa do PR e
 > chamar isso de enforçado. Mesmo argumento, escrito por inteiro, no §Critério da
 > [[A40.l89]] (bloco *"editorial, não enforçada"*).
+>
+> **As duas metades entraram em 2026-08-29
+> ([#1811](https://github.com/davidrobert/mathoms/pull/1811)), pela [[A40.l80]].** A
+> tabela acima descreve o estado que bloqueava e fica como está. Uma coisa que ela **não**
+> previa: o item 2 desta mesma triagem (falso monetário no `golden_diff`) **bloqueava esta
+> lane mais** do que as duas metades — mover `ratios.concentracao_imobiliaria`, primeira
+> dimensão do §Escopo 3, reprovava com `-71900 cents` fabricados, e a saída teria sido
+> escrever `adr`/`rationale`/`ref` falsos no manifesto. Por isso o #1811 levou os três
+> itens juntos: entregar só o gate teria bloqueado esta lane com um delta inexistente.
 
 ## O fato, medido (2026-08-26)
 
