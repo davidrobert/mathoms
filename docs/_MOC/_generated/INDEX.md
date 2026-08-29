@@ -415,6 +415,7 @@
 | ADR-418 | adr | Decidido |  | A meta de IF desconta exatamente a renda passiva que o numerador não conta | `adr/418-a-meta-de-if-desconta-a-renda-passiva-que-o-numerador-nao-conta.md` |
 | ADR-419 | adr | Proposto |  | O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI | `adr/419-gatilho-de-risco-deriva-de-doutrina-nao-de-alvo.md` |
 | ADR-420 | adr | Proposto |  | Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio | `adr/420-numerador-da-concentracao-imobiliaria-e-imobilizacao-patrimonial.md` |
+| ADR-421 | adr | Proposto |  | Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual | `adr/421-sujeito-declarado-da-certificacao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -986,7 +987,7 @@
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
 | A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
 | A42.l13 | lane | planned | A42 | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | `sprint/A42/lanes/A42-l13-completude-por-ficha.md` |
-| A42.l14 | lane | planned | A42 | Os vereditos de conservação certificam a re-derivação, não o artefato entregue | `sprint/A42/lanes/A42-l14-conservacao-certifica-a-rederivacao.md` |
+| A42.l14 | lane | in_progress | A42 | Os vereditos de conservação certificam a re-derivação, não o artefato entregue | `sprint/A42/lanes/A42-l14-conservacao-certifica-a-rederivacao.md` |
 | A42.l15 | lane | planned | A42 | Identidade de investimento é hash de campos que o extrator LLM reescreve | `sprint/A42/lanes/A42-l15-identidade-de-investimento-instavel-entre-runs.md` |
 | A42.l16 | lane | in_progress | A42 | O check de cobertura cambial converte 'não sei o tier' em 'passou' | `sprint/A42/lanes/A42-l16-check-cambial-converte-nao-sei-em-passou.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |

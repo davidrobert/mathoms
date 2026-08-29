@@ -8,6 +8,7 @@ priority: P1
 branch_slug: a42-l3-harness-falso-verde-para-dentro
 adrs:
   - "[[ADR-302]]"
+  - "[[ADR-421]]"
 depends_on: []
 tags:
   - type/lane
@@ -169,3 +170,31 @@ válida em forma mais forte: reescrever o veredito antes de a KR-B ser **re-decl
 itens 1–5 ⇒ ampliam esta lane. O item 9 toca outro arquivo, e entra por dono compartilhado
 (instrumento de certificação) — se na execução ele se mostrar separável, vira lane irmã com
 `depends_on` nesta, e não item órfão.
+
+---
+
+## Aresta declarada — [[A42.l14]], rodada unificada U2, 2026-08-29
+
+> **Não é ampliação de escopo.** O `LC6-01` da `U2` ([[LEDGER-CERTIFY-active]] §r6) tem
+> lane própria — a [[A42.l14]], criada pelo dono em #1821 — e a direção dele está
+> decidida na [[ADR-421]] (`Proposto`). Esta seção registra só a **aresta**, porque as
+> duas lanes reescrevem `dev/ledger_certify_core.py` e nenhuma declarava a outra.
+
+**Ordem obrigatória: a [[A42.l14]] precede os itens 1–5 desta lane.** O registry de
+checkers do item 1 reescreve `_non_ledger_verdict`; a l14 reescreve **de qual universo
+vêm as peças** que todos aqueles vereditos leem. Aplicar o registry antes produz um
+`não-verificável` corretamente tipado **sobre o universo errado** — pior que o `coberto`
+de hoje, porque *parece* consertado e passaria no critério de mutação desta lane.
+
+**Por que o §Critério de aceite acima não pega a classe da l14** — e isto vale como
+aviso para esta lane, não como item novo: o critério central aqui é *"remover o input do
+check ⇒ exit ≠ 0"*. No defeito da l14 o input **está presente** e o check **roda**; o que
+está errado é a proveniência dele. Mutação que remove input continua reprovando enquanto
+o defeito sobrevive intacto. Um critério de mutação por ausência não discrimina
+proveniência — os três bullets que discriminam (troca de sujeitos, fixture de dois runs
+em SQLite real, anti-amputação) estão no §Critério de aceite da [[A42.l14]].
+
+**A colisão com a [[A40.l2]] não muda de forma.** A correção do sujeito não toca
+`cross_group`/`cross_group_entregue`: o numerador da KR-B lê só os baldes transacionais
+(`_tx_rows`) e não é alcançado nem pela correção nem pela amputação do braço entregue.
+Medido na sessão de ataque; registrado como bound no §r6.

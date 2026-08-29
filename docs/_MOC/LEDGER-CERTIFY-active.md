@@ -362,7 +362,7 @@ propriedade do instrumento. E o docstring de `_e2e3_verdict` declara essa ordem 
 
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|---|---|
-| LC6-01 — os vereditos de conservação, os grupos E3, os baldes E4, a colisão de investimento e a cobertura de `natural_key` são computados sobre a **re-derivação**, não sobre o artefato que o run publicou; `persisted_e3` só alimenta `_drift`, e `_persisted_e3_by_key` é **workspace-latest, não run-scoped** (existe `_e3_of_run` ao lado, não usado) | correção | Crítico | P0 | procede (novo) · verificado no código | procede-aberto | `certify` recebe o par (fresco, entregue) e emite **duas** colunas, ou o entregue vira o default e o fresco vira o drift. Enquanto não, nenhuma linha desta skill pode ser citada como propriedade do artefato entregue — inclusive os 31 "só-no-persistido", que podem ser sobra de outro run |
+| LC6-01 — os vereditos de conservação, os grupos E3, os baldes E4, a colisão de investimento e a cobertura de `natural_key` são computados sobre a **re-derivação**, não sobre o artefato que o run publicou; `persisted_e3` só alimenta `_drift`, e `_persisted_e3_by_key` é **workspace-latest, não run-scoped** (existe `_e3_of_run` ao lado, não usado) | correção | Crítico | P0 | procede (novo) · verificado no código | procede-aberto | `certify` recebe o par (fresco, entregue) e emite **duas** colunas, ou o entregue vira o default e o fresco vira o drift. Enquanto não, nenhuma linha desta skill pode ser citada como propriedade do artefato entregue — inclusive os 31 "só-no-persistido", que podem ser sobra de outro run · **gatilho: [[ADR-421]] `Proposto`** — a incógnita fechou (são sobra; 31/31), ver §`LC6-01` abaixo |
 | LC6-02 — `investment_id` é `sha256(tipo, instituicao, descricao)[:16]` sobre campos que o extrator LLM reescreve, e nenhum dos três passa pelo `institution_catalog` que já existe no DB; entre dois runs do mesmo documento a identidade tem **23,5% de estabilidade** | correção | Alto | P0 | PARCIAL (a [[ADR-271]] já declara "não estável a rename"; **a classe é nova** — ela previu instabilidade entre ANOS, não entre dois runs do mesmo documento) | procede-aberto | canonicalizar `instituicao` contra o [[ADR-137]] **antes** do hash — única das 3 entradas com catálogo, e **não** reabre o resolver persistido que a [[ADR-271]] §140 rejeitou. **Dano vivo não é estado persistido** (`rg investment_id backend/app/models/ alembic/` → zero): é `compare_reviews.py` ([[ADR-406]] D7), cujas 2 pernas HARD cross-run disparam com exatamente esta churn ⇒ **gate de migração patrimonial disparando com ruído de extrator** |
 | LC6-03 — cobertura de `natural_key` em **7,0%** (482/6928) é **regressão de wiring**, não design: a [[ADR-287]] **retratou por emenda datada** a premissa "classe-c por design PII-zero", e a [[ADR-321]] nomeia *"regressão desde A7/[[ADR-134]]"* — e está **`Proposto`, nunca implementada** | correção | Alto | P1 | PARCIAL (não é degradação nova: 8,2% em jul → 7,0% agora) · **eleva a severidade que a lente havia rebaixado** | procede-aberto | impacto que a [[ADR-321]] §Contexto nomeia: dedup v2 sem discriminação por membro ⇒ **casal no mesmo banco colapsa tx idênticas**, e overrides ancorados em hash com titular vazio. A premissa "~92% é o esperado" **não pode voltar a ser usada** — ela já foi retratada |
 | LC6-04 — dois dos cinco canais de remoção emitem `valor_cents` **literal 0**, e o produtor descarta o dado antes: `anachronic_guard` faz `dropped.append(tx_date)` — guarda **só a data**. O schema `$defs/remocao` declara o campo `required` ⇒ **obriga-o a existir e não pode obrigá-lo a ser verdadeiro** | contrato | Médio | P2 | CONFIRMADO · rebaixado de Crítico (o gate é **fail-closed**: degrada para `coberto`, nunca vira `conservado` falso) | procede-aberto | measure-then-emit no guard. **Resíduo que vale mais:** o docstring difere a captura "ao PR2b", e o `PR2b` do plano canônico tem **escopo outro** ⇒ deferimento sem §Deferimento datado, sem dono, invisível aos gates, com a lane de origem `shipped` |
@@ -386,3 +386,75 @@ falso **não é load-bearing**: mutação com `writes=()` e com `writes=("xpto_i
 passa em `validate_full_order` nos dois casos · o fallback de auto-leitura do
 `consolidate_baseline` é **inalcançável na config corrente**, e a omissão da auto-leitura
 em `reads` **não é negligência** (incluí-la quebra o import).
+
+### `LC6-01` — ataque de 2026-08-29: a incógnita fechou, e a direção do fix está decidida
+
+> Sessão de ataque dedicada ([[ADR-421]] `Proposto`). **A tabela acima não é
+> reeditada** — snapshot datado é evidência ([[ADR-343]]). Este bloco registra o que
+> se mediu depois dela. Evidência reprodutível off-git em
+> `storage/<uuid>/reviews/U2-2026-08-29/lc6-01/` (script + saída).
+
+**A afirmação central, agora provada por mutação.** Trocando `persisted_e3` por um
+universo grosseiramente diferente no núcleo puro, os **oito** campos de rubrica e
+sumário (`conservation`, `e3_groups`, `e4_buckets`, `investment_collisions`,
+`natural_key`, `cross_group`, `e2_seeded`, `e2_tx`) saem **idênticos**; só `drift`
+reage. O artefato entregue pode ser qualquer coisa.
+
+**Por que sobreviveu quatro rodadas — a fixture é a causa.**
+`tests/dev/test_ledger_certify_core.py:201` passa `persisted_e3=fresh_e3`, o **mesmo
+objeto**. Nenhum teste sobre `build_report` consegue discriminar os dois universos.
+
+**A incógnita registrada está fechada.** Os 31 "só no persistido" são **31/31 sobra de
+7 outros runs** (`created_at` 2026-05-29 → 2026-07-31); o run pinado escreveu **zero**
+deles, e `run − ws_latest = 0`. A glosa impressa em `ledger_certify_core.py:391` —
+*"keying antigo não reproduzido"* — é **atribuição falsa de causa**: nada na
+re-chaveação está implicado; o universo de comparação é que é maior que o run.
+
+**O agravante é maior do que a linha dizia.** Dos **61 runs `completed` com E3, 60**
+teriam todas as próprias keys comparadas contra artefato de outro run —
+`require_pinned_run` só exige `--run` não-vazio. Só o pinado escapa, e apenas por ser o
+mais novo. O docstring de `dev/ledger_certify_entregue.py` afirma *"Workspace-latest é
+proibido"*: a proibição vale para a **seleção do run**, e o substrato entra pela porta
+dos fundos.
+
+**Achado novo desta sessão — o braço entregue está amputado.** `_rederive_entregue`
+semeia **só E3**; investimentos vêm de artefatos E2 e `patrimonio` do baseline. Medido
+in-process: sombra 7 baldes / `investimentos`=18 · entregue **6 baldes** (falta
+`patrimonio`) / `investimentos`=**0**. Logo `investment_double_count` devolve 0 sobre
+**zero posições** — falso-negativo do detector da [[ADR-271]], indistinguível na saída
+de um 0 verdadeiro. **Promover `e4_e` à rubrica sem corrigir isso trocaria um defeito
+por outro.** O E4 **persistido** do run carrega o sinal inteiro (7 baldes,
+`investimentos`=18) — ler o publicado é mais fiel e mais barato que re-derivar.
+
+**Dois bounds que impedem exagero na leitura desta linha:**
+
+- **A KR-B da [[A40]] não está contaminada.** O numerador lê só os baldes
+  transacionais (`_tx_rows`) e `transferencias_count`; não lê
+  `investimentos`/`patrimonio`. A amputação não o alcança.
+- **O substrato E2 não é defeito.** A [[ADR-241]] decidiu que E2 é workspace-scoped
+  (é o read-path de produção); neste run **0 de 170** rows E2 foram criadas depois do
+  fim do run. Run-escopar o E2 seria **regressão** — reintroduziria o universo
+  subdimensionado da §Contexto daquela ADR. O escopo certo é assimétrico: E2 pela
+  política do run, **E3/E4 run-scoped**.
+
+**O que a [[ADR-241]] já decidiu contra este código.** A §Alternativas (a) rejeitou
+"mais-recente-por-key" para E3 porque *"congelaria dedup parcial entre runs — bug
+silencioso difícil de detectar"*. `_persisted_e3_by_key` **é** essa alternativa,
+dentro do instrumento de review; os 31 fantasmas são esse bug, medido. O lado de
+escopo do fix é portanto **conformidade**, não decisão nova.
+
+**Também medido:** separar o predicado de *certificar* do de *pontuar KR-B* é
+obrigatório — `evidence_from_retention` exige `removals_publicadas > 0`, e só **10 dos
+61** runs têm essa evidência. Sem a separação, tornar o entregue o default recusaria 51.
+
+**Classe, não instância.** A [[ADR-343]] §Emenda 2026-08-05 item 2 já registra o mesmo
+defeito no instrumento irmão (*"O parecer não era run-scoped: `ORDER BY id DESC LIMIT
+1` por workspace"*). Duas ocorrências, dois instrumentos, mesma causa. **Não
+generaliza** para os outros leitores de `dev/`: `dump_artifact.py` e
+`measure_if_base.py` filtram por `pipeline_run_id` — `certify_ledger_local` é o outlier.
+
+**Disposição:** segue `procede-aberto`. Direção decidida em [[ADR-421]] (`Proposto`,
+seis decisões + critério de aceite com prova por mutação). Execução é da [[A42.l14]]
+(`planned`, P0), criada pelo dono em #1821 no mesmo dia — as três perguntas abertas no
+§Critério de aceite dela estão respondidas acima. **Ordem:** a l14 precede os itens 1–5
+da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada na ADR.
