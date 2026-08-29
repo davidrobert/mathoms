@@ -374,12 +374,75 @@ tem disposição, não tem cobertura.
 | U | Data | ws8 | run8 | Seções | PR | Estado |
 |---|---|---|---|---|---|---|
 | **U1** | 2026-08-26 | `1b9f2cf5` | `c97b97c2` | LEDGER §r5 · PIPELINE §r9 · REPORT §r5 | (esta PR) | fechada |
+| **U2** | 2026-08-29 | `1b9f2cf5` | `79a61e33` | LEDGER §r6 · PIPELINE §r10 · REPORT §r6 | (esta PR) | fechada |
 
 ## 10. Débito de método (cross-cutting)
 
 Append-only, datado. Só o que é furo **do encadeamento** — furo de uma skill vai para
 o MOC dela.
 
+- **2026-08-29 (fecho do `U2`) — seis furos, e quatro deles são o MESMO furo.** A rodada
+  cometeu seis auto-defeitos de instrumento e o crítico de completude generalizou-os em
+  regras. As duas primeiras são as que mais custam:
+  1. **Nome de chave tirado da prosa do achado, não da declaração do produtor.** Quatro
+     dos seis auto-defeitos são isto: `vehicle_id`/`veiculo_id`, `itens`/`dados`,
+     `YY/MM`/`YYYY-MM`, `components:`/`charts:`. O quinto quase aconteceu com o rótulo
+     de uma seção (`"Notas metodológicas"` vs a string que o componente realmente emite).
+     **Regra:** todo check que decide por presença/ausência de chave ou rótulo **importa o
+     nome do produtor** (`from <módulo> import <constante>`, `yaml.safe_load(...).keys()`,
+     a string literal do `.tsx`) **ou publica um controle positivo que dispara**. Check sem
+     controle positivo sai `INAPLICÁVEL` — nunca ✅ e nunca achado.
+  2. **Meça o denominador antes de imprimir o veredito.** Duas das três correções da F3.a
+     não foram erro de valor, foram **vácuo silencioso**: o X2 comparou zero células em 2
+     de 3 baldes e imprimiu ✅; o X3 comparou interseção vazia e imprimiu 647 divergências.
+     **Regra:** todo cross-check publica `n_comparado` **e** `n_esperado` na mesma linha do
+     veredito; `n_comparado == 0` ou `< n_esperado` é `INAPLICÁVEL`, com o par impresso. A
+     guarda anti-vácuo é do **formato de saída**, não de cada check.
+  3. **Rebaixar instrumento invalida a tabela de condicionamento por construção.** O item 3
+     do `U1` mandava re-rodar o condicionamento quando um cross-check cai. Esta rodada
+     **violou a própria regra**: o X1 caiu para "não mede o artefato entregue" **depois** da
+     F3.a, e a tabela — que deriva `conservado (parcial)` do mesmo instrumento — nunca foi
+     re-emitida. **Regra:** a tabela carrega `instrumento + versão` por linha; rebaixar o
+     instrumento marca as linhas dele `STALE`, e a F3.c **recusa** rodar com linha `STALE`
+     na entrada. Anotar a refutação não basta — o `U1` já disse isso, e a prova de que não
+     bastou é esta rodada.
+  4. **O gate de cobertura conta reivindicante, não resposta.** `REPORT × correção` passou
+     verde sem poder ter sido respondida: a ordem de julgamento a bloqueia até o veredito do
+     razão, e o veredito é `sem-veredito` em 24 de 35 blocos. **Regra:** a célula tem **dois**
+     estados — `reivindicada` e `respondida` — e a F4 reprova em `reivindicada ∧ ¬respondida`.
+     Lente bloqueada devolve `BLOQUEADA(<veredito que falta>)`, que é resposta válida;
+     silêncio não é.
+  5. **A lista de "abertos" do brief vem do MOC, e o MOC atrasa o diff.** Entraram **33
+     commits** em código de produto entre o executor do run anterior e o deste; o brief nomeou
+     **7** consertos. Pelo menos 5 achados declarados ABERTOS já tinham fix mergeado — e um
+     "aberto" mal classificado faz a lente **descartar** o sinal como re-descoberta, que é a
+     troca exatamente errada (um "fechado que não segura" é achado de alta prioridade).
+     **Regra:** a lista de fechados **não vem do MOC** — vem de
+     `git log --format='%h %s' <executor_anterior>..<executor_deste_run> -- pipeline backend scripts config frontend/src`,
+     cruzada por âncora com os `procede-aberto`. Achado cuja âncora apareça no
+     `git diff --name-only` do intervalo entra na classe **"verifique se o conserto segura"**.
+     Extensão do item 12 do `U1`, que só cobria o `main` andando **durante** a rodada.
+  6. **"Não medido pelo razão" foi lido como "sem instrumento", e a disposição foi para a
+     lane errada.** O carimbo `sem-veredito` foi repetido 24 vezes atribuindo a cegueira ao
+     razão. Medido: `lineage_debug_whitelist()` tem **8 campos**, e **26 das 31 raízes E5
+     consumidas (84%) não têm rastro nenhum** — os blocos são cegos porque o **registro de
+     lineage** para em 8 campos, não porque falte balde. Consequência: 21+ linhas ficaram
+     penduradas numa lane cujo desenho (registry chaveado em **baldes do E4**) não pode
+     fechá-las; e 2 caíram por regra da própria tabela, porque as raízes **traçam**.
+     **Regra:** antes de carimbar um bloco `sem-veredito`, rode a whitelist de lineage sobre
+     as raízes que ele consome. O carimbo é **ternário**: `traça e a base tem veredito` ⇒
+     herda · `traça e a base é cega` ⇒ `não-verificável`, dono da base · `não traça` ⇒ o
+     defeito é do **registro de lineage**, e a dona é a lane de lineage.
+  7. **Antes de publicar re-triagem de achado herdado, `rg` a dimensão nas lanes da sprint.**
+     A rodada gastou uma medição para redescobrir — e quase publicou como novidade — algo que
+     uma lane `shipped` em `main` já havia medido e cuja seção nomeia o produtor real. Lane
+     entregue carrega medição que o registro ainda não absorveu.
+  8. **A varredura de superfície foi aberta e não fechada, e no grão errado.** A coluna
+     "reivindicada por" ficou vazia no artefato em disco, e o inventário foi de **18 seções**
+     enquanto o layout declara **60 componentes** dentro delas. A costura do `U1` era de
+     seção; a de **componente** continua aberta e não foi sequer inventariada. E um artefato
+     coletado (`anchors.json`, com altura por seção) **nunca foi lido por ninguém** — uma
+     seção com 4% da altura da maior é o sinal mais barato de "habilitada e vazia".
 - **2026-08-26 (fecho do `U1`) — doze furos do encadeamento, achados pelo crítico de
   completude.** Os quatro primeiros são de instrumento e os dois últimos são da *forma* de
   rodar em painel:

@@ -334,3 +334,55 @@ defeito sugeriria a correção errada (truncar o ledger).
 determinismo do categorizador sobre o E3 do próprio run **fecha ao centavo** nos dois baldes
 transacionais, com o pin de overrides estável ⇒ sem confundidor de drift de regra aprendida ·
 E3→E4 conserva count e valor.
+
+## r6 — ws-1b9f2cf5-2026-08-29
+
+> Rodada unificada **U2** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r6 (este) · [[PIPELINE-REVIEWS-active]] §r10 · [[REPORT-REVIEWS-active]] §r6.
+> Run `79a61e33` `completed` 18/18 · 25,5 min · executor `887579734428` · report `c011c40c` · preflight: 4 WARN declarados.
+> Modo **entregue** (`--entregue --run`) sobre o E3 persistido do run pinado, sombra no mesmo processo. Zero-write provado.
+> Cru + síntese com valores: `storage/<uuid>/reviews/U2-2026-08-29/` (off-git).
+> Cobertura: matriz 7×3 — **3 células declaradas SEM COBERTURA com motivo escrito** (`LEDGER × clareza-ux`, `LEDGER × qualidade-llm`, `PIPELINE × clareza-ux`) + 1 declarada N/A por roteamento.
+> Céticos: 3 lotes · **2 REFUTADO / 14 PARCIAL / 2 CONFIRMADO** — nenhum dos 18 sobreviveu na forma escrita.
+
+**Manchete: o veredito de conservação desta skill nunca descreveu o artefato entregue, e
+descobrir isso invalidou a própria F3.a da rodada.** `ledger_certify_core.py:247` chama
+`_conservation(e2_payloads, **fresh_e3**, …)` e o docstring do montador declara *"a partir
+das peças **re-derivadas**"*. O `persisted_e3` entra em `build_report` e é consumido **só**
+em `_drift` — logo `e3_groups`, `e4_buckets`, `investment_collisions` e `natural_key`
+**também** descrevem a re-derivação. O `--entregue` cobre **uma** linha (o numerador KR-B).
+No mesmo relatório o drift é ≠ 0: 4 grupos com count divergente e 31 só-no-persistido.
+
+**A régua que reprova é decisão registrada, não defeito — e a rodada quase vendeu uma
+como a outra.** A F3.a publicou que `coberto-sem-verificação-de-valor` é o único veredito
+emissível *"independentemente da qualidade do dado"*. **Falso:** com `dups == 0` o índice 0
+emite `perda-silenciosa`; com `count_out > count_in` o índice 2 emite. O veredito é
+constante **enquanto** `count_out < count_in and dups > 0` — estado do corpus, não
+propriedade do instrumento. E o docstring de `_e2e3_verdict` declara essa ordem como
+**decisão** (`"A ORDEM importa… sub-declaração ⇒ não perda (LC-07)"`).
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC6-01 — os vereditos de conservação, os grupos E3, os baldes E4, a colisão de investimento e a cobertura de `natural_key` são computados sobre a **re-derivação**, não sobre o artefato que o run publicou; `persisted_e3` só alimenta `_drift`, e `_persisted_e3_by_key` é **workspace-latest, não run-scoped** (existe `_e3_of_run` ao lado, não usado) | correção | Crítico | P0 | procede (novo) · verificado no código | procede-aberto | `certify` recebe o par (fresco, entregue) e emite **duas** colunas, ou o entregue vira o default e o fresco vira o drift. Enquanto não, nenhuma linha desta skill pode ser citada como propriedade do artefato entregue — inclusive os 31 "só-no-persistido", que podem ser sobra de outro run |
+| LC6-02 — `investment_id` é `sha256(tipo, instituicao, descricao)[:16]` sobre campos que o extrator LLM reescreve, e nenhum dos três passa pelo `institution_catalog` que já existe no DB; entre dois runs do mesmo documento a identidade tem **23,5% de estabilidade** | correção | Alto | P0 | PARCIAL (a [[ADR-271]] já declara "não estável a rename"; **a classe é nova** — ela previu instabilidade entre ANOS, não entre dois runs do mesmo documento) | procede-aberto | canonicalizar `instituicao` contra o [[ADR-137]] **antes** do hash — única das 3 entradas com catálogo, e **não** reabre o resolver persistido que a [[ADR-271]] §140 rejeitou. **Dano vivo não é estado persistido** (`rg investment_id backend/app/models/ alembic/` → zero): é `compare_reviews.py` ([[ADR-406]] D7), cujas 2 pernas HARD cross-run disparam com exatamente esta churn ⇒ **gate de migração patrimonial disparando com ruído de extrator** |
+| LC6-03 — cobertura de `natural_key` em **7,0%** (482/6928) é **regressão de wiring**, não design: a [[ADR-287]] **retratou por emenda datada** a premissa "classe-c por design PII-zero", e a [[ADR-321]] nomeia *"regressão desde A7/[[ADR-134]]"* — e está **`Proposto`, nunca implementada** | correção | Alto | P1 | PARCIAL (não é degradação nova: 8,2% em jul → 7,0% agora) · **eleva a severidade que a lente havia rebaixado** | procede-aberto | impacto que a [[ADR-321]] §Contexto nomeia: dedup v2 sem discriminação por membro ⇒ **casal no mesmo banco colapsa tx idênticas**, e overrides ancorados em hash com titular vazio. A premissa "~92% é o esperado" **não pode voltar a ser usada** — ela já foi retratada |
+| LC6-04 — dois dos cinco canais de remoção emitem `valor_cents` **literal 0**, e o produtor descarta o dado antes: `anachronic_guard` faz `dropped.append(tx_date)` — guarda **só a data**. O schema `$defs/remocao` declara o campo `required` ⇒ **obriga-o a existir e não pode obrigá-lo a ser verdadeiro** | contrato | Médio | P2 | CONFIRMADO · rebaixado de Crítico (o gate é **fail-closed**: degrada para `coberto`, nunca vira `conservado` falso) | procede-aberto | measure-then-emit no guard. **Resíduo que vale mais:** o docstring difere a captura "ao PR2b", e o `PR2b` do plano canônico tem **escopo outro** ⇒ deferimento sem §Deferimento datado, sem dono, invisível aos gates, com a lane de origem `shipped` |
+| LC6-05 — a base de consumo pontual inclui **aporte e transferência interna**, e o parecer emite risco de "gastos pontuais elevados" sobre uma base que contém o próprio aporte — pedindo que a família contenha o comportamento pelo qual é elogiada duas seções antes | correção | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de `PV9-11`/`PV9-12`; o **consumidor** é novo) | procede-aberto | o separador de transferência patrimonial **existe** e é aplicado à janela 12m; não é aplicado à janela que produz `total_pontuais`. Uma aplicação, dois pontos |
+| LC6-06 — aporte e amortização entram em `despesa_total` na janela cheia, e daí sai uma **terceira** taxa de poupança publicada na mesma peça, menor que as outras duas porque conta o dinheiro poupado como gasto | consistência | Médio | P2 | procede (MEDIÇÃO-DE-CONHECIDO de `PV9-11`) | procede-aberto | aporte é transferência patrimonial; da parcela de financiamento só os juros são despesa |
+| LC6-07 — a lista de gastos pontuais publica **dois pares duplicados** (mesma data, mesma categoria, mesmo valor, descrição diferindo por prefixo verbal) sob o cabeçalho que afirma *"contamos cada um uma vez só"* | correção | Alto | P1 | procede (novo) · observado nas 4 superfícies | procede-aberto | é a lista mais escrutinável do relatório pelo cliente, e alimenta o contador de pontuais e o "equivalente em meses de aporte" |
+| LC5-01 · LC5-02 · LC5-03 · LC5-06 · LC5-09 (§r5) | — | — | — | **reproduzidos neste run, sem alteração** | procede-aberto | numerador KR-B **7**, `carrier-shaped 7/7`, classe única `banco=<instituição>\|tipo_conta=extrato\|titular=parcial` · `layer_ok=true` **com PONTO CEGO impresso** · 31 grupos com prefixo de banco vazio · 4 baldes rebaixados por override LC05 |
+| LC5-04 · LC5-05 · LC5-07 · LC5-08 (§r5) | — | — | — | **procede-aberto (não re-medidos)** | registrado para não decaírem em silêncio | — |
+
+**Positivos verificados.** Zero-write provado (artefatos e overrides idênticos antes/depois) ·
+**determinismo do categorizador fecha ao centavo sobre o E3 persistido do próprio run**:
+2.289 células em `(balde, categoria, mês)`, **zero divergentes**, com pin de
+`transaction_overrides` estável ⇒ sem confundidor de regra aprendida · E3→E4 conserva
+count e valor · a consolidação declarada no E4 bate com a executada no E3 (907 == 907).
+
+**Refutados nesta rodada.** As convenções de sinal dos 4 canais de remoção **são
+coerentes** (cents assinados, mesma convenção declarada; o negativo do cross-file é
+composição líquida de débitos, não sinal trocado) — resíduo real é haver **duas
+implementações** do mesmo primitivo sem teste que amarre a igualdade · o `StageSpec.writes`
+falso **não é load-bearing**: mutação com `writes=()` e com `writes=("xpto_inexistente",)`
+passa em `validate_full_order` nos dois casos · o fallback de auto-leitura do
+`consolidate_baseline` é **inalcançável na config corrente**, e a omissão da auto-leitura
+em `reads` **não é negligência** (incluí-la quebra o import).

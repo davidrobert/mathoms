@@ -158,6 +158,10 @@ async def _capture_surface(name: str, url: str, token: str, out: Path) -> dict:
                     await page.set_viewport_size({"width": w, "height": h})
                     await page.wait_for_timeout(400)
                     await page.screenshot(path=str(out / f"screen-{w}.png"), full_page=True)
+                    # Sem o dump de texto por viewport, a superfície mobile chega ao
+                    # painel como imagem e nenhuma lente consegue citá-la: foi assim
+                    # que ela ficou integralmente não-observada no U1.
+                    (out / f"screen-{w}.txt").write_text(await page.inner_text("body"))
                 await page.set_viewport_size({"width": 1280, "height": 900})
                 anchors = await page.evaluate(
                     """() => [...document.querySelectorAll('a[href^="#"]')].map(a => {
