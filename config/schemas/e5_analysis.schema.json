@@ -3577,6 +3577,13 @@
         "code": {
           "type": "string"
         },
+        "kpi_key": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "A40.l90 / [[ADR-419]] §D2 — chave do KPI no vocabulario de kpi_target_catalog.METRICA_KEYS de que esta regra deriva o limiar. `null` para regra que nao compara limiar (seguro_vida e predicado booleano de gap; rentabilidade_nao_medida e sentinela 'N/D'). Chave elegivel sem regra e sem dispensa declarada reprova o gate de cobertura em risk_trigger_registry.DISPENSADAS."
+        },
         "origem_premissa": {
           "enum": [
             "cadastro_familia",

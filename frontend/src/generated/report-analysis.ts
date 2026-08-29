@@ -187,6 +187,7 @@ export type PontoUrgente = {
   "impacto": string;
   "prazo": string;
   "code"?: string;
+  "kpi_key"?: string | null;
   "origem_premissa"?: "cadastro_familia" | "documento_ingerido" | "derivado_e5";
   "elegibilidade"?: "computavel" | "nao_verificavel" | "degenerada" | "pendente_de_dado";
   "dado_faltante"?: string | null;
