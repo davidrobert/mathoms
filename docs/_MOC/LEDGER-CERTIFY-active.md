@@ -458,3 +458,26 @@ seis decisões + critério de aceite com prova por mutação). Execução é da 
 (`planned`, P0), criada pelo dono em #1821 no mesmo dia — as três perguntas abertas no
 §Critério de aceite dela estão respondidas acima. **Ordem:** a l14 precede os itens 1–5
 da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada na ADR.
+
+> ### Retificação datada do `LC6-02` — 2026-08-29, no ataque da lane
+>
+> O snapshot acima **não se reescreve**; três afirmações dele foram medidas e caíram, e a
+> [[A42.l15]] carrega a evidência. Quem citar o `LC6-02` cite também isto:
+>
+> - ❌ *"as duas pernas HARD disparam com esta churn"*. Executadas sobre os snapshots reais:
+>   **U1→U2** dispara só `_reclassificacao_regression`; `_identidade_regression` **não**
+>   (instituições **subiram** 18→24). **r8→U1** é o inverso. A contagem oscila **24 → 18 →
+>   24** com o corpus parado ⇒ dispara em todo par consecutivo, **por perna diferente a cada
+>   vez**, e `_identidade_regression` é unidirecional (cega em metade do ciclo).
+> - ❌ *"canonicalizar `instituicao` … resolve os dois exemplos medidos"*. O teto de qualquer
+>   canonicalização é **29,9%** (de 23,5%), e com o resolver que existe no repo o ganho é
+>   **~0pp** — `BANCO C6`→`bancoc6` e `C6 BANK`→`c6bank` são codes diferentes. A rota também
+>   é vetada em substância pela [[ADR-400]] §1. O driver dominante é **`descricao` (56%)**.
+> - ⚠️ *"Alto e não Crítico porque nenhum estado persistido é corrompido"*. O inventário
+>   estava incompleto: `investment_id` é **publicado** como `nao_classificado_itens[].locator`
+>   no artefato E5 (`e5_analysis.schema.json:2137`, [[ADR-406]] D5) e congelado em
+>   `tests/fixtures/dedup/policy_parity_snapshot.json`.
+>
+> Efeito no relatório, mesmo corpus: `Internacional` R$ 34.857,23 → **R$ 423,56**,
+> `nao_classificado_pct` 3,93% → **6,51%**, com **totais publicados idênticos ao centavo** —
+> redistribuição com Σ preservado, a classe cega aos invariantes de conservação.
