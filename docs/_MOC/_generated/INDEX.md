@@ -974,6 +974,9 @@
 | A40.l91 | lane | shipped | A40 | A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos | `sprint/A40/lanes/A40-l91-base-da-meta-if.md` |
 | A40.l92 | lane | open | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
 | A40.l93 | lane | shipped | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
+| A40.l94 | lane | open | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
+| A40.l95 | lane | open | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
+| A40.l96 | lane | open | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
 | A41.l4 | lane | planned | A41 | Gate fecha a rota alternativa ao choke-point: import do SDK fora de pipeline/llm hard-falha | `sprint/A41/lanes/A41-l4-gate-rota-alternativa-ao-choke-point.md` |
@@ -982,6 +985,9 @@
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
 | A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
 | A42.l13 | lane | planned | A42 | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | `sprint/A42/lanes/A42-l13-completude-por-ficha.md` |
+| A42.l14 | lane | planned | A42 | Os vereditos de conservação certificam a re-derivação, não o artefato entregue | `sprint/A42/lanes/A42-l14-conservacao-certifica-a-rederivacao.md` |
+| A42.l15 | lane | planned | A42 | Identidade de investimento é hash de campos que o extrator LLM reescreve | `sprint/A42/lanes/A42-l15-identidade-de-investimento-instavel-entre-runs.md` |
+| A42.l16 | lane | planned | A42 | O check de cobertura cambial converte 'não sei o tier' em 'passou' | `sprint/A42/lanes/A42-l16-check-cambial-converte-nao-sei-em-passou.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
