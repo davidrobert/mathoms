@@ -275,3 +275,57 @@ class TestResult:
     def test_item_to_dict(self):
         item = PontoForteItem("T", "D", "icon")
         assert item.to_dict() == {"titulo": "T", "descricao": "D", "icone": "icon"}
+
+
+# ---------------------------------------------------------------------------
+# A prosa do exec context não afirma limiar que o catálogo se recusa a arbitrar
+# (A40.l90 · [[ADR-419]])
+# ---------------------------------------------------------------------------
+
+
+_SCORING_PROSA = {
+    "thresholds_alertas": {
+        "pontos_fortes_taxa_poupanca_min_pct": 30,
+        "poupanca_referencia_pct": 25,
+        "endividamento_maximo_pct": 20,
+    }
+}
+
+
+def _descricao(titulo: str, ratios: dict) -> str:
+    from pipeline.domain.services.pontos_fortes_analyzer import (
+        PontosFortesAnalyzer,
+        PontosFortesConfig,
+    )
+
+    itens = PontosFortesAnalyzer(PontosFortesConfig.from_scoring(_SCORING_PROSA)).analyze(
+        score={}, ratios=ratios, patrimonio={}, fluxo={}, reserva={}, goals={}
+    )
+    return next(i.descricao for i in itens if i.titulo == titulo)
+
+
+def test_prosa_de_poupanca_nao_afirma_o_limiar_orfao():
+    """`taxa_poupanca_recorrente` é órfã por decisão — 25 e 30 rivalizam (RV2-24)."""
+    # Esta linha vai ao exec context como afirmação da própria E5; citar "referência de
+    # 30%" entregava ao modelo um limiar que o produtor canônico se recusa a publicar.
+    desc = _descricao("Taxa de Poupança Elevada", {"taxa_poupanca_recorrente_pct": 42.0})
+    assert "30" not in desc and "25" not in desc, desc
+    assert "referência" not in desc.lower()
+    assert "42" in desc  # o observado permanece
+
+
+def test_prosa_de_endividamento_pode_citar_o_teto_porque_e_a_mesma_chave():
+    """Contraste deliberado com o teste acima: aqui o número TEM fonte única."""
+    desc = _descricao("Endividamento Controlado", {"taxa_endividamento_pct": 8.0})
+    assert "20" in desc
+
+
+def test_teto_de_endividamento_da_prosa_e_o_mesmo_limiar_do_catalogo():
+    """Gate de neutralidade: se as fontes divergirem, a prosa vira afirmação órfã."""
+    # Sem ele, a neutralidade medida hoje — prosa e catálogo lendo
+    # `thresholds_alertas.endividamento_maximo_pct` — se desfaz em silêncio.
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+    from pipeline.domain.services.pontos_fortes_analyzer import PontosFortesConfig
+
+    alvo = build_kpi_targets({"ratios": {}}, scoring=_SCORING_PROSA)["taxa_endividamento"]
+    assert alvo["limiar"] == PontosFortesConfig.from_scoring(_SCORING_PROSA).endividamento_max_pct
