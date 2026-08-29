@@ -11,8 +11,6 @@ class SuggestionGeneratorConfig:
 
     # v1 ─────────────────────────────────────────────────────────────────
     reserva_target_meses: int = 6
-    trs_target_pct: float = 4.0
-    trs_drift_tolerance_pct: float = 0.15
     alocacao_drift_pp: float = 10.0
     aporte_min_pct_meta: float = 0.7  # rate (% of meta, not money — ADR-090 ok)
     dolar_drift_pp: float = 15.0

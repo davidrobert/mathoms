@@ -38,17 +38,17 @@ def test_empty_snapshot_returns_no_drafts(gen):
     assert gen.generate({}) == []
 
 
-def test_trs_desalinhada_warns_when_above_threshold_and_phase_if(gen):
-    # A8.3 — regra exige progresso IF ≥ 50% (fase de independência).
-    snapshot = {
-        "goals": {"taxa_retirada_efetiva_pct": 5.0, "if_pct": 60.0},
-    }  # 5% > 4% * 1.15 = 4.6% E progresso ≥ 50.
-    drafts = gen.generate(snapshot)
-    kinds = [d.kind for d in drafts]
-    assert "trs_desalinhada" in kinds
-    d = next(d for d in drafts if d.kind == "trs_desalinhada")
-    assert d.severity == "warning"
-    assert d.section_id == "S7"
+def test_nenhuma_sugestao_compara_trs_com_alvo(gen):
+    """[[ADR-191]] §D6 §Emenda 2026-08-29 — gate por AUSÊNCIA, no terceiro consumidor."""
+    # O Aceite do D6 fechava em "nos dois consumidores" e `rule_trs_desalinhada` era o
+    # terceiro, com `section_id="S7"` — dentro do escopo declarado, fora do que ele mediu.
+    # O cenário que ANTES disparava: 5% > 4% × 1,15 e progresso IF ≥ 50%.
+    drafts = gen.generate({"goals": {"taxa_retirada_efetiva_pct": 5.0, "if_pct": 60.0}})
+    assert "trs_desalinhada" not in [d.kind for d in drafts]
+    proibidos = ("taxa de retirada", "retirada segura", "% ao ano")
+    for d in drafts:
+        texto = f"{d.title} {d.rationale}".lower()
+        assert not [t for t in proibidos if t in texto], f"{d.kind} prescreve sobre TRS"
 
 
 def test_trs_within_threshold_skips(gen):
@@ -233,11 +233,17 @@ def test_dedup_key_changes_with_material_diff(gen):
 
 
 def test_dedup_key_stable_for_small_drift(gen):
-    """TRS 4.8% vs 4.95% — mesmo bucket 0.5pp → mesma key (com if_pct ≥ 50)."""
-    s1 = {"goals": {"taxa_retirada_efetiva_pct": 4.8, "if_pct": 60.0}}
-    s2 = {"goals": {"taxa_retirada_efetiva_pct": 4.95, "if_pct": 60.0}}
-    d1 = next(d for d in gen.generate(s1) if d.kind == "trs_desalinhada")
-    d2 = next(d for d in gen.generate(s2) if d.kind == "trs_desalinhada")
+    """Mesmo bucket → mesma key. Veículo trocado de `trs_desalinhada` (removida em
+    2026-08-29) para `taxa_poupanca_caindo`: o que se mede é a estabilidade do bucket,
+    não a regra."""
+
+    def _snap(atual: float) -> dict:
+        return {"fluxo_caixa": {"taxa_poupanca_trimestral_historico": [30.0, 24.0, 18.0, atual]}}
+
+    # 12,0 e 12,4 caem no mesmo bucket (step 2,5) E ambos disparam: 13,0 não serviria,
+    # porque 18→13 é queda de exatamente 5,0pp e a regra exige MAIS que o limiar.
+    d1 = next(d for d in gen.generate(_snap(12.0)) if d.kind == "taxa_poupanca_caindo")
+    d2 = next(d for d in gen.generate(_snap(12.4)) if d.kind == "taxa_poupanca_caindo")
     assert d1.dedup_key == d2.dedup_key
 
 

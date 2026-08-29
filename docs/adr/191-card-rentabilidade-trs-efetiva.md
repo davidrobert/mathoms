@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-161]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-07-15", "2026-08-14"]
+amended_at: ["2026-07-15", "2026-08-14", "2026-08-29"]
 aliases: ["ADR 191", "Card Rentabilidade TRS", "Renda passiva sobre patrimônio"]
 tags:
   - area/report
@@ -272,3 +272,39 @@ wizard; fica fora desta lane, sem dono nem data.
 **Aceite.** Nenhuma superfície do relatório compara a TRS efetiva com um alvo de
 retorno. Gate por **ausência na superfície** (não por valor), nos dois consumidores —
 provado por mutação: reintroduzir a meta deixa os dois testes vermelhos.
+
+## Emenda 2026-08-29 (A40.l90 · [[ADR-419]]) — o Aceite do D6 contava dois; eram três
+
+> Corrige a **contagem** do Aceite do §D6, não a decisão. O que ele decidiu — nenhuma
+> superfície compara a TRS efetiva com um alvo de retorno — continua valendo, e é
+> justamente por continuar valendo que o terceiro consumidor cai.
+
+O Aceite dizia *"nos dois consumidores"*. Havia um **terceiro**:
+`suggestion_rules.rule_trs_desalinhada` (`section_id="S7"`), que lia
+`SuggestionGeneratorConfig.trs_target_pct = 4.0` e publicava *"Reduzir taxa de retirada
+para 4.0% ao ano"* no plano de ação determinístico. Dentro do escopo que o aceite
+declarou, fora do que ele mediu — a mesma classe de gate cujo recorte não alcança o
+ofensor.
+
+**Veredito de domínio (`financial-planner`): são dois conceitos com o mesmo acrônimo.**
+A **regra dos 4%** (SWR, estudo Trinity) é taxa de **decumulação** sobre patrimônio
+investível. `goals.taxa_retirada_efetiva_pct` (= `PassiveIncomeResult.trs_efetiva_pct`) é
+**yield observado**. Prescrever *"reduzir a taxa de retirada"* sobre um yield é conselho
+**inexecutável**: a família não escolhe quanto os ativos pagam. O órfão do catálogo
+([[ADR-399]]) está certo; o que cai é a regra.
+
+**A constante cai junto.** `trs_target_pct` e `trs_drift_tolerance_pct` tinham
+`rule_trs_desalinhada` como leitor único. Precedente de forma no mesmo arquivo: a
+[[ADR-161]] §Emenda 2026-08-11 removeu `rule_seguros_insuficientes` **com**
+`seguros_renda_pj_threshold_brl` — constante sem a regra que a lê é o que sobra quando se
+corta pela metade.
+
+**O `kind` permanece.** `"trs_desalinhada"` fica no mapa de `pipeline/domain/types/suggestion.py`
+com nota datada: kind sem produtor é inerte; kind removido é mudança de contrato, e há
+sugestões persistidas com ele.
+
+**Aceite (reescrito).** Nenhuma superfície do relatório compara a TRS efetiva com um alvo
+de retorno, nos **três** consumidores. Gate por ausência: `rg trs_target_pct pipeline/`
+devolve zero, e `test_nenhuma_sugestao_compara_trs_com_alvo` reprova se qualquer sugestão
+voltar a prescrever sobre TRS — provado no cenário exato que antes disparava (5% de TRS
+com progresso IF de 60%).

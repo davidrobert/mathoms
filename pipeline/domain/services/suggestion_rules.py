@@ -84,38 +84,6 @@ def _dedup_key(kind: str, *, bucket: str) -> str:
 # =============================================================================
 
 
-def rule_trs_desalinhada(
-    snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
-) -> SuggestionDraft | None:
-    """TRS efetiva > alvo + 15% E progresso ≥ 50% (Perini/AUVP · A8.3 filtro de fase)."""
-    goals = _as_dict(snapshot.get("goals"))
-    trs_atual = _as_float(goals.get("taxa_retirada_efetiva_pct"))
-    if trs_atual is None:
-        return None
-    progresso = _as_float(goals.get("if_pct")) or 0.0
-    if progresso < 50.0:
-        return None
-    target = cfg.trs_target_pct
-    threshold = target * (1 + cfg.trs_drift_tolerance_pct)
-    if trs_atual <= threshold:
-        return None
-    sugestao = round(target, 1)
-    title = f"Reduzir taxa de retirada para {sugestao:.1f}% ao ano"
-    rationale = (
-        f"Taxa de retirada efetiva está em {trs_atual:.1f}% — acima do alvo "
-        f"conservador de {sugestao:.1f}% (Perini/AUVP). Ajustar para sustentar "
-        f"a renda no longo prazo sem corroer principal."
-    )
-    return SuggestionDraft(
-        section_id="S7",
-        kind="trs_desalinhada",
-        severity="warning",
-        title=title,
-        rationale=rationale,
-        dedup_key=_dedup_key("trs_desalinhada", bucket=_pct_bucket(trs_atual, step=0.5)),
-    )
-
-
 def rule_reserva_insuficiente(
     snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
 ) -> SuggestionDraft | None:
@@ -587,7 +555,6 @@ def rule_renda_passiva_real_baixa(
 
 ALL_RULES = (
     # v1 (ADR-153)
-    rule_trs_desalinhada,
     rule_reserva_insuficiente,
     rule_alocacao_fora_alvo,
     rule_aporte_abaixo_meta,
