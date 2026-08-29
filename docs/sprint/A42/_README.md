@@ -104,6 +104,33 @@ são `planned`; o renderer só lê `{ready, open, in_progress}`). O ganho de pic
 flipar status, que é decisão de liberação — **ortogonal à fusão**. Ver §Gatilho de
 promoção para a porta que entrega esse ganho sem os custos.
 
+## Três P0 novos da rodada `U2` (2026-08-29) — e a ativação é decisão do dono
+
+A rodada unificada **U2** ([[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10,
+merge `47970706`) abriu três P0 cuja causa-raiz cai **exatamente** na tese desta sprint:
+
+- [[A42.l14]] — os vereditos de conservação da `ledger-certify` certificam a **re-derivação**,
+  não o artefato entregue. É o falso-verde do instrumento que dá nome à sprint, medido em
+  produção pela primeira vez: a skill vinha sendo citada como propriedade do que o run
+  publicou, e o próprio relatório dela mede que os dois substratos divergem.
+- [[A42.l15]] — `investment_id` é hash de campos que o extrator LLM reescreve, com **23,5%**
+  de estabilidade entre dois runs do mesmo documento. Dano vivo: duas pernas **HARD**
+  cross-run do comparador disparam com ruído de extrator.
+- [[A42.l16]] — o check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra
+  a política escrita 400 linhas acima no mesmo módulo.
+
+**Estado:** as três entram como `planned`, seguindo o padrão das 13 anteriores — lanes
+planejadas numa sprint `candidate`. **Não flipei `sprint_status` para `current`:** só existe
+uma sprint corrente por vez ([[A40]]), e duas são **erro duro** em
+`dev/build_doc_index.py::_multi_current_error`. Ativar a A42 exigiria pausar ou encerrar a
+A40 — cujo §Gate de saída **não está satisfeito** (contador em 0/2, ver o §Gate de saída da
+[[A40]]). A decisão é do dono, e é a que destrava executar estas três dentro da sprint em vez
+de fora dela.
+
+**Consequência cruzada registrada na A40:** a [[A42.l15]] muta E3/E1.5c a montante de todo
+run, logo entra na **cláusula de reinício do contador** da A40 pelo mesmo argumento mecânico
+que estendeu a cláusula à l34 e à l35.
+
 ## KR — provabilidade, com duas linhas de contagem
 
 Todo KR aqui é binário e medido por harness existente. Cada um tem uma segunda
@@ -145,7 +172,7 @@ passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
 mutou. A auditoria de mesa abaixo **não** substitui esse rito — só deixa o
 grafo honesto até lá.
 
-## Lanes (13)
+## Lanes (16)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
@@ -162,6 +189,9 @@ grafo honesto até lá.
 | [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | — |
 | [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
 | [[A42.l13]] | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | P1 | 2 | — |
+| [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** | **P0** | 1 | — |
+| [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; duas pernas HARD do comparador disparam com ruído de extrator · **U2 `LC6-02`** | **P0** | 1 | — |
+| [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** | **P0** | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
