@@ -3,7 +3,9 @@ id: A42.l16
 type: lane
 title: "O check de cobertura cambial converte 'não sei o tier' em 'passou'"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1827
+ship_date: "2026-08-29"
 priority: P0
 branch_slug: a42-l16-check-cambial-converte-nao-sei-em-passou
 owner: senior-cto
@@ -14,7 +16,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a42
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
 ---
@@ -171,3 +173,26 @@ de `_CONSERVATION_CHECKS`. Um `error` que não gateia é exatamente o que a linh
   outros 26 passam nos dois lados — a fixture de reconciliação foi tornada internamente
   consistente para deixar de testar dois eixos ao mesmo tempo.
 - **Não muta E5** ⇒ fora de qualquer janela de rebaseline.
+
+## Fecho — PR [#1827](https://github.com/davidrobert/mathoms/pull/1827), merge `221534e8` (2026-08-29)
+
+**O título e a §O defeito acima preservam o enunciado como ele foi REGISTRADO pela U2, não
+como ele terminou.** A §Medição os refuta; nada aqui foi reescrito, porque o enunciado de
+origem é evidência do que a rodada concluiu.
+
+Re-medido **contra o código mergeado** (o número não foi relido, foi re-rodado): a varredura
+de 60 combinações de input do produtor continua em **0 reprovações** — a equivalência não
+introduziu falso-positivo no estado sancionado da v1, que é o regime de 100% dos runs.
+
+`pytest tests -q` = **7912 passed** é medição do commit desta lane. Em `main` com o #1828
+dentro são **7918** — a diferença são os 6 testes daquele PR, nenhum meu.
+
+## Aberto, com dono
+
+- **Prioridade re-triada de P0 para P1 — recomendação, não decisão.** O motivo do P0 era a
+  escotilha que esconderia veredito errado, e ele não sobreviveu à medição; o que resta é
+  inertidão de check, que não alcança o leitor. Frontmatter e tabela do `_README` continuam
+  **P0** de propósito: re-priorizar linha de registro de rodada é do dono da sprint.
+  **Dono: quem triar o `r11`**, junto com a re-triagem já pendente de `PV9-09`/`PV9-19`/`PV9-14`.
+- **`PV10-03` (recompor `_CONSERVATION_CHECKS`) segue aberto** e recebeu insumo medido desta
+  lane — ver §Insumo. Dono: a linha `PV10-03` do §r10, sem lane ainda.

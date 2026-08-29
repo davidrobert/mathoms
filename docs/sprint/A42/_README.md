@@ -119,10 +119,21 @@ merge `47970706`) abriu três P0 cuja causa-raiz cai **exatamente** na tese dest
   juntas), e no relatório `Internacional` cai de R$ 34.857,23 para **R$ 423,56** com os totais
   publicados **idênticos ao centavo**.
 - [[A42.l16]] — o check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra
-  a política escrita 400 linhas acima no mesmo módulo.
+  a política escrita 400 linhas acima no mesmo módulo. **`shipped` 2026-08-29 (#1827) — e a
+  lane refutou este enunciado:** o caso perigoso (banda afirmada sobre cobertura incompleta)
+  **já reprovava**, com teste desde o #1568; o que o `or` deixa passar é o estado
+  **sancionado** pela [[ADR-403]], e a política do CV5 citada aqui **não se aplica** a esse
+  ponto (não há ausência quando o tier é `indeterminado`). O defeito real é de outro sinal —
+  os dois disjuntos eram `P` e `¬P` e o termo **não discriminava nada**; medido, o produtor
+  emite uma única forma e CV18 reprovava em **0 de 60** combinações de input.
 
-**Estado:** as três entram como `planned`, seguindo o padrão das 13 anteriores — lanes
-planejadas numa sprint `candidate`. **Não flipei `sprint_status` para `current`:** só existe
+**Estado (2026-08-29, na abertura):** as três entram como `planned`, seguindo o padrão das
+13 anteriores — lanes planejadas numa sprint `candidate`.
+
+> **Atualização 2026-08-29:** a [[A42.l16]] foi executada **fora** da sprint corrente e
+> está `shipped` (#1827). As outras duas seguem `planned`. A decisão sobre `sprint_status`
+> abaixo **não mudou** — continua do dono.
+ **Não flipei `sprint_status` para `current`:** só existe
 uma sprint corrente por vez ([[A40]]), e duas são **erro duro** em
 `dev/build_doc_index.py::_multi_current_error`. Ativar a A42 exigiria pausar ou encerrar a
 A40 — cujo §Gate de saída **não está satisfeito** (contador em 0/2, ver o §Gate de saída da
@@ -193,7 +204,7 @@ grafo honesto até lá.
 | [[A42.l13]] | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | P1 | 2 | — |
 | [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** | **P0** | 1 | — |
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
-| [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** | **P0** | 1 | — |
+| [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
@@ -214,8 +225,10 @@ máquina nenhum.
 
 Ordenadas por **alavancagem**, não por severidade: sem detecção, todo fix abaixo
 regride em silêncio e fecha verde. A ordem não é estética — o KR-B só é
-**mensurável** depois da [[A42.l3]], porque a perna de volume do gate
-anti-regressão está morta hoje. Instrumento primeiro é pré-condição do critério de
+**mensurável** depois da [[A42.l14]] **e** da [[A42.l3]], nessa ordem: a perna de
+volume do gate anti-regressão está morta hoje (l3), e o registry de balde que o KR-B
+nomeia carimbaria veredito **sobre o universo errado** enquanto a l14 não corrigir o
+sujeito ([[ADR-421]]). Uma versão anterior desta linha citava só a l3. Instrumento primeiro é pré-condição do critério de
 saída, não preferência.
 
 **Onda 0 — parar a sangria** ([[A42.l1]]). Solo. Não é instrumento e não compartilha
@@ -232,6 +245,14 @@ entrega a cláusula que a l2 precisa — cláusula que agora está no **critéri
 l3**, não só na prosa da l2. Uma versão anterior deste plano afirmava disjunção aqui: era
 falso, e duas lanes P1 reescrevendo o mesmo ratchet em paralelo é exatamente o cenário que
 a onda diz evitar.
+**A [[A42.l14]] entrou na Onda 1 em 2026-08-29 e reabre a mesma questão em outro arquivo.**
+Ela e a l3 tocam ambas `dev/ledger_certify_core.py`, e não são paralelas: a l14 corrige
+**de qual universo** vêm as peças que todos os vereditos leem, e o registry de checkers do
+item 1 da l3 reescreve `_non_ledger_verdict` **sobre essas peças**. **A l14 precede os
+itens 1–5 da l3** — aplicar o registry antes produz um `não-verificável` corretamente
+tipado sobre o universo errado, que é pior que o `coberto` de hoje porque *parece*
+consertado e passaria no critério de mutação da l3. Não é `depends_on`: a l3 tem itens
+6–9 entregáveis antes. Rationale em [[ADR-421]] §Lane e arestas declaradas.
 
 **Onda 2 — identidade, contrato e base** ([[A42.l5]] → [[A42.l6]]; [[A42.l7]] livre;
 [[A42.l8]] atrás de [[A40.l15]], [[A40.l11]] e [[A40.l44]]). A l5 e a l6 são
