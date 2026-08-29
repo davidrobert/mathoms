@@ -21,7 +21,8 @@ from dataclasses import dataclass
 from typing import Any, Literal, Mapping, Optional
 
 from pipeline.domain.services.narrativas.format_helpers import fmt_percent, pluralize
-from pipeline.domain.services.risk_trigger_registry import build_risk_triggers
+from pipeline.domain.services.patrimonio_sign_guard import motivo_supressao_do_patrimonio
+from pipeline.domain.services.risk_trigger_registry import RiskTrigger, build_risk_triggers
 
 # ADR-365 — dois eixos ORTOGONAIS. `origem_premissa` diz de onde vem o fato;
 # `elegibilidade` diz se o produto consegue avaliá-lo. Um eixo só embutiria
@@ -233,8 +234,13 @@ def _item_seguro_vida(
 class PontosUrgentesAnalyzer:
     """Gera lista de ações urgentes com base em métricas."""
 
-    def __init__(self, config: PontosUrgentesConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: PontosUrgentesConfig | None = None,
+        gatilhos: Mapping[str, RiskTrigger] | None = None,
+    ) -> None:
         self._config = config or PontosUrgentesConfig()
+        self._gatilhos = gatilhos if gatilhos is not None else build_risk_triggers({})
 
     def analyze(
         self,
@@ -306,7 +312,66 @@ class PontosUrgentesAnalyzer:
                 )
             )
 
+        item = _concentracao_item(ratios, patrimonio, self._gatilhos)
+        if item is not None:
+            out.append(item)
+
         return out
+
+
+# Nunca `prazo="Imediato"`: a [[ADR-340]] §Emenda fecha a meta como **direcional via
+# aporte, sem exigir liquidação de imóvel**. Prometer prazo imediato para ação que não
+# existe é alarme falso — o defeito que esta lane existe para evitar, cometido na regra
+# nova. E a copy nomeia iliquidez e risco de ativo único, nunca rendimento do imóvel:
+# esse é o eixo do `spread_critico`, e replicá-lo aqui daria duas prescrições para o
+# mesmo fato.
+def _concentracao_item(
+    ratios: dict[str, Any] | None,
+    patrimonio: dict[str, Any] | None,
+    gatilhos: Mapping[str, RiskTrigger],
+) -> PontoUrgenteItem | None:
+    gatilho = gatilhos.get("concentracao_imobiliaria")
+    conc = _num_ou_none((ratios or {}).get("concentracao_imobiliaria"))
+    if gatilho is None or conc is None or not gatilho.rompido(conc):
+        return None
+    # Herda a supressão por atribuição: com a base da carteira produtiva suprimida, o
+    # percentual existe mas não é verificável — vai para o balde de retenção em vez de
+    # afirmar concentração sobre denominador amputado ([[ADR-412]]).
+    suprimido = motivo_supressao_do_patrimonio(patrimonio) is not None
+    return _item_concentracao(conc, gatilho, suprimido)
+
+
+def _item_concentracao(conc: float, gatilho: RiskTrigger, suprimido: bool) -> PontoUrgenteItem:
+    severo = gatilho.severo(conc)
+    return PontoUrgenteItem(
+        prioridade="Alta" if severo else "Média",
+        acao="Reduzir concentração imobiliária",
+        impacto=_impacto_concentracao(conc, gatilho.limiar, severo, suprimido),
+        prazo="Próximo trimestre",
+        code="concentracao_imobiliaria_alta",
+        kpi_key="concentracao_imobiliaria",
+        elegibilidade="nao_verificavel" if suprimido else "computavel",
+    )
+
+
+def _impacto_concentracao(conc: float, limiar: float, severo: bool, suprimido: bool) -> str:
+    if suprimido:
+        return (
+            "Parte da carteira produtiva está sem dono identificado — o percentual "
+            "exato depende de atribuir essas posições."
+        )
+    grau = "acima do limite" if severo else "acima da referência"
+    return (
+        f"{fmt_percent(conc)} da carteira produtiva em imóveis, {grau} de "
+        f"{fmt_percent(limiar)} — patrimônio pouco líquido e exposto a ativo único. "
+        "O ajuste é direcional, via destino dos próximos aportes."
+    )
+
+
+def _num_ou_none(valor: Any) -> float | None:
+    if isinstance(valor, bool) or not isinstance(valor, (int, float)):
+        return None
+    return float(valor)
 
 
 # A prosa morre no PRODUTOR, e a MESMA frase existe em `scripts/analyze_finances.py`
