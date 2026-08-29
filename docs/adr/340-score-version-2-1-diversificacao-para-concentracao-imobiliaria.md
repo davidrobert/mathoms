@@ -6,9 +6,12 @@ status: Decidido
 phase: dogfood-c11-fin05
 date: "2026-07-15"
 decided_at: "2026-07-16"
-amended_at: ["2026-07-16"]
+amended_at: ["2026-07-16", "2026-08-29"]
 relates_to:
+  - "[[ADR-145]]"
+  - "[[ADR-235]]"
   - "[[ADR-328]]"
+  - "[[ADR-420]]"
   - "[[ADR-217]]"
   - "[[ADR-177]]"
   - "[[ADR-145]]"
@@ -21,6 +24,16 @@ tags:
 ---
 
 # ADR-340 — `score_version 2.1`: diversificação → concentração imobiliária invertida
+
+> **Emenda 2026-08-29 (retratação de fato · [[A40.l95]] · `RR6-02` da rodada U2):** a frase
+> *"a métrica de concentração considera **só cat_2 (imóveis de renda)**"* na §Decisão é **falsa** —
+> a [[ADR-145]] §2 define cat_2 como geradores **+** não-geradores, nomeando `nu_proprietario`.
+> Da trava do co-design *"numerador = cat_2 completo (imóvel vago/especulação é ainda mais
+> ilíquido)"*, a metade **`especulacao` fica ratificada**; a metade **"cat_2 completo" está em
+> revisão** pela [[ADR-420]] (`Proposto`), que decide o numerador por **rebalanceabilidade**.
+> Ver [§Emenda de retratação](#emenda--retratação-de-fato-e-metade-da-trava-2026-08-29).
+> **Nada mais desta nota muda:** os thresholds, `invertido`/`range`/peso, o rename do
+> `nome_display`, o `SCORE_VERSION 2.1` e a base = carteira produtiva seguem governando.
 
 > **Emenda 2026-07-16 (Onda R3.1 · co-design `financial-planner`):** as superfícies de
 > **risco** (parecer + alerta do card) que ainda não citavam o SSOT foram repontadas —
@@ -179,3 +192,40 @@ fora do escopo da R3.
 
 **Docs reconciliados:** `config/schemas/e5_analysis.schema.json` (`real_estate.concentracao_pct`
 description: base carteira, alerta >50). `FORMULAS.md §152/§182/§216` já estavam corretos.
+
+## Emenda — retratação de fato, e metade da trava (2026-08-29)
+
+Medido no run `79a61e33` (dogfood, rodada U2), identidades fechando ao centavo:
+`cat_2 = imoveis_geradores + imoveis_nao_geradores`, e `investivel_efetivo =
+investivel_financeiro + imoveis_geradores`. Logo o denominador desta métrica é
+`investivel_efetivo + imoveis_nao_geradores` — agregado que **nenhuma outra superfície
+publica** —, e o numerador soma um imóvel que `real_estate.excluded_properties` exclui do
+cap rate com o motivo literal *"não gera caixa nem está disponível para venda livre"*.
+Publicado 50,62%; sem ele, 49,08%, contra limiar 50,0 com operador `<`: **o veredito inverte**.
+
+**O que se retrata.** A §Decisão afirma que *"a métrica de concentração considera **só cat_2**
+(imóveis de renda), então residência, veículos e o split de cônjuge saem naturalmente"*. A
+primeira metade é falsa por definição da [[ADR-145]] §2. A segunda vale **apenas em workspace
+onde alguém rotulou**: `split_imoveis_with_overrides` só reconhece cat_1 com override
+**explícito** `residencia_principal`, e no regime default a residência principal cai em cat_2.
+O golden do repo é a demonstração — `imoveis_geradores = 0` e cat_2 inteiro em não-geradores.
+
+**O que continua valendo, e por que registrar isso importa.** `especulacao` no numerador é
+**ratificado**, por duas rotas independentes: metodologicamente é alocação escolhida com saída
+possível (o custo de renda zero é exatamente o que o KPI deve doer), e estruturalmente o motor
+já a trata como investimento — `INVESTMENT_CLASSIFICATIONS` a contém e `_CLASSIFICATIONS_GERADORAS`
+não. Sem esta linha, o próximo leitor supõe que a trava caiu inteira e reabre `especulacao`.
+
+**O que a decisão desta nota não sofre.** A escolha do numerador não era carga do fato falso: a
+trava se justifica por **iliquidez** e o saneamento do FIN-05 se justifica por cat_1/split de
+cônjuge — nenhuma das duas conclusões depende de "de renda". A [[ADR-420]] reabre a cláusula por
+um eixo que **esta nota nunca examinou** (rebalanceabilidade), não por erro de raciocínio dela.
+
+**Por que emenda e não supersedure.** Sem a cláusula do numerador esta nota ainda governa oito
+decisões vivas. Supersedure aqui é file-level e diria "pule isto" sobre todas. A regra de fronteira
+está escrita na [[ADR-420]] §Alternativas (D).
+
+**O limiar 50 não se move** — a procedência dele é doutrinária (a banda 40–60 em que as
+referências do produto divergem legitimamente entre si, estabilidade contra diversificação),
+não função do numerador. O que precisa de reconciliação é o rationale de
+`FORMULAS.md` §219, que sustenta o 50 por um argumento de magnitude de base.
