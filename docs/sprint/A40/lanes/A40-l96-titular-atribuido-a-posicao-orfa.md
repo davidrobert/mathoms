@@ -4,7 +4,7 @@ type: lane
 title: "Tabela de maiores ativos atribui titular a valor que o sistema declara órfão"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l96-titular-atribuido-a-posicao-orfa
 owner: data-engineer
@@ -17,7 +17,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/pipeline
   - area/frontend
