@@ -485,8 +485,13 @@ def build_kpi_targets(
     return {chave: asdict(alvo) for chave, alvo in alvos.items()}
 
 
+#: Órfãs por decisão, derivadas da tupla — nunca à mão. Consumidor: gate de [[ADR-419]] §D4.
+ORFAOS_DOMINIO_KEYS: tuple[str, ...] = tuple(chave for chave, *_ in _ORFAOS_DOMINIO)
+
+
 __all__ = [
     "METRICA_KEYS",
+    "ORFAOS_DOMINIO_KEYS",
     "PROCEDENCIA_CANONICO",
     "PROCEDENCIA_GOAL",
     "KpiTarget",

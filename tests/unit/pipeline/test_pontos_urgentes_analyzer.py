@@ -234,6 +234,7 @@ class TestResult:
             "impacto": "Impacto",
             "prazo": "Imediato",
             "code": "",
+            "kpi_key": None,
             "origem_premissa": "derivado_e5",
             "elegibilidade": "computavel",
             "dado_faltante": None,

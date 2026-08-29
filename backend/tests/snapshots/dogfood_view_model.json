@@ -2053,6 +2053,7 @@
       "dado_faltante": null,
       "elegibilidade": "computavel",
       "impacto": "Taxa de endividamento em 20,6% — meta < 20%",
+      "kpi_key": "taxa_endividamento",
       "origem_premissa": "derivado_e5",
       "prazo": "Próximo trimestre",
       "prioridade": "Alta"
@@ -2063,6 +2064,7 @@
       "dado_faltante": null,
       "elegibilidade": "computavel",
       "impacto": "Sem dados de performance, impossível otimizar alocação",
+      "kpi_key": null,
       "origem_premissa": "derivado_e5",
       "prazo": "Próximo trimestre",
       "prioridade": "Média"

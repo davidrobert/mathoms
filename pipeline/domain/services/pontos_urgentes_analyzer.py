@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, Mapping, Optional
 
 from pipeline.domain.services.narrativas.format_helpers import fmt_percent, pluralize
+from pipeline.domain.services.risk_trigger_registry import build_risk_triggers
 
 # ADR-365 — dois eixos ORTOGONAIS. `origem_premissa` diz de onde vem o fato;
 # `elegibilidade` diz se o produto consegue avaliá-lo. Um eixo só embutiria
@@ -59,10 +60,11 @@ class PontosUrgentesConfig:
 
     @classmethod
     def from_scoring(cls, scoring: dict | None = None) -> "PontosUrgentesConfig":
-        cfg = (scoring or {}).get("thresholds_alertas") or {}
+        """Deriva os limiares do registro de gatilho ([[ADR-419]] §D1), não de default inline."""
+        gatilhos = build_risk_triggers(scoring)
         return cls(
-            reserva_minima_meses=_safe_float(cfg.get("reserva_minima_meses", 6)),
-            endividamento_maximo_pct=_safe_float(cfg.get("endividamento_maximo_pct", 20)),
+            reserva_minima_meses=gatilhos["reserva_cobertura_meses"].limiar,
+            endividamento_maximo_pct=gatilhos["taxa_endividamento"].limiar,
         )
 
 
@@ -83,6 +85,13 @@ class PontoUrgenteItem:
     impacto: str
     prazo: str
     code: str = ""
+    # Chave do KPI no vocabulário do catálogo ([[ADR-419]] §D2). Declarada por quem LÊ o
+    # limiar — regra que pare de derivar do registro perde o campo e o gate de cobertura
+    # fica vermelho sozinho. `None` para regra que não compara limiar: `seguro_vida` é
+    # predicado booleano de gap ([[ADR-240]] KPI F) e `rentabilidade_nao_medida` é
+    # sentinela `== "N/D"`; pôr número nelas seria a regressão que [[ADR-387]] e
+    # [[ADR-191]] §D5 proíbem.
+    kpi_key: Optional[str] = None
     origem_premissa: OrigemPremissa = "derivado_e5"
     elegibilidade: Elegibilidade = "computavel"
     # Nomeia o dado ausente para a copy — a copy NUNCA nomeia o valor do enum
@@ -96,6 +105,7 @@ class PontoUrgenteItem:
             "impacto": self.impacto,
             "prazo": self.prazo,
             "code": self.code,
+            "kpi_key": self.kpi_key,
             "origem_premissa": self.origem_premissa,
             "elegibilidade": self.elegibilidade,
             "dado_faltante": self.dado_faltante,
@@ -256,6 +266,7 @@ class PontosUrgentesAnalyzer:
                     impacto=_impacto_reserva(cobertura, cfg.reserva_minima_meses, suprimida),
                     prazo="Imediato",
                     code="reserva_insuficiente",
+                    kpi_key="reserva_cobertura_meses",
                 )
             )
 
@@ -271,6 +282,7 @@ class PontosUrgentesAnalyzer:
                     ),
                     prazo="Próximo trimestre",
                     code="endividamento_alto",
+                    kpi_key="taxa_endividamento",
                 )
             )
 
