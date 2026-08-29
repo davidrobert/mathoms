@@ -277,6 +277,17 @@ sessões da U2 estavam abertas e o teto era 419.
   canonicaliza CPF-first ([[ADR-267]]). Medido: `proprietario` diverge em **0 de 42** pares, e
   os 3 itens que caem em `titular` são exatamente os **3 sem `cpf`**. A churn é absorvida antes
   de tocar o agrupamento. **Não roteie para a [[A40.l80]]** — ela é consumidora da resolução.
+  ⚠️ **O escopo desta retratação é a CHURN entre runs, não `membro` em geral.** A [[A40.l96]]
+  (`in_progress`, P0, #1823) mediu que `membro` **por posição** é defeito vivo e que *"o fix é
+  no consolidator E4"* — caminho **disjunto** deste (`investments_consolidator.py:328-333`,
+  sobre investimentos de origem E2; aqui é o baseline E1.5/E1.5c). As duas leituras convivem:
+  a instabilidade **entre runs** é absorvida pela cascata CPF-first; a **cobertura** do campo
+  não é. **Datum desta lane que serve à l96**, no caminho que ela não cobre: em
+  `baseline_patrimonial` o `membro` sai em 6 formas (`david_robert`, `david`,
+  `mariana_teixeira_ferreira`, `david_robert_camargo_de_campos`,
+  `david_robert_camargo_ferreira_campos`, `titular`) e no run U2 **zero** itens casam com uma
+  key canônica do registro de membros (`david`/`mariana`/`theo`) — é a mesma tese de
+  **espaço de chave** que a l96 §234 levanta, medida no ramo E1.5.
 - **Cardinalidade do codomínio não explica a churn.** `categoria_hint` tem 7 valores distintos
   (7/7 nos dois runs) e churna **1**; `membro` tem 6/5 — cardinalidade **menor** — e churna
   **28**. E `valor_brl` tem cardinalidade 61, **não é enumerado**, e é **100% estável**
