@@ -225,8 +225,10 @@ máquina nenhum.
 
 Ordenadas por **alavancagem**, não por severidade: sem detecção, todo fix abaixo
 regride em silêncio e fecha verde. A ordem não é estética — o KR-B só é
-**mensurável** depois da [[A42.l3]], porque a perna de volume do gate
-anti-regressão está morta hoje. Instrumento primeiro é pré-condição do critério de
+**mensurável** depois da [[A42.l14]] **e** da [[A42.l3]], nessa ordem: a perna de
+volume do gate anti-regressão está morta hoje (l3), e o registry de balde que o KR-B
+nomeia carimbaria veredito **sobre o universo errado** enquanto a l14 não corrigir o
+sujeito ([[ADR-421]]). Uma versão anterior desta linha citava só a l3. Instrumento primeiro é pré-condição do critério de
 saída, não preferência.
 
 **Onda 0 — parar a sangria** ([[A42.l1]]). Solo. Não é instrumento e não compartilha
@@ -243,6 +245,14 @@ entrega a cláusula que a l2 precisa — cláusula que agora está no **critéri
 l3**, não só na prosa da l2. Uma versão anterior deste plano afirmava disjunção aqui: era
 falso, e duas lanes P1 reescrevendo o mesmo ratchet em paralelo é exatamente o cenário que
 a onda diz evitar.
+**A [[A42.l14]] entrou na Onda 1 em 2026-08-29 e reabre a mesma questão em outro arquivo.**
+Ela e a l3 tocam ambas `dev/ledger_certify_core.py`, e não são paralelas: a l14 corrige
+**de qual universo** vêm as peças que todos os vereditos leem, e o registry de checkers do
+item 1 da l3 reescreve `_non_ledger_verdict` **sobre essas peças**. **A l14 precede os
+itens 1–5 da l3** — aplicar o registry antes produz um `não-verificável` corretamente
+tipado sobre o universo errado, que é pior que o `coberto` de hoje porque *parece*
+consertado e passaria no critério de mutação da l3. Não é `depends_on`: a l3 tem itens
+6–9 entregáveis antes. Rationale em [[ADR-421]] §Lane e arestas declaradas.
 
 **Onda 2 — identidade, contrato e base** ([[A42.l5]] → [[A42.l6]]; [[A42.l7]] livre;
 [[A42.l8]] atrás de [[A40.l15]], [[A40.l11]] e [[A40.l44]]). A l5 e a l6 são

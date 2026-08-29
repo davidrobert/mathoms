@@ -118,9 +118,12 @@ falso alarme, **nunca** falso negativo. Vale para todo workspace, não só para 
 
 ### O rótulo é o vetor, e ele é anterior à [[ADR-340]]
 
-"Imóveis de renda" viaja sobre quantidade que inclui não-geradores em **oito** sítios —
-e num deles, o hero (`HeroKpiGrid.tsx:158`), o **mesmo rótulo** nomeia `imoveis_geradores`:
-número diferente, mesma página. A origem é a [[ADR-215]] P3, cujo rename do balde cat_2
+"Imóveis de renda" nomeia cat_2 (ou número derivado dele) em **sete** sítios — balde de
+composição, rótulo da dimensão do score, docstring do SSOT, descrição do alias no schema,
+painel de metodologia, tabela de maiores ativos e card de yield. E o hero
+(`HeroKpiGrid.tsx:158`) usa o **mesmo rótulo** para `imoveis_geradores`: número diferente,
+mesma página. **Corrigido de "oito" no closeout** — a formulação anterior contava o hero
+entre os que incluem não-geradores, e ele é justamente o que não inclui. A origem é a [[ADR-215]] P3, cujo rename do balde cat_2
 (`patrimonio_composicao.py:52-53`) se justifica literalmente por *"comunicar o critério
 econômico real (geração de caixa)"*. A [[ADR-340]] herdou a crença; não a criou.
 
@@ -156,8 +159,9 @@ própria l80 pagou duas vezes (#1782 e o C19).
 ## Roteamento e amarra — conferidos, e um deles muda
 
 - **Fica na A40**, dentro da **cláusula de reinício do contador** (`_README.md:119-124`): a
-  sprint já nomeou esta lane entre as três que mutam E3/E5 a montante, e o contador está em
-  **0/2**. O precedente de rotear para a [[A42]] (`_README.md:200-203`, fix de paridade da
+  sprint já nomeou esta lane entre as que mutam E3/E5 a montante, e o contador está em
+  **0/2**. São **quatro**, não três: a [[A40.l96]] entrou pela medição de 2026-08-29
+  (`_README.md:128-133`), e o "três" escrito aqui envelheceu num rebase limpo no mesmo dia. O precedente de rotear para a [[A42]] (`_README.md:200-203`, fix de paridade da
   ledger) **não** se aplica: lá o argumento era não zerar um contador em curso.
 - **A l80 não bloqueia esta lane.** O §Ordem e amarra dela (`:502-508`) declara **isenção
   própria** ("toca `dev/`, `config/schemas/`, `backend/tests/snapshots/` — não `pipeline/`…

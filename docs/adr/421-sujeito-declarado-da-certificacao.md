@@ -121,8 +121,9 @@ nunca herança silenciosa do outro braço. Princípio já decidido na [[A42.l3]]
 
 ## Lane e arestas declaradas
 
-**Dona da execução: [[A42.l14]]** (`planned`, P0) — criada pelo dono em #1821 no mesmo
-dia desta ADR. Esta ADR responde as três perguntas que o §Critério de aceite da lane
+**Dona da execução: [[A42.l14]]**, criada pelo dono em #1821 no mesmo dia desta ADR.
+(O `status` da lane não é citado aqui de propósito — ele envelhece, e a versão anterior
+deste parágrafo afirmava `planned` já no PR que a flipou para `in_progress`.) Esta ADR responde as três perguntas que o §Critério de aceite da lane
 deixou abertas: os 31 são **sobra** (31/31, 7 runs), o modo entregue **cobre a
 conservação inteira**, e a rota é **sujeito único auto-rotulado** — não duas colunas.
 

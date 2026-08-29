@@ -61,9 +61,11 @@ O defeito só **infla** concentração: produz falso alarme, nunca falso negativ
 
 **A crença que sustentou a fórmula é falsa.** A [[ADR-340]] afirma *"a métrica de concentração
 considera só cat_2 (imóveis de renda)"*, e a [[ADR-145]] §2 define cat_2 como geradores **+**
-não-geradores, nomeando `nu_proprietario`. O rótulo "imóveis de renda" viaja sobre quantidade
-que inclui não-geradores em **oito** sítios; num deles — o hero — o mesmo rótulo nomeia
-`imoveis_geradores`, número diferente na mesma página. O vetor do rótulo é a [[ADR-215]] P3,
+não-geradores, nomeando `nu_proprietario`. **Sete** sítios nomeiam cat_2 (ou número derivado
+dele) como "imóveis de renda" — o balde de composição, o rótulo da dimensão do score, o
+docstring do SSOT, a descrição do alias no schema, o painel de metodologia, a tabela de maiores
+ativos e o card de yield. E o **hero** usa o mesmo rótulo para `imoveis_geradores`: número
+diferente, mesma página. O vetor do rótulo é a [[ADR-215]] P3,
 cujo rename do balde cat_2 se justifica por *"comunicar o critério econômico real (geração de
 caixa)"*.
 
