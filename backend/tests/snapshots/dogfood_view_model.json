@@ -1234,13 +1234,12 @@
   },
   "consumo_consciente": {
     "analise": "Nenhum gasto pontual relevante ≥ R$ 2.000 identificado no período analisado — padrão de consumo dentro dos limites recorrentes.",
-    "equivalente_meses_aporte": "0.000000",
+    "equivalente_meses_poupanca": "0.000000",
     "folga_mensal": 150000,
     "folga_pct": "50.000000",
     "itens": [],
     "janela": "12m",
     "janela_meses": 1,
-    "teto_sugerido": 172500,
     "total_pontuais": 0,
     "total_pontuais_janela": 0
   },
