@@ -144,6 +144,19 @@ Vai para a lane da base dos pontuais (`LC6-05`), **não** para esta:
    base é 57,5% movimentação patrimonial no dogfood; emiti-lo sem leitor criaria a
    classe emissor-sem-leitor que a [[A40.l88]] gateia.
 
+### Baseline de pixel do PDF ficou STALE — ação do dono
+
+Remover um KPI do card muda o PDF renderizado. Medido local: `19.503px` de divergência
+(tolerância 500). **Não bloqueia este PR** — `print.@critical` é exclusão nominal do
+"Report render gate" (baseline OS-específica, job próprio `frontend-print-visual`,
+opt-in por label `print`), e `print-chrome`/`print-text`, que medem **conteúdo** do PDF
+e não pixel, continuam dentro do gate e passam.
+
+**Não rebaselinei local**, por decisão registrada: a baseline é gerada no runner Linux
+(UTC) e o macOS diverge por fuso e antialiasing — rebaseline local cimentaria ruído
+ambiental sobre a mudança real. A regeneração é `workflow_dispatch` com
+`run_print=true` + `UPDATE_PRINT_BASELINE=1`, que é disparo do dono.
+
 ### Achado lateral, registrado
 
 `dev/check_float_money.py` tem falso-positivo de forma conhecida no scan **diff-based**:
