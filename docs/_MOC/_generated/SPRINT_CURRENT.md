@@ -27,7 +27,6 @@ open · in_progress.
 - [[A40.l80]] — Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono' · priority P0 · área pipeline/financial-planning/report · branch `a40-l80-denominador-amputado`
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
-- [[A40.l90]] — A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar · priority P0 · área pipeline/financial-planning · branch `a40-l90-limiar-de-risco-le-o-catalogo`
 - [[A40.l92]] — A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora · priority P0 · área frontend/relatorio · branch `a40-l92-polaridade-do-comparador`
 
 ## In progress
