@@ -4,7 +4,9 @@ type: lane
 title: "Denominador amputado: metade da carteira não tem dono, o investível a exclui e o bruto a inclui — cinco superfícies medem 'de quanto se sabe o dono'"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1820
+ship_date: "2026-08-30"
 priority: P0
 branch_slug: a40-l80-denominador-amputado
 adrs:
@@ -65,14 +67,15 @@ recusa julgar.
 
 ## Falta — o resto do PR4 e o PR5
 
-**Critério de aceite: 3 fechados, 1 parcial, 1 refutado.** ✅ Consistência (bases
+**Critério de aceite: 4 fechados, 1 parcial (deferido com dono), 1 refutado.** ✅ Consistência (bases
 publicadas com termos) · ✅ Corretude (intervalo + identidade) · ✅ **Completude**
 (o gate morde e cobre **4 de 4** razões — #1782, #1785, #1794, #1795; a 4ª exigiu
-unificar o numerador antes, porque rótulo declara denominador) · 🟡 **Precisão** (as duas declarações falsas medidas
-foram corrigidas em [#1769](https://github.com/davidrobert/mathoms/pull/1769); falta
-fechar `kpi_targets[].base` no schema) · 🟡 **Prova de fecho** — o critério **como escrito** segue
-refutado (C16: inerte e de sinal trocado), mas o **substituto** desenhado pelo
-`financial-planner` está **2 de 4 entregue** — ver §abaixo.
+unificar o numerador antes, porque rótulo declara denominador) · ✅ **Precisão** (as duas declarações falsas medidas foram
+corrigidas em [#1769](https://github.com/davidrobert/mathoms/pull/1769), e
+`kpi_targets[].base` fechou como enum de 19 membros no #1820) · 🟡 **Prova de fecho** — o
+critério **como escrito** segue refutado (C16: inerte e de sinal trocado); o **substituto**
+desenhado pelo `financial-planner` está **3 de 4 entregue** e o P3 vai a §Deferimento com
+pré-requisito medido — ver §abaixo.
 
 **O que falta na Completude, nomeado.** O gate (`tests/test_cobertura_de_base.py`)
 recompõe `numerador ÷ base declarada` em cents. Cobertas: `concentracao_imobiliaria`
@@ -137,6 +140,35 @@ quatro predicados medíveis no lugar dele; dois estão em `main`:
 já carregava `fonte="baseline_irpf"`, e `_detalhes_caixa` publicava o **nome da conta**
 naquele campo enquanto o schema tinha `nome` vazio ao lado. Procedência que existe a
 montante e morre na publicação faz trabalho de contrato parecer trabalho de domínio.
+
+## Deferimento — P3 (manchete única na capa) · 2026-08-30
+
+**Dono: nenhum ainda. Condição de retomada: a §D7 ligada.** Não vira lane hoje porque a
+precondição não existe, e um gate escrito agora **nasceria verde**.
+
+O P3 pede manchete única quando **≥3 prescrições** forem suprimidas pela mesma causa.
+Medido em 2026-08-28:
+
+- A §D7 promete `cobertura_incompleta` suprimindo **6** vereditos (autonomia,
+  `goals.if_pct`/`if_gap`, cone, prazos de `cenarios_conjuge`, `avaliacao_liquidity`,
+  `exposicao_cambial.tier`). Está ligada em **1** — o único consumidor é
+  `alocacao_derived_enricher.py`.
+- Das grandezas de `SupressaoPorAtribuicao`, só `de_reserva` tem call-site de produção.
+  `de_autonomia` e `de_prazo` existem, são testadas e **nenhum produtor as chama**.
+- No `dogfood_view_model.json` os `motivo_supressao` presentes estão todos `null`.
+
+Logo o gatilho "≥3 pela mesma causa" **nunca alcança 2**, e contra o dogfood o gate
+nasceria verde — o modo de falha que a própria lane catalogou.
+
+**Ordem de retomada, se alguém pegar:** (1) ligar a §D7 nos 5 vereditos que faltam;
+(2) só então o campo `causa` como enum ao lado do `motivo` em prosa, generalizando o
+precedente que já existe — `pgbl_motivos.py` tem enum fechado de 8 membros, precedência
+declarada e invariante `campo null ⟺ motivo não-null` no schema; (3) o componente.
+
+**Não conte a causa pela string.** `SupressaoPorAtribuicao._motivo` emite **3 strings
+distintas para a mesma causa** (interpola a grandeza no meio) e
+`alocacao_alvo_deviation._compor_motivo` concatena **2 causas numa** string com `"; "`.
+Contagem por igualdade de string dá 3 onde há 1, e 1 onde há 2.
 
 ### Decisões dos especialistas (2026-08-28)
 
