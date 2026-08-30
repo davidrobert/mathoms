@@ -615,9 +615,20 @@ olhasse a baseline recém-trocada. O run disparado pelo label **não** cancela o
 run em voo, mas é um ciclo de CI completo a mais — abrir o PR já com o label
 continua sendo o caminho barato.
 
-**Rodar não é gatear.** `frontend-visual` e `frontend-print-visual` não estão em
-`all-green.needs`, então vermelho neles não bloqueia merge: quem vai olhar o
-resultado é você. Confira o job antes de mergear um PR de rebaseline.
+**Rodar é gatear — desde 2026-08-13.** `frontend-visual` e
+`frontend-print-visual` **estão** em `all-green.needs` (`11f1f3f8`, #1428), então
+vermelho neles **bloqueia** o merge. Este parágrafo afirmou o contrário por 17
+dias; a afirmação antiga descrevia o mundo anterior ao #1428, em que o PR #1384
+mergeou por auto-merge com o gate visual vermelho — que foi justamente o motivo
+de os jobs entrarem no grafo.
+
+O que **não** mudou: os dois jobs continuam opt-in por label e o `all-green`
+aceita `skipped`, então PR sem label não é travado. A consequência prática é
+assimétrica e vale entender antes de aplicar o label: **aplicar `visual` — a
+coisa certa ao mexer no relatório — é o que passa a poder bloquear o seu PR**, e
+se `main` estiver com drift você herda a falha alheia. Se isso acontecer, não
+rebaseline junto com a sua mudança: a drift alheia vai para PR dedicado, com a
+causa nomeada (precedente: #1850).
 
 ### A baseline do PDF é uma família à parte
 
