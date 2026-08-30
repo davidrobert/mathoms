@@ -118,11 +118,6 @@
       "valor": -5000.0
     },
     {
-      "data": "2025-11-12",
-      "descricao": "TED PARA CONTA PROPRIA ITAU",
-      "valor": -25000.0
-    },
-    {
       "data": "2025-12-05",
       "descricao": "PIX recebido",
       "valor": 20000.0
@@ -133,11 +128,6 @@
       "valor": -5000.0
     },
     {
-      "data": "2025-12-14",
-      "descricao": "DEBITO NAO RECONHECIDO 8842",
-      "valor": -7000.0
-    },
-    {
       "data": "2026-01-05",
       "descricao": "PIX recebido",
       "valor": 20000.0
@@ -146,11 +136,6 @@
       "data": "2026-01-08",
       "descricao": "ALUGUEL APARTAMENTO",
       "valor": -5000.0
-    },
-    {
-      "data": "2026-01-16",
-      "descricao": "PIX FAMILIA MENSALIDADE",
-      "valor": -4000.0
     },
     {
       "data": "2026-02-05",
@@ -176,6 +161,21 @@
       "data": "2026-03-08",
       "descricao": "ALUGUEL APARTAMENTO",
       "valor": -5000.0
+    },
+    {
+      "data": "2025-11-12",
+      "descricao": "TED PARA CONTA PROPRIA ITAU",
+      "valor": -25000.0
+    },
+    {
+      "data": "2025-12-14",
+      "descricao": "DEBITO NAO RECONHECIDO 8842",
+      "valor": -7000.0
+    },
+    {
+      "data": "2026-01-16",
+      "descricao": "PIX FAMILIA MENSALIDADE",
+      "valor": -4000.0
     }
   ]
 }
