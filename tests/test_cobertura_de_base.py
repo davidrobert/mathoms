@@ -257,45 +257,36 @@ def test_cambial_declara_a_base_e_o_catalogo_a_LE(patrimonio: dict) -> None:
     assert alvo["base"] == declarada, "catálogo e produtor declaram bases diferentes"
 
 
-# O enum é SINTÁTICO e o recompute é semântico — este teste liga os dois, senão a
-# vedação nasce vazia: enum que não cobre o produzido reprovaria em `warn` e ninguém
-# veria, e enum derivado do produzido nunca reprovaria nada.
-def test_toda_base_produzida_esta_no_enum_do_schema(patrimonio: dict, ratios: dict) -> None:
+def _enum_de_base() -> set:
+    """Vocabulário fechado de `kpi_targets[].base`, lido do schema E5."""
     import json
     from pathlib import Path as _P
-
-    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
 
     schema = json.loads(
         (_P(__file__).resolve().parents[1] / "config/schemas/e5_analysis.schema.json").read_text()
     )
-    declarado = set(
+    return set(
         schema["properties"]["kpi_targets"]["additionalProperties"]["properties"]["base"]["enum"]
     )
-    produzidas = {
-        a["base"]
-        for a in build_kpi_targets(
-            {"patrimonio": patrimonio, "ratios": ratios}, scoring={}
-        ).values()
-    }
+
+
+# O enum é SINTÁTICO e o recompute é semântico — este teste liga os dois, senão a
+# vedação nasce vazia: enum que não cobre o produzido reprovaria em `warn` e ninguém
+# veria, e enum derivado do produzido nunca reprovaria nada.
+def test_toda_base_produzida_esta_no_enum_do_schema(patrimonio: dict, ratios: dict) -> None:
+    from pipeline.domain.services.kpi_target_catalog import build_kpi_targets
+
+    e5 = {"patrimonio": patrimonio, "ratios": ratios}
+    produzidas = {a["base"] for a in build_kpi_targets(e5, scoring={}).values()}
 
     assert produzidas, "nenhum alvo produzido — o teste ficaria vacuoso"
-    assert produzidas <= declarado, f"base produzida fora do enum: {sorted(produzidas - declarado)}"
+    fora = produzidas - _enum_de_base()
+    assert not fora, f"base produzida fora do enum: {sorted(fora)}"
 
 
 # A outra ponta: membro de `BaseFinanceira` que o schema não conhece faria o eixo
 # patrimonial publicar base inválida no dia em que um catálogo passasse a citá-lo.
 def test_todo_membro_de_BaseFinanceira_cabe_no_enum() -> None:
-    import json
-    from pathlib import Path as _P
-
     from pipeline.domain.services.bases_financeiras import BaseFinanceira
 
-    schema = json.loads(
-        (_P(__file__).resolve().parents[1] / "config/schemas/e5_analysis.schema.json").read_text()
-    )
-    declarado = set(
-        schema["properties"]["kpi_targets"]["additionalProperties"]["properties"]["base"]["enum"]
-    )
-
-    assert {b.value for b in BaseFinanceira} <= declarado
+    assert {b.value for b in BaseFinanceira} <= _enum_de_base()
