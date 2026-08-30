@@ -233,13 +233,40 @@ inalcançável**. São vizinhos e não se substituem.
 ## Decisão — `product-designer`, 2026-08-30
 
 > [!IMPORTANT] **Esta decisão foi tomada sob a premissa falsificada acima** (que
-> não havia rota abaixo de 768px). Está **em reconsulta** ao mesmo dono, com o
-> FAB medido em mãos. O que muda: a **camada 1 ("rota garantida do índice") já
-> existe** em ≤1023px e não é construção nova — o que resta dela é decidir a
-> linha em que os chips saem, e essa linha ficou **mais difícil**, não mais
-> fácil, porque o pior orçamento de trilha é a 1024px (295px, 4 chips), que é
-> exatamente onde o FAB some. As camadas 2 (tinta) e 3 (fade) e os itens de a11y
-> **não dependem** da premissa e seguem válidos.
+> não havia rota abaixo de 768px). **A reconsulta ao mesmo dono aconteceu, com o
+> FAB medido em mãos, e o veredito abaixo é o REVISADO** — a decisão original
+> ficou registrada no histórico do PR, não aqui.
+
+### Veredito revisado
+
+**A camada 1 ("rota garantida do índice") foi retirada.** Em ≤1023px a rota já
+existe, com focus-trap nativo e os 20 alvos com rótulo completo; nada disso é PR
+novo, e some com ela todo o trabalho de `Sheet`/`aria-modal`/trap de foco que a
+decisão original listava como não-diferível.
+
+**A pergunta que restou — onde os chips saem — foi reposta.** As três opções que
+eu tinha formulado (`md`, `lg`, `xl`) assumiam que o valor dos chips é função de
+**quantos** têm tinta. É função de **quais**, e faltava uma variável: a faixa
+**nunca rolava o chip ativo para dentro do campo**, e no compacto só o ativo
+expande o rótulo. Lendo a seção 9 a 1024px, o rail mostrava "1 · 2 · 2.5 · 3" —
+quatro números do começo do documento, nenhum ativo, nenhum rótulo. **O emprego
+de orientação estava quebrado em toda largura abaixo de ~1500, independentemente
+de onde se cortasse.** Com auto-scroll, 295px deixam de ser "4 de 20" e passam a
+ser "o ativo com rótulo expandido + vizinhos".
+
+Decidido: **chips fora abaixo de `md`** — onde o rail não comporta ativo-expandido
+mais um vizinho de cada lado (~250px; a 703/768 há 249–263px, a 600 há 146px).
+`lg` seria **regressão**, apagando a orientação justo em 768–1023, onde o `aside`
+está escondido e nada mais responde "onde estou". E **a costura 1024–1279
+dissolve**: com auto-scroll o rail a 1024 está no mesmo estado que a 768, e o
+defeito real daquela banda era o `md:inline-flex` do toggle — uma linha.
+
+**O fade sobe de prioridade e fica acoplado ao auto-scroll**: com o conteúdo se
+movendo sozinho sob o usuário, corte duro nas bordas lê como bug, não como janela.
+
+**Honestidade sobre o SC:** 2.4.7 exige um corte em algum ponto ≥455px e **não
+escolhe qual** — `md`, `lg` e `xl` o satisfazem igualmente. Quem escolhe `md` é o
+argumento de orientação, não a norma.
 
 
 A medição eliminou duas opções do enunciado antes do painel: `density` mais
