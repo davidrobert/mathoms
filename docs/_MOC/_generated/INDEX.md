@@ -782,6 +782,7 @@
 | A26.l8 | lane | shipped | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
+| A27.l2 | lane | open | A27 | A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro | `sprint/A27/lanes/A27-l2-cobertura-de-lineage-sem-gate.md` |
 | A28.l1 | lane | shipped | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
 | A28.l10 | lane | shipped | A28 | âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas | `sprint/A28/lanes/A28-l10-ancoras-formatter-curadoria.md` |
 | A28.l11 | lane | shipped | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
@@ -895,6 +896,10 @@
 | A40.l102 | lane | open | A40 | Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir | `sprint/A40/lanes/A40-l102-superficie-do-pontual-e-dedup.md` |
 | A40.l103 | lane | shipped | A40 | O recorte da baseline da capa media a nav — e era o único gate sobre os números-manchete | `sprint/A40/lanes/A40-l103-clip-da-capa-media-a-nav.md` |
 | A40.l104 | lane | shipped | A40 | A trilha sticky promete 20 alvos e entrega 10 em 1280px, 0 no telefone — e não há sinal de que falte algo | `sprint/A40/lanes/A40-l104-trilha-promete-alvo-que-nao-entrega.md` |
+| A40.l105 | lane | open | A40 | Aprovação-com-avisos é indistinguível de nunca-ter-pausado no desfecho do run, e é o desfecho que alimenta o banner de qualidade | `sprint/A40/lanes/A40-l105-aprovacao-com-avisos-indistinguivel.md` |
+| A40.l106 | lane | open | A40 | O relatório não emite índice de seção algum no mobile: rolagem longa sem navegação, enquanto o desktop emite o índice completo | `sprint/A40/lanes/A40-l106-relatorio-sem-indice-no-mobile.md` |
+| A40.l107 | lane | open | A40 | A conversão tabela→cartão no mobile é aplicada por componente, não por regra: 11 tabelas largas não convertem, e há um terceiro comportamento não previsto | `sprint/A40/lanes/A40-l107-conversao-tabela-cartao-por-componente.md` |
+| A40.l108 | lane | open | A40 | Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro | `sprint/A40/lanes/A40-l108-um-ano-nomeia-cenario-central-e-de-estresse.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
@@ -1006,6 +1011,9 @@
 | A42.l18 | lane | open | A42 | A perna de valor da conservação E3→E4 é inerte: `dups` é literal e os dois lados somam `abs()` da mesma população | `sprint/A42/lanes/A42-l18-perna-de-valor-e3e4-inerte.md` |
 | A42.l19 | lane | open | A42 | O guard de escrita do E4 resolve por stage e tem ramo placeholder: o balde do patrimônio reprova hoje e é gravado assim mesmo | `sprint/A42/lanes/A42-l19-guard-de-escrita-e4-inerte-no-patrimonio.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
+| A42.l20 | lane | open | A42 | O contador de linhas do E3 ignora o canal de remoção que a função vizinha lê, e o resultado sai com duas causas declaradas, ambas falsas | `sprint/A42/lanes/A42-l20-contador-do-razao-ignora-canal-de-remocao.md` |
+| A42.l21 | lane | open | A42 | O cross-check de proveniência da rodada unificada só pode sair vermelho, e agrega três causas distintas sob um rótulo | `sprint/A42/lanes/A42-l21-x5-so-pode-sair-vermelho.md` |
+| A42.l22 | lane | open | A42 | A previsão de tempo exibida durante o run é subdeclarada em até 72%: a mediana mistura no-ops de milissegundos com execuções de minutos | `sprint/A42/lanes/A42-l22-mediana-de-duracao-mistura-no-op.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |
