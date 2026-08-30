@@ -20,7 +20,11 @@ vi.mock("@/hooks/useConsumoPontuais", () => ({
 
 import { ConsumoConscienteCard } from "@/components/report/cards/ConsumoConscienteCard";
 
-function item(categoria: string, valor: number, i: number): ConsumoPontuaisItem {
+function item(
+  categoria: string,
+  valor: number,
+  i: number,
+): ConsumoPontuaisItem {
   return {
     data: "2026-04-15",
     descricao: `Gasto pontual ${i}`,
@@ -80,5 +84,82 @@ describe("<ConsumoConscienteCard />", () => {
     const semCategoria = { ...item("", 2100, 1), categoria: "" };
     renderWithItems([semCategoria]);
     expect(screen.getByText(/sem categoria/)).toBeInTheDocument();
+  });
+});
+
+/**
+ * A40.l98 ([[ADR-425]] §D2) — a base declara o que exclui NA SUPERFÍCIE que a
+ * publica. Sem esta linha o KPI "Gastos pontuais" é um número cujo denominador
+ * o leitor não conhece: eram três produtores com filtros disjuntos, e o que
+ * prescreve era o que menos filtrava.
+ */
+describe("<ConsumoConscienteCard /> · declaração da base", () => {
+  const CONSUMO = {
+    total_pontuais: 46000,
+    total_pontuais_janela: 16000,
+    folga_mensal: 14250,
+    folga_pct: 71.25,
+    equivalente_meses_poupanca: 1.1,
+    analise: "",
+    janela: "12m",
+    janela_meses: 12,
+    base_pontuais: {
+      bruto: { valor: 127000, contagem: 18 },
+      publicado: { valor: 46000, contagem: 3 },
+      excluidos: {
+        recorrente: { valor: 65000, contagem: 13 },
+        transferencia_por_categoria: { valor: 16000, contagem: 2 },
+      },
+    },
+  };
+
+  function renderComBase(consumo: unknown) {
+    mockUseConsumoPontuais.mockReturnValue({
+      items: [],
+      total: 0,
+      totalValor: 0,
+      isLoading: false,
+      error: null,
+    });
+    return render(
+      <ConsumoConscienteCard
+        consumo={
+          consumo as Parameters<typeof ConsumoConscienteCard>[0]["consumo"]
+        }
+      />,
+    );
+  }
+
+  it("imprime cada causa de exclusão com valor e contagem", () => {
+    const { container } = renderComBase(CONSUMO);
+    const linha = container.querySelector("[data-consumo-base-declaracao]");
+    expect(linha).not.toBeNull();
+    const texto = linha!.textContent!.replace(/ /g, " ");
+    expect(texto).toContain("18 lançamentos");
+    expect(texto).toMatch(/recorrentes R\$\s?65\.000 \(13\)/);
+    expect(texto).toMatch(/transferências R\$\s?16\.000 \(2\)/);
+  });
+
+  it("some quando nada foi excluído — linha vazia seria ruído", () => {
+    const { container } = renderComBase({
+      ...CONSUMO,
+      base_pontuais: {
+        bruto: { valor: 46000, contagem: 3 },
+        publicado: { valor: 46000, contagem: 3 },
+        excluidos: {},
+      },
+    });
+    expect(
+      container.querySelector("[data-consumo-base-declaracao]"),
+    ).toBeNull();
+  });
+
+  it("não quebra em payload anterior à lane (sem `base_pontuais`)", () => {
+    const { base_pontuais: _omitido, ...semBase } = CONSUMO;
+    const { container } = renderComBase(semBase);
+    expect(
+      container.querySelector("[data-consumo-base-declaracao]"),
+    ).toBeNull();
+    expect(screen.getByText("Equiv. meses de poupança")).toBeInTheDocument();
   });
 });

@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
+from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy, VeredictoPontual
 from tests.pipeline_golden_substrate import load_fixture, run_e3_e4_e5_ctx, write_e5_config
 
 _FIX = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "pipeline_golden"
@@ -115,3 +115,45 @@ def test_delta_por_causa_e_atribuivel(run):
     assert de_conta == 4_000.0
     assert publicado == pytest.approx(46_000.0)
     assert publicado + patrimonial + de_conta == pytest.approx(62_000.0)
+
+
+# ---------------------------------------------------------------------------
+# `base_pontuais` — [[ADR-425]] §D2
+# ---------------------------------------------------------------------------
+
+
+def test_a_base_conserva(run):
+    """``bruto == publicado + Σ excluidos`` — sem a identidade, um balde pode
+    sumir e o leitor não tem como notar."""
+    base = run["e5"]["base_pontuais"]
+    soma = base["publicado"]["valor"] + sum(b["valor"] for b in base["excluidos"].values())
+    contagem = base["publicado"]["contagem"] + sum(
+        b["contagem"] for b in base["excluidos"].values()
+    )
+    assert base["bruto"]["valor"] == pytest.approx(soma)
+    assert base["bruto"]["contagem"] == contagem
+
+
+def test_o_publicado_e_o_total_pontuais(run):
+    """O objeto não é um segundo número ao lado do KPI: é a decomposição DELE."""
+    assert run["e5"]["base_pontuais"]["publicado"]["valor"] == pytest.approx(
+        run["e5"]["total_pontuais"]
+    )
+
+
+def test_todo_balde_excluido_tem_veredito_conhecido(run):
+    """Chave fora do enum fechado quebra o rótulo do leitor em silêncio."""
+    vereditos = {v.value for v in VeredictoPontual} - {VeredictoPontual.incluido.value}
+    assert set(run["e5"]["base_pontuais"]["excluidos"]) <= vereditos
+
+
+def test_a_base_nao_esconde_o_que_o_bruto_inclui(run):
+    """O universo é *todo lançamento ≥ limiar*. Um `bruto` mais estreito seria ele
+    próprio um filtro não declarado — o defeito que esta base existe para remover."""
+    acima = sum(
+        abs(float(t.get("valor", 0)))
+        for txs in run["e4"].values()
+        for t in txs
+        if _POLICY.is_relevante(abs(float(t.get("valor", 0))))
+    )
+    assert run["e5"]["base_pontuais"]["bruto"]["valor"] == pytest.approx(acima)

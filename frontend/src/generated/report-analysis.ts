@@ -40,6 +40,7 @@ export type ConsumoConsciente = {
   "janela_meses"?: number;
   "equivalente_meses_poupanca"?: number | null;
   "motivo_supressao"?: string | null;
+  "base_pontuais"?: BasePontuais;
 };
 
 export type GastoPontualItem = {
@@ -249,6 +250,21 @@ export type AtribuicaoInvestimentos = {
   "pct_carteira_financeira"?: number;
   "piso_pct"?: number;
   "motivo"?: string | null;
+};
+
+export type BaldePontual = {
+  "valor": number;
+  "contagem": number;
+};
+
+export type BasePontuais = {
+  "bruto": BaldePontual;
+  "publicado": BaldePontual;
+  "excluidos": {
+    "recorrente"?: BaldePontual;
+    "transferencia_por_categoria"?: BaldePontual;
+    "transferencia_detectada"?: BaldePontual;
+  };
 };
 
 export type ProtecaoPatrimonialApoliceResumo = {

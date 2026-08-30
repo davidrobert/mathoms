@@ -12,7 +12,9 @@ Função pura, recebe dicts + config tipada (R9/ISP). Sem I/O.
 from __future__ import annotations
 
 import math
+from collections.abc import Iterator
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.brl_prose import fmt_brl_prosa
@@ -87,6 +89,20 @@ def _folga_em_prosa(publicada: float) -> str:
     return f"folga mensal de {fmt_brl_prosa(publicada, decimals=2)}"
 
 
+def _item_pontual(txn: dict, categoria: str, quantia: Decimal) -> "GastoPontualItem":
+    data_str = str(txn.get("data", ""))
+    banco = str(txn.get("banco", ""))
+    tipo_conta = str(txn.get("tipo_conta", ""))
+    return GastoPontualItem(
+        descricao=str(txn.get("descricao", "N/D")),
+        conta_cartao=f"{banco} ({tipo_conta})" if tipo_conta else banco,
+        data=data_str,
+        mes=data_str[:7] if len(data_str) >= 7 else "",
+        valor=float(quantia),
+        categoria=categoria,
+    )
+
+
 def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
     """Motivo de máquina, forma ``"<slug>: <detalhe>"`` ([[ADR-394]] §D7); a copy da
     família vive na prosa do E5."""
@@ -99,6 +115,56 @@ def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
 # =============================================================================
 # Result
 # =============================================================================
+
+
+@dataclass(frozen=True)
+class BaldePontual:
+    """Um balde da base: quanto e quantos. ``pct`` **não é campo** — o leitor o
+    deriva de ``bruto``, que está no mesmo objeto ([[ADR-425]] §D2); publicá-lo
+    criaria um terceiro número a manter em sincronia com dois que já estão ali.
+
+    ``Decimal`` e não ``float`` ([[ADR-090]]): este é o único ponto do módulo que
+    **acumula** dinheiro, e a identidade de conservação da base tem de fechar ao
+    centavo. O ``float`` volta só no ``to_dict``, que é o wire.
+    """
+
+    total: Decimal = Decimal("0")
+    contagem: int = 0
+
+    def mais(self, quantia: Decimal) -> "BaldePontual":
+        return BaldePontual(self.total + quantia, self.contagem + 1)
+
+    def to_dict(self) -> dict:
+        return {"valor": float(round(self.total, 2)), "contagem": self.contagem}
+
+
+@dataclass(frozen=True)
+class BasePontuais:
+    """O que a base do gasto pontual exclui, **por causa** — declarado na
+    superfície que a publica ([[ADR-425]] §D2).
+
+    Invariante: ``bruto.valor == publicado.valor + Σ excluidos[].valor``. O
+    universo é *todo lançamento acima do limiar*: recortar o ``bruto`` mais
+    estreito reintroduziria um filtro não declarado, que é o defeito que esta
+    base existe para remover.
+    """
+
+    publicado: BaldePontual
+    excluidos: dict[str, BaldePontual]
+
+    @property
+    def bruto(self) -> BaldePontual:
+        return BaldePontual(
+            self.publicado.total + sum((b.total for b in self.excluidos.values()), Decimal("0")),
+            self.publicado.contagem + sum(b.contagem for b in self.excluidos.values()),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "bruto": self.bruto.to_dict(),
+            "publicado": self.publicado.to_dict(),
+            "excluidos": {k: v.to_dict() for k, v in sorted(self.excluidos.items())},
+        }
 
 
 @dataclass(frozen=True)
@@ -140,6 +206,7 @@ class ConsumoConsciente:
     janela: str = "full"
     janela_meses: int = 0
     pontuais_janela: float = 0.0
+    base: BasePontuais = field(default_factory=lambda: BasePontuais(BaldePontual(), {}))
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -153,6 +220,7 @@ class ConsumoConsciente:
             "motivo_supressao": self.motivo_supressao,
             "janela": self.janela,
             "janela_meses": self.janela_meses,
+            "base_pontuais": self.base.to_dict(),
         }
 
 
@@ -175,9 +243,9 @@ class ConsumoConscienteCalculator:
         cfg = self._policy
         dados = (despesas or {}).get("dados", {}) or {}
 
-        candidates = self._collect_candidates(dados)
+        candidates, base = self._triar(dados)
         candidates.sort(key=lambda x: x.valor, reverse=True)
-        total_pontuais = sum(c.valor for c in candidates)
+        total_pontuais = float(base.publicado.total)
 
         window = self._resolve_janela(fluxo)
 
@@ -239,45 +307,42 @@ class ConsumoConscienteCalculator:
             janela=window.janela,
             janela_meses=int(window.n_meses),
             pontuais_janela=pontuais_janela,
+            base=base,
         )
 
     # -- Helpers --
 
-    def _collect_candidates(self, dados: dict[str, Any]) -> list[GastoPontualItem]:
-        cfg = self._policy
-        out: list[GastoPontualItem] = []
+    # A40.l98 — a exclusão de natureza é a UNIÃO dos dois conjuntos de categoria.
+    # Antes daqui só saía `recorrentes`: o aporte (`transferencia_patrimonial`,
+    # [[ADR-333]]) e a transferência entre contas entravam na base que o parecer
+    # usa para prescrever contenção de consumo. Sem detector — dentro do E5 ele é
+    # inerte por construção (ver `GastoPontualPolicy.classify`).
+    def _triar(self, dados: dict[str, Any]) -> tuple[list[GastoPontualItem], BasePontuais]:
+        """Todo lançamento acima do limiar recebe um veredito — o descartado sai
+        atribuído a uma causa, não em silêncio."""
+        incluidos: list[GastoPontualItem] = []
+        excluidos: dict[str, BaldePontual] = {}
+        publicado = BaldePontual()
         for cat, transacoes in dados.items():
-            # A40.l98 — a exclusão de natureza é a UNIÃO dos dois conjuntos de
-            # categoria. Antes daqui só saía `recorrentes`: o aporte
-            # (`transferencia_patrimonial`, [[ADR-333]]) e a transferência entre
-            # contas entravam na base que o parecer usa para prescrever contenção
-            # de consumo. Sem detector — dentro do E5 ele é inerte por
-            # construção (ver `GastoPontualPolicy.classify`).
-            if cfg.classify(str(cat)) is not VeredictoPontual.incluido:
-                continue
             if not isinstance(transacoes, list):
                 continue
-            for txn in transacoes:
-                if not isinstance(txn, dict):
+            veredito = self._policy.classify(str(cat))
+            for quantia, txn in self._relevantes(transacoes):
+                balde = veredito.value if veredito is not VeredictoPontual.incluido else None
+                if balde is None:
+                    incluidos.append(_item_pontual(txn, str(cat), quantia))
+                    publicado = publicado.mais(quantia)
                     continue
-                valor = _safe_float(txn.get("valor", 0))
-                if not cfg.is_relevante(valor):
-                    continue
-                data_str = str(txn.get("data", ""))
-                banco = str(txn.get("banco", ""))
-                tipo_conta = str(txn.get("tipo_conta", ""))
-                conta_cartao = f"{banco} ({tipo_conta})" if tipo_conta else banco
-                out.append(
-                    GastoPontualItem(
-                        descricao=str(txn.get("descricao", "N/D")),
-                        conta_cartao=conta_cartao,
-                        data=data_str,
-                        mes=data_str[:7] if len(data_str) >= 7 else "",
-                        valor=valor,
-                        categoria=str(cat),
-                    )
-                )
-        return out
+                excluidos[balde] = excluidos.get(balde, BaldePontual()).mais(quantia)
+        return incluidos, BasePontuais(publicado, excluidos)
+
+    def _relevantes(self, transacoes: list) -> Iterator[tuple[Decimal, dict]]:
+        for txn in transacoes:
+            if not isinstance(txn, dict):
+                continue
+            bruto = _safe_float(txn.get("valor", 0))
+            if self._policy.is_relevante(bruto):
+                yield Decimal(str(bruto)), txn
 
     def _resolve_janela(self, fluxo: dict[str, Any]) -> "_ConsumoWindow":
         j12m = fluxo.get("janela_12m") if isinstance(fluxo, dict) else None
