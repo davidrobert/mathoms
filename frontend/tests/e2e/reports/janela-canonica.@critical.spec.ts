@@ -15,12 +15,13 @@
  * (0/5 têm `receita_recorrente_mensal`, 0/5 têm `consumo_consciente`), então um
  * spec escrito sobre elas passaria sem exercitar o defeito.
  *
- * **Escopo:** o TEXTO derivado de `DespesasDoughnutChart` e
- * `ReceitaDespesaMensalChart` saiu desta lane para a A40.l15 (os dois citam
- * bases legitimamente distintas — janela ex-aporte por ADR-333 vs bruto de todo
- * o período — e escolher qual base cada texto declara é decisão de domínio).
- * `CARDS_DA_L15` os exclui nominalmente das varreduras; o resto de S2 segue
- * coberto, e o desenho do donut continua assertado.
+ * **Escopo (A40.l102, 2026-08-30):** a exclusão nominal `CARDS_DA_L15` — que
+ * tirava `DespesasDoughnutChart` e `ReceitaDespesaMensalChart` das varreduras
+ * enquanto a base de cada texto era decisão de domínio em aberto — foi
+ * removida. Os dois declaram a própria base, e S2 está inteira sob as
+ * varreduras. Esta é a perna RENDERIZADA da mesma remoção feita no contract
+ * test; as duas guardas tinham de cair juntas, senão a que sobrasse mediria
+ * menos e ninguém seria avisado.
  *
  * Instrumento da perna de PDF: `page.emulateMedia({ media: "print" })` ANTES
  * do `goto`. `?print=1` **não** liga `isPrint` — a rota só marca
@@ -46,10 +47,11 @@ const DESPESA_FULL = /R\$\s?36\.000/;
 const PONTUAIS_12M = /R\$\s?96\.000,00/;
 const PONTUAIS_FULL = /R\$\s?250\.000,00/;
 
-/** Cards cujo TEXTO derivado saiu desta lane para a A40.l15 (base e rótulo do
- * par são decisão de domínio). Mesma exclusão nominal do contract test —
- * renomear um card devolve o texto ao invariante, e falha alto. */
-const CARDS_DA_L15 = [
+/** Cards que a exclusão nominal removia até a A40.l102. Já não saem de
+ * varredura nenhuma; a lista sobrevive só para o assert de que os dois títulos
+ * continuam na seção — renomear um card falha alto em vez de encolher a
+ * varredura em silêncio. */
+const CARDS_ANTES_EXCLUIDOS = [
   "Despesas por Categoria",
   "Receita vs Despesa — Mês a Mês",
 ];
@@ -104,14 +106,7 @@ function s2(page: Page): Locator {
  * espaçamento entre elementos, e todo `X/mês` desta seção vive num único nó de
  * texto (prosa). */
 async function textoNoEscopoDaLane(page: Page): Promise<string> {
-  return s2(page).evaluate((sec, fora) => {
-    const copia = sec.cloneNode(true) as HTMLElement;
-    for (const card of [...copia.querySelectorAll("section")]) {
-      const titulo = card.querySelector("h3")?.textContent?.trim() ?? "";
-      if (fora.includes(titulo)) card.remove();
-    }
-    return copia.textContent ?? "";
-  }, CARDS_DA_L15);
+  return s2(page).evaluate((sec) => sec.textContent ?? "");
 }
 
 /** Valores citados como `X/mês` na seção — invariante de CONSUMO, não de site
@@ -301,15 +296,13 @@ test.describe("janela canônica de fluxo @critical", () => {
     await expect(s2(page)).toContainText("todo o período analisado");
     // Varredura de TODOS os textos derivados da seção — não só os que a lane
     // tocou. Texto que cita agregado sem cláusula de base é o defeito, venha de
-    // onde vier. Os dois cards da A40.l15 ficam de fora, nominalmente.
+    // onde vier. Desde a A40.l102, nenhum card fica de fora.
     const derivados = await textosDerivadosPorCard(page);
     expect(derivados.length).toBeGreaterThan(0);
-    for (const titulo of CARDS_DA_L15) {
+    for (const titulo of CARDS_ANTES_EXCLUIDOS) {
       expect(derivados.map((d) => d.titulo)).toContain(titulo);
     }
-    const sujeitos = derivados
-      .filter((d) => !CARDS_DA_L15.includes(d.titulo))
-      .filter((d) => CITA_AGREGADO.test(d.texto));
+    const sujeitos = derivados.filter((d) => CITA_AGREGADO.test(d.texto));
     expect(sujeitos.length).toBeGreaterThan(0);
     // Mesma const do contract test (Vitest) — ver tests/shared/janelaBaseClause.ts.
     for (const { texto } of sujeitos) expect(texto).toMatch(CLAUSULA_DE_BASE);
