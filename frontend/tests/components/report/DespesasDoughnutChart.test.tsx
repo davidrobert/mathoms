@@ -120,14 +120,23 @@ describe("<DespesasDoughnutChart />", () => {
     expect(slicesAfter["Não identificado"]).toBe(600);
   });
 
-  it("renderiza conclusion prop quando passada", () => {
-    render(
-      <DespesasDoughnutChart
-        fluxo={FLUXO_WITH_DATASETS}
-        conclusion="Conclusão custom v2.E.5"
-      />,
-    );
-    expect(screen.getByText("Conclusão custom v2.E.5")).toBeInTheDocument();
+  // A40.l102 — a prop `conclusion` saiu: o texto do card vinha do payload
+  // (`despesas_por_categoria`, bloco full COM aporte) enquanto a rosca desenha
+  // ex-aporte da janela. Nenhuma base de payload acompanha o toggle, e é
+  // exatamente isso que este teste trava: a cláusula de base ANDA com ele.
+  it("a cláusula de base acompanha o PeriodToggle", async () => {
+    const user = userEvent.setup();
+    render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
+    expect(
+      screen.getAllByText(/em 4 meses documentados/).length,
+    ).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("tab", { name: "3M" }));
+
+    expect(
+      screen.getAllByText(/em 3 meses documentados/).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText(/em 4 meses documentados/)).toBeNull();
   });
 
   it("deriva conclusion default a partir do top da categoria", () => {
@@ -136,15 +145,12 @@ describe("<DespesasDoughnutChart />", () => {
     expect(matches.length).toBeGreaterThan(0);
   });
 
-  // A28.l9 — sinal persistente de "não identificado" >10% vira Alert inline
-  // (a frase condicional na conclusão sumia quando o LLM fornecia conclusion).
-  it("Alert persistente quando nao_identificado > 10%, mesmo com conclusion prop", () => {
-    render(
-      <DespesasDoughnutChart
-        fluxo={FLUXO_WITH_DATASETS}
-        conclusion="Conclusão LLM sem menção a reclassificação"
-      />,
-    );
+  // A28.l9 — sinal persistente de "não identificado" >10% vira Alert inline,
+  // fora da conclusão: a frase condicional sumia quando outro texto ocupava a
+  // caixa de conclusão. O Alert não depende de quem escreve aquele texto, e por
+  // isso sobrevive à saída da prop `conclusion` (A40.l102).
+  it("Alert persistente quando nao_identificado > 10%", () => {
+    render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
     // 800/1400 = 57,1%
     const alert = screen.getByTestId("despesas-nao-identificado-alert");
     expect(alert.textContent).toMatch(/57,1% do total/);
