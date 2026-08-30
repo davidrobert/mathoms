@@ -257,6 +257,17 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 > reduz a folga); na reserva o cancelamento é estruturalmente impossível. Sintoma de
 > produto: o relatório afirma folga confortável **e** reserva insuficiente ao mesmo
 > tempo — incoerência interna visível ao usuário.
+>
+> ⚠️ **Anotação 2026-08-30 — a nota acima fica como está (é medição do r4, 2026-08-04),
+> mas o mecanismo que ela descreve deixou de existir.** "A parte pontual se cancela
+> dentro do parêntese" fala do parêntese da fórmula antiga da folga —
+> `receita_rec_mensal − (despesa_mensal_media − pontuais_janela/n)` —, onde a perna
+> pontual do débito duplicado entrava nos dois termos. A [[ADR-422]] D1 (#1828,
+> 2026-08-29) eliminou o parêntese: `folga_mensal = receita_recorrente_mensal −
+> despesa_consumo_mensal`, sem termo de pontuais. **O dimensionamento de LC01 sobre a
+> folga precisa ser refeito** contra a fórmula nova antes de ser citado de novo — as
+> pernas podem não somar mais da mesma forma. As outras duas (taxa de poupança,
+> reserva) não dependem do parêntese e seguem valendo.
 
 ---
 
