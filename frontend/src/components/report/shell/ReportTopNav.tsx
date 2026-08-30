@@ -116,8 +116,7 @@ export function ReportTopNav({
 
   // Sem isto o chip ativo é justamente o que fica fora de campo: no compacto
   // só ele expande o rótulo, e a faixa nunca rolava sozinha (A40.l104).
-  // `instant` porque é movimento passivo em faixa sticky; `nearest` para não
-  // arrastar a página. Suprimido após gesto do usuário, para não brigar com ele.
+  // Suprimido por 800ms após gesto do usuário, para não brigar com ele.
   useEffect(() => {
     const rail = railRef.current;
     if (!activeId || !rail) return;
