@@ -34,6 +34,7 @@ from sqlalchemy import text  # noqa: E402
 
 from backend.app.core.database import SyncSessionLocal  # noqa: E402
 from backend.app.models.pipeline_run import PipelineRunStatus  # noqa: E402
+from dev.preflight_round_artifacts import check_baselines, check_sintese_anterior  # noqa: E402
 
 # Terminal e a lista curta e estavel; "em voo" e o COMPLEMENTO, para status novo
 # no enum entrar bloqueante por default em vez de sumir do guard.
@@ -67,7 +68,7 @@ FIX_ATRAS_FORA_DE_MAIN = (
 FIX_ADIANTE = "rodar sobre codigo nao-mergeado pode ser a decisao certa; declare o executor no entregavel (licao do §r6)"
 FIX_SUJO = "trabalho de outra sessao? git stash push -- <arquivos>"
 FIX_SINTESE_AUSENTE = (
-    "escreva o SINTESE.md da rodada anterior (runbook §5 F5) — sem ele nao ha baseline"
+    "escreva a sintese da rodada anterior nos DOIS formatos (runbook §5 F5 passo 1)"
 )
 
 
@@ -342,44 +343,6 @@ def check_frontend(base: str) -> Check:
             f"{base} inacessivel ({type(exc).__name__})",
             "sem captura de render, clareza-ux fica SEM COBERTURA e nao pode ser afirmada",
         )
-
-
-def _storage_root(root: Path) -> Path:
-    """`MATHOMS_STORAGE_ROOT` vence o cwd — o storage nao acompanha o worktree."""
-    return Path(os.environ.get("MATHOMS_STORAGE_ROOT") or root / "storage")
-
-
-# Unico item do criterio de aceite (§5 F7) que nao e auto-declarado: a rodada N+1 audita a N.
-def check_sintese_anterior(root: Path, ws: str) -> Check:
-    """Rodada unificada anterior sem `SINTESE.md` bloqueia esta."""
-    dirs = sorted((_storage_root(root) / ws / "reviews").glob("U*"))
-    faltando = [d.name for d in dirs if not (d / "SINTESE.md").exists()]
-    if faltando:
-        detalhe = f"rodada(s) sem SINTESE.md: {', '.join(faltando)}"
-        return Check("sintese-anterior", FAIL, detalhe, FIX_SINTESE_AUSENTE)
-    return Check("sintese-anterior", PASS, f"{len(dirs)} rodada(s) com SINTESE.md")
-
-
-def check_baselines(root: Path, ws: str) -> Check:
-    raiz = _storage_root(root)
-    reviews = sorted((raiz / ws / "reviews").glob("*")) if (raiz / ws / "reviews").exists() else []
-    ledger = (
-        sorted((raiz / ws / "ledger_certify").glob("*"))
-        if (raiz / ws / "ledger_certify").exists()
-        else []
-    )
-    if not reviews and not ledger:
-        return Check(
-            "baselines",
-            WARN,
-            "nenhum baseline duravel",
-            "a rodada vira fotografia, nao gate anti-regressao",
-        )
-    return Check(
-        "baselines",
-        PASS,
-        f"{len(reviews)} review(s) + {len(ledger)} ledger disponiveis para --compare",
-    )
 
 
 def check_instrumento_ledger(root: Path) -> Check:
