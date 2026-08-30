@@ -210,3 +210,92 @@ def test_citers_of_enxerga_registro_moc(tmp_path, monkeypatch) -> None:
     assert any("PIPELINE-REVIEWS-active" in c for c in citers), "registro MOC fora do universo"
     assert any("_README" in c for c in citers), "universo de sprint não pode regredir"
     assert not any("00-INDEX" in c for c in citers), "só *-active.md entra — índice não é registro"
+
+
+# --- frescor do substrato (2026-08-30) ------------------------------------
+# O script resolve o escopo em `origin/main` e audita o WORKING TREE. Rodado de
+# um checkout 2 commits atrás, `--pr 1824` listou 2 citadores; da árvore em
+# `origin/main`, 4 — e os 2 que sumiram eram onde o drift morava. Estes testes
+# fabricam as respostas do git: teste que lê o git vivo fica vermelho conforme
+# alguém commita, que é ruído.
+
+
+def _fake_git(monkeypatch, *, ok=True, diff="", status="", ancestor=True, log=""):
+    """Fabrica as respostas de git que `check_substrate_freshness` consome."""
+
+    def probe(args: list[str]) -> tuple[bool, str]:
+        if args[:2] == ["rev-parse", "--verify"]:
+            return ok, "sha\n"
+        if args[:1] == ["merge-base"]:
+            return ancestor, ""
+        return True, ""
+
+    def plain(args: list[str]) -> str:
+        if args[:1] == ["diff"]:
+            return diff
+        if args[:1] == ["status"]:
+            return status
+        if args[:1] == ["log"]:
+            return log
+        return ""
+
+    monkeypatch.setattr(cc, "_git_probe", probe)
+    monkeypatch.setattr(cc, "_git", plain)
+
+
+def test_substrato_fresco_fica_silencioso(monkeypatch) -> None:
+    _fake_git(monkeypatch)
+    assert cc.check_substrate_freshness(None) == []
+
+
+def test_git_mudo_nao_vira_verde(monkeypatch) -> None:
+    """Guard central: ausência de resposta do git NÃO é sinal de frescor — mutação
+    que mata é devolver `[]` quando o `rev-parse` falha, que é o comportamento do
+    `_git` legado, cujo `""` não distingue "respondeu vazio" de "não respondeu"."""
+    _fake_git(monkeypatch, ok=False)
+    achados = cc.check_substrate_freshness(None)
+    assert len(achados) == 1
+    assert achados[0].code == "CLOSE-BLOCK-07"
+    assert "NÃO VERIFICÁVEL" in achados[0].summary
+
+
+def test_divergencia_no_universo_auditado_nomeia_os_arquivos(monkeypatch) -> None:
+    """Contador diz QUANTOS; o achado precisa dizer QUAIS."""
+    _fake_git(
+        monkeypatch,
+        diff="docs/_MOC/LEDGER-CERTIFY-active.md\ndocs/sprint/A40/_README.md\n",
+    )
+    achados = cc.check_substrate_freshness(None)
+    assert [f.code for f in achados] == ["CLOSE-BLOCK-07"]
+    assert "LEDGER-CERTIFY-active.md" in achados[0].evidence
+    assert "A40/_README.md" in achados[0].evidence
+
+
+def test_commit_atras_fora_do_universo_nao_acusa(monkeypatch) -> None:
+    """Ruído que o predicado ingênuo ("árvore atrás") produziria: commit que não
+    toca `docs/sprint`/`docs/_MOC` não pode causar sub-reporte de citador."""
+    _fake_git(monkeypatch, diff="")
+    assert cc.check_substrate_freshness(None) == []
+
+
+def test_pr_cujo_merge_nao_esta_na_arvore_acusa(monkeypatch) -> None:
+    _fake_git(monkeypatch, ancestor=False, log="deadbeefcafe\tfeat: coisa (#1824)\n")
+    achados = cc.check_substrate_freshness(1824)
+    assert any("#1824" in f.summary for f in achados)
+    assert all(f.code == "CLOSE-BLOCK-07" for f in achados)
+
+
+def test_doc_nao_commitado_e_drift_nao_block(monkeypatch) -> None:
+    """Árvore suja é informativa, não impeditiva — quem está corrigindo edita antes de commitar."""
+    _fake_git(monkeypatch, status=" M docs/sprint/A40/_README.md\n")
+    achados = cc.check_substrate_freshness(None)
+    assert [f.code for f in achados] == ["CLOSE-DRIFT-05"]
+    assert achados[0].severity == "media"
+
+
+def test_git_helper_preserva_contrato_legado(monkeypatch) -> None:
+    """O refactor de `_git` não pode mudar o que os call-sites antigos recebem."""
+    monkeypatch.setattr(cc, "_git_probe", lambda args: (False, "lixo"))
+    assert cc._git(["log"]) == ""
+    monkeypatch.setattr(cc, "_git_probe", lambda args: (True, "saida"))
+    assert cc._git(["log"]) == "saida"
