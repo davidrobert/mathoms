@@ -161,3 +161,36 @@ def test_contagem_final_vem_antes_do_blast_radius_que_faz_rollback(monkeypatch) 
     assert report.counts_before == {"pipeline_artifacts": 7}
     assert report.counts_after == {"pipeline_artifacts": 8}
     assert report.zero_write_ok is False
+
+
+def _patch_entregue(monkeypatch, mod) -> None:
+    """Stubs do braço entregue — sem DB, sem re-derivação."""
+    monkeypatch.setattr(mod, "_entregue_evidence", lambda _s, _w, r: {"run_id": r, "cortadas": 1})
+    monkeypatch.setattr(mod, "_e3_of_run", lambda _s, _w, _r: {"g1": {"transacoes_total": 0}})
+    monkeypatch.setattr(
+        mod,
+        "_rederive_entregue",
+        lambda _s, _w, _r, _e3: (
+            SimpleNamespace(classified=[], cash_flow=SimpleNamespace(transferencias_count=0)),
+            {"investimentos": {"dados": []}},
+        ),
+    )
+
+
+def test_ratchet_de_ordem_vale_tambem_no_modo_que_pontua_a_kr_b(monkeypatch) -> None:
+    # O ratchet acima cobria só `certify`. `certify_entregue` REMEDIA `counts_after` no fim,
+    # depois de `certify` já ter rodado o blast radius — cujo ramo degradado faz `rollback`
+    # e apaga a escrita pendente. O ÚNICO modo que pontua a KR-B declarava zero-write com
+    # escrita tendo existido.
+    from dev import certify_ledger_local as mod
+
+    monkeypatch.setattr(mod, "_row_counts", lambda s, _w: {"pipeline_artifacts": 7 + s.pending})
+    monkeypatch.setattr(mod, "_rederive", _rederive_escrevendo)
+    monkeypatch.setattr(mod, "_persisted_e3_by_key", lambda _s, _w: {})
+    _patch_entregue(monkeypatch, mod)
+    session = _PendingWriteSession()
+    report = mod.certify_entregue(session, "ws-uuid", "run-1")
+    assert session.rolled_back == 1 and session.pending == 0
+    assert report.counts_before == {"pipeline_artifacts": 7}
+    assert report.counts_after == {"pipeline_artifacts": 8}
+    assert report.zero_write_ok is False

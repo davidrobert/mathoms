@@ -337,8 +337,8 @@ def _rederive(session, ws: str, run_id: str | None):
     return store, seeds, e3_result, result, e4
 
 
-def certify(session, ws: str, run_id: str | None) -> LedgerReport:
-    """Re-deriva E3+E4 e monta o LedgerReport. Read-only (zero-write provado)."""
+def _certify_core(session, ws: str, run_id: str | None) -> LedgerReport:
+    """Re-deriva E3+E4 e monta o LedgerReport, SEM fechar a prova de zero-write."""
     before = _row_counts(session, ws)
     store, seeds, e3_result, result, e4 = _rederive(session, ws, run_id)
     report = build_report(
@@ -352,11 +352,22 @@ def certify(session, ws: str, run_id: str | None) -> LedgerReport:
         _persisted_e3_by_key(session, ws),
     )
     report.counts_before = before
-    # ORDEM É A PROVA: o `rollback` do blast radius degradado apaga a escrita pendente que
-    # a 2ª contagem tem de ver (rationale no doc da lane A40.l1).
+    return report
+
+
+def _finish(session, ws: str, report: LedgerReport) -> LedgerReport:
+    """Fecha a prova de zero-write. ORDEM É A PROVA: o `rollback` do blast radius degradado
+    apaga a escrita pendente que a 2ª contagem tem de ver (rationale no doc da lane A40.l1).
+    Mora aqui, e não no fim de cada modo, porque `certify_entregue` re-media DEPOIS do
+    blast radius e ressuscitava o falso-verde justamente no modo que pontua a KR-B."""
     report.counts_after = _row_counts(session, ws)
     report.blast_radius = _blast_radius_or_empty(session, ws)
     return report
+
+
+def certify(session, ws: str, run_id: str | None) -> LedgerReport:
+    """Re-deriva E3+E4 e monta o LedgerReport. Read-only (zero-write provado)."""
+    return _finish(session, ws, _certify_core(session, ws, run_id))
 
 
 def _attach_entregue(report: LedgerReport, result_e, e4_e, evidence: dict) -> None:
@@ -368,11 +379,10 @@ def certify_entregue(session, ws: str, run_id: str) -> LedgerReport:
     """Sombra + detector sobre o E3 persistido do ``run_id``. Fail-closed no pin."""
     evidence = _entregue_evidence(session, ws, run_id)
     e3_run = _e3_of_run(session, ws, run_id)
-    report = certify(session, ws, run_id)
+    report = _certify_core(session, ws, run_id)
     result_e, e4_e = _rederive_entregue(session, ws, run_id, e3_run)
     _attach_entregue(report, result_e, e4_e, evidence)
-    report.counts_after = _row_counts(session, ws)
-    return report
+    return _finish(session, ws, report)
 
 
 # ─────────────────────────── CLI ───────────────────────────
