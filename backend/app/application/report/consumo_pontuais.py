@@ -22,6 +22,13 @@ VALID_PERIODS: tuple[str, ...] = ("3m", "6m", "12m", "ytd")
 # ``scoring.json``, que é a fonte única.
 _DEFAULT_POLICY = GastoPontualPolicy()
 
+# [[ADR-425]] §D1 — esta lista é o INVENTÁRIO, não o numerador. O balde
+# `nao_identificado` sai do KPI porque é ausência de medição e o parecer ancora
+# conselho nele; sai da lista seria o oposto do que a regra quer, porque é aqui
+# que a família vê as linhas que só ela pode classificar. A divergência é
+# deliberada e vem declarada no card (`base_pontuais.excluidos`).
+_VEREDITOS_DO_INVENTARIO = frozenset({VeredictoPontual.incluido, VeredictoPontual.nao_identificado})
+
 
 def _period_start(period: str, today: date) -> date:
     if period == "3m":
@@ -56,16 +63,16 @@ def _is_pontual(
         return False
     if not policy.is_relevante(tx.valor):
         return False
-    # A40.l98 — mesmas três cláusulas de natureza do KPI do MESMO card. Faltavam
-    # duas aqui: `recorrentes` (o aluguel de R$ 5k entrava 12× como "gasto
-    # pontual") e `transferencia_patrimonial` (o aporte).
+    # A40.l98 — mesmas cláusulas de natureza do KPI do MESMO card. Faltavam duas
+    # aqui: `recorrentes` (o aluguel de R$ 5k entrava 12× como "gasto pontual") e
+    # `transferencia_patrimonial` (o aporte).
     veredito = policy.classify(
         tx.categoria or "",
         descricao=tx.descricao or "",
         banco=tx.banco or "",
         detector=detector,
     )
-    return veredito is VeredictoPontual.incluido
+    return veredito in _VEREDITOS_DO_INVENTARIO
 
 
 def _to_item(tx: TransactionItem) -> ConsumoPontuaisItem:

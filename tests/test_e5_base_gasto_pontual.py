@@ -111,10 +111,29 @@ def test_delta_por_causa_e_atribuivel(run):
 
     patrimonial = sum(v for c, v in acima.items() if c in _POLICY.transferencia_patrimonial)
     de_conta = sum(v for c, v in acima.items() if c in _POLICY.transferencia_de_conta)
+    nao_classificado = sum(v for c, v in acima.items() if c in _POLICY.nao_classificadas)
     assert patrimonial == 12_000.0
     assert de_conta == 4_000.0
-    assert publicado == pytest.approx(46_000.0)
-    assert publicado + patrimonial + de_conta == pytest.approx(62_000.0)
+    assert nao_classificado == 7_000.0
+    assert publicado == pytest.approx(39_000.0)
+    assert publicado + patrimonial + de_conta + nao_classificado == pytest.approx(62_000.0)
+
+
+def test_nao_identificado_sai_do_numerador_mas_fica_no_inventario(run):
+    """[[ADR-425]] §D1 — o não classificado é ausência de MEDIÇÃO, não ruído. Sai
+    do numerador que sustenta conselho; o inventário o mantém, com total e
+    contagem, senão a família não tem como agir sobre ele."""
+    consumo = run["e5"]
+    assert not [i for i in consumo["itens"] if i["categoria"] in _POLICY.nao_classificadas]
+    balde = consumo["base_pontuais"]["excluidos"]["nao_identificado"]
+    assert balde == {"valor": 7_000.0, "contagem": 1}
+
+
+def test_o_leitor_soma_os_itens_e_chega_ao_total(run):
+    """`itens` acompanha `publicado`: par publicado que o leitor não recompõe é a
+    doença que a A40.l101 anotou no denominador."""
+    consumo = run["e5"]
+    assert sum(i["valor"] for i in consumo["itens"]) == pytest.approx(consumo["total_pontuais"])
 
 
 # ---------------------------------------------------------------------------

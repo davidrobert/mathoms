@@ -419,7 +419,7 @@
 | ADR-422 | adr | Decidido |  | A folga é a poupança da janela, não a poupança mais o gasto pontual realizado | `adr/422-a-folga-e-a-poupanca-da-janela-nao-a-poupanca-mais-o-pontual.md` |
 | ADR-423 | adr | Proposto |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
 | ADR-424 | adr | Proposto |  | SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required | `adr/424-sql-so-sqlite-em-migration-e-a-cadeia-em-postgres.md` |
-| ADR-425 | adr | Proposto |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
+| ADR-425 | adr | Decidido |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

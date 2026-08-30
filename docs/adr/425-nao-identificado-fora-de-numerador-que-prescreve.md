@@ -2,17 +2,19 @@
 id: ADR-425
 type: adr
 title: "Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado"
-status: Proposto
+status: Decidido
 phase: A40
 date: "2026-08-30"
+amended_at: ["2026-08-30"]
 relates_to:
   - "[[ADR-422]]"
   - "[[ADR-394]]"
   - "[[ADR-333]]"
   - "[[ADR-352]]"
+  - "[[ADR-422]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/e5
   - area/dominio
   - sprint/a40
@@ -21,7 +23,11 @@ aliases: ["ADR 425", "cobertura da base", "nao_identificado"]
 
 # ADR-425 — Não classificado fora de numerador que prescreve
 
-**Status:** Proposto (A40.l98) • **Data:** 2026-08-30 • Co-design `financial-planner`
+> ⚠️ **Emendada em 2026-08-30 (A40.l98, na implementação).** A **D4** não tinha
+> régua para medir: nenhum consumidor determinístico aplica limiar a estes campos.
+> Ver §Emenda 2026-08-30 no fim desta nota — a D1 e a D2 ficam intactas.
+
+**Status:** Decidido (A40.l98) • **Data:** 2026-08-30 • Co-design `financial-planner`
 + `data-engineer` + `senior-cto`. **Dono:** `financial-planner`. **Condição de
 retomada:** entrega da [[A40.l98]].
 
@@ -104,3 +110,38 @@ prescrever**, suprime. Mede o efeito, não o proxy.
   no lugar, melhorar a detecção vira melhoria **monotônica** da cobertura.
 - **Ordem:** D2 é **pré-requisito**, não consequência — é ele que permite publicar
   honestamente com base ruim. Não o adie esperando a base melhorar.
+
+## Emenda 2026-08-30 — a D4 não tem régua, e por isso a D3 não foi implementada (A40.l98)
+
+A **D4** manda medir o efeito e não o proxy: *"recalcula-se o derivado com e sem a
+fatia `nao_identificado`; se as duas leituras cruzam a régua que a superfície usa
+para prescrever, suprime"*. Medido na implementação, **essa régua não existe**:
+
+| candidato a consumidor | lê `total_pontuais*` / `equivalente_meses_poupanca`? |
+| --- | --- |
+| `financial_score_calculator` | não |
+| `risk_trigger_registry` | não |
+| `pontos_fortes_analyzer` | não |
+| diagnósticos comportamentais | não |
+| `scoring.json::thresholds_alertas` | nenhuma chave para estes campos |
+
+O único consumidor que **prescreve** é o parecer LLM, e ele não aplica limiar
+numérico — julga "elevado" por conta própria. Sem régua não há cruzamento a
+medir, e a D4 é uma condicional cujo antecedente é falso.
+
+**A D3 fica, portanto, sem implementação — e isso é o resultado da D4, não um
+atalho.** Implementá-la exigiria o limiar percentual que esta própria ADR
+**rejeitou** por ser inventado; e, pior, teria **sinal trocado**. Depois da D1 o
+numerador publicado é um **piso**: ele conta só o que se sabe ser consumo
+discricionário, então erra para menos, que é a direção conservadora de uma
+métrica de alerta. Suprimir um número verdadeiro, conservador e acionável é
+exatamente a objeção que a [[ADR-422]] §Alternativas fez ao piso de
+materialidade.
+
+O que substitui a supressão é a **D2**, que já está no lugar:
+`consumo_consciente.base_pontuais` publica o balde `nao_identificado` com total e
+contagem ao lado do número, e a lista do card mantém as linhas. O leitor vê o
+piso **e** o quanto não foi medido, que é mais informação do que um campo nulo.
+
+**Retomar a D3** quando algum consumidor determinístico passar a aplicar régua a
+estes campos — aí a D4 volta a ter o que medir. Dono: `financial-planner`.

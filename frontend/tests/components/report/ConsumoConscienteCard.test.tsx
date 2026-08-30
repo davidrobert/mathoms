@@ -109,6 +109,7 @@ describe("<ConsumoConscienteCard /> · declaração da base", () => {
       excluidos: {
         recorrente: { valor: 65000, contagem: 13 },
         transferencia_por_categoria: { valor: 16000, contagem: 2 },
+        nao_identificado: { valor: 7000, contagem: 1 },
       },
     },
   };
@@ -138,6 +139,8 @@ describe("<ConsumoConscienteCard /> · declaração da base", () => {
     expect(texto).toContain("18 lançamentos");
     expect(texto).toMatch(/recorrentes R\$\s?65\.000 \(13\)/);
     expect(texto).toMatch(/transferências R\$\s?16\.000 \(2\)/);
+    // [[ADR-425]] §D1 — o residual não medido é impresso ONDE a base aparece.
+    expect(texto).toMatch(/não classificados R\$\s?7\.000 \(1\)/);
   });
 
   it("some quando nada foi excluído — linha vazia seria ruído", () => {

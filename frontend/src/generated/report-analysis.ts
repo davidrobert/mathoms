@@ -264,6 +264,7 @@ export type BasePontuais = {
     "recorrente"?: BaldePontual;
     "transferencia_por_categoria"?: BaldePontual;
     "transferencia_detectada"?: BaldePontual;
+    "nao_identificado"?: BaldePontual;
   };
 };
 

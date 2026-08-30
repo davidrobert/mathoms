@@ -317,6 +317,12 @@ class ConsumoConscienteCalculator:
     # [[ADR-333]]) e a transferência entre contas entravam na base que o parecer
     # usa para prescrever contenção de consumo. Sem detector — dentro do E5 ele é
     # inerte por construção (ver `GastoPontualPolicy.classify`).
+    #
+    # [[ADR-425]] §D1 — `nao_identificado` também sai daqui: é ausência de
+    # MEDIÇÃO, não ruído, e `total_pontuais*` é numerador que sustenta conselho
+    # (o parecer ancora nele o risco "gastos pontuais elevados"). Ele segue no
+    # inventário — o balde de `excluidos` traz total e contagem, e a lista do
+    # card traz as linhas, que é onde a família consegue agir.
     def _triar(self, dados: dict[str, Any]) -> tuple[list[GastoPontualItem], BasePontuais]:
         """Todo lançamento acima do limiar recebe um veredito — o descartado sai
         atribuído a uma causa, não em silêncio."""

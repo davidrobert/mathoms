@@ -274,3 +274,24 @@ async def test_lista_exclui_recorrente_e_aporte(auth_client: AsyncClient, db):
     )
     assert resp.status_code == 200, resp.text
     assert [it["descricao"] for it in resp.json()["items"]] == ["RESTAURANTE FASANO"]
+
+
+# A40.l98 PR3b ([[ADR-425]] §D1) — divergência DELIBERADA entre as duas
+# superfícies do card: `nao_identificado` sai do KPI (é ausência de medição, e o
+# parecer ancora conselho nele) e FICA na lista, que é o inventário — é aqui que
+# a família vê as linhas que só ela pode classificar. Tirá-lo dos dois lados
+# esconderia justamente o que precisa de ação.
+@pytest.mark.asyncio
+async def test_nao_identificado_fica_no_inventario(auth_client: AsyncClient, db):
+    despesas = [
+        _despesa("DEBITO NAO RECONHECIDO 8842", 7000.0, categoria="nao_identificado"),
+        _despesa("APORTE CDB TESOURO", 12000.0, categoria="aporte_investimento"),
+    ]
+    await _seed_e4_despesas(db, auth_client.ws_id, despesas)
+    await _seed_transfer_config(db, auth_client.ws_id)
+
+    resp = await auth_client.get(
+        f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"
+    )
+    assert resp.status_code == 200, resp.text
+    assert [it["descricao"] for it in resp.json()["items"]] == ["DEBITO NAO RECONHECIDO 8842"]

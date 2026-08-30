@@ -52,6 +52,7 @@ class VeredictoPontual(str, Enum):
     recorrente = "recorrente"
     transferencia_por_categoria = "transferencia_por_categoria"
     transferencia_detectada = "transferencia_detectada"
+    nao_identificado = "nao_identificado"
 
 
 class _DetectorDeTransferencia(Protocol):
@@ -70,6 +71,12 @@ _DEFAULT_TRANSFERENCIA_PATRIMONIAL = frozenset({"aporte_investimento"})
 _DEFAULT_TRANSFERENCIA_DE_CONTA = frozenset(
     {"transferencia_entre_contas", "transferencia_familiar", "transferencias_internas"}
 )
+
+# [[ADR-425]] §D1 — o balde-lixo default do categorizador. Não é ruído a
+# excluir: é **ausência de medição**, e fica fora de numerador que sustenta
+# conselho justamente por isso. Segue no inventário (a lista do card), que é
+# onde a família consegue agir sobre ele.
+_DEFAULT_NAO_CLASSIFICADAS = frozenset({"nao_identificado"})
 
 _DEFAULT_RECORRENTES = frozenset(
     {
@@ -98,6 +105,7 @@ class GastoPontualPolicy:
     transferencia_patrimonial: frozenset[str] = _DEFAULT_TRANSFERENCIA_PATRIMONIAL
     transferencia_de_conta: frozenset[str] = _DEFAULT_TRANSFERENCIA_DE_CONTA
     recorrentes: frozenset[str] = _DEFAULT_RECORRENTES
+    nao_classificadas: frozenset[str] = _DEFAULT_NAO_CLASSIFICADAS
 
     @property
     def nao_consumo_pontual(self) -> frozenset[str]:
@@ -126,6 +134,8 @@ class GastoPontualPolicy:
             return VeredictoPontual.transferencia_por_categoria
         if detector is not None and detector.is_internal_transfer(descricao, banco=banco):
             return VeredictoPontual.transferencia_detectada
+        if categoria in self.nao_classificadas:
+            return VeredictoPontual.nao_identificado
         return VeredictoPontual.incluido
 
     @classmethod

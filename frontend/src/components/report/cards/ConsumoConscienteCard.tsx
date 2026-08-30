@@ -100,6 +100,7 @@ const MOTIVO_LABEL: Record<string, string> = {
   recorrente: "recorrentes",
   transferencia_por_categoria: "transferências",
   transferencia_detectada: "transferências detectadas",
+  nao_identificado: "não classificados",
 };
 
 /** A40.l98 ([[ADR-425]] §D2) — a base declara o que exclui, **na superfície que

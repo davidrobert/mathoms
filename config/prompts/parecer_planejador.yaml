@@ -149,7 +149,15 @@
 # pela mesma leitura da 2.8.0: muda o valor projetado, não o contrato de output. O bump
 # COBRA a frota — nada mais invalida o cache de 7 dias, então cada (workspace, snapshot
 # E5) que pedir parecer na janela regenera uma vez.
-version: "2.10.0"
+# 2.11.0 — A40.l98 PR3b ([[ADR-425]] §D1): `nao_identificado` sai de
+# `total_pontuais`/`total_pontuais_janela`. É ausência de MEDIÇÃO, não ruído, e
+# estes dois campos são numerador que sustenta conselho — o modelo ancora neles o
+# risco "gastos pontuais elevados". No dogfood o balde é R$ 249.374,91 da janela,
+# 63,2% dela. Segundo bump seguido dos MESMOS dois campos, e de propósito: PR2 e
+# PR3b mudam conjuntos diferentes, e um bump só tornaria o delta inatribuível.
+# MINOR pela mesma leitura da 2.8.0/2.10.0. COBRA a frota: nada mais invalida o
+# cache de 7 dias.
+version: "2.11.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 

@@ -80,6 +80,7 @@ class TestConfig:
             "transferencia_patrimonial",
             "transferencia_de_conta",
             "recorrentes",
+            "nao_classificadas",
         }
 
     def test_recurrent_categories_defaults(self):

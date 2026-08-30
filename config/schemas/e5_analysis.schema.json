@@ -3951,6 +3951,9 @@
             },
             "transferencia_detectada": {
               "$ref": "#/$defs/BaldePontual"
+            },
+            "nao_identificado": {
+              "$ref": "#/$defs/BaldePontual"
             }
           },
           "required": [],
