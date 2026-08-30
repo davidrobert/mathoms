@@ -23,11 +23,15 @@ def _dump(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
-def _categorization(expense_keywords: dict | None, income_keywords: dict | None = None) -> dict:
+def _categorization(
+    expense_keywords: dict | None,
+    income_keywords: dict | None = None,
+    internal_transfer_patterns: list[str] | None = None,
+) -> dict:
     return {
         "expense_keywords": expense_keywords or {},
         "income_keywords": income_keywords or {"renda": ["PIX"]},
-        "internal_transfer_patterns": [],
+        "internal_transfer_patterns": internal_transfer_patterns or [],
         "pj_source_mapping": {},
         "clt_source_mapping": {},
     }
@@ -69,12 +73,16 @@ def write_e5_config(
     goals: dict | None = None,
     expense_keywords: dict | None = None,
     income_keywords: dict | None = None,
+    internal_transfer_patterns: list[str] | None = None,
     irpf_faixas: list[dict] | None = None,
 ) -> None:
     """Escreve config mínima de tenant para rodar E4/E5 isolado."""
     cfg = tmp_path / "config"
     cfg.mkdir(parents=True, exist_ok=True)
-    _dump(cfg / "categorization.json", _categorization(expense_keywords, income_keywords))
+    _dump(
+        cfg / "categorization.json",
+        _categorization(expense_keywords, income_keywords, internal_transfer_patterns),
+    )
     _dump(cfg / "family_members.json", family or _DEFAULT_FAMILY)
     _dump(cfg / "goals.json", goals or _DEFAULT_GOALS)
     (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
@@ -104,15 +112,21 @@ def _seed_store(
 # construtor em TODOS os goldens de E5 e forçaria rebaseline geral — o default
 # `None` mantém os existentes no caminho legado e deixa UM golden novo exercitar
 # o de produção.
-def run_e3_e4_e5(
+def run_e3_e4_e5(root: Path, **kwargs) -> dict[str, Any]:
+    """Payload E5; use ``run_e3_e4_e5_ctx`` quando precisar também do artefato E4."""
+    return run_e3_e4_e5_ctx(root, **kwargs).artifact_store.read("E5", "analise_financeira")
+
+
+def run_e3_e4_e5_ctx(
     root: Path,
     *,
     e3_payloads: dict[str, dict],
     baseline: dict | None = None,
     irpf_payloads: dict[str, dict] | None = None,
     config_store: Any | None = None,
-) -> dict[str, Any]:
-    """Roda E4→E5 sobre E3 seeded; ``irpf_payloads`` semeia extract_irpf_full (DE-02)."""
+):
+    """Roda E4→E5 sobre E3 seeded e devolve o ``ctx``; ``irpf_payloads`` semeia
+    extract_irpf_full (DE-02)."""
     from pipeline.context import WorkspaceContext
     from scripts.analyze_finances import main_with_store as e5_mws
     from scripts.categorize_transactions import main_with_store as e4_mws
@@ -121,7 +135,7 @@ def run_e3_e4_e5(
     ctx = WorkspaceContext(root=root, artifact_store=store, config_store=config_store)
     e4_mws(ctx)
     e5_mws(ctx)
-    return ctx.artifact_store.read("E5", "analise_financeira")
+    return ctx
 
 
 def _tabelas_da_migration_adr389() -> dict:
