@@ -20,6 +20,20 @@ tags:
 
 # A40.l15 — `consumo-consciente-base-janela` (spun off da [[A40.l3]])
 
+> **Emenda 2026-08-30 ([[A40.l94]] · [[ADR-422]] · #1828) — três premissas desta lane
+> venceram, e uma delas tornava o critério de aceite insatisfazível.**
+>
+> 1. A **álgebra da folga** que a §Análise preserva ("não reabrir") foi **superada**: a folga
+>    não tem mais termo de pontuais ([[ADR-306]] §D6 traz o aviso no ponto da fórmula).
+> 2. O **co-change 2** foi entregue sob outro nome e outro denominador —
+>    `equivalente_meses_poupanca` = `total_pontuais_janela ÷ folga_mensal`. O
+>    `aporte_mensal` que ele propunha como denominador foi **rejeitado por medição**
+>    ([[ADR-422]] D3: meta editável pelo usuário ⇒ diagnóstico não-auditável; fator 4,9×).
+> 3. O **co-change 3** (prosa declarando as duas janelas) já **shippou** no #1828.
+>
+> `teto_sugerido` **não existe mais**. O que resta desta lane é a pergunta de base temporal
+> do KPI de pontuais (D6 vs D1) e o texto dos dois cards de S2 — não a álgebra.
+
 ## Escopo herdado da [[A40.l3]] no fechamento (2026-07-31)
 
 Além da base do KPI de pontuais (que criou esta lane), a [[A40.l3]] transferiu o
@@ -75,10 +89,11 @@ Infraestrutura já entregue pela l3 e consumível aqui, sem reabrir decisão:
 O card "Consumo Consciente" fala em **quatro bases temporais** ao mesmo tempo, e
 a [[A40.l3]] só conseguiu **rotular** as bases — não unificá-las:
 
-1. **Gastos pontuais / Equiv. meses de aporte** — `total_pontuais` e
-   `equivalente_meses_aporte`, acumulados de **todo o período documentado**.
-2. **Folga mensal / Teto sugerido** — derivados pelo E5 da **janela canônica**
+1. **Gastos pontuais** — `total_pontuais`, acumulado de **todo o período documentado**.
+   (~~`equivalente_meses_aporte`~~ migrou para a janela em 2026-08-29, [[ADR-422]] D3.)
+2. **Folga mensal / Equiv. meses de poupança** — derivados pelo E5 da **janela canônica**
    (`ConsumoConscienteCalculator._resolve_janela` lê `fluxo.janela_12m`).
+   (~~Teto sugerido~~ extinto do contrato, [[ADR-422]] D2.)
 3. **Lista de lançamentos** — `PeriodToggle` próprio, default **3M**, vinda do
    endpoint `/reports/consumo-pontuais`.
 4. **Prosa do E5** (`analise`) — fala do **período completo**.
@@ -140,12 +155,17 @@ inventário.
 Sem eles o frontend teria de fazer aritmética monetária de headline, o que
 [[ADR-090]] proíbe:
 
-1. **`consumo_consciente.pontual_mensal`** = `pontuais_janela / n_meses` — o
-   ritmo, e o termo que literalmente fecha a álgebra da folga.
-2. **`consumo_consciente.equivalente_meses_aporte_janela`** =
-   `pontuais_janela / aporte_mensal`. `aporte_mensal` é constante entre janelas,
-   logo o equivalente é reprojetável — não havia motivo para o KPI ficar full.
-3. **`consumo_consciente.analise` reescrita** para declarar as **duas** janelas
+1. **`consumo_consciente.pontual_mensal`** = `pontuais_janela / n_meses` — o ritmo.
+   ⚠️ **não é mais "o termo que fecha a álgebra da folga"** (a folga não o lê desde a
+   [[ADR-422]] D1); segue valendo como ritmo exibível. Este é o **nome canônico** do campo,
+   e prevalece sobre o `provisao_pontual_mensal` que o co-design da [[A40.l94]] propôs.
+   Entrega vai com a [[A40.l98]], junto com a base limpa.
+2. ~~**`consumo_consciente.equivalente_meses_aporte_janela`** = `pontuais_janela / aporte_mensal`~~
+   — ✅ **entregue em 2026-08-29 sob outro nome e outro denominador**:
+   `equivalente_meses_poupanca` = `total_pontuais_janela ÷ folga_mensal`. O `aporte_mensal`
+   foi **rejeitado por medição** ([[ADR-422]] D3): é meta editável pelo usuário, então o
+   diagnóstico se movia sem nada acontecer no mundo.
+3. ✅ **entregue no #1828** — **`consumo_consciente.analise` reescrita** para declarar as **duas** janelas
    (a prosa era a única superfície que citava um total nu). Corrige de passagem um
    bug pt-BR medido no substrato: `f"R$ {v:,.0f}"` emite **`R$ 2,000`** e
    **`R$ 250,000.00`** (en-US) na frase do card — visível no PDF gerado pela
@@ -215,9 +235,12 @@ Card coerente-e-menos-acionável > card incoerente.
   janela; acumulado full permanece no card, rotulado, em superfície própria.
 - Ritmo mensal (`pontual_mensal`) exibido ao lado do total da janela.
 - Prosa do E5 declara as duas janelas, em formato monetário pt-BR.
-- Álgebra da folga **reproduzível** a partir dos números exibidos: teste que
-  reconstrói `folga_mensal` a partir de `receita_rec_mensal`,
-  `despesa_mensal_media` e `pontual_mensal`.
+- ~~Álgebra da folga reproduzível a partir de `receita_rec_mensal`, `despesa_mensal_media`
+  e `pontual_mensal`~~ — **vencido em 2026-08-29**: a identidade vigente é
+  `folga_mensal = receita_recorrente_mensal − despesa_consumo_mensal` ([[ADR-422]] D1), já
+  gateada por `test_folga_mensal_nao_soma_pontual_realizado`. Escrever o teste antigo
+  **reprovaria** nesse gate. O que sobra aqui é a reprodutibilidade do
+  `equivalente_meses_poupanca` a partir do par (pontuais da janela, folga) exibido no card.
 - Invariante do seletor mantido: `resolveConsumoBases` continua a **nunca** emitir
   par (valor, rótulo) de blocos diferentes — hoje o rótulo histórico é constante
   por construção; com dois pares ele volta a ser derivável e precisa de teste

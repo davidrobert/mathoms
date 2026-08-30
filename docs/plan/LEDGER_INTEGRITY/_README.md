@@ -289,6 +289,33 @@ Distinguir **health/guardrail** (diff-zero, suíte verde) ≠ **output** (declar
    parallel-edit nem expandir o DoD da l9.
 4. **Rebaseline disfarçado** — golden de valor que mexa ⇒ parar ([[ADR-287]]).
 
+## §Deferimento datado 2026-08-30 — `PR2b` recolhe DOIS trabalhos, e só um está nomeado
+
+**Dono:** `data-engineer`. **Condição de retomada:** junto do soak WARN que já gateia o
+`PR2b`/`PR3`, ou antes se o `LC6-04` for repriorizado.
+
+O rótulo `PR2b` aparece em §Estado e em §Rastreamento como *"(`needs_review`
+measure-then-emit)"*, mas **não é definido em §Faseamento nenhuma**, e há um segundo
+trabalho apontando para ele em código:
+
+- `pipeline/domain/services/e3_load_report.py:108` — *"(perda real), diferida ao PR2b
+  (measure-then-emit)"*, sobre a **captura de `valor_cents` nos canais de remoção**.
+- O produtor descarta o dado antes: `anachronic_guard.py:141` faz `dropped.append(tx_date)`
+  — guarda **só a data**.
+- E o contrato **obriga o campo a existir sem poder obrigá-lo a ser verdadeiro**:
+  `config/schemas/e3_reconciled.schema.json` declara `$defs/remocao.required =
+  ["count", "valor_cents"]`, então dois dos cinco canais emitem `valor_cents` literal **0**.
+
+É o `LC6-04` ([[LEDGER-CERTIFY-active]] §r6), que a rodada U2 registrou como CONFIRMADO e
+rebaixado a Médio — o gate é fail-closed (degrada para `coberto`, nunca vira `conservado`
+falso). O risco não é o veredito: é **fechar este plano como `done` por "PR2b/PR3" e
+absorver o segundo trabalho em silêncio**, que é precisamente o modo de falha que o próprio
+`LC6-04` descreve ("deferimento sem §Deferimento datado, sem dono, invisível aos gates").
+
+**Ao fechar o plano:** `PR2b` só conta como cumprido se as DUAS pernas estiverem nomeadas —
+o `needs_review` measure-then-emit **e** a captura de `valor_cents` no guard. Se a segunda
+sair de escopo, ela precisa de destino próprio antes do `done`.
+
 ## Rastreamento
 
 - **Owna:** LC-01 ([[ADR-347]]) + LC-03 — **shipados direto por PRs** (sem sprint

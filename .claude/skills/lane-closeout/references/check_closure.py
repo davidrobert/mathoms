@@ -148,6 +148,25 @@ def _rel(path: Path) -> str:
         return path.as_posix()
 
 
+# ADR `Decidido` é decisão SETTLED: pode ser citada como CONTEXTO dentro de um
+# deferimento ("aplicar `transfer_categories` ([[ADR-333]])") sem ser o destino do
+# trabalho. Tratá-la como rota absolvia o bloco inteiro — medido na A40.l94, cujo
+# §Deferimento apontava para uma lane INEXISTENTE e passou por causa do [[ADR-333]].
+# `Proposto`/`Roadmap` seguem valendo: decisão em aberto e roadmap declarado são
+# destinos reais de trabalho futuro (CLAUDE.md §"Nunca reserve ID; reserve o trabalho").
+_ADR_SETTLED = {"Decidido"}
+
+
+def index_adr_status() -> dict[str, str]:
+    """`{"ADR-NNN": status}` de toda ADR da vault."""
+    out: dict[str, str] = {}
+    for path in sorted((REPO_ROOT / "docs" / "adr").glob("*.md")):
+        fm = _frontmatter(path)
+        if isinstance(fm.get("id"), str):
+            out[fm["id"]] = str(fm.get("status", "?"))
+    return out
+
+
 def index_lanes() -> dict[str, Lane]:
     """Todas as lanes da vault, por id do frontmatter."""
     lanes: dict[str, Lane] = {}
@@ -219,27 +238,38 @@ def _sections(text: str) -> list[tuple[str, str]]:
     return [(parts[i].strip(), parts[i + 1]) for i in range(1, len(parts) - 1, 2)]
 
 
-def _has_open_route(body: str, lanes: dict[str, Lane]) -> bool:
-    """Deferimento roteado = aponta para lane viva, plano, ADR ou dono nomeado."""
+def _has_open_route(
+    body: str, lanes: dict[str, Lane], adr_status: dict[str, str] | None = None
+) -> bool:
+    """Deferimento roteado = lane viva, plano, ADR **não-settled** ou dono nomeado.
+
+    ADR `Decidido` NÃO conta: ver `_ADR_SETTLED`.
+    """
+    adr_status = index_adr_status() if adr_status is None else adr_status
     for target in WIKILINK_RE.findall(body):
         target = target.strip()
         if target in lanes and lanes[target].status in OPEN_LANE:
             return True
-        if target.startswith(("PLAN-", "ADR-")):
+        if target.startswith("PLAN-"):
+            return True
+        if target.startswith("ADR-") and adr_status.get(target) not in _ADR_SETTLED:
             return True
     return bool(re.search(r"(owner-gated|dono:|owner:|gatilho\s+`?[a-z-]+`?)", body, re.I))
 
 
-def check_orphan_deferral(lane: Lane, lanes: dict[str, Lane]) -> list[Finding]:
+def check_orphan_deferral(
+    lane: Lane, lanes: dict[str, Lane], adr_status: dict[str, str] | None = None
+) -> list[Finding]:
     """CLOSE-BLOCK: lane fechada hospedando trabalho sem destino — o que some."""
     if not lane.closed:
         return []
+    adr_status = index_adr_status() if adr_status is None else adr_status
     out = []
     for heading, body in _sections(lane.text):
         if not DEFER_HEADING_RE.match(heading) or PLANNING_HEADING_RE.search(heading):
             continue
         # Rota pode estar no próprio heading (`## Out-of-scope ([[ADR-229]] …)`).
-        if _has_open_route(f"{heading}\n{body}", lanes):
+        if _has_open_route(f"{heading}\n{body}", lanes, adr_status):
             continue
         out.append(
             Finding(
@@ -584,13 +614,69 @@ A metade estrutural fica SEM cobertura. Vá direto às camadas 2-4 da skill
 limpa" no closeout."""
 
 
+_SELFTEST_CASES: tuple[tuple[str, str, bool], ...] = (
+    (
+        "adr-decidido-como-contexto-nao-e-rota",
+        "## Deferido\n\nVai para a lane da base (`LC6-05`).\n"
+        "1. Aplicar `transfer_categories` ([[ADR-DECIDIDA]]).\n",
+        True,
+    ),
+    ("lane-viva-e-rota", "## Deferido\n\nDono: [[LANE-VIVA]].\n", False),
+    ("lane-fechada-nao-e-rota", "## Deferido\n\nVai para [[LANE-MORTA]].\n", True),
+    ("adr-proposta-e-rota", "## Deferido\n\nDecide-se na [[ADR-ABERTA]].\n", False),
+    ("plano-e-rota", "## Deferido\n\nEntra no [[PLAN-qualquer]].\n", False),
+    ("dono-nomeado-e-rota", "## Deferido\n\nDono: `financial-planner`, lane a abrir.\n", False),
+)
+
+
+def self_test() -> int:
+    """Prova por mutação da regra de rota — fixtures sintéticas.
+
+    Caso de origem (A40.l94, 2026-08-30): o §Deferimento apontava para "a lane da base
+    dos pontuais (`LC6-05`)", que NÃO existia, e passou porque citava `[[ADR-333]]` como
+    CONTEXTO. Sintético de propósito: depender do estado vivo da vault tornaria o teste
+    vácuo assim que a lane real fosse consertada.
+    """
+    adr = {"ADR-DECIDIDA": "Decidido", "ADR-ABERTA": "Proposto"}
+    lanes = {
+        "LANE-VIVA": Lane("LANE-VIVA", Path("x"), {"status": "open"}, ""),
+        "LANE-MORTA": Lane("LANE-MORTA", Path("y"), {"status": "shipped"}, ""),
+    }
+    falhas = [
+        f"  ✗ {nome}: esperava flag={esperado}, veio {got}"
+        for nome, corpo, esperado in _SELFTEST_CASES
+        if (
+            got := bool(
+                check_orphan_deferral(
+                    Lane("T.l1", Path("t.md"), {"status": "shipped"}, corpo), lanes, adr
+                )
+            )
+        )
+        != esperado
+    ]
+    if falhas:
+        print("self-test do CLOSE-BLOCK-01 FALHOU:")
+        print("\n".join(falhas))
+        return 1
+    print(f"✓ self-test CLOSE-BLOCK-01: {len(_SELFTEST_CASES)} casos, rota discrimina")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--lane", action="append", help="id da lane (repetível)")
     parser.add_argument("--pr", type=int, help="resolve as lanes deste PR")
     parser.add_argument("--recent", type=int, default=5, help="lanes dos N últimos commits")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--self-test", action="store_true", help="prova por mutação da regra de rota"
+    )
     args = parser.parse_args()
+
+    # O self-test é hermético (fixtures sintéticas, sem git e sem vault): sai antes
+    # do check de substrato, que exige `origin/main` resolvível.
+    if args.self_test:
+        return self_test()
 
     # ANTES de qualquer coisa: a auditoria abaixo lê o working tree, e o escopo
     # veio de `origin/main`. Se os dois discordam, o resultado é sobre outra

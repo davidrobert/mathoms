@@ -265,7 +265,7 @@ describe("fixture janela-divergente — self-check de divergência", () => {
   });
 
   it("a prosa do E5 declara as DUAS janelas, cada valor com a sua", () => {
-    // [[ADR-420]]: a prosa era a única superfície que citava um total NU. Agora
+    // [[ADR-422]]: a prosa era a única superfície que citava um total NU. Agora
     // ela nomeia o acumulado (D6) e a janela (D1), e o equivalente sai da janela.
     // (A prosa vem do calculator em produção; a fixture reproduz o texto real.)
     const analise = String(consumo.analise);
@@ -295,7 +295,7 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     expect(bases?.rotuloFolga?.tipo).toBe("12m");
   });
 
-  it("equivalente segue a JANELA — ADR-420 mudou a base dele junto com o valor", () => {
+  it("equivalente segue a JANELA — ADR-422 mudou a base dele junto com o valor", () => {
     // Antes media o estoque full contra o aporte declarado e herdava `full`.
     // Agora é `total_pontuais_janela ÷ folga`, então o rótulo é o da folga.
     const bases = resolveConsumoBases(consumo);
@@ -899,7 +899,7 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
     ]);
   });
 
-  it("o teto sugerido não é renderizado — saiu do contrato na ADR-420", () => {
+  it("o teto sugerido não é renderizado — saiu do contrato na ADR-422", () => {
     render(<ConsumoConscienteCard consumo={consumo} />);
     const dl = document.querySelector("dl")?.textContent ?? "";
     expect(dl).not.toContain("Teto sugerido");

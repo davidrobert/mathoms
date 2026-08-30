@@ -125,3 +125,19 @@ call-sites herdam): qualquer mudança move baselines visuais em bloco.
   por-seção. Todos os PRs da família skiparam o job de print — daí o item 1.
 - **Narrador `perfil_familia`**: **entregue** — [[A40.l43]] (#1386) matou a
   coluna `right` no narrador e no renderer (emenda [[ADR-356]]).
+
+## Baseline de pixel do PDF ficou stale com o #1828 (2026-08-30)
+
+> Trabalho **recebido** por esta lane — o dono é ela. A origem foi o closeout da `A40.l94`,
+> já `shipped`; nada volta para lá.
+
+A baseline de pixel do PDF (`frontend/tests/e2e/reports/__snapshots__/report.print.pdf.png`)
+ficou **stale** com o #1828: o card "Consumo Consciente" perdeu o KPI "Teto sugerido"
+([[ADR-422]] D2), então o PDF renderizado mudou. Medido local: **19.503px** de divergência
+contra tolerância de 500.
+
+**Não bloqueia merge** — `print.@critical` é exclusão nominal do "Report render gate"
+(baseline OS-específica), e `print-chrome`/`print-text`, que medem conteúdo e não pixel,
+seguem dentro e passam. **Não rebaselinar local**: a baseline nasce no runner Linux/UTC e o
+macOS diverge por fuso e antialiasing. Regeneração é `workflow_dispatch` com
+`run_print=true` + `UPDATE_PRINT_BASELINE=1` — disparo do dono.

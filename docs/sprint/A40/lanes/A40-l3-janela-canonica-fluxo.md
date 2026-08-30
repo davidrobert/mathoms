@@ -381,11 +381,12 @@ carrega handoff — fica só o registro acima de que a base não vem do campo
   próprias que a lista exclui — a família vê um total que **não encontra nos
   itens**. Qualquer que seja a janela, KPI e lista precisam do mesmo filtro.
 - **Guarda de domínio para janela insuficiente** (decisão nova, pequena):
-  `janela: "12m"` com `janela_meses: 1` invalida a copy **e o conselho** —
-  `teto_sugerido = despesas_recorrentes_mensal × 1,15` derivado de um mês não é
-  recomendação, e o card o exibe em fonte de KPI. Proposta: abaixo de ~6 meses
-  documentados, suprimir `teto_sugerido`/`folga_pct` e declarar janela
-  insuficiente. É o espírito de D3 na camada de apresentação, ainda não aplicado.
+  `janela: "12m"` com `janela_meses: 1` invalida a copy **e o conselho**.
+  ~~`teto_sugerido = despesas_recorrentes_mensal × 1,15` derivado de um mês~~ — o teto foi
+  **extinto** do contrato em 2026-08-29 ([[ADR-422]] D2 · #1828), então essa metade do
+  follow-up morreu por consequência. Sobra `folga_pct`: abaixo de ~6 meses documentados,
+  suprimi-lo e declarar janela insuficiente. É o espírito de D3 na camada de apresentação,
+  ainda não aplicado.
 - **Nenhum sinal pós-merge desde 2026-06-15**: `Nightly` está
   `disabled_manually` e o `push: main` foi removido do `ci.yml`. Os comentários
   que ainda alegavam a cobertura foram corrigidos em 2026-08-08 (#1293, #1300 e
