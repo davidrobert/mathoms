@@ -1047,6 +1047,24 @@ centavo sobre o E3 do próprio run (2.289 células) · zero-write do harness pro
 superfícies** ("não apurado" / "Não afirmamos um alvo" / o parecer citando
 `tier=indeterminado`).
 
+## r12 — ws-1b9f2cf5-2026-08-30
+
+> Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 · [[PIPELINE-REVIEWS-active]] §r12 (este) · [[REPORT-REVIEWS-active]] §r8.
+> Run `7d860f0b` · `completed` 26,4 min · executor `04551a0b` (**identical-dirty**: 2 sidecars `.pre-encrypt`, zero código) · preflight: 4 WARN declarados, e o **`worker` reprovou** (código de 9h antes do HEAD) — reiniciado antes do disparo.
+> Custo: 8 chamadas, **100% atribuídas** por `pipeline_run_id` em `llm_call_log` (0 sem atribuição). `pipeline_run_costs` segue sem escritor — já conhecido (`PV11-02`), a rubrica de custo foi respondida pela tabela viva.
+> Cru + síntese com valores: `storage/1b9f2cf5-.../reviews/U4-2026-08-30/SINTESE.md` (off-git).
+> Escrituração: [[A42.l18]] e [[A42.l19]] (P1 do razão). Efeito nos gates em `docs/sprint/A42/_README.md` §Gate de saída da sprint e `docs/sprint/A40/_README.md` §Gate de saída e encerramento.
+> Cobertura: matriz 7×3 — 13 respondidas · 2 `BLOQUEADA` nomeadas · 6 sem cobertura com motivo · zero silenciosas.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| PV12-01 — a **ETA exibida durante o run** é subdeclarada em até **72%**: `get_median_durations_for_workspace` filtra `status == 'completed'` e mistura no-ops auto-declarados (milissegundos) com execuções reais (minutos) na mediana que vira a previsão. Medido com e sem as linhas de flag: um stage vai de 15.030 para 53.358 ms (**−71,8%**), outro de 322.317 para 382.270 (**−15,7%**) | saúde-execução | Médio | P2 | procede (novo) — `PV9-02` registra que a coluna `status` não reflete o skip; **o consumidor não-interno e a magnitude são novos**, e o cético nomeou a medição de falsificação que foi executada e **não** refutou | procede-aberto | sem lane — owner sre · o conserto é o predicado da mediana |
+| PV12-02 — a **cobertura** de lineage não é medida por gate nenhum e o eval é **auto-referente**: `check_lineage_refs` verifica só existência; os 29 casos cobrem **4 `entry_field` distintos**; a raiz de endividamento está no registro com **zero** caso; `expected_rule_ref` sai do próprio registro e o teste assevera `expected ⊆ registry`. Acrescentar raiz ao E5 sem lineage **não move métrica nenhuma** — e ~87% das raízes declaradas no schema não têm rastro | contrato | Médio | P2 | procede (novo) — é o mesmo modo de falha de *"gate que só pode dar verde"*, aqui na métrica que deveria vigiar a própria cegueira que carimba 88% dos blocos como `sem-veredito` | procede-aberto | sem lane — falta **KR de cobertura** cujo denominador venha do payload, nunca do registro |
+| PV12-03 — **aprovação-com-avisos é indistinguível de nunca-ter-pausado**: `_runs_with_degraded_stage` filtra só `status == 'degraded'`, então um run que pausou, foi conferido e retomou sai `complete`. O banner **não** mente neste relatório (os 5 documentos em revisão seguram a barra "sem pendências"), logo o defeito é do **predicado**, não do sintoma de hoje | saúde-execução | Médio | P2 | procede (novo, **rebaixado pelo cético**: o enunciado dizia que o banner afirmava limpo no PDF; a ordem dos guards refuta) | procede-aberto | sem lane |
+| PV12-04 — o `X5` da rodada unificada **só pode sair VERMELHO** e agrega 3 causas sob 1 rótulo: `extract_with_llm` é skip mal-carimbado, `generate_narratives` **escreve** (sob outra key, por desenho de merge documentado) e `validate_cross` é read-only. O conjunto é **constante** em `U2`/`U3`/`U4` ⇒ poder discriminante **zero** | contrato | Médio | P2 | procede (novo) — mesma patologia de `PV9-30`, sinal invertido: o remédio é declarar o conjunto esperado por **igualdade de conjunto**, para que um 4º ofensor apareça | procede-aberto | sem lane — conserto é do instrumento (`dev/_unified_xchecks/execucao.py`) |
+| PV12-05 — `validation_issues` = 6 vs `erros` com 5 linhas na mesma pausa | consistência | — | — | MEDIÇÃO-DE-CONHECIDO de `PV10-07` — **reproduz pela 3ª rodada consecutiva** | procede-aberto | — |
+| PV12-06 — o run consumiu **34 unidades** de `extract_with_llm` herdadas de **11 runs distintos** (até 54 dias), por fallback declarado, e o `run_meta` afirma *"escopo: full — 17 computados"* sem contagem de unidade herdada | consistência | Baixo | P3 | procede (novo) — a reprodutibilidade já é declarada não-garantida por LLM/câmbio/DB; esta é uma **segunda fonte, determinística e contável**, que o meta não expõe | procede-aberto | sem lane |
+
 ## r11 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U3** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r7 · [[PIPELINE-REVIEWS-active]] §r11 · [[REPORT-REVIEWS-active]] §r7.

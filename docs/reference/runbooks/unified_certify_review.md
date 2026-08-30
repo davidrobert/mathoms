@@ -180,7 +180,7 @@ estão atribuindo números ao run errado.
 | # | Predicado | Falha significa |
 |---|---|---|
 | **X5** | Todo stage que `pipeline_stage_logs` declara `completed` tem ≥1 row em `pipeline_artifacts` com `pipeline_run_id == <run novo>`; e `review_snapshot.provenance.execucao_mista` é verdadeiro se algum stage consumiu artefato de outro run | A proveniência declarada é **falsa**. O lookup de já-processado é workspace-scoped, não run-scoped |
-| **E2** | O mapa de seleção de F1 é **idêntico** ao pós-run | O corpus do razão mudou sob os pés da medição. Guarde com "nenhum run em status não-terminal no momento de F1" |
+| **E2** | Em **três eixos**, não um: **composição** (o conjunto de chaves é idêntico) · **conteúdo** (`byte_size` idêntico nas unidades **re-derivadas**) · **procedência** (`id` mudou ⇒ este run reescreveu; `id` igual ⇒ unidade **herdada** de outro run) | Composição divergente = o corpus mudou sob os pés da medição. Conteúdo divergente = mesma população, unidade re-extraída com bytes diferentes. **O denominador do conteúdo é run-scoped** — unidade herdada não podia variar e infla o verde. Medido no `U4`: 135/171 mudaram `id` por re-extração e 34 eram herdadas, logo o predicado antigo (identidade de `(id, byte_size)`) era **insatisfazível** e só podia sair vermelho. Instrumento: `dev/unified_e2_snapshot.py --compare`, exit 1 = composição, 2 = conteúdo |
 | **X1** | Por grupo: `tx_carregadas` sombra == persistido (**C1**); `executor_revision` do run == HEAD (**C2**); e a diferença de `transacoes_total` é **exatamente** a diferença do canal `cross_document_collapse` de `remocoes`, com os demais canais idênticos (**C3**, tol-zero) | O run cortou ou reteve rows que **nenhum canal declarado explica** — perda silenciosa, que é o que o ledger da [[ADR-347]] existe para tornar impossível |
 | **X2** | O E4 re-derivado a partir do E3 **persistido do run** bate com o E4 persistido, em cents, por `(balde, categoria, mês)` | Categorizador não-determinístico, **drift de regra aprendida**, ou E4 estagnado vazando pelo workspace-latest. Pin obrigatório: contagem de `transaction_overrides` antes e depois |
 | **X3** | **Vetorial**: para todo mês e balde, a série do view-model == `fluxo_mensal_detalhado`, em cents; e a soma dos meses == o total do balde | Escalar fecha e vetor não fecha ⇒ **deslocamento sum-preserving**. É a classe que a rodada inteira existe para pegar |
@@ -514,12 +514,75 @@ reprovando ≥2 caixas, porque o vocabulário não tinha o segundo valor.
 | **U1** | 2026-08-26 | `1b9f2cf5` | `c97b97c2` | LEDGER §r5 · PIPELINE §r9 · REPORT §r5 | (esta PR) | fechada |
 | **U2** | 2026-08-29 | `1b9f2cf5` | `79a61e33` | LEDGER §r6 · PIPELINE §r10 · REPORT §r6 | 1820 | fechada com ressalva (E2, escrituração fora do commit) |
 | **U3** | 2026-08-30 | `1b9f2cf5` | `3a5b9c7d` | LEDGER §r7 · PIPELINE §r11 · REPORT §r7 | (esta PR) | fechada com ressalva (E2 reprova; `REPORT × solidez` nula) |
+| **U4** | 2026-08-30 | `1b9f2cf5` | `7d860f0b` | LEDGER §r8 · PIPELINE §r12 · REPORT §r8 | (esta PR) | fechada |
 
 ## 10. Débito de método (cross-cutting)
 
 Append-only, datado. Só o que é furo **do encadeamento** — furo de uma skill vai para
 o MOC dela.
 
+- **2026-08-30 (fecho do `U4`) — sete furos, e os três primeiros são do mesmo osso: o denominador.**
+  **Sete furos, e os três primeiros são do mesmo osso: o denominador.**
+
+  1. **O predicado do E2 deste runbook era insatisfazível, e nenhuma das 3 rodadas
+     anteriores o notou.** O §5 F1/F2 exige identidade de `{(stage,key) → (id, byte_size)}`
+     entre o mapa pré e o pós-run. Medido: um run completo **re-extrai e cunha `id` novo em
+     135 de 171 unidades** ⇒ o predicado literal **só pode sair vermelho**. Foi assim que o
+     `U3` "publicou `E2 ✅` sobre um predicado que reprova" — ele lia, corretamente, o eixo de
+     conteúdo, enquanto o texto exigia mais. **Regra: o veredito do E2 é sobre COMPOSIÇÃO
+     (conjunto de chaves) + CONTEÚDO (`byte_size`) + PROCEDÊNCIA (`id`), com exit code por
+     eixo.** O runbook §5 F1/F2 deve ser reescrito; até lá, o instrumento é a fonte.
+
+  2. **E a minha primeira correção dele estava errada — do mesmo jeito.** Ao separar
+     composição de conteúdo, chamei `id` de "ruído esperado". `id` é o **único**
+     discriminador entre unidade **re-derivada por este run** e **herdada de outro**: das
+     171, **34 são `extract_with_llm` herdadas de 11 runs distintos** e não podiam variar.
+     Meu "conteúdo estável" tinha **denominador tautológico em 20%** — a mesma doença que a
+     guarda anti-vácuo que eu **acabara de escrever** persegue nos cross-checks. Achado pela
+     lente de invariante, não por mim. **Regra: denominador de conteúdo é run-scoped, e
+     quem publica `n/N` declara de que população é o `N`.**
+
+  3. **Dois números circulam para "as raízes do E5" e eu publiquei um sem dizer qual.**
+     **42** é o número de chaves de topo do **payload**; **38** é o de raízes do **schema**.
+     Ambos verdadeiros, populações diferentes. O cético corrigiu. **Regra: nomear a
+     população junto do número, sempre — é literalmente o remédio que o `RR5-11` prescreve
+     para o produto, e o método falhou nele primeiro.**
+
+  4. **Instrumento que mora fora da árvore é instrumento não-gateado, e isso é medível.** Ao
+     promover os cross-checks de `storage/` para `dev/` (pagando o item 2 do §10 do `U3`),
+     eles passaram pelo `code-style-baseline` **pela primeira vez na vida** e reprovaram
+     (P1 +4, P9 +1). Um instrumento que nunca fora linted vinha pontuando a saúde do
+     código. **Regra: a promoção para `dev/` é parte do débito, não um extra — e o gate que
+     ela destrava é evidência, não incômodo.**
+
+  5. **Rodar o instrumento promovido de dentro de um worktree mede o nada, em silêncio.**
+     `_PROJECT_ROOT` deriva da localização do módulo: o `mathoms.db` do worktree tem 4 KB e
+     zero tabelas, e o `.env` não existe lá (o Fernet falha alto — esse pelo menos falha).
+     **Regra: `procedencia()` imprime o DB resolvido antes de qualquer número, e o pin é
+     `MATHOMS_DATABASE_URL` absoluto + `MATHOMS_FERNET_KEY` explícito.**
+
+  6. **Rebaixar instrumento na F3.d obriga a re-executar a F3.c — e desta vez a resposta
+     MUDOU.** A regra é do `U1` (item 3), foi repetida pelo `U2` (item 3) e **violada** por
+     ele. Aqui a perna de valor do razão caiu **depois** de a F3.c ter rodado; a tabela foi
+     re-emitida (v2) e o braço cego re-executado. Resultado medido: **3 alavancas caíram de
+     rebaixadas para inadmissíveis, 1 subiu a admissível, o nº 1 mudou e a forma da
+     justificativa migrou de "vale mais" para "é a única demonstrável sem valor"**. É a
+     prova empírica de que **anotar a refutação não basta** — a v1 fica preservada como
+     `_STALE`, não como veredito.
+
+  7. **A taxa de duplicação de achado de produto foi de ~2/3, e ela é o sinal, não o ruído.**
+     Dos meus 5 candidatos de prior art, **5 já estavam registrados**; no lote C do cético,
+     **4 de 6**, e **três deles mediam MENOS do que o registro existente já media**. Um
+     corpus revisado 4 vezes não devolve achado novo de produto na mesma taxa — devolve
+     **denominador** para achado que já existe. **Regra: a rodada que não distingue "novo" de
+     "medição de conhecido" infla o próprio placar e faz o gate de saída da sprint parecer
+     mais longe do que está.**
+
+  **Corolário sobre contagem por proxy** (atravessa 6 e 7): contei rodapé de `confiança`
+  como proxy de bloco de risco e **quase confirmei um achado falso** ("nem o PDF alcança os
+  12 riscos"). A presença do **título** refuta: tela 5/12, print **12/12**, PDF **12/12**. O
+  cético do lote C bateu no mesmo modo de falha de forma independente. **Proxy de contagem
+  exige validação contra a entidade antes de virar veredito.**
 - **2026-08-30 (fecho do `U3`) — a rodada mede a distância do PRODUTO ao HEAD e nunca a do
   INSTRUMENTO.** Três medições desta rodada, todas minhas:
   1. **O instrumento que pontua a KR-B mudou entre os dois runs e eu publiquei "idêntico".**
