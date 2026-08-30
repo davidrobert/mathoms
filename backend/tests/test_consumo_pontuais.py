@@ -253,3 +253,24 @@ def test_limiar_do_scoring_move_o_kpi():
 
     assert descricoes(None) == ["ACIMA DOS DOIS", "ENTRE OS DOIS LIMIARES"]
     assert descricoes(_SCORING_2500) == ["ACIMA DOS DOIS"]
+
+
+# A40.l98 PR2 — a lista aplicava DUAS das três cláusulas de natureza. Faltavam
+# `recorrentes` (o aluguel de R$ 5k entrava 12× como "gasto pontual") e
+# `transferencia_patrimonial` (o aporte é poupança, [[ADR-333]]).
+@pytest.mark.asyncio
+async def test_lista_exclui_recorrente_e_aporte(auth_client: AsyncClient, db):
+    despesas = [
+        _despesa("ALUGUEL APARTAMENTO", 5000.0, categoria="moradia"),
+        _despesa("APORTE CDB TESOURO", 12000.0, categoria="aporte_investimento"),
+        _despesa("PIX FAMILIA MENSALIDADE", 4000.0, categoria="transferencia_familiar"),
+        _despesa("RESTAURANTE FASANO", 3500.0, categoria="alimentacao"),
+    ]
+    await _seed_e4_despesas(db, auth_client.ws_id, despesas)
+    await _seed_transfer_config(db, auth_client.ws_id)
+
+    resp = await auth_client.get(
+        f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"
+    )
+    assert resp.status_code == 200, resp.text
+    assert [it["descricao"] for it in resp.json()["items"]] == ["RESTAURANTE FASANO"]

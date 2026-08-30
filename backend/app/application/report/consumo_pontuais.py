@@ -12,6 +12,7 @@ from backend.app.application.transaction.filters import TransactionFilters
 from backend.app.schemas.report import ConsumoPontuaisItem, ConsumoPontuaisResponse
 from backend.app.schemas.transactions import TransactionItem
 from pipeline.domain.services import GastoPontualPolicy, InternalTransferDetector
+from pipeline.domain.services.gasto_pontual_policy import VeredictoPontual
 
 VALID_PERIODS: tuple[str, ...] = ("3m", "6m", "12m", "ytd")
 
@@ -53,13 +54,18 @@ def _is_pontual(
 ) -> bool:
     if tx.origem is not None:
         return False
-    if abs(tx.valor) < Decimal(str(policy.consumo_min)):
+    if not policy.is_relevante(tx.valor):
         return False
-    if tx.categoria in policy.transferencia_de_conta:
-        return False
-    if detector.is_internal_transfer(tx.descricao or "", banco=tx.banco or ""):
-        return False
-    return True
+    # A40.l98 — mesmas três cláusulas de natureza do KPI do MESMO card. Faltavam
+    # duas aqui: `recorrentes` (o aluguel de R$ 5k entrava 12× como "gasto
+    # pontual") e `transferencia_patrimonial` (o aporte).
+    veredito = policy.classify(
+        tx.categoria or "",
+        descricao=tx.descricao or "",
+        banco=tx.banco or "",
+        detector=detector,
+    )
+    return veredito is VeredictoPontual.incluido
 
 
 def _to_item(tx: TransactionItem) -> ConsumoPontuaisItem:

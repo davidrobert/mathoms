@@ -16,7 +16,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from pipeline.domain.services.brl_prose import fmt_brl_prosa
-from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
+from pipeline.domain.services.gasto_pontual_policy import (
+    GastoPontualPolicy,
+    VeredictoPontual,
+)
 
 
 def _safe_float(val) -> float:
@@ -244,7 +247,13 @@ class ConsumoConscienteCalculator:
         cfg = self._policy
         out: list[GastoPontualItem] = []
         for cat, transacoes in dados.items():
-            if cat in cfg.recorrentes:
+            # A40.l98 — a exclusão de natureza é a UNIÃO dos dois conjuntos de
+            # categoria. Antes daqui só saía `recorrentes`: o aporte
+            # (`transferencia_patrimonial`, [[ADR-333]]) e a transferência entre
+            # contas entravam na base que o parecer usa para prescrever contenção
+            # de consumo. Sem detector — dentro do E5 ele é inerte por
+            # construção (ver `GastoPontualPolicy.classify`).
+            if cfg.classify(str(cat)) is not VeredictoPontual.incluido:
                 continue
             if not isinstance(transacoes, list):
                 continue
@@ -252,7 +261,7 @@ class ConsumoConscienteCalculator:
                 if not isinstance(txn, dict):
                     continue
                 valor = _safe_float(txn.get("valor", 0))
-                if valor < cfg.consumo_min:
+                if not cfg.is_relevante(valor):
                     continue
                 data_str = str(txn.get("data", ""))
                 banco = str(txn.get("banco", ""))

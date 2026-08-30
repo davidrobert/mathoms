@@ -16,6 +16,14 @@ num ``Decimal("2000")`` hardcoded, enquanto o KPI lia
 ``scoring.json::thresholds_alertas.consumo_consciente_min``. Os dois valiam 2000 e
 **coincidiam por acaso** — editar o ``scoring.json`` os separava em silêncio.
 
+``detector`` é opcional em ``classify`` porque ele **não é aplicável dentro do
+E5**: o E4 roteia transferência detectada para ``kind="transferencia"``
+(``transaction_classifier.py`` passo 1) e ela nunca chega a ``despesas.dados`` —
+filtro ali seria inerte **por construção**, e foi medido como tal
+(``tests/test_e5_base_gasto_pontual.py``). Na LISTA ele é vivo por outro motivo:
+o detector do endpoint é resolvido do ``TransferConfig`` do **DB**, que pode ter
+mudado depois do run que produziu o artefato.
+
 Os dois conjuntos são **deliberadamente não iguais**: ``transferencia_patrimonial``
 sai do denominador da taxa de poupança ([[ADR-333]]) e move ``folga_mensal``;
 ``transferencia_de_conta`` sai só da base do pontual. Fundi-los não é refactor, é
@@ -26,6 +34,29 @@ mudança de número — ``transferencia_familiar`` é plausivelmente consumo, e 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
+from enum import Enum
+from typing import Protocol
+
+
+class VeredictoPontual(str, Enum):
+    """Por que um lançamento entrou (ou não) na base — enum FECHADO.
+
+    Sem veredito por item o residual não tem como ser atribuído por causa
+    ([[ADR-425]] §D2). ``transferencia_por_categoria`` cobre os DOIS conjuntos:
+    o rótulo é mais grosso que os conjuntos de propósito — fundir os conjuntos
+    mudaria ``folga_mensal``, fundir os rótulos não muda número nenhum.
+    """
+
+    incluido = "incluido"
+    recorrente = "recorrente"
+    transferencia_por_categoria = "transferencia_por_categoria"
+    transferencia_detectada = "transferencia_detectada"
+
+
+class _DetectorDeTransferencia(Protocol):
+    def is_internal_transfer(self, description: str, *, banco: str = "") -> bool: ...
+
 
 _DEFAULT_CONSUMO_MIN = 2000.0
 
@@ -70,11 +101,32 @@ class GastoPontualPolicy:
 
     @property
     def nao_consumo_pontual(self) -> frozenset[str]:
-        """A exclusão de **natureza** por categoria — a união dos dois conjuntos.
-
-        Hoje cada produtor tem metade dela; convergir os três é o PR seguinte.
-        """
+        """A exclusão de **natureza** por categoria — a união dos dois conjuntos."""
         return self.transferencia_patrimonial | self.transferencia_de_conta
+
+    # Cláusula de POPULAÇÃO, separada das de natureza: o limiar não diz o que o
+    # lançamento é, só se ele é grande o bastante para o card. Aceita ``Decimal``
+    # sem converter — a lista carrega ``Decimal`` e passar por ``float`` aqui
+    # seria dinheiro em float ([[ADR-090]]).
+    def is_relevante(self, quantia: Decimal | float) -> bool:
+        return abs(quantia) >= self.consumo_min
+
+    def classify(
+        self,
+        categoria: str,
+        *,
+        descricao: str = "",
+        banco: str = "",
+        detector: _DetectorDeTransferencia | None = None,
+    ) -> VeredictoPontual:
+        """As cláusulas de **natureza**, na mesma ordem para os três produtores."""
+        if categoria in self.recorrentes:
+            return VeredictoPontual.recorrente
+        if categoria in self.nao_consumo_pontual:
+            return VeredictoPontual.transferencia_por_categoria
+        if detector is not None and detector.is_internal_transfer(descricao, banco=banco):
+            return VeredictoPontual.transferencia_detectada
+        return VeredictoPontual.incluido
 
     @classmethod
     def from_scoring(cls, scoring: dict | None = None) -> "GastoPontualPolicy":

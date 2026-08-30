@@ -141,7 +141,15 @@
 # label, não quebra de contrato de output). A `folga_mensal` que fica ao lado mudou de
 # VALOR sem mudar de nome — passou a ser a taxa de poupança da janela —, e é por isso
 # que o bump cobra a frota: parecer em cache dentro dos 7 dias citaria a folga velha.
-version: "2.9.0"
+# 2.10.0 — A40.l98 PR2: `total_pontuais` e `total_pontuais_janela` mudam de VALOR sem
+# mudar de nome. A base deles passa a excluir a UNIÃO das duas famílias de categoria
+# (aporte de investimento, [[ADR-333]], + transferência entre contas): o KPI só excluía
+# `recorrentes`, e o modelo ancora o risco "gastos pontuais elevados" nesses dois campos
+# — 3× no texto. No dogfood o aporte sozinho é R$ 190.000 de `total_pontuais`. MINOR
+# pela mesma leitura da 2.8.0: muda o valor projetado, não o contrato de output. O bump
+# COBRA a frota — nada mais invalida o cache de 7 dias, então cada (workspace, snapshot
+# E5) que pedir parecer na janela regenera uma vez.
+version: "2.10.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
