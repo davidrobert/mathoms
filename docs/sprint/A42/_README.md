@@ -210,7 +210,7 @@ passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
 mutou. A auditoria de mesa abaixo **não** substitui esse rito — só deixa o
 grafo honesto até lá.
 
-## Lanes (19)
+## Lanes (22)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
@@ -233,6 +233,9 @@ grafo honesto até lá.
 | [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** · ✅ **#1846** — defeito procede; o gate que devia pegá-lo era cego em **3** eixos e os 2 sítios crus do repo moravam na interseção. Eixo novo: **rotear pelo choke-point não compra determinismo** (`use_cache` é `False` por default), logo o *delete-and-delegate* da [[A41.l3]] passaria os 5 critérios dela com o churn intacto | **P0** | 1 | — |
 | [[A42.l18]] | A perna de **valor** da conservação E3→E4 é inerte: `dups` é `0` **literal** na linha 265 (a linha 160, E2→E3, passa a variável real) e os dois lados somam `abs()` sobre a **mesma população pré-dedup** ⇒ `Δvalor = 0` é invariante a inversão de sinal **e** às 858 rows do dedup · **U4 `N1`** | P1 | 1 | — |
 | [[A42.l19]] | O guard de escrita do E4 resolve por **stage**, nunca por `artifact_key`, e o `oneOf` tem ramo **placeholder** (`{status}`) que um balde transacional casaria; medido: `patrimonio` (87 itens) **reprova em `$`** e é gravado sob `warn`, e a jusante o razão imprime *coberto · 0 itens* para ele · **U4 `N2`** | P1 | 1 | — |
+| [[A42.l20]] | `_e3_count` soma só `transacoes_total + transacoes_duplicadas_removidas` e **ignora `remocoes`**, que a função duas acima lê; canal declarado e reconciliável ao inteiro sai como *count divergente* com **duas causas declaradas, ambas falsas** · **U4 `LC8-03`** | P2 | 1 | — |
+| [[A42.l21]] | O `X5` da rodada unificada **só pode sair vermelho** e agrega 3 causas distintas sob 1 rótulo (skip mal-carimbado · escreve sob outra key por desenho · read-only); conjunto **constante** em U2/U3/U4 ⇒ poder discriminante zero · **U4 `PV12-04`** | P2 | 1 | — |
+| [[A42.l22]] | A **ETA exibida durante o run** é subdeclarada em até **72%**: a mediana filtra `status==completed` e mistura no-ops de milissegundos com execuções de minutos · **U4 `PV12-01`** — único P2 da rodada com consequência medida na superfície do usuário | P2 | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
@@ -246,11 +249,12 @@ mais barata de Goodhart num plano.
 > registra a decisão de capacidade como ela foi tomada.
 
 **Estado da capacidade — 2026-08-30 (re-medido na rodada unificada `U4`).** A sprint tem
-**19 lanes**: o `## Lanes (19)` acima, 19 linhas na tabela e 19 arquivos em
+**22 lanes**: o `## Lanes (22)` acima, 22 linhas na tabela e 22 arquivos em
 `docs/sprint/A42/lanes/` — os três substratos concordam, e o `check_lane_counter` do
 `lane-closeout` só compara esses três. As duas últimas ([[A42.l18]], [[A42.l19]]) nascem
 da `U4` e são **da classe que dá nome à sprint** — falso-verde de instrumento —, o que é
-por si o argumento de que a sprint não fechou. **O teto de 14 está excedido em 5, e o rompimento
+por si o argumento de que a sprint não fechou. As três seguintes ([[A42.l20]]–[[A42.l22]]) são
+os P2 da mesma rodada, alocados a pedido do dono em 2026-08-30. **O teto de 14 está excedido em 8, e o rompimento
 nunca foi decidido:** as cinco lanes acima de 12 entraram uma a uma, em PRs distintos, sem
 que o parágrafo acima fosse relido.
 
@@ -540,8 +544,8 @@ número é o que produz resíduo em prosa. Próxima lane desta sprint é a l14.
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
 sprints `current` são hard fail em `build_doc_index.py --check`, e as lanes desta sprint
 nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]]. (A contagem
-vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das **19**
-seguem `planned`; [[A42.l7]], [[A42.l18]] e [[A42.l19]] estão `open`,
+vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das **22**
+seguem `planned`; [[A42.l7]] e [[A42.l18]]–[[A42.l22]] estão `open`,
 [[A42.l14]]/[[A42.l15]] `in_progress`, [[A42.l16]]/[[A42.l17]] `shipped`.)
 
 **Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
