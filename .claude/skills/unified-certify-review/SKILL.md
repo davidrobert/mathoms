@@ -44,9 +44,9 @@ Leia o runbook para o detalhe; isto é o mapa, não o território.
 | **F2** | Grava `fired_at` **antes** de disparar; poll até terminal; coleta |
 | **F3** | Cross-checks determinísticos → painel de 5 lentes → braço cego → céticos → crítico de completude |
 | **F4** | Clusteriza; **gate de cobertura em matriz dimensão × registro** |
-| **F5** | Três appends num commit só — a **única** fase que toca o git |
+| **F5** | Escreve o `SINTESE.md`, escritura a sprint (lanes dos P0), e commita tudo — **o único commit da rodada** |
 | **F6** | Débito de método do encadeamento |
-| **F7** | Fecho e baseline |
+| **F7** | Fecho e baseline — **git-free**: chegar aqui com escrita pendente significa que a F5 não fechou |
 
 ## Fronteira vs as skills vizinhas
 
@@ -60,6 +60,13 @@ Leia o runbook para o detalhe; isto é o mapa, não o território.
 
 **Não use esta skill para economizar decisão.** Ela custa um run pago e um painel;
 se a pergunta cabe numa vizinha, a vizinha é mais barata e mais precisa.
+
+**E o custo não termina no achado.** Uma rodada que abre P0 obriga a **escrituração de
+sprint** dentro da F5: alocar os ids de lane — senão sessões paralelas colidem no mesmo id,
+que quase aconteceu no `U2` — e escrever o efeito no gate de saída, porque a rodada é um
+re-run completo e sprint cujo gate exige *"sem P0 novo"* tem o contador zerado por ela. Se
+você não vai pagar essa parte, a rodada entrega achado que ninguém ataca sem colidir, e uma
+sprint que parece mais perto de fechar do que está.
 
 ## O que ler antes de disparar
 
@@ -75,7 +82,13 @@ Duas seções do runbook, e nenhuma é opcional:
 
 ## Critério de aceite
 
-O do runbook (§5 F7), sem duplicação aqui. Em resumo: run `completed` — **nunca**
-`partial_failure` — · matriz sem célula silenciosa · toda linha com registro de
-destino de cardinalidade 1 · taxa de `REFUTADO` > 0 · ≥1 claim pivotal fechado por
-medição · zero PII nas três seções git · débito de método registrado.
+**A fonte é o runbook §5 F7**, que virou tabela com verificador por linha em 2026-08-30 —
+até ali este resumo era a única cópia, enquanto declarava não ser a fonte. **Não reproduzo
+a lista aqui**: ela tem 17 caixas (9 de rodada + as 8 regras do §10) e um resumo que perde
+uma delas é a mesma doença, mais discreta.
+
+O que a fronteira exige saber antes de invocar: a rodada só fecha com run `completed` —
+**nunca** `partial_failure` — e, **se abriu P0**, com a escrituração de sprint feita **ou**
+com a recusa escrita na linha `Escrituração:` do cabeçalho das três seções. A válvula de
+recusa cobre **apenas a alocação de lane**; registrar o efeito no gate de saída **não tem
+válvula**.
