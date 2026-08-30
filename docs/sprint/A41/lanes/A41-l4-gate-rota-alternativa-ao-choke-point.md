@@ -27,6 +27,15 @@ tags:
 > disso o gate falharia no próprio código que [[A41.l2]] e [[A41.l3]] estão
 > consertando.
 
+> **Precursor entregue fora da lane (2026-08-30, [[A42.l17]]).** `check_llm_sampling`
+> passou a reprovar **chamada** crua ao SDK (`Anthropic(...)` / `messages.create(...)`)
+> fora de `pipeline/llm/`, com `RESIDUO_DECLARADO` por igualdade de conjunto — que é o
+> mecanismo que resolve o impasse do bloco acima: o gate existe **antes** das
+> superfícies serem roteadas, barrando a quarta sem reprovar as duas conhecidas.
+> Segue aberto o que é desta lane: casar o **import** (a sonda de
+> `document_classification.py` ainda precisará da exceção nomeada), o alvo 3 → 0, e a
+> entrada no `CLAUDE.md` §Regras críticas.
+
 ## Problema
 
 Linha de base medida em `main` (2026-08-03): três arquivos de produção importam
