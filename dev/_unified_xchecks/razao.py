@@ -8,12 +8,12 @@ from dev._unified_xchecks.base import _cents, _db, cat_despesa, e4_do_run, mes_d
 
 
 def _flatten_fmd(nome: str, payload: dict) -> dict:
-    out: dict[tuple, int] = {}
-    for sec in ("receitas", "despesas"):
-        for mes, linhas in (payload.get(sec, {}).get("por_mes") or {}).items():
-            for cat, v in (linhas or {}).items():
-                out[(f"{nome}.{sec}", cat, mes)] = _cents(v) or 0
-    return out
+    return {
+        (f"{nome}.{sec}", cat, mes): _cents(v) or 0
+        for sec in ("receitas", "despesas")
+        for mes, linhas in (payload.get(sec, {}).get("por_mes") or {}).items()
+        for cat, v in (linhas or {}).items()
+    }
 
 
 def flatten_balde(nome: str, payload: dict) -> dict:
@@ -128,20 +128,26 @@ def _x3_specs(blk: dict, fmd: dict) -> tuple:
     )
 
 
+def _x3_serie(serie: list, e4: dict, c: str, labels: list, sec: str) -> tuple:
+    """Uma categoria contra o E4. Mes fora do E4 nao entra — nem como celula nem
+    como divergencia (era assim que 647 'divergencias' de rotulo nasciam no `U3`)."""
+    total, div = 0, []
+    for i, lbl in enumerate(labels):
+        mes = mes_do_label(lbl)
+        if mes not in e4:
+            continue
+        total += 1
+        a, b = _cents(serie[i]) or 0, _cents(e4[mes].get(c, 0)) or 0
+        if a != b:
+            div.append((sec, c, mes, a, b))
+    return total, div
+
+
 def _x3_celulas(vm_ds: dict, e4: dict, norm, labels: list, sec: str) -> tuple:
-    """Mes fora do E4 nao entra — nem como celula nem como divergencia (era
-    assim que 647 'divergencias' de rotulo nasciam no `U3`)."""
     total, div = 0, []
     for c_lbl, serie in vm_ds.items():
-        c = norm(c_lbl)
-        for i, lbl in enumerate(labels):
-            mes = mes_do_label(lbl)
-            if mes not in e4:
-                continue
-            total += 1
-            a, b = _cents(serie[i]) or 0, _cents(e4[mes].get(c, 0)) or 0
-            if a != b:
-                div.append((sec, c, mes, a, b))
+        t, d = _x3_serie(serie, e4, norm(c_lbl), labels, sec)
+        total, div = total + t, div + d
     return total, div
 
 
@@ -166,14 +172,11 @@ def _x3_escalar_linha(sec: str, vm_ds: dict, publicado: dict, norm, n_janela: in
         print(f"    DIV {c!r}: Σserie_{n_janela}m={a} publicado={b} delta={a - b}")
 
 
-def _x3_escalar(vm: dict, blk: dict) -> None:
-    n_janela = int(vm["fluxo_caixa"].get("janela_meses_agregado") or 12)
-    print(f"### escalar: Σ ultimos {n_janela}m da serie vs total publicado no card")
-    # Os dois agregados vivem lado a lado em `fluxo_caixa` e tem JANELAS
-    # DIFERENTES: `despesas_por_categoria` e o `totais_por_categoria` do E4
-    # (periodo completo, enricher:363) e `por_fonte_detalhado` e a janela de
-    # `janela_meses` (enricher:579). Nada no nome distingue. Medido no `U4`.
-    pares = (
+def _x3_escalar_pares(vm: dict, blk: dict, n_janela: int) -> tuple:
+    # Janelas DIFERENTES lado a lado em `fluxo_caixa`, sem nada no nome que as
+    # distinga: `despesas_por_categoria` e periodo completo (enricher:363);
+    # `por_fonte_detalhado` e a janela de `janela_meses` (:579). Medido no `U4`.
+    return (
         (
             "despesas",
             {d["label"]: d["data"] for d in blk["despesa_datasets"]},
@@ -189,7 +192,12 @@ def _x3_escalar(vm: dict, blk: dict) -> None:
             n_janela,
         ),
     )
-    for sec, vm_ds, publicado, norm, janela in pares:
+
+
+def _x3_escalar(vm: dict, blk: dict) -> None:
+    n_janela = int(vm["fluxo_caixa"].get("janela_meses_agregado") or 12)
+    print(f"### escalar: Σ ultimos {n_janela}m da serie vs total publicado no card")
+    for sec, vm_ds, publicado, norm, janela in _x3_escalar_pares(vm, blk, n_janela):
         _x3_escalar_linha(sec, vm_ds, publicado, norm, janela)
 
 

@@ -39,24 +39,9 @@ def snapshot(workspace_id: str, db_path: str) -> dict[str, dict[str, object]]:
     return dict(sorted(snap.items()))
 
 
-def compare(pre: dict, pos: dict) -> dict[str, object]:
-    """Diff nomeado, separando churn de linha de mudanca de CONTEUDO."""
-    # O runbook pedia identidade de `(id, byte_size)`. Medido no `U4`: um run
-    # completo re-extrai e cunha `id` novo em 135 de 171 unidades — o predicado
-    # literal e insatisfazivel e so pode sair vermelho. O que discrimina e a
-    # COMPOSICAO (chaves) mais o CONTEUDO (`byte_size`); `id` e ruido esperado.
-    only_pre = sorted(set(pre) - set(pos))
-    only_pos = sorted(set(pos) - set(pre))
-    comuns = sorted(set(pre) & set(pos))
-    # 3o eixo: PROCEDENCIA. Unidade cuja `id` nao mudou nao foi reescrita por este
-    # run — ela e HERDADA de outro. Chamar `id` de ruido zera o unico discriminador
-    # entre re-derivada e herdada, e o veredito de conteudo passa a ter denominador
-    # tautologico: no `U4`, 34 de 171 unidades (20%) nao podiam variar. Refutado
-    # pela lente de invariante, medido: `extract_with_llm` = 0/34 deste run, 11 runs.
-    herdadas = [k for k in comuns if pre[k]["id"] == pos[k]["id"]]
-    rederivadas = [k for k in comuns if pre[k]["id"] != pos[k]["id"]]
-    so_id = [k for k in rederivadas if pre[k]["byte_size"] == pos[k]["byte_size"]]
-    conteudo = [
+def _eixo_conteudo(pre: dict, pos: dict, comuns: list) -> list[dict]:
+    """Unidades cujo `byte_size` mudou — a unica divergencia que e de CONTEUDO."""
+    return [
         {
             "chave": k,
             "pre": pre[k],
@@ -66,6 +51,17 @@ def compare(pre: dict, pos: dict) -> dict[str, object]:
         for k in comuns
         if pre[k]["byte_size"] != pos[k]["byte_size"]
     ]
+
+
+def compare(pre: dict, pos: dict) -> dict[str, object]:
+    """Diff em tres eixos: composicao, procedencia e conteudo."""
+    # `id` NAO e ruido: e o unico discriminador entre unidade re-derivada e
+    # HERDADA de outro run. Medido no `U4`: 135/171 re-extraidas, 34 herdadas.
+    only_pre, only_pos = sorted(set(pre) - set(pos)), sorted(set(pos) - set(pre))
+    comuns = sorted(set(pre) & set(pos))
+    herdadas = [k for k in comuns if pre[k]["id"] == pos[k]["id"]]
+    rederivadas = [k for k in comuns if pre[k]["id"] != pos[k]["id"]]
+    conteudo = _eixo_conteudo(pre, pos, comuns)
     return {
         "n_pre": len(pre),
         "n_pos": len(pos),
@@ -75,21 +71,25 @@ def compare(pre: dict, pos: dict) -> dict[str, object]:
         "conteudo_estavel": not conteudo,
         "removidas": only_pre,
         "acrescentadas": only_pos,
-        "so_id_mudou": so_id,
+        "so_id_mudou": [k for k in rederivadas if pre[k]["byte_size"] == pos[k]["byte_size"]],
         "conteudo_mudou": conteudo,
         "herdadas": herdadas,
     }
 
 
-def _print_compare(r: dict[str, object]) -> int:
-    print(json.dumps(r, indent=2, ensure_ascii=False))
+def _resumo(r: dict[str, object]) -> str:
     n_comp = len(r["removidas"]) + len(r["acrescentadas"])
-    # Denominador do conteudo e RUN-SCOPED: so unidade re-derivada podia variar.
-    resumo = (
+    return (
         f"n_unidades={r['n_pre']}/{r['n_pos']} · composicao_divergente={n_comp} · "
         f"conteudo_divergente={len(r['conteudo_mudou'])}/{r['n_rederivadas']} re-derivadas "
         f"(+{r['n_herdadas']} herdadas, inertes por construcao) · so_id={len(r['so_id_mudou'])}"
     )
+
+
+def _print_compare(r: dict[str, object]) -> int:
+    """Exit code por eixo: 0 estavel · 1 composicao · 2 conteudo."""
+    print(json.dumps(r, indent=2, ensure_ascii=False))
+    resumo = _resumo(r)
     if r["composicao_estavel"] and r["conteudo_estavel"]:
         print(f"\nE2: PASS — {resumo}", file=sys.stderr)
         return 0
