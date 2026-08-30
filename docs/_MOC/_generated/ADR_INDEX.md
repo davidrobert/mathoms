@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 352
-- **Proposto**: 57
+- **Decidido**: 353
+- **Proposto**: 56
 - **Roadmap**: 4
 
 ## Fundação
@@ -470,7 +470,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (23)
+### Decidido (24)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
@@ -493,14 +493,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-304]] — KR1 do parecer — pureza monetária da prosa: fix de prompt + doutrina de enforcement · phase A27
 - [[ADR-307]] — Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift · phase W6-T02
 - [[ADR-341]] — Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores · phase A37.l1
+- [[ADR-368]] — Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão · phase A40
 - [[ADR-396]] — Amostragem de LLM é declarada no call-site, não herdada do config · phase r7.PE-2
 - [[ADR-399]] — Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número · phase r7.PE-2/FP-6
 
-### Proposto (3)
+### Proposto (2)
 
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-358]] — Enforcement em produção exige budget de produção — e KR no plano onde ele age · phase A40
-- [[ADR-368]] — Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão · phase A40
 
 ## marketing
 

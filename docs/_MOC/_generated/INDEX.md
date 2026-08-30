@@ -363,7 +363,7 @@
 | ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
 | ADR-366 | adr | Decidido |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
 | ADR-367 | adr | Proposto |  | Ordem do plano por irreversibilidade: tier constante por regra, e o alvo da reserva gradua sem mover o gatilho | `adr/367-ordem-do-plano-por-irreversibilidade.md` |
-| ADR-368 | adr | Proposto |  | Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão | `adr/368-ancorabilidade-do-exec-context-e-densidade-por-item.md` |
+| ADR-368 | adr | Decidido |  | Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão | `adr/368-ancorabilidade-do-exec-context-e-densidade-por-item.md` |
 | ADR-369 | adr | Decidido |  | Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) | `adr/369-rotulo-e-alvo-do-cone-de-if.md` |
 | ADR-370 | adr | Decidido |  | Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão | `adr/370-inventario-estrutural-do-relatorio.md` |
 | ADR-371 | adr | Decidido |  | O grafo de FK é a fonte única da deleção: lista manual de tabelas-filhas é proibida sem gate | `adr/371-grafo-de-fk-e-a-fonte-unica-da-delecao.md` |
@@ -983,6 +983,7 @@
 | A40.l96 | lane | in_progress | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
 | A40.l97 | lane | open | A40 | Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l97-base-dos-pontuais-tres-produtores.md` |
 | A40.l97 | lane | in_progress | A40 | Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice | `sprint/A40/lanes/A40-l97-indices-perdidos-por-copy-from.md` |
+| A40.l98 | lane | open | A40 | Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor | `sprint/A40/lanes/A40-l98-adr-proposta-com-lane-fechada.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
 | A41.l4 | lane | planned | A41 | Gate fecha a rota alternativa ao choke-point: import do SDK fora de pipeline/llm hard-falha | `sprint/A41/lanes/A41-l4-gate-rota-alternativa-ao-choke-point.md` |

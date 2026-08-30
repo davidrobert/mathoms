@@ -2,7 +2,7 @@
 id: ADR-368
 type: adr
 title: "Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão"
-status: Proposto
+status: Decidido
 date: "2026-08-07"
 phase: A40
 relates_to:
@@ -14,7 +14,7 @@ relates_to:
   - "[[ADR-366]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/llm
   - area/pipeline
   - phase/a40

@@ -379,7 +379,7 @@ tabela (é evidência datada, [[ADR-343]]):
 | linha | dono | nota |
 | --- | --- | --- |
 | `LC6-03` | [[ADR-321]] (`Proposto`) | já tinha gatilho; **não** entra no lote |
-| `LC6-04` | — **sem dono** | o deferimento do `PR2b` que ela descreve segue sem §Deferimento datado; ver `docs/plan/LEDGER_INTEGRITY/` |
+| `LC6-04` | **[[PLAN-ledger-integrity]]** §Deferimento datado 2026-08-30 (dono `data-engineer`) | o `PR2b` recolhia DOIS trabalhos e só um estava nomeado; agora o plano exige as duas pernas antes do `done` |
 | `LC6-05` | **[[A40.l97]]** (aberta 2026-08-30) | re-enunciada acima: são três produtores, não dois |
 | `LC6-06` | **[[A40.l97]]** | mesma família de base (aporte/amortização no denominador) |
 | `LC6-07` | **[[A40.l97]]** | duplicatas na lista de pontuais; o KPI que elas inflam é hoje `equivalente_meses_poupanca` ([[ADR-422]]) |

@@ -89,7 +89,16 @@ inverter. `from_scoring_json({})` devolve `invertido=False` — medido.
 - **Re-medir:** o bloco de execução acima, com
   `FinancialScoreConfig.default()` vs `from_scoring_json(json.load(open('config/scoring.json')))`.
 
-### C2. Separador de milhar dos EUA em prosa entregue: `R$ 2,000` e `R$ 36,000`
+### C2. ~~Separador de milhar dos EUA em prosa entregue~~ — ✅ **ENTREGUE**
+
+> **Verificado 2026-08-30** (closeout da [[A40.l94]]). As duas pernas fecharam: o snapshot
+> `backend/tests/snapshots/dogfood_view_model.json` tem **zero** ocorrências do padrão
+> `R$ \d+,\d{3}`, e o gate que o §Aceite pedia existe e passa —
+> `backend/tests/test_view_model_ptbr_thousands.py`, com o regex `R\$\s*\d+,\d{3}` sobre o
+> view-model **entregue**, exatamente a chave que o critério exigia (assert sobre o snapshot,
+> não sobre o produtor). A prosa do E5 hoje emite `R$ 2.000`.
+>
+> A medição datada abaixo **fica como está** — é evidência do estado no run que a mediu.
 
 **Medido** em `backend/tests/snapshots/dogfood_view_model.json` — snapshot do
 view-model **entregue**:
