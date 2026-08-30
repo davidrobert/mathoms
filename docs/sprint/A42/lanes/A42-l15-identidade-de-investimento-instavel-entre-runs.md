@@ -213,6 +213,43 @@ diferentes e chaves de cache diferentes. **Estabilidade run-a-run não pode ser 
 o falso-match. O molde correto já existe: `pipeline/llm/prompts/apolice.py:38` (escape aberto
 + registro em `notas` + telemetria).
 
+## Passo 0 EXECUTADO — 2026-08-30, sobre os 859 artefatos E1.5a
+
+`dev/audit_e15_vocab_closure.py` (read-only, zero token de LLM; núcleo puro coberto por
+`tests/dev/test_audit_e15_vocab_closure.py`). **859 artefatos, 10.859 itens, zero falha de
+decifragem.** O critério 1 dizia que isto podia **matar a lane barata**. Não matou — e
+decidiu duas coisas que estavam em aberto.
+
+| fecho | numerador / denominador | leitura |
+|---|---|---|
+| `codigo` **fora** de `^\d{2}$` | **163 / 10.859 = 1,5%** | todos em `^\d{2}-\d{2}$`; zero ausente |
+| `instituicao` **fora** do catálogo | **3.494 / 8.011 = 43,6%** | ausente em outros 2.848 itens (26%) |
+
+**Decide o PR0.** `^\d{2}$` é a forma canônica com 98,5% do corpus, e o custo de pôr
+`strict` é **1,5%** — número, não estimativa. Confirma e amplia a medição da [[ADR-400]]
+(99 itens, 1,46%), agora sobre o corpus inteiro em vez de um recorte.
+
+**Redireciona parte do PR1, e este é o achado que a lane não tinha.** As formas fora do
+catálogo mais frequentes são **variantes de instituições que já estão nele**:
+
+```
+442x BANCO SANTANDER      348x ITAU UNIBANCO S.A.   272x BANCO C6
+232x XP INVESTIMENTOS CCTVM S/A   228x ITAU UNIBANCO   221x PICPAY BANK
+206x BANCO ITAU           176x BANCO C6 S.A.        116x NU FINANCEIRA S.A.
+```
+
+`santander`, `itau`, `c6bank`, `nubank` e `xpinvestimentos` **estão no catálogo** (42 codes).
+Logo os 43,6% **não são cobertura faltando — são alias faltando**. Consequência: injetar o
+catálogo no prompt (PR1) ataca a metade de cima do problema, e a de baixo se resolve **no
+catálogo**, não no resolver — que é exatamente o aviso do co-design (*"ou o catálogo ganha
+aliases, ou a resolução entra por `cnpj_raiz`"*). O `seguradora_resolver` **não** fecha esses
+casos: já foi medido que `BANCO C6`→`bancoc6` e `C6 BANK`→`c6bank` são codes distintos.
+
+⚠️ **Fecho ≠ estabilidade**, e este número não pode ser citado como se fosse. Um extrator
+pode ser 100% fechado e ainda alternar entre dois codes do catálogo entre runs. A
+estabilidade run-a-run continua exigindo dois runs, continua gameável por cache
+(§Armadilha D) e continua fora do CI.
+
 ## Escopo — quatro PRs, nesta ordem
 
 - **PR0 — forma no contrato (zero LLM).** `pattern` em `codigo`
