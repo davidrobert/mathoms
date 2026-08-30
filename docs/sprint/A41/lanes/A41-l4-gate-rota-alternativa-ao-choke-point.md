@@ -39,7 +39,17 @@ tags:
 ## Problema
 
 Linha de base medida em `main` (2026-08-03): três arquivos de produção importam
-o SDK direto, e **não existe gate em `dev/`** impedindo o quarto.
+o SDK direto, e ~~**não existe gate em `dev/`** impedindo o quarto~~.
+
+> **Correção 2026-08-30 (closeout da [[A42.l17]]).** A segunda metade da frase
+> deixou de valer: `dev/check_llm_sampling.py` passou a reprovar a **chamada** crua
+> (`Anthropic(...)` / `messages.create(...)`) fora de `pipeline/llm/`, então o quarto
+> **sítio** já é impedido hoje (#1846). A baseline de 2026-08-03 acima segue como
+> registro do que era verdade quando a lane foi escrita. O que continua faltando é o
+> escopo próprio desta lane — casar o **import**, o alvo 3 → 0, e a entrada no
+> `CLAUDE.md` §Regras críticas; e é por casar o import que a §Nuance abaixo (a sonda
+> de `document_classification.py`) continua sendo problema desta lane e não da
+> [[A42.l17]], que não precisou nomeá-la.
 
 ```
 $ rg -l 'import anthropic|anthropic\.Anthropic' --type py
@@ -49,9 +59,9 @@ scripts/route_documents.py                                   # A41.l2
 tests/fakes/anthropic_sdk.py                                 # fake nomeado — legítimo
 ```
 
-Sem gate, a próxima superfície nasce igual: as três atuais nasceram assim, cada
-uma por um motivo local razoável, nenhuma revisada contra a política de
-choke-point. Contar superfícies roteadas mede o trabalho feito, não o resultado
+Sem gate no eixo do import, a próxima superfície nasce igual: as três atuais
+nasceram assim, cada uma por um motivo local razoável, nenhuma revisada contra a
+política de choke-point. Contar superfícies roteadas mede o trabalho feito, não o resultado
 — e para de contar exatamente quando alguém adiciona a quarta.
 
 **Nuance que o gate precisa carregar:** `document_classification.py` importa

@@ -66,6 +66,14 @@ O `import anthropic  # noqa: F401` de `document_classification.py` é sonda de
 instalação, não chamada. Os dois diferem num eixo: `route_documents` **passa**
 `temperature`; a caixa não passava.
 
+> **A medição se auto-invalida se você repetir o `rg` cru.** Depois desta lane o
+> mesmo comando devolve **4** arquivos: entram `dev/check_llm_sampling.py` (o
+> detector, que cita os dois padrões como *string*) e
+> `tests/unit/pipeline/test_llm_sampling_gate.py` (a fixture que os escreve para
+> provar que o gate morde). Nenhum dos dois é chamada. O número que se re-mede é o
+> do próprio gate — `python3 dev/check_llm_sampling.py` diz hoje **4 chamadas cruas,
+> todas em resíduo declarado** —, não o `rg`.
+
 ### O gate existia e era cego por construção — em três eixos
 
 `dev/check_llm_sampling.py` afirmava no docstring que "call-site novo em arquivo
