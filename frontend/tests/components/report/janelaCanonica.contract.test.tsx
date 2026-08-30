@@ -28,12 +28,12 @@
  *     de degradação anterior devolvia `total_pontuais` (acumulado de todo o
  *     período) carregando o rótulo `12m` do campo vizinho.
  *
- * **Escopo do invariante de seção:** o TEXTO derivado de dois cards
- * (`DespesasDoughnutChart` e `ReceitaDespesaMensalChart`) saiu desta lane para a
- * [[A40.l15]] — os dois citam bases legitimamente distintas (janela ex-aporte
- * por ADR-333 vs bruto de todo o período) e escolher qual base cada texto
- * declara é decisão de domínio. `CARDS_DA_L15` os exclui nominalmente da
- * varredura; o resto da seção continua coberto.
+ * **Escopo do invariante de seção (A40.l102, 2026-08-30):** a exclusão nominal
+ * `CARDS_DA_L15` — que tirava `DespesasDoughnutChart` e
+ * `ReceitaDespesaMensalChart` da varredura enquanto a base de cada texto era
+ * decisão de domínio em aberto — foi **removida**. Os dois cards declaram a
+ * própria base e a seção inteira está sob o invariante. Quatro textos
+ * ofendiam, não um: a asserção falha no primeiro e escondia os outros três.
  *
  * A fixture é a **mesma** consumida pelo E2E (`janela-divergente.json`), para
  * que guarda e verificação renderizada não possam divergir.
@@ -656,27 +656,36 @@ describe("<DespesasDoughnutChart /> — fatias somam a janela renderizada, ex-ap
  * bruto de todo o período) e escolher qual base cada texto declara é decisão de
  * domínio, não de render.
  *
- * Exclusão **nominal**: card novo não entra aqui sem alguém escrever o nome
- * dele, e renomear um card devolve o texto ao invariante (falha alta, não
- * silenciosa). O `it` abaixo garante que os dois títulos existem na seção —
- * senão a exclusão viraria vácuo sem ninguém notar. */
-const CARDS_DA_L15 = [
-  "Despesas por Categoria",
-  "Receita vs Despesa — Mês a Mês",
-] as const;
+ * A exclusão nominal saiu na [[A40.l102]]: `noEscopoDaLane` é a identidade, e
+ * os dois cards que ela removia estão sob o invariante. Mantida como função
+ * (em vez de apagada nos ~8 call-sites) para que a próxima exclusão precise
+ * declarar-se num lugar só — e o `it` abaixo trava que ela não voltou a
+ * remover nada. */
+/** Reduz `receita_despesa_mensal_detalhado` ao último mês, mantendo o shape
+ * (labels, datasets e totais paralelos) que os charts consomem. */
+function truncaSerieParaUmMes(fixture: JanelaFixture): void {
+  const det = fixture.fluxo_caixa.receita_despesa_mensal_detalhado as {
+    labels: string[];
+    receita_datasets: { data: number[] }[];
+    despesa_datasets: { data: number[] }[];
+    totais_receita: number[];
+    totais_despesa: number[];
+  };
+  const ultimo = <T,>(xs: T[]): T[] => xs.slice(-1);
+  det.labels = ultimo(det.labels);
+  det.totais_receita = ultimo(det.totais_receita);
+  det.totais_despesa = ultimo(det.totais_despesa);
+  for (const ds of [...det.receita_datasets, ...det.despesa_datasets]) {
+    ds.data = ultimo(ds.data);
+  }
+}
 
 function tituloDoCard(card: Element): string {
   return card.querySelector("h3")?.textContent?.trim() ?? "";
 }
 
-/** Cópia da seção sem os cards herdados pela [[A40.l15]]. */
 function noEscopoDaLane(root: HTMLElement): HTMLElement {
-  const copia = root.cloneNode(true) as HTMLElement;
-  for (const card of [...copia.querySelectorAll("section")]) {
-    if ((CARDS_DA_L15 as readonly string[]).includes(tituloDoCard(card)))
-      card.remove();
-  }
-  return copia;
+  return root;
 }
 
 /** Toda taxa de poupança exibida na seção. A canônica vive no hero (S1); S2 não
@@ -712,26 +721,26 @@ function textosDerivados(root: HTMLElement): string[] {
 }
 
 describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () => {
-  it("os dois cards herdados pela l15 estão na seção (exclusão não é vácuo)", () => {
+  it("a varredura alcança os dois cards antes excluídos, e nada é removido dela", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
     const titulos = [...container.querySelectorAll("section")].map(
       tituloDoCard,
     );
-    for (const nome of CARDS_DA_L15) expect(titulos).toContain(nome);
-    // E a cópia sem eles perdeu exatamente 2 cards.
-    const restantes = [
-      ...noEscopoDaLane(container).querySelectorAll("section"),
-    ];
-    expect(restantes.length).toBe(
-      [...container.querySelectorAll("section")].length - CARDS_DA_L15.length,
-    );
+    // Os títulos ainda existem: se um card for renomeado, o assert cai aqui em
+    // vez de a varredura passar a medir uma seção a menos, em silêncio.
+    expect(titulos).toContain("Despesas por Categoria");
+    expect(titulos).toContain("Receita vs Despesa — Mês a Mês");
+    // E `noEscopoDaLane` não remove nada — reintroduzir exclusão falha alto.
+    expect(
+      [...noEscopoDaLane(container).querySelectorAll("section")].length,
+    ).toBe(titulos.length);
   });
 
   it("no escopo da lane, S2 não emite taxa de poupança própria (a canônica é a do hero)", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    // `ReceitaDespesaMensalChart` continua emitindo "Taxa de poupança de 15,6%"
-    // (média da série inteira, sem rótulo) — herdado pela [[A40.l15]] junto com
-    // o resto do texto daquele card.
+    // `ReceitaDespesaMensalChart` emitia "Taxa de poupança de 15,6%" (média da
+    // série inteira, sem rótulo) — uma segunda taxa divergente dentro de S2.
+    // Removida na [[A40.l102]]; este assert agora a alcança.
     expect(taxasDePoupanca(noEscopoDaLane(container))).toEqual([]);
   });
 
@@ -800,6 +809,13 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
     const bloco = umMes.fluxo_caixa.janela_12m as Record<string, unknown>;
     bloco.janela_meses = 1;
     bloco.n_meses = 1;
+    // A série renderizada encolhe JUNTO. Deixá-la em 36 labels modelaria um
+    // mundo onde a janela tem 1 mês e os cards que somam a série têm 36 — dois
+    // rótulos honestos e discordantes, e o assert de plural abaixo passaria a
+    // medir a inconsistência da fixture em vez da forma singular. Com a série
+    // em 1 mês, o assert cobre os TRÊS produtores de cláusula, não só o
+    // `fluxo_mensal`.
+    truncaSerieParaUmMes(umMes);
     const { container } = render(
       <S2FluxoCaixaSection data={umMes as ReportAnalysisData} />,
     );

@@ -34,12 +34,10 @@ type DespesaFonte = "janela" | "agregado";
 
 /** Fatias + a evidência de como foram produzidas.
  *
- * **Nenhum texto deste componente lê `fonte`/`aporteExcluido` hoje** — quem
- * decide o que a conclusão do card cita é a [[A40.l15]] (base do Consumo
- * Consciente), e escolher a base é decisão de domínio, não de render. O par
- * fica aqui, no MESMO objeto que carrega as fatias, para que aquela lane não
- * possa imprimir rótulo derivado de uma expressão diferente da que somou os
- * valores. */
+ * `fonte`/`aporteExcluido` são lidos por `clausulaDeBase`, que rotula os DOIS
+ * textos do card ([[A40.l102]]). O par vive no MESMO objeto que carrega as
+ * fatias justamente para que o rótulo não possa derivar de uma expressão
+ * diferente da que somou os valores. */
 interface DespesaSlices {
   readonly rows: readonly CategoryRow[];
   readonly fonte: DespesaFonte;
@@ -101,19 +99,39 @@ function fallbackFromAggregate(
   return { ...partitionAporte(somas), fonte: "agregado" };
 }
 
-/** Chamado só depois do `return null` de fatias vazias — o caso `length === 0`
- * não chega aqui, por isso não há ramo para ele. */
-function buildContext(slices: readonly CategoryRow[], total: number): string {
-  return `Distribuição das despesas totais (${fmtBRL(total)}) entre ${slices.length} ${
-    slices.length === 1 ? "categoria" : "categorias"
-  }, destacando a composição de gastos e oportunidades de otimização.`;
+/** Base do que as fatias somaram: escopo temporal + o que ficou de fora.
+ *
+ * Derivada do MESMO `DespesaSlices` que produziu os valores — `fonte` decide o
+ * escopo (`agregado` ignora o toggle, então o range do toggle não o descreve) e
+ * `aporteExcluido` nomeia a exclusão da [[ADR-333]]. Ler o range do toggle aqui
+ * rotularia o agregado com uma janela que ele não respeitou. */
+function clausulaDeBase(despesas: DespesaSlices, meses: number): string {
+  const escopo =
+    despesas.fonte === "agregado"
+      ? "todo o período analisado"
+      : `${meses} ${meses === 1 ? "mês documentado" : "meses documentados"}`;
+  return despesas.aporteExcluido > 0
+    ? `${escopo}, sem os aportes (${fmtBRL(despesas.aporteExcluido)})`
+    : escopo;
 }
 
-function buildFallbackConclusion(slices: readonly CategoryRow[], total: number): string {
+/** Chamado só depois do `return null` de fatias vazias — o caso `length === 0`
+ * não chega aqui, por isso não há ramo para ele. */
+function buildContext(slices: readonly CategoryRow[], total: number, base: string): string {
+  return `Distribuição das despesas totais (${fmtBRL(total)}) entre ${slices.length} ${
+    slices.length === 1 ? "categoria" : "categorias"
+  } em ${base}.`;
+}
+
+function buildFallbackConclusion(
+  slices: readonly CategoryRow[],
+  total: number,
+  base: string,
+): string {
   if (slices.length === 0 || total <= 0) return "";
   const top = slices[0];
   const topPct = (top.value / total) * 100;
-  return `${top.label} lidera com ${fmtBRL(top.value)} (${topPct.toFixed(1)}%).`;
+  return `${top.label} lidera com ${fmtBRL(top.value)} (${topPct.toFixed(1)}%) em ${base}.`;
 }
 
 /** A28.l9 — share da fatia "não identificado" na janela ativa (0..100). */
@@ -142,7 +160,6 @@ const CONTEXT_STYLE = {
 
 export interface DespesasDoughnutChartProps {
   readonly fluxo: FluxoCaixaSummary | undefined;
-  readonly conclusion?: string;
 }
 
 function useDespesaSlices(
@@ -165,10 +182,7 @@ function useDespesaSlices(
  * (séries mensais por categoria) para que `<PeriodToggle>` recalcule
  * fatias somando dentro da janela. Datalabels mostram `R$ Xk` em fatias
  * ≥ 5% do total. Print: toggle escondido, fixa 12m. */
-export function DespesasDoughnutChart({
-  fluxo,
-  conclusion,
-}: DespesasDoughnutChartProps) {
+export function DespesasDoughnutChart({ fluxo }: DespesasDoughnutChartProps) {
   const isPrint = useIsPrint();
   const theme = useChartTheme();
   const [period, setPeriod] = useState<Period>("12m");
@@ -194,7 +208,8 @@ export function DespesasDoughnutChart({
 
   if (slices.length === 0) return null;
 
-  const finalConclusion = conclusion ?? buildFallbackConclusion(slices, total) ?? undefined;
+  const base = clausulaDeBase(despesas, window.end - window.start);
+  const finalConclusion = buildFallbackConclusion(slices, total, base) || undefined;
   const hasDatasets =
     (fluxo?.receita_despesa_mensal_detalhado?.despesa_datasets?.length ?? 0) > 0;
   const naoIdentPct = naoIdentificadoPct(slices, total);
@@ -202,7 +217,7 @@ export function DespesasDoughnutChart({
   return (
     <ReportCard variant="neutral" title="Despesas por Categoria" conclusion={finalConclusion}>
       <p className="chart-context" style={CONTEXT_STYLE}>
-        {buildContext(slices, total)}
+        {buildContext(slices, total, base)}
       </p>
       {!isPrint && hasDatasets ? (
         <PeriodToggle value={period} onChange={setPeriod} periodLabel={window.label} />

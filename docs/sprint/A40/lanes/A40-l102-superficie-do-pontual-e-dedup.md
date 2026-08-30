@@ -8,7 +8,9 @@ status: open
 priority: P2
 branch_slug: a40-l102-superficie-do-pontual-e-dedup
 owner: data-engineer
-depends_on: []
+depends_on:
+  - "[[A40.l98]]"
+partial_delivery: true
 adrs:
   - "[[ADR-422]]"
   - "[[ADR-425]]"
@@ -133,3 +135,73 @@ sem tocar no E3: o par continua na lista, e a lista passa a declarar o critério
 - Se algum dia houver enforce: prova nos **dois substratos** — o par some da lista
   (`backend/tests`) **e** de `total_pontuais`/`total_pontuais_janela` (`tests`), com a
   mesma constante de delta compartilhada entre os dois arquivos.
+
+---
+
+## Entrega parcial (2026-08-30)
+
+Dois dos três itens entregues. O item 2 fica de fora **por dependência**, não por
+escopo: a declaração impressa do que cada superfície exclui é o output do objeto
+`base_pontuais` que a [[A40.l98]] entrega no PR3a, e a l98 está `open` sem PR. Emitir
+a declaração antes dela seria escrever à mão as três declarações que a l98 existe
+para derivar de um produtor único — exatamente as "três oportunidades de mentir"
+que o §Escopo desta lane nomeia. Daí `depends_on: [[A40.l98]]` + `partial_delivery`.
+
+| item | estado |
+| --- | --- |
+| 1. `LC6-07` — classe D±1 contável, measure-only | ✅ entregue |
+| 2. Declaração impressa do que cada superfície exclui | ⏸ atrás do `base_pontuais` da [[A40.l98]] |
+| 3. Os dois cards de S2 (`CARDS_DA_L15`) | ✅ entregue |
+
+### Duas afirmações do enunciado caíram
+
+**O código morto já não existe.** O §"A medição inicial foi sobre CÓDIGO MORTO"
+descreve `transaction_signature`/`deduplicate_transactions` como vivas-porém-inertes,
+com `tests/test_e3_dedup.py` mantendo-as verdes. As três funções — e aquele arquivo
+de teste — **foram deletadas** em `35860eb5` (*"deleta 3 gêmeas mortas de service
+extraído"*). `git grep` sobre `scripts/ pipeline/ tests/` no HEAD não acha nenhuma.
+O aviso continua valendo como registro de método; não como armadilha viva.
+
+**Eram QUATRO textos ofensores, não um.** Removido o `CARDS_DA_L15`, a varredura
+reprova no primeiro e esconde os demais — o modo de falha do fail-fast. Enumerando
+em vez de assertar um a um:
+
+| card | texto | defeito |
+| --- | --- | --- |
+| Despesas por Categoria | `Distribuição das despesas totais (R$ 828.000) entre 3 categorias…` | sem cláusula de base |
+| Despesas por Categoria | `Moradia concentra 43% do gasto recorrente.` | sem base **e** 7 pontos abaixo do próprio desenho (50,0%) |
+| Receita vs Despesa | `Série temporal mensal (36 meses) de receitas…` | sem cláusula de base ("36 meses" é o desenho) |
+| Receita vs Despesa | `Receita média de R$ 42.667/mês … Taxa de poupança de 15.6%.` | sem base + mensalização do bloco `full` + **taxa de poupança própria** |
+
+O 2º e o 4º não eram "escolher a base": eram **contradição interna**. A conclusão do
+donut vinha de `despesas_por_categoria` (bloco `full`, COM aporte) enquanto a rosca
+desenha ex-aporte da janela renderizada — o comentário em `conclusionUtils.ts` já
+media a divergência (50,0% × 43%) e a parqueava aqui. Nenhuma base de payload
+acompanha o `PeriodToggle`, então o texto desceu para o componente e passou a derivar
+das fatias que ele desenha; a cláusula sai de `clausulaDeBase`, que lê `fonte` e
+`aporteExcluido` do **mesmo** `DespesaSlices` que somou os valores — par que a lane
+anterior deixou ali para esta, e que até agora nenhum texto lia.
+
+### Para a [[A40.l98]]: havia produtor de taxa de poupança no frontend
+
+O §r7 da l98 registra, sobre o `LC6-06`, que *"o produtor vivo da terceira taxa não
+foi localizado no schema nem no frontend"*. `ReceitaDespesaMensalChart.buildConclusion`
+publicava `Taxa de poupança de 15,6%` — média da série inteira, **sem rótulo**, dentro
+da mesma S2 cuja taxa canônica vive no hero de S1. Foi removida aqui.
+
+**Não afirmo que seja a mesma taxa do `LC6-06`**: a base desta era a média da série
+renderizada, não `despesa_total` na janela cheia com aporte e amortização. O que muda
+para a l98 é o pressuposto da busca — havia, sim, um produtor de taxa divergente no
+frontend, e ele escapou da varredura que concluiu ausência. Vale reconciliar antes de
+seguir para o exec context do parecer como candidato restante.
+
+### O que a entrega NÃO prova
+
+O gate de pixel de S2 (`sections.snapshots.visual.spec.ts`, `maxDiffPixelRatio 0.025`
+sobre a seção inteira) **não vê mudança de texto** — precedente medido na A40.l7, em
+que um `<h2>` inteiro trocou e a baseline passou. A verificação renderizada destes
+quatro textos é a perna de conteúdo (`janela-canonica.@critical.spec.ts`, 27/27 em
+chromium+firefox+webkit), não a de imagem. As baselines `S2-{light,dark}` e a do PDF
+são Linux/CI-parity e **não foram regeradas** — regerar em macOS produz baseline
+inútil, e o diff local do PDF é da 1ª página (capa + hero), que estes textos nem
+tocam.

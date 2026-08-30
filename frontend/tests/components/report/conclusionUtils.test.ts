@@ -94,8 +94,12 @@ describe("deriveChartConclusion — convenção ADR-209 (pct absoluto)", () => {
     });
   });
 
-  describe("despesas_doughnut — topEntry consistente com receita_bar", () => {
-    it("renderiza pct absoluto da categoria dominante", () => {
+  describe("despesas_doughnut — não é mais derivado do payload (A40.l102)", () => {
+    it("não produz texto: o card deriva a conclusão das fatias que desenha", () => {
+      // O builder lia `despesas_por_categoria` (bloco full, COM aporte)
+      // enquanto a rosca desenha ex-aporte da janela — 50,0% no desenho contra
+      // 43% no texto, no mesmo card. Nenhuma base de payload concorda com o
+      // desenho depois do PeriodToggle, então o texto passou para o componente.
       const data = makeData({
         fluxo_caixa: {
           despesas_por_categoria: {
@@ -106,8 +110,7 @@ describe("deriveChartConclusion — convenção ADR-209 (pct absoluto)", () => {
           },
         } as ReportAnalysisData["fluxo_caixa"],
       });
-      const out = deriveChartConclusion("despesas_doughnut", data);
-      expect(out).toContain("50%");
+      expect(deriveChartConclusion("despesas_doughnut", data)).toBeNull();
     });
   });
 

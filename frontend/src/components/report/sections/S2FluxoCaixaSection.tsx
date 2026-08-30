@@ -89,10 +89,11 @@ export function S2FluxoCaixaSection({
         fluxo={fluxo}
         conclusion={getConclusion("receita_bar")}
       />
-      <DespesasDoughnutChart
-        fluxo={fluxo}
-        conclusion={getConclusion("despesas_doughnut")}
-      />
+      {/* Sem `conclusion` do payload: aquele builder lia o bloco `full` (com
+          aporte) enquanto a rosca desenha ex-aporte da janela — 50,0% no
+          desenho contra 43% no texto. O card deriva o próprio texto das fatias
+          que desenha, e por isso concorda consigo mesmo após o toggle. */}
+      <DespesasDoughnutChart fluxo={fluxo} />
       <div className="md:col-span-2">
         <ReceitaDespesaMensalChart fluxo={fluxo} />
       </div>

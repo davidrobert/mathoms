@@ -44,12 +44,6 @@ from pipeline.domain.models.transaction import Transaction
 from pipeline.domain.services._tx_identity import (
     build_hash_inputs,
     compute_natural_key,
-    decimal_cents,
-    derive_direction,
-    normalize_banco,
-    normalize_descricao,
-    normalize_tipo_conta,
-    normalize_titular,
 )
 from pipeline.domain.services.cross_document_collapse_types import (
     CANAL_COLAPSO,
@@ -57,12 +51,26 @@ from pipeline.domain.services.cross_document_collapse_types import (
     CollapseMeasurement,
     CollapseRemoval,
     OverrideRetentionGuard,
+    ProximityCandidate,
     RemovalTarget,
     _identity_collision,
     conta_perna_llm_orfa,
     exige_paridade_de_corte,
     removals_by_source,
 )
+from pipeline.domain.services.cross_document_keys import (
+    PROVENANCE_FIELDS as _PROVENANCE_FIELDS,
+)
+from pipeline.domain.services.cross_document_keys import (
+    collapse_key as _collapse_key,
+)
+from pipeline.domain.services.cross_document_keys import (
+    field_values as _field_values,
+)
+from pipeline.domain.services.cross_document_keys import (
+    provenance as _provenance,
+)
+from pipeline.domain.services.cross_document_proximity import proximity_candidates
 
 __all__ = [
     "CollapseCandidate",
@@ -70,6 +78,7 @@ __all__ = [
     "CrossDocumentCollapseConfig",
     "CrossDocumentCollapser",
     "OverrideRetentionGuard",
+    "ProximityCandidate",
     "RemovalTarget",
     "gate_key_digest",
 ]
@@ -86,8 +95,6 @@ _DEFAULT_ALIAS_GROUPS: tuple[frozenset[str], ...] = (frozenset({"extrato", "extr
 # tipos divergindo só por um destes sufixos é erro de config, não de dado.
 _DEFAULT_IDENTITY_SUFFIXES: frozenset[str] = frozenset({"brl", "usd", "eur", "gbp", "chf"})
 
-_PROVENANCE_FIELDS: tuple[str, str, str] = ("banco", "titular", "tipo_conta")
-
 
 @dataclass(frozen=True)
 class CrossDocumentCollapseConfig:
@@ -95,6 +102,9 @@ class CrossDocumentCollapseConfig:
 
     alias_groups: tuple[frozenset[str], ...] = _DEFAULT_ALIAS_GROUPS
     identity_suffixes: frozenset[str] = _DEFAULT_IDENTITY_SUFFIXES
+    # Distância máxima, em dias, entre lançamentos CONSECUTIVOS de um grupo de
+    # proximidade ([[A40.l102]]). Mede — nunca remove; ver `ProximityCandidate`.
+    proximity_max_delta_days: int = 1
 
     def __post_init__(self) -> None:
         for group in self.alias_groups:
@@ -111,32 +121,6 @@ class CrossDocumentCollapseConfig:
         if len(filled) <= 1:
             return True
         return any(filled <= group for group in self.alias_groups)
-
-
-def _provenance(stmt: BankStatement) -> tuple[str, str, str]:
-    """Tripla normalizada — MESMOS normalizadores do hash K4 e do detector da l1."""
-    return (
-        normalize_banco(stmt.institution),
-        normalize_titular(stmt.member_key),
-        normalize_tipo_conta(stmt.account_type),
-    )
-
-
-def _direction(tx: Transaction, stmt: BankStatement) -> str:
-    return derive_direction(
-        tipo=None, valor=float(tx.amount.amount), tipo_conta=stmt.account_type or ""
-    )
-
-
-def _collapse_key(tx: Transaction, stmt: BankStatement) -> tuple:
-    """Chave provenance-free day-exact — idêntica à do detector da [[A40.l1]]."""
-    return (
-        tx.date.isoformat(),
-        decimal_cents(tx.amount.amount),
-        (tx.amount.currency or "").strip().upper(),
-        _direction(tx, stmt),
-        normalize_descricao(tx.description),
-    )
 
 
 def _campos_da_chave(key: tuple) -> dict:
@@ -196,12 +180,6 @@ def _row_hash(tx: Transaction, stmt: BankStatement) -> str:
         descricao=tx.description,
     )
     return compute_natural_key(inputs).hash
-
-
-def _field_values(provenances: Iterable[tuple[str, str, str]], name: str) -> frozenset[str]:
-    """Valores de um campo de proveniência entre as pernas — nomes, nunca PII no trace."""
-    idx = _PROVENANCE_FIELDS.index(name)
-    return frozenset(p[idx] for p in provenances)
 
 
 def _unifiable(values: frozenset[str]) -> bool:
@@ -368,6 +346,7 @@ class CrossDocumentCollapser:
             corpus_gate_digests=gates,
             corpus_row_hashes=hashes,
             reservatorio_llm_sem_gemea=reservatorio,
+            proximidade_d1=self._proximidade(stmts),
         )
 
     # O parâmetro `card` saiu daqui: era assinatura mentindo sobre a fonte do corte. O corpo
@@ -415,6 +394,10 @@ class CrossDocumentCollapser:
             parciais=group.parciais,
         )
 
+    def _proximidade(self, stmts: list[BankStatement]) -> tuple[ProximityCandidate, ...]:
+        """Classe D±1 — medida, nunca removida ([[A40.l102]])."""
+        return proximity_candidates(stmts, self._config.proximity_max_delta_days)
+
     def _retencao(self, digest: str) -> dict:
         """Retenção e sua ORIGEM, sempre juntas — origem sem retenção contaria chave que
         colapsou, e retenção sem origem deixa o passo (1) da re-ancoragem sem instrumento."""
@@ -440,6 +423,9 @@ class CrossDocumentCollapser:
             corpus_gate_digests=gates,
             corpus_row_hashes=hashes,
             reservatorio_llm_sem_gemea=reservatorio,
+            # Também no modo enforce: a classe é medida sobre a lista PRÉ-poda, e
+            # medir só na sombra faria o número sumir justamente quando há corte.
+            proximidade_d1=self._proximidade(stmts),
         )
         if self._guard.degradado:  # measure-only — ver `OverrideRetentionGuard.degradado`
             return (tuple(stmts), medicao, ())

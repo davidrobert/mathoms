@@ -56,9 +56,10 @@ describe("<S2FluxoCaixaSection /> — conclusion ids (audit-vault r4)", () => {
     expect(conclusions.receita).toBe(
       "CLT lidera as receitas (75% do total de todo o período analisado).",
     );
-    // O texto do donut NÃO foi tocado pela A40.l3 — base e rótulo do card saíram
-    // para a A40.l15 (decisão de domínio).
-    expect(conclusions.despesas).toBe("Moradia concentra 80% do gasto recorrente.");
+    // A40.l102: a seção não passa mais `conclusion` ao donut. O texto daquele
+    // card é derivado das fatias que ele desenha (ex-aporte, janela do toggle),
+    // e o payload não tem como acompanhar o toggle.
+    expect(conclusions.despesas).toBeUndefined();
   });
 
   it("ignora conclusão no TOPO de narrativas — shape que nenhum produtor emite", () => {

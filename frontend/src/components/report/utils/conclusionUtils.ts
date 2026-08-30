@@ -143,20 +143,6 @@ const BUILDERS: Record<string, Builder> = {
     return `${prettyKey(top.key)} lidera as receitas (${format(top.pct, "pct")} do total de todo o período analisado).`;
   },
 
-  // A40.l3 NÃO tocou este texto. O percentual sai de `despesas_por_categoria`
-  // (bloco full, com aporte) enquanto a rosca do mesmo card desenha as fatias
-  // ex-aporte da janela renderizada (ADR-333) — medido: 50,0% no desenho, 43%
-  // aqui. Trocar a base OU o rótulo é decisão de domínio, não de render, e vive
-  // na lane A40.l15 junto com a base do Consumo Consciente.
-  despesas_doughnut: ({ data }) => {
-    const cat = getPath(data, "fluxo_caixa.despesas_por_categoria") as
-      | Record<string, number>
-      | undefined;
-    const top = topEntry(cat);
-    if (!top) return null;
-    return `${prettyKey(top.key)} concentra ${format(top.pct, "pct")} do gasto recorrente.`;
-  },
-
   impostos_pj: ({ data }) => {
     const aliquota = getPath(data, "ratios.aliquota_efetiva_ir_pct") as
       | number
@@ -173,7 +159,6 @@ const FALLBACKS: Record<string, string> = {
   score_gauge: "Indicador consolidado da saúde financeira.",
   fluxo_mensal: "Receita vs despesa mês a mês.",
   receita_bar: "Composição das receitas por fonte.",
-  despesas_doughnut: "Distribuição das despesas por categoria.",
   receita_despesa_mensal: "Receita vs despesa ao longo do tempo.",
   viagens: "Orçamento e gastos de viagem no período.",
   alocacao_atual: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio.",

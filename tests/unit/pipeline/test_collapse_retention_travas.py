@@ -17,6 +17,7 @@ from pipeline.domain.services.cross_document_collapse_types import (
     CollapseMeasurement,
     CollapseRemoval,
     OverrideRetentionGuard,
+    ProximityCandidate,
     RetencaoInstavel,
 )
 from scripts.reconcile_transactions import (
@@ -51,6 +52,19 @@ def _candidato(
         removable_rows=1,
         retido_por_override=not colapsavel,
         retido_por_sources=() if colapsavel else origens,
+    )
+
+
+def _proximo() -> ProximityCandidate:
+    return ProximityCandidate(
+        mes="2025-10",
+        valor_cents=1000,
+        moeda="BRL",
+        direction="out",
+        datas=("2025-10-26", "2025-10-27"),
+        delta_dias=1,
+        n_rows=2,
+        n_provenances=2,
     )
 
 
@@ -138,6 +152,24 @@ def test_contadores_distinguem_zero_medido_de_nao_medido():
         _e3_collapse_retention(_Result(CollapseMeasurement()), _guard(lido=False), instavel=False)
         is None
     )
+
+
+def test_run_so_com_proximidade_ainda_publica_o_numero():
+    """A classe D±1 vive onde a chave day-exact NÃO forma grupo — `candidates` vazia."""
+    # Sem a cláusula de `proximidade_d1` na guarda de early-return, o payload voltaria
+    # `None` exatamente no run que a [[A40.l102]] foi medir, e o número que justifica a
+    # lane nunca chegaria ao `output_summary`. Guarda que suprime o único sinal do run
+    # é a forma sutil do zero-ambíguo que esta lane já pagou.
+    result = _Result(CollapseMeasurement(proximidade_d1=(_proximo(),)))
+
+    payload = _e3_collapse_retention(result, _guard(lido=False), instavel=False)
+
+    assert payload is not None
+    assert payload["candidatos"] == 0  # a passada principal não viu nada...
+    assert payload["proximidade_d1"]["candidatos"] == 1  # ...e a classe D±1 viu
+    assert payload["proximidade_d1"]["rows"] == 2
+    # Tamanho do risco, não remoção planejada: nada nesta classe tem alvo.
+    assert payload["proximidade_d1"]["cents_em_risco"] == 1000
 
 
 def test_contadores_expoem_o_denominador_e_o_preditor():

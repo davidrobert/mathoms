@@ -119,7 +119,7 @@ export function ReceitaDespesaMensalChart({
 
   const periodLabel = formatPeriodLabel(windowed.labels);
   const context = buildContext(enriched, totalMonths);
-  const conclusion = buildConclusion(enriched);
+  const conclusion = buildConclusion(enriched, totalMonths);
   const legend = buildLegendItems(enriched, hiddenIdx);
 
   return (
@@ -329,22 +329,30 @@ function buildLegendItems(
   return { receitas, despesas };
 }
 
+/** Escopo dos totais citados — os dois textos somam a série INTEIRA
+ * (`enriched`), não a página renderizada pelo `RDMNav`. */
+function mesesDocumentados(n: number): string {
+  return `${n} ${n === 1 ? "mês documentado" : "meses documentados"}`;
+}
+
 function buildContext(enriched: readonly EnrichedDataset[], totalMonths: number): string {
   const totalReceita = sumStack(enriched, "receita");
   const totalDespesa = sumStack(enriched, "despesa");
-  const liquido = totalReceita - totalDespesa;
-  return `Série temporal mensal (${totalMonths} ${totalMonths === 1 ? "mês" : "meses"}) de receitas (${fmtBRL(totalReceita)}) versus despesas (${fmtBRL(totalDespesa)}), com fluxo líquido de ${fmtBRL(liquido)}.`;
+  return `Série temporal mensal de receitas (${fmtBRL(totalReceita)}) versus despesas (${fmtBRL(totalDespesa)}) em ${mesesDocumentados(totalMonths)}.`;
 }
 
-function buildConclusion(enriched: readonly EnrichedDataset[]): string {
-  const totalReceita = sumStack(enriched, "receita");
-  const totalDespesa = sumStack(enriched, "despesa");
-  const months = enriched[0]?.data.length ?? 0;
-  if (months === 0) return "";
-  const mediaReceita = totalReceita / months;
-  const mediaDespesa = totalDespesa / months;
-  const taxaPoupanca = mediaReceita > 0 ? ((mediaReceita - mediaDespesa) / mediaReceita) * 100 : 0;
-  return `Receita média de ${fmtBRL(mediaReceita)}/mês e despesa média de ${fmtBRL(mediaDespesa)}/mês. Taxa de poupança de ${taxaPoupanca.toFixed(1)}%.`;
+/** Totaliza a janela renderizada — **sem mensalizar e sem taxa** (ADR-306 D1).
+ *
+ * Este texto emitia `R$ X/mês`, `R$ Y/mês` e `Taxa de poupança de Z%` derivados
+ * da série inteira, todos sem rótulo: uma segunda mensalização e uma segunda
+ * taxa de poupança, sob base diferente da canônica, no MESMO S2 que já publica
+ * as duas (fluxo mensal na janela 12m; taxa no hero de S1). O leitor não tinha
+ * como reconciliar 42.667/mês com 92.000/mês. A divisão da lane já declarava
+ * esta forma em `conclusionUtils.ts` — só não estava implementada. */
+function buildConclusion(enriched: readonly EnrichedDataset[], totalMonths: number): string {
+  if (totalMonths === 0) return "";
+  const liquido = sumStack(enriched, "receita") - sumStack(enriched, "despesa");
+  return `Fluxo líquido de ${fmtBRL(liquido)} em ${mesesDocumentados(totalMonths)}.`;
 }
 
 function sumStack(enriched: readonly EnrichedDataset[], stack: "receita" | "despesa"): number {

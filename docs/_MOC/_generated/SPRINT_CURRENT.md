@@ -10,7 +10,7 @@ open · in_progress.
 ## Open
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
-- [[A40.l102]] — Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir · priority P2 · área pipeline/frontend · branch `a40-l102-superficie-do-pontual-e-dedup`
+- [[A40.l102]] — Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir · priority P2 · área pipeline/frontend · ⚠️ entrega parcial — dep pendente: A40.l98 (open) · branch `a40-l102-superficie-do-pontual-e-dedup`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
