@@ -100,6 +100,75 @@ KNOWN_PRE_EXISTING_DRIFT: set[str] = {
     # a alteração já está versionada — só não é via batch_alter_table
     # tradicional (que recriaria a tabela inteira).
     "modify_type:documents:doc_type",
+    # ── Índices perdidos por `copy_from` (medido 2026-08-30, [[ADR-423]]) ──
+    # 37 índices que o model declara e o DB construído por Alembic não tem, em 13
+    # migrations, TODAS com `batch_alter_table(copy_from=...)`. Os 3 UNIQUE que
+    # derrubavam invariante de negócio foram reparados em `idxrepair0001` e por isso
+    # NÃO estão aqui. O resto é performance e tem lane própria — ela decide primeiro
+    # se ainda os quer (9 índices em `tasks` é custo de write que ninguém reavaliou
+    # desde a ADR-162). A catraca do teste força a limpeza: drift catalogado que for
+    # corrigido e não removido daqui FALHA.
+    "add_index:bank_accounts:ix_bank_accounts_member_id",
+    "add_index:categories:ix_categories_workspace_id",
+    "add_index:categorization_rules:ix_categorization_rules_workspace_id",
+    # ⚠️ não é ausência, é mismatch da flag `unique` (aparece em add E remove):
+    #    triagem própria — ver [[ADR-423]] §Não-objetivos.
+    "add_index:planner_review_metadata:ix_planner_review_metadata_pipeline_artifact_id:unique",
+    # índice de EXPRESSÃO (`valuation_date DESC`) — o próprio alembic emite
+    # "Generating approximate signature for index". Limitação irredutível.
+    "add_index:property_market_value:idx_pmv_lookup",
+    "add_index:protections:ix_protections_workspace_id",
+    "add_index:protections:ix_protections_ws_category",
+    "add_index:protections:ix_protections_ws_ends_at",
+    "add_index:protections:ix_protections_ws_status",
+    "add_index:report_publications:ix_report_publications_workspace_id",
+    "add_index:report_publications:ix_report_publications_workspace_period",
+    "add_index:stage_reviews:ix_stage_reviews_pipeline_run_id",
+    "add_index:suggestions:ix_sugagg_workspace_id",
+    "add_index:suggestions:ix_sugagg_ws_dedup",
+    "add_index:suggestions:ix_sugagg_ws_section",
+    "add_index:suggestions:ix_sugagg_ws_status",
+    "add_index:suggestions:ix_sugagg_ws_thesis",
+    "add_index:task_suggestions:ix_task_suggestions_status",
+    "add_index:task_suggestions:ix_task_suggestions_workspace_id",
+    "add_index:tasks:ix_tasks_category",
+    "add_index:tasks:ix_tasks_deadline_date",
+    "add_index:tasks:ix_tasks_parent_task_id",
+    "add_index:tasks:ix_tasks_priority",
+    "add_index:tasks:ix_tasks_status",
+    "add_index:tasks:ix_tasks_workspace_id",
+    "add_index:tasks:ix_tasks_ws_board_column",
+    "add_index:tasks:ix_tasks_ws_priority_status",
+    "add_index:tasks:ix_tasks_ws_status_deadline",
+    "add_index:transaction_overrides:ix_transaction_overrides_transaction_hash",
+    "add_index:transaction_overrides:ix_transaction_overrides_workspace_id",
+    "add_index:workspace_category_overrides:ix_workspace_category_overrides_template_key",
+    "add_index:workspace_category_overrides:ix_workspace_category_overrides_workspace_id",
+    "add_index:workspace_economic_assumptions_override:ix_workspace_economic_assumptions_override_classe_auvp",
+    "add_index:workspace_economic_assumptions_override:ix_workspace_economic_assumptions_override_effective_from",
+    "add_index:workspace_economic_assumptions_override:ix_workspace_economic_assumptions_override_workspace_id",
+    "add_index:workspace_property_overrides:ix_workspace_property_overrides_workspace_id",
+    "add_index:workspaces:ix_workspaces_deleted_at",
+    # `remove_index`: índices PARCIAIS criados por migration que o model não
+    # declara — direção oposta, majoritariamente intencional. Não entram no
+    # hard-fail de ausência; ficam catalogados para a lista não mentir.
+    "remove_index:asset_catalog:uq_asset_catalog_cnpj_v:unique",
+    "remove_index:asset_catalog:uq_asset_catalog_ticker_v:unique",
+    "remove_index:categorization_rules:uq_categorization_rule_workspace_keyword_target_active:unique",
+    "remove_index:goals:ux_goals_current_ws_type:unique",
+    "remove_index:pipeline_runs:ix_pipeline_runs_running_heartbeat",
+    "remove_index:pipeline_runs:ux_pipeline_runs_ws_active:unique",
+    "remove_index:planner_review_metadata:ix_planner_review_metadata_pipeline_artifact_id",
+    "remove_index:property_identity:ix_property_identity_lookup",
+    "remove_index:property_market_value:idx_pmv_lookup",
+    "remove_index:task_suggestions:ix_suggestions_workspace_id",
+    "remove_index:task_suggestions:ix_tsugg_ws_dedup_active",
+    "remove_index:transaction_overrides:ix_txov_active_workspace",
+    "remove_index:transaction_overrides:ix_txov_ws_natural_key",
+    "remove_index:transaction_overrides:uq_txov_active_rule:unique",
+    "remove_index:workspace_economic_assumptions_override:ix_ws_econ_override_classe_auvp",
+    "remove_index:workspace_economic_assumptions_override:ix_ws_econ_override_effective_from",
+    "remove_index:workspace_economic_assumptions_override:ix_ws_econ_override_workspace_id",
 }
 
 
@@ -140,6 +209,20 @@ def _diff_signature(diff) -> str | None:
             return f"{op}:{diff[2]}:{diff[3]}"
         except IndexError:
             return None
+    if op in {"add_index", "remove_index"}:
+        # ('add_index', Index(...)). `add_index` = o model declara e o DB migrado
+        # NÃO tem — a classe que `batch_alter_table(copy_from=...)` produz: o
+        # snapshot passado em `copy_from` declara colunas e constraints, nunca
+        # `Index`, e `SQLiteImpl.requires_recreate_in_batch` faz drop+recreate da
+        # tabela. Em Postgres `DefaultImpl` devolve False e nada se perde — por
+        # isso o defeito passou 3 meses invisível: prod é PG e a suíte usa
+        # `create_all` sobre o model, que ainda declara os índices.
+        try:
+            ix = diff[1]
+            unique = ":unique" if getattr(ix, "unique", False) else ""
+            return f"{op}:{getattr(ix.table, 'name', '?')}:{ix.name}{unique}"
+        except (IndexError, AttributeError):
+            return f"{op}:?"
     # outros (modify_default, etc.) ignorados — alto ruído em SQLite
     return None
 
