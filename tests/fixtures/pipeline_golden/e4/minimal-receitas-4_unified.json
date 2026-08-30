@@ -1,7 +1,14 @@
 {
-  "periodo": {
-    "inicio": "2026-01-01",
-    "fim": "2026-01-31"
-  },
-  "total_geral": 100.0
+  "consolidation_date": "2026-02-01",
+  "periodo": "2026-01 a 2026-01",
+  "categorias": ["renda"],
+  "total_categorias": 1,
+  "total_transacoes": 1,
+  "totais_por_categoria": {"renda": 100.0},
+  "total_geral": 100.0,
+  "dados": {
+    "renda": [
+      {"data": "2026-01-05", "descricao": "PIX RECEBIDO", "valor": 100.0, "categoria": "renda"}
+    ]
+  }
 }
