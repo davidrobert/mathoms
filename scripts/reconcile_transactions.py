@@ -156,8 +156,7 @@ def _init_config(base_dir: Path) -> None:
 # Module level: NÃO chamar _init_config no import (Sessão A3b — eliminado
 # side-effect). ``main(root_dir=...)`` invoca ``_init_config`` explicitamente
 # quando precisa dos paths/configs. Para imports puros (CLI ou testes que só
-# usam helpers como ``transaction_signature``), os defaults módulo-level acima
-# são suficientes.
+# usam helpers puros do módulo), os defaults módulo-level acima são suficientes.
 
 
 # =============================================================================
@@ -459,87 +458,6 @@ def _normalize_description_for_dedup(descricao: str) -> str:
     # Step 5: Collapse whitespace and uppercase
     descricao = re.sub(r"\s+", " ", descricao).strip().upper()
     return descricao
-
-
-def transaction_signature(txn: Dict[str, Any]) -> Tuple:
-    """
-    Create a normalized signature for deduplication.
-    Signature = (data, valor_rounded, descricao_normalized)
-    """
-    data = (txn.get("data") or "").strip()
-    valor = txn.get("valor", 0)
-    if isinstance(valor, float):
-        valor = round(valor, 2)
-    descricao = _normalize_description_for_dedup(txn.get("descricao", ""))
-
-    return (data, valor, descricao)
-
-
-def deduplicate_transactions(
-    transactions_with_sources: List[Tuple[Dict[str, Any], str]],
-) -> Tuple[List[Dict[str, Any]], int, List[str]]:
-    """
-    Remove duplicate transactions by signature, but ONLY across different files.
-    Transactions within the same source file are NEVER deduplicated — they
-    represent legitimate distinct operations (e.g., two Amazon purchases
-    of R$68.55 on the same day).
-
-    Args:
-        transactions_with_sources: List of (transaction_dict, source_filename) tuples
-
-    Returns: (deduplicated_list, count_removed, dedup_details)
-        dedup_details: list of human-readable strings describing each dedup action (Fix 3.1)
-    """
-    deduplicated = []
-    duplicates_removed = 0
-    dedup_details: List[str] = []
-
-    # Group by (signature, source_file) to count per-file occurrences
-    per_file_counts: Dict[Tuple, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    per_file_txns: Dict[Tuple, Dict[str, List[Dict[str, Any]]]] = defaultdict(
-        lambda: defaultdict(list)
-    )
-
-    for txn, source_file in transactions_with_sources:
-        sig = transaction_signature(txn)
-        per_file_counts[sig][source_file] += 1
-        per_file_txns[sig][source_file].append(txn)
-
-    for sig, file_map in per_file_txns.items():
-        if len(file_map) == 1:
-            # Only one source file has this signature — keep all
-            for source_file, txn_list in file_map.items():
-                deduplicated.extend(txn_list)
-        else:
-            # Multiple source files have this signature — cross-file overlap.
-            # Keep transactions from the first source file (deterministic order).
-            # Discard occurrences from other source files.
-            first_source = sorted(file_map.keys())[0]
-            deduplicated.extend(file_map[first_source])
-            removed_sources = sorted(src for src in file_map if src != first_source)
-            removed_count = sum(len(file_map[src]) for src in removed_sources)
-            duplicates_removed += removed_count
-            # Fix 3.1: detailed dedup logging for auditability
-            if removed_count > 0:
-                date_str, valor, desc_norm = sig
-                # Recover original descriptions for audit trail
-                kept_descs = [t.get("descricao", "")[:60] for t in file_map[first_source][:1]]
-                removed_descs = []
-                for src in removed_sources:
-                    removed_descs.extend(t.get("descricao", "")[:60] for t in file_map[src][:1])
-                dedup_details.append(
-                    f"DEDUP: {date_str} R${valor} "
-                    f"kept='{kept_descs[0] if kept_descs else '?'}' from {first_source}, "
-                    f"removed {removed_count} from {','.join(removed_sources)} "
-                    f"(removed desc='{removed_descs[0] if removed_descs else '?'}')"
-                )
-
-    return deduplicated, duplicates_removed, dedup_details
-
-
-# =============================================================================
-# Saldo Continuity & Temporal Gap Validation (#8)
-# =============================================================================
 
 
 def validate_saldo_and_gaps(
@@ -872,109 +790,6 @@ def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
     log_progress("E3.1", f"Grouped into {len(grouped)} accounts")
 
     return file_groups, grouped
-
-
-def reconcile_account(
-    account_key: str, file_group: List[Tuple[Path, Dict[str, Any]]]
-) -> Optional[Dict[str, Any]]:
-    """
-    Reconcile a single account:
-    1. Sort files by period start
-    2. Merge all transactions (with source tracking)
-    3. Deduplicate only across files (#3)
-    4. Sort chronologically
-    5. Return consolidated record
-    """
-    if not file_group:
-        return None
-
-    # Sort by period start
-    sorted_group = sorted(file_group, key=lambda x: x[1].get("periodo", {}).get("inicio") or "")
-
-    # Collect metadata from first file
-    first_path, first_data = sorted_group[0]
-    banco = (first_data.get("banco") or first_data.get("instituicao") or "").strip()
-    tipo = (first_data.get("tipo") or "").strip()
-    # Normalize tipo using config equivalences (same as get_account_key)
-    tipo = ACCOUNT_TYPE_EQUIVALENCES.get(tipo, tipo)
-    # v2.1: Use same moeda resolution as get_account_key() — check conta.moeda fallback
-    moeda = (first_data.get("moeda") or "").strip()
-    if not moeda:
-        conta = first_data.get("conta", {})
-        if isinstance(conta, dict):
-            moeda = (conta.get("moeda") or "").strip()
-    if not moeda:
-        log_progress("E3.3", f"[WARN] moeda ausente em {first_path.name}, usando default BRL")
-        moeda = "BRL"
-
-    # Use canonical tipo for output
-    tipo_conta = TIPO_CANONICAL.get(tipo, tipo)
-
-    # For faturas, get titular from any file (they should all match)
-    titular = first_data.get("titular") or first_data.get("cartao")
-    if isinstance(titular, str):
-        titular = titular.strip()
-
-    # Collect all transactions across files, tracking source (#3)
-    all_transactions_with_sources = []
-    for path, data in sorted_group:
-        transacoes = data.get("transacoes", [])
-        source_name = path.name
-        if isinstance(transacoes, list):
-            for txn in transacoes:
-                all_transactions_with_sources.append((txn, source_name))
-
-    # Deduplicate (only across files, not within)
-    dedup_txns, dup_count, dedup_details = deduplicate_transactions(all_transactions_with_sources)
-    # Fix 3.1: log each dedup action for auditability
-    for detail in dedup_details:
-        log_progress("E3.3", detail)
-
-    # Sort chronologically with proper date parsing
-    dedup_txns.sort(key=lambda x: _parse_date_for_sort(x.get("data") or ""))
-
-    # Determine period coverage (v2.1: also try data_inicio/data_fim keys from E2)
-    periodo_obj_first = sorted_group[0][1].get("periodo", {})
-    periodo_inicio = periodo_obj_first.get("inicio", "") or periodo_obj_first.get("data_inicio", "")
-    periodo_obj_last = sorted_group[-1][1].get("periodo", {})
-    periodo_fim = periodo_obj_last.get("fim", "") or periodo_obj_last.get("data_fim", "")
-
-    # Use first file's saldo_inicial and last file's saldo_final (#9)
-    saldo_inicial = first_data.get("saldo_inicial")
-    saldo_final = sorted_group[-1][1].get("saldo_final")
-
-    saldo_inicial_unknown = False
-    saldo_final_unknown = False
-
-    if saldo_inicial is None:
-        log_progress("E3.3", f"WARNING: {banco} {tipo} has saldo_inicial=None, using 0")
-        saldo_inicial = 0
-        saldo_inicial_unknown = True
-    if saldo_final is None:
-        log_progress("E3.3", f"WARNING: {banco} {tipo} has saldo_final=None, using 0")
-        saldo_final = 0
-        saldo_final_unknown = True
-
-    # Record source files
-    fontes = [path.name for path, _ in sorted_group]
-
-    reconciled = {
-        "banco": banco,
-        "tipo_conta": tipo_conta,
-        "titular": titular,
-        "moeda": moeda,
-        "periodo_cobertura": {"inicio": periodo_inicio, "fim": periodo_fim},
-        "saldo_inicial": saldo_inicial,
-        "saldo_inicial_unknown": saldo_inicial_unknown,
-        "saldo_final": saldo_final,
-        "saldo_final_unknown": saldo_final_unknown,
-        "fontes": fontes,
-        "transacoes_total": len(dedup_txns),
-        "transacoes_duplicadas_removidas": dup_count,
-        "transacoes": dedup_txns,
-    }
-
-    return reconciled
 
 
 def generate_output_filename(reconciled: Dict[str, Any]) -> str:
