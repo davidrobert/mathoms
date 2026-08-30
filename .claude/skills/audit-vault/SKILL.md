@@ -78,7 +78,7 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
 `archive/` e sprint fechada ficam **sempre fora** do julgamento (gates ainda
 rodam via pre-commit) — auditar histórico congelado gera falso-drift.
 
-## Procedimento (5 camadas)
+## Procedimento (6 camadas)
 
 ### Camada 0 — Contexto (obrigatória, antes de tudo)
 
@@ -153,6 +153,39 @@ Cada `DOC-BLOCK` passa por **1 verify barato**: cite o trecho exato do doc **e**
 o da fonte-de-verdade (código/ADR/config) que se contradizem. **Sem citar
 ambos → rebaixa para DOC-DRIFT/descarta.** Nunca auto-marque `refutado` sem
 evidência empírica (lição SEC-03 do AUDITS-active).
+
+### Camada 4b — Auditoria dos mortos (o verify do verify)
+
+A camada 4 **mata** achados. Ninguém checa a morte, e a assimetria é silenciosa:
+o achado que sobrevive ganha escrutínio de graça — você age sobre ele, e agir
+revela erro. O achado morto não ganha nenhum. Refutação errada apaga defeito real
+e o resultado fica **idêntico** a sucesso.
+
+**Audite os mortos, não os sobreviventes.** O conjunto é pequeno e limitado por
+construção (na rodada de origem: 4 mortos contra 45 vivos), então a camada custa
+quase nada. A pergunta é **invertida** — não "o achado procede?", mas **"esta
+refutação é boa?"** —, e o refutador da camada 4 é quem está no banco dos réus.
+
+**Testemunha mecânica ou nada.** `morte-correta`/`morte-errada` exigem um comando
+reproduzível (`grep`/`git`/`pytest`) cujo output decide, colado com o output.
+Sem isso o veredito é `indeterminado`, que é resposta legítima e melhor que
+prosa: prosa-contra-prosa é exatamente o que já falhou uma camada antes.
+
+**O que NÃO fazer: a camada simétrica.** Não acrescente "refute a refutação" como
+terceira passada sobre os achados vivos. O refutador empurra sempre **contra** a
+afirmação corrente, sem saber qual direção é segura — quando o default seguro é
+*não agir* (não flipar uma ADR, não reescrever evidência datada), ele empurra
+para o lado inseguro. E erro de LLM lendo texto é correlacionado entre camadas:
+não se cancela por empilhamento. Orçamento marginal rende mais em **lente nova**
+(outro artefato-alvo) que em profundidade.
+
+> **Caso de origem (2026-08-30, closeout da `A40.l94`).** Dois céticos deram
+> veredito **oposto** sobre a mesma substância: um confirmou, outro refutou. Agi
+> sobre o confirmado e **risquei uma frase verdadeira** — "uma aplicação, dois
+> pontos", que era literalmente correta sobre o separador que nomeava
+> (`transfer_categories` aplicado em `fluxo_caixa_enricher.py:510`, ausente em
+> `_collect_candidates`). O risco falso foi para `main` num PR de closeout cujo
+> objetivo era justamente consertar afirmações falsas.
 
 ### Camada 5 — Síntese (dois outputs)
 
