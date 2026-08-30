@@ -98,9 +98,12 @@ perderia referente (num agregado de 9 KRs, "aqui" e "lá" viram o mesmo lugar, e
 sobre dupla contagem contaria o próprio KR duas vezes); e a `date_target` da A40 — único
 gatilho computável do tripwire de revert da [[A40.l21]] — viraria ficção.
 
-E a fusão **não compra o que parece comprar**: medido em cópia isolada da vault, mover as
-12 lanes para `docs/sprint/A40/lanes/` muda `SPRINT_CURRENT.md` em **zero linhas** (as 12
-são `planned`; o renderer só lê `{ready, open, in_progress}`). O ganho de pickup exige
+E a fusão **não compra o que parece comprar**: medido em cópia isolada da vault **em
+2026-08-05**, mover as 12 lanes de então para `docs/sprint/A40/lanes/` mudava
+`SPRINT_CURRENT.md` em **zero linhas** (as 12 eram `planned`; o renderer só lê
+`{ready, open, in_progress}`). **Pelo mesmo critério, hoje seriam ≥3 linhas** —
+[[A42.l7]] `open`, [[A42.l14]]/[[A42.l15]] `in_progress`. A recusa da fusão **não
+depende deste número**: o motivo decisivo é a adversariedade dos dois gates de saída. O ganho de pickup exige
 flipar status, que é decisão de liberação — **ortogonal à fusão**. Ver §Gatilho de
 promoção para a porta que entrega esse ganho sem os custos.
 
@@ -133,6 +136,9 @@ merge `47970706`) abriu três P0 cuja causa-raiz cai **exatamente** na tese dest
 > **Atualização 2026-08-29:** a [[A42.l16]] foi executada **fora** da sprint corrente e
 > está `shipped` (#1827). As outras duas seguem `planned`. A decisão sobre `sprint_status`
 > abaixo **não mudou** — continua do dono.
+>
+> **Emenda 2026-08-30:** [[A42.l14]] e [[A42.l15]] estão `in_progress` (#1825/#1832 e
+> #1824/#1831). Só as 12 anteriores seguem `planned`.
  **Não flipei `sprint_status` para `current`:** só existe
 uma sprint corrente por vez ([[A40]]), e duas são **erro duro** em
 `dev/build_doc_index.py::_multi_current_error`. Ativar a A42 exigiria pausar ou encerrar a
@@ -153,7 +159,7 @@ linha de contagem porque a métrica óbvia é gamificável.
 |---|---|---|---|
 | **KR-A · fidelidade discriminada** | Todo parser line-oriented emite âncora de linhas de origem; o veredito separa *fidelidade do parser* de *completude da fonte*. `coberto-sem-verificação` cai pela linha `fidelidade_provada` | `dev/certify_parse_local.py --compare` | Contar em **duas linhas** — `fidelidade_provada` e `teto_estrutural`. A queda só conta pela primeira: reclassificar vocabulário não é progresso. O "cai de 80" da abertura (2026-08-04) é **fotografia**, não denominador vigente — re-medir na abertura |
 | **KR-B · instrumento que não dá verde falso** | Nenhum check que não consegue avaliar desaparece da conta: todo check emite `pass\|fail\|skipped(motivo)` com piso de contagem por check-id; registry de balde do razão com default `não-verificável` | `scripts/validate_cross.py` + `dev/ledger_certify_core.py` | **Prova por mutação**: remover o input do check ⇒ exit ≠ 0. O KR não mede número de checks; mede que a ausência morde |
-| **KR-C · identidade sob cobertura redundante** | Nenhum par de grupos do razão da mesma conta *period-free* com chaves de artefato distintas; nenhum artefato onde o sentinela de ausência é indecidível do literal | `dev/certify_ledger_local.py` | Escopo é a classe **latente** nativo↔nativo. O P0 de duplicação cross-documento é KR-B da [[A40]] e **não conta aqui** — senão A42 colhe o trabalho da [[A40.l2]]. **Lê a sombra** (E2→E3, enforce omitido); o modo `--entregue` (E3 persistido) não pontua o KR-C |
+| **KR-C · identidade sob cobertura redundante** | Nenhum par de grupos do razão da mesma conta *period-free* com chaves de artefato distintas; nenhum artefato onde o sentinela de ausência é indecidível do literal | `dev/certify_ledger_local.py` | Escopo é a classe **latente** nativo↔nativo. O P0 de duplicação cross-documento é KR-B da [[A40]] e **não conta aqui** — senão A42 colhe o trabalho da [[A40.l2]]. Pontua **só a linha rotulada `[sombra · enforce omitido]`** (E2→E3, pré-colapso); a linha `[numerador KR-B]` (E3 persistido do run pinado) **não pontua o KR-C**. O critério é o **rótulo emitido** (`_SOMBRA_LABEL`/`_KR_B_LABEL` em `dev/ledger_cross_group_render.py`), não o nome do flag: sob a [[ADR-421]] D1/D2 o sujeito default muda e os rótulos permanecem |
 | **KR-D · base mensal honesta** | A janela de 12 meses tem teto na data de análise; nenhum mês entra no divisor de média sem transação observada ou declarado como lacuna | invariante em teste + `dev/golden_diff.py` | Delta declarado `↑`/`↓`/`=` no golden. Rebaseline silencioso é reprovação |
 
 **KRs rejeitados, explicitamente:** "N achados fechados" (burn-down contaria o
@@ -178,7 +184,7 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 
 **Rito de abertura (auditoria 2026-08-14).** O gate acima fecha a sprint. A
 **promoção** (`[[A40]] → done`) começa com `parse-certify` r3 + `ledger-certify` r5
-**antes do primeiro pickup**, carimbando cada uma das 12 lanes
+**antes do primeiro pickup**, carimbando cada uma das lanes não-terminais
 `sobrevive` / `absorvido` / `morreu`. Achado novo da classe falso-verde entra;
 achado de entrega vai para [[PLAN-report-trust]], não vira `A42.l14`. Sem esse
 passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
@@ -212,6 +218,33 @@ com bloqueio e reversibilidade distintos). Uma 13ª (proveniência do executor) 
 admitida e **promovida para a [[A40]] no mesmo dia** — ver §Lanes promovidas. Os slots
 restantes não foram preenchidos de propósito: padding para bater um número é a forma
 mais barata de Goodhart num plano.
+
+> **O parágrafo acima é fotografia de 2026-08-05** — o último commit que o manteve foi o
+> `7215daf3` (#1209), com 12 lanes na mesa e 2 slots de folga. Não o reescreva: ele
+> registra a decisão de capacidade como ela foi tomada.
+
+**Estado da capacidade — 2026-08-30.** A sprint tem **16 lanes**: o `## Lanes (16)` acima,
+16 linhas na tabela e 16 arquivos em `docs/sprint/A42/lanes/` — os três substratos
+concordam, e o `check_lane_counter` do `lane-closeout` só compara esses três. **O teto de
+14 está excedido em 2, e o rompimento nunca foi decidido:** as quatro lanes acima de 12
+entraram uma a uma, em PRs distintos, sem que o parágrafo acima fosse relido.
+
+| Lane | Entrou | Por quê | PR |
+|---|---|---|---|
+| [[A42.l13]] — completude por ficha | 2026-08-21 | a [[ADR-266]] foi falsificada por emenda datada e o predicado substituto precisava de casa. **Reusa o id da 13ª promovida** — ver §Lanes promovidas | #1624 (lane) · #1747 (linha na tabela) |
+| [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 |
+
+**Nenhuma das quatro é padding** — que é o único abuso que o teto existia para impedir.
+Mas o teto foi decidido contra outra evidência — *"nenhuma sprint acima de ~11 lanes
+fechou pelo próprio gate na história do repo"* ([[SPRINTS-active]] §A42) — e essa evidência
+**não foi re-medida**. Elevar o teto para 16 aqui seria escolher o número **depois** de
+conhecer o ofensor.
+
+**Decisão pendente, do dono** (mesma porta do `sprint_status`): (a) elevar o teto com
+rationale novo e datado; (b) manter 14 e **dividir**, promovendo lanes pela porta de
+nível-lane do §Gatilho de promoção; ou (c) declarar o teto **advisory** — sinal de que a
+sprint pediu re-triagem, não gate de admissão. Até a decisão, **a contagem vigente é 16 e
+este bloco é a fonte dela**.
 
 **Ordem dentro da tabela reflete pickup, não numeração.** A l3 vem antes da l2 porque a
 l2 consome o ratchet que a l3 entrega; a l5 vem antes da l6 pela mesma razão. Nenhuma
@@ -384,7 +417,7 @@ superfície possui o achado):
 
 | Achado | Destino | Motivo |
 |---|---|---|
-| Duplicação cross-documento do razão (P0, ~19% da receita — fotografia 2026-08-04) | [[A40.l2]] | **Shipou 2026-08-11 (#1368):** colapsador enforce, 453 rows cortadas, E3 6256→5803. O aviso de 2026-08-04 ("P0 tem dono e não tem fix escrito") **não vale mais**. Residual da própria l2: o instrumento `certify_ledger_local` agora tem modo `--entregue` (E3 persistido) para pontuar a KR-B da A40; a **sombra** (261 no cru) continua sendo o que o KR-C daqui lê. Persistido **não conta** no KR-C |
+| Duplicação cross-documento do razão (P0, ~19% da receita — fotografia 2026-08-04) | [[A40.l2]] | **Shipou 2026-08-11 (#1368):** colapsador enforce, 453 rows cortadas, E3 6256→5803. O aviso de 2026-08-04 ("P0 tem dono e não tem fix escrito") **não vale mais**. Residual da própria l2: o instrumento `certify_ledger_local` agora emite a linha `[numerador KR-B]` sobre o E3 persistido, que pontua a KR-B da A40; o KR-C daqui lê **só** a linha `[sombra · enforce omitido]` (261 no cru, fotografia 2026-08-04). O persistido **não conta** no KR-C |
 | Débito de âncora estável de override manual + eixo member-level do lineage em zero | [[A40.l2]] PR3 | Mesma causa; a trilha de ambos diz "não abrir lane" |
 | Limiar de confiança + canal de pausa inalcançável | [[A40.l21]] | A trilha diz "acoplar a A40.l21" |
 | Decisão registrada pelo dono descartada da única seção que responde "o que fazer" (**P0**) | [[A40.l10]] | Ver §Nota sobre o P0 de entrega abaixo |
@@ -464,11 +497,21 @@ qualifica.
 **A l13 não foi reciclada.** O id fica queimado: renumerar lane viva por economia de
 número é o que produz resíduo em prosa. Próxima lane desta sprint é a l14.
 
+> **Falsificado em 2026-08-21 (#1624):** o id **foi** reciclado —
+> `A42-l13-completude-por-ficha.md` nasceu com `id: A42.l13`, 16 dias depois da promoção.
+> A regra acima não foi revogada; foi violada em silêncio, porque o PR que criou a lane
+> não tocou este `_README` (a linha só entrou na tabela seis dias depois, no #1747).
+> Consequência viva: a §Lanes promovidas ancora `A42.l13` no referente **antigo** e a
+> tabela §Lanes o ancora no **novo**.
+
 ## Gatilho de promoção a `current`
 
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
-sprints `current` são hard fail em `build_doc_index.py --check`, e as **12** lanes
-nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]].
+sprints `current` são hard fail em `build_doc_index.py --check`, e as lanes desta sprint
+nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]]. (A contagem
+vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das 16
+seguem `planned`; [[A42.l7]] está `open`, [[A42.l14]]/[[A42.l15]] `in_progress`,
+[[A42.l16]] `shipped`.)
 
 **Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
 dentro da A40?" foi avaliada e **recusada** (§Por que esta sprint existe, agora com o
@@ -476,7 +519,8 @@ motivo mecânico registrado lá). O que a fusão comprava de legítimo era uma c
 tirar lane individual da fila quando ela passa a importar antes do fechamento da A40 —
 e para isso já existe porta, com precedente executado:
 
-- **Nível sprint:** [[A40]] → `done` (inalterado). Promove as 12 de uma vez.
+- **Nível sprint:** [[A40]] → `done` (inalterado). Promove de uma vez todas as lanes
+  não-terminais da sprint (hoje 15).
 - **Nível lane:** **promoção individual para a sprint corrente por *consumidor
   datado***, reparentando a lane (`sprint: A40` + `git mv`). Precedente exato:
   [[A40.l24]], que nasceu `A41.l1` e foi promovida assim por decisão do dono em

@@ -454,8 +454,8 @@ generaliza** para os outros leitores de `dev/`: `dump_artifact.py` e
 `measure_if_base.py` filtram por `pipeline_run_id` — `certify_ledger_local` é o outlier.
 
 **Disposição:** segue `procede-aberto`. Direção decidida em [[ADR-421]] (`Proposto`,
-seis decisões + critério de aceite com prova por mutação). Execução é da [[A42.l14]]
-(`planned`, P0), criada pelo dono em #1821 no mesmo dia — as três perguntas abertas no
+seis decisões + critério de aceite com prova por mutação). Execução é da [[A42.l14]],
+criada pelo dono em #1821 no mesmo dia — as três perguntas abertas no
 §Critério de aceite dela estão respondidas acima. **Ordem:** a l14 precede os itens 1–5
 da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada na ADR.
 
