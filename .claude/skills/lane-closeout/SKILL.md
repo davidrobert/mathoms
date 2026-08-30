@@ -34,7 +34,7 @@ semana que existem porque a pergunta foi feita **depois** do merge.
 - `--recent <N>` (default 5) — lanes tocadas pelos N últimos commits de
   `origin/main`. Use quando a sessão mergeou mais de um PR.
 
-## Procedimento (5 camadas)
+## Procedimento (6 camadas)
 
 ### Camada 0 — O par de verdade (obrigatória, antes de tudo)
 
@@ -144,6 +144,18 @@ Todo achado de severidade alta cita **o trecho do doc** e **o trecho da fonte**
 achado é rebaixado ou descartado.** Herdado da camada 4 da `audit-vault`, pelo
 mesmo motivo: sem isso a skill inventa lacuna e você paga PR por ruído.
 
+### Camada 4b — Auditoria dos mortos
+
+Se a camada 4 **descartou** algum achado, audite os descartados antes de fechar —
+pergunta invertida ("esta refutação é boa?"), **testemunha mecânica obrigatória**,
+`indeterminado` quando não houver. Herdado da camada 4b da `audit-vault`, com o
+caso de origem lá: dois céticos deram veredito oposto sobre a mesma substância, e
+agir sobre o confirmado pôs um risco falso sobre uma frase verdadeira em `main`.
+
+O conjunto é limitado (os mortos, não os vivos), então a camada é barata. **Não**
+acrescente uma passada simétrica sobre os achados vivos — ver o porquê na
+`audit-vault` §Camada 4b.
+
 ### Camada 5 — Saída (responde as duas perguntas, nessa ordem)
 
 ```
@@ -208,5 +220,7 @@ Nunca responda "está tudo certo" sem ter rodado a camada 1 e lido a camada 2.
 - ≥1 achado por run vira correção mergeada, **ou** o veredito `FECHADO` se
   sustenta numa releitura do dono.
 - Falso-positivo dos `CLOSE-BLOCK` ≤ 20% (a camada 4 é o filtro).
+- **Todo achado descartado na camada 4 passa pela 4b**, com testemunha mecânica ou
+  `indeterminado` — nunca com o silêncio, que é indistinguível de morte correta.
 - Nenhum achado da camada 3 recria o que a camada 1 já pega.
 - Run triável em < 15min para 1 lane.

@@ -353,6 +353,30 @@ todo merge do repo em 2026-08-24 lendo réplica obsoleta com HTTP 200.
 > "superado" é mérito, e é do humano — foi o caso da [[A40.l36]] hoje); e o
 > filtro de token continua cego a branch que não nomeia a lane.
 
+> ### 2ª ocorrência medida — 2026-08-30 ([[A40.l94]] · #1828 `05561dc0`)
+>
+> A metade do **gate** segue deferida (o `lane_pickup` acima fechou a outra), e a
+> condição de retomada pede reincidência ≥3×. Este é o **caso 2**, e ele traz o que
+> o caso-bandeira não tinha: **evidência de custo**.
+>
+> Mesmo estado do #1375 — código em `main` sem flip e sem `ship_pr` —, e as três
+> checagens seguem cegas por construção: o C1 pula (`check_lane_transition.py:158`,
+> `not pr → continue`) e o T1 só olha o diff que faz o flip, que no #1828 nunca
+> existiu. Nenhum gate viu.
+>
+> **O custo, que é novo:** a auditoria de closeout foi o único detector vivo da
+> classe — e um painel de céticos **matou o achado** (`L94-SEM-PR`), alegando
+> "omissão prevista pela convenção". Medido na base `f7bb8c70`: das lanes
+> `shipped`/`done` da A40, **66 de 66** declaravam `ship_pr`; a l94 era a única sem,
+> e o schema (`note-lane.schema.json`) e o T1 deste módulo **exigem** o campo. A
+> convenção não previa a omissão — proibia-a, duas vezes. O achado foi recuperado
+> um dia depois pela camada 4b (`audit-vault` §Camada 4b, que nasceu deste caso) e o
+> #1840 consertou a instância exatamente como o achado pedia.
+>
+> Logo o argumento muda de qualidade: era "limite teórico declarado", vira
+> **recorrência medida cujo único detector é falível**. Insumo direto para a
+> condição de retomada — falta 1.
+
 ### Achado colateral — a camada 1 da skill falhava aberta
 
 `check_lane_counter` nunca acusou o contador errado da A40 porque
