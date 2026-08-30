@@ -72,7 +72,8 @@ e razão `< 0,05` arredondada (irrelevante). O `?? "—"` de `ConsumoConscienteC
 **nunca dispara**, porque o produtor jamais emite `None`.
 
 **O ramo `folga < 0` é inteiramente cego.** Mutante que devolve `−99.0` só quando
-`folga < 0` sobrevive à suíte (153 passed). Só `folga == 0` está gateado — por
+`folga < 0` sobrevive à suíte INTEIRA — **7931 passed** (tudo menos os 46 testes dos dois
+arquivos depois reescritos). Só `folga == 0` está gateado — por
 `test_zero_quando_folga_nao_positiva`, o único teste do repo sobre o polo, e ele **assere o
 defeito**.
 
@@ -132,8 +133,9 @@ sua frequência em produção fica aberta.
 | **D3.d** | prosa do E5 com ramo próprio (requisito: `TypeError` sem ele) + `motivo_supressao` no manifest do parecer, `manifest_version` 2.8.0 → 2.9.0 |
 
 **Prova de A/B, não de verde:** 9 gates novos reprovam contra o produtor pré-fix; o mutante
-que devolve `−99.0` só no ramo `folga < 0` — que sobrevivia a 153 testes — reprova em 3.
-`pytest tests -q` 7973 passed. Snapshot de view-model: **+1 linha**, valor não se move.
+que devolve `−99.0` só no ramo `folga < 0` — que sobrevivia à suíte inteira, 7931 passed —
+reprova em 3.
+`pytest tests -q` 7977 passed. Snapshot de view-model: **+1 linha**, valor não se move.
 
 ## Deferimento datado — o polo, 2026-08-30
 

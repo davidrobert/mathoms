@@ -53,6 +53,22 @@ porque o detector não a pegou. E `aporte_investimento` é R$ 190.000 de `total_
 > É P1 e não P0 porque nenhum número **determinístico** publicado se move com ela — não
 > porque a contaminação tenha deixado de alcançar conselho.
 
+## Escopo herdado da [[A40.l101]] (2026-08-30, #1848)
+
+A l101 mediu o **par numerador↔denominador** de `equivalente_meses_poupanca` e derrubou a
+premissa de que o numerador é subconjunto do subtraendo: são **cinco escapes**. Um já era o
+item 1 abaixo; **dois são achados novos** e vêm para cá porque são população do numerador,
+não domínio do denominador:
+
+| escape | efeito medido |
+| --- | --- |
+| `data_corte` é aplicado ao denominador (`enrich(..., data_corte=...)`) e **não** ao numerador — `_dentro_da_janela` não tem limite superior, e `e5_analyzer_adapter.py:764` passa o `despesas` **cru** | numerador e denominador rodam sobre **populações diferentes**: mesmo pontual publica **6,0 ou 12,0** conforme o corte |
+| **estorno negativo**: `CashFlowBuilder` líquida por categoria/mês (aceita negativo), o numerador filtra por `valor < consumo_min` | R$ 48k + estorno de −R$ 48k ⇒ denominador inalterado e numerador 48k ⇒ publica **"6,0 meses de poupança" para um gasto que se anulou** |
+| `aporte_investimento` no numerador e fora de `despesa_consumo` | **57,14%** do numerador da fixture `pontuais-com-aporte` está fora do subtraendo — é o **item 1** abaixo, com magnitude medida |
+
+Os dois primeiros **não** têm dono antes desta linha. Fechá-los aqui é o que torna o
+numerador e o denominador comparáveis; a [[A40.l101]] fechou só o denominador.
+
 ## Escopo — os três itens deferidos pela [[A40.l94]]
 
 1. **Aplicar `transfer_categories` ([[ADR-333]]) ao `_collect_candidates`.** Uma aplicação
