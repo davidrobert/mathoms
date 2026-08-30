@@ -79,10 +79,8 @@ def write_e5_config(
     """Escreve config mínima de tenant para rodar E4/E5 isolado."""
     cfg = tmp_path / "config"
     cfg.mkdir(parents=True, exist_ok=True)
-    _dump(
-        cfg / "categorization.json",
-        _categorization(expense_keywords, income_keywords, internal_transfer_patterns),
-    )
+    cat = _categorization(expense_keywords, income_keywords, internal_transfer_patterns)
+    _dump(cfg / "categorization.json", cat)
     _dump(cfg / "family_members.json", family or _DEFAULT_FAMILY)
     _dump(cfg / "goals.json", goals or _DEFAULT_GOALS)
     (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
@@ -112,6 +110,15 @@ def _seed_store(
 # construtor em TODOS os goldens de E5 e forçaria rebaseline geral — o default
 # `None` mantém os existentes no caminho legado e deixa UM golden novo exercitar
 # o de produção.
+def _stages_e4_e5():
+    """Import tardio: o substrato é importado por testes que não sobem o pipeline."""
+    from pipeline.context import WorkspaceContext
+    from scripts.analyze_finances import main_with_store as e5_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
+
+    return WorkspaceContext, e4_mws, e5_mws
+
+
 def run_e3_e4_e5(root: Path, **kwargs) -> dict[str, Any]:
     """Payload E5; use ``run_e3_e4_e5_ctx`` quando precisar também do artefato E4."""
     return run_e3_e4_e5_ctx(root, **kwargs).artifact_store.read("E5", "analise_financeira")
@@ -127,12 +134,9 @@ def run_e3_e4_e5_ctx(
 ):
     """Roda E4→E5 sobre E3 seeded e devolve o ``ctx``; ``irpf_payloads`` semeia
     extract_irpf_full (DE-02)."""
-    from pipeline.context import WorkspaceContext
-    from scripts.analyze_finances import main_with_store as e5_mws
-    from scripts.categorize_transactions import main_with_store as e4_mws
-
+    contexto, e4_mws, e5_mws = _stages_e4_e5()
     store = _seed_store(e3_payloads, baseline, irpf_payloads)
-    ctx = WorkspaceContext(root=root, artifact_store=store, config_store=config_store)
+    ctx = contexto(root=root, artifact_store=store, config_store=config_store)
     e4_mws(ctx)
     e5_mws(ctx)
     return ctx

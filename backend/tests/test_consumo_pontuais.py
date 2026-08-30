@@ -197,6 +197,14 @@ async def test_consumo_pontuais_unauthorized(client: AsyncClient):
 # verdade com os dois literais de volta): o gate move o scoring para 2500 e exige
 # que as DUAS superfícies se movam.
 _SCORING_2500 = {"thresholds_alertas": {"consumo_consciente_min": 2500}}
+_E4_PAR_DE_LIMIAR = {
+    "dados": {
+        "alimentacao": [
+            {"data": "2026-01-05", "descricao": "ENTRE OS DOIS LIMIARES", "valor": 2200.0},
+            {"data": "2026-01-06", "descricao": "ACIMA DOS DOIS", "valor": 3500.0},
+        ]
+    }
+}
 
 
 def _escreve_scoring(tmp_path, monkeypatch, scoring: dict) -> None:
@@ -207,16 +215,22 @@ def _escreve_scoring(tmp_path, monkeypatch, scoring: dict) -> None:
     monkeypatch.setattr(settings, "PIPELINE_ROOT", tmp_path)
 
 
+async def _semeia_par_de_limiar(auth_client: AsyncClient, db) -> str:
+    await _seed_e4_despesas(
+        db,
+        auth_client.ws_id,
+        [
+            _despesa("ENTRE OS DOIS LIMIARES", 2200.0, categoria="alimentacao"),
+            _despesa("ACIMA DOS DOIS", 3500.0, categoria="alimentacao"),
+        ],
+    )
+    await _seed_transfer_config(db, auth_client.ws_id)
+    return f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"
+
+
 @pytest.mark.asyncio
 async def test_limiar_do_scoring_move_a_lista(auth_client: AsyncClient, db, tmp_path, monkeypatch):
-    despesas = [
-        _despesa("ENTRE OS DOIS LIMIARES", 2200.0, categoria="alimentacao"),
-        _despesa("ACIMA DOS DOIS", 3500.0, categoria="alimentacao"),
-    ]
-    await _seed_e4_despesas(db, auth_client.ws_id, despesas)
-    await _seed_transfer_config(db, auth_client.ws_id)
-    url = f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"
-
+    url = await _semeia_par_de_limiar(auth_client, db)
     antes = await auth_client.get(url)
     assert [it["descricao"] for it in antes.json()["items"]] == [
         "ACIMA DOS DOIS",
@@ -237,14 +251,7 @@ def test_limiar_do_scoring_move_o_kpi():
     )
     from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
 
-    despesas = {
-        "dados": {
-            "alimentacao": [
-                {"data": "2026-01-05", "descricao": "ENTRE OS DOIS LIMIARES", "valor": 2200.0},
-                {"data": "2026-01-06", "descricao": "ACIMA DOS DOIS", "valor": 3500.0},
-            ]
-        }
-    }
+    despesas = _E4_PAR_DE_LIMIAR
     fluxo = {"janela_12m": {"receita_recorrente_mensal": 20_000, "n_meses": 12}}
 
     def descricoes(scoring: dict | None) -> list[str]:

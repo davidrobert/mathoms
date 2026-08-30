@@ -132,12 +132,11 @@ def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
 class BaldePontual:
     """Um balde da base: quanto e quantos. ``pct`` **não é campo** — o leitor o
     deriva de ``bruto``, que está no mesmo objeto ([[ADR-425]] §D2); publicá-lo
-    criaria um terceiro número a manter em sincronia com dois que já estão ali.
+    criaria um terceiro número a manter em sincronia com dois que já estão ali."""
 
-    ``Decimal`` e não ``float`` ([[ADR-090]]): este é o único ponto do módulo que
-    **acumula** dinheiro, e a identidade de conservação da base tem de fechar ao
-    centavo. O ``float`` volta só no ``to_dict``, que é o wire.
-    """
+    # ``Decimal`` e não ``float`` ([[ADR-090]]): é o único ponto do módulo que
+    # ACUMULA dinheiro, e a identidade de conservação tem de fechar ao centavo. O
+    # ``float`` volta só no ``to_dict``, que é o wire.
 
     total: Decimal = Decimal("0")
     contagem: int = 0

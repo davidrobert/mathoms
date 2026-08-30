@@ -39,14 +39,12 @@ from enum import Enum
 from typing import Protocol
 
 
+# ``transferencia_por_categoria`` cobre os DOIS conjuntos: o rótulo é mais grosso
+# que os conjuntos de propósito — fundir os CONJUNTOS mudaria ``folga_mensal``,
+# fundir os RÓTULOS não muda número nenhum.
 class VeredictoPontual(str, Enum):
-    """Por que um lançamento entrou (ou não) na base — enum FECHADO.
-
-    Sem veredito por item o residual não tem como ser atribuído por causa
-    ([[ADR-425]] §D2). ``transferencia_por_categoria`` cobre os DOIS conjuntos:
-    o rótulo é mais grosso que os conjuntos de propósito — fundir os conjuntos
-    mudaria ``folga_mensal``, fundir os rótulos não muda número nenhum.
-    """
+    """Por que um lançamento entrou (ou não) na base — enum FECHADO. Sem veredito
+    por item o residual não tem como ser atribuído por causa ([[ADR-425]] §D2)."""
 
     incluido = "incluido"
     recorrente = "recorrente"
