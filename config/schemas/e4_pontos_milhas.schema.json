@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e4_pontos_milhas.schema.json",
+  "title": "E4 — balde pontos_milhas",
+  "description": "Contrato do balde `pontos_milhas`, resolvido por artifact_key (A42.l19). O produtor emite `empty_placeholder()` = {\"dados\": []} — o legado sempre regenera. Schema próprio (e não um ramo genérico) para que o dia em que o balde ganhar conteúdo transacional o contrato seja alterado aqui, e não herdado por acidente.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["dados"],
+  "properties": {"dados": {"type": "array"}}
+}
