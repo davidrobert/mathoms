@@ -4,7 +4,9 @@ type: lane
 title: "A trilha sticky promete 20 alvos e entrega 10 em 1280px, 0 no telefone — e não há sinal de que falte algo"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_date: "2026-08-30"
+ship_pr: 1860
 priority: P2
 branch_slug: a40-l102-trilha-promete-alvo-que-nao-entrega
 owner: product-designer
@@ -14,7 +16,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p2
   - area/frontend
   - area/relatorio
