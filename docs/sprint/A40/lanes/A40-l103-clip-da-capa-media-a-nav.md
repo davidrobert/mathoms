@@ -96,11 +96,27 @@ métrica de razão amplificar reflow de 1px em imagem curta.
 
 ## Critério de aceite
 
-- [ ] `cover` recorta no locator; nenhuma baseline visual depende mais da nav.
-- [ ] `sumario-executivo` tem baseline nos dois temas, com controle positivo de
+- [x] `cover` recorta no locator; nenhuma baseline visual depende mais da nav.
+- [x] `sumario-executivo` tem baseline nos dois temas, com controle positivo de
       card montado.
-- [ ] **Contraprova de atribuição nos dois sentidos** — mutação sintética na nav
-      **não** reprova `cover`; mutação no header **reprova**. Sem os dois
-      sentidos, a lane provou que recortou, não que desacoplou.
-- [ ] Gaps de cobertura declarados no spec, com dono ou lane de destino.
+- [x] **Contraprova de atribuição nos dois sentidos**, medida sobre o MESMO
+      commit: mutação no rótulo da nav (`fontSize` 9→13, run `33326058949`) →
+      **`success`**, nada reprova; mutação no `subtitle` do header (run
+      `33326004042`) → **`failure` com 2 failed / 38 passed**, e os 2 são
+      exatamente `cover — light` e `cover — dark`. Reprova o certo e só o certo.
+- [x] Gaps de cobertura declarados no spec, com dono ou lane de destino.
 - [ ] Job `frontend-visual` verde no PR com a label `visual`.
+
+### O primeiro valor de tolerância reprovou a própria contraprova
+
+`0.005` deixava passar a mutação de texto: acrescentar `"XX"` ao `subtitle` move
+**304px** (light) / **310px** (dark), ~0,076%, contra um limiar de 2.006px —
+folga de 6,6×. É a classe conhecida em que o `<h2>` da S9 mudou e o gate ficou
+verde. Corrigido para `0.0003` (~120px), que fica **acima** do piso de ruído
+medido (0px) e **abaixo** da menor mudança que precisa reprovar.
+
+**Armadilha de método registrada** (produziu uma medição falsa antes desta):
+`--update-snapshots` só reescreve a baseline quando a comparação **falha**.
+Mutação sob a tolerância devolve o arquivo antigo intacto e a comparação acusa
+`0px` — que é o arquivo comparado consigo mesmo, não medição. A medição válida
+exige apagar a baseline na branch de sonda (run `33325757975`).
