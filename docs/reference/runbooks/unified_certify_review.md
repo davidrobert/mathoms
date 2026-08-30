@@ -497,13 +497,52 @@ reprovando ≥2 caixas, porque o vocabulário não tinha o segundo valor.
 | U | Data | ws8 | run8 | Seções | PR | Estado |
 |---|---|---|---|---|---|---|
 | **U1** | 2026-08-26 | `1b9f2cf5` | `c97b97c2` | LEDGER §r5 · PIPELINE §r9 · REPORT §r5 | (esta PR) | fechada |
-| **U2** | 2026-08-29 | `1b9f2cf5` | `79a61e33` | LEDGER §r6 · PIPELINE §r10 · REPORT §r6 | (esta PR) | fechada |
+| **U2** | 2026-08-29 | `1b9f2cf5` | `79a61e33` | LEDGER §r6 · PIPELINE §r10 · REPORT §r6 | 1820 | fechada com ressalva (E2, escrituração fora do commit) |
+| **U3** | 2026-08-30 | `1b9f2cf5` | `3a5b9c7d` | LEDGER §r7 · PIPELINE §r11 · REPORT §r7 | (esta PR) | fechada com ressalva (E2 reprova; `REPORT × solidez` nula) |
 
 ## 10. Débito de método (cross-cutting)
 
 Append-only, datado. Só o que é furo **do encadeamento** — furo de uma skill vai para
 o MOC dela.
 
+- **2026-08-30 (fecho do `U3`) — a rodada mede a distância do PRODUTO ao HEAD e nunca a do
+  INSTRUMENTO.** Três medições desta rodada, todas minhas:
+  1. **O instrumento que pontua a KR-B mudou entre os dois runs e eu publiquei "idêntico".**
+     A regra nº 5 acima — que **eu escrevi no fecho do `U2`** — fixa o pathspec
+     `pipeline backend scripts config frontend/src`. O instrumento vive em `dev/` e em
+     `storage/`, e **nenhum dos dois está lá**. Um commit reescreveu `certify_entregue`
+     justamente para fechar um falso-verde no modo que pontua a KR-B, e a comparação
+     atravessou isso em silêncio.
+     **Regra:** o `git log` do intervalo roda **duas vezes** — produto e **instrumento**
+     (`dev .claude/skills`) — e a linha do instrumento é **obrigatória** no cabeçalho.
+     Nenhum "idêntico" pode ser publicado atravessando mudança de instrumento sem dizê-lo.
+  2. **Copiei o instrumento do diretório da rodada anterior e herdei a versão pré-conserto.**
+     O `xchecks.py` do `U2` congelou na versão de antes das correções que a própria `U2` fez
+     nele; o X2 comparou **zero** células em 2 baldes e o X3 reportou 647 divergências de
+     rótulo. **A guarda anti-vácuo não rodou porque o arquivo que a contém não era o que foi
+     copiado** — a caixa foi satisfeita lendo o runbook, não executando-o.
+     **Regra:** antes do X5, emita `(sha256 do executável, sha256 da fonte canônica)` para
+     cada instrumento que a rodada vai rodar. Divergência **aborta**. E o corolário
+     estrutural: **instrumento executável não mora no diretório da rodada** — ele vai para
+     `dev/` (versionado, diffável, gateado) e o `_state.json` guarda `instrumento_sha`.
+  3. **Ao "propagar o conserto" eu sobrescrevi o baseline congelado da rodada anterior.**
+     Os dois `xchecks.py` ficaram com o mesmo mtime; os números do §r6 já não são
+     reproduzíveis com o instrumento que os produziu. É a patologia que o `LC6-01` declara e
+     que a política de `_HISTORY` proíbe. **Regra: diretório de rodada é imutável depois do
+     fecho.** Conserto de instrumento avança o `dev/`; nunca retro-edita rodada passada.
+  4. **`E2 ✅` foi publicado sobre um predicado que REPROVA.** O runbook define o mapa como
+     `{(stage,key) → (id, byte_size)}` e exige **identidade**; duas unidades mudaram conteúdo.
+     Li o delta 1→2 como ruído. **Regra:** o veredito do E2 é sobre o mapa **inteiro**, e
+     `byte_size` alterado em unidade que alimenta balde rebaixado condiciona o veredito dele.
+  5. **O gate de cobertura conta a célula, e o mecanismo migra de célula.** O `U2` flagrou
+     `REPORT × correção`; a regra virou caixa; e no `U3` a **mesma** patologia apareceu em
+     `REPORT × solidez-financeira`, nula e não declarada. **Regra:** a caixa não é por célula
+     nomeada — é *"toda dimensão bloqueada pela ordem de julgamento devolve
+     `BLOQUEADA(<veredito que falta>)`"*, em qualquer célula.
+  6. **Cinco das oito regras do `U2` reprovaram em artefatos escritos depois da correção.**
+     As que têm **verificador executável** pegaram (a F5 num commit só, o
+     `check_sintese_anterior`); as que viraram **prosa numerada** não. Regra sem verificador
+     é documentação, e esta rodada é a medição disso.
 - **2026-08-29 (fecho do `U2`) — seis furos, e quatro deles são o MESMO furo.** A rodada
   cometeu seis auto-defeitos de instrumento e o crítico de completude generalizou-os em
   regras. As duas primeiras são as que mais custam:
@@ -638,7 +677,7 @@ o MOC dela.
 ## 11. Gates antes do commit
 
 ```bash
-python3 dev/build_doc_index.py          # REGENERA — a lane nova churna _generated/
+python3 dev/build_doc_index.py --inline # REGENERA — a lane nova churna _generated/
 python3 dev/validate_frontmatter.py
 python3 dev/check_doc_filename_id.py
 python3 dev/check_doc_links.py
