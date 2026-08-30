@@ -4,7 +4,7 @@ type: lane
 title: "Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: cancelled
 priority: P2
 branch_slug: a40-l46-residuos-perfil-identidade
 adrs:
@@ -14,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/cancelled
   - priority/p2
   - area/frontend
 ---
@@ -141,3 +141,18 @@ contra tolerância de 500.
 seguem dentro e passam. **Não rebaselinar local**: a baseline nasce no runner Linux/UTC e o
 macOS diverge por fuso e antialiasing. Regeneração é `workflow_dispatch` com
 `run_print=true` + `UPDATE_PRINT_BASELINE=1` — disparo do dono.
+
+## Cancelamento com roteamento — 2026-08-30
+
+`cancelled` porque nenhum dos dois itens é trabalho de lane:
+
+- **Baseline de pixel do PDF** (stale desde o #1828, 19.503px) → **[[A40.l10]]**, que já
+  é a lane de *"pendências acionáveis do dono"*. A regeneração é `workflow_dispatch`
+  (`run_print=true` + `UPDATE_PRINT_BASELINE=1`) — **ato do dono**, e esta lane passou
+  18 dias `open` esperando um ato que não vem de agente.
+- **Variant feature sem o DNA do mockup** → **[[A40.l13]]** (`planned`, copy e design
+  system), que é o escopo dela.
+
+**Débito aceito e escrito:** a página 1 do PDF segue **não provada** em Linux até o dono
+disparar o workflow. Não bloqueia merge — `print.@critical` é exclusão nominal do gate,
+e `print-chrome`/`print-text`, que medem conteúdo e não pixel, seguem dentro e passam.

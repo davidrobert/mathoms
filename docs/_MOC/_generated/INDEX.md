@@ -418,6 +418,7 @@
 | ADR-421 | adr | Proposto |  | Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual | `adr/421-sujeito-declarado-da-certificacao.md` |
 | ADR-422 | adr | Decidido |  | A folga é a poupança da janela, não a poupança mais o gasto pontual realizado | `adr/422-a-folga-e-a-poupanca-da-janela-nao-a-poupanca-mais-o-pontual.md` |
 | ADR-423 | adr | Proposto |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
+| ADR-424 | adr | Proposto |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/424-nao-identificado-fora-de-numerador-que-prescreve.md` |
 | ADR-424 | adr | Proposto |  | SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required | `adr/424-sql-so-sqlite-em-migration-e-a-cadeia-em-postgres.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
@@ -891,11 +892,12 @@
 | A40.l10 | lane | open | A40 | Ordem do plano com critério encodado + pendências acionáveis do dono | `sprint/A40/lanes/A40-l10-pendencia-do-dono-e-ordem-do-plano.md` |
 | A40.l100 | lane | shipped | A40 | O cartão rotulado NECESSÁRIO publica a renda-alvo, não o aporte que o motor calcula | `sprint/A40/lanes/A40-l100-cartao-necessario-publica-renda-alvo.md` |
 | A40.l101 | lane | shipped | A40 | O conserto da folga deixou `equivalente_meses_poupanca` auto-referente | `sprint/A40/lanes/A40-l101-equivalente-meses-auto-referente.md` |
+| A40.l102 | lane | open | A40 | Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir | `sprint/A40/lanes/A40-l102-superficie-do-pontual-e-dedup.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
-| A40.l15 | lane | planned | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
+| A40.l15 | lane | cancelled | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
 | A40.l16 | lane | shipped | A40 | Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run | `sprint/A40/lanes/A40-l16-desescalar-number-in-prose.md` |
 | A40.l17 | lane | shipped | A40 | Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero | `sprint/A40/lanes/A40-l17-custo-e-cache-em-needs-review.md` |
 | A40.l18 | lane | shipped | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
@@ -929,7 +931,7 @@
 | A40.l43 | lane | shipped | A40 | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | `sprint/A40/lanes/A40-l43-perfil-familia-prosa-sobre-pessoas.md` |
 | A40.l44 | lane | shipped | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
 | A40.l45 | lane | shipped | A40 | Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro | `sprint/A40/lanes/A40-l45-clipping-horizontal-caixa-estreita.md` |
-| A40.l46 | lane | open | A40 | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup | `sprint/A40/lanes/A40-l46-residuos-bloco-identidade-perfil.md` |
+| A40.l46 | lane | cancelled | A40 | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup | `sprint/A40/lanes/A40-l46-residuos-bloco-identidade-perfil.md` |
 | A40.l47 | lane | shipped | A40 | Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva | `sprint/A40/lanes/A40-l47-semantica-de-taxa-faixa-e-base.md` |
 | A40.l48 | lane | open | A40 | Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo | `sprint/A40/lanes/A40-l48-polaridade-de-comparacao-nao-monotonica.md` |
 | A40.l49 | lane | shipped | A40 | Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar | `sprint/A40/lanes/A40-l49-parecer-rotulo-e-guardrails.md` |
@@ -985,7 +987,7 @@
 | A40.l95 | lane | in_progress | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
 | A40.l96 | lane | in_progress | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
 | A40.l97 | lane | in_progress | A40 | Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice | `sprint/A40/lanes/A40-l97-indices-perdidos-por-copy-from.md` |
-| A40.l98 | lane | open | A40 | Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l98-base-dos-pontuais-tres-produtores.md` |
+| A40.l98 | lane | open | A40 | Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l98-base-dos-pontuais-tres-produtores.md` |
 | A40.l99 | lane | open | A40 | Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor | `sprint/A40/lanes/A40-l99-adr-proposta-com-lane-fechada.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
