@@ -213,17 +213,33 @@ test.describe("Snapshots — cover (hero)", () => {
       // — inteiramente dentro da nav, sem tocar o header. Quem viu "cover"
       // vermelho foi procurar a causa no ReportCover e não achou nada.
       //
-      // Tolerância MEDIDA, não escolhida: dois `workflow_dispatch` do mesmo SHA
-      // (runs 33323919131 e 33323920209, `ec50cbd7`) devolveram as 28 baselines
-      // byte-idênticas — piso de ruído observado = 0px. Por isso NÃO herdamos o
-      // `maxDiffPixelRatio: 0.025` do helper de seção: aquele número existe para
-      // absorver não-determinismo de canvas do chart.js, e o header da capa não
-      // tem canvas. 0.005 dá folga para drift futuro de runner/fonte sem virar
-      // cheque em branco.
+      // Tolerância MEDIDA nos dois extremos, não escolhida:
+      //
+      //   piso de ruído  = 0px — dois `workflow_dispatch` do MESMO SHA (runs
+      //                    33323919131 / 33323920209, `ec50cbd7`) devolveram as
+      //                    28 baselines byte-idênticas. n=2.
+      //   menor mudança  = 304px light / 310px dark (~0,076%) — acrescentar
+      //   que importa      "XX" ao `subtitle` do header, medido em run com a
+      //                    baseline apagada (run 33325757975), bbox 32×19.
+      //
+      // 0.0003 (≈120px nesta imagem) fica ACIMA do ruído e ABAIXO da menor
+      // mudança que precisa reprovar. O primeiro valor tentado, 0.005, deixava
+      // a mudança de texto passar por folga de 6,6× — a classe conhecida do
+      // repo em que o `<h2>` da S9 mudou e o gate ficou verde.
+      //
+      // NÃO herda o `maxDiffPixelRatio: 0.025` do helper de seção: aquele número
+      // existe para absorver não-determinismo de canvas do chart.js, e nem o
+      // header nem a grade de KPI têm canvas.
+      //
+      // Armadilha de método, para quem for re-medir: `--update-snapshots` só
+      // reescreve a baseline quando a comparação FALHA. Mutação sob a tolerância
+      // devolve o arquivo antigo intacto, e a comparação parece dar 0px — que é
+      // o arquivo comparado consigo mesmo, não medição. Apague a baseline na
+      // branch de sonda para forçar a escrita.
       await expect(page.locator("[data-report-cover]")).toHaveScreenshot(
         `cover.${theme}.png`,
         {
-          maxDiffPixelRatio: 0.005,
+          maxDiffPixelRatio: 0.0003,
           mask: [page.locator("[data-mask-snapshot]"), floatingNavMask(page)],
         },
       );
@@ -261,7 +277,7 @@ test.describe("Snapshots — sumário executivo (hero KPI)", () => {
       await expect(page.locator(sel)).toHaveScreenshot(
         `sumario-executivo.${theme}.png`,
         {
-          maxDiffPixelRatio: 0.005,
+          maxDiffPixelRatio: 0.0003,
           mask: [page.locator("[data-mask-snapshot]"), floatingNavMask(page)],
         },
       );
