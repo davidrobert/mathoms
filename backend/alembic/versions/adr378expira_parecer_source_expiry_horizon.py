@@ -113,11 +113,16 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_index(_PARTIAL_UNIQUE, table_name="suggestions")
+    # `rowid` é só-SQLite e quebrava o rollback em Postgres (UndefinedColumnError).
+    # ROW_NUMBER() roda nos dois e preserva a intenção original (guardar a linha
+    # mais recente de cada grupo antes de restaurar o UNIQUE legado).
     op.execute(
         sa.text(
-            "DELETE FROM suggestions WHERE rowid NOT IN ("
-            "SELECT MAX(rowid) FROM suggestions "
-            "GROUP BY workspace_id, dedup_key, status)"
+            "DELETE FROM suggestions WHERE id NOT IN ("
+            "SELECT id FROM (SELECT id, ROW_NUMBER() OVER ("
+            "PARTITION BY workspace_id, dedup_key, status "
+            "ORDER BY created_at DESC, id DESC) AS rn FROM suggestions"
+            ") ranked WHERE rn = 1)"
         )
     )
     with op.batch_alter_table("suggestions", schema=None) as batch_op:
