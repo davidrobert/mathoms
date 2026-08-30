@@ -34,11 +34,12 @@ export type ConsumoConsciente = {
   "total_pontuais"?: number;
   "total_pontuais_janela"?: number;
   "folga_mensal"?: number;
-  "folga_pct"?: number;
+  "folga_pct"?: number | null;
   "analise"?: string;
   "janela"?: "full" | "12m";
   "janela_meses"?: number;
-  "equivalente_meses_poupanca"?: number;
+  "equivalente_meses_poupanca"?: number | null;
+  "motivo_supressao"?: string | null;
 };
 
 export type GastoPontualItem = {

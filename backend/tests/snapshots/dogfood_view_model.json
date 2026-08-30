@@ -1240,6 +1240,7 @@
     "itens": [],
     "janela": "12m",
     "janela_meses": 1,
+    "motivo_supressao": null,
     "total_pontuais": 0,
     "total_pontuais_janela": 0
   },

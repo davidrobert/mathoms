@@ -2983,7 +2983,11 @@
           "type": "number"
         },
         "folga_pct": {
-          "type": "number"
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "A40.l101: `null` sem receita recorrente na janela — `0.0` afirmava \"empatou\" para quem queimou caixa."
         },
         "analise": {
           "type": "string"
@@ -3000,7 +3004,18 @@
           "minimum": 0
         },
         "equivalente_meses_poupanca": {
-          "type": "number"
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "A40.l101 ([[ADR-422]] §Emenda 2026-08-30): `null` quando a folga publicada não é positiva — a razão sai do domínio de definição. `0.0` só significa \"nenhum gasto pontual relevante\"."
+        },
+        "motivo_supressao": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "A40.l101: por que `equivalente_meses_poupanca` saiu nulo. `null` = não suprimido. Forma `<causa_slug>: <detalhe>` ([[ADR-394]] §D7)."
         }
       },
       "required": [],

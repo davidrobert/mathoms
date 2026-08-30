@@ -334,14 +334,20 @@ export interface ConsumoConscienteData {
   /** ADR-306 D2 — rótulo da janela ("12m" | "full"). */
   janela?: string;
   janela_meses?: number;
-  /** [[ADR-422]] — `total_pontuais_janela` ÷ folga mensal: numerador e
-   * denominador na MESMA janela. Media contra o aporte DECLARADO (meta
-   * editável) sobre o estoque full-period — duas bases, e um diagnóstico
-   * que se movia quando o usuário editava a meta. */
-  equivalente_meses_poupanca?: number;
+  /** [[ADR-422]] — `total_pontuais_janela` ÷ folga mensal publicada: numerador
+   * e denominador na MESMA janela. **`null` fora do domínio de definição**
+   * (folga publicada não-positiva) — ver `motivo_supressao`; `0.0` significa
+   * apenas "nenhum gasto pontual relevante" (A40.l101). */
+  equivalente_meses_poupanca?: number | null;
   folga_mensal?: number;
-  folga_pct?: number;
+  /** A40.l101 — `null` sem receita recorrente na janela; `0.0` afirmava
+   * "empatou" para quem queimou caixa. */
+  folga_pct?: number | null;
   analise?: string;
+  /** A40.l101 — por que `equivalente_meses_poupanca` saiu nulo (`null` = não
+   * suprimido). Forma `<causa_slug>: <detalhe>` ([[ADR-394]] §D7). A copy que a
+   * família lê vive na prosa `analise`; este campo é de máquina/LLM. */
+  motivo_supressao?: string | null;
 }
 
 export interface DiagnosticoComportamental {

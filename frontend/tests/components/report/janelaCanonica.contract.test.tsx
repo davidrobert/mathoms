@@ -868,6 +868,51 @@ describe("<ConsumoConscienteCard /> — bases declaradas em texto impresso", () 
     expect(termos[1]).toContain("últimos 12 meses documentados");
   });
 
+  it("equivalente suprimido: o card imprime — e a prosa DECLARA o déficit", () => {
+    // A40.l101 — `0,0` era o menor valor da régua no pior mundo, e o `?? "—"`
+    // nunca disparava porque o produtor jamais emitia `null`. Sem a prosa do
+    // ramo suprimido o traço viraria "não se aplica" (o modo de falha do RR6-21).
+    //
+    // ⚠️ PINO, não gate: medido que ele passa TAMBÉM contra o card pré-fix — o
+    // `?? "—"` já estava certo em runtime e era código morto. Quem reprova sem o
+    // conserto é `tsc --noEmit` (o tipo alargou) e os 9 gates do produtor.
+    const suprimido = {
+      ...consumo,
+      equivalente_meses_poupanca: null,
+      folga_mensal: -4500,
+      folga_pct: -45,
+      motivo_supressao:
+        "folga_nao_positiva: a janela de 12 meses fechou sem poupança",
+      analise:
+        "Identificados 1 gastos pontuais ≥ R$ 2.000 no período analisado, " +
+        "somando R$ 30.000,00. Na janela de 12 meses são R$ 30.000,00, que não " +
+        "se convertem em meses de poupança: a janela fechou com folga mensal de " +
+        "R$ -4.500,00 — a receita recorrente não cobriu o consumo.",
+    };
+    render(<ConsumoConscienteCard consumo={suprimido} />);
+    const valores = [...document.querySelectorAll("dd")].map(
+      (d) => d.textContent ?? "",
+    );
+    expect(valores[1]).toBe("—");
+    expect(valores[1]).not.toContain("0,0");
+    // A ausência vem DECLARADA, não nua.
+    expect(document.body.textContent).toContain(
+      "não se convertem em meses de poupança",
+    );
+  });
+
+  it("folga_pct nulo não afirma 0% — sem receita recorrente o card imprime —", () => {
+    render(
+      <ConsumoConscienteCard
+        consumo={{ ...consumo, folga_mensal: -14500, folga_pct: null }}
+      />,
+    );
+    const pct = [...document.querySelectorAll("dd")]
+      .map((d) => d.textContent ?? "")
+      .find((s) => s.includes("da receita"));
+    expect(pct).toBe("— da receita");
+  });
+
   it("escopo da LISTA é declarado (toggle próprio, default 3M)", () => {
     render(<ConsumoConscienteCard consumo={consumo} />);
     const escopo =

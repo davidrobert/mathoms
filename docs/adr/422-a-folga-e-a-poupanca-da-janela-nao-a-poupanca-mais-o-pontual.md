@@ -5,6 +5,7 @@ title: "A folga é a poupança da janela, não a poupança mais o gasto pontual 
 status: Decidido
 phase: A40
 date: "2026-08-29"
+amended_at: ["2026-08-30"]
 relates_to:
   - "[[ADR-306]]"
   - "[[ADR-333]]"
@@ -117,6 +118,10 @@ inalcançável ou vazio não é teto. Teto de verdade é escopo do
 `OrcamentoProspectivoCard`, que já é a superfície de tetos; duplicá-lo repetiria
 esta doença.
 
+> ⚠️ **Emendada em 2026-08-30 ([[A40.l101]]).** A fórmula abaixo fica intacta; o que
+> faltava era o **domínio de definição**. Fora dele o campo publica `null`, nunca `0,0`.
+> Ver §Emenda 2026-08-30 no fim desta nota.
+
 **D3 — `equivalente_meses_aporte` → `equivalente_meses_poupanca`.**
 
 ```
@@ -183,3 +188,108 @@ delta atribuível a uma causa só.
 o primeiro a nomear o mesmo campo): publicá-lo hoje seria imprimir um número cuja base é 57,5%
 movimentação — ou, se emitido sem leitor, criar exatamente a classe
 emissor-sem-leitor que a [[A40.l88]] gateia. Ele entra junto com a base limpa.
+
+## Emenda 2026-08-30 — o equivalente tem domínio de definição, e fora dele publica `null` (A40.l101)
+
+Origem: `RR7-02` ([[REPORT-REVIEWS-active]] §r7, rodada **U3**), triagem
+`REGRESSÃO-DE-CONSERTO`.
+
+**O defeito era uma guarda transplantada.** A D3 trocou o denominador e carregou junto o
+`else 0.0` da fórmula anterior, sem revisá-lo. Sob o denominador antigo o guard era
+inofensivo; sob o novo ele inverte o sinal do campo:
+
+| denominador | domínio | o que `≤ 0` significa | `0.0` lê como |
+| --- | --- | --- | --- |
+| `meta_aporte_mensal` (pré-D3) | meta **declarada**, `≥ 0` | usuário não configurou meta | N/A benigno |
+| `folga_mensal` (D3) | quantidade **medida**, `∈ ℝ` | a família não poupou nada | **o menor valor da régua no pior mundo** |
+
+Medido fim-a-fim (`tests/fixtures/pipeline_golden/e3/folga-negativa-3_reconciled.json`):
+folga `−R$ 4.500,00/mês`, `folga_pct −45,0`, `total_pontuais_janela R$ 30.000,00` ⇒ o campo
+publicava **`0,0`** e a prosa do E5 **afirmava** *"equivalentes a 0.0 meses de poupança"* —
+byte-idêntico ao mundo sem gasto pontual algum, e melhor que os `3,0` da família saudável.
+O ramo `folga < 0` era **inteiramente cego**: mutante que devolvia `−99.0` só nele sobrevivia
+à suíte inteira. `0,0` colapsava **três** mundos disjuntos, e o `?? "—"` do card nunca
+disparava porque o produtor jamais emitia `None`.
+
+**D3.a — o equivalente é `null` fora do domínio de definição.** A aritmética da D3 fica
+**intacta**; declara-se onde ela é publicável. Forma canônica da [[ADR-394]] §D7
+(`investimentos_cobertura.valor_publicavel`): *"`None` e não `0,0`: um zero publicado é uma
+afirmação sobre o patrimônio da pessoa, e o sistema não a mediu"*. O par
+`motivo_supressao: str | None` acompanha, na forma `<causa_slug>: <detalhe>`
+(`folga_nao_positiva: …`), precedentes `alocacao_alvo_deviation` e
+`supressao_por_atribuicao`. Contrato: `["number","null"]` + propriedade nova — **nullable, não
+ausência**: a ausência de chave está reservada pela [[ADR-390]] §D2 para *versão de artefato*,
+e omitir degradaria o `golden_diff` de `value_delta` para `removed`/`new`.
+
+**D3.b — o denominador é a folga PUBLICADA.** Gatear por `round(folga, 2)` e dividir pela
+folga crua publica um par que o leitor não recompõe (medido: folga crua `R$ 0,014` publicava
+denominador `R$ 0,01` e razão `2.142.857,1`, contra `3.000.000,0` de quem refizesse a conta).
+
+**D3.c — `folga_pct` cai pelo mesmo guard.** Não é campo vizinho por acaso: é o **mesmo**
+transplante, no mesmo bloco, três linhas acima. Com receita recorrente nula e folga de
+`−R$ 14.500,00`, ele publicava `0.0` e o card imprimia *"0% da receita"* — "empatou" para
+quem queimou caixa. Passa a `null`. Consequência aritmética verificada: sempre que
+`receita_recorrente ≤ 0` a folga também é `≤ 0`, então um único `motivo_supressao` cobre os
+dois campos.
+
+**D3.d — a prosa do E5 tem ramo próprio, e isso é requisito.** Com o campo suprimido,
+`_build_analise` levantava `TypeError` no `:.1f` — o conserto ingênuo abortaria o stage. Mais
+importante: sem o ramo, o `—` do card viraria **ausência nua**, que lê como *"não se aplica"*
+— o modo de falha do `RR6-21`. A prosa passa a declarar o déficit. Pelo mesmo motivo o
+manifest do parecer projeta `motivo_supressao` (`on_null: skip` apagaria a linha do
+equivalente e a supressão viraria **silêncio** exatamente no pior mundo); `manifest_version`
+sobe **2.8.0 → 2.9.0**.
+
+### A pergunta que o campo responde é PROSPECTIVA
+
+Decidido por eliminação, com o `financial-planner` (dono declarado da [[A40.l101]]): sob a
+leitura **retrospectiva** — *"quantos meses de poupança este gasto consumiu"* — o denominador
+correto é a poupança que existiria **sem** o gasto, `folga + P/n`. E `folga + P/n` é
+**numericamente a `folga_mensal` pré-[[ADR-422]]**, ao centavo (R$ 130.179,78 no dogfood;
+resíduo zero nas duas fixtures). Uma leitura cujo único denominador coerente é a grandeza que
+esta ADR acabou de matar é a leitura errada. Sob a leitura **prospectiva** — conversão de
+unidade à taxa de poupança **observada** — a fórmula da D3 fica de pé byte a byte.
+
+Corolário: a chamada "inflação auto-referente" de **1,338×** medida no run da U3 (publica
+4,05 onde o contrafactual daria 3,03, a `folga_pct` 57%) **não é defeito** — é a distância
+entre duas perguntas diferentes. O resíduo real é de **numerador** (contaminação da base) e é
+da [[A40.l98]].
+
+### Alternativas rejeitadas
+
+**Denominador contrafactual `folga + P∩C/n`** — rejeitado por medição, não por gosto. Além de
+ser a folga pré-ADR-422 (acima), ele devolve à página um "segundo quanto sobra" como
+**denominador implícito recuperável**: na fixture do repo, `21.000 ÷ 1,4 = R$ 15.000,00`
+contra a folga publicada de `R$ 14.250,00` — 75,00% vs 71,25% da receita, a forma do `RR6-01`
+em escala menor. Nenhum invariante existente o veria: a mutação passa `8 passed`. Daí o gate
+novo `test_o_denominador_publicado_e_a_folga_publicada`, que vigia a **grandeza** e não o
+campo.
+
+**Piso de materialidade para fechar o polo** (suprimir também com `folga_pct` abaixo de ~1%)
+— rejeitado por medição. (i) `config/scoring.json::thresholds_alertas` **não tem** piso de
+taxa de poupança a reusar (`poupanca_referencia_pct: 25` e
+`pontos_fortes_taxa_poupanca_min_pct: 30` são **alvos**), então o limiar seria inventado — a
+mesma crítica que a **D2** desta ADR fez ao multiplicador `1,15`. (ii) O argumento de ruído
+**não se sustenta**: a sensibilidade **relativa** é exatamente 1:1 em todo o domínio — a
+`folga` de `R$ 90,00` e a de `R$ 0,01`, ambas movidas em +1%, movem o publicado em 0,99%.
+(iii) O número suprimido seria **verdadeiro e acionável**: folga de `R$ 90,00/mês` contra
+`R$ 30.000,00` de pontual dá `333 meses`, isto é *"irrecuperável ao seu ritmo atual"* — que é
+o diagnóstico que a família precisa. Suprimi-lo teria o sinal trocado.
+
+O que sobra do polo é **legibilidade**: `folga = R$ 0,01` publica `3.000.000,0` numa célula de
+KPI. É problema de apresentação, não de correção, e fica **deferido com dono** na
+[[A40.l101]] §Deferimento.
+
+### Consequências
+
+- `equivalente_meses_poupanca == 0.0` passa a significar **exatamente uma** coisa: nenhum
+  gasto pontual relevante na janela. O dogfood está nesse mundo, então o snapshot de
+  view-model **não muda de valor** — muda em **1 linha**, o `motivo_supressao: null`.
+- **Forward-only.** `ReportPublication` pina o artefato original (`ondelete=RESTRICT` +
+  `immutable_hash`) e nada é recomputado: relatório publicado antes do fix mantém o `0,0`.
+  Reescrever artefato publicado seria o defeito maior ([[ADR-187]], mês fechado é imutável).
+- A mudança **afrouxa** o contrato nos dois eixos (união de tipo + propriedade opcional sob
+  `required: []`), logo é não-breaking: payload antigo segue validando e renderizando.
+- **Rótulo pendente.** "Equiv. meses de poupança" e *"equivalentes a X meses de poupança"*
+  leem **pretérito**, isto é, a leitura (b) que esta emenda rejeitou. O rótulo do card é da
+  [[A40.l15]] e vai nomeado para lá; a prosa do ramo suprimido já não usa verbo de reposição.

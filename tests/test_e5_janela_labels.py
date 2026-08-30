@@ -26,6 +26,7 @@ _REPO = Path(__file__).resolve().parents[1]
 _FIX = _REPO / "tests" / "fixtures" / "pipeline_golden"
 _E3_MIXED = _FIX / "e3" / "minimal-conta-com-despesa-3_reconciled.json"
 _E3_PONTUAIS = _FIX / "e3" / "pontuais-com-aporte-3_reconciled.json"
+_E3_FOLGA_NEGATIVA = _FIX / "e3" / "folga-negativa-3_reconciled.json"
 _BASELINE = _FIX / "e2" / "minimal-baseline-1.5_consolidated.json"
 _DOGFOOD = _FIX / "dogfood"
 
@@ -109,12 +110,21 @@ def _payload_pontuais(root: Path) -> dict:
     return run_e3_e4_e5(root, e3_payloads={"pontuais-com-aporte": load_fixture(_E3_PONTUAIS)})
 
 
+# A40.l101 — o único payload do repo com folga NÃO-POSITIVA. Os keywords são
+# load-bearing: com a config default o aluguel deixa de ser `moradia`, a fixture
+# publica 13 pontuais / R$ 174.000 e mede outro mundo com o mesmo nome.
+def _payload_folga_negativa(root: Path) -> dict:
+    write_e5_config(root, expense_keywords=_PONTUAIS_KEYWORDS)
+    return run_e3_e4_e5(root, e3_payloads={"folga-negativa": load_fixture(_E3_FOLGA_NEGATIVA)})
+
+
 @pytest.fixture(scope="module")
 def payloads(tmp_path_factory) -> list[dict]:
     return [
         _payload_minimal(tmp_path_factory.mktemp("janela_minimal")),
         _payload_dogfood(tmp_path_factory.mktemp("janela_dogfood")),
         _payload_pontuais(tmp_path_factory.mktemp("janela_pontuais")),
+        _payload_folga_negativa(tmp_path_factory.mktemp("janela_folga_negativa")),
     ]
 
 
@@ -221,6 +231,48 @@ def test_folga_pct_nao_diverge_da_taxa_de_poupanca(payloads: list[dict]):
         assert payload["consumo_consciente"]["folga_pct"] == pytest.approx(
             j12m["taxa_poupanca_recorrente"], abs=0.1
         )
+
+
+# A40.l101 — a guarda `else 0.0` do equivalente veio TRANSPLANTADA da fórmula
+# anterior, cujo denominador era a meta DECLARADA (>= 0, `0` == "não configurou").
+# Sobre a folga — quantidade MEDIDA que vai a negativo — `<= 0` passou a querer
+# dizer "a família não poupou nada", e `0,0` é o MENOR valor da régua: o pior
+# mundo publicava o melhor número. Nenhuma das 3 fixtures anteriores tem folga
+# não-positiva, então `test_fixture_discrimina_supressao` vem ANTES: sem ela os
+# dois testes abaixo passam por vacuidade (é o RR6-07 outra vez).
+def test_fixture_discrimina_supressao_do_equivalente(payloads: list[dict]):
+    """A fixture É o gate — e o numerador tem de ser > 0, senão `0,0` seria honesto."""
+    discriminantes = [
+        p
+        for p in payloads
+        if p["consumo_consciente"]["folga_mensal"] <= 0
+        and p["consumo_consciente"]["total_pontuais_janela"] > 0
+    ]
+    assert discriminantes, (
+        "nenhum payload junta folga não-positiva com gasto pontual na janela — "
+        "o gate da supressão passaria sem exercitar o termo que ele existe para vigiar"
+    )
+
+
+def test_equivalente_suprimido_quando_a_janela_nao_gerou_poupanca(payloads: list[dict]):
+    for payload in payloads:
+        consumo = payload["consumo_consciente"]
+        if consumo["folga_mensal"] > 0:
+            continue
+        assert consumo["equivalente_meses_poupanca"] is None
+        assert consumo["motivo_supressao"].startswith("folga_nao_positiva:")
+        assert "meses de poupança." not in consumo["analise"]
+
+
+def test_o_denominador_publicado_e_a_folga_publicada(payloads: list[dict]):
+    """Vigia a GRANDEZA, não o campo: os invariantes da ADR-422 leem `folga_mensal`
+    e são cegos a um denominador morto reintroduzido no campo vizinho."""
+    for payload in payloads:
+        consumo = payload["consumo_consciente"]
+        equivalente = consumo["equivalente_meses_poupanca"]
+        if equivalente is None:
+            continue
+        assert equivalente == round(consumo["total_pontuais_janela"] / consumo["folga_mensal"], 1)
 
 
 def test_teto_sugerido_nao_e_publicado(payloads: list[dict]):

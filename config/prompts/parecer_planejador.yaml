@@ -141,7 +141,7 @@
 # label, não quebra de contrato de output). A `folga_mensal` que fica ao lado mudou de
 # VALOR sem mudar de nome — passou a ser a taxa de poupança da janela —, e é por isso
 # que o bump cobra a frota: parecer em cache dentro dos 7 dias citaria a folga velha.
-version: "2.8.0"
+version: "2.9.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -336,6 +336,10 @@ context_sections:
           - {path: "$.consumo_consciente.total_pontuais", label: "Total de gastos pontuais (período)", format: "brl"}
           - {path: "$.consumo_consciente.total_pontuais_janela", label: "Total de gastos pontuais (janela)", format: "brl"}
           - {path: "$.consumo_consciente.equivalente_meses_poupanca", label: "Pontuais da janela em meses de poupança", format: "raw"}
+          # A40.l101 — o equivalente é `null` fora do domínio de definição, e `on_null: skip`
+          # APAGA a linha do contexto: sem o campo irmão a supressão vira silêncio, e o
+          # silêncio no PIOR mundo é o que o conserto existe para evitar.
+          - {path: "$.consumo_consciente.motivo_supressao", label: "Motivo de supressão do equivalente (null = nada suprimido)", format: "string"}
           - {path: "$.consumo_consciente.folga_mensal", label: "Folga mensal", format: "brl"}
           - {path: "$.consumo_consciente.folga_pct", label: "Folga (% da renda recorrente)", format: "percent2"}
           - {path: "$.consumo_consciente.janela", label: "Janela do diagnóstico", format: "string"}
@@ -344,6 +348,7 @@ context_sections:
       - "Ancore na taxa de poupança e no sinal comportamental dominante (consumo consciente)."
       - "Se houver desvio relevante de categoria (despesa fora de teto), mencione qual — despesas_por_categoria (12m) acima traz a base."
       - "Itens individuais de gasto pontual e o detalhe mensal (charts) NÃO estão no contexto — get_e5_section('consumo_consciente') ou ('fluxo_caixa') traz o bloco completo se precisar."
+      - "Equivalente AUSENTE com motivo de supressão = a janela fechou sem poupança: declare o déficit pela folga mensal acima. Ausência não é ausência de gasto pontual nem de risco; não recalcule o equivalente."
 
   # --------------------------------------------------------------------------
   # 3) Investimentos (S3) — alocação atual + ranking
