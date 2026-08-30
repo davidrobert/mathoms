@@ -96,4 +96,4 @@ que não são de registro.
 **Premissa aritmética também corrigida:** o repo tem **57** ADRs `Proposto` no total
 (11 é só a fase A40). O custo marginal de abrir ID é ~0; o custo real é `Proposto` órfão
 — mitigado por nascer com dono e condição de retomada, que é a lição que esta lane
-produziu e que a [[ADR-424]] aplicou.
+produziu e que a [[ADR-425]] aplicou.

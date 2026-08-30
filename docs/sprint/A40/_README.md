@@ -126,7 +126,7 @@ condição de parada.
 > contador de 2 re-runs só inicia depois de as quatro estarem terminais.**
 >
 > **Extensão 2026-08-30 — são CINCO.** A [[A40.l98]] muta `total_pontuais`/
-> `total_pontuais_janela` no E5 (base do gasto pontual, [[ADR-424]]) e **não estava
+> `total_pontuais_janela` no E5 (base do gasto pontual, [[ADR-425]]) e **não estava
 > nomeada aqui** — o mesmo modo de falha que a nota de 2026-08-11 corrigiu para a
 > [[A40.l96]]: lane que muta E5 e é invisível à cláusula faz o contador iniciar cedo e
 > um re-run inteiro ser desperdiçado. A [[A40.l102]] (superfície + dedup) **não** entra:

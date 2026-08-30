@@ -12,7 +12,7 @@ depends_on: []
 adrs:
   - "[[ADR-422]]"
   - "[[ADR-333]]"
-  - "[[ADR-424]]"
+  - "[[ADR-425]]"
 tags:
   - type/lane
   - sprint/a40
@@ -147,7 +147,7 @@ resto é genuinamente desconhecido.
 - **Veredito por item**, enum fechado (`incluido | transferencia_por_categoria |
   transferencia_detectada | recorrente | nao_identificado`) — sem ele o residual não tem
   como ser atribuído por causa.
-- **Regra do `nao_identificado` + cobertura + supressão:** [[ADR-424]].
+- **Regra do `nao_identificado` + cobertura + supressão:** [[ADR-425]].
 - **`LC6-06` não ganha espelho** e **não** tenta separar juros de amortização (nada em
   `financiamentos` carrega o split; inferir é adivinhação dentro de taxa de poupança,
   a classe que gerou a [[ADR-422]]). O produtor vivo da terceira taxa **não foi
@@ -162,7 +162,7 @@ resto é genuinamente desconhecido.
 | **PR1** | `GastoPontualPolicy` + threshold fonte única + fiação nos 3, **conjuntos inalterados** | **zero por construção** | nenhum — golden inalterado **é** o gate |
 | **PR2** | aplica `transferencia_patrimonial` ao `_collect_candidates` | −R$ 190.000 no full | golden + snapshot + `manifest_version` |
 | **PR3a** | objeto `base_pontuais` + **leitor no mesmo PR** | impresso por motivo | golden + snapshot + manifest |
-| **PR3b** | `nao_identificado` sai da base publicável ([[ADR-424]] D1) | = `excluidos[nao_identificado].valor` | golden + snapshot + manifest |
+| **PR3b** | `nao_identificado` sai da base publicável ([[ADR-425]] D1) | = `excluidos[nao_identificado].valor` | golden + snapshot + manifest |
 
 **O que saiu desta lane para a [[A40.l102]]** (corte pelo eixo *muta E5* × *não muta*):
 o `LC6-07` (dedup, que é do E3 e mede-primeiro), a declaração impressa do que cada

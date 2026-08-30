@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-415 ADRs (ADR-001 a ADR-424) em [`docs/adr/`](../../adr/).
+415 ADRs (ADR-001 a ADR-425) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -413,7 +413,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### Proposto (1)
 
-- [[ADR-424]] — Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado · phase A40
+- [[ADR-425]] — Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado · phase A40
 
 ## frontend
 

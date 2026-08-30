@@ -11,7 +11,7 @@ owner: data-engineer
 depends_on: []
 adrs:
   - "[[ADR-422]]"
-  - "[[ADR-424]]"
+  - "[[ADR-425]]"
   - "[[ADR-347]]"
 tags:
   - type/lane

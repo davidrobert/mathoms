@@ -1,5 +1,5 @@
 ---
-id: ADR-424
+id: ADR-425
 type: adr
 title: "Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado"
 status: Proposto
@@ -16,10 +16,10 @@ tags:
   - area/e5
   - area/dominio
   - sprint/a40
-aliases: ["ADR 424", "cobertura da base", "nao_identificado"]
+aliases: ["ADR 425", "cobertura da base", "nao_identificado"]
 ---
 
-# ADR-424 — Não classificado fora de numerador que prescreve
+# ADR-425 — Não classificado fora de numerador que prescreve
 
 **Status:** Proposto (A40.l98) • **Data:** 2026-08-30 • Co-design `financial-planner`
 + `data-engineer` + `senior-cto`. **Dono:** `financial-planner`. **Condição de
