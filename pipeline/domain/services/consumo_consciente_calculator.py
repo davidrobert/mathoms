@@ -49,12 +49,17 @@ class _ConsumoWindow:
     n_meses: float
     janela: str
     mes_inicio: str
+    mes_fim: str = ""
+    data_corte: str = ""
 
 
-def _periodo_inicio(periodo: str) -> str:
-    """Extrai o mês inicial de ``"YYYY-MM a YYYY-MM"`` (vazio se malformado)."""
-    inicio = periodo.split(" a ")[0].strip()
-    return inicio if len(inicio) == 7 else ""
+def _periodo_extremos(periodo: str) -> tuple[str, str]:
+    """Extremos de ``"YYYY-MM a YYYY-MM"``; vazios se malformado."""
+    partes = [p.strip() for p in periodo.split(" a ")]
+    if len(partes) != 2:
+        return "", ""
+    inicio, fim = partes
+    return (inicio if len(inicio) == 7 else "", fim if len(fim) == 7 else "")
 
 
 def _consumo_mensal(j12m: dict[str, Any], n_meses: float) -> float:
@@ -70,11 +75,17 @@ def _consumo_mensal(j12m: dict[str, Any], n_meses: float) -> float:
     return _safe_float(consumo) / n_meses if consumo is not None else bruto_mensal
 
 
-def _dentro_da_janela(mes: str, mes_inicio: str) -> bool:
-    """Sem ``mes_inicio`` (janela full) tudo entra; compara ``YYYY-MM`` lexicográfico."""
+# O limite SUPERIOR não existia (A40.l101, escape sem dono): o denominador roda
+# sobre a janela fechada e o numerador ia de ``mes_inicio`` a ``+∞``, então um
+# lançamento posterior ao fim da janela entrava só de um lado — o mesmo pontual
+# publicava 6,0 ou 12,0 conforme o corte.
+def _dentro_da_janela(mes: str, mes_inicio: str, mes_fim: str) -> bool:
+    """Sem ``mes_inicio`` (janela full) tudo entra; ``YYYY-MM`` lexicográfico."""
     if not mes_inicio:
         return True
-    return bool(mes) and mes >= mes_inicio
+    if not mes:
+        return False
+    return mes >= mes_inicio and (not mes_fim or mes <= mes_fim)
 
 
 def _sem_zero_negativo(publicada: float) -> float:
@@ -243,14 +254,15 @@ class ConsumoConscienteCalculator:
         cfg = self._policy
         dados = (despesas or {}).get("dados", {}) or {}
 
-        candidates, base = self._triar(dados)
+        window = self._resolve_janela(fluxo)
+        candidates, base = self._triar(dados, window.data_corte)
         candidates.sort(key=lambda x: x.valor, reverse=True)
         total_pontuais = float(base.publicado.total)
 
-        window = self._resolve_janela(fluxo)
-
         pontuais_janela = sum(
-            c.valor for c in candidates if _dentro_da_janela(c.mes, window.mes_inicio)
+            c.valor
+            for c in candidates
+            if _dentro_da_janela(c.mes, window.mes_inicio, window.mes_fim)
         )
         # ADR-422: a folga É a poupança da janela. Devolver ``pontuais_janela/n``
         # ao numerador — o que a ADR-306 §D6 prescrevia — publicava um segundo
@@ -323,7 +335,9 @@ class ConsumoConscienteCalculator:
     # (o parecer ancora nele o risco "gastos pontuais elevados"). Ele segue no
     # inventário — o balde de `excluidos` traz total e contagem, e a lista do
     # card traz as linhas, que é onde a família consegue agir.
-    def _triar(self, dados: dict[str, Any]) -> tuple[list[GastoPontualItem], BasePontuais]:
+    def _triar(
+        self, dados: dict[str, Any], data_corte: str = ""
+    ) -> tuple[list[GastoPontualItem], BasePontuais]:
         """Todo lançamento acima do limiar recebe um veredito — o descartado sai
         atribuído a uma causa, não em silêncio."""
         incluidos: list[GastoPontualItem] = []
@@ -333,7 +347,7 @@ class ConsumoConscienteCalculator:
             if not isinstance(transacoes, list):
                 continue
             veredito = self._policy.classify(str(cat))
-            for quantia, txn in self._relevantes(transacoes):
+            for quantia, txn in self._relevantes(transacoes, data_corte):
                 balde = veredito.value if veredito is not VeredictoPontual.incluido else None
                 if balde is None:
                     incluidos.append(_item_pontual(txn, str(cat), quantia))
@@ -342,24 +356,33 @@ class ConsumoConscienteCalculator:
                 excluidos[balde] = excluidos.get(balde, BaldePontual()).mais(quantia)
         return incluidos, BasePontuais(publicado, excluidos)
 
-    def _relevantes(self, transacoes: list) -> Iterator[tuple[Decimal, dict]]:
+    def _relevantes(self, transacoes: list, data_corte: str) -> Iterator[tuple[Decimal, dict]]:
         for txn in transacoes:
             if not isinstance(txn, dict):
+                continue
+            # O denominador roda sobre o REALIZADO (`split_provisionado` corta o
+            # posterior ao `data_corte`); sem este corte o numerador roda sobre o
+            # realizado MAIS o provisionado — populações diferentes (A40.l101).
+            if data_corte and str(txn.get("data", "")) > data_corte:
                 continue
             bruto = _safe_float(txn.get("valor", 0))
             if self._policy.is_relevante(bruto):
                 yield Decimal(str(bruto)), txn
 
     def _resolve_janela(self, fluxo: dict[str, Any]) -> "_ConsumoWindow":
+        corte = str((fluxo or {}).get("data_corte") or "") if isinstance(fluxo, dict) else ""
         j12m = fluxo.get("janela_12m") if isinstance(fluxo, dict) else None
         if j12m:
             n_meses = _safe_float(j12m.get("n_meses", 12)) or 12.0
+            inicio, fim = _periodo_extremos(str(j12m.get("periodo", "")))
             return _ConsumoWindow(
                 receita_rec_mensal=_safe_float(j12m.get("receita_recorrente_mensal", 0)),
                 despesa_consumo_mensal=_consumo_mensal(j12m, n_meses),
                 n_meses=n_meses,
                 janela="12m",
-                mes_inicio=_periodo_inicio(str(j12m.get("periodo", ""))),
+                mes_inicio=inicio,
+                mes_fim=fim,
+                data_corte=corte,
             )
         return _ConsumoWindow(
             receita_rec_mensal=_safe_float((fluxo or {}).get("receita_recorrente_mensal", 0)),
@@ -367,6 +390,7 @@ class ConsumoConscienteCalculator:
             n_meses=_safe_float((fluxo or {}).get("num_months", 12)) or 12.0,
             janela="full",
             mes_inicio="",
+            data_corte=corte,
         )
 
     def _build_analise(

@@ -157,7 +157,14 @@
 # PR3b mudam conjuntos diferentes, e um bump só tornaria o delta inatribuível.
 # MINOR pela mesma leitura da 2.8.0/2.10.0. COBRA a frota: nada mais invalida o
 # cache de 7 dias.
-version: "2.11.0"
+# 2.12.0 — A40.l98 PR4 (escapes herdados da [[A40.l101]]): o numerador de
+# `total_pontuais*` passa a rodar sobre a MESMA população do denominador. A janela
+# ganhou limite superior (ia de `mes_inicio` a +∞) e o `data_corte` do
+# `split_provisionado` passou a valer também aqui — antes o denominador era o
+# realizado da janela fechada e o numerador era realizado + provisionado + posterior
+# à janela, e o mesmo gasto pontual publicava 6,0 ou 12,0 conforme o corte. MINOR,
+# mesma leitura das 2.8.0/2.10.0/2.11.0.
+version: "2.12.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
