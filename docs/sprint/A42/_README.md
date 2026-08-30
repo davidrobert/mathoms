@@ -182,6 +182,25 @@ sobre o mesmo corpus, prova o fechamento**:
 
 Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 
+> ### ⚠️ A rodada unificada `U4` (2026-08-30) abriu 2 achados **da classe que fecha esta sprint**
+>
+> O critério 1 acima exige *"zero achado novo da classe `saúde-harness`/falso-verde — é a
+> classe que esta sprint existe para matar; achado novo dela significa que não fechou"*.
+> A `U4` ([[LEDGER-CERTIFY-active]] §r8 · [[PIPELINE-REVIEWS-active]] §r12 ·
+> [[REPORT-REVIEWS-active]] §r8) **foi** um re-run completo E0→E6 sobre o mesmo corpus, e
+> abriu:
+>
+> - [[A42.l18]] — a perna de **valor** da conservação E3→E4 é **inerte por construção**
+>   (`dups` literal `0`; `abs()` sobre a mesma população pré-dedup dos dois lados);
+> - [[A42.l19]] — o guard de escrita do E4 resolve por **stage** e tem ramo **placeholder**;
+>   o `patrimonio` real **reprova** e é gravado sob `warn`, e o razão imprime *coberto* para ele.
+>
+> Ambos são falso-verde de instrumento. **O critério 1 não é satisfeito e a sprint não
+> fecha.** A `U4` também mediu que o critério 3 (*"`coberto-sem-verificação` caiu pela linha
+> `fidelidade_provada`"*) **andou para trás por consequência de método**: o rebaixamento da
+> [[A42.l18]] moveu `fluxo_caixa` e `reserva_emergencia` de `conservado` **para**
+> `coberto-sem-verificação-de-valor`.
+
 **Rito de abertura (auditoria 2026-08-14).** O gate acima fecha a sprint. A
 **promoção** (`[[A40]] → done`) começa com `parse-certify` r3 + `ledger-certify` r5
 **antes do primeiro pickup**, carimbando cada uma das lanes não-terminais
@@ -191,7 +210,7 @@ passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
 mutou. A auditoria de mesa abaixo **não** substitui esse rito — só deixa o
 grafo honesto até lá.
 
-## Lanes (17)
+## Lanes (19)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
@@ -212,6 +231,8 @@ grafo honesto até lá.
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
 | [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
 | [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** · ✅ **#1846** — defeito procede; o gate que devia pegá-lo era cego em **3** eixos e os 2 sítios crus do repo moravam na interseção. Eixo novo: **rotear pelo choke-point não compra determinismo** (`use_cache` é `False` por default), logo o *delete-and-delegate* da [[A41.l3]] passaria os 5 critérios dela com o churn intacto | **P0** | 1 | — |
+| [[A42.l18]] | A perna de **valor** da conservação E3→E4 é inerte: `dups` é `0` **literal** na linha 265 (a linha 160, E2→E3, passa a variável real) e os dois lados somam `abs()` sobre a **mesma população pré-dedup** ⇒ `Δvalor = 0` é invariante a inversão de sinal **e** às 858 rows do dedup · **U4 `N1`** | P1 | 1 | — |
+| [[A42.l19]] | O guard de escrita do E4 resolve por **stage**, nunca por `artifact_key`, e o `oneOf` tem ramo **placeholder** (`{status}`) que um balde transacional casaria; medido: `patrimonio` (87 itens) **reprova em `$`** e é gravado sob `warn`, e a jusante o razão imprime *coberto · 0 itens* para ele · **U4 `N2`** | P1 | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
@@ -224,10 +245,12 @@ mais barata de Goodhart num plano.
 > `7215daf3` (#1209), com 12 lanes na mesa e 2 slots de folga. Não o reescreva: ele
 > registra a decisão de capacidade como ela foi tomada.
 
-**Estado da capacidade — 2026-08-30 (re-medido no closeout da [[A42.l17]]).** A sprint tem
-**17 lanes**: o `## Lanes (17)` acima, 17 linhas na tabela e 17 arquivos em
+**Estado da capacidade — 2026-08-30 (re-medido na rodada unificada `U4`).** A sprint tem
+**19 lanes**: o `## Lanes (19)` acima, 19 linhas na tabela e 19 arquivos em
 `docs/sprint/A42/lanes/` — os três substratos concordam, e o `check_lane_counter` do
-`lane-closeout` só compara esses três. **O teto de 14 está excedido em 3, e o rompimento
+`lane-closeout` só compara esses três. As duas últimas ([[A42.l18]], [[A42.l19]]) nascem
+da `U4` e são **da classe que dá nome à sprint** — falso-verde de instrumento —, o que é
+por si o argumento de que a sprint não fechou. **O teto de 14 está excedido em 5, e o rompimento
 nunca foi decidido:** as cinco lanes acima de 12 entraram uma a uma, em PRs distintos, sem
 que o parágrafo acima fosse relido.
 
@@ -517,9 +540,9 @@ número é o que produz resíduo em prosa. Próxima lane desta sprint é a l14.
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
 sprints `current` são hard fail em `build_doc_index.py --check`, e as lanes desta sprint
 nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]]. (A contagem
-vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das **17**
-seguem `planned`; [[A42.l7]] está `open`, [[A42.l14]]/[[A42.l15]] `in_progress`,
-[[A42.l16]]/[[A42.l17]] `shipped`.)
+vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das **19**
+seguem `planned`; [[A42.l7]], [[A42.l18]] e [[A42.l19]] estão `open`,
+[[A42.l14]]/[[A42.l15]] `in_progress`, [[A42.l16]]/[[A42.l17]] `shipped`.)
 
 **Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
 dentro da A40?" foi avaliada e **recusada** (§Por que esta sprint existe, agora com o

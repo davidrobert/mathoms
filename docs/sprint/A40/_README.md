@@ -116,6 +116,16 @@ condição de parada.
 > em 1 nem em 2** — registrado aqui porque a leitura de "gate de saída" sem esta linha sugere
 > proximidade que não existe.
 >
+> **Atualização 2026-08-30 — a rodada unificada `U4` mantém o contador em 0.** A `U4`
+> ([[LEDGER-CERTIFY-active]] §r8 · [[PIPELINE-REVIEWS-active]] §r12 ·
+> [[REPORT-REVIEWS-active]] §r8) foi um re-run completo E0→E6 + parecer + revisão e abriu
+> **2 achados Alto** ([[A42.l18]] e [[A42.l19]], ambos de instrumento/contrato de escrita).
+> O contador segue **0/2**, como após o `U1`, o `U2` e o `U3`. **Os dois não entram na
+> cláusula de reinício abaixo:** ela é para achado que muta E3/E5 **a montante de todo
+> run**, e estes são de instrumento de medição e de guard de escrita — não deslocam valor
+> publicado, logo não empurram o início do contador. A `U4` também **verificou os três
+> consertos do `U3`** ([[A40.l100]], [[A40.l101]], [[A42.l17]]): os três seguram.
+>
 > **Quatro dos seis entram na cláusula de reinício abaixo (cinco desde 2026-08-30), pelo argumento mecânico
 > da [[A40.l2]]** — não por gravidade, e sim porque **mutam E3/E5 a montante de todo
 > run**: [[A40.l94]] (folga mensal · E5), [[A40.l95]] (numerador da concentração ·
