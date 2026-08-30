@@ -23,19 +23,19 @@ STAGES = ("consolidate_baseline", "extract_invoices", "extract_statements", "ext
 
 
 def snapshot(workspace_id: str, db_path: str) -> dict[str, dict[str, object]]:
-    """Mapa {stage|artifact_key -> {id, byte_size}}, ultimo por chave (ORDER BY id)."""
+    """Mapa {stage|artifact_key -> {id, byte_size, run}}, ultimo por chave."""
     con = sqlite3.connect(db_path)
     try:
         rows = con.execute(
-            f"SELECT stage, artifact_key, id, byte_size FROM pipeline_artifacts "
+            f"SELECT stage, artifact_key, id, byte_size, pipeline_run_id FROM pipeline_artifacts "
             f"WHERE workspace_id=? AND stage IN ({','.join('?' * len(STAGES))}) ORDER BY id",
             (workspace_id, *STAGES),
         ).fetchall()
     finally:
         con.close()
     snap: dict[str, dict[str, object]] = {}
-    for stage, key, artifact_id, byte_size in rows:
-        snap[f"{stage}|{key}"] = {"id": artifact_id, "byte_size": byte_size}
+    for stage, key, artifact_id, byte_size, run in rows:
+        snap[f"{stage}|{key}"] = {"id": artifact_id, "byte_size": byte_size, "run": run}
     return dict(sorted(snap.items()))
 
 
@@ -48,7 +48,14 @@ def compare(pre: dict, pos: dict) -> dict[str, object]:
     only_pre = sorted(set(pre) - set(pos))
     only_pos = sorted(set(pos) - set(pre))
     comuns = sorted(set(pre) & set(pos))
-    so_id = [k for k in comuns if pre[k] != pos[k] and pre[k]["byte_size"] == pos[k]["byte_size"]]
+    # 3o eixo: PROCEDENCIA. Unidade cuja `id` nao mudou nao foi reescrita por este
+    # run — ela e HERDADA de outro. Chamar `id` de ruido zera o unico discriminador
+    # entre re-derivada e herdada, e o veredito de conteudo passa a ter denominador
+    # tautologico: no `U4`, 34 de 171 unidades (20%) nao podiam variar. Refutado
+    # pela lente de invariante, medido: `extract_with_llm` = 0/34 deste run, 11 runs.
+    herdadas = [k for k in comuns if pre[k]["id"] == pos[k]["id"]]
+    rederivadas = [k for k in comuns if pre[k]["id"] != pos[k]["id"]]
+    so_id = [k for k in rederivadas if pre[k]["byte_size"] == pos[k]["byte_size"]]
     conteudo = [
         {
             "chave": k,
@@ -62,21 +69,26 @@ def compare(pre: dict, pos: dict) -> dict[str, object]:
     return {
         "n_pre": len(pre),
         "n_pos": len(pos),
+        "n_rederivadas": len(rederivadas),
+        "n_herdadas": len(herdadas),
         "composicao_estavel": not (only_pre or only_pos),
         "conteudo_estavel": not conteudo,
         "removidas": only_pre,
         "acrescentadas": only_pos,
         "so_id_mudou": so_id,
         "conteudo_mudou": conteudo,
+        "herdadas": herdadas,
     }
 
 
 def _print_compare(r: dict[str, object]) -> int:
     print(json.dumps(r, indent=2, ensure_ascii=False))
     n_comp = len(r["removidas"]) + len(r["acrescentadas"])
+    # Denominador do conteudo e RUN-SCOPED: so unidade re-derivada podia variar.
     resumo = (
         f"n_unidades={r['n_pre']}/{r['n_pos']} · composicao_divergente={n_comp} · "
-        f"conteudo_divergente={len(r['conteudo_mudou'])} · so_id={len(r['so_id_mudou'])}"
+        f"conteudo_divergente={len(r['conteudo_mudou'])}/{r['n_rederivadas']} re-derivadas "
+        f"(+{r['n_herdadas']} herdadas, inertes por construcao) · so_id={len(r['so_id_mudou'])}"
     )
     if r["composicao_estavel"] and r["conteudo_estavel"]:
         print(f"\nE2: PASS — {resumo}", file=sys.stderr)
