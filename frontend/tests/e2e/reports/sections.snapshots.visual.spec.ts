@@ -170,6 +170,19 @@ test.describe("Snapshots — modo estratégico", () => {
   }
 });
 
+/** FABs do `FloatingNav` — `position: fixed`, logo entram no recorte de
+ * QUALQUER locator que caia no canto inferior direito da viewport. Pior que
+ * estático: `data-visible` deles é função da posição de scroll, que é função da
+ * altura da página — então mudança em seção não relacionada mudaria a baseline.
+ * É o mesmo acoplamento estranho que o recorte page-level da capa tinha. */
+function floatingNavMask(page: Page) {
+  return page.locator(
+    'button[aria-label="Voltar ao topo"], ' +
+      'button[aria-label="Ir para o final"], ' +
+      'button[aria-label="Abrir índice do relatório"]',
+  );
+}
+
 // ─── Cover (estratégico, fullPage do hero) ─────────────────────────────
 
 test.describe("Snapshots — cover (hero)", () => {
@@ -211,7 +224,7 @@ test.describe("Snapshots — cover (hero)", () => {
         `cover.${theme}.png`,
         {
           maxDiffPixelRatio: 0.005,
-          mask: [page.locator("[data-mask-snapshot]")],
+          mask: [page.locator("[data-mask-snapshot]"), floatingNavMask(page)],
         },
       );
     });
@@ -249,7 +262,7 @@ test.describe("Snapshots — sumário executivo (hero KPI)", () => {
         `sumario-executivo.${theme}.png`,
         {
           maxDiffPixelRatio: 0.005,
-          mask: [page.locator("[data-mask-snapshot]")],
+          mask: [page.locator("[data-mask-snapshot]"), floatingNavMask(page)],
         },
       );
     });
