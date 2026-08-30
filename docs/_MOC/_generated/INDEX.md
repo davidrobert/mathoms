@@ -889,7 +889,7 @@
 | A40.l1 | lane | shipped | A40 | Instrumento: detector de duplicação cross-grupo + baseline congelado | `sprint/A40/lanes/A40-l1-ledger-cross-grupo-check.md` |
 | A40.l10 | lane | open | A40 | Ordem do plano com critério encodado + pendências acionáveis do dono | `sprint/A40/lanes/A40-l10-pendencia-do-dono-e-ordem-do-plano.md` |
 | A40.l100 | lane | shipped | A40 | O cartão rotulado NECESSÁRIO publica a renda-alvo, não o aporte que o motor calcula | `sprint/A40/lanes/A40-l100-cartao-necessario-publica-renda-alvo.md` |
-| A40.l101 | lane | open | A40 | O conserto da folga deixou `equivalente_meses_poupanca` auto-referente | `sprint/A40/lanes/A40-l101-equivalente-meses-auto-referente.md` |
+| A40.l101 | lane | shipped | A40 | O conserto da folga deixou `equivalente_meses_poupanca` auto-referente | `sprint/A40/lanes/A40-l101-equivalente-meses-auto-referente.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
