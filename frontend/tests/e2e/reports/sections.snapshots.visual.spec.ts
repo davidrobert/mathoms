@@ -189,16 +189,85 @@ test.describe("Snapshots — cover (hero)", () => {
       await page.waitForSelector("[data-report-cover] >> text=Gerado em", {
         timeout: 10_000,
       });
-      // Captura a parte de cima do main (cover + premissas).
-      // `clip` só é aceito em `expect(page).toHaveScreenshot`, não em locator —
-      // usamos page-level clip para limitar à área do cover.
-      await expect(page).toHaveScreenshot(`cover.${theme}.png`, {
-        maxDiffPixels: 200,
-        clip: { x: 0, y: 0, width: VIEWPORT.width, height: 720 },
-      });
+      // Recorte no locator, NÃO page-level. O `clip: {0,0,1280,720}` anterior
+      // era medido a partir do topo da página, e a nav é `position: sticky;
+      // top: 0` — então os ~52px de cima desta "baseline da capa" eram nav, e
+      // mais abaixo entravam o `aside.sidebar-toc` (240px) e o conteúdo pós-
+      // header. O `<header data-report-cover>` era ~1/3 da própria imagem.
+      //
+      // O acoplamento não era teórico: em 2026-08-27 a A40.l88 (#1755) inseriu
+      // o chip `2.5` na nav e esta baseline reprovou com bbox (715,16,1071,36)
+      // — inteiramente dentro da nav, sem tocar o header. Quem viu "cover"
+      // vermelho foi procurar a causa no ReportCover e não achou nada.
+      //
+      // Tolerância MEDIDA, não escolhida: dois `workflow_dispatch` do mesmo SHA
+      // (runs 33323919131 e 33323920209, `ec50cbd7`) devolveram as 28 baselines
+      // byte-idênticas — piso de ruído observado = 0px. Por isso NÃO herdamos o
+      // `maxDiffPixelRatio: 0.025` do helper de seção: aquele número existe para
+      // absorver não-determinismo de canvas do chart.js, e o header da capa não
+      // tem canvas. 0.005 dá folga para drift futuro de runner/fonte sem virar
+      // cheque em branco.
+      await expect(page.locator("[data-report-cover]")).toHaveScreenshot(
+        `cover.${theme}.png`,
+        {
+          maxDiffPixelRatio: 0.005,
+          mask: [page.locator("[data-mask-snapshot]")],
+        },
+      );
     });
   }
 });
+
+// ─── Sumário Executivo (Hero KPI) ──────────────────────────────────────
+//
+// Esta baseline nasce junto com o estreitamento acima, e não é escopo novo:
+// é a cobertura que o `clip` de 720px vinha dando POR ACIDENTE ao
+// `<section id="sumario-executivo">` (Patrimônio Líquido, Patrimônio
+// Investível, Reserva de Emergência, Taxa de Poupança, IF, Score). Estreitar
+// sem isto derrubaria em silêncio o único gate sobre o bloco de números-
+// manchete do relatório — medido: o bloco NÃO está em `STRATEGIC_SECTIONS`,
+// não tem `data-report-section`, e não aparece em
+// `report-inventory.expected.json` (17 seções, nenhuma delas o sumário).
+//
+// Seletor próprio, sem `data-report-section`, de propósito: aquele atributo
+// faria o bloco entrar no inventário da [[ADR-370]], que roda em TODO PR sem
+// label — mudança de contrato que não pertence a um PR de recorte de teste.
+// O buraco de inventário fica registrado na lane, com dono.
+test.describe("Snapshots — sumário executivo (hero KPI)", () => {
+  for (const theme of THEMES) {
+    test(`sumario-executivo — ${theme}`, async ({ page }) => {
+      await setupReport(page, theme);
+      const sel = "section#sumario-executivo";
+      await page.waitForSelector(sel, { timeout: 10_000 });
+      // Controle positivo: sem um card montado, o screenshot congelaria uma
+      // grade vazia e a baseline ficaria verde sobre o DOM errado.
+      await page.waitForSelector(`${sel} >> text=Patrimônio Líquido`, {
+        timeout: 10_000,
+      });
+      await page.locator(sel).scrollIntoViewIfNeeded();
+      await expect(page.locator(sel)).toHaveScreenshot(
+        `sumario-executivo.${theme}.png`,
+        {
+          maxDiffPixelRatio: 0.005,
+          mask: [page.locator("[data-mask-snapshot]")],
+        },
+      );
+    });
+  }
+});
+
+// Cobertura que o recorte largo dava e que NÃO é reposta aqui, declarada de
+// propósito (o padrão do arquivo é declarar o gap, cf. SECTIONS_NOT_IN_MEDIUM_FIXTURE):
+//
+// - `ReportTopNav` — sem baseline. Criar uma agora fossilizaria a truncagem da
+//   trilha ("SÍNTESE" → "SÍNTI"), que é exatamente o defeito que a A40.l102
+//   está consertando; baseline de nav vale mais DEPOIS daquele fix, e o gate
+//   daquela lane é de alcançabilidade, não de pixel.
+// - `ReportPremissasBlock` — sem baseline. É `<section>` sem
+//   `data-report-section` e um `<details>` fechado por default, então o que o
+//   recorte largo provava era uma linha de `<summary>`.
+// - `aside.sidebar-toc` — sem baseline. É `no-print` e derivado de
+//   `LAYOUT.navigation` via codegen; baseline ali reafirmaria o codegen.
 
 // ADR-168 (A8.4 PR4): Modo USA removido — bloco USA `test.describe` deletado.
 // Modo Estratégico cobre 100% do relatório.
