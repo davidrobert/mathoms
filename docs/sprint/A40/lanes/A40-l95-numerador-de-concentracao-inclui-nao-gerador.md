@@ -178,6 +178,11 @@ Ela é dona assinada de C14, de C19 e do arquivo. Número-neutro, cabe no closeo
 
 ## Follow-ups nomeados, fora desta lane
 
+- **Colateral grave, com lane própria:** a auditoria cláusula-a-cláusula da [[ADR-235]]
+  feita a partir desta lane achou que `batch_alter_table(copy_from=)` apagou **38 índices**
+  em 13 migrations, 3 deles UNIQUE que derrubavam invariante de negócio. Não é sobre
+  concentração nem sobre nu-propriedade — ver [[ADR-423]] e [[A40.l97]].
+
 - **Regime default de classificação — sem lane id alocado.** `split_imoveis_with_overrides` só
   reconhece cat_1 com override **explícito**, e o `else` do splitter recebe também imóvel **sem
   override nenhum**. No golden (regime default) isso põe 100% de cat_2 no numerador; reclassificar

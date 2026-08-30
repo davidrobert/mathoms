@@ -26,6 +26,31 @@ tags:
 > · **Bloqueia:** nenhuma lane downstream — sprint A16 tem 1 lane só
 > · **Tamanho estimado:** 1–1,5d eng (migration trivial, mas cross-stack: backend + pipeline + frontend + prompt LLM)
 
+## Reconciliação de 2026-08-30 — o que este track de fato entregou
+
+> **Prompt consumido é registro histórico, e este está `consumed` com os 36 checkboxes
+> `- [ ]`.** Quem o abre hoje não distingue feito de não-feito, e precisa do `--stat` do
+> commit para saber. Os checkboxes ficam como estão — reescrevê-los apagaria a evidência de
+> que o PR fechou sem marcá-los.
+
+Auditoria cláusula-a-cláusula de 2026-08-30 ([[A40.l95]]), contra o código:
+
+- **Entregue:** migration + pre-down guard, constants nos quatro sítios, testes de paridade
+  (e eles **discriminam** — a mutação que promove `nu_proprietario` a gerador mata 5
+  testes), as 4 ADRs relacionadas, o gate `check_classification_exhaustive` (não-inerte,
+  provado por mutação), e a entrada de changelog no endereço sucessor.
+- **NÃO entregue, e a vault afirmava que sim:** golden e eval do parecer E6 (só o prompt foi
+  tocado) e o **E2E `@critical`** — este ficou `- [ ]` **desmarcado no corpo do próprio PR**
+  de fechamento, que não toca nenhum arquivo sob `frontend/tests/`.
+- **Insatisfazível como escrito:** o §11 manda registrar em `docs/CHANGELOG.md`, endereço
+  que morreu com a [[ADR-182]] F5 **treze dias antes** deste PR e cujo shim proíbe escrita.
+- **Colateral grave, descoberto na mesma auditoria:** a migration deste track perdeu 2
+  índices no drop+recreate do SQLite, um deles o partial-unique que garante 1 residência
+  principal por workspace. Não é defeito só dela — são 13 migrations com o mesmo padrão.
+  Ver [[ADR-423]] e [[A40.l97]].
+
+Disposição de cada cláusula em aberto: [[ADR-235]] §Emenda de 2026-08-30.
+
 ## Briefing
 
 [[ADR-235]] decidiu adicionar `nu_proprietario` ao enum `classification` para cobrir imóvel em nu-propriedade com usufruto vitalício de terceiro (cliente é dono, antigo proprietário mora gratuitamente, consolidação plena no falecimento). Comporta-se como `uso_pessoal` em todos os filtros computacionais (não-gerador, fora de cap rate, fora de `investivel_efetivo`), mas é **entidade semântica distinta** para relatório, parecer LLM (E6 · [[ADR-199]]) e diagnóstico de liquidez.

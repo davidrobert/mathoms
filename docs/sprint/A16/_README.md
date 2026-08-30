@@ -29,7 +29,7 @@ PR único de **Decidido** que:
 1. Adiciona migration Alembic estendendo CHECK constraint em `property_identity.classification` + `workspace_property_overrides.classification` com `nu_proprietario`.
 2. Toca 6 call-sites identificados ([[ADR-235]] §"Plano de implementação"): models, classifier, real_estate_metrics, real_estate_adapter, type TS, dropdown UI.
 3. Atualiza 4 ADRs adjacentes ([[ADR-215]] §1 lista valores, [[ADR-142]] invariante, [[ADR-145]] cat_2 não-gerador, [[ADR-216]] exclusão do denominador cap rate).
-4. Atualiza prompt + golden + eval do parecer LLM E6 ([[ADR-199]]).
+4. Atualiza prompt do parecer LLM E6 ([[ADR-199]]). ⚠️ **Retratado em 2026-08-30** ([[A40.l95]]): golden e eval **não** foram atualizados — o PR de fechamento não toca nenhum arquivo com `golden` ou `eval` no path. Ver [[ADR-235]] §Emenda de 2026-08-30, C6.
 5. Adiciona CI gate `dev/check_classification_exhaustive.py`.
 6. Testes de paridade com `uso_pessoal` + E2E `@critical`.
 7. Regen OpenAPI snapshot.

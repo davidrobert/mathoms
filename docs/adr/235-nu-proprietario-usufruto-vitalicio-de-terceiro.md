@@ -6,7 +6,7 @@ status: Decidido
 phase: A16
 date: "2026-05-20"
 decided_at: "2026-05-20"
-amended_at: ["2026-08-29"]
+amended_at: ["2026-08-29", "2026-08-30"]
 relates_to:
   - "[[ADR-142]]"
   - "[[ADR-143]]"
@@ -20,6 +20,7 @@ relates_to:
   - "[[ADR-227]]"
   - "[[ADR-340]]"
   - "[[ADR-420]]"
+  - "[[ADR-423]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -39,6 +40,12 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda 2026-08-30 (auditoria cláusula-a-cláusula · [[A40.l95]]):** a decisão central
+> está entregue — o enum funciona e os três invariantes são protegidos por testes que
+> **discriminam**. Mas **quatro dos nove critérios de aceite não foram cumpridos**, e dois
+> sítios da vault afirmam que foram. Cada cláusula em aberto recebeu disposição explícita —
+> ver [§Emenda](#emenda--disposição-cláusula-a-cláusula-2026-08-30).
 
 > **Emenda 2026-08-29 ([[A40.l95]] · `RR6-02` da rodada U2):** o item **4** do §Decisão
 > ("Concentração total vs renda") nunca teve produtor, e a métrica que shipou faz o
@@ -115,7 +122,7 @@ Rejeitada. Perde sinal estruturado para o parecer LLM ([[ADR-199]] lê schema, n
 - `frontend/src/lib/api/properties.ts:10` — union type estendida.
 - `frontend/src/app/(app)/config/ResidenciaSection.tsx:18` — opção dropdown com label "Nu-propriedade (usufruto vitalício)" + tooltip explicando consolidação futura.
 
-**ADRs atualizadas no mesmo PR** (extensão, não supersedure): [[ADR-215]] §1 inclui `nu_proprietario`; [[ADR-142]] declara invariante "nu_proprietario nunca em `investivel_efetivo`"; [[ADR-145]] documenta nu-propriedade em cat_2 não-gerador; [[ADR-216]] explicita exclusão do denominador de cap rate. [[ADR-199]] (parecer LLM): prompt + golden + eval atualizados.
+**ADRs atualizadas no mesmo PR** (extensão, não supersedure): [[ADR-215]] §1 inclui `nu_proprietario`; [[ADR-142]] declara invariante "nu_proprietario nunca em `investivel_efetivo`"; [[ADR-145]] documenta nu-propriedade em cat_2 não-gerador; [[ADR-216]] explicita exclusão do denominador de cap rate. [[ADR-199]] (parecer LLM): prompt atualizado. **Retratado em 2026-08-30:** golden e eval **não** foram — o PR de fechamento não toca nenhum arquivo com `golden` ou `eval` no path. Ver §Emenda de 2026-08-30, C6.
 
 ## Riscos
 
@@ -138,7 +145,7 @@ Rejeitada. Perde sinal estruturado para o parecer LLM ([[ADR-199]] lê schema, n
 ## Não-objetivos (escopo explícito)
 
 - `expected_extinction_year`, modelagem de cenário condicional pós-consolidação, alertas de extinção, tábua atuarial AT-2000 / IBGE, simulação de Monte Carlo.
-- `valor_mercado_consolidado` separado de `valor_brl` IRPF (cabe em follow-up unificado com [[ADR-227]] §FU-3 — mesma raiz: separar valor histórico/IRPF de valor de mercado livre).
+- `valor_mercado_consolidado` separado de `valor_brl` IRPF (cabe em follow-up unificado com a [[ADR-227]], que **é** o FU-3 do Sprint A12 (a nota não tem uma §FU-3 — ponteiro corrigido em 2026-08-30) — mesma raiz: separar valor histórico/IRPF de valor de mercado livre).
 - Sub-bucket "Patrimônio ilíquido condicional" como categoria nova em [[ADR-145]] — rejeitado neste escopo (cat_2 não-gerador absorve).
 
 ## Follow-ups (post-Decidido, fora deste PR)
@@ -178,3 +185,68 @@ nove critérios de aceite não os mencionam, e nenhum gate podia detectar a aus�
 §Decisão sem correspondente no §Critério de aceite é **declaração não-financiada** — nunca teve
 produtor nem detector, e a ausência dela é indetectável por construção. O item 1 **segue sem
 dono**: não há bucket "Ilíquido condicional" no breakdown de liquidez.
+
+## Emenda — disposição cláusula a cláusula (2026-08-30)
+
+Auditoria de 17 cláusulas (5 sinais + 9 critérios + 3 follow-ups) contra o código, com
+cético adversarial sobre cada ausência. **A decisão central está entregue**: o enum existe,
+o CHECK existe, e os três invariantes (fora de geradores, fora de `INVESTMENT_CLASSIFICATIONS`,
+fora de `investivel_efetivo`) são protegidos por testes que **discriminam** — a mutação que
+promove `nu_proprietario` a gerador mata cinco testes.
+
+**`Decidido` não é sinônimo de entregue quando nenhum gate podia detectar a diferença.**
+
+| # | Cláusula | Veredito | Disposição |
+|---|---|---|---|
+| **Sinal 1** | bucket "Ilíquido condicional" no breakdown de liquidez | **não-financiada** | **Deferida com dono** — ver §Deferimento abaixo |
+| **Sinal 2** | aviso sucessório de ITCMD no parecer | **não-financiada** | **Deferida com dono** — bloqueada por hold normativo |
+| **Sinal 3** | valor IRPF ≠ valor pleno, na UI e no relatório | ausente | **IMPLEMENTADA** nesta rodada, nos dois sítios |
+| **Sinal 4** | concentração total, não "de renda" | não-financiada | **ROTEADA** → [[ADR-420]] §D3 |
+| **Sinal 5** | prompt instrui a não recomendar venda | parcial | **implementar** — o hint existe e é lido, mas `real_estate` não é projetado no manifest, então a regra fala de variável que o modelo não vê |
+| **Critério 1** | migration + pre-down guard | **parcial** | o guard funciona; o `upgrade` **perdeu 2 índices** → [[ADR-423]] / [[A40.l97]] |
+| **Critério 2** | constants, type TS, dropdown | entregue | — (o re-export do `patrimonio_calculator` esquecia `NU_PROPRIETARIO`; corrigido) |
+| **Critério 3** | testes de paridade | entregue, e discriminam | — |
+| **Critério 4** | E2E `@critical` UI→relatório | **ausente** | **implementar** — o item foi deixado `- [ ]` **desmarcado no corpo do próprio PR** de fechamento, que não toca nenhum arquivo sob `frontend/tests/` |
+| **Critério 5** | ADR-215/142/145/216 atualizadas | entregue | — |
+| **Critério 6** | prompt + golden + eval | **parcial** | **implementar depois do Sinal 5** — a ordem inversa fabrica verde |
+| **Critério 7** | snapshot OpenAPI regerado | vacuamente satisfeito | **superseder o critério** — `classification: str` no DTO significa que o enum **nunca** esteve no contrato HTTP; não há nada a sincronizar, e trocar por `Literal[...]` mudaria contrato público para nenhum ganho de invariante |
+| **Critério 8** | entrada em `docs/CHANGELOG.md` | satisfeito no endereço sucessor | **superseder o texto** — o path morreu com [[ADR-182]] F5 treze dias **antes** deste PR, e o shim proíbe escrita |
+| **Critério 9** | gate `check_classification_exhaustive` | entregue, não-inerte | — |
+| **§Plano** | "teste explícito" do `real_estate_adapter` | **ausente** | **IMPLEMENTADO** nesta rodada |
+| **FU-1** | `valor_mercado_consolidado` | ausente | **Deferido com dono** — ver §Deferimento |
+| **FU-2** | heurística ITCMD + dependentes | ausente | segue com o Sinal 2 |
+| **FU-3** | `expected_extinction_year` | ausente | **manter deferido** — a ausência é o estado pretendido; registra-se apenas que o gatilho (">=10 workspaces solicitando") **não é instrumentado** |
+
+**Achado de forma sobre esta própria nota, e é o segundo do mesmo tipo.** O §Decisão afirma
+que os sinais foram *"resgatados da análise do `financial-planner` e **movidos para critério
+de aceite**"*. Os itens **1**, **2** e **4** não foram — os nove critérios não os mencionam,
+e nenhum gate podia detectar a ausência. A emenda de 2026-08-29 nomeou 1 e 4; o 2 também é.
+
+## Deferimento datado (2026-08-30)
+
+**Sinal 1 — bucket "Ilíquido condicional".** Dono: `financial-planner`. **Condição de
+retomada: existir no produto um breakdown de liquidez por horizonte.** Hoje não existe: a
+única decomposição de liquidez é o numerador da reserva de emergência, cujo universo é
+investimentos + caixa e que nem lê `bens['imoveis']`. Não há "< 30 dias" nem "< 12 meses" no
+código. **Não cite a metade negativa da cláusula como conformidade:** *"não soma em <30d nem
+em <12m"* é verdade hoje porque os dois agregados **não existem** e porque cat_2 inteiro está
+fora de `investivel_financeiro` — exclusão de classe, não sinal próprio. Há tensão interna a
+resolver antes: o §Não-objetivos desta nota rejeita o nome no eixo de **composição
+patrimonial** ([[ADR-145]]), enquanto o §Decisão 1 o pede no eixo de **liquidez**. São eixos
+separáveis, mas quem financiar precisa dizer isso por escrito.
+
+**Sinal 2 / FU-2 — aviso sucessório de ITCMD.** Dono: `financial-planner` + dono do produto.
+**Condição de retomada: hold normativo da [[ADR-387]] levantado E escritor de `itcmd_uf` em
+produção.** O hold diz que patrimônio bruto familiar × alíquota de uma UF não pode ser
+publicado como imposto devido; recomendar capital de seguro **dimensionado** por um ITCMD
+que o produto se recusa a publicar contraria o hold. E `gross_estate_brl_cents`, `itcmd_uf`
+e `itcmd_aliquota_pct_por_uf` não têm escritor de produção — os construtores reais deixam os
+três `None`. Não é código ausente: é input que só o dono cadastra.
+
+**FU-1 — `valor_mercado_consolidado`.** Dono: `financial-planner` + `data-engineer`.
+⚠️ **Agravante que muda o desenho e precisa estar aqui, senão o próximo agente "fecha" o
+FU-1 corrompendo o patrimônio:** `resolve_valor_efetivo` é **agnóstico a `classification`* —
+qualquer `property_market_value` declarado substitui o valor IRPF no patrimônio. Declarar o
+valor pleno futuro pela porta existente injetaria o valor **pós-extinção do usufruto** no
+patrimônio de **hoje**, que é exatamente o erro que o Sinal 3 existe para evitar. FU-1
+precisa de discriminador "pleno vs onerado", não só de coluna.
