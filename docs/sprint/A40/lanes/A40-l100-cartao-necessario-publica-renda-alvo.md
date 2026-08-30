@@ -21,7 +21,7 @@ tags: [type/lane, sprint/a40, status/shipped, priority/p0, area/frontend, area/f
 
 ## ✅ Entregue em 2026-08-30 — o defeito procedeu; o remédio prescrito, não
 
-> **Closeout 2026-08-30 (pós-merge `d25f3203`) — 2 achados, ambos meus, corrigidos em #<PR>.**
+> **Closeout 2026-08-30 (pós-merge `d25f3203`) — 2 achados, ambos meus, corrigidos em #1851.**
 > **(a)** `if_projector.py:390` afirmava *"e o `EstrategiaAporteCard` o lê como alvo"* —
 > falso desde este merge, que removeu a leitura. O **argumento sobrevive** (o
 > `MetaIfSublabel` em `S7Stat.tsx` publica o campo como "a renda-alvo declarada"), então
