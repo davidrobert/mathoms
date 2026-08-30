@@ -125,7 +125,7 @@ _NON_MONETARY_PREFIXES = (
 # `patrimonio.composicao[].valor`). Nenhuma regra por folha consegue separar os dois.
 _NON_MONETARY_NAMESPACES = ("score.",)
 
-# Unidade é TOKEN, não sufixo. `equivalente_meses_aporte` carrega `meses` no meio e
+# Unidade é TOKEN, não sufixo. `equivalente_meses_poupanca` carrega `meses` no meio e
 # escapava de `_NON_MONETARY_SUFFIXES`; fechar por entrada exata deixaria o próximo
 # `<algo>_meses_<algo>` nascer com o mesmo bug — a lição que `_versao` já registrou.
 # Raio de explosão medido contra `config/schemas/e5_analysis.schema.json` (2026-08-28):
