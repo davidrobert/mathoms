@@ -521,11 +521,28 @@ a mesma referência mensal de consumo da qual o numerador é **45,4%**.
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|---|---|
 | RR7-01 — o cartão rotulado **"necessário"** publica a **renda-alvo**, não o aporte que o motor calcula; ~~o PMT correto já existe e aparece em **cinco** superfícies~~ **falso, medido na [[A40.l100]]:** o PMT só existe na rota `/plano` (`goal_service`), nunca no payload do relatório — as superfícies do documento publicam o aporte **declarado**. O núcleo segura: o cartão era o único ponto fora da cadeia | correção | Crítico | P0 | PARCIAL (o núcleo segura e fica **mais forte**; o cético **refutou o discriminador da lente**) | **procede-fechado** ([[A40.l100]] · #1845) | ⚠️ o critério de aceite proposto pela lente **não discrimina**: neste workspace o goal declarado e o PMT coincidem, então "batem" passa nas duas implementações. Exige fixture em que difiram — ~~falta~~ **entregue** com três valores distintos (renda-alvo `333.333` · declarado `20.000` · PMT `42.111`), contrafactual verificado **em subconjuntos**. **O remédio caiu na medição:** o PMT que o enunciado dizia existir em cinco superfícies **não existe no relatório** — o único produtor é `goal_service.compute_if_derived` (agregado Goal, rota `/plano`), e as superfícies do documento publicam o aporte **declarado**. O bloco saiu em vez de ser rerrotulado: o `S7Stat` já publica o mesmo número com o nome certo, e a presença incondicional dele tornava inalcançável o estado honesto "Meta de aporte não configurada" |
-| RR7-02 — o conserto da folga deixou `equivalente_meses_poupanca` **auto-referente** | correção | Alto | P1 | PARCIAL · triagem **`REGRESSÃO-DE-CONSERTO`** | procede-aberto · **dona [[A40.l101]]** | cai a alegação de que a razão ser superlinear é defeito — é a forma legítima de todo indicador tipo dívida/renda. O defeito é o **polo** e o colapso |
+| RR7-02 — o conserto da folga deixou `equivalente_meses_poupanca` **auto-referente** | correção | Alto | P1 | PARCIAL · triagem **`REGRESSÃO-DE-CONSERTO`** | **procede-fechado** ([[A40.l101]] · [[ADR-422]] §Emenda 2026-08-30) | cai a alegação de que a razão ser superlinear é defeito — é a forma legítima de todo indicador tipo dívida/renda. O defeito é o **polo** e o colapso |
 | RR7-03 — a janela canônica divide por **12** enquanto a cobertura de despesa desaba nos últimos cinco meses, terminando em **zero**; ÷12 contra ÷11 = **+9,09%**, e o divisor alimenta o alvo de reserva (×18) e o veredito de liquidez | correção | Alto | P1 | PARCIAL (MEDIÇÃO-DE-CONHECIDO de [[A42.l8]] + causa nova; o sub-achado de roteamento foi **refutado**) | procede-aberto | ⚠️ a [[A42.l8]] se demarcou do **mês em curso**, que é o ofensor medido aqui — no escopo em que está escrita, ela **não** conserta este run. **Refutação:** a taxa de poupança **não** está inflada — o sinal é oposto ao esperado |
 | RR6-01 (§r6) — folga reclassificava gasto realizado | — | — | — | ✅ **FECHADO, verificado neste run** | fecha | `05561dc0` · [[ADR-422]] · [[A40.l94]] |
 | RR6-02 · RR6-03 (§r6) | — | — | — | **procede-aberto** — lanes `in_progress` | — | [[A40.l95]] · [[A40.l96]] |
 | Demais linhas do §r6 | — | — | — | **procede-aberto (não re-medidas)** | registrado | — |
+
+> **Emenda 2026-08-30 ([[A40.l101]] · [[ADR-422]] §Emenda 2026-08-30).** A manchete e a
+> tabela acima descrevem o estado do run e **não se reescrevem**. Duas precisões, medidas:
+>
+> 1. *"o numerador é 45,4% do denominador"* — os 45,37% são a fração do **subtraendo**
+>    (`total_pontuais_janela ÷ despesa_consumo`, verificado no `report_data.json` deste run:
+>    394.525,39 ÷ 869.511,63). Do **denominador** (a folga) o numerador mensalizado é 33,79%.
+> 2. *"o numerador é subconjunto"* — **falso em 5 eixos medidos**. Dois deles são achados
+>    novos e vão para a [[A40.l98]]: `data_corte` é aplicado ao denominador e não ao
+>    numerador (populações diferentes), e estorno negativo líquida no denominador e não no
+>    numerador.
+>
+> **Fechado:** o campo publica `null` fora do domínio de definição, com `motivo_supressao`;
+> `folga_pct` cai pelo mesmo guard transplantado. **Aberto e deferido com dono:** o polo
+> (`folga = R$ 0,01` → `3.000.000,0`) é problema de **legibilidade**, não de correção — o
+> piso de materialidade foi **rejeitado por medição** (sensibilidade relativa 1:1 em todo o
+> domínio; o número suprimido seria verdadeiro e acionável). Dono [[A40.l15]].
 
 **Cobertura — a célula que reprova esta fase.** `REPORT × solidez-financeira` ficou **nula
 e não declarada**: 100% dos blocos que carregam doutrina estão em `sem-veredito`, logo não
