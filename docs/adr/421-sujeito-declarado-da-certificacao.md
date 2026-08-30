@@ -25,6 +25,10 @@ tags:
 
 **Status:** Proposto · **Data:** 2026-08-29 · **Origem:** [[LEDGER-CERTIFY-active]] §r6 `LC6-01` (rodada unificada U2, [[ADR-416]])
 
+> ADR >150 linhas: uma decisão (o sujeito do veredito) com seis cláusulas que só se
+> sustentam juntas — tirar D4 ou D5 do conjunto produz um fix que troca um falso-verde
+> por outro, e foi isso que a medição mostrou. Densidade legítima (precedente [[ADR-343]]).
+
 ## Contexto
 
 `dev/certify_ledger_local.py` imprime `# ledger-certify — ws <x> run <id>` e emite
@@ -136,8 +140,9 @@ A [[A42.l6]] escolheu **emenda [[ADR-291]]** como veículo da paridade de polít
 de escopo no *store de produção* (`list_keys` vs `read`). Esta ADR **não** invade
 isso: decide o **sujeito do veredito** do instrumento, não a política do store.
 O lado de escopo aqui é **conformidade** à [[ADR-241]], já Decidida — não decisão
-nova. Quem mergear primeiro avisa; a l6 consome o leitor run-scoped que o PR1
-desta rota entrega.
+nova. Quem mergear primeiro avisa; a l6 consome o leitor run-scoped que o **PR-A**
+da [[A42.l14]] §Rota de PRs entrega (a rota vive na lane, não aqui — plano de entrega
+envelhece).
 
 ## Critério de aceite
 

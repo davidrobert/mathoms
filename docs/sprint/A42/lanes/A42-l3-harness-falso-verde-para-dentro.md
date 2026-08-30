@@ -191,8 +191,9 @@ aviso para esta lane, não como item novo: o critério central aqui é *"remover
 check ⇒ exit ≠ 0"*. No defeito da l14 o input **está presente** e o check **roda**; o que
 está errado é a proveniência dele. Mutação que remove input continua reprovando enquanto
 o defeito sobrevive intacto. Um critério de mutação por ausência não discrimina
-proveniência — os três bullets que discriminam (troca de sujeitos, fixture de dois runs
-em SQLite real, anti-amputação) estão no §Critério de aceite da [[A42.l14]].
+proveniência — os quatro bullets que discriminam (troca de sujeitos, fixture de dois runs
+em SQLite real, anti-amputação, drift exercitado em run não-recente) estão no §Critério de
+aceite da [[A42.l14]].
 
 **A colisão com a [[A40.l2]] não muda de forma.** A correção do sujeito não toca
 `cross_group`/`cross_group_entregue`: o numerador da KR-B lê só os baldes transacionais

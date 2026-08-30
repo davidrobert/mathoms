@@ -147,7 +147,7 @@ objeto**. Nenhum teste sobre `build_report` consegue discriminar os dois univers
 Provado por mutação no núcleo puro: universo entregue grosseiramente outro ⇒ os **oito**
 campos de rubrica e sumário saem idênticos, só `drift` reage.
 
-### Emenda ao §Critério de aceite — três bullets que discriminam proveniência
+### Emenda ao §Critério de aceite — quatro bullets que discriminam proveniência
 
 Os três acima continuam valendo. Estes entram porque **critério de mutação por ausência
 não pega esta classe**: aqui o input está presente e o check roda; errado é de onde ele veio.
@@ -169,3 +169,69 @@ não pega esta classe**: aqui o input está presente e o check roda; errado é d
 
 **Aresta:** a [[A42.l3]] reescreve o mesmo arquivo (itens 1–9). **Esta lane precede os
 itens 1–5 dela** — rationale na §Aresta declarada de lá.
+
+- **Não-regressão da sombra:** golden do texto do bloco sombra **idêntico ao HEAD**. Este
+  critério existia só na [[ADR-421]] §Critério de aceite e faltava aqui — a §Emenda era
+  cópia *lossy*, e quem trabalhasse pela lane não veria o critério que enforça a D1.
+  **Ordem obrigatória:** o golden se captura contra `origin/main` **antes** do primeiro
+  commit de código. "HEAD" é referência móvel: capturado depois, ele congela a saída já
+  mudada e passa verde provando nada.
+
+## Rota de PRs (2026-08-30)
+
+A [[ADR-421]] citava *"o PR1 desta rota"* sem enumerar rota nenhuma. Ela vive aqui — plano
+de entrega envelhece, e ADR não é o lugar dele.
+
+**PR-A — `dev/**` + `tests/dev/**`**, nesta ordem de commits:
+
+1. golden do bloco sombra contra `origin/main` (janela única — ver acima);
+2. split de `dev/ledger_certify_core.py` (472 linhas) e `dev/certify_ledger_local.py`
+   (455) — folga de 28 e 44 contra o teto de 500. Render sai para
+   `dev/ledger_certify_render.py`; leitura de DB para `dev/ledger_certify_db.py`.
+   **Re-exportar por binding** (`from … import _x  # noqa: F401`), nunca por chamada
+   qualificada: três testes fazem `monkeypatch.setattr(mod, "_row_counts" / …)` e viram
+   inertes em silêncio se o nome deixar de morar no módulo;
+3. ratchet de ordem estendido a `certify_entregue` + o fix do `counts_after` (§Achado
+   adjacente, abaixo);
+4. call-site run-scoped — `certify` passa a usar `_e3_of_run`, **que já existe e não é
+   chamado ali** (`certify_ledger_local.py:352` vs `:115`). É o menor PR de código com
+   valor: ataca direto o 60-de-61;
+5. corte temporal no E2 + censo de proveniência (`do run` / `herdado` / `pós-run`);
+6. baldes E4 e `investment_double_count` sobre o E4 **persistido** (D4 + anti-amputação);
+7. `_e4_verdicts` itera o conjunto **esperado** de baldes, não `sorted(e4)` — hoje balde
+   ausente não gera linha nenhuma, que é o modo de falha por **omissão** que a D6 nomeia;
+8. rótulo `[entregue]`/`[sombra]` por linha (D2);
+9. `evidence_from_retention` fora do caminho de `certify` (D5);
+10. a glosa falsa de `ledger_certify_core.py:391` corrigida.
+
+**PR-B — docs-only:** flip da [[ADR-421]] para `Decidido` + `phase: A42.l14`, nota de
+cabeçalho no [[LEDGER-CERTIFY-active]] prevista na §Consequências da ADR, `LC6-01`
+fechado, e o flip desta lane com `ship_pr`/`ship_date` + `#N` citado na tabela do
+`_README` da sprint (`check_lane_transition` exige os três no mesmo commit, e a A42 **não
+tem `_HISTORY.md`** — o `#N` só é encontrável no `_README`).
+
+## Achado adjacente — o zero-write do modo que pontua a KR-B
+
+`certify_ledger_local.py` sobrescreve `report.counts_after` em `certify_entregue`
+**depois** de `certify` já ter rodado `_blast_radius_or_empty`, cujo ramo degradado faz
+`rollback`. Como `zero_write_ok` é `counts_before == counts_after`, o **único modo que
+pontua a KR-B** pode declarar zero-write com escrita tendo existido. O comentário em
+`certify` diz literalmente *"ORDEM É A PROVA"*, e o ratchet
+`test_contagem_final_vem_antes_do_blast_radius_que_faz_rollback` cobre **só** `certify`.
+Não está na [[ADR-421]] — foi achado ao mapear o arquivo que ela reescreve. Entregue no
+commit 3 do PR-A, com o ratchet estendido **antes** do fix.
+
+## Ressalvas declaradas (a lane fecha com elas escritas, nunca em silêncio)
+
+- **D3 §"compor o `DBArtifactStore` real"** não é testado por nenhum dos seis bullets —
+  dá para fechar verde violando-a, porque `_latest_by_canonical` **admite no docstring**
+  ser réplica. **§Deferimento datado 2026-08-30**, retomada nomeada: [[A42.l6]], que já é
+  dona da política de escopo do store pela emenda à [[ADR-291]].
+- **Execução em ≥3 runs não mais recentes** exige o DB de dogfood. Se não for exercitada,
+  a lane fecha declarando *"mecanismo provado por fixture; rota sobre os 61 runs não
+  exercitada"*.
+- **Tensão interna da ADR:** a D2 manda rotular toda linha, e o §Critério exige o golden
+  da sombra **idêntico**. Leitura adotada: "bloco sombra" = o bloco
+  `## Duplicação cross-grupo`, que **já** se auto-rotula (`_SOMBRA_LABEL`) e fica intacto.
+  Registrado aqui para o implementador não decidir isso calado.
+- **`LC6-02`…`LC6-07` do §r6 seguem `procede-aberto`.** Fechar esta lane não fecha o §r6.
