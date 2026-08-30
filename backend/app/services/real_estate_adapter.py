@@ -19,6 +19,7 @@ from backend.app.repositories.market_rate_repository import (
     MarketRateRepository,
 )
 from pipeline.domain.services.real_estate_metrics import (
+    INVESTMENT_CLASSIFICATIONS,
     BenchmarkRates,
     OrigemLiteral,
     PropertyInput,
@@ -128,7 +129,7 @@ def build_property_inputs(
     investment_identities: list[PropertyIdentity] = []
     for ident in identities:
         classification = _resolve_classification(ident, overrides)
-        if classification in ("locado", "comercial", "especulacao"):
+        if classification in INVESTMENT_CLASSIFICATIONS:
             v = valor_by_property.get(ident.id, _ZERO)
             valor_total_investment += v
             investment_identities.append(ident)
@@ -153,7 +154,7 @@ def build_property_inputs(
             aluguel_origem = "informe"
             ir_carne_leao = _to_decimal(informe.get("ir_retido_anual"))
         elif (
-            classification in ("locado", "comercial", "especulacao")
+            classification in INVESTMENT_CLASSIFICATIONS
             and aluguel_anual_irpf_total > _ZERO
             and valor_total_investment > _ZERO
         ):
@@ -169,7 +170,7 @@ def build_property_inputs(
                 ir_carne_leao_anual_irpf_total * valor_imovel / valor_total_investment
             )
         elif (
-            classification in ("locado", "comercial", "especulacao")
+            classification in INVESTMENT_CLASSIFICATIONS
             and sources.e4_receita_aluguel_total is not None
             and valor_total_investment > _ZERO
         ):

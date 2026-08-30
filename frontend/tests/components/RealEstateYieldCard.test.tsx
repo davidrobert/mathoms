@@ -151,8 +151,42 @@ describe("RealEstateYieldCard", () => {
     });
     render(<RealEstateYieldCard data={data} />);
     expect(screen.getByText(/1 imóvel não incluído/)).toBeInTheDocument();
-    expect(screen.getByText(/residencia_principal/)).toBeInTheDocument();
+    // ADR-235 Sinal 3: o bloco publicava o SLUG ao leitor. Rótulo, e o slug proibido.
+    expect(screen.getByText("Residência principal")).toBeInTheDocument();
+    expect(screen.queryByText(/residencia_principal/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Casa Residência/)).not.toBeInTheDocument();
+  });
+
+  // A40.l88: `<details>` fechado e o atributo `hidden` são `display:none !important`
+  // de UA, e `!important` de UA vence `!important` de autor — nenhum `@media print`
+  // de autor os revela. Enquanto o bloco era `<details>`, o motivo da exclusão não
+  // existia no PDF entregue. O teste mede o MECANISMO (montado + colapso por classe),
+  // porque jsdom não aplica folha de UA nem media print.
+  it("colapsa os excluídos por CLASSE, montados — o motivo tem de sobreviver ao print", () => {
+    const data = makeData({
+      excluded_properties: [
+        {
+          property_id: "p9",
+          descricao: "Casa cedida",
+          classification: "nu_proprietario",
+          motivo: "Nu-propriedade com usufruto vitalício de terceiro.",
+        },
+      ],
+    });
+    const { container } = render(<RealEstateYieldCard data={data} />);
+
+    expect(container.querySelector("details")).toBeNull();
+
+    const lista = container.querySelector("#real-estate-excluidos");
+    expect(lista).not.toBeNull();
+    // montado no colapso: desmontar deixa o print sem o que revelar
+    expect(lista?.textContent).toContain("Nu-propriedade com usufruto vitalício");
+    expect(lista?.hasAttribute("hidden")).toBe(false);
+    expect(lista?.className).toContain("print:block");
+
+    const toggle = screen.getByRole("button", { name: /não incluído/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveAttribute("aria-controls", "real-estate-excluidos");
   });
 
   it("empty state quando data é null", () => {
@@ -187,9 +221,10 @@ describe("RealEstateYieldCard", () => {
     render(<RealEstateYieldCard data={data} />);
     expect(screen.getByText(/Sem dados de aluguel suficientes/)).toBeInTheDocument();
     expect(screen.getByText(/2 imóveis foram excluídos do cálculo de yield/)).toBeInTheDocument();
-    expect(screen.getByText("residencia_principal")).toBeInTheDocument();
+    expect(screen.getByText("Residência principal")).toBeInTheDocument();
     expect(screen.getByText(/não conta como investimento/)).toBeInTheDocument();
-    expect(screen.getByText("desconhecido")).toBeInTheDocument();
+    expect(screen.getByText("Classificação pendente")).toBeInTheDocument();
+    expect(screen.queryByText("desconhecido")).not.toBeInTheDocument();
     expect(screen.queryByText(/Casa Residência/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Lote sem uso/)).not.toBeInTheDocument();
   });

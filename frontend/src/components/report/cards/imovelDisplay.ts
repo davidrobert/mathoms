@@ -25,3 +25,22 @@ export function valorApurado(value: number | null | undefined): number | null {
   if (value == null || value === 0) return null;
   return value;
 }
+
+/** Rótulo humano para `excluded_properties[].classification` (ADR-235 Sinal 3).
+ *
+ * `CLASS_LABEL` cobre só as três de investimento, porque `RealEstateImovel` é
+ * tipado nelas. O bloco de excluídos carrega o enum inteiro — e vinha
+ * renderizando o **slug** (`nu_proprietario`) ao leitor. O tipo é `string`
+ * aberto no wire, então o fallback é obrigatório, não defensivo.
+ */
+export function excludedClassLabel(classification: string): string {
+  return EXCLUDED_CLASS_LABEL[classification] ?? "Imóvel";
+}
+
+const EXCLUDED_CLASS_LABEL: Record<string, string> = {
+  ...CLASS_LABEL,
+  residencia_principal: "Residência principal",
+  uso_pessoal: "Imóvel de uso pessoal",
+  nu_proprietario: "Nu-propriedade (usufruto vitalício)",
+  desconhecido: "Classificação pendente",
+};

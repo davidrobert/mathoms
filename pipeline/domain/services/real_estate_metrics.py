@@ -399,9 +399,14 @@ def _compute_property_metrics(
 _CLASSIFICATION_MOTIVO: dict[str, str] = {
     "residencia_principal": "Residência principal — não conta como investimento (cat_1).",
     "uso_pessoal": "Imóvel de uso pessoal/familiar — não gera renda de aluguel.",
+    # ADR-235 Sinal 3: a perna de VALOR faltava, e a abertura repetia o rótulo em
+    # negrito que precede a linha ("Nu-propriedade (usufruto vitalício) — Nu-propriedade
+    # com usufruto…"). Cortar a repetição pagou a cláusula nova sem crescer a linha.
+    # A cláusula de liquidez é verbatim: a [[A40.l95]] a cita como evidência literal.
     "nu_proprietario": (
-        "Nu-propriedade com usufruto vitalício de terceiro — está no patrimônio, "
-        "mas não gera caixa nem está disponível para venda livre."
+        "Está no patrimônio, mas não gera caixa nem está disponível para venda "
+        "livre. Entra pelo custo da nu-propriedade, já descontado pelo usufruto — "
+        "não pelo valor de um imóvel livre, que este relatório não estima."
     ),
     "desconhecido": "Classificação pendente — usuário precisa rotular em Configurações.",
 }

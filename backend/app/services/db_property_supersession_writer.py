@@ -79,9 +79,17 @@ class DBPropertySupersessionWriter:
                 cleared += 1
         return superseded, cleared
 
-    # Repoint puro nunca cria uma 2ª residencia_principal: o partial-unique já
-    # torna esse estado inalcançável no DB (verificado em 2026-08-11 — o cenário
-    # não é nem semeável em teste), então não há guard a acrescentar aqui.
+    # Repoint puro nunca cria uma 2ª residencia_principal: o partial-unique
+    # `uq_workspace_one_residencia_principal` torna esse estado inalcançável no DB,
+    # então não há guard a acrescentar aqui.
+    #
+    # A justificativa original dizia "verificado em 2026-08-11 — o cenário não é nem
+    # semeável em teste". Estava certa por acidente: a verificação rodou sobre
+    # `Base.metadata.create_all` (`conftest.py`), que declara o índice, enquanto o DB
+    # construído por Alembic o tinha PERDIDO desde a `adr235nupropriet1` — em SQLite o
+    # estado era semeável, e a decisão de não pôr guard nasceu de uma medição feita no
+    # schema errado. O índice foi restaurado em `idxrepair0001` ([[ADR-423]]) e a
+    # conclusão passou a ser verdadeira pelo motivo que ela afirma.
     def _repoint_overrides(
         self,
         workspace_id: str,

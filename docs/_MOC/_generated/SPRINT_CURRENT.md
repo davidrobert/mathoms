@@ -35,6 +35,7 @@ open · in_progress.
 - [[A40.l94]] — Folga mensal reclassifica gasto pontual realizado como sobra recuperável · priority P0 · área pipeline/financial-planning · branch `a40-l94-folga-reclassifica-gasto-realizado`
 - [[A40.l95]] — Numerador da concentração imobiliária inclui bem que o motor declara não-gerador · priority P0 · área pipeline/financial-planning · branch `a40-l95-numerador-de-concentracao-inclui-nao-gerador`
 - [[A40.l96]] — Tabela de maiores ativos atribui titular a valor que o sistema declara órfão · priority P0 · área pipeline/frontend/financial-planning · branch `a40-l96-titular-atribuido-a-posicao-orfa`
+- [[A40.l97]] — Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice · priority P0 · área persistence/backend · branch `a40-l97-indices-perdidos-por-copy-from`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-412 ADRs (ADR-001 a ADR-422) em [`docs/adr/`](../../adr/).
+413 ADRs (ADR-001 a ADR-423) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 351
-- **Proposto**: 57
+- **Proposto**: 58
 - **Roadmap**: 4
 
 ## Fundação
@@ -37,6 +37,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-039]] — Dual DB: SQLite (dev) + PostgreSQL (prod) · phase F7
 - [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet · phase W3-T04
 - [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
+
+### Proposto (1)
+
+- [[ADR-423]] — Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice
 
 ## Pipeline
 
