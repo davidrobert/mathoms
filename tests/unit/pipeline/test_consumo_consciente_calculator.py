@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from dataclasses import fields
 from pathlib import Path
 
 import pytest
@@ -12,9 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pipeline.domain.services.consumo_consciente_calculator import (  # noqa: E402
     ConsumoConsciente,
     ConsumoConscienteCalculator,
-    ConsumoConscienteConfig,
     GastoPontualItem,
 )
+from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy  # noqa: E402
 
 
 def _fluxo(
@@ -58,31 +59,38 @@ def _txn(
 
 class TestConfig:
     def test_defaults_consumo_min_2000(self):
-        cfg = ConsumoConscienteConfig.from_configs()
+        cfg = GastoPontualPolicy.from_scoring()
         assert cfg.consumo_min == 2000.0
 
     def test_from_scoring_overrides_min(self):
-        cfg = ConsumoConscienteConfig.from_configs(
+        cfg = GastoPontualPolicy.from_scoring(
             scoring={"thresholds_alertas": {"consumo_consciente_min": 5000}}
         )
         assert cfg.consumo_min == 5000.0
 
-    def test_meta_de_aporte_nao_entra_mais_na_config(self):
-        """[[ADR-422]] — a meta saiu; o adapter ainda passa `goals`, sem efeito."""
-        cfg = ConsumoConscienteConfig.from_configs(
-            goals={"aportes": {"meta_aporte_mensal": 10_000}}
-        )
-        assert not hasattr(cfg, "aporte_mensal")
+    def test_nenhum_campo_da_policy_vem_de_config_editavel_pelo_usuario(self):
+        """[[ADR-422]] — a meta de aporte era o denominador do equivalente, e é
+        EDITÁVEL: diagnóstico que se move sem que nada tenha acontecido no mundo
+        não é auditável. O `goals=` saiu da assinatura (A40.l98), o que é gate mais
+        forte que o antigo `hasattr` — mas só enquanto ninguém o reintroduzir."""
+        with pytest.raises(TypeError):
+            GastoPontualPolicy.from_scoring(goals={"aportes": {"meta_aporte_mensal": 10_000}})
+        assert {f.name for f in fields(GastoPontualPolicy)} == {
+            "consumo_min",
+            "transferencia_patrimonial",
+            "transferencia_de_conta",
+            "recorrentes",
+        }
 
     def test_recurrent_categories_defaults(self):
-        cfg = ConsumoConscienteConfig.from_configs()
-        assert "moradia" in cfg.recurrent_categories
-        assert "seguros" in cfg.recurrent_categories
+        cfg = GastoPontualPolicy.from_scoring()
+        assert "moradia" in cfg.recorrentes
+        assert "seguros" in cfg.recorrentes
 
     def test_labels_pj_sao_recorrentes(self):
         """Tributo/folha da PJ é obrigação recorrente, não gasto pontual (A40.l4)."""
-        cfg = ConsumoConscienteConfig.from_configs()
-        assert {"das_simples", "iss", "folha_pj"} <= cfg.recurrent_categories
+        cfg = GastoPontualPolicy.from_scoring()
+        assert {"das_simples", "iss", "folha_pj"} <= cfg.recorrentes
 
 
 # =============================================================================
@@ -92,7 +100,7 @@ class TestConfig:
 
 class TestFiltragem:
     def test_valor_abaixo_threshold_eh_excluido(self):
-        cfg = ConsumoConscienteConfig(consumo_min=2000)
+        cfg = GastoPontualPolicy(consumo_min=2000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             _despesas(lazer=[_txn("2026-01-05", "Jantar", 500)]),
@@ -100,7 +108,7 @@ class TestFiltragem:
         assert r.itens == ()
 
     def test_valor_acima_threshold_eh_incluido(self):
-        cfg = ConsumoConscienteConfig(consumo_min=2000)
+        cfg = GastoPontualPolicy(consumo_min=2000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             _despesas(lazer=[_txn("2026-01-05", "Viagem", 5000)]),
@@ -110,7 +118,7 @@ class TestFiltragem:
         assert r.itens[0].valor == 5000
 
     def test_categoria_recorrente_eh_excluida(self):
-        cfg = ConsumoConscienteConfig(consumo_min=2000)
+        cfg = GastoPontualPolicy(consumo_min=2000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             _despesas(
@@ -123,7 +131,7 @@ class TestFiltragem:
 
     def test_das_simples_nao_infla_pontuais(self):
         """DAS real (R$ 5k/guia) fica fora de ``total_pontuais`` (A40.l4)."""
-        cfg = ConsumoConscienteConfig.from_configs()
+        cfg = GastoPontualPolicy.from_scoring()
         despesas = _despesas(
             das_simples=[_txn("2026-01-20", "SIMPLES NACIONAL", 5539)],
             folha_pj=[_txn("2026-01-25", "FOLHA DE PAGAMENTO", 2447)],
@@ -135,7 +143,7 @@ class TestFiltragem:
         assert r.total_pontuais == 5000
 
     def test_non_list_transacoes_eh_ignorada(self):
-        cfg = ConsumoConscienteConfig(consumo_min=100)
+        cfg = GastoPontualPolicy(consumo_min=100)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             {"dados": {"lazer": "not a list"}},
@@ -150,7 +158,7 @@ class TestFiltragem:
 
 class TestOrdering:
     def test_itens_ordenados_por_valor_desc(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             _despesas(
@@ -172,7 +180,7 @@ class TestOrdering:
 
 class TestContaCartao:
     def test_formata_banco_com_tipo_conta(self):
-        cfg = ConsumoConscienteConfig(consumo_min=100)
+        cfg = GastoPontualPolicy(consumo_min=100)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             _despesas(
@@ -182,7 +190,7 @@ class TestContaCartao:
         assert r.itens[0].conta_cartao == "Nubank (faturacarbon)"
 
     def test_banco_apenas_quando_sem_tipo_conta(self):
-        cfg = ConsumoConscienteConfig(consumo_min=100)
+        cfg = GastoPontualPolicy(consumo_min=100)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             _despesas(lazer=[_txn("2026-03-05", "X", 500, banco="Itaú", tipo_conta="")]),
@@ -190,7 +198,7 @@ class TestContaCartao:
         assert r.itens[0].conta_cartao == "Itaú"
 
     def test_mes_derivado_de_data(self):
-        cfg = ConsumoConscienteConfig(consumo_min=100)
+        cfg = GastoPontualPolicy(consumo_min=100)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
             _despesas(lazer=[_txn("2026-03-05", "X", 500)]),
@@ -206,7 +214,7 @@ class TestContaCartao:
 class TestEquivalenteMesesPoupanca:
     def test_mede_pontuais_da_janela_contra_a_folga(self):
         """[[ADR-422]] — numerador e denominador na MESMA janela, e ambos no card."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
@@ -221,7 +229,7 @@ class TestEquivalenteMesesPoupanca:
     # no pior mundo. O ramo `folga < 0` era inteiramente cego — mutante que
     # devolvia -99.0 só nele sobrevivia à suíte inteira.
     def test_suprime_quando_a_folga_e_exatamente_zero(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=10_000, desp_mensal=10_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 5000)]),
@@ -231,7 +239,7 @@ class TestEquivalenteMesesPoupanca:
 
     def test_suprime_quando_a_folga_e_negativa(self):
         """O ramo que nenhum teste alcançava: família em déficit COM gasto pontual."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=10_000, desp_mensal=11_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
@@ -242,7 +250,7 @@ class TestEquivalenteMesesPoupanca:
 
     def test_zero_publicado_significa_apenas_ausencia_de_gasto_pontual(self):
         """A supressão não pode engolir o mundo verdadeiro: folga > 0 e P == 0."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000), _despesas()
         )
@@ -251,7 +259,7 @@ class TestEquivalenteMesesPoupanca:
 
     def test_denominador_publicado_e_o_que_o_leitor_recompoe(self):
         """Gatear num número e dividir por outro publica um par irreproduzível."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000.004, desp_mensal=15_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
@@ -263,7 +271,7 @@ class TestEquivalenteMesesPoupanca:
 
     def test_folga_publicada_que_arredonda_para_zero_suprime(self):
         """Meio centavo de folga publicava 7 dígitos sob uma célula que diz R$ 0,00."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=15_000.004, desp_mensal=15_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
@@ -273,7 +281,7 @@ class TestEquivalenteMesesPoupanca:
 
     def test_folga_pct_nao_afirma_empate_sem_receita_recorrente(self):
         """Guard gêmeo, mesmo bloco: `0.0` lia "empatou" para quem queimou caixa."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=0, desp_mensal=14_500),
             _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
@@ -281,18 +289,16 @@ class TestEquivalenteMesesPoupanca:
         assert r.folga_mensal < 0
         assert r.folga_pct is None
 
-    def test_meta_de_aporte_editavel_nao_move_o_diagnostico(self):
-        """A meta é editável pelo usuário; diagnóstico que se move com ela não é auditável."""
-        cfg_a = ConsumoConscienteConfig.from_configs(
-            goals={"aportes": {"meta_aporte_mensal": 5_000}}
-        )
-        cfg_b = ConsumoConscienteConfig.from_configs(
-            goals={"aportes": {"meta_aporte_mensal": 50_000}}
-        )
-        args = (_fluxo(), _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]))
-        a = ConsumoConscienteCalculator(cfg_a).calculate(*args)
-        b = ConsumoConscienteCalculator(cfg_b).calculate(*args)
-        assert a.equivalente_meses_poupanca == b.equivalente_meses_poupanca
+    def test_o_denominador_e_a_folga_medida_e_nao_a_meta_declarada(self):
+        """[[ADR-422]] D3 — mover a POUPANÇA move o equivalente; é o único
+        denominador. (O canal da meta declarada morreu na assinatura: ver
+        `test_nenhum_campo_da_policy_vem_de_config_editavel_pelo_usuario`.)"""
+        despesas = _despesas(lazer=[_txn("2026-01-05", "X", 15_000)])
+        calc = ConsumoConscienteCalculator()
+        a = calc.calculate(_fluxo(rec_rec_mensal=20_000, desp_mensal=15_000), despesas)
+        b = calc.calculate(_fluxo(rec_rec_mensal=30_000, desp_mensal=15_000), despesas)
+        assert a.equivalente_meses_poupanca == 3.0
+        assert b.equivalente_meses_poupanca == 1.0
 
 
 # =============================================================================
@@ -302,7 +308,7 @@ class TestEquivalenteMesesPoupanca:
 
 class TestFolga:
     def test_folga_positiva_com_receita_maior(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
             _despesas(),
@@ -312,7 +318,7 @@ class TestFolga:
 
     def test_pontual_realizado_nao_volta_para_a_folga(self):
         """RR6-01 — devolvê-lo publicava um 2º "quanto sobra" sobre o mesmo denominador."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         sem_pontual = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000), _despesas()
         )
@@ -325,7 +331,7 @@ class TestFolga:
 
     def test_folga_usa_despesa_consumo_nao_a_bruta(self):
         """[[ADR-333]] — aporte na janela não é consumo, logo não deprime a folga."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000, transferencia=60_000),
             _despesas(),
@@ -335,7 +341,7 @@ class TestFolga:
 
     def test_despesa_consumo_ausente_degrada_para_a_bruta(self):
         """Payload anterior à [[ADR-333]]: ``.get(..., 0)`` daria folga == receita inteira."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         fluxo = {
             "janela_12m": {
                 "receita_recorrente_mensal": 20_000,
@@ -351,7 +357,7 @@ class TestFolga:
         """A40.l101 — asseria `0.0` com folga de −R$ 5.000: "0% da receita" para
         quem não tem receita e queimou caixa. Mesmo guard transplantado do
         `equivalente`, três linhas acima, e o mesmo sinal trocado."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=0, desp_mensal=5_000),
             _despesas(),
@@ -368,7 +374,7 @@ class TestFolga:
 class TestJanela:
     def test_pontuais_fora_da_janela_nao_entram_na_folga(self):
         """ADR-306 §D6 — pontuais full-period diluídos no denominador 12m inflavam a folga."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         fluxo = {
             "janela_12m": {
                 "receita_recorrente_mensal": 10_000,
@@ -388,7 +394,7 @@ class TestJanela:
 
     def test_folga_e_a_poupanca_da_janela(self):
         """[[ADR-422]] — folga == receita_rec_mensal − despesa_consumo_mensal."""
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         fluxo = {
             "janela_12m": {
                 "receita_recorrente_mensal": 12_000,
@@ -405,7 +411,7 @@ class TestJanela:
         assert r.folga_mensal == pytest.approx(3_000.0)
 
     def test_fallback_ao_periodo_completo_sem_janela(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         fluxo = {
             "receita_recorrente_mensal": 10_000,
             "despesa_mensal_media": 8_000,
@@ -423,7 +429,7 @@ class TestJanela:
 
 class TestAnalise:
     def test_texto_quando_ha_itens(self):
-        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        cfg = GastoPontualPolicy(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 5_000)]),

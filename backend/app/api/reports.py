@@ -47,6 +47,7 @@ from backend.app.services.security.access_audit import record_access_audit
 from backend.app.services.transfer_detector_resolver import (
     resolve_internal_transfer_detector,
 )
+from pipeline.domain.services import GastoPontualPolicy
 
 _defaults = ConfigDefaultsLoader()
 
@@ -89,8 +90,17 @@ async def list_consumo_pontuais(
     detector = await resolve_internal_transfer_detector(
         workspace.id, repo=ConfigBlobRepository(db), defaults=_defaults
     )
+    # A40.l98 — o limiar sai do MESMO ``scoring.json`` que o KPI do card. Antes
+    # este endpoint caía num literal próprio: os dois valiam 2000 e coincidiam
+    # por acaso, e editar o scoring os separava em silêncio.
+    policy = GastoPontualPolicy.from_scoring(_defaults.load_json("scoring.json"))
     return await _list_consumo_pontuais(
-        workspace.id, period=period, detector=detector, anchor_date=anchor_date, db=db
+        workspace.id,
+        period=period,
+        detector=detector,
+        policy=policy,
+        anchor_date=anchor_date,
+        db=db,
     )
 
 

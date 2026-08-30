@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -186,3 +187,69 @@ async def test_consumo_pontuais_unauthorized(client: AsyncClient):
         "/api/workspaces/00000000-0000-0000-0000-000000000000/reports/consumo-pontuais?period=3m"
     )
     assert resp.status_code in (401, 403)
+
+
+# A40.l98 — o limiar era DOIS literais: este endpoint caía num
+# ``Decimal("2000")`` próprio e o KPI do MESMO card lia
+# ``scoring.json::thresholds_alertas.consumo_consciente_min``. Ambos valiam 2000 e
+# **coincidiam por acaso** — editar o scoring os separava em silêncio, e nenhum
+# teste falhava. Teste de IGUALDADE aqui seria vazio (2000 == 2000 continua
+# verdade com os dois literais de volta): o gate move o scoring para 2500 e exige
+# que as DUAS superfícies se movam.
+_SCORING_2500 = {"thresholds_alertas": {"consumo_consciente_min": 2500}}
+
+
+def _escreve_scoring(tmp_path, monkeypatch, scoring: dict) -> None:
+    from backend.app.core.config import settings
+
+    (tmp_path / "config").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "config" / "scoring.json").write_text(json.dumps(scoring), encoding="utf-8")
+    monkeypatch.setattr(settings, "PIPELINE_ROOT", tmp_path)
+
+
+@pytest.mark.asyncio
+async def test_limiar_do_scoring_move_a_lista(auth_client: AsyncClient, db, tmp_path, monkeypatch):
+    despesas = [
+        _despesa("ENTRE OS DOIS LIMIARES", 2200.0, categoria="alimentacao"),
+        _despesa("ACIMA DOS DOIS", 3500.0, categoria="alimentacao"),
+    ]
+    await _seed_e4_despesas(db, auth_client.ws_id, despesas)
+    await _seed_transfer_config(db, auth_client.ws_id)
+    url = f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"
+
+    antes = await auth_client.get(url)
+    assert [it["descricao"] for it in antes.json()["items"]] == [
+        "ACIMA DOS DOIS",
+        "ENTRE OS DOIS LIMIARES",
+    ], "sem o limiar de 2000 vigente, o contrafactual abaixo não discrimina nada"
+
+    _escreve_scoring(tmp_path, monkeypatch, _SCORING_2500)
+    depois = await auth_client.get(url)
+    assert [it["descricao"] for it in depois.json()["items"]] == [
+        "ACIMA DOS DOIS"
+    ], "editar `scoring.json` não moveu a LISTA — o endpoint voltou a usar limiar próprio"
+
+
+def test_limiar_do_scoring_move_o_kpi():
+    """A outra metade do par: mesma edição, mesmo item, superfície do KPI."""
+    from pipeline.domain.services.consumo_consciente_calculator import (
+        ConsumoConscienteCalculator,
+    )
+    from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
+
+    despesas = {
+        "dados": {
+            "alimentacao": [
+                {"data": "2026-01-05", "descricao": "ENTRE OS DOIS LIMIARES", "valor": 2200.0},
+                {"data": "2026-01-06", "descricao": "ACIMA DOS DOIS", "valor": 3500.0},
+            ]
+        }
+    }
+    fluxo = {"janela_12m": {"receita_recorrente_mensal": 20_000, "n_meses": 12}}
+
+    def descricoes(scoring: dict | None) -> list[str]:
+        calc = ConsumoConscienteCalculator(GastoPontualPolicy.from_scoring(scoring))
+        return [i.descricao for i in calc.calculate(fluxo, despesas).itens]
+
+    assert descricoes(None) == ["ACIMA DOS DOIS", "ENTRE OS DOIS LIMIARES"]
+    assert descricoes(_SCORING_2500) == ["ACIMA DOS DOIS"]

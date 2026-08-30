@@ -54,7 +54,6 @@ from pipeline.domain.services.composicao_familiar import build_composicao_famili
 from pipeline.domain.services.consumo_consciente_calculator import (
     ConsumoConsciente,
     ConsumoConscienteCalculator,
-    ConsumoConscienteConfig,
 )
 from pipeline.domain.services.conversao_me import (
     ConversaoMeBrl,
@@ -102,6 +101,7 @@ from pipeline.domain.services.fonte_precedencia_arbiter import (
     fontes_de_irpf,
     fontes_de_posicoes_atuais,
 )
+from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
 from pipeline.domain.services.if_monte_carlo import (
     IFMonteCarloConfig,
     MonteCarloIFResult,
@@ -534,7 +534,7 @@ class E5AnalyzerAdapter:
                 )
             ),
             consumo_calculator=ConsumoConscienteCalculator(
-                ConsumoConscienteConfig.from_configs(scoring=scoring, goals=goals)
+                GastoPontualPolicy.from_scoring(scoring)
             ),
             equilibrio_analyzer=EquilibrioCerbasiAnalyzer(
                 EquilibrioCerbasiConfig.from_scoring(scoring)

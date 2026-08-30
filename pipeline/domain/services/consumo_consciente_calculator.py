@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from pipeline.domain.services.brl_prose import fmt_brl_prosa
+from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
 
 
 def _safe_float(val) -> float:
@@ -92,52 +93,6 @@ def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
     )
 
 
-_DEFAULT_RECURRENT = frozenset(
-    {
-        "moradia",
-        "financiamentos",
-        "seguros",
-        "assinaturas",
-        "impostos",
-        "servicos_domesticos",
-        # Labels PJ ([[ADR-236]] §D2): tributo e folha da PJ são obrigação
-        # recorrente, não "gasto pontual relevante" cortável. Sem isso um DAS de
-        # R$ 5k/guia entra em ``total_pontuais``/``pontuais_janela`` e infla o
-        # inventário e o ``equivalente_meses_poupanca`` (A40.l4). O canal para a
-        # ``folga_mensal`` morreu na [[ADR-422]] D1 — ela não lê mais pontuais.
-        "das_simples",
-        "iss",
-        "folha_pj",
-    }
-)
-
-
-@dataclass(frozen=True)
-class ConsumoConscienteConfig:
-    """Threshold + categorias recorrentes.
-
-    ``consumo_min`` ← ``scoring.json::thresholds_alertas.consumo_consciente_min``
-    (default R$ 2000); ``recurrent_categories`` era hardcoded no legado.
-    ``goals.json::aportes.meta_aporte_mensal`` saiu em [[ADR-422]]: era o
-    denominador do equivalente, e meta é EDITÁVEL pelo usuário — número de
-    diagnóstico que se move sem que nada tenha acontecido no mundo não é
-    auditável.
-    """
-
-    consumo_min: float = 2000.0
-    recurrent_categories: frozenset[str] = _DEFAULT_RECURRENT
-
-    @classmethod
-    def from_configs(
-        cls,
-        *,
-        scoring: dict | None = None,
-        goals: dict | None = None,  # noqa: ARG003 - assinatura estável p/ o adapter
-    ) -> "ConsumoConscienteConfig":
-        alertas = (scoring or {}).get("thresholds_alertas") or {}
-        return cls(consumo_min=_safe_float(alertas.get("consumo_consciente_min", 2000)))
-
-
 # =============================================================================
 # Result
 # =============================================================================
@@ -206,15 +161,15 @@ class ConsumoConsciente:
 class ConsumoConscienteCalculator:
     """Identifica gastos pontuais relevantes + métricas de folga."""
 
-    def __init__(self, config: ConsumoConscienteConfig | None = None) -> None:
-        self._config = config or ConsumoConscienteConfig()
+    def __init__(self, policy: GastoPontualPolicy | None = None) -> None:
+        self._policy = policy or GastoPontualPolicy()
 
     def calculate(
         self,
         fluxo: dict[str, Any],
         despesas: dict[str, Any],
     ) -> ConsumoConsciente:
-        cfg = self._config
+        cfg = self._policy
         dados = (despesas or {}).get("dados", {}) or {}
 
         candidates = self._collect_candidates(dados)
@@ -286,10 +241,10 @@ class ConsumoConscienteCalculator:
     # -- Helpers --
 
     def _collect_candidates(self, dados: dict[str, Any]) -> list[GastoPontualItem]:
-        cfg = self._config
+        cfg = self._policy
         out: list[GastoPontualItem] = []
         for cat, transacoes in dados.items():
-            if cat in cfg.recurrent_categories:
+            if cat in cfg.recorrentes:
                 continue
             if not isinstance(transacoes, list):
                 continue
@@ -344,7 +299,7 @@ class ConsumoConscienteCalculator:
         janela_meses: float,
         folga_em_prosa: str,
     ) -> str:
-        cfg = self._config
+        cfg = self._policy
         minimo = fmt_brl_prosa(cfg.consumo_min)
         if n_candidates == 0:
             return (

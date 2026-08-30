@@ -33,6 +33,7 @@ from pipeline.domain.services.fluxo_janelas import (
     PeriodoJanela,
     build_fluxo_janelas,
 )
+from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
 from pipeline.domain.services.provisionado_cutoff import split_provisionado
 from pipeline.domain.services.receita_natureza import compute_receita_por_natureza
 
@@ -79,8 +80,10 @@ _DEFAULT_ONE_TIME_ORIGIN_NAMES = frozenset(
     }
 )
 
-# ADR-333: categorias de despesa que são TRANSFERÊNCIA patrimonial (poupança), não consumo.
-_DEFAULT_TRANSFER_CATEGORIES = frozenset({"aporte_investimento"})
+# ADR-333: categorias de despesa que são TRANSFERÊNCIA patrimonial (poupança), não
+# consumo. Fonte única com os outros dois produtores de gasto pontual (A40.l98) —
+# eram três literais disjuntos, e o que prescrevia era o que menos filtrava.
+_DEFAULT_TRANSFER_CATEGORIES = GastoPontualPolicy().transferencia_patrimonial
 
 
 @dataclass(frozen=True)
