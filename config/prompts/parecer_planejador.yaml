@@ -164,7 +164,17 @@
 # realizado da janela fechada e o numerador era realizado + provisionado + posterior
 # à janela, e o mesmo gasto pontual publicava 6,0 ou 12,0 conforme o corte. MINOR,
 # mesma leitura das 2.8.0/2.10.0/2.11.0.
-version: "2.12.0"
+# 2.13.0 — A40.l98, `LC6-06`: o exec context entregava `receita_total`,
+# `despesa_total` e `fluxo_liquido` full-period SEM declarar a base, ao lado das
+# duas taxas de poupança rotuladas da janela de 12m. `despesa_total` é BRUTA por
+# decisão da [[ADR-333]] (o aporte segue nela para preservar
+# `fluxo_liquido == receita − despesa_total`), então dividir uma pela outra
+# produz uma TERCEIRA taxa, sistematicamente mais baixa que as duas rotuladas —
+# e a menor é a que prescreve contenção (a doença do `RR6-01`). A base passa a
+# ser declarada na própria label, precedente da 2.5.0 deste arquivo. Os campos
+# NÃO saem: são fato legítimo de escala do período. Remover é a opção mais forte
+# e fica com o `financial-planner`, com a medição no registro da lane.
+version: "2.13.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -326,10 +336,15 @@ context_sections:
           - {path: "$.fluxo_caixa.receita_recorrente", label: "Receita recorrente", format: "brl"}
           - {path: "$.fluxo_caixa.receita_one_time", label: "Receita one-time", format: "brl"}
           - {path: "$.fluxo_caixa.receita_recorrente_mensal", label: "Receita recorrente mensal", format: "brl"}
-          - {path: "$.fluxo_caixa.despesa_total", label: "Despesa total", format: "brl"}
+          # LC6-06 (A40.l98): a base vai na label. `despesa_total` é BRUTA — inclui
+          # aporte de investimento e amortização, que são poupança/patrimônio e não
+          # consumo ([[ADR-333]]). Sem isto o modelo deriva `fluxo_liquido /
+          # receita_total` e chama de taxa de poupança: uma TERCEIRA taxa, mais baixa
+          # que as duas rotuladas logo abaixo, e a menor é a que prescreve contenção.
+          - {path: "$.fluxo_caixa.despesa_total", label: "Despesa total BRUTA (inclui aporte e amortização)", format: "brl"}
           - {path: "$.fluxo_caixa.despesa_mensal_media", label: "Despesa mensal média", format: "brl"}
           - {path: "$.fluxo_caixa.despesa_mensal_essencial", label: "Despesa mensal essencial", format: "brl"}
-          - {path: "$.fluxo_caixa.fluxo_liquido", label: "Fluxo líquido", format: "brl"}
+          - {path: "$.fluxo_caixa.fluxo_liquido", label: "Fluxo líquido (sobre a despesa BRUTA — não é taxa de poupança)", format: "brl"}
           # Receita por natureza (ADR-330): re-bucketização derivada; soma == receita_total.
           - {path: "$.fluxo_caixa.receita_por_natureza.receita_pj", label: "Receita PJ (pró-labore + lucros)", format: "brl"}
           - {path: "$.fluxo_caixa.receita_por_natureza.receita_clt", label: "Receita CLT", format: "brl"}

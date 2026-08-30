@@ -218,7 +218,11 @@ def test_field_probes_blocos_densos_reformatados():
     """ADR-341 D3: resumo curado é vetor novo de truncação silenciosa —
     contagem de seção não basta; probes field-level nos blocos re-formatados."""
     ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
-    assert "Fluxo líquido: R$ 720.000,00" in ctx
+    # A40.l98 · LC6-06: a label declara a base — sem ela o modelo derivava
+    # `fluxo_liquido / receita_total` e chamava de taxa de poupança, uma
+    # TERCEIRA taxa mais baixa que as duas rotuladas da janela de 12m.
+    assert "Fluxo líquido (sobre a despesa BRUTA — não é taxa de poupança): R$ 720.000,00" in ctx
+    assert "Despesa total BRUTA (inclui aporte e amortização):" in ctx
     assert "Despesa mensal essencial: R$ 22.000,00" in ctx
     assert "Receita PJ (pró-labore + lucros): R$ 1.500.000,00" in ctx
     assert "Taxa de poupança recorrente (12m, %): 33,33%" in ctx
