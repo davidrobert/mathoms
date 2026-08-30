@@ -210,24 +210,16 @@ Regras:
 - Não inclua CPF/CNPJ mascarado na descrição"""
 
 
+# Chamada fora do choke-point `LLMService` — resíduo declarado da Fase 2 da
+# ADR-349: `LLMService.call` só carrega `image_bytes` (bloco `image`), e PDF sem
+# camada de texto precisa do bloco `document`. Até a Fase 2, esta rota não tem
+# budget (ADR-173), LLMCallLog, cache (ADR-307) nem sanitização (ADR-175).
+# `temperature` é o único eixo fechável aqui: sem ela o SDK usa o default do
+# provider (o extremo alto), e `descricao` alimenta a chave natural
+# (`build_hash_inputs`) — a variância virava churn de identidade de lançamento.
+# Reduz variância; NÃO torna idempotente (pipeline/llm/deterministic_extraction).
 def _extract_via_llm(pdf_path: Path, result: Dict[str, Any]) -> bool:
-    """Usa visão LLM para extrair dados de PDF somente-imagem.
-
-    Retorna True se a extração teve sucesso.
-
-    Chamada **fora** do choke-point `LLMService` — resíduo declarado da Fase 2 da
-    [[ADR-349]]: `LLMService.call` só carrega `image_bytes` (bloco `image`), e um
-    PDF sem camada de texto precisa do bloco `document`. Enquanto a Fase 2 não
-    entra, esta rota não tem budget ([[ADR-173]]), `LLMCallLog`, cache
-    ([[ADR-307]]) nem sanitização ([[ADR-175]]).
-
-    `temperature` é o único eixo fechável aqui: sem ela o SDK usa o default do
-    provider (o extremo alto), e `descricao` alimenta a chave natural
-    (`build_hash_inputs`), então a variância virava churn de identidade de
-    lançamento. `EXTRACTION_TEMPERATURE` **reduz variância; não torna idempotente**
-    — ver o claim honesto em `pipeline/llm/deterministic_extraction`. O que
-    congelaria a amostra é o cache, e ele só existe atrás do choke-point.
-    """
+    """Extrai dados de PDF somente-imagem via visão LLM; True se teve sucesso."""
     try:
         import anthropic
     except ImportError:

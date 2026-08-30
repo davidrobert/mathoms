@@ -15,6 +15,10 @@ vermelhos na mesma execução; um gate que retorna 0 incondicionalmente satisfaz
 | escopo volta a `pipeline/stages/extract_*.py`     | (b), (c)               |
 | casamento volta a `ast.Name id == "service"`      | (b), (c)               |
 | `seed=` removido do parecer em produção           | (a)                    |
+| `scripts/` fora de `RAIZES`                       | (e), (f)               |
+| detector de SDK cru cego / `_confere_residuo` mudo| (e), (f), (g)          |
+| resíduo vira isenção por arquivo (sem contagem)   | (f)                    |
+| entrada de resíduo sobrevive à dívida paga        | (g)                    |
 """
 
 from __future__ import annotations
@@ -101,5 +105,60 @@ def test_adapter_sem_output_schema_nao_e_alvo(tmp_path: Path) -> None:
         Path("pipeline/domain/services/zz_adapter_probe.py"),
         "def run(llm, prompt):\n"
         "    return llm.call(system_prompt=prompt, user_prompt='x', section_id='S1')\n",
+    )
+    assert _roda(root).returncode == 0
+
+
+# ---------------------------------------------------------------------------
+# Rota alternativa ao choke-point (A42.l17)
+# ---------------------------------------------------------------------------
+
+CAIXA = Path("scripts/e2/banks/caixa.py")
+
+
+def test_e_sdk_cru_em_arquivo_nao_declarado_reprova(tmp_path: Path) -> None:
+    """O eixo que a assinatura `LLMService.call` nunca alcança: o SDK cru."""
+    root = _espelho(
+        tmp_path,
+        Path("scripts/zz_bypass_probe.py"),
+        "import anthropic\n"
+        "def go(k):\n"
+        "    c = anthropic.Anthropic(api_key=k)\n"
+        '    return c.messages.create(model="m", messages=[])\n',
+    )
+    resultado = _roda(root)
+
+    assert resultado.returncode == 1
+    assert "zz_bypass_probe.py" in resultado.stdout
+    # Sem os sítios impressos, a contagem manda procurar no arquivo inteiro.
+    assert "zz_bypass_probe.py:3" in resultado.stdout
+
+
+def test_f_sitio_extra_em_arquivo_declarado_reprova(tmp_path: Path) -> None:
+    """Resíduo é contagem exata, não isenção por arquivo — derivado da FONTE REAL."""
+    fonte = (REPO_ROOT / CAIXA).read_text(encoding="utf-8")
+    mutado = fonte + "\n\ndef _zz_extra(k):\n    return anthropic.Anthropic(api_key=k)\n"
+
+    resultado = _roda(_espelho(tmp_path, CAIXA, mutado))
+
+    assert resultado.returncode == 1
+    assert "esperava 2" in resultado.stdout and "achou 3" in resultado.stdout
+
+
+def test_g_residuo_que_sobrevive_a_divida_paga_reprova(tmp_path: Path) -> None:
+    """Entrada que perde o ofensor tem de sair do registry — senão apodrece."""
+    root = _espelho(tmp_path, CAIXA, "def parse_caixa(p, f):\n    return {}\n")
+    resultado = _roda(root)
+
+    assert resultado.returncode == 1
+    assert "dívida paga" in resultado.stdout
+
+
+def test_sdk_cru_dentro_do_choke_point_nao_e_ofensor(tmp_path: Path) -> None:
+    """`pipeline/llm/` é o dono do client — é lá que a chamada crua deve morar."""
+    root = _espelho(
+        tmp_path,
+        Path("pipeline/llm/zz_client_probe.py"),
+        "import anthropic\ndef c(k):\n    return anthropic.Anthropic(api_key=k)\n",
     )
     assert _roda(root).returncode == 0

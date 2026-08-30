@@ -128,12 +128,13 @@ repos:
         # `files:` largo de propósito: o hook é pass_filenames:false e só RODA
         # quando um path casado muda. Com o padrão antigo (extract_*.py), um
         # call-site novo em backend/app/services/ não disparava o hook e o gate
-        # ficava verde por não ter rodado.
+        # ficava verde por não ter rodado. A42.l17: `scripts/` repetia a lição —
+        # os dois sítios de SDK cru do repo moram lá e o hook nunca rodava neles.
         name: Call-site de LLM declara temperature + seed (A40.l66 · §r7 PE-2)
         entry: python3 dev/check_llm_sampling.py
         language: system
         pass_filenames: false
-        files: ^(pipeline/.*\.py|backend/app/.*\.py|dev/check_llm_sampling\.py)$
+        files: ^(pipeline/.*\.py|backend/app/.*\.py|scripts/.*\.py|dev/check_llm_sampling\.py)$
 
       - id: pipeline-boundaries
         name: "pipeline/ não importa backend/frameworks (ADR-089 · ADR-325)"
