@@ -33,6 +33,7 @@ open · in_progress.
 ## In progress
 
 - [[A40.l103]] — O recorte da baseline da capa media a nav — e era o único gate sobre os números-manchete · priority P2 · área frontend/ci · branch `a40-l103-clip-da-capa`
+- [[A40.l104]] — A trilha sticky promete 20 alvos e entrega 10 em 1280px, 0 no telefone — e não há sinal de que falte algo · priority P2 · área frontend/relatorio/a11y · branch `a40-l102-trilha-promete-alvo-que-nao-entrega`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l95]] — Numerador da concentração imobiliária inclui bem que o motor declara não-gerador · priority P0 · área pipeline/financial-planning · branch `a40-l95-numerador-de-concentracao-inclui-nao-gerador`
 - [[A40.l96]] — Tabela de maiores ativos atribui titular a valor que o sistema declara órfão · priority P0 · área pipeline/frontend/financial-planning · branch `a40-l96-titular-atribuido-a-posicao-orfa`
