@@ -115,3 +115,53 @@ do `mathoms.db` estão cifrados (Fernet) e não foram decifrados — é dado fin
 família; os payloads em texto claro no disco são todos pré-[[ADR-422]]
 (`equivalente_meses_aporte`). O regime é **estruturalmente alcançável** (provado fim-a-fim);
 sua frequência em produção fica aberta.
+
+## Entrega (2026-08-30)
+
+[[ADR-422]] §Emenda 2026-08-30 (`amended_at: ["2026-08-30"]`, que regulariza também a
+`Precisão` órfã da mesma data). A aritmética da D3 fica intacta; o que faltava era o
+**domínio de definição**.
+
+| decisão | efeito |
+| --- | --- |
+| **D3.a** | `equivalente_meses_poupanca` é `null` fora do domínio, com `motivo_supressao` irmão — forma da [[ADR-394]] §D7. Contrato **nullable, não ausência** ([[ADR-390]] §D2 reserva ausência para versão de artefato) |
+| **D3.b** | o denominador é a folga **publicada** — gatear num número e dividir por outro publicava par irreproduzível |
+| **D3.c** | `folga_pct` cai pelo mesmo guard: publicava "0% da receita" para quem queimou caixa |
+| **D3.d** | prosa do E5 com ramo próprio (requisito: `TypeError` sem ele) + `motivo_supressao` no manifest do parecer, `manifest_version` 2.8.0 → 2.9.0 |
+
+**Prova de A/B, não de verde:** 9 gates novos reprovam contra o produtor pré-fix; o mutante
+que devolve `−99.0` só no ramo `folga < 0` — que sobrevivia a 153 testes — reprova em 3.
+`pytest tests -q` 7973 passed. Snapshot de view-model: **+1 linha**, valor não se move.
+
+## Deferimento datado — o polo, 2026-08-30
+
+**O que fica aberto:** com folga publicada de `R$ 0,01` e pontuais de `R$ 30.000,00`, o campo
+publica `3.000.000,0` numa célula de KPI.
+
+**Por que não fecha aqui, medido.** As duas rotas caem:
+
+1. **Piso de materialidade** (`folga_pct < ~1%`): `config/scoring.json::thresholds_alertas`
+   **não tem** piso de taxa de poupança a reusar — `poupanca_referencia_pct: 25` e
+   `pontos_fortes_taxa_poupanca_min_pct: 30` são **alvos**. O limiar seria inventado, que é a
+   crítica que a própria [[ADR-422]] D2 fez ao multiplicador `1,15`.
+2. **Argumento de ruído**: não se sustenta. A sensibilidade **relativa** é 1:1 em todo o
+   domínio — folga `R$ 90,00` e folga `R$ 0,01`, ambas +1%, movem o publicado em 0,99%.
+   E o número suprimido seria **verdadeiro e acionável**: `333 meses` = *"irrecuperável ao
+   seu ritmo"*, que é o diagnóstico que a família precisa. Suprimir teria o **sinal trocado**.
+
+**Logo o polo é problema de LEGIBILIDADE, não de correção.** Dono: [[A40.l15]] (apresentação
+do card de S2), gatilho `product-designer`. **Condição de retomada:** quando a l15 tocar o
+KPI de consumo consciente — é a mesma célula.
+
+## Follow-ups nomeados (não entram nesta lane)
+
+| item | dono | por quê |
+| --- | --- | --- |
+| Rótulo "Equiv. meses de poupança" lê **pretérito**, e a emenda decidiu leitura **prospectiva** | [[A40.l15]] | rótulo do card de S2 é escopo dela; `janela-canonica.@critical.spec.ts:265` protege a fronteira |
+| `data_corte` aplicado ao denominador e **não** ao numerador ⇒ populações diferentes (6,0 vs 12,0 medido) | [[A40.l98]] | é base do numerador; achado **novo** desta medição |
+| Estorno negativo líquida no denominador e não no numerador ⇒ "6,0 meses" para gasto que se anulou | [[A40.l98]] | idem, achado **novo** |
+| `aporte_investimento` no numerador e fora de `despesa_consumo` (57,14% do numerador da fixture) | [[A40.l98]] | é literalmente o item 1 do escopo dela |
+| `check_adr_amendment_signal` é cego a "Precisão"/"Atualização" — **4** emendas datadas órfãs de `amended_at`, gate verde | lane de gate | a da [[ADR-422]] foi regularizada aqui; sobram 3 (ADR-132, ADR-159, ADR-260) |
+| `check_planner_manifest_coverage` anuncia "Campo NOVO bloqueia" e é **cego a campo que nasce dentro de `$defs`** (`_e5_leaf_paths` não segue `$ref`) — 248 folhas vistas com e sem o campo novo | lane de gate | mesma classe de "o gate mede a patologia errada" |
+| `frontend/src/types/report-analysis.ts` não tem gate que o compare ao gerado | lane de gate | a mentira envelhece em silêncio |
+| `config/report_spec.md:371,394` ainda cita `equivalente_meses_aporte` e `teto_sugerido`, extintos pela [[ADR-422]] | dívida de closeout da [[A40.l94]] | quem buscar paridade lá reintroduz campo morto |
