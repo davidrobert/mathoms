@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { CardVariant } from "@/generated/report-layout";
 import type {
   RealEstateAlerta,
@@ -11,7 +12,7 @@ import type {
 } from "@/types/report-analysis";
 import { MonetaryValue } from "../MonetaryValue";
 import { ReportCard } from "../ReportCard";
-import { imovelDisplayLabel, valorApurado } from "./imovelDisplay";
+import { excludedClassLabel, imovelDisplayLabel, valorApurado } from "./imovelDisplay";
 
 interface RealEstateYieldCardProps {
   data: RealEstateData | null | undefined;
@@ -329,25 +330,48 @@ function labelForAlerta(code: RealEstateAlerta["code"]): string {
   return "Contrato com reajuste pendente";
 }
 
+/** Motivos da exclusão do yield, colapsados na tela e abertos no papel.
+ *
+ * O colapso é `hidden print:block` — classe, nunca `<details>` fechado nem o
+ * atributo `hidden`. Os dois são `display:none !important` na folha da UA, e
+ * `!important` de UA vence `!important` de autor: nenhum `@media print` de
+ * autor os revela (precedente [[A40.l88]], medido nos três engines). Enquanto
+ * era `<details>`, o motivo da nu-propriedade — o único texto do produto que
+ * explica por que aquele imóvel sai do cálculo — não existia no PDF entregue.
+ *
+ * A lista fica montada de propósito: desmontar no colapso deixa o print sem o
+ * que revelar.
+ */
 function RealEstateExcluded({
   excluded,
 }: {
   excluded: readonly RealEstateExcludedProperty[];
 }) {
+  const [expandido, setExpandido] = useState(false);
   if (excluded.length === 0) return null;
   return (
-    <details className="mt-4 text-xs text-[var(--surface-muted-foreground)]">
-      <summary className="cursor-pointer">
+    <div className="mt-4 text-xs text-[var(--surface-muted-foreground)]">
+      <button
+        type="button"
+        className="cursor-pointer text-left hover:underline print:no-underline"
+        aria-expanded={expandido}
+        aria-controls="real-estate-excluidos"
+        onClick={() => setExpandido((aberto) => !aberto)}
+      >
         {excluded.length} {excluded.length === 1 ? "imóvel" : "imóveis"} não incluído(s) no cálculo
-      </summary>
-      <ul className="mt-2 space-y-1">
+      </button>
+      <ul
+        id="real-estate-excluidos"
+        className={`mt-2 space-y-1 ${expandido ? "block" : "hidden print:block"}`}
+      >
         {excluded.map((e, idx) => (
           <li key={`${e.property_id}-${idx}`}>
-            <span className="font-semibold">{e.classification}</span> — {e.motivo}
+            <span className="font-semibold">{excludedClassLabel(e.classification)}</span> —{" "}
+            {e.motivo}
           </li>
         ))}
       </ul>
-    </details>
+    </div>
   );
 }
 
@@ -414,7 +438,7 @@ function RealEstateExcludedSummary({
         {excluded.map((e, idx) => (
           <li key={`${e.property_id}-${idx}`}>
             <span className="font-semibold text-[var(--surface-foreground)]">
-              {e.classification}
+              {excludedClassLabel(e.classification)}
             </span>
             <span className="block text-[var(--surface-muted-foreground)]">{e.motivo}</span>
           </li>

@@ -136,3 +136,20 @@ class TestSplitImoveisWithOverrides:
         )
         assert residencia == 996_821.46
         assert outros == 350_000.00 + 212_706.24 + 270_000.00 + 530_000.00
+
+
+def test_calculator_reexporta_o_vocabulario_inteiro_de_classification():
+    # ADR-235: `nu_proprietario` não era símbolo morto — era a única das sete que o
+    # re-export esquecia. Quem lesse `patrimonio_calculator.__all__` concluiria que o
+    # enum tem seis valores. Igualdade de conjunto fecha a CLASSE, não a instância.
+    from pipeline.domain.services import patrimonio_calculator as calc
+    from pipeline.domain.services import patrimonio_imovel_classifier as classifier
+
+    do_classifier = {n for n in dir(classifier) if n.startswith("CLASSIFICATION_")}
+    reexportadas = {n for n in calc.__all__ if n.startswith("CLASSIFICATION_")}
+
+    assert do_classifier, "o classifier deixou de exportar o vocabulário"
+    assert do_classifier == reexportadas, (
+        f"re-export incompleto — só no classifier: {sorted(do_classifier - reexportadas)}; "
+        f"só no calculator: {sorted(reexportadas - do_classifier)}"
+    )

@@ -25,11 +25,17 @@ const CLASSIFICATION_LABELS: Record<Classification, string> = {
   desconhecido: "Não classificado",
 };
 
+// ADR-235 Sinal 3 — a metade UI. "Consolidação/consolidar" fica FORA de copy
+// user-facing: `PRODUCT.md §1` usa "consolida" no sentido de agregar, e o
+// COPY_GUIDELINES §2.2 já proibiu o termo por essa colisão. Usa-se "propriedade
+// plena" + "quando o usufruto terminar".
 const NU_PROPRIETARIO_TOOLTIP =
   "Você é dono, mas outro detém usufruto vitalício e ocupa o imóvel " +
   "gratuitamente. Está no seu patrimônio, mas não gera caixa nem está " +
-  "disponível para venda livre. Pode virar locado ou ser vendido " +
-  "livremente quando o usufruto extinguir.";
+  "disponível para venda livre. O valor vem do IRPF: é o custo da " +
+  "nu-propriedade, já descontado pelo usufruto — não o valor de um imóvel " +
+  "sem usufruto, que não estimamos. Quando o usufruto terminar, a " +
+  "propriedade fica plena e o imóvel pode ser locado ou vendido.";
 
 // IRPF Grupo 01 (Bens Imóveis) — códigos RFB de subtipo.
 // "01" é o próprio grupo-pai (LLM/fonte externa retornou sem subcódigo) → tratamos como "Imóvel".
