@@ -36,13 +36,15 @@ ANO_INICIAL_REGIME_COMPLETO = 2026
 def upgrade() -> None:
     if context.is_offline_mode():
         op.execute(
-            "-- ADR-414: UPDATE fiscal_parameters SET regime_completo=1, "
+            "-- ADR-414: UPDATE fiscal_parameters SET regime_completo=true, "
             "componentes_ausentes='[]' WHERE year >= 2026"
         )
         return
+    # `true`/`false`, não 1/0: SQLite é frouxo e aceita o inteiro, Postgres levanta
+    # DatatypeMismatchError — produção é PG e a cadeia parava aqui.
     op.get_bind().execute(
         sa.text(
-            "UPDATE fiscal_parameters SET regime_completo = 1, componentes_ausentes = '[]' "
+            "UPDATE fiscal_parameters SET regime_completo = true, componentes_ausentes = '[]' "
             "WHERE year >= 2026"
         )
     )
@@ -51,7 +53,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.get_bind().execute(
         sa.text(
-            "UPDATE fiscal_parameters SET regime_completo = 0, "
+            "UPDATE fiscal_parameters SET regime_completo = false, "
             'componentes_ausentes = \'["redutor_lei_15270", "irpfm"]\' WHERE year >= 2026'
         )
     )
