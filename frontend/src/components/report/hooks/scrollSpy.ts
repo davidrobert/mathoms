@@ -9,6 +9,18 @@
  * seria pior que qualquer uma das duas respostas isolada.
  */
 
+/** Banda de "seção corrente", compartilhada. Os 120px de topo são a faixa
+ *  sticky (52px) mais folga; o -50% embaixo mantém a eleição na metade
+ *  superior da viewport.
+ *
+ *  Estar no mesmo módulo não é organização: enquanto a faixa media
+ *  `-120px 0px -50% 0px` e o índice `-15% 0% -55% 0%`, "os dois concordam" era
+ *  coincidência de amostra, não invariante — bandas diferentes podem eleger
+ *  seções diferentes no mesmo scroll, e nenhum teste honesto poderia exigir
+ *  concordância. */
+export const SPY_ROOT_MARGIN = "-120px 0px -50% 0px";
+export const SPY_THRESHOLD = [0, 0.1, 0.25, 0.5, 0.75, 1];
+
 /** Acumula a razão de interseção por id, zerando quem saiu de campo.
  *
  * `Number.MIN_VALUE` como piso de quem intersecta não é enfeite: com

@@ -371,8 +371,25 @@ topo sozinho enquanto o usuário lê.
 | 11 | Ícone deixa de ser `Eye`/`EyeOff` | colisão com mascarar-saldo em fintech |
 | 12 | Docstring de `useReportTocOpen` para de afirmar o contrário do código | terceiro comentário falso do componente |
 
-`nav-scroll-spy.spec.ts` tem **uma asserção por defeito**, porque cada um passava
-escondido atrás dos outros — contrafactual por subconjunto, não pelo conjunto.
+`nav-scroll-spy.@critical.spec.ts` tem **uma asserção por defeito**, porque cada
+um passava escondido atrás dos outros — contrafactual por subconjunto, não pelo
+conjunto.
+
+> **O gate quase nasceu decorativo, e o CI mostrou.** Escrevi o spec **sem**
+> `@critical` de propósito, para evitar divergência de timing em Firefox/WebKit,
+> e anotei no docstring que "assim roda só no chromium, que não filtra por tag —
+> continua gateando todo PR". **Falso.** O step default (`Report render gate`)
+> filtra `--grep @critical --project=chromium`, e o job "Frontend E2E" é opt-in
+> por label `e2e`. Spec sem tag cai no vão entre os dois e **não roda em PR
+> nenhum** — o mesmo modo de falha que esta lane existe para consertar. Corrigido
+> com a tag; verificado rodando o comando **exato** do CI, que agora seleciona os
+> 6 testes.
+>
+> No mesmo movimento caiu uma fragilidade do teste: enquanto a faixa media
+> `rootMargin: -120px 0px -50% 0px` e o índice `-15% 0% -55% 0%`, "os dois
+> concordam" passava por **coincidência de amostra**, não por invariante — bandas
+> diferentes podem eleger seções diferentes no mesmo scroll. A banda agora é
+> constante compartilhada em `scrollSpy.ts`, e a concordância virou exigível.
 
 **Não entregue, e por quê:** a linha em que os chips saem ficou em `md` por
 argumento de **orientação**, não por norma — 2.4.7 exige um corte em algum ponto

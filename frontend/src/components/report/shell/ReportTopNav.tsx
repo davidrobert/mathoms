@@ -14,6 +14,8 @@ import { useMountedSectionIds } from "@/components/report/hooks/useMountedSectio
 import {
   keepInView,
   mostVisibleId,
+  SPY_ROOT_MARGIN,
+  SPY_THRESHOLD,
   trackRatios,
 } from "@/components/report/hooks/scrollSpy";
 
@@ -106,11 +108,7 @@ export function ReportTopNav({
         const top = mostVisibleId(ratios);
         if (top) setActiveId(top);
       },
-      {
-        root: scrollRoot ?? null,
-        rootMargin: "-120px 0px -50% 0px",
-        threshold: [0, 0.25, 0.5, 0.75, 1],
-      },
+      { root: scrollRoot ?? null, rootMargin: SPY_ROOT_MARGIN, threshold: SPY_THRESHOLD },
     );
     for (const el of elements) observer.observe(el);
     return () => observer.disconnect();

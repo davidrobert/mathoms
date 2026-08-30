@@ -7,6 +7,8 @@ import { useMountedSectionIds } from "@/components/report/hooks/useMountedSectio
 import {
   keepInView,
   mostVisibleId,
+  SPY_ROOT_MARGIN,
+  SPY_THRESHOLD,
   trackRatios,
 } from "@/components/report/hooks/scrollSpy";
 
@@ -106,7 +108,7 @@ export function ReportToc({ groups }: ReportTocProps) {
           }
         }, 80);
       },
-      { rootMargin: "-15% 0% -55% 0%", threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] },
+      { rootMargin: SPY_ROOT_MARGIN, threshold: SPY_THRESHOLD },
     );
 
     const elements = mountedIds
