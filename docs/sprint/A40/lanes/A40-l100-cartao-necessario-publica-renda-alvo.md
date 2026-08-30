@@ -21,6 +21,18 @@ tags: [type/lane, sprint/a40, status/shipped, priority/p0, area/frontend, area/f
 
 ## ✅ Entregue em 2026-08-30 — o defeito procedeu; o remédio prescrito, não
 
+> **Closeout 2026-08-30 (pós-merge `d25f3203`) — 2 achados, ambos meus, corrigidos em #<PR>.**
+> **(a)** `if_projector.py:390` afirmava *"e o `EstrategiaAporteCard` o lê como alvo"* —
+> falso desde este merge, que removeu a leitura. O **argumento sobrevive** (o
+> `MetaIfSublabel` em `S7Stat.tsx` publica o campo como "a renda-alvo declarada"), então
+> o conserto trocou o consumidor nomeado, não a justificativa.
+> **(b)** a tabela §Entregue dizia *"`goals` do E5 tem **18** chaves"* — são **17**, e já
+> eram 17 em `d25f3203`: eu escrevi sem contar. O substantivo ("nenhum aporte")
+> re-mede verdadeiro. Correção também no corpo do PR #1845, por comentário.
+> Camada 1 (`check_closure.py --pr 1845`) veio limpa e sem banner de SUBSTRATO — os
+> dois achados são semânticos, que é exatamente o que ela não lê.
+
+
 O bloco mentiroso **saiu** do cartão (PR #1845). O enunciado mandava o cartão passar
 a ler "o PMT que o motor já calcula" — **esse PMT não existe no relatório**, e a
 medição abaixo é o que trocou o remédio.
@@ -29,7 +41,7 @@ medição abaixo é o que trocou o remédio.
 
 | Fato medido | Consequência para o remédio |
 |---|---|
-| `goals` do E5 tem 18 chaves e **nenhum aporte**. O único produtor de PMT do repo é `goal_service.compute_if_derived` — agregado `Goal`, rota `/plano` | "ler o PMT" exigiria um contrato **Goal→E5 novo**, que não existe |
+| `goals` do E5 tem 17 chaves e **nenhum aporte**. O único produtor de PMT do repo é `goal_service.compute_if_derived` — agregado `Goal`, rota `/plano` | "ler o PMT" exigiria um contrato **Goal→E5 novo**, que não existe |
 | `IFProjector` resolve **prazo** a partir do aporte declarado ([[ADR-373]]), nunca o inverso. No dogfood `aporte_mensal_usado = 0` e `prazo_declarado_anos = None` | nenhum PMT é **computável** nesse workspace: faltam os dois inputs |
 | As "cinco superfícies" que o enunciado dizia carregar o PMT publicam o aporte **declarado** (`aporte_mensal_usado`, `cenarios_conjuge.premissas.aporte_base`) — ambos `0` aqui | a "cadeia do PMT" no relatório **não existia**; existe na rota `/plano`, fora do documento |
 
@@ -71,13 +83,23 @@ Por isso a suíte e2e **nunca exercitou** o defeito, e a baseline visual não mu
 o conserto (antes e depois caem no mesmo empty state). É o modo de falha que o
 próprio docstring do `report-inventory.@critical.spec.ts` nomeia: *"a fixture não tem
 o dado NÃO é justificativa aceitável"*. Enriquecer a `medium` com o bloco `goals`
-real do dogfood é trabalho de outra lane.
+real do dogfood **não tem lane aberta** — órfão declarado em 2026-08-30. Gatilho de
+pickup: a próxima lane que tocar `frontend/tests/e2e/fixtures/reports/medium.json`
+ou que precise que a e2e cubra um campo de `goals`.
 
-**Deferido — o cartão ainda não responde "quanto aportar".** Publicar um PMT de
-verdade no relatório exige contrato `Goal → E5` (`aporte_necessario_mensal_brl`) e
-depende de a família ter declarado horizonte. Não foi aberto ADR: a decisão cabe à
-lane que puxar o contrato, e reservar ID aqui violaria a regra de não reservar
-número ([[ADR-345]]).
+**§Deferimento datado (2026-08-30) — o cartão ainda não responde "quanto aportar".**
+Publicar um PMT de verdade no relatório exige contrato `Goal → E5`
+(`aporte_necessario_mensal_brl`) e depende de a família ter declarado horizonte.
+
+- **Dono:** sem lane aberta — **órfão declarado**, não roteado. O `[[ADR-345]]` que a
+  redação anterior citava é a *regra* de não reservar ID, **não um destino**; contá-lo
+  como rota é o mesmo falso-verde que o `check_closure.py` §152-154 já registra
+  (§Deferimento que apontava para lane inexistente e passou por causa de um wikilink).
+- **Gatilho de pickup:** a primeira lane que abrir o contrato `Goal → E5`, ou o
+  primeiro relatório de workspace com horizonte declarado (`prazo_declarado_anos`
+  não-nulo), em que a ausência do PMT vira visível ao leitor.
+- **Não abrir ADR agora** segue certo: reservar ID sem corpo é vedado (CLAUDE.md
+  §ADRs), e a decisão cabe a quem puxar o contrato.
 
 
 > **Origem:** `F1` da rodada unificada **U3** ([[REPORT-REVIEWS-active]] §r7). Confirmado por
