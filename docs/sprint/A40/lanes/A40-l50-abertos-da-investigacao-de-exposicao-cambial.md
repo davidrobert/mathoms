@@ -415,6 +415,12 @@ na mesma página"* e a reconciliação `tabela_classes.Internacional` × `exposi
 
 ### O que falta, em ordem
 
+> Os itens 1 e 2 **não nasceram aqui**: a [[A40.l63]] §Fechamento item 5 roteou
+> explicitamente para esta lane o seu §4 (`exposicao_cambial.detalhes`) e §7 (a linha
+> que some), por `_moeda_exposicao` e `_sum_caixa_estrangeiro` serem superfície da l50.
+> A l63 está `shipped` e **não executa mais nada** — se não forem feitos aqui, não são
+> feitos.
+
 1. **Independente da churn** — `_detalhes_caixa` publicar `conversao` e parar de emitir
    `saldo_original` em BRL ao lado de `moeda` reinferida.
 2. **Independente** — `_componentes` consultar `conversao.status` em vez da constante
