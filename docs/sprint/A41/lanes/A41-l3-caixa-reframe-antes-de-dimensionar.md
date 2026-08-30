@@ -34,8 +34,8 @@ tags:
 > o LLM devolve alimenta `compute_natural_key`, e o *delete-and-delegate* passaria
 > os cinco critérios **com o churn de identidade intacto** — `use_cache` é `False`
 > por default e `extract_with_llm` não o passa, então rotear pelo choke-point não
-> compra chave estável. O Ato 1 continua sendo o dono do reframe; a [[A42.l17]]
-> não o antecipou (só declarou `temperature` no call-site cru).
+> compra chave estável. A [[A42.l17]] não antecipou o reframe (só declarou
+> `temperature` no call-site cru); o Ato 1 desta lane segue sendo o dono dele.
 
 ## Problema
 

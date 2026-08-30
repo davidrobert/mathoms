@@ -33,7 +33,8 @@ composição descrito na [[ADR-416]].
 relatório; ou como cadência periódica de dogfood. **Não roda** para uma pergunta que
 uma skill sozinha responde — nesse caso invoque a skill.
 
-**Produz:** um `SINTESE.md` unificado (off-git, com valores) e — **num commit só** — três
+**Produz:** a síntese unificada em **dois formatos** — `SINTESE.md` e `SINTESE.html`, ambos
+off-git e com valores — mais o dashboard PII-scrubbed como Artifact, e — **num commit só** — três
 appends de seção, um por registro, mais os arquivos de lane dos P0 com suas linhas no
 `_README` da sprint.
 
@@ -316,9 +317,16 @@ cardinalidade 1.**
 **Ordem obrigatória. Os dois primeiros passos são off-git; o terceiro é o único que
 toca o `main`.**
 
-**1 · Escreva o `SINTESE.md`** em `storage/<uuid>/reviews/U<n>-<data>/SINTESE.md`. É o
-entregável que o §1 declara, e o **único** lugar onde valor, nome próprio e literal
-monetário podem estar. Conteúdo mínimo: vitais do run · a condição declarada **enumerada**
+**1 · Escreva a síntese, nos dois formatos.** Em
+`storage/<uuid>/reviews/U<n>-<data>/`: `SINTESE.md` **e** `SINTESE.html`. É o entregável que
+o §1 declara, e o **único** lugar onde valor, nome próprio e literal monetário podem estar.
+
+> **Os dois, sempre — não "se o volume justificar".** O `.md` é a fonte auditável e diffável;
+> o `.html` é o que se **lê**, e a leitura é o que faz a rodada ser consumida em vez de
+> arquivada. Antes de 2026-08-30 o HTML era condicional, e o resultado medido foi que o `U1`
+> e o `U3` não o tiveram até alguém perguntar por ele — a mesma patologia do próprio
+> `SINTESE.md` antes de a F5 o produzir. Condicional que depende de o executor achar que
+> "o volume justifica" é auto-declarado, e regra auto-declarada não pega (§10, fecho do `U3`). Conteúdo mínimo: vitais do run · a condição declarada **enumerada**
 · as 8 perguntas de produto respondidas · os cross-checks **com valores** · a tabela
 priorizada · a verificação dos fechados da rodada anterior · o índice do diretório cru.
 Marque `sintese: true` no `_state.json`.
@@ -366,10 +374,16 @@ skills). Os furos que são de uma skill vão para o §Débito de método do MOC 
 
 ### F7 — Fecho (git-free)
 
-Resuma no chat, PII-scrubbed. Se o volume justificar, gere um dashboard navegável
-como Artifact, sempre PII-scrubbed. Congele o diretório cru como baseline do próximo
-`--compare`. **Nada aqui toca o git** — se você chegou na F7 com escrita pendente, a F5
-não fechou.
+Resuma no chat, PII-scrubbed. **Publique o dashboard como Artifact** — derivado do
+`SINTESE.html` da F5, **sempre PII-scrubbed**: sem valor monetário, sem nome próprio, sem
+identificador de posição; âncora é código de achado. Congele o diretório cru como baseline do
+próximo `--compare`. **Nada aqui toca o git** — se você chegou na F7 com escrita pendente, a
+F5 não fechou.
+
+> **Dois artefatos, dois regimes de dado, e a distinção não é opcional.** O `SINTESE.html`
+> mora em `storage/` e carrega os valores; o Artifact é hospedado e carrega só a estrutura do
+> achado. Publicar o primeiro seria vazar o workspace; não publicar o segundo é entregar uma
+> rodada que ninguém lê.
 
 #### Critério de aceite da rodada
 
@@ -379,7 +393,8 @@ verifica — caixa auto-declarada sem verificador é a doença que a rodada pers
 | | critério | verifica-se com |
 |---|---|---|
 | ☐ | Run `completed` — **nunca** `partial_failure` | status no DB |
-| ☐ | `SINTESE.md` escrito | `ls storage/<uuid>/reviews/U<n>-<data>/SINTESE.md` — e o §8 o cita |
+| ☐ | `SINTESE.md` **e** `SINTESE.html` escritos | `check_sintese_anterior` do preflight audita os **dois** na rodada seguinte |
+| ☐ | Dashboard publicado como Artifact, PII-scrubbed | a URL vai no resumo do chat |
 | ☐ | Matriz 7×3 sem célula silenciosa | célula vazia tem motivo escrito |
 | ☐ | Toda linha com `registro` e cardinalidade 1 | §6 |
 | ☐ | Taxa de `REFUTADO` > 0 | placar dos céticos |
