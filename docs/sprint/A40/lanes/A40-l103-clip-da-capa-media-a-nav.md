@@ -113,9 +113,12 @@ contra `main` neste closeout:
 | Encolher o ativo | **Número corrigido** — eram 30 PNGs / 3,1 MB, não 29 / 3,2 MB |
 | Update de baseline de print grava e retorna verde | **Confirmado** — `print.@critical.spec.ts:154` faz `writeFileSync` + `return` antes de qualquer `comparePngs`; e o mesmo ramo cobre `!existsSync(BASELINE_PATH)`, então **baseline ausente também passa** |
 
-**Nenhum dos 5 tem dono nomeado** — vivem nesta tabela, não numa lane `open`.
-É deliberado (lane-inventário mente para o consumidor de máquina), e é a
-ressalva do closeout: pegá-los é decisão do dono.
+**Nenhum dos 5 tem dono nomeado**, e por isso não ficam só aqui: foram
+hospedados em [[PLAN-report-trust]] §"Deferimentos do closeout da [[A40.l103]] —
+2026-08-30", que está `in_progress` e é a superfície viva da classe. Lane `open`
+sem agente seria pior — mente para quem lê `status` como "pegável agora" — e a
+[[ADR-370]] não serve de hospedeira por estar `Decidido`. Pegá-los continua
+sendo decisão do dono; o §Gatilho de descorte lá diz o que os promove.
 
 ## Critério de aceite
 
