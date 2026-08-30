@@ -33,8 +33,15 @@ composição descrito na [[ADR-416]].
 relatório; ou como cadência periódica de dogfood. **Não roda** para uma pergunta que
 uma skill sozinha responde — nesse caso invoque a skill.
 
-**Produz:** um `SINTESE.md` unificado (off-git, com valores), um working em
-`_scratch/`, e três appends de seção — um por registro — num commit só.
+**Produz:** um `SINTESE.md` unificado (off-git, com valores) e — **num commit só** — três
+appends de seção, um por registro, mais os arquivos de lane dos P0 com suas linhas no
+`_README` da sprint.
+
+> O *"working em `_scratch/`"* saiu desta lista em 2026-08-30: `rg -c '_scratch' <este
+> arquivo>` devolvia **1**, a própria declaração. Nenhuma fase o produzia, nenhuma o lia,
+> nenhum critério o checava — era o emissor-sem-leitor que esta rodada persegue no produto,
+> dentro do próprio runbook. Trabalho intermediário em `_scratch/` continua permitido; o que
+> saiu foi a promessa de entregá-lo.
 
 **Pré-condições:** todas as linhas `FAIL` do §5 F0 zeradas.
 
@@ -60,9 +67,15 @@ Se você está retomando uma rodada interrompida:
   seus `procede-aberto`, nunca os do vizinho.
 - **Não substitui as três skills** — elas seguem executáveis isoladamente.
 - **Não escreve achado de instância no git** ([[ADR-343]]): valor, nome próprio e
-  literal monetário ficam off-git.
+  literal monetário ficam off-git. **Exceção única, declarada:** o arquivo de lane que a F5
+  escreve carrega **magnitude derivada** (pontos percentuais, razão, contagem) e âncora
+  (`campo.dot.path`, `arquivo:linha`) — sem isso a lane nasce inacionável e a sessão que a
+  pega tem de refazer a medição. Literal monetário e nome próprio seguem **proibidos** ali.
 - **Não implementa.** É análise: nenhum fix, nenhum PR de correção sai daqui. O
-  entregável é diagnóstico priorizado e candidatos a lane.
+  entregável é diagnóstico priorizado e **lanes abertas e vazias** — a F5 aloca o id e
+  escreve o arquivo, e a execução é de outra sessão. Alocar id **não é implementar**: é o
+  que impede sessões paralelas de colidirem no mesmo id, que foi o que quase aconteceu no
+  `U2` (seis sessões, três alocariam o mesmo).
 - **Não certifica a ingestão E0→E2.** Esse é o **piso** da corrente, e a
   `ledger-certify` assume E2 correto. Achado abaixo do piso é roteado para
   [[PARSE-CERTIFY-active]]; se a rodada rotear ≥1, considere `parse-certify` avulsa.
@@ -81,15 +94,31 @@ Arquivo único, no diretório cru da rodada:
   "fired_at": null,
   "phases": {"F0": "done", "F1": "done", "F2": "running"},
   "codes_allocated": {"LC": 13, "PV": 0, "RR": 0},
-  "appends": {"LEDGER": false, "PIPELINE": false, "REPORT": false}
+  "lanes_alocadas": {"A40.l94": "RR6-01", "A42.l14": "LC6-01"},
+  "sintese": false,
+  "commit_unico": {"LEDGER": false, "PIPELINE": false, "REPORT": false,
+                   "LEDGER_U": false, "DEBITO": false, "LANES": false, "SPRINT_GATE": false}
 }
 ```
 
 **Regra write-ahead (a única que não pode sair errada):** grave `fired_at` **antes**
 de disparar. O `run_id` não existe nesse instante — o trigger o cunha —, então grave-o
 imediatamente **depois**, e deixe a retomada resolver a janela pelo `started_at`
-(§2 item 2). A intenção precede o efeito; a retomada lê a **intenção**, nunca o efeito. F5 é a **única** fase que toca o git e é a **última** — os três appends
-num commit só, para a rodada nunca existir pela metade em `main`.
+(§2 item 2). A intenção precede o efeito; a retomada lê a **intenção**, nunca o efeito.
+
+**A rodada toca o `main` UMA VEZ.** Um só commit carrega os três appends do §8, a linha do
+§9, o débito do §10, e — quando a rodada abre P0 — os arquivos de lane e as linhas do
+`_README` da sprint. Nenhuma fase escreve fora dele, **para a rodada nunca existir pela
+metade em `main`**.
+
+> **Enunciado pelo commit, não pela fase, e a diferença foi medida.** Até 2026-08-30 este
+> parágrafo dizia *"F5 é a única fase que toca o git"* — e isso **já era falso**:
+> `git show 47970706 --stat` mostra o commit da F5 do `U2` tocando também o runbook, que é
+> **F6**. O invariante que importa sempre foi a **atomicidade do commit**; amarrá-lo a um
+> nome de fase o tornava falso a cada fase nova que precisasse escrever, e foi exatamente
+> assim que a escrituração de sprint nasceu num segundo commit, **2h25** depois
+> (`47970706` 12:48 → `7470aa91` 15:13), deixando o `main` com uma rodada que declarava 6 P0
+> sem uma única lane. Re-medir: `git show <merge> --stat`.
 
 ## 5. Fases
 
@@ -115,7 +144,7 @@ no cabeçalho do entregável. Os dois `WARN` que mudam o que se pode afirmar:
 
 **Ação:** reserve o próximo `U<n>` **no `_state.json`** (menção em prosa não reserva).
 A linha do ledger do §9 é git, e por isso entra só na F5 junto com os três appends —
-reservar em dois lugares e fases é o preço de a F5 ser a única fase que toca o git.
+reservar em dois lugares e fases é o preço de a rodada tocar o `main` uma vez só.
 
 Crie `storage/<uuid>/reviews/U<n>-<data>/`, **sem** o `run8`: ele não existe na F1, e
 renomear o diretório na F2 quebraria o path que a §2 manda ler na retomada. O `run8`
@@ -282,22 +311,101 @@ cobertura com motivo escrito. Célula vazia e silenciosa reprova a fase.
 Depois, roteie cada linha pelo §6. **Toda linha sai com `registro` preenchido e
 cardinalidade 1.**
 
-### F5 — Três appends, um commit
+### F5 — O entregável, a escrituração, e **um commit só**
 
-A **única** fase que toca o git, e a última. Escreva as três seções no formato do §8,
-adicione as linhas ao ledger do §9, e **commite os três juntos**. Atualize `appends`
-no `_state.json` só depois do commit.
+**Ordem obrigatória. Os dois primeiros passos são off-git; o terceiro é o único que
+toca o `main`.**
+
+**1 · Escreva o `SINTESE.md`** em `storage/<uuid>/reviews/U<n>-<data>/SINTESE.md`. É o
+entregável que o §1 declara, e o **único** lugar onde valor, nome próprio e literal
+monetário podem estar. Conteúdo mínimo: vitais do run · a condição declarada **enumerada**
+· as 8 perguntas de produto respondidas · os cross-checks **com valores** · a tabela
+priorizada · a verificação dos fechados da rodada anterior · o índice do diretório cru.
+Marque `sintese: true` no `_state.json`.
+
+> **Por que ele vem primeiro.** As três seções git são o **recorte PII-scrubbed** dele.
+> Escrever o recorte antes do todo convida a inventar o todo depois — e foi o que aconteceu:
+> no `U2` o `SINTESE.md` só nasceu quando o dono perguntou *"onde está o relatório?"*, horas
+> após o commit. O `U1` o escreveu; o `U2` não, **e a diferença foi acaso, não processo**,
+> porque nenhuma fase o pedia. O §8 agora aponta para o **arquivo**, não para o diretório:
+> quem pula commita afirmação falsa em três MOCs, verificável com `ls`.
+
+**2 · Escriture o que a rodada faz com a sprint** — só se a rodada abriu P0:
+
+- **Aloque os ids de lane**, gravando-os em `lanes_alocadas` no `_state.json` (mesmo padrão
+  do `codes_allocated`), e **escreva os arquivos de lane + a linha na tabela do `_README`**.
+  Menção em prosa não reserva. Sem a linha na tabela o `dev/check_lane_transition.py`
+  recusa o commit e a lane fica invisível ao encerramento administrativo.
+- **Registre o efeito no gate de saída da sprint**, no `_README` da sprint — nomeie
+  **arquivo e seção**, não uma relação. Sprint cujo gate exige *"N re-runs consecutivos sem
+  P0/P1 novo"* tem o contador **zerado** por esta rodada, que é por construção um re-run
+  completo. Verifique também a **cláusula de reinício**, se houver: achado que muta E3/E5 a
+  montante de todo run entra nela e empurra o início do contador.
+- **Se decidir não alocar**, escreva a recusa no **cabeçalho das três seções do §8**, na
+  linha `Escrituração:` — é o único endereço que existe, e sem ele a válvula é satisfazível
+  por silêncio.
+- **Não aloque número de ADR.** É o outro id global monotônico e ele colide entre sessões
+  paralelas (medido: `ADR-420`, `421` e `422` nasceram no mesmo dia, em três commits, pelas
+  sessões que o `U2` despachou). A alocação é da sessão que executa a lane; a linha do
+  append **não cita número de ADR**.
+
+**3 · Um commit só.** Três seções (§8) + linha do ledger (§9) + débito de método (§10) +
+arquivos de lane + linhas do `_README`. Rode `python3 dev/build_doc_index.py` **antes** do
+`--check` do §11 — a lane nova churna `_generated/`. Atualize `commit_unico` no
+`_state.json` **depois** do commit.
+
+> **A escrituração mora aqui, e não numa fase posterior, por medição.** No `U2` ela virou um
+> segundo commit 2h25 depois, sem estado durável e sem regra de reversão; a §2 não sabia
+> retomá-la, e as seis lanes chegaram aos appends por **backfill** (`#1829`, `#1831`,
+> `#1832`, `#1833`), reeditando snapshot datado que o próprio `LC6-01` declara evidência.
 
 ### F6 — Débito de método
 
 Registre no §10 os furos do **encadeamento** (os que não são de nenhuma das três
 skills). Os furos que são de uma skill vão para o §Débito de método do MOC dela.
 
-### F7 — Fecho
+### F7 — Fecho (git-free)
 
 Resuma no chat, PII-scrubbed. Se o volume justificar, gere um dashboard navegável
 como Artifact, sempre PII-scrubbed. Congele o diretório cru como baseline do próximo
-`--compare`.
+`--compare`. **Nada aqui toca o git** — se você chegou na F7 com escrita pendente, a F5
+não fechou.
+
+#### Critério de aceite da rodada
+
+**Esta é a fonte**; a `SKILL.md` resume e aponta para cá. Cada caixa nomeia o que a
+verifica — caixa auto-declarada sem verificador é a doença que a rodada persegue.
+
+| | critério | verifica-se com |
+|---|---|---|
+| ☐ | Run `completed` — **nunca** `partial_failure` | status no DB |
+| ☐ | `SINTESE.md` escrito | `ls storage/<uuid>/reviews/U<n>-<data>/SINTESE.md` — e o §8 o cita |
+| ☐ | Matriz 7×3 sem célula silenciosa | célula vazia tem motivo escrito |
+| ☐ | Toda linha com `registro` e cardinalidade 1 | §6 |
+| ☐ | Taxa de `REFUTADO` > 0 | placar dos céticos |
+| ☐ | ≥1 claim pivotal fechado por medição | mesmo que derrube achado da rodada |
+| ☐ | Zero literal monetário e zero nome próprio nas três seções | leitura humana |
+| ☐ | Débito de método registrado no §10 | — |
+| ☐ | Escrituração feita **ou** recusa escrita na linha `Escrituração:` do §8 | `n/a` se a rodada não abriu P0 |
+
+**E as oito regras que o `U2` produziu no §10 são critério, não prosa** — a versão anterior
+desta lista as deixava de fora, e por isso teria aprovado a rodada que as pariu, com os seis
+auto-defeitos dentro:
+
+| | regra do §10 (2026-08-29) |
+|---|---|
+| ☐ | Todo check de presença/ausência **importa o nome do produtor** ou publica controle positivo que dispara |
+| ☐ | Todo cross-check publica `n_comparado` **e** `n_esperado`; zero ⇒ `INAPLICÁVEL`, nunca ✅ |
+| ☐ | Instrumento rebaixado marca as linhas dele `STALE` e a F3.c **recusa** rodar com `STALE` na entrada |
+| ☐ | Célula da matriz distingue `reivindicada` de `respondida`; reprova em `reivindicada ∧ ¬respondida` |
+| ☐ | A lista de fechados vem do `git log <executor_anterior>..<executor_deste_run>`, **não do MOC** |
+| ☐ | Carimbo `sem-veredito` é **ternário**, decidido pela whitelist de lineage |
+| ☐ | Antes de re-triar achado herdado, `rg` a dimensão nas lanes da sprint |
+| ☐ | Varredura de superfície no grão de **componente**, não de seção |
+
+**Toda medição publicada no runbook traz o comando que a reproduz** (§10, `U1` item 4).
+Blockquote sem comando é afirmação que a próxima rodada não pode falsificar — e no `U2` foi
+assim que quatro afirmações falsas entraram neste arquivo.
 
 ## 6. Roteamento de achado
 
@@ -356,7 +464,8 @@ Cabeçalho idêntico nas três seções, mudando só qual `§rN` é "este":
 
 > Rodada unificada **U<n>** · [[LEDGER-CERTIFY-active]] §r<a> · [[PIPELINE-REVIEWS-active]] §r<b> · [[REPORT-REVIEWS-active]] §r<c> (este).
 > Run `<run8>` · executor `<sha8>` · preflight: <n> WARN declarados.
-> Cru + síntese com valores: storage/<uuid>/reviews/U<n>-<data>/ (off-git).
+> Cru + síntese com valores: storage/<uuid>/reviews/U<n>-<data>/SINTESE.md (off-git).
+> Escrituração: <lanes alocadas, ou a recusa e o motivo, ou `n/a — rodada sem P0`>.
 > Cobertura: matriz 7×3 — <n> células sem cobertura, com motivo.
 
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
@@ -366,10 +475,24 @@ Cabeçalho idêntico nas três seções, mudando só qual `§rN` é "este":
 O título `## rN — …` **não** muda de forma: é âncora durável e é o que as skills
 leem para re-triar.
 
+**Duas colunas que o runbook não definia:**
+
+- **`Trilha`** — o id da lane que executa o achado, ou `sem lane — <motivo>`. Preenchida no
+  commit único da F5; até 2026-08-30 ela não tinha definição aqui (só em
+  [[LEDGER-CERTIFY-active]]) e no `U2` as seis lanes chegaram por backfill.
+- **`Escrituração:`** no cabeçalho — o endereço da recusa da F5 passo 2. Sem ele a válvula
+  *"ou declare que não vai"* não tinha onde ser declarada, e um gate satisfazível por
+  silêncio é o que a rodada caça no produto.
+
 ## 9. Ledger de rodadas unificadas
 
 Allocator de `U<n>` — escrever a linha **é** reservar. Não é registro: não tria, não
 tem disposição, não tem cobertura.
+
+A coluna `PR` recebe o **número** no fecho — `(esta PR)` apodrece assim que a PR mergeia, e
+com a rodada num commit só ela volta a ter um referente único. `Estado ∈ {fechada, fechada
+com ressalva (<caixas do §5 F7 que não fecharam>)}`: o `U2` foi registrado `fechada`
+reprovando ≥2 caixas, porque o vocabulário não tinha o segundo valor.
 
 | U | Data | ws8 | run8 | Seções | PR | Estado |
 |---|---|---|---|---|---|---|
@@ -515,12 +638,18 @@ o MOC dela.
 ## 11. Gates antes do commit
 
 ```bash
+python3 dev/build_doc_index.py          # REGENERA — a lane nova churna _generated/
 python3 dev/validate_frontmatter.py
 python3 dev/check_doc_filename_id.py
 python3 dev/check_doc_links.py
-python3 dev/build_doc_index.py --check
+python3 dev/build_doc_index.py --check  # só agora o verificador
 pre-commit run --all-files
 ```
+
+Quando a F5 escreve lane, **três gates específicos a julgam** e vale conhecê-los antes de
+apanhar deles: `dev/check_lane_transition.py` (exige linha na tabela do `_README` — foi o
+que recusou o commit no `U2`), `dev/check_lane_status_predicate.py` (o `status` deriva de
+`depends_on`) e o `doc-fk` (as arestas de frontmatter resolvem).
 
 E a leitura humana que nenhum gate faz: **zero literal monetário, zero nome próprio**
 nas três seções; âncora é `campo.dot.path` ou `arquivo:linha`, nunca um valor; o
@@ -537,3 +666,7 @@ título do achado é um **defeito**, não um dado.
   [`pipeline-review`](../../../.claude/skills/pipeline-review/SKILL.md) ·
   [`report-review`](../../../.claude/skills/report-review/SKILL.md).
 - Preflight: [`dev/preflight_unified_review.py`](../../../dev/preflight_unified_review.py).
+- Forma do que a F5 escreve: `docs/_schemas/note-lane.schema.json` (frontmatter da lane) ·
+  `docs/sprint/<X>/_README.md` (tabela + gate de saída) ·
+  [`dev/lane_pickup.py`](../../../dev/lane_pickup.py) ·
+  [`dev/check_lane_transition.py`](../../../dev/check_lane_transition.py).

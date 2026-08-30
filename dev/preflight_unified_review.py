@@ -66,6 +66,9 @@ FIX_ATRAS_FORA_DE_MAIN = (
 )
 FIX_ADIANTE = "rodar sobre codigo nao-mergeado pode ser a decisao certa; declare o executor no entregavel (licao do §r6)"
 FIX_SUJO = "trabalho de outra sessao? git stash push -- <arquivos>"
+FIX_SINTESE_AUSENTE = (
+    "escreva o SINTESE.md da rodada anterior (runbook §5 F5) — sem ele nao ha baseline"
+)
 
 
 @dataclass(frozen=True)
@@ -346,6 +349,17 @@ def _storage_root(root: Path) -> Path:
     return Path(os.environ.get("MATHOMS_STORAGE_ROOT") or root / "storage")
 
 
+# Unico item do criterio de aceite (§5 F7) que nao e auto-declarado: a rodada N+1 audita a N.
+def check_sintese_anterior(root: Path, ws: str) -> Check:
+    """Rodada unificada anterior sem `SINTESE.md` bloqueia esta."""
+    dirs = sorted((_storage_root(root) / ws / "reviews").glob("U*"))
+    faltando = [d.name for d in dirs if not (d / "SINTESE.md").exists()]
+    if faltando:
+        detalhe = f"rodada(s) sem SINTESE.md: {', '.join(faltando)}"
+        return Check("sintese-anterior", FAIL, detalhe, FIX_SINTESE_AUSENTE)
+    return Check("sintese-anterior", PASS, f"{len(dirs)} rodada(s) com SINTESE.md")
+
+
 def check_baselines(root: Path, ws: str) -> Check:
     raiz = _storage_root(root)
     reviews = sorted((raiz / ws / "reviews").glob("*")) if (raiz / ws / "reviews").exists() else []
@@ -433,6 +447,7 @@ def _checks_de_workspace(db, ws: str, root: Path) -> list[Check]:
         check_run_em_voo(db, ws),
         check_par_completed_pending(db),
         check_budget(db, ws),
+        check_sintese_anterior(root, ws),
         check_baselines(root, ws),
     ]
 
