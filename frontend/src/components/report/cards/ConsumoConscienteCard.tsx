@@ -36,9 +36,11 @@ function KpiTerm({ children }: { readonly children: ReactNode }) {
  *   segue full-period"). Mesma base da prosa do E5, que também fala do período
  *   completo — o card fica internamente coerente.
  * - Equivalente em meses de poupança → janela ([[ADR-422]]): é
- *   `total_pontuais_janela ÷ folga mensal`, e os dois estão no card, então o
- *   leitor reproduz a conta. Media contra o aporte DECLARADO sobre o estoque
- *   full-period: duas bases, denominador editável pelo usuário.
+ *   `total_pontuais_janela ÷ folga mensal`. ⚠️ **O leitor NÃO reproduz a conta**:
+ *   `total_pontuais_janela` não é renderizado em lugar nenhum, e o KPI de pontuais
+ *   ao lado é o acumulado FULL (D6). Exibir o da janela é a lane [[A40.l15]].
+ *   Media contra o aporte DECLARADO sobre o estoque full-period: duas bases,
+ *   denominador editável pelo usuário.
  * - Folga mensal → janela canônica (D1), que é de onde o E5 a deriva. Rótulo
  *   lido do campo `janela`; ausente ⇒ sem rótulo inventado. Ela é a taxa de
  *   poupança da janela ([[ADR-422]]) — o hero imprime o mesmo veredito em

@@ -165,11 +165,18 @@ definições disjuntas de "gasto pontual" em produção:
 | `consumo_pontuais.py::_is_pontual` (a **lista** do card) | transferência interna detectada + 3 categorias |
 | `ConsumoConscienteCalculator._collect_candidates` (o **KPI**) | nenhum dos dois |
 
-Sob a fórmula anterior essa contaminação era **fatal**, porque entrava numa
-prescrição. Sob D1 ela degrada apenas números **descritivos** (o inventário e o
-equivalente) e não alcança folga nem teto — o teto não existe mais. Por isso a
-ordem é esta e não a inversa, e por isso o conserto da base é lane própria, com
+Sob a fórmula anterior essa contaminação era **fatal**, porque entrava na prescrição
+**determinística**. Sob D1 ela não alcança mais folga nem teto — o teto não existe mais.
+Por isso a ordem é esta e não a inversa, e por isso o conserto da base é lane própria, com
 delta atribuível a uma causa só.
+
+> **Precisão 2026-08-30 (closeout).** Uma versão anterior deste parágrafo dizia que a
+> contaminação passa a degradar *"apenas números descritivos"*. É largo demais: o
+> **parecer** segue recebendo `total_pontuais` e `total_pontuais_janela` no exec context
+> (`parecer_planejador.yaml`) e emite com eles o risco *"gastos pontuais elevados sem
+> política de consumo consciente formalizada"* — que **é** prescrição, ancorada 3× no
+> campo contaminado. O que D1 garante é que nenhuma prescrição **determinística** a
+> consome; a prescrição do LLM ainda consome. Dono: [[A40.l97]].
 
 **Não** foi emitido campo novo para o ritmo do pontual (`pontual_mensal` — nome da
 [[A40.l15]], que precede o `provisao_pontual_mensal` do co-design e prevalece por ser

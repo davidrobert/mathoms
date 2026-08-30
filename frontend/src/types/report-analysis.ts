@@ -327,9 +327,9 @@ export interface ConsumoConscienteData {
   /** ADR-306 (A40.l3) — total de pontuais **dentro da janela**. Desde a
    * [[ADR-422]] ele NÃO entra em `folga_mensal` (que é
    * `receita_recorrente_mensal − despesa_consumo_mensal`): é o **numerador** de
-   * `equivalente_meses_poupanca`, e junto com a folga é o par que permite ao
-   * leitor reproduzir esse KPI. **Sem consumidor próprio no frontend por ora**:
-   * exibi-lo como KPI é a lane A40.l15. */
+   * `equivalente_meses_poupanca`. **Não é renderizado** — o card imprime
+   * `total_pontuais` (full) ao lado do equivalente, logo o leitor NÃO consegue
+   * reproduzir esse KPI hoje. Exibi-lo é a lane A40.l15. */
   total_pontuais_janela?: number;
   /** ADR-306 D2 — rótulo da janela ("12m" | "full"). */
   janela?: string;

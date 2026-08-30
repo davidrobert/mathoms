@@ -372,8 +372,9 @@ propriedade do instrumento. E o docstring de `_e2e3_verdict` declara essa ordem 
 | LC5-01 · LC5-02 · LC5-03 · LC5-06 · LC5-09 (§r5) | — | — | — | **reproduzidos neste run, sem alteração** | procede-aberto | numerador KR-B **7**, `carrier-shaped 7/7`, classe única `banco=<instituição>\|tipo_conta=extrato\|titular=parcial` · `layer_ok=true` **com PONTO CEGO impresso** · 31 grupos com prefixo de banco vazio · 4 baldes rebaixados por override LC05 |
 | LC5-04 · LC5-05 · LC5-07 · LC5-08 (§r5) | — | — | — | **procede-aberto (não re-medidos)** | registrado para não decaírem em silêncio | — |
 
-**Roteamento de 2026-08-30.** As linhas abertas do §r6 estavam sem dono e sem link — a regra
-deste arquivo exige gatilho para `procede-aberto`, e cinco delas não tinham. Sem reescrever a
+**Roteamento de 2026-08-30.** Das sete linhas `procede-aberto` do §r6, **quatro** (`LC6-04` a
+`LC6-07`) estavam sem dono e sem link — a regra deste arquivo exige gatilho. `LC6-01`/`LC6-02` já
+tinham rota para a A42 e `LC6-03` já tinha gatilho na [[ADR-321]]. Sem reescrever a
 tabela (é evidência datada, [[ADR-343]]):
 
 | linha | dono | nota |

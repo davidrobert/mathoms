@@ -45,10 +45,13 @@ na Wise — **57,5% da base** é movimentação patrimonial, toda caída em `nao
 porque o detector não a pegou. E `aporte_investimento` é R$ 190.000 de `total_pontuais`
 (20,6%), que o parecer cita como âncora do risco "gastos pontuais elevados".
 
-> A [[ADR-422]] tirou essa contaminação de toda superfície que **prescreve** (a folga não
-> lê mais pontuais, e o teto deixou de existir). O que resta contaminado é **descritivo**:
-> o inventário, a prosa e o `equivalente_meses_poupanca`. É por isso que esta lane é P1 e
-> não P0 — ver [[ADR-422]] §"O que esta ADR NÃO conserta".
+> A [[ADR-422]] tirou essa contaminação das prescrições **determinísticas** — a folga não lê
+> mais pontuais e o teto deixou de existir. **Mas o parecer ainda a consome:** o exec context
+> projeta `total_pontuais` e `total_pontuais_janela` (`parecer_planejador.yaml`), e o modelo
+> emite com eles o risco *"gastos pontuais elevados"*, ancorado 3× no campo. Além disso o
+> inventário, a prosa e o `equivalente_meses_poupanca` seguem contaminados.
+> É P1 e não P0 porque nenhum número **determinístico** publicado se move com ela — não
+> porque a contaminação tenha deixado de alcançar conselho.
 
 ## Escopo — os três itens deferidos pela [[A40.l94]]
 
@@ -57,8 +60,8 @@ porque o detector não a pegou. E `aporte_investimento` é R$ 190.000 de `total_
 2. **`nao_identificado` não entra em número que prescreve** — regra de domínio **decidida no
    co-design da [[A40.l94]] e não implementada**. Fica no inventário, com o residual impresso
    (contagem + valor), o que de quebra vira porta de entrada do Categorization Learning Loop.
-   ⚠️ Esta regra existe hoje em **um único sítio** (este). Se a lane for cancelada sem
-   reencaminhá-la, a decisão some.
+   ⚠️ A regra existe **só em doc** — aqui e na [[A40.l94]] §Deferimento item 2 —, **nunca em
+   código**. Cancelar as duas sem reencaminhá-la faz a decisão sumir.
 3. **`pontual_mensal`** (o ritmo do pontual) entra **junto com a base limpa**. Nome canônico é
    o da [[A40.l15]], que precede o `provisao_pontual_mensal` do co-design — ver [[ADR-422]].
    Publicá-lo antes da base imprimiria número 57,5% movimentação; emiti-lo sem leitor criaria

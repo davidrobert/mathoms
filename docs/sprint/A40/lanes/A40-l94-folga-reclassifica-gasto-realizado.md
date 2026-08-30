@@ -168,8 +168,9 @@ descobriu.
 Mergeada em `main` como `05561dc0` ([#1828](https://github.com/davidrobert/mathoms/pull/1828)),
 10/10 checks obrigatórios verdes. A [[ADR-422]] passou a `Decidido` no closeout.
 
-**Pendência que NÃO é trabalho de lane:** a baseline de pixel do PDF ficou stale (19.503px
-contra tolerância de 500) porque o card perdeu um KPI. Não bloqueia — `print.@critical` é
+**Pendência roteada — dono: [[A40.l46]]** (lane `open`, já dona da classe "baseline de print
+não provada"): a baseline de pixel do PDF ficou stale (19.503px contra tolerância de 500)
+porque o card perdeu um KPI. Não bloqueia — `print.@critical` é
 exclusão nominal do gate de merge, e `print-chrome`/`print-text`, que medem **conteúdo**,
 seguem dentro e passam. Regeneração é `workflow_dispatch` com `run_print=true` +
 `UPDATE_PRINT_BASELINE=1`, disparo do dono. Não rebaselinado local por decisão registrada:
