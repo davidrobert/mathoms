@@ -36,11 +36,12 @@ function KpiTerm({ children }: { readonly children: ReactNode }) {
  *   segue full-period"). Mesma base da prosa do E5, que também fala do período
  *   completo — o card fica internamente coerente.
  * - Equivalente em meses de poupança → janela ([[ADR-422]]): é
- *   `total_pontuais_janela ÷ folga mensal`. ⚠️ **O leitor NÃO reproduz a conta**:
- *   `total_pontuais_janela` não é renderizado em lugar nenhum, e o KPI de pontuais
- *   ao lado é o acumulado FULL (D6). Exibir o da janela é a lane [[A40.l15]].
- *   Media contra o aporte DECLARADO sobre o estoque full-period: duas bases,
- *   denominador editável pelo usuário.
+ *   `total_pontuais_janela ÷ folga mensal publicada`. ⚠️ **O leitor NÃO reproduz a
+ *   conta**: `total_pontuais_janela` não é renderizado em lugar nenhum, e o KPI de
+ *   pontuais ao lado é o acumulado FULL (D6). Exibir o da janela é a lane
+ *   [[A40.l15]]. **`null` fora do domínio de definição** (folga publicada
+ *   não-positiva) — o `?? "—"` abaixo existe para isso, e a prosa do E5 declara o
+ *   motivo ([[ADR-422]] §Emenda 2026-08-30 · A40.l101).
  * - Folga mensal → janela canônica (D1), que é de onde o E5 a deriva. Rótulo
  *   lido do campo `janela`; ausente ⇒ sem rótulo inventado. Ela é a taxa de
  *   poupança da janela ([[ADR-422]]) — o hero imprime o mesmo veredito em
@@ -89,7 +90,9 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
   );
 }
 
-function formatPct(value: number | string | undefined): string {
+/** `null` desde a A40.l101: sem receita recorrente na janela o produtor não
+ * publica o percentual — `0%` afirmava "empatou" para quem queimou caixa. */
+function formatPct(value: number | string | null | undefined): string {
   const n = typeof value === "string" ? Number(value) : value;
   return n != null && Number.isFinite(n) ? `${n.toFixed(0)}%` : "—";
 }
