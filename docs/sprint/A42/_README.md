@@ -224,16 +224,23 @@ mais barata de Goodhart num plano.
 > `7215daf3` (#1209), com 12 lanes na mesa e 2 slots de folga. Não o reescreva: ele
 > registra a decisão de capacidade como ela foi tomada.
 
-**Estado da capacidade — 2026-08-30.** A sprint tem **16 lanes**: o `## Lanes (17)` acima,
-16 linhas na tabela e 16 arquivos em `docs/sprint/A42/lanes/` — os três substratos
-concordam, e o `check_lane_counter` do `lane-closeout` só compara esses três. **O teto de
-14 está excedido em 2, e o rompimento nunca foi decidido:** as quatro lanes acima de 12
-entraram uma a uma, em PRs distintos, sem que o parágrafo acima fosse relido.
+**Estado da capacidade — 2026-08-30 (re-medido no closeout da [[A42.l17]]).** A sprint tem
+**17 lanes**: o `## Lanes (17)` acima, 17 linhas na tabela e 17 arquivos em
+`docs/sprint/A42/lanes/` — os três substratos concordam, e o `check_lane_counter` do
+`lane-closeout` só compara esses três. **O teto de 14 está excedido em 3, e o rompimento
+nunca foi decidido:** as cinco lanes acima de 12 entraram uma a uma, em PRs distintos, sem
+que o parágrafo acima fosse relido.
+
+> **Por que o número estava em 16.** Este parágrafo nasceu correto no #1842 e ficou falso
+> no #1843, que criou a [[A42.l17]] sem reler a contagem — o mesmo modo de falha que ele
+> próprio denuncia, uma volta depois. A frase afirmava três substratos "concordam" em 16
+> quando os três estavam em 17: o predicado sobrevivia, o número não.
 
 | Lane | Entrou | Por quê | PR |
 |---|---|---|---|
 | [[A42.l13]] — completude por ficha | 2026-08-21 | a [[ADR-266]] foi falsificada por emenda datada e o predicado substituto precisava de casa. **Reusa o id da 13ª promovida** — ver §Lanes promovidas | #1624 (lane) · #1747 (linha na tabela) |
 | [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 |
+| [[A42.l17]] | 2026-08-30 | P0 da rodada `U3` (`LC7-01`) — [[LEDGER-CERTIFY-active]] §r7 | #1843 (lane) · #1846 (entrega) |
 
 **Nenhuma das quatro é padding** — que é o único abuso que o teto existia para impedir.
 Mas o teto foi decidido contra outra evidência — *"nenhuma sprint acima de ~11 lanes
@@ -510,9 +517,9 @@ número é o que produz resíduo em prosa. Próxima lane desta sprint é a l14.
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
 sprints `current` são hard fail em `build_doc_index.py --check`, e as lanes desta sprint
 nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]]. (A contagem
-vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das 16
+vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das **17**
 seguem `planned`; [[A42.l7]] está `open`, [[A42.l14]]/[[A42.l15]] `in_progress`,
-[[A42.l16]] `shipped`.)
+[[A42.l16]]/[[A42.l17]] `shipped`.)
 
 **Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
 dentro da A40?" foi avaliada e **recusada** (§Por que esta sprint existe, agora com o
