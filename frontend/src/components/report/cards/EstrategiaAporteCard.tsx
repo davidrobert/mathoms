@@ -25,7 +25,6 @@ export interface EstrategiaAporteData {
 interface EstrategiaAporteCardProps {
   estrategia?: EstrategiaAporteData;
   /** Fallback: cenários IF (legado) */
-  goals?: Record<string, unknown>;
   cenarios?: { aportes?: number[]; labels?: string[] };
 }
 
@@ -35,7 +34,6 @@ interface EstrategiaAporteCardProps {
  */
 export function EstrategiaAporteCard({
   estrategia,
-  goals,
   cenarios,
 }: EstrategiaAporteCardProps) {
   const destinos = estrategia?.destinos ?? [];
@@ -132,23 +130,21 @@ export function EstrategiaAporteCard({
   }
 
   // Fallback: IF scenarios (legado)
-  const ifTrs = goals?.if_trs_monthly_value as number | undefined;
+  //
+  // `goals.if_trs_monthly_value` NÃO entra aqui: é a renda-alvo mensal DECLARADA
+  // (`if_meta_bruta × TRS ÷ 12`, [[ADR-418]] §D3), publicada com esse nome pelo
+  // `S7Stat` ("a renda-alvo declarada"). Sob o rótulo "aporte mensal necessário"
+  // o número invertia o modelo — exibia o fluxo que se quer RECEBER na IF como o
+  // que se precisa APORTAR — e, por estar sempre presente, tornava inalcançável o
+  // estado honesto "Meta de aporte não configurada" (A40.l100). O PMT que caberia
+  // sob aquele rótulo só existe em `goal_service.compute_if_derived` (agregado
+  // Goal, rota /plano); nunca foi plumbado até o payload do relatório.
   const labels = cenarios?.labels ?? [];
   const aportes = cenarios?.aportes ?? [];
 
   return (
     <ReportCard variant="highlight" title="Estratégia de Aportes">
       <div className="space-y-4">
-        {ifTrs !== undefined && (
-          <div>
-            <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-              Aporte mensal necessário (meta IF)
-            </p>
-            <p className="mt-1 text-2xl font-semibold">
-              <MonetaryValue value={ifTrs} />
-            </p>
-          </div>
-        )}
         {labels.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -171,7 +167,7 @@ export function EstrategiaAporteCard({
             </table>
           </div>
         )}
-        {!ifTrs && labels.length === 0 && (
+        {labels.length === 0 && (
           <p className="text-sm text-[var(--surface-muted-foreground)]">
             Meta de aporte não configurada.
           </p>

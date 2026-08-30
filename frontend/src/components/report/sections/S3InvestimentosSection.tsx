@@ -76,7 +76,6 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
       <div className="md:col-span-2">
         <EstrategiaAporteCard
           estrategia={estrategiaAporte}
-          goals={goals}
           cenarios={cenarios}
         />
       </div>
