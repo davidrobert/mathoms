@@ -296,10 +296,15 @@ test.describe("Snapshots — sumário executivo (hero KPI)", () => {
 // Cobertura que o recorte largo dava e que NÃO é reposta aqui, declarada de
 // propósito (o padrão do arquivo é declarar o gap, cf. SECTIONS_NOT_IN_MEDIUM_FIXTURE):
 //
-// - `ReportTopNav` — sem baseline. Criar uma agora fossilizaria a truncagem da
-//   trilha ("SÍNTESE" → "SÍNTI"), que é exatamente o defeito que a A40.l102
-//   está consertando; baseline de nav vale mais DEPOIS daquele fix, e o gate
-//   daquela lane é de alcançabilidade, não de pixel.
+// - `ReportTopNav` — sem baseline. Criar uma quando este comentário foi escrito
+//   fossilizaria a truncagem da trilha ("SÍNTESE" → "SÍNTI"). O fix é da
+//   A40.l104 (branch `report-topnav-overflow`) e MERGEOU em #1860, então a
+//   condição já não segura: a baseline deixou de ser prematura. Roteada em
+//   `PLAN-report-trust` §"Deferimentos do closeout da A40.l103".
+//   Correção 2026-08-30: este item dizia "A40.l102" e "o gate daquela lane é
+//   de alcançabilidade" — as duas erradas. A l102 é a lane do gasto pontual
+//   (#1864); e a própria l104 derruba o enquadramento ("cai a palavra
+//   'inalcançabilidade': há rota; o defeito é de descoberta e de ponteiro").
 // - `ReportPremissasBlock` — sem baseline. É `<section>` sem
 //   `data-report-section` e um `<details>` fechado por default, então o que o
 //   recorte largo provava era uma linha de `<summary>`.

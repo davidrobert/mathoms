@@ -304,6 +304,14 @@ closeout**, um deles corrigido.
   de baseline órfã. Re-medido no closeout: **30 PNGs / 3,1 MB** (a lane abriu
   dizendo 29 / 3,2 MB, número que as 2 baselines dela mesma já invalidaram).
 
+- **Baseline de `ReportTopNav` — condição de retomada JÁ satisfeita** — P2.
+  A [[A40.l103]] adiou a baseline da trilha porque ela fossilizaria a truncagem
+  ("SÍNTESE" → "SÍNTI"), e condicionou a retomada ao fix. **O fix mergeou**
+  ([[A40.l104]], **#1860**, 2026-08-30 18:18Z), então o adiamento perdeu a
+  razão de ser no mesmo dia em que foi escrito. Hoje `ReportTopNav` não tem
+  cobertura de pixel nenhuma — e foi mudança na nav (o chip `2.5` da
+  [[A40.l88]]) que produziu a atribuição falsa que originou a l103.
+
 **Gatilho de descorte:** os dois primeiros sobem para P1 se um PR de renderer
 passar verde com regressão nos números-manchete ou no PDF — é exatamente o modo
 de falha que ambos descrevem.

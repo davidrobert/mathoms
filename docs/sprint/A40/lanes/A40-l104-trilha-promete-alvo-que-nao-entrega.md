@@ -200,6 +200,17 @@ ponteiro** no desktop, e de **foco invisível** em ≤454px.
 - O baseline visual `cover-{light,dark}` **contém** a trilha truncada (o `clip`
   page-level `y=0..720` engole a nav sticky) e a congela como esperada.
 
+  > **Correção — 2026-08-30 (closeout da [[A40.l103]]).** Esta linha deixou de
+  > valer **23 minutos antes** de esta lane mergear, e por isso nasceu falsa em
+  > `main`: a [[A40.l103]] (**#1859**, 17:55Z; esta lane, 18:18Z) trocou o
+  > recorte do `cover` de page-level para o locator `[data-report-cover]`. Não
+  > há mais `clip` no spec — só comentários que descrevem o que saiu — e
+  > `ReportTopNav` é **irmão** de `ReportCover` no `ReportShell` (linhas 285 e
+  > 366), não descendente, então um screenshot do locator não pode conter a
+  > nav. Consequência para quem for reler: a trilha truncada **não** está
+  > congelada em baseline nenhuma hoje — `ReportTopNav` está sem cobertura de
+  > pixel, gap declarado no spec e roteado em [[PLAN-report-trust]].
+
 **Print/PDF não é afetado**: `[data-report-topnav] { display:none !important }`
 em `report-print.css`.
 
