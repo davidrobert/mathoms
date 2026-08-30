@@ -2,7 +2,7 @@
 id: ADR-422
 type: adr
 title: "A folga é a poupança da janela, não a poupança mais o gasto pontual realizado"
-status: Proposto
+status: Decidido
 phase: A40
 date: "2026-08-29"
 relates_to:
@@ -14,7 +14,7 @@ supersedes: []
 aliases: ["ADR 422", "folga mensal", "consumo consciente"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/e5
   - area/dominio
   - sprint/a40
@@ -22,7 +22,7 @@ tags:
 
 # ADR-422 — A folga é a poupança da janela
 
-**Status:** Proposto (A40.l94) • **Data:** 2026-08-29 • Co-design
+**Status:** Decidido (A40.l94 · #1828 `05561dc0`) • **Data:** 2026-08-29 • Co-design
 `financial-planner` no **planejamento**. Emenda [[ADR-306]] §D6 no termo de
 pontuais; consome a separação de [[ADR-333]].
 
@@ -171,7 +171,8 @@ equivalente) e não alcança folga nem teto — o teto não existe mais. Por iss
 ordem é esta e não a inversa, e por isso o conserto da base é lane própria, com
 delta atribuível a uma causa só.
 
-**Não** foi emitido campo novo para o ritmo do pontual (`provisao_pontual_mensal`,
-sugerido no co-design): publicá-lo hoje seria imprimir um número cuja base é 57,5%
+**Não** foi emitido campo novo para o ritmo do pontual (`pontual_mensal` — nome da
+[[A40.l15]], que precede o `provisao_pontual_mensal` do co-design e prevalece por ser
+o primeiro a nomear o mesmo campo): publicá-lo hoje seria imprimir um número cuja base é 57,5%
 movimentação — ou, se emitido sem leitor, criar exatamente a classe
 emissor-sem-leitor que a [[A40.l88]] gateia. Ele entra junto com a base limpa.

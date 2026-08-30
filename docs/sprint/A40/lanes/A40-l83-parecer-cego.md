@@ -247,6 +247,9 @@ ficou cego. **Corpus com cardinalidade real segue aberto** — [[A40.l85]].
    `investimentos_nao_atribuidos` (resolvido adicionando o token, raio medido de +6
    entries, todas monetárias), `transferencia_patrimonial` e `teto_sugerido` (seguem
    inancoráveis). O fix de fundo é proveniência, não mais tokens — [[A40.l86]].
+   ⚠️ **Anotação 2026-08-30:** `teto_sugerido` foi extinto do contrato ([[ADR-422]] D2 ·
+   #1828), então o resíduo que a [[A40.l86]] herda é só `transferencia_patrimonial`. A
+   medição acima é datada e fica como está.
 2. **`_MAX_LIST_ITEMS=5` vs `max_rows=10`** — 3 linhas de `tabela_classes` visíveis sem
    rota por *ranking*, não por bytes. Já documentado em
    `parecer_ancorabilidade.py`; nenhum ajuste de orçamento alcança.

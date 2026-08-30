@@ -4,7 +4,9 @@ type: lane
 title: "Folga mensal reclassifica gasto pontual realizado como sobra recuperável"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1828
+ship_date: "2026-08-29"
 priority: P0
 branch_slug: a40-l94-folga-reclassifica-gasto-realizado
 owner: financial-planner
@@ -16,7 +18,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -127,35 +129,30 @@ razão — `folga_mensal` não se move nele. Quem testemunha é a fixture nova.
 - `manifest_version` do parecer 2.7.0 → 2.8.0 (cobra a frota: a folga mudou de VALOR
   sem mudar de nome, e o cache tem TTL de 7 dias).
 
-### Deferido, com dono — §Deferimento datado 2026-08-29
+### Deferido — §Deferimento datado 2026-08-29 · **Dono: [[A40.l97]]** (aberta 2026-08-30)
 
-Vai para a lane da base dos pontuais (`LC6-05`), **não** para esta:
+Os três itens abaixo foram para a [[A40.l97]] (`base-dos-pontuais-tres-produtores`), com
+`LC6-06`/`LC6-07` roteados junto por serem da mesma família. **Condição de retomada:** nenhuma —
+a lane está `open` e é pegável.
 
-1. **Aplicar `transfer_categories` ([[ADR-333]]) ao `_collect_candidates`.** Hoje há
-   **três** definições disjuntas de "gasto pontual" em produção — a do enricher, a da
-   **lista** do card (`consumo_pontuais.py`, que aplica `InternalTransferDetector`) e a
-   do **KPI** (que não aplica nenhuma das duas). Lista e KPI do mesmo card filtram
-   coisas diferentes.
+> **Correção 2026-08-30.** Este bloco dizia "vai para a lane da base dos pontuais (`LC6-05`)" e
+> essa lane **não existia**: `LC6-05` é código de achado, não wikilink, então o destino era
+> fantasma e invisível ao `check_doc_links`. O `check_closure.py` também não pegou — qualquer
+> `[[ADR-…]]` citado como contexto absolve o bloco inteiro, e o `[[ADR-333]]` do item 1 absolveu
+> (registrado como follow-up de gate, não consertado aqui).
+
+1. **Aplicar `transfer_categories` ([[ADR-333]]) ao `_collect_candidates`.** Hoje há **três**
+   definições disjuntas de "gasto pontual" em produção — a do enricher, a da **lista** do card
+   (`consumo_pontuais.py`, que aplica `InternalTransferDetector`) e a do **KPI** (que não aplica
+   nenhuma das duas). Lista e KPI do mesmo card filtram coisas diferentes.
 2. **Regra de domínio decidida no co-design, ainda não implementada:** `nao_identificado`
    não entra em número que **prescreve** — fica no inventário, com o residual impresso
    (contagem + valor). É o que contém a contaminação sem depender do detector.
-3. **`provisao_pontual_mensal`** (o ritmo do pontual, que o co-design propôs no lugar do
-   teto) entra **junto com a base limpa**: publicá-lo hoje imprimiria um número cuja
-   base é 57,5% movimentação patrimonial no dogfood; emiti-lo sem leitor criaria a
-   classe emissor-sem-leitor que a [[A40.l88]] gateia.
-
-### Baseline de pixel do PDF ficou STALE — ação do dono
-
-Remover um KPI do card muda o PDF renderizado. Medido local: `19.503px` de divergência
-(tolerância 500). **Não bloqueia este PR** — `print.@critical` é exclusão nominal do
-"Report render gate" (baseline OS-específica, job próprio `frontend-print-visual`,
-opt-in por label `print`), e `print-chrome`/`print-text`, que medem **conteúdo** do PDF
-e não pixel, continuam dentro do gate e passam.
-
-**Não rebaselinei local**, por decisão registrada: a baseline é gerada no runner Linux
-(UTC) e o macOS diverge por fuso e antialiasing — rebaseline local cimentaria ruído
-ambiental sobre a mudança real. A regeneração é `workflow_dispatch` com
-`run_print=true` + `UPDATE_PRINT_BASELINE=1`, que é disparo do dono.
+3. **`pontual_mensal`** (o ritmo do pontual) entra **junto com a base limpa**: publicá-lo hoje
+   imprimiria um número cuja base é 57,5% movimentação patrimonial no dogfood; emiti-lo sem
+   leitor criaria a classe emissor-sem-leitor que a [[A40.l88]] gateia. **Nome canônico é
+   `pontual_mensal`**, da [[A40.l15]], que precede o `provisao_pontual_mensal` que o co-design
+   desta lane propôs — um campo, um nome.
 
 ### Achado lateral, registrado
 
@@ -165,3 +162,21 @@ que é exatamente a forma que o scan irmão de `pipeline/llm/schemas/**` documen
 (`_SCHEMA_FIELD_FLOAT` exige `=` ou fim de linha). Declarado na allowlist com o WHY em vez
 de estreitar o regex: mudança de gate merece revisão própria, e não cabe no PR que a
 descobriu.
+
+## Fecho (2026-08-30)
+
+Mergeada em `main` como `05561dc0` ([#1828](https://github.com/davidrobert/mathoms/pull/1828)),
+10/10 checks obrigatórios verdes. A [[ADR-422]] passou a `Decidido` no closeout.
+
+**Pendência que NÃO é trabalho de lane:** a baseline de pixel do PDF ficou stale (19.503px
+contra tolerância de 500) porque o card perdeu um KPI. Não bloqueia — `print.@critical` é
+exclusão nominal do gate de merge, e `print-chrome`/`print-text`, que medem **conteúdo**,
+seguem dentro e passam. Regeneração é `workflow_dispatch` com `run_print=true` +
+`UPDATE_PRINT_BASELINE=1`, disparo do dono. Não rebaselinado local por decisão registrada:
+a baseline nasce em runner Linux/UTC e o macOS diverge por fuso e antialiasing.
+
+**Auditoria de closeout (2026-08-30).** 56 agentes, 49 achados, 45 confirmados: a vault
+afirmava o mundo pré-merge em 22 sítios. Consertados nesta rodada. Dois defeitos eram desta
+lane: o §Deferimento apontava para lane inexistente (acima) e três citações a `ADR-420` ficaram
+em `frontend/tests/components/report/janelaCanonica.contract.test.tsx` — a verificação da
+renumeração varreu `frontend/src` e **não** `frontend/tests`, onde o teste de frontend mora.

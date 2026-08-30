@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 351
-- **Proposto**: 58
+- **Decidido**: 352
+- **Proposto**: 57
 - **Roadmap**: 4
 
 ## Fundação
@@ -405,12 +405,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## e5
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-306]] — Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco · phase A28
-
-### Proposto (1)
-
 - [[ADR-422]] — A folga é a poupança da janela, não a poupança mais o gasto pontual realizado · phase A40
 
 ## frontend

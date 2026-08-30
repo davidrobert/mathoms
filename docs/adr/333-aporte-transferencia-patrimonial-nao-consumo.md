@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-306]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/backend
 ---

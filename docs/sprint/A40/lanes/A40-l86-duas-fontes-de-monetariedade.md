@@ -41,7 +41,7 @@ Medido no E5 real do run `d0f6260a` (A40.l83), elas discordam em 3 campos:
 |---|---|---|---|
 | `$.patrimonio.investimentos_nao_atribuidos` | `brl` | não casava | resolvido no #1714 adicionando o token `investimento` |
 | `$.fluxo_caixa.janela_12m.transferencia_patrimonial` | `brl` | não casa (`patrimonial` ≠ `patrimonio`) | **inancorável** |
-| `$.consumo_consciente.teto_sugerido` | `brl` | não casa (`teto` fora da lista) | **inancorável** |
+| `$.consumo_consciente.teto_sugerido` | `brl` | não casa (`teto` fora da lista) | **inancorável** — ⚠️ campo **extinto** do contrato em 2026-08-29 ([[ADR-422]] D2 · #1828); a linha fica como medição datada do run, mas o ofensor não existe mais |
 
 O token `investimento` foi adicionado com raio medido (+6 entries, todas monetárias) —
 mas isso é remediar instância, não classe. A próxima folha `brl` cujo nome não casar
@@ -87,8 +87,14 @@ essas resoluções reabre o dogfood `72883bde`.
 
 ## Critério de aceite
 
-**Corretude** — `transferencia_patrimonial` e `teto_sugerido` viram citáveis sem que
-nenhum token novo seja adicionado à heurística.
+**Corretude** — `transferencia_patrimonial` vira citável sem que nenhum token novo seja
+adicionado à heurística.
+
+> **Emenda 2026-08-30 ([[ADR-422]] D2 · #1828).** O critério pedia também `teto_sugerido`,
+> que **saiu do contrato do E5** — o catálogo só emite entry para folha presente no payload,
+> então essa metade era **mecanicamente insatisfazível**. Os ofensores medidos caem de 2 para
+> 1. A tabela de medição acima é snapshot do run `d0f6260a` e **não** se reescreve ([[ADR-343]]);
+> ganhou só a anotação de extinção.
 
 **Consistência** — um único produtor responde "esta folha é dinheiro?"; a heurística por
 nome sobrevive apenas como fallback para folha **não projetada**, com essa condição

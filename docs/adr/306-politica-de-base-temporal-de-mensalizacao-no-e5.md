@@ -60,7 +60,11 @@ tags:
 > é `poupança_mensal + pontual_mensal`: ela devolvia o gasto pontual **realizado**
 > ao numerador e publicava um SEGUNDO "quanto sobra" sobre o mesmo denominador da
 > taxa de poupança, 19,4 pp acima dela. Ver §Emenda 2026-08-29 no fim desta nota.
-> **O resto de D6 e a nota de leitura sobre a fronteira D1/D6 continuam de pé.**
+> **O que continua de pé:** o resto de D6 e o recorte D1/D6 da nota de leitura —
+> inclusive a questão aberta sobre a base do KPI de pontuais, que segue com a
+> [[A40.l15]]. **Fica vencido** o inciso que justificava essa questão pela álgebra
+> da folga ("por ser o termo que fecha a álgebra da folga"): a folga não tem mais
+> termo de pontuais, então o argumento agora é de base temporal, não de álgebra.
 
 > **Emenda de vocabulário (A40.l44, 2026-08-14).** O vocabulário canônico de
 > D1/D2 continua `12m | full | irpf_<ano>`; a projeção descritiva e interativa
@@ -133,9 +137,11 @@ base) para explicabilidade.
 (despesa_mensal_media_12m − pontuais_janela/n)` — derivável algebricamente da base
 canônica (teste de reconciliação). `total_pontuais` (tabela) segue full-period.
 
-> ⚠️ **A fórmula acima está SUPERADA desde 2026-08-29 ([[ADR-422]] D1).** O que
-> permanece de D6: os pontuais da folga são os da **janela** (nunca full-period), e
-> `total_pontuais` (tabela) segue full-period. Ver §Emenda 2026-08-29.
+> ⚠️ **A fórmula acima está SUPERADA desde 2026-08-29 ([[ADR-422]] D1).** Não há
+> mais "pontuais da folga". O que permanece de D6 é o **recorte de janela** sobre
+> `pontuais_janela` — hoje consumido pelo `equivalente_meses_poupanca` ([[ADR-422]]
+> D3), não pela folga — e `total_pontuais` (tabela) seguindo full-period. Ver
+> §Emenda 2026-08-29.
 
 **D7 — Perini com bases mistas declaradas.** Cobertura = renda passiva mensal
 (`irpf_<ano>`) ÷ despesa essencial (`12m`). Mistura aceita; rótulos obrigatórios
