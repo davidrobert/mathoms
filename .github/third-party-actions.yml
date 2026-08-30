@@ -70,6 +70,7 @@ required_jobs:
     - lint-all
     - pipeline-tests
     - backend-tests
+    - migrations-postgres
     - frontend-checks
     - go-lint
     - go-test

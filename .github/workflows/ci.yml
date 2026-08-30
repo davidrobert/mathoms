@@ -811,6 +811,59 @@ jobs:
             htmlcov/
           retention-days: 7
 
+  migrations-postgres:
+    # A cadeia de migrations só era exercitada contra SQLite no fecho required.
+    # Postgres — a engine de PRODUÇÃO (`core/config.py` recusa sqlite) — ficava
+    # atrás de `frontend-e2e` (opt-in por label) e de dois call-sites em
+    # `nightly.yml`, `disabled_manually` desde 2026-06-15. Resultado: o
+    # `alembic upgrade head` ficou quebrado em PG por ~18 dias com DOIS defeitos
+    # empilhados, o segundo invisível atrás do primeiro porque o CI para no erro.
+    #
+    # O que este job NÃO fecha — não presuma cobertura que ele não dá:
+    #   - `downgrade`: a cadeia tem barreira INTENCIONAL (ADR-154 M3 levanta
+    #     NotImplementedError) e um bug pré-existente de índice do lado SQLite;
+    #     round-trip completo não é gate-able hoje.
+    #   - drift model↔schema em PG: `alembic check` acusa ~40 diferenças
+    #     pré-existentes aqui; ligá-lo deixaria o job vermelho permanente.
+    #   - banco POPULADO: roda sobre DB vazio, então migration que só quebra
+    #     sobre dados existentes (NOT NULL, CHECK violado) passa aqui.
+    #
+    # Gate estático (varrer o SQL emitido por `--sql`) foi considerado e
+    # DESCARTADO: migration pode emitir SQL só no modo online — `adr414flip`
+    # emite um comentário em `--sql` —, então o gate offline ficaria verde E
+    # cego exatamente onde morava o segundo defeito.
+    name: Migrations em PostgreSQL (alembic upgrade head)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.migration == 'true'
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fin_test
+          POSTGRES_PASSWORD: fin_test
+          POSTGRES_DB: fin_test
+        ports:
+          - 5433:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install backend deps
+        run: pip install --require-hashes -r requirements.lock
+
+      - name: alembic upgrade head (Postgres)
+        env:
+          MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
+        run: cd backend && alembic upgrade head
+
   frontend-checks:
     # A6g.6 slice 2, ADR-114: gate @typescript-eslint/no-explicit-any +
     # no-unused-vars bloqueantes; max-lines/-per-function progressivos.
@@ -1677,6 +1730,7 @@ jobs:
       - lint-all
       - pipeline-tests
       - backend-tests
+      - migrations-postgres
       - frontend-checks
       - frontend-visual
       - frontend-print-visual
@@ -1687,11 +1741,12 @@ jobs:
       - name: Verify all required jobs passed or were skipped
         run: |
           fail=0
-          for job in lint-all pipeline-tests backend-tests frontend-checks frontend-visual frontend-print-visual go-lint go-test; do
+          for job in lint-all pipeline-tests backend-tests migrations-postgres frontend-checks frontend-visual frontend-print-visual go-lint go-test; do
             case "$job" in
               lint-all) result="${{ needs.lint-all.result }}" ;;
               pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
               backend-tests) result="${{ needs.backend-tests.result }}" ;;
+              migrations-postgres) result="${{ needs.migrations-postgres.result }}" ;;
               frontend-checks) result="${{ needs.frontend-checks.result }}" ;;
               frontend-visual) result="${{ needs.frontend-visual.result }}" ;;
               frontend-print-visual) result="${{ needs.frontend-print-visual.result }}" ;;
