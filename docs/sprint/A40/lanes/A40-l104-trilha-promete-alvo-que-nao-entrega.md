@@ -8,7 +8,7 @@ status: shipped
 ship_date: "2026-08-30"
 ship_pr: 1860
 priority: P2
-branch_slug: a40-l102-trilha-promete-alvo-que-nao-entrega
+branch_slug: report-topnav-overflow
 owner: product-designer
 depends_on: []
 adrs:
