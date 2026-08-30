@@ -5,7 +5,7 @@ title: "Denominador amputado: metade da carteira não tem dono, o investível a 
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
-ship_pr: 1820
+ship_pr: 1835
 ship_date: "2026-08-30"
 priority: P0
 branch_slug: a40-l80-denominador-amputado
@@ -72,7 +72,7 @@ publicadas com termos) · ✅ Corretude (intervalo + identidade) · ✅ **Comple
 (o gate morde e cobre **4 de 4** razões — #1782, #1785, #1794, #1795; a 4ª exigiu
 unificar o numerador antes, porque rótulo declara denominador) · ✅ **Precisão** (as duas declarações falsas medidas foram
 corrigidas em [#1769](https://github.com/davidrobert/mathoms/pull/1769), e
-`kpi_targets[].base` fechou como enum de 19 membros no #1820) · 🟡 **Prova de fecho** — o
+`kpi_targets[].base` fechou como enum de 19 membros no #1835) · 🟡 **Prova de fecho** — o
 critério **como escrito** segue refutado (C16: inerte e de sinal trocado); o **substituto**
 desenhado pelo `financial-planner` está **3 de 4 entregue** e o P3 vai a §Deferimento com
 pré-requisito medido — ver §abaixo.
