@@ -159,7 +159,7 @@ Sem eles o frontend teria de fazer aritmética monetária de headline, o que
    ⚠️ **não é mais "o termo que fecha a álgebra da folga"** (a folga não o lê desde a
    [[ADR-422]] D1); segue valendo como ritmo exibível. Este é o **nome canônico** do campo,
    e prevalece sobre o `provisao_pontual_mensal` que o co-design da [[A40.l94]] propôs.
-   Entrega vai com a [[A40.l97]], junto com a base limpa.
+   Entrega vai com a [[A40.l98]], junto com a base limpa.
 2. ~~**`consumo_consciente.equivalente_meses_aporte_janela`** = `pontuais_janela / aporte_mensal`~~
    — ✅ **entregue em 2026-08-29 sob outro nome e outro denominador**:
    `equivalente_meses_poupanca` = `total_pontuais_janela ÷ folga_mensal`. O `aporte_mensal`

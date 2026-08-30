@@ -1,12 +1,12 @@
 ---
-id: A40.l98
+id: A40.l99
 type: lane
 title: "Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor"
 sprint: A40
 plan: PLAN-report-trust
 status: open
 priority: P2
-branch_slug: a40-l98-adr-proposta-com-lane-fechada
+branch_slug: a40-l99-adr-proposta-com-lane-fechada
 owner: senior-cto
 depends_on: []
 adrs:
@@ -23,7 +23,7 @@ tags:
   - area/dominio
 ---
 
-# A40.l98 — `adr-proposta-com-lane-fechada`
+# A40.l99 — `adr-proposta-com-lane-fechada`
 
 > **Origem:** closeout da [[A40.l94]] (2026-08-30). Ao decidir se a [[ADR-422]] devia flipar
 > para `Decidido`, contei a classe em vez de tratar o caso: **11** ADRs de `phase: A40` estão

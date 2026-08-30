@@ -129,9 +129,9 @@ razão — `folga_mensal` não se move nele. Quem testemunha é a fixture nova.
 - `manifest_version` do parecer 2.7.0 → 2.8.0 (cobra a frota: a folga mudou de VALOR
   sem mudar de nome, e o cache tem TTL de 7 dias).
 
-### Deferido — §Deferimento datado 2026-08-29 · **Dono: [[A40.l97]]** (aberta 2026-08-30)
+### Deferido — §Deferimento datado 2026-08-29 · **Dono: [[A40.l98]]** (aberta 2026-08-30)
 
-Os três itens abaixo foram para a [[A40.l97]] (`base-dos-pontuais-tres-produtores`), com
+Os três itens abaixo foram para a [[A40.l98]] (`base-dos-pontuais-tres-produtores`), com
 `LC6-06`/`LC6-07` roteados junto por serem da mesma família. **Condição de retomada:** nenhuma —
 a lane está `open` e é pegável.
 

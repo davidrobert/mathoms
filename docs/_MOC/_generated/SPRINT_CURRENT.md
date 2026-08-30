@@ -27,8 +27,8 @@ open · in_progress.
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
 - [[A40.l92]] — A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora · priority P0 · área frontend/relatorio · branch `a40-l92-polaridade-do-comparador`
-- [[A40.l97]] — Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra · priority P1 · área pipeline/financial-planning · branch `a40-l97-base-dos-pontuais-tres-produtores`
-- [[A40.l98]] — Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor · priority P2 · área dominio · branch `a40-l98-adr-proposta-com-lane-fechada`
+- [[A40.l98]] — Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra · priority P1 · área pipeline/financial-planning · branch `a40-l98-base-dos-pontuais-tres-produtores`
+- [[A40.l99]] — Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor · priority P2 · área dominio · branch `a40-l99-adr-proposta-com-lane-fechada`
 
 ## In progress
 

@@ -1,12 +1,12 @@
 ---
-id: A40.l97
+id: A40.l98
 type: lane
 title: "Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra"
 sprint: A40
 plan: PLAN-report-trust
 status: open
 priority: P1
-branch_slug: a40-l97-base-dos-pontuais-tres-produtores
+branch_slug: a40-l98-base-dos-pontuais-tres-produtores
 owner: financial-planner
 depends_on: []
 adrs:
@@ -21,7 +21,7 @@ tags:
   - area/financial-planning
 ---
 
-# A40.l97 — `base-dos-pontuais-tres-produtores`
+# A40.l98 — `base-dos-pontuais-tres-produtores`
 
 > **Origem:** `LC6-05` ([[LEDGER-CERTIFY-active]] §r6, rodada **U2**) + §Deferimento datado
 > da [[A40.l94]] (2026-08-29). Aberta 2026-08-30 porque aquele deferimento apontava para

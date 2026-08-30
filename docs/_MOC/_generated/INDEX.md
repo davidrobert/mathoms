@@ -981,9 +981,9 @@
 | A40.l94 | lane | shipped | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
 | A40.l95 | lane | in_progress | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
 | A40.l96 | lane | in_progress | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
-| A40.l97 | lane | open | A40 | Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l97-base-dos-pontuais-tres-produtores.md` |
 | A40.l97 | lane | in_progress | A40 | Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice | `sprint/A40/lanes/A40-l97-indices-perdidos-por-copy-from.md` |
-| A40.l98 | lane | open | A40 | Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor | `sprint/A40/lanes/A40-l98-adr-proposta-com-lane-fechada.md` |
+| A40.l98 | lane | open | A40 | Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l98-base-dos-pontuais-tres-produtores.md` |
+| A40.l99 | lane | open | A40 | Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor | `sprint/A40/lanes/A40-l99-adr-proposta-com-lane-fechada.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
 | A41.l4 | lane | planned | A41 | Gate fecha a rota alternativa ao choke-point: import do SDK fora de pipeline/llm hard-falha | `sprint/A41/lanes/A41-l4-gate-rota-alternativa-ao-choke-point.md` |

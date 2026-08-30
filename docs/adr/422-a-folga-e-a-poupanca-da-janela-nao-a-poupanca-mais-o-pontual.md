@@ -176,7 +176,7 @@ delta atribuível a uma causa só.
 > (`parecer_planejador.yaml`) e emite com eles o risco *"gastos pontuais elevados sem
 > política de consumo consciente formalizada"* — que **é** prescrição, ancorada 3× no
 > campo contaminado. O que D1 garante é que nenhuma prescrição **determinística** a
-> consome; a prescrição do LLM ainda consome. Dono: [[A40.l97]].
+> consome; a prescrição do LLM ainda consome. Dono: [[A40.l98]].
 
 **Não** foi emitido campo novo para o ritmo do pontual (`pontual_mensal` — nome da
 [[A40.l15]], que precede o `provisao_pontual_mensal` do co-design e prevalece por ser

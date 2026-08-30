@@ -430,7 +430,7 @@ KPI vermelho e uma nota 4,0/10 com peso 12,5% no score.
 > "quanto sobra" viraram um, `teto_sugerido` saiu do contrato e `equivalente_meses_aporte`
 > virou `equivalente_meses_poupanca` (46,1 → 4,1 meses no dogfood). O invariante que a Trilha
 > propunha existe e é verde. **Segue aberto** o que a [[ADR-422]] §"O que esta ADR NÃO conserta"
-> declara: a base dos pontuais continua contaminada — dono [[A40.l97]].
+> declara: a base dos pontuais continua contaminada — dono [[A40.l98]].
 
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|---|---|
