@@ -379,9 +379,34 @@ propriedade do instrumento. E o docstring de `_e2e3_verdict` declara essa ordem 
 | LC6-04 — dois dos cinco canais de remoção emitem `valor_cents` **literal 0**, e o produtor descarta o dado antes: `anachronic_guard` faz `dropped.append(tx_date)` — guarda **só a data**. O schema `$defs/remocao` declara o campo `required` ⇒ **obriga-o a existir e não pode obrigá-lo a ser verdadeiro** | contrato | Médio | P2 | CONFIRMADO · rebaixado de Crítico (o gate é **fail-closed**: degrada para `coberto`, nunca vira `conservado` falso) | procede-aberto | measure-then-emit no guard. **Resíduo que vale mais:** o docstring difere a captura "ao PR2b", e o `PR2b` do plano canônico tem **escopo outro** ⇒ deferimento sem §Deferimento datado, sem dono, invisível aos gates, com a lane de origem `shipped` |
 | LC6-05 — a base de consumo pontual inclui **aporte e transferência interna**, e o parecer emite risco de "gastos pontuais elevados" sobre uma base que contém o próprio aporte — pedindo que a família contenha o comportamento pelo qual é elogiada duas seções antes | correção | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de `PV9-11`/`PV9-12`; o **consumidor** é novo) | procede-aberto | o separador de transferência patrimonial **existe** e é aplicado à janela 12m; não é aplicado à janela que produz `total_pontuais`. Uma aplicação, dois pontos. ⚠️ **Retificação 2026-08-30:** esta frase estava riscada aqui pelo #1840 e **a retirada do risco é o conserto** — ela é verdadeira sobre o separador que nomeia (`transfer_categories` é aplicado em `fluxo_caixa_enricher.py:510` e ausente em `_collect_candidates`). O que se acrescenta é outro contável, não uma correção dela: são TRÊS **produtores de "gasto pontual"** com filtros disjuntos — enricher (`{aporte_investimento}`), a **lista** do card (`consumo_pontuais.py::_is_pontual`, que aplica `InternalTransferDetector`) e o **KPI** (`_collect_candidates`, que não aplica nenhum dos dois). Portar só `transfer_categories` não remove transferência interna nem `nao_identificado` (57,5% da janela no dogfood). Dono: [[A40.l98]] |
 | LC6-06 — aporte e amortização entram em `despesa_total` na janela cheia, e daí sai uma **terceira** taxa de poupança publicada na mesma peça, menor que as outras duas porque conta o dinheiro poupado como gasto | consistência | Médio | P2 | procede (MEDIÇÃO-DE-CONHECIDO de `PV9-11`) | procede-aberto | aporte é transferência patrimonial; da parcela de financiamento só os juros são despesa |
-| LC6-07 — a lista de gastos pontuais publica **dois pares duplicados** (mesma data, mesma categoria, mesmo valor, descrição diferindo por prefixo verbal) sob o cabeçalho que afirma *"contamos cada um uma vez só"* | correção | Alto | P1 | procede (novo) · observado nas 4 superfícies | procede-aberto | é a lista mais escrutinável do relatório pelo cliente, e alimenta o contador de pontuais e o "equivalente em meses de aporte" |
+| LC6-07 — a lista de gastos pontuais publica ~~**dois pares duplicados** (mesma data, mesma categoria, mesmo valor,~~ **UM par** (datas D e D+1, mesma categoria e valor, descrição diferindo por prefixo verbal) sob o cabeçalho que afirma *"contamos cada um uma vez só"* | correção | Alto | **P2** | procede · **re-enunciado 2026-08-30** | procede-aberto · dono [[A40.l102]] | é a lista mais escrutinável do relatório pelo cliente, e alimenta o contador de pontuais e o "equivalente em meses de aporte" |
 | LC5-01 · LC5-02 · LC5-03 · LC5-06 · LC5-09 (§r5) | — | — | — | **reproduzidos neste run, sem alteração** | procede-aberto | numerador KR-B **7**, `carrier-shaped 7/7`, classe única `banco=<instituição>\|tipo_conta=extrato\|titular=parcial` · `layer_ok=true` **com PONTO CEGO impresso** · 31 grupos com prefixo de banco vazio · 4 baldes rebaixados por override LC05 |
 | LC5-04 · LC5-05 · LC5-07 · LC5-08 (§r5) | — | — | — | **procede-aberto (não re-medidos)** | registrado para não decaírem em silêncio | — |
+
+**Re-enunciado do `LC6-07` — 2026-08-30.** As duas metades do enunciado original são
+falsas, medido nos itens do report `c011c40c`:
+
+- **Não é "mesma data".** O par difere em 1 dia — `2025-10-26` em `C6Bank (extratoconta)`
+  e `2025-10-27` em `c6bank (extrato)`: mesmo banco, **documentos-fonte distintos**, mesmo
+  valor, mesmo beneficiário. É assinatura de D+1 entre dois documentos, não dois lançamentos
+  idênticos.
+- **Não são "dois pares".** Por `(data, categoria, valor)` dá **0** grupos; por
+  `(mês, categoria, valor)` dá **1**; por `(mês, valor)` dá 2, mas o segundo é falso —
+  beneficiários distintos. E o grupo verdadeiro carrega um **terceiro** item legítimo
+  (`PDV*BARA CLINICA`, outro documento): chave por mês+valor colapsaria os três.
+
+⚠️ **A primeira análise mediu CÓDIGO MORTO** — `transaction_signature`/
+`deduplicate_transactions`, cujo único chamador `reconcile_account` não tinha chamador
+nenhum, e cujo teste próprio (`tests/test_e3_dedup.py`) as mantinha verdes. Ela concluiu
+"só a data separa"; no caminho vivo o par falha em **cinco** cláusulas, em dois mecanismos
+com cegueiras complementares (`is_duplicate` tolera ±3 dias mas exige descrição idêntica;
+o colapsador normaliza a descrição mas é day-exact). O cluster morto foi deletado.
+
+**Severidade rebaixada de Alto/P1 para P2** e a promessa verificada: `_le_consolidacao` só
+emite `consolidacao_cross_documento` com `count > 0`, e com enforce desligado a chave é
+omitida — a nota *"contamos cada um uma vez só"* **não aparece**. Não há P0 de copy. É 1 par
+em 89 itens (0,76% da janela) contra 63,2% de base não classificada — duas ordens de
+grandeza menor, e o único item do lote que **destrói dado** se consertado de forma errada.
 
 **Roteamento de 2026-08-30.** Das sete linhas `procede-aberto` do §r6, **quatro** (`LC6-04` a
 `LC6-07`) estavam sem dono e sem link — a regra deste arquivo exige gatilho. `LC6-01`/`LC6-02` já
@@ -394,7 +419,7 @@ tabela (é evidência datada, [[ADR-343]]):
 | `LC6-04` | **[[PLAN-ledger-integrity]]** §Deferimento datado 2026-08-30 (dono `data-engineer`) | o `PR2b` recolhia DOIS trabalhos e só um estava nomeado; agora o plano exige as duas pernas antes do `done` |
 | `LC6-05` | **[[A40.l98]]** (aberta 2026-08-30) | re-enunciada acima: são três produtores, não dois |
 | `LC6-06` | **[[A40.l98]]** | mesma família de base (aporte/amortização no denominador) |
-| `LC6-07` | **[[A40.l98]]** | duplicatas na lista de pontuais; o KPI que elas inflam é hoje `equivalente_meses_poupanca` ([[ADR-422]]) |
+| `LC6-07` | **[[A40.l102]]** | re-enunciado acima: é **um** par, D e D+1. Measure-first, sem enforce |
 
 `LC6-01`/`LC6-02` já estavam roteadas para a A42 ([[A42.l14]], [[A42.l3]], [[A42.l15]]).
 
