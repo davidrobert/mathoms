@@ -4,13 +4,15 @@ type: lane
 title: "O conserto da folga deixou `equivalente_meses_poupanca` auto-referente"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1848
+ship_date: "2026-08-30"
 priority: P1
 branch_slug: a40-l101-equivalente-meses-auto-referente
 owner: financial-planner
 depends_on: []
 adrs: ["[[ADR-422]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p1, area/pipeline, area/financial-planning]
+tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/pipeline, area/financial-planning]
 ---
 
 # A40.l101 — `equivalente-meses-auto-referente`
@@ -116,7 +118,7 @@ família; os payloads em texto claro no disco são todos pré-[[ADR-422]]
 (`equivalente_meses_aporte`). O regime é **estruturalmente alcançável** (provado fim-a-fim);
 sua frequência em produção fica aberta.
 
-## Entrega (2026-08-30)
+## Entrega (2026-08-30) — PR #1848, merge `bb716416`
 
 [[ADR-422]] §Emenda 2026-08-30 (`amended_at: ["2026-08-30"]`, que regulariza também a
 `Precisão` órfã da mesma data). A aritmética da D3 fica intacta; o que faltava era o
