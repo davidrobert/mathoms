@@ -12,11 +12,13 @@ pegam.
 
 ## Por que é opt-in (label `visual` ou `workflow_dispatch`)
 
-- 32 testes neste spec (13 seções + cover + 2 estados de `S_parecer`, × 2
-  temas), dos quais 28 produzem baseline — `S4` e `APP_C` não montam com a
-  fixture `medium`. O projeto `visual` roda 42 no total, somando o
-  `sections.fixtures.smoke.visual.spec.ts`. ~3-4 min, mas não vale bloquear
-  todo PR por isso: a maioria não toca o renderer.
+- 34 testes neste spec (13 seções + cover + sumário executivo + 2 estados de
+  `S_parecer`, × 2 temas), dos quais 30 produzem baseline — `S4` e `APP_C` não
+  montam com a fixture `medium`. O projeto `visual` roda 44 no total, somando o
+  `sections.fixtures.smoke.visual.spec.ts`. ~2 min (medido: 1m57s no run
+  `33326297663`), mas não vale bloquear todo PR por isso: a maioria não toca o
+  renderer. <!-- re-medido 2026-08-30 no closeout da A40.l103 (#1859), que
+  somou as 2 baselines de `sumario-executivo`: 32→34, 28→30, 42→44. -->
   <!-- O "~50 testes (24 seções)" que estava aqui era da era Tático+USA
        (ADR-151 / ADR-168) e ficou stale por ~4 meses. Contagem em doc
        envelhece — confira no spec antes de citar. -->
@@ -44,14 +46,28 @@ pegam.
 
 ## Tolerância
 
-`maxDiffPixels: 200` por seção. Calibrado para absorver:
+**Não existe mais tolerância absoluta neste spec.** O `maxDiffPixels: 200` que
+esta seção descrevia saiu em duas etapas: a [[A40.l53]] (#1453) migrou as 26
+baselines de seção para razão, e a [[A40.l103]] (#1859) tirou as 2 últimas (a
+capa). Combinar os dois é armadilha — Playwright usa `Math.min(absoluto,
+ratio×área)`, então o piso absoluto **anula** o ratio em imagem grande.
 
-- Anti-aliasing de chart.js em valores idênticos.
-- Variância de tabular-nums em `<MonetaryValue/>` quando o valor não
-  mudou (subpixel rendering).
+Dois valores em uso, e a diferença é deliberada:
 
-Diffs > 200 pixels indicam mudança estrutural — vão pro fluxo de
-revisão acima.
+| Alvo | Valor | Por quê |
+| --- | --- | --- |
+| Seções (helper) | `maxDiffPixelRatio: 0.025` | Absorve subpixel de canvas do chart.js. Herdado da [[A40.l53]]; **não** re-medido desde então |
+| `cover` e `sumario-executivo` | `maxDiffPixelRatio: 0.0003` | **Medido nos dois extremos** pela [[A40.l103]]: piso de ruído 0px (2 `workflow_dispatch` do mesmo SHA devolveram 28/28 baselines byte-idênticas) e menor mudança que precisa reprovar 304px (~0,076%, `"XX"` no `subtitle`). Nenhum dos dois tem canvas, logo não herdam o `0.025` |
+
+> ⚠️ **`0.025` é folga grande em imagem pequena.** O primeiro valor tentado na
+> capa, `0.005`, deixava passar uma mudança de texto por folga de 6,6× — a
+> classe em que o `<h2>` da S9 mudou e o gate ficou verde. Ao criar baseline
+> nova, meça o par (piso de ruído, menor mudança que importa) em vez de herdar.
+
+> ⚠️ **`--update-snapshots` só reescreve quando a comparação FALHA.** Mutação
+> sob a tolerância devolve o arquivo antigo intacto e o diff acusa `0px` — que
+> é o arquivo comparado consigo mesmo, não medição. Para medir de verdade,
+> apague a baseline na branch de sonda.
 
 ## Mascarar elementos voláteis
 
