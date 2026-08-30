@@ -514,7 +514,7 @@ reprovando ≥2 caixas, porque o vocabulário não tinha o segundo valor.
 | **U1** | 2026-08-26 | `1b9f2cf5` | `c97b97c2` | LEDGER §r5 · PIPELINE §r9 · REPORT §r5 | (esta PR) | fechada |
 | **U2** | 2026-08-29 | `1b9f2cf5` | `79a61e33` | LEDGER §r6 · PIPELINE §r10 · REPORT §r6 | 1820 | fechada com ressalva (E2, escrituração fora do commit) |
 | **U3** | 2026-08-30 | `1b9f2cf5` | `3a5b9c7d` | LEDGER §r7 · PIPELINE §r11 · REPORT §r7 | (esta PR) | fechada com ressalva (E2 reprova; `REPORT × solidez` nula) |
-| **U4** | 2026-08-30 | `1b9f2cf5` | `7d860f0b` | LEDGER §r8 · PIPELINE §r12 · REPORT §r8 | (esta PR) | fechada |
+| **U4** | 2026-08-30 | `1b9f2cf5` | `7d860f0b` | LEDGER §r8 · PIPELINE §r12 · REPORT §r8 | 1866 | fechada |
 
 ## 10. Débito de método (cross-cutting)
 
