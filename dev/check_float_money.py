@@ -46,6 +46,7 @@ from pathlib import Path
 # o vetor de drift irreversível é a coluna persistida, não o nome do campo.
 # Allowlist NOMINAL ``(path_rel, coluna) -> motivo`` — Float legítimo (não-money)
 # ou legado com drop rastreado. Heurística de nome erra; allowlist explícita não.
+# ``path_rel`` é relativo à RAIZ DO REPO, nunca ao ``cwd`` (ver ``_repo_rel``).
 MODELS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
     ("backend/app/models/report.py", "score"): "índice 0–100, não monetário",
     ("backend/app/models/llm_config.py", "temperature"): "parâmetro LLM, não monetário",
@@ -94,6 +95,7 @@ SKIP_TOKENS = re.compile(
 # Allowlist NOMINAL ``(path_rel, campo) -> motivo``, mesmo padrão do scan
 # ADR-283: campo monetário float só sobrevive com WHY explícito aqui —
 # comentário na linha NÃO perdoa (SKIP_TOKENS não se aplica neste scan).
+# ``path_rel`` é relativo à RAIZ DO REPO, nunca ao ``cwd`` (ver ``_repo_rel``).
 LLM_SCHEMAS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
     ("pipeline/llm/schemas/parecer_planejador.py", "valor_estimado_brl"): (
         "co-design data-engineer 2026-07-07 (A33.l1): Instructor emite float; "
@@ -216,11 +218,28 @@ def check_file(file_path: str) -> list[tuple[int, str, str]]:
     return offenders
 
 
+# Raiz do repo derivada do PRÓPRIO módulo (``dev/check_float_money.py``),
+# nunca do ``cwd`` — ver ``_repo_rel``.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+# Ancorar em ``Path.cwd()`` fazia a MESMA linha ser ofensora ou isenta conforme
+# o diretório de disparo, e o hook passava por acidente: o pre-commit roda na
+# raiz e passa dir RELATIVO, então ``relative_to`` levantava ``ValueError`` e o
+# fallback devolvia justamente o path repo-relativo. Com dir ABSOLUTO e ``cwd``
+# fora da raiz (``pytest`` disparado de ``tests/``), a chave virava absoluta e a
+# exceção nominal do ``parecer_planejador`` reaparecia como ofensor — gate e
+# teste mediam coisas diferentes sobre o mesmo arquivo.
+# ``resolve()`` antes de ancorar remove o casamento por string do fallback
+# antigo: arquivo fora do repo devolve path absoluto, que nenhuma allowlist
+# perdoa (falha fechada).
 def _repo_rel(path: Path) -> str:
+    """Path relativo à RAIZ DO REPO — a chave das allowlists, nunca ao ``cwd``."""
+    resolved = path.resolve()
     try:
-        return path.relative_to(Path.cwd()).as_posix()
+        return resolved.relative_to(_REPO_ROOT).as_posix()
     except ValueError:
-        return path.as_posix()
+        return resolved.as_posix()
 
 
 def _float_column_on_line(line: str) -> str | None:
