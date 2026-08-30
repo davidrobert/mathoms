@@ -3,13 +3,15 @@ id: A42.l17
 type: lane
 title: "Um parser de banco chama o SDK LLM fora do contrato, e a saída livre vira chave de junção"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1846
+ship_date: "2026-08-30"
 priority: P0
 branch_slug: a42-l17-parser-chama-llm-fora-do-contrato
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-173]]", "[[ADR-287]]", "[[ADR-349]]", "[[ADR-355]]"]
-tags: [type/lane, sprint/a42, status/planned, priority/p0, area/dados, area/llm]
+tags: [type/lane, sprint/a42, status/shipped, priority/p0, area/dados, area/llm]
 ---
 
 # A42.l17 — `parser-chama-llm-fora-do-contrato`

@@ -211,7 +211,7 @@ grafo honesto até lá.
 | [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** | **P0** | 1 | — |
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
 | [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
-| [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** | **P0** | 1 | — |
+| [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** · ✅ **#1846** — defeito procede; o gate que devia pegá-lo era cego em **3** eixos e os 2 sítios crus do repo moravam na interseção. Eixo novo: **rotear pelo choke-point não compra determinismo** (`use_cache` é `False` por default), logo o *delete-and-delegate* da [[A41.l3]] passaria os 5 critérios dela com o churn intacto | **P0** | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
