@@ -228,40 +228,38 @@ def test_build_inputs_sem_fontes_marca_origem_none():
     assert inputs[0].aluguel_origem == "none"
 
 
-def test_build_inputs_nu_proprietario_nao_recebe_pro_rata_com_irpf_presente():
-    # ADR-235 §Plano afirma um "teste explícito" que nunca foi escrito. O caso que
-    # falta não é cascade exaurida (já existe, com `locado`): é nu-propriedade COM
-    # fonte IRPF e outro imóvel puxando pro-rata — o único que distingue "não havia
-    # o que ratear" de "está fora de INVESTMENT_CLASSIFICATIONS".
-    nu = _identity(property_id="pNU", descricao="Casa cedida em nu-propriedade")
-    gerador = _identity(property_id="pB", descricao="Apto locado")
-    overrides = {
-        "pNU": _override(property_id="pNU", classification="nu_proprietario"),
-        "pB": _override(property_id="pB", classification="locado"),
-    }
-    bens = {"pNU": Decimal("80000"), "pB": Decimal("1000000")}
-    sources = CascadeSources(
-        informe_imobiliaria_by_property={},
-        irpf_carne_leao=(
-            IRPFAluguelEntry(
-                pagador_nome="X",
-                pagador_cpf_masked=None,
-                valor_brl=Decimal("60000"),
-                ir_recolhido_brl=Decimal("16500"),
-            ),
+# ADR-235 §Plano afirma um "teste explícito" que nunca foi escrito. O caso que falta não é
+# cascade exaurida (já existe, com `locado`): é nu-propriedade COM fonte IRPF e outro imóvel
+# puxando pro-rata — o único que distingue "não havia o que ratear" de "está fora de
+# INVESTMENT_CLASSIFICATIONS". O rateio inteiro ir para o gerador é a prova.
+_NU_OVERRIDES = {
+    "pNU": _override(property_id="pNU", classification="nu_proprietario"),
+    "pB": _override(property_id="pB", classification="locado"),
+}
+_NU_SOURCES = CascadeSources(
+    informe_imobiliaria_by_property={},
+    irpf_carne_leao=(
+        IRPFAluguelEntry(
+            pagador_nome="X",
+            pagador_cpf_masked=None,
+            valor_brl=Decimal("60000"),
+            ir_recolhido_brl=Decimal("16500"),
         ),
-        e4_receita_aluguel_total=None,
-    )
+    ),
+    e4_receita_aluguel_total=None,
+)
+_NU_BENS = {"pNU": Decimal("80000"), "pB": Decimal("1000000")}
+
+
+def test_build_inputs_nu_proprietario_nao_recebe_pro_rata_com_irpf_presente():
+    ids = [_identity(property_id="pNU"), _identity(property_id="pB")]
     inputs = build_property_inputs(
-        [nu, gerador], overrides, bens, sources, config=RealEstateConfig()
+        ids, _NU_OVERRIDES, _NU_BENS, _NU_SOURCES, config=RealEstateConfig()
     )
     by_id = {i.property_id: i for i in inputs}
-
     assert by_id["pNU"].classification == "nu_proprietario"
     assert by_id["pNU"].aluguel_bruto_anual is None
     assert by_id["pNU"].aluguel_origem == "none"
-    # o rateio existiu e foi INTEIRO para o gerador — prova que a exclusão é por
-    # classification, não por ausência de fonte
     assert by_id["pB"].aluguel_bruto_anual == Decimal("60000.00")
     assert by_id["pB"].aluguel_origem == "pro_rata"
 

@@ -108,39 +108,35 @@ def _abortar_se_ha_colisao(bind: sa.engine.Connection) -> None:
             )
 
 
-def upgrade() -> None:
-    """Recria os 3 UNIQUE, pulando os que já existem (Postgres nunca os perdeu)."""
-    # Offline (`alembic upgrade --sql`) não reflete schema: `sa.inspect` sobre o
-    # MockConnection levanta `NoInspectionAvailable`. Emite o DDL dos três sem
-    # pre-check — quem revisa o SQL gerado é humano, e o pre-check roda no apply.
-    offline = context.is_offline_mode()
-    inspector = None
-    tabelas: set[str] = set()
-    if not offline:
-        bind = op.get_bind()
-        _abortar_se_ha_colisao(bind)
-        inspector = sa.inspect(bind)
-        tabelas = set(inspector.get_table_names())
+def _ja_existe(inspector, tabela: str, indice: str) -> bool:
+    """Idempotência: Postgres JÁ tem estes índices e `create_index` falharia lá."""
+    return any(ix["name"] == indice for ix in inspector.get_indexes(tabela))
 
+
+def _criar(tabela: str, indice: str, colunas: tuple[str, ...], predicado: str | None) -> None:
+    parcial = {}
+    if predicado is not None:
+        parcial = {"sqlite_where": sa.text(predicado), "postgresql_where": sa.text(predicado)}
+    op.create_index(indice, tabela, list(colunas), unique=True, **parcial)
+
+
+def upgrade() -> None:
+    """Recria os 3 UNIQUE, pulando os que já existem."""
+    # Offline (`alembic upgrade --sql`) não reflete schema: `sa.inspect` sobre o
+    # MockConnection levanta `NoInspectionAvailable`. Emite o DDL sem pre-check —
+    # quem revisa SQL offline é humano, e o pre-check roda no apply.
+    if context.is_offline_mode():
+        for tabela, indice, colunas, predicado in _INDICES:
+            _criar(tabela, indice, colunas, predicado)
+        return
+
+    bind = op.get_bind()
+    _abortar_se_ha_colisao(bind)
+    inspector = sa.inspect(bind)
+    tabelas = set(inspector.get_table_names())
     for tabela, indice, colunas, predicado in _INDICES:
-        if not offline:
-            if tabela not in tabelas:
-                continue
-            # Idempotência não é por causa de DB novo — é porque Postgres JÁ tem
-            # estes índices e `op.create_index` puro falharia com "already exists".
-            assert inspector is not None
-            if any(ix["name"] == indice for ix in inspector.get_indexes(tabela)):
-                continue
-        kwargs: dict[str, str] = {}
-        if predicado is not None:
-            kwargs = {"sqlite_where": predicado, "postgresql_where": predicado}
-        op.create_index(
-            indice,
-            tabela,
-            list(colunas),
-            unique=True,
-            **{k: sa.text(v) for k, v in kwargs.items()},
-        )
+        if tabela in tabelas and not _ja_existe(inspector, tabela, indice):
+            _criar(tabela, indice, colunas, predicado)
 
 
 def downgrade() -> None:
