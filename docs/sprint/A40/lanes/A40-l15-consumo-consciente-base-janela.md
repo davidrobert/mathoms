@@ -4,7 +4,7 @@ type: lane
 title: "Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: cancelled
 priority: P2
 branch_slug: a40-l15-consumo-consciente-base-janela
 adrs: ["[[ADR-306]]"]
@@ -12,7 +12,7 @@ depends_on: ["[[A40.l3]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/cancelled
   - priority/p2
   - area/frontend
   - area/pipeline
@@ -305,3 +305,30 @@ Card coerente-e-menos-acionável > card incoerente.
   avaliar com o `financial-planner` se abaixo de ~6 meses o card deve declarar
   janela insuficiente em vez de exibir o número (espírito de D3 na camada de
   apresentação — hoje não aplicado em nenhum lugar).
+
+## Cancelamento por absorção — 2026-08-30
+
+`cancelled`, não `shipped`: nada aqui foi entregue **por esta lane**. Três das quatro
+premissas morreram e a quarta mudou de dono.
+
+| item original | desfecho |
+| --- | --- |
+| KPI de pontuais na base da janela | → [[A40.l98]] (base + política única) |
+| co-change 1 `pontual_mensal` | → [[A40.l98]], mas **fora do primeiro lote** ([[ADR-425]] D3) |
+| co-change 2 `equivalente_meses_aporte_janela` | ✅ **entregue** no #1828 sob outro nome e outro denominador; o `aporte_mensal` que ele propunha foi **rejeitado por medição** ([[ADR-422]] D3) |
+| co-change 3 prosa das duas janelas | ✅ **entregue** no #1828 |
+| `teto_sugerido` | **extinto** do contrato ([[ADR-422]] D2) |
+| texto dos dois cards de S2 | → [[A40.l102]] |
+
+Manter aberta criaria **duas fontes sobre o mesmo card** — que é o defeito que esta lane
+existia para consertar.
+
+> ### ⚠️ Obrigação transferida — [[A40.l102]]
+>
+> Esta lane é dona do `CARDS_DA_L15`, que exclui nominalmente dois cards de
+> `frontend/tests/components/report/janelaCanonica.contract.test.tsx` e de
+> `frontend/tests/e2e/reports/janela-canonica.@critical.spec.ts`.
+>
+> **Cancelar sem remover as exclusões deixa a guarda cega para sempre**, e o assert de
+> "exclusão não é vácuo" fica **verde depois** — ninguém é avisado. A remoção é critério
+> de aceite da [[A40.l102]], escrito lá explicitamente.

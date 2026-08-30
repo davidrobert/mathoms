@@ -2,6 +2,8 @@
 e datasets Chart.js (Sessão A5c · Fase 8).
 
 Extrai ``analyze_fluxo_caixa`` (e5_analyze.py:1050) em domain service puro.
+A gêmea morta que sobrou em ``analyze_finances.py`` foi deletada em 2026-08-30:
+ela calculava ``taxa_poupanca_recorrente`` sobre despesa BRUTA, sem a [[ADR-333]].
 Complementa o ``CashFlowBuilder`` (A4a) com métricas adicionais:
 
 - Separação receita recorrente vs one-time (por categoria e palavras-chave).

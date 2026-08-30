@@ -83,7 +83,7 @@ Planos detectados em [`docs/plan/`](../../plan/).
 
 - Status: `in_progress` · Sprint atual: A40
 - Sprints envolvidas: A28, A40
-- Lanes: done · in_progress · open
+- Lanes: done · in_progress · open · outras
 - ADRs canônicas: [[ADR-191]], [[ADR-240]], [[ADR-186]], [[ADR-357]], [[ADR-358]], [[ADR-370]]
 
 ### PLAN-snapshot-changelog-v3 — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica

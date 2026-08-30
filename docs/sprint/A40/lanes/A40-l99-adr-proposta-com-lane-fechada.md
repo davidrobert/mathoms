@@ -5,7 +5,7 @@ title: "Cinco ADRs em Proposto com lane fechada declaram decisão que não está
 sprint: A40
 plan: PLAN-report-trust
 status: open
-priority: P2
+priority: P3
 branch_slug: a40-l99-adr-proposta-com-lane-fechada
 owner: senior-cto
 depends_on: []
@@ -19,7 +19,7 @@ tags:
   - type/lane
   - sprint/a40
   - status/open
-  - priority/p2
+  - priority/p3
   - area/dominio
 ---
 
@@ -73,3 +73,27 @@ há o que decidir aqui.
 - Nenhuma flipa sem que a evidência por decisão esteja no PR.
 - Se sobrar padrão, considerar gate que cruze `status: Proposto` com "todas as lanes citantes
   terminais" e **peça** a justificativa — hoje o silêncio é indistinguível de esquecimento.
+
+## Desmonte — 2026-08-30 (co-design `senior-cto`)
+
+A lane misturava **dois defeitos de produto/operação** com bookkeeping honesto. Os dois
+primeiros não são registro e não devem esperar numa lane P3:
+
+| ADR | natureza real | destino |
+| --- | --- | --- |
+| [[ADR-362]] D2 | **superfície de cliente** — o colofão do relatório exibe a revisão **nua**, sem a ressalva que a cláusula normativa exige | [[A40.l72]] (guarda de contrato no render) ou item próprio |
+| [[ADR-385]] D7 | **risco de dado** — `dev/dedup_property_identity.py` **grava** sob `--apply` o canonical que a ADR diz não persistir | destino próprio, dono `data-engineer` |
+| [[ADR-389]] D2/D3 | migração de tabela de IR | **[[A40.l37]]**, que já está `open` com exatamente esse escopo — manter em duas lanes é duplicar decisão sobre a mesma tabela |
+| [[ADR-363]] + [[ADR-419]] + o gate `Proposto`×lanes-terminais | bookkeeping honesto | **fica aqui**, rebaixada a **P3** |
+
+**Correção de premissa registrada:** o argumento de que *"cada dia que passa, mais gente
+lê `Proposto` como verdade"* está **errado** e a própria lane já o continha —
+`Proposto` **não** afirma vigência, e a conclusão medida foi que *"`Proposto` está
+descrevendo a realidade melhor do que `Decidido` descreveria"*. Não há decaimento
+diário; o status está **correto**. O que havia de urgente eram os dois defeitos acima,
+que não são de registro.
+
+**Premissa aritmética também corrigida:** o repo tem **57** ADRs `Proposto` no total
+(11 é só a fase A40). O custo marginal de abrir ID é ~0; o custo real é `Proposto` órfão
+— mitigado por nascer com dono e condição de retomada, que é a lição que esta lane
+produziu e que a [[ADR-425]] aplicou.

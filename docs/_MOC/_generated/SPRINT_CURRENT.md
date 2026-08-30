@@ -10,11 +10,11 @@ open · in_progress.
 ## Open
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
+- [[A40.l102]] — Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir · priority P2 · área pipeline/frontend · branch `a40-l102-superficie-do-pontual-e-dedup`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · área pipeline/financial-planning · branch `a40-l41-frescor-cross-pool-fonte-inteira`
-- [[A40.l46]] — Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup · priority P2 · área frontend · branch `a40-l46-residuos-perfil-identidade`
 - [[A40.l48]] — Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo · priority P2 · área pipeline · branch `a40-l48-polaridade-de-comparacao-nao-monotonica`
 - [[A40.l50]] — Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado · priority P1 · área report/pipeline/financial-planning · branch `a40-l50-abertos-exposicao-cambial`
 - [[A40.l51]] — Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando · priority P1 · área frontend/pipeline/financial-planning · branch `a40-l51-followups-orfaos`
@@ -27,8 +27,8 @@ open · in_progress.
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
 - [[A40.l92]] — A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora · priority P0 · área frontend/relatorio · branch `a40-l92-polaridade-do-comparador`
-- [[A40.l98]] — Base de gasto pontual tem três produtores com filtros disjuntos, e o que prescreve é o que menos filtra · priority P1 · área pipeline/financial-planning · branch `a40-l98-base-dos-pontuais-tres-produtores`
-- [[A40.l99]] — Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor · priority P2 · área dominio · branch `a40-l99-adr-proposta-com-lane-fechada`
+- [[A40.l98]] — Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra · priority P1 · área pipeline/financial-planning · branch `a40-l98-base-dos-pontuais-tres-produtores`
+- [[A40.l99]] — Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor · priority P3 · área dominio · branch `a40-l99-adr-proposta-com-lane-fechada`
 
 ## In progress
 
