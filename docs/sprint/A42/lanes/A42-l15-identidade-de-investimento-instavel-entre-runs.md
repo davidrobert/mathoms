@@ -213,44 +213,114 @@ diferentes e chaves de cache diferentes. **Estabilidade run-a-run não pode ser 
 o falso-match. O molde correto já existe: `pipeline/llm/prompts/apolice.py:38` (escape aberto
 + registro em `notas` + telemetria).
 
-## Passo 0 EXECUTADO — 2026-08-30, sobre os 859 artefatos E1.5a
+## Passo 0 EXECUTADO — 2026-08-30 · e ele **corrigiu duas coisas que eu mesmo publiquei**
 
-`dev/audit_e15_vocab_closure.py` (read-only, zero token de LLM; núcleo puro coberto por
-`tests/dev/test_audit_e15_vocab_closure.py`). **859 artefatos, 10.859 itens, zero falha de
-decifragem.** O critério 1 dizia que isto podia **matar a lane barata**. Não matou — e
-decidiu duas coisas que estavam em aberto.
+`dev/audit_e15_vocab_closure.py` (read-only, zero token de LLM; núcleo puro em
+`tests/dev/test_audit_e15_vocab_closure.py`). **900 artefatos, zero falha de decifragem.**
 
-| fecho | numerador / denominador | leitura |
-|---|---|---|
-| `codigo` **fora** de `^\d{2}$` | **163 / 10.859 = 1,5%** | todos em `^\d{2}-\d{2}$`; zero ausente |
-| `instituicao` **fora** do catálogo | **3.494 / 8.011 = 43,6%** | ausente em outros 2.848 itens (26%) |
+> ⚠️ **Retratação — a 1ª publicação deste Passo 0 (#1837) misturou duas populações.**
+> `E1.5a` é a extração **por documento**; `E1.5`/`extract_baseline` são o **agregado
+> consolidado, que re-emite os mesmos itens**. Somá-los conta cada item duas vezes e ainda
+> dilui a taxa da extração com a do agregado. Os números certos, por população:
 
-**Decide o PR0.** `^\d{2}$` é a forma canônica com 98,5% do corpus, e o custo de pôr
-`strict` é **1,5%** — número, não estimativa. Confirma e amplia a medição da [[ADR-400]]
-(99 itens, 1,46%), agora sobre o corpus inteiro em vez de um recorte.
+| população | itens | `codigo` fora de `^\d{2}$` | `instituicao` fora do catálogo |
+|---|---|---|---|
+| **`E1.5a` — extração (é este o número)** | **7.039** | **131 = 1,86%** | **2.295/5.218 = 44,0%** |
+| `E1.5` (agregado) | 3.286 | 99 = 3,01% | 1.116/2.474 = 45,1% |
+| `extract_baseline` (agregado) | 3.820 | 32 = 0,84% | 1.199/2.793 = 42,9% |
+| ~~soma (o que o #1837 publicou)~~ | ~~10.859~~ | ~~163 = 1,5%~~ | ~~3.494/8.011 = 43,6%~~ |
 
-**Redireciona parte do PR1, e este é o achado que a lane não tinha.** As formas fora do
-catálogo mais frequentes são **variantes de instituições que já estão nele**:
+A soma **não descrevia nenhuma das três**. O instrumento agora separa por população e o
+headline é sempre a extração — com teste que mata a mutação que reintroduz a soma.
 
-```
-442x BANCO SANTANDER      348x ITAU UNIBANCO S.A.   272x BANCO C6
-232x XP INVESTIMENTOS CCTVM S/A   228x ITAU UNIBANCO   221x PICPAY BANK
-206x BANCO ITAU           176x BANCO C6 S.A.        116x NU FINANCEIRA S.A.
-```
+### O `instituicao` sobrevive à correção; a conclusão do `codigo` **não**
 
-`santander`, `itau`, `c6bank`, `nubank` e `xpinvestimentos` **estão no catálogo** (42 codes).
-Logo os 43,6% **não são cobertura faltando — são alias faltando**. Consequência: injetar o
-catálogo no prompt (PR1) ataca a metade de cima do problema, e a de baixo se resolve **no
-catálogo**, não no resolver — que é exatamente o aviso do co-design (*"ou o catálogo ganha
-aliases, ou a resolução entra por `cnpj_raiz`"*). O `seguradora_resolver` **não** fecha esses
-casos: já foi medido que `BANCO C6`→`bancoc6` e `C6 BANK`→`c6bank` são codes distintos.
+`instituicao` é robusto: **42,9%–45,1% em todas as populações**, e as formas fora do
+catálogo são variantes de instituições **que já estão nele** — `BANCO SANTANDER`,
+`ITAU UNIBANCO S.A.`, `BANCO C6`, `XP INVESTIMENTOS CCTVM S/A` contra os 42 codes que
+incluem `santander`, `itau`, `c6bank`, `xpinvestimentos`. **Não é cobertura faltando; é
+alias faltando** — a metade de baixo resolve-se **no catálogo**, não no resolver.
 
-⚠️ **Fecho ≠ estabilidade**, e este número não pode ser citado como se fosse. Um extrator
-pode ser 100% fechado e ainda alternar entre dois codes do catálogo entre runs. A
-estabilidade run-a-run continua exigindo dois runs, continua gameável por cache
-(§Armadilha D) e continua fora do CI.
+**O `codigo`, não.** Eu escrevi que *"`^\d{2}$` é a forma canônica com 98,5% do corpus"*.
+**Está invertido.** Nos 26 pares em que `codigo` diverge entre U1 e U2 (pareados pela âncora
+`(cpf, ano, valor_brl)`), **25 têm o 2-dígitos do U1 como o SUB-código do `GG-CC` do U2** —
+`02`→`04-02`, `04`→`07-04`, `01`→`02-01`, `11`→`01-11`, `99`→`06-99` — e **zero** o têm como
+grupo. Os dois formatos **não são duas renderizações do mesmo valor**: um é estritamente
+menos informativo, com o **grupo perdido**. Pinar `^\d{2}$` carimbaria a convenção
+semanticamente pobre como a válida, e rejeitaria a completa. **A decisão de forma do PR0
+não está tomada** — ela exige ler o documento-fonte, e não o corpus.
 
-## Escopo — quatro PRs, nesta ordem
+### Emenda ao Critério 1 — ele não pode nem matar nem salvar a hipótese
+
+O critério diz que ~100% de fecho **mata a lane barata**. Não mata, e o motivo é estrutural:
+**`codigo` não entra em `_identity_key`** (`investimentos_dedup.py:91-98` = `(tipo, inst,
+desc)`). A única porta é indireta (`codigo`→`_classify_investimento`→`tipo`), e ela foi
+medida: fixar `tipo` move a estabilidade **de 28 para 28 chaves idênticas — delta 0 pp**.
+O critério 1 vale como **medição de contrato**, não como gatilho de kill da hipótese de
+identidade. Quem o executar não deve concluir nada sobre estabilidade a partir dele.
+
+⚠️ **Fecho ≠ estabilidade.** Um extrator pode ser 100% fechado e ainda alternar entre dois
+codes do catálogo entre runs.
+
+## O que falta em cada PR — levantado e verificado em 2026-08-30
+
+**Passo 0 — feito.** Resíduo: existe instrumento canônico vizinho
+(`dev/measure_schema_drift.py`, com `--gate`/`--days`/`--paths`) cujo **exit code do `--gate`
+não consulta `is_go`** (janela vazia ⇒ exit 0), contra a [[ADR-409]] §B. **Dono é o
+§Deferimento da [[A40.l58]]**, não este PR — mas sem isso o `--gate` não pode ser fiado.
+
+**PR0 — três bloqueios, e a perna `instituicao` sai.**
+1. **Decidir a forma de `codigo` exige o documento-fonte** (acima). O corpus não decide:
+   2025 emite as duas formas, 2023–2024 só a de dois dígitos. Custo medido pelo predicado do
+   gate: `^\d{2}$` → **NO-GO** (2 artefatos na janela, e derruba também `e16_irpf_full`, hoje
+   0/416 → 36/416); `^\d{2}(-\d{2})?$` → GO, **mas fecha 100% por construção e não pode
+   reprovar nada**.
+2. **A perna `instituicao` do PR0 morre**: `^[a-z0-9]+$` dá **85,2% de drift** (767/900), e
+   contradiz o PR2 desta lane (*"`instituicao` sai da chave"*) e a [[ADR-400]] §1. Não existe
+   warn por campo — `mode_overrides` é per-schema. **Cortar do escopo.**
+3. **`additionalProperties: false`** em `e15_baseline_extract.schema.json:23` — abrir espaço
+   para `cnpj_emissor` é **pré-requisito duro do PR1** e a lane não o atribuía a ninguém.
+   O lado simétrico não bloqueia: `baseline_patrimonial.schema.json` é objeto aberto.
+
+Corrige-se também a premissa `codigo`/`codigo_rfb`: em **bens** é falso (o
+`e16_irpf_full.schema.json:279` já usa `codigo`); em **dívidas** é verdadeiro; e o eixo que a
+lane **omitia** é que a grafia troca **dentro** do E1.5→E1.5c (`consolidate_baseline.py:558`
+grava `codigo_rfb`), lido por comparação estrita em
+`backend/app/services/db_property_identity_resolver.py:134,168` — o path que a lane escreve
+sem o prefixo `backend/app/services/` **não existe**.
+
+**PR1 — o pino de forma tem de ir também no Pydantic.** `pipeline/llm/schemas/e15_baseline.py`
+não tem `pattern` nem `min_length` em `code`/`description`/`institution`/`member_key`, e nem
+espelha o `minLength: 1` do JSON schema. Com `mode=warn`, `pattern` só no JSON schema é
+**inerte**. O e16 espelha campo a campo; o e15 é a única ponta com drift entre as camadas. E
+**nenhum teste schema-valida a saída real de `_output_to_baseline_json`** — só um literal.
+
+**PR2 — um bloqueio duro e uma expectativa a corrigir.** `review_reason` **não existe** em
+`investimentos_dedup.py` nem em `dividas_dedup.py` (`git grep` vazio): hoje `None` só ocorre
+com `desc` vazia e não carrega motivo, então o critério 3 **constrói o mecanismo inteiro**.
+E são **duas normalizações, não uma**: colapsar `GG-CC`→`GG` conserta `_classify_investimento`,
+mas `codigo_rfb` quer o **sub**código — um conserto quebra o outro em silêncio se
+compartilharem nome.
+
+**PR3 — nenhum dos cinco gates existe.** O gate de acoplamento (critério 4) e o harness
+offline (critério 6) **não dependem de produtor** e podem começar já; o harness é
+pré-requisito de qualquer alegação de melhora, porque mede o estado atual como baseline.
+
+### Ordem, com o que paraleliza
+
+1. Registro do Passo 0 + emenda do critério 1 *(este PR)*.
+2. **PR0 reduzido**: declarar `cnpj_emissor` no schema + espelhar constraints no Pydantic.
+   **Sem** `pattern` em `codigo` e **sem** a perna `instituicao`.
+3. Ler o documento-fonte → decidir `GG-CC` vs `GG` → só então o `pattern`, com o custo de
+   fila (e15 + e16) e a política de era juntos.
+4. PR1 → 5. PR2 (medido **junto** com o braço de `descricao`; a porta `tipo` dá 0 pp) →
+   6. PR3.
+
+**Paralelo desde já:** gate de acoplamento · harness offline · alias no `institution_catalog`
+· leitura do documento-fonte. **Não paraleliza:** PR2 depois do PR1; qualquer número de
+estabilidade depois do harness (§Armadilha D).
+
+## Escopo — quatro PRs, nesta ordem## Escopo — quatro PRs, nesta ordem
 
 - **PR0 — forma no contrato (zero LLM).** `pattern` em `codigo`
   (`e15_baseline_extract.schema.json:25`, hoje `{"type":"string"}`) e forma canônica em

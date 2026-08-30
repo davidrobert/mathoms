@@ -31,7 +31,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 CODIGO_CANONICO = re.compile(r"^\d{2}$")
 CODIGO_COMPOSTO = re.compile(r"^\d{2}-\d{2}$")
 
-E15_STAGES = ("E1.5a", "extract_baseline")
+# DUAS populações, e misturá-las falseia o número: `E1.5a` é a extração
+# POR DOCUMENTO, e `E1.5`/`extract_baseline` são o agregado consolidado, que
+# **re-emite os mesmos itens**. Somar as duas conta cada item duas vezes e ainda
+# dilui a taxa da extração com a do agregado (medido em 2026-08-30: 1,86% na
+# extração contra 0,84% no agregado; a soma dava 1,5% e não descrevia nenhuma
+# das duas). O headline é sempre a EXTRAÇÃO; o agregado sai ao lado, nomeado.
+E15_EXTRACAO = "E1.5a"
+E15_AGREGADO = ("E1.5", "extract_baseline")
+E15_STAGES = (E15_EXTRACAO, *E15_AGREGADO)
 
 
 @dataclass
@@ -123,6 +131,23 @@ def as_dict(closure: Closure, artefatos: int, ilegiveis: int, catalogo: int) -> 
     }
 
 
+def report(por_stage: dict[str, Closure], artefatos: int, ilegiveis: int, catalogo: int) -> dict:
+    """Headline = extração; agregado ao lado, NUNCA somado (ver ``E15_EXTRACAO``)."""
+    extracao = por_stage.get(E15_EXTRACAO, Closure())
+    return {
+        "populacao_headline": E15_EXTRACAO,
+        "artefatos_total": artefatos,
+        "artefatos_ilegiveis": ilegiveis,
+        "catalogo_codes": catalogo,
+        "extracao": as_dict(extracao, artefatos, ilegiveis, catalogo),
+        "agregado_nao_somar": {
+            stage: as_dict(c, artefatos, ilegiveis, catalogo)
+            for stage, c in sorted(por_stage.items())
+            if stage != E15_EXTRACAO
+        },
+    }
+
+
 def _e15_rows(session) -> list:
     from sqlalchemy import select
 
@@ -132,22 +157,24 @@ def _e15_rows(session) -> list:
     return list(session.execute(stmt).scalars().all())
 
 
-def _accumulate(rows: list, tokens: set[str]) -> tuple[Closure, int]:
-    """``(closure, ilegiveis)``. Artefato que não decifra é CONTADO, nunca omitido."""
+def _accumulate(rows: list, tokens: set[str]) -> tuple[dict[str, Closure], int]:
+    """``(por_stage, ilegiveis)``. Artefato que não decifra é CONTADO, nunca omitido."""
     from dev.certify_ledger_local import _decrypt
 
-    closure, ilegiveis = Closure(), 0
+    por_stage: dict[str, Closure] = {}
+    ilegiveis = 0
     for row in rows:
         try:
             payload = _decrypt(row.content_json)
         except Exception:  # era antiga / chave rotacionada
             ilegiveis += 1
             continue
-        tally(payload.get("itens") or [], tokens, closure)
-    return closure, ilegiveis
+        alvo = por_stage.setdefault(str(row.stage), Closure())
+        tally(payload.get("itens") or [], tokens, alvo)
+    return por_stage, ilegiveis
 
 
-def _collect() -> tuple[Closure, int, int, int]:
+def _collect() -> tuple[dict[str, Closure], int, int, int]:
     from backend.app.core.database import SyncSessionLocal
     from backend.app.services.institution_catalog_provider import DBInstitutionCatalogProvider
     from pipeline.llm.institution_catalog import institution_code_map
@@ -155,24 +182,34 @@ def _collect() -> tuple[Closure, int, int, int]:
     with SyncSessionLocal() as session:
         catalogo = institution_code_map(DBInstitutionCatalogProvider(session=session))
         rows = _e15_rows(session)
-        closure, ilegiveis = _accumulate(rows, catalog_tokens(catalogo))
-    return closure, len(rows), ilegiveis, len(catalogo)
+        por_stage, ilegiveis = _accumulate(rows, catalog_tokens(catalogo))
+    return por_stage, len(rows), ilegiveis, len(catalogo)
+
+
+def _render_bloco(rotulo: str, data: dict) -> None:
+    fc, fi = data["codigo_fora_do_canonico"], data["instituicao_fora_do_catalogo"]
+    formas = " · ".join(f"{k}={v}" for k, v in sorted(data["codigo"].items()))
+    print(f"  [{rotulo}] itens={data['itens']}  ({formas})")
+    print(f"      codigo fora de ^\\d{{2}}$ : {fc['num']}/{fc['den']} = {fc['pct']}%")
+    print(
+        f"      instituicao fora do cat.: {fi['num']}/{fi['den']} = {fi['pct']}%"
+        f"  (ausente em {data['instituicao_ausente']})"
+    )
 
 
 def _render(data: dict) -> None:
-    print(f"artefatos E1.5a: {data['artefatos_e15a']} · ilegíveis: {data['artefatos_ilegiveis']}")
-    print(f"itens: {data['itens']} · catálogo: {data['catalogo_codes']} codes\n")
-    print("=== fecho de `codigo` ===")
-    for forma, n in sorted(data["codigo"].items(), key=lambda kv: -kv[1]):
-        print(f"  {forma:<10} {n:6}")
-    fc = data["codigo_fora_do_canonico"]
-    print(f"  ⇒ fora de ^\\d{{2}}$: {fc['num']}/{fc['den']} = {fc['pct']}%\n")
-    fi = data["instituicao_fora_do_catalogo"]
-    print("=== fecho de `instituicao` contra o institution_catalog ===")
-    print(f"  ausente em {data['instituicao_ausente']} itens")
-    print(f"  ⇒ fora do catálogo: {fi['num']}/{fi['den']} = {fi['pct']}%")
-    print("\n  formas fora do catálogo mais frequentes:")
-    for nome, n in data["formas_fora_mais_frequentes"]:
+    print(
+        f"artefatos: {data['artefatos_total']} · ilegíveis: {data['artefatos_ilegiveis']}"
+        f" · catálogo: {data['catalogo_codes']} codes\n"
+    )
+    print(f"=== EXTRAÇÃO ({data['populacao_headline']}) — é este o número ===")
+    _render_bloco(data["populacao_headline"], data["extracao"])
+    if data["agregado_nao_somar"]:
+        print("\n=== agregado consolidado — RE-EMITE os mesmos itens, não somar ===")
+        for stage, bloco in data["agregado_nao_somar"].items():
+            _render_bloco(stage, bloco)
+    print("\n  formas fora do catálogo mais frequentes (extração):")
+    for nome, n in data["extracao"]["formas_fora_mais_frequentes"]:
         print(f"    {n:5}x  {nome}")
 
 
@@ -180,8 +217,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
-    closure, artefatos, ilegiveis, catalogo = _collect()
-    data = as_dict(closure, artefatos, ilegiveis, catalogo)
+    por_stage, artefatos, ilegiveis, catalogo = _collect()
+    data = report(por_stage, artefatos, ilegiveis, catalogo)
     print(json.dumps(data, ensure_ascii=False, indent=2)) if args.json else _render(data)
     return 0
 

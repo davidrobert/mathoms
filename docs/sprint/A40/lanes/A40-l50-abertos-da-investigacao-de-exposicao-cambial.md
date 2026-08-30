@@ -369,3 +369,62 @@ com o denominador corrigido. Nenhuma mudança pode ser aceita por "o tier melhor
   ele que o EUR deste workspace já passa: o braço de caixa lê `moeda` do extrato direto.
 - *"`% Internacional` tem dois valores com denominadores diferentes."* Bases distintas
   por desenho; o `file:line` citado não produz nenhum dos dois valores.
+
+## Estado verificado e caminho de fecho — 2026-08-30
+
+> Levantado de fora, no fechamento da [[A42.l15]], porque a churn de identidade que aquela
+> lane mede **invalida números âncora desta**. Nada aqui é escopo absorvido: é o inventário
+> re-verificado, com dono para cada linha.
+
+**Esta lane não tem §Critério de aceite, e é isso que a torna não-shippável como unidade.**
+Ela tem um gate de *método* (§Ordem obrigatória: antes/depois com denominador corrigido) e
+se declara inventário — *"nada aqui está sendo atacado"*. **O primeiro trabalho é fatiar em
+lanes com critério próprio**, não fechar a l50.
+
+Agrava: **o tier é hoje sempre `indeterminado` por construção** —
+`exposicao_cambial_analyzer.py:298-302` fixa `carteira_lastro_estrangeiro` em
+`Cobertura.indeterminado` e `:139-141` suprime o veredito se qualquer componente não for
+`apurado` (confirmado no golden). A cláusula *"nenhuma mudança pode ser aceita por «o tier
+melhorou»"* é, hoje, **vacuamente verdadeira**.
+
+### Itens INVALIDADOS pela medição da [[A42.l15]]
+
+O número âncora **não reproduz**. Esta lane fixa `Internacional = R$ 34.918,47 (4,19% da
+carteira financeira)`; no par U1×U2, **mesmo corpus documental**, mediu-se `Internacional`
+**R$ 34.857,23 → R$ 423,56** (−98,8%) e `Outros` R$ 52.487,13 → R$ 86.920,80, com os totais
+publicados **idênticos ao centavo**. É redistribuição por churn de identidade, não dado.
+
+⇒ **Todo item desta lane cujo número venha de `irpf_bens`/`investimentos_consolidados` foi
+medido num run só e não tem "antes" reprodutível** — o que torna a regra da própria lane
+(antes/depois) inexequível até a [[A42.l15]] entregar PR1/PR2. Atinge o P1 *"duas respostas
+na mesma página"* e a reconciliação `tabela_classes.Internacional` × `exposicao_cambial`.
+
+### Estado dos demais itens
+
+| item | estado | evidência |
+|---|---|---|
+| P0 `consolidate_baseline` re-consolida | **fechado** (#1395) | já marcado acima |
+| P0 rodapé PTAX | **roteado** → [[A40.l39]], que segue `open` | não abrir PR no arquivo que ela parte |
+| 4 achados do co-design | **fechados** pela [[A40.l63]] (#1671) | frontmatter da l63 |
+| `detalhes[]` publica BRL rotulado | **vivo** | `analyzer.py:260-272` não publica `conversao`, embora `CaixaDetalhe.conversao` seja obrigatório desde a [[ADR-390]] |
+| `caixa_fx` declara `apurado` por constante | **vivo, e congelado no golden** | `analyzer.py:300`; `dogfood_view_model.json` traz `caixa_fx {"cobertura":"apurado","valor_brl":0}` |
+| goldens cegos | **parcialmente movido, remédio não feito** | o bloco existe no snapshot, mas `caixa_detalhes: []` e `caixa_me_brl: 0` — a fixture não tem **um centavo** em ME |
+| `exposicao_cambial` fora de `required` | **vivo** | ausência do bloco é indistinguível de remoção |
+| cotação PTAX defasada | **mecanismo vivo** | a linha vem de seed e **não há task de refresh** (`grep ptax` em `backend/app/tasks/` → vazio) |
+| domínio #4 (tier ≥10% × [[ADR-224]] §6) | **resolvido fora da lane, e não registrado aqui** | `analyzer.py:25-33` já separa piso de proteção de alvo de alocação — **riscar da lista** |
+
+### O que falta, em ordem
+
+1. **Independente da churn** — `_detalhes_caixa` publicar `conversao` e parar de emitir
+   `saldo_original` em BRL ao lado de `moeda` reinferida.
+2. **Independente** — `_componentes` consultar `conversao.status` em vez da constante
+   `apurado`. O CV18 existe e **não pega este caso**.
+3. **Pré-requisito de 1 e 2** — fixture com uma conta em USD **e** uma em `missing_rate`.
+   Sem ela os dois consertos passam verdes por construção: o estado certo e o bugado são o
+   mesmo byte.
+4. Decidir se `exposicao_cambial` entra em `required` do `e5_analysis.schema.json`.
+5. **Bloqueio externo** — rodapé PTAX espera a [[A40.l39]].
+6. **Lane própria, com dono** — refresh de PTAX (Celery + TTL). Não é item de inventário.
+7. **Depois da [[A42.l15]]** — `has_foreign_in_e3` por `(instituição, moeda, conta)`: a
+   granularidade certa **exige** a identidade estável que aquela lane constrói.
+8. **Depois** — reconciliar `tabela_classes.Internacional` × `exposicao_cambial`.

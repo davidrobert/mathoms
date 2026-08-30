@@ -15,6 +15,7 @@ from dev.audit_e15_vocab_closure import (
     as_dict,
     catalog_tokens,
     classify_codigo,
+    report,
     tally,
 )
 
@@ -84,3 +85,20 @@ def test_saida_carrega_numerador_e_denominador() -> None:
     assert data["codigo_fora_do_canonico"] == {"num": 1, "den": 2, "pct": 50.0}
     assert data["instituicao_fora_do_catalogo"] == {"num": 1, "den": 2, "pct": 50.0}
     assert data["artefatos_ilegiveis"] == 1, "artefato ilegível não pode sumir da conta"
+
+
+def test_report_nao_soma_extracao_com_agregado() -> None:
+    """O defeito que este teste existe para matar: somar `E1.5a` (extração por documento)
+    com `E1.5`/`extract_baseline` (agregado que RE-EMITE os mesmos itens) conta cada item
+    duas vezes e dilui a taxa da extração com a do agregado — medido em 2026-08-30, a soma
+    dava 1,5% quando a extração era 1,86% e o agregado 0,84%, e não descrevia nenhum dos dois."""
+    extracao, agregado = Closure(), Closure()
+    tally([{"codigo": "01"}, {"codigo": "07-01"}], set(), extracao)
+    tally([{"codigo": "01"}, {"codigo": "01"}], set(), agregado)
+    data = report({"E1.5a": extracao, "extract_baseline": agregado}, 2, 0, 0)
+
+    assert data["populacao_headline"] == "E1.5a"
+    assert data["extracao"]["itens"] == 2, "o headline não pode incluir o agregado"
+    assert data["extracao"]["codigo_fora_do_canonico"]["pct"] == 50.0
+    assert data["agregado_nao_somar"]["extract_baseline"]["itens"] == 2
+    assert "E1.5a" not in data["agregado_nao_somar"], "extração não se repete no agregado"
