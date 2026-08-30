@@ -179,13 +179,24 @@ para o lado inseguro. E erro de LLM lendo texto é correlacionado entre camadas:
 não se cancela por empilhamento. Orçamento marginal rende mais em **lente nova**
 (outro artefato-alvo) que em profundidade.
 
-> **Caso de origem (2026-08-30, closeout da `A40.l94`).** Dois céticos deram
-> veredito **oposto** sobre a mesma substância: um confirmou, outro refutou. Agi
-> sobre o confirmado e **risquei uma frase verdadeira** — "uma aplicação, dois
-> pontos", que era literalmente correta sobre o separador que nomeava
-> (`transfer_categories` aplicado em `fluxo_caixa_enricher.py:510`, ausente em
-> `_collect_candidates`). O risco falso foi para `main` num PR de closeout cujo
-> objetivo era justamente consertar afirmações falsas.
+> **Caso de origem (2026-08-30, closeout da `A40.l94`) — e o rendimento medido.**
+> A camada 4 matou 4 de 49 achados. Auditados os 4: **2 mortes erradas, 2
+> corretas** — 50% de erro na camada que existe para filtrar erro.
+>
+> - `ADR-L94-05` — dois céticos deram veredito **oposto** sobre a mesma substância.
+>   Agi sobre o confirmado e **risquei uma frase verdadeira**: "uma aplicação, dois
+>   pontos" era literalmente correta sobre o separador que nomeava
+>   (`transfer_categories` aplicado em `fluxo_caixa_enricher.py:510`, ausente em
+>   `_collect_candidates`). O risco falso foi para `main` num PR de closeout cujo
+>   objetivo era justamente consertar afirmações falsas.
+> - `L94-SEM-PR` — morto sob a alegação "omissão prevista pela convenção".
+>   Testemunha: das lanes `shipped`/`done` da sprint, **66 de 66** declaravam
+>   `ship_pr`; a lane era a única sem, e schema e gate **exigem** o campo. A
+>   convenção proibia a omissão, não a previa. Pior, era classe cujo único detector
+>   vivo é esta auditoria — o painel matou o único detector.
+>
+> As 2 mortes corretas também renderam: uma delas apontou resíduo (evidência datada
+> que ninguém anotou) mesmo estando certa em matar o achado.
 
 ### Camada 5 — Síntese (dois outputs)
 
