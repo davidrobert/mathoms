@@ -2,7 +2,9 @@
 
 import { Fragment } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, FileText, Printer } from "lucide-react";
+// `Eye`/`EyeOff` saiu: em fintech esse par é o affordance de MASCARAR SALDO,
+// e a colisão semântica piora quanto mais central o botão fica (A40.l104).
+import { FileText, PanelLeft, PanelLeftClose, Printer } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -35,7 +37,10 @@ const VISIBLE_MODES: readonly ReportMode[] = ["estrategico"];
  *
  * Renderizada à direita do `ReportTopNav` (sticky, dark gradient). Estilo
  * alinhado ao gradiente: borders e texto em rgba(255,255,255,*). Toggle TOC
- * só aparece em md+ porque a sidebar é `hidden md:block`. Mode tablist
+ * só aparece em lg+ porque o `<aside>` do `ReportToc` é `hidden … lg:block`:
+ * em md o botão montava o aside com largura 0 e não revelava nada (A40.l104).
+ * Abaixo de lg quem serve o índice é o FAB do `FloatingNav`, por desenho.
+ * Mode tablist
  * só aparece quando `VISIBLE_MODES.length > 1` (auto-hide para single mode).
  */
 export function ReportActions({
@@ -99,14 +104,14 @@ export function ReportActions({
               type="button"
               onClick={onToggleSidebar}
               aria-label={sidebarOpen ? "Ocultar índice" : "Mostrar índice"}
-              className="hidden rounded-md p-1.5 text-white/70 hover:bg-white/10 hover:text-white md:inline-flex"
+              className="hidden rounded-md p-1.5 text-white/70 hover:bg-white/10 hover:text-white lg:inline-flex"
             />
           }
         >
           {sidebarOpen ? (
-            <EyeOff className="h-4 w-4" />
+            <PanelLeftClose className="h-4 w-4" />
           ) : (
-            <Eye className="h-4 w-4" />
+            <PanelLeft className="h-4 w-4" />
           )}
         </TooltipTrigger>
         <TooltipContent>
