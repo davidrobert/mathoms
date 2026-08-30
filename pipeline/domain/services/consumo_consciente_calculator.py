@@ -11,6 +11,7 @@ Função pura, recebe dicts + config tipada (R9/ISP). Sem I/O.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -68,6 +69,27 @@ def _dentro_da_janela(mes: str, mes_inicio: str) -> bool:
     if not mes_inicio:
         return True
     return bool(mes) and mes >= mes_inicio
+
+
+def _sem_zero_negativo(publicada: float) -> float:
+    """``-0.0`` sairia ``"R$ -0,00"`` na prosa; ``-0.0`` é falsy e ``nan`` não."""
+    return 0.0 if publicada == 0 else publicada
+
+
+def _folga_em_prosa(publicada: float) -> str:
+    """Trecho reusado pelo motivo e pela prosa — ``nan``/``inf`` não viram ``"R$ NaN"``."""
+    if not math.isfinite(publicada):
+        return "folga mensal indeterminada"
+    return f"folga mensal de {fmt_brl_prosa(publicada, decimals=2)}"
+
+
+def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
+    """Motivo de máquina, forma ``"<slug>: <detalhe>"`` ([[ADR-394]] §D7); a copy da
+    família vive na prosa do E5."""
+    return (
+        f"folga_nao_positiva: a janela de {n_meses:.0f} meses fechou sem poupança "
+        f"({folga_em_prosa}) — o gasto pontual não tem equivalente em meses"
+    )
 
 
 _DEFAULT_RECURRENT = frozenset(
@@ -147,10 +169,14 @@ class GastoPontualItem:
 class ConsumoConsciente:
     itens: tuple[GastoPontualItem, ...]
     total_pontuais: float
-    equivalente_meses_poupanca: float
+    # ``None`` e não ``0,0``: um zero publicado é uma afirmação sobre a poupança
+    # da família, e fora do domínio de definição o sistema não a mediu
+    # ([[ADR-394]] §D7, forma de ``investimentos_cobertura.valor_publicavel``).
+    equivalente_meses_poupanca: float | None
     folga_mensal: float
-    folga_pct: float
+    folga_pct: float | None
     analise: str
+    motivo_supressao: str | None = None
     # Folga derivada da janela canônica (ADR-306 §D1); pontuais da janela
     # expostos para o inventário e para o gate de base ([[ADR-422]]).
     janela: str = "full"
@@ -166,6 +192,7 @@ class ConsumoConsciente:
             "folga_mensal": round(self.folga_mensal, 2),
             "folga_pct": self.folga_pct,
             "analise": self.analise,
+            "motivo_supressao": self.motivo_supressao,
             "janela": self.janela,
             "janela_meses": self.janela_meses,
         }
@@ -206,22 +233,41 @@ class ConsumoConscienteCalculator:
         # que prescrevia (RR6-01). Base é ``despesa_consumo`` (ADR-333): com a
         # bruta, o aporte da janela reintroduz a divergência por outro termo.
         folga_mensal = window.receita_rec_mensal - window.despesa_consumo_mensal
+        # Gatear por um número e dividir por outro publica um par que o leitor
+        # não recompõe: `to_legacy_dict` publica a folga ARREDONDADA, então é
+        # ela que serve de denominador (A40.l101 · cético `sinal-trocado`).
+        folga_publicada = _sem_zero_negativo(round(folga_mensal, 2))
         folga_pct = (
             round((folga_mensal / window.receita_rec_mensal * 100), 2)
             if window.receita_rec_mensal > 0
-            else 0.0
+            else None
         )
         # ADR-422: numerador e denominador na MESMA janela. Media contra o aporte
         # DECLARADO (`goals.meta_aporte_mensal`) sobre o estoque full-period —
         # duas bases e um denominador editável pelo usuário; no dogfood o fator
         # de inflação era 4,9× (46,1 meses onde a poupança sustenta 4,1).
-        equivalente = round(pontuais_janela / folga_mensal, 1) if folga_mensal > 0 else 0.0
+        #
+        # A guarda `else 0.0` que aqui morre veio TRANSPLANTADA da fórmula
+        # anterior, cujo denominador era a meta DECLARADA (>= 0, e `0` queria
+        # dizer "não configurou"). Sobre a folga — quantidade MEDIDA que vai a
+        # negativo — `<= 0` passou a querer dizer "a família não poupou nada", e
+        # `0,0` é o MENOR valor da régua: o pior mundo publicava o melhor número
+        # (A40.l101 · [[ADR-422]] §Emenda 2026-08-30).
+        folga_em_prosa = _folga_em_prosa(folga_publicada)
+        if math.isfinite(folga_publicada) and folga_publicada > 0:
+            equivalente = round(pontuais_janela / folga_publicada, 1)
+            motivo = None
+        else:
+            equivalente = None
+            motivo = _motivo_folga_nao_positiva(folga_em_prosa, window.n_meses)
 
         analise = self._build_analise(
             n_candidates=len(candidates),
             total_pontuais=total_pontuais,
             pontuais_janela=pontuais_janela,
             equivalente_meses=equivalente,
+            janela_meses=window.n_meses,
+            folga_em_prosa=folga_em_prosa,
         )
 
         return ConsumoConsciente(
@@ -231,6 +277,7 @@ class ConsumoConscienteCalculator:
             folga_mensal=folga_mensal,
             folga_pct=folga_pct,
             analise=analise,
+            motivo_supressao=motivo,
             janela=window.janela,
             janela_meses=int(window.n_meses),
             pontuais_janela=pontuais_janela,
@@ -293,19 +340,33 @@ class ConsumoConscienteCalculator:
         n_candidates: int,
         total_pontuais: float,
         pontuais_janela: float,
-        equivalente_meses: float,
+        equivalente_meses: float | None,
+        janela_meses: float,
+        folga_em_prosa: str,
     ) -> str:
         cfg = self._config
         minimo = fmt_brl_prosa(cfg.consumo_min)
-        if n_candidates > 0:
-            total = fmt_brl_prosa(total_pontuais, decimals=2)
-            janela = fmt_brl_prosa(pontuais_janela, decimals=2)
+        if n_candidates == 0:
             return (
-                f"Identificados {n_candidates} gastos pontuais ≥ {minimo} "
-                f"no período analisado, somando {total}. Na janela de 12 meses são "
-                f"{janela}, equivalentes a {equivalente_meses:.1f} meses de poupança."
+                f"Nenhum gasto pontual relevante ≥ {minimo} identificado "
+                "no período analisado — padrão de consumo dentro dos limites recorrentes."
+            )
+        cabeca = (
+            f"Identificados {n_candidates} gastos pontuais ≥ {minimo} "
+            f"no período analisado, somando {fmt_brl_prosa(total_pontuais, decimals=2)}. "
+        )
+        janela = fmt_brl_prosa(pontuais_janela, decimals=2)
+        # Sem este ramo a prosa AFIRMA "equivalentes a 0.0 meses de poupança" num
+        # mundo sem poupança nenhuma — e com o campo suprimido ela levanta
+        # ``TypeError`` no ``:.1f``. É a trava que impede o "—" do card de virar
+        # neutralidade: a ausência tem de vir declarada, não nua (A40.l101).
+        if equivalente_meses is None:
+            return (
+                f"{cabeca}Na janela de {janela_meses:.0f} meses são {janela}, que não se "
+                f"convertem em meses de poupança: a janela fechou com "
+                f"{folga_em_prosa} — a receita recorrente não cobriu o consumo."
             )
         return (
-            f"Nenhum gasto pontual relevante ≥ {minimo} identificado "
-            "no período analisado — padrão de consumo dentro dos limites recorrentes."
+            f"{cabeca}Na janela de 12 meses são "
+            f"{janela}, equivalentes a {equivalente_meses:.1f} meses de poupança."
         )

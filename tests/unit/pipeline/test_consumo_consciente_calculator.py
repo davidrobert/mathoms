@@ -215,13 +215,71 @@ class TestEquivalenteMesesPoupanca:
         assert r.folga_mensal == 5_000.0
         assert r.equivalente_meses_poupanca == 3.0
 
-    def test_zero_quando_folga_nao_positiva(self):
+    # A40.l101 — este bloco substitui `test_zero_quando_folga_nao_positiva`, que
+    # ASSERIA o defeito: com folga zero e R$ 5.000 de gasto pontual ele exigia
+    # que o relatório publicasse "0,0 meses de poupança", o MENOR valor da régua
+    # no pior mundo. O ramo `folga < 0` era inteiramente cego — mutante que
+    # devolvia -99.0 só nele sobrevivia à suíte inteira.
+    def test_suprime_quando_a_folga_e_exatamente_zero(self):
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=10_000, desp_mensal=10_000),
             _despesas(lazer=[_txn("2026-01-05", "X", 5000)]),
         )
+        assert r.equivalente_meses_poupanca is None
+        assert r.motivo_supressao.startswith("folga_nao_positiva:")
+
+    def test_suprime_quando_a_folga_e_negativa(self):
+        """O ramo que nenhum teste alcançava: família em déficit COM gasto pontual."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=10_000, desp_mensal=11_000),
+            _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
+        )
+        assert r.folga_mensal < 0
+        assert r.equivalente_meses_poupanca is None
+        assert "meses de poupança." not in r.analise
+
+    def test_zero_publicado_significa_apenas_ausencia_de_gasto_pontual(self):
+        """A supressão não pode engolir o mundo verdadeiro: folga > 0 e P == 0."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=20_000, desp_mensal=15_000), _despesas()
+        )
         assert r.equivalente_meses_poupanca == 0.0
+        assert r.motivo_supressao is None
+
+    def test_denominador_publicado_e_o_que_o_leitor_recompoe(self):
+        """Gatear num número e dividir por outro publica um par irreproduzível."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=20_000.004, desp_mensal=15_000),
+            _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
+        )
+        d = r.to_legacy_dict()
+        assert d["equivalente_meses_poupanca"] == round(
+            d["total_pontuais_janela"] / d["folga_mensal"], 1
+        )
+
+    def test_folga_publicada_que_arredonda_para_zero_suprime(self):
+        """Meio centavo de folga publicava 7 dígitos sob uma célula que diz R$ 0,00."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=15_000.004, desp_mensal=15_000),
+            _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
+        )
+        assert r.to_legacy_dict()["folga_mensal"] == 0.0
+        assert r.equivalente_meses_poupanca is None
+
+    def test_folga_pct_nao_afirma_empate_sem_receita_recorrente(self):
+        """Guard gêmeo, mesmo bloco: `0.0` lia "empatou" para quem queimou caixa."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            _fluxo(rec_rec_mensal=0, desp_mensal=14_500),
+            _despesas(lazer=[_txn("2026-01-05", "X", 15_000)]),
+        )
+        assert r.folga_mensal < 0
+        assert r.folga_pct is None
 
     def test_meta_de_aporte_editavel_nao_move_o_diagnostico(self):
         """A meta é editável pelo usuário; diagnóstico que se move com ela não é auditável."""
@@ -289,13 +347,17 @@ class TestFolga:
             ConsumoConscienteCalculator(cfg).calculate(fluxo, _despesas()).folga_mensal == 5_000.0
         )
 
-    def test_folga_zero_quando_receita_zero(self):
+    def test_folga_pct_suprimido_quando_receita_zero(self):
+        """A40.l101 — asseria `0.0` com folga de −R$ 5.000: "0% da receita" para
+        quem não tem receita e queimou caixa. Mesmo guard transplantado do
+        `equivalente`, três linhas acima, e o mesmo sinal trocado."""
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(rec_rec_mensal=0, desp_mensal=5_000),
             _despesas(),
         )
-        assert r.folga_pct == 0.0
+        assert r.folga_mensal == -5_000.0
+        assert r.folga_pct is None
 
 
 # =============================================================================
@@ -400,6 +462,7 @@ class TestResult:
             "folga_mensal",
             "folga_pct",
             "analise",
+            "motivo_supressao",
         }
         assert required.issubset(d.keys())
         assert "teto_sugerido" not in d
