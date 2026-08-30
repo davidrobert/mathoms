@@ -560,7 +560,7 @@ export type E5AnalysisArtifact = {
   "programa_milhas"?: Record<string, never>;
   "kpi_targets"?: Record<string, {
     "observado_path": string;
-    "base": string;
+    "base": "carteira_com_titular_identificado" | "carteira_financeira_familia" | "carteira_liquida" | "carteira_produtiva_com_titular_identificado" | "carteira_produtiva_familia" | "carteira_produtiva_fixa" | "cone_monte_carlo" | "despesa_essencial_mensal" | "despesa_essencial_mensal_12m" | "despesa_mensal_media" | "despesa_total" | "despesas_mensais" | "patrimonio_alvo" | "patrimonio_bruto" | "patrimonio_gerador" | "patrimonio_liquido" | "receita_recorrente" | "renda_anual_familiar" | "renda_anual_liquida";
     "unidade": "pct" | "pct_aa" | "meses" | "ano" | "ratio_0_1";
     "rotulo": string;
     "limiar"?: number | null;

@@ -1264,7 +1264,28 @@
           },
           "base": {
             "type": "string",
-            "description": "Denominador declarado (ex.: carteira_produtiva, patrimonio_bruto). Alvo sem base é indefensável mesmo quando o número está certo."
+            "description": "Denominador declarado. Fechado como enum em 2026-08-29 (A40.l80): `base` livre deixava o rótulo divergir do denominador que o produtor usa, e foi assim que `protecao_cobertura`, `carteira_produtiva` e `aliquota_efetiva_ir` nomearam bases erradas (5,6x e 4x). A união cobre os membros de `BaseFinanceira` (eixo patrimonial) e os denominadores de renda/despesa que o catalogo declara. O enum e sintatico: quem prova a CORRETUDE e o recompute em cents de tests/test_cobertura_de_base.py, e ele so alcanca as razoes cujo produtor tambem declara a base. Alvo sem base e indefensavel mesmo quando o numero esta certo.",
+            "enum": [
+              "carteira_com_titular_identificado",
+              "carteira_financeira_familia",
+              "carteira_liquida",
+              "carteira_produtiva_com_titular_identificado",
+              "carteira_produtiva_familia",
+              "carteira_produtiva_fixa",
+              "cone_monte_carlo",
+              "despesa_essencial_mensal",
+              "despesa_essencial_mensal_12m",
+              "despesa_mensal_media",
+              "despesa_total",
+              "despesas_mensais",
+              "patrimonio_alvo",
+              "patrimonio_bruto",
+              "patrimonio_gerador",
+              "patrimonio_liquido",
+              "receita_recorrente",
+              "renda_anual_familiar",
+              "renda_anual_liquida"
+            ]
           },
           "unidade": {
             "type": "string",
