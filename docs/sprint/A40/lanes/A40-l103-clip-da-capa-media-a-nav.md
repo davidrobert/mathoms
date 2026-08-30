@@ -96,8 +96,26 @@ métrica de razão amplificar reflow de 1px em imagem curta.
 | Sumário executivo ausente do inventário da [[ADR-370]] | Lane própria. Os números-manchete não têm gate estrutural; esta lane só repôs o gate **de pixel** |
 | Reflow de 1px marca 9,58% em imagem curta — a métrica de razão é inadequada para baseline baixa e densa em texto | Lane própria. Candidato: comparar com realinhamento `dy∈{±1,±2}` antes de reprovar |
 | Ledger de proveniência por baseline (`px_sha256`, `dims`, `transition` computados; `attributed_to`, `inspected_by` humanos) | Lane própria. **Não** copiar `dev/golden_diff.py` inteiro: o pilar do commit isolado **inverte** em binário — para PNG o diff é ilegível, então o diff de código irmão no mesmo commit é o único sinal de atribuição, e isolar o destruiria |
-| Encolher o ativo (29 PNGs / 3,2 MB working set) e revisar variantes `dark` | Lane própria, **depois** do ledger — que fecha de graça o buraco de baseline órfã |
+| Encolher o ativo (**30** PNGs / **3,1 MB** working set — re-medido no closeout; o `29 / 3,2 MB` escrito na abertura já não valia depois das 2 baselines que esta lane somou) e revisar variantes `dark` | Lane própria, **depois** do ledger — que fecha de graça o buraco de baseline órfã |
 | Baseline de print é golden sobre o rasterizador, e o caminho de update grava e retorna verde sem comparar | Lane própria |
+
+### Re-verificação dos deferimentos — closeout 2026-08-30
+
+Regra do repo: enunciado de follow-up se **re-mede antes de registrar**, senão
+o registro induz regressão. As 5 linhas "Lane própria" acima foram conferidas
+contra `main` neste closeout:
+
+| Deferimento | Veredito |
+| --- | --- |
+| Sumário fora do inventário da [[ADR-370]] | **Confirmado** — `report-inventory.expected.json` tem 17 seções e nenhuma é `sumario-executivo` |
+| Métrica de razão amplifica reflow de 1px | **Confirmado** pela medição da própria lane (9,58%, `dy=±1` → 0px) |
+| Ledger de proveniência | Proposta de desenho, sem enunciado factual a medir |
+| Encolher o ativo | **Número corrigido** — eram 30 PNGs / 3,1 MB, não 29 / 3,2 MB |
+| Update de baseline de print grava e retorna verde | **Confirmado** — `print.@critical.spec.ts:154` faz `writeFileSync` + `return` antes de qualquer `comparePngs`; e o mesmo ramo cobre `!existsSync(BASELINE_PATH)`, então **baseline ausente também passa** |
+
+**Nenhum dos 5 tem dono nomeado** — vivem nesta tabela, não numa lane `open`.
+É deliberado (lane-inventário mente para o consumidor de máquina), e é a
+ressalva do closeout: pegá-los é decisão do dono.
 
 ## Critério de aceite
 
