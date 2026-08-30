@@ -968,8 +968,14 @@ def _retidos_por_origem(candidates) -> Dict[str, int]:
 
 def _e3_collapse_retention(result, guard, *, instavel: bool) -> Optional[Dict[str, Any]]:
     """Contadores de retenção para `pipeline_stage_logs.output_summary`."""
+    from pipeline.domain.services.cross_document_collapse_types import proximity_counts
+
     medicao = result.collapse_measurement
-    if not guard.lido and not medicao.candidates:
+    # `proximidade_d1` entra na condição, e não só no corpo: a classe D±1 existe
+    # JUSTAMENTE onde a chave day-exact não forma grupo, então o run que só tem
+    # candidato de proximidade tem `candidates` vazia — e sem esta cláusula o
+    # número seria suprimido exatamente no caso que a [[A40.l102]] foi medir.
+    if not guard.lido and not medicao.candidates and not medicao.proximidade_d1:
         return None
     return {
         **guard.to_trace_dict(),
@@ -980,6 +986,8 @@ def _e3_collapse_retention(result, guard, *, instavel: bool) -> Optional[Dict[st
         "reservatorio_llm_sem_gemea": medicao.reservatorio_llm_sem_gemea,
         "removals_publicadas": _e3_removals_do_colapso(result),
         "retencao_instavel": instavel,
+        # Measure-only: contagem sem alvo. Ver `ProximityCandidate`.
+        "proximidade_d1": proximity_counts(medicao.proximidade_d1),
     }
 
 

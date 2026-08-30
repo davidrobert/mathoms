@@ -108,9 +108,79 @@ class CollapseMeasurement:
     candidates: tuple = ()
     corpus_gate_digests: frozenset[str] = frozenset()
     corpus_row_hashes: frozenset[str] = frozenset()
+    # [[A40.l102]] — classe D±1, medida em passada PRÓPRIA e mantida FORA de
+    # `candidates` de propósito: `collapse_precondition`, `_rows_to_drop` e o
+    # payload do E3 leem aquele campo, e misturar as duas classes mudaria o gate
+    # de enforce e o artefato. Separada, a classe é contável sem mover um byte.
+    proximidade_d1: tuple = ()
     # Rows de perna LLM em chave de proveniência única — viram candidato quando o documento
     # nativo daquela conta chegar. Preditor da retenção futura; ver `_group_by_key`.
     reservatorio_llm_sem_gemea: int = 0
+
+
+CLASSE_PROXIMIDADE_D1 = "proximidade_d1"
+
+
+@dataclass(frozen=True)
+class ProximityCandidate:
+    """Grupo cross-proveniência que difere do candidato de colapso **só pela data**.
+
+    Classe PRÓPRIA, e não um `CollapseCandidate` com campos zerados. O candidato de
+    colapso elege sobrevivente (`survivor_hash`), conta `removable_rows` e carrega
+    `removal_targets`; um objeto dessa forma com os três vazios entraria nas mesmas
+    listas que o corte consome, e o dia em que alguém filtrasse por
+    `blocked_reason is None` em vez de por `sera_colapsado` o corte alcançaria uma
+    classe que nunca foi julgada. Aqui não há alvo **por construção**, não por
+    convenção — é o ponto todo da [[A40.l102]]: D±1 é aceitável como classe de
+    candidato e inaceitável como critério de remoção enquanto não houver teste
+    positivo por candidato (a cadeia de saldo; hoje `saldo_apos` é emitido por 0 dos
+    parsers de banco).
+
+    `gate_digest` não existe aqui: o digest do gate de override é por chave, e chave
+    inclui a data — um grupo que abrange 2 datas não tem um. Emitir o de uma das
+    pernas faria a re-ancoragem apontar para a data errada.
+    """
+
+    mes: str
+    valor_cents: int
+    moeda: str
+    direction: str
+    # Datas ISO do grupo, ordenadas — o que torna o número auditável linha a linha.
+    datas: tuple[str, ...]
+    # Maior distância entre datas CONSECUTIVAS do grupo (dias). Nunca > `max_delta`.
+    delta_dias: int
+    n_rows: int
+    n_provenances: int
+    divergence: str = ""
+    # Fixo: o motivo do bloqueio É a proximidade. Campo (e não constante implícita)
+    # para que o consumidor leia a causa do mesmo lugar nas duas classes.
+    blocked_reason: str = CLASSE_PROXIMIDADE_D1
+
+    def to_trace_dict(self) -> dict:
+        return {
+            "mes": self.mes,
+            "valor_cents": self.valor_cents,
+            "moeda": self.moeda,
+            "direction": self.direction,
+            "datas": list(self.datas),
+            "delta_dias": self.delta_dias,
+            "n_rows": self.n_rows,
+            "n_provenances": self.n_provenances,
+            "divergence": self.divergence,
+            "blocked_reason": self.blocked_reason,
+        }
+
+
+def proximity_counts(candidates) -> dict[str, int]:
+    """Agregado PII-safe da classe D±1 — contagens e cents, nunca texto nem data."""
+    todos = list(candidates)  # materializa ANTES: generator consumido daria candidatos=0
+    return {
+        "candidatos": len(todos),
+        "rows": sum(c.n_rows for c in todos),
+        # Cents que um enforce ingênuo removeria: uma row por grupo, a mais recente.
+        # É o TAMANHO DO RISCO, não uma remoção planejada — nada aqui tem alvo.
+        "cents_em_risco": sum(c.valor_cents * (c.n_rows - 1) for c in todos),
+    }
 
 
 def shadow_counts(candidates) -> dict[str, int]:
