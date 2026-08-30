@@ -233,6 +233,11 @@ o falso-match. O molde correto já existe: `pipeline/llm/prompts/apolice.py:38` 
 A soma **não descrevia nenhuma das três**. O instrumento agora separa por população e o
 headline é sempre a extração — com teste que mata a mutação que reintroduz a soma.
 
+> **Os números acima são de um corpus VIVO** e envelhecem: o run `3a5b9c7d` (2026-08-30
+> 08:47) entrou entre a medição e o closeout e levou a extração a 131/7.126 = **1,84%** e
+> 2.329/5.285 = **44,07%** — numerador de `codigo` **idêntico**, denominador maior. Não
+> releia a tabela: rode `python3 dev/audit_e15_vocab_closure.py`.
+
 ### O `instituicao` sobrevive à correção; a conclusão do `codigo` **não**
 
 `instituicao` é robusto: **42,9%–45,1% em todas as populações**, e as formas fora do
@@ -275,9 +280,14 @@ não consulta `is_go`** (janela vazia ⇒ exit 0), contra a [[ADR-409]] §B. **D
    gate: `^\d{2}$` → **NO-GO** (2 artefatos na janela, e derruba também `e16_irpf_full`, hoje
    0/416 → 36/416); `^\d{2}(-\d{2})?$` → GO, **mas fecha 100% por construção e não pode
    reprovar nada**.
-2. **A perna `instituicao` do PR0 morre**: `^[a-z0-9]+$` dá **85,2% de drift** (767/900), e
-   contradiz o PR2 desta lane (*"`instituicao` sai da chave"*) e a [[ADR-400]] §1. Não existe
-   warn por campo — `mode_overrides` é per-schema. **Cortar do escopo.**
+2. **A perna `instituicao` do PR0 morre**: um `pattern` `^[a-z0-9]+$` faria **657 dos 911
+   artefatos (72,1%)** passarem a ter ≥1 item em violação — medido isolando o efeito do
+   campo. ⚠️ **Correção do que publiquei antes:** os *"85,2% (767/900)"* eram o drift do
+   **schema inteiro** com o pattern acrescentado, e portanto incluíam o drift pré-existente
+   de outros paths (`valor_brl`/`resumo.*`, pré-`payload_version`) — atribuí à `instituicao`
+   um numerador que não era dela. A conclusão não muda; o mecanismo sim. A perna também
+   contradiz o PR2 desta lane (*"`instituicao` sai da chave"*) e a [[ADR-400]] §1, e não
+   existe warn por campo — `mode_overrides` é per-schema. **Cortar do escopo.**
 3. **`additionalProperties: false`** em `e15_baseline_extract.schema.json:23` — abrir espaço
    para `cnpj_emissor` é **pré-requisito duro do PR1** e a lane não o atribuía a ninguém.
    O lado simétrico não bloqueia: `baseline_patrimonial.schema.json` é objeto aberto.
