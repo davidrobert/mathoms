@@ -3,6 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useMountedSectionIds } from "@/components/report/hooks/useMountedSectionIds";
+import {
+  keepInView,
+  mostVisibleId,
+  SPY_ROOT_MARGIN,
+  SPY_THRESHOLD,
+  trackRatios,
+} from "@/components/report/hooks/scrollSpy";
 
 export interface TocLink {
   readonly id: string;
@@ -32,6 +40,10 @@ interface ReportTocProps {
  *  - IntersectionObserver com debounce para scroll-spy
  *  - hash atualizado em scroll passivo, não só no click
  *  - auto-scroll do TOC para manter o item ativo visível
+ *
+ * Entrada é `<a href="#id">` com `preventDefault`, não `<button>`: o índice é
+ * navegação, então copiar-link-da-seção e abrir-em-nova-aba precisam funcionar,
+ * e o leitor de tela deve anunciar "link" (A40.l104).
  */
 export function ReportToc({ groups }: ReportTocProps) {
   const flatEntries = useMemo<readonly TocLink[]>(
@@ -44,6 +56,12 @@ export function ReportToc({ groups }: ReportTocProps) {
     const hash = window.location.hash.replace("#", "");
     return hash || "";
   });
+  // Mesmo defeito da faixa: o índice monta antes das seções sempre que o
+  // estado persistido o abre no load, e o observer nascia sem alvo (A40.l104).
+  const mountedIds = useMountedSectionIds(
+    useMemo(() => flatEntries.map((e) => e.id), [flatEntries]),
+  );
+  const asideRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const isUserClick = useRef(false);
 
@@ -64,33 +82,37 @@ export function ReportToc({ groups }: ReportTocProps) {
 
   // IntersectionObserver scroll-spy
   useEffect(() => {
-    if (flatEntries.length === 0) return;
+    if (mountedIds.length === 0) return;
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const ratios = new Map<string, number>();
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (isUserClick.current) return;
+        trackRatios(entries, ratios);
+        // A eleição é SÍNCRONA e só o `replaceState` debouncia. Debouncar a
+        // eleição perdia a única informação útil: num scroll longo a seção
+        // entra e sai da banda em disparos consecutivos, o segundo cancelava
+        // o timer do primeiro, e o que sobrava para avaliar era "nada
+        // intersecta" — o índice ficava mudo enquanto a faixa, síncrona,
+        // marcava certo (A40.l104). `null` mantém o anterior, como a faixa.
+        const newId = mostVisibleId(ratios);
+        if (!newId) return;
+        setActiveId(newId);
 
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-          const visible = entries
-            .filter((e) => e.isIntersecting)
-            .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-          if (visible[0]) {
-            const newId = visible[0].target.id;
-            setActiveId(newId);
-            if (typeof window !== "undefined") {
-              window.history.replaceState(null, "", `#${newId}`);
-            }
+          if (typeof window !== "undefined") {
+            window.history.replaceState(null, "", `#${newId}`);
           }
         }, 80);
       },
-      { rootMargin: "-15% 0% -55% 0%", threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] },
+      { rootMargin: SPY_ROOT_MARGIN, threshold: SPY_THRESHOLD },
     );
 
-    const elements = flatEntries
-      .map((entry) => document.getElementById(entry.id))
+    const elements = mountedIds
+      .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
 
     elements.forEach((el) => observer.observe(el));
@@ -99,17 +121,18 @@ export function ReportToc({ groups }: ReportTocProps) {
       observer.disconnect();
       if (debounceTimer) clearTimeout(debounceTimer);
     };
-  }, [flatEntries]);
+  }, [mountedIds]);
 
-  // Auto-scroll TOC to keep active item visible
+  // Mantém o item ativo visível rolando SÓ o `<aside>`. Com `scrollIntoView`
+  // o Chromium rolava o documento até a posição de fluxo do sticky, e o
+  // relatório saltava para o topo sozinho enquanto o usuário lia (A40.l104).
   useEffect(() => {
-    if (!activeId || !navRef.current) return;
-    const activeButton = navRef.current.querySelector(
+    const box = asideRef.current;
+    if (!activeId || !box || !navRef.current) return;
+    const item = navRef.current.querySelector<HTMLElement>(
       `[data-toc-id="${activeId}"]`,
     );
-    if (activeButton) {
-      activeButton.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
+    if (item) keepInView(box, item, "y", 16);
   }, [activeId]);
 
   const handleClick = useCallback((id: string) => {
@@ -129,7 +152,9 @@ export function ReportToc({ groups }: ReportTocProps) {
   }, []);
 
   return (
-    <aside className="sidebar-toc no-print hidden w-60 shrink-0 self-start border-r border-[var(--surface-border)] bg-[var(--surface-card)] p-3 lg:sticky lg:top-[var(--report-topnav-h,52px)] lg:block lg:max-h-[calc(100vh-var(--report-topnav-h,52px))] lg:overflow-y-auto">
+    <aside
+      ref={asideRef}
+      className="sidebar-toc no-print hidden w-60 shrink-0 self-start border-r border-[var(--surface-border)] bg-[var(--surface-card)] p-3 lg:sticky lg:top-[var(--report-topnav-h,52px)] lg:block lg:max-h-[calc(100vh-var(--report-topnav-h,52px))] lg:overflow-y-auto">
       <p className="mb-3 px-2 font-display text-xs font-semibold uppercase tracking-wider text-[var(--surface-muted-foreground)]">
         Capítulos
       </p>
@@ -175,9 +200,13 @@ function TocButton({
   onClick: (id: string) => void;
 }) {
   return (
-    <button
+    <a
+      href={`#${entry.id}`}
       data-toc-id={entry.id}
-      onClick={() => onClick(entry.id)}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick(entry.id);
+      }}
       className={cn(
         "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
         // Apêndice já se distingue pelo grupo próprio no índice; a opacidade
@@ -208,6 +237,6 @@ function TocButton({
         />
       )}
       <span className="truncate">{entry.label}</span>
-    </button>
+    </a>
   );
 }

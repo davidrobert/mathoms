@@ -40,6 +40,12 @@ ALLOWLIST = frozenset(
     {
         "ReportShell.tsx",
         "shell/ReportActions.tsx",
+        # A faixa sticky é `display:none !important` no print
+        # (`report-print.css`), então o modo de falha deste gate — dado que
+        # some do papel — é estruturalmente inalcançável nela. O `hidden
+        # md:flex` do rail de chips existe porque abaixo de md a caixa útil é
+        # 0–26px e os 20 chips ficavam focáveis sem pixel algum (A40.l104).
+        "shell/ReportTopNav.tsx",
         "RealEstateBreakdownPanel.tsx",
     }
 )

@@ -3,11 +3,15 @@
 import { useEffect, useState, useCallback } from "react";
 
 /** Estado do TOC lateral do relatório (aberto/fechado), persistido em
- * localStorage.
+ * localStorage. Só existe em `lg+`, onde o `<aside>` renderiza.
  *
- * Default fechado: a `ReportTopNav` sticky é a navegação primária do
- * relatório premium; o TOC lateral é affordance opt-in para "modo leitura
- * longa / panorama". Mesma convenção SSR-safe de `useReportFontScale`.
+ * Default fechado porque a coluna de leitura ganha por default — não porque a
+ * faixa seja "a navegação primária", como este comentário afirmava até
+ * A40.l104. A divisão real: a `ReportTopNav` responde **onde estou** (scroll-spy
+ * + rótulo do chip ativo), o índice e o FAB do `FloatingNav` respondem **para
+ * onde vou**. Abaixo de `lg` quem serve o índice é o FAB.
+ *
+ * Mesma convenção SSR-safe de `useReportFontScale`.
  */
 const STORAGE_KEY = "mathoms:report:toc-open";
 const DEFAULT_OPEN = false;
