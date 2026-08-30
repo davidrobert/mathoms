@@ -387,7 +387,10 @@ class IFProjector:
         if_trs_monthly = (cfg.if_trs_pct / 100.0) / 12.0
         # A renda-alvo DECLARADA sai da meta BRUTA, sempre. Deriva-la da operacional
         # faria o campo virar "o que ainda falta receber por mês" sob o rótulo do alvo
-        # — e o `EstrategiaAporteCard` o lê como alvo ([[ADR-418]] §D3).
+        # — e o `MetaIfSublabel` (S7Stat.tsx) o publica como "a renda-alvo declarada"
+        # ([[ADR-418]] §D3). O consumidor nomeado aqui era o `EstrategiaAporteCard`
+        # até a A40.l100 (`d25f3203`), que removeu a leitura: o card rotulava o campo
+        # de "aporte mensal necessário" e publicava o alvo sob o rótulo do PMT.
         if_trs_value = cfg.if_meta * if_trs_monthly
 
         # Uma base só para os dois consumidores e para o prazo ([[ADR-418]] §D1).
