@@ -34,6 +34,34 @@ tags:
 > `teto_sugerido` **não existe mais**. O que resta desta lane é a pergunta de base temporal
 > do KPI de pontuais (D6 vs D1) e o texto dos dois cards de S2 — não a álgebra.
 
+## Escopo herdado da [[A40.l101]] (2026-08-30, #1848)
+
+A l101 deu **domínio de definição** ao `equivalente_meses_poupanca` (`null` fora dele, com
+`motivo_supressao`) e deixou aqui duas coisas que são **apresentação do card de S2**, não
+aritmética do produtor:
+
+1. **O polo, e por que não foi fechado lá.** Com folga publicada de `R$ 0,01` e pontuais de
+   `R$ 30.000,00` o campo publica `3.000.000,0` numa célula de KPI. As duas rotas de
+   fechamento caíram **por medição**: (i) `config/scoring.json::thresholds_alertas` **não tem**
+   piso de taxa de poupança a reusar — `poupanca_referencia_pct: 25` e
+   `pontos_fortes_taxa_poupanca_min_pct: 30` são **alvos** —, logo o limiar seria inventado, a
+   mesma crítica que a [[ADR-422]] D2 fez ao multiplicador `1,15`; (ii) a sensibilidade
+   **relativa** é 1:1 em todo o domínio (folga `R$ 90,00` e `R$ 0,01`, ambas +1%, movem
+   0,99%), então não há argumento de ruído, e o número suprimido seria **verdadeiro e
+   acionável** — `333 meses` = *"irrecuperável ao seu ritmo"*. Suprimir teria o **sinal
+   trocado**. Sobra **legibilidade**: 7 dígitos num slot de KPI. Gatilho `product-designer`.
+2. **O rótulo lê pretérito e a fórmula é prospectiva.** "Equiv. meses de poupança" e
+   *"equivalentes a X meses de poupança"* leem *"quanto este gasto consumiu"* — a leitura
+   **retrospectiva**, que a [[ADR-422]] §Emenda 2026-08-30 **rejeitou** (sob ela o único
+   denominador coerente é `folga + P/n`, que é numericamente a folga pré-[[ADR-422]], ao
+   centavo). A forma decidida é conversão de unidade à taxa **observada**; o rótulo tem de
+   dizer "poupança **atual**", sem verbo de reposição. A prosa do ramo suprimido já saiu
+   assim; o rótulo do card é escopo desta lane.
+
+**Condição de retomada:** ao tocar o KPI de consumo consciente — é a mesma célula dos dois
+itens. `frontend/tests/e2e/reports/janela-canonica.@critical.spec.ts:265` é a fronteira que
+protege esta lane e reprova quem mexer no par sem passar por ela.
+
 ## Escopo herdado da [[A40.l3]] no fechamento (2026-07-31)
 
 Além da base do KPI de pontuais (que criou esta lane), a [[A40.l3]] transferiu o
