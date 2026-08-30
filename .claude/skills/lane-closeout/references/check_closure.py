@@ -159,11 +159,23 @@ def index_lanes() -> dict[str, Lane]:
     return lanes
 
 
+def _git_probe(args: list[str]) -> tuple[bool, str]:
+    """``(respondeu, stdout)``. O ``_git`` devolve ``""`` tanto quando o git
+    responde vazio quanto quando ele falha — conflação inofensiva para quem só
+    quer o texto, e fatal para o frescor: ausência de sinal viraria sinal de
+    substrato fresco."""
+    try:
+        done = subprocess.run(
+            ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=False
+        )
+    except OSError:
+        return False, ""
+    return done.returncode == 0, done.stdout
+
+
 def _git(args: list[str]) -> str:
-    done = subprocess.run(
-        ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=False
-    )
-    return done.stdout if done.returncode == 0 else ""
+    ok, out = _git_probe(args)
+    return out if ok else ""
 
 
 def _lane_ids_from_paths(paths: list[str], lanes: dict[str, Lane]) -> list[str]:
@@ -391,6 +403,105 @@ def check_stale_blocked(lane: Lane, lanes: dict[str, Lane]) -> list[Finding]:
     ]
 
 
+# O script tem DUAS fontes e, até 2026-08-30, não as conciliava: a RESOLUÇÃO do
+# escopo lê `origin/main` (`_merge_sha`, `resolve_recent`) e a AUDITORIA lê o
+# WORKING TREE (`index_lanes`, `citers_of`). Medido em 2026-08-29: rodado de um
+# checkout 2 commits atrás, `--pr 1824` resolveu a lane pelo histórico remoto e
+# listou **2** citadores; da árvore em `origin/main` eram **4** — e os 2 que
+# sumiram (`A40.l96`, `LEDGER-CERTIFY-active`) eram exatamente onde o drift
+# morava, que é o que a camada 2 da skill manda ler. Sub-reporte SILENCIOSO:
+# nada na saída indicava substrato velho.
+#
+# O predicado não é "árvore atrás de origin/main" — commit atrás que não toca o
+# universo auditado não pode causar o sub-reporte, e acusá-lo seria ruído. É
+# "árvore diverge de origin/main DENTRO do universo que `citers_of`/`index_lanes`
+# leem", e a saída nomeia os arquivos (contador diz quantos, não quais).
+_AUDITED_UNIVERSE = ("docs/sprint", "docs/_MOC")
+
+
+def check_substrate_freshness(pr: int | None) -> list[Finding]:
+    """CLOSE-BLOCK/DRIFT: o conteúdo auditado não é o conteúdo que o escopo resolveu."""
+    ok_head, _ = _git_probe(["rev-parse", "--verify", "HEAD"])
+    ok_ref, _ = _git_probe(["rev-parse", "--verify", "origin/main"])
+    if not (ok_head and ok_ref):
+        falta = "HEAD" if not ok_head else "origin/main"
+        return [
+            Finding(
+                "CLOSE-BLOCK-07",
+                "alta",
+                "—",
+                "(substrato)",
+                "frescor do substrato NÃO VERIFICÁVEL — a auditoria pode estar lendo árvore velha",
+                f"`git rev-parse --verify {falta}` não respondeu; rode de um clone com "
+                "remote, ou trate o resultado como não medido",
+            )
+        ]
+
+    findings: list[Finding] = []
+
+    # `--pr N` audita ESTE PR: se o merge dele não é ancestral de HEAD, a árvore
+    # não contém o que o PR mudou e a auditoria não é sobre ele.
+    if pr is not None:
+        sha = _merge_sha(pr)
+        if sha:
+            contido, _ = _git_probe(["merge-base", "--is-ancestor", sha, "HEAD"])
+            if not contido:
+                findings.append(
+                    Finding(
+                        "CLOSE-BLOCK-07",
+                        "alta",
+                        "—",
+                        "(substrato)",
+                        f"a árvore auditada NÃO contém o merge do #{pr} — o escopo veio do "
+                        "histórico remoto e o conteúdo veio de uma árvore anterior a ele",
+                        f"merge `{sha[:12]}` não é ancestral de HEAD; "
+                        "`git checkout origin/main` (ou rebase) e rode de novo",
+                    )
+                )
+
+    divergentes = sorted(
+        {
+            linha
+            for linha in _git(
+                ["diff", "--name-only", "HEAD", "origin/main", "--", *_AUDITED_UNIVERSE]
+            ).split()
+        }
+    )
+    if divergentes:
+        findings.append(
+            Finding(
+                "CLOSE-BLOCK-07",
+                "alta",
+                "—",
+                "(substrato)",
+                f"{len(divergentes)} doc(s) do universo auditado diferem entre a árvore e "
+                "`origin/main` — `citers_of` e `index_lanes` leem a árvore",
+                "difere: " + ", ".join(divergentes[:8]) + (" …" if len(divergentes) > 8 else ""),
+            )
+        )
+
+    sujos = sorted(
+        {
+            linha[3:].strip()
+            for linha in _git(["status", "--porcelain", "--", *_AUDITED_UNIVERSE]).splitlines()
+            if linha[3:].strip()
+        }
+    )
+    if sujos:
+        findings.append(
+            Finding(
+                "CLOSE-DRIFT-05",
+                "media",
+                "—",
+                "(substrato)",
+                f"{len(sujos)} doc(s) do universo auditado estão não-commitados — a auditoria "
+                "inclui edição local que ainda não existe em lugar nenhum",
+                "sujo: " + ", ".join(sujos[:8]) + (" …" if len(sujos) > 8 else ""),
+            )
+        )
+    return findings
+
+
 # Registros `*-active.md` entram desde 2026-08-21: os 2 CLOSE-BLOCK reais da
 # revisão de método moravam em linha de achado da PIPELINE-REVIEWS-active,
 # fora do universo — a linha-zumbi nasce no merge, e este é o único ponto que
@@ -427,6 +538,18 @@ def _resolve(args: argparse.Namespace, lanes: dict[str, Lane]) -> list[str]:
     if args.pr:
         return resolve_from_pr(args.pr, lanes)
     return resolve_recent(args.recent, lanes)
+
+
+def _render_substrate(substrate: list[Finding]) -> None:
+    """Primeiro de tudo: se o substrato está errado, todo o resto é sobre outra árvore."""
+    if not substrate:
+        return
+    print("=" * 78)
+    for f in substrate:
+        print(f"[{f.severity.upper():5s}] {f.code}  SUBSTRATO")
+        print(f"        {f.summary}")
+        print(f"        {f.evidence}")
+    print("=" * 78 + "\n")
 
 
 def _render(findings: list[Finding], context: dict, lane_ids: list[str]) -> None:
@@ -469,6 +592,12 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
+    # ANTES de qualquer coisa: a auditoria abaixo lê o working tree, e o escopo
+    # veio de `origin/main`. Se os dois discordam, o resultado é sobre outra
+    # árvore — e substrato velho pode ser a CAUSA do escopo vazio (o arquivo da
+    # lane pode nem existir ainda na árvore), então isto precisa ser reportado
+    # também no caminho do exit 2.
+    substrate = check_substrate_freshness(args.pr)
     lanes = index_lanes()
     lane_ids = [i for i in _resolve(args, lanes) if i in lanes]
     findings, context = audit(lane_ids, lanes)
@@ -482,26 +611,41 @@ def main() -> int:
         if args.json:
             print(
                 json.dumps(
-                    {"lanes": [], "findings": [], "citers": {}, "status": "nao_verificado"},
+                    {
+                        "lanes": [],
+                        "findings": [],
+                        "substrate": [asdict(f) for f in substrate],
+                        "citers": {},
+                        "status": "nao_verificado",
+                    },
                     ensure_ascii=False,
                     indent=2,
                 )
             )
         else:
+            _render_substrate(substrate)
             print(_NAO_VERIFICADO)
         return 2
 
     if args.json:
         print(
             json.dumps(
-                {"lanes": lane_ids, "findings": [asdict(f) for f in findings], "citers": context},
+                {
+                    "lanes": lane_ids,
+                    "findings": [asdict(f) for f in findings],
+                    "substrate": [asdict(f) for f in substrate],
+                    "citers": context,
+                },
                 ensure_ascii=False,
                 indent=2,
             )
         )
     else:
+        _render_substrate(substrate)
         _render(findings, context, lane_ids)
-    return 1 if findings else 0
+    # Substrato errado conta como achado: "0 achados" sobre a árvore errada é o
+    # falso-verde que este check existe para matar.
+    return 1 if (findings or substrate) else 0
 
 
 if __name__ == "__main__":

@@ -51,7 +51,12 @@ Nunca `rg --no-ignore` (varre worktrees e multiplica token sem contexto novo).
 
 ### Camada 1 — Check determinístico (sem token de LLM)
 
+**Rode de uma árvore que esteja em `origin/main`.** O escopo é resolvido no
+histórico remoto (`--pr`/`--recent` leem `origin/main`), mas a auditoria lê o
+**working tree** — e o script não podia conciliar os dois até 2026-08-30:
+
 ```bash
+git fetch origin && git checkout origin/main   # ou rebase a sua branch
 python3 .claude/skills/lane-closeout/references/check_closure.py --pr <N>
 ```
 
@@ -72,6 +77,22 @@ por **track** e não por lane, recebeu esse verde em 3 PRs sem uma única
 asserção ter rodado. Em `exit 2`, vá direto às camadas 2-4 e **não** registre
 "camada 1 limpa".
 
+**Banner de SUBSTRATO** (`CLOSE-BLOCK-07`/`CLOSE-DRIFT-05`, desde 2026-08-30).
+Antes de qualquer achado o script imprime, se for o caso, que o conteúdo
+auditado **não é** o conteúdo que o escopo resolveu — árvore que não contém o
+merge do PR pedido, docs do universo auditado divergindo de `origin/main`, ou
+árvore suja. Medido em 2026-08-29 no fechamento da [[A42.l15]]: rodado de um
+checkout **2 commits atrás**, `--pr 1824` listou **2** citadores; da árvore em
+`origin/main`, **4** — e os dois que sumiram (`A40.l96` e a
+`LEDGER-CERTIFY-active`) eram exatamente onde o drift morava. O sub-reporte era
+**silencioso**: nada na saída indicava substrato velho, e o closeout registrou
+"camada 1 limpa" sobre a árvore errada.
+
+O predicado é **divergência dentro do universo auditado** (`docs/sprint`,
+`docs/_MOC`), não "árvore atrás" — commit atrás que não toca esses paths não
+pode causar o sub-reporte, e acusá-lo seria ruído. E git que **não responde**
+vira achado próprio, nunca silêncio: ausência de sinal não é sinal de frescor.
+
 > ⚠️ Verde aqui **não responde a pergunta do dono**. O script não lê sentido:
 > não sabe se um número virou falso nem se um critério de aceite está
 > invertido. Verde na camada 1 é pré-requisito, nunca veredito.
@@ -90,6 +111,10 @@ faz a pergunta do dono render toda vez.
 
 Some a esse conjunto: as ADRs em `adrs:`, o plano em `plan:`, e qualquer doc
 que o PR tocou fora de `docs/sprint/`.
+
+⚠️ **Essa lista vale o que a árvore vale.** `citers_of` lê o working tree; se o
+banner de SUBSTRATO acendeu, a lista está incompleta e reler "a lista inteira"
+ainda deixa drift de fora. Sincronize e rode de novo **antes** da camada 3.
 
 ### Camada 3 — Julgamento nas 4 dimensões
 
