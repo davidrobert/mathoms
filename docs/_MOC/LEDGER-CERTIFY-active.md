@@ -496,3 +496,34 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 > Efeito no relatório, mesmo corpus: `Internacional` R$ 34.857,23 → **R$ 423,56**,
 > `nao_classificado_pct` 3,93% → **6,51%**, com **totais publicados idênticos ao centavo** —
 > redistribuição com Σ preservado, a classe cega aos invariantes de conservação.
+
+## r7 — ws-1b9f2cf5-2026-08-30
+
+> Rodada unificada **U3** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r7 · [[PIPELINE-REVIEWS-active]] §r11 · [[REPORT-REVIEWS-active]] §r7.
+> Run `3a5b9c7d` `completed` 18/18 · 25,7 min · executor `f0ac69a2` · report `939ee69c` · preflight: 4 WARN.
+> Cru + síntese com valores: storage/<uuid>/reviews/U3-2026-08-30/SINTESE.md (off-git).
+> Escrituração: [[A40.l100]] · [[A40.l101]] · [[A42.l17]] alocadas nesta rodada.
+> Cobertura: matriz 7×3 — **`REPORT × solidez-financeira` NULA** (100% dos blocos de doutrina em `sem-veredito` ⇒ a resposta legítima era `BLOQUEADA`) · `PIPELINE × qualidade-llm` fraca.
+> Céticos: **3 CONFIRMADO / ~10 PARCIAL / 2 REFUTADO**.
+
+**Manchete: a rodada mediu que os dois consertos seguram, e descobriu que o instrumento que
+pontua a KR-B mudou entre os dois runs sem ninguém olhar.** A regra §10 nº 5 — escrita no
+fecho do `U2` — manda derivar a lista de fechados do `git log` entre executores, e o
+pathspec que ela fixa é `pipeline backend scripts config frontend/src`. O instrumento vive
+em `dev/` e em `storage/`, e **nenhum dos dois está no pathspec**.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC7-01 — um parser de banco chama o SDK LLM **sem `temperature`**, sem seed, sem contrato tipado e **sem escrever na telemetria** que é fonte única, e a descrição livre que ele devolve alimenta a **chave natural** da transação | correção | Alto | P0 | PARCIAL (Crítico → Alto: blast radius vivo é zero) · NOVO | procede-aberto | mesmo documento, 4 runs: **2/1/4** de 8 chaves mudaram. No corpus inteiro (136 unidades, 7.991 tx) as 4 que mudaram no último intervalo estão **todas nesta unidade** · **dona [[A42.l17]]** |
+| LC7-02 — a população consolidada publicada mede **churn do extrator**, não descoberta: contas reais **55 → 60 → 58** contra contagem publicada **61 → 60 → 63**; uma linha do IRPF produziu **4 descrições** em 3 runs ⇒ 4 identidades | consistência | Alto | P1 | PARCIAL (MEDIÇÃO-DE-CONHECIDO de `LC6-02`; o mecanismo **não** é novo, a decomposição é) | procede-aberto · dona [[A42.l15]] | **refutação embutida: não há dupla contagem monetária** — a soma fecha ao centavo nos 3 runs, porque o consumidor lê a fatia do ano corrente |
+| LC6-01 · LC6-02 · LC6-03 · LC6-05 · LC6-07 (§r6) | — | — | — | **reproduzidos sem alteração** | procede-aberto | KR-B **7** `carrier-shaped` · E2→E3 `coberto-sem-verificação` · `natural_key` 7,0% · lanes `in_progress` |
+
+**Positivos verificados.** E3→E4 `conservado` · X2 determinístico (2.289 células, 0
+divergentes, pin de overrides estável) · X3b fecha · zero-write provado.
+
+**⚠️ Ressalva de instrumento, e é minha.** O modo que pontua a KR-B foi **reescrito** entre
+os dois runs (para fechar um falso-verde de zero-write). Publiquei "KR-B idêntico" atravessando
+essa mudança sem declará-la. E ao "propagar o instrumento corrigido" eu **sobrescrevi o
+`xchecks.py` do diretório do `U2`**, que é o baseline congelado do `--compare` — os
+números do §r6 já não são reproduzíveis com o instrumento que os produziu. Mesma patologia
+que o `LC6-01` declara.

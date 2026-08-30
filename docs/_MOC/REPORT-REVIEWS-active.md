@@ -502,3 +502,33 @@ registrado, e o defeito é falta de **sujeito**, não de canal.
 tiveram conserto mergeado entre os dois runs e o brief das lentes as declarou **ABERTAS**
 — o que faz a lente **descartar** o sinal como re-descoberta em vez de verificar se o
 conserto segura. As suspeitas estão marcadas; a re-triagem é do r7/r11.
+
+## r7 — ws-1b9f2cf5-2026-08-30
+
+> Rodada unificada **U3** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r7 · [[PIPELINE-REVIEWS-active]] §r11 · [[REPORT-REVIEWS-active]] §r7.
+> Run `3a5b9c7d` `completed` 18/18 · 25,7 min · executor `f0ac69a2` · report `939ee69c` · preflight: 4 WARN.
+> Cru + síntese com valores: storage/<uuid>/reviews/U3-2026-08-30/SINTESE.md (off-git).
+> Escrituração: [[A40.l100]] · [[A40.l101]] · [[A42.l17]] alocadas nesta rodada.
+> Cobertura: matriz 7×3 — **`REPORT × solidez-financeira` NULA** (100% dos blocos de doutrina em `sem-veredito` ⇒ a resposta legítima era `BLOQUEADA`) · `PIPELINE × qualidade-llm` fraca.
+> Céticos: **3 CONFIRMADO / ~10 PARCIAL / 2 REFUTADO**.
+> Objeto: report `939ee69c` sobre run `3a5b9c7d` — produzido nesta rodada.
+
+**Manchete: o conserto da folga segura, e deixou o irmão quebrado.** Os dois "quanto sobra"
+convergiram para o mesmo número — delta **19,38 pp → 0,00 pp** — e a identidade
+sum-preserving **rompeu**. Mas o campo vizinho ficou **auto-referente**: o denominador virou
+a mesma referência mensal de consumo da qual o numerador é **45,4%**.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| RR7-01 — o cartão rotulado **"necessário"** publica a **renda-alvo**, não o aporte que o motor calcula; o PMT correto já existe e aparece em **cinco** superfícies, e o número do cartão é o único ponto fora dessa cadeia | correção | Crítico | P0 | PARCIAL (o núcleo segura e fica **mais forte**; o cético **refutou o discriminador da lente**) | procede-aberto · **dona [[A40.l100]]** | ⚠️ o critério de aceite proposto pela lente **não discrimina**: neste workspace o goal declarado e o PMT coincidem, então "batem" passa nas duas implementações. Exige fixture em que difiram |
+| RR7-02 — o conserto da folga deixou `equivalente_meses_poupanca` **auto-referente** | correção | Alto | P1 | PARCIAL · triagem **`REGRESSÃO-DE-CONSERTO`** | procede-aberto · **dona [[A40.l101]]** | cai a alegação de que a razão ser superlinear é defeito — é a forma legítima de todo indicador tipo dívida/renda. O defeito é o **polo** e o colapso |
+| RR7-03 — a janela canônica divide por **12** enquanto a cobertura de despesa desaba nos últimos cinco meses, terminando em **zero**; ÷12 contra ÷11 = **+9,09%**, e o divisor alimenta o alvo de reserva (×18) e o veredito de liquidez | correção | Alto | P1 | PARCIAL (MEDIÇÃO-DE-CONHECIDO de [[A42.l8]] + causa nova; o sub-achado de roteamento foi **refutado**) | procede-aberto | ⚠️ a [[A42.l8]] se demarcou do **mês em curso**, que é o ofensor medido aqui — no escopo em que está escrita, ela **não** conserta este run. **Refutação:** a taxa de poupança **não** está inflada — o sinal é oposto ao esperado |
+| RR6-01 (§r6) — folga reclassificava gasto realizado | — | — | — | ✅ **FECHADO, verificado neste run** | fecha | `05561dc0` · [[ADR-422]] · [[A40.l94]] |
+| RR6-02 · RR6-03 (§r6) | — | — | — | **procede-aberto** — lanes `in_progress` | — | [[A40.l95]] · [[A40.l96]] |
+| Demais linhas do §r6 | — | — | — | **procede-aberto (não re-medidas)** | registrado | — |
+
+**Cobertura — a célula que reprova esta fase.** `REPORT × solidez-financeira` ficou **nula
+e não declarada**: 100% dos blocos que carregam doutrina estão em `sem-veredito`, logo não
+havia substrato desbloqueado e a resposta legítima era `BLOQUEADA(veredito do razão)`. É o
+**mesmo mecanismo** que o `U2` flagrou em `REPORT × correção` — ele migrou de célula, a
+rodada consertou a caixa e não notou a migração.

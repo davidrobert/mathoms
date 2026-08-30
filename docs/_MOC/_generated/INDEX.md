@@ -888,6 +888,8 @@
 | A39.l9 | lane | shipped | A39 | Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) | `sprint/A39/lanes/A39-l9-posicao-renda-variavel.md` |
 | A40.l1 | lane | shipped | A40 | Instrumento: detector de duplicação cross-grupo + baseline congelado | `sprint/A40/lanes/A40-l1-ledger-cross-grupo-check.md` |
 | A40.l10 | lane | open | A40 | Ordem do plano com critério encodado + pendências acionáveis do dono | `sprint/A40/lanes/A40-l10-pendencia-do-dono-e-ordem-do-plano.md` |
+| A40.l100 | lane | open | A40 | O cartão rotulado NECESSÁRIO publica a renda-alvo, não o aporte que o motor calcula | `sprint/A40/lanes/A40-l100-cartao-necessario-publica-renda-alvo.md` |
+| A40.l101 | lane | open | A40 | O conserto da folga deixou `equivalente_meses_poupanca` auto-referente | `sprint/A40/lanes/A40-l101-equivalente-meses-auto-referente.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
@@ -995,6 +997,7 @@
 | A42.l14 | lane | in_progress | A42 | Os vereditos de conservação certificam a re-derivação, não o artefato entregue | `sprint/A42/lanes/A42-l14-conservacao-certifica-a-rederivacao.md` |
 | A42.l15 | lane | in_progress | A42 | Identidade de investimento é hash de campos que o extrator LLM reescreve | `sprint/A42/lanes/A42-l15-identidade-de-investimento-instavel-entre-runs.md` |
 | A42.l16 | lane | shipped | A42 | O check de cobertura cambial converte 'não sei o tier' em 'passou' | `sprint/A42/lanes/A42-l16-check-cambial-converte-nao-sei-em-passou.md` |
+| A42.l17 | lane | planned | A42 | Um parser de banco chama o SDK LLM fora do contrato, e a saída livre vira chave de junção | `sprint/A42/lanes/A42-l17-parser-chama-llm-fora-do-contrato.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |

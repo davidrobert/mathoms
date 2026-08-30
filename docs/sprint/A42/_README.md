@@ -191,7 +191,7 @@ passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
 mutou. A auditoria de mesa abaixo **não** substitui esse rito — só deixa o
 grafo honesto até lá.
 
-## Lanes (16)
+## Lanes (17)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
@@ -211,6 +211,7 @@ grafo honesto até lá.
 | [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** | **P0** | 1 | — |
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
 | [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
+| [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** | **P0** | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
@@ -223,7 +224,7 @@ mais barata de Goodhart num plano.
 > `7215daf3` (#1209), com 12 lanes na mesa e 2 slots de folga. Não o reescreva: ele
 > registra a decisão de capacidade como ela foi tomada.
 
-**Estado da capacidade — 2026-08-30.** A sprint tem **16 lanes**: o `## Lanes (16)` acima,
+**Estado da capacidade — 2026-08-30.** A sprint tem **16 lanes**: o `## Lanes (17)` acima,
 16 linhas na tabela e 16 arquivos em `docs/sprint/A42/lanes/` — os três substratos
 concordam, e o `check_lane_counter` do `lane-closeout` só compara esses três. **O teto de
 14 está excedido em 2, e o rompimento nunca foi decidido:** as quatro lanes acima de 12

@@ -1046,3 +1046,29 @@ centavo sobre o E3 do próprio run (2.289 células) · zero-write do harness pro
 `re-verificar contra HEAD`) · a supressão do tier cambial **chega íntegra às três
 superfícies** ("não apurado" / "Não afirmamos um alvo" / o parecer citando
 `tier=indeterminado`).
+
+## r11 — ws-1b9f2cf5-2026-08-30
+
+> Rodada unificada **U3** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r7 · [[PIPELINE-REVIEWS-active]] §r11 · [[REPORT-REVIEWS-active]] §r7.
+> Run `3a5b9c7d` `completed` 18/18 · 25,7 min · executor `f0ac69a2` · report `939ee69c` · preflight: 4 WARN.
+> Cru + síntese com valores: storage/<uuid>/reviews/U3-2026-08-30/SINTESE.md (off-git).
+> Escrituração: [[A40.l100]] · [[A40.l101]] · [[A42.l17]] alocadas nesta rodada.
+> Cobertura: matriz 7×3 — **`REPORT × solidez-financeira` NULA** (100% dos blocos de doutrina em `sem-veredito` ⇒ a resposta legítima era `BLOQUEADA`) · `PIPELINE × qualidade-llm` fraca.
+> Céticos: **3 CONFIRMADO / ~10 PARCIAL / 2 REFUTADO**.
+
+**Manchete: os dois consertos da rodada anterior seguram, e um deles é mais forte do que o
+achado que o pediu.** O check de cobertura cambial trocou a disjunção por **equivalência** —
+e o commit mostra que os dois disjuntos eram `P ∨ ¬P` para todo artefato que o produtor
+emite, ou seja o termo não discriminava **nada**. Enunciado mais afiado que o meu.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| PV11-01 — a fração não classificada **não melhorou**: 3,93 → 6,51 → **3,93**. É retorno, não conserto. 8 das 9 classes são idênticas ao centavo nos 3 runs; **duas** se movem em sentidos opostos com o **mesmo módulo** — é o `pct` de um único item cuja descrição truncou no run do meio | correção | Alto | P1 | procede (novo; **refuta a pista da rodada**, que supunha melhora) | procede-aberto | o decompositor criado para seguir o item entre rodadas **também churna**: dois itens com `pct` idêntico carregam locators diferentes entre runs |
+| PV11-02 — `pipeline_run_costs` **não recebe row desde 2026-07-15**: **47 runs**, zero custos, três rodadas unificadas inclusive. A rubrica de custo/latência do painel lê tabela morta | contrato | Alto | P1 | procede (MEDIÇÃO-DE-CONHECIDO de `PV10-04`, agora com o denominador) | procede-aberto | mesmo modo de falha de `PV9-05` — contador que só pode dar zero |
+| PV10-01 (§r10) — CV18 convertia "não sei" em "passou" | — | — | — | ✅ **FECHADO, verificado neste run** | fecha | `221534e8` · o termo virou equivalência e discrimina nos dois sentidos |
+| PV10-07 (§r10) — canal legado perde um aviso | — | — | — | **reproduz** (6 vs 5) | procede-aberto | — |
+| PV10-02..06 · PV10-08..10 (§r10) | — | — | — | **procede-aberto (não re-medidos)** | registrado | — |
+
+**Positivos verificados.** Run `completed` 18/18 · o preflight **reprovou** o worker com
+código de 18h e o bloqueio evitou medir o passado · o `check_sintese_anterior` estreou e
+passou · as 4 superfícies de render capturadas, incluindo o dump mobile.
