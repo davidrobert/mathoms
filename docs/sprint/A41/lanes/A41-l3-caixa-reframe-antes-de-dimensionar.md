@@ -28,6 +28,15 @@ tags:
 > handle de LLM) é decidido lá. Invertido, a migração de ~10 módulos acontece
 > **duas vezes**.
 
+> **Medição corroborante de fora da lane (2026-08-30, [[A42.l17]]).** O gap desta
+> lane foi remedido por caminho independente e procede. A [[A42.l17]] acrescenta
+> um eixo que os cinco critérios de aceite acima **não** cobrem: a `descricao` que
+> o LLM devolve alimenta `compute_natural_key`, e o *delete-and-delegate* passaria
+> os cinco critérios **com o churn de identidade intacto** — `use_cache` é `False`
+> por default e `extract_with_llm` não o passa, então rotear pelo choke-point não
+> compra chave estável. O Ato 1 continua sendo o dono do reframe; a [[A42.l17]]
+> não o antecipou (só declarou `temperature` no call-site cru).
+
 ## Problema
 
 `_extract_via_llm` ([`scripts/e2/banks/caixa.py:212`](../../../../scripts/e2/banks/caixa.py))
