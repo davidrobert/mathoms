@@ -139,16 +139,24 @@ async function snapshotSection(
   await expect(page.locator(selector)).toHaveScreenshot(
     `${baselineId}.${theme}.png`,
     {
-      // Tolerância proporcional — chart.js canvas tem não-determinismo
-      // inerente entre runs no mesmo runner Linux (~1-2% da imagem em
-      // antialiasing de paths, tooltip positioning, font hinting). Threshold
-      // anterior `maxDiffPixels: 200` (~0.007% em S2) gerava flake crônico:
-      // PRs #147-#165 mergeavam com gate red mesmo sem regressão real.
-      // 2.5% via `maxDiffPixelRatio` captura mudanças estruturais
-      // (ex.: +35px de altura = 7% diff em S1) sem perseguir variance
-      // de subpixel do canvas. NÃO combinar com `maxDiffPixels` absoluto
-      // — Playwright usa `Math.min(absoluto, ratio×area)`, então o piso
-      // absoluto anula o ratio em imagens grandes.
+      // Tolerância proporcional. Threshold anterior `maxDiffPixels: 200`
+      // (~0.007% em S2) gerava flake crônico: PRs #147-#165 mergeavam com
+      // gate red mesmo sem regressão real. NÃO combinar com `maxDiffPixels`
+      // absoluto — Playwright usa `Math.min(absoluto, ratio×area)`, então o
+      // piso absoluto anula o ratio em imagens grandes.
+      //
+      // A justificativa original deste 2.5% era "chart.js canvas tem
+      // não-determinismo inerente entre runs (~1-2% da imagem)". MEDIDO em
+      // 2026-08-30 (A40.l103): dois `workflow_dispatch` do MESMO SHA
+      // (`ec50cbd7`; runs 33323919131 / 33323920209) devolveram as 28
+      // baselines BYTE-IDÊNTICAS. Entre runs não há ruído — n=2. O que este
+      // número absorve de fato é reflow dirigido por COMMIT: 1px de
+      // deslocamento marca 9,58% numa imagem curta e o realinhamento `dy=±1`
+      // zera. Ou seja, 2.5% aqui é folga herdada, não medida — é por isso que
+      // `cover` e `sumario-executivo` abaixo mediram a sua (0.0003) em vez de
+      // herdar esta. Re-calibrar este valor é lane própria; não o copie para
+      // baseline nova sem medir o par (piso de ruído, menor mudança que
+      // precisa reprovar).
       maxDiffPixelRatio: 0.025,
       // Mascarar elementos cuja renderização exata não importa para
       // detecção de regressão estrutural (ex.: timestamps).

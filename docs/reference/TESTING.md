@@ -402,10 +402,10 @@ CI pode rodar workflow `nightly-flaky-report.yml` (a criar) que lista tests com 
 **Política:** snapshots são artefatos versionados. Mudança em snapshot = mudança visual intencional. Requer revisão manual.
 
 **Onde vivem:**
-- `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/` — 28 PNGs: estratégico (S1–S3, S7–S10) + apêndices (APP_A, APP_B, APP_D, APP_E) + cover + as 2 variantes de `S_parecer` (`parcial`, `retido`), cada um em light + dark. Linux-only via job `frontend-visual` (suffix `-linux.png`).
+- `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/` — 30 PNGs: estratégico (S1–S3, S7–S10) + apêndices (APP_A, APP_B, APP_D, APP_E) + cover + `sumario-executivo` + as 2 variantes de `S_parecer` (`parcial`, `retido`), cada um em light + dark. Linux-only via job `frontend-visual` (suffix `-linux.png`).
 - `frontend/tests/e2e/reports/__snapshots__/` — print PDF baseline.
 
-> **O spec tem 32 testes mas só 28 baselines.** `S4` e `APP_C` estão nas listas
+> **O spec tem 34 testes mas só 30 baselines.** `S4` e `APP_C` estão nas listas
 > do spec e **não** produzem PNG: a fixture `medium` não as faz montar
 > (`real_estate` ausente; `cenarios_conjuge` é `{}` — a chave existe, só vazia —
 > e sem `programa_milhas`), então as duas retornam `null` por hide-when-empty e
@@ -665,7 +665,11 @@ cobre conteúdo é `print-text.@critical.spec.ts` (camada de texto via
 
 ### Tolerância — `maxDiffPixelRatio` proporcional
 
-Spec usa `maxDiffPixelRatio: 0.025` (2.5%) em vez de `maxDiffPixels` absoluto. Razão: chart.js canvas tem variance natural de 1-2% entre runs no mesmo runner Linux (antialiasing de paths, tooltip positioning, font hinting). Threshold absoluto de 200px (~0.007% em S2) gerava flake crônico.
+Spec usa razão, **nunca** `maxDiffPixels` absoluto — a última tolerância absoluta (a da capa) saiu na [[A40.l103]] (#1859). Dois valores: `0.025` no helper de seção e `0.0003` em `cover` / `sumario-executivo`.
+
+A razão histórica do `0.025` era "chart.js canvas tem variance natural de 1-2% entre runs no mesmo runner Linux". **Essa premissa não se reproduz mais** (medido 2026-08-30, A40.l103): dois `workflow_dispatch` do **mesmo SHA** devolveram as 28 baselines **byte-idênticas** — zero diferença entre runs, n=2. O que o `0.025` absorve hoje não é ruído entre runs; é reflow **dirigido por commit** (1px de deslocamento marca 9,58% numa imagem curta, e o realinhamento `dy=±1` zera). O threshold absoluto de 200px (~0.007% em S2) gerava flake crônico e continua sendo a razão de não voltar.
+
+> Consequência prática: `0.025` é folga grande demais para imagem pequena — foi por isso que `cover` e `sumario-executivo` mediram a própria tolerância (`0.0003`) em vez de herdar. Re-calibrar o `0.025` é lane própria (ver §Fora de escopo da [[A40.l103]]).
 
 **Cuidado ao combinar com `maxDiffPixels` absoluto:** Playwright usa `Math.min(absoluto, ratio×area)`. O piso absoluto anula o ratio em imagens grandes. Use **só** ratio.
 

@@ -114,6 +114,32 @@ o Actions já conheça o arquivo (S1), e ele só o conhece após o merge. Com
 Aceite: falha forçada (remover o token) ⇒ `rc=2` e nenhuma contagem impressa;
 com token, o sweep lista os bypasses do período e a Issue acumula.
 
+## PR 5 — gate visual obrigatório por paths-filter, sozinho
+
+Roteado pela [[A40.l103]] (#1859), que mediu o custo e o achou **zero**. Hoje
+`frontend-visual` é opt-in pela label `visual`: PR que toca o renderer e não
+recebe a label mergeia sem nenhum gate de pixel — e a label é aplicada à mão.
+
+- Trocar o gatilho de **label** por **paths-filter** nos mesmos paths que já
+  disparam `Frontend checks` (`frontend/**`), mantendo a label como override
+  para forçar o job fora desses paths.
+- **Custo medido, não estimado:** PR de relatório já paga ~6 min de `Frontend
+  checks` no mesmo filtro; o visual leva **1m31s–2m23s** e roda em paralelo,
+  terminando antes. O delta de wall-clock no caminho crítico é **zero**.
+- **Viaja sozinho:** entra em `all-green.needs`, logo muda a função de veredito
+  do gate — mesma regra que isola o PR 3.
+- **Exige emenda datada à [[ADR-210]] §Camada 1** no mesmo PR (`amended_at` +
+  blockquote de sinal; keyword `Emenda`, não `Adendo`): a premissa de custo que
+  sustenta o opt-in ali é "~$4/mês no overage", e ela **caducou com o repo
+  público** — mesma caducidade que a Onda 1 já reconhece para o waiver do
+  nightly.
+- **Ordem:** depois da `A40.l102` (truncagem da trilha). Tornar o gate
+  obrigatório antes daquele fix faz todo PR de frontend carregar um vermelho
+  conhecido.
+
+Aceite por detecção: PR que toca `frontend/src/components/report/**` **sem** a
+label dispara o job; mutação estrutural no renderer reprova o `all-green`.
+
 ## security-green (junto do PR 2 ou próprio)
 
 - Job agregador `security-green` em `security.yml` (`if: always()`, aceita
@@ -150,3 +176,5 @@ por mutação que produtor morto ⇒ gate ≠ 0.
 4. KR-D: security-green required + prova por detecção.
 5. KR-C: 7 noites de main-smoke verdes; waiver removido do manifesto.
 6. Mediana open→merge não regrediu (KR-H) — medir antes/depois em janela 14d.
+7. PR 5: `frontend-visual` dispara por paths-filter sem label, com emenda
+   datada na [[ADR-210]] §Camada 1 no mesmo PR.

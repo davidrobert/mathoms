@@ -269,6 +269,45 @@ declara o sinal do delta e `dev/golden_diff.py` confere. A [[A40.l16]] declara
 - **Marcador na lista `/reports`** — P2. Com ~2 relatórios/mês a lista não é
   superfície de descoberta; o usuário chega por toast/redirect ou link direto.
 
+### Deferimentos do closeout da [[A40.l103]] — 2026-08-30
+
+A lane fechou o recorte da baseline da capa e repôs o gate dos números-manchete,
+e deixou 5 itens **sem dono nomeado**. Ficam aqui porque o plano é a superfície
+viva que os hospeda — lane `open` sem agente mente para quem lê `status` como
+"pegável agora", e ADR não serve (a [[ADR-370]], que governa o inventário, está
+`Decidido`: decisão fechada não adota trabalho novo). Enunciados **re-medidos no
+closeout**, um deles corrigido.
+
+- **Sumário executivo fora do inventário estrutural** — P2. Confirmado:
+  `report-inventory.expected.json` tem 17 seções e nenhuma é `sumario-executivo`,
+  então o bloco que o relatório mais destaca (Patrimônio Líquido, Investível,
+  Reserva, Taxa de Poupança, IF, Score) tem gate de **pixel** e nenhum gate
+  **estrutural**. Entrar no inventário é mudança de contrato da [[ADR-370]] e
+  roda em todo PR — por isso não coube num PR de recorte de teste.
+- **Update de baseline de print grava e retorna verde sem comparar** — P2, e é
+  a classe-tese desta sprint (gate que falha aberto).
+  `print.@critical.spec.ts:154` faz `writeFileSync` + `return` antes de qualquer
+  `comparePngs`. O mesmo ramo cobre `!existsSync(BASELINE_PATH)`, então
+  **baseline ausente também passa** — variante que o enunciado original da lane
+  não dizia, achada na re-medição.
+- **Métrica de razão amplifica reflow de 1px** — P2. Em imagem curta e densa em
+  texto, 1px de deslocamento marca 9,58% e o realinhamento `dy=±1` zera.
+  Candidato: comparar com realinhamento `dy∈{±1,±2}` antes de reprovar. A
+  consequência já está registrada onde ela morde: `VISUAL_SNAPSHOTS.md`
+  §Tolerância declara que o `0.025` do helper é folga **herdada, não medida**.
+- **Ledger de proveniência por baseline** — P3. `px_sha256`, `dims`,
+  `transition` computados; `attributed_to`, `inspected_by` humanos. **Não**
+  copiar `dev/golden_diff.py` inteiro: o pilar do commit isolado **inverte** em
+  binário — para PNG o diff é ilegível, então o diff de código irmão no mesmo
+  commit é o único sinal de atribuição, e isolar o destruiria.
+- **Encolher o ativo** — P3, **depois** do ledger, que fecha de graça o buraco
+  de baseline órfã. Re-medido no closeout: **30 PNGs / 3,1 MB** (a lane abriu
+  dizendo 29 / 3,2 MB, número que as 2 baselines dela mesma já invalidaram).
+
+**Gatilho de descorte:** os dois primeiros sobem para P1 se um PR de renderer
+passar verde com regressão nos números-manchete ou no PDF — é exatamente o modo
+de falha que ambos descrevem.
+
 ### Nota honesta sobre "solução de longo prazo"
 
 Para a [[A40.l16]] a solução de longo prazo **não é a reversão** — é o gerador

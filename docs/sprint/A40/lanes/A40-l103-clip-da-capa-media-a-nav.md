@@ -4,12 +4,14 @@ type: lane
 title: "O recorte da baseline da capa media a nav — e era o único gate sobre os números-manchete"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1859
+ship_date: "2026-08-30"
 priority: P2
 branch_slug: a40-l103-clip-da-capa
 owner: senior-cto
 depends_on: []
-tags: [type/lane, sprint/a40, status/in-progress, priority/p2, area/frontend, area/ci]
+tags: [type/lane, sprint/a40, status/shipped, priority/p2, area/frontend, area/ci]
 ---
 
 # A40.l103 — `clip-da-capa-media-a-nav`
@@ -66,10 +68,13 @@ métrica de razão amplificar reflow de 1px em imagem curta.
 ## O que esta lane entrega
 
 1. `cover` passa a recortar no locator `[data-report-cover]`, com tolerância
-   **medida** (`maxDiffPixelRatio: 0.005`, piso de ruído observado 0px) — e
-   explicitamente **não** herda o `0.025` do helper, que existe para canvas e o
-   header não tem canvas. Remove a última tolerância absoluta do arquivo,
-   terminando a migração que a [[A40.l53]] deixou pela metade em 26 de 28.
+   **medida** (`maxDiffPixelRatio: 0.0003`, entre o piso de ruído de 0px e a
+   menor mudança que precisa reprovar, 304px — ver §"O primeiro valor de
+   tolerância reprovou a própria contraprova", que registra por que o `0.005`
+   tentado primeiro **não** serve) — e explicitamente **não** herda o `0.025`
+   do helper, que existe para canvas e o header não tem canvas. Remove a última
+   tolerância absoluta do arquivo, terminando a migração que a [[A40.l53]]
+   deixou pela metade em 26 de 28.
 2. Baseline própria para `sumario-executivo`, repondo a cobertura acidental.
    Seletor próprio, **sem** `data-report-section`, de propósito: aquele atributo
    o faria entrar no inventário da [[ADR-370]], que roda em todo PR sem label —
@@ -86,13 +91,34 @@ métrica de razão amplificar reflow de 1px em imagem curta.
 
 | Achado | Encaminhamento |
 | --- | --- |
-| Gate visual obrigatório por paths-filter em vez de label. Custo medido: **zero** em wall-clock — PR de relatório já paga ~6 min de `Frontend checks` no mesmo filtro, e o visual (1m31s–2m23s) roda em paralelo e termina antes | Item novo em `TRACK-ci-trust-onda1-workflows`; muda o veredito do `all-green`, logo **viaja sozinho**. Exige **emenda datada à [[ADR-210]] §Camada 1**, cuja premissa de custo (~$4/mês no overage) caiu com o repo público |
+| Gate visual obrigatório por paths-filter em vez de label. Custo medido: **zero** em wall-clock — PR de relatório já paga ~6 min de `Frontend checks` no mesmo filtro, e o visual (1m31s–2m23s) roda em paralelo e termina antes | **Registrado** como `PR 5` do [[TRACK-ci-trust-onda1-workflows]] no closeout desta lane; muda o veredito do `all-green`, logo **viaja sozinho**. Exige **emenda datada à [[ADR-210]] §Camada 1**, cuja premissa de custo (~$4/mês no overage) caiu com o repo público |
 | Varredura periódica em `main` | **Não construir.** Já existe: `frontend-visual-full` em `nightly.yml`. Está morta porque o `Nightly` é `disabled_manually`, com waiver datado do dono em `.github/scheduled-workflows.yml`. É o **item 1.4** do [[PLAN-ci-trust]]; a razão de FinOps do waiver caducou com o repo público |
 | Sumário executivo ausente do inventário da [[ADR-370]] | Lane própria. Os números-manchete não têm gate estrutural; esta lane só repôs o gate **de pixel** |
 | Reflow de 1px marca 9,58% em imagem curta — a métrica de razão é inadequada para baseline baixa e densa em texto | Lane própria. Candidato: comparar com realinhamento `dy∈{±1,±2}` antes de reprovar |
 | Ledger de proveniência por baseline (`px_sha256`, `dims`, `transition` computados; `attributed_to`, `inspected_by` humanos) | Lane própria. **Não** copiar `dev/golden_diff.py` inteiro: o pilar do commit isolado **inverte** em binário — para PNG o diff é ilegível, então o diff de código irmão no mesmo commit é o único sinal de atribuição, e isolar o destruiria |
-| Encolher o ativo (29 PNGs / 3,2 MB working set) e revisar variantes `dark` | Lane própria, **depois** do ledger — que fecha de graça o buraco de baseline órfã |
+| Encolher o ativo (**30** PNGs / **3,1 MB** working set — re-medido no closeout; o `29 / 3,2 MB` escrito na abertura já não valia depois das 2 baselines que esta lane somou) e revisar variantes `dark` | Lane própria, **depois** do ledger — que fecha de graça o buraco de baseline órfã |
 | Baseline de print é golden sobre o rasterizador, e o caminho de update grava e retorna verde sem comparar | Lane própria |
+
+### Re-verificação dos deferimentos — closeout 2026-08-30
+
+Regra do repo: enunciado de follow-up se **re-mede antes de registrar**, senão
+o registro induz regressão. As 5 linhas "Lane própria" acima foram conferidas
+contra `main` neste closeout:
+
+| Deferimento | Veredito |
+| --- | --- |
+| Sumário fora do inventário da [[ADR-370]] | **Confirmado** — `report-inventory.expected.json` tem 17 seções e nenhuma é `sumario-executivo` |
+| Métrica de razão amplifica reflow de 1px | **Confirmado** pela medição da própria lane (9,58%, `dy=±1` → 0px) |
+| Ledger de proveniência | Proposta de desenho, sem enunciado factual a medir |
+| Encolher o ativo | **Número corrigido** — eram 30 PNGs / 3,1 MB, não 29 / 3,2 MB |
+| Update de baseline de print grava e retorna verde | **Confirmado** — `print.@critical.spec.ts:154` faz `writeFileSync` + `return` antes de qualquer `comparePngs`; e o mesmo ramo cobre `!existsSync(BASELINE_PATH)`, então **baseline ausente também passa** |
+
+**Nenhum dos 5 tem dono nomeado**, e por isso não ficam só aqui: foram
+hospedados em [[PLAN-report-trust]] §"Deferimentos do closeout da [[A40.l103]] —
+2026-08-30", que está `in_progress` e é a superfície viva da classe. Lane `open`
+sem agente seria pior — mente para quem lê `status` como "pegável agora" — e a
+[[ADR-370]] não serve de hospedeira por estar `Decidido`. Pegá-los continua
+sendo decisão do dono; o §Gatilho de descorte lá diz o que os promove.
 
 ## Critério de aceite
 
@@ -105,7 +131,12 @@ métrica de razão amplificar reflow de 1px em imagem curta.
       `33326004042`) → **`failure` com 2 failed / 38 passed**, e os 2 são
       exatamente `cover — light` e `cover — dark`. Reprova o certo e só o certo.
 - [x] Gaps de cobertura declarados no spec, com dono ou lane de destino.
-- [ ] Job `frontend-visual` verde no PR com a label `visual`.
+- [x] Job `frontend-visual` verde no PR com a label `visual` — run
+      `33326297663`, `event: pull_request` sobre o **head final** do PR
+      (`ecf28a05`), `conclusion: success`: **40 passed / 4 skipped** em 1m57s.
+      Os 4 skips são os gaps pré-existentes de `SECTIONS_NOT_IN_MEDIUM_FIXTURE`
+      (`S4`, `APP_C` × 2 temas) — nenhum é baseline desta lane. A aritmética
+      fecha com a contraprova: 2 failed + 38 passed + 4 skipped = 44 coletados.
 
 ### O primeiro valor de tolerância reprovou a própria contraprova
 
