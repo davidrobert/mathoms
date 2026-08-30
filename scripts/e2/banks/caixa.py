@@ -19,6 +19,7 @@ try:
 except ImportError:
     pdfplumber = None
 
+from pipeline.llm.deterministic_extraction import EXTRACTION_TEMPERATURE
 from scripts.e2.common import (
     BANCO_CAIXA,
     detect_member_from_text,
@@ -213,6 +214,19 @@ def _extract_via_llm(pdf_path: Path, result: Dict[str, Any]) -> bool:
     """Usa visão LLM para extrair dados de PDF somente-imagem.
 
     Retorna True se a extração teve sucesso.
+
+    Chamada **fora** do choke-point `LLMService` — resíduo declarado da Fase 2 da
+    [[ADR-349]]: `LLMService.call` só carrega `image_bytes` (bloco `image`), e um
+    PDF sem camada de texto precisa do bloco `document`. Enquanto a Fase 2 não
+    entra, esta rota não tem budget ([[ADR-173]]), `LLMCallLog`, cache
+    ([[ADR-307]]) nem sanitização ([[ADR-175]]).
+
+    `temperature` é o único eixo fechável aqui: sem ela o SDK usa o default do
+    provider (o extremo alto), e `descricao` alimenta a chave natural
+    (`build_hash_inputs`), então a variância virava churn de identidade de
+    lançamento. `EXTRACTION_TEMPERATURE` **reduz variância; não torna idempotente**
+    — ver o claim honesto em `pipeline/llm/deterministic_extraction`. O que
+    congelaria a amostra é o cache, e ele só existe atrás do choke-point.
     """
     try:
         import anthropic
@@ -235,6 +249,7 @@ def _extract_via_llm(pdf_path: Path, result: Dict[str, Any]) -> bool:
         response = client.messages.create(
             model=_LLM_MODEL,
             max_tokens=_LLM_MAX_TOKENS,
+            temperature=EXTRACTION_TEMPERATURE,
             messages=[
                 {
                     "role": "user",
