@@ -88,7 +88,12 @@ templates:
   # Consumo Consciente. Defeito medido e herdado por ela: a rosca desenha 50,0%
   # (Moradia, ex-aporte da janela) e a conclusão do MESMO card imprime 43%
   # (base full).
-  despesas_doughnut:
+  # O card deriva a própria conclusão das FATIAS que desenha
+  # (`DespesasDoughnutChart`), não do payload: `despesas_por_categoria` é o
+  # bloco full COM aporte, enquanto a rosca desenha ex-aporte da janela
+  # renderizada (ADR-333) — 50,0% no desenho contra 43% neste template. Só o
+  # componente pode concordar com o próprio desenho depois do PeriodToggle.
+  despesas_doughnut:  # fallback-only (A40.l102 — sem builder); placeholders não interpolam
     template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente."
     fallback: "Distribuição das despesas por categoria."
     required_keys: ["fluxo_caixa.despesas_por_categoria"]
