@@ -40,35 +40,58 @@ def snapshot(workspace_id: str, db_path: str) -> dict[str, dict[str, object]]:
 
 
 def compare(pre: dict, pos: dict) -> dict[str, object]:
-    """Diff nomeado. `identico` e o veredito do runbook; as listas o falsificam."""
+    """Diff nomeado, separando churn de linha de mudanca de CONTEUDO."""
+    # O runbook pedia identidade de `(id, byte_size)`. Medido no `U4`: um run
+    # completo re-extrai e cunha `id` novo em 135 de 171 unidades — o predicado
+    # literal e insatisfazivel e so pode sair vermelho. O que discrimina e a
+    # COMPOSICAO (chaves) mais o CONTEUDO (`byte_size`); `id` e ruido esperado.
     only_pre = sorted(set(pre) - set(pos))
     only_pos = sorted(set(pos) - set(pre))
-    mudadas = [
-        {"chave": k, "pre": pre[k], "pos": pos[k]}
-        for k in sorted(set(pre) & set(pos))
-        if pre[k] != pos[k]
+    comuns = sorted(set(pre) & set(pos))
+    so_id = [k for k in comuns if pre[k] != pos[k] and pre[k]["byte_size"] == pos[k]["byte_size"]]
+    conteudo = [
+        {
+            "chave": k,
+            "pre": pre[k],
+            "pos": pos[k],
+            "delta_bytes": (pos[k]["byte_size"] or 0) - (pre[k]["byte_size"] or 0),
+        }
+        for k in comuns
+        if pre[k]["byte_size"] != pos[k]["byte_size"]
     ]
     return {
         "n_pre": len(pre),
         "n_pos": len(pos),
-        "identico": not (only_pre or only_pos or mudadas),
+        "composicao_estavel": not (only_pre or only_pos),
+        "conteudo_estavel": not conteudo,
         "removidas": only_pre,
         "acrescentadas": only_pos,
-        "mudadas": mudadas,
+        "so_id_mudou": so_id,
+        "conteudo_mudou": conteudo,
     }
 
 
-def _print_compare(resultado: dict[str, object]) -> int:
-    print(json.dumps(resultado, indent=2, ensure_ascii=False))
-    if resultado["identico"]:
-        print("\nE2: PASS — mapa identico", file=sys.stderr)
+def _print_compare(r: dict[str, object]) -> int:
+    print(json.dumps(r, indent=2, ensure_ascii=False))
+    n_comp = len(r["removidas"]) + len(r["acrescentadas"])
+    resumo = (
+        f"n_unidades={r['n_pre']}/{r['n_pos']} · composicao_divergente={n_comp} · "
+        f"conteudo_divergente={len(r['conteudo_mudou'])} · so_id={len(r['so_id_mudou'])}"
+    )
+    if r["composicao_estavel"] and r["conteudo_estavel"]:
+        print(f"\nE2: PASS — {resumo}", file=sys.stderr)
         return 0
-    n = len(resultado["removidas"]) + len(resultado["acrescentadas"]) + len(resultado["mudadas"])
+    if not r["composicao_estavel"]:
+        print(
+            f"\nE2: REPROVA (composicao) — {resumo}; o corpus mudou sob a medicao", file=sys.stderr
+        )
+        return 1
     print(
-        f"\nE2: REPROVA — {n} unidade(s) divergente(s); o corpus mudou sob a medicao",
+        f"\nE2: REPROVA (conteudo) — {resumo}; mesma populacao, unidade(s) re-extraida(s) "
+        f"com conteudo diferente",
         file=sys.stderr,
     )
-    return 1
+    return 2
 
 
 def main() -> int:

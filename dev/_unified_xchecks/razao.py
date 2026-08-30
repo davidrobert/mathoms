@@ -145,37 +145,52 @@ def _x3_celulas(vm_ds: dict, e4: dict, norm, labels: list, sec: str) -> tuple:
     return total, div
 
 
-def _x3_escalar_linha(sec: str, vm_ds: dict, publicado: dict, norm) -> None:
-    soma = {norm(c): sum(_cents(x) or 0 for x in v) for c, v in vm_ds.items()}
+def _x3_escalar_linha(sec: str, vm_ds: dict, publicado: dict, norm, n_janela: int) -> None:
+    # `despesas_por_categoria` e `por_fonte_detalhado` sao agregados da JANELA
+    # de `janela_meses` (12m), nao do periodo completo. Comparar contra a soma
+    # da serie inteira (44 meses) produzia 11 divergencias que eram do
+    # instrumento — medido no `U4`, com `Arvo` casando 1,0 e `Kiwify` 359x.
+    soma = {norm(c): sum(_cents(x) or 0 for x in v[-n_janela:]) for c, v in vm_ds.items()}
     pub = {norm(c): _cents(v) or 0 for c, v in publicado.items()}
     difs = [
         (c, soma.get(c, 0), pub.get(c, 0))
-        for c in sorted(set(soma) | set(pub))
+        for c in sorted(set(soma) & set(pub))
         if soma.get(c, 0) != pub.get(c, 0)
     ]
-    print(f"  {sec}: categorias={len(set(soma) | set(pub))} divergentes={len(difs)}")
+    so_serie = sorted(set(soma) - set(pub))
+    print(
+        f"  {sec}: comparadas={len(set(soma) & set(pub))} divergentes={len(difs)} "
+        f"· so-na-serie={so_serie or '—'} (janela={n_janela}m)"
+    )
     for c, a, b in difs[:12]:
-        print(f"    DIV {c!r}: Σserie={a} publicado={b} delta={a - b}")
+        print(f"    DIV {c!r}: Σserie_{n_janela}m={a} publicado={b} delta={a - b}")
 
 
 def _x3_escalar(vm: dict, blk: dict) -> None:
-    print("### escalar: Σ meses (janela do view-model) vs total publicado no card")
+    n_janela = int(vm["fluxo_caixa"].get("janela_meses_agregado") or 12)
+    print(f"### escalar: Σ ultimos {n_janela}m da serie vs total publicado no card")
+    # Os dois agregados vivem lado a lado em `fluxo_caixa` e tem JANELAS
+    # DIFERENTES: `despesas_por_categoria` e o `totais_por_categoria` do E4
+    # (periodo completo, enricher:363) e `por_fonte_detalhado` e a janela de
+    # `janela_meses` (enricher:579). Nada no nome distingue. Medido no `U4`.
     pares = (
         (
             "despesas",
             {d["label"]: d["data"] for d in blk["despesa_datasets"]},
             vm["fluxo_caixa"]["despesas_por_categoria"],
             cat_despesa,
+            len(blk["labels"]),
         ),
         (
             "receitas",
             {d["label"]: d["data"] for d in blk["receita_datasets"]},
             vm["fluxo_caixa"]["por_fonte_detalhado"],
             lambda x: x,
+            n_janela,
         ),
     )
-    for sec, vm_ds, publicado, norm in pares:
-        _x3_escalar_linha(sec, vm_ds, publicado, norm)
+    for sec, vm_ds, publicado, norm, janela in pares:
+        _x3_escalar_linha(sec, vm_ds, publicado, norm, janela)
 
 
 def _x3_categorias(sec: str, vm_ds: dict, e4: dict, norm) -> None:
