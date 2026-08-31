@@ -39,6 +39,7 @@ from pipeline.domain.services.patrimonio_types import (
     safe_float,
     years_in_list,
 )
+from pipeline.domain.services.valor_nao_apurado import anos_nao_apurados
 
 # =============================================================================
 # resolve_members — dispatcher de 4 formatos
@@ -380,6 +381,29 @@ def _resolve_item_valor(item: dict, ano_ref: str) -> float:
     return _resolve_item_valor_e_ano(item, ano_ref)[0]
 
 
+# O produtor declara o estado no item ([[ADR-430]]); ler o `null` cru não bastaria,
+# porque `valores_31_12[ano] is None` é indistinguível de ano ausente e
+# `_resolve_item_valor_e_ano` cairia nos fallbacks `valor_<ano>`/`valor` —
+# ressuscitando um valor de outra data no lugar do que não foi apurado.
+def _valor_nao_apurado_no_ano(item: dict, ano_ref: str) -> bool:
+    """O produtor declarou que o valor DESTE ano não foi apurado."""
+    return ano_ref in anos_nao_apurados(item)
+
+
+# `None` e não `0,0`: zero publicado é afirmação sobre o patrimônio da pessoa
+# ([[ADR-346]] · [[ADR-394]] §Emenda (b) D7). O ano vem de `ano_ref` porque o
+# resolvedor perde a proveniência ao cair no fallback.
+def _com_valor(entry: dict, item: dict, ano_ref: str) -> tuple[dict, str | None]:
+    """Carimba o valor do ano-base, ou o declara não apurado."""
+    valor, ano = _resolve_item_valor_e_ano(item, ano_ref)
+    if _valor_nao_apurado_no_ano(item, ano_ref):
+        entry["valor_31_12_ano_base"] = None
+        entry["valor_nao_apurado"] = True
+        return entry, ano_ref
+    entry["valor_31_12_ano_base"] = valor
+    return entry, ano
+
+
 # Os dois campos já vêm da fonte (`consolidate_baseline.py`); descartá-los era o
 # que fazia duas projeções do mesmo item divergirem ([[ADR-410]] D1).
 def _com_proveniencia(entry: dict, item: dict, ano: str | None) -> dict:
@@ -428,13 +452,15 @@ def _descricao_do_imovel(item: dict) -> str:
 
 def _imovel_entry_from_consolidated(item: dict, ano_ref: str) -> dict:
     """Monta entry de imóvel consolidated preservando descrição rica + property_id."""
-    valor, ano = _resolve_item_valor_e_ano(item, ano_ref)
-    entry = {
-        "descricao": _descricao_do_imovel(item),
-        "endereco": item.get("endereco", ""),
-        "tipo": item.get("tipo", ""),
-        "valor_31_12_ano_base": valor,
-    }
+    entry, ano = _com_valor(
+        {
+            "descricao": _descricao_do_imovel(item),
+            "endereco": item.get("endereco", ""),
+            "tipo": item.get("tipo", ""),
+        },
+        item,
+        ano_ref,
+    )
     pid = item.get("property_id")
     if isinstance(pid, str) and pid:
         entry["property_id"] = pid
@@ -523,11 +549,7 @@ def _split_veiculos(baseline: dict, identity: MemberIdentity, ano_ref: str) -> t
     titular: list[dict] = []
     conjuge: list[dict] = []
     for v in baseline.get("veiculos_consolidados", []) or []:
-        valor, ano = _resolve_item_valor_e_ano(v, ano_ref)
-        entry = {
-            "descricao": v.get("descricao", ""),
-            "valor_31_12_ano_base": valor,
-        }
+        entry, ano = _com_valor({"descricao": v.get("descricao", "")}, v, ano_ref)
         _com_proveniencia(entry, v, ano)
         if _is_conjuge_exclusive(v, identity):
             conjuge.append(entry)

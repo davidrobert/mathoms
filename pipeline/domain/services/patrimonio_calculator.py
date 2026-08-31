@@ -91,7 +91,10 @@ from pipeline.domain.services.patrimonio_resolvers import (
     investimentos_from_irpf,
     rv_ressalva,
 )
-from pipeline.domain.services.patrimonio_sign_guard import aplicar_guarda_aos_componentes
+from pipeline.domain.services.patrimonio_sign_guard import (
+    ItemFisicoSemValor,
+    aplicar_guarda_aos_componentes,
+)
 from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
     PatrimonioInputs,
@@ -117,6 +120,26 @@ __all__ = [
     "split_imoveis_with_overrides",
     "split_imoveis_geradores_vs_nao_geradores",
 ]
+
+
+# Colhido dos MESMOS dicts que alimentam as somas — `titular_bens`/`conjuge_bens`
+# são a projeção por membro que `imovel_valor`/`veiculo_valor` leem. Reler o
+# baseline aqui criaria a segunda fonte que pode divergir do que foi somado.
+def _itens_sem_valor(titular_bens: dict, conjuge_bens: dict) -> tuple[ItemFisicoSemValor, ...]:
+    """Ativos físicos que chegaram sem valor apurado ([[ADR-430]])."""
+    achados: list[ItemFisicoSemValor] = []
+    for bens in (titular_bens, conjuge_bens):
+        for colecao in ("imoveis", "veiculos"):
+            achados.extend(
+                ItemFisicoSemValor(
+                    colecao=colecao,
+                    descricao=str(item.get("descricao") or ""),
+                    ano=str(item.get("ano_base") or ""),
+                )
+                for item in (bens.get(colecao) or [])
+                if isinstance(item, dict) and item.get("valor_nao_apurado")
+            )
+    return tuple(achados)
 
 
 class PatrimonioCalculator:
@@ -185,6 +208,7 @@ class PatrimonioCalculator:
         )
         guarda, investimentos_titular, investimentos_conjuge, caixa_total_brl = (
             aplicar_guarda_aos_componentes(
+                itens_sem_valor=_itens_sem_valor(titular_bens, conjuge_bens),
                 residencia=residencia,
                 imoveis_investimento=imoveis_investimento,
                 veiculos=veiculos,
