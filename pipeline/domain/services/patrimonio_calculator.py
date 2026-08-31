@@ -126,7 +126,7 @@ __all__ = [
 # são a projeção por membro que `imovel_valor`/`veiculo_valor` leem. Reler o
 # baseline aqui criaria a segunda fonte que pode divergir do que foi somado.
 def _itens_sem_valor(titular_bens: dict, conjuge_bens: dict) -> tuple[ItemFisicoSemValor, ...]:
-    """Ativos físicos que chegaram sem valor apurado ([[ADR-430]])."""
+    """Ativos físicos que chegaram sem valor apurado ([[ADR-431]])."""
     achados: list[ItemFisicoSemValor] = []
     for bens in (titular_bens, conjuge_bens):
         for colecao in ("imoveis", "veiculos"):

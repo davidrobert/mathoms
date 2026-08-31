@@ -142,7 +142,7 @@ export interface ReportDataQualitySignals {
   /** A40.l22 — itens do parecer retidos na conferência (só o desfecho
    *  PARCIAL; o retido inteiro é auto-evidente ao rolar e não ganha linha). */
   readonly parecerRetidos: number;
-  /** A40.l111 (ADR-430) — ativos físicos publicados sem valor apurado. Ganha
+  /** A40.l111 (ADR-431) — ativos físicos publicados sem valor apurado. Ganha
    *  linha própria porque é o único sinal que muda a leitura do NÚMERO do
    *  patrimônio: sem ele, o leitor toma o publicado por teto, e é piso. */
   readonly itensSemValor: readonly ItemFisicoSemValor[];

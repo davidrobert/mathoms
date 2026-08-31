@@ -1,4 +1,4 @@
-"""[[ADR-430]] — valor impossível em ativo físico vira `null` declarado.
+"""[[ADR-431]] — valor impossível em ativo físico vira `null` declarado.
 
 O eixo de não-inércia destes testes é o par `secao == "bens_direitos"` **com**
 negativo. Fixture que exercite só o ramo do sinal já passava antes da mudança:
@@ -90,7 +90,7 @@ def baseline_corrigido() -> dict:
 
 def test_o_ramo_do_sinal_nao_reproduz_o_defeito():
     # Controle da não-inércia: uma fixture escrita só com o negativo, sem o fato
-    # de eixo, passa igualmente antes e depois da [[ADR-430]] e não prova nada.
+    # de eixo, passa igualmente antes e depois da [[ADR-431]] e não prova nada.
     """Sem `secao`, o sinal roteia para o passivo e nada chega ao ativo."""
     baseline = _consolidar(_item("APTO 101", _SALDO_DEVEDOR_BRL, secao=None))
 
@@ -278,7 +278,7 @@ def test_valor_nao_apurado_vence_a_classificacao():
 
 
 def test_cap_rate_nao_conta_o_imovel_sem_valor():
-    """O denominador é só a parte medida da carteira ([[ADR-430]] §Consequências)."""
+    """O denominador é só a parte medida da carteira ([[ADR-431]] §Consequências)."""
     benchmarks = BenchmarkRates(
         cdi_liquido_pct=Decimal("8"),
         ntnb_liquido_pct=Decimal("6"),

@@ -216,7 +216,7 @@ def _valor_by_property(
 
 # Lê a declaração do produtor, não o `null` cru: `_imovel_valor_ano_base` já
 # devolve 0 para `None`, e zero é indistinguível de imóvel realmente sem valor
-# no baseline. O flag é o que separa "não medimos" de "vale zero" ([[ADR-430]]).
+# no baseline. O flag é o que separa "não medimos" de "vale zero" ([[ADR-431]]).
 def _sem_valor_apurado(baseline_payload: dict | None) -> set[str]:
     """`property_id` dos imóveis cujo valor o E1.5c declarou não apurado."""
     imoveis = (baseline_payload or {}).get("imoveis_consolidados") or []

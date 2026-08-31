@@ -381,7 +381,7 @@ def _resolve_item_valor(item: dict, ano_ref: str) -> float:
     return _resolve_item_valor_e_ano(item, ano_ref)[0]
 
 
-# O produtor declara o estado no item ([[ADR-430]]); ler o `null` cru não bastaria,
+# O produtor declara o estado no item ([[ADR-431]]); ler o `null` cru não bastaria,
 # porque `valores_31_12[ano] is None` é indistinguível de ano ausente e
 # `_resolve_item_valor_e_ano` cairia nos fallbacks `valor_<ano>`/`valor` —
 # ressuscitando um valor de outra data no lugar do que não foi apurado.

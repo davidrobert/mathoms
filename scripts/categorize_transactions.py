@@ -626,7 +626,7 @@ def normalize_baseline(data: Dict) -> Dict:
         data["dividas"] = data["dividas_consolidados"]
         fixes.append("dividas ← dividas_consolidados")
 
-    # [[ADR-430]] — o E1.5c saneia o artefato que ele escreve, mas este caminho
+    # [[ADR-431]] — o E1.5c saneia o artefato que ele escreve, mas este caminho
     # legado CONSTRÓI `imoveis_consolidados` a partir de `bens_imoveis_*` sem
     # re-rodar o E1.5c. Sem a chamada aqui, a coleção nasce com o negativo que a
     # ADR proíbe publicar. Idempotente: `null` já saneado não reentra.
@@ -634,7 +634,7 @@ def normalize_baseline(data: Dict) -> Dict:
 
     _nao_apurados = sanear_baseline(data)
     if _nao_apurados:
-        fixes.append(f"valor_nao_apurado: {len(_nao_apurados)} item(ns) físicos (ADR-430)")
+        fixes.append(f"valor_nao_apurado: {len(_nao_apurados)} item(ns) físicos (ADR-431)")
 
     if fixes:
         print(f"[E4.0] Baseline normalized ({len(fixes)} fixes):")

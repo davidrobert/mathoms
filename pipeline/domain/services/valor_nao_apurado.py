@@ -1,4 +1,4 @@
-"""Valor impossível em item de ativo físico vira `null` declarado ([[ADR-430]]).
+"""Valor impossível em item de ativo físico vira `null` declarado ([[ADR-431]]).
 
 Imóvel e veículo não valem menos que zero. Negativo aqui não é passivo — é
 defeito de **medição do valor**, com o **eixo correto**: apartamento financiado é

@@ -121,7 +121,7 @@ class BaldeNegativoSobrevivente:
         return {"balde": self.balde, "valor_brl": float(self.valor_brl)}
 
 
-# Um grão ABAIXO do balde ([[ADR-430]]). A D6 opera no agregado e é cega ao item:
+# Um grão ABAIXO do balde ([[ADR-431]]). A D6 opera no agregado e é cega ao item:
 # o balde segue positivo enquanto o negativo for menor que a soma dos irmãos. Aqui
 # o item já chega com o valor removido pelo produtor — a guarda não muta nada, só
 # conta o que chegou sem valor para decidir a supressão.

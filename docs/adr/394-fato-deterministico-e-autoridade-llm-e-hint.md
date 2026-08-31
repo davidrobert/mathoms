@@ -61,7 +61,7 @@ Cobre 1a/1b/1c no corpo original; 1d entra pela emenda abaixo.
 > ⚠️ **Emendada em 2026-08-31** — o D1 tinha um par de fatos **mudo**.
 > Ver §Emenda no fim.
 
-> ⚠️ **Emendada em 2026-08-31 (b)** ([[A40.l111]] · [[ADR-430]]) — a consequência 3
+> ⚠️ **Emendada em 2026-08-31 (b)** ([[A40.l111]] · [[ADR-431]]) — a consequência 3
 > da §Taxa de disparo é **falsa como escrita**: "o item negativo não chega mais a
 > balde de ativo" não era o que a [[A40.l66]] fechou. A D6 e o D5 ficam intactos;
 > o que muda é o predicado de `cobertura_completa`. Ver §Emenda 2026-08-31 (b).
@@ -605,7 +605,7 @@ a guarda **nunca dispara**. Ela é estruturalmente cega a defeito de sinal no it
 
 ## Emenda 2026-08-31 (b) — a consequência 3 lia "não dispara" como "não existe"
 
-Anexada pela [[A40.l111]], que decidiu o grão abaixo em [[ADR-430]].
+Anexada pela [[A40.l111]], que decidiu o grão abaixo em [[ADR-431]].
 
 **O que estava errado.** A §Taxa de disparo conclui, na consequência 3, que "o disparo
 esperado em regime é 0" porque "a [[A40.l66]] fechou a montante — o item negativo não
@@ -628,11 +628,11 @@ predicado:
 | --- | --- |
 | `cobertura_completa ≡ sem balde negativo sobrevivente` | `cobertura_completa ≡ sem balde negativo **e** sem item de ativo físico sem valor apurado` |
 
-O segundo termo vem da [[ADR-430]], que resolve o fato **um grão abaixo**, onde `null`
+O segundo termo vem da [[ADR-431]], que resolve o fato **um grão abaixo**, onde `null`
 é representável e o `Decimal` pós-soma não é. `motivo_supressao` passa a compor os dois
 eixos; os consumidores não mudam, porque já leem `motivo_supressao_do_patrimonio`.
 
 **O que continua verdade.** Descer a guarda ao grão da linha **genericamente** segue
 fora: a §Taxa de disparo mediu o modo de falha (6/6 runs por R$ 95,62 que se anulam
-dentro do próprio caixa). O escopo da ADR-430 é **item de ativo físico**, onde negativo
+dentro do próprio caixa). O escopo da ADR-431 é **item de ativo físico**, onde negativo
 é impossível por definição — não a linha em geral.

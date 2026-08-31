@@ -208,7 +208,7 @@ function ImoveisPendentesRow({ count }: { count: number }) {
  * label de CTA da seção — o cliente aprende uma ação, não duas.
  */
 
-/** A40.l111 (ADR-430) — a única linha do banner que corrige a leitura do NÚMERO.
+/** A40.l111 (ADR-431) — a única linha do banner que corrige a leitura do NÚMERO.
  *
  * A ressalva de operador (`BaldeNegativoSobrevivente.format()`) nomeia balde
  * interno e recita doutrina; serve à fila, não à família. Aqui o que não pode

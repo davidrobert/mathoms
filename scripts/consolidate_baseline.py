@@ -588,7 +588,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
             entry["tipo"] = "outros"
             investimentos_consolidados.append(entry)
 
-        # [[ADR-430]]: o valor impossível sai da soma no MESMO ponto em que sai
+        # [[ADR-431]]: o valor impossível sai da soma no MESMO ponto em que sai
         # do item. Sanear só no boundary do stage deixaria `patrimonio_por_ano`
         # com o negativo — e o E5 credita a diferença (resumo − sintético) ao
         # titular, reinjetando pelo resíduo o valor que a ADR acabou de remover.
@@ -650,7 +650,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     return baseline
 
 
-# As duas categorias de ativo FÍSICO ([[ADR-430]]); investimento fica fora — lá
+# As duas categorias de ativo FÍSICO ([[ADR-431]]); investimento fica fora — lá
 # negativo é saldo devedor legítimo e a D6 já o reclassifica.
 _COLECAO_FISICA = {"imovel": "imoveis_consolidados", "veiculo": "veiculos_consolidados"}
 
@@ -715,7 +715,7 @@ def _conservacao_reason(eixo: str, declarado: int, somado: int) -> dict:
 # contra ela dispararia 100% por construção; o grão por ano é contra os E1.5a.
 # A soma determinística só é comparável ao `resumo` quando NADA foi retirado
 # dela por decisão nossa. Dois casos retiram: o contribuinte PJ (INV-9, ADR-268)
-# e o valor impossível em ativo físico ([[ADR-430]]). Nos dois, a divergência é
+# e o valor impossível em ativo físico ([[ADR-431]]). Nos dois, a divergência é
 # construída por nós, já tem razão específica, e publicá-la como
 # `baseline_divergence` daria ao operador o código errado para o mesmo fato.
 def _soma_comparavel(pj_skipped: int, nao_apurados: int) -> bool:
@@ -1034,7 +1034,7 @@ def main_with_store(ctx) -> dict:
     if ctx.workspace_id is not None:
         _apply_informe_pf_merge(consolidated, workspace_id=ctx.workspace_id)
 
-    # 4c. Valor impossível em ativo físico vira `null` declarado ([[ADR-430]]).
+    # 4c. Valor impossível em ativo físico vira `null` declarado ([[ADR-431]]).
     #     Roda DEPOIS do dedup e dos merges — os dois caminhos de consolidação e
     #     todo enriquecimento já passaram, então este é o único ponto por onde o
     #     artefato sai. Saneá-lo antes deixaria o negativo reentrar pelo informe.

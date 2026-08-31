@@ -1,5 +1,5 @@
 ---
-id: ADR-430
+id: ADR-431
 type: adr
 title: "Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo"
 status: Decidido
@@ -17,10 +17,10 @@ tags:
   - area/e5
   - area/dominio
   - sprint/a40
-aliases: ["ADR 430", "valor não apurado", "valor_nao_apurado"]
+aliases: ["ADR 431", "valor não apurado", "valor_nao_apurado"]
 ---
 
-# ADR-430 — Valor não apurado em item de ativo físico
+# ADR-431 — Valor não apurado em item de ativo físico
 
 **Status:** Decidido (A40.l111) • **Data:** 2026-08-31 • Co-design `financial-planner`,
 com a regra de domínio confirmada contra fonte externa (RFB). **Dono:** `financial-planner`.

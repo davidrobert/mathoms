@@ -8,7 +8,7 @@ priority: P1
 branch_slug: a40-l111-valor-nao-apurado-em-item-fisico
 owner: financial-planner
 depends_on: []
-adrs: ["[[ADR-430]]", "[[ADR-394]]", "[[ADR-346]]", "[[ADR-427]]"]
+adrs: ["[[ADR-431]]", "[[ADR-394]]", "[[ADR-346]]", "[[ADR-427]]"]
 tags: [type/lane, sprint/a40, status/in-progress, priority/p1, area/dados, area/produto]
 ---
 
@@ -137,7 +137,7 @@ própria, dono `data-engineer`.
 
 ## Entregue (2026-08-31)
 
-Formalizada em [[ADR-430]] (`Decidido`) + emenda datada à [[ADR-394]]
+Formalizada em [[ADR-431]] (`Decidido`) + emenda datada à [[ADR-394]]
 §Emenda 2026-08-31 (b).
 
 **O que a emenda à ADR-394 corrige.** A consequência 3 da §Taxa de disparo lia
@@ -189,7 +189,7 @@ esse controle no arquivo.
   documento. Esta lane decide o que **publicar** enquanto isso.
 - **O golden não exercita o caminho.** O rebaseline do snapshot do view-model é uma
   linha aditiva vazia — o corpus sintético não tem item sem valor. Quem cobre o
-  caminho é `tests/unit/pipeline/test_valor_nao_apurado_adr430.py`.
+  caminho é `tests/unit/pipeline/test_valor_nao_apurado_adr431.py`.
 - **O corpus sintético do parecer não fornece o campo.** O rebaseline de
   `dev/snapshots/parecer_ancorabilidade.json` põe
   `$.patrimonio.guarda_de_sinal.itens_sem_valor[*]` em

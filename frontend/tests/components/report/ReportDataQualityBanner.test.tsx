@@ -278,7 +278,7 @@ describe("<ReportDataQualityBanner />", () => {
   });
 });
 
-/** A40.l111 ([[ADR-430]]) — a ressalva de família do ativo sem valor apurado.
+/** A40.l111 ([[ADR-431]]) — a ressalva de família do ativo sem valor apurado.
  *
  * O que se testa aqui não é a existência da linha: é a DIREÇÃO do erro. A
  * ressalva de operador já existia e dizia "balde publicou valor negativo" —

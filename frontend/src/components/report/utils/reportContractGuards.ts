@@ -420,7 +420,7 @@ export function readProtecaoPatrimonial(
   return isProtecaoPatrimonial(value) ? value : undefined;
 }
 
-/** [[ADR-430]] — ativo físico publicado sem valor apurado ([[A40.l111]]).
+/** [[ADR-431]] — ativo físico publicado sem valor apurado ([[A40.l111]]).
  *
  * Um grão abaixo de `baldes_negativos`: o balde agregado segue positivo e é
  * cego ao item. O que a família precisa saber é a DIREÇÃO do erro — o número

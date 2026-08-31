@@ -368,7 +368,7 @@ class PatrimonioInputs:
 # A cascata de chaves alternativas é o que torna o `None` perigoso: sem este
 # early return, item declarado não apurado cairia em `valor_irpf`/`valor` e
 # ressuscitaria um valor de outra data no lugar do que não foi medido
-# ([[ADR-430]]). Contribuir 0,0 para a Σ é EXCLUSÃO, não afirmação de zero — o
+# ([[ADR-431]]). Contribuir 0,0 para a Σ é EXCLUSÃO, não afirmação de zero — o
 # que se publica no item é `null`.
 def _fora_da_soma(item: dict) -> bool:
     return bool(item.get("valor_nao_apurado"))

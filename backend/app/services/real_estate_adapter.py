@@ -132,7 +132,7 @@ def build_property_inputs(
         classification = _resolve_classification(ident, overrides)
         # Sem valor apurado fica FORA do denominador do pro-rata: ratear a renda
         # da carteira por um valor não medido inventa aluguel por imóvel, e o
-        # imóvel sai do cálculo agregado logo adiante ([[ADR-430]]).
+        # imóvel sai do cálculo agregado logo adiante ([[ADR-431]]).
         if classification in INVESTMENT_CLASSIFICATIONS and ident.id not in sem_valor_apurado:
             v = valor_by_property.get(ident.id, _ZERO)
             valor_total_investment += v

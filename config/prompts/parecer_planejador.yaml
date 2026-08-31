@@ -325,13 +325,13 @@ context_sections:
           - {path: "$.patrimonio.guarda_de_sinal.modo", label: "Guarda de sinal — modo", format: "string"}
           - {path: "$.patrimonio.guarda_de_sinal.cobertura_completa", label: "Guarda de sinal — cobertura completa", format: "raw"}
           - {path: "$.patrimonio.guarda_de_sinal.motivo_supressao", label: "Motivo de supressão da prescrição (null = nada suprimido)", format: "string"}
-      # [[A40.l111]] · [[ADR-430]]: um grão ABAIXO de `guarda_de_sinal.modo`. O balde
+      # [[A40.l111]] · [[ADR-431]]: um grão ABAIXO de `guarda_de_sinal.modo`. O balde
       # agregado segue positivo e o modelo o lê como completo; sem esta tabela ele
       # prescreveria sobre um patrimônio que é PISO, não retrato. Sem `descricao`:
       # a postura de PII deste manifest é papel, não identidade, e descrição de
       # imóvel é endereço. Coleção + ano bastam para a ressalva.
       - format: "table"
-        title: "Ativos físicos SEM valor apurado — patrimônio publicado é PISO: diga que o real é maior (ADR-430)"
+        title: "Ativos físicos SEM valor apurado — patrimônio publicado é PISO: diga que o real é maior (ADR-431)"
         path: "$.patrimonio.guarda_de_sinal.itens_sem_valor[*]"
         columns:
           - {path: "colecao", label: "Tipo de bem", format: "raw"}
