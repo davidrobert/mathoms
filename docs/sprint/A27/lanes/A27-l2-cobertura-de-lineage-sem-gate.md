@@ -37,14 +37,24 @@ nenhuma — nem o gate, nem a accuracy. É gate que só pode dar verde.
 
 > **Remedido 2026-08-30 na execução — os números do enunciado não reproduzem.** As `42
 > chaves de topo` são de um run fora do git; na fixture dogfood determinística o payload tem
-> **32**. Pior que a divergência: **o denominador estava errado de espécie**. Contar as 42/32
-> raízes cruas põe `narrativas`, `alertas`, `data_analise` e `tarefas` no denominador — prosa
+> **32**. Pior que a divergência: **o denominador estava errado de espécie**. Contar raiz crua
+> põe `alertas`, `data_analise`, `tarefas`, `pontos_fortes` e `score` no denominador — prosa
 > e metadado que nunca terão rastro. Isso dá um teto inalcançável, e **KR que não pode chegar
 > a 100% é KR que ninguém persegue**. O `~87%` herdado é verdadeiro e inútil.
+>
+> **Correção do closeout (2026-08-30):** a 1ª redação desta caixa citava `narrativas` entre as
+> raízes cruas do payload. Medido: `narrativas` **não é emitida** — está entre as 38 do
+> **schema**, que é a base do `~87%`, não entre as 32 do payload. O exemplo estava no
+> denominador errado.
 
 O denominador que a lane entrega é **raiz que publica dinheiro**, discriminada por
-`golden_diff.is_monetary` — o único predicado do repo que classifica campo **sem consultar o
-registro**, que é o que mantém numerador e denominador independentes.
+`golden_diff.is_monetary`, que é **independente do `lineage_registry`** — é isso que mantém
+numerador e denominador independentes — e já é o classificador de dot-path do substrato de
+golden, então reusá-lo não cria uma 2ª noção de "monetário" sobre o mesmo payload.
+(A 1ª redação dizia "o único predicado do repo que classifica campo sem consultar o
+registro". **Falso nas duas leituras:** `dev/` tem dezenas de predicados de path que também
+não consultam o registro, e `check_float_money.MONEY_TOKENS` também classifica campo
+monetário — em código-fonte, não em dot-path. A unicidade nunca foi medida.)
 
 | Medida (fixture dogfood, 2026-08-30) | Valor |
 | --- | --- |
