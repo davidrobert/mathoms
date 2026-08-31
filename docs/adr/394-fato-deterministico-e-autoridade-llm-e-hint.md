@@ -5,7 +5,7 @@ title: "Fato determinístico é autoridade; saída de LLM é hint em vocabulári
 status: Decidido
 phase: A40.l66
 date: "2026-08-18"
-amended_at: ["2026-08-18", "2026-08-19", "2026-08-21", "2026-08-28"]
+amended_at: ["2026-08-18", "2026-08-19", "2026-08-21", "2026-08-28", "2026-08-31"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-090]]"
@@ -57,6 +57,9 @@ Cobre 1a/1b/1c no corpo original; 1d entra pela emenda abaixo.
 > de ano. O eixo era **metade** da história: a outra metade é uma truncagem
 > silenciosa de documentos no E1.5a, que nunca deixou a declaração de 2024 dela
 > entrar no pipeline. Ver §Emenda 2026-08-21 (d).
+
+> ⚠️ **Emendada em 2026-08-31** — o D1 tinha um par de fatos **mudo**.
+> Ver §Emenda no fim.
 
 ## Contexto
 
@@ -554,3 +557,43 @@ próximo parâmetro se chama `chave`, `owner_key` ou `mk` e reabre a mesma porta
 já registrado na §Consequências da [[ADR-412]], é fazer o gate classificar pela origem do
 valor (parâmetro ligado a `identity.titular_key`/`conjuge_key`), resolvível
 intra-procedimentalmente no AST que ele já constrói.
+
+## Emenda 2026-08-31 — o sinal veta a magnitude, não o eixo
+
+O D1 declara o sinal como *"veto **suficiente**, nunca necessário: negativo prova
+passivo"*, e o D3 manda que *"divergência entre degraus vira `review_reason`, nunca
+silêncio"*. Medido no classificador real (`baseline_item_classifier.py`), o par
+`secao == "bens_direitos"` **+ valor negativo** era o único caso que violava os dois:
+
+| entrada | eixo | autoridade | warnings |
+|---|---|---|---|
+| `secao=bens_direitos` + **negativo** | `ativo` | `secao` | **0** ← mudo |
+| sem `secao` + negativo | `passivo` | `sinal` | 1 |
+
+`_decide_eixo` dá prioridade absoluta à `secao` e retorna antes de consultar o sinal;
+`_warnings_for` só emitia divergência quando o eixo era PASSIVO. **Conforme a cobertura
+de `secao` cresce, esse ramo vira o dominante** — o silêncio não é resíduo histórico, é
+o futuro do caminho.
+
+**O que muda.** O eixo continua decidido pela `secao`, e isso está certo por domínio: o
+PGD da Receita **não aceita** valor negativo em Bens e Direitos, logo o sinal negativo
+não veio da declaração — é defeito de **medição** nosso. Imóvel financiado é declarado
+em Bens e Direitos pelo valor pago, e o saldo devedor **não** vai em Dívidas e Ônus
+Reais; o campo `instituicao` na linha do bem é o que a Receita manda preencher, e
+**não** é evidência de dívida. Promover o item a passivo fabricaria um passivo que a
+própria norma proíbe declarar.
+
+Portanto: **o sinal veta a magnitude, não o eixo.** Negativo em item de ativo físico é
+`valor não apurado`, e passa a emitir o warning tipado `SinalImpossivelNoAtivo`
+([[ADR-097]] D1 — dataclass com `.format()`, nunca string).
+
+**O que esta emenda NÃO faz.** Não muda número publicado. O tratamento do valor
+(`null` em vez do negativo, exclusão da soma, supressão das prescrições que dependem
+dele e a ressalva para a família) é contrato de produtor entre E1.5c → E4 → E5 e sai
+em lane própria, com ADR nova — supersedure parcial de cláusula não existe, e o D6
+opera sobre `Decimal` pós-soma, onde ausência nem é representável.
+
+**Por que o D6 não bastava.** Ele é escopado ao **balde agregado**. Medido no corpus: o
+agregado de imóveis é **positivo** (o item negativo é ~14% do total em magnitude), então
+a guarda **nunca dispara**. Ela é estruturalmente cega a defeito de sinal no item — não
+é que detecte e tolere.
