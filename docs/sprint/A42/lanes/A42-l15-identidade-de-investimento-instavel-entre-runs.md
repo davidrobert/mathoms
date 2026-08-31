@@ -180,7 +180,7 @@ Duas leituras, ambas operantes: a âncora **existe em ~metade** dos itens — mu
 recusa**, não de fallback mudo; e o extrator **está descartando a âncora** (55% → 37% no mesmo
 corpus) porque ninguém a pede como campo.
 
-## Harness ENTREGUE — 2026-08-31 · e ele corrige a Armadilha (B) pelo campo medido
+## Harness ENTREGUE — PR #1919 (`b11d5bfd`), 2026-08-31 · e ele corrige a Armadilha (B) pelo campo medido
 
 `dev/measure_e15_identity_stability.py`. Replay offline de artefatos `E1.5a`: agrupa por
 `(documento, era)`, exige K≥5, e mede `|A∩B|/|A∪B|` sobre o conjunto de `investment_id`
@@ -188,6 +188,7 @@ produzido pelo **caminho real** (`consolidate_from_itens` ⊳ `dedup_investiment
 
 ### Baseline medido — 28 grupos válidos, 19 documentos, K até 38
 
+⚠️ **Números de corpus vivo — rode o harness, não releia a tabela.**
 Nos documentos com carteira substantiva (~23–25 identidades), a estabilidade fica entre
 **22,43% e 53,13%**, o que **contém** os 23,5% da abertura e os põe num intervalo com
 denominador. Exemplo de um mesmo documento ao longo das eras: `1.0.0` 35,48% · `1.1.0`
@@ -215,7 +216,9 @@ A distribuição que a armadilha cita (`NULL` 441 · `1.2.0` 363 · `1.3.0` 55) 
 | **payload** `prompt_version` | `1.0.0` **154** · `1.1.0` **190** · `1.2.0` 380 · `1.3.0` 70 · `NULL` **42** |
 
 Divergem em **394/836 = 47,1%**, e **sempre no mesmo sentido**: coluna `NULL` onde o payload
-sabe a era. **Duas eras inteiras — `1.0.0` e `1.1.0`, 344 artefatos — são invisíveis na
+sabe a era. ⚠️ **Corpus vivo, como o do Passo 0** — re-medido em 2026-08-31 23h (idêntico),
+mas não releia estes números: rode `dev/measure_e15_identity_stability.py` e o comparador de
+coluna×payload de novo. **Duas eras inteiras — `1.0.0` e `1.1.0`, 344 artefatos — são invisíveis na
 coluna.** A conclusão da armadilha **sobrevive** (recomputado no payload, 766/836 = **91,6%**
 ficariam em vocabulário antigo após um bump; era 93,6%), mas a **política de era do PR1 não
 pode selecionar por essa coluna** — ela não distingue três das cinco eras. O harness agrupa
@@ -229,9 +232,11 @@ comentário certo. `rg numero_contrato` → **só o schema e o consumidor; zero 
 Nasceu inerte e segue. É a classe que a [[A40.l88]] (#1755) acabou de gatear. **O produtor
 entra antes da chave.**
 
-**(B) Bump de `PROMPT_VERSION` sem política de era piora o que veio consertar.** Distribuição
-real em `pipeline_artifacts` (stage E1.5a): `NULL` **441** · `1.2.0` **363** · `1.3.0` **55**.
-Bumpar para 1.4.0 deixa **804/859 = 93,6%** no vocabulário antigo, e **não há ferramenta**:
+**(B) Bump de `PROMPT_VERSION` sem política de era piora o que veio consertar.**
+⚠️ **Os números deste parágrafo saem da COLUNA `prompt_version`, que é cega a 47% do corpus
+— ver §Harness ENTREGUE.** A conclusão sobrevive (91,6% no payload); a **seleção** por essa
+coluna, não. Distribuição da coluna (stage E1.5a): `NULL` **441** · `1.2.0` **363** ·
+`1.3.0` **55**. Bumpar para 1.4.0 deixa **804/859 = 93,6%** no vocabulário antigo, e **não há ferramenta**:
 `dev/reextract_stale_e2_llm.py` cobre só `E2-llm`, e a [[ADR-311]] D3 põe re-extração
 automática em bump **explicitamente fora de escopo**. `_identity_key` compara literal ⇒ a
 instabilidade nova seria **permanente**, não transitória.
@@ -363,7 +368,7 @@ compartilharem nome.
 (critério 4)** e **harness offline (critério 6)**, ambos sem depender de produtor. Restam
 três (critérios 2, 3 e 5), e os três **dependem** do produtor do PR1.
 
-## PR0 EXECUTADO — 2026-08-31 · reduzido a UM terço, e o corte foi medido
+## PR0 EXECUTADO — PR #1909 (`4df49130`), 2026-08-31 · uma das duas pernas caiu por medição
 
 `5eaa3bbc`. Entregue: `cnpj_emissor` declarado em `e15_baseline_extract.schema.json`
 (opcional, `pattern` `^\\d{14}$`) + `tests/test_e15_contrato_ancora_cnpj.py`. **Cortado: a
@@ -433,7 +438,7 @@ artefato carrega não pode gerar drift; o `pattern` só passa a medir quando o P
 ### Ordem, com o que paraleliza
 
 1. Registro do Passo 0 + emenda do critério 1 *(este PR)*.
-2. ~~**PR0 reduzido**~~ **ENTREGUE `5eaa3bbc`** — e reduzido de novo na execução: só a
+2. ~~**PR0 reduzido**~~ **ENTREGUE — PR #1909 (`4df49130`)** — e reduzido de novo na execução: só a
    declaração de `cnpj_emissor` + o teste do produtor real. O mirror de `min_length` foi
    **cortado por medição** (§PR0 EXECUTADO), juntando-se ao `pattern` em `codigo` e à perna
    `instituicao` já cortados no planejamento. **Novo item obrigatório do PR1:** a carreta de
@@ -483,7 +488,7 @@ sessões da U2 estavam abertas e o teto era 419.
    [[ADR-406]]), não no estado em voo. É o invariante que mata o modo `numero_contrato`.
 3. **Recusa em vez de palpite** (unit, zero runs): âncora forte ausente **e** descrição fraca
    ⇒ `None` + `review_reason`. Único invariante sobre a **decisão**, não sobre o número.
-4. ~~**Gate de acoplamento**~~ **ENTREGUE** — `tests/unit/pipeline/test_investment_id_acoplamento.py`.
+4. ~~**Gate de acoplamento**~~ **ENTREGUE — PR #1916 (`132f97f8`)** — `tests/unit/pipeline/test_investment_id_acoplamento.py`.
    Três pernas, porque uma só seria cega: **fecho transitivo** de imports (hoje 9 módulos,
    zero de catálogo — import direto pega, mas o acoplamento entraria por um helper a um
    salto); **aridade de `_identity_key`**, a rota que import nenhum revela (catálogo
@@ -496,7 +501,7 @@ sessões da U2 estavam abertas e o teto era 419.
    exposição** e **não** está coberto.
 5. **Identidade estável entre eras provada por mutação executada** — item de era 1.3.0 e item
    de era 1.4.0, mesma posição, mesmo hash; ou a política de era (B) escrita e implementada.
-6. ~~**Não aceitar como evidência**~~ **ENTREGUE** — `dev/measure_e15_identity_stability.py`
+6. ~~**Não aceitar como evidência**~~ **ENTREGUE — PR #1919 (`b11d5bfd`)** — `dev/measure_e15_identity_stability.py`
    + núcleo puro em `tests/dev/test_measure_e15_identity_stability.py`. **Zero token de LLM:**
    a variação já está no corpus, e replay de artefato histórico é imune à §Armadilha D
    (aqueles foram gravados com o cache desligado). Para o regime futuro o harness conta
