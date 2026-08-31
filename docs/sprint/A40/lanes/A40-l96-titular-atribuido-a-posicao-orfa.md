@@ -583,9 +583,11 @@ como está escrito produz código inalcançável.
   sequência abaixo — o co-design achou um quarto defeito (D4, provenance) e
   inverteu a ordem, porque **D1 antes de D2 pode piorar workspace que hoje
   funciona**.
-- **PR2a** — contrato, zero comportamento: schema `e1_members` registrado em
-  `SCHEMA_BY_STAGE`; campo de origem em `BankAccountRecord`; **emenda datada à
-  [[ADR-226]]** (dois eixos em §3 + §5 morta); ADR `Proposto` nova.
+- **PR2a — ENTREGUE 2026-08-31.** Schema `e1_members` registrado em
+  `SCHEMA_BY_STAGE`; `BankAccountRecord.origem` (`curada` | `irpf_hint`) com
+  coerção defensiva; **emenda datada à [[ADR-226]]** (dois eixos em §3 + §5
+  morta); [[ADR-430]] `Proposto`. Zero comportamento — nada lê `origem` e o
+  default preserva o resultado atual. Ver §Achados do PR2a.
 - **PR2b** — **D2**: predicado por `titulares(conta)`; teste mantido/renomeado
   medindo os dois eixos; fixture das 5 instituições do corpus. **Inerte sozinho
   por medição** ⇒ seguro em `main` isolado.
@@ -595,6 +597,49 @@ como está escrito produz código inalcançável.
   Fecha os três de uma vez — **nunca mergeie `{D1,D3}` em `main`**.
 - **PR2d** — gate de não-inércia (8 subconjuntos + perna de provenance) +
   rebaseline. **Muta E5 ⇒ entra na janela de rebaseline.**
+
+## Achados do PR2a (2026-08-31)
+
+Três coisas que só a execução revelou. Nenhuma é dos defeitos D1–D4.
+
+### 1. `institution_code` do E1 não é normalizado — e o consumidor normaliza
+
+O campo é `str` livre no schema LLM (`pipeline/llm/schemas/e1_members.py:11`),
+cuja `description` apenas **pede** código canônico (*"e.g. 'itau'"*). O produtor
+E1 grava o valor cru em `banco_membro` e em `contas[]`; o consumidor E2 aplica
+`.lower().replace(" ", "")` antes de consultar o resolver. **Uma grafia acentuada
+ou com espaço vinda do LLM erra o match em silêncio** — mesma família de D1–D3,
+e latente mesmo depois deles. O schema novo enforça `^[a-z0-9]+$`, o que
+converte a falha silenciosa em WARNING de validação (modo global é `warn`).
+
+### 2. 42 dos 95 artefatos E1 do dogfood carregam CPF cru — e o expurgo existe sem chamador
+
+Medido no banco: artefatos com `membros.<k>.cpf` vão de **2026-05-15 a
+2026-06-22**; de **2026-07-03** em diante são **zero**. Corte limpo, sem
+sobreposição ⇒ o produtor foi corrigido ([[ADR-259]] §2) e isto é **resíduo
+histórico, não vazamento corrente**. Estão cifrados em repouso (Fernet).
+
+O remédio **já existe e é testado**: `purge_cpf_from_e1_artifacts`
+(`backend/app/services/family_member_pii_service.py:166`) troca `cpf` por
+`cpf_present: true`. Busca no repo inteiro: **os únicos chamadores estão em
+`backend/tests/`** — a função nunca foi ligada a rota de produção. É a família
+"emissor sem leitor" da [[A40.l88]], invertida: leitor pronto, sem emissor.
+
+**Linha própria, não deste PR.** O schema agora guarda a regressão do produtor;
+o expurgo do resíduo é decisão de retenção/PII com dono.
+
+### 3. O gate de emenda datada não enxerga `amended_at` em bloco quando ele é a última chave
+
+`dev/check_adr_amendment_signal.py`: `_split_frontmatter` devolve
+`text[3:end]` com `end = text.find("\n---", 3)`, então o último item da lista
+**fica sem `\n`** — e `AMENDED_AT_BLOCK_RE` exige `(?:\s+-\s+.*\n)+`. Com
+`amended_at:` como última chave em forma de bloco, o gate reprova ADR
+corretamente emendada.
+
+**Falha fechada** (rejeita válido), que é a direção segura — a forma inline
+`amended_at: ["YYYY-MM-DD"]`, que é a que o próprio gate sugere em
+`:116`, casa em qualquer posição. Contornado usando a inline. Consertar o regex
+é linha própria; o risco é de fricção, não de furo.
 
 ## Já registrado
 
