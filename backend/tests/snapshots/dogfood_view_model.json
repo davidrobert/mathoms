@@ -1210,7 +1210,7 @@
     "premissas": {
       "aporte_base": 0,
       "fator_reduzido": "0.660000",
-      "investivel_atual": 13000000,
+      "investivel_atual": 28000000,
       "meta_if": 100000000,
       "retorno_real_anual_pct": "6.000000",
       "salario_conjuge_clt_brl": 0
@@ -1594,43 +1594,526 @@
     "ano_if": null,
     "base_do_piso": "carteira_produtiva_com_titular_identificado",
     "idade_titular_if": null,
-    "if_gap": 87000000,
+    "if_gap": 72000000,
     "if_meta": 100000000,
     "if_meta_base": "renda_alvo_bruta",
     "if_meta_bruta": 100000000,
-    "if_pct": "13.000000",
+    "if_pct": "28.000000",
     "if_trs": "4.000000",
     "if_trs_monthly_value": 333333,
     "motivo_prazo_indefinido": "você ainda não declarou quanto pretende aportar por mês, e o prazo até a meta é consequência direta desse número",
-    "piso_if_pct": "13.000000",
+    "piso_if_pct": "28.000000",
     "prazo_anos_realista": null,
     "prazo_anos_realista_teto": null,
-    "renda_passiva_estimada_4pct": 43333,
+    "renda_passiva_estimada_4pct": 93333,
     "retorno_esperado_pct_aa": "6.000000",
-    "teto_if_gap": 87000000
+    "teto_if_gap": 72000000
   },
   "if_monte_carlo": {
     "ano_alvo_declarado": null,
     "ano_if_cenario_adverso": null,
-    "ano_if_cenario_adverso_censurado": false,
-    "ano_if_cenario_central": null,
+    "ano_if_cenario_adverso_censurado": true,
+    "ano_if_cenario_central": 2050,
     "ano_if_cenario_central_censurado": false,
-    "ano_if_cenario_favoravel": null,
+    "ano_if_cenario_favoravel": 2041,
     "ano_if_cenario_favoravel_censurado": false,
     "aporte_mensal_usado": 0,
-    "caminho_p10": [],
-    "caminho_p50": [],
-    "caminho_p90": [],
+    "caminho_p10": [
+      [
+        202700,
+        25849769
+      ],
+      [
+        202800,
+        25788598
+      ],
+      [
+        202900,
+        26071362
+      ],
+      [
+        203000,
+        26540007
+      ],
+      [
+        203100,
+        27142003
+      ],
+      [
+        203200,
+        27849876
+      ],
+      [
+        203300,
+        28593679
+      ],
+      [
+        203400,
+        29380574
+      ],
+      [
+        203500,
+        30271795
+      ],
+      [
+        203600,
+        31277741
+      ],
+      [
+        203700,
+        32248942
+      ],
+      [
+        203800,
+        33310845
+      ],
+      [
+        203900,
+        34553302
+      ],
+      [
+        204000,
+        35731498
+      ],
+      [
+        204100,
+        37013102
+      ],
+      [
+        204200,
+        38401908
+      ],
+      [
+        204300,
+        39812781
+      ],
+      [
+        204400,
+        41126414
+      ],
+      [
+        204500,
+        42822619
+      ],
+      [
+        204600,
+        44487661
+      ],
+      [
+        204700,
+        46142935
+      ],
+      [
+        204800,
+        47901780
+      ],
+      [
+        204900,
+        49940237
+      ],
+      [
+        205000,
+        52137826
+      ],
+      [
+        205100,
+        54259312
+      ],
+      [
+        205200,
+        56455644
+      ],
+      [
+        205300,
+        58678111
+      ],
+      [
+        205400,
+        60965840
+      ],
+      [
+        205500,
+        63338892
+      ],
+      [
+        205600,
+        66123849
+      ],
+      [
+        205700,
+        68722434
+      ],
+      [
+        205800,
+        71555196
+      ],
+      [
+        205900,
+        74565562
+      ],
+      [
+        206000,
+        77884024
+      ],
+      [
+        206100,
+        81097446
+      ],
+      [
+        206200,
+        84337091
+      ],
+      [
+        206300,
+        87796788
+      ],
+      [
+        206400,
+        91589721
+      ],
+      [
+        206500,
+        95953218
+      ],
+      [
+        206600,
+        100058499
+      ]
+    ],
+    "caminho_p50": [
+      [
+        202700,
+        29538728
+      ],
+      [
+        202800,
+        31124993
+      ],
+      [
+        202900,
+        32879232
+      ],
+      [
+        203000,
+        34679874
+      ],
+      [
+        203100,
+        36540596
+      ],
+      [
+        203200,
+        38531339
+      ],
+      [
+        203300,
+        40676900
+      ],
+      [
+        203400,
+        42834211
+      ],
+      [
+        203500,
+        45156699
+      ],
+      [
+        203600,
+        47585597
+      ],
+      [
+        203700,
+        50175487
+      ],
+      [
+        203800,
+        52924628
+      ],
+      [
+        203900,
+        55757415
+      ],
+      [
+        204000,
+        58681060
+      ],
+      [
+        204100,
+        61872421
+      ],
+      [
+        204200,
+        65178214
+      ],
+      [
+        204300,
+        68792282
+      ],
+      [
+        204400,
+        72607599
+      ],
+      [
+        204500,
+        76613487
+      ],
+      [
+        204600,
+        80718103
+      ],
+      [
+        204700,
+        85047520
+      ],
+      [
+        204800,
+        89556803
+      ],
+      [
+        204900,
+        94612077
+      ],
+      [
+        205000,
+        99815148
+      ],
+      [
+        205100,
+        105418459
+      ],
+      [
+        205200,
+        111004882
+      ],
+      [
+        205300,
+        117162269
+      ],
+      [
+        205400,
+        123510832
+      ],
+      [
+        205500,
+        129723886
+      ],
+      [
+        205600,
+        136910796
+      ],
+      [
+        205700,
+        144304074
+      ],
+      [
+        205800,
+        152056503
+      ],
+      [
+        205900,
+        160280224
+      ],
+      [
+        206000,
+        168984962
+      ],
+      [
+        206100,
+        178309900
+      ],
+      [
+        206200,
+        187715756
+      ],
+      [
+        206300,
+        197428259
+      ],
+      [
+        206400,
+        208719694
+      ],
+      [
+        206500,
+        219849839
+      ],
+      [
+        206600,
+        231601334
+      ]
+    ],
+    "caminho_p90": [
+      [
+        202700,
+        33691757
+      ],
+      [
+        202800,
+        37555488
+      ],
+      [
+        202900,
+        41247413
+      ],
+      [
+        203000,
+        45078740
+      ],
+      [
+        203100,
+        48982093
+      ],
+      [
+        203200,
+        53205444
+      ],
+      [
+        203300,
+        57608577
+      ],
+      [
+        203400,
+        62239302
+      ],
+      [
+        203500,
+        67282952
+      ],
+      [
+        203600,
+        72415596
+      ],
+      [
+        203700,
+        77955507
+      ],
+      [
+        203800,
+        83823111
+      ],
+      [
+        203900,
+        90207850
+      ],
+      [
+        204000,
+        96906959
+      ],
+      [
+        204100,
+        103946816
+      ],
+      [
+        204200,
+        111439947
+      ],
+      [
+        204300,
+        119756471
+      ],
+      [
+        204400,
+        128209283
+      ],
+      [
+        204500,
+        137179573
+      ],
+      [
+        204600,
+        147051889
+      ],
+      [
+        204700,
+        156526783
+      ],
+      [
+        204800,
+        167278425
+      ],
+      [
+        204900,
+        179428946
+      ],
+      [
+        205000,
+        191812012
+      ],
+      [
+        205100,
+        204903638
+      ],
+      [
+        205200,
+        219245779
+      ],
+      [
+        205300,
+        233739155
+      ],
+      [
+        205400,
+        248969412
+      ],
+      [
+        205500,
+        266932911
+      ],
+      [
+        205600,
+        284641481
+      ],
+      [
+        205700,
+        303639733
+      ],
+      [
+        205800,
+        324475735
+      ],
+      [
+        205900,
+        346731930
+      ],
+      [
+        206000,
+        368994337
+      ],
+      [
+        206100,
+        393348974
+      ],
+      [
+        206200,
+        419721411
+      ],
+      [
+        206300,
+        447515831
+      ],
+      [
+        206400,
+        477481564
+      ],
+      [
+        206500,
+        508818783
+      ],
+      [
+        206600,
+        543459355
+      ]
+    ],
     "declarado_em": null,
-    "exibir_cone": false,
+    "exibir_cone": true,
     "horizonte_simulado_anos": 40,
     "mc_version": "5.0",
-    "motivo_sem_cone": "acumulação inicial — foco em consistência de aporte",
+    "motivo_sem_cone": null,
     "motivo_sem_prazo_declarado": "prazo ainda não declarado",
     "n_simulacoes_usado": 50000,
     "prazo_declarado_anos": null,
     "prazo_declarado_truncado": false,
-    "prob_if_ate_horizonte_simulado": "0.577400",
+    "prob_if_ate_horizonte_simulado": "0.921000",
     "prob_if_ate_prazo_declarado": null,
     "seed_usado": 360,
     "sigma_procedencia": "fallback_codigo",
@@ -1648,7 +2131,7 @@
         "posicoes_sem_identidade": []
       }
     ],
-    "n_imoveis_total": 1,
+    "n_imoveis_total": 5,
     "nao_classificado_itens": [],
     "nao_classificado_pct": "0.000000",
     "tabela_classes": [
@@ -1672,10 +2155,43 @@
         "instituicao": "",
         "membro": "Alex",
         "nome": "Imóvel de investimento",
-        "pct_carteira": "88.240000",
+        "pct_carteira": "27.940000",
         "posicao": 1,
         "tipo_origem": "imovel",
-        "valor": 60000000
+        "valor": 19000000
+      },
+      {
+        "autoridade": "origem",
+        "classe": "Imóveis Investimento",
+        "instituicao": "",
+        "membro": "Alex",
+        "nome": "Imóvel de investimento",
+        "pct_carteira": "22.060000",
+        "posicao": 2,
+        "tipo_origem": "imovel",
+        "valor": 15000000
+      },
+      {
+        "autoridade": "origem",
+        "classe": "Imóveis Investimento",
+        "instituicao": "",
+        "membro": "Alex",
+        "nome": "Imóvel de investimento",
+        "pct_carteira": "14.710000",
+        "posicao": 3,
+        "tipo_origem": "imovel",
+        "valor": 10000000
+      },
+      {
+        "autoridade": "origem",
+        "classe": "Imóveis Investimento",
+        "instituicao": "",
+        "membro": "Alex",
+        "nome": "Imóvel de investimento",
+        "pct_carteira": "13.240000",
+        "posicao": 4,
+        "tipo_origem": "imovel",
+        "valor": 9000000
       },
       {
         "autoridade": "keyword",
@@ -1684,9 +2200,20 @@
         "membro": "Alex",
         "nome": "Renda Fixa (Bancoficticio)",
         "pct_carteira": "11.760000",
-        "posicao": 2,
+        "posicao": 5,
         "tipo_origem": "investimento",
         "valor": 8000000
+      },
+      {
+        "autoridade": "origem",
+        "classe": "Imóveis Investimento",
+        "instituicao": "",
+        "membro": "Alex",
+        "nome": "Imóvel de investimento",
+        "pct_carteira": "10.290000",
+        "posicao": 6,
+        "tipo_origem": "imovel",
+        "valor": 7000000
       }
     ],
     "total": 68000000,
@@ -1900,14 +2427,14 @@
           "carteira_com_titular_identificado",
           "cat2_efetivo"
         ],
-        "valor_brl": 13000000
+        "valor_brl": 28000000
       },
       "carteira_produtiva_familia": {
         "termos": [
           "carteira_financeira_familia",
           "cat2_efetivo"
         ],
-        "valor_brl": 13000000
+        "valor_brl": 28000000
       },
       "carteira_produtiva_fixa": {
         "termos": [
@@ -1930,7 +2457,7 @@
     "caixa_me_brl": 0,
     "caixa_me_detalhe": [],
     "caixa_total_brl": 5000000,
-    "cat2_efetivo": 0,
+    "cat2_efetivo": 15000000,
     "cbe_obrigatorio": false,
     "cobertura_investimentos": [
       {
@@ -1994,14 +2521,14 @@
       "motivo_supressao": null,
       "reclassificados": []
     },
-    "imoveis_geradores": 0,
+    "imoveis_geradores": 15000000,
     "imoveis_investimento": 60000000,
-    "imoveis_nao_geradores": 60000000,
+    "imoveis_nao_geradores": 45000000,
     "imoveis_no_if": true,
     "investimentos_conjuge": 0,
     "investimentos_nao_atribuidos": 0,
     "investimentos_titular": 8000000,
-    "investivel_efetivo": 13000000,
+    "investivel_efetivo": 28000000,
     "investivel_financeiro": 13000000,
     "liquido": 58000000,
     "pl_ressalva": false,
@@ -2057,6 +2584,11 @@
       "descricao": "Cobertura de 53 meses, acima do alvo de 18 meses do perfil — o excedente pode ser realocado para a classe mais defasada.",
       "icone": "emergency",
       "titulo": "Reserva de Emergência Robusta"
+    },
+    {
+      "descricao": "Já atingiu 28% da meta de independência financeira.",
+      "icone": "target",
+      "titulo": "Caminho para Independência Financeira"
     }
   ],
   "pontos_urgentes": [
@@ -2259,11 +2791,11 @@
         "valor": "6.500000"
       },
       {
-        "contribuicao": "0.280000",
+        "contribuicao": "0.780000",
         "dimensao": "Progresso Independência Financeira",
         "max": 10,
         "peso": "0.250000",
-        "valor": "1.100000"
+        "valor": "3.100000"
       },
       {
         "contribuicao": "0.040000",
@@ -2273,7 +2805,7 @@
         "valor": "0.300000"
       }
     ],
-    "classificacao": "Regular",
+    "classificacao": "Bom",
     "componentes": [
       {
         "code": "taxa_poupanca_recorrente",
@@ -2302,10 +2834,10 @@
       {
         "code": "progresso_if",
         "nome": "Progresso Independência Financeira",
-        "nota": "1.100000",
+        "nota": "3.100000",
         "peso": "2.000000",
         "status": "emitted",
-        "valor": "13.000000"
+        "valor": "28.000000"
       },
       {
         "code": "concentracao_imobiliaria",
@@ -2316,12 +2848,12 @@
         "valor": "82.190000"
       }
     ],
-    "conclusion": "A classificação 'Regular' reflete melhora em Taxa Poupança Recorrente e Cobertura Despesas (meses).",
-    "context": "Indicador geral de saúde financeira da família, com score de 5.9/10 (Regular). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
+    "conclusion": "A classificação 'Bom' reflete melhora em Taxa Poupança Recorrente e Cobertura Despesas (meses).",
+    "context": "Indicador geral de saúde financeira da família, com score de 6.4/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
     "formula": "Score = (Taxa Poupança Recorrente×2 + Cobertura Despesas (meses)×1.5 + Taxa Endividamento×1.5 + Progresso Independência Financeira×2 + Concentração Imobiliária×1) / 8",
     "max": 10,
     "score_version": "2.1",
-    "valor": "5.900000"
+    "valor": "6.400000"
   },
   "tarefas": [
     {

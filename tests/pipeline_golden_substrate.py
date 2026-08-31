@@ -241,6 +241,54 @@ def fiscal_store_do_seed(year: int):
     return InMemoryConfigStore(fiscal_by_year={year: fiscal})
 
 
+#: Workspace do golden. `property_id` só é cunhado quando resolver E workspace_id
+#: estão injetados (`consolidate_baseline` §3), e sem `property_id` o splitter de
+#: cat_2 ignora override nenhum — a fixture declararia classificação que o motor
+#: não lê.
+_WORKSPACE_DO_GOLDEN = "golden-dogfood"
+
+#: As classificações que a fixture do dogfood declara, por `endereco_canonical`
+#: ([[ADR-420]] §Critério de aceite 2). O apartamento fica DE PROPÓSITO sem
+#: override: é o regime default (imóvel sem classificação nenhuma), classe de
+#: defeito distinta que o §Follow-up da [[A40.l95]] mantém viva. Os cinco valores
+#: são dois-a-dois distintos e somam os mesmos 600.000 do imóvel único que
+#: substituíram — o split move o eixo de classificação sem mover o bruto.
+CLASSIFICACOES_DO_DOGFOOD: dict[str, str] = {
+    "ficticia 200": "locado",
+    "ficticia 300": "especulacao",
+    "ficticia 400": "nu_proprietario",
+    "ficticia 500": "uso_pessoal",
+}
+
+
+class _OverridesDaFixture:
+    """``PropertyOverridesResolver`` de fixture — mapa já resolvido por id."""
+
+    def __init__(self, por_property_id: dict[str, str]) -> None:
+        self._por_property_id = dict(por_property_id)
+
+    def list_for_workspace(self, workspace_id: str) -> dict[str, str]:
+        return dict(self._por_property_id)
+
+
+# O mapa só existe DEPOIS do E1.5c: o `property_id` é cunhado lá, e a fixture não
+# pode escrevê-lo (é uuid4, e fixá-lo divergiria da regra de mint da produção).
+# `endereco_canonical` é a ponte determinística entre os dois momentos.
+#
+# Casa o que existir e não reclama do resto: `run_dogfood_pipeline` também é o RUNNER
+# de baselines próprios (`test_e5_reserva_formula_canonica`), e falhar ali seria falso
+# positivo. Quem guarda a discriminação é
+# `test_golden_discrimina_classificacao_de_imovel.py::test_a_classificacao_declarada_e_LOAD_BEARING`:
+# se o dogfood perder as classificações, `imoveis_geradores` volta a zero e ele reprova.
+def _overrides_por_id(consolidado: dict, por_endereco: dict[str, str]) -> dict[str, str]:
+    mapa = {}
+    for imovel in consolidado.get("imoveis_consolidados") or []:
+        classificacao = por_endereco.get(imovel.get("endereco_canonical") or "")
+        if classificacao and imovel.get("property_id"):
+            mapa[imovel["property_id"]] = classificacao
+    return mapa
+
+
 def _seed_dogfood_store(raw_baseline: dict, e2_extracts: dict[str, dict]):
     from pipeline.artifact_store import InMemoryArtifactStore
 
@@ -254,25 +302,69 @@ def _seed_dogfood_store(raw_baseline: dict, e2_extracts: dict[str, dict]):
 # Extraído de ``run_dogfood_pipeline`` em A40.l4: a fixture compartilhada das
 # narrativas roda E5.N **em cima** deste substrato, e a única coisa que faltava
 # era acesso ao ctx (o store é onde o E5.N lê e escreve).
-def run_dogfood_pipeline_ctx(root: Path, *, raw_baseline: dict, e2_extracts: dict[str, dict]):
-    """Roda E1.5c→E3→E4→E5 e devolve o ``ctx``, para quem precisa continuar o run."""
+def _ctx_com_identidade(root: Path, raw_baseline: dict, e2_extracts: dict[str, dict]):
+    """``ctx`` que cunha ``property_id`` — sem ele o splitter ignora override nenhum."""
+    from pipeline.adapters.in_memory_property_identity_resolver import (
+        InMemoryPropertyIdentityResolver,
+    )
     from pipeline.context import WorkspaceContext
+
+    return WorkspaceContext(
+        root=root,
+        artifact_store=_seed_dogfood_store(raw_baseline, e2_extracts),
+        workspace_id=_WORKSPACE_DO_GOLDEN,
+        property_identity_resolver=InMemoryPropertyIdentityResolver(),
+    )
+
+
+def _aplicar_overrides(ctx, property_classifications: dict[str, str] | None) -> None:
+    """Só depois do E1.5c: é lá que o ``property_id`` da ponte é cunhado."""
+    por_endereco = (
+        CLASSIFICACOES_DO_DOGFOOD if property_classifications is None else property_classifications
+    )
+    consolidado = ctx.artifact_store.read("E1.5c", "baseline_patrimonial")
+    ctx.property_overrides_resolver = _OverridesDaFixture(
+        _overrides_por_id(consolidado, por_endereco)
+    )
+
+
+# ``property_classifications`` mapeia ``endereco_canonical`` → classificação; ``None``
+# usa ``CLASSIFICACOES_DO_DOGFOOD`` e ``{}`` roda o regime default, sem override nenhum.
+def run_dogfood_pipeline_ctx(
+    root: Path,
+    *,
+    raw_baseline: dict,
+    e2_extracts: dict[str, dict],
+    property_classifications: dict[str, str] | None = None,
+):
+    """Roda E1.5c→E3→E4→E5 e devolve o ``ctx``, para quem precisa continuar o run."""
     from scripts.analyze_finances import main_with_store as e5_mws
     from scripts.categorize_transactions import main_with_store as e4_mws
     from scripts.consolidate_baseline import main_with_store as e15_mws
     from scripts.reconcile_transactions import main_with_store as e3_mws
 
-    ctx = WorkspaceContext(root=root, artifact_store=_seed_dogfood_store(raw_baseline, e2_extracts))
-    for stage in (e15_mws, e3_mws, e4_mws, e5_mws):
+    ctx = _ctx_com_identidade(root, raw_baseline, e2_extracts)
+    e15_mws(ctx)
+    _aplicar_overrides(ctx, property_classifications)
+    for stage in (e3_mws, e4_mws, e5_mws):
         stage(ctx)
     return ctx
 
 
 def run_dogfood_pipeline(
-    root: Path, *, raw_baseline: dict, e2_extracts: dict[str, dict]
+    root: Path,
+    *,
+    raw_baseline: dict,
+    e2_extracts: dict[str, dict],
+    property_classifications: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Roda E1.5c→E3→E4→E5 sobre baseline bruto + extratos E2 seeded; exercita dedup genuíno (ADR-271 em E1.5c, ADR-255 em E3); retorna ``analise_financeira``."""
-    ctx = run_dogfood_pipeline_ctx(root, raw_baseline=raw_baseline, e2_extracts=e2_extracts)
+    ctx = run_dogfood_pipeline_ctx(
+        root,
+        raw_baseline=raw_baseline,
+        e2_extracts=e2_extracts,
+        property_classifications=property_classifications,
+    )
     return ctx.artifact_store.read("E5", "analise_financeira")
 
 
