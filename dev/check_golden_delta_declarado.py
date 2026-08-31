@@ -83,6 +83,14 @@ def _medir_todos(base: str, tocados: list[str]) -> int:
     falhou = 0
     with tempfile.TemporaryDirectory() as td:
         for path in tocados:
+            # Golden REMOVIDO: `git diff --name-only` o lista, e ele não existe mais
+            # na árvore. Deleção não tem `value_delta` a declarar — o manifesto
+            # justifica número que MUDOU, e aqui não há número novo. Sem este ramo o
+            # gate morria em `FileNotFoundError`, que é falha de leitura mascarada de
+            # reprovação: o PR ficava vermelho sem dizer o que estava errado.
+            if not (REPO_ROOT / path).exists():
+                print(f"golden_diff: {path} foi REMOVIDO neste PR — não há delta a medir.")
+                continue
             if not _existe_na_base(base, path):
                 print(
                     f"golden_diff: {path} é NOVO neste PR (sem versão base) — nada a diferenciar."
