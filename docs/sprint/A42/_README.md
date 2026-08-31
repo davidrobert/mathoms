@@ -272,6 +272,12 @@ os P2 da mesma rodada, alocados a pedido do dono em 2026-08-30. **O teto de 14 e
 nunca foi decidido:** as cinco lanes acima de 12 entraram uma a uma, em PRs distintos, sem
 que o parágrafo acima fosse relido.
 
+> **Superado em 2026-08-31 — o rompimento FOI decidido.** A frase acima é fotografia do dia
+> 30 e fica como está; o *"nunca foi decidido"* deixou de valer na §Teto de lanes
+> APOSENTADO abaixo, que é a fonte vigente. Também deixou de valer o "excedido em 8": não
+> há mais teto de que exceder. Esta nota existe porque prosa condicional envelhece em
+> silêncio — foi o próprio modo de falha que a `U4` registrou no §10 do runbook.
+
 > **Por que o número estava em 16.** Este parágrafo nasceu correto no #1842 e ficou falso
 > no #1843, que criou a [[A42.l17]] sem reler a contagem — o mesmo modo de falha que ele
 > próprio denuncia, uma volta depois. A frase afirmava três substratos "concordam" em 16
@@ -282,18 +288,64 @@ que o parágrafo acima fosse relido.
 | [[A42.l13]] — completude por ficha | 2026-08-21 | a [[ADR-266]] foi falsificada por emenda datada e o predicado substituto precisava de casa. **Reusa o id da 13ª promovida** — ver §Lanes promovidas | #1624 (lane) · #1747 (linha na tabela) |
 | [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 |
 | [[A42.l17]] | 2026-08-30 | P0 da rodada `U3` (`LC7-01`) — [[LEDGER-CERTIFY-active]] §r7 | #1843 (lane) · #1846 (entrega) |
+| [[A42.l18]] · [[A42.l19]] | 2026-08-30 | dois achados Alto da rodada `U4` — [[LEDGER-CERTIFY-active]] §r8; **da classe que dá nome à sprint** | #1866 (lanes) · #1870/#1873 e #1888/#1890 (entregas) |
+| [[A42.l20]] · [[A42.l21]] · [[A42.l22]] | 2026-08-30 | os P2 da `U4`, alocados a pedido do dono | #1867 |
 
-**Nenhuma das quatro é padding** — que é o único abuso que o teto existia para impedir.
+**Nenhuma das dez é padding** — que é o único abuso que o teto existia para impedir.
 Mas o teto foi decidido contra outra evidência — *"nenhuma sprint acima de ~11 lanes
 fechou pelo próprio gate na história do repo"* ([[SPRINTS-active]] §A42) — e essa evidência
-**não foi re-medida**. Elevar o teto para 16 aqui seria escolher o número **depois** de
-conhecer o ofensor.
+**não foi re-medida**. Elevar o teto para 16 seria escolher o número **depois** de conhecer
+o ofensor.
 
-**Decisão pendente, do dono** (mesma porta do `sprint_status`): (a) elevar o teto com
-rationale novo e datado; (b) manter 14 e **dividir**, promovendo lanes pela porta de
-nível-lane do §Gatilho de promoção; ou (c) declarar o teto **advisory** — sinal de que a
-sprint pediu re-triagem, não gate de admissão. Até a decisão, **a contagem vigente é 16 e
-este bloco é a fonte dela**.
+### Teto de lanes APOSENTADO — decisão do dono, 2026-08-31
+
+A decisão pendente acima era (a) elevar, (b) manter 14 e dividir, ou (c) declarar advisory.
+**O dono escolheu uma variante da (c): o teto sobre o total de lanes sai.** A justificativa
+não é conveniência — é que a grandeza estava errada, e a medição mostra por quê.
+
+**O teto governa um número que esta sprint não escolhe.** O gate de saída dela
+**não é burn-down** (§Gate de saída: *"Fecha quando a rodada seguinte das próprias skills
+prova o fechamento… zero achado novo da classe"*). Num critério assim a contagem de lanes é
+**resultado da medição, não orçamento de planejamento** — e o resultado confirma: **11 das
+22 nasceram de rodada unificada** (`U2`, `U3`, `U4`), ou seja **metade da sprint chegou
+depois de ela ser planejada**, produzida por instrumento e não por escolha de escopo.
+
+**E o teto estava orçando o trabalho errado.** Medido em 2026-08-31:
+
+| | |
+|---|---|
+| lanes do dia da abertura (04-08) ainda `planned` | **11 de 12** — há **27 dias**, nenhuma iniciada |
+| lanes `shipped` | **4** — **todas** criadas nos 3 dias anteriores, todas de rodada unificada |
+| WIP hoje (`open` + `in_progress`) | **6** |
+
+As lanes não estão competindo por capacidade: **o lote antigo simplesmente não é pego**,
+enquanto o que chega por medição é executado em horas. Um teto sobre o total trata os dois
+grupos como se disputassem o mesmo slot, e eles não disputam.
+
+**O dano concreto, declarado por quem o sofreu.** Na `U4`, ao rotear o `PV12-02` para a
+[[A27.l2]], o argumento de produtor era genuíno — mas o teto estava na cabeça do executor
+também. Num sprint cuja tese é *"o instrumento não pode esconder nada"*, um número que faz
+alguém pensar em **onde acomodar** um achado trabalha contra a própria sprint. Teto que
+distorce roteamento é pior que teto ausente.
+
+**O que NÃO muda:** o contador `## Lanes (N)` da §Lanes continua sendo o único com gate, e
+os três substratos continuam obrigados a concordar (`check_lane_counter` da skill
+`lane-closeout`). Ele deixa de ser **limite** e permanece **fato publicado** — a
+visibilidade honesta que o teto entregava por acidente.
+
+**O que entra no lugar — e por que não é um número novo.** Escolher um limite de WIP agora,
+sabendo que ele é 6, seria repetir exatamente o erro que o parágrafo acima denuncia. O
+substituto não é um teto: é a **re-triagem por obsolescência**, e ela já existe nesta
+sprint. O §Rito de abertura manda carimbar cada lane não-terminal
+`sobrevive` / `absorvido` / `morreu`; hoje esse rito está amarrado à promoção
+[[A40]] → `done`. **Passa a valer também por idade:** lane `planned` que atravessa uma
+rodada unificada sem ser pega entra na próxima re-triagem com esses três carimbos. As 11 de
+04-08 são a primeira fila — e o precedente é a [[A40.l15]], **cancelada por absorção**
+quando 3 das 4 premissas dela morreram.
+
+**O WIP fica publicado, não gateado:** 6 em 2026-08-31. Se ele virar limite algum dia, o
+número tem de sair de evidência de throughput coletada **antes** de conhecer o valor
+corrente — não deste parágrafo.
 
 **Ordem dentro da tabela reflete pickup, não numeração.** A l3 vem antes da l2 porque a
 l2 consome o ratchet que a l3 entrega; a l5 vem antes da l6 pela mesma razão. Nenhuma
