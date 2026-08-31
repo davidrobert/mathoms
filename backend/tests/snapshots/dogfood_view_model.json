@@ -1239,6 +1239,8 @@
         "contagem": 0,
         "valor": 0
       },
+      "cobertura_motivo": "sem_base_medivel: nenhum lançamento acima do limiar foi classificado",
+      "cobertura_nivel": null,
       "excluidos": {},
       "publicado": {
         "contagem": 0,
