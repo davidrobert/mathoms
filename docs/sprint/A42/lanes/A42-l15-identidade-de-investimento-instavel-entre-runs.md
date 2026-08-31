@@ -305,6 +305,12 @@ espelha o `minLength: 1` do JSON schema. Com `mode=warn`, `pattern` só no JSON 
 **inerte**. O e16 espelha campo a campo; o e15 é a única ponta com drift entre as camadas. E
 **nenhum teste schema-valida a saída real de `_output_to_baseline_json`** — só um literal.
 
+> ⚠️ **A segunda metade deste parágrafo caiu na execução do PR0 (2026-08-31) — ver
+> §PR0 EXECUTADO.** O teste do produtor real era gap verdadeiro e foi fechado. **O mirror
+> de `min_length` no Pydantic, não:** ele é redundante em cobertura e, pior, troca o *modo
+> de falha*. O pino de **forma** com normalizador (o `cnpj_emissor` deste PR1) segue de pé —
+> a distinção medida está na seção nova.
+
 **PR2 — um bloqueio duro e uma expectativa a corrigir.** `review_reason` **não existe** em
 `investimentos_dedup.py` nem em `dividas_dedup.py` (`git grep` vazio): hoje `None` só ocorre
 com `desc` vazia e não carrega motivo, então o critério 3 **constrói o mecanismo inteiro**.
@@ -316,11 +322,80 @@ compartilharem nome.
 offline (critério 6) **não dependem de produtor** e podem começar já; o harness é
 pré-requisito de qualquer alegação de melhora, porque mede o estado atual como baseline.
 
+## PR0 EXECUTADO — 2026-08-31 · reduzido a UM terço, e o corte foi medido
+
+`5eaa3bbc`. Entregue: `cnpj_emissor` declarado em `e15_baseline_extract.schema.json`
+(opcional, `pattern` `^\\d{14}$`) + `tests/test_e15_contrato_ancora_cnpj.py`. **Cortado: a
+perna do mirror de `min_length` no Pydantic** — pelas duas medições abaixo.
+
+**A precondição do PR1 era real e foi provada, não suposta.** Com o schema pré-PR0,
+um item carregando `cnpj_emissor` devolve *"Additional properties are not allowed"*:
+`additionalProperties: false` tornava o produtor da [[ADR-271]] §147 uma mudança
+impossível de mergear sozinha. Risco de declarar: **zero dos 7.213 itens `E1.5a`** do
+corpus carregam qualquer chave fora das declaradas, logo é puramente aditivo.
+
+### O mirror de `min_length` no Pydantic **morre** — redundante E nocivo
+
+**Redundante.** `validate_e15_output` já cobre os três campos, um a um:
+`e15.item.empty_code` (`validators.py:454`), `e15.item.empty_description` (`:462`),
+`e15.item.missing_member_key` (`:483`), todos com teste em
+`test_validation_issues_e1_e15_e2llm.py`. Cobertura que o mirror acrescenta: **nenhuma**.
+
+**E não é o mesmo constraint noutra camada — é outro raio de dano.** `PatrimonialItem` é o
+`output_schema` do `service.call` (`extract_baseline.py:303`): falha de Pydantic acontece
+**dentro** do Instructor ⇒ reask (`max_retries=2`) ⇒ exaustão derruba **o documento
+inteiro**. `validate_e15_output` roda **depois** (`:322-335`) e emite issue **por item** +
+`review_reason`. Espelhar converteria sinal item-level em falha document-level —
+exatamente o que a [[ADR-292]] recusa, e que
+`test_secao_fora_do_vocabulario_avisa_sem_derrubar_o_documento` enforça **neste mesmo
+schema**. Medido: `codigo`/`descricao`/`membro` têm **0 vazios e 0 ausentes** nos 7.213
+itens, então o mirror é inerte hoje; o único efeito é o modo de falha de amanhã.
+
+⚠️ **A distinção que sobrevive, e que o PR1 precisa:** pino **normalizador** é seguro no
+boundary (o `cnpj_emissor` tem `field_validator(mode="before")` que descarta a máscara —
+molde `informe_aluguel.imobiliaria_cnpj`, [[ADR-288]]; falhar ali é dado genuinamente
+inutilizável). Pino de **vacuidade** não é — não há o que normalizar, só o que rejeitar.
+Não leia "o pino de forma vai no Pydantic" como "toda constraint vai no Pydantic".
+
+### O consolidador E1.5c **descarta** chave de item não enumerada — e a lane não atribuía isso a ninguém
+
+`consolidate_baseline.py:546-553` monta `entry` **campo a campo**; das chaves do item, só
+`instituicao` é copiada (condicionalmente). `_aggregate_baselines`
+(`extract_baseline.py:144`) passa o item **inteiro** (`all_items.extend`), então o agregado
+E1.5 carrega — **o corte é no E1.5c**, entre o produtor e a chave.
+
+**Consequência: o PR1 sozinho nasce inerte para o PR2.** É a [[A42.l15]] §Armadilha (A)
+(*"perna forte sem produtor é inerte"*) na direção inversa — produtor sem caminho até o
+consumidor. A carreta pertence ao **PR1** (*"o produtor entra antes da chave"*), com unit
+sobre item sintético; nenhum dos quatro PRs a nomeava. Classe conhecida: construtor
+campo-a-campo perde campo.
+
+### Cobertura da âncora no corpus inteiro — 38,7%, e o denominador NÃO é o da abertura
+
+CNPJ no texto de `descricao` em **2.792/7.213 itens `E1.5a` (38,7%)**. A medição de
+abertura desta lane deu 55%/37% sobre **itens financeiros de dois runs**; esta é sobre
+**todos os itens de 900+ artefatos**, imóveis e veículos incluídos — onde a âncora não
+tem por que existir. **Não são números comparáveis**; o corpus corrobora a ordem de
+grandeza e reafirma o §Armadilha: a âncora existe em ~metade dos casos elegíveis, logo a
+cascata precisa de **degrau de recusa**, não de fallback mudo. `instituicao` está ausente
+em **1.861/7.213 (25,8%)** — `Optional` é a forma certa.
+
+### Drift de schema: a declaração não move o gate
+
+`dev/measure_schema_drift.py --schema e15_baseline_extract.schema.json --all` pós-PR0:
+**427/922 = 46,3%, NO-GO** — e **nenhum** dos paths de drift é o campo novo. Os 427 são
+`$.itens[].valor_brl` e `$.resumo.*` em payloads v1 (number), drift **pré-existente** que a
+própria descrição do schema documenta, com último caso em **2026-06-22**. Campo que nenhum
+artefato carrega não pode gerar drift; o `pattern` só passa a medir quando o PR1 emitir.
+
 ### Ordem, com o que paraleliza
 
 1. Registro do Passo 0 + emenda do critério 1 *(este PR)*.
-2. **PR0 reduzido**: declarar `cnpj_emissor` no schema + espelhar constraints no Pydantic.
-   **Sem** `pattern` em `codigo` e **sem** a perna `instituicao`.
+2. ~~**PR0 reduzido**~~ **ENTREGUE `5eaa3bbc`** — e reduzido de novo na execução: só a
+   declaração de `cnpj_emissor` + o teste do produtor real. O mirror de `min_length` foi
+   **cortado por medição** (§PR0 EXECUTADO), juntando-se ao `pattern` em `codigo` e à perna
+   `instituicao` já cortados no planejamento. **Novo item obrigatório do PR1:** a carreta de
+   `cnpj_emissor` no `consolidate_baseline.py` — sem ela o produtor não alcança o PR2.
 3. Ler o documento-fonte → decidir `GG-CC` vs `GG` → só então o `pattern`, com o custo de
    fila (e15 + e16) e a política de era juntos.
 4. PR1 → 5. PR2 (medido **junto** com o braço de `descricao`; a porta `tipo` dá 0 pp) →
@@ -330,7 +405,7 @@ pré-requisito de qualquer alegação de melhora, porque mede o estado atual com
 · leitura do documento-fonte. **Não paraleliza:** PR2 depois do PR1; qualquer número de
 estabilidade depois do harness (§Armadilha D).
 
-## Escopo — quatro PRs, nesta ordem## Escopo — quatro PRs, nesta ordem
+## Escopo — quatro PRs, nesta ordem
 
 - **PR0 — forma no contrato (zero LLM).** `pattern` em `codigo`
   (`e15_baseline_extract.schema.json:25`, hoje `{"type":"string"}`) e forma canônica em
