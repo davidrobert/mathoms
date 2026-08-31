@@ -276,3 +276,62 @@ def test_sem_base_medivel_o_nivel_e_null_com_motivo():
     d = BasePontuais(BaldePontual(), {}).to_dict()
     assert d["cobertura_nivel"] is None
     assert d["cobertura_motivo"].startswith("sem_base_medivel:")
+
+
+# ---------------------------------------------------------------------------
+# Vocabulário da policy — todo código ou é produzível, ou é DECLARADO defensivo
+# ---------------------------------------------------------------------------
+
+#: Não produzidos por nenhum produtor (medido 2026-08-31): ausentes do seed canônico,
+#: de `_HINTS_DESPESA` e de `default_expense_category`. `transferencias_internas` nem
+#: é categoria — é o nome do BLOCO em `family_members.json`. Existem contra
+#: `workspace_category_overrides`, que pode criar categoria arbitrária.
+_DEFENSIVOS = {"transferencia_entre_contas", "transferencia_familiar", "transferencias_internas"}
+
+
+def _categorias_produziveis() -> set[str]:
+    """O universo é a UNIÃO das quatro fontes que emitem categoria de despesa —
+    definido pelo que ele É, não pelo que faz a policy passar. Recortá-lo depois de
+    conhecer o ofensor produziria gate que aprova a si mesmo."""
+    raiz = Path(__file__).resolve().parents[1]
+    fontes = {
+        "seed": raiz / "backend/alembic/versions/a5b6c7d8e9f0_seed_category_template_v1.py",
+        "hints_llm": raiz / "pipeline/domain/services/llm_category_hint.py",
+        "labels_pj": raiz / "pipeline/domain/services/transaction_classifier_pj.py",
+        "classificador": raiz / "pipeline/domain/services/transaction_classifier.py",
+    }
+    faltando = [n for n, f in fontes.items() if not f.exists()]
+    assert not faltando, f"fonte do universo sumiu — re-meça: {faltando}"
+    universo: set[str] = set()
+    for f in fontes.values():
+        universo |= set(re.findall(r'"([a-z][a-z0-9_]{2,})"', f.read_text(encoding="utf-8")))
+    return universo
+
+
+def test_todo_codigo_da_policy_e_produzivel_ou_declarado_defensivo():
+    """Sem este gate o próximo conjunto nasce fantasma igual: a `transferencia_de_conta`
+    passou meses parecendo decisão de domínio sobre códigos que nada emite, enquanto o
+    código REAL de dinheiro à família (`suporte_familiar`) ficava `incluido` e entrava
+    12× em `total_pontuais`."""
+    semeadas = _categorias_produziveis()
+    # Anti-vacuidade: se o universo virasse vazio ou largo demais, o gate aprovaria
+    # tudo. Estas duas âncoras fixam que ele é POVOADO e ainda assim DISCRIMINA.
+    assert "suporte_familiar" in semeadas, "o universo perdeu o seed — re-meça"
+    assert "transferencia_familiar" not in semeadas, (
+        "o universo ficou largo demais: ele passou a conter um código que nenhum "
+        "produtor emite, e o gate deixaria fantasma novo entrar"
+    )
+    declarados = set(_POLICY.recorrentes) | set(_POLICY.nao_consumo_pontual)
+    fantasmas = {c for c in declarados if c not in semeadas} - _DEFENSIVOS
+    assert not fantasmas, (
+        f"código na policy que nenhum produtor emite e não está declarado defensivo: "
+        f"{sorted(fantasmas)}"
+    )
+
+
+def test_suporte_familiar_e_recorrente_e_NAO_transferencia():
+    """A colocação é load-bearing: em `recorrentes` ele sai só da base do pontual; em
+    `transferencia_patrimonial` sairia de `despesa_consumo` e moveria a taxa de
+    poupança — e sustento a familiar É consumo."""
+    assert _POLICY.classify_por_categoria("suporte_familiar") is VeredictoPontual.recorrente
+    assert "suporte_familiar" not in _POLICY.nao_consumo_pontual

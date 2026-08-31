@@ -201,7 +201,12 @@
 # (`nao_identificado`), com as constantes IMPORTADAS — o modelo para de ter de julgar
 # "material" por conta própria, do mesmo jeito que já faz com
 # `$.diagnostico_confianca.nivel`. Escopo full-period, declarado na label.
-version: "2.16.0"
+# 2.17.0 — `suporte_familiar` entra em `recorrentes` (`financial-planner`,
+# 2026-08-31). Sustento a familiar É consumo e continua em `despesa_consumo`, mas
+# quando RECORRE não é gasto pontual: um PIX mensal de R$ 5k entrava 12× em
+# `total_pontuais`, o mesmo defeito que o aluguel tinha. Muda valor de
+# `total_pontuais*` em workspace que tenha a categoria acima do limiar.
+version: "2.17.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 

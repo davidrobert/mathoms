@@ -63,9 +63,14 @@ _DEFAULT_CONSUMO_MIN = 2000.0
 # poupança (segue em ``despesa_total`` → ``fluxo_liquido`` preservado).
 _DEFAULT_TRANSFERENCIA_PATRIMONIAL = frozenset({"aporte_investimento"})
 
-# Movimentação entre contas do próprio titular ou da família — não sai de
-# ``despesa_consumo`` (a decisão sobre ``transferencia_familiar`` é do
-# ``financial-planner``), mas nunca é "gasto pontual relevante".
+# ⚠️ **DEFENSIVO, e nenhum destes códigos é produzido hoje** — medido em 2026-08-31:
+# nenhum está no seed canônico (`a5b6c7d8e9f0_seed_category_template_v1`), em
+# `llm_category_hint._HINTS_DESPESA` nem em `default_expense_category`;
+# ``transferencias_internas`` sequer é categoria, é o nome do BLOCO de config em
+# `family_members.json`. O conjunto existe contra `workspace_category_overrides`, que
+# pode criar categoria arbitrária. Não confunda com decisão de domínio: o código real
+# de dinheiro à família é ``suporte_familiar``, que é **consumo** e por isso vive em
+# ``recorrentes``, não aqui (`financial-planner`, 2026-08-31).
 _DEFAULT_TRANSFERENCIA_DE_CONTA = frozenset(
     {"transferencia_entre_contas", "transferencia_familiar", "transferencias_internas"}
 )
@@ -91,6 +96,13 @@ _DEFAULT_RECORRENTES = frozenset(
         "das_simples",
         "iss",
         "folha_pj",
+        # Sustento a familiar É consumo — entra em ``despesa_consumo`` e pesa contra a
+        # taxa de poupança (Cerbasi: dependente entra no custo de vida; Perini: saída
+        # que não gera renda). Mas quando RECORRE não é gasto pontual: um PIX mensal de
+        # R$ 5k entrava 12× em ``total_pontuais``, o mesmo defeito que o aluguel tinha.
+        # Fica em ``recorrentes``, que é cláusula só da base do pontual e não move
+        # ``folga_mensal`` (`financial-planner`, 2026-08-31).
+        "suporte_familiar",
     }
 )
 
