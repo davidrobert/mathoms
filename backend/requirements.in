@@ -12,7 +12,7 @@ cryptography>=50.0.0  # SEC-03: GHSA-537c-gmf6-5ccf (OpenSSL estático no wheel 
 bcrypt>=4.0
 python-multipart>=0.0.31  # SEC-03: CVE-2026-53538/53539/53540 (DoS parse de form/upload)
 pydantic[email]>=2.0
-pydantic-settings>=2.0
+pydantic-settings>=2.15.0
 aiosqlite>=0.20
 # Drivers Postgres (ADR-253):
 # - asyncpg: async engine (backend/app/core/database.py) p/ endpoints FastAPI
@@ -52,7 +52,7 @@ opentelemetry-sdk>=1.30
 opentelemetry-exporter-otlp-proto-http>=1.30
 opentelemetry-instrumentation-fastapi>=0.50b0
 opentelemetry-instrumentation-sqlalchemy>=0.50b0
-opentelemetry-instrumentation-celery>=0.50b0
+opentelemetry-instrumentation-celery>=0.65b0
 opentelemetry-instrumentation-logging>=0.50b0
 
 # Monte Carlo simulations (pipeline/if_projector.py imported transitively)
