@@ -167,9 +167,31 @@ ramo — seria inerte contra a classe, e o teste que discrimina é o de **troca 
   > monkeypatch de teste — nenhum alcança o nome. Com a remoção, o único sítio
   > **executável** que cita o umbrella por nome literal volta a ser o próprio
   > `SCHEMA_BY_STAGE`; o resto é docstring (`e4_serialization.py`) e teste.
-- O flip `warn→strict` do E4 fica **elegível** (7/7 validam em `strict`, re-medido na `main`
-  em 2026-08-31), mas esta lane **não flippa nada** — a decisão segue governada pela
-  [[ADR-409]], que é `Decidido` e portanto **não é rota**: uma ADR fechada não executa
-  trabalho. `owner: data-engineer`; a fila viva é a disposição **PV9-27** em
-  [[PIPELINE-REVIEWS-active]] (`procede-aberto`), onde a elegibilidade do E4 ficou
-  registrada. Sem lane aberta: o pickup é decisão do dono.
+- O flip `warn→strict` do E4: esta lane **não flippa nada**.
+
+  > **Correção 2026-08-31 — o "7/7 validam em `strict`" que eu havia escrito aqui era
+  > sobre a FIXTURE GOLDEN, não sobre o corpus**, e a frase dizia "re-medido na `main`",
+  > que se lê como corpus. O go/no-go da [[ADR-409]] §B é medição sobre
+  > `pipeline_artifacts`. Medido depois, no corpus real (71 runs, 98 dias):
+  >
+  > | schema | artef | drift | payloads | veredito |
+  > |---|---:|---:|---:|---|
+  > | `e4_cashflow` | 142 | 0 | 142 | **GO** |
+  > | `e4_investimentos` | 71 | 0 | 40 | **GO** |
+  > | `e4_seguros` | 71 | 0 | **5** | massa insuficiente |
+  > | `e4_pontos_milhas` | 71 | 0 | **1** | massa insuficiente |
+  > | `e4_fluxo_mensal` | 71 | **2** | 21 | NO-GO → consertado em #1894 |
+  > | `baseline_patrimonial` (`patrimonio`) | 169 | **101** | 116 | fora da fila (§F) |
+  >
+  > São **2** elegíveis, não 7. E na primeira tentativa a medição saiu **100% ilegível**
+  > (o `.env` com a chave do vault não existe no worktree) — "não-validado não é
+  > validado-sem-drift" é guarda da própria §B.
+
+  **Decidido:** promover **2** (`e4_cashflow` + `e4_investimentos`), arbitrado pelo
+  `senior-cto` após divergência `sre-devops` (4) × `data-engineer` (1). Pré-requisitos
+  **mergeados** em [#1894](https://github.com/davidrobert/mathoms/pull/1894) (`c9d643d0`).
+  Falta o log de startup do worker e o flip. `owner: data-engineer`; fila viva na
+  disposição **PV9-27** de [[PIPELINE-REVIEWS-active]].
+- Achados colhidos no caminho e roteados: [[A40.l110]] (fóssil do baseline +
+  `date.today()` em artefato persistido) e [[A40.l111]] (valor não apurado em item
+  físico), abertas em [#1897](https://github.com/davidrobert/mathoms/pull/1897).

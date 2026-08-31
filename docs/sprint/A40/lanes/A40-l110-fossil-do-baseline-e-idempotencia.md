@@ -15,7 +15,9 @@ tags: [type/lane, sprint/a40, status/open, priority/p1, area/dados, area/pipelin
 # A40.l110 — `fossil-do-baseline-e-idempotencia`
 
 > **Origem:** tratamento dos achados da [[A42.l19]]. Co-design `data-engineer`,
-> 2026-08-31. Herda o §Deferimento datado da [[A40.l58]] (§F da [[ADR-409]]).
+> 2026-08-31. **Origem** do escopo: o §Deferimento datado da [[A40.l58]] (§F da
+> [[ADR-409]]) — que está `shipped` e **não é rota**: lane terminal não executa
+> trabalho. Esta lane é auto-contida; a l58 se lê como histórico, não como dono.
 
 ## O defeito, em três camadas
 
@@ -80,9 +82,10 @@ e **então** decidir `additionalProperties`.
 - [ ] PR-B: `additionalProperties: false` com os dois produtores em 0 de drift no
       corpus, medido. Gate de completude por **igualdade de conjunto** entre chaves
       declaradas e emitidas, nos dois sentidos ([[ADR-427]] D5).
-- [ ] §Deferimento da [[A40.l58]] corrigido: o produtor declarado é o E4
-      pós-normalização; são dois produtores desde a [[ADR-427]] D3; e
-      `additionalProperties` não se decide antes do PR-A.
+- [x] §Deferimento da [[A40.l58]] corrigido — **feito** em
+      [#1897](https://github.com/davidrobert/mathoms/pull/1897) (`3086b149`), de forma
+      aditiva: o produtor declarado é o E4 pós-normalização; são dois produtores desde
+      a [[ADR-427]] D3; e `additionalProperties` não se decide antes do PR-A.
 
 ## Fora de escopo
 
