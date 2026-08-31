@@ -37,6 +37,7 @@ from backend.app.services.storage.db_artifact_store import (  # noqa: E402
     resolve_schema_name,
 )
 from pipeline.domain.services.e4_serialization import ARTIFACT_KEYS  # noqa: E402
+from pipeline.stage_spec import STAGE_REGISTRY  # noqa: E402
 from scripts.pipeline_common import CONFIG_DIR, validate_dict  # noqa: E402
 
 _STAGES_E4 = ("E4", "categorize_transactions")
@@ -117,7 +118,18 @@ def test_schema_resolvido_existe_em_disco() -> None:
 def test_stage_sem_entrada_por_chave_segue_resolvendo_por_stage() -> None:
     """O mapa por chave acrescenta precisão; não troca o mecanismo."""
     assert resolve_schema_name("E3", "qualquer_grupo") == SCHEMA_BY_STAGE["E3"]
-    assert resolve_schema_name("E1", "members") is None
+
+    # A40.l96: a versão anterior fixava o par ("E1", "members") como exemplo de
+    # stage sem contrato — e quebrou no PR que deu schema ao E1 (ADR-430 §4).
+    # Derivar do registry mantém a propriedade verdadeira sem precisar de edição
+    # a cada stage que ganha schema.
+    sem_schema = [s for s in STAGE_REGISTRY if s not in SCHEMA_BY_STAGE]
+    assert sem_schema, (
+        "todo stage tem schema — a propriedade 'stage sem entrada resolve None' "
+        "ficou vacuamente verdadeira; apague este teste em vez de deixá-lo verde"
+    )
+    for stage in sem_schema:
+        assert resolve_schema_name(stage, "qualquer_chave") is None, stage
 
 
 def test_token_de_schema_discrimina_baldes() -> None:
