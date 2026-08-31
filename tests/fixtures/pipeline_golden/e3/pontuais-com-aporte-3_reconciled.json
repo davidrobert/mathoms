@@ -177,5 +177,6 @@
       "descricao": "PIX FAMILIA MENSALIDADE",
       "valor": -4000.0
     }
-  ]
+  ],
+  "_nota_ordem": "As 3 últimas linhas estão FORA de ordem cronológica de propósito (A40.l98): dev/golden_diff.py diffa arrays por ÍNDICE, e re-ordenar por data fabrica ~22 value_delta monetários de linhas que não mudaram de valor. Medido: o payload E5 é byte-idêntico nas duas ordens. Não 'arrume'."
 }
