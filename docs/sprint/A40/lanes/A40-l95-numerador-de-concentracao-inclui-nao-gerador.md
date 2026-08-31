@@ -203,3 +203,91 @@ Ela é dona assinada de C14, de C19 e do arquivo. Número-neutro, cabe no closeo
 O de [[ADR-420]] §Critério de aceite, com uma adição: **a copy não narra o flip para verde como
 melhora.** A queda para 49,08% é correção de medição, e o `spread_critico` (piso 45) **sobrevive**
 ao conserto — é ele que segue dizendo o risco real desta família.
+
+---
+
+## Entregue — as duas precondições da §Ordem obrigatória (2026-08-31)
+
+> O passo 3 (o fix de [[ADR-420]] §D1/§D3) **não** entrou. Esta seção registra o que
+> fechou, o que a execução refutou e o que resta decidir.
+
+### Passo 1 — o numerador declarado · PR [#1901](https://github.com/davidrobert/mathoms/pull/1901)
+
+**O item estava órfão.** A §Devolvido à [[A40.l80]] apostava que ela absorveria o D5 no
+closeout; ela encerrou em [#1835](https://github.com/davidrobert/mathoms/pull/1835)
+(`shipped`, 2026-08-30) **sem absorvê-lo** — `tests/test_cobertura_de_base.py` seguia
+fixando `patrimonio["imoveis_investimento"]`. Reassumido aqui, número-neutro.
+
+`concentracao_imobiliaria.CHAVE_DO_NUMERADOR` passa a ser lida pelo SSOT **e** publicada
+por `ratios` como `numerador_concentracao_imobiliaria`: declaração e leitura saem da mesma
+constante e não podem divergir; o enum fechado do schema é o que separa redefinição
+declarada de drift silencioso.
+
+**A fixture do próprio gate não discriminava o numerador.** Com `caixa_total_brl = 50k`, a
+carteira financeira somava **900.000** — o mesmo valor de `imoveis_investimento` —, então
+`investivel_financeiro` reproduzia a concentração tão bem quanto o numerador de verdade. O
+gate novo teria nascido vacuoso. `60k` separa o eixo.
+
+Não-inércia medida: fórmula lendo outra chave **3 vermelhos**; redefinição coerente da
+constante sem mover o schema **4**; o contrafactual da fixture em 50k **2**; controle 16
+verdes.
+
+### Passo 2 — a fixture que discrimina o destino de cat_2
+
+O split **conserva o bruto**: o imóvel opaco de R$600.000 vira **cinco** com destino
+declarado somando os mesmos R$600.000, e `bruto`, `liquido` e `imoveis_investimento` ficam
+byte-idênticos. O apartamento (R$190k) fica **sem override** de propósito — o regime default
+é a classe de defeito distinta do §Follow-up, e apagá-la aqui perderia a cobertura.
+
+| destino | imóvel | valor | hoje | pós-§D1 |
+|---|---|---|---|---|
+| `locado` | sala comercial | 150.000 | gerador | alocação |
+| `especulacao` | terreno | 100.000 | **não-gerador** | **alocação** |
+| `nu_proprietario` | casa | 90.000 | não-gerador | fora |
+| `uso_pessoal` | casa de praia | 70.000 | não-gerador | **fora** |
+| sem override | apartamento | 190.000 | não-gerador | alocação |
+
+`imoveis_geradores` sai de **0 → 150.000** (era zero em toda fixture end-to-end do repo) e
+`cat2_efetivo` de **0 → 150.000**, o que move o investível efetivo e o bloco IF. Manifesto de
+rebaseline com **12 entradas**, `golden_diff` exit 0.
+
+**Mecânica, e o que ela custou medir:** `property_id` só é cunhado com resolver +
+`workspace_id` injetados, e é `uuid4` — fixá-lo na fixture divergiria da regra de mint da
+produção, o modo de falha que o próprio substrato documenta em `_dados_efetivos`.
+`endereco_canonical` é a ponte determinística, e o mapa de overrides monta-se **depois** do
+E1.5c. Medido **antes** de adotar: injetar identidade deixa o E5 **byte-idêntico** e nenhum
+uuid vaza para o payload.
+
+A discriminação é guardada por `test_a_classificacao_declarada_e_LOAD_BEARING` (contrafactual
+sem override colapsa geradores a zero), **não** por assert dentro do substrato: `run_dogfood_pipeline`
+também é o runner de baselines próprios (`test_e5_reserva_formula_canonica`), e falhar ali era
+falso positivo — medido, cinco erros.
+
+### O que bloqueia o passo 3, e o bloqueio é documental
+
+[[ADR-420]] §D2 declara: *"o piso reusa a escada de [[ADR-353]], que está `Proposto`: a
+dependência é declarada, não presumida, e esta ADR não flippa antes dela"*. Medido hoje:
+
+1. **A escada da [[ADR-353]] está em produção.** `NAO_IDENTIFICADO_PARCIAL_PCT = 10` /
+   `_INSUFICIENTE_PCT = 30`, `_confianca_nivel`, e `diagnostico_confianca` publicado no
+   payload (`{"nivel": "alta", "share_nao_identificado_pct": …}` no golden), lido por
+   `kpi_target_catalog`. Falta o **consumidor de frontend**, não o mecanismo.
+2. **O flip da [[ADR-353]] pende da [[A40.l11]]**, que está `planned` e é **P2**. O passo 3
+   desta lane é **P0**.
+3. **O precedente de reusar régua de ADR `Proposto` já foi aberto — e por decisão mais nova.**
+   A [[ADR-425]] (`Decidido`, 2026-08-30) importa as constantes da [[ADR-353]]
+   explicitamente (*"importando as constantes da [[ADR-353]] (nunca redeclarando-as)"*),
+   com ela ainda `Proposto`.
+
+⚠️ **Não emendei a [[ADR-420]].** A cláusula é dela e cai por medição, mas relaxar gate de
+dependência é decisão com dono — e a regra de fronteira da própria §Alternativas (D) manda
+**emenda datada de retratação**, não edição silenciosa. Fica como decisão aberta: ou a
+[[A40.l11]] sobe de prioridade e a [[ADR-353]] flippa, ou a §D2 ganha emenda restringindo a
+dependência ao **piso de cobertura** (que é o que ela de fato usa) em vez de ao flip inteiro.
+
+### Correção ao §Critério de aceite 2 da [[ADR-420]]
+
+O critério pede *"teste irmão de `test_a_fixture_discrimina_as_bases`"*. Entregue como
+`tests/test_golden_discrimina_classificacao_de_imovel.py`, com **dois** irmãos e não um: o
+eixo do numerador precisava do seu (`test_a_fixture_discrimina_o_NUMERADOR`, no arquivo do
+gate) além do eixo de classificação. O critério escrito supunha um eixo só.
