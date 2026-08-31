@@ -342,7 +342,7 @@ corpus carregam qualquer chave fora das declaradas, logo é puramente aditivo.
 `test_validation_issues_e1_e15_e2llm.py`. Cobertura que o mirror acrescenta: **nenhuma**.
 
 **E não é o mesmo constraint noutra camada — é outro raio de dano.** `PatrimonialItem` é o
-`output_schema` do `service.call` (`extract_baseline.py:303`): falha de Pydantic acontece
+`output_schema` do `service.call` (`extract_baseline.py:305`): falha de Pydantic acontece
 **dentro** do Instructor ⇒ reask (`max_retries=2`) ⇒ exaustão derruba **o documento
 inteiro**. `validate_e15_output` roda **depois** (`:322-335`) e emite issue **por item** +
 `review_reason`. Espelhar converteria sinal item-level em falha document-level —
@@ -359,8 +359,9 @@ Não leia "o pino de forma vai no Pydantic" como "toda constraint vai no Pydanti
 
 ### O consolidador E1.5c **descarta** chave de item não enumerada — e a lane não atribuía isso a ninguém
 
-`consolidate_baseline.py:546-553` monta `entry` **campo a campo**; das chaves do item, só
-`instituicao` é copiada (condicionalmente). `_aggregate_baselines`
+`consolidate_baseline.py` monta `entry` **campo a campo** nos **três** sítios que constroem
+entry (`:247`, `:327`, `:547`); das chaves do item, só `instituicao` é copiada, e só no
+terceiro (`:552-553`). `_aggregate_baselines`
 (`extract_baseline.py:144`) passa o item **inteiro** (`all_items.extend`), então o agregado
 E1.5 carrega — **o corte é no E1.5c**, entre o produtor e a chave.
 
