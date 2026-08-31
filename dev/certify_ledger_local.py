@@ -9,12 +9,14 @@ reais, e delega ao núcleo puro ``dev.ledger_certify_core`` (vereditos + drift +
 relatório) sobre ``dev.ledger_conservation``. Zero-write é provado por contagem de
 rows ``pipeline_artifacts`` / ``transaction_overrides`` antes/depois.
 
-**Substrato E2 = workspace-latest (não run-pinado):** o E2 que o read-path do
-pipeline efetivamente lê para os stages E2 do workspace. A divergência vs o E3/E4
-gravado é drift esperado (código mudou pós-run, artefato de run parcial (ADR-080),
-OU a config deste harness diverge da do run num eixo que nenhum canal de ``remocoes``
-declara) — reportada, não tratada como perda. Remoção declarada dos dois lados NÃO
-conta como divergência: ``_e3_count`` normaliza por ``remocoes`` (A42.l20).
+**Escopo assimétrico por stage ([[ADR-421]] D3, conformidade [[ADR-241]]):** o E2 é
+lido pela política do run (workspace-latest — é o read-path de produção, e
+run-escopá-lo reintroduziria o universo subdimensionado da ADR-241 §Contexto); o
+**E3 é run-scoped**. A divergência vs o E4 gravado é drift esperado (código mudou
+pós-run, artefato de run parcial (ADR-080), OU a config deste harness diverge da do
+run num eixo que nenhum canal de ``remocoes`` declara) — reportada, não tratada como
+perda. Remoção declarada dos dois lados NÃO conta como divergência: ``_e3_count``
+normaliza por ``remocoes`` (A42.l20).
 
 **Default = sombra** (E2→E3, ``collapse_enforce`` omitido). Não pontua a KR-B.
 ``--entregue --run <id>`` adiciona o detector sobre o E3 persistido daquele run
@@ -118,6 +120,15 @@ def _e3_of_run(session, ws: str, run_id: str) -> dict:
     """E3 persistido daquele run — não workspace-latest."""
     latest = _latest_by_canonical(_artifact_rows(session, ws, (_E3_STAGE,), run_id=run_id))
     return {key: _decrypt(row.content_json) for (_stage, key), row in latest.items()}
+
+
+def _persisted_e3_subject(session, ws: str, run_id: str | None) -> dict:
+    """Substrato do veredito — E3 do run pinado ([[ADR-421]] D3, conformidade [[ADR-241]])."""
+    # ADR-241 §Alternativas (a) rejeitou "mais-recente-por-key" para E3: congelaria dedup
+    # parcial entre runs. `_persisted_e3_by_key` era essa alternativa dentro do instrumento.
+    # Sem run pinado não há sujeito — herdar workspace-latest seria a herança silenciosa
+    # que a D6 proíbe.
+    return _e3_of_run(session, ws, run_id) if run_id is not None else {}
 
 
 def _require_run(session, ws: str, run_id: str):
@@ -351,7 +362,7 @@ def _certify_core(session, ws: str, run_id: str | None) -> LedgerReport:
         result,
         e4,
         _fresh_e3(store),
-        _persisted_e3_by_key(session, ws),
+        _persisted_e3_subject(session, ws, run_id),
     )
     report.counts_before = before
     return report
