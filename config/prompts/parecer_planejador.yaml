@@ -141,7 +141,54 @@
 # label, não quebra de contrato de output). A `folga_mensal` que fica ao lado mudou de
 # VALOR sem mudar de nome — passou a ser a taxa de poupança da janela —, e é por isso
 # que o bump cobra a frota: parecer em cache dentro dos 7 dias citaria a folga velha.
-version: "2.9.0"
+# 2.10.0 — A40.l98 PR2: `total_pontuais` e `total_pontuais_janela` mudam de VALOR sem
+# mudar de nome. A base deles passa a excluir a UNIÃO das duas famílias de categoria
+# (aporte de investimento, [[ADR-333]], + transferência entre contas): o KPI só excluía
+# `recorrentes`, e o modelo ancora o risco "gastos pontuais elevados" nesses dois campos
+# — 3× no texto. No dogfood o aporte sozinho é R$ 190.000 de `total_pontuais`. MINOR
+# pela mesma leitura da 2.8.0: muda o valor projetado, não o contrato de output. O bump
+# COBRA a frota — nada mais invalida o cache de 7 dias, então cada (workspace, snapshot
+# E5) que pedir parecer na janela regenera uma vez.
+# 2.11.0 — A40.l98 PR3b ([[ADR-425]] §D1): `nao_identificado` sai de
+# `total_pontuais`/`total_pontuais_janela`. É ausência de MEDIÇÃO, não ruído, e
+# estes dois campos são numerador que sustenta conselho — o modelo ancora neles o
+# risco "gastos pontuais elevados". No dogfood o balde é R$ 249.374,91 da janela,
+# 63,2% dela. Segundo bump seguido dos MESMOS dois campos, e de propósito: PR2 e
+# PR3b mudam conjuntos diferentes, e um bump só tornaria o delta inatribuível.
+# MINOR pela mesma leitura da 2.8.0/2.10.0. COBRA a frota: nada mais invalida o
+# cache de 7 dias.
+# 2.12.0 — A40.l98 PR4 (escapes herdados da [[A40.l101]]): o numerador de
+# `total_pontuais*` passa a rodar sobre a MESMA população do denominador. A janela
+# ganhou limite superior (ia de `mes_inicio` a +∞) e o `data_corte` do
+# `split_provisionado` passou a valer também aqui — antes o denominador era o
+# realizado da janela fechada e o numerador era realizado + provisionado + posterior
+# à janela, e o mesmo gasto pontual publicava 6,0 ou 12,0 conforme o corte. MINOR,
+# mesma leitura das 2.8.0/2.10.0/2.11.0.
+# 2.13.0 — A40.l98, `LC6-06`: o exec context entregava `receita_total`,
+# `despesa_total` e `fluxo_liquido` full-period SEM declarar a base, ao lado das
+# duas taxas de poupança rotuladas da janela de 12m. `despesa_total` é BRUTA por
+# decisão da [[ADR-333]] (o aporte segue nela para preservar
+# `fluxo_liquido == receita − despesa_total`), então dividir uma pela outra
+# produz uma TERCEIRA taxa, sistematicamente mais baixa que as duas rotuladas —
+# e a menor é a que prescreve contenção (a doença do `RR6-01`). A base passa a
+# ser declarada na própria label, precedente da 2.5.0 deste arquivo. Os campos
+# NÃO saem: são fato legítimo de escala do período. Remover é a opção mais forte
+# e fica com o `financial-planner`, com a medição no registro da lane.
+# 2.14.0 — A40.l98, painel de revisão (`financial-planner` + `data-engineer`, os dois
+# independentemente): o `base_pontuais` da [[ADR-425]] §D2 existia só no card React e
+# faltava na ÚNICA superfície que prescreve. O modelo não tem `tools` — o manifest é a
+# superfície inteira dele —, então ele recebia `total_pontuais*` já reduzido pelos PRs
+# anteriores sem nenhum sinal de que virou PISO. O bump COBRA a frota, logo todo parecer
+# ia regenerar sobre uma base de 36,8% de cobertura no dogfood sem saber: trocaria
+# over-alarm por under-alarm silencioso. Entram a base bruta, o balde não classificado
+# (valor + contagem) e o hint de piso; os rótulos dos dois totais passam a declarar a
+# base. Nenhuma mudança no E5 — os campos já existiam no payload.
+#
+# NOTA DE AUDITORIA: 2.10.0–2.14.0 saíram JUNTAS no #1865. Nenhuma versão intermediária
+# serviu tráfego — a chave de cache (`compute_cache_key`) muda uma vez, no deploy. Os
+# bumps por PR existem para atribuir delta a conjunto, não para marcar deploy: não
+# procure rows de `PlannerReview` com `manifest_version` 2.10.0–2.13.0.
+version: "2.14.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -303,10 +350,15 @@ context_sections:
           - {path: "$.fluxo_caixa.receita_recorrente", label: "Receita recorrente", format: "brl"}
           - {path: "$.fluxo_caixa.receita_one_time", label: "Receita one-time", format: "brl"}
           - {path: "$.fluxo_caixa.receita_recorrente_mensal", label: "Receita recorrente mensal", format: "brl"}
-          - {path: "$.fluxo_caixa.despesa_total", label: "Despesa total", format: "brl"}
+          # LC6-06 (A40.l98): a base vai na label. `despesa_total` é BRUTA — inclui
+          # aporte de investimento e amortização, que são poupança/patrimônio e não
+          # consumo ([[ADR-333]]). Sem isto o modelo deriva `fluxo_liquido /
+          # receita_total` e chama de taxa de poupança: uma TERCEIRA taxa, mais baixa
+          # que as duas rotuladas logo abaixo, e a menor é a que prescreve contenção.
+          - {path: "$.fluxo_caixa.despesa_total", label: "Despesa total BRUTA (inclui aporte e amortização)", format: "brl"}
           - {path: "$.fluxo_caixa.despesa_mensal_media", label: "Despesa mensal média", format: "brl"}
           - {path: "$.fluxo_caixa.despesa_mensal_essencial", label: "Despesa mensal essencial", format: "brl"}
-          - {path: "$.fluxo_caixa.fluxo_liquido", label: "Fluxo líquido", format: "brl"}
+          - {path: "$.fluxo_caixa.fluxo_liquido", label: "Fluxo líquido (sobre a despesa BRUTA — não é taxa de poupança)", format: "brl"}
           # Receita por natureza (ADR-330): re-bucketização derivada; soma == receita_total.
           - {path: "$.fluxo_caixa.receita_por_natureza.receita_pj", label: "Receita PJ (pró-labore + lucros)", format: "brl"}
           - {path: "$.fluxo_caixa.receita_por_natureza.receita_clt", label: "Receita CLT", format: "brl"}
@@ -333,8 +385,16 @@ context_sections:
         title: "Consumo consciente (diagnóstico de gastos pontuais)"
         fields:
           - {path: "$.consumo_consciente.analise", label: "Análise", format: "string"}
-          - {path: "$.consumo_consciente.total_pontuais", label: "Total de gastos pontuais (período)", format: "brl"}
-          - {path: "$.consumo_consciente.total_pontuais_janela", label: "Total de gastos pontuais (janela)", format: "brl"}
+          # A40.l98 — estes dois são PISO, não total: excluem recorrentes, as duas
+          # famílias de transferência ([[ADR-333]]) e o balde não classificado
+          # ([[ADR-425]] §D1). A base vai junto, senão a §D2 ("cobertura é campo
+          # publicado") existe só no card e falta exatamente na superfície que
+          # prescreve — que é onde a [[ADR-425]] §Emenda a invoca para dispensar a D3.
+          - {path: "$.consumo_consciente.total_pontuais", label: "Gastos pontuais (período) — PISO, ver base bruta abaixo", format: "brl"}
+          - {path: "$.consumo_consciente.total_pontuais_janela", label: "Gastos pontuais (janela) — PISO, mesma base", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.bruto.valor", label: "Base bruta ≥ limiar, antes das exclusões", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.valor", label: "Fatia NÃO CLASSIFICADA da base (fora dos totais acima)", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.contagem", label: "Lançamentos não classificados na base", format: "int"}
           - {path: "$.consumo_consciente.equivalente_meses_poupanca", label: "Pontuais da janela em meses de poupança", format: "raw"}
           # A40.l101 — o equivalente é `null` fora do domínio de definição, e `on_null: skip`
           # APAGA a linha do contexto: sem o campo irmão a supressão vira silêncio, e o
@@ -349,6 +409,8 @@ context_sections:
       - "Se houver desvio relevante de categoria (despesa fora de teto), mencione qual — despesas_por_categoria (12m) acima traz a base."
       - "Itens individuais de gasto pontual e o detalhe mensal (charts) NÃO estão no contexto — get_e5_section('consumo_consciente') ou ('fluxo_caixa') traz o bloco completo se precisar."
       - "Equivalente AUSENTE com motivo de supressão = a janela fechou sem poupança: declare o déficit pela folga mensal acima. Ausência não é ausência de gasto pontual nem de risco; não recalcule o equivalente."
+      - "`total_pontuais*` é PISO, não total: exclui recorrentes, transferências e o balde NÃO CLASSIFICADO (ADR-425 §D1). Não some de volta."
+      - "Fatia não classificada material perto da base bruta = prescrição de contenção PROVISÓRIA, e o 1º passo é classificar, não cortar (mesma leitura de $.diagnostico_confianca.nivel, ADR-353)."
 
   # --------------------------------------------------------------------------
   # 3) Investimentos (S3) — alocação atual + ranking

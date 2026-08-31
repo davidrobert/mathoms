@@ -11,13 +11,23 @@ from backend.app.application.transaction._loading import load_filtered_transacti
 from backend.app.application.transaction.filters import TransactionFilters
 from backend.app.schemas.report import ConsumoPontuaisItem, ConsumoPontuaisResponse
 from backend.app.schemas.transactions import TransactionItem
-from pipeline.domain.services import InternalTransferDetector
+from pipeline.domain.services import GastoPontualPolicy, InternalTransferDetector
+from pipeline.domain.services.gasto_pontual_policy import VeredictoPontual
 
 VALID_PERIODS: tuple[str, ...] = ("3m", "6m", "12m", "ytd")
-_DEFAULT_THRESHOLD = Decimal("2000")
-_TRANSFER_CATEGORIES = frozenset(
-    {"transferencia_entre_contas", "transferencia_familiar", "transferencias_internas"}
-)
+
+# A40.l98 — o limiar e os conjuntos vinham de literais próprios deste módulo,
+# disjuntos dos do KPI do MESMO card. O default aqui só vale quando o caller
+# não resolve a policy (nenhum caller de produção); o endpoint a resolve do
+# ``scoring.json``, que é a fonte única.
+_DEFAULT_POLICY = GastoPontualPolicy()
+
+# [[ADR-425]] §D1 — esta lista é o INVENTÁRIO, não o numerador. O balde
+# `nao_identificado` sai do KPI porque é ausência de medição e o parecer ancora
+# conselho nele; sai da lista seria o oposto do que a regra quer, porque é aqui
+# que a família vê as linhas que só ela pode classificar. A divergência é
+# deliberada e vem declarada no card (`base_pontuais.excluidos`).
+_VEREDITOS_DO_INVENTARIO = frozenset({VeredictoPontual.incluido, VeredictoPontual.nao_identificado})
 
 
 def _period_start(period: str, today: date) -> date:
@@ -46,18 +56,23 @@ def _resolve_period_dates(
 def _is_pontual(
     tx: TransactionItem,
     *,
-    threshold: Decimal,
+    policy: GastoPontualPolicy,
     detector: InternalTransferDetector,
 ) -> bool:
     if tx.origem is not None:
         return False
-    if abs(tx.valor) < threshold:
+    if not policy.is_relevante(tx.valor):
         return False
-    if tx.categoria in _TRANSFER_CATEGORIES:
-        return False
-    if detector.is_internal_transfer(tx.descricao or "", banco=tx.banco or ""):
-        return False
-    return True
+    # A40.l98 — mesmas cláusulas de natureza do KPI do MESMO card. Faltavam duas
+    # aqui: `recorrentes` (o aluguel de R$ 5k entrava 12× como "gasto pontual") e
+    # `transferencia_patrimonial` (o aporte).
+    veredito = policy.classify_com_detector(
+        tx.categoria or "",
+        descricao=tx.descricao or "",
+        banco=tx.banco or "",
+        detector=detector,
+    )
+    return veredito in _VEREDITOS_DO_INVENTARIO
 
 
 def _to_item(tx: TransactionItem) -> ConsumoPontuaisItem:
@@ -86,10 +101,10 @@ async def _load_window(
 def _filter_and_sort(
     transactions: list[TransactionItem],
     *,
-    threshold: Decimal,
+    policy: GastoPontualPolicy,
     detector: InternalTransferDetector,
 ) -> list[TransactionItem]:
-    pontuais = [t for t in transactions if _is_pontual(t, threshold=threshold, detector=detector)]
+    pontuais = [t for t in transactions if _is_pontual(t, policy=policy, detector=detector)]
     pontuais.sort(key=lambda t: abs(t.valor), reverse=True)
     return pontuais
 
@@ -99,13 +114,13 @@ async def list_consumo_pontuais(
     *,
     period: str,
     detector: InternalTransferDetector,
-    threshold: Decimal = _DEFAULT_THRESHOLD,
+    policy: GastoPontualPolicy = _DEFAULT_POLICY,
     anchor_date: date | None = None,
     db: AsyncSession,
 ) -> ConsumoPontuaisResponse:
     date_from, date_to = _resolve_period_dates(period, anchor_date=anchor_date)
     transactions = await _load_window(workspace_id, date_from=date_from, date_to=date_to, db=db)
-    pontuais = _filter_and_sort(transactions, threshold=threshold, detector=detector)
+    pontuais = _filter_and_sort(transactions, policy=policy, detector=detector)
     return ConsumoPontuaisResponse(
         period=period,
         date_from=date_from,

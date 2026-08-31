@@ -4,7 +4,9 @@ type: lane
 title: "Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1865
+ship_date: "2026-08-30"
 priority: P1
 branch_slug: a40-l98-base-dos-pontuais-tres-produtores
 owner: financial-planner
@@ -16,7 +18,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/financial-planning
@@ -200,3 +202,192 @@ senão o gate passa sobre um mundo que não exercita o termo em disputa.
 poupança publicada) e `LC6-07` (dois pares duplicados na lista de pontuais, sob cabeçalho que
 afirma "contamos cada um uma vez só") são da mesma família de base e ficam com esta lane.
 `LC6-03` já tem gatilho próprio ([[ADR-321]]) e **não** entra aqui.
+
+## Fecho — 2026-08-30 (PR #1865)
+
+Os quatro PRs da tabela + os dois escapes herdados da [[A40.l101]] + o `LC6-06`.
+`manifest_version` do parecer 2.9.0 → 2.13.0, um bump por PR que move valor.
+
+| PR | commit | delta na fixture |
+| --- | --- | --- |
+| PR1 — policy + limiar de fonte única + fiação | `f3e94fe0` | zero por construção |
+| PR2 — união das duas famílias de categoria | `1da2cc22` | −R$ 16.000 (aporte 12k + familiar 4k) |
+| PR3a — `base_pontuais` + leitor | `53cdf06a` | zero; aditivo |
+| PR3b — `nao_identificado` fora do numerador | `53062939` | −R$ 7.000 |
+| PR4 — mesma população dos dois lados | `fbf3c19e` | equivalente 18,0 → 6,0 no caso medido |
+| `LC6-06` — base declarada na label | `f8e0ad14` | label |
+
+### Quatro premissas desta lane caíram na medição
+
+1. **O detector é inerte dentro do E5.** A lane mandava aplicar a união
+   `transfer_categories ∪ detector` ao `_collect_candidates`. A metade do detector
+   **não pode disparar ali**: o E4 roteia transferência detectada para
+   `kind="transferencia"` (`transaction_classifier.py` passo 1) e ela nunca chega a
+   `despesas.dados`, o único input do `_collect_candidates`. Gate:
+   `test_transferencia_detectada_nunca_chega_ao_E5`. O que fecha o KPI é a união das
+   **categorias** — e o `transferencia_familiar` da fixture prova que ela não é inerte.
+
+2. **Os dois lados NÃO leem substratos diferentes.** O §Co-design afirma *"lista do DB
+   (`load_filtered_transactions`), KPI do artefato E4"*. `load_transactions`
+   (`transaction_service.py:61`) lê os **mesmos** artefatos `categorize_transactions`
+   (`receitas` + `despesas`). O que a lista põe por cima é a camada de **override do
+   DB** — e é por ela que o detector segue vivo lá: o endpoint o resolve do
+   `TransferConfig` do DB, que pode ter mudado **depois** do run que gravou o artefato.
+   A conclusão da lane ("conserto num lado não alcança o outro") continua verdadeira; o
+   mecanismo é outro.
+
+3. **O escape "estorno negativo" da [[A40.l101]] não procede como enunciado.**
+   `transaction_classifier` grava despesa como `abs(valor)` (linhas 388 e 453), então
+   **despesa negativa não existe** em `despesas.dados` e o filtro `valor < consumo_min`
+   nunca vê um negativo. Medido fim-a-fim (E3→E4→E5), compra de R$ 48k + estorno de
+   R$ 48k na mesma categoria/mês:
+
+   | grandeza | sem estorno | com estorno |
+   | --- | --- | --- |
+   | numerador `pontuais_janela` | 57.000 | 57.000 |
+   | denominador `despesa_consumo` | 117.000 | 117.000 |
+   | `receita_recorrente` | 240.000 | **288.000** |
+   | `equivalente_meses_poupanca` | 5,6 | **4,0** |
+
+   O `CashFlowBuilder` não líquida o estorno contra a despesa. O estorno é **crédito**,
+   e o E4 o manda para **receitas** — infla `receita_recorrente`, que é o denominador
+   da taxa de poupança. O efeito publicado não é *"6,0 meses para um gasto que se
+   anulou"*: é o gasto bruto no numerador **mais** o reembolso contado como renda, e o
+   par fica mais **otimista**, não mais alarmante. Ver §Roteado abaixo.
+
+4. **A [[ADR-425]] D4 não tem régua** — ver a §Emenda 2026-08-30 da própria ADR.
+
+### O que a entrega NÃO prova
+
+- **O snapshot do view-model é cego a esta base.** O bloco `consumo_consciente` da
+  fixture sintética de dogfood é todo zero (`total_pontuais: 0`), então ele passou
+  verde em todos os PRs sem exercitar termo nenhum. Quem gateia é
+  `tests/test_e5_base_gasto_pontual.py`, sobre a fixture estendida — e o
+  `test_fixture_discrimina_cada_motivo` vem **antes** dos gates de exclusão porque sem
+  uma linha por motivo **acima do limiar** eles passariam por vacuidade.
+- **Nenhum número do dogfood real foi remedido.** Os deltas desta lane são da fixture
+  do repo e da aritmética; os R$ 190.000 / R$ 249.374,91 vêm da medição da
+  [[ADR-425]], não de um run novo.
+- **`pontual_mensal` continua sem emitir** — sai desta lane por decisão do co-design.
+
+### Roteado
+
+- **Estorno contado como receita.** Em qual balde o E4 põe um crédito de estorno é
+  decisão de domínio com blast radius bem maior que pontuais (a taxa de poupança
+  inteira), e esta lane declara tratar do **filtro** que os produtores aplicam, não da
+  rota do E4. Dono: `financial-planner` + `data-engineer`.
+- **Remover `receita_total`/`despesa_total`/`fluxo_liquido` do exec context.** A lane
+  prescrevia *"parar de publicar/projetar"* para o `LC6-06`; a medição não sustenta o
+  corte — são fato legítimo de escala, e o defeito era a **base não declarada**, que
+  este PR corrige na label (precedente da 2.5.0 do manifest). Remover é a opção mais
+  forte, muda o que o modelo enxerga, e fica com o `financial-planner`.
+- **Estorno parcial abaixo do limiar.** O caso de reversão total fecha por
+  `is_relevante` usar `abs`; um estorno parcial de valor inferior ao limiar segue sem
+  reduzir o numerador, com erro limitado ao próprio limiar. Liquidar no grão
+  (categoria, mês) mudaria o que a **lista** mostra — decisão de `financial-planner` +
+  `product-designer`.
+
+### Destrava a [[A40.l102]]
+
+A l102 mergeou (#1864) com `partial_delivery: true` e `depends_on: [[A40.l98]]`: o item
+2 dela — *declaração impressa do que cada superfície exclui* — esperava exatamente o
+`base_pontuais` do PR3a. Com este PR em `main`, ele fica pegável.
+
+A l102 também corrigiu o **pressuposto de busca** do `LC6-06` desta lane: havia um
+produtor de taxa de poupança no frontend (`ReceitaDespesaMensalChart.buildConclusion`,
+*"Taxa de poupança de 15,6%"* sem rótulo), removido lá. O produtor que este PR nomeia é
+**outro** — a derivabilidade de `fluxo_liquido / receita_total` no exec context do
+parecer —, e os dois estão fechados.
+
+## Revisão por painel — 2026-08-30 (`senior-cto` + `financial-planner` + `data-engineer`)
+
+Os três em paralelo, com pedido explícito de refutação. **Seis afirmações minhas
+caíram**, quatro delas bloqueando o merge. O que entrou depois da revisão:
+
+### Dois defeitos que EU introduzi nesta lane
+
+**O PR4 criou um quarto produtor.** Pus um segundo corte de `data_corte` dentro do
+`_relevantes`, comparando `str(txn["data"])` cru — divergente do
+`split_provisionado._e_futura`, que compara `[:10]`. Medido: `data: None` (que
+`scripts/e2/banks/wise.py:153` emite) virava `"None" > "2026-…"`, e `data` com hora
+no dia do corte também caía. **2 de 3 lançamentos ≥ limiar sumiam** — do numerador,
+da janela **e do `bruto`**, que existe para revelar perda; `total_pontuais` publicava
+8.000 onde eram 24.000, com a identidade de conservação fechando. A lane existe
+porque havia três produtores da cláusula de *natureza*; eu criei um quarto, da
+cláusula de *população*. Corrigido: o enricher expõe `despesas_realizadas` e o
+adapter a entrega. Um corte, um produtor.
+
+**A identidade não fechava no wire.** `bruto` somava `Decimal` cru e só então
+arredondava; o leitor soma os já arredondados. E `approx(rel=1e-6)` sobre R$ 394 mil
+dá R$ 0,39 de folga — o gate não via. Eu tinha medido o **proxy** (snapshot
+byte-idêntico), não o efeito.
+
+### Duas afirmações minhas que eram falsas
+
+**"A régua não existe" (§Emenda da [[ADR-425]]).** Meu recorte procurou consumidor
+determinístico de `total_pontuais*`/`equivalente_meses_poupanca` — e não de régua
+sobre o **fator causal**, o share de `nao_identificado`. Ela existe:
+`NAO_IDENTIFICADO_INSUFICIENTE_PCT = 30.0` em
+`diagnostico_comportamental_analyzer`, que substitui o diagnóstico inteiro, está em
+`kpi_target_catalog` e **já é projetada** ao parecer. O "~30% sem origem declarável"
+que a ADR-425 rejeitou por inventado é literalmente esse 30,0. A D3 passa a ser
+**substituída** por degradação da prescrição, não dispensada.
+
+**"O card deriva `pct` de `bruto`."** Ele não deriva — imprime absolutos. E
+`publicado / bruto` **não é** a cobertura da ADR-425, que é
+`publicado / (publicado + nao_identificado)`: `recorrente` e `transferencia_*` são
+exclusão deliberada, não falha de medição.
+
+### O achado que os dois especialistas levantaram sozinhos
+
+**`base_pontuais` não existia para o único leitor que prescreve.** A §Emenda que
+escrevi dispensava a D3 alegando que "a D2 já está no lugar" — estava só no card
+React. O modelo não tem `tools`, então o manifest é a superfície inteira dele, e o
+campo tinha zero ocorrências lá. Com o bump cobrando a frota, todo parecer ia
+regenerar sobre uma base de 36,8% de cobertura **sem sinal de que virara piso**:
+over-alarm trocado por under-alarm silencioso. Corrigido no manifest (2.14.0).
+
+### Mais dois, menores
+
+`classify()` tinha caminho permissivo alcançável por **omissão** (`detector=None`
+default) — o defeito desta lane promovido a propriedade da API; virou dois métodos
+nomeados. E `test_a_base_conserva` era **tautológico** (`bruto` é `@property` que
+devolve o que o teste asseria).
+
+### O que o painel confirmou
+
+`bruto` largo (com `recorrente` como balde) — mas o princípio é *"todo filtro está em
+`excluidos` ou está declarado no rótulo"*, não "o bruto mais largo possível";
+`nao_identificado` fora do KPI e dentro da lista; 1 PR em vez de 4, porque a
+atribuição durável é `test_delta_por_causa_e_atribuivel` e não os hashes (o squash
+não os deixa ancestrais de `main`); e os 4 bumps de manifest, que **não** cobram a
+frota 4× — a chave de cache muda uma vez, no deploy.
+
+## Roteado com dono (pós-painel)
+
+- **`suporte_familiar` não é gasto pontual quando recorre** (`financial-planner`).
+  Achado dele: os três códigos de `transferencia_de_conta` **não são produzíveis**
+  por nenhum produtor (nem seed, nem `_HINTS_DESPESA`, nem `default_expense_category`),
+  e o código real para dinheiro à família é `suporte_familiar`, hoje `incluido` — um
+  PIX mensal de R$ 5k entra 12× em `total_pontuais`. Ele pede **medir no dogfood
+  antes de fechar**; é defeito estrutural afirmado, não medido. Pede também gate de
+  vocabulário: toda chave dos frozensets existe no conjunto produzível ou está numa
+  allowlist `_DEFENSIVOS`.
+- **Estorno reduz a despesa da categoria, não vira receita** (`financial-planner` +
+  `data-engineer`) — ADR nova, conserto de rota no E4.
+- **`base_pontuais.cobertura_nivel` ordinal** importando as constantes da [[ADR-353]]
+  (`financial-planner`).
+- **Espelho full-period de `despesa_consumo`/`transferencia_patrimonial`**, que a
+  [[ADR-333]] §Decisão prometeu e nunca foi implementado — torna a razão derivável do
+  bloco full a **certa**, em vez de proibida por label (`financial-planner`).
+- **Fixture de dogfood sem gasto pontual** (`data-engineer`): a única despesa é
+  R$ 1.500, abaixo do limiar, então `dogfood_view_model.json` **e**
+  `parecer_ancorabilidade.json` são cegos ao card inteiro. Lane própria — o
+  rebaseline mexe em 233 folhas e exige commit isolado (G-c).
+- **`golden_diff._NATURAL_KEYS` não cobre item transacional** (`data-engineer`):
+  qualquer fixture de transação cai em diff posicional. Chave composta
+  `(data, descricao, valor)`; é gate compartilhado, lane própria.
+- **Marca por linha no inventário + copy em dois níveis** (`product-designer`), e o
+  rótulo de janela do `bruto`, que é full-period ao lado de uma lista 3m.
+- **A [[A40.l102]] item 2 nomeia `nao_identificado`** (`senior-cto`): a ADR-425 §D1
+  pede "lista + total, **rotulados**", e o `TabelaHeader` ainda não rotula.

@@ -12,10 +12,18 @@ Função pura, recebe dicts + config tipada (R9/ISP). Sem I/O.
 from __future__ import annotations
 
 import math
+from collections.abc import Iterator
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.brl_prose import fmt_brl_prosa
+from pipeline.domain.services.gasto_pontual_policy import (
+    GastoPontualPolicy,
+    VeredictoPontual,
+)
+
+_CENTAVO = Decimal("0.01")
 
 
 def _safe_float(val) -> float:
@@ -43,12 +51,16 @@ class _ConsumoWindow:
     n_meses: float
     janela: str
     mes_inicio: str
+    mes_fim: str = ""
 
 
-def _periodo_inicio(periodo: str) -> str:
-    """Extrai o mês inicial de ``"YYYY-MM a YYYY-MM"`` (vazio se malformado)."""
-    inicio = periodo.split(" a ")[0].strip()
-    return inicio if len(inicio) == 7 else ""
+def _periodo_extremos(periodo: str) -> tuple[str, str]:
+    """Extremos de ``"YYYY-MM a YYYY-MM"``; vazios se malformado."""
+    partes = [p.strip() for p in periodo.split(" a ")]
+    if len(partes) != 2:
+        return "", ""
+    inicio, fim = partes
+    return (inicio if len(inicio) == 7 else "", fim if len(fim) == 7 else "")
 
 
 def _consumo_mensal(j12m: dict[str, Any], n_meses: float) -> float:
@@ -64,11 +76,17 @@ def _consumo_mensal(j12m: dict[str, Any], n_meses: float) -> float:
     return _safe_float(consumo) / n_meses if consumo is not None else bruto_mensal
 
 
-def _dentro_da_janela(mes: str, mes_inicio: str) -> bool:
-    """Sem ``mes_inicio`` (janela full) tudo entra; compara ``YYYY-MM`` lexicográfico."""
+# O limite SUPERIOR não existia (A40.l101, escape sem dono): o denominador roda
+# sobre a janela fechada e o numerador ia de ``mes_inicio`` a ``+∞``, então um
+# lançamento posterior ao fim da janela entrava só de um lado — o mesmo pontual
+# publicava 6,0 ou 12,0 conforme o corte.
+def _dentro_da_janela(mes: str, mes_inicio: str, mes_fim: str) -> bool:
+    """Sem ``mes_inicio`` (janela full) tudo entra; ``YYYY-MM`` lexicográfico."""
     if not mes_inicio:
         return True
-    return bool(mes) and mes >= mes_inicio
+    if not mes:
+        return False
+    return mes >= mes_inicio and (not mes_fim or mes <= mes_fim)
 
 
 def _sem_zero_negativo(publicada: float) -> float:
@@ -83,6 +101,20 @@ def _folga_em_prosa(publicada: float) -> str:
     return f"folga mensal de {fmt_brl_prosa(publicada, decimals=2)}"
 
 
+def _item_pontual(txn: dict, categoria: str, quantia: Decimal) -> "GastoPontualItem":
+    data_str = str(txn.get("data", ""))
+    banco = str(txn.get("banco", ""))
+    tipo_conta = str(txn.get("tipo_conta", ""))
+    return GastoPontualItem(
+        descricao=str(txn.get("descricao", "N/D")),
+        conta_cartao=f"{banco} ({tipo_conta})" if tipo_conta else banco,
+        data=data_str,
+        mes=data_str[:7] if len(data_str) >= 7 else "",
+        valor=float(quantia),
+        categoria=categoria,
+    )
+
+
 def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
     """Motivo de máquina, forma ``"<slug>: <detalhe>"`` ([[ADR-394]] §D7); a copy da
     família vive na prosa do E5."""
@@ -92,55 +124,71 @@ def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
     )
 
 
-_DEFAULT_RECURRENT = frozenset(
-    {
-        "moradia",
-        "financiamentos",
-        "seguros",
-        "assinaturas",
-        "impostos",
-        "servicos_domesticos",
-        # Labels PJ ([[ADR-236]] §D2): tributo e folha da PJ são obrigação
-        # recorrente, não "gasto pontual relevante" cortável. Sem isso um DAS de
-        # R$ 5k/guia entra em ``total_pontuais``/``pontuais_janela`` e infla o
-        # inventário e o ``equivalente_meses_poupanca`` (A40.l4). O canal para a
-        # ``folga_mensal`` morreu na [[ADR-422]] D1 — ela não lê mais pontuais.
-        "das_simples",
-        "iss",
-        "folha_pj",
-    }
-)
-
-
-@dataclass(frozen=True)
-class ConsumoConscienteConfig:
-    """Threshold + categorias recorrentes.
-
-    ``consumo_min`` ← ``scoring.json::thresholds_alertas.consumo_consciente_min``
-    (default R$ 2000); ``recurrent_categories`` era hardcoded no legado.
-    ``goals.json::aportes.meta_aporte_mensal`` saiu em [[ADR-422]]: era o
-    denominador do equivalente, e meta é EDITÁVEL pelo usuário — número de
-    diagnóstico que se move sem que nada tenha acontecido no mundo não é
-    auditável.
-    """
-
-    consumo_min: float = 2000.0
-    recurrent_categories: frozenset[str] = _DEFAULT_RECURRENT
-
-    @classmethod
-    def from_configs(
-        cls,
-        *,
-        scoring: dict | None = None,
-        goals: dict | None = None,  # noqa: ARG003 - assinatura estável p/ o adapter
-    ) -> "ConsumoConscienteConfig":
-        alertas = (scoring or {}).get("thresholds_alertas") or {}
-        return cls(consumo_min=_safe_float(alertas.get("consumo_consciente_min", 2000)))
-
-
 # =============================================================================
 # Result
 # =============================================================================
+
+
+@dataclass(frozen=True)
+class BaldePontual:
+    # ``pct`` NÃO é campo ([[ADR-425]] §D2) e hoje ninguém o deriva — o card imprime
+    # absolutos. Quando alguém precisar dele, a razão é
+    # ``publicado / (publicado + excluidos.nao_identificado)``: ``recorrente`` e
+    # ``transferencia_*`` ficam fora do denominador porque são exclusão deliberada,
+    # não falha de medição.
+    """Um balde da base: quanto e quantos."""
+
+    # ``Decimal`` e não ``float`` ([[ADR-090]]): é o único ponto do módulo que
+    # ACUMULA dinheiro, e a identidade de conservação tem de fechar ao centavo. O
+    # ``float`` volta só no ``to_dict``, que é o wire.
+
+    total: Decimal = Decimal("0")
+    contagem: int = 0
+
+    def mais(self, quantia: Decimal) -> "BaldePontual":
+        return BaldePontual(self.total + quantia, self.contagem + 1)
+
+    @property
+    def publicavel(self) -> Decimal:
+        """O valor como ele sai no wire — 2 casas. Ler daqui, nunca de ``total``."""
+        return self.total.quantize(_CENTAVO)
+
+    def to_dict(self) -> dict:
+        return {"valor": float(self.publicavel), "contagem": self.contagem}
+
+
+@dataclass(frozen=True)
+class BasePontuais:
+    """O que a base do gasto pontual exclui, **por causa** — declarado na
+    superfície que a publica ([[ADR-425]] §D2).
+
+    Invariante: ``bruto.valor == publicado.valor + Σ excluidos[].valor``. O
+    universo é *todo lançamento acima do limiar*: recortar o ``bruto`` mais
+    estreito reintroduziria um filtro não declarado, que é o defeito que esta
+    base existe para remover.
+    """
+
+    publicado: BaldePontual
+    excluidos: dict[str, BaldePontual]
+
+    # Soma os baldes JÁ QUANTIZADOS, não os `Decimal` crus: quem lê o payload soma
+    # os valores publicados, e somar cru antes de arredondar quebrava a identidade
+    # no wire — `100,005 + 200,005` publicava `300,01` ao lado de `100,00 + 200,00`.
+    # O objeto cuja função é declarar conservação não pode falhar a própria.
+    @property
+    def bruto(self) -> BaldePontual:
+        baldes = [self.publicado, *self.excluidos.values()]
+        return BaldePontual(
+            sum((b.publicavel for b in baldes), Decimal("0")),
+            sum(b.contagem for b in baldes),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "bruto": self.bruto.to_dict(),
+            "publicado": self.publicado.to_dict(),
+            "excluidos": {k: v.to_dict() for k, v in sorted(self.excluidos.items())},
+        }
 
 
 @dataclass(frozen=True)
@@ -182,6 +230,7 @@ class ConsumoConsciente:
     janela: str = "full"
     janela_meses: int = 0
     pontuais_janela: float = 0.0
+    base: BasePontuais = field(default_factory=lambda: BasePontuais(BaldePontual(), {}))
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -195,6 +244,7 @@ class ConsumoConsciente:
             "motivo_supressao": self.motivo_supressao,
             "janela": self.janela,
             "janela_meses": self.janela_meses,
+            "base_pontuais": self.base.to_dict(),
         }
 
 
@@ -206,25 +256,25 @@ class ConsumoConsciente:
 class ConsumoConscienteCalculator:
     """Identifica gastos pontuais relevantes + métricas de folga."""
 
-    def __init__(self, config: ConsumoConscienteConfig | None = None) -> None:
-        self._config = config or ConsumoConscienteConfig()
+    def __init__(self, policy: GastoPontualPolicy | None = None) -> None:
+        self._policy = policy or GastoPontualPolicy()
 
     def calculate(
         self,
         fluxo: dict[str, Any],
         despesas: dict[str, Any],
     ) -> ConsumoConsciente:
-        cfg = self._config
         dados = (despesas or {}).get("dados", {}) or {}
 
-        candidates = self._collect_candidates(dados)
-        candidates.sort(key=lambda x: x.valor, reverse=True)
-        total_pontuais = sum(c.valor for c in candidates)
-
         window = self._resolve_janela(fluxo)
+        candidates, base = self._triar(dados)
+        candidates.sort(key=lambda x: x.valor, reverse=True)
+        total_pontuais = float(base.publicado.total)
 
         pontuais_janela = sum(
-            c.valor for c in candidates if _dentro_da_janela(c.mes, window.mes_inicio)
+            c.valor
+            for c in candidates
+            if _dentro_da_janela(c.mes, window.mes_inicio, window.mes_fim)
         )
         # ADR-422: a folga É a poupança da janela. Devolver ``pontuais_janela/n``
         # ao numerador — o que a ADR-306 §D6 prescrevia — publicava um segundo
@@ -281,50 +331,66 @@ class ConsumoConscienteCalculator:
             janela=window.janela,
             janela_meses=int(window.n_meses),
             pontuais_janela=pontuais_janela,
+            base=base,
         )
 
     # -- Helpers --
 
-    def _collect_candidates(self, dados: dict[str, Any]) -> list[GastoPontualItem]:
-        cfg = self._config
-        out: list[GastoPontualItem] = []
+    # A40.l98 — a exclusão de natureza é a UNIÃO dos dois conjuntos de categoria.
+    # Antes daqui só saía `recorrentes`: o aporte (`transferencia_patrimonial`,
+    # [[ADR-333]]) e a transferência entre contas entravam na base que o parecer
+    # usa para prescrever contenção de consumo. Sem detector — dentro do E5 ele é
+    # inerte por construção (ver `GastoPontualPolicy.classify`).
+    #
+    # [[ADR-425]] §D1 — `nao_identificado` também sai daqui: é ausência de
+    # MEDIÇÃO, não ruído, e `total_pontuais*` é numerador que sustenta conselho
+    # (o parecer ancora nele o risco "gastos pontuais elevados"). Ele segue no
+    # inventário — o balde de `excluidos` traz total e contagem, e a lista do
+    # card traz as linhas, que é onde a família consegue agir.
+    def _triar(self, dados: dict[str, Any]) -> tuple[list[GastoPontualItem], BasePontuais]:
+        """Todo lançamento acima do limiar recebe um veredito — o descartado sai
+        atribuído a uma causa, não em silêncio."""
+        incluidos: list[GastoPontualItem] = []
+        excluidos: dict[str, BaldePontual] = {}
+        publicado = BaldePontual()
         for cat, transacoes in dados.items():
-            if cat in cfg.recurrent_categories:
-                continue
             if not isinstance(transacoes, list):
                 continue
-            for txn in transacoes:
-                if not isinstance(txn, dict):
+            veredito = self._policy.classify_por_categoria(str(cat))
+            for quantia, txn in self._relevantes(transacoes):
+                balde = veredito.value if veredito is not VeredictoPontual.incluido else None
+                if balde is None:
+                    incluidos.append(_item_pontual(txn, str(cat), quantia))
+                    publicado = publicado.mais(quantia)
                     continue
-                valor = _safe_float(txn.get("valor", 0))
-                if valor < cfg.consumo_min:
-                    continue
-                data_str = str(txn.get("data", ""))
-                banco = str(txn.get("banco", ""))
-                tipo_conta = str(txn.get("tipo_conta", ""))
-                conta_cartao = f"{banco} ({tipo_conta})" if tipo_conta else banco
-                out.append(
-                    GastoPontualItem(
-                        descricao=str(txn.get("descricao", "N/D")),
-                        conta_cartao=conta_cartao,
-                        data=data_str,
-                        mes=data_str[:7] if len(data_str) >= 7 else "",
-                        valor=valor,
-                        categoria=str(cat),
-                    )
-                )
-        return out
+                excluidos[balde] = excluidos.get(balde, BaldePontual()).mais(quantia)
+        return incluidos, BasePontuais(publicado, excluidos)
+
+    # O corte de provisionado NÃO é feito aqui: quem o faz é `split_provisionado`,
+    # UMA vez, e o adapter entrega as despesas já realizadas. Um segundo corte
+    # divergiria em silêncio do primeiro — medido na A40.l98: `data` nula
+    # (`scripts/e2/banks/wise.py:153`) e `data` com hora no dia do corte caíam só
+    # deste lado, e sumiam até do `bruto`, que existe para revelar perda.
+    def _relevantes(self, transacoes: list) -> Iterator[tuple[Decimal, dict]]:
+        for txn in transacoes:
+            if not isinstance(txn, dict):
+                continue
+            bruto = _safe_float(txn.get("valor", 0))
+            if self._policy.is_relevante(bruto):
+                yield Decimal(str(bruto)), txn
 
     def _resolve_janela(self, fluxo: dict[str, Any]) -> "_ConsumoWindow":
         j12m = fluxo.get("janela_12m") if isinstance(fluxo, dict) else None
         if j12m:
             n_meses = _safe_float(j12m.get("n_meses", 12)) or 12.0
+            inicio, fim = _periodo_extremos(str(j12m.get("periodo", "")))
             return _ConsumoWindow(
                 receita_rec_mensal=_safe_float(j12m.get("receita_recorrente_mensal", 0)),
                 despesa_consumo_mensal=_consumo_mensal(j12m, n_meses),
                 n_meses=n_meses,
                 janela="12m",
-                mes_inicio=_periodo_inicio(str(j12m.get("periodo", ""))),
+                mes_inicio=inicio,
+                mes_fim=fim,
             )
         return _ConsumoWindow(
             receita_rec_mensal=_safe_float((fluxo or {}).get("receita_recorrente_mensal", 0)),
@@ -344,7 +410,7 @@ class ConsumoConscienteCalculator:
         janela_meses: float,
         folga_em_prosa: str,
     ) -> str:
-        cfg = self._config
+        cfg = self._policy
         minimo = fmt_brl_prosa(cfg.consumo_min)
         if n_candidates == 0:
             return (
