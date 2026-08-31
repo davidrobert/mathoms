@@ -3,13 +3,13 @@ id: A40.l111
 type: lane
 title: "Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo"
 sprint: A40
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l111-valor-nao-apurado-em-item-fisico
 owner: financial-planner
 depends_on: []
-adrs: ["[[ADR-394]]", "[[ADR-346]]", "[[ADR-427]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p1, area/dados, area/produto]
+adrs: ["[[ADR-430]]", "[[ADR-394]]", "[[ADR-346]]", "[[ADR-427]]"]
+tags: [type/lane, sprint/a40, status/in-progress, priority/p1, area/dados, area/produto]
 ---
 
 # A40.l111 — `valor-nao-apurado-em-item-fisico`
@@ -132,3 +132,66 @@ produtor entre E1.5c → E4 → E5.
 não canonicalizada" ([[ADR-246]], chave de dedup cross-IRPF). Quem lê o artefato
 depois — inclusive o LLM do parecer no E6 — vai errar. Renomear é breaking; janela
 própria, dono `data-engineer`.
+
+---
+
+## Entregue (2026-08-31)
+
+Formalizada em [[ADR-430]] (`Decidido`) + emenda datada à [[ADR-394]]
+§Emenda 2026-08-31 (b).
+
+**O que a emenda à ADR-394 corrige.** A consequência 3 da §Taxa de disparo lia
+"0 disparos" como "0 ocorrências": afirmava que "o item negativo não chega mais a
+balde de ativo" porque a [[A40.l66]] fechou a montante. O que a A40.l66 fechou foi
+o **roteamento pelo rótulo**; item cujo eixo é decidido por **fato** (`secao:
+bens_direitos`) e cujo valor é negativo continua entrando. A guarda de fato não
+dispara — pelo motivo da consequência 1 (mede agregado, não linha), não por
+ausência do fato. D5 e a tabela do D6 ficam intactos.
+
+### Onde a decisão mora
+
+| ponto | arquivo |
+| --- | --- |
+| regra + warning tipado + predicados de leitura | `pipeline/domain/services/valor_nao_apurado.py` |
+| produtor (item + boundary do stage) | `scripts/consolidate_baseline.py` |
+| produtor do caminho legado E4 | `scripts/categorize_transactions.py` |
+| contrato do artefato | `config/schemas/baseline_patrimonial.schema.json` |
+| leitura + `null` publicado | `pipeline/domain/services/patrimonio_resolvers.py` |
+| exclusão explícita da Σ | `pipeline/domain/services/patrimonio_types.py` |
+| grão do item na guarda + supressão | `pipeline/domain/services/patrimonio_sign_guard.py` |
+| S4 (cap rate, peso, pro-rata) | `real_estate_metrics.py` + `real_estate_adapter.py` |
+| ressalva de família | `ReportDataQualityBanner.tsx` + `dataQualitySignals.ts` |
+| projeção para o parecer | `config/prompts/parecer_planejador.yaml` (v2.18.0) |
+
+### Contrafactual medido (não é "os testes passam")
+
+Os testes rodados contra o código **pré-mudança**, asserção a asserção, em
+worktree destacada no commit `1a7aa0c1`:
+
+- **10 asserções falham** sem o fix — `valores_31_12` negativo, `valor_nao_apurado`
+  ausente, `review_reason` ausente, agregado com o negativo, `bruto` 850k em vez de
+  1,0M, entry com `0,0` em vez de `null`, `motivo_supressao` nulo,
+  `cobertura_completa` verdadeira, `itens_sem_valor` inexistente, supressão que não
+  se move entre defeito e correção.
+- **6 asserções passam** sem o fix, e é isso que as torna **controle e não gate**:
+  o ramo do sinal sem `secao` (imóveis vazio, dívida com 1), a contra-prova com o
+  item corrigido, o item que permanece no inventário, e `composicao ≡ bruto`.
+
+Sem essa separação, uma fixture escrita só com o negativo — sem `secao` — passaria
+igual antes e depois: o classificador a rotearia para o passivo pelo sinal, e o
+defeito nunca se reproduziria. `test_o_ramo_do_sinal_nao_reproduz_o_defeito` fixa
+esse controle no arquivo.
+
+### Limites declarados
+
+- **A origem do sinal não foi consertada.** A hipótese é que o extrator leu o saldo
+  devedor da discriminação em vez da coluna "situação em 31/12"; confirmá-la exige o
+  documento. Esta lane decide o que **publicar** enquanto isso.
+- **O golden não exercita o caminho.** O rebaseline do snapshot do view-model é uma
+  linha aditiva vazia — o corpus sintético não tem item sem valor. Quem cobre o
+  caminho é `tests/unit/pipeline/test_valor_nao_apurado_adr430.py`.
+- **O invariante de `low_confidence` cobre os ramos do enricher, não o corpus.** Um
+  quarto sítio que marque `low_confidence` fora dele passa despercebido; o que torna
+  isso improvável é o produtor único de razão, não o teste.
+- **`low_confidence` segue com o nome sobrecarregado** — follow-up nomeado no corpo
+  desta lane, dono `data-engineer`, janela própria.
