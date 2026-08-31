@@ -2,7 +2,7 @@
 id: ADR-426
 type: adr
 title: "O destino E3→E4 declara valor, ou o eixo-valor não é medido"
-status: Proposto
+status: Decidido
 phase: A42
 date: "2026-08-30"
 relates_to:
@@ -14,7 +14,7 @@ relates_to:
   - "[[ADR-090]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/dados
   - sprint/a42
@@ -23,7 +23,7 @@ aliases: ["ADR 426", "conservacao de valor E3-E4", "dedup_collapsed_cents"]
 
 # ADR-426 — O destino E3→E4 declara valor, ou o eixo-valor não é medido
 
-**Status:** Proposto (A42.l18) • **Data:** 2026-08-30 • **Dono:** `data-engineer`.
+**Status:** Decidido (A42.l18 · #1870 `cfaf3f38`) • **Data:** 2026-08-30 • **Dono:** `data-engineer`.
 Estende ao E3→E4 a tese que a [[ADR-347]] §Dec-6 já fixou para o E2→E3.
 
 ## Contexto medido (2026-08-30)
