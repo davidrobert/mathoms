@@ -3,13 +3,15 @@ id: A40.l111
 type: lane
 title: "Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo"
 sprint: A40
-status: in_progress
+status: shipped
+ship_pr: 1917
+ship_date: "2026-08-31"
 priority: P1
 branch_slug: a40-l111-valor-nao-apurado-em-item-fisico
 owner: financial-planner
 depends_on: []
 adrs: ["[[ADR-431]]", "[[ADR-394]]", "[[ADR-346]]", "[[ADR-427]]"]
-tags: [type/lane, sprint/a40, status/in-progress, priority/p1, area/dados, area/produto]
+tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/dados, area/produto]
 ---
 
 # A40.l111 — `valor-nao-apurado-em-item-fisico`
