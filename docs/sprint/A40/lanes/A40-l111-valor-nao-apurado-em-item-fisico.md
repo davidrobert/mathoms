@@ -190,6 +190,14 @@ esse controle no arquivo.
 - **O golden não exercita o caminho.** O rebaseline do snapshot do view-model é uma
   linha aditiva vazia — o corpus sintético não tem item sem valor. Quem cobre o
   caminho é `tests/unit/pipeline/test_valor_nao_apurado_adr430.py`.
+- **O corpus sintético do parecer não fornece o campo.** O rebaseline de
+  `dev/snapshots/parecer_ancorabilidade.json` põe
+  `$.patrimonio.guarda_de_sinal.itens_sem_valor[*]` em
+  `paths_projetados_sem_dado_no_corpus` — ao lado dos irmãos `modo`,
+  `cobertura_completa` e `motivo_supressao`, que já estavam lá. Nenhuma folha R$
+  nova ficou inancorável; o que fica registrado é que **este snapshot verde não é
+  evidência sobre produção** para este campo, exatamente como o `_comment` dele já
+  declara para os outros 16.
 - **O invariante de `low_confidence` cobre os ramos do enricher, não o corpus.** Um
   quarto sítio que marque `low_confidence` fora dele passa despercebido; o que torna
   isso improvável é o produtor único de razão, não o teste.
