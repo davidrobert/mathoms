@@ -186,3 +186,62 @@ def test_ramo_morto_nao_volta() -> None:
     doc = json.loads((CONFIG_DIR / "schemas" / "e4_unified.schema.json").read_text("utf-8"))
     assert "oneOf" not in doc
     assert all("$ref" in ramo for ramo in doc["anyOf"])
+
+
+# ───────────────────── despacho declarado + telemetria per-path ─────────────────────
+
+
+@pytest.mark.parametrize(
+    "label,payload,valido",
+    [
+        ("v1 placeholder", {"dados": []}, True),
+        (
+            "v2 completo",
+            {
+                "schema_version": "2",
+                "apolices": [
+                    {"apolice_numero": "X", "seguradora": "porto", "premio_total_brl": "10.00"}
+                ],
+            },
+            True,
+        ),
+        ("v2 sem apolices", {"schema_version": "2"}, False),
+        ("v2 com versao errada", {"schema_version": "3", "apolices": []}, False),
+        ("sem contêiner", {}, False),
+    ],
+)
+def test_seguros_despacha_pela_presenca_de_schema_version(label, payload, valido, strict) -> None:
+    """As duas formas do balde convivem sob `if/then` — discriminador DECLARADO
+    (`schema_version` presente), não inferido do shape."""
+    nome = resolve_schema_name("E4", "seguros")
+    assert validate_dict(payload, nome, source="seguros") is valido, label
+
+
+def _drift_paths(payload: dict, schema_name: str) -> list[str]:
+    """Paths que a telemetria da ADR-284 emitiria — é o eixo que gateia o flip strict."""
+    from scripts.pipeline_common import _build_schema_validator, _schema_to_validate
+    from scripts.schema_drift_telemetry import _count_drift_paths
+
+    # Pelo `_count_drift_paths` e não por `e.json_path`: em erro `required` o json_path é
+    # o OBJETO que não tem o campo (`$`), e a telemetria expande para `$.<campo>`. Medir
+    # pelo `json_path` cru julgaria a telemetria pela variável errada.
+    schema, _ = _schema_to_validate(schema_name)
+    errors = list(_build_schema_validator(schema).iter_errors(payload))
+    return sorted(path for path, _ in _count_drift_paths(errors))
+
+
+@pytest.mark.parametrize(
+    "key,payload",
+    [
+        ("seguros", {"schema_version": "2"}),
+        ("investimentos", {"dados": [], "total_geral": 0.0}),
+        ("fluxo_mensal_detalhado", {"periodo": "2026-01", "meses_ordenados": []}),
+    ],
+)
+def test_drift_do_e4_nomeia_path_real_e_nao_a_raiz(key, payload) -> None:
+    """`oneOf` colapsava todo drift do E4 para `$` e cegava a telemetria per-path da
+    ADR-284 — que é justamente o eixo da fila do flip `warn→strict` (ADR-409)."""
+    paths = _drift_paths(payload, resolve_schema_name("E4", key))
+
+    assert paths, f"{key}: payload deveria driftar"
+    assert paths != ["$"], f"{key}: drift colapsado na raiz — telemetria cega"
