@@ -420,8 +420,8 @@
 | ADR-423 | adr | Proposto |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
 | ADR-424 | adr | Proposto |  | SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required | `adr/424-sql-so-sqlite-em-migration-e-a-cadeia-em-postgres.md` |
 | ADR-425 | adr | Decidido |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
-| ADR-426 | adr | Proposto |  | O destino E3→E4 declara valor, ou o eixo-valor não é medido | `adr/426-o-destino-e3e4-declara-valor-ou-o-eixo-nao-e-medido.md` |
-| ADR-427 | adr | Proposto |  | O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte | `adr/427-discriminador-do-artefato-e-a-artifact-key.md` |
+| ADR-426 | adr | Decidido |  | O destino E3→E4 declara valor, ou o eixo-valor não é medido | `adr/426-o-destino-e3e4-declara-valor-ou-o-eixo-nao-e-medido.md` |
+| ADR-427 | adr | Decidido |  | O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte | `adr/427-discriminador-do-artefato-e-a-artifact-key.md` |
 | ADR-428 | adr | Decidido |  | A direção conservadora de um piso é fixada pelo uso do número, não pelo número | `adr/428-a-direcao-conservadora-de-um-piso-e-fixada-pelo-uso.md` |
 | ADR-429 | adr | Proposto |  | Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita | `adr/429-estorno-e-despesa-assinada-na-categoria-original.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
