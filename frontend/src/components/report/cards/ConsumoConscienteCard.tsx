@@ -103,6 +103,15 @@ const MOTIVO_LABEL: Record<string, string> = {
   nao_identificado: "não classificados",
 };
 
+/** Régua da [[ADR-353]] D1, publicada pelo E5 — o card **não** recalcula. `null`
+ * nunca vira "alta": é ausência de base medível, e afirmar cobertura que não houve
+ * é afirmação sobre o dinheiro da família ([[ADR-394]] §D7). */
+const COBERTURA_LABEL: Record<string, string> = {
+  alta: "cobertura alta",
+  parcial: "cobertura parcial",
+  insuficiente: "cobertura insuficiente",
+};
+
 /** A40.l98 ([[ADR-425]] §D2) — a base declara o que exclui, **na superfície que
  * a publica**. Sem esta linha, o KPI "Gastos pontuais" é um número cujo
  * denominador o leitor não conhece: eram três produtores com filtros disjuntos,
@@ -118,9 +127,10 @@ function BaseDeclaracao({ base }: { readonly base: BasePontuais | undefined }) {
       data-consumo-base-declaracao
       className="text-xs text-[var(--surface-muted-foreground)]"
     >
-      De {base.bruto.contagem} lançamentos ≥ R$2k (
-      <MonetaryValue value={base.bruto.valor} />
-      ), fora da base:{" "}
+      De {base.bruto.contagem} lançamentos ≥ R$2k no período completo (
+      <MonetaryValue value={base.bruto.valor} />)
+      {base.cobertura_nivel ? `, ${COBERTURA_LABEL[base.cobertura_nivel]}` : ""}
+      . Fora da base:{" "}
       {motivos
         .map(
           ([motivo, b]) =>

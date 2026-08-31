@@ -3958,6 +3958,26 @@
           },
           "required": [],
           "additionalProperties": false
+        },
+        "cobertura_nivel": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "alta",
+            "parcial",
+            "insuficiente",
+            null
+          ],
+          "description": "Veredito ordinal de cobertura da base, régua da [[ADR-353]] D1 (constantes IMPORTADAS, nunca redeclaradas). Razão: `publicado / (publicado + excluidos.nao_identificado)` — `recorrente` e `transferencia_*` ficam FORA do denominador porque são exclusão deliberada, não falha de medição. `null` sem base medível: um `alta` sobre medição que não houve seria afirmação sobre o dinheiro da família ([[ADR-394]] §D7). Escopo: PERÍODO COMPLETO."
+        },
+        "cobertura_motivo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Por que `cobertura_nivel` saiu nulo. Forma `<causa_slug>: <detalhe>`."
         }
       },
       "required": [

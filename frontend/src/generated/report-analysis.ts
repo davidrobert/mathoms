@@ -266,6 +266,8 @@ export type BasePontuais = {
     "transferencia_detectada"?: BaldePontual;
     "nao_identificado"?: BaldePontual;
   };
+  "cobertura_nivel"?: "alta" | "parcial" | "insuficiente" | null;
+  "cobertura_motivo"?: string | null;
 };
 
 export type ProtecaoPatrimonialApoliceResumo = {

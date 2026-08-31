@@ -12,6 +12,7 @@ sem exercitar nenhum termo em disputa (é o RR6-07 outra vez). Daí
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from pathlib import Path
 
@@ -225,3 +226,53 @@ def test_o_caminho_sem_detector_e_ESCOLHIDO_nao_herdado():
         )
         is VeredictoPontual.transferencia_detectada
     )
+
+
+# ---------------------------------------------------------------------------
+# `cobertura_nivel` — [[ADR-425]] §Emenda, régua da [[ADR-353]] D1
+# ---------------------------------------------------------------------------
+
+
+def test_a_regua_e_IMPORTADA_da_adr353_e_tem_sitio_unico():
+    """Igualdade de valor não prova não-redeclaração: um `30.0` copiado passaria.
+    O gate conta os SÍTIOS de definição em `pipeline/domain/services/`."""
+    raiz = Path(__file__).resolve().parents[1] / "pipeline" / "domain" / "services"
+    for nome in ("NAO_IDENTIFICADO_PARCIAL_PCT", "NAO_IDENTIFICADO_INSUFICIENTE_PCT"):
+        sitios = [
+            f.name
+            for f in raiz.glob("*.py")
+            if re.search(rf"^{nome}\s*=", f.read_text(encoding="utf-8"), re.M)
+        ]
+        assert sitios == [
+            "diagnostico_comportamental_analyzer.py"
+        ], f"{nome} definida em {sitios} — a régua tem de ter sítio único"
+
+
+def test_a_fixture_discrimina_as_DUAS_razoes(run):
+    """Anti-vacuidade: com `recorrente`/`transferencia_*` zerados, `publicado/bruto`
+    e `publicado/(publicado+nao_identificado)` COINCIDEM, e todo gate de nível passa
+    sem exercitar a escolha do denominador."""
+    base = run["e5"]["base_pontuais"]
+    pub = base["publicado"]["valor"]
+    medivel = pub + base["excluidos"]["nao_identificado"]["valor"]
+    assert pub / base["bruto"]["valor"] != pytest.approx(pub / medivel, rel=1e-3)
+
+
+@pytest.mark.parametrize(
+    "publicado,nao_identificado,esperado",
+    [("95", "5", "alta"), ("80", "20", "parcial"), ("50", "50", "insuficiente")],
+)
+def test_os_tres_niveis(publicado, nao_identificado, esperado):
+    base = BasePontuais(
+        BaldePontual(Decimal(publicado), 1),
+        {"nao_identificado": BaldePontual(Decimal(nao_identificado), 1)},
+    )
+    assert base.to_dict()["cobertura_nivel"] == esperado
+
+
+def test_sem_base_medivel_o_nivel_e_null_com_motivo():
+    """`alta` sobre medição que não houve é afirmação sobre o dinheiro da família
+    ([[ADR-394]] §D7) — diverge da [[ADR-353]] D2 de propósito."""
+    d = BasePontuais(BaldePontual(), {}).to_dict()
+    assert d["cobertura_nivel"] is None
+    assert d["cobertura_motivo"].startswith("sem_base_medivel:")

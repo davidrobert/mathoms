@@ -343,6 +343,10 @@ export type VeredictoExcluido =
 export interface BasePontuais {
   bruto: BaldePontual;
   publicado: BaldePontual;
+  /** Cobertura da base, régua da [[ADR-353]] D1 · escopo **período completo**.
+   * `null` = sem base medível, e **nunca** renderiza como "alta" ([[ADR-425]]). */
+  cobertura_nivel?: "alta" | "parcial" | "insuficiente" | null;
+  cobertura_motivo?: string | null;
   /** Chave = veredito de `GastoPontualPolicy.classify` (enum fechado no Python,
    * espelhado no schema). Balde ausente = nenhum lançamento caiu nessa causa —
    * o leitor omite a causa em vez de imprimir zero. */
