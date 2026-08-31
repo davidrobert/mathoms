@@ -83,28 +83,44 @@ def _viola(d: Dispensa, src: str, por_stage: dict) -> str | None:
     return None
 
 
-def _skipou(summary) -> str | None:
-    """Skip CARIMBADO pelo proprio stage — convencao repo-wide `{"skipped": True}`."""
+def _como_dict(summary):
     if isinstance(summary, str):
         try:
-            summary = json.loads(summary)
+            return json.loads(summary)
         except ValueError:
             return None
-    if isinstance(summary, dict) and summary.get("skipped") is True:
-        return str(summary.get("reason") or "sem reason")
+    return summary if isinstance(summary, dict) else None
+
+
+def _sem_trabalho(summary) -> str | None:
+    """Zero trabalho DECLARADO pelo proprio stage, em qualquer das duas grafias."""
+    # O repo carimba "nao havia o que fazer" de dois jeitos — `skipped: true` (8
+    # stages) e `total_processed: 0` (4 stages) — e os MESMOS stages usam os dois
+    # conforme a saida que tomam. Tratar so o primeiro como benigno reprovava
+    # `extract_with_llm` em 5 dos 25 runs do dogfood: a classe de falso-positivo
+    # que o `PV10-10` deu por conhecida e NAO codificada. As duas grafias carregam
+    # a mesma informacao (o stage nao diz se DEVIA ter tido trabalho), entao valem
+    # o mesmo veredito — e a divergencia de grafia fica nomeada, nao escondida.
+    s = _como_dict(summary)
+    if s is None:
+        return None
+    if s.get("skipped") is True:
+        return f"skipped: {s.get('reason') or 'sem reason'}"
+    if s.get("total_processed") == 0 and not s.get("total_errors"):
+        return "total_processed=0 — nao carimbou `skipped` (grafia divergente)"
     return None
 
 
 def _sem_artefato(stage: str, summary, writes: tuple, por_stage: dict, ler) -> tuple[str, str]:
     """Escada de causas para `completed` + 0 artefatos. Primeira que casa vence."""
-    motivo = _skipou(summary)
+    motivo = _sem_trabalho(summary)
     if motivo:
-        return "SKIP-CARIMBADO", motivo
+        return "SEM-TRABALHO", motivo
     if not writes:
         return "SEM-WRITES-DECLARADOS", "nao promete artefato"
     d = DISPENSAS.get(stage)
     if d is None:
-        return "OFENSOR", "completed, promete artefato, nao carimbou skip e nao tem dispensa"
+        return "OFENSOR", "completed, promete artefato, nao declarou zero trabalho, sem dispensa"
     src = ler(d.evidencia)
     if src is None:
         return "INDETERMINADO", f"evidencia ilegivel: {d.evidencia}"

@@ -196,3 +196,23 @@ def test_fonte_sumida_le_None_e_nao_string_vazia():
 
     assert _ler_fonte("scripts/nao_existe_este_arquivo_xyz.py") is None
     assert _ler_fonte("scripts/validate_cross.py")
+
+
+def test_zero_trabalho_na_outra_grafia_tambem_e_benigno():
+    """5 dos 25 runs do dogfood saem por aqui: sem `skipped`, com `total_processed: 0`."""
+    from dev._unified_xchecks.execucao import classificar
+
+    logs, por_stage = _cenario_saudavel()
+    logs[1] = ("extract_with_llm", "completed", {"success": True, "total_processed": 0})
+    diag = classificar(logs, por_stage)
+    assert diag["ofensores"] == {}
+    assert _classes(diag)["extract_with_llm"] == "SEM-TRABALHO"
+
+
+def test_zero_processado_com_erro_nao_e_zero_trabalho():
+    """`total_processed: 0` com erros nao e "nada a fazer" — e nao entregar."""
+    from dev._unified_xchecks.execucao import classificar
+
+    logs, por_stage = _cenario_saudavel()
+    logs[1] = ("extract_with_llm", "completed", {"total_processed": 0, "total_errors": 3})
+    assert "extract_with_llm" in classificar(logs, por_stage)["ofensores"]
