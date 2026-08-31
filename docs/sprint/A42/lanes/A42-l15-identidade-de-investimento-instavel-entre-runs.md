@@ -180,6 +180,47 @@ Duas leituras, ambas operantes: a âncora **existe em ~metade** dos itens — mu
 recusa**, não de fallback mudo; e o extrator **está descartando a âncora** (55% → 37% no mesmo
 corpus) porque ninguém a pede como campo.
 
+## Harness ENTREGUE — 2026-08-31 · e ele corrige a Armadilha (B) pelo campo medido
+
+`dev/measure_e15_identity_stability.py`. Replay offline de artefatos `E1.5a`: agrupa por
+`(documento, era)`, exige K≥5, e mede `|A∩B|/|A∪B|` sobre o conjunto de `investment_id`
+produzido pelo **caminho real** (`consolidate_from_itens` ⊳ `dedup_investimentos_consolidados`).
+
+### Baseline medido — 28 grupos válidos, 19 documentos, K até 38
+
+Nos documentos com carteira substantiva (~23–25 identidades), a estabilidade fica entre
+**22,43% e 53,13%**, o que **contém** os 23,5% da abertura e os põe num intervalo com
+denominador. Exemplo de um mesmo documento ao longo das eras: `1.0.0` 35,48% · `1.1.0`
+37,37% · `1.2.0` 53,13% · `1.3.0` 22,43%. ⚠️ **A era move a estabilidade**, então ela é
+**confundidor** de qualquer medida antes/depois — comparar eras diferentes não mede fix.
+
+### Três estados, porque dois colapsam causas distintas
+
+A 1ª execução real reprovou o desenho: `sem investimento` (documento sem ativo financeiro
+nenhum — 14 grupos) saía rotulado como **falha de controle negativo**, e o operador leria
+alarme onde não há nada a medir. É a patologia que a própria lane registra em §O dano de
+gate. Hoje são três: **medido** · **CONTROLE MOVEU** (5 grupos, resultado suprimido —
+`estabilidade_pct` devolve `None`, não um número anotado) · **SEM INVESTIMENTO**.
+E o relatório carrega a **cardinalidade média**: `100%` sobre 1 id não é `100%` sobre 25,
+e o corpus tem exatamente esse caso (`~1.0 ids`, 7 pares byte-idênticos).
+
+### Correção da §Armadilha (B) — ela mediu a COLUNA, e a coluna é cega a 47% do corpus
+
+A distribuição que a armadilha cita (`NULL` 441 · `1.2.0` 363 · `1.3.0` 55) é a da **coluna**
+`pipeline_artifacts.prompt_version`. Medido 2026-08-31 nos 836 artefatos `E1.5a`:
+
+| fonte | distribuição |
+|---|---|
+| **coluna** `prompt_version` | `NULL` 436 · `1.2.0` 330 · `1.3.0` 70 |
+| **payload** `prompt_version` | `1.0.0` **154** · `1.1.0` **190** · `1.2.0` 380 · `1.3.0` 70 · `NULL` **42** |
+
+Divergem em **394/836 = 47,1%**, e **sempre no mesmo sentido**: coluna `NULL` onde o payload
+sabe a era. **Duas eras inteiras — `1.0.0` e `1.1.0`, 344 artefatos — são invisíveis na
+coluna.** A conclusão da armadilha **sobrevive** (recomputado no payload, 766/836 = **91,6%**
+ficariam em vocabulário antigo após um bump; era 93,6%), mas a **política de era do PR1 não
+pode selecionar por essa coluna** — ela não distingue três das cinco eras. O harness agrupa
+pelo payload por isso.
+
 ## Armadilhas medidas — cada uma já matou uma entrega neste repo
 
 **(A) Perna forte sem produtor é inerte, e o agregado irmão prova.**
@@ -318,10 +359,9 @@ E são **duas normalizações, não uma**: colapsar `GG-CC`→`GG` conserta `_cl
 mas `codigo_rfb` quer o **sub**código — um conserto quebra o outro em silêncio se
 compartilharem nome.
 
-**PR3 — ~~nenhum~~ um dos cinco gates existe.** O **gate de acoplamento (critério 4) foi
-entregue** (§Critério de aceite). Restam quatro. O harness offline (critério 6) segue sem
-dono e **não depende de produtor** — é pré-requisito de qualquer alegação de melhora,
-porque mede o estado atual como baseline.
+**PR3 — ~~nenhum~~ dois dos cinco gates existem.** Entregues: **gate de acoplamento
+(critério 4)** e **harness offline (critério 6)**, ambos sem depender de produtor. Restam
+três (critérios 2, 3 e 5), e os três **dependem** do produtor do PR1.
 
 ## PR0 EXECUTADO — 2026-08-31 · reduzido a UM terço, e o corte foi medido
 
@@ -403,8 +443,8 @@ artefato carrega não pode gerar drift; o `pattern` só passa a medir quando o P
 4. PR1 → 5. PR2 (medido **junto** com o braço de `descricao`; a porta `tipo` dá 0 pp) →
    6. PR3.
 
-**Paralelo desde já:** ~~gate de acoplamento~~ (**feito**) · harness offline · alias no
-`institution_catalog` · leitura do documento-fonte. **Não paraleliza:** PR2 depois do PR1; qualquer número de
+**Paralelo desde já:** ~~gate de acoplamento~~ (**feito**) · ~~harness offline~~ (**feito**)
+· alias no `institution_catalog` · leitura do documento-fonte. **Não paraleliza:** PR2 depois do PR1; qualquer número de
 estabilidade depois do harness (§Armadilha D).
 
 ## Escopo — quatro PRs, nesta ordem
@@ -456,10 +496,13 @@ sessões da U2 estavam abertas e o teto era 419.
    exposição** e **não** está coberto.
 5. **Identidade estável entre eras provada por mutação executada** — item de era 1.3.0 e item
    de era 1.4.0, mesma posição, mesmo hash; ou a política de era (B) escrita e implementada.
-6. **Não aceitar como evidência** "a estabilidade subiu de 23,5% para X%" medida em mais um
-   par de runs (armadilha D). O harness é offline, K≥5 amostras, ≥2 documentos, com
-   `secao`/`categoria_hint` declarados **controle negativo** — se eles se moverem, o resultado
-   inteiro é inválido.
+6. ~~**Não aceitar como evidência**~~ **ENTREGUE** — `dev/measure_e15_identity_stability.py`
+   + núcleo puro em `tests/dev/test_measure_e15_identity_stability.py`. **Zero token de LLM:**
+   a variação já está no corpus, e replay de artefato histórico é imune à §Armadilha D
+   (aqueles foram gravados com o cache desligado). Para o regime futuro o harness conta
+   **pares byte-idênticos** e os reporta separado — ao 23,5% medido, par idêntico é anomalia.
+   Nove mutações executadas. O critério é atendido: **19 documentos** com K≥5 (o corpus
+   sustenta até **K=38**), contra o mínimo de 2.
 7. **Rebaselines declarados no PR:** `tests/fixtures/dedup/policy_parity_snapshot.json` (via
    `dev/golden_diff.py` com manifesto) e o snapshot do harness. **Declarar se o run de cutover
    é full ou incremental** — em incremental ([[ADR-080]]/[[ADR-169]]) transcrições velha e
