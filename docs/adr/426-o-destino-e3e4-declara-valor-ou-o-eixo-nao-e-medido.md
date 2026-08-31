@@ -2,7 +2,7 @@
 id: ADR-426
 type: adr
 title: "O destino E3→E4 declara valor, ou o eixo-valor não é medido"
-status: Proposto
+status: Decidido
 phase: A42
 date: "2026-08-30"
 relates_to:
@@ -14,7 +14,7 @@ relates_to:
   - "[[ADR-090]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/dados
   - sprint/a42
@@ -23,7 +23,7 @@ aliases: ["ADR 426", "conservacao de valor E3-E4", "dedup_collapsed_cents"]
 
 # ADR-426 — O destino E3→E4 declara valor, ou o eixo-valor não é medido
 
-**Status:** Proposto (A42.l18) • **Data:** 2026-08-30 • **Dono:** `data-engineer`.
+**Status:** Decidido (A42.l18 · #1870 `cfaf3f38`) • **Data:** 2026-08-30 • **Dono:** `data-engineer`.
 Estende ao E3→E4 a tese que a [[ADR-347]] §Dec-6 já fixou para o E2→E3.
 
 ## Contexto medido (2026-08-30)
@@ -79,9 +79,9 @@ declarado; tx que classifica mas não entra em balde; distorção de magnitude n
 balde (classe do bug ISO 100× de r5/M28); categoria contada duas vezes.
 
 **O que a perna NÃO discrimina — e por que não é conservável aqui.** Erro de
-**sinal** já presente no E3 e propagado fielmente pelo E4. Medido: nas 62 transações
-das fixtures, **nenhuma declara `tipo` no nível da tx** — a direção é *derivada do
-sinal* por `_normalize_tipo`. Não existe segunda declaração independente para
+**sinal** já presente no E3 e propagado fielmente pelo E4. Medido: **nenhuma**
+transação das fixtures declara `tipo` no nível da tx (0 de 63 (medido 2026-08-31)) — a direção é
+*derivada do sinal* por `_normalize_tipo`. Não existe segunda declaração independente para
 discordar do sinal. Quando `tipo` existe, o classificador aplica `abs(valor)` na
 despesa e a discordância atravessa sem rastro. Isso é **fidelidade do E3** — perna
 E2→E3 e `parse-certify` —, não conservação desta transição.

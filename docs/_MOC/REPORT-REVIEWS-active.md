@@ -430,7 +430,12 @@ KPI vermelho e uma nota 4,0/10 com peso 12,5% no score.
 > "quanto sobra" viraram um, `teto_sugerido` saiu do contrato e `equivalente_meses_aporte`
 > virou `equivalente_meses_poupanca` (46,1 → 4,1 meses no dogfood). O invariante que a Trilha
 > propunha existe e é verde. **Segue aberto** o que a [[ADR-422]] §"O que esta ADR NÃO conserta"
-> declara: a base dos pontuais continua contaminada — dono [[A40.l98]].
+> declarava: a base dos pontuais continua contaminada — dono [[A40.l98]].
+> ✅ **FECHADO em 2026-08-31 (#1865).** A base publicada exclui a união das duas
+> famílias de transferência e o balde `nao_identificado` ([[ADR-425]] §D1), e o
+> resíduo vai declarado por causa em `consumo_consciente.base_pontuais`. A frase
+> acima **não descreve mais o publicado**: o que resta é a qualidade do detector
+> (`PV9-12`, `procede-aberto`), que a l98 declarou fora de escopo.
 
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|---|---|
@@ -555,9 +560,16 @@ a mesma referência mensal de consumo da qual o numerador é **45,4%**.
 >    (`total_pontuais_janela ÷ despesa_consumo`, verificado no `report_data.json` deste run:
 >    394.525,39 ÷ 869.511,63). Do **denominador** (a folga) o numerador mensalizado é 33,79%.
 > 2. *"o numerador é subconjunto"* — **falso em 5 eixos medidos**. Dois deles são achados
->    novos e vão para a [[A40.l98]]: `data_corte` é aplicado ao denominador e não ao
+>    novos e foram para a [[A40.l98]]: `data_corte` é aplicado ao denominador e não ao
 >    numerador (populações diferentes), e estorno negativo líquida no denominador e não no
 >    numerador.
+>    ✅ **Disposição 2026-08-31 (#1865).** O 1º **fechou** (o adapter entrega o realizado;
+>    um corte, um produtor). O 2º **não procede como enunciado** e o mecanismo é outro:
+>    despesa negativa não existe (`transaction_classifier` grava `abs(valor)`), o estorno
+>    é CRÉDITO e o E4 o manda para **receitas** — medido fim-a-fim, ele infla
+>    `receita_recorrente` e deixa o par mais **otimista** (equivalente 5,6 → 4,0), não
+>    mais alarmante. É rota do E4, com blast radius na taxa de poupança inteira: **segue
+>    aberto**, dono `financial-planner` + `data-engineer`.
 >
 > **Fechado:** o campo publica `null` fora do domínio de definição, com `motivo_supressao`;
 > `folga_pct` cai pelo mesmo guard transplantado. **Aberto e deferido com dono:** o polo

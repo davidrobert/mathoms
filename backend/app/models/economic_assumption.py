@@ -12,6 +12,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -75,6 +76,10 @@ class WorkspaceEconomicAssumptionOverride(Base):
     """Override por workspace. ``justificativa`` obrigatória (fiduciária) — ADR-219 D1."""
 
     __tablename__ = "workspace_economic_assumptions_override"
+    # Nomes explícitos, não `index=True`: a migration `adr219wave1` os criou
+    # abreviados e é o que Postgres tem. O nome automático de `index=True` seria
+    # `ix_workspace_economic_assumptions_override_*` e apareceria como drift
+    # eterno — ausência aparente de um índice que existe ([[ADR-423]] §Emenda).
     __table_args__ = (
         UniqueConstraint(
             "workspace_id",
@@ -82,6 +87,9 @@ class WorkspaceEconomicAssumptionOverride(Base):
             "effective_from",
             name="uq_ws_econ_override_ws_classe_from",
         ),
+        Index("ix_ws_econ_override_workspace_id", "workspace_id"),
+        Index("ix_ws_econ_override_classe_auvp", "classe_auvp"),
+        Index("ix_ws_econ_override_effective_from", "effective_from"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -89,13 +97,11 @@ class WorkspaceEconomicAssumptionOverride(Base):
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     classe_auvp: Mapped[str] = mapped_column(
         String(40),
         ForeignKey("economic_asset_class.code", ondelete="RESTRICT"),
         nullable=False,
-        index=True,
     )
     retorno_real_esperado_pct_anual: Mapped[Decimal] = mapped_column(
         Numeric(precision=6, scale=3), nullable=False
@@ -103,7 +109,7 @@ class WorkspaceEconomicAssumptionOverride(Base):
     sigma_anual_pct: Mapped[Decimal] = mapped_column(Numeric(precision=6, scale=3), nullable=False)
     fonte: Mapped[str] = mapped_column(Text, nullable=False)
     justificativa: Mapped[str] = mapped_column(Text, nullable=False)
-    effective_from: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    effective_from: Mapped[date] = mapped_column(Date, nullable=False)
     effective_to: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     created_by_user_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True

@@ -31,7 +31,12 @@ _CRUS = {
     "investimentos_titular": 400_000.0,
     "investimentos_conjuge": 150_000.0,
     "investimentos_nao_atribuidos": 300_000.0,
-    "caixa_total_brl": 50_000.0,
+    # 60k, não 50k: com 50k a soma da carteira financeira dava 900.000 — o MESMO
+    # valor de `imoveis_investimento` —, e aí o gate do numerador ([[ADR-420]] §D5)
+    # nascia vacuoso: `investivel_financeiro` reproduzia a concentração tão bem
+    # quanto o numerador de verdade, então trocar um pelo outro no produtor passaria
+    # verde. É o eixo do numerador o que este número separa, não o das bases.
+    "caixa_total_brl": 60_000.0,
     # Geradores ⊆ cat_2 completo: é essa diferença que separa `carteira_produtiva_fixa`
     # (concentração, toggle-independente) da `carteira_produtiva_familia` (bloco IF).
     "cat2_efetivo": 200_000.0,
@@ -84,13 +89,23 @@ def test_a_fixture_discrimina_as_bases(patrimonio: dict) -> None:
     assert len(set(valores)) == len(valores), f"bases não distintas: {valores}"
 
 
+# [[ADR-420]] §D5: `numerador` sai da DECLARAÇÃO do produtor, nunca da chave escrita
+# aqui. Com `patrimonio["imoveis_investimento"]` fixo no teste, trocar o numerador no
+# produtor deixava este gate VERDE — o C14 da [[A40.l80]] (declarada ≠ usada) deslocado
+# um campo, na metade do payload que ninguém declarava.
+def _numerador_declarado(patrimonio: dict, ratios: dict) -> float:
+    chave = ratios["numerador_concentracao_imobiliaria"]
+    assert chave in patrimonio, f"numerador declarado ausente do payload: {chave}"
+    return patrimonio[chave]
+
+
 def test_concentracao_reproduz_sobre_a_base_que_declara(patrimonio: dict, ratios: dict) -> None:
     """O recompute é o gate; presença do campo passaria com o rótulo errado."""
     declarada = ratios["base_concentracao_imobiliaria"]
     assert declarada in {b.value for b in BaseFinanceira}, f"base fora do enum: {declarada}"
 
     base = patrimonio["bases"][declarada]["valor_brl"]
-    numerador = patrimonio["imoveis_investimento"]
+    numerador = _numerador_declarado(patrimonio, ratios)
 
     esperado = _cents(round(numerador / base * 100.0, 2))
     publicado = _cents(ratios["concentracao_imobiliaria"])
@@ -103,7 +118,7 @@ def test_concentracao_reproduz_sobre_a_base_que_declara(patrimonio: dict, ratios
 def test_nenhuma_OUTRA_base_reproduz_a_concentracao(patrimonio: dict, ratios: dict) -> None:
     """Mata o falso-verde: a base declarada tem de ser a ÚNICA que reproduz."""
     publicado = _cents(ratios["concentracao_imobiliaria"])
-    numerador = patrimonio["imoveis_investimento"]
+    numerador = _numerador_declarado(patrimonio, ratios)
 
     reproduzem = [
         nome
@@ -115,6 +130,46 @@ def test_nenhuma_OUTRA_base_reproduz_a_concentracao(patrimonio: dict, ratios: di
     assert reproduzem == [
         BaseFinanceira.carteira_produtiva_fixa.value
     ], f"mais de uma base reproduz o número — o gate não discrimina: {reproduzem}"
+
+
+def _escalares_do_patrimonio(patrimonio: dict) -> dict[str, float]:
+    """Termos monetários top-level — os candidatos a numerador que o payload oferece."""
+    return {
+        nome: float(valor)
+        for nome, valor in patrimonio.items()
+        if isinstance(valor, (int, float)) and not isinstance(valor, bool) and valor > 0
+    }
+
+
+# Irmão de `test_a_fixture_discrimina_as_bases`, no eixo que ela não cobre. Sem ele o
+# diagnóstico de uma falha do gate abaixo sai errado: com dois termos de mesmo valor a
+# culpa é da FIXTURE, não do produtor, e foi assim que ela nasceu — a soma da carteira
+# financeira empatava com `imoveis_investimento` em 900.000.
+def test_a_fixture_discrimina_o_NUMERADOR(patrimonio: dict, ratios: dict) -> None:
+    """Numerador que empata com outro termo torna o gate abaixo vacuoso."""
+    escalares = _escalares_do_patrimonio(patrimonio)
+    chave = ratios["numerador_concentracao_imobiliaria"]
+    empatam = [nome for nome, valor in escalares.items() if valor == escalares[chave]]
+
+    assert empatam == [chave], f"outro termo vale o mesmo que o numerador: {empatam}"
+
+
+# A contraparte da trava de base, no numerador: o recompute sozinho passaria com
+# QUALQUER termo de mesmo valor no lugar do declarado.
+def test_nenhum_OUTRO_termo_reproduz_a_concentracao(patrimonio: dict, ratios: dict) -> None:
+    """A declaração do numerador tem de ser a única chave que reproduz o número."""
+    base = patrimonio["bases"][ratios["base_concentracao_imobiliaria"]]["valor_brl"]
+    publicado = _cents(ratios["concentracao_imobiliaria"])
+
+    reproduzem = [
+        nome
+        for nome, valor in _escalares_do_patrimonio(patrimonio).items()
+        if _cents(round(valor / base * 100.0, 2)) == publicado
+    ]
+
+    assert reproduzem == [
+        ratios["numerador_concentracao_imobiliaria"]
+    ], f"mais de um termo reproduz o número — o gate não discrimina: {reproduzem}"
 
 
 def test_a_base_da_concentracao_nao_e_a_homonima(patrimonio: dict, ratios: dict) -> None:
@@ -282,6 +337,26 @@ def test_toda_base_produzida_esta_no_enum_do_schema(patrimonio: dict, ratios: di
     assert produzidas, "nenhum alvo produzido — o teste ficaria vacuoso"
     fora = produzidas - _enum_de_base()
     assert not fora, f"base produzida fora do enum: {sorted(fora)}"
+
+
+# Fecha a mutação COERENTE: trocar `CHAVE_DO_NUMERADOR` no SSOT move produtor e gate
+# juntos (os dois saem da mesma constante, de propósito), e só o vocabulário fechado do
+# schema separa redefinição declarada de drift silencioso.
+def test_o_numerador_declarado_esta_no_enum_do_schema(ratios: dict) -> None:
+    import json
+    from pathlib import Path as _P
+
+    schema = json.loads(
+        (_P(__file__).resolve().parents[1] / "config/schemas/e5_analysis.schema.json").read_text()
+    )
+    enum = set(
+        schema["properties"]["ratios"]["properties"]["numerador_concentracao_imobiliaria"]["enum"]
+    )
+
+    assert ratios["numerador_concentracao_imobiliaria"] in enum, (
+        "numerador publicado fora do enum do schema — redefinir a chave exige "
+        "mover o contrato junto"
+    )
 
 
 # A outra ponta: membro de `BaseFinanceira` que o schema não conhece faria o eixo

@@ -5,7 +5,7 @@ title: "A folga é a poupança da janela, não a poupança mais o gasto pontual 
 status: Decidido
 phase: A40
 date: "2026-08-29"
-amended_at: ["2026-08-30"]
+amended_at: ["2026-08-30", "2026-08-31"]
 relates_to:
   - "[[ADR-306]]"
   - "[[ADR-333]]"
@@ -183,6 +183,12 @@ delta atribuível a uma causa só.
 > campo contaminado. O que D1 garante é que nenhuma prescrição **determinística** a
 > consome; a prescrição do LLM ainda consome. Dono: [[A40.l98]].
 
+> ⚠️ **Emendada em 2026-08-31 ([[ADR-428]]).** A promessa do parágrafo abaixo —
+> *"Ele entra junto com a base limpa"* — ficou **falsa**. A base limpa entrou (#1865) e
+> foi **ela** que tornou o campo impublicável: com o `nao_identificado` fora do
+> numerador ([[ADR-425]] §D1), `total_pontuais*` virou **piso**, e piso não sustenta
+> prescrição de acúmulo. Ver §Emenda 2026-08-31 no fim desta nota.
+
 **Não** foi emitido campo novo para o ritmo do pontual (`pontual_mensal` — nome da
 [[A40.l15]], que precede o `provisao_pontual_mensal` do co-design e prevalece por ser
 o primeiro a nomear o mesmo campo): publicá-lo hoje seria imprimir um número cuja base é 57,5%
@@ -293,3 +299,18 @@ KPI. É problema de apresentação, não de correção, e fica **deferido com do
 - **Rótulo pendente.** "Equiv. meses de poupança" e *"equivalentes a X meses de poupança"*
   leem **pretérito**, isto é, a leitura (b) que esta emenda rejeitou. O rótulo do card é da
   [[A40.l15]] e vai nomeado para lá; a prosa do ramo suprimido já não usa verbo de reposição.
+
+## Emenda 2026-08-31 — a base limpa entrou, e o ritmo do pontual **não** vem com ela ([[ADR-428]])
+
+O parágrafo *"Ele entra junto com a base limpa"* previa que a contaminação era o único
+obstáculo. Era o obstáculo **visível**; o outro só apareceu quando a base ficou limpa.
+
+Ao tirar o balde `nao_identificado` do numerador ([[ADR-425]] §D1 — 63,2% da janela no
+dogfood), `total_pontuais*` deixou de ser total e virou **piso**. Um piso é a direção
+conservadora para métrica de **alerta** (alarma menos e continua verdadeiro), e é
+**sub-provisão** para métrica de acúmulo — que é o que um "ritmo mensal do pontual" é
+na prática, porque a família **executa** o número em vez de apenas lê-lo.
+
+Decisão, escopo e condição de retomada em [[ADR-428]]. O que muda aqui é só o estado
+desta promessa: ela não se cumpre, e o motivo não é atraso — é que a premissa dela
+caiu.

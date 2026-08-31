@@ -4,7 +4,10 @@
 > enforcement strict real; follow-up de [[ADR-283]] decisão D.
 > **Afeta:** `config/pipeline.json → schema_validation`, hook pós-write de
 > `DBArtifactStore.write` ([[ADR-212]]), todos os stages mapeados em
-> `SCHEMA_BY_STAGE` (`backend/app/services/storage/db_artifact_store.py`).
+> `SCHEMA_BY_STAGE` **e** `SCHEMA_BY_STAGE_KEY`
+> (`backend/app/services/storage/db_artifact_store.py`) — desde a [[A42.l19]] a
+> resolução é por `(stage, artifact_key)`, e os schemas por balde do E4 são
+> alcançáveis **só** pelo segundo mapa.
 > **Owner:** operador on-call; mudanças de pré-condição revisam com `data-engineer`.
 > **Rollback:** revert de 1 linha em `mode_overrides` (deploy de config normal).
 
@@ -150,7 +153,8 @@ janela.
 
 3. Gate do PR: CI verde **inclui** o corpus em strict (§1.2) e o teste de
    keys de `mode_overrides`
-   (`tests/test_schema_validation.py::TestModeOverridesPerSchema`).
+   (`tests/test_schema_validation_telemetry.py::TestModeOverridesPerSchema`; o path
+   antigo `tests/test_schema_validation.py` não existe — corrigido 2026-08-31).
 4. Merge + deploy de config normal (squash, [[ADR-108]] flow).
 5. Registre a linha no §7.
 
@@ -192,8 +196,10 @@ em workspace que não tinha WARN no baseline.
 > dois. Enquanto houver 1 schema promovido os dois levers são equivalentes; do 2º
 > em diante ele despromove tudo em silêncio. Escolha do lever é decisão da ADR da
 > [[A40.l58]] — até lá, **nenhum dos dois é quente**.
-2. O artefato rejeitado **não foi escrito** — não há dado a reparar. O run
-   falhado retoma via UI (resume de stage) após o revert.
+2. O artefato rejeitado **não foi escrito** — não há dado a reparar, e os
+   baldes irmãos do mesmo stage voltam junto (a sessão é rolada em
+   `pipeline_task.py::_rollback_and_close_artifact_session`). **O run falhado
+   NÃO retoma por `resume`** — ver §8.3 passo 2.
 3. Abra issue com o `validation_path` rejeitado e workspace; o drift volta a
    ser WARN mensurável.
 
@@ -267,12 +273,19 @@ com run abortado é confiança.
    `MATHOMS_PIPELINE_SCHEMA_MODE=warn` + restart — mas ele é **global** e
    despromove todo schema já promovido ([[ADR-409]] §C). Registre no §7 quais
    voltaram a `warn`.
-2. **Retomar o run** —
-   `POST /api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/resume`
-   (path conferido no snapshot
-   [`docs/reference/api/v1/openapi.json`](../api/v1/openapi.json), não de memória).
-   O `failed_at_stage` é preservado justamente para isto; não é preciso
-   reprocessar do zero.
+2. **Retomar o run — NÃO por `resume`.** Corrigido em 2026-08-31 (A42.l19):
+   a rota existe no snapshot OpenAPI, mas a **pré-condição** não fora conferida.
+   `pipeline_service.py::_flip_run_to_resuming` levanta
+   `ValueError("Run is not paused for review (status: ...)")` para qualquer
+   status ≠ `needs_review`, e run abortado por schema é **`failed`** (E4 é
+   `criticality: required` por default em `stage_spec.py:61`, logo
+   `resolve_stage_outcome` → `failed`, não `degraded`). O `_stages_after_paused`
+   também lê `paused_at_stage`, não `failed_at_stage`.
+
+   A recuperação real é **run novo pinado ao falho**: `from_stage` no stage que
+   abortou + `base_run_id` do run falho ([[ADR-291]]), que lê os stages
+   run-scoped a montante do base em vez de reprocessá-los. É operação diferente
+   e gera `run_id` novo — não confunda os dois no incidente.
 3. **Confirmar** — o run completa e `measure_schema_drift --days 1` mostra o path
    de volta como WARN (mensurável), não como abort.
 
@@ -286,7 +299,8 @@ com run abortado é confiança.
 
 ## O que este runbook NÃO cobre
 
-- Schemas fora de `SCHEMA_BY_STAGE` (não validados no write — passthrough).
+- Schemas fora de `SCHEMA_BY_STAGE` **e** de `SCHEMA_BY_STAGE_KEY` (não validados
+  no write — passthrough).
 - Alerta automático de drift contínuo pós-flip — follow-up da [[ADR-284]]
   (ticket em rate>0/1h; não criar antes do primeiro flip).
 - Mudança no **conteúdo** dos schemas (gate próprio:
