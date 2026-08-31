@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 354
-- **Proposto**: 59
+- **Decidido**: 355
+- **Proposto**: 58
 - **Roadmap**: 4
 
 ## Fundação
@@ -362,10 +362,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## dados
 
-### Proposto (2)
+### Decidido (1)
+
+- [[ADR-427]] — O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte · phase A42
+
+### Proposto (1)
 
 - [[ADR-405]] — Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico
-- [[ADR-427]] — O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte
 
 ## data-lineage
 

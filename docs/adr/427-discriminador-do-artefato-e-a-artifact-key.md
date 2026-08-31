@@ -2,7 +2,8 @@
 id: ADR-427
 type: adr
 title: "O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte"
-status: Proposto
+status: Decidido
+phase: A42
 date: "2026-08-30"
 relates_to:
   - "[[ADR-212]]"
@@ -14,7 +15,7 @@ supersedes: []
 superseded_by: []
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/dados
   - area/pipeline
   - area/testing
@@ -26,6 +27,9 @@ aliases:
 
 # ADR-427 — O discriminador do artefato é a `artifact_key`
 
+> **Decidido** em [[A42.l19]] · PR [#1871](https://github.com/davidrobert/mathoms/pull/1871)
+> (`5504d91c`). D1–D6 implementadas e mergeadas.
+>
 > Levantado pela [[A42.l19]] (origem `N2` da rodada unificada `U4`). O enunciado da
 > lane apontava **um** ramo placeholder; a medição no produtor real achou **dois**
 > ramos mortos, um catch-all que não restringe nada e uma fixture que mantinha o

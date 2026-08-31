@@ -40,6 +40,12 @@ Duas guardas, a mesma cegueira, no balde que carrega o patrimônio da família.
 
 ## Medição de reprodução
 
+> **Estado PRÉ-fix (2026-08-30).** O bloco abaixo e o §*O defeito, em três camadas*
+> descrevem o mundo **antes** do PR #1871 — são a evidência do achado, e não se
+> reescrevem. Rodado hoje, o snippet devolve o oposto: `{"status": "vazio"}`
+> **reprova**, e o `patrimonio` **valida**. O estado corrente está em
+> §*O que foi entregue*.
+
 ```bash
 MATHOMS_PIPELINE_SCHEMA_MODE=strict .venv/bin/python - <<'PY'
 import json, pathlib, jsonschema
@@ -161,5 +167,9 @@ ramo — seria inerte contra a classe, e o teste que discrimina é o de **troca 
   > monkeypatch de teste — nenhum alcança o nome. Com a remoção, o único sítio
   > **executável** que cita o umbrella por nome literal volta a ser o próprio
   > `SCHEMA_BY_STAGE`; o resto é docstring (`e4_serialization.py`) e teste.
-- O flip `warn→strict` do E4 fica **elegível** (7/7 validam), mas a decisão segue com a
-  [[ADR-409]] — esta lane só remove o impedimento; não flippa nada.
+- O flip `warn→strict` do E4 fica **elegível** (7/7 validam em `strict`, re-medido na `main`
+  em 2026-08-31), mas esta lane **não flippa nada** — a decisão segue governada pela
+  [[ADR-409]], que é `Decidido` e portanto **não é rota**: uma ADR fechada não executa
+  trabalho. `owner: data-engineer`; a fila viva é a disposição **PV9-27** em
+  [[PIPELINE-REVIEWS-active]] (`procede-aberto`), onde a elegibilidade do E4 ficou
+  registrada. Sem lane aberta: o pickup é decisão do dono.
