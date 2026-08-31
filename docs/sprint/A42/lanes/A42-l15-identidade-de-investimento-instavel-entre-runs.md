@@ -318,9 +318,10 @@ E são **duas normalizações, não uma**: colapsar `GG-CC`→`GG` conserta `_cl
 mas `codigo_rfb` quer o **sub**código — um conserto quebra o outro em silêncio se
 compartilharem nome.
 
-**PR3 — nenhum dos cinco gates existe.** O gate de acoplamento (critério 4) e o harness
-offline (critério 6) **não dependem de produtor** e podem começar já; o harness é
-pré-requisito de qualquer alegação de melhora, porque mede o estado atual como baseline.
+**PR3 — ~~nenhum~~ um dos cinco gates existe.** O **gate de acoplamento (critério 4) foi
+entregue** (§Critério de aceite). Restam quatro. O harness offline (critério 6) segue sem
+dono e **não depende de produtor** — é pré-requisito de qualquer alegação de melhora,
+porque mede o estado atual como baseline.
 
 ## PR0 EXECUTADO — 2026-08-31 · reduzido a UM terço, e o corte foi medido
 
@@ -402,8 +403,8 @@ artefato carrega não pode gerar drift; o `pattern` só passa a medir quando o P
 4. PR1 → 5. PR2 (medido **junto** com o braço de `descricao`; a porta `tipo` dá 0 pp) →
    6. PR3.
 
-**Paralelo desde já:** gate de acoplamento · harness offline · alias no `institution_catalog`
-· leitura do documento-fonte. **Não paraleliza:** PR2 depois do PR1; qualquer número de
+**Paralelo desde já:** ~~gate de acoplamento~~ (**feito**) · harness offline · alias no
+`institution_catalog` · leitura do documento-fonte. **Não paraleliza:** PR2 depois do PR1; qualquer número de
 estabilidade depois do harness (§Armadilha D).
 
 ## Escopo — quatro PRs, nesta ordem
@@ -442,8 +443,17 @@ sessões da U2 estavam abertas e o teto era 419.
    [[ADR-406]]), não no estado em voo. É o invariante que mata o modo `numero_contrato`.
 3. **Recusa em vez de palpite** (unit, zero runs): âncora forte ausente **e** descrição fraca
    ⇒ `None` + `review_reason`. Único invariante sobre a **decisão**, não sobre o número.
-4. **Gate de acoplamento** (unit): reprova se `institution_catalog` entrar na derivação de
-   `investment_id`. Ancora a [[ADR-400]] na identidade e trava a re-proposta.
+4. ~~**Gate de acoplamento**~~ **ENTREGUE** — `tests/unit/pipeline/test_investment_id_acoplamento.py`.
+   Três pernas, porque uma só seria cega: **fecho transitivo** de imports (hoje 9 módulos,
+   zero de catálogo — import direto pega, mas o acoplamento entraria por um helper a um
+   salto); **aridade de `_identity_key`**, a rota que import nenhum revela (catálogo
+   *injetado* como parâmetro); e **anti-vacuidade**, com âncoras nomeadas que reprovam se
+   um renome fizer o padrão parar de casar módulo real — senão o gate passaria sobre
+   conjunto vazio. Seis mutações executadas (direto · transitivo · diferido em função ·
+   aliasado · injetado · renome), cada uma derrubando a perna certa. **Limites declarados:**
+   o fecho é estático, então `importlib.import_module` com nome montado em runtime e
+   `getattr` sobre módulo já importado ficam fora; e `dividas_dedup` tem a **mesma
+   exposição** e **não** está coberto.
 5. **Identidade estável entre eras provada por mutação executada** — item de era 1.3.0 e item
    de era 1.4.0, mesma posição, mesmo hash; ou a política de era (B) escrita e implementada.
 6. **Não aceitar como evidência** "a estabilidade subiu de 23,5% para X%" medida em mais um
