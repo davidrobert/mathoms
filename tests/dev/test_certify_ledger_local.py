@@ -105,7 +105,7 @@ def _rederive_vazio(_session, _ws, _run):
         statements_loaded=0, statements_reconciled=0, skipped_inputs=0, artifacts_written=0
     )
     result = SimpleNamespace(classified=[], cash_flow=SimpleNamespace(transferencias_count=0))
-    return InMemoryArtifactStore(), [], e3_result, result, {"investimentos": {"dados": []}}
+    return InMemoryArtifactStore(), [], e3_result, result, {"investimentos": {"dados": []}}, {}
 
 
 def test_certify_degrada_o_blast_radius_sem_derrubar_a_certificacao(monkeypatch) -> None:
@@ -117,7 +117,8 @@ def test_certify_degrada_o_blast_radius_sem_derrubar_a_certificacao(monkeypatch)
 
     monkeypatch.setattr(mod, "_row_counts", lambda _s, _w: {"pipeline_artifacts": 7})
     monkeypatch.setattr(mod, "_rederive", _rederive_vazio)
-    monkeypatch.setattr(mod, "_persisted_e3_by_key", lambda _s, _w: {})
+    monkeypatch.setattr(mod, "_persisted_e3_subject", lambda _s, _w, _r: {})
+    monkeypatch.setattr(mod, "_e4_of_run", lambda _s, _w, _r: {})
     session = _FailingSession()
     report = mod.certify(session, "ws-uuid", "run-1")
     assert report.blast_radius == {}
@@ -154,7 +155,8 @@ def test_contagem_final_vem_antes_do_blast_radius_que_faz_rollback(monkeypatch) 
 
     monkeypatch.setattr(mod, "_row_counts", lambda s, _w: {"pipeline_artifacts": 7 + s.pending})
     monkeypatch.setattr(mod, "_rederive", _rederive_escrevendo)
-    monkeypatch.setattr(mod, "_persisted_e3_by_key", lambda _s, _w: {})
+    monkeypatch.setattr(mod, "_persisted_e3_subject", lambda _s, _w, _r: {})
+    monkeypatch.setattr(mod, "_e4_of_run", lambda _s, _w, _r: {})
     session = _PendingWriteSession()
     report = mod.certify(session, "ws-uuid", "run-1")
     assert session.rolled_back == 1 and session.pending == 0
@@ -186,7 +188,8 @@ def test_ratchet_de_ordem_vale_tambem_no_modo_que_pontua_a_kr_b(monkeypatch) -> 
 
     monkeypatch.setattr(mod, "_row_counts", lambda s, _w: {"pipeline_artifacts": 7 + s.pending})
     monkeypatch.setattr(mod, "_rederive", _rederive_escrevendo)
-    monkeypatch.setattr(mod, "_persisted_e3_by_key", lambda _s, _w: {})
+    monkeypatch.setattr(mod, "_persisted_e3_subject", lambda _s, _w, _r: {})
+    monkeypatch.setattr(mod, "_e4_of_run", lambda _s, _w, _r: {})
     _patch_entregue(monkeypatch, mod)
     session = _PendingWriteSession()
     report = mod.certify_entregue(session, "ws-uuid", "run-1")

@@ -5,6 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from dev.ledger_certify_core import (
+    DriftSummary,
     _drift,
     build_report,
     e3_group_verdict,
@@ -344,11 +345,17 @@ def _e4_com_carrier_cross_grupo() -> dict:
     }
 
 
+def _unidade(report, nome: str):
+    """Veredito de balde por NOME — índice mudou com a ordem canônica (A42.l14)."""
+    return next(b for b in report.e4_buckets if b.unit == nome)
+
+
 def test_render_cross_grupo_com_cobertura_ok_e_numerador_positivo() -> None:
     """Os pares sum-preserving passam no veredito de balde e AINDA são reportados — é o
     modo de falha que a conservação por grupo aprova (razão de existir da A40.l1)."""
     report = _report(_e4_com_carrier_cross_grupo(), valores=_VALORES_CARRIER, with_key=6)
-    assert report.e4_buckets[0].verdict == CONSERVADO  # despesas fecha em cents
+    # Por NOME: a lista segue `ARTIFACT_KEYS` (A42.l14), e o índice 0 afirmaria outro balde.
+    assert _unidade(report, "despesas").verdict == CONSERVADO  # despesas fecha em cents
     assert len(report.cross_group.numerador) == 3
     assert report.cross_group.coverage["coverage_ok"] is True
     bloco = _bloco(format_report(report), _CROSS_GROUP_TITLE)
@@ -448,3 +455,31 @@ def test_blast_radius_ausente_declara_nao_medido() -> None:
     from dev.ledger_certify_core import _fmt_blast_radius
 
     assert any("não medido" in linha for linha in _fmt_blast_radius({}))
+
+
+def test_balde_ausente_no_sujeito_vira_linha_nao_verificavel() -> None:
+    """D6: eixo sem insumo declara o motivo — omissão era indistinguível de conservado."""
+    from dev.ledger_conservation import NAO_VERIFICAVEL
+
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1)
+    unidades = {b.unit: b for b in report.e4_buckets}
+    assert unidades["patrimonio"].verdict == NAO_VERIFICAVEL
+    assert unidades["patrimonio"].detail == "balde ausente no sujeito"
+
+
+def test_os_sete_baldes_canonicos_sempre_geram_linha() -> None:
+    # O fixture só traz despesas/receitas/investimentos: os outros 4 não geravam linha
+    # NENHUMA antes — sumiam do relatório sem deixar rastro.
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1)
+    bloco = _bloco(format_report(report), "## Eixo E4 (por balde)")
+    assert all(k in bloco for k in ("seguros", "pontos_milhas", "fluxo_mensal_detalhado"))
+
+
+def test_glosa_do_drift_nao_atribui_causa_a_rechaveacao() -> None:
+    """ADR-421 M1: os 31 grupos eram sobra de OUTROS runs — a re-chaveação não estava nela."""
+    from dev.ledger_certify_core import _fmt_drift
+
+    d = DriftSummary(matched=0, count_diff=[], fresh_only=[], persisted_only=["g1"])
+    texto = "\n".join(_fmt_drift(d))
+    assert "keying antigo" not in texto
+    assert "só no persistido do run (publicado e não reproduzido)" in texto

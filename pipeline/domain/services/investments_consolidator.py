@@ -26,7 +26,7 @@ from datetime import datetime
 from typing import Any
 
 from pipeline.domain.services.member_name_resolver import MemberNameResolver
-from pipeline.domain.types.config import BankAccountRecord
+from pipeline.domain.types.config import BankAccountRecord, coerce_account_origem
 
 # =============================================================================
 # Config
@@ -75,6 +75,7 @@ def _parse_account_record(raw: dict) -> BankAccountRecord:
         account_number_norm=norm,
         account_number_raw=raw_num,
         agency=raw.get("agency"),
+        origem=coerce_account_origem(raw.get("origem")),
     )
 
 

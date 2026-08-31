@@ -160,6 +160,14 @@ SCHEMA_BY_STAGE: dict[str, str] = {
     # Stage → schema em config/schemas/. Aplicado em DBArtifactStore.write
     # (ADR-212 PR3). Cobre tanto nomes legados quanto descritivos durante
     # a janela F9.2 → F9.6.
+    # E1 — membros + mapa instituição→membro (ADR-226 §2 · ADR-430). O stage
+    # rodou ~15 meses SEM contrato: foi por isso que a rota E1→E4 pôde quebrar
+    # em silêncio (A40.l96). O schema é de forma; o alcance do mapa até o E4 é
+    # telemetria, não hard-fail — workspace cujas contas de hint foram todas
+    # recusadas pelo usuário é estado legítimo com `contas` cheio no E1 e vazio
+    # no materializado.
+    "E1": "e1_members.schema.json",
+    "extract_members": "e1_members.schema.json",
     # E1.5/E1.5a — extract per-IRPF + agregado (A20.l11; string decimal ADR-090)
     "E1.5": "e15_baseline_extract.schema.json",
     "E1.5a": "e15_baseline_extract.schema.json",
