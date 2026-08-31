@@ -318,6 +318,15 @@ depois de ela ser planejada**, produzida por instrumento e não por escolha de e
 | lanes `shipped` | **4** — **todas** criadas nos 3 dias anteriores, todas de rodada unificada |
 | WIP hoje (`open` + `in_progress`) | **6** |
 
+> **Re-medido no mesmo 2026-08-31, algumas horas depois — a tabela acima fica como está.**
+> Ela era verdadeira quando escrita e envelheceu **dentro do próprio dia**, que é o motivo
+> de a data sozinha não desambiguar aqui. Estado no fecho da [[A42.l20]]: lanes `shipped`
+> **6** (entraram [[A42.l21]] #1906 e [[A42.l20]] #1907) · WIP **4** · das 12 do dia da
+> abertura, **9 `planned` · 2 `blocked` ([[A42.l1]], [[A42.l8]]) · 1 `open` ([[A42.l7]])**.
+> **A conclusão não muda — fica mais forte:** o lote antigo segue sem ser pego há 27 dias
+> enquanto o que chega por medição shipa em horas, que é exatamente o argumento da
+> aposentadoria do teto. Nada a redecidir; só o número não se cita mais desta tabela.
+
 As lanes não estão competindo por capacidade: **o lote antigo simplesmente não é pego**,
 enquanto o que chega por medição é executado em horas. Um teto sobre o total trata os dois
 grupos como se disputassem o mesmo slot, e eles não disputam.
