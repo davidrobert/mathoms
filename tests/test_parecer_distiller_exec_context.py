@@ -121,6 +121,17 @@ _DENSE_CONSUMO_CONSCIENTE = {
     ],
     "total_pontuais": 260_000.0,
     "total_pontuais_janela": 120_000.0,
+    # A40.l98 — a base que o parecer precisa ver para saber que os dois totais
+    # acima são PISO. Identidade: 260.000 + 90.000 + 40.000 + 60.000 = 450.000.
+    "base_pontuais": {
+        "bruto": {"valor": 450_000.0, "contagem": 61},
+        "publicado": {"valor": 260_000.0, "contagem": 40},
+        "excluidos": {
+            "recorrente": {"valor": 90_000.0, "contagem": 12},
+            "transferencia_por_categoria": {"valor": 40_000.0, "contagem": 2},
+            "nao_identificado": {"valor": 60_000.0, "contagem": 7},
+        },
+    },
     "equivalente_meses_poupanca": 8.7,
     "folga_mensal": 15_000.0,
     "folga_pct": 27.3,
@@ -223,6 +234,32 @@ def test_field_probes_blocos_densos_reformatados():
     # TERCEIRA taxa mais baixa que as duas rotuladas da janela de 12m.
     assert "Fluxo líquido (sobre a despesa BRUTA — não é taxa de poupança): R$ 720.000,00" in ctx
     assert "Despesa total BRUTA (inclui aporte e amortização):" in ctx
+
+
+_BASE_SEM_EXCLUSAO = {
+    "bruto": {"valor": 1000.0, "contagem": 1},
+    "publicado": {"valor": 1000.0, "contagem": 1},
+    "excluidos": {},
+}
+
+
+def test_a_base_do_pontual_chega_ao_parecer():
+    """A [[ADR-425]] §D2 diz que a cobertura é campo PUBLICADO, e a §Emenda dispensa
+    a D3 alegando que a D2 "já está no lugar". Ela estava só no card React — e o
+    modelo não tem `tools`, então o manifest é a superfície inteira dele. Sem estes
+    campos ele recebia `total_pontuais*` já reduzido, sem sinal de que virou piso."""
+    ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
+    assert "Base bruta ≥ limiar, antes das exclusões:" in ctx
+    assert "PISO" in ctx
+
+
+def test_balde_ausente_nao_quebra_o_bloco():
+    """`on_null: skip` — causa sem lançamento omite a linha, não derruba a seção."""
+    e5 = make_dogfood_like_e5()
+    e5["consumo_consciente"]["base_pontuais"] = _BASE_SEM_EXCLUSAO
+    ctx = distill_exec_context(load_manifest(), e5)
+    assert "Base bruta ≥ limiar, antes das exclusões:" in ctx
+    assert "Lançamentos não classificados na base:" not in ctx
     assert "Despesa mensal essencial: R$ 22.000,00" in ctx
     assert "Receita PJ (pró-labore + lucros): R$ 1.500.000,00" in ctx
     assert "Taxa de poupança recorrente (12m, %): 33,33%" in ctx

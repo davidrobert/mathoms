@@ -23,9 +23,10 @@ aliases: ["ADR 425", "cobertura da base", "nao_identificado"]
 
 # ADR-425 — Não classificado fora de numerador que prescreve
 
-> ⚠️ **Emendada em 2026-08-30 (A40.l98, na implementação).** A **D4** não tinha
-> régua para medir: nenhum consumidor determinístico aplica limiar a estes campos.
-> Ver §Emenda 2026-08-30 no fim desta nota — a D1 e a D2 ficam intactas.
+> ⚠️ **Emendada em 2026-08-30 (A40.l98, na implementação).** A **D3** não foi
+> implementada como supressão: ela é **substituída** pela degradação da prescrição,
+> reusando a régua que a [[ADR-353]] já tem para o MESMO fator causal. A D1 e a D2
+> ficam intactas. Ver §Emenda 2026-08-30 no fim desta nota.
 
 **Status:** Decidido (A40.l98) • **Data:** 2026-08-30 • Co-design `financial-planner`
 + `data-engineer` + `senior-cto`. **Dono:** `financial-planner`. **Condição de
@@ -111,37 +112,71 @@ prescrever**, suprime. Mede o efeito, não o proxy.
 - **Ordem:** D2 é **pré-requisito**, não consequência — é ele que permite publicar
   honestamente com base ruim. Não o adie esperando a base melhorar.
 
-## Emenda 2026-08-30 — a D4 não tem régua, e por isso a D3 não foi implementada (A40.l98)
+## Emenda 2026-08-30 — a D3 vira degradação de prescrição, não supressão (A40.l98)
 
-A **D4** manda medir o efeito e não o proxy: *"recalcula-se o derivado com e sem a
-fatia `nao_identificado`; se as duas leituras cruzam a régua que a superfície usa
-para prescrever, suprime"*. Medido na implementação, **essa régua não existe**:
+> **Correção de uma afirmação desta própria emenda.** A primeira versão dizia que
+> *"a régua não existe"* e concluía que a **D4** era condicional de antecedente
+> falso. **É falso**, e o erro foi de recorte: procurei consumidor determinístico
+> de `total_pontuais*` e de `equivalente_meses_poupanca` — e não de régua sobre o
+> **fator causal**, que é o share de `nao_identificado`. Refutado pelo
+> `financial-planner` na revisão da [[A40.l98]].
 
-| candidato a consumidor | lê `total_pontuais*` / `equivalente_meses_poupanca`? |
-| --- | --- |
-| `financial_score_calculator` | não |
-| `risk_trigger_registry` | não |
-| `pontos_fortes_analyzer` | não |
-| diagnósticos comportamentais | não |
-| `scoring.json::thresholds_alertas` | nenhuma chave para estes campos |
+**A régua existe, e é da [[ADR-353]]:**
 
-O único consumidor que **prescreve** é o parecer LLM, e ele não aplica limiar
-numérico — julga "elevado" por conta própria. Sem régua não há cruzamento a
-medir, e a D4 é uma condicional cujo antecedente é falso.
+```
+pipeline/domain/services/diagnostico_comportamental_analyzer.py
+NAO_IDENTIFICADO_PARCIAL_PCT      = 10.0
+NAO_IDENTIFICADO_INSUFICIENTE_PCT = 30.0
+```
 
-**A D3 fica, portanto, sem implementação — e isso é o resultado da D4, não um
-atalho.** Implementá-la exigiria o limiar percentual que esta própria ADR
-**rejeitou** por ser inventado; e, pior, teria **sinal trocado**. Depois da D1 o
-numerador publicado é um **piso**: ele conta só o que se sabe ser consumo
-discricionário, então erra para menos, que é a direção conservadora de uma
-métrica de alerta. Suprimir um número verdadeiro, conservador e acionável é
-exatamente a objeção que a [[ADR-422]] §Alternativas fez ao piso de
-materialidade.
+Não é constante solta: `_apply_confianca_gate` **substitui o diagnóstico
+comportamental inteiro** acima de 30%, `kpi_target_catalog` publica o alvo, e o
+parecer já recebe `$.diagnostico_confianca.nivel` com o hint *"'insuficiente' torna
+a prescrição provisória"*. O *"~30% sem origem declarável"* que a §Alternativas
+desta ADR rejeitou por inventado **é literalmente esse 30,0**, escrito meses antes.
 
-O que substitui a supressão é a **D2**, que já está no lugar:
-`consumo_consciente.base_pontuais` publica o balde `nao_identificado` com total e
-contagem ao lado do número, e a lista do card mantém as linhas. O leitor vê o
-piso **e** o quanto não foi medido, que é mais informação do que um campo nulo.
+## O que decide a forma do remédio
 
-**Retomar a D3** quando algum consumidor determinístico passar a aplicar régua a
-estes campos — aí a D4 volta a ter o que medir. Dono: `financial-planner`.
+Suprimir continua **rejeitado**, mas por um motivo que só vale para uma metade do par:
+
+| campo | efeito da cobertura baixa | direção do erro |
+| --- | --- | --- |
+| `total_pontuais` / `_janela` | piso do consumo discricionário identificado | **conservador** — alarma menos, mas é verdadeiro e acionável |
+| `equivalente_meses_poupanca` | massa faltante está **só no numerador** | **tranquilizador** — publica 4,0 onde a verdade pode ser 11 |
+
+O argumento *"piso é a direção conservadora de uma métrica de alerta"* **não
+transfere** para a razão: ela não é piso de nada, é razão de direção conhecida e
+magnitude desconhecida, com uma casa decimal que aparenta precisão. Mas suprimi-la
+esbarra na objeção que a [[ADR-422]] §Alternativas fez ao piso de materialidade —
+o número suprimido seria verdadeiro e acionável.
+
+**D3.a — a cobertura degrada a PRESCRIÇÃO, não apaga o número.** Nenhum campo é
+suprimido. O que muda é que a base passa a viajar **junto** do número, na superfície
+que prescreve, e o veredito ordinal de cobertura reusa as constantes da [[ADR-353]] —
+a mesma régua, não um limiar novo. É o padrão que o produto já usa para este exato
+fator causal.
+
+**D2 tinha implementação incompleta, e isso era o defeito operante.** A versão
+anterior desta emenda dispensava a D3 alegando que *"a D2 já está no lugar"*. Estava
+— **só no card React**. O parecer LLM não tem `tools`: o manifest é a superfície
+inteira dele, e `base_pontuais` não estava lá. Ele recebia `total_pontuais*` já
+reduzido pelos filtros da [[A40.l98]] sem nenhum sinal de que virara piso, o que
+trocaria over-alarm por **under-alarm silencioso** na única superfície que prescreve.
+Corrigido no #1865: a base bruta e o balde `nao_identificado` (valor + contagem)
+entram no exec context, os rótulos dos dois totais declaram que são piso, e um hint
+manda classificar antes de cortar.
+
+**Deferido com dono:** o campo ordinal `base_pontuais.cobertura_nivel ∈ {alta,
+parcial, insuficiente}`, derivado de `excluidos.nao_identificado.valor / bruto.valor`
+**importando** as constantes da [[ADR-353]] (nunca redeclarando-as). A população aqui
+é mais estreita que a da ADR-353 — só lançamentos acima do limiar —, e essa diferença
+precisa ficar declarada no docstring. Dono: `financial-planner`.
+
+### Cobertura: qual razão, exatamente
+
+`publicado / bruto` **não** é a cobertura desta ADR. O 36,8% medido acima é
+`publicado / (publicado + nao_identificado)` — a razão entre *o que foi medido* e *o
+que era medível na mesma natureza*. `recorrente` e `transferencia_*` não são falha de
+medição: são exclusão correta e deliberada. Com o `bruto` largo (todo lançamento acima
+do limiar), `publicado / bruto` no dogfood cai para a casa de 10-15% e não é cobertura
+de coisa nenhuma. Refutação do `senior-cto` na revisão da [[A40.l98]].

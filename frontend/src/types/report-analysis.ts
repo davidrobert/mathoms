@@ -320,9 +320,11 @@ export interface OrcamentoProspectivoData {
   legenda?: string;
 }
 
-/** Um balde da base do gasto pontual. `pct` **não é campo**: o leitor o deriva
- * de `bruto`, que vem no mesmo objeto ([[ADR-425]] §D2) — publicá-lo criaria um
- * terceiro número a manter em sincronia com dois que já estão ali. */
+/** Um balde da base do gasto pontual. `pct` **não é campo** ([[ADR-425]] §D2) e
+ * o card **não o deriva** — imprime absolutos. Quando alguém precisar dele, a
+ * razão é `publicado / (publicado + excluidos.nao_identificado)`: `recorrente` e
+ * `transferencia_*` não entram no denominador, porque são exclusão deliberada e
+ * não falha de medição. */
 export interface BaldePontual {
   valor: number;
   contagem: number;

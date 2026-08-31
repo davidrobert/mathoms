@@ -174,7 +174,21 @@
 # ser declarada na própria label, precedente da 2.5.0 deste arquivo. Os campos
 # NÃO saem: são fato legítimo de escala do período. Remover é a opção mais forte
 # e fica com o `financial-planner`, com a medição no registro da lane.
-version: "2.13.0"
+# 2.14.0 — A40.l98, painel de revisão (`financial-planner` + `data-engineer`, os dois
+# independentemente): o `base_pontuais` da [[ADR-425]] §D2 existia só no card React e
+# faltava na ÚNICA superfície que prescreve. O modelo não tem `tools` — o manifest é a
+# superfície inteira dele —, então ele recebia `total_pontuais*` já reduzido pelos PRs
+# anteriores sem nenhum sinal de que virou PISO. O bump COBRA a frota, logo todo parecer
+# ia regenerar sobre uma base de 36,8% de cobertura no dogfood sem saber: trocaria
+# over-alarm por under-alarm silencioso. Entram a base bruta, o balde não classificado
+# (valor + contagem) e o hint de piso; os rótulos dos dois totais passam a declarar a
+# base. Nenhuma mudança no E5 — os campos já existiam no payload.
+#
+# NOTA DE AUDITORIA: 2.10.0–2.14.0 saíram JUNTAS no #1865. Nenhuma versão intermediária
+# serviu tráfego — a chave de cache (`compute_cache_key`) muda uma vez, no deploy. Os
+# bumps por PR existem para atribuir delta a conjunto, não para marcar deploy: não
+# procure rows de `PlannerReview` com `manifest_version` 2.10.0–2.13.0.
+version: "2.14.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -371,8 +385,16 @@ context_sections:
         title: "Consumo consciente (diagnóstico de gastos pontuais)"
         fields:
           - {path: "$.consumo_consciente.analise", label: "Análise", format: "string"}
-          - {path: "$.consumo_consciente.total_pontuais", label: "Total de gastos pontuais (período)", format: "brl"}
-          - {path: "$.consumo_consciente.total_pontuais_janela", label: "Total de gastos pontuais (janela)", format: "brl"}
+          # A40.l98 — estes dois são PISO, não total: excluem recorrentes, as duas
+          # famílias de transferência ([[ADR-333]]) e o balde não classificado
+          # ([[ADR-425]] §D1). A base vai junto, senão a §D2 ("cobertura é campo
+          # publicado") existe só no card e falta exatamente na superfície que
+          # prescreve — que é onde a [[ADR-425]] §Emenda a invoca para dispensar a D3.
+          - {path: "$.consumo_consciente.total_pontuais", label: "Gastos pontuais (período) — PISO, ver base bruta abaixo", format: "brl"}
+          - {path: "$.consumo_consciente.total_pontuais_janela", label: "Gastos pontuais (janela) — PISO, mesma base", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.bruto.valor", label: "Base bruta ≥ limiar, antes das exclusões", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.valor", label: "Fatia NÃO CLASSIFICADA da base (fora dos totais acima)", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.contagem", label: "Lançamentos não classificados na base", format: "int"}
           - {path: "$.consumo_consciente.equivalente_meses_poupanca", label: "Pontuais da janela em meses de poupança", format: "raw"}
           # A40.l101 — o equivalente é `null` fora do domínio de definição, e `on_null: skip`
           # APAGA a linha do contexto: sem o campo irmão a supressão vira silêncio, e o
@@ -387,6 +409,8 @@ context_sections:
       - "Se houver desvio relevante de categoria (despesa fora de teto), mencione qual — despesas_por_categoria (12m) acima traz a base."
       - "Itens individuais de gasto pontual e o detalhe mensal (charts) NÃO estão no contexto — get_e5_section('consumo_consciente') ou ('fluxo_caixa') traz o bloco completo se precisar."
       - "Equivalente AUSENTE com motivo de supressão = a janela fechou sem poupança: declare o déficit pela folga mensal acima. Ausência não é ausência de gasto pontual nem de risco; não recalcule o equivalente."
+      - "`total_pontuais*` é PISO, não total: exclui recorrentes, transferências e o balde NÃO CLASSIFICADO (ADR-425 §D1). Não some de volta."
+      - "Fatia não classificada material perto da base bruta = prescrição de contenção PROVISÓRIA, e o 1º passo é classificar, não cortar (mesma leitura de $.diagnostico_confianca.nivel, ADR-353)."
 
   # --------------------------------------------------------------------------
   # 3) Investimentos (S3) — alocação atual + ranking
