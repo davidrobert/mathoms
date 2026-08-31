@@ -425,6 +425,7 @@
 | ADR-428 | adr | Decidido |  | A direção conservadora de um piso é fixada pelo uso do número, não pelo número | `adr/428-a-direcao-conservadora-de-um-piso-e-fixada-pelo-uso.md` |
 | ADR-429 | adr | Proposto |  | Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita | `adr/429-estorno-e-despesa-assinada-na-categoria-original.md` |
 | ADR-430 | adr | Proposto |  | Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 | `adr/430-contrato-e1-e4-do-mapa-instituicao-membro.md` |
+| ADR-431 | adr | Decidido |  | Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo | `adr/431-valor-nao-apurado-em-item-de-ativo-fisico.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -908,7 +909,7 @@
 | A40.l109 | lane | open | A40 | A lista do card lê o artefato mais recente sob um relatório pinado e imutável | `sprint/A40/lanes/A40-l109-lista-le-latest-sob-relatorio-pinado.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l110 | lane | open | A40 | O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas | `sprint/A40/lanes/A40-l110-fossil-do-baseline-e-idempotencia.md` |
-| A40.l111 | lane | open | A40 | Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo | `sprint/A40/lanes/A40-l111-valor-nao-apurado-em-item-fisico.md` |
+| A40.l111 | lane | shipped | A40 | Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo | `sprint/A40/lanes/A40-l111-valor-nao-apurado-em-item-fisico.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
