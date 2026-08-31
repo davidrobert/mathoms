@@ -1,0 +1,19 @@
+## Duplicação cross-grupo — divergência CONFINADA à proveniência (reporta, não dedupa)
+- cobertura=OK · 6 rows varridas · 6 chaveadas · 3 chaves distintas
+- cobertura (falsificabilidade): declaradas=6 (total_transacoes, campo que o detector NÃO lê) · multi-row=3 · triplas no corpus=2 (<2 ⇒ critério vacuoso) · baldes ilegíveis=nenhum
+- 3ª identidade (nenhum filtro silencioso entre detector e numerador): multi-proveniência=3 vs numerador+explicadas=3 ⇒ fecha
+- massa não-varrida (kind transferencia não vai a balde; queda de numerador com esta massa subindo NÃO é progresso): transferencias=9
+- rows não-chaveáveis (unidade: rows · declarado, anti-silêncio ADR-342): sem_data=0 valor_nao_monetario=0 valor_zero=0 · rows chaveadas com descrição normalizada vazia (unidade: rows, NÃO excluídas): 0
+- não-explicada: 3 ocorrência(s) · Σ excesso 30000 cents [off-git] · [sombra · enforce omitido]
+- partição do numerador (unidade: ocorrências): carrier-shaped=3 · coincidence-shaped=0 · ocorrências com descrição normalizada vazia=0 · rows além de 1 por proveniência=0 (repetição legítima OU miss de dedup K4 — achado distinto, fora do numerador)
+- carrier-shaped = assinatura de carrier [[ADR-354]] — a MESMA definição que a whitelist rejeita: `<campo>:c2` = campo de proveniência PARCIAL (vazio numa perna, preenchido na outra) · `tipo_conta:c1` = QUALQUER divergência de tipo_conta entre as pernas, mais largo que o par variante que motivou a ADR ('extrato' vs 'extratoconta'): par de tipos de conta genuinamente distintos também sai carrier-shaped e fica IN-WHITELISTÁVEL até o alias-map versionado da [[A40.l2]] (sobre-detecção rotulada > sub-detecção silenciosa, [[ADR-342]])
+- histograma diagnóstico (nomes de campo): 1 classe(s)
+  · div=titular+tipo_conta parciais=titular vazio-total=banco → 3 ocorrência(s)
+- histograma por shape de whitelist (valores de vocabulário fechado + fill-state de titular — o ÚNICO eixo que `explained` aceita): 1 classe(s)
+  · banco=(vazio)|tipo_conta=extrato~extratoconta|titular=parcial → 3 ocorrência(s)
+- ocorrências (cap 20; digest + tags de campo, sem valor exato):
+  · 35cfbb46 mes=2026-03 moeda=BRL dir=credit rows=2 provs=2 div=titular+tipo_conta parciais=titular vazio-total=banco carriers=titular:c2+tipo_conta:c1 desc_vazia=0
+  · 082977ee mes=2026-03 moeda=BRL dir=debit rows=2 provs=2 div=titular+tipo_conta parciais=titular vazio-total=banco carriers=titular:c2+tipo_conta:c1 desc_vazia=0
+  · b05da1f0 mes=2026-03 moeda=BRL dir=debit rows=2 provs=2 div=titular+tipo_conta parciais=titular vazio-total=banco carriers=titular:c2+tipo_conta:c1 desc_vazia=0
+- shape declarado explicado (linha separada; NUNCA somada ao numerador): 0 ocorrência(s) · Σ excesso 0 cents [off-git]
+- shapes declarados explicados (aplicados): nenhum
