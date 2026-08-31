@@ -31,11 +31,23 @@ def _e3(survivors: list[float], dups: int = 0) -> dict:
     }
 
 
-def _bucket(geral, cats: dict, n_tx: int, *, tx_total=None, collapsed=0) -> dict:
+# `declara_valor=False` simula artefato pré-[[ADR-426]]: produtor que não declara o
+# valor do destino — o eixo-valor cai para não-medido, nunca para "mediu e deu zero".
+def _bucket(geral, cats: dict, n_tx: int, *, tx_total=None, **sig) -> dict:
     b = {"total_geral": geral, "totais_por_categoria": cats, "total_transacoes": n_tx}
     if tx_total is not None:
-        b["_lineage"] = {"signals": {"tx_total": str(tx_total), "dedup_collapsed": str(collapsed)}}
+        b["_lineage"] = {"signals": _signals(tx_total, **sig)}
     return b
+
+
+def _signals(tx_total, collapsed=0, collapsed_cents=0, transf_cents=0, declara_valor=True):
+    sig = {"tx_total": str(tx_total), "dedup_collapsed": str(collapsed)}
+    if declara_valor:
+        sig |= {
+            "dedup_collapsed_cents": str(collapsed_cents),
+            "transferencias_cents": str(transf_cents),
+        }
+    return sig
 
 
 # ─────────────────────────── _tx_cents ───────────────────────────
@@ -153,7 +165,7 @@ def test_e3e4_balde_nao_fecha() -> None:
 
 
 def test_e3e4_transferencia_conta_no_destino() -> None:
-    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3)
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3, transf_cents=3000)
     receitas = _bucket(100.0, {"salario": 100.0}, 1)
     r = e3_to_e4([_e3([100.0, 80.0, 30.0])], despesas, receitas, transferencias_count=1)
     assert r.verdict == CONSERVADO  # 1 receita + 1 despesa + 1 transferência = 3
@@ -195,24 +207,54 @@ def test_e3e4_info_fiscal_nao_mascara_perda_real() -> None:
 
 
 def test_e3e4_valor_provado_conservado() -> None:
-    # F1: valor E3 sobrevivente (100+80 = 18000 cents) == Σ valor classificado
-    # → CONSERVADO com o eixo-VALOR provado de verdade (não mais auto-referente).
+    # A42.l18: valor E3 sobrevivente (100+80 = 18000) == Σ do DESTINO declarado
+    # (baldes + transferências + removido pelo dedup). Antes, o lado-saída era uma
+    # re-soma da MESMA população de origem — a igualdade não podia falhar.
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
     receitas = _bucket(100.0, {"salario": 100.0}, 1)
-    r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0, classified_cents=18000)
+    r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0)
     assert r.verdict == CONSERVADO
     assert r.value_in_cents == 18000 and r.value_out_cents == 18000
 
 
 def test_e3e4_valor_nao_provado_vira_coberto() -> None:
-    # F1 WARN-first: count fecha mas Σ valor classificado diverge do valor E3
-    # sobrevivente → COBERTO_SEM_VALOR (nunca CONSERVADO sobre valor não-provável,
-    # nunca PERDA por valor). Antes do fix o eixo-valor era auto-referente (val==val).
-    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
+    # WARN-first: count fecha, mas o destino soma menos que a origem → COBERTO
+    # (nunca CONSERVADO sobre valor não-provável, nunca PERDA por valor).
+    despesas = _bucket(79.99, {"casa": 79.99}, 1, tx_total=2)
     receitas = _bucket(100.0, {"salario": 100.0}, 1)
-    r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0, classified_cents=17999)
+    r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0)
     assert r.verdict == COBERTO_SEM_VALOR
     assert r.value_in_cents == 18000 and r.value_out_cents == 17999
+
+
+def test_e3e4_dedup_declarado_fecha_o_valor() -> None:
+    # O dedup do E4 remove 1 row de 80 → os baldes ficam 8000 cents abaixo da origem.
+    # Declarado em `dedup_collapsed_cents`, o destino fecha e o veredito é CONSERVADO.
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3, collapsed=1, collapsed_cents=8000)
+    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    r = e3_to_e4([_e3([100.0, 80.0, 80.0])], despesas, receitas, 0)
+    assert r.verdict == CONSERVADO
+    assert r.dups == 1  # era `0` literal: o contador desta perna não podia disparar
+
+
+def test_e3e4_dedup_subdeclara_valor_vira_coberto() -> None:
+    # Anti-silêncio: o dedup removeu 8000 cents mas declarou 0 — o destino não fecha.
+    # É o defeito que a perna inerte não via (os dois lados somavam a MESMA população).
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3, collapsed=1, collapsed_cents=0)
+    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    r = e3_to_e4([_e3([100.0, 80.0, 80.0])], despesas, receitas, 0)
+    assert r.verdict == COBERTO_SEM_VALOR
+    assert r.value_in_cents - r.value_out_cents == 8000
+
+
+def test_e3e4_sem_declaracao_de_valor_nao_sobe_a_conservado() -> None:
+    # Artefato pré-[[ADR-426]]: ausência de declaração é "não medido", nunca
+    # "mediu e deu zero". Fail-closed — count fecha, valor fica coberto.
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2, declara_valor=False)
+    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0)
+    assert r.verdict == COBERTO_SEM_VALOR
+    assert r.value_out_cents is None
 
 
 # ─────────────── dedup de investimento (sum-preserving fail) ───────────────

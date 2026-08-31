@@ -181,6 +181,14 @@ def _e2e3_checks(count_in, count_out, dups, val_in, val_out, declared, value_ok)
 
 
 # ─────────────────────────── E3 → E4 ───────────────────────────
+#
+# O que esta perna NÃO discrimina ([[ADR-426]] §Consequências): erro de SINAL já
+# presente no E3 e propagado fielmente pelo E4. Na forma dominante do dado, a tx não
+# declara `tipo` e a direção É derivada do sinal (`_normalize_tipo`) — não existe
+# segunda declaração independente para discordar dele. Quando `tipo` existe, o
+# classificador aplica `abs(valor)` na despesa e a discordância atravessa sem rastro.
+# Isso é fidelidade do E3 — perna E2→E3 e `parse-certify` —, não conservação desta
+# transição. Medido em [[A42.l18]]: inverter o sinal de N débitos deixa Δ=0.
 
 
 def _bucket_value_ok(bucket: dict) -> bool:
@@ -230,9 +238,46 @@ def _survivor_value_cents(e3_artifacts: list[dict]) -> int:
     )
 
 
-def _e3e4_signals(despesas: dict) -> tuple[int, int]:
+@dataclass(frozen=True)
+class _E3E4Signals:
+    """Sinais de conferência declarados pelo E4 em ``despesas._lineage.signals``.
+    Os dois de cents são ``None`` quando o produtor não os declara (artefato
+    pré-[[ADR-426]]) — ausência é "não medido", nunca "mediu e deu zero"."""
+
+    tx_total: int
+    dedup_collapsed: int
+    dedup_collapsed_cents: int | None
+    transferencias_cents: int | None
+
+
+def _opt_int(raw: object) -> int | None:
+    """``None`` quando o sinal não foi declarado; int quando foi (inclusive ``"0"``)."""
+    return int(raw) if isinstance(raw, str) and raw.lstrip("-").isdigit() else None
+
+
+def _e3e4_signals(despesas: dict) -> _E3E4Signals:
     sig = despesas.get("_lineage", {}).get("signals", {})
-    return int(sig.get("tx_total", 0)), int(sig.get("dedup_collapsed", 0))
+    return _E3E4Signals(
+        int(sig.get("tx_total", 0)),
+        int(sig.get("dedup_collapsed", 0)),
+        _opt_int(sig.get("dedup_collapsed_cents")),
+        _opt_int(sig.get("transferencias_cents")),
+    )
+
+
+def _e3e4_value_out(despesas: dict, receitas: dict, sig: _E3E4Signals) -> int | None:
+    """Σ do DESTINO em cents — os dois baldes serializados + as transferências (sem
+    balde próprio) + o valor que o dedup do E4 removeu. Produtor diferente do lado de
+    origem: é a soma que o relatório mostra, não uma re-soma da mesma lista. ``None``
+    quando o produtor não declara os dois termos ⇒ eixo-valor não medido."""
+    if sig.dedup_collapsed_cents is None or sig.transferencias_cents is None:
+        return None
+    return (
+        to_cents(despesas.get("total_geral", 0))
+        + to_cents(receitas.get("total_geral", 0))
+        + sig.transferencias_cents
+        + sig.dedup_collapsed_cents
+    )
 
 
 def _e3e4_destino(despesas: dict, receitas: dict, transferencias_count: int, dedup: int) -> int:
@@ -249,20 +294,21 @@ def e3_to_e4(
     despesas: dict,
     receitas: dict,
     transferencias_count: int,
-    classified_cents: int | None = None,
 ) -> ConservationResult:
-    """Conservação E3→E4: count fecha, baldes fecham, e (com ``classified_cents``) o
-    VALOR sobrevivente E3 == Σ valor classificado. Sem ele, o eixo-valor não é checado."""
+    """Conservação E3→E4: count fecha, baldes fecham, e o VALOR sobrevivente E3 ==
+    Σ do destino declarado (baldes + transferências + removido pelo dedup)."""
     excluded = _classifier_skips(e3_artifacts)
     survivors = sum(a.get("transacoes_total", 0) for a in e3_artifacts) - excluded
     value_in = _survivor_value_cents(e3_artifacts)
-    tx_total, dedup_collapsed = _e3e4_signals(despesas)
-    destino = _e3e4_destino(despesas, receitas, transferencias_count, dedup_collapsed)
+    sig = _e3e4_signals(despesas)
+    destino = _e3e4_destino(despesas, receitas, transferencias_count, sig.dedup_collapsed)
     buckets_ok = _bucket_value_ok(despesas) and _bucket_value_ok(receitas)
-    v, d = _e3e4_count_verdict(survivors, excluded, tx_total, destino, buckets_ok)
-    v, d = _value_downgrade(v, d, value_in, classified_cents)
-    value_out = value_in if classified_cents is None else classified_cents
-    return ConservationResult("E3->E4", tx_total, destino, value_in, value_out, 0, v, d)
+    value_out = _e3e4_value_out(despesas, receitas, sig)
+    v, d = _e3e4_count_verdict(survivors, excluded, sig.tx_total, destino, buckets_ok)
+    v, d = _value_downgrade(v, d, value_in, value_out)
+    return ConservationResult(
+        "E3->E4", sig.tx_total, destino, value_in, value_out, sig.dedup_collapsed, v, d
+    )
 
 
 def _e3e4_checks(survivors: int, excluded: int, tx_total: int, destino: int, buckets_ok: bool):
@@ -278,16 +324,21 @@ def _e3e4_checks(survivors: int, excluded: int, tx_total: int, destino: int, buc
     ]
 
 
-def _value_downgrade(verdict: str, detail: str, value_in: int, classified_cents: int | None):
-    """WARN-first: count-conservado com VALOR não-provado (Σ valor E3 sobrevivente !=
-    Σ valor classificado) cai para ``coberto-sem-verificação`` — nunca afirma
-    ``conservado`` sobre valor não-provável, nunca sobe a PERDA por valor (evita
-    falso-P0 por convenção de sinal/amount). Sem ``classified_cents``, não checa."""
-    if verdict != CONSERVADO or classified_cents is None or value_in == classified_cents:
+def _value_downgrade(verdict: str, detail: str, value_in: int, value_out: int | None):
+    """WARN-first: count-conservado com VALOR não-provado cai para
+    ``coberto-sem-verificação`` — nunca afirma ``conservado`` sobre valor não-provável,
+    nunca sobe a PERDA por valor (evita falso-P0 por convenção de sinal/amount).
+    ``value_out is None`` (produtor não declara) é ``coberto``, não ``conservado``:
+    antes da declaração o eixo-valor era uma identidade e passava sempre."""
+    if verdict != CONSERVADO:
+        return verdict, detail
+    if value_out is None:
+        return COBERTO_SEM_VALOR, "count fecha; destino E3→E4 sem valor declarado"
+    if value_in == value_out:
         return verdict, detail
     return (
         COBERTO_SEM_VALOR,
-        f"count fecha; valor E3→E4 não-provado (Δ={value_in - classified_cents} cents)",
+        f"count fecha; valor E3→E4 não-provado (Δ={value_in - value_out} cents)",
     )
 
 

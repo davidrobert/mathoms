@@ -57,6 +57,18 @@ def _e4_unified_schema() -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+# `*_cents` são o eixo-VALOR do destino E3→E4 ([[ADR-426]]): a despesa duplicada de
+# R$100,00 é o buraco que o dedup abre nos baldes. Sem declará-lo, o harness comparava
+# a origem consigo mesma e o veredito `conservado` desta perna não podia falhar.
+_SIGNALS_ESPERADOS = {
+    "tx_total": "3",
+    "dedup_collapsed": "1",
+    "dedup_review": "0",
+    "dedup_collapsed_cents": "10000",
+    "transferencias_cents": "0",
+}
+
+
 def _conta_com_despesa_duplicada() -> dict:
     """Payload E3 com 2 despesas idênticas (colapsam no dedup K4) + 1 receita."""
     mercado = {"data": "2026-01-10", "descricao": "MERCADO", "valor": -100, "tipo": "debito"}
@@ -253,11 +265,7 @@ class TestSerializeE4Artifacts:
 
         block = payloads["despesas"]["_lineage"]
         assert block["lineage_version"] == "1.0"
-        assert block["signals"] == {
-            "tx_total": "3",
-            "dedup_collapsed": "1",
-            "dedup_review": "0",
-        }
+        assert block["signals"] == _SIGNALS_ESPERADOS
         for key in ("receitas", "fluxo_mensal_detalhado", "investimentos", "seguros"):
             assert "_lineage" not in payloads[key]
 
