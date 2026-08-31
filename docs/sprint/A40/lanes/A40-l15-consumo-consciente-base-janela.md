@@ -313,7 +313,7 @@ premissas morreram e a quarta mudou de dono.
 | item original | desfecho |
 | --- | --- |
 | KPI de pontuais na base da janela | → [[A40.l98]] (base + política única) |
-| co-change 1 `pontual_mensal` | → [[A40.l98]], mas **fora do primeiro lote** ([[ADR-425]] D3) |
+| co-change 1 `pontual_mensal` | ⚠️ **sem dono desde 2026-08-31** — a [[A40.l98]] shipou (#1865) e o campo **não** entrou; dono proposto `financial-planner`, ver §Achado do closeout da [[A40.l98]] |
 | co-change 2 `equivalente_meses_aporte_janela` | ✅ **entregue** no #1828 sob outro nome e outro denominador; o `aporte_mensal` que ele propunha foi **rejeitado por medição** ([[ADR-422]] D3) |
 | co-change 3 prosa das duas janelas | ✅ **entregue** no #1828 |
 | `teto_sugerido` | **extinto** do contrato ([[ADR-422]] D2) |
