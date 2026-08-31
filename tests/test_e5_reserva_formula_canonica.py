@@ -29,7 +29,6 @@ _FAMILY = {
 }
 
 _BASELINE_CARTEIRA_MISTA = {
-    "pipeline_stage": "E1.5_Baseline_Patrimonial",
     "data_processamento": "2024-12-31",
     "itens": [
         {

@@ -32,7 +32,6 @@ def _divida_for(key: str, saldo: Decimal) -> dict:
 def make_baseline_dividas(*member_saldos: tuple[str, Decimal]) -> dict:
     """Baseline minimal — allowlisted P1 fixture helper."""
     return {
-        "pipeline_stage": "E1.5_Baseline_Patrimonial",
         "data_processamento": "2026-05-20",
         "dividas": [_divida_for(k, s) for k, s in member_saldos],
     }

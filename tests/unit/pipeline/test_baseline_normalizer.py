@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
@@ -13,38 +12,26 @@ from pipeline.domain.services.baseline_normalizer import (  # noqa: E402
     NormalizedBaseline,
 )
 
-_FIXED_DATE = date(2026, 4, 19)
-
 
 def _normalizer() -> BaselineNormalizer:
-    return BaselineNormalizer(date_today=_FIXED_DATE)
+    return BaselineNormalizer()
 
 
-class TestPipelineStage:
-    def test_adds_pipeline_stage_when_missing(self):
+class TestSemFossil:
+    """A40.l110 — o normalizer não inventa mais campo que produtor nenhum emite."""
+
+    def test_nao_sintetiza_pipeline_stage(self):
         out = _normalizer().normalize({"something": 1})
-        assert out.data["pipeline_stage"] == "E1.5_Baseline_Patrimonial"
-        assert "pipeline_stage added" in out.fixes
+        assert "pipeline_stage" not in out.data
 
-    def test_preserves_existing_pipeline_stage(self):
-        out = _normalizer().normalize({"pipeline_stage": "E1.5"})
-        assert out.data["pipeline_stage"] == "E1.5"
-        assert "pipeline_stage added" not in out.fixes
-
-
-class TestDataProcessamento:
-    def test_derives_from_data_consolidacao(self):
+    def test_nao_sintetiza_data_processamento(self):
         out = _normalizer().normalize({"data_consolidacao": "2025-06-01T12:00:00"})
-        assert out.data["data_processamento"] == "2025-06-01"
-        assert "data_processamento ← data_consolidacao" in out.fixes
+        assert "data_processamento" not in out.data
 
-    def test_defaults_to_today_when_missing(self):
-        out = _normalizer().normalize({})
-        assert out.data["data_processamento"] == "2026-04-19"
-        assert "data_processamento set to today" in out.fixes
-
-    def test_preserves_existing(self):
-        out = _normalizer().normalize({"data_processamento": "2025-01-01"})
+    def test_preserva_o_que_o_input_traz(self):
+        entrada = {"pipeline_stage": "E1.5", "data_processamento": "2025-01-01"}
+        out = _normalizer().normalize(entrada)
+        assert out.data["pipeline_stage"] == "E1.5"
         assert out.data["data_processamento"] == "2025-01-01"
 
 
@@ -173,14 +160,14 @@ class TestDividas:
 
 class TestReturnType:
     def test_returns_normalized_baseline_dataclass(self):
-        out = _normalizer().normalize({})
+        out = _normalizer().normalize({"dividas_consolidados": [{"valor": 1000}]})
         assert isinstance(out, NormalizedBaseline)
         assert out.was_normalized is True
 
     def test_does_not_mutate_input(self):
-        raw = {"data_consolidacao": "2025-01-01"}
+        raw = {"membros_familia": [{"nome": "David"}]}
         _normalizer().normalize(raw)
-        assert raw == {"data_consolidacao": "2025-01-01"}
+        assert raw == {"membros_familia": [{"nome": "David"}]}
 
     def test_none_input_returns_empty(self):
         out = _normalizer().normalize(None)
@@ -190,8 +177,9 @@ class TestReturnType:
     def test_already_canonical_has_no_fixes(self):
         out = _normalizer().normalize(
             {
-                "pipeline_stage": "E1.5",
-                "data_processamento": "2025-01-01",
+                "membros": ["david"],
+                "patrimonio_por_ano": {"2025": {"total_bens": 1.0, "total_dividas": 0.0}},
+                "dividas": [],
             }
         )
         assert out.fixes == ()

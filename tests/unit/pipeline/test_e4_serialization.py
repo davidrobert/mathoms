@@ -34,7 +34,6 @@ from pipeline.domain.services.transaction_classifier import (  # noqa: E402
 )
 
 _FIXED_NOW = datetime(2026, 4, 19, 10, 0, 0, tzinfo=timezone(timedelta(hours=-3)))
-_FIXED_DATE = date(2026, 4, 19)
 
 
 def _apolice_sintetica() -> dict:
@@ -96,7 +95,7 @@ def _adapter() -> E4CategorizerAdapter:
     return E4CategorizerAdapter(
         classifier=TransactionClassifier(cfg),
         cash_flow_builder=CashFlowBuilder(now=_FIXED_NOW),
-        baseline_normalizer=BaselineNormalizer(date_today=_FIXED_DATE),
+        baseline_normalizer=BaselineNormalizer(),
         investments_consolidator=InvestmentsConsolidator(now=_FIXED_NOW),
     )
 
@@ -298,9 +297,10 @@ class TestSerializeE4Artifacts:
 
         payloads = serialize_e4_artifacts(result)
 
-        # Baseline normalizado propaga data_processamento, membros, etc.
-        assert payloads["patrimonio"]["data_processamento"] == "2025-06-30"
+        # O normalizado propaga o que o produtor emite — e só isso. A40.l110:
+        # `data_processamento` deixou de ser derivada de `data_consolidacao`.
         assert "David" in payloads["patrimonio"]["membros"]
+        assert "data_processamento" not in payloads["patrimonio"]
 
     def test_investimentos_has_totals(self):
         store = InMemoryArtifactStore()

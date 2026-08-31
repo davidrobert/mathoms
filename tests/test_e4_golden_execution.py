@@ -175,7 +175,9 @@ def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
 
     pat = store.read("E4", "patrimonio")
     assert pat is not None
-    assert pat["pipeline_stage"] == "E1.5_Baseline_Patrimonial"
+    # A40.l110 — o balde espelha o produtor; o fóssil sintetizado morreu.
+    assert "pipeline_stage" not in pat
+    assert "data_processamento" not in pat
     assert pat["patrimonio_por_ano"]["2024"]["total_bens"] == 500000.0
 
     # A42.l19 — `patrimonio` deixou de ser exceção. Este teste já validava o balde
