@@ -177,6 +177,16 @@ def _resolve_rv_group(positions: list[dict], idxs: list[int], tk: str, membro: s
     return drop, avisos
 
 
+def _nome_str(nome: object) -> str:
+    """Nome de posição como `str`, para `posicoes_sem_marcacao_por_membro` (ADR-346)."""
+    # O valor vem de parser/LLM sem coerção e o balde declara `items: {type: string}`.
+    # O corpus nunca exercitou a chave (0/70 em 98 dias), então `nome` numérico passaria
+    # despercebido — e sob `strict` abortaria o write do E4 (`criticality: required`).
+    # Coerção no PRODUTOR, nunca afrouxando o `items`: afrouxar torna o número verde sem
+    # tornar o contrato verdadeiro ([[ADR-409]] §F).
+    return "?" if nome is None or nome == "" else str(nome)
+
+
 def _resolve_rv_collapse(positions: list[dict], sem_por_membro: dict[str, list[str]]):
     """ADR-346 resolução RV por (ticker_norm, membro). Recomputa `sem_marcacao`
     removendo as custódias colapsadas (sem falso alarme de ressalva)."""
@@ -190,7 +200,7 @@ def _resolve_rv_collapse(positions: list[dict], sem_por_membro: dict[str, list[s
     new_sem: dict[str, list[str]] = {}
     for p in kept:
         if p.get("posicao_sem_marcacao"):
-            new_sem.setdefault(p.get("membro", ""), []).append(p.get("nome") or "?")
+            new_sem.setdefault(p.get("membro", ""), []).append(_nome_str(p.get("nome")))
     return kept, new_sem, avisos
 
 
@@ -435,7 +445,7 @@ class InvestmentsConsolidator:
                     }
                 )
                 if sem_marcacao:
-                    sem_marcacao_por_membro.setdefault(membro, []).append(nome or "?")
+                    sem_marcacao_por_membro.setdefault(membro, []).append(_nome_str(nome))
 
             try:
                 total_f = float(total_fonte) if total_fonte else 0.0

@@ -130,6 +130,29 @@ class TestModeOverridesPerSchema:
         unknown = set(overrides) - existing
         assert not unknown, f"mode_overrides com schema(s) inexistente(s): {sorted(unknown)}"
 
+    def test_mode_overrides_referenciam_schema_ALCANCAVEL(self):
+        """A42.l19 — arquivo existir não basta: o guard só aplica o override se algum
+        `(stage, key)` resolver para aquele schema. Promover um `.schema.json` órfão do
+        mapa produz flip **inerte** — verde no gate anterior, strict em nada. Os schemas
+        por balde do E4 são os primeiros alcançáveis SÓ pelo mapa por chave.
+        """
+        from backend.app.services.storage.db_artifact_store import (
+            SCHEMA_BY_STAGE,
+            SCHEMA_BY_STAGE_KEY,
+        )
+
+        config_path = Path(__file__).resolve().parent.parent / "config"
+        pipeline_cfg = json.loads((config_path / "pipeline.json").read_text())
+        overrides = pipeline_cfg.get("schema_validation", {}).get("mode_overrides", {})
+        alcancaveis = set(SCHEMA_BY_STAGE.values()) | set(SCHEMA_BY_STAGE_KEY.values())
+
+        inertes = set(overrides) - alcancaveis
+
+        assert not inertes, (
+            f"mode_overrides promove schema que nenhum (stage, key) resolve: "
+            f"{sorted(inertes)} — o flip não aplica a nada"
+        )
+
 
 def _cfg_writer(path):
     """Devolve ``write(overrides)`` que grava um `pipeline.json` mínimo em ``path``."""
