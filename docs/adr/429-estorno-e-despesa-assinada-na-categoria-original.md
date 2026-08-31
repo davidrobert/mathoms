@@ -31,21 +31,36 @@ cujo **mecanismo enunciado não procedia** — medido no fecho da [[A40.l98]].
 
 Todo crédito vira receita: `transaction_classifier._classify_one` roteia
 `tipo == "credito"` para `_classify_credito` → `kind="receita"`. Não existe noção de
-estorno. **E o sinal do erro depende de qual documento carregou o estorno** — compra de
-R$ 48k com estorno de R$ 48k no mesmo mês:
+estorno. **E o sinal do erro depende de qual documento carregou o estorno.**
 
-| | A (nada) | B (só compra) | C (estorno em **fatura**) | D (estorno em **conta**) |
+Medido E3→E5 sobre as fixtures deste repo (`tests/fixtures/pipeline_golden/e3/estorno-*`,
+renda de R$ 240.000 em 12 meses, compra de R$ 48.000):
+
+| mundo | `receita_total` | `despesa_total` | `fluxo_liquido` | `equivalente_meses_poupanca` |
 | --- | ---: | ---: | ---: | ---: |
-| `receita_total` | 20.000 | 20.000 | **−28.000** | 68.000 |
-| `despesa_total` | 0 | 48.000 | 48.000 | 48.000 |
-| `fluxo_liquido` | 20.000 | −28.000 | **−76.000** | 20.000 |
-| `equivalente_meses_poupanca` | 0,0 | `null` | **`null`** | **2,4** |
+| sem par (controle) | 240.000 | 0 | 240.000 | 0,0 |
+| só a compra (conta) | 240.000 | 48.000 | 192.000 | 3,0 |
+| **compra + estorno na CONTA** | **288.000** | 48.000 | 240.000 | **2,4** |
+| só a compra (fatura) | 240.000 | 48.000 | 192.000 | 3,0 |
+| **compra + estorno na FATURA** | **192.000** | 48.000 | 144.000 | **4,0** |
+| compra + **pagamento** da fatura | 192.000 | 48.000 | 144.000 | 4,0 |
 
-No regime **D** o par fica mais **otimista** (a receita infla). No regime **C** —
-fatura, o caso comum — o publicado fica R$ 48k **pior** e o KPI é suprimido por
-`folga_nao_positiva`. **O mundo em que a compra foi cancelada publica o pior número.**
-`_classify_credito` é o único ramo do classificador **sem `abs()`**, então
-`receita_total` negativo é publicável hoje.
+Na **conta** o estorno infla a receita e o par fica mais **otimista** (3,0 → 2,4). Na
+**fatura** ele entra como receita **negativa** e o par fica mais **pessimista**
+(3,0 → 4,0) — a despesa continua lá, e a receita cai pelo mesmo valor: o cancelamento
+é contado duas vezes contra a família.
+
+**E o pagamento da fatura sofre do mesmo mal:** a linha `PAGAMENTO EFETUADO` também é
+crédito, e também deflaciona a receita em R$ 48.000. `_classify_credito` é o **único**
+ramo do classificador sem `abs()`, então `por_fonte[*]` negativo é publicável hoje.
+
+> ⚠️ **Convenção de sinal, e ela mordeu na primeira versão desta ADR.** Em
+> `faturacartao` o **positivo é compra** e o negativo é crédito
+> (`categorize_transactions.py:733`); em `extratoconta` é o inverso. A tabela original
+> desta nota vinha de uma sonda em scratchpad e **não era reproduzível** pelas fixtures
+> que o mesmo PR entregou — elas modelavam a fatura com sinal de extrato, o que fazia a
+> renda virar despesa. Corrigido no closeout: renda vive no extrato, compra e estorno na
+> fatura, e cada mundo é um **conjunto de documentos**, como no dogfood real.
 
 ## Duas causas-raiz, e a segunda é uma armadilha
 

@@ -1,0 +1,32 @@
+{
+  "banco": "itau",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-03-01",
+    "fim": "2026-03-31"
+  },
+  "saldo_inicial": 0.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 144000.0,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "itau_extratoconta_202503_202603-2_extract.json"
+  ],
+  "transacoes_total": 2,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-12-10",
+      "descricao": "COMPRA MAGAZINE XYZ",
+      "valor": -48000.0
+    },
+    {
+      "data": "2025-12-20",
+      "descricao": "ESTORNO MAGAZINE XYZ",
+      "valor": 48000.0
+    }
+  ],
+  "_nota_ordem": "Fixture da [[ADR-429]] F1. Ordem não-cronológica de propósito: `dev/golden_diff.py` diffa arrays por ÍNDICE. Não 'arrume'. ⚠️ CONVENÇÃO DE SINAL: em `faturacartao` positivo é COMPRA e negativo é crédito (`categorize_transactions.py:733`); em `extratoconta` é o inverso. Trocar isso faz a renda virar despesa e o gate reprovar pelo motivo errado."
+}
