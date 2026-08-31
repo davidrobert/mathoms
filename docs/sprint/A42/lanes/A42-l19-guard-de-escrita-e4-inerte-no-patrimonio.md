@@ -153,5 +153,13 @@ ramo — seria inerte contra a classe, e o teste que discrimina é o de **troca 
 
 - `save_json` em `scripts/categorize_transactions.py:975` é **dead code** (zero
   call-sites pós-[[ADR-212]]) e cita o umbrella por nome.
+
+  > **Fechado 2026-08-31** ([#1889](https://github.com/davidrobert/mathoms/pull/1889)).
+  > Função deletada. Os call-sites foram re-verificados por cinco vetores, não só
+  > pelo literal: `getattr`/`globals()`/`vars()`/`eval`/`exec` com nome montado,
+  > despacho por `dir()` + `startswith`, `from ... import *`, `__all__` e
+  > monkeypatch de teste — nenhum alcança o nome. Com a remoção, o único sítio
+  > **executável** que cita o umbrella por nome literal volta a ser o próprio
+  > `SCHEMA_BY_STAGE`; o resto é docstring (`e4_serialization.py`) e teste.
 - O flip `warn→strict` do E4 fica **elegível** (7/7 validam), mas a decisão segue com a
   [[ADR-409]] — esta lane só remove o impedimento; não flippa nada.

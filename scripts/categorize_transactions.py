@@ -972,22 +972,6 @@ def build_fluxo_mensal_detalhado(receitas: List[Dict], despesas: List[Dict]) -> 
     }
 
 
-def save_json(file_path: Path, data: Dict) -> None:
-    """Save JSON file with nice formatting. Uses atomic write when available (Fix 2.3)."""
-    if _pc is not None:
-        if not _pc.write_json_atomic(file_path, data):
-            raise IOError(f"Atomic write failed for {file_path}")
-        _pc.validate_artifact(file_path, "e4_unified.schema.json")
-        return
-    try:
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except (IOError, OSError) as e:
-        print(f"  [ERROR] Falha ao salvar {file_path}: {e}", file=sys.stderr)
-        raise
-
-
 def preserve_existing_file(file_path: Path) -> bool:
     """Check if file exists and is substantial (>100 bytes)."""
     if file_path.exists():
