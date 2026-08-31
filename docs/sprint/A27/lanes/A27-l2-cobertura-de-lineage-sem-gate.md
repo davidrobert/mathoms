@@ -3,7 +3,7 @@ id: A27.l2
 type: lane
 title: "A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro"
 sprint: A27
-status: open
+status: in_progress
 priority: P2
 branch_slug: a27-l2-cobertura-de-lineage-sem-gate
 owner: data-engineer
@@ -33,10 +33,33 @@ nenhuma — nem o gate, nem a accuracy. É gate que só pode dar verde.
 
 ## O denominador, com a população nomeada
 
-`lineage_debug_whitelist()` tem **8 campos**, que expandem para 241 paths concretos mas
-vivem sob **5 raízes**. Contra o **payload** publicado (42 chaves de topo): **37 (88%)** sem
-rastro. Contra o **schema** do E5 (38 raízes declaradas): **~87%**. Dizer "as raízes do E5"
-sem dizer qual é o vício que esta lane existe para consertar.
+> **Remedido 2026-08-30 na execução — os números do enunciado não reproduzem.** As `42
+> chaves de topo` são de um run fora do git; na fixture dogfood determinística o payload tem
+> **32**. Pior que a divergência: **o denominador estava errado de espécie**. Contar as 42/32
+> raízes cruas põe `narrativas`, `alertas`, `data_analise` e `tarefas` no denominador — prosa
+> e metadado que nunca terão rastro. Isso dá um teto inalcançável, e **KR que não pode chegar
+> a 100% é KR que ninguém persegue**. O `~87%` herdado é verdadeiro e inútil.
+
+O denominador que a lane entrega é **raiz que publica dinheiro**, discriminada por
+`golden_diff.is_monetary` — o único predicado do repo que classifica campo **sem consultar o
+registro**, que é o que mantém numerador e denominador independentes.
+
+| Medida (fixture dogfood, 2026-08-30) | Valor |
+| --- | --- |
+| Raízes do payload que publicam dinheiro | **14** |
+| Raízes com nó em `_lineage.fields` | **5** |
+| **Cobertura** | **5/14 = 35,7%** |
+| Raízes monetárias sem rastro | 9 — `cenarios_conjuge`, `consumo_consciente`, `equilibrio_cerbasi`, `exposicao_cambial`, `goals`, `if_monte_carlo`, `orcamento_prospectivo`, `passive_income`, `ratios` |
+
+O denominador é **dependente de workspace** (flag/cobertura mudam as raízes emitidas), então
+o KR fica ancorado na **fixture determinística**, não num run: é gate, não telemetria.
+
+**Correção à metade 2 do enunciado.** "A raiz de endividamento está no registro com zero
+caso" é verdade e é **estreita**: são **4 dos 8** `rule_id` sem caso nenhum
+(`endividamento.total_dividas`, `fluxo_caixa.fluxo_liquido`, `fluxo_caixa.janelas`,
+`patrimonio.bruto`). E o laço era mais frouxo do que o enunciado diz — os 29 casos
+exercitam **4 refs distintos** contra **6** no registro, porque refs são **compartilhados**
+entre `rule_id` (`patrimonio.liquido` e `.bruto` citam o mesmo enforcer).
 
 **Efeito na rodada unificada:** é por isso que 37 dos 42 blocos saem `sem-veredito` na
 tabela de condicionamento — a cegueira é do **registro de lineage**, não falta de balde.
@@ -44,11 +67,25 @@ Regra ternária em [[LEDGER-CERTIFY-active]] §r6 §10.
 
 ## Critério de aceite
 
-- [ ] Existe um **KR de cobertura** = raízes com nó ÷ raízes do payload, com o denominador
-      vindo do **payload publicado**, nunca do registro.
-- [ ] **Controle positivo:** acrescentar raiz ao E5 sem entrada no registro ⇒ a métrica
-      **cai** e/ou o gate reprova. Hoje ambos ficam verdes.
-- [ ] O eval deixa de derivar `expected` do registro que ele avalia.
+- [x] Existe um **KR de cobertura** = raízes com nó ÷ raízes do payload, com o denominador
+      vindo do **payload publicado**, nunca do registro. — `dev/lineage_coverage.py`;
+      **5/14 = 35,7%** travado em `dev/snapshots/lineage_coverage_baseline.json`. O gate
+      compara **conjunto**, não contagem: raiz renomeada não passa por compensação.
+- [x] **Controle positivo:** acrescentar raiz ao E5 sem entrada no registro ⇒ a métrica
+      **cai** e/ou o gate reprova. Hoje ambos ficam verdes. — `test_lineage_coverage.py`.
+      Falsificado ponta-a-ponta: injetada raiz monetária na fixture, o gate ficou **vermelho**
+      e `check_lineage_refs` ficou **verde** na mesma mutação (assimetria registrada como
+      teste, `test_o_gate_de_refs_e_inerte_a_mesma_mutacao`).
+- [x] O eval deixa de derivar `expected` do registro que ele avalia. — `cases._EXPECTED_REFS`
+      literal + cross-check por `rule_id`. Falsificado: apontar `patrimonio.liquido` para
+      outro enforcer reprova o novo assert e passa **verde** na forma derivada.
+
+## O que esta lane NÃO fecha
+
+Os 9 blocos monetários sem rastro **continuam sem rastro** — a lane entrega a **medida** e o
+**gate**, não a cobertura. O KR nasce em 35,7% de propósito: é o número que torna a dívida
+contável e impede que ela cresça calada. Fechar cada raiz é trabalho de emissor
+(`e5_lineage.py` + entrada no registro), dimensionável agora que existe denominador.
 
 ## Nota de materialidade
 

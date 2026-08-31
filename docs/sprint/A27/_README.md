@@ -48,7 +48,7 @@ veio este R$ do parecer?" — hoje a camada mais user-facing fica cega.
 | Lane | Slug | Status | Dep / Gate | ADR |
 |---|---|---|---|---|
 | [[A27.l1]] | `evidencia-lineage-edge` | ✅ shipped (#715/#716/#718) | slices 1–4 entregues (1+3 ∥ l9; 2+4 pós-merge da l9, conforme planejado) | [[ADR-293]] `Decidido (A27.l1)` |
-| [[A27.l2]] | `cobertura-de-lineage-sem-gate` | open | aberta 2026-08-30 do `PV12-02` da **U4** — o gate é existência pura e o eval deriva `expected` do próprio registro; **~87%** das raízes do E5 sem rastro | [[ADR-281]] |
+| [[A27.l2]] | `cobertura-de-lineage-sem-gate` | in_progress | aberta 2026-08-30 do `PV12-02` da **U4** — o gate é existência pura e o eval deriva `expected` do próprio registro. Remedido na execução: o `~87%` do enunciado contava prosa/metadado no denominador; a cobertura acionável é **5/14 = 35,7%** das raízes que publicam dinheiro | [[ADR-281]] `Emendada 2026-08-30` |
 
 ## Lanes executadas nesta janela (origem A26 — referência, sem migração de id)
 
