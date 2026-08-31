@@ -37,6 +37,7 @@ from pipeline.domain.services.baseline_item_classifier import (
     classify_baseline_item,
 )
 from pipeline.domain.services.money_parsing import valor_monetario_float
+from pipeline.domain.services.valor_nao_apurado import sanear_baseline, sanear_item_fisico
 from pipeline.llm.rfb_codes import load_baseline_catalog
 from pipeline.llm.schemas.e16_irpf_full import detect_pj_suffix
 
@@ -490,6 +491,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     total_dividas = 0.0
     pj_skipped = 0
     warnings_do_run: List[object] = []
+    nao_apurados: List[object] = []
     catalogo = load_baseline_catalog(ano_base)
 
     for item in itens:
@@ -586,6 +588,16 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
             entry["tipo"] = "outros"
             investimentos_consolidados.append(entry)
 
+        # [[ADR-430]]: o valor impossível sai da soma no MESMO ponto em que sai
+        # do item. Sanear só no boundary do stage deixaria `patrimonio_por_ano`
+        # com o negativo — e o E5 credita a diferença (resumo − sintético) ao
+        # titular, reinjetando pelo resíduo o valor que a ADR acabou de remover.
+        if categoria in _COLECAO_FISICA:
+            _do_item = sanear_item_fisico(entry, colecao=_COLECAO_FISICA[categoria])
+            if _do_item:
+                nao_apurados.extend(_do_item)
+                continue
+
         total_bens += valor
 
     # ADR-394 D4: o agregado do LLM não sobrescreve mais a soma determinística.
@@ -595,9 +607,15 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     review_reasons = _agrega_review_reasons(warnings_do_run)
     review_reasons.extend(
         _review_reasons_da_conservacao(
-            resumo, _to_cents(total_bens), _to_cents(total_dividas), pj_skipped
+            resumo,
+            _to_cents(total_bens),
+            _to_cents(total_dividas),
+            pj_skipped,
+            nao_apurados=len(nao_apurados),
         )
     )
+    if nao_apurados:
+        print(f"    Valores não apurados (sinal impossível): {len(nao_apurados)}")
 
     patrimonio_por_ano = {
         ano_str: {
@@ -630,6 +648,11 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     baseline["validation"] = {"review_reasons": review_reasons}
 
     return baseline
+
+
+# As duas categorias de ativo FÍSICO ([[ADR-430]]); investimento fica fora — lá
+# negativo é saldo devedor legítimo e a D6 já o reclassifica.
+_COLECAO_FISICA = {"imovel": "imoveis_consolidados", "veiculo": "veiculos_consolidados"}
 
 
 def _declaracao_do_item(item: dict) -> tuple[str, str]:
@@ -690,22 +713,34 @@ def _conservacao_reason(eixo: str, declarado: int, somado: int) -> dict:
 # ADR-394 D5: a referência do agregado é ano-CEGA — `_aggregate_baselines` soma
 # os `resumo` per-file de anos distintos (medido em 7/7). Conservar "por ano"
 # contra ela dispararia 100% por construção; o grão por ano é contra os E1.5a.
+# A soma determinística só é comparável ao `resumo` quando NADA foi retirado
+# dela por decisão nossa. Dois casos retiram: o contribuinte PJ (INV-9, ADR-268)
+# e o valor impossível em ativo físico ([[ADR-430]]). Nos dois, a divergência é
+# construída por nós, já tem razão específica, e publicá-la como
+# `baseline_divergence` daria ao operador o código errado para o mesmo fato.
+def _soma_comparavel(pj_skipped: int, nao_apurados: int) -> bool:
+    return not pj_skipped and not nao_apurados
+
+
 def _review_reasons_da_conservacao(
-    resumo: dict, bens_cents: int, dividas_cents: int, pj_skipped: int
+    resumo: dict,
+    bens_cents: int,
+    dividas_cents: int,
+    pj_skipped: int,
+    nao_apurados: int = 0,
 ) -> List[dict]:
     """Σ determinística vs. `resumo` do LLM, por eixo, cents int, tolerância zero."""
-    if pj_skipped:
-        # O `resumo` somou o contribuinte PJ que este boundary dropou (INV-9,
-        # ADR-268): a divergência é esperada e já tem sinal próprio.
+    if not _soma_comparavel(pj_skipped, nao_apurados):
         return []
-    razoes = []
-    for eixo, declarado, somado in (
+    eixos = (
         ("ativos", _to_cents(safe_float(resumo.get("total_ativos", 0))), bens_cents),
         ("passivos", _to_cents(safe_float(resumo.get("total_passivos", 0))), dividas_cents),
-    ):
-        if declarado != somado:
-            razoes.append(_conservacao_reason(eixo, declarado, somado))
-    return razoes
+    )
+    return [
+        _conservacao_reason(eixo, declarado, somado)
+        for eixo, declarado, somado in eixos
+        if declarado != somado
+    ]
 
 
 def _classify_investimento(grupo: str, descricao: str) -> str:
@@ -998,6 +1033,15 @@ def main_with_store(ctx) -> dict:
     #     "Informe 31/12 vence extrato D+1" — seção dedicada, downstream consome.
     if ctx.workspace_id is not None:
         _apply_informe_pf_merge(consolidated, workspace_id=ctx.workspace_id)
+
+    # 4c. Valor impossível em ativo físico vira `null` declarado ([[ADR-430]]).
+    #     Roda DEPOIS do dedup e dos merges — os dois caminhos de consolidação e
+    #     todo enriquecimento já passaram, então este é o único ponto por onde o
+    #     artefato sai. Saneá-lo antes deixaria o negativo reentrar pelo informe.
+    _nao_apurados = sanear_baseline(consolidated)
+    if _nao_apurados:
+        print(f"  [E1.5c] Valores não apurados (sinal impossível): {len(_nao_apurados)} item(ns)")
+        _pc.log_stage("WARN", f"valor_nao_apurado (E1.5c): {len(_nao_apurados)} item(ns)")
 
     # 5. Persiste via store (write-back no artefato consolidado).
     store.write("consolidate_baseline", "baseline_patrimonial", consolidated)
