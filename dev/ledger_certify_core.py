@@ -27,6 +27,7 @@ from dev.ledger_collapse_layer import (
 from dev.ledger_conservation import (
     CrossGroupSummary,
     cross_group_summary,
+    declared_removed_count,
     e2_to_e3,
     e3_to_e4,
     fmt_cross_group,
@@ -92,12 +93,15 @@ class LedgerReport:
 # ─────────────────────────── drift + cobertura ───────────────────────────
 
 
+# A42.l20 — somar só `transacoes_duplicadas_removidas` lia apenas o canal
+# `cross_file_dedup`: um canal declarado (o colapso cross-documento) saía como *count
+# divergente*. `declared_removed_count` é o mesmo normalizador da conservação E2→E3, e
+# degrada ao campo legado quando o artefato não tem `remocoes`.
 def _e3_count(payload) -> int:
+    """População que o grupo PRESTA CONTA: sobreviventes + remoções declaradas."""
     if not isinstance(payload, dict):
         return -1
-    return int(payload.get("transacoes_total", 0)) + int(
-        payload.get("transacoes_duplicadas_removidas", 0)
-    )
+    return int(payload.get("transacoes_total", 0)) + declared_removed_count(payload)
 
 
 def _count_diffs(fresh_e3: dict, persisted_e3: dict) -> tuple[int, list[str]]:
@@ -113,8 +117,12 @@ def _count_diffs(fresh_e3: dict, persisted_e3: dict) -> tuple[int, list[str]]:
 
 
 def _drift(fresh_e3: dict, persisted_e3: dict) -> DriftSummary:
-    """Cross-check fresco↔persistido por grupo — divergência = drift (reporta,
-    não falha): código mudou o keying/dedup pós-run OU artefato de run parcial."""
+    """Cross-check fresco↔persistido por grupo — divergência = drift (reporta, não falha)."""
+    # O count vem normalizado pelos canais de `remocoes` (ver `_e3_count`), então remoção
+    # DECLARADA dos dois lados não é divergência. O que sobra tem TRÊS causas: keying/dedup
+    # mudou pós-run, artefato de run parcial, OU a config do harness diverge da do run
+    # (ex.: `collapse_enforce`) num eixo que nenhum canal declara. Atribuir só as duas
+    # primeiras foi o defeito da A42.l20.
     matched, count_diff = _count_diffs(fresh_e3, persisted_e3)
     return DriftSummary(
         matched=matched,

@@ -11,8 +11,10 @@ rows ``pipeline_artifacts`` / ``transaction_overrides`` antes/depois.
 
 **Substrato E2 = workspace-latest (não run-pinado):** o E2 que o read-path do
 pipeline efetivamente lê para os stages E2 do workspace. A divergência vs o E3/E4
-gravado é drift esperado (código mudou pós-run OU artefato de run parcial,
-ADR-080) — reportada, não tratada como perda.
+gravado é drift esperado (código mudou pós-run, artefato de run parcial (ADR-080),
+OU a config deste harness diverge da do run num eixo que nenhum canal de ``remocoes``
+declara) — reportada, não tratada como perda. Remoção declarada dos dois lados NÃO
+conta como divergência: ``_e3_count`` normaliza por ``remocoes`` (A42.l20).
 
 **Default = sombra** (E2→E3, ``collapse_enforce`` omitido). Não pontua a KR-B.
 ``--entregue --run <id>`` adiciona o detector sobre o E3 persistido daquele run
