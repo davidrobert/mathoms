@@ -282,10 +282,9 @@ Card coerente-e-menos-acionável > card incoerente.
 - **`ReceitaDespesaMensalChart`:** nenhum texto do card mensaliza sem rótulo, e S2
   não emite taxa de poupança própria (a canônica é a do hero). Medir os dois ramos
   — com e **sem** `despesa_datasets`.
-- **Guarda:** `CARDS_DA_L15` removido de `janelaCanonica.contract.test.tsx` e de
-  `janela-canonica.@critical.spec.ts`, devolvendo os dois cards à varredura de
-  seção. Sem isso a lane fecha com a guarda cega justamente nos cards que ela
-  tocou.
+- **Guarda:** ✅ **cumprido pela [[A40.l102]]** (#1864) — `CARDS_DA_L15` removido de
+  `janelaCanonica.contract.test.tsx` e de `janela-canonica.@critical.spec.ts`,
+  devolvendo os dois cards à varredura de seção.
 
 ## Custo que esta lane carrega (declarar no PR)
 
@@ -323,7 +322,13 @@ premissas morreram e a quarta mudou de dono.
 Manter aberta criaria **duas fontes sobre o mesmo card** — que é o defeito que esta lane
 existia para consertar.
 
-> ### ⚠️ Obrigação transferida — [[A40.l102]]
+> ### ✅ Obrigação transferida — CUMPRIDA pela [[A40.l102]] em #1864 (`42ad07dd`)
+>
+> **Fechada 2026-08-30.** As duas exclusões foram removidas e os dois cards voltaram à
+> varredura; removê-las expôs **quatro** textos ofensores, não um. O assert de não-vácuo
+> foi substituído no mesmo commit — com a lista vazia ele passa por vacuidade, e adiar a
+> troca deixaria a guarda cega sem ninguém ser avisado, que é exatamente o risco descrito
+> abaixo. O texto que segue fica como registro do porquê, não como obrigação viva.
 >
 > Esta lane é dona do `CARDS_DA_L15`, que exclui nominalmente dois cards de
 > `frontend/tests/components/report/janelaCanonica.contract.test.tsx` e de
