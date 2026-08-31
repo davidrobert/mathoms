@@ -4,7 +4,9 @@ type: lane
 title: "Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1902
+ship_date: "2026-08-31"
 priority: P0
 branch_slug: a40-l97-indices-perdidos-por-copy-from
 owner: data-engineer
@@ -16,7 +18,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/persistence
   - area/backend
