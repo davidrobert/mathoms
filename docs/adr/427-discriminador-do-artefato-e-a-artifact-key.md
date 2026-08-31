@@ -114,7 +114,14 @@ discriminador do D1), e a ausência dele deixa de ser silenciada.
   schema **antes** de gatear — é satisfeita dentro do próprio PR. A decisão de flip
   segue com a [[ADR-409]]; esta nota só remove o impedimento.
 - **A telemetria de drift do E4 deixa de colapsar em `$`** e passa a nomear paths
-  reais, que é o eixo da fila da [[ADR-284]].
+  reais, que é o eixo da fila da [[ADR-284]]. Gate:
+  `test_drift_do_e4_nomeia_path_real_e_nao_a_raiz`. A/B contra o schema anterior:
+  `seguros` malformado dava `['$']` e passa a dar `['$.apolices']`; `investimentos`
+  sem 4 campos `required` **não driftava de todo** (o ramo catch-all aceitava) e passa
+  a nomear os 4.
+- **`dev/measure_schema_drift.py` mede pelo schema resolvido.** Consertar só o guard
+  faria os 7 baldes baterem contra o backstop `anyOf` e saírem `GO` sem contrato nenhum
+  checado — o falso-verde migraria do guard para o instrumento que audita o guard.
 - **A fixture `minimal-receitas-4_unified.json` foi reescrita.** Ela tinha o shape do
   ramo morto (`periodo` como objeto, 2 campos) e era o único consumidor do ramo: a
   fixture espelhava o **ramo**, não o produtor, e por isso o teste passava sem
