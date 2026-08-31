@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E1 — Membros da família + mapa instituição→membro (extract_members)",
+  "description": "Schema do artefato E1 `members` produzido por pipeline/stages/extract_members.py::_output_to_family_members_json (ADR-226 §2 · ADR-430). Este contrato existe porque a rota E1→E4 quebrou em silêncio: `banco_membro`/`contas` chegavam vazios ao consolidador e o relatório publicava a ausência como fato sobre a família (A40.l96). Top-level lenient para sobreviver a campo novo; `contas[]` strict porque é o objeto que alimenta o AccountResolver. NÃO carrega CPF: só o sinal `cpf_present` (ADR-259 §2).",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "membros"
+  ],
+  "properties": {
+    "membros": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "member_key curta (espaço de chave do LLM, ex.: 'david') → dados do membro. NÃO é a chave canônica do workspace — a canonicalização é do MemberNameResolver (ADR-243).",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "nome_completo",
+          "papel"
+        ],
+        "properties": {
+          "nome_completo": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nome_curto": {
+            "type": "string"
+          },
+          "papel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cpf_present": {
+            "type": "boolean",
+            "description": "ADR-259 §2 — sinal de presença; o VALOR do CPF nunca persiste no artefato."
+          },
+          "data_nascimento": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cpf": {
+            "not": {},
+            "description": "Proibido. O valor do CPF não pode existir neste artefato (ADR-259 §2)."
+          }
+        }
+      }
+    },
+    "banco_membro": {
+      "type": "object",
+      "description": "institution_code → member_key. Consumido pelo AccountResolver como fallback legado.",
+      "propertyNames": {
+        "pattern": "^[a-z0-9]+$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "contas": {
+      "type": "array",
+      "description": "Contas declaradas por membro. É o input do AccountResolver (ADR-226 §3) e a fonte dos cards de sugestão IRPF (ADR-229 §1).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "member_key",
+          "institution_code",
+          "account_type"
+        ],
+        "properties": {
+          "member_key": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Chave curta; tem de existir em `membros`."
+          },
+          "institution_code": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+$",
+            "description": "Código canônico do institution_catalog (ADR-137): minúsculas, sem espaço, sem acento. ENFORÇADO aqui porque o produtor E1 não normaliza (o campo é `str` livre do LLM) enquanto o consumidor E2 aplica `.lower().replace(' ','')` — divergência de grafia faz o resolver errar o match em silêncio, que é o modo de falha da A40.l96."
+          },
+          "account_type": {
+            "type": "string"
+          },
+          "account_number_raw": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A24.l2 (ADR-280): extração emite só raw; a normalização canônica roda nos consumidores."
+          },
+          "agency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_joint": {
+            "type": "boolean",
+            "description": "V2 reservada na ADR-226 — nunca populado hoje. O predicado de ambiguidade de titularidade é escrito sobre `titulares(conta)` justamente para sobreviver ao dia em que este campo for populado (ADR-430)."
+          },
+          "co_titulares": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "account_number_norm": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Janela pré-ADR-280 (artefatos até 2026-05-30). O produtor atual NÃO emite; os consumidores (`config_parsers._make_account`, `_parse_account_record`) ainda leem como fallback, então o contrato aceita. Não reintroduzir em writer novo."
+          }
+        }
+      }
+    },
+    "titular": {
+      "type": "string",
+      "minLength": 1,
+      "description": "member_key curta do titular."
+    },
+    "prompt_version": {
+      "type": "string"
+    }
+  }
+}

@@ -15,6 +15,7 @@ from pipeline.domain.types.config import (
     InstitutionsCatalog,
     ReportLayout,
     TransferInternalConfig,
+    coerce_account_origem,
 )
 
 
@@ -72,6 +73,7 @@ def _make_account(raw: Mapping[str, Any]) -> BankAccountRecord:
         agency=str(raw["agency"]) if raw.get("agency") else None,
         is_joint=bool(raw.get("is_joint", False)),
         co_titulares=tuple(str(c) for c in co) if isinstance(co, list) else (),
+        origem=coerce_account_origem(raw.get("origem")),
     )
 
 
