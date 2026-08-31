@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "e15_baseline_extract.schema.json",
   "title": "E1.5/E1.5a Baseline Extract",
-  "description": "ADR-394 D7 (A40.l66): `secao` (autoridade do eixo) e `categoria_hint` entram OPCIONAIS; `categoria` sai de `required` e sobrevive como alias de leitura — 766 artefatos históricos o carregam e o modo incremental reagrega todos. Nenhum vira `required` sem cobertura medida (ADR-261 Tier 3). Contrato do artefato per-IRPF (E1.5a) e agregado (E1.5) emitido por _output_to_baseline_json/_aggregate_baselines em pipeline/stages/extract_baseline.py. payload_version 2 (A20.l11 / ADR-259 §1): valores monetários são string decimal com ponto e até 2 casas — nunca number JSON (ADR-090). O consolidador E1.5c (scripts/consolidate_baseline.py) parseia via safe_float/Decimal; payloads v1 históricos (number) permanecem válidos apenas para read (re-validação → re-extração, ADR-261 Tier 3).",
+  "description": "ADR-394 D7 (A40.l66): `secao` (autoridade do eixo) e `categoria_hint` entram OPCIONAIS; `categoria` sai de `required` e sobrevive como alias de leitura — 766 artefatos históricos o carregam e o modo incremental reagrega todos. Nenhum vira `required` sem cobertura medida (ADR-261 Tier 3). Contrato do artefato per-IRPF (E1.5a) e agregado (E1.5) emitido por _output_to_baseline_json/_aggregate_baselines em pipeline/stages/extract_baseline.py. A42.l15 PR0: `cnpj_emissor` entra OPCIONAL como a âncora que a ADR-271 §147 deferiu (`PR3: extração de CNPJ no E1.5 como chave estável a rename`), viável desde que a A40.l40 entregou `institution_catalog.cnpj_raiz`. Declará-lo aqui é pré-requisito DURO do produtor: `additionalProperties: false` rejeita a chave hoje (medido). O `pattern` de 14 dígitos não é decoração — com `mode=warn` ele é o sinal que pega produtor que emita a forma mascarada do documento sem o normalizador determinístico (molde `informe_aluguel.imobiliaria_cnpj`, ADR-288). A chave de identidade usa a RAIZ lida do documento, nunca o code do catálogo (ADR-400 §1). payload_version 2 (A20.l11 / ADR-259 §1): valores monetários são string decimal com ponto e até 2 casas — nunca number JSON (ADR-090). O consolidador E1.5c (scripts/consolidate_baseline.py) parseia via safe_float/Decimal; payloads v1 históricos (number) permanecem válidos apenas para read (re-validação → re-extração, ADR-261 Tier 3).",
   "type": "object",
   "required": ["itens", "resumo"],
   "additionalProperties": false,
@@ -31,7 +31,8 @@
           "membro": {"type": "string", "minLength": 1},
           "ano": {"type": "integer"},
           "instituicao": {"type": "string"},
-          "cpf": {"type": "string"}
+          "cpf": {"type": "string"},
+          "cnpj_emissor": {"type": "string", "pattern": "^\\d{14}$"}
         }
       }
     },
