@@ -230,6 +230,11 @@ porque nenhum DDL resolve. A correção é alinhar o **model** ao nome do DB (`I
 explícito), nunca renomear em prod. Aplicado a `ix_suggestions_workspace_id` e
 `ix_ws_econ_override_{workspace_id,classe_auvp,effective_from}`. Zero DDL, zero risco.
 
+Efeito colateral que fecha um buraco desta mesma nota: `DB_SCHEMA_REFERENCE.md`
+listava os **quatro nomes automáticos** — índices que nenhum banco jamais teve. Pelo
+mesmo motivo de §Consequências, o snapshot dele não podia pegar: os dois lados vêm do
+model. Agora o documento nomeia o que prod tem.
+
 ### D6 — índice que nenhuma migration criou não vira índice novo por default
 
 `ix_task_suggestions_status` só existia na intenção do `index=True`. Todo read-path de
