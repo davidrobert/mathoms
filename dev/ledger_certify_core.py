@@ -339,7 +339,13 @@ def _fmt_drift(d: DriftSummary) -> list[str]:
     lines += [f"  · {c}" for c in d.count_diff[:20]]
     lines.append(f"- só no fresco (re-derivação re-chaveou / grupo novo): {len(d.fresh_only)}")
     lines += [f"  · {k}" for k in d.fresh_only[:8]]
-    lines.append(f"- só no persistido (keying antigo não reproduzido): {len(d.persisted_only)}")
+    # A glosa antiga dizia "keying antigo não reproduzido" — ATRIBUIÇÃO FALSA DE CAUSA.
+    # Medido (ADR-421 M1): os 31 grupos eram 31/31 sobra de 7 OUTROS runs, e o run pinado
+    # escreveu zero deles. Nada na re-chaveação estava implicado. Com o substrato agora
+    # run-scoped, a sobra cross-run não pode mais aparecer aqui — o que sobrar é do run.
+    lines.append(
+        f"- só no persistido do run (publicado e não reproduzido): {len(d.persisted_only)}"
+    )
     lines += [f"  · {k}" for k in d.persisted_only[:8]]
     return lines
 

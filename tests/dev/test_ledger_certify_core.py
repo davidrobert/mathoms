@@ -5,6 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from dev.ledger_certify_core import (
+    DriftSummary,
     _drift,
     build_report,
     e3_group_verdict,
@@ -472,3 +473,13 @@ def test_os_sete_baldes_canonicos_sempre_geram_linha() -> None:
     report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1)
     bloco = _bloco(format_report(report), "## Eixo E4 (por balde)")
     assert all(k in bloco for k in ("seguros", "pontos_milhas", "fluxo_mensal_detalhado"))
+
+
+def test_glosa_do_drift_nao_atribui_causa_a_rechaveacao() -> None:
+    """ADR-421 M1: os 31 grupos eram sobra de OUTROS runs — a re-chaveação não estava nela."""
+    from dev.ledger_certify_core import _fmt_drift
+
+    d = DriftSummary(matched=0, count_diff=[], fresh_only=[], persisted_only=["g1"])
+    texto = "\n".join(_fmt_drift(d))
+    assert "keying antigo" not in texto
+    assert "só no persistido do run (publicado e não reproduzido)" in texto
