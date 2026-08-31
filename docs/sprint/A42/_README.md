@@ -333,19 +333,44 @@ os três substratos continuam obrigados a concordar (`check_lane_counter` da ski
 `lane-closeout`). Ele deixa de ser **limite** e permanece **fato publicado** — a
 visibilidade honesta que o teto entregava por acidente.
 
-**O que entra no lugar — e por que não é um número novo.** Escolher um limite de WIP agora,
-sabendo que ele é 6, seria repetir exatamente o erro que o parágrafo acima denuncia. O
-substituto não é um teto: é a **re-triagem por obsolescência**, e ela já existe nesta
-sprint. O §Rito de abertura manda carimbar cada lane não-terminal
-`sobrevive` / `absorvido` / `morreu`; hoje esse rito está amarrado à promoção
-[[A40]] → `done`. **Passa a valer também por idade:** lane `planned` que atravessa uma
-rodada unificada sem ser pega entra na próxima re-triagem com esses três carimbos. As 11 de
-04-08 são a primeira fila — e o precedente é a [[A40.l15]], **cancelada por absorção**
-quando 3 das 4 premissas dela morreram.
+**O que entra no lugar — corrigido em 2026-08-31 pelo `product-manager`.** A primeira
+versão desta seção instituiu **re-triagem por idade**, reusando o carimbo
+`sobrevive`/`absorvido`/`morreu` do §Rito de abertura. **O especialista recusou o
+substituto e a recusa procede:** essa auditoria **já rodou** — §Auditoria de mesa
+2026-08-14, cruzando as 12 lanes contra `origin/main` linha a linha — e devolveu
+**12× `sobrevive`, 0 absorvido, 0 morreu**. Rendimento medido: zero. Instituir como rito
+periódico algo que custa leitura de mérito e não move throughput é cerimônia, não governo.
+E o §Rito de abertura sempre mandou carimbar **a partir da rodada** (com evidência), não da
+leitura de mesa.
 
-**O WIP fica publicado, não gateado:** 6 em 2026-08-31. Se ele virar limite algum dia, o
-número tem de sair de evidência de throughput coletada **antes** de conhecer o valor
-corrente — não deste parágrafo.
+**O substituto correto é o §Deferimento datado**, padrão já vigente no repo
+(precedente [[ADR-356]]): lane cuja premissa depende de evento que não ocorreu vira
+deferimento **com dono e condição de retomada**, em vez de ficar `planned` fingindo fila.
+Foi o que se aplicou hoje à [[A42.l1]] (`blocked`, condição = decisão de beta/2º usuário) e
+à [[A42.l8]] (as três arestas dispostas pelos três ramos da §Amarra).
+
+### O falsificador desta aposentadoria — e ele tem valor publicado
+
+A evidência que justificava o teto — *"nenhuma sprint acima de ~11 lanes fechou pelo próprio
+gate na história do repo"* — **nunca foi re-medida**, e a A40 com 110 lanes e contador em
+**0/2** é um ponto **a favor** dela. Retirar o teto sem publicar o que o traria de volta
+seria retirar sem risco de estar errado.
+
+**Métrica única, por sprint:** *lanes não-terminais que já existiam quando a última rodada
+unificada rodou e não foram pegas.* Medida em 2026-08-31, contra a `U4` (2026-08-30):
+
+| sprint | lanes | não-terminais | **atravessaram a `U4` sem serem pegas** |
+|---|---|---|---|
+| [[A40]] | 110 | 36 | **26** |
+| A42 (esta) | 22 | 18 | **15** |
+
+**Condição de reversão declarada:** se esse número **crescer** na A42 rodada após rodada,
+como já cresceu na A40, a aposentadoria do teto estava errada — e se saberá por medição, não
+por sensação. Re-medir no fecho de cada `U<n>`.
+
+**O WIP fica publicado, não gateado:** 6 em 2026-08-31. Se virar limite algum dia, o número
+tem de sair de evidência de throughput coletada **antes** de conhecer o valor corrente — não
+deste parágrafo.
 
 **Ordem dentro da tabela reflete pickup, não numeração.** A l3 vem antes da l2 porque a
 l2 consome o ratchet que a l3 entrega; a l5 vem antes da l6 pela mesma razão. Nenhuma

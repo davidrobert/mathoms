@@ -153,6 +153,22 @@ condição de parada.
 > reserva e o parecer inteiro. **A l96 ENTRA na cláusula**, ao lado da
 > [[A40.l94]], da [[A40.l95]] e da [[A42.l15]] — são **quatro**, não três.
 
+> ### ⚠️ Pendência de filiação — [[A40.l110]] e [[A40.l111]] (levantada 2026-08-31)
+>
+> Achado da re-triagem conduzida pelo `product-manager`: as duas **mutam artefato/E5** —
+> a l110 grava a data corrente no artefato (quebra idempotência do balde patrimonial) e a
+> l111 tira do somatório um valor que vira `null` — e **nenhuma das duas está nomeada na
+> cláusula de reinício abaixo**. A lista atual é l2 · l94 · l95 · l96 · l98 · l100 · l101 +
+> [[A42.l15]] · [[A42.l17]].
+>
+> **É o mesmo modo de falha que já custou duas emendas tardias** (a l96 em 2026-08-29, a l98
+> em 2026-08-30): a filiação foi decidida **depois** de a lane existir, e a cláusula teve de
+> ser reescrita. **Decida a filiação das duas ANTES de iniciar o contador** — se elas
+> pertencem à cláusula e o contador já tiver começado, um re-run inteiro é desperdiçado.
+>
+> Não decidi aqui: filiação é do dono, e o critério (*"muta E3/E5 a montante de todo run"*)
+> exige julgar o alcance de cada uma, não só constatar que tocam E5.
+
 **Cláusula de reinício do contador — [[A40.l2]] (2026-08-06).** O flip do enforce de
 colapso cross-documento muta o E3 **a montante de todo run E0→E6**, logo **zera** o contador
 de 2 re-runs consecutivos — pelo mesmo argumento que recusou fundir a [[A42]] na A40. Por
