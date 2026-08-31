@@ -34,7 +34,9 @@ tags:
 pós-write), [[ADR-093]] (nomes de stage), [[ADR-110]] (logs JSON).
 
 > ⚠️ **Emendada em 2026-08-31** — a cláusula de massa do §B nunca mediu documentos,
-> e a cadência do §B está desatualizada por ~2,5×. Ver §Emenda no fim.
+> e a cadência do §B está desatualizada por ~2,5×. E o §F media o produtor errado: o
+> enxerto que ele diz ser "em memória" está persistido em 71/71 artefatos. Ver as duas
+> §Emenda no fim.
 
 ## Contexto
 
@@ -269,3 +271,53 @@ runs/semana** (mín 1, máx 14) e **26 runs nos últimos 35 dias**. A janela do 
 (*48h ou ≥10 runs*) fecha em **~2 semanas** típicas, não em ~5. O número importa porque é
 ele que precifica serializar promoções — e precificá-lo errado por 2,5× já produziu
 recomendação oposta entre dois especialistas na mesma decisão.
+
+## Emenda 2026-08-31 — o §F media o produtor errado, e o enxerto **era** persistido
+
+> Sinal: o §F afirmava que o `BaselineNormalizer` roda "em memória, nunca reescrito
+> no artefato". Medido no corpus inteiro: **71/71** artefatos `patrimonio` do E4
+> carregam os 2 campos, persistidos. A [[A40.l110]] executou a remoção que o §F
+> recusava — por outra razão, e sem destravar o flip que ele protege.
+
+**1. "Quem os preenche é o `BaselineNormalizer`, e ele roda na leitura, dentro do E4,
+em memória, nunca reescrito no artefato" — falso.** O balde `patrimonio` do E4 **é** um
+artefato persistido, e desde a [[ADR-427]] D3 é validado contra este mesmo schema pela
+`artifact_key`. Medido em `pipeline_artifacts` (corpus inteiro, 0 ilegíveis):
+
+| produtor | artefatos | com os 2 campos |
+| --- | --- | --- |
+| `E4`/`categorize_transactions` · `patrimonio` | 71 | **71** |
+| `E1.5c`/`consolidate_baseline` · `baseline_patrimonial` | 98 | **0** |
+
+**2. "Re-derivar do produtor E1.5c" nomeia um produtor só, e são dois.** A
+`description` do próprio schema declarava o outro. O §F escolheu o shape de quem
+**não** emite os campos; executá-lo ao pé da letra escolheria o shape errado.
+
+**3. A não-decisão "tirar só os 2 `required`" não cai — muda de razão, e a razão dela
+segue viva.** O §F recusava a remoção por ela tornar *o número* verde sem tornar *o
+contrato* real. Isso continua verdade. A [[A40.l110]] PR-A removeu os 2 campos assim
+mesmo porque o defeito não era de número: o enxerto do `data_processamento` caía em
+`date.today()` e era **gravado**, então o mesmo input em dois dias civis produzia
+`sha256` diferente — quebra de idempotência em artefato persistido. Contrato incompleto
+é dívida; relógio em artefato é defeito.
+
+**4. O que o §F protegia passa a ser enforçado, não descrito.** Antes desta emenda a
+elegibilidade era só a medição, e o §F vivia em prosa: com o drift indo a 0, o
+predicado do §B diria `GO` para um contrato que descreve 5/13 do payload. `baseline_patrimonial`
+entra em `_CONTRATO_NAO_DERIVADO` em [`dev/measure_schema_drift.py`](../../dev/measure_schema_drift.py)
+— o veredito é `NO-GO` **independente do drift**, com a razão e a lane que o levanta
+([[A40.l110]] PR-B) na própria mensagem.
+
+Drift medido no corpus inteiro, antes → depois do PR-A (169 artefatos, 105 runs,
+116 payloads distintos, 0 ilegíveis):
+
+| produtor | antes | depois | paths residuais |
+| --- | --- | --- | --- |
+| `consolidate_baseline` (E1.5c) | 98/98 (100%) | **3/98 (3,1%)** | `imoveis_consolidados[].valores_31_12` `minimum` |
+| E4 `patrimonio` | 3/71 (4,2%) | **3/71 (4,2%)** | idem |
+| agregado | 101/169 (59,8%) | **6/169 (3,6%)** | idem |
+
+Os 2 `required` respondiam por 392 das 398 ocorrências. As 6 restantes são
+`valores_31_12` negativo — defeito de **dado**, não de contrato, roteado para a
+[[A40.l111]]. Os dois produtores convergiram no mesmo path e no mesmo item: a
+divergência entre eles era exatamente os 2 campos.
