@@ -80,17 +80,68 @@ que importa: `_diff_signature` caía em `return None` para `add_index`, sob o co
 - 37 `add_index` + 17 `remove_index` catalogados em `KNOWN_PRE_EXISTING_DRIFT`.
 - Comentário de `db_property_supersession_writer` corrigido.
 
-## Falta — e a primeira coisa é uma decisão, não código
+## A decisão que faltava — e a medição que reformulou a pergunta (2026-08-31)
 
-**Os ~35 índices não-unique NÃO devem ser recriados sem decisão.** São performance, e a
-lane decide primeiro **se ainda os quer**: 9 índices em `tasks` é custo de write throughput
-que ninguém reavaliou desde a [[ADR-162]]; 5 em `suggestions`, 4 em `protections`. Recriar
-todos é repor decisão que ninguém tomou.
+A lane pedia decidir **se ainda queremos os ~35** antes de recriar. Ao medir para decidir,
+a premissa da pergunta caiu.
 
-Gatilho `data-engineer` para a decisão; em Postgres a recriação pediria `CONCURRENTLY`.
+**Instrumento.** Cadeia inteira emitida em dialeto **Postgres** — `alembic upgrade head
+--sql` com URL `postgresql+asyncpg`, o que faz `PostgresqlImpl` responder no lugar de
+`SQLiteImpl` —, cruzada com o inventário de índices do model (`Base.metadata`) e do SQLite
+construído por Alembic. Pareamento por **(tabela, colunas, unique)**, não por nome: é o que
+separa ausência de renomeação, e sem ele 5 dos 35 seriam recriados por engano.
 
-A catraca já força o fecho: o teste **falha** se um drift catalogado for corrigido e não
-removido de `KNOWN_PRE_EXISTING_DRIFT`.
+| Grupo | N | Fato medido | Destino |
+|---|---|---|---|
+| **S** — perdido por `copy_from` | 30 | **Postgres tem**; só SQLite perdeu no recreate | `idxrepair0002` |
+| **R** — rename | 4 | O DB tem o mesmo índice, mesmas colunas, sem predicado, sob outro nome | nome do **model** alinhado ao de prod — zero DDL |
+| **G** — gap real | 1 | `ix_task_suggestions_status`: nenhuma migration jamais o criou | `index=True` sai do model |
+
+**A premissa invertia quem decidiu.** "Recriar todos é repor decisão que ninguém tomou" —
+medido, é o oposto: **produção executa essa decisão desde que cada migration rodou** e paga
+o custo de write dos 30 hoje. Quem estava fora do combinado era o SQLite, e mantê-lo assim
+é o que sustenta a divergência que já contaminou uma decisão de desenho.
+
+**A pergunta legítima sobrevive, mas muda de alvo.** *9 índices em `tasks` valem o write
+throughput?* continua valendo — só que é pergunta sobre **prod**, responder "não" implica
+`DROP INDEX CONCURRENTLY`, e exige medir uso real (`pg_stat_user_indexes`), que não temos
+instrumentado. Vira follow-up, não escopo de um reparo de paridade.
+
+**Falsificação dos 5 que não são ausência.** O pareamento por colunas por si só produziu um
+falso rename: `ix_txov_active_workspace` cobre `workspace_id` **mas é parcial**
+(`WHERE deleted_at IS NULL`) e não substitui o índice total que o model declara. Só a
+leitura do DDL literal separou os 4 renames reais do 1 parcial — que voltou para o grupo S.
+
+**Catraca.** 39 entradas saíram de `KNOWN_PRE_EXISTING_DRIFT` (35 `add_index` + 4
+`remove_index`) com **zero drift novo** — o gate confirma que nenhum índice duplicado
+entrou. Sobram 2 `add_index` que não são ausência (flag `unique` divergente; índice de
+expressão) e 13 `remove_index`.
+
+## Entregue no PR de fecho
+
+- `idxrepair0002` — recria os 30 do grupo S, idempotente por inspector (Postgres já os tem)
+  e com ramo `is_offline_mode()`, mesmo padrão da `idxrepair0001`.
+- Grupo R: `Index(...)` explícito no model com o nome que prod tem, em
+  `TaskSuggestion` e `WorkspaceEconomicAssumptionOverride`. Zero DDL.
+- Grupo G: `index=True` removido de `TaskSuggestion.status` — todo read-path é
+  workspace-scoped e já usa `ix_suggestions_ws_status`.
+- `KNOWN_PRE_EXISTING_DRIFT` limpo; o comentário dos `remove_index` afirmava que eram
+  parciais "majoritariamente intencionais" — medido: **10 de 11**, e os 4 renames que a
+  redação cobria por engano saíram.
+- `DB_SCHEMA_REFERENCE.md` regenerado: ele listava os 4 nomes automáticos, **índices que
+  nenhum banco jamais teve**. Pelo motivo que a [[ADR-423]] §Consequências já registra, o
+  snapshot dele não podia ter pego — os dois lados vêm do model.
+- [[ADR-423]] → `Decidido`, com emenda datada corrigindo a contagem (33, não 38) e a
+  premissa de D4, e acrescentando D5 (nome do índice no model é o de prod) e D6 (índice que
+  nenhuma migration criou não vira índice novo por default).
+
+## Dry-run no dogfood — critério de aceite nº 5
+
+Rodado 2026-08-31 sobre `mathoms.db` (revisão `adr417cfs`, imediatamente anterior ao
+reparo), read-only: **zero colisões nas três**. Ressalva: só duas medem sobre dado real —
+`workspace_property_overrides` (6 rows) e `institution_catalog` (42 rows).
+`report_publications` tem **0 rows**, então esse terço é vacuamente zero e não prova nada,
+pela mesma razão que a ADR já declara do resultado em Postgres.
 
 ## Follow-ups nomeados, fora desta lane
 
@@ -99,6 +150,13 @@ removido de `KNOWN_PRE_EXISTING_DRIFT`.
   própria; catalogado com comentário.
 - **Gate SQLite↔Postgres.** É a lacuna real por trás desta classe — o gate entregue compara
   model↔SQLite-migrado, nunca os dois engines. Exige PG no CI: decisão de custo do dono.
+  A medição desta lane mostra que **metade do caminho é barata**: a cadeia emitida em
+  dialeto PG (`upgrade head --sql`) já discrimina, sem banco nenhum. Ela é cega ao que só
+  o modo online emite (ramos `is_offline_mode()`, DDL condicionado a inspector), então não
+  substitui o gate — mas transforma "exige PG no CI" em "exige PG no CI *para a parte
+  online*".
+- **Reavaliar os 9 índices de `tasks` em produção** ([[ADR-162]]). Nasce da medição desta
+  lane e **não** é dívida dela: é dívida de prod que o reparo tornou visível.
 - **`property_market_value.idx_pmv_lookup`** — índice de expressão; o alembic emite
   *"Generating approximate signature"*. Limitação irredutível, catalogada.
 - **`adr239apolice`** afirma no docstring "seed idempotente por `code` (UNIQUE)" e o
