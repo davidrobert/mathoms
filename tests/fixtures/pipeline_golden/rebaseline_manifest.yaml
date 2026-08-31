@@ -29,101 +29,20 @@
 #   adr: ADR-271
 #   rationale: "dedup cross-year colapsa conta conjunta; -R$500 esperado"
 #   ref: pipeline/domain/services/e5_serialization.py:312
-# A40.l95 · [[ADR-420]] §Critério de aceite 2 — a fixture era o gate.
-# Nenhuma fixture end-to-end do repo tinha `imoveis_geradores > 0`: o dogfood punha
-# 100% de cat_2 em não-geradores, e as duas leituras da concentração imobiliária
-# eram extremos degenerados ali. O split conserva o bruto (cinco imóveis somando os
-# mesmos R$600k do imóvel opaco), então `bruto`, `liquido` e `imoveis_investimento`
-# NÃO aparecem abaixo — move-se o destino dentro de cat_2 e o que dele deriva.
 
-- golden: dogfood_view_model.json
-  path: cenarios_conjuge.premissas.investivel_atual
-  old_cents: 1300000000
-  new_cents: 2800000000
-  adr: ADR-420
-  rationale: "cat2_efetivo entra no investível efetivo, e a premissa do cenário o herda"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: goals.if_gap
-  old_cents: 8700000000
-  new_cents: 7200000000
-  adr: ADR-420
-  rationale: "o gap encolhe pelos mesmos R$150k de investível efetivo"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: goals.renda_passiva_estimada_4pct
-  old_cents: 4333300
-  new_cents: 9333300
-  adr: ADR-420
-  rationale: "4% sobre o investível efetivo maior"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: goals.teto_if_gap
-  old_cents: 8700000000
-  new_cents: 7200000000
-  adr: ADR-420
-  rationale: "extremo do intervalo acompanha o gap"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: investimentos.top_ativos[0].valor
-  old_cents: 6000000000
-  new_cents: 1900000000
-  adr: ADR-420
-  rationale: "o imóvel opaco de R$600k virou cinco; o maior deles é o apartamento de R$190k"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: investimentos.top_ativos[1].valor
-  old_cents: 800000000
-  new_cents: 1500000000
-  adr: ADR-420
-  rationale: "a sala comercial (R$150k, locado) passa o ativo financeiro de R$80k"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: patrimonio.bases.carteira_produtiva_com_titular_identificado.valor_brl
-  old_cents: 1300000000
-  new_cents: 2800000000
-  adr: ADR-420
-  rationale: "a base soma cat2_efetivo, que deixa de ser zero"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: patrimonio.bases.carteira_produtiva_familia.valor_brl
-  old_cents: 1300000000
-  new_cents: 2800000000
-  adr: ADR-420
-  rationale: "a homônima também soma cat2_efetivo"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: patrimonio.cat2_efetivo
-  old_cents: 0
-  new_cents: 1500000000
-  adr: ADR-420
-  rationale: "a fixture passa a ter imóvel locado; antes nenhum golden tinha gerador"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: patrimonio.imoveis_geradores
-  old_cents: 0
-  new_cents: 1500000000
-  adr: ADR-420
-  rationale: "o locado de R$150k; era zero em TODA fixture end-to-end do repo"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: patrimonio.imoveis_nao_geradores
-  old_cents: 6000000000
-  new_cents: 4500000000
-  adr: ADR-420
-  rationale: "transferência dentro de cat_2 — o total não muda, só o destino"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: dogfood_view_model.json
-  path: patrimonio.investivel_efetivo
-  old_cents: 1300000000
-  new_cents: 2800000000
-  adr: ADR-420
-  rationale: "financeiro + cat2_efetivo, e cat2_efetivo saiu de zero"
-  ref: tests/pipeline_golden_substrate.py:256
-- golden: baseline-1.5.json
-  path: itens[2].valor_brl
-  old_cents: 60000000
-  new_cents: 19000000
-  adr: ADR-420
-  rationale: "o imóvel opaco encolhe para R$190k; os outros R$410k viram quatro itens NOVOS, com destino declarado"
-  ref: tests/pipeline_golden_substrate.py:256
+# ── Por que este arquivo volta a ficar VAZIO (aprendido em 2026-08-31, A40.l95) ──
+#
+# A entrada é um waiver TRANSITÓRIO: ela existe para o PR do rebaseline ser medido, e
+# morre no merge dele. `golden_diff` reprova entrada órfã (`return 1 if (uncovered or
+# orphans)`), e órfã é toda entrada que não casa um value_delta **do PR corrente** —
+# logo entrada que fica no arquivo faz o PRÓXIMO PR que tocar aquele golden falhar,
+# com 13 erros sobre um rebaseline que não é dele.
+#
+# O #1904 foi o primeiro rebaseline a de fato usar este manifesto (antes dele o
+# arquivo era `[]` desde que nasceu, em 2 commits), então o passo de drenagem nunca
+# tinha sido exercido. Medido por simulação antes de drenar: PR futuro tocando
+# `dogfood_view_model.json` sem mover dinheiro → `exit 1`, **12 órfãs**.
+#
+# Regra: quem mergeia um rebaseline drena o manifesto logo em seguida. O registro do
+# que mudou vive na lane, no corpo do PR e no histórico do git — não aqui.
+[]

@@ -249,7 +249,7 @@ byte-idênticos. O apartamento (R$190k) fica **sem override** de propósito — 
 
 `imoveis_geradores` sai de **0 → 150.000** (era zero em toda fixture end-to-end do repo) e
 `cat2_efetivo` de **0 → 150.000**, o que move o investível efetivo e o bloco IF. Manifesto de
-rebaseline com **12 entradas**, `golden_diff` exit 0.
+rebaseline com ~~**12 entradas**~~ **13** (a 13ª entrou com a correção de ordenação, abaixo), `golden_diff` exit 0.
 
 **Mecânica, e o que ela custou medir:** `property_id` só é cunhado com resolver +
 `workspace_id` injetados, e é `uuid4` — fixá-lo na fixture divergiria da regra de mint da
@@ -291,3 +291,31 @@ O critério pede *"teste irmão de `test_a_fixture_discrimina_as_bases`"*. Entre
 `tests/test_golden_discrimina_classificacao_de_imovel.py`, com **dois** irmãos e não um: o
 eixo do numerador precisava do seu (`test_a_fixture_discrimina_o_NUMERADOR`, no arquivo do
 gate) além do eixo de classificação. O critério escrito supunha um eixo só.
+
+### Duas correções pós-merge (2026-08-31, closeout)
+
+**A ordem dos `itens` da fixture é load-bearing, e não é óbvia.** `golden_diff` compara
+listas **posicionalmente**. A primeira versão inseria os quatro imóveis novos no meio,
+o que empurrava o `FINANCIAMENTO IMOVEL FICTICIO` do índice 3 para o 7 — e o diff lia
+isso como *"o financiamento (−150.000) virou a sala comercial (+150.000)"*: dois
+`value_delta` monetários **fabricados**, que só um waiver falso no manifesto silenciaria
+(o que o docstring do `golden_diff` proíbe nominalmente). CI vermelho no passo *"Delta de
+golden declarado"*, consertado pela **ordem**: o apartamento muta in place no índice 2 e
+os novos são **append**. Quem editar esta fixture de novo: **não insira no meio**.
+
+**O manifesto de rebaseline é waiver transitório, e eu o deixei permanente.** As 13
+entradas ficaram em `main` depois do merge. `golden_diff` reprova entrada **órfã** — a
+que não casa `value_delta` do PR corrente —, então elas fariam o **próximo** PR que
+tocasse qualquer um dos dois goldens falhar com 13 erros sobre um rebaseline alheio.
+Medido por simulação antes de agir: PR futuro tocando `dogfood_view_model.json` sem mover
+dinheiro → `exit 1`, **12 órfãs**; com o manifesto drenado → `exit 0`; e PR que **move**
+dinheiro segue reprovando (`exit 1`), então drenar não afrouxa o gate.
+
+O #1904 foi o **primeiro** rebaseline a de fato usar o manifesto — ele era `[]` desde que
+nasceu, em 2 commits —, e por isso o passo de drenagem nunca tinha sido exercido por
+ninguém. A regra ficou escrita no cabeçalho do próprio arquivo.
+
+**Follow-up proposto, sem dono ainda:** nada **força** a drenagem. Um gate que reprove
+manifesto não-vazio em `main` fecharia a classe; a extensão natural é
+`dev/check_lane_transition.py` ou o passo de CI que já lê o arquivo — **não** um gate
+novo (§"Não reconstrua o gate"). Decisão do dono.
