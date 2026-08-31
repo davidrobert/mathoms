@@ -66,7 +66,7 @@ def _is_pontual(
     # A40.l98 — mesmas cláusulas de natureza do KPI do MESMO card. Faltavam duas
     # aqui: `recorrentes` (o aluguel de R$ 5k entrava 12× como "gasto pontual") e
     # `transferencia_patrimonial` (o aporte).
-    veredito = policy.classify(
+    veredito = policy.classify_com_detector(
         tx.categoria or "",
         descricao=tx.descricao or "",
         banco=tx.banco or "",

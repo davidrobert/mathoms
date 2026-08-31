@@ -760,8 +760,10 @@ class E5AnalyzerAdapter:
         top_ativos = self._top_ativos.analyze(bens_por_membro)
         instituicoes = self._instituicoes.analyze(bens_por_membro)
 
-        # 14. Consumo consciente.
-        consumo = self._consumo.calculate(fluxo_legacy, despesas)
+        # 14. Consumo consciente. Recebe as despesas REALIZADAS — o denominador
+        #     do card sai da janela pós-`split_provisionado`, e numerador sobre
+        #     outra população publica 6,0 ou 12,0 para o mesmo gasto (A40.l98).
+        consumo = self._consumo.calculate(fluxo_legacy, fluxo_enriched.despesas_realizadas)
 
         # 15. Equilibrio Cerbasi.
         equilibrio = self._equilibrio.analyze(fluxo_legacy)

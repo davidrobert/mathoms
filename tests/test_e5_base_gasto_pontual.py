@@ -12,10 +12,12 @@ sem exercitar nenhum termo em disputa (é o RR6-07 outra vez). Daí
 
 from __future__ import annotations
 
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
+from pipeline.domain.services.consumo_consciente_calculator import BaldePontual, BasePontuais
 from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy, VeredictoPontual
 from tests.pipeline_golden_substrate import load_fixture, run_e3_e4_e5_ctx, write_e5_config
 
@@ -141,15 +143,41 @@ def test_o_leitor_soma_os_itens_e_chega_ao_total(run):
 # ---------------------------------------------------------------------------
 
 
+def _cents(publicado: object) -> int:
+    """O número como o wire o entrega (JSON `number`), em cents int — a única
+    unidade em que a identidade é comparável sem erro de float ([[ADR-090]])."""
+    return int(Decimal(str(publicado)).quantize(Decimal("0.01")) * 100)
+
+
+@pytest.mark.parametrize(
+    "publicado,excluido",
+    [("100.005", "200.005"), ("1.115", "2.225"), ("0.005", "0.004")],
+)
+def test_a_identidade_fecha_no_WIRE_e_nao_so_no_acumulador(publicado, excluido):
+    """Em cents EXATOS, sem ``approx``. O acumulador é ``Decimal``, mas quem lê o
+    payload soma os valores **publicados**: somar cru antes de arredondar publicava
+    ``300,01`` ao lado de ``100,00 + 200,00``. ``approx(rel=1e-6)`` sobre os
+    R$ 394 mil do dogfood dá R$ 0,39 de folga e não veria isso."""
+    base = BasePontuais(
+        BaldePontual(Decimal(publicado), 1), {"recorrente": BaldePontual(Decimal(excluido), 1)}
+    )
+    d = base.to_dict()
+    soma = _cents(d["publicado"]["valor"]) + sum(
+        _cents(b["valor"]) for b in d["excluidos"].values()
+    )
+    assert _cents(d["bruto"]["valor"]) == soma
+
+
 def test_a_base_conserva(run):
-    """``bruto == publicado + Σ excluidos`` — sem a identidade, um balde pode
-    sumir e o leitor não tem como notar."""
+    """``bruto == publicado + Σ excluidos`` sobre o payload REAL, em cents exatos."""
     base = run["e5"]["base_pontuais"]
-    soma = base["publicado"]["valor"] + sum(b["valor"] for b in base["excluidos"].values())
+    soma = _cents(base["publicado"]["valor"]) + sum(
+        _cents(b["valor"]) for b in base["excluidos"].values()
+    )
     contagem = base["publicado"]["contagem"] + sum(
         b["contagem"] for b in base["excluidos"].values()
     )
-    assert base["bruto"]["valor"] == pytest.approx(soma)
+    assert _cents(base["bruto"]["valor"]) == soma
     assert base["bruto"]["contagem"] == contagem
 
 
@@ -176,3 +204,24 @@ def test_a_base_nao_esconde_o_que_o_bruto_inclui(run):
         if _POLICY.is_relevante(abs(float(t.get("valor", 0))))
     )
     assert run["e5"]["base_pontuais"]["bruto"]["valor"] == pytest.approx(acima)
+
+
+def test_o_caminho_sem_detector_e_ESCOLHIDO_nao_herdado():
+    """Não existe assinatura em que o filtro mais permissivo seja alcançável por
+    OMISSÃO. Um `detector=None` default faria um produtor novo receber a
+    classificação frouxa sem pedir — a forma exata do defeito que esta lane mata,
+    promovida a propriedade da API."""
+    assert not hasattr(_POLICY, "classify")
+    descricao = "TED PARA CONTA PROPRIA ITAU"
+    assert _POLICY.classify_por_categoria("lazer_viagens") is VeredictoPontual.incluido
+
+    class _DetectorSempre:
+        def is_internal_transfer(self, description: str, *, banco: str = "") -> bool:
+            return True
+
+    assert (
+        _POLICY.classify_com_detector(
+            "lazer_viagens", descricao=descricao, banco="itau", detector=_DetectorSempre()
+        )
+        is VeredictoPontual.transferencia_detectada
+    )

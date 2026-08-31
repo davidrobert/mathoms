@@ -23,6 +23,8 @@ from pipeline.domain.services.gasto_pontual_policy import (
     VeredictoPontual,
 )
 
+_CENTAVO = Decimal("0.01")
+
 
 def _safe_float(val) -> float:
     if val is None:
@@ -50,7 +52,6 @@ class _ConsumoWindow:
     janela: str
     mes_inicio: str
     mes_fim: str = ""
-    data_corte: str = ""
 
 
 def _periodo_extremos(periodo: str) -> tuple[str, str]:
@@ -130,9 +131,12 @@ def _motivo_folga_nao_positiva(folga_em_prosa: str, n_meses: float) -> str:
 
 @dataclass(frozen=True)
 class BaldePontual:
-    """Um balde da base: quanto e quantos. ``pct`` **não é campo** — o leitor o
-    deriva de ``bruto``, que está no mesmo objeto ([[ADR-425]] §D2); publicá-lo
-    criaria um terceiro número a manter em sincronia com dois que já estão ali."""
+    # ``pct`` NÃO é campo ([[ADR-425]] §D2) e hoje ninguém o deriva — o card imprime
+    # absolutos. Quando alguém precisar dele, a razão é
+    # ``publicado / (publicado + excluidos.nao_identificado)``: ``recorrente`` e
+    # ``transferencia_*`` ficam fora do denominador porque são exclusão deliberada,
+    # não falha de medição.
+    """Um balde da base: quanto e quantos."""
 
     # ``Decimal`` e não ``float`` ([[ADR-090]]): é o único ponto do módulo que
     # ACUMULA dinheiro, e a identidade de conservação tem de fechar ao centavo. O
@@ -144,8 +148,13 @@ class BaldePontual:
     def mais(self, quantia: Decimal) -> "BaldePontual":
         return BaldePontual(self.total + quantia, self.contagem + 1)
 
+    @property
+    def publicavel(self) -> Decimal:
+        """O valor como ele sai no wire — 2 casas. Ler daqui, nunca de ``total``."""
+        return self.total.quantize(_CENTAVO)
+
     def to_dict(self) -> dict:
-        return {"valor": float(round(self.total, 2)), "contagem": self.contagem}
+        return {"valor": float(self.publicavel), "contagem": self.contagem}
 
 
 @dataclass(frozen=True)
@@ -162,11 +171,16 @@ class BasePontuais:
     publicado: BaldePontual
     excluidos: dict[str, BaldePontual]
 
+    # Soma os baldes JÁ QUANTIZADOS, não os `Decimal` crus: quem lê o payload soma
+    # os valores publicados, e somar cru antes de arredondar quebrava a identidade
+    # no wire — `100,005 + 200,005` publicava `300,01` ao lado de `100,00 + 200,00`.
+    # O objeto cuja função é declarar conservação não pode falhar a própria.
     @property
     def bruto(self) -> BaldePontual:
+        baldes = [self.publicado, *self.excluidos.values()]
         return BaldePontual(
-            self.publicado.total + sum((b.total for b in self.excluidos.values()), Decimal("0")),
-            self.publicado.contagem + sum(b.contagem for b in self.excluidos.values()),
+            sum((b.publicavel for b in baldes), Decimal("0")),
+            sum(b.contagem for b in baldes),
         )
 
     def to_dict(self) -> dict:
@@ -250,11 +264,10 @@ class ConsumoConscienteCalculator:
         fluxo: dict[str, Any],
         despesas: dict[str, Any],
     ) -> ConsumoConsciente:
-        cfg = self._policy
         dados = (despesas or {}).get("dados", {}) or {}
 
         window = self._resolve_janela(fluxo)
-        candidates, base = self._triar(dados, window.data_corte)
+        candidates, base = self._triar(dados)
         candidates.sort(key=lambda x: x.valor, reverse=True)
         total_pontuais = float(base.publicado.total)
 
@@ -334,9 +347,7 @@ class ConsumoConscienteCalculator:
     # (o parecer ancora nele o risco "gastos pontuais elevados"). Ele segue no
     # inventário — o balde de `excluidos` traz total e contagem, e a lista do
     # card traz as linhas, que é onde a família consegue agir.
-    def _triar(
-        self, dados: dict[str, Any], data_corte: str = ""
-    ) -> tuple[list[GastoPontualItem], BasePontuais]:
+    def _triar(self, dados: dict[str, Any]) -> tuple[list[GastoPontualItem], BasePontuais]:
         """Todo lançamento acima do limiar recebe um veredito — o descartado sai
         atribuído a uma causa, não em silêncio."""
         incluidos: list[GastoPontualItem] = []
@@ -345,8 +356,8 @@ class ConsumoConscienteCalculator:
         for cat, transacoes in dados.items():
             if not isinstance(transacoes, list):
                 continue
-            veredito = self._policy.classify(str(cat))
-            for quantia, txn in self._relevantes(transacoes, data_corte):
+            veredito = self._policy.classify_por_categoria(str(cat))
+            for quantia, txn in self._relevantes(transacoes):
                 balde = veredito.value if veredito is not VeredictoPontual.incluido else None
                 if balde is None:
                     incluidos.append(_item_pontual(txn, str(cat), quantia))
@@ -355,21 +366,20 @@ class ConsumoConscienteCalculator:
                 excluidos[balde] = excluidos.get(balde, BaldePontual()).mais(quantia)
         return incluidos, BasePontuais(publicado, excluidos)
 
-    def _relevantes(self, transacoes: list, data_corte: str) -> Iterator[tuple[Decimal, dict]]:
+    # O corte de provisionado NÃO é feito aqui: quem o faz é `split_provisionado`,
+    # UMA vez, e o adapter entrega as despesas já realizadas. Um segundo corte
+    # divergiria em silêncio do primeiro — medido na A40.l98: `data` nula
+    # (`scripts/e2/banks/wise.py:153`) e `data` com hora no dia do corte caíam só
+    # deste lado, e sumiam até do `bruto`, que existe para revelar perda.
+    def _relevantes(self, transacoes: list) -> Iterator[tuple[Decimal, dict]]:
         for txn in transacoes:
             if not isinstance(txn, dict):
-                continue
-            # O denominador roda sobre o REALIZADO (`split_provisionado` corta o
-            # posterior ao `data_corte`); sem este corte o numerador roda sobre o
-            # realizado MAIS o provisionado — populações diferentes (A40.l101).
-            if data_corte and str(txn.get("data", "")) > data_corte:
                 continue
             bruto = _safe_float(txn.get("valor", 0))
             if self._policy.is_relevante(bruto):
                 yield Decimal(str(bruto)), txn
 
     def _resolve_janela(self, fluxo: dict[str, Any]) -> "_ConsumoWindow":
-        corte = str((fluxo or {}).get("data_corte") or "") if isinstance(fluxo, dict) else ""
         j12m = fluxo.get("janela_12m") if isinstance(fluxo, dict) else None
         if j12m:
             n_meses = _safe_float(j12m.get("n_meses", 12)) or 12.0
@@ -381,7 +391,6 @@ class ConsumoConscienteCalculator:
                 janela="12m",
                 mes_inicio=inicio,
                 mes_fim=fim,
-                data_corte=corte,
             )
         return _ConsumoWindow(
             receita_rec_mensal=_safe_float((fluxo or {}).get("receita_recorrente_mensal", 0)),
@@ -389,7 +398,6 @@ class ConsumoConscienteCalculator:
             n_meses=_safe_float((fluxo or {}).get("num_months", 12)) or 12.0,
             janela="full",
             mes_inicio="",
-            data_corte=corte,
         )
 
     def _build_analise(

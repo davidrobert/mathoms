@@ -257,6 +257,12 @@ class FluxoCaixaEnriched:
     # (unit test do enricher). O E5 sempre declara — o adapter deriva de
     # `reference_date`, e o schema exige as duas chaves em `fluxo_caixa`.
     provisionado: dict | None = None
+    # As despesas REALIZADAS (pós-`split_provisionado`). Existe para que o
+    # consumidor de gasto pontual rode sobre a MESMA população do denominador,
+    # sem reimplementar o corte — dois cortes divergem em silêncio (A40.l98:
+    # `data` nula e `data` com hora caíam só de um lado). NÃO entra no
+    # `to_legacy_dict`: é insumo entre services, não campo de payload.
+    despesas_realizadas: dict = field(default_factory=dict)
 
     def to_legacy_dict(self) -> dict:
         out = {
@@ -384,6 +390,7 @@ class FluxoCaixaEnricher:
         por_fonte_detalhado = self._compute_por_fonte_detalhado(fluxo_mensal, meses)
 
         return FluxoCaixaEnriched(
+            despesas_realizadas=despesas,
             receita_total=receita_total,
             receita_recorrente=receita_recorrente,
             receita_one_time=receita_one_time,

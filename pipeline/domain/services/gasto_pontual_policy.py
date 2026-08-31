@@ -117,7 +117,29 @@ class GastoPontualPolicy:
     def is_relevante(self, quantia: Decimal | float) -> bool:
         return abs(quantia) >= self.consumo_min
 
-    def classify(
+    # DOIS métodos e não um com `detector=None`: o default de um parâmetro
+    # opcional seria o filtro MAIS PERMISSIVO, alcançável por omissão — que é a
+    # forma exata do defeito que esta lane existe para matar ("o que prescreve
+    # era o que menos filtrava"), promovida a propriedade da API.
+    def classify_por_categoria(self, categoria: str) -> VeredictoPontual:
+        """Dentro do E5. O detector é inaplicável aqui **por construção**: o E4
+        roteia transferência detectada para ``kind="transferencia"`` e ela nunca
+        chega a ``despesas.dados``."""
+        return self._classify(categoria)
+
+    def classify_com_detector(
+        self,
+        categoria: str,
+        *,
+        descricao: str,
+        banco: str,
+        detector: _DetectorDeTransferencia,
+    ) -> VeredictoPontual:
+        """Na lista. Aqui o detector é vivo: o endpoint o resolve do
+        ``TransferConfig`` do **DB**, que pode ter mudado depois do run."""
+        return self._classify(categoria, descricao=descricao, banco=banco, detector=detector)
+
+    def _classify(
         self,
         categoria: str,
         *,
