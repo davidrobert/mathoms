@@ -18,12 +18,17 @@ from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.brl_prose import fmt_brl_prosa
+from pipeline.domain.services.diagnostico_comportamental_analyzer import (
+    NAO_IDENTIFICADO_INSUFICIENTE_PCT,
+    NAO_IDENTIFICADO_PARCIAL_PCT,
+)
 from pipeline.domain.services.gasto_pontual_policy import (
     GastoPontualPolicy,
     VeredictoPontual,
 )
 
 _CENTAVO = Decimal("0.01")
+_NAO_IDENTIFICADO = VeredictoPontual.nao_identificado.value
 
 
 def _safe_float(val) -> float:
@@ -183,11 +188,38 @@ class BasePontuais:
             sum(b.contagem for b in baldes),
         )
 
+    # A razão é `publicado / (publicado + nao_identificado)` — a fatia MEDIDA sobre o
+    # que era medível na mesma natureza. `recorrente` e `transferencia_*` ficam fora
+    # do denominador: são exclusão deliberada, não falha de medição. Usar `bruto`
+    # daria ~10-15% no dogfood e não seria cobertura de coisa nenhuma (refutação do
+    # `senior-cto`, registrada na [[ADR-425]] §Emenda).
+    # ``None`` quando não há denominador: um ``alta`` sobre medição que não houve é
+    # afirmação sobre o dinheiro da família ([[ADR-394]] §D7). Diverge da
+    # [[ADR-353]] D2 de propósito — lá o nível controla DENSIDADE e ``alta`` é o
+    # comportamento antigo; aqui ele é **rótulo publicado**.
+    @property
+    def cobertura_nivel(self) -> str | None:
+        """Veredito ordinal, régua da [[ADR-353]] D1 — as constantes são IMPORTADAS."""
+        nao_medido = self.excluidos.get(_NAO_IDENTIFICADO)
+        medivel = self.publicado.publicavel + (nao_medido.publicavel if nao_medido else 0)
+        if medivel <= 0:
+            return None
+        share = float(100 - self.publicado.publicavel / medivel * 100)
+        if share > NAO_IDENTIFICADO_INSUFICIENTE_PCT:
+            return "insuficiente"
+        if share > NAO_IDENTIFICADO_PARCIAL_PCT:
+            return "parcial"
+        return "alta"
+
     def to_dict(self) -> dict:
         return {
             "bruto": self.bruto.to_dict(),
             "publicado": self.publicado.to_dict(),
             "excluidos": {k: v.to_dict() for k, v in sorted(self.excluidos.items())},
+            "cobertura_nivel": self.cobertura_nivel,
+            "cobertura_motivo": None
+            if self.cobertura_nivel
+            else "sem_base_medivel: nenhum lançamento acima do limiar foi classificado",
         }
 
 

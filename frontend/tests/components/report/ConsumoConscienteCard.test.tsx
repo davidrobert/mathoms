@@ -111,6 +111,8 @@ describe("<ConsumoConscienteCard /> · declaração da base", () => {
         transferencia_por_categoria: { valor: 16000, contagem: 2 },
         nao_identificado: { valor: 7000, contagem: 1 },
       },
+      cobertura_nivel: "parcial",
+      cobertura_motivo: null,
     },
   };
 
@@ -141,6 +143,25 @@ describe("<ConsumoConscienteCard /> · declaração da base", () => {
     expect(texto).toMatch(/transferências R\$\s?16\.000 \(2\)/);
     // [[ADR-425]] §D1 — o residual não medido é impresso ONDE a base aparece.
     expect(texto).toMatch(/não classificados R\$\s?7\.000 \(1\)/);
+    // A população e o escopo temporal vão IMPRESSOS ao lado do número (ADR-306 D1).
+    expect(texto).toContain("período completo");
+    expect(texto).toContain("cobertura parcial");
+  });
+
+  it("nível `null` não vira 'alta' — some, em vez de afirmar cobertura que não houve", () => {
+    const { container } = renderComBase({
+      ...CONSUMO,
+      base_pontuais: {
+        ...CONSUMO.base_pontuais,
+        cobertura_nivel: null,
+        cobertura_motivo: "sem_base_medivel: nenhum lançamento acima do limiar",
+      },
+    });
+    const texto = container.querySelector(
+      "[data-consumo-base-declaracao]",
+    )!.textContent!;
+    expect(texto).not.toMatch(/cobertura/);
+    expect(texto).toContain("período completo");
   });
 
   it("some quando nada foi excluído — linha vazia seria ruído", () => {

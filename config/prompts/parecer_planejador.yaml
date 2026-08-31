@@ -196,7 +196,17 @@
 # subtraível — o pareamento errado ficava disponível ao modelo. Os quatro rótulos
 # passam a declarar o escopo TEMPORAL, que é o que a [[ADR-306]] D1 exige de todo
 # número. Só label; nenhum valor muda.
-version: "2.15.0"
+# 2.16.0 — [[ADR-425]] §Emenda: `base_pontuais.cobertura_nivel` entra no exec context.
+# É o veredito ORDINAL da [[ADR-353]] D1 sobre a mesma fatia que já é projetada
+# (`nao_identificado`), com as constantes IMPORTADAS — o modelo para de ter de julgar
+# "material" por conta própria, do mesmo jeito que já faz com
+# `$.diagnostico_confianca.nivel`. Escopo full-period, declarado na label.
+# 2.17.0 — `suporte_familiar` entra em `recorrentes` (`financial-planner`,
+# 2026-08-31). Sustento a familiar É consumo e continua em `despesa_consumo`, mas
+# quando RECORRE não é gasto pontual: um PIX mensal de R$ 5k entrava 12× em
+# `total_pontuais`, o mesmo defeito que o aluguel tinha. Muda valor de
+# `total_pontuais*` em workspace que tenha a categoria acima do limiar.
+version: "2.17.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -403,6 +413,7 @@ context_sections:
           - {path: "$.consumo_consciente.base_pontuais.bruto.valor", label: "Base bruta ≥ limiar (período completo), antes das exclusões", format: "brl"}
           - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.valor", label: "Fatia NÃO CLASSIFICADA da base (período completo)", format: "brl"}
           - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.contagem", label: "Lançamentos não classificados na base", format: "int"}
+          - {path: "$.consumo_consciente.base_pontuais.cobertura_nivel", label: "Cobertura da base (período completo) — veredito da ADR-353", format: "string"}
           - {path: "$.consumo_consciente.equivalente_meses_poupanca", label: "Pontuais da janela em meses de poupança", format: "raw"}
           # A40.l101 — o equivalente é `null` fora do domínio de definição, e `on_null: skip`
           # APAGA a linha do contexto: sem o campo irmão a supressão vira silêncio, e o

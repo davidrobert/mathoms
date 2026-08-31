@@ -5,7 +5,7 @@ title: "Balde não classificado fica fora de numerador que prescreve, e a cobert
 status: Decidido
 phase: A40
 date: "2026-08-30"
-amended_at: ["2026-08-30"]
+amended_at: ["2026-08-30", "2026-08-31"]
 relates_to:
   - "[[ADR-422]]"
   - "[[ADR-394]]"
@@ -180,3 +180,37 @@ que era medível na mesma natureza*. `recorrente` e `transferencia_*` não são 
 medição: são exclusão correta e deliberada. Com o `bruto` largo (todo lançamento acima
 do limiar), `publicado / bruto` no dogfood cai para a casa de 10-15% e não é cobertura
 de coisa nenhuma. Refutação do `senior-cto` na revisão da [[A40.l98]].
+
+## Emenda 2026-08-31 — `cobertura_nivel` entregue, e o nível da JANELA não é computável
+
+O deferimento da §Emenda 2026-08-30 está cumprido: `base_pontuais.cobertura_nivel ∈
+{alta, parcial, insuficiente}` + `cobertura_motivo`, com as constantes **importadas**
+de `diagnostico_comportamental_analyzer` ([[ADR-353]] D1) e gate que conta os **sítios
+de definição** — igualdade de valor não prova não-redeclaração, um `30.0` copiado
+passaria.
+
+**A razão é `publicado / (publicado + excluidos.nao_identificado)`**, não
+`publicado / bruto`: `recorrente` e `transferencia_*` ficam fora do denominador porque
+são exclusão deliberada, não falha de medição.
+
+**`null` sem base medível, nunca `alta`** — diverge da [[ADR-353]] D2 de propósito: lá o
+nível controla densidade e `alta` é o comportamento antigo; aqui ele é **rótulo
+publicado**, e afirmar cobertura que não houve é afirmação sobre o dinheiro da família
+([[ADR-394]] §D7).
+
+### O nível da janela não é computável — e isso é achado, não omissão
+
+O `financial-planner` pediu medir os dois níveis lado a lado e tratar divergência como
+evidência de que o objeto precisa ser window-scoped. Medido, e o resultado é mais forte
+que divergência: **o nível da janela não existe**. `_triar` varre todos os meses, então
+`excluidos` é full-period; o recorte de janela só acontece depois, em `pontuais_janela`,
+e sobre `candidates` — nunca sobre os baldes de exclusão.
+
+No dogfood-fixture: cobertura full **15,2% ⇒ `parcial`**. O denominador da janela não é
+derivável do payload sem window-scoping os baldes.
+
+Publica-se o nível **full-period**, declarado como tal no schema, no card e na label do
+manifest (2.16.0). **Window-scoping de `base_pontuais` fica com dono:** `data-engineer`
++ `financial-planner`, porque muda o shape do objeto e o que a família lê. Até lá, o
+[[ADR-428]] §Condição de retomada — que exige `cobertura_nivel == alta` — lê o nível
+full, e isso está declarado aqui em vez de ficar implícito.
