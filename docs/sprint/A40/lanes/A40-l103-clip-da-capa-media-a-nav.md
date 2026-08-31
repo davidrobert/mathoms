@@ -81,11 +81,27 @@ métrica de razão amplificar reflow de 1px em imagem curta.
    mudança de contrato que não pertence a um PR de recorte de teste.
 3. Gaps declarados no spec, seguindo o padrão de `SECTIONS_NOT_IN_MEDIUM_FIXTURE`:
    `ReportTopNav` (baseline agora **fossilizaria** a truncagem que a lane
-   `A40.l102` conserta — branch `agent/report-topnav-overflow/20260830-1830`,
-   ainda não mergeada, por isso citada sem wikilink; vale mais depois daquele
-   fix, e o gate daquela lane é de alcançabilidade, não de pixel), `ReportPremissasBlock` (`<details>`
-   fechado: o recorte provava uma linha de `<summary>`) e `aside.sidebar-toc`
-   (`no-print`, derivada de codegen).
+   [[A40.l104]] conserta — branch `report-topnav-overflow`; vale mais depois
+   daquele fix), `ReportPremissasBlock` (`<details>` fechado: o recorte provava
+   uma linha de `<summary>`) e `aside.sidebar-toc` (`no-print`, derivada de
+   codegen).
+
+   > **Correção de atribuição — 2026-08-30 (closeout, 2ª passada).** Este item
+   > dizia `A40.l102` e caracterizava o gate daquela lane como "de
+   > alcançabilidade, não de pixel". **Ambas as afirmações eram falsas.** A lane
+   > da trilha é a [[A40.l104]] (`branch_slug: report-topnav-overflow`, o mesmo
+   > branch que este item citava; `ship_pr` **#1860**); a [[A40.l102]] é
+   > "Superfície do gasto pontual: dedup do par publicado" (**#1864**), sem
+   > relação com a nav. E a própria [[A40.l104]] §"Quem alcança o que está fora"
+   > **refuta** o enquadramento: *"Cai a palavra 'inalcançabilidade': há rota. O
+   > defeito é de **descoberta e de ponteiro** no desktop"*. A citação foi escrita sem wikilink de propósito
+   > (a lane ainda não existia com esse número), o que a tornou **invisível ao
+   > `check_doc_links`** — nenhum gate podia pegá-la.
+   >
+   > **Condição de retomada satisfeita:** o fix da trilha mergeou em #1860
+   > (2026-08-30 18:18Z). A baseline de `ReportTopNav` deixou de ser prematura;
+   > hospedada em [[PLAN-report-trust]] §"Deferimentos do closeout da
+   > [[A40.l103]]".
 
 ## Fora de escopo — roteado, não perdido
 
