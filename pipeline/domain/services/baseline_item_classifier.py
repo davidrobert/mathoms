@@ -80,6 +80,27 @@ class EixoDecididoPeloHint:
 
 
 @dataclass(frozen=True)
+class SinalImpossivelNoAtivo:
+    """O item foi para ATIVO por `secao`, mas o valor é negativo."""
+
+    # Emenda [[ADR-394]] D1 (2026-08-31): o sinal veta a MAGNITUDE, não o eixo. A
+    # `secao` decide certo que é bem; o negativo é defeito de medição (o PGD não
+    # aceita negativo em Bens e Direitos, logo o sinal não veio da declaração).
+    # Antes, `secao` + negativo era o único par MUDO — contra o D3.
+
+    autoridade: ClassificationAuthority
+    valor_cents: int
+    categoria_hint: str
+
+    def format(self) -> str:
+        return (
+            f"{self.autoridade.value} roteou para ativo, mas o valor é negativo "
+            f"({self.valor_cents} cents): magnitude não apurada, não passivo "
+            f"(categoria_hint={self.categoria_hint!r})"
+        )
+
+
+@dataclass(frozen=True)
 class BaselineClassification:
     eixo: BaselineAxis
     autoridade: ClassificationAuthority
@@ -114,7 +135,7 @@ def classify_baseline_item(
         eixo=eixo,
         autoridade=autoridade,
         subtipo=subtipo,
-        warnings=tuple(_warnings_for(eixo, autoridade, hint)),
+        warnings=tuple(_warnings_for(eixo, autoridade, hint, valor_cents)),
     )
 
 
@@ -136,10 +157,18 @@ def _decide_eixo(
 
 
 def _warnings_for(
-    eixo: BaselineAxis, autoridade: ClassificationAuthority, hint: str
+    eixo: BaselineAxis, autoridade: ClassificationAuthority, hint: str, valor_cents: int = 0
 ) -> list[object]:
     if autoridade is ClassificationAuthority.HINT:
         return [EixoDecididoPeloHint(categoria_hint=hint, eixo=eixo)]
+    # `secao` + negativo saía com `[]` — o único par de fatos em conflito que o
+    # classificador silenciava. Ver `SinalImpossivelNoAtivo`.
+    if eixo is BaselineAxis.ATIVO and valor_cents < 0:
+        return [
+            SinalImpossivelNoAtivo(
+                autoridade=autoridade, valor_cents=valor_cents, categoria_hint=hint
+            )
+        ]
     hint_diz_passivo = hint in _HINT_PASSIVO or hint == "outros"
     if eixo is BaselineAxis.PASSIVO and not hint_diz_passivo:
         return [DivergenciaFatoHint(autoridade=autoridade, eixo=eixo, categoria_hint=hint)]
