@@ -16,6 +16,7 @@ reprova 4 testes.
 from __future__ import annotations
 
 import sys
+from datetime import timezone
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -75,6 +76,55 @@ def _decrypt_latest(latest: dict) -> dict:
 
 def _latest_payloads(session, ws: str, stages: tuple[str, ...]) -> dict:
     return _decrypt_latest(_latest_by_canonical(_artifact_rows(session, ws, stages)))
+
+
+def _naive_utc(dt):
+    """Compara ``created_at`` (naive em SQLite) com ``completed_at`` (aware) sem TypeError."""
+    if dt is None or dt.tzinfo is None:
+        return dt
+    return dt.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def _run_cutoff(session, ws: str, run_id: str | None):
+    """Fim do run — fronteira do corte temporal do E2 ([[ADR-421]] D3)."""
+    from backend.app.models.pipeline_run import PipelineRun
+
+    if run_id is None:
+        return None
+    run = session.get(PipelineRun, run_id)
+    if run is None or run.workspace_id != ws:
+        return None
+    return _naive_utc(run.completed_at)
+
+
+def _cut_post_run(rows: list, cutoff) -> tuple[list, int]:
+    """Descarta row criada DEPOIS do fim do run — ela não podia ter alimentado aquele run."""
+    if cutoff is None:
+        return rows, 0
+    kept = [r for r in rows if (_naive_utc(r.created_at) or cutoff) <= cutoff]
+    return kept, len(rows) - len(kept)
+
+
+def _e2_census(latest: dict, run_id: str | None, descartadas: int, cutoff) -> dict:
+    """Censo de proveniência do E2 — `do run` / `herdado` / `descartado pós-run` (D3)."""
+    # Rótulo genérico é o que a D3 proíbe: o E2 é workspace-scoped POR DECISÃO
+    # ([[ADR-241]]), então `herdado` é o regime NORMAL e precisa ser contado, não
+    # escondido. Run-escopar o E2 seria regressão, não conserto.
+    do_run = sum(1 for r in latest.values() if r.pipeline_run_id == run_id)
+    return {
+        "do_run": do_run,
+        "herdado": len(latest) - do_run,
+        "descartado_pos_run": descartadas,
+        "corte": "aplicado" if cutoff is not None else "indisponível (run sem completed_at)",
+    }
+
+
+def _e2_payloads_with_census(session, ws: str, run_id: str | None) -> tuple[dict, dict]:
+    """E2 pela política do run (workspace-latest, [[ADR-241]]) MENOS o que nasceu pós-run."""
+    cutoff = _run_cutoff(session, ws, run_id)
+    rows, descartadas = _cut_post_run(_artifact_rows(session, ws, _E2_STAGES), cutoff)
+    latest = _latest_by_canonical(rows)
+    return _decrypt_latest(latest), _e2_census(latest, run_id, descartadas, cutoff)
 
 
 def _persisted_e3_by_key(session, ws: str) -> dict:

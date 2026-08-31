@@ -19,7 +19,11 @@ from sqlalchemy.orm import sessionmaker
 
 from backend.app.core.database import Base
 from backend.app.models import PipelineArtifact, PipelineRun, User, Workspace
-from dev.certify_ledger_local import _e3_of_run, _persisted_e3_by_key
+from dev.certify_ledger_local import (
+    _e2_payloads_with_census,
+    _e3_of_run,
+    _persisted_e3_by_key,
+)
 
 _E3 = "reconcile_transactions"
 _ANTIGO = datetime(2026, 5, 29, 12, 0, 0)
@@ -50,10 +54,26 @@ def _seed_workspace(session) -> str:
 
 
 def _seed_run(session, ws: str, quando: datetime) -> str:
-    run = PipelineRun(id=str(uuid.uuid4()), workspace_id=ws, status="completed")
+    run = PipelineRun(
+        id=str(uuid.uuid4()), workspace_id=ws, status="completed", completed_at=quando
+    )
     session.add(run)
     session.flush()
     return run.id
+
+
+def _seed_e2(session, ws: str, run_id: str, key: str, marca: str, quando: datetime) -> None:
+    session.add(
+        PipelineArtifact(
+            workspace_id=ws,
+            pipeline_run_id=run_id,
+            stage="extract_statements",
+            artifact_key=key,
+            content_json={"marca": marca, "transacoes": []},
+            created_at=quando,
+        )
+    )
+    session.flush()
 
 
 def _seed_e3(session, ws: str, run_id: str, key: str, n_tx: int, quando: datetime) -> None:
@@ -115,7 +135,7 @@ def test_certify_usa_o_e3_do_run_pinado_e_nao_o_workspace_latest(dois_runs, monk
     monkeypatch.setattr(
         mod,
         "_rederive",
-        lambda _s, _w, _r: (_StoreComG1(), [], _FakeE3Result(), _FakeResult(), {}),
+        lambda _s, _w, _r: (_StoreComG1(), [], _FakeE3Result(), _FakeResult(), {}, {}),
     )
     report = mod.certify(session, ws, run_a)
     assert report.drift.count_diff == []
@@ -144,3 +164,54 @@ class _FakeResult:
 
     class cash_flow:
         transferencias_count = 0
+
+
+# ─────────── corte temporal do E2 + censo de proveniência (ADR-421 D3) ───────────
+
+
+@pytest.fixture
+def e2_tres_proveniencias(sync_db):
+    """E2 do próprio run, E2 herdado, e E2 nascido DEPOIS do fim do run."""
+    with sync_db() as session:
+        ws = _seed_workspace(session)
+        run_velho = _seed_run(session, ws, _ANTIGO)
+        run = _seed_run(session, ws, _NOVO)
+        _seed_e2(session, ws, run, "k_run", "do-run", _NOVO - timedelta(hours=1))
+        _seed_e2(session, ws, run_velho, "k_shared", "herdado", _ANTIGO)
+        # Mesma key do herdado, escrita por um run POSTERIOR (o UNIQUE (run, stage, key)
+        # do schema impede repetir a key no mesmo run). Sem o corte ela VENCE o
+        # `_latest_by_canonical` e contamina o substrato com dado que o run não podia ler.
+        run_futuro = _seed_run(session, ws, _NOVO + timedelta(days=2))
+        _seed_e2(session, ws, run_futuro, "k_shared", "pos-run", _NOVO + timedelta(days=1))
+        session.commit()
+        yield session, ws, run
+
+
+def test_corte_temporal_descarta_o_e2_nascido_depois_do_fim_do_run(e2_tres_proveniencias) -> None:
+    """MUTAÇÃO 2 documentada: remover o corte temporal reprova AQUI."""
+    session, ws, run = e2_tres_proveniencias
+    payloads, _censo = _e2_payloads_with_census(session, ws, run)
+    assert payloads[("extract_statements", "k_shared")]["marca"] == "herdado"
+
+
+def test_censo_conta_do_run_herdado_e_descartado(e2_tres_proveniencias) -> None:
+    session, ws, run = e2_tres_proveniencias
+    _payloads, censo = _e2_payloads_with_census(session, ws, run)
+    assert censo["do_run"] == 1
+    assert censo["herdado"] == 1
+    assert censo["descartado_pos_run"] == 1
+    assert censo["corte"] == "aplicado"
+
+
+def test_sem_completed_at_o_censo_declara_o_corte_indisponivel(sync_db) -> None:
+    """D6: eixo sem insumo declara o motivo — nunca finge que o corte foi aplicado."""
+    with sync_db() as session:
+        ws = _seed_workspace(session)
+        run = PipelineRun(id=str(uuid.uuid4()), workspace_id=ws, status="running")
+        session.add(run)
+        session.flush()
+        _seed_e2(session, ws, run.id, "k1", "sem-corte", _NOVO)
+        session.commit()
+        _payloads, censo = _e2_payloads_with_census(session, ws, run.id)
+        assert censo["corte"] == "indisponível (run sem completed_at)"
+        assert censo["descartado_pos_run"] == 0

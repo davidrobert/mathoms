@@ -105,7 +105,7 @@ def _rederive_vazio(_session, _ws, _run):
         statements_loaded=0, statements_reconciled=0, skipped_inputs=0, artifacts_written=0
     )
     result = SimpleNamespace(classified=[], cash_flow=SimpleNamespace(transferencias_count=0))
-    return InMemoryArtifactStore(), [], e3_result, result, {"investimentos": {"dados": []}}
+    return InMemoryArtifactStore(), [], e3_result, result, {"investimentos": {"dados": []}}, {}
 
 
 def test_certify_degrada_o_blast_radius_sem_derrubar_a_certificacao(monkeypatch) -> None:

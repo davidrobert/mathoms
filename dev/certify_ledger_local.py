@@ -59,6 +59,7 @@ from dev.ledger_certify_db import (  # noqa: F401
     _artifact_rows,
     _decrypt,
     _decrypt_latest,
+    _e2_payloads_with_census,
     _e3_stage_log,
     _latest_by_canonical,
     _latest_payloads,
@@ -233,21 +234,18 @@ def _rederive(session, ws: str, run_id: str | None):
     from pipeline.artifact_store import InMemoryArtifactStore
 
     store = InMemoryArtifactStore()
-    seeds = _seed_store(
-        store,
-        _latest_payloads(session, ws, _E2_STAGES),
-        _latest_payloads(session, ws, _BASELINE_STAGES),
-    )
+    latest_e2, e2_census = _e2_payloads_with_census(session, ws, run_id)
+    seeds = _seed_store(store, latest_e2, _latest_payloads(session, ws, _BASELINE_STAGES))
     ctx = _build_context(session, ws, run_id, store)
     e3_result = _rederive_e3(ctx, store)
     result, e4 = _rederive_e4(ctx, session, ws, store)
-    return store, seeds, e3_result, result, e4
+    return store, seeds, e3_result, result, e4, e2_census
 
 
 def _certify_core(session, ws: str, run_id: str | None) -> LedgerReport:
     """Re-deriva E3+E4 e monta o LedgerReport, SEM fechar a prova de zero-write."""
     before = _row_counts(session, ws)
-    store, seeds, e3_result, result, e4 = _rederive(session, ws, run_id)
+    store, seeds, e3_result, result, e4, e2_census = _rederive(session, ws, run_id)
     report = build_report(
         ws,
         run_id,
@@ -258,6 +256,7 @@ def _certify_core(session, ws: str, run_id: str | None) -> LedgerReport:
         _fresh_e3(store),
         _persisted_e3_subject(session, ws, run_id),
     )
+    report.e2_provenance = e2_census
     report.counts_before = before
     return report
 

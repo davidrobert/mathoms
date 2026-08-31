@@ -62,7 +62,7 @@ def _rederive_vazio(_session, _ws, _run):
         statements_loaded=0, statements_reconciled=0, skipped_inputs=0, artifacts_written=0
     )
     result = SimpleNamespace(classified=[], cash_flow=SimpleNamespace(transferencias_count=0))
-    return InMemoryArtifactStore(), [], e3_result, result, {"investimentos": {"dados": []}}
+    return InMemoryArtifactStore(), [], e3_result, result, {"investimentos": {"dados": []}}, {}
 
 
 def _rederive_entregue_vazio(_session, _ws, _run, _e3):

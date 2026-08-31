@@ -84,6 +84,8 @@ class LedgerReport:
     # Vazio = relatório só-sombra; a sombra NÃO pontua a KR.
     cross_group_entregue: CrossGroupSummary | None = None
     entregue: dict = field(default_factory=dict)
+    # Censo de proveniência do E2 (ADR-421 D3) — vazio = NÃO MEDIDO, nunca "tudo do run".
+    e2_provenance: dict = field(default_factory=dict)
 
     @property
     def zero_write_ok(self) -> bool:
@@ -246,6 +248,22 @@ def _fmt_conservation(results: list) -> list[str]:
     return lines
 
 
+_E2_PROV_TITLE = "## Substrato E2 (proveniência)"
+
+
+def _fmt_e2_provenance(cen: dict) -> list[str]:
+    """Censo do substrato E2 — `do run` / `herdado` / `descartado pós-run` ([[ADR-421]] D3)."""
+    if not cen:
+        return [_E2_PROV_TITLE, "- não medido — leia o bloco como não-verificável [entregue]"]
+    return [
+        _E2_PROV_TITLE,
+        f"- do run={cen['do_run']} · herdado={cen['herdado']} · "
+        f"descartado pós-run={cen['descartado_pos_run']} · corte temporal: {cen['corte']}",
+        "- E2 é workspace-scoped POR DECISÃO ([[ADR-241]]): `herdado` é o regime normal, "
+        "não anomalia — run-escopá-lo seria regressão",
+    ]
+
+
 def _fmt_exec(report: LedgerReport) -> list[str]:
     e = report.e3_exec
     excl = e.get("exclusions") or {}
@@ -350,6 +368,7 @@ def _cross_group_blocks(report: LedgerReport) -> list:
 def _report_blocks(report: LedgerReport) -> list:
     return [
         _fmt_conservation(report.conservation),
+        _fmt_e2_provenance(report.e2_provenance),
         _fmt_exec(report),
         _fmt_units("## Eixo E3 (por grupo)", report.e3_groups),
         _fmt_units("## Eixo E4 (por balde)", report.e4_buckets),
