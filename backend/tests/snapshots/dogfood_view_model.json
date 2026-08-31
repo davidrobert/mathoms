@@ -2180,6 +2180,7 @@
     "janela_meses": 1,
     "janela_n_meses": 1,
     "janela_referencia": "2026-01 a 2026-01",
+    "numerador_concentracao_imobiliaria": "imoveis_investimento",
     "piso_autonomia_financeira_meses": "86.670000",
     "rentabilidade": {
       "ano_base": null,
