@@ -39,6 +39,7 @@ import ast
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCAN_DIR = REPO_ROOT / "backend" / "app" / "application"
@@ -82,16 +83,44 @@ def _schema_json(schema_file: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _ref_externo(node) -> Optional[str]:
+    ref = node.get("$ref") if isinstance(node, dict) else None
+    return ref.split("#", 1)[0] if isinstance(ref, str) and not ref.startswith("#") else None
+
+
+def _ramos(doc: dict) -> list:
+    """Sub-schemas de um combinador; `if/then` conta o `then`, que é onde mora o ramo."""
+    saida = []
+    for kw in ("allOf", "anyOf", "oneOf"):
+        for ramo in doc.get(kw, []):
+            if isinstance(ramo, dict):
+                saida.append(ramo.get("then") if "then" in ramo else ramo)
+    return [r for r in saida if isinstance(r, dict)]
+
+
+def _expande(ramos: list, vistos: set) -> list:
+    """Ramos a visitar: inline vai direto; `$ref` resolve o arquivo uma vez só."""
+    inline = [r for r in ramos if _ref_externo(r) is None]
+    refs = [ref for r in ramos if (ref := _ref_externo(r)) and ref not in vistos]
+    vistos.update(refs)
+    return inline + [_schema_json(ref) for ref in refs]
+
+
 def _propriedades(schema_file: str) -> set[str]:
-    # Schema-base polimórfico (comprovante_base) só declara o discriminador no topo;
-    # o contrato de cada ramo mora atrás de `allOf[].then.$ref`. Sem descer o ramo, o
-    # gate reprovaria `payload["placa"]` como chave que o produtor não emite.
-    doc = _schema_json(schema_file)
-    props = set(doc.get("properties", {}))
-    for ramo in doc.get("allOf", []):
-        ref = (ramo.get("then") or {}).get("$ref")
-        if isinstance(ref, str) and not ref.startswith("#"):
-            props |= set(_schema_json(ref.split("#", 1)[0]).get("properties", {}))
+    """União transitiva das `properties` alcançáveis — topo e todos os ramos."""
+    # Três formas convivem e o gate precisa das três: `comprovante_base` põe o contrato
+    # atrás de `allOf[].then.$ref`; `e4_seguros`/`informe_base` declaram `properties`
+    # INLINE no `then`; e o backstop por stage (`e4_unified`, A42.l19) é `anyOf` de
+    # `$ref` sem `properties` no topo. Ver só a primeira faria o conjunto sair vazio
+    # para o backstop — e todo `payload["x"]` de um leitor de E4 seria reprovado como
+    # chave que o produtor não emite: falso positivo plantado pelo próprio refactor.
+    props: set[str] = set()
+    vistos: set[str] = {schema_file}
+    pendentes = [_schema_json(schema_file)]
+    while pendentes:
+        doc = pendentes.pop()
+        props |= set(doc.get("properties", {}))
+        pendentes.extend(_expande(_ramos(doc), vistos))
     return props
 
 

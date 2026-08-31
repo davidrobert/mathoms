@@ -161,3 +161,16 @@ def test_contratos_declarados_citam_stage_conhecido():
         declarados += 1
         assert all(s in mapa for s in stages), f"{path}: stage fora de SCHEMA_BY_STAGE"
     assert declarados >= 5, "esperado ao menos os 5 leitores conhecidos de application/"
+
+
+def test_backstop_por_stage_recupera_as_properties_dos_ramos():
+    """A42.l19 — `e4_unified` virou `anyOf` de `$ref` e não tem `properties` no topo."""
+    # Sem descer por `anyOf`, o conjunto sairia VAZIO e todo `payload["x"]` de um leitor
+    # de E4 seria reprovado como chave que o produtor não emite: falso positivo plantado
+    # pelo próprio refactor. Descer só por `allOf[].then.$ref` (comprovante_base) não
+    # basta — `e4_seguros` declara `properties` INLINE no `then`.
+    props = _gate_module()._propriedades("e4_unified.schema.json")
+
+    assert props, "backstop sem properties alcançáveis — leitor de E4 reprovaria inteiro"
+    # chaves de ramos DIFERENTES: a união precisa cobrir todos, não só o primeiro
+    assert {"meses_ordenados", "patrimonio_por_ano", "n_posicoes", "apolices"} <= props
