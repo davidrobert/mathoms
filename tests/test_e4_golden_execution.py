@@ -97,6 +97,20 @@ def _new_e4_ctx(root: Path, *, e3_fixture: Path, baseline: Path | None = None):
     return WorkspaceContext(root=root, artifact_store=store)
 
 
+def _assert_baldes_validam(store) -> None:
+    """Cada balde contra o schema que o `DBArtifactStore` aplicaria — resolvido por
+    ``(stage, artifact_key)`` (A42.l19). Validar pelo caminho de produção (e não por
+    `jsonschema.validate` avulso) é o que faz este teste falar do guard real."""
+    from backend.app.services.storage.db_artifact_store import resolve_schema_name
+    from scripts.pipeline_common import validate_dict
+
+    pytest.importorskip("jsonschema")
+    for key in store.list_keys("E4"):
+        nome = resolve_schema_name("E4", key)
+        assert (_REPO / "config" / "schemas" / nome).exists(), f"{key}: schema {nome} ausente"
+        assert validate_dict(store.read("E4", key), nome, source=f"E4/{key}") is True, key
+
+
 def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
     """Roda categorize_transactions.main em tenant isolado; restaura globals."""
     from scripts.categorize_transactions import main_with_store
@@ -127,16 +141,7 @@ def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
     # anteriores em re-runs.
     assert not store.exists("E4", "patrimonio")
 
-    jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads(
-        (_REPO / "config" / "schemas" / "e4_unified.schema.json").read_text(encoding="utf-8")
-    )
-    from scripts.pipeline_common import validate_dict
-
-    for key in store.list_keys("E4"):
-        payload = store.read("E4", key)
-        jsonschema.validate(payload, schema)
-        assert validate_dict(payload, "e4_unified.schema.json", source=f"E4/{key}") is True
+    _assert_baldes_validam(store)
 
     assert_qa_log_md(e4_tenant_minimal)
 
@@ -155,12 +160,7 @@ def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
     assert despesas["total_geral"] == 30.0
     assert "lazer" in despesas["categorias"]
 
-    jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads(
-        (_REPO / "config" / "schemas" / "e4_unified.schema.json").read_text(encoding="utf-8")
-    )
-    for key in store.list_keys("E4"):
-        jsonschema.validate(store.read("E4", key), schema)
+    _assert_baldes_validam(store)
 
     assert_qa_log_md(e4_tenant_mixed_cashflow)
 
@@ -178,19 +178,10 @@ def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
     assert pat["pipeline_stage"] == "E1.5_Baseline_Patrimonial"
     assert pat["patrimonio_por_ano"]["2024"]["total_bens"] == 500000.0
 
-    jsonschema = pytest.importorskip("jsonschema")
-    baseline_schema = json.loads(
-        (_REPO / "config" / "schemas" / "baseline_patrimonial.schema.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    e4_schema = json.loads(
-        (_REPO / "config" / "schemas" / "e4_unified.schema.json").read_text(encoding="utf-8")
-    )
-    jsonschema.validate(pat, baseline_schema)
-    for key in store.list_keys("E4"):
-        if key == "patrimonio":
-            continue
-        jsonschema.validate(store.read("E4", key), e4_schema)
+    # A42.l19 — `patrimonio` deixou de ser exceção. Este teste já validava o balde
+    # contra `baseline_patrimonial` e o PULAVA no laço do e4_unified: sabia o
+    # contrato certo e registrava a isenção em vez de fechá-la. O guard de escrita
+    # agora resolve pelo mesmo mapa, e nenhum balde escapa.
+    _assert_baldes_validam(store)
 
     assert_qa_log_md(e4_tenant_with_baseline)

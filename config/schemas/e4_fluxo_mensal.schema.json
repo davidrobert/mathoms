@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e4_fluxo_mensal.schema.json",
+  "title": "E4 — balde fluxo_mensal_detalhado",
+  "description": "Contrato do balde `fluxo_mensal_detalhado`, resolvido por artifact_key (A42.l19). Espelha FluxoMensal.to_legacy_dict. `minItems: 1` em meses_ordenados preserva a strictness que o umbrella já aplicava a este balde — não é afrouxamento nem aperto. `consolidacao_cross_documento` é o contador do colapso cross-documento, OMITIDO quando não houve (a presença sempre-ligada mudaria a chave de cache do parecer, [[ADR-173]]).",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["periodo", "meses_ordenados", "receitas", "despesas"],
+  "properties": {
+    "periodo": {"type": "string"},
+    "meses_ordenados": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "receitas": {
+      "type": "object",
+      "required": ["origens", "por_mes"],
+      "properties": {
+        "origens": {"type": "array"},
+        "por_mes": {"type": "object"}
+      }
+    },
+    "despesas": {
+      "type": "object",
+      "required": ["categorias", "por_mes"],
+      "properties": {
+        "categorias": {"type": "array"},
+        "por_mes": {"type": "object"}
+      }
+    },
+    "consolidacao_cross_documento": {"type": "object"}
+  }
+}

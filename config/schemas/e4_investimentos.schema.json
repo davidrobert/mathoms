@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e4_investimentos.schema.json",
+  "title": "E4 — balde investimentos",
+  "description": "Contrato do balde `investimentos`, resolvido por artifact_key (A42.l19). Espelha ConsolidatedInvestments.to_legacy_dict. `avisos_validacao` e `posicoes_sem_marcacao_por_membro` (ADR-346) são omitidos quando vazios — opcionais aqui pelo mesmo motivo.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["dados", "total_por_membro", "total_geral", "fontes", "data_consolidacao", "n_posicoes"],
+  "properties": {
+    "dados": {"type": "array", "items": {"type": "object"}},
+    "total_por_membro": {"type": "object", "additionalProperties": {"type": "number"}},
+    "total_geral": {"type": "number"},
+    "fontes": {"type": "array"},
+    "data_consolidacao": {"type": "string"},
+    "n_posicoes": {"type": "integer", "minimum": 0},
+    "avisos_validacao": {"type": "array", "items": {"type": "string"}},
+    "posicoes_sem_marcacao_por_membro": {
+      "type": "object",
+      "additionalProperties": {"type": "array", "items": {"type": "string"}}
+    }
+  }
+}

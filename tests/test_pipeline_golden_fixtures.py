@@ -21,7 +21,11 @@ _SCHEMAS = _REPO / "config" / "schemas"
             _FIXTURES / "e3" / "minimal-conta-com-despesa-3_reconciled.json",
             "e3_reconciled.schema.json",
         ),
-        (_FIXTURES / "e4" / "minimal-receitas-4_unified.json", "e4_unified.schema.json"),
+        # A42.l19 — contrato POR BALDE. A fixture antiga era `{periodo: {objeto},
+        # total_geral}`, shape do ramo morto do umbrella (o produtor emite `periodo`
+        # string + 8 campos): ela mantinha o ramo parecendo vivo sem afirmar nada
+        # sobre o que o E4 escreve.
+        (_FIXTURES / "e4" / "minimal-receitas-4_unified.json", "e4_cashflow.schema.json"),
         (
             _FIXTURES / "e2" / "minimal-baseline-1.5_consolidated.json",
             "baseline_patrimonial.schema.json",

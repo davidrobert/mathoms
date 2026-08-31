@@ -112,12 +112,15 @@ def _schema_closure(schema_name: str, schemas_dir) -> Optional[dict[str, dict]]:
     return docs
 
 
-def _schema_version_token(stage: str) -> Optional[str]:
+def _schema_version_token(stage: str, key: str) -> Optional[str]:
     """A37.l13 (CTO-07) — token real de auditoria por row: sha256[:12] do JSON
-    canônico do schema resolvido via ``SCHEMA_BY_STAGE``. Muda quando o schema
-    muda (os schemas não declaram versão/$id universal — hash é a única fonte
-    estável). Stage sem schema mapeado (E1, E6-parecer…) → NULL explícito."""
-    schema_name = SCHEMA_BY_STAGE.get(stage)
+    canônico do schema resolvido via :func:`resolve_schema_name`. Muda quando o
+    schema muda (os schemas não declaram versão/$id universal — hash é a única
+    fonte estável). Stage sem schema mapeado (E1, E6-parecer…) → NULL explícito."""
+    # Resolve por `(stage, key)` desde A42.l19: com token por stage, os 7 baldes E4
+    # carregariam o mesmo hash e a coluna deixaria de discriminar qual contrato
+    # validou a row.
+    schema_name = resolve_schema_name(stage, key)
     if schema_name is None:
         return None
     import scripts.pipeline_common as pipeline_common
@@ -209,6 +212,46 @@ per-schema, ADR-284) > ``mode`` global. Em ``strict`` + payload inválido,
 ``write()`` propaga ``ValidationError`` do jsonschema (enforcement real
 desde ADR-284 — antes o bool de ``validate_dict`` era descartado).
 """
+
+
+_E4_SCHEMA_POR_BALDE: dict[str, str] = {
+    # A42.l19 — o discriminador dos 7 baldes E4 é o ``artifact_key``, que já é
+    # coluna da própria row. Não precisa ser contrabandeado para dentro do payload
+    # (o caminho do ``comprovante_base``, onde a artifact_key varia por documento e
+    # não diz o tipo): aqui a chave É o tipo. Resolver por stage entregava os 7
+    # baldes a um ``oneOf`` cujo ramo mais frouxo (``required: ["dados"]`` com
+    # ``dados: {}``) aceitava 5 deles sem restringir nada, e ao qual o
+    # ``patrimonio`` não casava — sendo gravado assim mesmo em modo ``warn``.
+    "receitas": "e4_cashflow.schema.json",
+    "despesas": "e4_cashflow.schema.json",
+    "fluxo_mensal_detalhado": "e4_fluxo_mensal.schema.json",
+    # O balde é cópia normalizada do artefato E1.5c, que JÁ é gateado por este
+    # mesmo schema — apontar para cá é consistência de contrato, não schema novo.
+    "patrimonio": "baseline_patrimonial.schema.json",
+    "investimentos": "e4_investimentos.schema.json",
+    "seguros": "e4_seguros.schema.json",
+    "pontos_milhas": "e4_pontos_milhas.schema.json",
+}
+
+SCHEMA_BY_STAGE_KEY: dict[tuple[str, str], str] = {
+    (stage, key): schema
+    for stage in ("E4", "categorize_transactions")
+    for key, schema in _E4_SCHEMA_POR_BALDE.items()
+}
+"""(stage, artifact_key) → schema, consultado ANTES de ``SCHEMA_BY_STAGE``.
+
+Para stage cujo ``artifact_key`` discrimina o contrato (hoje só E4). Stage sem
+entrada aqui segue resolvendo por stage — este mapa acrescenta precisão, não
+troca o mecanismo. Completude gateada por
+``tests/unit/pipeline/test_e4_schema_por_balde.py`` (igualdade de conjunto
+contra ``ARTIFACT_KEYS``): balde novo sem schema cairia no backstop do stage e
+reabriria o buraco em silêncio.
+"""
+
+
+def resolve_schema_name(stage: str, key: str) -> Optional[str]:
+    """Schema que valida ``(stage, key)``; ``None`` quando o stage não é validado."""
+    return SCHEMA_BY_STAGE_KEY.get((stage, key)) or SCHEMA_BY_STAGE.get(stage)
 
 
 _WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset(
@@ -438,7 +481,7 @@ class DBArtifactStore:
     ) -> None:
         self._validate_schema(stage, key, data)
         prompt_version = _payload_prompt_version(data)
-        schema_version = _schema_version_token(stage)
+        schema_version = _schema_version_token(stage, key)
         payload = _maybe_encrypt(data)
         byte_size = _payload_byte_size(payload)
         row = self._get(stage, key)
@@ -521,7 +564,7 @@ class DBArtifactStore:
         # ADR-212 PR3 + ADR-284 — warn loga drift com workspace_id; strict
         # propaga ValidationError e o write não acontece (antes o bool era
         # descartado e strict era no-op).
-        schema_name = SCHEMA_BY_STAGE.get(stage)
+        schema_name = resolve_schema_name(stage, key)
         if schema_name is None:
             return
         from scripts.pipeline_common import validate_dict
