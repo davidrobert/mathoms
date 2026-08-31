@@ -420,6 +420,7 @@
 | ADR-423 | adr | Proposto |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
 | ADR-424 | adr | Proposto |  | SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required | `adr/424-sql-so-sqlite-em-migration-e-a-cadeia-em-postgres.md` |
 | ADR-425 | adr | Proposto |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
+| ADR-426 | adr | Proposto |  | O destino E3→E4 declara valor, ou o eixo-valor não é medido | `adr/426-o-destino-e3e4-declara-valor-ou-o-eixo-nao-e-medido.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -1009,7 +1010,7 @@
 | A42.l15 | lane | in_progress | A42 | Identidade de investimento é hash de campos que o extrator LLM reescreve | `sprint/A42/lanes/A42-l15-identidade-de-investimento-instavel-entre-runs.md` |
 | A42.l16 | lane | shipped | A42 | O check de cobertura cambial converte 'não sei o tier' em 'passou' | `sprint/A42/lanes/A42-l16-check-cambial-converte-nao-sei-em-passou.md` |
 | A42.l17 | lane | shipped | A42 | Um parser de banco chama o SDK LLM fora do contrato, e a saída livre vira chave de junção | `sprint/A42/lanes/A42-l17-parser-chama-llm-fora-do-contrato.md` |
-| A42.l18 | lane | open | A42 | A perna de valor da conservação E3→E4 é inerte: `dups` é literal e os dois lados somam `abs()` da mesma população | `sprint/A42/lanes/A42-l18-perna-de-valor-e3e4-inerte.md` |
+| A42.l18 | lane | in_progress | A42 | A perna de valor da conservação E3→E4 é inerte: `dups` é literal e os dois lados somam `abs()` da mesma população | `sprint/A42/lanes/A42-l18-perna-de-valor-e3e4-inerte.md` |
 | A42.l19 | lane | open | A42 | O guard de escrita do E4 resolve por stage e tem ramo placeholder: o balde do patrimônio reprova hoje e é gravado assim mesmo | `sprint/A42/lanes/A42-l19-guard-de-escrita-e4-inerte-no-patrimonio.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l20 | lane | open | A42 | O contador de linhas do E3 ignora o canal de remoção que a função vizinha lê, e o resultado sai com duas causas declaradas, ambas falsas | `sprint/A42/lanes/A42-l20-contador-do-razao-ignora-canal-de-remocao.md` |
