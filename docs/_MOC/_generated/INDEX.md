@@ -422,6 +422,8 @@
 | ADR-425 | adr | Decidido |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
 | ADR-426 | adr | Decidido |  | O destino E3→E4 declara valor, ou o eixo-valor não é medido | `adr/426-o-destino-e3e4-declara-valor-ou-o-eixo-nao-e-medido.md` |
 | ADR-427 | adr | Decidido |  | O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte | `adr/427-discriminador-do-artefato-e-a-artifact-key.md` |
+| ADR-428 | adr | Decidido |  | A direção conservadora de um piso é fixada pelo uso do número, não pelo número | `adr/428-a-direcao-conservadora-de-um-piso-e-fixada-pelo-uso.md` |
+| ADR-429 | adr | Proposto |  | Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita | `adr/429-estorno-e-despesa-assinada-na-categoria-original.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

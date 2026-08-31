@@ -413,7 +413,7 @@ frota 4× — a chave de cache muda uma vez, no deploy.
 - **A [[A40.l102]] item 2 nomeia `nao_identificado`** (`senior-cto`): a ADR-425 §D1
   pede "lista + total, **rotulados**", e o `TabelaHeader` ainda não rotula.
 
-## Achado do closeout (2026-08-31) — `pontual_mensal` ficou órfão
+## Achado do closeout (2026-08-31) — `pontual_mensal` ficou órfão · ✅ **RESOLVIDO em [[ADR-428]]**
 
 Os **únicos** dois donos que o campo já teve são uma lane `cancelled` e uma
 `shipped`:
@@ -427,6 +427,8 @@ A [[ADR-422]] §Consequências ainda o registra como pendente (*"Não foi emitid
 novo para o ritmo do pontual… Ele entra junto com a base limpa"*) — e a base limpa
 entrou. Não abro lane aqui (o pickup é decisão do dono), mas o item **não pode ficar
 só nesta prosa**: foi exatamente assim que a l94 apontou para uma lane que não
-existia. **Dono proposto:** `financial-planner`, junto com o
-`base_pontuais.cobertura_nivel` que a [[ADR-425]] §Emenda já defere para ele — são o
-mesmo objeto e a mesma superfície.
+existia. ✅ **Fechado em 2026-08-31 pela [[ADR-428]]**: o campo **não será emitido**. A base
+limpa que esta lane entregou é o que o converteu em piso, e piso não sustenta
+prescrição de acúmulo — a família **executa** o número. A [[ADR-422]] §Consequências
+foi emendada porque a promessa dela caiu. O `base_pontuais.cobertura_nivel` vem
+primeiro e sozinho, e é a condição de retomada.
