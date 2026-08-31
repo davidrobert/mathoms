@@ -72,6 +72,9 @@ class DedupReport:
 
     collapsed_count: int  # total de duplicatas removidas (silentes + review)
     review_entries: tuple[DedupReviewEntry, ...] = ()
+    # Σ |valor| (cents) das rows removidas. Sem ele a perna de VALOR E3→E4 era uma
+    # identidade: os dois lados somavam a MESMA população pré-dedup ([[ADR-426]]).
+    collapsed_cents: int = 0
 
     @property
     def review_count(self) -> int:
@@ -160,8 +163,22 @@ def _dedup_transactions(
         _make_review_entry(h, seen[h], reasons[h], collisions[h]) for h in sorted(reasons)
     )
     return list(seen.values()), DedupReport(
-        collapsed_count=sum(collisions.values()), review_entries=entries
+        collapsed_count=sum(collisions.values()),
+        review_entries=entries,
+        collapsed_cents=_collapsed_cents(seen, collisions),
     )
+
+
+def _soma_cents(txs: list[ClassifiedTransaction]) -> int:
+    """Σ |valor| (cents) — convenção única do eixo-valor E3→E4 ([[ADR-426]])."""
+    return sum(cents_int(abs(t.valor)) for t in txs)
+
+
+def _collapsed_cents(seen: dict, collisions: dict) -> int:
+    """Σ |valor| (cents) das rows que o dedup removeu. O hash K4 inclui ``valor``
+    ([[ADR-287]]), logo a row colapsada carrega o mesmo valor da mantida — o valor
+    removido é ``colisões × |valor da mantida|``, exato sem reter as removidas."""
+    return sum(n * cents_int(abs(seen[h].valor)) for h, n in collisions.items() if h in seen)
 
 
 def _merge_dedup_reports(*reports: DedupReport) -> DedupReport:
@@ -171,7 +188,11 @@ def _merge_dedup_reports(*reports: DedupReport) -> DedupReport:
     for r in reports:
         entries.extend(r.review_entries)
     entries.sort(key=lambda e: e.transaction_hash)
-    return DedupReport(collapsed_count=collapsed, review_entries=tuple(entries))
+    return DedupReport(
+        collapsed_count=collapsed,
+        review_entries=tuple(entries),
+        collapsed_cents=sum(r.collapsed_cents for r in reports),
+    )
 
 
 # =============================================================================
@@ -265,6 +286,9 @@ class CashFlow:
     despesas: DespesasUnified
     fluxo_mensal: FluxoMensal
     transferencias_count: int = 0
+    # Σ |valor| (cents) das transferências pós-dedup. As transferências não têm balde
+    # serializado com total; sem este termo a soma do destino não fecha ([[ADR-426]]).
+    transferencias_cents: int = 0
     # ADR-255 — telemetria do dedup cross-document; default vazio preserva
     # construtores em call-sites legados de teste que instanciam CashFlow
     # diretamente sem chamar build().
@@ -293,16 +317,19 @@ class CashFlowBuilder:
 
     # -- API --
 
-    def build(self, transactions: Iterable[ClassifiedTransaction]) -> CashFlow:
-        # ADR-255 Camada A — dedup K4 por kind (sinal em ``kind``, não em valor).
-        txs = list(transactions)
-        by_kind = {
+    def _dedup_por_kind(self, txs: list[ClassifiedTransaction]) -> dict:
+        """Dedup K4 por kind — o sinal vive em ``kind``, não no valor (ADR-255 Camada A)."""
+        return {
             k: _dedup_transactions(
-                [t for t in txs if t.kind == k],
-                natural_key_v2=self._dedup_natural_key_v2,
+                [t for t in txs if t.kind == k], natural_key_v2=self._dedup_natural_key_v2
             )
             for k in ("receita", "despesa", "transferencia")
         }
+
+    def build(self, transactions: Iterable[ClassifiedTransaction]) -> CashFlow:
+        # ADR-255 Camada A — dedup K4 por kind (sinal em ``kind``, não em valor).
+        txs = list(transactions)
+        by_kind = self._dedup_por_kind(txs)
         receitas, rep_r = by_kind["receita"]
         despesas, rep_d = by_kind["despesa"]
         transferencias, rep_t = by_kind["transferencia"]
@@ -311,6 +338,7 @@ class CashFlowBuilder:
             despesas=self.build_despesas_unified(despesas),
             fluxo_mensal=self.build_fluxo_mensal(receitas, despesas),
             transferencias_count=len(transferencias),
+            transferencias_cents=_soma_cents(transferencias),
             dedup_report=_merge_dedup_reports(rep_r, rep_d, rep_t),
         )
 

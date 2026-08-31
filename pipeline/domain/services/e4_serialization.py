@@ -90,6 +90,12 @@ def conferencia_signals(result: CategorizationResult) -> dict[str, str]:
         "tx_total": str(len(result.classified)),
         "dedup_collapsed": str(report.collapsed_count),
         "dedup_review": str(report.review_count),
+        # Eixo-VALOR ([[ADR-426]]): sem estes dois o destino E3→E4 não tem soma
+        # declarada, e o harness comparava a origem consigo mesma. Cents (zero float,
+        # [[ADR-090]]). NÃO entram em `_CONFERENCIA_SIGNAL_KEYS` — o whitelist do E5 é
+        # o que mantém a chave de cache do parecer intacta ([[ADR-173]]).
+        "dedup_collapsed_cents": str(report.collapsed_cents),
+        "transferencias_cents": str(result.cash_flow.transferencias_cents),
     }
 
 
