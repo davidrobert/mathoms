@@ -2517,6 +2517,7 @@
       "baldes_negativos": [],
       "cobertura_completa": true,
       "dividas_curto_prazo_brl": 0,
+      "itens_sem_valor": [],
       "modo": "enforce",
       "motivo_supressao": null,
       "reclassificados": []

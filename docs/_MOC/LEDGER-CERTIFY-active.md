@@ -12,6 +12,14 @@ aliases: ["LEDGER-CERTIFY", "LEDGER-CERTIFY-active", "ledger-tracking", "ledger-
 > (reconciliação) + E4 (categorização) no grão transação/posição. Uma seção por
 > run; seções de runs 100% fechados viram histórico aqui mesmo.
 
+> **Nota de sujeito — 2026-08-31 ([[ADR-421]] `Decidido`, [[A42.l14]], #1915).** Toda
+> linha deste registro **anterior** a esta data descreve a **re-derivação in-process**
+> (a "sombra"), não o artefato que o run publicou — o `LC6-01` mostrou que a rubrica
+> inteira era computada sobre ela. **Única exceção:** o `[numerador KR-B]` do §r5/§r6,
+> que já vinha do E3 persistido. Os §r **não são reescritos** (snapshot datado é
+> evidência, [[ADR-343]]); esta nota é a correção. A partir do #1915 cada linha da skill
+> carrega `[entregue]` ou `[sombra]` no próprio texto, e a ambiguidade deixa de existir.
+
 ## O que entra aqui (e o que NÃO entra) — [[ADR-343]]
 
 Achados da `ledger-certify` são de duas naturezas; **só uma** aterrissa aqui:
@@ -509,6 +517,23 @@ seis decisões + critério de aceite com prova por mutação). Execução é da 
 criada pelo dono em #1821 no mesmo dia — as três perguntas abertas no
 §Critério de aceite dela estão respondidas acima. **Ordem:** a l14 precede os itens 1–5
 da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada na ADR.
+
+> #### Fecho do `LC6-01` — 2026-08-31, PR #1915 (`1e952b26`)
+>
+> **Disposição: fechado.** A [[A42.l14]] entregou o PR-A da rota; a [[ADR-421]] está
+> `Decidido (A42.l14)`. O que mudou no instrumento: substrato **run-scoped** (matava
+> 60 de 61 runs), corte temporal + censo de proveniência no E2, eixos E3/E4 sobre o
+> **artefato publicado**, rótulo `[entregue]`/`[sombra]` **por linha**, balde ausente
+> vira `não-verificável`, e a glosa de causa falsa corrigida.
+>
+> Seis gates, cada um provado por **mutação** — inclusive o de troca de sujeitos, que
+> reprova 4 dos 5 casos no comportamento pré-lane. Fixtures em SQLite real.
+>
+> **Duas ressalvas ficam escritas:** a D3 §"compor o `DBArtifactStore` real" segue
+> **não testada** (§Deferimento datado, retomada na [[A42.l6]]), e a execução em **≥3
+> runs não mais recentes não foi exercitada** — mecanismo provado por fixture, rota
+> sobre os 61 runs não. **`LC6-02`…`LC6-07` seguem `procede-aberto`**: fechar o
+> `LC6-01` não fecha o §r6.
 
 > ### Retificação datada do `LC6-02` — 2026-08-29, no ataque da lane
 >

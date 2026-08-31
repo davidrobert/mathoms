@@ -212,3 +212,77 @@ class TestDBResolver:
         assert len(rows) == 1 and rows[0].id == record.property_id
         parallel.close()
         long_lived.close()
+
+
+class TestLowConfidenceSempreTemRazao:
+    # `low_confidence` sem razão é sinal que nenhum consumidor enxerga: o operador
+    # não o vê na fila, e o LLM do parecer lê o item como se fosse limpo. Eram 8 de
+    # 26 itens do corpus violando; a paridade dos call-sites mudos entrou antes
+    # desta lane, e este teste é o que impede a regressão.
+    #
+    # LIMITE: cobre os ramos que o enricher produz hoje. Um quarto sítio que marque
+    # `low_confidence` fora dele passa despercebido — o produtor único de razão
+    # (`_append_uncanonical_reason`) é o que torna isso improvável, não este teste.
+    """Invariante do corpus ([[A40.l111]] critério 7 · [[ADR-272]])."""
+
+    @staticmethod
+    def _todos_os_ramos() -> list[dict]:
+        """Um item por ramo do enricher que marca `low_confidence`."""
+        return [
+            # eixo por hint — sem fato, com a declaração provando saber emitir `secao`
+            {
+                "descricao": "APTO - RUA A, 1",
+                "proprietario": "david",
+                "codigo_rfb": "11",
+                "ano_referencia": 2025,
+                "eixo_autoridade": "hint",
+                "secao_disponivel": True,
+            },
+            # sem titular_key
+            {
+                "descricao": "CASA - RUA B, 2",
+                "proprietario": "",
+                "codigo_rfb": "12",
+                "ano_referencia": 2025,
+                "eixo_autoridade": "secao",
+            },
+            # sem codigo_rfb
+            {
+                "descricao": "SALA - RUA C, 3",
+                "proprietario": "david",
+                "codigo_rfb": "",
+                "ano_referencia": 2025,
+                "eixo_autoridade": "secao",
+            },
+            # descrição que não canonicaliza → sem endereco_canonical
+            {
+                "descricao": "",
+                "proprietario": "david",
+                "codigo_rfb": "13",
+                "ano_referencia": 2025,
+                "eixo_autoridade": "secao",
+            },
+        ]
+
+    def test_todo_item_low_confidence_carrega_pelo_menos_uma_razao(self):
+        resolver = InMemoryPropertyIdentityResolver()
+        out = enrich_imoveis_with_property_ids(
+            _build_consolidated(self._todos_os_ramos()), resolver, WS_ID
+        )
+        mudos = [
+            e["descricao"]
+            for e in out["imoveis_consolidados"]
+            if e.get("low_confidence") and not e.get("review_reasons")
+        ]
+
+        assert mudos == [], f"low_confidence sem razão em: {mudos}"
+
+    def test_a_fixture_exercita_de_fato_o_ramo_low_confidence(self):
+        """Sem isto, um enricher que nunca marcasse `low_confidence` passaria acima."""
+        resolver = InMemoryPropertyIdentityResolver()
+        out = enrich_imoveis_with_property_ids(
+            _build_consolidated(self._todos_os_ramos()), resolver, WS_ID
+        )
+        marcados = [e for e in out["imoveis_consolidados"] if e.get("low_confidence")]
+
+        assert len(marcados) == len(self._todos_os_ramos())
