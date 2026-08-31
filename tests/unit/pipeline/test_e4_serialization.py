@@ -50,10 +50,11 @@ def _apolice_sintetica() -> dict:
     }
 
 
-def _e4_unified_schema() -> dict:
+def _e4_seguros_schema() -> dict:
+    """Contrato do balde `seguros` (A42.l19 — o guard resolve por artifact_key)."""
     import json
 
-    path = Path(__file__).resolve().parents[3] / "config" / "schemas" / "e4_unified.schema.json"
+    path = Path(__file__).resolve().parents[3] / "config" / "schemas" / "e4_seguros.schema.json"
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -346,15 +347,16 @@ class TestSerializeE4Artifacts:
         assert "ABC1D23" not in blob
         assert "12345678000199" not in blob
 
-    def test_seguros_v2_valida_contra_schema_e4_unified(self):
-        """Branch ``seguros`` explícito no e4_unified.schema.json (A28.l6)."""
+    def test_seguros_v2_valida_contra_schema_do_balde(self):
+        """As duas formas do balde `seguros`: v2 com apólices (A28.l6) e placeholder
+        v1 sem. O despacho é if/then sobre a presença de `schema_version`."""
         jsonschema = pytest.importorskip("jsonschema")
         result = _adapter().categorize_via_store(InMemoryArtifactStore())
 
         payloads = serialize_e4_artifacts(result, apolices=[_apolice_sintetica()])
 
-        jsonschema.validate(payloads["seguros"], _e4_unified_schema())
-        jsonschema.validate(empty_placeholder(), _e4_unified_schema())
+        jsonschema.validate(payloads["seguros"], _e4_seguros_schema())
+        jsonschema.validate(empty_placeholder(), _e4_seguros_schema())
 
 
 # =============================================================================

@@ -3,13 +3,15 @@ id: A27.l2
 type: lane
 title: "A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro"
 sprint: A27
-status: in_progress
+status: shipped
+ship_pr: 1872
+ship_date: "2026-08-30"
 priority: P2
 branch_slug: a27-l2-cobertura-de-lineage-sem-gate
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-281]]"]
-tags: [type/lane, sprint/a27, status/open, priority/p2, area/dados]
+tags: [type/lane, sprint/a27, status/shipped, priority/p2, area/dados]
 ---
 
 # A27.l2 — `cobertura-de-lineage-sem-gate`
@@ -35,14 +37,24 @@ nenhuma — nem o gate, nem a accuracy. É gate que só pode dar verde.
 
 > **Remedido 2026-08-30 na execução — os números do enunciado não reproduzem.** As `42
 > chaves de topo` são de um run fora do git; na fixture dogfood determinística o payload tem
-> **32**. Pior que a divergência: **o denominador estava errado de espécie**. Contar as 42/32
-> raízes cruas põe `narrativas`, `alertas`, `data_analise` e `tarefas` no denominador — prosa
+> **32**. Pior que a divergência: **o denominador estava errado de espécie**. Contar raiz crua
+> põe `alertas`, `data_analise`, `tarefas`, `pontos_fortes` e `score` no denominador — prosa
 > e metadado que nunca terão rastro. Isso dá um teto inalcançável, e **KR que não pode chegar
 > a 100% é KR que ninguém persegue**. O `~87%` herdado é verdadeiro e inútil.
+>
+> **Correção do closeout (2026-08-30):** a 1ª redação desta caixa citava `narrativas` entre as
+> raízes cruas do payload. Medido: `narrativas` **não é emitida** — está entre as 38 do
+> **schema**, que é a base do `~87%`, não entre as 32 do payload. O exemplo estava no
+> denominador errado.
 
 O denominador que a lane entrega é **raiz que publica dinheiro**, discriminada por
-`golden_diff.is_monetary` — o único predicado do repo que classifica campo **sem consultar o
-registro**, que é o que mantém numerador e denominador independentes.
+`golden_diff.is_monetary`, que é **independente do `lineage_registry`** — é isso que mantém
+numerador e denominador independentes — e já é o classificador de dot-path do substrato de
+golden, então reusá-lo não cria uma 2ª noção de "monetário" sobre o mesmo payload.
+(A 1ª redação dizia "o único predicado do repo que classifica campo sem consultar o
+registro". **Falso nas duas leituras:** `dev/` tem dezenas de predicados de path que também
+não consultam o registro, e `check_float_money.MONEY_TOKENS` também classifica campo
+monetário — em código-fonte, não em dot-path. A unicidade nunca foi medida.)
 
 | Medida (fixture dogfood, 2026-08-30) | Valor |
 | --- | --- |
@@ -73,9 +85,12 @@ Regra ternária em [[LEDGER-CERTIFY-active]] §r6 §10.
       compara **conjunto**, não contagem: raiz renomeada não passa por compensação.
 - [x] **Controle positivo:** acrescentar raiz ao E5 sem entrada no registro ⇒ a métrica
       **cai** e/ou o gate reprova. Hoje ambos ficam verdes. — `test_lineage_coverage.py`.
-      Falsificado ponta-a-ponta: injetada raiz monetária na fixture, o gate ficou **vermelho**
-      e `check_lineage_refs` ficou **verde** na mesma mutação (assimetria registrada como
-      teste, `test_o_gate_de_refs_e_inerte_a_mesma_mutacao`).
+      Falsificado ponta-a-ponta: injetada raiz monetária na fixture do gate novo, ele foi a
+      **vermelho**; revertido, volta a verde. A assimetria com `check_lineage_refs` é
+      **estrutural, não testável** — aquele gate recebe o `registry`, nunca o payload, logo
+      não existe mutação de payload que ele possa enxergar. (Um teste chamado "inerte à mesma
+      mutação" asseveraria mutação que nunca aplica; foi removido no closeout, e o verde dele
+      sobre o registry real já é coberto por `test_check_lineage_refs_green_on_real_registry`.)
 - [x] O eval deixa de derivar `expected` do registro que ele avalia. — `cases._EXPECTED_REFS`
       literal + cross-check por `rule_id`. Falsificado: apontar `patrimonio.liquido` para
       outro enforcer reprova o novo assert e passa **verde** na forma derivada.

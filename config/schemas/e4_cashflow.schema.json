@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e4_cashflow.schema.json",
+  "title": "E4 — baldes de fluxo (receitas, despesas)",
+  "description": "Contrato dos baldes `receitas` e `despesas` do stage categorize_transactions, resolvido por artifact_key (A42.l19). Espelha ReceitasUnified/DespesasUnified.to_legacy_dict em pipeline/domain/services/cash_flow_builder.py — `periodo` é STRING (o ramo do umbrella que declarava object nunca casou com o produtor). `_lineage` é metadata do dedup K4 (ADR-279), só em despesas.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "consolidation_date",
+    "periodo",
+    "categorias",
+    "total_categorias",
+    "total_transacoes",
+    "totais_por_categoria",
+    "total_geral",
+    "dados"
+  ],
+  "properties": {
+    "consolidation_date": {"type": "string"},
+    "periodo": {"type": "string"},
+    "categorias": {"type": "array", "items": {"type": "string"}},
+    "total_categorias": {"type": "integer", "minimum": 0},
+    "total_transacoes": {"type": "integer", "minimum": 0},
+    "totais_por_categoria": {"type": "object", "additionalProperties": {"type": "number"}},
+    "total_geral": {"type": "number"},
+    "dados": {
+      "type": "object",
+      "description": "categoria → lançamentos. Chave livre; o valor é sempre lista de transações.",
+      "additionalProperties": {"type": "array", "items": {"type": "object"}}
+    },
+    "_lineage": {
+      "type": "object",
+      "description": "ADR-279 · A25.l5 — sinais de conferência do dedup; metadata, não contrato E4.",
+      "properties": {
+        "lineage_version": {"type": "string"},
+        "signals": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    }
+  }
+}

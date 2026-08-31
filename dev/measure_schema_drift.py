@@ -9,7 +9,7 @@ import sys
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -99,12 +99,15 @@ def _validate_row(stats: SchemaDrift, row: Any, validator: Any) -> None:
         _accumulate(stats, row, errors)
 
 
-def _measure(rows: Iterable[Any], schema_of: dict) -> dict:
-    """Valida cada artefato contra o schema do seu stage; devolve ``{schema_name: SchemaDrift}``."""
+def _measure(rows: Iterable[Any], resolve: Callable[[str, str], Optional[str]]) -> dict:
+    """Valida cada artefato contra o schema que o guard de escrita aplicaria; devolve ``{schema_name: SchemaDrift}``."""
+    # `resolve` é `(stage, artifact_key) → schema`, não dict por stage (A42.l19): medir
+    # o E4 contra o backstop do stage diria `GO` para os 7 baldes sem checar contrato
+    # nenhum — falso-verde no instrumento que gateia a fila da ADR-409.
     validators: dict = {}
     by_schema: dict = defaultdict(SchemaDrift)
     for row in rows:
-        schema_name = schema_of.get(row.stage)
+        schema_name = resolve(row.stage, row.artifact_key)
         if schema_name is None:
             continue
         if schema_name not in validators:
@@ -113,17 +116,27 @@ def _measure(rows: Iterable[Any], schema_of: dict) -> dict:
     return dict(by_schema)
 
 
-def _fetch(
-    session, schema_of: dict, start: Optional[str] = None, only: Optional[str] = None
-) -> list:
+def _stages_do_schema(only: str) -> list:
+    """Stages que podem produzir ``only`` — pelo mapa por stage E pelo mapa por chave.
+    Sem o segundo, `--schema e4_cashflow.schema.json` filtraria para conjunto vazio."""
+    from backend.app.services.storage.db_artifact_store import (
+        SCHEMA_BY_STAGE,
+        SCHEMA_BY_STAGE_KEY,
+    )
+
+    stages = {stage for stage, name in SCHEMA_BY_STAGE.items() if name == only}
+    stages |= {stage for (stage, _), name in SCHEMA_BY_STAGE_KEY.items() if name == only}
+    return sorted(stages)
+
+
+def _fetch(session, start: Optional[str] = None, only: Optional[str] = None) -> list:
     from backend.app.models import PipelineArtifact
 
     query = session.query(PipelineArtifact)
     if start:
         query = query.filter(PipelineArtifact.created_at >= start)
     if only:
-        stages = [stage for stage, name in schema_of.items() if name == only]
-        query = query.filter(PipelineArtifact.stage.in_(stages))
+        query = query.filter(PipelineArtifact.stage.in_(_stages_do_schema(only)))
     return query.order_by(PipelineArtifact.created_at).all()
 
 
@@ -209,7 +222,7 @@ def _collect(args: argparse.Namespace) -> tuple:
     """Lê o corpus na janela pedida; devolve ``(results, start, newest)``."""
     from backend.app.core.database import SyncSessionLocal
     from backend.app.models import PipelineArtifact
-    from backend.app.services.storage.db_artifact_store import SCHEMA_BY_STAGE
+    from backend.app.services.storage.db_artifact_store import resolve_schema_name
 
     _silence_sql_echo()
     with SyncSessionLocal() as session:
@@ -221,8 +234,8 @@ def _collect(args: argparse.Namespace) -> tuple:
         )
         newest = str(newest) if newest else None
         start = None if args.all else _window_start(args.days, args.since, newest)
-        rows = _fetch(session, SCHEMA_BY_STAGE, start, args.schema)
-        return _measure(rows, SCHEMA_BY_STAGE), start, newest
+        rows = _fetch(session, start, args.schema)
+        return _measure(rows, resolve_schema_name), start, newest
 
 
 def main(argv: Optional[list] = None) -> int:

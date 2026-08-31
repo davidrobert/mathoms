@@ -114,8 +114,48 @@ def test_e4_investimentos_ok() -> None:
     assert e4_bucket_verdict("investimentos", {"dados": [{"tipo": "x"}]}, [])[0] == CONSERVADO
 
 
+# ── balde não-transacional: contêiner resolvido pela CHAVE (A42.l19) ──
+
+
 def test_e4_non_ledger_bucket_coberto() -> None:
-    assert e4_bucket_verdict("patrimonio", {"composicao": [1, 2]}, [])[0] == COBERTO_SEM_VALOR
+    """`patrimonio_por_ano` é o contêiner do balde `patrimonio` (formato A)."""
+    verdict, detalhe = e4_bucket_verdict("patrimonio", {"patrimonio_por_ano": {"2024": {}}}, [])
+    assert verdict == COBERTO_SEM_VALOR
+    assert "1 itens em `patrimonio_por_ano`" in detalhe
+
+
+def test_e4_non_ledger_conta_o_formato_b() -> None:
+    verdict, detalhe = e4_bucket_verdict("patrimonio", {"declarations": [{}, {}]}, [])
+    assert verdict == COBERTO_SEM_VALOR
+    assert "2 itens em `declarations`" in detalhe
+
+
+def test_e4_non_ledger_fluxo_conta_meses() -> None:
+    """Antes caía no `[]` final e imprimia "0 itens" para um balde com N meses."""
+    verdict, detalhe = e4_bucket_verdict(
+        "fluxo_mensal_detalhado", {"meses_ordenados": ["2026-01", "2026-02"]}, []
+    )
+    assert verdict == COBERTO_SEM_VALOR
+    assert "2 itens em `meses_ordenados`" in detalhe
+
+
+def test_e4_non_ledger_shape_desconhecido_nao_verificavel() -> None:
+    """`composicao` é campo do bloco `patrimonio` do E5, não do balde E4 — o guard
+    o sondava e devolvia `coberto · 0 itens` sobre payload que não sabia ler."""
+    verdict, detalhe = e4_bucket_verdict("patrimonio", {"composicao": [1, 2]}, [])
+    assert verdict == NAO_VERIFICAVEL
+    assert "shape não reconhecido" in detalhe
+
+
+def test_e4_non_ledger_contentor_vazio_e_ausente_nao_se_confundem() -> None:
+    """O `or` encadeado colapsava os dois casos no mesmo `[]`."""
+    assert e4_bucket_verdict("pontos_milhas", {"dados": []}, [])[0] == COBERTO_SEM_VALOR
+    assert e4_bucket_verdict("pontos_milhas", {}, [])[0] == NAO_VERIFICAVEL
+
+
+def test_e4_balde_desconhecido_nao_verificavel() -> None:
+    """Balde novo sem contêiner declarado falha fechado, não vira `coberto`."""
+    assert e4_bucket_verdict("balde_novo", {"dados": [1]}, [])[0] == NAO_VERIFICAVEL
 
 
 def test_e4_bucket_ausente_nao_verificavel() -> None:

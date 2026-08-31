@@ -12,6 +12,15 @@ from dev.measure_schema_drift import SchemaDrift, _measure, _window_start
 SCHEMA_OF = {"E2": "e2_extract.schema.json"}
 
 
+def _resolve(stage: str, key: str):
+    """Resolver por `(stage, key)` — a assinatura que o instrumento usa (A42.l19)."""
+    return SCHEMA_OF.get(stage)
+
+
+def _measure_r(rows):
+    return _measure(rows, _resolve)
+
+
 def _row(payload: dict, *, run: str = "run-1", key: str = "art-1", created: str = "2026-08-18"):
     return SimpleNamespace(
         stage="E2",
@@ -62,7 +71,7 @@ class TestJanela:
 
 class TestMedicao:
     def test_payload_valido_nao_drifta(self):
-        results = _measure([_row(_e2_payload())], SCHEMA_OF)
+        results = _measure_r([_row(_e2_payload())])
         assert results["e2_extract.schema.json"].is_go is True
 
     @pytest.mark.parametrize("faltante", ["banco", "moeda"])
@@ -70,7 +79,7 @@ class TestMedicao:
         """Regressão do drift real medido em 2026-08-24: o stub de `generate_llm_fallback`
         entra sem `banco`/`moeda`. O path tem de ser o campo, não a raiz `$` — é a chave
         que o go/no-go do runbook agrega."""
-        results = _measure([_row(_e2_payload(**{faltante: None}))], SCHEMA_OF)
+        results = _measure_r([_row(_e2_payload(**{faltante: None}))])
         stats = results["e2_extract.schema.json"]
         assert stats.drifted == 1
         assert (f"$.{faltante}", "required") in stats.paths
@@ -78,13 +87,13 @@ class TestMedicao:
     def test_conta_run_e_documento_distintos(self):
         """`docs` separa massa real de repetição por run — 6 artefatos de 1 documento não são 6 evidências."""
         rows = [_row(_e2_payload(), run=f"run-{i}", key="mesmo-doc") for i in range(3)]
-        stats = _measure(rows, SCHEMA_OF)["e2_extract.schema.json"]
+        stats = _measure_r(rows)["e2_extract.schema.json"]
         assert (stats.artifacts, len(stats.runs), len(stats.documents)) == (3, 3, 1)
 
     def test_payload_ilegivel_conta_separado_e_nao_vira_drift(self):
         row = _row(_e2_payload())
         row.content_json = "{nao é json"
-        stats = _measure([row], SCHEMA_OF)["e2_extract.schema.json"]
+        stats = _measure_r([row])["e2_extract.schema.json"]
         assert (stats.unreadable, stats.drifted) == (1, 0)
         assert stats.is_go is False
 
@@ -92,4 +101,43 @@ class TestMedicao:
         """Passthrough (E6-parecer, extract_members) não entra na conta — não há contrato a medir."""
         row = _row(_e2_payload())
         row.stage = "review_finances_holistic"
-        assert _measure([row], SCHEMA_OF) == {}
+        assert _measure_r([row]) == {}
+
+
+class TestResolucaoPorChave:
+    """A42.l19 — o instrumento mede pelo schema que o guard de escrita aplicaria."""
+
+    # Com resolução por stage, os 7 baldes do E4 bateriam contra o backstop `anyOf` e
+    # sairiam `GO` sem nenhum contrato ter sido checado: falso-verde no próprio
+    # instrumento que gateia a fila do flip `warn→strict` (ADR-409).
+
+    def test_baldes_do_mesmo_stage_vao_para_schemas_diferentes(self):
+        from backend.app.services.storage.db_artifact_store import resolve_schema_name
+
+        rows = [
+            _row(_e2_payload(), key="receitas"),
+            _row(_e2_payload(), key="patrimonio"),
+        ]
+        for row in rows:
+            row.stage = "E4"
+
+        medido = _measure(rows, resolve_schema_name)
+
+        assert set(medido) == {
+            "e4_cashflow.schema.json",
+            "baseline_patrimonial.schema.json",
+        }, "instrumento colapsou baldes distintos num schema só"
+
+    def test_resolucao_por_stage_colapsaria_os_dois(self):
+        """Controle: a assinatura antiga (por stage) não discrimina — é o defeito."""
+        rows = [
+            _row(_e2_payload(), key="receitas"),
+            _row(_e2_payload(), key="patrimonio"),
+        ]
+        for row in rows:
+            row.stage = "E4"
+
+        medido = _measure(rows, lambda stage, key: "e4_unified.schema.json")
+
+        assert set(medido) == {"e4_unified.schema.json"}
+        assert medido["e4_unified.schema.json"].artifacts == 2

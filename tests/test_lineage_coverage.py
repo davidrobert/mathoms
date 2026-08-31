@@ -5,7 +5,12 @@ pura** (o ``rule_ref`` importa, a ADR existe) e não tem noção de cobertura �
 E5 sem entrada no ``lineage_registry`` não movia gate nem accuracy. Aqui o denominador vem
 do **payload publicado** (raízes que emitem dinheiro), então raiz nova sem rastro **derruba
 a métrica** e reprova. O controle positivo abaixo é a prova de não-inércia: ele mede a
-mesma mutação nos dois gates e mostra o antigo verde.
+mesma mutação **derruba a métrica** aqui.
+
+A assimetria com `check_lineage_refs` é **estrutural, não testável**: aquele gate recebe o
+registry, nunca o payload, então não existe mutação de payload que ele possa ver. Afirmar
+isso como teste seria asseverar mais do que o corpo checa; o verde dele sobre o registry
+real já é coberto por `test_lineage_skeleton.py::test_check_lineage_refs_green_on_real_registry`.
 
 Rebaseline: ``MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py``.
 """
@@ -139,14 +144,3 @@ def test_o_gate_reprova_a_raiz_nova(dogfood_e5):
     mutated = measure_coverage(_com_raiz_monetaria_nova(dogfood_e5))
     novas = mutated.uncovered_roots - set(_read_baseline()["monetary_roots"])
     assert novas == {_RAIZ_SINTETICA}, f"gate cego à raiz nova (viu {sorted(novas)})"
-
-
-def test_o_gate_de_refs_e_inerte_a_mesma_mutacao():
-    """Prova de não-inércia: `check_lineage_refs` fica **verde** no mundo mutado.
-
-    Ele nem lê o payload — é a assimetria que justifica este arquivo existir.
-    """
-    from dev.check_lineage_refs import main
-    from pipeline.domain.lineage_registry import LINEAGE_RULE_REFS
-
-    assert main(LINEAGE_RULE_REFS) == 0, "premissa quebrada: o gate de refs já reprovava"

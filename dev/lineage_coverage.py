@@ -5,11 +5,13 @@ O denominador sai do **payload publicado**, nunca do ``lineage_registry``: deriv
 registro devolve 100% por construção — o vício que esta medida existe para matar (raiz
 nova no E5 sem entrada no registro não movia métrica nenhuma, nem o gate, nem a accuracy).
 O discriminante de "raiz que deve ter rastro" é ``golden_diff.is_monetary``
-(monetário-por-default, ADR-090), escolhido por ser o predicado do repo que classifica
-campo **sem consultar o registro** — é o que mantém numerador e denominador independentes.
+(monetário-por-default, ADR-090). O que o qualifica é ser **independente do
+``lineage_registry``** — é isso que mantém numerador e denominador independentes — e já ser
+o classificador de dot-path que o substrato de golden usa (``golden_diff``, snapshot do
+view-model), então reusá-lo não cria uma segunda noção de "monetário" para o mesmo payload.
 
-Raiz em prosa/metadado (``narrativas``, ``alertas``, ``data_analise``) fica fora do
-denominador porque não publica dinheiro. Medir contra as 38 raízes declaradas no schema
+Raiz em prosa/metadado (``alertas``, ``data_analise``, ``tarefas``) fica fora do denominador
+porque não publica dinheiro. Medir contra as 38 raízes declaradas no schema
 dava teto inalcançável, e KR que não pode chegar a 100% é KR que ninguém persegue.
 """
 

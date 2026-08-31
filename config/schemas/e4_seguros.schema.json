@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e4_seguros.schema.json",
+  "title": "E4 — balde seguros",
+  "description": "Contrato do balde `seguros`, resolvido por artifact_key (A42.l19). Duas formas: v2 (A28.l6 — resumos LGPD-safe de extract_comprovantes_bens) quando há apólice; placeholder v1 {\"dados\": []} quando não há. O despacho é if/then sobre a PRESENÇA de `schema_version` — discriminador declarado, não inferido do shape — e não oneOf: oneOf colapsa o path de drift para a raiz `$` e cega a telemetria per-path da ADR-284 (mesma razão do comprovante_base.schema.json).",
+  "type": "object",
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {"required": ["schema_version"]},
+      "then": {
+        "required": ["schema_version", "apolices"],
+        "properties": {
+          "schema_version": {"const": "2"},
+          "apolices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["apolice_numero", "seguradora", "premio_total_brl"],
+              "properties": {
+                "apolice_numero": {"type": "string"},
+                "seguradora": {"type": "string"},
+                "seguradora_nome": {"type": "string"},
+                "vigencia_inicio": {"type": "string"},
+                "vigencia_fim": {"type": "string"},
+                "premio_total_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+                "bens_count": {"type": "integer"},
+                "tipos_bem": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"not": {"required": ["schema_version"]}},
+      "then": {"required": ["dados"], "properties": {"dados": {"type": "array"}}}
+    }
+  ]
+}
