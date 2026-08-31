@@ -15,6 +15,7 @@ open · in_progress.
 - [[A40.l106]] — O relatório não emite índice de seção algum no mobile: rolagem longa sem navegação, enquanto o desktop emite o índice completo · priority P2 · área frontend · branch `a40-l106-relatorio-sem-indice-no-mobile`
 - [[A40.l107]] — A conversão tabela→cartão no mobile é aplicada por componente, não por regra: 11 tabelas largas não convertem, e há um terceiro comportamento não previsto · priority P2 · área frontend · branch `a40-l107-conversao-tabela-cartao-por-componente`
 - [[A40.l108]] — Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro · priority P2 · área produto · branch `a40-l108-um-ano-nomeia-cenario-central-e-de-estresse`
+- [[A40.l109]] — A lista do card lê o artefato mais recente sob um relatório pinado e imutável · priority P1 · área backend/frontend · branch `a40-l109-lista-le-latest-sob-relatorio-pinado`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`

@@ -900,6 +900,7 @@
 | A40.l106 | lane | open | A40 | O relatório não emite índice de seção algum no mobile: rolagem longa sem navegação, enquanto o desktop emite o índice completo | `sprint/A40/lanes/A40-l106-relatorio-sem-indice-no-mobile.md` |
 | A40.l107 | lane | open | A40 | A conversão tabela→cartão no mobile é aplicada por componente, não por regra: 11 tabelas largas não convertem, e há um terceiro comportamento não previsto | `sprint/A40/lanes/A40-l107-conversao-tabela-cartao-por-componente.md` |
 | A40.l108 | lane | open | A40 | Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro | `sprint/A40/lanes/A40-l108-um-ano-nomeia-cenario-central-e-de-estresse.md` |
+| A40.l109 | lane | open | A40 | A lista do card lê o artefato mais recente sob um relatório pinado e imutável | `sprint/A40/lanes/A40-l109-lista-le-latest-sob-relatorio-pinado.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
