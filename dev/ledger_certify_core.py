@@ -87,6 +87,8 @@ class LedgerReport:
     entregue: dict = field(default_factory=dict)
     # Censo de proveniência do E2 (ADR-421 D3) — vazio = NÃO MEDIDO, nunca "tudo do run".
     e2_provenance: dict = field(default_factory=dict)
+    # Substrato do eixo E4: "entregue" (E4 publicado pelo run) ou "sombra" (re-derivação).
+    e4_subject: str = "sombra"
 
     @property
     def zero_write_ok(self) -> bool:
@@ -219,21 +221,38 @@ def _collapse_layer(e3_result, cross_group) -> CollapseLayerSummary:
     )
 
 
-def build_report(ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e3) -> LedgerReport:
-    """Monta o ``LedgerReport`` a partir das peças re-derivadas (puro)."""
-    e2_payloads = seeds
-    collisions = investment_double_count(e4.get("investimentos", {}))
+def _e4_subject(e4: dict, e4_persisted) -> tuple[dict, str]:
+    """Sujeito do eixo E4 + rótulo do substrato ([[ADR-421]] D4)."""
+    # Balde e colisão de investimento vêm do E4 PUBLICADO. Sem ele o eixo cai para a
+    # re-derivação — e o RÓTULO diz isso, em vez de herdar em silêncio (D6).
+    return (e4_persisted, "entregue") if e4_persisted else (e4, "sombra")
+
+
+def _subject_axes(e4: dict, e4_persisted) -> dict:
+    """Os três eixos que descrevem o SUJEITO: rótulo, baldes e colisões de investimento."""
+    subject, label = _e4_subject(e4, e4_persisted)
+    collisions = investment_double_count(subject.get("investimentos", {}))
+    return {
+        "e4_subject": label,
+        "e4_buckets": _e4_verdicts(subject, collisions),
+        "investment_collisions": collisions,
+    }
+
+
+def build_report(
+    ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e3, *, e4_persisted=None
+) -> LedgerReport:
+    """Monta o ``LedgerReport``; o eixo E4 descreve o artefato ENTREGUE quando ele existe."""
     cross_group = cross_group_summary(e4, result.cash_flow.transferencias_count)
     return LedgerReport(
+        **_subject_axes(e4, e4_persisted),
         workspace_id=ws,
         run_id=run_id,
-        e2_seeded=len(e2_payloads),
-        e2_tx=sum(len(p.get("transacoes", [])) for p in e2_payloads),
+        e2_seeded=len(seeds),
+        e2_tx=sum(len(p.get("transacoes", [])) for p in seeds),
         e3_exec=_e3_exec_dict(e3_result),
-        conservation=_conservation(e2_payloads, fresh_e3, e4, result),
+        conservation=_conservation(seeds, fresh_e3, e4, result),
         e3_groups=_e3_verdicts(fresh_e3),
-        e4_buckets=_e4_verdicts(e4, collisions),
-        investment_collisions=collisions,
         natural_key=_natural_key_coverage(result),
         drift=_drift(fresh_e3, persisted_e3),
         cross_group=cross_group,
@@ -384,7 +403,7 @@ def _report_blocks(report: LedgerReport) -> list:
         _fmt_e2_provenance(report.e2_provenance),
         _fmt_exec(report),
         _fmt_units("## Eixo E3 (por grupo)", report.e3_groups),
-        _fmt_units("## Eixo E4 (por balde)", report.e4_buckets),
+        _fmt_units(f"## Eixo E4 (por balde) [{report.e4_subject}]", report.e4_buckets),
         *_cross_group_blocks(report),
         fmt_collapse_layer(report.collapse_layer),
         _fmt_tail(report),

@@ -132,6 +132,7 @@ def test_certify_usa_o_e3_do_run_pinado_e_nao_o_workspace_latest(dois_runs, monk
     session, ws, run_a, _run_b = dois_runs
     monkeypatch.setattr(mod, "_row_counts", lambda _s, _w: {"pipeline_artifacts": 0})
     monkeypatch.setattr(mod, "_blast_radius_or_empty", lambda _s, _w: {})
+    monkeypatch.setattr(mod, "_e4_of_run", lambda _s, _w, _r: {})
     monkeypatch.setattr(
         mod,
         "_rederive",
@@ -215,3 +216,95 @@ def test_sem_completed_at_o_censo_declara_o_corte_indisponivel(sync_db) -> None:
         _payloads, censo = _e2_payloads_with_census(session, ws, run.id)
         assert censo["corte"] == "indisponível (run sem completed_at)"
         assert censo["descartado_pos_run"] == 0
+
+
+# ─────────── anti-amputação: eixo E4 vem do PUBLICADO (ADR-421 D4) ───────────
+
+_DUPLICATA = [
+    {"tipo": "CDB", "instituicao": "Banco X", "descricao": "CDB 2028", "valor_atual": 1000.0},
+    {"tipo": "cdb", "instituicao": "banco x", "descricao": "CDB 2028", "valor_atual": 1000.0},
+]
+
+
+def _seed_e4(session, ws: str, run_id: str, key: str, payload: dict, quando: datetime) -> None:
+    session.add(
+        PipelineArtifact(
+            workspace_id=ws,
+            pipeline_run_id=run_id,
+            stage="categorize_transactions",
+            artifact_key=key,
+            content_json=payload,
+            created_at=quando,
+        )
+    )
+    session.flush()
+
+
+@pytest.fixture
+def run_com_e4_publicado(sync_db):
+    """Run cujo E4 PUBLICADO tem investimentos dupla-contados — a re-derivação, não."""
+    with sync_db() as session:
+        ws = _seed_workspace(session)
+        run = _seed_run(session, ws, _NOVO)
+        _seed_e4(session, ws, run, "investimentos", {"dados": _DUPLICATA}, _NOVO)
+        _seed_e4(session, ws, run, "patrimonio", {"dados": {"imoveis": []}}, _NOVO)
+        session.commit()
+        yield session, ws, run
+
+
+def _certify_com_e4_amputado(mod, monkeypatch, session, ws, run):
+    """`certify` com re-derivação AMPUTADA — `investimentos` vazio, `patrimonio` ausente."""
+    monkeypatch.setattr(mod, "_row_counts", lambda _s, _w: {"pipeline_artifacts": 0})
+    monkeypatch.setattr(mod, "_blast_radius_or_empty", lambda _s, _w: {})
+    monkeypatch.setattr(mod, "_persisted_e3_subject", lambda _s, _w, _r: {})
+    monkeypatch.setattr(
+        mod,
+        "_rederive",
+        lambda _s, _w, _r: (
+            _StoreVazio(),
+            [],
+            _FakeE3Result(),
+            _FakeResult(),
+            {"investimentos": {"dados": []}},
+            {},
+        ),
+    )
+    return mod.certify(session, ws, run)
+
+
+def test_colisao_de_investimento_vem_do_e4_publicado(run_com_e4_publicado, monkeypatch) -> None:
+    """GATE anti-amputação: sobre a re-derivação o detector devolveria 0 sobre ZERO posições."""
+    from dev import certify_ledger_local as mod
+
+    session, ws, run = run_com_e4_publicado
+    report = _certify_com_e4_amputado(mod, monkeypatch, session, ws, run)
+    assert len(report.investment_collisions) == 1
+    assert report.e4_subject == "entregue"
+
+
+def test_patrimonio_do_publicado_nao_sai_como_balde_ausente(
+    run_com_e4_publicado, monkeypatch
+) -> None:
+    from dev import certify_ledger_local as mod
+
+    session, ws, run = run_com_e4_publicado
+    report = _certify_com_e4_amputado(mod, monkeypatch, session, ws, run)
+    unidades = {b.unit: b for b in report.e4_buckets}
+    assert unidades["patrimonio"].detail != "balde ausente no sujeito"
+
+
+def test_sem_e4_publicado_o_eixo_declara_que_e_sombra(dois_runs, monkeypatch) -> None:
+    """D6: sem insumo no sujeito o rótulo diz `sombra` — nunca herda em silêncio."""
+    from dev import certify_ledger_local as mod
+
+    session, ws, run_a, _b = dois_runs
+    report = _certify_com_e4_amputado(mod, monkeypatch, session, ws, run_a)
+    assert report.e4_subject == "sombra"
+
+
+class _StoreVazio:
+    def list_keys(self, _stage):
+        return []
+
+    def read(self, _stage, _key):
+        return {}

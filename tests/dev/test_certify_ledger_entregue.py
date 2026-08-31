@@ -74,6 +74,7 @@ def _patch_entregue(monkeypatch, mod) -> None:
     monkeypatch.setattr(mod, "_row_counts", lambda _s, _w: {"pipeline_artifacts": 7})
     monkeypatch.setattr(mod, "_rederive", _rederive_vazio)
     monkeypatch.setattr(mod, "_persisted_e3_subject", lambda _s, _w, _r: {})
+    monkeypatch.setattr(mod, "_e4_of_run", lambda _s, _w, _r: {})
     monkeypatch.setattr(mod, "_e3_of_run", lambda _s, _w, _r: {"g1": {"transacoes": []}})
     monkeypatch.setattr(mod, "_entregue_evidence", lambda _s, _w, _r: _EVIDENCE)
     monkeypatch.setattr(mod, "_rederive_entregue", _rederive_entregue_vazio)

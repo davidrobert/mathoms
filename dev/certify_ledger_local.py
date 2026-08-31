@@ -61,6 +61,7 @@ from dev.ledger_certify_db import (  # noqa: F401
     _decrypt_latest,
     _e2_payloads_with_census,
     _e3_stage_log,
+    _e4_of_run,
     _latest_by_canonical,
     _latest_payloads,
     _override_blast_radius,
@@ -255,6 +256,7 @@ def _certify_core(session, ws: str, run_id: str | None) -> LedgerReport:
         e4,
         _fresh_e3(store),
         _persisted_e3_subject(session, ws, run_id),
+        e4_persisted=_e4_of_run(session, ws, run_id),
     )
     report.e2_provenance = e2_census
     report.counts_before = before

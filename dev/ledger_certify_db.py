@@ -28,6 +28,7 @@ from dev.ledger_certify_entregue import EntregueRecusado
 _E2_STAGES = ("extract_statements", "extract_invoices", "extract_with_llm")
 _BASELINE_STAGES = ("consolidate_baseline",)
 _E3_STAGE = "reconcile_transactions"
+_E4_STAGE = "categorize_transactions"
 
 
 def _decrypt(payload: dict) -> dict:
@@ -125,6 +126,17 @@ def _e2_payloads_with_census(session, ws: str, run_id: str | None) -> tuple[dict
     rows, descartadas = _cut_post_run(_artifact_rows(session, ws, _E2_STAGES), cutoff)
     latest = _latest_by_canonical(rows)
     return _decrypt_latest(latest), _e2_census(latest, run_id, descartadas, cutoff)
+
+
+def _e4_of_run(session, ws: str, run_id: str | None) -> dict:
+    """Os 7 baldes E4 que o run PUBLICOU — `{balde: payload}` ([[ADR-421]] D4)."""
+    # O E4 persistido carrega o sinal inteiro; a re-derivação do braço entregue semeia
+    # só E3, e `investimentos` (que vem de artefato E2) sai 0 sobre ZERO posições —
+    # falso-negativo do detector da [[ADR-271]], indistinguível de um 0 verdadeiro (M13/M14).
+    if run_id is None:
+        return {}
+    latest = _latest_by_canonical(_artifact_rows(session, ws, (_E4_STAGE,), run_id=run_id))
+    return {key: _decrypt(row.content_json) for (_stage, key), row in latest.items()}
 
 
 def _persisted_e3_by_key(session, ws: str) -> dict:
