@@ -417,7 +417,7 @@
 | ADR-420 | adr | Proposto |  | Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio | `adr/420-numerador-da-concentracao-imobiliaria-e-imobilizacao-patrimonial.md` |
 | ADR-421 | adr | Proposto |  | Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual | `adr/421-sujeito-declarado-da-certificacao.md` |
 | ADR-422 | adr | Decidido |  | A folga é a poupança da janela, não a poupança mais o gasto pontual realizado | `adr/422-a-folga-e-a-poupanca-da-janela-nao-a-poupanca-mais-o-pontual.md` |
-| ADR-423 | adr | Proposto |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
+| ADR-423 | adr | Decidido |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
 | ADR-424 | adr | Proposto |  | SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required | `adr/424-sql-so-sqlite-em-migration-e-a-cadeia-em-postgres.md` |
 | ADR-425 | adr | Decidido |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
 | ADR-426 | adr | Decidido |  | O destino E3→E4 declara valor, ou o eixo-valor não é medido | `adr/426-o-destino-e3e4-declara-valor-ou-o-eixo-nao-e-medido.md` |
