@@ -419,3 +419,32 @@ export function readProtecaoPatrimonial(
 ): ProtecaoPatrimonialData | undefined {
   return isProtecaoPatrimonial(value) ? value : undefined;
 }
+
+/** [[ADR-430]] — ativo físico publicado sem valor apurado ([[A40.l111]]).
+ *
+ * Um grão abaixo de `baldes_negativos`: o balde agregado segue positivo e é
+ * cego ao item. O que a família precisa saber é a DIREÇÃO do erro — o número
+ * publicado é o piso, não o teto.
+ */
+export interface ItemFisicoSemValor {
+  readonly colecao: "imoveis" | "veiculos";
+  readonly descricao: string;
+  readonly ano: string;
+}
+
+function isItemFisicoSemValor(value: unknown): value is ItemFisicoSemValor {
+  return (
+    isRecord(value) &&
+    (value.colecao === "imoveis" || value.colecao === "veiculos") &&
+    typeof value.ano === "string"
+  );
+}
+
+export function readItensSemValor(
+  patrimonio: unknown,
+): readonly ItemFisicoSemValor[] {
+  if (!isRecord(patrimonio) || !isRecord(patrimonio.guarda_de_sinal)) return [];
+  const itens = patrimonio.guarda_de_sinal.itens_sem_valor;
+  if (!Array.isArray(itens)) return [];
+  return itens.every(isItemFisicoSemValor) ? itens : [];
+}

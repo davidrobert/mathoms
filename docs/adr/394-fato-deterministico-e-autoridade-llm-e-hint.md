@@ -61,6 +61,11 @@ Cobre 1a/1b/1c no corpo original; 1d entra pela emenda abaixo.
 > ⚠️ **Emendada em 2026-08-31** — o D1 tinha um par de fatos **mudo**.
 > Ver §Emenda no fim.
 
+> ⚠️ **Emendada em 2026-08-31 (b)** ([[A40.l111]] · [[ADR-430]]) — a consequência 3
+> da §Taxa de disparo é **falsa como escrita**: "o item negativo não chega mais a
+> balde de ativo" não era o que a [[A40.l66]] fechou. A D6 e o D5 ficam intactos;
+> o que muda é o predicado de `cobertura_completa`. Ver §Emenda 2026-08-31 (b).
+
 ## Contexto
 
 `consolidate_baseline.py:501` decide ativo × passivo pelo **rótulo** que o LLM
@@ -597,3 +602,37 @@ opera sobre `Decimal` pós-soma, onde ausência nem é representável.
 agregado de imóveis é **positivo** (o item negativo é ~14% do total em magnitude), então
 a guarda **nunca dispara**. Ela é estruturalmente cega a defeito de sinal no item — não
 é que detecte e tolere.
+
+## Emenda 2026-08-31 (b) — a consequência 3 lia "não dispara" como "não existe"
+
+Anexada pela [[A40.l111]], que decidiu o grão abaixo em [[ADR-430]].
+
+**O que estava errado.** A §Taxa de disparo conclui, na consequência 3, que "o disparo
+esperado em regime é 0" porque "a [[A40.l66]] fechou a montante — o item negativo não
+chega mais a balde de ativo". A segunda metade não se sustenta. O que a A40.l66 fechou
+foi o **roteamento pelo rótulo**: item cujo eixo se decidia por `categoria_hint` deixou
+de virar ativo por engano. Um item cujo eixo é decidido por **fato** (`secao:
+bens_direitos`) e cujo valor é negativo continua entrando em `imoveis_consolidados`,
+e a partir dali no balde — medido em 3 artefatos do corpus, ano 2025.
+
+A guarda de fato não dispara. Mas o motivo é o da consequência 1 — **ela mede
+agregado, não linha** —, não a ausência do fato. Ler "0 disparos" como "0 ocorrências"
+inverteu rede em prova: a mesma cegueira estrutural que a consequência 1 descreve
+passou a ser citada como evidência de que não havia o que ver.
+
+**O que muda.** Nada em D5 e nada na tabela do D6: o balde segue publicando com
+ressalva e sem mutação, e o físico segue não sendo reclassificado. O que muda é o
+predicado:
+
+| antes | depois |
+| --- | --- |
+| `cobertura_completa ≡ sem balde negativo sobrevivente` | `cobertura_completa ≡ sem balde negativo **e** sem item de ativo físico sem valor apurado` |
+
+O segundo termo vem da [[ADR-430]], que resolve o fato **um grão abaixo**, onde `null`
+é representável e o `Decimal` pós-soma não é. `motivo_supressao` passa a compor os dois
+eixos; os consumidores não mudam, porque já leem `motivo_supressao_do_patrimonio`.
+
+**O que continua verdade.** Descer a guarda ao grão da linha **genericamente** segue
+fora: a §Taxa de disparo mediu o modo de falha (6/6 runs por R$ 95,62 que se anulam
+dentro do próprio caixa). O escopo da ADR-430 é **item de ativo físico**, onde negativo
+é impossível por definição — não a linha em geral.

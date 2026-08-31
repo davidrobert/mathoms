@@ -20,6 +20,7 @@ import {
   type PremissasDegrade,
   type ReportDataQualitySignals,
 } from "./utils/dataQualitySignals";
+import type { ItemFisicoSemValor } from "./utils/reportContractGuards";
 
 /** A28.l9 — banner agregado de qualidade de dados (KR4 · honestidade).
  *
@@ -46,7 +47,11 @@ export function ReportDataQualityBanner({
 }) {
   const needsReviewDocs = useNeedsReviewCount(workspaceId);
   const parecerRetidos = useParecerRetidoCount(workspaceId, reportId);
-  const signals = computeDataQualitySignals(data, needsReviewDocs, parecerRetidos);
+  const signals = computeDataQualitySignals(
+    data,
+    needsReviewDocs,
+    parecerRetidos,
+  );
 
   // A40.l18 · ADR-357 — a ordem dos guards importa. `runOutcome` NÃO entra em
   // `computeDataQualitySignals`: se entrasse no `count`, o `SignalsAlert`
@@ -121,6 +126,9 @@ function SignalsAlert({ signals }: { signals: ReportDataQualitySignals }) {
           )}
           {signals.parecerRetidos > 0 && (
             <ParecerRetidoRow count={signals.parecerRetidos} />
+          )}
+          {signals.itensSemValor.length > 0 && (
+            <ValorNaoApuradoRow itens={signals.itensSemValor} />
           )}
         </ul>
       </Alert>
@@ -199,6 +207,50 @@ function ImoveisPendentesRow({ count }: { count: number }) {
  * rolar, e o sinal é proporcional à INVISIBILIDADE, não à gravidade. Mesmo
  * label de CTA da seção — o cliente aprende uma ação, não duas.
  */
+
+/** A40.l111 (ADR-430) — a única linha do banner que corrige a leitura do NÚMERO.
+ *
+ * A ressalva de operador (`BaldeNegativoSobrevivente.format()`) nomeia balde
+ * interno e recita doutrina; serve à fila, não à família. Aqui o que não pode
+ * faltar é a DIREÇÃO do erro: sem "seu patrimônio real é maior", o leitor toma
+ * o número publicado por teto quando ele é piso. E a culpa não é do
+ * contribuinte — o PGD não aceita negativo em Bens e Direitos.
+ */
+function ValorNaoApuradoRow({
+  itens,
+}: {
+  itens: readonly ItemFisicoSemValor[];
+}) {
+  const n = itens.length;
+  const soImoveis = itens.every((i) => i.colecao === "imoveis");
+  const bem = soImoveis
+    ? n === 1
+      ? "Um imóvel"
+      : `${n} imóveis`
+    : n === 1
+      ? "Um bem"
+      : `${n} bens`;
+  const anos = [...new Set(itens.map((i) => i.ano).filter(Boolean))].sort();
+  return (
+    <SignalRow
+      cta={{
+        href: "/documents?filter=needs_review",
+        label: "Informar o valor na declaração",
+      }}
+    >
+      <strong>{bem}</strong> {n === 1 ? "ficou" : "ficaram"} de fora da conta do
+      patrimônio: não conseguimos ler o valor
+      {anos.length > 0 && ` na declaração de ${anos.join(" e ")}`} — o número
+      que extraímos era negativo, e imóvel não vale menos que zero.{" "}
+      <strong>Seu patrimônio real é maior do que o que aparece aqui</strong>,
+      pelo valor {n === 1 ? "desse bem" : "desses bens"}. Confira o campo
+      &ldquo;situação em 31/12&rdquo; na declaração para recompor a conta;
+      enquanto isso, as recomendações de aporte e de alocação-alvo ficam
+      suspensas, porque dependem desse número.
+    </SignalRow>
+  );
+}
+
 function ParecerRetidoRow({ count }: { count: number }) {
   return (
     <SignalRow cta={{ href: "/pipeline", label: "Reprocessar o parecer" }}>

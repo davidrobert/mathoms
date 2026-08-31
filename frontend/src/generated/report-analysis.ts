@@ -391,6 +391,11 @@ export type E5AnalysisArtifact = {
         "balde"?: string;
         "valor_brl"?: number;
       }>;
+      "itens_sem_valor"?: Array<{
+        "colecao"?: "imoveis" | "veiculos";
+        "descricao"?: string;
+        "ano"?: string;
+      }>;
     };
     "investimentos_titular"?: number | null;
     "investimentos_conjuge"?: number | null;

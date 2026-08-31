@@ -6,7 +6,9 @@ import type {
 } from "@/types/report-analysis";
 import {
   readExcludedProperties,
+  readItensSemValor,
   readPremissasEconomicas,
+  type ItemFisicoSemValor,
 } from "./reportContractGuards";
 import {
   allMeasured,
@@ -109,7 +111,9 @@ export function computePremissasDegrade(
 ): PremissasDegrade | null {
   if (!premissas) return null;
   const classes = premissas.classes ?? [];
-  const indisponiveis = classes.filter((c) => c.status === "indisponivel").length;
+  const indisponiveis = classes.filter(
+    (c) => c.status === "indisponivel",
+  ).length;
   if (premissas.status === "completo" && indisponiveis === 0) return null;
   const allDown = classes.length > 0 && indisponiveis === classes.length;
   return {
@@ -138,6 +142,10 @@ export interface ReportDataQualitySignals {
   /** A40.l22 — itens do parecer retidos na conferência (só o desfecho
    *  PARCIAL; o retido inteiro é auto-evidente ao rolar e não ganha linha). */
   readonly parecerRetidos: number;
+  /** A40.l111 (ADR-430) — ativos físicos publicados sem valor apurado. Ganha
+   *  linha própria porque é o único sinal que muda a leitura do NÚMERO do
+   *  patrimônio: sem ele, o leitor toma o publicado por teto, e é piso. */
+  readonly itensSemValor: readonly ItemFisicoSemValor[];
   /** Quantos sinais ativos (0 = banner colapsa para barra fina). */
   readonly count: number;
   /** PD-6 — todos os contadores client-side chegaram? `false` proíbe AFIRMAR
@@ -156,7 +164,8 @@ function countActiveSignals(
     (s.needsReviewDocs > 0 ? 1 : 0) +
     (s.premissas ? 1 : 0) +
     (s.imoveisPendentes > 0 ? 1 : 0) +
-    (s.parecerRetidos > 0 ? 1 : 0)
+    (s.parecerRetidos > 0 ? 1 : 0) +
+    (s.itensSemValor.length > 0 ? 1 : 0)
   );
 }
 
@@ -169,7 +178,9 @@ export function computeDataQualitySignals(
   needsReviewDocs: MeasuredCount,
   parecerRetidos: MeasuredCount = measured(0),
 ): ReportDataQualitySignals {
-  const share = computeNaoIdentificadoShare(data.fluxo_caixa as FluxoCaixaSummary | undefined);
+  const share = computeNaoIdentificadoShare(
+    data.fluxo_caixa as FluxoCaixaSummary | undefined,
+  );
   const parcial = {
     naoIdentificado:
       share && share.pct > NAO_IDENTIFICADO_THRESHOLD_PCT ? share : null,
@@ -181,6 +192,7 @@ export function computeDataQualitySignals(
       (property) => property.classification === "desconhecido",
     ).length,
     parecerRetidos: signalCount(parecerRetidos),
+    itensSemValor: readItensSemValor(data.patrimonio),
   };
   return {
     ...parcial,

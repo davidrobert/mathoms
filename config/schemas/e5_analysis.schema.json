@@ -273,7 +273,7 @@
         },
         "guarda_de_sinal": {
           "type": "object",
-          "description": "A40.l67 (ADR-394 §Emenda 2026-08-18): veredito da guarda de sinal dos baldes patrimoniais. `reclassificados` saíram do ativo para dívida de curto prazo (patrimônio líquido inalterado); `baldes_negativos` são os físicos que sobreviveram e publicam com ressalva.",
+          "description": "A40.l67 (ADR-394 §Emenda 2026-08-18): veredito da guarda de sinal dos baldes patrimoniais. `reclassificados` saíram do ativo para dívida de curto prazo (patrimônio líquido inalterado); `baldes_negativos` são os físicos que sobreviveram e publicam com ressalva; `itens_sem_valor` é o grão do ITEM ([[ADR-430]]), invisível ao agregado.",
           "properties": {
             "modo": {
               "type": "string",
@@ -321,6 +321,25 @@
                   },
                   "valor_brl": {
                     "type": "number"
+                  }
+                }
+              }
+            },
+            "itens_sem_valor": {
+              "type": "array",
+              "description": "[[ADR-430]] ([[A40.l111]]): ativo FÍSICO publicado sem valor apurado — um grão abaixo de `baldes_negativos`, que mede o agregado e é cego ao item enquanto o balde seguir positivo. O item fica no inventário e o VALOR sai da soma; `null` e não `0,0`, porque zero publicado é afirmação sobre o patrimônio da pessoa ([[ADR-346]]). Alimenta `motivo_supressao` junto com `baldes_negativos`.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "colecao": {
+                    "type": "string",
+                    "enum": ["imoveis", "veiculos"]
+                  },
+                  "descricao": {
+                    "type": "string"
+                  },
+                  "ano": {
+                    "type": "string"
                   }
                 }
               }

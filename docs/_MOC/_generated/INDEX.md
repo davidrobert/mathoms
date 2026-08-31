@@ -425,6 +425,7 @@
 | ADR-428 | adr | Decidido |  | A direção conservadora de um piso é fixada pelo uso do número, não pelo número | `adr/428-a-direcao-conservadora-de-um-piso-e-fixada-pelo-uso.md` |
 | ADR-429 | adr | Proposto |  | Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita | `adr/429-estorno-e-despesa-assinada-na-categoria-original.md` |
 | ADR-430 | adr | Proposto |  | Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 | `adr/430-contrato-e1-e4-do-mapa-instituicao-membro.md` |
+| ADR-430 | adr | Decidido |  | Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo | `adr/430-valor-nao-apurado-em-item-de-ativo-fisico.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
