@@ -100,58 +100,25 @@ KNOWN_PRE_EXISTING_DRIFT: set[str] = {
     # a alteração já está versionada — só não é via batch_alter_table
     # tradicional (que recriaria a tabela inteira).
     "modify_type:documents:doc_type",
-    # ── Índices perdidos por `copy_from` (medido 2026-08-30, [[ADR-423]]) ──
-    # 37 índices que o model declara e o DB construído por Alembic não tem, em 13
-    # migrations, TODAS com `batch_alter_table(copy_from=...)`. Os 3 UNIQUE que
-    # derrubavam invariante de negócio foram reparados em `idxrepair0001` e por isso
-    # NÃO estão aqui. O resto é performance e tem lane própria — ela decide primeiro
-    # se ainda os quer (9 índices em `tasks` é custo de write que ninguém reavaliou
-    # desde a ADR-162). A catraca do teste força a limpeza: drift catalogado que for
-    # corrigido e não removido daqui FALHA.
-    "add_index:bank_accounts:ix_bank_accounts_member_id",
-    "add_index:categories:ix_categories_workspace_id",
-    "add_index:categorization_rules:ix_categorization_rules_workspace_id",
-    # ⚠️ não é ausência, é mismatch da flag `unique` (aparece em add E remove):
-    #    triagem própria — ver [[ADR-423]] §Não-objetivos.
+    # ── Índices perdidos por `copy_from` — reparo fechado ([[ADR-423]]) ──
+    # Os 3 UNIQUE saíram na `idxrepair0001`; os 30 não-unique na `idxrepair0002`.
+    # A medição de 2026-08-31 mostrou que Postgres tinha os 30 o tempo todo (ALTER
+    # nativo, sem recreate), então recriá-los foi paridade com prod, não decisão nova.
+    # Outros 4 eram RENAME — o mesmo índice sob outro nome — e foram fechados
+    # alinhando o *model* ao nome que prod tem, sem DDL. Sobram aqui só os 2 que não
+    # são ausência:
+    # não é ausência: o índice EXISTE, com a flag `unique` divergente (aparece em
+    # add E remove). Triagem própria — [[ADR-423]] §Não-objetivos.
     "add_index:planner_review_metadata:ix_planner_review_metadata_pipeline_artifact_id:unique",
     # índice de EXPRESSÃO (`valuation_date DESC`) — o próprio alembic emite
     # "Generating approximate signature for index". Limitação irredutível.
     "add_index:property_market_value:idx_pmv_lookup",
-    "add_index:protections:ix_protections_workspace_id",
-    "add_index:protections:ix_protections_ws_category",
-    "add_index:protections:ix_protections_ws_ends_at",
-    "add_index:protections:ix_protections_ws_status",
-    "add_index:report_publications:ix_report_publications_workspace_id",
-    "add_index:report_publications:ix_report_publications_workspace_period",
-    "add_index:stage_reviews:ix_stage_reviews_pipeline_run_id",
-    "add_index:suggestions:ix_sugagg_workspace_id",
-    "add_index:suggestions:ix_sugagg_ws_dedup",
-    "add_index:suggestions:ix_sugagg_ws_section",
-    "add_index:suggestions:ix_sugagg_ws_status",
-    "add_index:suggestions:ix_sugagg_ws_thesis",
-    "add_index:task_suggestions:ix_task_suggestions_status",
-    "add_index:task_suggestions:ix_task_suggestions_workspace_id",
-    "add_index:tasks:ix_tasks_category",
-    "add_index:tasks:ix_tasks_deadline_date",
-    "add_index:tasks:ix_tasks_parent_task_id",
-    "add_index:tasks:ix_tasks_priority",
-    "add_index:tasks:ix_tasks_status",
-    "add_index:tasks:ix_tasks_workspace_id",
-    "add_index:tasks:ix_tasks_ws_board_column",
-    "add_index:tasks:ix_tasks_ws_priority_status",
-    "add_index:tasks:ix_tasks_ws_status_deadline",
-    "add_index:transaction_overrides:ix_transaction_overrides_transaction_hash",
-    "add_index:transaction_overrides:ix_transaction_overrides_workspace_id",
-    "add_index:workspace_category_overrides:ix_workspace_category_overrides_template_key",
-    "add_index:workspace_category_overrides:ix_workspace_category_overrides_workspace_id",
-    "add_index:workspace_economic_assumptions_override:ix_workspace_economic_assumptions_override_classe_auvp",
-    "add_index:workspace_economic_assumptions_override:ix_workspace_economic_assumptions_override_effective_from",
-    "add_index:workspace_economic_assumptions_override:ix_workspace_economic_assumptions_override_workspace_id",
-    "add_index:workspace_property_overrides:ix_workspace_property_overrides_workspace_id",
-    "add_index:workspaces:ix_workspaces_deleted_at",
-    # `remove_index`: índices PARCIAIS criados por migration que o model não
-    # declara — direção oposta, majoritariamente intencional. Não entram no
-    # hard-fail de ausência; ficam catalogados para a lista não mentir.
+    # `remove_index`: índices que a migration criou e o model não declara — direção
+    # oposta, não é ausência. Medido em 2026-08-31: 10 dos 11 são PARCIAIS (predicado
+    # que o model não sabe exprimir via `index=True`); a exceção é
+    # `ix_property_identity_lookup`, total. Os 4 que estavam aqui por serem RENAME
+    # saíram — não eram desta classe, e a redação anterior ("majoritariamente
+    # intencional") os cobria por engano.
     "remove_index:asset_catalog:uq_asset_catalog_cnpj_v:unique",
     "remove_index:asset_catalog:uq_asset_catalog_ticker_v:unique",
     "remove_index:categorization_rules:uq_categorization_rule_workspace_keyword_target_active:unique",
@@ -161,14 +128,10 @@ KNOWN_PRE_EXISTING_DRIFT: set[str] = {
     "remove_index:planner_review_metadata:ix_planner_review_metadata_pipeline_artifact_id",
     "remove_index:property_identity:ix_property_identity_lookup",
     "remove_index:property_market_value:idx_pmv_lookup",
-    "remove_index:task_suggestions:ix_suggestions_workspace_id",
     "remove_index:task_suggestions:ix_tsugg_ws_dedup_active",
     "remove_index:transaction_overrides:ix_txov_active_workspace",
     "remove_index:transaction_overrides:ix_txov_ws_natural_key",
     "remove_index:transaction_overrides:uq_txov_active_rule:unique",
-    "remove_index:workspace_economic_assumptions_override:ix_ws_econ_override_classe_auvp",
-    "remove_index:workspace_economic_assumptions_override:ix_ws_econ_override_effective_from",
-    "remove_index:workspace_economic_assumptions_override:ix_ws_econ_override_workspace_id",
 }
 
 

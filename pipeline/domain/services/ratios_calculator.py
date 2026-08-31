@@ -23,6 +23,7 @@ from typing import Any, Literal, Mapping
 
 from pipeline.domain.services.bases_financeiras import BaseFinanceira
 from pipeline.domain.services.concentracao_imobiliaria import (
+    CHAVE_DO_NUMERADOR,
     compute_concentracao_imobiliaria_pct,
 )
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
@@ -172,15 +173,27 @@ class FinancialRatios:
     # número, e o nome carrega o da própria razão — chave irmã genérica (`base_do_piso`
     # já é irmã aqui) seria atribuída ao número errado. É `carteira_produtiva_fixa`, não
     # `_familia`: o denominador é cat_2 COMPLETO e toggle-independente ([[ADR-340]]).
+    # [[ADR-420]] §D5: o denominador era nomeado desde o #1782 e o numerador não era
+    # nomeado em lugar NENHUM — o gate compensava fixando
+    # `patrimonio["imoveis_investimento"]` no próprio teste, que é o C14 da [[A40.l80]]
+    # (declarada ≠ usada) deslocado um campo: com a chave escrita no teste, trocar o
+    # numerador no produtor deixava o gate VERDE. A chave sai do SSOT que a LÊ, nunca
+    # de literal repetido aqui — duas fontes é o defeito que a declaração fecha.
+    def _concentracao_com_os_dois_lados(self) -> dict:
+        """C11-Fase2 / FIN-05 ([[ADR-340]]): o número e as duas pontas que o produzem."""
+        return {
+            "concentracao_imobiliaria": round(self.concentracao_imobiliaria_pct, 2),
+            "base_concentracao_imobiliaria": BaseFinanceira.carteira_produtiva_fixa.value,
+            "numerador_concentracao_imobiliaria": CHAVE_DO_NUMERADOR,
+        }
+
     def to_legacy_dict(self) -> dict:
         return {
             "taxa_poupanca_recorrente_pct": round(self.taxa_poupanca_recorrente_pct, 2),
             "taxa_poupanca_total_pct": round(self.taxa_poupanca_total_pct, 2),
             "taxa_endividamento_pct": round(self.taxa_endividamento_pct, 2),
             **self._autonomia_com_intervalo(),
-            # C11-Fase2 / FIN-05 ([[ADR-340]]): campo canônico de concentração imobiliária.
-            "concentracao_imobiliaria": round(self.concentracao_imobiliaria_pct, 2),
-            "base_concentracao_imobiliaria": BaseFinanceira.carteira_produtiva_fixa.value,
+            **self._concentracao_com_os_dois_lados(),
             "rentabilidade_pct": _format_pct_or_nd(self.rentabilidade_pct),
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
             "base_aliquota_efetiva_ir_pct": _BASE_ALIQUOTA_EFETIVA_IR,
