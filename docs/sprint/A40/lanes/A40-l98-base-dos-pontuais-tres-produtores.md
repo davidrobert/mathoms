@@ -6,7 +6,7 @@ sprint: A40
 plan: PLAN-report-trust
 status: shipped
 ship_pr: 1865
-ship_date: "2026-08-30"
+ship_date: "2026-08-31"
 priority: P1
 branch_slug: a40-l98-base-dos-pontuais-tres-produtores
 owner: financial-planner
@@ -74,6 +74,12 @@ numerador e o denominador comparáveis; a [[A40.l101]] fechou só o denominador.
 
 ## Escopo — os três itens deferidos pela [[A40.l94]]
 
+> **Disposição (2026-08-31, closeout).** Itens **1 e 2 entregues** no #1865 — o 1
+> pelo PR2 (união das duas famílias de categoria, não só `transfer_categories`:
+> ver §Revisão por painel) e o 2 pelo PR3b ([[ADR-425]] §D1). O item **3
+> (`pontual_mensal`) NÃO foi entregue** e não tem lane. **Dono:** `financial-planner`
+> — ver §Achado do closeout ao fim desta nota.
+
 1. **Aplicar `transfer_categories` ([[ADR-333]]) ao `_collect_candidates`.** Uma aplicação
    que hoje existe em um produtor e falta no outro.
 2. **`nao_identificado` não entra em número que prescreve** — regra de domínio **decidida no
@@ -87,6 +93,13 @@ numerador e o denominador comparáveis; a [[A40.l101]] fechou só o denominador.
    a classe emissor-sem-leitor que a [[A40.l88]] gateia.
 
 ## Fora de escopo, declarado
+
+> **Disposição (2026-08-31, closeout).** Segue fora, e a rota é viva: `PV9-12`
+> está `procede-aberto` em [[PIPELINE-REVIEWS-active]] (linha 955). Ele é
+> **código de achado, não wikilink**, logo invisível ao `check_doc_links` e ao
+> `check_closure` — a mesma armadilha que a [[A40.l94]] anotou ao descobrir que
+> `LC6-05` apontava para lane inexistente. **Dono:** o do `PV9-12` em
+> [[PIPELINE-REVIEWS-active]], não esta lane.
 
 Consertar a **detecção** da transferência do Itaú e das conversões Wise é config de padrões
 por workspace (`transferencias_internas`) + `PV9-12`, não fórmula. Esta lane trata do
@@ -208,7 +221,15 @@ afirma "contamos cada um uma vez só") são da mesma família de base e ficam co
 Os quatro PRs da tabela + os dois escapes herdados da [[A40.l101]] + o `LC6-06`.
 `manifest_version` do parecer 2.9.0 → 2.13.0, um bump por PR que move valor.
 
-| PR | commit | delta na fixture |
+> ⚠️ **Os hashes abaixo são PRÉ-SQUASH e não resolvem em `main`.** O merge foi
+> squash (`37cff25f`, parent único), então nenhum deles é ancestral — verificado
+> um a um. Recuperáveis por `gh pr view 1865` / `refs/pull/1865/head`. A
+> atribuição **durável** do delta não são eles: é
+> `tests/test_e5_base_gasto_pontual.py::test_delta_por_causa_e_atribuivel`, que
+> fixa 12.000 / 4.000 / 7.000 / 39.000 como asserção executável e falha se
+> alguém mexer num conjunto.
+
+| PR | commit (pré-squash) | delta na fixture |
 | --- | --- | --- |
 | PR1 — policy + limiar de fonte única + fiação | `f3e94fe0` | zero por construção |
 | PR2 — união das duas famílias de categoria | `1da2cc22` | −R$ 16.000 (aporte 12k + familiar 4k) |
@@ -391,3 +412,21 @@ frota 4× — a chave de cache muda uma vez, no deploy.
   rótulo de janela do `bruto`, que é full-period ao lado de uma lista 3m.
 - **A [[A40.l102]] item 2 nomeia `nao_identificado`** (`senior-cto`): a ADR-425 §D1
   pede "lista + total, **rotulados**", e o `TabelaHeader` ainda não rotula.
+
+## Achado do closeout (2026-08-31) — `pontual_mensal` ficou órfão
+
+Os **únicos** dois donos que o campo já teve são uma lane `cancelled` e uma
+`shipped`:
+
+- [[A40.l15]] `status: cancelled`, linha 316: *"co-change 1 `pontual_mensal` →
+  [[A40.l98]], mas **fora do primeiro lote**"*;
+- esta lane, §Sequência: *"`pontual_mensal` **sai desta lane** — entra depois, sob
+  o mesmo `motivo_supressao`"*.
+
+A [[ADR-422]] §Consequências ainda o registra como pendente (*"Não foi emitido campo
+novo para o ritmo do pontual… Ele entra junto com a base limpa"*) — e a base limpa
+entrou. Não abro lane aqui (o pickup é decisão do dono), mas o item **não pode ficar
+só nesta prosa**: foi exatamente assim que a l94 apontou para uma lane que não
+existia. **Dono proposto:** `financial-planner`, junto com o
+`base_pontuais.cobertura_nivel` que a [[ADR-425]] §Emenda já defere para ele — são o
+mesmo objeto e a mesma superfície.
