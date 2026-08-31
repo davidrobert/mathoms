@@ -4,6 +4,7 @@ type: adr
 title: "Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual"
 status: Proposto
 date: "2026-08-29"
+amended_at: ["2026-08-30"]
 relates_to:
   - "[[ADR-302]]"
   - "[[ADR-343]]"
@@ -24,6 +25,10 @@ tags:
 # ADR-421 — Sujeito declarado da certificação
 
 **Status:** Proposto · **Data:** 2026-08-29 · **Origem:** [[LEDGER-CERTIFY-active]] §r6 `LC6-01` (rodada unificada U2, [[ADR-416]])
+
+> **Emenda 2026-08-30 ([[A42.l18]]):** o §D4 listava `_classified_cents` entre as
+> métricas que o artefato **não** serializa. A função foi deletada e o eixo-valor
+> E3→E4 passou a ser **declarado pelo artefato** ([[ADR-426]]). Ver §Emenda no fim.
 
 > ADR >150 linhas: uma decisão (o sujeito do veredito) com seis cláusulas que só se
 > sustentam juntas — tirar D4 ou D5 do conjunto produz um fix que troca um falso-verde
@@ -96,10 +101,10 @@ paridade. Proveniência sai impressa como censo (`do run` / `herdado` /
 > da [[ADR-241]] §Contexto e fabricaria falsa perda na conservação E2→E3.
 
 **D4 — Vereditos de balde e colisão de investimento vêm do E4 persistido**, não
-da re-derivação amputada (M13/M14). As três métricas que o artefato não
-serializa — `natural_key`, `_classified_cents`, `transferencias_count` — vêm da
-re-derivação e só são emitidas se ela reproduzir o publicado ao centavo; senão,
-`não-verificável` com o Δ impresso.
+da re-derivação amputada (M13/M14). As métricas que o artefato não serializa —
+`natural_key`, `transferencias_count` — vêm da re-derivação e só são emitidas se ela
+reproduzir o publicado ao centavo; senão, `não-verificável` com o Δ impresso.
+(`_classified_cents` saiu da lista em 2026-08-30 — ver §Emenda.)
 
 **D5 — Predicado de certificar ≠ predicado de pontuar KR-B.** Certificar exige
 run existente com E3. Pontuar KR-B mantém a evidência de enforce. Sem a
@@ -161,3 +166,19 @@ envelhece).
 - **Drift honesto:** certificar qualquer um dos 61 runs não produz
   `persisted_only` originado de outro run. Exercitar em ≥3 runs **não** mais
   recentes — é o cenário do M4, onde o instrumento mente hoje.
+
+## Emenda — o eixo-valor E3→E4 saiu da re-derivação · 2026-08-30
+
+O §D4 nomeava `_classified_cents` como uma das três métricas que **o artefato não
+serializa**, e que por isso vinham da re-derivação. A [[A42.l18]] mostrou que essa
+métrica era pior que não-serializada: ela era uma **re-soma da mesma população de
+origem**, então o eixo-valor da perna E3→E4 não podia falhar.
+
+`_classified_cents` foi **deletada**. Pela [[ADR-426]], o artefato E4 passou a
+**declarar** o valor do destino (`dedup_collapsed_cents`, `transferencias_cents` em
+`despesas._lineage.signals`), e o harness lê a declaração em vez de recomputá-la.
+
+**O que isto muda em D4:** a lista de métricas não-serializadas cai de três para duas
+(`natural_key`, `transferencias_count` — a *contagem*, não o valor). A tese de D4
+segue viva e sai reforçada: o veredito descreve o artefato entregue, e o eixo-valor
+agora também vem do artefato, não da re-derivação.

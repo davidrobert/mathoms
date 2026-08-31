@@ -3,13 +3,13 @@ id: A42.l18
 type: lane
 title: "A perna de valor da conservação E3→E4 é inerte: `dups` é literal e os dois lados somam `abs()` da mesma população"
 sprint: A42
-status: open
+status: in_progress
 priority: P1
 branch_slug: a42-l18-perna-de-valor-e3e4-inerte
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-342]]", "[[ADR-347]]"]
-tags: [type/lane, sprint/a42, status/open, priority/p1, area/dados]
+adrs: ["[[ADR-342]]", "[[ADR-347]]", "[[ADR-426]]"]
+tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
 ---
 
 # A42.l18 — `perna-de-valor-e3e4-inerte`
@@ -47,15 +47,45 @@ entre alavancas é admissível em lugar nenhum do relatório**.
 
 ## Critério de aceite
 
-- [ ] O campo `dups` da transição E3→E4 recebe a contagem real, ou a perna declara
-      explicitamente que não a mede (e o veredito passa a `coberto-sem-verificação`).
-- [ ] As duas pernas de valor deixam de somar `abs()` sobre a mesma população, **ou** o
-      veredito declara por escrito que não discrimina sinal nem dedup.
-- [ ] **Controle positivo obrigatório:** inverter o sinal de N débitos numa fixture E3 e
-      re-rodar. Se `Δvalor` continuar `0`, a perna segue inerte e o conserto não fechou.
-- [ ] Segundo controle: remover `dedup_collapsed` do lado destino e verificar se o veredito
-      vira `perda-silenciosa` por exatamente 858 — se não virar, o termo é load-bearing e
-      não-verificado.
+- [x] O campo `dups` da transição E3→E4 recebe a contagem real (`dedup_collapsed`) —
+      [[ADR-426]] §D4.
+- [x] As duas pernas de valor deixam de somar `abs()` sobre a mesma população: o
+      lado-saída passa a ser o **destino declarado pelo produtor** (baldes +
+      `transferencias_cents` + `dedup_collapsed_cents`), não uma re-soma da origem —
+      [[ADR-426]] §D1/§D2. A metade **sinal** fica declarada por escrito (§Residual).
+- [x] **Controle do dedup** (o que discrimina de fato): com a cadeia real, uma row
+      duplicada produz `collapsed_cents = 180000`; suprimir a declaração derruba o
+      veredito para `coberto-sem-verificação-de-valor`. Contrafactual rodado: o gate
+      novo falha 2/4 contra o código pré-fix e **4/4** contra o subconjunto
+      "harness corrigido, produtor pré-fix" — as duas metades são conjuntamente
+      necessárias. `tests/dev/test_ledger_e3e4_valor_nao_inerte.py`.
+- [x] Segundo controle: zerar `dedup_collapsed` no lado destino vira `perda-silenciosa`;
+      suprimir `dedup_collapsed_cents` vira `coberto`. O termo é load-bearing **nos dois
+      eixos** e agora é verificado. (O número 858 é do run de dogfood da `U4` e não é
+      reproduzível fora dele; o que o gate crava é o mecanismo, com o valor exato da
+      fixture.)
+
+## Correção do enunciado — o controle de sinal não era satisfazível
+
+> **2026-08-30.** O controle positivo prescrito acima ("inverter o sinal de N débitos;
+> se `Δvalor` continuar `0`, o conserto não fechou") **não pode ser satisfeito por uma
+> perna de conservação E3→E4**, e a linha original teria condenado qualquer conserto
+> correto. Medido: nas **62** transações das fixtures, **nenhuma declara `tipo` no nível
+> da tx** — a direção é *derivada do sinal* (`_normalize_tipo`). Não há segunda
+> declaração independente para discordar do sinal, então não existe testemunha contra a
+> qual uma inversão possa ser detectada. Quando `tipo` existe, o classificador aplica
+> `abs(valor)` na despesa e a discordância atravessa sem rastro. Erro de sinal é
+> **fidelidade do E3** (perna E2→E3 / `parse-certify`), não conservação desta transição.
+> O critério foi substituído pelo controle do **dedup**, que discrimina de verdade.
+> Rationale completo em [[ADR-426]] §Consequências.
+
+## Residual declarado (não é silêncio)
+
+A perna **não discrimina sinal**. A fronteira está escrita em três lugares que
+envelhecem juntos: comentário de seção em `dev/ledger_conservation.py`, [[ADR-426]]
+§Consequências, e o teste
+`test_perna_nao_discrimina_sinal_e_a_limitacao_esta_declarada` — que falha se algum dia
+a perna passar a discriminar, forçando a emenda da ADR.
 
 ## Fora de escopo
 

@@ -1,0 +1,25 @@
+{
+  "monetary_roots": [
+    "cenarios_conjuge",
+    "consumo_consciente",
+    "endividamento",
+    "equilibrio_cerbasi",
+    "exposicao_cambial",
+    "fluxo_caixa",
+    "goals",
+    "if_monte_carlo",
+    "investimentos",
+    "orcamento_prospectivo",
+    "passive_income",
+    "patrimonio",
+    "ratios",
+    "reserva_emergencia"
+  ],
+  "covered_roots": [
+    "endividamento",
+    "fluxo_caixa",
+    "investimentos",
+    "patrimonio",
+    "reserva_emergencia"
+  ]
+}

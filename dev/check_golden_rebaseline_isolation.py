@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+from pathlib import Path
 
 # O critério, para o PRÓXIMO arquivo se classificar sozinho: é golden de VALOR quando
 # o conteúdo é output medido do sistema e o número É a evidência — cimentá-lo junto da
@@ -73,7 +74,25 @@ def _commit_paths(sha: str) -> list[str]:
     return _git_lines("diff-tree", "--no-commit-id", "--name-only", "-r", sha)
 
 
+def _merge_em_curso() -> bool:
+    """`MERGE_HEAD` existe entre `git merge` e o commit que o conclui."""
+    git_dir = Path(
+        subprocess.run(
+            ["git", "rev-parse", "--git-dir"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+    )
+    return (git_dir / "MERGE_HEAD").exists()
+
+
 def check_staged() -> list[str]:
+    # Merge commit estagia a UNIÃO dos dois lados, então ele acusa o par
+    # golden+produção que o outro ramo já isolou corretamente no PR dele — o
+    # ofensor não é de quem mergeia, e não há commit que se possa separar. O
+    # modo de CI já pula merge (`rev-list --no-merges`); esta é a mesma regra,
+    # que faltava no modo `--staged`. O par de QUEM MERGEIA continua vigiado:
+    # ele vive nos commits próprios da branch, que o CI varre um a um.
+    if _merge_em_curso():
+        return []
     msg = violation(_staged_paths())
     return [f"staged: {msg}"] if msg else []
 

@@ -172,7 +172,16 @@ def _fake_e3_result() -> SimpleNamespace:
 
 def _conserving_e4(n_tx: int) -> dict:
     despesas = _bucket(3.0, {"a": 3.0}, {"a": [{"valor": 1.0}, {"valor": 2.0}]}, n_tx=n_tx)
-    despesas["_lineage"] = {"signals": {"tx_total": str(n_tx), "dedup_collapsed": "0"}}
+    # O destino declara o eixo-VALOR ([[ADR-426]]); sem os dois cents o veredito
+    # desta perna cai para `coberto` (ausência é não-medido, não "deu zero").
+    despesas["_lineage"] = {
+        "signals": {
+            "tx_total": str(n_tx),
+            "dedup_collapsed": "0",
+            "dedup_collapsed_cents": "0",
+            "transferencias_cents": "0",
+        }
+    }
     return {
         "despesas": despesas,
         "receitas": _bucket(0.0, {}, {}, n_tx=0),

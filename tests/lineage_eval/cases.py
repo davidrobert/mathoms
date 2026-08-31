@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Callable
 
+# Usado só para FABRICAR a mutação de `rule_ref_wrong` (o bug injetado precisa citar
+# um enforcer que existe). O ground truth do eval NÃO sai daqui — ver `_EXPECTED_REFS`.
 from pipeline.domain.lineage_registry import LINEAGE_RULE_REFS
 
 E5 = "E5"
@@ -57,8 +59,30 @@ def _classe_item(payload: dict, categoria: str) -> dict:
     )
 
 
+# Refs esperados declarados por EXTENSO — nunca lidos de ``LINEAGE_RULE_REFS``. Derivar
+# o `expected` do registro que o eval avalia fazia `expected ⊆ registry` ser tautologia
+# (x ∈ S com x tirado de S): rename do enforcer mudava os dois lados junto e o assert
+# nunca podia falhar. O cross-check real vive em
+# ``test_eval_deterministic.py::test_expected_refs_declarados_batem_com_o_registro``.
+_PC = "pipeline.domain.services"
+_EXPECTED_REFS: dict[str, str] = {
+    "patrimonio.liquido": f"{_PC}.patrimonio_calculator:PatrimonioCalculator.calculate",
+    "patrimonio.bruto": f"{_PC}.patrimonio_calculator:PatrimonioCalculator.calculate",
+    "reserva_emergencia.total_liquida": (
+        f"{_PC}.reserva_emergencia_calculator:EmergencyReserveCalculator.calculate"
+    ),
+    "fluxo_caixa.despesa_total": f"{_PC}.fluxo_caixa_enricher:FluxoCaixaEnricher.enrich",
+    "fluxo_caixa.fluxo_liquido": f"{_PC}.fluxo_caixa_enricher:FluxoCaixaEnricher.enrich",
+    "fluxo_caixa.janelas": f"{_PC}.fluxo_janelas:build_fluxo_janelas",
+    "investimentos.total": (
+        f"{_PC}.investimentos_classes_analyzer:InvestimentosClassesAnalyzer.analyze"
+    ),
+    "endividamento.total_dividas": f"{_PC}.endividamento_analyzer:EndividamentoAnalyzer.analyze",
+}
+
+
 def _ref(rule_id: str) -> str:
-    return LINEAGE_RULE_REFS[rule_id]["ref"]
+    return _EXPECTED_REFS[rule_id]
 
 
 def _node(field: str) -> tuple[str, str, str]:
