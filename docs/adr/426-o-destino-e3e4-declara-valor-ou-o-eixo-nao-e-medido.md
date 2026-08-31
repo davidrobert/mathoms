@@ -79,9 +79,9 @@ declarado; tx que classifica mas não entra em balde; distorção de magnitude n
 balde (classe do bug ISO 100× de r5/M28); categoria contada duas vezes.
 
 **O que a perna NÃO discrimina — e por que não é conservável aqui.** Erro de
-**sinal** já presente no E3 e propagado fielmente pelo E4. Medido: nas 62 transações
-das fixtures, **nenhuma declara `tipo` no nível da tx** — a direção é *derivada do
-sinal* por `_normalize_tipo`. Não existe segunda declaração independente para
+**sinal** já presente no E3 e propagado fielmente pelo E4. Medido: **nenhuma**
+transação das fixtures declara `tipo` no nível da tx (0 de 63 (medido 2026-08-31)) — a direção é
+*derivada do sinal* por `_normalize_tipo`. Não existe segunda declaração independente para
 discordar do sinal. Quando `tipo` existe, o classificador aplica `abs(valor)` na
 despesa e a discordância atravessa sem rastro. Isso é **fidelidade do E3** — perna
 E2→E3 e `parse-certify` —, não conservação desta transição.

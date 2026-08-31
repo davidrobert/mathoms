@@ -3,13 +3,15 @@ id: A42.l19
 type: lane
 title: "O guard de escrita do E4 resolve por stage e tem ramo placeholder: o balde do patrimônio reprova hoje e é gravado assim mesmo"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1871
+ship_date: "2026-08-31"
 priority: P1
 branch_slug: a42-l19-guard-de-escrita-e4-inerte-no-patrimonio
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-212]]", "[[ADR-409]]", "[[ADR-427]]"]
-tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
+tags: [type/lane, sprint/a42, status/shipped, priority/p1, area/dados]
 ---
 
 # A42.l19 — `guard-de-escrita-e4-inerte-no-patrimonio`
@@ -49,14 +51,14 @@ PY
 
 ## Critério de aceite
 
-- [ ] O ramo placeholder deixa de casar com balde transacional — seja por resolução por
+- [x] O ramo placeholder deixa de casar com balde transacional — seja por resolução por
       `artifact_key`, seja por `oneOf` com discriminador explícito.
-- [ ] O schema do `patrimonio` passa a descrever o payload que o produtor emite hoje
+- [x] O schema do `patrimonio` passa a descrever o payload que o produtor emite hoje
       (**ordem obrigatória:** corrigir o schema **antes** de gatear, senão `strict`
       derruba o stage — mesmo precedente do `RV4-23`/[[A42.l6]]).
-- [ ] `_non_ledger_verdict` deixa de imprimir `coberto` para balde cujo shape ele não
+- [x] `_non_ledger_verdict` deixa de imprimir `coberto` para balde cujo shape ele não
       reconhece; o veredito correto ali é `não-verificável`.
-- [ ] **Controle positivo:** escrever um balde transacional no shape `{status: ...}` e
+- [x] **Controle positivo:** escrever um balde transacional no shape `{status: ...}` e
       verificar que o guard **reprova**. Hoje ele aceita.
 
 ## Relação com o registro
