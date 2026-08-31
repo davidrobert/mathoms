@@ -120,3 +120,10 @@
   adr: ADR-420
   rationale: "financeiro + cat2_efetivo, e cat2_efetivo saiu de zero"
   ref: tests/pipeline_golden_substrate.py:256
+- golden: baseline-1.5.json
+  path: itens[2].valor_brl
+  old_cents: 60000000
+  new_cents: 19000000
+  adr: ADR-420
+  rationale: "o imóvel opaco encolhe para R$190k; os outros R$410k viram quatro itens NOVOS, com destino declarado"
+  ref: tests/pipeline_golden_substrate.py:256
