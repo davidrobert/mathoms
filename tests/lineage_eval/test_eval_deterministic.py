@@ -25,10 +25,28 @@ from pipeline.llm.lineage_debug import (
 )
 from pipeline.llm.litellm_client import LLMValidationError
 from pipeline.llm.schemas.lineage_debug import LineageDebugStep, LocalizationResult
-from tests.lineage_eval.cases import E5, KEY, LineageEvalCase, build_cases
+from tests.lineage_eval.cases import (
+    _EXPECTED_REFS,
+    E5,
+    KEY,
+    LineageEvalCase,
+    build_cases,
+)
 from tests.lineage_eval.metrics import TrialRecord, aggregate_metrics, percentile_95
 
 _CASES = build_cases()
+
+# Medido em 2026-08-30 (A27.l2): dos 8 rule_ids do registro, estes 4 nunca são
+# `entry_field` de caso nenhum — os 29 casos são 6 famílias × mutações sobre 4 campos,
+# amplitude não. Constante explícita para que a lacuna seja contável nos dois sentidos.
+_ENTRY_FIELDS_SEM_CASO = frozenset(
+    {
+        "endividamento.total_dividas",
+        "fluxo_caixa.fluxo_liquido",
+        "fluxo_caixa.janelas",
+        "patrimonio.bruto",
+    }
+)
 _FAMILIES = (
     "value_delta@leaf",
     "value_delta@aggregate",
@@ -74,6 +92,39 @@ def test_case_ids_unique_and_rule_refs_resolve_in_registry():
     assert len(ids) == len(set(ids))
     registry_refs = {entry["ref"] for entry in LINEAGE_RULE_REFS.values()}
     assert all(c.expected_rule_ref in registry_refs for c in _CASES)
+
+
+# Enquanto ``expected_rule_ref`` saía de ``LINEAGE_RULE_REFS``, ``expected ⊆ registry``
+# era tautologia (x ∈ S com x tirado de S) e rename do enforcer mudava os dois lados
+# junto. Com ``cases._EXPECTED_REFS`` literal, a divergência passa a aparecer aqui.
+def test_expected_refs_declarados_batem_com_o_registro():
+    """Cross-check por rule_id — o assert que o laço fechado tornava impossível."""
+    assert set(_EXPECTED_REFS) == set(LINEAGE_RULE_REFS), (
+        "eval e registro divergem no CONJUNTO de rule_ids — "
+        f"só no eval={sorted(set(_EXPECTED_REFS) - set(LINEAGE_RULE_REFS))}, "
+        f"só no registro={sorted(set(LINEAGE_RULE_REFS) - set(_EXPECTED_REFS))}"
+    )
+    divergentes = {
+        rule_id: {"eval": declarado, "registro": LINEAGE_RULE_REFS[rule_id]["ref"]}
+        for rule_id, declarado in _EXPECTED_REFS.items()
+        if LINEAGE_RULE_REFS[rule_id]["ref"] != declarado
+    }
+    assert not divergentes, f"ref declarado no eval ≠ ref do registro: {divergentes}"
+
+
+def test_cobertura_do_eval_sobre_o_registro_nao_regride():
+    """Registro novo sem caso derruba a medida — antes não movia accuracy nenhuma."""
+    sem_caso = set(LINEAGE_RULE_REFS) - {c.entry_field for c in _CASES}
+    novos = sorted(sem_caso - _ENTRY_FIELDS_SEM_CASO)
+    assert not novos, (
+        f"rule_id novo no registro sem nenhum caso de eval: {novos}. "
+        "Acrescente caso em `cases.py` ou registre a lacuna em `_ENTRY_FIELDS_SEM_CASO`."
+    )
+    ganharam = sorted(_ENTRY_FIELDS_SEM_CASO - sem_caso)
+    assert not ganharam, (
+        f"cobertura do eval SUBIU para {ganharam} — atualize `_ENTRY_FIELDS_SEM_CASO` "
+        "e o KR da lane A27.l2."
+    )
 
 
 def test_sealed_cases_model_the_historical_bugs():
