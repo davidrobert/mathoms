@@ -3,7 +3,9 @@ id: A42.l14
 type: lane
 title: "Os vereditos de conservação certificam a re-derivação, não o artefato entregue"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1915
+ship_date: "2026-08-31"
 priority: P0
 branch_slug: a42-l14-conservacao-certifica-a-rederivacao
 owner: data-engineer
@@ -15,7 +17,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a42
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/dados
 ---
@@ -235,3 +237,58 @@ commit 3 do PR-A, com o ratchet estendido **antes** do fix.
   `## Duplicação cross-grupo`, que **já** se auto-rotula (`_SOMBRA_LABEL`) e fica intacto.
   Registrado aqui para o implementador não decidir isso calado.
 - **`LC6-02`…`LC6-07` do §r6 seguem `procede-aberto`.** Fechar esta lane não fecha o §r6.
+
+
+---
+
+## Entrega — PR #1915, mergeado 2026-08-31 (`1e952b26`)
+
+O **PR-A** da §Rota entregou 9 commits. O **commit 3** da rota (`counts_after` +
+ratchet de ordem no `certify_entregue`) **já estava em `main`** desde `0e20c2ad`
+(#1842): verificado no código antes de escrever, não refeito. O §Achado adjacente
+acima descreve, portanto, um defeito **já corrigido** — fica como redação de origem.
+
+### O que mudou, por decisão da [[ADR-421]]
+
+| Decisão | Entregue |
+|---|---|
+| D1 | Eixos E3 e E4 tomam o artefato **publicado** como sujeito; a sombra continua, como bloco rotulado |
+| D2 | `[entregue]`/`[sombra]` em **cada linha** de veredito, não só no cabeçalho |
+| D3 | Substrato E3 run-scoped; E2 mantém a política do run **+ corte temporal** + censo `do run`/`herdado`/`descartado pós-run` |
+| D4 | Baldes e `investment_double_count` vêm do **E4 persistido** — mata a amputação do M13 |
+| D5 | Gate fixa a separação: certificar não exige evidência de enforce (senão recusaria 51 dos 61 runs) |
+| D6 | Balde ausente vira linha `não-verificável`; eixo sem insumo declara o motivo |
+| M1 | A glosa *"keying antigo não reproduzido"* — atribuição falsa de causa — foi corrigida |
+
+Split forçado pelo teto de 500 linhas: a leitura de DB saiu para
+`dev/ledger_certify_db.py`, com re-export **por binding**. Não é estilo — chamada
+qualificada tornaria inertes os 4 `monkeypatch` dos testes, e a mutação prova: com
+chamada qualificada, 4 testes reprovam.
+
+### Os seis gates, cada um provado por mutação
+
+| Mutação aplicada | Resultado |
+|---|---|
+| Reintroduzir workspace-latest no substrato | reprova |
+| Remover o corte temporal do E2 | reprova 2 |
+| Sujeito E4 ← re-derivação amputada | reprova 2 |
+| `_e4_verdicts` ← `sorted(e4)` | reprova 1 |
+| Rubrica ← re-derivação (pré-lane) | reprova **4 dos 5** do teste de troca |
+| Binding → chamada qualificada | reprova 4 |
+
+O **golden da sombra** foi capturado contra `origin/main` **antes** do primeiro
+commit de código — a ordem é o que lhe dá valor — e segue idêntico.
+
+As fixtures de DB são **SQLite real**. A dos dois runs precisou de **3** runs: o
+`UNIQUE (pipeline_run_id, stage, artifact_key)` do schema impede repetir a key no
+mesmo run, o que também é a forma real do defeito.
+
+### Ressalvas — a lane fecha com elas escritas
+
+- **D3 §"compor o `DBArtifactStore` real"** segue **não testada**: §Deferimento
+  datado 2026-08-30, retomada nomeada [[A42.l6]].
+- **Execução em ≥3 runs não mais recentes NÃO foi exercitada** (exige o DB de
+  dogfood). Vale a fórmula prevista: *mecanismo provado por fixture; rota sobre os
+  61 runs não exercitada.*
+- **`LC6-02`…`LC6-07` do §r6 seguem `procede-aberto`** — fechar esta lane não
+  fecha o §r6.

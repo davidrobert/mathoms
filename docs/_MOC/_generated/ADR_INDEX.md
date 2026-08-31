@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 358
-- **Proposto**: 58
+- **Decidido**: 359
+- **Proposto**: 57
 - **Roadmap**: 4
 
 ## Fundação
@@ -728,9 +728,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## tooling
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-421]] — Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual
+- [[ADR-421]] — Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual · phase A42.l14
 
 ## Outras
 
