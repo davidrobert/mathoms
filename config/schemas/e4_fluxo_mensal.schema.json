@@ -2,19 +2,27 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "e4_fluxo_mensal.schema.json",
   "title": "E4 — balde fluxo_mensal_detalhado",
-  "description": "Contrato do balde `fluxo_mensal_detalhado`, resolvido por artifact_key (A42.l19). Espelha FluxoMensal.to_legacy_dict. `minItems: 1` em meses_ordenados preserva a strictness que o umbrella já aplicava a este balde — não é afrouxamento nem aperto. `consolidacao_cross_documento` é o contador do colapso cross-documento, OMITIDO quando não houve (a presença sempre-ligada mudaria a chave de cache do parecer, [[ADR-173]]).",
+  "description": "Contrato do balde `fluxo_mensal_detalhado`, resolvido por artifact_key (A42.l19). Espelha FluxoMensal.to_legacy_dict. O `minItems: 1` de meses_ordenados foi REMOVIDO em 2026-08-31: ele reprovava run de entrada vazia (medido, 2/71 no corpus — os dois com `total_transacoes: 0` nos baldes irmãos, logo produtor coerente com o próprio input) e não asseverava nada sobre conteúdo. Era invariante CROSS-artefato (\"este run teve transação\") contrabandeado para contrato de artefato único, onde não é verificável — e o `e4_cashflow` não tem `minimum: 1` em `total_transacoes`, então o mesmo fato passava em 2 baldes e reprovava em 1. No lugar entram duas asserções que o corpus confirma (2867 meses e 5734 entradas de `por_mes`, zero violação) e que consumidores reais assumem: `mes[:7]`/`meses[-1][:4]` em fluxo_janelas.py e o `_total` lido por tributario_input_builder. `consolidacao_cross_documento` é OMITIDO quando não houve colapso (presença sempre-ligada mudaria a chave de cache do parecer, [[ADR-173]]).",
   "type": "object",
   "additionalProperties": true,
   "required": ["periodo", "meses_ordenados", "receitas", "despesas"],
+  "$defs": {
+    "mes": {"type": "string", "pattern": "^\\d{4}-\\d{2}$"},
+    "por_mes": {
+      "type": "object",
+      "propertyNames": {"pattern": "^\\d{4}-\\d{2}$"},
+      "additionalProperties": {"type": "object", "required": ["_total"]}
+    }
+  },
   "properties": {
     "periodo": {"type": "string"},
-    "meses_ordenados": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "meses_ordenados": {"type": "array", "items": {"$ref": "#/$defs/mes"}},
     "receitas": {
       "type": "object",
       "required": ["origens", "por_mes"],
       "properties": {
         "origens": {"type": "array"},
-        "por_mes": {"type": "object"}
+        "por_mes": {"$ref": "#/$defs/por_mes"}
       }
     },
     "despesas": {
@@ -22,7 +30,7 @@
       "required": ["categorias", "por_mes"],
       "properties": {
         "categorias": {"type": "array"},
-        "por_mes": {"type": "object"}
+        "por_mes": {"$ref": "#/$defs/por_mes"}
       }
     },
     "consolidacao_cross_documento": {"type": "object"}

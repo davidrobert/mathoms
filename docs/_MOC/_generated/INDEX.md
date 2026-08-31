@@ -417,11 +417,13 @@
 | ADR-420 | adr | Proposto |  | Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio | `adr/420-numerador-da-concentracao-imobiliaria-e-imobilizacao-patrimonial.md` |
 | ADR-421 | adr | Proposto |  | Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual | `adr/421-sujeito-declarado-da-certificacao.md` |
 | ADR-422 | adr | Decidido |  | A folga é a poupança da janela, não a poupança mais o gasto pontual realizado | `adr/422-a-folga-e-a-poupanca-da-janela-nao-a-poupanca-mais-o-pontual.md` |
-| ADR-423 | adr | Proposto |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
+| ADR-423 | adr | Decidido |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
 | ADR-424 | adr | Proposto |  | SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required | `adr/424-sql-so-sqlite-em-migration-e-a-cadeia-em-postgres.md` |
-| ADR-425 | adr | Proposto |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
-| ADR-426 | adr | Proposto |  | O destino E3→E4 declara valor, ou o eixo-valor não é medido | `adr/426-o-destino-e3e4-declara-valor-ou-o-eixo-nao-e-medido.md` |
-| ADR-427 | adr | Proposto |  | O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte | `adr/427-discriminador-do-artefato-e-a-artifact-key.md` |
+| ADR-425 | adr | Decidido |  | Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado | `adr/425-nao-identificado-fora-de-numerador-que-prescreve.md` |
+| ADR-426 | adr | Decidido |  | O destino E3→E4 declara valor, ou o eixo-valor não é medido | `adr/426-o-destino-e3e4-declara-valor-ou-o-eixo-nao-e-medido.md` |
+| ADR-427 | adr | Decidido |  | O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte | `adr/427-discriminador-do-artefato-e-a-artifact-key.md` |
+| ADR-428 | adr | Decidido |  | A direção conservadora de um piso é fixada pelo uso do número, não pelo número | `adr/428-a-direcao-conservadora-de-um-piso-e-fixada-pelo-uso.md` |
+| ADR-429 | adr | Proposto |  | Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita | `adr/429-estorno-e-despesa-assinada-na-categoria-original.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -904,6 +906,8 @@
 | A40.l108 | lane | open | A40 | Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro | `sprint/A40/lanes/A40-l108-um-ano-nomeia-cenario-central-e-de-estresse.md` |
 | A40.l109 | lane | open | A40 | A lista do card lê o artefato mais recente sob um relatório pinado e imutável | `sprint/A40/lanes/A40-l109-lista-le-latest-sob-relatorio-pinado.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
+| A40.l110 | lane | open | A40 | O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas | `sprint/A40/lanes/A40-l110-fossil-do-baseline-e-idempotencia.md` |
+| A40.l111 | lane | open | A40 | Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo | `sprint/A40/lanes/A40-l111-valor-nao-apurado-em-item-fisico.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
@@ -996,13 +1000,13 @@
 | A40.l94 | lane | shipped | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
 | A40.l95 | lane | in_progress | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
 | A40.l96 | lane | in_progress | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
-| A40.l97 | lane | in_progress | A40 | Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice | `sprint/A40/lanes/A40-l97-indices-perdidos-por-copy-from.md` |
-| A40.l98 | lane | open | A40 | Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l98-base-dos-pontuais-tres-produtores.md` |
+| A40.l97 | lane | shipped | A40 | Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice | `sprint/A40/lanes/A40-l97-indices-perdidos-por-copy-from.md` |
+| A40.l98 | lane | shipped | A40 | Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l98-base-dos-pontuais-tres-produtores.md` |
 | A40.l99 | lane | open | A40 | Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor | `sprint/A40/lanes/A40-l99-adr-proposta-com-lane-fechada.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
 | A41.l4 | lane | planned | A41 | Gate fecha a rota alternativa ao choke-point: import do SDK fora de pipeline/llm hard-falha | `sprint/A41/lanes/A41-l4-gate-rota-alternativa-ao-choke-point.md` |
-| A42.l1 | lane | planned | A42 | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | `sprint/A42/lanes/A42-l1-unlock-aborta-run-e-secret-inalcancavel.md` |
+| A42.l1 | lane | blocked | A42 | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | `sprint/A42/lanes/A42-l1-unlock-aborta-run-e-secret-inalcancavel.md` |
 | A42.l10 | lane | planned | A42 | Misclassificação na classificação amplifica o carrier de duplicação | `sprint/A42/lanes/A42-l10-misclassificacao-amplifica-carrier.md` |
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
 | A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
@@ -1022,7 +1026,7 @@
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |
 | A42.l6 | lane | planned | A42 | Contrato do store: política de escopo, retenção de órfão e validação de artefato | `sprint/A42/lanes/A42-l6-contrato-de-store-e-de-artefato.md` |
 | A42.l7 | lane | open | A42 | Registro de custo de LLM é fonte de verdade que perde row e vaza identificador de documento | `sprint/A42/lanes/A42-l7-registro-de-custo-perde-row.md` |
-| A42.l8 | lane | planned | A42 | Mês vazio por falha de extração conta como mês documentado | `sprint/A42/lanes/A42-l8-mes-vazio-conta-como-documentado.md` |
+| A42.l8 | lane | blocked | A42 | Mês vazio por falha de extração conta como mês documentado | `sprint/A42/lanes/A42-l8-mes-vazio-conta-como-documentado.md` |
 | A42.l9 | lane | planned | A42 | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | `sprint/A42/lanes/A42-l9-identidade-do-checksum-de-fatura.md` |
 | A43.l1 | lane | planned | A43 | ADR do boundary MCP, ameaça reversa e rebaseline do plano | `sprint/A43/lanes/A43-l1-adr-boundary-mcp-e-rebaseline.md` |
 | A43.l2 | lane | planned | A43 | Decisão build-vs-buy de OAuth/IdP, scopes e consentimento | `sprint/A43/lanes/A43-l2-decisao-oauth-idp-scopes-e-consentimento.md` |

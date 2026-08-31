@@ -3,16 +3,14 @@ id: A42.l8
 type: lane
 title: "Mês vazio por falha de extração conta como mês documentado"
 sprint: A42
-status: planned
+status: blocked
 priority: P1
 branch_slug: a42-l8-mes-vazio-conta-como-documentado
 adrs:
   - "[[ADR-306]]"
   - "[[ADR-345]]"
 depends_on:
-  - "[[A40.l15]]"
   - "[[A40.l11]]"
-  - "[[A40.l44]]"
 tags:
   - type/lane
   - sprint/a42
@@ -53,6 +51,27 @@ tags:
 > contagem de meses. Se a contagem inclui mês vazio por falha de extração, o rótulo
 > "12 meses documentados" está correto na forma e falso no conteúdo. Não é duplicação
 > da l3 — é o falso-verde que ela deixou em pé.
+
+## Disposição das dependências cross-sprint — 2026-08-31
+
+Aplicada a §Amarra obrigatória do `_README` **por aresta**, não por lane, na re-triagem
+conduzida pelo `product-manager`. As três arestas caíram em três ramos diferentes:
+
+| aresta | estado da dep | ramo | disposição |
+|---|---|---|---|
+| → [[A40.l15]] | `cancelled` | **1** | **escopo absorvido por esta lane** (ver abaixo). Sem isso, uma A40 que fechasse `done` deixaria esta lane esperando evento que nunca chega |
+| → [[A40.l44]] | `shipped` (#1462) | **2** | aresta **morta e removida** do `depends_on` |
+| → [[A40.l11]] | `planned` | **3** | permanece dependência viva ⇒ **status `blocked`**, e a condição de destravamento é o **merge do PR** da l11, não o fechamento da sprint dona |
+
+**O que foi absorvido da [[A40.l15]] (ramo 1).** A l15 foi cancelada por absorção em
+2026-08-30 — 3 das 4 premissas dela morreram. O que restava e toca esta lane é a **base do
+mês contado**: mês sem transação observada não pode entrar no divisor sem ser declarado
+lacuna. Isso passa a ser escopo desta lane e entra no §Critério de aceite; o resto do que
+era da l15 ficou com a [[A40.l98]] e a [[A40.l102]], que já o carregam.
+
+**Por que o status muda junto.** `planned` com dependência viva **mente para cima**: a lane
+aparece como pegável no `SPRINT_CURRENT` e não termina. É o sentido que o
+`check_lane_status_predicate` gateia.
 
 ## Problema
 

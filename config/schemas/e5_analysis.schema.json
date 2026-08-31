@@ -729,6 +729,13 @@
           ],
           "description": "A40.l80 §Completude ([[ADR-412]]): base do denominador da concentração, NOMEADA ao lado do número. É `carteira_produtiva_fixa` (investível financeiro + cat_2 COMPLETO, toggle-independente), NÃO `carteira_produtiva_familia` — aquela soma `cat2_efetivo`, que conta só imóveis geradores e zera com o toggle off. Medido no dogfood: 73.000.000 contra 13.000.000, 5,6%. O gate `test_cobertura_de_base` recomputa numerador ÷ base declarada em cents."
         },
+        "numerador_concentracao_imobiliaria": {
+          "type": "string",
+          "enum": [
+            "imoveis_investimento"
+          ],
+          "description": "[[ADR-420]] §D5: chave de `patrimonio` que o numerador da concentração LÊ, nomeada ao lado do número — o denominador era declarado desde o #1782 e o numerador não era declarado em lugar nenhum, e o gate compensava fixando a chave no próprio teste (C14 da [[A40.l80]] deslocado um campo). Sai da mesma constante que o SSOT usa (`concentracao_imobiliaria.CHAVE_DO_NUMERADOR`), então declaração e leitura não podem divergir. Gate: `tests/test_cobertura_de_base.py`."
+        },
         "piso_autonomia_financeira_meses": {
           "type": "number",
           "minimum": 0,
@@ -3016,6 +3023,9 @@
             "null"
           ],
           "description": "A40.l101: por que `equivalente_meses_poupanca` saiu nulo. `null` = não suprimido. Forma `<causa_slug>: <detalhe>` ([[ADR-394]] §D7)."
+        },
+        "base_pontuais": {
+          "$ref": "#/$defs/BasePontuais"
         }
       },
       "required": [],
@@ -3906,6 +3916,82 @@
         }
       },
       "required": [],
+      "additionalProperties": false
+    },
+    "BaldePontual": {
+      "type": "object",
+      "description": "Um balde da base do gasto pontual. `pct` NÃO é campo — o leitor o deriva de `bruto`, que está no mesmo objeto ([[ADR-425]] §D2).",
+      "properties": {
+        "valor": {
+          "type": "number"
+        },
+        "contagem": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "valor",
+        "contagem"
+      ],
+      "additionalProperties": false
+    },
+    "BasePontuais": {
+      "type": "object",
+      "description": "A40.l98 ([[ADR-425]] §D2): o que a base do gasto pontual exclui, POR CAUSA, declarado na superfície que a publica. Invariante de conservação: `bruto.valor == publicado.valor + Σ excluidos[].valor`. O universo é todo lançamento acima do limiar — recortar o `bruto` mais estreito reintroduziria um filtro não declarado.",
+      "properties": {
+        "bruto": {
+          "$ref": "#/$defs/BaldePontual"
+        },
+        "publicado": {
+          "$ref": "#/$defs/BaldePontual"
+        },
+        "excluidos": {
+          "type": "object",
+          "description": "Balde por CAUSA — as chaves são os vereditos de `GastoPontualPolicy.classify` (enum fechado). Chave ausente = nenhum lançamento caiu nessa causa; o leitor omite a causa em vez de imprimir zero.",
+          "properties": {
+            "recorrente": {
+              "$ref": "#/$defs/BaldePontual"
+            },
+            "transferencia_por_categoria": {
+              "$ref": "#/$defs/BaldePontual"
+            },
+            "transferencia_detectada": {
+              "$ref": "#/$defs/BaldePontual"
+            },
+            "nao_identificado": {
+              "$ref": "#/$defs/BaldePontual"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "cobertura_nivel": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "alta",
+            "parcial",
+            "insuficiente",
+            null
+          ],
+          "description": "Veredito ordinal de cobertura da base, régua da [[ADR-353]] D1 (constantes IMPORTADAS, nunca redeclaradas). Razão: `publicado / (publicado + excluidos.nao_identificado)` — `recorrente` e `transferencia_*` ficam FORA do denominador porque são exclusão deliberada, não falha de medição. `null` sem base medível: um `alta` sobre medição que não houve seria afirmação sobre o dinheiro da família ([[ADR-394]] §D7). Escopo: PERÍODO COMPLETO."
+        },
+        "cobertura_motivo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Por que `cobertura_nivel` saiu nulo. Forma `<causa_slug>: <detalhe>`."
+        }
+      },
+      "required": [
+        "bruto",
+        "publicado",
+        "excluidos"
+      ],
       "additionalProperties": false
     }
   },

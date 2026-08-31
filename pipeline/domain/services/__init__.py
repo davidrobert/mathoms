@@ -52,7 +52,6 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (
 from pipeline.domain.services.consumo_consciente_calculator import (
     ConsumoConsciente,
     ConsumoConscienteCalculator,
-    ConsumoConscienteConfig,
     GastoPontualItem,
 )
 from pipeline.domain.services.diagnostico_comportamental_analyzer import (
@@ -89,6 +88,7 @@ from pipeline.domain.services.fluxo_caixa_enricher import (
     FluxoEnricherConfig,
     Janela12m,
 )
+from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
 from pipeline.domain.services.if_projector import (
     BaseDaMetaIF,
     IFProjection,
@@ -289,8 +289,8 @@ __all__ = [
     "TopAtivosConfig",
     "TopAtivosResult",
     "ConsumoConsciente",
+    "GastoPontualPolicy",
     "ConsumoConscienteCalculator",
-    "ConsumoConscienteConfig",
     "GastoPontualItem",
     "DiagnosticoComportamentalAnalyzer",
     "DiagnosticoComportamentalConfig",

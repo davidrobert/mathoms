@@ -40,6 +40,7 @@ export type ConsumoConsciente = {
   "janela_meses"?: number;
   "equivalente_meses_poupanca"?: number | null;
   "motivo_supressao"?: string | null;
+  "base_pontuais"?: BasePontuais;
 };
 
 export type GastoPontualItem = {
@@ -251,6 +252,24 @@ export type AtribuicaoInvestimentos = {
   "motivo"?: string | null;
 };
 
+export type BaldePontual = {
+  "valor": number;
+  "contagem": number;
+};
+
+export type BasePontuais = {
+  "bruto": BaldePontual;
+  "publicado": BaldePontual;
+  "excluidos": {
+    "recorrente"?: BaldePontual;
+    "transferencia_por_categoria"?: BaldePontual;
+    "transferencia_detectada"?: BaldePontual;
+    "nao_identificado"?: BaldePontual;
+  };
+  "cobertura_nivel"?: "alta" | "parcial" | "insuficiente" | null;
+  "cobertura_motivo"?: string | null;
+};
+
 export type ProtecaoPatrimonialApoliceResumo = {
   "apolice_numero": string;
   "seguradora": string;
@@ -454,6 +473,7 @@ export type E5AnalysisArtifact = {
     "cobertura_despesas_meses"?: number;
     "concentracao_imobiliaria"?: number;
     "base_concentracao_imobiliaria"?: "carteira_produtiva_fixa";
+    "numerador_concentracao_imobiliaria"?: "imoveis_investimento";
     "piso_autonomia_financeira_meses"?: number;
     "base_autonomia_financeira"?: "carteira_financeira_familia";
     "autonomia_denominador_mensal_brl"?: number;

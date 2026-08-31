@@ -54,7 +54,6 @@ from pipeline.domain.services.composicao_familiar import build_composicao_famili
 from pipeline.domain.services.consumo_consciente_calculator import (
     ConsumoConsciente,
     ConsumoConscienteCalculator,
-    ConsumoConscienteConfig,
 )
 from pipeline.domain.services.conversao_me import (
     ConversaoMeBrl,
@@ -102,6 +101,7 @@ from pipeline.domain.services.fonte_precedencia_arbiter import (
     fontes_de_irpf,
     fontes_de_posicoes_atuais,
 )
+from pipeline.domain.services.gasto_pontual_policy import GastoPontualPolicy
 from pipeline.domain.services.if_monte_carlo import (
     IFMonteCarloConfig,
     MonteCarloIFResult,
@@ -534,7 +534,7 @@ class E5AnalyzerAdapter:
                 )
             ),
             consumo_calculator=ConsumoConscienteCalculator(
-                ConsumoConscienteConfig.from_configs(scoring=scoring, goals=goals)
+                GastoPontualPolicy.from_scoring(scoring)
             ),
             equilibrio_analyzer=EquilibrioCerbasiAnalyzer(
                 EquilibrioCerbasiConfig.from_scoring(scoring)
@@ -760,8 +760,10 @@ class E5AnalyzerAdapter:
         top_ativos = self._top_ativos.analyze(bens_por_membro)
         instituicoes = self._instituicoes.analyze(bens_por_membro)
 
-        # 14. Consumo consciente.
-        consumo = self._consumo.calculate(fluxo_legacy, despesas)
+        # 14. Consumo consciente. Recebe as despesas REALIZADAS — o denominador
+        #     do card sai da janela pós-`split_provisionado`, e numerador sobre
+        #     outra população publica 6,0 ou 12,0 para o mesmo gasto (A40.l98).
+        consumo = self._consumo.calculate(fluxo_legacy, fluxo_enriched.despesas_realizadas)
 
         # 15. Equilibrio Cerbasi.
         equilibrio = self._equilibrio.analyze(fluxo_legacy)

@@ -200,6 +200,20 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 > `fidelidade_provada`"*) **andou para trás por consequência de método**: o rebaixamento da
 > [[A42.l18]] moveu `fluxo_caixa` e `reserva_emergencia` de `conservado` **para**
 > `coberto-sem-verificação-de-valor`.
+>
+> **Atualização 2026-08-31 — os dois consertos entraram; o critério 1 continua
+> insatisfeito.** [[A42.l18]] `shipped` (#1870 · `cfaf3f38`, [[ADR-426]]) e [[A42.l19]]
+> `shipped` (#1871 · `5504d91c`, [[ADR-427]]). Isso **não** satisfaz o critério 1, que
+> exige uma **rodada nova** das próprias skills voltando com zero achado da classe — e
+> não que os achados abertos tenham sido consertados. O gatilho de fechamento continua
+> sendo a `U5`.
+>
+> Sobre o **critério 3**: o rebaixamento que moveu `fluxo_caixa` e `reserva_emergencia`
+> era consequência da perna inerte, e essa causa **foi removida** — a perna agora mede
+> (destino declarado pelo produtor). Para onde os dois blocos voltam é **desconhecido até
+> a `U5`**: com o produtor declarando, o eixo-valor é medível, mas `conservado` só sai se
+> a soma do destino fechar no corpus real. **Não releia o parágrafo acima como estado
+> corrente** — ele é medição da `U4`.
 
 **Rito de abertura (auditoria 2026-08-14).** O gate acima fecha a sprint. A
 **promoção** (`[[A40]] → done`) começa com `parse-certify` r3 + `ledger-certify` r5
@@ -231,7 +245,7 @@ grafo honesto até lá.
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
 | [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
 | [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** · ✅ **#1846** — defeito procede; o gate que devia pegá-lo era cego em **3** eixos e os 2 sítios crus do repo moravam na interseção. Eixo novo: **rotear pelo choke-point não compra determinismo** (`use_cache` é `False` por default), logo o *delete-and-delegate* da [[A41.l3]] passaria os 5 critérios dela com o churn intacto | **P0** | 1 | — |
-| [[A42.l18]] | A perna de **valor** da conservação E3→E4 é inerte: `dups` é `0` **literal** na linha 265 (a linha 160, E2→E3, passa a variável real) e os dois lados somam `abs()` sobre a **mesma população pré-dedup** ⇒ `Δvalor = 0` é invariante a inversão de sinal **e** às 858 rows do dedup · **U4 `N1`** · ✅ **#1870** — defeito procede nas duas causas; o produtor passa a **declarar** o valor do destino ([[ADR-426]]) e o harness lê a declaração. Mas o **controle positivo obrigatório do enunciado era insatisfazível**: nas 62 tx das fixtures nenhuma declara `tipo`, a direção é *derivada* do sinal, logo não há testemunha independente contra a qual detectar inversão — a linha condenaria qualquer conserto correto e foi corrigida. Eixo novo: **entregar só o harness seria pior que hoje** (4/4 do gate falham nesse subconjunto — as duas metades são conjuntamente necessárias) | P1 | 1 | — |
+| [[A42.l18]] | A perna de **valor** da conservação E3→E4 é inerte: `dups` é `0` **literal** na linha 265 (a linha 160, E2→E3, passa a variável real) e os dois lados somam `abs()` sobre a **mesma população pré-dedup** ⇒ `Δvalor = 0` é invariante a inversão de sinal **e** às 858 rows do dedup · **U4 `N1`** · ✅ **#1870** — defeito procede nas duas causas; o produtor passa a **declarar** o valor do destino ([[ADR-426]]) e o harness lê a declaração. Mas o **controle positivo obrigatório do enunciado era insatisfazível**: nenhuma tx das fixtures declara `tipo` (0 de 63 (medido 2026-08-31)), a direção é *derivada* do sinal, logo não há testemunha independente contra a qual detectar inversão — a linha condenaria qualquer conserto correto e foi corrigida. Eixo novo: **entregar só o harness seria pior que hoje** (4/4 do gate falham nesse subconjunto — as duas metades são conjuntamente necessárias) | P1 | 1 | — |
 | [[A42.l19]] | O guard de escrita do E4 resolve por **stage**, nunca por `artifact_key`, e o `oneOf` tem ramo **placeholder** (`{status}`) que um balde transacional casaria; medido: `patrimonio` (87 itens) **reprova em `$`** e é gravado sob `warn`, e a jusante o razão imprime *coberto · 0 itens* para ele · **U4 `N2`** · ✅ **#1871** (`5504d91c`) — defeito procede e o enunciado o **subestimava**: eram **dois** ramos mortos (o de receitas/despesas declarava `periodo` como *object*; o produtor emite string) e o ramo `{dados}` aceitava **5** baldes sem restringir nada. O discriminador já existia — a `artifact_key`, coluna da row ([[ADR-427]]). A fixture `minimal-receitas` espelhava o **ramo**, não o produtor, e era seu único consumidor; e o golden **já validava** o `patrimonio` contra `baseline_patrimonial` e o **pulava** no laço do umbrella — o mapa certo estava no teste, faltava no guard | P1 | 1 | — |
 | [[A42.l20]] | `_e3_count` soma só `transacoes_total + transacoes_duplicadas_removidas` e **ignora `remocoes`**, que a função duas acima lê; canal declarado e reconciliável ao inteiro sai como *count divergente* com **duas causas declaradas, ambas falsas** · **U4 `LC8-03`** | P2 | 1 | — |
 | [[A42.l21]] | O `X5` da rodada unificada **só pode sair vermelho** e agrega 3 causas distintas sob 1 rótulo (skip mal-carimbado · escreve sob outra key por desenho · read-only); conjunto **constante** em U2/U3/U4 ⇒ poder discriminante zero · **U4 `PV12-04`** | P2 | 1 | — |
@@ -258,6 +272,12 @@ os P2 da mesma rodada, alocados a pedido do dono em 2026-08-30. **O teto de 14 e
 nunca foi decidido:** as cinco lanes acima de 12 entraram uma a uma, em PRs distintos, sem
 que o parágrafo acima fosse relido.
 
+> **Superado em 2026-08-31 — o rompimento FOI decidido.** A frase acima é fotografia do dia
+> 30 e fica como está; o *"nunca foi decidido"* deixou de valer na §Teto de lanes
+> APOSENTADO abaixo, que é a fonte vigente. Também deixou de valer o "excedido em 8": não
+> há mais teto de que exceder. Esta nota existe porque prosa condicional envelhece em
+> silêncio — foi o próprio modo de falha que a `U4` registrou no §10 do runbook.
+
 > **Por que o número estava em 16.** Este parágrafo nasceu correto no #1842 e ficou falso
 > no #1843, que criou a [[A42.l17]] sem reler a contagem — o mesmo modo de falha que ele
 > próprio denuncia, uma volta depois. A frase afirmava três substratos "concordam" em 16
@@ -268,18 +288,89 @@ que o parágrafo acima fosse relido.
 | [[A42.l13]] — completude por ficha | 2026-08-21 | a [[ADR-266]] foi falsificada por emenda datada e o predicado substituto precisava de casa. **Reusa o id da 13ª promovida** — ver §Lanes promovidas | #1624 (lane) · #1747 (linha na tabela) |
 | [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 |
 | [[A42.l17]] | 2026-08-30 | P0 da rodada `U3` (`LC7-01`) — [[LEDGER-CERTIFY-active]] §r7 | #1843 (lane) · #1846 (entrega) |
+| [[A42.l18]] · [[A42.l19]] | 2026-08-30 | dois achados Alto da rodada `U4` — [[LEDGER-CERTIFY-active]] §r8; **da classe que dá nome à sprint** | #1866 (lanes) · #1870/#1873 e #1888/#1890 (entregas) |
+| [[A42.l20]] · [[A42.l21]] · [[A42.l22]] | 2026-08-30 | os P2 da `U4`, alocados a pedido do dono | #1867 |
 
-**Nenhuma das quatro é padding** — que é o único abuso que o teto existia para impedir.
+**Nenhuma das dez é padding** — que é o único abuso que o teto existia para impedir.
 Mas o teto foi decidido contra outra evidência — *"nenhuma sprint acima de ~11 lanes
 fechou pelo próprio gate na história do repo"* ([[SPRINTS-active]] §A42) — e essa evidência
-**não foi re-medida**. Elevar o teto para 16 aqui seria escolher o número **depois** de
-conhecer o ofensor.
+**não foi re-medida**. Elevar o teto para 16 seria escolher o número **depois** de conhecer
+o ofensor.
 
-**Decisão pendente, do dono** (mesma porta do `sprint_status`): (a) elevar o teto com
-rationale novo e datado; (b) manter 14 e **dividir**, promovendo lanes pela porta de
-nível-lane do §Gatilho de promoção; ou (c) declarar o teto **advisory** — sinal de que a
-sprint pediu re-triagem, não gate de admissão. Até a decisão, **a contagem vigente é 16 e
-este bloco é a fonte dela**.
+### Teto de lanes APOSENTADO — decisão do dono, 2026-08-31
+
+A decisão pendente acima era (a) elevar, (b) manter 14 e dividir, ou (c) declarar advisory.
+**O dono escolheu uma variante da (c): o teto sobre o total de lanes sai.** A justificativa
+não é conveniência — é que a grandeza estava errada, e a medição mostra por quê.
+
+**O teto governa um número que esta sprint não escolhe.** O gate de saída dela
+**não é burn-down** (§Gate de saída: *"Fecha quando a rodada seguinte das próprias skills
+prova o fechamento… zero achado novo da classe"*). Num critério assim a contagem de lanes é
+**resultado da medição, não orçamento de planejamento** — e o resultado confirma: **11 das
+22 nasceram de rodada unificada** (`U2`, `U3`, `U4`), ou seja **metade da sprint chegou
+depois de ela ser planejada**, produzida por instrumento e não por escolha de escopo.
+
+**E o teto estava orçando o trabalho errado.** Medido em 2026-08-31:
+
+| | |
+|---|---|
+| lanes do dia da abertura (04-08) ainda `planned` | **11 de 12** — há **27 dias**, nenhuma iniciada |
+| lanes `shipped` | **4** — **todas** criadas nos 3 dias anteriores, todas de rodada unificada |
+| WIP hoje (`open` + `in_progress`) | **6** |
+
+As lanes não estão competindo por capacidade: **o lote antigo simplesmente não é pego**,
+enquanto o que chega por medição é executado em horas. Um teto sobre o total trata os dois
+grupos como se disputassem o mesmo slot, e eles não disputam.
+
+**O dano concreto, declarado por quem o sofreu.** Na `U4`, ao rotear o `PV12-02` para a
+[[A27.l2]], o argumento de produtor era genuíno — mas o teto estava na cabeça do executor
+também. Num sprint cuja tese é *"o instrumento não pode esconder nada"*, um número que faz
+alguém pensar em **onde acomodar** um achado trabalha contra a própria sprint. Teto que
+distorce roteamento é pior que teto ausente.
+
+**O que NÃO muda:** o contador `## Lanes (N)` da §Lanes continua sendo o único com gate, e
+os três substratos continuam obrigados a concordar (`check_lane_counter` da skill
+`lane-closeout`). Ele deixa de ser **limite** e permanece **fato publicado** — a
+visibilidade honesta que o teto entregava por acidente.
+
+**O que entra no lugar — corrigido em 2026-08-31 pelo `product-manager`.** A primeira
+versão desta seção instituiu **re-triagem por idade**, reusando o carimbo
+`sobrevive`/`absorvido`/`morreu` do §Rito de abertura. **O especialista recusou o
+substituto e a recusa procede:** essa auditoria **já rodou** — §Auditoria de mesa
+2026-08-14, cruzando as 12 lanes contra `origin/main` linha a linha — e devolveu
+**12× `sobrevive`, 0 absorvido, 0 morreu**. Rendimento medido: zero. Instituir como rito
+periódico algo que custa leitura de mérito e não move throughput é cerimônia, não governo.
+E o §Rito de abertura sempre mandou carimbar **a partir da rodada** (com evidência), não da
+leitura de mesa.
+
+**O substituto correto é o §Deferimento datado**, padrão já vigente no repo
+(precedente [[ADR-356]]): lane cuja premissa depende de evento que não ocorreu vira
+deferimento **com dono e condição de retomada**, em vez de ficar `planned` fingindo fila.
+Foi o que se aplicou hoje à [[A42.l1]] (`blocked`, condição = decisão de beta/2º usuário) e
+à [[A42.l8]] (as três arestas dispostas pelos três ramos da §Amarra).
+
+### O falsificador desta aposentadoria — e ele tem valor publicado
+
+A evidência que justificava o teto — *"nenhuma sprint acima de ~11 lanes fechou pelo próprio
+gate na história do repo"* — **nunca foi re-medida**, e a A40 com 110 lanes e contador em
+**0/2** é um ponto **a favor** dela. Retirar o teto sem publicar o que o traria de volta
+seria retirar sem risco de estar errado.
+
+**Métrica única, por sprint:** *lanes não-terminais que já existiam quando a última rodada
+unificada rodou e não foram pegas.* Medida em 2026-08-31, contra a `U4` (2026-08-30):
+
+| sprint | lanes | não-terminais | **atravessaram a `U4` sem serem pegas** |
+|---|---|---|---|
+| [[A40]] | 110 | 36 | **26** |
+| A42 (esta) | 22 | 18 | **15** |
+
+**Condição de reversão declarada:** se esse número **crescer** na A42 rodada após rodada,
+como já cresceu na A40, a aposentadoria do teto estava errada — e se saberá por medição, não
+por sensação. Re-medir no fecho de cada `U<n>`.
+
+**O WIP fica publicado, não gateado:** 6 em 2026-08-31. Se virar limite algum dia, o número
+tem de sair de evidência de throughput coletada **antes** de conhecer o valor corrente — não
+deste parágrafo.
 
 **Ordem dentro da tabela reflete pickup, não numeração.** A l3 vem antes da l2 porque a
 l2 consome o ratchet que a l3 entrega; a l5 vem antes da l6 pela mesma razão. Nenhuma

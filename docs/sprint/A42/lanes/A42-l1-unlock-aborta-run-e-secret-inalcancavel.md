@@ -3,7 +3,7 @@ id: A42.l1
 type: lane
 title: "Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo"
 sprint: A42
-status: planned
+status: blocked
 priority: P0
 branch_slug: a42-l1-unlock-aborta-run-e-secret-inalcancavel
 depends_on: []
@@ -21,6 +21,19 @@ tags:
 > **Origem:** [[PIPELINE-REVIEWS-active]] §r4 2026-08-04 — RV4-01 (P0, `saúde-execução`).
 > Reproduzido por mutação **e** por run real com status `failed`. Veredito adversarial
 > PARTIAL; a parte confirmada é a que importa.
+
+> ### `planned` → `blocked` em 2026-08-31 (re-triagem, `product-manager`)
+>
+> O status era `planned` e a leitura de fora era *"P0 parado há 27 dias"* — leitura que o
+> `product-manager` **refutou** na re-triagem: existe um terceiro caso além de "não é P0" e
+> "a sprint não está sendo executada", que é **P0 cujo raio é gateado por decisão do dono
+> que não ocorreu**. Está documentado abaixo desde 2026-08-05, com a promoção **avaliada e
+> recusada** e com controle compensatório ativo.
+>
+> **A prioridade não muda; o status passa a dizer a verdade.** `blocked`, condição de
+> destravamento = **a decisão de abrir o beta fechado / 2º usuário** (o mesmo evento do
+> gatilho abaixo). `planned` com prioridade P0 e readiness zero é o que produzia a leitura
+> errada — e foi ela que chegou ao dono na `U4`.
 
 > 🔑 **Gatilho de promoção desta lane, nomeado 2026-08-05: o mesmo evento da [[A41]]** —
 > *decisão de abrir o beta fechado / 2º usuário*. Foi avaliado promover esta lane para a

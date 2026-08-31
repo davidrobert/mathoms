@@ -446,6 +446,27 @@ Condição de retomada: é pré-requisito de qualquer flip deste schema, e porta
 que a [[A40.l67]] §Deferimento re-homeou para cá. Não bloqueia os outros 5
 elegíveis.
 
+> **Correção 2026-08-31 — a premissa "do produtor E1.5c" está errada, e executar este
+> escopo ao pé da letra escolhe o shape errado.** Medido no tratamento dos achados da
+> [[A42.l19]]:
+>
+> 1. **O produtor declarado é o E4 pós-normalização, não o E1.5c.** A `description` do
+>    próprio schema diz: *"A normalização em E4 converte v2 → v1 canonical **antes da
+>    validação**"*.
+> 2. **São dois produtores** desde a [[ADR-427]] D3, e a divergência entre eles é de
+>    **exatamente 2 campos** — `pipeline_stage` e `data_processamento`, os mesmos 2
+>    `required` fósseis, que têm **zero leitor** de produção. Não é "duas formas do
+>    mesmo payload": é uma forma e um enxerto.
+> 3. **`additionalProperties` não pode ser decidido antes** de os 2 fósseis caírem nas
+>    **duas** pontas. Se `false` for escolhido enquanto o `BaselineNormalizer` ainda
+>    enxerta, consertar o E1.5c **quebra o E4**.
+> 4. O enxerto do `data_processamento` cai em `date.today()` e é **gravado**: mesmo
+>    input em dois dias civis produz `sha256` diferente. É quebra de idempotência em
+>    artefato persistido, não só dívida de contrato.
+>
+> A execução passa a ser a [[A40.l110]], em dois PRs (A atômico → B re-deriva). Este
+> deferimento permanece como origem e não se reescreve — a correção é aditiva.
+
 ### Estado dos itens (todos roteados — ver §Fecho)
 
 1. ~~**Kill-switch provado por teste**~~ — ✅ 2026-08-24, §Passo 2.

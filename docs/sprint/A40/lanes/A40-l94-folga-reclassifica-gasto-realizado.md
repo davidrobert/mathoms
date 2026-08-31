@@ -129,7 +129,14 @@ razão — `folga_mensal` não se move nele. Quem testemunha é a fixture nova.
 - `manifest_version` do parecer 2.7.0 → 2.8.0 (cobra a frota: a folga mudou de VALOR
   sem mudar de nome, e o cache tem TTL de 7 dias).
 
-### Deferido — §Deferimento datado 2026-08-29 · **Dono: [[A40.l98]]** (aberta 2026-08-30)
+### Deferido — §Deferimento datado 2026-08-29 · ~~**Dono: [[A40.l98]]** (aberta 2026-08-30)~~ **quitado 2026-08-31 (#1865)**
+
+> ✅ **QUITADO em 2026-08-31 (#1865, merge `37cff25f`).** A [[A40.l98]] está `shipped`.
+> Itens 1 e 2 entregues — o 1 com escopo **maior** que o enunciado aqui (a união das
+> duas famílias de categoria, não só `transfer_categories`) e o 2 sob a [[ADR-425]]
+> §D1. O item 3 (`pontual_mensal`) **não** foi entregue e ficou sem lane: ver
+> §Achado do closeout da [[A40.l98]]. A `Condição de retomada: nenhuma — a lane está
+> `open` e é pegável` abaixo está **vencida**; não a leia como rota viva.
 
 Os três itens abaixo foram para a [[A40.l98]] (`base-dos-pontuais-tres-produtores`), com
 `LC6-06`/`LC6-07` roteados junto por serem da mesma família. **Condição de retomada:** nenhuma —

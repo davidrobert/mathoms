@@ -47,6 +47,7 @@ from backend.app.services.security.access_audit import record_access_audit
 from backend.app.services.transfer_detector_resolver import (
     resolve_internal_transfer_detector,
 )
+from pipeline.domain.services import GastoPontualPolicy, InternalTransferDetector
 
 _defaults = ConfigDefaultsLoader()
 
@@ -74,6 +75,18 @@ _ANCHOR_DESC = (
 )
 
 
+# A40.l98 — o limiar sai do MESMO ``scoring.json`` que o KPI do card. Antes este
+# endpoint caía num literal próprio: os dois valiam 2000 e coincidiam por acaso, e
+# editar o scoring os separava em silêncio.
+async def _resolve_regras_do_pontual(
+    workspace_id: str, db: AsyncSession
+) -> tuple[InternalTransferDetector, GastoPontualPolicy]:
+    detector = await resolve_internal_transfer_detector(
+        workspace_id, repo=ConfigBlobRepository(db), defaults=_defaults
+    )
+    return detector, GastoPontualPolicy.from_scoring(_defaults.load_json("scoring.json"))
+
+
 @router.get(
     "/consumo-pontuais",
     response_model=ConsumoPontuaisResponse,
@@ -86,11 +99,14 @@ async def list_consumo_pontuais(
     db: AsyncSession = Depends(get_db),
 ) -> ConsumoPontuaisResponse:
     """Gastos pontuais ≥ R$2k no período, com transferências internas filtradas (card Consumo Consciente)."""
-    detector = await resolve_internal_transfer_detector(
-        workspace.id, repo=ConfigBlobRepository(db), defaults=_defaults
-    )
+    detector, policy = await _resolve_regras_do_pontual(workspace.id, db)
     return await _list_consumo_pontuais(
-        workspace.id, period=period, detector=detector, anchor_date=anchor_date, db=db
+        workspace.id,
+        period=period,
+        detector=detector,
+        policy=policy,
+        anchor_date=anchor_date,
+        db=db,
     )
 
 
