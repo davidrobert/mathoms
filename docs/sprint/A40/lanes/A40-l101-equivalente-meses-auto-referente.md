@@ -153,9 +153,11 @@ publica `3.000.000,0` numa célula de KPI.
    E o número suprimido seria **verdadeiro e acionável**: `333 meses` = *"irrecuperável ao
    seu ritmo"*, que é o diagnóstico que a família precisa. Suprimir teria o **sinal trocado**.
 
-**Logo o polo é problema de LEGIBILIDADE, não de correção.** Dono: [[A40.l15]] (apresentação
-do card de S2), gatilho `product-designer`. **Condição de retomada:** quando a l15 tocar o
-KPI de consumo consciente — é a mesma célula.
+**Logo o polo é problema de LEGIBILIDADE, não de correção.** ~~Dono: [[A40.l15]]
+(apresentação do card de S2)~~ — a l15 foi **cancelada**, e a condição de retomada
+("quando a l15 tocar o KPI") nunca se cumpre. **Dono: [[A40.l102]]**, que é quem tem o
+card de S2 e a superfície do pontual; gatilho `product-designer`. Corrigido no closeout
+de 2026-08-31.
 
 ## Follow-ups nomeados (não entram nesta lane)
 

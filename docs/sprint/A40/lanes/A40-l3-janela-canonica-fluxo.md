@@ -103,12 +103,14 @@ que `ReceitaDespesaMensalChart` passou). A guarda tem quatro camadas:
    seção pertencente ao bloco `janela_12m` — medido: `{92.000, 81.000}` e nada
    mais —, (c) um único número de "quanto sobra" na seção, e (d) que **todo**
    texto derivado que cite agregado (`R$` ou `%`) declare a base.
-   **Escopo do invariante:** os dois cards herdados pela [[A40.l15]] (`Despesas
+   **Escopo do invariante:** ~~os dois cards herdados pela [[A40.l15]] (`Despesas
    por Categoria`, `Receita vs Despesa — Mês a Mês`) são excluídos por
    `CARDS_DA_L15` — exclusão **nominal**, com assert de que os dois títulos
-   existem na seção (senão a exclusão viraria vácuo em silêncio) e de que a
-   remoção tira exatamente 2 cards. Renomear um card devolve o texto ao
-   invariante e falha alto.
+   existem na seção e de que a remoção tira exatamente 2 cards.~~
+   ✅ **A exclusão foi REMOVIDA em 2026-08-30 pela [[A40.l102]] (#1864):** os dois
+   cards passaram a declarar a base e entraram no invariante. `CARDS_DA_L15` não
+   existe mais em código — sobrevive só como comentário histórico nas duas guardas.
+   Corrigido no closeout de 2026-08-31; o texto acima descrevia mecanismo morto.
    `No gráfico: N meses` **não conta** como declaração de base: é a contagem de
    barras renderizadas, e aceitá-la deixava passar texto que declara o desenho e
    não a base do número ("No gráfico: 12 meses. Receita média de R$ 42.667/mês.").
