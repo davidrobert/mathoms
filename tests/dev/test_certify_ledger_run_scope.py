@@ -308,3 +308,30 @@ class _StoreVazio:
 
     def read(self, _stage, _key):
         return {}
+
+
+# ─────────── D5: predicado de certificar ≠ predicado de pontuar KR-B ───────────
+
+
+def test_certificar_nao_exige_evidencia_de_enforce(run_com_e4_publicado, monkeypatch) -> None:
+    """Sem a separação, tornar o entregue o default RECUSARIA 51 dos 61 runs (M15)."""
+    # `evidence_from_retention` exige `removals_publicadas > 0`, e só 10 dos 61 runs têm
+    # essa evidência. O run desta fixture não tem `PipelineStageLog` nenhum: se `certify`
+    # passasse pelo predicado da KR-B, levantaria `EntregueRecusado`.
+    from dev import certify_ledger_local as mod
+
+    session, ws, run = run_com_e4_publicado
+    report = _certify_com_e4_amputado(mod, monkeypatch, session, ws, run)
+    assert report.e4_subject == "entregue"
+    assert report.entregue == {}
+
+
+def test_modo_entregue_segue_recusando_run_sem_enforce(run_com_e4_publicado) -> None:
+    """O outro lado da separação: pontuar a KR-B continua fail-closed."""
+    import pytest as _pytest
+
+    from dev.certify_ledger_local import EntregueRecusado, certify_entregue
+
+    session, ws, run = run_com_e4_publicado
+    with _pytest.raises(EntregueRecusado):
+        certify_entregue(session, ws, run)
