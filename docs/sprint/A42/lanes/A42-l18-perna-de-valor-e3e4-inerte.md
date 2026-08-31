@@ -3,13 +3,15 @@ id: A42.l18
 type: lane
 title: "A perna de valor da conservação E3→E4 é inerte: `dups` é literal e os dois lados somam `abs()` da mesma população"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1870
+ship_date: "2026-08-30"
 priority: P1
 branch_slug: a42-l18-perna-de-valor-e3e4-inerte
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-342]]", "[[ADR-347]]", "[[ADR-426]]"]
-tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
+tags: [type/lane, sprint/a42, status/shipped, priority/p1, area/dados]
 ---
 
 # A42.l18 — `perna-de-valor-e3e4-inerte`
