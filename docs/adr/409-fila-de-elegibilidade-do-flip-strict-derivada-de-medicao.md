@@ -5,6 +5,7 @@ title: "Fila de elegibilidade do flip warn→strict é derivada de medição no 
 status: Decidido
 phase: A40.l58
 date: "2026-08-24"
+amended_at: ["2026-08-31"]
 relates_to:
   - "[[ADR-284]]"
   - "[[ADR-407]]"
@@ -31,6 +32,9 @@ tags:
 (mode_overrides, enforcement, telemetria — a decisão que esta complementa),
 [[ADR-407]] (stage polimórfico despacha por discriminador), [[ADR-212]] (hook
 pós-write), [[ADR-093]] (nomes de stage), [[ADR-110]] (logs JSON).
+
+> ⚠️ **Emendada em 2026-08-31** — a cláusula de massa do §B nunca mediu documentos,
+> e a cadência do §B está desatualizada por ~2,5×. Ver §Emenda no fim.
 
 ## Contexto
 
@@ -234,3 +238,34 @@ E1.5c, gatilho `data-engineer`. Fica como §Deferimento datado com dono na
   logar-e-passar.
 - Runbook §5 declara o restart; §1.2 declara a pré-condição de `e2_extract`
   reaberta.
+
+## Emenda 2026-08-31 — dois números do §B não sobreviveram à re-medição
+
+Levantado ao preparar o **primeiro flip do repositório** ([[A42.l19]], schemas por balde
+do E4). Ambos verificados em `pipeline_artifacts` (18.246 rows, corpus de dogfood).
+
+**1. "O PR de flip cita a massa em documentos" é inerte — e sempre foi.**
+`dev/measure_schema_drift.py` faz `stats.documents.add(row.document_id or row.artifact_key)`,
+e **`document_id` é NULL em 18.246/18.246 rows**: nenhum writer o preenche (o parâmetro
+existe em `db_artifact_store.py`, o caller em `pipeline/artifact_store.py`, e nada o
+exercita). Logo `documents` ≡ `artifact_key` distintas, **em toda a fila**, não só no E4.
+
+Para `e3_reconciled` isso lê certo **por acidente** — a key é per-documento
+(`itau_extratoconta_BRL_202212_202604`) — e a tabela do §D herda o acidente. Para
+artefato de agregado o número degenera: `e4_pontos_milhas` reporta `docs=1` sobre
+**71 cópias byte-idênticas** do mesmo `{"dados": []}` e ainda assim sai `GO`. Era essa
+leitura que fazia "promover em lote" parecer defensável no instrumento.
+
+**Correção:** enquanto `document_id` não for preenchido, a massa citada no PR de flip é
+**payloads distintos** (`sha256` do JSON canônico), com artefatos e runs ao lado. Medido
+para os baldes E4: `receitas`/`despesas` 71/71, `investimentos` 40/71,
+`fluxo_mensal_detalhado` 21/71, `seguros` 5/71, `pontos_milhas` **1**/71. Preencher
+`document_id` no writer, ou trocar a métrica no instrumento, fica como trabalho próprio —
+`owner: data-engineer`.
+
+**2. A cadência que o §B usa para dimensionar a janela está desatualizada.** O §B fala em
+*"~2 runs/semana"*. Medido sobre os 71 runs de E4 em 14 semanas: **mediana de 5
+runs/semana** (mín 1, máx 14) e **26 runs nos últimos 35 dias**. A janela do §4 do runbook
+(*48h ou ≥10 runs*) fecha em **~2 semanas** típicas, não em ~5. O número importa porque é
+ele que precifica serializar promoções — e precificá-lo errado por 2,5× já produziu
+recomendação oposta entre dois especialistas na mesma decisão.

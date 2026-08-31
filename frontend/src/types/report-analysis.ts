@@ -16,7 +16,12 @@
 export interface PatrimonioCaixaConversao {
   taxa: string | null;
   taxa_data: string | null;
-  taxa_fonte: "ptax_31_12" | "market_rate_corrente" | "default_hardcoded" | "irpf_ja_em_brl" | null;
+  taxa_fonte:
+    | "ptax_31_12"
+    | "market_rate_corrente"
+    | "default_hardcoded"
+    | "irpf_ja_em_brl"
+    | null;
   status: "converted" | "identity" | "missing_rate";
 }
 
@@ -25,7 +30,8 @@ export interface PatrimonioCaixaDetalhe {
   moeda: "BRL" | "USD" | "EUR" | string;
   saldo_original: number;
   valor_brl: number;
-  tipo: "moeda_nacional" | "moeda_estrangeira" | "moeda_estrangeira_irpf" | string;
+  tipo:
+    "moeda_nacional" | "moeda_estrangeira" | "moeda_estrangeira_irpf" | string;
   /** ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1. */
   fonte?: "extrato" | "informe_31_12" | string;
   /** ADR-390 — carimbo da conversão; ausência = artefato pré-390. */
@@ -314,6 +320,39 @@ export interface OrcamentoProspectivoData {
   legenda?: string;
 }
 
+/** Um balde da base do gasto pontual. `pct` **não é campo** ([[ADR-425]] §D2) e
+ * o card **não o deriva** — imprime absolutos. Quando alguém precisar dele, a
+ * razão é `publicado / (publicado + excluidos.nao_identificado)`: `recorrente` e
+ * `transferencia_*` não entram no denominador, porque são exclusão deliberada e
+ * não falha de medição. */
+export interface BaldePontual {
+  valor: number;
+  contagem: number;
+}
+
+/** A40.l98 ([[ADR-425]] §D2) — o que a base do gasto pontual exclui, **por
+ * causa**, declarado na superfície que a publica. Existiam três produtores de
+ * "gasto pontual" com filtros disjuntos e nenhum declarava o próprio.
+ *
+ * Invariante: `bruto.valor === publicado.valor + Σ excluidos[].valor`. */
+/** Vereditos que EXCLUEM. `incluido` não aparece aqui de propósito: ele é o
+ * `publicado`, não um balde de exclusão. */
+export type VeredictoExcluido =
+  "recorrente" | "transferencia_por_categoria" | "transferencia_detectada";
+
+export interface BasePontuais {
+  bruto: BaldePontual;
+  publicado: BaldePontual;
+  /** Cobertura da base, régua da [[ADR-353]] D1 · escopo **período completo**.
+   * `null` = sem base medível, e **nunca** renderiza como "alta" ([[ADR-425]]). */
+  cobertura_nivel?: "alta" | "parcial" | "insuficiente" | null;
+  cobertura_motivo?: string | null;
+  /** Chave = veredito de `GastoPontualPolicy.classify` (enum fechado no Python,
+   * espelhado no schema). Balde ausente = nenhum lançamento caiu nessa causa —
+   * o leitor omite a causa em vez de imprimir zero. */
+  excluidos: Partial<Record<VeredictoExcluido, BaldePontual>>;
+}
+
 export interface ConsumoConscienteData {
   itens?: Array<{
     descricao: string;
@@ -331,6 +370,9 @@ export interface ConsumoConscienteData {
    * `total_pontuais` (full) ao lado do equivalente, logo o leitor NÃO consegue
    * reproduzir esse KPI hoje. Exibi-lo é a lane A40.l15. */
   total_pontuais_janela?: number;
+  /** A40.l98 — o que a base exclui, por causa. Lido pelo
+   * `ConsumoConscienteCard`; ausente em payload anterior à lane. */
+  base_pontuais?: BasePontuais;
   /** ADR-306 D2 — rótulo da janela ("12m" | "full"). */
   janela?: string;
   janela_meses?: number;

@@ -16,7 +16,8 @@ tags: [type/lane, sprint/a42, status/open, priority/p2, area/dados]
 
 > **Origem:** `PV12-04` da rodada unificada **U4** ([[PIPELINE-REVIEWS-active]] §r12).
 > É a mesma patologia da [[A42.l18]] com o **sinal invertido**: lá o check não podia
-> reprovar; aqui não pode aprovar.
+> reprovar; aqui não pode aprovar. (A [[A42.l18]] shipou em #1870 — a patologia *dela*
+> está fechada; a analogia descreve o achado da `U4`, não o estado atual daquele check.)
 
 ## O defeito
 

@@ -84,11 +84,14 @@ class TestMedicao:
         assert stats.drifted == 1
         assert (f"$.{faltante}", "required") in stats.paths
 
-    def test_conta_run_e_documento_distintos(self):
-        """`docs` separa massa real de repetição por run — 6 artefatos de 1 documento não são 6 evidências."""
+    def test_conta_run_e_payload_distintos(self):
+        """Separa massa real de repetição por run (cláusula do §B da [[ADR-409]])."""
+        # A versão anterior media `documents` e passava SÓ porque a `artifact_key` era
+        # a mesma: `document_id` é NULL em 100% do corpus. Terceira instância, nesta
+        # sprint, de teste que concorda com a crença errada do código.
         rows = [_row(_e2_payload(), run=f"run-{i}", key="mesmo-doc") for i in range(3)]
         stats = _measure_r(rows)["e2_extract.schema.json"]
-        assert (stats.artifacts, len(stats.runs), len(stats.documents)) == (3, 3, 1)
+        assert (stats.artifacts, len(stats.runs), len(stats.payloads)) == (3, 3, 1)
 
     def test_payload_ilegivel_conta_separado_e_nao_vira_drift(self):
         row = _row(_e2_payload())
@@ -141,3 +144,40 @@ class TestResolucaoPorChave:
 
         assert set(medido) == {"e4_unified.schema.json"}
         assert medido["e4_unified.schema.json"].artifacts == 2
+
+
+class TestMassaPorPayloadDistinto:
+    """A42.l19 — `documents` degenerava para `artifact_key` (document_id NULL em 100%)."""
+
+    def test_copias_identicas_contam_como_uma_evidencia(self):
+        rows = [_row(_e2_payload(), key="pontos_milhas", run=f"run-{i}") for i in range(9)]
+
+        stats = _measure_r(rows)["e2_extract.schema.json"]
+
+        assert stats.artifacts == 9
+        assert len(stats.payloads) == 1, "9 cópias byte-idênticas não são 9 evidências"
+
+    def test_massa_trivial_nao_muda_o_go_nem_o_exit(self):
+        """Massa é insumo de decisão, não gate de drift — trocar por vermelho trocaria
+        falso-verde por falso-vermelho no CI."""
+        rows = [_row(_e2_payload(), key="k", run=f"run-{i}") for i in range(9)]
+
+        stats = _measure_r(rows)["e2_extract.schema.json"]
+
+        assert stats.is_go is True
+        assert stats.mass_trivial is True
+
+    def test_payloads_distintos_contam_separado(self):
+        rows = [_row(_e2_payload(banco=f"b{i}"), key="k", run=f"run-{i}") for i in range(4)]
+
+        stats = _measure_r(rows)["e2_extract.schema.json"]
+
+        assert len(stats.payloads) == 4
+        assert stats.mass_trivial is False
+
+    def test_documents_sumiu_da_saida(self):
+        """Não basta parar de usar: parar de reportar. Campo que sobrevive na saída é
+        campo que a próxima pessoa cita."""
+        stats = _measure_r([_row(_e2_payload())])["e2_extract.schema.json"]
+
+        assert not hasattr(stats, "documents")
