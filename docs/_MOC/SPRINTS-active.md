@@ -334,9 +334,13 @@ mover as 12 lanes muda `SPRINT_CURRENT.md` em **zero linhas** (todas `planned`),
 renumeração toca **304 ocorrências em 23 arquivos** com 40% fora de qualquer gate, e
 nenhuma sprint acima de ~11 lanes fechou pelo próprio gate na história do repo.
 
-- **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **13 lanes**
-  `planned` em 4 ondas (0–3), teto de capacidade 14. Declara o **critério de admissão**
-  em 5 cláusulas, fechando a §Pendência de decisão nº 10 da [[A40]].
+- **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · a contagem de lanes
+  vive **só** no `## Lanes (N)` da §Lanes de lá, que é o único substrato gateado — repetir
+  o número aqui foi o que o deixou envelhecer (dizia "13 `planned`, teto 14" quando a
+  sprint estava em 22 com 12 `planned`). Declara o **critério de admissão** em 5 cláusulas,
+  fechando a §Pendência de decisão nº 10 da [[A40]]. **O teto de capacidade foi aposentado
+  em 2026-08-31** — ver §Teto de lanes APOSENTADO: metade das lanes chega por medição, não
+  por planejamento, e o gate de saída não é burn-down.
 
 ### A43 — Compatibilidade AI-native: ChatGPT, Codex e clientes MCP (`candidate` 2026-08-14)
 
