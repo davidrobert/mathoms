@@ -158,6 +158,37 @@ corpus, `itau` tem 2 contas — **ambas `david`** — e `rico` tem 2 contas —
 > ambiguidade de **titularidade** (a pergunta do consolidator) ou de **conta**
 > (outra pergunta)?
 
+> **Correção da medição (2026-08-31, PR2).** A redação acima diz que *"`itau` tem
+> 2 contas — ambas `david` — e `rico` tem 2 contas — ambas `david`"*. Verdadeiro,
+> mas **incompleto em duas direções**, e ambas mudam o desenho do fix.
+>
+> **(i) São 4 instituições, não 2.** Sonda do `AccountResolver` **real** (função
+> pura) contra as 18 contas do artefato E1 do run `79a61e33`:
+>
+> | instituição | contas | membros distintos | `confidence` hoje |
+> |---|---|---|---|
+> | `bradesco` | 3 | **1** (cônjuge) | `ambiguous` — **falso** |
+> | `caixa` | 3 | **1** (titular) | `ambiguous` — **falso** |
+> | `itau` | 2 | **1** (titular) | `ambiguous` — **falso** |
+> | `rico` | 2 | **1** (titular) | `ambiguous` — **falso** |
+> | `nubank` | 2 | **2 — titular E cônjuge** | `ambiguous` — **legítimo** |
+>
+> As outras 6 instituições resolvem por `fallback_bank`. **4 de 11** são falso-`ambiguous`.
+>
+> **(ii) Existe ambiguidade GENUÍNA no mesmo corpus — e ela sobrevive ao fix.**
+> O `nubank` tem contas de **dois membros diferentes**. Nenhuma versão do
+> predicado o resolve, e nenhuma deveria. Isto **refuta a leitura de que D2 é
+> "o resolver erra e basta desligar o `ambiguous`"**: o estado `ambiguous` tem
+> caso de uso vivo aqui, e o critério de aceite não pode exigir que ele
+> desapareça. O resíduo legítimo do fecho completo passa a ser **duas** coisas —
+> a corretora sem registro de conta em fonte alguma **e** o `nubank`.
+>
+> **Consequência para o gate de não-inércia.** Esta sonda é **função pura**: não
+> precisa de run de pipeline, só do artefato E1 e do `AccountResolver`. É a
+> fixture natural da perna D2 do gate — e ela precisa afirmar **as duas coisas**
+> (os 4 singletons resolvem **e** o `nubank` continua `ambiguous`), senão passa
+> a medir o vazio no dia em que alguém "consertar" D2 removendo o estado.
+
 **D3 — espaço de chave: a saída do resolver de conta não é canonicalizada.**
 O consolidator canonicaliza `membro_raw` do artefato E2 via `MemberNameResolver`
 ([[ADR-243]]), mas a saída do `AccountResolver` entra crua
@@ -285,6 +316,11 @@ o vazio.**
   revertido, **e que reprova explicitamente `{D1,D3}`** — o subconjunto que
   move o número sem resolver o problema. A fixture é a tabela dos **oito**
   subconjuntos de §Contrafactual, não os 4 estados da versão anterior.
+  **Emenda 2026-08-31 (PR2):** a perna D2 do gate afirma **duas** coisas, não
+  uma — que as 4 instituições singleton passam a resolver **e** que o `nubank`
+  (2 membros) **continua `ambiguous`**. Gate que só afirma a primeira fica verde
+  para o "fix" que remove o estado `ambiguous`, e passa a medir o vazio. Ver
+  §Medição › D2 › Correção da medição (2026-08-31).
 - Run novo do workspace `1b9f2cf5` publica `atribuicao_investimentos` abaixo do
   piso, sem o risco Alta e sem `prescricao_realocacao_suprimida`.
 - Ainda vale, para o resíduo legítimo (Binance): **fallback visível na célula**
