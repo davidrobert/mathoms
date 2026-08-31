@@ -114,8 +114,14 @@ sistema sabe que não sabe) — reporte, não conte como P0.
 ## Divergências esperadas (benignas — nunca "silenciosa")
 
 - **Drift fresco↔persistido** — o E3/E4 re-derivado difere do gravado porque o
-  código mudou pós-último run OU o artefato é de run parcial (ADR-080). É
-  **drift**, reporta; não é perda por si só.
+  código mudou pós-último run, o artefato é de run parcial (ADR-080), OU a config do
+  harness diverge da do run num eixo que nenhum canal declara (ex.: `collapse_enforce`,
+  que o harness omite ⇒ default `False` ⇒ **mede e não remove**). É **drift**, reporta;
+  não é perda por si só.
+- **Remoção declarada nos dois lados** — desde A42.l20 o count do drift é normalizado
+  pelos canais de `remocoes`, não só por `transacoes_duplicadas_removidas` (que é só o
+  canal `cross_file_dedup`). Canal declarado e reconciliável ao inteiro **não aparece**
+  como `count divergente`; se aparecer, a causa é uma das três acima.
 - **Stub E2** — E2 `requires_llm_fallback` → E3 vazio é `escalado-honesto`.
 - **Dedup/transferência declarados** — veredito 3, comportamento correto.
 

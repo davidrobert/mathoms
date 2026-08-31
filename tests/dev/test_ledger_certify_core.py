@@ -23,12 +23,26 @@ from dev.ledger_conservation import (
 _CROSS_GROUP_TITLE = "## Duplicação cross-grupo"
 
 
-def _e3(n_tx: int, *, dups: int = 0, total: int | None = None, valores=None) -> dict:
+def _e3(n_tx: int, *, dups: int = 0, total: int | None = None, valores=None, remocoes=None) -> dict:
     txns = [{"valor": v} for v in (valores if valores is not None else [1.0] * n_tx)]
-    return {
+    out = {
         "transacoes": txns,
         "transacoes_total": n_tx if total is None else total,
         "transacoes_duplicadas_removidas": dups,
+    }
+    if remocoes is not None:
+        out["remocoes"] = remocoes
+    return out
+
+
+def _remocoes(*, cross_file: int = 0, collapse: int = 0) -> dict:
+    """Partição de remoções na forma que `e3_load_report._remocoes` emite."""
+    return {
+        "undated_drop": {"count": 0, "valor_cents": 0},
+        "anachronic": {"count": 0, "valor_cents": 0},
+        "intra_statement_dedup": {"count": 0, "valor_cents": 0},
+        "cross_file_dedup": {"count": cross_file, "valor_cents": 0},
+        "cross_document_collapse": {"count": collapse, "valor_cents": 0},
     }
 
 
@@ -186,6 +200,39 @@ def test_drift_particiona_matched_diff_only() -> None:
     assert len(d.count_diff) == 1 and "b:" in d.count_diff[0]
     assert d.fresh_only == ["c"]
     assert d.persisted_only == ["d"]
+
+
+# A42.l20 — o canal `remocoes` normaliza o count do drift. O harness re-deriva com
+# `collapse_enforce` default `False`: o lado fresco MEDE o colapso e não remove, então
+# declara `cross_document_collapse.count == 0` com as tx ainda em `transacoes_total`; o
+# run pinado rodou com enforce e declara o mesmo colapso como remoção. Somar só
+# `transacoes_duplicadas_removidas` (= canal `cross_file_dedup`) faz o par divergir pelo
+# tamanho do colapso, e o relatório manda investigar keying/run-parcial — ambas falsas.
+
+
+def test_drift_normaliza_pelo_canal_de_remocao_declarado() -> None:
+    fresco = _e3(1000, dups=7, remocoes=_remocoes(cross_file=7, collapse=0))
+    persistido = _e3(93, dups=7, total=93, remocoes=_remocoes(cross_file=7, collapse=907))
+    d = _drift({"g": fresco}, {"g": persistido})
+    assert d.count_diff == []
+    assert d.matched == 1
+
+
+def test_drift_ainda_acusa_divergencia_que_o_canal_nao_explica() -> None:
+    """Não-inércia: normalizar não pode calar drift real (resíduo fora do canal)."""
+    fresco = _e3(1000, dups=7, remocoes=_remocoes(cross_file=7, collapse=0))
+    persistido = _e3(90, dups=7, total=90, remocoes=_remocoes(cross_file=7, collapse=907))
+    d = _drift({"g": fresco}, {"g": persistido})
+    assert len(d.count_diff) == 1 and "1007" in d.count_diff[0] and "1004" in d.count_diff[0]
+    assert d.matched == 0
+
+
+def test_drift_artefato_legado_sem_remocoes_mantem_formula_antiga() -> None:
+    """Compat: sem `remocoes`, o count segue `total + transacoes_duplicadas_removidas`."""
+    d = _drift({"g": _e3(5, dups=2)}, {"g": _e3(5, dups=2)})
+    assert d.count_diff == [] and d.matched == 1
+    d2 = _drift({"g": _e3(5, dups=2)}, {"g": _e3(5, dups=3)})
+    assert len(d2.count_diff) == 1
 
 
 # ─────────────────────────── build_report (síntese) ───────────────────────────

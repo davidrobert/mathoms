@@ -240,7 +240,9 @@ Bifurque por natureza, como a [[pipeline-review]]:
   reconciliar = `escalado-honesto`, não perda. Leia o E2 **vivo não-fallback**.
 - **Estado incremental (ADR-080)** — o E3/E4 persistido pode cobrir só docs de um
   run parcial; por isso o modo primário **re-deriva** sobre todo o E2, e trata a
-  divergência fresco↔persistido como drift, não como perda.
+  divergência fresco↔persistido como drift, não como perda. O count do drift é
+  normalizado pelos canais de `remocoes` (A42.l20); o que sobra pode ser keying,
+  run parcial **ou** config do harness ≠ config do run (`collapse_enforce`).
 - **`natural_key` null** — ~92% ausente quando falta titular (gate classe-c,
   ADR-287); mede a cobertura e reporta, mas não deixa o join sticky-override
   quebrado virar falso `perda`.
