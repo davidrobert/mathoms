@@ -25,6 +25,7 @@ from dev.ledger_collapse_layer import (
     fmt_collapse_layer,
 )
 from dev.ledger_conservation import (
+    NAO_VERIFICAVEL,
     CrossGroupSummary,
     cross_group_summary,
     declared_removed_count,
@@ -177,12 +178,24 @@ def _bucket_metrics(payload) -> dict:
     return {"n": n, "n_tx": int(payload.get("total_transacoes", 0))}
 
 
+def _expected_buckets(e4: dict) -> list[str]:
+    """Baldes canônicos do E4 + qualquer key inesperada — a UNIÃO, nunca só o presente."""
+    from pipeline.domain.services.e4_serialization import ARTIFACT_KEYS
+
+    return list(ARTIFACT_KEYS) + sorted(set(e4) - set(ARTIFACT_KEYS))
+
+
+def _bucket_verdict(key: str, e4: dict, collisions: list) -> UnitVerdict:
+    """Veredito de um balde — ausente vira linha `não-verificável`, nunca silêncio (D6)."""
+    if key not in e4:
+        return UnitVerdict(key, NAO_VERIFICAVEL, "balde ausente no sujeito", {})
+    verdict, detail = e4_bucket_verdict(key, e4[key], collisions)
+    return UnitVerdict(key, verdict, detail, _bucket_metrics(e4[key]))
+
+
 def _e4_verdicts(e4: dict, collisions: list) -> list:
-    out = []
-    for key in sorted(e4):
-        verdict, detail = e4_bucket_verdict(key, e4[key], collisions)
-        out.append(UnitVerdict(key, verdict, detail, _bucket_metrics(e4[key])))
-    return out
+    """Um veredito por balde ESPERADO — `sorted(e4)` omitia o ausente (ADR-421 D6)."""
+    return [_bucket_verdict(k, e4, collisions) for k in _expected_buckets(e4)]
 
 
 def _e3_exec_dict(e3_result) -> dict:
