@@ -1524,12 +1524,12 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | Column | Type | Nullable | Default | Tags |
 |---|---|---|---|---|
 | `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
-| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
 | `proposed_payload` | `JSON` | no | — | — |
 | `source` | `VARCHAR(32)` | no | — | — |
 | `source_run_id` | `VARCHAR(36)` | yes | — | — |
 | `dedup_key` | `VARCHAR(64)` | yes | — | — |
-| `status` | `VARCHAR(32)` | no | `'pending'` | INDEX |
+| `status` | `VARCHAR(32)` | no | `'pending'` | — |
 | `rejection_reason` | `TEXT` | yes | — | — |
 | `superseded_at` | `DATETIME` | yes | — | — |
 | `superseded_by_run_id` | `VARCHAR(36)` | yes | — | — |
@@ -1546,9 +1546,8 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 **Indexes:**
 
+- `ix_suggestions_workspace_id` (workspace_id)
 - `ix_suggestions_ws_status` (workspace_id, status)
-- `ix_task_suggestions_status` (status)
-- `ix_task_suggestions_workspace_id` (workspace_id)
 
 ### `tasks`
 
@@ -1769,13 +1768,13 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | Column | Type | Nullable | Default | Tags |
 |---|---|---|---|---|
 | `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
-| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
-| `classe_auvp` | `VARCHAR(40)` | no | — | FK→economic_asset_class.code, INDEX |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
+| `classe_auvp` | `VARCHAR(40)` | no | — | FK→economic_asset_class.code |
 | `retorno_real_esperado_pct_anual` | `NUMERIC(6, 3)` | no | — | — |
 | `sigma_anual_pct` | `NUMERIC(6, 3)` | no | — | — |
 | `fonte` | `TEXT` | no | — | — |
 | `justificativa` | `TEXT` | no | — | — |
-| `effective_from` | `DATE` | no | — | INDEX |
+| `effective_from` | `DATE` | no | — | — |
 | `effective_to` | `DATE` | yes | — | — |
 | `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
@@ -1789,9 +1788,9 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 **Indexes:**
 
-- `ix_workspace_economic_assumptions_override_classe_auvp` (classe_auvp)
-- `ix_workspace_economic_assumptions_override_effective_from` (effective_from)
-- `ix_workspace_economic_assumptions_override_workspace_id` (workspace_id)
+- `ix_ws_econ_override_classe_auvp` (classe_auvp)
+- `ix_ws_econ_override_effective_from` (effective_from)
+- `ix_ws_econ_override_workspace_id` (workspace_id)
 
 ### `workspace_invitations`
 

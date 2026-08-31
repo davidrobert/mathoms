@@ -227,7 +227,6 @@ class TaskSuggestion(Base):
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
 
     # Payload proposto — mesma shape que `TaskCreate` (validado no approve)
@@ -241,7 +240,11 @@ class TaskSuggestion(Base):
     # rows novas calculam no service via compute_task_suggestion_dedup_key.
     dedup_key: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)
+    # Sem `index=True`: nenhuma migration jamais criou `ix_task_suggestions_status`
+    # — Postgres também nunca o teve. Todo read-path filtra `status` junto com
+    # `workspace_id` (multi-tenant), e `ix_suggestions_ws_status` já os cobre;
+    # índice avulso em `status` seria custo de write sem query ([[ADR-423]] §Emenda).
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
     rejection_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # ADR-269: soft-supersede — sinaliza que pending foi obsoletada por run novo.
@@ -274,7 +277,13 @@ class TaskSuggestion(Base):
     approved_task = relationship("Task", foreign_keys=[approved_task_id])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
 
-    __table_args__ = (Index("ix_suggestions_ws_status", "workspace_id", "status"),)
+    # `ix_suggestions_workspace_id` nomeado à mão: é o nome que a migration criou e
+    # que prod tem. `index=True` geraria `ix_task_suggestions_workspace_id` e o drift
+    # apareceria como ausência de um índice que existe ([[ADR-423]] §Emenda).
+    __table_args__ = (
+        Index("ix_suggestions_workspace_id", "workspace_id"),
+        Index("ix_suggestions_ws_status", "workspace_id", "status"),
+    )
 
 
 class TaskAttachment(Base):

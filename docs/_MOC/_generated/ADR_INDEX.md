@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 357
-- **Proposto**: 58
+- **Decidido**: 358
+- **Proposto**: 57
 - **Roadmap**: 4
 
 ## Fundação
@@ -30,17 +30,17 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Persistência
 
-### Decidido (5)
+### Decidido (6)
 
 - [[ADR-029]] — Alembic para migrations · phase F2
 - [[ADR-038]] — Docker volume para storage prod · phase F7
 - [[ADR-039]] — Dual DB: SQLite (dev) + PostgreSQL (prod) · phase F7
 - [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet · phase W3-T04
 - [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
+- [[ADR-423]] — Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice · phase A40.l97
 
-### Proposto (2)
+### Proposto (1)
 
-- [[ADR-423]] — Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice
 - [[ADR-424]] — SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required
 
 ## Pipeline
