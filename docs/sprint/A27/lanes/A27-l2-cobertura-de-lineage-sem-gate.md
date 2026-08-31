@@ -75,9 +75,12 @@ Regra ternária em [[LEDGER-CERTIFY-active]] §r6 §10.
       compara **conjunto**, não contagem: raiz renomeada não passa por compensação.
 - [x] **Controle positivo:** acrescentar raiz ao E5 sem entrada no registro ⇒ a métrica
       **cai** e/ou o gate reprova. Hoje ambos ficam verdes. — `test_lineage_coverage.py`.
-      Falsificado ponta-a-ponta: injetada raiz monetária na fixture, o gate ficou **vermelho**
-      e `check_lineage_refs` ficou **verde** na mesma mutação (assimetria registrada como
-      teste, `test_o_gate_de_refs_e_inerte_a_mesma_mutacao`).
+      Falsificado ponta-a-ponta: injetada raiz monetária na fixture do gate novo, ele foi a
+      **vermelho**; revertido, volta a verde. A assimetria com `check_lineage_refs` é
+      **estrutural, não testável** — aquele gate recebe o `registry`, nunca o payload, logo
+      não existe mutação de payload que ele possa enxergar. (Um teste chamado "inerte à mesma
+      mutação" asseveraria mutação que nunca aplica; foi removido no closeout, e o verde dele
+      sobre o registry real já é coberto por `test_check_lineage_refs_green_on_real_registry`.)
 - [x] O eval deixa de derivar `expected` do registro que ele avalia. — `cases._EXPECTED_REFS`
       literal + cross-check por `rule_id`. Falsificado: apontar `patrimonio.liquido` para
       outro enforcer reprova o novo assert e passa **verde** na forma derivada.
