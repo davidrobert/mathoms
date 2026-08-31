@@ -31,7 +31,7 @@ from pipeline.domain.services.real_estate_metrics import (
     calculate_real_estate_metrics,
     filter_investment_properties,
 )
-from pipeline.domain.services.valor_nao_apurado import sanear_baseline
+from pipeline.domain.services.valor_nao_apurado import sanear_baseline, sanear_item_fisico
 from scripts.consolidate_baseline import consolidate_from_itens
 
 _IDENT = MemberIdentity(titular_key="david", conjuge_key="", titular_nome="David", conjuge_nome="")
@@ -137,6 +137,19 @@ def test_saneamento_e_idempotente(baseline_com_apto_negativo):
     sanear_baseline(baseline_com_apto_negativo)
 
     assert len(baseline_com_apto_negativo["imoveis_consolidados"][0]["review_reasons"]) == antes
+
+
+def test_segunda_passagem_une_os_anos_em_vez_de_substituir():
+    # A segunda passagem só enxerga o ano novo — o primeiro já virou `None`. Sem a
+    # união, a declaração perderia o ano que continua sem valor no payload.
+    """O saneamento roda 2× e um merge entre elas pode trazer negativo de OUTRO ano."""
+    item = {"descricao": "APTO", "valores_31_12": {"2024": -1.0, "2025": 10.0}}
+    sanear_item_fisico(item, colecao="imoveis_consolidados")
+    item["valores_31_12"]["2025"] = -5.0
+    sanear_item_fisico(item, colecao="imoveis_consolidados")
+
+    assert item["valor_nao_apurado"]["anos"] == ["2024", "2025"]
+    assert item["valores_31_12"] == {"2024": None, "2025": None}
 
 
 def test_valor_impossivel_nao_reentra_pelo_agregado(baseline_com_apto_negativo):

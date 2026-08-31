@@ -83,7 +83,14 @@ def sanear_item_fisico(item: dict, *, colecao: str) -> list[ValorImpossivelEmIte
     warnings = [ValorImpossivelEmItemFisico(colecao=colecao, ano=ano) for ano in anos]
     for ano in anos:
         valores[ano] = None
-    item[CHAVE_NAO_APURADO] = {"anos": sorted(anos), "motivo": MOTIVO_SINAL_IMPOSSIVEL}
+    # UNIÃO, não substituição. O saneamento roda duas vezes (item e boundary) e um
+    # merge de informe entre elas pode trazer um negativo de OUTRO ano: a segunda
+    # passagem só enxerga o ano novo, porque o primeiro já virou `None`. Sobrescrever
+    # apagaria da declaração o ano que continua sem valor no payload.
+    item[CHAVE_NAO_APURADO] = {
+        "anos": sorted(set(anos) | set(anos_nao_apurados(item))),
+        "motivo": MOTIVO_SINAL_IMPOSSIVEL,
+    }
     _anexa_review_reasons(item, warnings, colecao=colecao)
     return warnings
 
