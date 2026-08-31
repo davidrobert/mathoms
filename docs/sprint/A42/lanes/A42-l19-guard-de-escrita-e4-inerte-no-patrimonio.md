@@ -3,13 +3,13 @@ id: A42.l19
 type: lane
 title: "O guard de escrita do E4 resolve por stage e tem ramo placeholder: o balde do patrimônio reprova hoje e é gravado assim mesmo"
 sprint: A42
-status: open
+status: in_progress
 priority: P1
 branch_slug: a42-l19-guard-de-escrita-e4-inerte-no-patrimonio
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-212]]", "[[ADR-409]]"]
-tags: [type/lane, sprint/a42, status/open, priority/p1, area/dados]
+adrs: ["[[ADR-212]]", "[[ADR-409]]", "[[ADR-427]]"]
+tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
 ---
 
 # A42.l19 — `guard-de-escrita-e4-inerte-no-patrimonio`
@@ -66,3 +66,80 @@ passando em modo `warn`"*, P2). **O que esta lane acrescenta é o mecanismo:** a
 por stage e o ramo placeholder são o motivo de o guard **não poder** pegar o caso, e o
 `patrimonio` é a instância viva. Não duplica a fila da [[ADR-409]] — a decisão de flip
 global segue rejeitada; aqui o conserto é do **schema e do discriminador**, não do modo.
+
+---
+
+## Medição de execução — 2026-08-30
+
+Rodado o **produtor real** (`main_with_store`) sobre fixtures commitadas
+(`minimal-conta-3_reconciled.json` + `minimal-baseline-1.5_consolidated.json`),
+não sobre o payload de um run. **O enunciado subestimou o defeito em três pontos.**
+
+**(a) Não era um ramo placeholder; eram dois ramos mortos e um catch-all.**
+
+| Ramo do `oneOf` | Quem casava, medido |
+|---|---|
+| `{schema_version, apolices}` | `seguros`, só com apólice |
+| `{periodo: object, total_geral}` — "receitas ou despesas" | **ninguém** — o produtor emite `periodo` **string** |
+| `{meses_ordenados}` | `fluxo_mensal_detalhado` |
+| `{dados}` com `dados: {}` — "patrimônio ou investimentos" | `receitas`, `despesas`, `investimentos`, `seguros` v1, `pontos_milhas` — **5 baldes**, e o ramo não restringe nada |
+| `{status: string}` — placeholder | **ninguém** |
+| — | `patrimonio`: **zero** ramos ⇒ reprova em `$` |
+
+**(b) O ramo morto de receitas/despesas era sustentado por uma fixture.**
+`tests/fixtures/pipeline_golden/e4/minimal-receitas-4_unified.json` era
+`{periodo: {objeto}, total_geral}` — o shape do **ramo**, não o do produtor (que emite
+`periodo` string + 8 campos) — e era seu **único** consumidor. O teste passava há duas
+sprints sem afirmar nada sobre o E4. Reescrita para espelhar
+`ReceitasUnified.to_legacy_dict`.
+
+**(c) O falso `coberto` não era só do `patrimonio`.** `_non_ledger_verdict` sondava
+`dados`/`apolices`/`composicao`; `fluxo_mensal_detalhado` (contêiner `meses_ordenados`)
+também caía no `[]` final. E `composicao` é campo do bloco `patrimonio` do **E5** — nunca
+do balde E4. O `or` encadeado ainda confundia contêiner **vazio** com **ausente**.
+
+**(d) O golden do E4 já sabia o contrato certo e registrava a isenção.**
+`test_e4_execution_with_baseline_patrimonial` validava `patrimonio` contra
+`baseline_patrimonial.schema.json` **e** fazia `if key == "patrimonio": continue` no laço
+do `e4_unified`. O mapa certo estava no teste; faltava no guard.
+
+## O que foi entregue
+
+Decisão canônica: [[ADR-427]] (D1–D6).
+
+- `SCHEMA_BY_STAGE_KEY` + `resolve_schema_name(stage, key)` no `DBArtifactStore`;
+  `_validate_schema` e `_schema_version_token` passam a resolver por `(stage, key)`.
+- 5 contratos novos em `config/schemas/` (`e4_cashflow`, `e4_fluxo_mensal`,
+  `e4_investimentos`, `e4_seguros`, `e4_pontos_milhas`); `patrimonio` aponta para
+  `baseline_patrimonial.schema.json` — **o mesmo schema que já gateia sua fonte E1.5c**.
+- `e4_unified.schema.json` vira backstop `anyOf` de `$ref`; o ramo `{status}` sai.
+- `_non_ledger_verdict` resolve o contêiner pela chave; shape desconhecido é
+  `não-verificável`. Rubrica extraída para `dev/ledger_unit_verdicts.py` (o núcleo
+  cruzou as 500 linhas do P2).
+
+## Evidência contra o critério
+
+| Critério | Evidência |
+|---|---|
+| Placeholder não casa com balde transacional | `test_shape_de_placeholder_reprova_em_balde_transacional` (4 baldes) + `test_troca_de_balde_reprova` |
+| Schema do `patrimonio` descreve o produtor | `test_baldes_reais_validam_em_strict`: **7/7** validam em `MATHOMS_PIPELINE_SCHEMA_MODE=strict` (antes o `patrimonio` reprovava em `$`) |
+| `_non_ledger_verdict` não diz `coberto` sobre shape que não lê | `test_e4_non_ledger_shape_desconhecido_nao_verificavel` + 4 testes irmãos |
+| Controle positivo | A/B contra o schema de `HEAD~1`: **5 payloads, 5 flips** de `ACEITA` → `reprova` |
+
+**Não-inércia medida, por subconjunto** — os dois consertos são gateados
+independentemente:
+
+- mapa por chave esvaziado (= volta a resolver por stage) → **5 testes vermelhos**,
+  entre eles `test_troca_de_balde_reprova`;
+- ramo `{status}` de volta no backstop → **2 testes vermelhos**.
+
+O controle do placeholder **sozinho passa** sob a primeira mutação: ele não discrimina
+"resolve por chave" de "o ramo morto saiu". É por isso que o remédio menor — só apagar o
+ramo — seria inerte contra a classe, e o teste que discrimina é o de **troca de balde**.
+
+## Fora de escopo, registrado
+
+- `save_json` em `scripts/categorize_transactions.py:975` é **dead code** (zero
+  call-sites pós-[[ADR-212]]) e cita o umbrella por nome.
+- O flip `warn→strict` do E4 fica **elegível** (7/7 validam), mas a decisão segue com a
+  [[ADR-409]] — esta lane só remove o impedimento; não flippa nada.

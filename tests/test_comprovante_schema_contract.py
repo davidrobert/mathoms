@@ -152,13 +152,15 @@ def test_token_de_auditoria_muda_quando_o_ramo_muda(ramo, tmp_path, monkeypatch)
         (destino / arquivo.name).write_text(arquivo.read_text(encoding="utf-8"), encoding="utf-8")
     monkeypatch.setattr("scripts.pipeline_common.CONFIG_DIR", tmp_path)
 
-    antes = _schema_version_token(STAGE)
+    antes = _schema_version_token(STAGE, "crlv_abc1d23_2024")
     alvo = destino / ramo
     doc = json.loads(alvo.read_text(encoding="utf-8"))
     doc["$comment"] = "mutação de controle"
     alvo.write_text(json.dumps(doc), encoding="utf-8")
 
-    assert _schema_version_token(STAGE) != antes, f"token cego a mudança em {ramo}"
+    assert (
+        _schema_version_token(STAGE, "crlv_abc1d23_2024") != antes
+    ), f"token cego a mudança em {ramo}"
 
 
 # Mapa explícito Pydantic → `$defs`. O teste do produtor só exercita o que os goldens
