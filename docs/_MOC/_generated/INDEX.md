@@ -415,7 +415,7 @@
 | ADR-418 | adr | Decidido |  | A meta de IF desconta exatamente a renda passiva que o numerador não conta | `adr/418-a-meta-de-if-desconta-a-renda-passiva-que-o-numerador-nao-conta.md` |
 | ADR-419 | adr | Proposto |  | O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI | `adr/419-gatilho-de-risco-deriva-de-doutrina-nao-de-alvo.md` |
 | ADR-420 | adr | Proposto |  | Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio | `adr/420-numerador-da-concentracao-imobiliaria-e-imobilizacao-patrimonial.md` |
-| ADR-421 | adr | Proposto |  | Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual | `adr/421-sujeito-declarado-da-certificacao.md` |
+| ADR-421 | adr | Decidido |  | Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual | `adr/421-sujeito-declarado-da-certificacao.md` |
 | ADR-422 | adr | Decidido |  | A folga é a poupança da janela, não a poupança mais o gasto pontual realizado | `adr/422-a-folga-e-a-poupanca-da-janela-nao-a-poupanca-mais-o-pontual.md` |
 | ADR-423 | adr | Decidido |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
 | ADR-424 | adr | Proposto |  | SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required | `adr/424-sql-so-sqlite-em-migration-e-a-cadeia-em-postgres.md` |
@@ -1012,7 +1012,7 @@
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
 | A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
 | A42.l13 | lane | planned | A42 | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | `sprint/A42/lanes/A42-l13-completude-por-ficha.md` |
-| A42.l14 | lane | in_progress | A42 | Os vereditos de conservação certificam a re-derivação, não o artefato entregue | `sprint/A42/lanes/A42-l14-conservacao-certifica-a-rederivacao.md` |
+| A42.l14 | lane | shipped | A42 | Os vereditos de conservação certificam a re-derivação, não o artefato entregue | `sprint/A42/lanes/A42-l14-conservacao-certifica-a-rederivacao.md` |
 | A42.l15 | lane | in_progress | A42 | Identidade de investimento é hash de campos que o extrator LLM reescreve | `sprint/A42/lanes/A42-l15-identidade-de-investimento-instavel-entre-runs.md` |
 | A42.l16 | lane | shipped | A42 | O check de cobertura cambial converte 'não sei o tier' em 'passou' | `sprint/A42/lanes/A42-l16-check-cambial-converte-nao-sei-em-passou.md` |
 | A42.l17 | lane | shipped | A42 | Um parser de banco chama o SDK LLM fora do contrato, e a saída livre vira chave de junção | `sprint/A42/lanes/A42-l17-parser-chama-llm-fora-do-contrato.md` |

@@ -2,7 +2,8 @@
 id: ADR-421
 type: adr
 title: "Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual"
-status: Proposto
+status: Decidido
+phase: A42.l14
 date: "2026-08-29"
 amended_at: ["2026-08-30"]
 relates_to:
@@ -17,14 +18,14 @@ aliases:
   - "LC6-01"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/tooling
   - area/dados
 ---
 
 # ADR-421 — Sujeito declarado da certificação
 
-**Status:** Proposto · **Data:** 2026-08-29 · **Origem:** [[LEDGER-CERTIFY-active]] §r6 `LC6-01` (rodada unificada U2, [[ADR-416]])
+**Status:** Decidido (A42.l14) · **Data:** 2026-08-29 · **Origem:** [[LEDGER-CERTIFY-active]] §r6 `LC6-01` (rodada unificada U2, [[ADR-416]])
 
 > **Emenda 2026-08-30 ([[A42.l18]]):** o §D4 listava `_classified_cents` entre as
 > métricas que o artefato **não** serializa. A função foi deletada e o eixo-valor
