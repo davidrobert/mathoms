@@ -116,6 +116,16 @@ Decisão canônica: [[ADR-427]] (D1–D6).
 - `_non_ledger_verdict` resolve o contêiner pela chave; shape desconhecido é
   `não-verificável`. Rubrica extraída para `dev/ledger_unit_verdicts.py` (o núcleo
   cruzou as 500 linhas do P2).
+- **Dois consumidores do mesmo mapa que herdariam a resolução velha**, achados por
+  varredura e consertados no mesmo PR:
+  - `dev/measure_schema_drift.py` — o instrumento que gateia a fila do flip. Por stage,
+    os 7 baldes bateriam contra o backstop `anyOf` e sairiam `GO` **sem contrato nenhum
+    checado**: o falso-verde migraria do guard para quem o audita.
+  - `dev/check_artifact_read_keys.py` — só descia por `allOf[].then.$ref`; com o backstop
+    virando `anyOf` sem `properties` no topo, o conjunto sairia **vazio** e todo
+    `payload["x"]` de um futuro leitor de E4 seria reprovado. Passa a computar o fecho
+    transitivo das três formas (`allOf[].then.$ref`, `properties` inline no `then`,
+    `anyOf[].$ref`).
 
 ## Evidência contra o critério
 

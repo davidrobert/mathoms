@@ -118,13 +118,10 @@ _NON_LEDGER_CONTAINERS: dict[str, tuple[str, ...]] = {
 
 
 def _non_ledger_verdict(key: str, payload: dict) -> tuple[str, str]:
-    """Balde fora do grão transacional: conta o contêiner que a CHAVE declara.
-
-    Shape não reconhecido devolve ``não-verificável``, nunca ``coberto``: dizer
-    "coberto · 0 itens" sobre payload que esta função não sabe ler afirma uma
-    cobertura que não houve — e era o que acontecia com os 87 itens do
-    ``patrimonio`` (A42.l19).
-    """
+    """Balde fora do grão transacional: conta o contêiner que a CHAVE declara."""
+    # Shape não reconhecido devolve `não-verificável`, nunca `coberto`: dizer
+    # "coberto · 0 itens" sobre payload que esta função não sabe ler afirma cobertura
+    # que não houve — era o que acontecia com os 87 itens do `patrimonio` (A42.l19).
     esperados = _NON_LEDGER_CONTAINERS.get(key, ())
     for nome in esperados:
         conteudo = payload.get(nome)

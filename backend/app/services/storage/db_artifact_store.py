@@ -116,11 +116,10 @@ def _schema_version_token(stage: str, key: str) -> Optional[str]:
     """A37.l13 (CTO-07) — token real de auditoria por row: sha256[:12] do JSON
     canônico do schema resolvido via :func:`resolve_schema_name`. Muda quando o
     schema muda (os schemas não declaram versão/$id universal — hash é a única
-    fonte estável). Stage sem schema mapeado (E1, E6-parecer…) → NULL explícito.
-
-    Resolve por ``(stage, key)`` desde A42.l19: com um token por stage, os 7
-    baldes E4 carregariam o mesmo hash e a coluna deixaria de discriminar qual
-    contrato validou a row."""
+    fonte estável). Stage sem schema mapeado (E1, E6-parecer…) → NULL explícito."""
+    # Resolve por `(stage, key)` desde A42.l19: com token por stage, os 7 baldes E4
+    # carregariam o mesmo hash e a coluna deixaria de discriminar qual contrato
+    # validou a row.
     schema_name = resolve_schema_name(stage, key)
     if schema_name is None:
         return None
