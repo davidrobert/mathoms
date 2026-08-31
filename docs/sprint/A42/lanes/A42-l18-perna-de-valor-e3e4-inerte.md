@@ -72,8 +72,8 @@ entre alavancas é admissível em lugar nenhum do relatório**.
 > **2026-08-30.** O controle positivo prescrito acima ("inverter o sinal de N débitos;
 > se `Δvalor` continuar `0`, o conserto não fechou") **não pode ser satisfeito por uma
 > perna de conservação E3→E4**, e a linha original teria condenado qualquer conserto
-> correto. Medido: nas **62** transações das fixtures, **nenhuma declara `tipo` no nível
-> da tx** — a direção é *derivada do sinal* (`_normalize_tipo`). Não há segunda
+> correto. Medido: **nenhuma** transação das fixtures declara `tipo` no nível da tx
+> (0 de 63 (medido 2026-08-31)) — a direção é *derivada do sinal* (`_normalize_tipo`). Não há segunda
 > declaração independente para discordar do sinal, então não existe testemunha contra a
 > qual uma inversão possa ser detectada. Quando `tipo` existe, o classificador aplica
 > `abs(valor)` na despesa e a discordância atravessa sem rastro. Erro de sinal é

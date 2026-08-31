@@ -200,6 +200,20 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 > `fidelidade_provada`"*) **andou para trás por consequência de método**: o rebaixamento da
 > [[A42.l18]] moveu `fluxo_caixa` e `reserva_emergencia` de `conservado` **para**
 > `coberto-sem-verificação-de-valor`.
+>
+> **Atualização 2026-08-31 — os dois consertos entraram; o critério 1 continua
+> insatisfeito.** [[A42.l18]] `shipped` (#1870 · `cfaf3f38`, [[ADR-426]]) e [[A42.l19]]
+> `shipped` (#1871 · `5504d91c`, [[ADR-427]]). Isso **não** satisfaz o critério 1, que
+> exige uma **rodada nova** das próprias skills voltando com zero achado da classe — e
+> não que os achados abertos tenham sido consertados. O gatilho de fechamento continua
+> sendo a `U5`.
+>
+> Sobre o **critério 3**: o rebaixamento que moveu `fluxo_caixa` e `reserva_emergencia`
+> era consequência da perna inerte, e essa causa **foi removida** — a perna agora mede
+> (destino declarado pelo produtor). Para onde os dois blocos voltam é **desconhecido até
+> a `U5`**: com o produtor declarando, o eixo-valor é medível, mas `conservado` só sai se
+> a soma do destino fechar no corpus real. **Não releia o parágrafo acima como estado
+> corrente** — ele é medição da `U4`.
 
 **Rito de abertura (auditoria 2026-08-14).** O gate acima fecha a sprint. A
 **promoção** (`[[A40]] → done`) começa com `parse-certify` r3 + `ledger-certify` r5
@@ -231,7 +245,7 @@ grafo honesto até lá.
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
 | [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
 | [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** · ✅ **#1846** — defeito procede; o gate que devia pegá-lo era cego em **3** eixos e os 2 sítios crus do repo moravam na interseção. Eixo novo: **rotear pelo choke-point não compra determinismo** (`use_cache` é `False` por default), logo o *delete-and-delegate* da [[A41.l3]] passaria os 5 critérios dela com o churn intacto | **P0** | 1 | — |
-| [[A42.l18]] | A perna de **valor** da conservação E3→E4 é inerte: `dups` é `0` **literal** na linha 265 (a linha 160, E2→E3, passa a variável real) e os dois lados somam `abs()` sobre a **mesma população pré-dedup** ⇒ `Δvalor = 0` é invariante a inversão de sinal **e** às 858 rows do dedup · **U4 `N1`** · ✅ **#1870** — defeito procede nas duas causas; o produtor passa a **declarar** o valor do destino ([[ADR-426]]) e o harness lê a declaração. Mas o **controle positivo obrigatório do enunciado era insatisfazível**: nas 62 tx das fixtures nenhuma declara `tipo`, a direção é *derivada* do sinal, logo não há testemunha independente contra a qual detectar inversão — a linha condenaria qualquer conserto correto e foi corrigida. Eixo novo: **entregar só o harness seria pior que hoje** (4/4 do gate falham nesse subconjunto — as duas metades são conjuntamente necessárias) | P1 | 1 | — |
+| [[A42.l18]] | A perna de **valor** da conservação E3→E4 é inerte: `dups` é `0` **literal** na linha 265 (a linha 160, E2→E3, passa a variável real) e os dois lados somam `abs()` sobre a **mesma população pré-dedup** ⇒ `Δvalor = 0` é invariante a inversão de sinal **e** às 858 rows do dedup · **U4 `N1`** · ✅ **#1870** — defeito procede nas duas causas; o produtor passa a **declarar** o valor do destino ([[ADR-426]]) e o harness lê a declaração. Mas o **controle positivo obrigatório do enunciado era insatisfazível**: nenhuma tx das fixtures declara `tipo` (0 de 63 (medido 2026-08-31)), a direção é *derivada* do sinal, logo não há testemunha independente contra a qual detectar inversão — a linha condenaria qualquer conserto correto e foi corrigida. Eixo novo: **entregar só o harness seria pior que hoje** (4/4 do gate falham nesse subconjunto — as duas metades são conjuntamente necessárias) | P1 | 1 | — |
 | [[A42.l19]] | O guard de escrita do E4 resolve por **stage**, nunca por `artifact_key`, e o `oneOf` tem ramo **placeholder** (`{status}`) que um balde transacional casaria; medido: `patrimonio` (87 itens) **reprova em `$`** e é gravado sob `warn`, e a jusante o razão imprime *coberto · 0 itens* para ele · **U4 `N2`** · ✅ **#1871** (`5504d91c`) — defeito procede e o enunciado o **subestimava**: eram **dois** ramos mortos (o de receitas/despesas declarava `periodo` como *object*; o produtor emite string) e o ramo `{dados}` aceitava **5** baldes sem restringir nada. O discriminador já existia — a `artifact_key`, coluna da row ([[ADR-427]]). A fixture `minimal-receitas` espelhava o **ramo**, não o produtor, e era seu único consumidor; e o golden **já validava** o `patrimonio` contra `baseline_patrimonial` e o **pulava** no laço do umbrella — o mapa certo estava no teste, faltava no guard | P1 | 1 | — |
 | [[A42.l20]] | `_e3_count` soma só `transacoes_total + transacoes_duplicadas_removidas` e **ignora `remocoes`**, que a função duas acima lê; canal declarado e reconciliável ao inteiro sai como *count divergente* com **duas causas declaradas, ambas falsas** · **U4 `LC8-03`** | P2 | 1 | — |
 | [[A42.l21]] | O `X5` da rodada unificada **só pode sair vermelho** e agrega 3 causas distintas sob 1 rótulo (skip mal-carimbado · escreve sob outra key por desenho · read-only); conjunto **constante** em U2/U3/U4 ⇒ poder discriminante zero · **U4 `PV12-04`** | P2 | 1 | — |
