@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import AbstractSet, Any, Mapping
 
 from sqlalchemy.orm import Session
 
@@ -123,13 +123,17 @@ def build_property_inputs(
     sources: CascadeSources,
     *,
     config: RealEstateConfig,
+    sem_valor_apurado: AbstractSet[str] = frozenset(),
 ) -> list[PropertyInput]:
     """Resolve cascade D9 (Informe→IRPF→E4→none) e produz ``PropertyInput[]`` frozen."""
     valor_total_investment = _ZERO
     investment_identities: list[PropertyIdentity] = []
     for ident in identities:
         classification = _resolve_classification(ident, overrides)
-        if classification in INVESTMENT_CLASSIFICATIONS:
+        # Sem valor apurado fica FORA do denominador do pro-rata: ratear a renda
+        # da carteira por um valor não medido inventa aluguel por imóvel, e o
+        # imóvel sai do cálculo agregado logo adiante ([[ADR-430]]).
+        if classification in INVESTMENT_CLASSIFICATIONS and ident.id not in sem_valor_apurado:
             v = valor_by_property.get(ident.id, _ZERO)
             valor_total_investment += v
             investment_identities.append(ident)
@@ -199,6 +203,7 @@ def build_property_inputs(
                 aluguel_origem=aluguel_origem,
                 ir_carne_leao_anual=ir_carne_leao,
                 endereco_canonical=ident.endereco_canonical,
+                valor_nao_apurado=ident.id in sem_valor_apurado,
             )
         )
     return inputs
@@ -238,6 +243,7 @@ def calculate_for_workspace(
     sources: CascadeSources,
     concentracao_imobiliaria_pct: Decimal,
     as_of_date: date,
+    sem_valor_apurado: AbstractSet[str] = frozenset(),
     config: RealEstateConfig | None = None,
     cdi_ir_efetivo_pct: Decimal | None = None,
     imoveis_no_if: bool = False,
@@ -251,6 +257,7 @@ def calculate_for_workspace(
         valor_by_property=valor_by_property,
         sources=sources,
         config=cfg,
+        sem_valor_apurado=sem_valor_apurado,
     )
     return calculate_real_estate_metrics(
         properties=inputs,
