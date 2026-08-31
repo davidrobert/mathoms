@@ -473,6 +473,7 @@ export type E5AnalysisArtifact = {
     "cobertura_despesas_meses"?: number;
     "concentracao_imobiliaria"?: number;
     "base_concentracao_imobiliaria"?: "carteira_produtiva_fixa";
+    "numerador_concentracao_imobiliaria"?: "imoveis_investimento";
     "piso_autonomia_financeira_meses"?: number;
     "base_autonomia_financeira"?: "carteira_financeira_familia";
     "autonomia_denominador_mensal_brl"?: number;
