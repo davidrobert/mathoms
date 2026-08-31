@@ -3,13 +3,15 @@ id: A27.l2
 type: lane
 title: "A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro"
 sprint: A27
-status: in_progress
+status: shipped
+ship_pr: 1872
+ship_date: "2026-08-30"
 priority: P2
 branch_slug: a27-l2-cobertura-de-lineage-sem-gate
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-281]]"]
-tags: [type/lane, sprint/a27, status/open, priority/p2, area/dados]
+tags: [type/lane, sprint/a27, status/shipped, priority/p2, area/dados]
 ---
 
 # A27.l2 — `cobertura-de-lineage-sem-gate`
