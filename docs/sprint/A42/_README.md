@@ -289,7 +289,7 @@ que o parágrafo acima fosse relido.
 | [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 |
 | [[A42.l17]] | 2026-08-30 | P0 da rodada `U3` (`LC7-01`) — [[LEDGER-CERTIFY-active]] §r7 | #1843 (lane) · #1846 (entrega) |
 | [[A42.l18]] · [[A42.l19]] | 2026-08-30 | dois achados Alto da rodada `U4` — [[LEDGER-CERTIFY-active]] §r8; **da classe que dá nome à sprint** | #1866 (lanes) · #1870/#1873 e #1888/#1890 (entregas) |
-| [[A42.l20]] · [[A42.l21]] · [[A42.l22]] | 2026-08-30 | os P2 da `U4`, alocados a pedido do dono | #1867 |
+| [[A42.l20]] · [[A42.l21]] · [[A42.l22]] | 2026-08-30 | os P2 da `U4`, alocados a pedido do dono | #1867 (lanes) · #1907 (l20) · #1906 (l21) — a l22 segue aberta |
 
 **Nenhuma das dez é padding** — que é o único abuso que o teto existia para impedir.
 Mas o teto foi decidido contra outra evidência — *"nenhuma sprint acima de ~11 lanes
