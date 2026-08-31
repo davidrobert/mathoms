@@ -249,7 +249,7 @@ def test_a_base_do_pontual_chega_ao_parecer():
     modelo não tem `tools`, então o manifest é a superfície inteira dele. Sem estes
     campos ele recebia `total_pontuais*` já reduzido, sem sinal de que virou piso."""
     ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
-    assert "Base bruta ≥ limiar, antes das exclusões:" in ctx
+    assert "Base bruta ≥ limiar (período completo), antes das exclusões:" in ctx
     assert "PISO" in ctx
 
 
@@ -258,8 +258,8 @@ def test_balde_ausente_nao_quebra_o_bloco():
     e5 = make_dogfood_like_e5()
     e5["consumo_consciente"]["base_pontuais"] = _BASE_SEM_EXCLUSAO
     ctx = distill_exec_context(load_manifest(), e5)
-    assert "Base bruta ≥ limiar, antes das exclusões:" in ctx
-    assert "Lançamentos não classificados na base:" not in ctx
+    assert "Base bruta ≥ limiar (período completo), antes das exclusões:" in ctx
+    assert "Fatia NÃO CLASSIFICADA da base (período completo):" not in ctx
     assert "Despesa mensal essencial: R$ 22.000,00" in ctx
     assert "Receita PJ (pró-labore + lucros): R$ 1.500.000,00" in ctx
     assert "Taxa de poupança recorrente (12m, %): 33,33%" in ctx

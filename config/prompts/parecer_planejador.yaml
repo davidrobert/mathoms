@@ -188,7 +188,15 @@
 # serviu tráfego — a chave de cache (`compute_cache_key`) muda uma vez, no deploy. Os
 # bumps por PR existem para atribuir delta a conjunto, não para marcar deploy: não
 # procure rows de `PlannerReview` com `manifest_version` 2.10.0–2.13.0.
-version: "2.14.0"
+# 2.15.0 — A40.l98, achado do `financial-planner` no follow-up: os campos de
+# `base_pontuais` são **full-period** (`_triar` não tem filtro de janela; o recorte só
+# existe depois, em `pontuais_janela`), e a 2.14.0 os pôs ao lado de
+# `total_pontuais_janela` sob os rótulos "mesma base" e "fora dos totais acima"
+# (plural). Um único valor full não pode estar "fora" de um total de janela de forma
+# subtraível — o pareamento errado ficava disponível ao modelo. Os quatro rótulos
+# passam a declarar o escopo TEMPORAL, que é o que a [[ADR-306]] D1 exige de todo
+# número. Só label; nenhum valor muda.
+version: "2.15.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -390,10 +398,10 @@ context_sections:
           # ([[ADR-425]] §D1). A base vai junto, senão a §D2 ("cobertura é campo
           # publicado") existe só no card e falta exatamente na superfície que
           # prescreve — que é onde a [[ADR-425]] §Emenda a invoca para dispensar a D3.
-          - {path: "$.consumo_consciente.total_pontuais", label: "Gastos pontuais (período) — PISO, ver base bruta abaixo", format: "brl"}
-          - {path: "$.consumo_consciente.total_pontuais_janela", label: "Gastos pontuais (janela) — PISO, mesma base", format: "brl"}
-          - {path: "$.consumo_consciente.base_pontuais.bruto.valor", label: "Base bruta ≥ limiar, antes das exclusões", format: "brl"}
-          - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.valor", label: "Fatia NÃO CLASSIFICADA da base (fora dos totais acima)", format: "brl"}
+          - {path: "$.consumo_consciente.total_pontuais", label: "Gastos pontuais (período completo) — PISO; a base abaixo é do mesmo período", format: "brl"}
+          - {path: "$.consumo_consciente.total_pontuais_janela", label: "Gastos pontuais (janela 12m) — PISO; a base abaixo NÃO é da janela", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.bruto.valor", label: "Base bruta ≥ limiar (período completo), antes das exclusões", format: "brl"}
+          - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.valor", label: "Fatia NÃO CLASSIFICADA da base (período completo)", format: "brl"}
           - {path: "$.consumo_consciente.base_pontuais.excluidos.nao_identificado.contagem", label: "Lançamentos não classificados na base", format: "int"}
           - {path: "$.consumo_consciente.equivalente_meses_poupanca", label: "Pontuais da janela em meses de poupança", format: "raw"}
           # A40.l101 — o equivalente é `null` fora do domínio de definição, e `on_null: skip`
