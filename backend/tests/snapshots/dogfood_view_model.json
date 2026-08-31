@@ -1234,6 +1234,19 @@
   },
   "consumo_consciente": {
     "analise": "Nenhum gasto pontual relevante ≥ R$ 2.000 identificado no período analisado — padrão de consumo dentro dos limites recorrentes.",
+    "base_pontuais": {
+      "bruto": {
+        "contagem": 0,
+        "valor": 0
+      },
+      "cobertura_motivo": "sem_base_medivel: nenhum lançamento acima do limiar foi classificado",
+      "cobertura_nivel": null,
+      "excluidos": {},
+      "publicado": {
+        "contagem": 0,
+        "valor": 0
+      }
+    },
     "equivalente_meses_poupanca": "0.000000",
     "folga_mensal": 150000,
     "folga_pct": "50.000000",
@@ -2167,6 +2180,7 @@
     "janela_meses": 1,
     "janela_n_meses": 1,
     "janela_referencia": "2026-01 a 2026-01",
+    "numerador_concentracao_imobiliaria": "imoveis_investimento",
     "piso_autonomia_financeira_meses": "86.670000",
     "rentabilidade": {
       "ano_base": null,

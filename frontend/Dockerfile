@@ -10,7 +10,7 @@
 # Stage 1: deps — instala node_modules a partir do package-lock.json
 # ---------------------------------------------------------------------------
 # node:22-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
-FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS deps
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json ./
@@ -19,7 +19,7 @@ RUN npm ci --no-audit --no-fund
 # ---------------------------------------------------------------------------
 # Stage 2: builder — roda codegen (Python) + next build (gera .next/standalone)
 # ---------------------------------------------------------------------------
-FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS builder
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS builder
 # Python necessário pelo prebuild: design-tokens/build.py + dev/codegen_report_layout.py.
 # pyyaml + jsonschema são deps do codegen do report_layout.
 RUN apk add --no-cache python3 py3-pip py3-yaml py3-jsonschema libc6-compat
@@ -44,7 +44,7 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 # Stage 3: runner — imagem final mínima, só com o standalone server
 # ---------------------------------------------------------------------------
-FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS runner
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

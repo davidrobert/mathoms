@@ -10,12 +10,14 @@ open · in_progress.
 ## Open
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
-- [[A40.l102]] — Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir · priority P2 · área pipeline/frontend · ⚠️ entrega parcial — dep pendente: A40.l98 (open) · branch `a40-l102-superficie-do-pontual-e-dedup`
+- [[A40.l102]] — Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir · priority P2 · área pipeline/frontend · branch `a40-l102-superficie-do-pontual-e-dedup`
 - [[A40.l105]] — Aprovação-com-avisos é indistinguível de nunca-ter-pausado no desfecho do run, e é o desfecho que alimenta o banner de qualidade · priority P2 · área pipeline · branch `a40-l105-aprovacao-com-avisos-indistinguivel`
 - [[A40.l106]] — O relatório não emite índice de seção algum no mobile: rolagem longa sem navegação, enquanto o desktop emite o índice completo · priority P2 · área frontend · branch `a40-l106-relatorio-sem-indice-no-mobile`
 - [[A40.l107]] — A conversão tabela→cartão no mobile é aplicada por componente, não por regra: 11 tabelas largas não convertem, e há um terceiro comportamento não previsto · priority P2 · área frontend · branch `a40-l107-conversao-tabela-cartao-por-componente`
 - [[A40.l108]] — Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro · priority P2 · área produto · branch `a40-l108-um-ano-nomeia-cenario-central-e-de-estresse`
 - [[A40.l109]] — A lista do card lê o artefato mais recente sob um relatório pinado e imutável · priority P1 · área backend/frontend · branch `a40-l109-lista-le-latest-sob-relatorio-pinado`
+- [[A40.l110]] — O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas · priority P1 · área dados/pipeline · branch `a40-l110-fossil-do-baseline-e-idempotencia`
+- [[A40.l111]] — Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo · priority P1 · área dados/produto · branch `a40-l111-valor-nao-apurado-em-item-fisico`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
@@ -32,7 +34,6 @@ open · in_progress.
 - [[A40.l85]] — O gate de ancorabilidade roda sobre um corpus que não consegue reproduzir o colapso que ele existe para pegar · priority P1 · área llm/pipeline · branch `a40-l85-corpus-cardinalidade-real`
 - [[A40.l86]] — Duas fontes decidem se uma folha é dinheiro: o format declarado no manifest e o palpite pelo nome do campo · priority P2 · área llm/pipeline · branch `a40-l86-duas-fontes-de-monetariedade`
 - [[A40.l92]] — A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora · priority P0 · área frontend/relatorio · branch `a40-l92-polaridade-do-comparador`
-- [[A40.l98]] — Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra · priority P1 · área pipeline/financial-planning · branch `a40-l98-base-dos-pontuais-tres-produtores`
 - [[A40.l99]] — Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor · priority P3 · área dominio · branch `a40-l99-adr-proposta-com-lane-fechada`
 
 ## In progress
@@ -40,7 +41,6 @@ open · in_progress.
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l95]] — Numerador da concentração imobiliária inclui bem que o motor declara não-gerador · priority P0 · área pipeline/financial-planning · branch `a40-l95-numerador-de-concentracao-inclui-nao-gerador`
 - [[A40.l96]] — Tabela de maiores ativos atribui titular a valor que o sistema declara órfão · priority P0 · área pipeline/frontend/financial-planning · branch `a40-l96-titular-atribuido-a-posicao-orfa`
-- [[A40.l97]] — Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice · priority P0 · área persistence/backend · branch `a40-l97-indices-perdidos-por-copy-from`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

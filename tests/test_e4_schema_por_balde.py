@@ -245,3 +245,84 @@ def test_drift_do_e4_nomeia_path_real_e_nao_a_raiz(key, payload) -> None:
 
     assert paths, f"{key}: payload deveria driftar"
     assert paths != ["$"], f"{key}: drift colapsado na raiz — telemetria cega"
+
+
+# ───────────────── run de entrada vazia: o caso que o corpus achou ─────────────────
+
+
+@pytest.fixture(scope="module")
+def baldes_run_vazio() -> dict[str, dict]:
+    """Os 7 baldes de um run SEM transação, produzidos pelo produtor real."""
+    # Payload escrito à mão não serve: o ponto é o produtor, coerente com o próprio
+    # input vazio, emitindo `meses_ordenados: []`. Medido no corpus: 2 de 71 runs
+    # (2026-06-12), com `total_transacoes: 0` nos baldes irmãos — e o `minItems: 1` os
+    # reprovava enquanto o `e4_cashflow` os aceitava.
+    from scripts.categorize_transactions import main_with_store
+    from tests.test_e4_golden_execution import _new_e4_ctx, _write_e4_config
+
+    e3_vazio = (
+        Path(__file__).resolve().parent
+        / "fixtures"
+        / "pipeline_golden"
+        / "e3"
+        / "minimal-conta-vazia-3_reconciled.json"
+    )
+    root = Path(tempfile.mkdtemp())
+    _write_e4_config(root)
+    ctx = _new_e4_ctx(root, e3_fixture=e3_vazio)
+    main_with_store(ctx)
+    store = ctx.artifact_store
+    return {key: store.read("E4", key) for key in store.list_keys("E4")}
+
+
+def test_run_vazio_produz_meses_ordenados_vazio(baldes_run_vazio) -> None:
+    """Ancora o fato antes de asseverar o contrato: sem esta asserção, o teste
+    abaixo passaria vazio se o produtor mudasse e parasse de emitir o caso."""
+    fluxo = baldes_run_vazio["fluxo_mensal_detalhado"]
+
+    assert fluxo["meses_ordenados"] == []
+    assert baldes_run_vazio["despesas"]["total_transacoes"] == 0
+
+
+def test_run_vazio_valida_em_strict(baldes_run_vazio, strict) -> None:
+    """`minItems: 1` convertia entrada vazia em falha dura do E4 — e E4 é
+    `criticality: required`, logo o run inteiro morreria."""
+    reprovados = [
+        key
+        for key, payload in baldes_run_vazio.items()
+        if not validate_dict(payload, resolve_schema_name("E4", key), source=f"E4/{key}")
+    ]
+    assert reprovados == [], f"run de entrada vazia reprova em: {reprovados}"
+
+
+@pytest.mark.parametrize(
+    "label,mutacao",
+    [
+        ("mês fora de AAAA-MM", lambda f: f.__setitem__("meses_ordenados", ["2026-1"])),
+        (
+            "por_mes sem `_total`",
+            lambda f: f["despesas"]["por_mes"].__setitem__("2026-01", {"lazer": 1.0}),
+        ),
+        (
+            "chave de por_mes fora de AAAA-MM",
+            lambda f: f["receitas"]["por_mes"].__setitem__("janeiro", {"_total": 1.0}),
+        ),
+    ],
+)
+def test_contrato_do_fluxo_discrimina_conteudo(label, mutacao, strict) -> None:
+    """As duas asserções que substituíram o `minItems`. Confirmadas no corpus:
+    2867 meses e 5734 entradas de `por_mes`, zero violação — e consumidores reais
+    dependem delas (`mes[:7]` em fluxo_janelas, `_total` em tributario_input_builder)."""
+    fluxo = {
+        "periodo": "2026-01",
+        "meses_ordenados": ["2026-01"],
+        "receitas": {"origens": [], "por_mes": {"2026-01": {"_total": 1.0}}},
+        "despesas": {"categorias": [], "por_mes": {"2026-01": {"_total": 1.0}}},
+    }
+    assert validate_dict(fluxo, resolve_schema_name("E4", "fluxo_mensal_detalhado"), source="ok")
+
+    mutacao(fluxo)
+
+    assert not validate_dict(
+        fluxo, resolve_schema_name("E4", "fluxo_mensal_detalhado"), source="mut"
+    ), f"contrato aceita {label}"

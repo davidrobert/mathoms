@@ -2,8 +2,10 @@
 id: ADR-427
 type: adr
 title: "O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte"
-status: Proposto
+status: Decidido
+phase: A42
 date: "2026-08-30"
+amended_at: ["2026-08-31"]
 relates_to:
   - "[[ADR-212]]"
   - "[[ADR-239]]"
@@ -14,7 +16,7 @@ supersedes: []
 superseded_by: []
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/dados
   - area/pipeline
   - area/testing
@@ -26,6 +28,12 @@ aliases:
 
 # ADR-427 — O discriminador do artefato é a `artifact_key`
 
+> ⚠️ **Emendada em 2026-08-31** — a justificativa do D3 caiu em dois pontos na
+> medição do corpus; a decisão fica. Ver §Emenda no fim.
+>
+> **Decidido** em [[A42.l19]] · PR [#1871](https://github.com/davidrobert/mathoms/pull/1871)
+> (`5504d91c`). D1–D6 implementadas e mergeadas.
+>
 > Levantado pela [[A42.l19]] (origem `N2` da rodada unificada `U4`). O enunciado da
 > lane apontava **um** ramo placeholder; a medição no produtor real achou **dois**
 > ramos mortos, um catch-all que não restringe nada e uma fixture que mantinha o
@@ -140,3 +148,38 @@ discriminador do D1), e a ausência dele deixa de ser silenciada.
   D2: muda os bytes de 7 payloads para informação que já é coluna.
 - **Nada de backstop — remover `E4` de `SCHEMA_BY_STAGE`.** Chave não mapeada viraria
   passthrough, que é exatamente a classe de falha em reparo.
+
+## Emenda 2026-08-31 — a justificativa do D3 não sobreviveu ao corpus
+
+Medido em `pipeline_artifacts` (71 runs de E4, 98 dias, payloads decriptados), o D3
+**fica** — a alternativa (schema próprio para `patrimonio`) seria pior: dois contratos
+divergindo do mesmo payload. Mas duas afirmações que escrevi para sustentá-lo são falsas.
+
+**1. "O balde herda o contrato da própria fonte E1.5c" descreve mal a relação.** A fonte
+**não** é gateada por esse contrato na prática: `baseline_patrimonial` drifta em **100%**
+dos writes de `consolidate_baseline` (55/55) e de `E1.5c` (43/43), por dois `required`
+fósseis (`pipeline_stage`, `data_processamento`) que a [[ADR-409]] §F já classificou como
+vestígio da era disco. A cópia E4 só passa neles porque o `BaselineNormalizer` os
+**sintetiza na leitura, dentro do E4** — inclusive o `const: "E1.5_Baseline_Patrimonial"`,
+nome que a [[ADR-093]] não reconhece. A cópia não é mais bem-formada que a fonte: ela é
+**conformante a um fóssil**.
+
+**2. "A cópia valida" era falso.** Ela drifta em **3/71** (2026-08-12 ×2, 2026-08-16), por
+`minimum $.imoveis_consolidados[].valores_31_12.2025` — valor **negativo** num imóvel
+consolidado. Não é drift histórico: é o mesmo defeito de dado da fonte, propagado. O
+`patrimonio_sign_guard` do E5 ([[ADR-394]] §Emenda D6) trata o mesmo fato como defeito
+(*"imóvel e veículo não valem menos que nada"*), e o schema **concorda** — o defeito é
+detectado em duas camadas e tratado em nenhuma, porque ambas rodam em `warn`. **Roteado
+como achado próprio**, fora desta lane: gatilho `financial-planner` para a regra,
+produtor `consolidate_baseline` para a origem.
+
+**Consequência de fila, que precisa estar escrita.** Promoção a `strict` é por **nome de
+schema**, não por `(stage, artifact_key)`. Com o D3, promover o balde `patrimonio` exige
+promover `baseline_patrimonial` — que drifta 100% no produtor E1.5c. O balde fica
+**estruturalmente fora da fila** até o §F fechar.
+
+**E o §F assume produtor único.** Ele planeja re-derivar o contrato do produtor E1.5c e
+*decidir `additionalProperties`*. O D3 criou um **segundo produtor** para o mesmo schema:
+se a re-derivação escolher `additionalProperties: false`, os campos que o
+`BaselineNormalizer` enxerta passam a reprovar o balde E4. O deferimento do §F precisa
+nomear os dois produtores, ou consertar o E1.5c quebra o E4.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import Counter, defaultdict
@@ -25,7 +26,7 @@ class SchemaDrift:
         self.unreadable = 0
         self.runs: set = set()
         self.drifted_runs: set = set()
-        self.documents: set = set()
+        self.payloads: set = set()
         self.paths: Counter = Counter()
         self.last_drift: Optional[str] = None
 
@@ -33,6 +34,14 @@ class SchemaDrift:
     def is_go(self) -> bool:
         """Critério binário do §1.3: zero record na janela. Schema **sem massa** não é GO (janela sem run não mede nada), e artefato **ilegível** também não — não-validado não é validado-sem-drift."""
         return self.artifacts > 0 and self.drifted == 0 and self.unreadable == 0
+
+    @property
+    def mass_trivial(self) -> bool:
+        """Massa que não sustenta promoção, ainda que `is_go` seja True."""
+        # A [[ADR-409]] §D já recusou `e2_llm_artifact` à mão ("n=2 em 1 run não é
+        # evidência"); isto encoda a recusa. NÃO muda o exit code: massa é insumo de
+        # decisão, não gate de drift — vermelho aqui trocaria falso-verde por falso-vermelho.
+        return len(self.payloads) <= 1 or len(self.runs) < 3
 
     @property
     def drift_pct(self) -> float:
@@ -83,15 +92,26 @@ def _accumulate(stats: SchemaDrift, row: Any, errors: list) -> None:
         stats.paths[pair] += occurrences
 
 
+def _payload_digest(payload: Any) -> str:
+    """Identidade de conteúdo do artefato — a unidade de massa desde 2026-08-31."""
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
 def _validate_row(stats: SchemaDrift, row: Any, validator: Any) -> None:
     """Conta o artefato e, se houver erro, acumula os paths de drift."""
     stats.artifacts += 1
     stats.runs.add(row.pipeline_run_id)
-    stats.documents.add(row.document_id or row.artifact_key)
     payload = _decode(row.content_json)
     if payload is None:
         stats.unreadable += 1
         return
+    # Massa por payload distinto, não por `documents`: `document_id` é FK de documento
+    # de ENTRADA (contrato E2-only, [[ADR-408]]) e é NULL em 100% do corpus, então
+    # `documents` degenerava para "artifact_keys distintas" — e reportava massa 1 como
+    # se fossem N. Emenda de 2026-08-31 na [[ADR-409]] §B.
+    stats.payloads.add(_payload_digest(payload))
     if validator is None:
         return
     errors = list(validator.iter_errors(payload))
@@ -142,14 +162,17 @@ def _fetch(session, start: Optional[str] = None, only: Optional[str] = None) -> 
 
 def _print_table(results: dict, start: Optional[str] = None, newest: Optional[str] = None) -> None:
     print(f"janela: {start or '(corpus inteiro)'} .. {newest or '?'}\n")
-    header = f"{'schema':<40} {'artef':>6} {'drift':>6} {'%':>6} {'runs':>5} {'docs':>5}  veredito"
+    header = (
+        f"{'schema':<40} {'artef':>6} {'drift':>6} {'%':>6} {'runs':>5} {'paylds':>6}  veredito"
+    )
     print(header)
     print("-" * len(header))
     for name in sorted(results, key=lambda n: (-results[n].drifted, n)):
         s = results[name]
         print(
             f"{name:<40} {s.artifacts:>6} {s.drifted:>6} {s.drift_pct:>5.1f}% "
-            f"{len(s.runs):>5} {len(s.documents):>5}  {'GO' if s.is_go else 'NO-GO'}"
+            f"{len(s.runs):>5} {len(s.payloads):>6}  "
+            f"{('GO (massa trivial)' if s.mass_trivial else 'GO') if s.is_go else 'NO-GO'}"
         )
 
 
@@ -172,7 +195,8 @@ def _schema_summary(stats: SchemaDrift) -> dict:
         "drift_pct": round(stats.drift_pct, 2),
         "runs": len(stats.runs),
         "drifted_runs": len(stats.drifted_runs),
-        "documents": len(stats.documents),
+        "payloads": len(stats.payloads),
+        "mass_trivial": stats.mass_trivial,
         "unreadable": stats.unreadable,
         "last_drift": stats.last_drift,
         "go": stats.is_go,

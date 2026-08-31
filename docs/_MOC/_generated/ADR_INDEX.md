@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-417 ADRs (ADR-001 a ADR-427) em [`docs/adr/`](../../adr/).
+419 ADRs (ADR-001 a ADR-429) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 353
-- **Proposto**: 60
+- **Decidido**: 358
+- **Proposto**: 57
 - **Roadmap**: 4
 
 ## Fundação
@@ -30,17 +30,17 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Persistência
 
-### Decidido (5)
+### Decidido (6)
 
 - [[ADR-029]] — Alembic para migrations · phase F2
 - [[ADR-038]] — Docker volume para storage prod · phase F7
 - [[ADR-039]] — Dual DB: SQLite (dev) + PostgreSQL (prod) · phase F7
 - [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet · phase W3-T04
 - [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
+- [[ADR-423]] — Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice · phase A40.l97
 
-### Proposto (2)
+### Proposto (1)
 
-- [[ADR-423]] — Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice
 - [[ADR-424]] — SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required
 
 ## Pipeline
@@ -362,10 +362,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## dados
 
-### Proposto (2)
+### Decidido (1)
+
+- [[ADR-427]] — O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte · phase A42
+
+### Proposto (1)
 
 - [[ADR-405]] — Retenção de artefato é per-produtor: recência só autoriza expurgo em stage determinístico
-- [[ADR-427]] — O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte
 
 ## data-lineage
 
@@ -407,14 +410,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## e5
 
-### Decidido (2)
+### Decidido (4)
 
 - [[ADR-306]] — Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco · phase A28
 - [[ADR-422]] — A folga é a poupança da janela, não a poupança mais o gasto pontual realizado · phase A40
-
-### Proposto (1)
-
 - [[ADR-425]] — Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado · phase A40
+- [[ADR-428]] — A direção conservadora de um piso é fixada pelo uso do número, não pelo número · phase A40
 
 ## frontend
 
@@ -571,7 +572,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (80)
+### Decidido (81)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -653,6 +654,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-412]] — Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais · phase A40.l80
 - [[ADR-414]] — Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada · phase A40.l64
 - [[ADR-418]] — A meta de IF desconta exatamente a renda passiva que o numerador não conta · phase A40
+- [[ADR-426]] — O destino E3→E4 declara valor, ou o eixo-valor não é medido · phase A42
 
 ### Proposto (18)
 
@@ -673,7 +675,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
 - [[ADR-419]] — O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI
 - [[ADR-420]] — Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio
-- [[ADR-426]] — O destino E3→E4 declara valor, ou o eixo-valor não é medido · phase A42
+- [[ADR-429]] — Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita · phase A40
 
 ### Roadmap (1)
 

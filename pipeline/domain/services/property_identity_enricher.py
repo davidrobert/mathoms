@@ -42,9 +42,7 @@ def enrich_imoveis_with_property_ids(
         first_seen_year = int(entry.get("ano_referencia") or 0)
 
         if not titular_key or not codigo_rfb:
-            entry["property_id"] = None
-            entry["endereco_canonical"] = None
-            entry["low_confidence"] = True
+            _mark_uncanonical(entry, None)
             continue
 
         endereco_canonical = canonicalize(descricao)
@@ -111,14 +109,32 @@ def _apply_record(entry: dict, record, endereco_canonical: str | None) -> None:
     entry["property_id"] = record.property_id
     entry["endereco_canonical"] = record.endereco_canonical
     entry["low_confidence"] = record.low_confidence
+    # `low_confidence` sem razão é sinal que nenhum consumidor enxerga — e aqui ele
+    # significa "identidade não canonicalizada", que é a chave de dedup cross-IRPF
+    # ([[ADR-246]]): item que não canonicaliza ganha `property_id` novo a cada ano.
+    # Paridade com `_mark_uncanonical`, que já emite o mesmo code.
+    if record.low_confidence:
+        _append_uncanonical_reason(entry, record.endereco_canonical)
 
 
 def _mark_uncanonical(entry: dict, endereco_canonical: str | None) -> None:
     entry["property_id"] = None
     entry["endereco_canonical"] = endereco_canonical
     entry["low_confidence"] = True
+    _append_uncanonical_reason(entry, endereco_canonical)
+
+
+def _ja_tem_razao(reasons: list) -> bool:
+    code = ReviewReasonCode.domain_property_identity_uncanonical.value
+    return any(r.get("code") == code for r in reasons if isinstance(r, dict))
+
+
+def _append_uncanonical_reason(entry: dict, endereco_canonical: str | None) -> None:
+    """Marca revisão + razão. Único produtor da razão, para os 3 sítios não divergirem."""
     entry["needs_review"] = True
     reasons = entry.setdefault("review_reasons", [])
+    if _ja_tem_razao(reasons):
+        return
     reasons.append(
         ReviewReason(
             code=ReviewReasonCode.domain_property_identity_uncanonical,

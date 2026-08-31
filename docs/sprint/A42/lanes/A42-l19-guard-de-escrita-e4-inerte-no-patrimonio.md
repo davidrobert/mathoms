@@ -40,6 +40,12 @@ Duas guardas, a mesma cegueira, no balde que carrega o patrimônio da família.
 
 ## Medição de reprodução
 
+> **Estado PRÉ-fix (2026-08-30).** O bloco abaixo e o §*O defeito, em três camadas*
+> descrevem o mundo **antes** do PR #1871 — são a evidência do achado, e não se
+> reescrevem. Rodado hoje, o snippet devolve o oposto: `{"status": "vazio"}`
+> **reprova**, e o `patrimonio` **valida**. O estado corrente está em
+> §*O que foi entregue*.
+
 ```bash
 MATHOMS_PIPELINE_SCHEMA_MODE=strict .venv/bin/python - <<'PY'
 import json, pathlib, jsonschema
@@ -153,5 +159,39 @@ ramo — seria inerte contra a classe, e o teste que discrimina é o de **troca 
 
 - `save_json` em `scripts/categorize_transactions.py:975` é **dead code** (zero
   call-sites pós-[[ADR-212]]) e cita o umbrella por nome.
-- O flip `warn→strict` do E4 fica **elegível** (7/7 validam), mas a decisão segue com a
-  [[ADR-409]] — esta lane só remove o impedimento; não flippa nada.
+
+  > **Fechado 2026-08-31** ([#1889](https://github.com/davidrobert/mathoms/pull/1889)).
+  > Função deletada. Os call-sites foram re-verificados por cinco vetores, não só
+  > pelo literal: `getattr`/`globals()`/`vars()`/`eval`/`exec` com nome montado,
+  > despacho por `dir()` + `startswith`, `from ... import *`, `__all__` e
+  > monkeypatch de teste — nenhum alcança o nome. Com a remoção, o único sítio
+  > **executável** que cita o umbrella por nome literal volta a ser o próprio
+  > `SCHEMA_BY_STAGE`; o resto é docstring (`e4_serialization.py`) e teste.
+- O flip `warn→strict` do E4: esta lane **não flippa nada**.
+
+  > **Correção 2026-08-31 — o "7/7 validam em `strict`" que eu havia escrito aqui era
+  > sobre a FIXTURE GOLDEN, não sobre o corpus**, e a frase dizia "re-medido na `main`",
+  > que se lê como corpus. O go/no-go da [[ADR-409]] §B é medição sobre
+  > `pipeline_artifacts`. Medido depois, no corpus real (71 runs, 98 dias):
+  >
+  > | schema | artef | drift | payloads | veredito |
+  > |---|---:|---:|---:|---|
+  > | `e4_cashflow` | 142 | 0 | 142 | **GO** |
+  > | `e4_investimentos` | 71 | 0 | 40 | **GO** |
+  > | `e4_seguros` | 71 | 0 | **5** | massa insuficiente |
+  > | `e4_pontos_milhas` | 71 | 0 | **1** | massa insuficiente |
+  > | `e4_fluxo_mensal` | 71 | **2** | 21 | NO-GO → consertado em #1894 |
+  > | `baseline_patrimonial` (`patrimonio`) | 169 | **101** | 116 | fora da fila (§F) |
+  >
+  > São **2** elegíveis, não 7. E na primeira tentativa a medição saiu **100% ilegível**
+  > (o `.env` com a chave do vault não existe no worktree) — "não-validado não é
+  > validado-sem-drift" é guarda da própria §B.
+
+  **Decidido:** promover **2** (`e4_cashflow` + `e4_investimentos`), arbitrado pelo
+  `senior-cto` após divergência `sre-devops` (4) × `data-engineer` (1). Pré-requisitos
+  **mergeados** em [#1894](https://github.com/davidrobert/mathoms/pull/1894) (`c9d643d0`).
+  Falta o log de startup do worker e o flip. `owner: data-engineer`; fila viva na
+  disposição **PV9-27** de [[PIPELINE-REVIEWS-active]].
+- Achados colhidos no caminho e roteados: [[A40.l110]] (fóssil do baseline +
+  `date.today()` em artefato persistido) e [[A40.l111]] (valor não apurado em item
+  físico), abertas em [#1897](https://github.com/davidrobert/mathoms/pull/1897).

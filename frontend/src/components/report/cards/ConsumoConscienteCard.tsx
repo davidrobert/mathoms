@@ -9,7 +9,10 @@ import { janelaBadgeLabel } from "../utils/janelaLabel";
 import { useConsumoPontuais } from "@/hooks/useConsumoPontuais";
 import { humanizeCategoryLabel } from "@/lib/categoryLabels";
 import { PERIOD_LABELS, type Period } from "@/lib/periodUtils";
-import type { ConsumoConscienteData } from "@/types/report-analysis";
+import type {
+  BasePontuais,
+  ConsumoConscienteData,
+} from "@/types/report-analysis";
 
 /** Rótulo impresso ao lado do número. Tooltip **não conta** como rótulo: é
  * portal com hover/focus e não sai no PDF, que é o artefato que a família
@@ -90,6 +93,63 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
   );
 }
 
+/** Rótulo por causa. Chave = veredito de `GastoPontualPolicy.classify` (enum
+ * fechado no Python); causa sem rótulo aqui é bug de contrato e aparece com a
+ * própria chave, em vez de sumir da soma que o leitor confere. */
+const MOTIVO_LABEL: Record<string, string> = {
+  recorrente: "recorrentes",
+  transferencia_por_categoria: "transferências",
+  transferencia_detectada: "transferências detectadas",
+  nao_identificado: "não classificados",
+};
+
+/** Régua da [[ADR-353]] D1, publicada pelo E5 — o card **não** recalcula. `null`
+ * nunca vira "alta": é ausência de base medível, e afirmar cobertura que não houve
+ * é afirmação sobre o dinheiro da família ([[ADR-394]] §D7). */
+const COBERTURA_LABEL: Record<string, string> = {
+  alta: "cobertura alta",
+  parcial: "cobertura parcial",
+  insuficiente: "cobertura insuficiente",
+};
+
+/** A40.l98 ([[ADR-425]] §D2) — a base declara o que exclui, **na superfície que
+ * a publica**. Sem esta linha, o KPI "Gastos pontuais" é um número cujo
+ * denominador o leitor não conhece: eram três produtores com filtros disjuntos,
+ * e o que prescreve era o que menos filtrava. O `pct` não vem do payload — vem
+ * daqui, de `bruto`, que está no mesmo objeto. */
+function BaseDeclaracao({ base }: { readonly base: BasePontuais | undefined }) {
+  const motivos = Object.entries(base?.excluidos ?? {}).filter(
+    ([, b]) => b.contagem > 0,
+  );
+  if (!base || motivos.length === 0) return null;
+  return (
+    <p
+      data-consumo-base-declaracao
+      className="text-xs text-[var(--surface-muted-foreground)]"
+    >
+      De {base.bruto.contagem} lançamentos ≥ R$2k no período completo (
+      <MonetaryValue value={base.bruto.valor} />)
+      {base.cobertura_nivel ? `, ${COBERTURA_LABEL[base.cobertura_nivel]}` : ""}
+      . Fora da base:{" "}
+      {motivos
+        .map(
+          ([motivo, b]) =>
+            `${MOTIVO_LABEL[motivo] ?? motivo} ${fmtBrl(b.valor)} (${b.contagem})`,
+        )
+        .join(" · ")}
+      .
+    </p>
+  );
+}
+
+function fmtBrl(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
+}
+
 /** `null` desde a A40.l101: sem receita recorrente na janela o produtor não
  * publica o percentual — `0%` afirmava "empatou" para quem queimou caixa. */
 function formatPct(value: number | string | null | undefined): string {
@@ -124,12 +184,12 @@ function TabelaHeader({
  *  KPIs do E5 no topo; lista de gastos pontuais ≥ R$2k abaixo, com toggle de
  *  período próprio (afeta só a lista).
  *
- *  A lista vem do endpoint /reports/consumo-pontuais — backend aplica
- *  threshold + filtro de transferência interna (família) via
- *  InternalTransferDetector, evitando que PIX entre contas próprias
- *  apareçam como gasto. **O KPI não aplica esse filtro** (o calculator do E5
- *  filtra só categoria + threshold): divergência conhecida, registrada como
- *  follow-up na lane A40.l3.
+ *  A lista vem do endpoint /reports/consumo-pontuais. Desde a A40.l98 ela e o
+ *  KPI aplicam as MESMAS cláusulas de natureza (`GastoPontualPolicy.classify`)
+ *  e leem o mesmo limiar do `scoring.json` — antes eram filtros disjuntos, e o
+ *  que prescreve era o que menos filtrava. O detector de transferência interna
+ *  segue só na lista, e isso é deliberado: dentro do E5 ele é inerte, porque o
+ *  E4 já roteou a transferência detectada para fora de `despesas`.
  *
  *  ADR-306 D1/D6 (A40.l3) — regra de apresentação: nenhum par de valores
  *  monetários de bases diferentes fica visualmente adjacente sem rótulo
@@ -160,6 +220,7 @@ export function ConsumoConscienteCard({
       {consumo ? (
         <div className="space-y-4">
           <ConsumoKpis consumo={consumo} />
+          <BaseDeclaracao base={consumo.base_pontuais} />
           {consumo.analise && (
             <p className="rounded-md bg-[var(--surface-muted)] p-3 text-sm text-[var(--surface-muted-foreground)]">
               {consumo.analise}
@@ -197,10 +258,15 @@ export function ConsumoConscienteCard({
                   <p className="truncate">{t.descricao}</p>
                   <p className="text-xs text-[var(--surface-muted-foreground)]">
                     {t.data} ·{" "}
-                    {t.categoria ? humanizeCategoryLabel(t.categoria) : "sem categoria"}
+                    {t.categoria
+                      ? humanizeCategoryLabel(t.categoria)
+                      : "sem categoria"}
                   </p>
                 </div>
-                <MonetaryValue value={t.valor} className="shrink-0 font-semibold" />
+                <MonetaryValue
+                  value={t.valor}
+                  className="shrink-0 font-semibold"
+                />
               </div>
             ))}
             {pontuais.length > 10 && (
