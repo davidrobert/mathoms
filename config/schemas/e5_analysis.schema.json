@@ -2404,7 +2404,7 @@
         },
         "concentracao_pct": {
           "type": "number",
-          "description": "% da carteira produtiva (investível financeiro + imóveis de investimento) em imóveis de renda ilíquidos; alias de `ratios.concentracao_imobiliaria` (SSOT). Alerta `concentracao_alta` quando > 50 (base carteira, ADR-340)."
+          "description": "% da carteira produtiva em imóveis REBALANCEÁVEIS — cat_2 menos `uso_pessoal` e `nu_proprietario` ([[ADR-420]] §D1); alias de `ratios.concentracao_imobiliaria` (SSOT). Numerador e denominador cortam no mesmo lugar. Alerta `concentracao_alta` quando > 50 (base carteira, [[ADR-340]]). O ativo que sai do numerador vive em `ratios.imobilizacao_patrimonial_pct` (§D3)."
         },
         "valor_total_imoveis": {
           "type": "number",
