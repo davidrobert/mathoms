@@ -2309,6 +2309,17 @@
       "rotulo": "Progresso rumo à independência financeira",
       "unidade": "pct"
     },
+    "imobilizacao_patrimonial": {
+      "base": "patrimonio_liquido",
+      "limiar": null,
+      "motivo": "imobilização não tem teto canônico; varia com idade, renda e sucessão (ADR-420 §D3)",
+      "observado_path": "$.ratios.imobilizacao_patrimonial_pct",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
+      "rotulo": "Imobilização patrimonial (residência + imóveis sobre o PL)",
+      "unidade": "pct"
+    },
     "protecao_custo_premio": {
       "base": "renda_anual_liquida",
       "limiar": null,
@@ -2707,13 +2718,19 @@
     "base_autonomia_financeira": "carteira_financeira_familia",
     "base_concentracao_imobiliaria": "carteira_produtiva_fixa",
     "base_do_piso": "carteira_com_titular_identificado",
+    "base_imobilizacao_patrimonial_pct": "patrimonio_liquido",
     "cobertura_despesas_meses": "86.670000",
     "concentracao_imobiliaria": "82.190000",
+    "imobilizacao_patrimonial_pct": "103.450000",
     "janela": "12m",
     "janela_meses": 1,
     "janela_n_meses": 1,
     "janela_referencia": "2026-01 a 2026-01",
     "numerador_concentracao_imobiliaria": "imoveis_investimento",
+    "numerador_imobilizacao_patrimonial_pct": [
+      "residencia",
+      "imoveis_investimento"
+    ],
     "piso_autonomia_financeira_meses": "86.670000",
     "rentabilidade": {
       "ano_base": null,
