@@ -12,7 +12,9 @@ Duas responsabilidades puras (testáveis sem DB):
   ``golden_diff.diff_golden``, nunca o gate de manifesto de CI.
 
 CLI: ``--current <dir> --baseline <dir> [--strict] [--band 10]``, cada ``<dir>``
-com ``review_snapshot.json`` + ``report_data.json``. Exit 1 em regressão HARD.
+com ``review_snapshot.json`` + ``report_data.json``. Exit 1 em regressão HARD, **3 em
+INDETERMINADO** (perna cuja chave de ``run_health`` não está no snapshot — "não consegui
+medir" não pode sair indistinguível de "medi e passou", A42.l3), 2 sem baseline.
 """
 
 from __future__ import annotations
@@ -88,6 +90,39 @@ def _suppressors(base: dict, cur: dict) -> dict[str, bool]:
     }
 
 
+# Chaves de `run_health` que cada perna EXIGE para conseguir avaliar. Literal escrito à
+# mão de propósito: derivá-lo do produtor faria o gate fabricar a própria precondição, e
+# ele existe justamente para cruzar as duas pontas. A perna de volume (RV4-17) lia
+# `transacoes_total`, que o produtor **nunca** emitiu — e o guard `if b and …` a tornava
+# inalcançável, então ela parecia viva por quatro rodadas.
+_RUN_HEALTH_REQUERIDO: dict[str, tuple[str, ...]] = {
+    "_llm_off": ("llm_calls",),
+    "_suppressors": ("tier_at_run", "total_documents"),
+    "_status_regression": ("status", "failed_at_stage"),
+    "_cost_changes": ("duration_min",),
+}
+
+# Campos que o snapshot emite para LEITURA HUMANA no Passo de síntese da skill, sem
+# perna que os consuma. Declarados aqui porque o guard compara por **igualdade**: campo
+# novo sem perna e sem declaração reprova, em vez de virar o próximo `transacoes_total`.
+# Medido em 2026-09-01: são exatamente estes dois, contra o que o comentário do produtor
+# afirmava ("os 9 campos são todos consumidos por perna ou supressor").
+_RUN_HEALTH_INFORMATIVO: tuple[str, ...] = ("llm_cost_usd_cents", "tool_iterations_total")
+
+
+def _indeterminados(base: dict, cur: dict) -> list[str]:
+    """Perna cuja chave de `run_health` **não está** no snapshot. "Não consegui avaliar"
+    é um estado: sai com exit próprio, nunca com `[]` silencioso."""
+    out = []
+    bh, ch = base.get("run_health") or {}, cur.get("run_health") or {}
+    for perna, chaves in sorted(_RUN_HEALTH_REQUERIDO.items()):
+        ausentes = sorted({k for k in chaves if k not in bh or k not in ch})
+        if ausentes:
+            faltando = "`, `".join(ausentes)
+            out.append(f"{perna}: `run_health.{faltando}` ausente no snapshot — perna não avaliada")
+    return out
+
+
 def _status_regression(base: dict, cur: dict) -> list[str]:
     b, c = base["run_health"].get("status"), cur["run_health"].get("status")
     if b == "completed" and c != "completed":
@@ -124,13 +159,6 @@ def _delivery_regressions(base: dict, cur: dict) -> list[str]:
         for cid in sorted(_DELIVERY_HARD)
         if _render_regressed(bi.get(cid), ci.get(cid))
     ]
-
-
-def _tx_regression(base: dict, cur: dict, sup: dict) -> list[str]:
-    b, c = base["run_health"].get("transacoes_total"), cur["run_health"].get("transacoes_total")
-    if b and c is not None and c < b and not sup["corpus_shrank"]:
-        return [f"transacoes_total {b} -> {c} (corpus não encolheu)"]
-    return []
 
 
 def _section_regression_for(key: str, b: str, c: str, sup: dict) -> str | None:
@@ -304,7 +332,7 @@ def _hard_regressions(
     """Retorna (hard, drift). ``drift`` vira hard ou soft conforme corpus_grew."""
     hard = _status_regression(base, cur) + _cv_regressions(base, cur)
     hard += _delivery_regressions(base, cur)
-    hard += _tx_regression(base, cur, sup) + _section_regressions(base, cur, sup)
+    hard += _section_regressions(base, cur, sup)
     hard += _parecer_regressions(base, cur, sup)
     hard += _reclassificacao_regression(base, cur) + _identidade_regression(base, cur)
     hard += _diagnostic_regression(base, cur)
@@ -365,7 +393,7 @@ def compare_reviews(
         hard += [f"drift de valor: {d}" for d in drift]
     if strict:
         hard, soft = hard + soft, []
-    return hard, soft, notes
+    return hard, soft, notes + [f"INDETERMINADO — {i}" for i in _indeterminados(base, cur)]
 
 
 # ─────────────────────────────── CLI ────────────────────────────────
@@ -405,9 +433,20 @@ def _run_compare(current: Path, baseline: Path, *, strict: bool, band: float) ->
         return 2
     hard, soft, notes = _compare_dirs(current, baseline, strict, band)
     _print_compare(hard, soft, notes)
+    indet = [n for n in notes if n.startswith("INDETERMINADO")]
     verdict = f"{len(hard)} regressão(ões)" if hard else "sem regressões"
     print(f"\n{verdict} vs {baseline}")
-    return 1 if hard else 0
+    if indet:
+        print(f"{len(indet)} perna(s) NÃO AVALIADA(S) — exit 3 (≠ 'passou')")
+    return _exit_code(hard, indet)
+
+
+def _exit_code(hard: list, indet: list) -> int:
+    """Exit próprio para indeterminado: "não consegui medir" não pode ser
+    indistinguível de "medi e passou". Regressão provada precede o indeterminado."""
+    if hard:
+        return 1
+    return 3 if indet else 0
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -168,7 +168,14 @@ class StageLogTail(logging.Handler):
         self._counters: dict[str, int] = {}
 
     def emit(self, record: logging.LogRecord) -> None:
+        # O `extra` era DESCARTADO aqui (RV4-18): os WARNINGs de drift de schema chegavam
+        # ao registro durável como eventos idênticos, sem `validation_path`,
+        # `validator_keyword` nem `occurrence_count` — o drift era persistido e cego.
+        # Reusa `_extra_fields`, o MESMO redator do formatter: uma segunda cópia da
+        # denylist divergiria no primeiro campo sensível novo. O teto de `max_bytes`
+        # continua sendo o que limita o tamanho.
         event = {"level": record.levelname, "message": record.getMessage()}
+        event.update(_extra_fields(record, event))
         self._counters[record.levelname] = self._counters.get(record.levelname, 0) + 1
         if record.levelno >= logging.ERROR and self._first_error is None:
             self._first_error = event
