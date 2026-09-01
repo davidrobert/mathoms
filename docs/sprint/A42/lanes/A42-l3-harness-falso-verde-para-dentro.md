@@ -28,12 +28,11 @@ tags:
 
 > 🔴 **Segunda colisão, medida 2026-08-05 — o item 1 desta lane reescreve o arquivo
 > que produz a prova do KR-B da [[A40]].** O "classificador de balde do razão" do item 1
-> é [`dev/ledger_certify_core.py:161`](../../../../dev/ledger_certify_core.py) —
-> `_non_ledger_verdict`, que retorna `COBERTO_SEM_VALOR` com a glosa *"origem
-> E2/baseline (fora do grão transacional)"*. **O mesmo arquivo**, na linha 300,
-> monta `cross_group=cross_group_summary(...)`, que é o numerador de **261** contra o
-> qual a [[A40.l2]] prova o fix (`dev/certify_ledger_local.py:40` importa
-> `build_report` daqui). Nenhuma das duas lanes declarava a aresta, em nenhuma
+> é `_non_ledger_verdict`, que retorna `COBERTO_SEM_VALOR` com a glosa *"origem
+> E2/baseline (fora do grão transacional)"*. Ele monta
+> `cross_group = cross_group_summary(...)`, o numerador de **261** contra o
+> qual a [[A40.l2]] prova o fix, e `dev/certify_ledger_local.py` importa
+> `build_report` daqui. Nenhuma das duas lanes declarava a aresta, em nenhuma
 > direção: o §Escopo abaixo nomeia só `dev/certify_parse_local.py`, e o critério de
 > agrupamento por arquivo — que as duas sprints declaram — passou por cima dela.
 >
@@ -194,6 +193,18 @@ o defeito sobrevive intacto. Um critério de mutação por ausência não discri
 proveniência — os quatro bullets que discriminam (troca de sujeitos, fixture de dois runs
 em SQLite real, anti-amputação, drift exercitado em run não-recente) estão no §Critério de
 aceite da [[A42.l14]].
+
+> **Re-ancoragem 2026-08-31, no closeout da [[A42.l14]] (#1915).** As três âncoras de
+> **linha** deste bloco caducaram e foram trocadas por âncoras de **símbolo**, que
+> sobrevivem a refactor. Onde as coisas estão hoje: `_non_ledger_verdict` saiu de
+> `ledger_certify_core.py` para **`dev/ledger_unit_verdicts.py:120`** (mudança da
+> [[A42.l19]], não da l14); `cross_group_summary` é montado em
+> **`ledger_certify_core.py:251`** (era "linha 300"); e o import de `build_report` está
+> em **`certify_ledger_local.py:49`** (era `:40`). Some-se um arquivo novo ao raio do
+> item 1: a leitura de DB saiu para **`dev/ledger_certify_db.py`**, e os nomes voltam ao
+> harness por **re-export de binding** — chamada qualificada torna inertes os
+> `monkeypatch` dos testes, provado por mutação no #1915. **Nada disto amplia o escopo
+> desta lane**; a §Ordem obrigatória acima está **satisfeita** — a l14 shipou.
 
 **A colisão com a [[A40.l2]] não muda de forma.** A correção do sujeito não toca
 `cross_group`/`cross_group_entregue`: o numerador da KR-B lê só os baldes transacionais

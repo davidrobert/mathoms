@@ -102,7 +102,8 @@ E a fusão **não compra o que parece comprar**: medido em cópia isolada da vau
 2026-08-05**, mover as 12 lanes de então para `docs/sprint/A40/lanes/` mudava
 `SPRINT_CURRENT.md` em **zero linhas** (as 12 eram `planned`; o renderer só lê
 `{ready, open, in_progress}`). **Pelo mesmo critério, hoje seriam ≥3 linhas** —
-[[A42.l7]] `open`, [[A42.l14]]/[[A42.l15]] `in_progress`. A recusa da fusão **não
+[[A42.l7]]/[[A42.l22]] `open`, [[A42.l15]] `in_progress` (medido 2026-08-31; a
+[[A42.l14]] saiu desta conta ao shipar em #1915 — o número não se move, os nomes sim). A recusa da fusão **não
 depende deste número**: o motivo decisivo é a adversariedade dos dois gates de saída. O ganho de pickup exige
 flipar status, que é decisão de liberação — **ortogonal à fusão**. Ver §Gatilho de
 promoção para a porta que entrega esse ganho sem os custos.
@@ -112,10 +113,15 @@ promoção para a porta que entrega esse ganho sem os custos.
 A rodada unificada **U2** ([[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10,
 merge `47970706`) abriu três P0 cuja causa-raiz cai **exatamente** na tese desta sprint:
 
-- [[A42.l14]] — os vereditos de conservação da `ledger-certify` certificam a **re-derivação**,
-  não o artefato entregue. É o falso-verde do instrumento que dá nome à sprint, medido em
-  produção pela primeira vez: a skill vinha sendo citada como propriedade do que o run
-  publicou, e o próprio relatório dela mede que os dois substratos divergem.
+- [[A42.l14]] — os vereditos de conservação da `ledger-certify` certificavam a
+  **re-derivação**, não o artefato entregue. É o falso-verde do instrumento que dá nome à
+  sprint, medido em produção pela primeira vez. **`shipped` 2026-08-31 (#1915) — e o
+  defeito era maior que este enunciado:** `_persisted_e3_by_key` é workspace-latest, logo
+  **60 dos 61** runs comparariam as próprias keys contra artefato de outro run, e os 31
+  "só-no-persistido" eram **31/31 sobra** de outros runs — a glosa impressa era atribuição
+  falsa de causa. Eixo que o enunciado não previa: o braço entregue estava **amputado**
+  (`investimentos` = 0 sobre **zero** posições), logo promovê-lo à rubrica sem ler o E4
+  **persistido** trocaria um defeito por outro.
 - [[A42.l15]] — `investment_id` é hash de campos que o extrator LLM reescreve, com **23,5%**
   de estabilidade entre dois runs do mesmo documento. Dano vivo, remedido em 2026-08-29: o
   comparador dispara em **todo par consecutivo, por perna diferente a cada vez** (não as duas
