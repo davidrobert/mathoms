@@ -1,7 +1,7 @@
 ---
 id: A40.l114
 type: lane
-title: "O ano de referência é saída crua do LLM, e o total de dívida vira zero quando esse ano não existe em documento nenhum"
+title: "O ano de referência afirma um 31/12 que ainda não fechou, e o eixo zera imóveis, veículos e a dívida do titular"
 sprint: A40
 plan: PLAN-report-trust
 status: open
@@ -14,6 +14,10 @@ tags: [type/lane, sprint/a40, status/open, priority/p0, area/pipeline, area/fina
 ---
 
 # A40.l114 — `ano-de-referencia-sem-documento-atras`
+
+> ⚠️ **O slug do arquivo carrega a premissa falsa** e foi mantido porque é
+> identificador (`branch_slug`, PRs, links). O ano espúrio **tem** documento atrás —
+> ver §Medição. O `title:` foi corrigido; o filename, não.
 
 > **Origem:** `RR9-02` (Cadeia B) da rodada unificada **U5**
 > ([[REPORT-REVIEWS-active]] §r9). **CONFIRMADO** por medição A/B entre dois runs sobre
@@ -118,6 +122,68 @@ patrimônio da pessoa** e deve virar `null` + declarado. O total de dívida faz 
 proibido, na direção **inversa** — subdeclara **passivo** em vez de ativo — e ainda credita
 **nota máxima** por isso. Amortizar-vs-investir é a decisão que o relatório existe para
 informar, e ela sai invertida.
+
+## Entregue 2026-09-01 — medição A/B sobre os MESMOS artefatos do run publicado
+
+> Reprocessamento de `E1.5c` para a frente sobre os 288 artefatos do run `40d1af2a`,
+> sem re-rodar o `E1.5` (a extração churna por item entre runs, e re-rodar misturaria
+> o efeito do conserto com churn de extração).
+
+| campo publicado | run `40d1af2a` | depois | delta |
+|---|---:|---:|---|
+| `patrimonio.bruto` | 2.012.174,02 | **3.879.177,72** | +92,8% |
+| `patrimonio.dividas` | 0,00 | **230.459,13** | — |
+| `patrimonio.liquido` | 2.012.174,02 (= bruto) | **3.648.718,59** | ≠ bruto |
+| `patrimonio.veiculos` | 0,00 | **227.476,00** | — |
+| `patrimonio.imoveis_investimento` | 701.170,57 | **2.340.698,27** | +233,8% |
+| `ratios.taxa_endividamento_pct` | 0,0 | **5,94** | — |
+| `endividamento.total_dividas` | 0,00 | **230.459,13** | = Σ dos 4 itens |
+| Ponto Forte de dívida | *"Endividamento Mínimo"* | *"Endividamento Controlado"* | — |
+
+**Correção de atribuição na manchete do `U5`.** A rodada creditou
+`patrimonio.bruto −48,1%` ao conjunto das duas cadeias. A medição isola: **o encolhimento
+do bruto é inteiro desta lane** — 2.012.174,02 ÷ 3.879.177,72 = **0,519**, que é o
+`−48,1%` publicado ao centésimo. O que **permanece** zero depois deste conserto é
+`patrimonio.residencia` e `patrimonio.imoveis_geradores`, e esses são da [[A40.l113]]:
+os valores voltaram, a **classificação** de imóvel é que segue falhando fechada. As
+duas lanes são complementares, não redundantes.
+
+### O que NÃO foi feito, e por quê (as duas rotas medidas e recusadas)
+
+1. **Rebaixar o ano no produtor** (`extract_baseline` carimbando 2025 no lugar de 2026)
+   — recusado. Publicaria a posição de 29/03/2026 como se fosse de 31/12/2025, com 9
+   meses de aporte e rendimento embutidos, num campo que alimenta série temporal e IF.
+   É o pior dos desfechos: plausível e auditável só contra o documento original. O item
+   segue rotulado com o ano que ele **de fato tem**; o que muda é que esse ano não
+   define mais o eixo.
+2. **Filtrar o documento da varredura do E1.5** (ele tem stage próprio,
+   `extract_informes_anuais` · [[ADR-238]]) — recusado **por medição**. Aquele caminho
+   captura só a fatia de previdência (`saldo_31_12: "18715.24"`) e a **mislabela** como
+   `ano_base: 2025` — o mesmo erro de tipo, na direção oposta. O CDB-DI (116.374,26) e
+   os Cofrinhos (206.491,70) não são capturados por caminho nenhum: **R$ 322.865,96**
+   sairiam do baseline. Filtrar trocaria o defeito de lugar.
+
+### Follow-ups medidos, sem lane (inventário)
+
+- **INV-B (evidencial).** O invariante temporal não pega posição de **30/06/2025** lida
+  hoje: `2025 ≤ 2025` passa, e vira "posição de 31/12/2025" — a mesma mentira, um ano
+  atrás e **invisível**. Foi o calendário que tornou este caso visível. O carimbo
+  `31/12/AAAA` deveria exigir evidência no documento ([[ADR-394]] D1 aplicada ao eixo
+  **tempo**, que hoje não tem autoridade declarada).
+- **O prompt do E1.5 autoriza o defeito.** `pipeline/llm/prompts/e15_baseline.py` fecha
+  com *"Se o valor de 31/12 do ano-base estiver disponível, use-o. **Senão, use o valor
+  mais recente**"*. O LLM não errou — obedeceu, sobre um documento que não é declaração.
+  Mudar a linha exige bump de `PROMPT_VERSION` ([[ADR-233]]) — escopo do `prompt-engineer`.
+- **`extract_informes_anuais` mislabela a mesma tela** (item 2 acima): `ano_base: 2025`
+  sobre captura de 29/03/2026.
+- **`scoring.json` declara `taxa_endividamento` com `unidade: "% renda mensal
+  comprometida"` e `range 5–50`** (régua de renda comprometida), mas o que a alimenta é
+  `dívidas ÷ patrimônio bruto`. São grandezas diferentes: a nota deste componente é de
+  qualidade duvidosa **mesmo com o input certo**.
+- **`taxa_juros_aa` é `null` em todo run medido**, então a prescrição amortizar-vs-investir
+  segue incompleta depois deste conserto — o saldo é necessário, a taxa é o que decide.
+  O `indexador` do baseline (que separa TR de IPCA+, e resolve teto-vs-piso no
+  carimbo de carry-forward) também não é lido pelo E5.
 
 ## Critério de aceite
 
