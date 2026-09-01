@@ -97,7 +97,9 @@ def _run_loop(seed, stage_fn, *, stages=None, skip_llm=False, llm_stages=None):
     from backend.app.tasks.pipeline_task import _execute_stages_loop
 
     return _execute_stages_loop(
-        SimpleNamespace(artifact_store=None),
+        # A40.l96: o loop reinjeta `family_members.json` após o E1 ([[ADR-430]] §5);
+        # o fake precisa carregar o campo que o WorkspaceContext real sempre tem.
+        SimpleNamespace(artifact_store=None, config_overrides=None),
         stages=stages or ["extract_members"],
         run_id=seed["run_id"],
         ws_id=seed["ws_id"],

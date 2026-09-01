@@ -24,6 +24,7 @@ from backend.app.services._family_export_helpers import (
     export_bank_account,
     export_member_info,
 )
+from backend.app.services.family_members_hint_merge import merge_irpf_hints
 from backend.app.services.security.vault import get_vault
 
 _vault = get_vault()
@@ -101,7 +102,12 @@ def serialize_family_members(workspace_id: str, db: Session) -> dict[str, Any] |
         result["contas"] = contas
     if titular:
         result["titular"] = titular
-    return result
+    # A40.l96 ([[ADR-430]] §2): sem isto, workspace sem curadoria publica a
+    # AUSÊNCIA de contas como fato — o E4 recebe o mapa vazio e o relatório
+    # afirma que a carteira não tem dono. `banco_membro` NÃO ganha hint: ele é
+    # 1:1 e colapsaria instituição de dois membros; acrescentar `contas` basta,
+    # porque o AccountResolver só consulta o legado quando não há conta.
+    return merge_irpf_hints(result, workspace_id=workspace_id, members=members, db=db)
 
 
 def serialize_categorization(workspace_id: str, db: Session) -> dict[str, Any] | None:

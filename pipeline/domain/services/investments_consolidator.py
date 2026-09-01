@@ -1,7 +1,9 @@
 """InvestmentsConsolidator — consolida posições de investimento E2 em output E4
 (Sessão A4a).
 
-Extrai ``build_investimentos_unified`` (``e4_categorize.py:260``) em domain
+Extraído de ``build_investimentos_unified`` (``e4_categorize.py:260``), cuja cópia
+morta em ``scripts/categorize_transactions.py`` foi deletada na A40.l96 — ela
+duplicava a atribuição de titularidade sem nunca ser chamada.
 service puro. Lê artefatos E2 de posição (``investimentosposicao``,
 ``carteira``, ``cdbresumo``), deduplica por (instituição, membro) mantendo o
 mais recente, agrega posições e consolida totais por membro.

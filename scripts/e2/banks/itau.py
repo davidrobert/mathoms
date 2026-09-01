@@ -428,7 +428,7 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
     These .xls files from Itaú internet banking are actually HTML tables.
     Extracts position data, balances, and summary for CDB investments.
-    Output is compatible with E4's build_investimentos_unified().
+    Output is compatible with E4's InvestmentsConsolidator.
     """
     try:
         from bs4 import BeautifulSoup

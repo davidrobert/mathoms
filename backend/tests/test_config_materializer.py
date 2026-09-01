@@ -12,7 +12,13 @@ from backend.app.core.database import Base
 from backend.app.core.security import hash_password
 from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
-from backend.app.models.family_member import BankAccount, FamilyMember
+from backend.app.models.family_member import (
+    BankAccount,
+    FamilyMember,
+    WorkspaceIrpfSuggestionDismissal,
+)
+from backend.app.models.pipeline_artifact import PipelineArtifact
+from backend.app.models.pipeline_run import PipelineRun
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.services.config_materializer import (
