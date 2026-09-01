@@ -43,7 +43,6 @@ open · in_progress.
 ## In progress
 
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
-- [[A40.l96]] — Tabela de maiores ativos atribui titular a valor que o sistema declara órfão · priority P0 · área pipeline/frontend/financial-planning · branch `a40-l96-titular-atribuido-a-posicao-orfa`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

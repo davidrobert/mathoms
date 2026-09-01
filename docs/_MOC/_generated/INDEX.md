@@ -1009,7 +1009,7 @@
 | A40.l93 | lane | shipped | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
 | A40.l94 | lane | shipped | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
 | A40.l95 | lane | shipped | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
-| A40.l96 | lane | in_progress | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
+| A40.l96 | lane | shipped | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
 | A40.l97 | lane | shipped | A40 | Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice | `sprint/A40/lanes/A40-l97-indices-perdidos-por-copy-from.md` |
 | A40.l98 | lane | shipped | A40 | Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l98-base-dos-pontuais-tres-produtores.md` |
 | A40.l99 | lane | open | A40 | Cinco ADRs em Proposto com lane fechada declaram decisão que não está em vigor | `sprint/A40/lanes/A40-l99-adr-proposta-com-lane-fechada.md` |

@@ -4,11 +4,14 @@ type: lane
 title: "Tabela de maiores ativos atribui titular a valor que o sistema declara órfão"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1936
+ship_date: "2026-09-01"
 priority: P0
 branch_slug: a40-l96-titular-atribuido-a-posicao-orfa
 owner: data-engineer
 adrs:
+  - "[[ADR-430]]"
   - "[[ADR-226]]"
   - "[[ADR-243]]"
   - "[[ADR-394]]"
@@ -17,7 +20,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/frontend
@@ -674,21 +677,37 @@ composição, não por run:** apliquei `serialize_family_members` real ao worksp
 real, montei o `AccountResolver` com o blob resultante e recomputei a fatia sobre
 o artefato E4 existente. **Não disparei o pipeline.**
 
-> **O que segue ABERTO — e é SÓ isto (auditado item a item em 2026-09-01):**
+> ## ✅ FECHADA pelo run `40d1af2a` (2026-09-01 13:57→14:22)
 >
-> 1. *"Run novo do workspace `1b9f2cf5` publica `atribuicao_investimentos` abaixo
->    do piso, sem o risco Alta e sem `prescricao_realocacao_suprimida`."*
-> 2. *"O mapa alcança o E4 no espaço canônico — verificável … **de um run
->    novo**"* — verificado por chamada direta e por teste de loop real; o
->    critério pede a evidência do run.
+> Os dois últimos critérios exigiam evidência de run E0→E6 com LLM. O run
+> aconteceu e **os dois passam**. A previsão por composição bateu **na vírgula**.
 >
-> **Ambos exigem run E0→E6 com LLM** (`pipeline-review`), que custa API e entra
-> na contagem de re-runs da sprint — hoje 0/2, governada por cláusula que nomeia
-> esta lane. **A composição prevê que passam; ela não substitui a evidência.**
+> | critério | antes (run `79a61e33`) | run `40d1af2a` |
+> |---|---|---|
+> | `atribuicao_investimentos.pct_carteira_financeira` | 49,03% | **0,1%** (piso 1,0) |
+> | `atribuicao_investimentos.motivo` | ressalva textual | **`None`** |
+> | `reserva_emergencia.prescricao_realocacao_suprimida` | `true` | **`False`** |
+> | risco Alta de titularidade no parecer | severidade **Alta** | **nenhum risco menciona titularidade** |
+> | E4 `total_por_membro` | `''` = 68,15% | chave canônica = **99,87%**, sem dono **0,13%** |
 >
-> Todo o resto do critério está fechado, **retirado por decisão registrada** (o
-> `needs_review`) ou **deferido com dono** (fallback da célula, papel `casal`).
-> Nenhum item pendente depende de código não escrito.
+> **O achado que importa mais que o número: `pct_inferido` = 48,93%.**
+>
+> Os ~49% não sumiram — **mudaram de significado**. Antes: *"49% da carteira sem
+> dono identificado"*. Agora: *"0,1% sem dono; 48,93% com dono determinado por
+> **inferência** (banco de dono único), não por declaração"*. É exatamente o que
+> o D4 existia para preservar: sem `atribuicao_fonte`, este run publicaria
+> titularidade praticamente completa **sem registro de que quase metade dela é
+> hint** — trocaria um falso-negativo alto por um falso-positivo silencioso, que
+> é pior. Distribuição medida no E4: **11 `banco_unico`, 3 `declarada`,
+> 4 `sem_dono`**.
+>
+> Resíduo de 0,13% = as 4 posições da Binance, sem registro de conta em fonte
+> alguma. Órfã legítima, como a §Contrafactual previa em agosto.
+>
+> **Fora do fecho, com dono:** o `needs_review` foi **retirado do critério por
+> decisão** (sentinela load-bearing na [[ADR-346]] §4b), e seguem deferidos o
+> fallback da célula do Top 15 — que **não tem call-site** hoje — e o papel
+> `casal`. Nenhum depende de código desta lane.
 
 ### O gate de não-inércia pegou um defeito meu
 
