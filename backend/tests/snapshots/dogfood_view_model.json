@@ -1064,17 +1064,17 @@
           },
           {
             "artifact_key": "analise_financeira",
-            "field": "patrimonio.composicao[Imóveis de Renda].valor",
-            "stage": "E5"
-          },
-          {
-            "artifact_key": "analise_financeira",
             "field": "patrimonio.composicao[Investimentos Alex].valor",
             "stage": "E5"
           },
           {
             "artifact_key": "analise_financeira",
             "field": "patrimonio.composicao[Investimentos ].valor",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.composicao[Outros imóveis].valor",
             "stage": "E5"
           },
           {
@@ -2482,7 +2482,7 @@
     ],
     "composicao": [
       {
-        "categoria": "Imóveis de Renda",
+        "categoria": "Outros imóveis",
         "pct": "82.190000",
         "valor": 60000000
       },
@@ -2555,7 +2555,7 @@
     "residencia": 0,
     "tabela_categorias": [
       {
-        "categoria": "Imóveis de Renda",
+        "categoria": "Outros imóveis",
         "pct": "82.190000",
         "valor": 60000000
       },

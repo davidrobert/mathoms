@@ -446,6 +446,9 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+MANIFESTO_PADRAO = "tests/fixtures/pipeline_golden/rebaseline_manifest.yaml"
+
+
 def _report_violations(uncovered: list[FieldDiff], orphans: list[ManifestEntry]) -> None:
     for d in uncovered:
         print(
@@ -453,10 +456,18 @@ def _report_violations(uncovered: list[FieldDiff], orphans: list[ManifestEntry])
             f"({d.delta_cents:+d} cents) — adicione ao manifesto de rebaseline",
             file=sys.stderr,
         )
+    # A mensagem nomeia o REMÉDIO porque quem lê esta falha quase nunca é quem criou a
+    # entrada: o waiver é do PR do rebaseline e morre no merge dele, mas a falha cai no
+    # PRÓXIMO PR a tocar aquele golden — que não tem contexto nenhum. Aconteceu duas
+    # vezes em 2026-08-31 (A40.l95: #1911 e o fecho), e nas duas o diagnóstico custou mais
+    # que o conserto.
     for m in orphans:
         print(
             f"::error:: entrada de manifesto órfã/stale: {m.golden} {m.path} "
-            f"({m.old_cents}→{m.new_cents}) não casa nenhum value_delta atual",
+            f"({m.old_cents}→{m.new_cents}) não casa nenhum value_delta atual. "
+            "Waiver de rebaseline é TRANSITÓRIO: se o rebaseline dela já mergeou, "
+            "esvazie o manifesto (`[]`) — não é dívida deste PR. Ver o cabeçalho de "
+            f"{Path(MANIFESTO_PADRAO).name}.",
             file=sys.stderr,
         )
 

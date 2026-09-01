@@ -54,7 +54,7 @@ describe("deriveChartConclusion — convenção ADR-209 (pct absoluto)", () => {
       const data = makeData({
         patrimonio: {
           composicao: [
-            { categoria: "Imóveis de Renda", valor: 1_442_706, pct: 39.7 },
+            { categoria: "Outros imóveis", valor: 1_442_706, pct: 39.7 },
           ],
         } as ReportAnalysisData["patrimonio"],
       });

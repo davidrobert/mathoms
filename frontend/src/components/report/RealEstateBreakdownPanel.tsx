@@ -104,7 +104,7 @@ export function RealEstateBreakdownPanel({
           className="text-xs"
           style={{ color: "var(--surface-muted-foreground)" }}
         >
-          Metodologia: cat_2 (Imóveis de Renda) preserva valor bruto na tabela de patrimônio
+          Metodologia: cat_2 (Outros imóveis) preserva valor bruto na tabela de patrimônio
           (consistência com cat_1 e veículos). Líquido econômico ={" "}
           <code>max(0, valor mercado − saldo devedor)</code> só entra em &ldquo;Patrimônio
           investível efetivo&rdquo;.

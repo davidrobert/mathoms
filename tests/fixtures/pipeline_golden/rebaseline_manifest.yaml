@@ -45,5 +45,4 @@
 #
 # Regra: quem mergeia um rebaseline drena o manifesto logo em seguida. O registro do
 # que mudou vive na lane, no corpo do PR e no histórico do git — não aqui.
-
 []
