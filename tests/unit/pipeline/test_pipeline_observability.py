@@ -198,44 +198,35 @@ def test_gate_pii_sem_regressao_no_repo():
 # ── RV4-18 (A42.l3): o registro durável guardava eventos idênticos e cegos ──
 
 
+def _tail_de(nome: str, *avisos: dict) -> StageLogTail:
+    """Emite os WARNINGs num logger próprio e devolve o tail que os capturou."""
+    tail = StageLogTail()
+    logger = logging.getLogger(f"mathoms.pipeline.{nome}")
+    logger.addHandler(tail)
+    logger.setLevel(logging.WARNING)
+    try:
+        for extra in avisos:
+            logger.warning("schema_validation_drift", extra=extra)
+    finally:
+        logger.removeHandler(tail)
+    return tail
+
+
 def test_tail_preserva_o_contexto_estruturado_do_extra() -> None:
     """`emit` montava só `{level, message}`: os WARNINGs de drift de schema chegavam ao
     `output_summary` sem `validation_path`/`validator_keyword`/`occurrence_count` — o
     drift ERA persistido, e ilegível."""
-    tail = StageLogTail()
-    logger = logging.getLogger("mathoms.pipeline.teste_extra_tail")
-    logger.addHandler(tail)
-    logger.setLevel(logging.WARNING)
-    try:
-        logger.warning(
-            "schema_validation_drift",
-            extra={
-                "validation_path": "a.b",
-                "validator_keyword": "required",
-                "occurrence_count": 3,
-            },
-        )
-    finally:
-        logger.removeHandler(tail)
+    contexto = {"validation_path": "a.b", "validator_keyword": "required", "occurrence_count": 3}
 
-    evento = tail.as_summary()["events"][-1]
-    assert evento["validation_path"] == "a.b"
-    assert evento["validator_keyword"] == "required"
-    assert evento["occurrence_count"] == 3
+    evento = _tail_de("teste_extra_tail", contexto).as_summary()["events"][-1]
+
+    assert {k: evento.get(k) for k in contexto} == contexto
 
 
 def test_dois_drifts_de_paths_distintos_nao_sao_eventos_identicos() -> None:
     """O sintoma que o RV4-18 nomeia: sem o `extra`, dois drifts diferentes viravam a
     MESMA linha no registro durável."""
-    tail = StageLogTail()
-    logger = logging.getLogger("mathoms.pipeline.teste_extra_tail2")
-    logger.addHandler(tail)
-    logger.setLevel(logging.WARNING)
-    try:
-        logger.warning("schema_validation_drift", extra={"validation_path": "a.b"})
-        logger.warning("schema_validation_drift", extra={"validation_path": "c.d"})
-    finally:
-        logger.removeHandler(tail)
+    tail = _tail_de("teste_extra_tail2", {"validation_path": "a.b"}, {"validation_path": "c.d"})
 
     eventos = tail.as_summary()["events"][-2:]
     assert eventos[0] != eventos[1]
@@ -244,13 +235,6 @@ def test_dois_drifts_de_paths_distintos_nao_sao_eventos_identicos() -> None:
 def test_chave_sensivel_no_extra_e_redigida_no_registro_duravel() -> None:
     """O tail reusa `_extra_fields`, o MESMO redator do formatter — uma segunda cópia da
     denylist divergiria no primeiro campo sensível novo."""
-    tail = StageLogTail()
-    logger = logging.getLogger("mathoms.pipeline.teste_extra_tail3")
-    logger.addHandler(tail)
-    logger.setLevel(logging.WARNING)
-    try:
-        logger.warning("evento", extra={"cpf": "123.456.789-00"})
-    finally:
-        logger.removeHandler(tail)
+    tail = _tail_de("teste_extra_tail3", {"cpf": "123.456.789-00"})
 
     assert "123.456.789-00" not in json.dumps(tail.as_summary(), ensure_ascii=False)
