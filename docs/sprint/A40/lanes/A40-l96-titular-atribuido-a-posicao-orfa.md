@@ -263,9 +263,42 @@ em fonte alguma — órfã legítima.
 Somam-se a razão advisory `domain.investimento_sem_titularidade` e a linha de
 `campos_faltantes_pediria_se_iterasse`.
 
+#### Reauditoria (2026-09-01) — a 9ª superfície, no eixo TRANSAÇÕES
+
+A tabela acima enumera só o eixo **patrimonial**, porque foi o que a rodada
+mediu. Com D1 fechado, o `AccountResolver` passa a resolver também no **segundo
+call-site** — `scripts/categorize_transactions.py`, que atribui `membro` a
+posições do fluxo. Essa superfície **muta com este fix e não estava listada**:
+
+| # | superfície | o que muda |
+|---|---|---|
+| 9 | fluxo por membro (eixo transações) | instituição antes `unknown` passa a resolver; instituição de **dois donos** passa a `needs_review` onde antes era `unknown` |
+
+**Por que importa para o gate:** o critério exige que as superfícies de mutação
+estejam enumeradas, senão *"os oito subconjuntos deixam de discriminar"* — um
+quarto efeito entraria no espaço sem estar na fixture. O gate
+(`test_a40_l96_nao_inercia.py`) mede o eixo patrimonial; esta 9ª superfície é
+**declarada e não coberta por ele**, e fica registrada como tal em vez de
+silenciada.
+
+**Medido:** no corpus de dogfood o `nubank` — a única instituição de dois donos —
+**não tem posição de investimento**, só extrato e fatura. Logo a mutação do eixo
+transações existe por construção mas **não tem instância viva neste workspace**.
+Fixture própria para ela é linha da [[A40.l80]] ou de lane nova, não desta.
+
 **A ação P1 que o parecer entrega à família — "reconciliar a titularidade dos
 investimentos sem dono atribuído" — é uma ação que a família não pode
 executar**: o dado não falta do lado dela, o pipeline o descartou.
+
+> ⚠️ **REFUTADO em 2026-08-31 — leia §Co-design › Três afirmações minhas que
+> caíram › (1) antes de citar o parágrafo acima.** A [[ADR-229]] §1 decidiu que o
+> artefato E1 é tier 1 e o **clique humano** promove a tier 5, e o caminho está
+> shipado ponta a ponta: as contas do E1 **já são cards clicáveis** em `/config`.
+> O P0 sobrevive — o número publicado segue fabricado —, mas o mecanismo é outro:
+> não é *"o pipeline descartou o dado"*, é *"o default do silêncio publica
+> `sem_dono` como fato em vez de `inferido, não confirmado`, e nenhuma superfície
+> roteia para a tela que resolve"*. O parágrafo fica como evidência datada da
+> rodada; ele não descreve o produto.
 
 ### Consequência para a cláusula de reinício do contador
 
@@ -553,23 +586,44 @@ como está escrito produz código inalcançável.
   eixos — não invertido. Inverter reverteria decisão real.
 - **Veto do usuário respeitado:** teste de que conta em
   `workspace_irpf_suggestion_dismissals` **não** entra no merge.
-- **Lag:** teste de run completo em **workspace novo** (E1 na mesma execução)
-  provando que o E4 **do mesmo run** enxerga o hint. O critério "run novo do
-  `1b9f2cf5`" sozinho passa por acidente e não cobre isto.
-- **Os dois call-sites unificados** — corrigir só um garante inércia parcial no
-  outro.
-- **Superfícies de mutação de E5 reauditadas** com o predicado novo: o fluxo por
-  membro do eixo transações entra na §Raio de alcance, ou os oito subconjuntos
-  deixam de discriminar.
-- **Escopo lateral medido:** `consolidate_baseline` e `extract_informe_aluguel`
-  antes/depois. Se o mapa vazio move número lá, é achado novo com linha própria
-  — não passageiro deste PR.
+- ✅ **Lag (2026-09-01):** `backend/tests/test_lag_hint_alcanca_e4_do_mesmo_run.py`
+  — workspace **novo**, `bank_accounts` vazio, E1 na mesma execução, através do
+  `_execute_stages_loop` **real**. Afirma que o blob do mesmo run ganha `contas`
+  com `origem: irpf_hint` **e** chave canônica. Provado por mutação: com o hook
+  inerte o teste reprova em `assert []`.
+- ✅ **Call-sites (2026-09-01):** eram **um vivo e uma cópia morta**.
+  `build_investimentos_unified` (175 linhas) não tinha chamador nem teste —
+  "unificar" aqui significou **deletar**, não sincronizar. Citações órfãs em 3
+  docstrings corrigidas para apontar o `InvestmentsConsolidator`.
+- ✅ **Superfícies reauditadas (2026-09-01):** o fluxo por membro do eixo
+  transações entrou na §Raio como **9ª superfície**, declarada e **não coberta**
+  pelo gate — que mede o eixo patrimonial. Medido que ela não tem instância viva
+  no corpus (o `nubank`, única instituição de dois donos, não tem posição de
+  investimento). Fixture própria é linha de outra lane.
+- ✅ **Escopo lateral medido (2026-09-01) — efeito NULO, com evidência.**
+  `DBConfigStore.get_family_members` **chama** `serialize_family_members`, então
+  o merge de fato alcança as duas rotas. Medido com o merge ligado/desligado
+  sobre o workspace real: a **única** chave que muda é `contas` (`membros`,
+  `banco_membro` e `titular` byte-idênticos). E `.accounts` é lido em
+  exatamente **dois** sítios, ambos construindo o `AccountResolver`
+  (`categorize_transactions:98`, `investments_consolidator:286`); as duas rotas
+  laterais leem `.members`. Nenhum número se move lá.
 - **`casal` tem fixture própria** (não depende do dogfood) e teste que falha se o
   estado virar inalcançável — precedente `nao_apurado` 0/114 em
   `investimentos_cobertura.py`.
 - **Fixture do gate não pode ser free-tier** — `extract_members` é `premium`; no
   free tier o hint não existe e o gate mediria o vazio.
-- **`"needs_review"` deixa de aparecer como chave** em `total_por_membro`.
+- ~~**`"needs_review"` deixa de aparecer como chave** em `total_por_membro`.~~
+  **RETIRADO 2026-09-01, por decisão.** Este critério nasceu do corolário da
+  [[ADR-430]] §3, que a recon do PR2c derrubou: a sentinela tem um **segundo
+  produtor independente** — `_mark_needs_review` / `_resolved_siblings` do
+  colapso de membro-vazio da [[ADR-346]] §4b —, onde é **load-bearing** (a
+  função a exclui explicitamente dos irmãos resolvidos). Cumprir o critério
+  como escrito exigiria reabrir a ADR-346 sem emenda, que é exatamente o erro
+  que esta lane pegou uma vez em D2. A sentinela **fica**; o que viaja junto é
+  `atribuicao_fonte: "indeterminada"`, que é o sinal auditável que faltava.
+  Se o membro-fantasma em `total_por_membro` deve morrer, é decisão da
+  [[ADR-346]], com emenda e dono próprios. ADR-430 já emendada.
 
 > **A tentação a evitar no PR2:** o fix "óbvio" é injetar o artefato E1 no
 > `InvestmentsConsolidatorConfig`. Isso resolve D1 e **não** resolve D3 — o
@@ -620,11 +674,21 @@ composição, não por run:** apliquei `serialize_family_members` real ao worksp
 real, montei o `AccountResolver` com o blob resultante e recomputei a fatia sobre
 o artefato E4 existente. **Não disparei o pipeline.**
 
-> **Critério de aceite que segue ABERTO:** *"Run novo do workspace `1b9f2cf5`
-> publica `atribuicao_investimentos` abaixo do piso, sem o risco Alta e sem
-> `prescricao_realocacao_suprimida`."* Isso exige run E0→E6 com LLM
-> (`pipeline-review`), que custa API e entra na contagem de re-runs da sprint.
-> **A composição prevê que passa; ela não substitui a evidência.**
+> **O que segue ABERTO — e é SÓ isto (auditado item a item em 2026-09-01):**
+>
+> 1. *"Run novo do workspace `1b9f2cf5` publica `atribuicao_investimentos` abaixo
+>    do piso, sem o risco Alta e sem `prescricao_realocacao_suprimida`."*
+> 2. *"O mapa alcança o E4 no espaço canônico — verificável … **de um run
+>    novo**"* — verificado por chamada direta e por teste de loop real; o
+>    critério pede a evidência do run.
+>
+> **Ambos exigem run E0→E6 com LLM** (`pipeline-review`), que custa API e entra
+> na contagem de re-runs da sprint — hoje 0/2, governada por cláusula que nomeia
+> esta lane. **A composição prevê que passam; ela não substitui a evidência.**
+>
+> Todo o resto do critério está fechado, **retirado por decisão registrada** (o
+> `needs_review`) ou **deferido com dono** (fallback da célula, papel `casal`).
+> Nenhum item pendente depende de código não escrito.
 
 ### O gate de não-inércia pegou um defeito meu
 
