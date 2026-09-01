@@ -174,8 +174,8 @@ ausência do fato. D5 e a tabela do D6 ficam intactos.
 
 ### Contrafactual medido (não é "os testes passam")
 
-Os testes rodados contra o código **pré-mudança**, asserção a asserção, em
-worktree destacada no commit `1a7aa0c1`:
+**16** asserções rodadas contra o código **pré-mudança**, uma a uma, em worktree
+destacada no commit `1a7aa0c1`:
 
 - **10 asserções falham** sem o fix — `valores_31_12` negativo, `valor_nao_apurado`
   ausente, `review_reason` ausente, agregado com o negativo, `bruto` 850k em vez de
@@ -190,6 +190,15 @@ Sem essa separação, uma fixture escrita só com o negativo — sem `secao` —
 igual antes e depois: o classificador a rotearia para o passivo pelo sinal, e o
 defeito nunca se reproduziria. `test_o_ramo_do_sinal_nao_reproduz_o_defeito` fixa
 esse controle no arquivo.
+
+**Alcance do contrafactual, dito com precisão.** O arquivo tem **18** testes, não 16.
+Os 2 restantes (a união de anos na 2ª passagem) entraram **depois** da medição acima,
+e contra `1a7aa0c1` seriam vacuamente vermelhos — o módulo não existia lá, então
+rodá-los ali mediria ausência de import, não discriminação. O controle deles é outro
+e está registrado no commit `0490ed46`: a sonda contra o estado **pré-fix deste
+próprio PR** dá `['2024']` na 1ª passagem e `['2024','2025']` na 2ª — antes do
+conserto, a 2ª sobrescrevia. "Asserção a asserção" valeria para as 16; para as 18,
+não valia, e a frase anterior dizia isso.
 
 ### Limites declarados
 
