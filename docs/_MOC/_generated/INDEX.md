@@ -918,6 +918,7 @@
 | A40.l115 | lane | open | A40 | O sanitizer de PII mede o contexto de ENTRADA e nunca o output: o relatório publica CPF parcialmente mascarado e conta bancária completa | `sprint/A40/lanes/A40-l115-sanitizer-mede-a-entrada-e-publica-a-saida.md` |
 | A40.l116 | lane | open | A40 | O guard de autocontradição do parecer erra a seção pela terceira vez, e o teste que o cobre importa a própria constante — cego por construção | `sprint/A40/lanes/A40-l116-guard-de-liquidez-erra-a-secao-e-o-teste-e-cego.md` |
 | A40.l117 | lane | open | A40 | O parecer publica dois números para a mesma coisa, cita a seção errada em 4 de 11 riscos, e o prompt se contradiz sobre ter ferramentas | `sprint/A40/lanes/A40-l117-parecer-dois-numeros-e-citacao-desorientada.md` |
+| A40.l118 | lane | open | A40 | Campo emitido sem consumidor pode carregar valor errado, e o gate de classe mede existência do leitor — nunca a corretude do número | `sprint/A40/lanes/A40-l118-valor-errado-em-campo-sem-leitor.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |

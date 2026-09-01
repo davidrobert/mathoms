@@ -481,7 +481,7 @@ geral.
 
 | # | Predicado | Verdadeiro quando… | Evidência que a linha DEVE trazer |
 |---|---|---|---|
-| **A** | **alcança** | o defeito está num campo do payload publicado ou na superfície que a família lê — **medido**, não inferido do código | `campo.dot.path` ou `#Sx` + o valor observado |
+| **A** | **alcança** | existe **consumidor no entregue** que expõe o defeito a uma pessoa — superfície renderizada, PDF, ou prosa do parecer. **Estar no payload não basta**: campo que embarca e ninguém lê não alcança ninguém (cláusula 4) | `campo.dot.path` **+ o call-site que o consome** (`arquivo:linha`), ou `#Sx` + o valor observado |
 | **R** | **reproduz** | o defeito está demonstrado **neste** corpus/run, não deduzido do desenho | run + o par observado (antes/depois, ou o valor contra o esperado) |
 | **F** | **falsifica** | torna **falsa uma afirmação sobre o patrimônio/finanças da família**: número errado, contradição publicada, ausência afirmada como fato. **Não** basta confundir, navegar mal ou rotular de forma ambígua | a afirmação publicada + por que é falsa |
 | **M** | **move decisão** | a afirmação falsa empurra uma decisão patrimonial concreta — amortizar × investir, realocar, aportar, prazo de IF, sucessão | a decisão nomeada + a direção do empurrão |
@@ -493,8 +493,10 @@ P1 = A ∧ R ∧ F ∧ ¬M
    ∨ exposição de PII no publicado
 P2 = A ∧ R ∧ ¬F                      (degrada a leitura, não falsifica)
    ∨ ¬R                              (exposição estrutural, sem incidência neste corpus)
+   ∨ ¬A ∧ R ∧ F                      (LATENTE: valor errado em campo emitido SEM consumidor
+                                      — vira P0/P1 no instante em que alguém liga o leitor)
    ∨ instrumento cujo VERMELHO é falso, ou incompleto sem ser falso
-P3 = ¬A, com a decisão de NÃO abrir lane escrita na própria linha
+P3 = ¬A ∧ ¬R, com a decisão de NÃO abrir lane escrita na própria linha
 ```
 
 **Três cláusulas, e cada uma existe por um erro cometido:**
@@ -507,6 +509,17 @@ P3 = ¬A, com a decisão de NÃO abrir lane escrita na própria linha
    **impede achar** `P0`. Falso-**vermelho** é `P2`: custa atenção, não esconde nada.
 3. **Magnitude entra em `M`, nunca em `A` ou `F`.** Número publicado errado é errado; se o
    valor é pequeno, o efeito é `P1` em vez de `P0` — **não** `P3`.
+4. **Campo emitido sem consumidor é `P2` LATENTE, nunca `P1` nem `P3`.** Descoberta
+   **2026-09-01, no primeiro caso real que a régua enfrentou**, e por uma pergunta do dono —
+   *"quais as vantagens de abrir a lane do `RR8-04`?"* — que obrigou a medir o consumidor. O
+   `A` original era satisfazível por **mera presença no payload**, o que promoveria a `P1`
+   todo campo morto com valor errado. Medido: `fluxo_caixa.por_fonte_detalhado` embarca no
+   payload publicado (12 chaves) e o **único** hit no frontend é a declaração de tipo em
+   `report-fluxo.ts:155` — **zero leitores**. `P3` também está errado: o campo tem **tipo
+   declarado**, que é exatamente como alguém o descobre e o liga a um card — e no instante em
+   que ligar, o número errado passa a ser publicado **sem sinal nenhum**. A classe tem gate
+   de **existência** de consumidor ([[A40.l88]]); o que **não** existe é gate sobre a
+   **corretude do valor** em campo sem leitor — é o escopo da [[A40.l118]].
 
 **A régua NÃO substitui `Severidade`.** `Severidade` descreve o defeito (`Crítico`/`Alto`/
 `Médio`/`Baixo`) e continua sendo julgamento do revisor; `Prioridade` passa a ser
@@ -527,7 +540,7 @@ relatório a `P1`, porque essencialmente todos alcançam e reproduzem. O `F` é 
 | **acha inconsistência DENTRO do `U5`** | `PV13-09` (elogia e alerta a mesma reserva) sobe a `P0`, igualando-se a `RR9-04` (afirma e nega o mesmo imóvel) — mesma forma, letras diferentes |
 | **desfaz a tripla contagem da Cadeia A** | `PV13-01` e `LC9-10` viram **ponteiros** da [[A40.l113]], sem prioridade própria |
 | **rebaixa 4 do `U5`** | `LC9-06`, `LC9-07` (instrumento ambíguo, não falso-verde), `PV13-11`, `PV13-14` (confundem, não falsificam) → `P2` |
-| **promove o que estava parado** | `RR8-04` sai de `P3` para `P1`: é número publicado **errado**, reproduzindo há **três rodadas**, parado por magnitude pequena — que agora pertence a `M` |
+| **corrige o que estava parado, para `P2`** | `RR8-04` sai de `P3` para **`P2` latente** pela cláusula 4: o valor é errado e reproduz há **três rodadas**, mas **nenhum consumidor o expõe** hoje. ⚠️ A primeira redação desta linha dizia `P1`, aplicando o `A` por presença no payload; corrigido ao medir o consumidor — ver a cláusula 4 |
 
 **O número que responde à pergunta:** sob a regra, `P1` fica **4 no `U4` contra 6 no `U5`**
 — não 2 contra 12. O que sobra de diferença é real: o `U5` teve mais dois instrumentos
