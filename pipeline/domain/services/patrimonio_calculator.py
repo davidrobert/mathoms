@@ -66,6 +66,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.atribuicao_de_titularidade import soma_inferida
 from pipeline.domain.services.atribuicao_review_reasons import atribuicao_investimentos
 from pipeline.domain.services.bases_financeiras import PapelMembro, publicar_bases
 from pipeline.domain.services.investimentos_cobertura import (
@@ -318,6 +319,7 @@ class PatrimonioCalculator:
                 orfa=nao_atribuidos,
                 cheia=investivel_financeiro,
                 identificada=investivel_financeiro - nao_atribuidos,
+                inferida=soma_inferida(inputs.investimentos_atuais),
             ),
             **publicar_bases(
                 {

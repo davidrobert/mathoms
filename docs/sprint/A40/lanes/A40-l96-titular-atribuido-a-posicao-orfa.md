@@ -594,12 +594,91 @@ como está escrito produz código inalcançável.
   fixture do corpus com as duas metades. **Inerte em produção** — com
   `bank_accounts` vazio o resolver devolve `unknown` como antes, e há teste que
   afirma isso. Ver §Prova de discriminação abaixo.
-- **PR2c** — **D1+D3+D4**: merge com precedência + dismissals em
-  `serialize_family_members`; refresh pós-E1 (lag); canonicalização via
-  `MemberNameResolver`; provenance até o E5; **unificação dos dois call-sites**.
-  Fecha os três de uma vez — **nunca mergeie `{D1,D3}` em `main`**.
-- **PR2d** — gate de não-inércia (8 subconjuntos + perna de provenance) +
-  rebaseline. **Muta E5 ⇒ entra na janela de rebaseline.**
+- **PR2c — ENTREGUE 2026-09-01 (D3 + D4).** Canonicalização da saída do
+  `AccountResolver`; `atribuicao_fonte` por posição **com leitor no mesmo PR**
+  (`pct_inferido` em `atribuicao_investimentos`); extração de
+  `atribuicao_de_titularidade.py`. **Inerte** — o estado resultante é
+  `{D2,D3,D4}`, que a §Contrafactual mede como inerte, e a snapshot do
+  view-model move exatamente **1 linha** (`pct_inferido: 0.000000`).
+- **PR2d — D1**: merge do hint com precedência + dismissals em
+  `serialize_family_members`; refresh pós-E1 (lag); unificação dos dois
+  call-sites. É o único que **move o número**, e entra por último — assim
+  `{D1,D3}` nunca existe sozinho em `main`, que era a restrição.
+  **Muta E5 ⇒ janela de rebaseline.**
+- **PR2e** — gate de não-inércia (8 subconjuntos + perna de provenance) +
+  rebaseline final. **Muta E5 ⇒ entra na janela de rebaseline.**
+
+## Achados do PR2c (2026-09-01)
+
+### 1. O remédio de D3 tem um limite MEDIDO, e ele morde o PR seguinte
+
+A lane prescreve canonicalizar a saída do `AccountResolver` via
+`MemberNameResolver`. **Funciona** — medido contra os membros reais. Mas:
+
+- O **titular resolve por `substring`**, não por match exato: o `short_name` dele
+  é *"David Robert"* e a chave curta do E1 é *"david"*. Os outros dois resolvem
+  por `short_name` exato.
+- **`_MIN_SUBSTRING_LEN` é 5.** Chave curta de **≤4 caracteres** cujo
+  `short_name` difira **não resolve** — devolve o bruto, e `papel_da_chave` do
+  bruto é `sem_dono`. Medido: `ana`(3) e `davi`(4) falham; `luiza`(5) e
+  `rafael`(6) resolvem. No corpus, `theo` só escapa porque o `short_name` é
+  exatamente *"Theo"*.
+
+Nomes brasileiros de 4 letras são comuns (Ana, Davi, Luiz, Caio, Nina). **Isto
+morde o PR2d**: o merge de hint precisa mapear a chave curta do artefato E1 para
+a canônica do DB, e um membro assim entraria no `contas[]` com chave que não casa
+ninguém. Documentado em teste
+(`test_limite_medido_chave_curta_abaixo_de_5_chars_nao_resolve`).
+
+**Decisão para o PR2d, derivada disto:** hint cuja chave não resolve **preserva o
+bruto**, nunca é descartado. Descartar parece limpo e **fabrica atribuição
+falsa**: instituição com 2 hints, um resolvível e outro não, viraria singleton e
+seria atribuída ao membro errado. Preservando o bruto, ela vira `ambiguous`
+(2 chaves distintas) — honesto —, e o caso de hint único não-resolvível degrada
+para `sem_dono`, que é o comportamento de hoje.
+
+### 2. A precedência do PR2d **já existe** — reimplementá-la seria o defeito de origem
+
+A [[ADR-430]] §2 especifica a precedência do merge de hint (match exato → não
+entra; dismissed → não entra; senão entra marcado). Medido: `get_irpf_suggestions`
+**já implementa exatamente isso**, e o núcleo é **puro** —
+`_filter_reason(conta, ctx, inst, norm)` devolve `exact` / `dismissed` / `None`, e
+`_dismissed_keys_for_year` monta o set a partir das rows.
+
+Reimplementar a regra dentro de `serialize_family_members` criaria **dois
+produtores da mesma verdade** — literalmente o defeito que abriu esta lane (D1:
+`extract_members` e `serialize_family_members` montando o mesmo mapa de fontes
+diferentes). O PR2d **reusa o predicado**, e ganha de graça um invariante que
+vale enunciar:
+
+> *O pipeline funde exatamente os hints que a UI ofereceria ao usuário.*
+
+Divergir disso significaria o relatório atribuir por uma conta que a tela nunca
+propôs — ou ignorar uma que ela propõe. O teste do PR2d afirma essa igualdade,
+não duas listas montadas em paralelo.
+
+### 3. A ADR-430 mandava matar a sentinela `needs_review`, e a cláusula caiu
+
+Ela tem **segundo produtor independente**: `_mark_needs_review` /
+`_resolved_siblings` do colapso de membro-vazio da [[ADR-346]] §4b, onde é
+**load-bearing** (a função a exclui explicitamente dos irmãos resolvidos). Matá-la
+de carona reabriria decisão alheia sem emenda — o erro que a lane já pegou em D2.
+[[ADR-430]] emendada; a sentinela fica e `atribuicao_fonte="indeterminada"` viaja
+junto.
+
+### 4. O consolidador passou de 500 linhas — e isso apontou o concern certo
+
+A atribuição de titularidade tinha 3 camadas de decisão inline no meio do laço de
+dedup. Extraída para `pipeline/domain/services/atribuicao_de_titularidade.py`
+(536 → 495 linhas no consolidador, 57 no módulo novo).
+
+### 5. O golden do view-model NÃO discrimina `pct_inferido`
+
+O rebaseline move **1 linha**: `pct_inferido: "0.000000"` — e o zero é
+significativo (a fixture não tem posição inferida porque não tem contas). Logo o
+golden **não** pegaria regressão de `pct_inferido` não-zero; quem cobre isso são
+os testes de `soma_inferida`. Registrado para que o PR2e não conte o golden como
+cobertura que ele não dá.
 
 ## Prova de discriminação do gate D2 (PR2b, 2026-08-31)
 

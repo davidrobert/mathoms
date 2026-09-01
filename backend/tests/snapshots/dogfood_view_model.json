@@ -2411,6 +2411,7 @@
     "atribuicao_investimentos": {
       "motivo": null,
       "pct_carteira_financeira": "0.000000",
+      "pct_inferido": "0.000000",
       "piso_pct": "1.000000",
       "status": "apurado"
     },
