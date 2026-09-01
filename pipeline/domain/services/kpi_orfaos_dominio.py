@@ -126,6 +126,22 @@ _ORFAOS_DOMINIO = (
         "Ano projetado da independência (cenário central)",
         "ano de IF é percentil de cone; alvo pontual promete estado futuro sem a probabilidade",
     ),
+    # SEXTO órfão, e o único que nasce órfão por DESENHO em vez de por refutação: a
+    # [[ADR-420]] §D3 o cria explicitamente sem limiar, operador, componente de score,
+    # gatilho ou card. Doutrina de imobilização varia com idade, renda e sucessão — as
+    # três referências do produto não convergem num teto —, e inventar um aqui seria
+    # promover número interno a doutrina, que é o que a [[ADR-419]] proíbe. Ele existe
+    # para o ativo NÃO desaparecer quando o numerador da concentração estreitar: sem o
+    # irmão, estreitar troca falso alarme por silêncio, e numa família com sucessão
+    # ativa o silêncio é o erro mais caro dos dois.
+    (
+        "imobilizacao_patrimonial",
+        "$.ratios.imobilizacao_patrimonial_pct",
+        "patrimonio_liquido",
+        "pct",
+        "Imobilização patrimonial (residência + imóveis sobre o PL)",
+        "imobilização não tem teto canônico; varia com idade, renda e sucessão (ADR-420 §D3)",
+    ),
     (
         "aliquota_efetiva_ir",
         "$.ratios.aliquota_efetiva_ir_pct",

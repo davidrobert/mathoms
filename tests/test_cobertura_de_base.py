@@ -39,6 +39,10 @@ _CRUS = {
     "caixa_total_brl": 60_000.0,
     # Geradores ⊆ cat_2 completo: é essa diferença que separa `carteira_produtiva_fixa`
     # (concentração, toggle-independente) da `carteira_produtiva_familia` (bloco IF).
+    # A imobilização soma DOIS termos ([[ADR-420]] §D3). Sem `residencia` a fixture
+    # exercitaria o numerador com uma perna zerada — degenerada no eixo novo pelo mesmo
+    # motivo que a carteira empatada em 900.000 era no eixo do numerador.
+    "residencia": 250_000.0,
     "cat2_efetivo": 200_000.0,
     "imoveis_investimento": 900_000.0,
     "bruto": 2_400_000.0,
@@ -179,6 +183,68 @@ def test_a_base_da_concentracao_nao_e_a_homonima(patrimonio: dict, ratios: dict)
 
     assert declarada != familia, "a razão declara a homônima — 5,6× menor no dogfood"
     assert patrimonio["bases"][declarada]["valor_brl"] != patrimonio["bases"][familia]["valor_brl"]
+
+
+# ---------------------------------------------------------------------------
+# Imobilização patrimonial — a razão nova nasce com as duas pontas declaradas
+# ---------------------------------------------------------------------------
+
+
+def test_imobilizacao_reproduz_sobre_a_base_E_o_numerador_que_declara(
+    patrimonio: dict, ratios: dict
+) -> None:
+    """[[ADR-420]] §D3: mesmo recompute da concentração, na razão que nasce hoje."""
+    declarada = ratios["base_imobilizacao_patrimonial_pct"]
+    assert declarada in {b.value for b in BaseFinanceira}, f"base fora do enum: {declarada}"
+
+    base = patrimonio["bases"][declarada]["valor_brl"]
+    termos = ratios["numerador_imobilizacao_patrimonial_pct"]
+    numerador = sum(patrimonio[t] for t in termos)
+
+    esperado = _cents(round(numerador / base * 100.0, 2))
+    assert _cents(ratios["imobilizacao_patrimonial_pct"]) == esperado
+
+
+# Sem isto o recompute acima passaria com UM termo — e um numerador de dois termos com
+# uma perna zerada é a fixture degenerada de novo, um eixo adiante.
+def test_os_DOIS_termos_da_imobilizacao_pesam(patrimonio: dict, ratios: dict) -> None:
+    """Termo que vale zero torna o gate acima cego à sua ausência."""
+    termos = ratios["numerador_imobilizacao_patrimonial_pct"]
+
+    assert len(termos) == 2, f"a declaração deixou de ter dois termos: {termos}"
+    assert all(patrimonio[t] > 0 for t in termos), "termo zerado na fixture"
+    assert len({patrimonio[t] for t in termos}) == 2, "os dois termos valem o mesmo"
+
+
+# `None`, nunca 0,0: razão sobre denominador não-positivo é indefinida, e 0,0 leria como
+# "nada imobilizado" exatamente na família insolvente — o sinal trocado.
+def test_imobilizacao_e_None_com_patrimonio_liquido_nao_positivo() -> None:
+    """A família insolvente não pode ler 0% de imobilização."""
+    from pipeline.domain.services.imobilizacao_patrimonial import (
+        compute_imobilizacao_patrimonial_pct,
+    )
+
+    insolvente = dict(_CRUS, bruto=100_000.0, dividas=300_000.0)
+    patrimonio = {**insolvente, **publicar_bases(insolvente)}
+
+    assert compute_imobilizacao_patrimonial_pct(patrimonio) is None
+
+
+# A [[ADR-420]] §D3 a cria SEM alvo, e o gate da [[ADR-419]] é quem guarda isso.
+def test_imobilizacao_e_orfa_declarada_sem_alvo(patrimonio: dict, ratios: dict) -> None:
+    """Alvo inventado aqui promoveria número interno a doutrina."""
+    from pipeline.domain.services.kpi_target_catalog import (
+        ORFAOS_DOMINIO_KEYS,
+        build_kpi_targets,
+    )
+
+    assert "imobilizacao_patrimonial" in ORFAOS_DOMINIO_KEYS
+    alvo = build_kpi_targets({"patrimonio": patrimonio, "ratios": ratios}, scoring={})[
+        "imobilizacao_patrimonial"
+    ]
+
+    assert alvo["limiar"] is None and alvo["operador"] is None, f"ganhou alvo: {alvo}"
+    assert alvo["base"] == ratios["base_imobilizacao_patrimonial_pct"]
 
 
 # ---------------------------------------------------------------------------

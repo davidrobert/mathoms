@@ -67,6 +67,9 @@ METRICA_KEYS = (
     "protecao_custo_premio",
     "renda_passiva_cobertura",
     "aliquota_efetiva_ir",
+    # [[ADR-420]] §D3 — órfã por desenho; entra no vocabulário porque é métrica
+    # publicada, e ficar fora dele era o que fazia número existir sem catálogo.
+    "imobilizacao_patrimonial",
 )
 
 PROCEDENCIA_GOAL = "goal_declarado"

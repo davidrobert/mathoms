@@ -479,6 +479,9 @@ export type E5AnalysisArtifact = {
     "concentracao_imobiliaria"?: number;
     "base_concentracao_imobiliaria"?: "carteira_produtiva_fixa";
     "numerador_concentracao_imobiliaria"?: "imoveis_investimento";
+    "imobilizacao_patrimonial_pct"?: number | null;
+    "base_imobilizacao_patrimonial_pct"?: "patrimonio_liquido";
+    "numerador_imobilizacao_patrimonial_pct"?: Array<"residencia" | "imoveis_investimento">;
     "piso_autonomia_financeira_meses"?: number;
     "base_autonomia_financeira"?: "carteira_financeira_familia";
     "autonomia_denominador_mensal_brl"?: number;
