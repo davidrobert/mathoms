@@ -128,7 +128,7 @@ para o contrato de item `valor_nao_apurado` — muda `valores_31_12` para
 `["number","null"]` e acrescenta estado de cobertura no item, o que é contrato de
 produtor entre E1.5c → E4 → E5.
 
-## Follow-up nomeado
+## §Deferimento datado — renomear `low_confidence` (2026-08-31)
 
 `low_confidence` é nome sobrecarregado: lê-se "extração fraca" e significa "identidade
 não canonicalizada" ([[ADR-246]], chave de dedup cross-IRPF). Quem lê o artefato
@@ -136,6 +136,11 @@ depois — inclusive o LLM do parecer no E6 — vai errar. Renomear é breaking;
 própria. **dono:** `data-engineer`. **Condição de retomada:** quando houver janela para
 migração breaking do nome no artefato — o consumidor a proteger é o LLM do parecer no E6,
 que lê o campo pelo nome.
+
+**Por que não entra nesta lane:** o eixo é ortogonal — aqui se decide o que **publicar**
+quando o valor é impossível; lá, como o campo se chama. Misturar os dois faria o rename
+herdar o risco da mudança de contrato de valor. Até a janela abrir, o risco é de
+**leitura**, não de número: nenhum consumidor decide valor por este campo.
 
 ---
 
@@ -205,5 +210,14 @@ esse controle no arquivo.
 - **O invariante de `low_confidence` cobre os ramos do enricher, não o corpus.** Um
   quarto sítio que marque `low_confidence` fora dele passa despercebido; o que torna
   isso improvável é o produtor único de razão, não o teste.
-- **`low_confidence` segue com o nome sobrecarregado** — follow-up nomeado no corpo
-  desta lane, dono `data-engineer`, janela própria.
+- **`low_confidence` segue com o nome sobrecarregado** — §Deferimento datado acima,
+  dono `data-engineer`.
+- **O PR drenou o `rebaseline_manifest.yaml` e isso colidiu com trabalho alheio em
+  voo.** As 13 entradas consumidas da [[A40.l95]] reprovavam o gate CI-only
+  `check_golden_delta_declarado`, e removê-las era pré-condição para este PR mergear.
+  **Eu não conferi PR aberto antes de agir:** o [#1911](https://github.com/davidrobert/mathoms/pull/1911)
+  já fazia a mesma drenagem desde 22:18Z, uma hora antes do merge do #1917. O #1911
+  segue `MERGEABLE` e continua valendo — o que ele entrega e este PR **não** é o
+  *porquê durável* no cabeçalho do arquivo (a regra "quem mergeia um rebaseline drena
+  o manifesto") mais o sentinela `[]`; sem ele o arquivo parseia como `None`. A
+  reconciliação do lado da l95 já está escrita **naquele** PR e não se duplica aqui.
