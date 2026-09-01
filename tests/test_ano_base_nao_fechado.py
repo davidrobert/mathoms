@@ -23,6 +23,7 @@ import pytest
 
 from pipeline.domain.review_reason import BLOCKING_CODES, ReviewReasonCode
 from pipeline.domain.services import patrimonio_resolvers as pr
+from pipeline.domain.services.ano_base_fechado import ultimo_ano_31_12_fechado
 from pipeline.domain.services.endividamento_analyzer import (
     EndividamentoAnalyzer,
     TotalDividasContraditorioError,
@@ -35,7 +36,7 @@ from pipeline.domain.services.patrimonio_types import (
     MemberIdentity,
     resolve_value_year,
     safe_float,
-    ultimo_ano_31_12_fechado,
+    years_in_list,
 )
 from pipeline.domain.services.pontos_fortes_analyzer import (
     PontosFortesAnalyzer,
@@ -104,10 +105,17 @@ def test_eixo_recusa_o_ano_que_nao_fechou(baseline):
     assert resolve_value_year(baseline, summary_year) == "2025"
 
 
-def test_eixo_por_membro_tambem_recusa(baseline, identity):
-    """`anos_base_por_membro` recomputa do zero — filtrar só no domicílio não o alcança."""
-    ano_titular, _ = pr.anos_base_por_membro(baseline, identity, "2025")
-    assert ano_titular == "2025"
+# O eixo POR CLASSE ([[ADR-433]], [[A40.l113]], mergeada 1h antes desta lane) já isola
+# as classes entre si — o `2026` do investimento não alcança mais imóveis/veículos/
+# dívidas. O que o filtro deste módulo ainda guarda é o eixo do DOMICÍLIO, que é o
+# fallback de classe sem ano declarado. Medido: com a `ADR-433` viva, o filtro é
+# INERTE neste corpus; ele só morde onde a eleição por classe cai no fallback.
+def test_eixo_do_domicilio_recusa_o_ano_que_nao_fechou(baseline):
+    """`_max_value_year` é o fallback de classe sem ano; ele não pode carregar 2026."""
+    ano_aberto = str(ultimo_ano_31_12_fechado() + 1)
+    assert resolve_value_year(baseline, ano_aberto) == "2025"
+    sem_filtro = max(years_in_list(baseline["investimentos_consolidados"]))
+    assert str(sem_filtro) == ano_aberto, "fixture inerte: nada a filtrar"
 
 
 def test_total_de_divida_nao_sai_zero(baseline, identity):

@@ -213,7 +213,7 @@ def _low_confidence_reason(doc: Path, output, *, artifact_key: str) -> dict | No
 def _ano_nao_fechado_reason(doc: Path, output, *, artifact_key: str) -> dict | None:
     """Ano-base que afirma um 31/12 ainda não ocorrido vira review_reason ([[A40.l114]])."""
     from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
-    from pipeline.domain.services.patrimonio_types import ultimo_ano_31_12_fechado
+    from pipeline.domain.services.ano_base_fechado import ultimo_ano_31_12_fechado
 
     ano = getattr(output, "reference_year", None)
     teto = ultimo_ano_31_12_fechado()

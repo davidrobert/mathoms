@@ -140,13 +140,45 @@ informar, e ela sai invertida.
 | `endividamento.total_dividas` | 0,00 | **230.459,13** | = Σ dos 4 itens |
 | Ponto Forte de dívida | *"Endividamento Mínimo"* | *"Endividamento Controlado"* | — |
 
-**Correção de atribuição na manchete do `U5`.** A rodada creditou
-`patrimonio.bruto −48,1%` ao conjunto das duas cadeias. A medição isola: **o encolhimento
-do bruto é inteiro desta lane** — 2.012.174,02 ÷ 3.879.177,72 = **0,519**, que é o
-`−48,1%` publicado ao centésimo. O que **permanece** zero depois deste conserto é
-`patrimonio.residencia` e `patrimonio.imoveis_geradores`, e esses são da [[A40.l113]]:
-os valores voltaram, a **classificação** de imóvel é que segue falhando fechada. As
-duas lanes são complementares, não redundantes.
+**Correção de atribuição na manchete do `U5` — e correção da minha própria correção.**
+A rodada creditou `patrimonio.bruto −48,1%` ao conjunto das duas cadeias. A medição
+isola o eixo de ano como causa: 2.012.174,02 ÷ 3.879.177,72 = **0,519**, o `−48,1%`
+publicado ao centésimo.
+
+**Mas o crédito não é desta lane.** A [[A40.l113]] mergeou (`c551e832`, [[ADR-433]])
+enquanto esta estava em revisão, e a eleição de ano-base **por classe de ativo** que ela
+introduziu resolve o corpus **sozinha**. Medido, pós-rebase, neutralizando os meus dois
+consertos um a um sobre os mesmos 288 artefatos: os números publicados ficam
+**idênticos** com qualquer um deles desligado. São dois consertos independentemente
+suficientes, e o que chegou primeiro leva.
+
+O que **permanece** zero depois de tudo é `patrimonio.residencia` e
+`patrimonio.imoveis_geradores` — a classificação de imóvel, também da [[A40.l113]].
+
+### O que esta lane entrega depois disso, e é dela
+
+A tabela acima descreve o **defeito**, não o crédito. Com a [[ADR-433]] viva, o filtro
+temporal fica **inerte neste corpus** — ele guarda o eixo do **domicílio**, que é o
+fallback de classe sem ano declarado, e não a eleição por classe. O que sobra e é
+genuinamente desta lane:
+
+- os **dois leitores divergentes** do mesmo `saldo_31_12` viram um produtor único
+  (`saldo_divida_resolver`), com a Rota C — a contradição estrutural morre, e não só
+  este sintoma;
+- o **tripwire** de contradição interna, que pega a classe **independentemente da causa**;
+- a **supressão no score** (`dividas_nao_apuradas`, `nota: null`, `status: suprimido`,
+  peso fora do denominador, `piso`) e os dois analyzers que reintroduziam o zero;
+- `_total_dividas_for`, o defeito **dormente** que a lane pediu explicitamente;
+- o `review_reason` `domain.ano_referencia_nao_fechado`.
+
+### Residual descoberto e não consertado (território da [[ADR-433]])
+
+A eleição por classe isola as classes entre si, mas **não protege uma classe de si
+mesma**: um item da própria classe rotulado num 31/12 não fechado ainda elege o ano dela
+e zera os irmãos. Tentei filtrar dentro de `_anos_do_membro_na_classe` e **recuei** — o
+filtro sacrifica o item de meio de ano quando a classe **só** tem ele, e escolher qual
+item sacrificar é decisão da [[ADR-433]], que é `Decidido`. Fica como follow-up com dono
+nomeado, não como mudança silenciosa em ADR alheia.
 
 ### O que NÃO foi feito, e por quê (as duas rotas medidas e recusadas)
 
