@@ -80,6 +80,10 @@ def _output_to_baseline_json(output) -> dict:
         # identidade canônica via `MemberNameResolver.resolve_by_cpf` no E1.5c.
         if item.cpf:
             entry["cpf"] = item.cpf
+        # [[A42.l15]]: âncora de identidade. Opcional por medição — CNPJ existe em ~metade
+        # dos itens elegíveis, então a cascata da chave precisa de degrau de recusa.
+        if item.cnpj_emissor:
+            entry["cnpj_emissor"] = item.cnpj_emissor
         items.append(entry)
 
     return {

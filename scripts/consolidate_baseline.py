@@ -550,6 +550,12 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         }
         if item.get("instituicao"):
             entry["instituicao"] = item["instituicao"]
+        # [[A42.l15]]: sem esta linha o produtor da âncora nasce inerte — este é o ÚNICO
+        # dos três sítios que constroem `entry` a ver item do E1.5 (`consolidate()` delega
+        # para cá em `:191` assim que `itens[]` existe; os outros dois leem `bens[].grupo`
+        # e `imoveis_xlsx`). Construtor campo-a-campo perde campo.
+        if item.get("cnpj_emissor"):
+            entry["cnpj_emissor"] = item["cnpj_emissor"]
 
         if categoria == "imovel":
             entry["tipo"] = "imovel"
