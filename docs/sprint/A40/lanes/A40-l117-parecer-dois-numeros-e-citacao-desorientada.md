@@ -124,3 +124,112 @@ ambígua {`S1`,`S3`}), mas só faz sentido sob a leitura de proveniência.
 
 > Há folga para consertar por projeção em vez de por corte: a eviction ocorreu com
 > **42,9% do orçamento de tokens ocioso** (`PV13-17` da mesma rodada), cap 16.384 bytes.
+
+## Painel de 4 especialistas (2026-09-01) — três premissas MINHAS caíram
+
+`financial-planner` + `product-designer` + `prompt-engineer` + `data-engineer`, em paralelo,
+com as medições acima no brief. Corrigiram-me em três pontos, e cada correção é verificável.
+
+### O que o painel refutou em mim
+
+1. **`section_id` NÃO é citação clicável.** Eu escrevi "citação"; medi depois de ser
+   corrigido: `ParecerRisksTable.tsx:295` renderiza `§{risco.section_id} · {tema}` — **texto
+   puro**, sem `<a href>`, nos quatro sítios (`ParecerMetricasTable.tsx:130`,
+   `ParecerMovimentoCard.tsx:147`, `PontosFortesList.tsx:57`). O "27 de 27 resolvem" prova
+   que o id **nomeia uma seção existente**, não que exista link. O leitor recebe o literal
+   `§S4` — jargão interno em superfície user-facing.
+2. **Minha medição "25 de 26 raízes → 1 seção" era circular.** Medi contra
+   `aligned_with_layout`, que é escalar por schema (`docs/_schemas/note-planner.schema.json`)
+   — ambiguidade é **irrepresentável por construção**. Medi que a declaração é função porque
+   o schema a obriga a ser. A relação real é muitos-para-muitos (`irpf_kpis` → {S8,
+   S_IRPF_RENDA, S_IRPF_OTIMIZACAO}; `protecao_patrimonial` → {S9, S_PROTECAO}).
+3. **Eram 7 superfícies model-facing, não 5** — e o bloco `tools:` do YAML **não é uma
+   delas** (o modelo nunca vê o YAML; ele tem 3 consumidores server-side e apagá-lo derruba
+   um gate). As 3 que faltavam estão na **persona**, que é o original de que o system prompt
+   é cópia: `config/agents/planner_persona.md:136` (R1), `:176` (R21), `:198`, e sobretudo
+   **`:207`** — que condiciona `campos_faltantes[]` a um `found:false` inalcançável.
+
+### Sintoma 1 — RESOLVIDO: o spread é a Previdência, não a base
+
+Rodei o discriminador que o `financial-planner` pediu. **Hipótese A (denominador) REFUTADA:**
+
+| `categoria` | `pct` | `pct_carteira_financeira` |
+|---|---|---|
+| Renda Fixa | 35,36 | **90,25** |
+| Previdência | 1,62 | **4,14** |
+| Caixa | 0,0 | **0,0** |
+
+`Caixa = 0` ⇒ `carteira_financeira ≡ carteira_liquida` neste corpus, e a base **não** explica
+nada. `90,25 + 4,14 = 94,39` = o carimbo (`goals.alocacao_alvo.derived.renda_fixa_atual_pct`
+= **94,39**) ao centésimo. **O spread de 4,15 pp É a linha Previdência.**
+
+Logo o defeito é **conceitual e não declarado**: `alocacao_alvo_deviation.py:18`
+(`_BUCKET_TO_COMPARABLE`) decide que **toda** previdência é renda fixa. PGBL/VGBL é
+*wrapper*, não classe — o fundo subjacente pode ser multimercado ou ações. O `rotulo`
+diz só "Alocação em renda fixa (carteira líquida)" e **não declara** que dobra previdência
+dentro. O modelo leu a linha `Renda Fixa` da tabela (a única projetada) e acertou o que
+lhe foi dado.
+
+Agravante medido pelo `financial-planner` e confirmado: **`$.goals` é projetado num único
+lugar** (`parecer_planejador.yaml:742`, seção `plano_acao_atual`, `eviction_priority: 10`)
+— e essa seção **foi evictada neste run**. O modelo nunca recebeu 94,39. Não havia como
+reconciliar. **É defeito de projeção, e a ordem do conserto importa:** projetar → corrigir
+o hint da linha 357 → só então gatear. Gate antes da projeção reprova o insolúvel e o
+remédio vira reask storm ([[ADR-292]]).
+
+### Sintoma 3 — rota fechada, sem conflito no painel
+
+`prompt-engineer` mediu que o objetivo da [[ADR-341]] §D5 (*"não declarar ausência do que
+existe"*) **já está entregue**, determinístico e sobre universo maior, pelo filtro 3-vias de
+`parecer_pos_llm_guardrails.py:266-280`. A tool responderia estritamente menos e mais tarde
+⇒ implementar as tools é **reimplementar pior no lado não-determinístico**. Caminho: cortar
+as 7 superfícies, preservar o bloco `tools:` (relabel), trocar a "Recovery obrigatório" por
+regra **declarativa** (o modelo *registra* o conceito em vez de *buscá-lo*), emendar a
+[[ADR-341]] revogando D5 e a [[ADR-203]] registrando que o transporte nunca existiu.
+
+⚠️ **Não haverá critério de contagem de `campos_faltantes`.** Os 4
+`$.endividamento.dividas[N].taxa_juros_aa` são a [[ADR-206]] **funcionando** — o campo
+existe no E5 (`e5_analysis.schema.json:934,969`) e tem **zero** ocorrências no manifest.
+Cortar a promessa de tool **não prevê** que o contador caia; prever isso seria otimizar a
+métrica contra a regra de calibração.
+
+### Sintoma 2 — os dois especialistas DIVERGEM, e a divergência é a decisão da lane
+
+Convergem em três pontos, todos contra o enunciado e contra mim:
+
+- **Proveniência já tem carrier próprio e correto** (`ancoras[].path` + `evidencia`, folha a
+  folha, [[ADR-296]]). `section_id` sob leitura de proveniência publicaria uma **segunda**
+  resposta, mais grossa, à mesma pergunta.
+- **Encolher o enum é caro pelo caminho da LEITURA**, não por migration: `section_id` é
+  `String(32)` sem CHECK, mas `planner_review_tier_filter.py:102` constrói o DTO a partir do
+  **artefato armazenado** e `response.py:29` o tipa com o mesmo `Literal` ⇒ `ValidationError`
+  em `GET /planner-review` para todo parecer histórico (13 de 33 itens só neste run).
+- **`SuggestionCalloutInline` está montado em 2 de 12 seções** (`S2FluxoCaixaSection.tsx:74`,
+  `S7IndependenciaSection.tsx:74`) — os dois acharam isso independentemente. Logo a
+  justificativa escrita em `pipeline/domain/types/suggestion.py:70` para barrar
+  `S_PROTECAO` (*"emissor sem leitor"*) é **falsa para 10 dos 12 ids**. Deixá-la em pé faz a
+  próxima lane herdar premissa errada.
+
+**Achado crítico que nenhum de nós tinha:** `section_id` errado **desarma um guardrail**.
+`parecer_pos_llm_guardrails.py:178` — `if item.section_id != _MC_SECTION: return False`.
+Risco dependente de Monte Carlo rotulado S1/S3 em vez de S7 **escapa do rebaixamento de
+confiança**, calado. Não é rótulo: é roteamento. Some-se a `parecer_finalization.py:57`, onde
+`section_id` compõe o `thesis_key` que sustenta a janela de respeito ao descarte
+([[ADR-290]] B4) — mudar o campo **ressuscita sugestão descartada**.
+
+| | `product-designer` | `data-engineer` |
+|---|---|---|
+| Semântica | **navegação** ("destino de leitura") | **navegação** (idem) |
+| Quem autora | **a máquina** — `section_id` sai do schema exposto ao modelo (`SkipJsonSchema`, precedente `Metrica.nome/valor_atual`) | **o modelo** — mas recebendo o id no payload |
+| Mapa | objeto **novo** `(tema_canonico, prefixo de âncora)` → destino; **não** derivar de `aligned_with_layout`, que é proveniência e mandaria imóvel para S1 | injetar `[section_id: SN]` no cabeçalho de seção (`parecer_distiller.py:221`) + split 1:1 do manifest; ~240 de 16.384 bytes |
+| Precedente | campo preenchido pela máquina já existe no mesmo schema | [[ADR-399]]: *"quando o número existe no payload, o modelo copia"* — e *"instrução não é gate"* |
+| Gate | rejeita o meu: gate de proveniência **baniria S4 para risco de imóvel**, que é o destino certo | rebaixa (não repara — [[ADR-153]] §D1 torna `section_id` imutável) item que cite seção fora do conjunto **mantido pós-eviction** |
+
+Sobre `S_PROTECAO` os dois convergem em **não** trazer agora, por razões diferentes e
+compatíveis: o eixo do layout já está declarado (2.5 = o que está **contratado**; S9 = o que
+**falta**), e *risco é, por definição, lacuna* ⇒ destino S9 sempre.
+
+> **Escalado ao `senior-cto`** pelo anti-loop do CLAUDE.md: dois especialistas, ambos bem
+> fundamentados, incompatíveis no **autor** do campo. Não é objeção a ajustar em 1 rodada —
+> é bifurcação de arquitetura (quem escreve um campo que roteia guardrail e compõe chave de
+> identidade).
