@@ -5,7 +5,9 @@ title: "Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no con
 status: Decidido
 phase: A20.invest-dedup
 date: "2026-05-29"
+amended_at: ["2026-09-01"]
 relates_to:
+  - "[[ADR-400]]"
   - "[[ADR-246]]"
   - "[[ADR-265]]"
   - "[[ADR-267]]"
@@ -26,6 +28,8 @@ tags:
 **Status:** Decidido (Sprint A20) • **Data:** 2026-05-29 • **Relaciona** [[ADR-246]] (dedup imóveis — precedente direto, regra de valor divergente), [[ADR-265]] (fuzzy canonical), [[ADR-267]] (identidade de membro por CPF — pré-requisito)
 
 > **Entrega — PR1 (este escopo).** Mergeado em `main` via [#501](https://github.com/davidrobert/mathoms/pull/501) (squash `c7c60bdd`, CI verde) em 2026-05-28. Helper `pipeline/domain/services/investimentos_dedup.py` (chave exata, 2 eixos) aplicado nas 2 funções de `e15_consolidate.py` + defesa idempotente em `e4_categorize.py` + schema bump + 17 testes. Corrigido bug de year-stamping em `consolidate_from_itens` (carimbava `ano_referencia` global → colapsava cross-year em falso conflito mesmo-ano). **PR2 (fuzzy gated por instituição) e PR3 (CNPJ/conta como chave forte) seguem como follow-up** (ver Próximos passos).
+
+> ⚠️ **Emendada em 2026-09-01 ([[A42.l15]], PR [#1939](https://github.com/davidrobert/mathoms/pull/1939)):** o `PR3` dos §Próximos passos foi **executado** — o CNPJ do documento é hoje a perna forte da identidade. §140 (não persistir identidade fuzzy-derivada) permanece **intacta**, e o alcance da rejeição a `instituicao` ficou mais estreito do que se supunha. Ver §Emenda no fim.
 
 ## Contexto
 
@@ -145,3 +149,38 @@ Log estruturado `consolidate.investimentos_dedup`:
 - **PR1 (este escopo):** helper `pipeline/domain/services/investimentos_dedup.py` (chave exata, ambos os eixos) + aplicação nas 2 funções de `e15_consolidate.py` + defesa em `e4_categorize.py` + schema bump + goldens.
 - **PR2 (follow-up, fuzzy):** pass fuzzy **gated por instituição idêntica** (reusa `canonical_fuzzy_match`), atrás dos goldens do PR1 como rede de regressão + goldens negativos ("não fundir Selic-marido com Selic-esposa").
 - **PR3 (follow-up, identidade forte):** extração de CNPJ/conta no E1.5 como chave estável a rename.
+
+## Emenda 2026-09-01 — o `PR3` saiu do papel, e a rejeição a `instituicao` é mais estreita ([[A42.l15]])
+
+**O que mudou.** `_identity_key` deixou de ser `(tipo, instituicao, descricao)` e virou a
+cascata `("cnpj", raiz)` ⊳ `("desc", tipo, instituicao, descricao)` ⊳ recusa. Medido em 836
+artefatos `E1.5a` / 28 grupos (pooled `|A∩B|/|A∪B|`): **37,68% → 61,78%**; o subconjunto
+ancorado é **91,71%** estável, com **50,9%** de cobertura.
+
+**A classe que esta ADR não previu.** §Contexto tratava instabilidade entre **anos** (o banco
+muda o texto do informe). O medido foi entre **dois runs do mesmo documento** — o extrator
+reescrevendo a si mesmo. `MANTIDA NO BRASIL` → `MANTIDA EM BRASIL` quebrava o merge cross-year,
+e a redistribuição preserva Σ, então nenhum invariante de conservação a alcança.
+
+**§140 permanece intacta.** Ler CNPJ declarado não é persistir palpite: não há fuzz — é padrão
+exato de 14 dígitos, computado no momento da chave e **nunca gravado** como identidade. E a
+objeção da §"Alternativas consideradas" (*"frágil — nem todo bem-direito lista CNPJ legível"*)
+estava certa e é por isso que a cascata tem **degrau de recusa** com `review_reason`, nunca
+fallback mudo.
+
+**A âncora não custou token de LLM.** O CNPJ já estava no texto da `descricao` em metade dos
+casos; a cascata lê o campo `cnpj_emissor` (novo em `PROMPT_VERSION` 1.4.0) quando existe e o
+texto quando não. As duas rotas dão a mesma raiz, então item de era antiga e de era nova
+colidem no mesmo hash — é o que dispensou a re-extração que a [[ADR-311]] D3 exclui.
+
+**Correção de alcance sobre `instituicao`.** A [[A42.l15]] planejava tirá-la da chave, citando
+a [[ADR-400]] §1 *a fortiori*. **Medição refutou o plano:** tirá-la paga +7,4pp e funde
+"Tesouro Selic 2029" na XP com o da BTG — some patrimônio real, que é exatamente o
+falso-positivo que a §"Alternativas consideradas" desta ADR já rejeitava. O que a [[ADR-400]]
+§1 veta é o **code do catálogo** mover o hash; a string crua do item na perna fraca é o status
+quo, não acoplamento novo (gate: [#1916](https://github.com/davidrobert/mathoms/pull/1916)).
+**A rejeição vale para o catálogo, não para o campo.**
+
+**Também refutado por medição:** compor a âncora com `tipo` (`("cnpj", raiz, tipo)`) mede
+63,49% contra 69,20% da âncora sozinha no mesmo braço — `tipo` ainda churna e contamina a
+perna forte. Compor parece conservador e entrega menos.

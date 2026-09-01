@@ -399,6 +399,18 @@ medido num run só e não tem "antes" reprodutível** — o que torna a regra da
 (antes/depois) inexequível até a [[A42.l15]] entregar PR1/PR2. Atinge o P1 *"duas respostas
 na mesma página"* e a reconciliação `tabela_classes.Internacional` × `exposicao_cambial`.
 
+> ⚠️ **A precondição caiu em 2026-09-01 — e o número envelheceu de novo.** A [[A42.l15]]
+> shipou (#1909/#1916/#1919/#1937/#1939): `_identity_key` ancora no CNPJ do documento e a
+> estabilidade foi de **37,68% para 61,78%** (pooled, 836 artefatos / 28 grupos). O bloqueio
+> *"até a A42.l15 entregar PR1/PR2"* **não existe mais** — o item 7 do §Estado abaixo também
+> destrava.
+>
+> **Mas não releia o R$ 423,56.** Ele foi medido **antes** do #1937 e do #1939, e os dois
+> mexeram na chave: o #1937 tirou 96 fundos do balde genérico e o #1939 trocou a chave
+> inteira. O "antes" agora é **reprodutível** (o harness dá o número com denominador), então
+> a regra antes/depois desta lane voltou a ser exequível — **rodando a medição**, nunca
+> citando esta linha nem a da abertura.
+
 ### Estado dos demais itens
 
 | item | estado | evidência |
@@ -431,6 +443,9 @@ na mesma página"* e a reconciliação `tabela_classes.Internacional` × `exposi
 4. Decidir se `exposicao_cambial` entra em `required` do `e5_analysis.schema.json`.
 5. **Bloqueio externo** — rodapé PTAX espera a [[A40.l39]].
 6. **Lane própria, com dono** — refresh de PTAX (Celery + TTL). Não é item de inventário.
-7. **Depois da [[A42.l15]]** — `has_foreign_in_e3` por `(instituição, moeda, conta)`: a
-   granularidade certa **exige** a identidade estável que aquela lane constrói.
+7. ~~**Depois da [[A42.l15]]**~~ — **destravado 2026-09-01**: `has_foreign_in_e3` por
+   `(instituição, moeda, conta)` pode andar. A identidade que faltava existe (cascata
+   ancorada no CNPJ, 61,78%); a cobertura da âncora é **50,9%**, então a granularidade é
+   possível **na metade ancorada** e a outra metade cai na perna fraca — dimensionar antes
+   de prometer.
 8. **Depois** — reconciliar `tabela_classes.Internacional` × `exposicao_cambial`.
