@@ -226,7 +226,9 @@ não valia, e a frase anterior dizia isso.
   `check_golden_delta_declarado`, e removê-las era pré-condição para este PR mergear.
   **Eu não conferi PR aberto antes de agir:** o [#1911](https://github.com/davidrobert/mathoms/pull/1911)
   já fazia a mesma drenagem desde 22:18Z, uma hora antes do merge do #1917. O #1911
-  segue `MERGEABLE` e continua valendo — o que ele entrega e este PR **não** é o
-  *porquê durável* no cabeçalho do arquivo (a regra "quem mergeia um rebaseline drena
-  o manifesto") mais o sentinela `[]`; sem ele o arquivo parseia como `None`. A
-  reconciliação do lado da l95 já está escrita **naquele** PR e não se duplica aqui.
+  **mergeou depois** e entregou o que este PR não tinha: o *porquê durável* no
+  cabeçalho do arquivo (a regra "quem mergeia um rebaseline drena o manifesto") e o
+  sentinela `[]` — sem ele o arquivo parseava como `None`. Conferido em `main`:
+  o manifesto parseia `[]`. A reconciliação do lado da [[A40.l95]] está escrita
+  **naquela** lane, que registra o #1917 como a ocorrência real da mina que a
+  simulação dela previu; não se duplica aqui.
