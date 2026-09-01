@@ -563,6 +563,89 @@ grafias. Não toquei: `property_id` é UUID resolvido contra o DB e a lane mediu
 estabilidade nele, então o risco é latente, não vivo — mas o mesmo eixo da §Armadilha (C), e
 `wise_fiscal_flags.py:32,35,38` (`==` contra `"13"/"62"/"41"`) segue exposto do mesmo jeito.
 
+## ENTREGUE — PR1 (produtor) + PR2 (a chave) · 2026-09-01
+
+### A medição que decidiu o desenho, e que corrigiu o plano da lane
+
+Variantes de chave sobre o corpus (836 artefatos `E1.5a`, 28 grupos K≥5, controles
+parados), com **cardinalidade média junto** — porque comprar estabilidade colapsando
+chaves é o veneno que a §Refutado já registra:
+
+| variante | pooled `\|A∩B\|/\|A∪B\|` | card. média |
+|---|---|---|
+| `(tipo, inst, desc)` — produção até aqui | 37,68% | 9,7 |
+| sem `instituicao` | 47,95% | 9,7 |
+| **`("cnpj", raiz)` ⊳ `(tipo, inst, desc)` — ENTREGUE** | **61,78%** | 9,7 |
+| `("cnpj", raiz)` ⊳ `(tipo, desc)` | 69,20% | 9,4 |
+| `("cnpj", raiz, tipo)` ⊳ … | 63,49% | 9,7 |
+| subconjunto ancorado sozinho | **91,71%** | 4,5 |
+
+Cobertura da âncora nas entradas consolidadas: **50,9%** (173/340).
+
+**Três coisas que a medição virou de cabeça para baixo:**
+
+1. **A âncora não precisa de token de LLM, e é isso que mata a §Armadilha (B).** O CNPJ
+   **já está no texto** da `descricao` em metade dos casos. A cascata lê `cnpj_emissor`
+   quando existe e o texto quando não — as duas rotas dão a mesma raiz, logo item de era
+   1.3.0 e item de era 1.4.0 **colidem no mesmo hash**. O bump não deixa 91,6% do corpus
+   órfão e não precisa da re-extração que a [[ADR-311]] D3 exclui. A política de era
+   deixou de ser um problema em aberto: ela é uma consequência do desenho da chave.
+2. **`instituicao` FICA na perna fraca — contra o que a lane planejava.** Tirá-la mede
+   69,20% (+7,4pp), e o custo em cardinalidade neste corpus é ~3%. Mas
+   `test_different_institution_does_not_merge` reprovou: "Tesouro Selic 2029" na XP e o
+   da BTG viram **uma** entrada, e R$ 1.000 **somem**. É exatamente o falso-positivo que
+   a [[ADR-271]] §139 rejeita. ⚠️ **A minha medição de "custo 0 em cardinalidade" era
+   propriedade DESTE corpus** (que não tem o caso), não do desenho — o mesmo erro que
+   esta lane já tinha cometido com os "0 pp" do `tipo`. Quem pegou foi o teste, não eu.
+   A [[ADR-400]] §1 segue respeitada: o que entra na chave é a string crua do item, nunca
+   o code do catálogo — status quo, não acoplamento novo (gate do critério 4, PR #1916).
+3. **A âncora não se compõe com `tipo`.** `("cnpj", raiz, tipo)` mede 63,49% contra
+   69,20% da âncora sozinha no mesmo braço: `tipo` ainda churna e contamina a perna forte.
+   Compor parece mais conservador e entrega menos.
+
+### PR1 — o produtor
+
+`cnpj_emissor` no Pydantic (`Optional`, `pattern ^\d{14}$`, `field_validator(mode="before")`
+normalizando máscara — molde [[ADR-288]], pino NORMALIZADOR e nunca de vacuidade);
+`_output_to_baseline_json` emite; **a carreta no `:549`**, o único dos três sítios que vê
+item do E1.5. Bump `PROMPT_VERSION` 1.3.0 → **1.4.0** com a política de era no comentário.
+
+### PR2 — a chave, e os critérios que ela fecha
+
+Cascata em `investimentos_dedup._identity_key`, âncora em
+`pipeline/domain/services/ancora_cnpj.py`. **Oito mutações executadas**, cada uma
+derrubando a perna certa: sem a perna da âncora · âncora só do campo · âncora só do texto ·
+recusa sem motivo · recusa não-idempotente · `instituicao` fora · raiz de 14 dígitos ·
+cobertura contando grupos.
+
+> ⚠️ **O controle é que denunciou uma medição falsa.** As oito mutações rodaram primeiro
+> num laço zsh sem `${=T}`, e **todas** devolveram `no tests ran` — inclusive o controle.
+> Lidas sem o controle, teriam passado por "oito de oito pegas".
+
+- **Critério 2 — cobertura no artefato publicado.** `investimentos_ancora_cobertura`
+  (`total`/`com_ancora`/`por_descricao`/`sem_identidade`/`pct_ancora`), declarada no
+  `baseline_patrimonial.schema.json` e emitida pelos **dois** caminhos de consolidação.
+  Denominador é o **item**, não o grupo — medida antes do dedup. `com_ancora: 0` publicado
+  é o sinal que faltava ao `numero_contrato` da §Armadilha (A).
+- **Critério 3 — recusa em vez de palpite.** Sem âncora **e** sem descrição:
+  `investment_id` é `None` **e** a entrada carrega `dedup.identidade_sem_ancora` (código
+  novo no enum + no `review_reason.schema.json`). Idempotente, porque o dedup roda sobre a
+  própria saída. E a perna forte **não depende da fraca**: âncora sem descrição identifica
+  — o molde de `dividas_dedup` exige `desc` antes de olhar o contrato, e esse defeito não
+  foi replicado.
+- **Critério 5 — era não move a chave**, provado por mutação executada: item de era antiga
+  (CNPJ só no texto) e o mesmo item de era nova (campo declarado) produzem o mesmo hash
+  **e fundem entre si**.
+- **Critério 7 — rebaselines declarados.** `tests/fixtures/dedup/policy_parity_snapshot.json`:
+  12 de 31 casos mudaram, **todas as contagens `before`/`after`/`dropped` idênticas** (nenhum
+  merge ganho ou perdido), campos que diferem são só `investment_id` e `review_reasons`, e os
+  19 casos `imovel::` ficam intactos. É a única baseline do repo que carrega `investment_id`;
+  o harness não guarda snapshot. **Cutover:** o `investment_id` muda para todo o corpus, e em
+  modo incremental ([[ADR-080]]/[[ADR-169]]) artefatos velhos mantêm o id antigo até
+  re-consolidar. O raio é limitado porque não há coluna nem FK ([[A42.l15]] §Já refutado): o
+  que envelhece é o `nao_classificado_itens[].locator` de relatório já publicado.
+- **Critério 8** — `pytest tests -q` **8278 passed** · `pytest backend/tests -q` verde.
+
 ## Escopo — quatro PRs, nesta ordem
 
 - **PR0 — forma no contrato (zero LLM).** `pattern` em `codigo`
@@ -595,9 +678,9 @@ sessões da U2 estavam abertas e o teto era 419.
    catálogo, **com numerador e denominador**. É falseável e pode **matar a lane barata**: se
    já der ~100% de fecho, a hipótese está errada. (Operacional: exige `MATHOMS_FERNET_KEYS`,
    não só `MATHOMS_FERNET_KEY`.) **Fecho ≠ estabilidade** — o doc tem de dizer isso.
-2. **Cobertura de âncora medida no artefato publicado** (padrão `investimentos_cobertura`/
+2. ✅ **ENTREGUE (PR2)** — **Cobertura de âncora medida no artefato publicado** (padrão `investimentos_cobertura`/
    [[ADR-406]]), não no estado em voo. É o invariante que mata o modo `numero_contrato`.
-3. **Recusa em vez de palpite** (unit, zero runs): âncora forte ausente **e** descrição fraca
+3. ✅ **ENTREGUE (PR2)** — **Recusa em vez de palpite** (unit, zero runs): âncora forte ausente **e** descrição fraca
    ⇒ `None` + `review_reason`. Único invariante sobre a **decisão**, não sobre o número.
 4. ~~**Gate de acoplamento**~~ **ENTREGUE — PR #1916 (`132f97f8`)** — `tests/unit/pipeline/test_investment_id_acoplamento.py`.
    Três pernas, porque uma só seria cega: **fecho transitivo** de imports (hoje 9 módulos,
@@ -610,7 +693,7 @@ sessões da U2 estavam abertas e o teto era 419.
    o fecho é estático, então `importlib.import_module` com nome montado em runtime e
    `getattr` sobre módulo já importado ficam fora; e `dividas_dedup` tem a **mesma
    exposição** e **não** está coberto.
-5. **Identidade estável entre eras provada por mutação executada** — item de era 1.3.0 e item
+5. ✅ **ENTREGUE (PR2)** — **Identidade estável entre eras provada por mutação executada** — item de era 1.3.0 e item
    de era 1.4.0, mesma posição, mesmo hash; ou a política de era (B) escrita e implementada.
 6. ~~**Não aceitar como evidência**~~ **ENTREGUE — PR #1919 (`b11d5bfd`)** — `dev/measure_e15_identity_stability.py`
    + núcleo puro em `tests/dev/test_measure_e15_identity_stability.py`. **Zero token de LLM:**
@@ -619,7 +702,7 @@ sessões da U2 estavam abertas e o teto era 419.
    **pares byte-idênticos** e os reporta separado — ao 23,5% medido, par idêntico é anomalia.
    Nove mutações executadas. O critério é atendido: **19 documentos** com K≥5 (o corpus
    sustenta até **K=38**), contra o mínimo de 2.
-7. **Rebaselines declarados no PR:** `tests/fixtures/dedup/policy_parity_snapshot.json` (via
+7. ✅ **ENTREGUE (PR2)** — **Rebaselines declarados no PR:** `tests/fixtures/dedup/policy_parity_snapshot.json` (via
    `dev/golden_diff.py` com manifesto) e o snapshot do harness. **Declarar se o run de cutover
    é full ou incremental** — em incremental ([[ADR-080]]/[[ADR-169]]) transcrições velha e
    nova coexistem e o mesmo ativo não funde.

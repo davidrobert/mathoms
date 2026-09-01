@@ -29,6 +29,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+from pipeline.domain.services.ancora_cnpj import medir_cobertura
 from pipeline.domain.services.baseline_item_classifier import (
     BaselineAxis,
     ClassificationAuthority,
@@ -384,6 +385,13 @@ def consolidate(baseline: dict, resolver=None) -> dict:
     baseline["imoveis_consolidados"] = imoveis_consolidados
     baseline["veiculos_consolidados"] = veiculos_consolidados
     baseline["investimentos_consolidados"] = investimentos_consolidados
+    # [[A42.l15]] critério 2: cobertura da âncora de identidade no ARTEFATO, não em voo.
+    # Perna forte sem produtor é inerte e invisível — `dividas_dedup.numero_contrato`
+    # nasceu assim e ninguém viu ([[A40.l88]]). `com_ancora: 0` publicado delata.
+    # Medida aqui, e não após o dedup, porque o denominador é o ITEM, não o grupo.
+    baseline["investimentos_ancora_cobertura"] = medir_cobertura(
+        investimentos_consolidados
+    ).to_dict()
     baseline["dividas"] = dividas_consolidadas
     baseline["patrimonio_por_ano"] = patrimonio_por_ano
 
@@ -643,6 +651,9 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     baseline["imoveis_consolidados"] = imoveis_consolidados
     baseline["veiculos_consolidados"] = veiculos_consolidados
     baseline["investimentos_consolidados"] = investimentos_consolidados
+    baseline["investimentos_ancora_cobertura"] = medir_cobertura(
+        investimentos_consolidados
+    ).to_dict()
     baseline["dividas"] = dividas_consolidadas
     baseline["patrimonio_por_ano"] = patrimonio_por_ano
     # ADR-272/ADR-394 D3: divergência é sempre observável. WARN-first — o stage

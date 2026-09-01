@@ -573,13 +573,13 @@
     "count_after": 1,
     "count_before": 2,
     "dropped": [
-      "4989c974c692111b"
+      "f98933cc552ddc6d"
     ],
     "items": [
       {
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -594,13 +594,13 @@
     "count_after": 1,
     "count_before": 2,
     "dropped": [
-      "4989c974c692111b"
+      "f98933cc552ddc6d"
     ],
     "items": [
       {
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -615,13 +615,13 @@
     "count_after": 1,
     "count_before": 2,
     "dropped": [
-      "6f7497e6ae849391"
+      "6e1cfc36ec427729"
     ],
     "items": [
       {
         "descricao": "Tesouro  SELIC",
         "instituicao": "XP Investimentos",
-        "investment_id": "6f7497e6ae849391",
+        "investment_id": "6e1cfc36ec427729",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -640,7 +640,7 @@
       {
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP",
-        "investment_id": "e510072fa66125be",
+        "investment_id": "5b1c6545213a17cf",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -650,7 +650,7 @@
       {
         "descricao": "Tesouro Selic 2029",
         "instituicao": "BTG",
-        "investment_id": "ed0d92788c11177f",
+        "investment_id": "ae3dcb4beb8c6c63",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -671,7 +671,7 @@
         },
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -684,7 +684,7 @@
         },
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "mariana",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -695,7 +695,7 @@
     "warnings": [
       {
         "diff_pct": 0.0,
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "type": "possivel_duplicata",
         "values": [
           10000.0,
@@ -708,13 +708,13 @@
     "count_after": 1,
     "count_before": 2,
     "dropped": [
-      "4989c974c692111b"
+      "f98933cc552ddc6d"
     ],
     "items": [
       {
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "casal",
         "proprietarios": [
           "david",
@@ -732,13 +732,13 @@
     "count_after": 1,
     "count_before": 2,
     "dropped": [
-      "4989c974c692111b"
+      "f98933cc552ddc6d"
     ],
     "items": [
       {
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -749,7 +749,7 @@
     "warnings": [
       {
         "diff_pct": 4.8,
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "type": "valor_divergente_ano",
         "values": [
           10000.0,
@@ -766,7 +766,7 @@
       {
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -787,7 +787,7 @@
         },
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -800,7 +800,7 @@
         },
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "mariana",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -813,7 +813,7 @@
         },
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "joao",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -824,7 +824,7 @@
     "warnings": [
       {
         "diff_pct": 0.0,
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "type": "possivel_duplicata",
         "values": [
           100.0,
@@ -842,7 +842,7 @@
       {
         "descricao": "Selic",
         "instituicao": "XP Investimentos",
-        "investment_id": "af22ca70d768eb56",
+        "investment_id": "ec2e5ca788a9375a",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -852,7 +852,7 @@
       {
         "descricao": "IPCA",
         "instituicao": "XP Investimentos",
-        "investment_id": "35d9506f00f112fa",
+        "investment_id": "5b9d794684aee788",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -869,6 +869,18 @@
     "items": [
       {
         "proprietario": "david",
+        "review_reasons": [
+          {
+            "artifact_key": "investimentos_consolidados",
+            "code": "dedup.identidade_sem_ancora",
+            "document_id": null,
+            "expected": "cnpj_emissor de 14 digitos, ou CNPJ no texto, ou descricao nao-vazia",
+            "message": "identidade recusada: nenhum degrau da cascata alcancou a entrada",
+            "occurrence_count": 1,
+            "offending_value": "<sem cnpj_emissor, sem CNPJ na descricao, sem descricao>",
+            "stage": "consolidate_baseline"
+          }
+        ],
         "tipo": "outros",
         "valores_31_12": {
           "2024": 1.0
@@ -888,7 +900,7 @@
         },
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "david",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -901,7 +913,7 @@
         },
         "descricao": "Tesouro Selic 2029",
         "instituicao": "XP Investimentos",
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "proprietario": "mariana",
         "tipo": "renda_fixa",
         "valores_31_12": {
@@ -912,7 +924,7 @@
     "warnings": [
       {
         "diff_pct": 0.0,
-        "investment_id": "4989c974c692111b",
+        "investment_id": "f98933cc552ddc6d",
         "type": "possivel_duplicata",
         "values": [
           0.0,
