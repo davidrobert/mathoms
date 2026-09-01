@@ -10,7 +10,13 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services._tx_identity import cents_int, normalize_descricao
+from pipeline.domain.services.ancora_cnpj import (
+    CoberturaAncora,
+    ancora_da_entrada,
+    medir_cobertura,
+)
 from pipeline.domain.services.entity_dedup import (
     DedupOutcome,
     DedupWarning,
@@ -38,24 +44,58 @@ class InvestDedupResult:
     count_before: int
     count_after: int
     dropped_keys: tuple[str, ...]
+    cobertura_ancora: CoberturaAncora = CoberturaAncora()
 
 
 def dedup_investimentos_consolidados(
     investimentos: list[dict] | None,
 ) -> InvestDedupResult:
     """Deduplica ``investimentos_consolidados`` por identidade cross-IRPF (ADR-271)."""
+    cobertura = medir_cobertura(investimentos)
     outcome = run_entity_dedup(investimentos, _InvestmentPolicy())
     log_dedup("consolidate.investimentos_dedup", outcome, dropped_key="dropped_keys")
-    return _to_result(outcome)
+    _anexa_recusa(outcome.items)
+    return _to_result(outcome, cobertura)
 
 
-def _to_result(outcome: DedupOutcome) -> InvestDedupResult:
+# Recusar sem dizer por quê é indistinguível de esquecer: a entrada sai do dedup igual
+# a uma que passou. A razão nasce DENTRO do item porque `harvest_review_reasons` a colhe
+# em qualquer profundidade, com o locator da coleção.
+def _anexa_recusa(entradas: list[dict]) -> None:
+    """Entrada sem âncora E sem descrição sai com motivo, nunca com hash de vazio."""
+    for entrada in entradas:
+        if _identity_key(entrada) is not None:
+            continue
+        reasons = entrada.setdefault("review_reasons", [])
+        # Idempotente: o dedup roda de novo sobre a própria saída (invariante testado).
+        if any(r.get("code") == _CODIGO_RECUSA for r in reasons):
+            continue
+        reasons.append(_razao_da_recusa())
+
+
+_CODIGO_RECUSA = ReviewReasonCode.dedup_identidade_sem_ancora.value
+
+
+def _razao_da_recusa() -> dict:
+    return ReviewReason(
+        code=ReviewReasonCode.dedup_identidade_sem_ancora,
+        stage="consolidate_baseline",
+        artifact_key="investimentos_consolidados",
+        document_id=None,
+        offending_value="<sem cnpj_emissor, sem CNPJ na descricao, sem descricao>",
+        expected="cnpj_emissor de 14 digitos, ou CNPJ no texto, ou descricao nao-vazia",
+        message="identidade recusada: nenhum degrau da cascata alcancou a entrada",
+    ).to_dict()
+
+
+def _to_result(outcome: DedupOutcome, cobertura: CoberturaAncora) -> InvestDedupResult:
     return InvestDedupResult(
         investimentos=outcome.items,
         warnings=tuple(_to_invest_warning(w) for w in outcome.warnings),
         count_before=outcome.count_before,
         count_after=outcome.count_after,
         dropped_keys=outcome.dropped_ids,
+        cobertura_ancora=cobertura,
     )
 
 
@@ -66,7 +106,7 @@ def _to_invest_warning(w: DedupWarning) -> InvestDedupWarning:
 
 
 class _InvestmentPolicy:
-    """Chave exata `(tipo, instituicao_norm, descricao_norm)`; sem reagrupamento."""
+    """Cascata `("cnpj", raiz)` ⊳ `("desc", tipo, inst_norm, desc_norm)`; sem reagrupamento."""
 
     def identity_key(self, entry: dict) -> tuple | None:
         return _identity_key(entry)
@@ -88,14 +128,33 @@ class _InvestmentPolicy:
         return entries, tuple(warnings) + dec_warnings, dropped
 
 
+# Cascata medida ([[A42.l15]], 836 artefatos / 28 grupos, pooled |A∩B|/|A∪B|):
+# `(tipo,inst,desc)` 37,68% → com a âncora na frente **61,78%**. O subconjunto
+# ancorado sozinho é 91,71% estável, e a âncora cobre ~metade das entradas.
+#
+# `instituicao` FICA na perna fraca, contra o que a lane planejava. Tirá-la mede
+# 69,20% — mais 7,4pp — mas funde "Tesouro Selic 2029" na XP com o da BTG: mesmo
+# título em duas corretoras vira uma entrada e **some com patrimônio real**, que é o
+# falso-positivo que a [[ADR-271]] §139 rejeita explicitamente. A medição de que sair
+# custa 0 em cardinalidade é propriedade DESTE corpus (que não tem o caso), não do
+# desenho — quem pegou foi `test_different_institution_does_not_merge`.
+# A [[ADR-400]] §1 segue respeitada: o que entra aqui é a string crua do item, nunca o
+# code do `institution_catalog` — é o status quo, não acoplamento novo (gate: PR #1916).
+#
+# A âncora NÃO se compõe com `tipo`: `("cnpj",raiz,tipo)` mede 63,49% contra 69,20% da
+# âncora sozinha no mesmo braço, porque `tipo` ainda churna. Compor parece mais seguro
+# e é menos.
 def _identity_key(entry: dict) -> tuple | None:
     """Chave do ATIVO, agnóstica a ano e proprietário. ``None`` = unidentified."""
+    raiz = ancora_da_entrada(entry)
+    if raiz:
+        return ("cnpj", raiz)
     desc = normalize_descricao(entry.get("descricao"))
     if not desc:
         return None
     tipo = (entry.get("tipo") or "").strip().lower()
     inst = normalize_descricao(entry.get("instituicao"))
-    return (tipo, inst, desc)
+    return ("desc", tipo, inst, desc)
 
 
 def _investment_id(key: tuple | None) -> str:

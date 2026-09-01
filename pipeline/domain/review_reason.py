@@ -39,6 +39,10 @@ class ReviewReasonCode(str, enum.Enum):
     # que nenhum sinal declarado cobre — checksum verde parcial (falso-verde).
     extract_fatura_scope_uncovered = "extract.fatura_scope_uncovered"
     dedup_possible_duplicate = "dedup.possible_duplicate"
+    # [[A42.l15]]: nem âncora forte (CNPJ do documento) nem descrição utilizável — a
+    # entrada fica SEM identidade em vez de ganhar hash de texto vazio. Recusar é a
+    # disciplina da [[ADR-392]]: palpite de identidade some patrimônio no merge.
+    dedup_identidade_sem_ancora = "dedup.identidade_sem_ancora"
     dedup_sentinel_period = "dedup.sentinel_period"
     domain_validation_conflict = "domain.validation_conflict"
     domain_balance_gap = "domain.balance_gap"
