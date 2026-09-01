@@ -554,11 +554,14 @@ por rodapé de confiança quase certificou o falso; a presença por **título** 
 > datada; a divergência fica como nota, por decisão da própria régua. O que ela diz desta
 > seção:
 >
-> - `RR8-04` → **`P1`**, e esta é a consequência que mais importa: é número publicado
->   **errado**, reproduzindo há **três rodadas**, parado em `P3` **por magnitude pequena** —
->   e magnitude pertence a `move decisão`, nunca a `alcança`/`falsifica` (cláusula 3). A
->   régua diz que ele merece lane. **A lane não foi aberta aqui**: reabrir uma decisão que o
->   dono sustentou três rodadas é dele, não da régua.
+> - `RR8-04` → **`P2` latente** (cláusula 4). O valor publicado é **errado** e reproduz há
+>   **três rodadas**, mas **nenhum consumidor o expõe**: `fluxo_caixa.por_fonte_detalhado`
+>   embarca no payload e o único hit no frontend é a declaração de tipo em
+>   `report-fluxo.ts:155`. `P3` subestima — o tipo declarado é exatamente como alguém liga o
+>   campo a um card, e aí o número errado publica sem sinal. ⚠️ **A primeira redação desta
+>   nota dizia `P1`**, aplicando `alcança` por presença no payload; corrigido ao medir o
+>   consumidor. A régua **não** pede lane própria para a instância — pede gate de classe,
+>   que é a [[A40.l118]].
 > - `RR9-16` (PII) **confirma-se em `P1`** por cláusula própria — exposição não falsifica
 >   número, e ainda assim é `P1`.
 > - `RR9-20` **confirma-se em `P2`**: duas leituras não reconciliadas são ambiguidade.
