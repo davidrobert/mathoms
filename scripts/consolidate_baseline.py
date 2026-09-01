@@ -29,7 +29,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
-from pipeline.domain.services.ancora_cnpj import medir_cobertura
+from pipeline.domain.services.ancora_cnpj import medir_cobertura, razao_de_ancora_inerte
 from pipeline.domain.services.baseline_item_classifier import (
     BaselineAxis,
     ClassificationAuthority,
@@ -389,6 +389,9 @@ def consolidate(baseline: dict, resolver=None) -> dict:
     # Perna forte sem produtor é inerte e invisível — `dividas_dedup.numero_contrato`
     # nasceu assim e ninguém viu ([[A40.l88]]). `com_ancora: 0` publicado delata.
     # Medida aqui, e não após o dedup, porque o denominador é o ITEM, não o grupo.
+    # Ramo legado (`declarations`/xlsx): publica a cobertura, mas NÃO emite a razão de
+    # âncora inerte — não há coletor de `review_reasons` aqui, e `consolidate` delega
+    # para `consolidate_from_itens` em `:191` assim que `itens[]` existe (o caminho vivo).
     baseline["investimentos_ancora_cobertura"] = medir_cobertura(
         investimentos_consolidados
     ).to_dict()
@@ -651,9 +654,13 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     baseline["imoveis_consolidados"] = imoveis_consolidados
     baseline["veiculos_consolidados"] = veiculos_consolidados
     baseline["investimentos_consolidados"] = investimentos_consolidados
-    baseline["investimentos_ancora_cobertura"] = medir_cobertura(
-        investimentos_consolidados
-    ).to_dict()
+    _cobertura = medir_cobertura(investimentos_consolidados)
+    baseline["investimentos_ancora_cobertura"] = _cobertura.to_dict()
+    # O LEITOR da cobertura ([[A42.l15]]): publicar o número não é o mecanismo — ler é.
+    # Sem isto a cobertura repetiria, uma camada acima, o modo do `numero_contrato`.
+    _ancora_inerte = razao_de_ancora_inerte(_cobertura)
+    if _ancora_inerte:
+        review_reasons.append(_ancora_inerte)
     baseline["dividas"] = dividas_consolidadas
     baseline["patrimonio_por_ano"] = patrimonio_por_ano
     # ADR-272/ADR-394 D3: divergência é sempre observável. WARN-first — o stage

@@ -1,7 +1,7 @@
 """Locator PII-free de uma posição de investimento ([[ADR-406]]).
 
 O locator é o `investment_id` que `investimentos_dedup` já carimba no baseline —
-sha256 de `tipo|instituicao|descricao`. Reusá-lo, em vez de nomear a instituição
+sha256 de `cnpj_raiz|tipo|descricao` quando há âncora, senão `tipo|instituicao|descricao` ([[A42.l15]]). Reusá-lo, em vez de nomear a instituição
 na razão, evita recriar em superfície durável o acoplamento a rótulo volátil que
 a [[ADR-400]] acabou de cortar da entrada do classificador.
 """

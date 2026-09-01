@@ -64,10 +64,15 @@ def dedup_investimentos_consolidados(
 def _anexa_recusa(entradas: list[dict]) -> None:
     """Entrada sem âncora E sem descrição sai com motivo, nunca com hash de vazio."""
     for entrada in entradas:
+        reasons = entrada.get("review_reasons")
         if _identity_key(entrada) is not None:
+            # RECONCILIA, não só acrescenta: a guarda por `code` era append-only, então a
+            # razão sobrevivia quando um re-run dava âncora à entrada — razão obsoleta é
+            # indistinguível de razão viva para quem lê o artefato.
+            if reasons:
+                entrada["review_reasons"] = [r for r in reasons if r.get("code") != _CODIGO_RECUSA]
             continue
         reasons = entrada.setdefault("review_reasons", [])
-        # Idempotente: o dedup roda de novo sobre a própria saída (invariante testado).
         if any(r.get("code") == _CODIGO_RECUSA for r in reasons):
             continue
         reasons.append(_razao_da_recusa())

@@ -2198,7 +2198,7 @@
         },
         "nao_classificado_itens": {
           "type": "array",
-          "description": "Posições por trás de nao_classificado_pct (ADR-406 · DE-2/RV7-04). O agregado sozinho não distingue um item grande migrado para a catch-all de mil cortes pequenos — e migração entre baldes preserva Σ, então nenhum check de conservação alcança a classe. `locator` é o investment_id do baseline (sha256 de tipo|instituicao|descricao): PII-free e grepável. Sem valor em BRL por decisão — o peso na carteira é o número que decide o limiar, e redact_pii mascararia o monetário.",
+          "description": "Posições por trás de nao_classificado_pct (ADR-406 · DE-2/RV7-04). O agregado sozinho não distingue um item grande migrado para a catch-all de mil cortes pequenos — e migração entre baldes preserva Σ, então nenhum check de conservação alcança a classe. `locator` é o investment_id do baseline (sha256 de (cnpj_raiz|tipo|descricao_norm) quando há âncora, senão (tipo|instituicao|descricao_norm) — [[A42.l15]]): PII-free e grepável. Sem valor em BRL por decisão — o peso na carteira é o número que decide o limiar, e redact_pii mascararia o monetário.",
           "items": {
             "type": "object",
             "required": [

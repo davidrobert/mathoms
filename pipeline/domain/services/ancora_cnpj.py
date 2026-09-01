@@ -22,6 +22,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+
 # `(?<!\d)`/`(?!\d)` impedem casar 14 dígitos DENTRO de um número maior; os separadores
 # são opcionais porque a transcrição do IRPF ora mascara, ora não.
 _CNPJ_NO_TEXTO = re.compile(
@@ -89,3 +91,22 @@ def medir_cobertura(entradas: list[dict] | None) -> CoberturaAncora:
         por_descricao=len(itens) - com - sem_desc,
         sem_identidade=sem_desc,
     )
+
+
+# Publicar cobertura não é o mecanismo — LER é. A [[A42.l15]] publicou `pct_ancora` e não
+# criou consumidor, reproduzindo uma camada acima o modo do `numero_contrato`, que nasceu
+# inerte e ficou meses invisível ([[A40.l88]]). Esta é a leitura que fecha o laço.
+def razao_de_ancora_inerte(cobertura: CoberturaAncora) -> dict | None:
+    """Há investimento e NENHUM alcançou a perna forte ⇒ a âncora está inerte neste run."""
+    if cobertura.total == 0 or cobertura.com_ancora > 0:
+        return None
+    return ReviewReason(
+        code=ReviewReasonCode.dedup_ancora_inerte,
+        stage="consolidate_baseline",
+        artifact_key="investimentos_consolidados",
+        document_id=None,
+        offending_value=f"com_ancora=0 de total={cobertura.total}",
+        expected="ao menos 1 posicao com cnpj_emissor ou CNPJ no texto da descricao",
+        message="ancora de identidade inerte: nenhuma posicao alcancou a perna forte",
+        occurrence_count=cobertura.total,
+    ).to_dict()

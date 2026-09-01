@@ -194,3 +194,67 @@ class TestCoberturaPublicada:
         """`com_ancora: 0` é justamente o sinal que delata perna forte sem produtor."""
         c = medir_cobertura([_entrada(), _entrada()])
         assert c.to_dict()["com_ancora"] == 0 and c.to_dict()["total"] == 2
+
+
+class TestOLeitorDaCobertura:
+    """A cobertura publicada precisa de CONSUMIDOR — senão repete o modo do `numero_contrato`."""
+
+    # O achado: a 1ª versão do critério 2 publicou `pct_ancora` e não criou leitor nenhum
+    # (`rg` devolvia schema + 2 escritores + 1 teste, zero consumidores), reproduzindo uma
+    # camada acima exatamente a invisibilidade que ela existia para matar ([[A40.l88]]).
+
+    def test_ancora_inerte_com_investimento_emite_razao(self) -> None:
+        from pipeline.domain.services.ancora_cnpj import medir_cobertura, razao_de_ancora_inerte
+
+        r = razao_de_ancora_inerte(medir_cobertura([_entrada(), _entrada()]))
+        assert r is not None and r["code"] == "dedup.ancora_inerte"
+        assert r["occurrence_count"] == 2
+
+    def test_sem_investimento_NAO_emite(self) -> None:
+        """Controle negativo: 0 de 0 não é âncora inerte, é ausência de população."""
+        from pipeline.domain.services.ancora_cnpj import medir_cobertura, razao_de_ancora_inerte
+
+        assert razao_de_ancora_inerte(medir_cobertura([])) is None
+
+    def test_uma_ancora_ja_basta_para_calar(self) -> None:
+        from pipeline.domain.services.ancora_cnpj import medir_cobertura, razao_de_ancora_inerte
+
+        cob = medir_cobertura([_entrada(cnpj_emissor=_CNPJ), _entrada(), _entrada()])
+        assert razao_de_ancora_inerte(cob) is None
+
+    def test_o_consolidador_publica_a_razao(self) -> None:
+        itens = [
+            {
+                "codigo": "41",
+                "descricao": "POUPANCA SEM CNPJ",
+                "categoria_hint": "poupanca",
+                "valor_brl": "1000.00",
+                "membro": "david",
+                "ano": 2025,
+            }
+        ]
+        with contextlib.redirect_stdout(io.StringIO()):
+            out = consolidate_from_itens({"resumo": {"ano_referencia": 2025}, "itens": itens})
+        codes = [r["code"] for r in out["validation"]["review_reasons"]]
+        assert "dedup.ancora_inerte" in codes
+
+
+class TestRecusaSeReconcilia:
+    """Razão obsoleta é indistinguível de razão viva para quem lê o artefato."""
+
+    def test_entrada_que_ganha_ancora_PERDE_a_razao_de_recusa(self) -> None:
+        entrada = _entrada(descricao="")
+        primeira = dedup_investimentos_consolidados([entrada])
+        assert primeira.investimentos[0]["review_reasons"]
+
+        com_ancora = dict(primeira.investimentos[0], cnpj_emissor=_CNPJ)
+        segunda = dedup_investimentos_consolidados([com_ancora])
+        assert segunda.investimentos[0]["investment_id"] is not None
+        codes = [r["code"] for r in segunda.investimentos[0].get("review_reasons", [])]
+        assert "dedup.identidade_sem_ancora" not in codes
+
+    def test_e_nao_apaga_razao_de_OUTRO_code(self) -> None:
+        alheia = {"code": "domain.valor_nao_apurado", "message": "x"}
+        entrada = _entrada(cnpj_emissor=_CNPJ, review_reasons=[alheia])
+        r = dedup_investimentos_consolidados([entrada])
+        assert alheia in r.investimentos[0]["review_reasons"]
