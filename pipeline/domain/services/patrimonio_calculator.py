@@ -109,6 +109,7 @@ from pipeline.domain.services.posicao_31_12_builder import (
     build_caixa_me_detalhe,
     build_posicao_31_12,
 )
+from pipeline.domain.services.saldo_divida_resolver import dividas_nao_apuradas
 
 __all__ = [
     "PatrimonioCalculator",
@@ -281,6 +282,13 @@ class PatrimonioCalculator:
         return {
             "bruto": round(patrimonio_bruto, 2),
             "dividas": round(total_dividas, 2),
+            # Linha de dívida que existe e cujo saldo ninguém conseguiu ler soma
+            # zero e some ([[A40.l114]]). Publicar a contagem é o que permite ao
+            # consumidor distinguir "não deve" de "não sei" — sem ela o score
+            # credita nota máxima em `taxa_endividamento` sobre passivo ilegível.
+            "dividas_nao_apuradas": dividas_nao_apuradas(
+                inputs.baseline.get("dividas") or inputs.baseline.get("dividas_consolidadas")
+            ),
             "liquido": round(patrimonio_liquido, 2),
             "residencia": round(residencia, 2),
             "imoveis_investimento": round(imoveis_investimento, 2),

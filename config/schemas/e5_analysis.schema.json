@@ -193,22 +193,30 @@
               "valor": {
                 "type": [
                   "number",
-                  "string"
-                ]
+                  "string",
+                  "null"
+                ],
+                "description": "[[A40.l114]] — `null` quando `status` é `suprimido`: o dado não foi apurado, e 0 afirmaria o extremo bom da escala."
               },
               "peso": {
                 "type": "number"
               },
               "nota": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "[[A40.l114]] — `null` sob supressão. Nota neutra ficou fora: em componente invertido, 5,0 AFIRMA valor intermediário, que é o zero disfarçado."
               },
               "status": {
                 "type": "string",
                 "enum": [
                   "emitted",
                   "absent_normalized",
-                  "absent_penalized"
-                ]
+                  "absent_penalized",
+                  "suprimido"
+                ],
+                "description": "[[A40.l114]] — `suprimido` sai do denominador do score e NÃO é `absent_normalized`, cuja semântica é 'peso vira penalidade natural' ([[ADR-217]] §D2)."
               },
               "unidade": {
                 "type": [
@@ -218,6 +226,10 @@
               }
             }
           }
+        },
+        "piso": {
+          "type": "number",
+          "description": "[[A40.l114]] — score renormalizado com TODO componente suprimido em nota 0 (extremo conservador, forma do `piso_autonomia_financeira_meses`/[[ADR-412]] §D7). A classificação deriva de `min(valor, piso)`: sem isso, supressão de componente SOBE o score e ausência de dado vira prêmio."
         }
       }
     },

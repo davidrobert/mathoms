@@ -57,6 +57,8 @@ class SaldoResolvido:
     direcao_do_erro: DirecaoDoErro = DirecaoDoErro.exato
     defasagem: int = 0
     """Anos entre o saldo publicado e o ano-base pedido; 0 quando casam."""
+    apurado: bool = True
+    """`False` quando a linha existe mas o saldo não é determinável em ano nenhum."""
 
 
 def _dec(valor: Any) -> Decimal:
@@ -109,7 +111,7 @@ def resolver_saldo(
         return SaldoResolvido(_dec(saldo[ano_ref]), ano_ref)
     anos = sorted(k for k in saldo if str(k).isdigit())
     if not anos:
-        return SaldoResolvido(Decimal(0), None)
+        return SaldoResolvido(Decimal(0), None, apurado=False)
     if ano_ref and ano_ref in anos_declarados:
         return SaldoResolvido(Decimal(0), ano_ref, quitada=True)
     return _carry_forward(dv, saldo, anos[-1], ano_ref)
@@ -129,3 +131,11 @@ def _carry_forward(
         direcao_do_erro=_direcao(dv),
         defasagem=defasagem,
     )
+
+
+# Zero somado em silêncio é afirmação de que a família não deve aquilo ([[ADR-431]]).
+# Quem consome o TOTAL precisa saber que ele está incompleto — sem isso o score
+# credita nota máxima por um passivo que ninguém conseguiu ler.
+def dividas_nao_apuradas(dividas: list[Mapping[str, Any]] | None) -> int:
+    """Linhas de dívida cujo saldo não é determinável em ano nenhum."""
+    return sum(1 for dv in (dividas or []) if not resolver_saldo(dv, None).apurado)

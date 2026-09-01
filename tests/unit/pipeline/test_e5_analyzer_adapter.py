@@ -508,6 +508,20 @@ class TestResultType:
             result.receitas = {}  # type: ignore[misc]
 
 
+_SCORE_KEYS = {
+    "valor",
+    "piso",
+    "max",
+    "classificacao",
+    "score_version",
+    "componentes",
+    "breakdown",
+    "formula",
+    "context",
+    "conclusion",
+}
+
+
 class TestA6d33Wiring:
     """Testes das integrações A6d.3.3 (sem placeholders)."""
 
@@ -556,23 +570,13 @@ class TestA6d33Wiring:
         assert required.issubset(result.reserva.keys())
 
     def test_score_has_paridade_keys(self):
-        # ADR-217 D3 acrescenta `score_version` ao shape v2.E.7 do ScoreCard.
+        # ADR-217 D3 acrescenta `score_version` ao shape v2.E.7 do ScoreCard;
+        # [[A40.l114]] acrescenta `piso` (extremo conservador sob supressão).
         store = InMemoryArtifactStore()
         _seed_minimal(store)
         adapter = E5AnalyzerAdapter()
         result = adapter.analyze_via_store(store)
-        expected = {
-            "valor",
-            "max",
-            "classificacao",
-            "score_version",
-            "componentes",
-            "breakdown",
-            "formula",
-            "context",
-            "conclusion",
-        }
-        assert set(result.score.keys()) == expected
+        assert set(result.score.keys()) == _SCORE_KEYS
         assert result.score["max"] == 10
         assert len(result.score["componentes"]) == 5
 

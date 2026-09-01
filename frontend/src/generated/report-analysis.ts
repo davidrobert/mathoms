@@ -360,12 +360,13 @@ export type E5AnalysisArtifact = {
     "componentes"?: Array<{
       "code"?: string;
       "nome": string;
-      "valor": number | string;
+      "valor": number | string | null;
       "peso": number;
-      "nota": number;
-      "status"?: "emitted" | "absent_normalized" | "absent_penalized";
+      "nota": number | null;
+      "status"?: "emitted" | "absent_normalized" | "absent_penalized" | "suprimido";
       "unidade"?: string | null;
     }>;
+    "piso"?: number;
   };
   "patrimonio": {
     "bruto": number;

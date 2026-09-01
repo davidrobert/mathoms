@@ -276,8 +276,12 @@ class PontosUrgentesAnalyzer:
                 )
             )
 
-        endiv = _safe_float(ratios.get("taxa_endividamento_pct", 0)) if ratios else 0.0
-        if endiv > cfg.endividamento_maximo_pct:
+        # `0.0` por supressão fazia o gatilho ficar MUDO por construção — a classe
+        # RL2 da [[ADR-401]]. `None` não dispara "reduzir endividamento", mas
+        # também não afirma que não há o que reduzir ([[A40.l114]]).
+        endiv_raw = ratios.get("taxa_endividamento_pct") if ratios else None
+        endiv = None if endiv_raw is None else _safe_float(endiv_raw)
+        if endiv is not None and endiv > cfg.endividamento_maximo_pct:
             out.append(
                 PontoUrgenteItem(
                     prioridade="Alta",

@@ -185,6 +185,7 @@ def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
     result = _calculate_default(default_calc)
     assert set(result.keys()) == {
         "valor",
+        "piso",
         "max",
         "classificacao",
         "score_version",

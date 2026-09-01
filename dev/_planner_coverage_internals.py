@@ -333,6 +333,8 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     # criado para o ativo fora-de-alocação não sumir da superfície de risco).
     "$.patrimonio.imoveis_alocacao": "termo do numerador; o parecer recebe a razão",
     "$.patrimonio.imoveis_fora_alocacao": "termo fora do numerador; chega por §D3",
+    # [[A40.l114]]: extremo, como as bases acima; já redundante via `classificacao`.
+    "$.score.piso": "extremo conservador do score; a `classificacao` projetada já deriva dele",
     "$.narrativas": "texto já destilado em outra superfície; projetá-lo duplicaria prosa",
     "$.protection_computation_inputs_v1": "insumos crus do cálculo de proteção; o parecer lê o resultado",
     # A40.l80 ([[ADR-412]] §D0): base que AMPUTA a fatia sem titular. Ambas têm
