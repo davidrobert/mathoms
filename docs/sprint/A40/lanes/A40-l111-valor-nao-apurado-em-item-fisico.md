@@ -128,12 +128,19 @@ para o contrato de item `valor_nao_apurado` — muda `valores_31_12` para
 `["number","null"]` e acrescenta estado de cobertura no item, o que é contrato de
 produtor entre E1.5c → E4 → E5.
 
-## Follow-up nomeado
+## §Deferimento datado — renomear `low_confidence` (2026-08-31)
 
 `low_confidence` é nome sobrecarregado: lê-se "extração fraca" e significa "identidade
 não canonicalizada" ([[ADR-246]], chave de dedup cross-IRPF). Quem lê o artefato
 depois — inclusive o LLM do parecer no E6 — vai errar. Renomear é breaking; janela
-própria, dono `data-engineer`.
+própria. **dono:** `data-engineer`. **Condição de retomada:** quando houver janela para
+migração breaking do nome no artefato — o consumidor a proteger é o LLM do parecer no E6,
+que lê o campo pelo nome.
+
+**Por que não entra nesta lane:** o eixo é ortogonal — aqui se decide o que **publicar**
+quando o valor é impossível; lá, como o campo se chama. Misturar os dois faria o rename
+herdar o risco da mudança de contrato de valor. Até a janela abrir, o risco é de
+**leitura**, não de número: nenhum consumidor decide valor por este campo.
 
 ---
 
@@ -167,8 +174,8 @@ ausência do fato. D5 e a tabela do D6 ficam intactos.
 
 ### Contrafactual medido (não é "os testes passam")
 
-Os testes rodados contra o código **pré-mudança**, asserção a asserção, em
-worktree destacada no commit `1a7aa0c1`:
+**16** asserções rodadas contra o código **pré-mudança**, uma a uma, em worktree
+destacada no commit `1a7aa0c1`:
 
 - **10 asserções falham** sem o fix — `valores_31_12` negativo, `valor_nao_apurado`
   ausente, `review_reason` ausente, agregado com o negativo, `bruto` 850k em vez de
@@ -183,6 +190,15 @@ Sem essa separação, uma fixture escrita só com o negativo — sem `secao` —
 igual antes e depois: o classificador a rotearia para o passivo pelo sinal, e o
 defeito nunca se reproduziria. `test_o_ramo_do_sinal_nao_reproduz_o_defeito` fixa
 esse controle no arquivo.
+
+**Alcance do contrafactual, dito com precisão.** O arquivo tem **18** testes, não 16.
+Os 2 restantes (a união de anos na 2ª passagem) entraram **depois** da medição acima,
+e contra `1a7aa0c1` seriam vacuamente vermelhos — o módulo não existia lá, então
+rodá-los ali mediria ausência de import, não discriminação. O controle deles é outro
+e está registrado no commit `0490ed46`: a sonda contra o estado **pré-fix deste
+próprio PR** dá `['2024']` na 1ª passagem e `['2024','2025']` na 2ª — antes do
+conserto, a 2ª sobrescrevia. "Asserção a asserção" valeria para as 16; para as 18,
+não valia, e a frase anterior dizia isso.
 
 ### Limites declarados
 
@@ -203,5 +219,16 @@ esse controle no arquivo.
 - **O invariante de `low_confidence` cobre os ramos do enricher, não o corpus.** Um
   quarto sítio que marque `low_confidence` fora dele passa despercebido; o que torna
   isso improvável é o produtor único de razão, não o teste.
-- **`low_confidence` segue com o nome sobrecarregado** — follow-up nomeado no corpo
-  desta lane, dono `data-engineer`, janela própria.
+- **`low_confidence` segue com o nome sobrecarregado** — §Deferimento datado acima,
+  dono `data-engineer`.
+- **O PR drenou o `rebaseline_manifest.yaml` e isso colidiu com trabalho alheio em
+  voo.** As 13 entradas consumidas da [[A40.l95]] reprovavam o gate CI-only
+  `check_golden_delta_declarado`, e removê-las era pré-condição para este PR mergear.
+  **Eu não conferi PR aberto antes de agir:** o [#1911](https://github.com/davidrobert/mathoms/pull/1911)
+  já fazia a mesma drenagem desde 22:18Z, uma hora antes do merge do #1917. O #1911
+  **mergeou depois** e entregou o que este PR não tinha: o *porquê durável* no
+  cabeçalho do arquivo (a regra "quem mergeia um rebaseline drena o manifesto") e o
+  sentinela `[]` — sem ele o arquivo parseava como `None`. Conferido em `main`:
+  o manifesto parseia `[]`. A reconciliação do lado da [[A40.l95]] está escrita
+  **naquela** lane, que registra o #1917 como a ocorrência real da mina que a
+  simulação dela previu; não se duplica aqui.

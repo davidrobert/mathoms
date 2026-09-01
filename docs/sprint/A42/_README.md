@@ -224,7 +224,7 @@ passo o plano executa fotografia de 2026-08-04 contra um E3 que a [[A40.l2]] já
 mutou. A auditoria de mesa abaixo **não** substitui esse rito — só deixa o
 grafo honesto até lá.
 
-## Lanes (22)
+## Lanes (23)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
@@ -250,6 +250,7 @@ grafo honesto até lá.
 | [[A42.l20]] | `_e3_count` soma só `transacoes_total + transacoes_duplicadas_removidas` e **ignora `remocoes`**, que a função duas acima lê; canal declarado e reconciliável ao inteiro sai como *count divergente* com **duas causas declaradas, ambas falsas** · **U4 `LC8-03`** · ✅ **#1907** — o defeito procede; o conserto é ler o produtor que já existia (`declared_removed_count`, o mesmo da conservação E2→E3), não uma segunda implementação. **Controle A/B** (mesmo DB/ws/run pinado): `count divergente` **4 → 0**, casados **108 → 112**; os 4 déficits somam **907**, o mesmo `X3b` ⇒ divergência **100% de configuração**, resíduo zero. O risco de a normalização criar divergência nova foi **medido** (108 + 4 = 112, nenhuma). Uma citação do enunciado envelheceu: a [[A42.l19]] moveu `_ledger_verdict` para outro módulo **depois** da medição | P2 | 1 | — |
 | [[A42.l21]] | O `X5` da rodada unificada **só pode sair vermelho** e agrega 3 causas distintas sob 1 rótulo (skip mal-carimbado · escreve sob outra key por desenho · read-only); conjunto **constante** em U2/U3/U4 ⇒ poder discriminante zero · **U4 `PV12-04`** · ✅ **#1906** — defeito procede; eram **4** causas (não 3) e *"zero trabalho"* tem **duas grafias** (`skipped` · `total_processed: 0`) que os mesmos stages alternam conforme a saída — a 1ª versão, fiel ao enunciado, reprovava `extract_with_llm` em 5 de 25 runs. Histórico completo: **103 FECHA · 21 DIVERGE · 5 INAPLICAVEL**, contra `DIVERGE 3` constante | P2 | 1 | — |
 | [[A42.l22]] | A **ETA exibida durante o run** é subdeclarada em até **72%**: a mediana filtra `status==completed` e mistura no-ops de milissegundos com execuções de minutos · **U4 `PV12-01`** — único P2 da rodada com consequência medida na superfície do usuário | P2 | 1 | — |
+| [[A42.l23]] | `validate_full_order` compara **declaração com declaração**: as 2 declarações falsas de `writes` (`generate_narratives` escreve no E5; `validate_cross` não escreve) passam, e um `reads` sobre elas valida contra ficção — medido, indistinguível do controle verdadeiro · **r9 `PV9-30`**, aberto desde então **sem lane nem ADR**. Re-enunciado 2026-08-31: o campo é load-bearing em **8/18** (a espinha), e a falsidade mora nos 10 inertes ⇒ dano hoje **zero**, a um `reads=` de distância. **Refuta a medição do `PV10-10`** (*"ornamental"*), que mutou os 2 stages de cauda onde o campo é inerte por construção | P2 | 1 | — |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
@@ -277,6 +278,11 @@ que o parágrafo acima fosse relido.
 > APOSENTADO abaixo, que é a fonte vigente. Também deixou de valer o "excedido em 8": não
 > há mais teto de que exceder. Esta nota existe porque prosa condicional envelhece em
 > silêncio — foi o próprio modo de falha que a `U4` registrou no §10 do runbook.
+
+> **23ª lane (2026-08-31).** A [[A42.l23]] entra do `r9` (`PV9-30`), não de rodada nova: era
+> `procede-aberto` **sem lane nem ADR** desde o r9, o que a §Convenção item 3 do registro
+> chama de bug do índice. O heading e a tabela sobem para 23; o parágrafo datado de 30/08
+> acima fica como está, por ser medição do dia.
 
 > **Por que o número estava em 16.** Este parágrafo nasceu correto no #1842 e ficou falso
 > no #1843, que criou a [[A42.l17]] sem reler a contagem — o mesmo modo de falha que ele
@@ -377,7 +383,7 @@ unificada rodou e não foram pegas.* Medida em 2026-08-31, contra a `U4` (2026-0
 como já cresceu na A40, a aposentadoria do teto estava errada — e se saberá por medição, não
 por sensação. Re-medir no fecho de cada `U<n>`.
 
-**O WIP fica publicado, não gateado:** 6 em 2026-08-31. Se virar limite algum dia, o número
+**O WIP fica publicado, não gateado:** **3** em 2026-08-31 23h (`open` 2 + `in_progress` 1). O `6` que este parágrafo citava vinha do painel da §Teto de lanes — o mesmo número que a nota datada duas seções acima aposentou (*"só o número não se cita mais desta tabela"*): ele era WIP quando o painel foi escrito e caiu para 4 no fecho da [[A42.l20]] e para 3 com a [[A42.l14]]. Se virar limite algum dia, o número
 tem de sair de evidência de throughput coletada **antes** de conhecer o valor corrente — não
 deste parágrafo.
 

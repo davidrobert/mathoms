@@ -1023,6 +1023,7 @@
 | A42.l20 | lane | shipped | A42 | O contador de linhas do E3 ignora o canal de remoção que a função vizinha lê, e o resultado sai com duas causas declaradas, ambas falsas | `sprint/A42/lanes/A42-l20-contador-do-razao-ignora-canal-de-remocao.md` |
 | A42.l21 | lane | shipped | A42 | O cross-check de proveniência da rodada unificada só pode sair vermelho, e agrega três causas distintas sob um rótulo | `sprint/A42/lanes/A42-l21-x5-so-pode-sair-vermelho.md` |
 | A42.l22 | lane | open | A42 | A previsão de tempo exibida durante o run é subdeclarada em até 72%: a mediana mistura no-ops de milissegundos com execuções de minutos | `sprint/A42/lanes/A42-l22-mediana-de-duracao-mistura-no-op.md` |
+| A42.l23 | lane | open | A42 | O validador de ordem compara declaração com declaração: `writes` falso passa, e um `reads` sobre ele valida contra ficção | `sprint/A42/lanes/A42-l23-validador-de-ordem-compara-declaracao-com-declaracao.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |
