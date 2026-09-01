@@ -136,11 +136,19 @@ para o `_HISTORY` sai **no mesmo PR**:
 python3 dev/split_sprint_history.py --sprint <X> --section '<label exato>'
 ```
 
+⚠️ **O comando só move `h2`** — `--section` casa label de `h2` (`split_sprint_history.py`
+§`--section`: *"label h2 a mover"*). **Painel é quase sempre `h3` dentro de `h2` vivo**, e
+aí o comando **não move nada**: medido em 2026-09-01 no §Pendência de filiação da
+[[A40.l110]], as duas formas do label devolveram *"nenhuma seção casou"* e o `_README`
+ficou intacto. Mover o `h2` pai seria pior — no caso dele, o pai é o §Gate de saída, que
+hospeda o contador vivo. **Para painel `h3`, mova à mão** com o mesmo ponteiro do
+`POINTER_TEMPLATE`, e deixe no lugar de origem a linha que diz o que **continua
+governando**. Ensinar `h3` ao script é trabalho próprio, não feito.
+
 Não é varredura: é a pergunta que só quem encerrou sabe responder. **Não** rode o
 `--dry-run` aqui — medido na A40 em 2026-09-01, ele marca 4 seções (987 linhas) das
 quais **3 governam hoje**, e a saída é idêntica em todos os fechos. Varredura de
-`_HISTORY` é da `audit-vault`. Caso de origem: o §Pendência de filiação da [[A40.l110]]
-fechou em `a95bde8b` e o ponteiro devia ter saído nesse commit.
+`_HISTORY` é da `audit-vault`.
 
 Regra que vale mais que as outras: **número citado se re-mede, não se relê.**
 Se o PR mudou o que um número conta, rode a medição de novo agora. Achado com

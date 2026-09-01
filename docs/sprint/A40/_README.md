@@ -186,48 +186,9 @@ condição de parada.
 
 > ### ⚠️ Pendência de filiação — [[A40.l110]] e [[A40.l111]] (levantada 2026-08-31)
 >
-> Achado da re-triagem conduzida pelo `product-manager`: as duas **mutam artefato/E5** —
-> a l110 grava a data corrente no artefato (quebra idempotência do balde patrimonial) e a
-> l111 tira do somatório um valor que vira `null` — e **nenhuma das duas está nomeada na
-> cláusula de reinício abaixo**. A lista atual é l2 · l94 · l95 · l96 · l98 · l100 · l101 +
-> [[A42.l15]] · [[A42.l17]].
->
-> **É o mesmo modo de falha que já custou duas emendas tardias** (a l96 em 2026-08-29, a l98
-> em 2026-08-30): a filiação foi decidida **depois** de a lane existir, e a cláusula teve de
-> ser reescrita. **Decida a filiação das duas ANTES de iniciar o contador** — se elas
-> pertencem à cláusula e o contador já tiver começado, um re-run inteiro é desperdiçado.
->
-> Não decidi aqui: filiação é do dono, e o critério (*"muta E3/E5 a montante de todo run"*)
-> exige julgar o alcance de cada uma, não só constatar que tocam E5.
-
-> **Nota datada 2026-09-01 (closeout da [[A40.l110]]) — o prazo NÃO venceu, e apareceu um
-> split-brain.** Três fatos medidos, nenhuma decisão tomada aqui:
->
-> 1. **A janela continua aberta.** O painel condiciona a decisão ao *início do contador*,
->    não ao merge das lanes. O contador está em **0/2** desde a `U4` (2026-08-30), então
->    as duas terem chegado a `main` com a filiação em aberto não custou nada. Eu havia
->    lido "expirou" no primeiro passe do closeout; o `product-manager` corrigiu, e a
->    correção procede.
-> 2. **A [[A40.l111]] se auto-filiou, e a lista não a acompanhou.** A linha dela na tabela
->    de lanes afirma *"**entra na cláusula de reinício do contador** (muta E5)"*, mas a
->    lista canônica acima nomeia `l2 · l94 · l95 · l96 · l98 · l102 · [[A42.l15]]` — **sem
->    a l111**. São duas fontes de verdade sobre a condição que dispara o gate de saída da
->    sprint. Custa uma linha e a l111 é terminal (#1917), logo decidir não atrasa nada.
-> 3. **Existe precedente para a classe da [[A40.l110]] ficar FORA.** A [[A42.l18]] e a
->    [[A42.l19]] saíram da cláusula acima por serem *"de instrumento de medição e de guard
->    de escrita — não deslocam valor publicado"*. A l110 matou 2 campos com **zero leitor
->    de produção, medido**, e nenhum número do E5 se move. A assimetria importa: **FORA
->    custa nada; DENTRO trava o início do contador** enquanto o PR-B não fechar.
->
-> **✅ Resolvida em 2026-09-01 — a filiação foi decidida pelo dono.** A [[A40.l111]]
-> entra na cláusula, a [[A40.l110]] fica fora, e o split-brain do item 2 se fecha: a
-> lista canônica acima passa a nomear a l111, como a linha dela na tabela já dizia. O
-> critério foi aplicado por **medição de snapshot**, não por julgamento de alcance — ver
-> a §Extensão 2026-09-01 acima para a tabela e a ressalva do golden.
->
-> A decisão saiu **antes** de o contador iniciar (0/2), que era exatamente o que esta
-> pendência pedia. Custo zero nos dois lados: as duas lanes estão terminais ou a um
-> merge de estar.
+> Movida para [`_HISTORY`](_HISTORY.md) em 2026-09-01 — registro fechado,
+> não governa decisão de hoje. **A decisão que ela produziu governa e ficou**:
+> ver a §Extensão 2026-09-01 logo acima (l111 dentro, l110 fora).
 
 **Cláusula de reinício do contador — [[A40.l2]] (2026-08-06).** O flip do enforce de
 colapso cross-documento muta o E3 **a montante de todo run E0→E6**, logo **zera** o contador
