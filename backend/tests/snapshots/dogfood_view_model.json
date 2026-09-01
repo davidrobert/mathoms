@@ -2533,6 +2533,8 @@
       "motivo_supressao": null,
       "reclassificados": []
     },
+    "imoveis_alocacao": 44000000,
+    "imoveis_fora_alocacao": 16000000,
     "imoveis_geradores": 15000000,
     "imoveis_investimento": 60000000,
     "imoveis_nao_geradores": 45000000,
