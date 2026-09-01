@@ -33,6 +33,7 @@ from backend.app.services.pipeline.pipeline_service import resolve_llm_tier_asyn
 from backend.app.services.planner_review_tier_filter import apply_tier_filter
 from backend.app.services.security.access_audit import record_access_audit
 from backend.app.services.security.crypto import read_artifact_content
+from pipeline.observability.view_model_pii import redact_view_model
 
 logger = logging.getLogger("mathoms.api.planner_review")
 
@@ -244,6 +245,13 @@ async def _render_review(
         # + "Inspecione _meta.error_detail" a um cliente premium (ADR-366 §D5).
         return _build_response(review, None, 0)
     artifact = await _load_artifact(db, review.pipeline_artifact_id)
+    # [[A40.l115]] — o parecer era o único egresso do relatório SEM redação: o
+    # `/reports/{id}/data` redige desde a A40.l6 e este servia `content_json` cru.
+    # Redigir o dict ANTES do tier filter cobre `descricao`, `evidencia` e todo
+    # campo futuro POR CONSTRUÇÃO — o walker varre valor, não allowlist de chave.
+    # Na leitura, como na A40.l6: parecer já gravado é servido saneado sem re-run,
+    # e `immutable_hash` segue atestando o ARTEFATO, não os bytes servidos.
+    artifact = redact_view_model(artifact)  # type: ignore[assignment]
     tier = await resolve_llm_tier_async(db, workspace_id)
     content, gated = apply_tier_filter(artifact=artifact, tier=tier)  # type: ignore[arg-type]
     return _build_response(review, content, gated)
