@@ -3,21 +3,30 @@ id: A40.l110
 type: lane
 title: "O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas"
 sprint: A40
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l110-fossil-do-baseline-e-idempotencia
 owner: data-engineer
+ship_pr: 1914
+ship_date: "2026-09-01"
 depends_on: []
-adrs: ["[[ADR-409]]", "[[ADR-427]]", "[[ADR-093]]", "[[ADR-212]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p1, area/dados, area/pipeline]
+adrs: ["[[ADR-432]]", "[[ADR-409]]", "[[ADR-427]]", "[[ADR-093]]", "[[ADR-212]]"]
+tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/dados, area/pipeline]
 ---
 
 # A40.l110 — `fossil-do-baseline-e-idempotencia`
 
-> ⏳ **PR-A ✅ entregue em 2026-09-01 — [#1914](https://github.com/davidrobert/mathoms/pull/1914)
-> (`f8cbf94d`). A lane segue `open` pelo PR-B**, que é trabalho real, não resíduo de
-> status. `in_progress` seria falso: o predicado do `_README` §Predicado é
-> *branch/PR aberta*, e o PR-B não tem nenhuma das duas. Forma herdada da [[A40.l60]].
+> ✅ **Entregue em 2026-09-01 nos dois PRs.** **PR-A** —
+> [#1914](https://github.com/davidrobert/mathoms/pull/1914) (`f8cbf94d`): o fóssil morre
+> nas duas pontas e o `date.today()` sai do artefato. **PR-B** — [#1933](https://github.com/davidrobert/mathoms/pull/1933),
+> [[ADR-432]]: o contrato é re-derivado do produtor (**5 de 11 → 14 de 14**), o `oneOf` de raiz colapsa e
+> `additionalProperties: false` entra. Closeout do PR-A em
+> [#1929](https://github.com/davidrobert/mathoms/pull/1929), que corrigiu 3 números meus.
+>
+> **O flip deste schema continua bloqueado — agora pelo número, não pela prosa.** Medido
+> pós-PR-B: E1.5c 3/98 (valor negativo, [[A40.l111]]) e E4 **71/71**
+> `additionalProperties`, de artefato **histórico** que carrega os 2 fósseis. Some quando
+> as runs virarem o corpus; nenhuma ocorreu desde 2026-08-30 19:07.
 
 > **Origem:** tratamento dos achados da [[A42.l19]]. Co-design `data-engineer`,
 > 2026-08-31. **Origem** do escopo: o §Deferimento datado da [[A40.l58]] (§F da
@@ -95,9 +104,12 @@ e **então** decidir `additionalProperties`.
 - [x] `measure_schema_drift --schema baseline_patrimonial.schema.json --all` com o
       número **antes e depois** no corpo do PR, para os dois produtores.
 - [x] Controle negativo: reinserir `pipeline_stage` na fixture **reprova**.
-- [ ] PR-B: `additionalProperties: false` com gate de completude por **igualdade de
+- [x] PR-B: `additionalProperties: false` com gate de completude por **igualdade de
       conjunto** entre chaves declaradas e emitidas, nos dois sentidos ([[ADR-427]] D5),
-      nos dois produtores.
+      nos dois produtores — `tests/test_baseline_contrato_completo_gate.py`, com o
+      conjunto emitido vindo de **rodar o produtor**, nunca de lista à mão. Controles
+      negativos medidos: fantasma de volta reprova, chave emitida fora do schema reprova,
+      `oneOf` de volta reprova.
 
       > **Re-corte 2026-09-01 — o critério anterior era insatisfazível.** Ele exigia *"os
       > dois produtores em 0 de drift no corpus"*. Os 6 residuais são violação de
@@ -212,6 +224,48 @@ previsível, que é justamente o que torna o enforcement necessário.
 `baseline_patrimonial` entra em `_CONTRATO_NAO_DERIVADO` no
 `dev/measure_schema_drift.py`: veredito `NO-GO` **independente do drift**, com a
 razão e a lane que o levanta (o PR-B) na mensagem. É o que o §F pedia, enforçado.
+
+## Execução PR-B (2026-09-01) — o contrato passa a descrever o payload
+
+**[[ADR-432]] `Decidido`.** Censo do corpus por produtor, e o schema re-derivado do que
+os dois de fato emitem:
+
+| | antes | depois |
+| --- | --- | --- |
+| properties declaradas | 11 | **14** |
+| sobreposição declarada×emitida | 5 de 11 | **14 de 14** |
+| `oneOf` de raiz | Format A ∪ Format B | colapsado — `required: ["patrimonio_por_ano"]` |
+| `additionalProperties` | sem setar | **`false`** |
+
+**+8 emitidas que não eram declaradas** (`itens`/`resumo` em 98/98 e 71/71; `_meta`,
+`informe_pf_saldos_31_12`, `wise_fiscal_flags`, `payload_version`, `prompt_version`,
+`validation`). **−5 fantasmas** (`anos_base`, `declarations`, `properties`, `receipts`,
+`summary`). `membros` fica **por alcance de código** — o normalizer a emite por alias de
+`membros_familia`, e sob `strict` chave emitível não declarada abortaria o write.
+
+O Format B exigia `declarations`, que é **0/169**; `patrimonio_por_ano` é 98/98 e 71/71.
+Ramo morto de contrato é pior que ausência: publica forma que produtor nenhum produz.
+
+### O preço, medido e aceito
+
+`additionalProperties: false` leva o agregado de 6/169 a **74/169 (43,8%)**:
+
+| produtor | drift | causa |
+| --- | --- | --- |
+| E1.5c | **3/98** | `valores_31_12` negativo — [[ADR-431]], [[A40.l111]] |
+| E4 `patrimonio` | **71/71** | os 2 fósseis, em artefato **histórico** |
+
+Os 71 são anteriores ao PR-A e a validação é pós-**write** ([[ADR-212]]) — write novo não
+os carrega, produção nenhuma quebra. Foi decisão explícita da [[ADR-432]] §Não-decisões
+**não** declarar os fósseis para zerar o número: seria ressuscitar o que esta lane matou.
+
+### `_CONTRATO_NAO_DERIVADO` levantado
+
+A razão do bloqueio era *"contrato irreal"*, e ela morreu. O dicionário fica **vazio, não
+deletado** — é onde a recusa da [[ADR-409]] §F se encoda para o próximo schema —, e os
+testes do mecanismo passam a usar entrada sintética, senão morreriam calados.
+
+O que bloqueia o flip agora é o número, e ele **nomeia o path**. Era esse o ponto.
 
 ## Fora de escopo
 

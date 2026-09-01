@@ -673,3 +673,16 @@ o relatório do cliente pode mudar de forma em silêncio.**
 > protegia a recusa passou a ser enforçado — `_CONTRATO_NAO_DERIVADO` em
 > `dev/measure_schema_drift.py` devolve `NO-GO (contrato)` independente do drift. Quitação
 > é do PR-B. Os números datados de 2026-08-24 acima e no §Passo 1 **não se reescrevem**.
+
+> **✅ Quitado em 2026-09-01 — [[ADR-432]] (`Decidido`), PR-B da [[A40.l110]].** O escopo
+> deste deferimento (*"declarar as 13 chaves reais, decidir `additionalProperties`,
+> aposentar as fantasmas"*) foi executado: **14 declaradas, sobreposição 14 de 14**,
+> `oneOf` de raiz colapsado e `additionalProperties: false`. `_CONTRATO_NAO_DERIVADO`
+> foi levantado junto — a razão dele era este deferimento.
+>
+> **O flip continua impossível, por outro motivo e agora mensurável.** O contrato ficou
+> real; o corpus é que está sujo: 74/169 (43,8%), sendo **71 de artefato histórico** que
+> carrega os 2 fósseis mortos no PR-A, e 3 do `valores_31_12` negativo ([[A40.l111]]).
+> Some quando as runs virarem o corpus. Quem for flipar lê `NO-GO` com
+> `additionalProperties` em 71 artefatos e precisa saber que é **história, não
+> regressão**.
