@@ -315,6 +315,12 @@ O #1904 foi o **primeiro** rebaseline a de fato usar o manifesto — ele era `[]
 nasceu, em 2 commits —, e por isso o passo de drenagem nunca tinha sido exercido por
 ninguém. A regra ficou escrita no cabeçalho do próprio arquivo.
 
+**Confirmado no mundo real, não só na simulação (2026-08-31):** enquanto este PR estava
+aberto, a [[A40.l111]] **drenou o manifesto dentro do #1917** — outra lane bateu na mina
+antes de a correção mergear. A simulação previu a classe; o #1917 é a ocorrência. O que
+este PR contribui deixa de ser a drenagem e passa a ser o **porquê durável** no cabeçalho
+do arquivo, que é o que impede a terceira ocorrência.
+
 **Follow-up proposto, sem dono ainda:** nada **força** a drenagem. Um gate que reprove
 manifesto não-vazio em `main` fecharia a classe; a extensão natural é
 `dev/check_lane_transition.py` ou o passo de CI que já lê o arquivo — **não** um gate

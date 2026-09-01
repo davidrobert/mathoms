@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-419 ADRs (ADR-001 a ADR-429) em [`docs/adr/`](../../adr/).
+421 ADRs (ADR-001 a ADR-431) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 358
+- **Decidido**: 360
 - **Proposto**: 57
 - **Roadmap**: 4
 
@@ -410,12 +410,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## e5
 
-### Decidido (4)
+### Decidido (5)
 
 - [[ADR-306]] — Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco · phase A28
 - [[ADR-422]] — A folga é a poupança da janela, não a poupança mais o gasto pontual realizado · phase A40
 - [[ADR-425]] — Balde não classificado fica fora de numerador que prescreve, e a cobertura da base é campo publicado · phase A40
 - [[ADR-428]] — A direção conservadora de um piso é fixada pelo uso do número, não pelo número · phase A40
+- [[ADR-431]] — Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo · phase A40
 
 ## frontend
 
@@ -656,7 +657,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-418]] — A meta de IF desconta exatamente a renda passiva que o numerador não conta · phase A40
 - [[ADR-426]] — O destino E3→E4 declara valor, ou o eixo-valor não é medido · phase A42
 
-### Proposto (18)
+### Proposto (19)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -676,6 +677,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-419]] — O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI
 - [[ADR-420]] — Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio
 - [[ADR-429]] — Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita · phase A40
+- [[ADR-430]] — Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 · phase A40.l96
 
 ### Roadmap (1)
 
@@ -727,9 +729,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## tooling
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-421]] — Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual
+- [[ADR-421]] — Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual · phase A42.l14
 
 ## Outras
 

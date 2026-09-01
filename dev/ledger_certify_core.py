@@ -25,6 +25,7 @@ from dev.ledger_collapse_layer import (
     fmt_collapse_layer,
 )
 from dev.ledger_conservation import (
+    NAO_VERIFICAVEL,
     CrossGroupSummary,
     cross_group_summary,
     declared_removed_count,
@@ -84,6 +85,12 @@ class LedgerReport:
     # Vazio = relatório só-sombra; a sombra NÃO pontua a KR.
     cross_group_entregue: CrossGroupSummary | None = None
     entregue: dict = field(default_factory=dict)
+    # Censo de proveniência do E2 (ADR-421 D3) — vazio = NÃO MEDIDO, nunca "tudo do run".
+    e2_provenance: dict = field(default_factory=dict)
+    # Substrato de cada eixo: "entregue" (artefato publicado pelo run) ou "sombra"
+    # (re-derivação in-process). ADR-421 D2 — o rótulo vai na LINHA, não só no cabeçalho.
+    e4_subject: str = "sombra"
+    e3_subject: str = "sombra"
 
     @property
     def zero_write_ok(self) -> bool:
@@ -175,12 +182,24 @@ def _bucket_metrics(payload) -> dict:
     return {"n": n, "n_tx": int(payload.get("total_transacoes", 0))}
 
 
+def _expected_buckets(e4: dict) -> list[str]:
+    """Baldes canônicos do E4 + qualquer key inesperada — a UNIÃO, nunca só o presente."""
+    from pipeline.domain.services.e4_serialization import ARTIFACT_KEYS
+
+    return list(ARTIFACT_KEYS) + sorted(set(e4) - set(ARTIFACT_KEYS))
+
+
+def _bucket_verdict(key: str, e4: dict, collisions: list) -> UnitVerdict:
+    """Veredito de um balde — ausente vira linha `não-verificável`, nunca silêncio (D6)."""
+    if key not in e4:
+        return UnitVerdict(key, NAO_VERIFICAVEL, "balde ausente no sujeito", {})
+    verdict, detail = e4_bucket_verdict(key, e4[key], collisions)
+    return UnitVerdict(key, verdict, detail, _bucket_metrics(e4[key]))
+
+
 def _e4_verdicts(e4: dict, collisions: list) -> list:
-    out = []
-    for key in sorted(e4):
-        verdict, detail = e4_bucket_verdict(key, e4[key], collisions)
-        out.append(UnitVerdict(key, verdict, detail, _bucket_metrics(e4[key])))
-    return out
+    """Um veredito por balde ESPERADO — `sorted(e4)` omitia o ausente (ADR-421 D6)."""
+    return [_bucket_verdict(k, e4, collisions) for k in _expected_buckets(e4)]
 
 
 def _e3_exec_dict(e3_result) -> dict:
@@ -204,21 +223,40 @@ def _collapse_layer(e3_result, cross_group) -> CollapseLayerSummary:
     )
 
 
-def build_report(ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e3) -> LedgerReport:
-    """Monta o ``LedgerReport`` a partir das peças re-derivadas (puro)."""
-    e2_payloads = seeds
-    collisions = investment_double_count(e4.get("investimentos", {}))
+def _subject_of(rederivado: dict, publicado: dict | None) -> tuple[dict, str]:
+    """Sujeito de um eixo de rubrica + rótulo do substrato ([[ADR-421]] D1/D4)."""
+    # O veredito descreve o que o run PUBLICOU. Sem artefato publicado o eixo cai para a
+    # re-derivação — e o RÓTULO diz isso, em vez de herdar em silêncio (D6).
+    return (publicado, "entregue") if publicado else (rederivado, "sombra")
+
+
+def _subject_axes(e4: dict, e4_persisted, fresh_e3: dict, persisted_e3: dict) -> dict:
+    """Eixos de rubrica sobre o SUJEITO ENTREGUE, com o rótulo do substrato de cada um."""
+    subject, label = _subject_of(e4, e4_persisted)
+    collisions = investment_double_count(subject.get("investimentos", {}))
+    e3_subject, e3_label = _subject_of(fresh_e3, persisted_e3)
+    return {
+        "e4_subject": label,
+        "e4_buckets": _e4_verdicts(subject, collisions),
+        "investment_collisions": collisions,
+        "e3_subject": e3_label,
+        "e3_groups": _e3_verdicts(e3_subject),
+    }
+
+
+def build_report(
+    ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e3, *, e4_persisted=None
+) -> LedgerReport:
+    """Monta o ``LedgerReport``; o eixo E4 descreve o artefato ENTREGUE quando ele existe."""
     cross_group = cross_group_summary(e4, result.cash_flow.transferencias_count)
     return LedgerReport(
+        **_subject_axes(e4, e4_persisted, fresh_e3, persisted_e3),
         workspace_id=ws,
         run_id=run_id,
-        e2_seeded=len(e2_payloads),
-        e2_tx=sum(len(p.get("transacoes", [])) for p in e2_payloads),
+        e2_seeded=len(seeds),
+        e2_tx=sum(len(p.get("transacoes", [])) for p in seeds),
         e3_exec=_e3_exec_dict(e3_result),
-        conservation=_conservation(e2_payloads, fresh_e3, e4, result),
-        e3_groups=_e3_verdicts(fresh_e3),
-        e4_buckets=_e4_verdicts(e4, collisions),
-        investment_collisions=collisions,
+        conservation=_conservation(seeds, fresh_e3, e4, result),
         natural_key=_natural_key_coverage(result),
         drift=_drift(fresh_e3, persisted_e3),
         cross_group=cross_group,
@@ -236,14 +274,31 @@ def _delta_cents(a, b) -> str:
 
 
 def _fmt_conservation(results: list) -> list[str]:
+    """Conservação da CADEIA re-derivada E2→E3→E4 — sempre sombra, e a linha diz isso."""
     lines = ["## Conservação (workspace, cents tol-zero)"]
     for r in results:
         delta = _delta_cents(r.value_in_cents, r.value_out_cents)
         lines.append(
             f"- {r.transition}: count {r.count_in}->{r.count_out} dups={r.dups} "
-            f"Δvalor={delta} cents · **{r.verdict}** — {r.detail}"
+            f"Δvalor={delta} cents · **{r.verdict}** — {r.detail} · [sombra]"
         )
     return lines
+
+
+_E2_PROV_TITLE = "## Substrato E2 (proveniência)"
+
+
+def _fmt_e2_provenance(cen: dict) -> list[str]:
+    """Censo do substrato E2 — `do run` / `herdado` / `descartado pós-run` ([[ADR-421]] D3)."""
+    if not cen:
+        return [_E2_PROV_TITLE, "- não medido — leia o bloco como não-verificável [entregue]"]
+    return [
+        _E2_PROV_TITLE,
+        f"- do run={cen['do_run']} · herdado={cen['herdado']} · "
+        f"descartado pós-run={cen['descartado_pos_run']} · corte temporal: {cen['corte']}",
+        "- E2 é workspace-scoped POR DECISÃO ([[ADR-241]]): `herdado` é o regime normal, "
+        "não anomalia — run-escopá-lo seria regressão",
+    ]
 
 
 def _fmt_exec(report: LedgerReport) -> list[str]:
@@ -260,11 +315,14 @@ def _fmt_exec(report: LedgerReport) -> list[str]:
     ]
 
 
-def _fmt_units(title: str, units: list) -> list[str]:
+def _fmt_units(title: str, units: list, subject: str) -> list[str]:
+    """Vereditos de unidade — cada LINHA carrega o substrato ([[ADR-421]] D2)."""
+    # Copy-paste para o MOC não pode perder o sujeito: o registro durável keya por
+    # (dimensão, âncora, regra), SEM eixo de braço — foi essa perda que gerou o LC6-01.
     lines = [title]
     for u in units:
         metrics = " ".join(f"{k}={v}" for k, v in u.metrics.items())
-        lines.append(f"- {u.unit} [{metrics}] · **{u.verdict}** — {u.detail}")
+        lines.append(f"- {u.unit} [{metrics}] · **{u.verdict}** — {u.detail} · [{subject}]")
     return lines
 
 
@@ -273,7 +331,7 @@ def _fmt_tail(report: LedgerReport) -> list[str]:
     zw = "OK (inalterado)" if report.zero_write_ok else "VIOLADO"
     return [
         "## natural_key",
-        f"- cobertura: {nk['present']}/{nk['total']} ({nk['pct']}%)",
+        f"- cobertura: {nk['present']}/{nk['total']} ({nk['pct']}%) · [sombra]",
         "## Zero-write",
         f"- pipeline_artifacts/transaction_overrides antes={report.counts_before} "
         f"depois={report.counts_after} · **{zw}**",
@@ -289,7 +347,13 @@ def _fmt_drift(d: DriftSummary) -> list[str]:
     lines += [f"  · {c}" for c in d.count_diff[:20]]
     lines.append(f"- só no fresco (re-derivação re-chaveou / grupo novo): {len(d.fresh_only)}")
     lines += [f"  · {k}" for k in d.fresh_only[:8]]
-    lines.append(f"- só no persistido (keying antigo não reproduzido): {len(d.persisted_only)}")
+    # A glosa antiga dizia "keying antigo não reproduzido" — ATRIBUIÇÃO FALSA DE CAUSA.
+    # Medido (ADR-421 M1): os 31 grupos eram 31/31 sobra de 7 OUTROS runs, e o run pinado
+    # escreveu zero deles. Nada na re-chaveação estava implicado. Com o substrato agora
+    # run-scoped, a sobra cross-run não pode mais aparecer aqui — o que sobrar é do run.
+    lines.append(
+        f"- só no persistido do run (publicado e não reproduzido): {len(d.persisted_only)}"
+    )
     lines += [f"  · {k}" for k in d.persisted_only[:8]]
     return lines
 
@@ -350,9 +414,10 @@ def _cross_group_blocks(report: LedgerReport) -> list:
 def _report_blocks(report: LedgerReport) -> list:
     return [
         _fmt_conservation(report.conservation),
+        _fmt_e2_provenance(report.e2_provenance),
         _fmt_exec(report),
-        _fmt_units("## Eixo E3 (por grupo)", report.e3_groups),
-        _fmt_units("## Eixo E4 (por balde)", report.e4_buckets),
+        _fmt_units("## Eixo E3 (por grupo)", report.e3_groups, report.e3_subject),
+        _fmt_units("## Eixo E4 (por balde)", report.e4_buckets, report.e4_subject),
         *_cross_group_blocks(report),
         fmt_collapse_layer(report.collapse_layer),
         _fmt_tail(report),

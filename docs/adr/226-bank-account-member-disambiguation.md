@@ -31,7 +31,14 @@ tags:
   - phase/a12
   - status/decidido
   - type/adr
+amended_at: ["2026-08-31"]
 ---
+
+> ⚠️ **Emendada em 2026-08-31 ([[A40.l96]] · [[ADR-430]]).** Duas cláusulas
+> mudaram: a **§5** (E1 em "merge idempotente" escrevendo em `bank_accounts`)
+> está **morta** — nunca foi implementada e a [[ADR-229]] §1 decidiu o mecanismo
+> oposto no dia seguinte; e o `ambiguous` da **§3** era **um campo carregando
+> dois vereditos**. Ver §Emenda ao final antes de citar qualquer das duas.
 
 > ADR longa (>150 linhas) por design: coordena schema DB + serializer + schema E2/E3 + resolver puro + UI + 4 PRs sequenciais; a interação entre essas camadas precisa de um documento de referência único para sobreviver à execução em PRs separados.
 
@@ -326,3 +333,66 @@ Lane completa em 4 PRs:
 - **PR4** — partial unique index `CONCURRENTLY` + 409 conflict no backend + telemetria `mathoms.account_resolver.resolve` + flip ADR
 
 FAQ produto em `docs/reference/FAQ_bank_account_member.md`.
+
+## Emenda 2026-08-31 — `ambiguous` são dois eixos, e a §5 está morta
+
+Origem: [[A40.l96]] §Co-design. Decisão nova em [[ADR-430]].
+
+### E1 — o `ambiguous` da §3 colapsou dois eixos num campo só
+
+Esta ADR declara a regra **duas vezes, em conflito aparente**: a lista de casos
+de aceite do plano (§Implementação) diz *"ambiguous (**2+ membros** sem
+account_number)"*, e o §Decisão em prosa diz *"membro indeterminado — múltiplas
+**contas** no mesmo banco sem identificador"*. O código seguiu a prosa, e
+`tests/unit/pipeline/test_account_resolver.py` fixa esse comportamento
+deliberadamente.
+
+**Não há decisão errada a reverter: as duas frases são verdadeiras sobre eixos
+diferentes.**
+
+| eixo | pergunta | predicado | quem consome |
+|---|---|---|---|
+| **titularidade** | de quem é? | `\|⋃ titulares(c), c ∈ contas_bank\| ≥ 2` | os 2 call-sites |
+| **conta** | em qual conta? | `len(contas_bank) > 1` e não casou por número | **ninguém** |
+
+`AccountResolution` passa a carregar `member_confidence` + `account_confidence`
+ortogonais. O consumidor lia o veredito de **conta** para responder a pergunta de
+**titularidade** — no corpus de dogfood, 4 de 11 instituições eram
+`ambiguous` com **dono único**, e o relatório publicava isso como "não sei de
+quem é".
+
+O teste é **mantido e renomeado**
+(`test_two_accounts_same_member_resolves_member_but_not_account`), afirmando os
+dois eixos. Ele protegia uma verdade real — a *conta* não foi identificada — no
+eixo errado.
+
+**O predicado é escrito sobre `titulares(conta)`, nunca sobre `member_key`.**
+Conta conjunta e conta de dependente menor são casos em que duas contas do mesmo
+`member_key` **são** ambiguidade de titularidade. `is_joint`/`co_titulares`
+existem em `BankAccountRecord` e nunca são populados (V2, reservada nesta ADR);
+hoje o predicado degenera para `≥2 member_keys`, e no dia do V2 já está certo.
+
+### E2 — a §5 (E1 em merge idempotente no DB) está morta
+
+A §5 decidiu que o E1 escreve em `bank_accounts` em modo merge idempotente.
+**Nunca foi implementada**: o único writer da tabela é
+`family_member_repository.add_account`, alcançável por API e import de config —
+nunca pelo pipeline. Medido em 2026-08-31: `bank_accounts` tem **0 rows no banco
+inteiro** de dogfood.
+
+A [[ADR-229]] §1, de 2026-05-20 — **um dia depois desta** —, decidiu o mecanismo
+oposto e o implementou ponta a ponta: o artefato E1 é **tier 1**, e o **clique
+humano** promove a tier 5. Nunca declarou supersedure, e as duas ficaram vigentes
+em conflito por ~15 meses.
+
+**A §5 fica sem efeito.** O pipeline não escreve em `bank_accounts`; o hint do E1
+é fundido em `serialize_family_members` com precedência por conta. Regra nova e
+rationale em [[ADR-430]] §1-§2. `supersedes`/`superseded_by` não se aplicam:
+supersedure é file-level e o resto desta ADR (o `account_number` como
+discriminador, o resolver puro, o `is_joint` reservado) **continua vigente**.
+
+### O que esta emenda NÃO toca
+
+O `account_number` como discriminador primário (§1), o `AccountResolver` puro
+sem I/O (§3), o `is_joint` reservado para V2 (§4) e os gates de paridade seguem
+como decididos.

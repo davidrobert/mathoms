@@ -241,7 +241,7 @@ grafo honesto até lá.
 | [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | — |
 | [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
 | [[A42.l13]] | Completude por ficha: `não-shell` é fraco demais para sustentar `completo` | P1 | 2 | — |
-| [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** | **P0** | 1 | — |
+| [[A42.l14]] | Conservação certifica a **re-derivação**, não o artefato entregue — `_conservation` recebe `fresh_e3`, e o persistido só alimenta o drift · **U2 `LC6-01`** · ✅ **#1915** — defeito procede e era **maior** que o enunciado: `_persisted_e3_by_key` é workspace-latest, logo **60 dos 61** runs comparariam as próprias keys contra artefato de outro run. Os 31 "só-no-persistido" eram **31/31 sobra** de 7 outros runs ⇒ a glosa impressa *"keying antigo não reproduzido"* era **atribuição falsa de causa**. Eixo novo: o braço entregue estava **amputado** (`investimentos` = 0 sobre **zero** posições — falso-negativo da [[ADR-271]] indistinguível de um 0 verdadeiro), então promovê-lo à rubrica sem ler o E4 **persistido** trocaria um defeito por outro. Ressalvas escritas: a D3 §store real segue não-testada ([[A42.l6]]) e a rota sobre os 61 runs **não foi exercitada** | **P0** | 1 | — |
 | [[A42.l15]] | `investment_id` é hash de campos que o extrator LLM reescreve — **23,5%** de estabilidade entre runs; o comparador dispara uma perna diferente a cada par consecutivo · **U2 `LC6-02`** | **P0** | 1 | — |
 | [[A42.l16]] | O check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra a política escrita no mesmo módulo · **U2 `PV10-01`** · ✅ **#1827** — **enunciado refutado pela própria lane**; o defeito real é o termo `P ∨ ¬P` que não discriminava nada (P1 recomendado, re-triagem com o `r11`) | **P0** | 1 | — |
 | [[A42.l17]] | Parser de banco chama o SDK LLM fora do contrato — sem temperatura, sem telemetria — e a saída livre vira **chave natural** · **U3 `LC7-01`** · ✅ **#1846** — defeito procede; o gate que devia pegá-lo era cego em **3** eixos e os 2 sítios crus do repo moravam na interseção. Eixo novo: **rotear pelo choke-point não compra determinismo** (`use_cache` é `False` por default), logo o *delete-and-delegate* da [[A41.l3]] passaria os 5 critérios dela com o churn intacto | **P0** | 1 | — |
@@ -286,10 +286,10 @@ que o parágrafo acima fosse relido.
 | Lane | Entrou | Por quê | PR |
 |---|---|---|---|
 | [[A42.l13]] — completude por ficha | 2026-08-21 | a [[ADR-266]] foi falsificada por emenda datada e o predicado substituto precisava de casa. **Reusa o id da 13ª promovida** — ver §Lanes promovidas | #1624 (lane) · #1747 (linha na tabela) |
-| [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 |
+| [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 (lanes) · **#1915** (l14) · **#1827** (l16) · **#1909/#1916/#1919** (l15 — PR0 + critérios 4 e 6; a lane segue `in_progress`, PR1 pendente) |
 | [[A42.l17]] | 2026-08-30 | P0 da rodada `U3` (`LC7-01`) — [[LEDGER-CERTIFY-active]] §r7 | #1843 (lane) · #1846 (entrega) |
 | [[A42.l18]] · [[A42.l19]] | 2026-08-30 | dois achados Alto da rodada `U4` — [[LEDGER-CERTIFY-active]] §r8; **da classe que dá nome à sprint** | #1866 (lanes) · #1870/#1873 e #1888/#1890 (entregas) |
-| [[A42.l20]] · [[A42.l21]] · [[A42.l22]] | 2026-08-30 | os P2 da `U4`, alocados a pedido do dono | #1867 |
+| [[A42.l20]] · [[A42.l21]] · [[A42.l22]] | 2026-08-30 | os P2 da `U4`, alocados a pedido do dono | #1867 (lanes) · #1907 (l20) · #1906 (l21) — a l22 segue aberta |
 
 **Nenhuma das dez é padding** — que é o único abuso que o teto existia para impedir.
 Mas o teto foi decidido contra outra evidência — *"nenhuma sprint acima de ~11 lanes
@@ -317,6 +317,15 @@ depois de ela ser planejada**, produzida por instrumento e não por escolha de e
 | lanes do dia da abertura (04-08) ainda `planned` | **11 de 12** — há **27 dias**, nenhuma iniciada |
 | lanes `shipped` | **4** — **todas** criadas nos 3 dias anteriores, todas de rodada unificada |
 | WIP hoje (`open` + `in_progress`) | **6** |
+
+> **Re-medido no mesmo 2026-08-31, algumas horas depois — a tabela acima fica como está.**
+> Ela era verdadeira quando escrita e envelheceu **dentro do próprio dia**, que é o motivo
+> de a data sozinha não desambiguar aqui. Estado no fecho da [[A42.l20]]: lanes `shipped`
+> **6** (entraram [[A42.l21]] #1906 e [[A42.l20]] #1907) · WIP **4** · das 12 do dia da
+> abertura, **9 `planned` · 2 `blocked` ([[A42.l1]], [[A42.l8]]) · 1 `open` ([[A42.l7]])**.
+> **A conclusão não muda — fica mais forte:** o lote antigo segue sem ser pego há 27 dias
+> enquanto o que chega por medição shipa em horas, que é exatamente o argumento da
+> aposentadoria do teto. Nada a redecidir; só o número não se cita mais desta tabela.
 
 As lanes não estão competindo por capacidade: **o lote antigo simplesmente não é pego**,
 enquanto o que chega por medição é executado em horas. Um teto sobre o total trata os dois
@@ -635,9 +644,9 @@ número é o que produz resíduo em prosa. Próxima lane desta sprint é a l14.
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
 sprints `current` são hard fail em `build_doc_index.py --check`, e as lanes desta sprint
 nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]]. (A contagem
-vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Hoje 12 das **22**
-seguem `planned`; [[A42.l7]] e [[A42.l18]]–[[A42.l22]] estão `open`,
-[[A42.l14]]/[[A42.l15]] `in_progress`, [[A42.l16]]/[[A42.l17]] `shipped`.)
+vive num lugar só: o `## Lanes (N)` da §Lanes, que é o único com gate. Medido 2026-08-31: **10** das **22**
+seguem `planned`; [[A42.l7]]/[[A42.l22]] `open`, [[A42.l1]]/[[A42.l8]] `blocked`,
+[[A42.l15]] `in_progress`, e 7 `shipped` — [[A42.l14]], [[A42.l16]]–[[A42.l21]].)
 
 **Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
 dentro da A40?" foi avaliada e **recusada** (§Por que esta sprint existe, agora com o

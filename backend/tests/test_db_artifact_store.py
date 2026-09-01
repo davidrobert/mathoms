@@ -25,8 +25,9 @@ from backend.app.models import (
     User,
     Workspace,
 )
-from backend.app.services.storage.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.db_artifact_store import SCHEMA_BY_STAGE, DBArtifactStore
 from pipeline.artifact_store import ArtifactStore, ReadableArtifactStore
+from pipeline.stage_spec import STAGE_REGISTRY
 
 
 async def _seed_ws_and_run(db: AsyncSession, *, email: str = "st@test.com"):
@@ -1060,21 +1061,35 @@ async def test_write_populates_schema_version_and_byte_size(db: AsyncSession, _p
     assert e5_bs is not None and e5_bs > 0
 
 
+def _stage_sem_schema() -> str:
+    """Um stage real fora de ``SCHEMA_BY_STAGE`` — derivado, nunca fixado."""
+    # A40.l96: a versão anterior fixava "E1" como exemplo e quebrou no PR que
+    # deu schema ao E1 (ADR-430 §4). O assert de não-vácuo existe porque a
+    # propriedade fica trivialmente verdadeira se todo stage ganhar contrato.
+    candidatos = sorted(s for s in STAGE_REGISTRY if s not in SCHEMA_BY_STAGE)
+    assert candidatos, (
+        "todo stage tem schema — 'stage sem entrada ⇒ schema_version NULL' ficou "
+        "vacuamente verdadeira; apague o teste em vez de deixá-lo verde"
+    )
+    return candidatos[0]
+
+
 @pytest.mark.asyncio
 async def test_write_stage_without_schema_leaves_schema_version_null(
     db: AsyncSession, _pin_repo_schemas
 ):
-    """Stage fora de SCHEMA_BY_STAGE (ex.: E1) → schema_version NULL explícito; byte_size preenchido."""
+    """Stage fora de SCHEMA_BY_STAGE → schema_version NULL explícito; byte_size preenchido."""
     ws_id, run_id = await _seed_ws_and_run(db, email="cols-noschema@test.com")
+    stage = _stage_sem_schema()
 
     def _do(sync_conn):
         from sqlalchemy.orm import Session
 
         with Session(sync_conn) as s:
             store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_id)
-            store.write("E1", "members", {"membros": []})
+            store.write(stage, "members", {"membros": []})
             s.commit()
-            return _row_columns(s, run_id, "E1", "members")
+            return _row_columns(s, run_id, stage, "members")
 
     raw = await db.connection()
     schema_version, byte_size, payload = await raw.run_sync(_do)

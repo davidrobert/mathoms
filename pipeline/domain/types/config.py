@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from typing import Mapping
+from typing import Literal, Mapping
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,33 @@ class TransferInternalConfig:
     patterns_bank_specific: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
 
+_logger = logging.getLogger("mathoms.config_types")
+
+# `curada` = row de bank_accounts (clique humano / import) — tier 5 editorial
+# (ADR-146), vence sempre. `irpf_hint` = conta do artefato E1 extraída por LLM —
+# tier 1, não é fato declarado. A distinção é pré-condição do fix E1→E4: fechado
+# o wiring, `fallback_bank` sustenta quase toda a atribuição, e sem carregar a
+# origem o relatório afirmaria titularidade inferida com o peso da declarada
+# (ADR-430 §3; ADR-394 fato ≠ hint).
+AccountOrigem = Literal["curada", "irpf_hint"]
+"""De onde veio a conta (ADR-430 §2)."""
+
+
+def coerce_account_origem(raw: object) -> AccountOrigem:
+    """Normaliza ``origem`` vinda de blob externo, degradando para ``curada``."""
+    # Não levanta: family_members.json também chega de import de config do
+    # usuário (backend/app/api/config.py), e derrubar o run por um campo
+    # cosmético trocaria precisão por indisponibilidade (ADR-430 §Alternativas).
+    if raw == "irpf_hint":
+        return "irpf_hint"
+    if raw not in (None, "", "curada"):
+        _logger.warning(
+            "account_origem.desconhecida",
+            extra={"event": "account_origem.desconhecida", "valor": repr(raw)},
+        )
+    return "curada"
+
+
 @dataclass(frozen=True)
 class BankAccountRecord:
     """Conta bancária declarada por membro (ADR-226 §2)."""
@@ -61,6 +89,7 @@ class BankAccountRecord:
     agency: str | None = None
     is_joint: bool = False
     co_titulares: tuple[str, ...] = ()
+    origem: AccountOrigem = "curada"
 
 
 @dataclass(frozen=True)
