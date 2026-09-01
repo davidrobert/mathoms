@@ -216,17 +216,19 @@ Medido na sessão de ataque; registrado como bound no §r6.
 
 ## Entrega — 2026-09-01
 
-> **Ainda não terminal.** Cinco PRs; três em `main`, dois em voo. A lane só vira
-> `shipped` quando os cinco estiverem mergeados — até lá o `status` é `in_progress` e
-> não há `ship_pr` (C1 do gate de transição).
+> **Terminalidade é o `status` desta nota, não esta tabela.** Cinco PRs; a coluna de
+> estado foi deliberadamente omitida — ela envelheceria a cada merge e viraria a
+> afirmação-em-prosa que o rebase deixa falsa. A lane só vira `shipped` quando os cinco
+> estiverem em `main`; até lá `status: in_progress` e sem `ship_pr` (C1 do gate de
+> transição).
 
-| PR | Itens | Estado |
-| --- | --- | --- |
-| [#1944](https://github.com/davidrobert/mathoms/pull/1944) | 3 (PC13) + a cláusula de ratchet da [[A42.l2]] | mergeado |
-| [#1946](https://github.com/davidrobert/mathoms/pull/1946) | 6 (LC5-02) + residual do 1 (LC05/LC5-06) | mergeado |
-| [#1947](https://github.com/davidrobert/mathoms/pull/1947) | 7 (LC5-03) + 8 | mergeado |
-| [#1949](https://github.com/davidrobert/mathoms/pull/1949) | 4 (RV4-17) + 5 (RV4-45 + RV4-18) | aberto |
-| [#1951](https://github.com/davidrobert/mathoms/pull/1951) | 2 (LC06) | aberto |
+| PR | Itens |
+| --- | --- |
+| [#1944](https://github.com/davidrobert/mathoms/pull/1944) | 3 (PC13) + a cláusula de ratchet da [[A42.l2]] |
+| [#1946](https://github.com/davidrobert/mathoms/pull/1946) | 6 (LC5-02) + residual do 1 (LC05/LC5-06) |
+| [#1947](https://github.com/davidrobert/mathoms/pull/1947) | 7 (LC5-03) + 8 |
+| [#1949](https://github.com/davidrobert/mathoms/pull/1949) | 4 (RV4-17) + 5 (RV4-45 + RV4-18) |
+| [#1951](https://github.com/davidrobert/mathoms/pull/1951) | 2 (LC06) |
 
 ### O que a lane NÃO entregou, e por quê
 
