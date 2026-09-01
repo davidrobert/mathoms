@@ -407,3 +407,23 @@ def test_glosa_do_drift_nao_atribui_causa_a_rechaveacao() -> None:
     texto = "\n".join(_fmt_drift(d))
     assert "keying antigo" not in texto
     assert "só no persistido do run (publicado e não reproduzido)" in texto
+
+
+def test_a_p0_n1_chega_ao_relatorio_pelo_balde_patrimonio() -> None:
+    """LC06: o consolidado do E1.5c viaja DENTRO do balde `patrimonio`, e o harness o
+    tinha em mãos sem nunca lê-lo. Emissor sem leitor foi a lição da A40.l88 — este
+    teste é o leitor."""
+    e4 = _conserving_e4(2)
+    e4["patrimonio"] = {
+        "patrimonio_por_ano": {"2024": {"total_bens": 200.0}},
+        "investimentos_consolidados": [
+            {"investment_id": "i1", "proprietario": "A", "valores_31_12": {"2024": 100.0}},
+            {"investment_id": "i1", "proprietario": "A", "valores_31_12": {"2024": 100.0}},
+        ],
+    }
+
+    report = _report(e4, valores=[1.0, 2.0], with_key=1)
+    bloco = _bloco(format_report(report), "## P0 nº 1")
+
+    assert "`INV-1`" in bloco and PERDA_SILENCIOSA in bloco
+    assert "julgável em 2/2 itens" in bloco
