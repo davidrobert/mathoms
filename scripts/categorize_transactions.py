@@ -345,7 +345,10 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
                 acc_num = data.get("numero_conta") or data.get("account_number")
                 if _ACCOUNT_RESOLVER is not None:
                     resolution = _ACCOUNT_RESOLVER.resolve(inst_key, acc_num)
-                    if resolution.confidence == "ambiguous":
+                    # ADR-226 §Emenda 2026-08-31: eixo de TITULARIDADE (ver o
+                    # gêmeo em investments_consolidator; a unificação dos dois
+                    # call-sites é do PR2c).
+                    if resolution.member_confidence == "ambiguous":
                         membro = "needs_review"
                     else:
                         membro = resolution.member_key or ""
