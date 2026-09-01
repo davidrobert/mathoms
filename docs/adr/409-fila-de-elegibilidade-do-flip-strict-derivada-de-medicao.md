@@ -38,7 +38,7 @@ pós-write), [[ADR-093]] (nomes de stage), [[ADR-110]] (logs JSON).
 > enxerto que ele diz ser "em memória" está persistido em 71/71 artefatos.
 >
 > ⚠️ **Emendada em 2026-09-01** — o predicado de GO do §B ganhou um **quarto**
-> conjunto (cobertura por profundidade, [[ADR-433]]), e a fila do §D foi
+> conjunto (cobertura por profundidade, [[ADR-435]]), e a fila do §D foi
 > **re-derivada**: os dois schemas promovidos saem. Ver as três §Emenda no fim.
 
 ## Contexto
@@ -348,7 +348,7 @@ revisitar o assunto quando o número mudar.
 
 ## Emenda 2026-09-01 — o predicado do §B ganha um quarto conjunto, e a fila do §D é re-derivada
 
-Decisão canônica: [[ADR-433]] (A42.l26). Esta emenda registra o que muda **aqui**;
+Decisão canônica: [[ADR-435]] (A42.l26). Esta emenda registra o que muda **aqui**;
 o rationale, a especificação e as alternativas rejeitadas vivem lá.
 
 **O §B como escrito acima está incompleto.** O predicado passa a ser
@@ -374,10 +374,10 @@ bloqueio editorial, não como medida.
 contratos são de fato completos. A cegueira está só no item. Isto **não** é reversão
 da arbitragem: é o título literal do §D — *"a fila é a medição, não a intenção"* — e a
 ordem dura que o próprio §D estabelece, contrato antes de janela. A tabela re-medida
-está na [[ADR-433]] D6.
+está na [[ADR-435]] D6.
 
 **Nada mais do §B muda.** O exit code de `--gate` continua significando "há drift", e
-o veto novo **não** o toca ([[ADR-433]] D5) — mesma razão já escrita para
+o veto novo **não** o toca ([[ADR-435]] D5) — mesma razão já escrita para
 `mass_trivial`. Em compensação, a afirmação `Exit 0 = GO` do runbook §1.3, que nasceu
 com esta ADR em 2026-08-24, era falsa desde então (`e4_pontos_milhas` saía `0` sem ser
 promovível) e foi corrigida no PR da [[A42.l26]].

@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-425 ADRs (ADR-001 a ADR-434) em [`docs/adr/`](../../adr/).
+425 ADRs (ADR-001 a ADR-435) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -366,7 +366,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-427]] — O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte · phase A42
 - [[ADR-432]] — O contrato do baseline consolidado é re-derivado do produtor, e o ramo `declarations` da raiz é aposentado · phase A40.l110
-- [[ADR-433]] — Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato · phase A42.l26
+- [[ADR-435]] — Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato · phase A42.l26
 
 ### Proposto (1)
 

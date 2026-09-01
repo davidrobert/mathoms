@@ -1,5 +1,5 @@
 ---
-id: ADR-433
+id: ADR-435
 type: adr
 title: "Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato"
 status: Decidido
@@ -14,7 +14,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 433"
+  - "ADR 435"
   - "cobertura por profundidade"
   - "grão do item"
   - "veto de cobertura no measure_schema_drift"
@@ -26,7 +26,7 @@ tags:
   - area/observability
 ---
 
-# ADR-433 — Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato
+# ADR-435 — Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato
 
 **Status:** Decidido (A42.l26) • **Data:** 2026-09-01 • **Relaciona** [[ADR-409]] §B/§D/§F
 (fila derivada de medição — esta ADR acrescenta um termo ao predicado e **re-deriva a
