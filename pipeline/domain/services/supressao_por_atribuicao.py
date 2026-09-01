@@ -3,8 +3,9 @@
 Morre a **prescrição dimensionada** — o *quanto mover* —, nunca a descrição. É o
 precedente `alocacao_alvo_deviation.suprimir_prescricao`, e a distinção é
 medida: suprimir o rótulo `avaliacao_liquidity` faz `HeroKpiGrid.reservaQuality`
-re-derivar "excelente" por conta própria e desarma `neutralize_autocontradicao`,
-libertando o LLM a elogiar a reserva.
+re-derivar "excelente" por conta própria. A perna do `neutralize_autocontradicao` só
+passa a valer com a [[A40.l116]] — antes dela o guardrail casava por `section_id`
+literal e disparou 0 de 14 runs ([[ADR-412]] §E13).
 
 **Não chama `cobertura_enforcement_ligado()`.** Aquele kill-switch governa
 ressalva e retenção ([[ADR-412]] §D8); herdá-lo aqui entregaria supressão de
