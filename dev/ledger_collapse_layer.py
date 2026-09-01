@@ -66,8 +66,13 @@ class CollapseLayerSummary:
 
     @property
     def paridade_fecha(self) -> bool:
-        """Identidade 2 — **externa**: cruza com os digests do detector, conjunto que
-        este módulo não produz. É a que pega colisão de prefixo e undercount."""
+        """Identidade 2 — **auto-consistente**, ao contrário do que esta docstring
+        afirmou até 2026-09-01. `em_ambos + so_no_colapsador` particiona o conjunto do
+        PRÓPRIO colapsador pela pertinência ao detector, e a soma é **invariante ao
+        conteúdo do detector**: com um detector que não compartilha nenhuma chave ela
+        segue `True` (medido — `so_no_detector` sobe a 3 e ela não se move). O que ela
+        pega, e é útil, é colisão de prefixo e digest duplicado dentro do colapsador.
+        Quem cruza com o conjunto externo é `sem_ponto_cego`."""
         return self.em_ambos + self.so_no_colapsador == self.colapsaveis
 
     @property
@@ -95,7 +100,21 @@ class CollapseLayerSummary:
     @property
     def layer_ok(self) -> bool:
         """Token grepável — falso ⇒ os números desta camada não são legíveis."""
-        return self.particao_fecha and self.paridade_fecha and self.cardinalidade_fecha
+        # `sem_ponto_cego` ENTRA no predicado desde a A42.l3 (LC5-02): as outras três
+        # identidades são auto-consistentes, então `layer_ok` saía verde com **PONTO
+        # CEGO impresso duas linhas acima** — e o token que um gate leria era o verde.
+        #
+        # Não é o caso de `alvo_enderecavel` (retirado logo abaixo por critério do
+        # `senior-cto`): aquele é dano contrafactual de um consumidor, decisão de
+        # produto. Este é legibilidade — se o colapsador não vê o que o detector mede,
+        # os dois números desta camada não são comparáveis, que é o que `layer_ok`
+        # afirma. Tolerar o ponto cego exige renomear o token, não afrouxá-lo.
+        return (
+            self.particao_fecha
+            and self.paridade_fecha
+            and self.cardinalidade_fecha
+            and self.sem_ponto_cego
+        )
 
 
 def _digest_len(digests: frozenset[str]) -> int:
@@ -201,12 +220,11 @@ def _fmt_paridade(s: CollapseLayerSummary) -> list[str]:
         f"- paridade vs detector E4 (digest[:{s.digest_len}]): "
         f"em ambos **{s.em_ambos}** · só no detector **{s.so_no_detector}**{cego} · "
         f"só no colapsador **{s.so_no_colapsador}**",
-        f"- fora do campo de visão do detector: **{s.orfas_rows}** rows, "
-        f"**{s.orfas_cents}** cents",
+        f"- fora do campo de visão do detector: **{s.orfas_rows}** rows, **{s.orfas_cents}** cents",
         f"- `layer_ok={str(s.layer_ok).lower()}` "
         f"(partição {s.particao_fecha} · paridade {s.paridade_fecha} · "
-        f"cardinalidade {s.cardinalidade_fecha}) — `alvo_enderecavel="
-        f"{str(s.alvo_enderecavel).lower()}` é REPORTADO, não gateia",
+        f"cardinalidade {s.cardinalidade_fecha} · sem_ponto_cego {s.sem_ponto_cego}) "
+        f"— `alvo_enderecavel={str(s.alvo_enderecavel).lower()}` é REPORTADO, não gateia",
     ]
 
 

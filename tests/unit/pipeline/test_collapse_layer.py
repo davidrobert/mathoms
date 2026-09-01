@@ -108,6 +108,31 @@ def test_digest_do_detector_ausente_no_colapsador_acende_ponto_cego() -> None:
     assert "PONTO CEGO" in "\n".join(fmt_collapse_layer(s))
 
 
+def test_ponto_cego_derruba_o_token_agregado() -> None:
+    """LC5-02 (A42.l3): até 2026-09-01 `layer_ok` saía **True** com PONTO CEGO impresso
+    duas linhas acima — o token que um gate leria era o verde."""
+    s = collapse_layer_summary([_Cand("aaaaaaaaaa")], detector_digests(_cg("aaaaaaaa", "zzzzzzzz")))
+
+    assert not s.layer_ok
+    assert "`layer_ok=false`" in "\n".join(fmt_collapse_layer(s))
+
+
+@pytest.mark.parametrize(
+    "detector",
+    [("aaaaaaaa",), ("aaaaaaaa", "bbbbbbbb"), ("zzzzzzzz",), ("zzzzzzzz", "yyyyyyyy")],
+)
+def test_paridade_fecha_e_invariante_ao_conteudo_do_detector(detector) -> None:
+    """A docstring dizia "externa"; ela particiona o conjunto do PRÓPRIO colapsador e
+    fecha até contra um detector que não compartilha nenhuma chave. Este teste trava a
+    afirmação honesta — se alguém tornar `paridade_fecha` externa de fato, ele reprova
+    e a docstring tem de mudar junto."""
+    s = collapse_layer_summary(
+        [_Cand("aaaaaaaaaa"), _Cand("bbbbbbbbbb")], detector_digests(_cg(*detector))
+    )
+
+    assert s.paridade_fecha
+
+
 def test_chave_bloqueada_nao_conta_como_ponto_cego() -> None:
     """O colapsador VIU a chave e decidiu não colapsar — é predicado, não cobertura."""
     cands = [_Cand("aaaaaaaaaa", blocked="tipo_conta_fora_da_allow_list")]
