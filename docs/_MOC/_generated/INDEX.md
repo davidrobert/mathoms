@@ -792,7 +792,7 @@
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A27.l2 | lane | shipped | A27 | A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro | `sprint/A27/lanes/A27-l2-cobertura-de-lineage-sem-gate.md` |
-| A27.l3 | lane | open | A27 | A cobertura de lineage é medida contra a fixture e não contra a produção: quatro raízes monetárias ficam fora do universo do gate | `sprint/A27/lanes/A27-l3-cobertura-de-lineage-medida-contra-a-fixture.md` |
+| A27.l3 | lane | shipped | A27 | A cobertura de lineage é medida contra a fixture e não contra a produção: três raízes monetárias ficam fora do universo do gate (a quarta era contagem lida como R$) | `sprint/A27/lanes/A27-l3-cobertura-de-lineage-medida-contra-a-fixture.md` |
 | A28.l1 | lane | shipped | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
 | A28.l10 | lane | shipped | A28 | âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas | `sprint/A28/lanes/A28-l10-ancoras-formatter-curadoria.md` |
 | A28.l11 | lane | shipped | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
