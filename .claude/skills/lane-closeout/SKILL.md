@@ -128,6 +128,20 @@ Receitas completas, com o que procurar e como provar:
 | **Consistência** | Lane, `_README`, ADR e plano contam a mesma história? | critério de aceite **invertido** vs. o co-design (#1247) |
 | **Precisão** | A afirmação é o que foi **medido** ou o que se **inferiu**? | "se o job falhar, a regravação é esperada" — o job nunca rodou (#1341) |
 
+**Pergunta condicional de consistência — custo zero quando a resposta é não.** Este
+PR **encerrou** painel, pendência ou onda no `_README` da sprint? Se sim, o ponteiro
+para o `_HISTORY` sai **no mesmo PR**:
+
+```bash
+python3 dev/split_sprint_history.py --sprint <X> --section '<label exato>'
+```
+
+Não é varredura: é a pergunta que só quem encerrou sabe responder. **Não** rode o
+`--dry-run` aqui — medido na A40 em 2026-09-01, ele marca 4 seções (987 linhas) das
+quais **3 governam hoje**, e a saída é idêntica em todos os fechos. Varredura de
+`_HISTORY` é da `audit-vault`. Caso de origem: o §Pendência de filiação da [[A40.l110]]
+fechou em `a95bde8b` e o ponteiro devia ter saído nesse commit.
+
 Regra que vale mais que as outras: **número citado se re-mede, não se relê.**
 Se o PR mudou o que um número conta, rode a medição de novo agora. Achado com
 medição citada de antes do merge é achado não verificado.
@@ -186,6 +200,15 @@ Nunca responda "está tudo certo" sem ter rodado a camada 1 e lido a camada 2.
 - **Não audita a vault** — isso é `audit-vault` (escopo bucket, amostra
   rotativa, síntese em `AUDITS-active.md`). Aqui o escopo é 1 lane e o gatilho
   é o merge.
+  **Isso inclui varredura de `_HISTORY`.** Rodar
+  `split_sprint_history.py --dry-run` a cada fecho foi proposto e **recusado** em
+  2026-09-01 (`information-architect` + `product-manager`): a saída é estável em
+  todos os fechos, o aviso S2 de `check_sprint_readme_size.py` **já** a imprime em
+  todo `pre-commit run --all-files` com taxa de ação ~0, e a precisão medida do
+  `--dry-run` no grão h2 é **1 em 4** — marcar o §Gate de saída como histórico
+  gravaria "não governa decisão de hoje" sobre o contador que decide o fim da
+  sprint. O que a skill faz é a **pergunta condicional** da camada 3; a varredura
+  fica aqui, na `audit-vault`.
 - **Não é gate — mas a metade estrutural já é, desde 2026-08-24.** Este
   `check_closure.py` continua fora do pre-commit e não bloqueia commit. O
   gatilho de promoção que esta seção previa **foi executado** pela [[A40.l59]]:
