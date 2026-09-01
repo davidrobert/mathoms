@@ -309,6 +309,13 @@ entra em `_CONTRATO_NAO_DERIVADO` em [`dev/measure_schema_drift.py`](../../dev/m
 — o veredito é `NO-GO` **independente do drift**, com a razão e a lane que o levanta
 ([[A40.l110]] PR-B) na própria mensagem.
 
+> **Estado em 2026-09-01 — o bloqueio foi levantado, e por quitação.** A [[ADR-432]]
+> re-derivou o contrato do produtor e `_CONTRATO_NAO_DERIVADO` ficou **vazio**: a razão
+> do bloqueio (*"contrato irreal"*) morreu. O parágrafo acima descreve o que o PR-A
+> instalou, não o estado de hoje. O que segura o flip agora é o **número** — 74/169 no
+> corpus, dos quais 71 são artefato histórico com os 2 fósseis —, e ele some quando as
+> runs virarem.
+
 Drift medido no corpus inteiro, antes → depois do PR-A (169 artefatos, 105 runs,
 116 payloads distintos, 0 ilegíveis):
 

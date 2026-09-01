@@ -146,8 +146,9 @@ condição de parada.
 > estivesse pronto — nomeia o que faltava.
 
 > **Extensão 2026-09-01 — são SEIS: a [[A40.l111]] entra, e a [[A40.l110]] fica fora.**
-> Decidido pelo dono no closeout da [[A40.l110]], fechando a §Pendência de filiação
-> abaixo. O critério é *"desloca valor publicado"*, e ele foi medido pelo snapshot:
+> Decidido pelo dono no closeout da [[A40.l110]] (`shipped`, #1914 · #1929 · #1933),
+> fechando a §Pendência de filiação abaixo. As duas lanes estão terminais — esta linha
+> **cita** onde a decisão foi tomada, não roteia trabalho para nenhuma delas. O critério é *"desloca valor publicado"*, e ele foi medido pelo snapshot:
 >
 > | lane | `dogfood_view_model.json` | `parecer_ancorabilidade.json` | veredito |
 > | --- | --- | --- | --- |
