@@ -406,9 +406,12 @@ máquina nenhum.
 Ordenadas por **alavancagem**, não por severidade: sem detecção, todo fix abaixo
 regride em silêncio e fecha verde. A ordem não é estética — o KR-B só é
 **mensurável** depois da [[A42.l14]] **e** da [[A42.l3]], nessa ordem: a perna de
-volume do gate anti-regressão está morta hoje (l3), e o registry de balde que o KR-B
+volume do gate anti-regressão estava morta (l3), e o registry de balde que o KR-B
 nomeia carimbaria veredito **sobre o universo errado** enquanto a l14 não corrigir o
-sujeito ([[ADR-421]]). Uma versão anterior desta linha citava só a l3. Instrumento primeiro é pré-condição do critério de
+sujeito ([[ADR-421]]). **Pré-condição satisfeita em 2026-09-01** — as duas shipadas
+(l14 #1915; l3 #1949). A perna de volume não foi reparada e sim **removida**, com a
+disposição medida do `RV4-17`: o view-model E5 não tem folha de volume, e quem cobre o
+caso é o drift de valor. Uma versão anterior desta linha citava só a l3. Instrumento primeiro é pré-condição do critério de
 saída, não preferência.
 
 **Onda 0 — parar a sangria** ([[A42.l1]]). Solo. Não é instrumento e não compartilha
@@ -496,8 +499,8 @@ envelheceu é o grafo, três âncoras de linha, e o item 2 da [[A42.l8]].
 |---|---|---|---|
 | [[A42.l1]] | `unlock_documents.py:395` ainda chama `load_passwords()` antes do glob; `llm_call_log` é outro assunto | — | **sobrevive** |
 | [[A42.l2]] | `_c6_csv_apply_conservation_flags` (`c6bank.py:112-130`) ainda suprime o gate por conclusão do parser | [[A42.l3]] | **sobrevive** |
-| [[A42.l3]] | `_non_ledger_verdict` agora em `ledger_certify_core.py:170` (era `:161`); default ainda `COBERTO_SEM_VALOR`. `certify_parse_local.py` ainda não lê `checksum_ok` | — (era [[A40.l2]], #1368) | **sobrevive**; cautela de instrumento no §Amarra |
-| [[A42.l4]] | `_CONSERVATION_CHECKS` em `validate_cross.py:611`; `compare_reviews.py:179` ainda busca `transacoes_total` | — | **sobrevive** |
+| [[A42.l3]] | ~~`_non_ledger_verdict` em `ledger_certify_core.py:170`; default `COBERTO_SEM_VALOR`; `certify_parse_local.py` não lê `checksum_ok`~~ — **as três caíram** (re-medido 2026-09-01): a função mora em `dev/ledger_unit_verdicts.py:201` (mudança da [[A42.l19]]), o default é `NAO_VERIFICAVEL`, e `certify_parse_local.py:204` lê `checksum_ok` desde o #1944 | — (era [[A40.l2]], #1368) | **morta** — lane `shipped` (#1949) |
+| [[A42.l4]] | `_CONSERVATION_CHECKS` em `validate_cross.py:693` (âncora `:611` driftou); ~~`compare_reviews.py:179` ainda busca `transacoes_total`~~ — **caiu**: a perna foi removida no #1949 ([[A42.l3]]), e nenhum código lê a chave hoje | — | **sobrevive** (a metade do `_CONSERVATION_CHECKS`) |
 | [[A42.l5]] | `generate_legacy_filename` (`e3_serialization.py:139-144`) ainda embute `inicio_ym`/`fim_ym` na chave | — (era [[A40.l2]], #1368) | **sobrevive** (classe latente nativo↔nativo). LC04: âncoras originais **não resolvem** — o default de `account_type` agora é `"extrato"`, não `"desconhecido"`; re-medir na abertura |
 | [[A42.l6]] | `list_keys` (`db_artifact_store.py:379`) segue workspace-wide; `SCHEMA_BY_STAGE` ainda sem `review_finances_holistic` nem `extract_members` | [[A42.l5]] | **sobrevive** |
 | [[A42.l7]] | `LLMCallLog.stage` segue `String(64)` (`llm_call_log.py:26`) | — (era [[A40.l19]], #1241) | **sobrevive** |
