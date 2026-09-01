@@ -6,11 +6,11 @@ from dev.ledger_conservation import (
     COBERTO_SEM_VALOR,
     CONSERVADO,
     PERDA_SILENCIOSA,
-    _tx_cents,
     e2_to_e3,
     e3_to_e4,
     investment_double_count,
 )
+from dev.ledger_e2e3 import _tx_cents
 
 
 def _e2(*valores: float) -> dict:
@@ -63,25 +63,25 @@ def test_tx_cents_prefers_amount_over_valor() -> None:
 
 
 def test_e2e3_conservado_sem_dups() -> None:
-    r = e2_to_e3([_e2(100.0, 50.0)], [_e3([100.0, 50.0])])
+    r = e2_to_e3([_e2(100.0, 50.0)], [_e3([100.0, 50.0])], exclusoes_run=0)
     assert r.verdict == CONSERVADO
     assert r.count_in == 2 and r.count_out == 2 and r.value_in_cents == 15000
 
 
 def test_e2e3_dups_vira_coberto_sem_valor() -> None:
-    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [_e3([100.0, 50.0], dups=1)])
+    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [_e3([100.0, 50.0], dups=1)], exclusoes_run=0)
     assert r.verdict == COBERTO_SEM_VALOR  # count fecha (2+1==3), valor não-provável
 
 
 def test_e2e3_tx_perdida_e_perda_silenciosa() -> None:
     # 3 entram, só 2 sobrevivem e 0 dups declaradas → 1 sumiu
-    r = e2_to_e3([_e2(100.0, 50.0, 25.0)], [_e3([100.0, 50.0], dups=0)])
+    r = e2_to_e3([_e2(100.0, 50.0, 25.0)], [_e3([100.0, 50.0], dups=0)], exclusoes_run=0)
     assert r.verdict == PERDA_SILENCIOSA
     assert r.count_in == 3 and r.count_out == 2
 
 
 def test_e2e3_valor_diverge_sem_dups_e_perda() -> None:
-    r = e2_to_e3([_e2(100.0, 50.0)], [_e3([100.0, 49.0])])  # count ok, valor não
+    r = e2_to_e3([_e2(100.0, 50.0)], [_e3([100.0, 49.0])], exclusoes_run=0)  # count ok, valor não
     assert r.verdict == PERDA_SILENCIOSA
 
 
@@ -90,7 +90,7 @@ def test_e2e3_dups_com_valor_declarado_vira_conservado() -> None:
     # remocoes[*].valor_cents declarado → conservado (valor PROVADO), não mais coberto.
     e3 = _e3([100.0, 50.0], dups=1)
     e3["remocoes"] = {"intra_statement_dedup": {"count": 1, "valor_cents": 10000}}
-    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [e3])
+    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [e3], exclusoes_run=0)
     assert r.verdict == CONSERVADO
 
 
@@ -99,7 +99,7 @@ def test_e2e3_dups_valor_declarado_incompleto_fica_coberto() -> None:
     # conservado sobre valor não-provável; não sobe a perda pois count fecha c/ dedup).
     e3 = _e3([100.0, 50.0], dups=1)
     e3["remocoes"] = {"intra_statement_dedup": {"count": 1, "valor_cents": 9999}}
-    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [e3])
+    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [e3], exclusoes_run=0)
     assert r.verdict == COBERTO_SEM_VALOR
 
 
@@ -107,7 +107,9 @@ def test_e2e3_reupload_sobreposto_vira_coberto() -> None:
     # Re-upload sobreposto: 5 tx entram (100,50 duplicados + 25 único), reconcile
     # colapsa p/ 3 survivors mas declara só 1 dup (sub-declaração do dedup). count
     # cai (5->4) COM dups>0 ⇒ coberto-sem-verificação, NÃO perda (LC-07).
-    r = e2_to_e3([_e2(100.0, 50.0, 100.0, 50.0, 25.0)], [_e3([100.0, 50.0, 25.0], dups=1)])
+    r = e2_to_e3(
+        [_e2(100.0, 50.0, 100.0, 50.0, 25.0)], [_e3([100.0, 50.0, 25.0], dups=1)], exclusoes_run=0
+    )
     assert r.verdict == COBERTO_SEM_VALOR
     assert r.count_in == 5 and r.count_out == 4
 
@@ -116,7 +118,7 @@ def test_e2e3_denominador_exclui_posicao_skip() -> None:
     # Artefato de posição (tipo em SKIP_TYPES via should_skip) não entra no
     # denominador: sem o filtro daria perda (5->2); com o filtro, conserva (LC-07).
     e2 = [_e2(100.0, 50.0), _e2_nao_reconciliavel("tipo", "investimentosposicao", 10.0, 20.0, 30.0)]
-    r = e2_to_e3(e2, [_e3([100.0, 50.0])])
+    r = e2_to_e3(e2, [_e3([100.0, 50.0])], exclusoes_run=0)
     assert r.verdict == CONSERVADO
     assert r.count_in == 2 and r.value_in_cents == 15000
 
@@ -128,7 +130,7 @@ def test_e2e3_denominador_exclui_investment_report_doctype() -> None:
         _e2(100.0, 50.0),
         _e2_nao_reconciliavel("tipo_documento", "investment_report", 10.0, 20.0),
     ]
-    r = e2_to_e3(e2, [_e3([100.0, 50.0])])
+    r = e2_to_e3(e2, [_e3([100.0, 50.0])], exclusoes_run=0)
     assert r.verdict == CONSERVADO
     assert r.count_in == 2
 
@@ -345,3 +347,77 @@ def test_investment_vencimento_distingue_renda_fixa() -> None:
         ]
     }
     assert investment_double_count(inv) == []
+
+
+# ── A42.l3 item 8: o resíduo é COMPUTADO, com os três produtores e com sinal ──
+
+
+def _e2e3(n_e2: int, *, total: int, dups: int = 0, exclusoes_run=None):
+    e2 = [{"tipo": "extratoconta", "transacoes": [{"valor": 0}] * n_e2}]
+    e3 = [
+        {
+            "transacoes_total": total,
+            "transacoes": [],
+            "transacoes_duplicadas_removidas": dups,
+        }
+    ]
+    return e2_to_e3(e2, e3, exclusoes_run=exclusoes_run)
+
+
+def test_exclusoes_run_level_fecham_o_gap_e_nao_sao_perda() -> None:
+    """Statement excluído inteiro no load não tem artefato E3 — o count dele pertence ao
+    ledger run-level (`e3_load_report.StatementExclusion`). Sem esse 3º termo o gap
+    aparecia como perda ou como "sub-declaração"."""
+    r = _e2e3(100, total=90, exclusoes_run=10)
+
+    assert r.verdict == CONSERVADO
+    assert r.residuo == 0
+
+
+def test_sem_exclusoes_informadas_o_residuo_nao_e_computavel() -> None:
+    """ "Não consegui avaliar" é um estado: sem o 3º termo o veredito não sobe a
+    `conservado`, e a glosa diz que não é "e deu zero"."""
+    r = _e2e3(100, total=100)
+
+    assert r.residuo is None
+    assert r.verdict == COBERTO_SEM_VALOR
+    assert "não é 'e deu zero'" in r.detail
+
+
+def test_sobre_declaracao_pelo_terceiro_termo_tem_o_sinal_CERTO() -> None:
+    """O sinal invertido do item 8: as exclusões declaradas EXCEDEM o gap. A versão
+    anterior via `count_out < count_in` e rotulava "sub-declaração de dedup" — o oposto
+    do que o dado diz. Com `count_out > count_in` ela acertava; a assimetria era o bug."""
+    r = _e2e3(100, total=90, exclusoes_run=23)
+
+    assert r.residuo == -13
+    assert r.verdict == PERDA_SILENCIOSA
+    assert "SOBRE-declaração de 13" in r.detail
+
+
+def test_residuo_positivo_sem_dedup_declarado_segue_perda() -> None:
+    r = _e2e3(100, total=90, exclusoes_run=0)
+
+    assert r.residuo == 10 and r.verdict == PERDA_SILENCIOSA
+    assert "resíduo 10 sem dedup declarado" in r.detail
+
+
+def test_residuo_positivo_COM_dedup_declarado_segue_coberto_lc07() -> None:
+    """LC-07 (#1063) decidiu a severidade; o item 8 mudou só a GLOSA (o resíduo agora
+    vem computado). Re-escalar isto a P0 seria reinscrever critério já refutado."""
+    r = _e2e3(100, total=88, dups=2, exclusoes_run=0)
+
+    assert r.residuo == 10 and r.verdict == COBERTO_SEM_VALOR
+    assert "sub-declaração de dedup: resíduo 10 com dups=2" in r.detail
+
+
+def test_particao_da_populacao_e2_e_declarada() -> None:
+    """As rows entre `semeado` e `count_in` (não-reconciliáveis) existiam e nenhuma
+    linha as declarava — 23 delas no run da U1."""
+    e2 = [
+        {"tipo": "extratoconta", "transacoes": [{"valor": 0}] * 10},
+        {"tipo": "investment_report", "transacoes": [{"valor": 0}] * 3},
+    ]
+    r = e2_to_e3(e2, [{"transacoes_total": 10, "transacoes": []}], exclusoes_run=0)
+
+    assert (r.semeado, r.count_in) == (13, 10)

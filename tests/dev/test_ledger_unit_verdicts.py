@@ -13,27 +13,36 @@ from dev.ledger_conservation import (
     NAO_VERIFICAVEL,
     PERDA_SILENCIOSA,
 )
-from dev.ledger_unit_verdicts import _NON_LEDGER_CHECKERS, e3_group_verdict, e4_bucket_verdict
+from dev.ledger_unit_verdicts import (
+    _NON_LEDGER_CHECKERS,
+    LedgerAnchor,
+    e3_group_verdict,
+    e4_bucket_verdict,
+)
+
+# Âncora externa FECHADA (resíduo 0 na perna E2→E3 do workspace). Sem ela o grupo
+# teto-a em `coberto` — é o fail-closed do LC5-03, exercitado em teste próprio.
+_FECHADA = LedgerAnchor(residuo=0)
 from tests.dev._ledger_payloads import bucket_payload, e3_payload
 
 # ─────────────────────────── e3_group_verdict ───────────────────────────
 
 
 def test_e3_group_conservado() -> None:
-    assert e3_group_verdict(e3_payload(5))[0] == CONSERVADO
+    assert e3_group_verdict(e3_payload(5), _FECHADA)[0] == CONSERVADO
 
 
 def test_e3_group_dups_coberto() -> None:
-    assert e3_group_verdict(e3_payload(5, dups=2))[0] == COBERTO_SEM_VALOR
+    assert e3_group_verdict(e3_payload(5, dups=2), _FECHADA)[0] == COBERTO_SEM_VALOR
 
 
 def test_e3_group_zero_tx_nao_sobe_a_conservado() -> None:
-    assert e3_group_verdict(e3_payload(0))[0] == COBERTO_SEM_VALOR
+    assert e3_group_verdict(e3_payload(0), _FECHADA)[0] == COBERTO_SEM_VALOR
 
 
 def test_e3_group_inconsistente_nao_verificavel() -> None:
     assert (
-        e3_group_verdict({"transacoes": [{"valor": 1}], "transacoes_total": 9})[0]
+        e3_group_verdict({"transacoes": [{"valor": 1}], "transacoes_total": 9}, _FECHADA)[0]
         == NAO_VERIFICAVEL
     )
 
@@ -54,13 +63,52 @@ def test_e3_group_ledger_fecha_upgrada_para_conservado() -> None:
     # ADR-347 — sem ledger, dups>0 seria COBERTO; com o ledger de contagem que
     # FECHA (7 == 5 survivors + 2 removidas), sobe a CONSERVADO (conservação provada).
     g = _with_ledger(e3_payload(5, dups=2), tx_carregadas=7, intra_statement_dedup=2)
-    assert e3_group_verdict(g)[0] == CONSERVADO
+    assert e3_group_verdict(g, _FECHADA)[0] == CONSERVADO
 
 
 def test_e3_group_ledger_com_residuo_e_perda_silenciosa() -> None:
     # ADR-347 — o ledger é o detector de P0: resíduo não-declarado ⇒ perda.
     g = _with_ledger(e3_payload(5), tx_carregadas=10, intra_statement_dedup=1)
+    assert e3_group_verdict(g, _FECHADA)[0] == PERDA_SILENCIOSA
+
+
+# ── LC5-03: o fechamento interno é do PRODUTOR; quem promove é a âncora externa ──
+
+
+def test_grupo_que_fecha_internamente_nao_sobe_sem_ancora() -> None:
+    """97/97 grupos saíam `conservado` impressos ao lado de "E2→E3: count não fecha".
+    Sem âncora medida, o teto do grupo é `coberto` — o default é fail-closed."""
+    g = _with_ledger(e3_payload(5), tx_carregadas=7, undated_drop=2)
+
+    verdict, detalhe = e3_group_verdict(g)
+
+    assert verdict == COBERTO_SEM_VALOR
+    assert "âncora externa não computada" in detalhe
+
+
+def test_ancora_com_residuo_nao_zero_teta_o_grupo() -> None:
+    """A contradição que o LC5-03 nomeia fica impossível: se a perna do workspace tem
+    resíduo, nenhum grupo dela pode afirmar `conservado`."""
+    g = _with_ledger(e3_payload(5), tx_carregadas=7, undated_drop=2)
+
+    verdict, detalhe = e3_group_verdict(g, LedgerAnchor(residuo=13))
+
+    assert verdict == COBERTO_SEM_VALOR
+    assert "resíduo 13 na perna E2→E3" in detalhe
+
+
+def test_ancora_nao_rebaixa_perda_do_proprio_grupo() -> None:
+    """Defeito do grupo é do grupo: `perda` não vira `coberto` por falta de âncora."""
+    g = _with_ledger(e3_payload(5), tx_carregadas=9, undated_drop=2)
+
     assert e3_group_verdict(g)[0] == PERDA_SILENCIOSA
+
+
+def test_grupo_sem_ledger_tambem_depende_da_ancora() -> None:
+    """Fecha a CLASSE: o ramo `dups=0 ⇒ valor provável` é auto-consistente igual, e
+    tetá-lo só no ramo do ledger deixaria metade do defeito viva."""
+    assert e3_group_verdict(e3_payload(5))[0] == COBERTO_SEM_VALOR
+    assert e3_group_verdict(e3_payload(5), LedgerAnchor(residuo=0))[0] == CONSERVADO
 
 
 # ─────────────────────────── e4_bucket_verdict ───────────────────────────
