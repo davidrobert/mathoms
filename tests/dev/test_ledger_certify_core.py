@@ -157,9 +157,10 @@ def _bloco(text: str, titulo: str) -> str:
     return titulo + text.split(titulo, 1)[1].split("\n## ", 1)[0]
 
 
-def _report(e4: dict, *, valores: list[float], with_key: int, transf: int = 0):
+def _report(e4: dict, *, valores: list[float], with_key: int, transf: int = 0, entregue=False):
     """``build_report`` sobre E3/E2 sintéticos coerentes com ``valores`` — o eixo do
-    teste é o E4 passado."""
+    teste é o E4 passado. ``entregue=True`` põe o eixo E3 sobre o persistido, onde a
+    âncora externa do LC5-03 **não é medível** (o E2 de hoje não descreve aquele run)."""
     fresh_e3 = {"g1": e3_payload(len(valores), valores=valores)}
     return build_report(
         "ws-uuid",
@@ -169,7 +170,7 @@ def _report(e4: dict, *, valores: list[float], with_key: int, transf: int = 0):
         _fake_result(len(valores), with_key, transf=transf, valores=valores),
         e4,
         fresh_e3,
-        persisted_e3=fresh_e3,
+        persisted_e3=fresh_e3 if entregue else {},
     )
 
 
@@ -178,7 +179,6 @@ def test_build_report_synthetic_conserva() -> None:
     assert [c.verdict for c in report.conservation] == [CONSERVADO, CONSERVADO]
     assert report.e3_groups[0].verdict == CONSERVADO
     assert report.natural_key["present"] == 1 and report.natural_key["total"] == 2
-    assert report.drift.matched == 1
     bloco = _bloco(format_report(report), _CROSS_GROUP_TITLE)
     assert "cobertura=" in bloco and "partição do numerador" in bloco
     assert "massa não-varrida" in bloco and "histograma diagnóstico" in bloco
@@ -187,6 +187,54 @@ def test_build_report_synthetic_conserva() -> None:
     # contamina o eixo que o Passo 4 da skill manda varrer por token.
     assert DEDUP_LEGITIMO not in bloco
     assert "shape declarado explicado" in bloco
+
+
+def test_drift_casa_o_grupo_quando_o_persistido_existe() -> None:
+    """O eixo de drift precisa do persistido; a asserção morava no teste de conservação,
+    que passou a rodar sobre a SOMBRA quando a âncora do LC5-03 entrou (A42.l3)."""
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1, entregue=True)
+
+    assert report.drift.matched == 1
+
+
+def test_ancora_transfere_ao_entregue_quando_o_drift_e_zero() -> None:
+    """Sem esta cláusula o eixo entregue perderia a nota máxima PARA SEMPRE — e é ele
+    que a [[A42.l14]] tornou o sujeito da rubrica. Drift zero = mesma população."""
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1, entregue=True)
+
+    assert report.e3_subject == "entregue"
+    assert report.e3_groups[0].verdict == CONSERVADO
+
+
+def test_ancora_nao_transfere_ao_entregue_quando_ha_drift() -> None:
+    """Com drift, a perna E2→E3 (computada sobre a sombra) não descreve o substrato
+    entregue — transferi-la seria comparar através do tempo."""
+    fresh = {"g1": e3_payload(2, valores=[1.0, 2.0])}
+    persistido = {"g1": e3_payload(3, valores=[1.0, 2.0, 3.0])}
+    report = build_report(
+        "ws-uuid",
+        "run-1",
+        [{"transacoes": [{"valor": 1.0}, {"valor": 2.0}]}],
+        _fake_e3_result(),
+        _fake_result(2, 1, valores=[1.0, 2.0]),
+        _conserving_e4(2),
+        fresh,
+        persistido,
+    )
+
+    assert report.e3_subject == "entregue" and report.drift.count_diff
+    assert report.e3_groups[0].verdict == COBERTO_SEM_VALOR
+    assert "COM drift vs a re-derivação" in report.e3_groups[0].detail
+
+
+def test_perna_e2e3_declara_a_particao_da_populacao_e_o_residuo() -> None:
+    """Item 8: as rows entre `semeado` e `count_in` existiam e nenhuma linha as
+    declarava; e o gap era adjetivado ("sub-declaração") sem ser computado."""
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1)
+    bloco = _bloco(format_report(report), "## Conservação")
+
+    assert "população E2: semeado 2 = reconciliável 2 + não-reconciliável 0" in bloco
+    assert "identidade: 2 − 2 − 0 (excl. run-level) = resíduo **0**" in bloco
 
 
 def _pernas(descricao: str, magnitude: float) -> list[dict]:

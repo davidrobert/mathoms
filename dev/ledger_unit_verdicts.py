@@ -26,13 +26,40 @@ from dev.ledger_conservation import (
 _TX_BUCKETS = ("despesas", "receitas")
 
 
+# `_ledger_verdict` lê três campos escritos pelo MESMO produtor (`tx_carregadas`,
+# `transacoes_total`, `remocoes`): o fechamento deles prova auto-consistência do
+# artefato, não conservação E2→E3. Foi assim que 97/97 grupos saíram `conservado`
+# impressos ao lado de "E2→E3: count não fecha" — duas afirmações contraditórias que
+# nada cruzava. O resíduo da perna cruza TRÊS produtores: artefatos E2 (`count_in`),
+# artefatos E3 (`count_out`) e o log de execução do E3 (exclusões run-level).
+@dataclass(frozen=True)
+class LedgerAnchor:
+    """Âncora **externa** do ledger de contagem por grupo (LC5-03) — o resíduo da perna
+    E2→E3 do workspace. Resíduo ≠ 0, ou não computado, ⇒ nenhum grupo passa de
+    ``coberto-sem-verificação``: um grupo não certifica mais que a cadeia onde vive."""
+
+    residuo: int | None = None
+    motivo: str = "âncora externa não computada"
+
+    @property
+    def fecha(self) -> bool:
+        return self.residuo == 0
+
+    @property
+    def glosa(self) -> str:
+        if self.residuo is None:
+            return self.motivo
+        return f"resíduo {self.residuo} na perna E2→E3 do workspace"
+
+
 def _first_verdict(checks: list, default: tuple) -> tuple:
     return next(((v, d) for cond, v, d in checks if cond), default)
 
 
 def _ledger_verdict(fresh: dict, total: int) -> tuple[str, str] | None:
-    """ADR-347 — se o artefato declara o ledger (``tx_carregadas`` + ``remocoes``),
-    o fechamento (int, tol-zero) PROVA a conservação de contagem; resíduo = P0."""
+    """ADR-347 — se o artefato declara o ledger (``tx_carregadas`` + ``remocoes``), o
+    fechamento (int, tol-zero) prova **auto-consistência do produtor**; resíduo = P0.
+    Quem promove a ``conservado`` é `_teto_da_ancora`, com a âncora externa."""
     remocoes = fresh.get("remocoes")
     carregadas = fresh.get("tx_carregadas")
     if not isinstance(remocoes, dict) or carregadas is None:
@@ -50,10 +77,20 @@ def _ledger_verdict(fresh: dict, total: int) -> tuple[str, str] | None:
     )
 
 
-def e3_group_verdict(fresh) -> tuple[str, str]:
+def _teto_da_ancora(veredito: tuple[str, str], anchor: LedgerAnchor) -> tuple[str, str]:
+    """``conservado`` exige a âncora EXTERNA fechada. Fechamento interno prova só o
+    produtor consigo mesmo; ``perda`` não é rebaixada — defeito do grupo é do grupo."""
+    verdict, detail = veredito
+    if verdict != CONSERVADO or anchor.fecha:
+        return verdict, detail
+    return COBERTO_SEM_VALOR, f"{detail}; teto: {anchor.glosa}"
+
+
+def e3_group_verdict(fresh, anchor: LedgerAnchor | None = None) -> tuple[str, str]:
     """Veredito de um grupo E3: consistência interna (count) + **ledger de contagem
-    declarado** (ADR-347) quando presente. 0-tx não sobe a ``conservado``; sem ledger,
-    dups>0 fica ``coberto`` (valor removido não provável no artefato)."""
+    declarado** (ADR-347) quando presente, **tetado pela âncora externa** (LC5-03).
+    ``anchor=None`` = âncora não medida ⇒ teto ``coberto``."""
+    anchor = anchor or LedgerAnchor()
     if not isinstance(fresh, dict) or "transacoes" not in fresh:
         return NAO_VERIFICAVEL, "sem payload E3 legível"
     n_tx = len(fresh.get("transacoes") or [])
@@ -62,6 +99,11 @@ def e3_group_verdict(fresh) -> tuple[str, str]:
         return NAO_VERIFICAVEL, f"transacoes_total={total} != len(transacoes)={n_tx}"
     if n_tx == 0:
         return COBERTO_SEM_VALOR, "0 transações — sem checksum de fechamento neste grão"
+    return _teto_da_ancora(_grupo_com_ledger(fresh, total), anchor)
+
+
+def _grupo_com_ledger(fresh: dict, total: int) -> tuple[str, str]:
+    """Veredito INTERNO do grupo — auto-consistência, antes do teto da âncora."""
     ledger = _ledger_verdict(fresh, total)
     if ledger is not None:
         return ledger

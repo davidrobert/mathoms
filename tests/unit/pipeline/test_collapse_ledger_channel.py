@@ -134,7 +134,7 @@ def test_e2_to_e3_ve_a_particao_completa_no_count_out() -> None:
     }
     e3 = [{"transacoes_total": 5, "transacoes": [], "remocoes": remocoes}]
 
-    r = e2_to_e3(e2, e3)
+    r = e2_to_e3(e2, e3, exclusoes_run=0)
 
     assert (r.count_in, r.count_out) == (10, 10)
     assert r.verdict == CONSERVADO
@@ -147,7 +147,7 @@ def test_e2_to_e3_artefato_antigo_mantem_fallback() -> None:
     e2 = [{"tipo": "extratoconta", "transacoes": [{"valor": 0}] * 6}]
     e3 = [{"transacoes_total": 5, "transacoes": [], "transacoes_duplicadas_removidas": 1}]
 
-    r = e2_to_e3(e2, e3)
+    r = e2_to_e3(e2, e3, exclusoes_run=0)
 
     assert (r.count_in, r.count_out) == (6, 6)
 
@@ -165,7 +165,7 @@ def test_sobre_declaracao_nao_passa_como_conservado() -> None:
     }
     e3 = [{"transacoes_total": 90, "transacoes": [], "remocoes": remocoes}]
 
-    r = e2_to_e3(e2, e3)
+    r = e2_to_e3(e2, e3, exclusoes_run=0)
 
     assert (r.count_in, r.count_out) == (100, 120)
     assert r.verdict == PERDA_SILENCIOSA
