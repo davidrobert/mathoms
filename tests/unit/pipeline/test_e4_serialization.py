@@ -60,12 +60,20 @@ def _e4_seguros_schema() -> dict:
 # `*_cents` são o eixo-VALOR do destino E3→E4 ([[ADR-426]]): a despesa duplicada de
 # R$100,00 é o buraco que o dedup abre nos baldes. Sem declará-lo, o harness comparava
 # a origem consigo mesma e o veredito `conservado` desta perna não podia falhar.
+# Pino do dict EXATO: chave nova aqui é mudança de contrato do artefato E4, e tem de
+# passar por revisão — não entrar de carona. Os quatro `*_abs`/`*_negativas` são Σ|valor|
+# ([[ADR-433]]); a fixture tem 1 despesa de 100 (dedup colapsa a 2ª) e 1 receita de 5000,
+# nenhuma negativa ⇒ abs == assinado e a ponte fecha em 0.
 _SIGNALS_ESPERADOS = {
     "tx_total": "3",
     "dedup_collapsed": "1",
     "dedup_review": "0",
     "dedup_collapsed_cents": "10000",
     "transferencias_cents": "0",
+    "despesas_abs_cents": "10000",
+    "receitas_abs_cents": "500000",
+    "despesas_negativas_cents": "0",
+    "receitas_negativas_cents": "0",
 }
 
 
