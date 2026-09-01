@@ -434,7 +434,26 @@ python3 dev/split_sprint_history.py --sprint A40 --section 'Pendências de decis
 
 O `--dry-run` marca candidatos; **mover exige `--section` por nome**, uma
 decisão humana por seção. Heurística que move sozinha erra exatamente no caso
-que importa — a seção que parece histórica e ainda governa.
+que importa — a seção que parece histórica e ainda governa. Medido na A40 em
+2026-09-01: das 4 seções que ele marca `histórica?`, **3 governam hoje** (o §Gate
+de saída hospeda o contador vivo; o §Predicado do campo `status` é enforçado por
+hook). Rendimento do caminho barato: **81 de 1754 linhas**.
+
+**O gatilho é "seção fechou", não "lane fechou".** Quem encerra um painel sabe
+naquele instante e tem o contexto que varredura nenhuma terá: o ponteiro para o
+`_HISTORY` sai **no mesmo PR que encerra a seção**. Não rode o `--dry-run` a cada
+fecho de lane — a saída é estável, quase sempre não-acionável, e treina a pular
+saída de ritual. A varredura periódica é da skill `audit-vault` (bucket `sprint`,
+amostra rotativa), que é onde ela custa pouco e chega com disposição registrada.
+
+**Registro que nasce datado nasce no `_HISTORY`.** Em sprint que já tem
+`_HISTORY.md`, inventário de follow-up, painel de achados e snapshot datado
+**não** entram no `_README` — entram no `_HISTORY`, com ponteiro no `_README` só
+se precisarem ser encontrados de lá. É o que muda o número: ~10 das 26 seções h2
+da A40 nasceram históricas, escritas ali por closeouts, e drenar depois custa
+julgamento editorial caro sobre seção quente. Drenar é remediação; isto é a
+causa. (Medido: a A40 foi drenada em 479 linhas em 2026-08-14 e voltou de 1462 a
+1754 em 8 dias — ~36 linhas/dia, todas de conteúdo **vivo**.)
 
 Gate: `dev/check_sprint_readme_size.py` (pre-commit). Ele mede a **patologia**
 — `_README` acima de 800 linhas **sem** `_HISTORY.md` —, não o tamanho: sprint

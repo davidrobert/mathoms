@@ -1329,84 +1329,8 @@ nasceu lane.
 
 ## Pendências de decisão — itens 11-13 (2026-08-03; item 13 em 2026-08-12)
 
-**11. Os follow-ups sem destino viram lane nesta sprint, ou disposição explícita
-de não-fazer?** — ✅ **RESOLVIDA 2026-08-05.** A ancorabilidade do exec context já
-tinha ido para [[A40.l30]]+[[A40.l31]] em 2026-08-03. Os **5** que restavam foram
-triados pela mesma regra que a A42 já formalizou em `main` (§Critério de admissão,
-`ecfa760f` #1193 · `3dbc558b` #1194): **destino é quem já possui o arquivo ou a
-superfície** — nenhum nasce lane nova na A40. Resultado, item a item:
-
-| Item | Destino | Por quê |
-|---|---|---|
-| DAS ausente no `s8`/`despesas_impostos` | **item adotado — [[A40.l12]]** | mesmo arquivo/risco de KPI distorcido por balde incompleto |
-| `perfil_familia.right` publica `n_imoveis` desatualizado | **item adotado — [[A40.l6]]** | contradição cross-seção, mesma classe de "zero-como-valor" que a l6 já cobre |
-| PD-20 — meta de TRS não configurável | **item adotado — [[A40.l12]]** | mesmo arquivo (`e5_analyzer_adapter.py`) do item 1, risco diferente — **não** agrupado na mesma tarefa (arquivo compartilhado ≠ risco compartilhado) |
-| Sufixo de changelog (ADR-148) não renderiza | **fora da A40** — [[PLAN-snapshot-changelog-v3]] §Residual W3 | é resíduo daquele plano (`W3-T05` entregou o default em forma reduzida); o ponteiro "A40.l5" nunca aterrissou no §Escopo da l5 — atribuição sem mecanismo, mesma classe que a emenda da [[ADR-111]] já nomeou |
-| Rótulo da [[ADR-306]] — **3** blocos sem rótulo válido (não 2, não 4 — ver correção no §Inventário acima) | **item adotado — [[A40.l11]]** | l11 já é dona de "rótulo de escopo"; deps (l3, l4) já `shipped` |
-
-Nenhum dos 5 justificava lane nova: a cláusula de exceção da A42 (P0 que alcança o
-usuário, sem dono vivo, com espera medida em semanas) não se aplica a nenhum —
-todos são P1/P2/P3 de superfície. Só a "Base da cascata" (item 4 da Pendência 6,
-que este item 11 absorve) não tinha dono vivo **e** não tinha materialidade
-medida — saiu da A40 por disposição explícita, registrada em [[REPORT-REVIEWS-active]]
-como residual pós-r3: mede o delta entre `receita_pj_anual` e
-`receita_bruta_total_anual` no corpus dogfood antes de decidir lane (delta
-material) ou `aceito-wontfix` (delta imaterial). "Sem dono vivo + sem
-materialidade medida" é o único caso desta lista que qualifica como "esquecimento
-evitado por disposição", não por adoção.
-
-**12. Autorreferência em `depends_on`/`parallel_with` vira gate, ou fica no olho
-do revisor?** — ✅ **RESOLVIDA 2026-08-05: vira gate, absorvida pela [[A40.l23]]
-§Escopo adotado item 1 e entregue antecipadamente no PR #1216** — registro
-canônico no arquivo da lane. A [[A40.l27]] entrou em `main` declarando
-`depends_on: [[A40.l27]]` e `parallel_with: [[A40.l27]]` — find-replace de
-renumeração trocou os wikilinks pelo próprio id. **Duas correções factuais ao
-diagnóstico original:** (a) o mecanismo não era "`check_doc_links` pergunta se o
-alvo resolve" — aquele gate **nunca vê o frontmatter** (o strip apaga antes de
-extrair wikilinks), então aresta para id **inexistente** também passa nos cinco
-gates — buraco maior, agora nomeado como item 1b da l23, ainda aberto; (b) o
-custo real foi ~34 linhas no estilo do módulo, não ~10 (segue longe do P2 de
-500). O gate cobre também `supersedes`/`superseded_by` e alias/anchor; prova de
-mutação em `tests/test_doc_graph_gates.py`. Id duplicado (rabo da §Pendência 10)
-**já tinha gate** em `check_doc_links` — pinado por teste no mesmo PR; a
-renumeração 2× da l27 não foi falha de gate (ele disparou no rebase), é problema
-de **alocação**, que o `former_ids` (l23 item 3) audita.
-
-**13. Os índices `docs/_MOC/_generated/` commitados são ponto de contenção
-global, e IDs sequenciais colidem sob paralelismo — muda a política, ou
-absorve-se o custo?** — aberta 2026-08-12, evidência das execuções da
-[[A40.l45]] e desta própria curadoria: **8 renumerações de ID** (ADR
-376→377→378→379→381; lane l38→l43→l45; e as lanes de follow-up nasceram
-l50→l53) e **8 rebases**, porque todo PR que cria lane/ADR reescreve os mesmos
-4 arquivos gerados, e `main` recebe commits mais rápido do que um ciclo de CI
-completa. O rabo da §Pendência 12 já nomeou a alocação como problema; isto é a
-medição da escala. Opções, sem decisão embutida: (a) gerar os índices **no CI**
-em vez de commitá-los (muda [[ADR-182]]); (b) merge driver `ours` +
-regeneração obrigatória no pre-commit (mantém o arquivo, mata o conflito);
-(c) manter como está e padronizar o custo — alocar ID **depois do último
-rebase, imediatamente antes do push**, lendo o teto de `origin/main` **e dos
-PRs abertos** (`git ls-tree` + `gh pr list`), nunca do `ls` local. A (c) já é
-prática registrada em memória de agente; elevá-la a texto do CLAUDE.md §ADRs
-inverte o conselho atual de "abrir PR cedo para reservar o ID", que sob
-paralelismo é contraproducente. **Owner-gated**: qualquer opção muda política
-de repo.
-
-> **Marcador de fato, 2026-08-24 — a opção (b) não faz o que o texto acima
-> supõe.** O texto de 2026-08-12 fica: é o registro da medição da escala. O que
-> mudou é conhecimento, não decisão. **Merge driver é client-side**: o
-> `update-branch` do trem (`PUT /pulls/{n}/update-branch`) e o squash rodam no
-> servidor do GitHub, que não lê `.gitattributes` do repo para driver
-> customizado. Medido: `.gitattributes` **não existe** aqui, e o driver `ours`
-> exigiria `git config merge.ours.driver true` **por clone** — que o CLAUDE.md
-> §Git proíbe ao agente configurar. Logo (b) cobriria só o rebase local de quem
-> rodou o config, não o caminho onde a fila trava. Não medi qual fração dos
-> conflitos vem de cada caminho.
->
-> Metade do custo que esta pendência mede **já foi paga** por outra via: o
-> #1674 tirou o contador agregado dos índices, e a colisão que restava nos
-> gerados era 3 de 4 arquivos por contador. Sobra o `DOC_STATS.md`, que é 100%
-> agregado — não é reformável, só removível. A decisão entre (a), (b), (c) ou
-> "fica como está" segue **owner-gated**, agora com o custo de (b) conhecido.
+> Movida para [`_HISTORY`](_HISTORY.md) em 2026-09-01 — registro fechado,
+> não governa decisão de hoje.
 
 ## Fora do sprint (disposição explícita)
 
