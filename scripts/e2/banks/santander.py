@@ -250,7 +250,7 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander CDB investment position from XLSX export.
 
-    Output is compatible with E4's build_investimentos_unified().
+    Output is compatible with E4's InvestmentsConsolidator.
     """
     try:
         import openpyxl

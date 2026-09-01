@@ -1364,6 +1364,31 @@ def _has_validation_errors(result) -> bool:
     )
 
 
+def _refresh_family_members_override(ctx, ws_id: str, stage_name: str) -> None:
+    """Reinjeta `family_members.json` após o E1 — o hint tem de alcançar o E4 do MESMO run."""
+    # [[ADR-430]] §5: `config_overrides` congela UMA vez por run, em
+    # `run_context_factory`, antes de qualquer stage. Sem esta reinjeção o hint
+    # do E1 só chegaria ao E4 do run SEGUINTE — o critério "run novo do
+    # workspace de dogfood publica abaixo do piso" passaria por acidente (lá o
+    # E1 já rodou antes) e falharia no primeiro run de um workspace novo, que é
+    # o momento que importa. Mutar campo de objeto per-run não viola a
+    # [[ADR-111]]: o proibido é estado de MÓDULO.
+    if stage_name not in ("extract_members", "E1") or ctx.config_overrides is None:
+        return
+    from backend.app.services.pipeline.pipeline_adapter import _family_members_override
+
+    with SyncSessionLocal() as db:
+        blob = _family_members_override(ws_id, db)
+    if blob is None:
+        return
+    ctx.config_overrides["family_members.json"] = blob
+    logger.info(
+        "family_members override reinjetado pos-E1 stage=%s contas=%d",
+        stage_name,
+        len(blob.get("contas") or []),
+    )
+
+
 def _execute_stages_loop(
     ctx,
     stages: list[str],
@@ -1535,6 +1560,8 @@ def _execute_stages_loop(
             outcome,
             reason,
         )
+        if delivered:
+            _refresh_family_members_override(ctx, ws_id, stage_name)
         if outcome == "degraded":
             _log_stage_degraded(
                 run_id, stage_name, reason, result.detail, criticality=stage_criticality(stage_name)

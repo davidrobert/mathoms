@@ -11,6 +11,13 @@ from typing import Any, Optional, Protocol
 from backend.app.application.family_member._protocols import (
     FamilyMemberRepositoryProtocol,
 )
+from backend.app.application.family_member.irpf_hint_policy import (
+    build_existing_indexes,
+    classificar_hint,
+    conta_normalizada,
+    dismissed_keys_for_year,
+    normalize_account_digits,
+)
 from backend.app.schemas.dto.family_member import (
     IrpfSuggestionItem,
     SuggestionsFromIrpfResponse,
@@ -41,12 +48,7 @@ class InstitutionLabelResolverProtocol(Protocol):
 
 _DIGITS_RE = re.compile(r"\D")
 
-
-def _normalize(raw: Optional[str] = None) -> Optional[str]:
-    if raw is None:
-        return None
-    digits = _DIGITS_RE.sub("", raw)
-    return digits or None
+_normalize = normalize_account_digits
 
 
 def _mask_cpf(cpf: Optional[str] = None) -> Optional[str]:
@@ -66,23 +68,6 @@ def _empty_response(irpf_year: int = 0) -> SuggestionsFromIrpfResponse:
         total_filtered_exact_match=0,
         total_dismissed=0,
     )
-
-
-def _flatten_accounts(members: list[Any]) -> list[tuple[str, Any]]:
-    return [(m.key, acc) for m in members for acc in m.accounts]
-
-
-def _build_existing_indexes(
-    members: list[Any],
-) -> tuple[dict[tuple[str, str], Any], dict[tuple[str, str], list[Any]]]:
-    by_bank_num: dict[tuple[str, str], Any] = {}
-    by_bank_member: dict[tuple[str, str], list[Any]] = defaultdict(list)
-    for member_key, acc in _flatten_accounts(members):
-        by_bank_member[(acc.institution_code, member_key)].append(acc)
-        norm = _normalize(acc.account_number)
-        if norm is not None:
-            by_bank_num[(acc.institution_code, norm)] = acc
-    return by_bank_num, by_bank_member
 
 
 def _detect_collision(
@@ -140,8 +125,7 @@ def _build_suggestion(args: _SuggestionBuildArgs) -> IrpfSuggestionItem:
     )
 
 
-def _conta_normalized(conta: dict[str, Any]) -> Optional[str]:
-    return conta.get("account_number_norm") or _normalize(conta.get("account_number_raw"))
+_conta_normalized = conta_normalizada
 
 
 @dataclass
@@ -151,16 +135,6 @@ class _IrpfFilterContext:
     by_bank_member: dict[tuple[str, str], list[Any]]
     dismissed_keys: set[tuple[int, str, Optional[str]]]
     labels: dict[str, str]
-
-
-def _filter_reason(
-    conta: dict[str, Any], ctx: _IrpfFilterContext, inst: str, norm: Optional[str] = None
-) -> Optional[str]:
-    if norm is not None and (inst, norm) in ctx.by_bank_num:
-        return "exact"
-    if (ctx.payload.irpf_year, inst, norm) in ctx.dismissed_keys:
-        return "dismissed"
-    return None
 
 
 def _build_args(
@@ -188,26 +162,19 @@ def _build_args(
 def _classify_conta(
     conta: dict[str, Any], ctx: _IrpfFilterContext
 ) -> tuple[Optional[IrpfSuggestionItem], str]:
-    """Devolve (sugestão|None, motivo) — motivo ∈ {'emit','exact','dismissed','skip'}."""
-    inst = conta.get("institution_code")
-    member_key = conta.get("member_key")
-    if not inst or not member_key:
-        return None, "skip"
-    norm = _conta_normalized(conta)
-    skip_reason = _filter_reason(conta, ctx, inst, norm)
-    if skip_reason is not None:
-        return None, skip_reason
-    return _build_suggestion(_build_args(conta, ctx, inst, member_key, norm)), "emit"
-
-
-def _dismissed_keys_for_year(
-    dismissals: list[Any], irpf_year: int
-) -> set[tuple[int, str, Optional[str]]]:
-    return {
-        (d.irpf_year, d.institution_code, d.account_number_norm)
-        for d in dismissals
-        if d.irpf_year == irpf_year
-    }
+    """Devolve (sugestão|None, motivo). A REGRA é de `irpf_hint_policy` (A40.l96)."""
+    decisao = classificar_hint(
+        conta,
+        irpf_year=ctx.payload.irpf_year,
+        by_bank_num=ctx.by_bank_num,
+        dismissed_keys=ctx.dismissed_keys,
+    )
+    if decisao != "emit":
+        return None, decisao
+    inst = str(conta.get("institution_code"))
+    member_key = str(conta.get("member_key"))
+    args = _build_args(conta, ctx, inst, member_key, _conta_normalized(conta))
+    return _build_suggestion(args), "emit"
 
 
 def _institution_codes(contas: list[dict[str, Any]]) -> list[str]:
@@ -223,12 +190,12 @@ async def _load_filter_context(
 ) -> _IrpfFilterContext:
     members = await repo.list_by_workspace(workspace_id)
     dismissals = await repo.list_irpf_dismissals(workspace_id)
-    by_bank_num, by_bank_member = _build_existing_indexes(members)
+    by_bank_num, by_bank_member = build_existing_indexes(members)
     return _IrpfFilterContext(
         payload=payload,
         by_bank_num=by_bank_num,
         by_bank_member=by_bank_member,
-        dismissed_keys=_dismissed_keys_for_year(dismissals, payload.irpf_year),
+        dismissed_keys=dismissed_keys_for_year(dismissals, payload.irpf_year),
         labels=await institution_labels.resolve(_institution_codes(payload.contas)),
     )
 
