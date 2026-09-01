@@ -4,13 +4,15 @@ type: lane
 title: "O sanitizer de PII mede o contexto de ENTRADA e nunca o output: o relatório publica CPF parcialmente mascarado e conta bancária completa"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l115-sanitizer-mede-a-entrada-e-publica-a-saida
 owner: sre-devops
+ship_pr: 1964
+ship_date: "2026-09-01"
 depends_on: []
 adrs: ["[[ADR-319]]", "[[ADR-434]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p1, area/backend, area/seguranca]
+tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/backend, area/seguranca]
 ---
 
 # A40.l115 — `sanitizer-mede-a-entrada-e-publica-a-saida`
