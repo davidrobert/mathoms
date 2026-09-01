@@ -14,6 +14,7 @@ from dev.certify_parse_local import (
     content_digest,
     file_digest,
     mask_text,
+    posicao_checksum_status,
     stored_prefix,
 )
 
@@ -158,3 +159,98 @@ def test_fill_parse_metrics_emits_per_type_fields() -> None:
     assert rec["escalated"] is True
     assert rec["escalation_code"] == "extract.investment_sum_mismatch"
     assert rec["total_set"] is True and rec["vencimento_set"] is True
+
+
+# --- PC13: traço de checksum de posição já emitido, agora lido + ranqueado (A42.l3) ---
+
+
+def test_posicao_checksum_le_o_traco_positivo_do_produtor() -> None:
+    assert posicao_checksum_status({"checksum_ok": True, "posicoes": [{}]}) == "passou"
+
+
+def test_posicao_checksum_distingue_pulado_de_ausente_e_de_nao_aplicavel() -> None:
+    # Os três estados que o catch-all conflatava: "pulou por falta de total" (traço
+    # do produtor), "há posições e nenhum traço" (acionável) e "nada a somar".
+    assert (
+        posicao_checksum_status({"checksum_skipped_no_total": True, "posicoes": [{}]})
+        == "pulado_sem_total"
+    )
+    assert posicao_checksum_status({"posicoes": [{}]}) == "ausente"
+    assert posicao_checksum_status({"posicoes": []}) == "nao_aplicavel"
+
+
+def test_fill_parse_metrics_expoe_o_traco_de_posicao() -> None:
+    rec = _fill_parse_metrics({"file": "x"}, {"checksum_ok": True, "posicoes": [{}]})
+    assert rec["posicao_checksum_status"] == "passou"
+
+
+def test_compare_falha_quando_o_sinal_positivo_de_posicao_desaparece() -> None:
+    # MUTAÇÃO do critério da lane: remover o input do check (o traço `checksum_ok`
+    # que o produtor emite) tem de produzir exit != 0, não sumir do relatório.
+    regs, _ = compare_records(
+        [_rec(posicao_checksum_status="ausente")], [_rec(posicao_checksum_status="passou")]
+    )
+    assert any("posicao_checksum_status" in r and "des-certificação" in r for r in regs)
+
+
+def test_compare_falha_quando_posicao_provada_vira_nao_aplicavel() -> None:
+    # Doc de investimento que perde TODAS as posições: `passou -> nao_aplicavel` é
+    # queda de degrau, não mudança de forma benigna.
+    regs, _ = compare_records(
+        [_rec(posicao_checksum_status="nao_aplicavel")], [_rec(posicao_checksum_status="passou")]
+    )
+    assert any("des-certificação" in r for r in regs)
+
+
+def test_compare_aceita_ausente_para_passou_como_melhoria() -> None:
+    regs, _ = compare_records(
+        [_rec(posicao_checksum_status="passou")], [_rec(posicao_checksum_status="ausente")]
+    )
+    assert regs == []
+
+
+def test_compare_nao_dispara_entre_estados_que_nao_certificam_nada() -> None:
+    # `ausente` e `nao_aplicavel` empatam em rank: mudar de um p/ o outro não é
+    # des-certificação (nenhum dos dois certificava), e não pode virar falso-FAIL.
+    regs, _ = compare_records(
+        [_rec(posicao_checksum_status="nao_aplicavel")], [_rec(posicao_checksum_status="ausente")]
+    )
+    assert regs == []
+
+
+def test_compare_flags_perda_de_posicoes() -> None:
+    regs, _ = compare_records([_rec(n_posicoes=3)], [_rec(n_posicoes=18)])
+    assert any("n_posicoes" in r for r in regs)
+
+
+# --- Cláusula que a A42.l2 consome: enum de verificabilidade no ratchet ---
+
+
+def test_compare_falha_quando_verificabilidade_provada_vira_nao_verificavel() -> None:
+    regs, _ = compare_records(
+        [_rec(verificabilidade="nao_verificavel")], [_rec(verificabilidade="provada")]
+    )
+    assert any("verificabilidade" in r and "des-certificação" in r for r in regs)
+
+
+def test_compare_falha_quando_o_campo_de_verificabilidade_some() -> None:
+    # Ausência é o degrau mais baixo: `provada -> campo ausente` é des-certificação,
+    # e não "parser não declara, logo tudo bem".
+    regs, _ = compare_records([_rec()], [_rec(verificabilidade="provada")])
+    assert any("verificabilidade" in r for r in regs)
+
+
+def test_compare_ignora_verificabilidade_quando_nenhum_lado_declara() -> None:
+    # Enquanto a A42.l2 não shipar, o campo não existe em lado nenhum — o ratchet
+    # não pode inventar regressão a partir de um contrato que ainda não vigora.
+    assert compare_records([_rec()], [_rec()]) == ([], [])
+
+
+def test_enum_declarado_e_alternativa_honesta_a_escalacao() -> None:
+    # Cláusula entregue P/ a A42.l2: parar de escalar declarando `nao_verificavel`
+    # é honesto; o SILÊNCIO é parar de escalar sem declarar nada.
+    honesto = _rec(escalated=False, conservacao=False, verificabilidade="nao_verificavel")
+    mudo = _rec(escalated=False, conservacao=False)
+    base = _rec(escalated=True, conservacao=False, verificabilidade="provada")
+    assert not any("SILÊNCIO" in r for r in compare_records([honesto], [base])[0])
+    assert any("SILÊNCIO" in r for r in compare_records([mudo], [base])[0])
