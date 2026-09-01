@@ -625,6 +625,58 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 > antes do #1937 e do #1939, e **os dois mexeram na chave**. Quem for reconciliar
 > `Internacional` (a [[A40.l50]] é quem tem a rota) precisa **re-medir**, não reler.
 
+## r9 — ws-1b9f2cf5-2026-09-01
+
+> Rodada unificada **U5** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r9 (este) · [[PIPELINE-REVIEWS-active]] §r13 · [[REPORT-REVIEWS-active]] §r9.
+> Run `40d1af2a` `completed` 18/18 · 25,0 min · executor `8217041c` · report `685536d6` (baseline `7ed5aa09`) · preflight 12 PASS · 4 WARN · 0 FAIL (o `worker` reprovou com código de 43h e foi reiniciado antes do disparo).
+> Cru + síntese com valores: storage/<uuid>/reviews/U5-2026-09-01/SINTESE.md + .html (off-git).
+> Escrituração: [[A40.l113]] · [[A40.l114]] · [[A40.l115]] · [[A40.l116]] · [[A40.l117]] · [[A42.l24]] · [[A42.l25]] · [[A42.l26]] · [[A27.l3]] alocadas nesta rodada; efeito nos gates de saída escrito no `_README` da [[A40]] e da [[A42]].
+> Propósito: **DIAGNÓSTICO** a pedido do dono, com os dois gates fechados — registrado antes do disparo. Não pontua gate.
+> Cobertura: matriz 7×3 — 21 células, **13 respondidas**, 2 `BLOQUEADA` com o veredito que falta nomeado (`REPORT × correção`, `REPORT × solidez-financeira`), 6 sem cobertura com motivo, **zero silenciosas**. Varredura no grão de componente: 16 de 60 não produzem nada visível; **25,3%** da altura do relatório vem de seções que declaram zero componentes.
+> Céticos: exercidos **dentro** da F3.b (desvio declarado) — o painel corrigiu 4 artefatos meus e **2 confirmaram, 2 refutaram**.
+> Delta desde o executor do `U4`: **32** commits de produto · **28** de instrumento ⇒ nenhum "idêntico" publicável (§10 `U3` item 1).
+
+**Manchete da rodada: o mesmo corpus documental publicou um relatório 48% menor, e nada
+bloqueou.** Sem um documento novo entre os dois runs, **95 de 400** escalares numéricos do
+payload publicado se moveram: `patrimonio.bruto` **−48,1%**, `patrimonio.residencia` e
+`patrimonio.imoveis_geradores` **→ zero**, `endividamento.total_dividas` **→ zero**,
+`patrimonio.liquido` **idêntico ao bruto**, `goals.if_gap` **+27,3%**. O run saiu
+`completed` com 2 avisos de pausa e **nenhum** sinal bloqueante. Nas três rodadas
+unificadas anteriores o mesmo corpus produzia os números anteriores — é **regressão de 2
+dias**, não dívida antiga. São **duas cadeias independentes** ([[A40.l113]] e
+[[A40.l114]]), e as duas nascem de **extração LLM não-determinística** sobre documentos que
+não mudaram.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC9-04 — o **X4** (ancoragem monetária do parecer) é **falso-verde por construção**: de 10 literais monetários, **9** vivem em `riscos[*].ancoras[].valor_renderizado`, campo que o backend preenche (`parecer_orchestrator.py:805` `stamp_ancora_values`) copiando `path → valor` do **mesmo** payload que o check relê ⇒ órfão impossível; a superfície **autoral do modelo** é **n=1** | saúde-harness | Alto | P1 | CONFIRMADO · NOVO — **achado do instrumento contra si mesmo**, e o instrumento é meu | procede-aberto | publiquei `FECHA ✅ n=10/10` sobre denominador em que 9 de 10 não podiam falhar. **Mesma classe do `LC8-01`** (§r8). Dona [[A42.l24]] |
+| LC9-05 — o **X5** (proveniência de execução) examina **17 de 18** stages logados (`n_esperado=17`), e o excluído é `analyze_finances` em `needs_review` — **o stage que constrói o payload que carrega a regressão desta rodada** | saúde-harness | Alto | P1 | CONFIRMADO · NOVO (correção do painel, verificada por mim) | procede-aberto | o check que eu consertei na [[A42.l21]] para *"poder sair verde"* sai verde **ignorando exatamente o stage sob suspeita**. Dona [[A42.l24]] |
+| LC9-06 — a **mesma linha** do razão publica o delta E3→E4 com **dois sinais opostos**: o campo sai negativo e o detalhe positivo, porque `dev/ledger_conservation.py:220` calcula `value_in - value_out` só para o texto | consistência | Médio | P1 | CONFIRMADO · NOVO — dois leitores honestos do painel chegaram a conclusões opostas, e **nenhum errou de leitura** | procede-aberto | a direção do viés é **irresolvível a partir da saída**. Dona [[A42.l25]] |
+| LC9-07 — o delta E3→E4 destravado pela [[A42.l18]] **provavelmente não é perda**: destino > origem é o **único** sinal que nenhuma perda de pipeline produz (perda encolhe o destino) | correção | Médio | P1 | PARCIAL · NOVO — 2 mecanismos de instrumento nomeados, nenhum medido ainda | procede-aberto | **dois parsers do mesmo campo** (formato brasileiro lido como inteiro num lado e decimal no outro, fator 1000×) e **quatro termos com duas convenções de sinal** (delta líquido de opostos). Dona [[A42.l25]] |
+| LC9-08 — KR-B da [[A40]]: `entregue 7 · sombra 317`, **idêntico** ao `U4` e ao `U3` | contrato | — | — | MEDIÇÃO-DE-CONHECIDO — o critério é `entregue=0` ⇒ **não fecha** | procede-aberto | quarto ponto consecutivo sem movimento |
+| LC9-09 — sonda LC06: `investimentos_consolidados` **63 → 58** com **D2=0 e D3=0**; a população de investimentos **estabilizou** | identidade/dedup | — | — | **POSITIVO VERIFICADO** — efeito da [[A42.l15]] (#1939), medido | fechado por medição | `proprietario` passou a vir preenchido em **55 de 58**, com `cnpj_emissor` novo: a âncora de identidade saiu do free-text para campo **estruturado**. A pausa caiu de **6 para 2** avisos, e as duas causas que desapareceram são exatamente `investimento_sem_titularidade` (era 49,03%) e `instituicao_ausente` |
+| LC9-10 — sonda de imóveis, **direção oposta à de investimentos no mesmo run**: população **7 → 9** com **D2=8**, `property_id` **5 de 7 → 1 de 9** | identidade/dedup | Crítico | P0 | CONFIRMADO · NOVO | procede-aberto | **não é o `LC6-02`**: aquele é churn de `investment_id` e **melhorou** aqui. Este é o **consumidor** do id falhando aberto, na população de imóveis. Dona [[A40.l113]] |
+
+**Positivos verificados.** X2 determinístico (**2.289** células, 0 divergentes, pin de
+overrides estável — idêntico ao `U4`) · X3 vetorial **FECHA 0/1.540** (era 1/1.540 no `U4`)
+· X3b fecha (907 == 907) · zero-write provado · E2 conteúdo **1/137** (só o baseline; a
+unidade da caixa **estabilizou**, fechando o aberto do `U4`).
+
+**Verificação dos consertos do `U4`** (pelo `git log 04551a0b..8217041c`, **não** pelo MOC —
+§10 `U2` item 5): **os 5 seguram.** [[A42.l18]] — `dups` literal `0` → **858**, `Δ=0` →
+delta real, veredito `conservado` → **`coberto-sem-verificação-de-valor`**. [[A42.l19]] — o
+balde `patrimonio` **resolve e valida 0 erros** (com a ressalva que virou a [[A42.l26]]).
+[[A42.l20]] — 108 → **112** casados, 4 → **0** divergentes. [[A42.l21]] — o `X5` **FECHA**,
+com as 3 causas nomeadas, e a lente testou **5** formas de 4º ofensor: **4 aparecem**.
+[[A40.l110]] — o fóssil morreu; **99,0%** do delta de bytes da unidade é herdado a montante.
+
+**⚠️ A série de churn da [[A42.l17]] chegou a 6 pontos, e a alegação positiva dela cai.**
+Pré-fix **4·2·1·4** de 8; pós-fix **5** e **1**. Os dois pós-fix **cavalgam** a faixa
+pré-fix [1,4], com mecanismo idêntico (hífen separador aparecendo/desaparecendo). Com
+`n=2` pós-fix: **`temperature` declarada não produziu redução distinguível**. A lane nunca
+prometeu o contrário — ela refuta isso no próprio corpo; o que fecha aqui é a única
+alegação positiva.
+
 ## r8 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 (este) · [[PIPELINE-REVIEWS-active]] §r12 · [[REPORT-REVIEWS-active]] §r8.

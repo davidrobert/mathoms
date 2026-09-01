@@ -187,7 +187,8 @@ instrumento (dispensa desatualizada) e as outras lentes seguem válidas — desd
 | **X2** | O E4 re-derivado a partir do E3 **persistido do run** bate com o E4 persistido, em cents, por `(balde, categoria, mês)` | Categorizador não-determinístico, **drift de regra aprendida**, ou E4 estagnado vazando pelo workspace-latest. Pin obrigatório: contagem de `transaction_overrides` antes e depois |
 | **X3** | **Vetorial**: para todo mês e balde, a série do view-model == `fluxo_mensal_detalhado`, em cents; e a soma dos meses == o total do balde | Escalar fecha e vetor não fecha ⇒ **deslocamento sum-preserving**. É a classe que a rodada inteira existe para pegar |
 | **X3b** | `consolidacao_cross_documento.meses[]` bate, mês a mês, com a soma dos `remocoes[].cross_document_collapse.meses` dos E3 do run | O relatório **declara** um colapso diferente do que o razão executou |
-| **X4** | Todo literal monetário do parecer, em cents, pertence ao conjunto de cents do E5 do mesmo run, ou deriva de fórmula declarada | Número ancorado pelo modelo, não pelo dado |
+| **X4** | Todo literal monetário **autoral do modelo** — não o carimbado pelo backend — pertence, em cents, ao conjunto de cents do E5 do mesmo run, ou deriva de fórmula declarada | Número ancorado pelo modelo, não pelo dado. ⚠️ **O denominador é a metade difícil:** medido no `U5`, **9 de 10** literais vivem em `riscos[*].ancoras[].valor_renderizado`, que `stamp_ancora_values` preenche copiando `path → valor` do **mesmo** payload que o check relê ⇒ órfão **impossível por construção**, e o `FECHA ✅ n=10/10` publicado era vazio. A superfície autoral é **n=1** ⇒ o veredito honesto é `INAPLICÁVEL`. Dona [[A42.l24]] |
+| **X6** | **Diff escalar do payload publicado** contra o da rodada anterior: para todo escalar numérico presente nos dois, o valor é idêntico **ou** o movimento tem causa declarada. Publique o par `n_moveram`/`n_comparado` | Nada aqui é opcional porque **os outros seis podem fechar enquanto metade do relatório muda**: no `U5`, X2/X3/X3b/X5/E2 e a sonda **todos fecharam** e **95 de 400** escalares se moveram, com `patrimonio.bruto` **−48,1%** sobre corpus documental idêntico. Os demais checks medem conservação **entre stages** e proveniência **de execução**; nenhum mede o **publicado contra o publicado**. Instrumento: **pendente de promoção** — até então, `flat()` recursivo sobre os dois `report_data.json` das rodadas (§10, item 1 de 2026-09-01) |
 
 **Comandos do razão.** A sombra (pré-colapso, `collapse_enforce` omitido por
 obrigação do gate AST) e o entregue (E3 persistido do run pinado) rodam no mesmo
@@ -753,6 +754,61 @@ o MOC dela.
   o predicado de poll omitia um status terminal. Ambos consertados derivando do enum.
   A lição que fica para o encadeamento: **um defeito no launcher não aparece como
   falha — aparece como rodada que mediu a coisa errada.**
+
+- **2026-09-01 (fecho do `U5`) — seis furos, e o primeiro é o mais caro que o encadeamento já achou em si.**
+
+  1. **Nenhum cross-check desta rodada percebeu que metade do relatório mudou.** X2, X3,
+     X3b, X5, E2 e a sonda LC06 **todos fecharam** — e, no mesmo run, **95 de 400**
+     escalares numéricos do payload publicado se moveram, com `patrimonio.bruto` caindo
+     **48,1%** sobre corpus documental idêntico. Os checks medem **conservação entre
+     stages** e **proveniência de execução**; nenhum mede **o payload publicado contra o da
+     rodada anterior**. A varredura que achou (diff escalar campo-a-campo do view-model
+     entre duas rodadas) **não está no runbook**. **Regra: a F3.a passa a exigir o diff
+     escalar do payload publicado contra o baseline da rodada anterior, com o par
+     `n_moveram`/`n_comparado` publicado.** Custa um comando e é o sinal mais forte da
+     rodada inteira. Precedente da doença: um conjunto de checks internamente consistente
+     pode ser **globalmente cego**, porque todos partilham o mesmo eixo.
+
+  2. **Atribuição de mecanismo herdada de comentário de código não é medição.** Publiquei,
+     na primeira versão da síntese, que o zero da dívida vinha de `safe_float` sobre objeto
+     por ano em `patrimonio_resolvers.py:219/:225`, *"com a leitura correta na linha 567"* —
+     herdado do comentário em `endividamento_analyzer.py:138`, que nomeia
+     `_total_dividas_for` como *"defeito vivo"*. **Errado nas duas metades:** o objeto por
+     ano já existia no run anterior, quando o número saía **certo**, e a linha 567 é a
+     **ofensora**, não a leitura correta. O comentário é verdadeiro sobre um defeito
+     **dormente**. **Regra: atribuição de mecanismo exige A/B entre os dois runs no
+     produtor** — comentário verdadeiro pode descrever caminho que não dispara.
+
+  3. **A síntese em HTML pode corromper em silêncio, e uma rodada publicou assim.** O `U4`
+     tem **20** marcadores `**` vazados e **5** parágrafos truncados no
+     `SINTESE.html`, porque converteu **linha a linha**: cada linha de um parágrafo com
+     wrap virou um `<p>` e o negrito que abria numa linha fechava na seguinte. `U2` e `U3`
+     estão limpos ⇒ é regressão, não padrão. **Regra: o conversor junta as linhas do
+     parágrafo antes do inline e ASSERE, antes de publicar, ausência de `**` e de
+     `<p>` terminado em meia frase.** No `U5` esse guard **reprovou na primeira execução** e
+     pegou defeito real: uma linha de wrap começando com `#1/#2` foi lida como título
+     (ATX exige espaço depois das cerquilhas).
+
+  4. **Cruzar lane irmã ANTES de alocar, e o ganho é grande.** Dois dos achados de
+     superfície eram (a) **reincidência** de lane com fix mergeado — o guard de seção, cuja
+     correção trocou um literal por outro — e (b) **reprodução esperada** de 4 lanes que
+     seguem `open`. Sem o cruzamento seriam 5 achados novos; com ele são **1 reincidência
+     com achado novo embutido** (o teste importa a própria constante ⇒ cego por construção)
+     **+ 4 ponteiros**. O sinal de que você precisa cruzar: o achado tem número redondo e
+     nenhuma lane citada.
+
+  5. **Achado que mora em memória de sessão não é re-triado por rodada nenhuma.** O
+     zeramento da dívida foi medido em 2026-08-19 e a recomendação *"abrir lane P0"* ficou
+     na memória do executor. **Doze dias depois não havia lane nem linha em MOC** — `rg` não
+     o encontrava. Ele só voltou porque o mesmo executor lembrou. **Regra: medição que
+     recomenda lane entra no MOC da família na mesma sessão, mesmo sem lane** — a linha
+     `sem lane · decisão: <motivo>` é o mínimo, e é o que torna o item re-triável.
+
+  6. **`rg -r` é REPLACE, terceira ocorrência.** `rg -rn '<padrão>'` é lido como
+     `-r n` e **reescreve o match por "n"** na saída: um campo `$.fluxo_caixa.janela`
+     apareceu como `$.njanela`, e uma varredura de `"ano_referencia"` devolveu `n` no lugar
+     do nome. **Regra: nunca `-r` em busca exploratória.** O sintoma é output com um `n`
+     solitário onde devia haver o termo buscado.
 
 ## 11. Gates antes do commit
 

@@ -508,6 +508,44 @@ tiveram conserto mergeado entre os dois runs e o brief das lentes as declarou **
 — o que faz a lente **descartar** o sinal como re-descoberta em vez de verificar se o
 conserto segura. As suspeitas estão marcadas; a re-triagem é do r7/r11.
 
+## r9 — ws-1b9f2cf5-2026-09-01
+
+> Rodada unificada **U5** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r9 · [[PIPELINE-REVIEWS-active]] §r13 · [[REPORT-REVIEWS-active]] §r9 (este).
+> Run `40d1af2a` `completed` 18/18 · 25,0 min · executor `8217041c` · report `685536d6` (baseline `7ed5aa09`) · preflight 12 PASS · 4 WARN · 0 FAIL (o `worker` reprovou com código de 43h e foi reiniciado antes do disparo).
+> Cru + síntese com valores: storage/<uuid>/reviews/U5-2026-09-01/SINTESE.md + .html (off-git).
+> Escrituração: [[A40.l113]] · [[A40.l114]] · [[A40.l115]] · [[A40.l116]] · [[A40.l117]] · [[A42.l24]] · [[A42.l25]] · [[A42.l26]] · [[A27.l3]] alocadas nesta rodada; efeito nos gates de saída escrito no `_README` da [[A40]] e da [[A42]].
+> Propósito: **DIAGNÓSTICO** a pedido do dono, com os dois gates fechados — registrado antes do disparo. Não pontua gate.
+> Cobertura: matriz 7×3 — 21 células, **13 respondidas**, 2 `BLOQUEADA` com o veredito que falta nomeado (`REPORT × correção`, `REPORT × solidez-financeira`), 6 sem cobertura com motivo, **zero silenciosas**. Varredura no grão de componente: 16 de 60 não produzem nada visível; **25,3%** da altura do relatório vem de seções que declaram zero componentes.
+> Céticos: exercidos **dentro** da F3.b (desvio declarado) — o painel corrigiu 4 artefatos meus e **2 confirmaram, 2 refutaram**.
+> Delta desde o executor do `U4`: **32** commits de produto · **28** de instrumento ⇒ nenhum "idêntico" publicável (§10 `U3` item 1).
+
+**Manchete da rodada: o mesmo corpus documental publicou um relatório 48% menor, e nada
+bloqueou.** Sem um documento novo entre os dois runs, **95 de 400** escalares numéricos do
+payload publicado se moveram: `patrimonio.bruto` **−48,1%**, `patrimonio.residencia` e
+`patrimonio.imoveis_geradores` **→ zero**, `endividamento.total_dividas` **→ zero**,
+`patrimonio.liquido` **idêntico ao bruto**, `goals.if_gap` **+27,3%**. O run saiu
+`completed` com 2 avisos de pausa e **nenhum** sinal bloqueante. Nas três rodadas
+unificadas anteriores o mesmo corpus produzia os números anteriores — é **regressão de 2
+dias**, não dívida antiga. São **duas cadeias independentes** ([[A40.l113]] e
+[[A40.l114]]), e as duas nascem de **extração LLM não-determinística** sobre documentos que
+não mudaram.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| RR9-01 — **a identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS**: descrição ganha caractere duplicado ⇒ `endereco_canonical` e `property_id` colapsam juntos (**5 de 7 → 1 de 9**) ⇒ `patrimonio_imovel_classifier.py:58-62` e `:76-78` mandam `pid` nulo para o `else` ⇒ `patrimonio.residencia` e `patrimonio.imoveis_geradores` publicados **como zero** | correção | Crítico | P0 | CONFIRMADO · NOVO — medido A/B sobre **corpus documental idêntico** | procede-aberto | o produto afirma que a família **não tem casa própria nem imóvel de renda**, sem aviso: os classificadores não distinguem *"não é"* de *"não sei"*. Os 9 campos da consolidação seguem 9/9, o que prova que o enricher **rodou e falhou** (se não tivesse rodado seriam 0 de 9). Sem `property_id` o dedup cross-IRPF ([[ADR-246]] passo 3b) **vira no-op** ⇒ 3 pares duplicados no publicado. Dona [[A40.l113]] |
+| RR9-02 — **o ano de referência é saída crua do LLM e o total de dívida vira zero**: `extract_baseline.py:96` faz `"ano_referencia": output.reference_year` (`_meta.source: "E1.5-llm"`) sem confrontar com os anos dos documentos ⇒ `patrimonio_por_ano` re-rotulado com conteúdo **byte-idêntico** ⇒ `patrimonio_resolvers.py:561` `_split_dividas` lê `saldo.get(ano_ref, 0)` **sem fallback** | correção | Crítico | P0 | CONFIRMADO · NOVO | procede-aberto | `endividamento.total_dividas` **zero** com 4 financiamentos listados; `score.componentes[taxa_endividamento]` `nota=10,0` com peso **18,8%** e `status="emitted"`; superfície publica "Endividamento Mínimo/Nulo" como **Ponto Forte** em 2 inventários. O irmão `_resolve_saldo` ([[ADR-401]]) **tem** fallback — daí a lista somar certo **na mesma página**. ⚠️ **correção de atribuição**: o comentário em `endividamento_analyzer.py:138` nomeia `_total_dividas_for`, defeito real mas **dormente**. Dona [[A40.l114]] |
+| RR9-04 — `#S4` **afirma e nega** imóveis de investimento: abre afirmando ~34,8% do bruto, o card abaixo diz que **não há nenhum classificado**, o KPI repete a negativa e o ranking lista **dois em #1/#2** — 3 asserções de ausência contra 3 de presença; a seção mede **338px**, só o estado vazio | consistência | Crítico | P0 | CONFIRMADO · NOVO | procede-aberto | **é o `RR9-01` visto pela superfície**: sem id não existe classificação, e cada consumidor resolve o vazio do seu jeito. Dona [[A40.l113]] |
+| RR9-16 — **o sanitizer de PII mede o contexto de ENTRADA e nunca o output**: CPF com dígitos finais em claro em prosa **e** em `evidencia`, e agência/conta **completas** na mesma página | contrato | Alto | P1 | CONFIRMADO · NOVO | procede-aberto | a política protege 1 identificador e publica 2. A docstring afirma "CPF/CNPJ redigidos" enquanto o conjunto coberto tem 1 elemento que não é nenhum dos dois — **asserção falsa valendo como justificativa de ausência de gate**. Dona [[A40.l115]] |
+| RR9-20 — "4 anos para a IF" convive com uma reserva que o **próprio relatório chama de excessiva**, e nenhuma seção reconcilia as duas leituras | solidez-financeira | Médio | P2 | CONFIRMADO · NOVO | procede-aberto | **sem lane** — decisão: o eixo é doutrina de reserva vs. prazo de IF, e a matriz saiu `BLOQUEADA(veredito do razão por bloco)` nesta dimensão. Reabre quando houver bloco em `conservado` |
+| RR9-21 — os **4 achados de clareza-ux do `U4` reproduzem** integralmente nas duas viewports | clareza-ux | — | — | MEDIÇÃO-DE-CONHECIDO | **não é achado novo** | reproduzem porque as lanes seguem `open`: [[A40.l105]] · [[A40.l106]] · [[A40.l107]] · [[A40.l108]]. Registrado para não contar duas vezes |
+| RR8-04 (§r8) — `_compute_por_fonte_detalhado:592` `if v > 0:` derruba meses negativos | correção | Baixo | P3 | **reproduz ao centavo** (1 de 12 meses) | procede-aberto | **terceira rodada consecutiva sem lane. A decisão de não abrir É a decisão** — registrada aqui para que a próxima rodada não a re-descubra como nova |
+
+**Positivos verificados.** Os **4** achados de superfície do `U4` que tinham conserto
+mergeado seguem consertados · o índice de seção emite no desktop · as 27 citações do
+parecer **resolvem, 27 de 27** · print e PDF alcançam **12 de 12** blocos de risco (⚠️
+refutação da lente, que afirmava *"nem o PDF alcança"* — meu próprio proxy de contagem
+por rodapé de confiança quase certificou o falso; a presença por **título** mostrou 12/12).
+
 ## r8 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 · [[PIPELINE-REVIEWS-active]] §r12 · [[REPORT-REVIEWS-active]] §r8 (este).

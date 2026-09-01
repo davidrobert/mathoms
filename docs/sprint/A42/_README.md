@@ -188,6 +188,34 @@ sobre o mesmo corpus, prova o fechamento**:
 
 Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 
+> ### ⚠️ A `U5` (2026-09-01) abriu **3** achados da mesma classe — e o KR-B segue não-mensurável
+>
+> O critério 1 exige as Ondas 1–2 **feitas** antes de a re-execução contar. Elas não estão
+> (`l3` `in_progress`, `l4` `planned`), então a `U5` **não é** a rodada do critério 1 — e,
+> mesmo assim, abriu três achados da classe:
+>
+> - [[A42.l24]] — três checks publicam verde sobre população em que a falha é **impossível
+>   por construção** (X4 com 9 de 10 literais carimbados pelo backend; X5 examinando **17
+>   de 18** stages e excluindo o suspeito; teto de iterações contra população distinta do
+>   emissor). O anti-vácuo funciona; **denominador tautológico** passa por ele.
+> - [[A42.l25]] — o delta E3→E4 sai com **dois sinais opostos na mesma linha**, e o sinal
+>   observado é o único que perda não produz.
+> - [[A42.l26]] — o guard de escrita valida **largura, não profundidade**, e a regressão de
+>   identidade da [[A40.l113]] **passou por ele**.
+>
+> **Os três consertos que a `U4` gerou nesta sprint SEGURAM**, e isso é resultado positivo
+> medido: [[A42.l18]] (`dups` literal `0` → 858; `Δ=0` → delta real; veredito `conservado`
+> → `coberto-sem-verificação-de-valor`), [[A42.l19]] (`patrimonio` resolve e valida 0 erros
+> — com a ressalva que virou a [[A42.l26]]), [[A42.l20]] (108→**112** casados, 4→**0**
+> divergentes), [[A42.l21]] (o `X5` **fecha**, com as 3 causas nomeadas; a lente testou 5
+> formas de 4º ofensor e **4 aparecem**). A [[A42.l17]] segura para o que declarou, e a
+> série de churn chegou a **6 pontos**: os dois pós-fix (**5** e **1** de 8) **cavalgam** a
+> faixa pré-fix [1,4] ⇒ `temperature` declarada **não produziu redução distinguível** — a
+> lane nunca prometeu o contrário, e o que fecha aqui é a única alegação positiva dela.
+>
+> **KR-B:** segue **não-mensurável** — o critério é `entregue=0` e o run publica `entregue
+> 7 · sombra 317`, idêntico à `U4`.
+
 > ### ⚠️ A rodada unificada `U4` (2026-08-30) abriu 2 achados **da classe que fecha esta sprint**
 >
 > O critério 1 acima exige *"zero achado novo da classe `saúde-harness`/falso-verde — é a
@@ -257,6 +285,9 @@ grafo honesto até lá.
 | [[A42.l21]] | O `X5` da rodada unificada **só pode sair vermelho** e agrega 3 causas distintas sob 1 rótulo (skip mal-carimbado · escreve sob outra key por desenho · read-only); conjunto **constante** em U2/U3/U4 ⇒ poder discriminante zero · **U4 `PV12-04`** · ✅ **#1906** — defeito procede; eram **4** causas (não 3) e *"zero trabalho"* tem **duas grafias** (`skipped` · `total_processed: 0`) que os mesmos stages alternam conforme a saída — a 1ª versão, fiel ao enunciado, reprovava `extract_with_llm` em 5 de 25 runs. Histórico completo: **103 FECHA · 21 DIVERGE · 5 INAPLICAVEL**, contra `DIVERGE 3` constante | P2 | 1 | — |
 | [[A42.l22]] | A **ETA exibida durante o run** é subdeclarada em até **72%**: a mediana filtra `status==completed` e mistura no-ops de milissegundos com execuções de minutos · **U4 `PV12-01`** — único P2 da rodada com consequência medida na superfície do usuário | P2 | 1 | — |
 | [[A42.l23]] | `validate_full_order` compara **declaração com declaração**: as 2 declarações falsas de `writes` (`generate_narratives` escreve no E5; `validate_cross` não escreve) passam, e um `reads` sobre elas valida contra ficção — medido, indistinguível do controle verdadeiro · **r9 `PV9-30`**, aberto desde então **sem lane nem ADR**. Re-enunciado 2026-08-31: o campo é load-bearing em **8/18** (a espinha), e a falsidade mora nos 10 inertes ⇒ dano hoje **zero**, a um `reads=` de distância. **Refuta a medição do `PV10-10`** (*"ornamental"*), que mutou os 2 stages de cauda onde o campo é inerte por construção | P2 | 1 | — |
+| [[A42.l24]] | Três checks da rodada publicam verde sobre população em que a falha é **impossível por construção**, e um exclui justamente o stage sob suspeita | P1 | open | aberta 2026-09-01 dos `LC9-04`/`LC9-05`/`LC9-10` da **U5**, achados do instrumento contra si mesmo · X4: dos 10 literais monetários do parecer, **9** vivem em campo que o backend preenche copiando `path → valor` do **mesmo payload** que o check relê ⇒ órfão impossível; superfície **autoral** é **n=1**, e eu publiquei `FECHA ✅ n=10/10` · X5: examina **17 de 18** stages e o excluído é o que constrói o payload com a regressão da rodada — o check que consertei para "poder sair verde" sai verde ignorando o suspeito · teto de iterações de ferramenta: **19 contra 6** sem alarme, porque emissor e teto contam populações distintas (as 19 são carimbos do backend, **zero** do modelo) · o anti-vácuo do runbook publica `n_comparado`/`n_esperado` e **funciona**; o que não pega é **denominador tautológico** — `n_esperado` alto **parece** cobertura · mesma classe do `LC8-01` e da [[A42.l21]] |
+| [[A42.l25]] | A mesma linha do razão publica o delta com **dois sinais opostos**, e o sinal observado é o único que nenhuma perda de pipeline produz | P1 | open | aberta 2026-09-01 dos `LC9-06`/`LC9-07` da **U5**; sucessora direta da [[A42.l18]], que **ligou** a perna de valor — o número destravado é o objeto desta lane · `dev/ledger_conservation.py:220` calcula `value_in - value_out` só para o texto ⇒ campo negativo e detalhe positivo na **mesma linha**, e a direção do viés é **irresolvível a partir da saída** (dois leitores honestos do painel chegaram a conclusões opostas) · destino > origem é o sinal que **perda não produz**; dois mecanismos de instrumento nomeados: **dois parsers do mesmo campo** (`"1.234"` lido como inteiro num lado e decimal no outro, fator 1000×) e **quatro termos com duas convenções de sinal** (o delta é líquido de opostos) · enquanto ambíguo, a perna de valor **não sustenta veredito** |
+| [[A42.l26]] | O guard de escrita do E4 passa com **zero erros** e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | P1 | open | aberta 2026-09-01 do `PV13-13` da **U5**; sucessora da [[A42.l19]], cujo conserto **segura** (o balde de patrimônio resolve e valida 0 erros) — a lane é o **limite** que a medição revelou · o contrato re-derivado tem `required`/`additionalProperties:false` **só na raiz**; o item de `imoveis_consolidados` sai com `required` nulo · **a regressão de identidade da [[A40.l113]] passou por este guard**, e não por acidente de configuração: ele não olha o grão do item, que é onde a identidade mora · "0 erros" sem grão declarado não é veredito |
 
 Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
