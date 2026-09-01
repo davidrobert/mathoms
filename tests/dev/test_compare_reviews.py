@@ -7,7 +7,14 @@ import json
 from datetime import datetime
 from typing import Any
 
-from dev.compare_reviews import build_snapshot, compare_reviews, elapsed_minutes
+from dev.compare_reviews import (
+    _RUN_HEALTH_INFORMATIVO,
+    _RUN_HEALTH_REQUERIDO,
+    _exit_code,
+    build_snapshot,
+    compare_reviews,
+    elapsed_minutes,
+)
 
 _CONS_IDS = ["CV1", "CV2", "CV3", "CV6", "CV16", "CV17"]
 _RENDER_IDS = ["CV10"]
@@ -48,7 +55,8 @@ def _report_data() -> dict:
         "ratios": {"poupanca_pct": 22.5},
         "reserva_emergencia": {"meses_alvo": 6},
         "narrativas": {"summaries": {"s1": "texto"}},
-        "meta": {"transacoes_total": 100},
+        # NÃO existe `transacoes_total` aqui: a fixture antiga o fabricava, e era só por
+        # isso que a perna de volume parecia viva em teste (RV4-17 · A42.l3).
         "data_analise": "2026-07-23T10:00:00",
     }
 
@@ -107,7 +115,7 @@ def test_snapshot_has_no_monetary_literal() -> None:
 
 def test_snapshot_keeps_counts_and_drops_cv_details() -> None:
     snap = _snap()
-    assert snap["run_health"]["transacoes_total"] == 100
+    assert "transacoes_total" not in snap["run_health"]
     assert snap["run_health"]["total_documents"] == 40
     assert all("details" not in c and "name" not in c for c in snap["cross_validation"])
     assert snap["parecer"] == {
@@ -188,17 +196,47 @@ def test_conservation_cv_pass_to_fail_is_hard() -> None:
     assert any("CV2" in h and "falha" in h for h in hard)
 
 
-def test_tx_drop_is_hard_unless_corpus_shrank() -> None:
-    rd_less = copy.deepcopy(_report_data())
-    rd_less["meta"]["transacoes_total"] = 60
-    hard, _soft, _notes = compare_reviews(
-        _snap(), _snap(report_data=rd_less), _report_data(), rd_less
-    )
-    assert any("transacoes_total" in h for h in hard)
+def test_perda_de_volume_e_pega_pela_perna_de_drift_de_valor() -> None:
+    """RV4-17: a perna de volume foi REMOVIDA (lia uma folha que o view-model E5 não
+    tem). Quem cobre o caso é o drift de valor — perder metade das transações move os
+    agregados, e este teste é a prova de que a remoção não abriu buraco."""
+    rd_menos = copy.deepcopy(_report_data())
+    rd_menos["patrimonio"]["liquido"] = 617283.94
+    rd_menos["fluxo_caixa"]["saldo_mensal"] = 2160.77
 
-    cur_shrank = _snap(report_data=rd_less, run={**_RUN, "total_documents": 20})
-    hard2, _s, _n = compare_reviews(_snap(), cur_shrank, _report_data(), rd_less)
-    assert not any("transacoes_total" in h for h in hard2)
+    hard, _soft, _notes = compare_reviews(
+        _snap(), _snap(report_data=rd_menos), _report_data(), rd_menos
+    )
+
+    assert any("drift de valor" in h for h in hard)
+
+
+# ── A42.l3: perna sem insumo é INDETERMINADO com exit próprio, não `[]` silencioso ──
+
+
+def test_toda_chave_de_run_health_tem_perna_ou_e_declarada_informativa() -> None:
+    """Guard de CLASSE por IGUALDADE de conjunto. Um lado é escrito à mão (o contrato),
+    o outro vem do produtor real — foi o descasamento entre eles que deixou
+    `transacoes_total` passar por quatro rodadas parecendo uma perna viva."""
+    emitidas = set(_snap()["run_health"])
+    consumidas = {k for chaves in _RUN_HEALTH_REQUERIDO.values() for k in chaves}
+
+    assert emitidas == consumidas | set(_RUN_HEALTH_INFORMATIVO)
+
+
+def test_chave_ausente_no_snapshot_vira_indeterminado_e_nao_silencio() -> None:
+    velho = copy.deepcopy(_snap())
+    del velho["run_health"]["status"]
+
+    _hard, _soft, notes = compare_reviews(velho, _snap(), _report_data(), _report_data())
+
+    assert any("INDETERMINADO" in n and "_status_regression" in n for n in notes)
+
+
+def test_indeterminado_tem_exit_proprio_e_regressao_o_precede() -> None:
+    assert _exit_code([], []) == 0
+    assert _exit_code([], ["perna x"]) == 3
+    assert _exit_code(["regressão"], ["perna x"]) == 1
 
 
 def test_value_drift_suppressed_when_corpus_grew() -> None:
