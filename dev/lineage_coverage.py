@@ -51,7 +51,9 @@ from dev.golden_diff import is_monetary  # noqa: E402
 # valor como string e não cairia no predicado de qualquer forma.
 LINEAGE_BLOCK = "_lineage"
 
-ROSTER_PATH = Path(__file__).resolve().parents[1] / "dev" / "snapshots" / "lineage_coverage_baseline.json"
+ROSTER_PATH = (
+    Path(__file__).resolve().parents[1] / "dev" / "snapshots" / "lineage_coverage_baseline.json"
+)
 
 #: Origem da fixture dogfood determinística — a única que o CI consegue medir sozinho.
 ORIGEM_FIXTURE = "fixture"
@@ -126,7 +128,9 @@ def measure_coverage(payload: dict) -> LineageCoverage:
     )
 
 
-def _merge(mapa: Mapping[str, tuple[str, ...]], roots: frozenset[str], origem: str) -> dict[str, tuple[str, ...]]:
+def _merge(
+    mapa: Mapping[str, tuple[str, ...]], roots: frozenset[str], origem: str
+) -> dict[str, tuple[str, ...]]:
     """Acrescenta ``origem`` às raízes medidas e a **retira** das que não apareceram nela."""
     novo = {root: tuple(o for o in origens if o != origem) for root, origens in mapa.items()}
     for root in roots:
@@ -137,10 +141,8 @@ def _merge(mapa: Mapping[str, tuple[str, ...]], roots: frozenset[str], origem: s
 @dataclass(frozen=True)
 class Roster:
     """Universo acumulado de raízes monetárias, cada uma com as origens em que foi observada.
-
-    O denominador publicado é este universo — não o de uma origem só. É a diferença entre
-    "a cobertura do E5" e "a cobertura do que a fixture emite", que a A27.l2 conflacionou.
-    """
+    O denominador publicado é este universo, nunca o de uma origem só — a diferença entre "a
+    cobertura do E5" e "a cobertura do que a fixture emite", que a A27.l2 conflacionou."""
 
     universo: Mapping[str, tuple[str, ...]]
     cobertos: Mapping[str, tuple[str, ...]]
@@ -223,33 +225,44 @@ class Roster:
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def _cli(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Mede a cobertura de lineage de um payload E5 contra o roster publicado.",
-    )
-    parser.add_argument("payload", type=Path, help="JSON do artefato `analise_financeira` (E5) já decifrado")
-    parser.add_argument("--origem", required=True, help="rótulo da observação, ex.: `producao:40d1af2a`")
-    parser.add_argument("--update", action="store_true", help="grava a observação no roster")
-    args = parser.parse_args(argv)
-
-    coverage = measure_coverage(json.loads(args.payload.read_text(encoding="utf-8")))
-    roster = Roster.load()
+def _report(origem: str, coverage: LineageCoverage, roster: Roster) -> list[str]:
+    """Imprime as duas medidas lado a lado e devolve as raízes fora do roster."""
     fora = sorted(roster.outside(coverage.monetary_roots))
-
-    print(f"payload  ({args.origem}): {coverage.format_summary()}")
+    print(f"payload  ({origem}): {coverage.format_summary()}")
     print(f"roster   publicado: {roster.format_summary()}")
     if fora:
         print(f"raízes monetárias FORA do roster: {fora}")
-    if not args.update:
-        if fora:
-            print(
-                "Reprovado: o universo publicado não cobre o payload medido. Rode com "
-                "`--update` para incorporar a observação e republicar o número.",
-                file=sys.stderr,
-            )
-            return 1
-        return 0
+    return fora
 
+
+def _verdict(fora: list[str]) -> int:
+    if not fora:
+        return 0
+    print(
+        "Reprovado: o universo publicado não cobre o payload medido. Rode com `--update` "
+        "para incorporar a observação e republicar o número.",
+        file=sys.stderr,
+    )
+    return 1
+
+
+def _parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        description="Mede a cobertura de lineage de um payload E5 contra o roster publicado."
+    )
+    p.add_argument("payload", type=Path, help="JSON do artefato `analise_financeira` decifrado")
+    p.add_argument("--origem", required=True, help="rótulo da observação, ex.: `producao:40d1af2a`")
+    p.add_argument("--update", action="store_true", help="grava a observação no roster")
+    return p
+
+
+def _cli(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    coverage = measure_coverage(json.loads(args.payload.read_text(encoding="utf-8")))
+    roster = Roster.load()
+    fora = _report(args.origem, coverage, roster)
+    if not args.update:
+        return _verdict(fora)
     novo = roster.observing(args.origem, coverage)
     novo.dump()
     print(f"roster atualizado: {novo.format_summary()}")

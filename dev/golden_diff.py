@@ -72,11 +72,7 @@ _NON_MONETARY_EXACT = frozenset(
         # snapshot publicava 100. Entrada exata e não prefixo: não há família de
         # ordinais aqui, e `posicao_*` monetário é plausível num domínio de carteira.
         "posicao",
-        # A27.l3: CONTAGEM de itens excluídos (`consumo_consciente_calculator.py:162`
-        # publica `{"valor": ..., "contagem": self.contagem}` — o irmão ao lado é que é
-        # dinheiro). Entrada exata: a palavra é a unidade inteira, não um token dentro
-        # de um nome composto.
-        "contagem",
+        "contagem",  # A27.l3: CONTAGEM, ao lado do irmão que é dinheiro.
     }
 )
 _NON_MONETARY_SUFFIXES = (
@@ -135,16 +131,8 @@ _NON_MONETARY_NAMESPACES = ("score.",)
 # `<algo>_meses_<algo>` nascer com o mesmo bug — a lição que `_versao` já registrou.
 # Raio de explosão medido contra `config/schemas/e5_analysis.schema.json` (2026-08-28):
 # 7 nomes mudam de classe e nenhum é monetário; zero toca `*_brl` ou `valor`.
-# A27.l3: `pontos` é UNIDADE de contagem, nunca R$ — `narrativas.charts.
-# wise_fiscal_flags.pontos_revisao` é `sum(1 for f in flags if f["needs_review"])`
-# (`tributario_narrator.py:233`), e monetário-por-default o lia como R$. Custava mais
-# que delta fantasma: era a ÚNICA folha monetária de `narrativas`, então a raiz de prosa
-# entrava inteira no denominador de cobertura de lineage. Token e não entrada exata pela
-# doutrina desta lista (a unidade é o token) — `pontos_milhas` e o `score.*` da
-# [[ADR-217]] são a mesma família. Raio medido sobre schema E5 + payload de produção
-# (1.008 nomes, 2026-09-01): 4 nomes mudam de classe (`pontos_revisao` + os 3
-# `pontos_{fortes,urgentes,urgentes_retidos}`, que são LISTAS de prosa e nunca chegam ao
-# predicado por folha numérica); zero tocam `*_brl` ou `valor`.
+# A27.l3: `pontos` é CONTAGEM — `pontos_revisao` era a ÚNICA folha monetária de `narrativas`
+# e punha a raiz de prosa no denominador de lineage. Raio na lane: 4 nomes, 0 tocam `*_brl`.
 _NON_MONETARY_UNIT_TOKENS = frozenset(
     {"pct", "meses", "anos", "idade", "aa", "ano", "ratio", "pontos"}
 )

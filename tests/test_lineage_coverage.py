@@ -106,8 +106,7 @@ def test_o_roster_da_fixture_bate_com_a_medida(dogfood_e5, roster):
     """Sincronia exata da metade que o CI mede — conjunto, não contagem."""
     coverage = measure_coverage(dogfood_e5)
     assert sorted(roster.roots_de(ORIGEM_FIXTURE)) == sorted(coverage.monetary_roots), (
-        "raízes monetárias da fixture divergem do roster. "
-        f"medido={sorted(coverage.monetary_roots)}"
+        f"raízes monetárias da fixture divergem do roster. medido={sorted(coverage.monetary_roots)}"
     )
     assert sorted(roster.cobertos_de(ORIGEM_FIXTURE)) == sorted(coverage.covered_roots), (
         "raízes com rastro na fixture divergem do roster. Se SUBIU, rebaseline e atualize o "
@@ -145,12 +144,9 @@ def test_raiz_monetaria_nova_cai_fora_do_roster(dogfood_e5, roster):
 
 
 def test_o_denominador_publicado_nao_e_o_da_fixture(dogfood_e5, roster):
-    """A prova de não-inércia **desta** lane: o desenho anterior reprova aqui.
-
-    Na A27.l2 o universo era o da fixture por construção — as duas medidas eram a mesma, o
-    delta era zero e o viés otimista não tinha como aparecer. Aqui o roster é maior, e a
-    cobertura medida só sobre a fixture é **mais alta** que a publicada: é o viés, com sinal.
-    """
+    """A prova de não-inércia desta lane — o desenho anterior reprova aqui: na A27.l2 o
+    universo era o da fixture por construção, as duas medidas eram a mesma e o viés não tinha
+    como aparecer. Aqui o roster é maior, e a medida só-fixture é mais alta: o viés, com sinal."""
     so_fixture = measure_coverage(dogfood_e5)
     fora_da_fixture = roster.roots - so_fixture.monetary_roots
     assert fora_da_fixture, (
