@@ -685,6 +685,18 @@ cobertura contando grupos.
   modo incremental ([[ADR-080]]/[[ADR-169]]) artefatos velhos mantêm o id antigo até
   re-consolidar. O raio é limitado porque não há coluna nem FK ([[A42.l15]] §Já refutado): o
   que envelhece é o `nao_classificado_itens[].locator` de relatório já publicado.
+
+  > ⚠️ **O inventário acima parava cedo — dois consumidores a mais, achados no closeout.**
+  > (1) `review_reasons` (tabela DB) carrega o id **em texto**:
+  > `classificacao_review_reasons.py:87,106,144` grava `investment_id=<locator>` em
+  > `offending_value`, coluna `Text`. Não corrompe (a row é por run), mas o `rg` que a lane
+  > usou procurava **coluna com o nome**, não **valor** — e parou no mesmo ponto pela segunda
+  > vez. (2) **A chave de cache do parecer é `sha256` do payload E5 inteiro**
+  > (`parecer_orchestrator.py:161`), que inclui `nao_classificado_itens[].locator` ⇒ id novo
+  > em todo o corpus **invalida o cache do parecer para todo workspace** no próximo run. Este
+  > repo trata essa classe como evento de custo governado ([[ADR-173]] hard-stop; precedente
+  > em `e4_serialization.py`, que omite uma chave só por isso). Custo real, não inventariado
+  > no PR.
 - **Critério 8** — `pytest tests -q` **8278 passed** · `pytest backend/tests -q` verde.
 
 ### O braço da hipótese — regra de formato em `descricao`, no MESMO bump

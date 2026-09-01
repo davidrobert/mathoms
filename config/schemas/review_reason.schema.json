@@ -32,6 +32,7 @@
         "extract.fatura_scope_uncovered",
         "dedup.possible_duplicate",
         "dedup.identidade_sem_ancora",
+        "dedup.ancora_inerte",
         "dedup.sentinel_period",
         "domain.validation_conflict",
         "domain.balance_gap",

@@ -84,7 +84,7 @@
               "string",
               "null"
             ],
-            "description": "Hash estável de (tipo|instituicao|descricao_norm). Identidade de dedup cross-IRPF (ADR-271), não FK."
+            "description": "Hash estável de (cnpj_raiz|tipo|descricao_norm) quando há âncora, senão (tipo|instituicao|descricao_norm) — cascata da [[A42.l15]] sobre a [[ADR-271]] §147. A âncora é o CNPJ lido do DOCUMENTO (raiz de 8 dígitos), nunca o code do `institution_catalog` ([[ADR-400]] §1). Identidade de dedup cross-IRPF, não FK. `None` = recusa (`dedup.identidade_sem_ancora`)."
           },
           "_dedup_warning": {
             "type": "object",
