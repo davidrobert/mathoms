@@ -309,3 +309,63 @@ introduzir 0 destino julgado errado **e** 0 hits no passo 4. Reprovou? A injeç�
 Fora de escopo declarado: transformar `§S4` em `<a href>` (depende de scroll-spy, que
 nunca funcionou neste relatório). O payoff barato é renderizar o **título** em vez do id
 nos 4 sítios — o mapa já existe em `frontend/src/generated/report-layout.ts`.
+
+## Sonda de não-inércia (2026-09-01) — a cascata, COMO ESPECIFICADA, está refutada
+
+Rodei a sonda que o `senior-cto` exigiu antes do fix: resolver puro, sem tocar schema nem
+guardrail, aplicado aos 33 itens do run `40d1af2a`. Ela fez exatamente o que existia para
+fazer — **falsificou o desenho**.
+
+### Resultado
+
+| Medida | Valor |
+|---|---|
+| itens com `section_id` | 33 |
+| passo 1 (tema exclusivo) / 2 (âncora) / 3 (tema default) / **4 (fallback)** | 5 / 9 / 19 / **0** ✅ |
+| discordâncias com o emitido | **27 de 33 (82%)** |
+| **itens com ≥1 âncora** | **9 de 33 (27%)** |
+
+O passo 4 é 0 — a totalidade se sustenta. O resto não.
+
+### Por que está refutada: o discriminador não existe para metade dos tipos
+
+O passo 2 — *longest-prefix da raiz da âncora* — é o que desambigua `Custo tributário` e
+`Diagnóstico de dados`, os dois temas que a medição de abertura mostrou serem
+many-to-many. Mas ele **só pode disparar em 9 dos 33 itens**, e a razão não é do corpus, é
+do **schema**:
+
+```
+Risco        ancoras? True
+Sugestao     ancoras? True
+PontoForte   ancoras? False   <-- o campo NÃO EXISTE
+Metrica      ancoras? False   <-- o campo NÃO EXISTE
+```
+
+Para `ponto_forte` e `metrica` o passo 2 é **estruturalmente inalcançável**. A cascata
+degenera em `tema → default` para **73%** dos itens — que é precisamente o mapa
+many-to-one que o critério 2 original já tinha sido refutado por ser. O desenho não
+resolve o problema para os tipos onde o discriminador não existe; ele o *move*.
+
+### O que isto NÃO refuta
+
+A **Decisão 1** segue de pé: a máquina autorar continua certo, e o argumento que a
+sustenta (injetar o id ensina proveniência, e mandaria risco de imóvel para S1) não
+depende da cascata. O que cai é a **forma** do produtor determinístico.
+
+### Rotas que sobram, para o veredito cego decidir
+
+1. **Dar âncora a `PontoForte` e `Metrica`** — o passo 2 volta a ser universal, mas é
+   mudança de schema de saída do LLM (mais caro que a lane inteira) e `Metrica` já carrega
+   `metrica_key` de vocabulário fechado, que talvez sirva de discriminador **melhor** que
+   âncora: `alocacao_renda_fixa` nomeia a grandeza sem ambiguidade.
+2. **Discriminador por tipo**: âncora para `Risco`/`Sugestao`, `metrica_key` para
+   `Metrica`, e `PontoForte` sem discriminador (aceita o default do tema).
+3. **Aceitar o default do tema** e medir quanto erro isso custa — 27 discordâncias num
+   corpus onde o modelo às vezes acerta (o risco de `Liquidez` ancorado em
+   `$.reserva_emergencia.total_liquida` foi para **S3**, e o mapa diz **S1**; qual serve o
+   leitor não é óbvio).
+
+> **Próximo passo, e é bloqueante:** veredito **cego** de `financial-planner` +
+> `product-designer` sobre as discordâncias — sem dizer qual lado é a máquina —, e escolha
+> entre as rotas 1–3. A tabela está em
+> `_scratch`/`sonda_section_id.py` (off-git, reprodutível em ~5s, US$ 0).
