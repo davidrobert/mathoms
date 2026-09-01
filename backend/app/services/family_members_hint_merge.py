@@ -86,6 +86,38 @@ def _irpf_year(row: PipelineArtifact) -> int:
     return (row.created_at.year - 1) if row.created_at else 0
 
 
+def _hints_aceitos(
+    contas_hint: list[dict[str, Any]],
+    blob: dict[str, Any],
+    *,
+    ano: int,
+    members: list[Any],
+    recusadas: set,
+) -> list[dict[str, Any]]:
+    """Aplica a política e canonicaliza — a REGRA é de `irpf_hint_policy`."""
+    by_bank_num, _ = build_existing_indexes(members)
+    resolver = MemberNameResolver.from_family_config(blob)
+    return [
+        _conta_hint(c, _chave_canonica(str(c.get("member_key") or ""), resolver))
+        for c in contas_hint
+        if classificar_hint(c, irpf_year=ano, by_bank_num=by_bank_num, dismissed_keys=recusadas)
+        == "emit"
+    ]
+
+
+def _log_merge(blob: dict[str, Any], candidatas: int, aceitas: int, ano: int) -> None:
+    _logger.info(
+        "hint_merge.resultado",
+        extra={
+            "event": "hint_merge.resultado",
+            "curadas": len(blob.get("contas") or []),
+            "hint_candidatas": candidatas,
+            "hint_aceitas": aceitas,
+            "irpf_year": ano,
+        },
+    )
+
+
 def merge_irpf_hints(
     blob: dict[str, Any], *, workspace_id: str, members: list[Any], db: Session
 ) -> dict[str, Any]:
@@ -93,30 +125,13 @@ def merge_irpf_hints(
     row = _latest_e1_row(workspace_id, db)
     if row is None:
         return blob
-    conteudo = read_artifact_content(row.content_json) or {}
-    contas_hint = conteudo.get("contas") or []
+    contas_hint = (read_artifact_content(row.content_json) or {}).get("contas") or []
     if not contas_hint:
         return blob
     ano = _irpf_year(row)
-    by_bank_num, _ = build_existing_indexes(members)
     recusadas = dismissed_keys_for_year(_dismissals(workspace_id, db), ano)
-    resolver = MemberNameResolver.from_family_config(blob)
-    novas = [
-        _conta_hint(c, _chave_canonica(str(c.get("member_key") or ""), resolver))
-        for c in contas_hint
-        if classificar_hint(c, irpf_year=ano, by_bank_num=by_bank_num, dismissed_keys=recusadas)
-        == "emit"
-    ]
-    _logger.info(
-        "hint_merge.resultado",
-        extra={
-            "event": "hint_merge.resultado",
-            "curadas": len(blob.get("contas") or []),
-            "hint_candidatas": len(contas_hint),
-            "hint_aceitas": len(novas),
-            "irpf_year": ano,
-        },
-    )
+    novas = _hints_aceitos(contas_hint, blob, ano=ano, members=members, recusadas=recusadas)
+    _log_merge(blob, len(contas_hint), len(novas), ano)
     if not novas:
         return blob
     return {**blob, "contas": [*(blob.get("contas") or []), *novas]}

@@ -1364,15 +1364,15 @@ def _has_validation_errors(result) -> bool:
     )
 
 
+# [[ADR-430]] §5: `config_overrides` congela UMA vez por run, em
+# `run_context_factory`, antes de qualquer stage. Sem esta reinjeção o hint do E1
+# só chegaria ao E4 do run SEGUINTE — o critério "run novo do workspace de
+# dogfood publica abaixo do piso" passaria por acidente (lá o E1 já rodou antes)
+# e falharia no primeiro run de um workspace NOVO, que é o momento que importa.
+# Mutar campo de objeto per-run não viola a [[ADR-111]]: o proibido é estado de
+# MÓDULO.
 def _refresh_family_members_override(ctx, ws_id: str, stage_name: str) -> None:
-    """Reinjeta `family_members.json` após o E1 — o hint tem de alcançar o E4 do MESMO run."""
-    # [[ADR-430]] §5: `config_overrides` congela UMA vez por run, em
-    # `run_context_factory`, antes de qualquer stage. Sem esta reinjeção o hint
-    # do E1 só chegaria ao E4 do run SEGUINTE — o critério "run novo do
-    # workspace de dogfood publica abaixo do piso" passaria por acidente (lá o
-    # E1 já rodou antes) e falharia no primeiro run de um workspace novo, que é
-    # o momento que importa. Mutar campo de objeto per-run não viola a
-    # [[ADR-111]]: o proibido é estado de MÓDULO.
+    """Reinjeta `family_members.json` após o E1 — o hint alcança o E4 do MESMO run."""
     from pipeline.stage_spec import resolve_stage_name
 
     if resolve_stage_name(stage_name) != "extract_members" or ctx.config_overrides is None:
