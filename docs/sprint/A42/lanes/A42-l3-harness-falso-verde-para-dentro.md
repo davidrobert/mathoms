@@ -3,7 +3,9 @@ id: A42.l3
 type: lane
 title: "Harness de certificação: falso-verde para dentro"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1949
+ship_date: "2026-09-01"
 priority: P1
 branch_slug: a42-l3-harness-falso-verde-para-dentro
 adrs:
@@ -13,7 +15,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a42
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/ci
   - area/pipeline
@@ -216,11 +218,9 @@ Medido na sessão de ataque; registrado como bound no §r6.
 
 ## Entrega — 2026-09-01
 
-> **Terminalidade é o `status` desta nota, não esta tabela.** Cinco PRs; a coluna de
-> estado foi deliberadamente omitida — ela envelheceria a cada merge e viraria a
-> afirmação-em-prosa que o rebase deixa falsa. A lane só vira `shipped` quando os cinco
-> estiverem em `main`; até lá `status: in_progress` e sem `ship_pr` (C1 do gate de
-> transição).
+> **Todos em `main` (2026-09-01).** `ship_pr: 1949` — o último PR que carregou item; o
+> #1952 é o registro docs. A coluna de estado foi deliberadamente omitida da tabela:
+> terminalidade é o campo `status` desta nota, que tem gate.
 
 | PR | Itens |
 | --- | --- |
@@ -292,3 +292,54 @@ registrados nos PRs: um guard de classe que comparava as glosas do dict e sobrev
 mutação que restaurava a frase única no veredito ([#1946]); e um teste de exit code que
 comparava `main()` contra a **própria constante** e sobrevivia a `EXIT_INDETERMINADO = 0`
 ([#1949]).
+
+---
+
+## Rota recebida da [[A40.l32]] — deferida com dono, 2026-09-01
+
+O closeout achou uma rota **para dentro** desta lane que ela nunca registrou. A
+[[A40.l32]] (`shipped`, #1335) a nomeia duas vezes:
+
+> *"**Isto não resolve o débito estrutural** de `.claude/skills/**` (segue com a
+> [[A42.l3]])"* · *"Os scripts sob `.claude/skills/` têm cobertura zero — importam
+> `backend` no topo e nenhuma suíte os alcança. (…) Gap estrutural, maior que esta lane;
+> dono natural é a [[A42.l3]]."*
+
+**Nenhum dos 9 itens a cobria, e nenhum PR a entregou.** Registrada aqui para não virar
+rota-zumbi quando esta nota ficou terminal.
+
+**Re-medido em 2026-09-01, e a afirmação mudou:** são **7** scripts em
+`.claude/skills/*/scripts/`, e **1 já tem teste real** —
+`tests/unit/test_capture_report_render.py` carrega
+`capture_report_render.py` por `importlib.util.spec_from_file_location`, contornando o
+import de `backend` no topo. "Cobertura zero" era verdade quando escrito; hoje é **1 de
+7**, e o que interessa é que a **técnica está provada**: o resto é mecânico.
+(`resolve_workspace` aparece em `tests/test_llm_calls_allowed_propagation.py`, mas é
+`_resolve_workspace_id` de **outro** módulo — não conta.)
+
+**Por que não entrou nesta lane.** A própria [[A40.l32]] a chama de *"gap estrutural,
+maior que esta lane"*, e ela é de natureza diferente dos 9 itens: aqui cada item é um
+falso-verde nomeado com prova por mutação; ali é cobertura ausente por acidente de
+import. Absorvê-la no closeout seria ampliação silenciosa de escopo depois do merge.
+
+**Condição de retomada e dono:** 6 scripts sem teste, técnica provada, custo mecânico.
+Dono natural é quem pegar uma lane de instrumento na A42 — a [[A42.l4]] já é solo em
+`scripts/validate_cross.py` e não serve. Se ninguém pegar, vira lane própria com o
+enunciado **re-medido** acima, nunca com o "cobertura zero" original.
+
+## Closeout — 2026-09-01
+
+Camada 1 (`check_closure.py --lane A42.l3`) limpa, sem banner de substrato, rodada de
+árvore em `origin/main`. Camada 2 releu os **12** citadores. Corrigidos neste PR:
+
+- **3 afirmações falsas** na linha desta lane do §Âncora hoje do `_README` da A42
+  (`_non_ledger_verdict` mudou de arquivo na [[A42.l19]]; o default deixou de ser
+  `COBERTO_SEM_VALOR`; o `certify_parse_local.py` passou a ler `checksum_ok`), mais o
+  carimbo `sobrevive`.
+- **1 afirmação falsa** na linha da [[A42.l4]] do mesmo bloco
+  (`compare_reviews.py` não busca mais `transacoes_total` — #1949 removeu a perna).
+- A frase de pré-condição do **KR-B**, que dizia *"a perna de volume do gate
+  anti-regressão está morta hoje"*.
+- `RV5-10` na [[PIPELINE-REVIEWS-active]], cuja `Disposição` ainda apontava para esta
+  lane embora o §r6 já a tenha **re-escopado** para `RV6-02` dizendo em letra que
+  *"[[A42.l3]] não é sobre isso"*.

@@ -295,6 +295,14 @@ declara a base em vez de herdar o número.
   para `dev/` (onde o teste chega) e por isso o fix de escopo por run do parecer
   shipou sem teste unitário. Gap estrutural, maior que esta lane; dono natural é
   a [[A42.l3]].
+  > **Rota re-disposta 2026-09-01, no closeout da [[A42.l3]].** Aquela lane fechou
+  > (#1949) **sem** absorver este débito — ele não estava em nenhum dos 9 itens dela, e
+  > ela mesma o chama de "maior que esta lane". Registro e condição de retomada ficaram
+  > no §Rota recebida da [[A42.l3]], com a medição refeita: são **7** scripts, e **1 já
+  > tem teste real** (`tests/unit/test_capture_report_render.py` carrega por
+  > `importlib.util.spec_from_file_location`, contornando o import de `backend`).
+  > "Cobertura zero" era verdade quando escrito; hoje é **1 de 7**, e a técnica está
+  > provada.
 - **`output_summary` não tem schema declarado** e é sobrescrito por atribuição
   total em 3 pontos. Qualquer chave nova ali precisa ser injetada em
   `result.detail` antes do terminal.
