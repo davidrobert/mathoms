@@ -34,7 +34,15 @@ def _status(nao_atribuidos: float, base: float, titular_identificado: float) -> 
 
 
 # Valores crus, nunca o dict publicado — mesma razão de `publicar_bases`.
-def atribuicao_investimentos(*, orfa: float, cheia: float, identificada: float) -> dict:
+# `pct_inferido` divide pela MESMA base de `pct_carteira_financeira` ([[ADR-430]]
+# §3): duas porcentagens do mesmo bloco sobre denominadores diferentes é o
+# defeito que a A40.l96 já pagou ao comparar o `pct_carteira` do Top 15 com os
+# 49% de titularidade. Ele mede a fatia COM dono cuja atribuição veio de
+# inferência (banco de dono único), não de declaração nem de conta casada —
+# fato ≠ hint ([[ADR-394]]).
+def atribuicao_investimentos(
+    *, orfa: float, cheia: float, identificada: float, inferida: float = 0.0
+) -> dict:
     """Bloco `atribuicao_investimentos`: quanto da carteira tem dono conhecido."""
     pct = _pct(orfa, cheia)
     acima = pct >= PISO_AGREGADO_PCT
@@ -43,6 +51,7 @@ def atribuicao_investimentos(*, orfa: float, cheia: float, identificada: float) 
         "pct_carteira_financeira": pct,
         "piso_pct": PISO_AGREGADO_PCT,
         "motivo": _motivo(pct) if acima else None,
+        "pct_inferido": _pct(inferida, cheia),
     }
 
 

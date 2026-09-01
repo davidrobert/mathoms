@@ -25,6 +25,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from pipeline.domain.services.atribuicao_de_titularidade import (
+    AtribuicaoFonte,
+    atribuir_por_conta,
+    canonicalizar_membro,
+)
 from pipeline.domain.services.member_name_resolver import MemberNameResolver
 from pipeline.domain.types.config import BankAccountRecord, coerce_account_origem
 
@@ -211,6 +216,9 @@ def _merge_into_sibling(best_by_key: dict, empty_key: tuple, sib_key: tuple, avi
     empty, sib = best_by_key[empty_key], best_by_key[sib_key]
     keep, drop = (empty, sib) if str(empty["data_ref"]) > str(sib["data_ref"]) else (sib, empty)
     keep["membro"] = sib_key[1]
+    # A atribuição passa a vir da mesma evidência do irmão — sem isto a posição
+    # colapsada continuaria declarando a fonte que ela tinha quando era vazia.
+    keep["atribuicao_fonte"] = sib["atribuicao_fonte"]
     best_by_key[sib_key] = keep
     del best_by_key[empty_key]
     avisos.append(
@@ -227,6 +235,7 @@ def _resolved_siblings(best_by_key: dict, inst: str) -> list:
 
 def _mark_needs_review(cand: dict, inst: str, n: int, avisos: list) -> None:
     cand["membro"] = "needs_review"
+    cand["atribuicao_fonte"] = "indeterminada"
     avisos.append(
         f"[WARN] membro-vazio em {inst!r} com {n} membros resolvidos — "
         "needs_review, não colapsado (ADR-346 §4b)"
@@ -321,32 +330,19 @@ class InvestmentsConsolidator:
                 continue
             instituicao = data.get("instituicao") or data.get("banco") or ""
             membro_raw = (data.get("membro") or "").lower()
-            # ADR-243 — normaliza nome bruto do LLM para a chave canônica
-            # do workspace antes de qualquer outra lógica (dedup, totalização,
+            # ADR-243 — normaliza nome bruto do LLM para a chave canônica do
+            # workspace antes de qualquer outra lógica (dedup, totalização,
             # match contra titular_key/conjuge_key downstream em E5).
-            membro = ""
-            if membro_raw and self._member_name_resolver is not None:
-                resolution = self._member_name_resolver.resolve(membro_raw)
-                if resolution.canonical_key:
-                    membro = resolution.canonical_key
-                else:
-                    # Resolver não casou — preserva raw (audit + telemetria
-                    # já registra confidence=unknown/ambiguous no log).
-                    membro = membro_raw
-            else:
-                membro = membro_raw
+            membro = canonicalizar_membro(membro_raw, self._member_name_resolver)
+            fonte: AtribuicaoFonte = "declarada" if membro else "sem_dono"
             if not membro and instituicao:
                 # ADR-226 PR3 — resolver substitui lookup direto banco_membro.
-                inst_key = str(instituicao).lower().replace(" ", "")
-                acc_num = data.get("numero_conta") or data.get("account_number")
-                resolution = self._resolver.resolve(inst_key, acc_num)
-                # ADR-226 §Emenda 2026-08-31: lê o eixo de TITULARIDADE. O eixo
-                # de conta (`account_confidence`) responde outra pergunta e não
-                # deve contaminar a atribuição patrimonial.
-                if resolution.member_confidence == "ambiguous":
-                    membro = "needs_review"
-                else:
-                    membro = resolution.member_key or ""
+                membro, fonte = atribuir_por_conta(
+                    data,
+                    str(instituicao).lower().replace(" ", ""),
+                    account_resolver=self._resolver,
+                    name_resolver=self._member_name_resolver,
+                )
             data_ref = (
                 data.get("data_referencia") or data.get("data_posicao") or data.get("periodo") or ""
             )
@@ -361,6 +357,7 @@ class InvestmentsConsolidator:
                     "_posicoes": posicoes,
                     "instituicao": instituicao,
                     "membro": membro,
+                    "atribuicao_fonte": fonte,
                     "data_ref": data_ref,
                     "total_fonte": total_fonte,
                 }
@@ -415,6 +412,7 @@ class InvestmentsConsolidator:
             posicoes = cand["_posicoes"]
             instituicao = cand["instituicao"]
             membro = cand["membro"]
+            fonte = cand["atribuicao_fonte"]
             data_ref = cand["data_ref"]
             total_fonte = cand["total_fonte"]
             source = cand["_source"]
@@ -437,6 +435,7 @@ class InvestmentsConsolidator:
                         ),
                         "instituicao": instituicao,
                         "membro": membro,
+                        "atribuicao_fonte": fonte,
                         "valor_atual": valor,
                         "posicao_sem_marcacao": sem_marcacao,
                         "ticker_norm": _norm_ticker(
