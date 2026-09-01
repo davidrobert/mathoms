@@ -3,13 +3,15 @@ id: A42.l25
 type: lane
 title: "A mesma linha do razão publica o delta com dois sinais opostos, e o sinal observado é o único que nenhuma perda de pipeline produz"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1965
+ship_date: "2026-09-01"
 priority: P1
 branch_slug: a42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-416]]", "[[ADR-426]]", "[[ADR-434]]"]
-tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
+tags: [type/lane, sprint/a42, status/shipped, priority/p1, area/dados]
 ---
 
 # A42.l25 — `delta-com-dois-sinais-e-mecanismo-de-instrumento`
@@ -56,7 +58,7 @@ volta a `coberto-sem-verificação-de-valor` na prática.
 
 ---
 
-## Entregue 2026-09-01 — PR #TBD · [[ADR-434]] + emenda datada na [[ADR-426]]
+## Entregue 2026-09-01 — PR [#1965](https://github.com/davidrobert/mathoms/pull/1965) · [[ADR-434]] + emenda datada na [[ADR-426]]
 
 **O eixo fecha ao centavo no corpus real.** Re-derivação in-process em `ws-1b9f2cf5`:
 
