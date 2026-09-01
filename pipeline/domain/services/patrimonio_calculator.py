@@ -83,6 +83,7 @@ from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_NU_PROPRIETARIO,
     CLASSIFICATION_RESIDENCIA_PRINCIPAL,
     CLASSIFICATION_USO_PESSOAL,
+    split_imoveis_alocacao_vs_fora,
     split_imoveis_geradores_vs_nao_geradores,
     split_imoveis_with_overrides,
     sum_imoveis_geradores_liquidos,
@@ -118,6 +119,7 @@ __all__ = [
     "CLASSIFICATION_NU_PROPRIETARIO",
     "CLASSIFICATION_DESCONHECIDO",
     "split_imoveis_with_overrides",
+    "split_imoveis_alocacao_vs_fora",
     "split_imoveis_geradores_vs_nao_geradores",
 ]
 
@@ -206,6 +208,14 @@ class PatrimonioCalculator:
             conjuge_bens=conjuge_bens,
             overrides_by_property_id=self._config.property_classification_overrides or {},
         )
+        # [[ADR-420]] §D6: a MESMA partição de cat_2 por outro eixo — rebalanceabilidade,
+        # não geração de caixa. Publicada número-neutra aqui; quem passa a LER é o
+        # numerador da concentração, num PR seguinte (a ordem que o C19 provou fechar).
+        imoveis_alocacao, imoveis_fora_alocacao = split_imoveis_alocacao_vs_fora(
+            titular_bens=titular_bens,
+            conjuge_bens=conjuge_bens,
+            overrides_by_property_id=self._config.property_classification_overrides or {},
+        )
         guarda, investimentos_titular, investimentos_conjuge, caixa_total_brl = (
             aplicar_guarda_aos_componentes(
                 itens_sem_valor=_itens_sem_valor(titular_bens, conjuge_bens),
@@ -275,6 +285,8 @@ class PatrimonioCalculator:
             "imoveis_investimento": round(imoveis_investimento, 2),
             "imoveis_geradores": round(imoveis_geradores, 2),
             "imoveis_nao_geradores": round(imoveis_nao_geradores, 2),
+            "imoveis_alocacao": round(imoveis_alocacao, 2),
+            "imoveis_fora_alocacao": round(imoveis_fora_alocacao, 2),
             identity.key_inv_titular: valor_publicavel(investimentos_titular, cobertura, "titular"),
             identity.key_inv_conjuge: valor_publicavel(investimentos_conjuge, cobertura, "conjuge"),
             # CTO-02: `caixa_total_brl` guarda o caixa TOTAL (BRL + ME); o ME
@@ -316,6 +328,10 @@ class PatrimonioCalculator:
                     "carteira_financeira_familia": investivel_financeiro,
                     "cat2_efetivo": cat2_efetivo,
                     "imoveis_investimento": imoveis_investimento,
+                    # Termo de `carteira_produtiva_fixa` a partir do PR do flip
+                    # ([[ADR-420]] §D6). Publicado antes para o gate de recompute
+                    # enxergá-lo já declarado quando a base trocar de termo.
+                    "imoveis_alocacao": imoveis_alocacao,
                     "bruto": patrimonio_bruto,
                     "dividas": total_dividas,
                 }
