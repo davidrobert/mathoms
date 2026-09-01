@@ -177,3 +177,51 @@ class TestMergeIrpfHints:
         result = serialize_family_members(workspace.id, db)
         assert len(result["contas"]) == 1
         assert "origem" not in result["contas"][0]
+
+
+# =============================================================================
+# Hook de lag pós-E1 ([[ADR-430]] §5)
+# =============================================================================
+
+
+class TestRefreshFamilyMembersOverride:
+    """`config_overrides` congela uma vez por run — sem reinjeção o hint atrasa um run."""
+
+    def _ctx(self, overrides):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(config_overrides=overrides)
+
+    def test_reinjeta_apos_extract_members(self, monkeypatch):
+        from backend.app.tasks import pipeline_task as pt
+
+        monkeypatch.setattr(pt, "SyncSessionLocal", lambda: _FakeSession())
+        monkeypatch.setattr(
+            "backend.app.services.pipeline.pipeline_adapter._family_members_override",
+            lambda ws, db: {"membros": {}, "contas": [{"institution_code": "itau"}]},
+        )
+        ctx = self._ctx({"family_members.json": {"membros": {}}})
+        pt._refresh_family_members_override(ctx, "ws-1", "extract_members")
+        assert len(ctx.config_overrides["family_members.json"]["contas"]) == 1
+
+    def test_nao_reinjeta_em_outro_stage(self, monkeypatch):
+        from backend.app.tasks import pipeline_task as pt
+
+        monkeypatch.setattr(pt, "SyncSessionLocal", lambda: _FakeSession())
+        ctx = self._ctx({"family_members.json": {"membros": {}}})
+        pt._refresh_family_members_override(ctx, "categorize_transactions", "x")
+        assert "contas" not in ctx.config_overrides["family_members.json"]
+
+    def test_tolera_contexto_sem_overrides(self, monkeypatch):
+        from backend.app.tasks import pipeline_task as pt
+
+        monkeypatch.setattr(pt, "SyncSessionLocal", lambda: _FakeSession())
+        pt._refresh_family_members_override(self._ctx(None), "ws-1", "extract_members")
+
+
+class _FakeSession:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
