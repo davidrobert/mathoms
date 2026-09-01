@@ -4,7 +4,7 @@ type: lane
 title: "A identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS: residência e imóvel gerador são publicados como zero"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l113-identidade-de-imovel-churna-classificador-falha-fechado
 owner: data-engineer
@@ -172,6 +172,9 @@ listados, logo `liquido == bruto`) caem pela **mesma linha**. Isso refuta duas a
 
 
 ## Disposição dos critérios de aceite, após a medição
+
+> **PR #1962 (`c551e832`) mergeado em 2026-09-01** com [[ADR-433]] `Proposto`. A lane segue
+> `in_progress`: 2 dos 4 critérios entregues, 1 substituído e 1 medido como inexequível.
 
 A [[ADR-433]] (`Proposto`) carrega a decisão. Dois critérios desta lane **não sobrevivem
 à medição como escritos** — registrado aqui para que a prescrição errada não se propague.
