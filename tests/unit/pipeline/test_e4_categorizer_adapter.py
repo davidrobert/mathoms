@@ -26,7 +26,6 @@ from pipeline.domain.services.transaction_classifier import (  # noqa: E402
 
 GOLDENS_DIR = Path(__file__).resolve().parents[2] / "pipeline" / "goldens" / "e4"
 _FIXED_NOW = datetime(2026, 4, 19, 10, 0, 0, tzinfo=timezone(timedelta(hours=-3)))
-_FIXED_DATE = date(2026, 4, 19)
 
 
 def _load_golden(name: str) -> dict:
@@ -57,7 +56,7 @@ def _adapter_from_golden(golden: dict) -> E4CategorizerAdapter:
     return E4CategorizerAdapter(
         classifier=TransactionClassifier(classifier_cfg),
         cash_flow_builder=CashFlowBuilder(now=_FIXED_NOW),
-        baseline_normalizer=BaselineNormalizer(date_today=_FIXED_DATE),
+        baseline_normalizer=BaselineNormalizer(),
         investments_consolidator=InvestmentsConsolidator(inv_cfg, now=_FIXED_NOW),
     )
 

@@ -181,3 +181,49 @@ class TestMassaPorPayloadDistinto:
         stats = _measure_r([_row(_e2_payload())])["e2_extract.schema.json"]
 
         assert not hasattr(stats, "documents")
+
+
+# O §F recusa promover schema cujo contrato descreve 5/13 do payload, mas a
+# elegibilidade é só a medição: bastava o drift ir a 0 para o predicado dizer `GO`.
+# O PR-A levou `baseline_patrimonial` de 59,8% a 3,6%, e o resto é defeito de dado
+# de outra lane — o número fica verde antes de o contrato ficar real.
+class TestContratoNaoDerivado:
+    """A40.l110 — drift zero sobre contrato irreal é o falso-verde da [[ADR-409]] §F."""
+
+    def test_schema_listado_nunca_e_go_mesmo_sem_drift(self):
+        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO, SchemaDrift
+
+        alvo = next(iter(_CONTRATO_NAO_DERIVADO))
+        stats = SchemaDrift(nome=alvo)
+        stats.artifacts, stats.drifted, stats.unreadable = 10, 0, 0
+
+        assert stats.is_go is False
+        assert stats.contrato_nao_derivado
+
+    def test_o_bloqueio_e_o_que_derruba_o_go_e_nao_outra_coisa(self):
+        # Sem este par, o teste acima passaria por qualquer razão — massa zero,
+        # ilegível, drift — e não provaria que a lista é o que decide.
+        """Não-inércia: o MESMO contador, sem o nome listado, é `GO`."""
+        from dev.measure_schema_drift import SchemaDrift
+
+        stats = SchemaDrift(nome="schema-que-ninguem-bloqueou.schema.json")
+        stats.artifacts, stats.drifted, stats.unreadable = 10, 0, 0
+
+        assert stats.is_go is True
+
+    def test_bloqueio_nao_muda_o_exit_code_do_gate(self):
+        """Contrato incompleto é insumo de decisão, não drift (idem `mass_trivial`)."""
+        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO, SchemaDrift
+
+        stats = SchemaDrift(nome=next(iter(_CONTRATO_NAO_DERIVADO)))
+        stats.artifacts, stats.drifted = 10, 0
+
+        assert stats.drifted == 0, "o exit code de --gate lê `drifted`, não `is_go`"
+
+    def test_toda_razao_nomeia_quem_levanta_o_bloqueio(self):
+        """Bloqueio sem condição de retomada apodrece: vira 'sempre foi assim'."""
+        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO
+
+        assert _CONTRATO_NAO_DERIVADO
+        for nome, razao in _CONTRATO_NAO_DERIVADO.items():
+            assert "[[" in razao, f"{nome}: a razão precisa apontar a lane/ADR que levanta"

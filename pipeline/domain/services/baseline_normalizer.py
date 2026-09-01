@@ -2,13 +2,11 @@
 
 Extrai ``normalize_baseline`` (``e4_categorize.py:418``) em domain service
 puro. Mapeia as chaves do formato v2 do E1.5 (``membros_familia``,
-``data_consolidacao``, ``resumo_patrimonial``, ``bens_imoveis_consolidados``,
+``resumo_patrimonial``, ``bens_imoveis_consolidados``,
 ``investimentos_financeiros_consolidados``, ``dividas_consolidados``) para o
 schema canônico (v1) esperado pelo E5 e pelo schema JSON.
 
 Responsabilidades:
-- Adicionar ``pipeline_stage`` quando ausente.
-- Resolver ``data_processamento`` (de ``data_consolidacao`` ou today).
 - Alias ``membros`` ← ``membros_familia`` (só nomes, para compat de schema —
   **não** para ``_resolve_members`` do E5, que continua usando o formato
   consolidado).
@@ -31,7 +29,6 @@ from __future__ import annotations
 import copy
 import re
 from dataclasses import dataclass, field
-from datetime import date
 from typing import Any
 
 
@@ -50,14 +47,9 @@ class NormalizedBaseline:
 class BaselineNormalizer:
     """Canoniza dict de baseline patrimonial.
 
-    Stateless. Usa ``date_today`` injetável para testes determinísticos.
+    Stateless e **sem relógio**: nenhum campo do artefato é função do dia civil,
+    então o mesmo input produz o mesmo payload em qualquer dia (A40.l110).
     """
-
-    def __init__(self, *, date_today: date | None = None) -> None:
-        self._today = date_today
-
-    def _resolve_today(self) -> str:
-        return (self._today or date.today()).isoformat()
 
     # -- API --
 
@@ -68,21 +60,7 @@ class BaselineNormalizer:
         data = copy.deepcopy(raw)
         fixes: list[str] = []
 
-        # 1. pipeline_stage
-        if "pipeline_stage" not in data:
-            data["pipeline_stage"] = "E1.5_Baseline_Patrimonial"
-            fixes.append("pipeline_stage added")
-
-        # 2. data_processamento
-        if "data_processamento" not in data:
-            if "data_consolidacao" in data:
-                data["data_processamento"] = str(data["data_consolidacao"])[:10]
-                fixes.append("data_processamento ← data_consolidacao")
-            else:
-                data["data_processamento"] = self._resolve_today()
-                fixes.append("data_processamento set to today")
-
-        # 3. membros (nomes apenas) ← membros_familia
+        # 1. membros (nomes apenas) ← membros_familia
         if "membros" not in data and "membros_familia" in data:
             raw_list = data["membros_familia"]
             data["membros"] = [
@@ -90,7 +68,7 @@ class BaselineNormalizer:
             ]
             fixes.append("membros ← membros_familia (names only, not for _resolve_members)")
 
-        # 4. patrimonio_por_ano ← resumo_patrimonial
+        # 2. patrimonio_por_ano ← resumo_patrimonial
         if "patrimonio_por_ano" not in data and "resumo_patrimonial" in data:
             resumo = data["resumo_patrimonial"] or {}
             pat_ano: dict[str, dict[str, Any]] = {}
@@ -106,7 +84,7 @@ class BaselineNormalizer:
                 data["patrimonio_por_ano"] = pat_ano
                 fixes.append(f"patrimonio_por_ano ← resumo_patrimonial ({len(pat_ano)} anos)")
 
-        # 5. imoveis_consolidados ← bens_imoveis_consolidados (+ enriquecimento)
+        # 3. imoveis_consolidados ← bens_imoveis_consolidados (+ enriquecimento)
         if "imoveis_consolidados" not in data and "bens_imoveis_consolidados" in data:
             imoveis = list(data["bens_imoveis_consolidados"] or [])
             for im in imoveis:
@@ -128,7 +106,7 @@ class BaselineNormalizer:
                 f"imoveis_consolidados ← bens_imoveis_consolidados ({len(imoveis)} imóveis, descricao enriched)"
             )
 
-        # 6. investimentos_consolidados ← investimentos_financeiros_consolidados
+        # 4. investimentos_consolidados ← investimentos_financeiros_consolidados
         if (
             "investimentos_consolidados" not in data
             and "investimentos_financeiros_consolidados" in data
@@ -162,7 +140,7 @@ class BaselineNormalizer:
                     "investimentos_consolidados ← investimentos_financeiros_consolidados (list)"
                 )
 
-        # 7. dividas ← dividas_consolidados
+        # 5. dividas ← dividas_consolidados
         if "dividas" not in data and "dividas_consolidados" in data:
             data["dividas"] = data["dividas_consolidados"]
             fixes.append("dividas ← dividas_consolidados")
