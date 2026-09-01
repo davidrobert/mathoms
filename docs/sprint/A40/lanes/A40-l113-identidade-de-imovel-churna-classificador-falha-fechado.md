@@ -97,3 +97,75 @@ confirmada ponta a ponta e o eixo é a canonicalização.
    contrafactual medido: reverter a âncora reproduz o colapso.
 4. Regressão: fixture com `property_id` nulo em 8 de 9 itens; asserção de que `residencia`
    **não** é zero por ausência de id.
+
+## Medição de 2026-09-01 — a cadeia acima está **parcialmente refutada**
+
+> Rodada de medição sobre o artefato `consolidate_baseline` do próprio run `40d1af2a`
+> (o do `U5`), executando os produtores reais contra o payload real. O publicado foi
+> **reproduzido ao centavo**: `split_imoveis_with_overrides` devolve `(0.0, 701170.57)`,
+> idêntico a `patrimonio.residencia` / `patrimonio.imoveis_investimento` publicados.
+
+### O que se confirma
+
+- `property_id` resolvido em **1 de 9** itens de `imoveis_consolidados` ✅
+- os dois classificadores mandam `pid` nulo para o `else` (`:58-62`, `:76-78`) ✅
+- `investimentos_classes_analyzer.py:266` falha **aberto** ✅
+- 3 pares duplicados sobrevivem ao publicado ✅
+- o balde do desconhecido não existe e o zero é publicado sem aviso ✅
+
+### O que se refuta
+
+**1. O caractere duplicado não é a causa.** A descrição churnada é a do item `EDIFICIOO` (era `EDIFICIO`). Mas **8** itens falharam a canonicalização, e o motivo é
+estrutural, não churn: `canonicalize` exige via+número, e as descrições de IRPF em que ela
+falha são **nome de condomínio** (`CONDOMINIO <nome> - APTO <n>`) ou **narrativa
+de compra** (`COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF … EM <data>`). Nenhuma delas
+canonicaliza com ou sem o typo. O único item que resolveu — do tipo `Rua Exemplo, 100` —
+é o único que **tem via+número**. Reverter a descrição, como a §"Medição de 1 comando"
+prescrevia, **não** faria `property_id` voltar a 5+.
+
+**2. O eixo do churn é o `codigo_rfb`, não a descrição.** Os 3 pares duplicados diferem
+**só** na grafia do código RFB: `01-11` na declaração de 2025 contra `11` nas de 2024/2023
+(idem `01-12`/`12`). Como `codigo_rfb` é componente da `PropertyLookupKey`, a mesma
+propriedade não casa consigo mesma entre anos.
+
+**3. `patrimonio.residencia = 0` NÃO é causado por `pid` nulo.** A residência é o item que
+**tem** `property_id` (`20f938a2…`) e **tem** override `residencia_principal` gravado em
+`workspace_property_overrides`. Ela sai zero porque o **valor** projeta em zero:
+
+`anos_base_por_membro` resolve o ano-base do membro como `max()` sobre **todas** as classes
+de ativo juntas. O titular tem 3 posições de investimento datadas de **2026** (CDB,
+cofrinho e previdência — saldo bancário corrente, dado legítimo); seus imóveis, veículos e
+dívidas param em 2025. `max` = 2026, e esse ano único é aplicado a cada lista;
+`_resolve_item_valor_e_ano` faz `valores_31_12.get("2026")`, não acha, e cai em
+`safe_float(item.get("valor", 0))` → **0,00**.
+
+É o **mesmo defeito** que o comentário em `patrimonio_resolvers.py:348-351` diz ter
+corrigido ao mover o eixo de *domicílio* para *membro* — um nível abaixo: de membro para
+**classe de ativo**.
+
+### Contrafactuais medidos
+
+| | ano-base atual (`max` global = 2026) | ano por classe (imóveis do titular = 2025) |
+|---|---|---|
+| `residencia` | **0,00** | **996.821,46** |
+| cat_2 (outros imóveis) | 701.170,57 | 1.343.876,81 |
+| `imoveis_geradores` | **0,00** | **0,00** ← não se move |
+| `total_dividas` (titular) | **0,00** | **230.459,13** |
+
+`imoveis_geradores` **não se move** com o ano corrigido: os 4 imóveis `locado` estão sem
+`property_id` neste run. **Os dois defeitos são necessários** — nenhum sozinho fecha o
+eixo da lane.
+
+### Alcance maior que a lane: a [[A40.l114]] tem o mesmo dono
+
+`patrimonio.veiculos` (0,00) e `endividamento.total_dividas` (0,00 com 4 financiamentos
+listados, logo `liquido == bruto`) caem pela **mesma linha**. Isso refuta duas afirmações:
+
+- o §r9 de [[REPORT-REVIEWS-active]] declara `RR9-01` e `RR9-02` **"duas cadeias
+  independentes"**. Elas compartilham a raiz.
+- a [[A40.l114]] atribui o zero da dívida ao `ano_referencia` cru do LLM. **Contrafactual:**
+  passar `1999` — ou a string `zzz` — como `ano_domicilio` produz o **mesmo** resultado
+  (`('2026','2023')`), porque `anos_base_por_membro` só consulta `ano_domicilio` quando o
+  membro **não tem ano nenhum**. O titular tem. O critério 1 da l114 (reconciliar o ano do
+  LLM contra os documentos) **não moveria** `total_dividas` neste corpus. E o 2026 tem
+  documento atrás: são as 3 posições de investimento.
