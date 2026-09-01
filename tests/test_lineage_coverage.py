@@ -105,9 +105,9 @@ def test_nenhuma_raiz_monetaria_fora_do_roster(dogfood_e5, roster):
 def test_o_roster_da_fixture_bate_com_a_medida(dogfood_e5, roster):
     """Sincronia exata da metade que o CI mede — conjunto, não contagem."""
     coverage = measure_coverage(dogfood_e5)
-    assert sorted(roster.roots_de(ORIGEM_FIXTURE)) == sorted(coverage.monetary_roots), (
-        f"raízes monetárias da fixture divergem do roster. medido={sorted(coverage.monetary_roots)}"
-    )
+    assert sorted(roster.roots_de(ORIGEM_FIXTURE)) == sorted(
+        coverage.monetary_roots
+    ), f"raízes monetárias da fixture divergem do roster. medido={sorted(coverage.monetary_roots)}"
     assert sorted(roster.cobertos_de(ORIGEM_FIXTURE)) == sorted(coverage.covered_roots), (
         "raízes com rastro na fixture divergem do roster. Se SUBIU, rebaseline e atualize o "
         f"KR; se CAIU, é regressão. medido={sorted(coverage.covered_roots)}"
@@ -134,12 +134,12 @@ def test_raiz_monetaria_nova_cai_fora_do_roster(dogfood_e5, roster):
     """Contrafactual: acrescentar raiz monetária sem rastro **baixa** a cobertura e reprova."""
     antes = measure_coverage(dogfood_e5)
     depois = measure_coverage(_com_raiz_monetaria_nova(dogfood_e5))
-    assert depois.ratio < antes.ratio, (
-        f"métrica inerte à raiz nova: {antes.ratio:.4f} → {depois.ratio:.4f}."
-    )
-    assert roster.outside(depois.monetary_roots) == {_RAIZ_SINTETICA}, (
-        f"gate cego à raiz nova (viu {sorted(roster.outside(depois.monetary_roots))})"
-    )
+    assert (
+        depois.ratio < antes.ratio
+    ), f"métrica inerte à raiz nova: {antes.ratio:.4f} → {depois.ratio:.4f}."
+    assert roster.outside(depois.monetary_roots) == {
+        _RAIZ_SINTETICA
+    }, f"gate cego à raiz nova (viu {sorted(roster.outside(depois.monetary_roots))})"
     assert depois.covered_roots == antes.covered_roots, "numerador não devia se mover"
 
 

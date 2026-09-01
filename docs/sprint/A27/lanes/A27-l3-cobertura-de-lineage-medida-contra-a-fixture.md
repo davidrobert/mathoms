@@ -55,7 +55,7 @@ as emite). O viés é otimista, como o enunciado diz.
 
 **A quarta não é raiz monetária.** A única folha que põe `narrativas` no denominador é
 `narrativas.charts.wise_fiscal_flags.pontos_revisao`, que
-[`tributario_narrator.py`](pipeline/domain/services/narrativas/tributario_narrator.py) (linha 233)
+[`tributario_narrator.py`](../../../../pipeline/domain/services/narrativas/tributario_narrator.py) (linha 233)
 computa como `sum(1 for f in flags if f.get("needs_review"))` — **contagem**, lida como R$
 pelo monetário-por-default. É a mesma classe já registrada em `golden_diff` para `n_*`,
 `prob_*` e `score.*`. Corrigido no classificador (token `pontos`, mais `contagem`, que
