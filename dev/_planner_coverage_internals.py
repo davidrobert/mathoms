@@ -328,6 +328,11 @@ def _repo_relative(path: Path) -> str:
 # ao parecer (A40.l83 · RV8-05b).
 E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     "$._lineage": "rastro de proveniência do pipeline — insumo de debug, não de conselho",
+    # [[ADR-420]] §D1/§D6: TERMOS de razão, não conclusões. O parecer já recebe as duas
+    # conclusões que eles produzem — a concentração e `imobilizacao_patrimonial_pct` (§D3,
+    # criado para o ativo fora-de-alocação não sumir da superfície de risco).
+    "$.patrimonio.imoveis_alocacao": "termo do numerador; o parecer recebe a razão",
+    "$.patrimonio.imoveis_fora_alocacao": "termo fora do numerador; chega por §D3",
     "$.narrativas": "texto já destilado em outra superfície; projetá-lo duplicaria prosa",
     "$.protection_computation_inputs_v1": "insumos crus do cálculo de proteção; o parecer lê o resultado",
     # A40.l80 ([[ADR-412]] §D0): base que AMPUTA a fatia sem titular. Ambas têm
