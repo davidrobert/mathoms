@@ -3,7 +3,9 @@ id: A42.l15
 type: lane
 title: "Identidade de investimento é hash de campos que o extrator LLM reescreve"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1939
+ship_date: "2026-09-01"
 priority: P0
 branch_slug: a42-l15-identidade-de-investimento-instavel-entre-runs
 owner: data-engineer
@@ -17,7 +19,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a42
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/dados
   - area/pipeline
@@ -667,6 +669,39 @@ K≥5 ela vira um grupo medido e comparável às eras anteriores.
 de era. A âncora é era-free por desenho (campo ⊳ texto dão a mesma raiz), mas a perna
 fraca **não é**: mexer em `descricao` move toda chave que caia nela. Uma transição é
 melhor que duas.
+
+## Fechamento — 2026-09-01 · `shipped`
+
+Cinco PRs: **#1909** (contrato da âncora) · **#1916** (critério 4, gate de acoplamento) ·
+**#1919** (critério 6, harness offline) · **#1937** (parse do grupo `GG-CC`) · **#1939**
+(PR1 produtor + PR2 chave + regra de formato). Os **8 critérios de aceite** estão fechados.
+
+**O número da lane:** estabilidade do `investment_id` de **23,5%** (medição de abertura, um
+par de runs) → **61,78%** pooled sobre 28 grupos com denominador. A abertura e o fecho não
+são o mesmo instrumento — o 23,5% era um par, o 61,78% é `|A∩B|/|A∪B|` agregado sobre todos
+os pares de 19 documentos. O comparável é o **37,68%** que o mesmo harness media antes.
+
+**Emenda datada à [[ADR-271]]** (não ADR nova, como a lane decidiu): o `PR3` da §Próximos
+passos foi executado; §140 permanece intacta; e a rejeição a `instituicao` ficou registrada
+no seu alcance real — vale para o **code do catálogo**, não para o campo cru na perna fraca.
+
+### Deliberadamente NÃO feito — cada um com o motivo
+
+- **Regra de formato em `descricao`: entregue, efeito não medido.** Só runs novos a medem, e
+  a §Armadilha (D) proíbe estabilidade run-a-run como critério. O harness já agrupa por era,
+  então a era 1.4.0 acumula amostra sozinha até K≥5.
+- **`codigo` composto em `imovel`** (4 itens: `01-11`, `01-12`) vai cru para
+  `entry["codigo_rfb"]`, lido por comparação estrita em
+  `db_property_identity_resolver.py:134,168`. Latente, não vivo — `property_id` é UUID
+  resolvido contra o DB e mede 100% de estabilidade. Mesmo eixo da §Armadilha (C), junto com
+  `wise_fiscal_flags.py:32,35,38` (`==` contra `"13"/"62"/"41"`).
+- **`dividas_dedup` tem a MESMA exposição** que o critério 4 gateou para investimentos, e
+  **não** está coberto — declarado como limite no PR #1916 e ainda de pé.
+- **Alias no `institution_catalog`** (§Passo 0: a metade de baixo do `instituicao` fora do
+  catálogo é alias faltando, não cobertura). Sem bloqueio, sem dono.
+- **A rota da [[A40.l50]]** (`open`, P1) fixa `Internacional = R$ 34.918,47` em prosa; o
+  número não reproduz e a causa era esta lane. Quem pegar precisa **re-medir** — a chave
+  mudou de novo aqui.
 
 ## Escopo — quatro PRs, nesta ordem
 
