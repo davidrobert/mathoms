@@ -325,3 +325,53 @@ do arquivo, que é o que impede a terceira ocorrência.
 manifesto não-vazio em `main` fecharia a classe; a extensão natural é
 `dev/check_lane_transition.py` ou o passo de CI que já lê o arquivo — **não** um gate
 novo (§"Não reconstrua o gate"). Decisão do dono.
+
+## Passo 3 — a primeira metade entregue: §D3 (2026-08-31)
+
+`ratios.imobilizacao_patrimonial_pct` publicado, **sem alvo**. Com ele a [[ADR-235]]
+§Decisão item 4 — `Decidido` desde 2026-05-20 e **sem produtor** — deixa de ser cláusula
+não-financiada.
+
+**Por que este pedaço primeiro, e não é conveniência.** São duas razões independentes:
+
+1. A [[ADR-420]] §D3 declara o irmão **obrigatório antes** do estreitamento. Estreitar o
+   numerador sozinho **apaga** a nu-propriedade de toda superfície de risco — troca falso
+   alarme por **silêncio**, e o silêncio é o erro mais caro dos dois numa família com
+   sucessão ativa.
+2. É o **único** pedaço do passo 3 que não depende do bloqueio documental da [[ADR-353]]:
+   sem limiar, não há piso de cobertura, logo não há escada a reusar. O §D1/§D2 seguem
+   esperando a decisão registrada acima.
+
+**Órfã por desenho, não por refutação** — é a sexta de `_ORFAOS_DOMINIO` e a única assim.
+Doutrina de imobilização varia com idade, renda e sucessão; inventar teto aqui promoveria
+número interno a doutrina, que é o que a [[ADR-419]] proíbe.
+
+**`None` com PL ≤ 0, nunca 0,0.** Razão sobre denominador não-positivo é indefinida, e
+0,0 leria como *"nada imobilizado"* exatamente na família insolvente — sinal trocado.
+
+**Nasce com as duas pontas declaradas** (base + numerador, este em **lista** por ter dois
+termos): razão nova sem numerador nomeável repetiria no dia um o C14 que esta lane acabou
+de fechar na concentração.
+
+No dogfood sai **103,45%** — a família tem mais imóvel do que patrimônio líquido, porque
+o financiamento entra no PL e não no numerador. É o sinal que o irmão existe para não
+deixar sumir.
+
+**Não-inércia, 4 mutações:** numerador perde um termo (1 vermelho) · PL≤0 devolve 0,0 (1) ·
+a razão deixa de ser órfã declarada (1) · contrafactual com `residencia = 0` (2). Controle
+20 verdes.
+
+**Limite declarado:** no golden a perna `residencia` é **zero** (nenhum imóvel tem override
+`residencia_principal`), então quem exercita o numerador de dois termos é a fixture de
+`test_cobertura_de_base`, com as duas pernas não-nulas e distintas. O golden é segunda
+testemunha, não a primeira.
+
+**Refactor que veio junto, em commit separado:** `kpi_target_catalog.py` estava em **499**
+linhas — uma abaixo do teto de 500 — e o rationale das órfãs respondia por ~1/4 dele.
+Qualquer órfã nova o estourava. Extraído para `kpi_orfaos_dominio.py` (365 + 144), sem
+mudança de comportamento.
+
+**O que do passo 3 continua aberto:** §D1 (estreitar o numerador), §D2 (o `desconhecido` e
+a supressão da prescrição), §D4 (reconciliar o rationale de `FORMULAS.md` §219 e de
+`rule-concentracao-imobiliaria.md`) e §D6 (bump de `BASE_VERSAO_CORRENTE`). Os quatro
+esperam a decisão sobre a dependência da [[ADR-353]], registrada acima.
