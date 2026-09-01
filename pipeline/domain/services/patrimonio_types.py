@@ -43,6 +43,35 @@ CONSOLIDATED_LIST_KEYS = (
 )
 
 
+# O ano-base 31/12 é eleito DENTRO da classe de ativo, nunca sobre a união delas
+# ([[ADR-433]]). Eleger sobre a união faz a classe mais atualizada ditar o ano de
+# todas: um saldo bancário de 2026 escolhia 2026, e imóveis/veículos/dívidas —
+# que param no 31/12 declarado — não achavam esse ano e projetavam 0,00. É o
+# mesmo defeito que a [[ADR-274]] corrigiu de domicílio→membro, um grão abaixo.
+CLASSES_DE_ATIVO: dict[str, tuple[str, ...]] = {
+    "imoveis": ("imoveis_consolidados", "bens_imoveis_consolidados"),
+    "investimentos": ("investimentos_consolidados", "investimentos_financeiros_consolidados"),
+    "veiculos": ("veiculos_consolidados",),
+    "dividas": ("dividas", "dividas_consolidadas"),
+}
+
+
+@dataclass(frozen=True)
+class AnosBaseDoMembro:
+    """Ano-base 31/12 que este membro declarou em cada classe ([[ADR-433]])."""
+
+    por_classe: dict[str, str]
+    fallback: str
+
+    def para(self, classe: str) -> str:
+        """Ano da classe; o do domicílio quando o membro nada declarou nela."""
+        return self.por_classe.get(classe, self.fallback)
+
+    def eleitos(self) -> frozenset[str]:
+        """Anos efetivamente eleitos — vazio quando o membro não declarou nada."""
+        return frozenset(self.por_classe.values())
+
+
 # `float()` cru devolvia ``default`` para string pt-BR (`"243.285,37"` → 0,0) — a
 # falha-espelho do ×100 (r5/M28): ali o dinheiro inflava, aqui desaparecia.
 def safe_float(val: Any, default: float = 0.0) -> float:
