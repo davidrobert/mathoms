@@ -266,6 +266,16 @@
             },
             "autocontradicao_removidos": {"type": "integer", "minimum": 0},
             "autocontradicao_ressalvados": {"type": "integer", "minimum": 0},
+            "autocontradicao_fonte": {
+              "type": ["string", "null"],
+              "enum": ["e5_reserva_excessiva", "risco_de_liquidez", null],
+              "description": "A40.l116: qual árbitro viu a contradição de liquidez — o E5 (determinístico, REMOVE) ou o próprio parecer (LLM sobre LLM, apenas RESSALVA); null quando nenhum viu. Sem isto, `removidos`/`ressalvados` não dizem qual braço disparou."
+            },
+            "autocontradicao_tema_ausente": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "A40.l116: pontos fortes com `tema_canonico` nulo enquanto havia contradição de liquidez — escapam do guard porque o campo é opcional em `PontoForte` (obrigatório em `Risco`). Medido 0 em 64 pontos fortes de 14 runs: buraco de contrato, não observado. Contado até haver caso."
+            },
             "autocontradicao_pares_secao_tema": {
               "type": "integer",
               "minimum": 0,
