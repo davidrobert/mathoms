@@ -17,9 +17,11 @@ from __future__ import annotations
 import json
 from datetime import date
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+from pipeline.domain.review_reason import BLOCKING_CODES, ReviewReasonCode
 from pipeline.domain.services import patrimonio_resolvers as pr
 from pipeline.domain.services.endividamento_analyzer import (
     EndividamentoAnalyzer,
@@ -40,6 +42,7 @@ from pipeline.domain.services.pontos_fortes_analyzer import (
     PontosFortesConfig,
 )
 from pipeline.domain.services.saldo_divida_resolver import resolver_saldo
+from pipeline.stages.extract_baseline import _ano_nao_fechado_reason
 
 TITULAR = "fulano_de_tal"
 CONJUGE = "beltrana_de_tal"
@@ -290,3 +293,42 @@ def _titulos_de_pontos_fortes(taxa: float | None) -> list[str]:
 def test_ponto_forte_de_endividamento_cala_sob_supressao():
     assert any("Endividamento" in t for t in _titulos_de_pontos_fortes(0.0))
     assert not any("Endividamento" in t for t in _titulos_de_pontos_fortes(None))
+
+
+# ---------------------------------------------------------------------------
+# Critério 1 (parte declarativa) — a recusa do ano chega a quem revisa
+# ---------------------------------------------------------------------------
+
+
+def _reason(ano: int) -> dict | None:
+    return _ano_nao_fechado_reason(
+        Path("informe_previdencia_202603.pdf"),
+        SimpleNamespace(reference_year=ano),
+        artifact_key="informe_previdencia_202603",
+    )
+
+
+def test_ano_fechado_nao_gera_razao():
+    assert _reason(ultimo_ano_31_12_fechado()) is None
+
+
+def test_ano_nao_fechado_declara_o_ofensor_e_o_esperado():
+    teto = ultimo_ano_31_12_fechado()
+    r = _reason(teto + 1)
+    assert r["code"] == ReviewReasonCode.domain_ano_referencia_nao_fechado.value
+    assert r["offending_value"] == f"ano_referencia={teto + 1}"
+    assert r["expected"] == f"ano_referencia <= {teto}"
+
+
+def test_o_code_existe_no_contrato_que_o_valida():
+    """Code que o schema rejeita reprovaria em `strict` — emissor e contrato juntos."""
+    schema = json.loads(Path("config/schemas/review_reason.schema.json").read_text())
+    assert (
+        ReviewReasonCode.domain_ano_referencia_nao_fechado.value
+        in schema["properties"]["code"]["enum"]
+    )
+
+
+def test_a_razao_e_warn_first_e_nao_pausa_o_run():
+    """O documento é dado real — só não é foto de 31/12 ([[ADR-357]])."""
+    assert ReviewReasonCode.domain_ano_referencia_nao_fechado not in BLOCKING_CODES
