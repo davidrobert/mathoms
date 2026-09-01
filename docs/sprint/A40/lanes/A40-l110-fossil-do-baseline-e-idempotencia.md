@@ -18,8 +18,8 @@ tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/dados, area/pipe
 
 > ✅ **Entregue em 2026-09-01 nos dois PRs.** **PR-A** —
 > [#1914](https://github.com/davidrobert/mathoms/pull/1914) (`f8cbf94d`): o fóssil morre
-> nas duas pontas e o `date.today()` sai do artefato. **PR-B** — [[ADR-432]]: o contrato
-> é re-derivado do produtor (**5 de 11 → 14 de 14**), o `oneOf` de raiz colapsa e
+> nas duas pontas e o `date.today()` sai do artefato. **PR-B** — [#1933](https://github.com/davidrobert/mathoms/pull/1933),
+> [[ADR-432]]: o contrato é re-derivado do produtor (**5 de 11 → 14 de 14**), o `oneOf` de raiz colapsa e
 > `additionalProperties: false` entra. Closeout do PR-A em
 > [#1929](https://github.com/davidrobert/mathoms/pull/1929), que corrigiu 3 números meus.
 >
