@@ -340,7 +340,10 @@ class InvestmentsConsolidator:
                 inst_key = str(instituicao).lower().replace(" ", "")
                 acc_num = data.get("numero_conta") or data.get("account_number")
                 resolution = self._resolver.resolve(inst_key, acc_num)
-                if resolution.confidence == "ambiguous":
+                # ADR-226 §Emenda 2026-08-31: lê o eixo de TITULARIDADE. O eixo
+                # de conta (`account_confidence`) responde outra pergunta e não
+                # deve contaminar a atribuição patrimonial.
+                if resolution.member_confidence == "ambiguous":
                     membro = "needs_review"
                 else:
                     membro = resolution.member_key or ""
