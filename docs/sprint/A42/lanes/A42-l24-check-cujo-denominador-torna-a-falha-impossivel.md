@@ -14,7 +14,7 @@ tags: [type/lane, sprint/a42, status/open, priority/p1, area/dados]
 
 # A42.l24 — `check-cujo-denominador-torna-a-falha-impossivel`
 
-> **Origem:** `LC9-04` + `LC9-05` + `LC9-10` da rodada unificada **U5**
+> **Origem:** `LC9-04` + `LC9-05` (§r9) + `PV13-10` (§r13) da rodada unificada **U5**
 > ([[LEDGER-CERTIFY-active]] §r9). **Achado do instrumento contra si mesmo**, na mesma
 > classe que a [[A42.l21]] e o `LC8-01` da rodada anterior.
 

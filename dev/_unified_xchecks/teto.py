@@ -1,6 +1,6 @@
 """X7 — o teto de iteracoes de tool conta a MESMA populacao que o emissor."""
 
-# `LC9-10` (`U5`): o run publicou `tool_iterations: 19` contra
+# `PV13-10` (`U5`): o run publicou `tool_iterations: 19` contra
 # `max_tool_iterations: 6` — estourado 3,2x, sem alarme e sem contradicao. Nao ha
 # defeito no run: emissor e teto contam coisas DIFERENTES.
 #
@@ -24,13 +24,11 @@ import json
 from dev._unified_xchecks.base import veredito
 
 
+# Oraculo por ASSINATURA, nao por leitura de docstring: o `RV4-43` nasceu de
+# inferir afordance de comentario. Se alguem ligar tools, isto vira `True`
+# sozinho e o teto passa a governar populacao nao-vazia.
 def _modelo_tem_tools() -> bool | None:
-    """O caminho de LLM do parecer pode receber tools? ``None`` ≡ ilegivel.
-
-    Oraculo por ASSINATURA, nao por leitura de docstring: o `RV4-43` nasceu de
-    inferir afordance de comentario. Se alguem ligar tools, isto vira `True`
-    sozinho e o teto passa a governar populacao nao-vazia.
-    """
+    """O caminho de LLM do parecer pode receber tools? ``None`` ≡ ilegivel."""
     try:
         from pipeline.llm.litellm_client import LLMService
 
@@ -39,15 +37,13 @@ def _modelo_tem_tools() -> bool | None:
         return None
 
 
+# O trace de hoje NAO carrega marca de fase — `ToolTraceEntry` tem
+# `iter/tool/input/result_summary/latency_ms/cache_hit` e mais nada. Enquanto o
+# modelo nao tem tools, pos-LLM e a fase de todas por deducao estrutural (nao ha
+# outro emissor possivel). No dia em que tools existirem, a atribuicao post-hoc
+# deixa de ser derivavel e o check tem de DIZER isso — nao chutar.
 def _fases(trace: list) -> dict[str, int]:
-    """Reparticao do trace por fase declarada pelo emissor.
-
-    O trace de hoje NAO carrega marca de fase — `ToolTraceEntry` tem
-    `iter/tool/input/result_summary/latency_ms/cache_hit` e mais nada. Enquanto
-    o modelo nao tem tools, `pos_llm` e a fase de todas por deducao estrutural
-    (nao ha outro emissor possivel). No dia em que tools existirem, a atribuicao
-    post-hoc deixa de ser derivavel e o check tem de DIZER isso — nao chutar.
-    """
+    """Reparticao do trace por fase declarada pelo emissor."""
     return {
         "total": len(trace),
         "cache_hit": sum(1 for e in trace if (e or {}).get("cache_hit")),
@@ -69,39 +65,37 @@ def _indeterminado(motivo: str, n_esperado: int) -> None:
     veredito("X7", 0, n_esperado, 0, n_falsificavel=0, nota=motivo)
 
 
-def x7(ws: str, run: str, parecer_path: str) -> None:
-    """Teto de iteracoes de tool contra a populacao que o emissor de fato conta."""
-    meta = (json.load(open(parecer_path)) or {}).get("_meta") or {}
-    emitido = int(meta.get("tool_iterations") or 0)
-    trace = meta.get("tool_trace") or []
-    fases, teto, tem_tools = _fases(trace), _teto_do_manifesto(), _modelo_tem_tools()
+def _x7_cabecalho(emitido: int, fases: dict, teto, tem_tools) -> None:
     print("## X7 — teto de iteracoes de tool vs populacao do emissor")
     print(f"emissor `tool_iterations`: {emitido} · entries no trace: {fases['total']}")
     print(f"  cache_hit: {fases['cache_hit']} · com marca de fase: {fases['com_marca_de_fase']}")
     print(f"teto `max_tool_iterations` (manifesto): {teto} · modelo recebe tools: {tem_tools}")
+
+
+_SEM_ORACULO = "manifesto ou cliente LLM ilegivel — teto nao verificavel"
+_TOOLS_LIGADAS = (
+    "o modelo passou a receber tools e o trace nao marca fase: round-trip deixou de ser "
+    "derivavel post-hoc. Emitir `fase` no emissor antes de voltar a medir"
+)
+_NOTA_VAZIA = (
+    "o teto {teto} governa round-trips; o emissor conta invocacoes. Populacao do teto "
+    "VAZIA ⇒ nenhum valor de `tool_iterations` pode viola-lo, e `19 > 6` nao e achado. "
+    "Isto e resultado, nao ausencia de medicao"
+)
+
+
+def x7(ws: str, run: str, parecer_path: str) -> None:
+    """Teto de iteracoes de tool contra a populacao que o emissor de fato conta."""
+    meta = (json.load(open(parecer_path)) or {}).get("_meta") or {}
+    emitido, trace = int(meta.get("tool_iterations") or 0), meta.get("tool_trace") or []
+    teto, tem_tools = _teto_do_manifesto(), _modelo_tem_tools()
+    _x7_cabecalho(emitido, _fases(trace), teto, tem_tools)
     if teto is None or tem_tools is None:
-        _indeterminado("manifesto ou cliente LLM ilegivel — teto nao verificavel", emitido)
-        return
+        return _indeterminado(_SEM_ORACULO, emitido)
     if tem_tools:
-        _indeterminado(
-            "o modelo passou a receber tools e o trace nao marca fase: round-trip "
-            "deixou de ser derivavel post-hoc. Emitir `fase` antes de voltar a medir",
-            emitido,
-        )
-        return
+        return _indeterminado(_TOOLS_LIGADAS, emitido)
     print(
         f"round-trips iniciados pelo modelo: 0 (estrutural — `LLMService.call` nao "
         f"aceita `tools`) · as {emitido} sao estampagem pos-LLM"
     )
-    veredito(
-        "X7",
-        emitido,
-        emitido,
-        0,
-        n_falsificavel=0,
-        nota=(
-            f"o teto {teto} governa round-trips; o emissor conta invocacoes. Populacao "
-            "do teto VAZIA ⇒ nenhum valor de `tool_iterations` pode viola-lo, e "
-            "`19 > 6` nao e achado. Isto e resultado, nao ausencia de medicao"
-        ),
-    )
+    return veredito("X7", emitido, emitido, 0, n_falsificavel=0, nota=_NOTA_VAZIA.format(teto=teto))

@@ -380,7 +380,7 @@ def test_horizontes_com_ancora_cobrem_o_produtor():
 
 
 # ---------------------------------------------------------------------------
-# X7 — teto e emissor contam populacoes distintas (`LC9-10`)
+# X7 — teto e emissor contam populacoes distintas (`PV13-10`)
 # ---------------------------------------------------------------------------
 
 

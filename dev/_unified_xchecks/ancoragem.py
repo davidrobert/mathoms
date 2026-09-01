@@ -26,8 +26,8 @@ _RS = re.compile(r"R\$\s?([\d.]+,\d{2}|[\d.]+)")
 
 # Horizontes que carregam `ancoras[]` — a superficie que `stamp_ancora_values`
 # sobrescreve no pos-LLM (ADR-296). Fechado de proposito: horizonte novo com
-# ancora e invisivel aqui e voltaria a inflar o denominador em silencio, entao a
-# paridade com o produtor e gateada em teste.
+# ancora que este check nao conheca voltaria a inflar o denominador em silencio,
+# entao a paridade com o produtor e gateada em teste.
 _HORIZONTES_COM_ANCORA = (
     "riscos",
     "sugestoes_execucao",
@@ -35,65 +35,76 @@ _HORIZONTES_COM_ANCORA = (
     "sugestoes_estrategicas",
 )
 
+_NOTA_X4 = (
+    "so a prosa autoral pode reprovar; ancora com path que resolve e copia do proprio "
+    "payload (ADR-296). Cobertura: `R$` explicito — prosa monetaria por extenso "
+    "('350 mil') fica fora e nao esta contada. "
+    "(literal monetario NAO e copiado para o git — so a contagem)"
+)
 
-def _walk_literais(o, path="", out=None) -> list[tuple[str, int]]:
-    """Toda ocorrencia `R$` do parecer, com o path CONCRETO dentro do documento.
 
-    Por OCORRENCIA, nunca por valor: o mesmo numero aparece carimbado numa ancora
-    e reescrito na prosa, e subtrair por valor apagaria justamente a copia autoral.
-    """
-    out = [] if out is None else out
+def _filhos(o, path: str):
+    """(valor, path) de cada filho de dict/list; ``None`` para escalar."""
     if isinstance(o, dict):
-        for k, v in o.items():
-            _walk_literais(v, f"{path}.{k}", out)
-    elif isinstance(o, list):
-        for i, v in enumerate(o):
-            _walk_literais(v, f"{path}[{i}]", out)
+        return [(v, f"{path}.{k}") for k, v in o.items()]
+    if isinstance(o, list):
+        return [(v, f"{path}[{i}]") for i, v in enumerate(o)]
+    return None
+
+
+# Por OCORRENCIA, nunca por valor: o mesmo numero aparece carimbado numa ancora e
+# reescrito na prosa, e subtrair por valor apagaria justamente a copia autoral.
+def _walk_literais(o, path="", out=None) -> list[tuple[str, int]]:
+    """Toda ocorrencia `R$` do parecer, com o path CONCRETO dentro do documento."""
+    out = [] if out is None else out
+    filhos = _filhos(o, path)
+    if filhos is not None:
+        for valor, sub in filhos:
+            _walk_literais(valor, sub, out)
     elif isinstance(o, str):
-        for lit in _RS.findall(o):
-            c = _cents(lit.replace(".", "").replace(",", "."))
-            if c is not None:
-                out.append((path, c))
+        out.extend((path, c) for lit in _RS.findall(o) if (c := _cents(_br(lit))) is not None)
     return out
 
 
-def _resolvedor(vm: dict):
-    """`path -> bool` pelo MESMO resolvedor que o backend usa para carimbar.
+def _br(lit: str) -> str:
+    return lit.replace(".", "").replace(",", ".")
 
-    Oraculo unico de proposito: a pergunta e *"o estampador teria sobrescrito
-    este campo?"*, e so o resolvedor dele responde. `None` quando o manifesto ou
-    o drill nao carregam — instrumento cego NAO classifica, e a alternativa
-    (chutar `autoral`) publicaria DIVERGE fabricado.
-    """
+
+# Oraculo unico de proposito: a pergunta e "o estampador teria sobrescrito este
+# campo?", e so o resolvedor dele responde. `None` quando manifesto ou drill nao
+# carregam — instrumento cego NAO classifica, e chutar `autoral` publicaria
+# DIVERGE fabricado.
+def _resolvedor(vm: dict):
+    """`path -> bool` pelo MESMO resolvedor que o backend usa para carimbar."""
     try:
         from backend.app.services.parecer_manifest import load_manifest
         from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 
-        whitelist = frozenset(load_manifest().tools_section_whitelist or ())
-        drill = PlannerDrillDown(vm, whitelist, {})
+        drill = PlannerDrillDown(vm, frozenset(load_manifest().tools_section_whitelist or ()), {})
     except Exception:
         return None
     return lambda p: drill.get_e5_jsonpath(p).found
 
 
-def _paths_carimbados(par: dict, resolve) -> set[str]:
-    """Paths de `valor_renderizado` que o backend sobrescreveu NESTE run.
+def _ancoras_do_item(horizonte: str, i: int, item):
+    itens = item.get("ancoras") or [] if isinstance(item, dict) else []
+    for j, ancora in enumerate(itens):
+        yield f".{horizonte}[{i}].ancoras[{j}].valor_renderizado", (ancora or {})
 
-    `_resolve_ancora` so escreve quando `result.found`; ancora cujo path nao
-    resolve mantem o numero que o MODELO emitiu (`valor_renderizado` nao e
-    `SkipJsonSchema`, ao contrario de `Metrica.nome/target`) — essa e autoral e
-    tem de continuar no denominador.
-    """
-    carimbados = set()
-    for h in _HORIZONTES_COM_ANCORA:
-        for i, item in enumerate(par.get(h) or []):
-            if not isinstance(item, dict):
-                continue
-            for j, ancora in enumerate(item.get("ancoras") or []):
-                caminho = (ancora or {}).get("path")
-                if caminho and resolve(caminho):
-                    carimbados.add(f".{h}[{i}].ancoras[{j}].valor_renderizado")
-    return carimbados
+
+def _ancoras(par: dict):
+    """(path_no_documento, ancora) de todo horizonte que carrega `ancoras[]`."""
+    for horizonte in _HORIZONTES_COM_ANCORA:
+        for i, item in enumerate(par.get(horizonte) or []):
+            yield from _ancoras_do_item(horizonte, i, item)
+
+
+# `_resolve_ancora` so escreve quando `result.found`; ancora cujo path nao resolve
+# mantem o numero que o MODELO emitiu (`valor_renderizado` nao e `SkipJsonSchema`,
+# ao contrario de `Metrica.nome/target`) — essa e autoral e fica no denominador.
+def _paths_carimbados(par: dict, resolve) -> set[str]:
+    """Paths de `valor_renderizado` que o backend sobrescreveu NESTE run."""
+    return {c for c, a in _ancoras(par) if a.get("path") and resolve(a["path"])}
 
 
 def _x4_cego(n_ocorrencias: int) -> None:
@@ -108,27 +119,7 @@ def _x4_cego(n_ocorrencias: int) -> None:
     )
 
 
-def x4(ws: str, run: str, parecer_path: str, vm_path: str) -> None:
-    """Literal monetario AUTORAL do modelo ancorado no E5 do mesmo run.
-
-    `LC9-04`: a versao anterior media os 10 literais do parecer e publicava
-    `FECHA ✅ n=10/10`. Nove deles vivem em `ancoras[].valor_renderizado`, que
-    `stamp_ancora_values` preenche copiando `path -> valor` do MESMO payload que
-    este check rele — orfao impossivel por construcao. A superficie autoral era
-    **n=1**, e o verde media o carimbo do backend contra ele mesmo.
-    """
-    par, vm = json.load(open(parecer_path)), json.load(open(vm_path))
-    universo = {c for _p, v in _walk_numbers(vm) if (c := _cents(v)) is not None}
-    ocorrencias = _walk_literais(par)
-    print("## X4 — literais monetarios AUTORAIS do parecer ancorados no E5 do mesmo run")
-    print(f"universo de cents no view-model: {len(universo)}")
-    resolve = _resolvedor(vm)
-    if resolve is None:
-        _x4_cego(len(ocorrencias))
-        return
-    carimbados = _paths_carimbados(par, resolve)
-    autorais = [(p, c) for p, c in ocorrencias if p not in carimbados]
-    orfaos = [(p, c) for p, c in autorais if c not in universo]
+def _x4_relatorio(ocorrencias: list, autorais: list, orfaos: list) -> None:
     print(
         f"ocorrencias R$ no parecer: {len(ocorrencias)} · carimbadas pelo backend: "
         f"{len(ocorrencias) - len(autorais)} · AUTORAIS: {len(autorais)} · orfaos: {len(orfaos)}"
@@ -137,19 +128,29 @@ def x4(ws: str, run: str, parecer_path: str, vm_path: str) -> None:
         print(f"  autoral em `{caminho}`")
     for caminho, c in orfaos[:20]:
         print(f"  ORFAO cents={c} em `{caminho}`")
-    veredito(
-        "X4",
-        len(ocorrencias),
-        len(ocorrencias),
-        len(orfaos),
-        n_falsificavel=len(autorais),
-        nota=(
-            "so a prosa autoral pode reprovar; ancora com path que resolve e copia do "
-            "proprio payload (ADR-296). Cobertura: `R$` explicito — prosa monetaria por "
-            "extenso ('350 mil') fica fora e nao esta contada. "
-            "(literal monetario NAO e copiado para o git — so a contagem)"
-        ),
-    )
+
+
+# `LC9-04`: a versao anterior media os 10 literais do parecer e publicava `FECHA
+# ✅ n=10/10`. Nove vivem em `ancoras[].valor_renderizado`, que
+# `stamp_ancora_values` preenche copiando `path -> valor` do MESMO payload que
+# este check rele — orfao impossivel por construcao. A superficie autoral era
+# n=1, e o verde media o carimbo do backend contra ele mesmo.
+def x4(ws: str, run: str, parecer_path: str, vm_path: str) -> None:
+    """Literal monetario AUTORAL do modelo ancorado no E5 do mesmo run."""
+    par, vm = json.load(open(parecer_path)), json.load(open(vm_path))
+    universo = {c for _p, v in _walk_numbers(vm) if (c := _cents(v)) is not None}
+    ocorrencias = _walk_literais(par)
+    print("## X4 — literais monetarios AUTORAIS do parecer ancorados no E5 do mesmo run")
+    print(f"universo de cents no view-model: {len(universo)}")
+    resolve = _resolvedor(vm)
+    if resolve is None:
+        return _x4_cego(len(ocorrencias))
+    carimbados = _paths_carimbados(par, resolve)
+    autorais = [(p, c) for p, c in ocorrencias if p not in carimbados]
+    orfaos = [(p, c) for p, c in autorais if c not in universo]
+    _x4_relatorio(ocorrencias, autorais, orfaos)
+    n = len(ocorrencias)
+    return veredito("X4", n, n, len(orfaos), n_falsificavel=len(autorais), nota=_NOTA_X4)
 
 
 def _denominadores(itens: list, idkey: str) -> dict | None:
