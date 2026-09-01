@@ -110,7 +110,7 @@ function deriveInsight(rows: TopAtivo[]): string | undefined {
 
 const CARD_TITLE = "Top 15 Ativos da Carteira";
 const CARD_SUBTITLE =
-  "Investimentos financeiros e imóveis de renda, ranqueados por valor. " +
+  "Investimentos financeiros e imóveis, ranqueados por valor. " +
   "Não inclui residência principal nem bens de uso pessoal — esses aparecem " +
   "em Composição Patrimonial.";
 

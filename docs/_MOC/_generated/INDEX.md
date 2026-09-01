@@ -414,7 +414,7 @@
 | ADR-417 | adr | Decidido |  | Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review | `adr/417-toda-pausa-tem-saida-terminal-sancionada.md` |
 | ADR-418 | adr | Decidido |  | A meta de IF desconta exatamente a renda passiva que o numerador não conta | `adr/418-a-meta-de-if-desconta-a-renda-passiva-que-o-numerador-nao-conta.md` |
 | ADR-419 | adr | Proposto |  | O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI | `adr/419-gatilho-de-risco-deriva-de-doutrina-nao-de-alvo.md` |
-| ADR-420 | adr | Proposto |  | Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio | `adr/420-numerador-da-concentracao-imobiliaria-e-imobilizacao-patrimonial.md` |
+| ADR-420 | adr | Decidido |  | Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio | `adr/420-numerador-da-concentracao-imobiliaria-e-imobilizacao-patrimonial.md` |
 | ADR-421 | adr | Decidido |  | Sujeito declarado da certificação: o veredito descreve o artefato entregue, e diz qual | `adr/421-sujeito-declarado-da-certificacao.md` |
 | ADR-422 | adr | Decidido |  | A folga é a poupança da janela, não a poupança mais o gasto pontual realizado | `adr/422-a-folga-e-a-poupanca-da-janela-nao-a-poupanca-mais-o-pontual.md` |
 | ADR-423 | adr | Decidido |  | Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice | `adr/423-snapshot-de-copy-from-declara-index-ou-o-indice-morre.md` |
@@ -911,6 +911,7 @@
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l110 | lane | shipped | A40 | O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas | `sprint/A40/lanes/A40-l110-fossil-do-baseline-e-idempotencia.md` |
 | A40.l111 | lane | shipped | A40 | Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo | `sprint/A40/lanes/A40-l111-valor-nao-apurado-em-item-fisico.md` |
+| A40.l112 | lane | open | A40 | Imóvel sem classificação nenhuma entra no numerador da concentração pelo `else`, e reclassificar um deles move o KPI de 82 para 0 | `sprint/A40/lanes/A40-l112-imovel-sem-override-cai-no-numerador.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
@@ -1001,7 +1002,7 @@
 | A40.l92 | lane | open | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
 | A40.l93 | lane | shipped | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
 | A40.l94 | lane | shipped | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
-| A40.l95 | lane | in_progress | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
+| A40.l95 | lane | shipped | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
 | A40.l96 | lane | in_progress | A40 | Tabela de maiores ativos atribui titular a valor que o sistema declara órfão | `sprint/A40/lanes/A40-l96-titular-atribuido-a-posicao-orfa.md` |
 | A40.l97 | lane | shipped | A40 | Índices perdidos por `copy_from`: 3 UNIQUE derrubaram invariante e o gate de drift era cego a índice | `sprint/A40/lanes/A40-l97-indices-perdidos-por-copy-from.md` |
 | A40.l98 | lane | shipped | A40 | Base de gasto pontual: quatro eixos de divergência, e o que prescreve é o que menos filtra | `sprint/A40/lanes/A40-l98-base-dos-pontuais-tres-produtores.md` |

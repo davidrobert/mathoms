@@ -13,7 +13,7 @@ from pipeline.domain.lineage_registry import LINEAGE_RULE_REFS
 E5 = "E5"
 KEY = "analise_financeira"
 
-_LEAF_IMOVEIS = "patrimonio.composicao[Imóveis de Renda].valor"
+_LEAF_IMOVEIS = "patrimonio.composicao[Outros imóveis].valor"
 _LEAF_INV_DAVID = "patrimonio.composicao[Investimentos David].valor"
 _LEAF_CAIXA = "patrimonio.composicao[Caixa e Moeda Estrangeira].valor"
 _LEAF_DESPESA = "fluxo_caixa.despesas_por_categoria.nao_identificado"
@@ -193,7 +193,7 @@ def _compose(*fns: MutateFn) -> MutateFn:
 _VALUE_DELTA_LEAF = (
     (
         "vdl-01",
-        _bump_comp("Imóveis de Renda", 50000.0),
+        _bump_comp("Outros imóveis", 50000.0),
         "O patrimônio líquido do relatório não bate com a soma das categorias.",
         _LIQUIDO,
         _LEAF_IMOVEIS,
@@ -263,7 +263,7 @@ _VALUE_DELTA_AGGREGATE = (
 _INPUT_REMOVED = (
     (
         "inr-01",
-        _remove_input(_BRUTO, "[Imóveis de Renda].valor"),
+        _remove_input(_BRUTO, "[Outros imóveis].valor"),
         "O patrimônio bruto parece ignorar os imóveis de renda no rastreio.",
         _LIQUIDO,
         _BRUTO,
@@ -336,7 +336,7 @@ _DEDUP_OVERCOLLAPSE = (
     (
         "ddc-01",
         _compose(
-            _set_comp("Imóveis de Renda", 300000.0),
+            _set_comp("Outros imóveis", 300000.0),
             _set_aggregate(_BRUTO, 430000.0),
             _set_aggregate(_LIQUIDO, 280000.0),
         ),
@@ -438,7 +438,7 @@ _SEALED = (
     (
         "sel-adr246",
         _compose(
-            _set_comp("Imóveis de Renda", 1200000.0),
+            _set_comp("Outros imóveis", 1200000.0),
             _set_aggregate(_BRUTO, 1330000.0),
             _set_aggregate(_LIQUIDO, 1180000.0),
         ),

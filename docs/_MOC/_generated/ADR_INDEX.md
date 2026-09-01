@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 361
-- **Proposto**: 57
+- **Decidido**: 362
+- **Proposto**: 56
 - **Roadmap**: 4
 
 ## Fundação
@@ -574,7 +574,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (81)
+### Decidido (82)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -656,9 +656,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-412]] — Base canônica única para carteira financeira, `Papel` ternário e produtor único do eixo de posições atuais · phase A40.l80
 - [[ADR-414]] — Rendimento bruto e base de cálculo são variáveis distintas, e o PGBL usa a declarada · phase A40.l64
 - [[ADR-418]] — A meta de IF desconta exatamente a renda passiva que o numerador não conta · phase A40
+- [[ADR-420]] — Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio
 - [[ADR-426]] — O destino E3→E4 declara valor, ou o eixo-valor não é medido · phase A42
 
-### Proposto (19)
+### Proposto (18)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -676,7 +677,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-383]] — Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras · phase A40.l41
 - [[ADR-408]] — Proveniência de artefato E2 é FK resolvida por porta injetada, não hash recomputado nem prefixo de key
 - [[ADR-419]] — O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI
-- [[ADR-420]] — Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio
 - [[ADR-429]] — Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita · phase A40
 - [[ADR-430]] — Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 · phase A40.l96
 

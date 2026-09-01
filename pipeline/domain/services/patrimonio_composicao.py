@@ -24,7 +24,7 @@ def build_composicao(
     """Categorias visíveis + percentuais via largest-remainder (soma = 100%).
 
     Paridade legado: materializa 6 das 7 buckets de [[ADR-145]] — Residência (#1),
-    Imóveis de Renda (#2), Investimentos Titular (#3), Investimentos Cônjuge (#4),
+    Outros imóveis (#2), Investimentos Titular (#3), Investimentos Cônjuge (#4),
     Caixa + ME (#6), Veículos (#7). Bucket #5 (Criptoativos) consolida em #3/#6
     conforme [[ADR-145]]; com extrato de exchange a separação visual aparece no
     doughnut de ``investimentos_classes``, não aqui.
@@ -49,8 +49,19 @@ def build_composicao(
     return composicao
 
 
-# [[ADR-215]] P3: rename visível do bucket cat_2 — "Imóveis Investimento" →
-# "Imóveis de Renda", que comunica o critério econômico real (geração de caixa).
+# [[ADR-215]] P3 renomeou o bucket cat_2 de "Imóveis Investimento" para "Imóveis de
+# Renda", "que comunica o critério econômico real (geração de caixa)". [[ADR-420]] §D1
+# mediu que essa justificativa é FALSA para este balde: cat_2 contém `uso_pessoal` e
+# `nu_proprietario`, que não geram renda nenhuma — o rename de 2025 foi o vetor de uma
+# afirmação que o número não sustenta, e não a sua correção.
+#
+# "Outros imóveis" desde 2026-09-01: subtrai o qualificador falso em vez de inventar
+# um novo, e diz literalmente o que o balde é — todo imóvel que não é a residência
+# principal, que é a linha logo acima. Quem quiser o critério econômico tem
+# `ratios.concentracao_imobiliaria` (rebalanceáveis) e `imobilizacao_patrimonial_pct`.
+# ⚠️ Copy de superfície visível: escolhida por subtração, não por design — confirmar
+# com `product-designer` na próxima passada de copy do relatório.
+#
 # `template_key` interno (`imoveis_investimento`) é estável ([[ADR-145]] proíbe
 # rename de key); só o label exibido muda.
 def _categorias(
@@ -65,7 +76,7 @@ def _categorias(
 ) -> list[dict]:
     return [
         {"categoria": "Residência", "valor": residencia},
-        {"categoria": "Imóveis de Renda", "valor": imoveis_investimento},
+        {"categoria": "Outros imóveis", "valor": imoveis_investimento},
         {"categoria": f"Investimentos {identity.titular_nome}", "valor": investimentos_titular},
         {"categoria": f"Investimentos {identity.conjuge_nome}", "valor": investimentos_conjuge},
         {"categoria": "Caixa e Moeda Estrangeira", "valor": caixa},

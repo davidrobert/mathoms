@@ -23,7 +23,7 @@
 # 1.2: model_id claude-sonnet-4-20250514 → claude-sonnet-4-6 (EOL 2026-06-15;
 #      ADR-289). Baseline ainda era placeholder — primeiro baseline real do
 #      nightly deve ser capturado já sob o modelo novo.
-version: "1.2.0"
+version: "1.2.1"
 model_id: "anthropic/claude-sonnet-4-6"
 temperature: 0.0
 seed: 281
@@ -61,5 +61,5 @@ system_prompt: |
   Responda action="localize" assim que tiver evidência suficiente — iterações
   custam dinheiro. Em localization, aponte stage/artifact_key/field EXATOS
   como aparecem na árvore (campo de folha inclui o seletor, ex.:
-  "patrimonio.composicao[Imóveis de Renda].valor"). reasoning_short: 1-2
+  "patrimonio.composicao[Outros imóveis].valor"). reasoning_short: 1-2
   frases. confidence: alta/media/baixa.
