@@ -110,7 +110,16 @@
           "tipo": {"type": "string"},
           "valores_31_12": {
             "type": "object",
-            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": "number", "minimum": 0}}
+            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
+            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": ["number", "null"], "minimum": 0}}
+          },
+          "valor_nao_apurado": {
+            "type": ["object", "null"],
+            "description": "[[ADR-431]]: estado de cobertura do valor do item. Presente = o item fica no inventario e o valor sai da soma.",
+            "properties": {
+              "anos": {"type": "array", "items": {"type": "string"}},
+              "motivo": {"type": "string"}
+            }
           },
           "property_id": {"type": ["string", "null"]},
           "endereco_canonical": {"type": ["string", "null"]},
@@ -141,7 +150,16 @@
           "tipo": {"type": "string"},
           "valores_31_12": {
             "type": "object",
-            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": "number", "minimum": 0}}
+            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
+            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": ["number", "null"], "minimum": 0}}
+          },
+          "valor_nao_apurado": {
+            "type": ["object", "null"],
+            "description": "[[ADR-431]]: estado de cobertura do valor do item. Presente = o item fica no inventario e o valor sai da soma.",
+            "properties": {
+              "anos": {"type": "array", "items": {"type": "string"}},
+              "motivo": {"type": "string"}
+            }
           },
           "veiculo_id": {
             "type": ["string", "null"],

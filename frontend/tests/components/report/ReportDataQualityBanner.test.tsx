@@ -22,7 +22,10 @@ vi.mock("@/components/report/hooks/useNeedsReviewCount", () => ({
 /** A40.l22 — o hook faz `GET .../planner-review`; aqui só o contador importa. */
 const mockParecerRetidos = vi.hoisted(() => ({ count: 0 }));
 vi.mock("@/components/report/hooks/useParecerRetidoCount", () => ({
-  useParecerRetidoCount: () => ({ state: "ok", count: mockParecerRetidos.count }),
+  useParecerRetidoCount: () => ({
+    state: "ok",
+    count: mockParecerRetidos.count,
+  }),
 }));
 
 function degradedData(): ReportAnalysisData {
@@ -209,7 +212,9 @@ describe("<ReportDataQualityBanner />", () => {
       />,
     );
     const banner = screen.getByTestId("data-quality-banner");
-    expect(banner.textContent).toMatch(/pendência afeta a leitura deste relatório/);
+    expect(banner.textContent).toMatch(
+      /pendência afeta a leitura deste relatório/,
+    );
     expect(banner.textContent).not.toMatch(/precis[ãa]o deste relat[óo]rio/);
   });
 
@@ -270,5 +275,97 @@ describe("<ReportDataQualityBanner />", () => {
       />,
     );
     expect(screen.getByTestId("data-quality-clean")).toBeInTheDocument();
+  });
+});
+
+/** A40.l111 ([[ADR-431]]) — a ressalva de família do ativo sem valor apurado.
+ *
+ * O que se testa aqui não é a existência da linha: é a DIREÇÃO do erro. A
+ * ressalva de operador já existia e dizia "balde publicou valor negativo" —
+ * verdadeira, inútil ao leitor, e muda sobre para que lado o número erra.
+ */
+describe("<ReportDataQualityBanner /> — valor não apurado", () => {
+  function comItemSemValor(
+    itens: readonly { colecao: string; descricao: string; ano: string }[],
+  ): ReportAnalysisData {
+    return {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+      patrimonio: {
+        guarda_de_sinal: { itens_sem_valor: itens },
+      },
+    } as unknown as ReportAnalysisData;
+  }
+
+  beforeEach(() => {
+    mockNeedsReview.count = 0;
+    mockParecerRetidos.count = 0;
+  });
+
+  it("diz para que lado o número erra, e não culpa o contribuinte", () => {
+    render(
+      <ReportDataQualityBanner
+        data={comItemSemValor([
+          { colecao: "imoveis", descricao: "APTO 101", ano: "2025" },
+        ])}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
+
+    const banner = screen.getByTestId("data-quality-banner");
+    expect(banner.textContent).toMatch(/Um imóvel/);
+    expect(banner.textContent).toMatch(/declaração de 2025/);
+    expect(banner.textContent).toMatch(
+      /patrimônio real é maior do que o que aparece aqui/,
+    );
+    expect(banner.textContent).toMatch(/situação em 31\/12/);
+    expect(banner.textContent).toMatch(/aporte e de alocação-alvo ficam/);
+  });
+
+  it("sem item sem valor, a linha não existe e a barra limpa volta", () => {
+    render(
+      <ReportDataQualityBanner
+        data={comItemSemValor([])}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
+
+    expect(screen.queryByTestId("data-quality-banner")).not.toBeInTheDocument();
+    expect(screen.getByTestId("data-quality-clean")).toBeInTheDocument();
+  });
+
+  it("conta como UMA pendência, qualquer que seja o número de itens", () => {
+    render(
+      <ReportDataQualityBanner
+        data={comItemSemValor([
+          { colecao: "imoveis", descricao: "APTO 101", ano: "2025" },
+          { colecao: "imoveis", descricao: "SALA 2", ano: "2024" },
+        ])}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
+
+    const banner = screen.getByTestId("data-quality-banner");
+    expect(banner.textContent).toMatch(/1 pendência afeta/);
+    expect(banner.textContent).toMatch(/2 imóveis/);
+    expect(banner.textContent).toMatch(/declaração de 2024 e 2025/);
+  });
+
+  it("payload com forma inesperada não vira linha (guard fecha)", () => {
+    const data = {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+      patrimonio: { guarda_de_sinal: { itens_sem_valor: [{ colecao: 42 }] } },
+    } as unknown as ReportAnalysisData;
+    render(
+      <ReportDataQualityBanner
+        data={data}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
+
+    expect(screen.queryByTestId("data-quality-banner")).not.toBeInTheDocument();
   });
 });

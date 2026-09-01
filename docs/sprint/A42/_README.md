@@ -286,7 +286,7 @@ que o parágrafo acima fosse relido.
 | Lane | Entrou | Por quê | PR |
 |---|---|---|---|
 | [[A42.l13]] — completude por ficha | 2026-08-21 | a [[ADR-266]] foi falsificada por emenda datada e o predicado substituto precisava de casa. **Reusa o id da 13ª promovida** — ver §Lanes promovidas | #1624 (lane) · #1747 (linha na tabela) |
-| [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 (lanes) · **#1915** (entrega da l14) |
+| [[A42.l14]] · [[A42.l15]] · [[A42.l16]] | 2026-08-29 | três P0 da rodada `U2` — [[LEDGER-CERTIFY-active]] §r6 · [[PIPELINE-REVIEWS-active]] §r10 | #1821 (lanes) · **#1915** (l14) · **#1827** (l16) · **#1909/#1916/#1919** (l15 — PR0 + critérios 4 e 6; a lane segue `in_progress`, PR1 pendente) |
 | [[A42.l17]] | 2026-08-30 | P0 da rodada `U3` (`LC7-01`) — [[LEDGER-CERTIFY-active]] §r7 | #1843 (lane) · #1846 (entrega) |
 | [[A42.l18]] · [[A42.l19]] | 2026-08-30 | dois achados Alto da rodada `U4` — [[LEDGER-CERTIFY-active]] §r8; **da classe que dá nome à sprint** | #1866 (lanes) · #1870/#1873 e #1888/#1890 (entregas) |
 | [[A42.l20]] · [[A42.l21]] · [[A42.l22]] | 2026-08-30 | os P2 da `U4`, alocados a pedido do dono | #1867 (lanes) · #1907 (l20) · #1906 (l21) — a l22 segue aberta |
@@ -317,6 +317,15 @@ depois de ela ser planejada**, produzida por instrumento e não por escolha de e
 | lanes do dia da abertura (04-08) ainda `planned` | **11 de 12** — há **27 dias**, nenhuma iniciada |
 | lanes `shipped` | **4** — **todas** criadas nos 3 dias anteriores, todas de rodada unificada |
 | WIP hoje (`open` + `in_progress`) | **6** |
+
+> **Re-medido no mesmo 2026-08-31, algumas horas depois — a tabela acima fica como está.**
+> Ela era verdadeira quando escrita e envelheceu **dentro do próprio dia**, que é o motivo
+> de a data sozinha não desambiguar aqui. Estado no fecho da [[A42.l20]]: lanes `shipped`
+> **6** (entraram [[A42.l21]] #1906 e [[A42.l20]] #1907) · WIP **4** · das 12 do dia da
+> abertura, **9 `planned` · 2 `blocked` ([[A42.l1]], [[A42.l8]]) · 1 `open` ([[A42.l7]])**.
+> **A conclusão não muda — fica mais forte:** o lote antigo segue sem ser pego há 27 dias
+> enquanto o que chega por medição shipa em horas, que é exatamente o argumento da
+> aposentadoria do teto. Nada a redecidir; só o número não se cita mais desta tabela.
 
 As lanes não estão competindo por capacidade: **o lote antigo simplesmente não é pego**,
 enquanto o que chega por medição é executado em horas. Um teto sobre o total trata os dois

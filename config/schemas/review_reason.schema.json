@@ -39,6 +39,7 @@
         "domain.baseline_divergence",
         "domain.property_identity_uncanonical",
         "domain.balde_patrimonial_negativo",
+        "domain.valor_nao_apurado",
         "domain.membro_nao_apurado",
         "domain.ativo_sem_haystack",
         "domain.ativo_nao_classificado",

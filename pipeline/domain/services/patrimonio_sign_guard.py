@@ -121,6 +121,42 @@ class BaldeNegativoSobrevivente:
         return {"balde": self.balde, "valor_brl": float(self.valor_brl)}
 
 
+# Um grão ABAIXO do balde ([[ADR-431]]). A D6 opera no agregado e é cega ao item:
+# o balde segue positivo enquanto o negativo for menor que a soma dos irmãos. Aqui
+# o item já chega com o valor removido pelo produtor — a guarda não muta nada, só
+# conta o que chegou sem valor para decidir a supressão.
+@dataclass(frozen=True)
+class ItemFisicoSemValor:
+    """Ativo físico publicado sem valor apurado — o item fica, a Σ o exclui."""
+
+    colecao: str
+    descricao: str
+    ano: str
+
+    def format(self) -> str:
+        return (
+            f"{self.colecao}: item sem valor apurado em {self.ano}; fora da soma "
+            "e das prescrições que dependem dele"
+        )
+
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> ReviewReason:
+        """Projeta para ReviewReason ([[ADR-272]]); sem `descricao` — endereço é PII."""
+        return ReviewReason(
+            code=ReviewReasonCode.domain_valor_nao_apurado,
+            stage=stage,
+            artifact_key=artifact_key,
+            document_id=document_id,
+            offending_value=f"colecao={self.colecao} ano={self.ano}",
+            expected=f"{self.colecao}[].valor_31_12_ano_base apurado",
+            message="Ativo fisico publicado sem valor apurado",
+        )
+
+    def to_dict(self) -> dict:
+        return {"colecao": self.colecao, "descricao": self.descricao, "ano": self.ano}
+
+
 @dataclass(frozen=True)
 class GuardaDeSinalResult:
     baldes: BaldesPatrimoniais
@@ -128,17 +164,24 @@ class GuardaDeSinalResult:
     reclassificados: tuple[ReclassificadoParaDividaCurtoPrazo, ...]
     sobreviventes: tuple[BaldeNegativoSobrevivente, ...]
     modo: SignGuardMode
+    itens_sem_valor: tuple[ItemFisicoSemValor, ...] = ()
 
     @property
     def cobertura_completa(self) -> bool:
-        """Sem sobrevivente, a prescrição pode ser publicada ([[ADR-394]] §Emenda)."""
-        return not self.sobreviventes
+        """Sem sobrevivente e sem item sem valor, a prescrição pode ser publicada."""
+        return not self.sobreviventes and not self.itens_sem_valor
 
+    # Composto: os dois eixos suprimem a MESMA família de prescrição (as que
+    # dependem de cat_2), e o consumidor decide por `is not None`. Concatenar em
+    # vez de eleger um preserva o diagnóstico quando ambos ocorrem no mesmo run.
     @property
     def motivo_supressao(self) -> str | None:
-        if self.cobertura_completa:
-            return None
-        return "balde_negativo: " + ", ".join(s.balde for s in self.sobreviventes)
+        motivos = []
+        if self.sobreviventes:
+            motivos.append("balde_negativo: " + ", ".join(s.balde for s in self.sobreviventes))
+        if self.itens_sem_valor:
+            motivos.append(f"valor_nao_apurado: {len(self.itens_sem_valor)} item(ns)")
+        return "; ".join(motivos) or None
 
     def to_dict(self) -> dict:
         return {
@@ -148,6 +191,7 @@ class GuardaDeSinalResult:
             "dividas_curto_prazo_brl": float(self.dividas_curto_prazo_brl),
             "reclassificados": [r.to_dict() for r in self.reclassificados],
             "baldes_negativos": [s.to_dict() for s in self.sobreviventes],
+            "itens_sem_valor": [i.to_dict() for i in self.itens_sem_valor],
         }
 
 
@@ -188,24 +232,45 @@ def motivo_supressao_do_patrimonio(patrimonio: dict | None) -> str | None:
 # Só `enforce` projeta razão: em `warn` o artefato carrega a evidência e a
 # prescrição já sai suprimida, mas o run não pausa. É aqui que o kill-switch
 # separa "rebaixa e declara" de "para e espera humano".
-def review_reasons_do_artefato(patrimonio: dict, *, stage: str, artifact_key: str) -> list[dict]:
-    """Projeta os baldes negativos do artefato E5 para ``review_reason`` ([[ADR-272]])."""
-    guarda = (patrimonio or {}).get("guarda_de_sinal") or {}
-    if guarda.get("modo") != SignGuardMode.enforce.value:
-        return []
+def _razoes_dos_baldes(guarda: dict, **destino) -> list[dict]:
     return [
         BaldeNegativoSobrevivente(
             balde=str(b.get("balde") or ""),
             valor_brl=Decimal(str(b.get("valor_brl") or 0)),
         )
-        .to_review_reason(stage=stage, artifact_key=artifact_key, document_id=None)
+        .to_review_reason(**destino)
         .to_dict()
         for b in guarda.get("baldes_negativos") or []
     ]
 
 
+# O produtor (E1.5c) já emite a razão no baseline; esta é a do artefato E5, que é
+# o que o relatório lê. Cada stage declara o que CARREGA ([[ADR-411]] D2).
+def _razoes_dos_itens(guarda: dict, **destino) -> list[dict]:
+    return [
+        ItemFisicoSemValor(
+            colecao=str(i.get("colecao") or ""), descricao="", ano=str(i.get("ano") or "")
+        )
+        .to_review_reason(**destino)
+        .to_dict()
+        for i in guarda.get("itens_sem_valor") or []
+    ]
+
+
+def review_reasons_do_artefato(patrimonio: dict, *, stage: str, artifact_key: str) -> list[dict]:
+    """Projeta os dois graus de negativo do artefato E5 para ``review_reason`` ([[ADR-272]])."""
+    guarda = (patrimonio or {}).get("guarda_de_sinal") or {}
+    if guarda.get("modo") != SignGuardMode.enforce.value:
+        return []
+    destino = {"stage": stage, "artifact_key": artifact_key, "document_id": None}
+    return _razoes_dos_baldes(guarda, **destino) + _razoes_dos_itens(guarda, **destino)
+
+
 def aplicar_guarda_de_sinal(
-    baldes: BaldesPatrimoniais, *, modo: SignGuardMode | None = None
+    baldes: BaldesPatrimoniais,
+    *,
+    modo: SignGuardMode | None = None,
+    itens_sem_valor: tuple[ItemFisicoSemValor, ...] = (),
 ) -> GuardaDeSinalResult:
     """Reclassifica o negativo financeiro e ressalva o físico ([[ADR-394]] §Emenda D5/D6)."""
     modo = modo if modo is not None else sign_guard_mode()
@@ -218,6 +283,7 @@ def aplicar_guarda_de_sinal(
         reclassificados=movidos,
         sobreviventes=_sobreviventes(corrigidos),
         modo=modo,
+        itens_sem_valor=itens_sem_valor,
     )
 
 
@@ -232,11 +298,14 @@ def _resultado_off(baldes: BaldesPatrimoniais) -> GuardaDeSinalResult:
 
 
 def aplicar_guarda_aos_componentes(
+    *,
+    itens_sem_valor: tuple[ItemFisicoSemValor, ...] = (),
     **baldes: float,
 ) -> tuple[GuardaDeSinalResult, float, float, float]:
     """Boundary float→Decimal do ``PatrimonioCalculator``; devolve financeiros reclassificados."""
     guarda = aplicar_guarda_de_sinal(
-        BaldesPatrimoniais(**{k: Decimal(str(v)) for k, v in baldes.items()})
+        BaldesPatrimoniais(**{k: Decimal(str(v)) for k, v in baldes.items()}),
+        itens_sem_valor=itens_sem_valor,
     )
     return (
         guarda,
@@ -252,6 +321,7 @@ __all__ = [
     "BaldeNegativoSobrevivente",
     "BaldesPatrimoniais",
     "GuardaDeSinalResult",
+    "ItemFisicoSemValor",
     "ReclassificadoParaDividaCurtoPrazo",
     "SIGN_GUARD_ENV",
     "SignGuardMode",

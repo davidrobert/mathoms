@@ -102,6 +102,11 @@ class PropertyInput:
     imobiliaria_nome: str | None = None
     meses_desde_ultimo_reajuste: int | None = None
 
+    # [[ADR-431]]: o valor do imóvel não foi apurado. Não é `valor_imovel = 0` —
+    # zero entraria no denominador do cap rate e no peso da média ponderada da
+    # carteira como se fosse medida. O item sai do cálculo com motivo declarado.
+    valor_nao_apurado: bool = False
+
 
 # =============================================================================
 # Result dataclasses
@@ -411,6 +416,11 @@ _CLASSIFICATION_MOTIVO: dict[str, str] = {
     "desconhecido": "Classificação pendente — usuário precisa rotular em Configurações.",
 }
 
+MOTIVO_VALOR_NAO_APURADO = (
+    "Valor do imóvel não apurado na declaração — fora do cap rate e da média "
+    "ponderada da carteira. Informe o valor para recompor as métricas."
+)
+
 
 def filter_investment_properties(
     properties: list[PropertyInput],
@@ -419,12 +429,10 @@ def filter_investment_properties(
     investment: list[PropertyInput] = []
     excluded: list[ExcludedProperty] = []
     for p in properties:
-        if p.classification in INVESTMENT_CLASSIFICATIONS:
+        motivo = _motivo_de_exclusao(p)
+        if motivo is None:
             investment.append(p)
         else:
-            motivo = _CLASSIFICATION_MOTIVO.get(
-                p.classification, f"Classification '{p.classification}' não é investimento."
-            )
             excluded.append(
                 ExcludedProperty(
                     property_id=p.property_id,
@@ -434,6 +442,20 @@ def filter_investment_properties(
                 )
             )
     return investment, excluded
+
+
+# A ordem importa: valor não apurado vence a classificação. Um imóvel de
+# investimento SEM valor medido entraria em `investment` e levaria denominador e
+# peso zerados para dentro do cap rate agregado, publicando como carteira inteira
+# o que é só a parte medida dela ([[ADR-431]]).
+def _motivo_de_exclusao(p: PropertyInput) -> str | None:
+    if p.valor_nao_apurado:
+        return MOTIVO_VALOR_NAO_APURADO
+    if p.classification in INVESTMENT_CLASSIFICATIONS:
+        return None
+    return _CLASSIFICATION_MOTIVO.get(
+        p.classification, f"Classification '{p.classification}' não é investimento."
+    )
 
 
 def calculate_real_estate_metrics(
@@ -517,6 +539,7 @@ __all__ = [
     "ComponenteCalculo",
     "ConfidenceLiteral",
     "ExcludedProperty",
+    "MOTIVO_VALOR_NAO_APURADO",
     "OrigemLiteral",
     "PropertyInput",
     "PropertyMetrics",

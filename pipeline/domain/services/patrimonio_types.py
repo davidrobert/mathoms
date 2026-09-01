@@ -365,8 +365,19 @@ class PatrimonioInputs:
 # =============================================================================
 
 
+# A cascata de chaves alternativas é o que torna o `None` perigoso: sem este
+# early return, item declarado não apurado cairia em `valor_irpf`/`valor` e
+# ressuscitaria um valor de outra data no lugar do que não foi medido
+# ([[ADR-431]]). Contribuir 0,0 para a Σ é EXCLUSÃO, não afirmação de zero — o
+# que se publica no item é `null`.
+def _fora_da_soma(item: dict) -> bool:
+    return bool(item.get("valor_nao_apurado"))
+
+
 def imovel_valor(imovel: dict) -> float:
-    """Valor de imóvel tentando chaves alternativas."""
+    """Valor de imóvel tentando chaves alternativas; 0,0 exclui o não apurado."""
+    if _fora_da_soma(imovel):
+        return 0.0
     for key in ("valor_31_12_ano_base", "valor_irpf", "valor"):
         v = imovel.get(key)
         if v is not None:
@@ -399,7 +410,9 @@ def imovel_desc(imovel: dict) -> str:
 
 
 def veiculo_valor(veiculo: dict) -> float:
-    """Valor de veículo tentando chaves alternativas."""
+    """Valor de veículo tentando chaves alternativas; 0,0 exclui o não apurado."""
+    if _fora_da_soma(veiculo):
+        return 0.0
     for key in ("valor_31_12_ano_base", "valor_irpf", "valor"):
         v = veiculo.get(key)
         if v is not None:

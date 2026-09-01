@@ -72,6 +72,7 @@ def _calculate(
         identities=identities,
         overrides=_load_overrides(db, workspace_id),
         valor_by_property=_valor_by_property(identities, baseline_payload),
+        sem_valor_apurado=_sem_valor_apurado(baseline_payload),
         sources=_build_cascade_sources(irpf_payload, e5_data, informe_payloads, identities),
         concentracao_imobiliaria_pct=_to_decimal(concentracao),
         as_of_date=as_of_date or date.today(),
@@ -211,6 +212,19 @@ def _valor_by_property(
         if pid in known:
             by_property[pid] += _imovel_valor_ano_base(imovel)
     return by_property
+
+
+# Lê a declaração do produtor, não o `null` cru: `_imovel_valor_ano_base` já
+# devolve 0 para `None`, e zero é indistinguível de imóvel realmente sem valor
+# no baseline. O flag é o que separa "não medimos" de "vale zero" ([[ADR-431]]).
+def _sem_valor_apurado(baseline_payload: dict | None) -> set[str]:
+    """`property_id` dos imóveis cujo valor o E1.5c declarou não apurado."""
+    imoveis = (baseline_payload or {}).get("imoveis_consolidados") or []
+    return {
+        pid
+        for im in imoveis
+        if isinstance(im, dict) and im.get("valor_nao_apurado") and (pid := im.get("property_id"))
+    }
 
 
 def _imovel_valor_ano_base(imovel: dict) -> Decimal:
