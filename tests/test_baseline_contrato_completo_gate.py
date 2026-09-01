@@ -68,7 +68,9 @@ def _aplicar_merge_de_informe(consolidado: dict) -> None:
     def _merge(baseline, *, workspace_id, db):
         return SimpleNamespace(
             saldos_added=1,
-            fiscal_flags=["sintetica"],
+            fiscal_flags=[SimpleNamespace(code="SINT", title="sintetica")],
+            informes_processed=1,
+            warnings=[],
             baseline={"informe_pf_saldos_31_12": [], "wise_fiscal_flags": []},
         )
 

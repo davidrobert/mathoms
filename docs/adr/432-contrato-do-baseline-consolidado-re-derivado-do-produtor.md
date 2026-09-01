@@ -117,6 +117,12 @@ espera a **virada do corpus** — nenhuma run ocorreu desde 2026-08-30 19:07.
 - O flip continua bloqueado, agora **pelo número e não pela prosa**, com os paths
   nomeando a causa. Some quando a l111 estiver refletida no corpus e as runs
   virarem.
+> **Nota 2026-09-01 (pós-merge):** o `14 de 14` é o estado no merge desta ADR. O
+> [#1939](https://github.com/davidrobert/mathoms/pull/1939) (A42.l15) acrescentou
+> `investimentos_ancora_cobertura` logo depois — hoje são **15 declaradas**, e o gate de
+> completude segue verde nos dois sentidos, que é o invariante que esta ADR instala. O
+> número anda; o invariante é que ele ande **junto** nas duas pontas.
+
 - Quem for flipar lê `NO-GO` com `additionalProperties` em 71 artefatos e precisa
   saber que é história, não regressão — está escrito na §Consequências desta ADR e
   no §Deferimento da [[A40.l58]], que esta ADR **quita**.

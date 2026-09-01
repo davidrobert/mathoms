@@ -247,9 +247,12 @@ continua válido; só a coordenada estava errada.
 > - **`baseline_patrimonial` não pode ser flipado** e o bloqueio não é temporal: o
 >   contrato declara **5 de 13** chaves do payload real. Re-derivá-lo do produtor E1.5c
 >   é §Deferimento datado com dono: `data-engineer` na [[A40.l58]] §Fecho.
->   **Atualização 2026-09-01:** hoje são **5 de 11** — o PR-A da [[A40.l110]] (#1914)
->   tirou 2 properties. O bloqueio **continua** e agora é enforçado, não descrito
->   (`_CONTRATO_NAO_DERIVADO`); quitação é do PR-B.
+>   **Atualização 2026-09-01, em dois passos:** o PR-A da [[A40.l110]] (#1914) tirou 2
+>   properties e levou o contrato a 5 de 11; o **PR-B** (#1933, [[ADR-432]]) re-derivou-o
+>   do produtor e **quitou o deferimento** — cobertura completa, `_CONTRATO_NAO_DERIVADO`
+>   vazio. Hoje são **15 declaradas** (o #1939 acrescentou `investimentos_ancora_cobertura`),
+>   com o gate de completude verde nos dois sentidos. **O flip segue bloqueado pelo
+>   número**, não pelo contrato: 74/169 no corpus, 71 deles de artefato histórico.
 > - `e15_baseline_extract`, o irmão, mede **0/66** e está elegível hoje ([[ADR-409]] §D).
 
 **O flip de `mode_overrides` para strict sai desta lane.** Ele estava na
