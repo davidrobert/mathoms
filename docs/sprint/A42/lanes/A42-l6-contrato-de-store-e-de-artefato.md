@@ -108,6 +108,31 @@ de rollback, ambos exigindo restart) e o gate como comando —
 `dev/measure_schema_drift.py --schema <alvo> --days 7 --gate`, exit ≠ 0 com qualquer
 drift. Não há mais lane a consultar; há runbook e comando.
 
+## Aresta herdada — [[A42.l14]] `shipped` 2026-08-31 (#1915)
+
+> A [[ADR-421]] §Lane e arestas declarava *"quem mergear primeiro avisa"*. A l14
+> mergeou primeiro e **esta seção é o aviso** — sem ela o deferimento existiria só do
+> lado que o emitiu, e viraria rota zumbi no instante em que a l14 ficou terminal.
+
+**O que chegou pronto.** O leitor run-scoped que a l14 §Rota de PRs prometia existe:
+`dev/ledger_certify_db.py` (split do harness), com `_e3_of_run` / `_e4_of_run` /
+`_persisted_e3_subject` e o corte temporal do E2. O escopo é **assimétrico** por
+decisão — E2 pela política do run, E3/E4 run-scoped ([[ADR-421]] D3, conformidade à
+[[ADR-241]]).
+
+**O que esta lane herda.** A D3 manda *"não reimplementar a política: **compor o
+`DBArtifactStore` real**, com teste de paridade"*. A l14 **não** entregou essa parte e
+fechou declarando o **§Deferimento datado 2026-08-30** com retomada nomeada **aqui** —
+o motivo é que nenhum dos seis critérios de aceite dela testava a composição, então dava
+para fechar verde violando-a. O que existe hoje é `_latest_by_canonical`, que **admite no
+próprio docstring** ser réplica de `DBArtifactStore._get_latest_in_workspace`.
+
+Casa com a decisão 1 desta lane (política de escopo `list_keys` vs `read`, veículo =
+emenda à [[ADR-291]]): é o **mesmo** predicado, medido em dois consumidores. Quem pegar
+esta lane decide se o teste de paridade entra como critério próprio ou se a composição
+torna a réplica desnecessária — **não** é reabertura da [[ADR-421]], que decidiu só o
+*sujeito* do veredito.
+
 ## Critério de aceite
 
 **Piso de DoD = decisões 1 a 3.** A coleta de órfãos (decisão 4) é trailing declarado e
