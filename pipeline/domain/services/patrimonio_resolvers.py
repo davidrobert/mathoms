@@ -30,7 +30,9 @@ from pipeline.domain.services.member_key_matcher import (
     matches_member_key,
 )
 from pipeline.domain.services.patrimonio_types import (
+    CLASSES_DE_ATIVO,
     CONSOLIDATED_LIST_KEYS,
+    AnosBaseDoMembro,
     MemberIdentity,
     MembrosResolvidos,
     investimento_valor,
@@ -361,6 +363,43 @@ def anos_base_por_membro(
     )
 
 
+def _anos_do_membro_na_classe(
+    baseline: dict, identity: MemberIdentity, conjuge: bool, classe: str
+) -> set[int]:
+    """Anos 31/12 que o membro declarou **dentro** de uma classe de ativo."""
+    anos: set[int] = set()
+    for list_key in CLASSES_DE_ATIVO[classe]:
+        anos |= _anos_da_lista(baseline.get(list_key), identity, conjuge)
+    return anos
+
+
+def _ano_base_do_membro(
+    baseline: dict, identity: MemberIdentity, *, conjuge: bool, fallback: str
+) -> AnosBaseDoMembro:
+    """Elege o ano de cada classe separadamente ([[ADR-433]])."""
+    por_classe: dict[str, str] = {}
+    for classe in CLASSES_DE_ATIVO:
+        anos = _anos_do_membro_na_classe(baseline, identity, conjuge, classe)
+        if anos:
+            por_classe[classe] = str(max(anos))
+    return AnosBaseDoMembro(por_classe=por_classe, fallback=fallback)
+
+
+# A eleição sobre a UNIÃO das classes deixava a classe mais atualizada ditar o ano
+# das outras; quem não tinha item nesse ano caía no fallback de
+# `_resolve_item_valor` e virava 0,00 — publicando "a família não tem casa própria"
+# ([[ADR-433]]). O grão certo é (membro × classe); o veto da [[ADR-274]] ao máximo
+# **por-item** continua de pé, e esta função não o toca.
+def anos_base_por_classe(
+    baseline: dict, identity: MemberIdentity, ano_domicilio: str
+) -> tuple[AnosBaseDoMembro, AnosBaseDoMembro]:
+    """Ano-base de cada membro em cada classe de ativo ([[ADR-433]])."""
+    return (
+        _ano_base_do_membro(baseline, identity, conjuge=False, fallback=ano_domicilio),
+        _ano_base_do_membro(baseline, identity, conjuge=True, fallback=ano_domicilio),
+    )
+
+
 # O ano era descoberto aqui e esquecido. O ramo `valor` cru não tem ano e devolve
 # `None` — é o que separa "valor de 2023" de "valor sem data" ([[ADR-383]] §6).
 def _resolve_item_valor_e_ano(item: dict, ano_ref: str) -> tuple[float, str | None]:
@@ -577,6 +616,32 @@ def _split_dividas(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tu
     return titular_div, conjuge_div
 
 
+# `frescor` ([[ADR-410]] D6) lê o escalar; com classes em anos distintos qualquer
+# escolha é parcial, então usa-se o MENOR — frescor nunca superestimado. O mapa
+# completo viaja ao lado, que é a "datas por linha" da [[ADR-383]] §6.
+def _ano_base_escalar(anos: AnosBaseDoMembro, fallback: str) -> str:
+    """Menor ano eleito entre as classes do membro; o do domicílio se não houver."""
+    eleitos = anos.eleitos()
+    return min(eleitos) if eleitos else fallback
+
+
+# O crédito do resíduo ao titular só é lícito quando o sintético é do MESMO ano do
+# resumo. Com o eixo por classe o antigo `ano_titular == ano_conjuge` passa a poder
+# ser verdadeiro sobre um sintético multi-ano, o que **ligaria** o crédito e
+# fabricaria patrimônio — a família do `unattributed → titular` que a [[ADR-394]]
+# §D8 cortou. O predicado passa a exigir igualdade com o ano do resumo.
+def _todas_as_classes_no_ano(
+    anos_por_membro: tuple[AnosBaseDoMembro, ...], summary_year: str
+) -> bool:
+    """Todo ano **efetivamente usado** para resolver valor é o ano do resumo."""
+    # O ano efetivo de uma classe é o eleito, ou o do domicílio quando o membro
+    # nada declarou nela — é assim que `_split` resolve. Contar só os eleitos
+    # deixaria o formato legado (`valor_YYYY`, que não elege ano nenhum) sem
+    # crédito, apesar de ele ser single-year por construção.
+    usados = {anos.para(classe) for anos in anos_por_membro for classe in CLASSES_DE_ATIVO}
+    return usados == {summary_year}
+
+
 def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
     """Constrói titular/cônjuge a partir do formato v1.5 consolidated.
 
@@ -592,18 +657,19 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     """
     summary_year, total_bens_summary, _ = _resolve_summary_year(baseline)
     ano_ref = resolve_value_year(baseline, summary_year)
-    ano_titular, ano_conjuge = anos_base_por_membro(baseline, identity, ano_ref)
+    anos_titular, anos_conjuge = anos_base_por_classe(baseline, identity, ano_ref)
 
-    def _split(fn):
-        """Cada metade resolvida no ano-base do **próprio** membro."""
-        if ano_titular == ano_conjuge:
-            return fn(baseline, identity, ano_titular)
-        return fn(baseline, identity, ano_titular)[0], fn(baseline, identity, ano_conjuge)[1]
+    def _split(fn, classe: str):
+        """Cada metade no ano que o **próprio** membro declarou **nesta** classe."""
+        ano_t, ano_c = anos_titular.para(classe), anos_conjuge.para(classe)
+        if ano_t == ano_c:
+            return fn(baseline, identity, ano_t)
+        return fn(baseline, identity, ano_t)[0], fn(baseline, identity, ano_c)[1]
 
-    titular_imoveis, conjuge_imoveis = _split(_split_imoveis)
-    titular_inv, conjuge_inv = _split(_split_investimentos)
-    titular_vei, conjuge_vei = _split(_split_veiculos)
-    titular_div, conjuge_div = _split(_split_dividas)
+    titular_imoveis, conjuge_imoveis = _split(_split_imoveis, "imoveis")
+    titular_inv, conjuge_inv = _split(_split_investimentos, "investimentos")
+    titular_vei, conjuge_vei = _split(_split_veiculos, "veiculos")
+    titular_div, conjuge_div = _split(_split_dividas, "dividas")
 
     def _sum_items(*lists: list[dict]) -> float:
         return sum(safe_float(item.get("valor_31_12_ano_base", 0)) for lst in lists for item in lst)
@@ -617,7 +683,8 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     titular_data = {
         "total_bens": titular_total,
         "total_dividas": titular_div,
-        "ano_base": ano_titular,
+        "ano_base": _ano_base_escalar(anos_titular, ano_ref),
+        "ano_base_por_classe": dict(anos_titular.por_classe),
         "bens": {
             "imoveis": titular_imoveis,
             "investimentos": titular_inv,
@@ -628,7 +695,8 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     conjuge_data = {
         "total_bens": conjuge_total,
         "total_dividas": conjuge_div,
-        "ano_base": ano_conjuge,
+        "ano_base": _ano_base_escalar(anos_conjuge, ano_ref),
+        "ano_base_por_classe": dict(anos_conjuge.por_classe),
         "bens": {
             "imoveis": conjuge_imoveis,
             "investimentos": conjuge_inv,
@@ -643,7 +711,7 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     # por construção — creditar o resíduo ao titular fabricaria patrimônio, a mesma
     # família do `unattributed → titular` que a [[ADR-394]] §D8 cortou.
     synthetic_total = titular_total + conjuge_total
-    mesmo_ano = ano_titular == ano_conjuge
+    mesmo_ano = _todas_as_classes_no_ano((anos_titular, anos_conjuge), summary_year)
     if mesmo_ano and total_bens_summary > 0 and abs(synthetic_total - total_bens_summary) > 1.0:
         diff = total_bens_summary - synthetic_total
         titular_data["total_bens"] += diff
