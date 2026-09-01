@@ -588,15 +588,51 @@ como está escrito produz código inalcançável.
   coerção defensiva; **emenda datada à [[ADR-226]]** (dois eixos em §3 + §5
   morta); [[ADR-430]] `Proposto`. Zero comportamento — nada lê `origem` e o
   default preserva o resultado atual. Ver §Achados do PR2a.
-- **PR2b** — **D2**: predicado por `titulares(conta)`; teste mantido/renomeado
-  medindo os dois eixos; fixture das 5 instituições do corpus. **Inerte sozinho
-  por medição** ⇒ seguro em `main` isolado.
+- **PR2b — ENTREGUE 2026-08-31.** `AccountResolution` carrega
+  `member_confidence` + `account_confidence` ortogonais; predicado sobre
+  `titulares(conta)`; teste antigo mantido e re-apontado (não invertido);
+  fixture do corpus com as duas metades. **Inerte em produção** — com
+  `bank_accounts` vazio o resolver devolve `unknown` como antes, e há teste que
+  afirma isso. Ver §Prova de discriminação abaixo.
 - **PR2c** — **D1+D3+D4**: merge com precedência + dismissals em
   `serialize_family_members`; refresh pós-E1 (lag); canonicalização via
   `MemberNameResolver`; provenance até o E5; **unificação dos dois call-sites**.
   Fecha os três de uma vez — **nunca mergeie `{D1,D3}` em `main`**.
 - **PR2d** — gate de não-inércia (8 subconjuntos + perna de provenance) +
   rebaseline. **Muta E5 ⇒ entra na janela de rebaseline.**
+
+## Prova de discriminação do gate D2 (PR2b, 2026-08-31)
+
+O critério exigia que a perna D2 afirmasse **duas** coisas. Não bastava os testes
+passarem: passar não prova que discriminam. Rodei as **duas mutações plausíveis**
+contra a fixture, com `_from_bank` monkeypatchado:
+
+| mutação | metade 1 (4 singletons resolvem) | metade 2 (`nubank` segue `ambiguous`) |
+|---|---|---|
+| **predicado antigo** (por conta) — *under-fix* | **REPROVA** ✅ | passa cego |
+| **apagar o estado `ambiguous`** — *over-fix* | passa cego | **REPROVA** ✅ (+2 outros) |
+
+**Nenhuma das metades pega as duas mutações.** É a razão concreta de o critério
+pedir ambas — um gate com só a metade 1 sai verde para o "fix" que apaga o
+estado, e um gate com só a metade 2 sai verde para o defeito original.
+
+Terceiro teste, `test_predicado_novo_e_inerte_sem_contas`, fixa a **inércia**:
+com `contas` vazio — o estado de produção, `bank_accounts` = 0 rows — toda
+instituição devolve `unknown`, exatamente como antes. É o que autoriza mergear
+D2 isolado.
+
+### Decisões de execução
+
+- **O alias `Confidence` que eu criei "por compat" nasceu sem importador** e foi
+  removido. Grep no repo: zero consumidores fora do próprio módulo. Mantê-lo
+  faria os call-sites lerem um campo cujo **significado** mudou; sem ele, falham
+  com `AttributeError` alto. Família emissor-sem-leitor da [[A40.l88]].
+- **`titulares(conta)`, não `member_key`.** Conta conjunta e conta de dependente
+  são casos em que duas contas do mesmo `member_key` **são** ambiguidade de
+  titularidade. `is_joint` nunca é populado hoje ⇒ degenera para
+  `≥2 member_keys`; no dia do V2 já está certo, sem reabrir a [[ADR-226]].
+- **Dois testes de `test_e4_multi_member_resolver` renomearam o campo** — são
+  casos de **dois membros distintos**, logo a semântica não mudou.
 
 ## Achados do PR2a (2026-08-31)
 
