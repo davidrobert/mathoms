@@ -33,7 +33,7 @@ describe("PatrimonioCategoriasCard — estados da composição", () => {
   });
 
   it("negativo: linha permanece, com nota de rodapé", () => {
-    renderCard([{ categoria: "Imóveis de Renda", valor: -200_000, pct: 0 }]);
+    renderCard([{ categoria: "Outros imóveis", valor: -200_000, pct: 0 }]);
 
     const row = document.querySelector('[data-composition-state="negativo"]');
     expect(row).not.toBeNull();

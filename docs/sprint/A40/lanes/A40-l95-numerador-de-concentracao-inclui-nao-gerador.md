@@ -4,7 +4,9 @@ type: lane
 title: "Numerador da concentração imobiliária inclui bem que o motor declara não-gerador"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1932
+ship_date: "2026-09-01"
 priority: P0
 branch_slug: a40-l95-numerador-de-concentracao-inclui-nao-gerador
 owner: financial-planner
@@ -17,7 +19,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -447,3 +449,48 @@ rotulam dizem 'de renda' sobre número que inclui não-alocação"*. Dono natura
 | §D2 — piso de cobertura | ⏸ deferido, dono [[A40.l95]], condição: flip da [[ADR-353]] |
 | Critério 6 — balde cat_2 e as 4 superfícies | ⏸ follow-up, sem lane id |
 | Regime default (imóvel sem override) | ⏸ follow-up, sem lane id |
+
+## Fecho — 2026-09-01
+
+**`shipped`** em 6 PRs mergeados: #1901 (numerador declarado) · #1904 (fixture que
+discrimina) · #1911 (manifesto drenado) · #1924 (§D3, imobilização) · #1926 (emenda da
+§D2) · #1928 (partição publicada) · #1932 (o flip + rótulos). A [[ADR-420]] flipou para
+`Decidido`.
+
+O **#1931 foi fechado como redundante**, não mergeado: ramifiquei a branch dos rótulos a
+partir da branch do flip em vez de `origin/main`, e o squash do #1932 carregou os três
+commits daquele junto. Verifiquei artefato a artefato em `main` antes de fechar. É erro de
+método meu, e o registro fica aqui para a próxima sessão não repetir: **branch de PR sai
+de `origin/main`**, não da branch anterior.
+
+### Critério 6 fechou inteiro, e a lista da ADR tinha um engano
+
+As quatro superfícies que diziam "de renda" sobre número que inclui não-alocação foram
+corrigidas **por subtração** do qualificador falso, não por vocabulário novo. O balde
+cat_2 virou **"Outros imóveis"** — diz literalmente o que ele é (todo imóvel que não é a
+residência, que é a linha logo acima) e não faz afirmação econômica que o número não
+sustenta. ⚠️ Copy de superfície visível escolhida por subtração; vale confirmar com
+`product-designer` na próxima passada de copy.
+
+As duas que **não** mudaram — `HeroKpiGrid` e `MarketValueSection` — filtram
+`{locado, comercial}`. Ali "imóveis de renda" é **verdade**, e a lista do §Critério 6 as
+contava por engano. O closeout já tinha corrigido o hero; a medição de hoje confirmou o
+mesmo na segunda superfície.
+
+### O manifesto de rebaseline reincidiu no mesmo dia
+
+O #1911 documentou que waiver de rebaseline é transitório e drenou o manifesto; o #1932
+deixou uma entrada nova, e a mina voltou. Drenado de novo aqui, e a **mensagem de erro do
+`golden_diff` passa a nomear o remédio** — quem lê a falha quase nunca é quem criou a
+entrada. Não construí gate: a proposta de forçar a drenagem segue sem dono, e é extensão
+do passo de CI que já lê o arquivo, nunca gate novo.
+
+## Rotas de saída — nada fica sem dono
+
+- **Piso de cobertura do §D2** → re-roteado na própria [[ADR-420]] para **quem executar a
+  [[A40.l11]]**, que é quem destrava o flip da [[ADR-353]]. Deferimento hospedado em lane
+  terminal seria órfão, e este não fica.
+- **Imóvel sem classificação no numerador** → **próximo dono** é a [[A40.l112]], aberta
+  hoje com escopo, medição e critério de aceite próprios. Classe distinta: captura, não
+  metodologia.
+- **Forçar a drenagem do manifesto** → proposta sem dono, registrada acima.

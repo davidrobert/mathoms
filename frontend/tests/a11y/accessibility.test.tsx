@@ -89,7 +89,7 @@ describe("a11y — compostos", () => {
             bruto: 50_000,
             composicao: [
               { categoria: "Veículos", valor: 50_000, pct: 100 },
-              { categoria: "Imóveis de Renda", valor: -200_000, pct: 0 },
+              { categoria: "Outros imóveis", valor: -200_000, pct: 0 },
               { categoria: "Investimentos Cônjuge", valor: 0, pct: 0 },
             ],
           } as never
