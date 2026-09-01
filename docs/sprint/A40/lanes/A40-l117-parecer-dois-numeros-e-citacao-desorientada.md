@@ -369,3 +369,89 @@ depende da cascata. O que cai é a **forma** do produtor determinístico.
 > `product-designer` sobre as discordâncias — sem dizer qual lado é a máquina —, e escolha
 > entre as rotas 1–3. A tabela está em
 > `_scratch`/`sonda_section_id.py` (off-git, reprodutível em ~5s, US$ 0).
+
+## Veredito cego — domínio (2026-09-01)
+
+### Antes do resultado: dois defeitos da MINHA sonda
+
+1. **Cegueira parcialmente comprometida.** O prompt saiu com o placeholder `$(TABELA)`
+   literal; para achar a tabela o painelista leu esta lane, que descreve o mecanismo da
+   cascata. Ele **declarou** isso e não atribuiu lados. O veredito vale, mas a cegueira é
+   fraca — a re-rodada precisa de agente que não tenha lido a lane.
+2. **Inventei um título de seção.** Escrevi o dicionário `id → título` **à mão** e pus
+   `S8 = "Previdência e IRPF"`. O layout diz **"Carga Tributária PJ — Regime e Base
+   Dedutível"** ([[A40.l34]] moveu teto/capacidade PGBL para a `S_IRPF_OTIMIZACAO`).
+   Contaminou os itens 2 e 24 para os **dois** painelistas. É a patologia *"cópia à mão
+   envelhece calado"* — a mesma que esta lane investiga — cometida pela sonda que a
+   investiga. Conferi os 12: 1 erro material (S8) + 1 truncamento inócuo
+   (`plano_de_acao`). A sonda passou a **derivar** os títulos do `report_layout.yaml`.
+3. A tabela também **não expunha `metrica_key`**, e por isso os itens 21/22/23 chegaram
+   indistinguíveis (três `Alocação` idênticos). Corrigido.
+
+### O resultado: nenhum dos dois produtores está uniformemente certo
+
+**A em 13, B em 12, nenhum dos dois em 2.** Sob o critério do `senior-cto` ("corrige os
+≥4 misroutes **e** introduz 0 destino julgado errado"), **qualquer que seja o lado
+determinístico, ele reprova** — porque nos itens 5, 12 e 26 a resposta certa **não está
+entre as oferecidas**. Não é falha do resolver: é falha do **vocabulário e dos defaults**,
+e é consertável antes de re-rodar.
+
+### O achado que destrava o desenho: falta o `tipo` do item
+
+O discriminador que resolve os dois temas many-to-many não é a âncora — é o **tipo**, que
+já está no payload de graça. É o eixo que o layout **já declara** (contratado × lacuna),
+generalizado para **estado × alavanca**:
+
+| tema | `metrica` (fato medido) | `risco`/`sugestao` (alavanca) |
+|---|---|---|
+| `Custo tributário` | `S_IRPF_RENDA` | `S_IRPF_OTIMIZACAO` |
+| `Proteção` | `S_PROTECAO` (contratado) | `S9` (lacuna) |
+| `Diagnóstico de dados` | `S2` | `S2` |
+
+⚠️ **Corolário que corrige o painel anterior:** a regra *"risco é, por definição, lacuna ⇒
+S9 sempre"* é certa para `risco`/`sugestao` e é **erro de categoria** aplicada a `metrica`.
+`protecao_custo_premio` (prêmio pago sobre cobertura **contratada**) não é lacuna. Enquanto
+`S_PROTECAO` estiver fora do vocabulário, **toda métrica de proteção é obrigada a mentir**.
+
+### `metrica_key` é discriminador melhor que âncora — e o mapa não deve ir direto à seção
+
+A âncora nomeia **onde o dado mora**; a `metrica_key` nomeia a **grandeza**. Destino de
+leitura é função da grandeza — por isso a âncora precisa de exceção para imóvel
+(`$.investimentos.total_imoveis_investimento` → **S4**, não S3) e a `metrica_key` não
+precisa de exceção nenhuma.
+
+E o mapa deve ser **`metrica_key → card_id`**, resolvendo `card_id → section_id` pelo
+layout. Razão empírica e **já ocorrida**: a [[A40.l34]] *moveu* teto/capacidade PGBL da S8
+para a `S_IRPF_OTIMIZACAO`. Um mapa direto para `section_id` teria envelhecido calado
+naquele PR. Mapa para `card_id` quebra **ruidosamente** quando o card some, e segue certo
+quando o card muda de seção.
+
+### Cards que ancoram os destinos (medidos no layout, não inferidos)
+
+`reserva_emergencia` → **S1** · `exposicao_cambial` → **S1** · `endividamento` → **S1** ·
+`alocacao_atual_vs_alvo` → **S3** · `equilibrio_cerbasi` → **S2** · `despesas_doughnut` →
+**S2** · chart `renda_passiva` → **S7** · `real_estate_yield` → **S4**.
+
+Consequência: `reserva_cobertura_meses` → S1 (não S3) e `exposicao_cambial` → S1 (não S3)
+— dois destinos que eu havia autorado errado na 1ª versão do mapa.
+
+### `ponto_forte` aceita default de tema — por custo de erro, não por concessão
+
+Ele **não roteia guardrail nenhum**: o guard de Monte Carlo
+(`parecer_pos_llm_guardrails.py:178`) e o `thesis_key` (`parecer_finalization.py:57`) tocam
+`risco`/`sugestao`. Misrotear elogio custa um clique; misrotear risco desarma um
+rebaixamento de confiança calado. **O rigor do discriminador calibra-se pelo custo do erro
+por tipo.**
+
+### Precondições antes de re-rodar a sonda
+
+1. Admitir `S_PROTECAO` no vocabulário **restrito a `metrica`/`ponto_forte`** — senão o
+   item 26 é insolúvel por construção. (A justificativa "emissor sem leitor" já foi medida
+   como falsa para 10 de 12 ids, e o eixo verdadeiro não barra métrica.)
+2. `Diagnóstico de dados` → **S2** como default declarado. Enquanto for `S_parecer`, o
+   produtor publica **destino nulo** — manda o leitor para a seção que ele já está lendo.
+
+**Critério de aceite da re-rodada:** (a) os 4 misroutes de proteção viram S9; (b) nenhuma
+**métrica** de proteção cai em S9; (c) nenhum item cai em `S_parecer` exceto fallback
+contado; (d) nenhum item de `Alocação` com âncora imobiliária cai em S3; (e) o mapa é
+derivado de `card_id`, provado por teste que **quebra se um card mudar de seção**.
