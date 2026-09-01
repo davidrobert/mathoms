@@ -401,9 +401,9 @@ na mesma página"* e a reconciliação `tabela_classes.Internacional` × `exposi
 
 > ⚠️ **A precondição caiu em 2026-09-01 — e o número envelheceu de novo.** A [[A42.l15]]
 > shipou (#1909/#1916/#1919/#1937/#1939): `_identity_key` ancora no CNPJ do documento e a
-> estabilidade foi de **37,68% para 61,78%** (pooled, 836 artefatos / 28 grupos). O bloqueio
-> *"até a A42.l15 entregar PR1/PR2"* **não existe mais** — o item 7 do §Estado abaixo também
-> destrava.
+> estabilidade foi de **37,68% para 42,38%** (pooled, 836 artefatos / 28 grupos). O bloqueio
+> *"até a A42.l15 entregar PR1/PR2"* **não existe mais** — o item 7 do §O que falta, em ordem
+> também destrava.
 >
 > **Mas não releia o R$ 423,56.** Ele foi medido **antes** do #1937 e do #1939, e os dois
 > mexeram na chave: o #1937 tirou 96 fundos do balde genérico e o #1939 trocou a chave
@@ -445,7 +445,7 @@ na mesma página"* e a reconciliação `tabela_classes.Internacional` × `exposi
 6. **Lane própria, com dono** — refresh de PTAX (Celery + TTL). Não é item de inventário.
 7. ~~**Depois da [[A42.l15]]**~~ — **destravado 2026-09-01**: `has_foreign_in_e3` por
    `(instituição, moeda, conta)` pode andar. A identidade que faltava existe (cascata
-   ancorada no CNPJ, 61,78%); a cobertura da âncora é **50,9%**, então a granularidade é
+   ancorada no CNPJ, 42,38%); a cobertura da âncora é **50,9%**, então a granularidade é
    possível **na metade ancorada** e a outra metade cai na perna fraca — dimensionar antes
    de prometer.
 8. **Depois** — reconciliar `tabela_classes.Internacional` × `exposicao_cambial`.

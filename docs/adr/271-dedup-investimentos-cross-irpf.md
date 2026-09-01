@@ -153,9 +153,17 @@ Log estruturado `consolidate.investimentos_dedup`:
 ## Emenda 2026-09-01 — o `PR3` saiu do papel, e a rejeição a `instituicao` é mais estreita ([[A42.l15]])
 
 **O que mudou.** `_identity_key` deixou de ser `(tipo, instituicao, descricao)` e virou a
-cascata `("cnpj", raiz)` ⊳ `("desc", tipo, instituicao, descricao)` ⊳ recusa. Medido em 836
-artefatos `E1.5a` / 28 grupos (pooled `|A∩B|/|A∪B|`): **37,68% → 61,78%**; o subconjunto
-ancorado é **91,71%** estável, com **50,9%** de cobertura.
+cascata `("cnpj", raiz, tipo, descricao)` ⊳ `("desc", tipo, instituicao, descricao)` ⊳ recusa.
+A âncora **troca `instituicao`**; ela não substitui o par `(tipo, descricao)`. Medido em 836
+artefatos `E1.5a` / 28 grupos (pooled `|A∩B|/|A∪B|`): **37,68% → 42,38%** (+4,7pp), com
+cardinalidade **9,7 = a do baseline**. Cobertura da âncora: **50,9%**.
+
+> 🔴 **A 1ª versão desta emenda publicou 61,78%, e aquele número era comprado com perda de
+> patrimônio.** `("cnpj", raiz)` sozinho identifica a contraparte, não o ativo: fundia conta
+> corrente com poupança do mesmo banco e CDB com FII da mesma corretora, e o `max()` de
+> `_union_valores` fazia o menor valor sumir (R$ 3.000 e R$ 50.000, medidos). É a classe que
+> a §Calibração desta própria ADR nomeia como a pior. Corrigido no mesmo dia; estabilidade
+> não é o eixo que decide.
 
 **A classe que esta ADR não previu.** §Contexto tratava instabilidade entre **anos** (o banco
 muda o texto do informe). O medido foi entre **dois runs do mesmo documento** — o extrator
@@ -172,6 +180,14 @@ fallback mudo.
 casos; a cascata lê o campo `cnpj_emissor` (novo em `PROMPT_VERSION` 1.4.0) quando existe e o
 texto quando não. As duas rotas dão a mesma raiz, então item de era antiga e de era nova
 colidem no mesmo hash — é o que dispensou a re-extração que a [[ADR-311]] D3 exclui.
+
+⚠️ **Isto vale na METADE ANCORADA (50,9%), não no corpus inteiro.** Nos ~49,1% sem âncora a
+chave cai na perna fraca, que contém `descricao` — e o mesmo bump 1.4.0 trouxe a regra de
+formato desse campo, logo ali a era **move** a chave. Verificado por mutação em 2026-09-01:
+item ancorado colide entre eras, item não-ancorado **não** colide. A transição da perna fraca
+é **uma vez só e deliberada** (a regra de formato foi ao mesmo bump justamente para não haver
+uma segunda fronteira de era), mas não é ausência de transição. Não leia *"o bump não deixa o
+corpus órfão"* como enunciado universal.
 
 **Correção de alcance sobre `instituicao`.** A [[A42.l15]] planejava tirá-la da chave, citando
 a [[ADR-400]] §1 *a fortiori*. **Medição refutou o plano:** tirá-la paga +7,4pp e funde

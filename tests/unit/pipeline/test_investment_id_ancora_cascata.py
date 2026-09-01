@@ -52,11 +52,22 @@ def _ids(entradas: list[dict]) -> list[str | None]:
 
 
 class TestAncoraMandaSobreODescricao:
-    def test_rename_de_descricao_nao_move_o_hash(self) -> None:
-        """A classe medida na lane: o extrator reescreve a prosa, o CNPJ fica."""
+    def test_a_ancora_TROCA_instituicao_nao_a_descricao(self) -> None:
+        """⚠️ Escopo reduzido em 2026-09-01. A versão anterior deste teste afirmava que
+        parafrasear a `descricao` não movia o hash — e essa propriedade vinha de
+        `("cnpj", raiz)` puro, que fundia ativos distintos da mesma instituição e SUMIA
+        com patrimônio (ver `test_ancora_nao_funde_ativos_distintos`). Com `desc` de volta
+        na perna forte, o que a âncora compra é imunidade ao churn de `instituicao` (32%
+        dos pares), não ao de `descricao`."""
+        a = _entrada(instituicao="BANCO EXEMPLO", cnpj_emissor=_CNPJ)
+        b = _entrada(instituicao="Banco Exemplo S.A. - CCTVM", cnpj_emissor=_CNPJ)
+        assert _ids([a])[0] == _ids([b])[0]
+
+    def test_e_parafrase_de_descricao_AINDA_move_o_hash(self) -> None:
+        """O limite declarado: `MANTIDA NO BRASIL` → `MANTIDA EM BRASIL` segue quebrando."""
         a = _entrada(descricao="DEPOSITO MANTIDA NO BRASIL", cnpj_emissor=_CNPJ)
         b = _entrada(descricao="DEPOSITO MANTIDA EM BRASIL", cnpj_emissor=_CNPJ)
-        assert _ids([a])[0] == _ids([b])[0]
+        assert _ids([a])[0] != _ids([b])[0]
 
     def test_sem_ancora_o_rename_AINDA_move_o_hash(self) -> None:
         """Controle: sem o degrau forte a instabilidade permanece — o fix não é global."""
@@ -69,11 +80,13 @@ class TestAncoraMandaSobreODescricao:
         b = _entrada(cnpj_emissor="98765432000110")
         assert dedup_investimentos_consolidados([a, b]).count_after == 2
 
-    def test_ancora_nao_se_compoe_com_tipo(self) -> None:
-        """`("cnpj",raiz,tipo)` mede 63,49% contra 69,20% — `tipo` churna e contamina."""
+    def test_ancora_SE_compoe_com_tipo(self) -> None:
+        """⚠️ Invertido em 2026-09-01. Este teste afirmava que CNPJ igual + `tipo` diferente
+        colidiam, e chamava isso de virtude por medir mais estabilidade. Era o defeito: CDB
+        e FII da mesma corretora viravam uma entrada e R$ 50.000 sumiam."""
         a = _entrada(cnpj_emissor=_CNPJ, tipo="renda_fixa")
         b = _entrada(cnpj_emissor=_CNPJ, tipo="fundo_investimento")
-        assert _ids([a])[0] == _ids([b])[0]
+        assert _ids([a])[0] != _ids([b])[0]
 
     def test_instituicao_FICA_na_perna_fraca(self) -> None:
         """Tirá-la pagava +7,4pp e fundia o mesmo título em duas corretoras
@@ -119,19 +132,29 @@ class TestEraNaoMoveAChave:
         nova = _entrada(descricao="CDB BANCO EXEMPLO CNPJ 12.345.678/0001-95", cnpj_emissor=_CNPJ)
         assert _ids([antiga])[0] == _ids([nova])[0]
 
-    def test_e_elas_FUNDEM_entre_si(self) -> None:
-        """Não basta o hash bater: o merge cross-era é o que evita duplicar a posição."""
+    def test_e_elas_FUNDEM_entre_si_QUANDO_a_descricao_e_estavel(self) -> None:
+        """⚠️ Condição acrescentada em 2026-09-01. `descricao` voltou à perna forte, então a
+        colisão entre eras exige que ela também não mude — é a regra de formato do mesmo
+        bump 1.4.0 que tem de segurar isso, e o efeito dela NÃO foi medido."""
         antiga = _entrada(descricao="CDB CNPJ 12.345.678/0001-95", valores_31_12={"2023": 900.0})
         nova = _entrada(
-            descricao="CDB do Banco Exemplo",
+            descricao="CDB CNPJ 12.345.678/0001-95",
             cnpj_emissor=_CNPJ,
             valores_31_12={"2024": 1000.0},
         )
         assert dedup_investimentos_consolidados([antiga, nova]).count_after == 1
 
+    def test_descricao_diferente_entre_eras_NAO_funde(self) -> None:
+        """O limite honesto do critério 5: a era é neutra só sobre `instituicao`."""
+        antiga = _entrada(descricao="CDB CNPJ 12.345.678/0001-95")
+        nova = _entrada(descricao="CDB do Banco Exemplo", cnpj_emissor=_CNPJ)
+        assert dedup_investimentos_consolidados([antiga, nova]).count_after == 2
+
     @pytest.mark.parametrize("mascarado", ["12.345.678/0001-95", "12345678000195"])
     def test_a_grafia_do_cnpj_no_texto_nao_importa(self, mascarado: str) -> None:
-        com_campo = _entrada(cnpj_emissor=_CNPJ, descricao="x")
+        """Campo ⊳ texto dão a mesma raiz — com a `descricao` mantida igual dos dois lados,
+        que é o que a perna forte agora exige."""
+        com_campo = _entrada(cnpj_emissor=_CNPJ, descricao=f"CDB {mascarado}")
         no_texto = _entrada(descricao=f"CDB {mascarado}")
         assert _ids([com_campo])[0] == _ids([no_texto])[0]
 
