@@ -235,7 +235,7 @@ grafo honesto até lá.
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
 | [[A42.l1]] | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | **P0** | 0 | — |
-| [[A42.l3]] | Harness de certificação: falso-verde para dentro — **+4 itens da U1** (`layer_ok` verde sobre ponto cego, checksum auto-consistente, resíduo E2→E3 não computado, CV de severidade constante) | P1 | 1 | — |
+| [[A42.l3]] | Harness de certificação: falso-verde para dentro — **+4 itens da U1** (`layer_ok` verde sobre ponto cego, checksum auto-consistente, resíduo E2→E3 não computado, ~~CV de severidade constante~~ **refutado 2026-09-01**, roteado à [[A42.l4]] com o enunciado corrigido) | P1 | 1 | — |
 | [[A42.l4]] | Check que não consegue avaliar evapora em vez de virar `skipped` | P2 | 1 | — |
 | [[A42.l2]] | Parsers line-oriented: âncora de fidelidade + supressão vira verdict do gate | P1 | 1 | [[A42.l3]] |
 | [[A42.l6]] | Contrato do store: política de escopo, retenção de órfão e validação de artefato | P1 | 2 | [[A42.l5]] |

@@ -3,7 +3,7 @@ id: A42.l3
 type: lane
 title: "Harness de certificação: falso-verde para dentro"
 sprint: A42
-status: planned
+status: in_progress
 priority: P1
 branch_slug: a42-l3-harness-falso-verde-para-dentro
 adrs:
@@ -13,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a42
-  - status/planned
+  - status/in-progress
   - priority/p1
   - area/ci
   - area/pipeline
@@ -210,3 +210,85 @@ aceite da [[A42.l14]].
 `cross_group`/`cross_group_entregue`: o numerador da KR-B lê só os baldes transacionais
 (`_tx_rows`) e não é alcançado nem pela correção nem pela amputação do braço entregue.
 Medido na sessão de ataque; registrado como bound no §r6.
+
+
+---
+
+## Entrega — 2026-09-01
+
+> **Terminalidade é o `status` desta nota, não esta tabela.** Cinco PRs; a coluna de
+> estado foi deliberadamente omitida — ela envelheceria a cada merge e viraria a
+> afirmação-em-prosa que o rebase deixa falsa. A lane só vira `shipped` quando os cinco
+> estiverem em `main`; até lá `status: in_progress` e sem `ship_pr` (C1 do gate de
+> transição).
+
+| PR | Itens |
+| --- | --- |
+| [#1944](https://github.com/davidrobert/mathoms/pull/1944) | 3 (PC13) + a cláusula de ratchet da [[A42.l2]] |
+| [#1946](https://github.com/davidrobert/mathoms/pull/1946) | 6 (LC5-02) + residual do 1 (LC05/LC5-06) |
+| [#1947](https://github.com/davidrobert/mathoms/pull/1947) | 7 (LC5-03) + 8 |
+| [#1949](https://github.com/davidrobert/mathoms/pull/1949) | 4 (RV4-17) + 5 (RV4-45 + RV4-18) |
+| [#1951](https://github.com/davidrobert/mathoms/pull/1951) | 2 (LC06) |
+
+### O que a lane NÃO entregou, e por quê
+
+**Metade do item 1 já era da [[A42.l19]].** O registry por chave com default
+`não-verificável`, e o teste de balde fictício que o §Critério de aceite pede, entraram
+em [#1871](https://github.com/davidrobert/mathoms/pull/1871). Esta lane entregou o que
+sobrava: a **glosa**. Uma frase única — *"origem E2/baseline (fora do grão
+transacional)"* — era carimbada nos quatro baldes e é **factualmente falsa** para
+`fluxo_mensal_detalhado`, que sai do `CashFlowBuilder` sobre a mesma população
+classificada. O registry passou a `{balde → NonLedgerChecker}`, com a proveniência
+**daquele** balde ao lado de onde contar.
+
+**O item 9 não procede como escrito.** O enunciado (`PV9-04`: *"severidade constante,
+`info` em 17/17"*) foi **re-triado no §r10** como `PV10-03`, e a re-triagem procede —
+medi: a severidade é **ternária condicional em todos os 17 checks**
+(`"error" if … else "info"`, e variantes). `info` em 17/17 é **efeito** de tudo passar,
+não constante estrutural. O remédio que o item prescrevia (*"pelo menos um check com
+severidade capaz de reprovar"*) já é verdade no código.
+
+A substância que sobrevive é outra, e está em `PV10-03`: **4 de 17 checks pausam o run**
+(`_CONSERVATION_CHECKS = {CV1, CV2, CV3, CV6}`), os 13 restantes são advisory, e a linha
+de resumo publica "17/17 OK" contando advisory como gate. Ela se parte em duas, e
+**nenhuma das duas é órfã**:
+
+- *"17/17 OK conta advisory como gate"* → já é o §Decisão 3 da [[A42.l4]]
+  (*"parar de afirmar mais do que se mede"*), que é dona de `scripts/validate_cross.py`.
+- *"os 4 que gateiam são recompute de produtor único"* (a classe que a [[ADR-418]] §D4
+  condena) → **sem dono**: a [[A42.l16]] decidiu escopo "só o CV18" e a deixou
+  explicitamente de fora. Roteada para a [[A42.l4]] como aresta declarada, e não para
+  lane nova: o §Teste de corte previa lane irmã com `depends_on` **nesta**, mas isso foi
+  escrito antes da refutação — o dono real é o do arquivo, não o deste harness.
+
+### Deferimento datado — âncora do eixo E3 **entregue** (2026-09-01)
+
+O item 7 ancora o veredito de grupo no resíduo da perna E2→E3, que cruza três produtores
+— e o terceiro é o **log de execução do E3** (statements excluídos inteiros no load, que
+`e3_load_report.StatementExclusion` declara pertencerem ao ledger run-level). Esse log é
+o da **re-derivação**, não o do run pinado.
+
+Consequência: a âncora só transfere ao eixo entregue quando o drift é zero. Com drift, o
+eixo cai para `coberto` com o motivo escrito — honesto, e uma perda real de discriminação
+no modo `--entregue`.
+
+**Condição de retomada:** o `output_summary` do `PipelineStageLog` do run pinado já é
+lido por `_entregue_evidence` para evidência de retenção. Se ele carregar a partição de
+exclusões, a âncora passa a ser medível sobre o substrato entregue sem depender do drift.
+**Dono:** quem pegar a [[A42.l6]] (contrato de store/artefato) ou uma lane de
+observabilidade do E3 — não é trabalho deste harness sozinho.
+
+### Nota de método
+
+O §Critério de aceite pede *"remover o input do check ⇒ exit ≠ 0"*. Ele **não discrimina**
+os itens 2 e 7: no item 7 o input está presente e o check roda — o que estava errado era a
+**proveniência** dele (é a mesma cegueira que o §Aresta desta lane já registrava sobre a
+[[A42.l14]]); e no item 2 remover o input produz `não-verificável`, que é o comportamento
+correto. Nos dois casos a prova usada foi **mutação do mecanismo** (neutralizar o teto da
+âncora, neutralizar os detectores de identidade), não mutação por ausência de input.
+
+Dois falsos-verdes foram pegos **nos meus próprios testes** antes do merge, e ambos estão
+registrados nos PRs: um guard de classe que comparava as glosas do dict e sobrevivia à
+mutação que restaurava a frase única no veredito ([#1946]); e um teste de exit code que
+comparava `main()` contra a **própria constante** e sobrevivia a `EXIT_INDETERMINADO = 0`
+([#1949]).

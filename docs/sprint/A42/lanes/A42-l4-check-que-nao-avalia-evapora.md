@@ -67,3 +67,39 @@ paralelo com as outras duas da Onda 1 sem colisão.
   e "pausa" fica **declarada** com rationale — o que não pode continuar é a
   divergência tácita.
 - A string impressa sobre cobertura não afirma escopo maior que o medido.
+
+---
+
+## Aresta declarada — o resíduo do item 9 da [[A42.l3]], 2026-09-01
+
+> **Não é ampliação de escopo do §Decisão acima.** Registra de onde vem trabalho que
+> cai neste arquivo, para que ele não fique órfão.
+
+A [[A42.l3]] carregava, como item 9, o `PV9-04` (*"a suíte de cross-validation tem
+severidade constante: `info` em 17/17"*). Ele **não procede como escrito**, e o §r10 já
+o re-triara como `PV10-03`. Re-medido em 2026-09-01, a re-triagem procede: a severidade é
+**ternária condicional nos 17 checks** (`"error" if … else "info"` e variantes) — `info`
+em 17/17 é **efeito** de tudo passar, não constante estrutural. O remédio que o item
+pedia já é verdade no código.
+
+O que sobrevive é `PV10-03`, e parte em duas — as duas neste arquivo:
+
+1. **"17/17 OK" conta advisory como gate.** Só `_CONSERVATION_CHECKS = {CV1, CV2, CV3,
+   CV6}` pausa o run; os 13 restantes são advisory. Isto **já é** o §Decisão 3 desta lane
+   (*"parar de afirmar mais do que se mede"*) — a linha do registro dá a ele o número
+   exato (4 de 17) e o nome do conjunto.
+2. **Os 4 que gateiam são recompute de produtor único** — leem componentes **e** total do
+   mesmo payload E5. É a classe que a [[ADR-418]] §D4 condena no mesmo arquivo: *"dois
+   campos em que o SEGUNDO deriva do primeiro: não podia falhar"*. **Esta metade está sem
+   dono:** a [[A42.l16]] decidiu escopo "só o CV18" e a deixou explicitamente de fora.
+
+**Por que aqui e não em lane nova.** O §Teste de corte da [[A42.l3]] previa "lane irmã com
+`depends_on` nesta" — mas foi escrito antes da refutação, quando o item ainda parecia ser
+sobre severidade. Corrigido o enunciado, o dono natural é quem já possui
+`scripts/validate_cross.py`, que é esta lane. `depends_on` na l3 seria dependência falsa:
+nada do harness da l3 é insumo disto.
+
+**Fora do DoD atual.** A metade (2) é decisão de desenho — cruzar três produtores
+independentes, como o `CV5` já recebeu — e não cabe no escopo estreito que esta lane
+declara. Se ela não entrar aqui, sai como lane própria **com o enunciado corrigido**, e
+nunca como `PV9-04`.
