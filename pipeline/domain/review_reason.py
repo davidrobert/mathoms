@@ -43,6 +43,9 @@ class ReviewReasonCode(str, enum.Enum):
     # entrada fica SEM identidade em vez de ganhar hash de texto vazio. Recusar é a
     # disciplina da [[ADR-392]]: palpite de identidade some patrimônio no merge.
     dedup_identidade_sem_ancora = "dedup.identidade_sem_ancora"
+    # [[A42.l15]]: há investimento e NENHUM alcançou a perna forte. É o alarme que faltou
+    # ao `numero_contrato` ([[A40.l88]]): publicar a cobertura não basta se ninguém a lê.
+    dedup_ancora_inerte = "dedup.ancora_inerte"
     dedup_sentinel_period = "dedup.sentinel_period"
     domain_validation_conflict = "domain.validation_conflict"
     domain_balance_gap = "domain.balance_gap"
