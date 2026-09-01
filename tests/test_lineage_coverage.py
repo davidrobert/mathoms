@@ -1,18 +1,26 @@
-"""Gate de cobertura do grafo de lineage (ADR-281 · A27.l2).
+"""Gate de cobertura do grafo de lineage (ADR-281 · A27.l2 · A27.l3).
 
 Fecha o vício que ``dev/check_lineage_refs.py`` não alcança: aquele gate é **existência
 pura** (o ``rule_ref`` importa, a ADR existe) e não tem noção de cobertura — raiz nova no
 E5 sem entrada no ``lineage_registry`` não movia gate nem accuracy. Aqui o denominador vem
-do **payload publicado** (raízes que emitem dinheiro), então raiz nova sem rastro **derruba
-a métrica** e reprova. O controle positivo abaixo é a prova de não-inércia: ele mede a
-mesma mutação **derruba a métrica** aqui.
+de **payload medido** (raízes que emitem dinheiro), então raiz nova sem rastro **derruba a
+métrica** e reprova.
 
 A assimetria com `check_lineage_refs` é **estrutural, não testável**: aquele gate recebe o
 registry, nunca o payload, então não existe mutação de payload que ele possa ver. Afirmar
 isso como teste seria asseverar mais do que o corpo checa; o verde dele sobre o registry
 real já é coberto por `test_lineage_skeleton.py::test_check_lineage_refs_green_on_real_registry`.
 
-Rebaseline: ``MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py``.
+**A27.l3 — o sujeito da medição.** A A27.l2 derivava o universo do payload da **fixture**
+e publicava aquilo como *a* cobertura. A fixture é subconjunto **estrito** da produção (não
+tem IRPF, imóvel locado nem PJ), então três raízes monetárias ficavam fora do denominador e
+o número saía **otimista**. O universo agora é o **roster** de origens observadas, e
+`test_o_denominador_publicado_nao_e_o_da_fixture` é o contrafactual que discrimina os dois
+desenhos: ele **reprova** no desenho anterior, onde as duas medidas eram iguais por
+construção.
+
+Rebaseline da fixture: ``MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py``.
+Observação de produção: ``python3 dev/lineage_coverage.py <payload.json> --origem producao:<run8> --update``.
 """
 
 from __future__ import annotations
@@ -24,7 +32,7 @@ from pathlib import Path
 
 import pytest
 
-from dev.lineage_coverage import measure_coverage
+from dev.lineage_coverage import ORIGEM_FIXTURE, ROSTER_PATH, Roster, measure_coverage
 from tests.pipeline_golden_substrate import (
     load_fixture,
     run_dogfood_pipeline,
@@ -33,7 +41,6 @@ from tests.pipeline_golden_substrate import (
 
 _REPO = Path(__file__).resolve().parents[1]
 _DOGFOOD = _REPO / "tests" / "fixtures" / "pipeline_golden" / "dogfood"
-_BASELINE = _REPO / "dev" / "snapshots" / "lineage_coverage_baseline.json"
 
 # Raiz que não existe no E5 e publica dinheiro pelo marcador `_brl` — o veículo do
 # controle positivo. Nome improvável de propósito: colidir com raiz real tornaria o
@@ -55,29 +62,17 @@ def dogfood_e5(tmp_path_factory) -> dict:
     )
 
 
+@pytest.fixture(scope="module")
+def roster(dogfood_e5) -> Roster:
+    if os.environ.get("MATHOMS_UPDATE_LINEAGE_COVERAGE") == "1":
+        Roster.load().observing(ORIGEM_FIXTURE, measure_coverage(dogfood_e5)).dump()
+    return Roster.load()
+
+
 def _com_raiz_monetaria_nova(payload: dict) -> dict:
     mutated = copy.deepcopy(payload)
     mutated[_RAIZ_SINTETICA] = {"total_brl": 1234.56}
     return mutated
-
-
-def _read_baseline() -> dict:
-    return json.loads(_BASELINE.read_text(encoding="utf-8"))
-
-
-def _write_baseline(coverage) -> None:
-    _BASELINE.write_text(
-        json.dumps(
-            {
-                "monetary_roots": sorted(coverage.monetary_roots),
-                "covered_roots": sorted(coverage.covered_roots),
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
 
 
 # ───────────────────────────── anti-vacuidade ─────────────────────────────
@@ -97,50 +92,72 @@ def test_a_medida_tem_populacao_dos_dois_lados(dogfood_e5):
 # ────────────────────────────────── gate ──────────────────────────────────
 
 
-def test_nenhuma_raiz_monetaria_nova_sem_rastro(dogfood_e5):
-    """O gate: `uncovered` só pode encolher. Raiz monetária nova sem nó reprova aqui."""
-    coverage = measure_coverage(dogfood_e5)
-    if os.environ.get("MATHOMS_UPDATE_LINEAGE_COVERAGE") == "1":
-        _write_baseline(coverage)
-    novas = sorted(coverage.uncovered_roots - set(_read_baseline()["monetary_roots"]))
-    assert not novas, (
-        f"raiz(es) monetária(s) sem entrada no lineage_registry: {novas}. "
-        "Declare o nó em `LINEAGE_RULE_REFS` + emissor em `e5_lineage.py`, "
-        "ou justifique na lane por que a raiz publica dinheiro sem proveniência."
+def test_nenhuma_raiz_monetaria_fora_do_roster(dogfood_e5, roster):
+    """O gate: raiz monetária medida que o roster não conhece reprova."""
+    fora = sorted(roster.outside(measure_coverage(dogfood_e5).monetary_roots))
+    assert not fora, (
+        f"raiz(es) monetária(s) fora do universo publicado: {fora}. "
+        "Declare o nó em `LINEAGE_RULE_REFS` + emissor em `e5_lineage.py`, ou incorpore a "
+        "observação ao roster (o número publicado CAI, e é para cair)."
     )
 
 
-def test_baseline_de_cobertura_esta_sincronizado(dogfood_e5):
-    """Sincronia exata: cobertura que SOBE também exige rebaseline (o KR é um número)."""
+def test_o_roster_da_fixture_bate_com_a_medida(dogfood_e5, roster):
+    """Sincronia exata da metade que o CI mede — conjunto, não contagem."""
     coverage = measure_coverage(dogfood_e5)
-    baseline = _read_baseline()
-    assert sorted(coverage.monetary_roots) == baseline["monetary_roots"], (
-        "conjunto de raízes monetárias mudou — não é a contagem que vale, é o conjunto. "
+    assert sorted(roster.roots_de(ORIGEM_FIXTURE)) == sorted(coverage.monetary_roots), (
+        "raízes monetárias da fixture divergem do roster. "
         f"medido={sorted(coverage.monetary_roots)}"
     )
-    assert sorted(coverage.covered_roots) == baseline["covered_roots"], (
-        "conjunto de raízes com rastro mudou. Se SUBIU, rebaseline e atualize o KR na "
-        f"lane A27.l2; se CAIU, é regressão. medido={sorted(coverage.covered_roots)}"
+    assert sorted(roster.cobertos_de(ORIGEM_FIXTURE)) == sorted(coverage.covered_roots), (
+        "raízes com rastro na fixture divergem do roster. Se SUBIU, rebaseline e atualize o "
+        f"KR; se CAIU, é regressão. medido={sorted(coverage.covered_roots)}"
+    )
+
+
+def test_o_numero_publicado_declara_denominador_e_origem(roster):
+    """Critério 3 da A27.l3: o número publicado carrega o denominador e de onde ele veio."""
+    publicado = json.loads(ROSTER_PATH.read_text(encoding="utf-8"))["cobertura_publicada"]
+    assert publicado["denominador"] == roster.denominador
+    assert publicado["numerador"] == roster.numerador
+    assert publicado["ratio_pct"] == pytest.approx(round(roster.ratio * 100, 1))
+    assert publicado["origens"] == list(roster.origens)
+    assert len(roster.origens) >= 2, (
+        "roster de origem única — é exatamente o defeito da A27.l3: o universo volta a ser "
+        f"'o que uma fonte emite'. origens={roster.origens}"
     )
 
 
 # ──────────────────────────── controle positivo ────────────────────────────
 
 
-def test_raiz_monetaria_nova_derruba_a_metrica(dogfood_e5):
-    """Contrafactual: acrescentar raiz monetária sem registro **baixa** a cobertura."""
+def test_raiz_monetaria_nova_cai_fora_do_roster(dogfood_e5, roster):
+    """Contrafactual: acrescentar raiz monetária sem rastro **baixa** a cobertura e reprova."""
     antes = measure_coverage(dogfood_e5)
     depois = measure_coverage(_com_raiz_monetaria_nova(dogfood_e5))
     assert depois.ratio < antes.ratio, (
-        f"métrica inerte à raiz nova: {antes.ratio:.4f} → {depois.ratio:.4f}. "
-        "É exatamente o defeito que esta lane fecha."
+        f"métrica inerte à raiz nova: {antes.ratio:.4f} → {depois.ratio:.4f}."
     )
-    assert _RAIZ_SINTETICA in depois.uncovered_roots
+    assert roster.outside(depois.monetary_roots) == {_RAIZ_SINTETICA}, (
+        f"gate cego à raiz nova (viu {sorted(roster.outside(depois.monetary_roots))})"
+    )
     assert depois.covered_roots == antes.covered_roots, "numerador não devia se mover"
 
 
-def test_o_gate_reprova_a_raiz_nova(dogfood_e5):
-    """A mesma mutação atravessa o assert do gate — não só a métrica interna."""
-    mutated = measure_coverage(_com_raiz_monetaria_nova(dogfood_e5))
-    novas = mutated.uncovered_roots - set(_read_baseline()["monetary_roots"])
-    assert novas == {_RAIZ_SINTETICA}, f"gate cego à raiz nova (viu {sorted(novas)})"
+def test_o_denominador_publicado_nao_e_o_da_fixture(dogfood_e5, roster):
+    """A prova de não-inércia **desta** lane: o desenho anterior reprova aqui.
+
+    Na A27.l2 o universo era o da fixture por construção — as duas medidas eram a mesma, o
+    delta era zero e o viés otimista não tinha como aparecer. Aqui o roster é maior, e a
+    cobertura medida só sobre a fixture é **mais alta** que a publicada: é o viés, com sinal.
+    """
+    so_fixture = measure_coverage(dogfood_e5)
+    fora_da_fixture = roster.roots - so_fixture.monetary_roots
+    assert fora_da_fixture, (
+        "o roster não conhece nenhuma raiz além das da fixture — o universo voltou a ser "
+        "single-origin e o número publicado é o da fixture de novo"
+    )
+    assert so_fixture.ratio > roster.ratio, (
+        f"viés sem sinal: fixture={so_fixture.ratio:.4f} vs publicado={roster.ratio:.4f}. "
+        f"raízes fora da fixture: {sorted(fora_da_fixture)}"
+    )

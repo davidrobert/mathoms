@@ -1,25 +1,101 @@
 {
-  "monetary_roots": [
-    "cenarios_conjuge",
-    "consumo_consciente",
-    "endividamento",
-    "equilibrio_cerbasi",
-    "exposicao_cambial",
-    "fluxo_caixa",
-    "goals",
-    "if_monte_carlo",
-    "investimentos",
-    "orcamento_prospectivo",
-    "passive_income",
-    "patrimonio",
-    "ratios",
-    "reserva_emergencia"
-  ],
-  "covered_roots": [
-    "endividamento",
-    "fluxo_caixa",
-    "investimentos",
-    "patrimonio",
-    "reserva_emergencia"
-  ]
+  "_doc": "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária guarda as ORIGENS em que foi observada; o número publicado é sobre o universo inteiro, nunca sobre uma origem só. Rebaseline da fixture: MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py. Observação de produção: python3 dev/lineage_coverage.py <payload.json> --origem producao:<run8> --update",
+  "cobertura_publicada": {
+    "numerador": 5,
+    "denominador": 17,
+    "ratio_pct": 29.4,
+    "origens": [
+      "fixture",
+      "producao:40d1af2a"
+    ]
+  },
+  "universo": {
+    "cenarios_conjuge": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "consumo_consciente": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "endividamento": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "equilibrio_cerbasi": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "exposicao_cambial": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "fluxo_caixa": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "goals": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "if_monte_carlo": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "investimentos": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "orcamento_prospectivo": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "passive_income": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "patrimonio": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "previdencia_pgbl": [
+      "producao:40d1af2a"
+    ],
+    "ratios": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "real_estate": [
+      "producao:40d1af2a"
+    ],
+    "reserva_emergencia": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "tributario": [
+      "producao:40d1af2a"
+    ]
+  },
+  "cobertos": {
+    "endividamento": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "fluxo_caixa": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "investimentos": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "patrimonio": [
+      "fixture",
+      "producao:40d1af2a"
+    ],
+    "reserva_emergencia": [
+      "fixture",
+      "producao:40d1af2a"
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Cobertura do grafo de lineage (ADR-281 · A27.l2): raízes monetárias do E5 com nó ÷ raízes monetárias do E5.
+"""Cobertura do grafo de lineage (ADR-281 · A27.l2 · A27.l3): raízes monetárias do E5 com rastro ÷ raízes monetárias do E5.
 
-O denominador sai do **payload publicado**, nunca do ``lineage_registry``: derivá-lo do
+O denominador sai de **payload medido**, nunca do ``lineage_registry``: derivá-lo do
 registro devolve 100% por construção — o vício que esta medida existe para matar (raiz
 nova no E5 sem entrada no registro não movia métrica nenhuma, nem o gate, nem a accuracy).
 O discriminante de "raiz que deve ter rastro" é ``golden_diff.is_monetary``
@@ -13,11 +13,31 @@ view-model), então reusá-lo não cria uma segunda noção de "monetário" para
 Raiz em prosa/metadado (``alertas``, ``data_analise``, ``tarefas``) fica fora do denominador
 porque não publica dinheiro. Medir contra as 38 raízes declaradas no schema
 dava teto inalcançável, e KR que não pode chegar a 100% é KR que ninguém persegue.
+
+**A27.l3 — o universo é um roster de origens, não o que a fixture emite.** A A27.l2 fixou o
+denominador no payload da fixture dogfood (**14** raízes) e publicou aquilo como *a*
+cobertura. O payload de produção emite **17** (medido em 40 artefatos E5): a fixture é
+subconjunto **estrito** — não tem IRPF, imóvel locado nem PJ, então nunca emite
+``previdencia_pgbl``, ``real_estate`` e ``tributario``. O viés era **otimista** e crescia
+sozinho: raiz nova entrava na produção sem entrar no denominador. O roster
+(``dev/snapshots/lineage_coverage_baseline.json``) guarda cada raiz **com as origens em que
+foi observada**, e o número publicado é sobre ele — nunca sobre um lado só.
+
+Limite declarado: o roster cobre o que já foi **medido**. Raiz que só apareça num workspace
+ainda não medido fica de fora até alguém rodar ``--payload`` sobre aquele artefato — é para
+isso que o CLI reprova por raiz-fora-do-roster (o sinal que a A27.l2 não tinha). O schema E5
+foi medido como fonte de universo e **rejeitado**: declara monetário em 14 raízes que não
+são superconjunto da produção (não declara ``tributario``, que a produção emite por
+``additionalProperties: true``) e declara ``proventos_por_ativo``, que **nenhum** dos 40
+artefatos emite — teto inalcançável de novo.
 """
 
 from __future__ import annotations
 
+import argparse
+import json
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -30,6 +50,11 @@ from dev.golden_diff import is_monetary  # noqa: E402
 # própria proveniência. Declarado aqui por princípio — hoje `_lineage` serializa
 # valor como string e não cairia no predicado de qualquer forma.
 LINEAGE_BLOCK = "_lineage"
+
+ROSTER_PATH = Path(__file__).resolve().parents[1] / "dev" / "snapshots" / "lineage_coverage_baseline.json"
+
+#: Origem da fixture dogfood determinística — a única que o CI consegue medir sozinho.
+ORIGEM_FIXTURE = "fixture"
 
 
 def _children(obj: Any, path: str) -> list[tuple[str, Any]]:
@@ -73,7 +98,7 @@ def lineage_covered_roots(payload: dict) -> frozenset[str]:
 
 @dataclass(frozen=True)
 class LineageCoverage:
-    """Cobertura medida sobre um payload E5 concreto."""
+    """Cobertura medida sobre **um** payload E5 concreto."""
 
     monetary_roots: frozenset[str]
     covered_roots: frozenset[str]
@@ -99,3 +124,137 @@ def measure_coverage(payload: dict) -> LineageCoverage:
         monetary_roots=payload_monetary_roots(payload),
         covered_roots=lineage_covered_roots(payload),
     )
+
+
+def _merge(mapa: Mapping[str, tuple[str, ...]], roots: frozenset[str], origem: str) -> dict[str, tuple[str, ...]]:
+    """Acrescenta ``origem`` às raízes medidas e a **retira** das que não apareceram nela."""
+    novo = {root: tuple(o for o in origens if o != origem) for root, origens in mapa.items()}
+    for root in roots:
+        novo[root] = tuple(sorted(set(novo.get(root, ())) | {origem}))
+    return {root: origens for root, origens in sorted(novo.items()) if origens}
+
+
+@dataclass(frozen=True)
+class Roster:
+    """Universo acumulado de raízes monetárias, cada uma com as origens em que foi observada.
+
+    O denominador publicado é este universo — não o de uma origem só. É a diferença entre
+    "a cobertura do E5" e "a cobertura do que a fixture emite", que a A27.l2 conflacionou.
+    """
+
+    universo: Mapping[str, tuple[str, ...]]
+    cobertos: Mapping[str, tuple[str, ...]]
+
+    @property
+    def roots(self) -> frozenset[str]:
+        return frozenset(self.universo)
+
+    @property
+    def covered_roots(self) -> frozenset[str]:
+        return frozenset(self.cobertos)
+
+    @property
+    def origens(self) -> tuple[str, ...]:
+        todas = {o for origens in self.universo.values() for o in origens}
+        return tuple(sorted(todas))
+
+    def roots_de(self, origem: str) -> frozenset[str]:
+        return frozenset(r for r, origens in self.universo.items() if origem in origens)
+
+    def cobertos_de(self, origem: str) -> frozenset[str]:
+        return frozenset(r for r, origens in self.cobertos.items() if origem in origens)
+
+    def outside(self, measured_roots: frozenset[str]) -> frozenset[str]:
+        """Raízes monetárias medidas que o roster não conhece — o sinal que a A27.l2 não tinha."""
+        return measured_roots - self.roots
+
+    @property
+    def denominador(self) -> int:
+        return len(self.roots)
+
+    @property
+    def numerador(self) -> int:
+        return len(self.covered_roots & self.roots)
+
+    @property
+    def ratio(self) -> float:
+        return self.numerador / self.denominador if self.denominador else 0.0
+
+    def format_summary(self) -> str:
+        return (
+            f"{self.numerador}/{self.denominador} raízes monetárias com rastro "
+            f"({self.ratio:.1%}) — universo: {', '.join(self.origens)}"
+        )
+
+    def observing(self, origem: str, coverage: LineageCoverage) -> Roster:
+        """Roster com a observação de ``origem`` substituída pela medida recém-feita."""
+        return Roster(
+            universo=_merge(self.universo, coverage.monetary_roots, origem),
+            cobertos=_merge(self.cobertos, coverage.covered_roots, origem),
+        )
+
+    @classmethod
+    def load(cls, path: Path = ROSTER_PATH) -> Roster:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        return cls(
+            universo={r: tuple(o) for r, o in raw["universo"].items()},
+            cobertos={r: tuple(o) for r, o in raw["cobertos"].items()},
+        )
+
+    def dump(self, path: Path = ROSTER_PATH) -> None:
+        payload = {
+            "_doc": (
+                "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária "
+                "guarda as ORIGENS em que foi observada; o número publicado é sobre o "
+                "universo inteiro, nunca sobre uma origem só. Rebaseline da fixture: "
+                "MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py. "
+                "Observação de produção: python3 dev/lineage_coverage.py <payload.json> "
+                "--origem producao:<run8> --update"
+            ),
+            "cobertura_publicada": {
+                "numerador": self.numerador,
+                "denominador": self.denominador,
+                "ratio_pct": round(self.ratio * 100, 1),
+                "origens": list(self.origens),
+            },
+            "universo": {r: list(o) for r, o in sorted(self.universo.items())},
+            "cobertos": {r: list(o) for r, o in sorted(self.cobertos.items())},
+        }
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _cli(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Mede a cobertura de lineage de um payload E5 contra o roster publicado.",
+    )
+    parser.add_argument("payload", type=Path, help="JSON do artefato `analise_financeira` (E5) já decifrado")
+    parser.add_argument("--origem", required=True, help="rótulo da observação, ex.: `producao:40d1af2a`")
+    parser.add_argument("--update", action="store_true", help="grava a observação no roster")
+    args = parser.parse_args(argv)
+
+    coverage = measure_coverage(json.loads(args.payload.read_text(encoding="utf-8")))
+    roster = Roster.load()
+    fora = sorted(roster.outside(coverage.monetary_roots))
+
+    print(f"payload  ({args.origem}): {coverage.format_summary()}")
+    print(f"roster   publicado: {roster.format_summary()}")
+    if fora:
+        print(f"raízes monetárias FORA do roster: {fora}")
+    if not args.update:
+        if fora:
+            print(
+                "Reprovado: o universo publicado não cobre o payload medido. Rode com "
+                "`--update` para incorporar a observação e republicar o número.",
+                file=sys.stderr,
+            )
+            return 1
+        return 0
+
+    novo = roster.observing(args.origem, coverage)
+    novo.dump()
+    print(f"roster atualizado: {novo.format_summary()}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_cli())
