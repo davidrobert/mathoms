@@ -8,7 +8,7 @@ priority: P1
 branch_slug: a42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-416]]", "[[ADR-426]]", "[[ADR-433]]"]
+adrs: ["[[ADR-416]]", "[[ADR-426]]", "[[ADR-434]]"]
 tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
 ---
 
@@ -56,7 +56,7 @@ volta a `coberto-sem-verificação-de-valor` na prática.
 
 ---
 
-## Entregue 2026-09-01 — PR #TBD · [[ADR-433]] + emenda datada na [[ADR-426]]
+## Entregue 2026-09-01 — PR #TBD · [[ADR-434]] + emenda datada na [[ADR-426]]
 
 **O eixo fecha ao centavo no corpus real.** Re-derivação in-process em `ws-1b9f2cf5`:
 
