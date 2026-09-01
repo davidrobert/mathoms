@@ -790,6 +790,7 @@
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A27.l2 | lane | shipped | A27 | A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro | `sprint/A27/lanes/A27-l2-cobertura-de-lineage-sem-gate.md` |
+| A27.l3 | lane | open | A27 | A cobertura de lineage é medida contra a fixture e não contra a produção: quatro raízes monetárias ficam fora do universo do gate | `sprint/A27/lanes/A27-l3-cobertura-de-lineage-medida-contra-a-fixture.md` |
 | A28.l1 | lane | shipped | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
 | A28.l10 | lane | shipped | A28 | âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas | `sprint/A28/lanes/A28-l10-ancoras-formatter-curadoria.md` |
 | A28.l11 | lane | shipped | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
@@ -912,6 +913,11 @@
 | A40.l110 | lane | shipped | A40 | O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas | `sprint/A40/lanes/A40-l110-fossil-do-baseline-e-idempotencia.md` |
 | A40.l111 | lane | shipped | A40 | Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo | `sprint/A40/lanes/A40-l111-valor-nao-apurado-em-item-fisico.md` |
 | A40.l112 | lane | open | A40 | Imóvel sem classificação nenhuma entra no numerador da concentração pelo `else`, e reclassificar um deles move o KPI de 82 para 0 | `sprint/A40/lanes/A40-l112-imovel-sem-override-cai-no-numerador.md` |
+| A40.l113 | lane | open | A40 | A identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS: residência e imóvel gerador são publicados como zero | `sprint/A40/lanes/A40-l113-identidade-de-imovel-churna-classificador-falha-fechado.md` |
+| A40.l114 | lane | open | A40 | O ano de referência é saída crua do LLM, e o total de dívida vira zero quando esse ano não existe em documento nenhum | `sprint/A40/lanes/A40-l114-ano-de-referencia-sem-documento-atras.md` |
+| A40.l115 | lane | open | A40 | O sanitizer de PII mede o contexto de ENTRADA e nunca o output: o relatório publica CPF parcialmente mascarado e conta bancária completa | `sprint/A40/lanes/A40-l115-sanitizer-mede-a-entrada-e-publica-a-saida.md` |
+| A40.l116 | lane | open | A40 | O guard de autocontradição do parecer erra a seção pela terceira vez, e o teste que o cobre importa a própria constante — cego por construção | `sprint/A40/lanes/A40-l116-guard-de-liquidez-erra-a-secao-e-o-teste-e-cego.md` |
+| A40.l117 | lane | open | A40 | O parecer publica dois números para a mesma coisa, cita a seção errada em 4 de 11 riscos, e o prompt se contradiz sobre ter ferramentas | `sprint/A40/lanes/A40-l117-parecer-dois-numeros-e-citacao-desorientada.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
@@ -1026,6 +1032,9 @@
 | A42.l21 | lane | shipped | A42 | O cross-check de proveniência da rodada unificada só pode sair vermelho, e agrega três causas distintas sob um rótulo | `sprint/A42/lanes/A42-l21-x5-so-pode-sair-vermelho.md` |
 | A42.l22 | lane | open | A42 | A previsão de tempo exibida durante o run é subdeclarada em até 72%: a mediana mistura no-ops de milissegundos com execuções de minutos | `sprint/A42/lanes/A42-l22-mediana-de-duracao-mistura-no-op.md` |
 | A42.l23 | lane | open | A42 | O validador de ordem compara declaração com declaração: `writes` falso passa, e um `reads` sobre ele valida contra ficção | `sprint/A42/lanes/A42-l23-validador-de-ordem-compara-declaracao-com-declaracao.md` |
+| A42.l24 | lane | open | A42 | Três checks meus publicam verde sobre população em que a falha é impossível por construção — e um deles exclui justamente o stage sob suspeita | `sprint/A42/lanes/A42-l24-check-cujo-denominador-torna-a-falha-impossivel.md` |
+| A42.l25 | lane | open | A42 | A mesma linha do razão publica o delta com dois sinais opostos, e o sinal observado é o único que nenhuma perda de pipeline produz | `sprint/A42/lanes/A42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento.md` |
+| A42.l26 | lane | open | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
 | A42.l3 | lane | shipped | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |

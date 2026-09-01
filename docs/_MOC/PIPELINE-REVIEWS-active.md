@@ -1047,6 +1047,47 @@ centavo sobre o E3 do próprio run (2.289 células) · zero-write do harness pro
 superfícies** ("não apurado" / "Não afirmamos um alvo" / o parecer citando
 `tier=indeterminado`).
 
+## r13 — ws-1b9f2cf5-2026-09-01
+
+> Rodada unificada **U5** ([[ADR-416]]) · [[LEDGER-CERTIFY-active]] §r9 · [[PIPELINE-REVIEWS-active]] §r13 (este) · [[REPORT-REVIEWS-active]] §r9.
+> Run `40d1af2a` `completed` 18/18 · 25,0 min · executor `8217041c` · report `685536d6` (baseline `7ed5aa09`) · preflight 12 PASS · 4 WARN · 0 FAIL (o `worker` reprovou com código de 43h e foi reiniciado antes do disparo).
+> Cru + síntese com valores: storage/<uuid>/reviews/U5-2026-09-01/SINTESE.md + .html (off-git).
+> Escrituração: [[A40.l113]] · [[A40.l114]] · [[A40.l115]] · [[A40.l116]] · [[A40.l117]] · [[A42.l24]] · [[A42.l25]] · [[A42.l26]] · [[A27.l3]] alocadas nesta rodada; efeito nos gates de saída escrito no `_README` da [[A40]] e da [[A42]].
+> Propósito: **DIAGNÓSTICO** a pedido do dono, com os dois gates fechados — registrado antes do disparo. Não pontua gate.
+> Cobertura: matriz 7×3 — 21 células, **13 respondidas**, 2 `BLOQUEADA` com o veredito que falta nomeado (`REPORT × correção`, `REPORT × solidez-financeira`), 6 sem cobertura com motivo, **zero silenciosas**. Varredura no grão de componente: 16 de 60 não produzem nada visível; **25,3%** da altura do relatório vem de seções que declaram zero componentes.
+> Céticos: exercidos **dentro** da F3.b (desvio declarado) — o painel corrigiu 4 artefatos meus e **2 confirmaram, 2 refutaram**.
+> Delta desde o executor do `U4`: **32** commits de produto · **28** de instrumento ⇒ nenhum "idêntico" publicável (§10 `U3` item 1).
+
+**Manchete da rodada: o mesmo corpus documental publicou um relatório 48% menor, e nada
+bloqueou.** Sem um documento novo entre os dois runs, **95 de 400** escalares numéricos do
+payload publicado se moveram: `patrimonio.bruto` **−48,1%**, `patrimonio.residencia` e
+`patrimonio.imoveis_geradores` **→ zero**, `endividamento.total_dividas` **→ zero**,
+`patrimonio.liquido` **idêntico ao bruto**, `goals.if_gap` **+27,3%**. O run saiu
+`completed` com 2 avisos de pausa e **nenhum** sinal bloqueante. Nas três rodadas
+unificadas anteriores o mesmo corpus produzia os números anteriores — é **regressão de 2
+dias**, não dívida antiga. São **duas cadeias independentes** ([[A40.l113]] e
+[[A40.l114]]), e as duas nascem de **extração LLM não-determinística** sobre documentos que
+não mudaram.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| PV13-01 — o **papel vira identidade**: `titular_key_normalizer.py:49,56` devolve o **`raw`** quando nenhum membro compartilha token, então o literal de papel passa como `titular_key` válido (**3 de 58** itens) e vira chave de cunhagem em `property_identity_enricher.py:38-52` | consistência | Crítico | P1 | CONFIRMADO · NOVO — **um defeito com três sintomas**, não três achados | procede-aberto | a lente de razão unificou os 3 sinais que a F3.a declarou "em sentido contrário": raiz no normalizador ⇒ `property_id` nulo ⇒ `investimentos_classes_analyzer.py:266` **falha aberto** e `nao_classificado_pct` sobe **sem o numerador crescer**. Pelo §6 registra-se no **produtor**. Dona [[A40.l113]]; interação com a [[A40.l96]] (#1930, mergeada na janela) **declarada na lane** — o fallback pode parar de disparar neste corpus e ficar latente |
+| PV13-08 — o parecer publica **dois valores para a mesma grandeza** na mesma seção, com **4,15 pp** de spread (um autoral do modelo, um carimbado pela máquina), e nada reconcilia porque `parecer_prose_money.py:16` deixa **percentual fora** do invariante — medido: **27 percentuais em 47 campos de prosa, 0 sob invariante** | consistência | Alto | P1 | CONFIRMADO · NOVO | procede-aberto | dona [[A40.l117]] |
+| PV13-09 — o guardrail de autocontradição erra a seção **pela terceira posição**: `parecer_guardrails_divida.py:165` fixa a seção num literal e o modelo rotula outra ⇒ o parecer **elogia** e **alerta** sobre o mesmo objeto com `autocontradicao_removidos: 0` | consistência | Alto | P1 | CONFIRMADO · **reincidência medida** da [[A40.l80]] (#1800) | procede-aberto | **o achado novo é o teste**: `tests/test_parecer_guardrails_divida.py` **importa a constante** e monta a fixture com ela ⇒ **invariante ao valor**, não pode falhar. O #1800 trocou o literal em vez de derivar do layout. Dona [[A40.l116]] |
+| PV13-10 — `tool_iterations: 19` contra `max_tool_iterations: 6` — teto estourado **3,2×** sem alarme | saúde-harness | Médio | P2 | CONFIRMADO · NOVO | procede-aberto | emissor e teto medem **populações distintas**: as 19 são 10 carimbos de métrica + 9 de âncora, **zero** iniciadas pelo modelo. Dona [[A42.l24]] |
+| PV13-11 — o prompt do parecer **se contradiz sobre `tools`**: a linha 441 do YAML convida `get_e5_section` e a **179 do mesmo arquivo** afirma que o modelo não tem ferramentas; o convite morto é injetado no corpo **sob budget** | contrato | Médio | P1 | CONFIRMADO · NOVO — causa proximal dos 3 `campos_faltantes` | procede-aberto | ⚠️ **auto-refutação registrada**: eu havia afirmado que `get_e5_section` era alcançável, inferindo de docstring. Medido: `call()` não tem parâmetro `tools`, **zero** call-sites não-teste, e as 19 chamadas são todas pós-LLM. Rebaixei meu próprio achado de Alto para Baixo. Dona [[A40.l117]] |
+| PV13-12 — a **cobertura de lineage é medida contra a FIXTURE**, não contra a produção: o gate fixa **14** raízes monetárias do dogfood e o payload real tem **18** ⇒ 4 raízes ficam fora do universo, e a cobertura publicada sai **36%** contra **28%** reais | contrato | Médio | P1 | CONFIRMADO · NOVO — viés **otimista**, e cresce sozinho | procede-aberto | a [[A27.l2]] (#1872) shipou o gate **com controle positivo**, e o mecanismo funciona: o defeito é no **sujeito da medição**, a mesma distinção que a [[A42.l14]] estabeleceu para conservação. Dona [[A27.l3]] |
+| PV13-13 — o guard de escrita do E4 passa com **0 erros** e **não mede profundidade**: `required`/`additionalProperties:false` só na raiz, item de `imoveis_consolidados` com `required` nulo ⇒ item vazio, campo lixo e num→str atravessam | contrato | Alto | P1 | CONFIRMADO · NOVO — limite revelado pela medição do conserto da [[A42.l19]] | procede-aberto | **a regressão de identidade do `RR9-01` passou por este guard**, e não por acidente de configuração: ele não olha o grão do item, que é onde a identidade mora. Dona [[A42.l26]] |
+| PV13-14 — as citações do parecer levam à **seção errada** em 4 de 11 riscos (2 de proteção citam a de imóveis; a de sucessão cita a de renda do IRPF) | clareza-ux | Médio | P1 | PARCIAL — ⚠️ **a metade "âncora morta" foi REFUTADA**: as **27 citações resolvem, 27 de 27** | procede-aberto | a lente afirmou "≥13 erradas + demais texto morto"; medi as duas metades separadamente e a severidade caiu. Dona [[A40.l117]] |
+| PV13-15 — ETA subdeclarada **reproduz**: 22% neste run, e o mecanismo intacto no extremo — um stage com mediana de **28 ms** sobre todas as execuções contra **161.449 ms** sobre as reais (**5.766×**) | clareza-ux | Médio | P2 | MEDIÇÃO-DE-CONHECIDO do `PV12-01` | procede-aberto | dona [[A42.l22]] (`open`) |
+| PV13-17 — o parecer sofre eviction com **42,9% do orçamento de tokens ocioso** ⇒ o corte não é por budget, é por **seleção** | qualidade-llm | Médio | P2 | CONFIRMADO · NOVO | procede-aberto | **sem lane** — decisão: registra-se e não abre lane nesta rodada; a seleção é escopo da Fase 2 da [[ADR-349]] |
+| PV13-19 — **34 unidades E2 herdadas de 11 runs anteriores** e o `run_meta` não publica quantas foram re-derivadas ⇒ 20% do denominador é tautológico sem aviso | saúde-execução | Baixo | P2 | CONFIRMADO · NOVO | procede-aberto | o eixo de proveniência **já existe** em `dev/unified_e2_snapshot.py` (criado no `U4`); falta publicá-lo no `run_meta`. **Sem lane** — item de instrumento da própria rodada, entra no §10 do runbook |
+| PV13-18 — `needs_review` segue **fora do vocabulário de desfecho** da superfície: o run termina `completed` com um stage em `needs_review` e nada na UI diz isso | clareza-ux | Médio | P2 | MEDIÇÃO-DE-CONHECIDO — reincide do `U4` | procede-aberto | a [[A40.l84]] cobriu a **entrada** (guard de review pendente), não o **léxico** do desfecho. Ver [[A40.l105]] (`open`) |
+
+**Positivos verificados.** X5 **FECHA** (com a ressalva do `LC9-05` sobre o denominador) ·
+E2 composição estável, conteúdo **1/137** · guard de escrita do E4 resolve o balde
+`patrimonio` com 0 erros · zero `partial_failure`.
+
 ## r12 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 · [[PIPELINE-REVIEWS-active]] §r12 (este) · [[REPORT-REVIEWS-active]] §r8.
