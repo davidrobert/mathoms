@@ -646,6 +646,28 @@ cobertura contando grupos.
   que envelhece é o `nao_classificado_itens[].locator` de relatório já publicado.
 - **Critério 8** — `pytest tests -q` **8278 passed** · `pytest backend/tests -q` verde.
 
+### O braço da hipótese — regra de formato em `descricao`, no MESMO bump
+
+Vai junto de propósito. A regularidade medida em 72 pares é sem exceção em 6 campos: o
+que o prompt pina numa superfície única de renderização é estável (`secao` 0/72 e
+`categoria_hint` 1/72 por **enum**; `valor_brl` 100% e `cpf` por **regra de formato**), e
+o que ele deixa livre churna (`descricao` 56%, `membro` 39%, `codigo` 36%, `instituicao`
+32%). `descricao` tem codomínio aberto, então não cabe enum — cabe regra: *"copie
+INTEGRALMENTE, sem truncar, resumir nem parafrasear"* + *"duas extrações do mesmo
+documento devem produzir a MESMA string caractere a caractere"*.
+
+⚠️ **Efeito NÃO medido, e não vou fingir que está.** Mudança de prompt só se mede com
+runs novos; a §Armadilha (D) proíbe usar estabilidade run-a-run como critério de aceite,
+e o replay offline não alcança prompt que ainda não rodou. O caminho de validação já
+existe e não precisa de ferramenta nova: `dev/measure_e15_identity_stability.py` agrupa
+por era, então a era 1.4.0 **acumula amostra sozinha** conforme o dogfood roda — com
+K≥5 ela vira um grupo medido e comparável às eras anteriores.
+
+**Por que no mesmo bump:** adiar custaria um `1.5.0` depois e uma **segunda** fronteira
+de era. A âncora é era-free por desenho (campo ⊳ texto dão a mesma raiz), mas a perna
+fraca **não é**: mexer em `descricao` move toda chave que caia nela. Uma transição é
+melhor que duas.
+
 ## Escopo — quatro PRs, nesta ordem
 
 - **PR0 — forma no contrato (zero LLM).** `pattern` em `codigo`

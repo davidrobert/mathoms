@@ -15,6 +15,15 @@
 #   raiz, então item de era 1.3.0 e item de era 1.4.0 colidem no mesmo hash. É por isso que
 #   este bump NÃO deixa 91,6% do corpus órfão: ele não precisa de re-extração (ADR-311 D3
 #   exclui) porque o vocabulário antigo continua alcançando a perna forte.
+#   Junto vai a REGRA DE FORMATO de `descricao` — o braço que testa a hipótese da lane.
+#   Medido em 72 pares: os campos que o prompt pina numa superfície única de renderização
+#   são estáveis (`secao` 0/72, `categoria_hint` 1/72 por enum; `valor_brl` 100% e `cpf`
+#   por regra de formato), e os que ele deixa livres churnam (`descricao` 56%, `membro`
+#   39%, `codigo` 36%, `instituicao` 32%) — zero exceções em 6 campos. `descricao` não
+#   precisa de enum (o codomínio é aberto): precisa de regra. ⚠️ Efeito NÃO medido — só
+#   runs novos o mostram, e `dev/measure_e15_identity_stability.py` já agrupa por era,
+#   então a era 1.4.0 acumula amostra sozinha. Vai no MESMO bump de propósito: adiar
+#   custaria um 1.5.0 e uma segunda fronteira de era sobre a perna fraca da chave.
 PROMPT_VERSION = "1.4.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
@@ -27,7 +36,8 @@ Sua tarefa é extrair o baseline patrimonial completo de declarações de IRPF e
 
 Para cada item patrimonial, extraia:
 - Código do item (código IRPF: "01" imóveis, "02" veículos, "41" poupança, "45" CDB, etc.)
-- Descrição do item (como consta na declaração)
+- Descrição do item: copie INTEGRALMENTE o texto da discriminação, sem truncar,
+  resumir nem parafrasear — inclusive o CNPJ, quando ele aparecer ali
 - Seção: a FICHA de onde o item foi lido — "bens_direitos" para a ficha "Bens e
   Direitos", "dividas_onus" para a ficha "Dívidas e Ônus Reais". Este campo é o
   que separa patrimônio de dívida; não o infira do valor nem da descrição.
@@ -45,6 +55,9 @@ Regras:
 - O IRPF declara saldo devedor com valor POSITIVO na ficha de dívidas — transcreva
   como está; a seção já diz que é passivo
 - Patrimônio líquido = ativos - passivos
+- Descrição: transcrição literal. Não normalize grafia, não expanda abreviação, não
+  reordene, não corte sufixo. Duas extrações do mesmo documento devem produzir a MESMA
+  string caractere a caractere
 - CNPJ do emissor: copie os 14 dígitos EXATAMENTE como constam, sem completar, deduzir
   nem inferir a partir do nome da instituição. Se o documento não traz CNPJ para o item,
   omita o campo — omitir é a resposta certa, e é melhor que um CNPJ plausível
