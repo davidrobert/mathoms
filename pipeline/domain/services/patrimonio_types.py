@@ -23,6 +23,11 @@ from typing import TYPE_CHECKING, Any, Literal, Mapping
 if TYPE_CHECKING:
     from pipeline.domain.services.carteira_por_papel import CarteiraPorPapel
 
+from pipeline.domain.services.ano_base_fechado import (
+    AnoNaoFechadoWarning,
+    anos_fechados,
+    ultimo_ano_31_12_fechado,
+)
 from pipeline.domain.services.conversao_me import ConversaoMeBrl
 from pipeline.domain.services.money_parsing import valor_monetario_float
 
@@ -128,11 +133,14 @@ def years_in_list(seq: object) -> set[int]:
     return out
 
 
-def _max_value_year(baseline: dict) -> str | None:
-    """Maior ano-base 31/12 entre os itens consolidados; ``None`` se nenhum."""
+def _max_value_year(baseline: dict, *, hoje: date | None = None) -> str | None:
+    """Maior ano-base **fechado** entre os itens consolidados; ``None`` se nenhum."""
     years: set[int] = set()
     for list_key in CONSOLIDATED_LIST_KEYS:
         years |= years_in_list(baseline.get(list_key))
+    # O filtro vem ANTES do `max`: um único item fora do eixo contamina o
+    # domicílio inteiro, que foi exatamente o modo de falha medido ([[A40.l114]]).
+    years = anos_fechados(years, ultimo_ano_31_12_fechado(hoje))
     return str(max(years)) if years else None
 
 

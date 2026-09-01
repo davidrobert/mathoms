@@ -141,9 +141,13 @@ class PontosFortesAnalyzer:
                 )
             )
 
-        # 3. Endividamento
-        endiv = _safe_float((ratios or {}).get("taxa_endividamento_pct", 0))
-        if endiv < cfg.endividamento_max_pct:
+        # 3. Endividamento — `None` é supressão declarada ([[A40.l114]]), e coagi-la
+        # para 0 imprimia "Endividamento Mínimo — excelente controle de dívidas"
+        # como Ponto Forte sobre passivo que ninguém conseguiu ler. O zero voltava
+        # pela porta dos fundos mesmo com o score já consertado.
+        endiv_raw = (ratios or {}).get("taxa_endividamento_pct")
+        endiv = None if endiv_raw is None else _safe_float(endiv_raw)
+        if endiv is not None and endiv < cfg.endividamento_max_pct:
             if endiv < 5:
                 out.append(
                     PontoForteItem(
