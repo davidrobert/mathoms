@@ -35,10 +35,12 @@ from pipeline.domain.services.patrimonio_types import (
     AnosBaseDoMembro,
     MemberIdentity,
     MembrosResolvidos,
+    _anos_fechados,
     investimento_valor,
     parse_ano_31_12,
     resolve_value_year,
     safe_float,
+    ultimo_ano_31_12_fechado,
     years_in_list,
 )
 from pipeline.domain.services.valor_nao_apurado import anos_nao_apurados
@@ -354,9 +356,13 @@ def _anos_do_membro_agregado(raw: dict, identity: MemberIdentity, conjuge: bool)
 def anos_base_por_membro(
     baseline: dict, identity: MemberIdentity, ano_domicilio: str
 ) -> tuple[str, str]:
-    """Ano-base de cada membro: o maior ano que ele próprio declarou."""
-    titular = _anos_do_membro(baseline, identity, conjuge=False)
-    conjuge = _anos_do_membro(baseline, identity, conjuge=True)
+    """Ano-base de cada membro: o maior ano **fechado** que ele próprio declarou."""
+    # O eixo por membro é computado aqui do zero, então filtrar só em
+    # `_max_value_year` não alcança este caminho — foi por ele que o `2026` de
+    # um item chegou ao titular e zerou imóveis, veículos e dívidas ([[A40.l114]]).
+    teto = ultimo_ano_31_12_fechado()
+    titular = _anos_fechados(_anos_do_membro(baseline, identity, conjuge=False), teto)
+    conjuge = _anos_fechados(_anos_do_membro(baseline, identity, conjuge=True), teto)
     return (
         str(max(titular)) if titular else ano_domicilio,
         str(max(conjuge)) if conjuge else ano_domicilio,

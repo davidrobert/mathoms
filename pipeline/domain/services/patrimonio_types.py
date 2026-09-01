@@ -106,6 +106,55 @@ def parse_ano_31_12(key: object) -> int | None:
     return int(match.group(0)) if match else None
 
 
+# `valores_31_12[ano]`/`saldo_31_12[ano]` afirmam a foto em **31/12 fechado**. Um
+# ano ainda em curso não tem 31/12, logo a chave não pode alcançá-lo: em
+# 2026-09-01 o teto é 2025. A regra já existia como default espalhado
+# (`consolidate_baseline.py` usa `date.today().year - 1` em dois pontos) — o que
+# faltava era alguém enforçá-la. [[A40.l114]].
+def ultimo_ano_31_12_fechado(hoje: date | None = None) -> int:
+    """Ano do último 31/12 que efetivamente ocorreu."""
+    ref = hoje or date.today()
+    return ref.year if (ref.month, ref.day) == (12, 31) else ref.year - 1
+
+
+@dataclass(frozen=True)
+class AnoNaoFechadoWarning:
+    """Ano-base afirma um 31/12 que ainda não ocorreu — [[A40.l114]]."""
+
+    # Medido 2026-09-01 no run `40d1af2a`: uma tela de posição de 29/03/2026
+    # entrou como `valores_31_12["2026"]` e moveu o eixo do domicílio inteiro.
+    # Com o eixo em 2026, `_resolve_item_valor` não acha a chave em NENHUM item
+    # de 2025 e cai no `valor` cru — 7 imóveis, 7 veículos e 4 dívidas do titular
+    # foram publicados como zero.
+    anos_recusados: tuple[int, ...]
+    teto: int
+
+    def format(self) -> str:
+        recusados = ", ".join(str(a) for a in self.anos_recusados)
+        return (
+            f"ano-base recusado: {recusados} afirma(m) 31/12 não fechado "
+            f"(último fechado: {self.teto}); fora do eixo de resolução"
+        )
+
+
+def _anos_fechados(anos: set[int], teto: int) -> set[int]:
+    """Descarta anos que afirmam um 31/12 ainda não ocorrido; loga o que recusou."""
+    recusados = tuple(sorted(a for a in anos if a > teto))
+    if recusados:
+        # Message literal + `extra=` (ADR-273): o texto do warning tipado carrega
+        # ano, que não é PII, mas a denylist redige por CHAVE — interpolar aqui
+        # abriria o precedente que o gate fecha.
+        logger.warning(
+            "patrimonio_ano_nao_fechado",
+            extra={
+                "anos_recusados": list(recusados),
+                "teto": teto,
+                "detalhe": AnoNaoFechadoWarning(recusados, teto).format(),
+            },
+        )
+    return {a for a in anos if a <= teto}
+
+
 def _years_in_vals(vals: object) -> set[int]:
     """Anos 31/12 numa dict ``valores_31_12``/``saldo_31_12`` (ADR-274)."""
     if not isinstance(vals, dict):
@@ -128,11 +177,14 @@ def years_in_list(seq: object) -> set[int]:
     return out
 
 
-def _max_value_year(baseline: dict) -> str | None:
-    """Maior ano-base 31/12 entre os itens consolidados; ``None`` se nenhum."""
+def _max_value_year(baseline: dict, *, hoje: date | None = None) -> str | None:
+    """Maior ano-base **fechado** entre os itens consolidados; ``None`` se nenhum."""
     years: set[int] = set()
     for list_key in CONSOLIDATED_LIST_KEYS:
         years |= years_in_list(baseline.get(list_key))
+    # O filtro vem ANTES do `max`: um único item fora do eixo contamina o
+    # domicílio inteiro, que foi exatamente o modo de falha medido ([[A40.l114]]).
+    years = _anos_fechados(years, ultimo_ano_31_12_fechado(hoje))
     return str(max(years)) if years else None
 
 
