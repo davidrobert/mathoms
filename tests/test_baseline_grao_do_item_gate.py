@@ -21,6 +21,7 @@ Duas famílias de teste, e cada uma pega um defeito que a outra não pega:
 from __future__ import annotations
 
 import copy
+import functools
 import json
 import sys
 from pathlib import Path
@@ -65,7 +66,13 @@ _ENTRADA = {
         # co-declarado (mesmo `codigo`+`descricao`, dois membros) → `imoveis_dedup`
         # funde e emite `proprietarios` + `_dedup_warning` (valores divergem >10%).
         _item(codigo="01", descricao="APTO ALFA", categoria_hint="imovel"),
-        _item(codigo="01", descricao="APTO ALFA", categoria_hint="imovel", membro="membro_b", valor_brl=200.0),
+        _item(
+            codigo="01",
+            descricao="APTO ALFA",
+            categoria_hint="imovel",
+            membro="membro_b",
+            valor_brl=200.0,
+        ),
         # `instituicao` no item do E1.5 → copiada para o balde.
         _item(codigo="11", descricao="SALA DELTA", categoria_hint="imovel", instituicao="INST X"),
         # sem `secao` → eixo decidido por hint → `property_identity_enricher`
@@ -75,11 +82,38 @@ _ENTRADA = {
         _item(codigo="02", descricao="MOTO 2019", categoria_hint="veiculo", membro="membro_b"),
         # âncora de CNPJ + valor divergente → `investimentos_dedup` marca
         # `_dedup_warning: possivel_duplicata` sem fundir.
-        _item(codigo="03", descricao="CDB", categoria_hint="investimento", instituicao="BCO", cnpj_emissor="12345678000199"),
-        _item(codigo="03", descricao="CDB", categoria_hint="investimento", instituicao="BCO", cnpj_emissor="12345678000199", membro="membro_b", valor_brl=140.0),
+        _item(
+            codigo="03",
+            descricao="CDB",
+            categoria_hint="investimento",
+            instituicao="BCO",
+            cnpj_emissor="12345678000199",
+        ),
+        _item(
+            codigo="03",
+            descricao="CDB",
+            categoria_hint="investimento",
+            instituicao="BCO",
+            cnpj_emissor="12345678000199",
+            membro="membro_b",
+            valor_brl=140.0,
+        ),
         # âncora + valor idêntico ao centavo → funde e emite `proprietarios`.
-        _item(codigo="05", descricao="LCI", categoria_hint="investimento", instituicao="BCO2", cnpj_emissor="98765432000155"),
-        _item(codigo="05", descricao="LCI", categoria_hint="investimento", instituicao="BCO2", cnpj_emissor="98765432000155", membro="membro_b"),
+        _item(
+            codigo="05",
+            descricao="LCI",
+            categoria_hint="investimento",
+            instituicao="BCO2",
+            cnpj_emissor="98765432000155",
+        ),
+        _item(
+            codigo="05",
+            descricao="LCI",
+            categoria_hint="investimento",
+            instituicao="BCO2",
+            cnpj_emissor="98765432000155",
+            membro="membro_b",
+        ),
         _item(codigo="04", descricao="FUNDO", categoria_hint="investimento"),
         # sem descrição e sem âncora → recusa de identidade ([[A42.l15]]) com
         # `review_reasons` no próprio item.
@@ -247,12 +281,12 @@ def _consolidar_pelo_ramo_legado(tmp_path) -> dict:
 def test_o_ramo_legado_emite_as_tres_chaves_do_alcance(tmp_path):
     """Não-inércia do allowlist: as 3 exceções têm produtor, não são afirmação."""
     emitidas = _emitidas(_consolidar_pelo_ramo_legado(tmp_path), "imoveis_consolidados")
-    assert _EMITIVEIS_POR_ALCANCE["imoveis_consolidados"] <= emitidas, (
-        f"o ramo legado não emitiu o allowlist; emitiu {sorted(emitidas)}"
-    )
-    assert emitidas <= _declaradas("imoveis_consolidados"), (
-        f"o ramo legado emite fora do contrato: {sorted(emitidas - _declaradas('imoveis_consolidados'))}"
-    )
+    assert (
+        _EMITIVEIS_POR_ALCANCE["imoveis_consolidados"] <= emitidas
+    ), f"o ramo legado não emitiu o allowlist; emitiu {sorted(emitidas)}"
+    assert (
+        emitidas <= _declaradas("imoveis_consolidados")
+    ), f"o ramo legado emite fora do contrato: {sorted(emitidas - _declaradas('imoveis_consolidados'))}"
 
 
 # ===========================================================================
@@ -312,6 +346,10 @@ _MUTACOES: dict[str, set[str]] = {
 }
 
 
+# `lru_cache` porque os dois testes parametrizados abaixo o chamam por caso, e o
+# gate da [[ADR-210]] conta releitura de disco em parametrize como recomputo caro.
+# `_mutar` já trabalha sobre `deepcopy`, então o objeto cacheado nunca é mutado.
+@functools.lru_cache(maxsize=1)
 def _schema() -> dict:
     return json.loads(_SCHEMA.read_text(encoding="utf-8"))
 
@@ -367,14 +405,16 @@ def _reprova(schema: dict, payload: dict) -> bool:
 
 @pytest.mark.parametrize("caso", sorted(_CASOS))
 def test_o_grao_do_item_reprova_o_caso(caso):
-    assert _reprova(_schema(), _payload(caso)), (
-        f"{caso} atravessa o contrato — era exatamente o que a [[A42.l26]] mediu."
-    )
+    assert _reprova(
+        _schema(), _payload(caso)
+    ), f"{caso} atravessa o contrato — era exatamente o que a [[A42.l26]] mediu."
 
 
 def test_item_real_do_produtor_continua_passando(baseline):
     """Controle positivo — sem ele, um contrato impossível passaria nos 8 casos."""
-    assert not _reprova(_schema(), baseline), "o payload do produtor real reprova no próprio contrato"
+    assert not _reprova(
+        _schema(), baseline
+    ), "o payload do produtor real reprova no próprio contrato"
 
 
 def test_todo_mutador_tem_conjunto_esperado():

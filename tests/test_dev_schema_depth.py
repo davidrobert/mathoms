@@ -140,7 +140,10 @@ def test_no_indeclarado_conta_como_defeito_e_nao_como_ausencia():
     # Se contasse como ausência, apagar `properties` seria o caminho barato para o
     # verde — a métrica passaria a premiar quem deleta a declaração.
     """`{"type": "object"}` vazio é profundidade NÃO MEDIDA."""
-    schema = {"type": "object", "properties": {"itens": {"type": "array", "items": {"type": "object"}}}}
+    schema = {
+        "type": "object",
+        "properties": {"itens": {"type": "array", "items": {"type": "object"}}},
+    }
     cob = medir_cobertura(schema, {"itens": [{"a": 1}, {"b": 2}]})
     assert cob.nos_indeclarados == {"$.itens[]": 2} and not cob.completa
 

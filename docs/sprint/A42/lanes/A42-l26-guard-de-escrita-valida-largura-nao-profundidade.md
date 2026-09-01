@@ -9,7 +9,7 @@ branch_slug: a42-l26-guard-de-escrita-valida-largura-nao-profundidade
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-212]]", "[[ADR-433]]", "[[ADR-409]]", "[[ADR-432]]"]
-tags: [type/lane, sprint/a42, status/in_progress, priority/p1, area/dados]
+tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
 ---
 
 # A42.l26 — `guard-de-escrita-valida-largura-nao-profundidade`
