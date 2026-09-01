@@ -54,9 +54,11 @@ from dev.ledger_verdicts import (  # noqa: F401,E402
     COBERTO_SEM_VALOR,
     CONSERVADO,
     DEDUP_LEGITIMO,
+    DELTA_LABEL,
     NAO_VERIFICAVEL,
     PERDA_SILENCIOSA,
     ConservationResult,
+    delta_cents,
 )
 
 # ─────────────────────────── E3 → E4 ───────────────────────────
@@ -120,13 +122,19 @@ def _survivor_value_cents(e3_artifacts: list[dict]) -> int:
 @dataclass(frozen=True)
 class _E3E4Signals:
     """Sinais de conferência declarados pelo E4 em ``despesas._lineage.signals``.
-    Os dois de cents são ``None`` quando o produtor não os declara (artefato
-    pré-[[ADR-426]]) — ausência é "não medido", nunca "mediu e deu zero"."""
+    Os de cents são ``None`` quando o produtor não os declara (artefato
+    pré-[[ADR-426]]/pré-[[A42.l25]]) — ausência é "não medido", nunca "mediu e deu zero"."""
 
     tx_total: int
     dedup_collapsed: int
     dedup_collapsed_cents: int | None
     transferencias_cents: int | None
+    # Os quatro termos do destino em UMA convenção (Σ|valor|). `*_negativas_cents` não
+    # somam no destino: sustentam a ponte contra o `total_geral` publicado.
+    despesas_abs_cents: int | None = None
+    receitas_abs_cents: int | None = None
+    despesas_negativas_cents: int | None = None
+    receitas_negativas_cents: int | None = None
 
 
 def _opt_int(raw: object) -> int | None:
@@ -141,22 +149,58 @@ def _e3e4_signals(despesas: dict) -> _E3E4Signals:
         int(sig.get("dedup_collapsed", 0)),
         _opt_int(sig.get("dedup_collapsed_cents")),
         _opt_int(sig.get("transferencias_cents")),
+        _opt_int(sig.get("despesas_abs_cents")),
+        _opt_int(sig.get("receitas_abs_cents")),
+        _opt_int(sig.get("despesas_negativas_cents")),
+        _opt_int(sig.get("receitas_negativas_cents")),
     )
+
+
+def _e3e4_terms(sig: _E3E4Signals) -> dict[str, int] | None:
+    """Os QUATRO termos do destino, todos Σ|valor| — uma convenção só ([[ADR-434]]).
+    ``None`` quando o produtor não declara algum ⇒ eixo-valor não medido. A fórmula
+    anterior somava ``total_geral``, que é ASSINADO: com 48 receitas negativas no corpus
+    medido o destino saía 2 × Σ|negativas| menor **sempre** — offset constante, logo uma
+    perda real do mesmo tamanho publicava Δ = 0."""
+    terms = {
+        "despesas": sig.despesas_abs_cents,
+        "receitas": sig.receitas_abs_cents,
+        "transferencias": sig.transferencias_cents,
+        "dedup_removido": sig.dedup_collapsed_cents,
+    }
+    return None if any(v is None for v in terms.values()) else terms  # type: ignore[return-value]
 
 
 def _e3e4_value_out(despesas: dict, receitas: dict, sig: _E3E4Signals) -> int | None:
-    """Σ do DESTINO em cents — os dois baldes serializados + as transferências (sem
-    balde próprio) + o valor que o dedup do E4 removeu. Produtor diferente do lado de
-    origem: é a soma que o relatório mostra, não uma re-soma da mesma lista. ``None``
-    quando o produtor não declara os dois termos ⇒ eixo-valor não medido."""
-    if sig.dedup_collapsed_cents is None or sig.transferencias_cents is None:
-        return None
-    return (
-        to_cents(despesas.get("total_geral", 0))
-        + to_cents(receitas.get("total_geral", 0))
-        + sig.transferencias_cents
-        + sig.dedup_collapsed_cents
-    )
+    """Σ do DESTINO em cents. Delega os termos a ``_e3e4_terms``."""
+    terms = _e3e4_terms(sig)
+    return None if terms is None else sum(terms.values())
+
+
+# A ponte que preserva a tese do [[ADR-426]] §D2. O eixo deixou de somar o número que o
+# relatório publica, então ele passa a CRUZÁ-LO: para cada balde, o termo declarado em
+# Σ|valor| tem de reconstruir o `total_geral` assinado. É mais forte que a fórmula
+# antiga — a relação entre declaração e número publicado deixa de ser suposição
+# implícita e vira equação verificada, sobre a mesma população.
+_BRIDGE = (
+    ("despesas", "despesas_abs_cents", "despesas_negativas_cents"),
+    ("receitas", "receitas_abs_cents", "receitas_negativas_cents"),
+)
+
+
+def _bridge_breaks(despesas: dict, receitas: dict, sig: _E3E4Signals) -> list[str]:
+    """Baldes onde ``abs == assinado + 2 × negativas`` NÃO fecha. Lista vazia = ponte ok;
+    ``None`` em algum termo conta como quebra (fail-closed, [[ADR-426]] §D3)."""
+    buckets = {"despesas": despesas, "receitas": receitas}
+    quebras = []
+    for nome, k_abs, k_neg in _BRIDGE:
+        declarado, negativas = getattr(sig, k_abs), getattr(sig, k_neg)
+        if declarado is None or negativas is None:
+            quebras.append(nome)
+            continue
+        if declarado != to_cents(buckets[nome].get("total_geral", 0)) + 2 * negativas:
+            quebras.append(nome)
+    return quebras
 
 
 def _e3e4_destino(despesas: dict, receitas: dict, transferencias_count: int, dedup: int) -> int:
@@ -169,24 +213,33 @@ def _e3e4_destino(despesas: dict, receitas: dict, transferencias_count: int, ded
 
 
 def e3_to_e4(
-    e3_artifacts: list[dict],
-    despesas: dict,
-    receitas: dict,
-    transferencias_count: int,
+    e3_artifacts: list[dict], despesas: dict, receitas: dict, transferencias_count: int
 ) -> ConservationResult:
     """Conservação E3→E4: count fecha, baldes fecham, e o VALOR sobrevivente E3 ==
     Σ do destino declarado (baldes + transferências + removido pelo dedup)."""
     excluded = _classifier_skips(e3_artifacts)
     survivors = sum(a.get("transacoes_total", 0) for a in e3_artifacts) - excluded
-    value_in = _survivor_value_cents(e3_artifacts)
     sig = _e3e4_signals(despesas)
     destino = _e3e4_destino(despesas, receitas, transferencias_count, sig.dedup_collapsed)
     buckets_ok = _bucket_value_ok(despesas) and _bucket_value_ok(receitas)
-    value_out = _e3e4_value_out(despesas, receitas, sig)
     v, d = _e3e4_count_verdict(survivors, excluded, sig.tx_total, destino, buckets_ok)
-    v, d = _value_downgrade(v, d, value_in, value_out)
+    return _e3e4_result(sig, destino, _survivor_value_cents(e3_artifacts), despesas, receitas, v, d)
+
+
+def _e3e4_result(sig, destino, value_in, despesas, receitas, v, d) -> ConservationResult:
+    """Aplica o rebaixamento por valor/ponte e monta o resultado da perna."""
+    value_out = _e3e4_value_out(despesas, receitas, sig)
+    v, d = _value_downgrade(v, d, value_in, value_out, _bridge_breaks(despesas, receitas, sig))
     return ConservationResult(
-        "E3->E4", sig.tx_total, destino, value_in, value_out, sig.dedup_collapsed, v, d
+        "E3->E4",
+        sig.tx_total,
+        destino,
+        value_in,
+        value_out,
+        sig.dedup_collapsed,
+        v,
+        d,
+        value_terms=_e3e4_terms(sig),
     )
 
 
@@ -203,22 +256,34 @@ def _e3e4_checks(survivors: int, excluded: int, tx_total: int, destino: int, buc
     ]
 
 
-def _value_downgrade(verdict: str, detail: str, value_in: int, value_out: int | None):
+def _value_downgrade(
+    verdict: str,
+    detail: str,
+    value_in: int,
+    value_out: int | None,
+    bridge_breaks: list[str] | None = None,
+):
     """WARN-first: count-conservado com VALOR não-provado cai para
     ``coberto-sem-verificação`` — nunca afirma ``conservado`` sobre valor não-provável,
     nunca sobe a PERDA por valor (evita falso-P0 por convenção de sinal/amount).
     ``value_out is None`` (produtor não declara) é ``coberto``, não ``conservado``:
-    antes da declaração o eixo-valor era uma identidade e passava sempre."""
-    if verdict != CONSERVADO:
+    antes da declaração o eixo-valor era uma identidade e passava sempre.
+    Ponte rompida também rebaixa: o termo declarado deixou de reconstruir o número
+    publicado, então o eixo não está mais cruzando o relatório ([[ADR-426]] §D2)."""
+    if verdict != CONSERVADO or value_in == value_out and not bridge_breaks:
         return verdict, detail
+    return COBERTO_SEM_VALOR, _motivo_do_rebaixamento(value_in, value_out, bridge_breaks)
+
+
+def _motivo_do_rebaixamento(value_in: int, value_out: int | None, quebras) -> str:
     if value_out is None:
-        return COBERTO_SEM_VALOR, "count fecha; destino E3→E4 sem valor declarado"
-    if value_in == value_out:
-        return verdict, detail
-    return (
-        COBERTO_SEM_VALOR,
-        f"count fecha; valor E3→E4 não-provado (Δ={value_in - value_out} cents)",
-    )
+        return "count fecha; destino E3→E4 sem valor declarado"
+    if quebras:
+        return (
+            f"count fecha; ponte abs↔assinado rompida em {', '.join(quebras)} "
+            f"(termo declarado não reconstrói `total_geral`)"
+        )
+    return f"count fecha; valor E3→E4 não-provado ({DELTA_LABEL}={delta_cents(value_in, value_out)} cents)"
 
 
 def _e3e4_count_verdict(survivors: int, excluded: int, tx_total: int, destino: int, ok: bool):

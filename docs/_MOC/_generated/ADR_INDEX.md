@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-423 ADRs (ADR-001 a ADR-433) em [`docs/adr/`](../../adr/).
+424 ADRs (ADR-001 a ADR-434) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 362
+- **Decidido**: 363
 - **Proposto**: 57
 - **Roadmap**: 4
 
@@ -574,7 +574,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (82)
+### Decidido (83)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -658,6 +658,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-418]] — A meta de IF desconta exatamente a renda passiva que o numerador não conta · phase A40
 - [[ADR-420]] — Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio
 - [[ADR-426]] — O destino E3→E4 declara valor, ou o eixo-valor não é medido · phase A42
+- [[ADR-434]] — Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado · phase A42
 
 ### Proposto (19)
 
