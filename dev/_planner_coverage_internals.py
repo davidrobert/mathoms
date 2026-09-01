@@ -369,6 +369,8 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     "$.patrimonio.bases.carteira_produtiva_fixa": (
         "rastro de auditoria do denominador da concentração; o parecer recebe a razão"
     ),
+    # 2026-09-01 ([[ADR-236]] §D5): declarar a raiz no schema a trouxe para este gate.
+    "$.tributario": "bloco fiscal nunca projetado ao parecer; declaração registra o status quo",
 }
 
 
