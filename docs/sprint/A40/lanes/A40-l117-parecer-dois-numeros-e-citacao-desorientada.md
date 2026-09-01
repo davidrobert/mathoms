@@ -455,3 +455,94 @@ por tipo.**
 **métrica** de proteção cai em S9; (c) nenhum item cai em `S_parecer` exceto fallback
 contado; (d) nenhum item de `Alocação` com âncora imobiliária cai em S3; (e) o mapa é
 derivado de `card_id`, provado por teste que **quebra se um card mudar de seção**.
+
+## Veredito cego — UX (2026-09-01) · **a minha conclusão sobre a sonda está REFUTADA**
+
+> ⚠️ **Correção à §Sonda de não-inércia acima.** Eu escrevi que a cascata estava refutada
+> porque o discriminador só alcança 27% dos itens. **Medi a variável errada:** o passo da
+> âncora não precisa alcançar *todos* os itens — precisa alcançar os itens **em que o
+> default do tema erra**. Verifiquei a alegação do painel nos meus próprios dados e ela se
+> sustenta: o default do tema erra em **3 itens (3, 7, 15)**, e **os três têm âncora**. Os
+> 12 itens sem âncora nenhuma são justamente os que o tema resolve sozinho.
+>
+> **"A âncora não falta onde faz falta. A degeneração de 73% é o mapa funcionando, não
+> falhando."** A §Sonda fica como está, com este aviso — snapshot datado não se reescreve.
+
+### Placar independente
+
+**12 A · 12 B · 1 "outro" · 2 mal-postas.** O embaralhamento segurou: **nenhuma coluna
+vence por coluna**. Somado ao painel de domínio (13/12/2), os dois concordam no essencial:
+*quem ganhar esta lane ganha por regra, não por lado.*
+
+Os dois painéis também acharam **independentemente** o meu erro do título da S8.
+
+### Rotas 1 e 3 caem por medição
+
+- **Rota 1 (dar âncora a `PontoForte`/`Metrica`) — refutada.** Nos 10 itens desses dois
+  tipos julgados com confiança, o default do tema acerta **10 de 10**. Pagar mudança de
+  schema de saída do LLM — mais caro que a lane inteira — por **zero acerto medido**.
+- **Rota 3 (só default de tema) — reprovada** pelo critério que o próprio `senior-cto`
+  escreveu: introduz **≥3 destinos errados** (manda imóvel de investimento e exposição
+  cambial para a carteira financeira).
+
+### Rota 2, com a ORDEM INVERTIDA e três emendas
+
+O desenho original tratava âncora como discriminador universal e tema como fallback. Os
+dados dizem o contrário:
+
+1. **Tema é a chave primária** — 6 dos 9 temas têm destino único e correto. Resolve e para.
+2. **Âncora é desempate**, só para os temas que não são função (`Alocação`, `Custo
+   tributário`).
+3. **O prefixo tem de ir até o CAMPO, não até a raiz.** `$.investimentos.total_imoveis_investimento`
+   → S1 e `$.investimentos.total_financeiro` → S3 **compartilham a raiz** `investimentos` —
+   exatamente a raiz que a medição de abertura já sabia ser ambígua `{S1,S3}`. Com prefixo
+   até o campo, os 5 itens ancorados de `Alocação` resolvem **5/5**.
+4. **`Custo tributário` desempata por TIPO** (nenhum dos dois itens tem âncora).
+5. **`Diagnóstico de dados` não recebe destino.** Guarda `S_parecer` (o campo segue
+   `required`) e o **render suprime** a citação quando o destino é a própria seção que
+   hospeda o item. *"Auto-ponteiro não é destino; é ruído"* — e hoje passa despercebido só
+   porque o leitor vê `§S_parecer` e não decodifica.
+
+### A divergência real entre os dois painéis — e ela decide a ordem da cascata
+
+**Item 2** (`Renda passiva`, âncora `$.investimentos.total_financeiro`): domínio diz **S3**
+(pela âncora); UX diz **S7** (pelo tema — o chart `renda_passiva` mora na S7). É
+precisamente o caso que separa *âncora-primeiro* de *tema-primeiro*, e a UX o usa como
+prova: **âncora-primeiro erraria o item 2**.
+
+Atenuante que registro contra o painel de domínio: o par que ofereci ali era `S8 × S3`, e o
+`S8` estava contaminado pelo **meu** título falso. O domínio escolheu "o menos absurdo dos
+dois"; a UX rejeitou os dois e nomeou o S7. Na §mal-postas o domínio diz que a disputa
+honesta é **S3 × S7** — ou seja, ele nunca chegou a comparar com o destino certo.
+
+Divergências menores, ambas com a regra a declarar: **item 8** (`Custo tributário` de
+risco: domínio → `S_IRPF_OTIMIZACAO`, UX → `S_IRPF_RENDA`, com baixa confiança declarada e
+aceite de voto vencido *desde que a regra seja estável*) e **item 26** (métrica de
+`Proteção`: domínio → `S_PROTECAO`, UX → S9).
+
+### Estável-errado > ocasionalmente-certo — e a ressalva que fecha
+
+O ponteiro é **mobília de navegação**: seu valor é ser *aprendível*. Erro estável é
+auditável e cabe num gate; erro intermitente é infalsificável e **contamina a evidência ao
+lado** — o `§destino` fica encostado nas âncoras de proveniência, que são confiáveis, num
+produto cuja proposição é "os números vêm do seu dado". E aqui a instabilidade não é
+cosmética: `section_id` roteia o rebaixamento de confiança e compõe `thesis_key`.
+
+**A ressalva:** estável-errado só vale quando o destino errado **não é ativamente
+enganoso**. `S4` num risco de seguro *é* enganoso — nomeia um assunto real e errado.
+`S_parecer` num diagnóstico é inútil, não enganoso. Por isso o fallback terminal deve ser o
+auto-ponteiro **com supressão no render**: o modo de falha aceitável é *não dizer nada*,
+nunca *dizer outra coisa*.
+
+### Ordem de entrega — dois PRs, e a inversa é proibida
+
+1. **PR 1 — resolver + supressão de auto-ponteiro.** O destino fica **certo** antes de
+   ficar legível.
+2. **PR 2 — título em vez de `§S4`** nos 4 sítios, lendo de
+   `frontend/src/generated/report-layout.ts`; `shortLabel` quando existir, e `"Ver em:"` no
+   lugar de `§` (que é convenção jurídica, não de navegação).
+
+Nunca a inversa: renderizar o título hoje publicaria *"Real Estate — Imóveis e Renda
+Passiva"* em cima de um risco de seguro de vida, e *"Parecer do Planejador"* dentro do
+Parecer do Planejador, em 13 de 33 itens. **Hoje isso passa; com título, é uma denúncia
+impressa.**
