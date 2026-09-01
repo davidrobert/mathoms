@@ -9,7 +9,7 @@ priority: P0
 branch_slug: a40-l113-identidade-de-imovel-churna-classificador-falha-fechado
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-215]]", "[[ADR-246]]", "[[ADR-394]]"]
+adrs: ["[[ADR-215]]", "[[ADR-246]]", "[[ADR-394]]", "[[ADR-433]]"]
 tags: [type/lane, sprint/a40, status/open, priority/p0, area/pipeline, area/financial-planning]
 ---
 
@@ -169,3 +169,62 @@ listados, logo `liquido == bruto`) caem pela **mesma linha**. Isso refuta duas a
   membro **não tem ano nenhum**. O titular tem. O critério 1 da l114 (reconciliar o ano do
   LLM contra os documentos) **não moveria** `total_dividas` neste corpus. E o 2026 tem
   documento atrás: são as 3 posições de investimento.
+
+
+## Disposição dos critérios de aceite, após a medição
+
+A [[ADR-433]] (`Proposto`) carrega a decisão. Dois critérios desta lane **não sobrevivem
+à medição como escritos** — registrado aqui para que a prescrição errada não se propague.
+
+| # | critério original | disposição |
+|---|---|---|
+| 1 | terceiro estado, publicado como supressão com motivo | **parcial** — o estado ternário existe e é medido (`classificacao_do_imovel`, `cobertura_classificacao_imovel`); a **supressão do agregado** fica deferida (ver §Deferimento) |
+| 2 | gate sobre a **contagem** de `property_id` resolvidos entre runs | **substituído** — mede a população errada (ver abaixo) |
+| 3 | identidade ancora em campo **estruturado** | **inexequível hoje** — o contrato não tem o campo (ver §Deferimento) |
+| 4 | fixture com `property_id` nulo em 8 de 9 | ✅ `tests/unit/pipeline/test_ano_base_por_classe_adr433.py` |
+
+### Por que o critério 2 é substituído
+
+Um gate sobre `count(property_id)` teria ficado **verde sobre o maior erro deste run**: a
+residência saiu zero sendo o **único** item que **tinha** `property_id`. E o balde que
+depende de id — `imoveis_geradores` — **não se move** com o ano corrigido. As duas
+populações são disjuntas no caso decisivo.
+
+O gate certo mede o **efeito**, não a contagem: *balde publicado como zero havendo
+evidência contrária viva no workspace* — `residencia == 0` com override
+`residencia_principal` gravado; `imoveis_geradores == 0` com override `locado` gravado;
+`total_dividas == 0` com `dividas[]` não-vazia. Não é gameável e não tem limiar
+arbitrário. **Não entregue nesta rodada** — ver §Deferimento.
+
+### O que foi entregue
+
+- **Eixo do ano por classe** ([[ADR-433]] D1) + endurecimento do crédito de resíduo (D2).
+  Medido: `residencia` 0,00 → **996.821,46**; `total_dividas` 0,00 → **230.459,13**;
+  `veiculos` volta ao declarado. Conservação intacta.
+- **Estado ternário** (D3): `CLASSIFICATION_DESCONHECIDO` deixa de ser constante órfã e
+  passa a ter produtor único; cobertura medida em valor **e** contagem (57,4% do valor
+  contra 89% da contagem — a contagem sozinha mente).
+- Regressão com **A/B provado**: 4 dos 8 testes reprovam contra o produtor anterior.
+
+## Deferimento datado — 2026-09-01
+
+Três itens ficam abertos, com condição de retomada explícita. Nenhum é bloqueado por
+decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
+
+1. **Supressão do agregado** — `residencia`/`imoveis_geradores` saindo `null` + motivo em
+   vez de `0,00` quando a fatia desconhecida cruza a escada da [[ADR-353]]. Precondição:
+   `e5_analysis.schema.json` e `frontend/src/types/report-analysis.ts` aceitarem `null`
+   no balde. Dono: [[A40.l113]] (PR seguinte).
+2. **Gate por efeito** (substituto do critério 2, especificado acima). Dono: [[A40.l113]].
+3. **Âncora estruturada** (critério 3) — medido como **inexequível com o contrato
+   vigente**: `e15_baseline_extract.schema.json` tem `itens[]` com
+   `additionalProperties: false` e nenhum campo de matrícula, inscrição municipal ou
+   logradouro; `canonicalize` faz parsing de texto livre para recuperar campos que a
+   ficha de Bens e Direitos já traz separados. Retomada exige PR0 de schema (campo
+   opcional declarado **antes** do produtor) + escolha do campo por **cobertura medida no
+   corpus**, no molde da [[A42.l15]]. Dono: sem dono — precisa de lane própria.
+
+Adjacente, fora desta lane: o `codigo_rfb` tem **dois produtores com semânticas
+diferentes** em `scripts/consolidate_baseline.py` (um grava o grupo, outro o código), e a
+grafia `01-11` vs `11` entre anos é o que fabrica os 3 pares duplicados. Normalizar no
+extrator não alcança isso; o conserto é produtor único.

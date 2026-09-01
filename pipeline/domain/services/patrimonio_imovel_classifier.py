@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from decimal import Decimal
 
 from pipeline.domain.services.patrimonio_types import (
@@ -55,8 +56,10 @@ def split_imoveis_with_overrides(
     residencia = 0.0
     imoveis_outros = 0.0
     for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
-        pid = imovel_property_id(im)
-        if pid and overrides_by_property_id.get(pid) == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+        if (
+            classificacao_do_imovel(im, overrides_by_property_id)
+            == CLASSIFICATION_RESIDENCIA_PRINCIPAL
+        ):
             residencia += imovel_valor(im)
         else:
             imoveis_outros += imovel_valor(im)
@@ -73,8 +76,7 @@ def split_imoveis_geradores_vs_nao_geradores(
     geradores = 0.0
     nao_geradores = 0.0
     for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
-        pid = imovel_property_id(im)
-        cls = overrides_by_property_id.get(pid) if pid else None
+        cls = classificacao_do_imovel(im, overrides_by_property_id)
         if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
             continue  # cat_1, fora de cat_2
         if cls in _CLASSIFICATIONS_GERADORAS:
@@ -94,8 +96,7 @@ def split_imoveis_alocacao_vs_fora(
     alocacao = 0.0
     fora = 0.0
     for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
-        pid = imovel_property_id(im)
-        cls = overrides_by_property_id.get(pid) if pid else None
+        cls = classificacao_do_imovel(im, overrides_by_property_id)
         if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
             continue  # cat_1, fora de cat_2 nos DOIS lados
         if cls in _CLASSIFICATIONS_FORA_DA_ALOCACAO:
@@ -103,6 +104,69 @@ def split_imoveis_alocacao_vs_fora(
         else:
             alocacao += imovel_valor(im)
     return alocacao, fora
+
+
+@dataclass(frozen=True)
+class CoberturaClassificacaoImovel:
+    """Quanto do valor de imóvel tem classificação conhecida ([[ADR-433]] §D3)."""
+
+    valor_total: Decimal
+    valor_desconhecido: Decimal
+    n_total: int
+    n_desconhecido: int
+
+    @property
+    def pct_desconhecido(self) -> float:
+        """Fatia do VALOR sem classificação (percentage) — decide a supressão."""
+        if not self.valor_total:
+            return 0.0
+        return float(self.valor_desconhecido / self.valor_total * 100)
+
+    def to_dict(self) -> dict:
+        return {
+            "valor_total": str(self.valor_total),
+            "valor_desconhecido": str(self.valor_desconhecido),
+            "n_total": self.n_total,
+            "n_desconhecido": self.n_desconhecido,
+            "pct_desconhecido": self.pct_desconhecido,
+        }
+
+
+# `pid` ausente NÃO é "não é residência" nem "não é gerador" — é `desconhecido`, e
+# os splitters acima o mandam ao `else` por construção ([[ADR-433]] §D3). A fatia
+# medida aqui é o que separa *"a família não tem casa própria"* de *"não sei qual
+# é a casa"*; a contagem sozinha mente, porque a residência costuma ser o maior
+# item isolado — por isso o eixo é VALOR. Esta função não move soma alguma: a
+# partição monetária dos splitters fica byte-idêntica, e a [[ADR-420]] §D2
+# (não-classificado cai no lado conservador do KPI de risco) segue de pé.
+def cobertura_classificacao_imovel(
+    *,
+    titular_bens: dict,
+    conjuge_bens: dict,
+    overrides_by_property_id: dict[str, str],
+) -> CoberturaClassificacaoImovel:
+    """Fatia de imóvel cuja classificação é desconhecida ([[ADR-433]] §D3)."""
+    total = desconhecido = Decimal("0")
+    n_total = n_desconhecido = 0
+    for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
+        valor = Decimal(str(imovel_valor(im)))
+        total += valor
+        n_total += 1
+        if classificacao_do_imovel(im, overrides_by_property_id) == CLASSIFICATION_DESCONHECIDO:
+            desconhecido += valor
+            n_desconhecido += 1
+    return CoberturaClassificacaoImovel(total, desconhecido, n_total, n_desconhecido)
+
+
+# Produtor único do estado ternário. Os três splitters liam `overrides.get(pid)`
+# cada um do seu jeito e colapsavam "sem id" com "sem rótulo" dentro do `else`;
+# nomear o terceiro estado é o que permite declará-lo ([[ADR-433]] §D3).
+def classificacao_do_imovel(imovel: dict, overrides_by_property_id: dict[str, str]) -> str:
+    """`desconhecido` quando falta id ou rótulo; senão a classification do override."""
+    pid = imovel_property_id(imovel)
+    if not pid:
+        return CLASSIFICATION_DESCONHECIDO
+    return overrides_by_property_id.get(pid) or CLASSIFICATION_DESCONHECIDO
 
 
 def sum_imoveis_geradores_liquidos(
@@ -131,6 +195,9 @@ __all__ = [
     "CLASSIFICATION_ESPECULACAO",
     "CLASSIFICATION_NU_PROPRIETARIO",
     "CLASSIFICATION_DESCONHECIDO",
+    "CoberturaClassificacaoImovel",
+    "classificacao_do_imovel",
+    "cobertura_classificacao_imovel",
     "split_imoveis_with_overrides",
     "split_imoveis_geradores_vs_nao_geradores",
     "split_imoveis_alocacao_vs_fora",
