@@ -4,6 +4,7 @@ type: adr
 title: "Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio"
 status: Proposto
 date: "2026-08-29"
+amended_at: ["2026-08-31"]
 relates_to:
   - "[[ADR-145]]"
   - "[[ADR-215]]"
@@ -30,6 +31,10 @@ aliases:
 
 # ADR-420 — Numerador da concentração imobiliária, e o indicador de imobilização
 
+> ⚠️ **Emendada em 2026-08-31** — a dependência da [[ADR-353]] declarada em §D2 era
+> larga demais: ela vale para o **piso de cobertura**, não para o flip desta nota.
+> Ver §Emenda 2026-08-31 ao fim.
+>
 > Origem: `RR6-02` da rodada unificada **U2** ([[REPORT-REVIEWS-active]] §r6) ·
 > lane [[A40.l95]]. Co-design `financial-planner` (domínio) + `data-engineer`
 > (contrato/fixture) + `senior-cto` (mecânica de ADR), 2026-08-29.
@@ -248,3 +253,35 @@ D1 ratifica `especulacao` no numerador por metodologia, sobre corpus onde ela **
 o dogfood tem zero, e nenhum golden a exercita. A ratificação é doutrinária e não empírica.
 **Dono:** [[A40.l95]]. **Condição de retomada:** primeiro workspace com `classification =
 especulacao` e valor material, ou a fixture do critério 2 revelando comportamento não previsto.
+
+## Emenda 2026-08-31 — a dependência da [[ADR-353]] vale para o piso, não para o flip
+
+A §D2 fecha com *"o piso reusa a escada de [[ADR-353]], que está `Proposto`: a dependência
+é declarada, não presumida, e **esta ADR não flippa antes dela**"*. A última oração é
+retratada: ela gateia a nota inteira numa dependência que pertence a **uma** de suas
+cláusulas. Três medições, feitas no fechamento da [[A40.l95]]:
+
+1. **A escada da [[ADR-353]] está em produção.** `NAO_IDENTIFICADO_PARCIAL_PCT = 10` e
+   `_INSUFICIENTE_PCT = 30`, `_confianca_nivel`, e `diagnostico_confianca` publicado no
+   payload (`{"nivel": "alta", "share_nao_identificado_pct": …}` no golden), lido pelo
+   `kpi_target_catalog`. O que falta é o **consumidor de frontend**, não o mecanismo.
+2. **O flip da [[ADR-353]] pende da [[A40.l11]]**, `planned` e **P2**, cujo critério é
+   *"`rg 'diagnostico_confianca' frontend/src` > 0"*. O §D1 desta nota é **P0**. Gatear
+   P0 atrás de P2 por uma cláusula de forma é o custo que a emenda remove.
+3. **O precedente já existe, e é mais novo que esta nota.** A [[ADR-425]] (`Decidido`,
+   2026-08-30) **importa** as constantes da [[ADR-353]] com ela ainda `Proposto`, e diz
+   isso literalmente: *"importando as constantes da [[ADR-353]] (nunca redeclarando-as)"*.
+
+**O que a emenda muda:** o §D1 (numerador por rebalanceabilidade), o §D3, o §D4 e o §D6
+deixam de esperar a [[ADR-353]]. **O que ela NÃO muda:** o **piso de cobertura** do §D2 —
+a supressão da prescrição dimensionada quando a fatia `desconhecido` de cat_2 cruza o
+piso — continua atrás do flip da [[ADR-353]], porque é ele que reusa a escada. Até lá,
+`desconhecido` entra no numerador **sem** ressalva de supressão, que é o lado
+**conservador** e o mesmo comportamento de hoje para imóvel não classificado.
+
+**Por que emenda e não ADR nova:** cai uma **cláusula**, e a tese — o numerador corta por
+rebalanceabilidade — sobrevive inteira. É o teste da §Alternativas (D) desta própria nota
+aplicado a ela mesma.
+
+**Deferimento datado — piso de cobertura do §D2 (2026-08-31).** **Dono:** [[A40.l95]].
+**Condição de retomada:** flip da [[ADR-353]] para `Decidido`, que a [[A40.l11]] destrava.
