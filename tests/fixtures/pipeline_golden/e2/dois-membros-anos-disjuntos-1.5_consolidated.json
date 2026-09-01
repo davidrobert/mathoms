@@ -1,6 +1,4 @@
 {
-  "pipeline_stage": "E1.5_Baseline_Patrimonial",
-  "data_processamento": "2025-12-31",
   "membros": ["david", "mariana"],
   "patrimonio_por_ano": {
     "2023": {"total_bens": 110000.0, "total_dividas": 0.0},

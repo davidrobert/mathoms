@@ -38,7 +38,6 @@ def _make_baseline(
 ) -> dict:
     total_bens = sum(im.get("valor_31_12_ano_base", 0) for im in imoveis)
     return {
-        "pipeline_stage": "E1.5_Baseline_Patrimonial",
         "members": {
             titular_key: {
                 "total_bens": total_bens,

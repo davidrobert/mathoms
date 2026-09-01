@@ -17,10 +17,27 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 
+# Schemas cujo contrato ainda não foi re-derivado do produtor: nunca `GO`. A
+# [[ADR-409]] §F recusa promover schema cujo contrato descreve uma fração do payload
+# ("o flip seria verde sobre contrato que descreve 5/13"), mas a recusa vivia só em
+# prosa e a elegibilidade é só a medição — bastava o drift ir a 0. A [[A40.l110]]
+# PR-A levou `baseline_patrimonial` de 59,8% a 3,6% ao matar 2 `required` fósseis, e
+# o resto é defeito de dado da [[A40.l111]], que já mergeou (#1917) — o corpus
+# histórico conserva os negativos, então o verde chega quando as runs virarem, não
+# na data do merge. Chegando, o contrato continua irreal. Não muda o exit code de `--gate`, pela mesma razão de
+# `mass_trivial` — contrato incompleto é insumo de decisão, não drift.
+_CONTRATO_NAO_DERIVADO: dict[str, str] = {
+    "baseline_patrimonial.schema.json": (
+        "contrato descreve 5/13 do payload — [[ADR-409]] §F; levanta com a [[A40.l110]] PR-B"
+    ),
+}
+
+
 class SchemaDrift:
     """Acumulador por schema — contadores que o go/no-go do runbook consulta."""
 
-    def __init__(self) -> None:
+    def __init__(self, nome: str = "") -> None:
+        self.nome = nome
         self.artifacts = 0
         self.drifted = 0
         self.unreadable = 0
@@ -31,8 +48,15 @@ class SchemaDrift:
         self.last_drift: Optional[str] = None
 
     @property
+    def contrato_nao_derivado(self) -> Optional[str]:
+        """Razão pela qual este schema não é promovível, mesmo com drift zero."""
+        return _CONTRATO_NAO_DERIVADO.get(self.nome)
+
+    @property
     def is_go(self) -> bool:
-        """Critério binário do §1.3: zero record na janela. Schema **sem massa** não é GO (janela sem run não mede nada), e artefato **ilegível** também não — não-validado não é validado-sem-drift."""
+        """Critério binário do §1.3: zero record na janela. Schema **sem massa** não é GO (janela sem run não mede nada), e artefato **ilegível** também não — não-validado não é validado-sem-drift. Schema com contrato não re-derivado também não: drift zero sobre contrato que descreve uma fração do payload é o falso-verde que a [[ADR-409]] §F nomeia."""
+        if self.contrato_nao_derivado:
+            return False
         return self.artifacts > 0 and self.drifted == 0 and self.unreadable == 0
 
     @property
@@ -132,7 +156,9 @@ def _measure(rows: Iterable[Any], resolve: Callable[[str, str], Optional[str]]) 
             continue
         if schema_name not in validators:
             validators[schema_name] = _validator_for(schema_name)
-        _validate_row(by_schema[schema_name], row, validators[schema_name])
+        stats = by_schema[schema_name]
+        stats.nome = schema_name
+        _validate_row(stats, row, validators[schema_name])
     return dict(by_schema)
 
 
@@ -160,6 +186,15 @@ def _fetch(session, start: Optional[str] = None, only: Optional[str] = None) -> 
     return query.order_by(PipelineArtifact.created_at).all()
 
 
+def _veredito(s: SchemaDrift) -> str:
+    """Rótulo do go/no-go — contrato não re-derivado vence drift zero."""
+    if s.contrato_nao_derivado:
+        return "NO-GO (contrato)"
+    if not s.is_go:
+        return "NO-GO"
+    return "GO (massa trivial)" if s.mass_trivial else "GO"
+
+
 def _print_table(results: dict, start: Optional[str] = None, newest: Optional[str] = None) -> None:
     print(f"janela: {start or '(corpus inteiro)'} .. {newest or '?'}\n")
     header = (
@@ -172,8 +207,12 @@ def _print_table(results: dict, start: Optional[str] = None, newest: Optional[st
         print(
             f"{name:<40} {s.artifacts:>6} {s.drifted:>6} {s.drift_pct:>5.1f}% "
             f"{len(s.runs):>5} {len(s.payloads):>6}  "
-            f"{('GO (massa trivial)' if s.mass_trivial else 'GO') if s.is_go else 'NO-GO'}"
+            f"{_veredito(s)}"
         )
+    for name in sorted(results):
+        razao = results[name].contrato_nao_derivado
+        if razao:
+            print(f"\n  {name}: contrato não re-derivado — {razao}")
 
 
 def _print_paths(results: dict, limit: int) -> None:
@@ -200,6 +239,7 @@ def _schema_summary(stats: SchemaDrift) -> dict:
         "unreadable": stats.unreadable,
         "last_drift": stats.last_drift,
         "go": stats.is_go,
+        "contrato_nao_derivado": stats.contrato_nao_derivado,
         "paths": [
             {"path": p, "validator": k, "occurrences": n} for (p, k), n in stats.paths.most_common()
         ],
