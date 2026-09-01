@@ -759,7 +759,7 @@
         "numerador_concentracao_imobiliaria": {
           "type": "string",
           "enum": [
-            "imoveis_investimento"
+            "imoveis_alocacao"
           ],
           "description": "[[ADR-420]] §D5: chave de `patrimonio` que o numerador da concentração LÊ, nomeada ao lado do número — o denominador era declarado desde o #1782 e o numerador não era declarado em lugar nenhum, e o gate compensava fixando a chave no próprio teste (C14 da [[A40.l80]] deslocado um campo). Sai da mesma constante que o SSOT usa (`concentracao_imobiliaria.CHAVE_DO_NUMERADOR`), então declaração e leitura não podem divergir. Gate: `tests/test_cobertura_de_base.py`."
         },

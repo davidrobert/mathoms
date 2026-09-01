@@ -72,9 +72,12 @@ TERMOS_DA_BASE: dict[BaseFinanceira, tuple[str, ...]] = {
     # entra porque é ainda mais ilíquido. Medido no dogfood: 73.000.000 contra
     # 13.000.000 da homônima, 5,6× — dois denominadores sob o mesmo nome "carteira
     # produtiva", que é o defeito RV8-02 um nível acima. Declará-la é número-neutro.
+    # [[ADR-420]] §D6: o termo deixa de ser cat_2 COMPLETO e passa a ser `imoveis_alocacao`
+    # — numerador e denominador cortam no mesmo lugar, senão `bases_reproduzem` para de
+    # fechar (ele soma os `termos` lendo chave top-level de `patrimonio`).
     BaseFinanceira.carteira_produtiva_fixa: (
         "carteira_financeira_familia",
-        "imoveis_investimento",
+        "imoveis_alocacao",
     ),
     BaseFinanceira.patrimonio_liquido: ("bruto", "-dividas"),
 }
@@ -121,7 +124,11 @@ def chave_de_componente(papel: PapelMembro) -> str:
 # Fronteira de série ([[ADR-412]] §D8): superfície read-time que recompõe artefato
 # antigo com código novo produziria híbrido sem rótulo. Ausência do campo é "não
 # sei", nunca "série corrente".
-BASE_VERSAO_CORRENTE = 1
+# 2 desde 2026-08-31 ([[ADR-420]] §D6): `carteira_produtiva_fixa` trocou de termo —
+# `imoveis_investimento` → `imoveis_alocacao`. Termo de base mudando exige bump
+# ([[ADR-412]] §D8), senão superfície read-time recompõe artefato antigo com código novo
+# e produz híbrido sem rótulo.
+BASE_VERSAO_CORRENTE = 2
 
 
 # Recebe valores CRUS, nunca o dict publicado: lá `valor_publicavel` já pode ter

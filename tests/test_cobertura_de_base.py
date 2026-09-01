@@ -45,6 +45,10 @@ _CRUS = {
     "residencia": 250_000.0,
     "cat2_efetivo": 200_000.0,
     "imoveis_investimento": 900_000.0,
+    # [[ADR-420]] §D6: termo de `carteira_produtiva_fixa` desde o flip. Subconjunto
+    # PRÓPRIO de cat_2 e distinto dele — se valesse 900.000 o gate voltaria a não
+    # discriminar qual dos dois o numerador usa, que é o eixo desta lane.
+    "imoveis_alocacao": 700_000.0,
     "bruto": 2_400_000.0,
     # 500k, não 600k: com 600k o `patrimonio_liquido` empatava com a
     # `carteira_produtiva_fixa` e o teste de discriminação reprovava — corretamente.
