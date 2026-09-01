@@ -5,6 +5,7 @@ title: "Contrato `LiveStep` para progresso de etapas do pipeline"
 status: Decidido
 phase: "A6-ux"
 date: "2026-04-23"
+amended_at: ["2026-09-01"]
 relates_to: []
 supersedes: []
 superseded_by: []
@@ -19,6 +20,10 @@ size_lines: 121
 ---
 
 # ADR-119 — Contrato `LiveStep` para progresso de etapas do pipeline
+
+> ⚠️ **Emendada em 2026-09-01** (A42.l22) — `estimated_duration_ms` deixa de ser
+> "mediana dos últimos 20 runs bem-sucedidos" e passa a ser "últimas 20 **execuções
+> reais**": o no-op auto-declarado sai da amostra. Ver §Emenda no fim.
 
 **Status:** Decidido (A6-ux) • **Data:** 2026-04-23
 
@@ -62,7 +67,7 @@ uniforme. Stages sem loop continuam usando `emit_stage_activity` simples.
 | `items_done`              | int      | Itens concluídos (não inclui o atual em andamento).                      |
 | `items_total`             | int      | Total de itens a processar neste run (pós-filtragem incremental).        |
 | `phase`                   | string   | Sub-fase intra-item em enum fechado: `preparing`, `awaiting_llm`, `validating`, `persisting`, `finalizing`. |
-| `estimated_duration_ms`   | int      | Mediana dos últimos 20 runs bem-sucedidos dessa stage no workspace. Só no primeiro evento da stage. |
+| `estimated_duration_ms`   | int      | Mediana das últimas 20 **execuções reais** dessa stage no workspace — no-op auto-declarado fora (emenda 2026-09-01). Só no primeiro evento da stage. |
 
 **Regras de emissão (backend):**
 1. Uma emissão **antes** de iniciar cada item (`items_done=k`, `phase="preparing"`,
@@ -137,3 +142,35 @@ para backward-compat de testes; remoção é candidata a cleanup futuro.
 Relaciona-se a: ADR-030-WS (transporte), ADR-080 (modo incremental — define o
 universo de `items_total`), ADR-076 (design system — tokens do componente).
 Não substitui nenhuma ADR anterior.
+
+## Emenda 2026-09-01 — a mediana exclui o no-op auto-declarado (A42.l22)
+
+> **Sinal:** a linha `estimated_duration_ms` da tabela de contrato acima dizia
+> "mediana dos últimos 20 runs **bem-sucedidos**". `bem-sucedido` incluía o stage
+> que se auto-declarou no-op. Passa a ser "últimas 20 **execuções reais**".
+
+O no-op auto-declarado (`output_summary.skipped == true`) grava `completed` de
+propósito ([[ADR-357]] §2 — `PipelineStageStatus.skipped` já significa outra coisa,
+a decisão pré-execução do orquestrador). Ele passava pelo filtro de status e
+entrava na mediana. No-op roda em milissegundos; execução real leva minutos.
+
+**A justificativa do corte é de população, não estatística.** `estimated_duration_ms`
+só é **lido** no ramo em que o stage executa de verdade: os quatro early-returns
+`{"skipped": True}` de `extract_baseline` (`No LLM config — free tier`, `No
+IRPF/patrimony documents found`, `incremental: no new…`, `No extractable text…`) e
+os quatro de `extract_irpf_full` antecedem a leitura de
+`ctx.stage_duration_estimates`. Quando o stage no-opa, **nenhuma ETA é emitida** —
+a amostra de no-op nunca pertenceu ao evento previsto.
+
+Consequência na janela: no-op não consome vaga das 20. Stage cujo histórico é só
+no-op fica com <3 amostras e é omitido — o campo não vem, e o frontend já trata a
+ausência (⚠ acima).
+
+**Magnitude medida** (dogfood, 2026-09-01, com a janela de produção): o erro nos
+dois stages que emitem ETA era −0,1% (`extract_baseline`) e 0,0%
+(`extract_irpf_full`) — 1 linha de no-op em cada janela de 20. O regime severo é
+o workspace que roda em free tier e depois configura a chave: a janela chega
+dominada por no-ops de milissegundos e a primeira ETA real subdeclara um stage de
+~9 min. É esse regime, não o dogfood de hoje, que o filtro protege — e é ele que
+também desarma o falso alarme de travamento, já que a regra 4 de renderização
+deriva o limiar de stall de `2×estimated_duration_ms / items_total`.
