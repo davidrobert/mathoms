@@ -2414,7 +2414,7 @@
       "piso_pct": "1.000000",
       "status": "apurado"
     },
-    "base_versao": 1,
+    "base_versao": 2,
     "bases": {
       "carteira_com_titular_identificado": {
         "termos": [
@@ -2450,9 +2450,9 @@
       "carteira_produtiva_fixa": {
         "termos": [
           "carteira_financeira_familia",
-          "imoveis_investimento"
+          "imoveis_alocacao"
         ],
-        "valor_brl": 73000000
+        "valor_brl": 57000000
       },
       "patrimonio_liquido": {
         "termos": [
@@ -2633,7 +2633,7 @@
       "code": "concentracao_imobiliaria_alta",
       "dado_faltante": null,
       "elegibilidade": "computavel",
-      "impacto": "82,2% da carteira produtiva em imóveis, acima do limite de 50% — patrimônio pouco líquido e exposto a ativo único. O ajuste é direcional, via destino dos próximos aportes.",
+      "impacto": "77,2% da carteira produtiva em imóveis, acima do limite de 50% — patrimônio pouco líquido e exposto a ativo único. O ajuste é direcional, via destino dos próximos aportes.",
       "kpi_key": "concentracao_imobiliaria",
       "origem_premissa": "derivado_e5",
       "prazo": "Próximo trimestre",
@@ -2722,13 +2722,13 @@
     "base_do_piso": "carteira_com_titular_identificado",
     "base_imobilizacao_patrimonial_pct": "patrimonio_liquido",
     "cobertura_despesas_meses": "86.670000",
-    "concentracao_imobiliaria": "82.190000",
+    "concentracao_imobiliaria": "77.190000",
     "imobilizacao_patrimonial_pct": "103.450000",
     "janela": "12m",
     "janela_meses": 1,
     "janela_n_meses": 1,
     "janela_referencia": "2026-01 a 2026-01",
-    "numerador_concentracao_imobiliaria": "imoveis_investimento",
+    "numerador_concentracao_imobiliaria": "imoveis_alocacao",
     "numerador_imobilizacao_patrimonial_pct": [
       "residencia",
       "imoveis_investimento"
@@ -2818,11 +2818,11 @@
         "valor": "3.100000"
       },
       {
-        "contribuicao": "0.040000",
+        "contribuicao": "0.110000",
         "dimensao": "Concentração Imobiliária",
         "max": 10,
         "peso": "0.125000",
-        "valor": "0.300000"
+        "valor": "0.900000"
       }
     ],
     "classificacao": "Bom",
@@ -2862,18 +2862,18 @@
       {
         "code": "concentracao_imobiliaria",
         "nome": "Concentração Imobiliária",
-        "nota": "0.300000",
+        "nota": "0.900000",
         "peso": "1.000000",
         "status": "emitted",
-        "valor": "82.190000"
+        "valor": "77.190000"
       }
     ],
     "conclusion": "A classificação 'Bom' reflete melhora em Taxa Poupança Recorrente e Cobertura Despesas (meses).",
-    "context": "Indicador geral de saúde financeira da família, com score de 6.4/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
+    "context": "Indicador geral de saúde financeira da família, com score de 6.5/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
     "formula": "Score = (Taxa Poupança Recorrente×2 + Cobertura Despesas (meses)×1.5 + Taxa Endividamento×1.5 + Progresso Independência Financeira×2 + Concentração Imobiliária×1) / 8",
     "max": 10,
     "score_version": "2.1",
-    "valor": "6.400000"
+    "valor": "6.500000"
   },
   "tarefas": [
     {
@@ -2892,7 +2892,7 @@
     },
     {
       "e": "Próximo trimestre",
-      "impacto": "82,2% da carteira produtiva em imóveis, acima do limite de 50% — patrimônio pouco líquido e exposto a ativo único. O ajuste é direcional, via destino dos próximos aportes.",
+      "impacto": "77,2% da carteira produtiva em imóveis, acima do limite de 50% — patrimônio pouco líquido e exposto a ativo único. O ajuste é direcional, via destino dos próximos aportes.",
       "n": 3,
       "p": "alta",
       "t": "Reduzir concentração imobiliária"
