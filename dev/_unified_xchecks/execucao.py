@@ -63,6 +63,13 @@ DISPENSAS: dict[str, Dispensa] = {
 _ATENCAO = ("OFENSOR", "VENCIDA", "INDETERMINADO")
 _DIVERGENTES = ("OFENSOR", "VENCIDA")
 
+# `LC9-05`: classes em que a linha NAO podia sair ofensora, qualquer que fosse o
+# run. Stage que nao chegou a `completed` esta fora do predicado; stage que
+# declarou zero trabalho sai pela escada antes do ramo de ofensa; stage que nao
+# promete artefato nao pode faltar com ele. Todas legitimas — e nenhuma e
+# evidencia de proveniencia sa, entao nenhuma pode contar como cobertura.
+_SEM_PODER = ("NAO-COMPLETED", "SEM-TRABALHO", "SEM-WRITES-DECLARADOS", "INDETERMINADO")
+
 
 def _ler_fonte(rel: str) -> str | None:
     """``None`` ≡ ilegivel. Nunca confundir com "zero writes encontrados": a
@@ -162,9 +169,17 @@ def classificar(logs: list, por_stage: dict, ler=_ler_fonte) -> dict:
     return _diagnostico(linhas, por_classe, completos)
 
 
+# `LC9-05`: `n_esperado` conta TODOS os stages logados, nao so os `completed`. O
+# predicado antigo derivava o denominador da propria populacao que ele sabia
+# julgar, entao stage fora de `completed` sumia dos DOIS lados e o leitor via
+# `17/17` num run de 18 — com o excluido sendo `analyze_finances` em
+# `needs_review`, o stage que construia o payload sob suspeita naquela rodada. A
+# exclusao agora desloca `n_esperado` e sai nomeada no veredito.
 def _diagnostico(linhas: list, por_classe: dict, completos: set) -> dict:
     """Denominadores + os dois lados da igualdade de conjunto."""
     indet = por_classe.get("INDETERMINADO", {})
+    fora = dict(por_classe.get("NAO-COMPLETED", {}))
+    sem_poder = sum(len(por_classe.get(c, {})) for c in _SEM_PODER)
     return {
         "linhas": linhas,
         "por_classe": por_classe,
@@ -174,8 +189,11 @@ def _diagnostico(linhas: list, por_classe: dict, completos: set) -> dict:
         # Dispensa cujo stage nao rodou nao e vencida — e nao exercitada. Nao
         # entra na populacao, e por isso nao encolhe `n_comparado`.
         "ociosas": sorted(set(DISPENSAS) - completos),
-        "n_esperado": len(completos),
-        "n_comparado": len(completos) - len(indet),
+        "fora_do_predicado": sorted(fora),
+        "n_esperado": len(linhas),
+        "n_comparado": len(linhas) - len(indet),
+        # Quantos stages o predicado podia ter reprovado neste run.
+        "n_falsificavel": len(linhas) - sem_poder,
     }
 
 
@@ -230,14 +248,7 @@ def _causas(diag: dict) -> None:
         print(f"\ndispensas nao exercitadas neste run: {diag['ociosas']}")
 
 
-def x5(ws: str, run: str) -> None:
-    logs, rows, outros = _consulta(ws, run)
-    por_stage = _por_stage(rows)
-    diag = classificar(logs, por_stage)
-    print(f"## X5 — stage `completed` sem artefato do run  (run {run[:8]})")
-    print(f"stages logados: {len(logs)} · stages com artefato deste run: {len(por_stage)}\n")
-    _tabela(diag["linhas"])
-    _causas(diag)
+def _x5_rodape(diag: dict, outros) -> None:
     print(
         f"\nartefatos do workspace de OUTROS runs: {outros[0]} em {outros[1]} runs "
         f"(substrato workspace-latest pode alcanca-los — ver PV9-01)"
@@ -247,5 +258,28 @@ def x5(ws: str, run: str) -> None:
         diag["n_comparado"],
         diag["n_esperado"],
         sum(len(diag["por_classe"].get(c, {})) for c in _DIVERGENTES),
-        nota="ofensor = completed + 0 artefatos, sem skip carimbado e sem dispensa sustentada",
+        n_falsificavel=diag["n_falsificavel"],
+        nota=(
+            "ofensor = completed + 0 artefatos, sem skip carimbado e sem dispensa "
+            f"sustentada · fora do predicado por status: {_fora(diag)}"
+        ),
     )
+
+
+def x5(ws: str, run: str) -> None:
+    logs, rows, outros = _consulta(ws, run)
+    por_stage = _por_stage(rows)
+    diag = classificar(logs, por_stage)
+    print(f"## X5 — stage `completed` sem artefato do run  (run {run[:8]})")
+    print(f"stages logados: {len(logs)} · stages com artefato deste run: {len(por_stage)}\n")
+    _tabela(diag["linhas"])
+    _causas(diag)
+    _x5_rodape(diag, outros)
+
+
+def _fora(diag: dict) -> str:
+    """Nomeia no VEREDITO o stage que o predicado nao alcanca — nunca no denominador."""
+    if not diag["fora_do_predicado"]:
+        return "nenhum"
+    status = {canon: st for canon, st, *_r in diag["linhas"]}
+    return ", ".join(f"`{s}` ({status.get(s, '?')})" for s in diag["fora_do_predicado"])

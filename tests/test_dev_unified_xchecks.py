@@ -9,6 +9,7 @@ sem controle positivo que dispara nao pode ser confiado (§10 `U2`, item 1).
 from __future__ import annotations
 
 import io
+import pathlib
 from contextlib import redirect_stdout
 
 import pytest
@@ -16,10 +17,13 @@ import pytest
 from dev._unified_xchecks.base import _cents, veredito
 
 
-def _saida(n_comparado: int, n_esperado: int, divergentes: int) -> str:
+def _saida(n_comparado: int, n_esperado: int, divergentes: int, n_falsificavel=None) -> str:
+    """`n_falsificavel` default = `n_comparado`: o caso em que TODA a populacao
+    examinada podia reprovar, que e o unico em que o par antigo bastava."""
     buf = io.StringIO()
+    alvo = n_comparado if n_falsificavel is None else n_falsificavel
     with redirect_stdout(buf):
-        veredito("CTRL", n_comparado, n_esperado, divergentes)
+        veredito("CTRL", n_comparado, n_esperado, divergentes, n_falsificavel=alvo)
     return buf.getvalue()
 
 
@@ -49,6 +53,42 @@ def test_par_de_denominadores_sempre_publicado():
         saida = _saida(*args)
         assert f"n_comparado={args[0]}" in saida
         assert f"n_esperado={args[1]}" in saida
+
+
+# ---------------------------------------------------------------------------
+# Terceiro denominador (`LC9-04` · lane A42.l24)
+#
+# O par `(n_comparado, n_esperado)` responde COBERTURA e nao responde PODER. O
+# `X4` do `U5` tinha cobertura cheia (10/10) e poder 1/10, e publicou ✅.
+# ---------------------------------------------------------------------------
+
+
+def test_populacao_sem_poder_discriminante_nunca_sai_verde():
+    """CONTROLE POSITIVO do eixo da lane: cobertura cheia, zero falsificaveis."""
+    saida = _saida(10, 10, 0, n_falsificavel=0)
+    assert "INAPLICAVEL" in saida
+    assert "FECHA" not in saida and "DIVERGE" not in saida
+
+
+def test_um_unico_falsificavel_ainda_e_veredito():
+    """`n=1` PODE reprovar, entao FECHA e verdadeiro — e a linha publica que a
+    superficie com poder era 10% do examinado."""
+    saida = _saida(10, 10, 0, n_falsificavel=1)
+    assert "FECHA" in saida
+    assert "n_falsificavel=1" in saida and "10% do examinado" in saida
+
+
+def test_terceiro_denominador_sempre_publicado():
+    for args in ((0, 10, 0, 0), (3, 10, 0, 3), (10, 10, 0, 10), (10, 10, 2, 2)):
+        assert f"n_falsificavel={args[3]}" in _saida(*args)
+
+
+def test_n_falsificavel_e_keyword_only_e_obrigatorio():
+    """Guarda que fica opcional fica inerte: o autor do check TEM de responder."""
+    with pytest.raises(TypeError):
+        veredito("CTRL", 10, 10, 0)  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        veredito("CTRL", 10, 10, 0, 10)  # type: ignore[misc]
 
 
 def test_cents_nao_confunde_bool_com_numero():
@@ -216,3 +256,155 @@ def test_zero_processado_com_erro_nao_e_zero_trabalho():
     logs, por_stage = _cenario_saudavel()
     logs[1] = ("extract_with_llm", "completed", {"total_processed": 0, "total_errors": 3})
     assert "extract_with_llm" in classificar(logs, por_stage)["ofensores"]
+
+
+# ---------------------------------------------------------------------------
+# X5 — o denominador esconde o stage sob suspeita (`LC9-05`, lane A42.l24)
+#
+# `n_esperado` saia de `len(completos)`: stage fora de `completed` sumia dos DOIS
+# lados e o `U5` leu `17/17` num run de 18 — o excluido era `analyze_finances` em
+# `needs_review`, dono do payload que carregava a regressao daquela rodada.
+# ---------------------------------------------------------------------------
+
+
+def test_stage_nao_completed_entra_no_denominador():
+    """CONTROLE POSITIVO: o run do `U5`, com o stage sob suspeita fora do predicado."""
+    from dev._unified_xchecks.execucao import classificar
+
+    logs, por_stage = _cenario_saudavel()
+    logs[2] = ("analyze_finances", "needs_review", {"success": False})
+    diag = classificar(logs, por_stage)
+    assert diag["n_esperado"] == len(logs), "o nao-completed tem de contar no esperado"
+    assert diag["fora_do_predicado"] == ["analyze_finances"]
+
+
+def test_exclusao_por_status_sai_no_veredito_nao_no_denominador():
+    """A exclusao e legitima; escondida no denominador, nao."""
+    from dev._unified_xchecks.execucao import _fora, classificar
+
+    logs, por_stage = _cenario_saudavel()
+    logs[2] = ("analyze_finances", "needs_review", {"success": False})
+    nomeada = _fora(classificar(logs, por_stage))
+    assert "analyze_finances" in nomeada and "needs_review" in nomeada
+
+
+def test_sem_o_stage_suspeito_o_denominador_encolhe():
+    """Falsifica o teste acima: tirar a linha do log muda `n_esperado`. Sem isto,
+    `n_esperado == len(logs)` passaria sobre qualquer implementacao."""
+    from dev._unified_xchecks.execucao import classificar
+
+    logs, por_stage = _cenario_saudavel()
+    completo = classificar(logs, por_stage)["n_esperado"]
+    assert classificar(logs[:-1], por_stage)["n_esperado"] == completo - 1
+
+
+def test_run_sem_stage_com_poder_e_inaplicavel():
+    """Todo stage skipado ⇒ o predicado nao podia reprovar ninguem."""
+    from dev._unified_xchecks.execucao import classificar
+
+    logs = [("extract_with_llm", "completed", dict(_SKIP))]
+    diag = classificar(logs, {})
+    assert diag["n_falsificavel"] == 0
+    assert "INAPLICAVEL" in _saida(
+        diag["n_comparado"], diag["n_esperado"], 0, diag["n_falsificavel"]
+    )
+
+
+def test_stage_que_entregou_conta_como_falsificavel():
+    """Simetria do teste acima: `OK` esteve em risco de ser ofensor, logo conta."""
+    from dev._unified_xchecks.execucao import classificar
+
+    diag = classificar(*_cenario_saudavel())
+    assert diag["n_falsificavel"] > 0
+
+
+# ---------------------------------------------------------------------------
+# X4 — a superficie carimbada pelo backend nao podia reprovar (`LC9-04`)
+# ---------------------------------------------------------------------------
+
+
+def _parecer_com_ancora(valor: str = "R$ 83.869,92") -> dict:
+    return {
+        "riscos": [
+            {
+                "evidencia": f"exposicao_cambial.total_brl={valor}; tier=indeterminado.",
+                "ancoras": [{"path": "$.exposicao_cambial.total_brl", "valor_renderizado": valor}],
+            }
+        ]
+    }
+
+
+def test_carimbado_sai_do_denominador_e_autoral_fica():
+    """A repartição do `U5`: 2 ocorrências do MESMO valor, 1 carimbada, 1 autoral."""
+    from dev._unified_xchecks.ancoragem import _paths_carimbados, _walk_literais
+
+    par = _parecer_com_ancora()
+    ocorrencias = _walk_literais(par)
+    carimbados = _paths_carimbados(par, lambda _p: True)
+    autorais = [p for p, _c in ocorrencias if p not in carimbados]
+    assert len(ocorrencias) == 2, ocorrencias
+    assert autorais == [".riscos[0].evidencia"]
+
+
+def test_ancora_cujo_path_nao_resolve_continua_autoral():
+    """`_resolve_ancora` so sobrescreve quando `found`; sem isso o numero e do
+    MODELO (`valor_renderizado` nao e `SkipJsonSchema`) e tem de ser julgado."""
+    from dev._unified_xchecks.ancoragem import _paths_carimbados
+
+    assert _paths_carimbados(_parecer_com_ancora(), lambda _p: False) == set()
+
+
+def test_subtracao_e_por_ocorrencia_nao_por_valor():
+    """CONTROLE POSITIVO: subtrair por valor apagaria a copia autoral do mesmo numero."""
+    from dev._unified_xchecks.ancoragem import _paths_carimbados, _walk_literais
+
+    par = _parecer_com_ancora()
+    cents = {c for _p, c in _walk_literais(par)}
+    assert len(cents) == 1, "os dois literais SAO o mesmo valor — e por isso o teste existe"
+    carimbados = _paths_carimbados(par, lambda _p: True)
+    assert len([p for p, _c in _walk_literais(par) if p not in carimbados]) == 1
+
+
+def test_horizontes_com_ancora_cobrem_o_produtor():
+    """Paridade com `stamp_ancora_values`: horizonte novo com ancora que o check
+    nao conheca voltaria a inflar o denominador em silencio."""
+    from dev._unified_xchecks.ancoragem import _HORIZONTES_COM_ANCORA
+
+    fonte = (
+        pathlib.Path(__file__).resolve().parent.parent
+        / "backend/app/services/parecer_finalization.py"
+    ).read_text(encoding="utf-8")
+    trecho = fonte.split("def stamp_ancora_values")[1].split("\ndef ")[0]
+    for horizonte in _HORIZONTES_COM_ANCORA:
+        assert horizonte in trecho, f"{horizonte} nao aparece no estampador"
+
+
+# ---------------------------------------------------------------------------
+# X7 — teto e emissor contam populacoes distintas (`PV13-10`)
+# ---------------------------------------------------------------------------
+
+
+def test_teto_do_schema_nao_governa_o_campo_do_emissor():
+    """CONTROLE POSITIVO: o `maximum: 6` sobre `_meta.tool_iterations` era a
+    declaracao errada — o campo conta invocacoes, o cap conta round-trips. Um run
+    real publicou 19 sem defeito nenhum."""
+    import json
+
+    schema = json.loads(
+        (
+            pathlib.Path(__file__).resolve().parent.parent
+            / "config/schemas/parecer_planejador.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    campo = schema["properties"]["_meta"]["properties"]["tool_iterations"]
+    assert "maximum" not in campo, "teto sobre populacao que o emissor nao conta"
+    assert "TELEMETRIA" in campo["description"]
+
+
+def test_modelo_sem_tools_torna_a_populacao_do_teto_vazia():
+    """Oraculo por ASSINATURA: `LLMService.call` nao aceita `tools`, entao
+    round-trip iniciado pelo modelo e estruturalmente 0. Ligar tools inverte isto
+    sozinho — foi inferir afordance de docstring que produziu o `RV4-43`."""
+    from dev._unified_xchecks.teto import _modelo_tem_tools
+
+    assert _modelo_tem_tools() is False
