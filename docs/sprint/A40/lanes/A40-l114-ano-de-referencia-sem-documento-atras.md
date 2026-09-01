@@ -4,13 +4,15 @@ type: lane
 title: "O ano de referência afirma um 31/12 que ainda não fechou, e o eixo zera imóveis, veículos e a dívida do titular"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1961
+ship_date: "2026-09-01"
 priority: P0
 branch_slug: a40-l114-ano-de-referencia-sem-documento-atras
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-301]]", "[[ADR-401]]", "[[ADR-431]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p0, area/pipeline, area/financial-planning]
+adrs: ["[[ADR-301]]", "[[ADR-401]]", "[[ADR-431]]", "[[ADR-420]]", "[[ADR-433]]"]
+tags: [type/lane, sprint/a40, status/shipped, priority/p0, area/pipeline, area/financial-planning]
 ---
 
 # A40.l114 — `ano-de-referencia-sem-documento-atras`
