@@ -108,8 +108,14 @@ segue disparando.
 ### D3 — `property_id` ausente é `desconhecido`, não "não é residência"
 
 `classificacao_do_imovel` passa a ser o **produtor único** do estado: sem `pid`, ou com
-`pid` sem rótulo, a classificação é `CLASSIFICATION_DESCONHECIDO` — uma constante que já
-estava declarada e exportada no módulo e que **nenhum ramo usava**.
+`pid` sem rótulo, a classificação é `CLASSIFICATION_DESCONHECIDO` — que em
+`patrimonio_imovel_classifier.py` estava declarada e exportada (e re-exportada pelo
+`patrimonio_calculator`) **sem nenhum ramo que a usasse**.
+
+A homônima de `backend/app/models/property_identity.py` **é** usada: `real_estate_adapter`
+a devolve, e é dela que sai o balde `desconhecido` de `excluded_properties`. Ou seja, o
+terceiro estado já existia de um lado do relatório e nunca chegou ao outro — o trabalho
+aqui é portar, não inventar.
 
 `cobertura_classificacao_imovel` mede a fatia desconhecida em **valor e contagem**. O
 eixo de decisão é o **valor**: neste corpus a contagem diz 8 de 9 (89%) e o valor diz
