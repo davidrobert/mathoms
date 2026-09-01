@@ -759,7 +759,7 @@
         "numerador_concentracao_imobiliaria": {
           "type": "string",
           "enum": [
-            "imoveis_investimento"
+            "imoveis_alocacao"
           ],
           "description": "[[ADR-420]] §D5: chave de `patrimonio` que o numerador da concentração LÊ, nomeada ao lado do número — o denominador era declarado desde o #1782 e o numerador não era declarado em lugar nenhum, e o gate compensava fixando a chave no próprio teste (C14 da [[A40.l80]] deslocado um campo). Sai da mesma constante que o SSOT usa (`concentracao_imobiliaria.CHAVE_DO_NUMERADOR`), então declaração e leitura não podem divergir. Gate: `tests/test_cobertura_de_base.py`."
         },
@@ -2404,7 +2404,7 @@
         },
         "concentracao_pct": {
           "type": "number",
-          "description": "% da carteira produtiva (investível financeiro + imóveis de investimento) em imóveis de renda ilíquidos; alias de `ratios.concentracao_imobiliaria` (SSOT). Alerta `concentracao_alta` quando > 50 (base carteira, ADR-340)."
+          "description": "% da carteira produtiva em imóveis REBALANCEÁVEIS — cat_2 menos `uso_pessoal` e `nu_proprietario` ([[ADR-420]] §D1); alias de `ratios.concentracao_imobiliaria` (SSOT). Numerador e denominador cortam no mesmo lugar. Alerta `concentracao_alta` quando > 50 (base carteira, [[ADR-340]]). O ativo que sai do numerador vive em `ratios.imobilizacao_patrimonial_pct` (§D3)."
         },
         "valor_total_imoveis": {
           "type": "number",

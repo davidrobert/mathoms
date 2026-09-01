@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from backend.app.models import AssetCatalog, PipelineArtifact, PipelineRun, WorkspaceAssetOverride
+from pipeline.domain.services.bases_financeiras import BASE_VERSAO_CORRENTE
 
 
 # Até 2026-08 esta fixture fabricava `patrimonio_full`/`investimentos_atuais`, nomes de
@@ -42,7 +43,14 @@ def _patrimonio(caixa_detalhes: list[dict], investivel: Decimal, serie_corrente:
     # str porque JSON column não serializa Decimal nativamente; _to_decimal lê string corretamente
     out = {"caixa_detalhes": caixa_detalhes, "investivel_financeiro": str(investivel)}
     if serie_corrente:
-        out["base_versao"] = 1
+        # Do PRODUTOR, nunca do literal: o parâmetro se chama `serie_corrente` e fixar
+        # `1` o fazia parar de ser corrente EM SILÊNCIO no primeiro bump de série — foi
+        # o que aconteceu no bump para 2 ([[ADR-420]] §D6), e três testes de tier
+        # passaram a receber `indeterminado` com a falha apontando para o câmbio, que
+        # não tinha nada a ver. É "declarada ≠ usada" um andar abaixo.
+        # A série ANTIGA continua coberta por `serie_corrente=False` (omite a chave) e
+        # por `test_card_degrada_em_artefato_sem_base_versao`.
+        out["base_versao"] = BASE_VERSAO_CORRENTE
     return out
 
 

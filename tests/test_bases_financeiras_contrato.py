@@ -199,6 +199,10 @@ _VALORES = {
     # Maior que `cat2_efetivo` de propósito: geradores ⊆ cat_2 completo, e é essa
     # diferença que separa `carteira_produtiva_fixa` da `carteira_produtiva_familia`.
     "imoveis_investimento": 90.0,
+    # [[ADR-420]] §D6: termo de `carteira_produtiva_fixa` na série 2. Estritamente entre
+    # `cat2_efetivo` (40) e cat_2 completo (90) — é subconjunto próprio de um e superset
+    # do outro, e são essas duas desigualdades que mantêm as seis bases distintas.
+    "imoveis_alocacao": 70.0,
     "bruto": 1000.0,
     "dividas": 300.0,
 }
@@ -304,7 +308,31 @@ _TERMOS_CONGELADOS = {
         ),
         "carteira_produtiva_fixa": ("carteira_financeira_familia", "imoveis_investimento"),
         "patrimonio_liquido": ("bruto", "-dividas"),
-    }
+    },
+    # Série 2 desde 2026-08-31 ([[ADR-420]] §D6): só `carteira_produtiva_fixa` muda —
+    # o termo cat_2 COMPLETO vira `imoveis_alocacao`, para numerador e denominador da
+    # concentração cortarem no mesmo lugar. As outras cinco ficam idênticas à série 1,
+    # e é essa igualdade que prova que o bump não arrastou base alheia junto.
+    2: {
+        "carteira_financeira_familia": (
+            "investimentos_titular",
+            "investimentos_conjuge",
+            "investimentos_nao_atribuidos",
+            "caixa_total_brl",
+        ),
+        "carteira_produtiva_familia": ("carteira_financeira_familia", "cat2_efetivo"),
+        "carteira_com_titular_identificado": (
+            "investimentos_titular",
+            "investimentos_conjuge",
+            "caixa_total_brl",
+        ),
+        "carteira_produtiva_com_titular_identificado": (
+            "carteira_com_titular_identificado",
+            "cat2_efetivo",
+        ),
+        "carteira_produtiva_fixa": ("carteira_financeira_familia", "imoveis_alocacao"),
+        "patrimonio_liquido": ("bruto", "-dividas"),
+    },
 }
 
 

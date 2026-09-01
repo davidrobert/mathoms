@@ -398,7 +398,10 @@ _DIMENSION_LABELS: dict[str, str] = {
     "cobertura_despesas": "cobertura de despesas pela reserva",
     "taxa_endividamento": "razão endividamento/patrimônio",
     "progresso_if": "progresso da meta IF",
-    "concentracao_imobiliaria": "concentração em imóveis de renda",
+    # [[ADR-420]] §D1: "de renda" descrevia cat_2 completo e ficou falso nos dois
+    # sentidos — `especulacao` não gera renda e ENTRA; `nu_proprietario` está em
+    # cat_2 e SAIU. O rótulo perde o qualificador falso em vez de ganhar um novo.
+    "concentracao_imobiliaria": "concentração imobiliária na carteira",
 }
 
 

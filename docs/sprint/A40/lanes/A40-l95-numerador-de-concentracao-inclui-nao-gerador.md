@@ -375,3 +375,75 @@ mudança de comportamento.
 a supressão da prescrição), §D4 (reconciliar o rationale de `FORMULAS.md` §219 e de
 `rule-concentracao-imobiliaria.md`) e §D6 (bump de `BASE_VERSAO_CORRENTE`). Os quatro
 esperam a decisão sobre a dependência da [[ADR-353]], registrada acima.
+
+## Passo 3 fechado — o flip e o que a medição mudou nos critérios (2026-08-31)
+
+**§D1/§D4/§D6 entregues.** O numerador corta por rebalanceabilidade, a base acompanha, e
+`BASE_VERSAO_CORRENTE` bumpa 1 → 2. No dogfood a concentração vai de **82,19% → 77,19%**
+com `bruto`, `liquido`, `imoveis_investimento` e `investivel_efetivo` **byte-idênticos** —
+o fix não move dinheiro, como o §Critério 1 exige.
+
+A **§D2 foi emendada** antes: a dependência da [[ADR-353]] vale para o **piso de
+cobertura**, não para o flip desta nota. A escada dela já está em produção; o que falta é
+o consumidor de frontend, preso na [[A40.l11]] (`planned`, P2). O piso segue **deferido
+com dono e condição de retomada**.
+
+### O colateral que só o bump revelou
+
+Três testes do card cambial passaram a receber `indeterminado`, com a falha apontando
+para o **câmbio** — que não tinha nada a ver. A causa era a fixture: parâmetro chamado
+`serie_corrente` gravando `base_versao = 1` no corpo. Ela parou de ser corrente **em
+silêncio** no primeiro bump de série. É *"declarada ≠ usada"* um andar abaixo, a mesma
+classe que esta lane fechou no numerador — e ninguém a teria achado sem o bump.
+
+### Critério 5 — a medição o reescreveu, e para melhor
+
+O critério pedia *"o número de imóveis exibido ao lado do KPI é o do conjunto somado no
+numerador; hoje o card diz 4 e o numerador soma 5"*. Medido: o card conta
+`INVESTMENT_CLASSIFICATIONS` = {locado, comercial, especulacao} e o numerador novo é
+**esse conjunto ∪ {desconhecido}**. Logo:
+
+- no corpus medido (6 imóveis, todos classificados) as duas cardinalidades **coincidem
+  depois do flip** — o `nu_proprietario` saiu do numerador e o card já não o contava. O
+  defeito do critério 5 **fecha pelo §D1**, sem código de contagem novo.
+- a divergência remanescente é **exatamente** o imóvel não-classificado, que é o
+  §Follow-up de regime default já declarado. Encodada em
+  `test_paridade_numerador_e_contagem_do_card.py`, que a **nomeia** em vez de deixá-la
+  implícita.
+
+O card também deixou de colar as duas afirmações na mesma frase: o percentual é sobre os
+ilíquidos, e a contagem passa a dizer explicitamente *"cap rate sobre N imóveis com renda
+apurada"*. Era a colagem que fazia o leitor tomar o 4 como cardinalidade do percentual.
+
+### Critério 6 — parcial, e o resto tem motivo declarado
+
+**Feito** — os rótulos que descrevem **a concentração**, que é o número que mudou:
+`_DIMENSION_LABELS` do score (*"concentração em imóveis de renda"* → *"concentração
+imobiliária na carteira"*), a descrição do alias no schema E5, o racional do
+`scoring.json` e a frase do card.
+
+**Não feito, e não por esquecimento:** o balde `"Imóveis de Renda"` de
+`patrimonio_composicao`, o `Top15AtivosCard`, o `RealEstateBreakdownPanel` e as duas
+telas de config. Eles rotulam **cat_2 completo** — que segue incluindo não-alocação —,
+então o rótulo continua falso ali. Três razões para não fazê-lo neste PR:
+
+1. É **copy de produto** em superfície visível, gatilho de `product-designer` pelo
+   §Protocolo de delegação — e esta sessão está proibida de invocar subagente.
+2. O balde tem **paridade Py ↔ TS enforçada** (gate da [[A40.l71]]) e é chaveado por
+   string em fixtures e testes: renomear é mudança cross-cutting, não edição de texto.
+3. O rótulo do balde é **anterior** a esta lane — vem da [[ADR-215]] P3, cujo rename se
+   justificou por *"comunicar o critério econômico real (geração de caixa)"*. Corrigi-lo
+   é reabrir aquela decisão, não fechar esta.
+
+**Fica como follow-up nomeado, sem lane id:** *"o balde cat_2 e as 4 superfícies que o
+rotulam dizem 'de renda' sobre número que inclui não-alocação"*. Dono natural:
+`product-designer` + `senior-cto` (a paridade). A alocação é do rito de abertura da sprint.
+
+### O que sobra na lane, e é só isso
+
+| item | estado |
+|---|---|
+| §D1 numerador · §D3 irmão · §D4 rationale · §D5 declaração · §D6 contrato | ✅ |
+| §D2 — piso de cobertura | ⏸ deferido, dono [[A40.l95]], condição: flip da [[ADR-353]] |
+| Critério 6 — balde cat_2 e as 4 superfícies | ⏸ follow-up, sem lane id |
+| Regime default (imóvel sem override) | ⏸ follow-up, sem lane id |

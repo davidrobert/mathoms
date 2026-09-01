@@ -96,8 +96,8 @@ function RealEstateHero({ data }: { data: RealEstateData }) {
         </p>
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           {(data.concentracao_pct ?? 0).toFixed(1).replace(".", ",")}% da carteira
-          produtiva em imóveis de renda ilíquidos · {data.imoveis.length}{" "}
-          {data.imoveis.length === 1 ? "imóvel" : "imóveis"} de investimento
+          produtiva em imóveis ilíquidos · cap rate sobre {data.imoveis.length}{" "}
+          {data.imoveis.length === 1 ? "imóvel" : "imóveis"} com renda apurada
         </p>
       </div>
       <div className="flex flex-col gap-2 border-t pt-4 md:border-t-0 md:border-l md:pl-6 md:pt-0 border-[var(--surface-border)]">
