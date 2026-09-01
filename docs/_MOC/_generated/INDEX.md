@@ -428,6 +428,7 @@
 | ADR-431 | adr | Decidido |  | Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo | `adr/431-valor-nao-apurado-em-item-de-ativo-fisico.md` |
 | ADR-432 | adr | Decidido |  | O contrato do baseline consolidado é re-derivado do produtor, e o ramo `declarations` da raiz é aposentado | `adr/432-contrato-do-baseline-consolidado-re-derivado-do-produtor.md` |
 | ADR-433 | adr | Proposto |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
+| ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -1035,7 +1036,7 @@
 | A42.l22 | lane | shipped | A42 | A previsão de tempo exibida durante o run é subdeclarada em até 72%: a mediana mistura no-ops de milissegundos com execuções de minutos | `sprint/A42/lanes/A42-l22-mediana-de-duracao-mistura-no-op.md` |
 | A42.l23 | lane | open | A42 | O validador de ordem compara declaração com declaração: `writes` falso passa, e um `reads` sobre ele valida contra ficção | `sprint/A42/lanes/A42-l23-validador-de-ordem-compara-declaracao-com-declaracao.md` |
 | A42.l24 | lane | shipped | A42 | Três checks meus publicam verde sobre população em que a falha é impossível por construção — e um deles exclui justamente o stage sob suspeita | `sprint/A42/lanes/A42-l24-check-cujo-denominador-torna-a-falha-impossivel.md` |
-| A42.l25 | lane | open | A42 | A mesma linha do razão publica o delta com dois sinais opostos, e o sinal observado é o único que nenhuma perda de pipeline produz | `sprint/A42/lanes/A42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento.md` |
+| A42.l25 | lane | shipped | A42 | A mesma linha do razão publica o delta com dois sinais opostos, e o sinal observado é o único que nenhuma perda de pipeline produz | `sprint/A42/lanes/A42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento.md` |
 | A42.l26 | lane | open | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
 | A42.l3 | lane | shipped | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
