@@ -677,6 +677,24 @@ pré-fix [1,4], com mecanismo idêntico (hífen separador aparecendo/desaparecen
 prometeu o contrário — ela refuta isso no próprio corpo; o que fecha aqui é a única
 alegação positiva.
 
+
+> **Nota 2026-09-01 — a régua de prioridade virou derivada (§6.1 do runbook), e ela
+> discorda de 3 linhas desta seção.** A régua computa `P` de quatro predicados medidos
+> (`alcança` · `reproduz` · `falsifica` · `move decisão`), e o contrafactual rodou sobre as
+> 43 linhas do `U4` e do `U5`. **Nada aqui é reescrito** — registro entregue é evidência
+> datada; a divergência fica como nota, por decisão da própria régua. O que ela diz desta
+> seção:
+>
+> - `LC9-06` e `LC9-07` → **`P2`**: instrumento **ambíguo** não é instrumento
+>   **falso-verde**. A cláusula 2 dá `P1` a quem esconde defeito; delta com sinal
+>   irresolvível custa atenção, não esconde.
+> - `LC9-10` → **ponteiro** da [[A40.l113]], sem prioridade própria: pela cláusula 1, estar
+>   na cadeia de um `P0` não promove. Eu havia dado três prioridades a um defeito.
+> - `LC9-04` e `LC9-05` **confirmam-se em `P1`** — falso-verde medido é `P1` sempre.
+>
+> Sob a régua, `P1` fica **4 no `U4` contra 6 no `U5`** — não 2 contra 12. O que sobra de
+> diferença é real.
+
 ## r8 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 (este) · [[PIPELINE-REVIEWS-active]] §r12 · [[REPORT-REVIEWS-active]] §r8.
