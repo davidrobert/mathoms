@@ -18,21 +18,14 @@ if str(REPO_ROOT) not in sys.path:
 
 
 # Schemas cujo contrato ainda não foi re-derivado do produtor: nunca `GO`. A
-# [[ADR-409]] §F recusa promover schema cujo contrato descreve uma fração do payload
-# ("o flip seria verde sobre contrato que descreve 5/13" — medida de 2026-08-24, hoje
-# 5 de 11: o PR-A tirou 2 properties nunca emitidas), mas a recusa vivia só em
-# prosa e a elegibilidade é só a medição — bastava o drift ir a 0. A [[A40.l110]]
-# PR-A levou `baseline_patrimonial` de 59,8% a 3,6% ao matar 2 `required` fósseis, e
-# o resto é defeito de dado da [[A40.l111]], que já mergeou (#1917) — o corpus
-# histórico conserva os negativos, então o verde chega quando as runs virarem, não
-# na data do merge. Chegando, o contrato continua irreal. Não muda o exit code de `--gate`, pela mesma razão de
-# `mass_trivial` — contrato incompleto é insumo de decisão, não drift.
-_CONTRATO_NAO_DERIVADO: dict[str, str] = {
-    "baseline_patrimonial.schema.json": (
-        "contrato declara 5 de 11 chaves emitidas (medido 2026-08-31) — [[ADR-409]] §F; "
-        "levanta com a [[A40.l110]] PR-B"
-    ),
-}
+# [[ADR-409]] §F recusa promover schema cujo contrato descreve uma fração do payload,
+# e a elegibilidade é só a medição — bastaria o drift ir a 0. Vazio desde a
+# [[ADR-432]], que re-derivou `baseline_patrimonial` (5 de 11 → 14 de 14) e com isso
+# quitou a única entrada. O que ainda bloqueia aquele schema é o **número**: 71
+# artefatos históricos do E4 carregam os 2 fósseis que o PR-A matou, e somem quando as
+# runs virarem o corpus. Entrada aqui não muda o exit code de `--gate` (mesma razão de
+# `mass_trivial`), só o veredito, que é o que o runbook §2 lê.
+_CONTRATO_NAO_DERIVADO: dict[str, str] = {}
 
 
 class SchemaDrift:
