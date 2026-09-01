@@ -95,14 +95,21 @@ valor monetário reproduzido; só percentuais, nomes de campo e contagens.
 
 ### O mecanismo real do sintoma 2 — vocabulário sem produtor
 
-Não é "nome vindo da prosa" genérico. É drift de contrato, medido:
+> ⚠️ **Esta subseção está PARCIALMENTE REFUTADA pelo painel — leia o §Arbitragem antes de
+> citá-la.** O enquadramento "drift de contrato" pressupõe *proveniência*, e a semântica
+> decidida é *navegação*: sob ela, `S4` num risco de imóvel é **certo**, e os números
+> abaixo não são contagem de erro. O conjunto de defeito são os **4 riscos misroteados**,
+> não os 13 itens. Os fatos medidos seguem válidos; a leitura deles é que mudou.
+
+Não é "nome vindo da prosa" genérico. Medido:
 
 - O manifest projeta {`S1`,`S2`,`S3`,`S7`,`S8`,`S9`,`S10`,`plano_de_acao`}.
 - O enum `SectionId` (`pipeline/llm/schemas/parecer_planejador.py:49`, cópia à mão,
   duplicada em `backend/app/schemas/dto/planner_review/response.py:29`) oferece **4 a
   mais**: `S4`, `S_IRPF_RENDA`, `S_IRPF_OTIMIZACAO`, `S_parecer` — seções que o exec
   context **nunca popula**.
-- Uso real: **13 de 33 itens (39%)** citam uma dessas 4, incluindo **5 de 11 riscos**.
+- Uso real: **13 de 33 itens** citam uma dessas 4, incluindo **5 de 11 riscos**. (Sob
+  navegação isto **não é** contagem de erro — ver o aviso acima.)
 - `dev/check_planner_manifest_coverage.py` **já avisa** exatamente sobre
   `S4`/`S_IRPF_RENDA`/`S_IRPF_OTIMIZACAO`/`S_PROTECAO` — é WARNING, sai `exit 0`, e não
   está conectado ao enum.
@@ -233,3 +240,72 @@ compatíveis: o eixo do layout já está declarado (2.5 = o que está **contrata
 > fundamentados, incompatíveis no **autor** do campo. Não é objeção a ajustar em 1 rodada —
 > é bifurcação de arquitetura (quem escreve um campo que roteia guardrail e compõe chave de
 > identidade).
+
+## Arbitragem do `senior-cto` (2026-09-01) — decidido e fechado
+
+Escalado pelo anti-loop. Ele **decidiu**, e corrigiu mais uma premissa minha.
+
+### A correção: "13 de 33" não é contagem de erro
+
+`test_vocabulario_do_dominio_nao_deriva_do_layout`
+(`tests/unit/pipeline/test_suggestion_rules.py:322`) assere `VALID_SECTION_IDS ==
+_enabled_layout_section_ids() - SECOES_SEM_ANCORA`: o enum **é** derivado-checado do layout
+— é vocabulário de **navegação**, e está **correto**. Logo `S4` num risco de imóvel é o
+comportamento certo, ainda que o dado de imóvel só venha projetado sob `patrimonio`/
+`investimentos`. **O conjunto de defeito são os 4 riscos misroteados**, não 13 itens.
+Escrever "13 de 33 errados" no closeout plantaria premissa falsa na próxima lane. O
+`SectionId` **não** é drift de vocabulário — minha subseção acima carrega o aviso.
+
+### Decisões (todas fechadas)
+
+1. **A máquina autora `section_id`** — `product-designer` vence, mas **não** pelo
+   argumento dele. Vence porque o remédio do `data-engineer` **re-ancora na função
+   errada**, e isso é falsificável com dado que já temos: injetar `[section_id: SN]` no
+   header ensina o modelo a copiar o id da seção que **projetou** o dado — proveniência.
+   Para os 2 riscos de proteção isso daria S9 (acerto); para um risco de imóvel daria
+   S1/S3, porque imóveis só existem no manifest dentro de `patrimonio` e `investimentos`,
+   e o destino de leitura é S4. **A injeção troca uma classe de erro por outra.** A
+   [[ADR-399]] não é violada — ela simplesmente **não se aplica** a um campo cuja resposta
+   correta não está no exec context.
+2. **O mapa é total por ORDEM DE RESOLUÇÃO**, não por chave composta — e é isto que
+   dissolve o "não é função" que refutou o critério 2: ele refuta um mapa keyed em `tema`
+   **sozinho**, não o mapa. Cascata: (i) tema de destino único (só `Proteção` → `S9`);
+   (ii) longest-prefix da raiz da âncora — é aqui que `Custo tributário` e `Diagnóstico de
+   dados` se desambiguam; (iii) tema → default; (iv) `S_parecer` como default seguro. O
+   campo continua **required** (`planner_review_tier_filter.py:102` faz `raw["section_id"]`
+   sem `.get`).
+3. **O guard de Monte Carlo para de conjungir `section_id`**
+   (`parecer_pos_llm_guardrails.py:176-180`): vira `âncora_MC ∨ (lemma_MC ∧ destino ==
+   S7)`. Predicado de roteamento tem de ser re-justificado quando o campo muda de
+   significado — deixar a conjunção seria decidir por omissão.
+4. **Um PR, sem janela**, com o raio medido antes do merge: `thesis_key` move uma vez, e o
+   dano só atinge linha `Descartada` dentro de 90d. A guarda é por `dedup_key`
+   (`ws|ancora|acao` — **não** contém `section_id`, logo é imune).
+5. **Três PRs.** O **sintoma 1 sai desta lane** (é o único que move número publicado e
+   exige rebaseline de golden + veredito de domínio); sintomas 2 e 3 ficam, em PRs
+   próprios.
+6. **ADR `Proposto`**, decisão de uma linha: *`section_id` é destino de leitura derivado
+   pela máquina, sai do JSON Schema exposto via `SkipJsonSchema` e é estampado no pós-LLM
+   por cascata determinística; o vocabulário permanece o do layout e não encolhe.*
+
+### Sonda de não-inércia — exigida ANTES de escrever o fix
+
+Implementar **só** o resolver (função pura), aplicar aos 33 itens, e mandar as
+**discordâncias** — só elas, sem dizer qual lado é a máquina — a `financial-planner` +
+`product-designer` para veredito **cego**. Aprova se corrigir os ≥4 misroutes **e**
+introduzir 0 destino julgado errado **e** 0 hits no passo 4. Reprovou? A injeção do
+`data-engineer` volta a ser o caminho e a lane registra a refutação. *"É o que separa
+'decidi' de 'apostei'."*
+
+### Limpeza obrigatória (duas afirmações falsas em pé)
+
+- `pipeline/domain/types/suggestion.py:68-73` — *"emissor sem leitor"* é **falso para 10 de
+  12 ids** (`SuggestionCalloutInline` está montado só em `S2FluxoCaixaSection.tsx:74` e
+  `S7IndependenciaSection.tsx:74`). Reescrever pelo motivo verdadeiro: o eixo do layout
+  (2.5 = contratado, S9 = lacuna).
+- `dev/check_planner_manifest_coverage.py` — o WARNING sobre S4/`S_IRPF_*`/`S_PROTECAO`
+  trata como drift o que, sob navegação, é **esperado**. Vira declaração explícita.
+
+Fora de escopo declarado: transformar `§S4` em `<a href>` (depende de scroll-spy, que
+nunca funcionou neste relatório). O payoff barato é renderizar o **título** em vez do id
+nos 4 sítios — o mapa já existe em `frontend/src/generated/report-layout.ts`.
