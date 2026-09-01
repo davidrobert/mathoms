@@ -43,6 +43,10 @@ from pipeline.domain.services.patrimonio_types import (
     ultimo_ano_31_12_fechado,
     years_in_list,
 )
+from pipeline.domain.services.saldo_divida_resolver import (
+    anos_declarados_por_membro,
+    resolver_saldo,
+)
 from pipeline.domain.services.valor_nao_apurado import anos_nao_apurados
 
 # =============================================================================
@@ -215,18 +219,26 @@ def build_members_from_declarations(baseline: dict, identity: MemberIdentity) ->
 
     dividas_list = baseline.get("dividas", []) or []
 
-    def _total_dividas_for(key: str) -> float:
+    # Dois defeitos de uma vez, medidos em 2026-08-19 e dormentes até a
+    # [[A40.l114]] (este corpus segue `build_members_from_consolidated`):
+    # `safe_float` sobre o objeto por ano ([[ADR-301]]) devolvia 0,0 e sumia com
+    # TODA dívida; e `matches_member_key` casava titular E cônjuge sobre o mesmo
+    # `proprietario`, creditando dívida conjunta duas vezes. Os dois se cancelam
+    # parcialmente numa soma agregada, que é por que nenhum sensor pegava.
+    def _total_dividas_for(key: str, ano_base: object) -> float:
+        if not key:
+            return 0.0
+        ano_ref = str(ano_base) if str(ano_base or "").isdigit() else None
+        conjuge = key == identity.conjuge_key and bool(identity.conjuge_key)
+
+        def _pertence(dv: dict) -> bool:
+            return _e_do_conjuge(dv, identity) == conjuge
+
+        anos = anos_declarados_por_membro(dividas_list, _pertence)
         total = 0.0
         for dv in dividas_list:
-            prop = (dv.get("proprietario", "") or "").lower()
-            if key == identity.titular_key and matches_member_key(identity.titular_key, prop):
-                total += safe_float(dv.get("saldo_31_12", 0))
-            elif (
-                key == identity.conjuge_key
-                and identity.conjuge_key
-                and matches_member_key(identity.conjuge_key, prop)
-            ):
-                total += safe_float(dv.get("saldo_31_12", 0))
+            if _pertence(dv):
+                total += float(resolver_saldo(dv, ano_ref, anos_declarados=anos).valor)
         return total
 
     results: dict[str, dict] = {}
@@ -240,7 +252,7 @@ def build_members_from_declarations(baseline: dict, identity: MemberIdentity) ->
 
         bens = _classify_bens_by_grupo(decl.get("bens_direitos", []))
         total_bens_decl = safe_float(decl.get("total_bens", 0))
-        total_dividas = _total_dividas_for(key)
+        total_dividas = _total_dividas_for(key, decl.get("ano_base"))
 
         synthetic_total = sum(
             safe_float(b.get("valor_31_12_ano_base", 0)) for cat in bens.values() for b in cat
@@ -603,19 +615,39 @@ def _split_veiculos(baseline: dict, identity: MemberIdentity, ano_ref: str) -> t
     return titular, conjuge
 
 
+def _e_do_conjuge(dv: dict, identity: MemberIdentity) -> bool:
+    """Dívida exclusiva do cônjuge; compartilhada vai ao titular (para totalizar)."""
+    prop = (dv.get("proprietario", "") or "").lower()
+    return matches_member_exclusively(identity.conjuge_key, identity.titular_key, prop)
+
+
+def _anos_declarados_do_par(
+    dividas: list, identity: MemberIdentity
+) -> tuple[frozenset[str], frozenset[str]]:
+    """Anos com dívida declarada de cada metade do casal."""
+    return (
+        anos_declarados_por_membro(dividas, lambda d: not _e_do_conjuge(d, identity)),
+        anos_declarados_por_membro(dividas, lambda d: _e_do_conjuge(d, identity)),
+    )
+
+
+# `saldo.get(ano_ref, 0)` publicava zero quando o ano-base não estava nas chaves,
+# enquanto o irmão `_resolve_saldo` caía para o ano mais recente — dois leitores do
+# mesmo campo discordando, cada um alimentando uma superfície ([[A40.l114]]).
 def _split_dividas(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tuple[float, float]:
-    """Soma dívidas por membro. Dívidas compartilhadas → titular (para totalizar)."""
+    """Soma dívidas por membro pelo produtor único de saldo."""
     dividas_list = baseline.get("dividas", baseline.get("dividas_consolidadas", [])) or []
+    anos_titular, anos_conjuge = _anos_declarados_do_par(dividas_list, identity)
     titular_div = 0.0
     conjuge_div = 0.0
     for dv in dividas_list:
-        saldo = dv.get("saldo_31_12", {})
-        if isinstance(saldo, dict):
-            val = safe_float(saldo.get(ano_ref, 0))
-        else:
-            val = _resolve_item_valor(dv, ano_ref)
-        prop = (dv.get("proprietario", "") or "").lower()
-        if matches_member_exclusively(identity.conjuge_key, identity.titular_key, prop):
+        conjuge = _e_do_conjuge(dv, identity)
+        val = float(
+            resolver_saldo(
+                dv, ano_ref, anos_declarados=anos_conjuge if conjuge else anos_titular
+            ).valor
+        )
+        if conjuge:
             conjuge_div += val
         else:
             titular_div += val
