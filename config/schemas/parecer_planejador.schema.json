@@ -176,8 +176,7 @@
         "tool_iterations": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 6,
-          "description": "Quantas iterações tool→LLM→tool ocorreram. Hard cap 6 (ADR-203 §D2)."
+          "description": "TELEMETRIA: total de invocações de tool na instância PlannerDrillDown do run — inclui cache hits e o estampamento pós-LLM de âncoras (ADR-296) e métricas (ADR-399), logo cresce com o tamanho do parecer. NÃO é o número de round-trips tool→LLM→tool, e por isso NÃO tem `maximum`: o cap `max_tool_iterations: 6` (ADR-203 §D2) governa round-trips, população hoje vazia porque `LLMService.call` não aceita `tools`. O `maximum: 6` anterior media população distinta da que o emissor conta — `tool_iterations: 19` era leitura correta contra teto errado (LC9-10, A42.l24; semântica canônica em OBS-1 · A37.l1 · ADR-341)."
         },
         "items_shown_count": {
           "type": "integer",

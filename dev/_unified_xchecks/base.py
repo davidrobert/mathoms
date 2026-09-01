@@ -15,22 +15,51 @@ def _cents(v) -> int | None:
         return None
 
 
-def _rotulo(n_comparado: int, n_esperado: int, divergentes: int) -> str:
+def _rotulo(n_comparado: int, n_esperado: int, divergentes: int, n_falsificavel: int) -> str:
     if n_comparado == 0:
         return "INAPLICAVEL ⛔ — comparacao vazia nao e veredito."
     if n_comparado < n_esperado:
         return "INAPLICAVEL ⛔ — cobertura parcial nao e veredito."
+    if n_falsificavel == 0:
+        return "INAPLICAVEL ⛔ — nenhum elemento da populacao podia exibir a falha."
     return f"DIVERGE ⚠️ {divergentes}" if divergentes else "FECHA ✅"
 
 
+def _cobertura(n_falsificavel: int, n_comparado: int) -> str:
+    """Fracao da populacao examinada que podia REPROVAR. `FECHA` sobre 10% nao
+    e o mesmo fato que `FECHA` sobre 100%, e a linha tem de deixar isso visivel."""
+    if n_comparado <= 0:
+        return "—"
+    return f"{100.0 * n_falsificavel / n_comparado:.0f}%"
+
+
 def veredito(
-    nome: str, n_comparado: int, n_esperado: int, divergentes: int, nota: str = ""
+    nome: str,
+    n_comparado: int,
+    n_esperado: int,
+    divergentes: int,
+    *,
+    n_falsificavel: int,
+    nota: str = "",
 ) -> None:
-    """Guarda anti-vacuo do FORMATO de saida — §10 do `U2`, item 2."""
-    # Nenhum check imprime ✅ sem publicar o par `(n_comparado, n_esperado)` na
-    # MESMA linha; comparacao vazia sai `INAPLICAVEL`, nunca verde e nunca achado.
-    par = f"n_comparado={n_comparado} n_esperado={n_esperado}"
-    print(f"\n**{nome}: {_rotulo(n_comparado, n_esperado, divergentes)} — {par}.** {nota}")
+    """Guarda anti-vacuo do FORMATO de saida — §10 do `U2` item 2, + `LC9-04/05/10`.
+
+    Tres denominadores, nao dois. O par `(n_comparado, n_esperado)` responde
+    *cobertura*; ele nao responde *poder*. No `U5` o `X4` publicou
+    `FECHA ✅ n=10/10` sobre uma populacao em que **9 de 10** literais sao
+    carimbados pelo backend a partir do MESMO payload que o check rele — orfao
+    impossivel por construcao. Cobertura cheia, poder discriminante 1/10.
+    `n_falsificavel` e a contagem de elementos que PODIAM reprovar; zero ⇒
+    `INAPLICAVEL`, jamais ✅. Keyword-only de proposito: o autor do check tem de
+    responder a pergunta, e parametro opcional e como esta guarda ficaria inerte.
+    """
+    # Nenhum check imprime ✅ sem publicar os TRES numeros na MESMA linha.
+    par = (
+        f"n_comparado={n_comparado} n_esperado={n_esperado} "
+        f"n_falsificavel={n_falsificavel} ({_cobertura(n_falsificavel, n_comparado)} do examinado)"
+    )
+    rotulo = _rotulo(n_comparado, n_esperado, divergentes, n_falsificavel)
+    print(f"\n**{nome}: {rotulo} — {par}.** {nota}")
 
 
 def _db():

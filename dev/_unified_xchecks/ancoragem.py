@@ -22,32 +22,133 @@ def _walk_numbers(o, path="", out=None):
     return out
 
 
-def _literais(par: dict) -> list[tuple]:
-    texto = json.dumps(par, ensure_ascii=False)
-    achados = []
-    for lit in re.findall(r"R\$\s?([\d.]+,\d{2}|[\d.]+)", texto):
-        c = _cents(lit.replace(".", "").replace(",", "."))
-        if c is not None:
-            achados.append((lit, c))
-    return achados
+_RS = re.compile(r"R\$\s?([\d.]+,\d{2}|[\d.]+)")
+
+# Horizontes que carregam `ancoras[]` — a superficie que `stamp_ancora_values`
+# sobrescreve no pos-LLM (ADR-296). Fechado de proposito: horizonte novo com
+# ancora e invisivel aqui e voltaria a inflar o denominador em silencio, entao a
+# paridade com o produtor e gateada em teste.
+_HORIZONTES_COM_ANCORA = (
+    "riscos",
+    "sugestoes_execucao",
+    "sugestoes_taticas",
+    "sugestoes_estrategicas",
+)
+
+
+def _walk_literais(o, path="", out=None) -> list[tuple[str, int]]:
+    """Toda ocorrencia `R$` do parecer, com o path CONCRETO dentro do documento.
+
+    Por OCORRENCIA, nunca por valor: o mesmo numero aparece carimbado numa ancora
+    e reescrito na prosa, e subtrair por valor apagaria justamente a copia autoral.
+    """
+    out = [] if out is None else out
+    if isinstance(o, dict):
+        for k, v in o.items():
+            _walk_literais(v, f"{path}.{k}", out)
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            _walk_literais(v, f"{path}[{i}]", out)
+    elif isinstance(o, str):
+        for lit in _RS.findall(o):
+            c = _cents(lit.replace(".", "").replace(",", "."))
+            if c is not None:
+                out.append((path, c))
+    return out
+
+
+def _resolvedor(vm: dict):
+    """`path -> bool` pelo MESMO resolvedor que o backend usa para carimbar.
+
+    Oraculo unico de proposito: a pergunta e *"o estampador teria sobrescrito
+    este campo?"*, e so o resolvedor dele responde. `None` quando o manifesto ou
+    o drill nao carregam — instrumento cego NAO classifica, e a alternativa
+    (chutar `autoral`) publicaria DIVERGE fabricado.
+    """
+    try:
+        from backend.app.services.parecer_manifest import load_manifest
+        from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+
+        whitelist = frozenset(load_manifest().tools_section_whitelist or ())
+        drill = PlannerDrillDown(vm, whitelist, {})
+    except Exception:
+        return None
+    return lambda p: drill.get_e5_jsonpath(p).found
+
+
+def _paths_carimbados(par: dict, resolve) -> set[str]:
+    """Paths de `valor_renderizado` que o backend sobrescreveu NESTE run.
+
+    `_resolve_ancora` so escreve quando `result.found`; ancora cujo path nao
+    resolve mantem o numero que o MODELO emitiu (`valor_renderizado` nao e
+    `SkipJsonSchema`, ao contrario de `Metrica.nome/target`) — essa e autoral e
+    tem de continuar no denominador.
+    """
+    carimbados = set()
+    for h in _HORIZONTES_COM_ANCORA:
+        for i, item in enumerate(par.get(h) or []):
+            if not isinstance(item, dict):
+                continue
+            for j, ancora in enumerate(item.get("ancoras") or []):
+                caminho = (ancora or {}).get("path")
+                if caminho and resolve(caminho):
+                    carimbados.add(f".{h}[{i}].ancoras[{j}].valor_renderizado")
+    return carimbados
+
+
+def _x4_cego(n_ocorrencias: int) -> None:
+    print("  instrumento CEGO: manifesto/drill nao carregaram — nada classificado")
+    veredito(
+        "X4",
+        0,
+        n_ocorrencias,
+        0,
+        n_falsificavel=0,
+        nota="sem o resolvedor do estampador nao ha como separar carimbado de autoral",
+    )
 
 
 def x4(ws: str, run: str, parecer_path: str, vm_path: str) -> None:
+    """Literal monetario AUTORAL do modelo ancorado no E5 do mesmo run.
+
+    `LC9-04`: a versao anterior media os 10 literais do parecer e publicava
+    `FECHA ✅ n=10/10`. Nove deles vivem em `ancoras[].valor_renderizado`, que
+    `stamp_ancora_values` preenche copiando `path -> valor` do MESMO payload que
+    este check rele — orfao impossivel por construcao. A superficie autoral era
+    **n=1**, e o verde media o carimbo do backend contra ele mesmo.
+    """
     par, vm = json.load(open(parecer_path)), json.load(open(vm_path))
     universo = {c for _p, v in _walk_numbers(vm) if (c := _cents(v)) is not None}
-    achados = _literais(par)
-    orfaos = [a for a in achados if a[1] not in universo]
-    print("## X4 — literais monetarios do parecer ancorados no E5 do mesmo run")
+    ocorrencias = _walk_literais(par)
+    print("## X4 — literais monetarios AUTORAIS do parecer ancorados no E5 do mesmo run")
     print(f"universo de cents no view-model: {len(universo)}")
-    print(f"literais R$ no parecer: {len(achados)} · orfaos: {len(orfaos)}")
-    for _lit, c in orfaos[:20]:
-        print(f"  ORFAO cents={c}")
+    resolve = _resolvedor(vm)
+    if resolve is None:
+        _x4_cego(len(ocorrencias))
+        return
+    carimbados = _paths_carimbados(par, resolve)
+    autorais = [(p, c) for p, c in ocorrencias if p not in carimbados]
+    orfaos = [(p, c) for p, c in autorais if c not in universo]
+    print(
+        f"ocorrencias R$ no parecer: {len(ocorrencias)} · carimbadas pelo backend: "
+        f"{len(ocorrencias) - len(autorais)} · AUTORAIS: {len(autorais)} · orfaos: {len(orfaos)}"
+    )
+    for caminho, _c in autorais:
+        print(f"  autoral em `{caminho}`")
+    for caminho, c in orfaos[:20]:
+        print(f"  ORFAO cents={c} em `{caminho}`")
     veredito(
         "X4",
-        len(achados),
-        len(achados),
+        len(ocorrencias),
+        len(ocorrencias),
         len(orfaos),
-        nota="(literal monetario NAO e copiado para o git — so a contagem)",
+        n_falsificavel=len(autorais),
+        nota=(
+            "so a prosa autoral pode reprovar; ancora com path que resolve e copia do "
+            "proprio payload (ADR-296). Cobertura: `R$` explicito — prosa monetaria por "
+            "extenso ('350 mil') fica fora e nao esta contada. "
+            "(literal monetario NAO e copiado para o git — so a contagem)"
+        ),
     )
 
 
