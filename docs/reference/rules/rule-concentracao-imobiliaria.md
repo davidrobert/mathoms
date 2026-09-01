@@ -1,7 +1,7 @@
 ---
 id: RULE-concentracao-imobiliaria
 type: domain-rule
-concept: "Concentração imobiliária (alerta S4 >40% do patrimônio; narrativa E5.N referencia ideal 50%)"
+concept: "Concentração imobiliária (alerta S4 >50% da carteira produtiva, numerador rebalanceável; narrativa E5.N referencia ideal 50%)"
 methodology: [perini, auvp]
 canonical_adr: "[[ADR-177]]"
 enforcer_modules:
@@ -19,10 +19,22 @@ tags:
 
 **Conceito.** Dois thresholds coexistem, com papéis distintos:
 
-- **Alerta do produto (S4):** quando a soma de imóveis ultrapassa
-  `RealEstateConfig.concentracao_alerta_pct = Decimal("40.0")` do patrimônio,
-  o aggregator emite o alerta `concentracao_alta` (FORMULAS.md §Imóveis).
+- **Alerta do produto (S4):** quando a concentração ultrapassa
+  `RealEstateConfig.concentracao_alerta_pct = Decimal("50.0")` da **carteira
+  produtiva**, o aggregator emite o alerta `concentracao_alta` (FORMULAS.md §Imóveis).
   Default configurável com override por workspace (ADR-134).
+
+  > ⚠️ **Corrigido em 2026-08-31 ([[ADR-420]] §D4).** Este parágrafo dizia *"40,0 do
+  > patrimônio"* e estava errado nas **duas** dimensões: o limiar é **50**, e a base é a
+  > **carteira produtiva** (investível financeiro + imóveis), não o patrimônio. Era a
+  > terceira cópia do limiar e a única que ninguém reconciliou quando a [[ADR-340]]
+  > mudou a base em C11-Fase2.
+
+- **Numerador ([[ADR-420]] §D1, desde 2026-08-31):** não é cat_2 completo — é a fatia
+  **rebalanceável** dele. `uso_pessoal` e `nu_proprietario` saem, porque nenhuma
+  prescrição de rebalanceamento os alcança; `especulacao` **fica**, porque é alocação
+  escolhida e renda zero é exatamente o custo que o KPI deve doer. O ativo que sai não
+  desaparece: vive em `ratios.imobilizacao_patrimonial_pct` (§D3), sem alvo.
 - **Referência narrativa (E5.N):** a constante imutável
   `IMOVEL_PCT_PATRIMONIO_IDEAL = 50` (Decimal) é exposta apenas ao narrador
   LLM (`threshold_imovel_pct` em `scripts/generate_narratives.py`) como marco
