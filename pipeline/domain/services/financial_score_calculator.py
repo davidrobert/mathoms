@@ -63,6 +63,35 @@ class ScoreComponent:
     """Quando ``True``, valores altos produzem notas baixas (swap min/max)."""
 
 
+def _observado_ou_suprimido(valor: object) -> float | None:
+    """``None`` viaja como supressão; o resto coage como sempre."""
+    return None if valor is None else safe_float(valor)
+
+
+# `absent_normalized` ([[ADR-217]] §D2) NÃO serve: a semântica dele é "peso vira
+# penalidade natural", que é o oposto. Nota neutra também está fora — em componente
+# invertido, 5,0 AFIRMA "endividamento intermediário", que é o zero disfarçado.
+# O componente fica na tabela: sumir a linha esconde o defeito onde o leitor confere.
+def _componente_suprimido(comp: "ScoreComponent") -> dict:
+    """Componente sem dado apurado: sem nota, peso fora do denominador, visível."""
+    return {
+        "code": comp.key,
+        "nome": comp.nome_display,
+        "valor": None,
+        "peso": comp.peso,
+        "nota": None,
+        "status": "suprimido",
+        "suprimido": True,
+    }
+
+
+def _media_ponderada(componentes: list[dict], denominador: float) -> float:
+    """Média das notas emitidas sobre ``denominador``; suprimido conta nota 0."""
+    if denominador <= 0:
+        return 0.0
+    return sum((c["nota"] or 0.0) * c["peso"] for c in componentes) / denominador
+
+
 @dataclass(frozen=True)
 class ScoreClassificacao:
     """Faixa de classificação (min ≤ score < max)."""
@@ -222,12 +251,15 @@ class FinancialScoreCalculator:
         componentes = self._build_componentes(
             ratios=ratios, patrimonio=patrimonio, goals=goals, reserva=reserva
         )
-        total_peso = sum(c["peso"] for c in componentes)
-        valor_score = (
-            sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0.0
-        )
-        valor_score = round(valor_score, 1)
-        classificacao = self._classify(valor_score)
+        total_peso = sum(c["peso"] for c in componentes if not c.get("suprimido"))
+        valor_score = round(_media_ponderada(componentes, total_peso), 1)
+        # A supressão não pode SUBIR o score: se pudesse, ausência de dado viraria
+        # prêmio — o mesmo vício do zero publicado. O piso renormaliza com o
+        # componente ausente em nota 0 (extremo conservador, forma do
+        # `piso_autonomia_financeira_meses`/[[ADR-412]] §D7), e a CLASSIFICAÇÃO
+        # deriva dele: senão "endividamento não apurado" sai como "Excelente".
+        piso_score = round(_media_ponderada(componentes, sum(c["peso"] for c in componentes)), 1)
+        classificacao = self._classify(min(valor_score, piso_score))
 
         breakdown = self._build_breakdown(componentes, weight_sum=total_peso)
         formula = self._build_formula(componentes)
@@ -236,6 +268,7 @@ class FinancialScoreCalculator:
 
         return {
             "valor": valor_score,
+            "piso": piso_score,
             "max": 10,
             "classificacao": classificacao,
             "score_version": SCORE_VERSION,
@@ -275,7 +308,7 @@ class FinancialScoreCalculator:
     @staticmethod
     def _observed_values(
         *, ratios: dict, patrimonio: dict, goals: dict, reserva: dict | None = None
-    ) -> dict[str, float]:
+    ) -> dict[str, float | None]:
         cobertura = (
             safe_float(reserva.get("cobertura_meses", 0))
             if reserva
@@ -289,14 +322,18 @@ class FinancialScoreCalculator:
         return {
             "taxa_poup": safe_float(ratios.get("taxa_poupanca_recorrente_pct", 0)),
             "cobertura": cobertura,
-            "endiv": safe_float(ratios.get("taxa_endividamento_pct", 0)),
+            # `None` é supressão declarada ([[ADR-420]] §D3 · [[A40.l114]]), não
+            # zero: coagir aqui credita NOTA MÁXIMA por passivo ilegível.
+            "endiv": _observado_ou_suprimido(ratios.get("taxa_endividamento_pct")),
             "if_pct": safe_float(goals.get("if_pct", 0)),
             # FIN-05 ([[ADR-340]]): lê o canônico SSOT (base carteira) em vez de
             # contar buckets de origem (proxy invertido que premiava consumo ilíquido).
             "concentracao_imobiliaria": safe_float(ratios.get("concentracao_imobiliaria", 0)),
         }
 
-    def _grade(self, comp: ScoreComponent, observed: float) -> dict:
+    def _grade(self, comp: ScoreComponent, observed: float | None) -> dict:
+        if observed is None:
+            return _componente_suprimido(comp)
         nota = self._interpolate_with_inversion(observed, comp)
         return self._componente_dict(comp, observed, nota)
 
@@ -352,13 +389,18 @@ class FinancialScoreCalculator:
         """Reformata `componentes` no shape consumido pelo `ScoreCard` (peso normalizado [0..1])."""
         if weight_sum <= 0:
             return []
+        # Componente suprimido entra com peso normalizado 0: ele continua VISÍVEL
+        # na tabela (com `valor: None`), mas não empresta contribuição a um número
+        # que ninguém apurou ([[A40.l114]]).
         return [
             {
                 "dimensao": c["nome"],
                 "valor": c["nota"],
                 "max": 10,
-                "peso": round(c["peso"] / weight_sum, 4),
-                "contribuicao": round(c["nota"] * c["peso"] / weight_sum, 2),
+                "peso": 0.0 if c.get("suprimido") else round(c["peso"] / weight_sum, 4),
+                "contribuicao": 0.0
+                if c.get("suprimido")
+                else round(c["nota"] * c["peso"] / weight_sum, 2),
             }
             for c in componentes
         ]
@@ -366,8 +408,9 @@ class FinancialScoreCalculator:
     @staticmethod
     def _build_formula(componentes: list[dict]) -> str:
         """Fórmula textual exibida no rodapé do ScoreCard."""
-        parts = " + ".join(f"{c['nome']}×{c['peso']:g}" for c in componentes)
-        total = sum(c["peso"] for c in componentes)
+        emitidos = [c for c in componentes if not c.get("suprimido")]
+        parts = " + ".join(f"{c['nome']}×{c['peso']:g}" for c in emitidos)
+        total = sum(c["peso"] for c in emitidos)
         return f"Score = ({parts}) / {total:g}"
 
     @staticmethod

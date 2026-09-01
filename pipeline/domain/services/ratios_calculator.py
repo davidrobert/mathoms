@@ -27,6 +27,7 @@ from pipeline.domain.services.concentracao_imobiliaria import (
     CHAVE_DO_NUMERADOR,
     compute_concentracao_imobiliaria_pct,
 )
+from pipeline.domain.services.endividamento_ratio import calc_endividamento_pct
 from pipeline.domain.services.imobilizacao_patrimonial import (
     compute_imobilizacao_patrimonial_pct,
 )
@@ -126,7 +127,7 @@ class FinancialRatios:
 
     taxa_poupanca_recorrente_pct: float
     taxa_poupanca_total_pct: float
-    taxa_endividamento_pct: float
+    taxa_endividamento_pct: float | None
     # ADR-335: renomeado de `cobertura_despesas_meses`; numerador financeiro-only
     # (sem imóvel ilíquido). `to_legacy_dict` emite o nome antigo como alias
     # deprecated por 1 ciclo.
@@ -210,7 +211,7 @@ class FinancialRatios:
         return {
             "taxa_poupanca_recorrente_pct": round(self.taxa_poupanca_recorrente_pct, 2),
             "taxa_poupanca_total_pct": round(self.taxa_poupanca_total_pct, 2),
-            "taxa_endividamento_pct": round(self.taxa_endividamento_pct, 2),
+            "taxa_endividamento_pct": self.taxa_endividamento_pct,
             **self._autonomia_com_intervalo(),
             **self._concentracao_com_os_dois_lados(),
             **self._imobilizacao_com_os_dois_lados(),
@@ -270,7 +271,7 @@ class RatiosCalculator:
         return FinancialRatios(
             taxa_poupanca_recorrente_pct=poupanca.recorrente_pct_value,
             taxa_poupanca_total_pct=poupanca.geral_pct_value,
-            taxa_endividamento_pct=_calc_endividamento(patrimonio),
+            taxa_endividamento_pct=calc_endividamento_pct(patrimonio),
             piso_autonomia_financeira_meses=_calc_piso_autonomia(
                 patrimonio, _despesa_consumo_mensal(window)
             ),
@@ -354,12 +355,6 @@ def _calc_poupanca(window: _Window) -> _Poupanca:
 
 def _ratio_pct(numerator: float, denominator: float) -> float:
     return (numerator / denominator * 100) if denominator > 0 else 0.0
-
-
-def _calc_endividamento(patrimonio: _PatrimonioPayload) -> float:
-    bruto = _safe_float(patrimonio.get("bruto", 0))
-    dividas = _safe_float(patrimonio.get("dividas", 0))
-    return _ratio_pct(dividas, bruto)
 
 
 # Par declarado: o `float` alimenta as razões (domínio legado do módulo) e o `Decimal`
