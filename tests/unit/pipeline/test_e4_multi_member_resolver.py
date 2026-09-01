@@ -36,7 +36,7 @@ def test_two_itau_members_resolve_to_correct_owner() -> None:
 def test_ambiguity_when_account_number_missing() -> None:
     resolver = _make_resolver_two_itau()
     res = resolver.resolve("itau", None)
-    assert res.confidence == "ambiguous"
+    assert res.member_confidence == "ambiguous"
     assert res.member_key is None
 
 
@@ -44,4 +44,4 @@ def test_unknown_account_number_falls_to_ambiguous_when_2_members() -> None:
     """Conta com account_number desconhecido → ambíguo (2 candidatos no banco)."""
     resolver = _make_resolver_two_itau()
     res = resolver.resolve("itau", "999999")
-    assert res.confidence == "ambiguous"
+    assert res.member_confidence == "ambiguous"
