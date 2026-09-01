@@ -46,10 +46,4 @@
 # Regra: quem mergeia um rebaseline drena o manifesto logo em seguida. O registro do
 # que mudou vive na lane, no corpo do PR e no histórico do git — não aqui.
 
-- golden: dogfood_view_model.json
-  path: patrimonio.bases.carteira_produtiva_fixa.valor_brl
-  old_cents: 7300000000
-  new_cents: 5700000000
-  adr: ADR-420
-  rationale: "o termo da base vira `imoveis_alocacao`; saem os R$160k fora de alocação (§D6)"
-  ref: pipeline/domain/services/concentracao_imobiliaria.py:11
+[]
