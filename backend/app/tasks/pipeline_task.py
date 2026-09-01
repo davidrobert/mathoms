@@ -1373,7 +1373,9 @@ def _refresh_family_members_override(ctx, ws_id: str, stage_name: str) -> None:
     # E1 já rodou antes) e falharia no primeiro run de um workspace novo, que é
     # o momento que importa. Mutar campo de objeto per-run não viola a
     # [[ADR-111]]: o proibido é estado de MÓDULO.
-    if stage_name not in ("extract_members", "E1") or ctx.config_overrides is None:
+    from pipeline.stage_spec import resolve_stage_name
+
+    if resolve_stage_name(stage_name) != "extract_members" or ctx.config_overrides is None:
         return
     from backend.app.services.pipeline.pipeline_adapter import _family_members_override
 

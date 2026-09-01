@@ -24,11 +24,10 @@ from backend.app.application.family_member.irpf_hint_policy import (
 from backend.app.models.family_member import WorkspaceIrpfSuggestionDismissal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.services.security.crypto import read_artifact_content
+from pipeline.artifact_store import stage_aliases
 from pipeline.domain.services.member_name_resolver import MemberNameResolver
 
 _logger = logging.getLogger("mathoms.family_members_hint_merge")
-
-_E1_STAGES = ("E1", "extract_members")
 
 
 def _latest_e1_row(workspace_id: str, db: Session) -> Optional[PipelineArtifact]:
@@ -36,7 +35,7 @@ def _latest_e1_row(workspace_id: str, db: Session) -> Optional[PipelineArtifact]
         select(PipelineArtifact)
         .where(
             PipelineArtifact.workspace_id == workspace_id,
-            PipelineArtifact.stage.in_(_E1_STAGES),
+            PipelineArtifact.stage.in_(stage_aliases("extract_members")),
             PipelineArtifact.artifact_key == "members",
         )
         .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
