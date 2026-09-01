@@ -21,10 +21,14 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Literal, Mapping
 
+from pipeline.domain.services import imobilizacao_patrimonial as _imobilizacao
 from pipeline.domain.services.bases_financeiras import BaseFinanceira
 from pipeline.domain.services.concentracao_imobiliaria import (
     CHAVE_DO_NUMERADOR,
     compute_concentracao_imobiliaria_pct,
+)
+from pipeline.domain.services.imobilizacao_patrimonial import (
+    compute_imobilizacao_patrimonial_pct,
 )
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
@@ -133,6 +137,10 @@ class FinancialRatios:
     # C11-Fase2 / FIN-05 ([[ADR-340]]): SSOT da concentração imobiliária —
     # cat_2 / carteira produtiva. Ver `_calc_concentracao_imobiliaria`.
     concentracao_imobiliaria_pct: float = 0.0
+    # [[ADR-420]] §D3: o irmão SEM alvo, base `patrimonio_liquido`. `None` com PL ≤ 0 —
+    # razão sobre denominador não-positivo não é 0,0, é indefinida, e publicar 0,0 leria
+    # como "nada imobilizado" justamente na família insolvente.
+    imobilizacao_patrimonial_pct: float | None = None
     # A40.l80 §Completude: o divisor que a autonomia de fato usou, carregado para ser
     # publicado — sem ele o recompute do gate teria de remontar a janela a partir de
     # `fluxo_caixa`, e erraria no fallback de `_resolve_window`. `Decimal` porque é
@@ -179,6 +187,17 @@ class FinancialRatios:
     # (declarada ≠ usada) deslocado um campo: com a chave escrita no teste, trocar o
     # numerador no produtor deixava o gate VERDE. A chave sai do SSOT que a LÊ, nunca
     # de literal repetido aqui — duas fontes é o defeito que a declaração fecha.
+    # [[ADR-420]] §D3 financia a [[ADR-235]] §Decisão item 4, `Decidido` desde 2026-05-20
+    # e sem produtor até aqui. Sai com as DUAS pontas declaradas: publicar razão nova sem
+    # numerador nomeável repetiria, no dia um, o C14 que esta lane fechou na concentração.
+    def _imobilizacao_com_os_dois_lados(self) -> dict:
+        """[[ADR-420]] §D3: o número e as duas pontas; sem alvo, por decisão."""
+        return {
+            "imobilizacao_patrimonial_pct": self.imobilizacao_patrimonial_pct,
+            "base_imobilizacao_patrimonial_pct": _imobilizacao.BASE.value,
+            "numerador_imobilizacao_patrimonial_pct": list(_imobilizacao.TERMOS_DO_NUMERADOR),
+        }
+
     def _concentracao_com_os_dois_lados(self) -> dict:
         """C11-Fase2 / FIN-05 ([[ADR-340]]): o número e as duas pontas que o produzem."""
         return {
@@ -194,6 +213,7 @@ class FinancialRatios:
             "taxa_endividamento_pct": round(self.taxa_endividamento_pct, 2),
             **self._autonomia_com_intervalo(),
             **self._concentracao_com_os_dois_lados(),
+            **self._imobilizacao_com_os_dois_lados(),
             "rentabilidade_pct": _format_pct_or_nd(self.rentabilidade_pct),
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
             "base_aliquota_efetiva_ir_pct": _BASE_ALIQUOTA_EFETIVA_IR,
@@ -259,6 +279,7 @@ class RatiosCalculator:
             ),
             despesa_consumo_mensal=_despesa_consumo_mensal_dec(window),
             concentracao_imobiliaria_pct=_calc_concentracao_imobiliaria(patrimonio),
+            imobilizacao_patrimonial_pct=compute_imobilizacao_patrimonial_pct(patrimonio),
             rentabilidade_pct=_resolve_rentabilidade(passive_income),
             aliquota_efetiva_ir_pct=_resolve_aliquota_ir(irpf, passive_income),
             janela_referencia=window.referencia,

@@ -755,6 +755,28 @@
           ],
           "description": "[[ADR-420]] §D5: chave de `patrimonio` que o numerador da concentração LÊ, nomeada ao lado do número — o denominador era declarado desde o #1782 e o numerador não era declarado em lugar nenhum, e o gate compensava fixando a chave no próprio teste (C14 da [[A40.l80]] deslocado um campo). Sai da mesma constante que o SSOT usa (`concentracao_imobiliaria.CHAVE_DO_NUMERADOR`), então declaração e leitura não podem divergir. Gate: `tests/test_cobertura_de_base.py`."
         },
+        "imobilizacao_patrimonial_pct": {
+          "type": ["number", "null"],
+          "description": "[[ADR-420]] §D3, financiando a [[ADR-235]] §Decisão item 4 (`Decidido` desde 2026-05-20, sem produtor até 2026-08-31): (residência + imóveis de investimento) sobre o patrimônio líquido. SEM alvo, limiar, operador, componente de score, gatilho ou card — órfã de domínio declarada, pelo gate da [[ADR-419]]. `null` quando PL ≤ 0: razão sobre denominador não-positivo é indefinida, e 0,0 leria como \"nada imobilizado\" na família insolvente. O nome recusa \"concentração\" — dois `concentracao_*` com bases distintas é o RV8-02 um nível acima."
+        },
+        "base_imobilizacao_patrimonial_pct": {
+          "type": "string",
+          "enum": [
+            "patrimonio_liquido"
+          ],
+          "description": "[[ADR-420]] §D3: base do denominador da imobilização, nomeada ao lado do número. Gate: `tests/test_cobertura_de_base.py`."
+        },
+        "numerador_imobilizacao_patrimonial_pct": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "residencia",
+              "imoveis_investimento"
+            ]
+          },
+          "description": "[[ADR-420]] §D5 aplicado a razão NOVA: os termos de `patrimonio` que o numerador soma. Razão que nasce sem numerador nomeável repetiria no dia um o C14 da [[A40.l80]] que esta lane fechou na concentração — por isso a declaração é lista, e não chave única: o numerador aqui tem dois termos."
+        },
         "piso_autonomia_financeira_meses": {
           "type": "number",
           "minimum": 0,
