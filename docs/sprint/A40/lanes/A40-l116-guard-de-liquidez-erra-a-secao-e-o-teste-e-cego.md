@@ -143,10 +143,12 @@ pedia:
 | detector age sobre elogio × alerta (critério 3) | ✅ braço (b), **ressalva-only** |
 | tripwire com a forma do U5 (critério 4 **revisado**) | ✅ `removidos + ressalvados > 0` |
 
-Suítes no merge: `tests` 8428 · `backend/tests` 3696. As 2 falhas de `test_auth.py`
-(`429 == 401`) que apareceram numa rodada eram chaves `mathoms:auth:lockout:*` rançosas no
-Redis compartilhado, de suíte concorrente — provado limpando as chaves (10/10 passam);
-nenhum arquivo de auth no diff.
+Suítes medidas **no commit de merge** `a5cb8b59` (não relidas de antes do rebase):
+`tests` **8428 passed** · `backend/tests` **3698 passed, 0 falhas**. Numa rodada anterior o
+`backend` acusou 2 falhas em `test_auth.py` (`429 == 401`): eram chaves
+`mathoms:auth:lockout:*` rançosas no Redis compartilhado, deixadas por suíte concorrente —
+provado limpando as chaves (10/10 passam), e o re-run limpo no merge confirma. Nenhum
+arquivo de auth no diff.
 
 **Colateral registrado:** [[ADR-412]] §E13 (emenda datada — a §E3 alegava dois apoios e
 tinha um) + os 2 comentários de código que repetiam a perna morta como fato. O registro
