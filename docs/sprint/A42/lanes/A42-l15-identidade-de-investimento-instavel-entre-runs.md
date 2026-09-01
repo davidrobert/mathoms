@@ -452,6 +452,117 @@ artefato carrega não pode gerar drift; o `pattern` só passa a medir quando o P
 · alias no `institution_catalog` · leitura do documento-fonte. **Não paraleliza:** PR2 depois do PR1; qualquer número de
 estabilidade depois do harness (§Armadilha D).
 
+## O bloqueio do PR1 DISSOLVEU — 2026-09-01 · e ele nunca exigiu o documento-fonte
+
+A lane travou o PR1 numa decisão humana: *"ler uma declaração IRPF de origem para decidir
+se `codigo` é `GG-CC` ou `GG`"*. **A pergunta estava mal-posta, e o corpus mais o próprio
+repo a respondem** — sem ler documento com PII.
+
+**A variável operante não é a forma que o extrator emite; é o que o consumidor lê.** Os dois
+consumidores que interpretam `codigo` são indexados por **grupo**:
+`_classify_investimento` (`consolidate_baseline.py:746`) ramifica em `'03'/'04'/'06'/'07'/'99'`,
+e o catálogo `config/prompts/e15_secoes_rfb_2024.yaml` (fonte declarada: *Manual DIRPF 2025*)
+tem chaves de 2 dígitos lidas por `BaselineCatalog.subtipo` com `dict.get` estrito.
+
+### As três opções, medidas — e as duas que a lane considerava perdem
+
+| rota | efeito medido |
+|---|---|
+| pinar `GG` (2 dígitos) | emite o **subcódigo** (25 de 26 pares divergentes assim) ⇒ 60 itens viram `renda_fixa` em vez de `fundo_investimento`. **Erra em silêncio.** |
+| pinar `GG-CC` só no contrato | nenhum consumidor parseia ⇒ os 102 itens seguem no balde genérico. **Inerte.** |
+| **`GG-CC` + consumidor lendo o grupo** | 96 itens `07-*` viram `fundo_investimento`; 5 `renda_fixa`; 1 `outros`. **Zero no genérico.** |
+
+Nos **131** itens compostos, **107 (81,7%)** resolvem para subtipos **diferentes** conforme se
+leia `GG` ou `CC`, e a leitura por `CC` é demonstravelmente errada: `'07-01'` (fundo) daria
+`imovel`; `'04-02'` (ouro) daria `veiculo`. Dois consumidores independentes concordam que o
+par da frente é o grupo — o YAML (`"07": fundo`) e o `_classify_investimento` (`grupo == "07"`
+→ `fundo_investimento`). **Não é convenção adotada; é o que o repo já afirma em dois lugares.**
+
+### Corpus — 836 artefatos `E1.5a`, 7.213 itens, medido 2026-09-01
+
+⚠️ **Corpus vivo.** Rode as sondas, não releia a tabela.
+
+| | itens | % |
+|---|---|---|
+| `codigo` plano `^\d{2}$` | 7.082 | 98,18% |
+| `codigo` composto `^\d{2}-\d{2}$` | 131 | 1,82% |
+
+Compostos são **ano-base 2025 apenas** — 4,3% dos itens de 2025, **zero** em 2023–2024.
+Distribuição: `07-04` 60 · `07-01` 36 · `06-99` 13 · `04-02` 5 · `06-01` 4 · `02-01` 3 ·
+demais 1–2. Por `categoria_hint`: `investimento` 102 · `conta_corrente` 16 · `imovel` 4 ·
+`veiculo` 3 · `outros` 3 · `poupanca` 2 · `previdencia` 1.
+
+## ENTREGUE — o parse do grupo · `grupo_rfb` (A42.l15)
+
+`grupo_rfb()` em `baseline_item_classifier.py` (domínio, sem ciclo — `pipeline/llm/rfb_codes.py`
+já importa de lá). `normalize_grupo` delega; `BaselineCatalog.subtipo` ganha fallback por grupo
+**depois** do exato. Cinco mutações executadas (sem parse · lendo `CC` · fallback antes do
+exato · fallback inventando resposta · `zfill` removido), cada uma derrubando a perna certa.
+
+**A perna do catálogo move ZERO item hoje** — não há composto na ficha `dividas_onus`, e
+`subtipo` só é lido no ramo `PASSIVO` (`consolidate_baseline.py:541`). É **guarda declarada**,
+não perna viva; a viva é a de `normalize_grupo`. Registrar isso é a §Armadilha (A) aplicada a
+mim mesmo. O fallback é **aditivo** (exato primeiro), então não pode mudar lookup que já
+acertava.
+
+### ⚠️ O fix NÃO move a estabilidade — medido, não suposto
+
+A/B hermético pelo harness do critério 6 (monkeypatch do comportamento pré-fix, árvore
+intocada), 836 artefatos, 28 grupos medidos:
+
+| | pré-fix | pós-fix |
+|---|---|---|
+| grupos medidos | 28 | 28 |
+| mediana | 29,19% | 29,19% |
+| pooled `\|A∩B\|/\|A∪B\|` | **37,68%** | **37,68%** |
+| interseção / união | 33.417 / 88.676 | 33.417 / 88.676 |
+
+**Idêntico ao dígito.** O motivo é estrutural: o fix torna cada forma internamente correta,
+mas um item que sai `04` num run e `07-04` no outro continua com `tipo` diferente
+(`renda_fixa` × `fundo_investimento`) ⇒ mesma perda de interseção. **Este PR é correção de
+classificação, não de identidade** — e não deve ser citado como progresso do KR da lane.
+O pooled de 37,68% é dado novo: a lane só tinha o intervalo 22,43–53,13% dos documentos com
+carteira substantiva.
+
+### Três afirmações da lane que esta medição corrige
+
+1. **"A decisão exige ler o documento-fonte, e não o corpus"** — falso. O corpus + o catálogo
+   RFB do próprio repo decidem, e nenhum documento com PII foi aberto.
+2. **"`codigo` não entra em `_identity_key` … fixar `tipo` dá delta 0 pp"** — o **delta medido**
+   estava certo; a **razão** não. `codigo` alcança sim `_identity_key`, por
+   `_classify_investimento` → `entry["tipo"]` no ramo `categoria_hint == "investimento"`
+   (`consolidate_baseline.py:581-584`). Os 0 pp eram propriedade daquele par de runs, não
+   independência estrutural — e o A/B acima reconfirma 0 pp por um caminho diferente.
+3. **A carreta de `cnpj_emissor` é em UM sítio, não três.** Os sítios `:247` e `:328` vivem em
+   `consolidate()`, que delega para `consolidate_from_itens` em `:191` assim que `itens[]`
+   existe: eles nunca veem item do E1.5 (leem `bens[].grupo` e `imoveis_xlsx`). Só o `:549`
+   pode carregar a âncora. A conclusão do PR0 (*"o PR1 sozinho nasce inerte para o PR2"*)
+   sobrevive; o escopo da carreta encolhe de três para um.
+
+## O que ainda BLOQUEIA a lane
+
+**Nada humano.** O PR1 pode andar: a forma de `codigo` está decidida por medição (emitir
+`GG-CC`; o consumidor já lê o grupo). Resta, tudo técnico e sem dono ainda:
+
+- **PR1 — âncora.** `cnpj_emissor` no Pydantic (`Optional`, `pattern ^\d{14}$`,
+  `field_validator(mode="before")` — molde `informe_aluguel.imobiliaria_cnpj`, [[ADR-288]]);
+  prompt pedindo a âncora; a carreta no `:549`; bump `PROMPT_VERSION` 1.3.0 → 1.4.0 **com a
+  política de era** da §Armadilha (B) — 91,6% do corpus fica em vocabulário antigo e a
+  [[ADR-311]] D3 exclui re-extração automática.
+- **PR1 (braço da hipótese)** — regra de formato em `descricao`. É o campo que churna 56% e
+  o único dos três que está em `_identity_key` sem substituto.
+- **PR2 / critérios 2, 3, 5** — dependem do produtor do PR1.
+- **Sem bloqueio, sem dono:** alias no `institution_catalog`.
+
+### Follow-up que esta medição levanta e NÃO resolve
+
+`codigo` composto em item `imovel` (4 itens: `01-11` ×2, `01-12` ×2) vai cru para
+`entry["codigo_rfb"]` (`consolidate_baseline.py:559`), lido por comparação **estrita** em
+`db_property_identity_resolver.py:134,168`. `'01-11'` e `'11'` são o mesmo apartamento em duas
+grafias. Não toquei: `property_id` é UUID resolvido contra o DB e a lane mediu **100%** de
+estabilidade nele, então o risco é latente, não vivo — mas o mesmo eixo da §Armadilha (C), e
+`wise_fiscal_flags.py:32,35,38` (`==` contra `"13"/"62"/"41"`) segue exposto do mesmo jeito.
+
 ## Escopo — quatro PRs, nesta ordem
 
 - **PR0 — forma no contrato (zero LLM).** `pattern` em `codigo`

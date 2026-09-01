@@ -183,78 +183,77 @@ class TestMassaPorPayloadDistinto:
         assert not hasattr(stats, "documents")
 
 
-# O §F recusa promover schema cujo contrato descreve 5/13 do payload, mas a
-# elegibilidade é só a medição: bastava o drift ir a 0 para o predicado dizer `GO`.
-# O PR-A levou `baseline_patrimonial` de 59,8% a 3,6%, e o resto é defeito de dado
-# de outra lane — o número fica verde antes de o contrato ficar real.
+# O §F recusa promover schema cujo contrato descreve uma fração do payload, mas a
+# elegibilidade é só a medição: bastaria o drift ir a 0 para o predicado dizer `GO`.
+# O dicionário está VAZIO desde a [[ADR-432]] — o mecanismo continua testado com
+# entrada sintética, senão ele apodrece e a próxima entrada real nasce sem guarda.
 class TestContratoNaoDerivado:
     """A40.l110 — drift zero sobre contrato irreal é o falso-verde da [[ADR-409]] §F."""
 
-    def test_schema_listado_nunca_e_go_mesmo_sem_drift(self):
-        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO, SchemaDrift
+    _SINTETICA = {"e2_extract.schema.json": "razão sintética — levanta com a [[A40.l110]]"}
 
-        alvo = next(iter(_CONTRATO_NAO_DERIVADO))
-        stats = SchemaDrift(nome=alvo)
+    def test_schema_listado_nunca_e_go_mesmo_sem_drift(self, monkeypatch):
+        from dev import measure_schema_drift as m
+
+        monkeypatch.setattr(m, "_CONTRATO_NAO_DERIVADO", self._SINTETICA)
+        stats = m.SchemaDrift(nome=next(iter(self._SINTETICA)))
         stats.artifacts, stats.drifted, stats.unreadable = 10, 0, 0
 
         assert stats.is_go is False
         assert stats.contrato_nao_derivado
 
-    def test_o_bloqueio_e_o_que_derruba_o_go_e_nao_outra_coisa(self):
+    def test_o_bloqueio_e_o_que_derruba_o_go_e_nao_outra_coisa(self, monkeypatch):
         # Sem este par, o teste acima passaria por qualquer razão — massa zero,
         # ilegível, drift — e não provaria que a lista é o que decide.
         """Não-inércia: o MESMO contador, sem o nome listado, é `GO`."""
-        from dev.measure_schema_drift import SchemaDrift
+        from dev import measure_schema_drift as m
 
-        stats = SchemaDrift(nome="schema-que-ninguem-bloqueou.schema.json")
+        monkeypatch.setattr(m, "_CONTRATO_NAO_DERIVADO", self._SINTETICA)
+        stats = m.SchemaDrift(nome="schema-que-ninguem-bloqueou.schema.json")
         stats.artifacts, stats.drifted, stats.unreadable = 10, 0, 0
 
         assert stats.is_go is True
 
-    # A40.l110 closeout — a 1ª versão deste teste fazia `stats.drifted = 0` e depois
-    # `assert stats.drifted == 0`: afirmava a própria atribuição, nunca chamava `main`.
-    # O exit code é do `main`, então é o `main` que tem de ser medido.
     def test_bloqueio_nao_muda_o_exit_code_do_gate(self, monkeypatch, capsys):
         """Contrato incompleto é insumo de decisão, não drift (idem `mass_trivial`)."""
         from dev import measure_schema_drift as m
 
-        alvo = next(iter(m._CONTRATO_NAO_DERIVADO))
-        stats = m.SchemaDrift(nome=alvo)
+        monkeypatch.setattr(m, "_CONTRATO_NAO_DERIVADO", self._SINTETICA)
+        stats = m.SchemaDrift(nome=next(iter(self._SINTETICA)))
         stats.artifacts, stats.drifted, stats.unreadable = 10, 0, 0
-        self._stub_corpus(monkeypatch, m, {alvo: stats})
+        self._stub_corpus(monkeypatch, m, {next(iter(self._SINTETICA)): stats})
 
         assert m.main(["--gate"]) == 0, "veredito de contrato não pode pintar o CI de vermelho"
         assert "NO-GO (contrato)" in capsys.readouterr().out
 
-    def test_drift_de_verdade_ainda_derruba_o_exit_code(self, monkeypatch, capsys):
+    def test_drift_de_verdade_ainda_derruba_o_exit_code(self, monkeypatch):
         """Não-inércia do teste acima: com `drifted` > 0 o mesmo caminho sai 1."""
         from dev import measure_schema_drift as m
 
-        alvo = next(iter(m._CONTRATO_NAO_DERIVADO))
-        stats = m.SchemaDrift(nome=alvo)
+        monkeypatch.setattr(m, "_CONTRATO_NAO_DERIVADO", self._SINTETICA)
+        stats = m.SchemaDrift(nome=next(iter(self._SINTETICA)))
         stats.artifacts, stats.drifted, stats.unreadable = 10, 1, 0
-        self._stub_corpus(monkeypatch, m, {alvo: stats})
+        self._stub_corpus(monkeypatch, m, {next(iter(self._SINTETICA)): stats})
 
         assert m.main(["--gate"]) == 1
 
-    def test_toda_chave_bloqueada_e_um_schema_que_existe(self):
-        """Rename/typo na chave torna o bloqueio inerte, e o veredito volta a `GO` calado."""
+    def test_toda_entrada_real_nomeia_quem_levanta_e_casa_um_schema(self):
+        """Vazio hoje ([[ADR-432]]); entrada futura precisa de rota e de arquivo real."""
         import scripts.pipeline_common as pipeline_common
         from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO
 
-        for nome in _CONTRATO_NAO_DERIVADO:
+        for nome, razao in _CONTRATO_NAO_DERIVADO.items():
+            assert "[[" in razao, f"{nome}: a razão precisa apontar a lane/ADR que levanta"
             caminho = pipeline_common.CONFIG_DIR / "schemas" / nome
             assert caminho.exists(), f"{nome} não casa arquivo em config/schemas/"
+
+    def test_baseline_patrimonial_saiu_do_bloqueio(self):
+        """[[ADR-432]] D6 — o contrato foi re-derivado, então a razão do bloqueio morreu."""
+        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO
+
+        assert "baseline_patrimonial.schema.json" not in _CONTRATO_NAO_DERIVADO
 
     @staticmethod
     def _stub_corpus(monkeypatch, modulo, resultados):
         """Isola `main` do DB: o que se mede aqui é o exit code, não a leitura do corpus."""
         monkeypatch.setattr(modulo, "_collect", lambda args: (resultados, None, None))
-
-    def test_toda_razao_nomeia_quem_levanta_o_bloqueio(self):
-        """Bloqueio sem condição de retomada apodrece: vira 'sempre foi assim'."""
-        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO
-
-        assert _CONTRATO_NAO_DERIVADO
-        for nome, razao in _CONTRATO_NAO_DERIVADO.items():
-            assert "[[" in razao, f"{nome}: a razão precisa apontar a lane/ADR que levanta"

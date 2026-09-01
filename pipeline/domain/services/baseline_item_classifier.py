@@ -7,9 +7,29 @@ flipa em 5/7 e o código sozinho é ambíguo (`'11'` rotula imóvel E dívida).
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Mapping, Optional
+from typing import Any, Mapping, Optional
+
+# A ficha "Bens e Direitos" passou a emitir `Grupo-Código` (`'07-04'`) ao lado do código
+# plano legado (`'41'`). Quem interpreta o código — este catálogo e
+# `_classify_investimento` — é indexado por GRUPO, então o composto tem de ser parseado:
+# sem isso ele vira chave inexistente e o item cai no balde genérico em silêncio.
+# Ler o SUBcódigo seria pior que não ler: `'07-01'` (fundo) daria `imovel` (A42.l15).
+_CODIGO_COMPOSTO = re.compile(r"^(\d{1,2})-\d{1,2}$")
+
+
+def grupo_rfb(codigo: Any) -> str:
+    """Grupo RFB da ficha: `'07-04'` → `'07'`; `'41'` → `'41'`; `'G1'` → `'01'`."""
+    s = str(codigo).strip().upper()
+    if s.startswith("G"):
+        s = s[1:]
+    composto = _CODIGO_COMPOSTO.match(s)
+    if composto:
+        s = composto.group(1)
+    return s.zfill(2)
+
 
 SECAO_ATIVO = "bens_direitos"
 SECAO_PASSIVO = "dividas_onus"
@@ -42,7 +62,12 @@ class BaselineCatalog:
     def subtipo(self, secao: Optional[str] = None, codigo: str = "") -> Optional[str]:
         if not secao:
             return None
-        return self.subtipo_por_secao_codigo.get((secao, codigo.strip()))
+        # Exato primeiro: o fallback por grupo é ADITIVO e não pode mudar a resposta
+        # de um lookup que já acertava (nem quando o YAML ganhar chave composta).
+        exato = self.subtipo_por_secao_codigo.get((secao, codigo.strip()))
+        if exato is not None:
+            return exato
+        return self.subtipo_por_secao_codigo.get((secao, grupo_rfb(codigo)))
 
     @property
     def is_fallback(self) -> bool:

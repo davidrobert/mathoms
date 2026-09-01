@@ -1,8 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Baseline Patrimonial E1.5",
-  "description": "Contrato do baseline patrimonial consolidado. Dois produtores o escrevem (ADR-427 D3): `consolidate_baseline`/`E1.5c` na chave `baseline_patrimonial`, e o E4 na chave `patrimonio` — este último após o `BaselineNormalizer`, que aplica aliases v2 → v1 canonical. A40.l110 removeu `pipeline_stage` e `data_processamento`: eram sintetizados só pela ponta E4, nenhum produtor os emitia e nenhum consumidor os lia.",
+  "description": "Contrato do baseline patrimonial consolidado, re-derivado do produtor em [[ADR-432]]. Dois produtores o escrevem ([[ADR-427]] D3): `consolidate_baseline`/`E1.5c` na chave `baseline_patrimonial`, e o E4 na chave `patrimonio` — este ultimo apos o `BaselineNormalizer`, que aplica aliases v2 -> v1. As 14 properties sao as que os produtores emitem (13, medidas no corpus) mais `membros`, que o normalizer pode emitir por alias. `additionalProperties: false` e o que torna o contrato detector de forma nova (D4).",
   "type": "object",
+  "required": ["patrimonio_por_ano"],
+  "additionalProperties": false,
   "properties": {
     "membros": {
       "type": "array",
@@ -18,38 +20,6 @@
             }
           }
         ]
-      }
-    },
-    "anos_base": {
-      "type": "array",
-      "items": {"type": "integer", "minimum": 2020, "maximum": 2030}
-    },
-    "declarations": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["membro", "ano_base", "bens_direitos"],
-        "properties": {
-          "membro": {"type": "string", "minLength": 1},
-          "cpf": {"type": "string"},
-          "ano_base": {"type": "integer"},
-          "tipo_declaracao": {"type": "string"},
-          "bens_direitos": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["grupo", "descricao"],
-              "properties": {
-                "grupo": {"type": ["string", "integer"]},
-                "codigo": {"type": ["string", "integer"]},
-                "descricao": {"type": "string"},
-                "valor_31_12_anterior": {"type": "number"},
-                "valor_31_12_atual": {"type": "number"}
-              }
-            }
-          },
-          "total_bens": {"type": "number", "minimum": 0}
-        }
       }
     },
     "patrimonio_por_ano": {
@@ -230,24 +200,37 @@
         }
       }
     },
-    "receipts": {
-      "type": "array"
+    "itens": {
+      "type": "array",
+      "description": "Itens crus do E1.5 que o consolidado carrega adiante (98/98 · 71/71). Contrato proprio em `e15_baseline_extract.schema.json`."
     },
-    "properties": {
-      "type": "array"
+    "resumo": {
+      "type": "object",
+      "description": "Resumo do E1.5 (ano de referencia, membros). Vocabulario anterior ao rename que virou `summary` no schema e nunca chegou ao produtor."
     },
-    "summary": {
-      "type": "object"
+    "validation": {
+      "type": "object",
+      "description": "Bloco de validacao emitido por `consolidate_baseline` quando ha aviso (9/98 · 8/71)."
+    },
+    "_meta": {
+      "type": "object",
+      "description": "Metadados de execucao do produtor (98/98 · 71/71)."
+    },
+    "payload_version": {
+      "type": ["string", "integer"],
+      "description": "Versao do payload do E1.5 quando o extrator a emite (13/98 · 12/71)."
+    },
+    "prompt_version": {
+      "type": ["string", "integer"],
+      "description": "Versao do prompt do E1.5 quando o extrator a emite (13/98 · 12/71)."
+    },
+    "informe_pf_saldos_31_12": {
+      "type": ["object", "array"],
+      "description": "Saldos 31/12 vindos de informe PF ([[ADR-238]]), mesclados no consolidado (78/98 · 71/71)."
+    },
+    "wise_fiscal_flags": {
+      "type": ["object", "array"],
+      "description": "Sinalizacoes fiscais de conta ME no consolidado (78/98 · 71/71)."
     }
-  },
-  "oneOf": [
-    {
-      "description": "Format A: Consolidated (patrimonio_por_ano + listas consolidadas)",
-      "required": ["patrimonio_por_ano"]
-    },
-    {
-      "description": "Format B: Declarations (bens_direitos por grupo IRPF)",
-      "required": ["declarations"]
-    }
-  ]
+  }
 }
