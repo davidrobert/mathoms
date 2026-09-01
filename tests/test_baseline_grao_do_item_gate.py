@@ -88,12 +88,10 @@ _ENTRADA = {
 }
 
 
+# Id derivado do lookup, nunca constante: constante faria o `imoveis_dedup` fundir
+# imóveis distintos e o gate mediria payload que produtor nenhum escreve.
 class _ResolverDeIdentidade:
-    """Fake do `PropertyIdentityResolver` — id derivado do lookup, não constante.
-
-    Constante faria o `imoveis_dedup` fundir imóveis distintos e o gate mediria
-    um payload que produtor nenhum escreve.
-    """
+    """Fake do `PropertyIdentityResolver`."""
 
     def match_or_create(self, *, workspace_id, lookup, first_seen_year, descricao_sample):
         return SimpleNamespace(
@@ -115,6 +113,23 @@ def _baseline_do_produtor() -> dict:
     from scripts.consolidate_baseline import consolidate_from_itens
 
     base = consolidate_from_itens(copy.deepcopy(_ENTRADA))
+    _dedup_e_identidade(base)
+    base, _ = reconcile_baseline_veiculos(
+        base, [{"id": "v1", "label": "CARRO 2020", "proprietario": "membro_a"}], "ws"
+    )
+    _injetar_negativo_de_informe(base)
+    sanear_baseline(base)
+    return base
+
+
+def _dedup_e_identidade(base: dict) -> None:
+    """Identidade de imóvel + os dois dedups que `main_with_store` roda em sequência."""
+    from pipeline.domain.services.imoveis_dedup import dedup_imoveis_consolidados
+    from pipeline.domain.services.investimentos_dedup import dedup_investimentos_consolidados
+    from pipeline.domain.services.property_identity_enricher import (
+        enrich_imoveis_with_property_ids,
+    )
+
     enrich_imoveis_with_property_ids(base, resolver=_ResolverDeIdentidade(), workspace_id="ws")
     base["imoveis_consolidados"] = dedup_imoveis_consolidados(
         base["imoveis_consolidados"], titular_key="membro_a"
@@ -122,16 +137,15 @@ def _baseline_do_produtor() -> dict:
     base["investimentos_consolidados"] = dedup_investimentos_consolidados(
         base["investimentos_consolidados"]
     ).investimentos
-    base, _ = reconcile_baseline_veiculos(
-        base, [{"id": "v1", "label": "CARRO 2020", "proprietario": "membro_a"}], "ws"
-    )
-    # O negativo que o saneamento de boundary existe para pegar ([[ADR-431]]): o
-    # ramo por item já o desviou para dívidas, e é o merge de informe que o
-    # reintroduz depois. Injetar aqui é reproduzir esse caminho, não fabricá-lo.
+
+
+def _injetar_negativo_de_informe(base: dict) -> None:
+    # O ramo por item já desviou o negativo para dívidas; quem o reintroduz é o
+    # merge de informe, e é por isso que o saneamento de boundary existe
+    # ([[ADR-431]]). Injetar aqui reproduz esse caminho, não o fabrica.
+    """Reproduz o negativo que volta pelo merge de informe, depois do dedup."""
     for colecao in ("imoveis_consolidados", "veiculos_consolidados"):
         base[colecao][0]["valores_31_12"]["2023"] = -1.0
-    sanear_baseline(base)
-    return base
 
 
 def _declaradas(colecao: str) -> set[str]:
@@ -176,12 +190,10 @@ def test_nenhuma_declarada_no_item_e_fantasma(baseline, colecao):
 
 @pytest.mark.parametrize("colecao", _COLECOES)
 def test_o_balde_do_e4_tambem_cabe_no_contrato_no_grao_do_item(baseline, colecao):
-    """A segunda ponta: dois produtores compartilham o arquivo ([[ADR-427]] D3).
-
-    O E4 publica o mesmo contrato pela `artifact_key`, depois do
-    `BaselineNormalizer`. Medir só o E1.5c deixaria o balde `patrimonio` sem
-    gate — e é ele que a [[A42.l19]] trouxe para este schema.
-    """
+    # O E4 publica o mesmo contrato pela `artifact_key`, depois do
+    # `BaselineNormalizer`. Medir só o E1.5c deixaria sem gate justamente o balde
+    # `patrimonio`, que é o que a [[A42.l19]] trouxe para este schema.
+    """A segunda ponta: dois produtores compartilham o arquivo ([[ADR-427]] D3)."""
     from pipeline.domain.services.baseline_normalizer import BaselineNormalizer
 
     do_e4 = BaselineNormalizer().normalize(copy.deepcopy(baseline)).data
@@ -189,8 +201,33 @@ def test_o_balde_do_e4_tambem_cabe_no_contrato_no_grao_do_item(baseline, colecao
     assert fora == set(), f"o E4 emite fora do contrato em {colecao}[]: {sorted(fora)}"
 
 
-def test_o_ramo_legado_emite_as_tres_chaves_do_alcance(tmp_path):
-    """Não-inércia do allowlist: as 3 exceções têm produtor, não são afirmação."""
+_ENTRADA_LEGADA = {
+    "declarations": [
+        {
+            "membro": "membro_a",
+            "ano_base": 2024,
+            "bens_direitos": [{"grupo": "01", "descricao": "APTO ALFA", "situacao_atual": 100.0}],
+        }
+    ],
+    # O segundo não casa IRPF nenhum — é o ramo `xlsx_only`, único que emite `fonte`.
+    "imoveis_xlsx": [
+        {"nome": "APTO ALFA", "membro": "membro_a", "endereco": "R 1", "valor_compra": 90.0},
+        {"nome": "CASA BETA", "membro": "membro_b", "endereco": "R 2", "valor_compra": 50.0},
+    ],
+}
+
+_GLOBAIS_DE_CONFIG = (
+    "PROJECT_DIR",
+    "_FAMILY",
+    "_TITULAR",
+    "_MEMBROS",
+    "_MEMBER_KEYS",
+    "_IMOVEL_MATCH_KEYWORDS",
+)
+
+
+def _consolidar_pelo_ramo_legado(tmp_path) -> dict:
+    """Roda `consolidate_from_declarations` com config sintética, restaurando os globais."""
     import scripts.consolidate_baseline as cb
 
     (tmp_path / "config").mkdir()
@@ -198,27 +235,18 @@ def test_o_ramo_legado_emite_as_tres_chaves_do_alcance(tmp_path):
         json.dumps({"titular": "membro_a", "membros": {"membro_a": {}, "membro_b": {}}}),
         encoding="utf-8",
     )
-    anteriores = (cb.PROJECT_DIR, cb._FAMILY, cb._TITULAR, cb._MEMBROS, cb._MEMBER_KEYS, cb._IMOVEL_MATCH_KEYWORDS)
+    anteriores = {nome: getattr(cb, nome) for nome in _GLOBAIS_DE_CONFIG}
     try:
         cb._init_config(tmp_path)
-        saida = cb.consolidate(
-            {
-                "declarations": [
-                    {
-                        "membro": "membro_a",
-                        "ano_base": 2024,
-                        "bens_direitos": [{"grupo": "01", "descricao": "APTO ALFA", "situacao_atual": 100.0}],
-                    }
-                ],
-                "imoveis_xlsx": [
-                    {"nome": "APTO ALFA", "membro": "membro_a", "endereco": "R 1", "valor_compra": 90.0},
-                    {"nome": "CASA BETA", "membro": "membro_b", "endereco": "R 2", "valor_compra": 50.0},
-                ],
-            }
-        )
+        return cb.consolidate(copy.deepcopy(_ENTRADA_LEGADA))
     finally:
-        (cb.PROJECT_DIR, cb._FAMILY, cb._TITULAR, cb._MEMBROS, cb._MEMBER_KEYS, cb._IMOVEL_MATCH_KEYWORDS) = anteriores
-    emitidas = _emitidas(saida, "imoveis_consolidados")
+        for nome, valor in anteriores.items():
+            setattr(cb, nome, valor)
+
+
+def test_o_ramo_legado_emite_as_tres_chaves_do_alcance(tmp_path):
+    """Não-inércia do allowlist: as 3 exceções têm produtor, não são afirmação."""
+    emitidas = _emitidas(_consolidar_pelo_ramo_legado(tmp_path), "imoveis_consolidados")
     assert _EMITIVEIS_POR_ALCANCE["imoveis_consolidados"] <= emitidas, (
         f"o ramo legado não emitiu o allowlist; emitiu {sorted(emitidas)}"
     )
@@ -288,31 +316,40 @@ def _schema() -> dict:
     return json.loads(_SCHEMA.read_text(encoding="utf-8"))
 
 
+def _pattern_legado(itens: list) -> None:
+    for it in itens:
+        padroes = it["properties"]["valores_31_12"]["patternProperties"]
+        padroes["^(31_12_)?\\d{4}$"] = padroes.pop("^\\d{4}$")
+
+
+def _pop_em_cada(itens: list, chave: str, dentro: str | None = None) -> None:
+    for it in itens:
+        alvo = it["properties"][dentro] if dentro else it
+        alvo.pop(chave, None)
+
+
+_MUTADORES = {
+    "item_sem_additionalProperties": lambda s, itens, ano: _pop_em_cada(
+        itens, "additionalProperties"
+    ),
+    "item_sem_required": lambda s, itens, ano: _pop_em_cada(itens, "required"),
+    "valores_31_12_sem_additionalProperties": lambda s, itens, ano: _pop_em_cada(
+        itens, "additionalProperties", dentro="valores_31_12"
+    ),
+    "valores_31_12_com_pattern_legado": lambda s, itens, ano: _pattern_legado(itens),
+    "ano_sem_required": lambda s, itens, ano: ano.pop("required", None),
+    "ano_sem_additionalProperties": lambda s, itens, ano: ano.pop("additionalProperties", None),
+    "patrimonio_por_ano_sem_propertyNames": lambda s, itens, ano: s["properties"][
+        "patrimonio_por_ano"
+    ].pop("propertyNames", None),
+}
+
+
 def _mutar(schema: dict, mutacao: str) -> dict:
+    """Desliga UM mecanismo do aperto, sobre uma cópia do contrato vivo."""
     s = copy.deepcopy(schema)
     itens = [s["properties"][c]["items"] for c in _COLECOES]
-    ano = s["properties"]["patrimonio_por_ano"]["additionalProperties"]
-    if mutacao == "item_sem_additionalProperties":
-        for it in itens:
-            it.pop("additionalProperties", None)
-    elif mutacao == "item_sem_required":
-        for it in itens:
-            it.pop("required", None)
-    elif mutacao == "valores_31_12_sem_additionalProperties":
-        for it in itens:
-            it["properties"]["valores_31_12"].pop("additionalProperties", None)
-    elif mutacao == "ano_sem_required":
-        ano.pop("required", None)
-    elif mutacao == "ano_sem_additionalProperties":
-        ano.pop("additionalProperties", None)
-    elif mutacao == "valores_31_12_com_pattern_legado":
-        for it in itens:
-            padroes = it["properties"]["valores_31_12"]["patternProperties"]
-            padroes["^(31_12_)?\\d{4}$"] = padroes.pop("^\\d{4}$")
-    elif mutacao == "patrimonio_por_ano_sem_propertyNames":
-        s["properties"]["patrimonio_por_ano"].pop("propertyNames", None)
-    else:  # pragma: no cover - guarda de digitação
-        raise AssertionError(f"mutação desconhecida: {mutacao}")
+    _MUTADORES[mutacao](s, itens, s["properties"]["patrimonio_por_ano"]["additionalProperties"])
     return s
 
 
@@ -340,6 +377,11 @@ def test_item_real_do_produtor_continua_passando(baseline):
     assert not _reprova(_schema(), baseline), "o payload do produtor real reprova no próprio contrato"
 
 
+def test_todo_mutador_tem_conjunto_esperado():
+    """Mutador sem entrada em `_MUTACOES` nunca roda; entrada sem mutador é KeyError."""
+    assert set(_MUTADORES) == set(_MUTACOES)
+
+
 @pytest.mark.parametrize("mutacao", sorted(_MUTACOES))
 def test_nao_inercia_por_subconjunto(mutacao):
     mutado = _mutar(_schema(), mutacao)
@@ -350,25 +392,28 @@ def test_nao_inercia_por_subconjunto(mutacao):
     )
 
 
-def test_o_gate_de_completude_le_o_produtor_e_nao_uma_lista(monkeypatch):
-    """Não-inércia do gate de completude, mutando o **produtor** — não o payload.
-
-    Payload mutado prova só que o validador roda. O que precisa ser provado é o
-    acoplamento: se `consolidate_from_itens` passar a emitir chave nova no item,
-    o gate tem de ficar vermelho **sem ninguém tocar no teste**. Sem isto,
-    `_emitidas` poderia estar lendo uma lista congelada e o verde seria vácuo.
-    """
-    import scripts.consolidate_baseline as cb
-
+def _produtor_com_chave_nova(cb):
+    """Envelopa `consolidate_from_itens` para emitir uma chave que o contrato não tem."""
     original = cb.consolidate_from_itens
 
-    def _com_chave_nova(*args, **kwargs):
+    def _emissor(*args, **kwargs):
         saida = original(*args, **kwargs)
         for item in saida.get("imoveis_consolidados") or []:
             item["chave_que_o_contrato_nao_conhece"] = 1
         return saida
 
-    monkeypatch.setattr(cb, "consolidate_from_itens", _com_chave_nova)
+    return _emissor
+
+
+def test_o_gate_de_completude_le_o_produtor_e_nao_uma_lista(monkeypatch):
+    # Payload mutado prova só que o validador roda. O que precisa ser provado é o
+    # acoplamento: se `consolidate_from_itens` passar a emitir chave nova no item,
+    # o gate fica vermelho SEM ninguém tocar no teste. Sem isto, `_emitidas` poderia
+    # estar lendo uma lista congelada e o verde seria vácuo.
+    """Não-inércia do gate de completude, mutando o produtor — não o payload."""
+    import scripts.consolidate_baseline as cb
+
+    monkeypatch.setattr(cb, "consolidate_from_itens", _produtor_com_chave_nova(cb))
     mutado = _baseline_do_produtor()
     fora = _emitidas(mutado, "imoveis_consolidados") - _declaradas("imoveis_consolidados")
     assert fora == {"chave_que_o_contrato_nao_conhece"}, (

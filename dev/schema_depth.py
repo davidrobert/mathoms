@@ -58,15 +58,12 @@ class Grao:
     def fechados(self) -> int:
         return sum(1 for n in self.nos if n.fechado)
 
+    # Denominador certo: é onde o item mora. Contar todo nó-objeto inflaria com
+    # mapa de chave livre que é livre POR DESENHO (o `dados: {categoria → array}`
+    # do `e4_cashflow`), e o número deixaria de discriminar.
     @property
     def terminais(self) -> tuple[NoDeContrato, ...]:
-        """Nós terminais de coleção — item de `array`, valor de `additionalProperties`/`patternProperties`.
-
-        É onde o item mora, e é o denominador certo. Contar todo nó-objeto
-        inflaria com mapas de chave livre que são livres **por desenho** (o
-        `dados: {categoria → array}` do `e4_cashflow`), e o número deixaria de
-        discriminar.
-        """
+        """Item de `array` ou valor de `additionalProperties`/`patternProperties`."""
         return tuple(n for n in self.nos if n.terminal_de_colecao)
 
     @property
@@ -79,15 +76,12 @@ class Grao:
         """Terminais sem fecho — publicado, não gateado (ver docstring do módulo)."""
         return tuple(n.path for n in self.terminais if not n.fechado)
 
+    # Schema sem terminal é `True` por VACUIDADE, e isso é correto: não há item
+    # por descrever, logo não há grão por medir. Penalizá-lo trocaria falso-verde
+    # por falso-vermelho.
     @property
     def declarado(self) -> bool:
-        """Todo terminal de coleção exige ao menos uma chave.
-
-        Schema sem terminal é `True` por vacuidade **e isso é correto**: não há
-        item por descrever, então não há grão por medir. Penalizá-lo trocaria
-        falso-verde por falso-vermelho — é o motivo de o predicado ser `required`
-        no terminal e não `additionalProperties` em todo nó.
-        """
+        """Todo terminal de coleção exige ao menos uma chave."""
         return not self.sem_grao
 
     def resumo(self) -> str:
@@ -131,41 +125,59 @@ def _percorrer(
 ) -> None:
     if not isinstance(node, dict):
         return
-    ref = node.get("$ref")
-    if isinstance(ref, str) and ref.endswith(".schema.json"):
-        # Guarda de ciclo por (arquivo, path): `review_reason` é referenciado de
-        # vários pontos e sem isto o percurso não termina.
-        marca = f"{ref}@{path}"
-        if marca not in vistos:
-            vistos.add(marca)
-            alvo = _carregar(ref)
-            if alvo is not None:
-                _percorrer(alvo, path, vistos, acc, terminal)
+    _seguir_ref(node, path, vistos, acc, terminal)
     tipos = _tipos(node)
     if "object" in tipos or "properties" in node:
-        acc.append(
-            NoDeContrato(
-                path=path,
-                fechado=node.get("additionalProperties") is False,
-                tem_required=bool(node.get("required")),
-                terminal_de_colecao=terminal,
-            )
+        _percorrer_objeto(node, path, vistos, acc, terminal)
+    itens = node.get("items")
+    if ("array" in tipos or "items" in node) and isinstance(itens, dict):
+        _percorrer(itens, f"{path}[]", vistos, acc, terminal=True)
+    _percorrer_combinadores(node, path, vistos, acc, terminal)
+
+
+def _seguir_ref(node: dict, path: str, vistos: set, acc: list, terminal: bool) -> None:
+    # Guarda de ciclo por (arquivo, path): `review_reason` é referenciado de
+    # vários pontos e sem isto o percurso não termina.
+    ref = node.get("$ref")
+    if not (isinstance(ref, str) and ref.endswith(".schema.json")):
+        return
+    marca = f"{ref}@{path}"
+    if marca in vistos:
+        return
+    vistos.add(marca)
+    alvo = _carregar(ref)
+    if alvo is not None:
+        _percorrer(alvo, path, vistos, acc, terminal)
+
+
+def _percorrer_objeto(node: dict, path: str, vistos: set, acc: list, terminal: bool) -> None:
+    acc.append(
+        NoDeContrato(
+            path=path,
+            fechado=node.get("additionalProperties") is False,
+            tem_required=bool(node.get("required")),
+            terminal_de_colecao=terminal,
         )
-        for sub, sub_path in _filhos_nomeados(node, path):
-            _percorrer(sub, sub_path, vistos, acc)
-        for sub, sub_path in _filhos_de_mapa(node, path):
-            _percorrer(sub, sub_path, vistos, acc, terminal=True)
-    if "array" in tipos or "items" in node:
-        itens = node.get("items")
-        if isinstance(itens, dict):
-            _percorrer(itens, f"{path}[]", vistos, acc, terminal=True)
+    )
+    for sub, sub_path in _filhos_nomeados(node, path):
+        _percorrer(sub, sub_path, vistos, acc)
+    for sub, sub_path in _filhos_de_mapa(node, path):
+        _percorrer(sub, sub_path, vistos, acc, terminal=True)
+
+
+def _percorrer_combinadores(node: dict, path: str, vistos: set, acc: list, terminal: bool) -> None:
+    for sub, sub_path in _sub_combinadores(node, path):
+        _percorrer(sub, sub_path, vistos, acc, terminal)
+
+
+def _sub_combinadores(node: dict, path: str) -> Iterable[tuple[dict, str]]:
+    """`allOf`/`anyOf`/`oneOf`/`then`/`else`, achatando a forma-lista e a forma-dict."""
     for comb in _COMBINADORES:
         sub = node.get(comb)
         if isinstance(sub, dict):
-            _percorrer(sub, f"{path}/{comb}", vistos, acc, terminal)
-        elif isinstance(sub, list):
-            for i, ramo in enumerate(sub):
-                _percorrer(ramo, f"{path}/{comb}[{i}]", vistos, acc, terminal)
+            yield sub, f"{path}/{comb}"
+        for i, ramo in enumerate(sub if isinstance(sub, list) else ()):
+            yield ramo, f"{path}/{comb}[{i}]"
 
 
 def medir_grao(schema: dict) -> Grao:
@@ -214,12 +226,10 @@ if __name__ == "__main__":
 # `membros` por **alcance de código**, com 0 ocorrências no corpus.
 
 
+# `{categoria → lançamentos}` e `patrimonio_por_ano` modelam dado NA CHAVE;
+# diferenciar chave contra `properties` ali produz falso-vermelho em massa.
 def _mapa_de_chave_livre(node: dict) -> bool:
-    """Dicionário chave-dado — a cobertura se avalia no VALOR, nunca nas chaves.
-
-    `{categoria → lançamentos}` e `patrimonio_por_ano` modelam dado na chave;
-    diferenciar chave contra `properties` ali produz falso-vermelho em massa.
-    """
+    """Dicionário chave-dado — a cobertura se avalia no valor, nunca nas chaves."""
     if node.get("properties"):
         return False
     return isinstance(node.get("additionalProperties"), dict) or bool(node.get("patternProperties"))
@@ -236,39 +246,40 @@ def _ramos(node: dict) -> list[dict]:
     memo = _MEMO_RAMOS.get(id(node))
     if memo is not None:
         return memo
-    saida = [node]
-    ref = node.get("$ref")
-    if isinstance(ref, str) and ref.endswith(".schema.json"):
-        alvo = _carregar(ref)
-        if isinstance(alvo, dict):
-            saida.extend(_ramos(alvo))
+    saida = [node, *_ramos_do_ref(node)]
     for comb in _COMBINADORES:
-        sub = node.get(comb)
-        if isinstance(sub, dict):
-            saida.extend(_ramos(sub))
-        elif isinstance(sub, list):
-            for ramo in sub:
-                if isinstance(ramo, dict):
-                    saida.extend(_ramos(ramo))
+        saida.extend(_ramos_do_combinador(node.get(comb)))
     _MEMO_RAMOS[id(node)] = saida
     return saida
 
 
-def _declaradas_no_no(node: dict) -> set[str]:
-    """União das `properties` do nó e de todo ramo alcançável.
+def _ramos_do_ref(node: dict) -> list[dict]:
+    ref = node.get("$ref")
+    if not (isinstance(ref, str) and ref.endswith(".schema.json")):
+        return []
+    alvo = _carregar(ref)
+    return _ramos(alvo) if isinstance(alvo, dict) else []
 
-    União, não interseção: sob `anyOf`, basta um ramo declarar a chave para que o
-    payload valide. Interseção fabricaria defeito onde o validador não vê nenhum.
-    """
+
+def _ramos_do_combinador(sub: Any) -> list[dict]:
+    if isinstance(sub, dict):
+        return _ramos(sub)
+    if isinstance(sub, list):
+        return [r for ramo in sub if isinstance(ramo, dict) for r in _ramos(ramo)]
+    return []
+
+
+# União, não interseção: sob `anyOf` basta UM ramo declarar a chave para o payload
+# validar, e interseção fabricaria defeito onde o validador não vê nenhum.
+def _declaradas_no_no(node: dict) -> set[str]:
+    """União das `properties` do nó e de todo ramo alcançável."""
     return {k for ramo in _ramos(node) for k in (ramo.get("properties") or {})}
 
 
+# Conta como DEFEITO, não como ausência: tratá-lo como ausência premiaria deletar
+# a declaração — apagar `properties` seria o caminho barato para o verde.
 def _indeclarado(node: dict) -> bool:
-    """`{"type": "object"}` sem `properties` nem mapa — profundidade não medida.
-
-    Conta como **defeito**, não como ausência. Tratá-lo como ausência premiaria
-    deletar a declaração: apagar `properties` seria o caminho barato para o verde.
-    """
+    """`{"type": "object"}` sem `properties` nem mapa — profundidade não medida."""
     return not any(
         ramo.get("properties") or ramo.get("additionalProperties") or ramo.get("patternProperties")
         for ramo in _ramos(node)
@@ -288,9 +299,11 @@ def _valor_de_mapa(node: dict) -> Optional[dict]:
         ap = ramo.get("additionalProperties")
         if isinstance(ap, dict):
             return ap
-        for sub in (ramo.get("patternProperties") or {}).values():
-            if isinstance(sub, dict):
-                return sub
+        por_padrao = [
+            v for v in (ramo.get("patternProperties") or {}).values() if isinstance(v, dict)
+        ]
+        if por_padrao:
+            return por_padrao[0]
     return None
 
 
@@ -302,20 +315,17 @@ def _itens_de(node: dict) -> Optional[dict]:
     return None
 
 
+# A distinção entre os dois campos é de SEGURANÇA, não de estética:
+#
+# - `chaves_fora`: o nó DECLARA `properties` e o payload trouxe chave além delas.
+#   Nome de campo é metadado — a [[ADR-284]] já o publica na telemetria de drift —,
+#   então listar é seguro, e é o que torna o número acionável.
+# - `nos_indeclarados`: o nó é `{"type": "object"}` sem `properties` nem mapa. Ali
+#   as chaves do payload SÃO DADO (mês, membro, categoria), e enumerá-las jogaria
+#   conteúdo financeiro no stdout — só o path e a contagem saem.
 @dataclass
 class Cobertura:
-    """Dois defeitos distintos, e a distinção é de segurança, não de estética.
-
-    - `chaves_fora`: o nó **declara** `properties` e o payload trouxe chave além
-      delas. Nome de campo é metadado, e a [[ADR-284]] já o publica na telemetria
-      de drift — listar é seguro e é o que torna o número acionável.
-    - `nos_indeclarados`: o nó é `{"type": "object"}` sem `properties` nem mapa.
-      Aqui as chaves do payload **são dado** (mês, membro, categoria), então só o
-      path e a contagem saem. Enumerá-las jogaria conteúdo financeiro no stdout.
-
-    Um nó indeclarado é defeito, não ausência: tratá-lo como ausência faria de
-    "apagar `properties`" o caminho barato para o verde.
-    """
+    """Nós em que o payload emitiu além do que o contrato declara."""
 
     chaves_fora: dict[str, set[str]]
     nos_indeclarados: dict[str, int]
@@ -333,26 +343,36 @@ def _cobrir(node: Any, valor: Any, path: str, cob: Cobertura) -> None:
     if not isinstance(node, dict):
         return
     if isinstance(valor, list):
-        itens = _itens_de(node)
-        for elemento in valor:
-            if itens is None:
-                if isinstance(elemento, dict) and elemento:
-                    cob.nos_indeclarados[f"{path}[]"] = cob.nos_indeclarados.get(f"{path}[]", 0) + 1
-            else:
-                _cobrir(itens, elemento, f"{path}[]", cob)
+        _cobrir_lista(node, valor, path, cob)
         return
     if not isinstance(valor, dict):
         return
     if _mapa_de_chave_livre(node):
         sub = _valor_de_mapa(node)
-        if sub is not None:
-            for v in valor.values():
-                _cobrir(sub, v, f"{path}.*", cob)
+        for v in valor.values() if sub is not None else ():
+            _cobrir(sub, v, f"{path}.*", cob)
         return
     if _indeclarado(node):
         if valor:
             cob.nos_indeclarados[path] = cob.nos_indeclarados.get(path, 0) + 1
         return
+    _cobrir_registro(node, valor, path, cob)
+
+
+def _cobrir_lista(node: dict, valor: list, path: str, cob: "Cobertura") -> None:
+    itens = _itens_de(node)
+    alvo = f"{path}[]"
+    if itens is None:
+        # `{"type": "array"}` sem `items`: o contrato não descreve o elemento.
+        indeclarados = sum(1 for e in valor if isinstance(e, dict) and e)
+        if indeclarados:
+            cob.nos_indeclarados[alvo] = cob.nos_indeclarados.get(alvo, 0) + indeclarados
+        return
+    for elemento in valor:
+        _cobrir(itens, elemento, alvo, cob)
+
+
+def _cobrir_registro(node: dict, valor: dict, path: str, cob: "Cobertura") -> None:
     nao_declaradas = set(valor) - _declaradas_no_no(node)
     if nao_declaradas:
         cob.chaves_fora.setdefault(path, set()).update(nao_declaradas)

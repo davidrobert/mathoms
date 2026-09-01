@@ -35,11 +35,9 @@ def test_o_baseline_tem_grao_hoje():
 
 
 def test_a_metrica_flipa_quando_o_required_do_item_some():
-    """Não-inércia contra o arquivo vivo: sem `required` no item, o grão some.
-
-    Mede o schema real com um mecanismo removido — se a métrica continuasse
-    dizendo `declarado`, ela estaria lendo outra coisa que não o contrato.
-    """
+    # Mede o schema REAL com um mecanismo removido: se a métrica continuasse
+    # dizendo `declarado`, estaria lendo outra coisa que não o contrato.
+    """Não-inércia contra o arquivo vivo: sem `required` no item, o grão some."""
     schema = json.loads(_BASELINE.read_text(encoding="utf-8"))
     for colecao in _TERMINAIS_DA_LANE.values():
         schema["properties"][colecao]["items"].pop("required")
@@ -50,11 +48,9 @@ def test_a_metrica_flipa_quando_o_required_do_item_some():
 
 
 def test_mapa_de_chave_livre_conta_como_terminal():
-    """`patrimonio_por_ano.*` é item tanto quanto `imoveis[]` — item de mapa é item.
-
-    Sem isto o contrato fecharia o array e deixaria o mapa aberto, e o número
-    diria `declarado` sobre um payload em que `{}` ainda atravessa.
-    """
+    # Sem isto o contrato fecharia o array e deixaria o mapa aberto, e o número
+    # diria `declarado` sobre payload em que `{}` ainda atravessa.
+    """`patrimonio_por_ano.*` é item tanto quanto `imoveis[]` — item de mapa é item."""
     grao = medir_grao(
         {
             "type": "object",
@@ -126,10 +122,8 @@ _MAPA_COM_ITEM_DECLARADO = {
 
 
 def test_mapa_de_chave_livre_nao_dispara():
-    """`{categoria → lançamentos}` modela dado na chave; diferenciá-la é falso-vermelho.
-
-    Sem esta regra, 8 nós legítimos do repo reprovariam — medido na A42.l26.
-    """
+    # Sem esta regra, 8 nós legítimos do repo reprovariam — medido na A42.l26.
+    """`{categoria → lançamentos}` modela dado na chave; diferenciá-la é falso-vermelho."""
     cob = medir_cobertura(_MAPA_COM_ITEM_DECLARADO, {"dados": {"alimentacao": [{"valor": 1}]}})
     assert cob.completa
 
@@ -143,11 +137,9 @@ def test_item_do_mapa_com_chave_nao_declarada_dispara():
 
 
 def test_no_indeclarado_conta_como_defeito_e_nao_como_ausencia():
-    """`{"type": "object"}` vazio é profundidade NÃO MEDIDA.
-
-    Se contasse como ausência, apagar `properties` seria o caminho barato para o
-    verde — a métrica passaria a premiar quem deleta a declaração.
-    """
+    # Se contasse como ausência, apagar `properties` seria o caminho barato para o
+    # verde — a métrica passaria a premiar quem deleta a declaração.
+    """`{"type": "object"}` vazio é profundidade NÃO MEDIDA."""
     schema = {"type": "object", "properties": {"itens": {"type": "array", "items": {"type": "object"}}}}
     cob = medir_cobertura(schema, {"itens": [{"a": 1}, {"b": 2}]})
     assert cob.nos_indeclarados == {"$.itens[]": 2} and not cob.completa

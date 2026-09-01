@@ -54,15 +54,12 @@ class SchemaDrift:
 
         return medir_grao_por_nome(self.nome) if self.nome else None
 
+    # Só a direção `emitida ⊄ declarada` conta. A fantasma (`declarada ⊄ emitível`)
+    # é reportada pelos gates de completude e NUNCA veta aqui: vetá-la quebraria a
+    # [[ADR-432]] D1, que declara chave por alcance de código com 0 no corpus.
     @property
     def cobertura_completa(self) -> bool:
-        """Todo nó alcançado no corpus declara o que o payload emitiu ali.
-
-        Só a direção `emitida ⊄ declarada` conta. A fantasma (`declarada ⊄
-        emitível`) é reportada pelos gates de completude e **nunca** veta aqui:
-        vetá-la quebraria a [[ADR-432]] D1, que declara chave por alcance de
-        código com 0 ocorrências no corpus.
-        """
+        """Todo nó alcançado no corpus declara o que o payload emitiu ali."""
         return not self.cobertura_fora and not self.nos_indeclarados
 
     @property
@@ -238,41 +235,40 @@ def _print_table(results: dict, start: Optional[str] = None, newest: Optional[st
     print(header)
     print("-" * len(header))
     for name in sorted(results, key=lambda n: (-results[n].drifted, n)):
-        s = results[name]
-        g = s.grao
-        grao_col = "—" if g is None else f"{len(g.terminais) - len(g.sem_grao)}/{len(g.terminais)}"
-        n_cob = len(set(s.cobertura_fora) | set(s.nos_indeclarados))
-        cob_col = "ok" if s.cobertura_completa else f"-{n_cob}"
+        print(_linha_da_tabela(name, results[name]))
+    for name in sorted(results):
+        _print_rodape(name, results[name])
+
+
+def _linha_da_tabela(name: str, s: SchemaDrift) -> str:
+    g = s.grao
+    grao_col = "—" if g is None else f"{len(g.terminais) - len(g.sem_grao)}/{len(g.terminais)}"
+    n_cob = len(set(s.cobertura_fora) | set(s.nos_indeclarados))
+    cob_col = "ok" if s.cobertura_completa else f"-{n_cob}"
+    return (
+        f"{name:<40} {s.artifacts:>6} {s.drifted:>6} {s.drift_pct:>5.1f}% "
+        f"{len(s.runs):>5} {len(s.payloads):>6} {grao_col:>7} {cob_col:>5}  {_veredito(s)}"
+    )
+
+
+# Os rodapés publicam os PONTEIROS, não só o número: `-1` sozinho não é acionável,
+# e é ele que o PR de flip cita em vez de reler o corpus.
+def _print_rodape(name: str, s: SchemaDrift) -> None:
+    """Razão do bloqueio, grão sem `required` e nós sem cobertura, com os paths."""
+    if s.contrato_nao_derivado:
+        print(f"\n  {name}: contrato não re-derivado — {s.contrato_nao_derivado}")
+    g = s.grao
+    if g is not None and not g.declarado:
+        print(f"\n  {name}: {g.resumo()} — item sem `required`: {', '.join(g.sem_grao)}")
+    for path in sorted(s.cobertura_fora):
+        chaves = ", ".join(sorted(s.cobertura_fora[path]))
+        print(f"\n  {name}: emitidas e não declaradas em {path} — {chaves}")
+    for path in sorted(s.nos_indeclarados):
+        # Sem as chaves: num nó indeclarado elas são DADO, não nome de campo.
         print(
-            f"{name:<40} {s.artifacts:>6} {s.drifted:>6} {s.drift_pct:>5.1f}% "
-            f"{len(s.runs):>5} {len(s.payloads):>6} {grao_col:>7} {cob_col:>5}  "
-            f"{_veredito(s)}"
+            f"\n  {name}: nó indeclarado em {path} — {s.nos_indeclarados[path]} "
+            "ocorrência(s); o contrato não descreve nada aqui"
         )
-    for name in sorted(results):
-        razao = results[name].contrato_nao_derivado
-        if razao:
-            print(f"\n  {name}: contrato não re-derivado — {razao}")
-    # O grão é publicado com os PONTEIROS, não só com o número: `0/1` sozinho não
-    # é acionável, e número sem consumidor nasce inerte ([[A40.l88]]).
-    for name in sorted(results):
-        g = results[name].grao
-        if g is not None and not g.declarado:
-            print(f"\n  {name}: {g.resumo()} — item sem `required`: {', '.join(g.sem_grao)}")
-    # Cobertura publicada com os PONTEIROS: `-1` sozinho não é acionável, e é ela
-    # que o PR de flip cita em vez de reler o corpus.
-    for name in sorted(results):
-        s = results[name]
-        for path in sorted(s.cobertura_fora):
-            print(
-                f"\n  {name}: emitidas e não declaradas em {path} — "
-                f"{', '.join(sorted(s.cobertura_fora[path]))}"
-            )
-        for path in sorted(s.nos_indeclarados):
-            # Sem as chaves: num nó indeclarado elas são DADO, não nome de campo.
-            print(
-                f"\n  {name}: nó indeclarado em {path} — {s.nos_indeclarados[path]} ocorrência(s); "
-                "o contrato não descreve nada aqui"
-            )
 
 
 def _print_paths(results: dict, limit: int) -> None:
@@ -301,19 +297,23 @@ def _schema_summary(stats: SchemaDrift) -> dict:
         "go": stats.is_go,
         "contrato_nao_derivado": stats.contrato_nao_derivado,
         "grao": _grao_summary(stats),
-        "cobertura": {
-            "completa": stats.cobertura_completa,
-            "nos_sem_cobertura": [
-                {"path": p, "chaves": sorted(stats.cobertura_fora[p])}
-                for p in sorted(stats.cobertura_fora)
-            ],
-            "nos_indeclarados": [
-                {"path": p, "ocorrencias": stats.nos_indeclarados[p]}
-                for p in sorted(stats.nos_indeclarados)
-            ],
-        },
+        "cobertura": _cobertura_summary(stats),
         "paths": [
             {"path": p, "validator": k, "occurrences": n} for (p, k), n in stats.paths.most_common()
+        ],
+    }
+
+
+def _cobertura_summary(stats: SchemaDrift) -> dict:
+    return {
+        "completa": stats.cobertura_completa,
+        "nos_sem_cobertura": [
+            {"path": p, "chaves": sorted(stats.cobertura_fora[p])}
+            for p in sorted(stats.cobertura_fora)
+        ],
+        "nos_indeclarados": [
+            {"path": p, "ocorrencias": stats.nos_indeclarados[p]}
+            for p in sorted(stats.nos_indeclarados)
         ],
     }
 
