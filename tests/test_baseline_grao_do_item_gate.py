@@ -238,6 +238,13 @@ _CASOS: dict[str, dict] = {
     "ano_objeto_vazio": {"patrimonio_por_ano": {"2024": {}}},
     "lixo_no_ano_objeto": {"patrimonio_por_ano": {"2024": _ANO_OK | {"lixo": "x"}}},
     "chave_nao_ano_em_patrimonio_por_ano": {"patrimonio_por_ano": {"total": _ANO_OK}},
+    # Valor NUMÉRICO de propósito: com string, o caso seria pego pelo fecho de
+    # `valores_31_12` e não distinguiria nada do `campo_lixo`. Com número, ele só
+    # reprova pela CONJUNÇÃO (fecho + pattern sem a alternativa fantasma) — e é
+    # por isso que aparece nos dois conjuntos de `_MUTACOES`.
+    "chave_com_prefixo_31_12_fantasma": {
+        "imoveis_consolidados": [_ITEM_OK | {"valores_31_12": {"31_12_2024": 100.0}}]
+    },
 }
 
 # Cada mutação desliga UM mecanismo do aperto; o valor é o conjunto EXATO de
@@ -251,10 +258,14 @@ _MUTACOES: dict[str, set[str]] = {
         "item_vazio_investimentos",
         "item_vazio_veiculos",
     },
-    "valores_31_12_sem_additionalProperties": {"num_como_str_em_chave_nao_ano"},
+    "valores_31_12_sem_additionalProperties": {
+        "num_como_str_em_chave_nao_ano",
+        "chave_com_prefixo_31_12_fantasma",
+    },
     "ano_sem_required": {"ano_objeto_vazio"},
     "ano_sem_additionalProperties": {"lixo_no_ano_objeto"},
     "patrimonio_por_ano_sem_propertyNames": {"chave_nao_ano_em_patrimonio_por_ano"},
+    "valores_31_12_com_pattern_legado": {"chave_com_prefixo_31_12_fantasma"},
 }
 
 
@@ -279,6 +290,10 @@ def _mutar(schema: dict, mutacao: str) -> dict:
         ano.pop("required", None)
     elif mutacao == "ano_sem_additionalProperties":
         ano.pop("additionalProperties", None)
+    elif mutacao == "valores_31_12_com_pattern_legado":
+        for it in itens:
+            padroes = it["properties"]["valores_31_12"]["patternProperties"]
+            padroes["^(31_12_)?\\d{4}$"] = padroes.pop("^\\d{4}$")
     elif mutacao == "patrimonio_por_ano_sem_propertyNames":
         s["properties"]["patrimonio_por_ano"].pop("propertyNames", None)
     else:  # pragma: no cover - guarda de digitação
@@ -318,3 +333,31 @@ def test_nao_inercia_por_subconjunto(mutacao):
         f"sem `{mutacao}` atravessam {sorted(sobreviventes)}; o esperado é "
         f"{sorted(_MUTACOES[mutacao])}. Diferença = mecanismo acoplado ou linha inerte."
     )
+
+
+def test_o_gate_de_completude_le_o_produtor_e_nao_uma_lista(monkeypatch):
+    """Não-inércia do gate de completude, mutando o **produtor** — não o payload.
+
+    Payload mutado prova só que o validador roda. O que precisa ser provado é o
+    acoplamento: se `consolidate_from_itens` passar a emitir chave nova no item,
+    o gate tem de ficar vermelho **sem ninguém tocar no teste**. Sem isto,
+    `_emitidas` poderia estar lendo uma lista congelada e o verde seria vácuo.
+    """
+    import scripts.consolidate_baseline as cb
+
+    original = cb.consolidate_from_itens
+
+    def _com_chave_nova(*args, **kwargs):
+        saida = original(*args, **kwargs)
+        for item in saida.get("imoveis_consolidados") or []:
+            item["chave_que_o_contrato_nao_conhece"] = 1
+        return saida
+
+    monkeypatch.setattr(cb, "consolidate_from_itens", _com_chave_nova)
+    mutado = _baseline_do_produtor()
+    fora = _emitidas(mutado, "imoveis_consolidados") - _declaradas("imoveis_consolidados")
+    assert fora == {"chave_que_o_contrato_nao_conhece"}, (
+        "o gate não enxergou a chave que o produtor mutado emitiu — "
+        f"diferença medida: {sorted(fora)}"
+    )
+    assert _reprova(_schema(), mutado), "o contrato aceitou a chave nova no item"

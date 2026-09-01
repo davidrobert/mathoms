@@ -78,12 +78,13 @@
           "valores_31_12": {
             "type": "object",
             "patternProperties": {
-              "^(31_12_)?\\d{4}$": {
+              "^\\d{4}$": {
                 "type": "number",
                 "minimum": 0
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": " [[A42.l26]]: a alternativa `31_12_` era fantasma de nivel-2 — 0 de 10.699 chaves no corpus e produtor nenhum a emite (o leitor `parse_ano_31_12` segue tolerante; aposentar a declaracao de saida nao o toca). Mesma regra da [[ADR-432]] D2."
           },
           "instituicao": {
             "type": "string"
@@ -163,9 +164,9 @@
           },
           "valores_31_12": {
             "type": "object",
-            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
+            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]). [[A42.l26]]: a alternativa `31_12_` era fantasma de nivel-2 — 0 de 10.699 chaves no corpus e produtor nenhum a emite (o leitor `parse_ano_31_12` segue tolerante; aposentar a declaracao de saida nao o toca). Mesma regra da [[ADR-432]] D2.",
             "patternProperties": {
-              "^(31_12_)?\\d{4}$": {
+              "^\\d{4}$": {
                 "type": [
                   "number",
                   "null"
@@ -285,9 +286,9 @@
           },
           "valores_31_12": {
             "type": "object",
-            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
+            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]). [[A42.l26]]: a alternativa `31_12_` era fantasma de nivel-2 — 0 de 10.699 chaves no corpus e produtor nenhum a emite (o leitor `parse_ano_31_12` segue tolerante; aposentar a declaracao de saida nao o toca). Mesma regra da [[ADR-432]] D2.",
             "patternProperties": {
-              "^(31_12_)?\\d{4}$": {
+              "^\\d{4}$": {
                 "type": [
                   "number",
                   "null"
