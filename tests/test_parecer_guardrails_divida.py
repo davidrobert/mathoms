@@ -16,10 +16,11 @@ Fixtures sintéticas PII-zero.
 
 from __future__ import annotations
 
+from typing import get_args
+
 import pytest
 
 from backend.app.services.parecer_guardrails_divida import (
-    _SECAO_LIQUIDEZ,
     neutralize_autocontradicao,
     piso_prescricao_divida,
 )
@@ -29,10 +30,17 @@ from pipeline.llm.schemas.parecer_planejador import (
     ParecerPlanejadorOutput,
     PontoForte,
     Risco,
+    SectionId,
     Sugestao,
 )
 
 WS = "ws-divida-test"
+
+# A40.l116 — a seção do item de liquidez vem do que o MODELO emite, nunca da constante do
+# módulo. Medido em 14 runs sobre o mesmo corpus: S3 em 9, S4 em 5, S1 em ZERO. Importar a
+# constante (como estas fixtures faziam) tornava todo teste desta classe invariante ao valor
+# dela — passava inclusive com um literal que o modelo nunca emite, que era o defeito vivo.
+SECAO_LIQUIDEZ_OBSERVADA = "S3"
 
 E5_TAXA_NULA = {
     "endividamento": {
@@ -74,7 +82,7 @@ def _pf(tema: str = "Saúde de balanço", section: str = "S10", i: int = 0) -> P
     )
 
 
-def _risco(tema: str = "Liquidez", section: str = _SECAO_LIQUIDEZ) -> Risco:
+def _risco(tema: str = "Liquidez", section: str = SECAO_LIQUIDEZ_OBSERVADA) -> Risco:
     return Risco(
         severidade="Média",
         titulo="Risco identificado na seção",
@@ -217,14 +225,14 @@ class TestPisoDeDuasDirecoes:
 class TestAutocontradicao:
     def test_r2_liquidez_excessiva_remove_ponto_forte_de_liquidez(self):
         """O sinal vem do E5 — contradição sobre o MESMO objeto medido."""
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 9)]
         out, tel = neutralize_autocontradicao(_output(pontos=pontos), E5_LIQUIDEZ_EXCESSIVA, WS)
         assert len(out.pontos_fortes) == 4
         assert all(p.tema_canonico != "Liquidez" for p in out.pontos_fortes)
         assert tel["autocontradicao_removidos"] == 1
 
     def test_liquidez_adequada_nao_dispara(self):
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 9)]
         out, tel = neutralize_autocontradicao(_output(pontos=pontos), E5_TAXA_CONHECIDA, WS)
         assert len(out.pontos_fortes) == 5
         assert tel["autocontradicao_removidos"] == 0
@@ -232,17 +240,23 @@ class TestAutocontradicao:
     def test_par_secao_tema_e_so_contado_nao_removido(self):
         """R1 refutada por medição no r7: o par (seção, tema) é BALDE, não assunto —
         casava 2/5 pontos fortes com 1 falso-positivo (S2 + "Equilíbrio presente-futuro"
-        aproxima poupança alta de gasto com saúde alto). Vira contagem para o r8."""
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
+        aproxima poupança alta de gasto com saúde alto). Vira contagem para o r8.
+        Escrito com o tema que PRODUZIU o falso-positivo, não com "Liquidez": a A40.l116
+        faz o par Liquidez × Liquidez ressalvar, e usar Liquidez aqui faria este teste
+        codificar o oposto do braço (b) — a colisão genérica continua só contada."""
+        tema = "Equilíbrio presente-futuro"
+        pontos = [_pf(i=i) for i in range(4)] + [_pf(tema, "S2", 9)]
         out, tel = neutralize_autocontradicao(
-            _output(pontos=pontos, riscos=[_risco()]), E5_TAXA_CONHECIDA, WS
+            _output(pontos=pontos, riscos=[_risco(tema=tema, section="S2")]),
+            E5_TAXA_CONHECIDA,
+            WS,
         )
         assert len(out.pontos_fortes) == 5
         assert tel["autocontradicao_removidos"] == 0
         assert tel["autocontradicao_pares_secao_tema"] == 1
 
     def test_par_e_contado_mesmo_quando_r2_ja_removeu(self):
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 9)]
         _, tel = neutralize_autocontradicao(
             _output(pontos=pontos, riscos=[_risco()]), E5_LIQUIDEZ_EXCESSIVA, WS
         )
@@ -250,16 +264,16 @@ class TestAutocontradicao:
         assert tel["autocontradicao_pares_secao_tema"] == 1
 
     def test_piso_degrada_com_ressalva(self):
-        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", _SECAO_LIQUIDEZ, 2)]
+        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 2)]
         out, tel = neutralize_autocontradicao(_output(pontos=pontos), E5_LIQUIDEZ_EXCESSIVA, WS)
         assert len(out.pontos_fortes) == PONTOS_FORTES_MIN
         assert tel["autocontradicao_removidos"] == 0
         assert tel["autocontradicao_ressalvados"] == 1
         assert "também consta como risco" in out.pontos_fortes[2].descricao
-        assert out.pontos_fortes[2].section_id == _SECAO_LIQUIDEZ
+        assert out.pontos_fortes[2].section_id == SECAO_LIQUIDEZ_OBSERVADA
 
     def test_saida_revalida_no_schema(self):
-        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", _SECAO_LIQUIDEZ, 2)]
+        pontos = [_pf(i=0), _pf(i=1), _pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 2)]
         out, _ = neutralize_autocontradicao(_output(pontos=pontos), E5_LIQUIDEZ_EXCESSIVA, WS)
         ParecerPlanejadorOutput.model_validate(out.model_dump())
 
@@ -284,7 +298,7 @@ class TestCallSiteOrchestrator:
     def _resultado(self):
         from tests.test_parecer_guardrails_pos_llm import _generate
 
-        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", _SECAO_LIQUIDEZ, 9)]
+        pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 9)]
         sug = _sug("Amortizar o saldo devedor do financiamento com o excedente de caixa.")
         e5 = {**E5_TAXA_NULA, "reserva_emergencia": {"avaliacao_liquidity": "Excessiva"}}
         return _generate(_output(pontos=pontos, riscos=[_risco()], taticas=[sug]), e5)
@@ -333,30 +347,95 @@ class TestCallSiteOrchestrator:
 
 
 # ---------------------------------------------------------------------------
-# A40.l80 — guardrail não arma em seção que o modelo nunca vê
+# A40.l116 — nenhum literal de seção pode voltar a cegar o guardrail
 # ---------------------------------------------------------------------------
 
 
-# `_SECAO_LIQUIDEZ` valeu `"S4"` desde que o guardrail nasceu. O manifest projeta seções
-# alinhadas a S1/S2/S3/S7/S8/S9/S10 — **S4 nunca** —, e a reserva vive em `saude_balanco`
-# (`aligned_with_layout: "S1"`). Resultado medido: com o sinal do E5 VIVO no golden
-# (`avaliacao_liquidity == "Excessiva"`), o guardrail não disparava. A [[ADR-412]] §Emenda
-# E3 apoia-se nele para NÃO suprimir `avaliacao_liquidity`.
+# SUBSTITUI `test_guardrail_arma_em_secao_que_o_manifest_projeta` (A40.l80, #1800), cuja
+# premissa — "seção que o manifest não projeta é seção que o modelo não rotula" — está
+# REFUTADA por medição: o modelo emite `S4`, `S_parecer`, `S_IRPF_RENDA` e
+# `S_IRPF_OTIMIZACAO`, nenhuma delas projetada pelo manifest. E o teste era fraco de todo
+# jeito: pertinência num conjunto de 8 valores deixa 7 literais errados passarem — foi assim
+# que `S1` (0 de 14 runs) atravessou como se fosse conserto.
 #
-# Este teste é o que separa o conserto da tautologia: os testes acima importam a constante,
-# logo passariam com qualquer valor — inclusive `"S4"` de volta.
-def test_guardrail_arma_em_secao_que_o_manifest_projeta():
-    """Seção que o manifest não projeta é seção que o modelo não rotula — regra morta."""
-    from backend.app.services.parecer_manifest import load_manifest
+# Este teste é o gate de não-inércia: ele varre TODO o vocabulário de seção do modelo, então
+# reintroduzir um filtro por qualquer seção reprova em 11 dos 12 parâmetros. Contrafactual
+# rodado antes de escrever o fix: com `and p.section_id == "S1"` de volta em
+# `_pontos_de_liquidez`, passa 1 de 12.
+@pytest.mark.parametrize("section", get_args(SectionId))
+def test_guardrail_dispara_em_qualquer_secao_que_o_modelo_emita(section):
+    """A seção é rótulo re-sorteado por run; o assunto é que identifica o objeto."""
+    pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", section, 9)]
+    out, tel = neutralize_autocontradicao(_output(pontos=pontos), E5_LIQUIDEZ_EXCESSIVA, WS)
 
-    projetadas = {
-        s.get("aligned_with_layout")
-        for s in load_manifest().sections
-        if s.get("aligned_with_layout")
-    }
-
-    assert projetadas, "manifest sem seções alinhadas — o teste ficaria vacuoso"
-    assert _SECAO_LIQUIDEZ in projetadas, (
-        f"o guardrail arma em `{_SECAO_LIQUIDEZ}`, que o manifest não projeta — "
-        f"o modelo nunca rotula assim e a regra nasce morta. Projetadas: {sorted(projetadas)}"
+    assert tel["autocontradicao_removidos"] == 1, (
+        f"guardrail cego para `section_id={section!r}` — o modelo emite esse rótulo e o "
+        f"E5 declara a reserva excessiva, então o elogio à liquidez é contradição medida"
     )
+    assert tel["autocontradicao_fonte"] == "e5_reserva_excessiva"
+    assert all(p.tema_canonico != "Liquidez" for p in out.pontos_fortes)
+
+
+def test_secao_observada_na_fixture_pertence_ao_vocabulario_do_modelo():
+    """Sem isto, `SECAO_LIQUIDEZ_OBSERVADA` poderia virar um literal que o modelo não emite."""
+    assert SECAO_LIQUIDEZ_OBSERVADA in get_args(SectionId)
+
+
+# ---------------------------------------------------------------------------
+# A40.l116 — tripwire: contradição presente com contador zerado reprova
+# ---------------------------------------------------------------------------
+
+
+# Forma medida do run U5 (2026-09-01): E5 com `avaliacao_liquidity == "Excessiva"`, o parecer
+# ELOGIA "Reserva de Emergência Robusta" e ALERTA "Reserva de Emergência Excessiva — Capital
+# Ocioso", ambos `tema_canonico="Liquidez"` / `section_id="S3"`, e o guardrail publicou
+# `autocontradicao_removidos: 0`. Mora aqui, e não no golden mensal
+# (`test_parecer_golden_monthly_real.py`), porque aquele skipa sem `ANTHROPIC_API_KEY` e só
+# roda pelo `planner-golden-monthly.yml` — tripwire que não roda não é tripwire.
+def test_tripwire_contradicao_do_u5_nao_pode_publicar_contador_zerado():
+    pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 9)]
+    riscos = [_risco(tema="Liquidez", section=SECAO_LIQUIDEZ_OBSERVADA)]
+    _, tel = neutralize_autocontradicao(
+        _output(pontos=pontos, riscos=riscos), E5_LIQUIDEZ_EXCESSIVA, WS
+    )
+
+    neutralizados = tel["autocontradicao_removidos"] + tel["autocontradicao_ressalvados"]
+    assert neutralizados > 0, (
+        "elogio e alerta sobre a mesma liquidez, com o E5 declarando a reserva excessiva, "
+        "e o guardrail não tocou em nada — é a reincidência da A40.l80 (RR9-09 da U5)"
+    )
+
+
+def test_braco_elogio_x_alerta_ressalva_e_nunca_remove():
+    """Braço (b): o árbitro é o LLM julgando o LLM, então ressalva — deletar sobre rótulo
+    do modelo é o que derrubou a R1 no r7. A seção diverge de propósito entre elogio e
+    alerta: o par é de ASSUNTO, e casar por `(seção, tema)` perderia justamente este caso."""
+    pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 9)]
+    riscos = [_risco(tema="Liquidez", section="S4")]
+    out, tel = neutralize_autocontradicao(
+        _output(pontos=pontos, riscos=riscos), E5_TAXA_CONHECIDA, WS
+    )
+
+    assert tel["autocontradicao_fonte"] == "risco_de_liquidez"
+    assert tel["autocontradicao_removidos"] == 0
+    assert tel["autocontradicao_ressalvados"] == 1
+    assert len(out.pontos_fortes) == 5  # o piso tinha folga e ainda assim não deletou
+    assert "também consta como risco" in out.pontos_fortes[4].descricao
+
+
+def test_braco_do_e5_tem_precedencia_e_remove():
+    """Com os dois árbitros vendo a contradição, quem manda é a medida do E5."""
+    pontos = [_pf(i=i) for i in range(4)] + [_pf("Liquidez", SECAO_LIQUIDEZ_OBSERVADA, 9)]
+    riscos = [_risco(tema="Liquidez", section=SECAO_LIQUIDEZ_OBSERVADA)]
+    _, tel = neutralize_autocontradicao(
+        _output(pontos=pontos, riscos=riscos), E5_LIQUIDEZ_EXCESSIVA, WS
+    )
+
+    assert tel["autocontradicao_fonte"] == "e5_reserva_excessiva"
+    assert tel["autocontradicao_removidos"] == 1
+
+
+def test_sem_contradicao_a_fonte_e_nula():
+    _, tel = neutralize_autocontradicao(_output(), E5_TAXA_CONHECIDA, WS)
+    assert tel["autocontradicao_fonte"] is None
+    assert tel["autocontradicao_tema_ausente"] == 0

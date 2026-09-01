@@ -5,7 +5,7 @@ title: "rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM
 status: Decidido
 phase: "A23 · F0"
 date: "2026-06-02"
-amended_at: ["2026-08-30"]
+amended_at: ["2026-08-30", "2026-09-01"]
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-111]]"
@@ -52,6 +52,10 @@ tags:
 
 ## Emenda 2026-08-30 — cobertura medida contra o payload; ground truth do eval sai do registro (A27.l2)
 
+> ⚠️ **O número desta emenda foi corrigido em 2026-09-01** (A27.l3): `5/14 = 35,7%` é a
+> cobertura da **fixture dogfood**, não a do E5. O denominador correto é **17** e a
+> cobertura é **29,4%** — ver a emenda seguinte antes de citar a tabela abaixo.
+
 **O que a decisão original afirmava:** que `check_lineage_refs` torna o bridge
 refactor-safe. **Verdadeiro, e insuficiente** — ele resolve `module:qualname` e checa a
 ADR, mas não tem noção de **cobertura**. Somado a um eval cujo `expected_rule_ref` saía de
@@ -91,3 +95,46 @@ controle positivo: raiz monetária sintética derruba a métrica e reprova, enqu
 **Não muda:** o bridge por dict literal eager, o renderer LLM, o `lineage_diff`, nem o
 alvo `localization_accuracy@node ≥ 85%`. A emenda acrescenta a medida que faltava; não
 reabre a decisão.
+
+## Emenda 2026-09-01 — o universo da cobertura é um roster de origens, não o payload de uma fonte (A27.l3)
+
+> **Sinal:** a tabela da emenda de 2026-08-30 publica **5/14 = 35,7%**. O número é o da
+> **fixture dogfood**, não o do E5. O denominador correto é **17** e a cobertura é
+> **29,4%** — leia esta emenda antes de citar aquela tabela.
+
+**O que a emenda anterior afirmava:** que o denominador vem do payload publicado. Verdadeiro
+como *mecanismo* e errado como *sujeito* — o payload medido era o da fixture dogfood, que é
+subconjunto **estrito** do que a produção emite. Medido em 2026-09-01 sobre o artefato
+`analise_financeira` do run `40d1af2a`: a produção publica dinheiro em **17** raízes contra
+**14** na fixture. As 3 a mais (`previdencia_pgbl`, `real_estate`, `tributario`) nunca
+aparecem na fixture, que não tem IRPF, imóvel locado nem PJ. O viés era **otimista** e
+crescia sozinho: raiz nova entrava na produção sem entrar no denominador.
+
+| Medida (2026-09-01) | Valor |
+| --- | --- |
+| Raízes monetárias da fixture dogfood | 14 |
+| Raízes monetárias do payload de produção (`40d1af2a`) | 17 |
+| Raízes com nó em `_lineage.fields` (idêntico nas duas origens) | 5 |
+| **Cobertura publicada** | **5/17 = 29,4%** (era 35,7%) |
+
+**Emenda à decisão:**
+
+- **O universo é o roster de origens observadas**, e o número publicado é sobre ele —
+  `dev/snapshots/lineage_coverage_baseline.json` guarda cada raiz com as origens em que foi
+  medida (`fixture`, `producao:<run8>`). Roster de origem única volta a ser "a cobertura do
+  que aquela fonte emite" e é asseverado contra.
+- **Raiz monetária medida fora do roster reprova.** No CI sobre a fixture
+  (`test_nenhuma_raiz_monetaria_fora_do_roster`); sobre produção pelo CLI
+  `dev/lineage_coverage.py <payload> --origem <x>`, que sai com código 1 e nomeia a raiz.
+- **O schema E5 foi medido como fonte de universo e rejeitado.** Não é superconjunto da
+  produção (não declara `tributario`, que o E5 emite por `additionalProperties: true`) e
+  declara `proventos_por_ativo`, que nenhum dos 40 artefatos E5 do DB emite — teto
+  inalcançável, o mesmo motivo pelo qual as 38 raízes cruas já haviam sido recusadas.
+- **`pontos` e `contagem` saem do monetário-por-default.**
+  `narrativas.charts.wise_fiscal_flags.pontos_revisao` é `sum(1 for f in flags if
+  f["needs_review"])` e era a **única** folha monetária de `narrativas` — a raiz de prosa
+  entrava inteira no denominador. Mesma classe de `n_*`/`prob_*`/`score.*` ([[ADR-217]]).
+
+**Enforcers:** `dev/lineage_coverage.py` (`Roster` + CLI) · `tests/test_lineage_coverage.py`
+(gate + `test_o_denominador_publicado_nao_e_o_da_fixture`, o contrafactual que reprova o
+desenho anterior).

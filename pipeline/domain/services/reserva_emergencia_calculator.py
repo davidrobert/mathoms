@@ -239,8 +239,8 @@ class EmergencyReserveCalculator:
             "total_liquida": _legacy_number(total_liquida),
             "cobertura_meses": round(cobertura_meses, 1),
             # `avaliacao_liquidity` PERMANECE: sumir faria `HeroKpiGrid.reservaQuality`
-            # re-derivar "excelente" por fallback local e desarmaria
-            # `neutralize_autocontradicao` ([[ADR-412]] §Emenda E3).
+            # re-derivar "excelente" por fallback local. A perna do
+            # `neutralize_autocontradicao` só vale pós-[[A40.l116]] ([[ADR-412]] §E13).
             "avaliacao_liquidity": self._classify(cobertura_meses, perfil.meses_alvo),
             "niveis": [f"{n} meses" for n in sorted(self._config.niveis_meses)],
             **self._intervalo(componentes, base, perfil, cobertura_meses),

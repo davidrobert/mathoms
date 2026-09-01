@@ -2,7 +2,7 @@
 id: ADR-433
 type: adr
 title: "O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado"
-status: Proposto
+status: Decidido
 phase: A40.l113
 date: "2026-09-01"
 relates_to:
@@ -22,7 +22,7 @@ aliases:
   - "estado ternário de classificação de imóvel"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
 ---
@@ -39,8 +39,12 @@ mesma página**, e portanto `patrimonio.liquido` idêntico ao `bruto`. O run ter
 `completed`, sem sinal bloqueante.
 
 O registro atribuiu o colapso a churn de identidade de imóvel ([[A40.l113]]) e, em
-cadeia separada, ao ano cru do LLM ([[A40.l114]]). **A medição refutou as duas
-atribuições** e encontrou uma raiz comum.
+cadeia separada, ao ano cru do LLM ([[A40.l114]]). **A medição refutou parcialmente as
+duas atribuições** e encontrou uma raiz comum: cai a *causa* proposta em cada uma (o
+caractere duplicado; o ano cru do LLM) e cai a *independência* entre elas. **Sobrevive** a
+perna de identidade — `property_id` em 1 de 9, dedup cross-IRPF virando no-op, 3 pares
+duplicados no publicado —, e é ela que mantém `imoveis_geradores` em zero mesmo com o ano
+corrigido.
 
 ### O que foi medido
 
@@ -137,7 +141,9 @@ conservadora aqui; há escolha honesta.
 
 - `residencia` e `total_dividas` deixam de sair zero neste corpus; o número publicado
   **muda**, e a mudança é correção de medição, não melhora — a copy do changelog do
-  relatório não pode narrá-la como ganho ([[ADR-419]]).
+  relatório não pode narrá-la como ganho ([[ADR-190]] §Emenda 2026-08-10). ⚠️ Aquela regra
+  só age sob `comparison_base_changed`, e **nada nesta ADR liga o flag**: quem rebaselinar
+  o snapshot precisa marcá-lo, senão a proteção é nominal.
 - `titular_data["ano_base"]` passa a ser o **menor** ano eleito entre as classes (frescor
   nunca superestimado, [[ADR-410]] D6), com `ano_base_por_classe` ao lado — que é a
   "datas por linha" da [[ADR-383]] §6.

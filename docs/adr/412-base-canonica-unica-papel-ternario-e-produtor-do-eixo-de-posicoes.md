@@ -5,7 +5,7 @@ title: "Base canônica única para carteira financeira, `Papel` ternário e prod
 status: Decidido
 phase: A40.l80
 date: "2026-08-25"
-amended_at: ["2026-08-25", "2026-08-28"]
+amended_at: ["2026-08-25", "2026-08-28", "2026-09-01"]
 relates_to:
   - "[[ADR-279]]"
   - "[[ADR-335]]"
@@ -35,6 +35,11 @@ tags:
 > ganha objeto explícito** (suprime veredito e prescrição, nunca a medida); a **D8
 > ganha obrigação recíproca** para superfície read-time.
 >
+> **Emenda 7 (2026-09-01):** a §E3 apoiava-se em `neutralize_autocontradicao` para NÃO
+> suprimir `avaliacao_liquidity`. Medido: aquela perna estava **inerte** — o guardrail
+> casava por `section_id` literal e disparou em **0 de 14 runs** pós-#1800. A decisão
+> **fica**, sustentada pela perna independente do `HeroKpiGrid`. Ver §E13.
+
 > **Emenda 6 (2026-08-28):** o §Escopo do flip listava como fora-de-escopo **três** itens
 > que PRs posteriores da própria lane fecharam em horas — lista de escopo é snapshot, e
 > esta envelheceu no mesmo dia. Ver §E12.
@@ -667,3 +672,30 @@ ela é **datada e precisa de releitura a cada PR da lane que a cita**. Um item q
 some da lista; ele é riscado com o PR que o fechou, senão o próximo leitor herda um mapa de
 trabalho que já foi feito. Mesma família do que o §"Agravante de processo" desta ADR já
 registrou sobre o #1758 reinscrever a formulação refutada.
+
+## Emenda 7 — a §E3 citava um mecanismo que não rodava (2026-09-01)
+
+### E13 — a perna do guardrail estava inerte; a decisão sobrevive pela outra
+
+A §E3 e os dois comentários que a citam em código
+(`reserva_emergencia_calculator.py:241-243`, `supressao_por_atribuicao.py:5-7`)
+justificavam manter `avaliacao_liquidity` publicado com **duas** pernas: suprimi-lo faria
+`HeroKpiGrid.reservaQuality` re-derivar "excelente" por fallback local **e** desarmaria
+`neutralize_autocontradicao`.
+
+**A segunda perna era falsa quando foi escrita.** A [[A40.l116]] mediu 14 runs do mesmo
+corpus, com `temperature=0`: o guardrail casava o ponto forte por `section_id` contra um
+literal, e o modelo rotula o item de liquidez com **S3 em 9 runs e S4 em 5** — nunca com o
+`S1` que o #1800 fixou. `autocontradicao_removidos` saiu **0 em todos os runs** posteriores
+àquele PR. Um mecanismo que não dispara não pode ser desarmado, então ele não pesava nada
+no argumento.
+
+**A decisão de não suprimir `avaliacao_liquidity` fica de pé** — a perna do `HeroKpiGrid`
+é independente, foi medida na própria [[A40.l80]] e não depende do guardrail. O que cai é
+a *justificativa dupla*: a §E3 alegava dois apoios e tinha um.
+
+A partir da [[A40.l116]] a segunda perna passa a **existir**: o guardrail casa por
+`tema_canonico` e o sinal do E5 arbitra, sem literal de seção no caminho. O argumento da
+§E3 volta a ter os dois apoios que sempre afirmou ter — mas por conserto, não por acerto
+retroativo. **O registro datado da [[A40.l80]] não se reescreve**: ele é evidência do que
+se acreditava então.

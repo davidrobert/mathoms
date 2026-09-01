@@ -427,7 +427,7 @@
 | ADR-430 | adr | Proposto |  | Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 | `adr/430-contrato-e1-e4-do-mapa-instituicao-membro.md` |
 | ADR-431 | adr | Decidido |  | Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo | `adr/431-valor-nao-apurado-em-item-de-ativo-fisico.md` |
 | ADR-432 | adr | Decidido |  | O contrato do baseline consolidado é re-derivado do produtor, e o ramo `declarations` da raiz é aposentado | `adr/432-contrato-do-baseline-consolidado-re-derivado-do-produtor.md` |
-| ADR-433 | adr | Proposto |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
+| ADR-433 | adr | Decidido |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
 | ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
 | ADR-435 | adr | Decidido |  | O gate de PII mede o publicado, e a cobertura declarada é igual à medida | `adr/435-o-gate-de-pii-mede-o-publicado-nao-o-que-entra.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
@@ -793,7 +793,7 @@
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A27.l2 | lane | shipped | A27 | A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro | `sprint/A27/lanes/A27-l2-cobertura-de-lineage-sem-gate.md` |
-| A27.l3 | lane | open | A27 | A cobertura de lineage é medida contra a fixture e não contra a produção: quatro raízes monetárias ficam fora do universo do gate | `sprint/A27/lanes/A27-l3-cobertura-de-lineage-medida-contra-a-fixture.md` |
+| A27.l3 | lane | shipped | A27 | A cobertura de lineage é medida contra a fixture e não contra a produção: três raízes monetárias ficam fora do universo do gate (a quarta era contagem lida como R$) | `sprint/A27/lanes/A27-l3-cobertura-de-lineage-medida-contra-a-fixture.md` |
 | A28.l1 | lane | shipped | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
 | A28.l10 | lane | shipped | A28 | âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas | `sprint/A28/lanes/A28-l10-ancoras-formatter-curadoria.md` |
 | A28.l11 | lane | shipped | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
