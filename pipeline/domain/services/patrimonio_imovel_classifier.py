@@ -28,6 +28,22 @@ CLASSIFICATION_DESCONHECIDO = "desconhecido"
 # terceiro) — ilíquido por contrato até consolidação plena.
 _CLASSIFICATIONS_GERADORAS = frozenset({CLASSIFICATION_LOCADO, CLASSIFICATION_COMERCIAL})
 
+# [[ADR-420]] §D1 — o discriminador do numerador da concentração é
+# **rebalanceabilidade**, não fluxo de caixa: *o próximo aporte move este ativo?*
+# `especulacao` FICA (alocação escolhida, com retorno esperado e saída possível — renda
+# zero é exatamente o custo que o KPI deve doer); `uso_pessoal` SAI (estoque de consumo,
+# mesma natureza da residência principal, que já está fora dos dois lados); e
+# `nu_proprietario` SAI porque é instrumento sucessório — prescrever rebalanceamento
+# sobre ela é alarme que a família não pode executar ([[ADR-235]] §Decisão item 4).
+#
+# A lista é de EXCLUSÃO, não de inclusão, e isso é decisão: imóvel sem classificação
+# nenhuma cai em `alocacao` pelo `else`, que é o lado conservador ([[ADR-420]] §D2 —
+# ausência de rótulo não compra verde num KPI de risco). Escrever a lista pelo lado
+# positivo poria o não-classificado FORA do numerador, invertendo o sinal.
+_CLASSIFICATIONS_FORA_DA_ALOCACAO = frozenset(
+    {CLASSIFICATION_USO_PESSOAL, CLASSIFICATION_NU_PROPRIETARIO}
+)
+
 
 def split_imoveis_with_overrides(
     *,
@@ -68,6 +84,27 @@ def split_imoveis_geradores_vs_nao_geradores(
     return geradores, nao_geradores
 
 
+def split_imoveis_alocacao_vs_fora(
+    *,
+    titular_bens: dict,
+    conjuge_bens: dict,
+    overrides_by_property_id: dict[str, str],
+) -> tuple[float, float]:
+    """Parte cat_2 por rebalanceabilidade ([[ADR-420]] §D1); soma == cat_2, ao centavo."""
+    alocacao = 0.0
+    fora = 0.0
+    for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
+        pid = imovel_property_id(im)
+        cls = overrides_by_property_id.get(pid) if pid else None
+        if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+            continue  # cat_1, fora de cat_2 nos DOIS lados
+        if cls in _CLASSIFICATIONS_FORA_DA_ALOCACAO:
+            fora += imovel_valor(im)
+        else:
+            alocacao += imovel_valor(im)
+    return alocacao, fora
+
+
 def sum_imoveis_geradores_liquidos(
     imoveis: list[dict],
     overrides: dict[str, str],
@@ -96,5 +133,6 @@ __all__ = [
     "CLASSIFICATION_DESCONHECIDO",
     "split_imoveis_with_overrides",
     "split_imoveis_geradores_vs_nao_geradores",
+    "split_imoveis_alocacao_vs_fora",
     "sum_imoveis_geradores_liquidos",
 ]

@@ -128,3 +128,65 @@ def test_o_split_da_fixture_NAO_move_dinheiro(
     """O eixo que se move é o de classificação; bruto, líquido e cat_2 ficam parados."""
     for campo in ("bruto", "liquido", "imoveis_investimento", "residencia"):
         assert _cents(com_classificacao[campo]) == _cents(sem_classificacao[campo]), campo
+
+
+# ---------------------------------------------------------------------------
+# Partição por rebalanceabilidade ([[ADR-420]] §D1) — publicada número-neutra
+# ---------------------------------------------------------------------------
+
+
+def test_alocacao_e_fora_conservam_cat2_ao_cent(com_classificacao: dict) -> None:
+    """[[ADR-420]] §Critério de aceite 1: tolerância zero, identidade no payload."""
+    assert _cents(com_classificacao["imoveis_alocacao"]) + _cents(
+        com_classificacao["imoveis_fora_alocacao"]
+    ) == _cents(com_classificacao["imoveis_investimento"])
+
+
+# O eixo NOVO tem de cortar em lugar diferente do velho, senão publicar duas partições é
+# publicar a mesma coisa duas vezes — e o flip do numerador não moveria nada.
+def test_a_particao_por_rebalanceabilidade_DIFERE_da_por_geracao(com_classificacao: dict) -> None:
+    """`especulacao` fica na alocação e sai dos geradores; é isso que separa os eixos."""
+    assert _cents(com_classificacao["imoveis_alocacao"]) != _cents(
+        com_classificacao["imoveis_geradores"]
+    ), "os dois eixos coincidem — a fixture não exercita `especulacao` nem `uso_pessoal`"
+    assert _cents(com_classificacao["imoveis_fora_alocacao"]) != _cents(
+        com_classificacao["imoveis_nao_geradores"]
+    )
+
+
+def _esperado_por_rebalanceabilidade() -> tuple[float, float]:
+    """Reconstrói a partição a partir da fixture + do mapa, sem repetir valor à mão."""
+    fora_de_alocacao = {"uso_pessoal", "nu_proprietario"}
+    alocacao = fora = 0.0
+    for imovel in _imoveis_da_fixture():
+        numero = imovel["descricao"].split()[-1]
+        classificacao = next(
+            (c for e, c in CLASSIFICACOES_DO_DOGFOOD.items() if e.split()[-1] == numero),
+            None,
+        )
+        if classificacao in fora_de_alocacao:
+            fora += imovel["valor_brl"]
+        else:
+            alocacao += imovel["valor_brl"]
+    return alocacao, fora
+
+
+# O apartamento não tem override NENHUM, e §D2 manda ele para o numerador: num KPI de
+# risco, ausência de rótulo fica do lado conservador. Escrever a lista pelo lado positivo
+# o poria fora, invertendo o sinal — este teste é o que reprova essa inversão.
+def test_imovel_SEM_override_cai_na_alocacao(com_classificacao: dict) -> None:
+    """§D2: ausência de rótulo não compra verde."""
+    alocacao_esperada, fora_esperada = _esperado_por_rebalanceabilidade()
+
+    assert _cents(com_classificacao["imoveis_alocacao"]) == _cents(alocacao_esperada)
+    assert _cents(com_classificacao["imoveis_fora_alocacao"]) == _cents(fora_esperada)
+
+    sem_override = [
+        i["valor_brl"]
+        for i in _imoveis_da_fixture()
+        if not any(e.split()[-1] == i["descricao"].split()[-1] for e in CLASSIFICACOES_DO_DOGFOOD)
+    ]
+    assert len(sem_override) == 1, "a fixture deixou de ter exatamente um não-classificado"
+    assert _cents(alocacao_esperada) > _cents(
+        sum(sem_override)
+    ), "o não-classificado é a alocação inteira — teste vacuoso"
