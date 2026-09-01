@@ -637,7 +637,27 @@ seria atribuída ao membro errado. Preservando o bruto, ela vira `ambiguous`
 (2 chaves distintas) — honesto —, e o caso de hint único não-resolvível degrada
 para `sem_dono`, que é o comportamento de hoje.
 
-### 2. A ADR-430 mandava matar a sentinela `needs_review`, e a cláusula caiu
+### 2. A precedência do PR2d **já existe** — reimplementá-la seria o defeito de origem
+
+A [[ADR-430]] §2 especifica a precedência do merge de hint (match exato → não
+entra; dismissed → não entra; senão entra marcado). Medido: `get_irpf_suggestions`
+**já implementa exatamente isso**, e o núcleo é **puro** —
+`_filter_reason(conta, ctx, inst, norm)` devolve `exact` / `dismissed` / `None`, e
+`_dismissed_keys_for_year` monta o set a partir das rows.
+
+Reimplementar a regra dentro de `serialize_family_members` criaria **dois
+produtores da mesma verdade** — literalmente o defeito que abriu esta lane (D1:
+`extract_members` e `serialize_family_members` montando o mesmo mapa de fontes
+diferentes). O PR2d **reusa o predicado**, e ganha de graça um invariante que
+vale enunciar:
+
+> *O pipeline funde exatamente os hints que a UI ofereceria ao usuário.*
+
+Divergir disso significaria o relatório atribuir por uma conta que a tela nunca
+propôs — ou ignorar uma que ela propõe. O teste do PR2d afirma essa igualdade,
+não duas listas montadas em paralelo.
+
+### 3. A ADR-430 mandava matar a sentinela `needs_review`, e a cláusula caiu
 
 Ela tem **segundo produtor independente**: `_mark_needs_review` /
 `_resolved_siblings` do colapso de membro-vazio da [[ADR-346]] §4b, onde é
@@ -646,13 +666,13 @@ de carona reabriria decisão alheia sem emenda — o erro que a lane já pegou e
 [[ADR-430]] emendada; a sentinela fica e `atribuicao_fonte="indeterminada"` viaja
 junto.
 
-### 3. O consolidador passou de 500 linhas — e isso apontou o concern certo
+### 4. O consolidador passou de 500 linhas — e isso apontou o concern certo
 
 A atribuição de titularidade tinha 3 camadas de decisão inline no meio do laço de
 dedup. Extraída para `pipeline/domain/services/atribuicao_de_titularidade.py`
 (536 → 495 linhas no consolidador, 57 no módulo novo).
 
-### 4. O golden do view-model NÃO discrimina `pct_inferido`
+### 5. O golden do view-model NÃO discrimina `pct_inferido`
 
 O rebaseline move **1 linha**: `pct_inferido: "0.000000"` — e o zero é
 significativo (a fixture não tem posição inferida porque não tem contas). Logo o
