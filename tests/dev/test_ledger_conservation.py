@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dev.golden_diff import to_cents
 from dev.ledger_conservation import (
     COBERTO_SEM_VALOR,
     CONSERVADO,
@@ -36,18 +37,54 @@ def _e3(survivors: list[float], dups: int = 0) -> dict:
 def _bucket(geral, cats: dict, n_tx: int, *, tx_total=None, **sig) -> dict:
     b = {"total_geral": geral, "totais_por_categoria": cats, "total_transacoes": n_tx}
     if tx_total is not None:
-        b["_lineage"] = {"signals": _signals(tx_total, **sig)}
+        b["_lineage"] = {"signals": _signals(tx_total, desp_geral=geral, **sig)}
     return b
 
 
-def _signals(tx_total, collapsed=0, collapsed_cents=0, transf_cents=0, declara_valor=True):
+# Todo balde de receitas deste arquivo é o mesmo. O eixo-valor exige que os sinais
+# declarem os DOIS baldes ([[A42.l25]]), então o total de receitas entra como parâmetro
+# com este default; teste que muda o balde passa `rec_geral` explícito.
+_REC_GERAL = 100.0
+
+
+def _receitas() -> dict:
+    return _bucket(_REC_GERAL, {"salario": _REC_GERAL}, 1)
+
+
+def _signals(
+    tx_total,
+    collapsed=0,
+    collapsed_cents=0,
+    transf_cents=0,
+    declara_valor=True,
+    desp_geral=0.0,
+    rec_geral=_REC_GERAL,
+    desp_neg=0,
+    rec_neg=0,
+    desp_abs=None,
+    rec_abs=None,
+):
     sig = {"tx_total": str(tx_total), "dedup_collapsed": str(collapsed)}
     if declara_valor:
-        sig |= {
-            "dedup_collapsed_cents": str(collapsed_cents),
-            "transferencias_cents": str(transf_cents),
-        }
+        sig |= {"dedup_collapsed_cents": str(collapsed_cents)}
+        sig |= {"transferencias_cents": str(transf_cents)}
+        sig |= _eixo_valor(desp_geral, rec_geral, desp_neg, rec_neg, desp_abs, rec_abs)
     return sig
+
+
+def _eixo_valor(desp_geral, rec_geral, desp_neg, rec_neg, desp_abs, rec_abs) -> dict:
+    """Σ|valor| = Σassinado + 2 × Σ|negativas| — a mesma ponte que o harness verifica.
+    `desp_abs`/`rec_abs` explícitos existem para ROMPER a ponte de propósito."""
+    return {
+        "despesas_abs_cents": str(
+            to_cents(desp_geral) + 2 * desp_neg if desp_abs is None else desp_abs
+        ),
+        "receitas_abs_cents": str(
+            to_cents(rec_geral) + 2 * rec_neg if rec_abs is None else rec_abs
+        ),
+        "despesas_negativas_cents": str(desp_neg),
+        "receitas_negativas_cents": str(rec_neg),
+    }
 
 
 # ─────────────────────────── _tx_cents ───────────────────────────
@@ -140,35 +177,35 @@ def test_e2e3_denominador_exclui_investment_report_doctype() -> None:
 
 def test_e3e4_conservado() -> None:
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2, collapsed=0)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, transferencias_count=0)
     assert r.verdict == CONSERVADO
 
 
 def test_e3e4_classifier_dropou() -> None:
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=1)  # E3=2 mas tx_total=1
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, transferencias_count=0)
     assert r.verdict == PERDA_SILENCIOSA
 
 
 def test_e3e4_destino_nao_fecha() -> None:
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3)  # 3 classificados, só 2 têm destino
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0, 10.0])], despesas, receitas, transferencias_count=0)
     assert r.verdict == PERDA_SILENCIOSA
 
 
 def test_e3e4_balde_nao_fecha() -> None:
     despesas = _bucket(80.0, {"casa": 50.0}, 1, tx_total=2)  # Σ cat (50) != total (80)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, transferencias_count=0)
     assert r.verdict == PERDA_SILENCIOSA
 
 
 def test_e3e4_transferencia_conta_no_destino() -> None:
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3, transf_cents=3000)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0, 30.0])], despesas, receitas, transferencias_count=1)
     assert r.verdict == CONSERVADO  # 1 receita + 1 despesa + 1 transferência = 3
 
@@ -192,7 +229,7 @@ def test_e3e4_info_fiscal_anual_e_canal_declarado_nao_perda() -> None:
     # Reproduz o gap=1/residual=0 verificado no corpus 5@5.com r3.
     e3 = _e3_com_info_fiscal([100.0, 80.0], info_fiscal=1)
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([e3], despesas, receitas, transferencias_count=0)
     assert r.verdict == CONSERVADO
 
@@ -203,7 +240,7 @@ def test_e3e4_info_fiscal_nao_mascara_perda_real() -> None:
     # survivors declarados = 4-1 = 3 != tx_total 2 → PERDA (o drop real não é silenciado).
     e3 = _e3_com_info_fiscal([100.0, 80.0, 30.0], info_fiscal=1)
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([e3], despesas, receitas, transferencias_count=0)
     assert r.verdict == PERDA_SILENCIOSA
 
@@ -213,7 +250,7 @@ def test_e3e4_valor_provado_conservado() -> None:
     # (baldes + transferências + removido pelo dedup). Antes, o lado-saída era uma
     # re-soma da MESMA população de origem — a igualdade não podia falhar.
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0)
     assert r.verdict == CONSERVADO
     assert r.value_in_cents == 18000 and r.value_out_cents == 18000
@@ -223,7 +260,7 @@ def test_e3e4_valor_nao_provado_vira_coberto() -> None:
     # WARN-first: count fecha, mas o destino soma menos que a origem → COBERTO
     # (nunca CONSERVADO sobre valor não-provável, nunca PERDA por valor).
     despesas = _bucket(79.99, {"casa": 79.99}, 1, tx_total=2)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0)
     assert r.verdict == COBERTO_SEM_VALOR
     assert r.value_in_cents == 18000 and r.value_out_cents == 17999
@@ -233,7 +270,7 @@ def test_e3e4_dedup_declarado_fecha_o_valor() -> None:
     # O dedup do E4 remove 1 row de 80 → os baldes ficam 8000 cents abaixo da origem.
     # Declarado em `dedup_collapsed_cents`, o destino fecha e o veredito é CONSERVADO.
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3, collapsed=1, collapsed_cents=8000)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0, 80.0])], despesas, receitas, 0)
     assert r.verdict == CONSERVADO
     assert r.dups == 1  # era `0` literal: o contador desta perna não podia disparar
@@ -243,7 +280,7 @@ def test_e3e4_dedup_subdeclara_valor_vira_coberto() -> None:
     # Anti-silêncio: o dedup removeu 8000 cents mas declarou 0 — o destino não fecha.
     # É o defeito que a perna inerte não via (os dois lados somavam a MESMA população).
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=3, collapsed=1, collapsed_cents=0)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0, 80.0])], despesas, receitas, 0)
     assert r.verdict == COBERTO_SEM_VALOR
     assert r.value_in_cents - r.value_out_cents == 8000
@@ -253,7 +290,7 @@ def test_e3e4_sem_declaracao_de_valor_nao_sobe_a_conservado() -> None:
     # Artefato pré-[[ADR-426]]: ausência de declaração é "não medido", nunca
     # "mediu e deu zero". Fail-closed — count fecha, valor fica coberto.
     despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2, declara_valor=False)
-    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    receitas = _receitas()
     r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0)
     assert r.verdict == COBERTO_SEM_VALOR
     assert r.value_out_cents is None

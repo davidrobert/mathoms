@@ -30,10 +30,12 @@ from dev.ledger_collapse_layer import (
     fmt_collapse_layer,
 )
 from dev.ledger_conservation import (
+    DELTA_LABEL,
     NAO_VERIFICAVEL,
     CrossGroupSummary,
     cross_group_summary,
     declared_removed_count,
+    delta_cents,
     e2_to_e3,
     e3_to_e4,
     fmt_cross_group,
@@ -278,9 +280,11 @@ def _medidas(seeds, e3_result, result, e4, fresh_e3, persisted_e3) -> dict:
 
 
 def _delta_cents(a, b) -> str:
-    if a is None or b is None:
-        return "n/d"
-    return str(b - a)
+    """Formata o Δ do eixo-valor. NÃO recalcula: delega ao produtor único
+    ``dev.ledger_verdicts.delta_cents``. Duas expressões concorrentes é exatamente o
+    `LC9-06` — o campo saía `out-in` e o detalhe da MESMA linha saía `in-out`."""
+    d = delta_cents(a, b)
+    return "n/d" if d is None else str(d)
 
 
 def _fmt_particao_e2(r) -> list[str]:
@@ -298,6 +302,19 @@ def _fmt_particao_e2(r) -> list[str]:
     ]
 
 
+def _fmt_termos(r) -> list[str]:
+    """Termos BRUTOS do destino. O líquido sozinho é cancelável: parcelas de sinais
+    opostos se anulam e o Δ some ([[A42.l25]] critério 2). Publicá-los faz a
+    decomposição ser legível sem re-derivar nada."""
+    if not r.value_terms:
+        return []
+    termos = " + ".join(f"{k}={v}" for k, v in r.value_terms.items())
+    return [
+        f"  - destino bruto por termo (Σ|valor|): {termos} = {sum(r.value_terms.values())}",
+        f"  - origem (Σ|valor| das tx E3 sobreviventes): {r.value_in_cents}",
+    ]
+
+
 def _fmt_conservation(results: list) -> list[str]:
     """Conservação da CADEIA re-derivada E2→E3→E4 — sempre sombra, e a linha diz isso."""
     lines = ["## Conservação (workspace, cents tol-zero)"]
@@ -305,8 +322,9 @@ def _fmt_conservation(results: list) -> list[str]:
         delta = _delta_cents(r.value_in_cents, r.value_out_cents)
         lines.append(
             f"- {r.transition}: count {r.count_in}->{r.count_out} dups={r.dups} "
-            f"Δvalor={delta} cents · **{r.verdict}** — {r.detail} · [sombra]"
+            f"{DELTA_LABEL}={delta} cents · **{r.verdict}** — {r.detail} · [sombra]"
         )
+        lines.extend(_fmt_termos(r))
         lines.extend(_fmt_particao_e2(r))
     return lines
 

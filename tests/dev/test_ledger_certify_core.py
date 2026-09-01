@@ -132,18 +132,25 @@ def _fake_e3_result() -> SimpleNamespace:
     )
 
 
+# Os quatro termos do destino em Σ|valor| ([[ADR-434]]): sem os dois `*_abs_cents` o
+# veredito cai para `coberto` (fail-closed). Nenhuma row negativa nesta fixture ⇒
+# abs == assinado e a ponte fecha em 0.
+_SIGNALS_EIXO_VALOR = {
+    "dedup_collapsed": "0",
+    "dedup_collapsed_cents": "0",
+    "transferencias_cents": "0",
+    "despesas_abs_cents": "300",
+    "receitas_abs_cents": "0",
+    "despesas_negativas_cents": "0",
+    "receitas_negativas_cents": "0",
+}
+
+
 def _conserving_e4(n_tx: int) -> dict:
     despesas = bucket_payload(3.0, {"a": 3.0}, {"a": [{"valor": 1.0}, {"valor": 2.0}]}, n_tx=n_tx)
     # O destino declara o eixo-VALOR ([[ADR-426]]); sem os dois cents o veredito
     # desta perna cai para `coberto` (ausência é não-medido, não "deu zero").
-    despesas["_lineage"] = {
-        "signals": {
-            "tx_total": str(n_tx),
-            "dedup_collapsed": "0",
-            "dedup_collapsed_cents": "0",
-            "transferencias_cents": "0",
-        }
-    }
+    despesas["_lineage"] = {"signals": {"tx_total": str(n_tx), **_SIGNALS_EIXO_VALOR}}
     return {
         "despesas": despesas,
         "receitas": bucket_payload(0.0, {}, {}, n_tx=0),
