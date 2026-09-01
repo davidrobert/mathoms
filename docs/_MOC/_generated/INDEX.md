@@ -427,7 +427,7 @@
 | ADR-430 | adr | Proposto |  | Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 | `adr/430-contrato-e1-e4-do-mapa-instituicao-membro.md` |
 | ADR-431 | adr | Decidido |  | Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo | `adr/431-valor-nao-apurado-em-item-de-ativo-fisico.md` |
 | ADR-432 | adr | Decidido |  | O contrato do baseline consolidado é re-derivado do produtor, e o ramo `declarations` da raiz é aposentado | `adr/432-contrato-do-baseline-consolidado-re-derivado-do-produtor.md` |
-| ADR-433 | adr | Proposto |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
+| ADR-433 | adr | Decidido |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
 | ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
