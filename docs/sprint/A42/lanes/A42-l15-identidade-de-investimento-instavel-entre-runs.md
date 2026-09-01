@@ -228,13 +228,15 @@ pelo payload por isso.
 
 ## Armadilhas medidas — cada uma já matou uma entrega neste repo
 
-**(A) Perna forte sem produtor é inerte, e o agregado irmão prova.**
+### Armadilha (A) — Perna forte sem produtor é inerte, e o agregado irmão prova
+
 `dividas_dedup.py:109-113` já tem a cascata `numero_contrato` ⊳ `(tipo, credor, desc)` com o
 comentário certo. `rg numero_contrato` → **só o schema e o consumidor; zero produtores**.
 Nasceu inerte e segue. É a classe que a [[A40.l88]] (#1755) acabou de gatear. **O produtor
 entra antes da chave.**
 
-**(B) Bump de `PROMPT_VERSION` sem política de era piora o que veio consertar.**
+### Armadilha (B) — Bump de `PROMPT_VERSION` sem política de era piora o que veio consertar
+
 ⚠️ **Os números deste parágrafo saem da COLUNA `prompt_version`, que é cega a 47% do corpus
 — ver §Harness ENTREGUE.** A conclusão sobrevive (91,6% no payload); a **seleção** por essa
 coluna, não. Distribuição da coluna (stage E1.5a): `NULL` **441** · `1.2.0` **363** ·
@@ -243,7 +245,8 @@ coluna, não. Distribuição da coluna (stage E1.5a): `NULL` **441** · `1.2.0` 
 automática em bump **explicitamente fora de escopo**. `_identity_key` compara literal ⇒ a
 instabilidade nova seria **permanente**, não transitória.
 
-**(C) `codigo` em forma `GG-CC` quebra dois consumidores em silêncio.**
+### Armadilha (C) — `codigo` em forma `GG-CC` quebra dois consumidores em silêncio
+
 `wise_fiscal_flags.py:32,35,38` compara `==` contra `"13"`, `"62"`, `"41"`; `06-41` faz o
 bloco de flags fiscais de exterior virar `False` **sem warning**.
 `db_property_identity_resolver.py:134,168` casa `codigo_rfb` estrito. A [[ADR-400]] mediu 99
@@ -251,12 +254,14 @@ itens já em `GG-CC` (1,46%), **todos ano-base 2025** — tendência de alta. **
 pinar `codigo` não é "codigo é fato"** (a [[ADR-400]] refutou: 48,2% de pureza semântica,
 ruído intra-documento) — é que dois consumidores comparam string de 2 dígitos e **falham abertos**.
 
-**(D) A métrica desta lane é gameável a uma linha.** `litellm_client.py:149` tem
+### Armadilha (D) — A métrica desta lane é gameável a uma linha
+ `litellm_client.py:149` tem
 `use_cache: bool = False`. Pôr `use_cache=True` no E1.5 leva a estabilidade run-a-run a ~100%
 **sem consertar nada** — o merge cross-year continua quebrado, porque anos são documentos
 diferentes e chaves de cache diferentes. **Estabilidade run-a-run não pode ser o critério de aceite.**
 
-**(E) Não feche `instituicao` em `Literal`.** A [[ADR-384]] D3 fixa a cascata
+### Armadilha (E) — Não feche `instituicao` em `Literal`
+ A [[ADR-384]] D3 fixa a cascata
 `cnpj_raiz → token de nome → needs_review`; enum fechado remove o terceiro degrau e **força**
 o falso-match. O molde correto já existe: `pipeline/llm/prompts/apolice.py:38` (escape aberto
 + registro em `notas` + telemetria).
@@ -543,6 +548,12 @@ carteira substantiva.
 
 ## O que ainda BLOQUEIA a lane
 
+> ⚠️ **Superada em 2026-09-01 — três dos quatro itens abaixo shipparam no #1939** (âncora,
+> braço `descricao`, PR2 e os critérios 2/3/5). Sobrevive só o **alias no
+> `institution_catalog`**. Mantida como registro do estado em que a lane estava; o estado
+> vigente é o §Fechamento.
+
+
 **Nada humano.** O PR1 pode andar: a forma de `codigo` está decidida por medição (emitir
 `GG-CC`; o consumidor já lê o grupo). Resta, tudo técnico e sem dono ainda:
 
@@ -578,6 +589,16 @@ sobraram três pontas depois do #1937:
 
 ## ENTREGUE — PR1 (produtor) + PR2 (a chave) · 2026-09-01
 
+> 🔴 **CORREÇÃO 2026-09-01, mesmo dia — o número acima era comprado com perda de patrimônio.**
+> A perna forte `("cnpj", raiz)` identificava a **contraparte**, não o ativo: conta corrente
+> e poupança do mesmo banco fundiam (R$ 3.000 sumiam), CDB e FII da mesma corretora também
+> (R$ 50.000). O `max()` de `_union_valores` descartava o menor valor e o único sinal era um
+> `print` de contagem. É a classe que a [[ADR-271]] §Calibração nomeia como a pior. A chave
+> passou a `("cnpj", raiz, tipo, desc)` e o número honesto é **42,38%** (mediana 31,16%,
+> cardinalidade 9,7 = a do baseline, zero fusão indevida) — ganho de **+4,7pp** sobre os
+> 37,68%, não +24,1pp.
+
+
 ### A medição que decidiu o desenho, e que corrigiu o plano da lane
 
 Variantes de chave sobre o corpus (836 artefatos `E1.5a`, 28 grupos K≥5, controles
@@ -588,12 +609,19 @@ chaves é o veneno que a §Refutado já registra:
 |---|---|---|
 | `(tipo, inst, desc)` — produção até aqui | 37,68% | 9,7 |
 | sem `instituicao` | 47,95% | 9,7 |
-| **`("cnpj", raiz)` ⊳ `(tipo, inst, desc)` — ENTREGUE** | **61,78%** | 9,7 |
+| ~~`("cnpj", raiz)` ⊳ `(tipo, inst, desc)`~~ — **REGREDIU, ver tarja** | ~~61,78%~~ | 9,4 |
+| **`("cnpj", raiz, tipo, desc)` ⊳ `(tipo, inst, desc)` — ENTREGUE** | **42,38%** | **9,7** |
 | `("cnpj", raiz)` ⊳ `(tipo, desc)` | 69,20% | 9,4 |
 | `("cnpj", raiz, tipo)` ⊳ … | 63,49% | 9,7 |
 | subconjunto ancorado sozinho | **91,71%** | 4,5 |
 
 Cobertura da âncora nas entradas consolidadas: **50,9%** (173/340).
+
+**Mediana por grupo.** Chave antiga **29,19%** → chave entregue **31,16%** (mesmos 28 grupos; mínimo 4,13% → 15,61%). Re-medido em 2026-09-01 sobre
+`origin/main`, repondo a chave antiga por monkeypatch em
+`investimentos_dedup._identity_key` e rodando `dev/measure_e15_identity_stability.py` nos dois
+braços. ⚠️ Não confundir com o A/B do #1937 na §ENTREGUE abaixo, que dá `29,19% → 29,19%`:
+ali o "antes" é o mesmo, mas o "depois" é do parse do grupo, que **não** move a identidade.
 
 **Três coisas que a medição virou de cabeça para baixo:**
 
@@ -688,8 +716,8 @@ Cinco PRs: **#1909** (contrato da âncora) · **#1916** (critério 4, gate de ac
 (PR1 produtor + PR2 chave + regra de formato). Os **8 critérios de aceite** estão fechados.
 
 **O número da lane:** estabilidade do `investment_id` de **23,5%** (medição de abertura, um
-par de runs) → **61,78%** pooled sobre 28 grupos com denominador. A abertura e o fecho não
-são o mesmo instrumento — o 23,5% era um par, o 61,78% é `|A∩B|/|A∪B|` agregado sobre todos
+par de runs) → **42,38%** pooled sobre 28 grupos com denominador. A abertura e o fecho não
+são o mesmo instrumento — o 23,5% era um par, o 42,38% é `|A∩B|/|A∪B|` agregado sobre todos
 os pares de 19 documentos. O comparável é o **37,68%** que o mesmo harness media antes.
 
 **Emenda datada à [[ADR-271]]** (não ADR nova, como a lane decidiu): o `PR3` da §Próximos
@@ -715,6 +743,15 @@ no seu alcance real — vale para o **code do catálogo**, não para o campo cru
   mudou de novo aqui.
 
 ## Escopo — quatro PRs, nesta ordem
+
+> ⚠️ **Plano de origem, superado pela execução (2026-09-01). Quatro afirmações abaixo são
+> falsas no que shipou** e ficam só como registro do que se planejava:
+> `instituicao` **NÃO** saiu da chave (medição refutou — §ENTREGUE); a cascata entregue é
+> `("cnpj", raiz)` ⊳ `("desc", tipo, inst_norm, desc_norm)`, não `(tipo, descricao_norm)`;
+> o catálogo **não** foi injetado via `render_institution_catalog`; e as duas pernas do PR0
+> (`pattern` em `codigo`, forma canônica em `instituicao`) foram **cortadas**. O que shipou
+> está no §Fechamento e no §ENTREGUE — PR1 + PR2.
+
 
 - **PR0 — forma no contrato (zero LLM).** `pattern` em `codigo`
   (`e15_baseline_extract.schema.json:25`, hoje `{"type":"string"}`) e forma canônica em
