@@ -537,7 +537,10 @@ não mudaram.
 > imóveis/veículos/dívidas (que param em 2025) projetarem `0,00`. A residência saiu zero
 > **tendo** `property_id` e override gravados. Medido: `residencia` 0,00 → 996.821,46;
 > `total_dividas` 0,00 → 230.459,13 — reprodução no grão do produtor contra o artefato do
-> run `40d1af2a`, não um run publicado novo. **Sobrevive** a perna de identidade
+> run `40d1af2a`, não um run publicado novo. ⚠️ **Crédito não é exclusivo:** a [[A40.l114]]
+> (#1961) entregou o produtor único de saldo e o invariante temporal, e mediu pós-rebase que
+> os dois consertos são **independentemente suficientes** neste corpus — os números ficam
+> idênticos com qualquer um dos dois desligado. **Sobrevive** a perna de identidade
 > (`property_id` em 1 de 9, dedup no-op, 3 pares duplicados), que mantém
 > `imoveis_geradores` em zero. O texto acima fica como estava — é evidência datada.
 
