@@ -169,7 +169,7 @@ export function ResidenciaSection({ workspaceId }: { workspaceId: string }) {
       <CardContent className="p-5">
         <h3 className="mb-1 text-sm font-medium text-foreground">Residência principal e imóveis</h3>
         <p className="mb-3 text-xs text-muted-foreground">
-          Identificamos {data.properties.length} imóvel(is) no seu IRPF. Marque qual é a residência principal — afeta como o relatório separa &quot;Residência&quot; de &quot;Imóveis de Renda&quot;.
+          Identificamos {data.properties.length} imóvel(is) no seu IRPF. Marque qual é a residência principal — afeta como o relatório separa &quot;Residência&quot; de &quot;Outros imóveis&quot;.
         </p>
 
         <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">

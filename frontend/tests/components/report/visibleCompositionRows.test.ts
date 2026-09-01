@@ -21,7 +21,7 @@ function patrimonio(
   return { composicao } as PatrimonioData;
 }
 
-const NEGATIVO = { categoria: "Imóveis de Renda", valor: -200_000, pct: 0 };
+const NEGATIVO = { categoria: "Outros imóveis", valor: -200_000, pct: 0 };
 const POSITIVO = { categoria: "Veículos", valor: 50_000, pct: 100 };
 const ZERO = { categoria: "Investimentos Cônjuge", valor: 0, pct: 0 };
 

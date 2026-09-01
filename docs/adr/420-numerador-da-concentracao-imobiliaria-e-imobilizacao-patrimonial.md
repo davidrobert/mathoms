@@ -2,9 +2,9 @@
 id: ADR-420
 type: adr
 title: "Numerador da concentração imobiliária é rebalanceabilidade, não fluxo de caixa; e a imobilização patrimonial ganha indicador próprio"
-status: Proposto
+status: Decidido
 date: "2026-08-29"
-amended_at: ["2026-08-31"]
+amended_at: ["2026-08-31", "2026-09-01"]
 relates_to:
   - "[[ADR-145]]"
   - "[[ADR-215]]"
@@ -19,7 +19,7 @@ supersedes: []
 superseded_by: []
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/report
   - area/methodology
@@ -283,5 +283,27 @@ piso — continua atrás do flip da [[ADR-353]], porque é ele que reusa a escad
 rebalanceabilidade — sobrevive inteira. É o teste da §Alternativas (D) desta própria nota
 aplicado a ela mesma.
 
-**Deferimento datado — piso de cobertura do §D2 (2026-08-31).** **Dono:** [[A40.l95]].
-**Condição de retomada:** flip da [[ADR-353]] para `Decidido`, que a [[A40.l11]] destrava.
+**Deferimento datado — piso de cobertura do §D2.** ~~**Dono:** [[A40.l95]]~~
+**re-roteado em 2026-09-01**, porque a [[A40.l95]] fechou e deferimento hospedado em lane
+terminal é órfão. **Próximo dono:** quem executar a [[A40.l11]] — é ela que destrava o
+flip da [[ADR-353]], e o piso reusa a escada dela. **Condição de retomada:** [[ADR-353]]
+em `Decidido`. Até lá `desconhecido` entra no numerador **sem** ressalva de supressão,
+que é o lado conservador e o comportamento corrente.
+
+## Emenda 2026-09-01 — `Decidido`, com um deferimento e um follow-up roteados
+
+Flipada com a entrega da [[A40.l95]] (#1901 · #1904 · #1924 · #1926 · #1928 · #1932).
+Duas coisas que a execução mudou nos critérios, registradas para quem ler a nota depois:
+
+**Critério 5 fechou pelo §D1, sem código de contagem.** Ele previa *"o card diz 4 e o
+numerador soma 5"*. Medido: o card conta `INVESTMENT_CLASSIFICATIONS` e o numerador novo
+é **esse conjunto ∪ {desconhecido}** — no corpus medido, todo classificado, as duas
+cardinalidades **coincidem depois do flip**, porque `nu_proprietario` saiu do numerador e
+o card já não o contava. A divergência residual é exatamente o não-classificado, agora
+com lane própria ([[A40.l112]]) e gate que a nomeia.
+
+**Critério 6 fechou inteiro, e o hero nunca foi ofensor.** As quatro superfícies que
+diziam "de renda" sobre número que inclui não-alocação foram corrigidas por **subtração**
+do qualificador falso — inclusive o balde cat_2, que passou a *"Outros imóveis"*. As duas
+que restaram (`HeroKpiGrid`, `MarketValueSection`) filtram `{locado, comercial}`: ali "de
+renda" é **verdade**, e a lista original desta ADR as contava por engano.
