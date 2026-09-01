@@ -303,7 +303,8 @@ mesmo porque o defeito não era de número: o enxerto do `data_processamento` ca
 
 **4. O que o §F protegia passa a ser enforçado, não descrito.** Antes desta emenda a
 elegibilidade era só a medição, e o §F vivia em prosa: com o drift indo a 0, o
-predicado do §B diria `GO` para um contrato que descreve 5/13 do payload. `baseline_patrimonial`
+predicado do §B diria `GO` para um contrato que descreve 5 de 11 do payload (medido
+2026-08-31; era 5/13 antes do PR-A). `baseline_patrimonial`
 entra em `_CONTRATO_NAO_DERIVADO` em [`dev/measure_schema_drift.py`](../../dev/measure_schema_drift.py)
 — o veredito é `NO-GO` **independente do drift**, com a razão e a lane que o levanta
 ([[A40.l110]] PR-B) na própria mensagem.
@@ -317,7 +318,12 @@ Drift medido no corpus inteiro, antes → depois do PR-A (169 artefatos, 105 run
 | E4 `patrimonio` | 3/71 (4,2%) | **3/71 (4,2%)** | idem |
 | agregado | 101/169 (59,8%) | **6/169 (3,6%)** | idem |
 
-Os 2 `required` respondiam por 392 das 398 ocorrências. As 6 restantes são
+Os 2 `required` respondiam por **196 das 202** ocorrências (97,0%) — publiquei
+`392 das 398` e o número era do **instrumento**: `_validation_paths` re-expande cada erro
+`required` sobre todos os campos faltantes, contagem quadrática (1 campo → 1, 2 → 4,
+3 → 9). Corrigido em 2026-09-01, no closeout; a conclusão não muda. Pós-PR-A o contrato
+declara **11** properties e a sobreposição é **5 de 11** — os `13`/`8` do §F são a
+medição de 2026-08-24 e não se reescrevem. As 6 restantes são
 `valores_31_12` negativo — defeito de **dado**, não de contrato, roteado para a
 [[A40.l111]]. Os dois produtores convergiram no mesmo path e no mesmo item: a
 divergência entre eles era exatamente os 2 campos.

@@ -211,14 +211,45 @@ class TestContratoNaoDerivado:
 
         assert stats.is_go is True
 
-    def test_bloqueio_nao_muda_o_exit_code_do_gate(self):
+    # A40.l110 closeout — a 1ª versão deste teste fazia `stats.drifted = 0` e depois
+    # `assert stats.drifted == 0`: afirmava a própria atribuição, nunca chamava `main`.
+    # O exit code é do `main`, então é o `main` que tem de ser medido.
+    def test_bloqueio_nao_muda_o_exit_code_do_gate(self, monkeypatch, capsys):
         """Contrato incompleto é insumo de decisão, não drift (idem `mass_trivial`)."""
-        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO, SchemaDrift
+        from dev import measure_schema_drift as m
 
-        stats = SchemaDrift(nome=next(iter(_CONTRATO_NAO_DERIVADO)))
-        stats.artifacts, stats.drifted = 10, 0
+        alvo = next(iter(m._CONTRATO_NAO_DERIVADO))
+        stats = m.SchemaDrift(nome=alvo)
+        stats.artifacts, stats.drifted, stats.unreadable = 10, 0, 0
+        self._stub_corpus(monkeypatch, m, {alvo: stats})
 
-        assert stats.drifted == 0, "o exit code de --gate lê `drifted`, não `is_go`"
+        assert m.main(["--gate"]) == 0, "veredito de contrato não pode pintar o CI de vermelho"
+        assert "NO-GO (contrato)" in capsys.readouterr().out
+
+    def test_drift_de_verdade_ainda_derruba_o_exit_code(self, monkeypatch, capsys):
+        """Não-inércia do teste acima: com `drifted` > 0 o mesmo caminho sai 1."""
+        from dev import measure_schema_drift as m
+
+        alvo = next(iter(m._CONTRATO_NAO_DERIVADO))
+        stats = m.SchemaDrift(nome=alvo)
+        stats.artifacts, stats.drifted, stats.unreadable = 10, 1, 0
+        self._stub_corpus(monkeypatch, m, {alvo: stats})
+
+        assert m.main(["--gate"]) == 1
+
+    def test_toda_chave_bloqueada_e_um_schema_que_existe(self):
+        """Rename/typo na chave torna o bloqueio inerte, e o veredito volta a `GO` calado."""
+        import scripts.pipeline_common as pipeline_common
+        from dev.measure_schema_drift import _CONTRATO_NAO_DERIVADO
+
+        for nome in _CONTRATO_NAO_DERIVADO:
+            caminho = pipeline_common.CONFIG_DIR / "schemas" / nome
+            assert caminho.exists(), f"{nome} não casa arquivo em config/schemas/"
+
+    @staticmethod
+    def _stub_corpus(monkeypatch, modulo, resultados):
+        """Isola `main` do DB: o que se mede aqui é o exit code, não a leitura do corpus."""
+        monkeypatch.setattr(modulo, "_collect", lambda args: (resultados, None, None))
 
     def test_toda_razao_nomeia_quem_levanta_o_bloqueio(self):
         """Bloqueio sem condição de retomada apodrece: vira 'sempre foi assim'."""

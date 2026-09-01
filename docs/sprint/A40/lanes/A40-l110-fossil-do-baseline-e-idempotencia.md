@@ -3,16 +3,21 @@ id: A40.l110
 type: lane
 title: "O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas"
 sprint: A40
-status: in_progress
+status: open
 priority: P1
 branch_slug: a40-l110-fossil-do-baseline-e-idempotencia
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-409]]", "[[ADR-427]]", "[[ADR-093]]", "[[ADR-212]]"]
-tags: [type/lane, sprint/a40, status/in-progress, priority/p1, area/dados, area/pipeline]
+tags: [type/lane, sprint/a40, status/open, priority/p1, area/dados, area/pipeline]
 ---
 
 # A40.l110 — `fossil-do-baseline-e-idempotencia`
+
+> ⏳ **PR-A ✅ entregue em 2026-09-01 — [#1914](https://github.com/davidrobert/mathoms/pull/1914)
+> (`f8cbf94d`). A lane segue `open` pelo PR-B**, que é trabalho real, não resíduo de
+> status. `in_progress` seria falso: o predicado do `_README` §Predicado é
+> *branch/PR aberta*, e o PR-B não tem nenhuma das duas. Forma herdada da [[A40.l60]].
 
 > **Origem:** tratamento dos achados da [[A42.l19]]. Co-design `data-engineer`,
 > 2026-08-31. **Origem** do escopo: o §Deferimento datado da [[A40.l58]] (§F da
@@ -74,15 +79,38 @@ e **então** decidir `additionalProperties`.
 
 ## Critério de aceite
 
-- [x] Dois runs em dias civis distintos, mesmo input → `sha256` **idêntico** do balde
-      `patrimonio`. Gate mede o **efeito** (hash), nunca o relógio — e mede também o
-      **mecanismo**, porque só o hash é inerte contra este defeito (§Os gates).
+- [x] **Mecanismo — é este que discrimina.** Zero leitura de relógio de parede durante
+      a construção do balde `patrimonio`, via `sys.setprofile`
+      (`tests/test_baseline_sem_relogio_gate.py`). Controle negativo medido: com o passo
+      do `date.today()` reinstalado, **4 dos 5 testes reprovam**.
+- [x] **Efeito** — dois builds do mesmo input → `sha256` idêntico do balde. **Declarado
+      inerte sozinho contra este defeito, e medido como tal:** no mesmo dia civil o hash
+      bate mesmo com o `date.today()` de volta. Vale contra outras fontes de
+      não-determinismo, não como prova de idempotência entre dias.
+- **Não medido, e por quê** (sem checkbox de propósito — caixa vazia que ninguém pretende
+      fechar vira pendência zumbi): dois runs em **dias civis distintos** pós-fix. Não há
+      congelamento de relógio no repo (sem `freezegun`). Os `sha256` divergentes de
+      2026-08-12 e 2026-08-16 no §O defeito são **pré-fix** — provam que o defeito existiu,
+      nunca que sumiu. Substituídos, por decisão desta lane, pelo gate de mecanismo acima.
 - [x] `measure_schema_drift --schema baseline_patrimonial.schema.json --all` com o
       número **antes e depois** no corpo do PR, para os dois produtores.
 - [x] Controle negativo: reinserir `pipeline_stage` na fixture **reprova**.
-- [ ] PR-B: `additionalProperties: false` com os dois produtores em 0 de drift no
-      corpus, medido. Gate de completude por **igualdade de conjunto** entre chaves
-      declaradas e emitidas, nos dois sentidos ([[ADR-427]] D5).
+- [ ] PR-B: `additionalProperties: false` com gate de completude por **igualdade de
+      conjunto** entre chaves declaradas e emitidas, nos dois sentidos ([[ADR-427]] D5),
+      nos dois produtores.
+
+      > **Re-corte 2026-09-01 — o critério anterior era insatisfazível.** Ele exigia *"os
+      > dois produtores em 0 de drift no corpus"*. Os 6 residuais são violação de
+      > `minimum: 0` — domínio de **valor** —, e `additionalProperties` é sobre **forma**:
+      > o critério acoplava ao PR-B um drift que a própria §Fora de escopo desta lane
+      > declarou de outra dona. Pior, o desbloqueio não tinha data: a [[A40.l111]] já
+      > mergeou (#1917) e os 6 continuam. Medido: sobreposição hoje é **5 de 11**
+      > (declaradas 11, emitidas 15) — é esse número que o PR-B move, e ele não depende
+      > do drift de valor.
+      >
+      > O drift de valor sai **declarado fora, com dono**: [[A40.l111]] `shipped`, e o
+      > corpus só o reflete quando as runs virarem — nenhuma ocorreu desde o merge
+      > (artefato mais novo: 2026-08-30 19:07).
 - [x] §Deferimento da [[A40.l58]] corrigido — **feito** em
       [#1897](https://github.com/davidrobert/mathoms/pull/1897) (`3086b149`), de forma
       aditiva: o produtor declarado é o E4 pós-normalização; são dois produtores desde
@@ -130,8 +158,18 @@ da lane, agora medida dos dois lados: depois do PR-A os dois produtores drifta n
 | E4 `patrimonio` (pós-normalização) | 3/71 · 4,2% | **3/71 · 4,2%** |
 | agregado | 101/169 · 59,8% | **6/169 · 3,6%** |
 
-Os 2 `required` respondiam por 392 das 398 ocorrências. As 6 restantes são o
+Os 2 `required` respondiam por **196 das 202** ocorrências (97,0%). As 6 restantes são o
 `valores_31_12` negativo — [[A40.l111]], fora de escopo por decisão da lane.
+
+> **Correção 2026-09-01 — eu publiquei `392 das 398`, e era do instrumento.**
+> `jsonschema` já emite **um erro por campo faltante**, e `_validation_paths`
+> ([`schema_drift_telemetry.py`](../../../../scripts/schema_drift_telemetry.py))
+> **re-expande cada erro sobre todos os campos faltantes** — contagem quadrática.
+> Medido: 1 campo → 1 ocorrência, 2 → 4, 3 → 9. Com 98 artefatos × 2 campos o real é
+> **196**, e o tool reportava 392. O defeito do instrumento é anterior ao PR-A; o que
+> este PR fez foi fossilizá-lo na lane e na emenda da [[ADR-409]]. A conclusão não muda
+> (97,0% contra 98,5%); o número, sim. Quem re-medir hoje encontra 202 e concluiria que
+> o corpus mudou.
 
 ### Os gates, e por que são dois
 
@@ -160,9 +198,15 @@ o §F vivendo em prosa. Hoje o schema ainda mede `NO-GO` por causa dos 6 residua
 > e **não foi a 0**: os 6 continuam. O fix dela vale para run **nova**; o corpus
 > histórico guarda os negativos já persistidos, e o `minimum: 0` segue reprovando-os.
 > O verde chega quando as runs virarem o corpus — data que ninguém agenda.
+>
+> **Emenda 2026-09-01 — o fato é mais duro que o mecanismo que eu declarei.** Não é só
+> que "vale para run nova": **nenhuma run ocorreu desde o merge**. Artefato mais novo do
+> corpus é de `2026-08-30 19:07`; artefatos em/após 2026-08-31 são **0**, e
+> `valores_31_12` com `null` são **0** nos dois produtores. O `sanear_baseline` do #1917
+> ainda não executou em produção nem uma vez.
 
-Quando chegar, **o predicado do §B diria `GO`** para um contrato que descreve 5/13
-do payload. A prosa não seguraria — e a data em que ela deixaria de segurar não é
+Quando chegar, **o predicado do §B diria `GO`** para um contrato que descreve **5 de 11**
+do payload (medido 2026-08-31: declaradas 11, emitidas 15; era 5/13 antes do PR-A). A prosa não seguraria — e a data em que ela deixaria de segurar não é
 previsível, que é justamente o que torna o enforcement necessário.
 
 `baseline_patrimonial` entra em `_CONTRATO_NAO_DERIVADO` no

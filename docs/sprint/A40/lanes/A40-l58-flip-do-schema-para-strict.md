@@ -656,3 +656,20 @@ properties que produtor nenhum jamais emitiu. Enquanto assim, mudança de forma 
 não é detectada por nada, e o flip desse schema (que a [[A40.l67]] §Deferimento
 re-homeou para cá) permanece impossível. Dos dois deferimentos, **é este que decide se
 o relatório do cliente pode mudar de forma em silêncio.**
+
+> **Correção 2026-09-01 (closeout da [[A40.l110]]) — as duas metades do parágrafo acima
+> caíram.** O §Passo 1 recebeu a correção em #1897; esta cópia, que é a de maior alcance,
+> ficou para trás. Re-medido no corpus (169 artefatos, 0 ilegíveis):
+>
+> - **"5 de 13"** → hoje **5 de 11**. O PR-A da [[A40.l110]]
+>   ([#1914](https://github.com/davidrobert/mathoms/pull/1914)) removeu 2 properties.
+> - **"8 properties que produtor nenhum jamais emitiu"** → eram **6**. Duas das oito
+>   (`pipeline_stage`, `data_processamento`) estavam em **71/71** artefatos `patrimonio`
+>   do E4, persistidas — é justamente por elas que o PR-A existiu.
+>
+> **O deferimento segue vivo.** O PR-A executou a cláusula que este escopo proibia isolar
+> (*"tirar os 2 `required` junto com o resto — nunca sozinhos"*), por outra razão: relógio
+> gravado em artefato, não número verde ([[ADR-409]] §Emenda 2026-08-31 §3). O que
+> protegia a recusa passou a ser enforçado — `_CONTRATO_NAO_DERIVADO` em
+> `dev/measure_schema_drift.py` devolve `NO-GO (contrato)` independente do drift. Quitação
+> é do PR-B. Os números datados de 2026-08-24 acima e no §Passo 1 **não se reescrevem**.

@@ -19,7 +19,8 @@ if str(REPO_ROOT) not in sys.path:
 
 # Schemas cujo contrato ainda não foi re-derivado do produtor: nunca `GO`. A
 # [[ADR-409]] §F recusa promover schema cujo contrato descreve uma fração do payload
-# ("o flip seria verde sobre contrato que descreve 5/13"), mas a recusa vivia só em
+# ("o flip seria verde sobre contrato que descreve 5/13" — medida de 2026-08-24, hoje
+# 5 de 11: o PR-A tirou 2 properties nunca emitidas), mas a recusa vivia só em
 # prosa e a elegibilidade é só a medição — bastava o drift ir a 0. A [[A40.l110]]
 # PR-A levou `baseline_patrimonial` de 59,8% a 3,6% ao matar 2 `required` fósseis, e
 # o resto é defeito de dado da [[A40.l111]], que já mergeou (#1917) — o corpus
@@ -28,7 +29,8 @@ if str(REPO_ROOT) not in sys.path:
 # `mass_trivial` — contrato incompleto é insumo de decisão, não drift.
 _CONTRATO_NAO_DERIVADO: dict[str, str] = {
     "baseline_patrimonial.schema.json": (
-        "contrato descreve 5/13 do payload — [[ADR-409]] §F; levanta com a [[A40.l110]] PR-B"
+        "contrato declara 5 de 11 chaves emitidas (medido 2026-08-31) — [[ADR-409]] §F; "
+        "levanta com a [[A40.l110]] PR-B"
     ),
 }
 
