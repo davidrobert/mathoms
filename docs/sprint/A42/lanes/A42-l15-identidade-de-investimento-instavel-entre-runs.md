@@ -370,7 +370,7 @@ três (critérios 2, 3 e 5), e os três **dependem** do produtor do PR1.
 
 ## PR0 EXECUTADO — PR #1909 (`4df49130`), 2026-08-31 · uma das duas pernas caiu por medição
 
-`5eaa3bbc`. Entregue: `cnpj_emissor` declarado em `e15_baseline_extract.schema.json`
+Entregue: `cnpj_emissor` declarado em `e15_baseline_extract.schema.json`
 (opcional, `pattern` `^\\d{14}$`) + `tests/test_e15_contrato_ancora_cnpj.py`. **Cortado: a
 perna do mirror de `min_length` no Pydantic** — pelas duas medições abaixo.
 

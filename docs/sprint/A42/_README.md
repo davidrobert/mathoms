@@ -377,7 +377,7 @@ unificada rodou e não foram pegas.* Medida em 2026-08-31, contra a `U4` (2026-0
 como já cresceu na A40, a aposentadoria do teto estava errada — e se saberá por medição, não
 por sensação. Re-medir no fecho de cada `U<n>`.
 
-**O WIP fica publicado, não gateado:** 6 em 2026-08-31. Se virar limite algum dia, o número
+**O WIP fica publicado, não gateado:** **3** em 2026-08-31 23h (`open` 2 + `in_progress` 1). O `6` que este parágrafo citava vinha do painel da §Teto de lanes — o mesmo número que a nota datada duas seções acima aposentou (*"só o número não se cita mais desta tabela"*): ele era WIP quando o painel foi escrito e caiu para 4 no fecho da [[A42.l20]] e para 3 com a [[A42.l14]]. Se virar limite algum dia, o número
 tem de sair de evidência de throughput coletada **antes** de conhecer o valor corrente — não
 deste parágrafo.
 
