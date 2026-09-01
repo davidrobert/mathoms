@@ -35,6 +35,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[4]
 SPRINT = REPO_ROOT / "docs" / "sprint"
 MOC = REPO_ROOT / "docs" / "_MOC"
+ADR = REPO_ROOT / "docs" / "adr"
 
 sys.path.insert(0, str(REPO_ROOT))
 from dev._lane_closure_predicates import pr_is_cited  # noqa: E402
@@ -537,11 +538,16 @@ def check_substrate_freshness(pr: int | None) -> list[Finding]:
 # fora do universo — a linha-zumbi nasce no merge, e este é o único ponto que
 # a vê com latência zero.
 def citers_of(lane_id: str) -> list[str]:
-    """Docs de sprint + registros `_MOC/*-active.md` que citam a lane (contexto, não falha)."""
+    """Docs de sprint + `_MOC/*-active.md` + ADRs que citam a lane (contexto, não falha)."""
+    # `docs/adr/**` entra desde 2026-09-01: a ADR é o citador mais DURÁVEL do vault — ela
+    # sobrevive à sprint e vira precedente —, e era o único que esta lista não mostrava.
+    # Medido no fecho da A42.l15: 5 citadores reportados, e a emenda em `271-…` (dois
+    # `[[A42.l15]]`) ficava de fora. Drift em ADR `Decidido` é o mais caro de todos.
     universe = (
         sorted(SPRINT.glob("*/*.md"))
         + sorted(SPRINT.glob("*/lanes/*.md"))
         + sorted(MOC.glob("*-active.md"))
+        + sorted(ADR.glob("*.md"))
     )
     return [_rel(doc) for doc in universe if f"[[{lane_id}]]" in doc.read_text(encoding="utf-8")]
 

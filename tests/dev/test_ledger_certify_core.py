@@ -20,11 +20,15 @@ from dev.ledger_conservation import (
     PERDA_SILENCIOSA,
     investment_double_count,
 )
+from dev.ledger_unit_verdicts import _NON_LEDGER_CHECKERS
+from tests.dev._ledger_payloads import bucket_payload, e3_payload
 
 _CROSS_GROUP_TITLE = "## Duplicação cross-grupo"
 
 
-def _e3(n_tx: int, *, dups: int = 0, total: int | None = None, valores=None, remocoes=None) -> dict:
+def e3_payload(
+    n_tx: int, *, dups: int = 0, total: int | None = None, valores=None, remocoes=None
+) -> dict:
     txns = [{"valor": v} for v in (valores if valores is not None else [1.0] * n_tx)]
     out = {
         "transacoes": txns,
@@ -47,136 +51,6 @@ def _remocoes(*, cross_file: int = 0, collapse: int = 0) -> dict:
     }
 
 
-def _bucket(total: float, cats: dict, dados: dict | None = None, n_tx: int = 0) -> dict:
-    return {
-        "total_geral": total,
-        "totais_por_categoria": cats,
-        "dados": dados or {},
-        "total_transacoes": n_tx,
-    }
-
-
-# ─────────────────────────── e3_group_verdict ───────────────────────────
-
-
-def test_e3_group_conservado() -> None:
-    assert e3_group_verdict(_e3(5))[0] == CONSERVADO
-
-
-def test_e3_group_dups_coberto() -> None:
-    assert e3_group_verdict(_e3(5, dups=2))[0] == COBERTO_SEM_VALOR
-
-
-def test_e3_group_zero_tx_nao_sobe_a_conservado() -> None:
-    assert e3_group_verdict(_e3(0))[0] == COBERTO_SEM_VALOR
-
-
-def test_e3_group_inconsistente_nao_verificavel() -> None:
-    assert (
-        e3_group_verdict({"transacoes": [{"valor": 1}], "transacoes_total": 9})[0]
-        == NAO_VERIFICAVEL
-    )
-
-
-def test_e3_group_sem_payload_nao_verificavel() -> None:
-    assert e3_group_verdict(None)[0] == NAO_VERIFICAVEL
-    assert e3_group_verdict({})[0] == NAO_VERIFICAVEL
-
-
-def _with_ledger(g: dict, *, tx_carregadas: int, **remocoes: int) -> dict:
-    g = dict(g)
-    g["tx_carregadas"] = tx_carregadas
-    g["remocoes"] = {k: {"count": v, "valor_cents": 0} for k, v in remocoes.items()}
-    return g
-
-
-def test_e3_group_ledger_fecha_upgrada_para_conservado() -> None:
-    # ADR-347 — sem ledger, dups>0 seria COBERTO; com o ledger de contagem que
-    # FECHA (7 == 5 survivors + 2 removidas), sobe a CONSERVADO (conservação provada).
-    g = _with_ledger(_e3(5, dups=2), tx_carregadas=7, intra_statement_dedup=2)
-    assert e3_group_verdict(g)[0] == CONSERVADO
-
-
-def test_e3_group_ledger_com_residuo_e_perda_silenciosa() -> None:
-    # ADR-347 — o ledger é o detector de P0: resíduo não-declarado ⇒ perda.
-    g = _with_ledger(_e3(5), tx_carregadas=10, intra_statement_dedup=1)
-    assert e3_group_verdict(g)[0] == PERDA_SILENCIOSA
-
-
-# ─────────────────────────── e4_bucket_verdict ───────────────────────────
-
-
-def test_e4_tx_bucket_conservado() -> None:
-    b = _bucket(3.0, {"a": 1.0, "b": 2.0}, {"a": [{"valor": 1.0}], "b": [{"valor": 2.0}]})
-    assert e4_bucket_verdict("despesas", b, [])[0] == CONSERVADO
-
-
-def test_e4_tx_bucket_sum_mismatch_perda() -> None:
-    b = _bucket(5.0, {"a": 1.0, "b": 2.0}, {"a": [{"valor": 1.0}], "b": [{"valor": 2.0}]})
-    assert e4_bucket_verdict("despesas", b, [])[0] == PERDA_SILENCIOSA
-
-
-def test_e4_tx_bucket_dados_mismatch_perda() -> None:
-    b = _bucket(3.0, {"a": 1.0, "b": 2.0}, {"a": [{"valor": 1.0}], "b": [{"valor": 99.0}]})
-    assert e4_bucket_verdict("despesas", b, [])[0] == PERDA_SILENCIOSA
-
-
-def test_e4_investimentos_empty_coberto() -> None:
-    assert e4_bucket_verdict("investimentos", {"dados": []}, [])[0] == COBERTO_SEM_VALOR
-
-
-def test_e4_investimentos_ok() -> None:
-    assert e4_bucket_verdict("investimentos", {"dados": [{"tipo": "x"}]}, [])[0] == CONSERVADO
-
-
-# ── balde não-transacional: contêiner resolvido pela CHAVE (A42.l19) ──
-
-
-def test_e4_non_ledger_bucket_coberto() -> None:
-    """`patrimonio_por_ano` é o contêiner do balde `patrimonio` (formato A)."""
-    verdict, detalhe = e4_bucket_verdict("patrimonio", {"patrimonio_por_ano": {"2024": {}}}, [])
-    assert verdict == COBERTO_SEM_VALOR
-    assert "1 itens em `patrimonio_por_ano`" in detalhe
-
-
-def test_e4_non_ledger_conta_o_formato_b() -> None:
-    verdict, detalhe = e4_bucket_verdict("patrimonio", {"declarations": [{}, {}]}, [])
-    assert verdict == COBERTO_SEM_VALOR
-    assert "2 itens em `declarations`" in detalhe
-
-
-def test_e4_non_ledger_fluxo_conta_meses() -> None:
-    """Antes caía no `[]` final e imprimia "0 itens" para um balde com N meses."""
-    verdict, detalhe = e4_bucket_verdict(
-        "fluxo_mensal_detalhado", {"meses_ordenados": ["2026-01", "2026-02"]}, []
-    )
-    assert verdict == COBERTO_SEM_VALOR
-    assert "2 itens em `meses_ordenados`" in detalhe
-
-
-def test_e4_non_ledger_shape_desconhecido_nao_verificavel() -> None:
-    """`composicao` é campo do bloco `patrimonio` do E5, não do balde E4 — o guard
-    o sondava e devolvia `coberto · 0 itens` sobre payload que não sabia ler."""
-    verdict, detalhe = e4_bucket_verdict("patrimonio", {"composicao": [1, 2]}, [])
-    assert verdict == NAO_VERIFICAVEL
-    assert "shape não reconhecido" in detalhe
-
-
-def test_e4_non_ledger_contentor_vazio_e_ausente_nao_se_confundem() -> None:
-    """O `or` encadeado colapsava os dois casos no mesmo `[]`."""
-    assert e4_bucket_verdict("pontos_milhas", {"dados": []}, [])[0] == COBERTO_SEM_VALOR
-    assert e4_bucket_verdict("pontos_milhas", {}, [])[0] == NAO_VERIFICAVEL
-
-
-def test_e4_balde_desconhecido_nao_verificavel() -> None:
-    """Balde novo sem contêiner declarado falha fechado, não vira `coberto`."""
-    assert e4_bucket_verdict("balde_novo", {"dados": [1]}, [])[0] == NAO_VERIFICAVEL
-
-
-def test_e4_bucket_ausente_nao_verificavel() -> None:
-    assert e4_bucket_verdict("despesas", None, [])[0] == NAO_VERIFICAVEL
-
-
 # ─────────── sum-preserving: o check que a conservação não vê (ADR-271) ───────────
 
 
@@ -194,8 +68,8 @@ def test_investment_double_count_falha_em_cenario_sum_preserving() -> None:
 
 
 def test_drift_particiona_matched_diff_only() -> None:
-    fresh = {"a": _e3(5), "b": _e3(3), "c": _e3(2)}
-    persisted = {"a": _e3(5), "b": _e3(4), "d": _e3(1)}
+    fresh = {"a": e3_payload(5), "b": e3_payload(3), "c": e3_payload(2)}
+    persisted = {"a": e3_payload(5), "b": e3_payload(4), "d": e3_payload(1)}
     d = _drift(fresh, persisted)
     assert d.matched == 1
     assert len(d.count_diff) == 1 and "b:" in d.count_diff[0]
@@ -212,8 +86,8 @@ def test_drift_particiona_matched_diff_only() -> None:
 
 
 def test_drift_normaliza_pelo_canal_de_remocao_declarado() -> None:
-    fresco = _e3(1000, dups=7, remocoes=_remocoes(cross_file=7, collapse=0))
-    persistido = _e3(93, dups=7, total=93, remocoes=_remocoes(cross_file=7, collapse=907))
+    fresco = e3_payload(1000, dups=7, remocoes=_remocoes(cross_file=7, collapse=0))
+    persistido = e3_payload(93, dups=7, total=93, remocoes=_remocoes(cross_file=7, collapse=907))
     d = _drift({"g": fresco}, {"g": persistido})
     assert d.count_diff == []
     assert d.matched == 1
@@ -221,8 +95,8 @@ def test_drift_normaliza_pelo_canal_de_remocao_declarado() -> None:
 
 def test_drift_ainda_acusa_divergencia_que_o_canal_nao_explica() -> None:
     """Não-inércia: normalizar não pode calar drift real (resíduo fora do canal)."""
-    fresco = _e3(1000, dups=7, remocoes=_remocoes(cross_file=7, collapse=0))
-    persistido = _e3(90, dups=7, total=90, remocoes=_remocoes(cross_file=7, collapse=907))
+    fresco = e3_payload(1000, dups=7, remocoes=_remocoes(cross_file=7, collapse=0))
+    persistido = e3_payload(90, dups=7, total=90, remocoes=_remocoes(cross_file=7, collapse=907))
     d = _drift({"g": fresco}, {"g": persistido})
     assert len(d.count_diff) == 1 and "1007" in d.count_diff[0] and "1004" in d.count_diff[0]
     assert d.matched == 0
@@ -230,9 +104,9 @@ def test_drift_ainda_acusa_divergencia_que_o_canal_nao_explica() -> None:
 
 def test_drift_artefato_legado_sem_remocoes_mantem_formula_antiga() -> None:
     """Compat: sem `remocoes`, o count segue `total + transacoes_duplicadas_removidas`."""
-    d = _drift({"g": _e3(5, dups=2)}, {"g": _e3(5, dups=2)})
+    d = _drift({"g": e3_payload(5, dups=2)}, {"g": e3_payload(5, dups=2)})
     assert d.count_diff == [] and d.matched == 1
-    d2 = _drift({"g": _e3(5, dups=2)}, {"g": _e3(5, dups=3)})
+    d2 = _drift({"g": e3_payload(5, dups=2)}, {"g": e3_payload(5, dups=3)})
     assert len(d2.count_diff) == 1
 
 
@@ -259,7 +133,7 @@ def _fake_e3_result() -> SimpleNamespace:
 
 
 def _conserving_e4(n_tx: int) -> dict:
-    despesas = _bucket(3.0, {"a": 3.0}, {"a": [{"valor": 1.0}, {"valor": 2.0}]}, n_tx=n_tx)
+    despesas = bucket_payload(3.0, {"a": 3.0}, {"a": [{"valor": 1.0}, {"valor": 2.0}]}, n_tx=n_tx)
     # O destino declara o eixo-VALOR ([[ADR-426]]); sem os dois cents o veredito
     # desta perna cai para `coberto` (ausência é não-medido, não "deu zero").
     despesas["_lineage"] = {
@@ -272,7 +146,7 @@ def _conserving_e4(n_tx: int) -> dict:
     }
     return {
         "despesas": despesas,
-        "receitas": _bucket(0.0, {}, {}, n_tx=0),
+        "receitas": bucket_payload(0.0, {}, {}, n_tx=0),
         "investimentos": {"dados": []},
     }
 
@@ -283,10 +157,11 @@ def _bloco(text: str, titulo: str) -> str:
     return titulo + text.split(titulo, 1)[1].split("\n## ", 1)[0]
 
 
-def _report(e4: dict, *, valores: list[float], with_key: int, transf: int = 0):
+def _report(e4: dict, *, valores: list[float], with_key: int, transf: int = 0, entregue=False):
     """``build_report`` sobre E3/E2 sintéticos coerentes com ``valores`` — o eixo do
-    teste é o E4 passado."""
-    fresh_e3 = {"g1": _e3(len(valores), valores=valores)}
+    teste é o E4 passado. ``entregue=True`` põe o eixo E3 sobre o persistido, onde a
+    âncora externa do LC5-03 **não é medível** (o E2 de hoje não descreve aquele run)."""
+    fresh_e3 = {"g1": e3_payload(len(valores), valores=valores)}
     return build_report(
         "ws-uuid",
         "run-1",
@@ -295,7 +170,7 @@ def _report(e4: dict, *, valores: list[float], with_key: int, transf: int = 0):
         _fake_result(len(valores), with_key, transf=transf, valores=valores),
         e4,
         fresh_e3,
-        persisted_e3=fresh_e3,
+        persisted_e3=fresh_e3 if entregue else {},
     )
 
 
@@ -304,7 +179,6 @@ def test_build_report_synthetic_conserva() -> None:
     assert [c.verdict for c in report.conservation] == [CONSERVADO, CONSERVADO]
     assert report.e3_groups[0].verdict == CONSERVADO
     assert report.natural_key["present"] == 1 and report.natural_key["total"] == 2
-    assert report.drift.matched == 1
     bloco = _bloco(format_report(report), _CROSS_GROUP_TITLE)
     assert "cobertura=" in bloco and "partição do numerador" in bloco
     assert "massa não-varrida" in bloco and "histograma diagnóstico" in bloco
@@ -313,6 +187,54 @@ def test_build_report_synthetic_conserva() -> None:
     # contamina o eixo que o Passo 4 da skill manda varrer por token.
     assert DEDUP_LEGITIMO not in bloco
     assert "shape declarado explicado" in bloco
+
+
+def test_drift_casa_o_grupo_quando_o_persistido_existe() -> None:
+    """O eixo de drift precisa do persistido; a asserção morava no teste de conservação,
+    que passou a rodar sobre a SOMBRA quando a âncora do LC5-03 entrou (A42.l3)."""
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1, entregue=True)
+
+    assert report.drift.matched == 1
+
+
+def test_ancora_transfere_ao_entregue_quando_o_drift_e_zero() -> None:
+    """Sem esta cláusula o eixo entregue perderia a nota máxima PARA SEMPRE — e é ele
+    que a [[A42.l14]] tornou o sujeito da rubrica. Drift zero = mesma população."""
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1, entregue=True)
+
+    assert report.e3_subject == "entregue"
+    assert report.e3_groups[0].verdict == CONSERVADO
+
+
+def test_ancora_nao_transfere_ao_entregue_quando_ha_drift() -> None:
+    """Com drift, a perna E2→E3 (computada sobre a sombra) não descreve o substrato
+    entregue — transferi-la seria comparar através do tempo."""
+    fresh = {"g1": e3_payload(2, valores=[1.0, 2.0])}
+    persistido = {"g1": e3_payload(3, valores=[1.0, 2.0, 3.0])}
+    report = build_report(
+        "ws-uuid",
+        "run-1",
+        [{"transacoes": [{"valor": 1.0}, {"valor": 2.0}]}],
+        _fake_e3_result(),
+        _fake_result(2, 1, valores=[1.0, 2.0]),
+        _conserving_e4(2),
+        fresh,
+        persistido,
+    )
+
+    assert report.e3_subject == "entregue" and report.drift.count_diff
+    assert report.e3_groups[0].verdict == COBERTO_SEM_VALOR
+    assert "COM drift vs a re-derivação" in report.e3_groups[0].detail
+
+
+def test_perna_e2e3_declara_a_particao_da_populacao_e_o_residuo() -> None:
+    """Item 8: as rows entre `semeado` e `count_in` existiam e nenhuma linha as
+    declarava; e o gap era adjetivado ("sub-declaração") sem ser computado."""
+    report = _report(_conserving_e4(2), valores=[1.0, 2.0], with_key=1)
+    bloco = _bloco(format_report(report), "## Conservação")
+
+    assert "população E2: semeado 2 = reconciliável 2 + não-reconciliável 0" in bloco
+    assert "identidade: 2 − 2 − 0 (excl. run-level) = resíduo **0**" in bloco
 
 
 def _pernas(descricao: str, magnitude: float) -> list[dict]:
@@ -331,7 +253,7 @@ _VALORES_CARRIER = [100.0, 100.0, 50.0, 50.0, 150.0, 150.0]
 def _e4_com_carrier_cross_grupo() -> dict:
     """E4 cujos baldes fecham em cents E carregam 3 pares do carrier ADR-354 — em DOIS
     baldes e 3 categorias (a forma real do E4), duplicação sum-preserving."""
-    despesas = _bucket(
+    despesas = bucket_payload(
         300.0,
         {"moradia": 200.0, "outros": 100.0},
         {"moradia": _pernas("aluguel", 100.0), "outros": _pernas("mercado", 50.0)},
@@ -340,7 +262,9 @@ def _e4_com_carrier_cross_grupo() -> dict:
     despesas["_lineage"] = {"signals": {"tx_total": "6", "dedup_collapsed": "0"}}
     return {
         "despesas": despesas,
-        "receitas": _bucket(300.0, {"salario": 300.0}, {"salario": _pernas("salario", 150.0)}, 2),
+        "receitas": bucket_payload(
+            300.0, {"salario": 300.0}, {"salario": _pernas("salario", 150.0)}, 2
+        ),
         "investimentos": {"dados": []},
     }
 
@@ -400,7 +324,7 @@ def test_transferencias_count_do_result_chega_ao_bloco_cross_grupo() -> None:
 
 def test_build_report_synthetic_detecta_drop_e3_para_e4() -> None:
     seeds = [{"transacoes": [{"valor": 1.0}, {"valor": 2.0}]}]
-    fresh_e3 = {"g1": _e3(2, valores=[1.0, 2.0])}
+    fresh_e3 = {"g1": e3_payload(2, valores=[1.0, 2.0])}
     e4 = _conserving_e4(1)  # tx_total=1 mas E3 tem 2 survivors → dropou 1
     report = build_report(
         "ws-uuid", "run-1", seeds, _fake_e3_result(), _fake_result(1, 0), e4, fresh_e3, fresh_e3

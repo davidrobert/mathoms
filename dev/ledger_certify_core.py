@@ -38,7 +38,14 @@ from dev.ledger_cross_group_render import _KR_B_LABEL, _SOMBRA_LABEL, _TITLE
 
 # Re-export: a rubrica saiu para `ledger_unit_verdicts` em A42.l19 (o núcleo
 # cruzou as 500 linhas); os call-sites que importavam daqui seguem valendo.
-from dev.ledger_unit_verdicts import e3_group_verdict, e4_bucket_verdict  # noqa: F401
+# Re-export por binding: o drift saiu para `ledger_drift` na A42.l3; os call-sites
+# (harness, testes) importam daqui, e chamada qualificada mataria os monkeypatch.
+from dev.ledger_drift import DriftSummary, _drift, _e3_count  # noqa: F401
+from dev.ledger_unit_verdicts import (  # noqa: F401
+    LedgerAnchor,
+    e3_group_verdict,
+    e4_bucket_verdict,
+)
 
 
 @dataclass(frozen=True)
@@ -49,16 +56,6 @@ class UnitVerdict:
     verdict: str
     detail: str
     metrics: dict
-
-
-@dataclass
-class DriftSummary:
-    """Sumário do cross-check fresco↔persistido (drift, não perda)."""
-
-    matched: int
-    count_diff: list
-    fresh_only: list
-    persisted_only: list
 
 
 @dataclass
@@ -100,45 +97,6 @@ class LedgerReport:
 # ─────────────────────────── drift + cobertura ───────────────────────────
 
 
-# A42.l20 — somar só `transacoes_duplicadas_removidas` lia apenas o canal
-# `cross_file_dedup`: um canal declarado (o colapso cross-documento) saía como *count
-# divergente*. `declared_removed_count` é o mesmo normalizador da conservação E2→E3, e
-# degrada ao campo legado quando o artefato não tem `remocoes`.
-def _e3_count(payload) -> int:
-    """População que o grupo PRESTA CONTA: sobreviventes + remoções declaradas."""
-    if not isinstance(payload, dict):
-        return -1
-    return int(payload.get("transacoes_total", 0)) + declared_removed_count(payload)
-
-
-def _count_diffs(fresh_e3: dict, persisted_e3: dict) -> tuple[int, list[str]]:
-    matched, diffs = 0, []
-    for key, fresh in fresh_e3.items():
-        pers = persisted_e3.get(key)
-        if pers is None:
-            continue
-        f_n, p_n = _e3_count(fresh), _e3_count(pers)
-        (diffs.append(f"{key}: n_tx fresco {f_n} != persistido {p_n}") if f_n != p_n else None)
-        matched += int(f_n == p_n)
-    return matched, diffs
-
-
-def _drift(fresh_e3: dict, persisted_e3: dict) -> DriftSummary:
-    """Cross-check fresco↔persistido por grupo — divergência = drift (reporta, não falha)."""
-    # O count vem normalizado pelos canais de `remocoes` (ver `_e3_count`), então remoção
-    # DECLARADA dos dois lados não é divergência. O que sobra tem TRÊS causas: keying/dedup
-    # mudou pós-run, artefato de run parcial, OU a config do harness diverge da do run
-    # (ex.: `collapse_enforce`) num eixo que nenhum canal declara. Atribuir só as duas
-    # primeiras foi o defeito da A42.l20.
-    matched, count_diff = _count_diffs(fresh_e3, persisted_e3)
-    return DriftSummary(
-        matched=matched,
-        count_diff=count_diff,
-        fresh_only=sorted(set(fresh_e3) - set(persisted_e3)),
-        persisted_only=sorted(set(persisted_e3) - set(fresh_e3)),
-    )
-
-
 def _natural_key_coverage(result) -> dict:
     """Cobertura de ``natural_key`` (% de tx classificadas com chave) — KR embrião."""
     txns = result.classified
@@ -151,10 +109,13 @@ def _natural_key_coverage(result) -> dict:
 # ─────────────────────────── montagem do report ───────────────────────────
 
 
-def _conservation(e2_payloads: list, fresh_e3: dict, e4: dict, result) -> list:
+def _conservation(e2_payloads: list, fresh_e3: dict, e4: dict, result, e3_exec: dict) -> list:
     e3_list = list(fresh_e3.values())
     return [
-        e2_to_e3(e2_payloads, e3_list),
+        # `exclusoes_run` é o 3º produtor da identidade: statements excluídos inteiros no
+        # load não têm artefato E3 (`e3_load_report.StatementExclusion`), e sem esse termo
+        # o resíduo não é computável — nem "zero".
+        e2_to_e3(e2_payloads, e3_list, exclusoes_run=sum(e3_exec.get("exclusions", {}).values())),
         # O lado-saída vem dos sinais que o E4 DECLARA no artefato ([[ADR-426]]); somar
         # `result.classified` aqui era comparar a origem consigo mesma.
         e3_to_e4(
@@ -166,12 +127,37 @@ def _conservation(e2_payloads: list, fresh_e3: dict, e4: dict, result) -> list:
     ]
 
 
-def _e3_verdicts(fresh_e3: dict) -> list:
+def _e3_verdicts(fresh_e3: dict, anchor: LedgerAnchor) -> list:
     out = []
     for key in sorted(fresh_e3):
-        verdict, detail = e3_group_verdict(fresh_e3[key])
+        verdict, detail = e3_group_verdict(fresh_e3[key], anchor)
         out.append(UnitVerdict(key, verdict, detail, {"n_tx": _e3_count(fresh_e3[key])}))
     return out
+
+
+_ANCORA_COM_DRIFT = (
+    "E3 entregue COM drift vs a re-derivação: a perna E2→E3 é computada sobre a sombra "
+    "e não descreve este substrato ([[ADR-421]] D3 — `herdado` é o regime normal do E2)"
+)
+
+
+def _drift_zerado(drift: DriftSummary) -> bool:
+    """Os dois substratos concordam grupo-a-grupo, no count JÁ normalizado por
+    `remocoes`. É o predicado que autoriza transferir a âncora da sombra ao entregue."""
+    return not (drift.count_diff or drift.fresh_only or drift.persisted_only)
+
+
+# A perna cruza três produtores e é computada sobre a SOMBRA. Vale para o eixo entregue
+# só com drift zero: aí os dois substratos são a mesma população e o log de exclusões da
+# re-derivação descreve os dois. Com drift, transferi-la seria comparar através do tempo.
+def _ledger_anchor(conservation: list, e3_label: str, drift: DriftSummary) -> LedgerAnchor:
+    """Âncora externa dos grupos E3 (LC5-03) — o resíduo da perna E2→E3 do workspace."""
+    if e3_label != "sombra" and not _drift_zerado(drift):
+        return LedgerAnchor(motivo=_ANCORA_COM_DRIFT)
+    e2e3 = next((c for c in conservation if c.transition == "E2->E3"), None)
+    if e2e3 is None:
+        return LedgerAnchor(motivo="perna E2→E3 ausente do relatório")
+    return LedgerAnchor(residuo=e2e3.residuo, motivo="resíduo E2→E3 não computável")
 
 
 def _bucket_metrics(payload) -> dict:
@@ -230,7 +216,9 @@ def _subject_of(rederivado: dict, publicado: dict | None) -> tuple[dict, str]:
     return (publicado, "entregue") if publicado else (rederivado, "sombra")
 
 
-def _subject_axes(e4: dict, e4_persisted, fresh_e3: dict, persisted_e3: dict) -> dict:
+def _subject_axes(
+    e4: dict, e4_persisted, fresh_e3: dict, persisted_e3: dict, conserv: list, drift: DriftSummary
+) -> dict:
     """Eixos de rubrica sobre o SUJEITO ENTREGUE, com o rótulo do substrato de cada um."""
     subject, label = _subject_of(e4, e4_persisted)
     collisions = investment_double_count(subject.get("investimentos", {}))
@@ -240,7 +228,7 @@ def _subject_axes(e4: dict, e4_persisted, fresh_e3: dict, persisted_e3: dict) ->
         "e4_buckets": _e4_verdicts(subject, collisions),
         "investment_collisions": collisions,
         "e3_subject": e3_label,
-        "e3_groups": _e3_verdicts(e3_subject),
+        "e3_groups": _e3_verdicts(e3_subject, _ledger_anchor(conserv, e3_label, drift)),
     }
 
 
@@ -248,17 +236,29 @@ def build_report(
     ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e3, *, e4_persisted=None
 ) -> LedgerReport:
     """Monta o ``LedgerReport``; o eixo E4 descreve o artefato ENTREGUE quando ele existe."""
-    cross_group = cross_group_summary(e4, result.cash_flow.transferencias_count)
+    medidas = _medidas(seeds, e3_result, result, e4, fresh_e3, persisted_e3)
     return LedgerReport(
-        **_subject_axes(e4, e4_persisted, fresh_e3, persisted_e3),
+        **_subject_axes(
+            e4, e4_persisted, fresh_e3, persisted_e3, medidas["conservation"], medidas["drift"]
+        ),
+        **medidas,
         workspace_id=ws,
         run_id=run_id,
         e2_seeded=len(seeds),
         e2_tx=sum(len(p.get("transacoes", [])) for p in seeds),
-        e3_exec=_e3_exec_dict(e3_result),
-        conservation=_conservation(seeds, fresh_e3, e4, result),
-        natural_key=_natural_key_coverage(result),
+    )
+
+
+# Computadas ANTES dos eixos de rubrica: a âncora do LC5-03 é o resíduo da perna E2→E3,
+# e o drift decide se ela vale para o substrato entregue.
+def _medidas(seeds, e3_result, result, e4, fresh_e3, persisted_e3) -> dict:
+    cross_group = cross_group_summary(e4, result.cash_flow.transferencias_count)
+    e3_exec = _e3_exec_dict(e3_result)
+    return dict(
+        e3_exec=e3_exec,
+        conservation=_conservation(seeds, fresh_e3, e4, result, e3_exec),
         drift=_drift(fresh_e3, persisted_e3),
+        natural_key=_natural_key_coverage(result),
         cross_group=cross_group,
         collapse_layer=_collapse_layer(e3_result, cross_group),
     )
@@ -273,6 +273,21 @@ def _delta_cents(a, b) -> str:
     return str(b - a)
 
 
+def _fmt_particao_e2(r) -> list[str]:
+    """Partição da população E2 — as rows entre `semeado` e `count_in` existiam e
+    NENHUMA linha as declarava (A42.l3, item 8). Silêncio de 23 rows no run da U1."""
+    if r.transition != "E2->E3" or r.semeado is None:
+        return []
+    fora = r.semeado - r.count_in
+    resid = "não computável" if r.residuo is None else str(r.residuo)
+    return [
+        f"  - população E2: semeado {r.semeado} = reconciliável {r.count_in} "
+        f"+ não-reconciliável {fora} (posição/informe/IRPF, LC-07)",
+        f"  - identidade: {r.count_in} − {r.count_out} − {r.exclusoes_run} "
+        f"(excl. run-level) = resíduo **{resid}**",
+    ]
+
+
 def _fmt_conservation(results: list) -> list[str]:
     """Conservação da CADEIA re-derivada E2→E3→E4 — sempre sombra, e a linha diz isso."""
     lines = ["## Conservação (workspace, cents tol-zero)"]
@@ -282,6 +297,7 @@ def _fmt_conservation(results: list) -> list[str]:
             f"- {r.transition}: count {r.count_in}->{r.count_out} dups={r.dups} "
             f"Δvalor={delta} cents · **{r.verdict}** — {r.detail} · [sombra]"
         )
+        lines.extend(_fmt_particao_e2(r))
     return lines
 
 

@@ -43,145 +43,21 @@ from dev.ledger_cross_group import (  # noqa: F401
 )
 from dev.ledger_cross_group_render import fmt_cross_group  # noqa: F401
 
-# Vereditos fail-closed (rubrica ledger-certify).
-CONSERVADO = "conservado"
-COBERTO_SEM_VALOR = "coberto-sem-verificação-de-valor"
-DEDUP_LEGITIMO = "dedup/transfer-legítimo"
-PERDA_SILENCIOSA = "perda/dupla-contagem-silenciosa"  # P0
-NAO_VERIFICAVEL = "não-verificável"
-
-
-@dataclass(frozen=True)
-class ConservationResult:
-    transition: str  # "E2->E3" | "E3->E4"
-    count_in: int
-    count_out: int
-    value_in_cents: int | None
-    value_out_cents: int | None
-    dups: int
-    verdict: str
-    detail: str
-
-
-# ─────────────────────────── E2 → E3 ───────────────────────────
-
-# Doc-types que carregam posição/informe (não transação bancária): passam pelo
-# reconciliador mas não produzem tx reconciliada — não podem inflar o denominador
-# E2→E3 (LC-07). Espelha a distinção do E4 (``e4_categorizer_adapter``:
-# ``tipo_documento in ("investment_report", "informe_rendimentos")``). Os tipos já
-# normalizados (``investimentosposicao``, ``informerendimentos``…) saem via
-# ``AccountGrouper.should_skip``; este set cobre as formas LLM com underscore.
-_NON_TX_DOC_TYPES = frozenset({"investment_report", "informe_rendimentos"})
-
-
-def _tx_cents(tx: dict) -> int:
-    """Cents de uma transação. O pipeline move ``valor`` (float); ``amount``
-    (decimal-string, ADR-278) é preferido quando presente por precisão."""
-    raw = tx.get("amount")
-    if raw in (None, ""):
-        raw = tx.get("valor", 0)
-    return to_cents(raw)
-
-
-def _sum_cents(txns: list[dict]) -> int:
-    return sum(_tx_cents(t) for t in txns)
-
-
-def _skips_reconcile(artifact: dict) -> bool:
-    """True se o reconciliador não produziria tx a partir deste artefato E2 — tipo
-    pulado (``AccountGrouper.should_skip``: IRPF, posição, informe, fatura não-
-    suportada) ou doc-type de posição/informe (``_NON_TX_DOC_TYPES``). Filtra o
-    denominador E2→E3 para não contar tx que nunca entram no reconcile (LC-07)."""
-    from pipeline.domain.services.account_grouper import AccountGrouper
-
-    if not isinstance(artifact, dict):
-        return True
-    doc_type = str(artifact.get("tipo") or artifact.get("tipo_documento") or "").strip()
-    if doc_type in _NON_TX_DOC_TYPES:
-        return True
-    return AccountGrouper().should_skip(artifact)
-
-
-# Público desde A42.l20: o drift de `ledger_certify_core` precisa do MESMO normalizador
-# que a conservação usa. Reimplementar a escolha canal-vs-legado num segundo módulo foi
-# exatamente o defeito que aquela lane pagou.
-def declared_removed_count(artifact: dict) -> int:
-    """Remoções declaradas do artefato — partição completa quando ``remocoes`` existe."""
-    # `transacoes_duplicadas_removidas` é SÓ cross-file (O4 do co-design A40.l2):
-    # canal novo em `remocoes` não entrava no count_out e o check de COUNT disparava
-    # antes de qualquer check de valor. Fallback preserva artefato antigo.
-    remocoes = artifact.get("remocoes")
-    if isinstance(remocoes, dict) and remocoes:
-        return sum(int(r.get("count", 0)) for r in remocoes.values() if isinstance(r, dict))
-    return int(artifact.get("transacoes_duplicadas_removidas", 0))
-
-
-def _declared_dedup_cents(e3_artifacts: list[dict]) -> int:
-    """Σ ``valor_cents`` declarado nos canais de remoção (``remocoes``, ADR-347
-    §Dec-6). Prova a conservação de VALOR E2→E3 quando fecha contra o valor removido
-    (val_in − val_out); antes da serialização por canal, era 0 ⇒ valor não-provável."""
-    return sum(
-        int(r.get("valor_cents", 0))
-        for a in e3_artifacts
-        if isinstance(a, dict)
-        for r in (a.get("remocoes") or {}).values()
-        if isinstance(r, dict)
-    )
-
-
-def e2_to_e3(e2_artifacts: list[dict], e3_artifacts: list[dict]) -> ConservationResult:
-    """Conservação E2→E3 (workspace-wide). Count HARD; valor provado se dups==0 OU se
-    o valor removido pelo dedup == Σ ``remocoes[*].valor_cents`` declarado (ADR-347).
-    O denominador exclui artefatos não-reconciliáveis (posição/informe/IRPF): suas
-    tx nunca entram no reconcile e inflariam a perda aparente (LC-07)."""
-    reconcilable = [a for a in e2_artifacts if not _skips_reconcile(a)]
-    e2_tx = [t for a in reconcilable for t in a.get("transacoes", [])]
-    count_in = len(e2_tx)
-    survivors = sum(a.get("transacoes_total", 0) for a in e3_artifacts)
-    dups = sum(declared_removed_count(a) for a in e3_artifacts)
-    count_out = survivors + dups
-    e3_tx = [t for a in e3_artifacts for t in a.get("transacoes", [])]
-    val_in, val_out = _sum_cents(e2_tx), _sum_cents(e3_tx)
-    declared = _declared_dedup_cents(e3_artifacts)
-    return _e2e3_verdict(count_in, count_out, dups, val_in, val_out, declared)
-
-
-def _e2e3_verdict(
-    count_in: int, count_out: int, dups: int, val_in: int, val_out: int, declared: int
-) -> ConservationResult:
-    """Veredito E2→E3 fail-closed. A ORDEM importa: queda de count COM dedup
-    declarado (dups>0) é sub-declaração ⇒ não perda (LC-07). Valor: dups>0 sobe a
-    conservado só se o removido == declarado (ADR-347 §Dec-6); senão coberto."""
-    # A guarda era UNILATERAL: os dois primeiros checks só testavam `count_out <
-    # count_in`, e sobre-declaração caía no `default = CONSERVADO`. Com o `intra`
-    # autoritativo e o 5º canal (ADR-347 §Emenda), a mesma row declarada em dois canais
-    # ficava invisível — e é este somatório que alimenta o contador mostrado à família.
-    value_ok = dups > 0 and (val_in - val_out) == declared
-    checks = _e2e3_checks(count_in, count_out, dups, val_in, val_out, declared, value_ok)
-    default = (CONSERVADO, "count e valor conservam" + ("; dedup declarado fecha" if dups else ""))
-    v, d = next(((vv, dd) for cond, vv, dd in checks if cond), default)
-    return ConservationResult("E2->E3", count_in, count_out, val_in, val_out, dups, v, d)
-
-
-def _e2e3_checks(count_in, count_out, dups, val_in, val_out, declared, value_ok) -> list:
-    """Checks do veredito E2→E3, na ORDEM que importa (count antes de valor)."""
-    return [
-        (count_out < count_in and dups == 0, PERDA_SILENCIOSA, "count caiu sem dedup declarado"),
-        (count_out < count_in, COBERTO_SEM_VALOR, "sub-declaração de dedup; count não fecha"),
-        (
-            count_out > count_in,
-            PERDA_SILENCIOSA,
-            f"SOBRE-declaração: count_out {count_out} > count_in {count_in} "
-            f"(mesma row declarada em >1 canal, ou canal contado 2x)",
-        ),
-        (
-            dups > 0 and not value_ok,
-            COBERTO_SEM_VALOR,
-            f"dups>0; valor removido {val_in - val_out} != declarado {declared}",
-        ),
-        (val_out != val_in and dups == 0, PERDA_SILENCIOSA, "Σ valor diverge sem dedup (dups=0)"),
-    ]
-
+# Re-export por BINDING: este módulo é o ponto de entrada documentado do ledger, e os
+# call-sites (harness, rubrica, testes) importam daqui. Chamada qualificada tornaria
+# inertes os `monkeypatch` que apontam para este namespace — lição do #1915 (A42.l14).
+from dev.ledger_e2e3 import (  # noqa: F401,E402
+    declared_removed_count,
+    e2_to_e3,
+)
+from dev.ledger_verdicts import (  # noqa: F401,E402
+    COBERTO_SEM_VALOR,
+    CONSERVADO,
+    DEDUP_LEGITIMO,
+    NAO_VERIFICAVEL,
+    PERDA_SILENCIOSA,
+    ConservationResult,
+)
 
 # ─────────────────────────── E3 → E4 ───────────────────────────
 #

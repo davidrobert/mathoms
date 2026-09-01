@@ -12,9 +12,16 @@
 #   então a chave tem degrau de recusa em vez de fallback mudo.
 #   Política de era do bump: a chave de identidade lê `cnpj_emissor` QUANDO existe e,
 #   quando não, extrai o CNPJ do texto da própria `descricao` — as duas rotas dão a mesma
-#   raiz, então item de era 1.3.0 e item de era 1.4.0 colidem no mesmo hash. É por isso que
-#   este bump NÃO deixa 91,6% do corpus órfão: ele não precisa de re-extração (ADR-311 D3
-#   exclui) porque o vocabulário antigo continua alcançando a perna forte.
+#   raiz, então item de era 1.3.0 e item de era 1.4.0 colidem no mesmo hash. Vale na METADE
+#   ANCORADA (50,9% medido): ali o vocabulário antigo alcança a perna forte e não precisa da
+#   re-extração que a ADR-311 D3 exclui. Nos ~49,1% sem âncora a chave cai na perna fraca,
+#   que contém `descricao` — e a regra de formato abaixo move esse campo, logo ali a era
+#   MOVE a chave, uma vez só (provado por mutação, A42.l15).
+# 1.4.1: só comentário — o gate ADR-233 exige bump quando o arquivo muda (falso-positivo
+#   declarado no próprio hook). Custo zero: ZERO artefato foi produzido em 1.4.0 (corpus
+#   medido 2026-09-01: 1.0.0=154 · 1.1.0=190 · 1.2.0=380 · 1.3.0=70 · NULL=42), logo o
+#   bump não estranda era nenhuma. O texto de 1.4.0 afirmava a colisão entre eras como
+#   universal sobre premissa de 50,9% de cobertura; a correção está acima.
 #   Junto vai a REGRA DE FORMATO de `descricao` — o braço que testa a hipótese da lane.
 #   Medido em 72 pares: os campos que o prompt pina numa superfície única de renderização
 #   são estáveis (`secao` 0/72, `categoria_hint` 1/72 por enum; `valor_brl` 100% e `cpf`
@@ -24,7 +31,7 @@
 #   runs novos o mostram, e `dev/measure_e15_identity_stability.py` já agrupa por era,
 #   então a era 1.4.0 acumula amostra sozinha. Vai no MESMO bump de propósito: adiar
 #   custaria um 1.5.0 e uma segunda fronteira de era sobre a perna fraca da chave.
-PROMPT_VERSION = "1.4.0"
+PROMPT_VERSION = "1.4.1"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 

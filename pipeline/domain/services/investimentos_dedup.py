@@ -106,7 +106,7 @@ def _to_invest_warning(w: DedupWarning) -> InvestDedupWarning:
 
 
 class _InvestmentPolicy:
-    """Cascata `("cnpj", raiz)` ⊳ `("desc", tipo, inst_norm, desc_norm)`; sem reagrupamento."""
+    """Cascata `("cnpj", raiz, tipo, desc)` ⊳ `("desc", tipo, inst, desc)`; sem reagrupamento."""
 
     def identity_key(self, entry: dict) -> tuple | None:
         return _identity_key(entry)
@@ -128,9 +128,18 @@ class _InvestmentPolicy:
         return entries, tuple(warnings) + dec_warnings, dropped
 
 
-# Cascata medida ([[A42.l15]], 836 artefatos / 28 grupos, pooled |A∩B|/|A∪B|):
-# `(tipo,inst,desc)` 37,68% → com a âncora na frente **61,78%**. O subconjunto
-# ancorado sozinho é 91,71% estável, e a âncora cobre ~metade das entradas.
+# A âncora TROCA `instituicao`; ela não substitui o par (tipo, descricao). CNPJ raiz
+# identifica **quem emite**, não **o que foi emitido** — `("cnpj", raiz)` sozinho fundia
+# conta corrente com poupança do mesmo banco e CDB com FII da mesma corretora, e o
+# `max()` de `_union_valores` fazia o menor valor SUMIR (medido: R$ 3.000 e R$ 50.000).
+# É a classe que a [[ADR-271]] §Calibração nomeia como a pior, e a mesma que esta lane
+# já evitara ao manter `instituicao` na perna fraca — a âncora a reintroduziu por outro
+# caminho. Estabilidade não é o eixo que decide; a §Calibração é.
+#
+# Custo medido do conserto (836 artefatos / 28 grupos, pooled |A∩B|/|A∪B|):
+# `(tipo,inst,desc)` 37,68% · `("cnpj",raiz)` 61,78% mas funde 3/3 dos casos distintos ·
+# `("cnpj",raiz,tipo)` 56,64% e ainda funde dois CDBs do mesmo banco ·
+# **`("cnpj",raiz,tipo,desc)` 42,38%, cardinalidade 9,7 = a do baseline, funde 0/3**.
 #
 # `instituicao` FICA na perna fraca, contra o que a lane planejava. Tirá-la mede
 # 69,20% — mais 7,4pp — mas funde "Tesouro Selic 2029" na XP com o da BTG: mesmo
@@ -146,13 +155,13 @@ class _InvestmentPolicy:
 # e é menos.
 def _identity_key(entry: dict) -> tuple | None:
     """Chave do ATIVO, agnóstica a ano e proprietário. ``None`` = unidentified."""
+    desc = normalize_descricao(entry.get("descricao"))
+    tipo = (entry.get("tipo") or "").strip().lower()
     raiz = ancora_da_entrada(entry)
     if raiz:
-        return ("cnpj", raiz)
-    desc = normalize_descricao(entry.get("descricao"))
+        return ("cnpj", raiz, tipo, desc)
     if not desc:
         return None
-    tipo = (entry.get("tipo") or "").strip().lower()
     inst = normalize_descricao(entry.get("instituicao"))
     return ("desc", tipo, inst, desc)
 

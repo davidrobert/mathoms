@@ -9,6 +9,7 @@ sem DB.
 from __future__ import annotations
 
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -25,13 +26,40 @@ from dev.ledger_conservation import (
 _TX_BUCKETS = ("despesas", "receitas")
 
 
+# `_ledger_verdict` lê três campos escritos pelo MESMO produtor (`tx_carregadas`,
+# `transacoes_total`, `remocoes`): o fechamento deles prova auto-consistência do
+# artefato, não conservação E2→E3. Foi assim que 97/97 grupos saíram `conservado`
+# impressos ao lado de "E2→E3: count não fecha" — duas afirmações contraditórias que
+# nada cruzava. O resíduo da perna cruza TRÊS produtores: artefatos E2 (`count_in`),
+# artefatos E3 (`count_out`) e o log de execução do E3 (exclusões run-level).
+@dataclass(frozen=True)
+class LedgerAnchor:
+    """Âncora **externa** do ledger de contagem por grupo (LC5-03) — o resíduo da perna
+    E2→E3 do workspace. Resíduo ≠ 0, ou não computado, ⇒ nenhum grupo passa de
+    ``coberto-sem-verificação``: um grupo não certifica mais que a cadeia onde vive."""
+
+    residuo: int | None = None
+    motivo: str = "âncora externa não computada"
+
+    @property
+    def fecha(self) -> bool:
+        return self.residuo == 0
+
+    @property
+    def glosa(self) -> str:
+        if self.residuo is None:
+            return self.motivo
+        return f"resíduo {self.residuo} na perna E2→E3 do workspace"
+
+
 def _first_verdict(checks: list, default: tuple) -> tuple:
     return next(((v, d) for cond, v, d in checks if cond), default)
 
 
 def _ledger_verdict(fresh: dict, total: int) -> tuple[str, str] | None:
-    """ADR-347 — se o artefato declara o ledger (``tx_carregadas`` + ``remocoes``),
-    o fechamento (int, tol-zero) PROVA a conservação de contagem; resíduo = P0."""
+    """ADR-347 — se o artefato declara o ledger (``tx_carregadas`` + ``remocoes``), o
+    fechamento (int, tol-zero) prova **auto-consistência do produtor**; resíduo = P0.
+    Quem promove a ``conservado`` é `_teto_da_ancora`, com a âncora externa."""
     remocoes = fresh.get("remocoes")
     carregadas = fresh.get("tx_carregadas")
     if not isinstance(remocoes, dict) or carregadas is None:
@@ -49,10 +77,20 @@ def _ledger_verdict(fresh: dict, total: int) -> tuple[str, str] | None:
     )
 
 
-def e3_group_verdict(fresh) -> tuple[str, str]:
+def _teto_da_ancora(veredito: tuple[str, str], anchor: LedgerAnchor) -> tuple[str, str]:
+    """``conservado`` exige a âncora EXTERNA fechada. Fechamento interno prova só o
+    produtor consigo mesmo; ``perda`` não é rebaixada — defeito do grupo é do grupo."""
+    verdict, detail = veredito
+    if verdict != CONSERVADO or anchor.fecha:
+        return verdict, detail
+    return COBERTO_SEM_VALOR, f"{detail}; teto: {anchor.glosa}"
+
+
+def e3_group_verdict(fresh, anchor: LedgerAnchor | None = None) -> tuple[str, str]:
     """Veredito de um grupo E3: consistência interna (count) + **ledger de contagem
-    declarado** (ADR-347) quando presente. 0-tx não sobe a ``conservado``; sem ledger,
-    dups>0 fica ``coberto`` (valor removido não provável no artefato)."""
+    declarado** (ADR-347) quando presente, **tetado pela âncora externa** (LC5-03).
+    ``anchor=None`` = âncora não medida ⇒ teto ``coberto``."""
+    anchor = anchor or LedgerAnchor()
     if not isinstance(fresh, dict) or "transacoes" not in fresh:
         return NAO_VERIFICAVEL, "sem payload E3 legível"
     n_tx = len(fresh.get("transacoes") or [])
@@ -61,6 +99,11 @@ def e3_group_verdict(fresh) -> tuple[str, str]:
         return NAO_VERIFICAVEL, f"transacoes_total={total} != len(transacoes)={n_tx}"
     if n_tx == 0:
         return COBERTO_SEM_VALOR, "0 transações — sem checksum de fechamento neste grão"
+    return _teto_da_ancora(_grupo_com_ledger(fresh, total), anchor)
+
+
+def _grupo_com_ledger(fresh: dict, total: int) -> tuple[str, str]:
+    """Veredito INTERNO do grupo — auto-consistência, antes do teto da âncora."""
     ledger = _ledger_verdict(fresh, total)
     if ledger is not None:
         return ledger
@@ -103,39 +146,73 @@ def _investimentos_verdict(payload: dict, collisions: list) -> tuple[str, str]:
     return CONSERVADO, f"{len(dados)} posições; sem duplicata literal nem snapshot cross-período"
 
 
-# Contêiner contável de cada balde não-transacional, POR CHAVE (A42.l19) — mesmo
-# discriminador que o guard de escrita usa: a artifact_key, não o shape. Sondar
-# `dados`/`apolices`/`composicao` no payload imprimia "coberto · 0 itens" para
-# `patrimonio` e `fluxo_mensal_detalhado`, que não têm nenhum dos três (`composicao`
-# é campo do bloco `patrimonio` do E5, não do balde E4). O `or` encadeado ainda
-# confundia contêiner VAZIO com contêiner AUSENTE — os dois caíam no `[]` final.
-_NON_LEDGER_CONTAINERS: dict[str, tuple[str, ...]] = {
-    "patrimonio": ("patrimonio_por_ano", "declarations"),
-    "fluxo_mensal_detalhado": ("meses_ordenados",),
-    "seguros": ("apolices", "dados"),
-    "pontos_milhas": ("dados",),
+@dataclass(frozen=True)
+class NonLedgerChecker:
+    """Checker DECLARADO de um balde fora do grão transacional. Duas coisas, porque
+    contar sem dizer de onde o balde vem é o que produziu a glosa falsa da A42.l3:
+
+    - ``containers``: onde contar, POR CHAVE (A42.l19) — mesmo discriminador que o
+      guard de escrita usa, a artifact_key e não o shape. Sondar
+      `dados`/`apolices`/`composicao` no payload imprimia "coberto · 0 itens" para
+      `patrimonio` e `fluxo_mensal_detalhado`, que não têm nenhum dos três.
+    - ``proveniencia``: por que a contagem NÃO é prova de conservação NESTE balde. Era
+      uma frase única (*"origem E2/baseline (fora do grão transacional)"*) carimbada
+      nos quatro, e ela é **factualmente falsa** para `fluxo_mensal_detalhado`.
+    """
+
+    containers: tuple[str, ...]
+    proveniencia: str
+
+
+# Registry `{balde → checker}` com default **`não-verificável`** (LC05/LC5-06): balde
+# novo sem checker declarado aparece como lacuna, nunca como aprovação.
+_NON_LEDGER_CHECKERS: dict[str, NonLedgerChecker] = {
+    "patrimonio": NonLedgerChecker(
+        ("patrimonio_por_ano", "declarations"),
+        "origem baseline/IRPF (E1.5) — fora do grão transacional",
+    ),
+    "fluxo_mensal_detalhado": NonLedgerChecker(
+        ("meses_ordenados",),
+        "derivado da MESMA população classificada (`CashFlowBuilder`), não de "
+        "E2/baseline — a conservação dele é a de `despesas`+`receitas`, e contar "
+        "meses não a prova",
+    ),
+    "seguros": NonLedgerChecker(
+        ("apolices", "dados"),
+        "origem E2 (`extract_comprovantes_bens`) — fora do grão transacional",
+    ),
+    "pontos_milhas": NonLedgerChecker(
+        ("dados",),
+        "placeholder do legado (sempre regenerado vazio) — 0 itens aqui não é medida",
+    ),
 }
 
 
-def _non_ledger_verdict(key: str, payload: dict) -> tuple[str, str]:
-    """Balde fora do grão transacional: conta o contêiner que a CHAVE declara."""
-    # Shape não reconhecido devolve `não-verificável`, nunca `coberto`: dizer
-    # "coberto · 0 itens" sobre payload que esta função não sabe ler afirma cobertura
-    # que não houve — era o que acontecia com os 87 itens do `patrimonio` (A42.l19).
-    esperados = _NON_LEDGER_CONTAINERS.get(key, ())
-    for nome in esperados:
+def _first_container(payload: dict, nomes: tuple[str, ...]) -> tuple[str, int] | None:
+    """Primeiro contêiner PRESENTE e o seu tamanho. Contêiner vazio devolve
+    ``(nome, 0)``; ausente devolve ``None`` — os dois caíam no mesmo `[]` antes."""
+    for nome in nomes:
         conteudo = payload.get(nome)
         if isinstance(conteudo, (list, dict, tuple, str)):
-            return (
-                COBERTO_SEM_VALOR,
-                f"{key}: origem E2/baseline (fora do grão transacional); "
-                f"{len(conteudo)} itens em `{nome}`",
-            )
-    faltando = ", ".join(f"`{n}`" for n in esperados) or "nenhum contêiner conhecido"
-    return (
-        NAO_VERIFICAVEL,
-        f"{key}: shape não reconhecido (esperava {faltando}); cobertura não afirmável",
-    )
+            return nome, len(conteudo)
+    return None
+
+
+def _non_ledger_verdict(key: str, payload: dict) -> tuple[str, str]:
+    """Balde fora do grão transacional: conta o contêiner que o CHECKER da chave
+    declara, e diz a proveniência **daquele** balde. Chave sem checker, ou shape não
+    reconhecido, devolve `não-verificável` e nunca `coberto`: dizer "coberto · 0 itens"
+    sobre payload que esta função não sabe ler afirma cobertura que não houve — era o
+    caso dos 87 itens do `patrimonio` (A42.l19)."""
+    checker = _NON_LEDGER_CHECKERS.get(key)
+    if checker is None:
+        return NAO_VERIFICAVEL, f"{key}: sem checker declarado no registry; nada afirmável"
+    achado = _first_container(payload, checker.containers)
+    if achado is None:
+        faltando = ", ".join(f"`{n}`" for n in checker.containers)
+        return NAO_VERIFICAVEL, f"{key}: shape não reconhecido (esperava {faltando})"
+    nome, n = achado
+    return COBERTO_SEM_VALOR, f"{key}: {checker.proveniencia}; {n} itens em `{nome}`"
 
 
 def e4_bucket_verdict(key: str, payload, collisions: list) -> tuple[str, str]:

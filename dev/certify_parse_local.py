@@ -12,9 +12,11 @@ Uso:
     python3 dev/certify_parse_local.py --dir <pasta> --baseline _scratch/a38_base.json
     python3 dev/certify_parse_local.py --dir <pasta> --compare _scratch/a38_base.json
 
-`--compare` retorna exit != 0 se qualquer doc regredir vs o baseline: n_tx menor,
-conservação passa→falha, parser determinístico perdido, escalação honesta trocada
-por conservação quebrada, ou queda no piso de cobertura determinística.
+`--compare` retorna exit != 0 se qualquer doc regredir vs o baseline: n_tx ou
+n_posicoes menor, conservação passa→falha, parser determinístico perdido, escalação
+honesta trocada por conservação quebrada, ou **queda de degrau** em qualquer um dos
+três enums ranqueados (checksum de fatura, checksum de posição, verificabilidade
+[[A42.l2]]) — sinal positivo que desaparece é des-certificação, não silêncio.
 """
 
 from __future__ import annotations
@@ -183,21 +185,55 @@ def _count_metrics(result: dict) -> dict:
     }
 
 
+# Estados do checksum de POSIÇÃO (investimento), derivados dos dois traços que
+# `apply_cdb_checksum` / `apply_rv_*_checksum` já escrevem ([[ADR-342]] §Emenda
+# A39.l6) e que `config/schemas/e2_extract.schema.json` já declara. Só leitura —
+# o harness nunca recomputa checksum, pelo mesmo princípio de
+# `conservation_gap_cents`: instrumento que recalcula prova a si mesmo.
+POSICAO_PASSOU = "passou"
+POSICAO_PULADO = "pulado_sem_total"
+POSICAO_AUSENTE = "ausente"
+POSICAO_NAO_APLICAVEL = "nao_aplicavel"
+
+
+def posicao_checksum_status(result: dict) -> str:
+    """Estado do checksum de posição. `ausente` (há posições e nenhum traço) é
+    DISTINTO de `nao_aplicavel` (não há posição a somar) — conflatá-los é o que
+    prendia 11 docs de investimento em `coberto-sem-verificação` por
+    observabilidade, não por falta de checksum (PC13)."""
+    if result.get("checksum_ok"):
+        return POSICAO_PASSOU
+    if result.get("checksum_skipped_no_total"):
+        return POSICAO_PULADO
+    return POSICAO_AUSENTE if (result.get("posicoes") or []) else POSICAO_NAO_APLICAVEL
+
+
+def _declared_traces(result: dict) -> dict:
+    """Traços que o PRODUTOR declara — o harness só os lê, nunca os recomputa
+    (mesmo princípio de `conservation_gap_cents`: instrumento que recalcula prova a
+    si mesmo). `faltando` fica implícito quando o parser não emite `fatura_checksum`
+    (extrato/CSV sem checksum)."""
+    fatura_checksum = result.get("fatura_checksum") or {}
+    return {
+        "conservacao_verificavel": bool(result.get("conservacao_verificavel")),
+        "fatura_checksum_status": fatura_checksum.get("status"),
+        "scopes_uncovered": fatura_checksum.get("scopes_uncovered") or [],
+        "posicao_checksum_status": posicao_checksum_status(result),
+        # Enum de verificabilidade do payload E2 ([[A42.l2]]). Ausente = a lane
+        # provedora ainda não shipou OU o parser não declara — nunca "provada".
+        "verificabilidade": result.get("verificabilidade"),
+    }
+
+
 def _quality_metrics(result: dict) -> dict:
     escalation = result.get("escalation_reason") or {}
-    # Traço de checksum de fatura setado por _apply_fatura_checksum (só leitura,
-    # nunca recomputa — mesmo princípio de conservation_gap_cents). `faltando`
-    # implícito quando o parser não emite o campo (extrato/CSV sem checksum).
-    fatura_checksum = result.get("fatura_checksum") or {}
     return {
         "escalated": bool(result.get("requires_llm_fallback")),
         "escalation_code": escalation.get("code"),
         "conservacao": conservation_status(result),
-        "conservacao_verificavel": bool(result.get("conservacao_verificavel")),
         "total_set": result.get("saldo_atual") is not None,
         "vencimento_set": result.get("data_vencimento") is not None,
-        "fatura_checksum_status": fatura_checksum.get("status"),
-        "scopes_uncovered": fatura_checksum.get("scopes_uncovered") or [],
+        **_declared_traces(result),
         "notas": [mask_text(n)[:160] for n in (result.get("notas") or [])[:6]],
     }
 
@@ -247,32 +283,84 @@ def compare_records(current: list[dict], baseline: list[dict]) -> tuple[list[str
 _FATURA_CHECKSUM_RANK = {"passou": 2, "mismatch": 1, "faltando": 0, None: 0}
 
 
+# Enum de verificabilidade do payload E2 ([[A42.l2]]). A ausência do campo é o
+# degrau MAIS BAIXO por desenho: parser que não declara nada não certifica nada, e
+# ranquear ausência acima de `falhou` devolveria o default otimista que a l2 recusou.
+_VERIFICABILIDADE_RANK = {"provada": 3, "nao_verificavel": 2, "falhou": 1, None: 0}
+
+# Estados do checksum de posição, ranqueados p/ o ratchet. `ausente` e
+# `nao_aplicavel` empatam em 0 — nenhum dos dois certifica nada —, mas continuam
+# valores DISTINTOS no record, porque só um deles é acionável.
+_POSICAO_CHECKSUM_RANK = {
+    POSICAO_PASSOU: 2,
+    POSICAO_PULADO: 1,
+    POSICAO_AUSENTE: 0,
+    POSICAO_NAO_APLICAVEL: 0,
+    None: 0,
+}
+
+
+def _honesto_por_enum(rec: dict) -> bool:
+    """A escalação deixou de ser o único sinal honesto: um parser que declara
+    `nao_verificavel`/`falhou` no enum da [[A42.l2]] está dizendo o que não sabe.
+    Fail-closed — campo AUSENTE não compra a isenção (é o default otimista)."""
+    return rec.get("verificabilidade") in ("nao_verificavel", "falhou")
+
+
 def _regressions_for(rec: dict, base: dict) -> list[str]:
     out = []
     if rec.get("n_tx", 0) < base.get("n_tx", 0):
         out.append(f"{rec['file']}: n_tx {base['n_tx']} -> {rec['n_tx']} (REGRESSÃO)")
+    if rec.get("n_posicoes", 0) < base.get("n_posicoes", 0):
+        out.append(
+            f"{rec['file']}: n_posicoes {base['n_posicoes']} -> {rec['n_posicoes']} (REGRESSÃO)"
+        )
     if base.get("conservacao") is True and rec.get("conservacao") is False:
         out.append(f"{rec['file']}: conservação passa -> falha (REGRESSÃO)")
     if base.get("parser") and not rec.get("parser"):
         out.append(f"{rec['file']}: parser {base['parser']} -> nenhum (REGRESSÃO)")
-    if base.get("escalated") and not rec.get("escalated") and rec.get("conservacao") is False:
+    if _escalacao_virou_silencio(rec, base):
         out.append(f"{rec['file']}: escalação honesta -> conservação quebrada (SILÊNCIO)")
     out.extend(_completeness_regressions(rec, base))
     return out
 
 
+def _escalacao_virou_silencio(rec: dict, base: dict) -> bool:
+    """Parou de escalar E a conservação quebrou E não declarou o estado no enum."""
+    parou = base.get("escalated") and not rec.get("escalated")
+    return bool(parou and rec.get("conservacao") is False and not _honesto_por_enum(rec))
+
+
 def _completeness_regressions(rec: dict, base: dict) -> list[str]:
     """Ratchet dos sinais de completude do #1080 — não regridem em silêncio."""
     out = []
-    b_fc, r_fc = base.get("fatura_checksum_status"), rec.get("fatura_checksum_status")
-    if _FATURA_CHECKSUM_RANK.get(b_fc, 0) > _FATURA_CHECKSUM_RANK.get(r_fc, 0):
-        out.append(f"{rec['file']}: fatura_checksum {b_fc} -> {r_fc} (REGRESSÃO)")
     novos = sorted(set(rec.get("scopes_uncovered") or []) - set(base.get("scopes_uncovered") or []))
     if novos:
         out.append(f"{rec['file']}: escopo(s) não-coberto(s) novo(s) {novos} (SILÊNCIO)")
     if base.get("conservacao_verificavel") and not rec.get("conservacao_verificavel"):
         out.append(f"{rec['file']}: conservacao_verificavel True -> False (des-certificação)")
+    out.extend(_decertificacoes(rec, base))
     return out
+
+
+def _rank_drop(rec: dict, base: dict, field: str, ranks: dict) -> str | None:
+    """Queda de degrau num enum ranqueado = des-certificação. Genérico porque são
+    três enums com a MESMA regra; três cópias divergiriam no primeiro estado novo."""
+    b, r = base.get(field), rec.get(field)
+    if ranks.get(b, 0) <= ranks.get(r, 0):
+        return None
+    return f"{rec['file']}: {field} {b} -> {r} (des-certificação)"
+
+
+def _decertificacoes(rec: dict, base: dict) -> list[str]:
+    """Traços que o produtor JÁ emite e o harness passou a ler (PC13 + [[A42.l2]]):
+    sinal positivo que desaparece falha o `--compare`, em vez de sumir do relatório."""
+    quedas = [
+        _rank_drop(rec, base, "fatura_checksum_status", _FATURA_CHECKSUM_RANK),
+        _rank_drop(rec, base, "posicao_checksum_status", _POSICAO_CHECKSUM_RANK),
+        _rank_drop(rec, base, "verificabilidade", _VERIFICABILIDADE_RANK),
+    ]
+    return [q for q in quedas if q]
 
 
 def _changes_for(rec: dict, base: dict) -> list[str]:
@@ -291,7 +379,8 @@ def _print_report(records: list[dict]) -> None:
             f"n_pos={rec.get('n_posicoes')} raw={rec.get('raw_rows_detected')} "
             f"moeda={rec.get('moeda')} conserv={rec.get('conservacao')}"
             f"(verif={rec.get('conservacao_verificavel')}) escala={rec.get('escalated')}"
-            f"({rec.get('escalation_code')}) status={rec.get('status')}"
+            f"({rec.get('escalation_code')}) pos_checksum={rec.get('posicao_checksum_status')}"
+            f" verificabilidade={rec.get('verificabilidade')} status={rec.get('status')}"
         )
         print(mask_text(line))
 
