@@ -208,25 +208,32 @@ def posicao_checksum_status(result: dict) -> str:
     return POSICAO_AUSENTE if (result.get("posicoes") or []) else POSICAO_NAO_APLICAVEL
 
 
-def _quality_metrics(result: dict) -> dict:
-    escalation = result.get("escalation_reason") or {}
-    # Traço de checksum de fatura setado por _apply_fatura_checksum (só leitura,
-    # nunca recomputa — mesmo princípio de conservation_gap_cents). `faltando`
-    # implícito quando o parser não emite o campo (extrato/CSV sem checksum).
+def _declared_traces(result: dict) -> dict:
+    """Traços que o PRODUTOR declara — o harness só os lê, nunca os recomputa
+    (mesmo princípio de `conservation_gap_cents`: instrumento que recalcula prova a
+    si mesmo). `faltando` fica implícito quando o parser não emite `fatura_checksum`
+    (extrato/CSV sem checksum)."""
     fatura_checksum = result.get("fatura_checksum") or {}
     return {
-        "escalated": bool(result.get("requires_llm_fallback")),
-        "escalation_code": escalation.get("code"),
-        "conservacao": conservation_status(result),
         "conservacao_verificavel": bool(result.get("conservacao_verificavel")),
-        "total_set": result.get("saldo_atual") is not None,
-        "vencimento_set": result.get("data_vencimento") is not None,
         "fatura_checksum_status": fatura_checksum.get("status"),
         "scopes_uncovered": fatura_checksum.get("scopes_uncovered") or [],
         "posicao_checksum_status": posicao_checksum_status(result),
         # Enum de verificabilidade do payload E2 ([[A42.l2]]). Ausente = a lane
         # provedora ainda não shipou OU o parser não declara — nunca "provada".
         "verificabilidade": result.get("verificabilidade"),
+    }
+
+
+def _quality_metrics(result: dict) -> dict:
+    escalation = result.get("escalation_reason") or {}
+    return {
+        "escalated": bool(result.get("requires_llm_fallback")),
+        "escalation_code": escalation.get("code"),
+        "conservacao": conservation_status(result),
+        "total_set": result.get("saldo_atual") is not None,
+        "vencimento_set": result.get("data_vencimento") is not None,
+        **_declared_traces(result),
         "notas": [mask_text(n)[:160] for n in (result.get("notas") or [])[:6]],
     }
 
