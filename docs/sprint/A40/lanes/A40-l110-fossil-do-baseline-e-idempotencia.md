@@ -269,6 +269,18 @@ O que bloqueia o flip agora é o número, e ele **nomeia o path**. Era esse o po
 
 ## Fora de escopo
 
-O `valores_31_12` negativo (3/71) é defeito de **dado** com regra de domínio própria —
-vive na [[A40.l111]], dono `financial-planner`. Mantê-lo fora é o que permite a medição
-do PR-B ser honesta.
+O `valores_31_12` negativo (3/71) é defeito de **dado** com regra de domínio própria.
+Mantê-lo fora é o que permite a medição do PR-B ser honesta.
+
+> **Estado em 2026-09-01 — a rota não aponta mais para lane viva, e isso é correto.** A
+> [[A40.l111]] **entregou** a regra ([#1917](https://github.com/davidrobert/mathoms/pull/1917),
+> [[ADR-431]]) e está `shipped`. O que resta **não é trabalho de lane**: o saneamento vale
+> para run nova, e os 3 do corpus histórico somem quando as runs virarem — evento
+> mecânico, sem dono a nomear. Nenhum trabalho fica pendurado aqui.
+>
+> **O que fica sem lane, e precisa de uma:** a [[ADR-431]] não cobre baseline
+> **histórico**. `load_baseline` lê cross-run, então baseline persistido antes do #1917
+> entra no E4 sem saneamento. **Não é regressão** — idêntico antes e depois do PR-A —, mas
+> é lacuna sem lane. Roteá-la para a [[A40.l111]] criaria linha-zumbi, então abrir lane
+> nova é **owner-gated** — `dono:` a decidir, candidato `data-engineer` pelo gatilho de
+> contrato entre stages.

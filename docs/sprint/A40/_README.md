@@ -144,6 +144,37 @@ condição de parada.
 >
 > A [[A40.l94]] já é terminal (`shipped`, #1828), então a extensão não adia nada que já
 > estivesse pronto — nomeia o que faltava.
+
+> **Extensão 2026-09-01 — são SEIS: a [[A40.l111]] entra, e a [[A40.l110]] fica fora.**
+> Decidido pelo dono no closeout da [[A40.l110]], fechando a §Pendência de filiação
+> abaixo. O critério é *"desloca valor publicado"*, e ele foi medido pelo snapshot:
+>
+> | lane | `dogfood_view_model.json` | `parecer_ancorabilidade.json` | veredito |
+> | --- | --- | --- | --- |
+> | [[A40.l111]] (#1917) | **+1** | **+2/−1** | **DENTRO** |
+> | [[A40.l110]] (#1914 · #1929 · #1933) | **0** | **0** | **FORA** |
+>
+> **A l111 entra** porque muda o que o run publica: há **um único** workspace com
+> artefato de baseline (255 artefatos), é ele que os re-runs medem, e ele carrega **3**
+> imóveis de valor negativo que a [[ADR-431]] transforma em `null` e tira da soma do
+> patrimônio. A linha dela na tabela de lanes **já afirmava** isso desde a abertura; o
+> que faltava era esta lista acompanhar.
+>
+> Ressalva que a medição obriga a declarar: no golden, o delta da l111 é
+> `"itens_sem_valor": []` — **chave vazia aditiva**, não número movido. Lido só ali, ela
+> pareceria inerte. O que desfaz é que a fixture do dogfood **não tem** item negativo e o
+> corpus real tem 3: aqui a evidência é o corpus, não o golden.
+>
+> **A l110 fica fora** pelo mesmo argumento que tirou a [[A42.l18]] e a [[A42.l19]] —
+> *"instrumento de medição e guard de escrita; não deslocam valor publicado"*. Com prova
+> mais forte: **três PRs, zero linhas em qualquer snapshot**, e os 2 campos que ela
+> removeu tinham **zero leitor de produção** (varredura em `pipeline/`, `backend/app/`,
+> `scripts/`, `dev/`). Filiá-la dentro criaria dependência falsa — o contador esperaria
+> uma lane que não pode mudar o relatório.
+>
+> **Custo desta decisão: zero.** O contador está em **0/2**, então zerar é no-op; a l111
+> já é terminal (#1917) e a l110 fica terminal com o #1933. O cenário caro que a
+> §Pendência temia — decidir **depois** de o contador começar — não se materializou.
 >
 > ~~[[A40.l96]] fica **fora** da cláusula até a medição discriminante dizer de que lado está o
 > defeito: se o erro for de render, não muta E5.~~ **Medição feita 2026-08-29
@@ -155,41 +186,9 @@ condição de parada.
 
 > ### ⚠️ Pendência de filiação — [[A40.l110]] e [[A40.l111]] (levantada 2026-08-31)
 >
-> Achado da re-triagem conduzida pelo `product-manager`: as duas **mutam artefato/E5** —
-> a l110 grava a data corrente no artefato (quebra idempotência do balde patrimonial) e a
-> l111 tira do somatório um valor que vira `null` — e **nenhuma das duas está nomeada na
-> cláusula de reinício abaixo**. A lista atual é l2 · l94 · l95 · l96 · l98 · l100 · l101 +
-> [[A42.l15]] · [[A42.l17]].
->
-> **É o mesmo modo de falha que já custou duas emendas tardias** (a l96 em 2026-08-29, a l98
-> em 2026-08-30): a filiação foi decidida **depois** de a lane existir, e a cláusula teve de
-> ser reescrita. **Decida a filiação das duas ANTES de iniciar o contador** — se elas
-> pertencem à cláusula e o contador já tiver começado, um re-run inteiro é desperdiçado.
->
-> Não decidi aqui: filiação é do dono, e o critério (*"muta E3/E5 a montante de todo run"*)
-> exige julgar o alcance de cada uma, não só constatar que tocam E5.
-
-> **Nota datada 2026-09-01 (closeout da [[A40.l110]]) — o prazo NÃO venceu, e apareceu um
-> split-brain.** Três fatos medidos, nenhuma decisão tomada aqui:
->
-> 1. **A janela continua aberta.** O painel condiciona a decisão ao *início do contador*,
->    não ao merge das lanes. O contador está em **0/2** desde a `U4` (2026-08-30), então
->    as duas terem chegado a `main` com a filiação em aberto não custou nada. Eu havia
->    lido "expirou" no primeiro passe do closeout; o `product-manager` corrigiu, e a
->    correção procede.
-> 2. **A [[A40.l111]] se auto-filiou, e a lista não a acompanhou.** A linha dela na tabela
->    de lanes afirma *"**entra na cláusula de reinício do contador** (muta E5)"*, mas a
->    lista canônica acima nomeia `l2 · l94 · l95 · l96 · l98 · l102 · [[A42.l15]]` — **sem
->    a l111**. São duas fontes de verdade sobre a condição que dispara o gate de saída da
->    sprint. Custa uma linha e a l111 é terminal (#1917), logo decidir não atrasa nada.
-> 3. **Existe precedente para a classe da [[A40.l110]] ficar FORA.** A [[A42.l18]] e a
->    [[A42.l19]] saíram da cláusula acima por serem *"de instrumento de medição e de guard
->    de escrita — não deslocam valor publicado"*. A l110 matou 2 campos com **zero leitor
->    de produção, medido**, e nenhum número do E5 se move. A assimetria importa: **FORA
->    custa nada; DENTRO trava o início do contador** enquanto o PR-B não fechar.
->
-> **Segue sendo do dono.** O que esta nota acrescenta é o preço de cada lado e a
-> divergência do item 2, que ninguém tinha visto.
+> Movida para [`_HISTORY`](_HISTORY.md) em 2026-09-01 — registro fechado,
+> não governa decisão de hoje. **A decisão que ela produziu governa e ficou**:
+> ver a §Extensão 2026-09-01 logo acima (l111 dentro, l110 fora).
 
 **Cláusula de reinício do contador — [[A40.l2]] (2026-08-06).** O flip do enforce de
 colapso cross-documento muta o E3 **a montante de todo run E0→E6**, logo **zera** o contador
