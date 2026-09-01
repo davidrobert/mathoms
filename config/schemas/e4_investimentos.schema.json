@@ -7,7 +7,19 @@
   "additionalProperties": true,
   "required": ["dados", "total_por_membro", "total_geral", "fontes", "data_consolidacao", "n_posicoes"],
   "properties": {
-    "dados": {"type": "array", "items": {"type": "object"}},
+    "dados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "atribuicao_fonte": {
+            "type": "string",
+            "enum": ["declarada", "conta_casada", "banco_unico", "indeterminada", "sem_dono"],
+            "description": "A40.l96 ([[ADR-430]] §3): por qual evidência o `membro` desta posição foi determinado. `declarada` = veio do artefato E2; `conta_casada` = casou por número de conta; `banco_unico` = deduzido de o banco ter um dono só (HINT, não fato); `indeterminada` = banco com dois donos; `sem_dono` = nenhum candidato. Consumido por `soma_inferida` -> `patrimonio.atribuicao_investimentos.pct_inferido`."
+          }
+        }
+      }
+    },
     "total_por_membro": {"type": "object", "additionalProperties": {"type": "number"}},
     "total_geral": {"type": "number"},
     "fontes": {"type": "array"},

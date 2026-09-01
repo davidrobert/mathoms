@@ -5,6 +5,7 @@ title: "Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no 
 status: Proposto
 phase: A40.l96
 date: "2026-08-31"
+amended_at: ["2026-09-01"]
 relates_to:
   - "[[ADR-226]]"
   - "[[ADR-229]]"
@@ -31,6 +32,11 @@ tags:
 ---
 
 # ADR-430 — Contrato E1→E4 do mapa instituição→membro
+
+> ⚠️ **Emendada em 2026-09-01 (recon do PR2c).** Duas correções: o corolário que
+> matava a sentinela `"needs_review"` foi **retirado** (ela é load-bearing na
+> [[ADR-346]] §4b), e o `atribuicao_fonte` da §3 **precisa de consumidor no
+> mesmo PR** sob o gate da [[A40.l88]].
 
 **Status:** Proposto • **Data:** 2026-08-31 • Origem: [[A40.l96]] §Co-design
 
@@ -59,6 +65,16 @@ Duas decisões vigentes conflitam sobre quem deveria fechar essa lacuna:
   detecção de colisão de conta).
 
 ## Decisão
+
+> **Verificação do remédio de D3 (2026-09-01).** A ADR prescreve canonicalizar a
+> saída do `AccountResolver` via `MemberNameResolver` ([[ADR-243]]). **Medido
+> contra os membros reais**, funciona — mas o titular resolve por **substring**
+> (`'david'` ⊂ `'david_robert_camargo_...'`), não por match exato, porque o
+> `short_name` dele é *"David Robert"* enquanto a chave curta do E1 é *"david"*.
+> Os outros dois resolvem por `short_name` exato. Funciona e é o caminho certo,
+> mas a confiança do titular é a mais fraca das três: bastaria um segundo membro
+> cuja chave contivesse `david` para virar `ambiguous`. Registrado porque um
+> gate que assuma match exato mediria o vazio.
 
 ### 1. `bank_accounts` é curada pelo usuário; o pipeline não escreve nela
 
@@ -104,15 +120,35 @@ Fechado o wiring, `fallback_bank` (banco de dono único) passa a sustentar quase
 toda a atribuição — e isso é **hint com boa confiança, não fato declarado**.
 
 A posição carrega `atribuicao_fonte ∈ {declarada, conta_casada, banco_unico,
-indeterminada, sem_dono}` até o E5. Sem isso, fechar o wiring **troca
+indeterminada, sem_dono}` até o E5.
+
+> **Nota de execução (2026-09-01).** O campo **precisa de consumidor no mesmo
+> PR**: o gate da [[A40.l88]] (*"campo emitido tem consumidor no entregue"*)
+> reprova emissor sem leitor. O consumidor mínimo e verdadeiro é o bloco
+> `atribuicao_investimentos` publicar a fatia **inferida** — é justamente o que
+> a §3 diz que não pode se perder, e evita que a provenance nasça morta como o
+> alias `Confidence` do PR2b. Sem isso, fechar o wiring **troca
 falso-negativo por falso-positivo**: o Top 15 afirmaria titularidade inferida
 com o peso visual da declarada, e as 8 superfícies apagariam sem registro —
 regressão sob [[ADR-394]] (fato ≠ hint) e sob a distinção que a [[ADR-412]]
 construiu.
 
-Corolário: `"needs_review"` **deixa de ser usado como `member_key`**. Hoje vira
-chave em `total_por_membro` (`additionalProperties: number`) — um membro
-fantasma somando dinheiro.
+~~Corolário: `"needs_review"` deixa de ser usado como `member_key`.~~
+
+> **Correção 2026-09-01 (recon do PR2c).** O corolário acima estava errado e é
+> retirado. `"needs_review"` como `membro` tem **um segundo produtor,
+> independente do resolver**: o colapso de membro-vazio cross-período da
+> [[ADR-346]] §4b (`_mark_needs_review` / `_resolved_siblings` em
+> `investments_consolidator.py:220-231`), onde a sentinela é **load-bearing** —
+> `_resolved_siblings` a exclui explicitamente da lista de irmãos resolvidos.
+> Removê-la como efeito colateral desta lane reabriria decisão alheia sem
+> emenda, que é exatamente o erro que a l96 já pegou uma vez em D2.
+>
+> **Decisão revisada:** a sentinela **fica**. `ambiguous` continua produzindo
+> `membro = "needs_review"`, e o que passa a viajar junto é
+> `atribuicao_fonte = "indeterminada"`. Se o membro-fantasma em
+> `total_por_membro` deve morrer, é decisão da [[ADR-346]], com emenda própria e
+> dono próprio — **não** carona deste PR.
 
 ### 4. O artefato E1 passa a ter schema
 

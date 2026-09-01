@@ -250,6 +250,7 @@ export type AtribuicaoInvestimentos = {
   "pct_carteira_financeira"?: number;
   "piso_pct"?: number;
   "motivo"?: string | null;
+  "pct_inferido"?: number;
 };
 
 export type BaldePontual = {

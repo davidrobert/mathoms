@@ -3962,6 +3962,11 @@
             "null"
           ],
           "description": "`null` quando a fatia está abaixo do piso; texto quando cruza e a ressalva é devida."
+        },
+        "pct_inferido": {
+          "type": "number",
+          "minimum": 0,
+          "description": "A40.l96 ([[ADR-430]] §3): fatia COM dono cuja atribuição veio de INFERÊNCIA (banco de dono único), não de declaração nem de conta casada. MESMA base de `pct_carteira_financeira` (`carteira_financeira_familia`) — duas porcentagens do mesmo bloco sobre denominadores diferentes é o defeito que esta lane já pagou uma vez. Fato ≠ hint ([[ADR-394]]): sem publicar isto, fechar o wiring E1→E4 apaga as 8 superfícies de titularidade e afirma atribuição inferida com o peso visual da declarada."
         }
       },
       "required": [],
