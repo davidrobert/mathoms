@@ -281,5 +281,6 @@ Mantê-lo fora é o que permite a medição do PR-B ser honesta.
 > **O que fica sem lane, e precisa de uma:** a [[ADR-431]] não cobre baseline
 > **histórico**. `load_baseline` lê cross-run, então baseline persistido antes do #1917
 > entra no E4 sem saneamento. **Não é regressão** — idêntico antes e depois do PR-A —, mas
-> é lacuna sem dono. Roteá-la para a [[A40.l111]] criaria linha-zumbi; **abrir a lane é
-> decisão do dono**.
+> é lacuna sem lane. Roteá-la para a [[A40.l111]] criaria linha-zumbi, então abrir lane
+> nova é **owner-gated** — `dono:` a decidir, candidato `data-engineer` pelo gatilho de
+> contrato entre stages.
