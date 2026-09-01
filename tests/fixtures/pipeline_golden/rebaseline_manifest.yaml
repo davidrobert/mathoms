@@ -29,3 +29,20 @@
 #   adr: ADR-271
 #   rationale: "dedup cross-year colapsa conta conjunta; -R$500 esperado"
 #   ref: pipeline/domain/services/e5_serialization.py:312
+
+# ── Por que este arquivo volta a ficar VAZIO (aprendido em 2026-08-31, A40.l95) ──
+#
+# A entrada é um waiver TRANSITÓRIO: ela existe para o PR do rebaseline ser medido, e
+# morre no merge dele. `golden_diff` reprova entrada órfã (`return 1 if (uncovered or
+# orphans)`), e órfã é toda entrada que não casa um value_delta **do PR corrente** —
+# logo entrada que fica no arquivo faz o PRÓXIMO PR que tocar aquele golden falhar,
+# com 13 erros sobre um rebaseline que não é dele.
+#
+# O #1904 foi o primeiro rebaseline a de fato usar este manifesto (antes dele o
+# arquivo era `[]` desde que nasceu, em 2 commits), então o passo de drenagem nunca
+# tinha sido exercido. Medido por simulação antes de drenar: PR futuro tocando
+# `dogfood_view_model.json` sem mover dinheiro → `exit 1`, **12 órfãs**.
+#
+# Regra: quem mergeia um rebaseline drena o manifesto logo em seguida. O registro do
+# que mudou vive na lane, no corpo do PR e no histórico do git — não aqui.
+[]
