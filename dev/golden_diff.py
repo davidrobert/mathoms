@@ -72,6 +72,7 @@ _NON_MONETARY_EXACT = frozenset(
         # snapshot publicava 100. Entrada exata e não prefixo: não há família de
         # ordinais aqui, e `posicao_*` monetário é plausível num domínio de carteira.
         "posicao",
+        "contagem",  # A27.l3: CONTAGEM, ao lado do irmão que é dinheiro.
     }
 )
 _NON_MONETARY_SUFFIXES = (
@@ -130,7 +131,11 @@ _NON_MONETARY_NAMESPACES = ("score.",)
 # `<algo>_meses_<algo>` nascer com o mesmo bug — a lição que `_versao` já registrou.
 # Raio de explosão medido contra `config/schemas/e5_analysis.schema.json` (2026-08-28):
 # 7 nomes mudam de classe e nenhum é monetário; zero toca `*_brl` ou `valor`.
-_NON_MONETARY_UNIT_TOKENS = frozenset({"pct", "meses", "anos", "idade", "aa", "ano", "ratio"})
+# A27.l3: `pontos` é CONTAGEM — `pontos_revisao` era a ÚNICA folha monetária de `narrativas`
+# e punha a raiz de prosa no denominador de lineage. Raio na lane: 4 nomes, 0 tocam `*_brl`.
+_NON_MONETARY_UNIT_TOKENS = frozenset(
+    {"pct", "meses", "anos", "idade", "aa", "ano", "ratio", "pontos"}
+)
 
 ClassifyFn = Callable[[str], bool]
 
