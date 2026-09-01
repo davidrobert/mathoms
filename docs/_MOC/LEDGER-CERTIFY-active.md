@@ -580,11 +580,46 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 > entradas consolidadas), e a chave lê o campo ⊳ o texto — as duas rotas dão a mesma raiz.
 >
 > **O que NÃO fecha junto.** O `LC7-02` (§r7) e o `LC8-05` (§r8) tinham a [[A42.l15]] como
-> trilha e ela deixou de ser gatilho vivo — mas o `LC7-02` **segue procedendo em substância**:
-> a estabilidade foi a 42,38%, não a 100%, então a população publicada ainda mede churn do
-> extrator na perna fraca (49,1% dos itens, sem âncora). Ele fica `procede-aberto` **sem dono
-> vivo**, com retomada condicionada listada no `_README` da [[A42]] §Fora do sprint. O
-> `LC8-05` era MEDIÇÃO-DE-CONHECIDO do `LC6-02` e cai com ele.
+> trilha e ela deixou de ser gatilho vivo. O `LC8-05` era MEDIÇÃO-DE-CONHECIDO do `LC6-02` e
+> cai com ele. O `LC7-02` **segue aberto, mas por menos do que dizia** — ver a §Re-medição
+> abaixo. ⚠️ **Retificação da 1ª redação deste parágrafo:** ela dizia que a população
+> publicada *"ainda mede churn do extrator na perna fraca"* porque a estabilidade parou em
+> 42,38%, o que dá a entender que a lane moveu a métrica **parcialmente**. Ela moveu **zero**
+> — medido por replay, abaixo.
+>
+> ### Re-medição do `LC7-02` — 2026-09-01: a maior parte era DESCOBERTA, não churn
+>
+> O snapshot do §r7 não se reescreve. Esta é a re-medição, e ela **reduz o achado**.
+>
+> O enunciado (*"a população consolidada publicada mede **churn do extrator**, não
+> descoberta"*) apoia-se numa série de contagens que **mistura conjuntos de documentos
+> diferentes**. Replayando os 86 runs de `E1.5a` do dogfood e agrupando por **conjunto
+> IDÊNTICO de documentos**:
+>
+> | grupo | runs | contagem publicada | amplitude |
+> |---|---|---|---|
+> | 10 docs (itens `E1.5a` 86–92) | 62 | 56–66 | **10** (σ 2,39) |
+> | 10 docs (itens 79) | 10 | 63–63 | **0** |
+> | 7 docs (itens 67) | 8 | 49–49 | **0** |
+> | 10 docs (itens 70) | 5 | 54–54 | **0** |
+>
+> Sem segmentar, a contagem vai de **28 a 66** — amplitude 38, que é o número que sustenta o
+> enunciado. Com o conjunto fixo, **três dos quatro grupos têm amplitude zero**, e o churn
+> real é **10 sobre ~60 (~17%)**, concentrado no único grupo em que a extração de fato variou.
+> A parte grande do 38 era **descoberta** — exatamente o que o enunciado nega.
+>
+> **E a [[A42.l15]] não moveu esta métrica.** Replay dos MESMOS inputs com a chave antiga
+> `(tipo,inst,desc)` × a atual: as últimas 14 contagens são **idênticas**, e o desvio-padrão
+> sobre os 86 runs vai de **5,72 para 5,67**. A lane melhorou identidade **por documento**
+> (37,68% → 42,38%); a população publicada não sentiu.
+>
+> **Por que não abrir lane agora, e qual é o gatilho.** O driver que sobra é `descricao`
+> (56% de churn nos 72 pares medidos), e o remédio **já está em voo e não medido**: a regra
+> de formato entrou no `PROMPT_VERSION` 1.4.x da [[A42.l15]], e o corpus tem **zero**
+> artefatos nessa era. Instrumento: `dev/measure_e15_identity_stability.py`, que agrupa por
+> era — a 1.4.x acumula amostra sozinha. **Retomar quando a era 1.4.x atingir K≥5** e a
+> medição acima for refeita. Dinheiro segue fora: a soma fecha ao centavo (refutação embutida
+> na própria linha). **Dono até lá:** `_README` da [[A42]] §Fora do sprint.
 >
 > ⚠️ **O número do efeito acima envelheceu duas vezes.** `Internacional` R$ 423,56 foi medido
 > antes do #1937 e do #1939, e **os dois mexeram na chave**. Quem for reconciliar
@@ -628,7 +663,7 @@ em `dev/` e em `storage/`, e **nenhum dos dois está no pathspec**.
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|---|---|
 | LC7-01 — um parser de banco chama o SDK LLM **sem `temperature`**, sem seed, sem contrato tipado e **sem escrever na telemetria** que é fonte única, e a descrição livre que ele devolve alimenta a **chave natural** da transação | correção | Alto | P0 | PARCIAL (Crítico → Alto: blast radius vivo é zero) · NOVO | **procede-parcial-fechado** (#1846, 2026-08-30) | mesmo documento, 4 runs: **2/1/4** de 8 chaves mudaram. No corpus inteiro (136 unidades, 7.991 tx) as 4 que mudaram no último intervalo estão **todas nesta unidade** · **dona [[A42.l17]]** (`shipped`). **Fechado:** `temperature` declarada no call-site cru + gate que torna visível a classe do bypass (o anterior era cego em 3 eixos). **Aberto:** telemetria/budget/cache seguem fora — dependem da **Fase 2 da [[ADR-349]]** (bloco `document` no `LLMService`), e o texto livre do LLM continua alimentando a chave natural. **Eixo novo medido:** rotear pelo choke-point **não** compra determinismo (`use_cache` é `False` por default e `extract_with_llm` não o passa) |
-| LC7-02 — a população consolidada publicada mede **churn do extrator**, não descoberta: contas reais **55 → 60 → 58** contra contagem publicada **61 → 60 → 63**; uma linha do IRPF produziu **4 descrições** em 3 runs ⇒ 4 identidades | consistência | Alto | P1 | PARCIAL (MEDIÇÃO-DE-CONHECIDO de `LC6-02`; o mecanismo **não** é novo, a decomposição é) | procede-aberto · dona [[A42.l15]] | **refutação embutida: não há dupla contagem monetária** — a soma fecha ao centavo nos 3 runs, porque o consumidor lê a fatia do ano corrente · **ver §Disposição do `LC6-02` (2026-09-01)** — a [[A42.l15]] shipou (#1939) e deixou de ser gatilho vivo |
+| LC7-02 — a população consolidada publicada mede **churn do extrator**, não descoberta: contas reais **55 → 60 → 58** contra contagem publicada **61 → 60 → 63**; uma linha do IRPF produziu **4 descrições** em 3 runs ⇒ 4 identidades | consistência | Alto | P1 | PARCIAL (MEDIÇÃO-DE-CONHECIDO de `LC6-02`; o mecanismo **não** é novo, a decomposição é) | procede-aberto · dona [[A42.l15]] | **refutação embutida: não há dupla contagem monetária** — a soma fecha ao centavo nos 3 runs, porque o consumidor lê a fatia do ano corrente · **ver §Re-medição do `LC7-02` (2026-09-01)** — amplitude re-medida em **10 (~17%)**, não 38: a maior parte era descoberta. Gatilho: era 1.4.x com K≥5 em `dev/measure_e15_identity_stability.py`. Dono: `_README` da [[A42]] §Fora do sprint |
 | LC6-01 · LC6-02 · LC6-03 · LC6-05 · LC6-07 (§r6) | — | — | — | **reproduzidos sem alteração** | procede-aberto | KR-B **7** `carrier-shaped` · E2→E3 `coberto-sem-verificação` · `natural_key` 7,0% · lanes `in_progress` |
 
 **Positivos verificados.** E3→E4 `conservado` · X2 determinístico (2.289 células, 0

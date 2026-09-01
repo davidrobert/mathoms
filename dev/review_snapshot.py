@@ -56,37 +56,6 @@ def _leaf(path: str) -> str:
     return path.rsplit(".", 1)[-1].split("[", 1)[0]
 
 
-def _sum_leaf(obj: Any, leaf: str) -> int | None:
-    """Soma recursiva dos valores numéricos de todas as folhas ``leaf`` (ou None)."""
-    found: list[int] = []
-    _collect_leaf(obj, leaf, found)
-    return sum(found) if found else None
-
-
-def _collect_leaf(obj: Any, leaf: str, out: list[int]) -> None:
-    if isinstance(obj, dict):
-        _collect_dict(obj, leaf, out)
-    elif isinstance(obj, list):
-        _collect_list(obj, leaf, out)
-
-
-def _collect_list(items: list, leaf: str, out: list[int]) -> None:
-    for item in items:
-        _collect_leaf(item, leaf, out)
-
-
-def _collect_dict(obj: dict, leaf: str, out: list[int]) -> None:
-    for key, value in obj.items():
-        _collect_leaf_kv(key, value, leaf, out)
-
-
-def _collect_leaf_kv(key: str, value: Any, leaf: str, out: list[int]) -> None:
-    if key == leaf and isinstance(value, (int, float)) and not isinstance(value, bool):
-        out.append(int(value))
-    else:
-        _collect_leaf(value, leaf, out)
-
-
 def _section_state(data: dict, key: str) -> str:
     if key not in data:
         return "absent"
@@ -135,6 +104,12 @@ def _review_reasons_map(rows: list[dict]) -> dict[str, int]:
     return dict(sorted(out.items()))
 
 
+# `transacoes_total` saiu daqui na A42.l3 (RV4-17). Ele era `_sum_leaf(report_data,
+# "transacoes_total")` sobre uma folha que **não existe** no view-model E5: varri o
+# schema e o único inteiro chamado `transacoes` é `fluxo_caixa.provisionado.transacoes`,
+# o resíduo PÓS-corte — quantidade diferente, que substituí-la seria pior que remover. O
+# campo saía `None` em todo run, e a perna que o lia ficava inalcançável. Quem cobre o
+# caso é o drift de VALOR (medido: perder metade das tx ⇒ 158 regressões HARD).
 def _run_health(report_data: dict, meta: dict) -> dict:
     costs, calls = meta.get("costs", []), meta.get("calls", [])
     run = meta.get("run", {})
@@ -143,7 +118,6 @@ def _run_health(report_data: dict, meta: dict) -> dict:
         "failed_at_stage": run.get("failed_at_stage"),
         "tier_at_run": run.get("tier_at_run"),
         "total_documents": run.get("total_documents"),
-        "transacoes_total": _sum_leaf(report_data, "transacoes_total"),
         "duration_min": run.get("minutes"),
         "llm_cost_usd_cents": sum(int(c.get("cost_usd_cents") or 0) for c in costs) or None,
         "llm_calls": len(calls),
@@ -192,9 +166,12 @@ def build_snapshot(
 ) -> dict:
     """Snapshot PII-safe (meta = {run, needs_review, costs, calls}, telemetria do run)."""
     snap = _snapshot_body(run_id, report_data, cv_results, meta, parecer)
-    # `provenance` é chave TOP-LEVEL, fora do `run_health` (ADR-343 §Emenda): os 9
-    # campos de run_health são todos consumidos por perna ou supressor, e um campo
-    # não-comparável ali seria assumido comparável pelo próximo leitor.
+    # `provenance` é chave TOP-LEVEL, fora do `run_health` (ADR-343 §Emenda): um campo
+    # não-comparável ali seria assumido comparável pelo próximo leitor. A afirmação de
+    # que "os 9 campos são todos consumidos por perna ou supressor" era **falsa** — dois
+    # são informativos e um (`transacoes_total`) era estruturalmente nulo (RV4-17). Quem
+    # mantém a conta honesta agora é `compare_reviews._RUN_HEALTH_REQUERIDO` +
+    # `_RUN_HEALTH_INFORMATIVO`, comparados por igualdade contra este produtor.
     return {**snap, "provenance": provenance} if provenance else snap
 
 

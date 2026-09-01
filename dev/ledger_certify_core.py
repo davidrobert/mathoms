@@ -18,6 +18,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from dev.golden_diff import to_cents
+from dev.ledger_baseline_invariants import (
+    InvariantResult,
+    baseline_invariants,
+    fmt_baseline_invariants,
+)
 from dev.ledger_collapse_layer import (
     CollapseLayerSummary,
     collapse_layer_summary,
@@ -88,6 +93,9 @@ class LedgerReport:
     # (re-derivação in-process). ADR-421 D2 — o rótulo vai na LINHA, não só no cabeçalho.
     e4_subject: str = "sombra"
     e3_subject: str = "sombra"
+    # P0 nº 1 da rubrica (LC06): invariantes de SAÍDA sobre o consolidado patrimonial,
+    # que viaja dentro do balde `patrimonio`. Vazio = eixo não montado.
+    baseline_invariants: list[InvariantResult] = field(default_factory=list)
 
     @property
     def zero_write_ok(self) -> bool:
@@ -229,6 +237,8 @@ def _subject_axes(
         "investment_collisions": collisions,
         "e3_subject": e3_label,
         "e3_groups": _e3_verdicts(e3_subject, _ledger_anchor(conserv, e3_label, drift)),
+        # Lê o consolidado do MESMO sujeito dos baldes — o eixo descreve o entregue.
+        "baseline_invariants": baseline_invariants(subject.get("patrimonio")),
     }
 
 
@@ -434,6 +444,7 @@ def _report_blocks(report: LedgerReport) -> list:
         _fmt_exec(report),
         _fmt_units("## Eixo E3 (por grupo)", report.e3_groups, report.e3_subject),
         _fmt_units("## Eixo E4 (por balde)", report.e4_buckets, report.e4_subject),
+        fmt_baseline_invariants(report.baseline_invariants),
         *_cross_group_blocks(report),
         fmt_collapse_layer(report.collapse_layer),
         _fmt_tail(report),
