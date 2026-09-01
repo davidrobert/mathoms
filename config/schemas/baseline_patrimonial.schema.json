@@ -3,7 +3,9 @@
   "title": "Baseline Patrimonial E1.5",
   "description": "Contrato do baseline patrimonial consolidado, re-derivado do produtor em [[ADR-432]]. Dois produtores o escrevem ([[ADR-427]] D3): `consolidate_baseline`/`E1.5c` na chave `baseline_patrimonial`, e o E4 na chave `patrimonio` — este ultimo apos o `BaselineNormalizer`, que aplica aliases v2 -> v1. As 14 properties sao as que os produtores emitem (13, medidas no corpus) mais `membros`, que o normalizer pode emitir por alias. `additionalProperties: false` e o que torna o contrato detector de forma nova (D4).",
   "type": "object",
-  "required": ["patrimonio_por_ano"],
+  "required": [
+    "patrimonio_por_ano"
+  ],
   "additionalProperties": false,
   "properties": {
     "membros": {
@@ -11,12 +13,20 @@
       "minItems": 1,
       "items": {
         "oneOf": [
-          {"type": "string", "minLength": 1},
+          {
+            "type": "string",
+            "minLength": 1
+          },
           {
             "type": "object",
-            "required": ["nome"],
+            "required": [
+              "nome"
+            ],
             "properties": {
-              "nome": {"type": "string", "minLength": 1}
+              "nome": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         ]
@@ -27,8 +37,12 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "total_bens": {"type": "number"},
-          "total_dividas": {"type": "number"}
+          "total_bens": {
+            "type": "number"
+          },
+          "total_dividas": {
+            "type": "number"
+          }
         }
       }
     },
@@ -37,29 +51,65 @@
       "items": {
         "type": "object",
         "properties": {
-          "descricao": {"type": "string"},
-          "tipo": {"type": "string"},
-          "proprietario": {"type": "string"},
+          "descricao": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "proprietario": {
+            "type": "string"
+          },
           "valores_31_12": {
             "type": "object",
-            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": "number", "minimum": 0}}
+            "patternProperties": {
+              "^(31_12_)?\\d{4}$": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
           },
-          "instituicao": {"type": "string"},
+          "instituicao": {
+            "type": "string"
+          },
           "proprietarios": {
             "type": "array",
-            "items": {"type": "string"},
+            "items": {
+              "type": "string"
+            },
             "description": "União de declarantes quando investimento é co-declarado (conta conjunta, ADR-271). Ausente → default [proprietario]. Singular preservado p/ compat downstream."
           },
           "investment_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Hash estável de (tipo|instituicao|descricao_norm). Identidade de dedup cross-IRPF (ADR-271), não FK."
           },
           "_dedup_warning": {
             "type": "object",
             "properties": {
-              "type": {"type": "string", "enum": ["valor_divergente_ano", "possivel_duplicata"]}
+              "type": {
+                "type": "string",
+                "enum": [
+                  "valor_divergente_ano",
+                  "possivel_duplicata"
+                ]
+              }
             },
             "description": "Divergência de valor no mesmo ano (cross-year) ou possível duplicata co-declarada com valores diferentes (ADR-271)."
+          },
+          "cnpj_emissor": {
+            "type": "string",
+            "pattern": "^\\d{14}$",
+            "description": "Âncora de identidade lida do DOCUMENTO ([[ADR-271]] §147). A chave usa a RAIZ (8 dígitos), nunca o code do `institution_catalog` ([[ADR-400]] §1)."
+          },
+          "review_reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "review_reason.schema.json"
+            },
+            "description": "Razões estruturadas colhidas por `harvest_review_reasons` ([[ADR-272]])."
           }
         }
       }
@@ -69,34 +119,79 @@
       "items": {
         "type": "object",
         "properties": {
-          "descricao": {"type": "string"},
-          "proprietario": {"type": "string"},
+          "descricao": {
+            "type": "string"
+          },
+          "proprietario": {
+            "type": "string"
+          },
           "proprietarios": {
             "type": "array",
-            "items": {"type": "string"},
+            "items": {
+              "type": "string"
+            },
             "description": "Co-titulares quando imóvel é declarado em IRPFs de titular + cônjuge (ADR-246). Quando ausente, default é [proprietario]. Singular preservado p/ compat downstream."
           },
-          "endereco": {"type": "string"},
-          "tipo": {"type": "string"},
+          "endereco": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
           "valores_31_12": {
             "type": "object",
             "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
-            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": ["number", "null"], "minimum": 0}}
-          },
-          "valor_nao_apurado": {
-            "type": ["object", "null"],
-            "description": "[[ADR-431]]: estado de cobertura do valor do item. Presente = o item fica no inventario e o valor sai da soma.",
-            "properties": {
-              "anos": {"type": "array", "items": {"type": "string"}},
-              "motivo": {"type": "string"}
+            "patternProperties": {
+              "^(31_12_)?\\d{4}$": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              }
             }
           },
-          "property_id": {"type": ["string", "null"]},
-          "endereco_canonical": {"type": ["string", "null"]},
-          "codigo_rfb": {"type": "string"},
+          "valor_nao_apurado": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "[[ADR-431]]: estado de cobertura do valor do item. Presente = o item fica no inventario e o valor sai da soma.",
+            "properties": {
+              "anos": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "motivo": {
+                "type": "string"
+              }
+            }
+          },
+          "property_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endereco_canonical": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "codigo_rfb": {
+            "type": "string"
+          },
           "eixo_autoridade": {
             "type": "string",
-            "enum": ["secao", "catalogo", "sinal", "hint"],
+            "enum": [
+              "secao",
+              "catalogo",
+              "sinal",
+              "hint"
+            ],
             "description": "Degrau da ADR-394 D1 que decidiu o eixo ATIVO deste item. ADR-398: só `secao`/`catalogo` (fato) autorizam o mint de PropertyIdentity; `hint` produz review_reason `domain.property_identity_eixo_por_hint` e `property_id` nulo."
           },
           "secao_disponivel": {
@@ -115,24 +210,51 @@
       "items": {
         "type": "object",
         "properties": {
-          "descricao": {"type": "string"},
-          "proprietario": {"type": "string"},
-          "tipo": {"type": "string"},
+          "descricao": {
+            "type": "string"
+          },
+          "proprietario": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
           "valores_31_12": {
             "type": "object",
             "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
-            "patternProperties": {"^(31_12_)?\\d{4}$": {"type": ["number", "null"], "minimum": 0}}
+            "patternProperties": {
+              "^(31_12_)?\\d{4}$": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            }
           },
           "valor_nao_apurado": {
-            "type": ["object", "null"],
+            "type": [
+              "object",
+              "null"
+            ],
             "description": "[[ADR-431]]: estado de cobertura do valor do item. Presente = o item fica no inventario e o valor sai da soma.",
             "properties": {
-              "anos": {"type": "array", "items": {"type": "string"}},
-              "motivo": {"type": "string"}
+              "anos": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "motivo": {
+                "type": "string"
+              }
             }
           },
           "veiculo_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "FK opcional para vehicles.id após reconciliação E1.5c (ADR-239)"
           }
         }
@@ -143,16 +265,27 @@
       "description": "Dívidas consolidadas cross-IRPF (ADR-301). Schema apertado de array-livre; valida em warn até dogfood limpo. Produtor: consolidate_baseline (ex-e15_consolidate); dedup: dividas_dedup.",
       "items": {
         "type": "object",
-        "required": ["descricao", "saldo_31_12"],
+        "required": [
+          "descricao",
+          "saldo_31_12"
+        ],
         "additionalProperties": false,
         "properties": {
-          "descricao": {"type": "string", "minLength": 1},
-          "proprietario": {"type": "string"},
+          "descricao": {
+            "type": "string",
+            "minLength": 1
+          },
+          "proprietario": {
+            "type": "string"
+          },
           "saldo_31_12": {
             "type": "object",
             "minProperties": 1,
             "patternProperties": {
-              "^\\d{4}$": {"type": "number", "minimum": 0}
+              "^\\d{4}$": {
+                "type": "number",
+                "minimum": 0
+              }
             },
             "additionalProperties": false,
             "description": "Saldo devedor por ano-base. number no wire; Decimal/cents em cálculo (ADR-090)."
@@ -170,20 +303,57 @@
               "outros"
             ]
           },
-          "credor": {"type": "string"},
-          "numero_contrato": {"type": "string"},
-          "indexador": {"type": ["string", "null"]},
-          "taxa_juros_aa": {"type": ["number", "null"]},
-          "parcelas_total": {"type": ["integer", "null"], "minimum": 0},
-          "fonte": {"type": "string", "enum": ["irpf", "xlsx", "informe", "manual"]},
-          "ano_referencia": {"type": "integer", "minimum": 2000, "maximum": 2100},
+          "credor": {
+            "type": "string"
+          },
+          "numero_contrato": {
+            "type": "string"
+          },
+          "indexador": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "taxa_juros_aa": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "parcelas_total": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "fonte": {
+            "type": "string",
+            "enum": [
+              "irpf",
+              "xlsx",
+              "informe",
+              "manual"
+            ]
+          },
+          "ano_referencia": {
+            "type": "integer",
+            "minimum": 2000,
+            "maximum": 2100
+          },
           "divida_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Hash estável de (numero_contrato | tipo|credor_norm|desc_norm). Identidade de dedup; não FK."
           },
           "proprietarios": {
             "type": "array",
-            "items": {"type": "string"},
+            "items": {
+              "type": "string"
+            },
             "description": "União de declarantes quando dívida conjunta (casal)."
           },
           "_dedup_warning": {
@@ -191,10 +361,21 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["saldo_divergente_ano", "saldo_nao_monotonico", "possivel_duplicata"]
+                "enum": [
+                  "saldo_divergente_ano",
+                  "saldo_nao_monotonico",
+                  "possivel_duplicata"
+                ]
               },
-              "values": {"type": "array", "items": {"type": "number"}},
-              "diff_pct": {"type": "number"}
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "diff_pct": {
+                "type": "number"
+              }
             }
           }
         }
@@ -217,20 +398,67 @@
       "description": "Metadados de execucao do produtor (98/98 · 71/71)."
     },
     "payload_version": {
-      "type": ["string", "integer"],
+      "type": [
+        "string",
+        "integer"
+      ],
       "description": "Versao do payload do E1.5 quando o extrator a emite (13/98 · 12/71)."
     },
     "prompt_version": {
-      "type": ["string", "integer"],
+      "type": [
+        "string",
+        "integer"
+      ],
       "description": "Versao do prompt do E1.5 quando o extrator a emite (13/98 · 12/71)."
     },
     "informe_pf_saldos_31_12": {
-      "type": ["object", "array"],
+      "type": [
+        "object",
+        "array"
+      ],
       "description": "Saldos 31/12 vindos de informe PF ([[ADR-238]]), mesclados no consolidado (78/98 · 71/71)."
     },
     "wise_fiscal_flags": {
-      "type": ["object", "array"],
+      "type": [
+        "object",
+        "array"
+      ],
       "description": "Sinalizacoes fiscais de conta ME no consolidado (78/98 · 71/71)."
+    },
+    "investimentos_ancora_cobertura": {
+      "type": "object",
+      "description": "[[A42.l15]] critério 2: cobertura da âncora de identidade (CNPJ do documento) medida no artefato PUBLICADO, não em voo. `com_ancora` em 0 delata perna forte sem produtor — o modo em que `dividas_dedup.numero_contrato` nasceu inerte ([[A40.l88]]). Denominador é o item ANTES do dedup.",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "com_ancora",
+        "por_descricao",
+        "sem_identidade",
+        "pct_ancora"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "com_ancora": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "por_descricao": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sem_identidade": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pct_ancora": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
     }
   }
 }

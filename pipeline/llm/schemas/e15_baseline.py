@@ -2,10 +2,24 @@
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 from pydantic import AliasChoices, BaseModel, Field, field_validator
+
+_NON_DIGITS = re.compile(r"\D")
+
+
+# Pino NORMALIZADOR, não de vacuidade: aqui há o que normalizar, e degradar para `None`
+# mantém o sinal item-level em vez de queimar reask do Instructor (ADR-292). 2º uso da
+# receita de `informe_aluguel._normalize_pii_digits` (ADR-288); o 3º extrai módulo.
+def _cnpj_digits(v):
+    """Máscara do documento → 14 dígitos; ilegível/sentinel → ``None``."""
+    if v is None:
+        return None
+    digits = _NON_DIGITS.sub("", v if isinstance(v, str) else str(v))
+    return digits if len(digits) == 14 else None
 
 
 def _coerce_decimal(v):
@@ -55,7 +69,21 @@ class PatrimonialItem(BaseModel):
         description="CPF do contribuinte da declaração (11 dígitos, com ou sem máscara) — ADR-267",
     )
 
+    # [[ADR-271]] §147 / [[A42.l15]]: a âncora que sobrevive a rename de descrição. A chave
+    # de identidade usa a RAIZ (8 primeiros dígitos) lida do DOCUMENTO — nunca o code do
+    # `institution_catalog`, senão um renome lá moveria o hash ([[ADR-400]] §1).
+    cnpj_emissor: Optional[str] = Field(
+        None,
+        pattern=r"^\d{14}$",
+        description=(
+            "CNPJ da instituição emissora do ativo (somente dígitos, 14 chars), quando "
+            "consta no documento; None quando ausente ou ilegível. Máscara é normalizada "
+            "no validator."
+        ),
+    )
+
     _coerce_value = field_validator("value_brl", mode="before")(_coerce_decimal)
+    _normalize_cnpj = field_validator("cnpj_emissor", mode="before")(_cnpj_digits)
 
 
 class BaselinePatrimonialOutput(BaseModel):
