@@ -156,7 +156,7 @@ operador lê duas causas distintas para um fenômeno só. E `_identidade_regress
 **consertar a chave não é observável nessas pernas**; a perna certa compara o **conjunto** de
 `investment_id` (`|A∩B|/|A∪B|`), não totais.
 
-## Rota — a âncora que a própria [[ADR-271]] §147 deferiu, e que hoje existe
+## Rota ENTREGUE — a âncora do §147 da [[ADR-271]], executada em #1939
 
 A [[ADR-271]] §140 rejeitou **persistir identidade fuzzy-derivada** — e continua rejeitando.
 §141 apenas **adiou** *"estender extrator LLM E1.5 p/ capturar CNPJ"*, e §147 nomeia o `PR3`:
@@ -556,14 +556,25 @@ carteira substantiva.
 - **PR2 / critérios 2, 3, 5** — dependem do produtor do PR1.
 - **Sem bloqueio, sem dono:** alias no `institution_catalog`.
 
-### Follow-up que esta medição levanta e NÃO resolve
+### Resíduo da §Armadilha (C) — roteado para fora da lane
 
-`codigo` composto em item `imovel` (4 itens: `01-11` ×2, `01-12` ×2) vai cru para
-`entry["codigo_rfb"]` (`consolidate_baseline.py:559`), lido por comparação **estrita** em
-`db_property_identity_resolver.py:134,168`. `'01-11'` e `'11'` são o mesmo apartamento em duas
-grafias. Não toquei: `property_id` é UUID resolvido contra o DB e a lane mediu **100%** de
-estabilidade nele, então o risco é latente, não vivo — mas o mesmo eixo da §Armadilha (C), e
-`wise_fiscal_flags.py:32,35,38` (`==` contra `"13"/"62"/"41"`) segue exposto do mesmo jeito.
+**dono:** `_README` da [[A42]] §Fora do sprint (disposição explícita) — a superfície que
+já possui achado cortado por classe. Não vira lane: é **latente, não vivo**, e a regra de
+admissão desta sprint reserva lane nova a P0/P1 que alcança o usuário sem dono vivo.
+
+O eixo é **consumidor que compara código de 2 dígitos estritamente e falha aberto**, e
+sobraram três pontas depois do #1937:
+
+- `codigo` composto em item `imovel` (4 itens: `01-11` ×2, `01-12` ×2) vai cru para
+  `entry["codigo_rfb"]` (`consolidate_baseline.py`), lido por comparação estrita em
+  `db_property_identity_resolver.py:134,168`. `'01-11'` e `'11'` são o mesmo apartamento
+  em duas grafias. **Latente:** `property_id` é UUID resolvido contra o DB e mede 100% de
+  estabilidade.
+- `wise_fiscal_flags.py:32,35,38` compara `==` contra `"13"`/`"62"`/`"41"`; `06-41` faz o
+  bloco de flags fiscais de exterior virar `False` **sem warning**.
+- `dividas_dedup` tem a **mesma exposição** que o critério 4 gateou para investimentos e
+  **não** está coberto — limite já declarado no #1916.
+
 
 ## ENTREGUE — PR1 (produtor) + PR2 (a chave) · 2026-09-01
 

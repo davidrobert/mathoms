@@ -558,6 +558,29 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 > `nao_classificado_pct` 3,93% → **6,51%**, com **totais publicados idênticos ao centavo** —
 > redistribuição com Σ preservado, a classe cega aos invariantes de conservação.
 
+> ### Disposição do `LC6-02` — FECHADO em 2026-09-01 pela [[A42.l15]] (`shipped`)
+>
+> Os snapshots datados acima **não se reescrevem**: as linhas `procede-aberto` do §r6 e do
+> §r7 continuam descrevendo o que era verdade naqueles runs. Esta é a disposição.
+>
+> Cinco PRs: **#1909** (contrato da âncora) · **#1916** (gate de acoplamento) · **#1919**
+> (harness offline) · **#1937** (parse do grupo `GG-CC`) · **#1939** (produtor + chave).
+> `_identity_key` virou a cascata `("cnpj", raiz)` ⊳ `("desc", tipo, inst, desc)` ⊳ recusa,
+> ancorada no CNPJ **lido do documento** — o `PR3` que a [[ADR-271]] §147 deferiu em
+> 2026-05, hoje emendado nela.
+>
+> **Estabilidade: 37,68% → 61,78%** (pooled `|A∩B|/|A∪B|`, 836 artefatos `E1.5a` / 28 grupos
+> K≥5; mediana 29,19% → 68,12%). ⚠️ O **23,5%** do enunciado original **não é** o comparável
+> — era um par de runs; o comparável é o 37,68% do mesmo harness
+> (`dev/measure_e15_identity_stability.py`, entregue no #1919).
+>
+> **A âncora não custou token de LLM:** o CNPJ já estava no texto da `descricao` (50,9% das
+> entradas consolidadas), e a chave lê o campo ⊳ o texto — as duas rotas dão a mesma raiz.
+>
+> ⚠️ **O número do efeito acima envelheceu duas vezes.** `Internacional` R$ 423,56 foi medido
+> antes do #1937 e do #1939, e **os dois mexeram na chave**. Quem for reconciliar
+> `Internacional` (a [[A40.l50]] é quem tem a rota) precisa **re-medir**, não reler.
+
 ## r8 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 (este) · [[PIPELINE-REVIEWS-active]] §r12 · [[REPORT-REVIEWS-active]] §r8.
