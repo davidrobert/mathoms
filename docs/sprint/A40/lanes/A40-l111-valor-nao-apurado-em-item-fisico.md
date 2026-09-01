@@ -133,7 +133,9 @@ produtor entre E1.5c → E4 → E5.
 `low_confidence` é nome sobrecarregado: lê-se "extração fraca" e significa "identidade
 não canonicalizada" ([[ADR-246]], chave de dedup cross-IRPF). Quem lê o artefato
 depois — inclusive o LLM do parecer no E6 — vai errar. Renomear é breaking; janela
-própria, dono `data-engineer`.
+própria. **dono:** `data-engineer`. **Condição de retomada:** quando houver janela para
+migração breaking do nome no artefato — o consumidor a proteger é o LLM do parecer no E6,
+que lê o campo pelo nome.
 
 ---
 
