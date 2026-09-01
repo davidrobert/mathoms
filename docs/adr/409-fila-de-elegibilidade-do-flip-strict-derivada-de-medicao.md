@@ -321,3 +321,10 @@ Os 2 `required` respondiam por 392 das 398 ocorrências. As 6 restantes são
 `valores_31_12` negativo — defeito de **dado**, não de contrato, roteado para a
 [[A40.l111]]. Os dois produtores convergiram no mesmo path e no mesmo item: a
 divergência entre eles era exatamente os 2 campos.
+
+A [[A40.l111]] mergeou no mesmo dia ([[ADR-431]], #1917) e as 6 **continuam** —
+re-medido. O saneamento dela vale para run nova; o corpus histórico guarda os
+negativos já persistidos, e o `minimum: 0` segue reprovando-os. O drift deste
+schema chega a 0 quando as runs virarem o corpus, em data que ninguém agenda — e é
+exatamente por isso que o §4 acima precisa ser enforcement, e não uma promessa de
+revisitar o assunto quando o número mudar.

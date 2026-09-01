@@ -22,8 +22,9 @@ if str(REPO_ROOT) not in sys.path:
 # ("o flip seria verde sobre contrato que descreve 5/13"), mas a recusa vivia só em
 # prosa e a elegibilidade é só a medição — bastava o drift ir a 0. A [[A40.l110]]
 # PR-A levou `baseline_patrimonial` de 59,8% a 3,6% ao matar 2 `required` fósseis, e
-# o resto é defeito de dado da [[A40.l111]]: quando ela fechar, o número fica verde e
-# o contrato continua irreal. Não muda o exit code de `--gate`, pela mesma razão de
+# o resto é defeito de dado da [[A40.l111]], que já mergeou (#1917) — o corpus
+# histórico conserva os negativos, então o verde chega quando as runs virarem, não
+# na data do merge. Chegando, o contrato continua irreal. Não muda o exit code de `--gate`, pela mesma razão de
 # `mass_trivial` — contrato incompleto é insumo de decisão, não drift.
 _CONTRATO_NAO_DERIVADO: dict[str, str] = {
     "baseline_patrimonial.schema.json": (

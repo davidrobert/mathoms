@@ -153,9 +153,17 @@ enxerga a presença quando ela existe.
 
 A [[ADR-409]] §F recusa *"tirar só os 2 `required`"* porque isso **torna o número
 verde sem tornar o contrato real** — e a elegibilidade do flip é só a medição, com
-o §F vivendo em prosa. Hoje o schema ainda mede `NO-GO` por causa dos 6 residuais;
-**quando a [[A40.l111]] fechar, o drift vai a 0 e o predicado do §B diria `GO`**
-para um contrato que descreve 5/13 do payload. A prosa não seguraria.
+o §F vivendo em prosa. Hoje o schema ainda mede `NO-GO` por causa dos 6 residuais.
+
+> **Correção 2026-08-31, medida.** Eu escrevera *"quando a [[A40.l111]] fechar, o
+> drift vai a 0"*. Ela fechou ([#1917](https://github.com/davidrobert/mathoms/pull/1917))
+> e **não foi a 0**: os 6 continuam. O fix dela vale para run **nova**; o corpus
+> histórico guarda os negativos já persistidos, e o `minimum: 0` segue reprovando-os.
+> O verde chega quando as runs virarem o corpus — data que ninguém agenda.
+
+Quando chegar, **o predicado do §B diria `GO`** para um contrato que descreve 5/13
+do payload. A prosa não seguraria — e a data em que ela deixaria de segurar não é
+previsível, que é justamente o que torna o enforcement necessário.
 
 `baseline_patrimonial` entra em `_CONTRATO_NAO_DERIVADO` no
 `dev/measure_schema_drift.py`: veredito `NO-GO` **independente do drift**, com a
