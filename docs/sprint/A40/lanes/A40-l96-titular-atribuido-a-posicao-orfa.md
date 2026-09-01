@@ -600,13 +600,70 @@ como está escrito produz código inalcançável.
   `atribuicao_de_titularidade.py`. **Inerte** — o estado resultante é
   `{D2,D3,D4}`, que a §Contrafactual mede como inerte, e a snapshot do
   view-model move exatamente **1 linha** (`pct_inferido: 0.000000`).
-- **PR2d — D1**: merge do hint com precedência + dismissals em
-  `serialize_family_members`; refresh pós-E1 (lag); unificação dos dois
-  call-sites. É o único que **move o número**, e entra por último — assim
-  `{D1,D3}` nunca existe sozinho em `main`, que era a restrição.
-  **Muta E5 ⇒ janela de rebaseline.**
-- **PR2e** — gate de não-inércia (8 subconjuntos + perna de provenance) +
-  rebaseline final. **Muta E5 ⇒ entra na janela de rebaseline.**
+- **PR2d — ENTREGUE 2026-09-01 (D1 + gate).** Merge do hint reusando o predicado
+  de `get_irpf_suggestions`; refresh pós-E1; `build_investimentos_unified`
+  deletada (cópia morta, 175 linhas); gate de não-inércia com a tabela dos 8
+  subconjuntos. **Muta E5 ⇒ janela de rebaseline.** **Muta E5 ⇒ entra na janela de rebaseline.**
+
+## Fechamento (2026-09-01) — o que ficou medido, o que ficou simulado
+
+### O número
+
+| | fatia sem titular |
+|---|---|
+| antes (artefato E4 do run `79a61e33`) | **68,15%** |
+| depois do fecho `{D1,D2,D3}` | **0,13%** |
+| resíduo | as **4 posições da Binance** — sem registro de conta em fonte alguma |
+
+Reproduz na vírgula a previsão da §Contrafactual. **Mas é medição por
+composição, não por run:** apliquei `serialize_family_members` real ao workspace
+real, montei o `AccountResolver` com o blob resultante e recomputei a fatia sobre
+o artefato E4 existente. **Não disparei o pipeline.**
+
+> **Critério de aceite que segue ABERTO:** *"Run novo do workspace `1b9f2cf5`
+> publica `atribuicao_investimentos` abaixo do piso, sem o risco Alta e sem
+> `prescricao_realocacao_suprimida`."* Isso exige run E0→E6 com LLM
+> (`pipeline-review`), que custa API e entra na contagem de re-runs da sprint.
+> **A composição prevê que passa; ela não substitui a evidência.**
+
+### O gate de não-inércia pegou um defeito meu
+
+A primeira versão canonicalizava dentro do helper de contas, então o "controle de
+D3" **não controlava nada** — `{D1,D2}` dava o mesmo que o fecho. E precisou de
+uma instituição com **uma** conta para reproduzir o perigo que a lane nomeia:
+sem ela `{D1,D3}` saía inerte, quando é justamente o subconjunto que **move** o
+número sem resolver. Tabela final da fixture:
+
+| subconjunto | órfã | | subconjunto | órfã |
+|---|---|---|---|---|
+| ∅ | 100% | | `{D1}` | 100% |
+| `{D2}` | 100% | | **`{D1,D3}`** | **75,12%** ← move, não resolve |
+| `{D3}` | 100% | | `{D1,D2}` | 100% |
+| `{D2,D3}` | 100% | | **`{D1,D2,D3}`** | **0,50%** |
+
+### Deferido, com dono e razão
+
+- **Fallback visível na célula do Top 15** (critério original) — **não tem
+  call-site**. `build_members_from_consolidated` monta **dois** baldes
+  (titular/cônjuge) no eixo A; não existe balde `sem_dono` ali. Implementá-lo
+  como escrito produziria código inalcançável. Depende do corte do
+  `else → titular` em `_split_investimentos`/`_split_imoveis` ([[ADR-394]] §D8
+  aplicada ao eixo A) — **lane própria**, dono `financial-planner`.
+- **Papel `casal`** e a segunda base — §Deferimento do co-design, dono
+  `financial-planner`, retomada no primeiro workspace com fatia `casal` ≥ 5%.
+- **`acima_do_piso` herdou `PISO_AGREGADO_PCT`** contra a ressalva do comentário
+  do próprio piso — achado ortogonal, linha própria.
+- **42 artefatos E1 com CPF cru** — resíduo histórico; `purge_cpf_from_e1_artifacts`
+  existe, é testado e **só tem chamador em teste**. Linha própria.
+- **`check_adr_amendment_signal` cego a `amended_at` em bloco na última chave** —
+  falha fechada, fricção e não furo. Linha própria.
+
+### A [[A40.l80]] precisa de outra fixture
+
+A docstring de `atribuicao_review_reasons` descreve *"a maior parte da base sem
+dono"* como condição do corpus. Depois deste fecho, o `sem_dono` deste workspace
+cai para 0,13% e **as superfícies que a l80 construiu deixam de morder aqui**.
+Gate cuja fixture herde a forma deste workspace passa a medir o vazio.
 
 ## Achados do PR2c (2026-09-01)
 
