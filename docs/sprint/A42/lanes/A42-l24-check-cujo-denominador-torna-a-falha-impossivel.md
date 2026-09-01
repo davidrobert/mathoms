@@ -3,13 +3,15 @@ id: A42.l24
 type: lane
 title: "Três checks meus publicam verde sobre população em que a falha é impossível por construção — e um deles exclui justamente o stage sob suspeita"
 sprint: A42
-status: open
+status: shipped
+ship_pr: 1958
+ship_date: "2026-09-01"
 priority: P1
 branch_slug: a42-l24-check-cujo-denominador-torna-a-falha-impossivel
 owner: senior-cto
 depends_on: []
 adrs: ["[[ADR-416]]", "[[ADR-341]]", "[[ADR-296]]"]
-tags: [type/lane, sprint/a42, status/open, priority/p1, area/dados]
+tags: [type/lane, sprint/a42, status/shipped, priority/p1, area/dados]
 ---
 
 # A42.l24 — `check-cujo-denominador-torna-a-falha-impossivel`
