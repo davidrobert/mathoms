@@ -103,3 +103,81 @@ def test_o_denominador_nao_conta_propriedade_nomeada():
 def test_os_schemas_da_fila_de_flip_ainda_nao_tem_grao(nome, esperado):
     grao = medir_grao_por_nome(nome)
     assert grao is not None and grao.sem_grao == esperado
+
+
+# ===========================================================================
+# Cobertura por profundidade — o termo que veta o veredito ([[A42.l26]])
+# ===========================================================================
+
+from dev.schema_depth import medir_cobertura  # noqa: E402
+
+_MAPA_COM_ITEM_DECLARADO = {
+    "type": "object",
+    "properties": {
+        "dados": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {"type": "object", "properties": {"valor": {"type": "number"}}},
+            },
+        }
+    },
+}
+
+
+def test_mapa_de_chave_livre_nao_dispara():
+    """`{categoria → lançamentos}` modela dado na chave; diferenciá-la é falso-vermelho.
+
+    Sem esta regra, 8 nós legítimos do repo reprovariam — medido na A42.l26.
+    """
+    cob = medir_cobertura(_MAPA_COM_ITEM_DECLARADO, {"dados": {"alimentacao": [{"valor": 1}]}})
+    assert cob.completa
+
+
+def test_item_do_mapa_com_chave_nao_declarada_dispara():
+    """E o item DENTRO do mapa continua medido — a cobertura desce, ela não para na chave."""
+    cob = medir_cobertura(
+        _MAPA_COM_ITEM_DECLARADO, {"dados": {"alimentacao": [{"valor": 1, "extra": 2}]}}
+    )
+    assert cob.chaves_fora == {"$.dados.*[]": {"extra"}} and not cob.nos_indeclarados
+
+
+def test_no_indeclarado_conta_como_defeito_e_nao_como_ausencia():
+    """`{"type": "object"}` vazio é profundidade NÃO MEDIDA.
+
+    Se contasse como ausência, apagar `properties` seria o caminho barato para o
+    verde — a métrica passaria a premiar quem deleta a declaração.
+    """
+    schema = {"type": "object", "properties": {"itens": {"type": "array", "items": {"type": "object"}}}}
+    cob = medir_cobertura(schema, {"itens": [{"a": 1}, {"b": 2}]})
+    assert cob.nos_indeclarados == {"$.itens[]": 2} and not cob.completa
+
+
+def test_chaves_de_no_indeclarado_nao_sao_publicadas():
+    """Ali as chaves são DADO (mês, membro), não nome de campo — só path e contagem."""
+    schema = {"type": "object", "properties": {"por_membro": {"type": "object"}}}
+    cob = medir_cobertura(schema, {"por_membro": {"nome_de_pessoa": 1}})
+    assert cob.chaves_fora == {} and cob.nos_indeclarados == {"$.por_membro": 1}
+
+
+def test_ref_entre_arquivos_e_resolvido_na_cobertura():
+    """Contrato cuja profundidade toda está atrás de `$ref` sairia verde sem isto."""
+    schema = {
+        "type": "object",
+        "properties": {"razoes": {"type": "array", "items": {"$ref": "review_reason.schema.json"}}},
+    }
+    valido = {"razoes": [{"code": "x", "stage": "y", "artifact_key": "z"}]}
+    assert medir_cobertura(schema, valido).completa
+    cob = medir_cobertura(schema, {"razoes": [{"code": "x", "chave_inventada": 1}]})
+    assert cob.chaves_fora == {"$.razoes[]": {"chave_inventada"}}
+
+
+def test_a_uniao_de_ramos_vale_para_anyof():
+    """Sob `anyOf`, basta UM ramo declarar — interseção fabricaria defeito inexistente."""
+    schema = {
+        "anyOf": [
+            {"type": "object", "properties": {"a": {}}},
+            {"type": "object", "properties": {"b": {}}},
+        ]
+    }
+    assert medir_cobertura(schema, {"a": 1, "b": 2}).completa

@@ -174,6 +174,21 @@ def test_nenhuma_declarada_no_item_e_fantasma(baseline, colecao):
     )
 
 
+@pytest.mark.parametrize("colecao", _COLECOES)
+def test_o_balde_do_e4_tambem_cabe_no_contrato_no_grao_do_item(baseline, colecao):
+    """A segunda ponta: dois produtores compartilham o arquivo ([[ADR-427]] D3).
+
+    O E4 publica o mesmo contrato pela `artifact_key`, depois do
+    `BaselineNormalizer`. Medir só o E1.5c deixaria o balde `patrimonio` sem
+    gate — e é ele que a [[A42.l19]] trouxe para este schema.
+    """
+    from pipeline.domain.services.baseline_normalizer import BaselineNormalizer
+
+    do_e4 = BaselineNormalizer().normalize(copy.deepcopy(baseline)).data
+    fora = _emitidas(do_e4, colecao) - _declaradas(colecao)
+    assert fora == set(), f"o E4 emite fora do contrato em {colecao}[]: {sorted(fora)}"
+
+
 def test_o_ramo_legado_emite_as_tres_chaves_do_alcance(tmp_path):
     """Não-inércia do allowlist: as 3 exceções têm produtor, não são afirmação."""
     import scripts.consolidate_baseline as cb

@@ -257,3 +257,60 @@ class TestContratoNaoDerivado:
     def _stub_corpus(monkeypatch, modulo, resultados):
         """Isola `main` do DB: o que se mede aqui é o exit code, não a leitura do corpus."""
         monkeypatch.setattr(modulo, "_collect", lambda args: (resultados, None, None))
+
+
+# A42.l26 — `0 erros` só é afirmação sobre o nó que o contrato descreve. O veto de
+# cobertura é o termo que separa "não há drift" de "não há onde haver drift".
+class TestCoberturaPorProfundidade:
+    """O veredito ganha um quarto conjunto; o exit code de `--gate` não."""
+
+    @staticmethod
+    def _com_cobertura_incompleta(nome: str = "e2_extract.schema.json"):
+        from dev.measure_schema_drift import SchemaDrift
+
+        stats = SchemaDrift(nome=nome)
+        stats.artifacts, stats.drifted, stats.unreadable = 10, 0, 0
+        return stats
+
+    def test_chave_nao_declarada_derruba_o_go(self):
+        stats = self._com_cobertura_incompleta()
+        stats.cobertura_fora["$.transacoes[]"].add("natural_key")
+
+        assert stats.cobertura_completa is False
+        assert stats.is_go is False
+
+    def test_no_indeclarado_tambem_derruba_o_go(self):
+        """Profundidade não medida é defeito — senão apagar `properties` vira o atalho."""
+        stats = self._com_cobertura_incompleta()
+        stats.nos_indeclarados["$.dados[]"] += 3
+
+        assert stats.is_go is False
+
+    def test_o_mesmo_contador_com_cobertura_completa_e_go(self):
+        """Não-inércia: sem os dois acumuladores, o MESMO contador sai `GO`."""
+        assert self._com_cobertura_incompleta().is_go is True
+
+    def test_veto_nao_muda_o_exit_code_do_gate(self, monkeypatch, capsys):
+        """Cobertura é insumo de decisão, não drift — idem `mass_trivial`/`contrato`."""
+        from dev import measure_schema_drift as m
+
+        stats = self._com_cobertura_incompleta()
+        stats.cobertura_fora["$.transacoes[]"].add("natural_key")
+        monkeypatch.setattr(m, "_collect", lambda args: ({stats.nome: stats}, None, None))
+
+        assert m.main(["--gate"]) == 0, "cobertura incompleta não pode pintar o CI de vermelho"
+        assert "NO-GO (cobertura)" in capsys.readouterr().out
+
+    def test_o_path_sai_publicado_e_as_chaves_de_no_indeclarado_nao(self, monkeypatch, capsys):
+        """`-1` sozinho não é acionável; e num nó indeclarado as chaves são DADO."""
+        from dev import measure_schema_drift as m
+
+        stats = self._com_cobertura_incompleta()
+        stats.cobertura_fora["$.transacoes[]"].add("natural_key")
+        stats.nos_indeclarados["$.por_membro"] += 1
+        monkeypatch.setattr(m, "_collect", lambda args: ({stats.nome: stats}, None, None))
+
+        m.main([])
+        saida = capsys.readouterr().out
+        assert "$.transacoes[]" in saida and "natural_key" in saida
+        assert "$.por_membro" in saida and "nó indeclarado" in saida
