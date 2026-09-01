@@ -35,6 +35,7 @@ from pipeline.domain.services.baseline_item_classifier import (
     DivergenciaFatoHint,
     EixoDecididoPeloHint,
     classify_baseline_item,
+    grupo_rfb,
 )
 from pipeline.domain.services.money_parsing import valor_monetario_float
 from pipeline.domain.services.valor_nao_apurado import sanear_baseline, sanear_item_fisico
@@ -111,12 +112,8 @@ def safe_float(v: Any) -> float:
 
 
 def normalize_grupo(grupo: Any) -> str:
-    """Normalize IRPF grupo: 'G01' → '01', '1' → '01', 1 → '01'."""
-    s = str(grupo).strip().upper()
-    # Strip 'G' prefix
-    if s.startswith("G"):
-        s = s[1:]
-    return s.zfill(2)
+    """Normalize IRPF grupo: 'G01' → '01', '1' → '01', 1 → '01', '07-04' → '07'."""
+    return grupo_rfb(grupo)
 
 
 def _match_imovel_xlsx(descricao_irpf: str, imoveis_xlsx: List[dict]) -> Optional[dict]:

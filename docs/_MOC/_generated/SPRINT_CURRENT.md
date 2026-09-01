@@ -16,7 +16,6 @@ open · in_progress.
 - [[A40.l107]] — A conversão tabela→cartão no mobile é aplicada por componente, não por regra: 11 tabelas largas não convertem, e há um terceiro comportamento não previsto · priority P2 · área frontend · branch `a40-l107-conversao-tabela-cartao-por-componente`
 - [[A40.l108]] — Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro · priority P2 · área produto · branch `a40-l108-um-ano-nomeia-cenario-central-e-de-estresse`
 - [[A40.l109]] — A lista do card lê o artefato mais recente sob um relatório pinado e imutável · priority P1 · área backend/frontend · branch `a40-l109-lista-le-latest-sob-relatorio-pinado`
-- [[A40.l110]] — O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas · priority P1 · área dados/pipeline · branch `a40-l110-fossil-do-baseline-e-idempotencia`
 - [[A40.l112]] — Imóvel sem classificação nenhuma entra no numerador da concentração pelo `else`, e reclassificar um deles move o KPI de 82 para 0 · priority P2 · área dados/pipeline · branch `a40-l112-imovel-sem-override-cai-no-numerador`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
