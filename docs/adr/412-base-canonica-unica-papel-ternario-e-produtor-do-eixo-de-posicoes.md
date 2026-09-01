@@ -686,9 +686,10 @@ justificavam manter `avaliacao_liquidity` publicado com **duas** pernas: suprimi
 **A segunda perna era falsa quando foi escrita.** A [[A40.l116]] mediu 14 runs do mesmo
 corpus, com `temperature=0`: o guardrail casava o ponto forte por `section_id` contra um
 literal, e o modelo rotula o item de liquidez com **S3 em 9 runs e S4 em 5** — nunca com o
-`S1` que o #1800 fixou. `autocontradicao_removidos` saiu **0 em todos os runs** posteriores
-àquele PR. Um mecanismo que não dispara não pode ser desarmado, então ele não pesava nada
-no argumento.
+`S1` que o #1800 fixou. `autocontradicao_removidos` saiu **0 nos 5 runs** posteriores àquele
+PR — nos anteriores a chave de telemetria nem existia, e o único disparo medido (`1`, em
+2026-08-24) foi com a constante ainda em `S4`. Um mecanismo que não dispara não pode ser
+desarmado, então ele não pesava nada no argumento.
 
 **A decisão de não suprimir `avaliacao_liquidity` fica de pé** — a perna do `HeroKpiGrid`
 é independente, foi medida na própria [[A40.l80]] e não depende do guardrail. O que cai é

@@ -4,13 +4,15 @@ type: lane
 title: "O guard de autocontradição do parecer erra a seção pela terceira vez, e o teste que o cobre importa a própria constante — cego por construção"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1969
+ship_date: "2026-09-01"
 priority: P1
 branch_slug: a40-l116-guard-de-liquidez-erra-a-secao-e-o-teste-e-cego
 owner: prompt-engineer
 depends_on: []
 adrs: ["[[ADR-412]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p1, area/backend]
+tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/backend]
 ---
 
 # A40.l116 — `guard-de-liquidez-erra-a-secao-e-o-teste-e-cego`
@@ -110,7 +112,7 @@ esta lane existe para consertar.
 
 **Sem bump de `manifest_version`** — nada em `config/prompts/parecer_planejador.yaml` mudou.
 
-## Follow-ups que esta lane NÃO fecha
+## Follow-ups que esta lane NÃO fecha — roteados para [[A40.l119]]
 
 - **O elogio tem dois produtores, e o guard alcança um.**
   `pontos_fortes_analyzer.py:186` emite `"Reserva de Emergência Robusta"` deterministicamente
@@ -128,3 +130,35 @@ esta lane existe para consertar.
   não observado. Fica **contado** (`autocontradicao_tema_ausente`) em vez de virar regra:
   torná-lo obrigatório empurraria o output para reask, e esse custo já foi pago na
   [[ADR-292]].
+
+## Fechamento — 2026-09-01 (#1969 · `a5cb8b59`)
+
+Entregue como o §Critério de aceite revisado descreve. O que shipou, contra o que a lane
+pedia:
+
+| item | estado |
+| --- | --- |
+| `section_id` fora do match (critério 1 **revisado**) | ✅ zero literal de seção em `parecer_guardrails_divida.py` |
+| fixture pela seção do modelo + gate sobre os 12 `SectionId` (critério 2) | ✅ contrafactual: 18 reprovas com `S1`, 11 com `S3` |
+| detector age sobre elogio × alerta (critério 3) | ✅ braço (b), **ressalva-only** |
+| tripwire com a forma do U5 (critério 4 **revisado**) | ✅ `removidos + ressalvados > 0` |
+
+Suítes medidas **no commit de merge** `a5cb8b59` (não relidas de antes do rebase):
+`tests` **8428 passed** · `backend/tests` **3698 passed, 0 falhas**. Numa rodada anterior o
+`backend` acusou 2 falhas em `test_auth.py` (`429 == 401`): eram chaves
+`mathoms:auth:lockout:*` rançosas no Redis compartilhado, deixadas por suíte concorrente —
+provado limpando as chaves (10/10 passam), e o re-run limpo no merge confirma. Nenhum
+arquivo de auth no diff.
+
+**Colateral registrado:** [[ADR-412]] §E13 (emenda datada — a §E3 alegava dois apoios e
+tinha um) + os 2 comentários de código que repetiam a perna morta como fato. O registro
+datado da [[A40.l80]] **não** foi reescrito.
+
+**Segue aberto, com rota:** os três follow-ups acima foram para a [[A40.l119]]
+(`open`, P2, `prompt-engineer`), aberta neste closeout. O de maior consequência é o
+**produtor duplo do elogio** — `parecer_planejador.yaml:699` projeta `$.pontos_fortes` cru,
+o modelo ecoa o título determinístico e descarta a ressalva da `descricao` —, que exige bump
+de `manifest_version` + re-eval e por isso não cabia neste PR.
+
+Eles compartilham o eixo da [[A40.l117]] (*prosa do modelo não confrontada com o que a
+máquina sabe*) e **não** entraram nela porque o `#1966` estava em voo sobre o arquivo dela.
