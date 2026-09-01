@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-421 ADRs (ADR-001 a ADR-431) em [`docs/adr/`](../../adr/).
+422 ADRs (ADR-001 a ADR-432) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 360
+- **Decidido**: 361
 - **Proposto**: 57
 - **Roadmap**: 4
 
@@ -362,9 +362,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## dados
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-427]] — O discriminador do artefato é a `artifact_key`: o guard de escrita resolve por `(stage, key)`, e o balde herda o contrato da própria fonte · phase A42
+- [[ADR-432]] — O contrato do baseline consolidado é re-derivado do produtor, e o ramo `declarations` da raiz é aposentado · phase A40.l110
 
 ### Proposto (1)
 
