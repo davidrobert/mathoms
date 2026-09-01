@@ -1088,6 +1088,29 @@ não mudaram.
 E2 composição estável, conteúdo **1/137** · guard de escrita do E4 resolve o balde
 `patrimonio` com 0 erros · zero `partial_failure`.
 
+
+> **Nota 2026-09-01 — a régua de prioridade virou derivada (§6.1 do runbook), e ela
+> discorda de 5 linhas desta seção.** A régua computa `P` de quatro predicados medidos
+> (`alcança` · `reproduz` · `falsifica` · `move decisão`), e o contrafactual rodou sobre as
+> 43 linhas do `U4` e do `U5`. **Nada aqui é reescrito** — registro entregue é evidência
+> datada; a divergência fica como nota, por decisão da própria régua. O que ela diz desta
+> seção:
+>
+> - `PV13-09` → **`P0`**. Elogiar e alertar a mesma reserva é contradição publicada que
+>   move a decisão de realocar — **a mesma forma do `RR9-04`**, que recebeu `P0`. A régua
+>   achou uma inconsistência **dentro** do `U5`.
+> - `PV13-10` → **`P1`**: guard que nunca dispara com o teto estourado 3,2× é falso-verde.
+> - `PV13-11` e `PV13-14` → **`P2`**: confundem, não **falsificam** afirmação sobre o
+>   patrimônio. O predicado `falsifica` é o que separa os dois, e sem ele a régua promovia
+>   quase todo achado de relatório a `P1`.
+> - `PV13-01` → **ponteiro** da [[A40.l113]] (cláusula 1).
+> - Do `U4` (§r12): `PV12-02` sobe a **`P1`** — *"não há gate nenhum"* é falso-verde, e
+>   passa a concordar com o `PV13-12`, que já era `P1`. **É a inconsistência que motivou a
+>   régua**, e ela se resolve promovendo o `U4`, não rebaixando o `U5`.
+>
+> Sob a régua, `P1` fica **4 no `U4` contra 6 no `U5`** — não 2 contra 12. O que sobra de
+> diferença é real.
+
 ## r12 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 · [[PIPELINE-REVIEWS-active]] §r12 (este) · [[REPORT-REVIEWS-active]] §r8.

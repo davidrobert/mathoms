@@ -343,6 +343,13 @@ Marque `sintese: true` no `_state.json`.
 
 **2 · Escriture o que a rodada faz com a sprint** — só se a rodada abriu P0:
 
+> **Compute `P` antes de alocar, pela §6.1** — os quatro predicados, com a evidência na
+> linha. Alocar lane sobre prioridade **julgada** foi o que produziu 2 `P1` numa rodada e 12
+> na seguinte, e uma tripla contagem do mesmo defeito no `U5`. As três cláusulas que mais
+> mordem aqui: cadeia de `P0` **não** promove (a raiz herda a lane), falso-verde de
+> instrumento é `P1` **sempre**, e magnitude vive em `move decisão` — nunca em `alcança`.
+
+
 - **Aloque os ids de lane**, gravando-os em `lanes_alocadas` no `_state.json` (mesmo padrão
   do `codes_allocated`), e **escreva os arquivos de lane + a linha na tabela do `_README`**.
   Menção em prosa não reserva. Sem a linha na tabela o `dev/check_lane_transition.py`
@@ -457,6 +464,80 @@ gatilho de re-medição`
 Linha cuja conclusão **inverte** sob o viés entra como `indeterminado-por-viés`, com
 severidade **do que seria se verdadeira** e prioridade **da medição que a destrava** —
 nunca `Baixo` por falta de certeza.
+
+### 6.1 Prioridade é DERIVADA, não julgada
+
+**O problema que isto resolve, medido.** Entre o `U4` e o `U5` a contagem de `P1` foi de
+**2 para 12** sobre rodadas comparáveis, e parte do salto não estava no mundo: no `U4`,
+*"a cobertura de lineage não é medida por gate nenhum"* recebeu **P2**; no `U5`,
+*"o gate existe mas mede a fixture"* recebeu **P1** — e o primeiro é **pior**. Nada escrito
+explicava a diferença; só a ordem em que foram vistos. Coluna que ninguém consegue
+recalcular depois **não é prioridade, é humor**.
+
+**A saída não é uma régua melhor: é parar de julgar.** `Prioridade` passa a ser **função
+de quatro predicados medidos**, cada um com resposta binária e evidência obrigatória na
+própria linha. Quem discorda de uma prioridade discute **um predicado**, não a impressão
+geral.
+
+| # | Predicado | Verdadeiro quando… | Evidência que a linha DEVE trazer |
+|---|---|---|---|
+| **A** | **alcança** | o defeito está num campo do payload publicado ou na superfície que a família lê — **medido**, não inferido do código | `campo.dot.path` ou `#Sx` + o valor observado |
+| **R** | **reproduz** | o defeito está demonstrado **neste** corpus/run, não deduzido do desenho | run + o par observado (antes/depois, ou o valor contra o esperado) |
+| **F** | **falsifica** | torna **falsa uma afirmação sobre o patrimônio/finanças da família**: número errado, contradição publicada, ausência afirmada como fato. **Não** basta confundir, navegar mal ou rotular de forma ambígua | a afirmação publicada + por que é falsa |
+| **M** | **move decisão** | a afirmação falsa empurra uma decisão patrimonial concreta — amortizar × investir, realocar, aportar, prazo de IF, sucessão | a decisão nomeada + a direção do empurrão |
+
+```
+P0 = A ∧ R ∧ F ∧ M
+P1 = A ∧ R ∧ F ∧ ¬M
+   ∨ instrumento cujo VERDE é falso (medido)
+   ∨ exposição de PII no publicado
+P2 = A ∧ R ∧ ¬F                      (degrada a leitura, não falsifica)
+   ∨ ¬R                              (exposição estrutural, sem incidência neste corpus)
+   ∨ instrumento cujo VERMELHO é falso, ou incompleto sem ser falso
+P3 = ¬A, com a decisão de NÃO abrir lane escrita na própria linha
+```
+
+**Três cláusulas, e cada uma existe por um erro cometido:**
+
+1. **Estar na cadeia causal de um P0 NÃO promove.** A raiz e os elos intermediários
+   registram-se no **produtor** (§6) e **herdam a lane do P0** — não ganham prioridade
+   própria. No `U5` eu dei `P1` à raiz da Cadeia A e `P0` à sonda que a revelou, além do
+   `P0` da própria cadeia: **três prioridades para um defeito**.
+2. **Instrumento falso-verde é `P1` sempre**, mesmo sem alcançar o usuário — é o que
+   **impede achar** `P0`. Falso-**vermelho** é `P2`: custa atenção, não esconde nada.
+3. **Magnitude entra em `M`, nunca em `A` ou `F`.** Número publicado errado é errado; se o
+   valor é pequeno, o efeito é `P1` em vez de `P0` — **não** `P3`.
+
+**A régua NÃO substitui `Severidade`.** `Severidade` descreve o defeito (`Crítico`/`Alto`/
+`Médio`/`Baixo`) e continua sendo julgamento do revisor; `Prioridade` passa a ser
+computada. Quando as duas divergem — `Médio` com `P0`, `Crítico` com `P2` — a linha
+**declara por quê**; é sinal útil, não erro.
+
+#### Contrafactual medido (2026-09-01) — reclassificação das 43 linhas do `U4` e do `U5`
+
+Não é *"a regra parece boa"*. Rodei-a contra as duas rodadas **antes** de escrevê-la, e a
+**primeira versão reprovou**: sem o predicado `F`, `A ∧ R` promovia quase todo achado de
+relatório a `P1`, porque essencialmente todos alcançam e reproduzem. O `F` é o que separa
+*tornar falso* de *piorar a leitura*, e só existe porque o contrafactual o exigiu.
+
+| efeito | linhas |
+|---|---|
+| **inalteradas** | 27 de 43 |
+| **resolve a inconsistência que motivou a regra** | `PV12-02` sobe a `P1` (falso-verde) e encontra `PV13-12`, que já era `P1` — as duas passam a concordar |
+| **acha inconsistência DENTRO do `U5`** | `PV13-09` (elogia e alerta a mesma reserva) sobe a `P0`, igualando-se a `RR9-04` (afirma e nega o mesmo imóvel) — mesma forma, letras diferentes |
+| **desfaz a tripla contagem da Cadeia A** | `PV13-01` e `LC9-10` viram **ponteiros** da [[A40.l113]], sem prioridade própria |
+| **rebaixa 4 do `U5`** | `LC9-06`, `LC9-07` (instrumento ambíguo, não falso-verde), `PV13-11`, `PV13-14` (confundem, não falsificam) → `P2` |
+| **promove o que estava parado** | `RR8-04` sai de `P3` para `P1`: é número publicado **errado**, reproduzindo há **três rodadas**, parado por magnitude pequena — que agora pertence a `M` |
+
+**O número que responde à pergunta:** sob a regra, `P1` fica **4 no `U4` contra 6 no `U5`**
+— não 2 contra 12. O que sobra de diferença é real: o `U5` teve mais dois instrumentos
+falso-verdes e um agrupamento de `P0` que o `U4` não teve.
+
+**LIMITE DECLARADO.** `F` e `M` não são mecânicos como `A` e `R`: exigem ler a afirmação
+publicada e nomear a decisão. A régua **estreita** a discricionariedade a dois predicados
+com evidência obrigatória — não a elimina. E ela **não reclassifica retroativamente** lane
+já arquivada: registro entregue é evidência datada. Divergência achada em rodada anterior
+vira **nota**, nunca reescrita.
 
 ## 7. Namespace de códigos
 

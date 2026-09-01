@@ -546,6 +546,26 @@ parecer **resolvem, 27 de 27** · print e PDF alcançam **12 de 12** blocos de r
 refutação da lente, que afirmava *"nem o PDF alcança"* — meu próprio proxy de contagem
 por rodapé de confiança quase certificou o falso; a presença por **título** mostrou 12/12).
 
+
+> **Nota 2026-09-01 — a régua de prioridade virou derivada (§6.1 do runbook), e ela
+> discorda de 2 linhas desta seção.** A régua computa `P` de quatro predicados medidos
+> (`alcança` · `reproduz` · `falsifica` · `move decisão`), e o contrafactual rodou sobre as
+> 43 linhas do `U4` e do `U5`. **Nada aqui é reescrito** — registro entregue é evidência
+> datada; a divergência fica como nota, por decisão da própria régua. O que ela diz desta
+> seção:
+>
+> - `RR8-04` → **`P1`**, e esta é a consequência que mais importa: é número publicado
+>   **errado**, reproduzindo há **três rodadas**, parado em `P3` **por magnitude pequena** —
+>   e magnitude pertence a `move decisão`, nunca a `alcança`/`falsifica` (cláusula 3). A
+>   régua diz que ele merece lane. **A lane não foi aberta aqui**: reabrir uma decisão que o
+>   dono sustentou três rodadas é dele, não da régua.
+> - `RR9-16` (PII) **confirma-se em `P1`** por cláusula própria — exposição não falsifica
+>   número, e ainda assim é `P1`.
+> - `RR9-20` **confirma-se em `P2`**: duas leituras não reconciliadas são ambiguidade.
+>
+> Sob a régua, `P1` fica **4 no `U4` contra 6 no `U5`** — não 2 contra 12. O que sobra de
+> diferença é real.
+
 ## r8 — ws-1b9f2cf5-2026-08-30
 
 > Rodada unificada **U4** · [[LEDGER-CERTIFY-active]] §r8 · [[PIPELINE-REVIEWS-active]] §r12 · [[REPORT-REVIEWS-active]] §r8 (este).
