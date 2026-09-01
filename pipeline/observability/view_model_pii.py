@@ -1,4 +1,4 @@
-"""Gate de PII no view-model do relatório ([[ADR-337]] c4 · A40.l6 · [[ADR-434]] A40.l115).
+"""Gate de PII no view-model do relatório ([[ADR-337]] c4 · A40.l6 · [[ADR-435]] A40.l115).
 
 Varre **toda string** do payload que o React/PDF consomem — não uma allowlist de
 chave. O allowlist era o ponto cego: o fix do #1569 tirou a PII de ``descricao`` e

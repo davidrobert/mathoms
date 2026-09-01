@@ -85,17 +85,29 @@ def conferencia_signals(result: CategorizationResult) -> dict[str, str]:
     vêm do :class:`DedupReport` (até A24, só telemetria de log). Strings int
     (zero float no lineage); transporte via artefato ``despesas`` é o único
     canal E4→E5 que sobrevive ao modo incremental."""
-    report = result.cash_flow.dedup_report
+    cf = result.cash_flow
+    report = cf.dedup_report
     return {
         "tx_total": str(len(result.classified)),
         "dedup_collapsed": str(report.collapsed_count),
         "dedup_review": str(report.review_count),
-        # Eixo-VALOR ([[ADR-426]]): sem estes dois o destino E3→E4 não tem soma
-        # declarada, e o harness comparava a origem consigo mesma. Cents (zero float,
-        # [[ADR-090]]). NÃO entram em `_CONFERENCIA_SIGNAL_KEYS` — o whitelist do E5 é
-        # o que mantém a chave de cache do parecer intacta ([[ADR-173]]).
-        "dedup_collapsed_cents": str(report.collapsed_cents),
-        "transferencias_cents": str(result.cash_flow.transferencias_cents),
+        **_eixo_valor_signals(cf),
+    }
+
+
+def _eixo_valor_signals(cf) -> dict[str, str]:
+    """Eixo-VALOR do E3→E4 ([[ADR-426]] · [[ADR-434]]): os quatro termos do destino em
+    Σ|valor| — nenhum é número de produto reaproveitado — mais os dois `*_negativas`,
+    que NÃO somam no destino e sustentam a ponte `abs == assinado + 2 × negativas`.
+    Cents, zero float ([[ADR-090]]). Fora de `_CONFERENCIA_SIGNAL_KEYS`: o whitelist do
+    E5 é o que mantém a chave de cache do parecer intacta ([[ADR-173]])."""
+    return {
+        "dedup_collapsed_cents": str(cf.dedup_report.collapsed_cents),
+        "transferencias_cents": str(cf.transferencias_cents),
+        "despesas_abs_cents": str(cf.despesas_abs_cents),
+        "receitas_abs_cents": str(cf.receitas_abs_cents),
+        "despesas_negativas_cents": str(cf.despesas_negativas_cents),
+        "receitas_negativas_cents": str(cf.receitas_negativas_cents),
     }
 
 

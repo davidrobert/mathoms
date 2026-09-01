@@ -1,5 +1,5 @@
 ---
-id: ADR-434
+id: ADR-435
 type: adr
 title: "O gate de PII mede o publicado, e a cobertura declarada é igual à medida"
 status: Decidido
@@ -11,7 +11,7 @@ superseded_by: []
 amended_at: []
 ---
 
-# ADR-434 — O gate de PII mede o publicado, e a cobertura declarada é igual à medida
+# ADR-435 — O gate de PII mede o publicado, e a cobertura declarada é igual à medida
 
 ## Contexto
 

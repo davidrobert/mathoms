@@ -5,7 +5,9 @@ title: "O destino E3→E4 declara valor, ou o eixo-valor não é medido"
 status: Decidido
 phase: A42
 date: "2026-08-30"
+amended_at: ["2026-09-01"]
 relates_to:
+  - "[[ADR-434]]"
   - "[[ADR-347]]"
   - "[[ADR-342]]"
   - "[[ADR-255]]"
@@ -22,6 +24,11 @@ aliases: ["ADR 426", "conservacao de valor E3-E4", "dedup_collapsed_cents"]
 ---
 
 # ADR-426 — O destino E3→E4 declara valor, ou o eixo-valor não é medido
+
+> ⚠️ **Emendada em 2026-09-01 ([[A42.l25]]).** A **fórmula** do §D2 caiu: somar
+> `total_geral` dos dois baldes misturava duas convenções de sinal entre os quatro termos
+> e o destino saía `2 × Σ|receitas negativas|` menor **sempre**. A tese (D1/D3/D4/D5)
+> continua de pé. Ver §Emenda no fim e a [[ADR-434]].
 
 **Status:** Decidido (A42.l18 · #1870 `cfaf3f38`) • **Data:** 2026-08-30 • **Dono:** `data-engineer`.
 Estende ao E3→E4 a tese que a [[ADR-347]] §Dec-6 já fixou para o E2→E3.
@@ -109,3 +116,25 @@ comportamento no relatório: nenhum consumidor lê os sinais novos.
   reimplementaria o produtor e reintroduziria a auto-referência que esta ADR remove.
 - **Somar sinal (não `abs`) dos dois lados.** Rejeitada: em fatura a convenção
   inverte (`_normalize_tipo`), e o check viraria falso-positivo por banco.
+
+## Emenda 2026-09-01 — a fórmula do §D2 estava enviesada, e a tese sobrevive
+
+Medido em `ws-1b9f2cf5` (re-derivação in-process, reproduz a linha publicada na **U5**):
+o destino somava `despesas.total_geral + receitas.total_geral + transferencias_cents +
+dedup_collapsed_cents`, mas os dois primeiros são somas **assinadas** e os dois últimos são
+Σ|valor|. Com **48 receitas negativas** no corpus (Σ|v| = 999.386 cents), o destino saía
+`2 × 999.386 = 1.998.772` cents menor — exatamente o Δ publicado, 100% explicado.
+
+Não era resíduo: era **offset constante**, logo uma perda real do mesmo tamanho publicaria
+`Δ = 0` e o veredito diria `conservado`.
+
+**O que muda:** a fórmula do §D2. Os quatro termos passam a ser Σ|valor| declarados pelo
+produtor, e o número publicado (`total_geral`) deixa de ser **termo** para virar o alvo de
+uma **ponte verificada** (`abs == assinado + 2 × negativas`) — o que preserva, e fortalece,
+a propriedade que este §D2 queria: o eixo cruza o que o relatório mostra.
+
+**O que NÃO muda:** D1 (o produtor declara), D3 (ausência é não-medido), D4 (`dups`), D5
+(fora de `_CONFERENCIA_SIGNAL_KEYS`). A §Alternativas rejeitadas também segue válida — a
+[[ADR-434]] faz o **oposto** de "somar com sinal os dois lados": põe `abs` em todos.
+
+Decisão completa, com a ponte e o conversor único: [[ADR-434]].

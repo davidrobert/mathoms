@@ -11,7 +11,7 @@ owner: sre-devops
 ship_pr: 1964
 ship_date: "2026-09-01"
 depends_on: []
-adrs: ["[[ADR-319]]", "[[ADR-434]]"]
+adrs: ["[[ADR-319]]", "[[ADR-435]]"]
 tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/backend, area/seguranca]
 ---
 
@@ -45,7 +45,7 @@ docstring vale como justificativa de ausência de gate.
    dono — a decisão é de produto, não técnica).
 4. Regressão sobre `evidencia`, não só sobre prosa.
 
-## Entregue — 2026-09-01 · [[ADR-434]]
+## Entregue — 2026-09-01 · [[ADR-435]]
 
 Medido sobre o payload **real** do U5 (`report_data.json` + `parecer.json`, 5.562 strings):
 o gate saía de **0 hits** e passa a **7** — exatamente os 7 ofensores medidos
@@ -55,7 +55,7 @@ independentemente, **zero falso-positivo**.
 |---|---|---|
 | 1 — sanitizer roda no output publicado | ✅ | eram **três** egressos, não um (abaixo) |
 | 2 — cobertura declarada = cobertura medida | ✅ | `TIPOS_COBERTOS` + igualdade de conjunto nas 2 direções + docstring comparada por teste; 5 mutações plausíveis, 5 reprovam |
-| 3 — agência/conta na política, com decisão explícita | ✅ | [[ADR-434]] D4, co-design `financial-planner`: conta preserva cauda-4, agência sai inteira |
+| 3 — agência/conta na política, com decisão explícita | ✅ | [[ADR-435]] D4, co-design `financial-planner`: conta preserva cauda-4, agência sai inteira |
 | 4 — regressão sobre `evidencia`, não só prosa | ✅ | resolvido **por construção**: o walker chaveia no valor, não em allowlist de chave |
 
 ### Três correções ao enunciado desta lane
@@ -93,7 +93,7 @@ Conta+agência completas é **Alto**. CPF parcial **no display não é achado**:
 | `irpf_kpis.ano_base_nota_degradacao` · `previdencia_pgbl.nota_degradacao` | `***.***.***-DD` | `irpf_completude._missing_cpf_motivo` |
 | `parecer.riscos[].descricao` | `***.***.***-DD` | round-trip: o E5 levou a nota ao provider e ela voltou na prosa |
 
-### Follow-up com dono (deferimento datado na [[ADR-434]])
+### Follow-up com dono (deferimento datado na [[ADR-435]])
 
 `posicao_31_12[].instituicao` **não contém instituição** — recebe `descricao or
 cnpj_emissor`, e as linhas de `fonte=extrato` põem ali outra coisa. Sem emissor, mascarar

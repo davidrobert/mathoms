@@ -26,6 +26,7 @@ from pipeline.domain.services._tx_identity import (
     build_hash_inputs,
     cents_int,
     compute_identity_hash,
+    decimal_cents,
     normalize_banco,
     normalize_descricao,
     normalize_tipo_conta,
@@ -170,15 +171,25 @@ def _dedup_transactions(
 
 
 def _soma_cents(txs: list[ClassifiedTransaction]) -> int:
-    """Σ |valor| (cents) — convenção única do eixo-valor E3→E4 ([[ADR-426]])."""
-    return sum(cents_int(abs(t.valor)) for t in txs)
+    """Σ |valor| (cents) — convenção única do eixo-valor E3→E4 ([[ADR-426]]).
+    ``decimal_cents`` e não ``cents_int``: o harness converte com ``Decimal(str(v))`` e o
+    produtor convertia com ``int(round(float(v)*100))``, que discordam no meio-centavo
+    (``0.575`` → 58 vs 57) — dois conversores no mesmo eixo ([[ADR-434]] §D4)."""
+    return sum(decimal_cents(t.valor) for t in txs)
+
+
+def _soma_negativas_cents(txs: list[ClassifiedTransaction]) -> int:
+    """Σ |valor| (cents) das rows com ``valor < 0``: o termo que torna a ponte
+    ``abs == assinado + 2 × negativas`` verificável, e o que mantém o eixo vivo quando
+    ``despesas`` passar a carregar estorno assinado ([[ADR-429]] §Consequências)."""
+    return sum(decimal_cents(t.valor) for t in txs if t.valor < 0)
 
 
 def _collapsed_cents(seen: dict, collisions: dict) -> int:
     """Σ |valor| (cents) das rows que o dedup removeu. O hash K4 inclui ``valor``
     ([[ADR-287]]), logo a row colapsada carrega o mesmo valor da mantida — o valor
     removido é ``colisões × |valor da mantida|``, exato sem reter as removidas."""
-    return sum(n * cents_int(abs(seen[h].valor)) for h, n in collisions.items() if h in seen)
+    return sum(n * decimal_cents(seen[h].valor) for h, n in collisions.items() if h in seen)
 
 
 def _merge_dedup_reports(*reports: DedupReport) -> DedupReport:
@@ -289,6 +300,18 @@ class CashFlow:
     # Σ |valor| (cents) das transferências pós-dedup. As transferências não têm balde
     # serializado com total; sem este termo a soma do destino não fecha ([[ADR-426]]).
     transferencias_cents: int = 0
+    # Eixo-valor em UMA convenção ([[A42.l25]]). `total_geral` dos baldes é soma
+    # ASSINADA — número de produto (receita líquida de estorno) — e o eixo de
+    # conservação é Σ|valor|. Usar `total_geral` como termo misturava duas convenções
+    # entre os quatro termos e o Δ saía subestimado em 2 × Σ|negativas|, sempre: um
+    # offset constante, logo uma perda real do mesmo tamanho publicaria Δ = 0.
+    despesas_abs_cents: int = 0
+    receitas_abs_cents: int = 0
+    # Σ |valor| das rows com valor < 0 em cada balde. NÃO entram no destino — existem
+    # para a ponte `abs == assinado + 2 × negativas`, que cruza o termo declarado
+    # contra o número publicado e é o que preserva a tese do [[ADR-426]] §D2.
+    despesas_negativas_cents: int = 0
+    receitas_negativas_cents: int = 0
     # ADR-255 — telemetria do dedup cross-document; default vazio preserva
     # construtores em call-sites legados de teste que instanciam CashFlow
     # diretamente sem chamar build().
@@ -339,6 +362,10 @@ class CashFlowBuilder:
             fluxo_mensal=self.build_fluxo_mensal(receitas, despesas),
             transferencias_count=len(transferencias),
             transferencias_cents=_soma_cents(transferencias),
+            despesas_abs_cents=_soma_cents(despesas),
+            receitas_abs_cents=_soma_cents(receitas),
+            despesas_negativas_cents=_soma_negativas_cents(despesas),
+            receitas_negativas_cents=_soma_negativas_cents(receitas),
             dedup_report=_merge_dedup_reports(rep_r, rep_d, rep_t),
         )
 
