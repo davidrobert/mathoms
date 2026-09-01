@@ -195,3 +195,7 @@ ramo — seria inerte contra a classe, e o teste que discrimina é o de **troca 
 - Achados colhidos no caminho e roteados: [[A40.l110]] (fóssil do baseline +
   `date.today()` em artefato persistido) e [[A40.l111]] (valor não apurado em item
   físico), abertas em [#1897](https://github.com/davidrobert/mathoms/pull/1897).
+  **Marcador de entrega (2026-09-01):** a [[A40.l111]] está `shipped`
+  ([#1917](https://github.com/davidrobert/mathoms/pull/1917), [[ADR-431]]); a
+  [[A40.l110]] entregou o **PR-A** ([#1914](https://github.com/davidrobert/mathoms/pull/1914))
+  e segue `open` pelo PR-B.
