@@ -189,6 +189,9 @@ Ela é dona assinada de C14, de C19 e do arquivo. Número-neutro, cabe no closeo
   reconhece cat_1 com override **explícito**, e o `else` do splitter recebe também imóvel **sem
   override nenhum**. No golden (regime default) isso põe 100% de cat_2 no numerador; reclassificar
   um imóvel para `residencia_principal` o tira de numerador **e** denominador, movendo 82,19 → 0,00.
+  ⚠️ **Re-medido em 2026-09-01 e corrigido:** esse `→ 0,00` valia do golden **anterior ao
+  #1904**, que tinha um imóvel **único**. Com os cinco de hoje o efeito é **82,19 → 75,93**,
+  6,3 pp. O defeito procede; a magnitude não era essa. Tabela dos quatro regimes na [[A40.l112]].
   **Classe distinta desta lane** — captura, não metodologia; o fix é estado ternário + cobertura
   ([[ADR-412]] §D2), com critério de aceite próprio. ⚠️ **A prevalência em produção é NÃO-MEDIDA:**
   a evidência é uma fixture sintética, e o dogfood tem os 6 imóveis classificados. Registre como
@@ -452,7 +455,7 @@ rotulam dizem 'de renda' sobre número que inclui não-alocação"*. Dono natura
 
 ## Fecho — 2026-09-01
 
-**`shipped`** em 6 PRs mergeados: #1901 (numerador declarado) · #1904 (fixture que
+**`shipped`** em **7** PRs mergeados: #1901 (numerador declarado) · #1904 (fixture que
 discrimina) · #1911 (manifesto drenado) · #1924 (§D3, imobilização) · #1926 (emenda da
 §D2) · #1928 (partição publicada) · #1932 (o flip + rótulos). A [[ADR-420]] flipou para
 `Decidido`.
