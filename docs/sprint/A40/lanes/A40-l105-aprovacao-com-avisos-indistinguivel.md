@@ -3,7 +3,9 @@ id: A40.l105
 type: lane
 title: "Aprovação-com-avisos é indistinguível de nunca-ter-pausado no desfecho do run, e é o desfecho que alimenta o banner de qualidade"
 sprint: A40
-status: open
+status: shipped
+ship_pr: 1984
+ship_date: "2026-09-02"
 priority: P2
 branch_slug: a40-l105-aprovacao-com-avisos-indistinguivel
 owner: sre-devops

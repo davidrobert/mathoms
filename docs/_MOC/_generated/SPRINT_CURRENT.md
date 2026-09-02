@@ -11,7 +11,6 @@ open · in_progress.
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · área produto · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l102]] — Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir · priority P2 · área pipeline/frontend · branch `a40-l102-superficie-do-pontual-e-dedup`
-- [[A40.l105]] — Aprovação-com-avisos é indistinguível de nunca-ter-pausado no desfecho do run, e é o desfecho que alimenta o banner de qualidade · priority P2 · área pipeline · branch `a40-l105-aprovacao-com-avisos-indistinguivel`
 - [[A40.l106]] — O relatório não emite índice de seção algum no mobile: rolagem longa sem navegação, enquanto o desktop emite o índice completo · priority P2 · área frontend · branch `a40-l106-relatorio-sem-indice-no-mobile`
 - [[A40.l107]] — A conversão tabela→cartão no mobile é aplicada por componente, não por regra: 11 tabelas largas não convertem, e há um terceiro comportamento não previsto · priority P2 · área frontend · branch `a40-l107-conversao-tabela-cartao-por-componente`
 - [[A40.l108]] — Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro · priority P2 · área produto · branch `a40-l108-um-ano-nomeia-cenario-central-e-de-estresse`
