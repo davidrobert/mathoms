@@ -77,7 +77,8 @@ valor monetário reproduzido; só percentuais, nomes de campo e contagens.
    4 deles são `$.endividamento.dividas[N].taxa_juros_aa`, o mesmo conceito 4×.
 2. **A linha 441 é o convite MENOS importante — e é o único que NÃO está sob budget.**
    Hints são anexados **depois** do cap (`parecer_distiller.py:484-492`). O convite que
-   está mesmo no corpo orçado é outro: `_eviction_marker` (`parecer_distiller.py:273`)
+   está mesmo no corpo orçado é outro: `_eviction_marker` (`parecer_distiller.py:273`
+   pré-#1966; hoje `backend/app/services/parecer_distiller.py:246-255`)
    injeta `" Recupere os dados via get_e5_section: {keys}."`. São **5** superfícies
    model-facing prometendo ferramenta, e as duas maiores o enunciado não nomeia: a regra
    **§3 "Tool use (drill-down)"** inteira do system prompt
@@ -553,7 +554,7 @@ impressa.**
      O gate `lane-transition` reprova `ship_pr` com `status: open`, e está certo — a
      entrega parcial se registra na prosa abaixo, não no frontmatter. -->
 
-## Entrega parcial — sintoma 3 MERGEADO ([#1966](https://github.com/davidrobert/mathoms/pull/1966), `24a375eb`, 2026-09-02)
+## Entrega parcial — sintoma 3 MERGEADO ([#1966](https://github.com/davidrobert/mathoms/pull/1966), `24a375eb`, 2026-09-01)
 
 **A lane segue `open`**, e o que resta é o **sintoma 2**.
 
@@ -604,7 +605,7 @@ Publiquei **7** na lane, no `_README` e no corpo do #1966, repetindo o número q
 | 3 | `config/agents/planner_persona.md:136` (R1) — *"ou de tool calls"* | promessa |
 | 4 | `config/agents/planner_persona.md:207` — condiciona `campos_faltantes[]` a `found:false` | promessa |
 | 5 | `config/prompts/parecer_planejador.yaml:441` — `narrative_hint` | promessa |
-| 6 | `backend/app/services/parecer_distiller.py:273` — `_eviction_marker` | promessa |
+| 6 | `backend/app/services/parecer_distiller.py:273` (hoje `:246-255`) — `_eviction_marker` | promessa |
 | 7 | `config/agents/planner_persona.md:176` (R21) — *"e em respostas de tool"* | pressuposição |
 | 8 | `config/agents/planner_persona.md:198` — *"lista de tools disponíveis"* | pressuposição |
 
@@ -615,7 +616,8 @@ correção mora aqui.
 
 ### Rota de ENTRADA que a lane não reconhecia
 
-`docs/sprint/A42/lanes/A42-l24-*.md:121` roteia para cá: *"`valor_renderizado` não é
+A [[A42.l24]] (`shipped`, #1958) roteia para cá em
+`docs/sprint/A42/lanes/A42-l24-check-cujo-denominador-torna-a-falha-impossivel.md:121`: *"`valor_renderizado` não é
 `SkipJsonSchema` … âncora cujo path não resolve publica o número do **modelo** … Dono:
 [[A40.l117]] (`prompt-engineer`), que já tem o parecer."* A lane nunca mencionou isso — se
 ela virasse terminal, a rota viraria zumbi.
@@ -623,7 +625,10 @@ ela virasse terminal, a rota viraria zumbi.
 **Absorvido, e a sinergia é real:** a arbitragem do `senior-cto` para o sintoma 2 é
 justamente tornar `section_id` um `SkipJsonSchema`. O mesmo PR fecha os dois campos, com o
 mesmo argumento (campo sem rota de reparo, que roteia controle, sai do contrato do modelo).
-Fica no escopo do sintoma 2.
+Fica no escopo do sintoma 2, **sem herdar as três precondições dele**: se elas não
+destravarem até o gate de saída da A40, este item sai sozinho. Admissão não é sequestro —
+sem a cláusula, um item pronto ficaria refém de bloqueio alheio e a rota viraria zumbi por
+outra via.
 
 ### Dependência condicional da [[A40.l119]]
 

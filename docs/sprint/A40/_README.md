@@ -644,6 +644,18 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 > rg -No '^\| \[\[A40\.l[0-9]+\]\]' docs/sprint/A40/_README.md | sort -u | wc -l
 > ```
 >
+> **Re-medição 2026-09-02 (closeout da [[A40.l117]]):** disco **119**, tabela **119**;
+> o cabeçalho declarava `118 · 118`. **O drift é meu e nasceu no #1966** (`24a375eb`):
+> medido, em `24a375eb^` era `118 · 118` coerente, e esse PR adicionou **o arquivo da
+> [[A40.l120]] e a linha dela na tabela** sem mover o cabeçalho — terceira ocorrência
+> nesta sprint (ver 2026-08-28 e 2026-08-24 acima). Duas notas sobre o instrumento:
+> (a) desta vez o `check_lane_counter` **pegou** (`CLOSE-DRIFT-04`), então o drift não é
+> silencioso — ele é **latente entre a criação da lane e o closeout seguinte**, porque
+> `check_closure.py` é da skill `lane-closeout` e não do pre-commit; (b) segue valendo o
+> registrado em 2026-08-28: o check lê **só o primeiro número**, então `119 nesta tabela`
+> continua **não-medido** e pode divergir calado. Quem re-medir roda os dois comandos
+> abaixo em vez de confiar no verde do check.
+
 > **Re-medição 2026-08-28 (abertura da [[A40.l93]]):** disco **92**, tabela **92**.
 > O cabeçalho declarava `91 · 90` e **a segunda metade estava errada em `origin/main`**:
 > a tabela já listava **91** ids únicos. Alguém acrescentou linha sem mexer no cabeçalho,
