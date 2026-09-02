@@ -199,6 +199,13 @@ encolhimento parcial passa mudo — e a direção otimista é a que passa.
 e `producao:<run8>` já é um rótulo por run), ou `--update` reprovando queda de denominador
 sem flag explícita. O contrafactual de não-inércia é a segunda linha da tabela acima.
 
+### D0 — enquanto D1/D2 não fecham, o artefato publicado não carrega a ressalva
+
+`dev/snapshots/lineage_coverage_baseline.json` publica `cobertura_publicada: 29,4%` **sem**
+dizer que é teto. Quem ler o arquivo não vê esta lane. Não foi corrigido à mão de propósito:
+o campo é **gerado** por `Roster.dump()`, então edição manual some no próximo rebaseline — a
+ressalva tem que nascer do produtor, e isso é código, não doc.
+
 ### D3 — sem re-observação, o roster envelhece sempre para o lado otimista
 
 Nada no CI ou no `nightly.yml` roda `dev/lineage_coverage.py --update`. A lane declarou o
