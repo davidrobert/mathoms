@@ -1,79 +1,112 @@
 {
-  "_doc": "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária guarda as ORIGENS em que foi observada; o número publicado é sobre o universo inteiro, nunca sobre uma origem só. Rebaseline da fixture: MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py. Observação de produção: python3 dev/lineage_coverage.py <payload.json> --origem producao:<run8> --update",
+  "_doc": "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária guarda as ORIGENS em que foi observada; o número publicado é sobre o universo inteiro, nunca sobre uma origem só. `schema` é o piso declarado pelo contrato E5, `fixture` o chão que o CI reproduz, `producao:<run8>` uma observação datada. O universo nunca encolhe sem autorização explícita. Rebaseline de fixture+schema: MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py. Observação de produção: python3 dev/lineage_coverage.py <payload.json> --origem producao:<run8> --update",
   "cobertura_publicada": {
     "numerador": 5,
-    "denominador": 17,
-    "ratio_pct": 29.4,
+    "denominador": 20,
+    "ratio_pct": 25.0,
     "origens": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ]
+  },
+  "observado_em": {
+    "fixture": "2026-09-02",
+    "producao:40d1af2a": "2026-09-02",
+    "schema": "2026-09-02"
   },
   "universo": {
     "cenarios_conjuge": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "consumo_consciente": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "endividamento": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "equilibrio_cerbasi": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "exposicao_cambial": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "fluxo_caixa": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "goals": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "if_monte_carlo": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "investimentos": [
       "fixture",
+      "producao:40d1af2a",
+      "schema"
+    ],
+    "irpf_kpis": [
       "producao:40d1af2a"
     ],
     "orcamento_prospectivo": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "passive_income": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "patrimonio": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "previdencia_pgbl": [
+      "producao:40d1af2a",
+      "schema"
+    ],
+    "protecao_patrimonial": [
+      "fixture",
       "producao:40d1af2a"
+    ],
+    "proventos_por_ativo": [
+      "schema"
     ],
     "ratios": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "real_estate": [
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "reserva_emergencia": [
       "fixture",
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ],
     "tributario": [
-      "producao:40d1af2a"
+      "producao:40d1af2a",
+      "schema"
     ]
   },
   "cobertos": {
