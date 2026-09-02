@@ -1041,7 +1041,7 @@
 | A42.l23 | lane | open | A42 | O validador de ordem compara declaração com declaração: `writes` falso passa, e um `reads` sobre ele valida contra ficção | `sprint/A42/lanes/A42-l23-validador-de-ordem-compara-declaracao-com-declaracao.md` |
 | A42.l24 | lane | shipped | A42 | Três checks meus publicam verde sobre população em que a falha é impossível por construção — e um deles exclui justamente o stage sob suspeita | `sprint/A42/lanes/A42-l24-check-cujo-denominador-torna-a-falha-impossivel.md` |
 | A42.l25 | lane | shipped | A42 | A mesma linha do razão publica o delta com dois sinais opostos, e o sinal observado é o único que nenhuma perda de pipeline produz | `sprint/A42/lanes/A42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento.md` |
-| A42.l26 | lane | in_progress | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
+| A42.l26 | lane | shipped | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
 | A42.l3 | lane | shipped | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |
