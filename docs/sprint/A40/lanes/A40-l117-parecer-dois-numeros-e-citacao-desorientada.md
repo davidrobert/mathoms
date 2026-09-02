@@ -174,7 +174,7 @@ Rodei o discriminador que o `financial-planner` pediu. **Hipótese A (denominado
 nada. `90,25 + 4,14 = 94,39` = o carimbo (`goals.alocacao_alvo.derived.renda_fixa_atual_pct`
 = **94,39**) ao centésimo. **O spread de 4,15 pp É a linha Previdência.**
 
-Logo o defeito é **conceitual e não declarado**: `alocacao_alvo_deviation.py:18`
+Logo o defeito é **conceitual e não declarado**: `alocacao_alvo_deviation.py:17`
 (`_BUCKET_TO_COMPARABLE`) decide que **toda** previdência é renda fixa. PGBL/VGBL é
 *wrapper*, não classe — o fundo subjacente pode ser multimercado ou ações. O `rotulo`
 diz só "Alocação em renda fixa (carteira líquida)" e **não declara** que dobra previdência

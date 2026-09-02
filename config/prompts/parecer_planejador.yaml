@@ -219,7 +219,16 @@
 # (parecer_orchestrator.py:150-169, TTL 7d), então separá-los cobraria a frota TRÊS
 # vezes pela mesma correção. Uma invalidação, uma regeneração por workspace vivo —
 # mesmo padrão declarado para as 2.10.0–2.14.0.
-version: "2.19.0"
+# 2.20.0 — A40.l120: o comparável do ALVO passa a ser projetado. Medido no run
+# `40d1af2a`: `$.goals` existia num ÚNICO lugar (seção `plano_acao_atual`,
+# `eviction_priority: 10`) e ELA FOI EVICTADA — o modelo nunca recebia
+# `renda_fixa_atual_pct` e reconstruía a fatia pela coluna de composição, que é outra
+# base. Os dois números iam para a mesma seção com 4,15 pp de spread e nada
+# reconciliava. Entra o bloco `Alocação atual vs. alvo` na seção `patrimonio` (com a
+# base na label) e um hint na `investimentos` declarando que a linha `Previdência` é
+# SUBCONJUNTO do KPI de renda fixa. MINOR: regra adicional não-breaking (ADR-233), e
+# COBRA a frota — `manifest_version` compõe a chave de cache.
+version: "2.20.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -299,6 +308,26 @@ context_sections:
           - {path: "$.investimentos.total_financeiro", label: "Carteira financeira da tabela (ex-imóveis físicos)", format: "brl"}
           - {path: "$.investimentos.total_imoveis_investimento", label: "Imóveis de investimento na tabela", format: "brl"}
           - {path: "$.investimentos.fonte", label: "Fonte da tabela (irpf_bens = foto 31/12; difere do patrimonio)", format: "string"}
+      # A40.l120 — o comparável do ALVO, que não chegava ao modelo. Medido no run
+      # `40d1af2a`: `$.goals` era projetado num ÚNICO lugar (seção `plano_acao_atual`,
+      # `eviction_priority: 10`) e ELA FOI EVICTADA — então o modelo nunca recebia
+      # `renda_fixa_atual_pct` e reconstruía a fatia pela coluna de composição, que é
+      # outra base. Os dois números iam para a mesma seção sem nada reconciliar.
+      # A base vai na label porque é ela que difere: a tabela acima é COMPOSIÇÃO
+      # (% do total investido / % da carteira financeira); isto é ALOCAÇÃO contra alvo,
+      # sobre a carteira LÍQUIDA — que exclui caixa e imóveis físicos, porque o alvo do
+      # outro lado também os exclui (`_normalize_alvo`, [[ADR-141]] §Emenda). Comparar
+      # observado e alvo em bases diferentes não é divergência de escola: é subtração
+      # inválida.
+      - format: "key_value"
+        title: "Alocação atual vs. alvo (base: carteira líquida — exclui caixa e imóveis físicos)"
+        fields:
+          - {path: "$.goals.alocacao_alvo.derived.renda_fixa_atual_pct", label: "Renda fixa hoje (% da carteira líquida; inclui previdência no comparável)", format: "percent2"}
+          - {path: "$.goals.alocacao_alvo.derived.carteira_liquida_brl", label: "Carteira líquida (base do comparável)", format: "brl"}
+          - {path: "$.goals.alocacao_alvo.derived.desvio_max_pct", label: "Maior desvio contra o alvo (pp)", format: "percent2"}
+          - {path: "$.goals.alocacao_alvo.derived.next_aporte_classe", label: "Classe do próximo aporte (rebalanceamento por aporte)", format: "string"}
+          - {path: "$.goals.alocacao_alvo.derived.motivo_supressao", label: "Motivo de supressão do comparável (null = nada suprimido)", format: "string"}
+          - {path: "$.goals.alocacao_alvo.derived.has_alvo", label: "Há alvo declarado", format: "raw"}
       # A37.l9 (CTO-04/PE-05): exposição cambial ≠ alocação internacional.
       # A40.l80 · [[ADR-412]] §D7: o manifest PARA de reensinar o limiar na label. A
       # label do `tier` entregava "verde >=10% / amarelo 5-10% / vermelho <5%" ao lado
@@ -481,6 +510,7 @@ context_sections:
         value_format: "int"
         on_null: "skip"
     narrative_hints:
+      - "COMPOSIÇÃO ≠ ALOCAÇÃO (A40.l120): `Previdência` é SUBCONJUNTO do KPI de renda fixa. Alocação vs alvo sai de $.goals.alocacao_alvo.derived.renda_fixa_atual_pct (carteira líquida); '% da carteira financeira' é composição."
       - "Ancore no gap entre atual e alvo da família — qual classe está sub ou sobrealocada."
       - "Não recomende ativo específico. Comente o comportamento da carteira."
 

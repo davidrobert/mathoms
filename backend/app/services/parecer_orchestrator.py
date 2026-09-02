@@ -47,6 +47,7 @@ from backend.app.services.parecer_pos_llm_guardrails import (
     guardrails_summary,
     neutralize_trajetoria_sem_serie,
 )
+from backend.app.services.parecer_prose_coerencia import rebaixa_por_divergencia
 from backend.app.services.parecer_red_lines import RED_LINES_VERSION, check_red_lines
 from backend.app.services.parecer_strict_enforcement import (
     StrictDecision,
@@ -805,6 +806,9 @@ def _generate_with_llm(
     # `build_kpi_targets` aqui: só o produtor conhece a config efetiva por workspace
     # (ADR-134/D4), e recomputar no backend carimbaria config de hoje sobre E5 antigo.
     raw = stamp_metrica_targets(raw, tools, e5_data.get("kpi_targets") or {})
+    # A40.l120: só AQUI a métrica tem `valor_atual` carimbado, que é o lado com que a
+    # prosa é confrontada. Rebaixa o item divergente; nunca derruba o parecer (ADR-292).
+    raw, divergencias_prosa = rebaixa_por_divergencia(raw, e5_data.get("kpi_targets") or {})
     final = finalize_output(
         output=stamp_ancora_values(raw, tools),  # ADR-296: snapshot path→valor_renderizado
         workspace_id=config.workspace_id,
