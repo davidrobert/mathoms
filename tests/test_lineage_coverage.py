@@ -131,11 +131,8 @@ def test_o_roster_da_fixture_bate_com_a_medida(dogfood_e5, roster):
 
 
 def test_o_roster_do_schema_bate_com_o_contrato(roster):
-    """O piso declarado é recomputável: raiz monetária nova no schema E5 reprova aqui.
-
-    Sem isto o `schema` viraria constante congelada — a mesma cegueira que a A27.l2 tinha com
-    a fixture, um substrato adiante.
-    """
+    """O piso declarado é recomputável: raiz monetária nova no schema E5 reprova aqui. Sem
+    isto o `schema` vira constante congelada — a cegueira da A27.l2, um substrato adiante."""
     assert sorted(roster.roots_de(ORIGEM_SCHEMA)) == sorted(schema_monetary_roots()), (
         "raízes monetárias do contrato E5 divergem do roster — rebaseline e o denominador "
         "cresce (é para crescer)."
@@ -143,12 +140,9 @@ def test_o_roster_do_schema_bate_com_o_contrato(roster):
 
 
 def test_o_universo_e_maior_que_qualquer_origem_sozinha(roster):
-    """A união é o ponto: nenhuma origem sozinha cobre o universo, e cada uma tem buraco próprio.
-
-    `schema` não alcança `irpf_kpis` (declara 5 campos, o E5 emite 20); `fixture` e produção não
-    alcançam workspace não medido. Se alguma origem passar a cobrir tudo, o roster virou um dos
-    lados disfarçado de universo e este teste avisa.
-    """
+    """Nenhuma origem sozinha cobre o universo, e cada uma tem buraco próprio: `schema` não
+    alcança `irpf_kpis`, `fixture` e produção não alcançam workspace não medido. Origem que
+    passe a cobrir tudo = o roster virou um dos lados disfarçado de universo."""
     for origem in roster.origens:
         assert (
             roster.roots_de(origem) < roster.roots
@@ -201,11 +195,8 @@ def test_o_denominador_publicado_nao_e_o_da_fixture(dogfood_e5, roster):
 
 
 def test_dinheiro_em_string_decimal_entra_no_denominador():
-    """A27.l3 §D1: exigir `int|float` tirava `irpf_kpis`/`protecao_patrimonial` inteiras.
-
-    Contrafactual do classificador: a raiz entra pelo **caminho**, não pelo tipo — trocar a
-    string por número não move o denominador. Se mover, o predicado voltou a discriminar tipo.
-    """
+    """A27.l3 §D1: exigir `int|float` tirava `irpf_kpis`/`protecao_patrimonial` inteiras. A
+    raiz entra pelo CAMINHO, não pelo tipo — trocar string por número não move o denominador."""
     como_string = {"irpf_kpis": {"ir_pago_total_brl": "177344.77"}}
     como_numero = {"irpf_kpis": {"ir_pago_total_brl": 177344.77}}
     assert measure_coverage(como_string).monetary_roots == {"irpf_kpis"}
@@ -217,11 +208,8 @@ def test_dinheiro_em_string_decimal_entra_no_denominador():
 
 
 def test_o_roster_nao_encolhe_sem_autorizacao(roster, dogfood_e5):
-    """A27.l3 §D2: re-observar o mesmo rótulo com payload mais pobre SUBIA a cobertura.
-
-    O contrafactual de não-inércia desta correção: antes do guard, esta chamada devolvia um
-    roster menor e a suíte inteira ficava verde.
-    """
+    """A27.l3 §D2: re-observar o mesmo rótulo com payload mais pobre SUBIA a cobertura — antes
+    do guard esta chamada devolvia roster menor e a suíte inteira ficava verde."""
     origem = next(o for o in roster.origens if o.startswith("producao:"))
     magro = measure_coverage({"patrimonio": {"bruto": 1.0}})
     with pytest.raises(RosterEncolheria) as exc:

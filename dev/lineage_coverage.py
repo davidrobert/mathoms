@@ -68,6 +68,17 @@ ORIGEM_FIXTURE = "fixture"
 #: alcança `irpf_kpis`, o roster não alcança workspace não medido. O universo é a união.
 ORIGEM_SCHEMA = "schema"
 
+_DOC = (
+    "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária guarda "
+    "as ORIGENS em que foi observada; o número publicado é sobre o universo "
+    "inteiro, nunca sobre uma origem só. `schema` é o piso declarado pelo contrato "
+    "E5, `fixture` o chão que o CI reproduz, `producao:<run8>` uma observação "
+    "datada. O universo nunca encolhe sem autorização explícita. Rebaseline de "
+    "fixture+schema: MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest "
+    "tests/test_lineage_coverage.py. Observação de produção: python3 "
+    "dev/lineage_coverage.py <payload.json> --origem producao:<run8> --update"
+)
+
 E5_SCHEMA_PATH = (
     Path(__file__).resolve().parents[1] / "config" / "schemas" / "e5_analysis.schema.json"
 )
@@ -220,6 +231,15 @@ class RosterEncolheria(ValueError):
     """A observação retiraria raiz do universo — encolher é decisão, não efeito colateral."""
 
 
+def _recusa_encolhimento(origem: str, perdidas: list[str], antes: int) -> None:
+    raise RosterEncolheria(
+        f"a observação de `{origem}` retiraria {perdidas} do universo — o denominador cairia "
+        f"de {antes} para {antes - len(perdidas)} e a cobertura SUBIRIA. Se a raiz deixou "
+        "mesmo de publicar dinheiro, repita com `--permitir-encolher` (CLI) ou "
+        "`MATHOMS_UPDATE_LINEAGE_COVERAGE=encolher` (rebaseline)."
+    )
+
+
 def _merge(
     mapa: Mapping[str, tuple[str, ...]],
     roots: frozenset[str],
@@ -227,21 +247,12 @@ def _merge(
     *,
     permitir_encolher: bool,
 ) -> dict[str, tuple[str, ...]]:
-    """Acrescenta ``origem`` às raízes medidas; só a retira sob autorização explícita.
-
-    Retirar por default era o vazamento medido em A27.l3 §D2: re-observar o **mesmo rótulo**
-    com um payload mais pobre encolhia o universo e **subia** a cobertura, com a suíte verde
-    nos dois sentidos (17→18→17, 29,4%→27,8%→29,4%). Encolhimento parcial passava mudo, e a
-    direção otimista era justamente a que passava.
-    """
+    """Acrescenta ``origem`` às raízes medidas; só a retira sob autorização explícita —
+    retirar por default era o vazamento de A27.l3 §D2 (re-observar o mesmo rótulo com payload
+    mais pobre encolhia o universo e SUBIA a cobertura, com a suíte verde nos dois sentidos)."""
     perdidas = sorted(r for r, origens in mapa.items() if origem in origens and r not in roots)
     if perdidas and not permitir_encolher:
-        raise RosterEncolheria(
-            f"a observação de `{origem}` retiraria {perdidas} do universo — o denominador "
-            f"cairia de {len(mapa)} para {len(mapa) - len(perdidas)} e a cobertura SUBIRIA. "
-            "Se a raiz deixou mesmo de publicar dinheiro, repita com `--permitir-encolher` "
-            "(CLI) ou `MATHOMS_UPDATE_LINEAGE_COVERAGE=encolher` (rebaseline)."
-        )
+        _recusa_encolhimento(origem, perdidas, len(mapa))
     novo = {root: tuple(o for o in origens if o != origem) for root, origens in mapa.items()}
     for root in roots:
         novo[root] = tuple(sorted(set(novo.get(root, ())) | {origem}))
@@ -337,17 +348,15 @@ class Roster:
         )
 
     def dump(self, path: Path = ROSTER_PATH) -> None:
-        payload = {
-            "_doc": (
-                "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária guarda "
-                "as ORIGENS em que foi observada; o número publicado é sobre o universo "
-                "inteiro, nunca sobre uma origem só. `schema` é o piso declarado pelo contrato "
-                "E5, `fixture` o chão que o CI reproduz, `producao:<run8>` uma observação "
-                "datada. O universo nunca encolhe sem autorização explícita. Rebaseline de "
-                "fixture+schema: MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest "
-                "tests/test_lineage_coverage.py. Observação de produção: python3 "
-                "dev/lineage_coverage.py <payload.json> --origem producao:<run8> --update"
-            ),
+        """Grava o roster com o número publicado, as origens e quando cada uma foi observada."""
+        path.write_text(
+            json.dumps(self._as_document(), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+    def _as_document(self) -> dict[str, Any]:
+        return {
+            "_doc": _DOC,
             "cobertura_publicada": {
                 "numerador": self.numerador,
                 "denominador": self.denominador,
@@ -358,7 +367,6 @@ class Roster:
             "universo": {r: list(o) for r, o in sorted(self.universo.items())},
             "cobertos": {r: list(o) for r, o in sorted(self.cobertos.items())},
         }
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def _report(origem: str, coverage: LineageCoverage, roster: Roster) -> list[str]:
