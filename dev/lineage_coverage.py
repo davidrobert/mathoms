@@ -36,9 +36,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -55,8 +57,31 @@ ROSTER_PATH = (
     Path(__file__).resolve().parents[1] / "dev" / "snapshots" / "lineage_coverage_baseline.json"
 )
 
-#: Origem da fixture dogfood determinística — a única que o CI consegue medir sozinho.
+#: Origem da fixture dogfood determinística — o chão medido que o CI reproduz sozinho.
 ORIGEM_FIXTURE = "fixture"
+
+#: Origem do contrato declarado. É o **piso**: raiz com folha monetária no schema conta como
+#: dívida mesmo que nenhum workspace medido a emita hoje. Fecha a cegueira que o roster
+#: sozinho tem — ele só enxerga workspace já medido, e `proventos_por_ativo` tem produtor,
+#: consumidor e teste e2e vivos com zero informe `proventos_acoes` **neste** workspace
+#: (A27.l3 §closeout). Piso declarado e chão medido têm buracos diferentes: o schema não
+#: alcança `irpf_kpis`, o roster não alcança workspace não medido. O universo é a união.
+ORIGEM_SCHEMA = "schema"
+
+_DOC = (
+    "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária guarda "
+    "as ORIGENS em que foi observada; o número publicado é sobre o universo "
+    "inteiro, nunca sobre uma origem só. `schema` é o piso declarado pelo contrato "
+    "E5, `fixture` o chão que o CI reproduz, `producao:<run8>` uma observação "
+    "datada. O universo nunca encolhe sem autorização explícita. Rebaseline de "
+    "fixture+schema: MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest "
+    "tests/test_lineage_coverage.py. Observação de produção: python3 "
+    "dev/lineage_coverage.py <payload.json> --origem producao:<run8> --update"
+)
+
+E5_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[1] / "config" / "schemas" / "e5_analysis.schema.json"
+)
 
 
 def _children(obj: Any, path: str) -> list[tuple[str, Any]]:
@@ -67,8 +92,22 @@ def _children(obj: Any, path: str) -> list[tuple[str, Any]]:
     return []
 
 
+#: Dinheiro serializado como string decimal — o E5 publica parte do dinheiro assim
+#: (`irpf_kpis.ir_pago_total_brl`, `protecao_patrimonial.premio_total_anual_brl`, este último
+#: com o mesmo `pattern` declarado em `protecao_patrimonial.schema.json`). Exigir `int|float`
+#: tirava as duas raízes inteiras do denominador: era o mesmo viés otimista que este módulo
+#: existe para matar, deslocado de **origem** para **tipo** (A27.l3 §D1).
+MONEY_STR = re.compile(r"^-?\d+(\.\d{1,2})?$")
+
+
 def _is_monetary_leaf(obj: Any, path: str) -> bool:
-    return isinstance(obj, (int, float)) and not isinstance(obj, bool) and is_monetary(path)
+    if not is_monetary(path):
+        return False
+    if isinstance(obj, bool):
+        return False
+    if isinstance(obj, (int, float)):
+        return True
+    return isinstance(obj, str) and bool(MONEY_STR.match(obj))
 
 
 def monetary_leaf_paths(payload: Any, path: str = "") -> set[str]:
@@ -80,6 +119,62 @@ def monetary_leaf_paths(payload: Any, path: str = "") -> set[str]:
     for child_path, value in children:
         found |= monetary_leaf_paths(value, child_path)
     return found
+
+
+def _deref(node: Any, schema: dict, depth: int = 0) -> Any:
+    """Resolve `$ref` interno. Sem isto o walker para na porta de `$defs` e reporta ausência
+    que é cegueira dele: `goals`, `reserva_emergencia` e `consumo_consciente` são `$ref` e
+    declaram `number` lá dentro (A27.l3 §closeout — o achado que o walker fabricou)."""
+    while isinstance(node, dict) and "$ref" in node and depth < 20:
+        ref = node["$ref"]
+        if not ref.startswith("#/"):
+            return node
+        cur: Any = schema
+        for part in ref[2:].split("/"):
+            cur = cur.get(part, {}) if isinstance(cur, dict) else {}
+        node, depth = cur, depth + 1
+    return node
+
+
+def _declared_types(node: dict) -> set[str]:
+    t = node.get("type")
+    if isinstance(t, str):
+        return {t}
+    return set(t) if isinstance(t, list) else set()
+
+
+def _declares_money(node: dict) -> bool:
+    types = _declared_types(node)
+    if types & {"number", "integer"}:
+        return True
+    return "string" in types and bool(node.get("pattern"))
+
+
+def _schema_monetary_paths(node: Any, schema: dict, path: str, depth: int = 0) -> set[str]:
+    node = _deref(node, schema)
+    if not isinstance(node, dict) or depth > 25:
+        return set()
+    found: set[str] = set()
+    for combinator in ("allOf", "anyOf", "oneOf"):
+        for sub in node.get(combinator, []):
+            found |= _schema_monetary_paths(sub, schema, path, depth + 1)
+    if _declares_money(node) and is_monetary(path):
+        found.add(path)
+    for key, sub in (node.get("properties") or {}).items():
+        found |= _schema_monetary_paths(sub, schema, f"{path}.{key}" if path else key, depth + 1)
+    if isinstance(node.get("items"), dict):
+        found |= _schema_monetary_paths(node["items"], schema, f"{path}[]", depth + 1)
+    extra = node.get("additionalProperties")
+    if isinstance(extra, dict):
+        found |= _schema_monetary_paths(extra, schema, f"{path}.*", depth + 1)
+    return found
+
+
+def schema_monetary_roots(path: Path = E5_SCHEMA_PATH) -> frozenset[str]:
+    """Piso declarado: raízes do contrato E5 com ≥1 folha monetária."""
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    leaves = _schema_monetary_paths(schema, schema, "")
+    return frozenset({_root_of(p) for p in leaves} - {LINEAGE_BLOCK})
 
 
 def _root_of(path: str) -> str:
@@ -128,10 +223,36 @@ def measure_coverage(payload: dict) -> LineageCoverage:
     )
 
 
+def _hoje() -> str:
+    return date.today().isoformat()
+
+
+class RosterEncolheria(ValueError):
+    """A observação retiraria raiz do universo — encolher é decisão, não efeito colateral."""
+
+
+def _recusa_encolhimento(origem: str, perdidas: list[str], antes: int) -> None:
+    raise RosterEncolheria(
+        f"a observação de `{origem}` retiraria {perdidas} do universo — o denominador cairia "
+        f"de {antes} para {antes - len(perdidas)} e a cobertura SUBIRIA. Se a raiz deixou "
+        "mesmo de publicar dinheiro, repita com `--permitir-encolher` (CLI) ou "
+        "`MATHOMS_UPDATE_LINEAGE_COVERAGE=encolher` (rebaseline)."
+    )
+
+
 def _merge(
-    mapa: Mapping[str, tuple[str, ...]], roots: frozenset[str], origem: str
+    mapa: Mapping[str, tuple[str, ...]],
+    roots: frozenset[str],
+    origem: str,
+    *,
+    permitir_encolher: bool,
 ) -> dict[str, tuple[str, ...]]:
-    """Acrescenta ``origem`` às raízes medidas e a **retira** das que não apareceram nela."""
+    """Acrescenta ``origem`` às raízes medidas; só a retira sob autorização explícita —
+    retirar por default era o vazamento de A27.l3 §D2 (re-observar o mesmo rótulo com payload
+    mais pobre encolhia o universo e SUBIA a cobertura, com a suíte verde nos dois sentidos)."""
+    perdidas = sorted(r for r, origens in mapa.items() if origem in origens and r not in roots)
+    if perdidas and not permitir_encolher:
+        _recusa_encolhimento(origem, perdidas, len(mapa))
     novo = {root: tuple(o for o in origens if o != origem) for root, origens in mapa.items()}
     for root in roots:
         novo[root] = tuple(sorted(set(novo.get(root, ())) | {origem}))
@@ -146,6 +267,10 @@ class Roster:
 
     universo: Mapping[str, tuple[str, ...]]
     cobertos: Mapping[str, tuple[str, ...]]
+    #: Data da última observação por origem. O roster envelhece **sempre** para o lado
+    #: otimista — raiz nova só-produção não entra sozinha —, e sem data ninguém sabe quão
+    #: velho é o chão medido (A27.l3 §D3).
+    observado_em: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def roots(self) -> frozenset[str]:
@@ -188,11 +313,29 @@ class Roster:
             f"({self.ratio:.1%}) — universo: {', '.join(self.origens)}"
         )
 
-    def observing(self, origem: str, coverage: LineageCoverage) -> Roster:
-        """Roster com a observação de ``origem`` substituída pela medida recém-feita."""
+    def observing(
+        self, origem: str, coverage: LineageCoverage, *, permitir_encolher: bool = False
+    ) -> Roster:
+        """Roster com a observação de ``origem`` incorporada. Não encolhe sem autorização."""
         return Roster(
-            universo=_merge(self.universo, coverage.monetary_roots, origem),
-            cobertos=_merge(self.cobertos, coverage.covered_roots, origem),
+            universo=_merge(
+                self.universo, coverage.monetary_roots, origem, permitir_encolher=permitir_encolher
+            ),
+            cobertos=_merge(
+                self.cobertos, coverage.covered_roots, origem, permitir_encolher=permitir_encolher
+            ),
+            observado_em={**self.observado_em, origem: _hoje()},
+        )
+
+    def with_schema(self, *, permitir_encolher: bool = False) -> Roster:
+        """Incorpora o piso declarado pelo contrato E5 como a origem ``schema``."""
+        roots = schema_monetary_roots()
+        return Roster(
+            universo=_merge(
+                self.universo, roots, ORIGEM_SCHEMA, permitir_encolher=permitir_encolher
+            ),
+            cobertos=self.cobertos,
+            observado_em={**self.observado_em, ORIGEM_SCHEMA: _hoje()},
         )
 
     @classmethod
@@ -201,28 +344,29 @@ class Roster:
         return cls(
             universo={r: tuple(o) for r, o in raw["universo"].items()},
             cobertos={r: tuple(o) for r, o in raw["cobertos"].items()},
+            observado_em=dict(raw.get("observado_em") or {}),
         )
 
     def dump(self, path: Path = ROSTER_PATH) -> None:
-        payload = {
-            "_doc": (
-                "Roster de cobertura de lineage (ADR-281 · A27.l3). Cada raiz monetária "
-                "guarda as ORIGENS em que foi observada; o número publicado é sobre o "
-                "universo inteiro, nunca sobre uma origem só. Rebaseline da fixture: "
-                "MATHOMS_UPDATE_LINEAGE_COVERAGE=1 pytest tests/test_lineage_coverage.py. "
-                "Observação de produção: python3 dev/lineage_coverage.py <payload.json> "
-                "--origem producao:<run8> --update"
-            ),
+        """Grava o roster com o número publicado, as origens e quando cada uma foi observada."""
+        path.write_text(
+            json.dumps(self._as_document(), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+    def _as_document(self) -> dict[str, Any]:
+        return {
+            "_doc": _DOC,
             "cobertura_publicada": {
                 "numerador": self.numerador,
                 "denominador": self.denominador,
                 "ratio_pct": round(self.ratio * 100, 1),
                 "origens": list(self.origens),
             },
+            "observado_em": dict(sorted(self.observado_em.items())),
             "universo": {r: list(o) for r, o in sorted(self.universo.items())},
             "cobertos": {r: list(o) for r, o in sorted(self.cobertos.items())},
         }
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def _report(origem: str, coverage: LineageCoverage, roster: Roster) -> list[str]:
@@ -230,6 +374,8 @@ def _report(origem: str, coverage: LineageCoverage, roster: Roster) -> list[str]
     fora = sorted(roster.outside(coverage.monetary_roots))
     print(f"payload  ({origem}): {coverage.format_summary()}")
     print(f"roster   publicado: {roster.format_summary()}")
+    for rotulo, quando in sorted(roster.observado_em.items()):
+        print(f"  observado em {quando} · {rotulo}")
     if fora:
         print(f"raízes monetárias FORA do roster: {fora}")
     return fora
@@ -253,6 +399,11 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("payload", type=Path, help="JSON do artefato `analise_financeira` decifrado")
     p.add_argument("--origem", required=True, help="rótulo da observação, ex.: `producao:40d1af2a`")
     p.add_argument("--update", action="store_true", help="grava a observação no roster")
+    p.add_argument(
+        "--permitir-encolher",
+        action="store_true",
+        help="autoriza a observação a RETIRAR raiz do universo (sobe a cobertura)",
+    )
     return p
 
 
@@ -263,7 +414,13 @@ def _cli(argv: list[str] | None = None) -> int:
     fora = _report(args.origem, coverage, roster)
     if not args.update:
         return _verdict(fora)
-    novo = roster.observing(args.origem, coverage)
+    try:
+        novo = roster.observing(
+            args.origem, coverage, permitir_encolher=args.permitir_encolher
+        ).with_schema(permitir_encolher=args.permitir_encolher)
+    except RosterEncolheria as exc:
+        print(f"Reprovado: {exc}", file=sys.stderr)
+        return 1
     novo.dump()
     print(f"roster atualizado: {novo.format_summary()}")
     return 0
