@@ -5,6 +5,7 @@ title: "Tool use híbrido + guardrails — drill-down sob demanda no parecer"
 status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
+amended_at: ["2026-09-01"]
 relates_to:
   - "[[ADR-024]]"
   - "[[ADR-111]]"
@@ -43,6 +44,10 @@ tags:
 3. **Tool use com cap + JSONPath aberto.** Pró: máxima flexibilidade. Contra: ataque de path traversal trivial — LLM emite `$..*` ou `$..[?(...)]`, recebe E5 inteiro, propósito da filtragem do manifest derrotado. **Rejeitada** — whitelist obrigatória.
 4. **Tool use com cap + whitelist derivada do schema E5.** Pró: LLM só pode pedir o que existe no schema; cap previne loop; cache evita recompute. **Aceita.**
 5. **Tool use com chamadas async ao DB.** Pró: handler poderia carregar campos lazy. Contra: stages LLM não importam SQLAlchemy (CLAUDE.md §Pipeline boundaries); latência adicional por roundtrip DB; complexidade desnecessária — E5 já foi lido no início do stage, está em memória. **Rejeitada.**
+
+> ⚠️ **Emendada em 2026-09-01 ([[A40.l117]]): o transporte de D1/D2/D4 nunca existiu.**
+> As tools jamais foram oferecidas ao modelo; o que a implementação entregou foi um
+> **resolver server-side pós-LLM**. Leia a §Emenda antes de citar D1, D2 ou D4.
 
 ## Decisão
 
@@ -176,3 +181,35 @@ Schema das tools em formato compatível LiteLLM/Anthropic. Descrições explíci
 **Decisão pendente para outros especialistas:**
 - **Cap exato (6 vs 4 vs 8)** — calibrar empiricamente no Ato 4 com fixtures reais; `data-engineer` decide.
 - **Limite de tokens hard (`max_total_input_tokens`)** — `sre-devops` define FinOps threshold em conjunto com [[ADR-208]] pricing.
+
+## Emenda 2026-09-01 — D1/D2/D4 decidiram um transporte que não chegou ao código
+
+**Medido em [[A40.l117]]** (run `40d1af2a`): `LLMService.call`
+([`litellm_client.py:133`](../../pipeline/llm/litellm_client.py)) não tem parâmetro
+`tools`, `tool_choice` nem equivalente. O modelo **nunca** pôde chamar `get_e5_section` ou
+`get_e5_jsonpath`. As 19 entradas de `_meta.tool_trace` do run são **todas** pós-LLM,
+emitidas pelo resolver de âncora e de métrica — nenhuma iniciada pelo modelo. `tool_iterations: 19`
+contra `max_tool_iterations: 6` não é teto estourado: emissor e teto medem **populações
+distintas** (ver `PV13-10`, [[A42.l24]]).
+
+**O que de fato foi entregue** foi o **D3** — a whitelist — porém no papel de superfície do
+**resolver server-side**, não de contrato com o modelo. O bloco `tools:` de
+`config/prompts/parecer_planejador.yaml` é lido por `parecer_manifest.py:58`
+(`_extract_section_whitelist` → `tools_section_whitelist`) e consumido por
+`parecer_distiller.py:471`, `parecer_orchestrator.py:635,723`,
+`dev/check_kpi_path_legivel_pelo_parecer.py:83` e `dev/_planner_coverage_internals.py:207`
+— **seis** consumidores, todos server-side. O modelo nunca vê esse YAML. O bloco **fica**
+(apagá-lo derruba dois gates) e passou a carregar cabeçalho que declara o que ele é.
+
+**Consequência para quem cita esta ADR:** D1 (as duas tools), D2 (cap 6 como orçamento do
+modelo) e D4 (cache em sessão de tool-call) descrevem um mecanismo **inexistente**. D3, D6,
+D7, D8 e D9 seguem vivos como contrato do resolver. A [[ADR-341]] §D5, que pendurava um
+"recovery obrigatório" no D1, foi **revogada** na mesma data.
+
+Isto **não é supersedure** — `supersedes` é file-level e a tese da ADR (drill-down
+governado por whitelist, com audit trail) segue de pé no lado server-side. É emenda.
+
+Reabrir o tool-use de verdade exige ADR nova: `instructor.from_litellm` ocupa o canal de
+tool-call com o próprio `response_model`, o número de round-trips não entra em
+`compute_cache_key`, e o custo (cap 6 × exec context reenviado ≈ até 7× tokens de input) é
+exatamente o que a §Alternativas rejeitadas desta ADR recusou.

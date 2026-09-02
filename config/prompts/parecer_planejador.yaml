@@ -206,7 +206,20 @@
 # quando RECORRE não é gasto pontual: um PIX mensal de R$ 5k entrava 12× em
 # `total_pontuais`, o mesmo defeito que o aluguel tinha. Muda valor de
 # `total_pontuais*` em workspace que tenha a categoria acima do limiar.
-version: "2.18.0"
+# 2.19.0 — A40.l117: o manifest para de convidar ferramenta que não existe. O
+# `narrative_hints` de `fluxo_caixa` mandava chamar `get_e5_section`, e o modelo é
+# chamada SINGLE-SHOT — `LLMService.call` (litellm_client.py:133) não tem parâmetro
+# `tools`, e as 19 entradas de `_meta.tool_trace` do run `40d1af2a` são todas
+# pós-LLM. O bloco `tools:` FICA (é whitelist do resolver server-side, com 6
+# consumidores) e ganha cabeçalho que diz isso; o que sai é o convite ao modelo.
+# Par de `PROMPT_VERSION` 2.5.0 e da persona 1.2.0 — ver a nota de auditoria abaixo.
+#
+# NOTA DE AUDITORIA: 2.19.0, `PROMPT_VERSION` 2.5.0 e `planner_persona.md` 1.2.0 saem
+# no MESMO PR de propósito. Os três compõem `compute_cache_key`
+# (parecer_orchestrator.py:150-169, TTL 7d), então separá-los cobraria a frota TRÊS
+# vezes pela mesma correção. Uma invalidação, uma regeneração por workspace vivo —
+# mesmo padrão declarado para as 2.10.0–2.14.0.
+version: "2.19.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -438,7 +451,7 @@ context_sections:
     narrative_hints:
       - "Ancore na taxa de poupança e no sinal comportamental dominante (consumo consciente)."
       - "Se houver desvio relevante de categoria (despesa fora de teto), mencione qual — despesas_por_categoria (12m) acima traz a base."
-      - "Itens individuais de gasto pontual e o detalhe mensal (charts) NÃO estão no contexto — get_e5_section('consumo_consciente') ou ('fluxo_caixa') traz o bloco completo se precisar."
+      - "Itens individuais de gasto pontual e o detalhe mensal (charts) NÃO estão no contexto. Não os invente e não afirme ausência de gasto pontual a partir disso — se forem decisivos, registre em campos_faltantes."
       - "Equivalente AUSENTE com motivo de supressão = a janela fechou sem poupança: declare o déficit pela folga mensal acima. Ausência não é ausência de gasto pontual nem de risco; não recalcule o equivalente."
       - "`total_pontuais*` é PISO, não total: exclui recorrentes, transferências e o balde NÃO CLASSIFICADO (ADR-425 §D1). Não some de volta."
       - "Fatia não classificada material perto da base bruta = prescrição de contenção PROVISÓRIA, e o 1º passo é classificar, não cortar (mesma leitura de $.diagnostico_confianca.nivel, ADR-353)."
@@ -747,8 +760,16 @@ context_sections:
       - "Sugestões P0 devem alimentar Suggestion(origin='llm') com dedup_key estável — evite repetir sugestão já viva no plano de ação."
 
 # ==============================================================================
-# DRILL-DOWN TOOLS (ADR-203)
+# WHITELIST DO RESOLVER SERVER-SIDE ([[ADR-203]] §D3)
 # ==============================================================================
+# NÃO é declaração de ferramenta ao modelo — a chave chama-se `tools` por história
+# (ADR-203 D1/D2 decidiu um transporte que nunca chegou ao `LLMService.call`), e o
+# modelo NUNCA vê este YAML. O que este bloco governa é o que o resolver PÓS-LLM
+# consegue resolver. Consumidores reais, todos server-side:
+#   `parecer_manifest.py:58` (`_extract_section_whitelist` → `tools_section_whitelist`),
+#   `parecer_distiller.py:471`, `parecer_orchestrator.py:635,723`,
+#   `dev/check_kpi_path_legivel_pelo_parecer.py:83`, `dev/_planner_coverage_internals.py:207`.
+# Apagar o bloco derruba dois gates. Renomear a chave é mudança de contrato do manifest.
 tools:
 
   - name: "get_e5_section"
