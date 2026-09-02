@@ -419,10 +419,11 @@ def _com_ressalva(ponto: PontoForte, ressalva: str) -> PontoForte:
 # baixá-lo seria trocar o problema de lugar. Remove em ordem de índice enquanto o piso
 # permitir; o excedente fica com a descrição ressalvada.
 def aplicar_piso_pontos_fortes(
-    pontos: list[PontoForte], alvos: list[int], ressalva: str
+    pontos: list[PontoForte], alvos: list[int], ressalva: str, *, remover: bool = True
 ) -> tuple[list[PontoForte], int, int]:
     """``(pontos, removidos, ressalvados)`` respeitando ``PONTOS_FORTES_MIN``."""
-    removiveis = max(0, len(pontos) - PONTOS_FORTES_MIN)
+    # `remover=False` ressalva sem deletar — chamador cujo árbitro é o próprio LLM (A40.l116).
+    removiveis = max(0, len(pontos) - PONTOS_FORTES_MIN) if remover else 0
     a_remover = set(alvos[:removiveis])
     a_ressalvar = set(alvos[removiveis:])
     saida = [

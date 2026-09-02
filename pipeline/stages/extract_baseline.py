@@ -206,6 +206,30 @@ def _low_confidence_reason(doc: Path, output, *, artifact_key: str) -> dict | No
     ).to_dict()
 
 
+# WARN-first, fora de `BLOCKING_CODES` ([[ADR-357]]): o documento é dado real e
+# útil — só não é uma foto de 31/12. Pausar o run por ele ensinaria o operador a
+# ignorar a pausa, e o leitor (`_max_value_year`/`anos_base_por_membro`) já recusa
+# o ano sozinho. Esta razão é o que faz a recusa chegar a quem revisa.
+def _ano_nao_fechado_reason(doc: Path, output, *, artifact_key: str) -> dict | None:
+    """Ano-base que afirma um 31/12 ainda não ocorrido vira review_reason ([[A40.l114]])."""
+    from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+    from pipeline.domain.services.ano_base_fechado import ultimo_ano_31_12_fechado
+
+    ano = getattr(output, "reference_year", None)
+    teto = ultimo_ano_31_12_fechado()
+    if not isinstance(ano, int) or ano <= teto:
+        return None
+    return ReviewReason(
+        code=ReviewReasonCode.domain_ano_referencia_nao_fechado,
+        stage="extract_baseline",
+        artifact_key=artifact_key,
+        document_id=None,
+        offending_value=f"ano_referencia={ano}",
+        expected=f"ano_referencia <= {teto}",
+        message=f"ano-base afirma 31/12 nao fechado — {doc.name} nao e foto de 31/12",
+    ).to_dict()
+
+
 def run(ctx: WorkspaceContext) -> dict:
     """Execute E1.5 baseline patrimonial extraction via LLM, per-arquivo.
 
@@ -338,9 +362,12 @@ def run(ctx: WorkspaceContext) -> dict:
             )
             review_reasons.extend(rr.to_dict() for rr in reasons)
 
-        ladder = _low_confidence_reason(doc, output, artifact_key=_artifact_key_for(doc))
-        if ladder is not None:
-            review_reasons.append(ladder)
+        for reason in (
+            _low_confidence_reason(doc, output, artifact_key=_artifact_key_for(doc)),
+            _ano_nao_fechado_reason(doc, output, artifact_key=_artifact_key_for(doc)),
+        ):
+            if reason is not None:
+                review_reasons.append(reason)
 
         emit_item_progress(
             ctx.pipeline_run_id,

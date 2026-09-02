@@ -78,6 +78,13 @@ class ReviewReasonCode(str, enum.Enum):
     # passivo em ativo do patrimônio bruto.
     domain_property_identity_eixo_por_hint = "domain.property_identity_eixo_por_hint"
 
+    # [[A40.l114]]: `valores_31_12[ano]` afirma foto em 31/12 FECHADO. Uma tela de
+    # posição de 29/03/2026 entrou como `31/12/2026` e levou o eixo do domicílio
+    # inteiro para um 31/12 que não ocorreu — 7 imóveis, 7 veículos e 4 dívidas do
+    # titular saíram ZERO. O leitor já recusa o ano; esta razão é o que faz a
+    # recusa aparecer para quem revisa, em vez de morrer no log.
+    domain_ano_referencia_nao_fechado = "domain.ano_referencia_nao_fechado"
+
 
 # Codes que pausam o run em needs_review (gate A28.l8). Os demais são
 # informativos: aparecem na review/fila mas não bloqueiam o pipeline —

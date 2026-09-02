@@ -156,14 +156,17 @@ _RESSALVA_CONTRADICAO = (
     "Ressalva: este tema também consta como risco nesta edição — leia os dois em conjunto."
 )
 _LIQUIDEZ_EXCESSIVA = "excessiva"
-# S1, não S4. O manifest projeta seções alinhadas a S1/S2/S3/S7/S8/S9/S10 — **S4 nunca** —,
-# e o bloco de reserva (`saude_balanco`) é `aligned_with_layout: "S1"`. Armado em S4, este
-# guardrail só dispararia se o modelo errasse o rótulo: medido no golden, o sinal do E5 está
-# VIVO (`avaliacao_liquidity == "Excessiva"`) e ele nunca disparou. A [[ADR-412]] §Emenda E3
-# apoia-se nele para NÃO suprimir `avaliacao_liquidity` — o argumento dependia de um
-# mecanismo que provavelmente nunca rodou.
-_SECAO_LIQUIDEZ = "S1"
+# SEM `section_id` no match — A40.l116. O alvo já esteve em S4 e em S1; medido sobre 14 runs
+# do mesmo corpus, o modelo rotula o item de liquidez com **S3 (9 runs) ou S4 (5)**, e com
+# **S1 em zero**. `section_id` não é propriedade do objeto: é rótulo re-sorteado a cada run,
+# então nenhum literal sobrevive — e derivar do layout é a PIOR escolha, porque o bloco da
+# reserva (`saude_balanco`) é `aligned_with_layout: "S1"`, o valor 0/14. O que identifica o
+# objeto é `tema_canonico` + o sinal do E5. O #1800 (A40.l80) trocou S4→S1 por acreditar que
+# "seção que o manifest não projeta é seção que o modelo não rotula": refutado na mesma
+# medição — o modelo emite S4, S_parecer, S_IRPF_RENDA e S_IRPF_OTIMIZACAO, nenhuma projetada.
 _TEMA_LIQUIDEZ = "Liquidez"
+_FONTE_E5 = "e5_reserva_excessiva"
+_FONTE_RISCO = "risco_de_liquidez"
 
 
 # R1 NÃO remove — medido e refutado no r7. O par (section_id, tema_canonico) é um BALDE,
@@ -191,29 +194,69 @@ def _liquidez_excessiva(e5_data: Mapping[str, Any]) -> bool:
 
 
 def _pontos_de_liquidez(output: ParecerPlanejadorOutput) -> set[int]:
+    return {i for i, p in enumerate(output.pontos_fortes) if p.tema_canonico == _TEMA_LIQUIDEZ}
+
+
+def _risco_de_liquidez(output: ParecerPlanejadorOutput) -> bool:
+    """Braço elogio × alerta: o parecer se contradiz sem depender do E5 falar."""
+    return any(r.tema_canonico == _TEMA_LIQUIDEZ for r in output.riscos)
+
+
+def _fonte_da_contradicao(
+    output: ParecerPlanejadorOutput, e5_data: Mapping[str, Any]
+) -> str | None:
+    """Qual árbitro viu a contradição — o E5 tem precedência sobre o próprio parecer."""
+    if _liquidez_excessiva(e5_data):
+        return _FONTE_E5
+    return _FONTE_RISCO if _risco_de_liquidez(output) else None
+
+
+# `tema_canonico` é OPCIONAL em `PontoForte` (obrigatório em `Risco`), então um elogio à
+# reserva com o campo nulo escapa dos dois braços. Medido: 0 em 64 pontos fortes de 14 runs
+# — buraco de CONTRATO, não observado. Fica contado até haver caso; torná-lo obrigatório no
+# schema agora empurraria o output para reask, e o custo disso já foi pago na [[ADR-292]].
+def _pontos_sem_tema(output: ParecerPlanejadorOutput) -> int:
+    return sum(1 for p in output.pontos_fortes if p.tema_canonico is None)
+
+
+def _telemetria_autocontradicao(
+    output: ParecerPlanejadorOutput, fonte: str | None, removidos: int, ressalvados: int
+) -> dict:
     return {
-        i
-        for i, p in enumerate(output.pontos_fortes)
-        if p.section_id == _SECAO_LIQUIDEZ and p.tema_canonico == _TEMA_LIQUIDEZ
-    }
-
-
-# O desfecho é R2: o sinal vem do E5 (`avaliacao_liquidity == "Excessiva"`), não da
-# co-ocorrência de baldes no próprio parecer. Elogiar a reserva enquanto o E5 a declara
-# superdimensionada é contradição sobre o MESMO objeto medido — não sobre um balde.
-def neutralize_autocontradicao(
-    output: ParecerPlanejadorOutput, e5_data: Mapping[str, Any], workspace_id: str
-) -> tuple[ParecerPlanejadorOutput, dict]:
-    """Remove ponto forte de liquidez que o E5 contradiz (reserva excessiva)."""
-    alvos = _pontos_de_liquidez(output) if _liquidez_excessiva(e5_data) else set()
-    pontos, removidos, ressalvados = aplicar_piso_pontos_fortes(
-        list(output.pontos_fortes), sorted(alvos), _RESSALVA_CONTRADICAO
-    )
-    telemetria = {
         "autocontradicao_removidos": removidos,
         "autocontradicao_ressalvados": ressalvados,
         "autocontradicao_pares_secao_tema": _pares_secao_tema_colididos(output),
+        "autocontradicao_fonte": fonte,
+        "autocontradicao_tema_ausente": _pontos_sem_tema(output) if fonte else 0,
     }
+
+
+# Dois braços, ambos ancorados no ASSUNTO (`tema_canonico`), nunca no balde `(seção, tema)`.
+# O que os separa é QUEM arbitra, e é isso que decide o desfecho de cada um:
+#   (a) o E5 declara a reserva excessiva — árbitro determinístico, contradição sobre o MESMO
+#       objeto medido (R2) ⇒ REMOVE (o piso de 3 degrada para ressalva quando amarra);
+#   (b) o próprio parecer levanta a liquidez como risco — árbitro é o LLM julgando o LLM
+#       ⇒ RESSALVA, nunca remove. Foi deletar sobre rótulo do modelo que derrubou a R1 no
+#       r7, e escopar a "Liquidez" estreita o balde sem mudar a natureza do sinal. Pior: (b)
+#       só dispara quando o E5 CALA, isto é, quando a reserva não é excessiva — exatamente
+#       onde o elogio tem mais chance de ser sobre outro objeto (carteira líquida, ausência
+#       de imobilizado). A ressalva é verdadeira nos dois mundos e custa zero; a deleção
+#       custaria o ponto forte mais sólido no mundo falso-positivo.
+# Medido no corpus, (b) é redundante — o E5 disse "Excessiva" em 10/10 runs; ele existe para
+# fechar o buraco em que o E5 não diz.
+def neutralize_autocontradicao(
+    output: ParecerPlanejadorOutput, e5_data: Mapping[str, Any], workspace_id: str
+) -> tuple[ParecerPlanejadorOutput, dict]:
+    """Neutraliza ponto forte de liquidez que o E5 ou o próprio parecer contradiz."""
+    fonte = _fonte_da_contradicao(output, e5_data)
+    alvos = _pontos_de_liquidez(output) if fonte else set()
+    pontos, removidos, ressalvados = aplicar_piso_pontos_fortes(
+        list(output.pontos_fortes),
+        sorted(alvos),
+        _RESSALVA_CONTRADICAO,
+        remover=fonte == _FONTE_E5,
+    )
+    telemetria = _telemetria_autocontradicao(output, fonte, removidos, ressalvados)
     if not alvos:
         return output, telemetria
     logger.warning(

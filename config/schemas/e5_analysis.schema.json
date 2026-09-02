@@ -193,22 +193,30 @@
               "valor": {
                 "type": [
                   "number",
-                  "string"
-                ]
+                  "string",
+                  "null"
+                ],
+                "description": "[[A40.l114]] — `null` quando `status` é `suprimido`: o dado não foi apurado, e 0 afirmaria o extremo bom da escala."
               },
               "peso": {
                 "type": "number"
               },
               "nota": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "[[A40.l114]] — `null` sob supressão. Nota neutra ficou fora: em componente invertido, 5,0 AFIRMA valor intermediário, que é o zero disfarçado."
               },
               "status": {
                 "type": "string",
                 "enum": [
                   "emitted",
                   "absent_normalized",
-                  "absent_penalized"
-                ]
+                  "absent_penalized",
+                  "suprimido"
+                ],
+                "description": "[[A40.l114]] — `suprimido` sai do denominador do score e NÃO é `absent_normalized`, cuja semântica é 'peso vira penalidade natural' ([[ADR-217]] §D2)."
               },
               "unidade": {
                 "type": [
@@ -218,6 +226,10 @@
               }
             }
           }
+        },
+        "piso": {
+          "type": "number",
+          "description": "[[A40.l114]] — score renormalizado com TODO componente suprimido em nota 0 (extremo conservador, forma do `piso_autonomia_financeira_meses`/[[ADR-412]] §D7). A classificação deriva de `min(valor, piso)`: sem isso, supressão de componente SOBE o score e ausência de dado vira prêmio."
         }
       }
     },
@@ -2840,9 +2852,372 @@
           "type": "string"
         }
       }
+    },
+    "tributario": {
+      "type": "object",
+      "description": "Bloco tributário publicado no E5 ([[ADR-236]] §D5). Escrito por `generate_narratives` (merge no payload de `analyze_finances`), montado por `_assemble_tributario_section`. NÃO é `required` na raiz: o artefato é escrito DUAS vezes contra este mesmo schema e a primeira escrita — a do `analyze_finances` — nunca tem este bloco.",
+      "properties": {
+        "regime": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "mei",
+            "simples",
+            "lucro_presumido",
+            "lucro_real",
+            null
+          ],
+          "description": "Regime tributário apurado. `null` quando o perfil está incompleto."
+        },
+        "regime_label": {
+          "type": "string",
+          "description": "Rótulo publicado do regime (ex.: 'Simples Nacional — Anexo V'); 'Perfil tributário incompleto' quando `regime` é null."
+        },
+        "cascata": {
+          "type": "object",
+          "description": "Cascata fiscal canônica — `dataclasses.asdict(CascataOutput)` normalizado por `cascata_to_dict` ([[ADR-236]] §D3/§D4). As 27 chaves saem SEMPRE (asdict de dataclass frozen não tem chave condicional); artefatos anteriores a 2026-07-16 não têm `receita_pj_detectada_anual`/`signals` por drift de VERSÃO, e validação é pós-write (histórico nunca é revalidado).",
+          "properties": {
+            "regime": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "mei",
+                "simples",
+                "lucro_presumido",
+                "lucro_real",
+                null
+              ],
+              "description": "Regime tributário apurado. `null` quando o perfil está incompleto."
+            },
+            "regime_label": {
+              "type": "string",
+              "description": "Rótulo publicado do regime (ex.: 'Simples Nacional — Anexo V'); 'Perfil tributário incompleto' quando `regime` é null."
+            },
+            "regime_nao_suportado": {
+              "type": "boolean",
+              "description": "True quando a cascata degradou para o fallback e os números NÃO descrevem uma apuração."
+            },
+            "motivo_nao_suportado": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "perfil_incompleto",
+                "lucro_real",
+                "anexo_simples_pendente",
+                null
+              ],
+              "description": "Causa do fallback. Enum fechado nos 3 call-sites de `_output_fallback` (cascata_calculator.py). `null` ⟺ `regime_nao_suportado` false."
+            },
+            "receita_bruta": {
+              "type": "number",
+              "description": "Receita bruta anual da PJ. Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "tributos_federais": {
+              "type": "number",
+              "description": "Tributos federais anuais (DAS no Simples; IRPJ+CSLL+PIS+COFINS no Lucro Presumido). Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "iss_total": {
+              "type": "number",
+              "description": "ISS anual. Zero no Simples e no MEI — ali o ISS já está embutido no DAS. Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "lucro_contabil_pj": {
+              "type": "number",
+              "description": "Lucro contábil anual da PJ, após tributos, ISS, pró-labore e folha. Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "pro_labore_bruto": {
+              "type": "number",
+              "description": "Pró-labore bruto anualizado. Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "inss_patronal": {
+              "type": "number",
+              "description": "INSS patronal (CPP) anual. Zero no Simples — incluído no DAS. Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "inss_empregado": {
+              "type": "number",
+              "description": "INSS retido do sócio sobre o pró-labore, anualizado. Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "irrf_pro_labore": {
+              "type": "number",
+              "description": "IRRF anual sobre o pró-labore (tabela progressiva mensal). Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "lucros_distribuidos": {
+              "type": "number",
+              "description": "Lucros distribuídos anualizados (isentos na PF). Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "renda_pf_tributavel_total": {
+              "type": "number",
+              "description": "Total de rendimentos tributáveis PF do IRPF, pró-labore INCLUÍDO. Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "carga_total_pct": {
+              "type": "number",
+              "description": "Carga tributária total como RAZÃO 0–1 (ex.: 0.1994854 = 19,95%), não percentual."
+            },
+            "pgbl_base_anual": {
+              "type": "number",
+              "description": "Base de cálculo do limite PGBL (= renda PF tributável anual). Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "pgbl_limite_anual": {
+              "type": "number",
+              "description": "Teto dedutível de PGBL no ano (12% da base). Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "pgbl_aplicavel": {
+              "type": "boolean",
+              "description": "True quando há dedução PGBL a capturar; `pgbl_motivo_inaplicavel` explica o false."
+            },
+            "pgbl_motivo_inaplicavel": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "declaracao_simplificada",
+                "renda_tributavel_pf_zerada",
+                "tipo_declaracao_desconhecido",
+                null
+              ],
+              "description": "Enum fechado em `compute_pgbl` (cascata_pgbl.py). `null` ⟺ `pgbl_aplicavel` true."
+            },
+            "fator_r_pct": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Fator-R como razão 0–1. `null` fora do Simples — só ali o fator-R existe."
+            },
+            "fator_r_faixa": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "anexo_iii",
+                "anexo_v",
+                null
+              ],
+              "description": "Anexo do Simples implicado pelo fator-R (vocabulário de SAÍDA, distinto do `anexo_simples` do input, que usa 'III'/'V'). O mapeamento é deliberado; não harmonize os dois."
+            },
+            "fator_r_break_even_mensal": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Pró-labore mensal que levaria o fator-R ao limiar de 28%. `null` fora do Simples."
+            },
+            "triggers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/CascataTrigger"
+              },
+              "description": "Decision triggers T1–T5 ([[ADR-236]] §D6). Lista vazia é estado normal."
+            },
+            "receita_pj_detectada_anual": {
+              "type": "number",
+              "description": "Entradas PJ detectadas no fluxo quando o perfil está incompleto. NÃO é faturamento — alimenta o CTA sem derivar número tributário enganoso (emenda CTO-05 de [[ADR-236]], 2026-07-15). Money→float por `cascata_to_dict` ([[ADR-090]]: `number` é a forma de wire)."
+            },
+            "signals": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Sinais de domínio. Vocabulário deliberadamente ABERTO (emenda CTO-05 de [[ADR-236]]: 'objeto aberto de sinais de domínio') — não fechar como enum, ao contrário dos demais campos string deste bloco."
+            },
+            "previdencia_snapshot": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/PrevidenciaSnapshot"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Passthrough dos informes de previdência ([[ADR-238]]). `null` quando o workspace não tem `extract_informes_anuais` processado."
+            },
+            "financeiro_pj_snapshot": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/FinanceiroPJSnapshot"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Passthrough dos informes financeiro_pj ([[ADR-238]]). `null` quando não há informe PJ processado."
+            }
+          },
+          "required": [
+            "regime",
+            "regime_label",
+            "regime_nao_suportado",
+            "motivo_nao_suportado",
+            "receita_bruta",
+            "tributos_federais",
+            "iss_total",
+            "lucro_contabil_pj",
+            "pro_labore_bruto",
+            "inss_patronal",
+            "inss_empregado",
+            "irrf_pro_labore",
+            "lucros_distribuidos",
+            "renda_pf_tributavel_total",
+            "carga_total_pct",
+            "pgbl_base_anual",
+            "pgbl_limite_anual",
+            "pgbl_aplicavel",
+            "pgbl_motivo_inaplicavel",
+            "fator_r_pct",
+            "fator_r_faixa",
+            "fator_r_break_even_mensal",
+            "triggers",
+            "receita_pj_detectada_anual",
+            "signals",
+            "previdencia_snapshot",
+            "financeiro_pj_snapshot"
+          ],
+          "additionalProperties": false
+        },
+        "contador_nome": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Nome do contador declarado no `business_profile_json`."
+        },
+        "holding_prazo_meses": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Prazo declarado para constituir holding, em meses."
+        },
+        "_source": {
+          "type": "string",
+          "description": "Procedência do bloco. Metadado — fora de `required` de propósito."
+        }
+      },
+      "required": [
+        "regime",
+        "regime_label",
+        "cascata",
+        "contador_nome",
+        "holding_prazo_meses"
+      ],
+      "additionalProperties": false
     }
   },
   "$defs": {
+    "CascataTrigger": {
+      "type": "object",
+      "description": "Decision trigger parametrizado — [[ADR-236]] §D6.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "oportunidade",
+            "atencao",
+            "considere"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Título publicado do trigger."
+        },
+        "params": {
+          "type": "object",
+          "description": "Parâmetros do trigger. As CHAVES são abertas (variam por `code`), mas os VALORES são fechados em string|integer: T1/T2/T3/T5 formatam money/pct via `_money_str`/`_pct_str` e T4 emite `imoveis_alugados_count` como int cru. Declarar `{\"type\":\"string\"}` reprovaria T4; deixar sem shape reprova o codegen (`shape-less object requires typed map or x-codegen.opaque`).",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+        }
+      },
+      "required": [
+        "code",
+        "severity",
+        "title",
+        "params"
+      ],
+      "additionalProperties": false
+    },
+    "PrevidenciaSnapshot": {
+      "type": "object",
+      "description": "Snapshot agregado de informes de previdência — [[ADR-238]] D5. Só PGBL conta como aporte realizado.",
+      "properties": {
+        "planos_pgbl_count": {
+          "type": "integer"
+        },
+        "planos_vgbl_count": {
+          "type": "integer"
+        },
+        "aporte_pgbl_realizado_anual": {
+          "type": "number"
+        },
+        "saldo_total_31_12": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "planos_pgbl_count",
+        "planos_vgbl_count",
+        "aporte_pgbl_realizado_anual",
+        "saldo_total_31_12"
+      ],
+      "additionalProperties": false
+    },
+    "FinanceiroPJSnapshot": {
+      "type": "object",
+      "description": "Snapshot agregado de informes financeiro_pj — [[ADR-238]] D5.",
+      "properties": {
+        "informes_count": {
+          "type": "integer"
+        },
+        "receita_bruta_total_anual": {
+          "type": "number"
+        },
+        "retencoes_totais_anuais": {
+          "type": "number"
+        },
+        "regime_declarado": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Regime mais frequente nos informes PJ. Vocabulário da EXTRAÇÃO de informes (`simples_nacional`, `lucro_presumido` — ver `pipeline/llm/schemas/informe_pj.py`), que NÃO é o enum de `tributario.regime` (`simples`, …). Deixado como string livre por isso; não unifique os dois sem tradutor."
+        },
+        "ano_base_coberto": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Ano-base mais recente coberto. ≠ `renda_tributavel_pf_ano_base` do input."
+        }
+      },
+      "required": [
+        "informes_count",
+        "receita_bruta_total_anual",
+        "retencoes_totais_anuais",
+        "regime_declarado",
+        "ano_base_coberto"
+      ],
+      "additionalProperties": false
+    },
     "motivo_ausencia_pgbl": {
       "description": "Enum fechado de motivos de ausência do card PGBL (ADR-402).",
       "type": [

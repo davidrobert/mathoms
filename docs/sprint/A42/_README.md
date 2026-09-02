@@ -616,6 +616,16 @@ superfície possui o achado):
 vivo possui a superfície, e nenhuma alcança o usuário hoje). A tabela acima é de
 **roteamento**; estas ficam aqui porque não há para onde rotear.
 
+> ⚠️ **Correção 2026-09-01 (#1962 · [[A40.l113]]).** A cláusula *"nenhuma alcança o usuário
+> hoje"* **cai para a primeira linha** — a do `codigo_rfb` composto. Medido no baseline do
+> run `40d1af2a`: a grafia `01-11` em 2025 contra `11` em 2024/2023 é o que faz a mesma
+> propriedade não casar consigo mesma entre anos, e os **3 pares duplicados** resultantes
+> chegam ao patrimônio publicado (população 7 → 9). A condição de retomada dessa linha
+> — *"composto aparecer em item `imovel` acima dos 4 atuais"* — está **no limiar**: são
+> exatamente 4. O predicado *"nenhum dono vivo possui a superfície"* segue de pé para as
+> outras três. Roteamento da dimensão: item 4 do §Deferimento da [[A40.l113]] +
+> [[TRACK-property-identity-cross-era]].
+
 | Achado | Condição de retomada | Instrumento |
 |---|---|---|
 | `codigo_rfb` composto (`01-11`) no resolver de imóvel, lido por comparação estrita em `db_property_identity_resolver.py:134,168` — [[A42.l15]] §Armadilha (C) | cobertura de `GG-CC` sair de **1,82%** (131/7.213, todos ano-base 2025), ou composto aparecer em item `imovel` acima dos 4 atuais | `dev/audit_e15_vocab_closure.py` |

@@ -11,6 +11,8 @@ from typing import Iterable
 
 import yaml
 
+from dev._planner_coverage_scope import E5_FIELDS_FORA_DO_PARECER
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 JSONPATH_HEAD_RE = re.compile(r"^\$\.([A-Za-z_][A-Za-z_0-9]*)")
@@ -326,50 +328,6 @@ def _repo_relative(path: Path) -> str:
 # consciente que o `warn` anterior não exigia — três ADRs passaram por ele sem que
 # ninguém decidisse nada, e os seis campos de incerteza da A40 chegaram ao r8 invisíveis
 # ao parecer (A40.l83 · RV8-05b).
-E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
-    "$._lineage": "rastro de proveniência do pipeline — insumo de debug, não de conselho",
-    # [[ADR-420]] §D1/§D6: TERMOS de razão, não conclusões. O parecer já recebe as duas
-    # conclusões que eles produzem — a concentração e `imobilizacao_patrimonial_pct` (§D3,
-    # criado para o ativo fora-de-alocação não sumir da superfície de risco).
-    "$.patrimonio.imoveis_alocacao": "termo do numerador; o parecer recebe a razão",
-    "$.patrimonio.imoveis_fora_alocacao": "termo fora do numerador; chega por §D3",
-    "$.narrativas": "texto já destilado em outra superfície; projetá-lo duplicaria prosa",
-    "$.protection_computation_inputs_v1": "insumos crus do cálculo de proteção; o parecer lê o resultado",
-    # A40.l80 ([[ADR-412]] §D0): base que AMPUTA a fatia sem titular. Ambas têm
-    # `publicavel_sozinha() is False` — só valem como extremo inferior de um
-    # intervalo declarado. Projetá-las cruas convidaria o modelo a citar o número
-    # amputado como se fosse o patrimônio da família, que é o defeito da lane.
-    # O parecer recebe o INTERVALO e o motivo, não a ponta.
-    "$.patrimonio.bases.carteira_com_titular_identificado": (
-        "extremo conservador de intervalo; o parecer recebe o intervalo, nunca a ponta amputada"
-    ),
-    "$.patrimonio.bases.carteira_produtiva_com_titular_identificado": (
-        "extremo conservador de intervalo; o parecer recebe o intervalo, nunca a ponta amputada"
-    ),
-    # A40.l80 §Completude: esta base existe para AUDITAR o denominador da
-    # concentração ([[ADR-340]]) — o parecer já recebe `ratios.concentracao_imobiliaria`
-    # e o hint que nomeia a base. O valor cru é rastro de auditoria do gate
-    # `tests/test_cobertura_de_base.py`, não insumo de conselho; projetá-lo daria ao
-    # modelo um segundo número de "carteira produtiva" para confundir com o primeiro,
-    # que é exatamente o defeito que declarar a base foi feito para matar.
-    # A40.l80 §Completude: rótulo de auditoria da base do pct — o manifest já entrega o
-    # pct com a base nomeada na própria label (#1780). Projetar o campo daria ao modelo um
-    # segundo lugar de onde tirar o mesmo nome.
-    # A40.l80: termo de base publicado para tornar o bloco `bases` auditável só do
-    # payload. É rastro de auditoria, não insumo de conselho — o parecer recebe o
-    # patrimônio, não os termos que somam cada denominador.
-    "$.patrimonio.cat2_efetivo": (
-        "termo de base; rastro de auditoria do bloco `bases`, não insumo de conselho"
-    ),
-    "$.exposicao_cambial.base_pct_investivel_financeiro": (
-        "rótulo de auditoria; a label do pct já nomeia a base ao modelo"
-    ),
-    "$.patrimonio.bases.carteira_produtiva_fixa": (
-        "rastro de auditoria do denominador da concentração; o parecer recebe a razão"
-    ),
-}
-
-
 def _e5_leaf_paths(schema: dict, prefix: str = "$") -> set[str]:
     """Folhas do schema E5 em JSONPath — o universo que o manifest decide projetar."""
     out: set[str] = set()
@@ -443,7 +401,7 @@ def _fail_campo_novo(path: str, report: CoverageReport) -> None:
         f"[drift] `{path}` é campo NOVO no schema E5 e o manifest do parecer não o "
         "projeta. O manifest é whitelist: campo não declarado não chega ao modelo, e "
         "ele só ressalva o que recebe. Projete-o em config/prompts/parecer_planejador.yaml "
-        "ou declare a razão em E5_FIELDS_FORA_DO_PARECER (dev/_planner_coverage_internals.py)."
+        "ou declare a razão em E5_FIELDS_FORA_DO_PARECER (dev/_planner_coverage_scope.py)."
     )
 
 

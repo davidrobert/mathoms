@@ -10,7 +10,7 @@ branch_slug: a40-l113-identidade-de-imovel-churna-classificador-falha-fechado
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-215]]", "[[ADR-246]]", "[[ADR-394]]", "[[ADR-433]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p0, area/pipeline, area/financial-planning]
+tags: [type/lane, sprint/a40, status/in-progress, priority/p0, area/pipeline, area/financial-planning]
 ---
 
 # A40.l113 — `identidade-de-imovel-churna-classificador-falha-fechado`
@@ -227,7 +227,53 @@ decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
    opcional declarado **antes** do produtor) + escolha do campo por **cobertura medida no
    corpus**, no molde da [[A42.l15]]. Dono: sem dono — precisa de lane própria.
 
-Adjacente, fora desta lane: o `codigo_rfb` tem **dois produtores com semânticas
-diferentes** em `scripts/consolidate_baseline.py` (um grava o grupo, outro o código), e a
-grafia `01-11` vs `11` entre anos é o que fabrica os 3 pares duplicados. Normalizar no
-extrator não alcança isso; o conserto é produtor único.
+4. **`codigo_rfb` com dois produtores** — `scripts/consolidate_baseline.py` grava
+   `bem["grupo"]` num sítio e `item["codigo"]` noutro, e a grafia `01-11` vs `11` entre
+   anos é o que fabrica os 3 pares duplicados. **Correção de rota (2026-09-01):** a versão
+   anterior desta seção dizia "sem dono" — é **falso**. A dimensão tem três registros
+   vivos: [[TRACK-property-identity-cross-era]] (`ready`, P0, cujo assunto é literalmente
+   row duplicada por `(titular_key, codigo_rfb)`), `RV6-13` em
+   [[PIPELINE-REVIEWS-active]] (`procede-aberto`, dono `data-engineer`) e
+   [[PLAN-deterministic-authority]], que fixa a chave de match. O que **não** tem dono é o
+   produtor duplo. ⚠️ Quem pegar: a [[ADR-225]] §Alternativas **rejeita explicitamente**
+   "(B) Drop `codigo_rfb` da chave de dedup" (funde apartamento e casa no mesmo lote) — o
+   conserto é produtor único do **campo**, nunca remover o campo da chave.
+
+## Os outros três achados que a `U5` roteou para esta lane
+
+O §Origem cita só o `RR9-01`. A rodada atribuiu **quatro** achados a esta lane, e os
+outros três não estavam registrados aqui — o que os deixaria órfãos no instante em que a
+lane ficasse terminal.
+
+| achado | onde | disposição 2026-09-01 |
+|---|---|---|
+| `RR9-04` — `#S4` **afirma e nega** imóveis de investimento (card, KPI e ranking discordando) | [[REPORT-REVIEWS-active]] §r9 | **segue aberto** · é o `RR9-01` visto pela superfície e depende do **item 1** do §Deferimento (supressão do agregado). `real_estate.valor_total_imoveis` **não** foi fechado pelo #1962: ele resolve valor por `property_id` (`_valor_by_property`), e 8 de 9 itens não o têm |
+| `LC9-10` — sonda de imóveis, população **7 → 9** com `D2=8` | [[LEDGER-CERTIFY-active]] §r9 | **segue aberto** · é o eixo `codigo_rfb` do item 4 acima. O registro já o rebaixou a "ponteiro desta lane, sem prioridade própria" — logo o único registro do defeito apontava para uma lane que o excluía do escopo. Roteado agora |
+| `PV13-01` — o **papel vira identidade**: `titular_key_normalizer` devolve o `raw` e o literal de papel passa como chave | [[PIPELINE-REVIEWS-active]] §r13 | **segue aberto**, e **medido aqui** (abaixo) |
+
+### `PV13-01` medido no mesmo artefato — e os itens são os mesmos
+
+Contando literais de papel em `proprietario` no baseline do run `40d1af2a`:
+
+| lista | itens | literais de papel |
+|---|---|---|
+| `imoveis_consolidados` | 9 | **0** |
+| `investimentos_consolidados` | 58 | **3** (`titular`) |
+| `veiculos_consolidados` | 7 | **0** |
+
+Duas consequências que o registro não tem:
+
+1. **A cadeia que o `PV13-01` declara não procede para imóveis.** Ele afirma
+   `titular_key` cru ⇒ `property_id` nulo ⇒ `investimentos_classes_analyzer.py:266` falha
+   aberto. Mas `property_id` só existe em imóvel, e ali os literais de papel são **zero** —
+   os 8 sem id falharam todos por `domain.property_identity_uncanonical`, não por
+   `titular_key`.
+2. **Os 3 itens do `PV13-01` são exatamente os 3 que causaram o defeito desta lane.** São
+   as três posições datadas de **2026** (CDB, cofrinho e previdência) que elegiam o
+   ano-base do titular. O literal de papel é **marcador de proveniência**: item vindo do
+   caminho bancário traz vocabulário de papel e ano corrente; item de IRPF traz chave de
+   membro e ano 31/12. **Interação a declarar:** se o `PV13-01` for consertado recusando o
+   literal, esses 3 itens podem perder a atribuição ao titular e mudar
+   `investimentos_titular` — quem pegar precisa medir isso junto, não depois. Idem a
+   interação com a [[A40.l96]] (#1936), que o registro afirma "declarada na lane" e que
+   até agora **não estava**.

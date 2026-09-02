@@ -3,6 +3,16 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
+# 2.5.0 (A40.l117 · [[ADR-341]] §Emenda 2026-09-01): a regra 3 deixa de prometer
+#   ferramenta. Medido: `LLMService.call` não tem parâmetro `tools` (litellm_client.py:133)
+#   e as 19 entradas de `_meta.tool_trace` do run 40d1af2a são todas pós-LLM — o
+#   "recovery obrigatório" da 2.2.0 mandava obter `{{found:false}}` de um canal que não
+#   existe, e o objetivo dele (não declarar ausência do que existe) JÁ é entregue,
+#   determinístico e sobre universo maior, por `_classify_campo`
+#   (parecer_pos_llm_guardrails.py:268). A regra inverte o verbo: de buscar para declarar.
+#   Sai também o heading `## Tools disponíveis` do user prompt. O slot "3" é preservado
+#   de propósito — renumerar quebraria "regra 11" (:238), "regra 13"
+#   (parecer_finalization.py:117) e a REGRA 14 do changelog.
 # 2.2.0 (ADR-341 D5 · A37.l1 PR-2b): recovery obrigatório na regra 3 — marcador de
 #   eviction presente + conceito de seção removida → get_e5_section ANTES de declarar
 #   ausência (campos_faltantes/risco de "dado ausente"). Par do manifest 2.0 (eviction
@@ -11,7 +21,7 @@ from __future__ import annotations
 #   espelham parecer_red_lines v1.4; prevenção reduz needs_review, validador segue defesa.
 #   Ao recalibrar parecer_red_lines, atualize a REGRA 14 no mesmo PR (simetria prompt↔validador).
 # 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
-PROMPT_VERSION = "2.4.0"
+PROMPT_VERSION = "2.5.0"
 
 # Amostragem do parecer — mora aqui, e não no orquestrador, porque este módulo é
 # varrido por `check_prompt_version_bumped.py`: re-afinar a amostragem sem bumpar
@@ -46,22 +56,19 @@ SYSTEM_PROMPT_TEMPLATE = """\
    (enum interno) + `tema_canonico` (enum user-facing). Os validadores
    downstream rejeitam strings com termos proibidos — sua resposta é descartada.
 
-3. **Tool use (drill-down):**
-   - 2 tools: `get_e5_section(section)`, `get_e5_jsonpath(path)`.
-   - Use APENAS quando o exec context destilado for insuficiente para fundamentar
-     um item (risco, sugestão, métrica).
-   - Cap rígido: até 6 chamadas por geração. Após atingir, conclua com o que tem;
-     o orchestrator não permite mais round-trips.
-   - Quando tool retornar `{{"found": false, "reason": "path_not_whitelisted"}}`,
-     considere registrar o path em `campos_faltantes_pediria_se_iterasse[]`.
-   - **Recovery obrigatório antes de declarar ausência (ADR-341):** se o exec
-     context contiver o marcador `…[exec context truncado em
-     max_exec_context_bytes — seções removidas por prioridade: ...]` e o
-     conceito de que você precisa pertencer a uma seção removida, chame
-     `get_e5_section` com a seção correspondente ANTES de registrar o campo em
-     `campos_faltantes_pediria_se_iterasse[]` ou de emitir risco/nota de "dado
-     ausente"/"ausência de dados" sobre aquele tema. Só declare ausência depois
-     de a tool retornar `{{"found": false}}`.
+3. **Contexto truncado — declare, não busque.** Você é uma chamada
+   **single-shot**: não tem ferramentas e não haverá segunda rodada. O exec
+   context abaixo é a sua superfície inteira.
+   - Quando o contexto trouxer `…[exec context truncado em
+     max_exec_context_bytes — seções removidas por prioridade: ...]`, trate
+     essas seções como **não-mostradas**, nunca como **inexistentes**.
+   - Se precisar de um conceito de uma delas: (i) **não** emita risco, nota ou
+     prosa de "dado ausente"/"ausência de dados" sobre o tema; (ii) registre o
+     conceito em `campos_faltantes_pediria_se_iterasse[]` com o `field_path`
+     JSONPath e o motivo; (iii) rebaixe a `confianca` do item dependente.
+   - O sistema distingue, **depois** da sua resposta, "não estava no seu
+     contexto" de "não existe no E5". Registrar é o comportamento correto —
+     não é falha sua, e não custa nada.
 
 4. **Determinístico nos limites:** sua resposta deve respeitar:
    - 3-6 pontos fortes; ≤12 riscos; ≤5 sugestões por horizonte (3 horizontes =
@@ -223,13 +230,6 @@ Esta família tem o E5 (análise financeira determinística) abaixo. Você produ
 ## Exec context destilado (manifest F5 — ADR-200)
 
 {exec_context}
-
-## Tools disponíveis
-
-- `get_e5_section(section: str)` — chave top-level do E5.
-- `get_e5_jsonpath(path: str)` — JSONPath subset.
-
-Cap: 6 iterações. Cache em sessão (mesmo path/section não custa nova iteração).
 
 ## Tarefa
 

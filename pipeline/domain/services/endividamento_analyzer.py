@@ -15,13 +15,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
 from pipeline.domain.services.member_key_matcher import (
     matches_member_exclusively,
     matches_member_key,
 )
 from pipeline.domain.services.money_parsing import valor_monetario_float
+from pipeline.domain.services.saldo_divida_resolver import resolver_saldo
 from pipeline.observability.view_model_pii import redact_cartorial
 
 
@@ -93,6 +94,25 @@ class DividaItem:
         return {c: origens[c] for c in _CAMPOS_COM_FONTE if item.get(c) is not None}
 
 
+class TotalDividasContraditorioError(RuntimeError):
+    """Total zerado com itens de dívida listados — os dois vêm do mesmo campo."""
+
+
+# Custa uma linha e pega a CLASSE inteira ([[A40.l114]] critério 4). O total e a
+# lista são duas leituras do mesmo `saldo_31_12`: divergirem é contradição interna,
+# não dado ruim. Publicar zero ao lado de quatro financiamentos foi o que creditou
+# nota máxima em `taxa_endividamento` e imprimiu "Endividamento Mínimo" como Ponto
+# Forte — a decisão amortizar-vs-investir sai invertida.
+def _assert_total_coerente(total: Decimal | float, items: Sequence[DividaItem]) -> None:
+    """Reprova antes de publicar quando total e itens se contradizem."""
+    soma_itens = sum(d.saldo_devedor for d in items)
+    if items and total <= 0 < soma_itens:
+        raise TotalDividasContraditorioError(
+            f"total_dividas={total!r} com {len(items)} item(ns) somando {soma_itens!r}: "
+            "o agregado e a lista leem o mesmo saldo_31_12 e discordam"
+        )
+
+
 @dataclass(frozen=True)
 class EndividamentoAnalysis:
     total_dividas: float
@@ -134,18 +154,13 @@ _CODIGO_CANONICO = re.compile(r"^[a-z0-9_]{2,32}$")
 DividaRow = Mapping[str, Any]
 
 
-# Ler o objeto por ano com `safe_float` devolve 0.0 e some com a dívida — é o
-# defeito vivo de `patrimonio_resolvers._total_dividas_for`, medido em 2026-08-19.
+# A regra do saldo mora em `saldo_divida_resolver` desde a [[A40.l114]]: este
+# leitor e o `_split_dividas` do `patrimonio_resolvers` divergiam sobre o mesmo
+# campo, e o relatório publicava total zero ao lado da lista somando certo.
 # Devolve `Decimal` — ADR-090: dinheiro é float só no wire, nunca no cálculo.
 def _resolve_saldo(dv: DividaRow, ano_ref: str | None) -> Decimal:
     """``saldo_31_12`` é objeto por ano no schema (ADR-301); escalar é forma legada."""
-    saldo = dv.get("saldo_31_12", 0)
-    if not isinstance(saldo, dict):
-        return _dec(saldo)
-    if ano_ref and ano_ref in saldo:
-        return _dec(saldo[ano_ref])
-    anos = sorted(k for k in saldo if str(k).isdigit())
-    return _dec(saldo[anos[-1]]) if anos else Decimal(0)
+    return resolver_saldo(dv, ano_ref).valor
 
 
 def _dec(valor: Any) -> Decimal:
@@ -241,15 +256,18 @@ class EndividamentoAnalyzer:
     ) -> EndividamentoAnalysis:
         bruto = _safe_float(patrimonio.get("bruto", 0))
         dividas_total = _safe_float(patrimonio.get("dividas", 0))
-        items = self._itemize(dividas_baseline, ano_ref, identity) or self._fallback_por_membro(
-            members
-        )
+        items = self._items_de(dividas_baseline, members, ano_ref, identity)
+        _assert_total_coerente(dividas_total, items)
         return EndividamentoAnalysis(
             total_dividas=dividas_total,
             percentual_patrimonio=(dividas_total / bruto * 100) if bruto > 0 else 0.0,
             dividas=tuple(items),
             detalhe=_detalhe(items),
         )
+
+    def _items_de(self, dividas, members, ano_ref, identity) -> list[DividaItem]:
+        """Itens do baseline; o agregado por membro é o fallback histórico."""
+        return self._itemize(dividas, ano_ref, identity) or self._fallback_por_membro(members)
 
     def _itemize(
         self,

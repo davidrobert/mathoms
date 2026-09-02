@@ -5,6 +5,7 @@ title: "Contrato do exec context do parecer: budget, eviction por seção, bloco
 status: Decidido
 date: "2026-07-20"
 phase: A37.l1
+amended_at: ["2026-09-01"]
 tags:
   - type/adr
   - status/decidido
@@ -15,6 +16,11 @@ tags:
 # ADR-341 — Contrato do exec context do parecer (manifest 2.0)
 
 **Status:** Decidido (A37.l1) · **Data:** 2026-07-20 · **Lane:** [[A37.l1]] (P0)
+
+> ⚠️ **Emendada em 2026-09-01 ([[A40.l117]]): o §D5 está REVOGADO.** O "recovery
+> obrigatório" pressupunha um canal de tool que nunca existiu no transporte. O
+> objetivo dele segue vivo e é entregue por outro mecanismo — leia a §Emenda antes
+> de citar o D5.
 
 ## Contexto
 
@@ -112,3 +118,48 @@ PR-2a + PR-2b da [[A37.l1]] mergeados com o aceite da lane batido (10/10
 seções no contexto do E5 real; probes field-level verdes; identificadores
 redigidos nas duas superfícies; KR-A do [[MOC-sprint-a37]] medido em run
 fresco).
+
+## Emenda 2026-09-01 — o §D5 é revogado; o objetivo migra para regra declarativa
+
+**Medição ([[A40.l117]], run `40d1af2a`).** `LLMService.call`
+([`litellm_client.py:133`](../../pipeline/llm/litellm_client.py)) **não tem parâmetro
+`tools`** — nenhum. As 19 entradas de `_meta.tool_trace` do run são todas
+`get_e5_jsonpath` **pós-LLM**, zero iniciadas pelo modelo. O parecer é chamada
+single-shot desde sempre.
+
+Logo o D5 mandava o modelo obter `{"found": false}` de um canal inexistente **antes** de
+poder registrar um campo faltante. Instrução insatisfazível: em produção ela é ignorada
+(o run emitiu 8 `campos_faltantes` sem tool nenhuma) e o que resta é ruído no contrato.
+O aceite do próprio D5 — *"probes de tool-behavior (tool-calls e `tokens_in` dentro de
+`max_tool_iterations`)"* — é insatisfazível pela mesma razão, e por isso nunca foi
+exercido.
+
+**O objetivo do D5 já está entregue, e melhor.** A finalidade declarada era *o modelo não
+afirmar ausência do que existe*. Isso é feito hoje por `_classify_campo`
+([`parecer_pos_llm_guardrails.py:268`](../../backend/app/services/parecer_pos_llm_guardrails.py)),
+que resolve cada `field_path` contra o **E5 inteiro** — sem whitelist, sem cap 6, sem
+round-trip — e classifica em `field_request_spurious`, `REASON_OUT_OF_CATALOG`
+(*"sinaliza truncamento de contexto, não alucinação"*), `REASON_WRONG_PATH` ou pedido
+legítimo. É determinístico, roda **depois** da resposta (onde o modelo não erra) e cobre
+universo maior que o da tool. Implementar as tools seria reimplementar isso **pior**, no
+lado não-determinístico.
+
+**O que passa a valer.** A regra 3 do system prompt inverte o verbo — de **buscar** para
+**declarar**: seção evictada é *não-mostrada*, nunca *inexistente*; o modelo não emite
+prosa de "dado ausente" sobre ela, registra o conceito em
+`campos_faltantes_pediria_se_iterasse[]` e rebaixa a `confianca` do item dependente. O
+`_eviction_marker` deixa de prometer `get_e5_section` — era o único convite morto que caía
+**dentro** do corpo orçado.
+
+**Segue vigente:** D1 (budget declarado), D2 (eviction por seção), D3 (blocos densos), D4
+(hints fora do corpo orçado) e D6 (redação de identificadores). Só o D5 cai.
+
+**Não previmos queda em `campos_faltantes`.** Dos 8 do run, 3 vêm de seção evictada e 4 são
+`$.endividamento.dividas[N].taxa_juros_aa` — campo que **existe** no E5
+(`e5_analysis.schema.json:934,969`) e tem **zero** ocorrências no manifest. Esses 4 são a
+[[ADR-206]] funcionando: são sinal de cobertura de manifest, não de prompt. Critério de
+contagem aqui seria otimizar a métrica contra a regra de calibração.
+
+**Gate:** `tests/dev/test_prompt_capability_parity.py` — bicondicional (promessa sem
+transporte **e** transporte sem promessa), sobre o prompt **montado** nos dois regimes de
+eviction, com os 4 canais provados por mutação do produtor.

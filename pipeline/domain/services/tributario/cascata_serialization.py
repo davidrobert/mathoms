@@ -19,7 +19,11 @@ def _normalize(node: Any) -> Any:
         if _is_money_shape(node):
             return _node_to_float(node)
         return {k: _normalize(v) for k, v in node.items()}
-    if isinstance(node, list):
+    # `tuple` junto com `list`: `asdict` PRESERVA o tipo, e `triggers`/`signals` são
+    # tuple no `CascataOutput`. Um tuple sobrevive ao `json.dumps` (vira array), mas
+    # não é `array` para o jsonschema — e o hook de write valida o dict ANTES de
+    # serializar, então o contrato reprovava no boundary que ele existe para guardar.
+    if isinstance(node, (list, tuple)):
         return [_normalize(v) for v in node]
     if isinstance(node, Decimal):
         return float(node)

@@ -427,7 +427,7 @@
 | ADR-430 | adr | Proposto |  | Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 | `adr/430-contrato-e1-e4-do-mapa-instituicao-membro.md` |
 | ADR-431 | adr | Decidido |  | Valor impossível em item de ativo físico vira `null` declarado, não zero nem passivo | `adr/431-valor-nao-apurado-em-item-de-ativo-fisico.md` |
 | ADR-432 | adr | Decidido |  | O contrato do baseline consolidado é re-derivado do produtor, e o ramo `declarations` da raiz é aposentado | `adr/432-contrato-do-baseline-consolidado-re-derivado-do-produtor.md` |
-| ADR-433 | adr | Proposto |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
+| ADR-433 | adr | Decidido |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
 | ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
 | ADR-435 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/435-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
@@ -793,7 +793,7 @@
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A27.l2 | lane | shipped | A27 | A cobertura do grafo de lineage não é medida por gate nenhum, e o eval fecha o laço sobre o próprio registro | `sprint/A27/lanes/A27-l2-cobertura-de-lineage-sem-gate.md` |
-| A27.l3 | lane | open | A27 | A cobertura de lineage é medida contra a fixture e não contra a produção: quatro raízes monetárias ficam fora do universo do gate | `sprint/A27/lanes/A27-l3-cobertura-de-lineage-medida-contra-a-fixture.md` |
+| A27.l3 | lane | shipped | A27 | A cobertura de lineage é medida contra a fixture e não contra a produção: três raízes monetárias ficam fora do universo do gate (a quarta era contagem lida como R$) | `sprint/A27/lanes/A27-l3-cobertura-de-lineage-medida-contra-a-fixture.md` |
 | A28.l1 | lane | shipped | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
 | A28.l10 | lane | shipped | A28 | âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas | `sprint/A28/lanes/A28-l10-ancoras-formatter-curadoria.md` |
 | A28.l11 | lane | shipped | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
@@ -917,12 +917,14 @@
 | A40.l111 | lane | shipped | A40 | Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo | `sprint/A40/lanes/A40-l111-valor-nao-apurado-em-item-fisico.md` |
 | A40.l112 | lane | open | A40 | Imóvel sem classificação nenhuma entra no numerador da concentração pelo `else`, e reclassificar um deles move o KPI de 82 para 0 | `sprint/A40/lanes/A40-l112-imovel-sem-override-cai-no-numerador.md` |
 | A40.l113 | lane | in_progress | A40 | A identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS: residência e imóvel gerador são publicados como zero | `sprint/A40/lanes/A40-l113-identidade-de-imovel-churna-classificador-falha-fechado.md` |
-| A40.l114 | lane | open | A40 | O ano de referência é saída crua do LLM, e o total de dívida vira zero quando esse ano não existe em documento nenhum | `sprint/A40/lanes/A40-l114-ano-de-referencia-sem-documento-atras.md` |
+| A40.l114 | lane | shipped | A40 | O ano de referência afirma um 31/12 que ainda não fechou, e o eixo zera imóveis, veículos e a dívida do titular | `sprint/A40/lanes/A40-l114-ano-de-referencia-sem-documento-atras.md` |
 | A40.l115 | lane | open | A40 | O sanitizer de PII mede o contexto de ENTRADA e nunca o output: o relatório publica CPF parcialmente mascarado e conta bancária completa | `sprint/A40/lanes/A40-l115-sanitizer-mede-a-entrada-e-publica-a-saida.md` |
-| A40.l116 | lane | open | A40 | O guard de autocontradição do parecer erra a seção pela terceira vez, e o teste que o cobre importa a própria constante — cego por construção | `sprint/A40/lanes/A40-l116-guard-de-liquidez-erra-a-secao-e-o-teste-e-cego.md` |
+| A40.l116 | lane | shipped | A40 | O guard de autocontradição do parecer erra a seção pela terceira vez, e o teste que o cobre importa a própria constante — cego por construção | `sprint/A40/lanes/A40-l116-guard-de-liquidez-erra-a-secao-e-o-teste-e-cego.md` |
 | A40.l117 | lane | open | A40 | O parecer publica dois números para a mesma coisa, cita a seção errada em 4 de 11 riscos, e o prompt se contradiz sobre ter ferramentas | `sprint/A40/lanes/A40-l117-parecer-dois-numeros-e-citacao-desorientada.md` |
 | A40.l118 | lane | open | A40 | Campo emitido sem consumidor pode carregar valor errado, e o gate de classe mede existência do leitor — nunca a corretude do número | `sprint/A40/lanes/A40-l118-valor-errado-em-campo-sem-leitor.md` |
+| A40.l119 | lane | open | A40 | O elogio à reserva tem dois produtores e o guard alcança um; e a ressalva reescreve a descrição sem tocar o título que o leitor vê | `sprint/A40/lanes/A40-l119-elogio-com-produtor-duplo-e-ressalva-que-nao-alcanca-o-titulo.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
+| A40.l120 | lane | open | A40 | O parecer chama de renda fixa uma soma que inclui previdência, e o número com que ele deveria concordar não chega até ele | `sprint/A40/lanes/A40-l120-previdencia-dobrada-em-renda-fixa.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | cancelled | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |

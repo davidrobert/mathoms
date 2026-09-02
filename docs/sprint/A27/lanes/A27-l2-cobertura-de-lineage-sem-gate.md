@@ -46,6 +46,11 @@ nenhuma — nem o gate, nem a accuracy. É gate que só pode dar verde.
 > raízes cruas do payload. Medido: `narrativas` **não é emitida** — está entre as 38 do
 > **schema**, que é a base do `~87%`, não entre as 32 do payload. O exemplo estava no
 > denominador errado.
+>
+> **Alcance dessa correção, medido em 2026-09-01 ([[A27.l3]]):** ela vale para a **fixture**.
+> A produção **emite** `narrativas` — e ela ainda assim fica fora do denominador, por outro
+> motivo: sua única folha classificada como monetária era `pontos_revisao`, uma **contagem**
+> lida como R$. O classificador foi corrigido.
 
 O denominador que a lane entrega é **raiz que publica dinheiro**, discriminada por
 `golden_diff.is_monetary`, que é **independente do `lineage_registry`** — é isso que mantém
@@ -60,11 +65,20 @@ monetário — em código-fonte, não em dot-path. A unicidade nunca foi medida.
 | --- | --- |
 | Raízes do payload que publicam dinheiro | **14** |
 | Raízes com nó em `_lineage.fields` | **5** |
-| **Cobertura** | **5/14 = 35,7%** |
+| **Cobertura** | **5/14 = 35,7%** — ⚠️ **corrigido para 5/17 = 29,4%** em 2026-09-01 |
 | Raízes monetárias sem rastro | 9 — `cenarios_conjuge`, `consumo_consciente`, `equilibrio_cerbasi`, `exposicao_cambial`, `goals`, `if_monte_carlo`, `orcamento_prospectivo`, `passive_income`, `ratios` |
 
 O denominador é **dependente de workspace** (flag/cobertura mudam as raízes emitidas), então
 o KR fica ancorado na **fixture determinística**, não num run: é gate, não telemetria.
+
+> **Correção 2026-09-01 ([[A27.l3]]).** Ancorar o KR na fixture foi a decisão errada, e a
+> justificativa acima é o motivo: a fixture dogfood é subconjunto **estrito** do que a
+> produção emite — sem IRPF, imóvel locado nem PJ, ela nunca publica `previdencia_pgbl`,
+> `real_estate` e `tributario`. As **14** desta tabela viraram **17** quando medidas contra
+> o payload de produção (run `40d1af2a`), e a cobertura publicada cai de **35,7% para
+> 29,4%**. O determinismo que esta caixa protege continua de pé — o que mudou é que o
+> universo virou um **roster de origens** (fixture ∪ produção), medido em cada origem e
+> publicado sobre a união. As **9** raízes sem rastro da linha abaixo são **12**.
 
 **Correção à metade 2 do enunciado.** "A raiz de endividamento está no registro com zero
 caso" é verdade e é **estreita**: são **4 dos 8** `rule_id` sem caso nenhum
@@ -81,7 +95,8 @@ Regra ternária em [[LEDGER-CERTIFY-active]] §r6 §10.
 
 - [x] Existe um **KR de cobertura** = raízes com nó ÷ raízes do payload, com o denominador
       vindo do **payload publicado**, nunca do registro. — `dev/lineage_coverage.py`;
-      **5/14 = 35,7%** travado em `dev/snapshots/lineage_coverage_baseline.json`. O gate
+      **5/14 = 35,7%** travado em `dev/snapshots/lineage_coverage_baseline.json` (⚠️ o
+      denominador era o da **fixture**; corrigido para **5/17 = 29,4%** pela [[A27.l3]]). O gate
       compara **conjunto**, não contagem: raiz renomeada não passa por compensação.
 - [x] **Controle positivo:** acrescentar raiz ao E5 sem entrada no registro ⇒ a métrica
       **cai** e/ou o gate reprova. Hoje ambos ficam verdes. — `test_lineage_coverage.py`.
@@ -98,7 +113,8 @@ Regra ternária em [[LEDGER-CERTIFY-active]] §r6 §10.
 ## O que esta lane NÃO fecha
 
 Os 9 blocos monetários sem rastro **continuam sem rastro** — a lane entrega a **medida** e o
-**gate**, não a cobertura. O KR nasce em 35,7% de propósito: é o número que torna a dívida
+**gate**, não a cobertura. (São **12** contra o universo corrigido pela [[A27.l3]].) O KR
+nasce em 35,7% de propósito — número depois corrigido para **29,4%**: é o número que torna a dívida
 contável e impede que ela cresça calada. Fechar cada raiz é trabalho de emissor
 (`e5_lineage.py` + entrada no registro), dimensionável agora que existe denominador.
 
