@@ -572,6 +572,13 @@ correção. Budget reconferido pelo tripwire: **−1,58%**.
 
 ### O que fica, e por que não foi junto
 
+> ⚠️ **SUPERADO em 2026-09-02 — as três precondições caíram e o destino de citação
+> SHIPOU** ([#1996](https://github.com/davidrobert/mathoms/pull/1996) `1583cf97`,
+> [[ADR-438]]). O texto abaixo é snapshot do momento em que o sintoma 3 fechou e não se
+> reescreve; o estado corrente está no §"Sintoma 2 ENTREGUE" e no §Fecho. O
+> `check_closure` pegou esta seção como *deferimento órfão em lane `shipped`* — ela era, e
+> o aviso é o conserto.
+
 O **destino de citação**. Decidido (a máquina autora; o mapa deriva do layout via
 `card_id`), mas **bloqueado por três precondições** nomeadas acima:
 

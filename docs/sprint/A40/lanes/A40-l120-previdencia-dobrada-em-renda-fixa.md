@@ -197,3 +197,48 @@ schema e o tipo do front (`alocacaoCardParts.tsx:16`) — e **nenhum componente 
 renderiza**. É a classe que a [[A40.l88]] fechou. Ligar o fio daria ao card o label
 derivado ("Renda Fixa + Previdência") sem inventar dado. Fora do escopo — é frontend, e a
 lane é do parecer.
+
+
+## Closeout (2026-09-02)
+
+Camada 1 rodada de árvore em `origin/main` (`7161bea3`, limpa). Três achados; dois
+reconciliados aqui, dois **registrados e não tocados** por estarem fora do escopo.
+
+### Reconciliados
+
+1. **`CLOSE-BLOCK-01` na [[A40.l117]]** — ela é `shipped` e ainda hospedava o §"O que fica,
+   e por que não foi junto", que declara o destino de citação *"bloqueado por três
+   precondições"*. As três caíram e ele shipou no
+   [#1996](https://github.com/davidrobert/mathoms/pull/1996). A lane **se contradizia**:
+   aquela seção dizia bloqueado, o §Fecho dizia entregue. Snapshot não se reescreve —
+   ganhou blockquote de superação.
+2. **`PV13-08` e `PV13-14` do `§r13`** estavam `procede-aberto` com donas já terminais —
+   linha-zumbi, a classe que este closeout é o detector primário. Ambas flipam para
+   `procede-fechado`, com enunciado e veredito **byte-idênticos** (precedente `RV8-32`).
+
+### Registrados, fora do escopo — não os toquei
+
+Varri o `§r13` inteiro cruzando `Disposição` com o `status:` de cada lane dona. Além dos
+dois acima, **outros dois** estão zumbis e pertencem a lanes que não são minhas:
+
+| linha | achado | donas terminais |
+|---|---|---|
+| 1096 | `PV13-15` (ETA subdeclarada) | [[A42.l21]], [[A42.l22]] |
+| 1099 | `PV13-18` (`needs_review` fora do léxico) | [[A40.l84]], [[A40.l105]] |
+
+Não os fechei **de propósito**: afirmar "entregue" sobre trabalho que eu não verifiquei
+seria a mesma classe de afirmação falsa que este closeout existe para pegar. Ficam para o
+closeout de quem as fechou — ou para a `audit-vault`.
+
+### Re-medição pós-merge (a regra que vale mais)
+
+| Número publicado | Re-medido em `origin/main` |
+|---|---|
+| `renda_fixa_atual_pct` chega ao exec context | ✅ presente, na seção mantida |
+| 5 divergências · 2 riscos rebaixados | ✅ 5 · 2 |
+
+⚠️ **Precisão:** o `rotulo` do KPI no payload **armazenado** ainda é o antigo, porque o
+artefato é do run `40d1af2a`, anterior à mudança. Quem mudou foi o **produtor**
+(`kpi_orfaos_dominio.py`), e a prova disso é o golden do view-model, que rebaselinou com o
+rótulo novo. A afirmação da lane é sobre o produtor; o próximo run a carrega. O que o
+modelo já lê hoje é a label do **bloco do manifest**, que é outro sítio.
