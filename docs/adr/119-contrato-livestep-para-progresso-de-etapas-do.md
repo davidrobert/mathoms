@@ -6,7 +6,7 @@ status: Decidido
 phase: "A6-ux"
 date: "2026-04-23"
 amended_at: ["2026-09-01"]
-relates_to: []
+relates_to: ["[[ADR-357]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 119"]
@@ -23,7 +23,7 @@ size_lines: 121
 
 > ⚠️ **Emendada em 2026-09-01** (A42.l22) — `estimated_duration_ms` deixa de ser
 > "mediana dos últimos 20 runs bem-sucedidos" e passa a ser "últimas 20 **execuções
-> reais**": o no-op auto-declarado sai da amostra. Ver §Emenda no fim.
+> reais**": o no-op auto-declarado sai da amostra ([[A42.l22]]). Ver §Emenda no fim.
 
 **Status:** Decidido (A6-ux) • **Data:** 2026-04-23
 
@@ -150,9 +150,11 @@ Não substitui nenhuma ADR anterior.
 > que se auto-declarou no-op. Passa a ser "últimas 20 **execuções reais**".
 
 O no-op auto-declarado (`output_summary.skipped == true`) grava `completed` de
-propósito ([[ADR-357]] §2 — `PipelineStageStatus.skipped` já significa outra coisa,
-a decisão pré-execução do orquestrador). Ele passava pelo filtro de status e
-entrava na mediana. No-op roda em milissegundos; execução real leva minutos.
+propósito — é a [[ADR-357]] §2 que manda mapear o desfecho `skipped` para
+`PipelineStageStatus.completed`. Que a outra população (`PipelineStageStatus.skipped`,
+decisão pré-execução do orquestrador) seja evento distinto **não** é da ADR-357:
+é medição da [[A42.l22]] e do `PV9-02` (15 linhas contra 21). Ele passava pelo
+filtro de status e entrava na mediana. No-op roda em milissegundos; execução real leva minutos.
 
 **A justificativa do corte é de população, não estatística.** `estimated_duration_ms`
 só é **lido** no ramo em que o stage executa de verdade: os quatro early-returns
@@ -174,3 +176,32 @@ dominada por no-ops de milissegundos e a primeira ETA real subdeclara um stage d
 ~9 min. É esse regime, não o dogfood de hoje, que o filtro protege — e é ele que
 também desarma o falso alarme de travamento, já que a regra 4 de renderização
 deriva o limiar de stall de `2×estimated_duration_ms / items_total`.
+
+### Limite declarado da emenda — o predicado é JSON-path, e o CI não o exerce em Postgres
+
+O filtro lê `output_summary["skipped"].as_boolean()`. É a **primeira query com
+JSON-path do backend**, e ela **contradiz uma decisão anterior explícita** que
+não foi citada no PR de origem — `backend/app/services/internal_ops/degradation_metrics.py:12-17`
+(A40.l18) recusou JSON-path com esta razão:
+
+> *"Query JSON-path é portável, mas seria a PRIMEIRA do repo e a suíte de PR roda
+> só SQLite — query nova validada no dialeto errado é falso-verde."*
+
+A mitigação aplicada foi uma execução manual contra Postgres 16 em docker
+(2026-09-01): chave ausente → `None`, `false` → `False`, `true` → `True`, nos dois
+dialetos. **Isso é snapshot, não invariante** — nenhum job de CI roda
+`backend/tests/**` contra Postgres (`migrations-postgres` roda só
+`alembic upgrade head`; o job PG do e2e não executa esse arquivo), então os testes
+da mediana são SQLite-only em permanência.
+
+Valores fora do contrato divergem entre dialetos e o CI não veria: `"no"` dá
+`True` no SQLite e `False` no PG; um inteiro ≥2 dá `True` no SQLite e `DataError`
+no PG — e `output_summary` **não tem schema** em `config/schemas/`. O near-miss
+existe: `pipeline/stages/extract_with_llm.py:388` já escreve `"skipped": len(...)`
+(inteiro), salvo só por morar sob `balanco`. Os dois fail-open de
+`stage_duration_estimator` transformariam esse `DataError` em ETA ausente e
+silenciosa.
+
+Fechar isto — rodar a suíte da mediana contra o Postgres que o CI já sobe, **ou**
+superseder formalmente a decisão da A40.l18 — é trabalho próprio, roteado no
+registro (`PV12-01`, dono `data-engineer` + `sre-devops`).

@@ -82,7 +82,7 @@ recorte. As 10 linhas de no-op de `extract_informes_anuais` e as 2 de
 `extract_comprovantes_bens` são de **maio de 2026** e há muito saíram da janela dos
 últimos 20 runs que a produção lê.
 
-## Duas linhas do enunciado envelheceram
+## Duas linhas do enunciado envelheceram (2026-09-01)
 
 1. **"ETA 3,5× otimista para quem está esperando o run terminar"** — o stage do
    headline, `extract_comprovantes_bens`, **não emite ETA**. Os únicos dois
@@ -120,6 +120,27 @@ foi executada contra ambos:
 
 Chave ausente e `skipped: false` são preservadas nos dois — só `true` sai.
 
+⚠️ **Isto é snapshot, não invariante — e cruza uma decisão anterior sem citá-la.**
+A [[A40.l18]] recusou JSON-path por escrito em
+`backend/app/services/internal_ops/degradation_metrics.py:12-17`: *"seria a PRIMEIRA
+do repo e a suíte de PR roda só SQLite — query nova validada no dialeto errado é
+falso-verde"*. O PR desta lane atravessou essa linha sem nomeá-la e sem satisfazer
+a condição de revisita. **Nenhum job de CI roda `backend/tests/**` contra Postgres**
+(o `migrations-postgres` roda só `alembic upgrade head`; o job PG do e2e não executa
+este arquivo), logo os 4 testes novos são SQLite-only em permanência — a forma exata
+que a A40.l18 nomeou.
+
+Fora do contrato os dialetos divergem e o CI não veria: `"no"` dá `True` no SQLite e
+`False` no PG; inteiro ≥2 dá `True` no SQLite e **`DataError`** no PG. E o near-miss
+já existe — `pipeline/stages/extract_with_llm.py:388` escreve `"skipped": len(...)`
+(inteiro), salvo só por morar sob `balanco`; `output_summary` não tem schema em
+`config/schemas/`. Os dois fail-open de `stage_duration_estimator` transformariam
+esse `DataError` em ETA ausente e silenciosa no workspace inteiro.
+
+**Roteado, não fechado:** `PV12-01` no registro, dono `data-engineer` + `sre-devops`
+— ou a suíte da mediana roda contra o Postgres que o CI já sobe, ou a A40.l18 é
+formalmente superseded com a razão nova.
+
 ## O extremo do `PV13-15` é de OUTRO discriminador — e fica aberto
 
 O `PV13-15` (§r13) roteou para esta lane um extremo de **5.766×**: "mediana de
@@ -145,6 +166,24 @@ deles se declara, então o corte desta lane limpa a população inteira que a ET
 
 O resíduo é latente, não inerte: um emissor futuro com o padrão do
 `extract_with_llm` reintroduz a subdeclaração sem tocar em nada desta lane.
-Fechar exigiria um predicado de "trabalho feito" que hoje não existe em contrato
-(`total_processed` não está em nenhum schema de stage) — escopo de lane própria,
-não desta.
+
+⚠️ **E `total_processed` é o predicado ERRADO para fechá-lo** — corrigido aqui para
+não se propagar ao critério de aceite da lane que vier. "Trabalho feito" tem
+**quatro grafias** e nenhum schema:
+
+| stage | chave |
+|---|---|
+| `extract_comprovantes_bens` · `extract_informes_anuais` · `extract_informe_aluguel` | `total_processed` |
+| `extract_with_llm` | `total_processed` + `balanco.processed` |
+| **`extract_baseline`** (emite ETA) | `files_processed` / `items_extracted` |
+| **`extract_irpf_full`** (emite ETA) | `declarations_extracted` |
+
+Um gate ancorado em `total_processed` ficaria **verde sem tocar nenhum dos dois
+emissores de ETA** — inerte exatamente onde a lane diz que o defeito importa.
+O predicado honesto não é chave de JSON: é coluna tipada (`items_processed`)
+escrita pelo caminho terminal a partir do contador que o stage **já** emite para
+`live_progress` (`items_done`/`items_total`) e hoje descarta — indexável, neutro
+de dialeto, sem `CAST`, e aposenta o `_DECLARED_SKIP` (no-op declarado conta 0).
+`NULL` para row legada, **sem backfill** (inferir de 4 nomes de chave fabricaria
+dado — mesma postura do `executor_revision`). Escopo de lane própria + ADR: muda
+a definição do estimador da [[ADR-119]] e mexe em tabela quente.

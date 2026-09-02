@@ -11,7 +11,7 @@ branch_slug: a40-l105-aprovacao-com-avisos-indistinguivel
 owner: sre-devops
 depends_on: []
 adrs: ["[[ADR-404]]"]
-tags: [type/lane, sprint/a40, status/open, priority/p2, area/pipeline]
+tags: [type/lane, sprint/a40, status/shipped, priority/p2, area/pipeline]
 ---
 
 # A40.l105 — `aprovacao-com-avisos-indistinguivel`
@@ -95,3 +95,37 @@ co-localizado com o enforcer ([[ADR-143]]).
 - `backend/tests/test_report_run_outcome.py` — 3 testes novos: a pausa aprovada não
   autoriza; o predicado não depende da tabela de reviews; e a **contra-prova** de que um
   run sem pausa segue autorizando (sem ela, `paused is not None` passaria constante).
+
+## Fecho (closeout 2026-09-02 · #1984)
+
+**CI verde no merge `30ae1a69`:** `All checks green`, **Backend tests** (7m34s) e
+**Pipeline tests** (3m29s).
+
+**O falso-verde do processo, registrado porque quase passou.** `pytest … | tail` devolve
+o status do **`tail`**, não do pytest: o primeiro "exit 0" desta lane não provava nada, e
+duas tentativas seguintes morreram a ~99% no limite da task de background. Verde só vale
+com o exit code do pytest capturado.
+
+**As 8 falhas locais da metade B são PRÉ-EXISTENTES** —
+`test_category_cache_observability.py` (7) + `test_audit.py` (1). A/B contra `origin/main`
+reproduz **exatamente as mesmas 8**, e o CI do #1984 passou `Backend tests`. Fica escrito
+para ninguém as creditar a este PR. O A/B **não era formalidade**:
+`test_report_run_outcome.py` cai nessa metade, logo os 3 testes adicionados deslocaram a
+distribuição do xdist ali.
+
+**O closeout achou 3 coisas que eu não tinha visto** — 2 delas contra mim:
+
+1. **Sobre-crédito meu ao `PV13-18`.** Eu escrevera que esta lane fecha "metade" dele.
+   Fecha **zero**: `with_gap` faz o banner `return null`
+   (`ReportDataQualityBanner.tsx:73`) — troca afirmação falsa por **silêncio** —, e o
+   predicado do `PV13-18` é sobre o silêncio (*"nada na UI diz isso"*). Medido na mesma
+   passada: `RunContextLine` (`HistoryRow.tsx:27-73`) só lê `paused_at_stage` no ramo de
+   run **descartado**, então run `completed` que pausou e retomou devolve `null` também na
+   tela de pipeline. O que esta lane entrega ao `PV13-18` é **substrato** (o fato durável
+   já é lido, na mesma query), não fecho. Ele fica **sem dona** — decisão registrada na
+   trilha dele, para a `U6` não o redescobrir como novo.
+2. **`tags` declarava `status/open`** com `status: shipped` no campo. Corrigido.
+3. **O `RR9-21` afirma mais do que mediu** — os 4 achados que ele chama de `clareza-ux`
+   são 2 (`RR8-01`/`RR8-02`; este nasce de `saúde-execução` e o [[A40.l108]] de
+   `consistência`), e o defeito desta lane **não é observável em captura de viewport**,
+   porque a `CleanBar` não renderiza neste workspace. Emenda datada no registro.

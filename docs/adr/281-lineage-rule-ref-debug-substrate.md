@@ -5,7 +5,7 @@ title: "rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM
 status: Decidido
 phase: "A23 · F0"
 date: "2026-06-02"
-amended_at: ["2026-08-30", "2026-09-01"]
+amended_at: ["2026-08-30", "2026-09-01", "2026-09-02"]
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-111]]"
@@ -98,6 +98,10 @@ reabre a decisão.
 
 ## Emenda 2026-09-01 — o universo da cobertura é um roster de origens, não o payload de uma fonte (A27.l3)
 
+> ⚠️ **As duas justificativas de rejeição do schema, abaixo, são falsas como escritas** —
+> retificadas na emenda de 2026-09-02, que também declara `29,4%` como **teto**. A
+> decisão (roster, não schema) sobrevive; o motivo é outro.
+
 > **Sinal:** a tabela da emenda de 2026-08-30 publica **5/14 = 35,7%**. O número é o da
 > **fixture dogfood**, não o do E5. O denominador correto é **17** e a cobertura é
 > **29,4%** — leia esta emenda antes de citar aquela tabela.
@@ -138,3 +142,40 @@ crescia sozinho: raiz nova entrava na produção sem entrar no denominador.
 **Enforcers:** `dev/lineage_coverage.py` (`Roster` + CLI) · `tests/test_lineage_coverage.py`
 (gate + `test_o_denominador_publicado_nao_e_o_da_fixture`, o contrafactual que reprova o
 desenho anterior).
+
+## Emenda 2026-09-02 — a rejeição do schema estava certa pelo motivo errado, e `29,4%` é teto (closeout da A27.l3)
+
+> **Sinal:** a emenda de 2026-09-01 rejeita o schema E5 como fonte de universo por duas
+> pernas. **As duas caíram.** A conclusão não — mas quem citar aquele parágrafo como
+> evidência estará citando medição errada.
+
+**Perna (a) — "o schema não é superconjunto da produção; não declara `tributario`".** Falsa
+duas vezes. O [#1967](https://github.com/davidrobert/mathoms/pull/1967) declarou a raiz. E o
+resíduo (`consumo_consciente`, `goals`, `reserva_emergencia`) era **artefato do walker que
+produziu a medição**: ele não resolve `$ref`, e as três são `{"$ref": "#/$defs/..."}` com
+`number` declarado lá dentro. Com `$ref` resolvido, o schema-monetário é **18** e **é**
+superconjunto das 17 da produção.
+
+**Perna (b) — "declara `proventos_por_ativo`, que nenhum run emite ⇒ teto inalcançável".**
+A raiz tem produtor (`e5_analyzer_adapter.py:862` → `fiscal_source.proventos_summaries`),
+consumidor (`S3InvestimentosSection.tsx`) e teste e2e vivos. O que há é **zero** informe
+`proventos_acoes` em 312 informes **deste** workspace. Tratar "não emitido aqui" como "não
+pode ser emitido" é a conflação que a própria A27.l3 atacou, deslocada de *fixture vs.
+produção* para *este workspace vs. os workspaces*.
+
+**O motivo que sobrevive, e é outro:** o schema **não alcança `irpf_kpis`** —
+`properties.irpf_kpis` declara 5 campos (metadados) sem `additionalProperties: false`, e o E5
+emite 20, com todo o dinheiro entre os 15 não declarados. Piso declarado e chão medido têm
+buracos **diferentes**: o schema não vê `irpf_kpis`, o roster não vê workspace não medido. O
+universo defensável é a **união**, com cada raiz carregando de onde veio — não um dos dois
+disfarçado de universo.
+
+**`29,4%` passa a ser teto, não medida.** `_is_monetary_leaf` exige `int|float` e o E5
+serializa parte do dinheiro como string decimal (284 folhas no payload medido; `irpf_kpis` e
+`protecao_patrimonial` existem no denominador **só** por elas). Piso medido: **5/19 = 26,3%**.
+E `Roster.observing` não é monotônico — re-observar o mesmo rótulo com payload mais pobre
+encolhe o universo e **sobe** o número, com a suíte verde nos dois sentidos. Ambos em
+[[A27.l3]] §Deferimento datado 2026-09-02, dono `data-engineer`.
+
+**Correção de fato menor:** "38 raízes declaradas no schema" (emendas de 2026-08-30 e
+2026-09-01) são **39** desde o #1967.
