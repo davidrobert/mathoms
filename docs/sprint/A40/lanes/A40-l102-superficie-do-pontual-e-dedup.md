@@ -268,3 +268,9 @@ chromium+firefox+webkit), não a de imagem. As baselines `S2-{light,dark}` e a d
 são Linux/CI-parity e **não foram regeradas** — regerar em macOS produz baseline
 inútil, e o diff local do PDF é da 1ª página (capa + hero), que estes textos nem
 tocam.
+
+## Evidência de produção recebida da [[A42.l25]] (2026-09-01)
+
+O corpus `ws-1b9f2cf5` tem **48 receitas negativas** somando **R$ 9.993,86** — `PAGAMENTO EFETUADO`/estorno classificados como receita, que é exatamente o defeito que a [[ADR-429]] descreve e hoje só sustenta com fixture. Medido no fecho da [[A42.l25]] (#1965) ao decompor o eixo-valor E3→E4: as 48 explicam **100%** do Δ daquela perna (`2 × 999.386 = 1.998.772` cents, exato).
+
+Não é entrega desta lane — é o **denominador** que faltava para o gate `receita_total ≥ 0 ∧ ∀ por_fonte[*] ≥ 0` deixar de ser proposto sobre fixture.

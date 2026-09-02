@@ -21,21 +21,39 @@ from backend.app.services.report_run_outcome import (
 )
 
 
-async def _run(session, status: PipelineRunStatus, *, degraded_stage: str | None = None) -> str:
+def _workspace(session) -> str:
+    """ADR-371 — a FK de `pipeline_runs` exige o par materializado, não id sintético."""
     uid, wid = str(uuid.uuid4()), str(uuid.uuid4())
     session.add(User(id=uid, email=f"ro-{uid[:8]}@t.co", hashed_password="x", full_name="T"))
     session.add(Workspace(id=wid, name="WS", owner_id=uid))
-    run = PipelineRun(id=str(uuid.uuid4()), workspace_id=wid, status=status)
+    return wid
+
+
+def _degraded_log(run_id: str, stage: str) -> PipelineStageLog:
+    return PipelineStageLog(
+        id=str(uuid.uuid4()),
+        pipeline_run_id=run_id,
+        stage=stage,
+        status=PipelineStageStatus.degraded,
+    )
+
+
+async def _run(
+    session,
+    status: PipelineRunStatus,
+    *,
+    degraded_stage: str | None = None,
+    paused_at_stage: str | None = None,
+) -> str:
+    run = PipelineRun(
+        id=str(uuid.uuid4()),
+        workspace_id=_workspace(session),
+        status=status,
+        paused_at_stage=paused_at_stage,
+    )
     session.add(run)
     if degraded_stage:
-        session.add(
-            PipelineStageLog(
-                id=str(uuid.uuid4()),
-                pipeline_run_id=run.id,
-                stage=degraded_stage,
-                status=PipelineStageStatus.degraded,
-            )
-        )
+        session.add(_degraded_log(run.id, degraded_stage))
     await session.commit()
     return run.id
 
@@ -67,6 +85,40 @@ async def test_completed_com_stage_degradado_nao_autoriza(db):
     rid = await _run(db, PipelineRunStatus.completed, degraded_stage="generate_narratives")
     outcomes = await run_outcomes_for(db, [rid])
     assert outcomes[rid] is ReportRunOutcome.with_gap
+
+
+@pytest.mark.asyncio
+async def test_pausa_aprovada_com_avisos_nao_autoriza(db):
+    """A40.l105 — o run pausou, o humano DISPENSOU os avisos e retomou: não é limpo."""
+    # Sem este termo o desfecho era byte-idêntico ao de um run que nunca pausou —
+    # medido na U4 (6 avisos, 0 erros, pausa aprovada). A `CleanBar` do relatório só é
+    # gateada por `runOutcome`, então `complete` aqui vira afirmação falsa no PDF assim
+    # que o workspace não tiver documento em revisão para segurar o `SignalsAlert`.
+    rid = await _run(
+        db,
+        PipelineRunStatus.completed,
+        paused_at_stage="review_finances_holistic",
+    )
+    outcomes = await run_outcomes_for(db, [rid])
+    assert outcomes[rid] is ReportRunOutcome.with_gap
+
+
+@pytest.mark.asyncio
+async def test_a_pausa_e_o_termo_nao_a_decisao_da_conferencia(db):
+    """A decisão (`approve`/`edit`) não entra: o predicado é a PAUSA."""
+    # Chavear em `StageReview` custaria uma 3ª query e leria campo fail-open
+    # (`validation_issues` fica NULL quando a projeção falha) — calaria justamente o
+    # caso em que se sabe menos. Aqui não há review NENHUMA e o desfecho já é `with_gap`:
+    # é a evidência de que o resolvedor não depende da tabela de reviews.
+    rid = await _run(db, PipelineRunStatus.completed, paused_at_stage="extract_statements")
+    assert (await run_outcomes_for(db, [rid]))[rid] is ReportRunOutcome.with_gap
+
+
+@pytest.mark.asyncio
+async def test_run_que_nunca_pausou_segue_autorizando(db):
+    """Contra-prova: sem o par negativo, `paused is not None` passaria constante."""
+    rid = await _run(db, PipelineRunStatus.completed, paused_at_stage=None)
+    assert (await run_outcomes_for(db, [rid]))[rid] is ReportRunOutcome.complete
 
 
 @pytest.mark.asyncio
