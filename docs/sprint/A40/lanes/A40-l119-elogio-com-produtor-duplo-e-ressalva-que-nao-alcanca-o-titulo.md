@@ -20,8 +20,18 @@ tags: [type/lane, sprint/a40, status/open, priority/p2, area/backend]
 
 Os três compartilham o eixo da [[A40.l117]] — *o que o modelo escreve não é confrontado com
 o que a máquina sabe* — mas **não** entraram nela porque o `#1966` estava em voo sobre o
-arquivo dela quando esta lane foi aberta. Se a l117 fechar antes desta ser pega, a fusão é
-a decisão certa.
+arquivo dela quando esta lane foi aberta. ~~Se a l117 fechar antes desta ser pega, a fusão é
+a decisão certa.~~
+
+> **A condição se cumpriu e a fusão foi RECUSADA (2026-09-02, fecho da [[A40.l117]]).**
+> Absorver três follow-ups não iniciados reabriria aquela lane por tempo indeterminado, e
+> os três são self-contained — nasceram da medição do conserto da [[A40.l116]], não dela.
+> Esta lane segue pegável sozinha.
+>
+> ⚠️ **O item 3 abaixo mudou por causa daquela entrega.** Depois da [[ADR-438]],
+> `tema_canonico` nulo em `PontoForte` tem um **segundo** consumidor além do guard: o
+> destino de leitura, que sem tema cai no ramo `sintese` (S10). O `0 em 64` segue válido;
+> o que sobe é o custo de ele deixar de ser zero.
 
 ## 1. O elogio tem dois produtores, e o guard alcança um
 

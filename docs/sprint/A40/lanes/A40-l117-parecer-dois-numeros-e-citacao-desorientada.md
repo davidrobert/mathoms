@@ -4,7 +4,9 @@ type: lane
 title: "O parecer publica dois números para a mesma coisa, cita a seção errada em 4 de 11 riscos, e o prompt se contradiz sobre ter ferramentas"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1996
+ship_date: "2026-09-02"
 priority: P1
 branch_slug: a40-l117-parecer-dois-numeros-e-citacao-desorientada
 owner: prompt-engineer
@@ -550,10 +552,6 @@ Parecer do Planejador, em 13 de 33 itens. **Hoje isso passa; com título, é uma
 impressa.**
 
 
-<!-- Sem `ship_pr`: o campo declara que a LANE foi entregue, e só 1 dos 3 sintomas saiu.
-     O gate `lane-transition` reprova `ship_pr` com `status: open`, e está certo — a
-     entrega parcial se registra na prosa abaixo, não no frontmatter. -->
-
 ## Entrega parcial — sintoma 3 MERGEADO ([#1966](https://github.com/davidrobert/mathoms/pull/1966), `24a375eb`, 2026-09-01)
 
 **A lane segue `open`**, e o que resta é o **sintoma 2**.
@@ -701,3 +699,46 @@ era a exceção não declarada. As quatro passam a ser asseridas por **igualdade
   degrada** — ausência de sinal não é sinal.
 
 Canônica: [[ADR-438]].
+
+
+## Fecho (2026-09-02) — os três sintomas resolvidos, em 4 PRs
+
+| Sintoma | Desfecho |
+|---|---|
+| **3** — o prompt promete ferramenta que não existe | ✅ [#1966](https://github.com/davidrobert/mathoms/pull/1966) `24a375eb` — 8 sítios cortados, [[ADR-341]] §D5 revogada, [[ADR-203]] emendada, gate bicondicional |
+| **1** — dois números para renda fixa | ➡️ desmembrado para a [[A40.l120]] por arbitragem do `senior-cto`: é o único que move número publicado e exige rebaseline de golden |
+| **2** — o destino de citação | ✅ [#1996](https://github.com/davidrobert/mathoms/pull/1996) `1583cf97` — [[ADR-438]], destino derivado pela máquina |
+
+Registro (`ship_pr`) aponta o **#1996**, o último substantivo. Os outros dois foram
+[#1974](https://github.com/davidrobert/mathoms/pull/1974) (entrega parcial) e
+[#1990](https://github.com/davidrobert/mathoms/pull/1990) (closeout, 6 achados).
+
+### A [[A40.l119]] NÃO se funde nesta lane — decisão, não omissão
+
+Ela declara: *"Se a l117 fechar antes desta ser pega, a fusão é a decisão certa."* A
+condição se cumpriu (a l119 está `open`, sem pickup), e **decido não fundir**: absorver
+três follow-ups não iniciados reabriria a l117 por tempo indeterminado, e os três são
+self-contained — nasceram da medição do conserto da [[A40.l116]], não desta lane. A l119
+segue pegável sozinha.
+
+⚠️ **Mas a entrega desta lane MUDOU o item 3 dela.** A l119 §3 diz que `tema_canonico` é
+*"a única âncora que restou"* para o guard de autocontradição quando o campo é nulo em
+`PontoForte`. Depois da [[ADR-438]] ele tem um **segundo** consumidor: o destino de leitura,
+que sem tema cai no ramo `sintese` (S10). O `0 em 64` medido continua valendo — o que muda
+é o custo de ele deixar de ser zero, que agora atinge duas coisas. Anotado na l119.
+
+### Débito adjacente registrado e NÃO consertado
+
+O `metrica_key` do `parecer_planejador.schema.json` tem **13** chaves e `METRICA_KEYS` tem
+**14** — falta `imobilizacao_patrimonial`, criada pela [[ADR-420]] §D3 sem limiar nem card.
+Mesma classe de "enum copiado envelhece calado", **pré-existente**, e habilitá-la muda o que
+o modelo pode emitir: é decisão de domínio, não refactor de quem passava por perto.
+
+### O que esta lane produziu além do código
+
+Dos **4 critérios de aceite** do enunciado, **2 caíram por medição** — um era inerte
+(`number_in_prose` é telemetria sem comparador) e outro insatisfazível (`tema → section_id`
+não é função). E **5 afirmações minhas** foram refutadas ao longo dela: a citação não é
+link; a medição de raízes era circular; eram 8 superfícies e não 5 nem 7; a sonda não
+refutava a cascata (eu media cobertura global em vez de cobertura onde o default erra); e o
+título da S8 que digitei à mão contaminou 2 de 27 itens de um painel cego.
