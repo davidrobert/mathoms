@@ -13,7 +13,19 @@ Scrub global word-boundary sobre toda string E chave-de-dict cobre os vetores
 conhecidos (``top_ativos[].membro``, ``composicao[].categoria``,
 ``receita_datasets[].label``, chaves de ``por_fonte_detalhado``) E a cauda das
 seções que a tool devolve inteiras. ``valor``/número nunca é tocado ([[ADR-090]]).
-Identificadores (CPF/CNPJ) são redigidos como defesa em profundidade.
+
+**Cobertura exata deste módulo** ([[A40.l115]] — a redação anterior dizia
+"Identificadores (CPF/CNPJ) são redigidos", e a frase valeu como justificativa
+para ninguém medir o output):
+
+- por VALOR, via ``scrub_identifiers``: CPF e CNPJ na forma **crua**
+  (``123.456.789-09``). CPF **parcialmente mascarado** — as três formas que o
+  produto emite — **não** casa e chega ao provider;
+- por CHAVE, via ``_IDENTIFIER_KEYS``: exatamente ``apolice_numero``.
+
+Nada aqui mede o **output**. Quem redige o publicado é
+``pipeline.observability.view_model_pii``, aplicado na leitura de
+``/reports/{id}/data`` e de ``/planner-review``, e na escrita de ``suggestions``.
 """
 
 from __future__ import annotations

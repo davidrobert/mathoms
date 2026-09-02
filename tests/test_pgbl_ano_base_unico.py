@@ -126,7 +126,10 @@ def test_resolver_escolhe_ultimo_completo_e_nota_degradacao():
     assert resolved.nota_degradacao is not None
     assert "2024" in resolved.nota_degradacao
     assert "2025 incompleto" in resolved.nota_degradacao
-    assert _CPF_CONJUGE in resolved.nota_degradacao  # motivo do ano recente
+    # [[A40.l115]]: a nota é servida no payload e viaja ao provider pelo parecer —
+    # publica o NOME (que o sanitizer troca por papel no egresso), não o CPF.
+    assert "CONJUGE" in resolved.nota_degradacao  # motivo do ano recente
+    assert _CPF_CONJUGE not in resolved.nota_degradacao
 
 
 def test_resolver_sem_ano_mais_recente_nao_degrada():

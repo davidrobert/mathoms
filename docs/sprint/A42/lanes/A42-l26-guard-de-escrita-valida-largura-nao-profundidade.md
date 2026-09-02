@@ -8,7 +8,7 @@ priority: P1
 branch_slug: a42-l26-guard-de-escrita-valida-largura-nao-profundidade
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-212]]", "[[ADR-435]]", "[[ADR-409]]", "[[ADR-432]]"]
+adrs: ["[[ADR-212]]", "[[ADR-436]]", "[[ADR-409]]", "[[ADR-432]]"]
 tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
 ---
 
@@ -45,7 +45,7 @@ tem — mesma classe de [[A42.l24]].
 
 ## Medição de execução — 2026-09-01
 
-Decisão canônica: [[ADR-435]] (D1–D7), com emenda datada na [[ADR-409]] §B.
+Decisão canônica: [[ADR-436]] (D1–D7), com emenda datada na [[ADR-409]] §B.
 
 **O enunciado acertou a classe e errou dois números.**
 
@@ -126,7 +126,7 @@ ninguém tocar no teste. Payload mutado provaria só que o validador roda.
 
 - **Aperto do item de `e4_cashflow`/`e4_investimentos`** — é a rota mais barata para o
   primeiro flip do repo (melhor massa da fila, drift 0, 12 e 11 chaves de vocabulário
-  estável, todas já medidas na [[ADR-435]] D6). `owner: data-engineer`.
+  estável, todas já medidas na [[ADR-436]] D6). `owner: data-engineer`.
 - **6 nós indeclarados que sobram no `baseline_patrimonial`** — `_meta`, `resumo`,
   `validation`, `itens[]`, `informe_pf_saldos_31_12[]` e
   `imoveis_consolidados[]._dedup_warning`. A [[ADR-432]] os declarou com descrição em
@@ -146,5 +146,5 @@ ninguém tocar no teste. Payload mutado provaria só que o validador roda.
   precondição de flip, e reabrir a §Não-decisão dela seria supersedure parcial de
   cláusula viva.
 - **Assimetria write↔read:** o write passa a exigir grão; `dev/check_artifact_read_keys.py`
-  cobre chave de topo/bloco, não item. Dívida de classe conhecida ([[ADR-435]]
+  cobre chave de topo/bloco, não item. Dívida de classe conhecida ([[ADR-436]]
   §Consequências).

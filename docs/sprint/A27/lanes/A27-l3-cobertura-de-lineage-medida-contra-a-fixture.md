@@ -4,6 +4,7 @@ type: lane
 title: "A cobertura de lineage é medida contra a fixture e não contra a produção: três raízes monetárias ficam fora do universo do gate (a quarta era contagem lida como R$)"
 sprint: A27
 status: shipped
+ship_pr: 1971
 ship_date: "2026-09-01"
 priority: P1
 branch_slug: a27-l3-cobertura-de-lineage-medida-contra-a-fixture

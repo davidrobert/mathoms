@@ -429,7 +429,8 @@
 | ADR-432 | adr | Decidido |  | O contrato do baseline consolidado é re-derivado do produtor, e o ramo `declarations` da raiz é aposentado | `adr/432-contrato-do-baseline-consolidado-re-derivado-do-produtor.md` |
 | ADR-433 | adr | Decidido |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
 | ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
-| ADR-435 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/435-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
+| ADR-435 | adr | Decidido |  | O gate de PII mede o publicado, e a cobertura declarada é igual à medida | `adr/435-o-gate-de-pii-mede-o-publicado-nao-o-que-entra.md` |
+| ADR-436 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/436-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -918,7 +919,7 @@
 | A40.l112 | lane | open | A40 | Imóvel sem classificação nenhuma entra no numerador da concentração pelo `else`, e reclassificar um deles move o KPI de 82 para 0 | `sprint/A40/lanes/A40-l112-imovel-sem-override-cai-no-numerador.md` |
 | A40.l113 | lane | in_progress | A40 | A identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS: residência e imóvel gerador são publicados como zero | `sprint/A40/lanes/A40-l113-identidade-de-imovel-churna-classificador-falha-fechado.md` |
 | A40.l114 | lane | shipped | A40 | O ano de referência afirma um 31/12 que ainda não fechou, e o eixo zera imóveis, veículos e a dívida do titular | `sprint/A40/lanes/A40-l114-ano-de-referencia-sem-documento-atras.md` |
-| A40.l115 | lane | open | A40 | O sanitizer de PII mede o contexto de ENTRADA e nunca o output: o relatório publica CPF parcialmente mascarado e conta bancária completa | `sprint/A40/lanes/A40-l115-sanitizer-mede-a-entrada-e-publica-a-saida.md` |
+| A40.l115 | lane | shipped | A40 | O sanitizer de PII mede o contexto de ENTRADA e nunca o output: o relatório publica CPF parcialmente mascarado e conta bancária completa | `sprint/A40/lanes/A40-l115-sanitizer-mede-a-entrada-e-publica-a-saida.md` |
 | A40.l116 | lane | shipped | A40 | O guard de autocontradição do parecer erra a seção pela terceira vez, e o teste que o cobre importa a própria constante — cego por construção | `sprint/A40/lanes/A40-l116-guard-de-liquidez-erra-a-secao-e-o-teste-e-cego.md` |
 | A40.l117 | lane | open | A40 | O parecer publica dois números para a mesma coisa, cita a seção errada em 4 de 11 riscos, e o prompt se contradiz sobre ter ferramentas | `sprint/A40/lanes/A40-l117-parecer-dois-numeros-e-citacao-desorientada.md` |
 | A40.l118 | lane | open | A40 | Campo emitido sem consumidor pode carregar valor errado, e o gate de classe mede existência do leitor — nunca a corretude do número | `sprint/A40/lanes/A40-l118-valor-errado-em-campo-sem-leitor.md` |
