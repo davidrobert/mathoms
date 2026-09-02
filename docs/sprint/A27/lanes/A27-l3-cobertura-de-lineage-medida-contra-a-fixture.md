@@ -269,6 +269,21 @@ produção — sem isso o universo volta a ser só o que o CI mede.
 CI. Gate de calendário fica vermelho num dia arbitrário e bloqueia PR alheio; a re-observação
 é passo da rodada unificada, que é onde um run real acontece.
 
+### D4 ✅ — o próprio número publicado era lido como dinheiro pelo gate de golden
+
+Achado pelo **CI**, não pela suíte local: `check_golden_delta_declarado` reprovou o PR com
+*"value_delta monetário não-justificado: `cobertura_publicada.denominador` (+300 cents)"* — o
+denominador indo de 17 para 20 lido como R$ 0,17 → R$ 0,20. É a mesma classe de novo, agora
+sobre o **artefato desta lane**.
+
+O caminho barato era escrever um waiver no `rebaseline_manifest.yaml`. Não foi tomado: waiver
+é transitório, alguém tem de drená-lo, e o defeito ficaria. `cobertura_publicada.` entra em
+`_NON_MONETARY_NAMESPACES` — namespace, e não entrada exata, porque o marcador `_brl` na folha
+vence o bloco (o mesmo desenho que `score.` já usa), então um `cobertura_publicada.*_brl`
+futuro continua sendo dinheiro. Raio medido: `numerador`/`denominador` não existem em nenhum
+dos 515 nomes dos schemas, e os compostos do view-model
+(`autonomia_denominador_mensal_brl`, que **é** dinheiro) não são tocados.
+
 ### Fora do escopo desta lane, roteado
 
 `config/schemas/e5_analysis.schema.json` declara **5** campos em `properties.irpf_kpis` e o
