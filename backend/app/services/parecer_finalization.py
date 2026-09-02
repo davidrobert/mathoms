@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Mapping, Optional
 
 from backend.app.services.parecer_citation_catalog import ancora_format_hint
+from backend.app.services.parecer_section_route import resolve_destino
 from pipeline.llm.schemas.parecer_planejador import (
     Ancora,
     Metadata,
@@ -317,6 +318,32 @@ def _stamp_metrica(metrica: Metrica, drill: PlannerDrillDown, alvos: Mapping) ->
     )
 
 
+def _destino(item, e5_data: Optional[Mapping] = None) -> str:
+    paths = [a.path for a in getattr(item, "ancoras", None) or []]
+    secao, _passo = resolve_destino(
+        tema_canonico=getattr(item, "tema_canonico", None),
+        ancora_paths=paths,
+        metrica_key=getattr(item, "metrica_key", None),
+        e5_data=e5_data,
+    )
+    return secao
+
+
+def stamp_section_ids(
+    output: ParecerPlanejadorOutput, e5_data: Optional[Mapping] = None
+) -> ParecerPlanejadorOutput:
+    """A40.l117: o destino de leitura é derivado, não escolhido pela prosa."""
+    # Roda ANTES dos guardrails pós-LLM — o guard de Monte Carlo lê `section_id`, e lê-lo
+    # antes do carimbo era ler a escolha do modelo. O campo já saiu do contrato enviado a
+    # ele (``SkipJsonSchema``): aqui não há sobrescrita de autoria, há preenchimento.
+    campos = ("riscos", "pontos_fortes", "metricas", *_SUGESTAO_HORIZONS_FINAL)
+    return output.model_copy(update={c: _carimba(getattr(output, c), e5_data) for c in campos})
+
+
+def _carimba(itens: list, e5_data: Optional[Mapping] = None) -> list:
+    return [i.model_copy(update={"section_id": _destino(i, e5_data)}) for i in itens]
+
+
 def stamp_metrica_targets(
     output: ParecerPlanejadorOutput, drill: PlannerDrillDown, alvos: Mapping
 ) -> ParecerPlanejadorOutput:
@@ -350,6 +377,8 @@ def finalize_output(
         update={"metadata": metadata, **_capped_horizons(output, workspace_id)}
     )
 
+
+_SUGESTAO_HORIZONS_FINAL = ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas")
 
 _PLACEHOLDER_PONTO = PontoForte(
     titulo="placeholder",
