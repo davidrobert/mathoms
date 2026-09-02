@@ -41,7 +41,7 @@ Previdência.**
 
 ## As duas causas
 
-1. **Decisão de domínio não declarada.** `alocacao_alvo_deviation.py:18`
+1. **Decisão de domínio não declarada.** `alocacao_alvo_deviation.py:17`
    (`_BUCKET_TO_COMPARABLE`) mapeia `"Previdência" → "renda_fixa"`: **toda** previdência
    vira renda fixa. PGBL/VGBL é *wrapper*, não classe — o subjacente pode ser multimercado
    ou ações. O `rotulo` diz só "Alocação em renda fixa (carteira líquida)" e **não declara**
@@ -109,3 +109,89 @@ modelo não recebe ou que um hint contradiz?*
    ([[ADR-238]]) provavelmente já traz o insumo para classificar — e aí o rótulo muda junto
    com a regra.
 6. Golden rebaselinado em **commit separado** do commit de lógica.
+
+
+## Veredito de domínio (2026-09-02) — critério 5 respondido
+
+**Decisão: (a) com qualificação obrigatória.** Previdência **permanece** agregada em
+`renda_fixa` no comparável — mas pelo critério da própria [[ADR-141]] §Emenda, não por
+consenso metodológico: o bucket que já saiu da carteira líquida (imóveis) saiu por **não
+ser rebalanceável por aporte**, e previdência **é** (redirecionar contribuição e
+portabilidade são as duas alavancas mais baratas do público-alvo).
+
+**Nenhuma das três metodologias de referência afirma que previdência É renda fixa** — duas
+mandam classificar pelo subjacente e uma a trata como sucessão/proteção. O default é
+aproximação de conveniência, e é exatamente por isso que ele **tem** de estar escrito.
+
+**(b) classificar pelo subjacente — REJEITADA por falta de insumo, verificada:**
+`informe_previdencia.schema.json` e o extrator têm certificado, regime, contribuições,
+saldos e IR — **zero** campo de fundo ou composição. E `asset_classifier.py:32-45` põe
+`Previdência` **antes** de `acoes`/`renda fixa` no `EVALUATION_ORDER`, então o sinal do
+subjacente, quando existe no nome, é descartado por desenho. Não é "lane de ingestão": é
+ingestão de **outro documento** (regulamento/extrato do plano), com cobertura incerta.
+
+**(c) tirar do comparável — REJEITADA:** encolher o denominador infla o `atual_pct` de
+**todas** as demais classes — troca um viés declarável por um viés difuso em quatro linhas.
+
+### Correção de citação que este veredito produziu
+
+O mapping está em `alocacao_alvo_deviation.py:**17**`; a linha 18 é `"Ações BR"`. Eu havia
+escrito `:18` em **4 sítios** (registro `§r13`, `_README` da A40, lane l117 e esta) —
+corrigidos.
+
+## O que foi entregue
+
+1. **Projeção** (critério 1) — `$.goals.alocacao_alvo.derived` entra na seção `patrimonio`
+   com a base na label. Medido num run real: `renda_fixa_atual_pct` = **94,39%** chega ao
+   exec context, na seção **mantida**, e a eviction não muda.
+2. **Rótulo** — o KPI passa a *"Alocação em renda fixa, previdência inclusa (% da carteira
+   líquida)"*, e o hint do manifest declara que a linha `Previdência` da tabela é
+   **subconjunto** do KPI.
+3. **Gate de coerência** (critérios 2-4) — `parecer_prose_coerencia.py`. Tolerância =
+   **meio passo da precisão escrita**, semântica que `half_step_cents` projetava e nunca
+   exerceu. Rebaixa o **item**, nunca derruba o parecer ([[ADR-292]]).
+
+### Atribuição: apertada por medição, não por gosto
+
+A 1ª versão disparou **11 vezes** no corpus real e **7 eram outra coisa** — as demais
+linhas da tabela de classes e um **limiar de meta** lido como afirmação. Apertei para *"o
+percentual mais próximo do termo, na mesma cláusula"*, e a janela é **medida**:
+verdadeiro-positivo cai em **13-37** chars da menção, falso em **48-307**. O corte a 40
+fica dentro do vão — e é o vão que justifica o número. Resultado: **5 divergências, 2
+riscos rebaixados**, incluindo as 3 do defeito-alvo (90,25% vs 94,4%) e 2 de
+`aliquota_efetiva_ir` que a medição revelou de quebra.
+
+### Limites declarados
+
+- **O percentual não é citável.** O catálogo de citação é *money-only* (`_is_money_key`),
+  então `renda_fixa_atual_pct` é **projetado e legível, não ancorável**. O hint diz "sai
+  de", não "cite" — a regra de âncora vale para `R$`. Torná-lo ancorável é território da
+  [[ADR-296]], não desta lane.
+- **O corpus sintético não tem `derived`**, então as 6 folhas novas entraram em
+  `paths_projetados_sem_dado_no_corpus` (que já tinha 38). O golden não exercita o bloco
+  novo; a prova do critério 1 é o **run real**, como a lane exige.
+
+## Roteado, NÃO entregue: o guarda de flip
+
+O veredito nomeia um segundo defeito, e ele **muda cálculo**, logo exige ADR própria:
+`_next_aporte` só considera classes com `desvio_pp < 0`, então todo workspace cujo desvio
+de RF esteja em `(0, +prev_pct]` tem RF **desqualificada** como destino do aporte quando,
+pelo subjacente, ela está *subalocada*. Neste corpus `prev = 4,14` e as bandas de
+severidade são 2/5 pp — **a faixa de flip cobre uma banda inteira**.
+
+Decisão de uma linha que a ADR registraria:
+
+> *A prescrição de próximo aporte é suprimida quando o default de classificação inverte o
+> sinal do desvio de renda fixa — teste de sinal sobre números já computados, sem limiar
+> novo.*
+
+Fica fora desta lane porque move `next_aporte_classe`/`motivo_supressao` e exige rebaseline
+de golden com contrafactual de duas pernas.
+
+## Achado adjacente: `componentes` é emissor sem leitor
+
+`AlocacaoComparableRow.componentes` carrega `["Renda Fixa", "Previdência"]`, atravessa
+schema e o tipo do front (`alocacaoCardParts.tsx:16`) — e **nenhum componente React o
+renderiza**. É a classe que a [[A40.l88]] fechou. Ligar o fio daria ao card o label
+derivado ("Renda Fixa + Previdência") sem inventar dado. Fora do escopo — é frontend, e a
+lane é do parecer.

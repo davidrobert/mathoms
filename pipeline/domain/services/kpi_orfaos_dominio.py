@@ -98,7 +98,14 @@ _ORFAOS_DOMINIO = (
         "$.goals.alocacao_alvo.derived.renda_fixa_atual_pct",
         "carteira_liquida",
         "pct",
-        "Alocação em renda fixa (carteira líquida)",
+        # A40.l120: o rótulo declara a agregação. `_BUCKET_TO_COMPARABLE` soma
+        # `Previdência` dentro de `renda_fixa` (`alocacao_alvo_deviation.py:17`) e o nome
+        # antigo não dizia — o modelo reconstruía a fatia pela tabela de composição, que
+        # é outra base, e os dois números iam para a mesma seção. Nenhuma das três
+        # metodologias de referência afirma que previdência É renda fixa; o default se
+        # sustenta pelo critério da [[ADR-141]] §Emenda (rebalanceável por aporte), e é
+        # por isso que ele precisa estar escrito em vez de suposto.
+        "Alocação em renda fixa, previdência inclusa (% da carteira líquida)",
         "desvio de alocação é bidirecional e soma zero entre classes; acompanhado por "
         "severidade e destino do próximo aporte, no card Alocação · Atual vs Alvo",
     ),
