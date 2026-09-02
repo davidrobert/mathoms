@@ -72,6 +72,10 @@ numérico além de `pontos_revisao`; zero tocam `*_brl` ou `valor`.
 
 Com isso o denominador honesto é **17**, e a cobertura publicada cai de **35,7% → 29,4%**.
 
+> Os números desta seção são a medição de **2026-09-01** e ficam como registro datado. O
+> closeout do dia seguinte achou que `29,4%` também era otimista — denominador **20**,
+> cobertura **25,0%**. Ver §Fecho.
+
 ## O universo: roster de origens, não o que uma fonte emite
 
 A A27.l2 derivava o universo do payload da fixture — o que estava certo como *mecanismo* e
