@@ -174,7 +174,10 @@ condição de parada.
 > a causa era o ano-base, não a identidade ([[ADR-433]]). Um gate por contagem teria
 > ficado **verde sobre o maior erro do run**. O gate certo mede **efeito**: balde publicado
 > como zero havendo evidência contrária viva no workspace (override `residencia_principal`
-> gravado; `dividas[]` não-vazia). A disposição está na §Critérios da lane.
+> gravado; override `locado` gravado). A disposição está na §Critérios da lane. ⚠️ **2026-09-02:**
+> a perna `dividas[]` não-vazia, que este parágrafo listava, **já é enforçada** — a
+> [[A40.l114]] shipou `_assert_total_coerente` no #1961; sobram as duas pernas
+> patrimoniais.
 >
 > **Não entram na cláusula** as outras três lanes novas de A40 ([[A40.l115]] PII no output,
 > [[A40.l116]] guard de seção, [[A40.l117]] prosa do parecer): nenhuma muta E3/E5 — são
