@@ -215,6 +215,12 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 >
 > **KR-B:** segue **não-mensurável** — o critério é `entregue=0` e o run publica `entregue
 > 7 · sombra 317`, idêntico à `U4`.
+>
+> **Atualização 2026-09-01 — a [[A42.l25]] fechou e a premissa do `LC9-07` caiu.** O
+> sinal citado no bullet dela acima é o do **detalhe**; o **campo** publicava destino
+> **menor** (`out − in = −1.998.772`), que é a assinatura de perda. Registro da rodada
+> preservado — medição em [[A42.l25]] §*O que a medição REFUTOU do próprio enunciado*.
+> O `KR-B` da linha acima é o **da [[A40]]** (`LC9-08` do §r9), não o desta sprint.
 
 > ### ⚠️ A rodada unificada `U4` (2026-08-30) abriu 2 achados **da classe que fecha esta sprint**
 >
@@ -248,6 +254,14 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 > a `U5`**: com o produtor declarando, o eixo-valor é medível, mas `conservado` só sai se
 > a soma do destino fechar no corpus real. **Não releia o parágrafo acima como estado
 > corrente** — ele é medição da `U4`.
+>
+> **Atualização 2026-09-01 — o critério 3 tem METADE da resposta.** A [[A42.l25]]
+> (#1965 · [[ADR-434]]) fez a soma do destino **fechar no corpus real**:
+> `Δvalor(destino−origem) = 0`, re-medido contra a `main` de 2026-09-02. Isso remove a
+> causa do rebaixamento de **`fluxo_caixa`**, que derivava direto desta perna. **Não**
+> responde por `reserva_emergencia`: ela *herda de `fluxo_caixa` + `investimentos`*, e
+> `investimentos` segue `coberto-sem-verificação-de-valor` por motivo alheio a esta
+> perna. Veredito de bloco é publicado por **rodada**: quem fecha o critério 3 é a `U6`.
 
 **Rito de abertura (auditoria 2026-08-14).** O gate acima fecha a sprint. A
 **promoção** (`[[A40]] → done`) começa com `parse-certify` r3 + `ledger-certify` r5
