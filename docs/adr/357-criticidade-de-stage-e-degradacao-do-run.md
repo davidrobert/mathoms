@@ -12,6 +12,7 @@ relates_to:
   - "[[ADR-212]]"
   - "[[ADR-297]]"
   - "[[ADR-291]]"
+  - "[[ADR-119]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 357", "stage criticality", "partial_failure alcancavel"]

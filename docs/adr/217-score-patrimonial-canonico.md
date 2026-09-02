@@ -5,6 +5,7 @@ title: "Score patrimonial canônico — composição, fórmula e ciclo de vida"
 status: Decidido
 phase: A12
 date: "2026-05-15"
+amended_at: ["2026-09-02"]
 relates_to:
   - "[[ADR-076]]"
   - "[[ADR-097]]"
@@ -28,6 +29,14 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda de retratação parcial ([[ADR-437]], 2026-09-02):** a §D2 governa `absent_normalized`
+> — dado que o **usuário não declarou** — e continua valendo integralmente ali, penalidade
+> natural incluída. Ela **não** alcança o estado `suprimido` (dado que existe e o pipeline não
+> conseguiu apurar), criado pela [[A40.l114]]: nesse caso o peso **sai** do denominador, e um
+> `score.piso` publicado impede que a supressão eleve o número. Esta emenda **aponta**; quem
+> decide é a [[ADR-437]]. **Ratificado e intacto:** a composição, a fórmula, o ciclo de vida,
+> o enum `status` com os três membros originais e a penalidade natural de `absent_normalized`.
 
 ## Contexto
 
@@ -242,3 +251,20 @@ PR único, escopo:
 - [ ] `score_version: "1.0"` presente em todo emit.
 - [ ] Renderer S1 não usa mais o guard `{score && ...}` defensivo.
 - [ ] Golden no workspace 5@5.com não regride.
+
+## Emenda 2026-09-02 — a §D2 não alcança o estado `suprimido`
+
+A [[A40.l114]] mediu um caso que a §D2 não tinha em mãos: `endividamento.total_dividas`
+publicado **zero** com quatro financiamentos listados, e `taxa_endividamento` creditando
+**nota 10,0** com peso de 18,8%. O dado existia nos documentos entregues; o pipeline é que
+não conseguiu lê-lo.
+
+A §D2 recusa re-normalização porque a penalidade **incentiva onboarding** — o usuário
+declara o que falta e o score sobe. Esse argumento não se transporta: sobre passivo que o
+produto não leu, o usuário **não tem ação disponível**, e a penalidade vira punição por
+defeito nosso.
+
+O que muda está na [[ADR-437]] (`status: "suprimido"`, peso fora do denominador,
+`score.piso`, componente visível com `nota: null`). O que **não** muda: `absent_normalized`
+e `absent_penalized` seguem exatamente como esta §D2 os definiu, e o incentivo de onboarding
+continua sendo a régua deles.

@@ -16,6 +16,8 @@ tags: [type/lane, sprint/a40, status/open, priority/p1, area/backend]
 # A40.l120 — `previdencia-dobrada-em-renda-fixa`
 
 > **Origem:** desmembrada da [[A40.l117]] por arbitragem do `senior-cto` (2026-09-01).
+> Dona registrada no [[PIPELINE-REVIEWS-active]] §r13 `PV13-08` em 2026-09-02 — a linha
+> nascera com a l117, e lá também está a refutação do enunciado causal dela.
 > Era o "sintoma 1" daquela lane (`RR9-08`/`PV13-08` da **U5**). Sai porque é o único dos
 > três que **move número publicado** e exige rebaseline de golden + veredito de domínio —
 > misturá-lo com mudança de contrato de LLM tornaria o diff do golden inatribuível.

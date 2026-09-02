@@ -34,6 +34,14 @@ fila**), [[ADR-432]] D4/D5 (fecho da raiz e completude por igualdade de conjunto
 ADR os estende ao item), [[ADR-427]] D3/D5 (dois produtores, um arquivo),
 [[ADR-284]] (modo `warn`/`strict`), [[ADR-212]] (validação pós-write).
 
+> **Nota de identidade (2026-09-02).** Esta ADR nasceu `ADR-433` e renumerou
+> **duas vezes** antes de mergear — `433` → `435` → `436` — porque três lanes
+> paralelas alocaram ID na mesma janela e mergearam primeiro. O título do
+> commit-merge de [#1968](https://github.com/davidrobert/mathoms/pull/1968)
+> (`e3f595a7`) ficou congelado em `ADR-435`, que hoje pertence à [[A40.l115]].
+> Quem chegar aqui por aquele commit está no lugar certo; o número no título dele
+> é que está velho.
+
 ## Contexto
 
 A [[ADR-432]] fechou a **raiz** do `baseline_patrimonial`: 15 chaves declaradas,

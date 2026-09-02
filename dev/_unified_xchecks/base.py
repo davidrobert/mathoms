@@ -27,9 +27,14 @@ def _rotulo(n_comparado: int, n_esperado: int, divergentes: int, n_falsificavel:
 
 def _cobertura(n_falsificavel: int, n_comparado: int) -> str:
     """Fracao da populacao examinada que podia REPROVAR."""
-    # `FECHA` sobre 10% nao e o mesmo fato que `FECHA` sobre 100%.
+    # `FECHA` sobre 10% nao e o mesmo fato que `FECHA` sobre 100%. Acima de 100%
+    # o call-site contou em OUTRA unidade (o `X2` passou celula contra denominador
+    # de balde e imprimiu "76300%"); razao impossivel sai nomeada, nunca como
+    # numero — porcentagem absurda e lida como ruido e some.
     if n_comparado <= 0:
         return "—"
+    if n_falsificavel > n_comparado:
+        return "⚠️ UNIDADE DIVERGE de n_comparado"
     return f"{100.0 * n_falsificavel / n_comparado:.0f}%"
 
 
