@@ -9,7 +9,7 @@ priority: P1
 branch_slug: a40-l117-parecer-dois-numeros-e-citacao-desorientada
 owner: prompt-engineer
 depends_on: []
-adrs: ["[[ADR-199]]"]
+adrs: ["[[ADR-199]]", "[[ADR-203]]", "[[ADR-341]]"]
 tags: [type/lane, sprint/a40, status/open, priority/p1, area/backend]
 ---
 
@@ -546,3 +546,43 @@ Nunca a inversa: renderizar o título hoje publicaria *"Real Estate — Imóveis
 Passiva"* em cima de um risco de seguro de vida, e *"Parecer do Planejador"* dentro do
 Parecer do Planejador, em 13 de 33 itens. **Hoje isso passa; com título, é uma denúncia
 impressa.**
+
+
+<!-- Sem `ship_pr`: o campo declara que a LANE foi entregue, e só 1 dos 3 sintomas saiu.
+     O gate `lane-transition` reprova `ship_pr` com `status: open`, e está certo — a
+     entrega parcial se registra na prosa abaixo, não no frontmatter. -->
+
+## Entrega parcial — sintoma 3 MERGEADO ([#1966](https://github.com/davidrobert/mathoms/pull/1966), `24a375eb`, 2026-09-02)
+
+**A lane segue `open`**, e o que resta é o **sintoma 2**.
+
+### Saiu no #1966
+
+As **7** superfícies model-facing pararam de prometer ferramenta que o transporte não
+expõe. [[ADR-341]] §D5 **revogada** (o objetivo dela já era entregue por `_classify_campo`,
+determinístico e sobre universo maior) e [[ADR-203]] emendada (D1/D2/D4 decidiram um
+transporte que nunca chegou ao código). O bloco `tools:` do YAML **ficou** — não é
+model-facing, tem 6 consumidores server-side, e apagá-lo derrubaria dois gates. Gate novo:
+`tests/dev/test_prompt_capability_parity.py`, bicondicional, com os 4 canais provados por
+**mutação do produtor** e asserção de precondição contra vacuidade no canal de eviction.
+
+Versões no mesmo PR (`PROMPT_VERSION` 2.5.0 · persona 1.2.0 · manifest 2.19.0) porque as
+três compõem `compute_cache_key` — separá-las cobraria a frota **três vezes** pela mesma
+correção. Budget reconferido pelo tripwire: **−1,58%**.
+
+### O que fica, e por que não foi junto
+
+O **destino de citação**. Decidido (a máquina autora; o mapa deriva do layout via
+`card_id`), mas **bloqueado por três precondições** nomeadas acima:
+
+1. admitir `S_PROTECAO` restrito a `metrica`/`ponto_forte` — sem isso o caso da métrica de
+   proteção é **insolúvel por construção**;
+2. declarar `Diagnóstico de dados` → **S2** — enquanto for `S_parecer`, o produtor publica
+   **auto-ponteiro**, que manda o leitor para a seção que ele já está lendo;
+3. **resolver a divergência de ORDEM da cascata** (tema-primeiro × âncora-primeiro) — o
+   item que a decidiria foi contaminado pelo título falso da S8 que eu digitei, então o
+   painel de domínio nunca comparou com o destino certo. Precisa de rodada nova, com agente
+   que **não** tenha lido esta lane.
+
+O sintoma 1 saiu para a [[A40.l120]] (renumerada duas vezes: `l118` e `l119` foram tomadas
+por outras lanes enquanto o #1966 esperava na fila de merge).
