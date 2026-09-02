@@ -176,7 +176,7 @@ listados, logo `liquido == bruto`) caem pela **mesma linha**. Isso refuta duas a
 > **PR #1962 (`c551e832`) mergeado em 2026-09-01** com [[ADR-433]] `Proposto`. A lane segue
 > `in_progress`: 2 dos 4 critérios entregues, 1 substituído e 1 medido como inexequível.
 
-A [[ADR-433]] (`Proposto`) carrega a decisão. Dois critérios desta lane **não sobrevivem
+A [[ADR-433]] (`Decidido`) carrega a decisão. Dois critérios desta lane **não sobrevivem
 à medição como escritos** — registrado aqui para que a prescrição errada não se propague.
 
 | # | critério original | disposição |
@@ -197,7 +197,17 @@ O gate certo mede o **efeito**, não a contagem: *balde publicado como zero have
 evidência contrária viva no workspace* — `residencia == 0` com override
 `residencia_principal` gravado; `imoveis_geradores == 0` com override `locado` gravado;
 `total_dividas == 0` com `dividas[]` não-vazia. Não é gameável e não tem limiar
-arbitrário. **Não entregue nesta rodada** — ver §Deferimento.
+arbitrário.
+
+> ⚠️ **Atualização 2026-09-02 — a terceira cláusula JÁ FOI ENTREGUE, por outra lane.** A
+> [[A40.l114]] shipou `_assert_total_coerente`
+> (`pipeline/domain/services/endividamento_analyzer.py:106`, chamada em `:260`, no caminho
+> de publicação) no **#1961** (`3942de2f`) — mergeado **depois** do #1962 e **antes** do
+> closeout #1972, por isso passou batido nas duas primeiras passadas. Restam as **duas**
+> cláusulas patrimoniais. Quem pegar o item 2 do §Deferimento **não reimplemente a perna de
+> dívida** — e note o que ela **não** cobre: exige `soma_itens > 0` (lista cujos itens
+> somam zero legitimamente não dispara) e vale só para dívida, porque o balde de imóvel não
+> tem leitor-espelho para contradizer o agregado.
 
 ### O que foi entregue
 
@@ -209,16 +219,20 @@ arbitrário. **Não entregue nesta rodada** — ver §Deferimento.
   contra 89% da contagem — a contagem sozinha mente).
 - Regressão com **A/B provado**: 4 dos 8 testes reprovam contra o produtor anterior.
 
-## Deferimento datado — 2026-09-01
+## Deferimento datado — 2026-09-01 (revisto em 2026-09-02)
 
-Três itens ficam abertos, com condição de retomada explícita. Nenhum é bloqueado por
+Quatro itens ficam abertos, com condição de retomada explícita. Nenhum é bloqueado por
 decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
 
 1. **Supressão do agregado** — `residencia`/`imoveis_geradores` saindo `null` + motivo em
    vez de `0,00` quando a fatia desconhecida cruza a escada da [[ADR-353]]. Precondição:
    `e5_analysis.schema.json` e `frontend/src/types/report-analysis.ts` aceitarem `null`
    no balde. Dono: [[A40.l113]] (PR seguinte).
-2. **Gate por efeito** (substituto do critério 2, especificado acima). Dono: [[A40.l113]].
+2. **Gate por efeito** (substituto do critério 2), **reduzido a 2 de 3 cláusulas** em
+   2026-09-02: a de dívida foi entregue pela [[A40.l114]] (#1961). Restam
+   `residencia == 0` com override `residencia_principal` gravado e
+   `imoveis_geradores == 0` com override `locado` gravado — nenhum commit posterior a
+   `c551e832` tocou `patrimonio_imovel_classifier.py`. Dono: [[A40.l113]].
 3. **Âncora estruturada** (critério 3) — medido como **inexequível com o contrato
    vigente**: `e15_baseline_extract.schema.json` tem `itens[]` com
    `additionalProperties: false` e nenhum campo de matrícula, inscrição municipal ou
@@ -226,6 +240,16 @@ decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
    ficha de Bens e Direitos já traz separados. Retomada exige PR0 de schema (campo
    opcional declarado **antes** do produtor) + escolha do campo por **cobertura medida no
    corpus**, no molde da [[A42.l15]]. Dono: sem dono — precisa de lane própria.
+
+   > ⚠️ **Correção de rota (2026-09-02, após o #1968 / [[ADR-436]] D1).** A
+   > precondição são **dois** contratos, não um: o item de `imoveis_consolidados[]`
+   > em `baseline_patrimonial.schema.json` passou de aberto a
+   > `additionalProperties: false` + `required`, e é gateado por
+   > `tests/test_baseline_grao_do_item_gate.py`, que **roda o produtor**. A âncora tem
+   > de trafegar até o item consolidado — é de lá que `property_identity_enricher`
+   > monta a `PropertyLookupKey` —, então declarar só no schema de origem deixa o PR0
+   > com gate vermelho e write abortado em `strict`. É o mesmo padrão que a
+   > [[A42.l15]] seguiu com `cnpj_emissor`, declarado nos **dois** schemas.
 
 4. **`codigo_rfb` com dois produtores** — `scripts/consolidate_baseline.py` grava
    `bem["grupo"]` num sítio e `item["codigo"]` noutro, e a grafia `01-11` vs `11` entre
