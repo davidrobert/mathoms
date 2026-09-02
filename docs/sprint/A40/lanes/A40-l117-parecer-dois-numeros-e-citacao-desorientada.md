@@ -636,3 +636,68 @@ A `l119` declara: *"Se a l117 fechar antes desta ser pega, a fusão é a decisã
 l117 **não** está fechando — segue `open` pelo sintoma 2 —, então a condição não se cumpre
 e não há fusão a fazer **agora**. Fica registrado para o próximo closeout: quem fechar a
 l117 tem de decidir sobre a `l119` no mesmo ato.
+
+
+## Sintoma 2 ENTREGUE (2026-09-02) — as 3 precondições caíram por medição
+
+### A rodada cega nova respondeu a precondição 3, e os dois painéis convergiram na ORDEM
+
+Dois especialistas **novos**, proibidos de ler esta lane, sobre os **4 casos** em que tema e
+âncora discordam (de 19 itens com âncora). Ambos decidiram **tema primeiro, âncora como
+desempate** — e o desempate não é livre: entra numa **allowlist de raízes com sede visual
+única**, critério objetivo e auditável (a raiz é renderizada por **um** card). Raiz de
+armazenamento (`$.investimentos`, `$.patrimonio`, `$.ratios`, `$.fluxo_caixa`) fica fora.
+
+*"Âncora primeiro" está errado e o caso 1 é a prova:* mandaria um item de renda passiva
+para a carteira financeira pelo estoque, e o leitor abriria a seção que não tem meta,
+progresso nem TRS.
+
+**Divergiram nos casos 2/4** (`Alocação` ancorado em imóvel) e a medição arbitrou a favor
+do domínio, verificada no código:
+
+- `InvestimentosClasseCard` — o **único** que exibia `total_imoveis_investimento` — **não
+  é montado em seção nenhuma** (substituído em A11).
+- `AlocacaoAtualVsAlvoCard` (S3) declara imóvel físico **fora** da base que compara.
+- `RealEstateYieldCard` (S4) publica `concentracao_pct`, que é o peso que o leitor procura.
+
+Mandar à S3 mandaria o leitor a uma seção que diz *"isto não está aqui"*. Vai para a **S4**,
+por prefixo fundo na allowlist.
+
+### Precondições 1 e 2, resolvidas
+
+- **`S_PROTECAO`** entra no vocabulário do parecer, restrita a `metrica`/`ponto_forte`.
+  Medido: `protecao_custo_premio` **só tem destino honesto ali** — é medida do
+  **contratado**, e a S9 é a seção da **lacuna**. Segue fora de `VALID_SECTION_IDS` (as
+  regras determinísticas emitem `SuggestionCallout`, que a S_PROTECAO não tem).
+- **`Diagnóstico de dados` → S2**, pelo card `despesas_doughnut` — o leitor vê o buraco de
+  cobertura no fluxo, não num auto-ponteiro.
+
+### Resultado no corpus real (run `40d1af2a`, 33 itens)
+
+| | Antes | Depois |
+|---|---|---|
+| riscos de `Proteção` | **S4** (×2) | **S9** (×2) ✅ |
+| S9 ("Riscos e Sucessão") | **0** itens | **4** itens |
+| S4 | 5 | 2 (só os ancorados em imóvel) |
+| `S_parecer` (terminal) | 1 | **0** ✅ |
+| itens que mudaram de destino | — | 24 de 33 |
+
+### Um achado que a própria entrega produziu
+
+Ao adicionar `S_PROTECAO` ao `Literal` do Python, **a suíte inteira passou verde** — porque
+o teste de vocabulário lê o **JSON schema**, e o `SectionId` é copiado à mão em **4**
+lugares (Python, JSON, DTO do backend, união TS). As outras três envelheceram caladas. É a
+patologia que o comentário do `MetricaKey` nomeia no mesmo arquivo, e da qual o `SectionId`
+era a exceção não declarada. As quatro passam a ser asseridas por **igualdade de conjunto**.
+
+### O que a entrega também fechou
+
+- **Guard de Monte Carlo desconjungido** — âncora MC basta por si. Enquanto o campo era do
+  modelo, item ancorado em MC rotulado S1/S3 **escapava do rebaixamento, calado**.
+- **`Ancora.valor_renderizado` e `.label`** saem do contrato do modelo — o follow-up de
+  entrada da [[A42.l24]], absorvido, com o mesmo argumento da [[ADR-399]] D1.
+- **Degradação declarada:** seção oculta é destino morto, e apontar para ela é pior que o
+  estado anterior. S4→S1, S_IRPF_*→S8, S_PROTECAO→S9. Sem payload para julgar, **não
+  degrada** — ausência de sinal não é sinal.
+
+Canônica: [[ADR-438]].

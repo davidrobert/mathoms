@@ -57,9 +57,19 @@ SectionId = Literal[
     "S_IRPF_OTIMIZACAO",
     "S9",
     "S10",
+    # Destino de LEITURA de métrica/ponto forte sobre cobertura CONTRATADA. A seção é
+    # renderizada (`S_ProtecaoSection.tsx`); o que não existe nela é `SuggestionCallout`,
+    # e por isso ela segue fora de `VALID_SECTION_IDS` — o vocabulário das regras
+    # determinísticas, que emitem callout. Risco e sugestão de proteção continuam indo
+    # para a S9, que é a seção da LACUNA (eixo declarado no layout, A40.l7).
+    "S_PROTECAO",
     "S_parecer",
     "plano_de_acao",
 ]
+
+# Terminal da cascata de destino (A40.l117): "este assunto vive no próprio parecer".
+# Nunca mente — a seção existe e hospeda o item —, e o render suprime o auto-ponteiro.
+_DESTINO_FALLBACK = "S_parecer"
 UnidadeImpacto = Literal["ano", "mes"]
 # ADR-220: tipagem semântica do impacto. Evita confundir fluxo anual (R$/ano)
 # com patrimônio-alvo (R$ estoque pela regra 25× IF).
@@ -150,8 +160,11 @@ class Ancora(BaseModel):
 
     path: EvidenciaPath = None
     rotulo: Rotulo = None
-    valor_renderizado: Optional[str] = None  # escrito pelo finalize, não pelo LLM
-    label: Optional[str] = None  # texto do chip; escrito pelo finalize (A40.l49)
+    # ``SkipJsonSchema`` porque o comentário sozinho não enforça: âncora cujo path não
+    # resolve publicava o número do MODELO (A42.l24, roteada para cá). Mesmo argumento
+    # da [[ADR-399]] D1 — campo escrito pela máquina sai do contrato enviado a ela.
+    valor_renderizado: SkipJsonSchema[Optional[str]] = None
+    label: SkipJsonSchema[Optional[str]] = None
 
 
 # Fim de frase para truncação graciosa — terminador seguido de espaço ou fim.
@@ -240,7 +253,7 @@ class PontoForte(BaseModel):
     descricao: _prose(1, 520)
     ancora_metodologica: AncoraMetodologica
     tema_canonico: Optional[TemaCanonico] = None
-    section_id: Optional[SectionId] = None
+    section_id: SkipJsonSchema[SectionId] = _DESTINO_FALLBACK
 
     @field_validator("descricao")
     @classmethod
@@ -256,7 +269,7 @@ class Risco(BaseModel):
     tema_canonico: TemaCanonico
     evidencia: _prose_opt(390) = None
     ancoras: list[Ancora] = Field(default_factory=list, max_length=3)
-    section_id: SectionId
+    section_id: SkipJsonSchema[SectionId] = _DESTINO_FALLBACK
     confianca: Optional[Confianca] = None
 
     @field_validator("descricao")
@@ -290,7 +303,7 @@ class Sugestao(BaseModel):
     ancora_metodologica: AncoraMetodologica
     tema_canonico: TemaCanonico
     confianca: Confianca
-    section_id: SectionId
+    section_id: SkipJsonSchema[SectionId] = _DESTINO_FALLBACK
     suggestion_dedup_key: str = Field(..., pattern=_SHA256_RE.pattern)
     impacto_estimado: Optional[ImpactoEstimado] = None
     ancoras: list[Ancora] = Field(default_factory=list, max_length=3)
@@ -331,7 +344,7 @@ class Metrica(BaseModel):
 
     metrica_key: MetricaKey
     frequencia_revisao: FrequenciaRevisao
-    section_id: SectionId
+    section_id: SkipJsonSchema[SectionId] = _DESTINO_FALLBACK
     nome: SkipJsonSchema[str] = ""
     valor_atual: SkipJsonSchema[Optional[str]] = None
     target: SkipJsonSchema[Optional[str]] = None
