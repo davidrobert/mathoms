@@ -2240,7 +2240,7 @@
       "operador": null,
       "procedencia": null,
       "ref": null,
-      "rotulo": "Alocação em renda fixa (carteira líquida)",
+      "rotulo": "Alocação em renda fixa, previdência inclusa (% da carteira líquida)",
       "unidade": "pct"
     },
     "carteira_trs": {
