@@ -99,11 +99,26 @@ baseline vira run abortado pós-flip).
 python3 dev/measure_schema_drift.py --schema <alvo> --days 7 --gate
 ```
 
-Exit `0` = GO, exit `1` = NO-GO. O predicado inclui duas guardas que o §2 sozinho
-não tinha: **janela sem artefato não é GO** (é ausência de medição — a cadência do
-dogfood é ~2 runs/semana) e **artefato ilegível não é GO**. O instrumento também
-reporta `documents` distintos — cite a massa em **documentos**, não em artefatos, no
-PR do flip: 6 artefatos do mesmo documento em 6 runs não são 6 evidências.
+**Leia a coluna `veredito`, não o exit code.** O exit `1` significa **há drift**, e
+só isso — nunca significou `GO`/`NO-GO`. Um schema pode sair com exit `0` e **não**
+ser promovível: massa trivial, contrato não re-derivado e cobertura incompleta são
+guardas do veredito, e nenhuma delas muda o exit (vermelho ali trocaria falso-verde
+por falso-vermelho, pela mesma razão escrita em `mass_trivial`). A afirmação
+`Exit 0 = GO` vivia aqui desde 2026-08-24 e já era falsa quando a
+[[A42.l26]] a mediu — `e4_pontos_milhas` saía `0` sem ser promovível.
+
+O predicado do veredito tem quatro guardas, cada uma por um falso-verde medido:
+**janela sem artefato não é GO** (ausência de medição — a cadência do dogfood é ~2
+runs/semana); **artefato ilegível não é GO**; **contrato não re-derivado não é GO**
+([[ADR-409]] §F); e **cobertura incompleta não é GO** ([[A42.l26]]) — se um nó do
+payload emite chave que o contrato não declara, o `0 erros` não é afirmação sobre
+aquele nó. As colunas `grão` e `cob` publicam a profundidade: `grão` é quantos itens
+de coleção exigem alguma chave, `cob` é quantos nós emitem além do declarado. Cite
+as duas no PR do flip, com os paths que o comando imprime.
+
+O instrumento também reporta `documents` distintos — cite a massa em **documentos**,
+não em artefatos, no PR do flip: 6 artefatos do mesmo documento em 6 runs não são 6
+evidências.
 
 A **fila de elegibilidade** medida está na [[ADR-409]] §D. Não a copie para cá: ela
 se re-mede com o comando acima, e fila copiada apodrece no primeiro run novo.

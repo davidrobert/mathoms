@@ -36,6 +36,11 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
+        "required": [
+          "total_bens",
+          "total_dividas"
+        ],
+        "additionalProperties": false,
         "properties": {
           "total_bens": {
             "type": "number"
@@ -44,12 +49,22 @@
             "type": "number"
           }
         }
+      },
+      "propertyNames": {
+        "pattern": "^\\d{4}$"
       }
     },
     "investimentos_consolidados": {
       "type": "array",
       "items": {
         "type": "object",
+        "required": [
+          "descricao",
+          "proprietario",
+          "tipo",
+          "valores_31_12"
+        ],
+        "additionalProperties": false,
         "properties": {
           "descricao": {
             "type": "string"
@@ -63,11 +78,13 @@
           "valores_31_12": {
             "type": "object",
             "patternProperties": {
-              "^(31_12_)?\\d{4}$": {
+              "^\\d{4}$": {
                 "type": "number",
                 "minimum": 0
               }
-            }
+            },
+            "additionalProperties": false,
+            "description": " [[A42.l26]]: a alternativa `31_12_` era fantasma de nivel-2 — 0 de 10.699 chaves no corpus e produtor nenhum a emite (o leitor `parse_ano_31_12` segue tolerante; aposentar a declaracao de saida nao o toca). Mesma regra da [[ADR-432]] D2."
           },
           "instituicao": {
             "type": "string"
@@ -118,6 +135,13 @@
       "type": "array",
       "items": {
         "type": "object",
+        "required": [
+          "descricao",
+          "proprietario",
+          "tipo",
+          "valores_31_12"
+        ],
+        "additionalProperties": false,
         "properties": {
           "descricao": {
             "type": "string"
@@ -140,16 +164,17 @@
           },
           "valores_31_12": {
             "type": "object",
-            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
+            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]). [[A42.l26]]: a alternativa `31_12_` era fantasma de nivel-2 — 0 de 10.699 chaves no corpus e produtor nenhum a emite (o leitor `parse_ano_31_12` segue tolerante; aposentar a declaracao de saida nao o toca). Mesma regra da [[ADR-432]] D2.",
             "patternProperties": {
-              "^(31_12_)?\\d{4}$": {
+              "^\\d{4}$": {
                 "type": [
                   "number",
                   "null"
                 ],
                 "minimum": 0
               }
-            }
+            },
+            "additionalProperties": false
           },
           "valor_nao_apurado": {
             "type": [
@@ -201,6 +226,39 @@
           "_dedup_warning": {
             "type": "object",
             "description": "Marca divergência >10% de valores entre IRPFs co-declarados (ADR-246)."
+          },
+          "ano_referencia": {
+            "type": "integer",
+            "minimum": 2000,
+            "maximum": 2100,
+            "description": "Ano-base do proprio item ([[ADR-274]]), nao o exercicio. 1154/1154 no corpus; ausente no caminho `xlsx_only`, por isso fora de `required`."
+          },
+          "low_confidence": {
+            "type": "boolean",
+            "description": "[[ADR-215]] P2 — o mint da PropertyIdentity nao teve ancora forte. Escrito por `property_identity_enricher` nos tres ramos."
+          },
+          "needs_review": {
+            "type": "boolean",
+            "description": "Item cai na fila de revisao; anda junto com `review_reasons` (`property_identity_enricher`)."
+          },
+          "review_reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "review_reason.schema.json"
+            },
+            "description": "Razoes estruturadas nascidas DENTRO do item ([[ADR-411]] D2): mint sem ancora (`property_identity_enricher`) e valor nao apurado (`sanear_item_fisico`)."
+          },
+          "instituicao": {
+            "type": "string",
+            "description": "Emitida pelo ramo `consolidate_from_itens` quando o item do E1.5 a traz (6/1154)."
+          },
+          "dados_completos": {
+            "type": "object",
+            "description": "Enriquecimento do XLSX de imoveis (nome/endereco/data_compra/valor_compra/situacao/financiamento). Declarada por alcance de codigo: `consolidate_baseline` a escreve nos dois ramos de XLSX; 0/1154 no corpus, que nao tem XLSX."
+          },
+          "fonte": {
+            "type": "string",
+            "description": "`xlsx_only` no imovel do XLSX sem match de IRPF. Alcance de codigo; 0/1154 no corpus."
           }
         }
       }
@@ -209,6 +267,13 @@
       "type": "array",
       "items": {
         "type": "object",
+        "required": [
+          "descricao",
+          "proprietario",
+          "tipo",
+          "valores_31_12"
+        ],
+        "additionalProperties": false,
         "properties": {
           "descricao": {
             "type": "string"
@@ -221,16 +286,17 @@
           },
           "valores_31_12": {
             "type": "object",
-            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]).",
+            "description": "[[ADR-431]]: `null` = valor NAO APURADO (negativo na origem; ativo fisico nao vale menos que zero). Sai da soma e carrega `valor_nao_apurado` + `review_reason`. Zero seria afirmacao sobre o patrimonio ([[ADR-346]]). [[A42.l26]]: a alternativa `31_12_` era fantasma de nivel-2 — 0 de 10.699 chaves no corpus e produtor nenhum a emite (o leitor `parse_ano_31_12` segue tolerante; aposentar a declaracao de saida nao o toca). Mesma regra da [[ADR-432]] D2.",
             "patternProperties": {
-              "^(31_12_)?\\d{4}$": {
+              "^\\d{4}$": {
                 "type": [
                   "number",
                   "null"
                 ],
                 "minimum": 0
               }
-            }
+            },
+            "additionalProperties": false
           },
           "valor_nao_apurado": {
             "type": [
@@ -256,6 +322,13 @@
               "null"
             ],
             "description": "FK opcional para vehicles.id após reconciliação E1.5c (ADR-239)"
+          },
+          "review_reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "review_reason.schema.json"
+            },
+            "description": "`sanear_item_fisico` anexa a razao do valor nao apurado ao proprio item ([[ADR-431]])."
           }
         }
       }

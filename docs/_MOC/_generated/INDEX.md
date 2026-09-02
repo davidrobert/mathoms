@@ -430,6 +430,7 @@
 | ADR-433 | adr | Decidido |  | O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado | `adr/433-ano-base-por-classe-de-ativo.md` |
 | ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
 | ADR-435 | adr | Decidido |  | O gate de PII mede o publicado, e a cobertura declarada é igual à medida | `adr/435-o-gate-de-pii-mede-o-publicado-nao-o-que-entra.md` |
+| ADR-436 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/436-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -1040,7 +1041,7 @@
 | A42.l23 | lane | open | A42 | O validador de ordem compara declaração com declaração: `writes` falso passa, e um `reads` sobre ele valida contra ficção | `sprint/A42/lanes/A42-l23-validador-de-ordem-compara-declaracao-com-declaracao.md` |
 | A42.l24 | lane | shipped | A42 | Três checks meus publicam verde sobre população em que a falha é impossível por construção — e um deles exclui justamente o stage sob suspeita | `sprint/A42/lanes/A42-l24-check-cujo-denominador-torna-a-falha-impossivel.md` |
 | A42.l25 | lane | shipped | A42 | A mesma linha do razão publica o delta com dois sinais opostos, e o sinal observado é o único que nenhuma perda de pipeline produz | `sprint/A42/lanes/A42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento.md` |
-| A42.l26 | lane | open | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
+| A42.l26 | lane | in_progress | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
 | A42.l3 | lane | shipped | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |

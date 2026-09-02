@@ -41,6 +41,26 @@ class SchemaDrift:
         self.payloads: set = set()
         self.paths: Counter = Counter()
         self.last_drift: Optional[str] = None
+        # `{path do nó: chaves emitidas e não declaradas}` acumulado sobre o
+        # corpus ([[A42.l26]]). É a relação schema↔payload — a única forma de
+        # cobertura que o corpus pode falsificar.
+        self.cobertura_fora: dict = defaultdict(set)
+        self.nos_indeclarados: dict = defaultdict(int)
+
+    @property
+    def grao(self):
+        """Perfil de profundidade do contrato ([[A42.l26]]) — `None` se o schema sumiu."""
+        from dev.schema_depth import medir_grao_por_nome
+
+        return medir_grao_por_nome(self.nome) if self.nome else None
+
+    # Só a direção `emitida ⊄ declarada` conta. A fantasma (`declarada ⊄ emitível`)
+    # é reportada pelos gates de completude e NUNCA veta aqui: vetá-la quebraria a
+    # [[ADR-432]] D1, que declara chave por alcance de código com 0 no corpus.
+    @property
+    def cobertura_completa(self) -> bool:
+        """Todo nó alcançado no corpus declara o que o payload emitiu ali."""
+        return not self.cobertura_fora and not self.nos_indeclarados
 
     @property
     def contrato_nao_derivado(self) -> Optional[str]:
@@ -50,7 +70,7 @@ class SchemaDrift:
     @property
     def is_go(self) -> bool:
         """Critério binário do §1.3: zero record na janela. Schema **sem massa** não é GO (janela sem run não mede nada), e artefato **ilegível** também não — não-validado não é validado-sem-drift. Schema com contrato não re-derivado também não: drift zero sobre contrato que descreve uma fração do payload é o falso-verde que a [[ADR-409]] §F nomeia."""
-        if self.contrato_nao_derivado:
+        if self.contrato_nao_derivado or not self.cobertura_completa:
             return False
         return self.artifacts > 0 and self.drifted == 0 and self.unreadable == 0
 
@@ -133,9 +153,23 @@ def _validate_row(stats: SchemaDrift, row: Any, validator: Any) -> None:
     stats.payloads.add(_payload_digest(payload))
     if validator is None:
         return
+    _acumular_cobertura(stats, validator.schema, payload)
     errors = list(validator.iter_errors(payload))
     if errors:
         _accumulate(stats, row, errors)
+
+
+def _acumular_cobertura(stats: SchemaDrift, schema: Any, payload: Any) -> None:
+    """Nós do payload cujas chaves o contrato não declara ([[A42.l26]])."""
+    from dev.schema_depth import medir_cobertura
+
+    if not isinstance(schema, dict):
+        return
+    cob = medir_cobertura(schema, payload)
+    for path, chaves in cob.chaves_fora.items():
+        stats.cobertura_fora[path].update(chaves)
+    for path, n in cob.nos_indeclarados.items():
+        stats.nos_indeclarados[path] += n
 
 
 def _measure(rows: Iterable[Any], resolve: Callable[[str, str], Optional[str]]) -> dict:
@@ -185,6 +219,8 @@ def _veredito(s: SchemaDrift) -> str:
     """Rótulo do go/no-go — contrato não re-derivado vence drift zero."""
     if s.contrato_nao_derivado:
         return "NO-GO (contrato)"
+    if not s.cobertura_completa:
+        return "NO-GO (cobertura)"
     if not s.is_go:
         return "NO-GO"
     return "GO (massa trivial)" if s.mass_trivial else "GO"
@@ -193,21 +229,46 @@ def _veredito(s: SchemaDrift) -> str:
 def _print_table(results: dict, start: Optional[str] = None, newest: Optional[str] = None) -> None:
     print(f"janela: {start or '(corpus inteiro)'} .. {newest or '?'}\n")
     header = (
-        f"{'schema':<40} {'artef':>6} {'drift':>6} {'%':>6} {'runs':>5} {'paylds':>6}  veredito"
+        f"{'schema':<40} {'artef':>6} {'drift':>6} {'%':>6} {'runs':>5} {'paylds':>6} "
+        f"{'grão':>7} {'cob':>5}  veredito"
     )
     print(header)
     print("-" * len(header))
     for name in sorted(results, key=lambda n: (-results[n].drifted, n)):
-        s = results[name]
-        print(
-            f"{name:<40} {s.artifacts:>6} {s.drifted:>6} {s.drift_pct:>5.1f}% "
-            f"{len(s.runs):>5} {len(s.payloads):>6}  "
-            f"{_veredito(s)}"
-        )
+        print(_linha_da_tabela(name, results[name]))
     for name in sorted(results):
-        razao = results[name].contrato_nao_derivado
-        if razao:
-            print(f"\n  {name}: contrato não re-derivado — {razao}")
+        _print_rodape(name, results[name])
+
+
+def _linha_da_tabela(name: str, s: SchemaDrift) -> str:
+    g = s.grao
+    grao_col = "—" if g is None else f"{len(g.terminais) - len(g.sem_grao)}/{len(g.terminais)}"
+    n_cob = len(set(s.cobertura_fora) | set(s.nos_indeclarados))
+    cob_col = "ok" if s.cobertura_completa else f"-{n_cob}"
+    return (
+        f"{name:<40} {s.artifacts:>6} {s.drifted:>6} {s.drift_pct:>5.1f}% "
+        f"{len(s.runs):>5} {len(s.payloads):>6} {grao_col:>7} {cob_col:>5}  {_veredito(s)}"
+    )
+
+
+# Os rodapés publicam os PONTEIROS, não só o número: `-1` sozinho não é acionável,
+# e é ele que o PR de flip cita em vez de reler o corpus.
+def _print_rodape(name: str, s: SchemaDrift) -> None:
+    """Razão do bloqueio, grão sem `required` e nós sem cobertura, com os paths."""
+    if s.contrato_nao_derivado:
+        print(f"\n  {name}: contrato não re-derivado — {s.contrato_nao_derivado}")
+    g = s.grao
+    if g is not None and not g.declarado:
+        print(f"\n  {name}: {g.resumo()} — item sem `required`: {', '.join(g.sem_grao)}")
+    for path in sorted(s.cobertura_fora):
+        chaves = ", ".join(sorted(s.cobertura_fora[path]))
+        print(f"\n  {name}: emitidas e não declaradas em {path} — {chaves}")
+    for path in sorted(s.nos_indeclarados):
+        # Sem as chaves: num nó indeclarado elas são DADO, não nome de campo.
+        print(
+            f"\n  {name}: nó indeclarado em {path} — {s.nos_indeclarados[path]} "
+            "ocorrência(s); o contrato não descreve nada aqui"
+        )
 
 
 def _print_paths(results: dict, limit: int) -> None:
@@ -235,9 +296,39 @@ def _schema_summary(stats: SchemaDrift) -> dict:
         "last_drift": stats.last_drift,
         "go": stats.is_go,
         "contrato_nao_derivado": stats.contrato_nao_derivado,
+        "grao": _grao_summary(stats),
+        "cobertura": _cobertura_summary(stats),
         "paths": [
             {"path": p, "validator": k, "occurrences": n} for (p, k), n in stats.paths.most_common()
         ],
+    }
+
+
+def _cobertura_summary(stats: SchemaDrift) -> dict:
+    return {
+        "completa": stats.cobertura_completa,
+        "nos_sem_cobertura": [
+            {"path": p, "chaves": sorted(stats.cobertura_fora[p])}
+            for p in sorted(stats.cobertura_fora)
+        ],
+        "nos_indeclarados": [
+            {"path": p, "ocorrencias": stats.nos_indeclarados[p]}
+            for p in sorted(stats.nos_indeclarados)
+        ],
+    }
+
+
+def _grao_summary(stats: SchemaDrift) -> Optional[dict]:
+    g = stats.grao
+    if g is None:
+        return None
+    return {
+        "terminais": len(g.terminais),
+        "com_required": len(g.terminais) - len(g.sem_grao),
+        "fechados": len(g.terminais) - len(g.abertos),
+        "declarado": g.declarado,
+        "nos_sem_grao": list(g.sem_grao),
+        "nos_abertos": list(g.abertos),
     }
 
 
