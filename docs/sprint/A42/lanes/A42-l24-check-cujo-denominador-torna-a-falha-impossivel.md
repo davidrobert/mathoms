@@ -118,7 +118,11 @@ o fato.
   *"escrito pelo finalize, não pelo LLM"* e **nada o enforça**: âncora cujo path
   não resolve publica o número do **modelo**. Neste run isso é vazio (9 de 9
   resolvem) e o X4 já o trata como autoral quando ocorrer — mas fechar a porta é
-  do produtor. Dono: [[A40.l117]] (`prompt-engineer`), que já tem o parecer.
+  do produtor. ~~Dono: [[A40.l117]]~~ · ✅ **CUMPRIDO** no fecho da A40.l117
+  ([#1996](https://github.com/davidrobert/mathoms/pull/1996) `1583cf97`, [[ADR-438]]):
+  `Ancora.valor_renderizado` **e** `.label` passaram a `SkipJsonSchema`, pelo mesmo
+  argumento da [[ADR-399]] D1 — campo escrito pela máquina sai do contrato enviado a ela.
+  O comentário *"escrito pelo finalize"* deixou de ser promessa e virou contrato.
 - **Buraco de cobertura declarado no X4**: só `R$` explícito. Prosa monetária por
   extenso (*"350 mil"*) fica fora e **não** está contada.
 
