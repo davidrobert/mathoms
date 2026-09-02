@@ -124,15 +124,15 @@ _NON_MONETARY_PREFIXES = (
 # — `score.*` ([[ADR-217]]) publica pontos em `valor` e `contribuicao`, dois nomes que
 # em OUTROS blocos são dinheiro (`investimentos.tabela_classes[].valor`,
 # `patrimonio.composicao[].valor`). Nenhuma regra por folha consegue separar os dois.
-_NON_MONETARY_NAMESPACES = ("score.",)
+# `cobertura_publicada.` publica MÉTRICA (A27.l3): `denominador` 17→20 saía +300 cents no golden.
+_NON_MONETARY_NAMESPACES = ("score.", "cobertura_publicada.")
 
 # Unidade é TOKEN, não sufixo. `equivalente_meses_poupanca` carrega `meses` no meio e
 # escapava de `_NON_MONETARY_SUFFIXES`; fechar por entrada exata deixaria o próximo
 # `<algo>_meses_<algo>` nascer com o mesmo bug — a lição que `_versao` já registrou.
 # Raio de explosão medido contra `config/schemas/e5_analysis.schema.json` (2026-08-28):
 # 7 nomes mudam de classe e nenhum é monetário; zero toca `*_brl` ou `valor`.
-# A27.l3: `pontos` é CONTAGEM — `pontos_revisao` era a ÚNICA folha monetária de `narrativas`
-# e punha a raiz de prosa no denominador de lineage. Raio na lane: 4 nomes, 0 tocam `*_brl`.
+# A27.l3: `pontos` é CONTAGEM (`pontos_revisao` era a única folha "monetária" de `narrativas`).
 _NON_MONETARY_UNIT_TOKENS = frozenset(
     {"pct", "meses", "anos", "idade", "aa", "ano", "ratio", "pontos"}
 )

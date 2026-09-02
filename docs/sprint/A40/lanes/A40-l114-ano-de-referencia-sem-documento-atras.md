@@ -11,7 +11,7 @@ priority: P0
 branch_slug: a40-l114-ano-de-referencia-sem-documento-atras
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-301]]", "[[ADR-401]]", "[[ADR-431]]", "[[ADR-420]]", "[[ADR-433]]"]
+adrs: ["[[ADR-301]]", "[[ADR-401]]", "[[ADR-431]]", "[[ADR-420]]", "[[ADR-433]]", "[[ADR-437]]"]
 tags: [type/lane, sprint/a40, status/shipped, priority/p0, area/pipeline, area/financial-planning]
 ---
 
@@ -197,27 +197,79 @@ nomeado, não como mudança silenciosa em ADR alheia.
    os Cofrinhos (206.491,70) não são capturados por caminho nenhum: **R$ 322.865,96**
    sairiam do baseline. Filtrar trocaria o defeito de lugar.
 
-### Follow-ups medidos, sem lane (inventário)
+### Follow-ups medidos, com dono (inventário — re-verificados em 2026-09-02)
 
-- **INV-B (evidencial).** O invariante temporal não pega posição de **30/06/2025** lida
-  hoje: `2025 ≤ 2025` passa, e vira "posição de 31/12/2025" — a mesma mentira, um ano
-  atrás e **invisível**. Foi o calendário que tornou este caso visível. O carimbo
-  `31/12/AAAA` deveria exigir evidência no documento ([[ADR-394]] D1 aplicada ao eixo
-  **tempo**, que hoje não tem autoridade declarada).
-- **O prompt do E1.5 autoriza o defeito.** `pipeline/llm/prompts/e15_baseline.py` fecha
-  com *"Se o valor de 31/12 do ano-base estiver disponível, use-o. **Senão, use o valor
-  mais recente**"*. O LLM não errou — obedeceu, sobre um documento que não é declaração.
-  Mudar a linha exige bump de `PROMPT_VERSION` ([[ADR-233]]) — escopo do `prompt-engineer`.
-- **`extract_informes_anuais` mislabela a mesma tela** (item 2 acima): `ano_base: 2025`
-  sobre captura de 29/03/2026.
-- **`scoring.json` declara `taxa_endividamento` com `unidade: "% renda mensal
-  comprometida"` e `range 5–50`** (régua de renda comprometida), mas o que a alimenta é
-  `dívidas ÷ patrimônio bruto`. São grandezas diferentes: a nota deste componente é de
-  qualidade duvidosa **mesmo com o input certo**.
-- **`taxa_juros_aa` é `null` em todo run medido**, então a prescrição amortizar-vs-investir
-  segue incompleta depois deste conserto — o saldo é necessário, a taxa é o que decide.
-  O `indexador` do baseline (que separa TR de IPCA+, e resolve teto-vs-piso no
-  carimbo de carry-forward) também não é lido pelo E5.
+> Destino é **quem já possui a superfície**; lane nova só para P0/P1 que alcança o usuário
+> e não tem dono vivo. Cada item foi **re-medido contra `main`** no fecho — dois enunciados
+> meus estavam errados e estão corrigidos abaixo.
+
+- **INV-B (evidencial)** — `dono: data-engineer`. O invariante temporal **não** pega posição
+  de **30/06/2025** lida hoje: `2025 ≤ 2025` passa, e ela vira "posição de 31/12/2025" — a
+  mesma mentira, um ano atrás e **invisível**. Foi o calendário que tornou este caso visível.
+  O carimbo `31/12/AAAA` deveria exigir evidência no documento ([[ADR-394]] D1 aplicada ao
+  eixo **tempo**, que hoje não tem autoridade declarada). Retomada: quando o E1.5 ganhar
+  proveniência temporal por item.
+- **O prompt do E1.5 autoriza o defeito** — `dono: prompt-engineer`. Verificado em
+  `pipeline/llm/prompts/e15_baseline.py:72`: *"Se o valor de 31/12 do ano-base estiver
+  disponível, use-o. **Senão, use o valor mais recente**"*. O LLM não errou — obedeceu, sobre
+  um documento que não é declaração. Mudar a linha exige bump de `PROMPT_VERSION` ([[ADR-233]]).
+- **`extract_informes_anuais` mislabela a mesma tela** — `dono: data-engineer`. Ele carimba
+  `ano_base: 2025` e `saldo_31_12` sobre uma captura de **29/03/2026**. É o mesmo erro de tipo
+  desta lane, no stage vizinho, e por isso filtrar o documento para lá **não** seria conserto.
+- **`scoring.json` mede outra grandeza que a régua dele** — `dono: financial-planner`.
+  Verificado: `taxa_endividamento` declara `unidade: "% renda mensal comprometida"` com
+  `range 5–50`, mas é alimentado por `dívidas ÷ patrimônio bruto`. A nota deste componente é
+  de qualidade duvidosa **mesmo com o input certo**.
+- **`taxa_juros_aa` nulo mantém amortizar-vs-investir incompleto** — `dono: financial-planner`.
+  ~~e o `indexador` não é lido pelo E5~~ **corrigido no fecho:** `indexador` **é** lido
+  (`dividas_dedup.py:185`). O que se mede no run `40d1af2a` é que **os dois campos são `null`
+  nas quatro dívidas** — o problema é de **dado**, não de leitor. O saldo é necessário; a taxa
+  é o que decide.
+- **Residual da [[ADR-433]]: a eleição por classe não protege uma classe de si mesma** —
+  `dono: data-engineer`. Um item da própria classe rotulado num 31/12 não fechado ainda elege
+  o ano dela e zera os irmãos. Tentei filtrar em `_anos_do_membro_na_classe` e **recuei**: o
+  filtro sacrifica o item de meio de ano quando a classe **só** tem ele, e escolher qual item
+  sacrificar é a decisão que a [[ADR-433]] tomou. Retomada: junto com o INV-B, que dá o
+  discriminador que falta.
+
+### Achado do fecho contra esta própria lane: a supressão contradizia a [[ADR-217]]
+
+O `lane-closeout` pegou o que o co-design não pegou. A [[ADR-217]] §D2 decidiu — e segue
+`Decidido`, não superseded — que *"componente sem dado **não** re-normaliza. Score natural
+fica menor enquanto não houver dado — é **feature**, não bug"*. O #1961 fez o oposto:
+`financial_score_calculator.py:254` tira o peso do suprimido do denominador. **Nenhuma ADR
+foi aberta antes do PR**, contra o §Política operacional do CLAUDE.md para P0 com escopo
+arquitetural.
+
+Corrigido no fecho com o par que a regra de fronteira exige — a decisão **publica campo
+novo** (`score.piso`) e tem alternativas próprias, logo é ADR e não emenda: [[ADR-437]]
+decide, e a [[ADR-217]] ganha emenda datada de retratação **parcial** que aponta e ratifica
+o que sobrevive (`absent_normalized` e `absent_penalized` intactos).
+
+A distinção que a [[ADR-217]] não tinha em mãos: a penalidade dela incentiva **onboarding**
+— o usuário declara e o score sobe. Sobre passivo que o pipeline não leu, o usuário não tem
+ação disponível, e a penalidade vira punição por defeito nosso.
+
+### Achado novo do fecho: o `tipo` da dívida está errado em 3 de 4 linhas
+
+`dono: data-engineer` — medido em 2026-09-02 sobre o `consolidate_baseline` do run
+`40d1af2a`. As quatro dívidas saem com `tipo: "financiamento_imobiliario"`, mas as
+descrições dizem outra coisa em três delas: *"CHEQUE ESPECIAL BANCO SANTANDER"*, *"SALDO
+CONTA CORRENTE NO BANCO ITAÚ"*, *"SALDO EM CONTA CORRENTE NO BANCO C6"*. São cheque especial
+e saldos negativos de conta, não financiamento.
+
+**Consequência de superfície:** `TIPO_LABEL` traduz o `tipo`, então o relatório imprime
+*"Financiamento imobiliário #2/#3/#4"* para o que é cheque especial — rótulo **errado e
+visível**, e um cheque especial tem juro de outra ordem de grandeza na prescrição.
+
+**Consequência para esta lane, e é o que vindica o desenho:** o `financial-planner` decidiu
+que a rota do saldo **não** bifurca por `tipo` — *"ele é `null` por contrato quando a origem
+não classificou, e regra que depende dele falha aberta exatamente na linha mal
+classificada"*. A medição mostra o modo de falha **pior** que o previsto: o `tipo` não é
+`null`, é **confiantemente errado** em 3 de 4. Como `financiamento_imobiliario` fica fora de
+`_TIPOS_AMORTIZANTES`, as quatro linhas caem no default `indeterminado` — a direção
+conservadora — e a supressão não depende de um campo que mente.
+
 
 ## Critério de aceite
 

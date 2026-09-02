@@ -128,6 +128,8 @@ cobertura do eixo.
 consertado aqui de propósito — o conserto certo é tratar `_lineage.` como namespace
 não-monetário, o que é escopo próprio. Sem efeito sobre número publicado.
 
+**Dono:** `data-engineer` (substrato `dev/golden_diff.py`, [[A23.l2]]). **Retomada:** no próximo delta de golden que toque folha sob `_lineage.` — é quando o falso `value_delta` monetário deixaria de ser inócuo e passaria a exigir justificativa no manifesto de rebaseline.
+
 ## Alternativas rejeitadas
 
 - **Somar com sinal os dois lados.** Já rejeitada pela [[ADR-426]]; em fatura a convenção

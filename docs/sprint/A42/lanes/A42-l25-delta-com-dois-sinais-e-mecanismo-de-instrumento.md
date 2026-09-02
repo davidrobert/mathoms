@@ -30,6 +30,12 @@ rodada.
 
 ## E o delta provavelmente NÃO é perda
 
+> ⚠️ **Enunciado de abertura — refutado em 2026-09-01 (PR #1965).** O parágrafo abaixo é
+> o registro do que a `U5` concluiu, e **não se reescreve**. Medido: o campo publicava
+> `out − in = −1.998.772` — destino **MENOR**, a assinatura de perda. O `LC9-07` leu o
+> detalhe, não o campo, e é vítima direta do `LC9-06`. Estado corrente em
+> §*O que a medição REFUTOU do próprio enunciado*.
+
 O sinal observado — destino **maior** que origem — é **o único que nenhuma perda de
 pipeline produz**: perda encolhe o destino. Dois mecanismos candidatos, ambos de
 instrumento:
@@ -83,7 +89,7 @@ origem. Ponte `abs == assinado + 2 × negativas` fecha nos dois baldes.
    com o sinal do rótulo; e o dual — 1 centavo numa receita **negativa** move o Δ em 0,
    onde a fórmula antiga movia 2.
 
-### O que a medição REFUTOU do próprio enunciado
+## O que a medição REFUTOU do próprio enunciado
 
 **A §"E o delta provavelmente NÃO é perda" citava o sinal errado.** O enunciado afirma
 *"o sinal observado — destino **maior** que origem"*. Medido: o campo publicava
@@ -118,11 +124,13 @@ silêncio. Por isso os termos de despesa foram declarados agora, mesmo sendo hoj
 ao `total_geral`: há teste que simula o mundo pós-[[ADR-429]] e exige que o eixo continue
 fechando.
 
-### Roteado, não consertado aqui
+## Deferido, com dono e condição de retomada (2026-09-01)
 
-- **Evidência de produção para a [[ADR-429]] / [[A40.l102]]:** as 48 receitas negativas
-  (R$ 9.993,86 em `ws-1b9f2cf5`) são `PAGAMENTO EFETUADO`/estorno virando receita. A ADR
-  hoje só tem fixture; o fenômeno é regra de domínio e não foi tocado aqui.
-- **`golden_diff` lê folha `*_cents` como monetária** por marcador de nome — esta lane
-  **amplia de 2 para 6** as chaves nessa condição. Sem efeito sobre número publicado; o
-  conserto certo é tratar `_lineage.` como namespace não-monetário, escopo próprio.
+- **Dono: [[A40.l102]]** (`open`, `data-engineer`) — evidência de produção para a
+  [[ADR-429]]: as 48 receitas negativas (R$ 9.993,86 em `ws-1b9f2cf5`) são
+  `PAGAMENTO EFETUADO`/estorno virando receita, e a ADR hoje só tem fixture. É regra de
+  domínio, não instrumento; não foi tocada aqui. **Retomada:** quando a [[ADR-429]] sair
+  de `Proposto`.
+- **`golden_diff` lê folha `*_cents` como monetária** — registro canônico e dono vivem na
+  [[ADR-434]] §*Aberto, declarado*; aqui fica só o ponteiro, para não haver dois registros
+  do mesmo aberto.
