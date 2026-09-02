@@ -431,6 +431,7 @@
 | ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
 | ADR-435 | adr | Decidido |  | O gate de PII mede o publicado, e a cobertura declarada é igual à medida | `adr/435-o-gate-de-pii-mede-o-publicado-nao-o-que-entra.md` |
 | ADR-436 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/436-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
+| ADR-437 | adr | Decidido |  | Componente suprimido sai do denominador do score, com piso publicado | `adr/437-componente-suprimido-sai-do-denominador-com-piso-publicado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -908,7 +909,7 @@
 | A40.l102 | lane | open | A40 | Superfície do gasto pontual: dedup do par publicado sob promessa de unicidade + o que cada superfície declara excluir | `sprint/A40/lanes/A40-l102-superficie-do-pontual-e-dedup.md` |
 | A40.l103 | lane | shipped | A40 | O recorte da baseline da capa media a nav — e era o único gate sobre os números-manchete | `sprint/A40/lanes/A40-l103-clip-da-capa-media-a-nav.md` |
 | A40.l104 | lane | shipped | A40 | A trilha sticky promete 20 alvos e entrega 10 em 1280px, 0 no telefone — e não há sinal de que falte algo | `sprint/A40/lanes/A40-l104-trilha-promete-alvo-que-nao-entrega.md` |
-| A40.l105 | lane | open | A40 | Aprovação-com-avisos é indistinguível de nunca-ter-pausado no desfecho do run, e é o desfecho que alimenta o banner de qualidade | `sprint/A40/lanes/A40-l105-aprovacao-com-avisos-indistinguivel.md` |
+| A40.l105 | lane | shipped | A40 | Aprovação-com-avisos é indistinguível de nunca-ter-pausado no desfecho do run, e é o desfecho que alimenta o banner de qualidade | `sprint/A40/lanes/A40-l105-aprovacao-com-avisos-indistinguivel.md` |
 | A40.l106 | lane | open | A40 | O relatório não emite índice de seção algum no mobile: rolagem longa sem navegação, enquanto o desktop emite o índice completo | `sprint/A40/lanes/A40-l106-relatorio-sem-indice-no-mobile.md` |
 | A40.l107 | lane | open | A40 | A conversão tabela→cartão no mobile é aplicada por componente, não por regra: 11 tabelas largas não convertem, e há um terceiro comportamento não previsto | `sprint/A40/lanes/A40-l107-conversao-tabela-cartao-por-componente.md` |
 | A40.l108 | lane | open | A40 | Um mesmo ano nomeia o cenário central e o de estresse, enquanto o cenário base do mesmo apêndice é outro | `sprint/A40/lanes/A40-l108-um-ano-nomeia-cenario-central-e-de-estresse.md` |
@@ -1041,7 +1042,7 @@
 | A42.l23 | lane | open | A42 | O validador de ordem compara declaração com declaração: `writes` falso passa, e um `reads` sobre ele valida contra ficção | `sprint/A42/lanes/A42-l23-validador-de-ordem-compara-declaracao-com-declaracao.md` |
 | A42.l24 | lane | shipped | A42 | Três checks meus publicam verde sobre população em que a falha é impossível por construção — e um deles exclui justamente o stage sob suspeita | `sprint/A42/lanes/A42-l24-check-cujo-denominador-torna-a-falha-impossivel.md` |
 | A42.l25 | lane | shipped | A42 | A mesma linha do razão publica o delta com dois sinais opostos, e o sinal observado é o único que nenhuma perda de pipeline produz | `sprint/A42/lanes/A42-l25-delta-com-dois-sinais-e-mecanismo-de-instrumento.md` |
-| A42.l26 | lane | in_progress | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
+| A42.l26 | lane | shipped | A42 | O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam | `sprint/A42/lanes/A42-l26-guard-de-escrita-valida-largura-nao-profundidade.md` |
 | A42.l3 | lane | shipped | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |

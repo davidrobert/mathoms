@@ -77,7 +77,8 @@ valor monetário reproduzido; só percentuais, nomes de campo e contagens.
    4 deles são `$.endividamento.dividas[N].taxa_juros_aa`, o mesmo conceito 4×.
 2. **A linha 441 é o convite MENOS importante — e é o único que NÃO está sob budget.**
    Hints são anexados **depois** do cap (`parecer_distiller.py:484-492`). O convite que
-   está mesmo no corpo orçado é outro: `_eviction_marker` (`parecer_distiller.py:273`)
+   está mesmo no corpo orçado é outro: `_eviction_marker` (`parecer_distiller.py:273`
+   pré-#1966; hoje `backend/app/services/parecer_distiller.py:246-255`)
    injeta `" Recupere os dados via get_e5_section: {keys}."`. São **5** superfícies
    model-facing prometendo ferramenta, e as duas maiores o enunciado não nomeia: a regra
    **§3 "Tool use (drill-down)"** inteira do system prompt
@@ -150,7 +151,8 @@ com as medições acima no brief. Corrigiram-me em três pontos, e cada correç�
    — ambiguidade é **irrepresentável por construção**. Medi que a declaração é função porque
    o schema a obriga a ser. A relação real é muitos-para-muitos (`irpf_kpis` → {S8,
    S_IRPF_RENDA, S_IRPF_OTIMIZACAO}; `protecao_patrimonial` → {S9, S_PROTECAO}).
-3. **Eram 7 superfícies model-facing, não 5** — e o bloco `tools:` do YAML **não é uma
+3. **Eram 8 superfícies model-facing, não 5** (⚠️ escrevi **7** até o closeout de
+   2026-09-02, repetindo o número do especialista sem contar — ver §Correção de contagem) — e o bloco `tools:` do YAML **não é uma
    delas** (o modelo nunca vê o YAML; ele tem 3 consumidores server-side e apagá-lo derruba
    um gate). As 3 que faltavam estão na **persona**, que é o original de que o system prompt
    é cópia: `config/agents/planner_persona.md:136` (R1), `:176` (R21), `:198`, e sobretudo
@@ -190,7 +192,7 @@ remédio vira reask storm ([[ADR-292]]).
 existe"*) **já está entregue**, determinístico e sobre universo maior, pelo filtro 3-vias de
 `parecer_pos_llm_guardrails.py:266-280`. A tool responderia estritamente menos e mais tarde
 ⇒ implementar as tools é **reimplementar pior no lado não-determinístico**. Caminho: cortar
-as 7 superfícies, preservar o bloco `tools:` (relabel), trocar a "Recovery obrigatório" por
+as 8 superfícies, preservar o bloco `tools:` (relabel), trocar a "Recovery obrigatório" por
 regra **declarativa** (o modelo *registra* o conceito em vez de *buscá-lo*), emendar a
 [[ADR-341]] revogando D5 e a [[ADR-203]] registrando que o transporte nunca existiu.
 
@@ -552,13 +554,13 @@ impressa.**
      O gate `lane-transition` reprova `ship_pr` com `status: open`, e está certo — a
      entrega parcial se registra na prosa abaixo, não no frontmatter. -->
 
-## Entrega parcial — sintoma 3 MERGEADO ([#1966](https://github.com/davidrobert/mathoms/pull/1966), `24a375eb`, 2026-09-02)
+## Entrega parcial — sintoma 3 MERGEADO ([#1966](https://github.com/davidrobert/mathoms/pull/1966), `24a375eb`, 2026-09-01)
 
 **A lane segue `open`**, e o que resta é o **sintoma 2**.
 
 ### Saiu no #1966
 
-As **7** superfícies model-facing pararam de prometer ferramenta que o transporte não
+As **8** superfícies model-facing pararam de prometer ferramenta que o transporte não
 expõe. [[ADR-341]] §D5 **revogada** (o objetivo dela já era entregue por `_classify_campo`,
 determinístico e sobre universo maior) e [[ADR-203]] emendada (D1/D2/D4 decidiram um
 transporte que nunca chegou ao código). O bloco `tools:` do YAML **ficou** — não é
@@ -586,3 +588,51 @@ O **destino de citação**. Decidido (a máquina autora; o mapa deriva do layout
 
 O sintoma 1 saiu para a [[A40.l120]] (renumerada duas vezes: `l118` e `l119` foram tomadas
 por outras lanes enquanto o #1966 esperava na fila de merge).
+
+
+## Closeout (2026-09-02) — 3 correções, e uma delas é um número meu
+
+### Correção de contagem: eram **8** sítios, não 7 — 6 prometem, 2 pressupõem
+
+Publiquei **7** na lane, no `_README` e no corpo do #1966, repetindo o número que o
+`prompt-engineer` escreveu em prosa **sem conferir contra a tabela dele**, que já listava
+8 linhas model-facing. Contado agora no diff de `24a375eb`, por critério declarado:
+
+| # | Sítio | Classe |
+|---|---|---|
+| 1 | `pipeline/llm/prompts/parecer_planejador.py` — system prompt §3 "Tool use" | promessa |
+| 2 | idem — user prompt `## Tools disponíveis` | promessa |
+| 3 | `config/agents/planner_persona.md:136` (R1) — *"ou de tool calls"* | promessa |
+| 4 | `config/agents/planner_persona.md:207` — condiciona `campos_faltantes[]` a `found:false` | promessa |
+| 5 | `config/prompts/parecer_planejador.yaml:441` — `narrative_hint` | promessa |
+| 6 | `backend/app/services/parecer_distiller.py:273` (hoje `:246-255`) — `_eviction_marker` | promessa |
+| 7 | `config/agents/planner_persona.md:176` (R21) — *"e em respostas de tool"* | pressuposição |
+| 8 | `config/agents/planner_persona.md:198` — *"lista de tools disponíveis"* | pressuposição |
+
+**6 prometem** (dizem ao modelo que ele pode ou deve chamar) e **2 pressupõem** (mencionam
+sem convidar). Sob qualquer um dos dois critérios o número é 6 ou 8 — **7 não é
+defensável**. O corpo do #1966 fica com o erro: PR mergeado é artefato histórico, e a
+correção mora aqui.
+
+### Rota de ENTRADA que a lane não reconhecia
+
+A [[A42.l24]] (`shipped`, #1958) roteia para cá em
+`docs/sprint/A42/lanes/A42-l24-check-cujo-denominador-torna-a-falha-impossivel.md:121`: *"`valor_renderizado` não é
+`SkipJsonSchema` … âncora cujo path não resolve publica o número do **modelo** … Dono:
+[[A40.l117]] (`prompt-engineer`), que já tem o parecer."* A lane nunca mencionou isso — se
+ela virasse terminal, a rota viraria zumbi.
+
+**Absorvido, e a sinergia é real:** a arbitragem do `senior-cto` para o sintoma 2 é
+justamente tornar `section_id` um `SkipJsonSchema`. O mesmo PR fecha os dois campos, com o
+mesmo argumento (campo sem rota de reparo, que roteia controle, sai do contrato do modelo).
+Fica no escopo do sintoma 2, **sem herdar as três precondições dele**: se elas não
+destravarem até o gate de saída da A40, este item sai sozinho. Admissão não é sequestro —
+sem a cláusula, um item pronto ficaria refém de bloqueio alheio e a rota viraria zumbi por
+outra via.
+
+### Dependência condicional da [[A40.l119]]
+
+A `l119` declara: *"Se a l117 fechar antes desta ser pega, a fusão é a decisão certa."* A
+l117 **não** está fechando — segue `open` pelo sintoma 2 —, então a condição não se cumpre
+e não há fusão a fazer **agora**. Fica registrado para o próximo closeout: quem fechar a
+l117 tem de decidir sobre a `l119` no mesmo ato.

@@ -8,6 +8,7 @@ sem controle positivo que dispara nao pode ser confiado (§10 `U2`, item 1).
 
 from __future__ import annotations
 
+import ast
 import io
 import pathlib
 from contextlib import redirect_stdout
@@ -408,3 +409,45 @@ def test_modelo_sem_tools_torna_a_populacao_do_teto_vazia():
     from dev._unified_xchecks.teto import _modelo_tem_tools
 
     assert _modelo_tem_tools() is False
+
+
+def _nome_chamado(no) -> str | None:
+    alvo = no.func
+    return alvo.id if isinstance(alvo, ast.Name) else getattr(alvo, "attr", None)
+
+
+def _sem_n_falsificavel(arquivo: pathlib.Path) -> list[str]:
+    arvore = ast.parse(arquivo.read_text(encoding="utf-8"))
+    chamadas = [n for n in ast.walk(arvore) if isinstance(n, ast.Call)]
+    return [
+        f"{arquivo.name}:{n.lineno}"
+        for n in chamadas
+        if _nome_chamado(n) == "veredito" and not any(k.arg == "n_falsificavel" for k in n.keywords)
+    ]
+
+
+# CONTROLE ESTATICO — o que faltava quando o guard ganhou o 3o denominador.
+# X2/X3/X3b vivem em `razao.py` e NAO tem teste de execucao (precisam de DB e de
+# um run real), entao o `TypeError` da assinatura so apareceria no meio da
+# rodada, DEPOIS da tabela impressa e antes do veredito. Foi assim que os tres
+# quebraram em `main` (achado do closeout da A42.l24). Keyword-only obriga o
+# AUTOR a responder; este teste obriga o REPO a nao esquecer call-site.
+def test_todo_call_site_de_veredito_declara_n_falsificavel():
+    """Nenhum call-site de `veredito(` no pacote omite `n_falsificavel`."""
+    raiz = pathlib.Path(__file__).resolve().parent.parent / "dev/_unified_xchecks"
+    faltando = [alvo for arq in sorted(raiz.glob("*.py")) for alvo in _sem_n_falsificavel(arq)]
+    assert not faltando, f"call-site de veredito sem n_falsificavel: {faltando}"
+
+
+def test_o_controle_estatico_pega_o_call_site_que_quebrou():
+    """Falsificador do teste acima: sobre a forma que estava em `main`, ele acusa."""
+    quebrado = ast.parse('veredito("X3", total, esperado, len(div))\n')
+    chamada = next(n for n in ast.walk(quebrado) if isinstance(n, ast.Call))
+    assert not any(k.arg == "n_falsificavel" for k in chamada.keywords)
+
+
+def test_razao_impossivel_sai_nomeada_e_nao_como_porcentagem():
+    """CONTROLE POSITIVO: o `X2` passou célula (2289) contra denominador de balde
+    (3) e imprimiu `76300% do examinado` — número absurdo é lido como ruído e some."""
+    saida = _saida(3, 3, 0, n_falsificavel=2289)
+    assert "UNIDADE DIVERGE" in saida and "%" not in saida.split("n_falsificavel=")[1]

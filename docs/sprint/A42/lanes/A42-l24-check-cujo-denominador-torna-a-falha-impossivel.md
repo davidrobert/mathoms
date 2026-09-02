@@ -121,3 +121,53 @@ o fato.
   do produtor. Dono: [[A40.l117]] (`prompt-engineer`), que já tem o parecer.
 - **Buraco de cobertura declarado no X4**: só `R$` explícito. Prosa monetária por
   extenso (*"350 mil"*) fica fora e **não** está contada.
+
+## Closeout (2026-09-02) — a entrega quebrou três checks e o closeout os achou
+
+**`CLOSE-BLOCK`, meu.** Tornar `n_falsificavel` **obrigatório** foi a decisão certa —
+e eu atualizei só os três call-sites que estava consertando. Os outros três vivem em
+`dev/_unified_xchecks/razao.py` e ficaram sem o argumento: **X2, X3 e X3b morriam com
+`TypeError` na linha do veredito**, depois de imprimir a tabela inteira. Em `main`, do
+merge do [#1958](https://github.com/davidrobert/mathoms/pull/1958) até o conserto, os três
+checks do **razão** — o núcleo da rodada — estavam quebrados.
+
+**Por que nada pegou.** `tests/test_dev_unified_xchecks.py` exercita `base`, `execucao` e
+`ancoragem`; **nunca** `razao`, porque X2/X3/X3b precisam de DB e de um run real. `ruff`
+não confere argumento de call-site. O CI ficou verde sobre um pacote com metade dos
+consumidores quebrada — a mesma classe de *verde e cego* que esta lane existe para atacar,
+desta vez cometida pelo conserto dela.
+
+**Conserto, com o controle que faltava.** Os três declaram `n_falsificavel` na unidade do
+próprio veredito, e um **teste estático (AST)** varre todo call-site de `veredito(` em
+`dev/_unified_xchecks/` e reprova o que omitir o argumento. Ele é o controle que a
+assinatura sozinha não dá: keyword-only obriga o **autor** a responder; o AST obriga o
+**repo** a não esquecer nenhum sítio que não tem teste de execução. Falsificador junto —
+sobre a forma que estava em `main`, o teste acusa `razao.py:248`.
+
+**Segundo defeito, achado ao rodar de verdade.** O X2 publicou
+`n_falsificavel=2289 (76300% do examinado)`: passei célula contra um denominador em
+**balde**. `lidos` já conta só balde com ≥1 célula — que é a condição de o balde poder
+exibir a falha —, e a profundidade continua em `celulas=` na nota. O guard passa a recusar
+razão impossível (`> n_comparado` sai `⚠️ UNIDADE DIVERGE`, nunca como porcentagem):
+número absurdo é lido como ruído e some.
+
+**Os seis checks rodados fim-a-fim** contra o run `40d1af2a` do `U5`, que é o que prova
+que o conserto não é de papel:
+
+| | veredito |
+|---|---|
+| X2 | `FECHA ✅ 3/3 · n_falsificavel=3 (100%)` · celulas=2289, 0 divergentes |
+| X3 | `FECHA ✅ 1540/1540 · n_falsificavel=1540 (100%)` |
+| X3b | `FECHA ✅ 112/112 · n_falsificavel=112 (100%)` · delta=0 |
+| X4 | `FECHA ✅ 10/10 · n_falsificavel=1 (10%)` |
+| X5 | `FECHA ✅ 18/18 · n_falsificavel=14 (78%)` |
+| X7 | `INAPLICAVEL ⛔ 19/19 · n_falsificavel=0` |
+
+**As duas rotas do §Aberto continuam válidas, re-medidas** (não relidas): `SCHEMA_BY_STAGE`
+tem **25** entradas e **nenhuma** casa `review_finances_holistic` ⇒ a correção do schema
+segue dormente, dona [[A42.l6]] (`planned`); e `Ancora.valor_renderizado` continua
+`Optional[str]` **sem** `SkipJsonSchema`, dona [[A40.l117]] (`open`).
+
+**Corroboração independente:** a [[A40.l117]] emendou a [[ADR-203]] em 2026-09-01 medindo
+o mesmo fato do `PV13-10` — `LLMService.call` sem `tools`, as 19 entradas todas pós-LLM —
+e cita esta lane. Duas medições, mesma conclusão.
