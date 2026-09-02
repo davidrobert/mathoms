@@ -431,6 +431,7 @@
 | ADR-434 | adr | Decidido |  | Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado | `adr/434-uma-convencao-de-sinal-por-termo-no-eixo-valor-e3e4.md` |
 | ADR-435 | adr | Decidido |  | O gate de PII mede o publicado, e a cobertura declarada é igual à medida | `adr/435-o-gate-de-pii-mede-o-publicado-nao-o-que-entra.md` |
 | ADR-436 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/436-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
+| ADR-437 | adr | Decidido |  | Componente suprimido sai do denominador do score, com piso publicado | `adr/437-componente-suprimido-sai-do-denominador-com-piso-publicado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
