@@ -269,6 +269,29 @@ def _enabled_layout_section_ids() -> frozenset[str]:
     return frozenset(s["id"] for s in layout["estrategico"]["sections"] if s.get("enabled"))
 
 
+# Só o parecer alcança — ver `test_vocabulario_do_dominio_bate_com_enum_do_parecer`.
+_SOMENTE_PARECER = frozenset({"S_PROTECAO"})
+
+
+def _copias_do_section_id() -> dict[str, frozenset[str]]:
+    """As 4 cópias à mão do enum — python, JSON schema, DTO do backend e união TS."""
+    import re
+    import typing
+
+    from backend.app.schemas.dto.planner_review.response import SectionId as DtoSectionId
+    from pipeline.llm.schemas.parecer_planejador import SectionId as PySectionId
+
+    ts_src = (_REPO / "frontend/src/lib/api/planner-review.ts").read_text(encoding="utf-8")
+    bloco = re.search(r"SectionId\s*=\s*([^;]+);", ts_src)
+    assert bloco, "união TS de SectionId não encontrada — o gate ficaria vazio"
+    return {
+        "python": frozenset(typing.get_args(PySectionId)),
+        "json_schema": _parecer_schema_section_enum(),
+        "backend_dto": frozenset(typing.get_args(DtoSectionId)),
+        "frontend_ts": frozenset(re.findall(r'"([A-Za-z_0-9]+)"', bloco.group(1))),
+    }
+
+
 def _parecer_schema_section_enum() -> frozenset[str]:
     schema = json.loads(_PARECER_SCHEMA.read_text(encoding="utf-8"))
     return frozenset(schema["$defs"]["section_id"]["enum"])
@@ -321,16 +344,37 @@ class TestSectionIdVocabulary:
         """Cópia à mão em `types/suggestion.py` ↔ seções habilitadas do YAML."""
         assert VALID_SECTION_IDS == _enabled_layout_section_ids() - SECOES_SEM_ANCORA
 
-    def test_secao_sem_ancora_existe_e_e_desconhecida_do_parecer(self):
-        """A exclusão não é waiver: id que sumiu do layout, ou que o parecer passou
-        a conhecer, deixa de ser 'habilitada sem âncora' e a linha tem de cair —
-        senão a lista envelhece como allowlist e volta a esconder drift real."""
+    def test_secao_sem_ancora_existe_e_e_exatamente_a_do_parecer(self):
+        """A exclusão não é waiver: id que sumiu do layout tem de cair da lista."""
+        # A 2ª asserção MUDOU na A40.l117: dizia "e é desconhecida do parecer", e caiu
+        # porque o parecer passou a conhecer a `S_PROTECAO` de propósito. A intenção
+        # anti-waiver sobrevive por outra igualdade — o que as regras não podem emitir é
+        # EXATAMENTE o que só o parecer alcança. Montar `SuggestionCallout` lá quebra o
+        # casamento e cobra a decisão, em vez de deixar a lista envelhecer.
         assert SECOES_SEM_ANCORA <= _enabled_layout_section_ids()
-        assert not SECOES_SEM_ANCORA & _parecer_schema_section_enum()
+        assert SECOES_SEM_ANCORA == _SOMENTE_PARECER
 
     def test_vocabulario_do_dominio_bate_com_enum_do_parecer(self):
-        """Mesmo vocabulário na superfície LLM (ADR-200) — âncora é a mesma."""
-        assert VALID_SECTION_IDS == _parecer_schema_section_enum()
+        """Vocabulário da superfície LLM (ADR-200) menos o que só o parecer alcança."""
+        # `S_PROTECAO` entrou no enum do parecer na A40.l117 como destino de leitura de
+        # métrica sobre cobertura CONTRATADA: mandá-la à S9 publicaria o que EXISTE sob o
+        # cabeçalho do que FALTA. Segue fora daqui porque este é o vocabulário das regras
+        # determinísticas, que emitem `SuggestionCallout` — renderer que a S_PROTECAO não
+        # tem. Igualdade de conjunto, nunca `<=`: allowlist que só cresce esconde drift.
+        assert _SOMENTE_PARECER == frozenset({"S_PROTECAO"})
+        assert VALID_SECTION_IDS == _parecer_schema_section_enum() - _SOMENTE_PARECER
+
+    def test_as_quatro_copias_do_enum_concordam(self):
+        """`SectionId` é copiado à mão em 4 lugares e só o JSON tinha gate (A40.l117)."""
+        # Medido ao adicionar `S_PROTECAO`: a suíte passou VERDE com o `Literal` do Python
+        # já divergindo do JSON, do DTO e do TS — as três envelheceram caladas porque nada
+        # as comparava. É a patologia que o comentário do `MetricaKey` nomeia no mesmo
+        # arquivo, e da qual o `SectionId` era a exceção não declarada.
+        copias = _copias_do_section_id()
+        assert len({frozenset(v) for v in copias.values()}) == 1, (
+            "cópias de SectionId divergem: "
+            + " | ".join(f"{k}={sorted(v ^ copias['python'])}" for k, v in copias.items())
+        )
 
     def test_ids_queimados_nunca_voltam(self):
         """S5/S6 reservados por design — reciclar quebra âncora histórica."""

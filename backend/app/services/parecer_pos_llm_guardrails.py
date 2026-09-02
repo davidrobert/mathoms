@@ -174,10 +174,10 @@ def _anchored_on_monte_carlo(item: Risco | Sugestao) -> bool:
 
 
 def _depends_on_monte_carlo(item: Risco | Sugestao) -> bool:
-    """S7 + (âncora MC ou lemma na prosa). Tema sozinho não rebaixa (A40.l49)."""
-    if item.section_id != _MC_SECTION:
-        return False
-    return _anchored_on_monte_carlo(item) or _has_mc_lemma(item)
+    """Âncora MC basta por si; o lemma ainda exige a seção (A40.l49 · [[ADR-438]])."""
+    if _anchored_on_monte_carlo(item):
+        return True
+    return item.section_id == _MC_SECTION and _has_mc_lemma(item)
 
 
 def _downgrade_risco(risco: Risco) -> Risco:
