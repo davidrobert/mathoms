@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-424 ADRs (ADR-001 a ADR-434) em [`docs/adr/`](../../adr/).
+425 ADRs (ADR-001 a ADR-435) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 364
+- **Decidido**: 365
 - **Proposto**: 56
 - **Roadmap**: 4
 
@@ -307,7 +307,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (20)
+### Decidido (21)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -329,6 +329,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-387]] — ProtectionComputationSnapshotV1 pina insumos ao run e declara computabilidade por categoria · phase A40.l62
 - [[ADR-395]] — Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap · phase A40.l73
 - [[ADR-417]] — Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review · phase A40
+- [[ADR-435]] — O gate de PII mede o publicado, e a cobertura declarada é igual à medida · phase A40.l115
 
 ### Proposto (7)
 

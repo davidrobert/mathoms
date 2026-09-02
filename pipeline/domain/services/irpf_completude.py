@@ -39,9 +39,9 @@ def compute_completude(
     if not non_shell:
         return CompletudeAno.incompleto, "Nenhuma declaração com dados de renda."
 
-    missing_cpf = _find_missing_cpf_from_prior_year(decls_by_year, ano, non_shell)
-    if missing_cpf is not None:
-        return CompletudeAno.incompleto, _missing_cpf_motivo(missing_cpf, ano)
+    ausente = _find_missing_declarante_from_prior_year(decls_by_year, ano, non_shell)
+    if ausente is not None:
+        return CompletudeAno.incompleto, _missing_declarante_motivo(ausente)
 
     return CompletudeAno.completo, None
 
@@ -72,25 +72,31 @@ def _is_shell_decl(decl: IRPFFullOutput) -> bool:
     )
 
 
-def _find_missing_cpf_from_prior_year(
+# A identidade continua sendo o CPF — nome varia com a transcrição do PDF e
+# fundiria//separaria membros. O que muda é o que a mensagem PUBLICA: o motivo
+# viajava com `***.***.***-XX` para o payload servido, para o parecer e, por ele,
+# para o provider LLM ([[A40.l115]]). O nome é mais útil ao dono (que não decora o
+# CPF do cônjuge) e o `parecer_context_sanitizer` já o troca por PAPEL antes do
+# egresso — o provider passa a ver "Cônjuge" onde via 2 dígitos do CPF.
+def _find_missing_declarante_from_prior_year(
     decls_by_year: dict[int, list[IRPFFullOutput]],
     ano: int,
     non_shell_curr: list[IRPFFullOutput],
 ) -> str | None:
-    """CPF que declarou em algum N' < N mas não em N — sinal de lacuna familiar."""
+    """Nome de quem declarou em algum N' < N mas não em N — sinal de lacuna familiar."""
     curr_cpfs = {d.contribuinte.cpf_masked for d in non_shell_curr}
     for prev_ano in sorted((y for y in decls_by_year if y < ano), reverse=True):
         prev_non_shell = [d for d in decls_by_year[prev_ano] if not _is_shell_decl(d)]
-        prev_cpfs = {d.contribuinte.cpf_masked for d in prev_non_shell}
-        missing = prev_cpfs - curr_cpfs
+        por_cpf = {d.contribuinte.cpf_masked: d.contribuinte.nome for d in prev_non_shell}
+        missing = set(por_cpf) - curr_cpfs
         if missing:
-            return sorted(missing)[0]  # determinístico
+            return por_cpf[sorted(missing)[0]]  # determinístico pelo CPF, exibe o nome
     return None
 
 
-def _missing_cpf_motivo(cpf: str, ano: int) -> str:
-    """Mensagem padrão para o motivo de incompleto por CPF ausente."""
-    return f"Falta declaração de CPF {cpf} (presente em ano-base anterior)."
+def _missing_declarante_motivo(nome: str) -> str:
+    """Mensagem padrão para o motivo de incompleto por declarante ausente."""
+    return f"Falta a declaração de {nome} (presente em ano-base anterior)."
 
 
 def pick_default_year(

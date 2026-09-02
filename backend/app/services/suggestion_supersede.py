@@ -18,6 +18,7 @@ from backend.app.services.parecer_finalization import (
 )
 from backend.app.services.security.crypto import read_artifact_content
 from pipeline.domain.services.suggestion_generator import DISMISS_RESPECT_WINDOW_DAYS
+from pipeline.observability.view_model_pii import redact_cartorial
 
 logger = logging.getLogger("mathoms.pipeline.suggestion_supersede")
 
@@ -313,14 +314,19 @@ def _build_suggestion(
 
 def _suggestion_content_fields(workspace_id: str, sug: dict) -> dict:
     """Campos derivados do item do artifact — title vem do `acao`, rationale do `impacto` (conteúdo imutável pós-insert, ADR-153)."""
+    # [[A40.l115]] — `title`/`rationale` são prosa do LLM copiada verbatim para
+    # tabela própria e servida por `/suggestions`: terceiro egresso do parecer,
+    # que a redação de `/planner-review` não alcança. Aqui a redação é na
+    # ESCRITA porque a row é imutável pós-insert — redigir na leitura faria a
+    # linha persistida divergir da servida numa tabela que se declara imutável.
     return {
         "section_id": sug["section_id"],
         "kind": _SUGGESTION_KIND,
         "category": None,
         "origin": "llm",
         "severity": severity_from_prioridade(sug["prioridade"]),
-        "title": sug["acao"][:500],
-        "rationale": sug["impacto_qualitativo"],
+        "title": redact_cartorial(sug["acao"])[:500],
+        "rationale": redact_cartorial(sug["impacto_qualitativo"]),
         "amount_brl_cents": _extract_amount_cents(sug),
         "dedup_key": sug["suggestion_dedup_key"],
         "thesis_key": _thesis_key_for(workspace_id, sug),

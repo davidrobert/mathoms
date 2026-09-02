@@ -141,18 +141,21 @@ def test_incompleto_se_todas_shell():
 # -----------------------------------------------------------------------------
 
 
-def test_incompleto_falta_cpf_de_ano_anterior():
+def test_incompleto_falta_declarante_de_ano_anterior():
     # 2023: casal (DAVID + MARIANA). 2024: só DAVID.
     decls = {
         2023: [
-            _make_decl(cpf="***.***.***-36", ano=2023, pj=2),
-            _make_decl(cpf="***.***.***-60", ano=2023, pj=2),
+            _make_decl(cpf="***.***.***-36", nome="DAVID", ano=2023, pj=2),
+            _make_decl(cpf="***.***.***-60", nome="MARIANA", ano=2023, pj=2),
         ],
-        2024: [_make_decl(cpf="***.***.***-36", ano=2024, pj=2)],
+        2024: [_make_decl(cpf="***.***.***-36", nome="DAVID", ano=2024, pj=2)],
     }
     state, motivo = compute_completude(decls, 2024, _HOJE_2026_07)
     assert state == CompletudeAno.incompleto
-    assert "***.***.***-60" in (motivo or "")
+    assert "MARIANA" in (motivo or "")
+    # [[A40.l115]]: o motivo é servido no payload e viaja ao provider pelo parecer.
+    # A identidade continua sendo o CPF; o que ele PUBLICA deixa de ser.
+    assert "-60" not in (motivo or "")
 
 
 def test_completo_mesma_familia():
@@ -239,14 +242,15 @@ def test_regression_workspace_1b9f2cf5():
 def test_regression_workspace_1b9f2cf5_apos_prazo():
     # Mesma estrutura, mas hoje = 1/jul/2026 (após prazo RFB).
     decls = {
-        2023: [_make_decl(cpf="***.***.***-60", ano=2023, pj=1)],
+        2023: [_make_decl(cpf="***.***.***-60", nome="MARIANA", ano=2023, pj=1)],
         2024: [
-            _make_decl(cpf="***.***.***-36", ano=2024, pj=2),
-            _make_decl(cpf="***.***.***-60", ano=2024, pj=2),
+            _make_decl(cpf="***.***.***-36", nome="DAVID", ano=2024, pj=2),
+            _make_decl(cpf="***.***.***-60", nome="MARIANA", ano=2024, pj=2),
         ],
-        2025: [_make_decl(cpf="***.***.***-36", ano=2025, pj=1, iso=2)],
+        2025: [_make_decl(cpf="***.***.***-36", nome="DAVID", ano=2025, pj=1, iso=2)],
     }
     s25, motivo = compute_completude(decls, 2025, _HOJE_2026_07)
     # Pós-prazo + MARIANA ausente em 2025 → incompleto.
     assert s25 == CompletudeAno.incompleto
-    assert "-60" in (motivo or "")
+    assert "MARIANA" in (motivo or "")
+    assert "-60" not in (motivo or "")
