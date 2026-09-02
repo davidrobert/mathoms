@@ -5,7 +5,7 @@ title: "O parecer chama de renda fixa uma soma que inclui previdência, e o núm
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
-ship_pr: 2003
+ship_pr: 2001
 ship_date: "2026-09-02"
 priority: P1
 branch_slug: a40-l120-previdencia-dobrada-em-renda-fixa
