@@ -100,7 +100,9 @@ reabre a decisão.
 
 > ⚠️ **As duas justificativas de rejeição do schema, abaixo, são falsas como escritas** —
 > retificadas na emenda de 2026-09-02, que também declara `29,4%` como **teto**. A
-> decisão (roster, não schema) sobrevive; o motivo é outro.
+> decisão (roster, não schema) sobrevive; o motivo é outro. **E deixou de ser roster
+> *em vez de* schema:** desde 2026-09-02 o contrato é uma **origem** do roster, e o
+> número publicado é **5/20 = 25,0%**.
 
 > **Sinal:** a tabela da emenda de 2026-08-30 publica **5/14 = 35,7%**. O número é o da
 > **fixture dogfood**, não o do E5. O denominador correto é **17** e a cobertura é
@@ -170,7 +172,11 @@ buracos **diferentes**: o schema não vê `irpf_kpis`, o roster não vê workspa
 universo defensável é a **união**, com cada raiz carregando de onde veio — não um dos dois
 disfarçado de universo.
 
-**`29,4%` passa a ser teto, não medida.** `_is_monetary_leaf` exige `int|float` e o E5
+> **Fechado no mesmo dia.** Os dois defeitos abaixo receberam conserto + contrafactual
+> falsificado por mutação, e o schema virou origem. Número publicado: **5/20 = 25,0%**, com
+> `observado_em` por origem. Ver [[A27.l3]] §Fecho.
+
+**`29,4%` era teto, não medida.** `_is_monetary_leaf` exige `int|float` e o E5
 serializa parte do dinheiro como string decimal (284 folhas no payload medido; `irpf_kpis` e
 `protecao_patrimonial` existem no denominador **só** por elas). Piso medido: **5/19 = 26,3%**.
 E `Roster.observing` não é monotônico — re-observar o mesmo rótulo com payload mais pobre
@@ -179,3 +185,33 @@ encolhe o universo e **sobe** o número, com a suíte verde nos dois sentidos. A
 
 **Correção de fato menor:** "38 raízes declaradas no schema" (emendas de 2026-08-30 e
 2026-09-01) são **39** desde o #1967.
+
+## Emenda 2026-09-02b — o universo é a união de piso declarado e chão medido (fecho da A27.l3)
+
+**Decisão:** o universo da cobertura de lineage é o **roster de origens**, e o **contrato E5 é
+uma delas**. Três origens, com buracos declarados e diferentes:
+
+| Origem | O que é | Buraco próprio |
+| --- | --- | --- |
+| `schema` | piso declarado, recomputado a cada run do gate | não alcança `irpf_kpis` (declara 5 campos, o E5 emite 20) |
+| `fixture` | chão que o CI reproduz sozinho | não tem IRPF, imóvel locado nem PJ |
+| `producao:<run8>` | observação datada de um run real | só o workspace já medido |
+
+**Consequências:**
+
+- **Cobertura publicada: 5/20 = 25,0%** (era 29,4%, antes 35,7%). Terceira queda do mesmo
+  número em três medições — é a medida convergindo, não quebrando.
+- **Dinheiro em string decimal conta.** `MONEY_STR = ^-?\d+(\.\d{1,2})?$` — exigir `int|float`
+  tirava `irpf_kpis` e `protecao_patrimonial` inteiras do denominador.
+- **O universo não encolhe sem autorização.** `Roster.observing` levanta `RosterEncolheria`
+  nomeando as raízes que sairiam; encolher exige flag explícita. Sem isso, re-observar o mesmo
+  rótulo com payload mais pobre **subia** a cobertura com a suíte verde.
+- **Raiz monetária nova no schema reprova** até alguém rebaselinar — o denominador cresce sem
+  depender de ninguém rodar o pipeline, que era a cegueira do roster puro.
+- **Toda origem declara `observado_em`.** A *idade* da observação de produção **não** reprova o
+  CI, por decisão: gate de calendário fica vermelho num dia arbitrário e bloqueia PR alheio. A
+  re-observação é passo da rodada unificada, onde um run real acontece.
+
+**Enforcers:** `dev/lineage_coverage.py` (`MONEY_STR`, `schema_monetary_roots` com `$ref`
+resolvido, `RosterEncolheria`) · `tests/test_lineage_coverage.py` (11 testes; os 3 consertos
+falsificados por mutação, cada teste indo a vermelho contra o código antigo).

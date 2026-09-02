@@ -36,11 +36,11 @@ O controle positivo dela é real e o mecanismo funciona. O que esta lane consert
 **sujeito da medição** — exatamente a distinção que a [[A42.l14]] estabeleceu para
 conservação. O gate mede bem o que decidiu medir; decidiu medir a fixture.
 
-> ⚠️ **Closeout 2026-09-02 — o número que esta lane publica é, ele mesmo, otimista.** Um
+> ⚠️ **Closeout 2026-09-02 — o número que esta lane publicou era, ele mesmo, otimista.** Um
 > `data-engineer` atacou a entrega e dois defeitos passaram pela medição, ambos da **mesma
 > classe que a lane existe para fechar** (universo cego ⇒ viés otimista), deslocada de
-> *origem* para outros dois eixos. Registrados em §Deferimento datado abaixo. `29,4%` deve
-> ser lido como **teto**: o piso medido é **26,3%**.
+> *origem* para **tipo** e **tempo**. **Fechados no mesmo dia** — ver §Fecho. O número
+> publicado é **5/20 = 25,0%**; `29,4%` era teto, e `35,7%` era a fixture.
 
 ## O que foi medido (2026-09-01)
 
@@ -72,6 +72,10 @@ numérico além de `pontos_revisao`; zero tocam `*_brl` ou `valor`.
 
 Com isso o denominador honesto é **17**, e a cobertura publicada cai de **35,7% → 29,4%**.
 
+> Os números desta seção são a medição de **2026-09-01** e ficam como registro datado. O
+> closeout do dia seguinte achou que `29,4%` também era otimista — denominador **20**,
+> cobertura **25,0%**. Ver §Fecho.
+
 ## O universo: roster de origens, não o que uma fonte emite
 
 A A27.l2 derivava o universo do payload da fixture — o que estava certo como *mecanismo* e
@@ -79,11 +83,21 @@ errado como *sujeito*. O universo agora é um **roster** (`dev/snapshots/lineage
 cada raiz guarda **as origens em que foi observada**, e o número publicado é sobre o
 universo inteiro.
 
-| Origem | Raízes monetárias | Cobertas |
-| --- | --- | --- |
-| `fixture` (dogfood determinística) | 14 | 5 |
-| `producao:40d1af2a` | 17 | 5 |
-| **Roster publicado** | **17** | **5** → **29,4%** |
+| Origem | O que é | Raízes monetárias | Cobertas |
+| --- | --- | --- | --- |
+| `schema` | piso **declarado** pelo contrato E5, recomputado a cada run do gate | 18 | 5 |
+| `fixture` | chão que o CI reproduz sozinho (dogfood determinística) | 15 | 5 |
+| `producao:40d1af2a` | observação datada de um run real | 19 | 5 |
+| **Roster publicado** | a união | **20** | **5** → **25,0%** |
+
+Nenhuma origem cobre o universo sozinha, e isso é asseverado
+(`test_o_universo_e_maior_que_qualquer_origem_sozinha`): o `schema` não alcança `irpf_kpis`
+(declara 5 campos, o E5 emite 20); a `fixture` e a produção não alcançam workspace não medido.
+Se alguma passar a cobrir tudo, o roster virou um dos lados disfarçado de universo.
+
+A fixture aparece com **15**, não com as 14 que esta lane mediu em 2026-09-01: o conserto do
+§D1 revelou `protecao_patrimonial` **também ali** — ela publica prêmio como string decimal, e
+o classificador antigo a escondia nas duas origens. O viés de tipo não era só da produção.
 
 **Por que não o schema E5.** Medido e **rejeitado**: caminhando
 `config/schemas/e5_analysis.schema.json` com o mesmo predicado, ele declara monetário em 14
@@ -106,6 +120,10 @@ A27.l2 evitou ao recusar as 38 raízes cruas.
 > §Emenda 2026-09-02: o schema não alcança `irpf_kpis` (declara 5 campos, o E5 emite 20, e
 > todo o dinheiro está entre os 15 não declarados). Piso declarado e chão medido têm buracos
 > diferentes — o universo defensável é a **união**, não um dos dois.
+
+> **Superado em 2026-09-02 (§Fecho D3):** o schema deixou de ser alternativa recusada e
+> virou **origem** — piso declarado ao lado do chão medido. O parágrafo abaixo fica como
+> registro do que se sabia no dia.
 
 **Limite declarado.** O roster cobre o que já foi **medido**. Raiz que só apareça num
 workspace ainda não medido fica fora até alguém rodar o CLI sobre aquele artefato — e é
@@ -158,13 +176,26 @@ não a cobertura. A dívida contável passa de **9** (o que a A27.l2 publicava) 
 `previdencia_pgbl`, `real_estate` e `tributario` sempre estiveram sem rastro, e agora
 aparecem. Não são 13 porque `narrativas` nunca foi dívida — nunca publicou dinheiro.
 
-## Deferimento datado — 2026-09-02 · dono: `data-engineer` (pickup do dono)
+## Fecho dos achados do closeout — 2026-09-02
 
-Dois defeitos **na entrega desta lane**, achados pelo closeout. Não são doc: são código, e
-por isso não entram no PR de correção documental. O número publicado fica declarado como
-**teto** até fecharem.
+Dois defeitos **na entrega desta lane**, achados pelo closeout, mais dois limites que ele
+expôs. Registrados como deferimento e **fechados no mesmo dia**, no PR do fecho. Cada um tem
+o contrafactual que o mata — todos falsificados por mutação, com o teste indo a vermelho
+contra o código antigo e voltando a verde na reversão.
 
-### D1 — o classificador de folha não vê dinheiro em string decimal
+### D0 ✅ — o artefato publicado declara origem e data de cada observação
+
+`dev/snapshots/lineage_coverage_baseline.json` publica `cobertura_publicada: 29,4%` **sem**
+dizer que é teto. Quem ler o arquivo não vê esta lane. Não foi corrigido à mão de propósito:
+o campo é **gerado** por `Roster.dump()`, então edição manual some no próximo rebaseline — a
+ressalva tem que nascer do produtor, e isso é código, não doc.
+
+
+**Fechado.** `Roster.dump()` passa a emitir `observado_em` por origem, e o `_doc` do arquivo
+nomeia o que cada origem é. A ressalva nasce do produtor, não de edição manual — que era o
+motivo de não a ter corrigido à mão.
+
+### D1 ✅ — o classificador de folha passa a ver dinheiro em string decimal
 
 `_is_monetary_leaf` (`dev/lineage_coverage.py`) exige `isinstance(obj, (int, float))`. Medido
 sobre o payload de `40d1af2a`: **284** folhas monetárias serializadas como string decimal, e
@@ -181,7 +212,15 @@ levei para o denominador.
 **Critério:** mutar `ir_pago_total_brl` de string para número **não** move o denominador — se
 mover, a raiz entrou pelo tipo, não pelo caminho.
 
-### D2 — `Roster.observing` não é monotônico, e o encolhimento sobe o número calado
+
+**Fechado.** `MONEY_STR = ^-?\d+(\.\d{1,2})?$`; folha é monetária se `is_monetary(path)` e o
+valor é número **ou** string decimal. Denominador da produção: 17 → **19**.
+**Falsificado:** revertido o predicado para `int|float`,
+`test_dinheiro_em_string_decimal_entra_no_denominador` vai a **vermelho**; revertida a
+mutação, volta a verde. O teste é o contrafactual do enunciado — a raiz entra pelo
+**caminho**, não pelo tipo: trocar a string por número **não** move o denominador.
+
+### D2 ✅ — `Roster.observing` não encolhe o universo sem autorização explícita
 
 `_merge` **retira** a origem das raízes ausentes na nova observação. Re-observar o **mesmo
 rótulo** com um payload mais pobre encolhe o universo e **sobe** a cobertura. Medido nos dois
@@ -199,20 +238,51 @@ encolhimento parcial passa mudo — e a direção otimista é a que passa.
 e `producao:<run8>` já é um rótulo por run), ou `--update` reprovando queda de denominador
 sem flag explícita. O contrafactual de não-inércia é a segunda linha da tabela acima.
 
-### D0 — enquanto D1/D2 não fecham, o artefato publicado não carrega a ressalva
 
-`dev/snapshots/lineage_coverage_baseline.json` publica `cobertura_publicada: 29,4%` **sem**
-dizer que é teto. Quem ler o arquivo não vê esta lane. Não foi corrigido à mão de propósito:
-o campo é **gerado** por `Roster.dump()`, então edição manual some no próximo rebaseline — a
-ressalva tem que nascer do produtor, e isso é código, não doc.
+**Fechado.** `_merge` levanta `RosterEncolheria` nomeando as raízes que sairiam, com o
+denominador antes/depois e a direção do número. Encolher exige `--permitir-encolher` (CLI) ou
+`MATHOMS_UPDATE_LINEAGE_COVERAGE=encolher` (rebaseline).
+**Falsificado:** desarmado o guard, `test_o_roster_nao_encolhe_sem_autorizacao` vai a
+**vermelho** — e o teste assevera as duas metades, que o guard morde e que a válvula de escape
+abre.
 
-### D3 — sem re-observação, o roster envelhece sempre para o lado otimista
+### D3 ✅ — o piso vem do contrato, e toda origem declara quando foi observada
 
 Nada no CI ou no `nightly.yml` roda `dev/lineage_coverage.py --update`. A lane declarou o
 limite na dimensão **workspace** ("workspace ainda não medido") e não na dimensão **tempo no
 workspace já medido**, que tem taxa medida: `equilibrio_cerbasi` entrou em 2026-07-06 e
 `ratios` em 2026-08-29 — só os 4 runs mais recentes de 71 a emitem. Raiz nova só-produção
 depois de `40d1af2a` mantém o denominador em 17 e nenhum gate reprova.
+
+
+**Fechado por dois lados.** (1) O **contrato E5** entra como a origem `schema` — piso
+declarado, recomputado a cada run do gate: raiz monetária nova no schema **reprova** até
+alguém rebaselinar, então o denominador cresce sozinho sem depender de ninguém rodar o
+pipeline. É o que fecha a cegueira de *workspace não medido* que a lane havia só declarado:
+`proventos_por_ativo` entra no denominador com origem `schema`, e a origem diz **por quê** —
+ela tem produtor (`e5_analyzer_adapter.py:862`), consumidor (`S3InvestimentosSection.tsx`) e
+teste e2e vivos, com zero informe `proventos_acoes` neste workspace. (2) Toda origem carrega
+`observado_em`, o CLI imprime as datas, e o gate exige que exista **alguma** observação de
+produção — sem isso o universo volta a ser só o que o CI mede.
+
+**O que continua sem gate, e é declarado:** a *idade* da observação de produção não reprova o
+CI. Gate de calendário fica vermelho num dia arbitrário e bloqueia PR alheio; a re-observação
+é passo da rodada unificada, que é onde um run real acontece.
+
+### D4 ✅ — o próprio número publicado era lido como dinheiro pelo gate de golden
+
+Achado pelo **CI**, não pela suíte local: `check_golden_delta_declarado` reprovou o PR com
+*"value_delta monetário não-justificado: `cobertura_publicada.denominador` (+300 cents)"* — o
+denominador indo de 17 para 20 lido como R$ 0,17 → R$ 0,20. É a mesma classe de novo, agora
+sobre o **artefato desta lane**.
+
+O caminho barato era escrever um waiver no `rebaseline_manifest.yaml`. Não foi tomado: waiver
+é transitório, alguém tem de drená-lo, e o defeito ficaria. `cobertura_publicada.` entra em
+`_NON_MONETARY_NAMESPACES` — namespace, e não entrada exata, porque o marcador `_brl` na folha
+vence o bloco (o mesmo desenho que `score.` já usa), então um `cobertura_publicada.*_brl`
+futuro continua sendo dinheiro. Raio medido: `numerador`/`denominador` não existem em nenhum
+dos 515 nomes dos schemas, e os compostos do view-model
+(`autonomia_denominador_mensal_brl`, que **é** dinheiro) não são tocados.
 
 ### Fora do escopo desta lane, roteado
 
