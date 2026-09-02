@@ -37,6 +37,7 @@ SectionId = Literal[
     "S_IRPF_OTIMIZACAO",
     "S9",
     "S10",
+    "S_PROTECAO",
     "S_parecer",
     "plano_de_acao",
 ]

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-427 ADRs (ADR-001 a ADR-437) em [`docs/adr/`](../../adr/).
+428 ADRs (ADR-001 a ADR-438) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 367
-- **Proposto**: 56
+- **Proposto**: 57
 - **Roadmap**: 4
 
 ## Fundação
@@ -514,10 +514,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-396]] — Amostragem de LLM é declarada no call-site, não herdada do config · phase r7.PE-2
 - [[ADR-399]] — Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não autora número · phase r7.PE-2/FP-6
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-358]] — Enforcement em produção exige budget de produção — e KR no plano onde ele age · phase A40
+- [[ADR-438]] — Destino de leitura do parecer é derivado pela máquina, não escolhido pela prosa · phase A40.l117
 
 ## marketing
 

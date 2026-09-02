@@ -33,6 +33,7 @@ from backend.app.services.parecer_finalization import (
     severity_from_prioridade,
     stamp_ancora_values,
     stamp_metrica_targets,
+    stamp_section_ids,
     validate_anti_sigilo,
 )
 from backend.app.services.parecer_guardrails_divida import (
@@ -793,6 +794,9 @@ def _generate_with_llm(
         )
     # A28.l11 — pós-validação, pré-finalize: rebaixamento de confiança sob premissa
     # fallback + filtro 3-vias de campos_faltantes. Coerce, nunca needs_review.
+    # A40.l117: destino de leitura carimbado ANTES dos guardrails — o guard de Monte
+    # Carlo lê `section_id`, e antes do carimbo ele lia a escolha do modelo.
+    raw = stamp_section_ids(raw, e5_data)
     raw, field_request_audit, pos_llm_guardrails = _apply_pos_llm_guardrails(
         raw, e5_data, config, manifest
     )
