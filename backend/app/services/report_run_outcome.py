@@ -44,11 +44,16 @@ class ReportRunOutcome(str, enum.Enum):
     unknown = "unknown"
 
 
-async def _statuses_for(db: AsyncSession, ids: list[str]) -> dict[str, PipelineRunStatus]:
+async def _statuses_for(
+    db: AsyncSession, ids: list[str]
+) -> dict[str, tuple[PipelineRunStatus, bool]]:
+    """`(status, pausou)` por run — a pausa vem na MESMA query, não numa terceira."""
     rows = await db.execute(
-        select(PipelineRun.id, PipelineRun.status).where(PipelineRun.id.in_(ids))
+        select(PipelineRun.id, PipelineRun.status, PipelineRun.paused_at_stage).where(
+            PipelineRun.id.in_(ids)
+        )
     )
-    return dict(rows.all())
+    return {rid: (status, pausado is not None) for rid, status, pausado in rows.all()}
 
 
 async def _runs_with_degraded_stage(db: AsyncSession, ids: list[str]) -> set[str]:
@@ -71,10 +76,29 @@ async def run_outcomes_for(db: AsyncSession, run_ids: list[str]) -> dict[str, Re
     return {rid: _outcome(statuses.get(rid), rid in degraded) for rid in ids}
 
 
-def _outcome(status: PipelineRunStatus | None, has_degraded_stage: bool) -> ReportRunOutcome:
-    if status is None:
+# A40.l105 — `paused_at_stage` é o terceiro termo, e ele é da MESMA polaridade que os
+# outros dois: "o run entregou tudo que ia entregar?". Um run que pausou em conferência
+# e foi aprovado retomou carregando os avisos que o humano DISPENSOU — eles seguem no
+# artefato publicado. Sem este termo o desfecho era byte-idêntico ao de um run que nunca
+# pausou (medido na U4: 6 avisos, 0 erros, pausa aprovada, desfecho `complete`), e a
+# `CleanBar` afirmava "sem pendências" no PDF que circula fora de casa.
+#
+# **A pausa, não a decisão.** O predicado NÃO lê `StageReview.status` nem
+# `validation_issues`: `edited` também publica artefato que o pipeline não produziu
+# sozinho, e `validation_issues` é fail-open (fica NULL quando a projeção falha, ADR-165
+# onda 2) — chavear nele calaria justamente o caso em que se sabe menos. `paused_at_stage`
+# é a única cópia durável do fato, nunca é zerada na retomada (ADR-417 D4) e é preservada
+# de propósito no `_flip_run_to_resuming`.
+#
+# O custo de errar para o conservador é SILÊNCIO (`with_gap` não renderiza alerta, só
+# suprime a barra); o de errar para o permissivo é uma AFIRMAÇÃO falsa. Assimétrico.
+def _outcome(
+    entry: tuple[PipelineRunStatus, bool] | None, has_degraded_stage: bool
+) -> ReportRunOutcome:
+    if entry is None:
         return ReportRunOutcome.unknown
-    if status is PipelineRunStatus.completed and not has_degraded_stage:
+    status, pausou = entry
+    if status is PipelineRunStatus.completed and not has_degraded_stage and not pausou:
         return ReportRunOutcome.complete
     return ReportRunOutcome.with_gap
 

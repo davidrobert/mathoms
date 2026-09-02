@@ -66,6 +66,7 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `services/pipeline/pipeline_adapter.py:409` | `_GOAL_TYPE_MAP` | `dict` | ✅ imutável |
 | `services/pipeline/dispatch_contract.py:23-49` | `DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES`, `PRE_DISPATCH_STATUSES`, `CANCELLABLE_STATUSES` | int + tuples de enum | ✅ imutável (contrato de dispatch, A40.l27) |
 | `tasks/periodic_tasks.py:318,365` | `_PRE_DISPATCH_CLOCK`, `_UNDISPATCHED_LOG_CAP` | `dict[enum, Column]` + int | ✅ imutável (criado uma vez, lido; cobertura vs `PRE_DISPATCH_STATUSES` travada por teste) |
+| `repositories/pipeline_stage_log_repository.py:31` | `_DECLARED_SKIP` | `ColumnElement` (JSON-path compilado no statement) | ✅ imutável (expressão pura sobre o `Column` do mapper — não captura `Session`/`Engine`; o path vira bind param no compile. Mesma classe de `_PRE_DISPATCH_CLOCK`. A42.l22) |
 | `services/parecer_evidencia.py:44-81` | `PROSE_INVENTORY_VERSION`, `_SUGESTAO_HORIZONS`, `_USD_RE`, `_DOLARES_RE` | int + tuple + regex | ✅ imutável (A40.l30 PR1) |
 | `services/parecer_drift_monitor.py:285-286,404` | `ANCORAS_POR_ITEM_FLOOR`, `PROSA_MONETARIA_FLOOR`, `_ANCHOR_SIGNAL_SPECS` | floats + tuple | ✅ imutável (pisos derivados de medição, A40.l30 PR3) |
 | `services/parecer_ancorabilidade.py:39-41` | `_MONEY_FORMAT`, `_MONEY_PREFIX`, `_LIST_WILDCARD` | `str` | ✅ imutável (A40.l30 PR2) |

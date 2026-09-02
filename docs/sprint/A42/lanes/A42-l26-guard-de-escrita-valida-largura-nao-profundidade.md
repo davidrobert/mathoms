@@ -3,13 +3,15 @@ id: A42.l26
 type: lane
 title: "O guard de escrita do E4 passa com zero erros e não mede profundidade: item vazio, campo lixo e número-como-string atravessam"
 sprint: A42
-status: in_progress
+status: shipped
+ship_pr: 1968
+ship_date: "2026-09-02"
 priority: P1
 branch_slug: a42-l26-guard-de-escrita-valida-largura-nao-profundidade
 owner: data-engineer
 depends_on: []
 adrs: ["[[ADR-212]]", "[[ADR-436]]", "[[ADR-409]]", "[[ADR-432]]"]
-tags: [type/lane, sprint/a42, status/in-progress, priority/p1, area/dados]
+tags: [type/lane, sprint/a42, status/shipped, priority/p1, area/dados]
 ---
 
 # A42.l26 — `guard-de-escrita-valida-largura-nao-profundidade`
@@ -42,6 +44,18 @@ tem — mesma classe de [[A42.l24]].
 
 
 ---
+
+> **Entregue** em [#1968](https://github.com/davidrobert/mathoms/pull/1968),
+> commit-merge `e3f595a7` (2026-09-02).
+>
+> ⚠️ **O título do commit em `main` cita `ADR-435`, e esse número é de outra lane.**
+> A ADR desta lane é a **[[ADR-436]]**. O ID renumerou **duas vezes** durante o PR
+> — `433` → `435` → `436`, perdendo para `ano-base-por-classe-de-ativo`, para a
+> [[A42.l25]] (`ADR-434`) e para a [[A40.l115]] (`ADR-435`) —, e o título do PR
+> tinha sido escrito antes da segunda. Squash-merge congela o título, então o
+> ponteiro errado é permanente no histórico: quem procurar `ADR-435` a partir do
+> commit cai na ADR de PII da [[A40.l115]]. O ponteiro correto vive aqui e no
+> frontmatter `adrs:`.
 
 ## Medição de execução — 2026-09-01
 
