@@ -233,8 +233,8 @@ _HINTS_HEADER = "### Diretrizes de leitura por seção (hints)"
 
 def _render_hints_block(sections: list[dict]) -> str:
     """Hints fora do corpo orçado (ADR-341 D4) — guidance não compete com dado
-    por budget. Inclui hints de seções evictadas: a diretriz continua valendo
-    para o dado recuperado via ``get_e5_section``."""
+    por budget. Inclui hints de seções evictadas: a diretriz continua valendo se
+    a seção voltar ao corpo num run com outro perfil de eviction."""
     lines = [
         f"_hint ({section.get('id', '')}):_ {hint}"
         for section in sections
@@ -243,37 +243,15 @@ def _render_hints_block(sections: list[dict]) -> str:
     return "\n".join([_HINTS_HEADER, *lines]) if lines else ""
 
 
-def _section_e5_heads(sections: list[dict]) -> list[str]:
-    """Chaves top-level do E5 referenciadas pelos blocks — recovery via get_e5_section."""
-    heads: list[str] = []
-    paths = (path for section in sections for path in _section_block_paths(section))
-    for path in paths:
-        head = path[2:].split(".", 1)[0].split("[", 1)[0]
-        if head and head not in heads:
-            heads.append(head)
-    return heads
-
-
-def _block_paths(block: Mapping[str, Any]) -> tuple[str, ...]:
-    if block.get("format") == "key_value":
-        return tuple(f["path"] for f in block.get("fields", []) or [] if f.get("path"))
-    path = block.get("path")
-    return (path,) if path else ()
-
-
-def _section_block_paths(section: Mapping[str, Any]) -> Iterator[str]:
-    for block in section.get("blocks", []) or []:
-        yield from _block_paths(block)
-
-
 def _eviction_marker(evicted: list[dict]) -> str:
-    """Marcador explícito nomeando as seções removidas (ADR-341 D2) + rota de recovery."""
+    """Marcador nomeando as seções removidas (ADR-341 D2). Sem rota de recovery: o
+    modelo é single-shot (A40.l117), e prometer `get_e5_section` aqui era o único convite
+    morto que caía DENTRO do corpo orçado."""
     ids = ", ".join(str(s.get("id", "?")) for s in evicted)
-    keys = ", ".join(_section_e5_heads(evicted))
-    recover = f" Recupere os dados via get_e5_section: {keys}." if keys else ""
     return (
         f"\n…[exec context truncado em max_exec_context_bytes — seções removidas "
-        f"por prioridade: {ids}.{recover}]"
+        f"por prioridade: {ids}. Não-mostradas, não inexistentes: registre o "
+        f"conceito em campos_faltantes em vez de afirmar ausência.]"
     )
 
 

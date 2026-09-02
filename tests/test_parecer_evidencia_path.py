@@ -483,5 +483,8 @@ class TestPromptTokenBudget:
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
         # Tripwire: bump obriga a reconferir o budget acima. 2.2.0 → 2.3.0 é
         # bump de AMOSTRAGEM (ADR-396), não de texto — o template não mudou e
-        # o delta segue 0%.
-        assert PROMPT_VERSION == "2.4.0"
+        # o delta segue 0%. 2.4.0 → 2.5.0 (A40.l117) TIRA texto: a regra 3
+        # deixa de descrever tools inexistentes e o heading `## Tools
+        # disponíveis` sai do user prompt. Delta reconferido: −1,58%, dentro
+        # dos 5% e no sentido bom (o prompt encolheu).
+        assert PROMPT_VERSION == "2.5.0"

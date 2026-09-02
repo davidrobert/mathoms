@@ -385,7 +385,8 @@ def test_eviction_por_prioridade_com_marcador_nomeando_secoes():
     # importante (sintese=1) é a última a sair.
     assert "plano_acao_atual" in marker
     assert "### Síntese e Comportamento" in body
-    assert "get_e5_section" in marker  # rota de recovery no próprio marcador
+    assert "get_e5_section" not in marker  # convite morto sob budget (ADR-341 §Emenda)
+    assert "campos_faltantes" in marker
 
 
 def test_eviction_nunca_corta_bloco_de_secao_mantida():
