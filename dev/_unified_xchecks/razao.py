@@ -106,6 +106,12 @@ def x2(ws: str, run: str) -> None:
         lidos,
         len(baldes),
         div_total,
+        # Na unidade de `n_comparado` (BALDE), nao na da celula: `lidos` ja conta
+        # so balde com >=1 celula, que e a condicao para o balde poder exibir a
+        # falha — o caso do `U3` (2 baldes de intersecao vazia imprimindo verde)
+        # cai em `n_comparado < n_esperado`. A profundidade fica em `celulas=`,
+        # na nota. Misturar as unidades publicava "76300% do examinado".
+        n_falsificavel=lidos,
         nota=f"celulas={cel_total} · `_rederive_entregue` semeia SO E3 ⇒ `patrimonio` "
         f"omitido e `seguros` no placeholder (ausencia estrutural, nao perda)",
     )
@@ -220,6 +226,8 @@ def _x3_cabecalho(labels: list, meses_vm: list, fmd: dict, intersec: list) -> No
     print(f"intersecao de meses: {len(intersec)}/{len(meses_vm)}\n")
 
 
+# `n_falsificavel=total`: `total` ja e a contagem de celulas de fato comparadas, e
+# cada uma opoe dois produtores independentes (view-model x E4) ⇒ todas podem reprovar.
 def x3(ws: str, run: str, vm_path: str) -> None:
     _t, SyncSessionLocal, _r, _d, _l = _db()
     vm = json.load(open(vm_path))
@@ -239,7 +247,7 @@ def x3(ws: str, run: str, vm_path: str) -> None:
     for sec, c, mes, a, b in div[:20]:
         print(f"  DIV {sec}/{c}/{mes}: vm={a} e4={b} delta={a - b}")
     _x3_escalar(vm, blk)
-    veredito("X3", total, esperado, len(div))
+    veredito("X3", total, esperado, len(div), n_falsificavel=total)
 
 
 def _x3b_canais(pay3: list) -> dict:
@@ -279,5 +287,8 @@ def x3b(ws: str, run: str) -> None:
         len(pay3),
         len(pay3),
         int((cons.get("count") or 0) != cdc),
+        # `cdc` e somado DOS payloads E3; sem payload o escalar do relatorio
+        # compara contra vacuo, e cada payload pode carregar a discrepancia.
+        n_falsificavel=len(pay3),
         nota=f"delta={(cons.get('count') or 0) - cdc}",
     )
