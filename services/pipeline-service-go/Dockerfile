@@ -10,14 +10,14 @@
 # Build (context = raiz do repo):
 #   docker build -f services/pipeline-service-go/Dockerfile -t mathoms-pipeline-service-go .
 
-FROM golang:1.27@sha256:4013ae0f9e7994f8535c58c811f8f863fbed38b72e0d51e6592156f758d66146 AS gobuild
+FROM golang:1.27@sha256:512690a5660563b57d37ecc31129e7f136e831db2aed24a1dbeb8ad7380dc0fa AS gobuild
 WORKDIR /src
 COPY go.work go.work.sum ./
 COPY services/pipeline-service-go ./services/pipeline-service-go
 RUN cd services/pipeline-service-go && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" \
     -o /out/pipeline-service ./cmd/pipeline-service
 
-FROM python:3.14-slim@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS runtime
+FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6 AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
