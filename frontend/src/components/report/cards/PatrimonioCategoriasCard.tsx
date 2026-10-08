@@ -49,7 +49,7 @@ const MARCAR_RESIDENCIA = (
  *  porque o override já existe e sem `property_id` não haveria onde regravá-lo. */
 function notaDaResidencia(motivo: MotivoBaldeImovel): ReactNode {
   if (motivo === "nao_localizada") {
-    return "Residência: não localizamos o imóvel que vocês marcaram; o valor dele está somado em Outros imóveis.";
+    return "Residência: não localizamos o imóvel que vocês marcaram; o valor dele pode estar somado em Outros imóveis.";
   }
   if (motivo === "sem_valor") {
     return "Residência: o imóvel que vocês marcaram está na declaração sem valor apurado em 31/12.";
