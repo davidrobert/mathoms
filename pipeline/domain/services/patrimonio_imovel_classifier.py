@@ -27,7 +27,7 @@ CLASSIFICATION_DESCONHECIDO = "desconhecido"
 # Perini/Cerbasi tratam patrimônio improdutivo como capital de uso, fora do
 # múltiplo de IF. ADR-235: nu_proprietario tem ônus civil (usufruto de
 # terceiro) — ilíquido por contrato até consolidação plena.
-_CLASSIFICATIONS_GERADORAS = frozenset({CLASSIFICATION_LOCADO, CLASSIFICATION_COMERCIAL})
+CLASSIFICATIONS_GERADORAS = frozenset({CLASSIFICATION_LOCADO, CLASSIFICATION_COMERCIAL})
 
 # [[ADR-420]] §D1 — o discriminador do numerador da concentração é
 # **rebalanceabilidade**, não fluxo de caixa: *o próximo aporte move este ativo?*
@@ -79,7 +79,7 @@ def split_imoveis_geradores_vs_nao_geradores(
         cls = classificacao_do_imovel(im, overrides_by_property_id)
         if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
             continue  # cat_1, fora de cat_2
-        if cls in _CLASSIFICATIONS_GERADORAS:
+        if cls in CLASSIFICATIONS_GERADORAS:
             geradores += imovel_valor(im)
         else:
             nao_geradores += imovel_valor(im)
@@ -122,13 +122,14 @@ class CoberturaClassificacaoImovel:
             return 0.0
         return float(self.valor_desconhecido / self.valor_total * 100)
 
+    # Wire do E5 é JSON `number` ([[ADR-090]] §consequências): `Decimal` só em memória.
     def to_dict(self) -> dict:
         return {
-            "valor_total": str(self.valor_total),
-            "valor_desconhecido": str(self.valor_desconhecido),
+            "valor_total": float(self.valor_total),
+            "valor_desconhecido": float(self.valor_desconhecido),
             "n_total": self.n_total,
             "n_desconhecido": self.n_desconhecido,
-            "pct_desconhecido": self.pct_desconhecido,
+            "pct_desconhecido": round(self.pct_desconhecido, 2),
         }
 
 
@@ -178,7 +179,7 @@ def sum_imoveis_geradores_liquidos(
     total = Decimal("0")
     for im in imoveis:
         pid = imovel_property_id(im)
-        if overrides.get(pid) not in _CLASSIFICATIONS_GERADORAS:
+        if overrides.get(pid) not in CLASSIFICATIONS_GERADORAS:
             continue
         valor_irpf = Decimal(str(imovel_valor(im)))
         valor_efetivo, _, _ = resolve_valor_efetivo(pid or "", valor_irpf, valuation_context)
@@ -195,6 +196,7 @@ __all__ = [
     "CLASSIFICATION_ESPECULACAO",
     "CLASSIFICATION_NU_PROPRIETARIO",
     "CLASSIFICATION_DESCONHECIDO",
+    "CLASSIFICATIONS_GERADORAS",
     "CoberturaClassificacaoImovel",
     "classificacao_do_imovel",
     "cobertura_classificacao_imovel",
