@@ -34,6 +34,7 @@ import {
   plannerReviewStub,
   waitForReportReady,
 } from "../helpers/mock-report";
+import { PRINT_AREA_PX } from "../helpers/report-pdf";
 
 const VIEWPORT = { width: 1280, height: 800 };
 
@@ -339,4 +340,38 @@ test.describe("Snapshots — S_parecer degradado", () => {
       });
     }
   }
+});
+
+// ─── A40.l92 · métricas do parecer, no papel ──────────────────────────
+//
+// A baseline de `S_parecer-parcial` NÃO pega a regressão de origem desta lane: o recorte é
+// a seção inteira (~1,4 Mpx) com `maxDiffPixelRatio: 0.025` — folga de ~35k px —, e uma
+// barra cheia voltando numa linha de teto muda centenas de px. Recorte no locator da
+// tabela, na mídia e na largura do papel (703 px, a área útil do A4), com tolerância
+// MEDIDA nos dois extremos, como a do `cover`:
+//
+//   piso de ruído  = 0 px — runs do mesmo SHA são byte-idênticos (ver `cover`).
+//   menor mudança  = MEDIR_NA_SONDA — barra cheia na linha de teto violado.
+//
+// Só light: o PDF sai sempre em light.
+test.describe("Snapshots — métricas do parecer (print)", () => {
+  test("parecer-metricas-print — light", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("theme", "light"));
+    await page.emulateMedia({ media: "print" });
+    const { workspaceId, reportId } = await mockReportPage(page, {
+      plannerReview: plannerReviewStub("parcial"),
+    });
+    await page.setViewportSize({ width: PRINT_AREA_PX.width, height: 1200 });
+    await page.goto(`/reports/${reportId}?workspace=${workspaceId}&print=1`);
+    await waitForReportReady(page);
+    const tabela = page.getByTestId("parecer-metricas-table");
+    // Controle positivo: sem a linha de teto violado a baseline congelaria a tabela sem o
+    // caso que ela existe para pegar.
+    await expect(tabela.locator("tr", { hasText: "Acima do limite" })).toHaveCount(1);
+    await tabela.scrollIntoViewIfNeeded();
+    await expect(tabela).toHaveScreenshot("parecer-metricas-print.light.png", {
+      maxDiffPixelRatio: 0.0003,
+      mask: [page.locator("[data-mask-snapshot]"), floatingNavMask(page)],
+    });
+  });
 });

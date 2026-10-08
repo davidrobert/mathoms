@@ -109,6 +109,39 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
     ).toEqual([]);
   });
 
+  // A40.l92 — o caso de origem é uma BARRA (teto violado desenhado com trilha cheia),
+  // e a camada de texto não vê `<progress>`. Por isso duas pernas: o DOM de print conta as
+  // barras — só o piso tem —, e o PDF prova que as palavras da situação chegam ao papel
+  // que vai para o contador. O stub tem uma linha de cada forma.
+  test("a situação das métricas do parecer chega ao PDF, e só o piso tem barra", async ({
+    page,
+  }) => {
+    exigirPdftotext();
+    await setupPrintReport(page, "parcial");
+
+    const tabela = page.getByTestId("parecer-metricas-table");
+    await expect(tabela, "tabela de métricas não montou com o stub parcial").toBeVisible();
+    const linhasDeTeto = tabela.locator("tr", { hasText: "limite" });
+    expect(await linhasDeTeto.count(), "stub sem linha de teto — o gate seria vácuo").toBe(2);
+    expect(await linhasDeTeto.locator("progress").count(), "teto ganhou trilha").toBe(0);
+    expect(await tabela.locator("progress").count(), "barra fora do piso").toBe(2);
+
+    const texto = normalizarTexto(pdfToText(await generateReportPdf(page)));
+    // O cabeçalho "Situação" fica fora: sai em caixa alta (`uppercase`) e já é coberto,
+    // sem caixa, por "cabeçalhos de tabela visíveis no desktop chegam ao PDF".
+    const situacoes = [
+      "Abaixo do mínimo",
+      "Mínimo atingido",
+      "Acima do limite",
+      "Dentro do limite",
+      "Cobertura parcial",
+    ];
+    const ausentes = situacoes.filter((s) => !texto.includes(normalizarTexto(s)));
+    expect(ausentes, `situação que a tela mostra e o PDF não: ${ausentes.join(" | ")}`).toEqual(
+      [],
+    );
+  });
+
   test("a última seção do relatório chega ao PDF", async ({ page }) => {
     exigirPdftotext();
     await setupPrintReport(page, "parcial");

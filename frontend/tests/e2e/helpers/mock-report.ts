@@ -158,9 +158,62 @@ function parecerContent() {
     sugestoes_execucao: [sugestao("P0", "Redistribuir 15% da posição concentrada")],
     sugestoes_taticas: [sugestao("P1", "Revisar o capital segurado do titular")],
     sugestoes_estrategicas: [sugestao("P2", "Avaliar previdência complementar")],
-    metricas: [],
+    // A40.l92 — uma linha por forma de situação, para o gate visual e o de texto do
+    // PDF verem as seis: sem a linha de teto, "a trilha não enche com a piora" passaria
+    // por ausência do caso. Valores sintéticos, PII-zero.
+    metricas: [
+      metrica("S3", "Cobertura da reserva de emergência", "5,6 meses", "≥ 6,0 meses", {
+        operador: ">=",
+        conforme: false,
+        progresso_pct: 93,
+      }),
+      metrica("S7", "Renda passiva sobre a despesa essencial", "112,0%", "≥ 100,0%", {
+        operador: ">=",
+        conforme: true,
+        progresso_pct: 100,
+      }),
+      metrica("S2", "Taxa de endividamento (% do patrimônio bruto)", "45,0%", "≤ 20,0%", {
+        operador: "<=",
+        conforme: false,
+        progresso_pct: null,
+      }),
+      metrica("S4", "Concentração imobiliária (carteira produtiva)", "34,9%", "≤ 50,0%", {
+        operador: "<=",
+        conforme: true,
+        progresso_pct: null,
+      }),
+      {
+        ...metrica("S1", "Despesas não identificadas (% do total, 12m)", "12,0%", null, null),
+        target_motivo: "mede a leitura do relatório, não a família",
+        nivel_confianca: "parcial",
+      },
+      {
+        ...metrica("S7", "Rentabilidade da carteira (TRS efetiva)", "1,7%", null, null),
+        target_motivo: "rentabilidade observada não tem alvo canônico (ADR-191 §D5)",
+      },
+    ],
     notas_metodologicas: [],
     meta,
+  };
+}
+
+function metrica(
+  section_id: string,
+  nome: string,
+  valor_atual: string,
+  target: string | null,
+  comparador: { operador: string; conforme: boolean; progresso_pct: number | null } | null,
+) {
+  return {
+    nome,
+    valor_atual,
+    target,
+    target_motivo: null as string | null,
+    comparador,
+    nivel_confianca: null as string | null,
+    frequencia_revisao: "trimestral",
+    section_id,
+    tema_canonico: null,
   };
 }
 
