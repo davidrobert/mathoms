@@ -11,6 +11,8 @@ function metrica(over: Partial<Metrica> = {}): Metrica {
     valor_atual: "1,7%",
     target: null,
     target_motivo: "rentabilidade observada não tem alvo canônico",
+    comparador: null,
+    nivel_confianca: null,
     frequencia_revisao: "trimestral",
     section_id: "S7",
     tema_canonico: "Renda passiva",

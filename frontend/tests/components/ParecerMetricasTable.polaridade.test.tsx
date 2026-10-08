@@ -11,6 +11,8 @@ function endividamento(over: Partial<Metrica> = {}): Metrica {
     valor_atual: "45,0%",
     target: "≤ 20,0%",
     target_motivo: null,
+    comparador: null,
+    nivel_confianca: null,
     frequencia_revisao: "trimestral",
     section_id: "S2",
     tema_canonico: "Saúde de balanço",

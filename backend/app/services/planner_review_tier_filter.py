@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping, Optional, get_args
+
+from pydantic import ValidationError
 
 from backend.app.schemas.dto.planner_review.response import (
     AncoraDTO,
+    ComparadorDTO,
     GatedCounts,
     ImpactoEstimadoDTO,
     MetricaDTO,
@@ -19,6 +23,10 @@ from backend.app.schemas.dto.planner_review.response import (
     SugestaoDTO,
     Tier,
 )
+from pipeline.llm.schemas.parecer_comparador import NivelConfianca
+
+logger = logging.getLogger("mathoms.planner_review.tier_filter")
+_NIVEIS = frozenset(get_args(NivelConfianca))
 
 
 @dataclass(frozen=True)
@@ -153,10 +161,31 @@ def _metrica_dto(raw: Mapping[str, Any]) -> MetricaDTO:
         valor_atual=raw.get("valor_atual") if derivada else None,
         target=raw.get("target") if derivada else None,
         target_motivo=raw.get("target_motivo") if derivada else None,
+        comparador=_comparador_dto(raw) if derivada else None,
+        nivel_confianca=_nivel_dto(raw) if derivada else None,
         frequencia_revisao=raw["frequencia_revisao"],
         section_id=raw["section_id"],
         tema_canonico=raw.get("tema_canonico"),
     )
+
+
+# A40.l92 — leitura SUBTRATIVA: o veredito persistido só é servido se a linha ainda
+# publica alvo, e forma inválida vira `None`, nunca 500. Parecer de era anterior ao campo
+# perde a situação; ninguém a recalcula sobre documento entregue.
+def _comparador_dto(raw: Mapping[str, Any]) -> Optional[ComparadorDTO]:
+    bruto = raw.get("comparador")
+    if not raw.get("target") or not isinstance(bruto, Mapping):
+        return None
+    try:
+        return ComparadorDTO.model_validate(bruto)
+    except ValidationError:
+        logger.warning("parecer_comparador_invalido", extra={"metrica_key": raw.get("metrica_key")})
+        return None
+
+
+def _nivel_dto(raw: Mapping[str, Any]) -> Optional[str]:
+    nivel = raw.get("nivel_confianca")
+    return nivel if nivel in _NIVEIS else None
 
 
 def _nota_dto(raw: Mapping[str, Any]) -> NotaMetodologicaDTO:
