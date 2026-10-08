@@ -10,13 +10,12 @@ from pipeline.domain.services.asset_classifier import AssetAuthority, classify_a
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
+from pipeline.domain.services.patrimonio_types import imovel_valor
 
 
 def _valor_declarado_do_imovel(imovel: Mapping[str, Any]) -> Decimal:
-    """Primeiro valor declarado que existir, na ordem de precedência do baseline."""
-    return _safe_money(
-        imovel.get("valor_31_12_ano_base") or imovel.get("valor_irpf") or imovel.get("valor", 0)
-    )
+    """O mesmo valor que o patrimônio soma ([[ADR-431]]): não apurado fica de fora."""
+    return _safe_money(imovel_valor(dict(imovel)))
 
 
 def _safe_money(val) -> Decimal:
