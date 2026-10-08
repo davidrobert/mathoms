@@ -160,3 +160,11 @@ def test_com_o_mint_religado_o_par_entre_eras_vira_uma_identidade(
     )
     assert itens[0]["property_id"] == itens[1]["property_id"]
     assert _codigos_gravados(sync_db, workspace_id) == ["11"]
+
+
+def test_sem_o_mint_o_par_sem_canonical_segue_sem_identidade(sync_db, workspace_id):
+    """Necessário, não suficiente: sem row a casar e sem mint, a grafia única não junta o par."""
+    itens = _enrich(
+        sync_db, workspace_id, _imovel("11", _SEM_VIA, ano=2024), _imovel("01-11", _SEM_VIA)
+    )
+    assert [item["property_id"] for item in itens] == [None, None]

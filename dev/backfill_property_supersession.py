@@ -103,6 +103,7 @@ def _baseline_pids(baseline: dict | None) -> frozenset[str]:
 # conjunto de zumbis em vez de eliminá-lo (ADR-385 §Decisão 7).
 def _synthetic_entries(identities, baseline_payload: dict | None) -> list[dict]:
     """Espelha `_dedup_entries` do forward-path, com o canonical recomputado da descrição."""
+    from pipeline.domain.services.baseline_item_classifier import codigo_rfb_do_imovel
     from pipeline.domain.services.endereco_canonicalizer import canonicalize
 
     valores = {
@@ -112,7 +113,7 @@ def _synthetic_entries(identities, baseline_payload: dict | None) -> list[dict]:
     return [
         {
             "property_id": ident.id,
-            "codigo_rfb": ident.codigo_rfb,
+            "codigo_rfb": codigo_rfb_do_imovel(ident.codigo_rfb),
             "endereco_canonical": canonicalize(ident.descricao_sample or "")
             or ident.endereco_canonical,
             "descricao": ident.descricao_sample,
