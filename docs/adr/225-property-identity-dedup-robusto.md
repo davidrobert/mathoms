@@ -6,7 +6,7 @@ status: Decidido
 phase: A12
 date: "2026-05-19"
 decided_at: "2026-05-19"
-amended_at: ["2026-08-11"]
+amended_at: ["2026-08-11", "2026-10-08"]
 relates_to:
   - "[[ADR-215]]"
   - "[[ADR-157]]"
@@ -39,6 +39,12 @@ tags:
 > canonical=None") deixa de valer — agrupar por amostra bruta byte-exata é decisão
 > da [[ADR-385]]. Não implemente a §Decisão 2 nem escreva teste contra a §Gates (d)
 > pelo texto original.
+>
+> ⚠️ **Emendada em 2026-10-08.** `codigo_rfb` ganha forma canônica — o sub-código de
+> imóvel (`'01-11'`→`'11'`) — e a tabela de consumidores da §Consequências está
+> obsoleta: `_match_identity` não existe mais, e faltavam os três alimentadores do
+> dedup. A §Alternativas (B) segue de pé, mas a garantia que ela atribui à §2 não:
+> o loose funde apartamento e casa novos no mesmo endereço. Ver §Emenda 2026-10-08.
 
 > ADR longa (>150 linhas) por design: estende [[ADR-215]] §3 (matching cross-IRPFs) sem reescrever §1/§2/§4/§5/§6, mas a coordenação canonicalizer ↔ resolver ↔ backfill script ↔ invariante E5 exige um único documento de referência.
 
@@ -56,6 +62,67 @@ A mitigação de corrida do §Decisão 2 item 3 é revogada por inexistência: n
 `_reconcile_after_insert` no repo, e o arquivo de teste citado como gate nunca foi
 criado. Declarar mitigação inexistente é pior que declarar o risco em aberto, porque
 dá verde falso a quem audita.
+
+## Emenda 2026-10-08 — `codigo_rfb` tem forma canônica: o sub-código de imóvel
+
+O E1.5a emite o código do imóvel em duas grafias para o mesmo apartamento: `Grupo-Código`
+(`'01-11'`) e o plano (`'11'`). Nas mesmas três declarações, a era 1.3.0 do prompt saía
+`'11'`/`'12'` e a 1.4.1 saiu `'01-11'`/`'01-12'` numa delas. A coluna é
+`String(4)`: em Postgres o INSERT de `'01-12'` levanta `StringDataRightTruncation` e
+derruba o `consolidate_baseline` — reproduzido em PG 16 com o driver do worker; o SQLite
+da suíte aceitava calado. Entre eras, strict, amostra byte-exata e residual comparavam por
+igualdade e não casavam.
+
+**Decisão.**
+
+1. **Forma canônica é o sub-código de imóvel, 2 dígitos.** `'01-CC'`→`'CC'`; código plano
+   só ganha zero à esquerda (`'1'`, `'G01'`→`'01'`); composto de outro grupo (`'07-01'`) ou
+   ilegível não tem chave. Função única: `subcodigo_imovel_rfb`, ao lado de `grupo_rfb` e
+   sobre o mesmo regex. Nunca o grupo — a (B) abaixo continua rejeitada.
+2. **Os dois produtores do campo** (`itens[].codigo` e `bens_direitos[].grupo`) gravam a
+   forma canônica; o cru ilegível fica como evidência, e o enricher recusa a chave com
+   `domain.property_identity_codigo_invalido` — não `uncanonical`, que mandaria consertar
+   o endereço.
+3. **`PropertyLookupKey` rejeita grafia fora de `^\d{2}$`.** Invariante de domínio, não
+   espelho do `VARCHAR(4)`: inalcançável pelos produtores, e o SQLite passa a reprovar o
+   que só o Postgres reprovava.
+4. **Comparação pelo sub-código do lado da row** (strict, amostra, residual): rows antigas
+   podem ter `'G01'`/`'1'` (qualquer motor) ou `'01-11'` (só SQLite). First-write-wins da
+   §2 inalterado — nada é reescrito, não há UPDATE nem backfill.
+5. **Os três alimentadores do dedup leem a mesma forma:** as entries do E1.5c, a projeção
+   de excluídos do E5 (`real_estate_e5_integration._dedup_entries`) e o sweep
+   (`dev/backfill_property_supersession.py`), mais o hard-delete de
+   `dev/dedup_property_identity.py`. Com `'01-11'` cru, `_SPECIFIC_CODIGOS_RFB` o lia como
+   genérico e o passe cross-código fundia apartamento e casa no mesmo endereço — maior valor
+   vence, o outro some; no E1.5c isso vira supersessão durável ([[ADR-324]]).
+
+**Risco aceito — classe da [[ADR-385]] D7.** Normalizar o lado da row recomputa a chave no
+match: duas vivas que só colidem depois de normalizar disputariam o strict (a mais antiga
+vence, e o override pode ficar na outra) e tornariam o residual ambíguo. Medido no dogfood
+em 2026-10-08: 0 rows fora de `^\d{2}$`, logo 0 colisões novas. Em produção a consulta de
+colisão é read-only e vai no PR; resultado > 0 exige supersessão antes, nunca UPDATE.
+
+**Consumidores — substitui a tabela da §Consequências.**
+
+| Sítio | Uso | Forma que vê |
+|---|---|---|
+| `consolidate_baseline` (dois produtores) | grava `imoveis_consolidados[].codigo_rfb` | canônica; cru se ilegível |
+| `property_identity_enricher` | monta a `PropertyLookupKey` | canônica, ou recusa com razão |
+| `DBPropertyIdentityResolver` (strict, amostra, residual) | compara com a row | sub-código da row |
+| `imoveis_dedup` pelos três alimentadores | `_identity_key` + específico/genérico | canônica |
+| `PropertyResponse.codigo_rfb` / UI | rótulo | valor gravado (sem mudança) |
+
+`real_estate_e5_integration._match_identity`, o invariante que motivou o first-write-wins,
+saiu no #539: o E5 resolve valor por `property_id`. First-write-wins segue valendo pelo
+resto — override aponta para a row, não para o código.
+
+**Limite medido, fora desta emenda.** A (B) diz que a cascata estrito-primeiro preserva
+apartamento e casa no mesmo lote. Só preserva quando os dois já existem: imóvel **novo** no
+mesmo canonical cai no loose e herda a identidade do mais antigo, e o strict funde duas
+unidades do mesmo prédio, porque o complemento não entra no canonical (sondado em SQLite,
+1 row nos dois casos). Separá-los pede âncora estruturada (matrícula, inscrição) — escopo
+da lane de âncora estruturada (A40.l121, em curso), que monta suas chaves com
+`subcodigo_imovel_rfb`.
 
 ## Contexto
 

@@ -581,6 +581,9 @@ sobraram três pontas depois do #1937:
   `db_property_identity_resolver.py:134,168`. `'01-11'` e `'11'` são o mesmo apartamento
   em duas grafias. **Latente:** `property_id` é UUID resolvido contra o DB e mede 100% de
   estabilidade.
+  ⚠️ **Corrigido em 2026-10-08 (#2062):** não era latente — em Postgres o INSERT de `'01-12'`
+  estourava o `VARCHAR(4)` e derrubava o E1.5c. Consertado com o sub-código de imóvel como
+  forma única ([[ADR-225]] §Emenda 2026-10-08).
 - `wise_fiscal_flags.py:32,35,38` compara `==` contra `"13"`/`"62"`/`"41"`; `06-41` faz o
   bloco de flags fiscais de exterior virar `False` **sem warning**.
 - `dividas_dedup` tem a **mesma exposição** que o critério 4 gateou para investimentos e
@@ -746,6 +749,9 @@ no seu alcance real — vale para o **code do catálogo**, não para o campo cru
   `db_property_identity_resolver.py:134,168`. Latente, não vivo — `property_id` é UUID
   resolvido contra o DB e mede 100% de estabilidade. Mesmo eixo da §Armadilha (C), junto com
   `wise_fiscal_flags.py:32,35,38` (`==` contra `"13"/"62"/"41"`).
+  ⚠️ **Corrigido em 2026-10-08 (#2062):** não era latente — em Postgres o INSERT de `'01-12'`
+  estourava o `VARCHAR(4)` e derrubava o E1.5c. Consertado com o sub-código de imóvel como
+  forma única ([[ADR-225]] §Emenda 2026-10-08).
 - **`dividas_dedup` tem a MESMA exposição** que o critério 4 gateou para investimentos, e
   **não** está coberto — declarado como limite no PR #1916 e ainda de pé.
 - **Alias no `institution_catalog`** (§Passo 0: a metade de baixo do `instituicao` fora do

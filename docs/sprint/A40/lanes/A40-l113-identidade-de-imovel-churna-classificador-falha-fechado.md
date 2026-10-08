@@ -128,6 +128,10 @@ prescrevia, **não** faria `property_id` voltar a 5+.
 (idem `01-12`/`12`). Como `codigo_rfb` é componente da `PropertyLookupKey`, a mesma
 propriedade não casa consigo mesma entre anos.
 
+> ⚠️ **Corrigido em 2026-10-08.** A grafia é condição necessária, não suficiente: sem mint
+> e sem row a casar, os pares seguem separados mesmo com o código normalizado. Ver o item 4
+> do §Deferimento.
+
 **3. `patrimonio.residencia = 0` NÃO é causado por `pid` nulo.** A residência é o item que
 **tem** `property_id` (`20f938a2…`) e **tem** override `residencia_principal` gravado em
 `workspace_property_overrides`. Ela sai zero porque o **valor** projeta em zero:
@@ -262,6 +266,19 @@ decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
    produtor duplo. ⚠️ Quem pegar: a [[ADR-225]] §Alternativas **rejeita explicitamente**
    "(B) Drop `codigo_rfb` da chave de dedup" (funde apartamento e casa no mesmo lote) — o
    conserto é produtor único do **campo**, nunca remover o campo da chave.
+
+   > ✅ **Entregue em 2026-10-08 (#2062).** Produtor único do campo: os dois sítios gravam o
+   > sub-código de imóvel (`'01-11'`→`'11'`), e a chave, o resolver (lado da row) e os três
+   > alimentadores do dedup comparam na mesma forma — [[ADR-225]] §Emenda 2026-10-08. Não era
+   > latente: em Postgres o INSERT de `'01-12'` estoura o `VARCHAR(4)` e derruba o E1.5c
+   > (reproduzido em PG 16). A precondição para religar o mint está satisfeita.
+   >
+   > ⚠️ **Correção do achado 2 desta lane.** A grafia não é o que fabrica os 3 pares no regime
+   > atual: com o mint sem canonical desligado ([[ADR-392]]), item sem `property_id` nem
+   > canonical cai em `unidentified` no dedup e nunca funde, qualquer que seja o código. O
+   > que separa os pares é a falta de identidade — a `descricao` da era 1.4.1 perdeu o
+   > logradouro ([[ADR-439]] §Contexto). Normalizar é necessário, não suficiente; o teste
+   > `test_sem_o_mint_o_par_sem_canonical_segue_sem_identidade` fixa esse limite.
 
 ## Os outros três achados que a `U5` roteou para esta lane
 
