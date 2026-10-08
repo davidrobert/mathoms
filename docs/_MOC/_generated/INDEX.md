@@ -929,6 +929,7 @@
 | A40.l119 | lane | open | A40 | O elogio à reserva tem dois produtores e o guard alcança um; e a ressalva reescreve a descrição sem tocar o título que o leitor vê | `sprint/A40/lanes/A40-l119-elogio-com-produtor-duplo-e-ressalva-que-nao-alcanca-o-titulo.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l120 | lane | shipped | A40 | O parecer chama de renda fixa uma soma que inclui previdência, e o número com que ele deveria concordar não chega até ele | `sprint/A40/lanes/A40-l120-previdencia-dobrada-em-renda-fixa.md` |
+| A40.l121 | lane | in_progress | A40 | O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF | `sprint/A40/lanes/A40-l121-ancora-estruturada-de-imovel.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | cancelled | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
