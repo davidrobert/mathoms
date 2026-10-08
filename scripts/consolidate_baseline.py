@@ -36,6 +36,7 @@ from pipeline.domain.services.baseline_item_classifier import (
     DivergenciaFatoHint,
     EixoDecididoPeloHint,
     classify_baseline_item,
+    codigo_rfb_do_imovel,
     grupo_rfb,
 )
 from pipeline.domain.services.money_parsing import valor_monetario_float
@@ -257,7 +258,7 @@ def consolidate(baseline: dict, resolver=None) -> dict:
             if categoria == "imovel":
                 entry["tipo"] = "imovel"
                 # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
-                entry["codigo_rfb"] = str(bem.get("grupo", "") or "").strip()
+                entry["codigo_rfb"] = codigo_rfb_do_imovel(bem.get("grupo"))
                 entry["ano_referencia"] = ano
                 # ADR-398: este caminho itera `decl["bens_direitos"]` — a ficha
                 # de origem É o fato, e o mint fica autorizado.
@@ -570,8 +571,9 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
 
         if categoria == "imovel":
             entry["tipo"] = "imovel"
-            # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
-            entry["codigo_rfb"] = str(item.get("codigo", "") or "").strip()
+            # codigo_rfb necessário para PropertyIdentity (ADR-215 P2). Produtor único com
+            # o ramo legado: a ficha de ano-base 2025 traz `'01-11'`, as anteriores `'11'`.
+            entry["codigo_rfb"] = codigo_rfb_do_imovel(item.get("codigo"))
             # ADR-398: o mint lê estes dois campos. `eixo_autoridade` diz QUEM
             # decidiu; `secao_disponivel` diz se a declaração de origem sequer
             # oferecia o fato — sem esse escopo, recusar o mint apagaria a

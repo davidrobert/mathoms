@@ -77,6 +77,10 @@ class ReviewReasonCode(str, enum.Enum):
     # um fato — mint de identidade recusado, porque rotular converteria um
     # passivo em ativo do patrimônio bruto.
     domain_property_identity_eixo_por_hint = "domain.property_identity_eixo_por_hint"
+    # [[ADR-225]] §Emenda 2026-10-08: `codigo_rfb` presente mas sem sub-código de
+    # imóvel legível (`'APTO'`, ou composto de outro grupo como `'07-01'`). Não é
+    # `uncanonical`: aquele manda consertar o endereço, e o defeito aqui é o código.
+    domain_property_identity_codigo_invalido = "domain.property_identity_codigo_invalido"
 
     # [[A40.l114]]: `valores_31_12[ano]` afirma foto em 31/12 FECHADO. Uma tela de
     # posição de 29/03/2026 entrou como `31/12/2026` e levou o eixo do domicílio
