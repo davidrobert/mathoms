@@ -43,7 +43,7 @@ class MotivoBaldeImovel(str, Enum):
 
 @dataclass(frozen=True)
 class VereditoBalde:
-    """`piso` diz que o número publicado é o mínimo: há imóvel em aberto fora dele."""
+    """`piso` diz que o número publicado é o mínimo — só a residência o usa ([[ADR-439]] D2)."""
 
     status: CoberturaStatus
     motivo: MotivoBaldeImovel | None = None
@@ -130,17 +130,18 @@ def _motivo_da_residencia(
 # O discriminador é o imóvel em aberto, não o override: quem trocou o imóvel de renda por
 # FII deixa o `locado` órfão gravado, e esse zero é verdadeiro. O órfão só escolhe o
 # MOTIVO — vínculo perdido não tem CTA de classificar, porque o override já existe.
+# Com imóvel em aberto o par sai `null` mesmo havendo gerador identificado: campo que às
+# vezes é valor e às vezes é piso não tem leitor correto, e o piso já sai com nome
+# próprio (`geradores_identificados`).
 def veredito_geradores(
     geradores: Decimal, evidencia: EvidenciaDeImovel, overrides: Mapping[str, str]
 ) -> VereditoBalde:
-    """Número se > 0 (piso com imóvel em aberto); zero só com todo imóvel identificado."""
-    em_aberto = evidencia.n_desconhecido_em_aberto > 0
-    if geradores > 0:
-        return VereditoBalde(CoberturaStatus.apurado, piso=em_aberto or evidencia.gerador_sem_valor)
+    """Número só com todo imóvel identificado e com valor; senão `null` com o motivo."""
     if evidencia.gerador_sem_valor:
         return VereditoBalde(CoberturaStatus.nao_apurado, MotivoBaldeImovel.sem_valor)
-    if not em_aberto:
-        return VereditoBalde(CoberturaStatus.zero_apurado)
+    if evidencia.n_desconhecido_em_aberto == 0:
+        status = CoberturaStatus.apurado if geradores > 0 else CoberturaStatus.zero_apurado
+        return VereditoBalde(status)
     orfao = _orfaos(evidencia, overrides, CLASSIFICATIONS_GERADORAS)
     motivo = MotivoBaldeImovel.vinculo_perdido if orfao else MotivoBaldeImovel.nao_classificados
     return VereditoBalde(CoberturaStatus.nao_apurado, motivo)

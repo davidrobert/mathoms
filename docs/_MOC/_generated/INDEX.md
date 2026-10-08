@@ -433,6 +433,7 @@
 | ADR-436 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/436-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
 | ADR-437 | adr | Decidido |  | Componente suprimido sai do denominador do score, com piso publicado | `adr/437-componente-suprimido-sai-do-denominador-com-piso-publicado.md` |
 | ADR-438 | adr | Proposto |  | Destino de leitura do parecer é derivado pela máquina, não escolhido pela prosa | `adr/438-destino-de-leitura-derivado-no-parecer.md` |
+| ADR-439 | adr | Proposto |  | Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero | `adr/439-balde-de-imovel-sem-classificacao-apurada-sai-null.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

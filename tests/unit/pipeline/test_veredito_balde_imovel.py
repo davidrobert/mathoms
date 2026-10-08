@@ -132,13 +132,23 @@ def test_desconhecido_sem_valor_apurado_fica_em_aberto() -> None:
     assert v.motivo is MotivoBaldeImovel.nao_classificados
 
 
-def test_gerador_identificado_com_imovel_em_aberto_e_piso() -> None:
+# O par não publica piso: o identificado sai com nome próprio no bloco de cobertura.
+def test_gerador_identificado_com_imovel_em_aberto_nao_publica_o_par() -> None:
     imoveis = [{"property_id": "pid-sala", "valor": 90_000.0}, _SEM_ID_A]
     ev = evidencia_de_imoveis(imoveis, _OVERRIDES_U5)
     v = veredito_geradores(Decimal("90000"), ev, _OVERRIDES_U5)
 
+    assert v.status is CoberturaStatus.nao_apurado
+    assert v.motivo is MotivoBaldeImovel.vinculo_perdido
+
+
+def test_gerador_identificado_sem_imovel_em_aberto_e_apurado() -> None:
+    imoveis = [{"property_id": "pid-sala", "valor": 90_000.0}]
+    ev = evidencia_de_imoveis(imoveis, _OVERRIDES_U5)
+    v = veredito_geradores(Decimal("90000"), ev, _OVERRIDES_U5)
+
     assert v.status is CoberturaStatus.apurado
-    assert v.piso is True
+    assert v.publicavel is True
 
 
 def test_gerador_presente_sem_valor_nao_publica_zero() -> None:

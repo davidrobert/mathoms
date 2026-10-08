@@ -5,6 +5,7 @@ title: "O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` au
 status: Decidido
 phase: A40.l113
 date: "2026-09-01"
+amended_at: ["2026-10-08"]
 relates_to:
   - "[[ADR-274]]"
   - "[[ADR-383]]"
@@ -28,6 +29,10 @@ tags:
 ---
 
 # ADR-433 — O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado
+
+> **Emendada 2026-10-08:** a supressão do agregado que a §Consequências deferia "sobre a
+> escada de limiares da [[ADR-353]]" é decidida pela [[ADR-439]] **sem** a escada — o
+> veredito é categórico por balde. D1–D3 desta ADR seguem de pé.
 
 ## Contexto
 
@@ -176,3 +181,17 @@ conservadora aqui; há escolha honesta.
   `2026` na mesma fixture — sem ele, a correção poderia ser inerte e o teste passaria.
 - Conservação: `residencia + outros` e `geradores + não-geradores` ao centavo, e a
   partição monetária byte-idêntica sob o estado ternário.
+
+## Emenda 2026-10-08 — a supressão deferida sai sem a escada da ADR-353
+
+A §Consequências deferiu publicar `residencia`/`imoveis_geradores` como `null` *"sobre a
+escada de limiares da [[ADR-353]]"*. A [[ADR-439]] executa o deferimento e **troca o
+critério**. A escada mede cobertura de categorização de gasto e está `Proposto`; a
+residência é um item só, e a fatia desconhecida pode contê-la em qualquer tamanho. Aplicada
+ao run `U5` já corrigido, a escada suprimiria uma residência identificada e verdadeira.
+O veredito passa a ser categórico: zero de residência só com `rented`, e o par de geradores
+só sem imóvel em aberto.
+
+Uma medição desta ADR também não sobrevive: `cobertura_classificacao_imovel` era citada
+como "a fatia fica mensurável", mas **nenhum código de produção a chamava**. Ela passa a ser
+publicada pela [[ADR-439]] D1.

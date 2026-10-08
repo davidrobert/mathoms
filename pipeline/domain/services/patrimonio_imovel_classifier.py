@@ -114,6 +114,26 @@ class CoberturaClassificacaoImovel:
     valor_desconhecido: Decimal
     n_total: int
     n_desconhecido: int
+    # Partição do MESMO laço ([[ADR-439]] D1): somar de novo em outro produtor é o que
+    # faz duas somas do mesmo estoque divergirem no centavo.
+    valor_residencia: Decimal = Decimal("0")
+    valor_geradores: Decimal = Decimal("0")
+    valor_nao_geradores: Decimal = Decimal("0")
+
+    @classmethod
+    def da_particao(
+        cls, soma: dict[str, Decimal], contagem: dict[str, int]
+    ) -> "CoberturaClassificacaoImovel":
+        """Monta a partição a partir das somas do laço único."""
+        return cls(
+            valor_total=sum(soma.values(), Decimal("0")),
+            valor_desconhecido=soma[CLASSIFICATION_DESCONHECIDO],
+            n_total=sum(contagem.values()),
+            n_desconhecido=contagem[CLASSIFICATION_DESCONHECIDO],
+            valor_residencia=soma[CLASSIFICATION_RESIDENCIA_PRINCIPAL],
+            valor_geradores=soma["geradores"],
+            valor_nao_geradores=soma["nao_geradores"],
+        )
 
     @property
     def pct_desconhecido(self) -> float:
@@ -130,6 +150,9 @@ class CoberturaClassificacaoImovel:
             "n_total": self.n_total,
             "n_desconhecido": self.n_desconhecido,
             "pct_desconhecido": round(self.pct_desconhecido, 2),
+            "residencia_identificada": float(self.valor_residencia),
+            "geradores_identificados": float(self.valor_geradores),
+            "nao_geradores_identificados": float(self.valor_nao_geradores),
         }
 
 
@@ -146,17 +169,29 @@ def cobertura_classificacao_imovel(
     conjuge_bens: dict,
     overrides_by_property_id: dict[str, str],
 ) -> CoberturaClassificacaoImovel:
-    """Fatia de imóvel cuja classificação é desconhecida ([[ADR-433]] §D3)."""
-    total = desconhecido = Decimal("0")
-    n_total = n_desconhecido = 0
+    """Partição do valor de imóvel por classificação, desconhecido incluso ([[ADR-433]] §D3)."""
+    soma = dict.fromkeys(_BALDES_DE_COBERTURA, Decimal("0"))
+    contagem = dict.fromkeys(_BALDES_DE_COBERTURA, 0)
     for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
-        valor = Decimal(str(imovel_valor(im)))
-        total += valor
-        n_total += 1
-        if classificacao_do_imovel(im, overrides_by_property_id) == CLASSIFICATION_DESCONHECIDO:
-            desconhecido += valor
-            n_desconhecido += 1
-    return CoberturaClassificacaoImovel(total, desconhecido, n_total, n_desconhecido)
+        balde = _balde_de_cobertura(classificacao_do_imovel(im, overrides_by_property_id))
+        soma[balde] += Decimal(str(imovel_valor(im)))
+        contagem[balde] += 1
+    return CoberturaClassificacaoImovel.da_particao(soma, contagem)
+
+
+_BALDES_DE_COBERTURA = (
+    CLASSIFICATION_DESCONHECIDO,
+    CLASSIFICATION_RESIDENCIA_PRINCIPAL,
+    "geradores",
+    "nao_geradores",
+)
+
+
+def _balde_de_cobertura(classificacao: str) -> str:
+    """O mesmo corte dos splitters, com o desconhecido fora do `else`."""
+    if classificacao in (CLASSIFICATION_DESCONHECIDO, CLASSIFICATION_RESIDENCIA_PRINCIPAL):
+        return classificacao
+    return "geradores" if classificacao in CLASSIFICATIONS_GERADORAS else "nao_geradores"
 
 
 # Produtor único do estado ternário. Os três splitters liam `overrides.get(pid)`
