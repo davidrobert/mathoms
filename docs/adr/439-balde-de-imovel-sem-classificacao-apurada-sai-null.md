@@ -119,9 +119,10 @@ A [[ADR-412]] §Emenda E3 vale: `if_pct`/`if_gap` nunca viram `None`, o cone nã
 e o prazo conservador é o mais longo. Com o desconhecido fora dos geradores, o IF publicado
 **já é** esse extremo. `cat2_efetivo`/`investivel_efetivo` seguem número.
 
-No regime `imoveis_no_if = false`, `renda_passiva_fora_origem` passa a
-`classificacao_nao_apurada` em vez de `sem_gerador_excluido`, que afirmava ausência; a meta
-não se move. A sub-linha do KPI de investível lê o veredito e diz a direção do erro.
+No regime `imoveis_no_if = false`, o termo de renda de fora do investível sai `None` em vez
+de `sem_gerador_excluido`, que afirmava ausência. O contrato já lê a chave ausente como não
+medido, então não nasce enum novo; o motivo mora no veredito do bloco. A meta não se move. A
+sub-linha do KPI de investível lê o veredito e diz a direção do erro.
 
 ### D7 — O gate é de teste, não de runtime
 
