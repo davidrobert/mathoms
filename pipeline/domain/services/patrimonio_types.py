@@ -234,6 +234,11 @@ class PatrimonioConfig:
     # Default ``True`` preserva retro-compat com `pipeline.json:14` legado.
     include_real_estate_in_if: bool = True
 
+    # [[ADR-215]] `workspaces.residencia_status` (owned | rented | undeclared). Só
+    # `rented` autoriza publicar residência ZERO ([[ADR-439]] D2); `None` (CLI/teste
+    # sem DB) vale como `undeclared`, o default da coluna.
+    residencia_status: str | None = None
+
 
 # Produtores carregam datas em larguras mistas ("YYYY-MM-DD", "YYYY-MM", "");
 # comparar sem normalizar é bug de ordenação (mesma classe de A40.l42).

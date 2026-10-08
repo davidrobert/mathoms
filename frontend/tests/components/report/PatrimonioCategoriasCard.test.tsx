@@ -6,14 +6,20 @@
  * travessão não é violação séria para o axe). Sem estas asserções o texto
  * acessível seria dead code na primeira refatoração.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { PatrimonioCategoriasCard } from "@/components/report/cards/PatrimonioCategoriasCard";
 import type { PatrimonioData } from "@/types/report-analysis";
 
+vi.mock("next/link", () => ({
+  default: ({ children, href }: { children: unknown; href: string }) => (
+    <a href={href}>{children as never}</a>
+  ),
+}));
+
 function renderCard(
-  composicao: { categoria: string; valor: number; pct: number }[],
+  composicao: { categoria: string; valor: number; pct: number; [k: string]: unknown }[],
 ) {
   return render(
     <PatrimonioCategoriasCard
@@ -57,5 +63,31 @@ describe("PatrimonioCategoriasCard — estados da composição", () => {
 
     expect(document.querySelectorAll("tbody tr")).toHaveLength(2); // 1 categoria + total
     expect(screen.queryByText("Residência")).toBeNull();
+  });
+});
+
+describe("PatrimonioCategoriasCard — residência não apurada (ADR-439 D2)", () => {
+  const residencia = (motivo: string) => ({
+    categoria: "Residência",
+    valor: 0,
+    pct: 0,
+    estado: "nao_apurado",
+    motivo,
+  });
+
+  it("não localizada: diz onde está o valor e NÃO oferece regravar", () => {
+    renderCard([residencia("nao_localizada"), POSITIVO]);
+
+    expect(screen.getByText("Não apurada")).toBeDefined();
+    expect(screen.getByText(/não localizamos o imóvel que vocês marcaram/)).toBeDefined();
+    expect(screen.queryByRole("link", { name: /Marcar residência/ })).toBeNull();
+    expect(screen.queryByText("— Sem fonte apurada para esta categoria.")).toBeNull();
+  });
+
+  it("não declarada: o CTA da ADR-215 aparece pela primeira vez no relatório", () => {
+    renderCard([residencia("nao_declarada"), POSITIVO]);
+
+    const link = screen.getByRole("link", { name: /Marcar residência/ });
+    expect(link.getAttribute("href")).toBe("/config?tab=members");
   });
 });

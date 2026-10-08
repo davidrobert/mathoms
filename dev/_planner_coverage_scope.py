@@ -54,4 +54,15 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     ),
     # 2026-09-01 ([[ADR-236]] §D5): declarar a raiz no schema a trouxe para este gate.
     "$.tributario": "bloco fiscal nunca projetado ao parecer; declaração registra o status quo",
+    # [[ADR-439]]: os três baldes já existiam no payload e o parecer nunca os recebeu;
+    # declará-los no schema (para aceitarem `null`) os trouxe para este gate.
+    "$.patrimonio.residencia": "balde descritivo nunca projetado; declaração registra o status quo",
+    "$.patrimonio.imoveis_geradores": "idem; o parecer lê a composição pela tabela de classes",
+    "$.patrimonio.imoveis_nao_geradores": "idem — par de `imoveis_geradores`",
+    # Projetar o veredito no bloco "Cobertura e incerteza" é o que faria o modelo ressalvar
+    # a classificação desconhecida — pede bump do manifest e eval, então é follow-up com
+    # `prompt-engineer`, registrado no §Deferimento da [[A40.l113]].
+    "$.patrimonio.cobertura_classificacao_imovel": (
+        "veredito de publicação dos baldes de imóvel; projeção ao parecer é follow-up nomeado"
+    ),
 }

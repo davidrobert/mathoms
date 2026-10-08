@@ -2471,6 +2471,32 @@
     "caixa_total_brl": 5000000,
     "cat2_efetivo": 15000000,
     "cbe_obrigatorio": false,
+    "cobertura_classificacao_imovel": {
+      "geradores_identificados": 15000000,
+      "imoveis_geradores": {
+        "motivo": "nao_classificados",
+        "piso": false,
+        "status": "nao_apurado"
+      },
+      "n_desconhecido": 1,
+      "n_desconhecido_em_aberto": 1,
+      "n_total": 5,
+      "nao_geradores_identificados": 26000000,
+      "overrides_sem_imovel": {
+        "geradores": 0,
+        "residencia_principal": 0
+      },
+      "pct_desconhecido": "31.670000",
+      "residencia": {
+        "motivo": "nao_declarada",
+        "piso": false,
+        "status": "nao_apurado"
+      },
+      "residencia_identificada": 0,
+      "residencia_status": "undeclared",
+      "valor_desconhecido": 19000000,
+      "valor_total": 60000000
+    },
     "cobertura_investimentos": [
       {
         "fonte": "irpf",
@@ -2498,6 +2524,8 @@
       },
       {
         "categoria": "Residência",
+        "estado": "nao_apurado",
+        "motivo": "nao_declarada",
         "pct": "0.000000",
         "valor": 0
       },
@@ -2572,6 +2600,8 @@
       },
       {
         "categoria": "Residência",
+        "estado": "nao_apurado",
+        "motivo": "nao_declarada",
         "pct": "0.000000",
         "valor": 0
       },

@@ -1205,6 +1205,34 @@ class TestRendaPassivaForaDoInvestivel:
         assert termo.mensal == 0.0
         assert termo.origem is OrigemRendaFora.sem_gerador_excluido
 
+    # [[ADR-439]] D6: gerador NÃO APURADO não é "sem gerador". `sem_gerador_excluido`
+    # afirmava ausência sobre os 4 imóveis `locado` que perderam o vínculo no run U5.
+    def test_gerador_nao_apurado_nao_afirma_ausencia(self):
+        """Toggle off + veredito `nao_apurado` ⇒ `None`: o termo sai como não medido."""
+        termo = _renda_passiva_fora_do_investivel(
+            {
+                "imoveis_no_if": False,
+                "imoveis_geradores": 0.0,
+                "cobertura_classificacao_imovel": {"imoveis_geradores": {"status": "nao_apurado"}},
+            },
+            _passive_income(alugueis=Decimal("120000")),
+        )
+
+        assert termo is None
+
+    def test_gerador_nao_apurado_com_toggle_on_segue_cat2_no_numerador(self):
+        """Com cat_2 no numerador o termo é zero por construção — o veredito não o move."""
+        termo = _renda_passiva_fora_do_investivel(
+            {
+                "imoveis_no_if": True,
+                "imoveis_geradores": 0.0,
+                "cobertura_classificacao_imovel": {"imoveis_geradores": {"status": "nao_apurado"}},
+            },
+            _passive_income(alugueis=Decimal("120000")),
+        )
+
+        assert termo.origem is OrigemRendaFora.cat2_no_numerador
+
     def test_haircut_e_conservador_nunca_desconta_o_bruto(self):
         """Descontar bruto superestimaria o crédito — e o termo é capitalizado por 12÷TRS."""
         bruto_mensal = 10_000.0
