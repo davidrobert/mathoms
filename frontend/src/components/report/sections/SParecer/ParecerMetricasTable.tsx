@@ -49,7 +49,7 @@ export function ParecerMetricasTable({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase text-[var(--surface-muted-foreground)]">
+              <tr className="whitespace-nowrap text-left text-xs uppercase text-[var(--surface-muted-foreground)]">
                 <th scope="col" className="py-2 pr-4">Métrica</th>
                 <th scope="col" className="py-2 pr-4">Valor atual</th>
                 <th scope="col" className="py-2 pr-4">Alvo</th>
@@ -97,8 +97,8 @@ function MetricaRow({ metrica }: { metrica: Metrica }) {
       <td className="py-2 pr-4">
         <SituacaoCell metrica={metrica} />
       </td>
-      <td className="py-2 pr-4 text-xs capitalize">{metrica.frequencia_revisao}</td>
-      <td className="py-2 pr-4 text-xs text-[var(--surface-muted-foreground)]">
+      <td className="whitespace-nowrap py-2 pr-4 text-xs capitalize">{metrica.frequencia_revisao}</td>
+      <td className="whitespace-nowrap py-2 pr-4 text-xs text-[var(--surface-muted-foreground)]">
         §{metrica.section_id}
       </td>
     </tr>
@@ -125,7 +125,7 @@ function SituacaoCell({ metrica }: { metrica: Metrica }) {
     : "text-[var(--surface-muted-foreground)]";
   return (
     <div className="flex flex-col gap-1" data-situacao={situacao.tom}>
-      <span className={`flex items-center gap-1 text-xs ${tom}`}>
+      <span className={`flex items-center gap-1 whitespace-nowrap text-xs ${tom}`}>
         {severityIcon(atencao ? "atencao" : "alinhado")}
         {situacao.texto}
       </span>
