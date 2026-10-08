@@ -1092,7 +1092,16 @@ migrate-revision:
 # Clean / housekeeping
 # ---------------------------------------------------------------------------
 
-.PHONY: clean clean-pyc clean-caches clean-all
+.PHONY: clean clean-pyc clean-caches clean-all hygiene hygiene-fix
+
+## hygiene: 🧹 Relatório de higiene do clone (read-only) — worktrees órfãos, refs mortas, branches entregues, stash, PRs Dependabot
+hygiene:
+	@$(PYTHON) dev/repo_hygiene.py
+
+## hygiene-fix: Aplica só o recuperável — prune de worktrees/refs + apaga branches entregues (restauração em _scratch/)
+##              Pergunta antes (YES=1 pula). Stash e PRs do Dependabot ficam: só relato, decisão do dono.
+hygiene-fix:
+	@$(PYTHON) dev/repo_hygiene.py --apply $(if $(filter 1,$(YES)),--yes,)
 
 ## clean: Remove caches Python (pyc/pycache/.pytest_cache/.ruff_cache/.mypy_cache)
 clean: clean-pyc clean-caches
