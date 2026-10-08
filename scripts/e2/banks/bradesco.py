@@ -84,8 +84,8 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
             #
             # Pattern: "DD/MM/YY historico docto [credito] [- debito] [saldo]"
             # Continuation lines have no date prefix
-            # Values appear at end of line: "1.808,49" for credit, "- 1.500,00" for debit
-            # Saldo appears after credit/debit: "1.809,49" or "1,00"
+            # Values appear at end of line: "1.234,56" for credit, "- 1.000,00" for debit
+            # Saldo appears after credit/debit: "1.235,56" or "1,00"
 
             lines = all_text.split("\n")
             transactions: List[Dict] = []
