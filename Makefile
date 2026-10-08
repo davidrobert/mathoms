@@ -1098,8 +1098,8 @@ migrate-revision:
 hygiene:
 	@$(PYTHON) dev/repo_hygiene.py
 
-## hygiene-fix: Aplica só o recuperável — prune de worktrees/refs + apaga branches entregues (restauração em _scratch/)
-##              Pergunta antes (YES=1 pula). Stash e PRs do Dependabot ficam: só relato, decisão do dono.
+## hygiene-fix: Aplica só o recuperável — prune de worktrees/refs + apaga branches entregues · pergunta antes (YES=1 pula)
+##              Restauração das branches em _scratch/. Stash e PRs do Dependabot ficam: só relato, decisão do dono.
 hygiene-fix:
 	@$(PYTHON) dev/repo_hygiene.py --apply $(if $(filter 1,$(YES)),--yes,)
 

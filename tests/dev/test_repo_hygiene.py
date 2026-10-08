@@ -155,3 +155,15 @@ def test_branch_que_entrou_em_checkout_depois_da_triagem_sobrevive(
     rows = [LocalBranch("agent/livre", sha, 0, 0), LocalBranch("agent/ocupada", sha, 0, 0)]
     assert repo_hygiene.delete_branches(rows) is False
     assert _git(repo, "branch", "--list", "agent/*", "--format=%(refname:short)") == "agent/ocupada"
+
+
+def test_apply_sem_terminal_e_sem_yes_nao_aplica(monkeypatch: pytest.MonkeyPatch) -> None:
+    state = repo_hygiene.HygieneState(["worktrees/x: gone"], [], None, 0, [])
+    applied: list[repo_hygiene.HygieneState] = []
+    monkeypatch.setattr(repo_hygiene, "collect_state", lambda: state)
+    monkeypatch.setattr(repo_hygiene, "apply_fixes", lambda s: applied.append(s) or True)
+    monkeypatch.setattr("sys.stdin.isatty", lambda: False)
+    assert repo_hygiene.main(["--apply"]) == 1
+    assert applied == []
+    assert repo_hygiene.main(["--apply", "--yes"]) == 0
+    assert applied == [state]
