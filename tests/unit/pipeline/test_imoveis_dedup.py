@@ -47,7 +47,7 @@ class TestNoDuplication:
         assert result.count_after == 0
 
     def test_single_entry_passes_through(self):
-        e = _entry(proprietario="david_robert", valor_31_12=477436.58, property_id="uuid-a")
+        e = _entry(proprietario="david_robert", valor_31_12=470000.0, property_id="uuid-a")
         result = dedup_imoveis_consolidados([e])
         assert result.count_after == 1
         assert result.imoveis[0]["proprietario"] == "david_robert"
@@ -64,13 +64,13 @@ class TestNoDuplication:
 
 class TestDedupByPropertyId:
     def test_same_property_id_two_members_merges(self):
-        a = _entry(proprietario="david_robert", valor_31_12=477436.58, property_id="uuid-x")
-        b = _entry(proprietario="mariana_xxx", valor_31_12=530000.0, property_id="uuid-x")
+        a = _entry(proprietario="david_robert", valor_31_12=470000.0, property_id="uuid-x")
+        b = _entry(proprietario="mariana_xxx", valor_31_12=510000.0, property_id="uuid-x")
         result = dedup_imoveis_consolidados([a, b], titular_key="david_robert")
         assert result.count_after == 1
         merged = result.imoveis[0]
         # Maior valor vence
-        assert merged["valores_31_12"]["2024"] == 530000.0
+        assert merged["valores_31_12"]["2024"] == 510000.0
         # Co-titularidade
         assert merged["proprietario"] == "casal"
         assert set(merged["proprietarios"]) == {"david_robert", "mariana_xxx"}

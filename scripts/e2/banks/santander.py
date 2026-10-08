@@ -107,7 +107,7 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             nome_raw = str(sh.cell(_st_r, _st_c).value).strip()
             result["titular"] = detect_member_from_text(nome_raw)
 
-            # Conta — "Conta: 1652-01.001341.6" (agencia é o prefixo antes do primeiro hífen)
+            # Conta — "Conta: 1234-01.000001.0" (agencia é o prefixo antes do primeiro hífen)
             conta_raw = str(sh.cell(_sc_r, _sc_c).value).strip()
             m = re.search(r"Conta:\s*([\d\-\.]+)", conta_raw)
             if m:
@@ -404,7 +404,7 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
             result["raw_rows_detected"] = count_candidate_rows(all_text)
             result["titular"] = detect_member_from_text(all_text)
 
-            # Account: "Agência e Conta: 1652 / 01001341-6"
+            # Account: "Agência e Conta: 1234 / 01000001-0"
             m = re.search(r"Ag[êe]ncia\s+e\s+Conta[:\s]+([\d\s/\-]+)", all_text)
             if m:
                 raw_conta = m.group(1).strip()

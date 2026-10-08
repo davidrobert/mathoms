@@ -64,7 +64,7 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
             result["titular"] = detect_member_from_text(all_text)
 
-            # Account: "Ag: 3221 | Conta: 77113-9"
+            # Account: "Ag: 1234 | Conta: 12345-6"
             m = re.search(r"Ag[:\s]+(\d+)\s*\|\s*Conta[:\s]+([\d-]+)", all_text)
             if m:
                 result["agencia"] = m.group(1)

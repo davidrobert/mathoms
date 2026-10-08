@@ -13,7 +13,7 @@ from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.context import WorkspaceContext
 
 _DESC_LIVING_WISH = (
-    "APARTAMENTO COND EXEMPLO B - AV EXEMPLO 2192 TORRE 2 APT 163, SANTO AMARO SAO PAULO/SP"
+    "APARTAMENTO COND EXEMPLO B - AV EXEMPLO 1000 TORRE 1 APT 101, BAIRRO EXEMPLO SAO PAULO/SP"
 )
 
 
