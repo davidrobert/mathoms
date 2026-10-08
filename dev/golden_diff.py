@@ -362,11 +362,20 @@ def _load_json(path: Path) -> dict:
 MANIFESTO_PADRAO = "tests/fixtures/pipeline_golden/rebaseline_manifest.yaml"
 
 
+# Anulação não tem `delta_cents`: formatá-lo com `:+d` derrubava o gate em `TypeError`
+# — falha de leitura no lugar da reprovação que ele existe para dar (A40.l113).
+def _descrever_delta(d: FieldDiff) -> str:
+    if d.anulacao:
+        lados = ("null" if v is None else _fmt(v) for v in (d.old, d.new))
+        return " → ".join(lados) + ", anulação"
+    return f"{d.delta_cents:+d} cents"
+
+
 def _report_violations(uncovered: list[FieldDiff], orphans: list[ManifestEntry]) -> None:
     for d in uncovered:
         print(
             f"::error:: value_delta monetário não-justificado: {d.path} "
-            f"({d.delta_cents:+d} cents) — adicione ao manifesto de rebaseline",
+            f"({_descrever_delta(d)}) — adicione ao manifesto de rebaseline",
             file=sys.stderr,
         )
     # A mensagem nomeia o REMÉDIO porque quem lê esta falha quase nunca é quem criou a
