@@ -18,12 +18,15 @@ from typing import Any, Optional
 
 import pytest
 
+from pipeline.domain.services.comparador_de_limiar import conforme_ao_limiar
 from pipeline.domain.services.kpi_target_catalog import (
     METRICA_KEYS,
+    OPERADORES_DOUTRINA,
     PROCEDENCIA_CANONICO,
     KpiTarget,
     build_kpi_targets,
 )
+from pipeline.domain.services.risk_trigger_registry import build_risk_triggers
 
 # Valor observado do par r5/r7 — o número que o alvo do LLM atravessou.
 CONCENTRACAO_OBSERVADA = 34.86
@@ -233,13 +236,13 @@ _COMUM = {"observado_path": "$.ratios.x", "base": "b", "unidade": "pct", "rotulo
 # pinar `procedencia`. Como os dois predicados colapsam em 1 bit no produtor,
 # nenhuma mutação de payload discrimina qual chave o consumidor usou.
 _ESTADOS_PROIBIDOS = [
-    ("numero sem fonte", {"limiar": 42.0, "operador": "<", "ref": "algum.lugar"}),
+    ("numero sem fonte", {"limiar": 42.0, "operador": "<=", "ref": "algum.lugar"}),
     ("fonte sem numero", {"procedencia": PROCEDENCIA_CANONICO}),
     (
         "resolvido e orfao",
         {
             "limiar": 42.0,
-            "operador": "<",
+            "operador": "<=",
             "procedencia": PROCEDENCIA_CANONICO,
             "ref": "r",
             "motivo": "também órfão",
@@ -255,8 +258,42 @@ def test_estado_sem_procedencia_e_irrepresentavel(caso: str, kwargs: dict) -> No
 
 
 def test_estados_legitimos_continuam_construiveis() -> None:
-    KpiTarget(**_COMUM, limiar=1.0, operador="<", procedencia=PROCEDENCIA_CANONICO, ref="r")
+    KpiTarget(**_COMUM, limiar=1.0, operador="<=", procedencia=PROCEDENCIA_CANONICO, ref="r")
     KpiTarget(**_COMUM, motivo="sem alvo canônico")
+
+
+# A40.l92 — o limiar é o último valor conforme. Com `<`, o comparador do catálogo dizia
+# "violado" em 50,00 exato enquanto o agregador (`> 50`), a red-line e o registro de risco
+# diziam conforme; com veredito publicado, a tabela do parecer contradiria o canal de
+# risco sobre o mesmo payload. O construtor fecha a classe: operador estrito não é
+# representável, e o catálogo inteiro passa pelo construtor.
+@pytest.mark.parametrize("estrito", ["<", ">"])
+def test_operador_estrito_e_irrepresentavel(estrito: str) -> None:
+    with pytest.raises(ValueError, match="último valor conforme"):
+        KpiTarget(**_COMUM, limiar=1.0, operador=estrito, procedencia=PROCEDENCIA_CANONICO, ref="r")
+
+
+def test_todo_operador_publicado_e_da_doutrina() -> None:
+    alvos = build_kpi_targets(_e5(), scoring=SCORING)
+
+    publicados = {a["operador"] for a in alvos.values() if a["operador"] is not None}
+    assert publicados, "nenhum alvo resolvido — o teste seria vácuo"
+    assert publicados <= set(OPERADORES_DOUTRINA), f"fora da doutrina: {publicados}"
+
+
+# Mede o COMPORTAMENTO, não a igualdade das constantes: catálogo e gatilho de risco julgam
+# a mesma grandeza contra o mesmo limiar, e é no ponto exato que divergiam (`<` × `<=`).
+# A reserva fica fora por desenho — o alvo é o `meses_alvo` do perfil e o gatilho é o piso
+# `reserva_minima_meses`; são dois limiares, não duas leituras do mesmo.
+@pytest.mark.parametrize("kpi_key", ["concentracao_imobiliaria", "taxa_endividamento"])
+def test_catalogo_e_gatilho_de_risco_concordam_em_volta_do_limiar(kpi_key: str) -> None:
+    alvo = build_kpi_targets(_e5(), scoring=SCORING)[kpi_key]
+    gatilho = build_risk_triggers(SCORING)[kpi_key]
+
+    assert alvo["limiar"] == gatilho.limiar, "mesmo conceito, limiares diferentes"
+    for observado in (alvo["limiar"] - 0.01, alvo["limiar"], alvo["limiar"] + 0.01):
+        catalogo = conforme_ao_limiar(observado, alvo["operador"], alvo["limiar"])
+        assert catalogo == gatilho.conforme(observado), f"divergem em {observado}"
 
 
 def test_todo_kpi_publica_rotulo_proprio() -> None:
