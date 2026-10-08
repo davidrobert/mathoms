@@ -4,7 +4,7 @@ type: lane
 title: "A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora"
 sprint: A40
 plan: PLAN-deterministic-authority
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l92-polaridade-do-comparador
 owner: product-designer
@@ -14,7 +14,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/frontend
   - area/relatorio
@@ -80,6 +80,60 @@ O que "progresso" significa contra um **teto**? Encher ao contrário (100% = fol
 Binário conforme/violado? Faixa com zona de atenção? A resposta muda o campo que o backend
 publica — decidir antes de implementar.
 
+**Decidida em 2026-10-08** — ver §Co-design abaixo: **binário**, com a barra só no piso.
+
+## Co-design 2026-10-08 — o que "progresso" significa contra um teto
+
+Painel `product-designer` (dono) + `financial-planner` + `data-engineer`, em paralelo.
+
+- **Progresso contra teto não existe** nas três metodologias (`financial-planner`): abaixo
+  do teto nenhuma delas trata "menor" como "melhor" — dívida barata não é meta a quitar,
+  imóvel zero não é meta de concentração. Barra invertida induziria a quitar financiamento
+  barato ou vender imóvel para "encher a barra". **Binário é o honesto.**
+- **Status em TODA linha com operador**, inclusive o piso: reserva de 5,6 contra 6 meses vira
+  barra a 93%, que a 12px se lê "atingido" — o gêmeo do `"6 meses ≥ 6 meses"`.
+  Piso: "Mínimo atingido" / "Abaixo do mínimo", com a barra como codificação secundária.
+  Teto: "Dentro do limite" / "Acima do limite", **sem barra**. Cabeçalho "Trilha" →
+  "Situação". O status afirma **só o comparador** — "dentro do limite" não é "dívida
+  saudável".
+- **Violação em âmbar, nunca vermelho** (`product-designer`): o comparador licencia
+  conforme/não conforme, não severidade — a severidade é do canal de risco.
+- **Despesas não identificadas não comporta veredito de conformidade** (`financial-planner`):
+  o número fala da leitura do relatório, não da família. O status é o
+  `diagnostico_confianca.nivel` do produtor, na tríade da própria [[ADR-353]] — "Cobertura
+  alta" / "Cobertura parcial" / "Cobertura insuficiente" —, nunca "acima do limite". E a
+  célula **Alvo** também sai (`product-designer`): `≤ 10,0%` devolveria o veredito, porque o
+  leitor faz a conta e 12% vira violação da família; e o 10 sozinho apagaria o degrau de 30.
+  No catálogo ela vira **órfã por (b)**, com o motivo "mede a leitura do relatório, não a
+  família".
+- **Fronteira:** o limiar é o último valor conforme, nas duas direções. Concentração e
+  despesas publicavam `<` e afirmavam violação no ponto exato em que agregador, red-line e
+  registro de risco diziam conforme; o veredito publicado contradiria o canal de risco.
+  Corrige-se **o catálogo**, não só o veredito ([[ADR-399]] §Emenda 2026-10-08):
+  concentração passa a `<=`, e despesas sai do comparador. Por isso esta lane **muta E5**
+  (ver §Fora de escopo).
+- **Contrato** (`data-engineer`): `comparador = {operador cru, conforme, progresso_pct}`
+  estampado pelo finalize, `conforme` sobre o bruto pelo predicado único
+  `conforme_ao_limiar`, `progresso_pct` só no piso e 100 **só se** conforme. O front desenha;
+  não julga e não faz regex.
+- **Precisão:** número e status não podem se contradizer na mesma linha — se 1 casa faz o
+  observado cair sobre o limiar, mostra-se a 2ª ("20,04%"). Arredondar na direção do
+  veredito fabricaria número.
+
+## Sequência de PRs
+
+1. ✅ **#2042** (`23b7f0b4`) — o enum `metrica_key` do schema do parecer tinha perdido
+   `imobilizacao_patrimonial`; todo `Literal` de `Metrica` fica gateado por igualdade de
+   conjunto. Saiu **antes** porque esta lane muda o mesmo `$defs/metrica`.
+2. **Doutrina do limiar** — predicado único `conforme_ao_limiar`; concentração `<=`;
+   `KpiTarget` recusa operador estrito; despesas vira órfã por (b), com a base = soma das
+   categorias ([[ADR-353]] D2); o tier de despesas julga o share que publica. Mergeado
+   **antes** do veredito, por condição do `financial-planner`.
+3. **O veredito** — `comparador` no artefato, no DTO e no TS; status na tabela; barra só no
+   piso; despesas com o nível do produtor; read-path subtrativo; baseline de print com linha
+   de teto. Inclui o furo medido pelo `data-engineer`: o ramo sem catálogo do estampador
+   **preserva** `target`/`valor_atual` que o LLM emita (`SkipJsonSchema` só esconde o campo).
+
 ## Fora de escopo
 
 - ~~A polaridade das **regras determinísticas de risco** → [[A40.l90]]~~ — **rota morta
@@ -93,7 +147,12 @@ publica — decidir antes de implementar.
   **O que falta é exatamente o §Critério desta lane:** esse operador **não chega ao
   front** — o wire ganhou `kpi_key`, não `operador`. Então "a polaridade chega ao front
   como dado, não por parsing da string" segue aberto, agora com o produtor já tipado.
-- Não muta E5 ⇒ **não entra na janela de rebaseline** e não zera o contador de 2 re-runs.
+- ~~Não muta E5 ⇒ **não entra na janela de rebaseline** e não zera o contador de 2
+  re-runs.~~ **Falso desde o co-design de 2026-10-08:** a doutrina do limiar muta
+  `kpi_targets` (o operador da concentração; a entrada de despesas, que vira órfã) e
+  `diagnostico_confianca` (o tier na faixa de arredondamento) — nenhum número publicado se
+  move, mas o E5 muda, e a lane **entra na cláusula de reinício** do contador. Custo zero em 2026-10-08: a [[A40.l113]] segue
+  `in_progress`, logo o contador não começou.
 
 ## Critério de aceite
 
@@ -102,3 +161,15 @@ publica — decidir antes de implementar.
 - A polaridade chega ao front **como dado**, não por parsing da string renderizada.
 - Baseline visual de print rebaselinada com ≥1 linha de teto, **olhada antes de commitar**.
 - Concluído = PR mergeado em `main` com CI verde.
+
+**Acrescido no co-design de 2026-10-08:**
+
+- Concentração 50,00 e endividamento 20,00 saem **conformes**, pareados por comportamento a
+  `RiskTrigger.conforme()`.
+- Reserva 5,6 contra ≥ 6 meses mostra "Abaixo do mínimo".
+- Despesas não identificadas **nunca** mostram "Acima do limite": a situação é o tier do
+  produtor, e a célula Alvo diz "Não afirmamos um alvo".
+- Bruto 20,04 contra ≤ 20 é exibido com duas casas ("20,04%").
+- Parecer congelado sem `comparador` não exibe barra nem status — zero `<progress>`.
+- Trocar o operador da fixture para `>=` faz a barra aparecer (o gate discrimina a direção).
+- Zero regex sobre string renderizada no TSX.
