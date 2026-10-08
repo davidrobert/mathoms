@@ -572,7 +572,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         if categoria == "imovel":
             entry["tipo"] = "imovel"
             # codigo_rfb necessário para PropertyIdentity (ADR-215 P2). Produtor único com
-            # o ramo legado: a ficha de ano-base 2025 traz `'01-11'`, as anteriores `'11'`.
+            # o ramo legado: o E1.5a emite `'01-11'` ou `'11'` para o mesmo apartamento.
             entry["codigo_rfb"] = codigo_rfb_do_imovel(item.get("codigo"))
             # ADR-398: o mint lê estes dois campos. `eixo_autoridade` diz QUEM
             # decidiu; `secao_disponivel` diz se a declaração de origem sequer

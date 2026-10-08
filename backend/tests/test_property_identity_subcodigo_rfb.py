@@ -1,8 +1,7 @@
 """Regressão — `codigo_rfb` composto estoura a coluna em Postgres e parte a identidade entre eras.
 
-A ficha "Bens e Direitos" das declarações de ano-base 2025 chega como `Grupo-Código`
-(`'01-11'`); a das anteriores, como código plano (`'11'`) — o mesmo apartamento em duas
-grafias. `property_identity.codigo_rfb` é `String(4)`: em Postgres o INSERT de `'01-12'`
+O E1.5a emite o código do imóvel como `Grupo-Código` (`'01-11'`, desde a era 1.4.1 do
+prompt) ou como código plano (`'11'`) — o mesmo apartamento em duas grafias. `property_identity.codigo_rfb` é `String(4)`: em Postgres o INSERT de `'01-12'`
 levanta `StringDataRightTruncation` e derruba o E1.5c, e o SQLite desta suíte aceita
 calado. Por isso a largura é lida do model, nunca do motor.
 """
