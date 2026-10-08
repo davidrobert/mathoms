@@ -2565,9 +2565,9 @@
     },
     "imoveis_alocacao": 44000000,
     "imoveis_fora_alocacao": 16000000,
-    "imoveis_geradores": 15000000,
+    "imoveis_geradores": null,
     "imoveis_investimento": 60000000,
-    "imoveis_nao_geradores": 45000000,
+    "imoveis_nao_geradores": null,
     "imoveis_no_if": true,
     "investimentos_conjuge": 0,
     "investimentos_nao_atribuidos": 0,
@@ -2581,7 +2581,7 @@
       "count": 0,
       "tickers": []
     },
-    "residencia": 0,
+    "residencia": null,
     "tabela_categorias": [
       {
         "categoria": "Outros imóveis",
