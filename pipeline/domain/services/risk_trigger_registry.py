@@ -69,10 +69,6 @@ class RiskTrigger:
 # cobertura: forçar regra para todo limiar responderia por conta própria uma pergunta de
 # domínio ([[ADR-419]] §D4).
 DISPENSADAS: dict[str, str] = {
-    # Decisão de domínio (financial-planner, 2026-08-27): é tier de confiança do
-    # diagnóstico ([[ADR-353]]) — afirmação sobre o RELATÓRIO, não sobre o patrimônio. A
-    # ação é do produto (learning loop, [[ADR-186]]/[[ADR-188]]), não do cliente.
-    "despesas_nao_categorizadas": "confiança do diagnóstico; a ação é do produto, não do cliente",
     # Órfã dinâmica: o produtor suprime o limiar sem cobertura apurada (#1779). Volta a
     # ser elegível sozinha quando a cobertura for apurada, sem esta superfície mudar.
     "exposicao_cambial": "limiar suprimido pelo produtor enquanto a cobertura não é apurada",

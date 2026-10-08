@@ -33,9 +33,6 @@ from dataclasses import asdict, dataclass
 from typing import Any, Mapping, Optional
 
 from pipeline.domain.services.bases_financeiras import BaseFinanceira
-from pipeline.domain.services.diagnostico_comportamental_analyzer import (
-    NAO_IDENTIFICADO_PARCIAL_PCT,
-)
 from pipeline.domain.services.exposicao_cambial_analyzer import (
     THRESHOLD_VERDE_PCT,
     base_declarada_do_pct,
@@ -143,23 +140,6 @@ class KpiTarget:
 # *conceitos* sob o mesmo nome): são as mesmas categorias em janelas distintas, e os
 # dois consumidores já preferem 12m.
 COBERTURA_ESSENCIAL_ALVO_PCT = 100.0
-
-# Limiar que vive em constante de código/config; `ref` aponta o leitor único.
-# Tupla: (chave, observado_path, base, unidade, rotulo, limiar, operador, ref)
-# A base de despesas é a SOMA DAS CATEGORIAS, não `despesa_total`: a [[ADR-353]] D2 a
-# exclui expressamente, porque diverge pelas transferências internas removidas.
-_CANONICOS = (
-    (
-        "despesas_nao_categorizadas",
-        "$.diagnostico_confianca.share_nao_identificado_pct",
-        "despesas_por_categoria",
-        "pct",
-        "Despesas não identificadas (% do total, 12m)",
-        NAO_IDENTIFICADO_PARCIAL_PCT,
-        "<=",
-        "diagnostico_comportamental_analyzer.NAO_IDENTIFICADO_PARCIAL_PCT",
-    ),
-)
 
 
 def _leaf(payload: Mapping[str, Any], *caminho: str) -> Any:
@@ -326,25 +306,11 @@ def _exposicao_cambial(e5: Mapping[str, Any]) -> KpiTarget:
     )
 
 
-def _tabelados() -> dict[str, KpiTarget]:
-    canonicos = {
-        chave: KpiTarget(
-            observado_path=path,
-            base=base,
-            unidade=unidade,
-            rotulo=rotulo,
-            limiar=limiar,
-            operador=operador,
-            procedencia=PROCEDENCIA_CANONICO,
-            ref=ref,
-        )
-        for chave, path, base, unidade, rotulo, limiar, operador, ref in _CANONICOS
-    }
-    orfaos = {
+def _orfaos_de_dominio() -> dict[str, KpiTarget]:
+    return {
         chave: _orfao(path, base, unidade, rotulo, motivo)
         for chave, path, base, unidade, rotulo, motivo in _ORFAOS_DOMINIO
     }
-    return {**canonicos, **orfaos}
 
 
 def _alerta_concentracao(override: Optional[float] = None) -> float:
@@ -370,7 +336,7 @@ def build_kpi_targets(
         "taxa_endividamento": _endividamento(scoring),
         "renda_passiva_cobertura": _renda_passiva_cobertura(e5),
         "exposicao_cambial": _exposicao_cambial(e5),
-        **_tabelados(),
+        **_orfaos_de_dominio(),
     }
     return {chave: asdict(alvo) for chave, alvo in alvos.items()}
 

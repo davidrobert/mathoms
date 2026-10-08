@@ -273,6 +273,17 @@ def test_operador_estrito_e_irrepresentavel(estrito: str) -> None:
         KpiTarget(**_COMUM, limiar=1.0, operador=estrito, procedencia=PROCEDENCIA_CANONICO, ref="r")
 
 
+# A40.l92 — o share não identificado fala da leitura do RELATÓRIO, não da família. Com
+# `≤ 10,0%` sob "Alvo", o leitor fazia a conta e 12% virava violação dela; a situação da
+# linha é o tier que o produtor publica. Alvo reintroduzido aqui é o veredito de volta.
+def test_despesas_nao_identificadas_e_orfa_e_declara_a_base_do_produtor() -> None:
+    alvo = build_kpi_targets(_e5(), scoring=SCORING)["despesas_nao_categorizadas"]
+
+    assert alvo["limiar"] is None and alvo["operador"] is None
+    assert "relatório" in alvo["motivo"]
+    assert alvo["base"] == "despesas_por_categoria", "ADR-353 D2: soma das categorias"
+
+
 def test_todo_operador_publicado_e_da_doutrina() -> None:
     alvos = build_kpi_targets(_e5(), scoring=SCORING)
 
