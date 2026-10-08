@@ -346,3 +346,74 @@ def test_isencao_de_limiar_no_golden_diff_exige_enum_de_unidade_nao_monetario():
         "ninguém acusar. Se a unidade nova É adimensional, adicione-a a _ADIMENSIONAIS "
         "aqui — deliberadamente à mão. Se for monetária, `limiar` não pode seguir isento."
     )
+
+
+# ---------------------------------------------------------------------------
+# A40.l92 — campo estampado novo exige bump do `_SCHEMA_VERSION`
+# ---------------------------------------------------------------------------
+
+# O envelope do cache (TTL 7d) guarda o output JÁ estampado, e `_SCHEMA_VERSION` está na
+# chave: campo estampado novo sem bump serve o envelope velho sem ele, e re-rodar o stage
+# cai no mesmo hit. Nada gateava o par — o #1772 bumpou à mão, e o `section_id` estampado
+# da A40.l117 entrou sem bump. "Estampado" = campo do modelo fora do JSON schema enviado ao
+# LLM (`SkipJsonSchema`), achado por introspecção em toda a árvore do output.
+_ESTAMPADOS_POR_VERSAO = {
+    "1.2": frozenset(
+        {
+            ("Ancora", "label"),
+            ("Ancora", "valor_renderizado"),
+            ("Metrica", "comparador"),
+            ("Metrica", "nivel_confianca"),
+            ("Metrica", "nome"),
+            ("Metrica", "section_id"),
+            ("Metrica", "target"),
+            ("Metrica", "target_motivo"),
+            ("Metrica", "valor_atual"),
+            ("ParecerPlanejadorOutput", "riscos_truncados"),
+            ("PontoForte", "section_id"),
+            ("Risco", "section_id"),
+            ("Sugestao", "section_id"),
+        }
+    ),
+}
+
+
+def _submodelos(anotacao) -> list:
+    from pydantic import BaseModel
+
+    if isinstance(anotacao, type) and issubclass(anotacao, BaseModel):
+        return [anotacao]
+    import typing
+
+    return [m for arg in typing.get_args(anotacao) for m in _submodelos(arg)]
+
+
+def _campos_estampados() -> set[tuple[str, str]]:
+    from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
+
+    vistos, pendentes = set(), [ParecerPlanejadorOutput]
+    while pendentes:
+        modelo = pendentes.pop()
+        if modelo not in vistos:
+            vistos.add(modelo)
+            pendentes.extend(
+                m for f in modelo.model_fields.values() for m in _submodelos(f.annotation)
+            )
+    return {
+        (m.__name__, campo)
+        for m in vistos
+        for campo in set(m.model_fields) - set(m.model_json_schema().get("properties", {}))
+    }
+
+
+def test_campo_estampado_novo_exige_bump_do_schema_version():
+    from backend.app.services.parecer_orchestrator import _SCHEMA_VERSION
+
+    assert _SCHEMA_VERSION in _ESTAMPADOS_POR_VERSAO, "bump sem registrar os campos da versão"
+    atuais = _campos_estampados()
+    assert ("Metrica", "comparador") in atuais, "introspecção cega — o gate seria vácuo"
+    assert atuais == _ESTAMPADOS_POR_VERSAO[_SCHEMA_VERSION], (
+        "campo estampado mudou sem bump de _SCHEMA_VERSION — o cache serviria o envelope "
+        f"velho: novos {sorted(atuais - _ESTAMPADOS_POR_VERSAO[_SCHEMA_VERSION])}, "
+        f"sumidos {sorted(_ESTAMPADOS_POR_VERSAO[_SCHEMA_VERSION] - atuais)}"
+    )

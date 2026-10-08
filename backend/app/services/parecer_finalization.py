@@ -8,6 +8,11 @@ from datetime import datetime, timezone
 from typing import Mapping, Optional
 
 from backend.app.services.parecer_citation_catalog import ancora_format_hint
+from backend.app.services.parecer_metrica_situacao import (
+    comparador_da_metrica,
+    exibir_sem_contradicao,
+    nivel_do_produtor,
+)
 from backend.app.services.parecer_section_route import resolve_destino
 from pipeline.llm.schemas.parecer_planejador import (
     Ancora,
@@ -290,6 +295,8 @@ def _sem_entrada_no_catalogo(metrica: Metrica) -> Metrica:
             "valor_atual": None,
             "target": None,
             "target_motivo": "alvo não resolvido para este KPI",
+            "comparador": None,
+            "nivel_confianca": None,
         }
     )
 
@@ -313,14 +320,32 @@ def _stamp_metrica(metrica: Metrica, drill: PlannerDrillDown, alvos: Mapping) ->
     # retry pagava de novo. Regenerar só o parecer sobre E5 do run base (ADR-291) é a
     # operação normal, não o caso raro.
     observado = drill.get_e5_jsonpath(alvo.get("observado_path") or "")
-    valor = _render_valor(observado.value, alvo.get("unidade") or "") if observado.found else None
+    bruto = observado.value if observado.found else None
+    valor = _render_valor(bruto, alvo.get("unidade") or "") if observado.found else None
     return metrica.model_copy(
         update={
             "nome": _rotulo_de(alvo, metrica.metrica_key),
-            "valor_atual": valor,
-            **_par(alvo, valor),
+            **_situacao(alvo, bruto, valor),
+            "nivel_confianca": nivel_do_produtor(metrica.metrica_key, drill),
         }
     )
+
+
+# `valor` é None quando o observado não resolve — e aí a linha não tem alvo nem veredito.
+def _situacao(alvo: Mapping, bruto, valor: Optional[str]) -> dict:
+    """Observado, alvo e veredito da linha saem juntos — separados, o par mente."""
+    par = _par(alvo, valor)
+    comparador = comparador_da_metrica(alvo, bruto, alvo_publicado=par["target"] is not None)
+    if comparador is not None:
+        valor = _sem_contradicao(bruto, alvo, comparador) or valor
+    return {"valor_atual": valor, **par, "comparador": comparador}
+
+
+def _sem_contradicao(bruto, alvo: Mapping, comparador) -> Optional[str]:
+    render, numero = _UNIDADE_RENDER.get(alvo.get("unidade") or ""), _coerce_number(bruto)
+    if render is None or numero is None:
+        return None
+    return exibir_sem_contradicao(numero, render[1], alvo["unidade"], alvo["limiar"], comparador)
 
 
 def _destino(item, e5_data: Optional[Mapping] = None) -> str:
