@@ -72,6 +72,7 @@ required_jobs:
     - backend-tests
     - migrations-postgres
     - frontend-checks
+    - frontend-ops-checks
     - go-lint
     - go-test
     - all-green
