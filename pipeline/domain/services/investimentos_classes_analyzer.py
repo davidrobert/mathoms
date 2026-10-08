@@ -13,6 +13,7 @@ from pipeline.domain.services.asset_classifier import (
     classify_asset_outcome,
     merge_asset_keywords,
 )
+from pipeline.domain.services.patrimonio_types import imovel_valor
 from pipeline.domain.services.posicao_identity import (
     locator_da_posicao,
     safe_float,
@@ -255,11 +256,8 @@ class InvestimentosClassesAnalyzer:
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, dict):
                 continue
-            valor = safe_float(
-                imovel.get("valor_31_12_ano_base")
-                or imovel.get("valor_irpf")
-                or imovel.get("valor", 0)
-            )
+            # O mesmo valor que o patrimônio soma ([[ADR-431]]): não apurado fica de fora.
+            valor = imovel_valor(imovel)
             if valor <= 0:
                 continue
             pid = imovel.get("property_id")
