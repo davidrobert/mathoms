@@ -2267,12 +2267,12 @@
     },
     "despesas_nao_categorizadas": {
       "base": "despesas_por_categoria",
-      "limiar": "10.000000",
-      "motivo": null,
+      "limiar": null,
+      "motivo": "mede a leitura do relatório, não a família",
       "observado_path": "$.diagnostico_confianca.share_nao_identificado_pct",
-      "operador": "<=",
-      "procedencia": "limiar_canonico",
-      "ref": "diagnostico_comportamental_analyzer.NAO_IDENTIFICADO_PARCIAL_PCT",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
       "rotulo": "Despesas não identificadas (% do total, 12m)",
       "unidade": "pct"
     },
