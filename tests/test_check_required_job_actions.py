@@ -107,3 +107,53 @@ def test_registro_real_pega_docker_injetado():
     registry["actions"][target]["runs_using"] = "docker"
     violations = gate.check_all(registry)
     assert any(v.action_ref == target for v in violations)
+
+
+def _write_needs_chain(tmp_path: Path) -> Path:
+    workflow_dir = tmp_path / "workflows"
+    workflow_dir.mkdir(parents=True, exist_ok=True)
+    (workflow_dir / "fixture.yml").write_text(
+        """
+jobs:
+  base: {runs-on: ubuntu-latest, steps: []}
+  mid: {runs-on: ubuntu-latest, needs: base, steps: []}
+  agg: {runs-on: ubuntu-latest, needs: [mid], steps: []}
+  fora: {runs-on: ubuntu-latest, steps: []}
+""",
+        encoding="utf-8",
+    )
+    return workflow_dir
+
+
+def test_fecho_transitivo_nao_declarado_reprova(tmp_path, monkeypatch):
+    gate = _load_gate()
+    monkeypatch.setattr(gate, "WORKFLOW_DIR", _write_needs_chain(tmp_path))
+    monkeypatch.setattr(gate, "CLOSURE_ROOTS", {"fixture.yml": "agg"})
+    registry = {"actions": {}, "required_jobs": {"fixture.yml": ["agg", "mid"]}}
+    violations = gate.check_closure_declared(registry)
+    assert [v.job for v in violations] == ["base"]
+
+
+def test_fecho_declarado_passa_e_ignora_job_fora_do_fecho(tmp_path, monkeypatch):
+    gate = _load_gate()
+    monkeypatch.setattr(gate, "WORKFLOW_DIR", _write_needs_chain(tmp_path))
+    monkeypatch.setattr(gate, "CLOSURE_ROOTS", {"fixture.yml": "agg"})
+    registry = {"actions": {}, "required_jobs": {"fixture.yml": ["agg", "mid", "base"]}}
+    assert gate.check_closure_declared(registry) == []
+
+
+def test_registro_real_declara_o_fecho_real():
+    gate = _load_gate()
+    assert gate.check_closure_declared(gate.load_registry()) == []
+
+
+def test_registro_real_pega_job_do_fecho_removido():
+    """Mutação: tirar do registro um job que o `all-green` de fato exige reprova
+    — prova que o teste anterior não passa por fecho vazio."""
+    gate = _load_gate()
+    closure = gate.required_closure(gate.WORKFLOW_DIR / "ci.yml", "all-green")
+    assert len(closure) > 2, f"fecho suspeito de vacuidade: {closure}"
+    registry = gate.load_registry()
+    registry["required_jobs"]["ci.yml"].remove("frontend-ops-checks")
+    violations = gate.check_closure_declared(registry)
+    assert [v.job for v in violations] == ["frontend-ops-checks"]

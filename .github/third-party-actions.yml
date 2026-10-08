@@ -64,6 +64,10 @@ actions:
 # green" (job `all-green` de ci.yml + o fecho do `needs:` dele) e "Title
 # (Conventional Commits)" (job `title-lint` de pr-quality.yml). Job fora
 # desta lista pode usar action Docker livremente — não é required.
+# A lista é conferida contra o fecho real de `needs:` do agregador
+# (`check_closure_declared`): `frontend-visual` e `frontend-print-visual`
+# entraram no `all-green` em 2026-08-12 e ficaram fora daqui até 2026-10-08 —
+# o gate não conferia as actions deles e passava calado.
 required_jobs:
   ci.yml:
     - changes
@@ -73,6 +77,8 @@ required_jobs:
     - migrations-postgres
     - frontend-checks
     - frontend-ops-checks
+    - frontend-visual
+    - frontend-print-visual
     - go-lint
     - go-test
     - all-green
