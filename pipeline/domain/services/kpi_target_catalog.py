@@ -33,9 +33,6 @@ from dataclasses import asdict, dataclass
 from typing import Any, Mapping, Optional
 
 from pipeline.domain.services.bases_financeiras import BaseFinanceira
-from pipeline.domain.services.diagnostico_comportamental_analyzer import (
-    NAO_IDENTIFICADO_PARCIAL_PCT,
-)
 from pipeline.domain.services.exposicao_cambial_analyzer import (
     THRESHOLD_VERDE_PCT,
     base_declarada_do_pct,
@@ -74,6 +71,13 @@ METRICA_KEYS = (
 
 PROCEDENCIA_GOAL = "goal_declarado"
 PROCEDENCIA_CANONICO = "limiar_canonico"
+
+# O limiar é o ÚLTIMO VALOR CONFORME, nas duas direções; a violação é sempre estrita
+# (co-design financial-planner, [[A40.l92]]). Limite se enuncia "até X%", os produtores
+# já julgam assim (alerta de concentração em `> 50`, tier de despesas em `> 10`) e a
+# [[ADR-353]] D1 escreve "≤ 10% → alta". Com `<`, o comparador afirmava violação em
+# 50,00 exato enquanto agregador, red-line e registro de risco diziam conforme.
+OPERADORES_DOUTRINA = ("<=", ">=")
 
 
 @dataclass(frozen=True)
@@ -118,6 +122,14 @@ class KpiTarget:
                 f"got operador={self.operador!r} procedencia={self.procedencia!r} "
                 f"ref={self.ref!r} motivo={self.motivo!r}"
             )
+        self._checa_doutrina_do_operador()
+
+    def _checa_doutrina_do_operador(self) -> None:
+        if self.operador is not None and self.operador not in OPERADORES_DOUTRINA:
+            raise ValueError(
+                f"KpiTarget em {self.observado_path!r}: operador={self.operador!r} fora da "
+                f"doutrina — esperado um de {OPERADORES_DOUTRINA} (limiar = último valor conforme)"
+            )
 
 
 # Cobertura da renda passiva sobre a despesa essencial. O limiar 100 não é doutrina
@@ -128,21 +140,6 @@ class KpiTarget:
 # *conceitos* sob o mesmo nome): são as mesmas categorias em janelas distintas, e os
 # dois consumidores já preferem 12m.
 COBERTURA_ESSENCIAL_ALVO_PCT = 100.0
-
-# Limiar que vive em constante de código/config; `ref` aponta o leitor único.
-# Tupla: (chave, observado_path, base, unidade, rotulo, limiar, operador, ref)
-_CANONICOS = (
-    (
-        "despesas_nao_categorizadas",
-        "$.diagnostico_confianca.share_nao_identificado_pct",
-        "despesa_total",
-        "pct",
-        "Despesas não identificadas (% do total, 12m)",
-        NAO_IDENTIFICADO_PARCIAL_PCT,
-        "<",
-        "diagnostico_comportamental_analyzer.NAO_IDENTIFICADO_PARCIAL_PCT",
-    ),
-)
 
 
 def _leaf(payload: Mapping[str, Any], *caminho: str) -> Any:
@@ -223,7 +220,7 @@ def _concentracao_imobiliaria(alerta_pct: float) -> KpiTarget:
         unidade="pct",
         rotulo="Concentração imobiliária (carteira produtiva)",
         limiar=alerta_pct,
-        operador="<",
+        operador="<=",
         procedencia=PROCEDENCIA_CANONICO,
         ref="RealEstateConfig.concentracao_alerta_pct ([[ADR-340]])",
     )
@@ -309,25 +306,11 @@ def _exposicao_cambial(e5: Mapping[str, Any]) -> KpiTarget:
     )
 
 
-def _tabelados() -> dict[str, KpiTarget]:
-    canonicos = {
-        chave: KpiTarget(
-            observado_path=path,
-            base=base,
-            unidade=unidade,
-            rotulo=rotulo,
-            limiar=limiar,
-            operador=operador,
-            procedencia=PROCEDENCIA_CANONICO,
-            ref=ref,
-        )
-        for chave, path, base, unidade, rotulo, limiar, operador, ref in _CANONICOS
-    }
-    orfaos = {
+def _orfaos_de_dominio() -> dict[str, KpiTarget]:
+    return {
         chave: _orfao(path, base, unidade, rotulo, motivo)
         for chave, path, base, unidade, rotulo, motivo in _ORFAOS_DOMINIO
     }
-    return {**canonicos, **orfaos}
 
 
 def _alerta_concentracao(override: Optional[float] = None) -> float:
@@ -353,13 +336,14 @@ def build_kpi_targets(
         "taxa_endividamento": _endividamento(scoring),
         "renda_passiva_cobertura": _renda_passiva_cobertura(e5),
         "exposicao_cambial": _exposicao_cambial(e5),
-        **_tabelados(),
+        **_orfaos_de_dominio(),
     }
     return {chave: asdict(alvo) for chave, alvo in alvos.items()}
 
 
 __all__ = [
     "METRICA_KEYS",
+    "OPERADORES_DOUTRINA",
     "ORFAOS_DOMINIO_KEYS",
     "PROCEDENCIA_CANONICO",
     "PROCEDENCIA_GOAL",

@@ -157,6 +157,21 @@ _ORFAOS_DOMINIO = (
         "Alíquota efetiva de IR (consolidada)",
         "alíquota efetiva é descritiva; o alvo depende do regime e não é canônico",
     ),
+    # Órfã por (b), e a única cujo número fala do RELATÓRIO, não da família (co-design
+    # `financial-planner` + `product-designer`, [[A40.l92]]). O share não identificado é o
+    # tier de confiança do diagnóstico ([[ADR-353]]) — a ação é do produto (learning loop,
+    # [[ADR-186]]/[[ADR-188]]), não do cliente. Com alvo `≤ 10,0%`, o leitor fazia a conta e 12% virava violação DA
+    # FAMÍLIA; e o 10 sozinho apagaria o degrau de 30, que é onde o diagnóstico some. A
+    # base é a SOMA DAS CATEGORIAS, não `despesa_total`: a [[ADR-353]] D2 a exclui
+    # expressamente, porque diverge pelas transferências internas removidas.
+    (
+        "despesas_nao_categorizadas",
+        "$.diagnostico_confianca.share_nao_identificado_pct",
+        "despesas_por_categoria",
+        "pct",
+        "Despesas não identificadas (% do total, 12m)",
+        "mede a leitura do relatório, não a família",
+    ),
 )
 
 
