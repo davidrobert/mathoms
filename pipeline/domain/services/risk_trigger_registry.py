@@ -20,6 +20,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
+from pipeline.domain.services.comparador_de_limiar import conforme_ao_limiar
 from pipeline.domain.services.kpi_target_catalog import METRICA_KEYS, ORFAOS_DOMINIO_KEYS
 
 # Degraus REUSADOS, não inventados: são os que
@@ -32,17 +33,11 @@ from pipeline.domain.services.kpi_target_catalog import METRICA_KEYS, ORFAOS_DOM
 CONCENTRACAO_ALERTA_PCT = 50.0
 CONCENTRACAO_SEVERA_PCT = 75.0
 
-# §Fronteira: `<=` (conforme é `conc <= 50`), não `<`. O catálogo publica `operador: "<"`
-# para o mesmo conceito e os dois divergem em **50,00 exato** — lá é rompido, aqui não.
-# Sigo a red-line: é a doutrina ratificada e é ela que hard-blocka o parecer, então a
-# superfície determinística não pode afirmar risco que o gate do parecer diz não existir.
-
-_OPERADORES = {
-    "<": lambda obs, lim: obs < lim,
-    "<=": lambda obs, lim: obs <= lim,
-    ">": lambda obs, lim: obs > lim,
-    ">=": lambda obs, lim: obs >= lim,
-}
+# §Fronteira: `<=` (conforme é `conc <= 50`), não `<`. Sigo a red-line: é a doutrina
+# ratificada e é ela que hard-blocka o parecer, então a superfície determinística não pode
+# afirmar risco que o gate do parecer diz não existir. O catálogo publicava `<` para o
+# mesmo conceito e divergia em **50,00 exato**; desde a [[A40.l92]] os dois seguem a mesma
+# doutrina (limiar = último valor conforme), pareada por teste.
 
 
 @dataclass(frozen=True)
@@ -59,7 +54,7 @@ class RiskTrigger:
     limiar_severo: Optional[float] = None
 
     def conforme(self, observado: float) -> bool:
-        return _OPERADORES[self.operador](observado, self.limiar)
+        return conforme_ao_limiar(observado, self.operador, self.limiar)
 
     def rompido(self, observado: float) -> bool:
         return not self.conforme(observado)
@@ -67,7 +62,7 @@ class RiskTrigger:
     def severo(self, observado: float) -> bool:
         if self.limiar_severo is None:
             return False
-        return not _OPERADORES[self.operador](observado, self.limiar_severo)
+        return not conforme_ao_limiar(observado, self.operador, self.limiar_severo)
 
 
 # Chave sem regra de risco, com o motivo declarado. É a válvula obrigatória do gate de
