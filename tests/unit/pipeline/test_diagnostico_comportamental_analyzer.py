@@ -169,3 +169,21 @@ class TestConfianca:
         c = DiagnosticoComportamentalAnalyzer().confianca({"janela_12m": {}})
         assert c["nivel"] == "alta"
         assert c["share_nao_identificado_pct"] == 0.0
+
+    # A40.l92 — o tier é julgado sobre o share que se publica. Julgado sobre o bruto,
+    # 10,04% saía `parcial` ao lado de "10,0%", e o parecer afirmava violação contra os
+    # dígitos da mesma linha.
+    def test_tier_julga_o_share_que_publica(self):
+        an = DiagnosticoComportamentalAnalyzer()
+        fluxo = _fluxo_despesas(1004, 8996)  # 10,04% → publica 10,0
+        assert an.confianca(fluxo) == {"nivel": "alta", "share_nao_identificado_pct": 10.0}
+        assert "Ponto cego nos gastos" not in {d.padrao for d in an.analyze(fluxo, _ratios(30))}
+
+    def test_ponto_cego_narra_o_share_publicado(self):
+        an = DiagnosticoComportamentalAnalyzer()
+        fluxo = _fluxo_despesas(1006, 8994)  # 10,06% → publica 10,1 → parcial
+        assert an.confianca(fluxo) == {"nivel": "parcial", "share_nao_identificado_pct": 10.1}
+        cego = next(
+            d for d in an.analyze(fluxo, _ratios(30)) if d.padrao == "Ponto cego nos gastos"
+        )
+        assert cego.evidencia.startswith("10,1% das despesas"), cego.evidencia

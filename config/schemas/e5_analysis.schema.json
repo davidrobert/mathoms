@@ -1466,6 +1466,7 @@
               "despesa_mensal_media",
               "despesa_total",
               "despesas_mensais",
+              "despesas_por_categoria",
               "patrimonio_alvo",
               "patrimonio_bruto",
               "patrimonio_gerador",
@@ -1502,9 +1503,8 @@
               "string",
               "null"
             ],
-            "description": "Comparador do alvo (<, <=, >=). Carrega a polaridade: sem ele, 34,86 contra 50 é ambíguo. Fechado como enum em 2026-08-28 (A40.l93) refletindo o que o catálogo produz — `>` fica de fora de propósito: ampliar é ato deliberado, no commit do produtor que precisar, com prova de vermelho. O consumidor é mais permissivo que o contrato (`_OPERADOR_GLIFO` conhece os 4), e essa é a direção segura. Operador desconhecido não some: `_OPERADOR_GLIFO.get(op, op)` o RENDERIZA literal, com cara de autoridade. Banda de tolerância não cabe aqui como símbolo novo — esconderia dois números num `limiar` escalar; exigiria mudança de FORMA, e o enum fechado força essa conversa.",
+            "description": "Comparador do alvo (<=, >=). Carrega a polaridade: sem ele, 34,86 contra 50 é ambíguo. O limiar é o ÚLTIMO VALOR CONFORME nas duas direções e a violação é sempre estrita (A40.l92, co-design financial-planner): `<` saiu do enum em 2026-10-08 porque afirmava violação em 50,00 exato enquanto agregador, red-line e registro de risco diziam conforme — e o construtor de `KpiTarget` recusa operador fora da doutrina. Fechado como enum em 2026-08-28 (A40.l93) refletindo o que o catálogo produz — `>` fica de fora de propósito: ampliar é ato deliberado, no commit do produtor que precisar, com prova de vermelho. O consumidor é mais permissivo que o contrato (`_OPERADOR_GLIFO` conhece os 4), e essa é a direção segura. Operador desconhecido não some: `_OPERADOR_GLIFO.get(op, op)` o RENDERIZA literal, com cara de autoridade. Banda de tolerância não cabe aqui como símbolo novo — esconderia dois números num `limiar` escalar; exigiria mudança de FORMA, e o enum fechado força essa conversa.",
             "enum": [
-              "<",
               "<=",
               ">=",
               null
