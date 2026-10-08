@@ -177,6 +177,23 @@ Se você ignorou o aviso e caiu na quebra do `dev-pull`, o próprio target
 agora detecta o caso e te dá a one-liner de correção (ver
 `Makefile:dev-pull`).
 
+**Higiene periódica do clone** (o que o `git sweep` não alcança):
+
+```bash
+make hygiene         # relatório read-only (1–5 min)
+make hygiene-fix     # aplica — pergunta antes; YES=1 pula a confirmação
+```
+
+O `git sweep` só vê branch com upstream `[gone]`; branch nunca pushada ou de
+worktree descartado fica para sempre. O `hygiene-fix` apaga `agent/*`/`claude/*`
+cujo conteúdo já está em `origin/main` — pelo predicado de patch-id de
+`dev/_lane_branch_delivery.py`, porque squash nunca deixa a branch ancestral —
+e que nenhum worktree tem em checkout. Grava antes um
+`_scratch/hygiene-restore-branches-<ts>.sh` que recria cada uma no mesmo SHA.
+Também faz `git worktree prune` e `git remote prune origin`. Stash e PRs do
+Dependabot são só relatados: a pilha de stash é compartilhada entre worktrees, e
+merge é decisão do dono.
+
 ---
 
 ## 2. Variáveis de ambiente
