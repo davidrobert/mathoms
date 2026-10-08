@@ -10,7 +10,7 @@ branch_slug: a40-l121-ancora-estruturada-de-imovel
 owner: data-engineer
 depends_on: []
 parallel_with: ["[[A40.l113]]"]
-adrs: ["[[ADR-215]]", "[[ADR-225]]", "[[ADR-392]]", "[[ADR-439]]"]
+adrs: ["[[ADR-440]]", "[[ADR-215]]", "[[ADR-225]]", "[[ADR-392]]", "[[ADR-439]]"]
 tags: [type/lane, sprint/a40, status/in-progress, priority/p0, area/pipeline]
 ---
 
@@ -95,3 +95,57 @@ Cobertura de nível por ficha no mesmo proxy (10 fichas): `via_numero` 8, `mat` 
   nada sobre a estabilidade da âncora nova — essa é medição desta lane.
 - **`codigo_rfb`:** a `1.4.1` emitiu `01-11`/`01-12` (grupo-código) em 1 das 3 declarações;
   na `1.3.0` as mesmas saíam `11`/`12`. A grafia composta nasce da era do prompt.
+
+## O que o co-design mudou no plano
+
+O plano de entrada tinha três PRs — contrato, **bump do prompt** e enricher. Dois pontos caíram
+no co-design de 2026-10-08 (`data-engineer`, `prompt-engineer`, `senior-cto`):
+
+- **O produtor não é o LLM.** O `data-engineer` objetou que a âncora transcrita pelo LLM repete a
+  causa ([[ADR-400]]; o `01-11`×`11` da mesma era é deriva de transcrição), e o `prompt-engineer`
+  cobrou o mesmo pela [[ADR-081]]. **O dono decidiu** pelo parser determinístico de rótulo. Medido
+  antes da decisão, no mesmo corpus: âncora em 10 de 10 fichas, e o join ficha↔item só pelo valor
+  dá ficha única em 8 de 10 itens (2 ambíguos, zero sem ficha), com coerência 6/6 contra o via da
+  `1.3.0`. Ganho decisivo: o parser cura **todo** artefato já gravado sem re-extração LLM, que
+  re-sortearia os demais campos e é decisão de custo do dono ([[ADR-311]] D3).
+- **A âncora não entra no `baseline_patrimonial`.** O consolidado a carrega em memória até o
+  enricher e a remove depois da identidade: matrícula e inscrição são quasi-identificadores, e o
+  gate de PII da [[ADR-435]] não veria valor solto. Logo o PR0 declara só no schema do `E1.5a`.
+
+O desenho fechado está na [[ADR-440]] (D1–D7).
+
+## Critério de aceite
+
+1. O `E1.5a` grava `ancora_imovel` nas fichas de imóvel que o parser lê, sem LLM, em **todo** IRPF
+   do run — inclusive os que o incremental não reenvia — e regrava só quando a âncora muda (o
+   segundo run regrava zero rows).
+2. Join ambíguo ou ficha não achada fica sem âncora, com `extract.ancora_imovel_ambigua` /
+   `extract.ancora_imovel_sem_ficha` e `offending_value` sem PII.
+3. A chave por nível sai dos **mesmos** extractors do `endereco_canonicalizer`; sem âncora, a chave
+   é byte-idêntica à de hoje.
+4. Medição read-only no dogfood, com o enricher novo em modo sem mint: **6 de 6** rows com override
+   re-alcançadas, Δrows = 0, zero conflito de veto.
+5. `backend/tests/integration/test_property_override_sticky.py` existe e prova que a classificação
+   sobrevive ao re-upload. Os contrafactuais reprovam: sem âncora o colapso volta, sem veto dois
+   apartamentos do mesmo prédio fundem, e cada nível sozinho tem o seu caso.
+6. A âncora não aparece em `baseline_patrimonial`, E5, view-model nem parecer (teste de ausência).
+
+## Plano de PRs
+
+| PR | conteúdo | depende de |
+|---|---|---|
+| docs | esta lane + [[ADR-440]] `Proposto` | — |
+| PR0 | `ancora_imovel` + `ancora_versao` em `e15_baseline_extract.schema.json`; teste de que o schema aceita e recusa as formas certas | docs |
+| PR1 | parser + join + integração no `E1.5a` (antes do early-return do incremental) + razões; `golden_diff` do dogfood igual a zero | PR0 |
+| PR2 | `match()` no port e nos adapters; enricher em duas fases com veto; repasse em `consolidate_from_itens` + remoção da âncora após a identidade; teste sticky; medição no dogfood; [[ADR-440]] vira `Decidido` com as emendas datadas da [[ADR-225]] e da [[ADR-265]] | PR1 · davidrobert/mathoms#2062 (normalização do `codigo_rfb`) |
+
+O PR2 toca o mesmo trecho do enricher que o #2062 (`_lookup_or_mark`) e monta cada chave pelo
+sub-código normalizado dele: o `PropertyLookupKey` passa a recusar grafia crua. O #2062 espera uma
+consulta de colisão em produção pelo dono, então o PR2 não tem data.
+
+## Fora do escopo
+
+- O `llm_call_log` grava só a 1ª de ~10 chamadas do `E1.5a` por run (medido nos mesmos três runs:
+  10 artefatos com 38–104 s de intervalo, 1 linha de log). Subestima custo e o hard-stop de
+  orçamento; virou tarefa própria.
+- Conjunto de chaves por row e namespace de matrícula por município/UF — [[ADR-440]] §Deferimentos.
