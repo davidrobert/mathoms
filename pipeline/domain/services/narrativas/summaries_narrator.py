@@ -334,35 +334,61 @@ def _summary_s4(M: Mapping[str, Any]) -> str:
 # condicional: `residência (R$ 0,00)` lê-se como "sua casa não vale nada".
 def _s1_imoveis_clause(M: Mapping[str, Any]) -> str:
     """A40.l6 / ADR-356 D7: parcela de residência só entra com valor > 0."""
-    partes: list[str] = []
-    if (M.get("residencia") or 0) > 0:
-        partes.append(f"residência própria de {fmt_currency(M['residencia'])}")
-    if (M.get("imoveis_investimento") or 0) > 0:
-        partes.append(f"outros imóveis somando {fmt_currency(M['imoveis_investimento'])}")
+    partes = _parcelas_de_imoveis(M, "residência própria de")
     pct = fmt_percent(M["pct_imoveis_bruto"])
     if not partes:
         return f"Imóveis representam {pct} do patrimônio bruto."
     return f"Imóveis representam {pct} do patrimônio bruto, com {', '.join(partes)}."
 
 
-# "outros imóveis" é o rótulo da composição na mesma página ([[ADR-420]] §D1): cat_2
-# inclui uso pessoal e nu-propriedade, e "de investimento" afirmava o que o número não
-# sustenta (co-design `product-designer`, A40.l113).
-_S4_VALOR_TEMPLATES: tuple[tuple[str, str], ...] = (
-    ("residencia", "residência de {valor}"),
-    ("imoveis_investimento", "outros imóveis somando {valor}"),
-)
-
-
 def _s4_portfolio_head(M: Mapping[str, Any]) -> str:
-    partes = [
-        template.format(valor=fmt_currency(M.get(chave) or 0))
-        for chave, template in _S4_VALOR_TEMPLATES
-        if (M.get(chave) or 0) > 0
-    ]
+    partes = _parcelas_de_imoveis(M, "residência de")
     if not partes:
         return "Sem valor de imóveis identificado no portfólio. "
     return f"Portfólio imobiliário com {', '.join(partes)}. "
+
+
+def _parcelas_de_imoveis(M: Mapping[str, Any], rotulo_residencia: str) -> list[str]:
+    candidatas = (_parcela_residencia(M, rotulo_residencia), _parcela_outros_imoveis(M))
+    return [parcela for parcela in candidatas if parcela]
+
+
+def _parcela_residencia(M: Mapping[str, Any], rotulo: str) -> str | None:
+    valor = M.get("residencia") or 0
+    if valor <= 0:
+        return None
+    piso = "ao menos " if (M.get("residencia_veredito") or {}).get("piso") else ""
+    return f"{rotulo} {piso}{fmt_currency(valor)}"
+
+
+# "outros imóveis" é o rótulo da composição na mesma página ([[ADR-420]] §D1): cat_2
+# inclui uso pessoal e nu-propriedade, e "de investimento" afirmava o que o número não
+# sustenta (co-design `product-designer`, A40.l113).
+def _parcela_outros_imoveis(M: Mapping[str, Any]) -> str | None:
+    valor = M.get("imoveis_investimento") or 0
+    if valor <= 0:
+        return None
+    return f"outros imóveis somando {fmt_currency(valor)}{_ressalva_da_residencia(M)}"
+
+
+# [[ADR-439]] D2 — a parcela diz a DIREÇÃO do erro (co-design `product-designer`). Não
+# localizada, não classificada ou não declarada: a casa PODE estar em cat_2 ("podem",
+# porque `nao_localizada` também vale para imóvel que nem veio no run). Sem valor: a casa
+# ficou fora de toda soma, e o que pode ser maior é o total.
+_RESSALVA_SEM_VALOR = (
+    "; a residência está na declaração sem valor apurado em 31/12 e ficou fora da soma, "
+    "então o total pode ser maior"
+)
+_RESSALVA_NAO_IDENTIFICADA = ", que podem incluir a residência (não identificada neste relatório)"
+
+
+def _ressalva_da_residencia(M: Mapping[str, Any]) -> str:
+    veredito = M.get("residencia_veredito") or {}
+    if veredito.get("status") != "nao_apurado":
+        return ""
+    if veredito.get("motivo") == "sem_valor":
+        return _RESSALVA_SEM_VALOR
+    return _RESSALVA_NAO_IDENTIFICADA
 
 
 def _s4_aluguel_clause(M: Mapping[str, Any]) -> str:

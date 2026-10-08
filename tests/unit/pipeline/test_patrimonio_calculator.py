@@ -191,7 +191,10 @@ def test_irpf_only_residencia_without_keyword_match(config: PatrimonioConfig):
     }
     calc = PatrimonioCalculator(config)
     result = calc.calculate(_inputs(baseline=baseline))
-    assert result["residencia"] == 0.0
+    # [[ADR-439]] D2: imóvel que ninguém marcou NÃO prova que a família não tem casa.
+    assert result["residencia"] is None
+    # A fixture `config` grava a residência num `property_id` que este run não traz.
+    assert result["cobertura_classificacao_imovel"]["residencia"]["motivo"] == "nao_localizada"
     assert result["imoveis_investimento"] == 500_000.0
 
 
@@ -208,7 +211,7 @@ def test_irpf_only_no_keyword_in_config(config_no_keyword: PatrimonioConfig):
     }
     calc = PatrimonioCalculator(config_no_keyword)
     result = calc.calculate(_inputs(baseline=baseline))
-    assert result["residencia"] == 0.0
+    assert result["residencia"] is None  # [[ADR-439]] D2 — sem `rented`, zero não é medida
     assert result["imoveis_investimento"] == 500_000.0
 
 
@@ -704,8 +707,7 @@ def test_investivel_efetivo_inclui_imoveis_geradores_quando_toggle_on(config: Pa
     assert result["investivel_efetivo"] == 700_000.0  # 500k cat_3 + 200k cat_2
 
 
-def test_investivel_efetivo_exclui_nao_geradores_sempre(config: PatrimonioConfig):
-    """ADR-215 §6 + ADR-235: uso_pessoal/especulacao/nu_proprietario/desconhecido nunca entram."""
+def _calcular_nao_geradores(config: PatrimonioConfig) -> dict:
     overrides = {"p-up": "uso_pessoal", "p-t": "especulacao", "p-nu": "nu_proprietario"}
     cfg = PatrimonioConfig(
         members=config.members,
@@ -718,11 +720,25 @@ def test_investivel_efetivo_exclui_nao_geradores_sempre(config: PatrimonioConfig
         {"property_id": "p-nu", "valor": 800_000},
         {"valor": 50_000},
     ]
-    result = PatrimonioCalculator(cfg).calculate(
-        _inputs(baseline=_baseline_with_imoveis(imoveis, 1_250_000))
-    )
+    baseline = _baseline_with_imoveis(imoveis, 1_250_000)
+    return PatrimonioCalculator(cfg).calculate(_inputs(baseline=baseline))
+
+
+def test_investivel_efetivo_exclui_nao_geradores_sempre(config: PatrimonioConfig):
+    """ADR-215 §6 + ADR-235: uso_pessoal/especulacao/nu_proprietario/desconhecido nunca entram."""
+    result = _calcular_nao_geradores(config)
     assert result["investivel_efetivo"] == result["investivel_financeiro"]
-    assert result["imoveis_nao_geradores"] == 1_250_000.0
+
+
+# [[ADR-439]] D3: o imóvel sem id está EM ABERTO — o par sai `null`, e o identificado vai
+# para o bloco com nome próprio, que fecha cat_2 ao centavo.
+def test_imovel_em_aberto_publica_o_par_null_e_o_identificado_no_bloco(config: PatrimonioConfig):
+    result = _calcular_nao_geradores(config)
+    assert result["imoveis_geradores"] is None and result["imoveis_nao_geradores"] is None
+    bloco = result["cobertura_classificacao_imovel"]
+    assert bloco["nao_geradores_identificados"] == 1_200_000.0
+    assert bloco["valor_desconhecido"] == 50_000.0
+    assert bloco["imoveis_geradores"]["motivo"] == "nao_classificados"
 
 
 def test_investivel_efetivo_toggle_off_exclui_cat2(config: PatrimonioConfig):
