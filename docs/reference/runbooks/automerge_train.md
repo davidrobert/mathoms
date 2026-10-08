@@ -74,7 +74,7 @@ sobraram PRs que nem chegaram a ser tentados.
 
 ## 2. PAT ausente/expirado (causa nº 1 de trem parado)
 
-> **Aviso antecipado (ADR-322 §Emenda 2026-10-08):** o watchdog lê o header de
+> **Aviso antecipado (ADR-322 §Emenda 2026-10-08):** um step do watchdog lê o header de
 > expiração do PAT e abre a issue `ops-pat-expiry` em **T-14**, com o formulário
 > abaixo já pré-preenchido (`dev/ci_pat_expiry.py::rotation_url`). Ela fecha
 > sozinha quando a folga passa de 14 dias. O limite `S3` dela é de 11 dias, então

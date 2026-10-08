@@ -280,8 +280,10 @@ Ou seja, um vencimento conhecido desde julho derrubaria o repositório inteiro e
 
 **O que passa a valer:**
 
-1. **Aviso em T-14.** `dev/ci_pat_expiry.py`, chamado pelo watchdog, lê o header
-   `github-authentication-token-expiration` de uma chamada autenticada com o PAT.
+1. **Aviso em T-14.** `dev/ci_pat_expiry.py` é um step próprio do
+   `automerge-watchdog.yml`, posto antes do watchdog para rodar mesmo quando o
+   401 derruba o job. Ele lê o header `github-authentication-token-expiration`
+   de uma chamada autenticada com o PAT.
    Com folga ≤14 dias, mantém **uma** issue `ops-pat-expiry` com o formulário de PAT
    fine-grained já pré-preenchido com as permissões da **D2**. Com folga >14 dias,
    ela fecha sozinha.
