@@ -214,6 +214,16 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: engine-hide-parameters
+        # `str(StatementError)` ecoa os bound parameters: o DataError de
+        # 2026-10-08 levou endereço e nome do imóvel ao stage_log, ao WS e ao
+        # traceback. Full-scan AST — o engine novo entra como arquivo novo.
+        name: "Engine SQLAlchemy nasce com hide_parameters=True (bound parameter é PII)"
+        entry: python3 dev/check_engine_hide_parameters.py
+        language: system
+        pass_filenames: false
+        files: \.py$
+
       - id: artifact-read-keys
         # O card de exposição cambial leu `payload["patrimonio_full"]` por três meses:
         # nome de variável interna do domínio, que o serializador renomeia na fronteira.

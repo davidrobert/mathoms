@@ -318,7 +318,7 @@ def _run(
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
     target_version = args.target_version or _current_prompt_version()
-    engine = create_engine(args.db_url or _resolve_db_url(), future=True)
+    engine = create_engine(args.db_url or _resolve_db_url(), future=True, hide_parameters=True)
     factory = sessionmaker(bind=engine, expire_on_commit=False, future=True)
     with factory() as session:
         return _run(
