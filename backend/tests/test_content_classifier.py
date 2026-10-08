@@ -61,9 +61,9 @@ Subtotal deste cartão: R$ 1.200,00
 C6_FATURA_CARBON_CSV = (
     "Data de Compra;Nome no Cartão;Final do Cartão;Categoria;Descrição;"
     "Parcela;Valor (em US$);Cotação (em R$);Valor (em R$)\n"
-    "28/11/2025;DAVID ROBERT;5241;T&E;AIR EUROPA LINEAS AE;3/3;0;0;2747.60\n"
-    "11/01/2026;DAVID ROBERT;5241;Serviços financeiros;BEYPAY*SAO PAULO;2/12;0;0;14.14\n"
-    "15/01/2026;DAVID ROBERT;5241;Restaurantes;RESTAURANTE XYZ;;0;0;89.90\n"
+    "28/11/2025;FULANO DE TAL;1234;T&E;COMPANHIA AEREA EXEMPLO;3/3;0;0;1234.50\n"
+    "11/01/2026;FULANO DE TAL;1234;Serviços financeiros;PAGAMENTO*EXEMPLO;2/12;0;0;12.34\n"
+    "15/01/2026;FULANO DE TAL;1234;Restaurantes;RESTAURANTE XYZ;;0;0;89.90\n"
 )
 
 # PDF do app C6 Bank PJ — exportação "Extrato → Exportar". NÃO contém razão
@@ -109,20 +109,20 @@ SALDO ATUAL ................... 10.050,00
 # o nome da instituição só consta no rodapé (pos > 2000).
 # Markers visíveis no preview: "Ágora Home Broker" na barra de navegação.
 BRADESCO_EXTRATO_POUPANCA_WEB = (
-    "Saldo disponível MARIANA\n"
+    "Saldo disponível BELTRANA\n"
     "Buscar Sair\n"
-    "TERÇA-FEIRA, 31/03/2026 R$12.995,88 3221 • 77113-9 MIN\n"
+    "TERÇA-FEIRA, 31/03/2026 R$10.000,00 1234 • 12345-6 MIN\n"
     "Início Saldos e Extratos Pagamentos Pix Transferências Cartões "
     "Empréstimos Ágora Home Broker Investimentos Open Finance Imposto de Renda Mais opções\n"
     "Saldos e Extratos Conta-Poupança: Extrato Mensal / Por Período\n"
     "Data: Entre 01/09/2025 e 31/10/2025\n"
-    "Contas: Ag: 3221 | CC: 77113-9\n"
-    "Extrato de: Ag: 3221 | Conta: 77113-9\n"
+    "Contas: Ag: 1234 | CC: 12345-6\n"
+    "Extrato de: Ag: 1234 | Conta: 12345-6\n"
     "Data Histórico Docto. Crédito (R$) Débito (R$) Saldo (R$)\n"
-    "01/09/25 Rendimentos 0106731 97,28 38.459,58\n"
+    "01/09/25 Rendimentos 0100001 50,00 20.050,00\n"
     "Poup Facil-depos a Partir 4/5/12\n"
-    "30/09/25 tr Sal p/poup 3002372 3.954,66 46.906,52\n"
-    "SALDO ANTERIOR 38.362,30\n"
+    "30/09/25 tr Sal p/poup 3000001 1.000,00 21.050,00\n"
+    "SALDO ANTERIOR 20.000,00\n"
 )
 
 ITAU_EXTRATO_CONTA = """
@@ -145,17 +145,17 @@ SALDO TOTAL DISPONÍVEL DIA 5.500,00
 ITAU_EXTRATO_CONTA_XLS = (
     "Logotipo Itaú |  |  |  | \n"
     "Atualização: | 08/04/2026 às 14:04:47 |  |  | \n"
-    "Nome: | DAVID ROBERT MARTINS DE SILVA |  |  | \n"
-    "Agência: | 9652.0 |  |  | \n"
-    "Conta: | 04397-8 |  |  | \n"
+    "Nome: | FULANO DE TAL |  |  | \n"
+    "Agência: | 1234.0 |  |  | \n"
+    "Conta: | 12345-6 |  |  | \n"
     " |  |  |  | \n"
     "Lançamentos |  |  |  | \n"
     " |  |  |  | \n"
     "data | lançamento | ag./origem | valor (R$) | saldos (R$)\n"
     "lançamentos |  |  |  | \n"
-    "11/04/2025 | SALDO ANTERIOR |  |  | 48661.38\n"
-    "22/04/2025 | PIX QRS WISE BRASIL |  | -591.8 | \n"
-    "22/04/2025 | SALDO TOTAL DISPONÍVEL DIA |  |  | 48069.62\n"
+    "11/04/2025 | SALDO ANTERIOR |  |  | 10000.00\n"
+    "22/04/2025 | PIX QRS WISE BRASIL |  | -500.0 | \n"
+    "22/04/2025 | SALDO TOTAL DISPONÍVEL DIA |  |  | 9500.00\n"
 )
 
 BTG_POSICAO_INVESTIMENTOS = """
@@ -191,8 +191,8 @@ Isentos e Não Tributáveis: R$ 450,00
 # Itaú abrevia o título do informe: "Informe de Rendimentos" (sem "Financeiros")
 # + "Ano Calendário" (sem hífen). Sem essa cobertura, o classifier caía no
 # pattern `cdbdetalhes` (substring "RDB/CDB" matched) e o documento ia parar
-# em E2-llm como extrato bancário — gerando 5 pseudo-transações totalizando
-# R$ 61k de "despesa" fantasma. Caso real do workspace 1b9f2cf5-... (2026-05).
+# em E2-llm como extrato bancário — gerando 5 pseudo-transações de "despesa"
+# fantasma. Caso real do workspace 1b9f2cf5-... (2026-05).
 IRPF_INFORME_ITAU = """
 Informe de Rendimentos
 Ano Calendário 2025
@@ -203,19 +203,19 @@ Contas de depósito, pagamento e aplicações financeiras
 
 Fonte Pagadora: Itaú Unibanco S.A.       CNPJ: 60.701.190/0001-04
    Ag/Conta       Tipo de Rendimento  Produto    Rendimento Bruto  Imposto Retido  Valor (a declarar)
-9999/9999999-9       06                RDB/CDB           787,75          176,90          610,85
+9999/9999999-9       06                RDB/CDB           100,00           15,00           85,00
 
 Ficha da Declaração: Bens e Direitos
 Contas de depósito, pagamento e aplicações financeiras
 Fonte Pagadora: Itaú Unibanco S.A.
    Ag/Conta       Grupo  Código  Produto              Situação em 31/12/2024  Situação em 31/12/2025
 9999/9999999-9     06     01     CONTA CORRENTE                         1,01                    0,00
-9999/9999999-9     04     02     RDB/CDB                          151.602,49              290.000,00
+9999/9999999-9     04     02     RDB/CDB                          100.000,00              120.000,00
 
 Crédito Imobiliário
 Credor: Itaú Unibanco S.A.
 Parcelas Pagas no ano 2025    Saldo Devedor
-                52.429,06          850.000,00
+                24.000,00          500.000,00
 """
 
 # Recibo de entrega gerado pelo PGD/e-CAC. O texto canônico não contém
@@ -561,16 +561,16 @@ class TestClassifyFileWithInjectedExtractor:
 SANTANDER_FATURAUNIQUE_CSV = (
     "\ufeffdata,lançamento,valor\n"
     "2026-03-06,PAGAMENTO EFETUADO,-59\n"
-    "2025-06-08,BRASIL PARAL*Bras 10/12,59\n"
-    "2026-01-15,SQSP* DOMAIN#218016570,191.8\n"
+    "2025-06-08,LOJA EXEMPLO*SP 10/12,59\n"
+    "2026-01-15,SERVICO* DOMINIO#100000001,191.8\n"
 )
 
 # PDF de CDB do Santander (Internet Banking). "CDB DI SANTANDER" + "Central de Atendimento".
 SANTANDER_CDB_PDF = (
     "Internet Banking\n"
-    "DAVID ROBERT MARTINS ANDRADE SILVA\n"
+    "FULANO DE TAL\n"
     "CDB DI SANTANDER\n"
-    "Operação : 00331652260006541929\n"
+    "Operação : 00330000000000000002\n"
     "Data da contratação : 30/08/2024\n"
     "Data de vencimento : 09/08/2028\n"
     "Rentabilidade : 100,00% do CDI\n"
@@ -578,25 +578,25 @@ SANTANDER_CDB_PDF = (
     "4004 - 3535 (Capitais e Regiões Metropolitanas)\n"
 )
 
-# XLS extrato do Santander: "EXTRATO DE CONTA CORRENTE" + "Conta: 1652-01.001341.6".
+# XLS extrato do Santander: "EXTRATO DE CONTA CORRENTE" + "Conta: 1234-01.000001.0".
 # "Seguro do limite da conta" está no rodapé (além dos 2000 chars do preview).
 # A âncora primária é o formato de conta "NNNN-NN.NNNNNN.N".
 SANTANDER_EXTRATO_XLS = (
     "EXTRATO DE CONTA CORRENTE \n"
-    "DAVID ROBERT MARTINS ANDRADE SILVA  |  | Conta: 1652-01.001341.6\n"
+    "FULANO DE TAL  |  | Conta: 1234-01.000001.0\n"
     "Tipo de Lancamento: Todos | Extrato de 08/01/2026 a 08/04/2026\n"
     "Data  | Descrição  | Docto  | Situação  | Crédito (R$)  | Débito (R$)  | Saldo (R$)\n"
-    "06/04/2026  | JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/03 A 02/04/26 | -31,67 | 506,98\n"
-    "06/04/2026  | PIX RECEBIDO DOUGLAS MARTINS DE SILVA | 432371 | 100,00 | 538,65\n"
+    "06/04/2026  | JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/03 A 02/04/26 | -12,34 | 500,00\n"
+    "06/04/2026  | PIX RECEBIDO CICRANO DE TAL | 100001 | 100,00 | 600,00\n"
 )
 
 # XLSX de resumo de CDB Santander: "CDB DI SANTANDER" + "CDB PROG SANTANDER".
 SANTANDER_CDB_RESUMO_XLSX = (
-    "CDB | Valor Total: R$300.444,46 | Valores Referentes a: 08/04/2026\n"
-    "CDB DI SANTANDER | Valor Total: R$137.857,68 | Disponível para Resgate: R$133.032,53\n"
+    "CDB | Valor Total: R$123.456,78 | Valores Referentes a: 08/04/2026\n"
+    "CDB DI SANTANDER | Valor Total: R$100.000,00 | Disponível para Resgate: R$98.000,00\n"
     "Operação | Valor Total(R$): | Disponível para Resgate(R$):\n"
-    "00331652260006380267 | R$137.857,68 | R$133.032,53\n"
-    "CDB PROG SANTANDER | Valor Total: R$60.733,04 | Disponível para Resgate: R$58.854,76\n"
+    "00330000000000000001 | R$100.000,00 | R$98.000,00\n"
+    "CDB PROG SANTANDER | Valor Total: R$23.456,78 | Disponível para Resgate: R$22.000,00\n"
 )
 
 # PDF extrato da Rico Corretora: razão social completa no cabeçalho.
@@ -604,9 +604,9 @@ RICO_EXTRATO_PDF = (
     "29/03/2026 08:36 RICO CORRETORA DE TITULOS E VALORES MOBILIARIOS S.A. | Extrato\n"
     "Extrato da conta\n"
     "Data da consulta: 29/03/2026 08:36\n"
-    "DAVID ROBERT MARTINS DE SILVA  Conta: 6742394\n"
+    "FULANO DE TAL  Conta: 1234567\n"
     "De: 30/09/2025  Até: 29/03/2026\n"
-    "Saldo disponível: R$ 17.186,40\n"
+    "Saldo disponível: R$ 10.000,00\n"
     "Liq Mov Histórico Valor Saldo\n"
 )
 
@@ -628,14 +628,14 @@ QUINTOANDAR_COMPROVANTE_ALUGUEIS = (
     "Comprovante anual de rendimentos de aluguéis    Ano-calendário 2025\n"
     "A tabela abaixo contém o valor bruto dos aluguéis pagos e os descontos.\n"
     "Mês  Valor do aluguel  Descontos  Rendimento líquido\n"
-    "Janeiro  R$ 1.489,65  R$ 126,62  R$ 1.363,03\n"
+    "Janeiro  R$ 1.500,00  R$ 150,00  R$ 1.350,00\n"
     "Beneficiário do rendimento (Locador): Fulano de Tal\n"
     "www.quintoandar.com.br\n"
 )
 
 # CDB do C6 Bank via app (sem razão social completa, mas tem "C6 Invest").
 C6_INVEST_CDB = (
-    "Real R$ 6.930,11\n"
+    "Real R$ 5.000,00\n"
     "C6 Invest\n"
     "CDB C6 Pós-fixado Liq. Diária\n"
     "Renda Fixa\n"
@@ -677,7 +677,7 @@ class TestNewPatterns:
         assert result.confidence >= 0.7
 
     def test_santander_extrato_xls_institution(self):
-        """Extrato XLS Santander: 'Conta: 1652-01.001341.6' → santander."""
+        """Extrato XLS Santander: 'Conta: 1234-01.000001.0' → santander."""
         assert detect_institution_by_content(SANTANDER_EXTRATO_XLS) == "santander"
 
     def test_santander_extrato_xls_type(self):
@@ -785,15 +785,15 @@ SAC CAIXA
 # Extrato Bradesco com "SAC - Alô Bradesco" no rodapé (além dos 2000 chars).
 # Ágora Home Broker aparece no nav a ~170 chars — dentro do preview.
 BRADESCO_IB_POUPANCA = (
-    "Saldo disponível MARIANA\n"
+    "Saldo disponível BELTRANA\n"
     "Buscar Sair\n"
-    "TERÇA-FEIRA, 31/03/2026 R$12.995,88 3221 • 77113-9 MIN\n"
+    "TERÇA-FEIRA, 31/03/2026 R$10.000,00 1234 • 12345-6 MIN\n"
     "Início Saldos e Extratos Pagamentos Pix Transferências Cartões "
     "Empréstimos Ágora Home Broker Investimentos Open Finance Imposto de Renda Mais opções\n"
     "Saldos e Extratos Conta-Poupança: Extrato (Últimos Lançamentos)\n"
     "Data Histórico Docto. Crédito (R$) Débito (R$) Saldo (R$)\n"
-    "05/01/26 bx Aut Cta Cor* 0077113 - 1.673,05 27.551,59\n"
-    "14/01/26 Rendimentos 1406708 29,44 27.361,03\n"
+    "05/01/26 bx Aut Cta Cor* 0012345 - 1.000,00 9.000,00\n"
+    "14/01/26 Rendimentos 1400001 25,00 9.025,00\n"
     "Poup Facil-depos a Partir 4/5/12\n"
     # simula o rodapé além dos 2000 chars
     "Fone Fácil\n"
