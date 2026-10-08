@@ -2,7 +2,8 @@
 """Watchdog do trem de auto-merge (ADR-322): (a) re-habilita auto-merge derrubado
 por agregador stale, (b) re-dispara CI órfão action_required via empty commit —
 só com token de identidade real (AUTOMERGE_KICK=1), (c) mantém issue de
-sinalização quando a cabeça trava >60min. Uso local: python3 dev/ci_automerge_watchdog.py [--dry-run]"""
+sinalização quando a cabeça trava >60min, (d) avisa o PAT perto de expirar (T-14).
+Uso local: python3 dev/ci_automerge_watchdog.py [--dry-run]"""
 
 from __future__ import annotations
 
@@ -20,6 +21,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from dev.ci_advance_automerge_train import (  # noqa: E402
+    GhCallFailed,
     RunsFetcher,
     _gh,
     eligible_train,
@@ -27,6 +29,7 @@ from dev.ci_advance_automerge_train import (  # noqa: E402
     required_workflows_green,
     runs_for_commit,
 )
+from dev.ci_pat_expiry import check_pat_expiry  # noqa: E402
 
 WATCHDOG_PR_FIELDS = (
     "number,title,createdAt,updatedAt,isDraft,labels,mergeStateStatus,"
@@ -232,11 +235,25 @@ def signal_stall(prs: list[dict[str, Any]], dry_run: bool) -> None:
         _close_stall_issue(issue, dry_run)
 
 
+def _list_prs_explaining_401() -> list[dict[str, Any]]:
+    """401 continua vermelho — só troca o traceback pela causa e o remédio."""
+    try:
+        return list_watchdog_prs()
+    except GhCallFailed as exc:
+        if exc.status == 401:
+            print(
+                "::error title=AUTOUPDATE_PAT inválido::HTTP 401 — PAT expirado ou "
+                f"revogado. Rotacione: {RUNBOOK} §2"
+            )
+        raise
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="só reporta, não age")
     args = parser.parse_args()
-    prs = list_watchdog_prs()
+    check_pat_expiry(args.dry_run)
+    prs = _list_prs_explaining_401()
     reenable_stale_disabled(prs, args.dry_run)
     kick_orphans(prs, args.dry_run)
     signal_stall(prs, args.dry_run)
