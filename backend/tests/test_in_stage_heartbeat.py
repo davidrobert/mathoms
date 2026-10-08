@@ -9,14 +9,25 @@ nunca read-modify-write cross-worker (anti flip-flop).
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import create_engine, event, select, text, update
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import QueuePool
 
+from backend.app.core.database import _SQLITE_BUSY_TIMEOUT_MS as POOL_BUSY_TIMEOUT_MS
+from backend.app.core.database import Base, _sqlite_connect_args, attach_sqlite_pragmas
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+from backend.app.models.user import User
+from backend.app.models.workspace import Workspace
+from backend.app.services.pipeline.heartbeat import (
+    _SQLITE_BUSY_TIMEOUT_MS as HEARTBEAT_BUSY_TIMEOUT_MS,
+)
 from backend.app.services.pipeline.heartbeat import record_in_stage_heartbeat
 from backend.app.services.pipeline.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
 from backend.app.tasks.periodic_tasks import detect_stuck_runs
@@ -207,7 +218,18 @@ class _SqliteBind:
         name = "sqlite"
 
 
+class _FakeConnection:
+    def __init__(self, statements: list[str]):
+        self._statements = statements
+
+    def detach(self) -> None:
+        self._statements.append("DETACH")
+
+
 class _FakeSessionBase:
+    def __init__(self, statements: list[str] | None = None):
+        self._statements = [] if statements is None else statements
+
     def __enter__(self):
         return self
 
@@ -216,6 +238,9 @@ class _FakeSessionBase:
 
     def get_bind(self):
         return _SqliteBind()
+
+    def connection(self):
+        return _FakeConnection(self._statements)
 
 
 class _LockedSession(_FakeSessionBase):
@@ -227,9 +252,6 @@ class _LockedSession(_FakeSessionBase):
 
 
 class _SpySession(_FakeSessionBase):
-    def __init__(self, statements: list[str]):
-        self._statements = statements
-
     def execute(self, stmt, *args, **kwargs):
         self._statements.append(str(stmt))
         return type("_Result", (), {"rowcount": 1})()
@@ -253,12 +275,105 @@ async def test_heartbeat_lock_contention_returns_false_sem_propagar(monkeypatch)
 @pytest.mark.asyncio
 async def test_heartbeat_sqlite_aplica_busy_timeout_curto(monkeypatch) -> None:
     """Em SQLite a batida configura busy_timeout curto ANTES do UPDATE — é o
-    que garante o comportamento não-bloqueante sob write-lock da sessão do task."""
+    que garante o comportamento não-bloqueante sob write-lock da sessão do task.
+    A conexão sai do pool ANTES do PRAGMA: exceção entre os dois não pode
+    devolver ao pool a conexão de timeout curto."""
     statements: list[str] = []
     monkeypatch.setattr(
         "backend.app.services.pipeline.heartbeat.SyncSessionLocal",
         lambda: _SpySession(statements),
     )
     assert record_in_stage_heartbeat("run-spy") is True
-    assert "busy_timeout" in statements[0]
+    assert statements[0] == "DETACH"
+    assert "busy_timeout" in statements[1]
     assert statements[-1] == "COMMIT"
+
+
+@pytest.fixture()
+def pooled_sqlite_engine(tmp_path, monkeypatch) -> Iterator[Engine]:
+    """SQLite em ARQUIVO com o pool default de produção (``QueuePool``) e os mesmos pragmas.
+
+    O ``StaticPool`` do conftest entrega UMA conexão a todas as sessões e é
+    descartado a cada teste: o PRAGMA da batida não tem conexão vizinha para onde
+    vazar, e o defeito some por construção.
+    """
+    url = f"sqlite:///{tmp_path / 'heartbeat_pool.db'}"
+    engine = create_engine(url, connect_args=_sqlite_connect_args(url))
+    attach_sqlite_pragmas(engine)
+    assert isinstance(engine.pool, QueuePool)
+    Base.metadata.create_all(engine)
+    monkeypatch.setattr(
+        "backend.app.services.pipeline.heartbeat.SyncSessionLocal",
+        sessionmaker(bind=engine, expire_on_commit=False),
+    )
+    yield engine
+    engine.dispose()
+
+
+def _seed_running_run(engine: Engine) -> str:
+    with Session(engine) as session:
+        user = User(email="heartbeat-pool@test.com", hashed_password="x", full_name="Pool")
+        session.add(user)
+        session.flush()
+        workspace = Workspace(name="Heartbeat pool", owner_id=user.id)
+        session.add(workspace)
+        session.flush()
+        run = PipelineRun(workspace_id=workspace.id, status=PipelineRunStatus.running)
+        session.add(run)
+        session.commit()
+        return run.id
+
+
+def _busy_timeouts_of_idle_pool_connections(engine: Engine) -> list[int]:
+    """Sessões abertas em paralelo seguram conexões distintas: lê TODA conexão ociosa, seja qual for a ordem de checkout do pool."""
+    sessions = [Session(engine) for _ in range(engine.pool.checkedin())]
+    try:
+        return [s.execute(text("PRAGMA busy_timeout")).scalar_one() for s in sessions]
+    finally:
+        for session in sessions:
+            session.close()
+
+
+def _busy_timeout_seen_by_heartbeat_update(engine: Engine) -> list[int]:
+    seen: list[int] = []
+
+    def _capture(_conn, cursor, statement, *_args) -> None:
+        if statement.startswith("UPDATE pipeline_runs") and "last_heartbeat_at" in statement:
+            seen.append(cursor.connection.execute("PRAGMA busy_timeout").fetchone()[0])
+
+    event.listen(engine, "before_cursor_execute", _capture)
+    return seen
+
+
+def _assert_pool_keeps_production_busy_timeout(engine: Engine) -> None:
+    timeouts = _busy_timeouts_of_idle_pool_connections(engine)
+    assert timeouts, "pool sem conexão ociosa: a leitura seria vacuosa"
+    assert timeouts == [POOL_BUSY_TIMEOUT_MS] * len(timeouts)
+
+
+def test_heartbeat_nao_vaza_busy_timeout_curto_para_o_pool(pooled_sqlite_engine: Engine) -> None:
+    """Regressão: o ``PRAGMA busy_timeout`` da batida é estado da conexão DBAPI e
+    sobrevivia ao checkin no ``QueuePool`` — a sessão seguinte (artefato do stage,
+    ``_record_stage_result``, ``LLMBudgetService``) esperava 200ms por lock, não 30s."""
+    run_id = _seed_running_run(pooled_sqlite_engine)
+
+    assert record_in_stage_heartbeat(run_id) is True
+
+    _assert_pool_keeps_production_busy_timeout(pooled_sqlite_engine)
+
+
+def test_heartbeat_sob_write_lock_falha_rapido_sem_vazar(pooled_sqlite_engine: Engine) -> None:
+    """Contrato preservado: sob o write-lock de outra sessão o UPDATE da batida roda
+    com o timeout curto e vira ``False`` — e a conexão curta não volta ao pool."""
+    run_id = _seed_running_run(pooled_sqlite_engine)
+    seen = _busy_timeout_seen_by_heartbeat_update(pooled_sqlite_engine)
+
+    with Session(pooled_sqlite_engine) as holder:
+        holder.execute(
+            update(PipelineRun).where(PipelineRun.id == run_id).values(current_stage="lock")
+        )
+        assert record_in_stage_heartbeat(run_id) is False
+        holder.rollback()
+
+    assert seen == [HEARTBEAT_BUSY_TIMEOUT_MS]
+    _assert_pool_keeps_production_busy_timeout(pooled_sqlite_engine)
