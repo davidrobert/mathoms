@@ -203,7 +203,7 @@ foi publicado — foi exatamente a confusão que o §Ataque A0 da lane pegou.
 ## Alternativas rejeitadas
 
 - **Portar `anos_base_por_membro` para o segundo resolver.** Sem a guarda
-  `mesmo_ano` o top-up subtrai R$ 110.130,67 do titular (medido) — família
+  `mesmo_ano` o top-up subtrai do titular o saldo do cônjuge (medido) — família
   `unattributed → titular` que a [[ADR-394]] §D8 cortou. E escreve a terceira
   cópia da regra num arquivo que se quer apagar.
 - **Resolver canônico novo, com os dois virando fachadas finas.** É o movimento

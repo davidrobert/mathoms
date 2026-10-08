@@ -57,7 +57,7 @@ corrigido.
 
 Executando os produtores reais contra o artefato `consolidate_baseline` do próprio run,
 o publicado foi reproduzido ao centavo (`split_imoveis_with_overrides` → `(0.0,
-701170.57)`).
+X)`).
 
 1. `anos_base_por_membro` elegia o ano-base do membro como `max()` sobre a **união** de
    `imoveis_consolidados`, `investimentos_consolidados`, `veiculos_consolidados` e
@@ -72,7 +72,7 @@ A residência é o caso que fecha o argumento: ela **tem** `property_id` e **tem
 `residencia_principal` gravado. Saiu zero por **valor**, não por identidade.
 
 Contrafactual, sobre o mesmo payload: com o ano eleito por classe, `residencia`
-0,00 → **996.821,46** e `total_dividas` 0,00 → **230.459,13**.
+0,00 → **R** (o maior item isolado) e `total_dividas` 0,00 → **D** (Σ dos 4 financiamentos).
 
 ### Duas afirmações do registro que caem
 
@@ -100,7 +100,7 @@ abaixo — o comentário em `patrimonio_resolvers.py` já descrevia esta famíli
 um **conjunto** de itens; o item que sumiu da declaração continua sem casar.
 
 Isto foi verificado, não suposto: neste corpus o carry-forward por item somaria
-**642.706,24** em duplicata — as três propriedades aparecem em 2025 **e** em 2024 —, e o
+**~27% do valor imobiliário** em duplicata — as três propriedades aparecem em 2025 **e** em 2024 —, e o
 discriminador que o tornaria seguro (baixa registrada como zero **declarado**) **não
 existe em nenhum item deste corpus**.
 
@@ -163,7 +163,7 @@ conservadora aqui; há escolha honesta.
 ## Alternativas consideradas
 
 1. **Fallback para o ano mais recente do próprio item.** Rejeitada: é o veto literal da
-   [[ADR-274]], e a medição mostrou que duplicaria 642.706,24 neste corpus.
+   [[ADR-274]], e a medição mostrou que duplicaria ~27% do valor imobiliário neste corpus.
 2. **Resolver o ano item a item, com a data viajando no payload.** Rejeitada: a
    [[ADR-383]] D3 fixou o grão do árbitro em *fonte inteira, nunca ativo isolado*, e a
    troca de semântica ("posição em 31/12/X" → "posição mais recente conhecida") é decisão

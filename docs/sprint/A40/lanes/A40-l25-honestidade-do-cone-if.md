@@ -542,7 +542,7 @@ erro-padrão da proporção a `p ≈ 0,3` é ~0,21 pp. Hoje:
 - **As séries do cone não estão declaradas fora do catálogo de citação.** Hoje
   elas não são citáveis por acidente (`_is_money_leaf` não casa lista de pares),
   não por decisão. Se alguém tornar a folha citável, o parecer pode escrever
-  "R$ 11.037.269,90" sobre um número com ±1,2%.
+  "R$ 12.345.678,90" sobre um número com ±1,2%.
 
 ### 2. `sigma_usado: 0.11` é constante de código apresentada como premissa
 

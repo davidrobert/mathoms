@@ -35,11 +35,11 @@ falha nos dois sentidos e foi medido no dogfood (run `ee124571`, 2026-08-11):
 
 | Conta (E3) | `saldo_final` | Efeito da denylist |
 |---|---|---|
-| `picpay_extratoconta` (fim 2026-03-28) | R$ 53.756,56 | **some do bruto** — não há posição E4 PicPay que o contenha |
-| `rico_extratoconta` (fim 2026-07-23) | R$ 35.365,24 | **some do bruto** — o report da Rico não traz o saldo em conta |
-| `btgpactual_extratoconta` (fim 2026-03-29) | R$ 13.011,15 | **entra por acidente**: `"btg pactual"` (com espaço) nunca casa o código `btgpactual` |
+| `picpay_extratoconta` (fim 2026-03-28) | > 0 | **some do bruto** — não há posição E4 PicPay que o contenha |
+| `rico_extratoconta` (fim 2026-07-23) | > 0 | **some do bruto** — o report da Rico não traz o saldo em conta |
+| `btgpactual_extratoconta` (fim 2026-03-29) | > 0 | **entra por acidente**: `"btg pactual"` (com espaço) nunca casa o código `btgpactual` |
 
-Total suprimido: **R$ 89.121,80** (~2,25% do bruto). A assimetria é acidente de
+Total suprimido: **~2,25% do bruto**. A assimetria é acidente de
 string, não decisão. O teste que cobria o skip
 (`test_load_caixa_skips_investment_banks`) usa `banco="BTG Pactual"` — com
 espaço — compartilhando a crença errada do código: o filtro nunca foi
@@ -83,7 +83,7 @@ contra dupla contagem observável, não denylist por rótulo).
 
 ## Consequências
 
-- **O bruto do dogfood sobe R$ 89.121,80** (PicPay + Rico; Binance não tem
+- **O bruto do dogfood sobe ~2,25%** (PicPay + Rico; Binance não tem
   extrato elegível). Rebaseline com manifesto (`dev/golden_diff.py`), causa
   nominal por linha, em commit isolado; o teste de conservação
   (`tests/test_e5_conservation_invariants.py`) não é editado no rebaseline.
@@ -95,7 +95,7 @@ contra dupla contagem observável, não denylist por rótulo).
 
 - **2026-08-11 · Poupança e conta PJ no patrimônio corrente** — extrato de
   poupança é hoje excluído do caixa e não há consumidor que o leve ao bruto
-  (medido: `bradesco_extratopoupanca` R$ 4.359,28 fora do PL). É decisão de
+  (medido: `bradesco_extratopoupanca` fora do PL). É decisão de
   domínio (poupança é caixa, reserva ou investimento?), não bug — dono:
   `financial-planner`; retomada junto da lane de frescor cross-pool.
 - **2026-08-11 · Agência/conta estruturadas nos informes** — não existem em
