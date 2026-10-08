@@ -381,6 +381,10 @@ def test_veredito_em_artefato_legado_nao_e_servido():
         {"operador": "<=", "conforme": False, "progresso_pct": 140},
         {"operador": "<=", "conforme": "talvez"},
         {"operador": "<=", "conforme": False, "extra": 1},
+        # Forma incoerente: o front desenha barra quando há progresso, então teto com
+        # progresso persistido viraria trilha; 100 sem conforme seria barra cheia mentindo.
+        {"operador": "<=", "conforme": False, "progresso_pct": 50},
+        {"operador": ">=", "conforme": False, "progresso_pct": 100},
     ],
 )
 def test_veredito_malformado_vira_ausencia_nunca_500(malformado):
@@ -391,7 +395,10 @@ def test_veredito_malformado_vira_ausencia_nunca_500(malformado):
     assert content.metricas[0].comparador is None
 
 
-@pytest.mark.parametrize("nivel,servido", [("parcial", "parcial"), ("otimo", None), (None, None)])
+@pytest.mark.parametrize(
+    "nivel,servido",
+    [("parcial", "parcial"), ("otimo", None), (None, None), (["parcial"], None), ({"a": 1}, None)],
+)
 def test_nivel_do_produtor_so_e_servido_no_vocabulario(nivel, servido):
     despesas = {
         **_metrica(),

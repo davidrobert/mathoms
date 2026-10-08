@@ -13,9 +13,10 @@ from typing import Any, Mapping, Optional, get_args
 
 from pipeline.domain.services.comparador_de_limiar import (
     conforme_ao_limiar,
+    numero_finito,
     veredito_do_comparador,
 )
-from pipeline.domain.services.kpi_orfaos_dominio import NIVEL_DO_PRODUTOR_PATH
+from pipeline.domain.services.kpi_orfaos_dominio import MOTIVO_DA_ORFA, NIVEL_DO_PRODUTOR_PATH
 from pipeline.llm.schemas.parecer_comparador import (
     Comparador,
     NivelConfianca,
@@ -43,13 +44,26 @@ def comparador_da_metrica(
     )
 
 
+# Chave cuja situação é o nível do produtor nunca tem comparador, em NENHUMA era. E5
+# anterior à A40.l92 publica alvo `< 10` para despesas; regenerado sobre ele (ADR-291), o
+# parecer devolveria o veredito que a decisão de domínio removeu — ao lado do nível, duas
+# respostas na mesma linha. Subtrai o alvo; nunca acrescenta número.
+def alvo_sem_comparador(metrica_key: str, alvo: Mapping) -> Mapping:
+    """O alvo lido, sem limiar quando a situação da chave é o nível do produtor."""
+    if metrica_key not in NIVEL_DO_PRODUTOR_PATH or alvo.get("limiar") is None:
+        return alvo
+    sem = {"limiar": None, "operador": None, "procedencia": None, "ref": None}
+    return {**alvo, **sem, "motivo": alvo.get("motivo") or MOTIVO_DA_ORFA.get(metrica_key)}
+
+
 def nivel_do_produtor(metrica_key: str, drill: PlannerDrillDown) -> Optional[str]:
     """Nível publicado pelo produtor para métrica que fala do relatório, não da família."""
     path = NIVEL_DO_PRODUTOR_PATH.get(metrica_key)
     if path is None:
         return None
-    lido = drill.get_e5_jsonpath(path)
-    return lido.value if lido.found and lido.value in _NIVEIS else None
+    lido = drill.valor_bruto(path)
+    nivel = lido.value if lido.found else None
+    return nivel if isinstance(nivel, str) and nivel in _NIVEIS else None
 
 
 # Número e status não se contradizem na mesma linha. Se 1 casa põe o observado do lado
@@ -67,8 +81,11 @@ def exibir_sem_contradicao(
     sufixo = _SUFIXO.get(unidade)
     if sufixo is None:
         return None
+    limiar_num = numero_finito(limiar)
+    if limiar_num is None:
+        return None
     escalado = numero * fator
-    limiar_exibido = Decimal(str(limiar)) * Decimal(str(fator))
+    limiar_exibido = limiar_num * Decimal(str(fator))
     casas = next(
         (c for c in _CASAS_ADAPTATIVAS if _concorda(escalado, c, limiar_exibido, comparador)),
         _CASAS_ADAPTATIVAS[-1],
@@ -83,4 +100,9 @@ def _concorda(escalado: float, casas: int, limiar: Decimal, comparador: Comparad
     return conforme_ao_limiar(exibido, comparador.operador, limiar) == comparador.conforme
 
 
-__all__ = ["comparador_da_metrica", "exibir_sem_contradicao", "nivel_do_produtor"]
+__all__ = [
+    "alvo_sem_comparador",
+    "comparador_da_metrica",
+    "exibir_sem_contradicao",
+    "nivel_do_produtor",
+]

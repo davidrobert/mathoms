@@ -11,7 +11,11 @@ from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_v
 from pydantic.json_schema import SkipJsonSchema
 
 from pipeline.domain.services.kpi_target_catalog import METRICA_KEYS
-from pipeline.llm.schemas.parecer_comparador import Comparador, NivelConfianca
+from pipeline.llm.schemas.parecer_comparador import (
+    Comparador,
+    NivelConfianca,
+    coerce_estampado,
+)
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
@@ -361,6 +365,11 @@ class Metrica(BaseModel):
     nivel_confianca: SkipJsonSchema[Optional[NivelConfianca]] = None
     ancora_metodologica: Optional[AncoraMetodologica] = None
     tema_canonico: Optional[TemaCanonico] = None
+
+    @field_validator("comparador", "nivel_confianca", mode="before")
+    @classmethod
+    def _coerce_estampado(cls, v, info):
+        return coerce_estampado(info.field_name, v)
 
 
 class NotaMetodologica(BaseModel):

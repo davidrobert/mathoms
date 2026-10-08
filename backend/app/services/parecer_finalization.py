@@ -9,6 +9,7 @@ from typing import Mapping, Optional
 
 from backend.app.services.parecer_citation_catalog import ancora_format_hint
 from backend.app.services.parecer_metrica_situacao import (
+    alvo_sem_comparador,
     comparador_da_metrica,
     exibir_sem_contradicao,
     nivel_do_produtor,
@@ -310,22 +311,24 @@ def _par(alvo: Mapping, valor: Optional[str]) -> dict:
     return {"target": _render_target(alvo), "target_motivo": alvo.get("motivo")}
 
 
+# `.get()` em TODO campo: `rotulo` nasceu no #1770 e `kpi_targets` existe desde o
+# #1591 — há uma janela de E5 persistidos sem ele. Indexar com `[]` derrubava o stage
+# com KeyError, DEPOIS de pagar a chamada LLM e ANTES de `_write_cache`, então cada
+# retry pagava de novo. Regenerar só o parecer sobre E5 do run base (ADR-291) é a
+# operação normal, não o caso raro.
 def _stamp_metrica(metrica: Metrica, drill: PlannerDrillDown, alvos: Mapping) -> Metrica:
     alvo = alvos.get(metrica.metrica_key)
     if not isinstance(alvo, Mapping):
         return _sem_entrada_no_catalogo(metrica)
-    # `.get()` em TODO campo: `rotulo` nasceu no #1770 e `kpi_targets` existe desde o
-    # #1591 — há uma janela de E5 persistidos sem ele. Indexar com `[]` derrubava o stage
-    # com KeyError, DEPOIS de pagar a chamada LLM e ANTES de `_write_cache`, então cada
-    # retry pagava de novo. Regenerar só o parecer sobre E5 do run base (ADR-291) é a
-    # operação normal, não o caso raro.
-    observado = drill.get_e5_jsonpath(alvo.get("observado_path") or "")
-    bruto = observado.value if observado.found else None
-    valor = _render_valor(bruto, alvo.get("unidade") or "") if observado.found else None
+    alvo = alvo_sem_comparador(metrica.metrica_key, alvo)
+    path = alvo.get("observado_path") or ""
+    observado = drill.get_e5_jsonpath(path)
+    valor = _render_valor(observado.value, alvo.get("unidade") or "") if observado.found else None
     return metrica.model_copy(
         update={
             "nome": _rotulo_de(alvo, metrica.metrica_key),
-            **_situacao(alvo, bruto, valor),
+            # O veredito julga o número CRU; o render segue o hint de quem lê.
+            **_situacao(alvo, drill.valor_bruto(path).value, valor),
             "nivel_confianca": nivel_do_produtor(metrica.metrica_key, drill),
         }
     )

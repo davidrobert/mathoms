@@ -185,7 +185,7 @@ def _comparador_dto(raw: Mapping[str, Any]) -> Optional[ComparadorDTO]:
 
 def _nivel_dto(raw: Mapping[str, Any]) -> Optional[str]:
     nivel = raw.get("nivel_confianca")
-    return nivel if nivel in _NIVEIS else None
+    return nivel if isinstance(nivel, str) and nivel in _NIVEIS else None
 
 
 def _nota_dto(raw: Mapping[str, Any]) -> NotaMetodologicaDTO:

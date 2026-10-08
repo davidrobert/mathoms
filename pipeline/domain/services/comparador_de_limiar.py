@@ -47,7 +47,7 @@ def veredito_do_comparador(
     limiar: Any,
 ) -> Optional[VereditoDoComparador]:
     """Julga o BRUTO, na escala do produtor; ``None`` se um lado não é número finito."""
-    obs, lim = _finito(observado), _finito(limiar)
+    obs, lim = numero_finito(observado), numero_finito(limiar)
     if obs is None or lim is None or operador not in _PREDICADOS:
         return None
     conforme = conforme_ao_limiar(obs, operador, lim)
@@ -68,7 +68,8 @@ def _progresso_pct(obs: Decimal, operador: str, lim: Decimal, conforme: bool) ->
 
 # `str(float)` é o repr mais curto que volta ao mesmo float, logo preserva a ordem. NaN e
 # ±inf fabricariam "violado": o comparador some em vez de julgar.
-def _finito(valor: Any) -> Optional[Decimal]:
+def numero_finito(valor: Any) -> Optional[Decimal]:
+    """Decimal do valor numérico (aceita string com vírgula); ``None`` se não for finito."""
     if isinstance(valor, bool) or not isinstance(valor, (int, float, str, Decimal)):
         return None
     try:
@@ -78,4 +79,4 @@ def _finito(valor: Any) -> Optional[Decimal]:
     return numero if numero.is_finite() else None
 
 
-__all__ = ["VereditoDoComparador", "conforme_ao_limiar", "veredito_do_comparador"]
+__all__ = ["VereditoDoComparador", "conforme_ao_limiar", "numero_finito", "veredito_do_comparador"]

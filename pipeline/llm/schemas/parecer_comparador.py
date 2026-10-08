@@ -8,9 +8,9 @@ dado, e quem desenha não julga.
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Any, Literal, Optional, get_args
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 # `<` segue no vocabulário do CONSUMIDOR: o parecer pode ser regenerado sobre E5 anterior
 # à doutrina do limiar ([[ADR-399]] §Emenda 2026-10-08), e o E5 daquela era diz `<`.
@@ -33,16 +33,45 @@ class Comparador(BaseModel):
 
     @model_validator(mode="after")
     def _ck_progresso(self) -> "Comparador":
-        teto = self.operador != ">="
-        if self.progresso_pct is None:
-            return self
-        if teto or (self.progresso_pct == 100) != self.conforme:
-            raise ValueError(
-                f"progresso_pct={self.progresso_pct} incoerente com operador="
-                f"{self.operador!r} conforme={self.conforme}: só piso tem progresso, "
-                "e 100 é exatamente o conforme"
-            )
+        erro = erro_de_forma(self.operador, self.conforme, self.progresso_pct)
+        if erro:
+            raise ValueError(erro)
         return self
 
 
-__all__ = ["Comparador", "NivelConfianca", "OperadorComparador"]
+# `progresso_pct` None é a forma do teto (sem progresso), não um valor desconhecido.
+def erro_de_forma(operador: str, conforme: bool, progresso_pct: Optional[int]) -> Optional[str]:
+    """Mensagem se a forma é incoerente — só piso tem progresso, e 100 é o conforme."""
+    if progresso_pct is None:
+        return None
+    if operador != ">=" or (progresso_pct == 100) != conforme:
+        return (
+            f"progresso_pct={progresso_pct} incoerente com operador={operador!r} "
+            f"conforme={conforme}: só piso tem progresso, e 100 é exatamente o conforme"
+        )
+    return None
+
+
+# `SkipJsonSchema` só esconde o campo do contrato enviado ao modelo: o que ele mandar chega
+# ao parse, e valor inválido levantaria `ValidationError` — reask, o padrão do incidente que
+# a [[ADR-294]] fechou com coerce. O finalize estampa os dois campos de todo jeito; aqui o
+# válido passa (é o que o round-trip do cache precisa) e o resto vira `None`.
+def coerce_estampado(campo: str, valor: Any) -> Any:
+    """Valor de campo estampado vindo de fora: o válido passa, o inválido vira ``None``."""
+    if valor is None or isinstance(valor, Comparador):
+        return valor
+    if campo == "nivel_confianca":
+        return valor if isinstance(valor, str) and valor in get_args(NivelConfianca) else None
+    try:
+        return Comparador.model_validate(valor)
+    except ValidationError:
+        return None
+
+
+__all__ = [
+    "Comparador",
+    "NivelConfianca",
+    "OperadorComparador",
+    "coerce_estampado",
+    "erro_de_forma",
+]

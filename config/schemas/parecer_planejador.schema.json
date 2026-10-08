@@ -580,10 +580,10 @@
           "properties": {
             "operador": {"type": "string", "enum": ["<", "<=", ">="], "description": "Cru, do catálogo. `<` segue aceito porque o parecer pode ser regenerado sobre E5 anterior à doutrina do limiar ([[ADR-399]] §Emenda 2026-10-08)."},
             "conforme": {"type": "boolean"},
-            "progresso_pct": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Só no piso (`>=`); 100 se e só se `conforme`."}
+            "progresso_pct": {"type": ["integer", "null"], "minimum": 0, "maximum": 100, "description": "Só no piso (`>=`); 100 se e só se `conforme`."}
           },
-          "if": {"properties": {"operador": {"enum": ["<", "<="]}}},
-          "then": {"not": {"required": ["progresso_pct"]}}
+          "if": {"type": "object", "required": ["operador"], "properties": {"operador": {"enum": ["<", "<="]}}},
+          "then": {"properties": {"progresso_pct": {"type": "null"}}}
         },
         "nivel_confianca": {
           "type": ["string", "null"],

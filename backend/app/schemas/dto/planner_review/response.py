@@ -8,7 +8,11 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from pipeline.llm.schemas.parecer_comparador import NivelConfianca, OperadorComparador
+from pipeline.llm.schemas.parecer_comparador import (
+    NivelConfianca,
+    OperadorComparador,
+    erro_de_forma,
+)
 
 # Enums user-facing alinhados com pipeline.llm.schemas.parecer_planejador.
 # Reexpostos aqui para evitar dep do frontend em módulo pipeline (boundary
@@ -124,6 +128,15 @@ class ComparadorDTO(BaseModel):
     conforme: bool
     # Só no piso; teto nunca tem progresso. Nunca `undefined` no wire: chega `null`.
     progresso_pct: Optional[int] = Field(default=None, ge=0, le=100)
+
+    # A mesma forma do contrato de escrita: o front desenha barra quando há progresso, então
+    # teto com progresso persistido viraria trilha — a leitura o recusa e subtrai.
+    @model_validator(mode="after")
+    def _ck_forma(self) -> "ComparadorDTO":
+        erro = erro_de_forma(self.operador, self.conforme, self.progresso_pct)
+        if erro:
+            raise ValueError(erro)
+        return self
 
 
 class MetricaDTO(BaseModel):

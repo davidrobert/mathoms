@@ -186,5 +186,8 @@ NIVEL_DO_PRODUTOR_PATH: dict[str, str] = {
     "despesas_nao_categorizadas": "$.diagnostico_confianca.nivel",
 }
 
+#: Motivo de cada órfã, derivado da tupla — nunca à mão.
+MOTIVO_DA_ORFA: dict[str, str] = {chave: motivo for chave, *_, motivo in _ORFAOS_DOMINIO}
 
-__all__ = ["NIVEL_DO_PRODUTOR_PATH", "ORFAOS_DOMINIO_KEYS", "_ORFAOS_DOMINIO"]
+
+__all__ = ["MOTIVO_DA_ORFA", "NIVEL_DO_PRODUTOR_PATH", "ORFAOS_DOMINIO_KEYS", "_ORFAOS_DOMINIO"]
