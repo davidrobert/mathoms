@@ -270,6 +270,32 @@ def test_payload_sem_kpi_targets_publica_linha_com_identidade():
     assert saida.metricas[0].target_motivo
 
 
+# `SkipJsonSchema` só ESCONDE o campo do contrato enviado ao modelo: `Metrica` ainda
+# aceita `target`/`valor_atual` se vierem no tool output, e o ramo sem entrada no
+# catálogo (E5 anterior ao #1591, regenerado via ADR-291) os preservava — alvo autorado
+# pelo LLM publicado como se fosse do catálogo. Achado do co-design `data-engineer`
+# (A40.l92). A fixture é o tool output, não um dict à mão no artefato.
+def test_ramo_sem_catalogo_nao_preserva_numero_autorado_pelo_modelo():
+    autorada = Metrica.model_validate(
+        {
+            "metrica_key": "reserva_cobertura_meses",
+            "frequencia_revisao": "trimestral",
+            "target": "≥ 3 meses",
+            "valor_atual": "9 meses",
+        }
+    )
+    assert autorada.target == "≥ 3 meses", "o canal precisa estar aberto — senão é vácuo"
+    from backend.app.services.parecer_finalization import stamp_metrica_targets
+    from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+
+    e5 = _e5_com_reserva(6)
+    drill = PlannerDrillDown(e5_data=e5, section_whitelist=frozenset({"reserva_emergencia"}))
+    saida = stamp_metrica_targets(make_output(metricas=[autorada]), drill, {})
+
+    assert saida.metricas[0].target is None, "alvo do modelo sobreviveu ao estampador"
+    assert saida.metricas[0].valor_atual is None, "observado do modelo sobreviveu"
+
+
 # 5,6 meses contra alvo 6 renderizava "6 meses ≥ 6 meses": violação lida como
 # conformidade, que é a primeira linha do que a ADR-399 existe para impedir.
 def test_meses_preserva_a_casa_que_decide_o_veredito():

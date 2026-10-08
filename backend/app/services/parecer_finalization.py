@@ -281,9 +281,14 @@ def _rotulo_de(alvo: Mapping, chave: str) -> str:
 def _sem_entrada_no_catalogo(metrica: Metrica) -> Metrica:
     """E5 anterior ao #1591 não publica `kpi_targets`: não se inventa número, mas a
     linha precisa de identidade — 67 artefatos do dogfood caem aqui."""
+    # Sobrescreve os campos estampados em vez de herdá-los: `SkipJsonSchema` só esconde o
+    # campo do contrato, e o que o modelo mandar em `target`/`valor_atual` chegava aqui
+    # intacto — publicado ao lado de "alvo não resolvido" (A40.l92, achado data-engineer).
     return metrica.model_copy(
         update={
             "nome": _rotulo_de({}, metrica.metrica_key),
+            "valor_atual": None,
+            "target": None,
             "target_motivo": "alvo não resolvido para este KPI",
         }
     )
