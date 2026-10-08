@@ -417,3 +417,21 @@ def test_todo_observado_path_do_catalogo_resolve_no_payload(e5_tenant_with_basel
     nao_resolvem = _paths_ausentes(payload)
 
     assert nao_resolvem == {}, f"`observado_path` irresolvível pelo resolver: {nao_resolvem}"
+
+
+# A40.l92: a situação de despesas não identificadas é o `nivel` que o produtor publica.
+# Path que não resolve no payload de um run real é linha sem situação, calada — a metade
+# `value_absent` que o gate estático não decide.
+def test_todo_path_de_nivel_do_produtor_resolve_no_payload(e5_tenant_with_baseline: Path):
+    from backend.app.services.parecer_manifest import load_manifest
+    from pipeline.domain.services.kpi_orfaos_dominio import NIVEL_DO_PRODUTOR_PATH
+    from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+
+    payload = _payload_do_run(e5_tenant_with_baseline)
+    drill = PlannerDrillDown(
+        e5_data=payload, section_whitelist=load_manifest().tools_section_whitelist
+    )
+    resolvidos = {c: drill.get_e5_jsonpath(p) for c, p in NIVEL_DO_PRODUTOR_PATH.items()}
+
+    assert NIVEL_DO_PRODUTOR_PATH, "mapa vazio — o teste seria vácuo"
+    assert all(r.found for r in resolvidos.values()), {c: r.reason for c, r in resolvidos.items()}

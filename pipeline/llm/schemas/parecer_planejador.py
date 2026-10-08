@@ -11,6 +11,7 @@ from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_v
 from pydantic.json_schema import SkipJsonSchema
 
 from pipeline.domain.services.kpi_target_catalog import METRICA_KEYS
+from pipeline.llm.schemas.parecer_comparador import Comparador, NivelConfianca
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
@@ -352,6 +353,12 @@ class Metrica(BaseModel):
     # publicada como observacional, e a célula do comparador mostra este texto em vez
     # de ficar vazia (vazio o leitor lê como "não mediram").
     target_motivo: SkipJsonSchema[Optional[str]] = None
+    # [[A40.l92]]: o veredito sai do finalize como dado — antes o front o re-derivava por
+    # regex sobre `target`, e a regex comia o glifo (teto e piso indistinguíveis).
+    comparador: SkipJsonSchema[Optional[Comparador]] = None
+    # Situação que o PRODUTOR publica no lugar de veredito, para métrica que fala da
+    # leitura do relatório e não da família (despesas não identificadas).
+    nivel_confianca: SkipJsonSchema[Optional[NivelConfianca]] = None
     ancora_metodologica: Optional[AncoraMetodologica] = None
     tema_canonico: Optional[TemaCanonico] = None
 

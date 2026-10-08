@@ -572,6 +572,24 @@
           "maxLength": 200,
           "description": "Por que não há alvo publicável. Órfão é fato esperado, não anomalia: a linha segue publicada como observacional e a célula do comparador mostra este texto — vazio o leitor lê como 'não mediram'."
         },
+        "comparador": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["operador", "conforme"],
+          "description": "Veredito do comparador ([[A40.l92]]). ESCRITO PELO FINALIZE sobre o valor BRUTO, pelo predicado único `conforme_ao_limiar` — o front desenha, não julga. Antes ele re-derivava os números por regex sobre `target`, a regex comia o glifo, e a trilha de um teto ENCHIA conforme a métrica piorava. Ausente quando a linha não publica alvo e observado juntos. `progresso_pct` só existe no piso: abaixo de um teto 'menor' não é 'melhor' em nenhuma das três metodologias.",
+          "properties": {
+            "operador": {"type": "string", "enum": ["<", "<=", ">="], "description": "Cru, do catálogo. `<` segue aceito porque o parecer pode ser regenerado sobre E5 anterior à doutrina do limiar ([[ADR-399]] §Emenda 2026-10-08)."},
+            "conforme": {"type": "boolean"},
+            "progresso_pct": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Só no piso (`>=`); 100 se e só se `conforme`."}
+          },
+          "if": {"properties": {"operador": {"enum": ["<", "<="]}}},
+          "then": {"not": {"required": ["progresso_pct"]}}
+        },
+        "nivel_confianca": {
+          "type": ["string", "null"],
+          "enum": ["alta", "parcial", "insuficiente", null],
+          "description": "Situação que o PRODUTOR publica no lugar de veredito, para métrica que fala da leitura do relatório e não da família ([[A40.l92]]: despesas não identificadas, `diagnostico_confianca.nivel`, tiers da [[ADR-353]] D1). ESCRITO PELO FINALIZE, sem recálculo."
+        },
         "frequencia_revisao": {"$ref": "#/$defs/frequencia_revisao"},
         "section_id": {"$ref": "#/$defs/section_id"},
         "ancora_metodologica": {"$ref": "#/$defs/ancora_metodologica"},

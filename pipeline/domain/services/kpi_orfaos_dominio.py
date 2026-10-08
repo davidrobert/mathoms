@@ -178,5 +178,13 @@ _ORFAOS_DOMINIO = (
 #: Órfãs por decisão, derivadas da tupla — nunca à mão. Consumidor: gate de [[ADR-419]] §D4.
 ORFAOS_DOMINIO_KEYS: tuple[str, ...] = tuple(chave for chave, *_ in _ORFAOS_DOMINIO)
 
+#: Situação que o PRODUTOR publica no lugar de veredito do comparador: chave → path do
+#: nível no E5 ([[A40.l92]], co-design financial-planner). Só órfã entra — métrica com
+#: alvo tem veredito, e as duas fontes dariam duas respostas para a mesma linha. O nível
+#: vai cru: recalculá-lo pelo share criaria outro leitor do 10 com fronteira própria.
+NIVEL_DO_PRODUTOR_PATH: dict[str, str] = {
+    "despesas_nao_categorizadas": "$.diagnostico_confianca.nivel",
+}
 
-__all__ = ["ORFAOS_DOMINIO_KEYS", "_ORFAOS_DOMINIO"]
+
+__all__ = ["NIVEL_DO_PRODUTOR_PATH", "ORFAOS_DOMINIO_KEYS", "_ORFAOS_DOMINIO"]
