@@ -27,7 +27,7 @@ tags:
 No dogfood, a TRS efetiva é **14,08%** e a renda passiva mensal **R$ 27,2k** (≈89% do custo
 essencial → parece quase-IF), contra o honesto `goals.if_pct=24,94%`. A causa é empírica e
 **verificada** (não a hipótese `ganho_capital`, que é **0** neste run): o bucket `dividendos`
-concentra **R$ 284.875** (87% da renda passiva) — que é **distribuição de lucro PJ do titular
+concentra **87% da renda passiva** — que é **distribuição de lucro PJ do titular
 mal-classificada**, não yield de carteira. Três provas convergentes: (a) yield implícito >190%
 sobre o sleeve de RV-BR é impossível; (b) o sinal de fluxo `fluxo_caixa.por_fonte.lucros_distribuidos`
 anualizado (≈R$ 308k/ano) **excede** o cod-09 de dividendos; (c) as fontes do fluxo são PJs
