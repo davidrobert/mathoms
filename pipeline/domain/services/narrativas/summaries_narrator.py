@@ -338,16 +338,19 @@ def _s1_imoveis_clause(M: Mapping[str, Any]) -> str:
     if (M.get("residencia") or 0) > 0:
         partes.append(f"residência própria de {fmt_currency(M['residencia'])}")
     if (M.get("imoveis_investimento") or 0) > 0:
-        partes.append(f"imóveis de investimento somando {fmt_currency(M['imoveis_investimento'])}")
+        partes.append(f"outros imóveis somando {fmt_currency(M['imoveis_investimento'])}")
     pct = fmt_percent(M["pct_imoveis_bruto"])
     if not partes:
         return f"Imóveis representam {pct} do patrimônio bruto."
     return f"Imóveis representam {pct} do patrimônio bruto, com {', '.join(partes)}."
 
 
+# "outros imóveis" é o rótulo da composição na mesma página ([[ADR-420]] §D1): cat_2
+# inclui uso pessoal e nu-propriedade, e "de investimento" afirmava o que o número não
+# sustenta (co-design `product-designer`, A40.l113).
 _S4_VALOR_TEMPLATES: tuple[tuple[str, str], ...] = (
     ("residencia", "residência de {valor}"),
-    ("imoveis_investimento", "imóveis de investimento somando {valor}"),
+    ("imoveis_investimento", "outros imóveis somando {valor}"),
 )
 
 
