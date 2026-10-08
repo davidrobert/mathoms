@@ -92,14 +92,14 @@ def test_sem_pat_explicito_nao_mede(monkeypatch):
     monkeypatch.setenv("AUTOMERGE_KICK", "0")
     gh = FakeGh()
     monkeypatch.setattr(mod, "_gh", gh)
-    mod.check_pat_expiry(dry_run=False)
+    mod.check_pat_expiry("ops-pat-expiry", dry_run=False)
     assert gh.calls == []
 
 
 def test_folga_fecha_a_issue_aberta(monkeypatch, com_pat):
     gh = FakeGh(issues='[{"number": 7, "body": "x"}]')
     monkeypatch.setattr(mod, "_gh", gh)
-    mod.check_pat_expiry(dry_run=False)
+    mod.check_pat_expiry("ops-pat-expiry", dry_run=False)
     assert gh.verbs()[-1] == "issue close"
 
 
@@ -109,7 +109,7 @@ def test_perto_de_expirar_abre_uma_issue_rotulada(monkeypatch, com_pat):
     )
     gh = FakeGh(api=perto)
     monkeypatch.setattr(mod, "_gh", gh)
-    mod.check_pat_expiry(dry_run=False)
+    mod.check_pat_expiry("ops-pat-expiry", dry_run=False)
     create = gh.calls[-1]
     assert create[:2] == ("issue", "create")
     assert create[create.index("--label") + 1] == "ops-pat-expiry"
@@ -119,7 +119,7 @@ def test_corpo_igual_nao_reedita(monkeypatch):
     body = mod.issue_body("o PAT expira em **5 dia(s)**", NOW)
     gh = FakeGh(issues=json.dumps([{"number": 7, "body": body}]))
     monkeypatch.setattr(mod, "_gh", gh)
-    mod.sync_issue("o PAT expira em **5 dia(s)**", NOW, dry_run=False)
+    mod.sync_issue("o PAT expira em **5 dia(s)**", NOW, "ops-pat-expiry", dry_run=False)
     assert gh.verbs() == ["issue list"]
 
 
@@ -130,7 +130,7 @@ def test_falha_da_medicao_vira_warning_e_nunca_levanta(monkeypatch, com_pat, cap
         raise GhCallFailed(1, "HTTP 502: Bad Gateway")
 
     monkeypatch.setattr(mod, "_gh", quebra)
-    mod.check_pat_expiry(dry_run=False)
+    mod.check_pat_expiry("ops-pat-expiry", dry_run=False)
     assert "::warning title=pat-expiry sem medição::" in capsys.readouterr().out
 
 

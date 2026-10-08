@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Aviso antecipado de expiração do AUTOUPDATE_PAT (ADR-322 §Emenda 2026-10-08):
-lê o header de expiração e mantém UMA issue `ops-pat-expiry` a partir de T-14.
-Falha da medição vira warning, nunca run vermelho. Uso: python3 dev/ci_pat_expiry.py [--dry-run]"""
+lê o header de expiração e mantém UMA issue rotulada a partir de T-14. Falha da
+medição vira warning, nunca run vermelho. Uso: python3 dev/ci_pat_expiry.py --label X [--dry-run]"""
 
 from __future__ import annotations
 
@@ -21,7 +21,6 @@ from dev.ci_advance_automerge_train import GhCallFailed, _gh  # noqa: E402
 
 WARN_DAYS = 14
 EXPIRY_HEADER = "github-authentication-token-expiration"
-ISSUE_LABEL = "ops-pat-expiry"
 ISSUE_TITLE = "AUTOUPDATE_PAT perto de expirar — rotacionar"
 RUNBOOK = "docs/reference/runbooks/automerge_train.md"
 _FORMATS = ("%Y-%m-%d %H:%M:%S %Z", "%Y-%m-%d %H:%M:%S %z")
@@ -91,15 +90,15 @@ def issue_body(warning: str, now: datetime) -> str:
     )
 
 
-def _open_issue() -> dict | None:
-    out = _gh("issue", "list", "--state", "open", "--label", ISSUE_LABEL, "--json", "number,body")
+def _open_issue(label: str) -> dict | None:
+    out = _gh("issue", "list", "--state", "open", "--label", label, "--json", "number,body")
     issues = json.loads(out)
     return issues[0] if issues else None
 
 
-def sync_issue(warning: str | None, now: datetime, dry_run: bool) -> None:
+def sync_issue(warning: str | None, now: datetime, label: str, dry_run: bool) -> None:
     """Uma issue só, editada no lugar: o `S3` conta idade pelo createdAt."""
-    issue = _open_issue()
+    issue = _open_issue(label)
     if warning is None:
         if issue is not None and not dry_run:
             _gh("issue", "close", str(issue["number"]), "--comment", "PAT rotacionado.")
@@ -108,7 +107,7 @@ def sync_issue(warning: str | None, now: datetime, dry_run: bool) -> None:
     if dry_run or (issue is not None and issue.get("body") == body):
         return
     if issue is None:
-        _gh("issue", "create", "--title", ISSUE_TITLE, "--label", ISSUE_LABEL, "--body", body)
+        _gh("issue", "create", "--title", ISSUE_TITLE, "--label", label, "--body", body)
     else:
         _gh("issue", "edit", str(issue["number"]), "--body", body)
 
@@ -118,7 +117,7 @@ def measure_expiration(repo: str) -> datetime | None:
     return parse_expiration(raw) if raw is not None else None
 
 
-def check_pat_expiry(dry_run: bool) -> None:
+def check_pat_expiry(label: str, dry_run: bool) -> None:
     """Só mede com o PAT explícito: o fallback GITHUB_TOKEN vive ~1h e mentiria."""
     if os.environ.get("AUTOMERGE_KICK") != "1":
         print("pat-expiry: sem AUTOUPDATE_PAT no job — nada a medir")
@@ -127,15 +126,17 @@ def check_pat_expiry(dry_run: bool) -> None:
     try:
         warning = expiry_warning(measure_expiration(os.environ["GH_REPO"]), now)
         print(f"pat-expiry: {warning or f'folga > {WARN_DAYS} dias'}")
-        sync_issue(warning, now, dry_run)
+        sync_issue(warning, now, label, dry_run)
     except (GhCallFailed, ValueError, KeyError) as exc:
         print(f"::warning title=pat-expiry sem medição::{exc} — o run segue (ADR-322)")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--label", required=True, help="label da issue (declarado no manifesto)")
     parser.add_argument("--dry-run", action="store_true", help="só reporta, não age")
-    check_pat_expiry(parser.parse_args().dry_run)
+    args = parser.parse_args()
+    check_pat_expiry(args.label, args.dry_run)
     return 0
 
 

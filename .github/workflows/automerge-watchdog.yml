@@ -54,6 +54,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Aviso antecipado do PAT (ADR-322 §Emenda 2026-10-08): T-14, issue única
+      # `ops-pat-expiry` (S3 de 11 dias no manifesto). Vem ANTES do watchdog para
+      # rodar mesmo quando o 401 dele derruba o job, e nunca sai != 0 — run
+      # vermelho abriria `ops-train` e o S3 travaria merges por defeito do aviso.
+      - name: Aviso de expiração do AUTOUPDATE_PAT
+        run: python3 dev/ci_pat_expiry.py --label ops-pat-expiry
+
       - name: Run watchdog
         run: python3 dev/ci_automerge_watchdog.py
 
