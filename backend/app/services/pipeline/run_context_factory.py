@@ -89,6 +89,23 @@ def _read_imoveis_no_if(ws_id: str, session: Session) -> bool:
     return True if row is None else bool(row)
 
 
+def _read_residencia_status(ws_id: str, session: Session) -> Optional[str]:
+    """[[ADR-215]] `residencia_status`; ``None`` quando o workspace não existe."""
+    from backend.app.models.workspace import Workspace
+
+    return session.execute(
+        select(Workspace.residencia_status).where(Workspace.id == ws_id)
+    ).scalar_one_or_none()
+
+
+def _workspace_flags(ws_id: str, session: Session) -> dict:
+    """Escolhas do workspace que o E5 lê ([[ADR-222]] · [[ADR-215]] · [[ADR-439]])."""
+    return {
+        "imoveis_no_if": _read_imoveis_no_if(ws_id, session),
+        "residencia_status": _read_residencia_status(ws_id, session),
+    }
+
+
 def _db_resolvers(session: Session) -> dict:
     return {
         "property_identity_resolver": DBPropertyIdentityResolver(session=session),
@@ -120,7 +137,7 @@ def _build_ctx(
         pipeline_run_id=run_id,
         workspace_id=ws_id,
         config_store=build_config_store(db=session),
-        imoveis_no_if=_read_imoveis_no_if(ws_id, session),
+        **_workspace_flags(ws_id, session),
         **_db_resolvers(session),
     )
 

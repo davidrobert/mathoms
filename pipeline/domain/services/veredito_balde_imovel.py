@@ -18,7 +18,9 @@ from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_DESCONHECIDO,
     CLASSIFICATION_RESIDENCIA_PRINCIPAL,
     CLASSIFICATIONS_GERADORAS,
+    CoberturaClassificacaoImovel,
     classificacao_do_imovel,
+    cobertura_classificacao_imovel,
 )
 from pipeline.domain.services.patrimonio_types import imovel_property_id, imovel_valor
 from pipeline.domain.services.valor_nao_apurado import item_nao_apurado
@@ -188,14 +190,68 @@ def vereditos_de_imovel(
     )
 
 
+@dataclass(frozen=True)
+class ImoveisDoRun:
+    """Cobertura + vereditos do run: o que o calculator publica sobre imóveis."""
+
+    cobertura: CoberturaClassificacaoImovel
+    vereditos: VereditosDeImovel
+    residencia_status: str
+
+    def bloco(self) -> dict:
+        """`patrimonio.cobertura_classificacao_imovel` ([[ADR-439]] D1)."""
+        return {
+            **self.cobertura.to_dict(),
+            **self.vereditos.to_dict(),
+            "residencia_status": self.residencia_status,
+        }
+
+
+# Fronteira float→Decimal do `PatrimonioCalculator`, no molde de
+# `aplicar_guarda_aos_componentes`: os splitters ainda somam em float.
+def classificar_imoveis_do_run(
+    *,
+    titular_bens: dict,
+    conjuge_bens: dict,
+    overrides: Mapping[str, str],
+    residencia_status: str | None,
+    residencia: float,
+    geradores: float,
+) -> ImoveisDoRun:
+    """Cobertura e vereditos sobre os MESMOS itens que os splitters somaram."""
+    bens = {"titular_bens": titular_bens, "conjuge_bens": conjuge_bens}
+    status = residencia_status or RESIDENCIA_NAO_DECLARADA
+    imoveis = (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or [])
+    return ImoveisDoRun(
+        cobertura=cobertura_classificacao_imovel(**bens, overrides_by_property_id=dict(overrides)),
+        vereditos=_vereditos_em_decimal(imoveis, overrides, status, residencia, geradores),
+        residencia_status=status,
+    )
+
+
+def _vereditos_em_decimal(
+    imoveis: list[dict], overrides: Mapping[str, str], status: str, *baldes: float
+) -> VereditosDeImovel:
+    residencia, geradores = (Decimal(str(b)) for b in baldes)
+    return vereditos_de_imovel(
+        imoveis=imoveis,
+        overrides=overrides,
+        residencia_status=status,
+        residencia=residencia,
+        geradores=geradores,
+    )
+
+
 __all__ = [
     "EvidenciaDeImovel",
+    "ImoveisDoRun",
     "MotivoBaldeImovel",
     "RESIDENCIA_ALUGADA",
     "RESIDENCIA_NAO_DECLARADA",
     "RESIDENCIA_PROPRIA",
     "VereditoBalde",
     "VereditosDeImovel",
+    "classificar_imoveis_do_run",
     "evidencia_de_imoveis",
     "veredito_geradores",
     "veredito_residencia",

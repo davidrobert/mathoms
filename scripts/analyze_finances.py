@@ -1344,6 +1344,8 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
     # ADR-142 + ADR-222: per-workspace toggle `imoveis_no_if` (default True
     # quando ausente — CLI/teste). Backend popula via `_setup_run_context`.
     imoveis_no_if = bool(getattr(ctx, "imoveis_no_if", True)) if ctx is not None else True
+    # [[ADR-215]] / [[ADR-439]] D2: só `rented` autoriza residência zero; ausente ≡ `undeclared`.
+    residencia_status = getattr(ctx, "residencia_status", None) if ctx is not None else None
     return E5AnalyzerAdapter.from_configs(
         categorization=categorization_cfg,
         family=FAMILY_CONFIG,
@@ -1360,6 +1362,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         cambio_observed_at=cambio_observed_at,
         property_classification_overrides=property_classification_overrides,
         imoveis_no_if=imoveis_no_if,
+        residencia_status=residencia_status,
         seguradoras_catalog=_load_seguradoras_catalog(ctx),
         protection_bundle=_load_protection_bundle(ctx),
         cnpj_raiz_to_code=_load_cnpj_raiz_map(ctx),
