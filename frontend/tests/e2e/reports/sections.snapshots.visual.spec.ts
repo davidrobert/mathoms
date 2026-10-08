@@ -351,8 +351,12 @@ test.describe("Snapshots — S_parecer degradado", () => {
 // MEDIDA nos dois extremos, como a do `cover`:
 //
 //   piso de ruído  = 0 px — runs do mesmo SHA são byte-idênticos (ver `cover`).
-//   menor mudança  = MEDIR_NA_SONDA — barra cheia na linha de teto violado.
+//   menor mudança  = 1.135 px (0,33% de 703×483) — a regressão de origem: barra
+//   que importa      cheia na linha de teto violado, medida em run de sonda com a
+//                    baseline presente (run 37845587590). NA MESMA SONDA a baseline
+//                    de `S_parecer-parcial` passou verde — é por isso que esta existe.
 //
+// 0.0003 (≈102 px nesta imagem) fica acima do ruído e ~11× abaixo da regressão.
 // Só light: o PDF sai sempre em light.
 test.describe("Snapshots — métricas do parecer (print)", () => {
   test("parecer-metricas-print — light", async ({ page }) => {
