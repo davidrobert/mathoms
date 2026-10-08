@@ -9,6 +9,7 @@ import {
 import { resolveTaxaPoupanca } from "../utils/fluxoJanela";
 import { formatFullBRL } from "@/lib/format";
 import type {
+  MotivoBaldeImovel,
   PatrimonioData,
   RatiosData,
   ReservaEmergenciaData,
@@ -81,6 +82,7 @@ function PatrimonioInvestivelKpi({ patrimonio }: { patrimonio: PatrimonioData | 
   const financeiro = patrimonio?.investivel_financeiro;
   const efetivo = patrimonio?.investivel_efetivo;
   const geradores = patrimonio?.imoveis_geradores ?? 0;
+  const naoIdentificados = motivoGeradoresSemVinculo(patrimonio);
   const liquido = patrimonio?.liquido;
   const toggleOn = patrimonio?.imoveis_no_if === true;
   const pctLiquido =
@@ -101,6 +103,7 @@ function PatrimonioInvestivelKpi({ patrimonio }: { patrimonio: PatrimonioData | 
           financeiro={financeiro}
           efetivo={efetivo}
           geradores={geradores}
+          naoIdentificados={naoIdentificados}
           toggleOn={toggleOn}
           pctLiquido={pctLiquido}
           fonte={patrimonio?.fonte_investimentos}
@@ -110,10 +113,46 @@ function PatrimonioInvestivelKpi({ patrimonio }: { patrimonio: PatrimonioData | 
   );
 }
 
+/** ADR-439 D3 — lê o VEREDITO antes do número: `null`, e o zero que o veredito diz não
+ *  apurado, caíam no ramo "Sem imóveis de renda classificados · classificar", que afirma
+ *  ausência e manda classificar o que já foi classificado. `nao_classificados` (nunca
+ *  classificou) segue no CTA, que ali está certo. */
+type MotivoSemVinculo = Exclude<MotivoBaldeImovel, "nao_classificados"> | null;
+
+function motivoGeradoresSemVinculo(
+  patrimonio: PatrimonioData | undefined,
+): MotivoSemVinculo | undefined {
+  const veredito = patrimonio?.cobertura_classificacao_imovel?.imoveis_geradores;
+  if (veredito?.status === "nao_apurado") {
+    return veredito.motivo === "nao_classificados" ? undefined : veredito.motivo;
+  }
+  return patrimonio?.imoveis_geradores === null ? null : undefined;
+}
+
+/** A direção do erro: o investível efetivo é piso, e a IF pode estar mais perto. */
+function GeradoresNaoIdentificados({
+  pctLine,
+  motivo,
+}: {
+  pctLine: string | null;
+  motivo: MotivoSemVinculo;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      {pctLine ? <span>{pctLine}</span> : null}
+      <span>
+        Imóveis de renda {motivo === "sem_valor" ? "sem valor apurado" : "não identificados"} ·
+        o progresso da IF pode ser maior
+      </span>
+    </div>
+  );
+}
+
 interface InvestivelSublineProps {
   financeiro: number | undefined;
   efetivo: number | undefined;
   geradores: number;
+  naoIdentificados: MotivoSemVinculo | undefined;
   toggleOn: boolean;
   pctLiquido: number | undefined;
   fonte: string | undefined;
@@ -123,6 +162,7 @@ function InvestivelSubline({
   financeiro,
   efetivo,
   geradores,
+  naoIdentificados,
   toggleOn,
   pctLiquido,
   fonte,
@@ -147,6 +187,10 @@ function InvestivelSubline({
         <span>Imóveis fora do cálculo de IF</span>
       </div>
     );
+  }
+
+  if (naoIdentificados !== undefined) {
+    return <GeradoresNaoIdentificados pctLine={pctLine} motivo={naoIdentificados} />;
   }
 
   if (geradores > 0 && efetivo != null && efetivo > financeiro) {

@@ -279,6 +279,16 @@
               },
               "pct": {
                 "type": "number"
+              },
+              "estado": {
+                "type": "string",
+                "enum": ["nao_apurado"],
+                "description": "[[ADR-439]] D5: só a linha `Residência`, quando o balde não foi apurado. O `valor` segue 0 na partição (Σ valor == bruto); o estado é o que separa este zero do de quem aluga, que a [[ADR-215]] P5 esconde."
+              },
+              "motivo": {
+                "type": ["string", "null"],
+                "enum": ["nao_localizada", "sem_valor", "nao_classificada", "nao_declarada", null],
+                "description": "[[ADR-439]] D2: por que a residência não foi apurada — orienta a ação da família."
               }
             }
           }
@@ -380,6 +390,116 @@
         "cat2_efetivo": {
           "type": "number",
           "description": "A40.l80 ([[ADR-412]] §D1): cat_2 efetivo no IF — termo de `carteira_produtiva_familia` e `carteira_produtiva_com_titular_identificado`. Publicado para que `bases[*].valor_brl` seja verificável SÓ do payload; sem ele o leitor teria de ler código-fonte para somar os termos das duas."
+        },
+        "residencia": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "[[ADR-439]] D2: `null` = residência não apurada (não localizada, sem valor, não classificada ou não declarada). Zero numérico só com `residencia_status = rented`. O motivo está em `cobertura_classificacao_imovel.residencia`."
+        },
+        "imoveis_geradores": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "[[ADR-439]] D3: `null` junto com `imoveis_nao_geradores` quando há imóvel de classificação desconhecida em aberto; o identificado sai em `cobertura_classificacao_imovel.geradores_identificados`. Invariante: os dois números somam `imoveis_investimento`, ou os dois são `null`."
+        },
+        "imoveis_nao_geradores": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "[[ADR-439]] D3: par de `imoveis_geradores` — vai a `null` junto com ele."
+        },
+        "cobertura_classificacao_imovel": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "[[ADR-439]] D1 · [[ADR-433]] §D3: partição do valor de imóvel por classificação (do mesmo laço: residência + geradores + não-geradores identificados + desconhecido == valor_total) e o veredito de publicação de cada balde. `pct_desconhecido` é fatia do VALOR — a contagem sozinha mente, porque a residência costuma ser o maior item.",
+          "required": [
+            "valor_total",
+            "valor_desconhecido",
+            "n_total",
+            "n_desconhecido",
+            "pct_desconhecido",
+            "residencia_identificada",
+            "geradores_identificados",
+            "nao_geradores_identificados",
+            "residencia",
+            "imoveis_geradores",
+            "n_desconhecido_em_aberto",
+            "overrides_sem_imovel",
+            "residencia_status"
+          ],
+          "properties": {
+            "valor_total": {
+              "type": "number"
+            },
+            "valor_desconhecido": {
+              "type": "number"
+            },
+            "n_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "n_desconhecido": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "pct_desconhecido": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "residencia_identificada": {
+              "type": "number"
+            },
+            "geradores_identificados": {
+              "type": "number"
+            },
+            "nao_geradores_identificados": {
+              "type": "number"
+            },
+            "residencia": {
+              "$ref": "#/$defs/VereditoBaldeImovel"
+            },
+            "imoveis_geradores": {
+              "$ref": "#/$defs/VereditoBaldeImovel"
+            },
+            "n_desconhecido_em_aberto": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Imóveis de classificação desconhecida que PODEM valer algo (valor > 0 ou não apurado). Zero declarado em 31/12 é venda no ano e não conta."
+            },
+            "overrides_sem_imovel": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "residencia_principal",
+                "geradores"
+              ],
+              "description": "Overrides gravados cujo imóvel não aparece neste run — escolhe o MOTIVO (vínculo perdido), nunca decide o veredito: override órfão também é imóvel vendido.",
+              "properties": {
+                "residencia_principal": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "geradores": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "residencia_status": {
+              "type": "string",
+              "enum": [
+                "owned",
+                "rented",
+                "undeclared"
+              ],
+              "description": "[[ADR-215]] `workspaces.residencia_status`, ecoado. Ausente no contexto (CLI/teste) vale `undeclared`."
+            }
+          }
         },
         "imoveis_alocacao": {
           "type": "number",
@@ -3111,6 +3231,44 @@
     }
   },
   "$defs": {
+    "VereditoBaldeImovel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "motivo",
+        "piso"
+      ],
+      "description": "[[ADR-439]] D1: veredito de publicação de um balde de imóvel. `status` reusa o vocabulário de `cobertura_investimentos[]` ([[ADR-394]] §Emenda (b) D7). `piso` = o número publicado é o mínimo (só a residência o usa).",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "apurado",
+            "zero_apurado",
+            "nao_apurado"
+          ]
+        },
+        "motivo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "nao_localizada",
+            "sem_valor",
+            "nao_classificada",
+            "nao_declarada",
+            "vinculo_perdido",
+            "nao_classificados",
+            null
+          ]
+        },
+        "piso": {
+          "type": "boolean"
+        }
+      }
+    },
     "CascataTrigger": {
       "type": "object",
       "description": "Decision trigger parametrizado — [[ADR-236]] §D6.",
