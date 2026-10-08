@@ -8,6 +8,7 @@ import json
 import shutil
 import subprocess
 import sys
+from collections.abc import Callable
 
 
 def _run(cmd: list[str]) -> tuple[int, str]:
@@ -22,16 +23,12 @@ def _current_branch() -> str | None:
     return out
 
 
-def _upstream_name(branch: str) -> str | None:
-    rc, out = _run(["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", f"{branch}@{{u}}"])
-    if rc != 0 or not out:
-        return None
-    return out
-
-
-def _ref_exists(ref: str) -> bool:
-    rc, _ = _run(["git", "rev-parse", "--verify", "--quiet", ref])
-    return rc == 0
+def _gone_upstream(branch: str) -> str | None:
+    # `rev-parse <branch>@{u}` falha igual sem upstream e com upstream [gone]; só o track distingue
+    fmt = "%(upstream:short) %(upstream:track,nobracket)"
+    rc, out = _run(["git", "for-each-ref", f"--format={fmt}", f"refs/heads/{branch}"])
+    name, _, track = out.partition(" ")
+    return name if rc == 0 and name and track == "gone" else None
 
 
 def _gh_pr_json(branch: str) -> str | None:
@@ -86,18 +83,18 @@ def _print_cleanup(branch: str, reason: str, pr_info: dict | None) -> None:
     print()
 
 
-def _diagnose(branch: str) -> tuple[str, dict | None] | None:
-    upstream = _upstream_name(branch)
-    pr_info = _pr_state_for_branch(branch)
-    pr_merged = bool(pr_info and pr_info.get("state") == "MERGED")
-    if upstream and _ref_exists(upstream):
-        return ("PR já mergeada", pr_info) if pr_merged else None
-    reason = (
-        "sem upstream remoto"
-        if upstream is None
-        else f"upstream {upstream} não existe mais no remoto"
-    )
-    return reason, pr_info
+def _diagnose(
+    branch: str, pr_lookup: Callable[[str], dict | None] = _pr_state_for_branch
+) -> tuple[str, dict | None] | None:
+    # sem upstream é o estado de branch nova, e sem `gh` não há PR para consultar:
+    # só PR MERGED ou upstream [gone] provam entrega antes de sugerir `branch -D`
+    pr_info = pr_lookup(branch)
+    if pr_info and pr_info.get("state") == "MERGED":
+        return "PR já mergeada", pr_info
+    gone = _gone_upstream(branch)
+    if gone:
+        return f"upstream {gone} não existe mais no remoto", pr_info
+    return None
 
 
 def main() -> int:
