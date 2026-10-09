@@ -1,6 +1,7 @@
 """Integration test do SectionSummaryOrchestrator (v2.9 · ADR-144)."""
-# Cobre: toggle env (default OFF), wire-up LLM injetado, fallback path,
-# dispatch sobre SUPPORTED_SECTION_IDS, snapshot_hash determinístico.
+# Cobre: toggle env (default OFF), wire-up LLM injetado, falha deixando a
+# seção ausente, dispatch sobre SUPPORTED_SECTION_IDS, snapshot_hash
+# determinístico e payload do prompt = slice declarado.
 
 from __future__ import annotations
 
@@ -10,10 +11,10 @@ import os
 
 import pytest
 
+import backend.app.services.section_summary_orchestrator as orchestrator
 from backend.app.services.section_summary_orchestrator import (
     _SECTION_KEYS,
     SUPPORTED_SECTION_IDS,
-    _default_fallback,
     _slice_section_data,
     compute_snapshot_hash,
     generate_all_section_summaries,
@@ -24,12 +25,7 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
 )
-from tests.fakes.llm import (
-    FakeLLMPromptRecorder,
-    FakeLLMRaisingClient,
-    FakeLLMSuccess,
-    make_fake_fallback,
-)
+from tests.fakes.llm import FakeLLMPromptRecorder, FakeLLMSuccess
 
 
 def _make_test_generator():
@@ -37,7 +33,6 @@ def _make_test_generator():
     return SectionSummaryGenerator(
         llm_client=FakeLLMSuccess(text="Resumo de teste."),
         cache=InMemoryLLMCache(),
-        fallback=make_fake_fallback("fallback"),
         templates=templates,
         config=SectionSummaryGeneratorConfig(),
     )
@@ -65,10 +60,10 @@ def test_with_explicit_generator_runs_all_sections():
     gen = _make_test_generator()
     result = generate_all_section_summaries(
         workspace_id=1,
-        e5_data={"patrimonio": {"liquido": 1000}, "score": {"valor": 8}},
+        e5_data=_e5_com_narrativas(),
         generator=gen,
     )
-    # Cobre todas as 13 seções suportadas
+    # Cobre todas as seções suportadas (o fixture dá dado a todo slice)
     assert len(result) == len(SUPPORTED_SECTION_IDS)
     for section_id in SUPPORTED_SECTION_IDS:
         assert section_id in result
@@ -107,57 +102,10 @@ def test_supported_section_ids_match_yaml_keys():
     )
 
 
-def test_fallback_via_narrativas_summaries_legacy(monkeypatch: pytest.MonkeyPatch):
-    """Quando LLM indisponível e env permite, fallback lê narrativas[summaries]."""
-    from backend.app.services.section_summary_orchestrator import _default_fallback
-
-    fallback_context = {"summaries": {"s1": "narrativa legada s1"}}
-    text = _default_fallback("S1", fallback_context)
-    assert text == "narrativa legada s1"
-
-
-def test_fallback_returns_generic_text_when_no_legacy():
-    """Sem narrativas[summaries], fallback retorna texto genérico por section_id."""
-    from backend.app.services.section_summary_orchestrator import _default_fallback
-
-    text = _default_fallback("S1", {})
-    assert text is not None
-    assert "Patrimônio" in text or "patrimonial" in text.lower()
-
-
-def test_fallback_unknown_section_returns_none():
-    from backend.app.services.section_summary_orchestrator import _default_fallback
-
-    assert _default_fallback("UNKNOWN_SECTION", {}) is None
-
-
-# A40.l4 (ADR-356 §D2): o teste acima usa `S1` — justamente o id onde
-# `section_id.lower()` coincide com o destino correto. Com a entrega de narrativa
-# ligada, o caminho passou a ser alcançável em 5 seções, e para a S2 o lowercase
-# publicava o parágrafo de SCORE no topo do Fluxo de Caixa.
-def test_fallback_nao_deriva_chave_por_lowercase():
-    """`S2` não lê `summaries.s2` — o mapa é `summary_source` do layout."""
-    from backend.app.services.section_summary_orchestrator import _default_fallback
-
-    fallback_context = {"summaries": {"s2": "Score financeiro de 5,6/10 (Regular)."}}
-    text = _default_fallback("S2", fallback_context)
-    assert text is not None
-    assert "Score financeiro" not in text, text
-    assert "Fluxo de caixa" in text, text
-
-
-def test_fallback_usa_destino_declarado_no_layout():
-    """A leitura segue `summary_source`; S9 → s9 (não coincidência de string)."""
-    from backend.app.services.section_summary_orchestrator import _default_fallback
-
-    fallback_context = {"summaries": {"s9": "2 riscos prioritários: a, b."}}
-    assert _default_fallback("S9", fallback_context) == "2 riscos prioritários: a, b."
-
-
 # O payload da seção ia ao provider com `_narrativas` anexado — as narrativas
 # do relatório inteiro, com R$ formatado — em todas as seções. O único leitor
-# era o fallback determinístico. O prompt leva o slice declarado e só ele; o
-# fallback recebe a narrativa por outro canal.
+# era o fallback do backend, que saiu (último teste). O prompt leva o slice
+# declarado e só ele.
 _SENTINELA = "SENTINELA-NARRATIVA-DE-OUTRA-SECAO"
 
 
@@ -169,7 +117,7 @@ def _e5_com_narrativas(texto_s1: str = _SENTINELA) -> dict:
     return e5
 
 
-def _gerador(llm, *, cache=None, fallback=None) -> SectionSummaryGenerator:
+def _gerador(llm, *, cache=None) -> SectionSummaryGenerator:
     templates = {
         sid: PromptTemplate(system_prompt="Editor.", user_prompt_template="{section_data_json}")
         for sid in SUPPORTED_SECTION_IDS
@@ -177,7 +125,6 @@ def _gerador(llm, *, cache=None, fallback=None) -> SectionSummaryGenerator:
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache or InMemoryLLMCache(),
-        fallback=fallback or make_fake_fallback("fallback"),
         templates=templates,
         config=SectionSummaryGeneratorConfig(),
     )
@@ -202,15 +149,15 @@ def test_prompt_de_cada_secao_carrega_exatamente_o_slice_declarado():
         assert set(json.loads(prompt)) == set(_SECTION_KEYS[section_id]), section_id
 
 
-def test_fallback_ainda_le_a_narrativa_quando_o_llm_falha():
-    gen = _gerador(
-        FakeLLMRaisingClient(error=TimeoutError("request timed out")),
-        fallback=_default_fallback,
-    )
-    e5 = _e5_com_narrativas(texto_s1="Narrativa determinística da S1.")
-    result = generate_all_section_summaries(workspace_id=1, e5_data=e5, generator=gen)
-    assert result["S1"] == "Narrativa determinística da S1."
-    assert result["S9"] == f"{_SENTINELA} s9"
+def test_secao_sem_dado_nao_chama_o_llm():
+    """T5 sem cônjuge: slice vazio daria frase genérica que vence as camadas 2 e 3."""
+    llm = FakeLLMPromptRecorder()
+    e5 = _e5_com_narrativas()
+    del e5["cenarios_conjuge"]
+    result = generate_all_section_summaries(workspace_id=1, e5_data=e5, generator=_gerador(llm))
+    assert "T5" not in [sid for sid, _ in llm.prompts]
+    assert "T5" not in result
+    assert "S7" in result  # S7 ainda tem `ratios`
 
 
 def test_mudar_so_a_narrativa_nao_invalida_o_cache_da_secao():
@@ -234,3 +181,14 @@ def test_hash_da_chave_cobre_os_mesmos_bytes_que_o_prompt_recebe():
     for section_id, prompt in llm.prompts:
         esperado = compute_snapshot_hash(_slice_section_data(e5, section_id))
         assert hashlib.sha256(prompt.encode("utf-8")).hexdigest() == esperado, section_id
+
+
+# ADR-356: camada 1 preenchida vence as camadas 2 e 3. O fallback do backend
+# escrevia ali a cópia do E5.N, rotulada `llm` e sem o sufixo da §D10, ou um
+# genérico que mascarava o `deriveSectionSummary`. Falha deixa a seção ausente.
+def test_flag_ligada_sem_chave_de_api_nao_preenche_a_camada_1(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("MATHOMS_LLM_SECTION_SUMMARIES", "1")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(orchestrator, "_build_cache", InMemoryLLMCache)
+    result = generate_all_section_summaries(workspace_id=1, e5_data=_e5_com_narrativas())
+    assert result == {}

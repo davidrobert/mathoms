@@ -1,8 +1,9 @@
 """Section summary orchestrator (v2.9 · ADR-144)."""
 # Wire-up de SectionSummaryGenerator com LLMService (LiteLLM/Instructor)
-# + Redis cache + fallback determinístico. Vive em backend/ porque conhece
-# Anthropic API key (env), Redis client e LLMService com seu setup.
-# pipeline/ permanece boundary-clean.
+# + Redis cache. Vive em backend/ porque conhece Anthropic API key (env),
+# Redis client e LLMService com seu setup. pipeline/ permanece boundary-clean.
+# Sem fallback aqui: seção que falha fica ausente de `section_summaries`, e a
+# precedência da ADR-356 (camadas 2 e 3) decide no renderer.
 
 from __future__ import annotations
 
@@ -103,55 +104,6 @@ class _LiteLLMSectionSummaryClient:
         )
 
 
-def _default_fallback(section_id: str, fallback_context: Mapping[str, Any]) -> Optional[str]:
-    """Fallback determinístico — usa narrativas[summaries] do run se houver."""
-    text = _read_legacy_summary(fallback_context, section_id)
-    if text:
-        return text
-    return _GENERIC_FALLBACK.get(section_id)
-
-
-# ADR-356 §D2: a chave de `narrativas.summaries` NÃO é `section_id.lower()`.
-# `summaries.s2` é o parágrafo de SCORE e a S2 do layout é Fluxo de Caixa —
-# derivar por lowercase publicava o score no topo do fluxo de caixa. O mapa
-# canônico é `summary_source`, declarado no layout (mesma fonte que o renderer
-# React lê). Seção sem destino declarado cai no fallback genérico.
-def _summary_source_key(section_id: str) -> Optional[str]:
-    from backend.app.generated.report_layout import LAYOUT
-
-    estrategico = LAYOUT.estrategico
-    for entry in [*estrategico.sections, *estrategico.appendices]:
-        if entry.id == section_id:
-            return entry.summary_source if entry.enabled else None
-    return None
-
-
-def _read_legacy_summary(fallback_context: Mapping[str, Any], section_id: str) -> Optional[str]:
-    summaries = fallback_context.get("summaries")
-    key = _summary_source_key(section_id)
-    if not isinstance(summaries, Mapping) or key is None:
-        return None
-    text = summaries.get(key)
-    if isinstance(text, str) and text.strip():
-        return text.strip()
-    return None
-
-
-_GENERIC_FALLBACK: dict[str, str] = {
-    "S1": "Patrimônio consolidado e estrutura de ativos/passivos.",
-    "S2": "Fluxo de caixa e diagnóstico comportamental do período.",
-    "S3": "Carteira de investimentos: alocação atual, alvo e principais ativos.",
-    "S4": "Imóveis e renda passiva — rentabilidade comparada a benchmarks.",
-    "S7": "Independência financeira — projeção de longo prazo.",
-    "S8": "Estrutura tributária e previdenciária — eficiência fiscal.",
-    "S9": "Mapa de riscos e cobertura atual de seguros críticos.",
-    "S10": "Síntese dos pontos fortes e urgências do ciclo.",
-    "T2": "Cobertura da meta de aportes do ciclo.",
-    "T3": "Tributação tática do ciclo.",
-    "T5": "Cenários e simulações considerados.",
-}
-
-
 def _resolve_yaml_path() -> str:
     """Localiza o YAML de prompts independente de cwd."""
     candidates = [Path(_PROMPT_YAML), Path(__file__).resolve().parents[3] / _PROMPT_YAML]
@@ -197,14 +149,13 @@ def build_default_generator(
     templates: Optional[Mapping[str, PromptTemplate]] = None,
     config: Optional[SectionSummaryGeneratorConfig] = None,
 ) -> SectionSummaryGenerator:
-    """Construtor padrão — wire LiteLLM + Redis + fallback determinístico."""
+    """Construtor padrão — wire LiteLLM + Redis."""
     yaml_path = _resolve_yaml_path()
     resolved_templates = templates or load_prompt_templates_from_yaml(yaml_path)
     llm_client = _build_llm_client() or _NoLLMRaisingClient()
     return SectionSummaryGenerator(
         llm_client=llm_client,
         cache=_build_cache(),
-        fallback=_default_fallback,
         templates=resolved_templates,
         config=config
         or SectionSummaryGeneratorConfig(
@@ -215,7 +166,7 @@ def build_default_generator(
 
 
 class _NoLLMRaisingClient:
-    """Stub que sempre levanta — força fallback sem chamada de rede."""
+    """Stub que sempre levanta — seção fica ausente, sem chamada de rede."""
 
     def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
         raise RuntimeError("ANTHROPIC_API_KEY missing — section summaries via LLM disabled")
@@ -232,14 +183,13 @@ def generate_all_section_summaries(
         logger.info("section_summaries_skipped_llm_disabled")
         return {}
     gen = generator or build_default_generator()
-    return _run_for_all_sections(gen, workspace_id, e5_data, _fallback_context(e5_data))
+    return _run_for_all_sections(gen, workspace_id, e5_data)
 
 
 def _run_for_all_sections(
     gen: SectionSummaryGenerator,
     workspace_id: int,
     e5_data: Mapping[str, Any],
-    fallback_context: Mapping[str, Any],
 ) -> dict[str, str]:
     out: dict[str, str] = {}
     for section_id in SUPPORTED_SECTION_IDS:
@@ -249,18 +199,10 @@ def _run_for_all_sections(
             snapshot_hash=compute_snapshot_hash(section_payload),
             workspace_id=workspace_id,
             snapshot_data=section_payload,
-            fallback_context=fallback_context,
         )
         if result.text:
             out[section_id] = result.text
     return out
-
-
-def _fallback_context(e5_data: Mapping[str, Any]) -> dict[str, Any]:
-    """Narrativas do E5.N para o fallback determinístico — nunca entram no prompt."""
-    narrativas = e5_data.get("narrativas") if isinstance(e5_data, Mapping) else None
-    summaries = narrativas.get("summaries") if isinstance(narrativas, Mapping) else None
-    return {"summaries": summaries} if isinstance(summaries, Mapping) else {}
 
 
 def _slice_section_data(e5_data: Mapping[str, Any], section_id: str) -> dict[str, Any]:

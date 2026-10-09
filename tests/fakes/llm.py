@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -65,15 +65,6 @@ class FakeLLMRaisingClient:
     def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
         self.calls += 1
         raise self.error
-
-
-def make_fake_fallback(text: str = "fallback determinístico") -> Callable:
-    """Fallback simples para tests — retorna sempre o mesmo texto."""
-
-    def _fallback(section_id, snapshot_data):
-        return text
-
-    return _fallback
 
 
 @dataclass

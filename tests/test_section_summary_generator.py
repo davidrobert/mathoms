@@ -15,7 +15,7 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
 )
-from tests.fakes.llm import FakeLLMRaisingClient, FakeLLMSuccess, make_fake_fallback
+from tests.fakes.llm import FakeLLMRaisingClient, FakeLLMSuccess
 
 _TEMPLATE = PromptTemplate(
     system_prompt="You are a financial editor.",
@@ -24,21 +24,19 @@ _TEMPLATE = PromptTemplate(
 _TEMPLATES = {"S1": _TEMPLATE}
 
 
-def _make_generator(*, llm, fallback_text="fallback determinístico", config=None):
+def _make_generator(*, llm, config=None):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=InMemoryLLMCache(),
-        fallback=make_fake_fallback(fallback_text),
         templates=_TEMPLATES,
         config=config or SectionSummaryGeneratorConfig(),
     )
 
 
-def _make_generator_with_cache(*, llm, cache, fallback_text="fallback"):
+def _make_generator_with_cache(*, llm, cache):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache,
-        fallback=make_fake_fallback(fallback_text),
         templates=_TEMPLATES,
         config=SectionSummaryGeneratorConfig(),
     )
@@ -90,7 +88,7 @@ def test_cache_hit_skips_llm_call():
 
 def test_llm_timeout_falls_back_with_reason_timeout():
     fake = FakeLLMRaisingClient(error=TimeoutError("request timed out after 8s"))
-    gen = _make_generator(llm=fake, fallback_text="determinístico-timeout")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="S1",
         snapshot_hash="hash_timeout",
@@ -98,7 +96,7 @@ def test_llm_timeout_falls_back_with_reason_timeout():
         snapshot_data={"x": 1},
     )
     assert result.source == "fallback"
-    assert result.text == "determinístico-timeout"
+    assert result.text == ""  # seção ausente: a precedência da ADR-356 decide no renderer
     assert result.fallback_reason == "timeout"
 
 
@@ -107,7 +105,7 @@ def test_llm_timeout_falls_back_with_reason_timeout():
 
 def test_llm_rate_limit_falls_back_with_reason_rate_limit():
     fake = FakeLLMRaisingClient(error=RuntimeError("HTTP 429: too many requests"))
-    gen = _make_generator(llm=fake, fallback_text="determinístico-rl")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="S1",
         snapshot_hash="hash_rl",
@@ -116,7 +114,7 @@ def test_llm_rate_limit_falls_back_with_reason_rate_limit():
     )
     assert result.source == "fallback"
     assert result.fallback_reason == "rate_limit"
-    assert result.text == "determinístico-rl"
+    assert result.text == ""
 
 
 # ─── Cenário 5: LLM JSON inválido (Instructor parse error) ──────────
@@ -124,7 +122,7 @@ def test_llm_rate_limit_falls_back_with_reason_rate_limit():
 
 def test_llm_invalid_json_falls_back_with_reason_invalid_json():
     fake = FakeLLMRaisingClient(error=ValueError("pydantic validation error: missing summary_md"))
-    gen = _make_generator(llm=fake, fallback_text="determinístico-json")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="S1",
         snapshot_hash="hash_json",
@@ -159,7 +157,6 @@ def _make_generator_with_version(*, llm, cache, prompt_version):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache,
-        fallback=make_fake_fallback("fallback"),
         templates=_TEMPLATES,
         config=SectionSummaryGeneratorConfig(prompt_version=prompt_version),
     )
@@ -189,7 +186,7 @@ def test_prompt_version_bump_invalidates_cache():
 
 def test_unknown_section_id_falls_back_with_reason_template_missing():
     fake = FakeLLMSuccess()
-    gen = _make_generator(llm=fake, fallback_text="determinístico-unknown")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="UNKNOWN_SECTION",
         snapshot_hash="hash_unknown",
@@ -198,6 +195,26 @@ def test_unknown_section_id_falls_back_with_reason_template_missing():
     )
     assert result.source == "fallback"
     assert result.fallback_reason == "template_missing"
+    assert result.text == ""
+    assert fake.calls == 0
+
+
+# ─── Cenário extra: slice vazio não chama o LLM ─────────────────────
+# Frase genérica escrita sem dado venceria as camadas 2 e 3 da ADR-356.
+
+
+def test_empty_slice_skips_llm_and_leaves_section_absent():
+    fake = FakeLLMSuccess()
+    gen = _make_generator(llm=fake)
+    result = gen.generate(
+        section_id="S1",
+        snapshot_hash="hash_vazio",
+        workspace_id=1,
+        snapshot_data={},
+    )
+    assert result.source == "fallback"
+    assert result.fallback_reason == "empty_slice"
+    assert result.text == ""
     assert fake.calls == 0
 
 

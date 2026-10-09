@@ -1,9 +1,11 @@
 """SectionSummaryGenerator — LLM-driven section summaries (v2.9 · ADR-144)."""
 # Boundary (CLAUDE.md §pipeline-não-importa-framework): generator não
-# importa fastapi/celery/sqlalchemy/redis. Cache adapter, LLM client e
-# fallback são injetados (Protocols + Callable). Telemetry: logger
+# importa fastapi/celery/sqlalchemy/redis. Cache adapter e LLM client são
+# injetados (Protocols). Telemetry: logger
 # ``mathoms.llm.section_summaries`` (ADR-110), sem PII (snapshot_hash
 # truncado a 12 chars; nunca loga texto gerado nem snapshot_data).
+# Falha não gera texto substituto: a seção fica ausente e a precedência da
+# ADR-356 decide no renderer (ADR-144 §Emenda 2026-10-09).
 
 from __future__ import annotations
 
@@ -12,8 +14,7 @@ import logging
 import time
 from dataclasses import dataclass
 from decimal import Decimal
-from types import MappingProxyType
-from typing import Any, Callable, Literal, Mapping, Optional, Protocol
+from typing import Any, Literal, Mapping, Optional, Protocol
 
 from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
 
@@ -82,15 +83,6 @@ class SectionSummaryCache(Protocol):
     def set(self, key: str, value: str, ttl_s: int = ...) -> None: ...
 
 
-# Callable: ``(section_id, fallback_context) -> str | None``. Chamado quando
-# LLM falha ou está desabilitado. Recebe o ``fallback_context``, nunca o
-# ``snapshot_data``: o que só o fallback lê não pode viajar no payload, porque o
-# payload vai inteiro ao prompt (ADR-144 §Emenda 2026-10-09).
-DeterministicFallback = Callable[[str, Mapping[str, Any]], Optional[str]]
-
-_SEM_CONTEXTO_DE_FALLBACK: Mapping[str, Any] = MappingProxyType({})
-
-
 # A chave de cache não separa tenants (workspace UUID resolve para 0), então ela
 # só é segura se cobrir todo o input variável do prompt: os dois saem daqui.
 def serialize_section_payload(snapshot_data: Mapping[str, Any]) -> str:
@@ -114,7 +106,6 @@ class _GenerateCtx:
     snapshot_hash: str
     workspace_id: int
     snapshot_data: Mapping[str, Any]
-    fallback_context: Mapping[str, Any]
     start: float
 
 
@@ -134,7 +125,7 @@ class _TelemetryEvent:
 
 
 class SectionSummaryGenerator:
-    """Gera section summaries com LLM + cache + fallback determinístico."""
+    """Gera section summaries com LLM + cache; falha devolve texto vazio."""
 
     # ADR-111 stateless: sem `lru_cache`/dict global. Config frozen.
 
@@ -143,13 +134,11 @@ class SectionSummaryGenerator:
         *,
         llm_client: SectionSummaryLLMClient,
         cache: SectionSummaryCache,
-        fallback: DeterministicFallback,
         templates: Mapping[str, PromptTemplate],
         config: SectionSummaryGeneratorConfig | None = None,
     ) -> None:
         self._llm = llm_client
         self._cache = cache
-        self._fallback = fallback
         self._templates = templates
         self._config = config or SectionSummaryGeneratorConfig()
 
@@ -160,28 +149,29 @@ class SectionSummaryGenerator:
         snapshot_hash: str,
         workspace_id: int,
         snapshot_data: Mapping[str, Any],
-        fallback_context: Mapping[str, Any] = _SEM_CONTEXTO_DE_FALLBACK,
     ) -> SectionSummaryResult:
-        """Pipeline: cache → LLM → fallback. Sempre retorna resultado válido."""
+        """Pipeline: cache → LLM. Falha devolve texto vazio, nunca levanta."""
         ctx = _GenerateCtx(
             section_id=section_id,
             snapshot_hash=snapshot_hash,
             workspace_id=workspace_id,
             snapshot_data=snapshot_data,
-            fallback_context=fallback_context,
             start=time.monotonic(),
         )
         return self._dispatch(ctx)
 
     def _dispatch(self, ctx: "_GenerateCtx") -> SectionSummaryResult:
+        # Frase genérica escrita sem dado venceria as camadas 2 e 3 da ADR-356.
+        if not ctx.snapshot_data:
+            return self._degraded_result(ctx, "empty_slice")
         cache_key = self._cache_key(ctx.workspace_id, ctx.snapshot_hash, ctx.section_id)
         cached = self._check_cache(cache_key)
         if cached is not None:
             return self._result_from_cache(cached, ctx.section_id, ctx.snapshot_hash, ctx.start)
         template = self._templates.get(ctx.section_id)
         if template is None:
-            return self._run_fallback(ctx, "template_missing")
-        return self._call_llm_or_fallback(ctx, template, cache_key)
+            return self._degraded_result(ctx, "template_missing")
+        return self._call_llm_or_degrade(ctx, template, cache_key)
 
     def _cache_key(self, workspace_id: int, snapshot_hash: str, section_id: str) -> str:
         version = self._config.prompt_version
@@ -205,7 +195,7 @@ class SectionSummaryGenerator:
         self._emit_telemetry(_TelemetryEvent(section_id, snapshot_hash, latency_ms, True, False))
         return SectionSummaryResult(text=text, source="cache", latency_ms=latency_ms)
 
-    def _call_llm_or_fallback(
+    def _call_llm_or_degrade(
         self,
         ctx: "_GenerateCtx",
         template: PromptTemplate,
@@ -214,7 +204,7 @@ class SectionSummaryGenerator:
         try:
             raw = self._invoke_llm(template, ctx.snapshot_data, ctx.section_id)
         except Exception as exc:  # noqa: BLE001 — boundary aberto
-            return self._run_fallback(ctx, _classify_llm_error(exc))
+            return self._degraded_result(ctx, _classify_llm_error(exc))
         return self._build_llm_result(raw, ctx.section_id, ctx.snapshot_hash, cache_key, ctx.start)
 
     def _invoke_llm(
@@ -266,12 +256,11 @@ class SectionSummaryGenerator:
         out_cost = (Decimal(completion_tokens) / million) * cfg.cost_per_million_output_usd
         return (in_cost + out_cost).quantize(Decimal("0.000001"))
 
-    def _run_fallback(self, ctx: "_GenerateCtx", reason: str) -> SectionSummaryResult:
-        text = self._fallback(ctx.section_id, ctx.fallback_context) or ""
+    def _degraded_result(self, ctx: "_GenerateCtx", reason: str) -> SectionSummaryResult:
         latency_ms = int((time.monotonic() - ctx.start) * 1000)
         self._emit_telemetry(_fallback_event(ctx.section_id, ctx.snapshot_hash, latency_ms, reason))
         return SectionSummaryResult(
-            text=text,
+            text="",
             source="fallback",
             latency_ms=latency_ms,
             fallback_reason=reason,
