@@ -46,7 +46,7 @@ redis>=6.4.0  # teto vem do kombu[redis] (<6.5); .github/dependabot.yml ignora a
 websockets>=17.2
 
 # A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
-python-json-logger>=3.2
+python-json-logger>=4.2.0
 # Família acoplada por `==` (sdk 1.Y ⇒ api==1.Y; instrumentation 0.Xb ⇒
 # semantic-conventions==0.Xb): os pisos 1.x são um só, os 0.Xb são um só, e sobem
 # juntos com o lock. O Dependabot só propõe as sentinelas api e
