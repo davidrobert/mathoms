@@ -5,7 +5,7 @@ title: "endereco_canonical=None não minta PropertyIdentity; match residual é �
 status: Decidido
 phase: A40.l70
 date: "2026-08-17"
-amended_at: ["2026-08-17"]
+amended_at: ["2026-08-17", "2026-10-08"]
 relates_to:
   - "[[ADR-097]]"
   - "[[ADR-215]]"
@@ -34,6 +34,10 @@ tags:
 >
 > ⚠️ **Emendada em 2026-08-17** — o D1 abaixo ganhou uma condição: a row
 > candidata precisa ser ela própria sem canonical. Ver §Emenda no fim.
+>
+> ⚠️ **Corrigida em 2026-10-08** — a emenda chamava `codigo_rfb` de código de
+> categoria (`11 = bens imóveis`); `11` é apartamento. O D1 e a emenda sobrevivem.
+> Ver §Correção no fim.
 
 ## Contexto
 
@@ -105,3 +109,15 @@ default da ADR: `None`, `needs_review` e o item segue no documento com
 Regressão provada por mutação nos dois resolvers (D3 continua valendo). Não
 altera o D2 nem o kill-switch. O roteamento ativo↔passivo desse item segue
 sendo escopo da [[A40.l66]] — esta emenda só devolve o item ao balanço.
+
+## Correção 2026-10-08 — `11` é apartamento, não a categoria
+
+A emenda acima afirma que `codigo_rfb` é "o código de **categoria** da RFB (11 = bens
+imóveis)". É o **subtipo**: `11` é apartamento, `12` é casa, e bens imóveis é o grupo `01`.
+A conclusão não muda — o par `(titular_key, codigo_rfb)` casa com todo apartamento da
+pessoa, e quem tem um só tem exatamente 1 hit —, então a condição da emenda (a candidata
+também sem canonical) segue necessária. O comentário de `_residual_unique` repetia o
+erro e foi corrigido junto.
+
+Desde esta data o código é comparado pelo sub-código de imóvel, também do lado da row:
+`'01-11'` e `'11'` entram no mesmo par ([[ADR-225]] §Emenda 2026-10-08).

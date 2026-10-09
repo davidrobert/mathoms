@@ -444,7 +444,7 @@ jobs:
         # full-history scan — cobertura que pertence ao schedule de
         # security.yml, não ao gate de merge.
         if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
@@ -1705,7 +1705,7 @@ jobs:
         working-directory: services/pipeline-service-go
         run: go vet ./...
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9  # v8
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a  # v9.3.0
         with:
           # Binário precisa ser buildado com go >= go.work (v2.1 era go1.24
           # e falhou com "targeted Go version 1.26"); manter par com o local.
