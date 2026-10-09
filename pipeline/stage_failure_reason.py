@@ -1,6 +1,6 @@
 """Classe da não-entrega de um stage — descritiva, nunca dispositiva (ADR-357 §2)."""
 
-# **Mora no `pipeline/` porque a classe sai do OBJETO da exceção** (ADR-446), e o
+# **Mora no `pipeline/` porque a classe sai do OBJETO da exceção** (ADR-447), e o
 # objeto só existe onde foi capturado: o `except` de `orchestrator._run_stage` nos
 # dois executores (in-process e o CLI do shell Go), o `_call_llm_safe` do parecer e o
 # `_run_stage_once` do backend. Quem captura grava a classe em
@@ -70,7 +70,7 @@ _REASON_BY_STAGE_REASON: dict[str, StageFailureReason] = {
     "unknown_mode": StageFailureReason.internal_error,
 }
 
-#: Chave do `detail` em que quem capturou a exceção viva grava a classe dela (ADR-446).
+#: Chave do `detail` em que quem capturou a exceção viva grava a classe dela (ADR-447).
 FAILURE_CLASS_KEY = "failure_class"
 
 # O que uma captura pode afirmar: a imagem de `reason_from_exception`, que já inclui o
@@ -94,7 +94,7 @@ def reason_from_exception(exc: BaseException) -> StageFailureReason:
     # (ADR-173) em `unknown` — e `budget_exhausted` é justamente o membro cuja
     # copy o cliente não pode confundir com falha técnica transitória.
     #
-    # Só o objeto do topo, sem caminhar `__cause__`/`__context__` (ADR-446): um bug
+    # Só o objeto do topo, sem caminhar `__cause__`/`__context__` (ADR-447): um bug
     # levantado dentro de `except LLMError` seria lido como falha do provider. Quem
     # embrulha uma exceção tipada classifica no próprio `except`, como o parecer.
     import jsonschema

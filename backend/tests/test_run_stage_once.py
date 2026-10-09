@@ -218,7 +218,7 @@ def test_falha_do_shell_nao_reexecuta_o_stage(shell_failure, fallback, no_backof
 
 
 def test_classe_da_falha_do_runner_sobrevive_ao_executor(monkeypatch, tmp_path):
-    """Era `xfail` estrito até o §Deferimento da ADR-443 fechar (2026-10-08, ADR-446)."""
+    """Era `xfail` estrito até o §Deferimento da ADR-443 fechar (2026-10-08, ADR-447)."""
     from backend.app.services.pipeline.stage_failure_reason import reason_from_stage_detail
 
     # `extract_members` deixa o `LLMError` chegar ao `_run_stage` em produção; o

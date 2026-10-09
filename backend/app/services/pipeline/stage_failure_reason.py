@@ -1,4 +1,4 @@
-"""Reexporta o classificador de não-entrega de `pipeline/stage_failure_reason.py` (ADR-446)."""
+"""Reexporta o classificador de não-entrega de `pipeline/stage_failure_reason.py` (ADR-447)."""
 
 # O classificador migrou para o pipeline porque a classe sai do objeto vivo, e a
 # exceção do runner só existe dentro de `orchestrator._run_stage`. Este módulo fica

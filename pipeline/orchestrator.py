@@ -319,7 +319,7 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 )
                 # `sys.exit` de script legado não carrega tipo: a causa só existe no
                 # stderr, e classificar pela prosa é vetado (ADR-357). `unknown`
-                # explícito separa este caso do produtor anterior ao contrato (ADR-446).
+                # explícito separa este caso do produtor anterior ao contrato (ADR-447).
                 return StageResult(
                     stage=stage,
                     success=False,
@@ -346,7 +346,7 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                     },
                 )
                 # Último ponto com o objeto vivo nos dois executores: a classe sai
-                # dele aqui e viaja no `detail`, que o shell Go repassa (ADR-446).
+                # dele aqui e viaja no `detail`, que o shell Go repassa (ADR-447).
                 return StageResult(
                     stage=stage,
                     success=False,

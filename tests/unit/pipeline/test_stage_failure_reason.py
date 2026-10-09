@@ -97,7 +97,7 @@ def test_abort_de_schema_e_output_invalido_nao_bug_nosso():
     assert reason_from_exception(exc) is StageFailureReason.output_invalid
 
 
-# --- ADR-446: a classe atravessa o executor em `detail["failure_class"]` --------------
+# --- ADR-447: a classe atravessa o executor em `detail["failure_class"]` --------------
 
 
 def _imagem_de_reason_from_exception() -> set[StageFailureReason]:
