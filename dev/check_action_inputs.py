@@ -153,7 +153,7 @@ def _missing_entry(site: StepUse) -> Violation:
         site.where(),
         f"ref fora de {LOCK_PATH.name}; inputs não verificáveis — rode `{REFRESH_CMD}` e "
         "commite o lock na mesma branch (PR do Dependabot: depois use "
-        "`gh pr update-branch --rebase`; `@dependabot rebase` faz force-push e apaga o commit)",
+        "`gh pr update-branch`; `@dependabot rebase` faz force-push e apaga o commit)",
     )
 
 
