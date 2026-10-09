@@ -28,7 +28,7 @@ tags:
 ## Contexto
 
 O matcher informe↔extrato (`_banco_match`) procura o token do banco na
-**descrição da conta** — "Conta Corrente - Ag 9652 Conta 0004397-8" não
+**descrição da conta** — "Conta Corrente - Ag 1234 Conta 0012345-6" não
 contém "itau" e nunca casa, embora cada entry carregue `cnpj_emissor`. No
 dogfood, **0 de 6** entries casam. É a quarta ocorrência da classe
 "identidade por nome livre quebra" ([[ADR-246]] imóvel em comunhão;
@@ -79,7 +79,7 @@ aplica: o valor no catálogo pode estar errado e precisa de correção).
 ## Consequências
 
 - Lane A40.l40. Aceite: as três representações que quebram hoje
-  (`"btg pactual"`, `"btgpactual"`, `"Conta Corrente - Ag 9652..." +
+  (`"btg pactual"`, `"btgpactual"`, `"Conta Corrente - Ag 1234..." +
   cnpj_emissor`) resolvem para o mesmo code; no dogfood, Itaú CC e Wise BRL
   passam a casar (hoje 0/6).
 - Gate de consistência: todo `code` com `category ∈ {bank, broker,

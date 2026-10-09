@@ -119,10 +119,10 @@ identidade é superfície mais durável que classificação.
 
 ### O mecanismo, no grão do item — e `instituicao` é `None` nele
 
-Mesmo ativo (US$ 6.524,00 = R$ 34.433,67):
+Mesmo ativo (um depósito em moeda estrangeira):
 
-- U1: **1 entry**, `{'2025': …, '2024': …}`, desc `'U$ 6524,00 - DEPOSITO EM MOEDA ESTRANGEIRA MANTIDA NO BRASIL'`
-- U2: **2 entries** — `'U$ 6524,00'` `{'2025'}` + `'…MANTIDA EM BRASIL'` `{'2024'}`
+- U1: **1 entry**, `{'2025': …, '2024': …}`, desc `'U$ <valor> - DEPOSITO EM MOEDA ESTRANGEIRA MANTIDA NO BRASIL'`
+- U2: **2 entries** — `'U$ <valor>'` `{'2025'}` + `'…MANTIDA EM BRASIL'` `{'2024'}`
 
 `NO BRASIL` → `EM BRASIL` mais truncagem ⇒ hashes distintos ⇒ **o merge cross-year da
 [[ADR-271]] falha**. A entry do ano corrente perde a keyword `"moeda estrangeira"`
@@ -133,12 +133,12 @@ esta cadeia.**
 
 | | U1 | U2 |
 |---|---|---|
-| `Internacional` | R$ 34.857,23 | **R$ 423,56** |
-| `Outros` | R$ 52.487,13 | **R$ 86.920,80** |
+| `Internacional` | I | **0,012 × I** (−98,8%) |
+| `Outros` | O | **1,656 × O** (+65,6%) |
 | `nao_classificado_pct` | 3,93% | **6,51%** |
 
 Demais classes idênticas ao centavo. **Totais publicados idênticos ao centavo**
-(`liquido` 3.648.718,59 · `bruto` 3.879.177,72 · `investivel_financeiro` 1.311.003,45)
+(`liquido`, `bruto` e `investivel_financeiro`)
 ⇒ **não há inflação de patrimônio**. É redistribuição com Σ preservado — a classe que a
 [[A40.l82]] documenta como cega aos invariantes de conservação, e que o próprio
 `e5_analysis.schema.json:2137` nomeia: *"migração entre baldes preserva Σ, então nenhum
@@ -750,7 +750,7 @@ no seu alcance real — vale para o **code do catálogo**, não para o campo cru
   **não** está coberto — declarado como limite no PR #1916 e ainda de pé.
 - **Alias no `institution_catalog`** (§Passo 0: a metade de baixo do `instituicao` fora do
   catálogo é alias faltando, não cobertura). Sem bloqueio, sem dono.
-- **A rota da [[A40.l50]]** (`open`, P1) fixa `Internacional = R$ 34.918,47` em prosa; o
+- **A rota da [[A40.l50]]** (`open`, P1) fixa `Internacional` em prosa; o
   número não reproduz e a causa era esta lane. Quem pegar precisa **re-medir** — a chave
   mudou de novo aqui.
 
@@ -871,6 +871,6 @@ sessões da U2 estavam abertas e o teto era 419.
 
 ## Rastro em lane alheia — não é escopo desta lane
 
-A [[A40.l50]] (`open`, P1) fixa em prosa `Internacional = R$ 34.918,47 (4,19% da carteira)`.
-No run corrente são **R$ 423,56**. A premissa dela **não reproduz**, e a causa é esta lane.
+A [[A40.l50]] (`open`, P1) fixa em prosa `Internacional` = 4,19% da carteira.
+No run corrente o valor caiu **98,8%**. A premissa dela **não reproduz**, e a causa é esta lane.
 Quem pegar a l50 precisa re-medir antes de agir sobre aquele número.

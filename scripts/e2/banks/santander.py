@@ -107,7 +107,7 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             nome_raw = str(sh.cell(_st_r, _st_c).value).strip()
             result["titular"] = detect_member_from_text(nome_raw)
 
-            # Conta — "Conta: 1652-01.001341.6" (agencia é o prefixo antes do primeiro hífen)
+            # Conta — "Conta: 1234-01.000001.0" (agencia é o prefixo antes do primeiro hífen)
             conta_raw = str(sh.cell(_sc_r, _sc_c).value).strip()
             m = re.search(r"Conta:\s*([\d\-\.]+)", conta_raw)
             if m:
@@ -285,7 +285,7 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
         wb = openpyxl.load_workbook(xlsx_path, data_only=True)
         sh = wb[wb.sheetnames[0]]
 
-        # Row 1: total header — "CDB" | "Valor Total: R$300.444,46" | "Valores Referentes a: DD/MM/YYYY"
+        # Row 1: total header — "CDB" | "Valor Total: R$123.456,78" | "Valores Referentes a: DD/MM/YYYY"
         row1 = [str(sh.cell(1, c).value or "").strip() for c in range(1, sh.max_column + 1)]
         if len(row1) >= 2:
             total_m = re.search(r"Valor Total:\s*R\$\s*([\d.,]+)", row1[1])
@@ -404,7 +404,7 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
             result["raw_rows_detected"] = count_candidate_rows(all_text)
             result["titular"] = detect_member_from_text(all_text)
 
-            # Account: "Agência e Conta: 1652 / 01001341-6"
+            # Account: "Agência e Conta: 1234 / 01000001-0"
             m = re.search(r"Ag[êe]ncia\s+e\s+Conta[:\s]+([\d\s/\-]+)", all_text)
             if m:
                 raw_conta = m.group(1).strip()
@@ -651,7 +651,7 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 # layout lado-a-lado (#3e41/#4bb2). A tx real vem SEMPRE primeiro (coluna
 # esquerda); o lixo começa num destes marcadores. Estripar ANTES do
 # tx_pattern — senão o `$`-âncora captura o número poluído à direita (o
-# pagamento -119,21 virava +119,21, corrupção silenciosa de sinal).
+# pagamento -123,45 virava +123,45, corrupção silenciosa de sinal).
 _RESUMO_POLLUTION = (" (+)", " (-)", " (=)", " Saldo", " Total", " COTAÇÃO")
 
 
@@ -701,7 +701,7 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
             # Total a Pagar + Vencimento: Santander layout has headers on one line,
             # values on another: "Total a Pagar  Vencimento  Melhor Data..."
-            #                    "R$ 372,85      15/01/2026  10/02/2026"
+            #                    "R$ 456,78      15/01/2026  10/02/2026"
             m = re.search(r"R\$\s*([\d.,]+)\s+(\d{2}/\d{2}/\d{4})\s+\d{2}/\d{2}/\d{4}", full_text)
         if m:
             result["saldo_atual"] = parse_brl(m.group(1))
@@ -890,7 +890,7 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
 # CDB — posição em PDF ("Detalhes do Investimento") — A38.l12
 # ---------------------------------------------------------------------------
 
-# "CDB DI SANTANDER Valor Total : R$ 143.248,51 Disponível para Resgate : R$\n138.304,04"
+# "CDB DI SANTANDER Valor Total : R$ 123.456,78 Disponível para Resgate : R$\n120.000,00"
 # O valor de resgate pode quebrar para a linha seguinte (DOTALL).
 _SANT_CDB_PRODUTO_RE = re.compile(
     r"([A-Z][A-Za-zÀ-Ú0-9 ]+?)\s+Valor\s+Total\s*:\s*R\$\s*([\d.,]+)"

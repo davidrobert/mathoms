@@ -26,7 +26,7 @@ tags:
 
 ## Origem
 
-Sessão 2026-05-15 — usuário (CEO, workspace dogfood `5@5.com`) abriu o relatório e identificou linha "Residência" zerada na "Composição Patrimonial", apesar do IRPF dele declarar 1 casa código 12 (RUA EXEMPLO, 100 — R$ 996.821) + 4 apartamentos código 11. Investigação revelou:
+Sessão 2026-05-15 — usuário (CEO, workspace dogfood `5@5.com`) abriu o relatório e identificou linha "Residência" zerada na "Composição Patrimonial", apesar do IRPF dele declarar 1 casa código 12 (RUA EXEMPLO, 100) + 4 apartamentos código 11. Investigação revelou:
 
 1. **Sem UI** para `residencia_principal_keyword` — só Import/Export JSON ou SQL direto.
 2. **Acoplamento errado** — keyword fica em `family_members.<titular>.extra` mas residência é da família.

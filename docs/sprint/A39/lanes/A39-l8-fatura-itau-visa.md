@@ -76,6 +76,6 @@ datadas + "Repasse de IOF" (sem data, na seção internacional). Roteia por
 **descartada** ([[A39.l3]]) — o checksum usa a identidade **por seção** da emenda
 [[ADR-342]] (2026-07-24). Itaú imprime um total único combinado → o balde é
 `lancamentos_atuais` (nacional + internacional + IOF) vs "Total dos lançamentos
-atuais". Os 3 PDFs fecham a cent (R$ 59,00 / 59,00 / 154,53), zero falso-fire,
+atuais". Os 3 PDFs fecham a cent, zero falso-fire,
 pelo caminho **determinístico** (não precisou do fallback LLM). Corpus sintético
 dos 2 sub-layouts no gate strict + golden em `test_fatura_parser_checksum.py`.

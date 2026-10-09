@@ -38,12 +38,12 @@ def test_convert_stamps_quote():
 
 
 def test_irpf_identity_is_brl():
-    conv = identity_already_brl("34433.67")
+    conv = identity_already_brl("5500.00")
     assert conv.moeda == "BRL"
     assert conv.status == "identity"
     assert conv.taxa_fonte == "irpf_ja_em_brl"
     assert conv.taxa is None
-    assert conv.valor_brl == Decimal("34433.67")
+    assert conv.valor_brl == Decimal("5500.00")
 
 
 def test_gbp_without_quote_is_missing_rate():
