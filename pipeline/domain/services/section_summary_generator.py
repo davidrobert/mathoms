@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import time
@@ -95,6 +96,12 @@ def serialize_section_payload(snapshot_data: Mapping[str, Any]) -> str:
     return json.dumps(snapshot_data, sort_keys=True, ensure_ascii=False, default=str)
 
 
+def _output_schema_fingerprint() -> str:
+    """12 hex do JSON schema de saída enviado ao modelo."""
+    raw = json.dumps(SectionSummaryOutput.model_json_schema(), sort_keys=True)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
 @dataclass(frozen=True)
 class PromptTemplate:
     """Template carregado do YAML — system + user (com placeholders)."""
@@ -148,6 +155,7 @@ class SectionSummaryGenerator:
         self._cites_money = cites_money
         self._templates = templates
         self._config = config or SectionSummaryGeneratorConfig()
+        self._schema_fingerprint = _output_schema_fingerprint()
 
     def generate(
         self,
@@ -180,9 +188,13 @@ class SectionSummaryGenerator:
             return self._degraded_result(ctx, "template_missing")
         return self._call_llm_or_degrade(ctx, template, cache_key)
 
+    # A chave cobre o que vai ao modelo e o hash do slice não cobre: texto do
+    # prompt (`version`, cobrada pelo gate de bump), modelo e schema de saída —
+    # que no Mode.TOOLS vai ao modelo e o gate não vê.
     def _cache_key(self, workspace_id: int, snapshot_hash: str, section_id: str) -> str:
-        version = self._config.prompt_version
-        return f"mathoms:llm:section_summary:v{version}:{workspace_id}:{snapshot_hash}:{section_id}"
+        cfg = self._config
+        scope = f"v{cfg.prompt_version}:{cfg.model}:{self._schema_fingerprint}"
+        return f"mathoms:llm:section_summary:{scope}:{workspace_id}:{snapshot_hash}:{section_id}"
 
     def _check_cache(self, cache_key: str) -> Optional[str]:
         try:

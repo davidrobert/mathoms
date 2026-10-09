@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from decimal import Decimal
 
 import pytest
@@ -15,6 +17,7 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
 )
+from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
 from tests.fakes.llm import (
     FakeLLMRaisingClient,
     FakeLLMSuccess,
@@ -73,9 +76,16 @@ def test_llm_success_returns_source_llm():
 # ─── Cenário 2: Cache hit ───────────────────────────────────────────
 
 
+def _chave_esperada(*, workspace_id: int, snapshot_hash: str) -> str:
+    schema = json.dumps(SectionSummaryOutput.model_json_schema(), sort_keys=True)
+    fingerprint = hashlib.sha256(schema.encode("utf-8")).hexdigest()[:12]
+    escopo = f"v0:claude-haiku-4-5:{fingerprint}"
+    return f"mathoms:llm:section_summary:{escopo}:{workspace_id}:{snapshot_hash}:S1"
+
+
 def test_cache_hit_skips_llm_call():
     cache = InMemoryLLMCache()
-    cache_key = "mathoms:llm:section_summary:v0:1:precachehash:S1"
+    cache_key = _chave_esperada(workspace_id=1, snapshot_hash="precachehash")
     cache.set(cache_key, "Texto cacheado prévio.", ttl_s=3600)
     fake = FakeLLMSuccess(text="Não deveria ser chamado.")
     gen = _make_generator_with_cache(llm=fake, cache=cache)
@@ -257,8 +267,28 @@ def test_cache_key_format_matches_adr_144():
         workspace_id=42,
         snapshot_data={"x": 1},
     )
-    expected_key = "mathoms:llm:section_summary:v0:42:abc123:S1"
+    expected_key = _chave_esperada(workspace_id=42, snapshot_hash="abc123")
     assert cache.get(expected_key) is not None
+
+
+# A chave cobre o que vai ao modelo e o hash do slice não cobre. O texto do
+# prompt é coberto pela `version` (gate de bump). O modelo e o schema de saída
+# (que no Mode.TOOLS vai ao modelo e o gate não vê) entram na chave: sem eles,
+# trocar o modelo servia o texto do anterior por até 24h.
+def test_trocar_o_modelo_invalida_o_cache():
+    cache = InMemoryLLMCache()
+    kwargs = {"section_id": "S1", "snapshot_hash": "h", "workspace_id": 1}
+    for model in ("claude-haiku-4-5", "claude-sonnet-4-6"):
+        fake = FakeLLMSuccess(text=f"texto do {model}")
+        gen = SectionSummaryGenerator(
+            llm_client=fake,
+            cache=cache,
+            cites_money=nunca_cita_dinheiro,
+            templates=_TEMPLATES,
+            config=SectionSummaryGeneratorConfig(model=model),
+        )
+        result = gen.generate(snapshot_data={"x": 1}, **kwargs)
+        assert (result.source, result.text) == ("llm", f"texto do {model}")
 
 
 # ─── Cenário extra: SectionSummaryOutput valida tone ────────────────
