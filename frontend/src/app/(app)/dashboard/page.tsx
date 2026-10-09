@@ -3,7 +3,7 @@
  *
  * Componentes (KpiRow, ChartsGrid, AlertCard, HeaderActions etc) foram
  * movidos para `frontend/src/app/(app)/plano/_components/_dashboard/` e
- * são renderizados como seção "Mês corrente" dentro de `/plano`.
+ * são renderizados como seção "Análise Financeira" dentro de `/plano`.
  *
  * Este arquivo permanece apenas como redirect 308 para preservar
  * deep-links existentes (e-mails, marcadores, links em commits passados).

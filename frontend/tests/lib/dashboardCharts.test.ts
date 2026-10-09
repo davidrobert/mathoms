@@ -1,5 +1,5 @@
 /**
- * Contrato dos gráficos do dashboard (`/plano` › Mês corrente) — lado TS do par.
+ * Contrato dos gráficos do dashboard (`/plano` › Análise Financeira) — lado TS do par.
  *
  * Lê a MESMA fixture que `backend/tests/test_dashboard_charts_contract.py`, gerada pelo
  * produtor (`build_charts`) sobre um E5 dos produtores reais: fixture escrita à mão

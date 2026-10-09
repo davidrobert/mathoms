@@ -234,6 +234,6 @@ describe("a11y — pages", () => {
   });
 
   // ADR-155: DashboardPage virou redirect; teste a11y dos charts/KPIs
-  // operacionais (que agora vivem na seção "Mês corrente" do /plano)
+  // (que agora vivem na seção "Análise Financeira" do /plano)
   // fica como lane futura `plano-a11y` quando produto pedir.
 });

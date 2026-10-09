@@ -1,5 +1,5 @@
 /**
- * Notas das pizzas do dashboard (`/plano` › Mês corrente).
+ * Notas das pizzas do dashboard (`/plano` › Análise Financeira).
  *
  * ADR-439 D2: a nota da residência não apurada diz a DIREÇÃO do erro — em três dos
  * motivos o valor da casa está, ou pode estar, dentro da fatia "Outros imóveis", cujo
