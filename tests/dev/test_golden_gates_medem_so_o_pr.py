@@ -8,8 +8,12 @@ só: todo PR atrás da main tomava vermelho por commit alheio. Medido no #2065 (
 37868572346), acusado por `3ff4c12174` — o squash do #2063 — sem ter tocado golden.
 O passo do delta tinha a mesma faixa e cobrava do PR o delta que veio da main.
 
-Os testes tiram do `ci.yml` o argv com que o CI chama cada gate: o defeito morava na
-costura YAML↔script, e um teste de um lado só não o veria.
+A faixa certa exige o histórico do merge do evento, e o `--deepen` relativo não o
+trazia quando o GitHub recomputava a ref (a main andou): o HEAD ficava sem pais e o
+gate antigo saía verde calado. Por isso o passo de fetch também é exercitado aqui.
+
+Os testes tiram do `ci.yml` o argv com que o CI chama cada gate, e rodam o passo de
+fetch dele: o defeito morava na costura YAML↔script, e um lado só não o veria.
 """
 
 from __future__ import annotations
@@ -30,7 +34,12 @@ import dev.check_golden_delta_declarado as delta
 import dev.check_golden_rebaseline_isolation as isolamento
 
 _CI = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "ci.yml"
-_EXPRESSAO_DO_EVENTO = re.compile(r"\$\{\{\s*github\.event\.pull_request\.([\w.]+)\s*\}\}")
+_EXPRESSAO = re.compile(r"\$\{\{\s*(.+?)\s*\}\}")
+_ISOLAMENTO = ("Golden rebaseline isolation", "dev/check_golden_rebaseline_isolation.py")
+_DELTA = ("Delta de golden declarado", "dev/check_golden_delta_declarado.py")
+_PASSO_DE_HISTORICO = "historico-pr"
+# O GitHub serve o merge do evento por SHA mesmo sem ref que o alcance.
+_SERVE_QUALQUER_SHA = "git -c uploadpack.allowAnySHA1InWant=true upload-pack"
 
 _VIEW_MODEL = "backend/tests/snapshots/dogfood_view_model.json"
 _MANIFESTO = "tests/fixtures/pipeline_golden/rebaseline_manifest.yaml"
@@ -77,14 +86,22 @@ def _waiver(campo: str, antigo: float, novo: float) -> str:
 
 @dataclass(frozen=True)
 class _Evento:
-    """O que o CI recebe: o merge sintético em HEAD e os SHAs do payload."""
+    """O que o CI recebe: o merge sintético em HEAD, o payload e o `GITHUB_SHA`."""
 
     repo: Path
     base_sha: str
     head_sha: str
+    merge_sha: str
 
-    def payload(self) -> dict[str, str]:
-        return {"base.sha": self.base_sha, "head.sha": self.head_sha}
+    def contexto(self) -> dict[str, str]:
+        return {
+            "github.event.pull_request.base.sha": self.base_sha,
+            "github.event.pull_request.head.sha": self.head_sha,
+            "github.sha": self.merge_sha,
+        }
+
+    def env_do_runner(self) -> dict[str, str]:
+        return {"GITHUB_SHA": self.merge_sha}
 
 
 class _Historico:
@@ -162,48 +179,49 @@ class _Historico:
         self._main_anda_depois_do_evento()
         _git(self.repo, "switch", "-q", "--detach", ponta)
         _git(self.repo, "merge", "-q", "--no-ff", "--no-edit", cabeca)
-        return _Evento(self.repo, base_sha, cabeca)
+        return _Evento(self.repo, base_sha, cabeca, _git(self.repo, "rev-parse", "HEAD"))
 
     def _main_anda_depois_do_evento(self) -> None:
-        """O deepen do CI roda minutos depois do evento: `origin/main` já passou do pai 1."""
+        """Os gates rodam minutos depois do evento: `origin/main` já passou do pai 1."""
         tardio = self.squash_de_rebaseline_na_main("bruto", 999.0)
         _git(self.repo, "update-ref", "refs/remotes/origin/main", tardio)
 
 
-def _passo_do_ci(prefixo: str) -> dict:
-    passos = yaml.safe_load(_CI.read_text(encoding="utf-8"))["jobs"]["pipeline-tests"]["steps"]
-    achados = [p for p in passos if p.get("name", "").startswith(prefixo)]
-    assert len(achados) == 1, f"esperado 1 passo {prefixo!r} em pipeline-tests, got {len(achados)}"
-    return achados[0]
+def _unico(passos: list[dict], rotulo: str) -> dict:
+    assert len(passos) == 1, f"esperado 1 passo {rotulo!r} em pipeline-tests, got {len(passos)}"
+    return passos[0]
 
 
-def _resolve_expressoes(texto: str, payload: dict[str, str]) -> str:
+def _passos_do_ci() -> list[dict]:
+    return yaml.safe_load(_CI.read_text(encoding="utf-8"))["jobs"]["pipeline-tests"]["steps"]
+
+
+def _resolve_expressoes(texto: str, contexto: dict[str, str]) -> str:
     def _valor(m: re.Match[str]) -> str:
-        assert m.group(1) in payload, f"expressão do CI sem valor no cenário: {m.group(0)}"
-        return payload[m.group(1)]
+        assert m.group(1) in contexto, f"expressão do CI fora da lista conhecida: {m.group(0)}"
+        return contexto[m.group(1)]
 
-    return _EXPRESSAO_DO_EVENTO.sub(_valor, texto)
+    return _EXPRESSAO.sub(_valor, texto)
 
 
-def _argv_do_ci(prefixo: str, script: str, evento: _Evento) -> list[str]:
-    """O argv com que o passo `prefixo` do CI chama `script`, com o payload do cenário."""
-    passo = _passo_do_ci(prefixo)
-    payload = evento.payload()
-    env = {k: _resolve_expressoes(str(v), payload) for k, v in (passo.get("env") or {}).items()}
+def _argv_do_ci(passo_e_script: tuple[str, str], evento: _Evento) -> list[str]:
+    """O argv com que o passo do CI chama o script, com o evento do cenário resolvido."""
+    prefixo, script = passo_e_script
+    passo = _unico([p for p in _passos_do_ci() if p.get("name", "").startswith(prefixo)], prefixo)
+    contexto = evento.contexto()
+    env = {k: _resolve_expressoes(str(v), contexto) for k, v in (passo.get("env") or {}).items()}
     linhas = passo["run"].replace("\\\n", " ").splitlines()
     (chamada,) = [linha for linha in linhas if script in linha]
-    argv = shlex.split(Template(_resolve_expressoes(chamada, payload)).substitute(env))
+    expandida = Template(_resolve_expressoes(chamada, contexto))
+    argv = shlex.split(expandida.substitute({**evento.env_do_runner(), **env}))
     return argv[argv.index(script) + 1 :]
 
 
 def _acusados_pelo_ci(evento: _Evento, capsys: pytest.CaptureFixture[str]) -> set[str]:
-    argv = _argv_do_ci(
-        "Golden rebaseline isolation", "dev/check_golden_rebaseline_isolation.py", evento
-    )
-    codigo = isolamento.main(argv)
+    codigo = isolamento.main(_argv_do_ci(_ISOLAMENTO, evento))
     prefixo = "check_golden_rebaseline_isolation: "
     erros = [l for l in capsys.readouterr().err.splitlines() if l.startswith(prefixo)]
-    assert codigo == (1 if erros else 0)
+    assert codigo == (1 if erros else 0), erros
     return {linha.removeprefix(prefixo).split(":", 1)[0] for linha in erros}
 
 
@@ -243,8 +261,7 @@ def test_branch_que_fez_merge_da_main_so_responde_pelo_que_escreveu(
 def _goldens_medidos_pelo_ci(evento: _Evento, monkeypatch: pytest.MonkeyPatch) -> list[str]:
     medidos: list[str] = []
     monkeypatch.setattr(delta, "_diff_de", lambda _b, path, _t: medidos.append(path) or 0)
-    argv = _argv_do_ci("Delta de golden declarado", "dev/check_golden_delta_declarado.py", evento)
-    assert delta.main(argv) == 0
+    assert delta.main(_argv_do_ci(_DELTA, evento)) == 0
     return medidos
 
 
@@ -260,12 +277,6 @@ def test_delta_nao_cobra_do_pr_o_rebaseline_da_main(historico, monkeypatch, fez_
     assert _goldens_medidos_pelo_ci(evento, monkeypatch) == []
 
 
-def _delta_do_ci_de_ponta_a_ponta(evento: _Evento, capfd: pytest.CaptureFixture[str]):
-    argv = _argv_do_ci("Delta de golden declarado", "dev/check_golden_delta_declarado.py", evento)
-    codigo = delta.main(argv)
-    return codigo, capfd.readouterr().err
-
-
 # A main rebaselina `bruto` depois do merge da base; o PR rebaselina `liquido`. Medido
 # contra `base.sha`, o delta de `bruto` cairia no PR; contra a main do merge, só o
 # `liquido` dele aparece — e reprova se ele não o declarou (anti-vacuidade do fix).
@@ -276,7 +287,104 @@ def test_delta_mede_o_rebaseline_do_pr_contra_a_main_do_merge(historico, capfd, 
     historico.pr_faz_merge_da_main()
     historico.rebaseline_no_pr("liquido", 120.0, com_waiver=com_waiver)
     historico.squash_de_rebaseline_na_main("bruto", 175.0)
-    codigo, err = _delta_do_ci_de_ponta_a_ponta(historico.evento(), capfd)
+    codigo = delta.main(_argv_do_ci(_DELTA, historico.evento()))
+    err = capfd.readouterr().err
     assert "patrimonio.bruto" not in err
     assert codigo == (0 if com_waiver else 1)
     assert ("não-justificado: patrimonio.liquido" in err) is not com_waiver
+
+
+def test_checkout_que_nao_e_o_merge_do_evento_e_recusado(historico, capsys):
+    """Numa cabeça que fez merge da main, os pais trocados inverteriam a faixa."""
+    historico.commit_no_pr(misto=False)
+    historico.squash_de_rebaseline_na_main("bruto", 150.0)
+    historico.pr_faz_merge_da_main()
+    evento = historico.evento()
+    _git(historico.repo, "switch", "-q", "--detach", evento.head_sha)
+    assert isolamento.check_commit_range("HEAD^1..HEAD^2"), "a faixa invertida acusaria a main"
+    argv = ["--pr-head-sha", evento.head_sha, "--merge-sha"]
+    assert isolamento.main([*argv, evento.merge_sha]) == 2
+    assert isolamento.main([*argv, evento.head_sha]) == 2
+    err = capsys.readouterr().err
+    assert "não é o merge do evento" in err and "pai 2" in err
+
+
+def test_sha_que_nao_e_sha_e_recusado(historico, capsys):
+    historico.commit_no_pr(misto=False)
+    evento = historico.evento()
+    assert isolamento.main(["--pr-head-sha", "HEAD^2", "--merge-sha", evento.merge_sha]) == 2
+    assert "SHA de 40 hex" in capsys.readouterr().err
+    with pytest.raises(SystemExit):
+        isolamento.main(["--pr-head-sha", evento.head_sha])
+
+
+def _clone_do_checkout(evento: _Evento, destino: Path) -> Path:
+    """O que o actions/checkout faz em `pull_request`: o merge do evento, com depth 1."""
+    _git(evento.repo, "update-ref", "refs/pull/1/merge", evento.merge_sha)
+    _git(evento.repo, "switch", "-q", "main")
+    destino.mkdir()
+    _git(destino, "init", "-q")
+    _git(destino, "remote", "add", "origin", f"file://{evento.repo}")
+    _git(destino, "config", "remote.origin.uploadpack", _SERVE_QUALQUER_SHA)
+    alvo = f"+{evento.merge_sha}:refs/remotes/pull/1/merge"
+    _git(destino, "fetch", "-q", "--no-tags", "--depth=1", "origin", alvo)
+    _git(destino, "switch", "-q", "--detach", "refs/remotes/pull/1/merge")
+    return destino
+
+
+def _github_recomputa_o_merge(evento: _Evento) -> None:
+    """A main andou e o GitHub refez o `refs/pull/N/merge`: o merge do evento fica sem ref."""
+    _git(evento.repo, "update-ref", "-d", "refs/pull/1/merge")
+
+
+def _roda_o_passo_de_historico_do_ci(clone: Path, evento: _Evento) -> None:
+    passos = [p for p in _passos_do_ci() if p.get("id") == _PASSO_DE_HISTORICO]
+    script = _resolve_expressoes(_unico(passos, _PASSO_DE_HISTORICO)["run"], evento.contexto())
+    env = {**_GIT_ENV, **evento.env_do_runner()}
+    subprocess.run(["bash", "-e", "-c", script], cwd=clone, env=env, check=True)
+
+
+def _pr_atras_da_main_com_misto_proprio(historico: _Historico) -> tuple[_Evento, str]:
+    proprio = historico.commit_no_pr(misto=True)
+    for valor in (150.0, 175.0, 200.0):
+        historico.squash_de_rebaseline_na_main("bruto", valor)
+    return historico.evento(), proprio
+
+
+@pytest.mark.parametrize("recomputado", [False, True], ids=["ref-viva", "ref-recomputada"])
+def test_passo_de_historico_do_ci_delimita_o_pr_mesmo_com_o_merge_recomputado(
+    historico, tmp_path, monkeypatch, capsys, recomputado
+):
+    """Re-run, ou main que anda durante o pytest: o merge do evento perde a ref."""
+    evento, proprio = _pr_atras_da_main_com_misto_proprio(historico)
+    clone = _clone_do_checkout(evento, tmp_path / "ci")
+    if recomputado:
+        _github_recomputa_o_merge(evento)
+    _roda_o_passo_de_historico_do_ci(clone, evento)
+    monkeypatch.chdir(clone)
+    assert _acusados_pelo_ci(evento, capsys) == {proprio[:10]}
+
+
+def test_a_fixture_reproduz_o_merge_recomputado_com_o_deepen_relativo(historico, tmp_path):
+    """Anti-vacuidade do teste acima: com o fetch de antes, o HEAD fica sem pais."""
+    evento, _ = _pr_atras_da_main_com_misto_proprio(historico)
+    clone = _clone_do_checkout(evento, tmp_path / "ci")
+    _github_recomputa_o_merge(evento)
+    _git(clone, "fetch", "-q", "--no-tags", "--deepen=500", "origin")
+    with pytest.raises(isolamento.MergeSinteticoInesperado, match="sem pais"):
+        isolamento.base_do_merge_sintetico(evento.head_sha, evento.merge_sha, cwd=clone)
+
+
+@pytest.mark.parametrize(
+    "aprofunda,recusa",
+    [(0, "sem pais"), (2, "cruza o limite do clone raso")],
+    ids=["sem-fetch", "deepen-curto"],
+)
+def test_clone_raso_demais_e_recusado_em_vez_de_mentir(historico, tmp_path, aprofunda, recusa):
+    """Faixa truncada pelo clone raso arrastaria a main; a guarda recusa."""
+    evento, _ = _pr_atras_da_main_com_misto_proprio(historico)
+    clone = _clone_do_checkout(evento, tmp_path / "ci")
+    if aprofunda:
+        _git(clone, "fetch", "-q", "--no-tags", f"--deepen={aprofunda}", "origin")
+    with pytest.raises(isolamento.MergeSinteticoInesperado, match=re.escape(recusa)):
+        isolamento.base_do_merge_sintetico(evento.head_sha, evento.merge_sha, cwd=clone)
