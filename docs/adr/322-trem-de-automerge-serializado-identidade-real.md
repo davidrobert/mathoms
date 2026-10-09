@@ -4,7 +4,7 @@ type: adr
 title: "Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)"
 status: Decidido
 date: "2026-07-09"
-amended_at: ["2026-08-08", "2026-08-21", "2026-08-25", "2026-10-08"]
+amended_at: ["2026-08-08", "2026-08-21", "2026-08-25", "2026-10-08", "2026-10-09"]
 relates_to:
   - "[[ADR-210]]"
   - "[[ADR-320]]"
@@ -18,6 +18,12 @@ tags:
 ---
 
 # ADR-322 — Trem de auto-merge serializado com identidade real
+
+> **Emenda 2026-10-09 (UNKNOWN é ausência de leitura, não cabeça em voo):** a
+> lista em lote devolve `mergeStateStatus=UNKNOWN` enquanto o GitHub não calcula a
+> mergeabilidade, e o trem segurava a fila nesse estado até alguém abrir o PR.
+> Agora ele relê só a cabeça UNKNOWN pelo REST antes de decidir. D1 não reabre:
+> UNKNOWN persistente segura como antes. Ver §Emenda 2026-10-09.
 
 > **Emenda 2026-10-08 (incidente de expiração do PAT):** o watchdog passa a
 > avisar o `AUTOUPDATE_PAT` em **T-14** (issue `ops-pat-expiry`, `S3` de 11 dias)
@@ -337,3 +343,45 @@ garantia depende de um detalhe de implementação do GitHub, não do desenho.
   toca `.github/workflows/**` (§Emenda 2026-08-08) não muda com o App.
 - **Retomada:** se a data passar sem o item 2.5 em andamento, o aviso
   `ops-pat-expiry` do próximo ciclo é o lembrete.
+
+## Emenda 2026-10-09 — UNKNOWN é ausência de leitura, não cabeça em voo
+
+**Medido.** Em 2026-10-09, entre 14:00 e 17:01Z, a grande maioria dos runs do
+`auto-update-prs` logou `trem segurando: cabeça #N em andamento
+(mergeStateStatus=UNKNOWN)`, e só 4 fizeram update-branch, com 16 PRs na fila e
+~15 deles BEHIND quando lidos um a um. O `gh pr list` em lote devolve UNKNOWN
+enquanto o GitHub não calcula a mergeabilidade desde que a base andou. O
+`decide_train` tratava todo status diferente de BEHIND como cabeça em voo, então a
+fila só andava quando alguém abria o PR da cabeça. Foi assim no #2144 (segurou
+UNKNOWN às 16:02 e 16:22, e o run das 16:31 o atualizou logo depois de uma leitura
+individual) e no #2169 (UNKNOWN em 16:38, 16:44 e 17:01, sem update desde 13:44 e
+BEHIND quando lido sozinho).
+
+**Regra.**
+
+- **Só a cabeça UNKNOWN é relida.** Até 2 leituras de `GET /repos/{o}/{r}/pulls/N`,
+  com 5s entre elas, e o `mergeable_state` em maiúsculas cai no mesmo enum do
+  GraphQL. O REST é o contrato documentado (`mergeable: null` quer dizer job em
+  background, reenvie depois). Cabeça que a lista já classificou não é relida:
+  zero chamada extra no caso comum.
+- **D1 não reabre.** BEHIND relido vira update-branch. Qualquer outro valor,
+  inclusive UNKNOWN persistente e DIRTY, segura como antes. DIRTY relido segura
+  por um ciclo em vez de pular: a releitura já disparou o cálculo, o run seguinte
+  lê DIRTY na lista e o `out_of_train_reason` pula. Assim o `train_head` do
+  watchdog e o `decide_train` seguem concordando sobre quem é a cabeça.
+- **Falha da API na releitura segura.** 4xx, 5xx ou rate limit degradam para
+  UNKNOWN, com a causa no log. Segurar é o desfecho de antes, e um run vermelho
+  aqui só trocaria um sinal por outro. Releitura quebrada de forma persistente cai
+  no stall do watchdog (60min).
+- **A frase para de mentir.** UNKNOWN depois da releitura diz "sem mergeabilidade
+  calculada pelo GitHub", não "em andamento". A contagem atrás passa a somar os
+  UNKNOWN (`N BEHIND + M UNKNOWN`), que antes liam "nenhum atrás".
+
+**Alternativa rejeitada.** Tratar UNKNOWN como BEHIND e tentar o update-branch
+direto. O 422 de um PR em dia vira `Refusal`, e o `advance_train` pularia uma
+cabeça possivelmente em voo, que é exatamente o que a D1 proíbe.
+
+**Critério de aceite.** A razão update-branch/runs do `auto-update-prs` sobe das
+4 em ~22 de 2026-10-09, e "segurando … UNKNOWN" some do log ou vira raro. Se a 2ª
+leitura ainda vier UNKNOWN com frequência, suba `UNKNOWN_REREADS` para 3 antes de
+mudar o desenho.

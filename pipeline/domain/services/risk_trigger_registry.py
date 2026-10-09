@@ -25,9 +25,10 @@ from pipeline.domain.services.kpi_target_catalog import METRICA_KEYS, ORFAOS_DOM
 
 # Degraus REUSADOS, não inventados: são os que
 # `parecer_red_lines._severidade_exigida_concentracao` já ratificou ([[ADR-340]]
-# C11-Fase2), e o comentário de lá encoda a divergência metodológica — entre 40 e 60%
-# Cerbasi (estabilidade) e AUVP (diversificar) legitimamente divergem, acima de 60% nem
-# Cerbasi sustenta. `test_degraus_pareados_com_a_red_line` prova que os dois lados
+# C11-Fase2), e o comentário de lá encoda a divergência metodológica — na faixa (50,75]
+# da base carteira as referências divergem legitimamente, acima de 75 convergem (o
+# "40 a 60" que este comentário citava era a base antiga; 50 é a borda inferior da faixa,
+# não o ponto médio). `test_degraus_pareados_com_a_red_line` prova que os dois lados
 # continuam de acordo, no gatilho E na severidade; divergir faria a superfície
 # determinística contradizer o hard-block do parecer sobre o mesmo payload.
 CONCENTRACAO_ALERTA_PCT = 50.0
