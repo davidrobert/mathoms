@@ -455,6 +455,17 @@ repos:
         pass_filenames: false
         files: '^(\.github/dependabot\.yml|frontend(-ops)?/package\.json|requirements\.in|backend/requirements\.in|requirements-dev\.txt|dev/check_dependabot_groups\.py)$'
 
+      - id: dependabot-major-pauses
+        # ADR-449: major npm bloqueado por peer não fica em PR aberto, vira
+        # `ignore` versionado. O gate reprova a pausa cujo peer já liberou o major
+        # (gatilho), a vencida e o ignore sem registro. Roda no Lint para o
+        # gatilho aparecer no PR que muda o lock; o pipeline-tests não roda nele.
+        name: "Dependabot: major npm pausado só enquanto um peer do lock o barra"
+        entry: python3 dev/check_dependabot_major_pauses.py
+        language: system
+        pass_filenames: false
+        files: '^(\.github/dependabot\.yml|[^/]+/package-lock\.json|dev/check_dependabot_major_pauses\.py)$'
+
       - id: docker-sha-pin
         # ADR-249 (A20.l2): toda imagem base externa em Dockerfile/compose
         # versionado deve estar pinada por digest @sha256: do índice multi-arch
