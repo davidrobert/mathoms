@@ -197,7 +197,9 @@ describe("204 handling", () => {
 // ─── XHR upload (uploadDocuments) ────────────────────────────────────
 
 describe("uploadDocuments (XHR upload com progress)", () => {
-  // XHR não passa por MSW — precisa mock manual
+  // Mock manual do XHR para controlar os eventos de upload.progress. O msw 3
+  // intercepta XHR e deixa `globalThis.XMLHttpRequest` read-only: atribuir
+  // lança TypeError. `vi.stubGlobal` redefine o descriptor e o unstub o devolve.
   it("envia FormData com files e dispara onProgress", async () => {
     const events: Array<{ loaded: number; total: number }> = [];
     let sentBody: any = null;
@@ -243,8 +245,7 @@ describe("uploadDocuments (XHR upload com progress)", () => {
       }
     }
 
-    const realXHR = globalThis.XMLHttpRequest;
-    (globalThis as any).XMLHttpRequest = MockXHR;
+    vi.stubGlobal("XMLHttpRequest", MockXHR);
 
     try {
       setToken("t");
@@ -262,7 +263,7 @@ describe("uploadDocuments (XHR upload com progress)", () => {
       ]);
       expect(result.total_uploaded).toBe(1);
     } finally {
-      (globalThis as any).XMLHttpRequest = realXHR;
+      vi.unstubAllGlobals();
     }
   });
 
@@ -282,8 +283,7 @@ describe("uploadDocuments (XHR upload com progress)", () => {
         for (const fn of this.listeners["load"] || []) fn();
       }
     }
-    const realXHR = globalThis.XMLHttpRequest;
-    (globalThis as any).XMLHttpRequest = MockXHR;
+    vi.stubGlobal("XMLHttpRequest", MockXHR);
     try {
       const file = new File(["x"], "big.pdf");
       await expect(uploadDocuments("ws-1", [file])).rejects.toMatchObject({
@@ -291,7 +291,7 @@ describe("uploadDocuments (XHR upload com progress)", () => {
         detail: "arquivo grande",
       });
     } finally {
-      (globalThis as any).XMLHttpRequest = realXHR;
+      vi.unstubAllGlobals();
     }
   });
 });
