@@ -84,8 +84,9 @@ const MENSALIZACAO_RESTRITA = CAMPOS_MENSALIZADOS.flatMap((campo) => [
 // (`${x.toFixed(1)}%`, também com `?.` na cadeia), JSX (`{x.toFixed(1)}%`, com o
 // `%` na mesma linha ou na seguinte, ou `{"%"}`) e concatenação
 // (`x.toFixed(1) + "%"`). Foi a grafia de 15 dos 18 call-sites com ponto que o
-// relatório tinha em 2026-10-08. `toFixed(0)` fica de fora: inteiro não tem
-// separador decimal.
+// relatório tinha em 2026-10-08, e de 12 dos 18 que o resto do src/ tinha
+// (plano/, tasks/, lib/). `toFixed(0)` fica de fora: inteiro não tem separador
+// decimal.
 //
 // **O que NÃO pega:** número cru interpolado (`${pct}%` — o EquilibrioCerbasiCard
 // era este caso, sem `toFixed` nenhum), ternário (`${c ? x.toFixed(1) : y}%`),
@@ -129,6 +130,30 @@ const PERCENTUAL_COM_PONTO_RESTRITO = [
       `BinaryExpression[operator="+"]:has(> ${TO_FIXED_COM_CASAS}.left)` +
       `[right.value=${COMECA_COM_PERCENT}]`,
     message: MENSAGEM_PERCENTUAL,
+  },
+];
+
+// Vírgula decimal escrita à mão: `x.toFixed(1).replace(".", ",")` acerta o
+// separador, mas arredonda o binário exato (0.35 → "0,3", onde o Intl dá "0,4")
+// e não agrupa milhar ("1234,5"). Eram 35 call-sites no relatório em 2026-10-08;
+// dois cards podiam arredondar o mesmo valor de formas diferentes.
+//
+// **O que esta regra pega:** `replace`/`replaceAll` chamado sobre o resultado de
+// `toFixed` com `","` no segundo argumento — `.replace(".", ",")`,
+// `.replace(/\./g, ",")`, com ou sem `?.` na cadeia. **Não pega:** o `toFixed`
+// guardado em variável antes do `replace`, nem outra substituição sobre ele
+// (`.replace(/\.0$/, "")`).
+const MENSAGEM_VIRGULA_A_MAO =
+  "Número em copy pt-BR passa por formatNumber(valor, casas) ou formatPercent(valor, casas) " +
+  "de @/lib/format. `toFixed(n).replace(\".\", \",\")` arredonda o binário (0.35 → \"0,3\") e " +
+  "não agrupa milhar (COPY_GUIDELINES §4.5).";
+
+const VIRGULA_A_MAO_RESTRITA = [
+  {
+    selector:
+      'CallExpression[callee.property.name=/^replace(All)?$/]' +
+      '[callee.object.callee.property.name="toFixed"][arguments.1.value=","]',
+    message: MENSAGEM_VIRGULA_A_MAO,
   },
 ];
 
@@ -235,8 +260,13 @@ export default [
       ],
 
       // A40.l3 (ADR-306 D1) — gate de CONSUMO da mensalização de fluxo.
-      // Ver bloco dedicado abaixo para o racional e a allowlist.
-      "no-restricted-syntax": ["error", ...MENSALIZACAO_RESTRITA],
+      // Ver bloco dedicado abaixo para o racional e a allowlist. Percentual com
+      // ponto (COPY_GUIDELINES §4.6) vale para todo o src/, não só o relatório.
+      "no-restricted-syntax": [
+        "error",
+        ...MENSALIZACAO_RESTRITA,
+        ...PERCENTUAL_COM_PONTO_RESTRITO,
+      ],
     },
   },
   {
@@ -248,6 +278,7 @@ export default [
         "error",
         ...MENSALIZACAO_RESTRITA,
         ...PERCENTUAL_COM_PONTO_RESTRITO,
+        ...VIRGULA_A_MAO_RESTRITA,
       ],
       "no-restricted-imports": [
         "error",
@@ -286,6 +317,7 @@ export default [
         "error",
         ...MENSALIZACAO_RESTRITA,
         ...PERCENTUAL_COM_PONTO_RESTRITO,
+        ...VIRGULA_A_MAO_RESTRITA,
         ...CARD_MONEY_RESTRICTIONS,
       ],
     },
@@ -297,6 +329,8 @@ export default [
     // NÃO entra: ele só interpreta o vocabulário `janela`/`janela_meses`, nunca
     // toca campo de valor. A isenção é da mensalização, não do percentual.
     files: ["src/components/report/utils/fluxoJanela.ts"],
-    rules: { "no-restricted-syntax": ["error", ...PERCENTUAL_COM_PONTO_RESTRITO] },
+    rules: {
+      "no-restricted-syntax": ["error", ...PERCENTUAL_COM_PONTO_RESTRITO, ...VIRGULA_A_MAO_RESTRITA],
+    },
   },
 ];

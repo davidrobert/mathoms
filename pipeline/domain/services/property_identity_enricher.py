@@ -5,7 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
-from pipeline.domain.services.baseline_item_classifier import ClassificationAuthority
+from pipeline.domain.services.baseline_item_classifier import (
+    ClassificationAuthority,
+    subcodigo_imovel_rfb,
+)
 from pipeline.domain.services.endereco_canonicalizer import canonicalize
 from pipeline.domain.services.titular_key_normalizer import normalize_titular_key
 from pipeline.domain.types.property_identity import PropertyLookupKey
@@ -34,32 +37,38 @@ def enrich_imoveis_with_property_ids(
         if not _eixo_atestado_por_fato(entry):
             _mark_eixo_por_hint(entry)
             continue
-
-        raw_titular = (entry.get("proprietario") or "").strip().lower()
-        titular_key = normalize_titular_key(raw_titular, family_members)
-        codigo_rfb = (entry.get("codigo_rfb") or "").strip()
-        descricao = entry.get("descricao") or ""
-        first_seen_year = int(entry.get("ano_referencia") or 0)
-
-        if not titular_key or not codigo_rfb:
-            _mark_uncanonical(entry, None)
+        lookup = _lookup_or_mark(entry, family_members)
+        if lookup is None:
             continue
-
-        endereco_canonical = canonicalize(descricao)
-        lookup = PropertyLookupKey(
-            titular_key=titular_key,
-            codigo_rfb=codigo_rfb,
-            endereco_canonical=endereco_canonical,
-        )
+        descricao = entry.get("descricao") or ""
         record = resolver.match_or_create(
             workspace_id=workspace_id,
             lookup=lookup,
-            first_seen_year=first_seen_year,
+            first_seen_year=int(entry.get("ano_referencia") or 0),
             descricao_sample=descricao,
         )
-        _apply_record(entry, record, endereco_canonical)
+        _apply_record(entry, record, lookup.endereco_canonical)
 
     return consolidated
+
+
+def _lookup_or_mark(
+    entry: dict,
+    # Ausente no CLI legado e em teste sem DB: titular_key segue cru (fix-B3).
+    family_members: Optional["FamilyMembersConfig"],
+) -> Optional[PropertyLookupKey]:
+    """Chave de identidade do item, ou None com o item já marcado para revisão."""
+    raw_titular = (entry.get("proprietario") or "").strip().lower()
+    titular_key = normalize_titular_key(raw_titular, family_members)
+    codigo_cru = (entry.get("codigo_rfb") or "").strip()
+    if not titular_key or not codigo_cru:
+        _mark_uncanonical(entry, None)
+        return None
+    codigo_rfb = subcodigo_imovel_rfb(codigo_cru)
+    if codigo_rfb is None:
+        _mark_codigo_invalido(entry, codigo_cru)
+        return None
+    return PropertyLookupKey(titular_key, codigo_rfb, canonicalize(entry.get("descricao") or ""))
 
 
 # [[ADR-398]]: mintar é ato durável com CTA de rótulo — só o degrau de FATO da
@@ -98,6 +107,25 @@ def _mark_eixo_por_hint(entry: dict) -> None:
             offending_value=f"eixo_autoridade={entry.get('eixo_autoridade') or 'ausente'}",
             expected="eixo ativo atestado por secao ou catalogo",
             message="identity not minted: axis decided by hint, not by fact",
+        ).to_dict()
+    )
+
+
+def _mark_codigo_invalido(entry: dict, codigo_cru: str) -> None:
+    """Sem sub-código de imóvel não há chave — nem `endereco_canonical`, que é chave de dedup."""
+    entry["property_id"] = None
+    entry["endereco_canonical"] = None
+    entry["low_confidence"] = True
+    entry["needs_review"] = True
+    entry.setdefault("review_reasons", []).append(
+        ReviewReason(
+            code=ReviewReasonCode.domain_property_identity_codigo_invalido,
+            stage="consolidate_baseline",
+            artifact_key="baseline_patrimonial",
+            document_id=None,
+            offending_value=f"codigo_rfb={codigo_cru!r}",
+            expected="sub-código de imóvel: 'CC' ou '01-CC'",
+            message="identity not minted: codigo_rfb is not an imóvel sub-code",
         ).to_dict()
     )
 

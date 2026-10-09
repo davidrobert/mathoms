@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MonetaryValue } from "@/components/report/MonetaryValue";
 import { ApiError, type Decision, type DecisionStatus } from "@/lib/api";
+import { formatPercent } from "@/lib/format";
 
 import { DecisionStatusBadge } from "./DecisionStatusBadge";
 import { GenerateTasksDialog } from "./GenerateTasksDialog";
@@ -89,7 +90,7 @@ function DecisionContextSnapshot({ decision }: { decision: Decision }) {
         </>
       )}
       {ifProgress !== null && <span>· IF {ifProgress.toFixed(0)}%</span>}
-      {trs !== null && <span>· TRS {trs.toFixed(1)}%</span>}
+      {trs !== null && <span>· TRS {formatPercent(trs)}</span>}
     </p>
   );
 }

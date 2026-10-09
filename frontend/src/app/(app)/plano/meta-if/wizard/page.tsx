@@ -35,7 +35,7 @@ import {
   type IFGoalInputs,
   type IFGoalDerived,
 } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
 import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
@@ -344,7 +344,7 @@ function Step2({
 
       {ifMeta !== null && (
         <p className="text-sm">
-          Com TRS de <b>{value.toFixed(1)}%</b>, seu patrimônio-alvo é{" "}
+          Com TRS de <b>{formatPercent(value)}</b>, seu patrimônio-alvo é{" "}
           <b className="font-mono tabular-nums">
             {formatCurrency(ifMeta)}
           </b>
@@ -412,7 +412,7 @@ function Step3({
       {aporte !== null && (
         <p className="text-sm">
           Para atingir a meta em <b>{horizonte} anos</b> a{" "}
-          <b>{retorno.toFixed(1)}% real a.a.</b>, você precisa aportar{" "}
+          <b>{formatPercent(retorno)} real a.a.</b>, você precisa aportar{" "}
           <b className="font-mono tabular-nums">
             {formatCurrency(aporte)}
           </b>{" "}
@@ -477,7 +477,7 @@ function Step4({
         <div className="flex justify-between text-xs text-muted-foreground">
           <dt>
             Meta conservadora (TRS{" "}
-            {(inputs.taxa_retirada_conservadora_pct ?? 4).toFixed(1)}%)
+            {formatPercent(inputs.taxa_retirada_conservadora_pct ?? 4)})
           </dt>
           <dd className="font-mono tabular-nums">
             {formatCurrency(derived.if_meta_conservadora_brl)}
@@ -488,7 +488,7 @@ function Step4({
             Horizonte · TRS · Retorno real
           </dt>
           <dd className="font-mono tabular-nums">
-            {inputs.horizonte_anos}a · {inputs.trs_pct}% · {inputs.retorno_real_anual_pct}%
+            {inputs.horizonte_anos}a · {formatPercent(inputs.trs_pct)} · {formatPercent(inputs.retorno_real_anual_pct)}
           </dd>
         </div>
       </dl>

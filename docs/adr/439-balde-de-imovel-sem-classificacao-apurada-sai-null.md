@@ -178,6 +178,9 @@ contrária: override da classe sem imóvel no run **e** imóvel em aberto.
   apurado" que deixa o gate vermelho.
 - `tests/test_golden_discrimina_classificacao_de_imovel.py` — o regime `toda_classificada` é
   o único caso do golden com o par numérico; os outros dois o publicam `null`.
+- `tests/test_parecer_projecao_classificacao_imovel.py` — o **parecer** é o terceiro leitor do
+  veredito (manifest 2.21.0, [[A40.l123]]): o corpo do exec context carrega o veredito de cada
+  regime, e código de residência sem leitura nos hints reprova.
 - `check_schema_manifest_drift`, `check_view_model_contract` e o `golden_diff`, que desde o
   #2051 cobra manifesto de campo monetário que vira `null`.
 

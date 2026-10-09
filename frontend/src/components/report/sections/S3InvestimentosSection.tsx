@@ -19,7 +19,7 @@ import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { readNarrativeConclusion } from "../utils/chartNarrative";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
-import type { RatiosData } from "@/types/report-analysis";
+import type { PatrimonioData, RatiosData } from "@/types/report-analysis";
 import { readProventosRows } from "../utils/reportContractGuards";
 
 interface InvestimentosBlock extends InvestimentosClasseData, Top15AtivosData {
@@ -39,6 +39,9 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const ratios = data.ratios as unknown as RatiosData | undefined;
+  // ADR-444 D5: o insight do ranking lê o MESMO veredito que o patrimônio publica.
+  const residencia = (data.patrimonio as PatrimonioData | undefined)
+    ?.cobertura_classificacao_imovel?.residencia;
 
   const estrategiaAporte = inv?.estrategia_aporte;
   // ADR-141 §Emenda: o desvio é computado no backend (goals.alocacao_alvo.derived).
@@ -60,7 +63,7 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
       </div>
 
       {/* Top 15 ativos — ranking estruturado (substitui NarrativeChartCard). */}
-      <Top15AtivosCard data={inv} />
+      <Top15AtivosCard data={inv} residencia={residencia} />
 
       {/* A33.l4 (ADR-238 §L4) — proventos por ativo dos informes anuais.
           Sem wrapper: o card já é size="full" e retorna null (célula nenhuma)
