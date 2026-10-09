@@ -18,6 +18,10 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
   }, info) => {
     await ensureLoggedIn(page, request, info);
 
+    // addInitScript só aplica após navegação real; about:blank bloqueia
+    // localStorage (SecurityError). Navegamos antes de ler o token.
+    await page.goto("/acao");
+
     const token = await page.evaluate(() =>
       localStorage.getItem("fin_token"),
     );
@@ -37,7 +41,10 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
     }
 
     const u = userForWorker(info);
-    const code = `D${(info.parallelIndex + 90).toString().padStart(2, "0")}`;
+    // Com PW_RUN_STAMP, retry e outro projeto do mesmo run podem cair no
+    // workspace do mesmo parallelIndex, e code repetido viola o
+    // UNIQUE(workspace_id, code) → 500. workerIndex nunca se repete no run.
+    const code = `D${(info.parallelIndex + 90).toString().padStart(2, "0")}-w${info.workerIndex}`;
 
     // POST cria Decision
     const createResp = await request.post(
