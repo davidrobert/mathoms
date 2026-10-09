@@ -299,11 +299,16 @@ de ADR é reservado em prosa (precedente [[ADR-356]]).
    composto agora é escolher o índice errado com custo de migration. Gatilho de
    retomada: Postgres vivo **e** rows degradadas na casa dos milhares, **ou** p95
    do endpoint encostando no 1s do `SLO.md`.
-9. **CI própria do `frontend-ops`** — lane A42. O app não está em nenhum workflow;
+9. ~~**CI própria do `frontend-ops`** — lane A42. O app não está em nenhum workflow;
    o PR2 fechou só a falha específica (paridade do `types.ts` por pytest + 1 linha
    no `files_yaml`). Job mínimo defensável: `setup-node@v4` + `npm ci` +
    `typecheck` + `lint`, gateado por grupo `frontend_ops` novo, sem Playwright e
-   sem `build`.
+   sem `build`.~~ **Entregue em 2026-10-08 no #2069, e COM `build`.** A lane A42
+   nunca foi criada. O security update #2057 subiu `tailwindcss` 3→4 junto do
+   fix de `next` e quebrou o `next build` do app (consertado no #2066) com
+   `typecheck` e `lint` verdes — só o `build` executa o PostCSS, então o "sem
+   `build`" deste item teria repetido o falso-verde. Job `frontend-ops-checks`
+   em `ci.yml`, no fecho do `All checks green`.
 
 ## Critério de aceite
 

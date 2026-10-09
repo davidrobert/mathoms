@@ -104,6 +104,63 @@ updates:
           - "tailwindcss"
 
   # ----------------------------------------------------------------------
+  # npm — frontend-ops (console interno, ADR-116)
+  #
+  # Até 2026-10-08 o diretório só tinha a entrada `docker` abaixo, e diretório
+  # sem entrada npm cai no agrupamento de security updates do NÍVEL DO REPO —
+  # por isso o #2057 veio como um grupo "npm_and_yarn" que amarrou o fix de
+  # `next` (RCE CRITICAL) ao major `tailwindcss` 3→4 e quebrou o build
+  # (consertado no #2066). Com entrada própria, este bloco governa.
+  #
+  # `ops-security` agrupa SÓ o que precisa subir junto (next + react). Todo o
+  # resto vira PR de segurança isolado — errar para o lado do PR a mais, não do
+  # pacote amarrado. Lista de patterns e não `["*"]` + exclude porque exclude
+  # depende de alguém lembrar do próximo major problemático.
+  #
+  # `ignore` com `update-types` vale só para VERSION updates (doc do GitHub:
+  # "Security updates will always be created regardless of the update-types
+  # setting"). Então o major do tailwind para de aparecer no ciclo semanal, mas
+  # o security update tailwind 3→4 continua abrindo — sozinho, e vermelho no
+  # `frontend-ops-checks` até a migração v4. É o rastreador dela: tailwind
+  # 3.4.19 é HIGH no `npm audit` via `braces` (GHSA-vfj7-8cjw-p6xm cobre todas
+  # as versões) e só o v4 sai da cadeia. NÃO troque por `ignore` sem
+  # `update-types`: isso suprime o security update também e o rastreador some.
+  # ----------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/frontend-ops"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 3
+    labels: ["dependency", "area:frontend"]
+    # `prefix: "chore(deps)"` + `include: "scope"` gera `chore(deps)(deps):`
+    # (ver bfddc5d0); aqui o escopo vem só do `include`.
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    ignore:
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+    groups:
+      ops-security:
+        applies-to: security-updates
+        patterns: ["next", "react", "react-dom"]
+      ops-next-and-react:
+        applies-to: version-updates
+        patterns: ["next", "react", "react-dom", "@types/react*"]
+        update-types: ["patch", "minor"]
+      ops-patch-and-minor:
+        applies-to: version-updates
+        update-types: ["patch", "minor"]
+        exclude-patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+
+  # ----------------------------------------------------------------------
   # Docker — imagens base pinadas por @sha256 (ADR-249 · A20.L2)
   #
   # Re-pina o digest quando sai versão nova da tag. `groups` separa

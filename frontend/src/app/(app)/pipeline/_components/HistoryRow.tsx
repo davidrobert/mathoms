@@ -37,11 +37,11 @@ function RunContextLine({ run }: { run: PipelineRunResponse }) {
   }
   if (run.status === "partial_failure") {
     return (
-      <span className="text-sm text-warning truncate">{degradedRunCaveat(run)}</span>
+      <span className="text-sm text-alert-on-tint truncate">{degradedRunCaveat(run)}</span>
     );
   }
   if (run.status === "needs_review") {
-    return <span className="text-xs text-warning">Revisão pendente</span>;
+    return <span className="text-xs text-alert-on-tint">Revisão pendente</span>;
   }
   // ADR-417 D4 — leitor do estado gravado. Sem ele, "Cancelado" cobre dois atos
   // distintos e o histórico não distingue quem interrompeu de quem desistiu.
@@ -62,7 +62,7 @@ function RunContextLine({ run }: { run: PipelineRunResponse }) {
   if (retidos > 0) {
     return (
       <span
-        className="text-sm text-warning truncate"
+        className="text-sm text-alert-on-tint truncate"
         data-testid="history-parecer-retido"
       >
         {frasePecasRetidas(retidos)} — o parecer deste relatório está incompleto.
@@ -184,7 +184,7 @@ export function HistoryRow({
           {run.status === "needs_review" && (
             <Link
               href={`/pipeline/runs/${run.id}/reviews`}
-              className="inline-flex items-center gap-1 text-xs text-warning underline-offset-2 hover:underline"
+              className="inline-flex items-center gap-1 text-xs text-alert-on-tint underline-offset-2 hover:underline"
             >
               Revisar
               <ArrowRight className="h-3 w-3" />

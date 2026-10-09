@@ -814,25 +814,14 @@ class TestA6d33Wiring:
         assert adapter._identity.titular_key == "carlos"
         assert adapter._identity.conjuge_key == "ana"
 
-    def test_residencia_property_ids_extracted_from_overrides(self):
-        """ADR-215 §1 sunset: subset `residencia_principal` é extraído de
-        `property_classification_overrides` e propagado para analyzers
-        downstream (`classes`, `top_ativos`, `instituicoes`)."""
-        adapter = E5AnalyzerAdapter.from_configs(
-            property_classification_overrides={
-                "prop-residencia": "residencia_principal",
-                "prop-locado": "locado",
-            }
-        )
-        assert adapter._inv_classes._config.residencia_property_ids == frozenset(
-            {"prop-residencia"}
-        )
-        assert adapter._top_ativos._config.classes_config.residencia_property_ids == frozenset(
-            {"prop-residencia"}
-        )
-        assert adapter._instituicoes._config.classes_config.residencia_property_ids == frozenset(
-            {"prop-residencia"}
-        )
+    def test_overrides_de_imovel_chegam_inteiros_a_classes_e_ranking(self):
+        """ADR-215 §1: classes e ranking recebem o mapa inteiro, não um set derivado —
+        cada imóvel passa pelo mesmo `classificacao_do_imovel` do patrimônio."""
+        overrides = {"prop-residencia": "residencia_principal", "prop-locado": "locado"}
+        adapter = E5AnalyzerAdapter.from_configs(property_classification_overrides=overrides)
+        assert adapter._inv_classes._config.property_classification_overrides == overrides
+        top_cfg = adapter._top_ativos._config.classes_config
+        assert top_cfg.property_classification_overrides == overrides
 
 
 class TestA75TypedCambio:

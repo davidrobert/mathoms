@@ -2,7 +2,7 @@
 id: ADR-442
 type: adr
 title: "Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push"
-status: Proposto
+status: Decidido
 date: "2026-10-08"
 relates_to:
   - "[[ADR-319]]"
@@ -20,7 +20,7 @@ aliases:
   - "denylist local de valores do dogfood"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/security
   - area/ci
 ---
@@ -57,7 +57,8 @@ sensível, num repositório cujos logs de CI são públicos.
 **D1 — A lista vem do banco local e fica fora da árvore, como HMAC.**
 `dev/build_dogfood_denylist.py` decifra os artefatos in-process ([[ADR-231]]), coleta
 as folhas numéricas, mantém o tier A (≥ R$ 10.000,00 com ≥ 6 dígitos significativos
-em centavos), subtrai constantes públicas (tetos e limites fiscais, câmbio) e grava o
+em centavos), subtrai constantes públicas (`fiscal_parameters` e `dev/dogfood_public_constants.json`,
+com a fonte legal de cada uma) e grava o
 HMAC-SHA256 de cada valor normalizado em centavos em `~/.config/mathoms/` (0600), com
 a chave em arquivo separado e um manifesto (data, contagem, canário). Não imprime
 valor algum, nem em exceção. Recusa escrever dentro do repositório. Roda na máquina

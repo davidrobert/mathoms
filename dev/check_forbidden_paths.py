@@ -89,6 +89,10 @@ FORBIDDEN_FILES = (
 FORBIDDEN_BASENAMES = (
     ".env",
     ".env.test",
+    # ADR-442: a denylist de valores do dogfood mora fora da árvore, nunca no repo.
+    "dogfood_denylist.v1",
+    "dogfood_denylist.key",
+    "dogfood_denylist.manifest.json",
 )
 
 FORBIDDEN_SUFFIXES = (
