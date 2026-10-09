@@ -3,8 +3,8 @@ import { cn } from "@/lib/cn";
 import type { StatusVariant } from "@/lib/format";
 
 const variantStyles: Record<StatusVariant, string> = {
-  success:  "bg-gain/10 text-gain border-gain/20",
-  warning:  "bg-alert/10 text-alert border-alert/20",
+  success:  "bg-gain/10 text-gain-on-tint border-gain/20",
+  warning:  "bg-alert/10 text-alert-on-tint border-alert/20",
   error:    "bg-loss/10 text-loss border-loss/20",
   info:     "bg-info-financial/10 text-info-financial border-info-financial/20",
   neutral:  "bg-secondary text-secondary-foreground border-border",

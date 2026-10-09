@@ -109,7 +109,7 @@ def test_coerce_decimal_aceita_string_int_decimal_e_float():
     assert _coerce_decimal(1234) == Decimal("1234")
     assert _coerce_decimal(None) is None
     assert _coerce_decimal(Decimal("9.99")) == Decimal("9.99")
-    assert _coerce_decimal(7424.71) == Decimal("7424.71")
+    assert _coerce_decimal(6543.21) == Decimal("6543.21")
 
 
 # ─────────────────────── QuadroEntry ────────────────────────────────────────

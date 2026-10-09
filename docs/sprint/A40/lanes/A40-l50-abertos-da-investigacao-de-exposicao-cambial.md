@@ -74,8 +74,8 @@ do run `ee124571` é byte-idêntico ao do run de 2026-08-05, cujo `_meta` descre
 declaração **ano-calendário 2024**. O extract fresco do mesmo run (15151) tem 89 itens
 `{2025:45, 2024:33, 2023:11}`; o consolidado tem 67 `{2024:52, 2023:11, 2025:4}`.
 
-**Chega à tela:** `patrimonio.dividas` = R$ 234.792,61 — o total de **2024** (a
-declaração 2025 traz R$ 230.459,13).
+**Chega à tela:** `patrimonio.dividas` = o total de **2024** (a declaração 2025 traz
+um total ~1,8% menor).
 
 *Enquadramento corrigido:* congela a via E1.5→E1.5c (itens, consolidados, dívidas,
 resumo). Duas vias seguem frescas — `extract_irpf_full` alimenta `irpf_kpis`, e
@@ -100,7 +100,7 @@ dívidas do IRPF 2025 nunca entram**, não "a declaração inteira".
 > que não corresponde a posição nenhuma, com aparência de autoridade fiscal.
 > Só o par (saldo de 31/12 × PTAX de 31/12) é defensável sob o nome da coluna.
 >
-> **Os R$ 4.308,60 não são queda de patrimônio.** São artefato de comparar duas
+> **A diferença de ~5,4% não é queda de patrimônio.** São artefato de comparar duas
 > datas; o patrimônio corrente deve seguir em cotação corrente. Não cabe ressalva
 > de "seu patrimônio foi corrigido" — cabe nota de não-aditividade entre as duas
 > visões, que a spec do PR-b da l39 já prevê.
@@ -119,9 +119,8 @@ dívidas do IRPF 2025 nunca entram**, não "a declaração inteira".
 BRL) e cobre visualmente as 4 linhas em moeda estrangeira, que vêm de **extrato** e
 foram convertidas pela taxa corrente (5,80/6,35), não pela PTAX de 31/12/2025.
 
-Medido no report `7a7d7115`: sob "Valor em 31/12" aparecem R$ 83.820,33 em USD onde a
-PTAX daria R$ 79.510,80 — **R$ 4.308,60 a mais**, com uma afirmação falsa de
-proveniência ao lado.
+Medido no report `7a7d7115`: sob "Valor em 31/12" o saldo em USD aparece **~5,4% acima**
+do que a PTAX daria, com uma afirmação falsa de proveniência ao lado.
 
 Não é falta de dado: a PTAX 31/12/2025 (5,5018 USD · 6,4679 EUR) **está no DB**. É o
 caminho de extrato que não a consulta. `CaixaDetalhe` (`patrimonio_types.py:175-181`)
@@ -130,9 +129,9 @@ grava `taxa_ptax_aplicada`/`ptax_data`/`ptax_status`.
 
 ### P1 · Duas respostas para "quanto está fora do real" na mesma página
 
-`investimentos.tabela_classes` traz `Internacional = R$ 34.918,47` (4,19% da carteira
-financeira), renderizado por `InvestimentosClasseCard.tsx:25`; `exposicao_cambial` traz
-R$ 83.869,92 (6,45% do investível), com 4 detalhes, todos `tipo=caixa`. Nenhum contém o
+`investimentos.tabela_classes` traz `Internacional` = 4,19% da carteira financeira,
+renderizado por `InvestimentosClasseCard.tsx:25`; `exposicao_cambial` traz 6,45% do
+investível (~2,4× o primeiro em valor), com 4 detalhes, todos `tipo=caixa`. Nenhum contém o
 outro.
 
 Causa reproduzida: `classify_asset` sobre as 18 posições do E4 dá Ações BR 6, Renda Fixa
@@ -140,9 +139,8 @@ Causa reproduzida: `classify_asset` sobre as 18 posições do E4 dá Ações BR 
 "Internacional" vem de `investimentos.fonte = 'irpf_bens'`.
 
 *O fix não é somar.* São recortes de datas diferentes com sobreposição não medida: o
-IRPF é foto de 31/12/2025 (quando os extratos FX somavam ~US$ 4.813) e o card usa saldos
-correntes. O item "DEPÓSITO EM MOEDA ESTRANGEIRA — U$ 6.524,00" é provavelmente a mesma
-conta já contada. **Reconciliar e rotular as duas visões**, não adicioná-las.
+IRPF é foto de 31/12/2025 e o card usa saldos correntes. O item de depósito em moeda
+estrangeira do IRPF é provavelmente a mesma conta já contada. **Reconciliar e rotular as duas visões**, não adicioná-las.
 
 ### P2 · Uma cotação de 2026-04-27 para saldos de três datas diferentes
 
@@ -185,19 +183,19 @@ Remédio: **uma conta em USD na fixture**, não reprojetar os goldens.
 ### P2 · `has_foreign_in_e3` é all-or-nothing por workspace
 
 `e5_analyzer_adapter.py:954` — se **qualquer** extrato tem moeda USD/EUR, o fallback
-[[ADR-245]] não roda, e a conta de Ilhas Cayman (sem extrato nenhum nos 111 artefatos de
+[[ADR-245]] não roda, e a conta no exterior sem extrato (nenhum nos 111 artefatos de
 reconcile) fica fora por construção.
 
-*Correções do refutador:* (1) os R$ 34.918,47 citados são valores de **2024**, herdados
-do baseline stale do achado acima — na declaração 2025 os mesmos itens dão ~R$ 34,8 mil;
+*Correções do refutador:* (1) o `Internacional` citado é valor de **2024**, herdado do
+baseline stale do achado acima — na declaração 2025 os mesmos itens dão ~0,3% a menos;
 (2) o dinheiro **não é descartado do relatório** — esses itens são o bucket
 "Internacional" da S3. O defeito é de granularidade: o anti-double-count deveria ser por
 `(instituição, moeda, conta)`, não por workspace.
 
 ### P3 · "Caixa e Moeda Estrangeira" vale o dobro do card ao lado
 
-`patrimonio.composicao[5]` = R$ 168.561,73 (é `caixa_total_brl`, não `caixa_me_brl`),
-duas posições acima do card que diz R$ 83.869,92. Os dois rótulos compartilham a
+`patrimonio.composicao[5]` é `caixa_total_brl` (não `caixa_me_brl`) e fica duas posições
+acima do card de exposição cambial. Os dois rótulos compartilham a
 expressão "Moeda Estrangeira" e diferem por 2×.
 
 *Ressalva:* o produtor citado na primeira rodada (`analyze_finances.py:1123`) é **script
@@ -243,7 +241,7 @@ nasce `Decimal`; `CaixaDetalhe.valor_brl: float` **fica** — trocá-lo move cen
 publicados e consome re-run por ganho ortogonal.
 
 **As 4 linhas em ME estão duplicadas hoje:** aparecem no card de Exposição
-Cambial (R$ 83.869,92) e em caixa, além da tabela sob o header falso. Nada se
+Cambial e em caixa, além da tabela sob o header falso. Nada se
 perde ao removê-las do S1.
 
 ### Desfecho dos 4 achados acima (2026-08-24) — e o que **voltou** para esta lane
@@ -304,8 +302,8 @@ exposição cambial e a l63 se limitava à conversão:
   só faz `print`. As constantes são **numericamente idênticas** às rows do DB, então em
   produção ninguém distingue os dois caminhos. Classe [[ADR-359]]: deve falhar alto ou
   declarar ausência, nunca emitir número bonito. *(A suíte distingue; a produção não.)*
-- **Cripto: V1 exclui, resolver do V2 dá `USD`.** Divergência de R$ 4.564,40 medida
-  alimentando o agregador na mão. **Hoje não morde** — o V2 não recebe posição alguma
+- **Cripto: V1 exclui, resolver do V2 dá `USD`.** Divergência medida alimentando o
+  agregador na mão. **Hoje não morde** — o V2 não recebe posição alguma
   (o E5 publica agregados). Vira P1 no instante em que a fonte de posições ligar, e é a
   dependência que **bloqueia** [[ADR-379]]: separar stablecoin de cripto volátil exige
   coluna nova em `asset_catalog`, porque ambos têm `asset_class = "Cripto"`.
@@ -337,8 +335,7 @@ exposição cambial e a l63 se limitava à conversão:
 Nenhuma foi coberta pelo co-design de 2026-08-12. Exigem `financial-planner` antes de
 virar código:
 
-1. **Fundos BDR.** "Alaska Black FIC de FIA - BDR NÍVEL I" (R$ 41.846,29) e "Western
-   Asset BDR FIF" (R$ 28.764,28) somam R$ 70.610,57 e classificam como `Fundos` → BRL.
+1. **Fundos BDR.** Dois fundos BDR do dogfood classificam como `Fundos` → BRL.
    BDR replica ativo estrangeiro. Se contarem, a exposição deste workspace quase dobra.
 2. **Catálogo inerte.** Nenhuma das 18 posições do dogfood casou o catálogo (21
    entradas) — todas resolveram por `fallback_classe`, enquanto o rodapé do card promete
@@ -389,10 +386,9 @@ melhorou»"* é, hoje, **vacuamente verdadeira**.
 
 ### Itens INVALIDADOS pela medição da [[A42.l15]]
 
-O número âncora **não reproduz**. Esta lane fixa `Internacional = R$ 34.918,47 (4,19% da
-carteira financeira)`; no par U1×U2, **mesmo corpus documental**, mediu-se `Internacional`
-**R$ 34.857,23 → R$ 423,56** (−98,8%) e `Outros` R$ 52.487,13 → R$ 86.920,80, com os totais
-publicados **idênticos ao centavo**. É redistribuição por churn de identidade, não dado.
+O número âncora **não reproduz**. Esta lane fixa `Internacional` = 4,19% da
+carteira financeira; no par U1×U2, **mesmo corpus documental**, mediu-se `Internacional`
+**−98,8%** e `Outros` **+65,6%**, com os totais publicados **idênticos ao centavo**. É redistribuição por churn de identidade, não dado.
 
 ⇒ **Todo item desta lane cujo número venha de `irpf_bens`/`investimentos_consolidados` foi
 medido num run só e não tem "antes" reprodutível** — o que torna a regra da própria lane
@@ -405,7 +401,7 @@ na mesma página"* e a reconciliação `tabela_classes.Internacional` × `exposi
 > *"até a A42.l15 entregar PR1/PR2"* **não existe mais** — o item 7 do §O que falta, em ordem
 > também destrava.
 >
-> **Mas não releia o R$ 423,56.** Ele foi medido **antes** do #1937 e do #1939, e os dois
+> **Mas não releia o −98,8%.** Ele foi medido **antes** do #1937 e do #1939, e os dois
 > mexeram na chave: o #1937 tirou 96 fundos do balde genérico e o #1939 trocou a chave
 > inteira. O "antes" agora é **reprodutível** (o harness dá o número com denominador), então
 > a regra antes/depois desta lane voltou a ser exequível — **rodando a medição**, nunca

@@ -15,7 +15,7 @@ Saídas geradas (não editar à mão):
 
 ```
 frontend/src/styles/tokens.css       ← site (Next.js + Tailwind v4 @theme inline)
-frontend-ops/src/styles/tokens.css   ← console ops (Next sem @theme inline)
+frontend-ops/src/styles/tokens.css   ← console ops (sem @theme; ele vive no globals.css do ops)
 ```
 
 Renderer HTML standalone foi descontinuado em ADR-129 — o relatório vive

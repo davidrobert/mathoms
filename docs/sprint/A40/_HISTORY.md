@@ -697,3 +697,19 @@ a §Extensão 2026-09-01 acima para a tabela e a ressalva do golden.
 A decisão saiu **antes** de o contador iniciar (0/2), que era exatamente o que esta
 pendência pedia. Custo zero nos dois lados: as duas lanes estão terminais ou a um
 merge de estar.
+
+## Destino dos itens do closeout da A40.l113 (2026-10-08)
+
+O closeout da [[A40.l113]] (#2063, [[ADR-439]]) deixou quatro itens fora do escopo dela. Vale a
+regra da §Pendências de decisão — itens 11-13: **destino é quem já possui o arquivo ou a
+superfície**, e nenhum nasce lane nova por este closeout.
+
+| Item | Destino | Por quê |
+|---|---|---|
+| `PV13-01` — `titular_key_normalizer` devolve o `raw` e o literal de papel passa como chave (3 de 58 itens) | **sem lane** — decisão, gatilho e P2 re-derivado na linha do [[PIPELINE-REVIEWS-active]] | ninguém vivo possui o normalizador; R ∧ ¬F, e a cadeia declarada não procede para imóveis (0 de 9 literais) |
+| Elo 5 — residência checada por `property_id` em `investimentos_classes`, `top_ativos` e `instituicoes` falha **aberta** | **A40.l122** (P1, `data-engineer`) — sessão aberta pelo dono em 2026-10-08, código no #2079 | é a lane que possui os três leitores |
+| O parecer não recebe o veredito do balde de imóvel (`E5_FIELDS_FORA_DO_PARECER`) | **A40.l123** (P1, `prompt-engineer`) — sessão aberta pelo dono em 2026-10-08 | manifest do parecer e eval são superfície do `prompt-engineer` |
+| `comparison_base_changed` não vê a mudança de método da [[ADR-433]] D1 | **fora da A40** — [[PLAN-snapshot-changelog-v3]] §W6 | o predicado por identificador de método é dono do plano; o gatilho candidato está anotado lá |
+
+As duas lanes novas citam a [[A40.l113]] como origem; os ids desta tabela ficam sem wikilink
+até elas chegarem à `main`.

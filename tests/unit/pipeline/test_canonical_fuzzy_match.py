@@ -98,10 +98,10 @@ class TestViaIsolation:
 class TestStrongPrefixesReject:
     def test_canonical_mat_does_not_fuzzy_with_via_numero(self):
         # Canonical com prefixo `mat:` é identificador forte — só strict-equal
-        assert matches_fuzzy("mat:453527", "exemplo 190") is False
+        assert matches_fuzzy("mat:123456", "exemplo 190") is False
 
     def test_canonical_qa_does_not_fuzzy(self):
-        assert matches_fuzzy("qa:894064293", "qa:894064294") is False
+        assert matches_fuzzy("qa:100000001", "qa:100000002") is False
 
     def test_canonical_iptu_does_not_fuzzy(self):
         assert matches_fuzzy("iptu:0870060478", "iptu:0870060479") is False
@@ -139,7 +139,7 @@ class TestExtractComplemento:
         assert extract_complemento("Bloco B - Apto X - Rua Y, 100") == "b"
 
     def test_extracts_torre(self):
-        assert extract_complemento("Torre 2 - Av Exemplo 2192") == "2"
+        assert extract_complemento("Torre 2 - Av Exemplo 1000") == "2"
 
     def test_returns_none_when_no_complemento(self):
         assert extract_complemento("Casa - Rua X, 100") is None

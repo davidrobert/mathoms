@@ -13,6 +13,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Mapping
 
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services.investimentos_cobertura import CoberturaStatus
 from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_DESCONHECIDO,
@@ -242,6 +243,40 @@ def _vereditos_em_decimal(
     )
 
 
+# Só a evidência CONTRÁRIA vira razão: a família classificou e o run perdeu o vínculo.
+# "Nunca classificou" é estado do produto, e o CTA do relatório já cuida dele. O override
+# órfão sozinho também não vira razão — imóvel vendido o deixa gravado ([[ADR-439]] D7).
+_MOTIVO_DE_VINCULO_PERDIDO = {
+    "residencia": MotivoBaldeImovel.nao_localizada,
+    "imoveis_geradores": MotivoBaldeImovel.vinculo_perdido,
+}
+
+
+def review_reasons_da_classificacao_imovel(
+    patrimonio: dict, *, stage: str, artifact_key: str
+) -> list[dict]:
+    """Razão ADVISORY: override gravado que o run não alcançou; nunca retém."""
+    bloco = (patrimonio or {}).get("cobertura_classificacao_imovel") or {}
+    return [
+        _razao_de_vinculo_perdido(balde, stage=stage, artifact_key=artifact_key)
+        for balde, motivo in _MOTIVO_DE_VINCULO_PERDIDO.items()
+        if (bloco.get(balde) or {}).get("motivo") == motivo.value
+    ]
+
+
+def _razao_de_vinculo_perdido(balde: str, *, stage: str, artifact_key: str) -> dict:
+    """Sem descrição nem endereço: o nome do balde basta, e endereço é PII."""
+    return ReviewReason(
+        code=ReviewReasonCode.domain_classificacao_imovel_nao_apurada,
+        stage=stage,
+        artifact_key=artifact_key,
+        document_id=None,
+        offending_value=f"balde={balde}",
+        expected="override de classificação alcançado por um imóvel do run",
+        message="Imovel classificado pela familia nao foi localizado neste run",
+    ).to_dict()
+
+
 __all__ = [
     "EvidenciaDeImovel",
     "ImoveisDoRun",
@@ -253,6 +288,7 @@ __all__ = [
     "VereditosDeImovel",
     "classificar_imoveis_do_run",
     "evidencia_de_imoveis",
+    "review_reasons_da_classificacao_imovel",
     "veredito_geradores",
     "veredito_residencia",
     "vereditos_de_imovel",

@@ -77,7 +77,7 @@ class AnosBaseDoMembro:
         return frozenset(self.por_classe.values())
 
 
-# `float()` cru devolvia ``default`` para string pt-BR (`"243.285,37"` → 0,0) — a
+# `float()` cru devolvia ``default`` para string pt-BR (`"123.456,78"` → 0,0) — a
 # falha-espelho do ×100 (r5/M28): ali o dinheiro inflava, aqui desaparecia.
 def safe_float(val: Any, default: float = 0.0) -> float:
     """Converte ``val`` para ``float``; retorna ``default`` se falhar."""
@@ -427,7 +427,7 @@ def imovel_valor(imovel: dict) -> float:
     return 0.0
 
 
-def imovel_property_id(imovel: dict) -> str | None:
+def imovel_property_id(imovel: Mapping[str, Any]) -> str | None:
     """Retorna `property_id` (ADR-215 P2) anexado ao imóvel pelo E1.5c, ou None."""
     pid = imovel.get("property_id")
     if isinstance(pid, str) and pid:

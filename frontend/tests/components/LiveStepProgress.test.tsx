@@ -120,7 +120,7 @@ describe("<LiveStepProgress />", () => {
       />,
     );
     const est = screen.getByText("2m / ~1m est.");
-    expect(est).toHaveClass("text-warning");
+    expect(est).toHaveClass("text-alert-on-tint");
   });
 
   it("omite estimativa quando estimatedDurationMs não vem (poucos runs históricos)", () => {

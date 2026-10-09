@@ -135,9 +135,9 @@
 # o defeito N2 pela outra ponta.
 # 2.8.0 — A40.l94 ([[ADR-422]], RR6-01): `teto_sugerido` sai do exec context porque sai
 # do payload. Ele era `despesa_recorrente × 1,15` sobre base BRUTA e o modelo o recebia
-# rotulado "Teto sugerido de consumo mensal": no dogfood, R$ 45.519,51 contra despesa
-# real de R$ 72.459,30/mês — o parecer ancorava conselho de contenção num teto 37%
-# abaixo do gasto observado. MINOR pela mesma leitura da 2.5.0 (remoção de régua da
+# rotulado "Teto sugerido de consumo mensal": no dogfood, o teto ficava 37% abaixo da
+# despesa real do mês — o parecer ancorava conselho de contenção num teto inferior ao
+# gasto observado. MINOR pela mesma leitura da 2.5.0 (remoção de régua da
 # label, não quebra de contrato de output). A `folga_mensal` que fica ao lado mudou de
 # VALOR sem mudar de nome — passou a ser a taxa de poupança da janela —, e é por isso
 # que o bump cobra a frota: parecer em cache dentro dos 7 dias citaria a folga velha.
@@ -228,7 +228,11 @@
 # base na label) e um hint na `investimentos` declarando que a linha `Previdência` é
 # SUBCONJUNTO do KPI de renda fixa. MINOR: regra adicional não-breaking (ADR-233), e
 # COBRA a frota — `manifest_version` compõe a chave de cache.
-version: "2.20.0"
+# 2.20.1 — a nota da 2.8.0 passa a citar a razão em vez de valores absolutos. Só
+# comentário — nada do que o modelo recebe muda. PATCH, e mesmo assim COBRA a frota uma
+# vez: o gate de bump compara o arquivo inteiro, e `manifest_version` compõe a chave de
+# cache.
+version: "2.20.1"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "e15_baseline_extract.schema.json",
   "title": "E1.5/E1.5a Baseline Extract",
-  "description": "ADR-394 D7 (A40.l66): `secao` (autoridade do eixo) e `categoria_hint` entram OPCIONAIS; `categoria` sai de `required` e sobrevive como alias de leitura — 766 artefatos históricos o carregam e o modo incremental reagrega todos. Nenhum vira `required` sem cobertura medida (ADR-261 Tier 3). Contrato do artefato per-IRPF (E1.5a) e agregado (E1.5) emitido por _output_to_baseline_json/_aggregate_baselines em pipeline/stages/extract_baseline.py. A42.l15 PR0: `cnpj_emissor` entra OPCIONAL como a âncora que a ADR-271 §147 deferiu (`PR3: extração de CNPJ no E1.5 como chave estável a rename`), viável desde que a A40.l40 entregou `institution_catalog.cnpj_raiz`. Declará-lo aqui é pré-requisito DURO do produtor: `additionalProperties: false` rejeita a chave hoje (medido). O `pattern` de 14 dígitos não é decoração — com `mode=warn` ele é o sinal que pega produtor que emita a forma mascarada do documento sem o normalizador determinístico (molde `informe_aluguel.imobiliaria_cnpj`, ADR-288). A chave de identidade usa a RAIZ lida do documento, nunca o code do catálogo (ADR-400 §1). payload_version 2 (A20.l11 / ADR-259 §1): valores monetários são string decimal com ponto e até 2 casas — nunca number JSON (ADR-090). O consolidador E1.5c (scripts/consolidate_baseline.py) parseia via safe_float/Decimal; payloads v1 históricos (number) permanecem válidos apenas para read (re-validação → re-extração, ADR-261 Tier 3).",
+  "description": "ADR-394 D7 (A40.l66): `secao` (autoridade do eixo) e `categoria_hint` entram OPCIONAIS; `categoria` sai de `required` e sobrevive como alias de leitura — 766 artefatos históricos o carregam e o modo incremental reagrega todos. Nenhum vira `required` sem cobertura medida (ADR-261 Tier 3). Contrato do artefato per-IRPF (E1.5a) e agregado (E1.5) emitido por _output_to_baseline_json/_aggregate_baselines em pipeline/stages/extract_baseline.py. A42.l15 PR0: `cnpj_emissor` entra OPCIONAL como a âncora que a ADR-271 §147 deferiu (`PR3: extração de CNPJ no E1.5 como chave estável a rename`), viável desde que a A40.l40 entregou `institution_catalog.cnpj_raiz`. Declará-lo aqui é pré-requisito DURO do produtor: `additionalProperties: false` rejeita a chave hoje (medido). O `pattern` de 14 dígitos não é decoração — com `mode=warn` ele é o sinal que pega produtor que emita a forma mascarada do documento sem o normalizador determinístico (molde `informe_aluguel.imobiliaria_cnpj`, ADR-288). A chave de identidade usa a RAIZ lida do documento, nunca o code do catálogo (ADR-400 §1). payload_version 2 (A20.l11 / ADR-259 §1): valores monetários são string decimal com ponto e até 2 casas — nunca number JSON (ADR-090). O consolidador E1.5c (scripts/consolidate_baseline.py) parseia via safe_float/Decimal; payloads v1 históricos (number) permanecem válidos apenas para read (re-validação → re-extração, ADR-261 Tier 3). A40.l121 PR0 (ADR-440 D3): `ancora_imovel` entra OPCIONAL no item — os valores CRUS da ficha de imóvel (Logradouro, Nº, complemento sem rótulo, Matrícula, Inscrição Municipal), lidos por parser determinístico no próprio E1.5a e nunca transcritos pelo LLM (ADR-400); `join` diz como a ficha casou com o item. `ancora_versao` na raiz registra o parser, separado do `prompt_version` do conteúdo LLM. Os `maxLength` são sentinela de janela que vazou para o campo vizinho, não limite do formulário: ≥2× o máximo do corpus medido em 2026-10-08. Bairro, município, UF, CEP e cartório ficam fora (minimização), e a âncora não trafega para o `baseline_patrimonial`.",
   "type": "object",
   "required": ["itens", "resumo"],
   "additionalProperties": false,
@@ -10,11 +10,26 @@
     "money_str": {
       "type": "string",
       "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+    },
+    "ancora_imovel": {
+      "type": "object",
+      "required": ["join"],
+      "minProperties": 2,
+      "additionalProperties": false,
+      "properties": {
+        "join": {"type": "string", "enum": ["valor", "valor_tokens"]},
+        "logradouro": {"type": "string", "minLength": 1, "maxLength": 80},
+        "numero": {"type": "string", "minLength": 1, "maxLength": 10},
+        "complemento": {"type": "string", "minLength": 1, "maxLength": 60},
+        "matricula": {"type": "string", "minLength": 1, "maxLength": 30},
+        "inscricao_municipal": {"type": "string", "minLength": 1, "maxLength": 40}
+      }
     }
   },
   "properties": {
     "payload_version": {"type": "integer", "minimum": 2},
     "prompt_version": {"type": "string"},
+    "ancora_versao": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
     "itens": {
       "type": "array",
       "items": {
@@ -32,7 +47,8 @@
           "ano": {"type": "integer"},
           "instituicao": {"type": "string"},
           "cpf": {"type": "string"},
-          "cnpj_emissor": {"type": "string", "pattern": "^\\d{14}$"}
+          "cnpj_emissor": {"type": "string", "pattern": "^\\d{14}$"},
+          "ancora_imovel": {"$ref": "#/$defs/ancora_imovel"}
         }
       }
     },

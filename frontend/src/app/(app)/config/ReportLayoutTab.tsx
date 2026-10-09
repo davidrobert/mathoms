@@ -136,7 +136,7 @@ function ReportLayoutTabContent({ workspace }: { workspace: UserWorkspace }) {
   return (
     <div>
       {error && <div className="mb-4 rounded-lg bg-loss/10 p-3 text-sm text-loss">{error}</div>}
-      {success && <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain">{success}</div>}
+      {success && <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain-on-tint">{success}</div>}
 
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{sections.length} seções no layout</p>

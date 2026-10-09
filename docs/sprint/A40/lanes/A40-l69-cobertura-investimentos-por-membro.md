@@ -259,7 +259,7 @@ Ataque adversarial aos PRs de 3a, **depois** do merge deles e **durante** o do
   0/114 instâncias-membro. Suíte verde o tempo todo.
 - **A raiz não era o predicado.** `_max_value_year` escolhe **um** ano para o
   domicílio; os dois membros declaram em anos disjuntos, então por construção só
-  um pode ser valorado. Os 9 lançamentos do cônjuge valem **R$ 110.130,67** em
+  um pode ser valorado. Os 9 lançamentos do cônjuge têm **saldo positivo** em
   2023 e saíam `0,00`. Com o ano forçado a 2023, quem zera é o **titular** — o
   defeito é do eixo, não da pessoa.
 - **O conserto óbvio não consertava.** `any(bens.values())` e
@@ -294,7 +294,7 @@ Ataque adversarial aos PRs de 3a, **depois** do merge deles e **durante** o do
 | Achado | Destino |
 | --- | --- |
 | **3b (i)** — `else: membro = membro_raw` (vive em `investments_consolidator.py` **324 e 326**, dois casos) | **mecanismo refutado**, não pendência — ver §Escopo 3b, emenda de 2026-08-21. O desfecho residual (`review_reason` nomeando o slug) vai com o item seguinte |
-| **68 % do balde do titular é chave vazia** — `nao_atribuido` não gera linha de cobertura, nem `review_reason`, nem supressão. Re-medido 2026-08-21: **R$ 642.744,79 de R$ 943.189,25 em 3/3 runs** | **P0 · lane própria proposta** (§Inventário do `_README` da A40). É a superfície que **esta lane criou** e é maior, em massa, que o defeito de origem |
+| **68 % do balde do titular é chave vazia** — `nao_atribuido` não gera linha de cobertura, nem `review_reason`, nem supressão. Re-medido 2026-08-21: **68% do balde em 3/3 runs** | **P0 · lane própria proposta** (§Inventário do `_README` da A40). É a superfície que **esta lane criou** e é maior, em massa, que o defeito de origem |
 | **Golden sem domicílio de 2 membros** — a classe de atribuição entre cônjuges é invisível ao CI por construção; mordeu 2× nesta lane | **P1 · mesma lane proposta, primeiro PR** — habilita o critério de aceite dos demais |
 | **Kill-switch parcial**: `valor_publicavel` não consulta `cobertura_enforcement_ligado()`; com a env em `0` o balde segue `null` e **some a razão** | **P1 · [[PLAN-deterministic-authority]] §Deferimentos datados.** Não é escopo novo: o §Enforcement desta lane prometeu "kill-switch de 1 env var, provado por teste", e o docstring de `cobertura_enforcement_ligado` **afirma** um contrato que o código não cumpre |
 | **Copy de `null` na narrativa** — "Bia possui N/D concentrados em instituições…" | **[[A40.l51]]**, que já hospeda a mesma classe em `summaries_narrator.py:86-87` |
@@ -330,7 +330,7 @@ suíte verde desde o merge do #1541.
 A raiz estava um andar abaixo: `_max_value_year` reduz o baseline a **um** ano e
 o propaga a todos os membros; cônjuges que declaram em anos disjuntos zeram um ao
 outro por construção. O balde do cônjuge saía `0,00` com os lançamentos dela
-valorando **R$ 110.130,67** em 2023. Forçando o ano do domicílio para 2023, quem
+valorando um **saldo positivo** em 2023. Forçando o ano do domicílio para 2023, quem
 zera é o **titular** — o defeito é do eixo, não da pessoa.
 
 O #1578 corta o ramo do contêiner, põe o ano-base **por membro** (com o top-up
