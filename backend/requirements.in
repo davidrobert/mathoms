@@ -31,7 +31,7 @@ pyyaml>=6.0
 litellm>=1.97.0
 instructor>=1.3.0
 pdfplumber>=0.11.0
-eval_type_backport>=0.2.0  # Required for instructor on Python 3.9
+eval_type_backport>=0.4.0  # Required for instructor on Python 3.9
 
 # Spreadsheet parsing (used by _extract_file_preview in scripts/route_documents.py)
 openpyxl>=3.1.0   # .xlsx files
@@ -46,7 +46,7 @@ redis>=6.4.0  # teto vem do kombu[redis] (<6.5); .github/dependabot.yml ignora a
 websockets>=17.2
 
 # A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
-python-json-logger>=3.2
+python-json-logger>=4.2.0
 # Família acoplada por `==` (sdk 1.Y ⇒ api==1.Y; instrumentation 0.Xb ⇒
 # semantic-conventions==0.Xb): os pisos 1.x são um só, os 0.Xb são um só, e sobem
 # juntos com o lock. O Dependabot só propõe as sentinelas api e

@@ -53,6 +53,12 @@ tags: [type/lane, sprint/a40, status/open, priority/p1, area/pipeline]
   nenhuma afirmação de quanto o cônjuge contribui, em S3, APP_C, narrativa e parecer.
 - O card de aportes não publica aporte estressado como estratégia de aporte.
 
+> **2026-10-09: critério 3 cumprido por remoção (PR #2242).** O `EstrategiaAporteCard`
+> saiu do relatório. O ramo rico nunca teve produtor (desde a ADR-129), e o fallback era o
+> único caminho que renderizava, publicando o aporte estressado. O item "rótulo do card de
+> aportes" do §Escopo deixa de existir; o parágrafo "Leitura:" do APP_C segue no escopo.
+> Os critérios 1–2 seguem abertos. Co-design `product-designer` + `financial-planner`.
+
 ## Fora do escopo
 
 Calibrar a magnitude pela renda real (critérios (b)/(c) da [[ADR-167]]): depende do
