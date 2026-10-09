@@ -435,6 +435,7 @@
 | ADR-438 | adr | Proposto |  | Destino de leitura do parecer é derivado pela máquina, não escolhido pela prosa | `adr/438-destino-de-leitura-derivado-no-parecer.md` |
 | ADR-439 | adr | Decidido |  | Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero | `adr/439-balde-de-imovel-sem-classificacao-apurada-sai-null.md` |
 | ADR-440 | adr | Proposto |  | A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade | `adr/440-ancora-de-imovel-vem-da-ficha-por-parser-deterministico.md` |
+| ADR-441 | adr | Proposto |  | Erro de banco cruza fronteira de persistência por shape, nunca por valor | `adr/441-erro-de-banco-cruza-fronteira-de-persistencia-por-shape-nunca-por-valor.md` |
 | ADR-442 | adr | Proposto |  | Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push | `adr/442-valor-de-workspace-real-nao-entra-no-repositorio.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
