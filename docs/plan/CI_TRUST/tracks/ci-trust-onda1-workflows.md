@@ -118,8 +118,13 @@ o Actions já conheça o arquivo (S1), e ele só o conhece após o merge. Com
   `.github/scheduled-workflows.yml` (`max_age_days: 3`) com `alerts:` para a
   label `merge-protection` — o que também resolve o aceite 6 da Onda 0, hoje
   inalcançável (a label da Issue de auditoria não é vigiada por ninguém).
+  Desde o #2210, cada incidente tem a sua issue, e o `alerts:` passa a
+  medir a idade de cada incidente aberto: o S3 vira prazo de triagem por
+  incidente.
 - Comparação de `rulesets/{id}/history`: desabilitar o ruleset, mergear e
-  reabilitar é bypass que **não** aparece em `rule-suites`. Sem esse braço a
+  reabilitar é bypass que **não** aparece em `rule-suites`. ✅ Entregue no
+  `--sweep` pelo #2210 ([[ADR-448]] §Emenda 2026-10-09); falta rodá-lo
+  agendado. Sem esse braço a
   auditoria fecha a porta e deixa a janela — e o **KR-B** fica contável por
   uma janela que ele mesmo declara cega ([[ADR-415]] D4).
 - **Pré-requisito de token, e é bloqueante:** `rule-suites` exige
@@ -129,7 +134,8 @@ o Actions já conheça o arquivo (S1), e ele só o conhece após o merge. Com
   item 2.0 (Organization): se o repo migrar, reavaliar a credencial ali.
 
 Aceite: falha forçada (remover o token) ⇒ `rc=2` e nenhuma contagem impressa;
-com token, o sweep lista os bypasses do período e a Issue acumula.
+com token, o sweep abre uma issue por bypass do período e alarma janela do
+ruleset fora da tolerância.
 
 ## PR 5 — gate visual obrigatório por paths-filter, sozinho
 

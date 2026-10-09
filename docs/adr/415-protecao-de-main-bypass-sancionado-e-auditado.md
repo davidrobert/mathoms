@@ -29,6 +29,11 @@ tags:
 > mudou o comportamento. `bypass_actors` agora é `[]`, e a válvula virou concessão
 > temporária para um merge. D1 e D3–D6 seguem aqui. Ver §Emenda 2026-10-09.
 
+> **Emenda 2026-10-09 — registro por incidente:** o registro da D3 deixou de
+> comentar numa issue única e abre uma issue por incidente. O sweep da D4
+> ganhou a comparação do `history` do ruleset, que a §Fase dava como
+> inexistente. Ver §Emenda 2026-10-09 — registro por incidente e `history` do ruleset.
+
 > **Emenda 2026-08-26 (correção de fato, não de decisão):** a §Validação
 > afirmava que o merge do #1723 *"não é bypass"*. É — `rule-suite 3817455583`
 > registra `result: bypass` com `required_status_checks: fail`. Corrida do
@@ -263,3 +268,21 @@ para um único merge. Ela foi aplicada em 2026-10-09 (`bypass_actors=[]`,
 ruleset). A rejeição de "Remover `bypass_actors`" (§Alternativas
 rejeitadas) supunha que o bypass do papel fosse o único rollback; a própria D4 já
 citava o histórico do ruleset, que a concessão temporária usa.
+
+## Emenda 2026-10-09 — registro por incidente e `history` do ruleset
+
+Executa os itens que a [[ADR-448]] deferiu (#2210). D1–D6 não reabrem.
+Mudam duas consequências, e uma frase da D3 ganha contraexemplo.
+
+- **§Consequências, "o registro ACRESCENTA".** A promessa era que nenhum
+  merge sumisse do registro, e ela continua de pé. O formato mudou: em vez de
+  comentários na #1728, que acumulou 56 sem reação, cada incidente tem uma
+  issue própria. A #1728 é triada e fechada no fecho deste PR.
+- **D4, "Fase".** O `--sweep` passou a comparar o `rulesets/{id}/history`,
+  com a tolerância e as regras da [[ADR-448]] §Emenda 2026-10-09. O
+  agendamento diário e o token de admin seguem na Onda 1 do [[PLAN-ci-trust]].
+- **D3, "a ausência do bypass não impede a detecção".** A frase vale para
+  veredito não-gated, mas três bypasses de 2026-10-09 saíram `gated` no head,
+  com a base desatualizada sob `strict`. O veredito `stale` ficou deferido com
+  dono em [[PLAN-ci-trust]], item 0.2c. A emenda da tabela de vereditos sai
+  junto com ele.

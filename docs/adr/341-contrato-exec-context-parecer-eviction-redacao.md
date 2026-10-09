@@ -183,7 +183,7 @@ rebaixada — o modelo não percebe o dado como ausente.
 É a classe do §D5 revogado acima: o prompt convidava o modelo a usar o que o contexto não
 entrega.
 
-**O que passa a valer (persona 1.3.0, `PROMPT_VERSION` 2.6.0).**
+**O que passa a valer (persona 1.3.0, `PROMPT_VERSION` 2.7.0).**
 
 - Saem as cinco passagens. "Contrafluxo" entra na lista de marcas proibidas: sozinho, ele
   passava pelas três camadas de sigilo.
@@ -195,7 +195,7 @@ entrega.
   reconstrói a classe, nem pela tabela de classes ([[ADR-394]], [[ADR-400]]).
 - A R5 deixa de exemplificar percentual-alvo inventado ("~15% internacional") e classe por
   indexador.
-- O hint de `investimentos` do manifest (2.22.0) deixa de mandar ancorar em "qual classe
+- O hint de `investimentos` do manifest (2.23.0) deixa de mandar ancorar em "qual classe
   está sub ou sobrealocada": cita o comparável publicado e, sob supressão, declara o motivo.
 - `CampoFaltante.motivo` entra no boundary de truncamento da [[ADR-294]]: era o último
   texto com teto duro, e o reask que ele disparava dobrava os tokens da chamada.

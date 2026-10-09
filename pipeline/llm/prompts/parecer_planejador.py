@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-# 2.6.0 ([[ADR-341]] §Emenda 2026-10-09): par da persona 1.3.0, que deixa de autorizar
+# 2.7.0 ([[ADR-341]] §Emenda 2026-10-09): par da persona 1.3.0, que deixa de autorizar
 #   leitura de ciclo de juros (R23) — o exec context não traz taxa de mercado viva. O
 #   texto deste módulo não muda. O persona_hash já invalida o cache (#2166); o bump fica
 #   porque o drift monitor janela por `(prompt_version, model)`, e sem ele os dois regimes
 #   da persona se misturariam na mesma janela.
+# 2.6.0 (A40.l124 §Deferimento 6 · [[ADR-340]] §Emenda 2026-10-09): a RL7 volta a dizer o
+#   que o validador faz. O #981 (C11-Fase2) trasladou os degraus para a base carteira
+#   (40/60 → 50/75) e tirou o acoplamento a `real_estate.alertas` sem tocar esta regra, e
+#   a hint `ratios` do manifest dizia "≥50% é Alta". Régua única, a do validador e do ponto
+#   urgente determinístico: acima de 50% "Média", acima de 75% "Alta". O tema cobre o
+#   argumento de iliquidez porque `Liquidez` está fora de `_TEMA_CONCENTRACAO` e bloqueava
+#   com a severidade certa. Paridade cobrada em tests/test_parecer_rl7_regua_unica.py.
 # 2.5.1 ([[ADR-199]] §Emenda 2026-10-09 · [[ADR-201]] §Correção 2026-10-09): a persona
 #   perde o placeholder `persona_hash: "PENDING_AUTO_GENERATE"` do frontmatter e o 1º
 #   parágrafo do §10, que afirmava um caminho de auditoria inexistente
@@ -33,14 +40,14 @@ from __future__ import annotations
 #   espelham parecer_red_lines v1.4; prevenção reduz needs_review, validador segue defesa.
 #   Ao recalibrar parecer_red_lines, atualize a REGRA 14 no mesmo PR (simetria prompt↔validador).
 # 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
-PROMPT_VERSION = "2.6.0"
+PROMPT_VERSION = "2.7.0"
 
 # sha256 do system prompt RENDERIZADO — `SYSTEM_PROMPT_TEMPLATE` com a persona inteira,
 # frontmatter incluso. A persona mora fora deste arquivo e o gate W2-T05 só enxerga este:
 # o pin a traz para dentro. Mudou o byte, reprova `tests/test_parecer_prompt_fingerprint.py`
 # até o pin mudar aqui — e editar aqui cobra bump de `PROMPT_VERSION`. Par do
 # `user_prompt_sha256` do manifest (ADR-199 §Emenda 2026-10-09).
-SYSTEM_PROMPT_SHA256 = "7f07fe3753949787a379c5e2add4091624cd1001380150d0a83ae4221dcd8f98"
+SYSTEM_PROMPT_SHA256 = "a6d40d17dd415b121c61cb80d1285f06cc147e5fd46afec0aabdb5f22244e613"
 
 # Amostragem do parecer — mora aqui, e não no orquestrador, porque este módulo é
 # varrido por `check_prompt_version_bumped.py`: re-afinar a amostragem sem bumpar
@@ -233,10 +240,12 @@ SYSTEM_PROMPT_TEMPLATE = """\
       sacar, resgatar, realocar ou migrar a reserva, nem cancelar/cortar/reduzir seguro
       ou cobertura essencial motivado por rendimento. PERMITIDO: realocar o EXCEDENTE
       acima da meta ("a parte que excede 6 meses").
-    - **(RL7) Concentração alta = risco severidade Alta:** se o E5 sinaliza concentração
-      > 60% OU traz alerta estruturado de concentração, o risco correspondente (tema
-      `Alocação` ou `Saúde de balanço`) deve ter `severidade: "Alta"` (ou "Crítica").
-      Entre 40% e 60%, "Média" basta. Aborde — nunca silencie.
+    - **(RL7) Concentração imobiliária = risco graduado:** com
+      `$.ratios.concentracao_imobiliaria` acima de 50%, emita um risco de tema
+      `Alocação` ou `Saúde de balanço` (também quando o argumento é iliquidez) com
+      `severidade: "Média"`, nunca abaixo; acima de 75%, `severidade: "Alta"` — "Crítica"
+      só se a reserva estiver abaixo da meta ou houver dívida cara (RL1/RL2). Gradação
+      fina vai na `descricao`, não no rótulo. Aborde — nunca silencie.
 """
 
 
