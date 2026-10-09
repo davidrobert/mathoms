@@ -33,7 +33,7 @@ import {
   type AporteGoalDerived,
   type AporteGoalResponse,
 } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
 import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
@@ -369,7 +369,7 @@ export default function AportesEditPage() {
                         >
                           <span>{dest}</span>
                           <span className="font-mono tabular-nums">
-                            {pct.toFixed(1)}%
+                            {formatPercent(pct)}
                           </span>
                         </dd>
                       )

@@ -9,7 +9,7 @@ import type {
   AporteGoalResponse,
   IFGoalResponse,
 } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
 
 import type { IFProgress, PatrimonioSnapshot } from "./usePlanoOverview";
 
@@ -120,7 +120,7 @@ function formatPatrimonio(snapshot: PatrimonioSnapshot | null): string {
 }
 
 function formatIfProgress(progress: IFProgress | null): string {
-  return progress == null ? "—" : `${progress.pct.toFixed(1)}%`;
+  return progress == null ? "—" : formatPercent(progress.pct);
 }
 
 function formatAporteMeta(
