@@ -70,7 +70,7 @@ def test_bump_sem_refresh_reprova_o_ref_novo_e_o_orfao(tmp_path: Path) -> None:
     )
     assert any("actions/stale@v12" in m and mod.REFRESH_CMD in m for m in messages)
     assert any("actions/stale@v11" in m and "nenhum workflow usa" in m for m in messages)
-    assert any("gh pr update-branch --rebase" in m for m in messages), "procedimento do Dependabot"
+    assert any("gh pr update-branch" in m for m in messages), "procedimento do Dependabot"
 
 
 def test_step_sem_with_tambem_exige_o_ref_no_lock(tmp_path: Path) -> None:

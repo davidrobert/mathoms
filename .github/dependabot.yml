@@ -325,7 +325,7 @@ updates:
   # está em .github/actions.lock.yml. Na branch do PR, rode
   # `python3 dev/refresh_actions_lock.py` e commite o lock: o diff mostra os
   # inputs que a versão nova ganhou e perdeu. Para trazer a main depois, use
-  # `gh pr update-branch --rebase`. `@dependabot rebase`/`recreate` fazem
+  # `gh pr update-branch`. `@dependabot rebase`/`recreate` fazem
   # force-push e apagam o commit do lock.
   - package-ecosystem: "github-actions"
     directory: "/"
