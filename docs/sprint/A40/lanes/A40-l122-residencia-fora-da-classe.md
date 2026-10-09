@@ -58,6 +58,7 @@ cônjuge sem id) é declarado no schema e no parecer.
 | PR-0 [#2079](https://github.com/davidrobert/mathoms/pull/2079) | `imovel_valor` nos dois analyzers ([[ADR-431]]) + roteador único `imovel_na_carteira` + config morto fora | aberto |
 | PR-A | expand: schema (enum + `pct` nullable discriminado + `total_imoveis_uso_nao_apurado` + `classificacao_imovel`), TS, leitores null-safe, copy, manifesto do parecer | — |
 | PR-B | flip: produtor + gate de efeito com mutação + rebaseline | — |
+| PR-C | superfícies LLM: hint de concentração com ressalva, regime da residência no parecer, exceção no tom da S3, guarda determinística de prescrição, eval do dono — um bump de manifesto ([[ADR-444]] §Deferimento 5) | — |
 
 ## Critério de aceite
 

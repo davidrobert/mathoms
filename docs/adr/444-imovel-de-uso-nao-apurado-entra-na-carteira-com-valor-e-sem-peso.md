@@ -80,7 +80,8 @@ casa nova no desconhecido. O analyzer recebe o predicado como argumento tipado d
 
 Imóvel `desconhecido` vai para a linha **"Imóveis com uso não apurado"**: aparece com o valor,
 fora de `total` e de toda base de carteira, com `pct = null` e `pct_carteira_financeira = null`.
-`total_imoveis_uso_nao_apurado` é publicado. Valem as duas identidades, em centavos:
+`total_imoveis_uso_nao_apurado` é publicado quando a linha existe — ausente sem ela, porque
+zero chegaria ao parecer como "R$ 0,00". Valem as duas identidades, em centavos:
 `total = total_financeiro + total_imoveis_investimento` e
 `total + total_imoveis_uso_nao_apurado = Σ tabela`. Dentro de `total`, o "total investido"
 seguiria ×1,555 com a casa dentro.
@@ -156,6 +157,14 @@ diverge — os produtores leem o bloco publicado e a `classificacao_imovel` por 
 3. `golden_diff`: item `new`/`removed` com folha monetária não nula passa a exigir manifesto —
    hoje a migração entre linhas da tabela só é cobrada pela origem e pelo escalar.
 4. `MemberAnalyzer` tem o mesmo defeito e não roda em produção: deleção.
+5. **Superfícies LLM (PR-C, com `prompt-engineer` + `financial-planner`).** O parecer e o
+   resumo da S3 recebem a tabela e o ranking; falta: regra em `narrative_hints` (sobrevive à
+   evicção) que mantém a medida de concentração com a ressalva — o desconhecido segue no
+   numerador ([[ADR-420]] §D2) e a red line de concentração cobra o risco —, projeção do
+   regime da residência (`status` + `piso`), exceção na regra de tom da S3, guarda
+   determinística contra prescrição sobre a linha sem peso, e eval do dono (2.20.0 × 2.21.0)
+   num bump só do manifesto. O PR-B já melhora essas superfícies sem tocá-las: hoje elas
+   recebem a casa como "Imóvel de investimento" com percentual.
 
 ## Gates
 
