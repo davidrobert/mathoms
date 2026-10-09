@@ -65,6 +65,17 @@ def test_as_seis_familias_de_falso_monetario():
     assert not is_monetary("consumo_consciente.equivalente_meses_poupanca")  # unidade no MEIO
 
 
+# A40.l124: o snapshot do instrumento de ancorabilidade publica contagens e BYTES. O cap
+# 16384→24576 saía como +819200 cents — justificar isso no manifesto seria escrever um
+# `rationale` falso sobre dinheiro que não existe, a armadilha da A40.l80.
+def test_snapshot_do_instrumento_nao_publica_dinheiro():
+    assert not is_monetary("parametros_geradores.max_exec_context_bytes")
+    assert not is_monetary("parametros_geradores.catalogo_max_bytes")
+    assert not is_monetary("medicao.catalogo_renderizado")
+    assert not is_monetary("medicao.ancoraveis")
+    assert is_monetary("medicao.valor_brl")  # marcador de moeda vence o bloco
+
+
 # Cada regra nova AFROUXA o monetário-por-default; estas são as portas que ficam
 # fechadas, e sem elas o alargamento vira buraco por onde dinheiro passa mudo.
 def test_marcador_de_moeda_vence_bloco_e_token():

@@ -492,5 +492,7 @@ class TestPromptTokenBudget:
         # persona (placeholder do frontmatter + 1º parágrafo do §10); o template
         # medido aqui não mudou e o delta segue −1,58%. 2.5.1 → 2.6.0 (A40.l124
         # §Deferimento 6) reescreve a RL7 da REGRA 14 na régua do validador:
-        # +150 chars, delta reconferido −0,28%.
-        assert PROMPT_VERSION == "2.6.0"
+        # +150 chars, delta reconferido −0,28%. 2.6.0 → 2.7.0 é bump de
+        # PERSONA (1.3.0, R23 — ADR-341 §Emenda 2026-10-09): o template não muda
+        # e o delta acima segue; o system prompt montado cresce +1,22% (persona +472 chars).
+        assert PROMPT_VERSION == "2.7.0"

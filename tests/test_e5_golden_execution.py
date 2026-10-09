@@ -79,8 +79,19 @@ _FAMILY_E5 = {
     },
 }
 
+# ADR-167: cônjuge é quem o cadastro declara com `papel`, não "o segundo membro".
+_FAMILY_CASAL_E5 = {
+    "titular": "david",
+    "membros": {
+        "david": {"nome_curto": "David", "papel": "titular", "data_nascimento": "1985-06-15"},
+        "bia": {"nome_curto": "Bia", "papel": "conjuge", "data_nascimento": "1987-07-22"},
+    },
+}
 
-def _write_e5_config(tmp_path: Path, *, expense_keywords: dict | None = None) -> None:
+
+def _write_e5_config(
+    tmp_path: Path, *, expense_keywords: dict | None = None, family: dict | None = None
+) -> None:
     cfg = tmp_path / "config"
     cfg.mkdir(parents=True, exist_ok=True)
     # `_schema_to_validate` le de `CONFIG_DIR/schemas/`, e o CONFIG_DIR aqui e o
@@ -102,7 +113,7 @@ def _write_e5_config(tmp_path: Path, *, expense_keywords: dict | None = None) ->
         encoding="utf-8",
     )
     (cfg / "family_members.json").write_text(
-        json.dumps(_FAMILY_E5, ensure_ascii=False, indent=2),
+        json.dumps(family or _FAMILY_E5, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     # `{}` fazia `schema_validation.enabled` cair no default False, e
@@ -158,6 +169,36 @@ def e5_tenant_mixed_cashflow(tmp_path: Path) -> Path:
 def e5_tenant_with_baseline(tmp_path: Path) -> Path:
     _write_e5_config(tmp_path)
     return tmp_path
+
+
+@pytest.fixture
+def e5_tenant_casal(tmp_path: Path) -> Path:
+    _write_e5_config(tmp_path, family=_FAMILY_CASAL_E5)
+    return tmp_path
+
+
+def _run_e4_e5(root: Path) -> dict:
+    from scripts.analyze_finances import main_with_store as e5_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
+
+    ctx = _new_e5_ctx(root, e3_fixture=_E3_FIXTURE)
+    e4_mws(ctx)
+    e5_mws(ctx)
+    return ctx.artifact_store.read("E5", "analise_financeira")
+
+
+def test_e5_solteiro_nao_publica_cenario_do_conjuge(e5_tenant_minimal: Path):
+    """ADR-167: o titular tem data de nascimento e meta IF — só falta o cônjuge."""
+    payload = _run_e4_e5(e5_tenant_minimal)
+
+    assert payload["goals"]["if_meta"] > 0
+    assert payload["cenarios_conjuge"] == {}
+
+
+def test_e5_casal_publica_cenario_do_conjuge(e5_tenant_casal: Path):
+    payload = _run_e4_e5(e5_tenant_casal)
+
+    assert payload["cenarios_conjuge"]["labels"] == ["Sem renda do cônjuge"]
 
 
 def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):

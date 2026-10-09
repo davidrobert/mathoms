@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  readCenariosConjuge,
   readMonteCarloData,
   readExcludedProperties,
   readPassiveIncome,
@@ -160,5 +161,17 @@ describe("reportContractGuards", () => {
     expect(
       readProtecaoPatrimonial({ ...protecao, apolices_vigentes: [{}] }),
     ).toBeUndefined();
+  });
+
+  it("trata o `{}` do cenário do cônjuge como ausência, não como bloco (ADR-167)", () => {
+    const cenarios = { labels: ["Sem renda do cônjuge"], aportes: [6_600] };
+
+    expect(readCenariosConjuge(cenarios)).toBe(cenarios);
+    // `{}` é a forma canônica de "o E5 recusou o cenário" — e um objeto vazio é
+    // truthy em JS, que é como o card da S3 escapava do hide-when-empty.
+    expect(readCenariosConjuge({})).toBeUndefined();
+    expect(readCenariosConjuge({ labels: [] })).toBeUndefined();
+    expect(readCenariosConjuge({ labels: [42] })).toBeUndefined();
+    expect(readCenariosConjuge(undefined)).toBeUndefined();
   });
 });

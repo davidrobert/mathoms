@@ -48,11 +48,18 @@ test.describe("Vault + Unlock", () => {
     await page.getByRole("button", { name: /Adicionar/ }).click();
     await expect(page.getByText(label)).toBeVisible();
 
-    // Retry-unlock (sem docs protegidos, retorna 0 desbloqueados)
+    // Sem doc `needs_password` no workspace (nenhum spec sobe PDF cifrado), o
+    // backend responde 404 (status fixado em backend/tests/test_documents.py::
+    // test_retry_unlock_no_pending_docs; o texto do detail vem de
+    // document_retry_service.py e só este spec o fixa) e a página mostra o
+    // detail no banner de erro. "Nenhum documento conseguiu ser desbloqueado…"
+    // só sai com 200 + doc travado (exige PDF protegido).
+    const retryResponse = page.waitForResponse((r) =>
+      r.url().endsWith("/documents/retry-unlock"),
+    );
     // Botão atual: "Tentar desbloquear documentos pendentes"
     await page.getByRole("button", { name: /Tentar desbloquear documentos/ }).click();
-    await expect(
-      page.getByText(/Nenhum documento conseguiu ser desbloqueado/),
-    ).toBeVisible({ timeout: 10_000 });
+    expect((await retryResponse).status()).toBe(404);
+    await expect(page.getByText("Nenhum documento pendente de senha")).toBeVisible();
   });
 });
