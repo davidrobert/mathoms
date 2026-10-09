@@ -1,4 +1,5 @@
 import type { CardVariant } from "@/generated/report-layout";
+import { formatPercent } from "@/lib/format";
 import type { RatiosData, RentabilidadeRatio } from "@/types/report-analysis";
 import { ReportCard } from "../ReportCard";
 
@@ -34,7 +35,7 @@ function RentabilidadeFallbackCard({ ratios }: { ratios: RatiosData }) {
   return (
     <ReportCard size="full" title="Renda passiva sobre patrimônio (TRS)" variant="feature">
       <p className="font-mono text-2xl tabular-nums">
-        {typeof valor === "number" ? `${valor.toFixed(2)}%` : String(valor ?? "N/D")}
+        {typeof valor === "number" ? formatPercent(valor, 2) : String(valor ?? "N/D")}
       </p>
       <p className="mt-2 text-sm text-[var(--surface-muted-foreground)]">
         Yield observado sobre patrimônio gerador. Contexto detalhado disponível

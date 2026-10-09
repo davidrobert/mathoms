@@ -9,6 +9,7 @@ import type {
   PremissasEconomicasClassRow,
   PremissasEconomicasData,
 } from "@/lib/api";
+import { formatPercent } from "@/lib/format";
 
 // Labels editoriais para os enum codes da lookup `economic_asset_class`.
 // Fallback ao próprio code se a classe não tem label conhecido (classe nova
@@ -34,7 +35,7 @@ function formatPct(value: string | null): string {
   if (value === null) return "—";
   const num = Number(value);
   if (Number.isNaN(num)) return value;
-  return `${num.toFixed(2)}% a.a.`;
+  return `${formatPercent(num, 2)} a.a.`;
 }
 
 function safeFormatDate(iso: string | null): string {
