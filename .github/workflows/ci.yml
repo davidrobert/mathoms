@@ -264,6 +264,12 @@ jobs:
               - 'config/**/*.yaml'
               - 'config/**/*.yml'
               - 'config/schemas/**'
+              # A persona abre o system prompt do parecer, e o pin dele
+              # (`tests/test_parecer_prompt_fingerprint.py`, ADR-199 §Emenda
+              # 2026-10-09) só roda neste job. Sem esta linha, um PR que só edita a
+              # persona pula `pipeline-tests` — o caso do `27bcd6d7` — e o `main`
+              # quebra no PR seguinte, de outro autor.
+              - 'config/agents/planner_persona.md'
               - 'requirements.in'
               - 'requirements.lock'
               - '.github/workflows/ci.yml'
@@ -508,7 +514,7 @@ jobs:
       - name: Install uv (SHA-pinned v8.1.0)
         # uv é resolver/installer 5-10x mais rápido que pip para deps Python.
         # SHA pin previne tag-rewrite; v8.1.0 é a release mais recente.
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
         with:
           version: "0.5.x"
 
@@ -618,7 +624,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install uv (SHA-pinned v8.1.0)
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
         with:
           version: "0.5.x"
 
@@ -690,23 +696,44 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python dev/check_lineage_eval_gate.py
 
-      - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
-        if: github.event_name == 'pull_request'
-        # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
-        # isolado (fluxo G-c). Deepen: checkout é shallow (depth 1).
+      # Os dois gates de golden medem a faixa do PR no merge sintético (pai 1 = main,
+      # pai 2 = cabeça), e ela exige o histórico do `GITHUB_SHA` inteiro. Ancorado no
+      # SHA porque o `--deepen` relativo só aprofunda commit que alguma ref do servidor
+      # ainda alcança: quando a main anda, o GitHub recomputa o `refs/pull/N/merge` (re-
+      # run, ou push na main durante o pytest acima) e o HEAD ficava sem pais — com o
+      # gate verde calado. Passo próprio e `!cancelled()`: o vermelho de um gate não
+      # esconde o do outro, nem o dos testes acima.
+      - name: Histórico do merge sintético (gates de golden)
+        id: historico-pr
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: |
-          git fetch --no-tags --deepen=500 origin
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            git fetch --no-tags --unshallow origin "$GITHUB_SHA"
+          fi
+
+      - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.historico-pr.outcome == 'success' }}
+        # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
+        # isolado (fluxo G-c). A faixa sai do merge sintético, NUNCA de
+        # `pull_request.base.sha`: ele é o merge-base do último push, e
+        # `base.sha..HEAD` arrastava a main desde então (#2065).
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
           python dev/check_golden_rebaseline_isolation.py \
-            --commit-range "${{ github.event.pull_request.base.sha }}..HEAD"
+            --pr-head-sha "$PR_HEAD_SHA" --merge-sha "$GITHUB_SHA"
 
       # O passo acima enforça ISOLAMENTO e não produz delta. Sem este, "delta de golden
       # declarado" era prosa no corpo do PR — `dev/golden_diff.py` existia e nada o
-      # invocava. Roda DEPOIS porque reaproveita o histórico já aprofundado acima.
+      # invocava. Mesma base do passo acima: o delta é o que o PR muda sobre a main do
+      # merge, não o que a main mudou desde a base do PR.
       - name: Delta de golden declarado, não narrado (A40.l80 · destrava A40.l90)
-        if: github.event_name == 'pull_request'
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.historico-pr.outcome == 'success' }}
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           python dev/check_golden_delta_declarado.py \
-            --base-sha "${{ github.event.pull_request.base.sha }}"
+            --pr-head-sha "$PR_HEAD_SHA" --merge-sha "$GITHUB_SHA"
 
   backend-tests:
     name: Backend tests (backend/tests/)
@@ -769,7 +796,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install uv (SHA-pinned v8.1.0)
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
         with:
           version: "0.5.x"
 

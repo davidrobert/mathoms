@@ -4,8 +4,11 @@
 # manual em major (PR fica open para review).
 #
 # Updates abrem PR contra `main` com label `dependency` (já criada via
-# Onda 2) e prefixo `chore(deps):` no commit. Auto-labeler em pr-quality.yml
-# também adiciona `dependency` por path (defense-in-depth).
+# Onda 2) e prefixo `chore(deps):` no commit. O labeler do pr-quality.yml roda
+# com `sync-labels: true` e é quem decide as labels que declara: ele mantém
+# `dependency` e `dependabot` em todo branch `dependabot/…` por `head-branch`.
+# `dependabot` é a isenção do stale.yml e não entra aqui em `labels:`, porque
+# a fonte é uma só (.github/labeler.yml).
 
 version: 2
 updates:
@@ -17,6 +20,12 @@ updates:
   # pelo Dependabot — ele sobe o constraint no .in e o hook check_lockfile_sync
   # falha o CI até alguém regenerar o .lock (runbook python_dependencies.md).
   # Gate intencional: upgrade nunca entra sem revalidação amd64.
+  #
+  # UMA entrada só: a `/` cobre os dois .in (o log do updater roda
+  # `pip-compile ... backend/requirements.in`). A `/backend` saiu em 2026-10-09:
+  # ficou sem job de 07-28 a 10-09 e, no primeiro job, duplicou os PRs da `/`
+  # (#2103≡#2104, #2105≡#2108) e partiu a família opentelemetry entre as duas
+  # (#2101/#2102). Não a recrie.
   # ----------------------------------------------------------------------
   - package-ecosystem: "pip"
     directory: "/"
@@ -25,7 +34,8 @@ updates:
       day: "monday"
       time: "06:00"
       timezone: "America/Sao_Paulo"
-    open-pull-requests-limit: 5
+    # 8 e não 5: esta entrada passou a cobrir os dois .in (eram 5 + 5).
+    open-pull-requests-limit: 8
     labels: ["dependency", "area:pipeline"]
     commit-message:
       prefix: "chore(deps)"
@@ -47,6 +57,7 @@ updates:
           - "pydantic"
           - "alembic"
           - "celery"
+          - "fastapi"
     ignore:
       # redis acima do teto do kombu[redis] (celery[redis] → kombu 5.6.x pede
       # redis<6.5). O updater pergunta se `redis==<último>` resolve; a resposta
@@ -65,36 +76,36 @@ updates:
       # feature, ou num upgrade deliberado validado com run real (pipeline-review).
       - dependency-name: "litellm"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
-
-  - package-ecosystem: "pip"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "America/Sao_Paulo"
-    open-pull-requests-limit: 5
-    labels: ["dependency", "area:backend"]
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    groups:
-      patch-and-minor:
-        update-types: ["patch", "minor"]
-        exclude-patterns:
-          - "anthropic"
-          - "openai"
-          - "sqlalchemy"
-          - "pydantic"
-          - "alembic"
-          - "celery"
-          - "fastapi"
-    ignore:
-      # Mesmo teto do kombu[redis] da entrada "/" — ver o comentário lá.
-      - dependency-name: "redis"
-        versions: [">=6.5"]
-      # litellm congelado — ver o comentário na entrada "/".
-      - dependency-name: "litellm"
+      # instructor: mesmo caminho do litellm (é ele que o litellm_client usa
+      # para o structured output de toda chamada LLM). Mesma regra e mesma
+      # condição de retomada.
+      - dependency-name: "instructor"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      # numpy: o bump é evento de rebaseline do cone Monte Carlo (ADR-360 item 6
+      # — o bit stream do Generator só é garantido no mesmo X.Y), não upgrade
+      # silencioso. E o numpy ≥2.5 exige Python ≥3.12, enquanto o updater resolve
+      # em 3.11 (pyproject `requires-python >=3.11`): um piso 2.5 quebraria a
+      # entrada. Security updates seguem abrindo.
+      - dependency-name: "numpy"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      # Família opentelemetry-*: grupos pip nunca agruparam neste repo, então
+      # cada release abria até 7 PRs de piso, um por membro (#2101/#2102 subiam
+      # um cada), e a família é acoplada por `==` — um membro sozinho não
+      # resolve contra o lock. Só as sentinelas api (core 1.x) e
+      # instrumentation-fastapi (contrib 0.Xb) recebem version update; o PR delas
+      # sobe a família inteira (runbook python_dependencies.md §Uma entrada pip e
+      # a família opentelemetry). `update-types`, e não regra nua: security
+      # updates seguem abrindo. tests/dev/test_dependabot_otel_sentinels.py
+      # amarra esta lista ao .in.
+      - dependency-name: "opentelemetry-sdk"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-exporter-otlp-proto-http"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-sqlalchemy"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-celery"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-logging"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------

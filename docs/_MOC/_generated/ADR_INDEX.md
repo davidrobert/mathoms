@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-435 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
+437 ADRs (ADR-001 a ADR-448) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 372
+- **Decidido**: 374
 - **Proposto**: 58
 - **Roadmap**: 5
 
@@ -354,11 +354,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## ci
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético · phase A34
 - [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
 - [[ADR-415]] — Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação · phase PLAN-ci-trust Onda 0
+- [[ADR-448]] — Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge
 
 ### Proposto (1)
 
@@ -586,7 +587,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (85)
+### Decidido (86)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -673,6 +674,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-433]] — O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado · phase A40.l113
 - [[ADR-434]] — Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado · phase A42
 - [[ADR-439]] — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero · phase A40.l113
+- [[ADR-447]] — A classe da falha sai do objeto vivo e atravessa o executor no detail do stage
 
 ### Proposto (20)
 

@@ -192,7 +192,7 @@ Quando bypass é a única opção (release crítica, exploit já público, gate 
 2. Issue Linear `security-slo-breach` criada **antes** do merge.
 3. SLA 24h para fix real (PR aberto, não fechado).
 4. Pre-commit override: `git commit --no-verify` aceitável **só** em emergência declarada via Issue.
-5. CI override: aprovação owner explícita em PR + admin merge via Ruleset bypass (auditado).
+5. CI override: aprovação owner explícita em PR + break-glass da [[ADR-448]] D2 (concessão temporária do bypass para UM merge; comando em `pipeline_rollback.md` §4.2). Desde a ADR-448 o papel Admin não tem bypass permanente, e `gh pr merge --admin` sozinho falha.
 
 Documentar override em pós-mortem na Issue.
 

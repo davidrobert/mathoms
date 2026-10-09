@@ -649,14 +649,16 @@ Depois de commitar, **rode o job outra vez sem `update_print_baseline`**
 sem comparar nada: um run verde de regeneração não prova que a baseline nova
 passa no gate — só que ela foi escrita.
 
-> **O rosa da capa na baseline não é o produto.** O job converte o PDF com
-> `pdf-to-png-converter` (pdfjs), que não resolve o gradiente do cover nem
-> `background-clip: text`: a capa sai magenta e o subtítulo "Pessoal e
-> Patrimonial" some. Verificado em 2026-08-08 passando o **mesmo** PDF por
-> pdfjs e por Poppler (`pdftoppm -png`) — o segundo sai correto, azul-marinho e
-> com subtítulo. A baseline é fiel ao que o instrumento vê, que é o que o diff
-> compara. Se quiser inspecionar o PDF de verdade, use `pdftoppm`, não o PNG do
-> artefato.
+> **A baseline mostra o que o rasterizador vê, não o PDF.** Até 2026-10-09 o
+> job convertia com `pdf-to-png-converter` 3.x (pdfjs 5.6), que não resolvia o
+> gradiente do cover nem `background-clip: text`: a capa saía magenta, o
+> subtítulo "Pessoal e Patrimonial" virava uma barra verde e os cards de KPI
+> ganhavam um retângulo cinza atrás — e o gate, comparando rosa com rosa, era
+> cego a regressão de fundo da capa. Desde o 4.2.1 (pdfjs 6.2, que também fecha
+> o GHSA-hq66-cqwq-w95j) os três saem como no Poppler (`pdftoppm -png`):
+> medido passando o **mesmo** PDF pelas duas versões (controles v3×v3 e v4×v4
+> em 0 px). Na dúvida sobre um PNG de artefato, rasterize o PDF com
+> `pdftoppm` e compare.
 
 Este gate compara **só a primeira página**, por pixel. Conteúdo ausente da
 página 12 é invisível para ele — foi assim que o export truncou por meses. Quem

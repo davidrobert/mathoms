@@ -1137,6 +1137,8 @@ Regras em `_run_stage()` (`pipeline/orchestrator.py`):
 
 O dicionário completo permanece em `StageResult.detail` para a UI, logs e persistência do run.
 
+**Classe da falha — `detail["failure_class"]` ([[ADR-447]]).** Quem captura a exceção viva grava a classe dela no `detail`: o `except` de `_run_stage` nos dois executores (`SystemExit ≠ 0` grava `unknown` explícito) e o `_call_llm_safe` do parecer. Só membro de `StageFailureReason` (`pipeline/stage_failure_reason.py`), nunca texto da exceção; o backend a lê em `reason_from_stage_detail` e persiste `output_summary.reason_class`. Runner não escreve a chave à mão: falha declarada sem exceção usa `reason` ou `retention_reason`.
+
 ---
 
 ## 13. Segurança
