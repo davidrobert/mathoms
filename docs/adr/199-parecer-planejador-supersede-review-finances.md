@@ -253,7 +253,7 @@ pinada nos dois sentidos).
 ## Emenda 2026-10-09 — E3: a proveniência carimbada no output compõe a chave
 
 Origem: resíduo da [[A40.l17]] §Residual (achado do `senior-cto`); co-design
-`prompt-engineer` + `senior-cto` em 2026-10-09. A chave compunha `prompt_version`
+`prompt-engineer` + `senior-cto` em 2026-10-09; entregue em [#2166](https://github.com/davidrobert/mathoms/pull/2166). A chave compunha `prompt_version`
 desde a §Emenda 2026-06-12, mas não o `persona_hash` nem o `tier` — e os dois são
 carimbados no `metadata` do output que o cache guarda.
 
