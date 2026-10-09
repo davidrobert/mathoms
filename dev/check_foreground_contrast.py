@@ -97,6 +97,17 @@ FUNDO_NO_PAI = [
         "surface-foreground",
         "texto do `TooltipContent` do shadcn, que pinta `bg-foreground`",
     ),
+] + [
+    # `<Spinner>` de carregamento dentro do `<Button>` default, que pinta
+    # `bg-primary`. Medidos desde que a paleta oklch do shadcn ganhou hex.
+    (rel, "primary-foreground", "primary", "Spinner no `<Button>` default (`bg-primary`)")
+    for rel in (
+        "frontend/src/app/(app)/documents/_components/PendingReviewQueue.tsx",
+        "frontend/src/app/(app)/pipeline/_components/TriggerCard.tsx",
+        "frontend/src/app/(app)/pipeline/runs/[runId]/reviews/_components/ReviewActions.tsx",
+        "frontend/src/app/login/LoginForm.tsx",
+        "frontend/src/app/register/RegisterForm.tsx",
+    )
 ]
 
 FG_RE = re.compile(r"text-\[var\(--([\w-]+)\)\](?:/(\d+))?")
