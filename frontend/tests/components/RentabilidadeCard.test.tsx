@@ -137,7 +137,8 @@ describe("<RentabilidadeCard /> · back-compat (sem campo aninhado)", () => {
       // rentabilidade aninhado AUSENTE (workspace antigo)
     };
     render(<RentabilidadeCard ratios={ratios} />);
-    expect(screen.getByText("3.25%")).toBeInTheDocument();
+    expect(screen.getByText("3,25%")).toBeInTheDocument();
+    expect(screen.queryByText("3.25%")).not.toBeInTheDocument();
     expect(screen.getByText(/Yield observado sobre patrimônio gerador/i)).toBeInTheDocument();
   });
 
