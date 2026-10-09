@@ -440,6 +440,7 @@
 | ADR-443 | adr | Decidido |  | Stage roda uma vez por run — não há retry de stage em executor nenhum | `adr/443-stage-roda-uma-vez-por-run-sem-retry-de-stage.md` |
 | ADR-444 | adr | Proposto |  | Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência | `adr/444-imovel-de-uso-nao-apurado-entra-na-carteira-com-valor-e-sem-peso.md` |
 | ADR-445 | adr | Proposto |  | Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho | `adr/445-transacao-de-escrita-nao-atravessa-io-lento.md` |
+| ADR-446 | adr | Decidido |  | Soft time limit encerra o run — nenhum stage começa depois do prazo | `adr/446-soft-time-limit-encerra-o-run.md` |
 | ADR-447 | adr | Decidido |  | A classe da falha sai do objeto vivo e atravessa o executor no detail do stage | `adr/447-classe-da-falha-sai-do-objeto-vivo-e-atravessa-o-executor.md` |
 | ADR-448 | adr | Decidido |  | Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge | `adr/448-bypass-do-ruleset-sai-do-papel-admin-break-glass-por-concessao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
