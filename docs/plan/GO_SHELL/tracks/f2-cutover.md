@@ -257,6 +257,11 @@ construído (o dogfood é single-tenant; blast radius de canário per-workspace
    hot-reload. RTO = `make go-off ENV=native` (segundos). Runs em voo: drain
    SIGTERM (grace 30s) + re-run idempotente (escrita só commita no sucesso).
 
+   > **Correção 2026-10-09:** o parêntese não valia para stage que falhava no shell.
+   > Kill por SIGTERM não commita, porque a transação morre com o processo; já a
+   > falha de stage commitava o que ele escreveu antes. Vale nos três executores
+   > desde [[ADR-303]] §Emenda 2026-10-09.
+
 ## Rollback (gatilhos acionáveis — reverter = `go-off`)
 
 Fallback = **unset da env var → `InProcessPipelineClient`** (caminho batido em
@@ -304,6 +309,25 @@ calendário é **N/A** no dogfood — o shell sobe por sessão de trabalho, não
 **parity check semanal** (double-run: `go-off` → re-run Python → golden_diff
 cents=0 + envelope=0); pico RSS + zumbis (zero); **zero `database is locked`**
 (gatilho 8); resultado do gate humano; ledger de rollback (contagem 0 exigida).
+
+**Invariante diário do ledger (2026-10-09):** zero par (run, stage) com artefato
+commitado e stage_log só `failed` desde o início do soak. É a fronteira transacional
+que o `go_parity_gate` não vê ([[ADR-303]] §Emenda 2026-10-09). Não enxerga
+`generate_narratives`, que grava na chave do E5; esse caso fica com o teste de
+disposição. O filtro de data deixa de fora os 2 pares de 2026-07-07 do dogfood.
+
+```sql
+SELECT a.pipeline_run_id, a.stage, COUNT(*) AS rows
+FROM pipeline_artifacts a
+WHERE a.created_at >= :inicio_do_soak
+  AND EXISTS (SELECT 1 FROM pipeline_stage_logs l
+              WHERE l.pipeline_run_id = a.pipeline_run_id AND l.stage = a.stage
+                AND l.status = 'failed')
+  AND NOT EXISTS (SELECT 1 FROM pipeline_stage_logs l
+                  WHERE l.pipeline_run_id = a.pipeline_run_id AND l.stage = a.stage
+                    AND l.status <> 'failed')
+GROUP BY a.pipeline_run_id, a.stage;
+```
 
 **F3 abre quando:** 14 dias + barra de atividade + parity checks todos zero +
 zero rollback + zero OOM/zumbi + health ≥ SLO, **tudo no ledger**. F3 remove só

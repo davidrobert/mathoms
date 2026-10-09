@@ -5,6 +5,7 @@ title: "Schema validation: mode_overrides per-schema, enforcement strict real e 
 status: Decidido
 phase: "Débito técnico (A24)"
 date: "2026-06-09"
+amended_at: ["2026-10-08"]
 relates_to:
   - "[[ADR-283]]"
   - "[[ADR-212]]"
@@ -26,6 +27,10 @@ tags:
 **Status:** Decidido (Débito técnico, A24 — PR #577) • **Data:** 2026-06-09 • **Relaciona**
 [[ADR-283]] (decisão D + §Follow-ups #3), [[ADR-212]] (hook pós-write),
 [[ADR-242]] (categoria_sugerida), [[ADR-278]] (amount/natural_key).
+
+> **Correção 2026-10-08 ([[ADR-443]]):** a guarda de retry da §A ficou sem objeto e
+> saiu do código — não há retry de stage. O invariante que ela protegia vale por
+> construção: `ValidationError` roda uma vez.
 
 ## Contexto
 
@@ -65,6 +70,12 @@ corrompe; o run falha naquele stage para aquele workspace). Guarda de retry em
 `_run_stage_with_retry`: `ValidationError` é **não-retryable incondicional** —
 erro de contrato é determinístico; sem a guarda, stages com `retryable_errors`
 (E2-llm) casariam substring do texto do erro e queimariam backoff inútil.
+
+> **Correção 2026-10-08 ([[ADR-443]]):** a guarda nunca operou in-process. A
+> `ValidationError` nasce em `DBArtifactStore.write`, dentro do runner, e
+> `orchestrator._run_stage` a achata em `success: False` antes do wrapper — o
+> backoff que ela evitava não teria acontecido de qualquer forma. Com o retry de
+> stage apagado, a guarda saiu junto (`_is_schema_validation_error`).
 
 ### B — Telemetria estruturada de drift (log-only)
 

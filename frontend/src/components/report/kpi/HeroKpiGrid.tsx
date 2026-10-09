@@ -7,7 +7,7 @@ import {
   type JanelaRotulo,
 } from "../utils/janelaLabel";
 import { resolveTaxaPoupanca } from "../utils/fluxoJanela";
-import { formatFullBRL } from "@/lib/format";
+import { formatFullBRL, formatNumber, formatPercent } from "@/lib/format";
 import type {
   MotivoBaldeImovel,
   PatrimonioData,
@@ -175,7 +175,7 @@ function InvestivelSubline({
 
   const pctLine =
     pctLiquido != null
-      ? `${pctLiquido.toFixed(1).replace(".", ",")}% do líquido`
+      ? `${formatPercent(pctLiquido)} do líquido`
       : fonte
         ? `Fonte: ${fonte}`
         : null;
@@ -229,7 +229,7 @@ function ReservaKpi({ reserva }: { reserva: ReservaEmergenciaData | undefined })
     <KpiCard
       label="Reserva de Emergência"
       tone={tone}
-      value={meses != null ? `${meses.toFixed(1).replace(".", ",")} meses` : "—"}
+      value={meses != null ? `${formatNumber(meses, 1)} meses` : "—"}
       sub={
         meses != null
           ? `${reservaMetaLabel(reserva)} · ${reservaQuality(reserva, meses)}`
@@ -290,7 +290,7 @@ function TaxaPoupancaKpi({ ratios }: { ratios: RatiosData | undefined }) {
     <KpiCard
       label="Taxa de Poupança"
       title={formatJanelaTooltip(taxa?.rotulo ?? null) ?? undefined}
-      value={recorrente != null ? `${recorrente.toFixed(1).replace(".", ",")}%` : "—"}
+      value={recorrente != null ? formatPercent(recorrente) : "—"}
       sub={<TaxaPoupancaSub total={total} rotulo={taxa?.rotulo ?? null} />}
     />
   );
@@ -310,7 +310,7 @@ function TaxaPoupancaSub({
   return (
     <>
       {total != null
-        ? `Recorrente · Total: ${total.toFixed(1).replace(".", ",")}%`
+        ? `Recorrente · Total: ${formatPercent(total)}`
         : "Recorrente"}
       {badge && (
         <span data-janela-badge style={JANELA_BADGE_STYLE}>
@@ -382,7 +382,7 @@ function ScoreKpi({ score }: { score: ScoreData | undefined }) {
       tone={tone}
       value={
         score
-          ? `${score.valor.toFixed(1).replace(".", ",")} / ${score.max}`
+          ? `${formatNumber(score.valor, 1)} / ${score.max}`
           : "—"
       }
       sub={score?.classificacao ?? (score ? scoreLabel(score.valor, score.max) : undefined)}
