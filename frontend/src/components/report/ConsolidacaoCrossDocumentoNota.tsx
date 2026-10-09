@@ -8,10 +8,10 @@
  * **Duas frases, uma base por frase.** A primeira é o fato completo (corpus),
  * que é a unidade contra a qual a família reconcilia: ela envia *documentos*,
  * não janelas. A segunda declara quanto disso caiu na janela de mensalização,
- * que é a base das médias exibidas ao lado. É o mesmo padrão de
- * `FluxoMensalChart.buildContext` (`describeRenderizada` + `describeAgregado`),
- * e satisfaz o invariante da [[ADR-306]] D1 mais fortemente que base única:
- * cada contagem sai do mesmo objeto que fornece seu rótulo.
+ * que é a base das médias exibidas ao lado. É o mesmo padrão do card de fluxo
+ * mensal (o contexto descreve o desenho; a conclusão `fluxo_mensal` declara a
+ * base do agregado), e satisfaz o invariante da [[ADR-306]] D1 mais fortemente
+ * que base única: cada contagem sai do mesmo objeto que fornece seu rótulo.
  *
  * Vocabulário deliberado (ver COPY_GUIDELINES §2.2): **não** "consolidados" —
  * PRODUCT.md §1 já usa "consolida extratos, faturas" no sentido de *juntar*, e

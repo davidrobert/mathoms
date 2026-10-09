@@ -503,10 +503,20 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
 // 3. Site: buildContext (FluxoMensalChart · [data-chart-context])
 // ─────────────────────────────────────────────────────────────────────
 
-describe("buildContext — barras do render, agregado do payload", () => {
-  it("janela 12m: exibe o agregado de janela_12m e não o do bloco full", () => {
+/** O contexto descreve só o DESENHO; o agregado rotulado é da conclusão do mesmo
+ * card. Antes os dois imprimiam a mesma média — e, com a série bruta renomeada
+ * (ADR-333), o "aportes incluídos" também, duas vezes. D1 exige rótulo, não
+ * posição: os asserts de base migraram para a conclusão renderizada. */
+function dataComFluxo(fluxoBloco: FluxoCaixaSummary): ReportAnalysisData {
+  return { ...fx, fluxo_caixa: fluxoBloco } as ReportAnalysisData;
+}
+
+describe("buildContext — descreve as barras; o agregado rotulado vive na conclusão", () => {
+  it("janela 12m: contexto sem agregado, conclusão com o de janela_12m", () => {
     renderFluxoCard(fx, fluxo);
-    const text = contextText();
+    expect(contextText()).toMatch(/^No gráfico: 12 meses/);
+    expect(CITA_AGREGADO.test(contextText())).toBe(false);
+    const text = conclusionText();
     expect(text).toContain("os últimos 12 meses documentados");
     expect(text).toContain(V.receita12m);
     expect(text).toContain(V.despesa12m);
@@ -514,7 +524,7 @@ describe("buildContext — barras do render, agregado do payload", () => {
     expect(text).not.toContain(V.despesaFull);
   });
 
-  it("contagem de meses vem do render, não do payload", () => {
+  it("contagem de meses vem do render; a da base, do payload — cada uma no seu texto", () => {
     // ADR-306 D2 documenta `janela: "12m", janela_meses: 8` — payload com menos
     // meses documentados que a janela conceitual. A cláusula das barras não
     // pode herdar essa contagem: o range renderizado tem 12 rótulos.
@@ -524,15 +534,16 @@ describe("buildContext — barras do render, agregado do payload", () => {
     >;
     (oitoMeses.janela_12m as Record<string, unknown>).janela_meses = 8;
     (oitoMeses.janela_12m as Record<string, unknown>).n_meses = 8;
-    renderFluxoCard(fx, oitoMeses as FluxoCaixaSummary);
-    const text = contextText();
-    expect(text).toContain("No gráfico: 12 meses");
-    expect(text).toContain("os últimos 8 meses documentados");
+    const bloco = oitoMeses as FluxoCaixaSummary;
+    renderFluxoCard(dataComFluxo(bloco), bloco);
+    expect(contextText()).toContain("No gráfico: 12 meses");
+    expect(conclusionText()).toContain("os últimos 8 meses documentados");
   });
 
-  it("simetria full: sem janela_12m o texto declara todo o período", () => {
+  it("simetria full: sem janela_12m a conclusão declara todo o período", () => {
     renderFluxoCard(dataSemJanela12m(), fluxoSemJanela12m());
-    const text = contextText();
+    expect(CITA_AGREGADO.test(contextText())).toBe(false);
+    const text = conclusionText();
     expect(text).toMatch(/todo o período/i);
     expect(text).toContain("36 meses");
     expect(text).toContain(V.receitaFull);
@@ -542,7 +553,8 @@ describe("buildContext — barras do render, agregado do payload", () => {
   it("isPrint (superfície do PDF) usa o mesmo agregado de 12m", () => {
     mockUseIsPrint.mockReturnValue(true);
     renderFluxoCard(fx, fluxo);
-    const text = contextText();
+    expect(CITA_AGREGADO.test(contextText())).toBe(false);
+    const text = conclusionText();
     expect(text).toContain("os últimos 12 meses documentados");
     expect(text).toContain(V.receita12m);
     expect(text).not.toContain(V.receitaFull);
@@ -572,6 +584,17 @@ describe("deriveChartConclusion('fluxo_mensal') — único texto que mensaliza S
     const text = deriveChartConclusion("fluxo_mensal", fx) ?? "";
     expect(text).not.toContain(brl0(11_000));
     expect(text).not.toMatch(/sobra|taxa de poupança|capacidade/i);
+  });
+
+  it("nomeia a base bruta 'saídas, aportes incluídos' — nunca 'despesa' (ADR-333)", () => {
+    // `despesa_mensal_media` inclui o aporte. Na mesma S2 "despesa" é a base da
+    // rosca, que tira o aporte: uma palavra para duas bases (A40.l15/l102).
+    const text = deriveChartConclusion("fluxo_mensal", fx) ?? "";
+    expect(text).toContain(`saídas de ${V.despesa12m}/mês, aportes incluídos`);
+    expect(text).not.toMatch(/despesa/i);
+    expect(deriveChartConclusion("fluxo_mensal", {} as ReportAnalysisData)).toBe(
+      "Receitas e saídas mês a mês.",
+    );
   });
 
   it("renderiza no card via prop conclusion (caminho de produção)", () => {

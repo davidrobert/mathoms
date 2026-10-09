@@ -81,15 +81,18 @@ function prettyKey(key: string): string {
  * números — a terceira base ("quanto sobra") vive num lugar só, o KPI de folga
  * do card de Consumo Consciente, rotulado com a própria janela. Emitir aqui uma
  * segunda e uma terceira leitura de "quanto sobra" na mesma seção foi medido
- * como ilegível (F6). */
+ * como ilegível (F6).
+ *
+ * O termo bruto se chama "saídas, aportes incluídos", não "despesa": na mesma
+ * S2 "despesa" é a base da rosca, que tira o aporte (ADR-333 §Emenda). */
 function buildFluxoMensal(data: ReportAnalysisData): string | null {
   const janela = resolveFluxoJanelaMensal(data.fluxo_caixa);
   if (!janela) return null;
   const receita = format(janela.receitaRecorrenteMensal, "brl");
-  const despesa = format(janela.despesaMensalMedia, "brl");
+  const saidas = format(janela.despesaMensalMedia, "brl");
   return (
     `Sobre ${describeJanelaEscopo(janela.rotulo)}: receita recorrente de ` +
-    `${receita}/mês e despesa média de ${despesa}/mês.`
+    `${receita}/mês e saídas de ${saidas}/mês, aportes incluídos.`
   );
 }
 
@@ -157,9 +160,9 @@ const FALLBACKS: Record<string, string> = {
   patrimonio_doughnut: "Distribuição patrimonial por categoria.",
   waterfall_if: "Progresso acumulado rumo à independência financeira.",
   score_gauge: "Indicador consolidado da saúde financeira.",
-  fluxo_mensal: "Receita vs despesa mês a mês.",
+  fluxo_mensal: "Receitas e saídas mês a mês.",
   receita_bar: "Composição das receitas por fonte.",
-  receita_despesa_mensal: "Receita vs despesa ao longo do tempo.",
+  receita_despesa_mensal: "Receitas e saídas ao longo do tempo.",
   viagens: "Orçamento e gastos de viagem no período.",
   alocacao_atual: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio.",
   alocacao_alvo: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio.",

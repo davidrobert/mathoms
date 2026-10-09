@@ -9,17 +9,21 @@ import { useIsPrint } from "../hooks/useIsPrint";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
 import { fmtBRL, formatChartMonthLabel } from "./_shared";
-import { resolveFluxoJanelaMensal, type FluxoJanelaMensal } from "../utils/fluxoJanela";
-import { describeJanelaEscopo, pluralMeses } from "../utils/janelaLabel";
+import { pluralMeses } from "../utils/janelaLabel";
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
 
 /** v2.E.3 — Chart "Fluxo de Caixa Mensal" em Chart.js (paridade
  * `EXEMPLO_DE_RELATORIO.html:1773-1779`).
  *
- * Stacked: receita acima do zero (`--semantic-gain`) + despesa negativa
- * abaixo (`--semantic-loss`). `PeriodToggle` (3M/6M/12M/Ano) acima do
- * chart, `usePeriodWindow` aplica o slice. Em `@media print` o toggle
+ * Stacked: receitas acima do zero (`--semantic-gain`) + saídas negativas
+ * abaixo (`--semantic-neutral-financial`). `PeriodToggle` (3M/6M/12M/Ano) acima
+ * do chart, `usePeriodWindow` aplica o slice. Em `@media print` o toggle
  * fica oculto e o período é fixado em 12m.
+ *
+ * `totais_despesa` é BRUTO: inclui o aporte, que é poupança e não consumo
+ * (ADR-333). Daí "Saídas (inclui aportes)", o nome do `/plano`, e a cor neutra:
+ * "Despesa" nomearia, na mesma S2, a base da rosca que tira o aporte, e o
+ * vermelho leria a poupança como perda.
  */
 export function FluxoMensalChart({
   fluxo,
@@ -39,15 +43,19 @@ export function FluxoMensalChart({
   if (!labels.length) return null;
 
   const slicedLabels = labels.slice(window.start, window.end).map(formatChartMonthLabel);
-  const receita = (det?.totais_receita ?? []).slice(window.start, window.end);
-  const despesa = (det?.totais_despesa ?? []).slice(window.start, window.end);
+  const receitas = (det?.totais_receita ?? []).slice(window.start, window.end);
+  const saidas = (det?.totais_despesa ?? []).slice(window.start, window.end);
 
   const series: ChartSeries[] = [
-    { label: "Receita", data: receita, color: theme.semantic.gain },
-    { label: "Despesa", data: despesa.map((v) => -v), color: theme.semantic.loss },
+    { label: "Receitas", data: receitas, color: theme.semantic.gain },
+    {
+      label: "Saídas (inclui aportes)",
+      data: saidas.map((v) => -v),
+      color: theme.semantic.neutral,
+    },
   ];
 
-  const context = buildContext(slicedLabels, fluxo, effectivePeriod);
+  const context = buildContext(slicedLabels);
 
   return (
     <ReportCard variant="neutral" title="Fluxo de Caixa Mensal" conclusion={conclusion}>
@@ -67,46 +75,26 @@ export function FluxoMensalChart({
         series={series}
         stacked
         formatValue={(v) => fmtBRL(v)}
-        ariaLabel="Fluxo de caixa mensal — receita e despesa empilhadas"
+        formatTooltipValue={(v) => fmtBRL(Math.abs(v))}
+        ariaLabel="Fluxo de caixa mensal: receitas acima do zero; saídas, aportes incluídos, abaixo."
         height={256}
       />
     </ReportCard>
   );
 }
 
-/** Duas cláusulas com origens distintas — misturá-las produzia "últimos 8
- * meses (jan/25 a dez/25)" com 12 barras (I3): a contagem vinha do payload e o
- * range do render. A primeira cláusula descreve o que está DESENHADO; a
- * segunda declara a base do agregado citado, sempre rotulada. */
-function buildContext(
-  slicedLabels: readonly string[],
-  fluxo: FluxoCaixaSummary | undefined,
-  effectivePeriod: Period,
-): string | null {
-  if (slicedLabels.length === 0) return null;
-  const renderizada = describeRenderizada(slicedLabels);
-  // 3M/6M/YTD não têm bloco agregado no payload, e derivar a média de
-  // `totais_receita` trocaria receita recorrente por receita bruta
-  // (fluxo_caixa_enricher.py:432,471). Omitir é o único caminho honesto.
-  if (effectivePeriod !== "12m") return renderizada;
-  const janela = resolveFluxoJanelaMensal(fluxo);
-  if (!janela) return renderizada;
-  return `${renderizada} ${describeAgregado(janela)}`;
-}
-
-/** Contagem e range vêm do MESMO lugar: as barras desenhadas. */
-function describeRenderizada(slicedLabels: readonly string[]): string {
+/** Descreve só o que está DESENHADO: contagem e range vêm do mesmo lugar, as
+ * barras renderizadas. Misturar contagem do payload com range do render
+ * produzia "últimos 8 meses (jan/25 a dez/25)" com 12 barras (I3).
+ *
+ * O agregado rotulado (ADR-306 D1) vive só na conclusão do card
+ * (`conclusionUtils.buildFluxoMensal`): repeti-lo aqui imprimia os mesmos dois
+ * números duas vezes, e o qualificador "aportes incluídos" junto. */
+function buildContext(slicedLabels: readonly string[]): string | null {
   const n = slicedLabels.length;
+  if (n === 0) return null;
   const first = slicedLabels[0];
   const last = slicedLabels[n - 1];
   const range = first === last ? first : `${first} a ${last}`;
   return `No gráfico: ${n} ${pluralMeses(n)} (${range}).`;
-}
-
-/** ADR-306 D1 — agregado só aparece com rótulo explícito da própria base,
- * inclusive quando é 12m: o leitor não pode inferir a base pela posição. */
-function describeAgregado(janela: FluxoJanelaMensal): string {
-  const receita = `${fmtBRL(janela.receitaRecorrenteMensal)}/mês`;
-  const despesa = `${fmtBRL(janela.despesaMensalMedia)}/mês`;
-  return `Média sobre ${describeJanelaEscopo(janela.rotulo)}: receita recorrente de ${receita} versus despesa média de ${despesa}.`;
 }
