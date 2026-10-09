@@ -149,6 +149,17 @@
           }
         }
       }
+    },
+    "user_prompt_sha256": {
+      "type": "object",
+      "description": "Pin do user prompt renderizado (ADR-199 §Emenda 2026-10-09): sha256 do user prompt que `_build_prompts` monta sobre a fixture congelada de tests/fixtures/parecer_prompt_fingerprint/, por regime de eviction. Metadado de TESTE, sem leitor em runtime — lido por tests/test_parecer_prompt_fingerprint.py. Mora no manifest de propósito: o gate W2-T05 cobra bump de `version` de qualquer edição deste arquivo, então byte do prompt que muda ⇒ pin que muda ⇒ bump. Par de `SYSTEM_PROMPT_SHA256` em pipeline/llm/prompts/parecer_planejador.py.",
+      "additionalProperties": false,
+      "required": ["sem_evicao", "evicao", "corte_duro"],
+      "properties": {
+        "sem_evicao": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "evicao": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "corte_duro": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
     }
   },
 

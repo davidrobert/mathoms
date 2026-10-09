@@ -53,7 +53,33 @@
         "frescor": 2024,
         "motivo": "sem_extrato_no_periodo"
       }
-    ]
+    ],
+    "cobertura_classificacao_imovel": {
+      "valor_total": 2100000.0,
+      "valor_desconhecido": 1400000.0,
+      "n_total": 3,
+      "n_desconhecido": 1,
+      "pct_desconhecido": 66.67,
+      "residencia_identificada": 0.0,
+      "geradores_identificados": 600000.0,
+      "nao_geradores_identificados": 100000.0,
+      "residencia": {
+        "status": "nao_apurado",
+        "motivo": "nao_classificada",
+        "piso": true
+      },
+      "imoveis_geradores": {
+        "status": "apurado",
+        "motivo": null,
+        "piso": false
+      },
+      "n_desconhecido_em_aberto": 1,
+      "overrides_sem_imovel": {
+        "residencia_principal": 0,
+        "geradores": 0
+      },
+      "residencia_status": "owned"
+    }
   },
   "fluxo_caixa": {
     "janela": "full",
