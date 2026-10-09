@@ -16,11 +16,10 @@ on:
     - cron: "30 6 * * *"
   workflow_dispatch:
     inputs:
-      # Dispatch nasce sem efeito: só loga o que faria. `-f debug-only=false`
-      # age sobre PRs e issues reais, igual ao run agendado. Mesmo em debug, o
-      # stale grava o cache `_state` (itens processados) no ref do run. Valide
-      # com `--ref <branch>`, nunca em main, porque um run de debug que esgote o
-      # `operations-per-run` faria o agendado pular itens.
+      # Dispatch nasce sem efeito: só loga o que faria. A v11 nem grava o cache
+      # `_state` em debug ("The state is not persisted in the debug mode", run
+      # 37929689938). `-f debug-only=false` age sobre PRs e issues reais, igual
+      # ao run agendado.
       debug-only:
         description: "Só loga o que faria (false = marca e fecha de verdade)"
         type: boolean
