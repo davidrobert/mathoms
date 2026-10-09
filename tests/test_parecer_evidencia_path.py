@@ -491,5 +491,5 @@ class TestPromptTokenBudget:
         # dos 5% e no sentido bom (o prompt encolheu). 2.5.0 → 2.6.0 é bump de
         # PERSONA (1.3.0, R23 — ADR-341 §Emenda 2026-10-09): o template não muda
         # e o delta acima segue o da 2.5.0; o system prompt montado cresce
-        # +0,81% (persona +315 chars).
+        # +1,22% (persona +472 chars).
         assert PROMPT_VERSION == "2.6.0"

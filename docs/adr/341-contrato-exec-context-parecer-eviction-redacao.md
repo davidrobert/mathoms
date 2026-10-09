@@ -200,10 +200,10 @@ entrega.
 - `CampoFaltante.motivo` entra no boundary de truncamento da [[ADR-294]]: era o último
   texto com teto duro, e o reask que ele disparava dobrava os tokens da chamada.
 
-**O bump de `PROMPT_VERSION` é load-bearing.** O `persona_hash` não compõe
-`compute_cache_key` (resíduo da [[A40.l17]]): sem o bump, parecer gerado sob a 1.2.0 seria
-servido por até 7 dias. Ele vale em qualquer ordem relativa ao PR que põe o hash na chave,
-porque o drift monitor janela por `(prompt_version, model)`, não por hash.
+**Por que o bump de `PROMPT_VERSION` fica.** Desde o #2166 o `persona_hash` compõe
+`compute_cache_key`, e a troca da persona já invalida o cache. O bump fica porque o drift
+monitor janela por `(prompt_version, model)`, não por hash: sem ele, os dois regimes da
+persona se misturariam na mesma janela de drift.
 
 **Gate.** `tests/dev/test_persona_conjuntura_parity.py`, bicondicional: convite sem taxa
 no manifest **e** taxa no manifest com a R23 de pé, cada perna provada por mutação.
