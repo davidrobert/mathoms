@@ -13,6 +13,7 @@ import userEvent from "@testing-library/user-event";
 
 import { DespesasDoughnutChart } from "@/components/report/charts/DespesasDoughnutChart";
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
+import { PERCENTUAL_COM_PONTO } from "../../shared/percentualPtBr";
 
 // react-chartjs-2 quebra em jsdom sem pkg `canvas`. Mock com div + label
 // dump para introspeção do conteúdo das fatias.
@@ -143,6 +144,17 @@ describe("<DespesasDoughnutChart />", () => {
     render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
     const matches = screen.getAllByText(/Não identificado lidera com/);
     expect(matches.length).toBeGreaterThan(0);
+  });
+
+  // A conclusão saía "(57.1%)" no mesmo card cujo Alert já dizia "57,1% do
+  // total" — `toFixed` não conhece locale.
+  it("conclusão formata o percentual com vírgula decimal (pt-BR)", () => {
+    render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
+    // 800/1400 = 57,1%
+    for (const conclusao of screen.getAllByText(/lidera com/)) {
+      expect(conclusao.textContent).toContain("(57,1%)");
+      expect(conclusao.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
+    }
   });
 
   // A28.l9 — sinal persistente de "não identificado" >10% vira Alert inline,

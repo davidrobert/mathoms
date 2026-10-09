@@ -1,6 +1,7 @@
 "use client";
 
 import { MonetaryValue } from "../../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 import type { ProtecaoPatrimonialData } from "@/types/protecao";
 
 /** Faixas Cerbasi para KPI B — ancoradas em `protecao_analyzer.py::_PCT_RENDA_FAIXAS`. */
@@ -65,7 +66,7 @@ export function ProtecaoKpiHero({ data }: { data: ProtecaoPatrimonialData }) {
             className={`text-style-kpi ${vereditoSuprimido ? "text-muted" : SINAL_COLOR[sinal]}`}
             data-testid="protecao-kpi-b"
           >
-            {(pctRenda * 100).toFixed(2)}%
+            {formatPercent(pctRenda * 100, 2)}
           </div>
           {vereditoSuprimido ? (
             <EscopoParcial categorias={escopo?.categorias_somente_no_cadastro ?? []} />

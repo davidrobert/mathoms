@@ -19,6 +19,7 @@ import {
   humanizeCategoryLabel,
   isAporteInvestimentoKey,
 } from "@/lib/categoryLabels";
+import { formatPercent } from "@/lib/format";
 import type { FluxoCaixaSummary, ChartSeries } from "@/types/report-analysis";
 
 interface CategoryRow {
@@ -131,7 +132,7 @@ function buildFallbackConclusion(
   if (slices.length === 0 || total <= 0) return "";
   const top = slices[0];
   const topPct = (top.value / total) * 100;
-  return `${top.label} lidera com ${fmtBRL(top.value)} (${topPct.toFixed(1)}%) em ${base}.`;
+  return `${top.label} lidera com ${fmtBRL(top.value)} (${formatPercent(topPct)}) em ${base}.`;
 }
 
 /** A28.l9 — share da fatia "não identificado" na janela ativa (0..100). */
