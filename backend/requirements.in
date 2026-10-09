@@ -47,6 +47,11 @@ websockets>=12.0
 
 # A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
 python-json-logger>=3.2
+# Família acoplada por `==` (sdk 1.Y ⇒ api==1.Y; instrumentation 0.Xb ⇒
+# semantic-conventions==0.Xb): os pisos 1.x são um só, os 0.Xb são um só, e sobem
+# juntos com o lock. O Dependabot só propõe as sentinelas api e
+# instrumentation-fastapi — o resto é `ignore` em .github/dependabot.yml (runbook
+# python_dependencies.md §Uma entrada pip e a família opentelemetry).
 opentelemetry-api>=1.45.1
 opentelemetry-sdk>=1.45.1
 opentelemetry-exporter-otlp-proto-http>=1.45.1
