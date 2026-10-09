@@ -13,6 +13,7 @@ owner: product-designer
 depends_on: []
 adrs:
   - "[[ADR-399]]"
+  - "[[ADR-340]]"
 tags:
   - type/lane
   - sprint/a40
@@ -151,12 +152,14 @@ Painel `product-designer` (dono) + `financial-planner` + `data-engineer`, em par
   **O que falta é exatamente o §Critério desta lane:** esse operador **não chega ao
   front** — o wire ganhou `kpi_key`, não `operador`. Então "a polaridade chega ao front
   como dado, não por parsing da string" segue aberto, agora com o produtor já tipado.
+  **Fechado no #2065:** `comparador.operador` viaja no wire, cru do catálogo (ver §O que foi
+  entregue).
 - ~~Não muta E5 ⇒ **não entra na janela de rebaseline** e não zera o contador de 2
   re-runs.~~ **Falso desde o co-design de 2026-10-08:** a doutrina do limiar muta
   `kpi_targets` (o operador da concentração; a entrada de despesas, que vira órfã) e
   `diagnostico_confianca` (o tier na faixa de arredondamento) — nenhum número publicado se
-  move, mas o E5 muda, e a lane **entra na cláusula de reinício** do contador. Custo zero em 2026-10-08: a [[A40.l113]] segue
-  `in_progress`, logo o contador não começou.
+  move, mas o E5 muda, e a lane **entra na cláusula de reinício** do contador. Custo zero em 2026-10-08: no co-design a
+  [[A40.l113]] estava `in_progress`, logo o contador não tinha começado.
 
 ## Critério de aceite
 
@@ -188,7 +191,7 @@ veredito). Os critérios de aceite, um a um:
 | Teto não renderiza trilha que cresce com a piora | a barra só existe quando o backend publica `progresso_pct`, que é nulo no teto por construção (`veredito_do_comparador`) e por contrato (validador de `Comparador`, `if/then` do JSON schema) |
 | 45% contra `≤ 20%` não produz trilha cheia | o 1º commit do #2065 é o teste vermelho contra o componente antigo (`<progress value="100">`); a mesma regressão, reintroduzida numa sonda visual, reprova |
 | A polaridade chega como dado | `comparador.operador`, cru do catálogo; zero regex no componente e na lib |
-| Baseline de print com linha de teto, olhada | `parecer-metricas-print` (703×483, runner Linux), olhada antes do commit |
+| Baseline de print com linha de teto, olhada | `parecer-metricas-print` (703×500 na geração final, run 37869239554, runner Linux), olhada antes do commit |
 | 50,00 e 20,00 conformes, pareados ao `RiskTrigger` | #2048 — paridade por comportamento em volta do limiar |
 | Reserva 5,6 contra ≥ 6 → "Abaixo do alvo" | estampador + componente; o veredito julga o piso conservador |
 | Despesas nunca "Acima do limite" | órfã no catálogo + nível do produtor + componente + e2e |
@@ -250,7 +253,22 @@ distinguir mínimo de alvo na mesma linha.
 - **`S2` diverge da baseline visual desde 2026-08-14** (2970 → 2946 px). A `main` pura gera
   a mesma imagem que este trabalho (0 px), então não é desta lane. Sugerida ao dono como
   tarefa separada em 2026-10-08, **sem lane**: qualquer PR com label `visual` reprova nela
-  até alguém atribuir e rebaselinar.
+  até alguém atribuir e rebaselinar. ✅ **Fechado no #2068:** rebaselinada; a deriva eram os
+  quatro textos do #1864 ([[A40.l102]]), que encurtaram a seção em 24 px.
 - **Os botões flutuantes da nav caem dentro do recorte das seções** (visível em
   `S_parecer-parcial`): o helper `snapshotSection` não usa o `floatingNavMask` que `cover`
-  e `sumario-executivo` usam. Pré-existente; não tocado.
+  e `sumario-executivo` usam. Pré-existente; não tocado. **Rota:** sugerida ao dono como
+  tarefa separada em 2026-10-08, **sem lane**, junto com a recalibração da folga de 2,5% do
+  helper. A sonda desta lane mediu essa folga: a regressão da barra (1.135 px) passou em
+  `S_parecer-parcial`.
+- **O prompt do parecer usa `≥` nas fronteiras de severidade da concentração** (*"≥50% é
+  ALTA/atenção; crítica só ≥75%"*, `config/prompts/parecer_planejador.yaml`), e o código usa
+  `>` estrito nas duas: o alerta em `concentracao_pct > 50` (`real_estate_metrics_aggregator`)
+  e a red-line em `> 50` / `> 75` (`parecer_red_lines._severidade_exigida_concentracao`). É a
+  doutrina que esta lane fixou ([[ADR-399]] e [[ADR-340]], §Emenda 2026-10-08 de cada): o
+  limiar é o último valor conforme. Em 50,00 exato, o modelo chamaria de "Alta" o que a
+  tabela publica como "Dentro do limite". A red-line não reprova, porque nas duas fronteiras o
+  prompt pede severidade igual ou maior que a exigida. Então a contradição é só de
+  superfície, e só nos valores publicados 50,00 e 75,00. A proposta é corrigir no próximo
+  bump de versão do prompt do parecer, sem bump próprio. **Dono:** `prompt-engineer` +
+  `financial-planner`. Achado no fecho desta lane, 2026-10-08.
