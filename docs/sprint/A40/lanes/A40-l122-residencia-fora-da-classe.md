@@ -60,6 +60,15 @@ cônjuge sem id) é declarado no schema e no parecer.
 | PR-B | flip: produtor + gate de efeito com mutação + rebaseline | — |
 | PR-C | superfícies LLM: hint de concentração com ressalva, regime da residência no parecer, exceção no tom da S3, guarda determinística de prescrição, eval do dono — um bump de manifesto ([[ADR-444]] §Deferimento 5) | — |
 
+> **Nota 2026-10-09 ([[A40.l123]], #2117).** Duas peças do PR-C já saem no manifest 2.21.0
+> do parecer: o veredito da residência (`status` e `motivo`, com o regime de leitura nos
+> hints) e a ressalva da concentração com fatia sem classificação (hint em `ratios`: teto,
+> sem prescrição de venda de imóvel). O PR-C parte delas em vez de refazê-las. **Quando o
+> PR-B mover** o imóvel de uso não apurado para a linha própria, o trecho do hint de `ratios`
+> que chama "imóveis de investimento" de TETO deixa de valer para a linha da tabela —
+> revisar no PR-C. A concentração segue teto enquanto o numerador da [[ADR-420]] §D2 não
+> mudar.
+
 ## Critério de aceite
 
 1. Fixture com a residência sem `property_id` e override `residencia_principal` gravado: hoje

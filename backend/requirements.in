@@ -8,12 +8,12 @@ uvicorn[standard]>=0.30
 sqlalchemy[asyncio]>=2.1.3
 alembic>=1.13
 PyJWT>=2.15.1
-cryptography>=50.0.0  # SEC-03: GHSA-537c-gmf6-5ccf (OpenSSL estático no wheel <48.0.1); CVE-2026-69247 (oráculo Bleichenbacher em pkcs7_decrypt_*, <50.0.0)
+cryptography>=50.0.2  # SEC-03: GHSA-537c-gmf6-5ccf (OpenSSL estático no wheel <48.0.1); CVE-2026-69247 (oráculo Bleichenbacher em pkcs7_decrypt_*, <50.0.0)
 bcrypt>=4.0
-python-multipart>=0.0.31  # SEC-03: CVE-2026-53538/53539/53540 (DoS parse de form/upload)
+python-multipart>=0.0.32  # SEC-03: CVE-2026-53538/53539/53540 (DoS parse de form/upload)
 pydantic[email]>=2.13.5
 pydantic-settings>=2.15.0
-aiosqlite>=0.20
+aiosqlite>=0.22.1
 # Drivers Postgres (ADR-253):
 # - asyncpg: async engine (backend/app/core/database.py) p/ endpoints FastAPI
 #   + Alembic (env.py já roda async) quando DATABASE_URL=postgresql+asyncpg://.
@@ -23,8 +23,8 @@ aiosqlite>=0.20
 #   psycopg2-binary (legado, modo manutenção) saiu em A20.L8.
 asyncpg>=0.31.0
 psycopg[binary]>=3.3.6
-greenlet>=3.0
-httpx>=0.27
+greenlet>=3.5.6
+httpx>=0.28.1
 pyyaml>=6.0
 
 # Phase 4 — LLM
@@ -47,13 +47,18 @@ websockets>=12.0
 
 # A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
 python-json-logger>=3.2
-opentelemetry-api>=1.44.0
-opentelemetry-sdk>=1.30
-opentelemetry-exporter-otlp-proto-http>=1.30
-opentelemetry-instrumentation-fastapi>=0.50b0
-opentelemetry-instrumentation-sqlalchemy>=0.50b0
-opentelemetry-instrumentation-celery>=0.65b0
-opentelemetry-instrumentation-logging>=0.50b0
+# Família acoplada por `==` (sdk 1.Y ⇒ api==1.Y; instrumentation 0.Xb ⇒
+# semantic-conventions==0.Xb): os pisos 1.x são um só, os 0.Xb são um só, e sobem
+# juntos com o lock. O Dependabot só propõe as sentinelas api e
+# instrumentation-fastapi — o resto é `ignore` em .github/dependabot.yml (runbook
+# python_dependencies.md §Uma entrada pip e a família opentelemetry).
+opentelemetry-api>=1.45.1
+opentelemetry-sdk>=1.45.1
+opentelemetry-exporter-otlp-proto-http>=1.45.1
+opentelemetry-instrumentation-fastapi>=0.66b1
+opentelemetry-instrumentation-sqlalchemy>=0.66b1
+opentelemetry-instrumentation-celery>=0.66b1
+opentelemetry-instrumentation-logging>=0.66b1
 
 # Monte Carlo simulations (pipeline/if_projector.py imported transitively)
 # Teto de major por ADR-360 — ver comentário em requirements.in da raiz.
