@@ -13,7 +13,7 @@ bcrypt>=4.0
 python-multipart>=0.0.31  # SEC-03: CVE-2026-53538/53539/53540 (DoS parse de form/upload)
 pydantic[email]>=2.13.5
 pydantic-settings>=2.15.0
-aiosqlite>=0.20
+aiosqlite>=0.22.1
 # Drivers Postgres (ADR-253):
 # - asyncpg: async engine (backend/app/core/database.py) p/ endpoints FastAPI
 #   + Alembic (env.py já roda async) quando DATABASE_URL=postgresql+asyncpg://.
