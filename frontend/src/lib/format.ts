@@ -5,6 +5,7 @@ import { MONTH_SHORT_PT_LOWER } from "./monthLabel";
 // Re-export: o card do inbox importa daqui; o rótulo de mês mora em
 // monthLabel.ts porque este arquivo estava a 8 linhas do teto de 500.
 export { formatMonthShortPtBR } from "./monthLabel";
+export { formatBRLAxisTick, formatBRLDataLabel } from "./moneyLabel";
 
 // ─── Number Formatting ───
 
