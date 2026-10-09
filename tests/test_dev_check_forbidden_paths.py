@@ -37,6 +37,9 @@ _SPEC.loader.exec_module(cfp)
         "backend/.env.test",
         "mathoms.db",
         "config/passwords.txt",
+        "dogfood_denylist.v1",
+        "dev/dogfood_denylist.key",
+        "docs/dogfood_denylist.manifest.json",
     ],
 )
 def test_blocks_forbidden_files_at_any_depth(path: str) -> None:
