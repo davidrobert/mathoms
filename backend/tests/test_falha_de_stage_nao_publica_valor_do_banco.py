@@ -8,7 +8,7 @@ artefato é Fernet — ADR-231) e para o pub/sub.
 
 Os testes dirigem o loop REAL. No caminho de produção, o orchestrator REAL: o
 `except` de `pipeline.orchestrator._run_stage` engole a exceção e devolve
-`StageResult.error` — ela nunca chega a `_run_stage_with_retry`. Um teste com
+`StageResult.error` — ela nunca chega a `_run_stage_once`. Um teste com
 `run_stage_fn` que levanta direto provaria só o caminho que produção não percorre.
 """
 
@@ -22,10 +22,9 @@ from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
-from psycopg.errors import OperationalError as PgOperationalError
 from psycopg.errors import UniqueViolation
 from sqlalchemy import Column, MetaData, String, Table, create_engine, insert, select
-from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.exc import IntegrityError
 
 from backend.app.core.security import hash_password
 from backend.app.models.pipeline_run import (
@@ -84,12 +83,6 @@ def _unique_violation_com_detail() -> IntegrityError:
     exc = IntegrityError("INSERT INTO property_identities ...", None, orig, hide_parameters=True)
     exc.__cause__ = orig
     return exc
-
-
-def _queda_de_conexao() -> OperationalError:
-    """Transiente casável pelo retry (`connection`), com o endereço no bound parameter."""
-    orig = PgOperationalError("connection to server at db:5432 was lost")
-    return OperationalError("UPDATE property_identities ...", {"descricao": _ENDERECO}, orig)
 
 
 async def _seed(async_session_factory) -> dict:
@@ -206,7 +199,7 @@ def test_detail_do_driver_nao_publica_a_chave(seeded):
 
 
 def test_erro_de_banco_que_escapa_do_client_nao_vaza_pelo_traceback(seeded):
-    """Caminho de `_run_stage_with_retry` → `_record_stage_exception` (errors + traceback)."""
+    """Caminho de `_run_stage_once` → `_record_stage_exception` (errors + traceback)."""
 
     def _levanta_do_client(ctx, _stage):
         _quebra_no_banco(ctx)
@@ -219,25 +212,6 @@ def test_erro_de_banco_que_escapa_do_client_nao_vaza_pelo_traceback(seeded):
     # Não-vácuo: os frames continuam lá — a linha que quebrou segue localizável.
     assert "_quebra_no_banco" in traceback_txt
     assert "IntegrityError" in traceback_txt
-
-
-def test_retry_continua_casando_o_texto_cru_do_driver(seeded):
-    """Redigir o que é gravado não pode cegar o retry: `connection` segue retentando."""
-    # Escopo honesto: `run_stage_fn` que levanta é a exceção que ESCAPA do client.
-    # In-process o orchestrator engole a exceção e o retry nem dispara — a tabela de
-    # retry sai na ADR-443, e este teste sai com ela.
-    import backend.app.tasks.pipeline_task as task_module
-
-    def _cai_a_conexao(_ctx, _stage):
-        raise _queda_de_conexao()
-
-    with patch.object(task_module.time, "sleep"):
-        _rodar_loop(seeded, _cai_a_conexao, stage="extract_members")
-
-    superficies = _superficies(seeded)
-    assert not (vaz := _vazamentos(superficies)), f"valor do banco vazou em {vaz}"
-    # `extract_members`: max_retries=2 com `connection` na tabela (retry_config.py).
-    assert _stage_log(seeded).output_summary["attempt_count"] == 3
 
 
 def _marca_stage_em_execucao(seed) -> None:

@@ -34,7 +34,7 @@ fizeram do defeito uma classe:
 
 1. **O caminho não era o suspeito.** O `except` de `pipeline/orchestrator.py::_run_stage`
    engole a exceção do stage e devolve `StageResult.error = str(exc)`, sem teto — ela
-   nunca chega a `_run_stage_with_retry`.
+   nunca chega a `_run_stage_with_retry` (hoje `_run_stage_once`, [[ADR-443]]).
 2. **O driver põe o valor no texto.** O psycopg 3 monta `str(orig)` com o
    `PQresultErrorMessage` inteiro. Medido ao vivo em PG 16, com `hide_parameters` ligado:
    o DETAIL do 23505 na chave natural traz nome e endereço, o 23502 traz a linha

@@ -6,6 +6,7 @@
  * KPI hero.
  */
 import type { CascataPayload } from "@/lib/api";
+import { formatNumber, formatPercent } from "@/lib/format";
 import { MonetaryValue } from "../MonetaryValue";
 
 export function CascataLayers({ cascata }: { cascata: CascataPayload }) {
@@ -50,17 +51,17 @@ function LayersList({ cascata }: { cascata: CascataPayload }) {
 }
 
 function CargaTotalRow({ cargaPct }: { cargaPct: number }) {
-  const pct = (cargaPct * 100).toFixed(1).replace(".", ",");
+  const pct = cargaPct * 100;
   return (
     <div
       className="mt-3 flex items-baseline justify-between gap-2 border-t-2 border-[var(--surface-border)] pt-3"
-      aria-label={`Carga tributária total estimada em ${pct} por cento da receita`}
+      aria-label={`Carga tributária total estimada em ${formatNumber(pct, 1)} por cento da receita`}
     >
       <span className="text-sm font-display font-semibold text-[var(--surface-foreground)]">
         Carga tributária total
       </span>
       <span className="font-mono text-base font-semibold tabular-nums text-[var(--brand-primary)]">
-        {pct}%
+        {formatPercent(pct)}
       </span>
     </div>
   );
@@ -101,5 +102,5 @@ function labelTributosFederais(regime: CascataPayload["regime"]): string {
 
 function pctOfReceita(parte: number, receita: number): string | null {
   if (!receita || receita <= 0) return null;
-  return `${((parte / receita) * 100).toFixed(1).replace(".", ",")}%`;
+  return formatPercent((parte / receita) * 100);
 }

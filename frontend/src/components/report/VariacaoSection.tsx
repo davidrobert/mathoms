@@ -15,7 +15,7 @@
  * cor = delta_signal vs direction_positive; glifo = direção real.
  */
 import type { ComparisonItemRead, ReportAnalysisData } from "@/lib/api";
-import { formatFullBRL } from "@/lib/format";
+import { formatFullBRL, formatNumber, formatPercent } from "@/lib/format";
 import { MonetaryValue } from "./MonetaryValue";
 
 const HEADLINE_METRIC_ID = "M_PL";
@@ -33,21 +33,16 @@ function formatPeriodLongPtBR(yyyymm: string): string | null {
   return `${MONTH_LONG_PT[month - 1]} de ${yyyymm.slice(0, 4)}`;
 }
 
-/** 3.04 → "3,0" (vírgula decimal pt-BR, 1 casa). */
-function fmt1(value: number): string {
-  return value.toFixed(1).replace(".", ",");
-}
-
 /** Antes/Depois por unidade não-monetária: pp → "12,0%"; meses → "6,0 meses". */
 function formatUnitValue(value: number, unit: "pp" | "meses"): string {
-  return unit === "pp" ? `${fmt1(value)}%` : `${fmt1(value)} meses`;
+  return unit === "pp" ? formatPercent(value) : `${formatNumber(value, 1)} meses`;
 }
 
 /** Δ por unidade não-monetária, com sinal explícito: "+3,0 pp" / "-0,2 mês". */
 function formatUnitDelta(delta: number, unit: "pp" | "meses"): string {
   const sign = delta < 0 ? "-" : "+";
   const suffix = unit === "pp" ? "pp" : "mês";
-  return `${sign}${fmt1(Math.abs(delta))} ${suffix}`;
+  return `${sign}${formatNumber(Math.abs(delta), 1)} ${suffix}`;
 }
 
 // Glifo comunica a direção REAL do movimento; a cor comunica o julgamento
@@ -82,7 +77,7 @@ function deltaDisplayValue(item: ComparisonItemRead): string {
     return formatUnitDelta(item.after - item.before, unit);
   }
   if (item.delta_pct === null || !isFinite(item.delta_pct)) return "—";
-  return `${fmt1(Math.abs(item.delta_pct))}%`;
+  return formatPercent(Math.abs(item.delta_pct));
 }
 
 /** Magnitude do movimento sem sinal — a direção já vem no verbo ("subiu"/"caiu"). */
@@ -92,7 +87,7 @@ function deltaSpokenValue(item: ComparisonItemRead): string {
     return formatUnitDelta(item.after - item.before, unit).replace(/^[+-]/, "");
   }
   if (item.delta_pct === null || !isFinite(item.delta_pct)) return "";
-  return `${fmt1(Math.abs(item.delta_pct))}%`;
+  return formatPercent(Math.abs(item.delta_pct));
 }
 
 /** Verbo do movimento; plural pt-BR pela heurística de narratives.py (última palavra em "s"). */

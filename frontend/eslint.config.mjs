@@ -132,6 +132,30 @@ const PERCENTUAL_COM_PONTO_RESTRITO = [
   },
 ];
 
+// Vírgula decimal escrita à mão: `x.toFixed(1).replace(".", ",")` acerta o
+// separador, mas arredonda o binário exato (0.35 → "0,3", onde o Intl dá "0,4")
+// e não agrupa milhar ("1234,5"). Eram 35 call-sites no relatório em 2026-10-08;
+// dois cards podiam arredondar o mesmo valor de formas diferentes.
+//
+// **O que esta regra pega:** `replace`/`replaceAll` chamado sobre o resultado de
+// `toFixed` com `","` no segundo argumento — `.replace(".", ",")`,
+// `.replace(/\./g, ",")`, com ou sem `?.` na cadeia. **Não pega:** o `toFixed`
+// guardado em variável antes do `replace`, nem outra substituição sobre ele
+// (`.replace(/\.0$/, "")`).
+const MENSAGEM_VIRGULA_A_MAO =
+  "Número em copy pt-BR passa por formatNumber(valor, casas) ou formatPercent(valor, casas) " +
+  "de @/lib/format. `toFixed(n).replace(\".\", \",\")` arredonda o binário (0.35 → \"0,3\") e " +
+  "não agrupa milhar (COPY_GUIDELINES §4.5).";
+
+const VIRGULA_A_MAO_RESTRITA = [
+  {
+    selector:
+      'CallExpression[callee.property.name=/^replace(All)?$/]' +
+      '[callee.object.callee.property.name="toFixed"][arguments.1.value=","]',
+    message: MENSAGEM_VIRGULA_A_MAO,
+  },
+];
+
 const CARD_MONEY_MESSAGE =
   "A40.l44: cards de janela renderizam o payload table-ready; aritmética, filtro " +
   "ou ordenação monetária pertencem ao produtor E5.";
@@ -248,6 +272,7 @@ export default [
         "error",
         ...MENSALIZACAO_RESTRITA,
         ...PERCENTUAL_COM_PONTO_RESTRITO,
+        ...VIRGULA_A_MAO_RESTRITA,
       ],
       "no-restricted-imports": [
         "error",
@@ -286,6 +311,7 @@ export default [
         "error",
         ...MENSALIZACAO_RESTRITA,
         ...PERCENTUAL_COM_PONTO_RESTRITO,
+        ...VIRGULA_A_MAO_RESTRITA,
         ...CARD_MONEY_RESTRICTIONS,
       ],
     },
@@ -297,6 +323,8 @@ export default [
     // NÃO entra: ele só interpreta o vocabulário `janela`/`janela_meses`, nunca
     // toca campo de valor. A isenção é da mensalização, não do percentual.
     files: ["src/components/report/utils/fluxoJanela.ts"],
-    rules: { "no-restricted-syntax": ["error", ...PERCENTUAL_COM_PONTO_RESTRITO] },
+    rules: {
+      "no-restricted-syntax": ["error", ...PERCENTUAL_COM_PONTO_RESTRITO, ...VIRGULA_A_MAO_RESTRITA],
+    },
   },
 ];

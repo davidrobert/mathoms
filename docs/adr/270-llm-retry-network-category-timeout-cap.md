@@ -5,7 +5,7 @@ title: "Retry de LLM calls — categoria network + cap de timeout"
 status: Decidido
 phase: A17.llm-retry
 date: "2026-05-28"
-amended_at: ["2026-06-12", "2026-08-15"]
+amended_at: ["2026-06-12", "2026-08-15", "2026-10-08"]
 relates_to:
   - "[[ADR-027]]"
   - "[[ADR-081]]"
@@ -40,6 +40,11 @@ tags:
 > `timeout_s=300` (`LLM_LONG_GENERATION_TIMEOUT_S`). O cap do cliente
 > **não** impede o EOF de TTFB ~120s — o choke-point passa a streamar
 > no HTTP e montar a resposta antes do Instructor. Ver §"Emenda 2026-08-15".
+>
+> **Emenda (2026-10-08):** o item 3 da emenda de 2026-08-15 é **retratado** —
+> o retry de stage nunca operou in-process, com needle ou sem, e foi apagado pela
+> [[ADR-443]]. A "fonte única" do §1 passa a valer também acima do
+> `LLMService`: não há camada de retry de stage. Ver §"Emenda 2026-10-08".
 
 ## Contexto
 
@@ -216,8 +221,11 @@ LiteLLM reembrulha em `InternalServerError` **sem** a palavra `timeout`.
    (120→240, ou 300→600 se o call-site já declarou o budget longo).
 2. Constante `LLM_LONG_GENERATION_TIMEOUT_S=300` — call-sites com
    `max_tokens≥16384` declaram esse base (mesmo padrão do parecer com 240).
-3. `_TRANSIENT_LLM_ERRORS` do retry de stage ganha os mesmos needles —
-   o orchestrator deixa de ser no-op nessa mensagem.
+3. ~~`_TRANSIENT_LLM_ERRORS` do retry de stage ganha os mesmos needles —
+   o orchestrator deixa de ser no-op nessa mensagem.~~ **Retratado em
+   2026-10-08 ([[ADR-443]]):** o orchestrator era no-op para **toda** mensagem —
+   `orchestrator._run_stage` achata a exceção do runner antes de ela chegar ao
+   retry. Os needles mudaram uma tabela que o run não consultava.
 
 **Calibração (mesmo dia, após 2 re-runs):** runs `f3b6ca3b` e `fda24af9`
 no código já emendado (`timeout_s=300` → escalada 600, `type=timeout`)
@@ -241,9 +249,24 @@ follow-up, não mistura com o fix do cap.
 **Critério de aceite:** `tests/test_litellm_client_retry.py` (classify +
 escalada 120→240 no disconnect) + `tests/test_llm_long_generation_timeout.py`
 (os 5 stages 16k passam a constante) +
-`backend/tests/test_stage_retry_vocabulary.py` (mensagem real retenta) +
+test_stage_retry_vocabulary.py (mensagem real retenta — testava o casamento de
+substring, não o retry; apagado com a tabela pela [[ADR-443]]) +
 `tests/test_stream_assemble.py` (stream forçado, wire no `LLMService`,
 `create()` sem `stream=True`).
+
+## Emenda 2026-10-08 — o retry de stage nunca operou; item 3 de 2026-08-15 retratado
+
+O item 3 acima afirmou efeito sobre o run sem medir o run. Medido em 2026-10-08: a
+exceção do runner é convertida em `StageResult(success=False)` por
+`orchestrator._run_stage` nos dois executores, e `_run_stage_with_retry` só
+retentava no ramo `except` — que exceção de stage nunca alcançou, desde que o retry
+nasceu (2026-04-14). Os needles acrescentados aqui mudaram uma tabela que o run não
+consultava; o teste que os cobria provava o casamento de substring, não o retry.
+
+A decisão de apagar a camada, em vez de religá-la, está na [[ADR-443]]: o transiente
+de LLM é deste `LLMService.call`, que já fecha com `retryable=False`, e uma segunda
+camada re-pagaria as calls feitas pelo stage. É a "fonte única" do §1 estendida para
+cima — o §1 tratava de SDK × `LLMService`, e a extensão ao stage nunca tinha sido escrita.
 
 ## Follow-ups
 
