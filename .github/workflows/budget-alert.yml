@@ -342,3 +342,16 @@ jobs:
               });
               core.notice(`Issue criada #${created.data.number}`);
             }
+
+      # ── Saúde das entradas do Dependabot (co-design sre-devops 2026-10-09) ──
+      # O workflow dinâmico do Dependabot não tem canal de falha: pip `/` saiu
+      # `failure` em 08-31, 09-07, 10-05 e 10-09 (#2124) e ninguém viu. Mora aqui
+      # e não no automerge-watchdog (48 runs/dia) porque diário basta para
+      # cadência semanal. `!cancelled()`: é sinal independente dos steps acima.
+      # Nunca sai != 0 — run vermelho dispararia o canal de falha deste host.
+      - name: Saúde das entradas do Dependabot
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 dev/ci_dependabot_health.py --label ops-dependabot-red
