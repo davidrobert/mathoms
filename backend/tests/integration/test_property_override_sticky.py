@@ -46,9 +46,9 @@ def _seed_workspace(sync_db) -> str:
         return ws.id
 
 
-def _itens(descricao: str, ancora: dict | None = None) -> list[dict]:
+def _itens(descricao: str, ancora: dict | None = None, codigo: str = "11") -> list[dict]:
     item = {
-        "codigo": "11",
+        "codigo": codigo,
         "descricao": descricao,
         "categoria_hint": "imovel",
         "secao": "bens_direitos",
@@ -101,3 +101,29 @@ def test_sem_ancora_o_colapso_volta(sync_db) -> None:
         _classificar(session, workspace_id, antes["property_id"])
         depois = _consolidar(session, workspace_id, _itens(_LITERAL))
         assert antes["property_id"] is not None and depois["property_id"] is None
+
+
+# O loose ignora o sub-código, e é por ele que a casa herdaria a row — e a classificação —
+# do apartamento no mesmo endereço ([[ADR-225]] §Emenda 2026-10-08). O veto é do enricher.
+_ANCORA_CASA = {"join": "valor", "logradouro": "Rua Exemplo", "numero": "100"}
+
+
+def test_casa_no_endereco_do_apartamento_nao_herda_a_row_dele(sync_db) -> None:
+    workspace_id = _seed_workspace(sync_db)
+    with sync_db() as session:
+        apto = _consolidar(session, workspace_id, _itens(_DOBRADA))
+        _classificar(session, workspace_id, apto["property_id"])
+        casa = _consolidar(session, workspace_id, _itens("CASA", _ANCORA_CASA, codigo="12"))
+        assert casa["property_id"] not in (None, apto["property_id"])
+
+
+def test_sem_o_veto_de_subcodigo_a_casa_herda_a_row(sync_db, monkeypatch) -> None:
+    """Contrafactual: é o veto de sub-código que separa, não o match estrito."""
+    from pipeline.domain.services import property_identity_enricher as enricher
+
+    monkeypatch.setattr(enricher, "subcodigos_divergem", lambda a, b: False)
+    workspace_id = _seed_workspace(sync_db)
+    with sync_db() as session:
+        apto = _consolidar(session, workspace_id, _itens(_DOBRADA))
+        casa = _consolidar(session, workspace_id, _itens("CASA", _ANCORA_CASA, codigo="12"))
+        assert casa["property_id"] == apto["property_id"]

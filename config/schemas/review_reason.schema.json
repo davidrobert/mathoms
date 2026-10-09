@@ -50,6 +50,9 @@
         "domain.classificacao_imovel_nao_apurada",
         "domain.property_identity_eixo_por_hint",
         "domain.property_identity_codigo_invalido",
+        "domain.property_identity_posse_recusada",
+        "domain.property_identity_sem_posse",
+        "domain.property_identity_split",
         "domain.ano_referencia_nao_fechado"
       ]
     },

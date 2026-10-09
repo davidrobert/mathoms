@@ -84,6 +84,12 @@ class ReviewReasonCode(str, enum.Enum):
     # imóvel legível (`'APTO'`, ou composto de outro grupo como `'07-01'`). Não é
     # `uncanonical`: aquele manda consertar o endereço, e o defeito aqui é o código.
     domain_property_identity_codigo_invalido = "domain.property_identity_codigo_invalido"
+    # [[ADR-440]] D6/D7: a âncora da ficha separa unidade, e o via+nº é chave de prédio.
+    # posse_recusada = unidade distinta cunhou identidade própria; sem_posse = ninguém
+    # prova posse da row compartilhada (nada é cunhado); split = rows vivas duplicadas.
+    domain_property_identity_posse_recusada = "domain.property_identity_posse_recusada"
+    domain_property_identity_sem_posse = "domain.property_identity_sem_posse"
+    domain_property_identity_split = "domain.property_identity_split"
 
     # [[A40.l114]]: `valores_31_12[ano]` afirma foto em 31/12 FECHADO. Uma tela de
     # posição de 29/03/2026 entrou como `31/12/2026` e levou o eixo do domicílio

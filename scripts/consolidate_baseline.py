@@ -582,6 +582,10 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
             entry["secao_disponivel"] = _declaracao_do_item(item) in declaracoes_com_secao
             # ADR-274: first_seen_year é o ano-base do próprio item (não exercício).
             entry["ano_referencia"] = int(item_ano_str)
+            # [[ADR-440]] D3: a âncora da ficha só alimenta a identidade; o item do
+            # baseline não a declara, e o enricher a descarta antes de dedup e E5.
+            if item.get("ancora_imovel"):
+                entry["ancora_imovel"] = item["ancora_imovel"]
             imoveis_consolidados.append(entry)
         elif categoria == "veiculo":
             entry["tipo"] = "veiculo"
@@ -987,6 +991,12 @@ def main_with_store(ctx) -> dict:
             workspace_id=ctx.workspace_id,
             family_members=family_members,
         )
+
+    # [[ADR-440]] D3: sem resolver o enricher não roda, e a âncora não pode chegar ao
+    # artefato — matrícula solta escapa do gate de PII ([[ADR-435]]). Idempotente.
+    from pipeline.domain.services.property_identity_enricher import descartar_ancoras
+
+    descartar_ancoras(consolidated)
 
     # 3b. Dedup de imóveis co-declarados cross-IRPF (ADR-246). Roda após o
     #     enricher para usar `property_id` como chave primária. Helper puro;

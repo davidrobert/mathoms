@@ -78,6 +78,15 @@ _ENTRADA = {
         # sem `secao` → eixo decidido por hint → `property_identity_enricher`
         # recusa o mint ([[ADR-398]]) e emite `needs_review` + `review_reasons`.
         _item(codigo="12", descricao="LOTE GAMA", categoria_hint="imovel", secao=None),
+        # âncora da ficha ([[ADR-440]] D3) → o E1.5c a repassa ao enricher, que a remove
+        # depois da identidade. Se a remoção falhar, `ancora_imovel` vira chave emitida e
+        # não declarada: o item do baseline não a declara, por PII.
+        _item(
+            codigo="11",
+            descricao="APTO EPSILON",
+            categoria_hint="imovel",
+            ancora_imovel={"join": "valor", "logradouro": "Rua Exemplo", "numero": "100"},
+        ),
         _item(codigo="02", descricao="CARRO 2020", categoria_hint="veiculo"),
         _item(codigo="02", descricao="MOTO 2019", categoria_hint="veiculo", membro="membro_b"),
         # âncora de CNPJ + valor divergente → `investimentos_dedup` marca
@@ -126,6 +135,17 @@ _ENTRADA = {
 # imóveis distintos e o gate mediria payload que produtor nenhum escreve.
 class _ResolverDeIdentidade:
     """Fake do `PropertyIdentityResolver`."""
+
+    def match(self, workspace_id, lookup, descricao_sample):
+        return None
+
+    def create(self, workspace_id, lookup, first_seen_year, descricao_sample):
+        return self.match_or_create(
+            workspace_id=workspace_id,
+            lookup=lookup,
+            first_seen_year=first_seen_year,
+            descricao_sample=descricao_sample,
+        )
 
     def match_or_create(self, *, workspace_id, lookup, first_seen_year, descricao_sample):
         return SimpleNamespace(
