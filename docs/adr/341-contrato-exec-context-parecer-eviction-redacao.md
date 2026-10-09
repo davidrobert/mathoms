@@ -5,7 +5,7 @@ title: "Contrato do exec context do parecer: budget, eviction por seção, bloco
 status: Decidido
 date: "2026-07-20"
 phase: A37.l1
-amended_at: ["2026-09-01"]
+amended_at: ["2026-09-01", "2026-10-09"]
 tags:
   - type/adr
   - status/decidido
@@ -21,6 +21,10 @@ tags:
 > obrigatório" pressupunha um canal de tool que nunca existiu no transporte. O
 > objetivo dele segue vivo e é entregue por outro mecanismo — leia a §Emenda antes
 > de citar o D5.
+>
+> ⚠️ **Emendada em 2026-10-09: a persona 1.3.0 para de convidar leitura de ciclo de
+> juros (R23).** O exec context não traz taxa de mercado viva — mesma classe do §D5.
+> Leia a §Emenda 2026-10-09 antes de mexer na lente de alocação da persona.
 
 ## Contexto
 
@@ -163,3 +167,65 @@ contagem aqui seria otimizar a métrica contra a regra de calibração.
 **Gate:** `tests/dev/test_prompt_capability_parity.py` — bicondicional (promessa sem
 transporte **e** transporte sem promessa), sobre o prompt **montado** nos dois regimes de
 eviction, com os 4 canais provados por mutação do produtor.
+
+## Emenda 2026-10-09 — a persona não convida leitura de conjuntura que o exec context não traz
+
+**Medição.** O manifest 2.21.0 projeta 96 paths, e nenhum é taxa de mercado (Selic, CDI,
+curva, benchmark). O E5 guarda `real_estate.benchmarks` — CDI líquido e IFIX, com
+`as_of_date` —, mas é seed estático ([[ADR-221]] segue `Proposto`) e o manifest não o
+projeta. O comparável de alocação (`goals.alocacao_alvo.derived`, [[ADR-141]]) soma a renda
+fixa de todos os indexadores. Mesmo assim a persona 1.2.0 carregava 9 convites a ler ciclo
+de juros: a lente de alocação "dominava" a decisão entre prefixado e IPCA+ no ciclo atual, uma
+regra de mapeamento ancorava "travar prefixado/IPCA+", e o vocabulário canônico listava
+"alocação contracíclica". A taxa viria do treino do modelo, desatualizada, e sem `confianca`
+rebaixada — o modelo não percebe o dado como ausente.
+
+É a classe do §D5 revogado acima: o prompt convidava o modelo a usar o que o contexto não
+entrega.
+
+**O que passa a valer (persona 1.3.0, `PROMPT_VERSION` 2.6.0).**
+
+- Saem as cinco passagens. "Contrafluxo" entra na lista de marcas proibidas: sozinho, ele
+  passava pelas três camadas de sigilo.
+- **R23 — sem leitura de conjuntura.** O modelo não recomenda indexador nem classe por
+  ciclo de juros, Selic ou momento de mercado, e não infere a renda fixa por indexador a
+  partir de nomes de ativos ou das metas (se for decisiva, `campos_faltantes`). Alocação
+  entre classes cita só o comparável publicado e respeita RL1/RL2. Com
+  `$.goals.alocacao_alvo.derived.motivo_supressao` preenchido, declara o motivo e não
+  reconstrói a classe, nem pela tabela de classes ([[ADR-394]], [[ADR-400]]).
+- A R5 deixa de exemplificar percentual-alvo inventado ("~15% internacional") e classe por
+  indexador.
+- O hint de `investimentos` do manifest (2.22.0) deixa de mandar ancorar em "qual classe
+  está sub ou sobrealocada": cita o comparável publicado e, sob supressão, declara o motivo.
+- `CampoFaltante.motivo` entra no boundary de truncamento da [[ADR-294]]: era o último
+  texto com teto duro, e o reask que ele disparava dobrava os tokens da chamada.
+
+**O bump de `PROMPT_VERSION` é load-bearing.** O `persona_hash` não compõe
+`compute_cache_key` (resíduo da [[A40.l17]]): sem o bump, parecer gerado sob a 1.2.0 seria
+servido por até 7 dias. Ele vale em qualquer ordem relativa ao PR que põe o hash na chave,
+porque o drift monitor janela por `(prompt_version, model)`, não por hash.
+
+**Gate.** `tests/dev/test_persona_conjuntura_parity.py`, bicondicional: convite sem taxa
+no manifest **e** taxa no manifest com a R23 de pé, cada perna provada por mutação.
+Medido: a persona 1.2.0 dá 9 violações e a 1.3.0, zero. Limite declarado: fecha os
+convites literais, não a classe — prosa equivalente passa.
+
+**Eval (2026-10-09; Sonnet 4.6, temp 0, cache desligado; contagens de pareceres).**
+Leitura de ciclo de juros: persona 1.2.0 em 3 de 6 ("postura conservadora adequada ao
+ciclo de juros elevados"; "priorizando renda fixa IPCA+ ou prefixada no atual ciclo de
+juros"), persona 1.3.0 em 0 de 17. Com a indicação suprimida, aporte dirigido a classe
+nomeada: 4 de 4 nas duas personas; com o hint consertado, 4 de 6 — a rota restante eram
+as metas brutas de `$.goals` ("alvo declarado de 20%"); com a R23 fechando as metas, 2 de
+4, ambos pelo piso de proteção cambial e nenhum citando a meta. Os reasks capturados
+(`parse:error` instrumentado) eram todos `motivo` acima de 200 caracteres. Custo: US$ 6,56.
+
+**§Deferimento (2026-10-09; dono: `financial-planner` + `prompt-engineer`).** O alvo v2
+coleta pós, pré e IPCA+, e o comparável nunca os separa. A R23 é revista quando houver
+(a) ingestão viva de taxa de mercado com data ([[ADR-221]]) e (b) comparável de renda fixa
+por indexador. A perna reversa do gate dispara no passo (a).
+
+**Resíduo (2026-10-09; dono: `prompt-engineer` + `data-engineer`).** A seção
+`plano_acao_atual` projeta `$.goals` bruto, com a meta de cada classe: é a rota pela qual o
+modelo reconstruía a alocação suprimida, e a instrução só a fecha em parte (2 de 4). A
+correção estrutural é não projetar as metas brutas onde o comparável já publica a
+alocação — mudança de manifest/distiller, fora desta emenda.
