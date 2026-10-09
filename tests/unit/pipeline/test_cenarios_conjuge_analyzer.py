@@ -6,6 +6,8 @@ import sys
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services.cenarios_conjuge_analyzer import (  # noqa: E402
@@ -199,6 +201,46 @@ class TestAnalyzer:
         assert len(d["anos_if"]) == 1
         assert "premissas" in d
         assert isinstance(d["cenarios"], list)
+
+
+# =============================================================================
+# Aporte não declarado — zero no lugar de ausente (COPY_GUIDELINES §4.3)
+# =============================================================================
+
+# Zero não é declarável (`goal.aporte_mensal.schema.json`: `exclusiveMinimum: 0`,
+# ADR-373), então as três formas chegam ao analyzer como a mesma ausência.
+_SEM_APORTE_DECLARADO = [{}, {"meta_aporte_mensal": None}, {"meta_aporte_mensal": 0}]
+
+
+def _analisa_sem_aporte(aportes: dict, investivel: float = 500_000) -> CenariosConjugeResult:
+    cfg = CenariosConjugeConfig.from_configs(
+        goals={"aportes": aportes},
+        titular_dob=_TITULAR_DOB,
+        conjuge_nome="Bob",
+        reference_date=_REF_DATE,
+    )
+    return CenariosConjugeAnalyzer(cfg).analyze(
+        patrimonio=_patrimonio(investivel), goals=_goals(), fluxo=_fluxo_salario_conjuge()
+    )
+
+
+class TestAporteNaoDeclarado:
+    @pytest.mark.parametrize("aportes", _SEM_APORTE_DECLARADO)
+    def test_resumo_nao_afirma_aporte_zero(self, aportes):
+        resumo = _analisa_sem_aporte(aportes).cenarios[0].resumo
+        assert "R$ 0" not in resumo
+        assert "66%" not in resumo
+        # ADR-373 D2: a redação nomeava a nossa incapacidade, não o insumo que falta.
+        assert "não projetável" not in resumo
+
+    @pytest.mark.parametrize("aportes", _SEM_APORTE_DECLARADO)
+    def test_payload_publica_ausencia_e_nao_zero(self, aportes):
+        d = _analisa_sem_aporte(aportes).to_legacy_dict()
+        assert d["aportes"] == [None]
+        assert d["cenarios"][0]["aporte_mensal"] is None
+        assert d["premissas"]["aporte_base"] is None
+        assert d["prazos_if"] == [None]
+        assert d["anos_if"] == [None]
 
 
 # =============================================================================
