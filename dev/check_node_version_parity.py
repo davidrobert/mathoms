@@ -50,9 +50,13 @@ major do runtime.
 Eixos NÃO fechados: dev local fora do compose (nenhum controle de install que
 poupe o Dependabot); `.node-version`/`.tool-versions`; Node de imagem que não se
 chama `node` fora do Dockerfile de um app; Node chamado dentro de composite
-action local, de `workflow_call` ou de script fora de `pre-commit`; o major do
-npm; e o prefixo de `${{ … }}/.nvmrc` (o `setup-node` falha sozinho se o
-arquivo não existir).
+action local, de `workflow_call` ou de script fora de `pre-commit`; o minor do
+npm dentro do major; e o prefixo de `${{ … }}/.nvmrc` (o `setup-node` falha
+sozinho se o arquivo não existir).
+
+O major do npm é de `dev/check_frontend_lock_sync.py`: o lock de cada app passa
+no `npm ci` do npm que o `FROM node` traz, e o `--verify-image` dos jobs do app
+confere esse npm na imagem pinada (npm 10 e 11 divergem — docstring de lá).
 """
 
 from __future__ import annotations
