@@ -184,7 +184,7 @@ jobs:
       dev_tools: ${{ steps.filter.outputs.dev_tools_any_changed }}
       incoming_main_docs_only: ${{ steps.incoming.outputs.incoming_main_docs_only }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # 2→0: o gitleaks fundido neste job varre o range de commits do PR
           # e precisa deles presentes localmente (o job antigo já usava 0).
@@ -473,7 +473,7 @@ jobs:
       actions: read
       issues: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # `check_planner_manifest_coverage` compara o schema E5 com a base de merge para
       # achar CAMPO NOVO (A40.l83 · RV8-05b). O checkout é raso por default, e sem
@@ -487,7 +487,7 @@ jobs:
         run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -511,7 +511,7 @@ jobs:
         # Key derivada do .pre-commit-config.yaml — invalida na atualização
         # de qualquer hook. restore-keys permite reuso parcial enquanto
         # apenas 1 hook bumpa de versão.
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-py313-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -585,11 +585,11 @@ jobs:
     # dev/** não roda o gate que testa dev/**.
     if: needs.changes.outputs.pipeline == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.dev_tools == 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Python
         id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -611,7 +611,7 @@ jobs:
         # e a frota troca de patch (3.13.14 ↔ 3.13.15) — sem isso o cache
         # restaura venv cujo interpretador não existe mais.
         id: venv-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
@@ -731,7 +731,7 @@ jobs:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Backend↔pipeline coupling em sync com o filtro pipeline_lib (ADR-210 §Adendo 2026-08-05)
         # Stdlib só (ast) — roda antes do venv de propósito, mesmo custo do
@@ -740,7 +740,7 @@ jobs:
 
       - name: Setup Python
         id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -754,7 +754,7 @@ jobs:
         # jobs compartilham cache; quem executar primeiro popula. SEM
         # restore-keys — ver pipeline-tests.
         id: venv-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
@@ -803,7 +803,7 @@ jobs:
         # Coverage XML só interessa quando CI quebra — em verde, ninguém
         # baixa. Reduz upload + storage de retention.
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-coverage
           path: |
@@ -848,10 +848,10 @@ jobs:
           - 5433:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: pip
@@ -991,10 +991,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: npm
@@ -1032,7 +1032,7 @@ jobs:
       # 56 testes selecionados, 54 passam, 2 skips declarados (`S4`, `APP_C`).
       - name: Cache Playwright Chromium (report render)
         id: pw-cache-report
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
@@ -1126,7 +1126,7 @@ jobs:
       - name: Upload results (only on failure)
         # Vitest junit XML só interessa em falha — em verde ninguém baixa.
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-vitest-results
           path: |
@@ -1169,15 +1169,15 @@ jobs:
           - 6380:6379
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: pip
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: npm
@@ -1306,7 +1306,7 @@ jobs:
         # nightly (ver nightly.yml > frontend-e2e-cross-browser). Cache
         # key dedicado evita poluir o cache 3-browsers do nightly.
         id: pw-cache-e2e
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
@@ -1337,7 +1337,7 @@ jobs:
 
       - name: Upload backend + celery logs (diagnóstico E2E)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-logs
           path: |
@@ -1348,7 +1348,7 @@ jobs:
 
       - name: Upload Playwright report + trace + vídeo (F6.5F.9)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report
           path: |
@@ -1364,7 +1364,7 @@ jobs:
         # exatamente nos runs que se quer tornar legíveis. É diagnóstico,
         # não gate.
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const artifactUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
@@ -1441,10 +1441,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: npm
@@ -1455,7 +1455,7 @@ jobs:
 
       - name: Cache Playwright Chromium
         id: pw-cache-visual
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           # Cache key separado de e2e: aqui só Chromium é instalado.
@@ -1499,7 +1499,7 @@ jobs:
 
       - name: Upload generated baselines (quando --update-snapshots foi passado)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: report-visual-baselines-generated
           path: |
@@ -1512,7 +1512,7 @@ jobs:
 
       - name: Upload visual diffs + baselines (artefato)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: report-visual-snapshots
           path: |
@@ -1550,10 +1550,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: npm
@@ -1564,7 +1564,7 @@ jobs:
 
       - name: Cache Playwright Chromium
         id: pw-cache-print
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
@@ -1596,7 +1596,7 @@ jobs:
 
       - name: Upload generated baseline (quando UPDATE_PRINT_BASELINE=1)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_print_baseline
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: report-print-baseline-generated
           path: frontend/tests/e2e/reports/__snapshots__/report.print.pdf.png
@@ -1605,7 +1605,7 @@ jobs:
 
       - name: Upload print diff artefatos (actual + diff em falha)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: report-print-visual-diffs
           path: |
@@ -1623,8 +1623,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o
@@ -1658,8 +1658,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o

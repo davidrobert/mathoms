@@ -66,7 +66,7 @@ jobs:
         run: |
           echo "::warning title=AUTOUPDATE_PAT ausente::Trem parado de propósito. Update-branch com GITHUB_TOKEN nasce action_required e congela o PR. Crie fine-grained PAT (Contents+Pull requests write, só este repo, expiração <=90d) e salve como secret AUTOUPDATE_PAT. Runbook: docs/reference/runbooks/automerge_train.md"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: env.GH_TOKEN != ''
 
       - name: Advance train
