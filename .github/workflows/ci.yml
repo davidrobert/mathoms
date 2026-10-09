@@ -1630,7 +1630,7 @@ jobs:
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o
           # manifest — o patch viraria input da image. Par com `toolchain`
           # em go.work/go.mod.
-          go-version: '1.26.6'
+          go-version: '1.26.9'
           cache: true
           cache-dependency-path: services/pipeline-service-go/go.sum
       - name: gofmt check
@@ -1665,7 +1665,7 @@ jobs:
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o
           # manifest — o patch viraria input da image. Par com `toolchain`
           # em go.work/go.mod.
-          go-version: '1.26.6'
+          go-version: '1.26.9'
           cache: true
           cache-dependency-path: services/pipeline-service-go/go.sum
       - name: "Codegen sync — stage registry (fonte: pipeline/stage_spec.py)"

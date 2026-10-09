@@ -639,6 +639,9 @@ vivo possui a superfície, e nenhuma alcança o usuário hoje). A tabela acima �
 > exatamente 4. O predicado *"nenhum dono vivo possui a superfície"* segue de pé para as
 > outras três. Roteamento da dimensão: item 4 do §Deferimento da [[A40.l113]] +
 > [[TRACK-property-identity-cross-era]].
+> ⚠️ **2026-10-08:** a [[A40.l113]] fechou (#2063), e o item 4 saiu dela: a normalização do
+> `codigo_rfb` composto para o sub-código, na chave **e** nas comparações do resolver, está no
+> #2062. É a primeira linha da tabela abaixo.
 
 | Achado | Condição de retomada | Instrumento |
 |---|---|---|
