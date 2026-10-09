@@ -8,6 +8,7 @@ import type {
   DolarGoalResponse,
 } from "@/lib/api";
 import { formatCurrency, formatUSDPtBR } from "@/lib/format";
+import { formatHorizonteDolar } from "@/lib/goalPremissas";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 import { GoalCard, type GoalCardProps } from "./GoalCard";
@@ -63,7 +64,7 @@ function dolarCardProps(goal: DolarGoalResponse | null): GoalCardProps {
     href: goal ? "/plano/dolarizacao" : "/plano/dolarizacao/wizard",
     value: goal ? formatUSDPtBR(goal.inputs.meta_usd) : undefined,
     subtitle: goal
-      ? `~${goal.derived.horizonte_estimado_meses} meses`
+      ? `~${formatHorizonteDolar(goal.derived.horizonte_estimado_meses).meses} meses`
       : undefined,
   };
 }

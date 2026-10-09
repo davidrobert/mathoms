@@ -296,8 +296,10 @@ describe("formatBytes()", () => {
     [512, "512 B"],
     [1024, "1 KB"],
     [102_400, "100 KB"],
-    [1_048_576, "1.0 MB"],
-    [10_485_760, "10.0 MB"],
+    [1_047_552, "1.023 KB"],
+    [1_048_576, "1,0 MB"],
+    [1_572_864, "1,5 MB"],
+    [10_485_760, "10,0 MB"],
   ])("%j → %j", (input, expected) => {
     expect(formatBytes(input)).toBe(expected);
   });
@@ -310,7 +312,10 @@ describe("formatDuration()", () => {
     [null, "—"],
     [0, "0ms"],
     [500, "500ms"],
-    [1500, "1.5s"],
+    [1500, "1,5s"],
+    // 1,45 é empate no decimal exibido: o Intl arredonda para cima (§4.5);
+    // `toFixed` arredondava o binário (1,4499…) e dava "1.4s".
+    [1450, "1,5s"],
     [60_000, "1m 0s"],
     [125_000, "2m 5s"],
   ])("%j → %j", (input, expected) => {

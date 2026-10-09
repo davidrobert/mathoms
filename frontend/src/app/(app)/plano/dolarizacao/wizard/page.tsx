@@ -28,6 +28,7 @@ import {
   type DolarGoalComputeResponse,
 } from "@/lib/api";
 import { formatCurrency, formatUSDPtBR } from "@/lib/format";
+import { formatHorizonteDolar } from "@/lib/goalPremissas";
 import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
@@ -107,8 +108,7 @@ export default function DolarizacaoWizardPage() {
     }
   }
 
-  const meses = computed?.derived.horizonte_estimado_meses ?? 0;
-  const anos = (meses / 12).toFixed(1);
+  const horizonte = formatHorizonteDolar(computed?.derived.horizonte_estimado_meses ?? 0);
   const cambio = computed?.cambio_utilizado ?? 0;
 
   return (
@@ -209,8 +209,8 @@ export default function DolarizacaoWizardPage() {
                   <Separator className="my-4" />
                   <p className="text-sm">
                     Estimativa:{" "}
-                    <b className="font-mono tabular-nums">{meses} meses</b>{" "}
-                    (~{anos} anos) ao cambio de{" "}
+                    <b className="font-mono tabular-nums">{horizonte.meses} meses</b>{" "}
+                    (~{horizonte.anos} anos) ao cambio de{" "}
                     <b className="font-mono tabular-nums">
                       {formatCurrency(cambio)}
                     </b>
@@ -238,7 +238,7 @@ export default function DolarizacaoWizardPage() {
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <dt>Horizonte estimado</dt>
                     <dd className="font-mono tabular-nums">
-                      {meses} meses (~{anos} anos)
+                      {horizonte.meses} meses (~{horizonte.anos} anos)
                     </dd>
                   </div>
                 )}

@@ -47,6 +47,11 @@ tags:
 > violar 5 pisos. Passa a reprovar pin fora do especificador do `.in` e a família
 > `opentelemetry-*` partida; o `dependabot.yml` tem uma entrada pip só — ver
 > §"Emenda 2026-10-09".
+>
+> **Emenda (2026-10-09, b):** a justificativa do container amd64 ("hashes
+> diferentes por plataforma") estava errada. O risco é marcador avaliado no host.
+> O lock passa a poder ser gerado fora do container para `-P` em alvos, com 4
+> controles — ver §"Emenda 2026-10-09 (b)".
 
 ## Contexto
 
@@ -406,6 +411,32 @@ pip e a família opentelemetry).
 passa sem regen. É o caso do piso que o pin já cumpre ou do teto acima do pin.
 O lock continua válido para o `.in`, e quem quer a versão nova roda a Tarefa 4
 do runbook.
+
+## Emenda 2026-10-09 (b) — lock fora do container: `-P` em alvos com 4 controles
+
+A §Decisão e o runbook proibiam gerar o lock fora do container linux/amd64,
+porque "wheels nativos têm hashes diferentes por plataforma". A medição de
+2026-10-09 refuta essa razão. Com o índice PyPI, o `--generate-hashes` do
+pip-tools pega da API JSON os hashes de todos os arquivos da versão. Um
+`pip-compile` nativo no Mac arm64 (Python 3.12) sobre os `.in` da `main` deu
+lock **byte-idêntico** ao amd64. O risco real de plataforma são os marcadores
+(`sys_platform`, `platform_machine`), avaliados no host que resolve: dep
+condicionada a linux some do lock e quebra o `--require-hashes` do build.
+
+**Decisão (co-design com `sre-devops`):** fora do container vale só `-P` em
+pacotes que já estão no lock, com 4 controles no PR:
+
+1. regenerar sem mudança dá lock byte-idêntico;
+2. o diff toca só os alvos;
+3. o `requires_dist` das versões novas não traz dep nova nem marcador de
+   plataforma;
+4. o CI linux instala `--require-hashes`, e `pip download --platform
+   manylinux_2_28_x86_64 --python-version 3.12` baixa o wheel do alvo de prod.
+
+O container continua obrigatório para `--upgrade` e para dependência nova, onde
+a checagem de marcador não escala. O procedimento está no
+[runbook](../reference/runbooks/python_dependencies.md) §Exceção: `-P` em alvos.
+Precedentes: #2240 e #2243 (lote pip de 2026-10-09).
 
 ## Referências externas
 

@@ -241,15 +241,21 @@ quando o dado simplesmente não foi capturado.
 - Renderização via `formatPercent(valor, casas)` (`frontend/src/lib/format.ts`,
   1 casa por padrão). Os campos `*_pct` já chegam absolutos — `44.7` é 44,7%
   ([[ADR-209]]); o formatador não multiplica.
-- `toFixed` não conhece locale e escreve o ponto. Em todo o `frontend/src/` o
-  ESLint reprova `toFixed(n)` colado ao `%`. Número cru (`${pct}%`) e `toFixed`
-  guardado em variável escapam do gate: ficam com os testes de render, que
-  assertam a vírgula e recusam o ponto (`frontend/tests/shared/percentualPtBr.ts`).
-- Número com casas que não é percentual (meses, nota, contribuição) usa o mesmo
-  separador via `formatNumber(valor, casas)`. A vírgula escrita à mão —
-  `toFixed(n).replace(".", ",")` — também é reprovada pelo ESLint no relatório:
-  arredonda o binário (`0.35` vira `0,3`; o Intl dá `0,4`, o half-up do §4.5) e
-  não agrupa milhar.
+- Número com casas que não é percentual (meses, nota, tamanho de arquivo,
+  duração) usa o mesmo separador via `formatNumber(valor, casas)`: `1,5 MB`,
+  `71,2 meses`, `2,3s`.
+- `toFixed` e `toPrecision` não conhecem locale e escrevem o ponto. A vírgula
+  escrita à mão — `toFixed(n).replace(".", ",")` — arredonda o binário (`0.35`
+  vira `0,3`; o Intl dá `0,4`, o half-up do §4.5) e não agrupa milhar. Em todo o
+  `frontend/src/` o ESLint reprova `toFixed(n)` com casas e `toPrecision`;
+  `toFixed(0)` passa, porque inteiro não tem separador. Valor que não é copy (CSS
+  inline, path SVG, payload decimal) vai para um helper nomeado com isenção por
+  arquivo no `frontend/eslint.config.mjs`, nunca para `eslint-disable` na linha,
+  que desliga também os outros gates da regra.
+- Número cru interpolado (`${pct}%`, ou `${meses} meses` de um campo
+  fracionário) escapa de qualquer gate. Fica com os testes de render, que
+  assertam a vírgula e recusam o ponto (`frontend/tests/shared/percentualPtBr.ts`
+  e `frontend/tests/shared/decimalPtBr.ts`).
 
 ---
 

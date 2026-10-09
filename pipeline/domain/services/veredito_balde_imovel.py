@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
-from typing import Mapping
+from typing import Any, Mapping
 
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services.investimentos_cobertura import CoberturaStatus
@@ -128,6 +128,15 @@ def _motivo_da_residencia(
     if status == RESIDENCIA_PROPRIA:
         return MotivoBaldeImovel.nao_classificada
     return MotivoBaldeImovel.nao_declarada
+
+
+# [[ADR-444]] D2: a carteira de investimentos lê o veredito PUBLICADO, nunca um quarto
+# splitter — os quatro motivos de `nao_apurado`, inclusive `sem_valor`: zero em 31/12 é venda,
+# e quem vendeu a casa marcada tem a casa nova no desconhecido.
+def residencia_pode_estar_no_desconhecido(bloco: Mapping[str, Any] | None) -> bool:
+    """`True` com a residência não apurada; payload legado sem o bloco segue o anterior."""
+    residencia = (bloco or {}).get("residencia") or {}
+    return residencia.get("status") == CoberturaStatus.nao_apurado.value
 
 
 # O discriminador é o imóvel em aberto, não o override: quem trocou o imóvel de renda por
@@ -288,6 +297,7 @@ __all__ = [
     "VereditosDeImovel",
     "classificar_imoveis_do_run",
     "evidencia_de_imoveis",
+    "residencia_pode_estar_no_desconhecido",
     "review_reasons_da_classificacao_imovel",
     "veredito_geradores",
     "veredito_residencia",
