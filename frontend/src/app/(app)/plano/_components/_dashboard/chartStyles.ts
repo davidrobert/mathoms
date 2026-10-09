@@ -1,4 +1,4 @@
-/** Estilos compartilhados pelos cards de gráfico do dashboard (`/plano` › Mês corrente). */
+/** Estilos compartilhados pelos cards de gráfico do dashboard (`/plano` › Análise Financeira). */
 
 export const TOOLTIP_ITEM_STYLE = {
   fontFamily: "var(--font-mono)",

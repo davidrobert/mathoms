@@ -467,8 +467,8 @@ export type SectionSummaries = Record<string, string>;
 //
 // Shape espelha o `dashboard.aportes` + `dashboard.investimentos_delta`
 // produzidos pelo E5. Determinístico; nenhum campo novo no pipeline.
-// Originalmente consumido pelo Tático T2 (removido em ADR-149); agora
-// vive em `/plano` (seção "Mês corrente", ex-/dashboard absorvido em ADR-155).
+// Originalmente consumido pelo Tático T2 (removido em ADR-149). Hoje sem
+// consumidor: o `/plano` lê `/v1/dashboard` (kpis/charts/alerts), não este shape.
 // ──────────────────────────────────────────────────────────────────────
 
 /** Item de aporte planejado/executado por destino (CDB, Tesouro, ETF…). */
@@ -486,8 +486,8 @@ export interface InvestimentoDeltaItem {
   readonly atual: number;
 }
 
-/** Subset tipado do `dashboard` (endpoint /v1/dashboard) consumido pelo `/plano` (seção "Mês corrente") e
- * de aportes/investimentos. Mantém-se aberto via `[key: string]: unknown`
+/** Subset tipado do `dashboard` do E5 (aportes e investimentos_delta), sem
+ * consumidor hoje — ver o cabeçalho do bloco. Mantém-se aberto via `[key: string]: unknown`
  * porque o E5 ainda emite chaves não cobertas (proximos_15d, alertas,
  * tarefas, notas) — Direção E moverá esses para /acao via Onda 4+. */
 export interface DashboardData {

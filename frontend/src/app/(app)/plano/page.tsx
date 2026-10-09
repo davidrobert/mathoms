@@ -3,14 +3,15 @@
 /**
  * /plano — única "home" do app pós-ADR-155.
  *
- * Consolida 3 camadas em uma única tela vertical:
+ * Consolida 3 camadas em uma única tela vertical, nesta ordem:
  *
  * 1. **Estratégia** (executive summary): KPIs estratégicos · banner de
  *    sugestões · Hero IF · Metas de suporte.
- * 2. **Mês corrente** (operacional, ex-/dashboard): alertas · KPIs
- *    operacionais · charts. Componentes vivem em `_dashboard/`.
- * 3. **Plano de Ação** (execução): Decisões em vigor · tarefas próximas ·
- *    tarefas que destravam IF.
+ * 2. **Plano de Ação** (execução, colapsado): Decisões em vigor · tarefas
+ *    próximas · tarefas que destravam IF.
+ * 3. **Análise Financeira** (ex-/dashboard, colapsada): alertas ·
+ *    indicadores · charts da última análise do E5. Componentes vivem em
+ *    `_dashboard/`.
  *
  * `/dashboard` agora redireciona 308 para `/plano` (ADR-155, Direção E
  * consolidação). `/acao` permanece como superfície dinâmica de execução
@@ -157,7 +158,7 @@ export default function PlanoPage() {
         </div>
       </details>
 
-      <CurrentMonthDetails
+      <FinancialAnalysisDetails
         loading={dashboard.loading}
         data={dashboard.data}
         onBarClick={handleBarClick}
@@ -167,29 +168,32 @@ export default function PlanoPage() {
   );
 }
 
-interface CurrentMonthDetailsProps {
+interface FinancialAnalysisDetailsProps {
   loading: boolean;
   data: DashboardResponse | null;
   onBarClick: (label: string) => void;
   onSliceClick: (name: string) => void;
 }
 
-/** Onda 7 #1 — "Mês corrente" colapsado por default. Casal abre quando
+/** Onda 7 #1 — "Análise Financeira" colapsada por default. Casal abre quando
  * algo pisca; default é fechado para reduzir scroll na leitura mensal
- * típica (estratégia → ação primeiro; análise como footer). */
-function CurrentMonthDetails({
+ * típica (estratégia → ação primeiro; análise como footer). O título não
+ * declara base temporal: as bases são mistas (janela de até 12 meses
+ * documentados, fotografia da posição) e a base pertence ao rótulo de cada
+ * item (ADR-306 D1). */
+function FinancialAnalysisDetails({
   loading,
   data,
   onBarClick,
   onSliceClick,
-}: CurrentMonthDetailsProps) {
+}: FinancialAnalysisDetailsProps) {
   return (
     <details className="group my-8">
       <summary className="flex cursor-pointer list-none items-center gap-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
         <ChevronOpenIcon />
-        Mês corrente
+        Análise Financeira
         <span className="hidden text-[10px] font-normal normal-case tracking-normal opacity-70 sm:inline">
-          (alertas, KPIs e charts do mês — abra para ver)
+          (alertas, indicadores e gráficos da última análise — abra para ver)
         </span>
         <span className="flex-1 border-t border-border" />
       </summary>
