@@ -12,6 +12,10 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.domain.services.imovel_na_carteira import (
+    CLASSE_IMOVEIS_USO_NAO_APURADO,
+    CLASSES_IMOVEL_FISICO,
+)
 from tests.pipeline_golden_asserts import assert_qa_log_md
 
 _REPO = Path(__file__).resolve().parents[1]
@@ -307,7 +311,11 @@ def test_e5_divergent_baseline_imoveis_not_zeroed(e5_tenant_with_baseline: Path)
     payload = ctx.artifact_store.read("E5", "analise_financeira")
 
     classes = {c["categoria"]: c["valor"] for c in payload["investimentos"]["tabela_classes"]}
-    assert classes.get("Imóveis Investimento", 0) == 350_000.0
+    # O que esta regressão guarda é o VALOR não zerar. Sem residência apurada, o imóvel
+    # sem classificação vai à linha sem peso ([[ADR-444]] D3) — e ela tem de aparecer aqui,
+    # no payload que o schema de produção valida.
+    assert sum(classes.get(c, 0) for c in CLASSES_IMOVEL_FISICO) == 350_000.0
+    assert classes.get(CLASSE_IMOVEIS_USO_NAO_APURADO) == 350_000.0
     assert payload["patrimonio"]["bruto"] == 350_000.0
 
 
