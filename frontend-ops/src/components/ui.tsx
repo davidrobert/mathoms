@@ -33,7 +33,7 @@ export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...rest}
-      className={`rounded-md border border-surface-border bg-surface-bg px-3 py-2 text-sm text-surface-fg focus:outline-none focus:ring-2 focus:ring-brand-primary ${className}`}
+      className={`rounded-md border border-surface-border bg-surface-bg px-3 py-2 text-sm text-surface-fg focus:outline-hidden focus:ring-2 focus:ring-brand-primary ${className}`}
     />
   );
 }
@@ -45,7 +45,7 @@ interface BadgeProps {
 
 const BADGE_CLASS: Record<NonNullable<BadgeProps["tone"]>, string> = {
   neutral: "bg-surface-muted text-surface-muted-fg",
-  success: "bg-semantic-gain/15 text-semantic-gain",
+  success: "bg-semantic-gain/15 text-semantic-gain-on-tint",
   warning: "bg-semantic-alert/20 text-brand-warning-fg",
   danger: "bg-brand-danger/15 text-brand-danger",
 };
