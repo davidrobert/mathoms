@@ -1,6 +1,65 @@
 {
   "charts": [
     {
+      "chart_type": "bar",
+      "title": "Receitas e Saídas por Mês",
+      "data": {
+        "x_axis": "month",
+        "labels": [
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02"
+        ],
+        "datasets": [
+          {
+            "label": "Receitas",
+            "tone": "gain",
+            "data": [
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0,
+              20000.0
+            ]
+          },
+          {
+            "label": "Saídas (inclui aportes)",
+            "tone": "neutral",
+            "data": [
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0,
+              13000.0
+            ]
+          }
+        ]
+      }
+    },
+    {
       "chart_type": "pie",
       "title": "Despesas por Categoria",
       "data": {
@@ -16,7 +75,8 @@
       "chart_type": "pie",
       "title": "Composição Patrimonial",
       "data": {
-        "items": [
+        "fonte": "composicao_patrimonial",
+        "composicao": [
           {
             "categoria": "Investimentos Titular",
             "valor": 300000.0,

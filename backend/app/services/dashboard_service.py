@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 
@@ -12,6 +13,11 @@ from pipeline.stage_spec import resolve_stage_name
 
 logger = logging.getLogger(__name__)
 
+# Os mesmos 12 rótulos finais da `janela_12m` do E5 — a lista `meses` do enricher é uma
+# só — e o default do "Fluxo de Caixa Mensal" do relatório (ADR-306 D1).
+_MESES_GRAFICO_MENSAL = 12
+# `fluxo_caixa_enricher._build_chart_datasets` emite "YY/MM"; o leitor lê ISO "YYYY-MM".
+_ROTULO_MES_E5 = re.compile(r"^(\d{2})/(\d{2})$")
 _UM_DECIMAL = Decimal("0.1")
 
 
@@ -82,47 +88,47 @@ def _fmt_pct(pct: Decimal) -> str:
 
 
 def build_charts(e5: dict[str, Any]) -> list[DashboardChart]:
-    charts: list[DashboardChart] = []
+    fluxo = e5.get("fluxo_caixa") or {}
+    candidatos = (
+        _chart_receitas_e_saidas(fluxo.get("receita_despesa_mensal_detalhado") or {}),
+        _chart_despesas_por_categoria(fluxo.get("janela_12m") or {}),
+        _chart_composicao((e5.get("patrimonio") or {}).get("composicao")),
+        _chart_investimentos_por_classe((e5.get("investimentos") or {}).get("tabela_classes")),
+    )
+    return [chart for chart in candidatos if chart is not None]
 
-    fluxo = e5.get("fluxo_caixa", {})
-    receita_desp = fluxo.get("receita_despesa_mensal_detalhado", {})
-    if receita_desp.get("labels") and receita_desp.get("datasets"):
-        charts.append(
-            DashboardChart(
-                chart_type="bar",
-                title="Receita vs Despesa Mensal",
-                data=receita_desp,
-            )
-        )
 
-    despesas = _chart_despesas_por_categoria(fluxo.get("janela_12m") or {})
-    if despesas is not None:
-        charts.append(despesas)
+# `totais_despesa` é BRUTO — inclui o aporte, que é poupança (ADR-333) — e por isso a
+# série não se chama "Despesa"; "Despesas" nesta seção é a pizza, que tira o aporte.
+def _chart_receitas_e_saidas(mensal: dict[str, Any]) -> DashboardChart | None:
+    meses = [_mes_iso(rotulo) for rotulo in mensal.get("labels") or []]
+    if not meses:
+        return None
+    janela = slice(-_MESES_GRAFICO_MENSAL, None)
+    return DashboardChart(
+        chart_type="bar",
+        title="Receitas e Saídas por Mês",
+        data={
+            "x_axis": "month",
+            "labels": meses[janela],
+            "datasets": [
+                _serie("Receitas", mensal.get("totais_receita"), "gain", janela),
+                _serie("Saídas (inclui aportes)", mensal.get("totais_despesa"), "neutral", janela),
+            ],
+        },
+    )
 
-    patrimonio = e5.get("patrimonio", {})
-    composicao = patrimonio.get("composicao", {})
-    if composicao:
-        composicao_data = composicao if isinstance(composicao, dict) else {"items": composicao}
-        charts.append(
-            DashboardChart(
-                chart_type="pie",
-                title="Composição Patrimonial",
-                data=composicao_data,
-            )
-        )
 
-    investimentos = e5.get("investimentos", {})
-    tabela_classes = investimentos.get("tabela_classes", [])
-    if tabela_classes:
-        charts.append(
-            DashboardChart(
-                chart_type="bar",
-                title="Investimentos por Classe",
-                data=_bar_data_por_classe(tabela_classes),
-            )
-        )
+def _serie(label: str, valores: list[float] | None, tone: str, janela: slice) -> dict[str, Any]:
+    return {"label": label, "tone": tone, "data": list(valores or [])[janela]}
 
-    return charts
+
+# Rótulo fora do formato passa cru: o leitor o desenha, só sem deep-link de período.
+def _mes_iso(rotulo: str) -> str:
+    casou = _ROTULO_MES_E5.match(rotulo)
+    if casou is None:
+        return rotulo
+    return f"20{casou.group(1)}-{casou.group(2)}"
 
 
 # Chave crua de propósito: tirar o aporte (ADR-333 §Emenda) e humanizar o rótulo é do
@@ -139,6 +145,28 @@ def _chart_despesas_por_categoria(janela_12m: dict[str, Any]) -> DashboardChart 
             "categorias": categorias,
             "janela_meses": janela_12m.get("janela_meses", 0),
         },
+    )
+
+
+# Linhas cruas: quais viram fatia é o predicado único `visibleCompositionRows` (A40.l71);
+# filtrar aqui seria um segundo predicado, invisível ao `check_composicao_predicate.py`.
+def _chart_composicao(composicao: Any) -> DashboardChart | None:
+    if not isinstance(composicao, list) or not composicao:
+        return None
+    return DashboardChart(
+        chart_type="pie",
+        title="Composição Patrimonial",
+        data={"fonte": "composicao_patrimonial", "composicao": composicao},
+    )
+
+
+def _chart_investimentos_por_classe(tabela_classes: Any) -> DashboardChart | None:
+    if not tabela_classes:
+        return None
+    return DashboardChart(
+        chart_type="bar",
+        title="Investimentos por Classe",
+        data=_bar_data_por_classe(tabela_classes),
     )
 
 

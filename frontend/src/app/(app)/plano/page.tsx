@@ -44,7 +44,7 @@ import { AlertCard } from "./_components/_dashboard/AlertCard";
 import { ChartsGrid } from "./_components/_dashboard/ChartsGrid";
 import { HeaderActions } from "./_components/_dashboard/HeaderActions";
 import { KpiRow as DashboardKpiRow } from "./_components/_dashboard/KpiRow";
-import { monthLabelToDateRange } from "./_components/_dashboard/dashboardHelpers";
+import { isoMonthToDateRange } from "./_components/_dashboard/dashboardHelpers";
 
 export default function PlanoPage() {
   const { workspace, isLoading: wsLoading } = useWorkspace();
@@ -81,7 +81,7 @@ export default function PlanoPage() {
     );
   }
   const handleBarClick = (label: string) => {
-    const range = monthLabelToDateRange(label);
+    const range = isoMonthToDateRange(label);
     if (range) {
       router.push(
         `/transactions?date_from=${range.date_from}&date_to=${range.date_to}`,

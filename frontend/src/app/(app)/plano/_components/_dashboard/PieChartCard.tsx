@@ -11,7 +11,7 @@ import {
 import type { DashboardChart } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CHART_COLORS } from "./dashboardHelpers";
+import { CHART_COLORS, LEGEND_PROPS } from "./dashboardHelpers";
 import { normalizePieData, type PieSlice } from "./dashboardPie";
 import { PieNotes } from "./PieNotes";
 
@@ -76,7 +76,7 @@ export function PieChartCard({
               itemStyle={TOOLTIP_ITEM_STYLE}
               contentStyle={TOOLTIP_CONTENT_STYLE}
             />
-            <Legend />
+            <Legend {...LEGEND_PROPS} />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>

@@ -1,5 +1,11 @@
+import {
+  donutSlices,
+  visibleCompositionRows,
+  type VisibleCompositionRow,
+} from "@/components/report/utils/visibleCompositionRows";
 import type { DashboardChart } from "@/lib/api";
 import { humanizeCategoryLabel, isAporteInvestimentoKey } from "@/lib/categoryLabels";
+import type { MotivoBaldeImovel, PatrimonioData } from "@/types/report-analysis";
 
 /** `id` é o que o clique leva ao deep-link (chave crua da categoria); `name`, o rótulo. */
 export interface PieSlice {
@@ -8,7 +14,10 @@ export interface PieSlice {
   value: number;
 }
 
-export type PieNote = { kind: "base_despesas"; janelaMeses: number; aporteExcluido: number };
+export type PieNote =
+  | { kind: "residencia_nao_apurada"; motivo: MotivoBaldeImovel }
+  | { kind: "fora_do_grafico"; categoria: string; valor: number }
+  | { kind: "base_despesas"; janelaMeses: number; aporteExcluido: number };
 
 export interface DashboardPie {
   slices: PieSlice[];
@@ -28,10 +37,33 @@ const SEM_FATIAS: DashboardPie = { slices: [], notes: [], clickable: false };
  *  domínio, o mesmo do relatório — nenhum predicado reescrito aqui nem no backend. */
 export function normalizePieData(chart: DashboardChart): DashboardPie {
   const fonte = (chart.data as { fonte?: unknown }).fonte;
+  if (fonte === "composicao_patrimonial") {
+    return composicaoPie(chart.data as PatrimonioData);
+  }
   if (fonte === "despesas_por_categoria") {
     return despesasPie(chart.data as DespesasPayload);
   }
   return SEM_FATIAS;
+}
+
+function composicaoPie(patrimonio: PatrimonioData): DashboardPie {
+  const rows = visibleCompositionRows(patrimonio);
+  const slices = donutSlices(rows).map((s) => ({ id: s.label, name: s.label, value: s.value }));
+  return { slices, notes: composicaoNotes(rows), clickable: false };
+}
+
+/** ADR-439 D5: a residência não apurada não tem área no donut e não pode virar zero —
+ *  a nota é o único lugar onde ela aparece. Negativo idem: área não representa sinal. */
+function composicaoNotes(rows: readonly VisibleCompositionRow[]): PieNote[] {
+  const notes: PieNote[] = [];
+  const residencia = rows.find((row) => row.state === "nao_apurado" && row.motivo);
+  if (residencia?.motivo) notes.push({ kind: "residencia_nao_apurada", motivo: residencia.motivo });
+  for (const row of rows) {
+    if (row.state === "negativo") {
+      notes.push({ kind: "fora_do_grafico", categoria: row.categoria, valor: row.valor });
+    }
+  }
+  return notes;
 }
 
 /** ADR-333 §Emenda: aporte é poupança, não consumo — sai das fatias, e o valor retirado

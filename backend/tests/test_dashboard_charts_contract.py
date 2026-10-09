@@ -3,14 +3,15 @@
 Par sobre uma fixture compartilhada, ``frontend/tests/fixtures/dashboard_charts.json``:
 este lado assere que o produtor emite exatamente a fixture; o lado TS
 (``frontend/tests/lib/dashboardCharts.test.ts``) assere que os leitores tiram barras e
-fatias dela. "Investimentos por Classe" saía com ``{classes, total}``, o leitor só lê
-``{labels, datasets}`` e o card do ``/plano`` renderizava título sem barras: cada lado
-tinha a sua crença do contrato e nenhum teste ligava as duas.
+fatias dela. Três cards do ``/plano`` saíam vazios, cada lado com a sua crença do
+contrato e nenhum teste ligando as duas: "Investimentos por Classe" (``{classes, total}``),
+"Composição Patrimonial" (``{items}``) e "Receita vs Despesa Mensal", que lia um
+``datasets`` que o E5 nunca emitiu.
 
-O E5 do par sai dos PRODUTORES REAIS (``FluxoCaixaEnricher``, ``build_composicao``,
-``RatiosCalculator``): um E5 escrito à mão é a mesma crença do produtor, e passaria. A
-fixture é GERADA, nunca escrita à mão (lição da A40.l3). Para regravar após mudança
-legítima de shape::
+O último mostra por que o E5 do par sai dos PRODUTORES REAIS (``FluxoCaixaEnricher``,
+``build_composicao``, ``RatiosCalculator``): um E5 escrito à mão é a mesma crença do
+produtor, e passaria. A fixture é GERADA, nunca escrita à mão (lição da A40.l3). Para
+regravar após mudança legítima de shape::
 
     MATHOMS_UPDATE_DASHBOARD_CHARTS_FIXTURE=1 \\
       .venv/bin/python -m pytest backend/tests/test_dashboard_charts_contract.py -q
@@ -45,6 +46,41 @@ def test_investimentos_por_classe_sai_no_shape_que_o_leitor_le():
         "labels": ["Renda Fixa", "Imóveis Investimento", "Ações BR", "Imóveis com uso não apurado"],
         "datasets": [{"label": "Valor", "data": [300000.0, 200000.0, 100000.0, 150000.0]}],
     }
+
+
+def test_receitas_e_saidas_sai_no_shape_do_leitor_de_barras():
+    data = _charts_no_wire(_E5)["Receitas e Saídas por Mês"]["data"]
+    mensal = _E5["fluxo_caixa"]["receita_despesa_mensal_detalhado"]
+    assert data["x_axis"] == "month"
+    assert data["labels"] == [f"2025-{m:02d}" for m in range(3, 13)] + ["2026-01", "2026-02"]
+    assert data["datasets"] == [
+        {"label": "Receitas", "tone": "gain", "data": mensal["totais_receita"][-12:]},
+        {
+            "label": "Saídas (inclui aportes)",
+            "tone": "neutral",
+            "data": mensal["totais_despesa"][-12:],
+        },
+    ]
+
+
+def test_mes_fora_do_formato_do_e5_passa_cru():
+    e5 = {"fluxo_caixa": {"receita_despesa_mensal_detalhado": {"labels": ["26/02", "2026"]}}}
+    data = _charts_no_wire(e5)["Receitas e Saídas por Mês"]["data"]
+    assert data["labels"] == ["2026-02", "2026"]
+
+
+def test_composicao_sai_crua_para_o_predicado_unico_do_leitor():
+    chart = _charts_no_wire(_E5)["Composição Patrimonial"]
+    assert chart["chart_type"] == "pie"
+    assert chart["data"] == {
+        "fonte": "composicao_patrimonial",
+        "composicao": _E5["patrimonio"]["composicao"],
+    }
+
+
+def test_composicao_fora_do_formato_lista_nao_vira_grafico():
+    e5 = {"patrimonio": {"composicao": {"Residência": 0.0}}}
+    assert "Composição Patrimonial" not in _charts_no_wire(e5)
 
 
 def test_despesas_por_categoria_le_a_janela_12m_e_nao_o_periodo_inteiro():
