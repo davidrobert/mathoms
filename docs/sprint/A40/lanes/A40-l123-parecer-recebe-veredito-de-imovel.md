@@ -147,7 +147,8 @@ resultado está decidido antes de rodar (`prompt-engineer`).
    [[PIPELINE-REVIEWS-active]] já registrava a eviction por seleção, sem lane). Dono
    `prompt-engineer` + `product-manager`. Retomada: **antes do 1º re-run**, porque muda a
    leitura do parecer dele.
-   ➜ **Roteado 2026-10-09 para a [[A40.l124]]** (P1). A medição dela acrescenta duas coisas:
+   ✅ **Entregue 2026-10-09 pela [[A40.l124]]** (#2173): o corpo volta a caber inteiro, e a
+   eviction passa a ser publicada e lida pelo X8. A medição dela acrescenta duas coisas:
    no caminho de produção (sanitizado) a 2.21.0 pede 19912 B sobre o mesmo E5, e a eviction
    não nasceu na 2.19.0 — medindo cada run com o próprio manifest, `investimentos` sai desde
    2026-08-26 e `independencia_financeira` desde 2026-08-29.
