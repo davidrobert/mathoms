@@ -88,7 +88,7 @@ def _seed_dogfood(db_url: str, run_id: str) -> None:
     from backend.app.core.database import Base
     from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
-    engine = create_engine(db_url.replace("+aiosqlite", ""))
+    engine = create_engine(db_url.replace("+aiosqlite", ""), hide_parameters=True)
     Base.metadata.create_all(engine)
     session = sessionmaker(bind=engine, expire_on_commit=False)()
     store = DBArtifactStore(session, workspace_id=_WS_ID, pipeline_run_id=run_id)
