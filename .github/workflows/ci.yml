@@ -516,7 +516,7 @@ jobs:
         # Hooks `language: system` chamam Node: probabilidade-parity roda `node -e`
         # e frontend-lock-sync roda `npx`. Sem este step rodavam no Node do runner,
         # e um bump do runner mudava o resultado em silêncio (node-version-parity).
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version-file: frontend/.nvmrc
 
