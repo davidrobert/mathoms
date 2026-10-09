@@ -44,14 +44,13 @@ o exec context do parecer e para o numerador da concentração imobiliária
 
 ## Contexto medido (2026-08-30, workspace de dogfood)
 
-Sobre `consumo_consciente` do report `c011c40c`, com `total_pontuais_janela` =
-R$ 394.525,39 — deltas **isolados por causa**, cada um com o filtro aplicado sozinho:
+Sobre `consumo_consciente` do report `c011c40c`, — deltas **isolados por causa**, cada um com o filtro aplicado sozinho:
 
 | recorte | Δ full | Δ janela |
 | --- | --- | --- |
-| ex-`transfer_categories` (aporte, [[ADR-333]]) | −R$ 190.000,00 | **R$ 0,00** |
-| ex-transferência interna **detectada** | **R$ 0,00** | **R$ 0,00** |
-| ex-`nao_identificado` | −R$ 348.916,19 | **−R$ 249.374,91** |
+| ex-`transfer_categories` (aporte, [[ADR-333]]) | −o aporte inteiro | **0** |
+| ex-transferência interna **detectada** | **0** | **0** |
+| ex-`nao_identificado` | −o maior dos três | **−63,2% da base da janela** |
 
 Reproduzir: agrupar `consumo_consciente.itens` por `categoria`, somando `valor`, com
 e sem cada recorte; janela = itens com `mes >= fluxo_caixa.janela_12m.periodo[:7]`.

@@ -42,7 +42,7 @@ def _resolve_db_url() -> str:
 
 def _build_engine(url: str) -> Engine:
     """Engine síncrono com PRAGMA foreign_keys ligado em SQLite."""
-    engine = create_engine(url, future=True)
+    engine = create_engine(url, future=True, hide_parameters=True)
     if url.startswith("sqlite"):
 
         @event.listens_for(engine, "connect")

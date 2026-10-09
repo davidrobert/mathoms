@@ -2,9 +2,10 @@
 id: ADR-439
 type: adr
 title: "Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero"
-status: Proposto
+status: Decidido
 phase: A40.l113
 date: "2026-10-08"
+amended_at: ["2026-10-08"]
 relates_to:
   - "[[ADR-433]]"
   - "[[ADR-215]]"
@@ -21,12 +22,17 @@ aliases:
   - "zero de imóvel só com evidência de zero"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
 ---
 
 # ADR-439 — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero
+
+> **Corrigida 2026-10-08 (closeout da [[A40.l113]]):** duas afirmações da versão decidida
+> não batem com o código — a condição de runtime da residência na D7 e o
+> `comparison_base_changed` em §Consequências. O texto original fica como evidência; a
+> correção está em §Correção 2026-10-08. Nenhuma decisão (D1–D7) muda.
 
 > Co-design 2026-10-08: `financial-planner` (regra de domínio), `data-engineer` (contrato e
 > ordem dos PRs), `product-designer` (superfície). Executa o item 1 do §Deferimento da
@@ -133,12 +139,16 @@ O gate vira teste, com oráculo tirado do estado de DB da fixture, mutação (pu
 0 ⇒ vermelho) e matriz de regimes. Em runtime fica `review_reason` WARN quando há evidência
 contrária: override da classe sem imóvel no run **e** imóvel em aberto.
 
+> ⚠️ *Corrigido em 2026-10-08:* vale para geradores; para a residência o imóvel em aberto não
+> é condição — §Correção 2026-10-08, item 1.
+
 ## Consequências
 
 - **Números que mudam (PR do flip):** `residencia` vira `null` onde não foi declarada ou não
   foi localizada; o par de geradores vira `null` onde há imóvel em aberto. O rebaseline de
   golden e snapshot marca `comparison_base_changed`: é correção de medição, não melhora
   ([[ADR-190]] §Emenda 2026-08-10).
+  ⚠️ *Corrigido em 2026-10-08:* rebaseline nenhum marca o flag — §Correção 2026-10-08, item 2.
 - `golden_diff.py` passa a enxergar número→`null`. Sem isso, a supressão (ou uma regressão
   para `null`) rebaselinaria sem waiver.
 - **Expand→contract:** schema e leitores aceitam `null` antes de o produtor emitir.
@@ -162,5 +172,34 @@ contrária: override da classe sem imóvel no run **e** imóvel em aberto.
 
 - `tests/unit/pipeline/test_veredito_balde_imovel.py` — a matriz de D2/D3, incluindo o imóvel
   de renda vendido (zero verdadeiro) e o desconhecido sem valor apurado (em aberto).
-- Teste de mutação + matriz de regimes no PR do flip (D7).
-- `check_schema_manifest_drift`, `check_view_model_contract` e o `golden_diff` corrigido.
+- `tests/test_veredito_imovel_gate_adr439.py` — o gate da D7: matriz de 7 regimes (U5, nada
+  classificado, aluga, vendeu o imóvel de renda, tudo classificado, residência órfã, sem
+  imóvel), oráculo tirado do estado de DB da fixture, e mutação do veredito para "sempre
+  apurado" que deixa o gate vermelho.
+- `tests/test_golden_discrimina_classificacao_de_imovel.py` — o regime `toda_classificada` é
+  o único caso do golden com o par numérico; os outros dois o publicam `null`.
+- `check_schema_manifest_drift`, `check_view_model_contract` e o `golden_diff`, que desde o
+  #2051 cobra manifesto de campo monetário que vira `null`.
+
+## Correção 2026-10-08 — duas afirmações que o código não sustenta
+
+Achadas no closeout da [[A40.l113]], depois do merge do #2063. Nenhuma muda decisão.
+
+1. **D7, condição de runtime da residência.** O texto decidido exige, para os dois baldes,
+   override da classe sem imóvel no run **e** imóvel em aberto. Vale para geradores: em
+   `veredito_geradores` o órfão só escolhe o motivo quando há imóvel em aberto
+   (`vinculo_perdido`). Para a residência o imóvel em aberto não entra: com residência zero e
+   status ≠ `rented`, o override `residencia_principal` sem imóvel no run basta para
+   `nao_localizada` (`_motivo_da_residencia`), e a razão advisory sai dele. Efeito: avisa
+   também quem vendeu a casa e não atualizou o status — e não retém nada. O comentário de
+   `_MOTIVO_DE_VINCULO_PERDIDO` ("o override órfão sozinho também não vira razão") herda a
+   mesma imprecisão: vale só para geradores.
+2. **`comparison_base_changed`.** O texto decidido diz que o rebaseline de golden e snapshot
+   "marca" o flag. Rebaseline nenhum o marca: ele é derivado em runtime, no par de
+   relatórios, pelo proxy de presença de `fluxo_caixa.consolidacao_cross_documento`
+   ([[ADR-190]] §Emenda 2026-08-10, item 5; `_base_de_comparacao_mudou`). Aqui ele também
+   não precisa disparar: o changelog compara `patrimonio.liquido`, taxa de poupança
+   recorrente, cobertura da reserva e desvio máximo da alocação-alvo, e a D5 não move
+   nenhuma delas — no rebaseline do #2063 o snapshot do view-model mudou só os três baldes
+   para `null`. O mesmo engano está na [[ADR-433]] §Consequências, onde ele importa: ver a
+   correção dela.

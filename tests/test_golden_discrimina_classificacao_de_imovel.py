@@ -69,6 +69,22 @@ def sem_classificacao(tmp_path_factory) -> dict:
     return _rodar(tmp_path_factory.mktemp("sem"), {})["patrimonio"]
 
 
+# [[ADR-439]] D3: com o apartamento sem override (regime default), há imóvel EM ABERTO e o
+# par de geradores sai `null` nos dois regimes acima. Este terceiro classifica o
+# apartamento como residência — é o único caso do golden com o par numérico publicado.
+@pytest.fixture(scope="module")
+def toda_classificada(tmp_path_factory) -> dict:
+    mapa = {**CLASSIFICACOES_DO_DOGFOOD, "ficticia 100": "residencia_principal"}
+    return _rodar(tmp_path_factory.mktemp("toda"), mapa)["patrimonio"]
+
+
+def _split_identificado(patrimonio: dict) -> tuple[int, int]:
+    """(geradores, resto de cat_2) pela partição do bloco — o par publicado pode ser null."""
+    b = patrimonio["cobertura_classificacao_imovel"]
+    resto = _cents(b["nao_geradores_identificados"]) + _cents(b["valor_desconhecido"])
+    return _cents(b["geradores_identificados"]), resto
+
+
 def _imoveis_da_fixture() -> list[dict]:
     baseline = load_fixture(_DOGFOOD / "baseline-1.5.json")
     return [i for i in baseline["itens"] if i.get("categoria") == "imovel"]
@@ -100,11 +116,22 @@ def test_os_valores_sao_dois_a_dois_distintos() -> None:
     assert all(v > 0 for v in valores), f"valor nulo na fixture: {valores}"
 
 
-def test_cat2_conserva_ao_cent(com_classificacao: dict) -> None:
+def test_cat2_conserva_ao_cent(com_classificacao: dict, toda_classificada: dict) -> None:
     """Tolerância zero: identidade algébrica no mesmo payload, não paridade."""
-    assert _cents(com_classificacao["imoveis_geradores"]) + _cents(
-        com_classificacao["imoveis_nao_geradores"]
-    ) == _cents(com_classificacao["imoveis_investimento"])
+    assert _cents(toda_classificada["imoveis_geradores"]) + _cents(
+        toda_classificada["imoveis_nao_geradores"]
+    ) == _cents(toda_classificada["imoveis_investimento"])
+    assert sum(_split_identificado(com_classificacao)) == _cents(
+        com_classificacao["imoveis_investimento"]
+    )
+
+
+def test_imovel_em_aberto_publica_o_par_null(com_classificacao: dict) -> None:
+    """[[ADR-439]] D3: o apartamento sem override pode ser renda — o par não afirma."""
+    assert com_classificacao["imoveis_geradores"] is None
+    assert com_classificacao["imoveis_nao_geradores"] is None
+    veredito = com_classificacao["cobertura_classificacao_imovel"]["imoveis_geradores"]
+    assert veredito["motivo"] == "nao_classificados"
 
 
 # A prova de não-inércia. Sem ela, "a fixture declara classificação" e "o motor a lê"
@@ -113,12 +140,11 @@ def test_a_classificacao_declarada_e_LOAD_BEARING(
     com_classificacao: dict, sem_classificacao: dict
 ) -> None:
     """Sem override, cat_2 inteiro colapsa em não-gerador — o extremo degenerado."""
-    assert _cents(sem_classificacao["imoveis_geradores"]) == 0
-    assert _cents(sem_classificacao["imoveis_nao_geradores"]) == _cents(
-        sem_classificacao["imoveis_investimento"]
-    )
+    geradores_sem, resto_sem = _split_identificado(sem_classificacao)
+    assert geradores_sem == 0
+    assert resto_sem == _cents(sem_classificacao["imoveis_investimento"])
 
-    assert _cents(com_classificacao["imoveis_geradores"]) > 0
+    assert _split_identificado(com_classificacao)[0] > 0
     assert _cents(com_classificacao["cat2_efetivo"]) > 0
 
 
@@ -126,8 +152,9 @@ def test_o_split_da_fixture_NAO_move_dinheiro(
     com_classificacao: dict, sem_classificacao: dict
 ) -> None:
     """O eixo que se move é o de classificação; bruto, líquido e cat_2 ficam parados."""
-    for campo in ("bruto", "liquido", "imoveis_investimento", "residencia"):
+    for campo in ("bruto", "liquido", "imoveis_investimento"):
         assert _cents(com_classificacao[campo]) == _cents(sem_classificacao[campo]), campo
+    assert com_classificacao["residencia"] == sem_classificacao["residencia"]
 
 
 # ---------------------------------------------------------------------------
@@ -146,12 +173,11 @@ def test_alocacao_e_fora_conservam_cat2_ao_cent(com_classificacao: dict) -> None
 # publicar a mesma coisa duas vezes — e o flip do numerador não moveria nada.
 def test_a_particao_por_rebalanceabilidade_DIFERE_da_por_geracao(com_classificacao: dict) -> None:
     """`especulacao` fica na alocação e sai dos geradores; é isso que separa os eixos."""
-    assert _cents(com_classificacao["imoveis_alocacao"]) != _cents(
-        com_classificacao["imoveis_geradores"]
+    geradores, resto = _split_identificado(com_classificacao)
+    assert (
+        _cents(com_classificacao["imoveis_alocacao"]) != geradores
     ), "os dois eixos coincidem — a fixture não exercita `especulacao` nem `uso_pessoal`"
-    assert _cents(com_classificacao["imoveis_fora_alocacao"]) != _cents(
-        com_classificacao["imoveis_nao_geradores"]
-    )
+    assert _cents(com_classificacao["imoveis_fora_alocacao"]) != resto
 
 
 def _esperado_por_rebalanceabilidade() -> tuple[float, float]:

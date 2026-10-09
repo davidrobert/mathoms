@@ -1,6 +1,7 @@
 "use client";
 
 import { MonetaryValue } from "../../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 import type { BemGapCobertura, ProtecaoGapSinal } from "@/types/protecao";
 
 const SINAL_COPY: Record<ProtecaoGapSinal, string> = {
@@ -26,7 +27,7 @@ export function ProtecaoGapVeiculos({ bens }: { bens: BemGapCobertura[] }) {
   if (bens.length === 0) {
     return (
       <div className="report-card report-card--neutral" data-testid="protecao-gap-empty">
-        <p className="text-style-body text-muted">
+        <p className="text-style-body text-muted-foreground">
           Sem veículos com cobertura material identificados. Aguardando refresh FIPE
           ou apólice ingerida.
         </p>
@@ -61,7 +62,7 @@ export function ProtecaoGapVeiculos({ bens }: { bens: BemGapCobertura[] }) {
               <td className="text-right">
                 <MonetaryValue value={Number.parseFloat(b.fipe_brl)} />
               </td>
-              <td className="text-right">{(Number.parseFloat(b.gap_pct) * 100).toFixed(1)}%</td>
+              <td className="text-right">{formatPercent(Number.parseFloat(b.gap_pct) * 100)}</td>
               <td>
                 <span className={`rounded px-2 py-0.5 text-style-caption ${SINAL_BADGE[b.sinal]}`}>
                   {SINAL_LABEL[b.sinal]}
@@ -71,7 +72,7 @@ export function ProtecaoGapVeiculos({ bens }: { bens: BemGapCobertura[] }) {
           ))}
         </tbody>
       </table>
-      <p className="mt-2 text-style-caption text-muted" data-testid="protecao-gap-help">
+      <p className="mt-2 text-style-caption text-muted-foreground" data-testid="protecao-gap-help">
         {SINAL_COPY[mostSeriousSinal(bens)]}
       </p>
     </div>

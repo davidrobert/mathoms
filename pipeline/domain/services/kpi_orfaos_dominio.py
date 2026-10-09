@@ -17,10 +17,11 @@ from __future__ import annotations
 #   A chave chamava-se `protecao_cobertura` e **nomeava um conceito que o payload
 #   não publica**: não existe agregado de capital segurado no schema — por desenho,
 #   é a própria ADR-387. O que `pct_renda_anual` entrega é prêmio/renda, carga do
-#   seguro no orçamento. Medido: 6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM, logo é
-#   **razão 0–1**, e estava declarada `pct`: quem lesse pelo contrato publicaria
-#   0,0057% no lugar de 0,57%, erro de 100× que nenhum gate via. Cobertura de
-#   capital continua sendo tratada qualitativamente por `gap_qualitativo`.
+#   seguro no orçamento. Medido no dogfood: prêmio ÷ valor publicado só reproduz a
+#   renda declarada se o campo for **razão 0–1**, e estava declarada `pct`: quem lesse
+#   pelo contrato publicaria 0,006% no lugar de 0,6%, erro de 100× que nenhum gate
+#   via. Cobertura de capital continua sendo tratada qualitativamente por
+#   `gap_qualitativo`.
 # - `taxa_poupanca_recorrente` — RV2-24: `poupanca_referencia_pct` (25) e
 #   `pontos_fortes_taxa_poupanca_min_pct` (30) descrevem o mesmo conceito sem
 #   precedência declarada. O resolver NÃO escolhe: escolher seria inventar regra de
@@ -60,9 +61,9 @@ _ORFAOS_DOMINIO = (
         # `resolve_renda_anual_liquida`. Declarar "ativa" era o modo de falha que a
         # [[ADR-399]] existe para impedir — observado de uma base sob rótulo de outra.
         "renda_anual_liquida",
-        # E é razão 0–1, não `pct`: 6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM. Sob `pct`
-        # o leitor publicaria 0,0057% no lugar de 0,57% — o mesmo modo de falha do
-        # rótulo de base, um andar abaixo, na unidade.
+        # E é razão 0–1, não `pct`: prêmio ÷ valor publicado só reproduz a renda sob
+        # razão. Sob `pct` o leitor publicaria 0,006% no lugar de 0,6% — o mesmo modo
+        # de falha do rótulo de base, um andar abaixo, na unidade.
         "ratio_0_1",
         "Custo dos seguros sobre a renda anual",
         "capital ideal exige inventário de proteção confirmado (ADR-387)",
@@ -157,11 +158,37 @@ _ORFAOS_DOMINIO = (
         "Alíquota efetiva de IR (consolidada)",
         "alíquota efetiva é descritiva; o alvo depende do regime e não é canônico",
     ),
+    # Órfã por (b), e a única cujo número fala do RELATÓRIO, não da família (co-design
+    # `financial-planner` + `product-designer`, [[A40.l92]]). O share não identificado é o
+    # tier de confiança do diagnóstico ([[ADR-353]]) — a ação é do produto (learning loop,
+    # [[ADR-186]]/[[ADR-188]]), não do cliente. Com alvo `≤ 10,0%`, o leitor fazia a conta e 12% virava violação DA
+    # FAMÍLIA; e o 10 sozinho apagaria o degrau de 30, que é onde o diagnóstico some. A
+    # base é a SOMA DAS CATEGORIAS, não `despesa_total`: a [[ADR-353]] D2 a exclui
+    # expressamente, porque diverge pelas transferências internas removidas.
+    (
+        "despesas_nao_categorizadas",
+        "$.diagnostico_confianca.share_nao_identificado_pct",
+        "despesas_por_categoria",
+        "pct",
+        "Despesas não identificadas (% do total, 12m)",
+        "mede a leitura do relatório, não a família",
+    ),
 )
 
 
 #: Órfãs por decisão, derivadas da tupla — nunca à mão. Consumidor: gate de [[ADR-419]] §D4.
 ORFAOS_DOMINIO_KEYS: tuple[str, ...] = tuple(chave for chave, *_ in _ORFAOS_DOMINIO)
 
+#: Situação que o PRODUTOR publica no lugar de veredito do comparador: chave → path do
+#: nível no E5 ([[A40.l92]], co-design financial-planner). Só órfã entra — métrica com
+#: alvo tem veredito, e as duas fontes dariam duas respostas para a mesma linha. O nível
+#: vai cru: recalculá-lo pelo share criaria outro leitor do 10 com fronteira própria.
+NIVEL_DO_PRODUTOR_PATH: dict[str, str] = {
+    "despesas_nao_categorizadas": "$.diagnostico_confianca.nivel",
+}
 
-__all__ = ["ORFAOS_DOMINIO_KEYS", "_ORFAOS_DOMINIO"]
+#: Motivo de cada órfã, derivado da tupla — nunca à mão.
+MOTIVO_DA_ORFA: dict[str, str] = {chave: motivo for chave, *_, motivo in _ORFAOS_DOMINIO}
+
+
+__all__ = ["MOTIVO_DA_ORFA", "NIVEL_DO_PRODUTOR_PATH", "ORFAOS_DOMINIO_KEYS", "_ORFAOS_DOMINIO"]

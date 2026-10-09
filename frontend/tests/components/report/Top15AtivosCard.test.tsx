@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { Top15AtivosCard, type TopAtivo } from "@/components/report/cards";
+import { PERCENTUAL_COM_PONTO } from "../../shared/percentualPtBr";
 
 function ativo(overrides: Partial<TopAtivo> = {}): TopAtivo {
   return {
@@ -38,8 +39,28 @@ describe("<Top15AtivosCard />", () => {
     expect(screen.getByText("ITSA4")).toBeInTheDocument();
     expect(screen.getByText("Tesouro IPCA")).toBeInTheDocument();
     expect(screen.getAllByText(/Renda Fixa/)).not.toHaveLength(0);
-    expect(screen.getByText("40.0%")).toBeInTheDocument();
-    expect(screen.getByText("30.0%")).toBeInTheDocument();
+    expect(screen.getByText("40,0%")).toBeInTheDocument();
+    expect(screen.getByText("30,0%")).toBeInTheDocument();
+  });
+
+  it("célula e conclusão formatam o percentual com vírgula decimal (pt-BR)", () => {
+    const { container } = render(
+      <Top15AtivosCard
+        data={{
+          top_ativos: [
+            ativo({ nome: "Imóvel comercial", pct_carteira: 42.5, valor: 425_000 }),
+            ativo({ posicao: 2, nome: "B", pct_carteira: 20.25 }),
+            ativo({ posicao: 3, nome: "C", pct_carteira: 10.1 }),
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByText("42,5%")).toBeInTheDocument();
+    expect(screen.getByText(/concentra 42,5% da carteira/)).toBeInTheDocument();
+    // 42,5 + 20,25 + 10,1 = 72,85 → 72,9: meio para cima sobre o decimal exibido.
+    // `toFixed(1)` dava 72.8 — arredonda o binário, que fica abaixo de 72,85.
+    expect(screen.getByText(/top 3 somam 72,9%/)).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
   });
 
   it("renderiza membro como veio do backend (display name de family_members.nome_curto)", () => {

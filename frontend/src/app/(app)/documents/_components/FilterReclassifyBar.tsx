@@ -18,7 +18,7 @@ function UncertainFilter({
   return (
     <>
       <span className="text-sm text-foreground/85">
-        <span className="font-medium text-warning">{count}</span>{" "}
+        <span className="font-medium text-alert-on-tint">{count}</span>{" "}
         {count === 1
           ? "documento precisa de revisão da classificação"
           : "documentos precisam de revisão da classificação"}

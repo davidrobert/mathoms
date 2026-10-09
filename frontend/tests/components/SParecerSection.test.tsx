@@ -91,6 +91,8 @@ function premiumResponse(): PlannerReviewResponse {
           valor_atual: "70%",
           target: "45%",
           target_motivo: null,
+          comparador: null,
+          nivel_confianca: null,
           frequencia_revisao: "trimestral",
           section_id: "S4",
           tema_canonico: "Alocação",

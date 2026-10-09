@@ -6,25 +6,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
 
-from pipeline.domain.services.investimentos_classes_analyzer import (
-    InvestimentosClassesConfig,
-)
 from pipeline.domain.services.posicao_identity import locator_da_posicao, valor_da_posicao
-
-
-@dataclass(frozen=True)
-class InstituicoesPorMembroConfig:
-    classes_config: InvestimentosClassesConfig
-
-    @classmethod
-    def from_configs(
-        cls, *, residencia_property_ids: frozenset[str] = frozenset()
-    ) -> "InstituicoesPorMembroConfig":
-        return cls(
-            classes_config=InvestimentosClassesConfig.from_configs(
-                residencia_property_ids=residencia_property_ids
-            )
-        )
 
 
 @dataclass(frozen=True)
@@ -73,9 +55,6 @@ class InstituicoesPorMembroResult:
 
 class InstituicoesPorMembroAnalyzer:
     """Agrupa instituições por membro + conta imóveis a partir de bens_por_membro."""
-
-    def __init__(self, config: InstituicoesPorMembroConfig | None = None) -> None:
-        self._config = config or InstituicoesPorMembroConfig.from_configs()
 
     def analyze(
         self,

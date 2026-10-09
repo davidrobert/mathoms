@@ -280,10 +280,16 @@ class PatrimonioCalculator:
                 inputs.baseline.get("dividas") or inputs.baseline.get("dividas_consolidadas")
             ),
             "liquido": round(patrimonio_liquido, 2),
-            "residencia": round(residencia, 2),
+            # [[ADR-439]] D2/D3: `None` onde o veredito diz não apurado — a partição interna
+            # (bruto, cat_2, composição) segue com os floats; só a AFIRMAÇÃO muda.
+            "residencia": round(residencia, 2) if imovel.vereditos.residencia.publicavel else None,
             "imoveis_investimento": round(imoveis_investimento, 2),
-            "imoveis_geradores": round(imoveis_geradores, 2),
-            "imoveis_nao_geradores": round(imoveis_nao_geradores, 2),
+            "imoveis_geradores": (
+                round(imoveis_geradores, 2) if imovel.vereditos.geradores.publicavel else None
+            ),
+            "imoveis_nao_geradores": (
+                round(imoveis_nao_geradores, 2) if imovel.vereditos.geradores.publicavel else None
+            ),
             "imoveis_alocacao": round(imoveis_alocacao, 2),
             "imoveis_fora_alocacao": round(imoveis_fora_alocacao, 2),
             "cobertura_classificacao_imovel": imovel.bloco(),

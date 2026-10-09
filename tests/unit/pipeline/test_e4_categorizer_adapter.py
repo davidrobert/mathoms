@@ -117,7 +117,7 @@ class TestLoaders:
                     {
                         "tipo": "cdb",
                         "descricao": "CDB BTG",
-                        "valor_brl": 29353.39,
+                        "valor_brl": 30000.00,
                     }
                 ],
             },
@@ -162,7 +162,7 @@ class TestLoaders:
                 "investimentos": [
                     {
                         "tipo": "cdb",
-                        "descricao": "RDB/CDB - Ag 9652 / Conta 0004397-8",
+                        "descricao": "RDB/CDB - Ag 1234 / Conta 0012345-6",
                         "valor_brl": 290000.0,
                     }
                 ],

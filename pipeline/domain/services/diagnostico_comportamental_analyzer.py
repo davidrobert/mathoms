@@ -19,6 +19,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from pipeline.domain.services.narrativas.format_helpers import fmt_percent
+
 
 def _safe_float(val) -> float:
     if val is None:
@@ -51,6 +53,13 @@ def _nao_identificado_share_pct(fluxo: dict) -> float:
     if total <= 0:
         return 0.0
     return _safe_float(despesas.get("nao_identificado", 0)) / total * 100
+
+
+# O tier é julgado sobre o share NA PRECISÃO EM QUE É PUBLICADO ([[A40.l92]]). Julgado
+# sobre o bruto, 10,04% saía `parcial` ao lado de um "10,0%" publicado — e o parecer, que
+# lê o tier e o número, afirmava violação contra os dígitos da mesma linha.
+def _share_publicado_pct(fluxo: dict) -> float:
+    return round(_nao_identificado_share_pct(fluxo), 1)
 
 
 def _confianca_nivel(share_pct: float) -> str:
@@ -119,7 +128,7 @@ def _atencao_item(share_pct: float) -> DiagnosticoItem:
     return DiagnosticoItem(
         padrao="Ponto cego nos gastos",
         evidencia=(
-            f"{share_pct:.0f}% das despesas ainda estão sem categoria — "
+            f"{fmt_percent(share_pct)} das despesas ainda estão sem categoria — "
             "comportamento não observado nessa fatia."
         ),
         mudanca_sugerida="Categorizar as maiores despesas sem categoria para fechar o diagnóstico.",
@@ -131,7 +140,7 @@ def _insuficiente_item(share_pct: float) -> DiagnosticoItem:
     return DiagnosticoItem(
         padrao="Diagnóstico indisponível — cobertura insuficiente",
         evidencia=(
-            f"{share_pct:.0f}% das despesas ainda estão sem categoria; com essa "
+            f"{fmt_percent(share_pct)} das despesas ainda estão sem categoria; com essa "
             "fatia fora da leitura, apontar padrões seria enganoso."
         ),
         mudanca_sugerida="Categorize as despesas sem categoria para liberar o diagnóstico.",
@@ -212,7 +221,7 @@ class DiagnosticoComportamentalAnalyzer:
         self, out: list[DiagnosticoItem], fluxo: dict
     ) -> list[DiagnosticoItem]:
         """Degrada a densidade por cobertura de categorização (ADR-353 D1/D2)."""
-        share = _nao_identificado_share_pct(fluxo)
+        share = _share_publicado_pct(fluxo)
         nivel = _confianca_nivel(share)
         if nivel == "insuficiente":
             return [_insuficiente_item(share)]
@@ -224,8 +233,5 @@ class DiagnosticoComportamentalAnalyzer:
 
     def confianca(self, fluxo: dict) -> dict[str, str | float]:
         """Campo sibling diagnostico_confianca (ADR-353 D3)."""
-        share = _nao_identificado_share_pct(fluxo)
-        return {
-            "nivel": _confianca_nivel(share),
-            "share_nao_identificado_pct": round(share, 1),
-        }
+        share = _share_publicado_pct(fluxo)
+        return {"nivel": _confianca_nivel(share), "share_nao_identificado_pct": share}

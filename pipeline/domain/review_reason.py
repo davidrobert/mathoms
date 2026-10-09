@@ -38,6 +38,11 @@ class ReviewReasonCode(str, enum.Enum):
     # Invariante de cobertura de escopo (ADR-342 emenda 2026-07-27): tx num escopo
     # que nenhum sinal declarado cobre — checksum verde parcial (falso-verde).
     extract_fatura_scope_uncovered = "extract.fatura_scope_uncovered"
+    # [[ADR-440]] D2: a ficha de imóvel com rótulo não casou com UM item do E1.5a (empate de
+    # valor sem margem de tokens) ou o imóvel não achou ficha — o item fica sem âncora e a
+    # identidade cai na chave da descrição. Uma razão por documento, só com contagens.
+    extract_ancora_imovel_ambigua = "extract.ancora_imovel_ambigua"
+    extract_ancora_imovel_sem_ficha = "extract.ancora_imovel_sem_ficha"
     dedup_possible_duplicate = "dedup.possible_duplicate"
     # [[A42.l15]]: nem âncora forte (CNPJ do documento) nem descrição utilizável — a
     # entrada fica SEM identidade em vez de ganhar hash de texto vazio. Recusar é a
@@ -73,6 +78,9 @@ class ReviewReasonCode(str, enum.Enum):
     # existe, e fica FORA da base; este fica DENTRO. A remediação difere: um pede
     # documento, o outro pede reconciliação de titularidade.
     domain_investimento_sem_titularidade = "domain.investimento_sem_titularidade"
+    # [[ADR-439]] D7: a família classificou o imóvel (override gravado) e o run não o
+    # alcançou — o balde sai `null`. ADVISORY: o run segue; o achado é o vínculo perdido.
+    domain_classificacao_imovel_nao_apurada = "domain.classificacao_imovel_nao_apurada"
     # DE-6 ([[ADR-398]]): o eixo ativo do item veio do `categoria_hint`, não de
     # um fato — mint de identidade recusado, porque rotular converteria um
     # passivo em ativo do patrimônio bruto.

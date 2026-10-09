@@ -32,7 +32,7 @@ relatório:
 - `previdencia_pgbl`: "Sem capacidade PGBL restante no ano-base **2024** (teto
   atingido)", `limite_pgbl_anual = 0`, `aporte_mensal = 0`.
 - `irpf_kpis`: `pgbl_status = capacidade_disponivel`,
-  `pgbl_capacidade_dedutivel_brl = 123.004,52`, `pgbl_aportado = 0`, ano-base
+  `pgbl_capacidade_dedutivel_brl > 0`, `pgbl_aportado = 0`, ano-base
   **2025** — com `ano_base_completude = incompleto` (falta a declaração de um
   dos CPFs presentes em ano anterior).
 

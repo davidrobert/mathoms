@@ -53,7 +53,7 @@ function PhaseNode({ state }: { state: PhaseState }) {
     "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-medium transition-colors",
     status === "completed" && "border-gain bg-gain text-primary-foreground",
     status === "active" && "border-primary bg-primary/10 text-primary",
-    status === "needs_review" && "border-warning bg-warning/10 text-warning",
+    status === "needs_review" && "border-warning bg-warning/10 text-alert-on-tint",
     status === "failed" && "border-loss bg-loss/10 text-loss",
     status === "pending" && "border-border bg-muted text-muted-foreground",
   );
@@ -62,7 +62,7 @@ function PhaseNode({ state }: { state: PhaseState }) {
     "mt-1 text-xs leading-tight transition-colors",
     status === "active" && "font-medium text-foreground",
     status === "completed" && "text-muted-foreground",
-    status === "needs_review" && "font-medium text-warning",
+    status === "needs_review" && "font-medium text-alert-on-tint",
     status === "failed" && "font-medium text-loss",
     status === "pending" && "text-muted-foreground",
   );
