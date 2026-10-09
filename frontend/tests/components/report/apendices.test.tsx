@@ -46,7 +46,15 @@ describe("ApendiceBSection", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Patrimônio gerador de renda/)).toBeInTheDocument();
     expect(screen.getByText(/Equilíbrio entre presente e futuro/)).toBeInTheDocument();
-    expect(screen.getByText(/Alocação contracíclica/)).toBeInTheDocument();
+  });
+
+  // O pilar afirmava método sem produtor: nenhum stage emite taxa de juros nem
+  // múltiplo de ação (P/L, ROE, P/VP), e os cards que o ilustravam saíram do S3.
+  it("não afirma alocação contracíclica nem análise fundamentalista", () => {
+    const { container } = render(<ApendiceBSection data={emptyData()} />);
+    expect(container.textContent).not.toMatch(/contrac[ií]clic/i);
+    expect(container.textContent).not.toMatch(/fundamentalista/i);
+    expect(container.textContent).not.toMatch(/P\/L|ROE|P\/VP/);
   });
 
   it("lista metas vigentes humanizadas a partir do snapshot", () => {
@@ -249,6 +257,12 @@ describe("ApendiceDSection", () => {
     expect(
       screen.getByText(/Sem informação de lineage disponível/),
     ).toBeInTheDocument();
+  });
+
+  it("a tabela de pilares não lista método sem produtor", () => {
+    const { container } = render(<ApendiceDSection data={emptyData()} />);
+    expect(container.textContent).not.toMatch(/contrac[ií]clic/i);
+    expect(container.textContent).not.toMatch(/fundamentalista/i);
   });
 
   it("mostra pipeline_run_id e contagem de documentos quando lineage existe", () => {

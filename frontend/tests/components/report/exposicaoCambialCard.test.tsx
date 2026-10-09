@@ -196,4 +196,12 @@ describe("ExposicaoCambialCard V2 mode (com workspaceId)", () => {
     expect(screen.getByText(/10,0% ·/)).toBeInTheDocument();
     expect(screen.queryByText(/10\.0%/)).not.toBeInTheDocument();
   });
+
+  // ADR-403: a banda de 10% é piso de proteção, não meta de alocação — a meta
+  // internacional é do comparativo Atual vs Alvo. Nem é contracíclica.
+  it("o rodapé não apresenta o piso como sugestão de alocação", () => {
+    const { container } = render(<ExposicaoCambialCard data={v1Data} workspaceId={null} />);
+    expect(container.textContent).not.toMatch(/contrac[ií]clic/i);
+    expect(container.textContent).not.toMatch(/sugest[aã]o de aloca/i);
+  });
 });
