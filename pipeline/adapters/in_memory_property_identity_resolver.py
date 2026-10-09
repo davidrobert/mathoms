@@ -60,7 +60,7 @@ class InMemoryPropertyIdentityResolver:
         workspace_id: str,
         lookup: PropertyLookupKey,
         first_seen_year: int,
-        descricao_sample: str,
+        descricao_sample: str = "",
     ) -> PropertyIdentityRecord:
         record = PropertyIdentityRecord(
             property_id=str(uuid.uuid4()),
