@@ -35,8 +35,8 @@ def _bradesco_pdf(tmp_path: Path) -> Path:
             period="2026-04",
             transactions=_TX,
             account_holder="Titular Golden",
-            agency="3221",
-            account_number="77113-9",
+            agency="1234",
+            account_number="12345-6",
         )
     )
     return p

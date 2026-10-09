@@ -34,8 +34,8 @@ tags:
 ## Problema
 
 `_banco_match` ([informe_extrato_override.py:121-127](../../../../pipeline/domain/services/informe_extrato_override.py))
-procura o token do banco na **descrição da conta** — "Conta Corrente - Ag 9652
-Conta 0004397-8" não contém "itau" e nunca casa, embora cada entry de informe
+procura o token do banco na **descrição da conta** — "Conta Corrente - Ag 1234
+Conta 0012345-6" não contém "itau" e nunca casa, embora cada entry de informe
 carregue `cnpj_emissor`. No dogfood, 0 de 6 entries casam. O catálogo
 (`institution_catalog`) não tem CNPJ.
 
@@ -65,7 +65,7 @@ extração + `prompt-engineer` se necessário).
 ## Critério de aceite
 
 - Teste do resolvedor com as três representações que quebram hoje:
-  `"btg pactual"`, `"btgpactual"`, `"Conta Corrente - Ag 9652..." +
+  `"btg pactual"`, `"btgpactual"`, `"Conta Corrente - Ag 1234..." +
   cnpj_emissor`.
 - No dogfood, Itaú CC e Wise BRL passam a casar por CNPJ-raiz (hoje 0/6).
 - Migrations verdes em SQLite online **e** `--sql` offline; teste com

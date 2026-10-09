@@ -299,12 +299,12 @@ class TestDedupByPropertyId:
     def test_same_property_id_in_two_members_collapses(self):
         r = TopAtivosAnalyzer().analyze(
             _entries(
-                ("david", _bens(imoveis=[_imovel("APT", 477436.58, property_id="uuid-x")])),
-                ("mariana", _bens(imoveis=[_imovel("APT", 530000.0, property_id="uuid-x")])),
+                ("david", _bens(imoveis=[_imovel("APT", 470000.0, property_id="uuid-x")])),
+                ("mariana", _bens(imoveis=[_imovel("APT", 510000.0, property_id="uuid-x")])),
             )
         )
         assert len(r.top_ativos) == 1
-        assert float(r.top_ativos[0].valor) == 530000.0
+        assert float(r.top_ativos[0].valor) == 510000.0
 
     def test_distinct_property_ids_preserved(self):
         r = TopAtivosAnalyzer().analyze(

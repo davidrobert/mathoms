@@ -124,7 +124,7 @@ def test_fontes_de_irpf_emitem_uma_fonte_por_ano_com_chave_legada():
         {
             "instituicao": "Banco C6 S.A.",
             "proprietario": "david",
-            "valores_31_12": {"31_12_2024": 23439.0, "2025": 2404.0},
+            "valores_31_12": {"31_12_2024": 20000.0, "2025": 2000.0},
         }
     ]
     fontes = sorted(fontes_de_irpf(consolidados), key=lambda f: f.data_referencia or "")
@@ -158,15 +158,15 @@ def test_fase_observacional_nao_altera_nenhum_valor_do_patrimonio():
         "E4",
         "investimentos",
         {
-            "total_geral": 206_491.70,
+            "total_geral": 200_000.00,
             "n_posicoes": 1,
-            "total_por_membro": {"david": 206_491.70},
+            "total_por_membro": {"david": 200_000.00},
             "dados": [
                 {
                     "nome": "CDB C6 Bank",
                     "instituicao": "c6bank",
                     "membro": "david",
-                    "valor_atual": 206_491.70,
+                    "valor_atual": 200_000.00,
                     "data_referencia": {"inicio": "2025-03-01", "fim": "2025-03-31"},
                 }
             ],
@@ -195,4 +195,4 @@ def test_fase_observacional_nao_altera_nenhum_valor_do_patrimonio():
     assert frescor["contradicoes"], "árbitro deveria acusar a posição stale de 2025-03"
     assert frescor["contradicoes"][0]["pool_mais_fresco"] == "irpf"
     # ...mas o PL continua vindo do caminho atual (posições atuais), intocado.
-    assert patrimonio["investimentos_titular"] == 206_491.70
+    assert patrimonio["investimentos_titular"] == 200_000.00

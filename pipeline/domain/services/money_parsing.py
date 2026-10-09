@@ -4,13 +4,13 @@
 # contagem de meses NÃO passam por `parse_valor_monetario` — a regra dos 3 dígitos é
 # verdadeira para dinheiro e falsa para eles. Use `parse_taxa_ou_cotacao`.
 
-# O corpus real traz ISO (`"243285.37"`, emitido pelos nossos próprios stages) e pt-BR
-# (`"243.285,37"`, vindo de documento/LLM). Antes deste módulo havia 9 implementações
+# O corpus real traz ISO (`"123456.78"`, emitido pelos nossos próprios stages) e pt-BR
+# (`"123.456,78"`, vindo de documento/LLM). Antes deste módulo havia 9 implementações
 # divergentes: 4 strippavam `.` incondicionalmente e inflavam ISO em 100×, 1 devolvia
 # 0 em pt-BR (dinheiro desaparecia), 1 deflacionava USD em 1000× e só uma acertava.
 #
-# O ×100 chegou ao relatório entregue: `consolidate_baseline.safe_float("243285.37")`
-# → 24328537.0 → `investimentos_consolidados.valores_31_12` → patrimônio líquido, IF
+# O ×100 chegou ao relatório entregue: `consolidate_baseline.safe_float("123456.78")`
+# → 12345678.0 → `investimentos_consolidados.valores_31_12` → patrimônio líquido, IF
 # (798% contra 16,7% real), prazo de IF e gap. Ver tests/unit/pipeline/test_money_parsing.py
 # e o gate dev/check_money_parsing.py.
 
@@ -35,7 +35,7 @@ def _limpar(raw: str) -> str:
 
 
 # `"5.000.000"` repete o ponto — decimal não repete. `"5.000"` tem exatamente 3 dígitos
-# depois, assinatura do agrupamento; `"243285.37"` tem 2, assinatura da decimal.
+# depois, assinatura do agrupamento; `"123456.78"` tem 2, assinatura da decimal.
 #
 # Grupo de milhar NUNCA tem zero à esquerda: `"0.025"` não é 25, é vinte e cinco
 # milésimos. Sem essa guarda, `pct_renda_anual` (contrato `^-?\d+(\.\d{1,6})?$`,

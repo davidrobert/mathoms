@@ -32,14 +32,14 @@ def _projector(if_meta: float) -> IFProjector:
 
 def test_gap_clampado_quando_investivel_excede_a_meta():
     """`FORMULAS.md:26-27` manda MAX(0, ·) — gap negativo não existe no domínio."""
-    proj = _projector(7_200_000.0).project(investivel=57_471_496.78)
+    proj = _projector(7_200_000.0).project(investivel=50_000_000.0)
     assert proj.if_gap == 0.0
     assert proj.if_pct > 100
 
 
 def test_gap_positivo_preservado():
-    proj = _projector(7_200_000.0).project(investivel=1_200_872.78)
-    assert proj.if_gap == pytest.approx(5_999_127.22)
+    proj = _projector(7_200_000.0).project(investivel=1_200_000.0)
+    assert proj.if_gap == pytest.approx(6_000_000.0)
 
 
 def test_gap_exatamente_zero_na_meta():

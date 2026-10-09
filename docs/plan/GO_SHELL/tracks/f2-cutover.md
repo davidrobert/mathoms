@@ -410,7 +410,7 @@ como projetado. Três achados.
 | Causa | Natureza | Estado |
 |---|---|---|
 | `categorize_transactions/{despesas,receitas}` → `consolidation_date` diverge entre runs | **Normalização incompleta.** É instante de processamento, não dado de domínio | ✅ corrigido — entrou em `_TIMESTAMP_KEYS` por **nome explícito** (não por sufixo `_date`, que mascararia `data_vencimento`/`data_adesao`) |
-| `analyze_finances/analise_financeira` → `if_monte_carlo.caminho_p10[*]` diverge entre runs | **Não-determinismo de domínio**, não de normalização | ⛔ **bloqueia o byte-exact**. `if_projector.py:306` tem `seed: int \| None = None` e a 360 faz `np.random.default_rng(config.seed)`; **nenhum call-site seta seed** → 10.000 simulações com entropia do SO a cada run. Medido: `caminho_p10[22]` = R$ 11.037.269,90 vs R$ 10.961.276,98 (**0,7%**) com input idêntico |
+| `analyze_finances/analise_financeira` → `if_monte_carlo.caminho_p10[*]` diverge entre runs | **Não-determinismo de domínio**, não de normalização | ⛔ **bloqueia o byte-exact**. `if_projector.py:306` tem `seed: int \| None = None` e a 360 faz `np.random.default_rng(config.seed)`; **nenhum call-site seta seed** → 10.000 simulações com entropia do SO a cada run. Medido: `caminho_p10[22]` diverge **0,7%** entre dois runs com input idêntico |
 
 O segundo item **não é problema do Go** — é do produto: o cone P10/P50/P90 da projeção de
 IF não é reproduzível entre runs. Ver §Débito abaixo.
