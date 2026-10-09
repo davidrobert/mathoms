@@ -802,14 +802,15 @@ export type E5AnalysisArtifact = {
   } & Partial<Record<`idade_${string}_if`, Array<number | null>>>;
   "investimentos"?: {
     "tabela_classes"?: Array<{
-      "categoria": "Cripto" | "Previdência" | "FIIs" | "Internacional" | "Ações BR" | "Renda Fixa" | "Fundos" | "Caixa" | "Imóveis Investimento" | "Outros";
+      "categoria": "Cripto" | "Previdência" | "FIIs" | "Internacional" | "Ações BR" | "Renda Fixa" | "Fundos" | "Caixa" | "Imóveis Investimento" | "Outros" | "Imóveis com uso não apurado";
       "valor": number;
-      "pct": number;
+      "pct": number | null;
       "pct_carteira_financeira"?: number | null;
     }>;
     "total"?: number;
     "total_financeiro"?: number;
     "total_imoveis_investimento"?: number;
+    "total_imoveis_uso_nao_apurado"?: number;
     "nao_classificado_pct"?: number;
     "nao_classificado_itens"?: Array<{
       "locator": string;
@@ -820,13 +821,14 @@ export type E5AnalysisArtifact = {
     "top_ativos"?: Array<{
       "posicao": number;
       "nome": string;
-      "classe": "Cripto" | "Previdência" | "FIIs" | "Internacional" | "Ações BR" | "Renda Fixa" | "Fundos" | "Caixa" | "Imóveis Investimento" | "Outros";
+      "classe": "Cripto" | "Previdência" | "FIIs" | "Internacional" | "Ações BR" | "Renda Fixa" | "Fundos" | "Caixa" | "Imóveis Investimento" | "Outros" | "Imóveis com uso não apurado";
       "membro": string;
       "instituicao": string;
       "valor": number;
-      "pct_carteira": number;
+      "pct_carteira": number | null;
       "tipo_origem": "investimento" | "imovel";
       "autoridade"?: "conclusivo" | "presuntivo" | "keyword" | "ticker" | "sem_match" | "sem_haystack" | "sem_mapa" | null;
+      "classificacao_imovel"?: "uso_pessoal" | "locado" | "comercial" | "especulacao" | "nu_proprietario" | "desconhecido" | null;
     }>;
     "instituicoes_por_membro"?: Array<{
       "membro": string;
