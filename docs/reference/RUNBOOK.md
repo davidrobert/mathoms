@@ -233,14 +233,32 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](../DECISIONS.
    Se você rodou o backend de ops em outra porta, exporte
    `INTERNAL_OPS_API_BASE=http://127.0.0.1:<porta>` antes de `npm run dev`.
 
-   Ou via compose: `docker compose -f docker-compose.dev.yml --profile ops up -d --build frontend-ops`
-   → UI em http://127.0.0.1:3110/login (`MATHOMS_DOCKER_OPS_PORT`). Na imagem
-   o rewrite é **build arg** (`MATHOMS_DOCKER_OPS_API_BASE`, default
-   `http://api:8000`): trocar o destino exige `--build`. O `api` do compose
-   ainda não monta `/admin/*` (flag desligada), então ali o login devolve 404 —
-   para operar, use o backend de ops do passo 3 com
-   `MATHOMS_DOCKER_OPS_API_BASE=http://host.docker.internal:8001` (Docker
-   Desktop; no Linux o `host-gateway` não alcança um uvicorn em `127.0.0.1`).
+5. **Ou tudo via compose** (substitui os passos 3–4; o passo 2 continua
+   obrigatório — `config/` entra no container por bind `:ro`):
+
+   ```bash
+   export MATHOMS_INTERNAL_OPS_SESSION_SECRET="$(openssl rand -hex 32)"
+   docker compose -f docker-compose.dev.yml --profile ops up -d --build
+   # UI em http://127.0.0.1:3110/login (MATHOMS_DOCKER_OPS_PORT)
+   ```
+
+   O profile sobe `api-ops` (o único service com `/admin/*` montado — o `api`
+   do cliente segue com a flag desligada) e `frontend-ops`. O `api-ops` não
+   publica porta: só o `frontend-ops` o alcança, pela rede do compose. Ele não
+   migra — sobe depois do `api` healthy; `up --no-deps api-ops` pula essa
+   garantia. Sem o secret, ou com `config/internal_operators.yaml` ausente ou
+   inválido, o entrypoint aborta e o `up` falha com `dependency failed to
+   start`; o motivo está em `docker compose -f docker-compose.dev.yml logs api-ops`.
+   Exporte o mesmo secret em todo `up`: trocar invalida as sessões abertas.
+
+   Na imagem do `frontend-ops` o rewrite é **build arg**
+   (`MATHOMS_DOCKER_OPS_API_BASE`, default `http://api-ops:8000`): trocar o
+   destino exige `--build`, e uma `mathoms-frontend-ops:dev` buildada antes do
+   `api-ops` existir ainda aponta para o `api` (login 404) até o próximo
+   `--build`. Para usar o backend de ops do passo 3 em vez do `api-ops`:
+   `MATHOMS_DOCKER_OPS_API_BASE=http://host.docker.internal:8001` + `up --build
+   --no-deps frontend-ops` (Docker Desktop; no Linux o `host-gateway` não
+   alcança um uvicorn em `127.0.0.1`).
 
 ### 7.3 Operações disponíveis (UI)
 
