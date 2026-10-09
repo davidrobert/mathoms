@@ -96,7 +96,7 @@ O `reason_class` da [[ADR-357]] §2 só via o que cruzava o executor. Medido em 
 - **Campo novo em `StageResult`.** Descartado em silêncio pelos construtores campo-a-campo e
   pela struct Go.
 - **Emenda da [[ADR-357]].** Decisão nova, com alternativas e deferimento próprios; como terceira
-  emenda de uma ADR de 447 linhas, sumiria do índice.
+  emenda de uma ADR de mais de 450 linhas, sumiria do índice.
 
 ## Consequências
 
