@@ -30,7 +30,8 @@ export interface AlocacaoAtualVsAlvoCardProps {
   /** Bloco `derived` do payload E5. Ausente em payloads pré-PR6 → card oculto. */
   derived: AlocacaoDerived | undefined;
   /** Texto editorial vindo de E5N (`narrativas.charts.alocacao_atual_vs_alvo.conclusion`)
-   *  usado como override do footer determinístico. Cap em 200 chars no template. */
+   *  usado como override do footer determinístico — exceto com `motivo_supressao`,
+   *  quando o rodapé sai do campo estruturado. Cap em 200 chars no template. */
   llmFooter?: string | null;
 }
 
