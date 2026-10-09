@@ -1,4 +1,5 @@
 import type { DocumentStatus, DocumentType, PipelineStageStatus, PipelineRunStatus } from "./api";
+import { BRL_NO_CENTS, COMPACT_BRL } from "./moneyLabel";
 import { MONTH_SHORT_PT_LOWER } from "./monthLabel";
 
 // Re-export: o card do inbox importa daqui; o rótulo de mês mora em
@@ -10,12 +11,6 @@ export { formatMonthShortPtBR } from "./monthLabel";
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const USD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const PCT_ABS = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const COMPACT_BRL = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
 
 export type CurrencyCode = "BRL" | "USD" | "EUR" | "GBP";
 
@@ -40,12 +35,6 @@ export function formatCurrency(
   const locale = currency === "BRL" ? "pt-BR" : "en-US";
   return new Intl.NumberFormat(locale, { style: "currency", currency, ...digits }).format(value);
 }
-
-const BRL_NO_CENTS = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-  maximumFractionDigits: 0,
-});
 
 /** BRL arredondado sem centavos ("R$ 1.235"); null/undefined → "—". */
 export function formatBRLNoCents(value: number | null | undefined): string {
