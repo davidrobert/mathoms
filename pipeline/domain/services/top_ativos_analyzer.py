@@ -7,10 +7,11 @@ from decimal import Decimal
 from typing import Any, Mapping
 
 from pipeline.domain.services.asset_classifier import AssetAuthority, classify_asset_outcome
+from pipeline.domain.services.imovel_na_carteira import classe_do_imovel_na_carteira
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
-from pipeline.domain.services.patrimonio_types import imovel_valor
+from pipeline.domain.services.patrimonio_types import imovel_property_id, imovel_valor
 
 
 def _valor_declarado_do_imovel(imovel: Mapping[str, Any]) -> Decimal:
@@ -43,12 +44,13 @@ class TopAtivosConfig:
         cls,
         *,
         scoring: dict | None = None,
-        residencia_property_ids: frozenset[str] = frozenset(),
+        property_classification_overrides: Mapping[str, str] | None = None,
         limit: int = 15,
     ) -> "TopAtivosConfig":
         return cls(
             classes_config=InvestimentosClassesConfig.from_configs(
-                scoring=scoring, residencia_property_ids=residencia_property_ids
+                scoring=scoring,
+                property_classification_overrides=property_classification_overrides,
             ),
             limit=limit,
         )
@@ -194,33 +196,31 @@ class TopAtivosAnalyzer:
 
     def _collect_imoveis(self, member: str, bens: Mapping[str, Any]) -> list[_Candidate]:
         out: list[_Candidate] = []
-        residencia_ids = self._config.classes_config.residencia_property_ids
+        overrides = self._config.classes_config.property_classification_overrides
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, Mapping):
                 continue
-            cand = self._build_imovel_candidate(member, imovel, residencia_ids)
+            cand = self._build_imovel_candidate(member, imovel, overrides)
             if cand is not None:
                 out.append(cand)
         return out
 
     def _build_imovel_candidate(
-        self, member: str, imovel: Mapping[str, Any], residencia_property_ids: frozenset[str]
+        self, member: str, imovel: Mapping[str, Any], overrides: Mapping[str, str]
     ) -> _Candidate | None:
         valor = _valor_declarado_do_imovel(imovel)
-        if valor <= 0:
-            return None
-        pid = imovel.get("property_id")
-        if isinstance(pid, str) and pid in residencia_property_ids:
+        classe = classe_do_imovel_na_carteira(imovel, overrides)
+        if valor <= 0 or classe is None:
             return None
         return _Candidate(
             nome=_imovel_display_label(),
-            classe="Imóveis Investimento",
+            classe=classe,
             membro=_membro_label(imovel, member),
             instituicao="",
             valor=valor,
             tipo_origem="imovel",
             autoridade=AssetAuthority.ORIGEM.value,
-            property_id=str(pid) if isinstance(pid, str) and pid else None,
+            property_id=imovel_property_id(imovel),
         )
 
     def _classify(self, tipo: str, descricao: str):

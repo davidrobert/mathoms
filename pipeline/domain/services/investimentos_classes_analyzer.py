@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any
+from typing import Any, Mapping
 
 from pipeline.domain.services.asset_classifier import (
     BUCKETS,
@@ -13,16 +13,16 @@ from pipeline.domain.services.asset_classifier import (
     classify_asset_outcome,
     merge_asset_keywords,
 )
+from pipeline.domain.services.imovel_na_carteira import (
+    CLASSES_IMOVEL_FISICO,
+    classe_do_imovel_na_carteira,
+)
 from pipeline.domain.services.patrimonio_types import imovel_valor
 from pipeline.domain.services.posicao_identity import (
     locator_da_posicao,
     safe_float,
     valor_da_posicao,
 )
-
-# Classe de imóveis físicos (ADR-193) — fora da base "carteira financeira" (A37.l9).
-_CLASSE_IMOVEIS_INVESTIMENTO = "Imóveis Investimento"
-
 
 # =============================================================================
 # Config
@@ -56,7 +56,7 @@ def _pct_carteira_financeira(
     imóveis físicos — peso de classe financeira nunca é medido sobre base que
     inclui imóvel (subestimaria toda classe financeira sistematicamente).
     ``None`` para a própria classe de imóveis (fora da base) e carteira vazia."""
-    if categoria == _CLASSE_IMOVEIS_INVESTIMENTO or denominador_financeiro <= 0:
+    if categoria in CLASSES_IMOVEL_FISICO or denominador_financeiro <= 0:
         return None
     return (numerador / denominador_financeiro) * 100
 
@@ -67,21 +67,21 @@ def _merge_keywords(scoring: dict | None) -> dict[str, tuple[str, ...]]:
 
 @dataclass(frozen=True)
 class InvestimentosClassesConfig:
-    """Keywords por classe + set de property_ids classificados como residência (ADR-215 §1)."""
+    """Keywords por classe + overrides de classificação de imóvel (ADR-215 §1)."""
 
     keywords_por_classe: dict[str, tuple[str, ...]] = field(default_factory=dict)
-    residencia_property_ids: frozenset[str] = field(default_factory=frozenset)
+    property_classification_overrides: Mapping[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_configs(
         cls,
         *,
         scoring: dict | None = None,
-        residencia_property_ids: frozenset[str] = frozenset(),
+        property_classification_overrides: Mapping[str, str] | None = None,
     ) -> "InvestimentosClassesConfig":
         return cls(
             keywords_por_classe=_merge_keywords(scoring),
-            residencia_property_ids=residencia_property_ids,
+            property_classification_overrides=dict(property_classification_overrides or {}),
         )
 
 
@@ -193,7 +193,7 @@ class InvestimentosClassesAnalyzer:
         classes = {cat: 0.0 for cat in self.CATEGORIES}
         itens = self._acumular(bens_por_membro or [], classes)
         total = sum(classes.values())
-        total_imoveis = classes.get(_CLASSE_IMOVEIS_INVESTIMENTO, 0.0)
+        total_imoveis = sum(classes.get(c, 0.0) for c in CLASSES_IMOVEL_FISICO)
         total_financeiro = total - total_imoveis
         return InvestimentosClassesAnalysis(
             tabela_classes=_build_tabela(classes, total, total_financeiro),
@@ -218,7 +218,7 @@ class InvestimentosClassesAnalyzer:
             itens.extend(self._classify_investments(bens, classes))
             self._add_top_level_cripto(bens, classes)
             self._add_contas_bancarias_scalar(bens, classes)
-            self._add_imoveis_investimento(bens, classes)
+            self._add_imoveis(bens, classes)
         return itens
 
     def _classify_investments(
@@ -251,19 +251,17 @@ class InvestimentosClassesAnalyzer:
         if isinstance(contas, (int, float)):
             classes["Caixa"] += safe_float(contas)
 
-    def _add_imoveis_investimento(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
-        residencia_ids = self._config.residencia_property_ids
+    def _add_imoveis(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
+        overrides = self._config.property_classification_overrides
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, dict):
                 continue
             # O mesmo valor que o patrimônio soma ([[ADR-431]]): não apurado fica de fora.
             valor = imovel_valor(imovel)
-            if valor <= 0:
+            classe = classe_do_imovel_na_carteira(imovel, overrides)
+            if valor <= 0 or classe is None:
                 continue
-            pid = imovel.get("property_id")
-            if isinstance(pid, str) and pid in residencia_ids:
-                continue
-            classes[_CLASSE_IMOVEIS_INVESTIMENTO] += valor
+            classes[classe] = classes.get(classe, 0.0) + valor
 
     def _build_warnings(
         self, classes: dict[str, float], total: float
