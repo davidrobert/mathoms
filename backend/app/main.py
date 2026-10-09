@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from backend.app.api.audit import router as audit_router
 from backend.app.api.auth import router as auth_router
@@ -122,6 +123,9 @@ app.add_middleware(
     expose_headers=["X-Trace-Id"],
     max_age=600,
 )
+# Último add = mais externo: todo o stack vê o cliente já resolvido. A
+# fronteira de trust do XFF vive aqui, não no CLI (services/security/client_ip.py).
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.FORWARDED_ALLOW_IPS)
 
 
 # A6e.3 · ADR-101 R15 — use cases levantam erros de domínio tipados;
