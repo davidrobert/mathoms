@@ -94,6 +94,13 @@ sobraram PRs que nem chegaram a ser tentados.
 3. Kick: `gh workflow run "Auto-update PR branches"`
 4. Validar: próximo run do advance sem warning; update-branch aparece com
    `triggering_actor` = davidrobert, CI do PR dispara (não `action_required`).
+5. **Validar o aviso de expiração (obrigatório até 1h após a rotação):**
+   `gh workflow run automerge-watchdog.yml` e, no log do step `Aviso de expiração
+   do AUTOUPDATE_PAT`, confirmar `pat-expiry: folga > 14 dias` (o vencimento lido
+   deve ficar ~90 dias à frente). Se aparecer `::warning:: pat-expiry sem medição`,
+   o aviso está cego (formato do header). Se a issue `ops-pat-expiry` abrir com um
+   PAT de 90 dias, o header não chega para fine-grained. Nos dois casos, reverta o
+   step (ADR-322 §Emenda 2026-10-08).
 
 > A identidade do PAT **não** pode entrar na bypass list do Ruleset
 > (`gh api repos/davidrobert/mathoms/rulesets/15884038`) — token com
