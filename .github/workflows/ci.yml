@@ -530,7 +530,9 @@ jobs:
           # e a cadeia chega em `pipeline.llm` → pydantic, que este env não tem
           # (mesma classe de `lineage-refs`, precedente da A24.l5). Cobertura de CI
           # vem do step homônimo em `pipeline-tests`, que roda com venv completo.
-          SKIP: lineage-refs,kpi-path-legivel-pelo-parecer
+          # `dogfood-values` (ADR-442) precisa da denylist local, que o CI nunca tem: sem o
+          # SKIP o log diria "Passed" sobre uma checagem que não aconteceu.
+          SKIP: lineage-refs,kpi-path-legivel-pelo-parecer,dogfood-values
         run: pre-commit run --all-files
 
       - name: code style baseline regression
