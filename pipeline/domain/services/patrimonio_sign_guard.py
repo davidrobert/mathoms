@@ -157,6 +157,28 @@ class ItemFisicoSemValor:
         return {"colecao": self.colecao, "descricao": self.descricao, "ano": self.ano}
 
 
+# Colhido dos MESMOS dicts que alimentam as somas — `titular_bens`/`conjuge_bens`
+# são a projeção por membro que `imovel_valor`/`veiculo_valor` leem. Reler o
+# baseline aqui criaria a segunda fonte que pode divergir do que foi somado.
+def itens_fisicos_sem_valor(
+    titular_bens: dict, conjuge_bens: dict
+) -> tuple[ItemFisicoSemValor, ...]:
+    """Ativos físicos que chegaram sem valor apurado ([[ADR-431]])."""
+    achados: list[ItemFisicoSemValor] = []
+    for bens in (titular_bens, conjuge_bens):
+        for colecao in ("imoveis", "veiculos"):
+            achados.extend(
+                ItemFisicoSemValor(
+                    colecao=colecao,
+                    descricao=str(item.get("descricao") or ""),
+                    ano=str(item.get("ano_base") or ""),
+                )
+                for item in (bens.get(colecao) or [])
+                if isinstance(item, dict) and item.get("valor_nao_apurado")
+            )
+    return tuple(achados)
+
+
 @dataclass(frozen=True)
 class GuardaDeSinalResult:
     baldes: BaldesPatrimoniais
@@ -327,6 +349,7 @@ __all__ = [
     "SignGuardMode",
     "aplicar_guarda_aos_componentes",
     "aplicar_guarda_de_sinal",
+    "itens_fisicos_sem_valor",
     "motivo_supressao_do_patrimonio",
     "review_reasons_do_artefato",
     "sign_guard_mode",

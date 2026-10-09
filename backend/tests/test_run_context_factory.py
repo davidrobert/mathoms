@@ -72,6 +72,45 @@ def test_imoveis_no_if_read_from_workspace_row(tmp_path, session_factory):
         hydrated.close()
 
 
+# [[ADR-439]] D2: só `rented` autoriza residência zero no E5 — o status precisa chegar.
+@pytest.mark.parametrize("status", ["owned", "rented", "undeclared"])
+def test_residencia_status_read_from_workspace_row(tmp_path, session_factory, status):
+    from backend.app.models.workspace import Workspace
+
+    session = session_factory()
+    session.add(Workspace(id="ws-factory", name="F", owner_id="u-1", residencia_status=status))
+    session.commit()
+    session.close()
+
+    hydrated = _build(tmp_path, session_factory)
+    try:
+        assert hydrated.ctx.residencia_status == status
+    finally:
+        hydrated.close()
+
+
+def test_residencia_status_ausente_sem_workspace(tmp_path, session_factory):
+    """Sem row não há declaração: `None`, que o E5 lê como `undeclared`."""
+    hydrated = _build(tmp_path, session_factory)
+    try:
+        assert hydrated.ctx.residencia_status is None
+    finally:
+        hydrated.close()
+
+
+def test_residencia_status_paridade_com_o_pipeline():
+    """O pipeline não importa o backend; os três valores espelhados são contrato."""
+    from backend.app.models.property_identity import VALID_RESIDENCIA_STATUSES
+    from pipeline.domain.services.veredito_balde_imovel import (
+        RESIDENCIA_ALUGADA,
+        RESIDENCIA_NAO_DECLARADA,
+        RESIDENCIA_PROPRIA,
+    )
+
+    espelho = {RESIDENCIA_PROPRIA, RESIDENCIA_ALUGADA, RESIDENCIA_NAO_DECLARADA}
+    assert set(VALID_RESIDENCIA_STATUSES) == espelho
+
+
 def test_incremental_flags_and_config_dir_precedence(tmp_path, session_factory):
     explicit_cfg = tmp_path / "cfg-explicito"
     explicit_cfg.mkdir()

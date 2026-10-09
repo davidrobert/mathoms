@@ -549,7 +549,7 @@
       "properties": {
         "metrica_key": {
           "type": "string",
-          "enum": ["taxa_poupanca_recorrente", "reserva_cobertura_meses", "alocacao_renda_fixa", "concentracao_imobiliaria", "exposicao_cambial", "carteira_trs", "taxa_endividamento", "if_progresso", "if_prazo_ano", "despesas_nao_categorizadas", "protecao_custo_premio", "renda_passiva_cobertura", "aliquota_efetiva_ir"],
+          "enum": ["taxa_poupanca_recorrente", "reserva_cobertura_meses", "alocacao_renda_fixa", "concentracao_imobiliaria", "exposicao_cambial", "carteira_trs", "taxa_endividamento", "if_progresso", "if_prazo_ano", "despesas_nao_categorizadas", "protecao_custo_premio", "renda_passiva_cobertura", "aliquota_efetiva_ir", "imobilizacao_patrimonial"],
           "description": "Identidade do KPI no vocabulário fechado de `kpi_target_catalog` ([[ADR-399]] D1). O LLM SELECIONA a chave; `nome`, `valor_atual` e `target` são estampados no pós-LLM a partir de `kpi_targets` do E5. Métrica fora do enum não é emitível — é o cap estrutural contra a fabricação, e por isso não há chave de escape."
         },
         "nome": {

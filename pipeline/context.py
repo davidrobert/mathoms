@@ -129,6 +129,11 @@ class WorkspaceContext:
     #: lido de ``workspaces.imoveis_no_if`` em ``_setup_run_context``.
     imoveis_no_if: bool = field(default=True)
 
+    #: [[ADR-215]] — `workspaces.residencia_status` (owned | rented | undeclared). Só
+    #: `rented` autoriza o E5 a publicar residência zero ([[ADR-439]] D2). ``None``
+    #: (CLI/teste sem DB) vale como `undeclared`, o default da coluna.
+    residencia_status: Optional[str] = field(default=None)
+
     #: ADR-355 — política do run: este stage pode fazer chamada LLM? ``False``
     #: num run ``skip_llm`` (a negação vive só em ``build_hydrated_context``).
     #: Governa a chamada LLM **condicional dentro de stage não-``is_llm``**
@@ -275,6 +280,7 @@ class WorkspaceContext:
         tributario_section_resolver: Optional["TributarioSectionResolver"] = None,
         imoveis_no_if: bool = True,
         institution_catalog_provider: Optional["InstitutionCatalogProvider"] = None,
+        residencia_status: Optional[str] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -307,4 +313,5 @@ class WorkspaceContext:
             tributario_section_resolver=tributario_section_resolver,
             imoveis_no_if=imoveis_no_if,
             institution_catalog_provider=institution_catalog_provider,
+            residencia_status=residencia_status,
         )

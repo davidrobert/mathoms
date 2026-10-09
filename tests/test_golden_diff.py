@@ -257,3 +257,71 @@ def test_load_manifest_rejects_bad_shape(tmp_path, field, bad, expect):
     entry = {**_FULL_ENTRY, field: bad}
     with pytest.raises(ValueError, match=expect):
         load_manifest(_write_manifest(tmp_path, [entry]))
+
+
+# ─────────────── [[ADR-439]]: número↔null monetário exige manifesto ───────────────
+#
+# A supressão de um balde (número → `null`) não tem `delta_cents`, e o gate só cobrava
+# manifesto de `is_monetary_value_delta()`: o rebaseline passava calado, e uma
+# regressão PARA `null` passaria igual. Os dois sentidos movem o número publicado.
+
+
+@pytest.mark.parametrize(("old", "new"), [(250_000.0, None), (None, 250_000.0)])
+def test_anulacao_monetaria_exige_manifesto(old, new):
+    diffs = diff_golden({"patrimonio": {"residencia": old}}, {"patrimonio": {"residencia": new}})
+    (d,) = [d for d in diffs if d.path == "patrimonio.residencia"]
+
+    assert d.kind == "value_delta" and d.anulacao and d.delta_cents is None
+    uncovered, _ = check_manifest(diffs, [], "g1")
+    assert [u.path for u in uncovered] == ["patrimonio.residencia"]
+
+
+def test_anulacao_coberta_por_entrada_com_cents_nulo():
+    diffs = diff_golden(
+        {"patrimonio": {"residencia": 250_000.0}}, {"patrimonio": {"residencia": None}}
+    )
+    entry = ManifestEntry(
+        "g1",
+        "patrimonio.residencia",
+        25_000_000,
+        None,
+        "ADR-439",
+        "balde não apurado sai null",
+        "pipeline/domain/services/patrimonio_calculator.py:300",
+    )
+
+    uncovered, orphans = check_manifest(diffs, [entry], "g1")
+    assert not uncovered and not orphans
+
+
+def test_null_em_campo_nao_monetario_nao_exige_manifesto():
+    diffs = diff_golden({"r": {"n_desconhecido": 3}}, {"r": {"n_desconhecido": None}})
+
+    assert not [d for d in diffs if d.exige_manifesto()]
+
+
+def test_texto_contra_nulo_nao_e_anulacao_monetaria():
+    diffs = diff_golden({"p": {"motivo": "x"}}, {"p": {"motivo": None}})
+
+    assert not [d for d in diffs if d.anulacao]
+
+
+def test_load_manifest_aceita_cents_nulo(tmp_path):
+    from dev.golden_diff import load_manifest
+
+    entries = load_manifest(_write_manifest(tmp_path, [{**_FULL_ENTRY, "new_cents": None}]))
+    assert entries[0].new_cents is None
+
+
+def test_main_reprova_anulacao_com_mensagem_e_sem_traceback(tmp_path, capsys):
+    """O caminho do RELATÓRIO também roda: `delta_cents` é `None` na anulação."""
+    import json
+
+    from dev.golden_diff import main
+
+    old, new = tmp_path / "old.json", tmp_path / "new.json"
+    old.write_text(json.dumps({"patrimonio": {"residencia": 0}}), encoding="utf-8")
+    new.write_text(json.dumps({"patrimonio": {"residencia": None}}), encoding="utf-8")
+
+    assert main([str(old), str(new)]) == 1
+    assert "patrimonio.residencia (0 → null, anulação)" in capsys.readouterr().err

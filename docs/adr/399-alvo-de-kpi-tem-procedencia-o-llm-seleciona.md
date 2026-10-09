@@ -5,7 +5,7 @@ title: "Alvo de KPI tem procedência declarada; o LLM seleciona identidade, não
 status: Decidido
 phase: r7.PE-2/FP-6
 date: "2026-08-19"
-amended_at: ["2026-08-27", "2026-08-28"]
+amended_at: ["2026-08-27", "2026-08-28", "2026-10-08"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-134]]"
@@ -32,6 +32,12 @@ aliases:
 > **Decidido em 2026-08-19** na remediação de **PE-2** + **FP-6** (P1) do §r7 de
 > [[PIPELINE-REVIEWS-active]]. Implementação **em ondas** — ver §Estado de
 > implementação antes de §Consequências.
+>
+> ⚠️ **Emendada em 2026-10-08** ([[A40.l92]]): o limiar é o **último valor conforme**, nas
+> duas direções — `operador` estreita para `{<=, >=}` e o construtor de `KpiTarget` recusa
+> operador estrito. Concentração passa de `<` a `<=`, que é como agregador, red-line e
+> registro de risco sempre julgaram; **despesas não identificadas vira órfã por (b)** — o
+> número fala da leitura do relatório, não da família. Ver §Emenda 2026-10-08.
 >
 > ⚠️ **Emendada em 2026-08-28** ([[A40.l93]]): o **path do observado é requisito do
 > catálogo** — alvo cujo observado o resolver do parecer não consegue ler é o comparador
@@ -340,3 +346,57 @@ contrato de todo jeito — o enum fechado força essa conversa em vez de deixar 
   pré-existente do card, com dono, fora desta lane.
 - **Não toca a D4.** Os leitores pré-existentes de `endividamento_maximo_pct` e
   `concentracao_alerta_pct` permanecem.
+
+## Emenda 2026-10-08 — o limiar é o último valor conforme
+
+Co-design da [[A40.l92]] (`financial-planner` + `data-engineer` + `product-designer`). A l92
+vai publicar um **veredito** por métrica ao lado do comparador, e veredito novo não pode
+contradizer o canal de risco sobre o mesmo payload. O catálogo divergia dele exatamente no
+ponto exato do limiar.
+
+### E9 — `operador` fecha em `{<=, >=}`
+
+**Doutrina (`financial-planner`):** nas duas direções o limiar é o último valor conforme, e
+a violação é sempre estrita. Limite se enuncia "até X%"; os produtores já julgam assim — o
+alerta de concentração dispara em `> 50` (`real_estate_metrics_aggregator`), a RL-7 e o
+`RiskTrigger` usam `<=`, e a [[ADR-353]] D1 escreve "≤ 10% → alta". Com `<`, "acima do
+limite" em 50,00 é falso ao pé da letra.
+
+O catálogo publicava `<` em `concentracao_imobiliaria` e `despesas_nao_categorizadas`, e
+afirmava violação em 50,00 e 10,0 exatos enquanto as outras superfícies diziam conforme.
+Concentração passa a `<=`; despesas sai do comparador (E10). A E8 fechou o enum como
+`{<, <=, >=, null}` refletindo o que o catálogo produzia; **esta emenda o estreita para
+`{<=, >=, null}`** e põe a doutrina no construtor:
+`KpiTarget` recusa operador fora de `OPERADORES_DOUTRINA`, e o catálogo inteiro passa por
+ele. O consumidor segue mais permissivo que o contrato (`_OPERADOR_GLIFO` conhece os 4) —
+é a direção segura para o parecer regenerado sobre E5 antigo ([[ADR-291]]).
+
+O comparador deixa de ter cópias: `comparador_de_limiar.conforme_ao_limiar` é o predicado
+único do catálogo e do `RiskTrigger`, e a paridade entre os dois é medida por
+**comportamento** em volta do limiar (−0,01, exato, +0,01), não por igualdade de constante.
+
+### E10 — despesas não identificadas é órfã por (b)
+
+Co-design `financial-planner` + `product-designer`. O share não identificado é o tier de
+confiança do diagnóstico ([[ADR-353]]): fala da leitura do **relatório**, não da família, e
+a ação é do produto (learning loop), não do cliente. Com alvo `≤ 10,0%`, o leitor fazia a
+conta e 12% virava violação **da família** — o veredito que a decisão remove —, e o 10
+sozinho apagaria o degrau de 30, que é onde o diagnóstico some. A chave entra nos órfãos por
+decisão de domínio (admissão (b) da D3), com o motivo *"mede a leitura do relatório, não a
+família"*; a situação da linha passa a ser o `nivel` que o produtor publica. Como órfã por
+decisão, ela sai do gate da [[ADR-419]] §D4, e a dispensa que tinha lá vira redundante.
+
+Duas correções de contrato no mesmo produtor:
+
+- A base passa de `despesa_total` a `despesas_por_categoria`: a [[ADR-353]] D2 exclui
+  `despesa_total` do denominador (diverge pelas transferências internas removidas), e o
+  catálogo declarava a base que o produtor recusa.
+- O produtor do tier julgava o share **bruto** e publicava 1 casa: 10,04% saía `parcial` ao
+  lado de "10,0%". Passa a arredondar uma vez e a julgar e narrar nessa precisão.
+
+### O que esta emenda NÃO faz
+
+- **Não pareia o alvo de reserva com o gatilho.** O alvo (`meses_alvo` por perfil) e o
+  gatilho (`reserva_minima_meses`) são dois limiares, não duas leituras do mesmo.
+- **Não publica o veredito.** O `comparador` no wire do parecer é o restante da [[A40.l92]],
+  com emenda própria à D1.

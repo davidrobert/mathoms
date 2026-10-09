@@ -88,6 +88,66 @@ describe("<HeroKpiGrid /> · Patrimônio Investível @ADR-142 @ADR-215", () => {
     expect(link).toHaveAttribute("href", "/config?tab=members");
   });
 
+  // ADR-439 D3 — o veredito decide antes do número. Na fase expand o balde ainda sai 0
+  // com veredito `nao_apurado`; no flip ele sai `null`. Os dois caíam no CTA de
+  // classificar, que afirma ausência e manda reclassificar o que já foi classificado.
+  const veredito = (motivo: string | null) =>
+    ({
+      imoveis_geradores: { status: "nao_apurado", motivo, piso: false },
+    }) as unknown as PatrimonioData["cobertura_classificacao_imovel"];
+
+  it("vínculo perdido: diz a direção do erro e não oferece 'classificar'", () => {
+    renderGrid(
+      makePatrimonio({
+        imoveis_no_if: true,
+        imoveis_geradores: 0,
+        cobertura_classificacao_imovel: veredito("vinculo_perdido"),
+      }),
+    );
+    expect(screen.getByText(/Imóveis de renda não identificados/)).toBeInTheDocument();
+    expect(screen.getByText(/o progresso da IF pode ser maior/)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /classificar/i })).toBeNull();
+  });
+
+  it("balde null sem bloco (flip, payload sem cobertura) segue o mesmo ramo", () => {
+    renderGrid(makePatrimonio({ imoveis_no_if: true, imoveis_geradores: null }));
+    expect(screen.getByText(/Imóveis de renda não identificados/)).toBeInTheDocument();
+    expect(screen.queryByText(/Sem imóveis de renda classificados/)).toBeNull();
+  });
+
+  it("gerador sem valor apurado tem copy própria", () => {
+    renderGrid(
+      makePatrimonio({
+        imoveis_no_if: true,
+        imoveis_geradores: null,
+        cobertura_classificacao_imovel: veredito("sem_valor"),
+      }),
+    );
+    expect(screen.getByText(/Imóveis de renda sem valor apurado/)).toBeInTheDocument();
+  });
+
+  it("nunca classificou: o CTA de classificar continua certo", () => {
+    renderGrid(
+      makePatrimonio({
+        imoveis_no_if: true,
+        imoveis_geradores: null,
+        cobertura_classificacao_imovel: veredito("nao_classificados"),
+      }),
+    );
+    expect(screen.getByText(/Sem imóveis de renda classificados/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /classificar/i })).toBeInTheDocument();
+  });
+
+  it("toggle off ignora o veredito: os geradores não entram no IF", () => {
+    renderGrid(
+      makePatrimonio({
+        imoveis_no_if: false,
+        cobertura_classificacao_imovel: veredito("vinculo_perdido"),
+      }),
+    );
+    expect(screen.getByText("Imóveis fora do cálculo de IF")).toBeInTheDocument();
+  });
+
   it("renderiza '—' quando patrimonio é undefined", () => {
     renderGrid(undefined);
     expect(screen.getByText("Patrimônio Investível")).toBeInTheDocument();

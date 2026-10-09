@@ -2259,20 +2259,20 @@
       "limiar": "50.000000",
       "motivo": null,
       "observado_path": "$.ratios.concentracao_imobiliaria",
-      "operador": "<",
+      "operador": "<=",
       "procedencia": "limiar_canonico",
       "ref": "RealEstateConfig.concentracao_alerta_pct ([[ADR-340]])",
       "rotulo": "Concentração imobiliária (carteira produtiva)",
       "unidade": "pct"
     },
     "despesas_nao_categorizadas": {
-      "base": "despesa_total",
-      "limiar": "10.000000",
-      "motivo": null,
+      "base": "despesas_por_categoria",
+      "limiar": null,
+      "motivo": "mede a leitura do relatório, não a família",
       "observado_path": "$.diagnostico_confianca.share_nao_identificado_pct",
-      "operador": "<",
-      "procedencia": "limiar_canonico",
-      "ref": "diagnostico_comportamental_analyzer.NAO_IDENTIFICADO_PARCIAL_PCT",
+      "operador": null,
+      "procedencia": null,
+      "ref": null,
       "rotulo": "Despesas não identificadas (% do total, 12m)",
       "unidade": "pct"
     },
@@ -2471,6 +2471,32 @@
     "caixa_total_brl": 5000000,
     "cat2_efetivo": 15000000,
     "cbe_obrigatorio": false,
+    "cobertura_classificacao_imovel": {
+      "geradores_identificados": 15000000,
+      "imoveis_geradores": {
+        "motivo": "nao_classificados",
+        "piso": false,
+        "status": "nao_apurado"
+      },
+      "n_desconhecido": 1,
+      "n_desconhecido_em_aberto": 1,
+      "n_total": 5,
+      "nao_geradores_identificados": 26000000,
+      "overrides_sem_imovel": {
+        "geradores": 0,
+        "residencia_principal": 0
+      },
+      "pct_desconhecido": "31.670000",
+      "residencia": {
+        "motivo": "nao_declarada",
+        "piso": false,
+        "status": "nao_apurado"
+      },
+      "residencia_identificada": 0,
+      "residencia_status": "undeclared",
+      "valor_desconhecido": 19000000,
+      "valor_total": 60000000
+    },
     "cobertura_investimentos": [
       {
         "fonte": "irpf",
@@ -2498,6 +2524,8 @@
       },
       {
         "categoria": "Residência",
+        "estado": "nao_apurado",
+        "motivo": "nao_declarada",
         "pct": "0.000000",
         "valor": 0
       },
@@ -2537,9 +2565,9 @@
     },
     "imoveis_alocacao": 44000000,
     "imoveis_fora_alocacao": 16000000,
-    "imoveis_geradores": 15000000,
+    "imoveis_geradores": null,
     "imoveis_investimento": 60000000,
-    "imoveis_nao_geradores": 45000000,
+    "imoveis_nao_geradores": null,
     "imoveis_no_if": true,
     "investimentos_conjuge": 0,
     "investimentos_nao_atribuidos": 0,
@@ -2553,7 +2581,7 @@
       "count": 0,
       "tickers": []
     },
-    "residencia": 0,
+    "residencia": null,
     "tabela_categorias": [
       {
         "categoria": "Outros imóveis",
@@ -2572,6 +2600,8 @@
       },
       {
         "categoria": "Residência",
+        "estado": "nao_apurado",
+        "motivo": "nao_declarada",
         "pct": "0.000000",
         "valor": 0
       },
