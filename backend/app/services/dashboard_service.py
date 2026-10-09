@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 
 from backend.app.schemas.dashboard import DashboardAlert, DashboardChart, DashboardKPI
@@ -10,6 +11,8 @@ from backend.app.services.storage.artifact_reader import read_latest_artifact
 from pipeline.stage_spec import resolve_stage_name
 
 logger = logging.getLogger(__name__)
+
+_UM_DECIMAL = Decimal("0.1")
 
 
 def load_e5_analysis(workspace_id: str, tenant_root: str) -> dict[str, Any] | None:
@@ -22,72 +25,60 @@ def load_e5_analysis(workspace_id: str, tenant_root: str) -> dict[str, Any] | No
     )
 
 
-def _fmt_brl(value: float) -> str:
-    if abs(value) >= 1_000_000:
-        return f"R$ {value / 1_000_000:,.1f}M"
-    if abs(value) >= 1_000:
-        return f"R$ {value / 1_000:,.1f}k"
-    return f"R$ {value:,.2f}"
-
-
-def _fmt_pct(value: float) -> str:
-    return f"{value * 100:.1f}%" if value < 1 else f"{value:.1f}%"
-
-
 def build_kpis(e5: dict[str, Any]) -> list[DashboardKPI]:
-    kpis: list[DashboardKPI] = []
+    candidatos = (
+        _kpi_taxa_poupanca(e5.get("ratios") or {}),
+        _kpi_score(e5.get("score") or {}),
+    )
+    return [kpi for kpi in candidatos if kpi is not None]
 
-    score = e5.get("score", {})
-    if score:
-        score_val = score.get("valor", 0)
-        score_max = score.get("max", 100)
-        kpis.append(
-            DashboardKPI(
-                label="Score Financeiro",
-                value=f"{score_val}/{score_max}",
-                raw_value=float(score_val),
-            )
-        )
 
-    patrimonio = e5.get("patrimonio", {})
-    if patrimonio:
-        liquido = patrimonio.get("liquido", 0)
-        kpis.append(
-            DashboardKPI(
-                label="Patrimônio Líquido",
-                value=_fmt_brl(liquido),
-                raw_value=float(liquido),
-            )
-        )
+# Sem mês documentado a taxa sai 0 por divisão vazia — publicá-la seria um zero falso.
+def _kpi_taxa_poupanca(ratios: dict[str, Any]) -> DashboardKPI | None:
+    pct = _decimal_ou_none(ratios.get("taxa_poupanca_recorrente_pct"))
+    meses = int(ratios.get("janela_meses") or 0)
+    if pct is None or meses <= 0:
+        return None
+    return DashboardKPI(
+        key="taxa_de_poupanca",
+        label=f"Taxa de Poupança Recorrente · {_base_da_janela(meses)}",
+        value=_fmt_pct(pct),
+        raw_value=float(pct),
+    )
 
-    ratios = e5.get("ratios", {})
-    if ratios:
-        taxa_poup = ratios.get("taxa_poupanca", 0)
-        kpis.append(
-            DashboardKPI(
-                label="Taxa de Poupança",
-                value=_fmt_pct(taxa_poup),
-                raw_value=float(taxa_poup),
-            )
-        )
 
-    fluxo = e5.get("fluxo_caixa", {})
-    if fluxo:
-        receita_desp = fluxo.get("receita_despesa_mensal_detalhado", {})
-        datasets = receita_desp.get("datasets", [])
-        if len(datasets) >= 2:
-            receita_total = sum(datasets[0].get("data", []))
-            despesa_total = sum(datasets[1].get("data", []))
-            if receita_total > 0 or despesa_total > 0:
-                kpis.append(
-                    DashboardKPI(
-                        label="Receita vs Despesa",
-                        value=f"{_fmt_brl(receita_total)} / {_fmt_brl(despesa_total)}",
-                        raw_value=receita_total - despesa_total,
-                    )
-                )
+def _kpi_score(score: dict[str, Any]) -> DashboardKPI | None:
+    if not score:
+        return None
+    valor = score.get("valor", 0)
+    return DashboardKPI(
+        key="score_financeiro",
+        label="Score Financeiro",
+        value=f"{valor}/{score.get('max', 100)}",
+        raw_value=float(valor),
+    )
 
-    return kpis
+
+def _decimal_ou_none(valor: Any) -> Decimal | None:
+    if valor is None:
+        return None
+    try:
+        return Decimal(str(valor))
+    except InvalidOperation:
+        return None
+
+
+# ADR-306 D1: KPI declara a própria base, e o N vem de `janela_meses`, nunca um 12 fixo.
+def _base_da_janela(meses: int) -> str:
+    if meses == 1:
+        return "último mês documentado"
+    return f"últimos {meses} meses documentados"
+
+
+# ADR-209: o pct já é absoluto (44.7 = 44,7%) — nada de multiplicar por 100.
+def _fmt_pct(pct: Decimal) -> str:
+    arredondado = pct.quantize(_UM_DECIMAL, rounding=ROUND_HALF_UP)
+    return f"{arredondado}".replace(".", ",") + "%"
 
 
 def build_charts(e5: dict[str, Any]) -> list[DashboardChart]:
