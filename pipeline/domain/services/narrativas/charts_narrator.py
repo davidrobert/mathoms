@@ -89,24 +89,29 @@ class ChartsNarrator:
         ]
         _fontes_receita.sort(key=lambda x: x[1], reverse=True)
 
-        _cm_prazos = M.get("cm_prazos", [])
-        _cm_aportes = M.get("cm_aportes", [])
-        _cm_anos = M.get("cm_anos_if", [])
-
         return {
             **self._narrate_patrimonio_aloc(M, ctx, _imovel_acima),
             **self._narrate_fluxo_receita(M, _fontes_receita),
             **self._narrate_projecao_if(M, ctx),
-            ctx.key_cenarios_conjuge: self._narrate_cenarios_conjuge(
-                M,
-                ctx,
-                _conj,
-                _cm_prazos,
-                _cm_aportes,
-                _cm_anos,
-            ),
+            **self._chart_cenarios_conjuge(M, ctx, _conj),
             **self._narrate_viagens(M),
             **self._narrate_riscos_decisoes(M, riscos, _riscos_top3, decisoes),
+        }
+
+    # ADR-167: bloco vazio é "o E5 recusou o cenário" — sem chart, e sem texto de
+    # "não aplicável" chegando ao parecer pelo `$.narrativas`.
+    def _chart_cenarios_conjuge(
+        self, M: Mapping[str, Any], ctx: NarrativasContext, conj: Mapping[str, Any]
+    ) -> dict[str, dict[str, Any]]:
+        prazos = M.get("cm_prazos", [])
+        if not prazos:
+            return {}
+        aportes = M.get("cm_aportes", [])
+        anos = M.get("cm_anos_if", [])
+        return {
+            ctx.key_cenarios_conjuge: self._narrate_cenarios_conjuge(
+                M, ctx, conj, prazos, aportes, anos
+            )
         }
 
     # ── Grupo 1: Score + patrimônio + alocação (charts 1-4) ────────────

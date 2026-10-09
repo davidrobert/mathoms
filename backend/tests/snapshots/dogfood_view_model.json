@@ -1181,41 +1181,7 @@
   "alertas": [
     "Rentabilidade: N/D"
   ],
-  "cenarios_conjuge": {
-    "anos_if": [
-      null
-    ],
-    "aportes": [
-      null
-    ],
-    "cenarios": [
-      {
-        "ano_if": null,
-        "aporte_mensal": null,
-        "idade_titular": null,
-        "nome": "Sem renda do cônjuge",
-        "prazo_if_anos": null,
-        "resumo": "Quanto a perda da renda do cônjuge adia a independência financeira depende do aporte mensal, que você ainda não declarou. Defina sua meta de aporte mensal em Meu Plano → Aportes."
-      }
-    ],
-    "idade_titular_if": [
-      null
-    ],
-    "labels": [
-      "Sem renda do cônjuge"
-    ],
-    "prazos_if": [
-      null
-    ],
-    "premissas": {
-      "aporte_base": null,
-      "fator_reduzido": "0.660000",
-      "investivel_atual": 28000000,
-      "meta_if": 100000000,
-      "retorno_real_anual_pct": "6.000000",
-      "salario_conjuge_clt_brl": 0
-    }
-  },
+  "cenarios_conjuge": {},
   "changelog": null,
   "comparisons": null,
   "composicao_familiar": {

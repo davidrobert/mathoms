@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Any, Mapping
+from enum import Enum
+from typing import Any
 
 from pipeline.domain.services.if_projector import default_if_absent, solve_prazo_anos
 from pipeline.domain.services.methodology_constants import (
@@ -279,53 +280,22 @@ class CenariosConjugeAnalyzer:
 
 
 # =============================================================================
-# Eligibility gate (ADR-167)
+# Elegibilidade (ADR-167 §Emenda 2026-10-09)
 # =============================================================================
 
 
-def should_render_conjuge_scenarios(
-    *,
-    family_members: Mapping[str, Any],
-    fluxo: Mapping[str, Any],
-    goals: Mapping[str, Any],
-) -> bool:
-    """Decide se o cenário 'cônjuge sem trabalhar' é elegível para o workspace (ADR-167).
+class VereditoCenarioConjuge(str, Enum):
+    elegivel = "elegivel"
+    sem_conjuge_cadastrado = "sem_conjuge_cadastrado"
+    sem_meta_if = "sem_meta_if"
 
-    Regra Cerbasi/Perini: meta IF presente E ≥2 membros com renda recorrente E
-    renda do cônjuge ≥15% da renda familiar total. Solteiro / 1 renda / casal
-    sem meta IF / casal 95/5 → False (sem o que stressar / impacto < ruído).
-    """
-    if _safe_float((goals or {}).get("if_meta", 0)) <= 0:
-        return False
 
-    membros = (family_members or {}).get("membros", {}) or {}
-    titular_key = (family_members or {}).get("titular", "") or ""
-    conjuge_key = next(
-        (k for k, v in membros.items() if isinstance(v, dict) and v.get("papel") == "conjuge"),
-        "",
-    )
-    if not titular_key or not conjuge_key:
-        return False
-
-    rmd = (fluxo or {}).get("receita_despesa_mensal_detalhado", {}) or {}
-    datasets = rmd.get("receita_datasets", []) or []
-
-    def _sum_label(role_name: str) -> float:
-        total = 0.0
-        for ds in datasets:
-            label = str(ds.get("label", "")).lower()
-            if role_name and role_name in label:
-                total += sum(_safe_float(v) for v in ds.get("data", []) if _safe_float(v) > 0)
-        return total
-
-    titular_nome = (membros.get(titular_key, {}) or {}).get("nome_curto", titular_key).lower()
-    conjuge_nome = (membros.get(conjuge_key, {}) or {}).get("nome_curto", conjuge_key).lower()
-
-    renda_titular = _sum_label(titular_nome)
-    renda_conjuge = _sum_label(conjuge_nome)
-    renda_familiar = renda_titular + renda_conjuge
-
-    if renda_titular <= 0 or renda_conjuge <= 0 or renda_familiar <= 0:
-        return False
-
-    return (renda_conjuge / renda_familiar) >= 0.15
+# Os critérios de renda da ADR (≥2 rendas, cônjuge ≥15%) ficam de fora até existir
+# renda por membro com dono: o label de receita não carrega o membro.
+def veredito_cenario_conjuge(*, conjuge_key: str, if_meta: float) -> VereditoCenarioConjuge:
+    """Decide se o cenário 'Sem renda do cônjuge' entra no payload E5 (ADR-167)."""
+    if not conjuge_key:
+        return VereditoCenarioConjuge.sem_conjuge_cadastrado
+    if if_meta <= 0:
+        return VereditoCenarioConjuge.sem_meta_if
+    return VereditoCenarioConjuge.elegivel

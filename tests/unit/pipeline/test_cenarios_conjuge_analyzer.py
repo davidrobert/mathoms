@@ -1,4 +1,4 @@
-"""Tests — `CenariosConjugeAnalyzer` + `should_render_conjuge_scenarios` (ADR-167)."""
+"""Tests — `CenariosConjugeAnalyzer` + `veredito_cenario_conjuge` (ADR-167)."""
 
 from __future__ import annotations
 
@@ -16,7 +16,8 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (  # noqa: E402
     CenariosConjugeAnalyzer,
     CenariosConjugeConfig,
     CenariosConjugeResult,
-    should_render_conjuge_scenarios,
+    VereditoCenarioConjuge,
+    veredito_cenario_conjuge,
 )
 from pipeline.domain.services.narrativas.format_helpers import (  # noqa: E402
     CENARIO_CONJUGE_META_ATINGIDA,
@@ -263,86 +264,29 @@ class TestAporteNaoDeclarado:
 
 
 # =============================================================================
-# Eligibility gate (ADR-167) — 4 casos canônicos
+# Elegibilidade (ADR-167 §Emenda 2026-10-09)
 # =============================================================================
 
 
-class TestEligibilityGate:
-    """ADR-167: should_render_conjuge_scenarios — 4 casos canônicos."""
+# Os casos 95/5 e "1 renda" do gate original saíram: o produtor real do label de
+# receita não carrega o nome do membro, então a divisão não é mensurável — a
+# retomada está na emenda da ADR-167.
+class TestVereditoElegibilidade:
+    """Só fatos de cadastro e de meta decidem; a divisão de renda não tem sinal."""
 
-    def _family_casal(self) -> dict:
-        return {
-            "titular": "alice",
-            "membros": {
-                "alice": {"papel": "titular", "nome_curto": "Alice"},
-                "bob": {"papel": "conjuge", "nome_curto": "Bob"},
-            },
-        }
+    def test_solteiro_nao_e_elegivel(self):
+        veredito = veredito_cenario_conjuge(conjuge_key="", if_meta=5_000_000)
+        assert veredito is VereditoCenarioConjuge.sem_conjuge_cadastrado
 
-    def _family_solteiro(self) -> dict:
-        return {
-            "titular": "alice",
-            "membros": {"alice": {"papel": "titular", "nome_curto": "Alice"}},
-        }
+    def test_casal_sem_meta_if_nao_e_elegivel(self):
+        veredito = veredito_cenario_conjuge(conjuge_key="bob", if_meta=0)
+        assert veredito is VereditoCenarioConjuge.sem_meta_if
 
-    def _fluxo_2_rendas(self, *, titular: float, conjuge: float) -> dict:
-        return {
-            "receita_despesa_mensal_detalhado": {
-                "receita_datasets": [
-                    {"label": "Receita CLT Alice", "data": [titular] * 6 + [0] * 6},
-                    {"label": "Receita CLT Bob", "data": [conjuge] * 6 + [0] * 6},
-                ]
-            }
-        }
+    def test_casal_com_meta_if_e_elegivel(self):
+        veredito = veredito_cenario_conjuge(conjuge_key="bob", if_meta=5_000_000)
+        assert veredito is VereditoCenarioConjuge.elegivel
 
-    def test_solteiro_sem_o_que_stressar(self):
-        assert (
-            should_render_conjuge_scenarios(
-                family_members=self._family_solteiro(),
-                fluxo={},
-                goals=_goals(),
-            )
-            is False
-        )
-
-    def test_casal_sem_meta_if(self):
-        assert (
-            should_render_conjuge_scenarios(
-                family_members=self._family_casal(),
-                fluxo=self._fluxo_2_rendas(titular=10_000, conjuge=5_000),
-                goals={"if_meta": 0},
-            )
-            is False
-        )
-
-    def test_casal_955_renda_conjuge_abaixo_de_15pct(self):
-        # Cônjuge ~5% da renda familiar — abaixo do threshold 15%, vira ruído
-        assert (
-            should_render_conjuge_scenarios(
-                family_members=self._family_casal(),
-                fluxo=self._fluxo_2_rendas(titular=20_000, conjuge=1_000),
-                goals=_goals(),
-            )
-            is False
-        )
-
-    def test_casal_70_30_meta_if_eligivel(self):
-        # Cônjuge ~30% da renda familiar — caso canônico de elegibilidade
-        assert (
-            should_render_conjuge_scenarios(
-                family_members=self._family_casal(),
-                fluxo=self._fluxo_2_rendas(titular=14_000, conjuge=6_000),
-                goals=_goals(),
-            )
-            is True
-        )
-
-    def test_casal_sem_renda_do_conjuge(self):
-        assert (
-            should_render_conjuge_scenarios(
-                family_members=self._family_casal(),
-                fluxo=self._fluxo_2_rendas(titular=15_000, conjuge=0),
-                goals=_goals(),
-            )
-            is False
-        )
+    def test_sem_conjuge_prevalece_sobre_sem_meta(self):
+        # O motivo logado é o estrutural: sem cônjuge, a meta nunca o tornaria elegível.
+        veredito = veredito_cenario_conjuge(conjuge_key="", if_meta=0)
+        assert veredito is VereditoCenarioConjuge.sem_conjuge_cadastrado
