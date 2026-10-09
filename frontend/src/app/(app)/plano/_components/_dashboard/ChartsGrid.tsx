@@ -2,6 +2,7 @@
 
 import type { DashboardChart } from "@/lib/api";
 import { BarChartCard } from "./BarChartCard";
+import { CategoryBarChartCard } from "./CategoryBarChartCard";
 import { ChartSkeleton } from "./ChartSkeleton";
 import { isMonthlyBarChart, isWideChart } from "./dashboardHelpers";
 import { PieChartCard } from "./PieChartCard";
@@ -18,9 +19,9 @@ function ChartCard({
   if (chart.chart_type === "pie") {
     return <PieChartCard chart={chart} onSliceClick={onSliceClick} />;
   }
-  const barHandler = isMonthlyBarChart(chart) ? onBarClick : undefined;
+  if (!isMonthlyBarChart(chart)) return <CategoryBarChartCard chart={chart} />;
   const span = isWideChart(chart) ? "lg:col-span-2" : undefined;
-  return <BarChartCard chart={chart} onBarClick={barHandler} className={span} />;
+  return <BarChartCard chart={chart} onBarClick={onBarClick} className={span} />;
 }
 
 export function ChartsGrid({

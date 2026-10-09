@@ -69,8 +69,8 @@ TERMOS_DA_BASE: dict[BaseFinanceira, tuple[str, ...]] = {
     # `include_real_estate_in_if` está off), enquanto a concentração divide por cat_2
     # COMPLETO e é toggle-independente por decisão — o docstring de
     # `concentracao_imobiliaria.py` diz "FIXA/toggle-independente", e vago/especulação
-    # entra porque é ainda mais ilíquido. Medido no dogfood: 73.000.000 contra
-    # 13.000.000 da homônima, 5,6× — dois denominadores sob o mesmo nome "carteira
+    # entra porque é ainda mais ilíquido. Medido no dogfood: 5,6× a homônima
+    # (E5 `patrimonio.bases.*.valor_brl`) — dois denominadores sob o mesmo nome "carteira
     # produtiva", que é o defeito RV8-02 um nível acima. Declará-la é número-neutro.
     # [[ADR-420]] §D6: o termo deixa de ser cat_2 COMPLETO e passa a ser `imoveis_alocacao`
     # — numerador e denominador cortam no mesmo lugar, senão `bases_reproduzem` para de

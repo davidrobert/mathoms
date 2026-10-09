@@ -102,9 +102,19 @@ export function formatIsoMonthShort(label: string): string {
   return `${MONTH_SHORT_PT_LOWER[month - 1]}/${match[1].slice(2)}`;
 }
 
-/** O payload declara o eixo de meses — nunca o título nem o formato do rótulo. Só nela
- *  o clique tem destino: nas demais (classes de investimento) o cursor de link
- *  prometeria um clique que não leva a nada. */
+// Barra deitada: 36px por categoria (rótulo de 2 linhas não encosta no vizinho) sobre 34px
+// fixos (eixo de valores + margem do topo); o piso alinha com a altura dos outros cards.
+const CATEGORY_ROW_PX = 36;
+const CATEGORY_CHROME_PX = 34;
+const CHART_MIN_HEIGHT_PX = 300;
+
+export function categoryBarChartHeight(categories: number): number {
+  return Math.max(CHART_MIN_HEIGHT_PX, CATEGORY_CHROME_PX + CATEGORY_ROW_PX * categories);
+}
+
+/** Eixo de meses é o que o payload declara (`x_axis: "month"`), nunca o título nem o
+ *  formato do rótulo: colunas com deep-link por mês. Qualquer outro eixo (classes de
+ *  investimento) é de categorias — barra deitada e sem clique, que não teria destino. */
 export function isMonthlyBarChart(chart: DashboardChart): boolean {
   return (chart.data as { x_axis?: unknown }).x_axis === "month";
 }

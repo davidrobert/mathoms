@@ -27,6 +27,7 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_currency,
     fmt_num,
     fmt_percent,
+    frase_cenario_conjuge_sem_aporte,
     pluralize,
 )
 from pipeline.domain.services.narrativas.projecao_if_narrator import (
@@ -278,10 +279,8 @@ class ChartsNarrator:
                 "context": "Cenário de estresse não aplicável a este relatório.",
                 "conclusion": "",
             }
-        aporte = _cm_aportes[0] if _cm_aportes else 0
         prazo = _cm_prazos[0]
         ano_if = _cm_anos[0] if _cm_anos else ""
-        fator = M.get("cm_fator_reduzido", 0)
         prazo_base = M.get("if_prazo_anos", 0)
         delta_anos = prazo - prazo_base if (prazo_base and prazo is not None) else 0
         # Prazo ausente (era a sentinela 999): declara a ausência em vez de
@@ -305,11 +304,7 @@ class ChartsNarrator:
                 f"retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. "
                 f"Atualmente {ctx.conjuge_nome} contribui com {fmt_currency(M['cm_salario_clt_brl'])}/mês."
             ),
-            "conclusion": (
-                f"Sem renda do cônjuge: aporte cai para "
-                f"{fmt_currency(aporte)}/mês ({fmt_num(fator * 100, 0)}% do aporte-base). "
-                f"{desfecho}"
-            ),
+            "conclusion": _conclusao_cenario_conjuge(_cm_aportes, prazo, desfecho, M),
         }
 
     # ── Grupo 4: Viagens (chart 19) ─────────────────────────────────────
@@ -378,6 +373,22 @@ _ACTION_LINES: dict[tuple[bool, bool], str] = {
     (False, True): "Ação: contratação de seguro term {range}.",
     (False, False): "Ação: revisar mitigação de cada risco prioritário com corretor habilitado.",
 }
+
+
+def _conclusao_cenario_conjuge(
+    aportes: list, prazo: float | None, desfecho: str, M: Mapping[str, Any]
+) -> str:
+    """Sem aporte declarado não há o que reduzir: a frase nomeia o insumo que falta."""
+    aporte = aportes[0] if aportes else None
+    # `None` é a forma que o E5 publica e `0` a do artefato persistido antes dela;
+    # zero nunca é declaração de aporte (ADR-373).
+    if not aporte:
+        return frase_cenario_conjuge_sem_aporte(prazo=prazo, meta_if=M.get("if_meta") or 0)
+    fator = M.get("cm_fator_reduzido", 0)
+    return (
+        f"Sem renda do cônjuge: aporte cai para "
+        f"{fmt_currency(aporte)}/mês ({fmt_num(fator * 100, 0)}% do aporte-base). {desfecho}"
+    )
 
 
 def _narrate_waterfall_if_conclusion(M: Mapping[str, Any]) -> str:

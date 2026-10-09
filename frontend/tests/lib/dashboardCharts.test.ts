@@ -13,6 +13,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  categoryBarChartHeight,
   formatIsoMonthShort,
   isMonthlyBarChart,
   isoMonthToDateRange,
@@ -128,5 +129,33 @@ describe("Despesas por Categoria", () => {
     const transferencia = FIXTURE.conferencia["fluxo_caixa.janela_12m.transferencia_patrimonial"];
     expect(transferencia).toBeGreaterThan(0);
     expect(notes).toEqual([{ kind: "base_despesas", janelaMeses: 12, aporteExcluido: transferencia }]);
+  });
+});
+
+describe("roteamento — quem decide é o `x_axis`, não o formato do rótulo", () => {
+  const barra = (data: Record<string, unknown>): DashboardChart => ({
+    chart_type: "bar",
+    title: "Qualquer",
+    data: { datasets: [{ label: "Valor", data: [1, 2] }], ...data },
+  });
+
+  it("rótulo com cara de mês, sem `x_axis`, cai no eixo de categorias e perde o clique", () => {
+    expect(isMonthlyBarChart(barra({ labels: ["abr/26", "mai/26"] }))).toBe(false);
+  });
+
+  it("`x_axis: \"month\"` vira coluna com deep-link, qualquer que seja o rótulo", () => {
+    expect(isMonthlyBarChart(barra({ x_axis: "month", labels: ["abr/26", "mai/26"] }))).toBe(true);
+  });
+});
+
+describe("dashboard — altura da barra deitada", () => {
+  it("até 7 categorias fica na altura dos outros cards", () => {
+    expect(categoryBarChartHeight(4)).toBe(300);
+    expect(categoryBarChartHeight(7)).toBe(300);
+  });
+
+  it("da 8ª em diante cresce 36px por categoria — 11 (o vocabulário inteiro) dá 430", () => {
+    expect(categoryBarChartHeight(8)).toBe(322);
+    expect(categoryBarChartHeight(11)).toBe(430);
   });
 });
