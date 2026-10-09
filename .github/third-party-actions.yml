@@ -38,14 +38,14 @@ actions:
     runs_using: node24
     verified_at: "2026-10-08"
   actions/labeler:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   actions/setup-go:
     runs_using: node24
     verified_at: "2026-10-08"
   gitleaks/gitleaks-action:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   tj-actions/changed-files:
     runs_using: node24
     verified_at: "2026-08-05"
@@ -53,11 +53,11 @@ actions:
     runs_using: node24
     verified_at: "2026-08-05"
   golangci/golangci-lint-action:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   amannn/action-semantic-pull-request:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
 
 # Fecho de jobs required — não é o mesmo que "todo job do workflow". A
 # Repository Ruleset `main-protection` exige dois status checks: "All checks
