@@ -56,6 +56,15 @@ updates:
       # tests/dev/test_dependabot_redis_ceiling.py reprova quando ele mudar.
       - dependency-name: "redis"
         versions: [">=6.5"]
+      # litellm congelado em 1.97 por decisão de produto (2026-10-09, #2135). É o
+      # gateway de TODAS as chamadas LLM do pipeline (extrações E1.5/E1.6/E2 e
+      # parecer), e o CI só as exercita com mock, então um bump muda o
+      # comportamento sem sinal. A partir de 1.98 ele traz boto3/botocore (~100 MB,
+      # AWS) sem uso no produto. `update-types`, e não regra nua: security updates
+      # seguem abrindo. Retomar quando houver advisory, quando faltar um provider ou
+      # feature, ou num upgrade deliberado validado com run real (pipeline-review).
+      - dependency-name: "litellm"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   - package-ecosystem: "pip"
     directory: "/backend"
@@ -84,6 +93,9 @@ updates:
       # Mesmo teto do kombu[redis] da entrada "/" — ver o comentário lá.
       - dependency-name: "redis"
         versions: [">=6.5"]
+      # litellm congelado — ver o comentário na entrada "/".
+      - dependency-name: "litellm"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------
   # npm — frontend
