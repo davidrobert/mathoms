@@ -157,6 +157,12 @@ async function snapshotSection(
     return;
   }
   await page.locator(selector).scrollIntoViewIfNeeded();
+  // SONDA C: os dois FABs somem (pior caso: as duas sombras mudam juntas).
+  await page.addStyleTag({
+    content:
+      'button[aria-label="Voltar ao topo"], button[aria-label="Ir para o final"] ' +
+      "{ opacity: 0 !important; transition: none !important; }",
+  });
   await expect(page.locator(selector)).toHaveScreenshot(
     `${baselineId}.${theme}.png`,
     {
@@ -178,7 +184,7 @@ async function snapshotSection(
       // herdar esta. Re-calibrar este valor é lane própria; não o copie para
       // baseline nova sem medir o par (piso de ruído, menor mudança que
       // precisa reprovar).
-      maxDiffPixelRatio: 0.025,
+      maxDiffPixelRatio: 0, // SONDA: tolerância zero — cada pixel reporta
       // Mascarar elementos cuja renderização exata não importa para
       // detecção de regressão estrutural (ex.: timestamps) e os FABs, que não
       // pertencem à seção (ver `floatingNavMask`).
