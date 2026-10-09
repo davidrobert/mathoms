@@ -68,6 +68,18 @@ updates:
       # feature, ou num upgrade deliberado validado com run real (pipeline-review).
       - dependency-name: "litellm"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      # instructor: mesmo caminho do litellm (é ele que o litellm_client usa
+      # para o structured output de toda chamada LLM). Mesma regra e mesma
+      # condição de retomada.
+      - dependency-name: "instructor"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      # numpy: o bump é evento de rebaseline do cone Monte Carlo (ADR-360 item 6
+      # — o bit stream do Generator só é garantido no mesmo X.Y), não upgrade
+      # silencioso. E o numpy ≥2.5 exige Python ≥3.12, enquanto o updater resolve
+      # em 3.11 (pyproject `requires-python >=3.11`): um piso 2.5 quebraria a
+      # entrada. Security updates seguem abrindo.
+      - dependency-name: "numpy"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   - package-ecosystem: "pip"
     directory: "/backend"
@@ -98,6 +110,11 @@ updates:
         versions: [">=6.5"]
       # litellm congelado — ver o comentário na entrada "/".
       - dependency-name: "litellm"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      # instructor e numpy congelados — ver os comentários na entrada "/".
+      - dependency-name: "instructor"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "numpy"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------
