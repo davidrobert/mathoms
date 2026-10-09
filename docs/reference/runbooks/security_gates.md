@@ -12,15 +12,41 @@ Roda em todo PR contra `main` + schedule sábado 03:00 UTC + manual.
 
 | Job | Quando roda no PR | Bloqueia merge? | Output |
 |---|---|---|---|
-| `changes` | Sempre (gating) | Sempre passa (faz only IO) | Outputs `python_deps`, `npm_deps`, `iac`, `any_code`, `force_all`. |
+| `changes` | Sempre (gating) | Sempre passa (faz only IO) | Outputs `python_deps`, `npm_dirs` (JSON das raízes npm alteradas), `iac`, `any_code`, `force_all`. |
 | `trivy-fs` | `any_code` (qualquer código não-docs) | **Temporariamente não** — `continue-on-error` step-level até GHAS chegar (SARIF blocking) OU triagem dos findings restantes. Output em `table` no log. | Workflow logs. |
-| `trivy-config` | `iac` (Dockerfile, docker-compose, workflows) | **Temporariamente não** — `continue-on-error` step-level até triagem + fix dos 4 IaC misconfigs detectados no primeiro run. | Workflow logs. |
+| `trivy-config` | `iac` (todo `Dockerfile*` versionado — `**/Dockerfile*` desde 2026-10-08 —, docker-compose, workflows) | **Temporariamente não** — `continue-on-error` step-level até triagem + fix dos 4 IaC misconfigs detectados no primeiro run. | Workflow logs. |
 | `pip-audit` | `python_deps` (`backend/requirements.in`, `requirements.in`, `requirements.lock`, `pipeline-service/requirements*.txt`) | **Sim** (HIGH+ via `--strict`). Sem ignore-vulns ativos pós-PR #357 (python-jose → PyJWT). | Workflow logs. |
-| `npm-audit-prod` | `npm_deps` (`frontend/package*.json`) | **Sim** (HIGH+). Reativado pós-PRs #356 (next/next-intl) + #357 (python-jose). | Workflow logs. |
-| `npm-audit-dev` | `npm_deps` (mesmo gate de prod) | Não (informativo) | Workflow logs. |
+| `npm-audit-prod` | Matrix por raiz npm alterada (`npm_dirs`): `frontend/` e `frontend-ops/`, cada uma pelo seu `package*.json`; schedule/dispatch auditam as duas. Check: `npm audit (prod deps) — <raiz>`. | **Sim** (HIGH+), qualquer leg vermelha reprova o `Security green`. Reativado pós-PRs #356 (next/next-intl) + #357 (python-jose). | Workflow logs. |
+| `npm-audit-dev` | Mesma matrix de prod | Não (informativo) | Workflow logs. |
 | `gitleaks` | `any_code` | Sim (qualquer match não-allowlisted) | Workflow logs. |
 
 **Economia esperada:** PR docs-only consome 0 min de Actions (só `changes` roda, ~5s). PR backend-only sem dep nova pula `npm-audit-*` (~30s economizado/PR). PR frontend-only pula `pip-audit` + `trivy-config` quando não tocar `requirements*.txt` / Dockerfile.
+
+### Cobertura por raiz (desde 2026-10-08)
+
+Até 2026-10-08 os dois `npm-audit-*` rodavam fixos em `frontend/`, e o
+`frontend-ops/` (console interno) **nunca foi auditado**. O lock dele ficou com
+`next 16.3.4` exposto à GHSA-vcvr-r3jv-pc5j (RCE CRITICAL, publicada
+2026-09-30T14:48Z, `>=16.2.0 <16.3.6`) até o Dependabot #2057, mergeado em
+2026-10-08T21:21Z. São ~8,3 dias contra o SLO CRITICAL de 72h, com
+`Security green` verde o tempo todo. O sinal existia: o `trivy-fs` listava o
+CRITICAL em `frontend-ops/package-lock.json` em todo PR, mas é
+`continue-on-error`. Ver [[ADR-230]] §Emenda 2026-10-08.
+
+**Raiz npm nova** (qualquer `package-lock.json` versionado) exige duas linhas em
+`security.yml`: o grupo `npm_<raiz>` no filtro do `changes` (`<raiz>/package.json` +
+`<raiz>/package-lock.json` + o próprio workflow) e o
+`npm_dirs+=(<raiz>)` no `Set outputs`, condicionado pelo `_any_changed` daquele
+grupo e pelo `force`. O mesmo vale para Dockerfile fora do glob `iac`.
+`tests/dev/test_security_scans_cobrem_toda_raiz.py` tira o universo de
+`git ls-files` e reprova se faltar qualquer uma das duas.
+
+> ⚠️ **`Security green` ainda não é required** (medido em 2026-10-08): o
+> Ruleset `main-protection` exige só `All checks green` + `Title (Conventional
+> Commits)`, e foi editado pela última vez em 2026-08-25, antes do agregador
+> existir. Um scan vermelho aparece no PR, mas **não bloqueia merge** (nem
+> auto-merge) até o owner fazer o flip, que é o item 1.5 / KR-D do
+> [CI_TRUST](../../plan/CI_TRUST/_README.md).
 
 Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failure`). Schedule **NUNCA** sofre gating — todos os scans rodam (cobertura semanal contra drift cross-PR).
 

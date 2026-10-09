@@ -62,6 +62,7 @@ class PipelineResult:
         }
 
 
+from pipeline.observability.failure_text import describe_failure
 from pipeline.stage_spec import (
     DETERMINISTIC_ORDER,
     FULL_ORDER,
@@ -213,6 +214,11 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
 
     from pipeline.observability import StageLogTail, get_logger
     from pipeline.observability.context import reset_stage, set_stage
+    from pipeline.stage_failure_reason import (
+        StageFailureReason,
+        failure_class_detail,
+        reason_from_exception,
+    )
 
     runner = _get_stage_runner(stage)
     if runner is None:
@@ -311,17 +317,23 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                         "exit_code": code,
                     },
                 )
+                # `sys.exit` de script legado não carrega tipo: a causa só existe no
+                # stderr, e classificar pela prosa é vetado (ADR-357). `unknown`
+                # explícito separa este caso do produtor anterior ao contrato (ADR-447).
                 return StageResult(
                     stage=stage,
                     success=False,
                     duration_ms=elapsed,
-                    detail=_with_tail(None),
+                    detail=_with_tail(failure_class_detail(StageFailureReason.unknown)),
                     error=error_msg,
                 )
             except Exception as exc:
                 elapsed = (time.monotonic() - start) * 1000
+                # `str(exc)` de erro de banco ecoa bound parameters e o DETAIL do
+                # driver, e daqui o texto vai a stage_log, WS e span (ADR-441 D2).
+                failure = describe_failure(exc)
                 if span is not None:
-                    span.record_exception(exc)
+                    span.record_exception(exc, attributes=failure.span_attributes())
                     span.set_attribute("pipeline.success", False)
                     span.set_attribute("pipeline.exit_code", 1)
                 obs_logger.error(
@@ -330,14 +342,17 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                         "event": "stage_error",
                         "duration_ms": round(elapsed),
                         "error_type": type(exc).__name__,
+                        **failure.log_fields(),
                     },
                 )
+                # Último ponto com o objeto vivo nos dois executores: a classe sai
+                # dele aqui e viaja no `detail`, que o shell Go repassa (ADR-447).
                 return StageResult(
                     stage=stage,
                     success=False,
                     duration_ms=elapsed,
-                    detail=_with_tail(None),
-                    error=str(exc),
+                    detail=_with_tail(failure_class_detail(reason_from_exception(exc))),
+                    error=failure.message,
                 )
     finally:
         sys.stderr = original_stderr

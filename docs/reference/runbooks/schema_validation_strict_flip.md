@@ -20,6 +20,12 @@ acontece). O flip é por schema (`mode_overrides`), nunca global de uma vez:
 strict global abortaria runs em qualquer stage com drift não-mapeado. Este
 runbook define o gate de promoção de cada schema, o procedimento e o rollback.
 
+> **Correção 2026-10-09 ([[ADR-447]]).** "O stage falha" vale onde a `ValidationError`
+> chega ao `_run_stage` ou derruba o `success` do stage — tabela do §8.1. No E2
+> determinístico (`extract_invoices`/`extract_statements`) o abort é capturado por
+> arquivo, o arquivo já foi contado como processado, e o stage termina `completed` sem o
+> extrato: perda silenciosa, não abort. Bloqueador do flip de `e2_extract` no §1.1.
+
 ## 1. Pré-requisitos (gate antes de flipar)
 
 Todos verificáveis; sem exceção informal.
@@ -27,8 +33,16 @@ Todos verificáveis; sem exceção informal.
 ### 1.1. Código de enforcement mergeado
 
 - [ ] Raise em strict no `DBArtifactStore._validate_schema` ([[ADR-284]] §A).
-- [ ] `ValidationError` não-retryable em `_run_stage_with_retry` ([[ADR-284]] §A).
+- [ ] Stage roda uma vez por run, sem retry de stage ([[ADR-443]]) — o abort de
+  `ValidationError` não dorme backoff por construção. A guarda da [[ADR-284]] §A
+  saiu com o retry em 2026-10-08.
 - [ ] `mode_overrides` consumido por `_effective_schema_validation_mode` ([[ADR-284]] §C).
+- [ ] **Só para `e2_extract.schema.json` — bloqueador (medido em 2026-10-09).** O E2
+  determinístico conta o arquivo como processado antes do `store.write`
+  (`scripts/extract_bank_documents.py`), e o `success` do stage é
+  `erros_validacao == 0 or processados > 0` (`pipeline/stages/e2.py`). Um abort strict é
+  engolido e o stage termina `completed` sem o extrato. O flip espera a contagem passar a
+  depender do write.
 
 Verificação rápida:
 
@@ -86,6 +100,11 @@ resolvidos **ou aceitos por escrito** na linha do §7:
 > exatamente dos documentos que o parser não soube ler — o run morre em E2
 > **antes** de o fallback LLM existir. Pré-condição de corpus de `e2_extract`:
 > **reaberta**. Mudança de pré-condição revisa com `data-engineer` (§Owner).
+>
+> **Correção 2026-10-09.** "O run morre em E2" vale só para lote só de stubs
+> (`processados == 0`). Em lote misto o write do stub aborta, o arquivo vira
+> `erros_validacao`, `processados > 0` mantém o `success` do E2, e o documento nunca
+> chega ao fallback LLM — perda silenciosa, bloqueada no §1.1.
 
 ### 1.3. Baseline de 7 dias zero-WARN para o schema alvo
 
@@ -240,27 +259,42 @@ fechada sem rollback + linha registrada no §7. Próximo schema da fila repete
 
 ### 8.1. Confirmar que é abort de schema (30s)
 
-O erro é **não-retryable por desenho** ([[ADR-284]] §A) — não houve backoff, a
-falha é do primeiro attempt. Três sinais, em ordem de custo:
+O stage roda **uma vez** ([[ADR-443]]) — não houve backoff, a falha é da única
+tentativa. Três sinais, em ordem de custo:
 
 ```sql
 -- 1. o run e o stage onde parou
 SELECT id, status, failed_at_stage, failure_reason FROM pipeline_runs
  WHERE status = 'failed' ORDER BY started_at DESC LIMIT 5;
 
--- 2. o erro do stage (a mensagem do raise nomeia stage/key/schema)
-SELECT stage, status, errors FROM pipeline_stage_logs
- WHERE pipeline_run_id = '<run_id>' AND status = 'failed';
+-- 2. os stages que o contrato rejeitou na janela (Postgres: `output_summary` é
+--    `json`, não `jsonb` — `->>` funciona, `@>` não)
+SELECT pipeline_run_id, stage, status, errors FROM pipeline_stage_logs
+ WHERE status IN ('failed', 'degraded') AND started_at >= '<cutoff>'
+   AND output_summary->>'reason_class' = 'output_invalid';
+-- SQLite (dev): troque o último filtro por
+--   json_extract(output_summary, '$.reason_class') = 'output_invalid'
 ```
 
-A mensagem do raise é
-`payload de <stage>/<key> viola <schema> em modo strict`. O `reason_class`
-gravado é **`output_invalid`** — contrato rejeitado, não bug nosso.
+`reason_class = output_invalid` é o abort de contrato — payload rejeitado pelo
+schema, não bug nosso. A classe sai do objeto da `ValidationError` dentro do
+executor e atravessa os dois executores ([[ADR-447]]); a mensagem do raise,
+`payload de <stage>/<key> viola <schema> em modo strict`, segue em `errors` e
+nomeia stage, key e schema. Filtre por `reason_class` — o veredito do decoder —, não
+por `failure_class` (a entrada gravada por quem capturou) nem pela coluna
+`failure_reason` do run.
 
-> ⚠️ Runs anteriores a 2026-08-24 gravaram `internal_error` para este caso: a
-> `ValidationError` chega **nua** (vem do store, não de um provider) e caía no
-> ramo genérico. Corrigido junto com este runbook; ao triar incidente antigo,
-> não confie no `reason_class`.
+**Cobertura do filtro (medida em 2026-10-09).** A classe só existe onde a
+`ValidationError` chega viva ao `_run_stage`:
+
+| schema | writer | o abort aparece como |
+| --- | --- | --- |
+| `e1_members`, `e15_baseline_extract`, `baseline_patrimonial`, `e16_irpf_full`, `informe_base`, `comprovante_base`, `e3_reconciled`, `e4_*`, `e5_analysis` | E1, E1.5, E1.5c, E1.6, informes anuais, comprovantes, E3, E4, E5 — e `generate_narratives`, que grava na chave do E5 | `failed` (`degraded` no `generate_narratives`) com `reason_class = output_invalid` |
+| `e2_llm_artifact`, `informe_aluguel` | `extract_with_llm`, `extract_informe_aluguel` | `failed` com `reason_class = unknown`: o stage captura por documento ([[ADR-447]] §Deferimento) — aqui filtre `errors` pela mensagem do raise |
+| `e2_extract` | `extract_invoices`, `extract_statements` | **nada**: o abort é engolido e o stage termina `completed` sem o extrato — o §1.1 bloqueia este flip |
+
+Runs anteriores ao deploy da [[ADR-447]] gravaram `unknown` para todo abort, antes
+e depois de 2026-08-24: triagem retroativa é pela mensagem em `errors`.
 
 3. Os **paths** em drift estão no logger `mathoms.pipeline.schema_validation`
    com `mode=strict, outcome=reject` — é o §4 deste runbook.
