@@ -13,7 +13,6 @@ from __future__ import annotations
 import logging
 import re
 import time
-import traceback
 import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
@@ -58,6 +57,7 @@ from backend.app.services.report_tasks_snapshot_service import (
     build_snapshot_sync,
 )
 from backend.app.worker import celery_app
+from pipeline.observability.failure_text import describe_failure
 
 if TYPE_CHECKING:  # `pipeline.*` só é importável após _bootstrap_pipeline_sys_path()
     from pipeline.stage_outcome import StageOutcome
@@ -526,7 +526,9 @@ def _run_stage_once(ctx, stage_name: str, run_stage_fn):
     try:
         result = run_stage_fn(ctx, stage_name)
     except Exception as exc:
-        return None, str(exc)[:2000], traceback.format_exc(), reason_from_exception(exc).value
+        # O texto que sai daqui vai a stage_log, traceback e WS (ADR-441 D2).
+        failure = describe_failure(exc)
+        return None, failure.message[:2000], failure.traceback, reason_from_exception(exc).value
     return result, None, None, StageFailureReason.unknown.value
 
 
@@ -670,7 +672,7 @@ def _mark_running_stage_log_failed(db, run_id: str, stage: str, exc, now) -> Non
         if started.tzinfo is None:
             started = started.replace(tzinfo=timezone.utc)
         log.duration_ms = int((now - started).total_seconds() * 1000)
-    log.errors = f"Task crashed: {exc!s}"[:2000]
+    log.errors = f"Task crashed: {describe_failure(exc).message}"[:2000]
 
 
 def _apply_task_crash_to_run(run, exc, now, db) -> None:
@@ -697,11 +699,16 @@ def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
                 db.commit()
         publish_run_failed(run_id)
     except Exception as exc:
-        import logging as _logging
+        _warn_on_failure_did_not_mark(run_id, exc)
 
-        _logging.getLogger("pipeline_task").warning(
-            "on_failure handler could not mark run %s as failed: %s", run_id, exc
-        )
+
+def _warn_on_failure_did_not_mark(run_id: str, exc: Exception) -> None:
+    """O próprio on_failure falhou — e a exceção dele também pode ser de banco (ADR-441)."""
+    logging.getLogger("pipeline_task").warning(
+        "on_failure handler could not mark run %s as failed: %s",
+        run_id,
+        describe_failure(exc).message,
+    )
 
 
 def _bootstrap_pipeline_sys_path() -> None:
@@ -1381,6 +1388,25 @@ def _refresh_family_members_override(ctx, ws_id: str, stage_name: str) -> None:
     )
 
 
+def _log_artifact_commit_failure(moment: str, stage_name: str, exc: Exception) -> None:
+    """No Postgres, o DETAIL de um 23502 aqui é a linha de `pipeline_artifacts` com o JSON
+    do artefato: mensagem e traceback saem do sanitizador (ADR-441 D2, ADR-404 D5)."""
+    failure = describe_failure(exc)
+    logger.error(
+        "artifact commit failed %s stage=%s: %s",
+        moment,
+        stage_name,
+        failure.message,
+        extra={
+            "event": "mathoms.pipeline.artifact_commit_failed",
+            "stage": stage_name,
+            "exc_type": type(exc).__name__,
+            "traceback": failure.traceback,
+            **failure.log_fields(),
+        },
+    )
+
+
 def _execute_stages_loop(
     ctx,
     stages: list[str],
@@ -1495,8 +1521,8 @@ def _execute_stages_loop(
             # needs_review: commit artefatos coletados antes de pausar.
             try:
                 _commit_and_close_artifact_session(stage_session, ctx)
-            except Exception:  # noqa: BLE001
-                logger.exception("artifact commit failed on needs_review stage=%s", stage_name)
+            except Exception as exc:  # noqa: BLE001
+                _log_artifact_commit_failure("on needs_review", stage_name, exc)
             _record_stage_needs_review(run_id, stage_name, log_id, result, elapsed_ms)
             paused_for_review = True
             break
@@ -1516,7 +1542,7 @@ def _execute_stages_loop(
             try:
                 _commit_and_close_artifact_session(stage_session, ctx)
             except Exception as exc:  # noqa: BLE001
-                logger.exception("artifact commit failed stage=%s: %s", stage_name, exc)
+                _log_artifact_commit_failure("", stage_name, exc)
                 has_failure = True
                 _record_stage_result(
                     run_id, stage_name, log_id, result, elapsed_ms, completed_pct, outcome, reason
@@ -1535,7 +1561,7 @@ def _execute_stages_loop(
             try:
                 _commit_and_close_artifact_session(stage_session, ctx)
             except Exception as exc:  # noqa: BLE001
-                logger.exception("artifact commit failed on degrade stage=%s: %s", stage_name, exc)
+                _log_artifact_commit_failure("on degrade", stage_name, exc)
         else:
             _rollback_and_close_artifact_session(stage_session, ctx)
 

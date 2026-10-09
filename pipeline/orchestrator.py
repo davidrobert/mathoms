@@ -62,6 +62,7 @@ class PipelineResult:
         }
 
 
+from pipeline.observability.failure_text import describe_failure
 from pipeline.stage_spec import (
     DETERMINISTIC_ORDER,
     FULL_ORDER,
@@ -320,8 +321,11 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 )
             except Exception as exc:
                 elapsed = (time.monotonic() - start) * 1000
+                # `str(exc)` de erro de banco ecoa bound parameters e o DETAIL do
+                # driver, e daqui o texto vai a stage_log, WS e span (ADR-441 D2).
+                failure = describe_failure(exc)
                 if span is not None:
-                    span.record_exception(exc)
+                    span.record_exception(exc, attributes=failure.span_attributes())
                     span.set_attribute("pipeline.success", False)
                     span.set_attribute("pipeline.exit_code", 1)
                 obs_logger.error(
@@ -330,6 +334,7 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                         "event": "stage_error",
                         "duration_ms": round(elapsed),
                         "error_type": type(exc).__name__,
+                        **failure.log_fields(),
                     },
                 )
                 return StageResult(
@@ -337,7 +342,7 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                     success=False,
                     duration_ms=elapsed,
                     detail=_with_tail(None),
-                    error=str(exc),
+                    error=failure.message,
                 )
     finally:
         sys.stderr = original_stderr
