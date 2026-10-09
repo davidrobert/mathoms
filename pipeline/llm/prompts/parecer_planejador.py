@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
+# 2.6.0 ([[ADR-341]] §Emenda 2026-10-09): par da persona 1.3.0, que deixa de autorizar
+#   leitura de ciclo de juros (R23) — o exec context não traz taxa de mercado viva. O
+#   texto deste módulo não muda; o bump é o que invalida o cache, porque o persona_hash
+#   não compõe `compute_cache_key` (resíduo da A40.l17).
 # 2.5.0 (A40.l117 · [[ADR-341]] §Emenda 2026-09-01): a regra 3 deixa de prometer
 #   ferramenta. Medido: `LLMService.call` não tem parâmetro `tools` (litellm_client.py:133)
 #   e as 19 entradas de `_meta.tool_trace` do run 40d1af2a são todas pós-LLM — o
@@ -21,7 +25,7 @@ from __future__ import annotations
 #   espelham parecer_red_lines v1.4; prevenção reduz needs_review, validador segue defesa.
 #   Ao recalibrar parecer_red_lines, atualize a REGRA 14 no mesmo PR (simetria prompt↔validador).
 # 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
-PROMPT_VERSION = "2.5.0"
+PROMPT_VERSION = "2.6.0"
 
 # Amostragem do parecer — mora aqui, e não no orquestrador, porque este módulo é
 # varrido por `check_prompt_version_bumped.py`: re-afinar a amostragem sem bumpar
