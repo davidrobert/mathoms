@@ -5,7 +5,7 @@ title: "Python lockfile com hashes — pip-tools vs uv — Sprint A20"
 status: Decidido
 phase: A20.l10
 date: "2026-05-22"
-amended_at: ["2026-06-18", "2026-08-11", "2026-08-12"]
+amended_at: ["2026-06-18", "2026-08-11", "2026-08-12", "2026-10-09"]
 relates_to:
   - "[[ADR-228]]"
   - "[[ADR-230]]"
@@ -41,6 +41,12 @@ tags:
 > `requirements-test.lock` deixou de ser opcional. Inclui a refutação medida do
 > sinal (b) e dois deferimentos datados (composite action; paridade de
 > interpretador prod↔CI) — ver §"Emenda 2026-08-12".
+>
+> **Emenda (2026-10-09):** o hook `check_lockfile_sync` passou a exigir que o
+> lock **satisfaça** o specifier do `.in` — conferia só presença de nome, e 5 PRs
+> do Dependabot deixaram o piso acima do lock com CI verde. A família
+> `opentelemetry-*` anda junta, e o `dependabot.yml` tem uma entrada pip só —
+> ver §"Emenda 2026-10-09".
 
 ## Contexto
 
@@ -353,6 +359,38 @@ Decidir se CI converge para 3.12 (paridade com prod) ou prod sobe para 3.13
 nunca voltar a ser implícita. Hoje ela não está escrita em lugar nenhum além
 desta emenda. Dono: `sre-devops`; se virar invariante, é ADR `Proposto`
 própria, não emenda.
+
+## Emenda 2026-10-09 — o hook mede satisfação, não presença
+
+§Decisão e §Validação dizem que o hook bloqueia `.in` alterado sem `.lock`
+correspondente. O `dev/check_lockfile_sync.py` entregue em A20.l10 conferia outra
+coisa: a **presença do nome** de cada dep direta no lock. Um `.in` que subia o
+piso sem regenerar o lock passava, e o CI, que instala do lock, ficava verde.
+Medido no commit de merge: dos 8 PRs pip do Dependabot mergeados em 2026-08-25/31,
+5 deixaram o piso acima da versão pinada (`opentelemetry-api` ≥1.44.0 sobre
+1.42.1, `litellm`, `sqlalchemy`, `opentelemetry-instrumentation-celery`,
+`pydantic-settings`) até o #2046 regenerar o lock em 2026-10-08. Os pisos SEC-03
+(`cryptography`, `python-multipart`) afirmam uma correção. Sob o gate de
+presença, o `.in` podia declarar a versão corrigida enquanto o lock embarcava a
+vulnerável.
+
+Decisão (co-design com `sre-devops`):
+
+1. **O hook mede satisfação.** A versão pinada no lock satisfaz o specifier de
+   cada linha de cada `.in`, via `packaging` e por linha (`pdfplumber`,
+   `openpyxl`, `xlrd` e `pyyaml` estão nos dois `.in` com pisos distintos). Se o
+   parse falha, o hook aborta, sem fallback para presença. "Diff correspondente"
+   fica superado: o critério é o lock satisfazer o `.in`, não o lock ter mudado.
+2. **A família `opentelemetry-*` anda junta.** Os pisos de cada trilha (core 1.x,
+   contrib 0.Xb0) são um só, porque a família é acoplada por `==`. O Dependabot
+   só propõe a sentinela de cada trilha; o resto da família tem `ignore` por
+   `update-types`.
+3. **Uma entrada `pip` só** no `dependabot.yml` (`/`). A `/backend` duplicava os
+   PRs da `/`.
+4. O hook roda com `language: python` + `packaging` pinado.
+
+Procedimento: runbook [python_dependencies](../reference/runbooks/python_dependencies.md),
+§Dependabot e §Família opentelemetry.
 
 ## Referências externas
 
