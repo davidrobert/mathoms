@@ -2,6 +2,7 @@
 
 import { ReportCard } from "../ReportCard";
 import { ChartGaugeSemi, useChartTheme } from "./primitives";
+import { formatPercent } from "@/lib/format";
 import { parseDecimalString, type IrpfKpis } from "@/types/irpf";
 
 interface AliquotaDualGaugeProps {
@@ -19,7 +20,7 @@ interface GaugePanelProps {
 const GAUGE_MAX_PCT = 27.5;
 
 function GaugePanel({ value, label, caption, fillColor }: GaugePanelProps) {
-  const display = `${value.toFixed(1).replace(".", ",")}%`;
+  const display = formatPercent(value);
   return (
     <div className="flex flex-col items-center">
       <ChartGaugeSemi

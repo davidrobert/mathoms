@@ -9,7 +9,7 @@
 > CHANGELOG, READMEs de pacote), logs estruturados (`mathoms.*`) e
 > comentários de código — esses ficam fora do escopo.
 >
-> **Última revisão:** 2026-10-08.
+> **Última revisão:** 2026-10-09.
 
 ---
 
@@ -241,6 +241,11 @@ quando o dado simplesmente não foi capturado.
   ESLint reprova `toFixed(n)` colado ao `%`. Número cru (`${pct}%`) e `toFixed`
   guardado em variável escapam do gate: ficam com os testes de render, que
   assertam a vírgula e recusam o ponto (`frontend/tests/shared/percentualPtBr.ts`).
+- Número com casas que não é percentual (meses, nota, contribuição) usa o mesmo
+  separador via `formatNumber(valor, casas)`. A vírgula escrita à mão —
+  `toFixed(n).replace(".", ",")` — também é reprovada pelo ESLint no relatório:
+  arredonda o binário (`0.35` vira `0,3`; o Intl dá `0,4`, o half-up do §4.5) e
+  não agrupa milhar.
 
 ---
 

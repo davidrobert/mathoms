@@ -3,6 +3,7 @@
 import { ReportCard } from "../ReportCard";
 import { ChartWaterfall } from "./primitives/ChartWaterfall";
 import { fmtBRL, fmtCompact } from "./_shared";
+import { formatPercent } from "@/lib/format";
 import type { PatrimonioData } from "@/types/report-analysis";
 
 interface WaterfallIfChartProps {
@@ -54,7 +55,7 @@ export function WaterfallIfChart({
       <p className="mb-3 text-sm text-[var(--surface-muted-foreground)]">
         Progresso atual:{" "}
         <span className="font-mono font-semibold text-[var(--brand-primary)] tabular-nums">
-          {pct.toFixed(1).replace(".", ",")}%
+          {formatPercent(pct)}
         </span>{" "}
         da meta.
       </p>

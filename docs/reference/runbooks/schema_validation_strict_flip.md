@@ -213,7 +213,9 @@ em workspace que não tinha WARN no baseline.
 > [[A40.l58]] — até lá, **nenhum dos dois é quente**.
 2. O artefato rejeitado **não foi escrito** — não há dado a reparar, e os
    baldes irmãos do mesmo stage voltam junto (a sessão é rolada em
-   `pipeline_task.py::_rollback_and_close_artifact_session`). **O run falhado
+   `pipeline_task.py::_rollback_and_close_artifact_session`; no shell Go e no
+   pipeline-service, pelo mesmo `commits_stage_transaction` desde [[ADR-303]]
+   §Emenda 2026-10-09). **O run falhado
    NÃO retoma por `resume`** — ver §8.3 passo 2.
 3. Abra issue com o `validation_path` rejeitado e workspace; o drift volta a
    ser WARN mensurável.
