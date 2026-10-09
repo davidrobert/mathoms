@@ -1,19 +1,45 @@
-"""A chave do cache do parecer compõe a proveniência carimbada no output (ADR-201 §Emenda 2026-10-09)."""
+"""A chave do cache do parecer compõe a proveniência carimbada no output (ADR-199 §Emenda 2026-10-09)."""
 
 from __future__ import annotations
 
 import hashlib
 
-from backend.app.services import parecer_manifest
+import pytest
+
+from backend.app.services import parecer_manifest, parecer_orchestrator
 from backend.app.services.parecer_orchestrator import (
     ParecerGenerationResult,
     ParecerOrchestratorConfig,
+    compute_cache_key,
     generate_parecer,
 )
 from backend.app.services.storage.llm_cache import InMemoryLLMCache
+from pipeline.llm.schemas.parecer_planejador import Metadata
 from tests.fakes.parecer import FakeLLMService, make_valid_parecer_output
 
 _E5 = {"patrimonio": {"bruto": 1}}
+
+# Campo carimbado em `output.metadata` → kwarg de `compute_cache_key` que o carrega.
+_KWARG_DO_CAMPO = {
+    "persona_hash": "persona_hash",
+    "manifest_version": "manifest_version",
+    "model_id": "model_id",
+    "tier_at_generation": "tier",
+}
+# Fora da chave, com o motivo: campo novo em `Metadata` reprova até ser classificado.
+_FORA_DA_CHAVE = {
+    "generated_at": "carimbo da geração — muda a cada chamada; na chave, nenhum hit existiria",
+}
+
+_KWARGS_BASE = {
+    "e5_data": _E5,
+    "manifest_version": "2.0.0",
+    "schema_version": "1.2",
+    "model_id": "m",
+    "workspace_id": "ws",
+    "persona_hash": "a" * 64,
+    "tier": "premium",
+}
 
 
 def _persona_em(tmp_path, monkeypatch, nome: str, corpo: str) -> str:
@@ -79,3 +105,37 @@ class TestTierCompoeAChave:
         assert result.cache_hit is False
         assert len(llm.summary.calls) == 1
         assert result.tier_at_generation == result.output.metadata.tier_at_generation == "free"
+
+
+class TestMetadataCompoeAChave:
+    """Todo campo que `finalize_output` carimba no output cacheado compõe a chave.
+    Terceira instância da classe (`prompt_version` em 2026-06-12; persona e tier em
+    2026-10-09). Não cobre código que muda o prompt renderizado sem versão
+    (distiller, catálogo de citação) — §Deferimento da mesma emenda."""
+
+    def test_todo_campo_de_metadata_esta_classificado(self):
+        assert set(Metadata.model_fields) == set(_KWARG_DO_CAMPO) | set(_FORA_DA_CHAVE)
+        assert not set(_KWARG_DO_CAMPO) & set(_FORA_DA_CHAVE)
+
+    @pytest.mark.parametrize("campo", sorted(_KWARG_DO_CAMPO))
+    def test_variar_o_componente_muda_a_chave(self, campo):
+        kwarg = _KWARG_DO_CAMPO[campo]
+        variado = {**_KWARGS_BASE, kwarg: f"{_KWARGS_BASE[kwarg]}-outro"}
+        assert compute_cache_key(**variado) != compute_cache_key(**_KWARGS_BASE)
+
+    def test_componente_e_o_valor_carimbado(self, monkeypatch):
+        """Mesmo valor, não só mesmo nome: componente lido de fonte diferente da do
+        carimbo divergiria em silêncio."""
+        vistos: list[dict] = []
+        original = parecer_orchestrator.compute_cache_key
+
+        def _espia(**kwargs):
+            vistos.append(kwargs)
+            return original(**kwargs)
+
+        monkeypatch.setattr(parecer_orchestrator, "compute_cache_key", _espia)
+        result, _ = _gerar(InMemoryLLMCache())
+
+        (kwargs,) = vistos
+        for campo, kwarg in _KWARG_DO_CAMPO.items():
+            assert getattr(result.output.metadata, campo) == kwargs[kwarg], campo

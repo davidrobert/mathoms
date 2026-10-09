@@ -152,6 +152,16 @@ class ParecerOrchestratorConfig:
 # ----------------------------------------------------------------------
 
 
+def _e5_digest(e5_data: Mapping[str, Any]) -> str:
+    """Prefixo do sha256 do E5 canônico (``sort_keys``) — componente da chave."""
+    e5_raw = json.dumps(e5_data, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(e5_raw.encode("utf-8")).hexdigest()[:16]
+
+
+# ev{N}: ADR-279 §E. p{prompt_version}: bump de prompt auto-invalida (emenda ADR-199).
+# rl{N}: ADR-300 — parecer cacheado sob rl antigo não passou pela red line nova.
+# ph/t: carimbados no `metadata` do output cacheado (ADR-199 §E3) — sem eles, o hit
+# servia o parecer da persona antiga com o hash novo no PlannerReview.
 def compute_cache_key(
     *,
     e5_data: Mapping[str, Any],
@@ -159,16 +169,16 @@ def compute_cache_key(
     schema_version: str,
     model_id: str,
     workspace_id: str,
+    persona_hash: str,
+    tier: str,
     prompt_version: str = PROMPT_VERSION,
 ) -> str:
     """Chave Redis canônica do parecer (ADR-199 §pattern ADR-144)."""
-    e5_raw = json.dumps(e5_data, sort_keys=True, ensure_ascii=False, default=str)
-    e5_hash = hashlib.sha256(e5_raw.encode("utf-8")).hexdigest()[:16]
-    # ev{N}: ADR-279 §E. p{prompt_version}: bump de prompt auto-invalida (emenda ADR-199).
-    # rl{N}: ADR-300 — parecer cacheado sob rl antigo não passou pela red line nova.
+    e5_hash = _e5_digest(e5_data)
     composite = (
         f"{workspace_id}:{e5_hash}:{manifest_version}:{schema_version}:{model_id}"
         f":ev{EVIDENCIA_VERIFICATION_VERSION}:p{prompt_version}:rl{RED_LINES_VERSION}"
+        f":ph{persona_hash}:t{tier}"
     )
     digest = hashlib.sha256(composite.encode("utf-8")).hexdigest()
     return f"mathoms:llm:parecer_planejador:{digest}"
@@ -460,6 +470,8 @@ def generate_parecer(
         schema_version=config.schema_version,
         model_id=config.model_id,
         workspace_id=config.workspace_id,
+        persona_hash=persona_hash,
+        tier=config.tier,
     )
     cached = _try_cache(cache, key)
     if cached is not None:
