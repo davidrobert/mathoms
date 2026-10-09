@@ -416,6 +416,12 @@ A D1 passa a estampar, ao lado de `target`, o **veredito** — e o front só des
 - Número e status não se contradizem na mesma linha: se 1 casa põe o observado do lado
   errado do limiar, o `valor_atual` ganha a 2ª (20,04 → "20,04%"). Arredondar na direção do
   veredito fabricaria número; o resíduo abaixo de meio centésimo é limite declarado.
+- O veredito julga o número **cru**, não o que o resolver formatou para quem lê: com o hint
+  `percent2`, o observado chegava "62,50%" e o veredito da concentração nunca saía em
+  produção. E onde o catálogo declara um extremo conservador (`OBSERVADO_CONSERVADOR_PATH`;
+  hoje, o piso com titular identificado da reserva), o veredito vai nele e a medida sai como
+  intervalo — a regra geral da [[ADR-412]] §E3, para a tabela nunca contradizer o canal de
+  risco, que já julga o piso.
 
 A leitura segue **subtrativa** (§Emenda 2026-08-27): o read-path só repassa `comparador` de
 linha carimbada que ainda publica alvo, forma inválida vira `None` (nunca 500), e parecer de
