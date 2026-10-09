@@ -50,10 +50,14 @@ def _conclusion_top15_ativos(M: Mapping[str, Any]) -> str:
     membro = (M.get("top_asset_membro") or "").strip()
     if not nome or valor <= 0 or not membro:
         return _DIVERSIFICACAO_LINE
-    return (
-        f"{nome} ({fmt_currency(valor)} de {membro.capitalize()}) é o maior ativo individual. "
-        + _DIVERSIFICACAO_LINE
-    )
+    lider = f"{nome} ({fmt_currency(valor)} de {membro.capitalize()})"
+    # [[ADR-444]] D5: item sem peso não concentra carteira, e o desconhecido sob `piso` pode
+    # ser parte da residência — nos dois a linha de diversificação sai do produtor.
+    if M.get("top_asset_sem_peso"):
+        return f"{lider} lidera o ranking por valor, fora do % da carteira."
+    if M.get("top_asset_desconhecido") and M.get("residencia_piso"):
+        return f"{lider} é o maior ativo individual."
+    return f"{lider} é o maior ativo individual. " + _DIVERSIFICACAO_LINE
 
 
 class ChartsNarrator:

@@ -168,14 +168,26 @@ def _find_top_asset(e5_data: dict) -> dict:
     """Lê o maior ativo individual de ``e5_data["investimentos"]["top_ativos"][0]`` (fonte canônica TopAtivosAnalyzer; substituiu leitura legacy do E4 disk artifact)."""
     top_ativos = (e5_data.get("investimentos") or {}).get("top_ativos") or []
     if not top_ativos:
-        return {"nome": "", "valor": 0, "membro": "", "instituicao": ""}
+        return {"nome": "", "valor": 0, "membro": "", "instituicao": ""} | _SEM_MARCAS
     top = top_ativos[0]
     return {
         "nome": _abstract_asset_nome(top.get("nome", ""), top.get("classe", "")),
         "valor": top.get("valor", 0),
         "membro": top.get("membro", ""),
         "instituicao": top.get("instituicao", ""),
+        # [[ADR-444]] D4/D5: o narrador lê o mesmo payload que o card do ranking.
+        "sem_peso": top.get("pct_carteira", 0) is None,
+        "desconhecido": top.get("classificacao_imovel") == "desconhecido",
     }
+
+
+_SEM_MARCAS = {"sem_peso": False, "desconhecido": False}
+
+
+def _residencia_piso(e5_data: dict) -> bool:
+    """`piso` do veredito da residência ([[ADR-439]] D2), lido do bloco publicado."""
+    bloco = (e5_data.get("patrimonio") or {}).get("cobertura_classificacao_imovel") or {}
+    return bool((bloco.get("residencia") or {}).get("piso"))
 
 
 def _extract_top_institutions(e5_data: dict) -> dict:
@@ -709,6 +721,9 @@ def load_metrics_from_e5(
         "top_asset_nome": top_asset["nome"],
         "top_asset_valor": top_asset["valor"],
         "top_asset_membro": top_asset["membro"],
+        "top_asset_sem_peso": top_asset["sem_peso"],
+        "top_asset_desconhecido": top_asset["desconhecido"],
+        "residencia_piso": _residencia_piso(e5_data),
         # DE-01/PD-04: fallback honesto e simétrico — ausência de dado nunca vira
         # alegação de diversificação ("múltiplas instituições") nem rótulo assimétrico.
         _KEY_INST_TITULAR: ", ".join(inst_data["titular_inst"])

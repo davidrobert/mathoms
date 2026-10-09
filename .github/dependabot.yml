@@ -4,8 +4,11 @@
 # manual em major (PR fica open para review).
 #
 # Updates abrem PR contra `main` com label `dependency` (já criada via
-# Onda 2) e prefixo `chore(deps):` no commit. Auto-labeler em pr-quality.yml
-# também adiciona `dependency` por path (defense-in-depth).
+# Onda 2) e prefixo `chore(deps):` no commit. O labeler do pr-quality.yml roda
+# com `sync-labels: true` e é quem decide as labels que declara: ele mantém
+# `dependency` e `dependabot` em todo branch `dependabot/…` por `head-branch`.
+# `dependabot` é a isenção do stale.yml e não entra aqui em `labels:`, porque
+# a fonte é uma só (.github/labeler.yml).
 
 version: 2
 updates:
@@ -56,6 +59,15 @@ updates:
       # tests/dev/test_dependabot_redis_ceiling.py reprova quando ele mudar.
       - dependency-name: "redis"
         versions: [">=6.5"]
+      # litellm congelado em 1.97 por decisão de produto (2026-10-09, #2135). É o
+      # gateway de TODAS as chamadas LLM do pipeline (extrações E1.5/E1.6/E2 e
+      # parecer), e o CI só as exercita com mock, então um bump muda o
+      # comportamento sem sinal. A partir de 1.98 ele traz boto3/botocore (~100 MB,
+      # AWS) sem uso no produto. `update-types`, e não regra nua: security updates
+      # seguem abrindo. Retomar quando houver advisory, quando faltar um provider ou
+      # feature, ou num upgrade deliberado validado com run real (pipeline-review).
+      - dependency-name: "litellm"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   - package-ecosystem: "pip"
     directory: "/backend"
@@ -84,6 +96,9 @@ updates:
       # Mesmo teto do kombu[redis] da entrada "/" — ver o comentário lá.
       - dependency-name: "redis"
         versions: [">=6.5"]
+      # litellm congelado — ver o comentário na entrada "/".
+      - dependency-name: "litellm"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------
   # npm — frontend
@@ -105,6 +120,10 @@ updates:
         patterns: ["next", "react", "react-*", "@types/react*"]
       eslint-and-types:
         patterns: ["eslint*", "@typescript-eslint/*", "@types/*", "prettier*"]
+        # Major de @types/node acima do runtime reprova no node-version-parity:
+        # aqui dentro travaria o grupo inteiro. Fora dele, patch/minor caem no
+        # patch-and-minor e o major vem em PR isolado, vermelho até o .nvmrc subir.
+        exclude-patterns: ["@types/node"]
       vitest-and-test:
         patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/*", "playwright"]
       patch-and-minor:
@@ -130,14 +149,12 @@ updates:
   # pacote amarrado. Lista de patterns e não `["*"]` + exclude porque exclude
   # depende de alguém lembrar do próximo major problemático.
   #
-  # `ignore` com `update-types` vale só para VERSION updates (doc do GitHub:
-  # "Security updates will always be created regardless of the update-types
-  # setting"). Então o major do tailwind para de aparecer no ciclo semanal, mas
-  # o security update tailwind 3→4 continua abrindo — sozinho, e vermelho no
-  # `frontend-ops-checks` até a migração v4. É o rastreador dela: tailwind
-  # 3.4.19 é HIGH no `npm audit` via `braces` (GHSA-vfj7-8cjw-p6xm cobre todas
-  # as versões) e só o v4 sai da cadeia. NÃO troque por `ignore` sem
-  # `update-types`: isso suprime o security update também e o rastreador some.
+  # Até 2026-10-09 havia aqui um `ignore` do major de `tailwindcss`, que segurava
+  # o 3→4 até a migração v4 (#2082). Saiu com ela: major de tailwind volta a
+  # abrir PR próprio — os grupos abaixo só cobrem patch/minor. Se um major
+  # precisar de pausa de novo, `ignore` COM `update-types`: ele vale só para
+  # VERSION updates ("Security updates will always be created regardless of the
+  # update-types setting"); sem `update-types`, o security update some também.
   # ----------------------------------------------------------------------
   - package-ecosystem: "npm"
     directory: "/frontend-ops"
@@ -153,9 +170,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    ignore:
-      - dependency-name: "tailwindcss"
-        update-types: ["version-update:semver-major"]
     groups:
       ops-security:
         applies-to: security-updates
@@ -228,6 +242,12 @@ updates:
         applies-to: version-updates
         patterns: ["*"]
 
+  # Major do `node` (aqui e em /frontend-ops): sem `ignore: semver-major` de
+  # propósito — vira estagnação muda. O hook `node-version-parity` deixa o PR
+  # vermelho até `<app>/.nvmrc` (lido pelo setup-node do CI) e o compose de dev
+  # subirem junto. NÃO comite no branch do Dependabot (ele para de rebasear e
+  # `@dependabot recreate` apaga o commit): abra PR humano com Dockerfile +
+  # .nvmrc + compose; o Dependabot fecha o dele sozinho.
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
