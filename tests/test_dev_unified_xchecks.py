@@ -324,7 +324,7 @@ def test_stage_que_entregou_conta_como_falsificavel():
 # ---------------------------------------------------------------------------
 
 
-def _parecer_com_ancora(valor: str = "R$ 83.869,92") -> dict:
+def _parecer_com_ancora(valor: str = "R$ 12.345,67") -> dict:
     return {
         "riscos": [
             {

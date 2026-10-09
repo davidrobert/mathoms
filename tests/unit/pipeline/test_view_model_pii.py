@@ -103,7 +103,7 @@ def test_redact_cartorial_e_idempotente() -> None:
         ("  acacias 1234  ", "acacias 1234"),
         ("mat:999999", None),
         ("iptu:9999999999", None),
-        ("qa:894064293", None),
+        ("qa:100000001", None),
         ("Rua Exemplo, 100, CEP 00000-000", None),
         (None, None),
         ("   ", None),

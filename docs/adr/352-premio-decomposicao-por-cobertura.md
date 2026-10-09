@@ -35,9 +35,9 @@ Dois defeitos:
    A composição do gasto com seguro fica falsa.
 2. **Fabricação de categoria.** No ws 5@5.com as 3 apólices vigentes vêm do E4
    `seguros` com `bens_segurados=[]` (extração sem detalhe de bem/cobertura). O
-   fallback rotula os R$6.022,27 como `"auto"` — uma categoria **específica e
+   fallback rotula o prêmio total como `"auto"` — uma categoria **específica e
    errada** — em vez de admitir que a apólice não foi classificada. Resultado
-   real: `premio_decomposicao = {"auto": "6022.27"}`.
+   real: `premio_decomposicao = {"auto": "<prêmio total>"}`.
 
 ## Decisão
 
@@ -71,8 +71,8 @@ Quando `Σ peso == 0` (nenhuma cobertura com `premio_brl > 0`):
 2. **`"nao_identificado"`** — nunca fabricar `"auto"`. O prêmio total inteiro
    vai para esse bucket único (invariante trivialmente preservado).
 
-Para o ws 5@5.com (bens vazios) isso troca `{"auto": 6022.27}` por
-`{"nao_identificado": 6022.27}` — honesto sobre o que é conhecido.
+Para o ws 5@5.com (bens vazios) isso troca `{"auto": P}` por
+`{"nao_identificado": P}` — honesto sobre o que é conhecido.
 
 ## Consequências
 

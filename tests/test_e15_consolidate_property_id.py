@@ -20,7 +20,7 @@ def _build_baseline_with_imovel() -> dict:
                 "codigo": "12",
                 "descricao": "CASA - RUA EXEMPLO, 100 - SP",
                 "categoria": "imovel",
-                "valor_brl": 996821.46,
+                "valor_brl": 900000.00,
                 "membro": "david_robert",
                 "ano": 2024,
             },
@@ -34,9 +34,9 @@ def _build_baseline_with_imovel() -> dict:
             },
         ],
         "resumo": {
-            "total_ativos": 1846821.46,
+            "total_ativos": 1750000.00,
             "total_passivos": 0.0,
-            "patrimonio_liquido": 1846821.46,
+            "patrimonio_liquido": 1750000.00,
             "ano_referencia": 2024,
         },
     }

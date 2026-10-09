@@ -1,4 +1,4 @@
-"""Regressão prod 2026-05-22 — Haiku gera ``'"4509.98"'`` (aspas literais no valor) determinístico em todas apólices. Schema agora descasca via model_validator antes do Pydantic strict-parse; prompt instrui formato sem aspas internas (apolice-v1.1.0)."""
+"""Regressão prod 2026-05-22 — Haiku gera ``'"1234.56"'`` (aspas literais no valor) determinístico em todas apólices. Schema agora descasca via model_validator antes do Pydantic strict-parse; prompt instrui formato sem aspas internas (apolice-v1.1.0)."""
 
 from __future__ import annotations
 
@@ -22,13 +22,13 @@ from pipeline.llm.schemas.apolice import (
 
 
 def test_strip_quotes_idempotente_em_string_sem_aspas():
-    assert _strip_spurious_quotes("4509.98") == "4509.98"
+    assert _strip_spurious_quotes("1234.56") == "1234.56"
     assert _strip_spurious_quotes("cartao") == "cartao"
 
 
 def test_strip_quotes_remove_aspas_duplas_e_simples_nas_pontas():
-    assert _strip_spurious_quotes('"4509.98"') == "4509.98"
-    assert _strip_spurious_quotes("'4509.98'") == "4509.98"
+    assert _strip_spurious_quotes('"1234.56"') == "1234.56"
+    assert _strip_spurious_quotes("'1234.56'") == "1234.56"
 
 
 def test_strip_quotes_nao_remove_aspas_no_meio():
@@ -86,7 +86,7 @@ def _bem_veiculo(tipo_bem="veiculo"):
     }
 
 
-def _apolice_minima(*, premio_total_brl="4509.98", forma_pagamento="cartao", tipo_bem="veiculo"):
+def _apolice_minima(*, premio_total_brl="1234.56", forma_pagamento="cartao", tipo_bem="veiculo"):
     """Payload mínimo válido — caller injeta aspas spurious onde precisar."""
     return {
         "apolice_numero": "ABC-1",
@@ -102,9 +102,9 @@ def _apolice_minima(*, premio_total_brl="4509.98", forma_pagamento="cartao", tip
 
 
 def test_payload_aceita_premio_com_aspas_spurious():
-    """Reproduce do bug prod: ``premio_total_brl='"4509.98"'`` deve virar Decimal('4509.98')."""
-    p = ApolicePayload.model_validate(_apolice_minima(premio_total_brl='"4509.98"'))
-    assert p.premio_total_brl == Decimal("4509.98")
+    """Reproduce do bug prod: ``premio_total_brl='"1234.56"'`` deve virar Decimal('1234.56')."""
+    p = ApolicePayload.model_validate(_apolice_minima(premio_total_brl='"1234.56"'))
+    assert p.premio_total_brl == Decimal("1234.56")
 
 
 def test_payload_aceita_literal_com_aspas_spurious():
@@ -152,9 +152,9 @@ def test_strict_json_aceita_decimal_strings():
     """Path Instructor: strings decimais (formato ADR-090 wire) viram Decimal."""
     import json
 
-    data = _apolice_minima(premio_total_brl="4509.98")
+    data = _apolice_minima(premio_total_brl="1234.56")
     p = ApolicePayload.model_validate_json(json.dumps(data), strict=True)
-    assert p.premio_total_brl == Decimal("4509.98")
+    assert p.premio_total_brl == Decimal("1234.56")
     assert p.bens_segurados[0].coberturas[0].premio_brl == Decimal("2000.00")
     assert p.bens_segurados[0].coberturas[0].lmi_brl == Decimal("50000.00")
 
@@ -163,9 +163,9 @@ def test_strict_json_aceita_decimal_quoted():
     """Path Instructor + Haiku quote-wrap (combinado v1.1.0 + v1.1.1)."""
     import json
 
-    data = _apolice_minima(premio_total_brl='"4509.98"')
+    data = _apolice_minima(premio_total_brl='"1234.56"')
     p = ApolicePayload.model_validate_json(json.dumps(data), strict=True)
-    assert p.premio_total_brl == Decimal("4509.98")
+    assert p.premio_total_brl == Decimal("1234.56")
 
 
 def test_strict_dict_aceita_iso_e_decimal():
@@ -173,7 +173,7 @@ def test_strict_dict_aceita_iso_e_decimal():
     data = _apolice_minima()
     p = ApolicePayload.model_validate(data, strict=True)
     assert str(p.vigencia_inicio) == "2026-03-01"
-    assert p.premio_total_brl == Decimal("4509.98")
+    assert p.premio_total_brl == Decimal("1234.56")
 
 
 # ─────────────────────── prompt smoke (anti-regressão) ───────────────────
@@ -181,7 +181,7 @@ def test_strict_dict_aceita_iso_e_decimal():
 
 def test_prompt_version_aligned():
     """Schema + prompt mod usam mesma versão (bump pareado, ADR-144)."""
-    assert PROMPT_VERSION == prompt_mod.PROMPT_VERSION == "1.3.0"
+    assert PROMPT_VERSION == prompt_mod.PROMPT_VERSION == "1.3.1"
 
 
 _EX_DECIMAL_QUOTED = re.compile(r"Ex\.:\s*`\"[\d\.]+\"`")

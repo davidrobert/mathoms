@@ -67,10 +67,10 @@ def test_coerce_decimal_aceita_string_e_int():
 def test_coerce_decimal_aceita_float_no_boundary_llm():
     """JSON do LLM não tem Decimal nativo — float chega aqui literal e é coercido
     via ``Decimal(str(v))`` (a conversão prescrita pela ADR-090). Regressão do
-    incidente prod 2026-05-18 (run d4f86671): LLM emitiu 7424.71 e 4 retries
+    incidente prod 2026-05-18 (run d4f86671): LLM emitiu float literal e 4 retries
     falharam com TypeError antes deste boundary aceitar float."""
-    assert _coerce_decimal(7424.71) == Decimal("7424.71")
-    assert _coerce_decimal(18543.82) == Decimal("18543.82")
+    assert _coerce_decimal(6543.21) == Decimal("6543.21")
+    assert _coerce_decimal(12345.67) == Decimal("12345.67")
     assert _coerce_decimal(0.0) == Decimal("0")
 
 
@@ -183,7 +183,7 @@ def test_extract_aceita_payload_llm_com_numbers_regressao_prod_2026_05_18():
           "endereco": "Rua Exemplo, 100 - Vila Madalena, SP",
           "iptu_municipal": "123.456.789-0",
           "locatario_cnpj": "12345678000190",
-          "aluguel_bruto_anual": 7424.71,
+          "aluguel_bruto_anual": 6543.21,
           "taxa_administracao_anual": 742.47,
           "ir_retido_anual": 0,
           "iptu_anual_pago": null,
@@ -200,7 +200,7 @@ def test_extract_aceita_payload_llm_com_numbers_regressao_prod_2026_05_18():
     parsed = json.loads(raw_json)
     assert isinstance(parsed["imoveis"][0]["aluguel_bruto_anual"], float)
     ext = InformeAluguelExtract(**parsed)
-    assert ext.imoveis[0].aluguel_bruto_anual == Decimal("7424.71")
+    assert ext.imoveis[0].aluguel_bruto_anual == Decimal("6543.21")
     assert ext.imoveis[0].aluguel_liquido_anual == Decimal("6682.24")
 
 

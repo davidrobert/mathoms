@@ -512,12 +512,12 @@ código de `main` (`executor_revision` do worker: `9a1fd6fc6401`):
 SOMBRA  E3: 106 artefatos · 6256 txs · 0 cortadas
 ENFORCE E3: 106 artefatos · 5803 txs · 453 cortadas
 
-SOMBRA  E5: receita R$ 3.453.166,51 · despesa R$ 2.051.306,41
-ENFORCE E5: receita R$ 2.802.646,11 · despesa R$ 1.888.946,81
+SOMBRA  E5: receita R · despesa D
+ENFORCE E5: receita 0,812 × R · despesa 0,921 × D
 ENFORCE E5: consolidacao_cross_documento = {count: 453, meses: [8, 59, 42, 87, …]}
 ```
 
-**A receita caiu R$ 650.520,40 — −18,8%**, contra os **+19%** que a KR-B estimava de inflação.
+**A receita caiu −18,8%**, contra os **+19%** que a KR-B estimava de inflação.
 O dobro-contado saiu do razão, e a superfície do §3c2a (`consolidacao_cross_documento`) está no
 payload com o breakdown por mês, então o relatório **declara** o que foi consolidado em vez de
 mudar em silêncio.

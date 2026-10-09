@@ -1,7 +1,7 @@
 ---
 id: A40.l38
 type: lane
-title: "Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê"
+title: "Caixa canônico: denylist de instituição suprime caixa do bruto e a conservação não vê"
 sprint: A40
 ship_date: "2026-08-12"
 ship_pr: 1391
@@ -31,8 +31,8 @@ tags:
 
 `_load_caixa_from_e3` exclui contas por denylist hardcoded de "bancos de
 investimento" ([e5_analyzer_adapter.py:846](../../../../pipeline/domain/services/e5_analyzer_adapter.py)).
-Medido no dogfood: **R$ 89.121,80 fora do patrimônio bruto** (PicPay
-R$ 53.756,56 + Rico R$ 35.365,24), enquanto BTG entra **por acidente de
+Medido no dogfood: **o caixa de duas instituições fora do patrimônio bruto**
+(PicPay + Rico), enquanto BTG entra **por acidente de
 string** (`"btg pactual"` ≠ `btgpactual`). O teste do skip usa o mesmo nome
 com espaço — teste e código compartilham a crença errada. A suíte inteira
 fecha verde com o dinheiro sumido.
@@ -57,7 +57,7 @@ PR único (P0):
 
 - Teste determinístico do mecanismo (fixture com banco-de-corretora sem
   posição E4 → saldo entra) **e** medição da instância no dogfood
-  (`caixa_total_brl` sobe exatamente R$ 89.121,80 no run de verificação).
+  (`caixa_total_brl` sobe exatamente o caixa de PicPay + Rico no run de verificação).
 - `tests/test_e5_conservation_invariants.py` passa **sem edição** no commit
   de rebaseline.
 - Nenhuma conta some do caixa sem razão tipada emitida.
@@ -74,10 +74,10 @@ provada por stash: os testes falham no código antigo). [[ADR-376]] flipada
 para `Decidido`.
 
 **Medição do mecanismo** (fixture): banco de corretora sem posição E4 entra no
-caixa. **Medição da instância** (dogfood, run `ee124571`): PicPay R$ 53.756,56
-+ Rico R$ 35.365,24 = **R$ 89.121,80** que estavam fora do bruto — a
+caixa. **Medição da instância** (dogfood, run `ee124571`): o caixa de PicPay + Rico
+estava fora do bruto — a
 verificação no run novo fica com o `pipeline-review` da próxima onda.
 
 **Deferido nesta lane** (datado, com dono): poupança e conta PJ no patrimônio
-corrente — `bradesco_extratopoupanca` R$ 4.359,28 segue fora do PL; é decisão
+corrente — `bradesco_extratopoupanca` segue fora do PL; é decisão
 de domínio (`financial-planner`), retomada junto da [[A40.l41]].
