@@ -221,8 +221,14 @@ A família `opentelemetry-*` é acoplada por `==`. O sdk 1.Y pede `api==1.Y`, e 
 instrumentation 0.Xb pede `semantic-conventions==0.Xb`, que o sdk também pina.
 Por isso o núcleo (1.x: api, sdk, exporter) e o contrib (0.Xb:
 instrumentation-*) sobem juntos. Um membro sozinho com piso novo pede uma
-combinação que o lock não tem, e grupos `pip` por `patterns` nunca produziram PR
-agrupado neste repo.
+combinação que o lock não tem. Um grupo `opentelemetry-*` perderia os membros
+sem um `exclude-patterns` no catch-all. No dependabot-core, a dep que casa dois
+grupos fica no "mais específico", e o catch-all `patch-and-minor`, sem
+`patterns`, vale 500 contra ~100 de um curinga. Foi por isso que o grupo
+`pytest` nunca recebeu membro (job de 2026-10-09 19:46Z: `belongs to more
+specific group 'patch-and-minor'`), e não por limitação do ecossistema pip. O
+hook `dependabot-groups` (`dev/check_dependabot_groups.py`) reprova grupo nessa
+situação. E o lock combinado é regenerado à mão de qualquer jeito.
 
 - **Sentinelas:** só `opentelemetry-api` (1.x) e
   `opentelemetry-instrumentation-fastapi` (0.Xb) recebem version update. Os
@@ -311,7 +317,12 @@ Com o lock combinado, cada PR pip do Dependabot cai num de quatro destinos:
 - **`playwright`** sobe junto com o `@playwright/test` do frontend, no mesmo PR.
   O PDF de prod sai do Chromium do playwright Python, e o `frontend-print-visual`
   valida com o do frontend. O hook `playwright-parity` reprova o PR que partir o
-  par, como o #2151 fez em 2026-10-09.
+  par, como o #2151 fez em 2026-10-09. A sentinela é o PR npm: o
+  `@playwright/test` fica fora de todo grupo do `/frontend` e sai avulso, e o
+  `playwright` do pip é `ignore` por `update-types` (security update continua
+  abrindo). O PR npm não mergeia sozinho: no mesmo PR, ou num PR humano que o
+  absorva, suba o piso do `playwright` no `backend/requirements.in` e regenere o
+  lock (Tarefa 1).
 
 ### PR do Dependabot parado
 
