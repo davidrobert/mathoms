@@ -267,7 +267,15 @@ no CI pelo `lint-all`.
 **Custo aceito.** Todo PR do Dependabot `github-actions` nasce vermelho até alguém
 rodar o refresh na branch dele. O procedimento está no `dependabot.yml`. Em regime
 são ~1 PR agrupado de patch/minor por semana, mais majors esporádicos. O diff do
-lock vira o resumo de breaking change que o revisor precisa. Quando o registro
+lock vira o resumo de breaking change que o revisor precisa.
+
+O custo maior vem depois do commit do lock. A partir dele, o
+`@dependabot rebase` deixa de servir, porque faz force-push e apaga o lock. Quando
+os commits novos da main tocam `.github/workflows/**`, `gh pr update-branch` e o
+trem também são recusados, porque nenhum dos tokens tem scope `workflow`. Sobra
+merge + push por SSH. Medido antes deste gate: o #2137 ficou BEHIND 3 vezes em ~25
+min, e ele e o #2139 entraram por bypass. A condição de retomada do refresh
+automático (abaixo) mede exatamente esse custo. Quando o registro
 passar a ser amarrado ao `@ref` (trabalho em voo em 2026-10-08), o `runs_using`
 dele deve vir deste lock, e não de um segundo arquivo de fatos com o mesmo
 universo de chaves.
