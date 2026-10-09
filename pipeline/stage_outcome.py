@@ -61,7 +61,7 @@ def resolve_stage_outcome(
 ) -> StageOutcome:
     """Combina `(retorno, criticality)` no desfecho do stage (ADR-357 §2)."""
     # `delivered=False` cobre **as duas** rotas de não-entrega — `success: False`
-    # e exceção que esgotou os retries — porque a disposição é cega à FORMA da
+    # e exceção que cruzou o executor (ADR-443) — porque a disposição é cega à FORMA da
     # não-entrega. `result.error` não entra na assinatura de propósito:
     # `error is None` significa "nenhuma exceção cruzou a fronteira do runner",
     # não "o stage declarou", e a mesma falha de rede cai dos dois lados
