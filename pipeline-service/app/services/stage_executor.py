@@ -18,7 +18,7 @@ from pathlib import Path
 from app.contracts.stages import StageExecuteRequest, StageExecuteResponse
 from app.services.artifact_session import (
     ArtifactStoreUnavailable,
-    commit_and_close,
+    close_by_outcome,
     open_artifact_store,
     rollback_and_close,
 )
@@ -48,7 +48,7 @@ def run_stage_by_name(stage: str, req: StageExecuteRequest) -> StageExecuteRespo
             rollback_and_close(session)
             raise
         else:
-            commit_and_close(session)
+            close_by_outcome(session, stage, result)
     finally:
         hydrated.close()
     return StageExecuteResponse(

@@ -9,7 +9,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services.instituicoes_por_membro_analyzer import (  # noqa: E402
     InstituicoesPorMembroAnalyzer,
-    InstituicoesPorMembroConfig,
     InstituicoesPorMembroResult,
     MembroInstituicoes,
 )
@@ -115,12 +114,11 @@ class TestAggregation:
 class TestNImoveis:
     def test_counts_all_imoveis_residencia_e_investimento(self):
         # Paridade com legado: conta TUDO (residência + investimento), não só investimento.
-        cfg = InstituicoesPorMembroConfig.from_configs(residencia_property_ids=frozenset({"p-vm"}))
         imoveis = [
             {"property_id": "p-vm", "valor": 800_000},  # residência
             {"descricao": "Sala", "valor": 300_000},  # investimento
         ]
-        r = InstituicoesPorMembroAnalyzer(cfg).analyze(_entries(("david", _bens(imoveis=imoveis))))
+        r = InstituicoesPorMembroAnalyzer().analyze(_entries(("david", _bens(imoveis=imoveis))))
         assert r.n_imoveis_total == 2
 
     def test_aggregates_imoveis_across_members(self):

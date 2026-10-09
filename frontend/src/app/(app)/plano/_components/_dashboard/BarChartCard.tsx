@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import type { DashboardChart } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCompact, formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { normalizeBarData } from "./dashboardHelpers";
 
@@ -62,9 +62,10 @@ export function BarChartCard({
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis dataKey="month" tick={{ fontSize: 12 }} className="text-muted-foreground" />
             <YAxis
+              width={72}
               tick={{ fontSize: 12, className: "tabular-nums" }}
               className="text-muted-foreground"
-              tickFormatter={(v: number) => formatCurrency(v)}
+              tickFormatter={(v: number) => formatCompact(v)}
             />
             <Tooltip
               formatter={(value) => formatCurrency(Number(value))}

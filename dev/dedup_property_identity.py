@@ -22,13 +22,21 @@ os.environ.setdefault("MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR", "0")
 _SPECIFIC_CODIGOS_RFB = frozenset({"11", "12", "13", "14", "15", "17", "19"})
 
 
+# Forma canônica da row: `'01-11'` cru contaria como genérico e o passe 3 o fundiria
+# (hard-delete) com uma casa `'12'` no mesmo endereço ([[ADR-225]] §Emenda 2026-10-08).
+def _codigo_canonico(row) -> str:
+    from pipeline.domain.services.baseline_item_classifier import codigo_rfb_do_imovel
+
+    return codigo_rfb_do_imovel(row.codigo_rfb)
+
+
 def _group_by_canonical(rows) -> dict:
     """Passe 1: agrupa por (codigo_rfb, endereco_canonical) excluindo NULL."""
     groups: dict[tuple[str, str], list] = defaultdict(list)
     for r in rows:
         if r.endereco_canonical is None:
             continue
-        groups[(r.codigo_rfb, r.endereco_canonical)].append(r)
+        groups[(_codigo_canonico(r), r.endereco_canonical)].append(r)
     return groups
 
 
@@ -123,7 +131,7 @@ def _pass_0_recanonicalize(session, rows, dry_run: bool) -> list:
 
 def _pass_3_classify(members: list) -> tuple[bool, dict]:
     """Decide se grupo cross-codigo é fundível ou conflito humano."""
-    codigos = {m.codigo_rfb for m in members}
+    codigos = {_codigo_canonico(m) for m in members}
     specifics = codigos & _SPECIFIC_CODIGOS_RFB
     if len(specifics) >= 2:
         return False, {
@@ -138,7 +146,7 @@ def _pass_3_cross_codigo(session, rows, dry_run: bool) -> tuple[list, list]:
     merged: list = []
     conflicts: list = []
     for canonical_key, members in _group_by_canonical_only(rows).items():
-        if len({m.codigo_rfb for m in members}) <= 1:
+        if len({_codigo_canonico(m) for m in members}) <= 1:
             continue
         mergeable, info = _pass_3_classify(members)
         info["endereco_canonical"] = canonical_key
@@ -146,7 +154,7 @@ def _pass_3_cross_codigo(session, rows, dry_run: bool) -> tuple[list, list]:
             conflicts.append(info)
             continue
         members_sorted = sorted(
-            members, key=lambda m: (m.codigo_rfb not in _SPECIFIC_CODIGOS_RFB, m.created_at)
+            members, key=lambda m: (_codigo_canonico(m) not in _SPECIFIC_CODIGOS_RFB, m.created_at)
         )
         merged.append({**_merge_group(session, members_sorted, dry_run), **info})
     return merged, conflicts
@@ -187,7 +195,7 @@ def _is_fuzzy_pair(row_a, row_b) -> bool:
 
 def _classify_fuzzy_pair(row_a, row_b) -> tuple[bool, dict]:
     """Decide se par fuzzy é fundível ou red flag (subcódigos específicos divergentes)."""
-    codigos = {row_a.codigo_rfb, row_b.codigo_rfb}
+    codigos = {_codigo_canonico(row_a), _codigo_canonico(row_b)}
     specifics = codigos & _SPECIFIC_CODIGOS_RFB
     if len(specifics) >= 2:
         return False, {
@@ -206,7 +214,7 @@ def _fuzzy_merge_entry(session, row_a, row_b, info: dict, dry_run: bool) -> dict
     complemento_b = extract_complemento(row_b.descricao_sample)
     members_sorted = sorted(
         [row_a, row_b],
-        key=lambda r: (r.codigo_rfb not in _SPECIFIC_CODIGOS_RFB, r.created_at),
+        key=lambda r: (_codigo_canonico(r) not in _SPECIFIC_CODIGOS_RFB, r.created_at),
     )
     merge_info = _merge_group(session, members_sorted, dry_run)
     return {
@@ -283,7 +291,9 @@ def _process(workspace_id: str, dry_run: bool) -> dict:
     # máquina local não vai para arquivo tracked.
     default_db = Path(__file__).resolve().parent.parent / "mathoms.db"
     db_url = os.environ.get("MATHOMS_DATABASE_URL_SYNC", f"sqlite:///{default_db}")
-    Session = sessionmaker(bind=create_engine(db_url, future=True), future=True)
+    Session = sessionmaker(
+        bind=create_engine(db_url, future=True, hide_parameters=True), future=True
+    )
     with Session() as session:
         report = _build_report(session, workspace_id, dry_run)
         if not dry_run:

@@ -70,7 +70,7 @@ def _make_seeded_db(tmp: Path) -> str:
     from backend.app.core.database import Base
 
     db_path = tmp / "bench.db"
-    engine = create_engine(f"sqlite:///{db_path}")
+    engine = create_engine(f"sqlite:///{db_path}", hide_parameters=True)
     Base.metadata.create_all(engine)
     _seed_e2(engine)
     engine.dispose()

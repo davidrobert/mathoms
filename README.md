@@ -63,7 +63,7 @@ Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas inst
 
 ## Quick start
 
-Pré-requisitos: **Python 3.11+**, **Node 20+** (Next 16 exige Node ≥20.9), **Redis** (ex.: `brew install redis`). `make help` lista todos os targets.
+Pré-requisitos: **Python 3.11+**, **Node** no major de [`frontend/.nvmrc`](frontend/.nvmrc) (`nvm use`/`fnm use` em `frontend/` lê o arquivo; o hook `node-version-parity` mantém Dockerfile, CI e compose no mesmo major), **Redis** (ex.: `brew install redis`). `make help` lista todos os targets.
 
 ### Opção A — Docker (recomendado · 1 comando)
 

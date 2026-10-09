@@ -4,7 +4,7 @@
 #   1. trivy-fs       — CVE em dependências (filesystem-scan). SARIF upload.
 #   2. trivy-config   — IaC misconfig em Dockerfile + compose + workflows.
 #   3. pip-audit      — CVE em deps Python (backend + raiz).
-#   4. npm-audit-prod — CVE em deps JS de prod (bloqueia).
+#   4. npm-audit-prod — CVE em deps JS de prod (bloqueia). Matrix por raiz npm.
 #   5. npm-audit-dev  — CVE em deps JS dev (informativo, continue-on-error).
 #   6. gitleaks       — secrets em git history full (--log-opts="--all").
 #                       Só schedule/dispatch: o gate de PR vive em ci.yml
@@ -23,6 +23,11 @@
 #     blocking" e ninguém consumia o resultado: a exposição medida entre uma
 #     CVE entrar por PR e ter qualquer consequência era o cron semanal (≤7d)
 #     mais o rot da Issue (21d) = até 28 dias, em repo público.
+#     REQUIRED PENDENTE (medido 2026-10-08): o Ruleset exige só `All checks
+#     green` + `Title (Conventional Commits)` — última edição dele é de
+#     2026-08-25, antes do agregador nascer. Até o owner fazer o flip (item 1.5
+#     / KR-D do docs/plan/CI_TRUST), `Security green` vermelho NÃO bloqueia
+#     merge. Esta linha sai no PR que registrar o flip.
 #     Gating por path-filter (changes job) — docs-only / area-only pula
 #     scans irrelevantes (cobertura preservada pelo schedule semanal), e o
 #     agregador aceita `skipped` pelo mesmo motivo que o `all-green` aceita.
@@ -62,12 +67,12 @@ jobs:
       pull-requests: read
     outputs:
       python_deps: ${{ steps.set.outputs.python_deps }}
-      npm_deps: ${{ steps.set.outputs.npm_deps }}
+      npm_dirs: ${{ steps.set.outputs.npm_dirs }}
       iac: ${{ steps.set.outputs.iac }}
       any_code: ${{ steps.set.outputs.any_code }}
       force_all: ${{ steps.set.outputs.force_all }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -94,16 +99,23 @@ jobs:
               - 'requirements.lock'
               - 'pipeline-service/requirements*.txt'
               - '.github/workflows/security.yml'
-            npm_deps:
+            # Um grupo por raiz npm: advisory nova numa raiz não reprova PR
+            # que só tocou a outra (a deriva da main é do cron semanal). Até
+            # 2026-10-08 só `frontend/` existia aqui e o `frontend-ops/` nunca
+            # foi auditado — next 16.3.4 com RCE CRITICAL passou verde.
+            npm_frontend:
               - 'frontend/package.json'
               - 'frontend/package-lock.json'
               - '.github/workflows/security.yml'
+            npm_frontend_ops:
+              - 'frontend-ops/package.json'
+              - 'frontend-ops/package-lock.json'
+              - '.github/workflows/security.yml'
             iac:
               - 'Dockerfile*'
+              - '**/Dockerfile*'
               - 'docker-compose*.yml'
               - '.github/workflows/**'
-              - 'frontend/Dockerfile*'
-              - 'backend/Dockerfile*'
             any_code:
               - '**'
               - '!docs/**'
@@ -120,14 +132,19 @@ jobs:
         run: |
           force="${{ steps.force.outputs.force }}"
           echo "force_all=$force" >> "$GITHUB_OUTPUT"
+          # Uma linha por raiz npm. tests/dev/test_ci_report_workflow_failure.py
+          # exige que toda raiz com package-lock.json versionado tenha a sua.
+          npm_dirs=()
+          if [[ "$force" == "true" || "${{ steps.filter.outputs.npm_frontend_any_changed }}" == "true" ]]; then npm_dirs+=(frontend); fi
+          if [[ "$force" == "true" || "${{ steps.filter.outputs.npm_frontend_ops_any_changed }}" == "true" ]]; then npm_dirs+=(frontend-ops); fi
+          # `jq -c` sem espaço: os jobs npm comparam a string com '[]' literal.
+          echo "npm_dirs=$(jq -cn '$ARGS.positional' --args "${npm_dirs[@]}")" >> "$GITHUB_OUTPUT"
           if [[ "$force" == "true" ]]; then
             echo "python_deps=true" >> "$GITHUB_OUTPUT"
-            echo "npm_deps=true" >> "$GITHUB_OUTPUT"
             echo "iac=true" >> "$GITHUB_OUTPUT"
             echo "any_code=true" >> "$GITHUB_OUTPUT"
           else
             echo "python_deps=${{ steps.filter.outputs.python_deps_any_changed }}" >> "$GITHUB_OUTPUT"
-            echo "npm_deps=${{ steps.filter.outputs.npm_deps_any_changed }}" >> "$GITHUB_OUTPUT"
             echo "iac=${{ steps.filter.outputs.iac_any_changed }}" >> "$GITHUB_OUTPUT"
             echo "any_code=${{ steps.filter.outputs.any_code_any_changed }}" >> "$GITHUB_OUTPUT"
           fi
@@ -144,7 +161,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.any_code == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Run Trivy (filesystem, HIGH+CRITICAL)
@@ -169,7 +186,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.iac == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Run Trivy config (Dockerfile, compose, workflows)
         # TODO(security-trivy-config-2026-05-20): remover continue-on-error
         # após review/triagem dos 4 IaC misconfigs detectados no primeiro
@@ -191,8 +208,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.python_deps == 'true'
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -228,41 +245,51 @@ jobs:
   # promove pra árvore de prod do next, então o floor do `.in` de dev é
   # que governa o que o gate vê: bumpar só o next NÃO resolve (o override
   # puxaria a versão da raiz de volta pra baixo). Ver runbook §Diferimentos.
+  #
+  # Matrix por raiz npm alterada (`changes.npm_dirs`): `needs.npm-audit-prod.result`
+  # é `failure` se QUALQUER leg falhar, então agregador e abridor de Issue não
+  # mudam. O `if` roda antes da expansão — sem ele, matrix vazia é erro de
+  # sintaxe do runner. Sem `cache: npm`: `npm audit` lê só o lockfile v3, não
+  # há `npm ci` para o cache guardar.
   npm-audit-prod:
-    name: npm audit (prod deps)
+    name: npm audit (prod deps) — ${{ matrix.dir }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: changes
-    if: needs.changes.outputs.npm_deps == 'true'
+    if: needs.changes.outputs.npm_dirs != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.changes.outputs.npm_dirs) }}
     defaults:
       run:
-        working-directory: frontend
+        working-directory: ${{ matrix.dir }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (prod, HIGH+)
         run: npm audit --audit-level=high --omit=dev
 
   npm-audit-dev:
-    name: npm audit (dev deps — informativo)
+    name: npm audit (dev deps — informativo) — ${{ matrix.dir }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: changes
-    if: needs.changes.outputs.npm_deps == 'true'
+    if: needs.changes.outputs.npm_dirs != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(needs.changes.outputs.npm_dirs) }}
     defaults:
       run:
-        working-directory: frontend
+        working-directory: ${{ matrix.dir }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (incluindo dev, informativo)
         # continue-on-error step-level — dev deps raramente exploitable,
         # job nunca bloqueia.
@@ -283,11 +310,11 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Run gitleaks (full history + .gitleaks.toml)
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2.3.9
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
@@ -349,7 +376,7 @@ jobs:
       issues: write
     steps:
       - name: Open Issue
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

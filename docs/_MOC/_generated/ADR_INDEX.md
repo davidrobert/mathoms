@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-432 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
+435 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 370
-- **Proposto**: 57
+- **Decidido**: 372
+- **Proposto**: 58
 - **Roadmap**: 5
 
 ## Fundação
@@ -77,7 +77,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## LLM
 
-### Decidido (7)
+### Decidido (8)
 
 - [[ADR-024]] — LiteLLM como proxy universal · phase F4
 - [[ADR-025]] — BYOK (Bring Your Own Key) · phase F4
@@ -86,6 +86,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-028]] — E7 full scope na Fase 4 · phase F4
 - [[ADR-270]] — Retry de LLM calls — categoria network + cap de timeout · phase A17.llm-retry
 - [[ADR-288]] — Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable
+- [[ADR-443]] — Stage roda uma vez por run — não há retry de stage em executor nenhum
 
 ## Task Queue
 
@@ -308,7 +309,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (21)
+### Decidido (22)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -331,6 +332,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-395]] — Cobertura documental é hint de inventário: nunca soma, nunca zera, retém o gap · phase A40.l73
 - [[ADR-417]] — Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review · phase A40
 - [[ADR-435]] — O gate de PII mede o publicado, e a cobertura declarada é igual à medida · phase A40.l115
+- [[ADR-441]] — Erro de banco cruza fronteira de persistência por shape, nunca por valor
 
 ### Proposto (7)
 
@@ -672,7 +674,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-434]] — Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado · phase A42
 - [[ADR-439]] — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero · phase A40.l113
 
-### Proposto (19)
+### Proposto (20)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -693,6 +695,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-429]] — Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita · phase A40
 - [[ADR-430]] — Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 · phase A40.l96
 - [[ADR-440]] — A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade · phase A40.l121
+- [[ADR-444]] — Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência · phase A40.l122
 
 ### Roadmap (1)
 

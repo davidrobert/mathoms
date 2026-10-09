@@ -127,6 +127,12 @@ workflows:
       # consumo estiver acima do teto, e o workflow reescreve o corpo a cada
       # run. Idade não é sinal de abandono aqui, então sem max_issue_age_days.
       - label: ci-budget
+      # Saúde do Dependabot (`dev/ci_dependabot_health.py`). 10 dias = 1 ciclo
+      # semanal + folga: fechar à mão é a triagem, e o cron só abre issue NOVA
+      # com fato posterior ao fechamento — sem isso o S3 reprovaria o Lint do
+      # próprio PR do conserto (impasse de 2026-10-08).
+      - label: ops-dependabot-red
+        max_issue_age_days: 10
 
   - file: security.yml
     crons: ["0 3 * * 6"]
@@ -166,6 +172,11 @@ workflows:
     alerts:
       - label: ops-train
         max_issue_age_days: 3
+      # Aviso antecipado do PAT (ADR-322 §Emenda 2026-10-08): abre em T-14, então
+      # 11 dias põem a cobrança do S3 em T-3, com o trem ainda andando. Com os 3
+      # do `ops-train`, o aviso travaria o Lint em T-11 — pior que a expiração.
+      - label: ops-pat-expiry
+        max_issue_age_days: 11
 
   - file: stale.yml
     crons: ["30 6 * * *"]

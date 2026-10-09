@@ -97,7 +97,7 @@ def _connect(db_url: str):
     # SQLAlchemy não aceita sqlite+aiosqlite p/ sync engine — sanitize.
     if db_url.startswith("sqlite+aiosqlite:"):
         db_url = db_url.replace("sqlite+aiosqlite:", "sqlite:", 1)
-    return create_engine(db_url)
+    return create_engine(db_url, hide_parameters=True)
 
 
 def _fetch_e3_rows(db_url: str):

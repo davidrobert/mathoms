@@ -1235,24 +1235,26 @@ a árvore. Custo de investigação é gateado por `dev/check_lineage_eval_gate.p
   ícone) na cor `--X` sobre um fundo que é tint da mesma `--X`, a cor do
   **texto** é `var(--X-on-tint)`, nunca `var(--X)`: o par existe porque a cor
   base sobre a própria versão clareada reprova WCAG AA (o âmbar chegava a
-  1,86:1). Corrija pelo texto, **não afrouxando o tint**. **Três sintaxes
+  1,86:1). Corrija pelo texto, **não afrouxando o tint**. **Quatro sintaxes
   contam como tint** — `bg-[color-mix(in_srgb,var(--X)_N%,transparent)]`,
   `color-mix(..., var(--Y))` com substrato declarado (inclusive em `style`
-  inline) e `bg-[var(--X)]/N`. Escrever de uma quarta forma é como 7 call-sites
-  reprovaram calados por dois meses ([[ADR-372]] §Emenda 2026-08-13): o gate
-  media só a primeira. Gate: `dev/check_tint_contrast.py` (pre-commit; mede
-  todos os pares, nos dois temas). Par que o gate não alcança — ícone ou texto
-  em elemento filho — entra em `NAMED_PAIRS`.
+  inline), `bg-[var(--X)]/N` e a utility nomeada do `@theme`
+  (`bg-semantic-gain/15` + `text-semantic-gain`). Forma nova é como a classe
+  reabre calada ([[ADR-372]] §Emendas 2026-08-13 e 2026-10-08). Gate:
+  `dev/check_tint_contrast.py` (pre-commit; `frontend/` nos dois temas,
+  `frontend-ops/` no claro; utility → token pelos blocos `@theme`). Par que o
+  gate não alcança — ícone ou texto em elemento filho — entra em `NAMED_PAIRS`.
   Detalhe e limites: [A11Y_CHECKLIST](docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md).
 - **Cor semântica não serve como texto sobre o card liso.** O âmbar
   (`--semantic-alert` e os alias `--semantic-warning`/`--brand-warning`) dá
   2,06:1 sobre `--surface-card` e 1,88:1 sobre `--surface-muted` — vale para
   **ícone também**, que reprovava até o 3:1 de 1.4.11. Use o par `-on-tint`,
   que no dark é alias da base (a troca é só no light). Idem
-  `text-[var(--X)]/70`: o modificador de opacidade compõe o texto com o fundo e
-  derrubava `--surface-muted-foreground` para 3,55:1. Gate:
-  `dev/check_foreground_contrast.py` — mede contra o `bg-[var(--Y)]` declarado
-  na mesma linha quando existe, e contra os dois fundos neutros quando não.
+  `text-[var(--X)]/70` e `text-muted-foreground/60`: o modificador de opacidade
+  compõe o texto com o fundo e derrubava `--surface-muted-foreground` para
+  3,55:1. Gate: `dev/check_foreground_contrast.py` — mede contra o fundo sólido
+  declarado na mesma linha quando existe, e contra os dois fundos neutros
+  quando não.
 - **Valores monetários:** sempre `<MonetaryValue/>` (font-mono +
   tabular-nums).
 

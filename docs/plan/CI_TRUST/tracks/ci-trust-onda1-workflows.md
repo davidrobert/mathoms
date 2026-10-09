@@ -45,6 +45,13 @@ tags:
   `cancel-in-progress: false` para `schedule`. **Pré-req do religamento.**
 - Encolher a legenda de sinais no `budget-alert.yml` (pós-#1613/#1625,
   `WAIVED` e `GH` não aparecem mais na Issue).
+  - No mesmo PR, corrigir o cabeçalho `Permissões` do arquivo. Hoje ele diz
+    *"actions:read (não usado direto, mas reservado p/ futura inspeção de
+    runs)"*, o que é falso: o fallback de billing, o watchdog, o drift e a
+    saúde do Dependabot (#2145) leem runs com o `actions: read` do job. Podar
+    a permissão por esse texto cegaria os quatro. Achado no closeout do #2145
+    (2026-10-09). Não sai em PR próprio porque mudança em
+    `.github/workflows/**` recusa o `update-branch` do trem.
 - Fecha os §Follow-ups menores de [[ADR-210]] §21b/§21c (blockquote de
   fechamento em cada um).
 
@@ -70,6 +77,16 @@ público) com o desenho fechado no co-design `sre-devops` de 2026-08-25:
   antiga, **pré-vencimentos** (AUTOUPDATE_PAT, waivers — warning ≤14d; hoje
   waiver só tem 2 estados: válido / hard-fail repo-wide, e foi isso que
   produziu 7 bypasses em 08-14).
+
+  > **Nota 2026-10-09 — o PAT sai deste PR.** O vencimento chegou (10-07)
+  > antes do PR 3. O #2050 (aberto, auto-merge ligado) entrega o aviso T-14
+  > do `AUTOUPDATE_PAT` como step do watchdog (`dev/ci_pat_expiry.py`, issue
+  > `ops-pat-expiry`, `S3` de 11 dias), e ele passa a ser o **único**
+  > instrumento do fato "PAT vence". O heartbeat não reimplementa nem
+  > espelha essa medição, e o pré-vencimento do corpo fica só com os waivers.
+  > O aviso do PAT se aposenta junto com o PAT, no PR de limpeza do
+  > [[TRACK-ci-trust-github-app]].
+
 - **Gate de PR = sinais offline (S0 + waiver vencido) + 1 chamada** ao
   endpoint de **Issues** (fora do índice de runs, onde moram as 6/7 leituras
   obsoletas medidas). Reprova se: Issue ausente (**fail-closed** — hoje

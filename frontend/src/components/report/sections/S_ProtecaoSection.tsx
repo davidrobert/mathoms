@@ -56,7 +56,7 @@ export function S_ProtecaoSection({ data }: { data: ReportAnalysisData }) {
           `shortLabel` e ao prefixo do <h2>, para o leitor procurar no índice a
           mesma string que clicou. */}
       <p
-        className="mt-4 text-style-caption text-muted"
+        className="mt-4 text-style-caption text-muted-foreground"
         data-testid="protecao-crosslink-s8"
       >
         A base dedutível de PGBL está em{" "}

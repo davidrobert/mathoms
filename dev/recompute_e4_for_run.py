@@ -18,7 +18,7 @@ def _connect(db_url: str):
 
     if db_url.startswith("sqlite+aiosqlite:"):
         db_url = db_url.replace("sqlite+aiosqlite:", "sqlite:", 1)
-    engine = create_engine(db_url)
+    engine = create_engine(db_url, hide_parameters=True)
     return sessionmaker(bind=engine)()
 
 

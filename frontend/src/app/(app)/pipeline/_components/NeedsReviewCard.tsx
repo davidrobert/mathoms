@@ -23,8 +23,8 @@ export function NeedsReviewCard({
     <Card id={`pipeline-run-${runId}`} className="mb-8 border-alert/50">
       <CardContent>
         <div className="mb-3 flex items-center gap-3">
-          <AlertTriangle aria-hidden className="h-5 w-5 text-alert" />
-          <h2 className="font-medium text-alert">
+          <AlertTriangle aria-hidden className="h-5 w-5 text-alert-on-tint" />
+          <h2 className="font-medium text-alert-on-tint">
             {pausedAtStage
               ? `Revisão pendente na etapa ${stageLabel}`
               : "Revisão pendente"}

@@ -214,6 +214,16 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: engine-hide-parameters
+        # `str(StatementError)` ecoa os bound parameters: o DataError de
+        # 2026-10-08 levou endereço e nome do imóvel ao stage_log, ao WS e ao
+        # traceback. Full-scan AST — o engine novo entra como arquivo novo.
+        name: "Engine SQLAlchemy nasce com hide_parameters=True (bound parameter é PII)"
+        entry: python3 dev/check_engine_hide_parameters.py
+        language: system
+        pass_filenames: false
+        files: \.py$
+
       - id: artifact-read-keys
         # O card de exposição cambial leu `payload["patrimonio_full"]` por três meses:
         # nome de variável interna do domínio, que o serializador renomeia na fronteira.
@@ -504,13 +514,15 @@ repos:
         # `bg-[color-mix(...var(--X)_N%,transparent)]`. Medir fecha a classe:
         # token novo, percentual novo ou valor novo de tema entram no cálculo
         # sozinhos. Proibir a forma reprovaria tint de 8-10%, que passa.
-        # O mesmo filtro de `check-css-var-references`: o veredito depende do
-        # call-site E do valor do token, então os dois precisam acionar.
+        # O veredito depende do call-site, do valor do token E do nome da
+        # utility (`@theme` no globals.css de cada app), então os três acionam —
+        # nos DOIS apps: o console (`frontend-ops/`) ficou de fora até o
+        # Tailwind v4 fazer `bg-semantic-gain/15` renderizar sem gate que visse.
         name: "Texto sobre tint da mesma cor ≥ 4,5:1 (WCAG AA)"
         entry: python3 dev/check_tint_contrast.py
         language: system
         pass_filenames: false
-        files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
+        files: '^(frontend(-ops)?/src/.*\.(tsx|ts|css)|design-tokens/tokens\.json|dev/check_(tint|foreground)_contrast\.py)$'
 
       - id: foreground-contrast
         # Irmão do de cima, para a classe SEM tint: a cor serve como texto sobre
@@ -522,7 +534,7 @@ repos:
         entry: python3 dev/check_foreground_contrast.py
         language: system
         pass_filenames: false
-        files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
+        files: '^(frontend(-ops)?/src/.*\.(tsx|ts|css)|design-tokens/tokens\.json|dev/check_(tint|foreground)_contrast\.py)$'
 
       - id: coverage-disclaimer
         name: "Cobertura recomendada exige ressalva fiduciária (A40.l60)"
@@ -693,6 +705,20 @@ repos:
         language: system
         pass_filenames: false
         files: ^frontend/(package\.json|package-lock\.json)$
+
+      - id: node-version-parity
+        # O `docker` do Dependabot subiu o FROM node:22→26 (#1634) e o CI seguiu
+        # em Node 20 (EOL) por 6 semanas. `<app>/.nvmrc` é o major do app;
+        # FROM, setup-node, container e compose têm de bater. PR de major do
+        # Dependabot fica vermelho aqui até o .nvmrc subir junto. Também:
+        # @types/node do lock ≤ .nvmrc, e job que chama Node sem setup-node antes.
+        # always_run: os inputs incluem `*/package.json` descoberto, e o script lê
+        # ~20 arquivos (~0,5s de CPU) — regex de `files:` só criaria o furo do commit local.
+        name: "Major do Node: <app>/.nvmrc = FROM node = CI = compose; @types/node ≤ .nvmrc"
+        entry: python3 dev/check_node_version_parity.py
+        language: system
+        pass_filenames: false
+        always_run: true
 
       - id: main-drift-check
         name: "pre-push: bloqueia push para main se origin/main avançou"

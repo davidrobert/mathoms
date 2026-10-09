@@ -79,7 +79,7 @@ function InstitutionsTabContent({ workspace }: { workspace: UserWorkspace }) {
           {error} <button onClick={() => setError("")} className="ml-2 underline">fechar</button>
         </div>
       )}
-      {success && <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain">{success}</div>}
+      {success && <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain-on-tint">{success}</div>}
 
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{bankKeys.length} instituições configuradas</p>

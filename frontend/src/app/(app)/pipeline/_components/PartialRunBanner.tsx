@@ -37,7 +37,7 @@ export function PartialRunBanner({
       role="status"
       className="mb-6 flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm"
     >
-      <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+      <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-alert-on-tint" aria-hidden="true" />
       <div className="flex-1 min-w-0">
         <p className="text-foreground">
           <span className="font-medium">{degradedRunCaveat(run)}</span>
@@ -50,7 +50,7 @@ export function PartialRunBanner({
           {run.report_id && (
             <Link
               href={`/reports/${run.report_id}`}
-              className="font-medium text-warning underline underline-offset-2 hover:text-warning/80"
+              className="font-medium text-alert-on-tint underline underline-offset-2 hover:no-underline"
             >
               Ver relatório
             </Link>
