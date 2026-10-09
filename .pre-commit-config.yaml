@@ -504,13 +504,15 @@ repos:
         # `bg-[color-mix(...var(--X)_N%,transparent)]`. Medir fecha a classe:
         # token novo, percentual novo ou valor novo de tema entram no cálculo
         # sozinhos. Proibir a forma reprovaria tint de 8-10%, que passa.
-        # O mesmo filtro de `check-css-var-references`: o veredito depende do
-        # call-site E do valor do token, então os dois precisam acionar.
+        # O veredito depende do call-site, do valor do token E do nome da
+        # utility (`@theme` no globals.css de cada app), então os três acionam —
+        # nos DOIS apps: o console (`frontend-ops/`) ficou de fora até o
+        # Tailwind v4 fazer `bg-semantic-gain/15` renderizar sem gate que visse.
         name: "Texto sobre tint da mesma cor ≥ 4,5:1 (WCAG AA)"
         entry: python3 dev/check_tint_contrast.py
         language: system
         pass_filenames: false
-        files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
+        files: '^(frontend(-ops)?/src/.*\.(tsx|ts|css)|design-tokens/tokens\.json|dev/check_(tint|foreground)_contrast\.py)$'
 
       - id: foreground-contrast
         # Irmão do de cima, para a classe SEM tint: a cor serve como texto sobre
@@ -522,7 +524,7 @@ repos:
         entry: python3 dev/check_foreground_contrast.py
         language: system
         pass_filenames: false
-        files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
+        files: '^(frontend(-ops)?/src/.*\.(tsx|ts|css)|design-tokens/tokens\.json|dev/check_(tint|foreground)_contrast\.py)$'
 
       - id: coverage-disclaimer
         name: "Cobertura recomendada exige ressalva fiduciária (A40.l60)"
