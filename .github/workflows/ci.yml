@@ -187,7 +187,7 @@ jobs:
       dev_tools: ${{ steps.filter.outputs.dev_tools_any_changed }}
       incoming_main_docs_only: ${{ steps.incoming.outputs.incoming_main_docs_only }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # 2→0: o gitleaks fundido neste job varre o range de commits do PR
           # e precisa deles presentes localmente (o job antigo já usava 0).
@@ -487,7 +487,7 @@ jobs:
       actions: read
       issues: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # `check_planner_manifest_coverage` compara o schema E5 com a base de merge para
       # achar CAMPO NOVO (A40.l83 · RV8-05b). O checkout é raso por default, e sem
@@ -501,7 +501,7 @@ jobs:
         run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -511,6 +511,14 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
         with:
           version: "0.5.x"
+
+      - name: Setup Node
+        # Hooks `language: system` chamam Node: probabilidade-parity roda `node -e`
+        # e frontend-lock-sync roda `npx`. Sem este step rodavam no Node do runner,
+        # e um bump do runner mudava o resultado em silêncio (node-version-parity).
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: frontend/.nvmrc
 
       - name: Install lint deps (via uv)
         # ADR-182: jsonschema + pyyaml para os hooks doc-* da vault Obsidian
@@ -525,7 +533,7 @@ jobs:
         # Key derivada do .pre-commit-config.yaml — invalida na atualização
         # de qualquer hook. restore-keys permite reuso parcial enquanto
         # apenas 1 hook bumpa de versão.
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-py313-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -601,11 +609,11 @@ jobs:
     # dev/** não roda o gate que testa dev/**.
     if: needs.changes.outputs.pipeline == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.dev_tools == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Python
         id: setup-python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -627,7 +635,7 @@ jobs:
         # e a frota troca de patch (3.13.14 ↔ 3.13.15) — sem isso o cache
         # restaura venv cujo interpretador não existe mais.
         id: venv-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .venv
           key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
@@ -682,23 +690,44 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python dev/check_lineage_eval_gate.py
 
-      - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
-        if: github.event_name == 'pull_request'
-        # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
-        # isolado (fluxo G-c). Deepen: checkout é shallow (depth 1).
+      # Os dois gates de golden medem a faixa do PR no merge sintético (pai 1 = main,
+      # pai 2 = cabeça), e ela exige o histórico do `GITHUB_SHA` inteiro. Ancorado no
+      # SHA porque o `--deepen` relativo só aprofunda commit que alguma ref do servidor
+      # ainda alcança: quando a main anda, o GitHub recomputa o `refs/pull/N/merge` (re-
+      # run, ou push na main durante o pytest acima) e o HEAD ficava sem pais — com o
+      # gate verde calado. Passo próprio e `!cancelled()`: o vermelho de um gate não
+      # esconde o do outro, nem o dos testes acima.
+      - name: Histórico do merge sintético (gates de golden)
+        id: historico-pr
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: |
-          git fetch --no-tags --deepen=500 origin
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            git fetch --no-tags --unshallow origin "$GITHUB_SHA"
+          fi
+
+      - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.historico-pr.outcome == 'success' }}
+        # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
+        # isolado (fluxo G-c). A faixa sai do merge sintético, NUNCA de
+        # `pull_request.base.sha`: ele é o merge-base do último push, e
+        # `base.sha..HEAD` arrastava a main desde então (#2065).
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
           python dev/check_golden_rebaseline_isolation.py \
-            --commit-range "${{ github.event.pull_request.base.sha }}..HEAD"
+            --pr-head-sha "$PR_HEAD_SHA" --merge-sha "$GITHUB_SHA"
 
       # O passo acima enforça ISOLAMENTO e não produz delta. Sem este, "delta de golden
       # declarado" era prosa no corpo do PR — `dev/golden_diff.py` existia e nada o
-      # invocava. Roda DEPOIS porque reaproveita o histórico já aprofundado acima.
+      # invocava. Mesma base do passo acima: o delta é o que o PR muda sobre a main do
+      # merge, não o que a main mudou desde a base do PR.
       - name: Delta de golden declarado, não narrado (A40.l80 · destrava A40.l90)
-        if: github.event_name == 'pull_request'
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.historico-pr.outcome == 'success' }}
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           python dev/check_golden_delta_declarado.py \
-            --base-sha "${{ github.event.pull_request.base.sha }}"
+            --pr-head-sha "$PR_HEAD_SHA" --merge-sha "$GITHUB_SHA"
 
   backend-tests:
     name: Backend tests (backend/tests/)
@@ -747,7 +776,7 @@ jobs:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Backend↔pipeline coupling em sync com o filtro pipeline_lib (ADR-210 §Adendo 2026-08-05)
         # Stdlib só (ast) — roda antes do venv de propósito, mesmo custo do
@@ -756,7 +785,7 @@ jobs:
 
       - name: Setup Python
         id: setup-python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -770,7 +799,7 @@ jobs:
         # jobs compartilham cache; quem executar primeiro popula. SEM
         # restore-keys — ver pipeline-tests.
         id: venv-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .venv
           key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
@@ -864,10 +893,10 @@ jobs:
           - 5433:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -1007,15 +1036,15 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend/Dockerfile — vale para todo
-          # setup-node do frontend aqui e no nightly.yml. Bump do
-          # Dockerfile → bump aqui.
-          node-version: "26"
+          # Major vem do frontend/.nvmrc — vale para todo setup-node do
+          # frontend aqui e no nightly.yml. dev/check_node_version_parity.py
+          # (pre-commit) reprova se os FROM do frontend/Dockerfile divergirem.
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1051,7 +1080,7 @@ jobs:
       # 56 testes selecionados, 54 passam, 2 skips declarados (`S4`, `APP_C`).
       - name: Cache Playwright Chromium (report render)
         id: pw-cache-report
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
@@ -1176,14 +1205,16 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend-ops/Dockerfile: o job existe para
-          # prever o build da imagem. Bump do Dockerfile → bump aqui.
-          node-version: "26"
+          # O job existe para prever o build da imagem: o major vem do
+          # frontend-ops/.nvmrc, e dev/check_node_version_parity.py reprova se os
+          # FROM do frontend-ops/Dockerfile divergirem. Arquivo próprio, não o do
+          # frontend: o Dependabot abre um PR de major por diretório.
+          node-version-file: frontend-ops/.nvmrc
           cache: npm
           cache-dependency-path: frontend-ops/package-lock.json
 
@@ -1233,17 +1264,17 @@ jobs:
           - 6380:6379
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1370,7 +1401,7 @@ jobs:
         # nightly (ver nightly.yml > frontend-e2e-cross-browser). Cache
         # key dedicado evita poluir o cache 3-browsers do nightly.
         id: pw-cache-e2e
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
@@ -1428,7 +1459,7 @@ jobs:
         # exatamente nos runs que se quer tornar legíveis. É diagnóstico,
         # não gate.
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const artifactUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
@@ -1505,12 +1536,12 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1519,7 +1550,7 @@ jobs:
 
       - name: Cache Playwright Chromium
         id: pw-cache-visual
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           # Cache key separado de e2e: aqui só Chromium é instalado.
@@ -1614,12 +1645,12 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1628,7 +1659,7 @@ jobs:
 
       - name: Cache Playwright Chromium
         id: pw-cache-print
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
@@ -1687,8 +1718,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o
@@ -1722,8 +1753,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o

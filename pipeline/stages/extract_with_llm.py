@@ -6,6 +6,7 @@ import logging
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -55,6 +56,15 @@ class _E2LLMProgress:
     def increment(self) -> None:
         with self._lock:
             self._done += 1
+
+
+@dataclass(frozen=True)
+class _E2LLMPendingWrite:
+    """Extração pronta para gravar; quem grava é a thread dona da Session (ADR-256)."""
+
+    key: str
+    payload: dict[str, Any]
+    processed: dict[str, Any]
 
 
 def _e2_extract_stem(path: Path) -> str:
@@ -195,15 +205,20 @@ def _e2_llm_perf_settings(ctx: "WorkspaceContext") -> dict[str, Any]:
 
 def _process_one_e2_llm_document(
     doc: Path,
-    store: Any,
     llm_config_data: dict[str, Any],
     max_chars: int,
     max_pages: int,
     progress: _E2LLMProgress,
     member_resolver: Any = None,
     institution_catalog_block: str | None = None,
-) -> tuple[dict[str, Any] | None, dict[str, str] | None, dict[str, str] | None, Any]:
-    """Extract + one LLM call. Returns (processed, error, skipped, run_summary)."""
+) -> tuple[
+    _E2LLMPendingWrite | None,
+    dict[str, Any] | None,
+    dict[str, str] | None,
+    dict[str, str] | None,
+    Any,
+]:
+    """Extract + one LLM call. Returns (pending, processed, error, skipped, run_summary)."""
     from pipeline.llm.error_classification import LLM_LONG_GENERATION_TIMEOUT_S
     from pipeline.llm.institution_catalog import CATALOG_UNAVAILABLE_BLOCK
     from pipeline.llm.litellm_client import LLMRunSummary, LLMService
@@ -226,6 +241,7 @@ def _process_one_e2_llm_document(
             return (
                 None,
                 None,
+                None,
                 _skip_entry(doc, "documento_vazio", "imagem sem bytes"),
                 empty_summary,
             )
@@ -235,6 +251,7 @@ def _process_one_e2_llm_document(
         text = extraction.text
         if extraction.outcome is not ReaderOutcome.ok:
             return (
+                None,
                 None,
                 None,
                 _skip_entry(doc, extraction.outcome.value, extraction.detalhe),
@@ -288,7 +305,7 @@ def _process_one_e2_llm_document(
                 "E2-llm: institution vazia — artefato não gravado (needs_review)",
                 extra={"file": doc.name},
             )
-            return _needs_review_entry(doc.name, output), None, None, service.summary
+            return None, _needs_review_entry(doc.name, output), None, None, service.summary
 
         e2_json = _output_to_e2_json(output, member_resolver=member_resolver)
         # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
@@ -298,7 +315,6 @@ def _process_one_e2_llm_document(
         # (`_artifact_key_for_file` / `_normalize_stem_for_incremental`) —
         # sanitização divergente (espaço→_, cap 80) duplicava a key no E3.
         safe_stem = _e2_extract_stem(doc)
-        progress.emit(doc.name, "persisting")
         # ADR-278 B4: estampa K4 natural_key + direction (vocabulário LLM
         # pós-ADR-312: banco/membro/tipo, resolvido canônico-primeiro).
         nk_stats = stamp_natural_key(e2_json)
@@ -308,10 +324,6 @@ def _process_one_e2_llm_document(
             nk_stats.tx_total,
             doc.name,
         )
-        # Validação JSON-schema é executada pelo hook pós-write em
-        # DBArtifactStore.write (SCHEMA_BY_STAGE mapeia "extract_with_llm" →
-        # "e2_llm_artifact.schema.json", contrato dedicado da ADR-286).
-        store.write("extract_with_llm", safe_stem, e2_json)
 
         out_filename = f"{safe_stem}-2_extract.json"
         processed = {
@@ -321,20 +333,31 @@ def _process_one_e2_llm_document(
             "investments": len(output.investments),
             "confidence": output.confidence,
         }
-
-        logger.info(
-            "E2-llm: %s → %d txns, %d investments, confidence=%.2f",
-            doc.name,
-            len(output.transactions),
-            len(output.investments),
-            output.confidence,
-        )
-
-        return processed, None, None, service.summary
+        pending = _E2LLMPendingWrite(key=safe_stem, payload=e2_json, processed=processed)
+        return pending, None, None, None, service.summary
 
     except Exception as exc:
         logger.error("E2-llm: failed for %s: %s", doc.name, exc)
-        return None, {"file": doc.name, "error": str(exc)[:300]}, None, service.summary
+        return None, None, {"file": doc.name, "error": str(exc)[:300]}, None, service.summary
+
+
+def _persist_e2_llm_write(
+    store: Any, pending: _E2LLMPendingWrite, progress: _E2LLMProgress
+) -> tuple[dict[str, Any] | None, dict[str, str] | None]:
+    """Grava na thread que roda o stage; write que falha vira erro do documento."""
+    entry = pending.processed
+    progress.emit(entry["file"], "persisting")
+    try:
+        # Validação JSON-schema é executada pelo hook pós-write em
+        # DBArtifactStore.write (SCHEMA_BY_STAGE mapeia "extract_with_llm" →
+        # "e2_llm_artifact.schema.json", contrato dedicado da ADR-286).
+        store.write("extract_with_llm", pending.key, pending.payload)
+    except Exception as exc:
+        logger.error("E2-llm: failed for %s: %s", entry["file"], exc)
+        return None, {"file": entry["file"], "error": str(exc)[:300]}
+    counts = (entry["transactions"], entry["investments"], entry["confidence"])
+    logger.info("E2-llm: %s → %d txns, %d investments, confidence=%.2f", entry["file"], *counts)
+    return entry, None
 
 
 # Nomear o documento é o ponto: `skipped: 1` sem identificador não permite ir
@@ -607,12 +630,15 @@ def run(ctx: WorkspaceContext) -> dict:
         ctx.institution_catalog_provider, exclude_categories=(INSURANCE_CATEGORY,)
     )
 
+    # ADR-256: a Session do stage não é thread-safe — com o write dentro do pool,
+    # autoflush e unit of work das threads se intercalavam na mesma conexão
+    # (artefato perdido, erro fantasma, Session em estado ilegal no commit). O
+    # pool fica com extração + LLM, onde está a latência; o write roda aqui.
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = [
             pool.submit(
                 _process_one_e2_llm_document,
                 doc,
-                store,
                 llm_config_data,
                 max_chars,
                 max_pages,
@@ -623,7 +649,9 @@ def run(ctx: WorkspaceContext) -> dict:
             for doc in docs
         ]
         for fut in as_completed(futures):
-            proc, err, skip, summ = fut.result()
+            pending, proc, err, skip, summ = fut.result()
+            if pending is not None:
+                proc, err = _persist_e2_llm_write(store, pending, progress)
             progress.increment()
             summary_parts.append(summ)
             if proc is not None:

@@ -170,6 +170,11 @@ sobre **todos** os membros do enum: para o mesmo stage degradável, a tripla
 `(run.status, stage_log.status, existe row em reports)` é idêntica em todos.
 Mutação que o teste mata: `if reason_class == "budget_exhausted": failed`.
 
+> **Nota 2026-10-09 — [[ADR-447]].** "Viaja no `detail`" valia só para a rota declarada: a
+> exceção do runner era achatada no executor antes do classificador, e a de LLM do parecer no
+> `_call_llm_safe`, e as duas gravavam `unknown`. Quem captura o objeto vivo passa a gravar
+> `detail["failure_class"]`, e o classificador migrou para `pipeline/stage_failure_reason.py`.
+
 Ele é **obrigatório, não cosmético**. A classe fechada client-facing da
 [[A40.l20]] §4 tem 3 membros que são todos juízos sobre o conteúdo do cliente;
 sem `reason_class`, um `ReadTimeout` da Anthropic cai nessa classe e a UI diz ao

@@ -72,7 +72,7 @@ jobs:
       any_code: ${{ steps.set.outputs.any_code }}
       force_all: ${{ steps.set.outputs.force_all }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -161,7 +161,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.any_code == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Run Trivy (filesystem, HIGH+CRITICAL)
@@ -186,7 +186,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.iac == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Run Trivy config (Dockerfile, compose, workflows)
         # TODO(security-trivy-config-2026-05-20): remover continue-on-error
         # após review/triagem dos 4 IaC misconfigs detectados no primeiro
@@ -208,8 +208,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.python_deps == 'true'
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -265,10 +265,10 @@ jobs:
       run:
         working-directory: ${{ matrix.dir }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (prod, HIGH+)
         run: npm audit --audit-level=high --omit=dev
 
@@ -286,10 +286,10 @@ jobs:
       run:
         working-directory: ${{ matrix.dir }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (incluindo dev, informativo)
         # continue-on-error step-level — dev deps raramente exploitable,
         # job nunca bloqueia.
@@ -310,7 +310,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Run gitleaks (full history + .gitleaks.toml)
@@ -376,7 +376,7 @@ jobs:
       issues: write
     steps:
       - name: Open Issue
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

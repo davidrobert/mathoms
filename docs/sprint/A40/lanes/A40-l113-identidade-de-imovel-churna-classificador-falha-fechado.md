@@ -134,6 +134,10 @@ prescrevia, **não** faria `property_id` voltar a 5+.
 (idem `01-12`/`12`). Como `codigo_rfb` é componente da `PropertyLookupKey`, a mesma
 propriedade não casa consigo mesma entre anos.
 
+> ⚠️ **Corrigido em 2026-10-08.** A grafia é condição necessária, não suficiente: sem mint
+> e sem row a casar, os pares seguem separados mesmo com o código normalizado. Ver o item 4
+> do §Deferimento.
+
 **3. `patrimonio.residencia = 0` NÃO é causado por `pid` nulo.** A residência é o item que
 **tem** `property_id` (`20f938a2…`) e **tem** override `residencia_principal` gravado em
 `workspace_property_overrides`. Ela sai zero porque o **valor** projeta em zero:
@@ -283,6 +287,19 @@ decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
    "(B) Drop `codigo_rfb` da chave de dedup" (funde apartamento e casa no mesmo lote) — o
    conserto é produtor único do **campo**, nunca remover o campo da chave.
 
+   > ✅ **Entregue em 2026-10-08 (#2062).** Produtor único do campo: os dois sítios gravam o
+   > sub-código de imóvel (`'01-11'`→`'11'`), e a chave, o resolver (lado da row) e os três
+   > alimentadores do dedup comparam na mesma forma — [[ADR-225]] §Emenda 2026-10-08. Não era
+   > latente: em Postgres o INSERT de `'01-12'` estoura o `VARCHAR(4)` e derruba o E1.5c
+   > (reproduzido em PG 16). A precondição para religar o mint está satisfeita.
+   >
+   > ⚠️ **Correção do achado 2 desta lane.** A grafia não é o que fabrica os 3 pares no regime
+   > atual: com o mint sem canonical desligado ([[ADR-392]]), item sem `property_id` nem
+   > canonical cai em `unidentified` no dedup e nunca funde, qualquer que seja o código. O
+   > que separa os pares é a falta de identidade — a `descricao` da era 1.4.1 perdeu o
+   > logradouro ([[ADR-439]] §Contexto). Normalizar é necessário, não suficiente; o teste
+   > `test_sem_o_mint_o_par_sem_canonical_segue_sem_identidade` fixa esse limite.
+
 ## Os outros três achados que a `U5` roteou para esta lane
 
 > ⚠️ **2026-10-08 — com a lane `shipped`:** `RR9-04` e `LC9-10` ➜ [[A40.l121]] (fecham
@@ -369,7 +386,7 @@ como escrita — com a descrição da era `1.3.0` —, ela confirmaria a cadeia.
 - `workspaces.residencia_status` ([[ADR-215]]) **nunca chegava ao E5**. Plumbado em #2049; o "— + CTA" da ADR-215 aparece pela primeira vez no relatório.
 - A ADR-215 declara `backend/tests/integration/test_property_override_sticky.py` ("classificação sobrevive ao re-upload") e o arquivo **não existe** — é o gate que teria pego a regressão da `1.4.1`. ➜ [[A40.l121]].
 - A checagem de residência por `property_id` em `investimentos_classes`, `top_ativos` e `instituicoes` (o elo 5 desta lane) segue falhando **aberta**; dormente no U5 (a residência tem id), viva quando ela perde identidade. ➜ **A40.l122** (sessão aberta pelo dono em 2026-10-08; código no #2079, lane ainda fora da `main`).
-- O parecer não recebe o veredito: os campos novos estão em `E5_FIELDS_FORA_DO_PARECER`. Projetá-los no bloco "Cobertura e incerteza" pede bump do manifest e eval ➜ **A40.l123** (sessão aberta pelo dono em 2026-10-08, `prompt-engineer`; lane ainda fora da `main`).
+- O parecer não recebe o veredito: os campos novos estão em `E5_FIELDS_FORA_DO_PARECER`. Projetá-los no bloco "Cobertura e incerteza" pede bump do manifest e eval ➜ [[A40.l123]] (sessão aberta pelo dono em 2026-10-08, `prompt-engineer`).
 - Valores reais do dogfood commitados em 12 arquivos de docs e testes de repo **público** ➜ sessão aberta pelo dono (#2071, e a política no #2076).
 - O `PV13-01` fica **sem lane**: decisão, gatilho e P2 re-derivado na linha do
   [[PIPELINE-REVIEWS-active]]. Destino de cada item em [[MOC-a40-historico]] §Destino dos
