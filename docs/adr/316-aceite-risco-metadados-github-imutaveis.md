@@ -2,21 +2,27 @@
 id: ADR-316
 type: adr
 title: "Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs)"
-status: Proposto
+status: Decidido
+phase: G0
 date: "2026-07-08"
+amended_at: ["2026-10-08"]
 relates_to: ["[[PLAN-public-release]]", "[[A34.l21]]"]
 supersedes: []
 superseded_by: []
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/seguranca
   - area/gtm
 ---
 
 # ADR-316 — Aceite de risco de metadados GitHub imutáveis
 
-**Status:** Proposto (owner-gated) · **Data:** 2026-07-08 · Gate **G0** do
+> **Emendada 2026-10-08:** decisão do dono — o repositório segue público e o risco das
+> camadas 2 (histórico) e 3 (metadados) fica aceito por escrito, sem rewrite e sem repo
+> novo. Ver §Emenda 2026-10-08.
+
+**Status:** Decidido (G0, 2026-10-08 — ver §Emenda) · **Data:** 2026-07-08 · Gate **G0** do
 [[PLAN-public-release]]. Falha cedo (W0) por desenho — ver §Decisão.
 
 ## Contexto
@@ -176,3 +182,21 @@ lógica abaixo.
 arquiteturalmente inferior a repo novo para a camada 3 (Alternativa A);
 (2) open-source não é alavanca GTM validada para o ICP — talvez whitepaper
 (Alternativa C, [[ADR-314]]).
+
+## Emenda 2026-10-08 — o dono mantém o repositório público e aceita o risco
+
+O flip aconteceu antes do G0 (registrado no [[OWNER-GATED]] desde 2026-08-25). Em
+2026-10-08 o dono decidiu:
+
+- **manter o repositório público** e **não reescrever o histórico** — a [[ADR-315]] passa a
+  `Roadmap`;
+- **aceitar formalmente o risco residual das camadas 2 e 3** — o que já está no histórico
+  git e nos metadados do GitHub até esta data.
+
+O aceite **não cobre** o que entrar depois: o HEAD foi saneado na mesma data, e a
+[[ADR-442]] decide o gate que impede valor monetário do workspace de dogfood de voltar em
+commit e push. A triagem T1/T2 (editar PRs e issues, expirar runs de CI) **não** foi
+autorizada nesta decisão e segue como recomendação aberta.
+
+Rastreabilidade LGPD: decisão do dono do repositório, que é também o titular dos dados da
+família, registrada na sessão de 2026-10-08.

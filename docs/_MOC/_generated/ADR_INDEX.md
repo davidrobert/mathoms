@@ -5,13 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-430 ADRs (ADR-001 a ADR-440) em [`docs/adr/`](../../adr/).
+431 ADRs (ADR-001 a ADR-442) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 368
-- **Proposto**: 58
-- **Roadmap**: 4
+- **Decidido**: 369
+- **Proposto**: 57
+- **Roadmap**: 5
 
 ## Fundação
 
@@ -729,17 +729,24 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 - [[ADR-299]] — SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) · phase audit-r2 · SEC-03
 
+### Proposto (1)
+
+- [[ADR-442]] — Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push
+
 ## seguranca
 
-### Decidido (1)
+### Decidido (2)
 
+- [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) · phase G0
 - [[ADR-319]] — Contrato de gates anti-regressão PII + sigilo metodológico pós-público · phase A34
 
-### Proposto (3)
+### Proposto (1)
+
+- [[ADR-317]] — Identidade de autoria no mailmap público
+
+### Roadmap (1)
 
 - [[ADR-315]] — Estratégia de rewrite de histórico git para release pública
-- [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs)
-- [[ADR-317]] — Identidade de autoria no mailmap público
 
 ## tooling
 
