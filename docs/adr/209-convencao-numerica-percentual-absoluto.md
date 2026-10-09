@@ -5,6 +5,7 @@ title: "Convenção numérica de percentual no contrato E5 — valor absoluto"
 status: Decidido
 phase: "Pré-requisito PR-2 do PLANNER_REVIEW"
 date: "2026-05-13"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-143]]"
@@ -29,6 +30,11 @@ tags:
 # ADR-209 — Convenção numérica de percentual no contrato E5 (valor absoluto)
 
 **Status:** Decidido (pré-requisito PR-2 do PLANNER_REVIEW) • **Data:** 2026-05-13
+
+> **Emendada em 2026-10-09** — o `formatPercent` deixou de ser legado: é o formatador
+> canônico de percentual do relatório. A §D3 (Camada 4) e o risco de "limpeza em
+> sprint+1" ficam superados; a regra de que o formatador não multiplica continua.
+> Ver §Emenda 2026-10-09.
 
 ## Contexto
 
@@ -138,6 +144,29 @@ ADR vira `Decidido (A12 — pré-PLANNER_REVIEW Ato 4)` no merge.
 - **Baixo:** falsos negativos da Camada 2 (persona). LLM tem 1-3% de chance de ignorar regra; mitigado pela Camada 3 (manifest no exec context — exposto a cada call).
 - **Baixo:** alguma chamada futura ao `formatPercent` legado supondo fracional permanece dormente; flag para limpeza em sprint+1.
 - **Baixo:** workspace com `valor_pct < 1` (rentabilidade < 1% a.a.) hoje renderizado errado pelo `conclusionUtils.format("pct")`. Frontend fix corrige.
+
+## Emenda 2026-10-09 — `formatPercent` é o formatador canônico, não legado
+
+A §D3 (Camada 4) flagou `formatPercent` (`frontend/src/lib/format.ts`) como legado, "não
+chamada pelo report", e o §Riscos pediu limpeza na sprint seguinte. A prática inverteu
+as duas coisas:
+
+- #1403 (2026-08-12, RV4-19 do [[REPORT-REVIEWS-active]]) passou a usá-lo nos cards da
+  tabela de composição, inclusive na linha de total, para as duas pontas não divergirem.
+- #2091 (2026-10-09) trocou por ele os percentuais com ponto do relatório e criou o gate
+  ESLint de `toFixed(n)` colado ao `%`. O COPY_GUIDELINES §4.6 o prescreve como a
+  renderização de percentual.
+- #2126 (2026-10-09) levou os 35 `toFixed(n).replace(".", ",")` restantes para
+  `formatPercent`/`formatNumber`, com gate para a vírgula escrita à mão.
+
+Re-medido em 2026-10-09: 59 chamadas em 28 arquivos de `frontend/src/components/report/`
+(`rg -c 'formatPercent\(' frontend/src/components/report`).
+
+**O que continua valendo:** o formatador recebe o valor absoluto e não multiplica
+(`44.7` é 44,7%) — é a D1 que torna seguro usá-lo no relatório inteiro. O risco do
+§Riscos muda de natureza: deixa de ser uma função dormente e passa a ser qualquer
+chamador que receba fração. A proteção é a D1 (campos `*_pct` absolutos no contrato),
+não a remoção da função.
 
 ## Referências
 

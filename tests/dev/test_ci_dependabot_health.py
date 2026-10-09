@@ -330,7 +330,7 @@ def _vite(created: str = "2026-10-01T09:00:00Z") -> dict:
 def test_vagas_saem_do_open_pull_requests_limit_do_yml_real():
     limits = {(e.ecosystem, e.directory): e.pr_limit for e in mod.load_entries()}
     assert limits[("npm", "/frontend-ops")] == 3
-    assert limits[("pip", "/")] == 5
+    assert limits[("pip", "/")] == 8
 
 
 @pytest.mark.parametrize(("age_hours", "stuck"), [(5 * 24 - 1, False), (5 * 24 + 1, True)])

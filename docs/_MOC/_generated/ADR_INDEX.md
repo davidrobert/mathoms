@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-436 ADRs (ADR-001 a ADR-447) em [`docs/adr/`](../../adr/).
+437 ADRs (ADR-001 a ADR-448) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 373
+- **Decidido**: 374
 - **Proposto**: 58
 - **Roadmap**: 5
 
@@ -354,11 +354,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## ci
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético · phase A34
 - [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
 - [[ADR-415]] — Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação · phase PLAN-ci-trust Onda 0
+- [[ADR-448]] — Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge
 
 ### Proposto (1)
 
