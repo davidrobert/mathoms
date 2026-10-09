@@ -109,11 +109,8 @@ def test_fallback_via_narrativas_summaries_legacy(monkeypatch: pytest.MonkeyPatc
     """Quando LLM indisponível e env permite, fallback lê narrativas[summaries]."""
     from backend.app.services.section_summary_orchestrator import _default_fallback
 
-    snapshot_data = {
-        "patrimonio": {"liquido": 1000},
-        "_narrativas": {"summaries": {"s1": "narrativa legada s1"}},
-    }
-    text = _default_fallback("S1", snapshot_data)
+    fallback_context = {"summaries": {"s1": "narrativa legada s1"}}
+    text = _default_fallback("S1", fallback_context)
     assert text == "narrativa legada s1"
 
 
@@ -140,10 +137,8 @@ def test_fallback_nao_deriva_chave_por_lowercase():
     """`S2` não lê `summaries.s2` — o mapa é `summary_source` do layout."""
     from backend.app.services.section_summary_orchestrator import _default_fallback
 
-    snapshot_data = {
-        "_narrativas": {"summaries": {"s2": "Score financeiro de 5,6/10 (Regular)."}},
-    }
-    text = _default_fallback("S2", snapshot_data)
+    fallback_context = {"summaries": {"s2": "Score financeiro de 5,6/10 (Regular)."}}
+    text = _default_fallback("S2", fallback_context)
     assert text is not None
     assert "Score financeiro" not in text, text
     assert "Fluxo de caixa" in text, text
@@ -153,8 +148,8 @@ def test_fallback_usa_destino_declarado_no_layout():
     """A leitura segue `summary_source`; S9 → s9 (não coincidência de string)."""
     from backend.app.services.section_summary_orchestrator import _default_fallback
 
-    snapshot_data = {"_narrativas": {"summaries": {"s9": "2 riscos prioritários: a, b."}}}
-    assert _default_fallback("S9", snapshot_data) == "2 riscos prioritários: a, b."
+    fallback_context = {"summaries": {"s9": "2 riscos prioritários: a, b."}}
+    assert _default_fallback("S9", fallback_context) == "2 riscos prioritários: a, b."
 
 
 # O payload da seção ia ao provider com `_narrativas` anexado — as narrativas

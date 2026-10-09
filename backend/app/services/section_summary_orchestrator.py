@@ -103,9 +103,9 @@ class _LiteLLMSectionSummaryClient:
         )
 
 
-def _default_fallback(section_id: str, snapshot_data: Mapping[str, Any]) -> Optional[str]:
-    """Fallback determinístico — usa narrativas[summaries] do snapshot se houver."""
-    text = _read_legacy_summary(snapshot_data, section_id)
+def _default_fallback(section_id: str, fallback_context: Mapping[str, Any]) -> Optional[str]:
+    """Fallback determinístico — usa narrativas[summaries] do run se houver."""
+    text = _read_legacy_summary(fallback_context, section_id)
     if text:
         return text
     return _GENERIC_FALLBACK.get(section_id)
@@ -126,13 +126,8 @@ def _summary_source_key(section_id: str) -> Optional[str]:
     return None
 
 
-def _read_legacy_summary(snapshot_data: Mapping[str, Any], section_id: str) -> Optional[str]:
-    if not isinstance(snapshot_data, Mapping):
-        return None
-    narrativas = snapshot_data.get("_narrativas")
-    if not isinstance(narrativas, Mapping):
-        return None
-    summaries = narrativas.get("summaries")
+def _read_legacy_summary(fallback_context: Mapping[str, Any], section_id: str) -> Optional[str]:
+    summaries = fallback_context.get("summaries")
     key = _summary_source_key(section_id)
     if not isinstance(summaries, Mapping) or key is None:
         return None
@@ -237,51 +232,47 @@ def generate_all_section_summaries(
         logger.info("section_summaries_skipped_llm_disabled")
         return {}
     gen = generator or build_default_generator()
-    narrativas = e5_data.get("narrativas") if isinstance(e5_data, Mapping) else None
-    return _run_for_all_sections(gen, workspace_id, e5_data, narrativas)
+    return _run_for_all_sections(gen, workspace_id, e5_data, _fallback_context(e5_data))
 
 
 def _run_for_all_sections(
     gen: SectionSummaryGenerator,
     workspace_id: int,
     e5_data: Mapping[str, Any],
-    narrativas: Any,
+    fallback_context: Mapping[str, Any],
 ) -> dict[str, str]:
     out: dict[str, str] = {}
     for section_id in SUPPORTED_SECTION_IDS:
-        section_payload = _slice_section_data(e5_data, section_id, narrativas)
+        section_payload = _slice_section_data(e5_data, section_id)
         result = gen.generate(
             section_id=section_id,
             snapshot_hash=compute_snapshot_hash(section_payload),
             workspace_id=workspace_id,
             snapshot_data=section_payload,
+            fallback_context=fallback_context,
         )
         if result.text:
             out[section_id] = result.text
     return out
 
 
-def _slice_section_data(
-    e5_data: Mapping[str, Any],
-    section_id: str,
-    narrativas: Any,
-) -> dict[str, Any]:
+def _fallback_context(e5_data: Mapping[str, Any]) -> dict[str, Any]:
+    """Narrativas do E5.N para o fallback determinístico — nunca entram no prompt."""
+    narrativas = e5_data.get("narrativas") if isinstance(e5_data, Mapping) else None
+    summaries = narrativas.get("summaries") if isinstance(narrativas, Mapping) else None
+    return {"summaries": summaries} if isinstance(summaries, Mapping) else {}
+
+
+def _slice_section_data(e5_data: Mapping[str, Any], section_id: str) -> dict[str, Any]:
     """Filtra E5 snapshot p/ payload mínimo da seção (sem PII redundante)."""
     keys = _SECTION_KEYS.get(section_id, ())
-    payload: dict[str, Any] = {}
-    for key in keys:
-        value = e5_data.get(key)
-        if value is not None:
-            payload[key] = value
-    # Anexa narrativas só para fallback determinístico — generator não loga.
-    if isinstance(narrativas, Mapping):
-        payload["_narrativas"] = {"summaries": narrativas.get("summaries", {})}
-    return payload
+    return {key: e5_data[key] for key in keys if e5_data.get(key) is not None}
 
 
-# Mapa de section_id → keys do E5 que entram no prompt. Não exaustivo —
-# caller (Fase 3) pode estender via parâmetro de override; placeholder
-# Fase 2.
+# Mapa de section_id → keys do E5 que entram no prompt. É o payload inteiro:
+# chave fora daqui não vai ao provider (ADR-144 §Emenda 2026-10-09). Não
+# exaustivo — caller (Fase 3) pode estender via parâmetro de override;
+# placeholder Fase 2.
 _SECTION_KEYS: dict[str, tuple[str, ...]] = {
     "S1": ("patrimonio", "reserva_emergencia", "endividamento"),
     "S2": ("fluxo_caixa", "diagnostico_comportamental"),
