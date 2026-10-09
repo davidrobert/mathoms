@@ -99,7 +99,7 @@ benignos.
    adicionando a linha com constraint `>=`.
 2. Rode **Tarefa 1** (regenerar) + **Tarefa 2** (validar).
 3. Commite `.in` **e** `.lock` no mesmo commit (o hook
-   `dev/check_lockfile_sync.py` bloqueia `.in` sem `.lock` correspondente).
+   `dev/check_lockfile_sync.py` reprova pacote do `.in` ausente do `.lock`).
 
 ## Tarefa 4 — Atualizar versão de uma dependência
 
@@ -168,9 +168,17 @@ no log. Se esse warning aparecer mais de ~2×/semana, a key ainda está incomple
 
 Dependabot monitora os `.in` (uma entrada `pip`, em `/`, cobre os dois). Como o
 lock é **combinado cross-dir**, o Dependabot **não regenera o `.lock`
-automaticamente** — ele abre PR subindo o `.in`, e o `dev/check_lockfile_sync.py`
-falha no CI até que alguém rode a Tarefa 1 e adicione o `.lock` regenerado ao
-PR. Esse é o gate intencional: upgrade major nunca entra sem revalidação.
+automaticamente** — ele abre PR subindo o piso no `.in`. Quando o piso novo fica
+acima do pin do lock, o `dev/check_lockfile_sync.py` reprova o Lint até que
+alguém rode a Tarefa 1 e adicione o `.lock` regenerado ao PR. Esse é o gate
+intencional: upgrade nunca entra sem revalidação.
+
+- **Até 2026-10-09 essa frase era falsa.** O hook só conferia presença, e PR de
+  piso passava verde. Em 2026-10-08 a `main` violava 5 pisos já mergeados
+  (conserto no #2046; [[ADR-254]] §Emenda 2026-10-09).
+- **Prefira um PR humano em lote** (pisos + lock regenerado) a empurrar o lock
+  na branch do Dependabot. Branch com commit de outro autor deixa de ser
+  rebaseada por ele, e os PRs dele fecham sozinhos quando o lote mergeia.
 
 ### `ignore` de redis — teto do kombu (2026-10-09)
 
@@ -311,6 +319,22 @@ nasce vermelho até alguém regenerar o `.lock`.
 
 ## Hook de sincronia
 
-`dev/check_lockfile_sync.py` (pre-commit) compara o conjunto de deps diretas
-declaradas nos `.in` com as pinadas no `.lock`. Falha se um `.in` declara um
-pacote ausente do `.lock` — sinal de que o lock está stale.
+`dev/check_lockfile_sync.py` (pre-commit, e no job Lint do CI) confere cada
+requisito declarado nos `.in` contra o pin do `.lock`. Falha, com
+`arquivo:linha`, em dois casos — ambos sinal de lock stale:
+
+- **Pacote ausente do `.lock`.**
+- **Pin fora do especificador do `.in`.** É o caso do piso acima do pin ou do
+  teto abaixo dele.
+
+Detalhes da medição:
+
+- Os nomes casam por PEP 503 (`PyYAML` = `pyyaml`). Os extras são ignorados,
+  porque o lock usa `--strip-extras`.
+- Um requisito com marcador falso para o alvo do lock não é exigido. O alvo é
+  linux/x86_64, com o Python do header do pip-compile.
+- `-r`/`-c`/`-e` e marcador com `python_full_version` falham alto, em vez de
+  serem pulados.
+
+Um diff de `.in` que o lock já satisfaz passa sem regenerar o lock, e isso é
+intencional: o lock continua válido.

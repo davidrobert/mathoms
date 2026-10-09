@@ -17,8 +17,10 @@ updates:
   #
   # Sources são requirements.in (/) + backend/requirements.in. O lock de prod
   # é combinado cross-dir (requirements.lock único) e NÃO é auto-regenerado
-  # pelo Dependabot — ele sobe o constraint no .in e o hook check_lockfile_sync
-  # falha o CI até alguém regenerar o .lock (runbook python_dependencies.md).
+  # pelo Dependabot — ele sobe o piso no .in; quando o piso novo fica acima do
+  # pin do lock, o hook check_lockfile_sync reprova o Lint até alguém regenerar
+  # o .lock (runbook python_dependencies.md). Até 2026-10-09 o hook só conferia
+  # presença e esses PRs passavam verdes (ADR-254 §Emenda 2026-10-09).
   # Gate intencional: upgrade nunca entra sem revalidação amd64.
   #
   # UMA entrada só: a `/` cobre os dois .in (o log do updater roda
