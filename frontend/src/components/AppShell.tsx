@@ -75,13 +75,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { count: pendingCount } = useSuggestionsCount(workspace?.id);
 
   useEffect(() => {
+    // Em falha, o spinner fica até o /login montar: montar `children` deixaria
+    // o `redirect()` de pages de deep-link (/dashboard → /plano) despachar uma
+    // navegação que descarta a do /login, e este shell não recheca a sessão.
     getMe()
-      .then(setUser)
+      .then((currentUser) => {
+        setUser(currentUser);
+        setLoading(false);
+      })
       .catch(() => {
         clearToken();
         router.replace("/login");
-      })
-      .finally(() => setLoading(false));
+      });
   }, [router]);
 
   if (loading) {
