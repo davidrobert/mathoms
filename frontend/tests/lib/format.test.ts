@@ -206,6 +206,30 @@ describe("formatPercent()", () => {
   it("valor > 100 é válido (ex.: cobertura 3,5× = 350%)", () => {
     expect(norm(formatPercent(350))).toBe("350,0%");
   });
+
+  // COPY_GUIDELINES §4.5: o empate arredonda o decimal EXIBIDO para longe do
+  // zero. `toFixed` arredonda o binário exato — 72.85 é 72.8499… em double e
+  // sai "72.8" —, e foi por isso que o relatório deixou de usá-lo: dois cards
+  // arredondavam o mesmo valor de formas diferentes.
+  it("empate arredonda o decimal exibido, não o binário", () => {
+    expect(norm(formatPercent(72.85))).toBe("72,9%");
+    expect(norm(formatPercent(12.35))).toBe("12,4%");
+    expect(norm(formatPercent(1.005, 2))).toBe("1,01%");
+    expect(norm(formatPercent(-0.35))).toBe("-0,4%");
+  });
+
+  it("agrupa milhar", () => {
+    expect(norm(formatPercent(1234.5))).toBe("1.234,5%");
+  });
+
+  // O relatório formata o mesmo valor duas vezes quando o aria-label diz
+  // "12,4 por cento" e o texto visível diz "12,4%" (CascataFiscalCard).
+  it("tem os dígitos de formatNumber com as mesmas casas", () => {
+    for (const valor of [0.35, 12.35, 72.85, 99.95, 1234.5]) {
+      expect(formatPercent(valor)).toBe(`${formatNumber(valor, 1)}%`);
+      expect(formatPercent(valor, 2)).toBe(`${formatNumber(valor, 2)}%`);
+    }
+  });
 });
 
 // ─── formatDelta ─────────────────────────────────────────────────────
@@ -253,6 +277,12 @@ describe("formatNumber()", () => {
 
   it("2 decimais", () => {
     expect(norm(formatNumber(1234.5, 2))).toBe("1.234,50");
+  });
+
+  it("empate arredonda o decimal exibido (meses, score e contribuição no relatório)", () => {
+    expect(norm(formatNumber(0.35, 1))).toBe("0,4");
+    expect(norm(formatNumber(7.35, 1))).toBe("7,4");
+    expect(norm(formatNumber(2.675, 2))).toBe("2,68");
   });
 });
 

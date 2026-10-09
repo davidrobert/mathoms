@@ -13,7 +13,7 @@
 import { AlertTriangle, Info, Lightbulb } from "lucide-react";
 
 import type { CascataTrigger } from "@/lib/api";
-import { formatBRLDecimalString } from "@/lib/format";
+import { formatBRLDecimalString, formatPercent } from "@/lib/format";
 
 export interface SeverityStyle {
   borderClass: string;
@@ -55,7 +55,7 @@ function fmtPct(decimalStr: string | undefined): string {
   if (!decimalStr) return "—";
   const value = Number(decimalStr);
   if (!Number.isFinite(value)) return "—";
-  return `${value.toFixed(1).replace(".", ",")}%`;
+  return formatPercent(value);
 }
 
 function renderT1(p: Record<string, string>): string {
