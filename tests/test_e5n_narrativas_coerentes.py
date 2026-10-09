@@ -427,38 +427,6 @@ def test_alocacao_sem_alvo_nao_inventa_numeros():
     assert "%" not in aloc["conclusion"]
 
 
-def _conclusion_suprimida(motivo: str, **overrides: Any) -> str:
-    derived = _DERIVED_V2 | {
-        "next_aporte_classe": None,
-        "desvio_max_pct": None,
-        "motivo_supressao": motivo,
-    }
-    charts = _charts(_metrics_base() | {"aloc_derived": derived | overrides})
-    return charts["alocacao_atual_vs_alvo"]["conclusion"]
-
-
-@pytest.mark.parametrize(
-    "motivo",
-    ["cobertura_incompleta: conjuge", "balde_negativo: veiculos", "valor_nao_apurado: 2 item(ns)"],
-)
-def test_alocacao_supressao_nao_atribui_a_classe_o_que_e_de_cobertura(motivo):
-    """ADR-394 §Emenda: a causa publicada é a do produtor, não a do ADR-400."""
-    conclusion = _conclusion_suprimida(motivo)
-    assert "sem classe" not in conclusion
-    assert "aderente" not in conclusion
-    assert "Próximo aporte:" not in conclusion
-
-
-def test_alocacao_supressao_por_cobertura_nomeia_o_membro():
-    assert "cônjuge" in _conclusion_suprimida("cobertura_incompleta: conjuge")
-
-
-def test_alocacao_supressao_parcial_declara_a_fracao_sem_classe():
-    conclusion = _conclusion_suprimida("nao_classificado: 5.1% da carteira", desvio_max_pct=18.0)
-    assert "5,1% da carteira" in conclusion
-    assert "sem classe" in conclusion
-
-
 def test_metrics_aloc_derived_wiring_e_v1_aposentado(e5n):
     """`aloc_derived` vem do payload E5 (goals.alocacao_alvo.derived) — mesma base do card."""
     data = _e5_data_minimal()

@@ -85,6 +85,13 @@ const SEVERITY_TEXT_CLASS: Record<SeverityLevel, string> = {
   neutro: "text-[var(--surface-muted-foreground)]",
 };
 
+// Neutro = sem veredito (sem alvo, ou indicação retirada pelo produtor). Tint e
+// não `--surface-muted`: no dark ele é igual a `--surface-card` e a pílula sumia.
+const BADGE_NEUTRO = {
+  bg: "color-mix(in srgb, var(--surface-muted-foreground) 15%, var(--surface-card))",
+  fg: "var(--surface-muted-foreground-on-tint)",
+};
+
 // Texto sobre tint da própria cor — mesmo padrão dos badges em className, só que
 // por `style` inline. Na cor base dava 4,27:1 (alinhado, light), 1,87:1
 // (atencao, light) e 4,44:1 (rebalancear, dark).
@@ -101,14 +108,8 @@ const BADGE_COLOR: Record<BadgeSeverity, { bg: string; fg: string }> = {
     bg: "color-mix(in srgb, var(--semantic-danger) 14%, var(--surface-card))",
     fg: "var(--semantic-loss-on-tint)",
   },
-  sem_alvo: {
-    bg: "var(--surface-muted)",
-    fg: "var(--surface-muted-foreground)",
-  },
-  sem_indicacao: {
-    bg: "var(--surface-muted)",
-    fg: "var(--surface-muted-foreground)",
-  },
+  sem_alvo: BADGE_NEUTRO,
+  sem_indicacao: BADGE_NEUTRO,
 };
 
 export function severityIcon(level: SeverityLevel): JSX.Element {

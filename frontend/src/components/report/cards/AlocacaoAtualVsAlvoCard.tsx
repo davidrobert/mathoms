@@ -16,7 +16,13 @@ import {
   type AlocacaoDerived,
   type BadgeSeverity,
 } from "./alocacaoCardParts";
-import { motivoDaSupressao, rodapeDaSupressao } from "./alocacaoSupressao";
+import {
+  lerCausasDaSupressao,
+  motivoDaSupressao,
+  ressalvaDoTotal,
+  rodapeDaSupressao,
+  type CausaSupressao,
+} from "./alocacaoSupressao";
 
 export type { AlocacaoDerived } from "./alocacaoCardParts";
 
@@ -30,12 +36,25 @@ export interface AlocacaoAtualVsAlvoCardProps {
 
 type CardBadge = { severity: BadgeSeverity; label: string };
 
-function computeBadge(derived: AlocacaoDerived): CardBadge {
+// Sem alvo não há o que suprimir: a precedência é sem alvo > supressão > severidade.
+function lerSupressao(derived: AlocacaoDerived): CausaSupressao[] | null {
+  const motivo = derived.has_alvo ? motivoDaSupressao(derived) : null;
+  return motivo === null ? null : lerCausasDaSupressao(motivo);
+}
+
+// "Aporte não indicado" lê como contraindicação: a família pausaria o aporte,
+// e o que o produtor retira é só a CLASSE dele.
+function computeBadge(derived: AlocacaoDerived, supressao: CausaSupressao[] | null): CardBadge {
   if (!derived.has_alvo) return { severity: "sem_alvo", label: "Sem alvo definido" };
-  if (motivoDaSupressao(derived)) {
-    return { severity: "sem_indicacao", label: "Aporte não indicado" };
-  }
+  if (supressao) return { severity: "sem_indicacao", label: "Sem indicação de classe" };
   return badgePorSeveridade(derived.comparaveis);
+}
+
+// A cor e o ícone da linha são o veredito de magnitude (2/5pp). Com classe
+// incerta ou base incompleta, nem o parcial da [[ADR-400]] os sustenta: o ativo
+// sem classe cai em "Fora do alvo" e sairia em vermelho como erro da família.
+function semVeredito(rows: readonly AlocacaoComparavel[]): AlocacaoComparavel[] {
+  return rows.map((r) => ({ ...r, severity: "neutro" }));
 }
 
 function badgePorSeveridade(rows: readonly AlocacaoComparavel[]): CardBadge {
@@ -89,9 +108,9 @@ function pickFooter(
   derived: AlocacaoDerived,
   badge: BadgeSeverity,
   llmFooter: string | null | undefined,
+  supressao: CausaSupressao[] | null,
 ): string {
-  const motivo = motivoDaSupressao(derived);
-  if (badge === "sem_indicacao" && motivo) return rodapeDaSupressao(motivo);
+  if (supressao) return rodapeDaSupressao(supressao);
   const fromLLM = llmFooter?.trim();
   if (fromLLM) return fromLLM;
   return buildDeterministicFooter(derived, badge);
@@ -102,9 +121,10 @@ interface HeaderProps {
   investivel: number;
   reserva: number;
   badge: { severity: BadgeSeverity; label: string };
+  ressalva: string | null;
 }
 
-function CardHeader({ total, investivel, reserva, badge }: HeaderProps): JSX.Element {
+function CardHeader({ total, investivel, reserva, badge, ressalva }: HeaderProps): JSX.Element {
   const showSplit = reserva > 0;
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -130,6 +150,9 @@ function CardHeader({ total, investivel, reserva, badge }: HeaderProps): JSX.Ele
               className="text-[var(--surface-foreground)]"
             />
           </p>
+        )}
+        {ressalva && (
+          <p className="mt-1 text-xs text-[var(--surface-muted-foreground)]">{ressalva}</p>
         )}
       </div>
       <Badge badge={badge} />
@@ -194,12 +217,14 @@ export function AlocacaoAtualVsAlvoCard({
   if (total <= 0) return null;
   // fora_alvo só aparece quando tem valor (as 4 classes de investimento
   // sempre exibem, mesmo a 0%); demais comparáveis vêm já ordenadas.
-  const rows = derived.comparaveis.filter(
+  const visiveis = derived.comparaveis.filter(
     (r) => r.classe !== "fora_alvo" || r.valor_brl > 0,
   );
-  if (rows.length === 0 && reserva <= 0) return null;
-  const badge = computeBadge(derived);
-  const footer = pickFooter(derived, badge.severity, llmFooter);
+  if (visiveis.length === 0 && reserva <= 0) return null;
+  const supressao = lerSupressao(derived);
+  const rows = supressao ? semVeredito(visiveis) : visiveis;
+  const badge = computeBadge(derived, supressao);
+  const footer = pickFooter(derived, badge.severity, llmFooter, supressao);
   const showFootnote = rows.some((r) => r.classe === "fora_alvo");
   return (
     <ReportCard
@@ -213,6 +238,7 @@ export function AlocacaoAtualVsAlvoCard({
         investivel={derived.carteira_liquida_brl}
         reserva={reserva}
         badge={badge}
+        ressalva={supressao ? ressalvaDoTotal(supressao) : null}
       />
       <BulletList rows={rows} />
       <DesktopTable rows={rows} hasAlvo={derived.has_alvo} />

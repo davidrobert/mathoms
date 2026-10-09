@@ -132,6 +132,7 @@ NAMED_PAIRS = [
     _par_do_badge_de_alocacao("semantic-gain-on-tint", "semantic-success", 12),
     _par_do_badge_de_alocacao("semantic-alert-on-tint", "semantic-warning", 14),
     _par_do_badge_de_alocacao("semantic-loss-on-tint", "semantic-danger", 14),
+    _par_do_badge_de_alocacao("surface-muted-foreground-on-tint", "surface-muted-foreground", 15),
     # Pai tintado + `<p>` filho, achados no ataque da A40.l33: a linha do `<div>`
     # não tem `text-[…]` e a linha do `<p>` não tem tint, então nenhuma das duas
     # sozinha vira par. O substrato aqui é declarado (`var(--surface-card)`),

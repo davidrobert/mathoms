@@ -8,24 +8,14 @@ Não recalcula desvio; apenas narra. Labels em paridade com
 
 from __future__ import annotations
 
-import re
 from typing import Any, Mapping
 
+from pipeline.domain.services.narrativas.alocacao_supressao import frase_da_supressao
 from pipeline.domain.services.narrativas.format_helpers import (
     fmt_currency,
     fmt_num,
     fmt_percent,
 )
-
-# Frases em paridade literal com frontend/src/components/report/cards/alocacaoSupressao.ts
-# (tests/test_alocacao_supressao_copy_parity.py): o card prefere este texto ao seu.
-_MEMBRO_DA_COBERTURA: dict[str, str] = {"titular": "do titular", "conjuge": "do cônjuge"}
-_CAUSA_POR_SLUG: dict[str, str] = {
-    "balde_negativo": "há bem com valor negativo no patrimônio",
-    "valor_nao_apurado": "há bem sem valor apurado no patrimônio",
-}
-_CAUSA_DESCONHECIDA = "parte do patrimônio está sem dado confiável"
-_PCT_NAO_CLASSIFICADO = re.compile(r"^(\d+(?:\.\d+)?)%")
 
 _ALOC_CLASSE_LABELS: dict[str, str] = {
     "renda_fixa": "Renda Fixa",
@@ -50,43 +40,6 @@ def _aloc_classe_label(classe: str) -> str:
     return _ALOC_CLASSE_LABELS.get(classe, classe)
 
 
-def _juntar_com_e(partes: list[str]) -> str:
-    if len(partes) <= 1:
-        return "".join(partes)
-    return f"{', '.join(partes[:-1])} e {partes[-1]}"
-
-
-def _causa_cobertura(detalhe: str) -> str:
-    membros = [m.strip() for m in detalhe.split(",") if m.strip()]
-    rotulos = [_MEMBRO_DA_COBERTURA.get(m, "de um membro da família") for m in membros]
-    if not rotulos:
-        return _CAUSA_DESCONHECIDA
-    return f"os investimentos {_juntar_com_e(list(dict.fromkeys(rotulos)))} não foram apurados"
-
-
-def _causa_nao_classificado(detalhe: str) -> str:
-    pct = _PCT_NAO_CLASSIFICADO.match(detalhe.strip())
-    if not pct:
-        return "parte da carteira está sem classe definida"
-    return f"{fmt_percent(float(pct.group(1)))} da carteira está sem classe definida"
-
-
-def _causa_da_supressao(parte: str) -> str:
-    slug, _, detalhe = (p.strip() for p in parte.partition(":"))
-    if slug == "cobertura_incompleta":
-        return _causa_cobertura(detalhe)
-    if slug == "nao_classificado":
-        return _causa_nao_classificado(detalhe)
-    return _CAUSA_POR_SLUG.get(slug, _CAUSA_DESCONHECIDA)
-
-
-def _frase_da_supressao(motivo: str) -> str:
-    """`motivo_supressao` é de máquina (`<slug>: <detalhe>`, unidos por "; ")."""
-    causas = [_causa_da_supressao(p) for p in motivo.split(";") if p.strip()]
-    porque = _juntar_com_e(list(dict.fromkeys(causas))) or _CAUSA_DESCONHECIDA
-    return f"Próximo aporte não indicado: {porque}."
-
-
 def _aloc_partes_comparaveis(comparaveis: list[dict[str, Any]]) -> list[str]:
     """Uma parte "Classe atual%→alvo%" por linha da tabela (mesma ordem do card)."""
     partes: list[str] = []
@@ -101,32 +54,33 @@ def _aloc_partes_comparaveis(comparaveis: list[dict[str, Any]]) -> list[str]:
     return partes
 
 
-def _aloc_frase_aporte(derived: Mapping[str, Any], desvio: Any) -> str | None:
+def _aloc_prescricao(derived: Mapping[str, Any], M: Mapping[str, Any]) -> list[str]:
+    """Maior desvio, classe do próximo aporte e modo — só com a indicação emitida."""
+    frases: list[str] = []
+    desvio = derived.get("desvio_max_pct")
+    if desvio is not None:
+        frases.append(f"Maior desvio: {fmt_num(desvio)} pp.")
+    next_classe = derived.get("next_aporte_classe")
+    if next_classe:
+        frases.append(f"Próximo aporte: {_aloc_classe_label(str(next_classe))}.")
+    elif desvio is not None:
+        frases.append("Carteira aderente ao alvo.")
+    modo = str(M.get("aloc_rebalanceamento") or "").replace("_", " ")
+    if modo:
+        frases.append(f"Rebalanceamento {modo}.")
+    return frases
+
+
+def _aloc_conclusion(partes: list[str], derived: Mapping[str, Any], M: Mapping[str, Any]) -> str:
     # `next_aporte_classe` vazio tem DUAS causas e elas dizem o oposto: carteira
     # alinhada, ou prescrição suprimida por ignorância ([[ADR-400]] §D6). Ler as
     # duas como "aderente" publica elogio sobre carteira desalinhada — medido em
     # [[A40.l82]]: "Maior desvio: 30,3 pp. Carteira aderente ao alvo."
+    # Suprimida, cai também o maior desvio (a incerteza de classe o alcança) e o
+    # modo de rebalanceamento, que ao lado de "não indicamos" lê como ordem.
     motivo = derived.get("motivo_supressao")
-    if motivo:
-        return _frase_da_supressao(str(motivo))
-    next_classe = derived.get("next_aporte_classe")
-    if next_classe:
-        return f"Próximo aporte: {_aloc_classe_label(str(next_classe))}."
-    return "Carteira aderente ao alvo." if desvio is not None else None
-
-
-def _aloc_conclusion(partes: list[str], derived: Mapping[str, Any], M: Mapping[str, Any]) -> str:
-    frases = [", ".join(partes) + "."]
-    desvio = derived.get("desvio_max_pct")
-    if desvio is not None:
-        frases.append(f"Maior desvio: {fmt_num(desvio)} pp.")
-    aporte = _aloc_frase_aporte(derived, desvio)
-    if aporte:
-        frases.append(aporte)
-    modo = str(M.get("aloc_rebalanceamento") or "").replace("_", " ")
-    if modo and not derived.get("motivo_supressao"):
-        frases.append(f"Rebalanceamento {modo}.")
-    return " ".join(frases)
+    resto = [frase_da_supressao(str(motivo))] if motivo else _aloc_prescricao(derived, M)
+    return " ".join([", ".join(partes) + ".", *resto])
 
 
 def narrate_alocacao_atual_vs_alvo(M: Mapping[str, Any]) -> dict[str, str]:
