@@ -79,13 +79,14 @@ _FLUXO_REAL_CONJUGE = {
 def _build_real_cenarios_conjuge_config():
     """Constrói CenariosConjugeConfig com defaults da ADR-167 (titular david / cônjuge mariana)."""
     from datetime import date
+    from decimal import Decimal
 
     from pipeline.domain.services.cenarios_conjuge_analyzer import CenariosConjugeConfig
 
     return CenariosConjugeConfig(
         titular_dob=date(1985, 6, 15),
         retorno_real_anual_pct=6.0,
-        aporte_base=15_000,
+        aporte_base=Decimal("15000"),
         fator_reduzido=0.66,
         titular_key="david",
         conjuge_key="mariana",
