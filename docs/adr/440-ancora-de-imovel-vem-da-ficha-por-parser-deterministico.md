@@ -2,7 +2,7 @@
 id: ADR-440
 type: adr
 title: "A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade"
-status: Proposto
+status: Decidido
 phase: A40.l121
 date: "2026-10-08"
 relates_to:
@@ -26,7 +26,7 @@ aliases:
   - "parser da ficha de imóvel"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
 ---
 
@@ -106,31 +106,36 @@ classificação — do vendido.
 
 ### D6 — Match read-only com veto por unidade
 
-O port ganha `match(...)`, a mesma cascata de `match_or_create` sem o insert; `match_or_create`
-passa a ser `match` + insert. O enricher avalia todas as chaves do item e veta a candidata quando
+O port ganha `match(...)` — a cascata de `match_or_create` sem o insert — e `create(...)` — o
+insert sem a cascata —, e `match_or_create` passa a ser os dois. O enricher avalia todas as chaves do item e veta a candidata quando
 (a) a unidade diverge com valor nos dois lados — matrícula > inscrição > complemento, o lado da row
 lido do próprio `mat:`/`iptu:` ou da `descricao_sample` pelos mesmos extractors — ou (b) os
 sub-códigos são específicos e diferentes. Entre as admissíveis, a provada por unidade vence a só
 de endereço; no empate, a mais antiga, que é o first-write-wins de hoje. Perdedora que nenhuma outra
-ficha reivindica ganha razão de split com os UUIDs. Supersessão fica no sweep ([[ADR-386]]).
+ficha reivindica ganha `domain.property_identity_split`, com os UUIDs. Supersessão fica no
+sweep ([[ADR-386]]).
 
 ### D7 — Mint em duas fases, só com posse provável
 
 O enricher planeja o run inteiro antes de cunhar, porque `_insert_row` commita na hora. Se várias
 fichas querem a mesma row, fica a que prova posse (discriminador igual ou `descricao_sample`
 byte-igual); as demais recusam o attach e são cunhadas em `mat:` > `iptu:` — em via+nº
-recolidiriam a cada run. Sem posse provável, ninguém anexa nem cunha: `needs_review`. Imóvel novo
+recolidiriam a cada run (`domain.property_identity_posse_recusada`). Sem posse provável, ninguém
+anexa nem cunha: `needs_review` com `domain.property_identity_sem_posse`. Imóvel novo
 cunha em via+nº quando ela é unívoca no run (apólice e informe de aluguel leem o canonical como
-endereço), e em unidade nos demais casos. Não há flag de mint: mint commitado não se desfaz por flag
+endereço), e em unidade nos demais casos. O mint usa `create`, nunca `match_or_create`: re-rodar
+a cascata depois do veto reencontraria, pelo loose que ignora o sub-código, a row vetada — medido
+no teste da casa no endereço do apartamento. Um mapa local ao run faz o mesmo imóvel em dois anos
+cair numa row só. Não há flag de mint: mint commitado não se desfaz por flag
 nem por revert. A proteção é pré-merge — a medição de alcance read-only — e a normalização do
 `codigo_rfb` (`VARCHAR(4)`) é pré-condição.
 
 ## Consequências
 
 - O dogfood volta a resolver residência e imóveis geradores por identidade, sem re-extração.
-- [[ADR-225]] §1 ganha emenda datada (ordem de match ≠ ordem de mint; "o primeiro hit elege um
-  nível" deixa de valer para item com âncora) e a [[ADR-265]] perde o veto de unidade para o
-  enricher. As duas emendas vão no PR que vira esta ADR `Decidido`.
+- [[ADR-225]] §Emenda 2026-10-09 (ordem de match ≠ ordem de mint; "o primeiro hit elege um
+  nível" deixa de valer para item com âncora) e [[ADR-265]] §Emenda 2026-10-09 (o veto de
+  unidade do item ancorado é do enricher).
 - Acoplamento ao layout do texto extraído: ficha não lida falha fechado — sem âncora, chave de
   hoje — e conta em razão, então a cobertura vira sinal.
 - Matrícula e inscrição deixam de ser fallback e viram candidatas de todo item com âncora: a
@@ -166,6 +171,12 @@ nem por revert. A proteção é pré-merge — a medição de alcance read-only 
 - PR1 — parser sobre texto sintético PII-zero no layout medido; a saída real do `E1.5a` valida
   contra o schema; `golden_diff` do dogfood igual a zero; o segundo run regrava zero rows.
 - PR2 — `backend/tests/integration/test_property_override_sticky.py`, declarado pela [[ADR-215]] e
-  inexistente até aqui; contrafactuais (sem âncora o colapso volta, sem veto dois apartamentos
-  fundem, cada nível sozinho); medição read-only no dogfood: 6 de 6 rows com override, Δrows = 0,
-  zero conflito.
+  inexistente até aqui: a classificação sobrevive ao re-upload na era da discriminação literal.
+  Contrafactuais que reprovam: sem âncora o colapso volta; sem veto de unidade dois apartamentos do
+  mesmo prédio fundem; sem veto de sub-código a casa herda a row do apartamento; sem a remoção da
+  âncora o gate do grão do item acusa a chave. Cada nível sozinho re-anexa
+  (`tests/unit/pipeline/test_property_identity_ancorada.py`), e as chaves batem byte a byte com
+  `canonicalize` (`tests/unit/pipeline/test_ancora_imovel_identidade.py`).
+- Medido read-only no DB do dogfood em 2026-10-09, com o enricher novo e o parser do PR1 sobre os
+  artefatos reais: com âncora, 6 de 6 rows com override re-alcançadas nas eras `1.3.0` e `1.4.1`,
+  zero mint e zero conflito; sem âncora, 1 de 6 na `1.4.1` (o colapso do U5) e 5 de 6 na `1.3.0`.

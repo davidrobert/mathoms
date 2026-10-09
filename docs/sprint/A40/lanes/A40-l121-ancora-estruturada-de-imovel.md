@@ -136,12 +136,24 @@ O desenho fechado está na [[ADR-440]] (D1–D7).
 |---|---|---|
 | docs | esta lane + [[ADR-440]] `Proposto` | — |
 | PR0 | `ancora_imovel` + `ancora_versao` em `e15_baseline_extract.schema.json`; teste de que o schema aceita e recusa as formas certas | docs |
-| PR1 | parser + join + integração no `E1.5a` (antes do early-return do incremental) + razões; `golden_diff` do dogfood igual a zero | PR0 |
+| PR1 · ✅ #2093 | parser + join + integração no `E1.5a` (antes do early-return do incremental) + razões; `golden_diff` do dogfood igual a zero | PR0 |
 | PR2 | `match()` no port e nos adapters; enricher em duas fases com veto; repasse em `consolidate_from_itens` + remoção da âncora após a identidade; teste sticky; medição no dogfood; [[ADR-440]] vira `Decidido` com as emendas datadas da [[ADR-225]] e da [[ADR-265]] | PR1 · davidrobert/mathoms#2062 (normalização do `codigo_rfb`) |
 
 O PR2 toca o mesmo trecho do enricher que o #2062 (`_lookup_or_mark`) e monta cada chave pelo
-sub-código normalizado dele: o `PropertyLookupKey` passa a recusar grafia crua. O #2062 espera uma
-consulta de colisão em produção pelo dono, então o PR2 não tem data.
+sub-código normalizado dele: o `PropertyLookupKey` passa a recusar grafia crua.
+
+### O que a implementação do PR2 mediu
+
+| | era `1.4.1` (U5) | era `1.3.0` |
+|---|---|---|
+| sem âncora: itens com `property_id` / rows com override re-alcançadas | 2 de 10 / **1 de 6** | 8 de 10 / 5 de 6 |
+| com âncora: itens com `property_id` / rows com override re-alcançadas | **10 de 10 / 6 de 6** | **10 de 10 / 6 de 6** |
+| com âncora: mints / conflitos de veto | 0 / 0 | 0 / 0 |
+
+Medido read-only no DB do dogfood (conexão `mode=ro`, `create` só contado), com o enricher do PR2
+e o parser do PR1 sobre os artefatos reais. Um defeito do próprio desenho apareceu no teste da casa
+no endereço do apartamento: depois do veto, cunhar por `match_or_create` re-rodava a cascata, e o
+loose devolvia a row vetada. O port ganhou `create()`, e a [[ADR-440]] D7 registra o porquê.
 
 ## Fora do escopo
 

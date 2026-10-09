@@ -6,6 +6,7 @@ status: Decidido
 phase: A17.canonical-fuzzy
 date: "2026-05-23"
 decided_at: "2026-05-23"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-215]]"
   - "[[ADR-225]]"
@@ -28,7 +29,21 @@ tags:
 
 # ADR-265 — Fuzzy lookup de PropertyIdentity por proximidade numérica
 
+> ⚠️ **Emendada em 2026-10-09.** Para item com âncora da ficha ([[ADR-440]]), o veto de
+> unidade vizinha sai do complemento da `descricao_sample` e passa ao enricher, com
+> matrícula > inscrição > complemento. Item sem âncora segue esta ADR. Ver §Emenda 2026-10-09.
+
 **Status:** Decidido · **Data:** 2026-05-23 · **Decidida:** 2026-05-23 ([PR #471](https://github.com/davidrobert/mathoms/pull/471), commit `224cf2bf`) · **Relaciona** [[ADR-215]] (PropertyIdentity), [[ADR-225]] (canonicalize cascade), [[ADR-239]] (comprovantes de bem), [[ADR-246]] (dedup cross-IRPF).
+
+## Emenda 2026-10-09 — para item com âncora, o veto de unidade é do enricher
+
+A §Decisão compara o complemento extraído da `descricao_sample` para não casar unidades
+vizinhas do mesmo prédio. O prompt `E1.5a` `1.4.1` tirou o complemento da descrição em 2
+dos 6 itens que o tinham (medido em 2026-10-08), e esse veto deixou de separá-los. A
+[[ADR-440]] D6 move o veto, para o item que traz a âncora da ficha, ao enricher: unidade é
+matrícula > inscrição municipal > complemento, comparada no primeiro nível com valor nos
+dois lados, com o complemento lido do campo da ficha. Para item sem âncora, o fuzzy segue
+como decidido aqui.
 
 ## Contexto
 

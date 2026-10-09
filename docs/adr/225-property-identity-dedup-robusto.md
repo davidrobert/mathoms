@@ -6,7 +6,7 @@ status: Decidido
 phase: A12
 date: "2026-05-19"
 decided_at: "2026-05-19"
-amended_at: ["2026-08-11", "2026-10-08"]
+amended_at: ["2026-08-11", "2026-10-08", "2026-10-09"]
 relates_to:
   - "[[ADR-215]]"
   - "[[ADR-157]]"
@@ -45,6 +45,10 @@ tags:
 > obsoleta: `_match_identity` não existe mais, e faltavam os três alimentadores do
 > dedup. A §Alternativas (B) segue de pé, mas a garantia que ela atribui à §2 não:
 > o loose funde apartamento e casa novos no mesmo endereço. Ver §Emenda 2026-10-08.
+>
+> ⚠️ **Emendada em 2026-10-09.** Para item com âncora da ficha ([[ADR-440]]), a §1 deixa
+> de eleger um nível só: o enricher avalia uma chave por nível e cunha na ordem da §1 — a
+> ordem de match e a de mint se separam. Item sem âncora segue a §1. Ver §Emenda 2026-10-09.
 
 > ADR longa (>150 linhas) por design: estende [[ADR-215]] §3 (matching cross-IRPFs) sem reescrever §1/§2/§4/§5/§6, mas a coordenação canonicalizer ↔ resolver ↔ backfill script ↔ invariante E5 exige um único documento de referência.
 
@@ -123,6 +127,24 @@ unidades do mesmo prédio, porque o complemento não entra no canonical (sondado
 1 row nos dois casos). Separá-los pede âncora estruturada (matrícula, inscrição) — escopo
 da [[A40.l121]] ([[ADR-440]], chave por nível e veto por unidade), que monta suas chaves com
 `subcodigo_imovel_rfb`.
+
+## Emenda 2026-10-09 — com âncora da ficha, a ordem de match deixa de ser a de mint
+
+A §1 elege **um** nível por descrição, e a row guarda só esse. O prompt `E1.5a` `1.4.1`
+tirou da descrição os campos da ficha que a cascata lia, e a [[ADR-440]] passou a lê-los
+por parser, direto da ficha. Para o item que traz essa âncora:
+
+1. **Match:** uma chave por nível — via+nº, `mat:`, `iptu:` —, todas avaliadas, com veto
+   por unidade e por sub-código específico ([[ADR-440]] D6). "O primeiro hit elege um
+   nível" deixa de valer: das 6 rows com classificação do usuário no dogfood, uma foi
+   cunhada em `mat:`, e só via+nº a deixaria órfã (medido em 2026-10-08).
+2. **Mint:** segue a ordem desta §1 (via+nº primeiro) quando via+nº é unívoca no run, e
+   cai para a unidade (`mat:` > `iptu:`) quando duas unidades dividem o endereço
+   ([[ADR-440]] D7).
+3. **Item sem âncora:** a §1 vale como está.
+
+Os formatos gravados não mudam: a chave da âncora sai de `canonical_do_nivel`, o mesmo
+degrau da cascata, com o mesmo formatador.
 
 ## Contexto
 
