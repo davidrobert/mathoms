@@ -121,7 +121,7 @@ apartamento e casa no mesmo lote. Só preserva quando os dois já existem: imóv
 mesmo canonical cai no loose e herda a identidade do mais antigo, e o strict funde duas
 unidades do mesmo prédio, porque o complemento não entra no canonical (sondado em SQLite,
 1 row nos dois casos). Separá-los pede âncora estruturada (matrícula, inscrição) — escopo
-da lane de âncora estruturada (A40.l121, em curso), que monta suas chaves com
+da [[A40.l121]] ([[ADR-440]], chave por nível e veto por unidade), que monta suas chaves com
 `subcodigo_imovel_rfb`.
 
 ## Contexto
