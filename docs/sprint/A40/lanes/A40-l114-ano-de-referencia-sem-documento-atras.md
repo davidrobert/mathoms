@@ -157,6 +157,10 @@ suficientes, e o que chegou primeiro leva.
 O que **permanece** zero depois de tudo é `patrimonio.residencia` e
 `patrimonio.imoveis_geradores` — a classificação de imóvel, também da [[A40.l113]].
 
+> ⚠️ **2026-10-08:** deixou de ser zero. A [[A40.l113]] fechou (#2063, [[ADR-439]]): os dois
+> baldes saem `null` com veredito quando a classificação não foi apurada, e a causa — a
+> identidade perdida na era `1.4.1` do prompt E1.5a — está na [[A40.l121]].
+
 ### O que esta lane entrega depois disso, e é dela
 
 A tabela acima descreve o **defeito**, não o crédito. Com a [[ADR-433]] viva, o filtro
