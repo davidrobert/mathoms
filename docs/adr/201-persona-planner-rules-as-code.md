@@ -219,7 +219,7 @@ coluna recebia o hash atual e o artifact guardava o de quando gerou. Agora são 
 construção. O parágrafo final da persona repete o caminho `_meta`; corrige-se na mesma
 edição material que remove o placeholder.
 
-> **Fechado em 2026-10-09** ([#NNNN](https://github.com/davidrobert/mathoms/pull/NNNN)),
+> **Fechado em 2026-10-09** ([#2207](https://github.com/davidrobert/mathoms/pull/2207)),
 > junto da `PROMPT_VERSION` 2.5.1: o placeholder saiu do frontmatter, e o 1º parágrafo do
 > §10 da persona saiu inteiro em vez de reescrito — nada nele servia ao modelo, e
 > reescrevê-lo trocaria uma afirmação de engenharia sem gate (esta errou duas vezes) por

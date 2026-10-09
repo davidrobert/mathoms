@@ -302,7 +302,7 @@ coincide com o bump 2.21.0 do manifest (#2117) se os dois entrarem antes do mesm
   sha256 do system e do user de `_build_prompts`, sobre fixture sintética — o system
   contra `PROMPT_VERSION`, o user contra `(PROMPT_VERSION, manifest.version)`.
 
-  > **Fechado em 2026-10-09** ([#NNNN](https://github.com/davidrobert/mathoms/pull/NNNN)):
+  > **Fechado em 2026-10-09** ([#2207](https://github.com/davidrobert/mathoms/pull/2207)):
   > `tests/test_parecer_prompt_fingerprint.py` fixa, sem LLM, o sha256 do system
   > (`SYSTEM_PROMPT_SHA256`, junto de `PROMPT_VERSION`) e do user por regime de eviction
   > (`user_prompt_sha256` no manifest), sobre fixture congelada que cobre todo path do
