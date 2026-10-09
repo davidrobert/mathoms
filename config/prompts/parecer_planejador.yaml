@@ -24,6 +24,9 @@
 #   - manifest_version registra-se no aggregate PlannerReview (auditoria)
 #   - cache Redis tem manifest_version na chave (bump invalida)
 #   - ADR breaking quando DSL muda; tunning de paths/labels é editorial
+#   - o user prompt renderizado é pinado em `user_prompt_sha256` (fim do arquivo):
+#     byte que muda — por este arquivo ou pelo código que o renderiza — muda o pin, e
+#     editar o pin cobra este bump
 # ==============================================================================
 
 # 1.5 — A26.l1 (ADR-279 §E): catálogo de citação (citation_catalog) injeta as
@@ -248,6 +251,15 @@
 # mesmo corpo (só hints e catálogo mudam). O #2065 (A40.l92) bumpa `_SCHEMA_VERSION` em PR
 # próprio: deploys separados são duas invalidações, e é aceito — acoplar prenderia um P1
 # ao merge de um P0 e deixaria o delta de cada um inatribuível.
+# 2.21.1 — [[ADR-199]] §Emenda 2026-10-09, fecho dos deferimentos: entra
+# `user_prompt_sha256` no fim do arquivo — o sha256 do user prompt que `_build_prompts`
+# monta sobre a fixture sintética congelada, por regime de eviction. Fecha a classe que a
+# nota da 2.21.0 nomeia ("o catálogo compõe o prompt e não entra na chave de cache"):
+# byte que muda pelo distiller, pelo catálogo ou pelo formatter muda o pin, e editar o
+# pin cobra este bump. Junto, `persona_hash` sai de `persona.required_frontmatter_fields`
+# (a persona perdeu o placeholder, e nenhum código lê a lista) e o banner do bloco
+# `persona` para de afirmar leitor. PATCH (ADR-233): nada do que o modelo recebe muda.
+# Sai no mesmo PR que `PROMPT_VERSION` 2.5.1 — uma invalidação da frota, não duas.
 # 2.22.0 — A40.l124 ([[ADR-341]] §Emenda 2026-10-09): o corpo volta a caber inteiro. Medido
 # com o manifest de cada run sobre o E5 do próprio run, a demanda passou o cap de 16384 em
 # 2026-08-26 (evictava `investimentos`) e levou `independencia_financeira` em 2026-08-29 —
@@ -265,7 +277,8 @@ output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
 # ------------------------------------------------------------------------------
-# Persona (ADR-201) — orchestrator lê, hash registrado no aggregate
+# Persona (ADR-201) — declaração sem leitor em runtime: `load_persona` lê
+# `_PERSONA_PATH` (parecer_manifest.py) e hasheia o arquivo inteiro, frontmatter incluso
 # ------------------------------------------------------------------------------
 persona:
   path: "config/agents/planner_persona.md"
@@ -273,7 +286,6 @@ persona:
     - id
     - version
     - methodology_anchors
-    - persona_hash
 
 # ------------------------------------------------------------------------------
 # Hints globais (registro consultivo) — aplicáveis a todas as seções
@@ -1019,3 +1031,20 @@ gating:
     teaser_riscos_oculto: true  # CTA "+14 riscos no Premium"
   premium:
     all: true
+
+# ==============================================================================
+# PIN DO USER PROMPT RENDERIZADO ([[ADR-199]] §Emenda 2026-10-09)
+# ==============================================================================
+# Metadado de TESTE, sem leitor em runtime (`load_manifest` ignora a chave). Lido por
+# tests/test_parecer_prompt_fingerprint.py: sha256 do user prompt que `_build_prompts`
+# monta sobre tests/fixtures/parecer_prompt_fingerprint/e5_sintetico.json, por regime de
+# eviction (cap deste manifest; 6144; 344). O distiller, o catálogo e o formatter moldam
+# o prompt sem passar por versão nenhuma: mudou o byte, o teste pede o pin novo, e editar
+# este arquivo cobra bump de `version:` (gate W2-T05). Refactor que não muda byte não
+# toca aqui. Par: `SYSTEM_PROMPT_SHA256` em pipeline/llm/prompts/parecer_planejador.py,
+# ao lado de `PROMPT_VERSION`.
+# ==============================================================================
+user_prompt_sha256:
+  sem_evicao: "f10e8dcf2c54dda160625f30e23501555e0ec55fff750d0ef379a4642c25c755"
+  evicao: "9d681f9141f66eb4244988a4e0dab249de3814183f3aca7984c87f510e1eee40"
+  corte_duro: "a494dc868e1525f7a607434f8a47e032890596b56df70551c03a2730af9fde5c"

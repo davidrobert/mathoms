@@ -886,7 +886,7 @@
           "enum": [
             "carteira_produtiva_fixa"
           ],
-          "description": "A40.l80 §Completude ([[ADR-412]]): base do denominador da concentração, NOMEADA ao lado do número. É `carteira_produtiva_fixa` (investível financeiro + cat_2 COMPLETO, toggle-independente), NÃO `carteira_produtiva_familia` — aquela soma `cat2_efetivo`, que conta só imóveis geradores e zera com o toggle off. Medido no dogfood: 73.000.000 contra 13.000.000, 5,6%. O gate `test_cobertura_de_base` recomputa numerador ÷ base declarada em cents."
+          "description": "A40.l80 §Completude ([[ADR-412]]): base do denominador da concentração, NOMEADA ao lado do número. É `carteira_produtiva_fixa` (investível financeiro + cat_2 COMPLETO, toggle-independente), NÃO `carteira_produtiva_familia` — aquela soma `cat2_efetivo`, que conta só imóveis geradores e zera com o toggle off. Medido no dogfood: 5,6× a `carteira_produtiva_familia` (`patrimonio.bases.*.valor_brl`). O gate `test_cobertura_de_base` recomputa numerador ÷ base declarada em cents."
         },
         "numerador_concentracao_imobiliaria": {
           "type": "string",
