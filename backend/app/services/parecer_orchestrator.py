@@ -18,7 +18,11 @@ from backend.app.core.llm_metrics import get_llm_metrics_emitter
 from backend.app.models.planner_review import ParecerRetentionReason
 from backend.app.services.parecer_antagonismo import rebaixa_sugestoes_antagonicas
 from backend.app.services.parecer_context_sanitizer import sanitize_e5_for_parecer
-from backend.app.services.parecer_distiller import citation_catalog_for, distill_exec_context
+from backend.app.services.parecer_distiller import (
+    citation_catalog_for,
+    distill_exec_context,
+    distill_exec_context_with_budget,
+)
 from backend.app.services.parecer_evidencia import (
     EVIDENCIA_VERIFICATION_VERSION,
     EvidenciaVerification,
@@ -26,6 +30,7 @@ from backend.app.services.parecer_evidencia import (
     resolve_evidencia_mode,
     verify_evidencia,
 )
+from backend.app.services.parecer_exec_context_budget import ExecContextBudget
 from backend.app.services.parecer_finalization import (
     compute_suggestion_dedup_key,
     empty_needs_review_output,
@@ -125,6 +130,10 @@ class ParecerGenerationResult:
     # p/ PlannerFieldRequest) + telemetria (rebaixamento de confiança, 3-vias).
     field_request_audit: Optional[list[dict]] = None
     pos_llm_guardrails: Optional[dict] = None
+    # ADR-341 §Emenda 2026-10-09: orçamento do corpo que o modelo recebeu. `None` é
+    # DESCONHECIDO — nenhum corpo montado, ou envelope de cache anterior à telemetria —,
+    # nunca "nada evictado".
+    exec_context: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if self.tool_trace is None:
@@ -207,6 +216,19 @@ class _CachedParecer:
     evidencia_summary: Optional[dict]
     evidencia_entries: Optional[list[dict]]
     retention_reason: Optional[str]
+    # Guardado, nunca recomputado no hit: o código do distiller não compõe a chave, e
+    # recomputar descreveria por até 7 dias um corpo que o modelo nunca viu. Entrada
+    # gravada antes da telemetria lê `None` (desconhecido) — sem bump de envelope.
+    exec_context: Optional[dict] = None
+
+    def result_fields(self) -> dict[str, Any]:
+        """Campos do resultado que o hit repopula a partir do envelope."""
+        return {
+            "evidencia_summary": self.evidencia_summary,
+            "evidencia_entries": self.evidencia_entries,
+            "retention_reason": self.retention_reason,
+            "exec_context": self.exec_context,
+        }
 
 
 # Fail-open é simetria load-bearing com o write: LLMCacheBackend não tem `delete` e o
@@ -224,6 +246,7 @@ def _try_cache(cache: Any, key: str) -> Optional[_CachedParecer]:
             evidencia_summary=envelope.get("evidencia_summary"),
             evidencia_entries=envelope.get("evidencia_entries"),
             retention_reason=envelope.get("retention_reason"),
+            exec_context=envelope.get("exec_context"),
         )
     except Exception as exc:  # noqa: BLE001 — leitura de cache é best-effort
         logger.warning(
@@ -241,6 +264,7 @@ def _write_cache(cache: Any, key: str, cached: _CachedParecer, ttl_s: int) -> No
             "evidencia_summary": cached.evidencia_summary,
             "evidencia_entries": cached.evidencia_entries,
             "retention_reason": cached.retention_reason,
+            "exec_context": cached.exec_context,
         }
         cache.set(key, json.dumps(payload, ensure_ascii=False), ttl_s=ttl_s)
     except Exception as exc:  # noqa: BLE001 — cache write é best-effort
@@ -422,14 +446,7 @@ def _hit_result(
     base = _base_result(
         output=cached.output, persona_hash=persona_hash, manifest=manifest, config=config
     )
-    return replace(
-        base,
-        cache_hit=True,
-        latency_ms=elapsed_ms,
-        evidencia_summary=cached.evidencia_summary,
-        evidencia_entries=cached.evidencia_entries,
-        retention_reason=cached.retention_reason,
-    )
+    return replace(base, cache_hit=True, latency_ms=elapsed_ms, **cached.result_fields())
 
 
 def _success_result(
@@ -517,17 +534,25 @@ def generate_parecer(
             elapsed_ms=_elapsed_ms(start),
             metrics=_NO_LLM_CALL,
         )
-    return _generate_with_llm(
+    system_prompt, user_prompt, budget = _build_prompts_with_budget(
+        manifest=manifest, persona_body=persona_body, e5_data=e5_data
+    )
+    _log_exec_context(budget, config)
+    # Anexado AQUI, e não em cada `return` do caminho de geração: são cinco desfechos, e o
+    # próximo que alguém escrever herda a telemetria por construção, não por memória.
+    result = _generate_with_llm(
         llm=llm,
         cache=cache,
         cache_key=key,
         manifest=manifest,
-        persona_body=persona_body,
+        prompts=(system_prompt, user_prompt),
+        exec_context=budget.as_dict(),
         persona_hash=persona_hash,
         e5_data=e5_data,
         config=config,
         start=start,
     )
+    return replace(result, exec_context=budget.as_dict())
 
 
 def _call_llm_safe(
@@ -617,14 +642,37 @@ def _emit_riscos_truncados(output: ParecerPlanejadorOutput) -> None:
         )
 
 
+def _build_prompts_with_budget(
+    *, manifest: ManifestData, persona_body: str, e5_data: Mapping[str, Any]
+) -> tuple[str, str, ExecContextBudget]:
+    """(system_prompt, user_prompt) + o orçamento do corpo que vai neles."""
+    exec_context, budget = distill_exec_context_with_budget(manifest, e5_data)
+    return (
+        SYSTEM_PROMPT_TEMPLATE.format(persona_body=persona_body),
+        USER_PROMPT_TEMPLATE.format(exec_context=exec_context),
+        budget,
+    )
+
+
 def _build_prompts(
     *, manifest: ManifestData, persona_body: str, e5_data: Mapping[str, Any]
 ) -> tuple[str, str]:
     """Constrói (system_prompt, user_prompt) via persona + manifest distillado."""
-    exec_context = distill_exec_context(manifest, e5_data)
-    return (
-        SYSTEM_PROMPT_TEMPLATE.format(persona_body=persona_body),
-        USER_PROMPT_TEMPLATE.format(exec_context=exec_context),
+    system_prompt, user_prompt, _budget = _build_prompts_with_budget(
+        manifest=manifest, persona_body=persona_body, e5_data=e5_data
+    )
+    return system_prompt, user_prompt
+
+
+# Emitido ANTES da chamada: se o LLM falhar, o log ainda diz o que ele ia receber. Só
+# inteiros e ids de seção — o mesmo dict que o stage publica em `output_summary`.
+def _log_exec_context(budget: ExecContextBudget, config: ParecerOrchestratorConfig) -> None:
+    """Evento do corpo enviado — WARNING quando a eviction ou o corte degenerado agiu."""
+    degradado = bool(budget.evicted_section_ids) or budget.hard_cut
+    logger.log(
+        logging.WARNING if degradado else logging.INFO,
+        "parecer_planejador_exec_context",
+        extra={"workspace_id": config.workspace_id, **budget.as_dict()},
     )
 
 
@@ -750,16 +798,15 @@ def _generate_with_llm(
     cache: Any,
     cache_key: str,
     manifest: ManifestData,
-    persona_body: str,
+    prompts: tuple[str, str],
+    exec_context: dict,
     persona_hash: str,
     e5_data: Mapping[str, Any],
     config: ParecerOrchestratorConfig,
     start: float,
 ) -> ParecerGenerationResult:
     """Sub-path quando LLM está disponível — chama, valida sigilo, finaliza, cacheia."""
-    system_prompt, user_prompt = _build_prompts(
-        manifest=manifest, persona_body=persona_body, e5_data=e5_data
-    )
+    system_prompt, user_prompt = prompts
     tools = PlannerDrillDown(
         e5_data=e5_data,
         section_whitelist=manifest.tools_section_whitelist,
@@ -875,6 +922,7 @@ def _generate_with_llm(
             retention_reason=(
                 decision.retention_reason.value if decision.retention_reason else None
             ),
+            exec_context=exec_context,
         ),
         ttl_s=config.cache_ttl_s,
     )

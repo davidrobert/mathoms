@@ -38,6 +38,25 @@ _archive
 .env.*
 !.env.example
 
+# Segredos e legado de config/ (gitignored). Os Dockerfiles fazem `COPY config/`,
+# então um build a partir de checkout local que os tenha os grava numa layer da
+# imagem e no cache do buildx. Espelho dos `config/*` de FORBIDDEN_FILES em
+# dev/check_forbidden_paths.py — tests/test_dockerignore_config_secrets.py falha
+# se divergirem. Não exclua `config` inteiro: o build precisa do resto.
+config/passwords.txt
+config/internal_operators.yaml
+config/decisions.md
+config/definitions.md
+config/regras_composicao_patrimonial.md
+config/source_hierarchy.md
+config/milhas.md
+config/categorization.json
+config/family_members.json
+config/institutions.json
+config/parametros_fiscais.json
+config/taxas.json
+config/goals.json
+
 # Worktrees Claude
 .claude
 

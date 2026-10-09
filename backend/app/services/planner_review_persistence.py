@@ -214,18 +214,30 @@ def _injected_paths(content_json: dict) -> set[str]:
     return {p for p in paths if isinstance(p, str)}
 
 
+# Reason de pedido mantido no array: injetado (origem) > audit (classificação) > llm_declared.
+# `out_of_catalog` audita SEM remover (ADR-206 §Emenda 2026-08-25): o path vem no array e no
+# audit, e o dedup por path de `_persist_field_requests` fica com o array — sem este mapa o
+# reason do audit nunca chegava à tabela. Path injetado ignora o audit, que classifica pedido
+# do modelo; ali o pedido é do guardrail (FP-4 D3-A).
+def _kept_reasons(content_json: dict, audit: list) -> dict[str, str]:
+    """``field_path → reason`` que substitui ``llm_declared`` num pedido mantido no array."""
+    rows = (_field_request_entry(entry, "llm_declared") for entry in audit)
+    reasons = {row["field_path"]: row["reason"] for row in rows if row}
+    reasons.update(dict.fromkeys(_injected_paths(content_json), "guardrail_injected"))
+    return reasons
+
+
 def _iter_field_requests(content_json: dict):
     """Yields ``{field_path, motivo, reason}`` — array ``campos_faltantes_pediria_se_
-    iterasse`` (mantidos pelo filtro 3-vias → llm_declared, salvo os injetados pelo
-    guardrail → guardrail_injected) + ``_meta.field_request_audit`` (removidos —
-    spurious/wrong_path, A28.l11)."""
-    injetados = _injected_paths(content_json)
+    iterasse`` (reason por ``_kept_reasons``) + ``_meta.field_request_audit``
+    (spurious/wrong_path removidos do array pelo filtro, A28.l11; out_of_catalog mantido)."""
+    audit = (content_json.get("_meta") or {}).get("field_request_audit") or []
+    kept_reasons = _kept_reasons(content_json, audit)
     for entry in content_json.get("campos_faltantes_pediria_se_iterasse") or []:
-        default = "guardrail_injected" if entry.get("field_path") in injetados else "llm_declared"
+        default = kept_reasons.get(entry.get("field_path"), "llm_declared")
         row = _field_request_entry(entry, default)
         if row:
             yield row
-    audit = (content_json.get("_meta") or {}).get("field_request_audit") or []
     for entry in audit:
         row = _field_request_entry(entry, "llm_declared")
         if row:

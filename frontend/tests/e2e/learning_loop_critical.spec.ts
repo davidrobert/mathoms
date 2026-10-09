@@ -99,17 +99,51 @@ test.describe("Learning loop · toast → modal → criar regra @critical", () =
           },
         });
       }
-      if (path === `/workspaces/${WS_ID}/config/categories`) {
+      // `useCategoriesAndMembers` faz `setCategories(r.categories)` sem guard e
+      // `categoryOptions` chama `categories.map`: sob o catch-all `{}` a page
+      // cai no ErrorBoundary. A rota é o read-path de categorias (ADR-137), e
+      // "Alimentação" precisa existir como opção do `<select>` do passo 2.
+      if (path === `/workspaces/${WS_ID}/config/category-overrides/resolved`) {
+        const category = (code: string, name: string, order: number) => ({
+          code,
+          name,
+          category_type: "expense",
+          order,
+          keywords: [],
+        });
         return json(route, {
           categories: [
-            { code: "alimentacao", group: "despesas", essencial: true },
-            { code: "Alimentação", group: "despesas", essencial: true },
-            { code: "Outros", group: "despesas", essencial: false },
+            category("alimentacao", "Alimentação", 0),
+            category("Alimentação", "Alimentação", 1),
+            category("Outros", "Outros", 2),
           ],
+          total: 3,
+          template_version_used: 1,
+          latest_template_version: 1,
         });
       }
-      if (path === `/workspaces/${WS_ID}/config/family-members`) {
-        return json(route, { members: [{ id: "m1", name: "Founder" }] });
+      if (path === `/workspaces/${WS_ID}/config/members`) {
+        return json(route, {
+          members: [
+            {
+              id: "m1",
+              key: "founder",
+              full_name: "Founder",
+              short_name: "Founder",
+              role: "titular",
+              order: 0,
+              accounts: [],
+            },
+          ],
+          total: 1,
+        });
+      }
+      // `useNotifications` faz `setItems(data.notifications)` sem guard e o
+      // `NotificationSheetContent` vive no AppShell, fora do ErrorBoundary da
+      // page: sob o catch-all `{}`, `items.length` derruba o app inteiro antes
+      // de a tabela existir.
+      if (path === `/workspaces/${WS_ID}/notifications`) {
+        return json(route, { notifications: [], total: 0, unread_count: 0 });
       }
       if (
         path.startsWith(`/workspaces/${WS_ID}/transactions/`) &&
@@ -176,7 +210,9 @@ test.describe("Learning loop · toast → modal → criar regra @critical", () =
           201,
         );
       }
-      // Default empty success para chamadas não mapeadas (dashboard, notifications).
+      // Catch-all `{}` só serve a consumidor que tolera campo ausente. Hook que
+      // faz `setX(resp.x)` sem guard precisa de rota própria com o shape do
+      // contrato — ver as rotas acima.
       return json(route, {});
     });
 

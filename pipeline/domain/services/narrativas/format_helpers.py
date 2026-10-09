@@ -135,6 +135,28 @@ _INSTRUMENTO_ACRONYMS = frozenset(
 
 APORTE_SEM_DISTRIBUICAO = "a distribuir entre as classes sub-representadas"
 
+# Produtor único das três superfícies do cenário sem aporte declarado: resumo do E5,
+# card da S3 e Apêndice C (que renderiza o resumo do payload). Mora aqui, e não no
+# analyzer, porque o narrador não pode importá-lo: o analyzer importa este pacote.
+CENARIO_CONJUGE_SEM_APORTE = (
+    "Quanto a perda da renda do cônjuge adia a independência financeira depende do "
+    "aporte mensal, que você ainda não declarou. Defina sua meta de aporte mensal em "
+    "Meu Plano → Aportes."
+)
+CENARIO_CONJUGE_META_ATINGIDA = (
+    "Seu patrimônio investível já alcança a meta de independência financeira, com ou "
+    "sem a renda do cônjuge."
+)
+
+
+def frase_cenario_conjuge_sem_aporte(*, prazo: float | None, meta_if: float) -> str:
+    """Frase do cenário sem aporte declarado; só a meta já atingida dispensa o aporte."""
+    # O solver devolve prazo 0 quando o investível já cobre a meta, antes de olhar o
+    # aporte: ali a frase de ausência seria falsa (ADR-373 D2).
+    if prazo == 0 and meta_if > 0:
+        return CENARIO_CONJUGE_META_ATINGIDA
+    return CENARIO_CONJUGE_SEM_APORTE
+
 
 def humanize_instrumento(key: str) -> str:
     """Rótulo humano para key técnica de instrumento (``cdb_liquidez`` → ``CDB Liquidez``)."""
@@ -203,6 +225,19 @@ def _is_impostos_pj_pendente(chart: dict) -> bool:
     """ADR-236 §D5: card 'perfil tributário PJ pendente' tem conclusion vazia."""
     context = chart.get("context", "") or ""
     return "Perfil tributário PJ pendente" in context
+
+
+def _chart_incompleto(chart_key: str, chart: dict) -> list[str]:
+    found: list[str] = []
+    if "context" not in chart or not chart["context"]:
+        found.append(f"charts.{chart_key}.context is missing or empty")
+    # ADR-236 §D5: impostos_pj em estado "perfil pendente" tem
+    # conclusion vazia por contrato (card UI renderiza só context+CTA).
+    if chart_key == "impostos_pj" and _is_impostos_pj_pendente(chart):
+        return found
+    if "conclusion" not in chart or not chart["conclusion"]:
+        found.append(f"charts.{chart_key}.conclusion is missing or empty")
+    return found
 
 
 def _monetary_format_errors(text: str, field_name: str) -> list[str]:
@@ -286,7 +321,6 @@ def validate_narrativas(
         "renda_passiva",
         "top15_ativos",
         "impostos_pj",
-        cenarios_section_key,
         "viagens",
         "bubble_riscos",
         "top5_decisoes",
@@ -298,15 +332,11 @@ def validate_narrativas(
             if chart_key not in charts:
                 errors.append(f"Missing charts.{chart_key}")
             else:
-                chart = charts[chart_key]
-                if "context" not in chart or not chart["context"]:
-                    errors.append(f"charts.{chart_key}.context is missing or empty")
-                # ADR-236 §D5: impostos_pj em estado "perfil pendente" tem
-                # conclusion vazia por contrato (card UI renderiza só context+CTA).
-                if chart_key == "impostos_pj" and _is_impostos_pj_pendente(chart):
-                    continue
-                if "conclusion" not in chart or not chart["conclusion"]:
-                    errors.append(f"charts.{chart_key}.conclusion is missing or empty")
+                errors.extend(_chart_incompleto(chart_key, charts[chart_key]))
+        # ADR-167: o cenário do cônjuge só existe para quem o E5 o publicou —
+        # opcional, mas presente tem de estar completo.
+        if cenarios_section_key in charts:
+            errors.extend(_chart_incompleto(cenarios_section_key, charts[cenarios_section_key]))
 
     if "perfil_familia" in narrativas_obj:
         for side in ["left", "right"]:

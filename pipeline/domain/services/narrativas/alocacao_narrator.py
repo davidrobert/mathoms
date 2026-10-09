@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from pipeline.domain.services.narrativas.alocacao_supressao import frase_da_supressao
 from pipeline.domain.services.narrativas.format_helpers import (
     fmt_currency,
     fmt_num,
@@ -53,26 +54,33 @@ def _aloc_partes_comparaveis(comparaveis: list[dict[str, Any]]) -> list[str]:
     return partes
 
 
-def _aloc_conclusion(partes: list[str], derived: Mapping[str, Any], M: Mapping[str, Any]) -> str:
-    frases = [", ".join(partes) + "."]
+def _aloc_prescricao(derived: Mapping[str, Any], M: Mapping[str, Any]) -> list[str]:
+    """Maior desvio, classe do próximo aporte e modo — só com a indicação emitida."""
+    frases: list[str] = []
     desvio = derived.get("desvio_max_pct")
     if desvio is not None:
         frases.append(f"Maior desvio: {fmt_num(desvio)} pp.")
     next_classe = derived.get("next_aporte_classe")
-    # `next_aporte_classe` vazio tem DUAS causas e elas dizem o oposto: carteira
-    # alinhada, ou prescrição suprimida por ignorância ([[ADR-400]] §D6). Ler as
-    # duas como "aderente" publica elogio sobre carteira desalinhada — medido em
-    # [[A40.l82]]: "Maior desvio: 30,3 pp. Carteira aderente ao alvo."
     if next_classe:
         frases.append(f"Próximo aporte: {_aloc_classe_label(str(next_classe))}.")
-    elif derived.get("motivo_supressao"):
-        frases.append("Próximo aporte não indicado: parte da carteira sem classe definida.")
     elif desvio is not None:
         frases.append("Carteira aderente ao alvo.")
     modo = str(M.get("aloc_rebalanceamento") or "").replace("_", " ")
     if modo:
         frases.append(f"Rebalanceamento {modo}.")
-    return " ".join(frases)
+    return frases
+
+
+def _aloc_conclusion(partes: list[str], derived: Mapping[str, Any], M: Mapping[str, Any]) -> str:
+    # `next_aporte_classe` vazio tem DUAS causas e elas dizem o oposto: carteira
+    # alinhada, ou prescrição suprimida por ignorância ([[ADR-400]] §D6). Ler as
+    # duas como "aderente" publica elogio sobre carteira desalinhada — medido em
+    # [[A40.l82]]: "Maior desvio: 30,3 pp. Carteira aderente ao alvo."
+    # Suprimida, cai também o maior desvio (a incerteza de classe o alcança) e o
+    # modo de rebalanceamento, que ao lado de "não indicamos" lê como ordem.
+    motivo = derived.get("motivo_supressao")
+    resto = [frase_da_supressao(str(motivo))] if motivo else _aloc_prescricao(derived, M)
+    return " ".join([", ".join(partes) + ".", *resto])
 
 
 def narrate_alocacao_atual_vs_alvo(M: Mapping[str, Any]) -> dict[str, str]:

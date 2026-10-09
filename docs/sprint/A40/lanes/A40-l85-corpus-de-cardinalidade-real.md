@@ -107,6 +107,17 @@ consegue exibir o defeito, porque com 2 e 4 linhas nas raízes prioritárias tud
 qualquer jeito. O mecanismo segue gateado por diff de conjunto e por
 `test_semente_ocupa_o_prefixo_do_catalogo`; o que está cego é o **percentual**.
 
+**Emenda 2026-10-09 ([[A40.l124]]) — o corpus passa a gatear também o orçamento do corpo.**
+O teste que afirma 10/10 seções no exec context (`test_all_sections_present_with_dense_payload`)
+mede `make_dogfood_like_e5()`, que renderiza **40%** do corpo real com 7 blocos em 0 B — o mesmo
+defeito de cardinalidade desta lane, medido em bytes, e foi assim que a eviction de
+investimentos e de independência financeira passou seis semanas sem gate. Sobre o corpus novo,
+renderizando o manifest **corrente**: demanda do corpo **≤ cap × (1 − 0,15)**; **nenhum bloco
+rende 0 B** sem razão declarada; e `iter_uncovered_paths == ∅`. Calibra-se pela cardinalidade
+das listas, nunca por bytes congelados: bytes envelhecem com qualquer label, e um snapshot deles
+só reprova quem baixar o cap. Se o corpus for honesto e o manifest não couber, o gate nasce
+vermelho — entra junto da remediação ou como `xfail(strict=True)` citando a lane.
+
 ## Rastro
 
 Follow-up da [[A40.l83]] §Fecho ("a armadilha central não foi fechada — foi nomeada").

@@ -188,6 +188,14 @@ def test_risco_prosa_acima_do_teto_trunca_em_vez_de_falhar(cap, field):
     assert len(getattr(r, field)) <= cap
 
 
+def test_campo_faltante_motivo_acima_do_teto_trunca_em_vez_de_falhar():
+    """motivo > 200 era hard-fail → reask: 3 de 4 chamadas reais (ADR-341 §Emenda 2026-10-09)."""
+    long = "Sem o campo a conclusao fica com confianca baixa. " * 8  # ~400 chars
+    c = CampoFaltante(field_path=None, motivo=long)
+    assert 5 <= len(c.motivo) <= 200
+    assert c.motivo.endswith(".")
+
+
 def test_diagnostico_geral_acima_do_teto_trunca_em_frase():
     """diagnostico_geral > 750 (incidente: 699 vs cap stale 500) trunca limpo ≤ 750."""
     from pipeline.llm.schemas.parecer_planejador import _cut_at_sentence
