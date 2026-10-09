@@ -188,7 +188,7 @@ def test_o_veredito_dos_imoveis_de_renda_tem_leitura_no_hint_de_if() -> None:
 def test_a_label_da_fatia_declara_a_base() -> None:
     """A fatia é do VALOR de imóveis, não da carteira — a base vai na label (A37.l9)."""
     campo = _campos_do_bloco(load_manifest())[f"{_BLOCO}.pct_desconhecido"]
-    assert "% do valor total de imóveis" in campo["label"]
+    assert "% do valor dos imóveis" in campo["label"]
 
 
 # ---------------------------------------------------------------------------

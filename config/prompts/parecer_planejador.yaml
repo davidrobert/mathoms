@@ -394,9 +394,9 @@ context_sections:
           # na IF, e o único uso seria pedido de cadastro, que o parecer não deve fazer.
           # Labels curtas de propósito: o significado de cada código mora nos hints, fora
           # do orçamento do corpo.
-          - {path: "$.patrimonio.cobertura_classificacao_imovel.pct_desconhecido", label: "Imóveis sem classificação (% do valor total de imóveis)", format: "percent2"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.pct_desconhecido", label: "Imóveis sem classificação (% do valor dos imóveis)", format: "percent2"}
           - {path: "$.patrimonio.cobertura_classificacao_imovel.residencia.status", label: "Residência — veredito", format: "string"}
-          - {path: "$.patrimonio.cobertura_classificacao_imovel.residencia.motivo", label: "Residência — motivo da não apuração", format: "string"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.residencia.motivo", label: "Residência — motivo", format: "string"}
           - {path: "$.patrimonio.cobertura_classificacao_imovel.imoveis_geradores.status", label: "Imóveis de renda — veredito", format: "string"}
       # [[A40.l111]] · [[ADR-431]]: um grão ABAIXO de `guarda_de_sinal.modo`. O balde
       # agregado segue positivo e o modelo o lê como completo; sem esta tabela ele
