@@ -12,6 +12,11 @@ from backend.app.services.parecer_citation_catalog import (
     render_grouped_entries,
     select_catalog_entries,
 )
+from backend.app.services.parecer_exec_context_budget import (
+    EvictionPlan,
+    ExecContextBudget,
+    measure_exec_context_budget,
+)
 from backend.app.services.parecer_manifest import ManifestData
 from pipeline.llm.prompts._sanitization import contains_injection_pattern
 from pipeline.llm.value_formatter import format_value
@@ -297,12 +302,14 @@ def _evict_to_budget(
     return kept, evicted
 
 
-def _fit_body_to_budget(sections: list[dict], bodies: list[str], cap: int) -> str:
-    kept, evicted = _evict_to_budget(sections, bodies, cap)
+def _fit_body_to_budget(
+    bodies: list[str], kept: list[int], evicted: list[dict], cap: int
+) -> tuple[str, bool]:
+    """Corpo orçado + se precisou do corte degenerado (o único intra-seção, D2)."""
     body = _join_body(bodies, kept, evicted)
     if len(body.encode("utf-8")) <= cap:
-        return body
-    return _hard_cut(bodies, kept, evicted, cap)
+        return body, False
+    return _hard_cut(bodies, kept, evicted, cap), True
 
 
 # Existe para o instrumento de ancorabilidade (A40.l30 item 2) medir o **observável** e
@@ -459,12 +466,22 @@ def _render_catalog_block(manifest: ManifestData, e5_data: Mapping[str, Any]) ->
     return render_grouped_entries(renderizado) if renderizado else ""
 
 
+def distill_exec_context_with_budget(
+    manifest: ManifestData, e5_data: Mapping[str, Any]
+) -> tuple[str, ExecContextBudget]:
+    """``distill_exec_context`` + o orçamento medido do MESMO plano de eviction."""
+    sections, cap = manifest.sections, manifest.max_exec_context_bytes
+    bodies = [_render_section_body(section, e5_data) for section in sections]
+    kept, evicted = _evict_to_budget(sections, bodies, cap)
+    body, hard_cut = _fit_body_to_budget(bodies, kept, evicted, cap)
+    plan = EvictionPlan(sections, bodies, evicted, cap=cap, hard_cut=hard_cut)
+    rendered = (body, _render_hints_block(sections), _render_catalog_block(manifest, e5_data))
+    budget = measure_exec_context_budget(plan, rendered=rendered)
+    return "\n\n".join(part for part in rendered if part), budget
+
+
 def distill_exec_context(manifest: ManifestData, e5_data: Mapping[str, Any]) -> str:
     """Aplica manifest sobre E5 → corpo orçado com eviction por seção (ADR-341)
     + hints + catálogo de citação — ambos anexados APÓS o cap, com orçamento
     próprio (padrão A26.l1): guidance/evidência nunca competem com dado."""
-    bodies = [_render_section_body(section, e5_data) for section in manifest.sections]
-    body = _fit_body_to_budget(manifest.sections, bodies, manifest.max_exec_context_bytes)
-    hints = _render_hints_block(manifest.sections)
-    catalog = _render_catalog_block(manifest, e5_data)
-    return "\n\n".join(part for part in (body, hints, catalog) if part)
+    return distill_exec_context_with_budget(manifest, e5_data)[0]
