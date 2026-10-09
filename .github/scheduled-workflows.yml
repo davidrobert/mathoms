@@ -134,6 +134,13 @@ workflows:
       # (5 dias), um PR do Dependabot que ninguém olha reprova o Lint em 15.
       - label: ops-dependabot-red
         max_issue_age_days: 10
+      # Alerta do Dependabot com conserto, sem PR e além do SLO
+      # (`dev/ci_dependabot_alert_slo.py`, ADR-230 §Emenda 2026-10-09). 7 dias,
+      # igual ao `security`: o canal só abre DEPOIS de o SLO vencer, então o
+      # congelamento de PRs chega em HIGH 14+1+7 = 22 dias e CRITICAL 3+1+7 = 11.
+      # Fechar à mão não zera a idade: a violação viva reabre a MESMA issue.
+      - label: security-slo-breach
+        max_issue_age_days: 7
 
   - file: security.yml
     crons: ["0 3 * * 6"]

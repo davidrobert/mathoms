@@ -5,7 +5,7 @@ title: "Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitl
 status: Decidido
 phase: A11.W2
 date: "2026-05-20"
-amended_at: ["2026-10-08"]
+amended_at: ["2026-10-08", "2026-10-09"]
 relates_to:
   - "[[ADR-110]]"
   - "[[ADR-170]]"
@@ -31,6 +31,10 @@ tags:
 > ⚠️ **Emendada em 2026-10-08**: o `npm audit` cobria só `frontend/`, e o
 > `frontend-ops/` passou ~8 dias com RCE CRITICAL sem reprovar nada. A tabela
 > de §Decisão (linha `npm-audit-prod`) está desatualizada. Ver §Emenda no fim.
+>
+> ⚠️ **Emendada em 2026-10-09**: SLO vencido de alerta do Dependabot com conserto
+> e sem PR passou a ter canal — issue `security-slo-breach` no GitHub, não
+> "incidente Linear" como diz §D5. Ver §Emenda 2026-10-09.
 
 ## Contexto
 
@@ -231,6 +235,39 @@ até lá nenhum scan deste arquivo bloqueia merge. (2) `dependabot.yml` não tem
 existir job de build do console no CI: o #2057 subiu o Tailwind de 3 para 4
 junto com o fix do next e quebrou o `next build` do `frontend-ops`, sem nenhum
 check que percebesse.
+
+## Emenda 2026-10-09 — alerta com conserto, sem PR e além do SLO vira issue
+
+**Fato.** O alerta Dependabot #130 (GHSA-hq66-cqwq-w95j, `pdfjs-dist`, HIGH)
+ficou aberto de 2026-08-07 a 2026-10-09: 63 dias contra o SLO de 14 de §D5. O
+conserto exigia major do pai, o Dependabot nunca abriu PR, e nenhum canal do
+repositório avisou — o "incidente Linear" de §D5 nunca teve quem o abrisse.
+Replay do histórico (194 alertas, medido em 2026-10-09): dos 99 CRITICAL/HIGH com
+versão corrigida, **48** teriam disparado o canal abaixo; o #130, no cron de
+2026-08-22.
+
+**Decisão.** Step diário no `budget-alert.yml` (`dev/ci_dependabot_alert_slo.py`,
+permissão `vulnerability-alerts: read` — `security-events` não cobre Dependabot)
+mantém **uma** issue `security-slo-breach`, com `S3` de 7 dias no
+`.github/scheduled-workflows.yml`. Dispara para alerta aberto, CRITICAL (72h) ou
+HIGH (14d), com `first_patched_version`, idade acima do SLO e nenhum PR aberto do
+Dependabot cujo metadata `dependency-name` cite o pacote no mesmo ecossistema e
+diretório. O relógio é a **detecção** (`created_at` do alerta); mudança no
+advisory nas últimas 24h só adia o disparo, não reinicia o relógio. O único
+silêncio sem conserto é o *dismiss* do alerta com motivo (auditável). Fechar a
+issue à mão não é triagem: com violação viva, o cron reabre **a mesma** issue, e a
+idade do `S3` se preserva. Congelamento de PRs pelo `S3`: HIGH em 14+1+7 = 22
+dias, CRITICAL em 3+1+7 = 11. Medição cega determinística (4xx, lista de PRs
+truncada) vira linha "sem medição" na issue; indisponibilidade (5xx) vira
+warning. Co-design: `sre-devops`.
+
+**Limites declarados.** (1) PR do Dependabot aberto silencia o alerta mesmo
+parado — o #158 (`next`, CRITICAL) ficou 25 dias assim atrás do #2003; quem cobre
+é o "PR parado" de 5 dias da issue `ops-dependabot-red` (CI_TRUST 1.2c). (2) O
+dependency graph lê `requirements.in`/`pyproject.toml`, não o
+`requirements.lock`: transitiva pip fica só com o `pip-audit`. (3)
+`first_patched_version` é o de hoje; o replay acima pode contar alerta cujo
+conserto saiu depois do vencimento.
 
 ## Referências
 
