@@ -458,6 +458,8 @@ class TestCacheKeyBump:
             schema_version="1.0",
             model_id="anthropic/claude-sonnet-4-20250514",
             workspace_id="ws-cache",
+            persona_hash="a" * 64,
+            tier="premium",
         )
         new_key = compute_cache_key(**kwargs)
         e5_raw = json.dumps(e5, sort_keys=True, ensure_ascii=False, default=str)

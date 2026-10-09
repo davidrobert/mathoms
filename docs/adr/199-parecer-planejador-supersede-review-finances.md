@@ -5,7 +5,7 @@ title: "Parecer do planejador (E6) supersede review_finances — aggregate Plann
 status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
-amended_at: ["2026-06-12", "2026-08-03", "2026-08-12"]
+amended_at: ["2026-06-12", "2026-08-03", "2026-08-12", "2026-10-09"]
 relates_to:
   - "[[ADR-024]]"
   - "[[ADR-026]]"
@@ -59,6 +59,10 @@ tags:
 > `<SuggestionCalloutInline>` é automático nas seções fonte" **não descreve o
 > renderer**: o inline é montado em **2 das 12** seções habilitadas (S2 e S7).
 > Ver §Emenda 2026-08-12 no fim.
+>
+> **Emenda 2026-10-09 ([[A40.l17]] §Residual):** a chave do cache passa a compor
+> `persona_hash` e `tier` — todo campo carimbado no `metadata` do output cacheado,
+> exceto `generated_at` (E3). Ver §Emenda 2026-10-09 no fim.
 
 ## Contexto
 
@@ -245,3 +249,63 @@ leu `output_summary` — o defeito era de telemetria/leitura humana, não de
 segurança de budget. Gates: `tests/test_parecer_cache_policy.py` (E1, com prova
 de mutação) e `tests/test_parecer_custo_em_needs_review.py` (E2, polaridade
 pinada nos dois sentidos).
+
+## Emenda 2026-10-09 — E3: a proveniência carimbada no output compõe a chave
+
+Origem: resíduo da [[A40.l17]] §Residual (achado do `senior-cto`); co-design
+`prompt-engineer` + `senior-cto` em 2026-10-09; entregue em [#2166](https://github.com/davidrobert/mathoms/pull/2166). A chave compunha `prompt_version`
+desde a §Emenda 2026-06-12, mas não o `persona_hash` nem o `tier` — e os dois são
+carimbados no `metadata` do output que o cache guarda.
+
+**Medido.** `config/agents/planner_persona.md` abre o system prompt
+(`SYSTEM_PROMPT_TEMPLATE`), e `load_persona()` hasheia o arquivo inteiro — frontmatter
+incluso, que é o texto que vai ao modelo. Editar a persona sem bumpar `PROMPT_VERSION`
+nem o `version:` do manifest servia, por até 7 dias, o parecer da persona antiga; e o hit
+carimbava o hash **novo** em `PlannerReview.persona_hash` (via `_audit_detail` do stage)
+enquanto o artifact persistia o `metadata.persona_hash` **antigo** do envelope — as duas
+fontes de auditoria do [[ADR-201]] §D6 divergiam. Latente: as 5 edições da persona
+desde 2026-05-13 saíram, todas, no mesmo squash que um bump do manifest; a garantia vinha
+de coincidência de PR, não do composite. O `tier` é sempre `premium` em produção (o stage
+pula `free` antes do orchestrator, [[ADR-208]] §D1) — entra assim mesmo, para o
+invariante não depender de um `if` em outro módulo.
+
+**E3. Todo campo de `Metadata` exceto `generated_at` compõe a chave.**
+`compute_cache_key` ganha `persona_hash` — os 64 hex: o composite já é re-hasheado, e
+assim o componente é byte a byte o carimbo — e `tier`, keyword-only e sem default. Num
+hit, a proveniência do envelope e a do output servido são iguais por construção. Gate:
+`tests/test_parecer_cache_key_proveniencia.py` classifica cada campo de `Metadata`
+dentro ou fora da chave, com motivo; prova que variar cada componente muda a chave; e
+espia os kwargs reais para exigir o **mesmo valor** do carimbo. Campo novo em
+`Metadata` reprova até ser classificado. É a terceira instância da classe
+(`prompt_version` em 2026-06-12; persona e `tier` agora).
+
+**Falso até esta data, e não se reescreve:** a nota de auditoria da versão 2.19.0 de
+`config/prompts/parecer_planejador.yaml` ("os três compõem `compute_cache_key`") e a
+frase homônima da [[A40.l117]]. A cobrança única daquela entrega valeu porque manifest e
+`PROMPT_VERSION` subiram no mesmo PR, não pela persona. O manifest **não** é corrigido:
+a nota, no presente, passou a ser verdadeira, e editar um comentário força bump pelo
+gate de versão (precedente da 2.20.1).
+
+**Custo:** a mudança de formato invalida o cache da frota uma vez, no deploy. Sem CD,
+coincide com o bump 2.21.0 do manifest (#2117) se os dois entrarem antes do mesmo deploy.
+
+### Deferimentos datados (2026-10-09)
+
+- **Código que muda o prompt renderizado sem versão (dono: `prompt-engineer`).** O
+  distiller e o catálogo de citação moldam o user prompt; editar o código deles sem bump
+  serve parecer velho, como antes. Quatro commits tocaram o distiller sem bump algum
+  (`48dd0a22`, `087ab664`, `509d8d0e`, `f19fe720`); dois, inspecionados no co-design,
+  parecem refactor sem mudança de bytes, e os outros dois não foram medidos. Hashear o
+  prompt renderizado na chave (padrão da [[ADR-307]]) foi recusado agora: exige montar
+  os prompts antes do lookup, o pós-LLM continua fora, e a byte-identidade entre runs não
+  está provada para o distiller. **Condição de retomada:** teste sem LLM que fixa o
+  sha256 do system e do user de `_build_prompts`, sobre fixture sintética — o system
+  contra `PROMPT_VERSION`, o user contra `(PROMPT_VERSION, manifest.version)`.
+- **A telemetria por versão não vê a persona (dono: `prompt-engineer`).**
+  `PROMPT_VERSION` faz dois trabalhos: invalidar cache — agora coberto pelo hash — e
+  separar telemetria: a janela `(prompt_version, model)` do drift monitor, o rótulo de
+  `riscos_truncados` e o `prompt_version` gravado por `parecer_evidencia.py`. O
+  `27bcd6d7` mudou o corpo da persona sem bump de `PROMPT_VERSION`, e a janela do drift
+  misturou dois regimes. **Condição de retomada:** o teste do item acima (o system pinado
+  em `PROMPT_VERSION` cobre os dois) ou `dev/check_prompt_version_bumped.py` exigindo
+  bump quando `planner_persona.md` muda — em PR próprio, porque não invalida cache.
