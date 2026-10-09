@@ -43,6 +43,10 @@ Todos verificáveis; sem exceção informal.
   `erros_validacao == 0 or processados > 0` (`pipeline/stages/e2.py`). Um abort strict é
   engolido e o stage termina `completed` sem o extrato. O flip espera a contagem passar a
   depender do write.
+- [ ] **Só para `e2_llm_artifact.schema.json` e `informe_aluguel.schema.json`.** O abort
+  sai como `reason_class = unknown`: os stages capturam por documento (tabela do §8.1).
+  Retome o §Deferimento da [[ADR-447]] antes do flip, ou registre na linha do §7 que a
+  triagem desse schema será pela mensagem em `errors`.
 
 Verificação rápida:
 

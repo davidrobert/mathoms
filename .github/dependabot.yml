@@ -130,9 +130,11 @@ updates:
         patterns: ["next", "react", "react-*", "@types/react*"]
       eslint-and-types:
         patterns: ["eslint*", "@typescript-eslint/*", "@types/*", "prettier*"]
-        # Major de @types/node acima do runtime reprova no node-version-parity:
-        # aqui dentro travaria o grupo inteiro. Fora dele, patch/minor caem no
-        # patch-and-minor e o major vem em PR isolado, vermelho até o .nvmrc subir.
+        # Major de @types/node acima do runtime reprova no node-version-parity, e
+        # num grupo travaria os vizinhos. Hoje o specificity do Dependabot já o
+        # manda para o patch-and-minor e o major sai isolado (job 1619337957:
+        # "belongs to more specific group"; #2153). O exclude fixa isso sem
+        # depender do algoritmo.
         exclude-patterns: ["@types/node"]
       vitest-and-test:
         patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/*", "playwright"]
