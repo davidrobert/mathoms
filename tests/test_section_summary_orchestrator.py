@@ -219,3 +219,20 @@ def test_prosa_com_valor_monetario_nao_chega_a_section_summaries():
     )
     assert len(llm.prompts) == len(SUPPORTED_SECTION_IDS)
     assert result == {}
+
+
+def test_prompt_nao_pede_campo_que_o_schema_de_saida_nao_tem():
+    """`preencha `X``, `campo `X`` e `` `X` esperado`` só citam campo do schema (A40.l117)."""
+    import re
+
+    from backend.app.services.section_summary_orchestrator import _resolve_yaml_path
+    from pipeline.domain.services.section_summary_generator import (
+        load_prompt_templates_from_yaml,
+    )
+    from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
+
+    pedido = re.compile(r"(?:preencha|campo)\s+`(\w+)`|`(\w+)`\s+esperado", re.IGNORECASE)
+    for section_id, template in load_prompt_templates_from_yaml(_resolve_yaml_path()).items():
+        texto = template.system_prompt + template.user_prompt_template
+        campos = {a or b for a, b in pedido.findall(texto)}
+        assert campos <= set(SectionSummaryOutput.model_fields), (section_id, campos)

@@ -291,14 +291,14 @@ def test_trocar_o_modelo_invalida_o_cache():
         assert (result.source, result.text) == ("llm", f"texto do {model}")
 
 
-# ─── Cenário extra: SectionSummaryOutput valida tone ────────────────
+# ─── Contrato de saída: só o campo que o generator lê ───────────────
+# `tone` e `key_metric_ref` saíram no prompt 2.0.0 por não terem leitor (a
+# classe da A40.l117: o prompt promete o que ninguém lê). Campo novo aqui
+# exige leitor no generator e no renderer.
 
 
-def test_section_summary_output_rejects_invalid_tone():
-    from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
-
-    with pytest.raises(Exception):
-        SectionSummaryOutput(summary_md="ok " * 5, tone="invalid_tone")  # type: ignore[arg-type]
+def test_saida_do_llm_so_tem_o_campo_que_o_generator_le():
+    assert set(SectionSummaryOutput.model_fields) == {"summary_md"}
 
 
 # ─── Cenário extra: prosa com valor monetário é descartada ──────────

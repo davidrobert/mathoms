@@ -1,11 +1,12 @@
 """Section summary output schema (v2.9 · ADR-144)."""
 # Output tipado para SectionSummaryGenerator — prosa curta (1-2 frases)
-# por seção. LLM nunca emite BRL formatado inline; referencia métrica
-# via key_metric_ref e renderer formata com <MonetaryValue/> (ADR-090).
+# por seção, texto puro (o renderer imprime literal). Só `summary_md`:
+# `tone` e `key_metric_ref` saíram no prompt 2.0.0 por não terem leitor
+# (ADR-144 §Emenda 2026-10-09). No Mode.TOOLS do Instructor, docstring e
+# `description` vão ao modelo — mudá-los muda o prompt; a chave de cache
+# cobre o schema por fingerprint.
 
 from __future__ import annotations
-
-from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -18,20 +19,7 @@ class SectionSummaryOutput(BaseModel):
         min_length=10,
         max_length=400,
         description=(
-            "Prosa em português brasileiro, 1-2 frases, sem markdown além de "
-            "ênfase leve. Não formate valores monetários inline — use "
-            "key_metric_ref para apontar a métrica."
-        ),
-    )
-    tone: Literal["neutral", "positive", "warning"] = Field(
-        "neutral",
-        description="Tom narrativo da seção; orienta o renderer (cor de borda, ícone).",
-    )
-    key_metric_ref: Optional[str] = Field(
-        None,
-        max_length=80,
-        description=(
-            "Id da métrica principal referenciada (ex.: 'patrimonio.liquido'). "
-            "Renderer pode usar para destacar valor via <MonetaryValue/>."
+            "Prosa em português brasileiro, 1-2 frases, texto puro sem markdown. "
+            "Sem valores monetários: o leitor já vê os KPIs no cabeçalho da seção."
         ),
     )

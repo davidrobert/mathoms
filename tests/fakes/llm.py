@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -20,8 +20,6 @@ class FakeLLMSuccess:
     """LLM client que sempre retorna o mesmo output programado."""
 
     text: str = "Summary determinístico do fake."
-    tone: str = "neutral"
-    key_metric_ref: Optional[str] = None
     prompt_tokens: int = 1500
     completion_tokens: int = 300
     calls: int = 0
@@ -29,11 +27,7 @@ class FakeLLMSuccess:
     def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
         self.calls += 1
         return LLMRawResponse(
-            output=SectionSummaryOutput(
-                summary_md=self.text,
-                tone=self.tone,  # type: ignore[arg-type]
-                key_metric_ref=self.key_metric_ref,
-            ),
+            output=SectionSummaryOutput(summary_md=self.text),
             prompt_tokens=self.prompt_tokens,
             completion_tokens=self.completion_tokens,
         )
