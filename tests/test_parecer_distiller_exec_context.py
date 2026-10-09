@@ -204,8 +204,13 @@ def _split_parts(ctx: str) -> tuple[str, str]:
 
 
 # ---------------------------------------------------------------------------
-# 10/10 seções + probes (payload denso, budget 16KB do manifest 2.0)
+# 10/10 seções + probes (payload denso) — MECANISMO, não orçamento
 # ---------------------------------------------------------------------------
+# A40.l124: este fixture renderiza ~8 KB, 40% do corpo do E5 real, com 7 blocos em 0 B.
+# Os testes abaixo provam que, CABENDO, toda seção chega inteira — e foram verdes durante
+# as seis semanas em que o parecer do dogfood perdeu investimentos e independência
+# financeira para a eviction. O orçamento real é lido pelo X8 da rodada (telemetria em
+# `output_summary`); o gate de CI sobre corpus de cardinalidade real é da A40.l85.
 
 
 def test_all_sections_present_with_dense_payload():
@@ -213,7 +218,9 @@ def test_all_sections_present_with_dense_payload():
     ctx = distill_exec_context(manifest, make_dogfood_like_e5())
     for section in manifest.sections:
         assert f"### {section['title']}" in ctx, f"seção '{section['id']}' fora do exec context"
-    assert _MARKER_PREFIX not in ctx, "budget 16KB não deveria evictar o corpo dogfood-like"
+    assert (
+        _MARKER_PREFIX not in ctx
+    ), "o fixture cabe no cap — evictar aqui é fixture ou cap mudando"
 
 
 def test_probes_previdencia_e_protecao_presentes():
@@ -405,8 +412,7 @@ def test_eviction_deterministica():
 
 
 def test_corpo_pre_cap_igual_pos_cap_sob_budget_16k():
-    """Medição in-process (fallback do eval owner-gated): corpo curado cabe no
-    budget novo SEM eviction — pré-cap == pós-cap."""
+    """Mecanismo: corpo que cabe no cap sai igual ao sem cap (fixture ≈ 40% do real)."""
     manifest = load_manifest()
     uncapped = dataclasses.replace(manifest, max_exec_context_bytes=65536)
     e5 = make_dogfood_like_e5()
