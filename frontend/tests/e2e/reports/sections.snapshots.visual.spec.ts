@@ -10,10 +10,12 @@
  * `report-mobile-spec` quando produto decidir o que sai em <767px).
  * Aqui rodamos só desktop @ 1280×800.
  *
- * Cobertura (28 baselines = 14 alvos × {light, dark}):
- * - shell global (cover) × {light, dark}
- * - Estratégico: S1, S2, S3, S7, S8, S9, S10 + APP_A, APP_B, APP_D, APP_E
- * - `S_parecer` nos 2 estados de degradação (retido, parcial)
+ * Cobertura (31 baselines):
+ * - shell global (cover) e sumário executivo × {light, dark}
+ * - Estratégico: S1, S2, S3, S7, S8, S9, S10 + APP_A, APP_B, APP_D, APP_E,
+ *   × {light, dark}
+ * - `S_parecer` nos 2 estados de degradação (retido, parcial) × {light, dark}
+ * - tabela de métricas do parecer no papel (só light)
  *
  * `S4` e `APP_C` estão nas listas abaixo mas NÃO geram baseline com a fixture
  * `medium` — ver `SECTIONS_NOT_IN_MEDIUM_FIXTURE`.
@@ -163,25 +165,34 @@ async function snapshotSection(
   await expect(page.locator(selector)).toHaveScreenshot(
     `${baselineId}.${theme}.png`,
     {
-      // Tolerância proporcional. Threshold anterior `maxDiffPixels: 200`
-      // (~0.007% em S2) gerava flake crônico: PRs #147-#165 mergeavam com
-      // gate red mesmo sem regressão real. NÃO combinar com `maxDiffPixels`
-      // absoluto — Playwright usa `Math.min(absoluto, ratio×area)`, então o
-      // piso absoluto anula o ratio em imagens grandes.
+      // Tolerância MEDIDA nos dois extremos (2026-10-09), como a de `cover`.
+      // NÃO combinar com `maxDiffPixels` absoluto — Playwright usa
+      // `Math.min(absoluto, ratio×area)`, e o piso absoluto anula o ratio.
       //
-      // A justificativa original deste 2.5% era "chart.js canvas tem
-      // não-determinismo inerente entre runs (~1-2% da imagem)". MEDIDO em
-      // 2026-08-30 (A40.l103): dois `workflow_dispatch` do MESMO SHA
-      // (`ec50cbd7`; runs 33323919131 / 33323920209) devolveram as 28
-      // baselines BYTE-IDÊNTICAS. Entre runs não há ruído — n=2. O que este
-      // número absorve de fato é reflow dirigido por COMMIT: 1px de
-      // deslocamento marca 9,58% numa imagem curta e o realinhamento `dy=±1`
-      // zera. Ou seja, 2.5% aqui é folga herdada, não medida — é por isso que
-      // `cover` e `sumario-executivo` abaixo mediram a sua (0.0003) em vez de
-      // herdar esta. Re-calibrar este valor é lane própria; não o copie para
-      // baseline nova sem medir o par (piso de ruído, menor mudança que
-      // precisa reprovar).
-      maxDiffPixelRatio: 0.025,
+      //   piso de ruído  = 0 px — dois `workflow_dispatch` do MESMO SHA
+      //                    devolveram as 31 baselines byte-idênticas (runs
+      //                    38001880308 / 38001884617, Playwright 1.63; idem
+      //                    no 1.59 e no 1.60).
+      //   menor mudança  = 262 px — "XX" ao fim do h2 de cada seção, a classe
+      //   que importa      do `<h2>` da S9 que passou verde: 262–265 px nas 26
+      //                    baselines (run 37917805709). A barra cheia na linha
+      //                    de teto (regressão de origem da A40.l92) dá 1.135 px
+      //                    light e 1.216 dark em `S_parecer-parcial` (run
+      //                    37917727206). As duas sondas reprovam sob este valor.
+      //
+      // O par é em px e a tolerância é razão, então quem limita é a MAIOR
+      // seção: em S2 (976×2946), 0.00003 dá 86 px, 3× abaixo do h2. Seção que
+      // passar de ~8,7 Mpx deixa de pegar o h2 — re-meça antes. Nas seções
+      // curtas a folga é de poucos px, o que só é seguro porque o ruído é 0.
+      //
+      // NÃO pega, nas seções grandes, troca de 2 caracteres em texto de 12px
+      // (29–87 px, run 37882160857) nem separador decimal (13 px): isso é
+      // escopo de gate de texto.
+      //
+      // O `0.025` anterior era folga herdada: escondia reflow de 1px de até
+      // 2,47% da imagem, e em 2026-10-09 deixava 19 das 26 baselines velhas
+      // sem sinal nenhum.
+      maxDiffPixelRatio: 0.00003,
       // Mascarar elementos cuja renderização exata não importa para
       // detecção de regressão estrutural (ex.: timestamps) e os FABs, que não
       // pertencem à seção (ver `floatingNavMask`).
@@ -247,9 +258,9 @@ test.describe("Snapshots — cover (hero)", () => {
       // a mudança de texto passar por folga de 6,6× — a classe conhecida do
       // repo em que o `<h2>` da S9 mudou e o gate ficou verde.
       //
-      // NÃO herda o `maxDiffPixelRatio: 0.025` do helper de seção: aquele número
-      // existe para absorver não-determinismo de canvas do chart.js, e nem o
-      // header nem a grade de KPI têm canvas.
+      // Razão própria, não a do helper de seção: o par medido é em px e a área
+      // muda a conta. Aqui 0.0003 dá ~120 px em 0,4 Mpx; o helper usa 0.00003
+      // porque precisa caber na S2, com 2,9 Mpx.
       //
       // Armadilha de método, para quem for re-medir: `--update-snapshots` só
       // reescreve a baseline quando a comparação FALHA. Mutação sob a tolerância
@@ -355,9 +366,10 @@ test.describe("Snapshots — S_parecer degradado", () => {
 
 // ─── A40.l92 · métricas do parecer, no papel ──────────────────────────
 //
-// A baseline de `S_parecer-parcial` NÃO pega a regressão de origem desta lane: o recorte é
-// a seção inteira (~1,4 Mpx) com `maxDiffPixelRatio: 0.025` — folga de ~35k px —, e uma
-// barra cheia voltando numa linha de teto muda centenas de px. Recorte no locator da
+// Quando esta baseline nasceu, a de `S_parecer-parcial` NÃO pegava a regressão de origem
+// desta lane: o helper de seção usava `maxDiffPixelRatio: 0.025`, ~46k px de folga em
+// ~1,8 Mpx. Com a tolerância medida do helper (0.00003, ~55 px) ela passou a reprovar,
+// mas esta segue sendo a única baseline da tabela NO PAPEL. Recorte no locator da
 // tabela, na mídia e na largura do papel (703 px, a área útil do A4), com tolerância
 // MEDIDA nos dois extremos, como a do `cover`:
 //
