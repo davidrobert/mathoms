@@ -29,7 +29,7 @@ export function SidebarNotificationItem() {
         <Bell className="h-4 w-4 text-muted-foreground" />
         <span className="flex-1 text-left">Notificações</span>
         {state.unread > 0 && (
-          <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-white">
+          <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-danger px-1 text-[10px] font-bold leading-none text-brand-danger-foreground">
             {displayCount}
           </span>
         )}
