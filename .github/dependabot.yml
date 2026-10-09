@@ -117,6 +117,10 @@ updates:
         patterns: ["next", "react", "react-*", "@types/react*"]
       eslint-and-types:
         patterns: ["eslint*", "@typescript-eslint/*", "@types/*", "prettier*"]
+        # Major de @types/node acima do runtime reprova no node-version-parity:
+        # aqui dentro travaria o grupo inteiro. Fora dele, patch/minor caem no
+        # patch-and-minor e o major vem em PR isolado, vermelho até o .nvmrc subir.
+        exclude-patterns: ["@types/node"]
       vitest-and-test:
         patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/*", "playwright"]
       patch-and-minor:
@@ -240,6 +244,12 @@ updates:
         applies-to: version-updates
         patterns: ["*"]
 
+  # Major do `node` (aqui e em /frontend-ops): sem `ignore: semver-major` de
+  # propósito — vira estagnação muda. O hook `node-version-parity` deixa o PR
+  # vermelho até `<app>/.nvmrc` (lido pelo setup-node do CI) e o compose de dev
+  # subirem junto. NÃO comite no branch do Dependabot (ele para de rebasear e
+  # `@dependabot recreate` apaga o commit): abra PR humano com Dockerfile +
+  # .nvmrc + compose; o Dependabot fecha o dele sozinho.
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
