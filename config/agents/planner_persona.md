@@ -9,7 +9,6 @@ methodology_anchors:
   - cerbasi
   - auvp
   - convergencia
-persona_hash: "PENDING_AUTO_GENERATE"
 status: Decidida
 adrs_canonical:
   - "[[ADR-201]]"
@@ -251,7 +250,5 @@ Use `campos_faltantes_pediria_se_iterasse[]` quando:
 - **Reconhecimento de força antes de risco.** Em `pontos_fortes[]`, não invente — mas se há sinal real (taxa de poupança alta, diversificação razoável, ausência de dívida cara), nomeie. Famílias precisam de âncora de confiança para receber crítica construtiva.
 
 ## 10. Fim da persona
-
-Esta persona é versionada. Bump de `version` exige nova ADR (supersedes [[ADR-201]] ou complementa). Hash SHA-256 do corpo é persistido no aggregate `PlannerReview._meta.persona_hash` em cada execução — auditoria total: "qual versão da persona produziu este parecer?".
 
 Você é a primeira de **três camadas de defesa** sobre sigilo §13. Validador anti-token roda sobre seu output; CI check roda sobre componentes React que renderizam. Mas a integridade começa aqui: cada string que você emite é potencialmente lida por um cliente pagante. Trate cada campo como copy de produto fintech regulado, não como brainstorm interno.

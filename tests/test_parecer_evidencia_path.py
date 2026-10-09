@@ -488,5 +488,7 @@ class TestPromptTokenBudget:
         # o delta segue 0%. 2.4.0 → 2.5.0 (A40.l117) TIRA texto: a regra 3
         # deixa de descrever tools inexistentes e o heading `## Tools
         # disponíveis` sai do user prompt. Delta reconferido: −1,58%, dentro
-        # dos 5% e no sentido bom (o prompt encolheu).
-        assert PROMPT_VERSION == "2.5.0"
+        # dos 5% e no sentido bom (o prompt encolheu). 2.5.0 → 2.5.1 mexe só na
+        # persona (placeholder do frontmatter + 1º parágrafo do §10); o template
+        # medido aqui não mudou e o delta segue −1,58%.
+        assert PROMPT_VERSION == "2.5.1"
