@@ -146,6 +146,10 @@ resultado está decidido antes de rodar (`prompt-engineer`).
    [[PIPELINE-REVIEWS-active]] já registrava a eviction por seleção, sem lane). Dono
    `prompt-engineer` + `product-manager`. Retomada: **antes do 1º re-run**, porque muda a
    leitura do parecer dele.
+   ➜ **Roteado 2026-10-09 para a [[A40.l124]]** (P1). A medição dela acrescenta duas coisas:
+   no caminho de produção (sanitizado) a 2.21.0 pede 19912 B sobre o mesmo E5, e a eviction
+   não nasceu na 2.19.0 — medindo cada run com o próprio manifest, `investimentos` sai desde
+   2026-08-26 e `independencia_financeira` desde 2026-08-29.
 3. **`pct_desconhecido` 0/0 publica 0,0** em família sem imóvel — zero sem evidência de zero.
    Dono `data-engineer`; não bloqueia (o veredito da residência diz `nao_declarada`).
 4. **CTA de cadastro no parecer:** hoje o hint o proíbe. Reabrir é do `product-designer`, que
