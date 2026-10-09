@@ -80,12 +80,30 @@ prescritiva), `product-manager` (prioridade, aceite). Manifest **2.21.0**, MINOR
 
 ## Medido
 
-- Corpo orçado: **+227 B** no pior regime (o título do bloco já existe em todo E5 desde a
-  [[A40.l83]]). No E5 sintético do golden do pipeline: 12.731 → 12.954 B, sem eviction,
-  folga de 3.430 B.
-- **E5 real do dogfood: não medido.** O artefato é cifrado e decifrá-lo, mesmo imprimindo só
-  bytes e ids de seção, pede autorização do dono. O E5 real já evicta `plano_acao_atual`,
-  e a seção seguinte da fila é `investimentos`.
+- Corpo orçado: **+203 B** no pior regime (motivo mais longo, fatia de três dígitos; o
+  título do bloco já existe em todo E5 desde a [[A40.l83]]).
+- **E5 real do dogfood** — run `40d1af2a` (o U5), autorizado pelo dono em 2026-10-08. Só
+  bytes e ids de seção, sem o sanitizer nome→papel; o E5 do run é anterior ao #2049, então o
+  bloco entrou no pior regime sintético:
+
+  | manifest | corpo inteiro | após eviction | folga | evictadas |
+  |---|---|---|---|---|
+  | 2.19.0 | 19.529 B | 15.665 B | 719 B | `plano_acao_atual`, `investimentos`, `independencia_financeira` |
+  | 2.20.1 | 19.944 B | 16.080 B | 304 B | idem |
+  | 2.21.0 | 20.147 B | 16.283 B | 101 B | idem |
+
+  O conjunto evictado não muda (critério 4). A folga é fina: a próxima da fila é `ratios`,
+  onde mora a concentração, e foi por isso que duas labels encurtaram (77 B → 101 B).
+- **Checagem com LLM real, braço único** — autorizada pelo dono: 9 chamadas, manifest
+  2.21.0, E5 sintético PII-zero com concentração de ~60%, US$ 2,49. Com fatia em aberto (U5
+  ×3, golden ×2): ressalva de classificação de imóvel em **5/5**, IF descrita como extremo
+  conservador em **5/5**, **nenhuma** prescrição de venda e nenhum código interno na prosa
+  renderizada. No controle (aluguel ×2, tudo apurado ×2): nenhum alarme de classificação,
+  nenhuma ressalva de IF e nenhuma compra de moradia sugerida a quem aluga. Com N=9 só falha
+  grosseira aparece, e não apareceu. Três sinais finos para o re-run: um caso lista "venda"
+  entre os desfechos de uma avaliação de yield; o modelo copiou o código para o campo
+  `evidencia`, que não é renderizado; e um run disse que o retrato "pode ser mais
+  concentrado" — o oposto do teto.
 - Débito herdado do gate de drift: **82 → 82** — nenhum escape consciente virou débito.
 - Snapshot de ancorabilidade: `medicao` e `inancoraveis` intactos; entram só a versão e os 4
   paths projetados sem dado no corpus sintético.
@@ -119,9 +137,13 @@ resultado está decidido antes de rodar (`prompt-engineer`).
 1. **Checker pós-LLM** (lista de palavras, padrão `parecer_red_lines`) para prescrição de
    venda de imóvel com fatia em aberto e sem ressalva. Dono `prompt-engineer`; promover a red
    line é do `financial-planner`. Retomada: o re-run 1 mostrar a prescrição.
-2. **Eviction invisível em produção:** o orchestrator não loga bytes do corpo nem seções
-   evictadas, só o marcador dentro do prompt. Dono `prompt-engineer`. Retomada: a próxima
-   mudança que cresça o corpo.
+2. **O parecer do dogfood não vê IF nem investimentos.** Medido acima: desde a 2.19.0 o E5
+   real evicta `independencia_financeira` e `investimentos`, e os hints delas orientam sobre
+   dado ausente do corpo. O orchestrator não loga bytes do corpo nem seções evictadas, então
+   isso só aparece medindo à mão. Anterior a esta lane e fora dela (`PV13-17` em
+   [[PIPELINE-REVIEWS-active]] já registrava a eviction por seleção, sem lane). Dono
+   `prompt-engineer` + `product-manager`. Retomada: **antes do 1º re-run**, porque muda a
+   leitura do parecer dele.
 3. **`pct_desconhecido` 0/0 publica 0,0** em família sem imóvel — zero sem evidência de zero.
    Dono `data-engineer`; não bloqueia (o veredito da residência diz `nao_declarada`).
 4. **CTA de cadastro no parecer:** hoje o hint o proíbe. Reabrir é do `product-designer`, que
