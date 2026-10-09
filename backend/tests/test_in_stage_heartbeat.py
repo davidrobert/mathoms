@@ -291,12 +291,7 @@ async def test_heartbeat_sqlite_aplica_busy_timeout_curto(monkeypatch) -> None:
 
 @pytest.fixture()
 def pooled_sqlite_engine(tmp_path, monkeypatch) -> Iterator[Engine]:
-    """SQLite em ARQUIVO com o pool default de produção (``QueuePool``) e os mesmos pragmas.
-
-    O ``StaticPool`` do conftest entrega UMA conexão a todas as sessões e é
-    descartado a cada teste: o PRAGMA da batida não tem conexão vizinha para onde
-    vazar, e o defeito some por construção.
-    """
+    """SQLite em ARQUIVO + ``QueuePool`` default + pragmas de produção: o ``StaticPool`` do conftest entrega UMA conexão a todas as sessões e esconde o vazamento por construção."""
     url = f"sqlite:///{tmp_path / 'heartbeat_pool.db'}"
     engine = create_engine(url, connect_args=_sqlite_connect_args(url))
     attach_sqlite_pragmas(engine)
