@@ -264,6 +264,12 @@ jobs:
               - 'config/**/*.yaml'
               - 'config/**/*.yml'
               - 'config/schemas/**'
+              # A persona abre o system prompt do parecer, e o pin dele
+              # (`tests/test_parecer_prompt_fingerprint.py`, ADR-199 §Emenda
+              # 2026-10-09) só roda neste job. Sem esta linha, um PR que só edita a
+              # persona pula `pipeline-tests` — o caso do `27bcd6d7` — e o `main`
+              # quebra no PR seguinte, de outro autor.
+              - 'config/agents/planner_persona.md'
               - 'requirements.in'
               - 'requirements.lock'
               - '.github/workflows/ci.yml'

@@ -208,7 +208,11 @@ gh pr merge <REVERT_PR_N> --squash --auto
 #    Fast-track só se o revert não pode passar pelo gate (gate brickado),
 #    com autorização explícita do owner. Break-glass da ADR-448 D2, para UM merge:
 R=repos/davidrobert/mathoms/rulesets/15884038; N=<REVERT_PR_N>
-if [ "$(gh api $R --jq '.bypass_actors | length')" = 0 ]; then
+# Sem admin a API OMITE `bypass_actors`, e `.bypass_actors | length` daria 0.
+B=$(gh api $R --jq 'if has("bypass_actors") then (.bypass_actors | length) else "sem-admin" end')
+if [ "$B" = sem-admin ]; then
+  echo "credencial sem admin: o break-glass não se aplica" >&2
+elif [ "$B" = 0 ]; then
   ( trap 'gh api -X PUT $R --input - <<<"{\"bypass_actors\":[]}"' EXIT
     gh api -X PUT $R --input - <<<'{"bypass_actors":[{"actor_id":5,"actor_type":"RepositoryRole","bypass_mode":"pull_request"}]}'
     gh pr merge "$N" --squash --admin )
