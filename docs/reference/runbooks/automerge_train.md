@@ -63,6 +63,7 @@ sobraram PRs que nem chegaram a ser tentados.
 | Sintoma | Causa provável | Ação |
 | --- | --- | --- |
 | `trem segurando: cabeça #N em andamento` com PRs `BEHIND` atrás | Enfileiramento normal: o trem é serial por desenho ([[ADR-322]] §D1) e não pula cabeça rodando CI | esperar — atualizar o próximo desperdiça runs e pode livelock |
+| `trem segurando: cabeça #N sem mergeabilidade calculada pelo GitHub` | A lista em lote veio UNKNOWN e as 2 releituras da cabeça pelo REST também ([[ADR-322]] §Emenda 2026-10-09) | `gh api repos/davidrobert/mathoms/pulls/N --jq .mergeable_state` dispara o cálculo; o run seguinte decide. Se for frequente, suba `UNKNOWN_REREADS` |
 | PR nunca avança; log diz `skip #N: conflito de merge` | `DIRTY` — o trem só resolve `BEHIND`; conflito ele pula e o PR fica fora da fila | autor rebasa e pusha da própria conta |
 | Warning `AUTOUPDATE_PAT ausente` no advance | Secret nunca criado ou PAT expirou | §2 |
 | Runs `action_required` (0 jobs) no head | Push saiu como bot (fonte externa ao trem) | §3 |
