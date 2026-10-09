@@ -157,6 +157,25 @@ async function snapshotSection(
     return;
   }
   await page.locator(selector).scrollIntoViewIfNeeded();
+  // SONDA B2: troca os 2 últimos caracteres do 1º texto visível <=12px por "XX".
+  const alvoB2 = await page.locator(selector).evaluate((root) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const el = n.parentElement;
+      const text = n.textContent ?? "";
+      const t = text.replace(/\s+$/, "");
+      if (!el || t.trim().length < 3) continue;
+      if (el.closest("svg, canvas, [data-mask-snapshot], button[aria-label], .sr-only")) continue;
+      const cs = getComputedStyle(el);
+      if (parseFloat(cs.fontSize) > 12) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 3 || r.height < 3 || cs.visibility === "hidden" || cs.opacity === "0") continue;
+      n.textContent = t.slice(0, -2) + "XX" + text.slice(t.length);
+      return `${el.tagName.toLowerCase()} ${cs.fontSize} "…${t.slice(-14)}" -> "…${t.slice(-14, -2)}XX"`;
+    }
+    throw new Error("sonda B2: nenhum texto visível <=12px na seção");
+  });
+  console.log(`SONDA-B2 ${baselineId}.${theme}: ${alvoB2}`);
   await expect(page.locator(selector)).toHaveScreenshot(
     `${baselineId}.${theme}.png`,
     {
@@ -178,7 +197,7 @@ async function snapshotSection(
       // herdar esta. Re-calibrar este valor é lane própria; não o copie para
       // baseline nova sem medir o par (piso de ruído, menor mudança que
       // precisa reprovar).
-      maxDiffPixelRatio: 0.025,
+      maxDiffPixelRatio: 0, // SONDA: tolerância zero — cada pixel reporta
       // Mascarar elementos cuja renderização exata não importa para
       // detecção de regressão estrutural (ex.: timestamps) e os FABs, que não
       // pertencem à seção (ver `floatingNavMask`).
