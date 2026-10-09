@@ -312,8 +312,11 @@ identidade do PAT não pode entrar na bypass list do Ruleset, e a **D2** promete
 `bypass_actors = [{RepositoryRole 5 (Admin), bypass_mode: pull_request}]`, e o
 repo é **público**. O PAT age como o dono, que é admin. **Não medido:** se um PAT
 fine-grained sem a permissão Administration herda o bypass do papel na hora do
-merge. Confirme em `rule-suites` antes de afirmar o pior caso. Mesmo no melhor
-caso, a garantia depende de um detalhe de implementação do GitHub, não do desenho.
+merge, e por desenho não é medível: o `rule-suites` registra o ator, não o tipo de
+credencial; o trem nunca pede merge com bypass (a observação passiva sai verde por
+vacuidade); e uma sonda ativa geraria bypass fora dos usos sancionados da
+[[ADR-415]] D2. A pergunta morre com a revogação do PAT. Mesmo no melhor caso, a
+garantia depende de um detalhe de implementação do GitHub, não do desenho.
 
 **Deferimento datado — GitHub App deixa de ser condicional.**
 - **Antes:** "alvo estrutural; PAT é stopgap aceito".
