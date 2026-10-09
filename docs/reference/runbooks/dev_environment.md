@@ -44,8 +44,12 @@ Healthcheck do `api` tem `start_period: 60s` (cold build + migração + seed).
 Console interno (`frontend-ops`, ADR-116) é opcional:
 
 ```bash
-docker compose -f docker-compose.dev.yml --profile ops up -d
+docker compose -f docker-compose.dev.yml --profile ops up -d --build
 ```
+
+UI em http://127.0.0.1:3110/login. O destino do proxy `/admin/*` é build arg
+(`MATHOMS_DOCKER_OPS_API_BASE`, default `http://api:8000`) — trocar exige
+`--build`. Detalhes e limitação atual do login em [RUNBOOK §7.2](../RUNBOOK.md).
 
 ---
 

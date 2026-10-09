@@ -9,6 +9,7 @@ estresse dizer "não projetável" para a mesma família, com as mesmas premissas
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 import pytest
 
@@ -45,7 +46,7 @@ def test_cenario_de_estresse_com_retorno_zero_projeta_em_vez_de_calar() -> None:
     cfg = CenariosConjugeConfig(
         titular_dob=_DOB,
         retorno_real_anual_pct=0.0,
-        aporte_base=100_000.0,
+        aporte_base=Decimal("100000"),
         fator_reduzido=0.5,
         reference_date=_REF,
     )

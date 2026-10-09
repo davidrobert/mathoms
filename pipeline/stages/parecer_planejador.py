@@ -131,6 +131,15 @@ def _failure_class_detail(result) -> dict:
     return failure_class_detail(StageFailureReason(failure_class))
 
 
+# [[ADR-341]] §Emenda 2026-10-09: o orçamento do corpo que o modelo recebeu, nos DOIS
+# desfechos — é o que diz se um bloqueio de red line veio de seção evictada. Mora no
+# status (`output_summary`, texto claro), não no `_meta` cifrado: o leitor é o X8 da
+# rodada unificada, por SELECT, sem decifrar artefato.
+def _exec_context_detail(result) -> dict:
+    """Orçamento do exec context (bytes + seções evictadas); `None` = desconhecido."""
+    return {"exec_context": getattr(result, "exec_context", None)}
+
+
 # `retention_reason` None = indisponibilidade técnica: nada foi gerado, logo não há
 # desfecho retido a persistir — o leitor responde 404, não 200 (ADR-366 §D3/§D6). Os 5
 # campos de auditoria eram descartados aqui, e a persistência os indexa com
@@ -150,6 +159,7 @@ def _needs_review_return(result, workspace_id: str, store) -> dict:
         **_failure_class_detail(result),
         **_cost_detail(result),
         **_audit_detail(result),
+        **_exec_context_detail(result),
     }
     if result.evidencia_summary is not None:
         status["evidencia_verification"] = result.evidencia_summary
@@ -190,6 +200,7 @@ def _success_return(result, workspace_id: str) -> dict:
         "cache_hit": result.cache_hit,
         **_cost_detail(result),
         **_audit_detail(result),
+        **_exec_context_detail(result),
         "parecer_summary": summary,
         # Preenchido também no sucesso: parecer ENTREGUE pode ter perdido itens
         # (`entregue_com_retencao`), e é o desfecho comum (ADR-366 §D1).

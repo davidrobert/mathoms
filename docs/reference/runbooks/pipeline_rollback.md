@@ -203,15 +203,30 @@ gh pr list --state merged --limit 10 --json number,title,mergedAt
 # 2. Crie PR de revert
 gh pr revert <N>   # alternativa: git revert <merge-commit> + git push
 
-# 3. Mergeia o revert com fast-track
-gh pr merge <REVERT_PR_N> --squash --admin   # admin requer autorização explícita do owner em incidente
+# 3. Mergeia o revert. Padrão: auto-merge, esperando o CI (p90 ~15 min)
+gh pr merge <REVERT_PR_N> --squash --auto
+#    Fast-track só se o revert não pode passar pelo gate (gate brickado),
+#    com autorização explícita do owner. Break-glass da ADR-448 D2, para UM merge:
+R=repos/davidrobert/mathoms/rulesets/15884038; N=<REVERT_PR_N>
+# Sem admin a API OMITE `bypass_actors`, e `.bypass_actors | length` daria 0.
+B=$(gh api $R --jq 'if has("bypass_actors") then (.bypass_actors | length) else "sem-admin" end')
+if [ "$B" = sem-admin ]; then
+  echo "credencial sem admin: o break-glass não se aplica" >&2
+elif [ "$B" = 0 ]; then
+  ( trap 'gh api -X PUT $R --input - <<<"{\"bypass_actors\":[]}"' EXIT
+    gh api -X PUT $R --input - <<<'{"bypass_actors":[{"actor_id":5,"actor_type":"RepositoryRole","bypass_mode":"pull_request"}]}'
+    gh pr merge "$N" --squash --admin )
+else
+  gh pr merge "$N" --squash --admin   # bypass já concedido: outra janela de break-glass aberta — não revogue a dela
+fi
 
 # 4. Aguarde deploy automático completar (CI/CD)
 # 5. Smoke test em workspace canário
 ```
 
-**Tempo típico:** 15min do detect ao revert deployado. Bypass de `--admin`
-exige justificativa registrada em postmortem.
+**Tempo típico:** 15min do detect ao revert deployado, esperando o CI. O
+break-glass vira `bypass` no `rule-suites` e duas versões no histórico do
+ruleset ([[ADR-448]]), e exige justificativa registrada em postmortem.
 
 ### 4.3. Migration downgrade (PR4 — drop coluna)
 

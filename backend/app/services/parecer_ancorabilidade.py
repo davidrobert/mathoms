@@ -91,8 +91,8 @@ def _unique(paths: Iterator[str]) -> tuple[str, ...]:
 # `receita_por_natureza` e `protecao_patrimonial`, um run responde "os gates ainda
 # passam?" e não "o #1004 causou a queda?". Presença de bloco não basta como
 # critério — `_render_table` com `rows == []` emite o cabeçalho sem nenhuma linha
-# (`**Top ativos (até 15)** (top 0):`), e é esse estado que faz o corpus PARECER
-# coberto. Daí 3 estados + a cardinalidade.
+# (`**Maiores posições, por valor (o motor lista até 15)** (top 0 de 0):`), e é esse
+# estado que faz o corpus PARECER coberto. Daí 3 estados + a cardinalidade.
 
 _STATE_WITH_DATA = "com_dado"
 _STATE_EMPTY = "vazio"
