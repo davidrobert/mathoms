@@ -230,6 +230,24 @@ def _ano_nao_fechado_reason(doc: Path, output, *, artifact_key: str) -> dict | N
     ).to_dict()
 
 
+def _baselines_do_store(store) -> list[dict]:
+    """Todos os E1.5a do store — existentes não-tocados + novos escritos no run."""
+    return [b for b in (store.read("E1.5a", k) for k in store.list_keys("E1.5a")) if b is not None]
+
+
+def _gravar_agregado(store, baselines: list[dict], prompt_version: str) -> dict:
+    """Agrega os E1.5a no `baseline_patrimonial` que o E1.5c lê, e o grava."""
+    combined = _aggregate_baselines(baselines)
+    # Propaga prompt_version no payload agregado (ADR-233 · W2-T05).
+    combined["prompt_version"] = prompt_version
+
+    # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
+    # consolidate_baseline lê este artefato e produz o -1.5_consolidated.
+    # W6-T03/F9.2: write descritivo; reads legados resolvem via stage_aliases.
+    store.write("extract_baseline", "baseline_patrimonial", combined)
+    return combined
+
+
 def run(ctx: WorkspaceContext) -> dict:
     """Execute E1.5 baseline patrimonial extraction via LLM, per-arquivo.
 
@@ -400,20 +418,8 @@ def run(ctx: WorkspaceContext) -> dict:
     # (existentes não-tocados + novos escritos acima). Em modo full, agrega
     # apenas os processados na run — preserva paridade com comportamento
     # legado e evita reincluir E1.5a órfão de doc removido pelo usuário.
-    if ctx.incremental:
-        baselines_for_aggregate = [
-            b for b in (store.read("E1.5a", k) for k in store.list_keys("E1.5a")) if b is not None
-        ]
-    else:
-        baselines_for_aggregate = per_file_baselines
-    combined = _aggregate_baselines(baselines_for_aggregate)
-    # Propaga prompt_version no payload agregado (ADR-233 · W2-T05).
-    combined["prompt_version"] = PROMPT_VERSION
-
-    # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
-    # consolidate_baseline lê este artefato e produz o -1.5_consolidated.
-    # W6-T03/F9.2: write descritivo; reads legados resolvem via stage_aliases.
-    store.write("extract_baseline", "baseline_patrimonial", combined)
+    baselines_for_aggregate = _baselines_do_store(store) if ctx.incremental else per_file_baselines
+    combined = _gravar_agregado(store, baselines_for_aggregate, PROMPT_VERSION)
 
     # Sem net_worth no log — valor real é dado sensível (CLAUDE.md §Logging).
     logger.info(
