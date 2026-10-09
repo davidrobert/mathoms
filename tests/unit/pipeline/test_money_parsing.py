@@ -1,12 +1,12 @@
 """Regressão do defeito de escala ×100 em valor monetário string (r5/M28)."""
 
-# Incidente: `consolidate_baseline.safe_float("243285.37")` devolvia 24328537.0 —
+# Incidente: `consolidate_baseline.safe_float("123456.78")` devolvia 12345678.0 —
 # strip incondicional do `.` como separador de milhar sobre string que já é decimal
 # ISO. Propagou para `investimentos_consolidados.valores_31_12` e inflou 4 dos 6 KPIs
 # do hero: patrimônio líquido, IF (798% contra 16,7% real), prazo de IF e o gap.
 #
 # O corpus real traz as DUAS convenções — o produtor interno emite ISO
-# ("243285.37") e documento/LLM emite pt-BR ("243.285,37"). Parser que assume uma
+# ("123456.78") e documento/LLM emite pt-BR ("123.456,78"). Parser que assume uma
 # delas erra a outra por 100×, ou devolve 0 e o dinheiro desaparece.
 
 from decimal import Decimal
@@ -19,14 +19,14 @@ from pipeline.domain.services.money_parsing import (
     valor_monetario_float,
 )
 
-# (entrada, esperado). Os 3 primeiros são os pares medidos no corpus de dogfood
-# que provaram o ×100: dígitos idênticos com a vírgula deslocada duas casas.
+# (entrada, esperado). Os 3 primeiros têm a forma dos pares medidos no corpus de
+# dogfood que provaram o ×100: dígitos idênticos com a vírgula deslocada duas casas.
 FORMAS_REAIS = [
-    ("243285.37", Decimal("243285.37")),
-    ("243.285,37", Decimal("243285.37")),
-    ("29000000.00", Decimal("29000000.00")),
-    ("290000.00", Decimal("290000.00")),
-    ("52303.69", Decimal("52303.69")),
+    ("123456.78", Decimal("123456.78")),
+    ("123.456,78", Decimal("123456.78")),
+    ("50000000.00", Decimal("50000000.00")),
+    ("500000.00", Decimal("500000.00")),
+    ("65432.10", Decimal("65432.10")),
     ("1234.56", Decimal("1234.56")),
     ("1.234,56", Decimal("1234.56")),
     ("R$ 1.234,56", Decimal("1234.56")),
@@ -39,11 +39,11 @@ FORMAS_REAIS = [
     ("5.000", Decimal("5000")),
     ("R$ 5.000.000", Decimal("5000000")),
     # US/EU — o corpus tem USD (Bank of America, Wise) e EUR (C6 global, Wise).
-    # `US$ 2,605.00` é literalmente o valor que aparece no render deste run.
+    # `US$ 3,210.00` tem a forma do valor que aparece no render deste run.
     ("1,234.56", Decimal("1234.56")),
     ("1,234,567.89", Decimal("1234567.89")),
-    ("US$ 2,605.00", Decimal("2605.00")),
-    ("$2,605.00", Decimal("2605.00")),
+    ("US$ 3,210.00", Decimal("3210.00")),
+    ("$3,210.00", Decimal("3210.00")),
     ("-1,234.56", Decimal("-1234.56")),
     ("€1.234,56", Decimal("1234.56")),
     ("€ 1,234.56", Decimal("1234.56")),
@@ -59,15 +59,15 @@ def test_parse_aceita_iso_e_pt_br(raw, esperado):
 
 
 def test_iso_com_duas_decimais_nao_e_inflado_100x():
-    """O caso exato do incidente — dígitos de 243285.37 não podem virar 24328537."""
-    assert parse_valor_monetario("243285.37") == Decimal("243285.37")
-    assert parse_valor_monetario("243285.37") != Decimal("24328537")
+    """O caso exato do incidente — dígitos de 123456.78 não podem virar 12345678."""
+    assert parse_valor_monetario("123456.78") == Decimal("123456.78")
+    assert parse_valor_monetario("123456.78") != Decimal("12345678")
 
 
 def test_pt_br_nao_colapsa_em_zero():
     """Falha-espelho: `patrimonio_types.safe_float` devolvia 0,00 e o dinheiro sumia."""
-    assert parse_valor_monetario("243.285,37") == Decimal("243285.37")
-    assert parse_valor_monetario("243.285,37") != Decimal(0)
+    assert parse_valor_monetario("123.456,78") == Decimal("123456.78")
+    assert parse_valor_monetario("123.456,78") != Decimal(0)
 
 
 @pytest.mark.parametrize("raw", [None, "", "   ", "N/D", "nan", "abc", "R$"])
@@ -84,9 +84,9 @@ def test_ultimo_separador_e_o_decimal():
 
 
 def test_agrupador_de_3_digitos_nao_e_lido_como_decimal():
-    """`"5.000"` é cinco mil, não cinco. `"243285.37"` é decimal, não 24 milhões."""
+    """`"5.000"` é cinco mil, não cinco. `"123456.78"` é decimal, não 12 milhões."""
     assert parse_valor_monetario("5.000") == Decimal("5000")
-    assert parse_valor_monetario("243285.37") == Decimal("243285.37")
+    assert parse_valor_monetario("123456.78") == Decimal("123456.78")
 
 
 @pytest.mark.parametrize(
@@ -128,7 +128,7 @@ class TestTaxaOuCotacao:
 
 
 def test_numerico_passa_intacto():
-    assert parse_valor_monetario(243285.37) == Decimal("243285.37")
+    assert parse_valor_monetario(123456.78) == Decimal("123456.78")
     assert parse_valor_monetario(0) == Decimal(0)
     assert parse_valor_monetario(Decimal("1.5")) == Decimal("1.5")
 
@@ -141,8 +141,8 @@ def test_negativo_preservado():
 
 def test_float_shim_preserva_contrato_dos_call_sites():
     """Call-sites legados esperam float com default; o shim não reintroduz o bug."""
-    assert valor_monetario_float("243285.37") == pytest.approx(243285.37)
-    assert valor_monetario_float("243.285,37") == pytest.approx(243285.37)
+    assert valor_monetario_float("123456.78") == pytest.approx(123456.78)
+    assert valor_monetario_float("123.456,78") == pytest.approx(123456.78)
     assert valor_monetario_float(None) == 0.0
     assert valor_monetario_float("lixo", default=-1.0) == -1.0
 
@@ -173,7 +173,7 @@ class TestParidadeEntreParsers:
             "patrimonio_types.safe_float": pt,
         }
 
-    @pytest.mark.parametrize("raw,esperado", [("243285.37", 243285.37), ("243.285,37", 243285.37)])
+    @pytest.mark.parametrize("raw,esperado", [("123456.78", 123456.78), ("123.456,78", 123456.78)])
     def test_todos_concordam(self, raw, esperado):
         divergentes = {
             nome: float(fn(raw))

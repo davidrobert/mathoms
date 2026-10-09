@@ -104,7 +104,7 @@ confirmada ponta a ponta e o eixo é a canonicalização.
 
 > Rodada de medição sobre o artefato `consolidate_baseline` do próprio run `40d1af2a`
 > (o do `U5`), executando os produtores reais contra o payload real. O publicado foi
-> **reproduzido ao centavo**: `split_imoveis_with_overrides` devolve `(0.0, 701170.57)`,
+> **reproduzido ao centavo**: `split_imoveis_with_overrides` devolve `(0.0, X)`,
 > idêntico a `patrimonio.residencia` / `patrimonio.imoveis_investimento` publicados.
 
 ### O que se confirma
@@ -157,10 +157,10 @@ corrigido ao mover o eixo de *domicílio* para *membro* — um nível abaixo: de
 
 | | ano-base atual (`max` global = 2026) | ano por classe (imóveis do titular = 2025) |
 |---|---|---|
-| `residencia` | **0,00** | **996.821,46** |
-| cat_2 (outros imóveis) | 701.170,57 | 1.343.876,81 |
+| `residencia` | **0,00** | **R** (o maior item isolado) |
+| cat_2 (outros imóveis) | X | 1,917 × X |
 | `imoveis_geradores` | **0,00** | **0,00** ← não se move |
-| `total_dividas` (titular) | **0,00** | **230.459,13** |
+| `total_dividas` (titular) | **0,00** | **D** (Σ dos 4 itens) |
 
 `imoveis_geradores` **não se move** com o ano corrigido: os 4 imóveis `locado` estão sem
 `property_id` neste run. **Os dois defeitos são necessários** — nenhum sozinho fecha o
@@ -234,7 +234,7 @@ arbitrário.
 ### O que foi entregue
 
 - **Eixo do ano por classe** ([[ADR-433]] D1) + endurecimento do crédito de resíduo (D2).
-  Medido: `residencia` 0,00 → **996.821,46**; `total_dividas` 0,00 → **230.459,13**;
+  Medido: `residencia` 0,00 → **R**; `total_dividas` 0,00 → **D**;
   `veiculos` volta ao declarado. Conservação intacta.
 - **Estado ternário** (D3): `CLASSIFICATION_DESCONHECIDO` deixa de ser constante órfã e
   passa a ter produtor único; cobertura medida em valor **e** contagem (57,4% do valor

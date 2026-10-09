@@ -58,8 +58,8 @@ A ponte é identidade derivável, não coincidência do corpus:
 folga_mensal − poupança_mensal ≡ (pontuais_janela − transferencia_patrimonial) / n_meses
 ```
 
-Verificada em dois payloads: dogfood (`130.179,78 − 97.302,65 = 32.877,13 ==
-394.525,39/12`, resíduo de R$ 0,01) e a fixture `pontuais-com-aporte`
+Verificada em dois payloads: dogfood (a identidade fecha com resíduo de R$ 0,01) e a
+fixture `pontuais-com-aporte`
 (`15.000,00 − 14.250,00 = 750,00 == (21.000 − 12.000)/12`, resíduo zero).
 
 **A soma fecha dos dois lados**, então nenhum invariante de conservação via o
@@ -107,12 +107,12 @@ classificaria como cortável exatamente o que não é consumo (57,5% da janela d
 dogfood).
 
 **D2 — `teto_sugerido` sai do contrato.** Três defeitos independentes: (i)
-prescrevia R$ 45.519,51 contra despesa real de R$ 72.459,30/mês — 37% abaixo do
-que a família gasta, e teto inalcançável é o mecanismo nº 1 de abandono de
+prescrevia um teto 37% abaixo da despesa real do mês — abaixo do que a família
+gasta, e teto inalcançável é o mecanismo nº 1 de abandono de
 orçamento na literatura de referência do domínio; (ii) o rótulo dizia "consumo" e o número era
 `recorrente × 1,15`, incluindo moradia, impostos e folha PJ; (iii) o
 multiplicador `1,15` não tem origem declarada em lugar nenhum. Rebasá-lo para
-consumo produziria `72.459,30 × 1,15 = 83.328,20`, isto é *"gaste até 15% a mais
+consumo produziria `despesa × 1,15`, isto é *"gaste até 15% a mais
 do que já gasta"* — permissivo a ponto de ser vazio. Um número que só pode ser
 inalcançável ou vazio não é teto. Teto de verdade é escopo do
 `OrcamentoProspectivoCard`, que já é a superfície de tetos; duplicá-lo repetiria
@@ -132,8 +132,8 @@ O anterior media o estoque **full-period** contra o aporte **declarado**
 (`goals.aportes.meta_aporte_mensal`): duas bases, e um denominador **editável
 pelo usuário** — um número de diagnóstico que se move sem que nada tenha
 acontecido no mundo não é auditável. No dogfood o fator de inflação era **4,9×**
-(46,1 meses onde a poupança realizada sustenta 4,1), e o próprio aporte de
-R$ 190.000 contava como 9,5 "meses de aporte" dentro do numerador.
+(46,1 meses onde a poupança realizada sustenta 4,1), e o próprio aporte
+contava como 9,5 "meses de aporte" dentro do numerador.
 
 Numerador e denominador saem da **mesma** janela — trocar só o denominador
 recriaria a mistura de base que a [[ADR-306]] existe para matar. Atribuição do
@@ -153,14 +153,14 @@ que citava um total **nu**.
   inflado era o card e o parecer, isto é, as superfícies que **prescrevem**.
 - `manifest_version` do parecer sobe (2.7.0 → 2.8.0) e **cobra a frota**: a
   `folga_mensal` mudou de VALOR sem mudar de nome, e o cache tem TTL de 7 dias.
-- No dogfood: folga R$ 130.179,78 → R$ 97.302,65; `folga_pct` 76,70 → 57,32;
+- No dogfood: folga −25,3%; `folga_pct` 76,70 → 57,32;
   equivalente 46,1 → 4,1 meses.
 
 ### O que esta ADR NÃO conserta — e por que isso não muda o sinal
 
 A base de `total_pontuais` continua contaminada (`LC6-05`): no dogfood, 57,5% da
-janela é movimentação patrimonial — uma saída de R$ 194.886,65 nomeando outro
-banco do próprio titular e R$ 32.000 em conversões BRL→USD, todas caídas em
+janela é movimentação patrimonial — uma saída nomeando outro banco do
+próprio titular e conversões BRL→USD, todas caídas em
 `nao_identificado` porque o `InternalTransferDetector` não as pegou. Há **três**
 definições disjuntas de "gasto pontual" em produção:
 
@@ -251,8 +251,8 @@ sobe **2.8.0 → 2.9.0**.
 Decidido por eliminação, com o `financial-planner` (dono declarado da [[A40.l101]]): sob a
 leitura **retrospectiva** — *"quantos meses de poupança este gasto consumiu"* — o denominador
 correto é a poupança que existiria **sem** o gasto, `folga + P/n`. E `folga + P/n` é
-**numericamente a `folga_mensal` pré-[[ADR-422]]**, ao centavo (R$ 130.179,78 no dogfood;
-resíduo zero nas duas fixtures). Uma leitura cujo único denominador coerente é a grandeza que
+**numericamente a `folga_mensal` pré-[[ADR-422]]**, ao centavo (no dogfood e com resíduo zero
+nas duas fixtures). Uma leitura cujo único denominador coerente é a grandeza que
 esta ADR acabou de matar é a leitura errada. Sob a leitura **prospectiva** — conversão de
 unidade à taxa de poupança **observada** — a fórmula da D3 fica de pé byte a byte.
 

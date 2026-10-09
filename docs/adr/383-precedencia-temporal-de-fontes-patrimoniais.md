@@ -29,9 +29,8 @@ tags:
 O PL prefere "posições atuais" (E4) por **membro inteiro** com fallback IRPF
 (`_compute_investimentos`), e [[ADR-346]] compara recência só **dentro** do
 pool de reports. Nenhuma regra confronta pools: no dogfood, a posição E4
-"CDB C6" de R$ 206.491,70 (`data_referencia` 2025-03-31) vence o IRPF
-31/12/2025 (R$ 2.404,00) por default — overcount provável de ~R$ 204k no
-bruto (~5,1%), propagando para líquido, investível, IF e composição.
+"CDB C6" (`data_referencia` 2025-03-31) vence o IRPF 31/12/2025 (~86×
+menor) por default — overcount provável de ~5,1% do bruto, propagando para líquido, investível, IF e composição.
 Hierarquias de qualidade sem eixo temporal produzem o bug invertido (IRPF
 de 2024 venceria extrato de ontem).
 

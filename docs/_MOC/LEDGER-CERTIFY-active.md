@@ -554,7 +554,7 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 >   no artefato E5 (`e5_analysis.schema.json:2137`, [[ADR-406]] D5) e congelado em
 >   `tests/fixtures/dedup/policy_parity_snapshot.json`.
 >
-> Efeito no relatório, mesmo corpus: `Internacional` R$ 34.857,23 → **R$ 423,56**,
+> Efeito no relatório, mesmo corpus: `Internacional` **−98,8%**,
 > `nao_classificado_pct` 3,93% → **6,51%**, com **totais publicados idênticos ao centavo** —
 > redistribuição com Σ preservado, a classe cega aos invariantes de conservação.
 
@@ -621,7 +621,7 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 > medição acima for refeita. Dinheiro segue fora: a soma fecha ao centavo (refutação embutida
 > na própria linha). **Dono até lá:** `_README` da [[A42]] §Fora do sprint.
 >
-> ⚠️ **O número do efeito acima envelheceu duas vezes.** `Internacional` R$ 423,56 foi medido
+> ⚠️ **O número do efeito acima envelheceu duas vezes.** o `Internacional` −98,8% foi medido
 > antes do #1937 e do #1939, e **os dois mexeram na chave**. Quem for reconciliar
 > `Internacional` (a [[A40.l50]] é quem tem a rota) precisa **re-medir**, não reler.
 
@@ -652,8 +652,8 @@ não mudaram.
 > caem pela **mesma linha determinística** — `anos_base_por_membro` elegia o ano-base por
 > `max()` sobre a **união** das classes de ativo, e um saldo bancário de 2026 fazia
 > imóveis/veículos/dívidas (que param em 2025) projetarem `0,00`. A residência saiu zero
-> **tendo** `property_id` e override gravados. Medido: `residencia` 0,00 → 996.821,46;
-> `total_dividas` 0,00 → 230.459,13 — reprodução no grão do produtor contra o artefato do
+> **tendo** `property_id` e override gravados. Medido: `residencia` e `total_dividas`
+> saem de 0,00 para o valor declarado — reprodução no grão do produtor contra o artefato do
 > run `40d1af2a`, não um run publicado novo. ⚠️ **Crédito não é exclusivo:** a [[A40.l114]]
 > (#1961) entregou o produtor único de saldo e o invariante temporal, e mediu pós-rebase que
 > os dois consertos são **independentemente suficientes** neste corpus — os números ficam

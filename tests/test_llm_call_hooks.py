@@ -108,6 +108,33 @@ def test_record_call_failure_does_not_break_call() -> None:
     assert result.output.value == "ok"
 
 
+class _RecordingCallLogLogger:
+    """Captura o ERROR da row perdida — imune a propagate=False do namespace mathoms.*."""
+
+    def __init__(self) -> None:
+        self.errors: list[tuple[str, dict]] = []
+
+    def error(self, msg: str, *args, extra: dict | None = None, **kwargs) -> None:
+        self.errors.append((msg, extra or {}))
+
+
+def test_record_call_failure_is_a_countable_error_without_bound_parameters(monkeypatch) -> None:
+    """A42.l7: row de custo perdida é ERROR contável; ``str(exc)`` levaria os bound parameters."""
+    from pipeline.llm import call_hooks
+
+    recorder = _RecordingCallLogLogger()
+    monkeypatch.setattr(call_hooks, "_call_log_logger", recorder)
+    leaky = RuntimeError("[parameters: ('doc_sintetico.pdf',)]")
+    svc = _build_svc(_RecordingHooks(record_error=leaky), MagicMock(return_value=_mock_response()))
+
+    svc.call(system_prompt="s", user_prompt="u", output_schema=_Out, stage="E2-llm:doc.pdf")
+
+    expected = {"stage": "E2-llm", "model": "claude-test", "cost_usd": 0.0}
+    assert recorder.errors == [
+        ("llm call_log persist failed", {**expected, "error_class": "RuntimeError"})
+    ]
+
+
 def test_no_hooks_keeps_legacy_behavior() -> None:
     create_mock = MagicMock(return_value=_mock_response())
     svc = LLMService(LLMConfig(provider="anthropic", api_key="sk-test", model_name="claude-test"))

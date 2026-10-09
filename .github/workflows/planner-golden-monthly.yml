@@ -45,11 +45,11 @@ jobs:
       issues: write    # para abrir Issue em drift detectado
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Python
         id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -60,7 +60,7 @@ jobs:
 
       - name: Restore venv cache
         id: venv-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
@@ -96,7 +96,7 @@ jobs:
 
       - name: Upload junit results
         if: always() && steps.key-check.outputs.has_key == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: golden-monthly-results
           path: golden-monthly-results.xml

@@ -125,7 +125,7 @@ merge `47970706`) abriu três P0 cuja causa-raiz cai **exatamente** na tese dest
 - [[A42.l15]] — `investment_id` é hash de campos que o extrator LLM reescreve, com **23,5%**
   de estabilidade entre dois runs do mesmo documento. Dano vivo, remedido em 2026-08-29: o
   comparador dispara em **todo par consecutivo, por perna diferente a cada vez** (não as duas
-  juntas), e no relatório `Internacional` cai de R$ 34.857,23 para **R$ 423,56** com os totais
+  juntas), e no relatório `Internacional` cai **98,8%** com os totais
   publicados **idênticos ao centavo**.
 - [[A42.l16]] — o check de cobertura cambial converte *"não sei o tier"* em *"passou"*, contra
   a política escrita 400 linhas acima no mesmo módulo. **`shipped` 2026-08-29 (#1827) — e a

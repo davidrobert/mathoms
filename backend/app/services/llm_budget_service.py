@@ -7,11 +7,20 @@ injetada em ``WorkspaceContext.llm_call_hooks`` por ``_setup_run_context``
 Sessões sync curtas por operação (worker Celery é sync); cache Redis 60s
 para ``SUM(cost_usd)`` — falha aberta para o SQL. Burst de até 60s pós-110%
 é aceito pela ADR-173.
+
+Em engine de writer único (SQLite) o service de um run do pipeline ADIA o
+``LLMCallLog``: a sessão do stage segura o write-lock do 1º ``store.write``
+até o commit (ADR-256), e o INSERT de outra conexão esperava o busy_timeout e
+se perdia. Quem fecha a sessão do stage chama ``flush_call_log`` (ADR-173
+§Emenda 2026-10-08).
 """
 
 from __future__ import annotations
 
 import logging
+import threading
+import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Optional
@@ -19,13 +28,14 @@ from typing import TYPE_CHECKING, Any, Callable, Optional
 from sqlalchemy import func, select
 
 from backend.app.core.logging import get_logger
-from pipeline.llm.call_hooks import LLMBudgetExceededError
+from pipeline.llm.call_hooks import LLMBudgetExceededError, stage_without_document_suffix
 
 if TYPE_CHECKING:
     from pipeline.llm.litellm_client import LLMCallResult
 
 logger = logging.getLogger(__name__)
 _budget_metrics = get_logger("llm.budget_warn")
+_call_log_failures = get_logger("llm.call_log_persist_failed")
 
 _SPEND_CACHE_TTL_SECONDS = 60
 _WARN_RATIO = Decimal("0.80")
@@ -51,6 +61,24 @@ def _current_month_window(now: Optional[datetime] = None) -> tuple[datetime, str
 current_month_window = _current_month_window
 
 
+@dataclass(frozen=True)
+class _CallLogEntry:
+    """Row de ``LLMCallLog`` congelada na hora da call — ``id``/``created_at`` não esperam o flush."""
+
+    id: str
+    created_at: datetime
+    stage: str
+    model_name: str
+    prompt_version: Optional[str]
+    tokens_in: int
+    tokens_out: int
+    cost_usd: Decimal
+    cost_known: bool
+    duration_ms: int
+    confidence: Optional[float]
+    needs_review: bool
+
+
 class LLMBudgetService:
     """Pre-call budget check (80% warn / 110% hard-stop) + persistência por call."""
 
@@ -68,6 +96,25 @@ class LLMBudgetService:
 
             session_factory = SyncSessionLocal
         self._session_factory = session_factory
+        # O pendente vive o tempo da instância (o run no Celery, o stage no
+        # executor HTTP/CLI), nunca entre requests (STATELESS_AUDIT §2). Lock:
+        # o extract_with_llm chama o LLM em ThreadPoolExecutor com este service.
+        self._defer_call_log = False
+        self._pending: list[_CallLogEntry] = []
+        self._pending_lock = threading.Lock()
+
+    @classmethod
+    def for_pipeline_run(
+        cls,
+        workspace_id: str,
+        run_id: str,
+        *,
+        session_factory: Optional[Callable[[], Any]] = None,
+    ) -> "LLMBudgetService":
+        """Hooks de um run do pipeline: adia o ``LLMCallLog`` quando o engine tem writer único."""
+        service = cls(workspace_id, pipeline_run_id=run_id, session_factory=session_factory)
+        service._defer_call_log = _has_single_writer(service._session_factory)
+        return service
 
     # ------------------------------------------------------------------
     # LLMCallHooks protocol
@@ -77,7 +124,7 @@ class LLMBudgetService:
         budget = self._load_budget()
         if budget is None or budget <= 0:
             return
-        spent = self._month_spend_cached()
+        spent = self._month_spend_cached() + self._pending_spend()
         if spent >= budget * _HARD_STOP_RATIO:
             self._emit_budget_metric("llm budget hard-stop", spent, budget)
             raise LLMBudgetExceededError(self._workspace_id, spent, budget)
@@ -91,15 +138,36 @@ class LLMBudgetService:
         stage: Optional[str],
         prompt_version: Optional[str],
     ) -> None:
-        session = self._session_factory()
-        try:
-            session.add(self._call_log_row(result, stage, prompt_version))
-            session.commit()
-        finally:
-            session.close()
+        entry = _call_log_entry(result, stage=stage or "unknown", prompt_version=prompt_version)
+        if self._defer_call_log:
+            with self._pending_lock:
+                self._pending.append(entry)
+            return
+        self._insert([entry])
         # Invalida o cache de gasto — o próximo check refaz o SUM já com esta call.
-        _, month_key = _current_month_window()
-        _redis_delete(spend_cache_key(self._workspace_id, month_key))
+        _redis_delete(self._spend_cache_key())
+
+    # ------------------------------------------------------------------
+    # Executor — fim da sessão do stage
+    # ------------------------------------------------------------------
+
+    def flush_call_log(self) -> None:
+        """Grava o ``LLMCallLog`` adiado; o executor chama DEPOIS de fechar a sessão do stage."""
+        # Sai do pendente ANTES do commit e volta se falhar: subcontar por um
+        # instante (dentro do burst da ADR-173) é melhor que contar em dobro —
+        # hard-stop falso aborta um run já pago.
+        with self._pending_lock:
+            batch, self._pending = self._pending, []
+        if not batch:
+            return
+        try:
+            self._insert(batch)
+        except Exception as exc:  # noqa: BLE001 — telemetria nunca derruba o run
+            with self._pending_lock:
+                self._pending[:0] = batch
+            self._log_flush_failure(batch, exc)
+            return
+        _redis_delete(self._spend_cache_key())
 
     def _emit_budget_metric(self, event: str, spent: Decimal, budget: Decimal) -> None:
         _budget_metrics.warning(
@@ -111,26 +179,58 @@ class LLMBudgetService:
             },
         )
 
-    def _call_log_row(self, result: "LLMCallResult", stage, prompt_version):
-        from backend.app.models.llm_call_log import LLMCallLog
-
-        return LLMCallLog(
-            workspace_id=self._workspace_id,
-            stage=stage or "unknown",
-            model_name=result.model,
-            prompt_version=prompt_version,
-            tokens_in=result.tokens_in,
-            tokens_out=result.tokens_out,
-            cost_usd=Decimal(str(result.cost_estimate_usd)),
-            cost_known=result.cost_known,
-            duration_ms=result.duration_ms,
-            pipeline_run_id=self._pipeline_run_id,
-            **_quality_fields(result),
+    def _log_flush_failure(self, batch: list[_CallLogEntry], exc: Exception) -> None:
+        # Contável e sem PII: a classe do erro, nunca str(exc) — o StatementError
+        # carrega os bound parameters (ADR-404). As rows vão como dead-letter
+        # para replay idempotente: o id nasceu na call.
+        _call_log_failures.error(
+            "llm call_log flush failed",
+            extra={
+                "workspace_id": self._workspace_id,
+                "pipeline_run_id": self._pipeline_run_id,
+                "rows": len(batch),
+                "cost_usd": str(sum((entry.cost_usd for entry in batch), Decimal("0"))),
+                "error_class": type(exc).__name__,
+                "dead_letter": [_dead_letter(entry) for entry in batch],
+            },
         )
 
     # ------------------------------------------------------------------
     # Internals
     # ------------------------------------------------------------------
+
+    def _insert(self, entries: list[_CallLogEntry]) -> None:
+        from backend.app.models.llm_call_log import LLMCallLog
+
+        rows = [self._row_values(entry) for entry in entries]
+        session = self._session_factory()
+        try:
+            insert = _idempotent_insert(session.get_bind().dialect.name)
+            # ON CONFLICT: re-flush de lote cujo commit aterrissou (ack perdido)
+            # vira no-op — o id fixo sozinho abortaria o lote inteiro.
+            stmt = insert(LLMCallLog.__table__).on_conflict_do_nothing(index_elements=["id"])
+            session.execute(stmt, rows)
+            session.commit()
+        finally:
+            session.close()
+
+    def _row_values(self, entry: _CallLogEntry) -> dict[str, Any]:
+        return {
+            **asdict(entry),
+            "workspace_id": self._workspace_id,
+            "pipeline_run_id": self._pipeline_run_id,
+        }
+
+    def _pending_spend(self) -> Decimal:
+        """Gasto adiado do mês corrente — já foi cobrado, e o hard-stop tem de vê-lo antes do flush."""
+        month_start, _ = _current_month_window()
+        with self._pending_lock:
+            costs = [entry.cost_usd for entry in self._pending if entry.created_at >= month_start]
+        return sum(costs, Decimal("0"))
+
+    def _spend_cache_key(self) -> str:
+        _, month_key = _current_month_window()
+        return spend_cache_key(self._workspace_id, month_key)
 
     def _load_budget(self) -> Optional[Decimal]:
         """``monthly_llm_budget_usd`` do workspace; ``None`` (NULL/ausente) = sem cap."""
@@ -146,8 +246,7 @@ class LLMBudgetService:
         return None if value is None else Decimal(value)
 
     def _month_spend_cached(self) -> Decimal:
-        _, month_key = _current_month_window()
-        key = spend_cache_key(self._workspace_id, month_key)
+        key = self._spend_cache_key()
         cached = _redis_get(key)
         if cached is not None:
             if isinstance(cached, bytes):
@@ -175,6 +274,72 @@ class LLMBudgetService:
         finally:
             session.close()
         return Decimal(total or 0)
+
+
+# ---------------------------------------------------------------------------
+# LLMCallLog — row, writer único e dead-letter
+# ---------------------------------------------------------------------------
+
+
+def _call_log_entry(
+    result: "LLMCallResult", *, stage: str, prompt_version: Optional[str]
+) -> _CallLogEntry:
+    return _CallLogEntry(
+        id=str(uuid.uuid4()),
+        created_at=datetime.now(timezone.utc),
+        stage=stage,
+        model_name=result.model,
+        prompt_version=prompt_version,
+        tokens_in=result.tokens_in,
+        tokens_out=result.tokens_out,
+        cost_usd=Decimal(str(result.cost_estimate_usd)),
+        cost_known=result.cost_known,
+        duration_ms=result.duration_ms,
+        **_quality_fields(result),
+    )
+
+
+def _has_single_writer(session_factory: Callable[[], Any]) -> bool:
+    # SQLite admite UM writer por arquivo, e a sessão do stage segura o lock do
+    # 1º store.write até o commit (ADR-256): o INSERT de outra conexão — outro
+    # engine inclusive — espera o busy_timeout e falha. Postgres não tem esse
+    # lock e grava na hora; adiar lá só trocaria durabilidade por nada.
+    session = session_factory()
+    try:
+        return session.get_bind().dialect.name == "sqlite"
+    finally:
+        session.close()
+
+
+def _idempotent_insert(dialect: str) -> Callable[..., Any]:
+    """``insert`` com ``on_conflict_do_nothing`` dos dois dialects que o repo roda."""
+    if dialect == "postgresql":
+        from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+        return pg_insert
+    if dialect == "sqlite":
+        from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+
+        return sqlite_insert
+    raise ValueError(
+        f"LLMCallLog sem insert idempotente para dialect={dialect!r} (sqlite|postgresql)"
+    )
+
+
+def _dead_letter(entry: _CallLogEntry) -> dict[str, Any]:
+    """Row para replay sem PII: o stage perde o sufixo por documento (A42.l7 itens 1/5)."""
+    return {
+        "id": entry.id,
+        "created_at": entry.created_at.isoformat(),
+        "stage": stage_without_document_suffix(entry.stage),
+        "model_name": entry.model_name,
+        "prompt_version": entry.prompt_version,
+        # "usage", não "tokens_*": a denylist de log casa "token" por substring.
+        "usage": [entry.tokens_in, entry.tokens_out],
+        "cost_usd": str(entry.cost_usd),
+        "cost_known": entry.cost_known,
+        "duration_ms": entry.duration_ms,
+    }
 
 
 # ---------------------------------------------------------------------------

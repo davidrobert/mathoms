@@ -30,7 +30,7 @@ O card `posicao_informe_31_12` (S1) mistura, sob o header "Valor em 31/12",
 linhas de informe (snapshot 31/12/ano-base) com linhas de extrato cujo valor
 é o saldo **atual** do último extrato reconciliado (no dogfood: até
 2026-08-11). A mesma conta aparece duas vezes sem vínculo (Itaú CC informe
-R$ 0,00 + extrato R$ 5.156,06). A regra "informe vence extrato D+1"
+R$ 0,00 + extrato com saldo positivo). A regra "informe vence extrato D+1"
 ([[ADR-238]] D5) é letra morta em produção: `_period_in_janela_d1` roda
 sobre o **último** extrato da conta e nunca dispara em workspace com
 extratos correntes.

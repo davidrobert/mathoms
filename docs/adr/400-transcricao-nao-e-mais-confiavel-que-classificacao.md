@@ -201,7 +201,7 @@ onde procurar quando a classe migrar sem diff no classificador.
 ## Emenda 2026-08-25 — presunção derivada de *default* não é presunção derivada de *fato*
 
 O **RV8-01** do r8 (run `d0f6260a`) mediu: propagar `tipo` ao classificador move
-**11 de 61 posições** de `Fundos` para `Renda Fixa` — R$ 174.636,71 — com
+**11 de 61 posições** de `Fundos` para `Renda Fixa` — 13,1% da carteira — com
 `autoridade: "keyword"` e zero `review_reason`. Contido pela [[A40.l82]].
 
 ### O que esta ADR já sabia, e o que faltava
@@ -262,8 +262,8 @@ passa a travar a divergência.
 ### A contenção tem custo medido, e ele tem sinal
 
 Medido no fechamento da [[A40.l82]], delegando a `build_reserva_liquida` sobre o
-mesmo run: a reserva da cônjuge cai **R$ 25.337,34** (110.130,67 → 84.793,33,
-`fonte=irpf`; o titular vem de `posicoes` e fica idêntico nos três cenários). O
+mesmo run: a reserva da cônjuge cai **~23%**
+(`fonte=irpf`; o titular vem de `posicoes` e fica idêntico nos três cenários). O
 movimento é **inteiramente do `tipo`** — o corte das cinco marcas é zero na reserva,
 porque `Fundos` e `Outros` são ambos ilíquidos.
 
@@ -295,7 +295,7 @@ travando o repo é dívida pior que a que ele cobre — a condição é a exist�
 degrau 1, verificável, não uma data.
 
 **`tipo_proveniencia` como campo companheiro — dono `data-engineer`, aditivo, com
-custo corrente de R$ 25.337,34 em KPI publicado (§"A contenção tem custo medido").**
+custo corrente de ~23% na reserva publicada da cônjuge (§"A contenção tem custo medido").**
 Enum
 fechado derivado mecanicamente de qual `return` disparou (`declarado`,
 `derivado_de_evidencia`, `default_de_grupo`, `desconhecido`). **Não** muda o valor de

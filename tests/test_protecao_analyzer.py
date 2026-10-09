@@ -147,7 +147,7 @@ def test_cenario_a_decomposicao_separa_auto_e_residencial():
     assert sum(Decimal(v) for v in decomp.values()) == Decimal("4750.00")
 
 
-def _apolice_sem_detalhe(premio="6022.27") -> dict:
+def _apolice_sem_detalhe(premio="6000.00") -> dict:
     return _apolice("SEMBEM-1", "porto", "2026-01-01", "2027-01-01", premio, _corretor(), [])
 
 
@@ -160,7 +160,7 @@ def test_apolice_sem_bens_vai_para_nao_identificado():
         renda_anual_liquida_brl=Decimal("200000"),
     )
     decomp = compute_protecao(inp)["premio_decomposicao"]
-    assert decomp == {"nao_identificado": "6022.27"}
+    assert decomp == {"nao_identificado": "6000.00"}
     assert "auto" not in decomp
 
 
