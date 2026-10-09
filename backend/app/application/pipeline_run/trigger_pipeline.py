@@ -357,8 +357,9 @@ async def _resolve_base_run(
     """Resolve o run base coerente para ``from_stage`` (ADR-291)."""
     # Pin em run ÚNICO — nunca latest-per-stage — preserva os invariantes
     # cross-account da ADR-241 (E3↔E4↔E5 internamente consistentes entre si).
-    # Presença de rows em pipeline_artifacts é o critério (sessão por-stage só
-    # comita em sucesso), não pipeline_runs.status.
+    # Presença de rows em pipeline_artifacts é o critério, não pipeline_runs.status:
+    # stage required que não entregou não deixa row em executor nenhum — a sessão
+    # por-stage só commita quando `commits_stage_transaction` deixa (ADR-357 §6).
     from pipeline.stage_spec import run_scoped_upstream_reads
 
     needed = run_scoped_upstream_reads(stages) if from_stage else frozenset()
