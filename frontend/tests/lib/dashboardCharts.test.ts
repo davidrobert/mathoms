@@ -13,6 +13,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  categoryBarChartHeight,
   isMonthlyBarChart,
   normalizeBarData,
 } from "@/app/(app)/plano/_components/_dashboard/dashboardHelpers";
@@ -23,6 +24,15 @@ const FIXTURE: { charts: DashboardChart[] } = JSON.parse(
 );
 
 const BAR_CHARTS = FIXTURE.charts.filter((chart) => chart.chart_type === "bar");
+
+const MENSAL: DashboardChart = {
+  chart_type: "bar",
+  title: "Receita vs Despesa Mensal",
+  data: {
+    labels: ["jan/2026", "fev/2026"],
+    datasets: [{ label: "Receita", data: [10, 20] }],
+  },
+};
 
 describe("dashboard — bar chart como o backend emite", () => {
   it("a fixture traz o gráfico de classes (sem ele, os casos abaixo são vácuos)", () => {
@@ -42,20 +52,29 @@ describe("dashboard — bar chart como o backend emite", () => {
   });
 });
 
-describe("dashboard — clique na barra só onde há destino", () => {
-  it("barra de classes não tem deep-link por período", () => {
+describe("dashboard — meses em colunas com clique; categorias deitadas, sem clique", () => {
+  it("barra de classes: eixo de categorias, sem deep-link por período", () => {
     expect(isMonthlyBarChart(BAR_CHARTS[0])).toBe(false);
   });
 
-  it("barra com eixo de meses tem", () => {
-    const mensal: DashboardChart = {
-      chart_type: "bar",
-      title: "Receita vs Despesa Mensal",
-      data: {
-        labels: ["jan/2026", "fev/2026"],
-        datasets: [{ label: "Receita", data: [10, 20] }],
-      },
-    };
-    expect(isMonthlyBarChart(mensal)).toBe(true);
+  it("barra com eixo de meses: colunas com deep-link", () => {
+    expect(isMonthlyBarChart(MENSAL)).toBe(true);
+  });
+
+  it("o mês precisa vir `mmm/aaaa`: `abr/26` cai no eixo de categorias e perde o clique", () => {
+    const curto: DashboardChart = { ...MENSAL, data: { ...MENSAL.data, labels: ["abr/26", "mai/26"] } };
+    expect(isMonthlyBarChart(curto)).toBe(false);
+  });
+});
+
+describe("dashboard — altura da barra deitada", () => {
+  it("até 7 categorias fica na altura dos outros cards", () => {
+    expect(categoryBarChartHeight(4)).toBe(300);
+    expect(categoryBarChartHeight(7)).toBe(300);
+  });
+
+  it("da 8ª em diante cresce 36px por categoria — 11 (o vocabulário inteiro) dá 430", () => {
+    expect(categoryBarChartHeight(8)).toBe(322);
+    expect(categoryBarChartHeight(11)).toBe(430);
   });
 });

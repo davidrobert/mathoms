@@ -13,19 +13,8 @@ import {
 import type { DashboardChart } from "@/lib/api";
 import { formatCompact, formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AXIS_TICK_STYLE, TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE } from "./chartStyles";
 import { normalizeBarData } from "./dashboardHelpers";
-
-const TOOLTIP_ITEM_STYLE = {
-  fontFamily: "var(--font-mono)",
-  fontVariantNumeric: "tabular-nums",
-} as const;
-
-const TOOLTIP_CONTENT_STYLE = {
-  borderRadius: "var(--radius-md)",
-  border: "1px solid var(--border)",
-  background: "var(--popover)",
-  color: "var(--popover-foreground)",
-} as const;
 
 type BarEntryPayload = {
   month?: unknown;
@@ -60,11 +49,10 @@ export function BarChartCard({
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} className="text-muted-foreground" />
+            <XAxis dataKey="month" tick={{ style: AXIS_TICK_STYLE }} />
             <YAxis
               width={72}
-              tick={{ fontSize: 12, className: "tabular-nums" }}
-              className="text-muted-foreground"
+              tick={{ style: AXIS_TICK_STYLE, className: "tabular-nums" }}
               tickFormatter={(v: number) => formatCompact(v)}
             />
             <Tooltip

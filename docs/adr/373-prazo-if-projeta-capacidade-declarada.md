@@ -4,6 +4,7 @@ type: adr
 title: "Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade"
 status: Decidido
 date: "2026-08-08"
+amended_at: ["2026-10-09"]
 relates_to: ["[[ADR-360]]", "[[ADR-369]]", "[[ADR-143]]", "[[ADR-167]]"]
 tags:
   - type/adr
@@ -13,6 +14,11 @@ tags:
 ---
 
 # ADR-373 — Prazo até a IF projeta capacidade declarada
+
+> **Emenda 2026-10-09 (cobertura, não decisão nova):** o fato 1 e a D2 valem também
+> para o cenário de estresse "Sem renda do cônjuge". Sem aporte declarado, os campos
+> de aporte do cenário publicam `null`, nunca 0, e o texto nomeia o insumo que falta.
+> Ver §Emenda 2026-10-09.
 
 ## Contexto
 
@@ -147,3 +153,28 @@ e lane `shipped` some do `SPRINT_CURRENT` — deixar o item lá o tornaria
 invisível. A l25 segue `in_progress` pelo mesmo bloqueio: número novo na tela
 exige a §Nota one-shot de recalibração da [[ADR-360]], que cobre o cone e o
 prazo de uma vez só.
+
+## Emenda 2026-10-09 — o cenário do cônjuge herda o fato 1 e a D2
+
+O cenário "Sem renda do cônjuge" ([[ADR-167]]) já delegava o prazo a `solve_prazo_anos`
+(D4) e, portanto, saía sem prazo sem aporte declarado. Mas colapsava o aporte ausente para
+0 e o publicava: `aportes: [0]`, `aporte_mensal: 0`, `premissas.aporte_base: 0` e o resumo
+"aporte cai para R$ 0,00/mês (66% do base)". Isso chegava ao E5, ao card da S3, ao
+Apêndice C (que ainda dizia "Não atinge") e ao contexto do parecer, onde "aporte" é token do
+catálogo de citação.
+
+1. **O fato 1 vira contrato.** Os três campos de aporte do cenário publicam `null` quando o
+   aporte não foi declarado; o schema aceita `["number","null"]` com `exclusiveMinimum: 0`
+   no ramo numérico. O aporte do cenário é `Decimal` em memória e `float` só no wire
+   ([[ADR-090]]). A anulação no golden do view-model segue o fluxo da [[ADR-439]].
+2. **A D2 vale sem piso.** Sem aporte não há o que reduzir: nenhum prazo de
+   "capitalização pura". O texto é uma frase única
+   (`format_helpers.CENARIO_CONJUGE_SEM_APORTE`) que nomeia o insumo e o próximo passo nas
+   três superfícies. Exceção: com a meta já atingida, o solver devolve 0 antes de olhar o
+   aporte, e a frase afirma só o fato de hoje.
+3. **"Não atinge" sai do Apêndice C.** Prazo ausente é ausência ("—").
+
+Suprimir o cenário sem aporte foi considerado e rejeitado aqui: seria um 4º critério de
+elegibilidade, e a elegibilidade é decidida no gate da [[ADR-167]]. A proposta fica como
+insumo daquela decisão, junto com o salário do cônjuge publicado como 0 e o card
+"Estratégia de Aportes".
