@@ -20,7 +20,11 @@ import { readNarrativeConclusion } from "../utils/chartNarrative";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 import type { PatrimonioData, RatiosData } from "@/types/report-analysis";
-import { readProventosRows } from "../utils/reportContractGuards";
+import {
+  readCenariosConjuge,
+  readMonteCarloData,
+  readProventosRows,
+} from "../utils/reportContractGuards";
 
 interface InvestimentosBlock extends InvestimentosClasseData, Top15AtivosData {
   estrategia_aporte?: EstrategiaAporteData;
@@ -33,9 +37,10 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const inv = data.investimentos as unknown as InvestimentosBlock | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
   // ADR-166 (A8.4 PR3): fallback dual-key removido — chave universal estável.
-  const cenarios = data.cenarios_conjuge as
-    | { aportes?: number[]; labels?: string[] }
-    | undefined;
+  const cenarios = readCenariosConjuge(data.cenarios_conjuge);
+  // Mesmo predicado da legenda do cone na S7: aporte declarado é o que entra
+  // na simulação (`aporte_mensal_usado > 0`).
+  const aporteDeclarado = readMonteCarloData(data.if_monte_carlo)?.aporte_mensal_usado;
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const ratios = data.ratios as unknown as RatiosData | undefined;
@@ -69,19 +74,23 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
           Sem wrapper: o card já é size="full" e retorna null (célula nenhuma)
           quando o workspace não tem informe de proventos. */}
       <ProventosYieldCard data={readProventosRows(data.proventos_por_ativo)} />
-      <NarrativeChartCard
-        chartId="cenarios_conjuge"
-        title="Cenários de Estresse — Sem renda do cônjuge"
-        narratives={charts}
-        fallbackConclusion={deriveChartConclusion("cenarios_conjuge", data)}
-      />
-
-      <div className="md:col-span-2">
-        <EstrategiaAporteCard
-          estrategia={estrategiaAporte}
-          cenarios={cenarios}
+      {/* ADR-167: o fallback estático e o narrador sempre têm texto, então o
+          card só some se a seção não o montar — para quem o E5 recusou o cenário. */}
+      {cenarios && (
+        <NarrativeChartCard
+          chartId="cenarios_conjuge"
+          title="Cenários de Estresse — Sem renda do cônjuge"
+          narratives={charts}
+          fallbackConclusion={deriveChartConclusion("cenarios_conjuge", data)}
         />
-      </div>
+      )}
+
+      {/* Sem wrapper: o card é size="full" e pode retornar null. */}
+      <EstrategiaAporteCard
+        estrategia={estrategiaAporte}
+        cenarios={cenarios}
+        aporteDeclarado={aporteDeclarado}
+      />
       <div className="md:col-span-2">
         <ContrafluxoCard
           contrafluxo={inv?.contrafluxo}

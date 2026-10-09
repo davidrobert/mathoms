@@ -45,24 +45,4 @@
 #
 # Regra: quem mergeia um rebaseline drena o manifesto logo em seguida. O registro do
 # que mudou vive na lane, no corpo do PR e no histórico do git — não aqui.
-- golden: dogfood_view_model.json
-  path: cenarios_conjuge.aportes[0]
-  old_cents: 0
-  new_cents: null
-  adr: ADR-373
-  rationale: "aporte não declarado sai null: zero não é declarável e publicava R$ 0,00 citável"
-  ref: pipeline/domain/services/cenarios_conjuge_analyzer.py:161
-- golden: dogfood_view_model.json
-  path: cenarios_conjuge.cenarios[Sem renda do cônjuge].aporte_mensal
-  old_cents: 0
-  new_cents: null
-  adr: ADR-373
-  rationale: "aporte do cenário sem meta de aporte declarada sai null, não 0 (COPY_GUIDELINES 4.3)"
-  ref: pipeline/domain/services/cenarios_conjuge_analyzer.py:142
-- golden: dogfood_view_model.json
-  path: cenarios_conjuge.premissas.aporte_base
-  old_cents: 0
-  new_cents: null
-  adr: ADR-373
-  rationale: "premissa de aporte ausente sai null: o fato 1 da ADR-373 vira contrato"
-  ref: pipeline/domain/services/cenarios_conjuge_analyzer.py:223
+[]
