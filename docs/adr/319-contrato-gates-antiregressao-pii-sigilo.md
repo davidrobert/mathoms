@@ -5,6 +5,7 @@ title: "Contrato de gates anti-regressão PII + sigilo metodológico pós-públi
 status: Decidido
 phase: A34
 date: "2026-07-08"
+amended_at: ["2026-10-08"]
 relates_to: ["[[PLAN-public-release]]", "[[A34.l4]]", "[[A34.l5]]", "[[A34.l6]]", "[[ADR-183]]"]
 supersedes: []
 superseded_by: []
@@ -16,6 +17,9 @@ tags:
 ---
 
 # ADR-319 — Contrato de gates anti-regressão PII + sigilo metodológico pós-público
+
+> **Emendada 2026-10-08:** a cláusula *"patrimônio/renda nominal atribuível a pessoa real"* do
+> contrato negativo não tinha gate; a [[ADR-442]] decide um. Ver §Emenda 2026-10-08.
 
 **Status:** Decidido (A34) · **Data:** 2026-07-08 · Enforcement da Onda 2 de
 [[PLAN-public-release]] ([[A34.l4]]/[[A34.l5]]/[[A34.l6]]); consome o
@@ -141,3 +145,13 @@ em quatro extensões de gate que rodam no pre-commit e no CI.
   bloqueante retorna não-zero na árvore E no histórico contaminados.
 - Os quatro gates rodam VERMELHO no HEAD atual (prova de detecção) —
   registro em G2 do plano antes de W1 abrir.
+
+## Emenda 2026-10-08 — a cláusula de patrimônio nominal ganha gate
+
+O item 1 do contrato negativo proíbe *"patrimônio/renda nominal atribuível a pessoa real"*,
+e nenhuma das quatro extensões de gate media isso: número solto não tem forma que regex
+distinga do sintético. A [[ADR-442]] decide o gate — denylist local com HMAC, gerada do banco,
+e hook em pre-commit, commit-msg e pre-push.
+
+Segue sem gate o outro termo do item 1 que regex não alcança: *"nome de terceiro
+(familiar/diarista/empregador) em contexto financeiro"*.

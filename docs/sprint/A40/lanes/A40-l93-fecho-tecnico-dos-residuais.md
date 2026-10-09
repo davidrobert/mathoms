@@ -125,7 +125,7 @@ junto da igualdade de conjunto, que lê só o disco local.
 | item | rota | dono |
 |---|---|---|
 | **R3** `metrica_key` duplicada | bug fix ≤30 linhas, PR próprio. Dedupe **subtrativo no finalize, keep-first**, com contador em log estruturado. **Não** `uniqueItems` (as linhas diferem em `frequencia_revisao`/`section_id`), **não** validator hard-fail (reabre a reask storm — [[ADR-292]]/[[ADR-294]]) | `prompt-engineer` decide |
-| **R4** polaridade da trilha | já é a [[A40.l92]], aberta | `product-designer` |
+| **R4** polaridade da trilha | já é a [[A40.l92]] — ✅ **shipped 2026-10-08** (#2042 · #2048 · #2065): a polaridade chega ao front como dado (`comparador.operador`) e o teto não tem trilha | `product-designer` |
 | **R5** `clt_estavel` inalcançável + **N3** `clt_unica_fonte` rotulado por ausência de medição | decisão de domínio antes de tocar `scoring.json` — remover config viva sem veredito converte defeito de alcance em decisão de produto tomada por engenharia | `financial-planner` |
 | **Checagem doutrina × alvo de alocação declarado** | hoje não existe, e com a D2 valendo para alocação o produto não questiona o plano da família. A camada de sobrevivência é protegida **fora** desta métrica (reserva, canônica; caixa fora do denominador do desvio). Conteúdo do wizard de metas, não deste catálogo | `financial-planner` |
 | **R6** `Goal(RESERVA_EMERGENCIA)` sem leitor em `pipeline/` | lane própria, **e exige emenda datada à [[ADR-399]] D2 ANTES**: "declarado vence doutrina" está certa para alocação e **errada para reserva**. Regra correta: `limiar = max(declarado, canonico)` | `data-engineer` + `financial-planner` |

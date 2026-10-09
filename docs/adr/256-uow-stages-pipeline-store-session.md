@@ -13,6 +13,7 @@ relates_to:
   - "[[ADR-303]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-10-08"]
 aliases:
   - "ADR 256"
   - "Unit-of-work stages"
@@ -26,6 +27,11 @@ tags:
 ---
 
 # ADR-256 — Stages do pipeline compartilham unit-of-work via `store.session`
+
+> **Emendada em 2026-10-08 ([[ADR-445]])** — o §3 (counter `mathoms.db.lock_retry_count`)
+> é aposentado: ele mede o holder, que nunca espera, e registrou 0 eventos num run com 18
+> `database is locked`. A sessão do stage segura o write-lock do SQLite do 1º write até o
+> commit; a medição e a decisão estão na [[ADR-445]]. Ver §Emenda 2026-10-08 ao final.
 
 **Status:** Decidido (A19.uow-stages) • **Data:** 2026-05-22 • **Relaciona** [[ADR-111]] (stateless-rigoroso), [[ADR-212]] (DBArtifactStore DB-only), [[ADR-089]]/[[ADR-097]] (services recebem config tipado, não `Session`).
 
@@ -114,3 +120,25 @@ Ocorrências legítimas fora de `pipeline/**` (whitelist implícita do gate):
 - `backend/app/services/*.py` — services internos do backend (pipeline_service, config_materializer, document_extract_json_service, document_pipeline_sync, artifact_reader). **Não rodam dentro de stage.**
 - `backend/app/tasks/*.py` — orchestrator Celery (`pipeline_task.py`) + Beat schedules (`periodic_tasks.py`, `fipe_refresh.py`, `lgpd_export.py`). **`pipeline_task.py` é quem injeta a session; demais não tocam tabelas escritas por stage do mesmo workspace concorrente.**
 - `backend/scripts/`, `backend/app/scripts/` — CLI scripts standalone (backfill, seed, smoke). **Não rodam em runtime de stage.**
+
+## Emenda 2026-10-08 ([[ADR-445]]) — o counter do §3 é cego à classe que ele devia medir
+
+**Medido** em dogfood local, só leitura, run `40d1af2a`:
+
+- A sessão do stage abre o write-lock no 1º `store.write` de chave nova, porque o
+  `_mark_superseded_previous` emite UPDATE imediato. O lock fica até o commit no fim do stage.
+- No run inteiro, 74% do tempo de stage correu sob lock. Nas janelas, houve 66 escritas de
+  outras conexões, e todas falharam (`llm_call_log`, heartbeat).
+- O `mathoms.db.lock_retry_count` cronometra o `_get` do próprio store. Ele registrou **0**
+  eventos: o holder nunca espera, e quem espera está fora do store.
+
+**Decisão.**
+
+- O §3 sai. Em seu lugar entra o instrumento no engine da [[ADR-445]] D2
+  (`mathoms.db.write_lock_held`/`write_lock_wait`), que remove o counter no mesmo PR
+  ([[A42.l27]]).
+- Os gatilhos 1 e 3 da issue #446 passam a ler esse instrumento.
+- O núcleo desta ADR fica: stage é unidade de trabalho, `pipeline/**` não abre `Session` e o
+  commit é atômico por stage.
+- Encurtar a transação de escrita do stage (write-behind) foi avaliado e **adiado com
+  gatilho** na [[ADR-445]] §Deferimentos.

@@ -2,21 +2,26 @@
 id: ADR-315
 type: adr
 title: "Estratégia de rewrite de histórico git para release pública"
-status: Proposto
+status: Roadmap
 date: "2026-07-08"
+amended_at: ["2026-10-08"]
 relates_to: ["[[PLAN-public-release]]", "[[ADR-171]]", "[[A34.l18]]"]
 supersedes: []
 superseded_by: []
 tags:
   - type/adr
-  - status/proposto
+  - status/roadmap
   - area/seguranca
   - area/ci
 ---
 
 # ADR-315 — Estratégia de rewrite de histórico git para release pública
 
-**Status:** Proposto · **Data:** 2026-07-08 · Owner-gated (gate **G0** do
+> **Emendada 2026-10-08:** o rewrite não será executado agora — decisão do dono de manter o
+> repositório público e aceitar o risco do histórico ([[ADR-316]] §Emenda 2026-10-08). Esta
+> ADR passa a `Roadmap`. Ver §Emenda 2026-10-08.
+
+**Status:** Roadmap (emendada 2026-10-08) · **Data:** 2026-07-08 · Owner-gated (gate **G0** do
 [[PLAN-public-release]]). Decisão da operação de **maior blast-radius e única
 irreversível** do plano. O runbook operacional passo-a-passo é
 [[TRACK-public-release-history-rewrite]] ([[A34.l18]]); esta ADR fixa a
@@ -125,3 +130,15 @@ FREEZE. Assinalar:
       caso esta ADR é dispensada (decisão migra para [[ADR-316]]).
 
 Ao decidir, flippar para `Decidido (A34)` e referenciar o PR de aprovação.
+
+## Emenda 2026-10-08 — rewrite deferido por decisão do dono
+
+O flip aconteceu sem a Onda 3. Em 2026-10-08 o dono decidiu manter o repositório público e
+aceitar o risco do histórico ([[ADR-316]] §Emenda 2026-10-08), sem reescrevê-lo. A estratégia
+acima fica documentada para quando a decisão for reaberta.
+
+**Condição de retomada:** decisão do dono — por exemplo, pedido de eliminação de um titular
+de dado, lançamento público do produto, ou o primeiro fork do repositório. Um rewrite in-place
+não alcança fork, clone, `refs/pull/*` nem cache do GitHub ([[ADR-316]] §Mecânica da camada
+3); depois do primeiro fork, a opção que ainda contém o histórico é **repo novo** (Opção 2 da
+[[ADR-316]]).

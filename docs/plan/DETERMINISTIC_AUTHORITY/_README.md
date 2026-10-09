@@ -403,7 +403,7 @@ call-sites** em 4 arquivos — o analyzer do RV6-14 é um deles, não o conjunto
   `additionalProperties: false`, logo declará-lo no schema não era opcional),
   sem suprimir o resto do relatório. *Entregue com um balde a mais que o
   escrito:* o par derivado `imoveis_geradores`/`imoveis_nao_geradores` entrou
-  porque é o **único** negativo publicado do corpus (r6, −125.381,88) e não é um
+  porque é o **único** negativo publicado do corpus (r6) e não é um
   dos 7 baldes [[ADR-145]] — a guarda literal passaria verde sobre o run que a
   motivou.
 - 1e. Simetrização do contrato: `patternProperties` `^(31_12_)?\d{4}$` com
@@ -676,7 +676,7 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
   kill-switch"*. Condição de retomada: **o próximo PR que tocar
   `investimentos_cobertura.py`** — não "no primeiro incidente", porque kill-switch
   meio-funcional é o que se descobre durante o incidente.
-- **2026-08-21 · A perda de R$ 188.123,73 é truncagem silenciosa no E1.5a, não
+- **2026-08-21 · A perda de ~63% do balde do cônjuge é truncagem silenciosa no E1.5a, não
   colapso no consolidador.** Re-roteado da [[A40.l69]]. **A re-medição que esta
   entrada exigia foi cumprida em 2026-08-21 e o veredito mudou de arquivo.**
 
@@ -685,11 +685,11 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
 
   | run | data | itens do cônjuge | Σ | anos |
   | --- | --- | --- | --- | --- |
-  | `ee124571` | 2026-08-11 | 26 | R$ 298.254,40 | 2023: 9, **2024: 17** |
-  | `33514dc4` | 2026-08-18 | 9 | R$ 110.130,67 | 2023: 9 |
+  | `ee124571` | 2026-08-11 | 26 | S | 2023: 9, **2024: 17** |
+  | `33514dc4` | 2026-08-18 | 9 | 0,369 × S | 2023: 9 |
 
-  Os 17 itens de 2024 **carregam valor**: 298.254,40 − 110.130,67 = **R$
-  188.123,73** — exatamente o número que a [[ADR-394]] §Taxa registra como a
+  Os 17 itens de 2024 **carregam valor**: **0,631 × S** — exatamente a diferença
+  que a [[ADR-394]] §Taxa registra como a
   regressão datada do cônjuge. Pelo gate desta entrada, é P0.
 
   **A causa não é o `consolidate_baseline`.** É
@@ -709,7 +709,7 @@ Achado novo de r7+ **não** reabre este plano (vai à re-triagem do registro).
 
   **A forma do fix, já dimensionada:** as 4 declarações do corpus cabem inteiras
   no teto de 10, então **ordenar por classe (declaração > informe > recibo) e
-  depois por recência recupera os R$ 188.123,73 a custo LLM zero** — descapar o
+  depois por recência recupera os 0,631 × S a custo LLM zero** — descapar o
   teto não é necessário e seria decisão de custo com medição própria. A truncagem
   que sobrar deixa de ser muda: `review_reason` tipado nomeando quantos e de que
   classe ficaram de fora ([[ADR-357]] WARN-first, com cap de cardinalidade da

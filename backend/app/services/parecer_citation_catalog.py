@@ -60,7 +60,7 @@ _NON_CITABLE_ROOTS = frozenset({"score", "ratios", "equilibrio_cerbasi", "previd
 
 # Séries do cone Monte Carlo — NÃO citáveis por decisão (A40.l25), não por
 # acidente de predicado. São estimativas com dispersão amostral de ~1,2% a
-# n=50k; citá-las daria ao parecer uma frase como "R$ 11.037.269,90" sobre um
+# n=50k; citá-las daria ao parecer uma frase como "R$ 12.345.678,90" sobre um
 # número que muda de run para run dentro dessa faixa — precisão inventada sobre
 # projeção. Hoje `_is_money_leaf` já não casa lista de pares, então a exclusão
 # é redundante NA PRÁTICA; existe para que tornar a folha citável seja uma

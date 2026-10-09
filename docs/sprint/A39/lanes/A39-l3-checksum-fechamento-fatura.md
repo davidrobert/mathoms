@@ -110,9 +110,9 @@ Achado do corpus vs a nota de 2026-07-23: as linhas de encargo **não** somem �
 o IOF (única linha sem data) já era capturado; o resíduo era **tag de escopo
 errada** (IOF fora do balde Brasil) **+ corrupção de valor** no layout
 lado-a-lado (a poluição da coluna Resumo fundida na linha era capturada pelo
-`$`-âncora — pagamento −119,21 virava +119,21). Fix = estripe da poluição antes
+`$`-âncora — um pagamento negativo virava positivo). Fix = estripe da poluição antes
 do match + IOF→despesa_brasil + seção pelo header literal. Os 3 PDFs Santander
-fecham a cent (R$ 39,96 / 543,68 / 3.566,08), zero falso-fire. `is_payment`
+fecham a cent, zero falso-fire. `is_payment`
 morto removido. WARN-first mantido (flip HARD após ≥1 sprint verde). Golden
 sintético em `test_fatura_parser_checksum.py`.
 

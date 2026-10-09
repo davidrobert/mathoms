@@ -139,7 +139,7 @@ _CORPUS_INVEST: list[tuple[str, list[dict]]] = [
 
 # (nome, items, titular_key) — imóveis. Cobre todos os ramos de imoveis_dedup.
 _CORPUS_IMOVEIS: list[tuple[str, list[dict], str | None]] = [
-    ("single", [_imo(proprietario="david_robert", valor=477436.58, property_id="uuid-a")], None),
+    ("single", [_imo(proprietario="david_robert", valor=470000.0, property_id="uuid-a")], None),
     (
         "two_distinct",
         [
@@ -151,8 +151,8 @@ _CORPUS_IMOVEIS: list[tuple[str, list[dict], str | None]] = [
     (
         "same_pid_two_members",
         [
-            _imo(proprietario="david_robert", valor=477436.58, property_id="uuid-x"),
-            _imo(proprietario="mariana_xxx", valor=530000.0, property_id="uuid-x"),
+            _imo(proprietario="david_robert", valor=470000.0, property_id="uuid-x"),
+            _imo(proprietario="mariana_xxx", valor=510000.0, property_id="uuid-x"),
         ],
         "david_robert",
     ),

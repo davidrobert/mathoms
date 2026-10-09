@@ -106,7 +106,7 @@ GRUPO_MAP = {
 
 
 # O strip incondicional de `.` que morava aqui inflava ISO em 100× (r5/M28):
-# `"243285.37"` → 24328537.0 → `valores_31_12` → patrimônio líquido e IF do hero.
+# `"123456.78"` → 12345678.0 → `valores_31_12` → patrimônio líquido e IF do hero.
 def safe_float(v: Any) -> float:
     """Valor do IRPF → float. `valor_brl` chega em ISO; documento, em pt-BR."""
     return valor_monetario_float(v)

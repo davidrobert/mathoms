@@ -11,6 +11,8 @@ from pipeline.llm.deterministic_extraction import (
     EXTRACTION_SEED,
     EXTRACTION_TEMPERATURE,
 )
+from pipeline.stages.e15_ancoragem import razao_de_ancoragem, reancorar_fora_do_lote
+from pipeline.stages.ficha_imovel_parser import aplicar_ancoras
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
@@ -230,6 +232,36 @@ def _ano_nao_fechado_reason(doc: Path, output, *, artifact_key: str) -> dict | N
     ).to_dict()
 
 
+def _sem_doc_novo(store, regravados: int, razoes: list[dict], prompt_version: str) -> dict:
+    """Incremental sem IRPF novo: só a re-âncora pode ter mudado algo, e aí o agregado volta."""
+    if regravados:
+        _gravar_agregado(store, _baselines_do_store(store), prompt_version)
+    return {
+        "skipped": True,
+        "reason": "incremental: no new IRPF/patrimony documents",
+        "reancorados": regravados,
+        "validation": {"review_reasons": razoes},
+    }
+
+
+def _baselines_do_store(store) -> list[dict]:
+    """Todos os E1.5a do store — existentes não-tocados + novos escritos no run."""
+    return [b for b in (store.read("E1.5a", k) for k in store.list_keys("E1.5a")) if b is not None]
+
+
+def _gravar_agregado(store, baselines: list[dict], prompt_version: str) -> dict:
+    """Agrega os E1.5a no `baseline_patrimonial` que o E1.5c lê, e o grava."""
+    combined = _aggregate_baselines(baselines)
+    # Propaga prompt_version no payload agregado (ADR-233 · W2-T05).
+    combined["prompt_version"] = prompt_version
+
+    # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
+    # consolidate_baseline lê este artefato e produz o -1.5_consolidated.
+    # W6-T03/F9.2: write descritivo; reads legados resolvem via stage_aliases.
+    store.write("extract_baseline", "baseline_patrimonial", combined)
+    return combined
+
+
 def run(ctx: WorkspaceContext) -> dict:
     """Execute E1.5 baseline patrimonial extraction via LLM, per-arquivo.
 
@@ -258,15 +290,25 @@ def run(ctx: WorkspaceContext) -> dict:
     # ADR-169: em modo incremental, processa apenas docs novos. Cada IRPF
     # tem seu artefato E1.5a próprio; o agregado E1.5 é recombinado a partir
     # do store (novos + existentes) abaixo, preservando paridade.
+    extractor = DocumentTextExtractor(max_chars=80_000)
+    regravados, razoes_de_reancora = 0, []
     if ctx.incremental:
         from pipeline.incremental import filter_to_incremental
 
         filtered = filter_to_incremental(ctx, docs)
+        # [[ADR-440]] D4: antes do early-return, que pularia o agregado lido pelo E1.5c.
+        regravados, razoes_de_reancora = reancorar_fora_do_lote(
+            ctx.get_artifact_store(),
+            [d for d in docs if d not in filtered],
+            extractor,
+            _artifact_key_for,
+        )
         if not filtered:
-            return {"skipped": True, "reason": "incremental: no new IRPF/patrimony documents"}
+            return _sem_doc_novo(
+                ctx.get_artifact_store(), regravados, razoes_de_reancora, PROMPT_VERSION
+            )
         docs = filtered
 
-    extractor = DocumentTextExtractor(max_chars=80_000)
     selected = docs[:_MAX_DOCS_PER_RUN]
 
     docs_with_text: list[tuple[Path, str]] = []
@@ -298,7 +340,7 @@ def run(ctx: WorkspaceContext) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
     issues: list[dict] = []  # ADR-165: ValidationIssue dicts agregadas cross-doc
-    review_reasons: list[dict] = []  # ADR-272 Fase 2: projeção consultável por-doc
+    review_reasons: list[dict] = list(razoes_de_reancora)  # ADR-272 Fase 2: projeção por-doc
     total = len(docs_with_text)
 
     estimated = ctx.stage_duration_estimates.get("extract_baseline")
@@ -380,6 +422,11 @@ def run(ctx: WorkspaceContext) -> dict:
         baseline_json = _output_to_baseline_json(output)
         # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
         baseline_json["prompt_version"] = PROMPT_VERSION
+        # [[ADR-440]] D1: a âncora sai do MESMO texto que foi ao modelo, por parser.
+        ancoragem = aplicar_ancoras(baseline_json, text)
+        razao_ancora = razao_de_ancoragem(ancoragem, artifact_key=_artifact_key_for(doc))
+        if razao_ancora is not None:
+            review_reasons.append(razao_ancora)
         per_file_baselines.append(baseline_json)
         store.write("E1.5a", _artifact_key_for(doc), baseline_json)
 
@@ -400,20 +447,8 @@ def run(ctx: WorkspaceContext) -> dict:
     # (existentes não-tocados + novos escritos acima). Em modo full, agrega
     # apenas os processados na run — preserva paridade com comportamento
     # legado e evita reincluir E1.5a órfão de doc removido pelo usuário.
-    if ctx.incremental:
-        baselines_for_aggregate = [
-            b for b in (store.read("E1.5a", k) for k in store.list_keys("E1.5a")) if b is not None
-        ]
-    else:
-        baselines_for_aggregate = per_file_baselines
-    combined = _aggregate_baselines(baselines_for_aggregate)
-    # Propaga prompt_version no payload agregado (ADR-233 · W2-T05).
-    combined["prompt_version"] = PROMPT_VERSION
-
-    # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
-    # consolidate_baseline lê este artefato e produz o -1.5_consolidated.
-    # W6-T03/F9.2: write descritivo; reads legados resolvem via stage_aliases.
-    store.write("extract_baseline", "baseline_patrimonial", combined)
+    baselines_for_aggregate = _baselines_do_store(store) if ctx.incremental else per_file_baselines
+    combined = _gravar_agregado(store, baselines_for_aggregate, PROMPT_VERSION)
 
     # Sem net_worth no log — valor real é dado sensível (CLAUDE.md §Logging).
     logger.info(

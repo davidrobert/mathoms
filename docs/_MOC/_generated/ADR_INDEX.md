@@ -5,13 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-429 ADRs (ADR-001 a ADR-439) em [`docs/adr/`](../../adr/).
+433 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 367
+- **Decidido**: 370
 - **Proposto**: 58
-- **Roadmap**: 4
+- **Roadmap**: 5
 
 ## Fundação
 
@@ -39,9 +39,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
 - [[ADR-423]] — Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice · phase A40.l97
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-424]] — SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required
+- [[ADR-445]] — Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho · phase A42.l27
 
 ## Pipeline
 
@@ -331,7 +332,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-417]] — Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review · phase A40
 - [[ADR-435]] — O gate de PII mede o publicado, e a cobertura declarada é igual à medida · phase A40.l115
 
-### Proposto (7)
+### Proposto (8)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
@@ -340,6 +341,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 - [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
 - [[ADR-389]] — As tabelas mensal e anual do IRPF são duas fontes importadas, não duas escalas de uma · phase A40.l56
+- [[ADR-441]] — Erro de banco cruza fronteira de persistência por shape, nunca por valor
 
 ## categorization
 
@@ -583,7 +585,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (84)
+### Decidido (85)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -669,6 +671,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-426]] — O destino E3→E4 declara valor, ou o eixo-valor não é medido · phase A42
 - [[ADR-433]] — O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado · phase A40.l113
 - [[ADR-434]] — Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado · phase A42
+- [[ADR-439]] — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero · phase A40.l113
 
 ### Proposto (19)
 
@@ -690,7 +693,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-419]] — O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI
 - [[ADR-429]] — Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita · phase A40
 - [[ADR-430]] — Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 · phase A40.l96
-- [[ADR-439]] — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero · phase A40.l113
+- [[ADR-440]] — A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade · phase A40.l121
 
 ### Roadmap (1)
 
@@ -722,23 +725,27 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## security
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 - [[ADR-299]] — SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) · phase audit-r2 · SEC-03
+- [[ADR-442]] — Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push
 
 ## seguranca
 
-### Decidido (1)
+### Decidido (2)
 
+- [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) · phase G0
 - [[ADR-319]] — Contrato de gates anti-regressão PII + sigilo metodológico pós-público · phase A34
 
-### Proposto (3)
+### Proposto (1)
+
+- [[ADR-317]] — Identidade de autoria no mailmap público
+
+### Roadmap (1)
 
 - [[ADR-315]] — Estratégia de rewrite de histórico git para release pública
-- [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs)
-- [[ADR-317]] — Identidade de autoria no mailmap público
 
 ## tooling
 

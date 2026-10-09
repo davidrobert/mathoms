@@ -29,8 +29,8 @@ e o numerador (`total_pontuais_janela`) alimenta o **subtraendo** desse denomina
 
 > **Precisão 2026-08-30 (medição da lane).** A frase de origem — *"o numerador é 45,4% do
 > denominador"* — está **errada como transcrita** e foi corrigida aqui antes de chegar à ADR.
-> Os 45,37% são a fração do **subtraendo** (`total_pontuais_janela ÷ despesa_consumo` =
-> 394.525,39 ÷ 869.511,63 no run da U3). Do **denominador** (a folga) o numerador mensalizado
+> Os 45,37% são a fração do **subtraendo** (`total_pontuais_janela ÷ despesa_consumo` no
+> run da U3). Do **denominador** (a folga) o numerador mensalizado
 > é **33,79%**, e o valor publicado é `P ÷ F` = **4,05**. A palavra certa é *auto-referente*;
 > *subconjunto* também cai — ver §Medição.
 
@@ -108,7 +108,7 @@ pontuais" daria **3,03** — **1,338×** —, a `folga_pct` **57%**. Ou seja: a 
 pergunta o campo responde (reposição prospectiva vs custo retrospectivo) — decisão de domínio.
 
 ⚠️ E o denominador contrafactual `F + P∩C/n` é **numericamente a `folga_mensal` pré-[[ADR-422]]**,
-ao centavo (130.179,78 no dogfood; resíduo zero nas duas fixtures). Adotá-lo devolveria à
+ao centavo (no dogfood e com resíduo zero nas duas fixtures). Adotá-lo devolveria à
 página, como denominador implícito recuperável, exatamente o número que a [[ADR-422]] matou.
 
 ### Materialidade — lacuna honesta
