@@ -7,9 +7,16 @@ from decimal import Decimal
 from typing import Any, Mapping
 
 from pipeline.domain.services.asset_classifier import AssetAuthority, classify_asset_outcome
-from pipeline.domain.services.imovel_na_carteira import classe_do_imovel_na_carteira
+from pipeline.domain.services.imovel_na_carteira import (
+    CLASSES_SEM_PESO,
+    classe_do_imovel_na_carteira,
+)
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
+)
+from pipeline.domain.services.patrimonio_imovel_classifier import (
+    CLASSIFICATION_DESCONHECIDO,
+    classificacao_do_imovel,
 )
 from pipeline.domain.services.patrimonio_types import imovel_property_id, imovel_valor
 
@@ -64,24 +71,31 @@ class TopAtivo:
     membro: str
     instituicao: str
     valor: Decimal
-    pct_carteira: float  # percentage 0-100, peso na carteira
+    # percentage 0-100, peso na carteira; `None` = sem peso ([[ADR-444]] D4).
+    pct_carteira: float | None
     tipo_origem: str
     # Quem decidiu a `classe` ([[ADR-400]]) — inclusive `origem`, para imóvel,
     # cuja classe vem da proveniência e não de degrau algum.
     autoridade: str | None = None
+    # Uso do imóvel (override da família); só em imóvel — o produtor de prosa a lê.
+    classificacao_imovel: str | None = None
 
     def to_dict(self) -> dict:
-        return {
+        pct = round(self.pct_carteira, 2) if self.pct_carteira is not None else None
+        d = {
             "posicao": self.posicao,
             "nome": self.nome,
             "classe": self.classe,
             "membro": self.membro,
             "instituicao": self.instituicao,
             "valor": float(round(self.valor, 2)),
-            "pct_carteira": round(self.pct_carteira, 2),
+            "pct_carteira": pct,
             "tipo_origem": self.tipo_origem,
             "autoridade": self.autoridade,
         }
+        if self.tipo_origem == "imovel":
+            d["classificacao_imovel"] = self.classificacao_imovel
+        return d
 
 
 @dataclass(frozen=True)
@@ -103,6 +117,7 @@ class _Candidate:
     tipo_origem: str
     property_id: str | None = None
     autoridade: str | None = None
+    classificacao_imovel: str | None = None
 
 
 # Defaults de ignorância de `_classify_investimento` (`consolidate_baseline.py:732`):
@@ -121,17 +136,21 @@ class TopAtivosAnalyzer:
     def analyze(
         self,
         bens_por_membro: list[tuple[str, Mapping[str, Any]]] | None,
+        *,
+        residencia_no_desconhecido: bool = False,
     ) -> TopAtivosResult:
-        candidates = self._collect_candidates(bens_por_membro or [])
+        candidates = self._collect_candidates(bens_por_membro or [], residencia_no_desconhecido)
         candidates = _dedup_by_property_id(candidates)
         candidates.sort(key=lambda c: c.valor, reverse=True)
-        total = sum((c.valor for c in candidates), start=Decimal("0"))
+        # [[ADR-444]] D4: o item sem peso fica na posição por valor e fora da base dos demais.
+        total = sum((c.valor for c in candidates if c.classe not in CLASSES_SEM_PESO), Decimal("0"))
         result = self._build_result(candidates, total)
         return TopAtivosResult(top_ativos=result, total_carteira=total)
 
     def _collect_candidates(
         self,
         bens_por_membro: list[tuple[str, Mapping[str, Any]]],
+        residencia_no_desconhecido: bool,
     ) -> list[_Candidate]:
         out: list[_Candidate] = []
         for entry in bens_por_membro:
@@ -141,14 +160,14 @@ class TopAtivosAnalyzer:
             if not isinstance(bens, Mapping):
                 continue
             out.extend(self._collect_investimentos(member, bens))
-            out.extend(self._collect_imoveis(member, bens))
+            out.extend(self._collect_imoveis(member, bens, residencia_no_desconhecido))
         return out
 
     def _build_result(self, candidates: list[_Candidate], total: Decimal) -> tuple[TopAtivo, ...]:
         top_n = candidates[: self._config.limit]
         out: list[TopAtivo] = []
         for i, c in enumerate(top_n, start=1):
-            pct = float(c.valor / total) * 100 if total > 0 else 0.0
+            pct = _pct_na_carteira(c, total)
             out.append(
                 TopAtivo(
                     posicao=i,
@@ -160,6 +179,7 @@ class TopAtivosAnalyzer:
                     pct_carteira=pct,
                     tipo_origem=c.tipo_origem,
                     autoridade=c.autoridade,
+                    classificacao_imovel=c.classificacao_imovel,
                 )
             )
         return tuple(out)
@@ -194,34 +214,31 @@ class TopAtivosAnalyzer:
             autoridade=resultado.autoridade.value,
         )
 
-    def _collect_imoveis(self, member: str, bens: Mapping[str, Any]) -> list[_Candidate]:
+    def _collect_imoveis(
+        self, member: str, bens: Mapping[str, Any], residencia_no_desconhecido: bool
+    ) -> list[_Candidate]:
         out: list[_Candidate] = []
         overrides = self._config.classes_config.property_classification_overrides
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, Mapping):
                 continue
-            cand = self._build_imovel_candidate(member, imovel, overrides)
+            cand = self._build_imovel_candidate(
+                member, imovel, overrides, residencia_no_desconhecido
+            )
             if cand is not None:
                 out.append(cand)
         return out
 
     def _build_imovel_candidate(
-        self, member: str, imovel: Mapping[str, Any], overrides: Mapping[str, str]
+        self, member: str, imovel: Mapping[str, Any], overrides: Mapping[str, str], sem_peso: bool
     ) -> _Candidate | None:
         valor = _valor_declarado_do_imovel(imovel)
-        classe = classe_do_imovel_na_carteira(imovel, overrides)
+        classe = classe_do_imovel_na_carteira(
+            imovel, overrides, residencia_no_desconhecido=sem_peso
+        )
         if valor <= 0 or classe is None:
             return None
-        return _Candidate(
-            nome=_imovel_display_label(),
-            classe=classe,
-            membro=_membro_label(imovel, member),
-            instituicao="",
-            valor=valor,
-            tipo_origem="imovel",
-            autoridade=AssetAuthority.ORIGEM.value,
-            property_id=imovel_property_id(imovel),
-        )
+        return _candidato_imovel(member, imovel, valor, classe, overrides)
 
     def _classify(self, tipo: str, descricao: str):
         """Delega para :func:`classify_asset_outcome` — taxonomia ADR-193 unificada
@@ -244,13 +261,44 @@ class TopAtivosAnalyzer:
         )
 
 
-def _imovel_display_label() -> str:
+def _imovel_display_label(classificacao: str) -> str:
     """ADR-337: rótulo classe-only — a descrição cartorial (matrícula, IPTU, CPF de
     terceiro, endereço) NUNCA entra em ``top_ativos[].nome``. Esse campo é lido pela
     UI E pelo prompt do parecer (`$.investimentos.top_ativos[*]`, egresso a LLM de
     terceiro), então PII de localização/documento fica fora da fonte E5. Granularidade
     estrita ([[ADR-332]]); enriquecimento de display (bairro/cidade) só downstream."""
+    # [[ADR-444]] D4: o nome segue a CLASSIFICAÇÃO — "de investimento" sobre uso
+    # desconhecido reafirmaria o qualificador que a [[ADR-420]] §D1 tirou da composição.
+    if classificacao == CLASSIFICATION_DESCONHECIDO:
+        return "Imóvel com uso não apurado"
     return "Imóvel de investimento"
+
+
+def _pct_na_carteira(candidato: "_Candidate", total: Decimal) -> float | None:
+    if candidato.classe in CLASSES_SEM_PESO:
+        return None
+    return float(candidato.valor / total) * 100 if total > 0 else 0.0
+
+
+def _candidato_imovel(
+    member: str,
+    imovel: Mapping[str, Any],
+    valor: Decimal,
+    classe: str,
+    overrides: Mapping[str, str],
+) -> "_Candidate":
+    classificacao = classificacao_do_imovel(imovel, overrides)
+    return _Candidate(
+        nome=_imovel_display_label(classificacao),
+        classe=classe,
+        membro=_membro_label(imovel, member),
+        instituicao="",
+        valor=valor,
+        tipo_origem="imovel",
+        autoridade=AssetAuthority.ORIGEM.value,
+        property_id=imovel_property_id(imovel),
+        classificacao_imovel=classificacao,
+    )
 
 
 def _membro_label(imovel: Mapping[str, Any], member: str) -> str:
