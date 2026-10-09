@@ -28,7 +28,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Iterable, List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -210,6 +210,8 @@ def build_hydrated_context(
     incremental: bool = False,
     incremental_doc_paths: Optional[List[str]] = None,
     skip_llm: bool = False,
+    base_run_id: Optional[str] = None,
+    base_run_fallback_stages: Iterable[str] = (),
     materialize_tarefas: bool = False,
     session_factory: Optional[Callable[[], Session]] = None,
 ) -> HydratedContext:
@@ -217,6 +219,8 @@ def build_hydrated_context(
     session = (session_factory or _default_session_factory)()
     ctx = _build_ctx(ws_id, tenant_root, run_id, config_dir, session=session)
     ctx.incremental, ctx.incremental_doc_paths = incremental, list(incremental_doc_paths or [])
+    ctx.base_run_id = base_run_id
+    ctx.base_run_fallback_stages = frozenset(base_run_fallback_stages)
     # ADR-355: ÚNICO ponto de negação entre o vocabulário do wire (``skip_llm``,
     # negativo, filtra stages) e o do contexto (``llm_calls_allowed``, positivo,
     # governa chamada dentro de stage). Espalhar o ``not`` por executor seria
