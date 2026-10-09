@@ -22,9 +22,13 @@ tags:
 > objetivo dele segue vivo e é entregue por outro mecanismo — leia a §Emenda antes
 > de citar o D5.
 >
+> ⚠️ **Emendada em 2026-10-09 ([[A40.l124]]): o §D1 deixa de ser um número e vira regra
+> de folga, e a eviction passa a ser publicada (§D7 novo).** Leia a §Emenda 2026-10-09
+> antes de citar o budget ou o critério de flip.
+>
 > ⚠️ **Emendada em 2026-10-09: a persona 1.3.0 para de convidar leitura de ciclo de
 > juros (R23).** O exec context não traz taxa de mercado viva — mesma classe do §D5.
-> Leia a §Emenda 2026-10-09 antes de mexer na lente de alocação da persona.
+> Leia a §Emenda 2026-10-09 sobre conjuntura antes de mexer na lente de alocação da persona.
 
 ## Contexto
 
@@ -168,6 +172,43 @@ contagem aqui seria otimizar a métrica contra a regra de calibração.
 transporte **e** transporte sem promessa), sobre o prompt **montado** nos dois regimes de
 eviction, com os 4 canais provados por mutação do produtor.
 
+## Emenda 2026-10-09 — D1 vira regra de folga; a eviction deixa de ser muda (D7)
+
+**Medição ([[A40.l124]]).** O D1 dimensionou 16 KB para o corpo de 15,6 KB de 2026-07-20.
+Medido com o manifest de cada run sobre o E5 do próprio run, a demanda passou o cap em
+2026-08-26 (evicta `investimentos`) e levou `independencia_financeira` junto em 2026-08-29;
+com a 2.21.0 pede ~19,9 KB. O D2 funcionou como desenhado — saiu seção inteira, com marcador
+—, mas só o modelo lia o marcador, e o teste do critério de flip mede um fixture com 40% do
+corpo real. O aceite "10/10 seções no E5 real" regrediu calado por seis semanas.
+
+**D1 (substituído).** O budget é dimensionado com **folga ≥ 20% sobre a demanda medida** no
+E5 real e re-medido quando o X8 da rodada unificada acusar **folga < 15%** ou qualquer seção
+evictada. Valor vigente: 24576, no manifest 2.23.0 ([[A40.l124]], #2173). Não
+reabre a alternativa rejeitada ("só subir o cap"): a eviction do D2 segue sendo a rede, agora
+visível.
+
+**D7 (novo) — a eviction é publicada.** O distiller devolve o orçamento do MESMO plano que
+montou o corpo (bytes pedidos e enviados, por seção, evictadas em ordem, corte degenerado,
+hints e catálogo); o orchestrator loga `parecer_planejador_exec_context` antes da chamada,
+WARNING sob eviction; o stage o publica em `pipeline_stage_logs.output_summary` nos dois
+desfechos. No cache hit vale o que o envelope guardou — o código do distiller não compõe a
+chave, e recomputar descreveria um corpo que o modelo não viu; envelope antigo lê `null`
+(desconhecido, nunca "nada evictado"). Granularidade de seção, nunca de bloco: bloco de poucos
+campos revelaria, pelo tamanho, a ordem de grandeza do valor.
+
+**Devolver seções custa ancorabilidade, e o custo entra na decisão.** Com o cap novo e as 15
+linhas de `top_ativos`, ancoráveis caem de 33/36 para 33/50 no E5 real: o catálogo de citação
+fica preso pelo próprio orçamento e só pega as 5 maiores de cada lista. O mesmo bump leva
+`top_ativos.max_rows` 15→5 e `citation_catalog.max_bytes` 2600→3400 (joelho re-medido): 40/41.
+
+**O critério de flip vira invariante vivo,** lido pelo X8 a cada rodada. O teste sobre o
+fixture sintético segue como teste de MECANISMO; o gate de CI sobre corpus de cardinalidade
+real é da [[A40.l85]].
+
+**`max_total_input_tokens` está declarado e não tem consumidor.** O "42,9% do orçamento de
+tokens ocioso" do `PV13-17` mede contra ele; o corte era do budget de bytes. Dar-lhe
+consumidor fica no §Deferimento da [[A40.l124]].
+
 ## Emenda 2026-10-09 — a persona não convida leitura de conjuntura que o exec context não traz
 
 **Medição.** O manifest 2.21.0 projeta 96 paths, e nenhum é taxa de mercado (Selic, CDI,
@@ -195,7 +236,7 @@ entrega.
   reconstrói a classe, nem pela tabela de classes ([[ADR-394]], [[ADR-400]]).
 - A R5 deixa de exemplificar percentual-alvo inventado ("~15% internacional") e classe por
   indexador.
-- O hint de `investimentos` do manifest (2.23.0) deixa de mandar ancorar em "qual classe
+- O hint de `investimentos` do manifest (2.24.0) deixa de mandar ancorar em "qual classe
   está sub ou sobrealocada": cita o comparável publicado e, sob supressão, declara o motivo.
 - `CampoFaltante.motivo` entra no boundary de truncamento da [[ADR-294]]: era o último
   texto com teto duro, e o reask que ele disparava dobrava os tokens da chamada.

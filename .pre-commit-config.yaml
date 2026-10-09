@@ -342,6 +342,18 @@ repos:
         always_run: true
         files: ^\.github/(workflows/.*\.ya?ml|third-party-actions\.ya?ml)$
 
+      - id: action-inputs
+        # ADR-320 §Emenda 2026-10-09: input que a action não declara é ignorado
+        # pelo runner, que só deixa `Unexpected input(s)` no log — o
+        # `exempt-pr-authors` do stale.yml nunca valeu e o stale fechou 8 PRs do
+        # Dependabot. O actionlint não pega: a base dele não conhece ref SHA nem
+        # stale@v11. Offline contra .github/actions.lock.yml; rede só no refresh.
+        name: "with: de action só usa input declarado no ref pinado (ADR-320)"
+        entry: python3 dev/check_action_inputs.py
+        language: system
+        pass_filenames: false
+        files: ^(\.github/(workflows/.*\.ya?ml|actions\.lock\.yml)|dev/(check_action_inputs|refresh_actions_lock)\.py)$
+
       - id: stateless-primitives
         # ADR-359: STATELESS_AUDIT §5 afirmou "zero threading.Thread em app
         # code" por 3,5 meses enquanto o fallback de dispatch existia — a
