@@ -1166,10 +1166,10 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           # Paridade com os FROM do frontend-ops/Dockerfile: o job existe para
           # prever o build da imagem. Bump do Dockerfile → bump aqui.
