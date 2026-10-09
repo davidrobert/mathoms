@@ -142,6 +142,20 @@ esse mesmo diretório é redundante e só serve para fazer o `pre-commit install
 
 Depois rode `pre-commit install --install-hooks` de novo.
 
+### Gate de valor do dogfood ([[ADR-442]])
+
+Na máquina que tem o banco de dogfood, gere a denylist do gate depois de cada run novo
+(o hook avisa quando ela passa de 14 dias):
+
+```bash
+python3 dev/build_dogfood_denylist.py --db <caminho>/mathoms.db  # --env-file <.env> fora do checkout com a chave Fernet
+python3 dev/check_dogfood_values.py --self-test                   # canário de ponta a ponta
+```
+
+A lista (HMAC) mora em `~/.config/mathoms/`, nunca na árvore. Sem esse diretório o hook
+fica inativo (CI, sessão cloud); com ele e sem a lista, o commit falha. Constante pública
+que colidir entra em `dev/dogfood_public_constants.json`, com a fonte legal.
+
 ---
 
 ## 1.3. Configuração git recomendada (anti-branch-órfã)
