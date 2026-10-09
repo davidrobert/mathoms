@@ -13,6 +13,7 @@ import { Download, Paperclip, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { formatBytes } from "@/lib/format";
 import {
   deleteTaskAttachment,
   listTaskAttachments,
@@ -26,14 +27,6 @@ import {
 interface TaskAttachmentsProps {
   workspaceId: string;
   taskId: string;
-}
-
-
-function formatSize(bytes: number | null): string {
-  if (!bytes) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 
@@ -149,7 +142,7 @@ export function TaskAttachments({
                 {att.original_filename}
               </span>
               <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                {formatSize(att.size_bytes)}
+                {formatBytes(att.size_bytes)}
               </span>
               <a
                 href={taskAttachmentDownloadUrl(workspaceId, taskId, att.id)}

@@ -192,6 +192,9 @@ from pipeline.domain.services.top_ativos_analyzer import (
     TopAtivosConfig,
     TopAtivosResult,
 )
+from pipeline.domain.services.veredito_balde_imovel import (
+    residencia_pode_estar_no_desconhecido,
+)
 from pipeline.domain.types.config import FiscalParameters
 
 
@@ -752,8 +755,16 @@ class E5AnalyzerAdapter:
             (self._identity.titular_nome, titular_bens),
             (self._identity.conjuge_nome, conjuge_bens),
         ]
-        investimentos_classes = self._inv_classes.analyze(bens_list)
-        top_ativos = self._top_ativos.analyze(bens_por_membro)
+        # [[ADR-444]] D2: o predicado é o veredito PUBLICADO — o mesmo bloco que o front lê.
+        no_desconhecido = residencia_pode_estar_no_desconhecido(
+            patrimonio_full.get("cobertura_classificacao_imovel")
+        )
+        investimentos_classes = self._inv_classes.analyze(
+            bens_list, residencia_no_desconhecido=no_desconhecido
+        )
+        top_ativos = self._top_ativos.analyze(
+            bens_por_membro, residencia_no_desconhecido=no_desconhecido
+        )
         instituicoes = self._instituicoes.analyze(bens_por_membro)
 
         # 14. Consumo consciente. Recebe as despesas REALIZADAS — o denominador
