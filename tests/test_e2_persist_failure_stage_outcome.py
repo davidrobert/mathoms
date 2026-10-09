@@ -6,18 +6,22 @@ from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 import backend.app.models  # noqa: F401 — registra as tabelas no metadata
 from backend.app.core.database import Base, attach_sqlite_pragmas
 from backend.app.models import PipelineArtifact, PipelineRun, PipelineRunStatus, User, Workspace
 from backend.app.services.storage.db_artifact_store import DBArtifactStore
+from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.context import WorkspaceContext
 from pipeline.orchestrator import _run_stage
 
 _REPO_CONFIG = Path(__file__).resolve().parents[1] / "config"
 _VALIDO = "itau_extratoconta_202604-0_original.csv"
 _FORA_DO_CONTRATO = "santander_extratoconta_202604-0_original.csv"
+_ILEGIVEL = "bradesco_extratoconta_202604-0_original.csv"
+_SEM_PARSER = "bancoficticio_extratoconta_202604-0_original.csv"
 
 
 def _extrato_sintetico() -> dict:
@@ -43,7 +47,30 @@ def _parser_fora_do_contrato(file_path: Path, filename: str) -> dict:
     return payload
 
 
-_PARSERS = {_VALIDO: _parser_no_contrato, _FORA_DO_CONTRATO: _parser_fora_do_contrato}
+def _parser_que_quebra(file_path: Path, filename: str) -> dict:
+    raise ValueError("layout sintético que o parser não reconhece")
+
+
+# Arquivo fora do mapa não tem parser: vira stub de escalação (ADR-342).
+_PARSERS = {
+    _VALIDO: _parser_no_contrato,
+    _FORA_DO_CONTRATO: _parser_fora_do_contrato,
+    _ILEGIVEL: _parser_que_quebra,
+}
+
+
+class _StoreQueRecusaUmaKey(InMemoryArtifactStore):
+    """`write` levanta para uma key — falha do store sem DB; o tipo do erro decide a classe."""
+
+    def __init__(self, key: str, erro: Exception) -> None:
+        super().__init__()
+        self._key = key
+        self._erro = erro
+
+    def write(self, stage: str, key: str, data: dict, *, document_id: str | None = None) -> None:
+        if key == self._key:
+            raise self._erro
+        super().write(stage, key, data, document_id=document_id)
 
 
 @pytest.fixture(autouse=True)
@@ -78,7 +105,7 @@ def tenant_root(tmp_path, monkeypatch):
     # `find_all_files` lê o DATA_DIR vinculado no import do módulo, não o que o
     # `_init_config(ctx.root)` do stage regrava: pinar isola da ordem de import.
     monkeypatch.setattr(ebd, "DATA_DIR", data_dir)
-    monkeypatch.setattr(ebd, "route_to_parser", lambda filename: _PARSERS[filename])
+    monkeypatch.setattr(ebd, "route_to_parser", _PARSERS.get)
     raiz_anterior = e2_common.BASE_DIR
     yield tmp_path / "tenant"
     e2_common._init_config(raiz_anterior)
@@ -109,11 +136,15 @@ def _documentos(tenant_root: Path, *nomes: str) -> None:
         (tenant_root / "data" / "financial_statements" / nome).write_text("data;valor\n")
 
 
-def _executar_extract_statements(stage_session, tenant_root: Path):
+def _rodar_extract_statements(tenant_root: Path, store, workspace_id: str | None = None):
+    ctx = WorkspaceContext.for_tenant(tenant_root, artifact_store=store, workspace_id=workspace_id)
+    return _run_stage(ctx, "extract_statements")
+
+
+def _executar_com_db(stage_session, tenant_root: Path):
     session, ws_id, run_id = stage_session
     store = DBArtifactStore(session, workspace_id=ws_id, pipeline_run_id=run_id)
-    ctx = WorkspaceContext.for_tenant(tenant_root, artifact_store=store, workspace_id=ws_id)
-    result = _run_stage(ctx, "extract_statements")
+    result = _rodar_extract_statements(tenant_root, store, ws_id)
     gravadas = (
         session.query(PipelineArtifact.artifact_key)
         .filter_by(pipeline_run_id=run_id, stage="extract_statements")
@@ -125,16 +156,58 @@ def _executar_extract_statements(stage_session, tenant_root: Path):
 def test_unico_documento_recusado_em_strict_nao_sai_verde(stage_session, tenant_root):
     _documentos(tenant_root, _FORA_DO_CONTRATO)
 
-    result, gravadas = _executar_extract_statements(stage_session, tenant_root)
+    result, gravadas = _executar_com_db(stage_session, tenant_root)
 
     assert gravadas == []
     assert result.success is False
+    # O que o §8.1 do runbook filtra: a classe (ADR-447) e a mensagem do raise.
+    assert result.detail["failure_class"] == "output_invalid"
+    assert (
+        "extract_statements/santander_extratoconta_202604 viola e2_extract.schema.json"
+        in result.error
+    )
 
 
 def test_recusa_em_strict_derruba_o_stage_mesmo_com_irmao_gravado(stage_session, tenant_root):
     _documentos(tenant_root, _VALIDO, _FORA_DO_CONTRATO)
 
-    result, gravadas = _executar_extract_statements(stage_session, tenant_root)
+    result, gravadas = _executar_com_db(stage_session, tenant_root)
 
     assert "santander_extratoconta_202604" not in gravadas
     assert result.success is False
+    assert result.detail["failure_class"] == "output_invalid"
+
+
+def test_falha_de_parse_continua_sendo_do_documento(tenant_root):
+    _documentos(tenant_root, _VALIDO, _ILEGIVEL)
+    store = InMemoryArtifactStore()
+
+    result = _rodar_extract_statements(tenant_root, store)
+
+    assert result.success is True
+    assert (result.detail["total"], result.detail["erros_validacao"]) == (1, 1)
+    assert store.list_keys("extract_statements") == ["itau_extratoconta_202604"]
+
+
+def test_erro_do_store_fora_do_schema_derruba_o_stage(tenant_root):
+    _documentos(tenant_root, _VALIDO)
+    erro = OperationalError("INSERT INTO pipeline_artifacts", {}, Exception("database is locked"))
+    store = _StoreQueRecusaUmaKey("itau_extratoconta_202604", erro)
+
+    result = _rodar_extract_statements(tenant_root, store)
+
+    assert result.success is False
+    assert result.detail["failure_class"] == "internal_error"
+
+
+def test_stub_de_escalacao_que_nao_grava_derruba_o_stage(tenant_root):
+    _documentos(tenant_root, _VALIDO, _SEM_PARSER)
+    erro = OperationalError("INSERT INTO pipeline_artifacts", {}, Exception("database is locked"))
+    store = _StoreQueRecusaUmaKey("bancoficticio_extratoconta_202604", erro)
+
+    result = _rodar_extract_statements(tenant_root, store)
+
+    # Sem o stub, o parcial de run anterior ressuscita pelo fallback da ADR-241 —
+    # e o irmão gravado não pode tornar isso progresso.
+    assert result.success is False
+    assert "bancoficticio_extratoconta_202604" not in store.list_keys("extract_statements")
