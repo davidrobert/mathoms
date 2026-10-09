@@ -15,7 +15,7 @@ from backend.app.services.security.access_audit import (
     AccessAuditPIIError,
     assert_pii_free,
 )
-from backend.tests._app_routes import effective_routes
+from backend.tests._app_routes import effective_routes, openapi_snapshot_operations
 
 # --- Superfície sensível e allowlist justificada -----------------------------
 
@@ -35,14 +35,16 @@ _ACCESS_AUDIT_ALLOWLIST: dict[str, str] = {
 }
 
 
+def _is_sensitive_titular_path(path: str) -> bool:
+    return "/workspaces/{workspace_id}" in path and any(seg in path for seg in _SENSITIVE_SEGMENTS)
+
+
 def _is_sensitive_titular_get(route) -> bool:
     methods = getattr(route, "methods", None) or set()
-    path = getattr(route, "path", "")
     return (
         "GET" in methods
         and getattr(route, "include_in_schema", True)
-        and "/workspaces/{workspace_id}" in path
-        and any(seg in path for seg in _SENSITIVE_SEGMENTS)
+        and _is_sensitive_titular_path(getattr(route, "path", ""))
     )
 
 
@@ -64,6 +66,25 @@ def test_every_sensitive_get_is_audited_or_allowlisted():
     assert (
         not offenders
     ), f"rotas GET sensíveis sem audit de acesso nem allowlist (ADR-275): {sorted(set(offenders))}"
+
+
+def test_sensitive_get_gate_sees_every_sensitive_operation():
+    """Não-vácuo: o gate vê toda GET sensível do openapi.json commitado, não só o topo da árvore."""
+    expected = {
+        path
+        for method, path in openapi_snapshot_operations()
+        if method == "GET" and _is_sensitive_titular_path(path)
+    }
+    examined = {
+        r.path
+        for r in effective_routes()
+        if hasattr(r, "dependant") and _is_sensitive_titular_get(r)
+    }
+    assert expected, "openapi.json commitado sem GET sensível — o filtro do gate mudou?"
+    assert examined == expected, (
+        f"gate da ADR-275 examinou {len(examined)} de {len(expected)} GETs sensíveis; "
+        f"faltam {sorted(expected - examined)[:3]}"
+    )
 
 
 def test_allowlist_has_no_stale_entries():
@@ -141,7 +162,9 @@ async def test_audited_get_writes_access_row(auth_client: AsyncClient, db: Async
     assert "report.read" in READ_ACCESS_ACTIONS
     # details é só metadado — zero PII.
     assert row.details["method"] == "GET"
-    assert "reports" in row.details["route"]
+    # Template EXATO, com o prefixo do include: o fastapi 0.137 passou a pôr no
+    # scope["route"] a rota original, sem prefixo — ``"reports" in`` não via.
+    assert row.details["route"] == "/api/workspaces/{workspace_id}/reports"
     assert assert_pii_free(row.details) == row.details
 
 
