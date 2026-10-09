@@ -5,6 +5,7 @@ title: "Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitl
 status: Decidido
 phase: A11.W2
 date: "2026-05-20"
+amended_at: ["2026-10-08"]
 relates_to:
   - "[[ADR-110]]"
   - "[[ADR-170]]"
@@ -26,6 +27,10 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> ⚠️ **Emendada em 2026-10-08**: o `npm audit` cobria só `frontend/`, e o
+> `frontend-ops/` passou ~8 dias com RCE CRITICAL sem reprovar nada. A tabela
+> de §Decisão (linha `npm-audit-prod`) está desatualizada. Ver §Emenda no fim.
 
 ## Contexto
 
@@ -63,7 +68,7 @@ Pin de actions por SHA — política já vigente em `ci.yml` desde CVE-2025-3006
 | `trivy-fs` | `aquasecurity/trivy-action` modo `fs` | HIGH, CRITICAL (`exit-code: 1`) | Scaneia repo full. SARIF upload em PR + main. |
 | `trivy-config` | `trivy config` (mesmo action, modo `config`) | HIGH, CRITICAL | IaC: Dockerfile, docker-compose, `.github/workflows/*`. Custo <30s. |
 | `pip-audit` | `pypa/pip-audit-action` | HIGH+ via `--strict` | Roda contra o `requirements.lock` combinado pinado (ADR-254). |
-| `npm-audit-prod` | `npm audit --audit-level=high --omit=dev` | HIGH, CRITICAL | Em `frontend/`. Bloqueante. |
+| `npm-audit-prod` | `npm audit --audit-level=high --omit=dev` | HIGH, CRITICAL | Em `frontend/` (até 2026-10-08; hoje matrix por raiz npm — §Emenda 2026-10-08). Bloqueante. |
 | `npm-audit-dev` | `npm audit --audit-level=high` | — (informativo) | `continue-on-error: true`. Dev deps raramente exploitable, ruído alto. |
 | `gitleaks` | `gitleaks/gitleaks-action` | Qualquer match não-allowlisted | `--log-opts="--all"` varre git history full (defesa contra `--no-verify`). |
 
@@ -189,6 +194,43 @@ Flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 após merge de:
 
 - Issues label `security` (uma por GHSA/PYSEC ID) abertas em 2026-05-20 — owner Sprint A12 (não bloqueia A11; coerente com [[ADR-228]] §"failure mode").
 - Trivy fs + Trivy config + npm-audit-prod removerão `continue-on-error` quando: (a) IaC misconfigs detectados forem triados/fixados (Trivy config); (b) todas as 6 vulns prod npm forem fixadas via PRs de upgrade (npm-audit-prod); (c) GHAS for licenciado ou volume de SARIF for triado em Security tab (Trivy fs). Estado atual é gate ativo + soft-fail explícito + tracking por Issue.
+
+## Emenda 2026-10-08 — o audit npm cobre toda raiz, não a primeira
+
+**Fato.** `npm-audit-prod` e `npm-audit-dev` rodavam com `working-directory:
+frontend`, e o filtro `npm_deps` só olhava `frontend/package*.json`. O
+`frontend-ops/` (console interno, [[ADR-116]]) nunca foi auditado. O lock dele
+travou `next 16.3.4` exposto à GHSA-vcvr-r3jv-pc5j (RCE CRITICAL em `next/og`,
+`>=16.2.0 <16.3.6`), publicada em 2026-09-30T14:48Z, até o Dependabot #2057
+(mergeado em 2026-10-08T21:21Z). São ~8,3 dias contra o SLO CRITICAL ≤72h de
+§D5, com `Security green` verde do começo ao fim. O `source-map-js` HIGH
+(GHSA-68fv-2mgg-jv7q, publicada em 2026-09-18) ficou ~20 dias contra o SLO de
+14d. O sinal existia: o `trivy-fs` listava o CRITICAL em
+`frontend-ops/package-lock.json` em todo PR de código, mas é
+`continue-on-error`.
+
+**Decisão.** Os dois jobs viram matrix sobre `changes.npm_dirs`, o JSON das
+raízes cujo `package*.json` mudou (um grupo de filtro por raiz). Schedule e
+dispatch auditam todas. Advisory numa raiz não reprova PR que só tocou a outra,
+para não repetir os 18 PRs do Dependabot parados por deriva da main; a deriva
+fica com o cron semanal. As job keys não mudam, então o agregador e o abridor de
+Issue seguem iguais. O filtro `iac` passa a usar `**/Dockerfile*`, porque deixava
+de fora `frontend-ops/`, `pipeline-service/` e `services/pipeline-service-go/`.
+O gate é estrutural: `tests/dev/test_security_scans_cobrem_toda_raiz.py` tira o
+universo de `git ls-files` e reprova raiz npm ou Dockerfile sem cobertura.
+Co-design: `sre-devops`.
+
+**Contrafactual.** O workflow novo, disparado sobre `8fde4be9` (pré-#2057, next
+16.3.4), reprova a leg `frontend-ops` e o `Security green`. Evidência no PR
+de implementação.
+
+**Fora desta emenda (registrado, não decidido aqui):** (1) `Security green`
+**não é required** no Ruleset (item 1.5 / KR-D do CI_TRUST, ação do owner), e
+até lá nenhum scan deste arquivo bloqueia merge. (2) `dependabot.yml` não tem
+`npm` para `/frontend-ops`, só security updates. A entrada fica condicionada a
+existir job de build do console no CI: o #2057 subiu o Tailwind de 3 para 4
+junto com o fix do next e quebrou o `next build` do `frontend-ops`, sem nenhum
+check que percebesse.
 
 ## Referências
 
