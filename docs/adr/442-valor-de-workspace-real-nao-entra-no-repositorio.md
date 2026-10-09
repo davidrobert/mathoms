@@ -87,7 +87,7 @@ Falso positivo em fixture: troque o número. Constante pública: o gerador exclu
 
 **D5 — A forma sancionada de evidência é ponteiro + relação.** Ponteiro
 (`run · stage · campo`) e relação (sinal, igualdade, razão, Δ%). O valor absoluto vive
-no cru off-git (`storage/<ws>/reviews/…`). Arredondar não é sanear: `R$ 206k` ainda é
+no cru off-git (`storage/<ws>/reviews/…`). Arredondar não é sanear: `R$ 123k` ainda é
 o número.
 
 **D6 — O pre-push precisa existir.** `default_install_hook_types: [pre-commit,
