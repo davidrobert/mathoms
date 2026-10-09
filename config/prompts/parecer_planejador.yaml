@@ -232,7 +232,23 @@
 # comentário — nada do que o modelo recebe muda. PATCH, e mesmo assim COBRA a frota uma
 # vez: o gate de bump compara o arquivo inteiro, e `manifest_version` compõe a chave de
 # cache.
-version: "2.20.1"
+# 2.21.0 — A40.l123 ([[ADR-439]]): o veredito do balde de imóvel chega ao modelo. Desde o
+# #2049 o E5 publica `patrimonio.cobertura_classificacao_imovel` — a fatia do VALOR de
+# imóveis sem classificação e um veredito por balde — e o parecer não recebia nada: lia a
+# linha "Imóveis Investimento" da tabela de classes e a concentração como medida, quando o
+# imóvel sem classificação conta como investimento e pode ser a moradia. Entram 4 campos
+# no bloco "Cobertura e incerteza" (sem R$, sem contagem, sem endereço) e 6 hints com a
+# direção do erro (co-design `prompt-engineer` + `financial-planner` + `product-manager`).
+# O schema aceita 8 hints por seção e `patrimonio` estava cheia: "Diferencie residência…"
+# vira o hint da residência, e "Severidade da concentração" muda para `ratios`, onde o
+# número mora — texto idêntico. Junto, `_is_money_key` deixa de tomar `n_total` por
+# dinheiro: o catálogo compõe o prompt e não entra na chave de cache.
+# MINOR (ADR-233, regra adicional não-breaking); `PROMPT_VERSION` fica — nem o módulo do
+# prompt nem a persona mudam. COBRA a frota: snapshot E5 anterior ao #2049 regenera com o
+# mesmo corpo (só hints e catálogo mudam). O #2065 (A40.l92) bumpa `_SCHEMA_VERSION` em PR
+# próprio: deploys separados são duas invalidações, e é aceito — acoplar prenderia um P1
+# ao merge de um P0 e deixaria o delta de cada um inatribuível.
+version: "2.21.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -371,6 +387,17 @@ context_sections:
           - {path: "$.patrimonio.guarda_de_sinal.modo", label: "Guarda de sinal — modo", format: "string"}
           - {path: "$.patrimonio.guarda_de_sinal.cobertura_completa", label: "Guarda de sinal — cobertura completa", format: "raw"}
           - {path: "$.patrimonio.guarda_de_sinal.motivo_supressao", label: "Motivo de supressão da prescrição (null = nada suprimido)", format: "string"}
+          # [[A40.l123]] · [[ADR-439]]: o veredito do balde de imóvel. Sem R$ (a ressalva
+          # precisa da fatia e da direção, não do valor), sem contagem (a fatia que decide é
+          # de VALOR, [[ADR-433]] §D3; imóvel sem valor já chega por `itens_sem_valor`), sem
+          # endereço (PII). `imoveis_geradores.motivo` fica fora: os três dão a mesma direção
+          # na IF, e o único uso seria pedido de cadastro, que o parecer não deve fazer.
+          # Labels curtas de propósito: o significado de cada código mora nos hints, fora
+          # do orçamento do corpo.
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.pct_desconhecido", label: "Imóveis sem classificação (% do valor total de imóveis)", format: "percent2"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.residencia.status", label: "Residência — veredito", format: "string"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.residencia.motivo", label: "Residência — motivo da não apuração", format: "string"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.imoveis_geradores.status", label: "Imóveis de renda — veredito", format: "string"}
       # [[A40.l111]] · [[ADR-431]]: um grão ABAIXO de `guarda_de_sinal.modo`. O balde
       # agregado segue positivo e o modelo o lê como completo; sem esta tabela ele
       # prescreveria sobre um patrimônio que é PISO, não retrato. Sem `descricao`:
@@ -399,10 +426,10 @@ context_sections:
       - "Leia $.diagnostico_confianca.nivel antes de prescrever: 'insuficiente' torna a prescrição provisória, com ressalva no item; 'parcial' exige ressalva onde a base pesa. É veredito do motor (ADR-353) — não recalcule."
       - "guarda_de_sinal.motivo_supressao não-nulo = prescrição já suprimida a montante (ADR-394): declare o motivo, não reintroduza. Com investimentos_nao_atribuidos>0 ou nao_classificado_pct>0, todo % de carteira declara a incompletude."
       - "Concentração imobiliária = RISCO: cite $.ratios.concentracao_imobiliaria (base carteira produtiva, SSOT ADR-340), NÃO o pct de tabela_classes[imóveis] (COMPOSIÇÃO, base total investido). Dois números legítimos; risco usa o de risco."
-      - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
       - "Rótulo de base obrigatório (A37.l9): todo percentual citado declara a base. Peso de classe financeira (Internacional/RF/Ações/FIIs) sai da coluna '% da carteira financeira' — nunca rotule 'carteira financeira' número de base com imóvel."
       - "Internacional ≠ cambial (A37.l9): alocação internacional = classe Internacional ÷ carteira financeira; exposição cambial = posições em moeda estrangeira ÷ investível financeiro. Dois conceitos, duas bases — cite separados, nunca funda."
-      - "Diferencie residência (não gera renda) de imóveis de investimento — não comente residência como investimento."
+      - "Residência não é investimento. Veredito zero_apurado = a família declarou que aluga: não prescreva compra de moradia. nao_apurado = sem número, não estime; nao_declarada = não se sabe se é própria ou alugada: não afirme nenhuma das duas."
+      - "Motivo da residência: nao_classificada ou nao_localizada = a família indicou moradia própria, não identificada neste retrato (pode estar entre os imóveis sem classificação); sem_valor = identificada, sem valor neste retrato."
       - "classification=nu_proprietario (ADR-235): nu-propriedade com usufruto vitalício — ativo ilíquido por contrato civil. Não recomende venda como liquidez; consolidação só com extinção do usufruto (não infira prazo)."
 
   # --------------------------------------------------------------------------
@@ -578,6 +605,8 @@ context_sections:
             format: "raw"
     narrative_hints:
       - "Concentração como risco: cite o número do bloco escalar acima ($.ratios.concentracao_imobiliaria), não o pct de composição. É percentual — escreva na prosa (ex.: '~60%'); não precisa âncora (catálogo é só monetário)."
+      - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
+      - "Imóveis sem classificação acima de zero contam como investimento e podem ser a moradia: concentração, imóveis de investimento e patrimônio gerador são TETO; TRS, PISO. Não recalcule. Com imóvel sem valor apurado, a direção é indeterminada."
       - "Alíquota com base (A37.l9): ratios.aliquota_efetiva_ir_pct é EFETIVA (blended) — IR total ÷ renda total (PF+PJ). Rotule 'efetiva (blended)' ao citar; não confunda com marginal nem com irpf_kpis.aliquota_sobre_tributavel/total_pct."
       - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
       - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
@@ -641,6 +670,7 @@ context_sections:
       - "Cenários cônjuge ausentes (objeto vazio) = workspace solteiro ou casal sem meta IF; não force narrativa."
       # ADR-290 F2 — valor determinístico (par do hint de saude_balanco).
       - "Ancore patrimônio-alvo/renda passiva via ancoras (NÃO escreva o R$ na prosa): path na folha ($.passive_income.*, $.if_monte_carlo.*), rotulo = o rotulo_id da linha do catálogo (não o root da seção)."
+      - "Imóveis de renda nao_apurado: pode haver imóvel de renda não identificado ou sem valor, que a IF não credita — prazo e progresso são o extremo conservador. Diga que o real pode ser melhor; não dimensione aporte nem corte pelo gap."
 
   # --------------------------------------------------------------------------
   # 7) Previdência + IRPF (S8 / S_IRPF_RENDA / S_IRPF_OTIMIZACAO)
@@ -765,6 +795,8 @@ context_sections:
     narrative_hints:
       - "Não duplique pontos_fortes determinísticos no output — re-priorize sob ótica metodológica e cite só os 3-6 mais relevantes."
       - "Score baixo (< 5) força ao menos 1 risco severidade Crítica no output."
+      - "Com imóvel sem classificação ou sem valor apurado, não prescreva venda de imóvel — diluir por aporte segue válido. Concentração: mantenha a severidade do número, confiança no máximo 'media'; ponto forte só se for teto abaixo da meta."
+      - "Vereditos e motivos do bloco de imóveis (apurado, nao_apurado, sem_valor…) são códigos internos: descreva o significado na prosa, nunca o código, e não os transforme em pedido de cadastro ou reclassificação à família."
 
   # --------------------------------------------------------------------------
   # 10) Plano de ação (S11 / plano_de_acao) — referência ao operating system

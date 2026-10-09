@@ -55,14 +55,36 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     # 2026-09-01 ([[ADR-236]] §D5): declarar a raiz no schema a trouxe para este gate.
     "$.tributario": "bloco fiscal nunca projetado ao parecer; declaração registra o status quo",
     # [[ADR-439]]: os três baldes já existiam no payload e o parecer nunca os recebeu;
-    # declará-los no schema (para aceitarem `null`) os trouxe para este gate.
-    "$.patrimonio.residencia": "balde descritivo nunca projetado; declaração registra o status quo",
-    "$.patrimonio.imoveis_geradores": "idem; o parecer lê a composição pela tabela de classes",
+    # declará-los no schema (para aceitarem `null`) os trouxe para este gate. Desde a
+    # [[A40.l123]] o parecer recebe o VEREDITO de cada balde, não o número: `residencia` e
+    # `imoveis_geradores` não são chave monetária pelo nome, então em `brl` virariam folha
+    # R$ visível sem rota de citação — e o modelo passaria a fazer conta com eles.
+    "$.patrimonio.residencia": "o parecer recebe o veredito do balde, não o número",
+    "$.patrimonio.imoveis_geradores": "idem — o veredito do par chega pelo bloco de cobertura",
     "$.patrimonio.imoveis_nao_geradores": "idem — par de `imoveis_geradores`",
-    # Projetar o veredito no bloco "Cobertura e incerteza" é o que faria o modelo ressalvar
-    # a classificação desconhecida — pede bump do manifest e eval, então é follow-up com
-    # `prompt-engineer`, registrado no §Deferimento da [[A40.l113]].
-    "$.patrimonio.cobertura_classificacao_imovel": (
-        "veredito de publicação dos baldes de imóvel; projeção ao parecer é follow-up nomeado"
+    # [[A40.l123]]: do bloco, o parecer recebe a fatia (%) e os vereditos; o resto fica aqui.
+    "$.patrimonio.cobertura_classificacao_imovel.valor_total": (
+        "termo R$ da partição; a ressalva usa a fatia em %, não o valor"
+    ),
+    "$.patrimonio.cobertura_classificacao_imovel.valor_desconhecido": "idem",
+    "$.patrimonio.cobertura_classificacao_imovel.residencia_identificada": (
+        "idem; o parecer recebe o veredito da residência"
+    ),
+    "$.patrimonio.cobertura_classificacao_imovel.geradores_identificados": (
+        "idem; um segundo número de renda de imóvel ao lado da IF convidaria a recalculá-la"
+    ),
+    "$.patrimonio.cobertura_classificacao_imovel.nao_geradores_identificados": "idem",
+    "$.patrimonio.cobertura_classificacao_imovel.n_total": (
+        "contagem; a fatia que decide é de VALOR ([[ADR-433]] §D3)"
+    ),
+    "$.patrimonio.cobertura_classificacao_imovel.n_desconhecido": "idem",
+    "$.patrimonio.cobertura_classificacao_imovel.n_desconhecido_em_aberto": (
+        "idem; imóvel sem valor apurado já chega ao parecer pela tabela `itens_sem_valor`"
+    ),
+    "$.patrimonio.cobertura_classificacao_imovel.overrides_sem_imovel": (
+        "escolhe o motivo, nunca o veredito; o parecer recebe o motivo"
+    ),
+    "$.patrimonio.cobertura_classificacao_imovel.residencia_status": (
+        "eco do cadastro ([[ADR-215]]); o veredito da residência já carrega o que o conselho usa"
     ),
 }
