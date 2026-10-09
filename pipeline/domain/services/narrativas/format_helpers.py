@@ -135,6 +135,28 @@ _INSTRUMENTO_ACRONYMS = frozenset(
 
 APORTE_SEM_DISTRIBUICAO = "a distribuir entre as classes sub-representadas"
 
+# Produtor único das três superfícies do cenário sem aporte declarado: resumo do E5,
+# card da S3 e Apêndice C (que renderiza o resumo do payload). Mora aqui, e não no
+# analyzer, porque o narrador não pode importá-lo: o analyzer importa este pacote.
+CENARIO_CONJUGE_SEM_APORTE = (
+    "Quanto a perda da renda do cônjuge adia a independência financeira depende do "
+    "aporte mensal, que você ainda não declarou. Defina sua meta de aporte mensal em "
+    "Meu Plano → Aportes."
+)
+CENARIO_CONJUGE_META_ATINGIDA = (
+    "Seu patrimônio investível já alcança a meta de independência financeira, com ou "
+    "sem a renda do cônjuge."
+)
+
+
+def frase_cenario_conjuge_sem_aporte(*, prazo: float | None, meta_if: float) -> str:
+    """Frase do cenário sem aporte declarado; só a meta já atingida dispensa o aporte."""
+    # O solver devolve prazo 0 quando o investível já cobre a meta, antes de olhar o
+    # aporte: ali a frase de ausência seria falsa (ADR-373 D2).
+    if prazo == 0 and meta_if > 0:
+        return CENARIO_CONJUGE_META_ATINGIDA
+    return CENARIO_CONJUGE_SEM_APORTE
+
 
 def humanize_instrumento(key: str) -> str:
     """Rótulo humano para key técnica de instrumento (``cdb_liquidez`` → ``CDB Liquidez``)."""
