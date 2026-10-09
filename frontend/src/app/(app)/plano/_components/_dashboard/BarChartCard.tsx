@@ -13,19 +13,8 @@ import {
 import type { DashboardChart } from "@/lib/api";
 import { formatCompact, formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE } from "./chartStyles";
 import { normalizeBarData } from "./dashboardHelpers";
-
-const TOOLTIP_ITEM_STYLE = {
-  fontFamily: "var(--font-mono)",
-  fontVariantNumeric: "tabular-nums",
-} as const;
-
-const TOOLTIP_CONTENT_STYLE = {
-  borderRadius: "var(--radius-md)",
-  border: "1px solid var(--border)",
-  background: "var(--popover)",
-  color: "var(--popover-foreground)",
-} as const;
 
 type BarEntryPayload = {
   month?: unknown;
