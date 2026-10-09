@@ -17,9 +17,11 @@ os.environ.setdefault("MATHOMS_FERNET_KEY", "gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 os.environ.setdefault("MATHOMS_JWT_SECRET", "x" * 32)
 os.environ.setdefault("MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR", "0")
 
-# Subcódigos específicos do Grupo 01 (Bens Imóveis) RFB.
-# "01" e "" são genéricos (grupo-pai sem subcódigo).
-_SPECIFIC_CODIGOS_RFB = frozenset({"11", "12", "13", "14", "15", "17", "19"})
+# Subcódigos específicos do Grupo 01 (Bens Imóveis) RFB; "01" e "" são genéricos. Fonte única
+# com o dedup do E1.5c e o veto de identidade da [[ADR-440]] — a cópia daqui divergiria calada.
+from pipeline.domain.services.imoveis_dedup import (  # noqa: E402
+    SPECIFIC_CODIGOS_RFB as _SPECIFIC_CODIGOS_RFB,
+)
 
 
 # Forma canônica da row: `'01-11'` cru contaria como genérico e o passe 3 o fundiria
