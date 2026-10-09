@@ -29,8 +29,8 @@ conta porque hook `language: system` chama `node` (probabilidade-parity).
 runtime liberam API que prod não tem. `≤`, não `=`: types atrás e major ímpar
 passam (todo major ≥27 é LTS). Declarado no package.json sem cópia no lock
 reprova. O major de `@types/node` vem em PR isolado do Dependabot (#2153),
-vermelho até o runtime subir; o `exclude-patterns` no `eslint-and-types` fixa
-isso sem depender do *specificity* de grupos dele.
+vermelho até o runtime subir: nenhum grupo que carrega major o casa
+(`test_dependabot_isola_o_major_de_types_node`).
 
 Mede só o MAJOR: o CI resolve `26` para o último 26.x e a imagem roda o 26.x
 do digest — diferença de patch aceita.

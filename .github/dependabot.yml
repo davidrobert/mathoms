@@ -42,11 +42,11 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    # Sem grupo nomeado: até 2026-10-09 havia `pytest` (`pytest*`) e
+    # `ruff-and-types`. O primeiro perdia todo membro para o catch-all abaixo
+    # (curinga vale ~100, grupo sem `patterns` vale 500; ver o comentário da
+    # entrada /frontend) e o segundo não casava nenhuma dep dos `.in`.
     groups:
-      pytest:
-        patterns: ["pytest*"]
-      ruff-and-types:
-        patterns: ["ruff", "mypy", "types-*"]
       patch-and-minor:
         update-types: ["patch", "minor"]
         # Excluir dos grupos as deps que historicamente quebram (LLM SDKs,
@@ -90,10 +90,12 @@ updates:
       # entrada. Security updates seguem abrindo.
       - dependency-name: "numpy"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
-      # Família opentelemetry-*: grupos pip nunca agruparam neste repo, então
-      # cada release abria até 7 PRs de piso, um por membro (#2101/#2102 subiam
-      # um cada), e a família é acoplada por `==` — um membro sozinho não
-      # resolve contra o lock. Só as sentinelas api (core 1.x) e
+      # Família opentelemetry-*: sem grupo que a pegasse, cada release abria até
+      # 7 PRs de piso, um por membro (#2101/#2102 subiam um cada), e a família é
+      # acoplada por `==` — um membro sozinho não resolve contra o lock. Um grupo
+      # `opentelemetry-*` perderia os membros para o catch-all (ver o comentário
+      # da entrada /frontend), e o lock combinado é regenerado à mão de qualquer
+      # jeito. Só as sentinelas api (core 1.x) e
       # instrumentation-fastapi (contrib 0.Xb) recebem version update; o PR delas
       # sobe a família inteira (runbook python_dependencies.md §Uma entrada pip e
       # a família opentelemetry). `update-types`, e não regra nua: security
@@ -108,6 +110,14 @@ updates:
       - dependency-name: "opentelemetry-instrumentation-celery"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
       - dependency-name: "opentelemetry-instrumentation-logging"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      # playwright: sobe junto com o @playwright/test do /frontend, no mesmo PR
+      # (hook playwright-parity: o PDF de prod sai do Chromium do playwright
+      # Python, e o print-visual valida com o do frontend). A sentinela é o PR
+      # npm, que sai avulso; aqui, um PR pip sozinho só nasceria vermelho e
+      # ocuparia vaga. `update-types`: security updates seguem abrindo.
+      # tests/dev/test_check_playwright_parity.py amarra os dois lados.
+      - dependency-name: "playwright"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------
@@ -125,27 +135,58 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    # Dep que casa dois grupos fica só no "mais específico" (dependabot-core,
+    # PatternSpecificityCalculator): nome exato vale 1000, grupo sem `patterns`
+    # (o catch-all) vale 500 e padrão com curinga vale ~100. Grupo com
+    # `update-types` disjunto não compete. Até 2026-10-09 os grupos
+    # `eslint-and-types` e `vitest-and-test` tinham só curinga e nunca
+    # receberam nada: o patch/minor caía no catch-all e o major saía avulso. O
+    # #2129 subiu o vitest 3→5 sem o @vitest/coverage-v8, e os dois PRs ficaram
+    # vermelhos até o #2060 humano. O hook `dependabot-groups` reprova o grupo
+    # que não recebe o que promete.
     groups:
+      # Patch, minor e major, num PR só: React major pede @types/react major.
+      # Disjunto do catch-all pelo `exclude-patterns` dele.
       next-and-react:
-        patterns: ["next", "react", "react-*", "@types/react*"]
-      eslint-and-types:
-        patterns: ["eslint*", "@typescript-eslint/*", "@types/*", "prettier*"]
-        # Major de @types/node acima do runtime reprova no node-version-parity, e
-        # num grupo travaria os vizinhos. Hoje o specificity do Dependabot já o
-        # manda para o patch-and-minor e o major sai isolado (job 1619337957:
-        # "belongs to more specific group"; #2153). O exclude fixa isso sem
-        # depender do algoritmo.
-        exclude-patterns: ["@types/node"]
-      vitest-and-test:
-        patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/*", "playwright"]
+        patterns: ["next", "react", "react-dom", "@types/react", "@types/react-dom"]
+      # Famílias que sobem na mesma versão saem juntas no major. São
+      # `update-types: [major]`, disjunto do catch-all, e por isso não competem
+      # com ele (modelo do actions-first-party-major). O patch/minor delas segue
+      # no catch-all. Limite: família resolve pacote que sobe junto, não peer
+      # atrasado. O eslint 10 segue vermelho enquanto os plugins não aceitarem
+      # o eslint 10 no peer, e o minor que traz esse suporte cai no catch-all,
+      # então a ordem de merge importa. O major de @types/node (node-version-
+      # parity) não casa nenhuma família e sai avulso, vermelho até o .nvmrc
+      # subir.
+      vitest-family:
+        patterns: ["vitest", "@vitest/*"]
+        update-types: ["major"]
+      # #2182: o @vitejs/plugin-react 6 pede vite ^8 (ERESOLVE com o vite 6).
+      vite-family:
+        patterns: ["vite", "@vitejs/*"]
+        update-types: ["major"]
+      eslint-core:
+        patterns: ["eslint", "@eslint/js"]
+        update-types: ["major"]
+      typescript-eslint:
+        patterns: ["@typescript-eslint/*"]
+        update-types: ["major"]
       patch-and-minor:
         update-types: ["patch", "minor"]
-        # Major bumps de Next/React/Tailwind: PR isolado.
         exclude-patterns:
+          # next-and-react leva os três tipos destes.
           - "next"
           - "react"
           - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          # tailwindcss sai em PR próprio, inclusive no patch/minor.
           - "tailwindcss"
+          # Sentinela do par com o `playwright` do pip (hook playwright-parity).
+          # No catch-all, o minor dele fica vermelho até o lado pip subir e
+          # prende o PR de patch/minor inteiro. Avulso, o PR é completado à mão
+          # com o lado pip (runbook python_dependencies.md).
+          - "@playwright/test"
 
   # ----------------------------------------------------------------------
   # npm — frontend-ops (console interno, ADR-116)
@@ -190,6 +231,15 @@ updates:
         applies-to: version-updates
         patterns: ["next", "react", "react-dom", "@types/react*"]
         update-types: ["patch", "minor"]
+      # Famílias de major, como no /frontend (o #2181 sobe o eslint 10 sozinho).
+      ops-eslint-core:
+        applies-to: version-updates
+        patterns: ["eslint", "@eslint/js"]
+        update-types: ["major"]
+      ops-typescript-eslint:
+        applies-to: version-updates
+        patterns: ["@typescript-eslint/*"]
+        update-types: ["major"]
       ops-patch-and-minor:
         applies-to: version-updates
         update-types: ["patch", "minor"]

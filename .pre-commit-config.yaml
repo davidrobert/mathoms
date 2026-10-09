@@ -442,6 +442,19 @@ repos:
         pass_filenames: false
         files: '^(requirements\.lock|frontend/package-lock\.json)$'
 
+      - id: dependabot-groups
+        # Até 2026-10-09 os grupos nomeados do /frontend e o `pytest` do pip
+        # eram inertes: o dependabot-core dá a dep que casa dois grupos ao "mais
+        # específico", e o catch-all sem `patterns` (500) vence qualquer
+        # curinga (~100). O #2129 subiu o vitest sem o @vitest/coverage-v8.
+        # Porte da regra sobre as deps diretas: reprova padrão desviado, dep
+        # atendida antes por grupo anterior e padrão que não casa nada.
+        name: "Dependabot: todo grupo recebe as deps que os padrões prometem"
+        entry: python3 dev/check_dependabot_groups.py
+        language: system
+        pass_filenames: false
+        files: '^(\.github/dependabot\.yml|frontend(-ops)?/package\.json|requirements\.in|backend/requirements\.in|requirements-dev\.txt|dev/check_dependabot_groups\.py)$'
+
       - id: docker-sha-pin
         # ADR-249 (A20.l2): toda imagem base externa em Dockerfile/compose
         # versionado deve estar pinada por digest @sha256: do índice multi-arch
