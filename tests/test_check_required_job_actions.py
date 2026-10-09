@@ -1,4 +1,4 @@
-"""Gate estático de action de risco em job required (ADR-320 §Emenda 2026-08-05): docker/não-registrada falha, node/composite registrada passa, prova de mutação nos dois sentidos — 100% offline, sem chamar gh."""
+"""Gate estático do registro de actions (ADR-320 §Emendas 2026-08-03 e 2026-10-08): docker/não-registrada/node20 em required falha, ref divergente ou runtime < node24 em qualquer workflow falha, prova de mutação nos dois sentidos — 100% offline, sem chamar gh."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ jobs:
   required-job:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - {uses_line}
 """,
         encoding="utf-8",
@@ -40,7 +40,7 @@ jobs:
 def _registry(**actions) -> dict:
     return {
         "actions": {
-            "actions/checkout": {"runs_using": "node20"},
+            "actions/checkout": {"ref": "v5", "runs_using": "node24"},
             **actions,
         },
         "required_jobs": {"fixture.yml": ["required-job"]},
@@ -71,8 +71,9 @@ def test_action_node_registrada_passa(tmp_path, monkeypatch):
     gate = _load_gate()
     workflow_dir = _write_workflow(tmp_path, "uses: some-org/safe-action@abc123")
     monkeypatch.setattr(gate, "WORKFLOW_DIR", workflow_dir)
-    registry = _registry(**{"some-org/safe-action": {"runs_using": "node20"}})
+    registry = _registry(**{"some-org/safe-action": {"ref": "abc123", "runs_using": "node24"}})
     assert gate.check_all(registry) == []
+    assert gate.check_pinned_refs(registry) == []
 
 
 def test_action_local_composite_e_ignorada(tmp_path, monkeypatch):
@@ -107,3 +108,73 @@ def test_registro_real_pega_docker_injetado():
     registry["actions"][target]["runs_using"] = "docker"
     violations = gate.check_all(registry)
     assert any(v.action_ref == target for v in violations)
+
+
+def test_action_node20_em_required_reprova(tmp_path, monkeypatch):
+    gate = _load_gate()
+    workflow_dir = _write_workflow(tmp_path, "uses: some-org/old-action@abc123")
+    monkeypatch.setattr(gate, "WORKFLOW_DIR", workflow_dir)
+    registry = _registry(**{"some-org/old-action": {"ref": "abc123", "runs_using": "node20"}})
+    violations = gate.check_all(registry)
+    assert [v.action_ref for v in violations] == ["some-org/old-action"]
+
+
+def test_ref_divergente_do_registro_reprova(tmp_path, monkeypatch):
+    """O buraco que a emenda 2026-10-08 fecha: registro diz node24 para v5, workflow usa v4."""
+    gate = _load_gate()
+    workflow_dir = _write_workflow(tmp_path, "uses: actions/checkout@v4")
+    monkeypatch.setattr(gate, "WORKFLOW_DIR", workflow_dir)
+    assert gate.check_all(_registry()) == []
+    violations = gate.check_pinned_refs(_registry())
+    assert len(violations) == 1
+    assert "@v4" in violations[0].reason
+
+
+def test_node20_fora_de_required_reprova(tmp_path, monkeypatch):
+    gate = _load_gate()
+    workflow_dir = _write_workflow(tmp_path, "uses: some-org/old-action@abc123")
+    monkeypatch.setattr(gate, "WORKFLOW_DIR", workflow_dir)
+    registry = _registry(**{"some-org/old-action": {"ref": "abc123", "runs_using": "node20"}})
+    registry["required_jobs"] = {}
+    violations = gate.check_pinned_refs(registry)
+    assert len(violations) == 1
+    assert "piso node24" in violations[0].reason
+
+
+def test_docker_fora_de_required_passa(tmp_path, monkeypatch):
+    gate = _load_gate()
+    workflow_dir = _write_workflow(tmp_path, "uses: some-org/docker-action@abc123")
+    monkeypatch.setattr(gate, "WORKFLOW_DIR", workflow_dir)
+    registry = _registry(**{"some-org/docker-action": {"ref": "abc123", "runs_using": "docker"}})
+    registry["required_jobs"] = {}
+    assert gate.check_pinned_refs(registry) == []
+
+
+def test_registro_real_casa_todo_uses_do_repo():
+    gate = _load_gate()
+    registry = gate.load_registry()
+    assert gate.check_pinned_refs(registry) == []
+
+
+def test_registro_real_pega_ref_divergente_injetado():
+    """Mutação sobre o registro real: troca o ref de uma action usada e confere que
+    o gate reprova — prova que o verde anterior não é vacuidade (nenhum uses lido)."""
+    gate = _load_gate()
+    registry = gate.load_registry()
+    used = gate.iter_action_uses(gate.WORKFLOW_DIR)
+    assert used, "nenhum uses: lido em .github/workflows — teste vacuo"
+    target = used[0].action
+    registry["actions"][target]["ref"] = "v0-inexistente"
+    violations = gate.check_pinned_refs(registry)
+    assert any(v.action_ref == target for v in violations)
+
+
+def test_suggest_imprime_entrada_com_ref_em_uso(tmp_path, monkeypatch):
+    gate = _load_gate()
+    workflow_dir = _write_workflow(tmp_path, "uses: some-org/new-action@v9")
+    monkeypatch.setattr(gate, "WORKFLOW_DIR", workflow_dir)
+    monkeypatch.setattr(gate, "_fetch_runs_using", lambda action, ref: "node24")
+    violations = gate.check_pinned_refs(_registry())
+    entries = gate.suggest_entries(violations)
+    assert len(entries) == 1
+    assert 'some-org/new-action:\n    ref: "v9"\n    runs_using: node24' in entries[0]

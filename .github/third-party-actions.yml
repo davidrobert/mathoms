@@ -1,62 +1,100 @@
-# Registro de actions usadas em jobs required (gate: dev/check_required_job_actions.py).
+# Registro de TODA action externa usada em .github/workflows/ (gate:
+# dev/check_required_job_actions.py). Chave = `owner/repo`; `ref` = o ref exato
+# do `uses:` (tag ou SHA) — `runs_using` só descreve a versão que `ref` nomeia.
 #
-# ADR-320 §Emenda 2026-08-05: `runs.using: docker` é vedado em job required —
+# ADR-320 §Emenda 2026-08-03: `runs.using: docker` é vedado em job required —
 # o SHA-pin das actions de terceiro (A34.l14) cobre o CÓDIGO da action, não a
 # IMAGEM BASE que uma action `runs.using: docker` builda em runtime. Achado do
 # #1161: `CodelyTV/pr-size-labeler` puxava `alpine:3.15` sem digest, um timeout
 # de I/O do Docker Hub bloqueou o build, e o required check "Title (Conventional
 # Commits)" reprovou o repo inteiro sem nenhuma linha de diff alcançar o job.
 #
+# ADR-320 §Emenda 2026-10-08: o registro era chaveado só pelo nome e o gate
+# descartava o `@ref`, então `runs_using` descrevia a action, não a versão em
+# uso — bump de SHA para uma versão docker, ou `checkout@v4` (node20) num job
+# required, passava verde. Agora todo `uses:` tem de casar com `ref`, e
+# `runs.using` abaixo de node24 é vedado em QUALQUER workflow (o runner não tem
+# Node 20 desde 2026-09-23; action node20 roda forçada em Node 24).
+#
 # Ação sem gate era convenção editorial — dívida, não garantia (mesma família da
 # emenda da ADR-111). Este arquivo + o gate tornam a regra verificável.
 #
-# Adicionar action nova a um job `required_jobs` abaixo: consulte o `action.yml`
-# dela no ref pinado ANTES de adicionar a entrada — rede só neste passo manual,
-# o gate em si não a exige:
-#   gh api repos/<owner>/<repo>/contents/action.yml?ref=<sha-ou-tag> --jq '.content' | base64 -d | grep -A2 '^runs:'
+# Bump ou action nova: o gate reprova até a entrada acompanhar. Rede só neste
+# passo manual, nunca no gate:
+#   python3 dev/check_required_job_actions.py --suggest
+# imprime a entrada pronta (ref + runs.using lido do action.yml no ref novo).
 # Se `runs.using` vier `docker` (ou variante `docker1`/etc.), a action NÃO pode
 # entrar num job `required_jobs` — mova o job para fora do fecho, ou troque a
 # action por um script inline (padrão do #1161: `gh` CLI em vez de action).
 
 actions:
   actions/checkout:
+    ref: "v5"
     runs_using: node24
     verified_at: "2026-10-08"
   actions/setup-python:
+    ref: "v6"
     runs_using: node24
     verified_at: "2026-10-08"
   actions/cache:
+    ref: "v5"
     runs_using: node24
     verified_at: "2026-10-08"
   actions/upload-artifact:
+    ref: "v6"
     runs_using: node24
     verified_at: "2026-10-08"
   actions/setup-node:
+    ref: "v5"
     runs_using: node24
     verified_at: "2026-10-08"
   actions/github-script:
+    ref: "v8"
     runs_using: node24
     verified_at: "2026-10-08"
   actions/labeler:
+    ref: "b8dd2d9be0f68b860e7dae5dae7d772984eacd6d"  # v6.2.0
     runs_using: node24
     verified_at: "2026-10-08"
   actions/setup-go:
+    ref: "v6"
+    runs_using: node24
+    verified_at: "2026-10-08"
+  actions/stale:
+    ref: "v10"
     runs_using: node24
     verified_at: "2026-10-08"
   gitleaks/gitleaks-action:
+    ref: "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e"  # v3.0.0
     runs_using: node24
     verified_at: "2026-10-08"
   tj-actions/changed-files:
+    ref: "9426d40962ed5378910ee2e21d5f8c6fcbf2dd96"
     runs_using: node24
-    verified_at: "2026-08-05"
+    verified_at: "2026-10-08"
   astral-sh/setup-uv:
+    ref: "08807647e7069bb48b6ef5acd8ec9567f424441b"
     runs_using: node24
-    verified_at: "2026-08-05"
+    verified_at: "2026-10-08"
   golangci/golangci-lint-action:
+    ref: "ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a"  # v9.3.0
     runs_using: node24
     verified_at: "2026-10-08"
   amannn/action-semantic-pull-request:
+    ref: "48f256284bd46cdaab1048c3721360e808335d50"  # v6.1.1
     runs_using: node24
+    verified_at: "2026-10-08"
+  browser-actions/setup-chrome:
+    ref: "48ad923757ca74d66703209fe939badbdf80f2f4"  # v2.2.0
+    runs_using: node24
+    verified_at: "2026-10-08"
+  aquasecurity/trivy-action:
+    ref: "ed142fd0673e97e23eac54620cfb913e5ce36c25"  # v0.36.0
+    runs_using: composite
+    verified_at: "2026-10-08"
+  pypa/gh-action-pip-audit:
+    ref: "1220774d901786e6f652ae159f7b6bc8fea6d266"  # v1.1.0
+    runs_using: composite
     verified_at: "2026-10-08"
 
 # Fecho de jobs required — não é o mesmo que "todo job do workflow". A

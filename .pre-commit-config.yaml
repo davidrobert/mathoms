@@ -320,12 +320,14 @@ repos:
         types: [python]
 
       - id: required-job-actions
-        # ADR-320 §Emenda 2026-08-05: SHA-pin (A34.l14) cobre o código da
+        # ADR-320 §Emendas 2026-08-03/2026-10-08: SHA-pin (A34.l14) cobre o código da
         # action, não a imagem Docker que ela builda em runtime — #1161
         # (CodelyTV/pr-size-labeler puxando alpine:3.15 sem digest) reprovou
-        # o required check inteiro sem nenhum diff alcançar o job. Gate
-        # 100% offline contra .github/third-party-actions.yml.
-        name: "Veda action Docker / não-registrada em job required (ADR-320)"
+        # o required check inteiro sem nenhum diff alcançar o job. Desde
+        # 2026-10-08 o registro casa o `@ref` de todo `uses:` e veda runtime
+        # abaixo de node24 em qualquer workflow. Gate 100% offline contra
+        # .github/third-party-actions.yml (rede só em `--suggest`).
+        name: "Actions casam o @ref registrado; sem Docker em required, sem < node24 (ADR-320)"
         entry: python3 dev/check_required_job_actions.py
         language: system
         pass_filenames: false

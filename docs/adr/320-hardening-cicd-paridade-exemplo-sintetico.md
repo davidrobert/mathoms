@@ -5,7 +5,7 @@ title: "Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintéti
 status: Decidido
 phase: A34
 date: "2026-07-08"
-amended_at: ["2026-08-03"]
+amended_at: ["2026-08-03", "2026-10-08"]
 relates_to: ["[[PLAN-public-release]]", "[[A34.l13]]", "[[A34.l14]]", "[[A34.l15]]", "[[A34.l8]]"]
 supersedes: []
 superseded_by: []
@@ -17,6 +17,11 @@ tags:
 ---
 
 # ADR-320 — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético
+
+> **Emenda (2026-10-08) — o registro de actions passa a valer por versão, e o
+> piso de runtime é node24 em todo workflow.** O gate da emenda de 2026-08-03
+> descartava o `@ref`: `runs_using` descrevia a action, não a versão em uso, e
+> `node20` contava como seguro. Ver §Emenda 2026-10-08 no fim desta nota.
 
 > **Emenda (2026-08-03) — o SHA-pin da decisão 2 tem um limite que não estava
 > escrito:** ele pina o *código* da action, não a **imagem base** que uma action
@@ -206,3 +211,41 @@ em profundidade (label cosmética nunca gateia merge). As 3 actions restantes de
 [[A34.l14]] são `node20` — nenhuma outra Docker action está em caminho de merge.
 Registro operacional da sprint em [[MOC-sprint-a40]] §Infra de CI tocada durante
 a sprint.
+
+## Emenda 2026-10-08 — registro amarrado ao ref e piso de runtime node24
+
+**O que ficou falso.** O parágrafo "Por que não há gate automático" da emenda de
+2026-08-03 deixou de valer dois dias depois: o #1203 criou
+`dev/check_required_job_actions.py` + `.github/third-party-actions.yml`, que
+resolvem o problema da rede guardando `runs.using` num registro lido offline.
+E a regra "deve ser `node20`/`composite`" envelheceu: o runner hospedado não tem
+Node 20 desde 2026-09-23 ([changelog GitHub](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/));
+action que declara `node20` roda **forçada** em Node 24 (medido em run de
+2026-10-09, runner `2.337.0`), e o hard-fail futuro não tem data.
+
+**O buraco do gate de 2026-08-05.** O registro era chaveado só por `owner/repo` e
+o gate descartava o `@ref`. Logo `runs_using` não descrevia a versão em uso: um
+bump de SHA para uma versão `docker`, ou `actions/checkout@v4` (node20) num job
+required, passava verde. Medido: sobre os workflows de `main` pré-migração, o
+gate antigo dava 0 violações; o novo dá 101.
+
+**Regra (emenda à decisão 2 e à emenda de 2026-08-03).**
+1. Toda action externa de `.github/workflows/` é registrada com `ref` igual ao do
+   `uses:` (tag ou SHA). Ref divergente reprova, em qualquer workflow.
+2. `runs.using` abaixo de node24 (`node16`/`node20`) é vedado em **todo**
+   workflow, não só no fecho required — hard-fail de runtime derrubaria nightly
+   e security sem aviso, e sinal perdido calado é pior que check vermelho.
+3. `docker` continua vedado só em job required; fora dele segue aceito.
+
+**Custo aceito.** Todo PR de bump de action fica vermelho até a entrada do
+registro acompanhar — é o passo manual de adoção que a emenda de 2026-08-03 já
+prescrevia, agora verificado. `--suggest` (rede, manual) imprime a entrada pronta.
+
+**Limite.** O gate não enxerga dentro de action `composite`: as actions que ela
+chama vêm do repo dela. Medido em 2026-10-08: `trivy-action` chama
+`setup-trivy` + `actions/cache@v5`, e `setup-trivy` chama `cache@v5` +
+`checkout@v6`, todas node24.
+
+**Aplicado.** #2084 (actions/* para a menor major node24) e #2085 (terceiros
+SHA-pinned) trouxeram o repo para o piso; este PR amarra o registro ao ref e
+estreita `SAFE_RUNS_USING` para `{node24, composite}`.
