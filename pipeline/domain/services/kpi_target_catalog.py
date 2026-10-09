@@ -180,6 +180,17 @@ def _base_da_reserva(e5: Mapping[str, Any]) -> str:
     return _BASE_POR_DENOMINADOR.get(declarado, _BASE_DENOMINADOR_INDETERMINADO)
 
 
+# [[ADR-412]] §E3 — veredito no extremo CONSERVADOR, medida como intervalo (co-design
+# financial-planner, [[A40.l92]]). A reserva publica a medida cheia (`cobertura_meses`) e o
+# piso que conta só posição com titular identificado (`piso_cobertura_meses`), e o canal
+# de risco já julga o piso. Julgar a cheia fazia a tabela dizer "atingido" onde os pontos
+# urgentes diziam "abaixo do mínimo", sobre o mesmo payload. Estático, como o nível do
+# produtor: não muda a forma do E5, e E5 sem o piso cai na medida (a regra do produtor).
+OBSERVADO_CONSERVADOR_PATH: dict[str, str] = {
+    "reserva_cobertura_meses": "$.reserva_emergencia.piso_cobertura_meses",
+}
+
+
 # DOUTRINA, não declaração da família — por isso `limiar_canonico`. `meses_alvo` sai de
 # `scoring.json::reserva_emergencia._base_calculo.meses_alvo_por_perfil_renda`, chaveado
 # por perfil **derivado da composição de renda observada**
@@ -343,6 +354,7 @@ def build_kpi_targets(
 
 __all__ = [
     "METRICA_KEYS",
+    "OBSERVADO_CONSERVADOR_PATH",
     "OPERADORES_DOUTRINA",
     "ORFAOS_DOMINIO_KEYS",
     "PROCEDENCIA_CANONICO",
