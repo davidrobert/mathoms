@@ -1,7 +1,7 @@
 /**
  * E2E — Category Overrides UI (A11.cat-overrides-ux W4 · ADR-185).
  *
- * Fluxo: /config/categorias → editar teto de categoria → save → reload →
+ * Fluxo: /config → tab Categorias → editar teto de categoria → save → reload →
  * teto persistido (UI + DB via GET /category-overrides/resolved).
  *
  * Tagged @critical.
@@ -17,7 +17,10 @@ test.describe("Config /categories override round-trip @critical", () => {
     await ensureLoggedIn(page, request, info);
     await page.goto("/config");
 
-    // CategoriesTab é a primeira tab (default). Espera lista carregar.
+    // /config abre em "Membros" (defaultValue="members") e o Tabs.Panel do
+    // base-ui não monta panel inativo: sem o clique, CategoriesTab não existe
+    // no DOM. Depois do clique, espera a lista carregar.
+    await page.getByRole("tab", { name: "Categorias", exact: true }).click();
     await expect(page.getByText(/despesas/i).first()).toBeVisible({ timeout: 10000 });
 
     // Pega a primeira linha de categoria visível (test-id estável: category-row-<code>).
@@ -43,8 +46,9 @@ test.describe("Config /categories override round-trip @critical", () => {
       timeout: 10000,
     });
 
-    // Reload e verifica que o teto persistiu.
+    // Reload e verifica que o teto persistiu. O reload volta à tab default.
     await page.reload();
+    await page.getByRole("tab", { name: "Categorias", exact: true }).click();
     const reloadedRow = page.locator(`[data-testid="category-row-${code}"]`);
     await expect(reloadedRow).toBeVisible();
     await expect(reloadedRow.getByTestId("badge-personalizada")).toBeVisible();

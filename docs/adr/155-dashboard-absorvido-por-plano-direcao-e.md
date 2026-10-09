@@ -14,6 +14,7 @@ tags:
   - status/decidido
   - type/adr
 size_lines: 88
+amended_at: ["2026-10-09"]
 ---
 
 # ADR-155 — `/dashboard` absorvido por `/plano` (Direção E consolidação)
@@ -22,6 +23,11 @@ size_lines: 88
 **Conclui agenda da** [ADR-151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)
 (Direção E declarou "/dashboard será absorvido pelo /plano em onda
 futura" — esta ADR cumpre).
+
+> **Emenda (2026-10-09):** a camada do meio chama-se **"Análise Financeira"**
+> e é leitura retrospectiva da última análise — não "mês corrente" nem
+> "estado operacional do mês". A absorção de `/dashboard` por `/plano` não
+> muda. Ver §Emenda.
 
 **Contexto:** A Direção E original (Onda 4) tornou `/plano` um
 "executive summary" com KPIs estratégicos + banner sugestões + Hero
@@ -102,3 +108,29 @@ consumido pelo `/plano`).
 - `frontend/src/types/report-analysis.ts` — comentários atualizados
   para refletir `/plano` como destino dos types `DashboardData` /
   `AporteItem` / `InvestimentoDeltaItem`.
+
+## Emenda 2026-10-09 — a camada do meio é a "Análise Financeira", não o mês corrente
+
+O item 2 da decisão chamou a camada do meio de "mês corrente", e as
+consequências a descreveram como "estado operacional do mês". Nenhum dos dois
+procede. Depois do #2202, que alinhou o `/v1/dashboard` ao E5, a seção mostra
+a taxa de poupança recorrente e as receitas, saídas e despesas por categoria
+numa janela de até 12 meses documentados; composição patrimonial,
+investimentos por classe, score e alertas são a fotografia da última análise.
+É leitura retrospectiva: o acompanhamento do mês compara orçado e realizado, e
+nada disso aparece ali. O título antigo levava a ler um total de 12 meses como
+estouro do mês.
+
+A seção passa a se chamar **"Análise Financeira"**, com o subtítulo "(alertas,
+indicadores e gráficos da última análise — abra para ver)", e segue colapsada,
+depois do Plano de Ação — a Onda 7 #1 já tinha invertido a ordem do meio e da
+base. O título não declara base temporal: as bases são mistas e a base
+pertence ao rótulo de cada item ([[ADR-306]] D1).
+
+A referência de código sobre `frontend/src/types/report-analysis.ts` também não
+procede: `DashboardData`, `AporteItem` e `InvestimentoDeltaItem` não têm
+consumidor no `/plano`, que lê o `/v1/dashboard` (kpis, charts, alerts). O
+comentário do arquivo passou a dizer isso.
+
+A decisão desta ADR — `/dashboard` absorvido por `/plano`, uma home com três
+camadas — não muda.

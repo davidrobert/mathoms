@@ -28,8 +28,9 @@ conta porque hook `language: system` chama `node` (probabilidade-parity).
 (`reference types` mescla os globais) — tem major ≤ `.nvmrc`: types acima do
 runtime liberam API que prod não tem. `≤`, não `=`: types atrás e major ímpar
 passam (todo major ≥27 é LTS). Declarado no package.json sem cópia no lock
-reprova. O major de `@types/node` vem em PR isolado do Dependabot
-(`exclude-patterns` no grupo `eslint-and-types`), vermelho até o runtime subir.
+reprova. O major de `@types/node` vem em PR isolado do Dependabot (#2153),
+vermelho até o runtime subir: nenhum grupo que carrega major o casa
+(`test_dependabot_isola_o_major_de_types_node`).
 
 Mede só o MAJOR: o CI resolve `26` para o último 26.x e a imagem roda o 26.x
 do digest — diferença de patch aceita.
@@ -42,8 +43,8 @@ parariam em silêncio. `engines` sem strict é só warn. O job sem `setup-node`
 fecha pela regra de `run:` acima.
 
 Deferido (2026-10-08; dono: owner do repo): `@types/node` = runtime. `≤` não vê
-estagnação (hoje types 25 no frontend e 22 no frontend-ops, runtime 26) nem API
-removida entre o major dos types e o do runtime. Retomar no próximo bump de
+estagnação (types majors atrás do runtime) nem API removida entre o major dos
+types e o do runtime. Retomar no próximo bump de
 major do runtime.
 
 Eixos NÃO fechados: dev local fora do compose (nenhum controle de install que

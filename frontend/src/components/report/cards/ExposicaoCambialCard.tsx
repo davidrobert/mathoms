@@ -120,7 +120,7 @@ function ExposicaoCambialCardV1({
           </>
         )}
         {controlesIndisponiveis ? <ControlesIndisponiveisNote onRetry={onRetry} /> : null}
-        <Footnote />
+        <Footnote incluiLastro={data.definicao_versao === 2} />
       </div>
     </ReportCard>
   );
@@ -137,7 +137,7 @@ function SemBaseCard() {
           O cálculo precisa do patrimônio investível financeiro, que esta análise não
           apurou. Atualize a análise para recalcular.
         </Alert>
-        <Footnote />
+        <Footnote incluiLastro={false} />
       </div>
     </ReportCard>
   );
@@ -192,7 +192,7 @@ function ExposicaoCambialCardV2({
             />
           </>
         )}
-        <Footnote />
+        <Footnote incluiLastro />
       </div>
     </ReportCard>
   );
@@ -231,8 +231,7 @@ function SemExposicaoMessage({ alvoBrl }: { alvoBrl?: string | null }) {
       {alvo !== null ? (
         <>
           {" "}
-          A referência de proteção é 10% — hoje, <MonetaryValue value={alvo} /> em moeda
-          forte.
+          O piso de proteção é 10% — hoje, <MonetaryValue value={alvo} /> em moeda forte.
         </>
       ) : null}
     </p>
@@ -422,12 +421,17 @@ function _inferMatchKind(ativo: ExposicaoCambialAtivo): MatchKind {
   return "description";
 }
 
-function Footnote() {
+// O que entra no percentual depende da definição (ADR-403 D3): na v1 a carteira com
+// lastro é observacional, fora do total; o V2 sempre a soma.
+function Footnote({ incluiLastro }: { incluiLastro: boolean }) {
   return (
     <p className="text-xs text-[var(--surface-muted-foreground)]">
-      Considera caixa em moeda forte (USD, EUR) + ativos com lastro econômico não-BRL.
-      Sugestão de alocação contracíclica: ≥10% em moeda forte como proteção de poder de
-      compra.
+      {incluiLastro
+        ? "Considera caixa em moeda forte (USD, EUR) e ativos com lastro fora do real."
+        : "Considera caixa em moeda forte (USD, EUR)."}{" "}
+      Piso de proteção cambial: 10% do patrimônio investível financeiro em moeda forte.
+      Não é alvo de alocação: o de ações internacionais, quando declarado, está na
+      comparação Atual vs Alvo, em Investimentos.
     </p>
   );
 }

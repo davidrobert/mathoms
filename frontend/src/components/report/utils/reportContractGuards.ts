@@ -1,3 +1,4 @@
+import type { E5AnalysisArtifact } from "@/generated/report-analysis";
 import type {
   IFMonteCarloData,
   PassiveIncomeData,
@@ -290,6 +291,24 @@ export function readMonteCarloData(
   value: unknown,
 ): IFMonteCarloData | undefined {
   return isMonteCarloData(value) ? value : undefined;
+}
+
+export type CenariosConjugeData = NonNullable<
+  E5AnalysisArtifact["cenarios_conjuge"]
+>;
+
+// Fonte única do "o cenário existe" para S3, APP_C e o card de aportes: três
+// predicados divergentes deixavam o card da S3 aparecer com o bloco vazio.
+/** ADR-167: o E5 publica `{}` quando recusa o cenário; presença é ter rótulo. */
+export function readCenariosConjuge(
+  value: unknown,
+): CenariosConjugeData | undefined {
+  if (!isRecord(value) || !Array.isArray(value.labels)) return undefined;
+  const labels: unknown[] = value.labels;
+  if (labels.length === 0) return undefined;
+  return labels.every((label) => typeof label === "string")
+    ? (value as CenariosConjugeData)
+    : undefined;
 }
 
 const PASSIVE_OK_NUMBERS = [

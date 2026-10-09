@@ -554,8 +554,8 @@ que a própria ADR removeu:
 existe porque o denominador da concentração imobiliária ([[ADR-340]]) **não é** a
 `carteira_produtiva_familia`: aquela soma `cat2_efetivo`, que conta só imóveis
 **geradores** e zera com `include_real_estate_in_if` off, enquanto a concentração usa
-cat_2 **completo** e é toggle-independente por decisão. Medido no dogfood: **73.000.000
-contra 13.000.000**, 5,6× — dois denominadores sob o mesmo nome "carteira produtiva".
+cat_2 **completo** e é toggle-independente por decisão. Medido no dogfood, a fixa vale
+**5,6×** a homônima (E5 `patrimonio.bases.*.valor_brl`) — dois denominadores sob o mesmo nome "carteira produtiva".
 Publicá-la é número-neutro; o gate `tests/test_cobertura_de_base.py` recompõe
 `numerador ÷ base declarada` em cents e a exige.
 

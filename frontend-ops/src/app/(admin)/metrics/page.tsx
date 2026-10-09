@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui";
-import { api, AdminApiError } from "@/lib/api";
+import { api } from "@/lib/api";
+import { useAdminFetch } from "@/lib/use-admin-fetch";
 import { LlmBudgetSection } from "./llm-budget-section";
 import type { MetricsResponse } from "@/lib/types";
 
@@ -62,26 +63,7 @@ function downloadCsv(snap: MetricsResponse): void {
 
 export default function MetricsPage() {
   const [days, setDays] = useState(30);
-  const [snap, setSnap] = useState<MetricsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async (periodDays: number): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.getMetrics(periodDays);
-      setSnap(res);
-    } catch (err) {
-      setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao carregar métricas.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load(days);
-  }, [load, days]);
+  const { data: snap, loading, error } = useAdminFetch(days, api.getMetrics, "Falha ao carregar métricas.");
 
   return (
     <section>

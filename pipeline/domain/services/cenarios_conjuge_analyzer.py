@@ -4,13 +4,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Any, Mapping
+from decimal import ROUND_HALF_UP, Decimal
+from enum import Enum
+from typing import Any
 
 from pipeline.domain.services.if_projector import default_if_absent, solve_prazo_anos
 from pipeline.domain.services.methodology_constants import (
     APORTE_REDUZIDO_FATOR_CONJUGE,
 )
-from pipeline.domain.services.narrativas.format_helpers import fmt_currency
+from pipeline.domain.services.money_parsing import parse_valor_monetario
+from pipeline.domain.services.narrativas.format_helpers import (
+    fmt_currency,
+    frase_cenario_conjuge_sem_aporte,
+)
 
 _TODAY_FALLBACK = date(2026, 4, 19)
 
@@ -28,6 +34,18 @@ def _safe_float(val) -> float:
         return float(str(val).replace(",", "."))
     except ValueError:
         return 0.0
+
+
+def _aporte_declarado(val) -> Decimal | None:
+    """``None`` quando ausente: aporte ≤ 0 não é declarável (ADR-373, fato 1)."""
+    aporte = parse_valor_monetario(val)
+    return aporte if aporte is not None and aporte > 0 else None
+
+
+# `Decimal` em memória, `float` no wire: `to_dict`/`premissas` são a fronteira de
+# serialização do payload E5 (ADR-090 §consequências).
+def _aporte_no_wire(aporte: Decimal | None) -> float | None:
+    return None if aporte is None else float(aporte)
 
 
 def _calculate_age(dob: date, reference_date: date) -> int:
@@ -48,7 +66,7 @@ class CenariosConjugeConfig:
 
     Sources:
     - ``retorno_real_anual_pct`` ← ``goals.json::independencia_financeira.retorno_real_anual_pct``
-    - ``aporte_base`` ← ``goals.json::aportes.meta_aporte_mensal``
+    - ``aporte_base`` ← ``goals.json::aportes.meta_aporte_mensal`` (``None`` = não declarado)
     - ``fator_reduzido`` ← rules-as-code (``APORTE_REDUZIDO_FATOR_CONJUGE``,
       ADR-177); override por argumento aceito para testes.
     - ``titular_dob``/``titular_key``/``conjuge_key``/``conjuge_nome`` — family config
@@ -56,12 +74,22 @@ class CenariosConjugeConfig:
 
     titular_dob: date
     retorno_real_anual_pct: float = 6.0
-    aporte_base: float = 0.0
+    # Default `None`, não 0.0: default numérico republica o zero calado (ADR-375 D4).
+    aporte_base: Decimal | None = None
     fator_reduzido: float = _APORTE_REDUZIDO_FATOR_DEFAULT
     titular_key: str = "titular"
     conjuge_key: str = "conjuge"
     conjuge_nome: str = "Cônjuge"
     reference_date: date = _TODAY_FALLBACK
+
+    def __post_init__(self) -> None:
+        if self.aporte_base is None:
+            return
+        if not isinstance(self.aporte_base, Decimal) or self.aporte_base <= 0:
+            raise ValueError(
+                "aporte_base: esperado Decimal > 0 ou None (ADR-090/ADR-373), "
+                f"got {type(self.aporte_base).__name__}={self.aporte_base!r}"
+            )
 
     @classmethod
     def from_configs(
@@ -82,7 +110,7 @@ class CenariosConjugeConfig:
         return cls(
             titular_dob=titular_dob,
             retorno_real_anual_pct=default_if_absent(if_cfg.get("retorno_real_anual_pct"), 6.0),
-            aporte_base=_safe_float(aportes.get("meta_aporte_mensal", 0)),
+            aporte_base=_aporte_declarado(aportes.get("meta_aporte_mensal")),
             fator_reduzido=_APORTE_REDUZIDO_FATOR_DEFAULT,
             titular_key=titular_key,
             conjuge_key=conjuge_key,
@@ -99,7 +127,8 @@ class CenariosConjugeConfig:
 @dataclass(frozen=True)
 class CenarioItem:
     nome: str
-    aporte_mensal: float
+    # `None` = aporte não declarado. Publicar 0 afirmava o valor (COPY_GUIDELINES §4.3).
+    aporte_mensal: Decimal | None
     # `None` = prazo não projetável com as premissas do cenário. Era a sentinela
     # 999, que propagava para ano_if=3025 e idade_titular=1040 (mesmo defeito de
     # IFProjector._solve_prazo).
@@ -111,7 +140,7 @@ class CenarioItem:
     def to_dict(self) -> dict:
         return {
             "nome": self.nome,
-            "aporte_mensal": round(self.aporte_mensal, 2),
+            "aporte_mensal": _aporte_no_wire(self.aporte_mensal),
             "prazo_if_anos": self.prazo_if_anos,
             "ano_if": self.ano_if,
             "idade_titular": self.idade_titular,  # ADR-338: role-keyed
@@ -127,14 +156,15 @@ class CenariosConjugeResult:
 
     def to_legacy_dict(self) -> dict:
         labels = [c.nome for c in self.cenarios]
+        cenarios = [c.to_dict() for c in self.cenarios]
         return {
             "labels": labels,
-            "aportes": [round(c.aporte_mensal, 2) for c in self.cenarios],
+            "aportes": [c["aporte_mensal"] for c in cenarios],
             "prazos_if": [c.prazo_if_anos for c in self.cenarios],
             "anos_if": [c.ano_if for c in self.cenarios],
             "idade_titular_if": [c.idade_titular for c in self.cenarios],  # ADR-338: role-keyed
             "premissas": dict(self.premissas),
-            "cenarios": [c.to_dict() for c in self.cenarios],
+            "cenarios": cenarios,
         }
 
 
@@ -167,8 +197,10 @@ class CenariosConjugeAnalyzer:
 
         salario_conjuge_brl = self._extract_salario_conjuge(fluxo)
 
-        aporte = round(cfg.aporte_base * cfg.fator_reduzido, 2)
-        prazo_bruto = self._compute_prazo(investivel, meta_if, r, aporte)
+        aporte = self._aporte_do_cenario()
+        # Ausência entra no solver como 0.0: meta já atingida dá prazo 0 antes de ele
+        # olhar o aporte, e o resto dá ausência (ADR-373 D2).
+        prazo_bruto = self._compute_prazo(investivel, meta_if, r, float(aporte or 0))
         prazo = None if prazo_bruto is None else round(prazo_bruto, 1)
         ano_if: int | None = None
         idade_titular: int | None = None
@@ -182,14 +214,14 @@ class CenariosConjugeAnalyzer:
             prazo_if_anos=prazo,
             ano_if=ano_if,
             idade_titular=idade_titular,
-            resumo=self._resumo(aporte, prazo, ano_if),
+            resumo=self._resumo(aporte, prazo, ano_if, meta_if),
         )
 
         premissas: dict[str, Any] = {
             "meta_if": meta_if,
             "investivel_atual": investivel,
             "retorno_real_anual_pct": cfg.retorno_real_anual_pct,
-            "aporte_base": cfg.aporte_base,
+            "aporte_base": _aporte_no_wire(cfg.aporte_base),
             "fator_reduzido": cfg.fator_reduzido,
             "salario_conjuge_clt_brl": salario_conjuge_brl,  # ADR-338: role-keyed
         }
@@ -201,6 +233,13 @@ class CenariosConjugeAnalyzer:
         )
 
     # -- Helpers --
+
+    def _aporte_do_cenario(self) -> Decimal | None:
+        cfg = self._config
+        if cfg.aporte_base is None:
+            return None
+        reduzido = cfg.aporte_base * Decimal(str(cfg.fator_reduzido))
+        return reduzido.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def _extract_salario_conjuge(self, fluxo: dict[str, Any]) -> float:
         """Mediana dos valores não-zero do dataset CLT do cônjuge."""
@@ -223,12 +262,16 @@ class CenariosConjugeAnalyzer:
         # mesma família.
         return solve_prazo_anos(investivel=investivel, if_meta=meta, r=r, aporte_mensal=aporte)
 
-    def _resumo(self, aporte: float, prazo: float | None, ano_if: int | None) -> str:
+    def _resumo(
+        self, aporte: Decimal | None, prazo: float | None, ano_if: int | None, meta_if: float
+    ) -> str:
+        if aporte is None:
+            return frase_cenario_conjuge_sem_aporte(prazo=prazo, meta_if=meta_if)
         # A37.l14 (PD-11): f"{v:,.0f}" produzia milhar US ("R$ 13,200");
         # fmt_currency é o formatador BR canônico das narrativas.
         cfg = self._config
         head = (
-            f"Sem renda do cônjuge, aporte cai para {fmt_currency(aporte)}/mês "
+            f"Sem renda do cônjuge, aporte cai para {fmt_currency(float(aporte))}/mês "
             f"({cfg.fator_reduzido:.0%} do base)."
         )
         if prazo is None:
@@ -237,53 +280,22 @@ class CenariosConjugeAnalyzer:
 
 
 # =============================================================================
-# Eligibility gate (ADR-167)
+# Elegibilidade (ADR-167 §Emenda 2026-10-09)
 # =============================================================================
 
 
-def should_render_conjuge_scenarios(
-    *,
-    family_members: Mapping[str, Any],
-    fluxo: Mapping[str, Any],
-    goals: Mapping[str, Any],
-) -> bool:
-    """Decide se o cenário 'cônjuge sem trabalhar' é elegível para o workspace (ADR-167).
+class VereditoCenarioConjuge(str, Enum):
+    elegivel = "elegivel"
+    sem_conjuge_cadastrado = "sem_conjuge_cadastrado"
+    sem_meta_if = "sem_meta_if"
 
-    Regra Cerbasi/Perini: meta IF presente E ≥2 membros com renda recorrente E
-    renda do cônjuge ≥15% da renda familiar total. Solteiro / 1 renda / casal
-    sem meta IF / casal 95/5 → False (sem o que stressar / impacto < ruído).
-    """
-    if _safe_float((goals or {}).get("if_meta", 0)) <= 0:
-        return False
 
-    membros = (family_members or {}).get("membros", {}) or {}
-    titular_key = (family_members or {}).get("titular", "") or ""
-    conjuge_key = next(
-        (k for k, v in membros.items() if isinstance(v, dict) and v.get("papel") == "conjuge"),
-        "",
-    )
-    if not titular_key or not conjuge_key:
-        return False
-
-    rmd = (fluxo or {}).get("receita_despesa_mensal_detalhado", {}) or {}
-    datasets = rmd.get("receita_datasets", []) or []
-
-    def _sum_label(role_name: str) -> float:
-        total = 0.0
-        for ds in datasets:
-            label = str(ds.get("label", "")).lower()
-            if role_name and role_name in label:
-                total += sum(_safe_float(v) for v in ds.get("data", []) if _safe_float(v) > 0)
-        return total
-
-    titular_nome = (membros.get(titular_key, {}) or {}).get("nome_curto", titular_key).lower()
-    conjuge_nome = (membros.get(conjuge_key, {}) or {}).get("nome_curto", conjuge_key).lower()
-
-    renda_titular = _sum_label(titular_nome)
-    renda_conjuge = _sum_label(conjuge_nome)
-    renda_familiar = renda_titular + renda_conjuge
-
-    if renda_titular <= 0 or renda_conjuge <= 0 or renda_familiar <= 0:
-        return False
-
-    return (renda_conjuge / renda_familiar) >= 0.15
+# Os critérios de renda da ADR (≥2 rendas, cônjuge ≥15%) ficam de fora até existir
+# renda por membro com dono: o label de receita não carrega o membro.
+def veredito_cenario_conjuge(*, conjuge_key: str, if_meta: float) -> VereditoCenarioConjuge:
+    """Decide se o cenário 'Sem renda do cônjuge' entra no payload E5 (ADR-167)."""
+    if not conjuge_key:
+        return VereditoCenarioConjuge.sem_conjuge_cadastrado
+    if if_meta <= 0:
+        return VereditoCenarioConjuge.sem_meta_if
+    return VereditoCenarioConjuge.elegivel

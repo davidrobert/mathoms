@@ -78,7 +78,50 @@ Resolvidas em 2026-05-20 (PRs [#356](https://github.com/davidrobert/mathoms/pull
 | HIGH | ≤ 14 dias corridos |
 | MEDIUM/LOW | best-effort |
 
-SLO vencido → abre Issue Linear `security-slo-breach` + PR de remediação aberto (não fechado) referenciando o ignore + ADR-supplementary se mudança estrutural.
+SLO vencido → issue `security-slo-breach` no GitHub (aberta pelo cron, subseção abaixo) + PR de remediação aberto (não fechado) referenciando o ignore + ADR-supplementary se mudança estrutural.
+
+### Alerta do Dependabot além do SLO (issue `security-slo-breach`)
+
+O alerta #130 (`pdfjs-dist`, HIGH) ficou 63 dias aberto contra 14: o conserto
+exigia major do pai, o Dependabot nunca abriu PR e nada avisou. Desde
+2026-10-09, `dev/ci_dependabot_alert_slo.py` roda no cron diário (02:00 UTC) do
+`budget-alert.yml` e mantém **uma** issue `security-slo-breach`, com `S3` de 7
+dias no `.github/scheduled-workflows.yml` ([[ADR-230]] §Emenda 2026-10-09).
+
+- **Dispara** para alerta aberto CRITICAL ou HIGH com `first_patched_version`,
+  idade acima do SLO da tabela e **nenhum PR aberto do Dependabot** para o pacote.
+  O PR é casado pelo metadata `dependency-name` dos commits dele, no mesmo
+  ecossistema e diretório do `manifest_path` do alerta: PR do `next` em
+  `/frontend-ops` não cobre alerta do `next` em `/frontend`.
+- **Relógio = detecção** (`created_at` do alerta). Advisory alterado nas últimas
+  24h só adia o disparo, para o Dependabot ter tempo de abrir o PR; não reinicia
+  o relógio. Alerta velho cujo conserto sai hoje dispara amanhã.
+- **Não dispara:** alerta sem versão corrigida (é o caso dos 3 abertos em
+  2026-10-09), MEDIUM/LOW (best-effort), dentro do SLO, ou com PR do Dependabot
+  aberto. PR do Dependabot parado é sinal da issue `ops-dependabot-red` ("PR
+  parado", 5 dias), runbook [python_dependencies](python_dependencies.md).
+- **Como resolver a linha:** bump do pacote em PR. Se o conserto exige major do
+  pai, bump do pai ou lane de migração. A linha some quando o alerta fecha, que é
+  quando o lockfile em `main` é reanalisado. Aceitar o risco = *Dismiss* do
+  alerta no GitHub com motivo e comentário. É o **único** silêncio sem conserto,
+  e fica auditável (quem, quando, por quê).
+- **Fechar a issue à mão não é triagem:** destrava o `Lint` reprovado pelo `S3`
+  até o próximo cron. Com violação viva, o cron reabre **a mesma** issue, e a
+  idade se preserva. Issue fechada pelo próprio cron (lista zerou) é episódio
+  encerrado; a próxima violação abre issue nova. Congelamento pelo `S3`: HIGH em
+  14+1+7 = 22 dias, CRITICAL em 3+1+7 = 11.
+- **Sem medição:** 403/404 no endpoint de alertas (o job perdeu
+  `vulnerability-alerts: read`, ou os alertas foram desligados no repo) e lista
+  de PRs truncada viram linha na issue. Canal de segurança cego é a própria
+  quebra que ele existe para evitar. 5xx/timeout viram só `::warning` no log do
+  step.
+- **Cobertura:** o que o dependency graph lê: npm (`frontend/`,
+  `frontend-ops/`) e go (`services/pipeline-service-go/`). Do pip, o grafo lê
+  `requirements.in`/`pyproject.toml`, **não** o `requirements.lock`, então
+  transitiva pip fica só com o `pip-audit` (seção abaixo). "0 disparos" não
+  quer dizer pip verde.
+- **Dry-run local:** `GH_REPO=davidrobert/mathoms python3 dev/ci_dependabot_alert_slo.py --label security-slo-breach --dry-run`
+  lista o veredito de cada alerta CRITICAL/HIGH e a ação que tomaria na issue.
 
 ## Como triar achado de Trivy
 
@@ -192,7 +235,7 @@ Quando bypass é a única opção (release crítica, exploit já público, gate 
 2. Issue Linear `security-slo-breach` criada **antes** do merge.
 3. SLA 24h para fix real (PR aberto, não fechado).
 4. Pre-commit override: `git commit --no-verify` aceitável **só** em emergência declarada via Issue.
-5. CI override: aprovação owner explícita em PR + admin merge via Ruleset bypass (auditado).
+5. CI override: aprovação owner explícita em PR + break-glass da [[ADR-448]] D2 (concessão temporária do bypass para UM merge; comando em `pipeline_rollback.md` §4.2). Desde a ADR-448 o papel Admin não tem bypass permanente, e `gh pr merge --admin` sozinho falha.
 
 Documentar override em pós-mortem na Issue.
 

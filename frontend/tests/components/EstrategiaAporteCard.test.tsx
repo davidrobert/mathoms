@@ -57,16 +57,23 @@ describe("EstrategiaAporteCard — renda-alvo não é aporte (A40.l100)", () => 
   });
 
   it("publica o aporte DECLARADO na tabela de cenários, sob rótulo de cenário", () => {
-    render(<EstrategiaAporteCard cenarios={{ labels: ["Sem renda do cônjuge"], aportes: [APORTE_DECLARADO] }} />);
+    render(
+      <EstrategiaAporteCard
+        cenarios={{ labels: ["Sem renda do cônjuge"], aportes: [APORTE_DECLARADO] }}
+        aporteDeclarado={APORTE_DECLARADO}
+      />,
+    );
 
     expect(screen.getByText("Sem renda do cônjuge")).toBeInTheDocument();
     expect(screen.getByText(/Aporte\/mês/)).toBeInTheDocument();
     expect(screen.queryByText(/necess[áa]rio/i)).not.toBeInTheDocument();
   });
 
-  it("sem cenário declarado, alcança o estado honesto de 'não configurada'", () => {
+  it("sem aporte declarado, alcança o estado honesto de 'não configurada'", () => {
     // Antes da A40.l100 este estado era INALCANÇÁVEL: `if_trs_monthly_value`
     // deriva da meta e está sempre presente, então o `!ifTrs` nunca era true.
+    // Desde a ADR-167 o predicado é o aporte declarado, não a ausência do
+    // cenário do cônjuge — que todo solteiro passou a ter.
     render(<EstrategiaAporteCard />);
 
     expect(screen.getByText("Meta de aporte não configurada.")).toBeInTheDocument();

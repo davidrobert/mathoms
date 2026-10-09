@@ -57,7 +57,7 @@ export function OnboardingHero({ hasIfGoal, hasDecisions }: OnboardingHeroProps)
               n={2}
               icon={FileText}
               title="Importe seu primeiro relatório"
-              description="Suba extratos e faturas para o Mathoms gerar um relatório completo da sua posição patrimonial e do mês corrente."
+              description="Suba extratos e faturas para o Mathoms gerar um relatório completo da sua posição patrimonial e do seu fluxo de caixa."
               ctaLabel="Ir para Documentos"
               ctaHref="/documents"
               ctaVariant="outline"

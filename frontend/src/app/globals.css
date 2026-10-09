@@ -13,13 +13,19 @@
 
 /* shadcn/ui compatibility — cores oklch usadas por componentes shadcn
  * (Button, Dialog, etc.). NÃO duplicar variáveis que já estão em tokens.css.
- * Fonts e cores do ADR-076 vêm exclusivamente do @theme inline em tokens.css. */
+ * Fonts e cores do ADR-076 vêm exclusivamente do @theme inline em tokens.css.
+ *
+ * `destructive` aponta para o vermelho do design system, não para um oklch
+ * próprio: o do shadcn dava 4,01:1 como texto sobre o próprio tint de 10% e
+ * 4,35:1 sobre `--surface-muted`. Texto sobre tint usa o par `-on-tint`
+ * (ADR-372 §Emenda 2026-10-09). */
 @theme inline {
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
-    --color-destructive: var(--destructive);
+    --color-destructive: var(--semantic-danger);
+    --color-destructive-on-tint: var(--semantic-loss-on-tint);
 
     /* shadcn radius scale — calc-based para componentes UI */
     --radius-2xl: calc(var(--radius) * 1.8);
@@ -42,18 +48,10 @@
     --muted-foreground: oklch(0.556 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
     --radius: 0.625rem;
-
-    /* Financial semantic colors — colorblind-safe */
-    --gain: oklch(0.52 0.17 155);
-    --loss: oklch(0.55 0.22 25);
-    --neutral-financial: oklch(0.556 0 0);
-    --alert: oklch(0.68 0.16 75);
-    --info-financial: oklch(0.55 0.15 250);
 
     /* Report shell layout — altura fixa do ReportTopNav sticky.
      * Consumida pelo `<aside class="sidebar-toc">` para ancorar
@@ -86,17 +84,9 @@
     --muted-foreground: oklch(0.708 0 0);
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
-
-    /* Financial semantic colors — dark mode */
-    --gain: oklch(0.65 0.19 155);
-    --loss: oklch(0.65 0.22 25);
-    --neutral-financial: oklch(0.708 0 0);
-    --alert: oklch(0.75 0.15 75);
-    --info-financial: oklch(0.65 0.15 250);
 
     /* Sidebar */
     --sidebar: oklch(0.205 0 0);
