@@ -257,6 +257,7 @@ def _compare_image_npm(target: AppTarget, ref: str, found: str) -> list[LockGate
         print(
             f"::warning::{target.app}: {ref} traz npm {found}, o mapa pina {expected} (minor é eixo aberto)"
         )
+    print(f"{target.app}: {ref} traz npm {found}; mapa Node {target.node_major} → {expected}")
     return []
 
 

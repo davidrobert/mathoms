@@ -225,9 +225,12 @@ def _verify(repo: Path, docker) -> int:
     return gate.main(["--repo", str(repo), "--verify-image", "frontend"], docker_runner=docker)
 
 
-def test_verify_image_passa_quando_a_imagem_traz_o_npm_do_mapa(tmp_path: Path) -> None:
+def test_verify_image_passa_quando_a_imagem_traz_o_npm_do_mapa(tmp_path: Path, capsys) -> None:
+    # O sucesso imprime o que a imagem respondeu: step verde sem saída não prova
+    # que o `docker run` aconteceu.
     repo = _repo(tmp_path, {"frontend": _app()})
     assert _verify(repo, _fake_docker(gate.NPM_BY_NODE_MAJOR[26])) == 0
+    assert f"traz npm {gate.NPM_BY_NODE_MAJOR[26]}" in capsys.readouterr().out
 
 
 def test_verify_image_reprova_mapa_mutado_para_o_npm_10(
