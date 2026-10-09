@@ -52,10 +52,19 @@ def test_header_e_lido_case_insensitive_e_so_no_bloco_de_cabecalhos():
     assert mod.expiration_header("HTTP/2.0 200 OK\n\n{}") is None
 
 
-def test_formato_documentado_e_offset_numerico_viram_utc():
+def test_formas_observadas_viram_utc_inclusive_no_fuso():
+    """Fine-grained vem no fuso do dono; aware se compara por instante, então o
+    `==` sozinho passava com o offset ainda em -03:00 e o aviso rotulava hora local."""
     utc = mod.parse_expiration("2027-01-06 12:00:00 UTC")
     offset = mod.parse_expiration("2027-01-06 09:00:00 -0300")
     assert utc == offset == datetime(2027, 1, 6, 12, 0, tzinfo=timezone.utc)
+    assert offset.utcoffset() == timedelta(0)
+
+
+def test_aviso_mostra_o_instante_em_utc_nao_a_hora_local():
+    expira = mod.parse_expiration("2026-10-20 22:47:00 -0300")
+    texto = mod.expiry_warning(expira, datetime(2026, 10, 9, 2, 0, tzinfo=timezone.utc))
+    assert "2026-10-21 01:47 UTC" in texto
 
 
 def test_formato_desconhecido_falha_nomeando_o_valor():
@@ -145,3 +154,14 @@ def test_401_no_watchdog_continua_vermelho_e_aponta_o_runbook(monkeypatch, capsy
     with pytest.raises(GhCallFailed):
         watchdog._list_prs_explaining_401()
     assert "runbooks/automerge_train.md §2" in capsys.readouterr().out
+
+
+def test_leitura_incoerente_com_200_vira_warning_sem_issue(monkeypatch, com_pat, capsys):
+    """HTTP 200 prova token válido agora; vencimento a <1h é bug de leitura (GitHub,
+    ago–set/2025: agora+1min) e abriria '0 dia(s)' que rotacionar não fecha."""
+    agora = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    gh = FakeGh(api=HEADERS.replace("2027-01-06 12:00:00 UTC", agora))
+    monkeypatch.setattr(mod, "_gh", gh)
+    mod.check_pat_expiry("ops-pat-expiry", dry_run=False)
+    assert not any(c[0] == "issue" for c in gh.calls)
+    assert "leitura incoerente" in capsys.readouterr().out

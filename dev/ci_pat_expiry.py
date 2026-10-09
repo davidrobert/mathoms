@@ -9,7 +9,7 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -20,6 +20,9 @@ if str(REPO_ROOT) not in sys.path:
 from dev.ci_advance_automerge_train import GhCallFailed, _gh  # noqa: E402
 
 WARN_DAYS = 14
+# Resposta 200 prova que o token vale agora; vencimento a <1h dela é leitura incoerente
+# (bug do GitHub de ago–set/2025 devolvia agora+1min para PAT fine-grained).
+MIN_PLAUSIBLE_LEFT = timedelta(hours=1)
 EXPIRY_HEADER = "github-authentication-token-expiration"
 ISSUE_TITLE = "AUTOUPDATE_PAT perto de expirar — rotacionar"
 RUNBOOK = "docs/reference/runbooks/automerge_train.md"
@@ -27,13 +30,14 @@ _FORMATS = ("%Y-%m-%d %H:%M:%S %Z", "%Y-%m-%d %H:%M:%S %z")
 
 
 def parse_expiration(value: str) -> datetime:
-    """`2026-10-07 01:47:00 UTC` (forma documentada) ou com offset numérico."""
+    """Normaliza para UTC: fine-grained vem no fuso do dono (`... -0300`), classic em `UTC`."""
     for fmt in _FORMATS:
         try:
             parsed = datetime.strptime(value.strip(), fmt)
         except ValueError:
             continue
-        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+        aware = parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+        return aware.astimezone(timezone.utc)
     raise ValueError(f"expected '{_FORMATS[0]}' em {EXPIRY_HEADER}, got {value!r}")
 
 
@@ -112,9 +116,12 @@ def sync_issue(warning: str | None, now: datetime, label: str, dry_run: bool) ->
         _gh("issue", "edit", str(issue["number"]), "--body", body)
 
 
-def measure_expiration(repo: str) -> datetime | None:
+def measure_expiration(repo: str, now: datetime) -> datetime | None:
     raw = expiration_header(_gh("api", "-i", f"repos/{repo}"))
-    return parse_expiration(raw) if raw is not None else None
+    expires_at = parse_expiration(raw) if raw is not None else None
+    if expires_at is not None and expires_at - now < MIN_PLAUSIBLE_LEFT:
+        raise ValueError(f"{EXPIRY_HEADER}={raw!r} a <1h com HTTP 200 — leitura incoerente")
+    return expires_at
 
 
 def check_pat_expiry(label: str, dry_run: bool) -> None:
@@ -124,7 +131,7 @@ def check_pat_expiry(label: str, dry_run: bool) -> None:
         return
     now = datetime.now(timezone.utc)
     try:
-        warning = expiry_warning(measure_expiration(os.environ["GH_REPO"]), now)
+        warning = expiry_warning(measure_expiration(os.environ["GH_REPO"], now), now)
         print(f"pat-expiry: {warning or f'folga > {WARN_DAYS} dias'}")
         sync_issue(warning, now, label, dry_run)
     except (GhCallFailed, ValueError, KeyError) as exc:
