@@ -84,9 +84,7 @@ class _Imovel(_Base):
 
 
 def _flush_falho_e_sessao_reusada(**campos) -> tuple[BaseException, BaseException]:
-    """Flush que falha, engolido, e a sessão reusada — o padrão da sessão compartilhada.
-
-    Engine COM ``hide_parameters``: o que sobra no texto é o que a D1 não alcança."""
+    """Flush falho engolido e sessão reusada; engine COM ``hide_parameters`` (o resto é da D2)."""
     eng = create_engine("sqlite://", hide_parameters=True)
     _Base.metadata.create_all(eng)
     with Session(eng) as session:
