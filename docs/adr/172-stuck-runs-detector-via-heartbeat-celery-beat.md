@@ -8,6 +8,7 @@ date: "2026-05-06"
 relates_to: ["[[ADR-031]]", "[[ADR-119]]", "[[ADR-111]]"]
 supersedes: []
 superseded_by: []
+amended_at: ["2026-10-08"]
 aliases: ["ADR 172"]
 tags:
   - area/backend
@@ -15,10 +16,14 @@ tags:
   - area/pipeline
   - status/decidido
   - type/adr
-size_lines: 51
+size_lines: 73
 ---
 
 # ADR-172 — Stuck-runs detector via heartbeat + Celery beat
+
+> **Emendada em 2026-10-08 ([[ADR-445]])** — beat não sobe sobre SQLite, e o flip do
+> detector re-checa `last_heartbeat_at < cutoff` no próprio UPDATE. Ver §Emenda 2026-10-08
+> ao final.
 
 **Status:** Decidido (Sprint A11.W2) • **Data:** 2026-05-06 • **Relaciona** [ADR-031](#adr-031--redis-para-queue--pubsub), [ADR-119](#adr-119--contrato-livestep-para-progresso-de-etapas-do-pipeline), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6). **Origem:** SR-007 (W2-T04).
 
@@ -64,3 +69,26 @@ size_lines: 51
 - Log estruturado `mathoms.pipeline.stuck_run_detected` (via `MathomsJsonFormatter`).
 
 **Referências:** [archive/PLATFORM_REVIEW_PLAN-2026-07-08.md §W2-T04](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), finding SR-007.
+
+## Emenda 2026-10-08 ([[ADR-445]]) — beat proibido sobre SQLite; CAS do flip por cutoff
+
+**Medido** em dogfood local (SQLite), run `40d1af2a`:
+
+- 48 das 92 escritas em `pipeline_runs` falharam, e o maior intervalo entre batidas que
+  aterrissaram foi de 466 s.
+- Motivo: a sessão do stage segura o write-lock do 1º write até o commit ([[ADR-445]]). O
+  heartbeat de 200 ms desiste, e só a batida de início de stage aterrissa.
+- Em 120 runs, 2 tiveram janela acima do limiar de 15 min. Com este detector ligado sobre
+  SQLite, a varredura veria a batida vencida; o flip esperaria o mesmo lock e, se
+  aterrissasse logo depois do commit do stage, marcaria `failed` um run vivo (item 2).
+- Hoje isso não acontece: o dev nativo não sobe beat, e os compose sobem beat com Postgres.
+
+**Decisão.**
+
+1. **Beat recusa subir quando o dialect é `sqlite`.** A guarda é de código, não de doc; vive na
+   [[A42.l27]]. O detector pressupõe heartbeat confiável, e no SQLite ele não é.
+2. **O flip reconfere o cutoff.** O UPDATE de `_flip_stuck_run_atomic` filtra hoje só
+   `id` + `status=running`; o `last_heartbeat_at < cutoff` está só no SELECT de candidatos.
+   Um flip que esperou lock (ou perdeu a corrida para uma batida) aterrissa sobre run que
+   acabou de provar vida — o "race-safe contra stage completion" da §Closure cobre status,
+   não batida. O cutoff entra no WHERE, em qualquer engine ([[A42.l28]]).
