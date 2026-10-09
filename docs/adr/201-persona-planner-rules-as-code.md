@@ -5,6 +5,7 @@ title: "Persona do planejador como rules-as-code — `config/agents/planner_pers
 status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-199]]"
@@ -39,6 +40,12 @@ tags:
 > `planner_review_persistence.py`). O frontmatter real de
 > `config/agents/planner_persona.md` usa `type: agent_persona` (não
 > `type: persona`) e `version` semver (`"1.1.0"`), não int.
+>
+> **Correção 2026-10-09 ([[ADR-199]] §Emenda 2026-10-09):** o §D6 afirmava "persona
+> diferente = cache miss", e a chave não compôs a persona até esta data. O §D6 passa a
+> valer por **hash de conteúdo**, não por bump; D2 (auto-compute do hash no
+> frontmatter) fica revogado e o caminho de auditoria do §D6 estava errado. Ver
+> §Correção 2026-10-09 no fim.
 
 ## Contexto
 
@@ -180,3 +187,34 @@ Permite responder em incidente: "qual versão da persona produziu o parecer X qu
 **Decisão pendente para outros especialistas:**
 - **Conteúdo concreto da persona V1** — `financial-planner` é o autor; co-design no Ato 2.
 - **Mapeamento `ancora_metodologica → tema_canonico`** (1:N) — fechado em [[ADR-207]] co-design.
+
+## Correção 2026-10-09 — o §D6 passa a valer por hash de conteúdo
+
+**O que era falso.** "Persona diferente (bump version) = cache miss": `compute_cache_key`
+não compôs a persona — nem o hash, nem a `version` do frontmatter — até 2026-10-09.
+Editar a persona sem bump de `PROMPT_VERSION` ou do manifest servia o parecer da persona
+antiga por até 7 dias (TTL). Latente: as 5 edições até aqui saíram no mesmo squash que um
+bump do manifest. Fechado pela [[ADR-199]] §Emenda 2026-10-09 (E3), que põe o
+`persona_hash` na chave.
+
+**O mecanismo é o hash de conteúdo, não o bump.** `load_persona()` hasheia o arquivo
+inteiro — frontmatter incluso, porque é esse o texto que vai ao modelo. Qualquer byte
+alterado é cache miss, sem depender de alguém lembrar de bumpar. Disso decorre:
+
+- o auto-compute do campo `persona_hash` no frontmatter (D2, via `dev/build_doc_index.py`)
+  fica **revogado**: um hash gravado dentro do arquivo hasheado nunca bate consigo mesmo.
+  O `persona_hash: "PENDING_AUTO_GENERATE"` da persona é placeholder morto e sai na
+  próxima edição material dela, junto do bump de `PROMPT_VERSION` que a telemetria pede
+  (§Deferimentos da emenda da [[ADR-199]]). Removê-lo agora mudaria o system prompt sem
+  bump e misturaria a janela do drift monitor por uma mudança cosmética;
+- o hook `check_persona_version` (D3) nunca foi implementado, e o papel de
+  **invalidação** dele está cumprido pelo hash. A regra de produto do D3 — mudança de
+  comportamento da persona exige ADR — segue de pé.
+
+**O caminho de auditoria também estava errado.** Não existe
+`pipeline_artifacts._meta.persona_hash`. O hash vive em `metadata.persona_hash` do
+artifact (carimbado por `finalize_output`) e na coluna `PlannerReview.persona_hash` (do
+detail do stage). Antes da E3, um hit após editar a persona fazia os dois divergirem: a
+coluna recebia o hash atual e o artifact guardava o de quando gerou. Agora são iguais por
+construção. O parágrafo final da persona repete o caminho `_meta`; corrige-se na mesma
+edição material que remove o placeholder.
