@@ -66,7 +66,7 @@ export function ReviewListItem({
           aria-label={`Status: ${STATUS_LABEL[review.status]}`}
           className={`rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${
             review.status === "pending"
-              ? "bg-alert/10 text-alert"
+              ? "bg-alert/10 text-alert-on-tint"
               : "bg-muted text-muted-foreground"
           }`}
         >
@@ -85,7 +85,7 @@ function pickIcon(status: StageReviewResponse["status"], hasError: boolean) {
 
 function pickIconClass(status: StageReviewResponse["status"], hasError: boolean) {
   if (status !== "pending") return "text-muted-foreground";
-  return hasError ? "text-loss" : "text-alert";
+  return hasError ? "text-loss" : "text-alert-on-tint";
 }
 
 function pickPreviewText(review: StageReviewResponse): string | null {
@@ -105,7 +105,7 @@ function IssueCounts({ errors, warnings }: { errors: number; warnings: number })
         </span>
       )}
       {warnings > 0 && (
-        <span className="rounded-full bg-alert/10 px-2 py-0.5 text-[0.65rem] font-medium text-alert">
+        <span className="rounded-full bg-alert/10 px-2 py-0.5 text-[0.65rem] font-medium text-alert-on-tint">
           {warnings === 1 ? "1 aviso" : `${warnings} avisos`}
         </span>
       )}

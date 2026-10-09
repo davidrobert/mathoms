@@ -41,7 +41,7 @@ export function MemberIrpfSection({
     >
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         Encontradas no seu IRPF {firstYear}
-        <span className="ml-2 normal-case text-muted-foreground/80 font-normal">
+        <span className="ml-2 normal-case text-muted-foreground font-normal">
           · você declarou estas contas
         </span>
       </p>

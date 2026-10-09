@@ -104,7 +104,7 @@ export function CategoryRow({
               </Tooltip>
             )}
             {cat.monthly_cap != null && (
-              <span className="text-xs text-alert">
+              <span className="text-xs text-alert-on-tint">
                 Teto: {formatCurrency(cat.monthly_cap, "BRL", { minimumFractionDigits: 0, maximumFractionDigits: 3 })}
               </span>
             )}

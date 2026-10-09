@@ -14,7 +14,7 @@ export function NeedsPasswordBanner({
   if (count === 0) return null;
   return (
     <div className="mb-4 flex items-center justify-between rounded-lg bg-alert/10 px-4 py-3">
-      <p className="text-sm text-alert">
+      <p className="text-sm text-alert-on-tint">
         <KeyRound className="mr-1.5 inline-block h-4 w-4" />
         <span className="font-medium">{count}</span> documento(s) protegido(s) por senha.{" "}
         <Link href="/vault" className="underline">

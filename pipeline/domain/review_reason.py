@@ -38,6 +38,11 @@ class ReviewReasonCode(str, enum.Enum):
     # Invariante de cobertura de escopo (ADR-342 emenda 2026-07-27): tx num escopo
     # que nenhum sinal declarado cobre — checksum verde parcial (falso-verde).
     extract_fatura_scope_uncovered = "extract.fatura_scope_uncovered"
+    # [[ADR-440]] D2: a ficha de imóvel com rótulo não casou com UM item do E1.5a (empate de
+    # valor sem margem de tokens) ou o imóvel não achou ficha — o item fica sem âncora e a
+    # identidade cai na chave da descrição. Uma razão por documento, só com contagens.
+    extract_ancora_imovel_ambigua = "extract.ancora_imovel_ambigua"
+    extract_ancora_imovel_sem_ficha = "extract.ancora_imovel_sem_ficha"
     dedup_possible_duplicate = "dedup.possible_duplicate"
     # [[A42.l15]]: nem âncora forte (CNPJ do documento) nem descrição utilizável — a
     # entrada fica SEM identidade em vez de ganhar hash de texto vazio. Recusar é a
