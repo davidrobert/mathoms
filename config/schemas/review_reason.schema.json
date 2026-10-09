@@ -51,6 +51,7 @@
         "domain.investimento_sem_titularidade",
         "domain.classificacao_imovel_nao_apurada",
         "domain.property_identity_eixo_por_hint",
+        "domain.property_identity_codigo_invalido",
         "domain.ano_referencia_nao_fechado"
       ]
     },

@@ -495,6 +495,12 @@ Podá-las exigiria eleger vencedor por outro critério, que é o que a [[ADR-386
 Recomendação registrada em [[TRACK-property-identity-cross-era]]: **não podar** enquanto
 inertes.
 
+**RV6-13, eixo do código (2026-10-08, #2062):** o par do match residual passou a comparar o
+sub-código de imóvel dos dois lados — `'01-11'` e `'11'` entram no mesmo par ([[ADR-225]]
+§Emenda 2026-10-08). As 4 órfãs já gravam `11`/`12`, então seguem 2 por par: inalcançáveis,
+e a recomendação de não podar não muda. O mesmo PR fechou um defeito vivo que o achado não
+tinha: em Postgres o INSERT de `'01-12'` estourava o `VARCHAR(4)` e derrubava o E1.5c.
+
 **Segue aberto:** o invariante `imoveis ∩ excluded == ∅` ([[ADR-334]] §3 / RV4-10) — o
 filtro reduz o conjunto excluído, não fecha a interseção. E `redact_pii` na fronteira do
 payload de imóveis, citado na disposição original do DE-6, **não** foi tocado: é o RV7-05,
