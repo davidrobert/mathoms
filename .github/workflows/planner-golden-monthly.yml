@@ -11,8 +11,8 @@
 #
 # Rebaseline (`update_baseline=true`) NÃO pusha em `main`: o Ruleset
 # `main-protection` exige PR + required checks e só dá bypass ao Admin, então
-# o antigo `git push origin HEAD:main` era rejeitado — caminho morto e nunca
-# exercitado. Agora o job `baseline-branch` pusha
+# o antigo push direto do workflow em `main` era rejeitado — caminho morto e
+# nunca exercitado. Agora o job `baseline-branch` pusha
 # `agent/planner-golden-baseline/<yyyyMM>-<run_id>-<attempt>` e o summary do
 # run traz o link do PR pré-preenchido; quem despachou abre o PR (sem
 # auto-merge — a amostra é nova e ninguém a revisou). Por que não abrir o PR
