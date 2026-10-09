@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 
 _SUBCODIGO_IMOVEL = re.compile(r"\d{2}")
@@ -40,3 +41,7 @@ class PropertyIdentityRecord:
     endereco_canonical: Optional[str]
     first_seen_year: int
     low_confidence: bool
+    # [[ADR-440]] D6: o veto por unidade lê a unidade da row na amostra gravada, e o
+    # desempate entre rows admissíveis é a mais antiga (o first-write-wins de hoje).
+    descricao_sample: Optional[str] = None
+    created_at: Optional[datetime] = None

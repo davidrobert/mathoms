@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from pipeline.domain.services.property_identity_mint import mint_without_canonical_enabled
 from pipeline.domain.types.property_identity import (
     PropertyIdentityRecord,
     PropertyLookupKey,
 )
+
+# Ordem de inserção como `created_at`: o desempate "mais antiga" do enricher
+# ([[ADR-440]] D6) fica determinístico, sem depender do relógio entre dois inserts.
+_EPOCA = datetime(2000, 1, 1, tzinfo=timezone.utc)
 
 
 class InMemoryPropertyIdentityResolver:
@@ -17,6 +22,16 @@ class InMemoryPropertyIdentityResolver:
     def __init__(self) -> None:
         self._rows: list[PropertyIdentityRecord] = []
 
+    def match(
+        self, workspace_id: str, lookup: PropertyLookupKey, descricao_sample: str
+    ) -> PropertyIdentityRecord | None:
+        hit = _match_canonical(self._rows, workspace_id, lookup)
+        if hit is not None:
+            return hit
+        if lookup.endereco_canonical is None and not mint_without_canonical_enabled():
+            return _residual_unique(self._rows, workspace_id, lookup)
+        return None
+
     def match_or_create(
         self,
         workspace_id: str,
@@ -24,15 +39,28 @@ class InMemoryPropertyIdentityResolver:
         first_seen_year: int,
         descricao_sample: str,
     ) -> PropertyIdentityRecord | None:
-        hit = _match_canonical(self._rows, workspace_id, lookup)
-        if hit is not None:
-            return hit
+        record = self.match(workspace_id, lookup, descricao_sample)
+        if record is not None:
+            return record
+        return self.create(workspace_id, lookup, first_seen_year, descricao_sample)
+
+    def create(
+        self,
+        workspace_id: str,
+        lookup: PropertyLookupKey,
+        first_seen_year: int,
+        descricao_sample: str,
+    ) -> PropertyIdentityRecord | None:
         if lookup.endereco_canonical is None and not mint_without_canonical_enabled():
-            return _residual_unique(self._rows, workspace_id, lookup)
-        return self._insert(workspace_id, lookup, first_seen_year)
+            return None
+        return self._insert(workspace_id, lookup, first_seen_year, descricao_sample)
 
     def _insert(
-        self, workspace_id: str, lookup: PropertyLookupKey, first_seen_year: int
+        self,
+        workspace_id: str,
+        lookup: PropertyLookupKey,
+        first_seen_year: int,
+        descricao_sample: str,
     ) -> PropertyIdentityRecord:
         record = PropertyIdentityRecord(
             property_id=str(uuid.uuid4()),
@@ -42,6 +70,8 @@ class InMemoryPropertyIdentityResolver:
             endereco_canonical=lookup.endereco_canonical,
             first_seen_year=first_seen_year,
             low_confidence=lookup.endereco_canonical is None,
+            descricao_sample=descricao_sample,
+            created_at=_EPOCA + timedelta(microseconds=len(self._rows)),
         )
         self._rows.append(record)
         return record

@@ -31,14 +31,13 @@ class DBPropertyIdentityResolver:
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def match_or_create(
+    def match(
         self,
         workspace_id: str,
         lookup: PropertyLookupKey,
-        first_seen_year: int,
         descricao_sample: str,
     ) -> PropertyIdentityRecord | None:
-        """Cascata ADR-385; sem canonical não minta ([[ADR-392]])."""
+        """Cascata ADR-385 sem cunhar ([[ADR-440]] D6); sem canonical, só o residual único."""
         index = _WorkspaceIdentities(self._load_rows(workspace_id))
         existing = _cascade_match(index, lookup, descricao_sample)
         if existing is not None:
@@ -46,6 +45,31 @@ class DBPropertyIdentityResolver:
         if lookup.endereco_canonical is None and not mint_without_canonical_enabled():
             residual = _residual_unique(index, lookup)
             return _to_record(residual) if residual is not None else None
+        return None
+
+    def match_or_create(
+        self,
+        workspace_id: str,
+        lookup: PropertyLookupKey,
+        first_seen_year: int,
+        descricao_sample: str,
+    ) -> PropertyIdentityRecord | None:
+        """`match` + `create`; sem canonical não minta ([[ADR-392]])."""
+        record = self.match(workspace_id, lookup, descricao_sample)
+        if record is not None:
+            return record
+        return self.create(workspace_id, lookup, first_seen_year, descricao_sample)
+
+    def create(
+        self,
+        workspace_id: str,
+        lookup: PropertyLookupKey,
+        first_seen_year: int,
+        descricao_sample: str,
+    ) -> PropertyIdentityRecord | None:
+        """Insert sem cascata ([[ADR-440]] D7); sem canonical não minta ([[ADR-392]])."""
+        if lookup.endereco_canonical is None and not mint_without_canonical_enabled():
+            return None
         return _to_record(self._insert_row(workspace_id, lookup, first_seen_year, descricao_sample))
 
     def _load_rows(self, workspace_id: str) -> list[PropertyIdentity]:
@@ -235,4 +259,6 @@ def _to_record(row: PropertyIdentity) -> PropertyIdentityRecord:
         endereco_canonical=row.endereco_canonical,
         first_seen_year=row.first_seen_year,
         low_confidence=row.low_confidence,
+        descricao_sample=row.descricao_sample,
+        created_at=row.created_at,
     )
