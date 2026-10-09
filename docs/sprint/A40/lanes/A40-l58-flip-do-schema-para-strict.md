@@ -535,6 +535,15 @@ card de `/admin/metrics` como defeito de código, e o on-call filtraria pela cla
 errada. Runs anteriores a 2026-08-24 têm o `reason_class` errado gravado — o §8.1
 avisa para não confiar nele em triagem retroativa.
 
+> ⚠️ **Correção 2026-10-08 ([[ADR-443]] §Deferimento) — o fix deste passo não
+> alcança o abort no executor de produção.** O `internal_error` só se reproduz com
+> um `run_stage_fn` que levanta direto. Pela composição real, a `ValidationError`
+> do `DBArtifactStore.write` nasce dentro do runner e `orchestrator._run_stage` a
+> achata em `success: False` antes de `_run_stage_with_retry`: `reason_from_exception`
+> nunca a vê, e o abort grava `unknown` — antes e depois de 2026-08-24. O §8.1 do
+> runbook passou a filtrar pela mensagem do raise; carregar a classe através do
+> executor é o §Deferimento da ADR-443, cobrado por um `xfail` estrito.
+
 ### Passo 4 (2026-08-24) — o flip órfão fecha em `tests/`, e o backend fica de fora com razão medida
 
 `tests/conftest.py` passa a fazer

@@ -4,6 +4,7 @@ type: adr
 title: "Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)"
 status: Proposto
 date: "2026-07-08"
+amended_at: ["2026-10-08"]
 relates_to: ["[[ADR-112]]", "[[ADR-150]]", "[[ADR-303]]", "[[TRACK-f2-cutover]]"]
 supersedes: []
 superseded_by: []
@@ -25,6 +26,10 @@ de [[TRACK-f2-cutover]] §Follow-ups.
 > **shipado na F2 como dark launch** — `backend/app/services/pipeline/pipeline_client.py:192`,
 > env `MATHOMS_PIPELINE_SHELL_FALLBACK` **default OFF por design** (§6). Flip
 > Proposto→Decidido + habilitação do env são owner-gated (pós-F3).
+>
+> **Correção 2026-10-08 ([[ADR-443]]):** o retry de stage que §Consequências diz
+> pré-emptado não existe mais — e, com o fallback ligado, ele fazia 3 POSTs no
+> `ReadTimeout` e no `RemoteProtocolError`, que a §2 recusa re-executar.
 
 ## Contexto
 
@@ -110,6 +115,11 @@ devolve `HttpPipelineClient` cru).
   `PipelineServiceClient` é interno, sem snapshot).
 - ⚠️ O fallback pré-empta o retry de 5xx do `_run_stage_with_retry` (o decorator
   consome o 5xx antes do wrapper ver exceção) — intencional (degrade-first).
+  > **Correção 2026-10-08 ([[ADR-443]]):** sem objeto — o retry de stage foi
+  > apagado. E a premissa cobria só o 5xx: `ReadTimeout` e `RemoteProtocolError`
+  > ficam fora do gatilho de degrade (§2), chegavam ao wrapper e casavam needles da
+  > tabela de LLM — 3 POSTs com backoff 10/20s, com o fallback ligado. Medido por
+  > `MockTransport`; hoje é 1 POST (`backend/tests/test_run_stage_once.py`).
 - ⚠️ 5xx conflaciona infra-Go (502/503/504 — degrade limpo e valioso) com
   exceção-de-stage (500 — re-roda InProcess e reproduz; correto mas desperdiça
   minutos). Follow-up de contrato: exceção-de-stage → `200 + success=False`; infra

@@ -16,6 +16,12 @@ export interface UserFacingError {
   hint: string | null;
 }
 
+/**
+ * Marcador que o sanitizador do backend põe em todo erro de banco redigido (ADR-441 D2).
+ * Contrato com `DATABASE_VALUES_OMITTED` em `pipeline/observability/failure_text.py`.
+ */
+export const DATABASE_VALUES_OMITTED = "valores do banco omitidos";
+
 interface ErrorPattern {
   match: RegExp;
   /** Stages a que o pattern se aplica (vazio = qualquer). */
@@ -40,10 +46,7 @@ const PATTERNS: readonly ErrorPattern[] = [
   },
   {
     match: /timeout|timed out|deadline/i,
-    build: (stage) => ({
-      headline: `O processamento de ${getPhase(stage ?? "").title.toLowerCase()} demorou mais que o esperado.`,
-      hint: "Tente reprocessar — geralmente resolve em uma nova execução.",
-    }),
+    build: (stage) => timeoutError(stage),
   },
   {
     match: /api[_ ]?key|unauthor|401|403|invalid.*key/i,
@@ -80,25 +83,15 @@ const PATTERNS: readonly ErrorPattern[] = [
   },
 ];
 
-/**
- * Gera mensagem user-facing a partir do texto de erro e da etapa que falhou.
- * Fallback: mensagem genérica com nome amigável da fase.
- */
-export function buildUserFacingError(
-  errorText: string | null | undefined,
-  failedStage: string | null | undefined,
-): UserFacingError {
-  const text = errorText ?? "";
-  for (const pattern of PATTERNS) {
-    if (pattern.stages && failedStage && !pattern.stages.includes(failedStage)) {
-      continue;
-    }
-    if (pattern.match.test(text)) {
-      return pattern.build(failedStage ?? null);
-    }
-  }
+function timeoutError(stage: string | null): UserFacingError {
+  return {
+    headline: `O processamento de ${getPhase(stage ?? "").title.toLowerCase()} demorou mais que o esperado.`,
+    hint: "Tente reprocessar — geralmente resolve em uma nova execução.",
+  };
+}
 
-  // Fallback genérico, baseado na fase
+/** Fallback genérico, baseado na fase. */
+function genericError(failedStage: string | null | undefined): UserFacingError {
   const phaseId = failedStage ? phaseOfStage(failedStage) : null;
   const phaseTitle = phaseId
     ? getPhase(phaseId).title.toLowerCase()
@@ -108,4 +101,41 @@ export function buildUserFacingError(
     headline: `Não conseguimos completar a etapa de ${phaseTitle}.`,
     hint: "Tente reprocessar — se o erro persistir, veja os detalhes técnicos.",
   };
+}
+
+/**
+ * Erro de banco redigido traz nome de tabela e coluna (`api_key_encrypted`,
+ * `schema_version`, `deadline_at`) que casariam os padrões por acidente: decide
+ * antes deles. O único rótulo que vira headline próprio é o de timeout.
+ */
+function redactedDatabaseError(
+  text: string,
+  failedStage: string | null | undefined,
+): UserFacingError {
+  return /statement timeout/i.test(text)
+    ? timeoutError(failedStage ?? null)
+    : genericError(failedStage);
+}
+
+/**
+ * Gera mensagem user-facing a partir do texto de erro e da etapa que falhou.
+ * Fallback: mensagem genérica com nome amigável da fase.
+ */
+export function buildUserFacingError(
+  errorText: string | null | undefined,
+  failedStage: string | null | undefined,
+): UserFacingError {
+  const text = errorText ?? "";
+  if (text.includes(DATABASE_VALUES_OMITTED)) {
+    return redactedDatabaseError(text, failedStage);
+  }
+  for (const pattern of PATTERNS) {
+    if (pattern.stages && failedStage && !pattern.stages.includes(failedStage)) {
+      continue;
+    }
+    if (pattern.match.test(text)) {
+      return pattern.build(failedStage ?? null);
+    }
+  }
+  return genericError(failedStage);
 }
