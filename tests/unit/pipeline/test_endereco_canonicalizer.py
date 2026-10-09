@@ -44,12 +44,12 @@ class TestExtractViaNumero:
         assert result == ("exemplo", "100")
 
     def test_real_case_av_exemplo(self):
-        result = extract_via_numero("APARTAMENTO NO COND. EXEMPLO A. AV EXEMPLO 320 APTO 812")
-        assert result == ("exemplo", "320")
+        result = extract_via_numero("APARTAMENTO NO COND. EXEMPLO A. AV EXEMPLO 200 APTO 201")
+        assert result == ("exemplo", "200")
 
     def test_real_case_avenida_exemplo(self):
-        result = extract_via_numero("APARTAMENTO COND EXEMPLO B. AV EXEMPLO 2192 TORRE 2 APT 163")
-        assert result == ("exemplo", "2192")
+        result = extract_via_numero("APARTAMENTO COND EXEMPLO B. AV EXEMPLO 1000 TORRE 1 APT 101")
+        assert result == ("exemplo", "1000")
 
     def test_with_comma_separator(self):
         assert extract_via_numero("Rua Exemplo, 100, SP") == ("exemplo", "100")
@@ -101,17 +101,17 @@ class TestRegressionB1RealDescriptions:
         """Descrição com R$ + Logradouro: explícito → canonical da via real."""
         descricao = (
             "APARTAMENTO NO COND. EXEMPLO B. COMPRADO NA PLANTA DA EMPRESA "
-            "MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA CNPJ/MF "
-            "SOB O NUMERO 17.102.653/0001-84 COM 88,91 M2. VALOR PAGO: "
-            "R$ 477.436,58. Inscrição Municipal (IPTU): 087.006.0478-1. "
-            "Logradouro: AVENIDA EXEMPLO Nº 2192, TORRE 2 APT 163, "
-            "SANTO AMARO, SÃO PAULO/SP, CEP 04000-000."
+            "CONSTRUTORA EXEMPLO EMPREENDIMENTOS IMOBILIARIOS LTDA CNPJ/MF "
+            "SOB O NUMERO 00.000.000/0001-00 COM 80,00 M2. VALOR PAGO: "
+            "R$ 470.000,00. Inscrição Municipal (IPTU): 123.456.7890-1. "
+            "Logradouro: AVENIDA EXEMPLO Nº 1000, TORRE 1 APT 101, "
+            "BAIRRO EXEMPLO, SÃO PAULO/SP, CEP 04000-000."
         )
-        assert canonicalize(descricao) == "exemplo 2192"
+        assert canonicalize(descricao) == "exemplo 1000"
 
     def test_dollar_amount_also_stripped(self):
         """U$$ / U$ em descrição IRPF (moeda estrangeira) também é currency."""
-        descricao = "CONTA NO EXTERIOR - U$$ 6524,00 - Banco XYZ"
+        descricao = "CONTA NO EXTERIOR - U$$ 1000,00 - Banco XYZ"
         assert canonicalize(descricao) is None
 
 
@@ -122,8 +122,8 @@ class TestCrossIRPFStability:
         "ano_2023,ano_2024",
         [
             (
-                "APARTAMENTO COND EXEMPLO A AV EXEMPLO 320 APTO 812",
-                "Apartamento Cond. Exemplo A - Av. Exemplo, 320, Apto 812",
+                "APARTAMENTO COND EXEMPLO A AV EXEMPLO 200 APTO 201",
+                "Apartamento Cond. Exemplo A - Av. Exemplo, 200, Apto 201",
             ),
             (
                 "CASA RUA EXEMPLO 100",
@@ -179,8 +179,8 @@ class TestExtractMatricula:
 
 class TestExtractQuintoAndar:
     def test_extracts_qa_code(self):
-        descricao = "Apartamento via QuintoAndar: 894064293, Pinheiros"
-        assert _extract_quintoandar(descricao) == "894064293"
+        descricao = "Apartamento via QuintoAndar: 100000001, Bairro Exemplo"
+        assert _extract_quintoandar(descricao) == "100000001"
 
     def test_extracts_with_cod_prefix(self):
         """Real case: '(Cód. Imóvel QuintoAndar: 893592092)'."""
@@ -193,11 +193,11 @@ class TestExtractQuintoAndar:
 
 class TestExtractIPTU:
     def test_extracts_iptu_with_pontuation(self):
-        """IPTU '087.006.0478-1' → '08700604781' (sem pontos)."""
-        assert _extract_iptu("Inscrição Municipal (IPTU): 087.006.0478-1") == "08700604781"
+        """IPTU '123.456.7890-1' → '12345678901' (sem pontos)."""
+        assert _extract_iptu("Inscrição Municipal (IPTU): 123.456.7890-1") == "12345678901"
 
     def test_extracts_iptu_inline(self):
-        assert _extract_iptu("IPTU 30105434946") == "30105434946"
+        assert _extract_iptu("IPTU 10000000001") == "10000000001"
 
     def test_rejects_too_short(self):
         """IPTU com <6 dígitos é provavelmente erro/lixo."""
@@ -229,12 +229,12 @@ class TestCanonicalizeCascade:
         assert canonicalize(descricao) == "mat:99887"
 
     def test_qa_fallback_when_no_via_numero_no_matricula(self):
-        descricao = "Imóvel locado via QuintoAndar: 894064293 - sem outras infos"
-        assert canonicalize(descricao) == "qa:894064293"
+        descricao = "Imóvel locado via QuintoAndar: 100000001 - sem outras infos"
+        assert canonicalize(descricao) == "qa:100000001"
 
     def test_iptu_fallback(self):
-        descricao = "Imóvel - Inscrição Municipal (IPTU): 087.006.0478-1"
-        assert canonicalize(descricao) == "iptu:08700604781"
+        descricao = "Imóvel - Inscrição Municipal (IPTU): 123.456.7890-1"
+        assert canonicalize(descricao) == "iptu:12345678901"
 
     def test_low_confidence_when_all_fail(self):
         """Sem nenhum sinal extraível: continua None (low_confidence preservado)."""
@@ -247,16 +247,16 @@ class TestCanonicalizeCascade:
     def test_idempotent_across_years_matricula(self):
         """Mesmo imóvel descrito 2× em IRPFs distintos sem via+numero, com matrícula → mesmo canonical."""
         a = canonicalize("CASA Bairro Exemplo - SAO PAULO/SP - Matrícula 999999")
-        b = canonicalize("Casa - Modelo 2707, BAIRRO EXEMPLO, SP - Matrícula 999.999")
+        b = canonicalize("Casa - Modelo 300, BAIRRO EXEMPLO, SP - Matrícula 999.999")
         assert a == b == "mat:999999"
 
     def test_real_case_5at5_cond_exemplo_b_via_wins(self):
         """Quando descrição rica tem AVENIDA + matrícula + IPTU, via+numero vence."""
         descricao = (
             "APARTAMENTO NO COND. EXEMPLO B. "
-            "Inscrição Municipal (IPTU): 087.006.0478-1. "
-            "Logradouro: AVENIDA EXEMPLO Nº 2192, TORRE 2 APT 163, "
-            "SANTO AMARO, SÃO PAULO/SP. Matrícula 453527"
+            "Inscrição Municipal (IPTU): 123.456.7890-1. "
+            "Logradouro: AVENIDA EXEMPLO Nº 1000, TORRE 1 APT 101, "
+            "BAIRRO EXEMPLO, SÃO PAULO/SP. Matrícula 123456"
         )
-        # via+numero ganha primeiro: "exemplo 2192"
-        assert canonicalize(descricao) == "exemplo 2192"
+        # via+numero ganha primeiro: "exemplo 1000"
+        assert canonicalize(descricao) == "exemplo 1000"

@@ -180,8 +180,8 @@ class TestPasse3CrossCodigoRFB:
 
     def test_merges_generic_01_into_specific_11(self, sync_db):
         ws = _seed_workspace(sync_db)
-        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="exemplo 2192")
-        _seed_property(sync_db, ws, codigo_rfb="01", endereco_canonical="exemplo 2192")
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="exemplo 1000")
+        _seed_property(sync_db, ws, codigo_rfb="01", endereco_canonical="exemplo 1000")
         with sync_db() as session:
             report = _build_report(session, ws.id, dry_run=False)
             session.commit()
@@ -253,7 +253,7 @@ class TestPasse4FuzzyViaNum:
     def test_canonical_com_prefixo_forte_nao_participa(self, sync_db):
         """Canonical `mat:NNN` é identificador estável — fuzzy não se aplica."""
         ws = _seed_workspace(sync_db)
-        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:453527")
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:123456")
         _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:453528")
         with sync_db() as session:
             report = _build_report(session, ws.id, dry_run=False)

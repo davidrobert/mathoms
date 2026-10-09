@@ -28,8 +28,8 @@ tags:
 > (`_latest_value` lexicográfico); **investigação de 2026-08-11 provou causa
 > primária diferente** — esta nota reflete o diagnóstico provado, não o
 > candidato. O sintoma original: `top_ativos`/`tabela_classes` publicam
-> Itaú RDB R$ 151.602,49 e PicPay R$ 46.684,62 (31/12/2024) quando o IRPF
-> 2026 declara R$ 290.000,00 e R$ 52.303,69 (31/12/2025).
+> Itaú RDB e PicPay com o valor de 31/12/2024 quando o IRPF 2026 declara
+> outro (31/12/2025; o RDB quase dobra).
 
 ## Root cause provado (dogfood, 40+ runs)
 

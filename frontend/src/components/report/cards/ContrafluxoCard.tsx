@@ -1,4 +1,5 @@
 import { ReportCard } from "../ReportCard";
+import { formatPercent } from "@/lib/format";
 
 export interface ContrafluxoData {
   selic_atual?: number;
@@ -36,8 +37,8 @@ export function ContrafluxoCard({ contrafluxo, cdi_anual }: ContrafluxoCardProps
   const cdi = cdi_anual;
 
   const subtitle = [
-    selic !== undefined ? `Selic atual: ${selic.toFixed(2)}% a.a.` : null,
-    cdi !== undefined ? `CDI: ${cdi.toFixed(2)}%` : null,
+    selic !== undefined ? `Selic atual: ${formatPercent(selic, 2)} a.a.` : null,
+    cdi !== undefined ? `CDI: ${formatPercent(cdi, 2)}` : null,
   ]
     .filter(Boolean)
     .join(" | ");
@@ -77,10 +78,10 @@ export function ContrafluxoCard({ contrafluxo, cdi_anual }: ContrafluxoCardProps
                   >
                     <td className="py-2 pr-3">{CENARIO_LABELS[key] ?? key}</td>
                     <td className="py-2 pr-3 text-right font-mono tabular-nums">
-                      {c?.selic !== undefined ? `${c.selic.toFixed(1)}%` : "—"}
+                      {c?.selic !== undefined ? formatPercent(c.selic) : "—"}
                     </td>
                     <td className="py-2 pr-3 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                      {c?.cdi !== undefined ? `${c.cdi.toFixed(1)}%` : "—"}
+                      {c?.cdi !== undefined ? formatPercent(c.cdi) : "—"}
                     </td>
                     <td className="hidden py-2 text-xs text-[var(--surface-muted-foreground)] sm:table-cell">
                       {CENARIO_ACOES[key] ?? "—"}

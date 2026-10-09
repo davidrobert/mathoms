@@ -1,7 +1,7 @@
 ---
 id: A40.l41
 type: lane
-title: "Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k"
+title: "Frescor cross-pool: posição stale de 2025-03 vale ~86× o IRPF 31/12/2025 no bruto"
 sprint: A40
 plan: PLAN-report-trust
 status: open
@@ -32,9 +32,8 @@ tags:
 O PL prefere "posições atuais" por **membro inteiro** com fallback IRPF
 ([patrimonio_calculator.py:290-347](../../../../pipeline/domain/services/patrimonio_calculator.py));
 [[ADR-346]] compara recência só **dentro** do pool de reports. Nada confronta
-pools: a posição E4 "CDB C6 Bank" de R$ 206.491,70 (`data_referencia`
-2025-03-31) vence o IRPF 31/12/2025 (R$ 2.404,00) por default — overcount
-provável de ~R$ 204k no bruto (~5,1%).
+pools: a posição E4 "CDB C6 Bank" (`data_referencia` 2025-03-31) vence o IRPF
+31/12/2025 (~86× menor) por default — overcount provável de ~5,1% do bruto.
 
 ## Entregável
 
@@ -109,7 +108,7 @@ constante; no flip, é decisão tomada sobre premissa não observada.
 ```
 
 Uma célula, vinda só do pool IRPF, `contradicoes: []`. O caso real — C6 Bank
-`2025-03-31` (R$ 206.491,70) contra IRPF 31/12/2025 (R$ 2.404,00) — **não tem
+`2025-03-31` contra IRPF 31/12/2025 (~86× menor) — **não tem
 representação no golden**, então o ramo de contradição não é exercitado por
 nenhum teste de snapshot. O gate de saída do PR-b pede *"relatório
 veredito×atual por célula sobre o dogfood real"*: isso continua exigindo run

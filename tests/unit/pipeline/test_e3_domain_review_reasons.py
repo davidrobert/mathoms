@@ -42,9 +42,9 @@ def _saldo_warning() -> SaldoGapWarning:
         account_key=_ACCOUNT,
         previous_source="abc123_itau_extratoconta_202601-3.json",
         next_source="def456_itau_extratoconta_202602-3.json",
-        previous_closing=Money.of("1868.38", "BRL"),
+        previous_closing=Money.of("2000.00", "BRL"),
         next_opening=Money.of("2500.00", "BRL"),
-        gap=Money.of("631.62", "BRL"),
+        gap=Money.of("500.00", "BRL"),
     )
 
 

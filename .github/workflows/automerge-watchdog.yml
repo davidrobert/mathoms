@@ -52,7 +52,7 @@ jobs:
       AUTOMERGE_KICK: ${{ secrets.AUTOUPDATE_PAT != '' && '1' || '0' }}
       GH_REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run watchdog
         run: python3 dev/ci_automerge_watchdog.py
