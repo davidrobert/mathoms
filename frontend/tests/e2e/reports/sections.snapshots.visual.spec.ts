@@ -160,6 +160,12 @@ async function snapshotSection(
     return;
   }
   await page.locator(selector).scrollIntoViewIfNeeded();
+  // SONDA PF-B1: "XX" ao fim do h2 da seção, sob a tolerância nova.
+  await page
+    .locator(selector)
+    .locator("header > h2")
+    .first()
+    .evaluate((el) => el.append("XX"));
   await expect(page.locator(selector)).toHaveScreenshot(
     `${baselineId}.${theme}.png`,
     {
