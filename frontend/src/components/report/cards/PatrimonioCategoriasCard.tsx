@@ -7,6 +7,7 @@ import {
   type VisibleCompositionRow,
 } from "../utils/visibleCompositionRows";
 import type { MotivoBaldeImovel, PatrimonioData } from "@/types/report-analysis";
+import { formatPercent } from "@/lib/format";
 
 interface PatrimonioCategoriasCardProps {
   patrimonio: PatrimonioData | undefined;
@@ -122,7 +123,7 @@ export function PatrimonioCategoriasCard({
                   <ValorCell row={row} />
                 </td>
                 <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                  {row.state === "nao_apurado" ? "—" : `${row.pct.toFixed(1)}%`}
+                  {row.state === "nao_apurado" ? "—" : formatPercent(row.pct)}
                 </td>
               </tr>
             ))}
