@@ -3,7 +3,7 @@
 # `requirements.lock` (gerado por `pip-compile --generate-hashes` sobre
 # requirements.in + backend/requirements.in num container linux/amd64).
 # Regenerar: ver docs/reference/runbooks/python_dependencies.md
-fastapi>=0.115
+fastapi>=0.142.2
 uvicorn[standard]>=0.54.0
 sqlalchemy[asyncio]>=2.1.3
 alembic>=1.20.0
