@@ -6,6 +6,9 @@ from pydantic import BaseModel
 
 
 class DashboardKPI(BaseModel):
+    # Identidade estável do KPI: o leitor escolhe o ícone por ela, não pela posição — o
+    # produtor omite KPI sem dado, e a posição deslizaria o ícone para o vizinho.
+    key: str
     label: str
     value: str
     raw_value: float

@@ -88,6 +88,26 @@ describe("AppShell", () => {
     expect(localStorage.getItem("fin_token")).toBeNull();
   });
 
+  it("auth gate: getMe falha → children nunca montam, spinner até o /login", async () => {
+    server.use(
+      http.get("/api/v1/auth/me", () =>
+        HttpResponse.json({ detail: "x" }, { status: 401 }),
+      ),
+    );
+    const { container } = render(
+      <AppShell>
+        <div data-testid="child">conteudo</div>
+      </AppShell>,
+    );
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith("/login");
+    });
+    // Page montada aqui pode despachar o próprio redirect (ex.: /dashboard →
+    // /plano), que descarta o replace("/login") na fila do router do Next.
+    expect(screen.queryByTestId("child")).not.toBeInTheDocument();
+    expect(container.querySelector("svg.animate-spin")).toBeInTheDocument();
+  });
+
   it("renderiza nav agrupado (F11.1) com rotas principais", async () => {
     render(<AppShell>conteudo</AppShell>);
     await screen.findByText("conteudo");

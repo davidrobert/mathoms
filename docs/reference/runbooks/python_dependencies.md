@@ -71,12 +71,18 @@ mismatch. O Docker daemon precisa estar UP.
 
 ```bash
 docker run --rm --platform linux/amd64 -v "$PWD":/work -w /work python:3.12-slim bash -c "
-  pip install -q pip-tools
+  pip install -q 'pip-tools==7.6.1' 'click<8.2'
   pip-compile --quiet --generate-hashes --strip-extras \
     --output-file=requirements.lock \
     requirements.in backend/requirements.in"
 ```
 
+- `click<8.2`: com click ≥8.2, o pip-tools (7.5 e 7.6, medido em 2026-10-09)
+  escreve um `--no-index` falso no header do lock. Não muda a resolução, mas o
+  header deixa de dizer o comando que gerou o arquivo.
+- Para subir pacotes específicos sem mexer no resto, acrescente `-P <pacote>`
+  para cada alvo. Na família opentelemetry, o `-P` vai em todos os membros (ver
+  §Uma entrada pip e a família opentelemetry).
 - `--strip-extras`: remove sufixos `[extra]` (ex.: `uvicorn[standard]`) que o
   `--require-hashes` não aceita; as deps do extra entram resolvidas mesmo assim.
 - A ordem dos `.in` no comando não altera o resultado (resolução é conjunta).
@@ -99,7 +105,7 @@ benignos.
    adicionando a linha com constraint `>=`.
 2. Rode **Tarefa 1** (regenerar) + **Tarefa 2** (validar).
 3. Commite `.in` **e** `.lock` no mesmo commit (o hook
-   `dev/check_lockfile_sync.py` bloqueia `.in` sem `.lock` correspondente).
+   `dev/check_lockfile_sync.py` reprova pacote do `.in` ausente do `.lock`).
 
 ## Tarefa 4 — Atualizar versão de uma dependência
 
@@ -107,7 +113,7 @@ benignos.
    force re-resolução total com `--upgrade`:
    ```bash
    docker run --rm --platform linux/amd64 -v "$PWD":/work -w /work python:3.12-slim bash -c "
-     pip install -q pip-tools
+     pip install -q 'pip-tools==7.6.1' 'click<8.2'
      pip-compile --quiet --generate-hashes --strip-extras --upgrade \
        --output-file=requirements.lock requirements.in backend/requirements.in"
    ```
@@ -166,15 +172,23 @@ no log. Se esse warning aparecer mais de ~2×/semana, a key ainda está incomple
 
 ## Dependabot
 
-Dependabot monitora os `.in` (ecossistema `pip` em `/` e `/backend`). Como o
+Dependabot monitora os `.in` (uma entrada `pip`, em `/`, cobre os dois). Como o
 lock é **combinado cross-dir**, o Dependabot **não regenera o `.lock`
-automaticamente** — ele abre PR subindo o `.in`, e o `dev/check_lockfile_sync.py`
-falha no CI até que alguém rode a Tarefa 1 e adicione o `.lock` regenerado ao
-PR. Esse é o gate intencional: upgrade major nunca entra sem revalidação.
+automaticamente** — ele abre PR subindo o piso no `.in`. Quando o piso novo fica
+acima do pin do lock, o `dev/check_lockfile_sync.py` reprova o Lint até que
+alguém rode a Tarefa 1 e adicione o `.lock` regenerado ao PR. Esse é o gate
+intencional: upgrade nunca entra sem revalidação.
+
+- **Até 2026-10-09 essa frase era falsa.** O hook só conferia presença, e PR de
+  piso passava verde. Em 2026-10-08 a `main` violava 5 pisos já mergeados
+  (conserto no #2046; [[ADR-254]] §Emenda 2026-10-09).
+- **Prefira um PR humano em lote** (pisos + lock regenerado) a empurrar o lock
+  na branch do Dependabot. Branch com commit de outro autor deixa de ser
+  rebaseada por ele, e os PRs dele fecham sozinhos quando o lote mergeia.
 
 ### `ignore` de redis — teto do kombu (2026-10-09)
 
-As duas entradas `pip` ignoram `redis>=6.5`. Esse é o teto que o `kombu[redis]`
+A entrada `pip` ignora `redis>=6.5`. Esse é o teto que o `kombu[redis]`
 (via `celery[redis]`) impõe. Sem o `ignore`, o updater pergunta primeiro se
 `redis==<último>` resolve. A resposta é não, mas o pip 26.2.1 do updater não
 consegue provar: ele desce o `wrapt` até o sdist 1.13.3, cujo build quebra, e o
@@ -193,6 +207,34 @@ files"). Foi o estado de 2026-08-31 a 2026-10-09.
   `dependabot-updater-pip:<sha>` que o log imprime. Com pip 24/25, o mesmo
   `.in` dá `ResolutionImpossible` em menos de 1 min, o que o Dependabot trata
   como `update_not_possible` (verde).
+
+### Uma entrada pip e a família opentelemetry (2026-10-09)
+
+Uma entrada `pip` só, em `/`, cobre `requirements.in` e `backend/requirements.in`:
+o log do updater roda `pip-compile ... backend/requirements.in`. A `/backend` saiu
+em 2026-10-09. Ela ficou sem job de 07-28 a 10-09 e, no primeiro job, duplicou os
+PRs da `/` (#2103≡#2104, #2105≡#2108) e partiu a família opentelemetry entre as
+duas (#2101 na `/backend`, #2102 na `/`). O `open-pull-requests-limit` da `/`
+subiu de 5 para 8, porque ela passou a cobrir os dois `.in`.
+
+A família `opentelemetry-*` é acoplada por `==`. O sdk 1.Y pede `api==1.Y`, e a
+instrumentation 0.Xb pede `semantic-conventions==0.Xb`, que o sdk também pina.
+Por isso o núcleo (1.x: api, sdk, exporter) e o contrib (0.Xb:
+instrumentation-*) sobem juntos. Um membro sozinho com piso novo pede uma
+combinação que o lock não tem, e grupos `pip` por `patterns` nunca produziram PR
+agrupado neste repo.
+
+- **Sentinelas:** só `opentelemetry-api` (1.x) e
+  `opentelemetry-instrumentation-fastapi` (0.Xb) recebem version update. Os
+  outros cinco membros são `ignore` por `update-types`, então security update
+  continua abrindo para eles. `tests/dev/test_dependabot_otel_sentinels.py`
+  exige uma sentinela por trilha: membro novo no `.in` sem `ignore` reprova.
+- **PR da sentinela:** não mergeie sozinho. No mesmo PR, ou num lote humano,
+  suba os pisos de **todos** os membros das duas trilhas para a release nova, um
+  piso só por trilha, e regenere o lock (Tarefa 1) com `-P` em cada pacote
+  `opentelemetry-*` do lock, diretos e transitivos (13 no #2143). No #2143, foi
+  preciso `click<8.2` no container, porque com click ≥8.2 o pip-tools escreve um
+  `--no-index` falso no header.
 
 ### Saúde das entradas do Dependabot (issue `ops-dependabot-red`)
 
@@ -241,15 +283,45 @@ entradas, não só as `pip`.
   os de security update, que têm limite próprio de 10. O erro cai do lado barato,
   no máximo uma issue a mais.
 
+### Triagem da fila pip: direto, lote ou congelado (2026-10-09)
+
+Com o lock combinado, cada PR pip do Dependabot cai num de quatro destinos:
+
+- **Piso que o lock já satisfaz:** entra direto, pelo próprio PR, com
+  auto-merge. Prod não muda, porque a imagem instala o lock. O `lockfile-sync`
+  passa.
+- **Piso acima do pin do lock:** o `lockfile-sync` reprova o Lint. Vai para o
+  **lote semanal**: um PR humano, depois do job agendado de segunda (06:00 BRT),
+  que sobe os pisos e regenera o lock (Tarefa 1 com `-P` só nos alvos + Tarefa 2).
+  Na descrição, liste os PRs absorvidos e feche cada um com link para o lote.
+  Não persiga onda a onda: todo merge que toca o `dependabot.yml` dispara job em
+  todas as entradas e abre outra leva. Em 2026-10-09 foram 30 PRs pip em quatro
+  levas (03, 11, 12 e 15 UTC).
+- **Major ou caminho crítico** fica fora do lote comum, num PR próprio:
+  websockets 16→17 foi isolado do fix de segurança do cryptography (#2195 ×
+  #2188).
+- **Congelados** (`ignore` por `update-types`, security update continua
+  abrindo). O motivo e a condição de retomada ficam no comentário de cada regra
+  em `.github/dependabot.yml`:
+  - **`litellm` e `instructor`:** caminho de toda chamada LLM, que o CI só
+    testa com mock; ≥1.98 o litellm traz boto3/botocore sem uso.
+  - **`numpy`:** bump é rebaseline do Monte Carlo ([[ADR-360]]); ≥2.5 exige
+    Python 3.12, e o updater resolve em 3.11.
+  - **`redis`:** acima do teto do kombu.
+- **`playwright`** sobe junto com o `@playwright/test` do frontend, no mesmo PR.
+  O PDF de prod sai do Chromium do playwright Python, e o `frontend-print-visual`
+  valida com o do frontend. O hook `playwright-parity` reprova o PR que partir o
+  par, como o #2151 fez em 2026-10-09.
+
 ### PR do Dependabot parado
 
 Vale para todo ecossistema, não só `pip`. Fechar PR do Dependabot vira ignore
 implícito da release, e por isso o `stale.yml` isenta esses PRs pela label
 `dependabot` (#2147; o stale fechou #2006–#2015 em 2026-09-29). Isento, o PR que
 ninguém mergeia fica aberto para sempre: ocupa uma vaga do
-`open-pull-requests-limit` (5, ou 3 no `frontend-ops`) e trava calado os version
-updates da entrada. O pip é o caso típico, porque o PR nasce vermelho até alguém
-regenerar o `.lock`.
+`open-pull-requests-limit` (8 no `pip`, 3 no `frontend-ops`, 5 nos demais) e
+trava calado os version updates da entrada. O pip é o caso típico, porque o PR
+nasce vermelho até alguém regenerar o `.lock`.
 
 - **Idade é da cadeia, não do PR.** A cada release nova o Dependabot fecha o PR e
   abre outro ("Superseded by #N"). O `next` passou por #2025, #2037 e #2039 em 9
@@ -266,7 +338,9 @@ regenerar o `.lock`.
   1,3 dia nos 99 medidos. Contrafactual: o lote de 09-07 teria avisado em 09-13,
   16 dias antes de o stale fechá-lo.
 - **Saídas** (escolha uma, e então feche a issue):
-  1. **Merge.** No pip, rode a Tarefa 1 no próprio PR do Dependabot.
+  1. **Merge.** No pip, o piso que o lock já satisfaz entra pelo próprio PR. O
+     piso acima do lock vai para o lote semanal (§Triagem da fila pip), não para
+     um commit de lock na branch do Dependabot.
   2. **Lane de migração**, para major que pede trabalho (ex.: vite 6→8,
      typescript 6→7). O PR pode ficar aberto enquanto sobrar vaga.
   3. **`ignore` no `.github/dependabot.yml`**, com data e condição de retomada no
@@ -283,6 +357,22 @@ regenerar o `.lock`.
 
 ## Hook de sincronia
 
-`dev/check_lockfile_sync.py` (pre-commit) compara o conjunto de deps diretas
-declaradas nos `.in` com as pinadas no `.lock`. Falha se um `.in` declara um
-pacote ausente do `.lock` — sinal de que o lock está stale.
+`dev/check_lockfile_sync.py` (pre-commit, e no job Lint do CI) confere cada
+requisito declarado nos `.in` contra o pin do `.lock`. Falha, com
+`arquivo:linha`, em dois casos — ambos sinal de lock stale:
+
+- **Pacote ausente do `.lock`.**
+- **Pin fora do especificador do `.in`.** É o caso do piso acima do pin ou do
+  teto abaixo dele.
+
+Detalhes da medição:
+
+- Os nomes casam por PEP 503 (`PyYAML` = `pyyaml`). Os extras são ignorados,
+  porque o lock usa `--strip-extras`.
+- Um requisito com marcador falso para o alvo do lock não é exigido. O alvo é
+  linux/x86_64, com o Python do header do pip-compile.
+- `-r`/`-c`/`-e` e marcador com `python_full_version` falham alto, em vez de
+  serem pulados.
+
+Um diff de `.in` que o lock já satisfaz passa sem regenerar o lock, e isso é
+intencional: o lock continua válido.

@@ -40,12 +40,12 @@ test.describe("Drill-down Dashboard → Transactions", () => {
   }, info) => {
     await ensureLoggedIn(page, request, info);
     await page.goto("/dashboard");
-    // Dashboard pode mostrar empty state (sem pipeline rodou) ou KPIs
-    // Usar heading (single match) — "Dashboard" aparece no nav link + heading.
+    // ADR-155: /dashboard virou redirect para /plano (preserva deep-link). O
+    // heading "Meu Plano" existe em todo estado da página (loading, vazio,
+    // erro de fetch) e não existe no fallback do ErrorBoundary.
     await expect(
-      page
-        .getByRole("heading", { name: "Dashboard" })
-        .or(page.getByText("Nenhuma análise disponível")),
+      page.getByRole("heading", { name: "Meu Plano" }),
     ).toBeVisible({ timeout: 10_000 });
+    await expect(page).toHaveURL(/\/plano$/);
   });
 });

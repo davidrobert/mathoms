@@ -120,7 +120,16 @@ NON_MONETARY_PREFIXES = (
 # em OUTROS blocos são dinheiro (`investimentos.tabela_classes[].valor`,
 # `patrimonio.composicao[].valor`). Nenhuma regra por folha consegue separar os dois.
 # `cobertura_publicada.` publica MÉTRICA (A27.l3): `denominador` 17→20 saía +300 cents no golden.
-NON_MONETARY_NAMESPACES = ("score.", "cobertura_publicada.")
+# `medicao.` e `parametros_geradores.` (A40.l124) são os blocos do snapshot do INSTRUMENTO de
+# ancorabilidade (`dev/snapshots/parecer_ancorabilidade.json`): contagens de folhas e de
+# entradas e orçamentos em BYTES. O 1º rebaseline numérico deles sob este gate (cap
+# 16384→24576) saía como R$ 8.192,00 de delta fabricado. Medido: nenhum outro golden os usa.
+NON_MONETARY_NAMESPACES = (
+    "score.",
+    "cobertura_publicada.",
+    "medicao.",
+    "parametros_geradores.",
+)
 
 # Unidade é TOKEN, não sufixo. `equivalente_meses_poupanca` carrega `meses` no meio e
 # escapava de `NON_MONETARY_SUFFIXES`; fechar por entrada exata deixaria o próximo

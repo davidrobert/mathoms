@@ -2,6 +2,7 @@
 
 Cobrem:
 - POST cria + retorna 201 com id/status
+- POST com ``code`` fora de ``^D[0-9]+$`` → 422 (ADR-214)
 - GET (list/byid) felizes
 - PATCH atualiza campo + emite evento
 - POST execute marca status + valida 422 quando já executada
@@ -57,6 +58,28 @@ async def test_create_without_code_auto_generates_sequence(db, client):
     r2 = await client.post(base, json={"title": "B"})
     assert r2.status_code == 201, r2.text
     assert r2.json()["code"] == "D02"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "code",
+    ["D1-x", "X01", "D90-w3", pytest.param("D١", id="digito-arabe-indico")],
+)
+async def test_create_with_non_canonical_code_returns_422(db, client, code):
+    """ADR-214 — ``code`` fora de ``^D[0-9]+$`` é 422 na borda, não 500 no INSERT.
+
+    O CHECK ``chk_decisions_code_canonical`` só existe no Postgres (lá o
+    ``D90-w3`` do run 37960981732 estourou 500); no SQLite o code entrava
+    calado. ``D\\u0661`` casa o ``\\d`` Unicode do Pydantic e o CHECK recusa.
+    """
+    _, ws = await _make_auth(db, client)
+    base = f"/api/workspaces/{ws.id}/decisions"
+    resp = await client.post(base, json={"code": code, "title": "t"})
+    assert resp.status_code == 422, resp.text
+    [err] = [e for e in resp.json()["detail"] if e["loc"] == ["body", "code"]]
+    assert err["input"] == code
+    assert "^D[0-9]+$" in err["msg"]
+    assert (await client.get(base)).json()["total"] == 0
 
 
 @pytest.mark.asyncio

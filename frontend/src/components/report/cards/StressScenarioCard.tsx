@@ -6,16 +6,39 @@
  * cards comparativos com delta explícito (sinal+cor, a11y AA) e parágrafo
  * "Leitura:" justificando o stress test em tom não-alarmista.
  */
+import { Info } from "lucide-react";
 import { formatBRLNoCents } from "@/lib/format";
 import { ReportCard } from "../ReportCard";
 
 type StressCenarios = {
   labels?: string[];
-  aportes?: number[];
+  aportes?: (number | null)[];
   prazos_if?: (number | null)[];
   anos_if?: (number | null)[];
-  premissas?: { aporte_base?: number };
+  premissas?: { aporte_base?: number | null };
+  cenarios?: Array<{ resumo?: string }>;
 };
+
+/** Duas formas do mesmo estado: `null` é a atual; `0` sobrevive em artefatos E5
+ *  persistidos antes dela. Zero nunca é aporte declarado (ADR-373). */
+function aporteDeclarado(valor: number | null | undefined): number | null {
+  return valor != null && valor > 0 ? valor : null;
+}
+
+/** Sem aporte declarado não há o que estressar: a nota diz qual insumo falta. */
+function NotaSemAporte({ titulo, texto }: { titulo: string; texto: string }) {
+  return (
+    <ReportCard variant="feature" title={titulo} size="full">
+      <p
+        role="note"
+        className="flex items-start gap-1.5 text-sm text-[var(--surface-foreground)]"
+      >
+        <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+        <span>{texto}</span>
+      </p>
+    </ReportCard>
+  );
+}
 
 type StressGoals = { if_prazo_anos?: number; if_ano?: number };
 
@@ -63,7 +86,13 @@ export function StressScenarioCard({
   goals?: StressGoals;
 }) {
   const label = cenarios.labels?.[0] ?? "Cenário de estresse";
-  const aporteEstresse = cenarios.aportes?.[0];
+  // O resumo só vale na forma atual: o de artefato antigo ainda diz "R$ 0,00".
+  const notaSemAporte =
+    cenarios.premissas?.aporte_base === null ? cenarios.cenarios?.[0]?.resumo : undefined;
+  if (notaSemAporte) {
+    return <NotaSemAporte titulo={`Premissa testada: ${label}`} texto={notaSemAporte} />;
+  }
+  const aporteEstresse = aporteDeclarado(cenarios.aportes?.[0]);
   const prazoEstresse = cenarios.prazos_if?.[0];
   const anoEstresse = cenarios.anos_if?.[0];
 
@@ -71,7 +100,7 @@ export function StressScenarioCard({
   // artefatos E5 já persistidos no DB antes da troca por ausência explícita.
   const estresseNaoProjetavel = prazoEstresse == null || prazoEstresse === 999;
 
-  const aporteBase = cenarios.premissas?.aporte_base;
+  const aporteBase = aporteDeclarado(cenarios.premissas?.aporte_base);
   const prazoBase = goals?.if_prazo_anos;
   const anoBase = goals?.if_ano;
 
@@ -139,7 +168,7 @@ export function StressScenarioCard({
             <div className="flex justify-between">
               <dt className="text-[var(--surface-muted-foreground)]">Prazo até IF</dt>
               <dd className="font-mono tabular-nums">
-                {estresseNaoProjetavel ? "Não atinge" : fmtAnosMeses(prazoEstresse)}
+                {estresseNaoProjetavel ? "—" : fmtAnosMeses(prazoEstresse)}
                 {!estresseNaoProjetavel && (
                   <span
                     className={

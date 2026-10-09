@@ -24,6 +24,12 @@ from backend.app.models.decision import (
 _PRIORITY_MIN: int = 1
 _PRIORITY_MAX: int = 99
 
+# ADR-214 — mesma regex do CHECK ``chk_decisions_code_canonical``, que só existe
+# no Postgres: sem ela o code fora do padrão estoura 500 no INSERT lá e entra
+# calado no SQLite. ``[0-9]``, não ``\d``: o ``\d`` do Pydantic casa dígito
+# Unicode (``"D\u0661"``), que o CHECK recusa.
+_DECISION_CODE_PATTERN: str = r"^D[0-9]+$"
+
 
 class DecisionCreateCommand(BaseModel):
     """Cria nova ``Decision`` (status inicial = ``Pendente`` se omitido).
@@ -35,7 +41,7 @@ class DecisionCreateCommand(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    code: Optional[str] = Field(None, min_length=1, max_length=16)
+    code: Optional[str] = Field(None, min_length=1, max_length=16, pattern=_DECISION_CODE_PATTERN)
     title: str = Field(..., min_length=1, max_length=500)
     rationale: Optional[str] = None
     amount_brl: Optional[Decimal] = Field(
