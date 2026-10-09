@@ -98,6 +98,17 @@ def _runs_fake(runs_by_number: dict[int, list[dict[str, Any]]]):
     return lambda pr: runs_by_number.get(pr["number"], [])
 
 
+@pytest.fixture(autouse=True)
+def _sem_rede_nem_relogio(monkeypatch: Any) -> None:
+    """Releitura sem fake injetado chamaria `gh api` e dormiria 5s de verdade."""
+
+    def _proibido(*_: Any) -> Any:
+        raise AssertionError("teste chamou a API ou o relógio reais — injete state_for/pause")
+
+    monkeypatch.setattr(train, "merge_state", _proibido)
+    monkeypatch.setattr(train.time, "sleep", _proibido)
+
+
 class TestEligibleTrain:
     def test_filtra_sem_automerge_draft_e_label_excluida(self) -> None:
         prs = [
@@ -258,7 +269,8 @@ class TestDescribeDecision:
 
     def test_unknown_tambem_segura_e_aparece_na_mensagem(self) -> None:
         prs = [_pr(1, mergeStateStatus="UNKNOWN"), _pr(2)]
-        assert "mergeStateStatus=UNKNOWN" in describe_decision(decide_train(prs, _runs_fake({})))
+        decision = decide_train(prs, _runs_fake({}), lambda n: "UNKNOWN", lambda s: None)
+        assert "mergeStateStatus=UNKNOWN" in describe_decision(decision)
 
 
 class TestRequiredWorkflowPredicates:
@@ -389,7 +401,8 @@ class TestCabecaUnica:
         runs = _runs_fake({})
         head = train_head(prs, runs)
         assert head is not None and head["number"] == 1
-        assert decide_train(prs, runs).head_on_hold is head
+        decision = decide_train(prs, runs, lambda n: "UNKNOWN", lambda s: None)
+        assert decision.head_on_hold is head
 
     def test_concordam_sobre_a_cabeca_depois_de_pular_excluidos(self) -> None:
         prs = [
