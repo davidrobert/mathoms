@@ -237,8 +237,10 @@ quando o dado simplesmente não foi capturado.
 - Renderização via `formatPercent(valor, casas)` (`frontend/src/lib/format.ts`,
   1 casa por padrão). Os campos `*_pct` já chegam absolutos — `44.7` é 44,7%
   ([[ADR-209]]); o formatador não multiplica.
-- `toFixed` não conhece locale e escreve o ponto. Em
-  `frontend/src/components/report/` o ESLint reprova `toFixed(n)` colado ao `%`.
+- `toFixed` não conhece locale e escreve o ponto. Em todo o `frontend/src/` o
+  ESLint reprova `toFixed(n)` colado ao `%`. Número cru (`${pct}%`) e `toFixed`
+  guardado em variável escapam do gate: ficam com os testes de render, que
+  assertam a vírgula e recusam o ponto (`frontend/tests/shared/percentualPtBr.ts`).
 
 ---
 
