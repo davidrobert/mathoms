@@ -369,7 +369,7 @@ como escrita — com a descrição da era `1.3.0` —, ela confirmaria a cadeia.
 - `workspaces.residencia_status` ([[ADR-215]]) **nunca chegava ao E5**. Plumbado em #2049; o "— + CTA" da ADR-215 aparece pela primeira vez no relatório.
 - A ADR-215 declara `backend/tests/integration/test_property_override_sticky.py` ("classificação sobrevive ao re-upload") e o arquivo **não existe** — é o gate que teria pego a regressão da `1.4.1`. ➜ [[A40.l121]].
 - A checagem de residência por `property_id` em `investimentos_classes`, `top_ativos` e `instituicoes` (o elo 5 desta lane) segue falhando **aberta**; dormente no U5 (a residência tem id), viva quando ela perde identidade. ➜ **A40.l122** (sessão aberta pelo dono em 2026-10-08; código no #2079, lane ainda fora da `main`).
-- O parecer não recebe o veredito: os campos novos estão em `E5_FIELDS_FORA_DO_PARECER`. Projetá-los no bloco "Cobertura e incerteza" pede bump do manifest e eval ➜ **A40.l123** (sessão aberta pelo dono em 2026-10-08, `prompt-engineer`; lane ainda fora da `main`).
+- O parecer não recebe o veredito: os campos novos estão em `E5_FIELDS_FORA_DO_PARECER`. Projetá-los no bloco "Cobertura e incerteza" pede bump do manifest e eval ➜ [[A40.l123]] (sessão aberta pelo dono em 2026-10-08, `prompt-engineer`).
 - Valores reais do dogfood commitados em 12 arquivos de docs e testes de repo **público** ➜ sessão aberta pelo dono (#2071, e a política no #2076).
 - O `PV13-01` fica **sem lane**: decisão, gatilho e P2 re-derivado na linha do
   [[PIPELINE-REVIEWS-active]]. Destino de cada item em [[MOC-a40-historico]] §Destino dos
