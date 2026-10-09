@@ -117,6 +117,10 @@ updates:
         patterns: ["next", "react", "react-*", "@types/react*"]
       eslint-and-types:
         patterns: ["eslint*", "@typescript-eslint/*", "@types/*", "prettier*"]
+        # Major de @types/node acima do runtime reprova no node-version-parity:
+        # aqui dentro travaria o grupo inteiro. Fora dele, patch/minor caem no
+        # patch-and-minor e o major vem em PR isolado, vermelho até o .nvmrc subir.
+        exclude-patterns: ["@types/node"]
       vitest-and-test:
         patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/*", "playwright"]
       patch-and-minor:

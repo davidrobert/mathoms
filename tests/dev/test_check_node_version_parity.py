@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import fnmatch
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -17,6 +19,7 @@ from check_node_version_parity import (  # noqa: E402
     check_node_parity,
     is_workflow,
     main,
+    node_major,
     walk_repo,
 )
 
@@ -225,6 +228,147 @@ def test_compose_de_dev_atrasado_reprova(tmp_path: Path) -> None:
     ]
 
 
+# --- Node do runner: job que chama Node sem setup-node antes ---------------------
+
+
+def _run_job(*steps: str, extra: str = "") -> str:
+    body = "".join(f"      - {step}\n" for step in steps)
+    return "jobs:\n  lint:\n    runs-on: ubuntu-latest\n" + extra + "    steps:\n" + body
+
+
+_SETUP_STEP = (
+    "uses: actions/setup-node@v5\n        with:\n          node-version-file: frontend/.nvmrc"
+)
+
+
+@pytest.mark.parametrize(
+    ("run", "command"),
+    [
+        ("npm ci", "npm"),
+        ("pre-commit run --all-files", "pre-commit"),
+        ("python3 x.py && node -e 1", "node"),
+        ("env CI=1 npx playwright test", "npx"),
+        ('echo "$(npm --version)"', "npm"),
+    ],
+)
+def test_job_que_chama_node_sem_setup_node_reprova(tmp_path: Path, run: str, command: str) -> None:
+    _mini_repo(tmp_path)
+    _write(
+        tmp_path, ".github/workflows/x.yml", _run_job("uses: actions/checkout@v5", f"run: {run}")
+    )
+    assert _divergences(tmp_path) == [
+        f".github/workflows/x.yml#lint: step 2 chama `{command}` no Node do runner (sem "
+        "setup-node antes); esperado `actions/setup-node` com `node-version-file: "
+        "<app>/.nvmrc` antes dele (ou `container: node:<major>`)"
+    ]
+
+
+def test_setup_node_depois_do_step_que_chama_node_reprova(tmp_path: Path) -> None:
+    _mini_repo(tmp_path)
+    _write(tmp_path, ".github/workflows/x.yml", _run_job("run: npm ci", _SETUP_STEP))
+    assert any("#lint: step 1 chama `npm`" in d for d in _divergences(tmp_path))
+    _write(tmp_path, ".github/workflows/x.yml", _run_job(_SETUP_STEP, "run: npm ci"))
+    assert _divergences(tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "run",
+    [
+        "|\n          # npm ci fica para o job do frontend\n          ruff check .",
+        "ls frontend/node_modules/.bin",
+        "cat .pre-commit-config.yaml",
+        "echo setup-node --node-version",
+    ],
+)
+def test_texto_que_nao_chama_node_passa(tmp_path: Path, run: str) -> None:
+    _mini_repo(tmp_path)
+    _write(tmp_path, ".github/workflows/x.yml", _run_job(f"run: {run}"))
+    assert _divergences(tmp_path) == []
+
+
+def test_container_node_dispensa_setup_node(tmp_path: Path) -> None:
+    _mini_repo(tmp_path)
+    extra = "    container: node:26-bookworm\n    defaults:\n      run:\n        working-directory: frontend\n"
+    _write(tmp_path, ".github/workflows/x.yml", _run_job("run: npm ci", extra=extra))
+    assert _divergences(tmp_path) == []
+    _write(
+        tmp_path,
+        ".github/workflows/x.yml",
+        _run_job("run: npm ci", extra="    container: python:3.13\n"),
+    )
+    assert any("chama `npm` no Node do runner" in d for d in _divergences(tmp_path))
+
+
+# --- @types/node: major ≤ runtime, medido no lock ------------------------------
+
+_TYPES_KEY = "node_modules/@types/node"
+
+
+def _types_repo(root: Path, copies: dict[str, object], *, declared: bool = True) -> Path:
+    _mini_repo(root)
+    manifest = {"devDependencies": {"@types/node": "^26.0.0"}} if declared else {}
+    _write(root, "frontend/package.json", json.dumps(manifest))
+    packages = {"": manifest, **{k: {"version": v} for k, v in copies.items()}}
+    _write(
+        root, "frontend/package-lock.json", json.dumps({"lockfileVersion": 3, "packages": packages})
+    )
+    return root
+
+
+@pytest.mark.parametrize("version", ["26.6.4", "25.6.0", "22.19.17"])
+def test_types_node_no_major_do_runtime_ou_abaixo_passa(tmp_path: Path, version: str) -> None:
+    """Major ímpar (25) passa: o calendário de 2026 faz todo major ≥27 LTS — paridade não é regra."""
+    report = check_node_parity(_types_repo(tmp_path, {_TYPES_KEY: version}))
+    assert report.divergences == []
+    assert report.types_node == {f"frontend/package-lock.json#{_TYPES_KEY}": version}
+
+
+def test_types_node_acima_do_runtime_reprova(tmp_path: Path) -> None:
+    assert _divergences(_types_repo(tmp_path, {_TYPES_KEY: "27.0.0"})) == [
+        f"frontend/package-lock.json#{_TYPES_KEY}: @types/node '27.0.0' → major 27; esperado "
+        "major ≤ 26 (frontend/.nvmrc) — types acima do runtime liberam API que prod não tem; "
+        "suba o runtime antes, em PR humano (.nvmrc + Dockerfile + compose) — não comite no "
+        "branch do Dependabot; o PR dele fica verde no rebase"
+    ]
+
+
+def test_types_node_aninhado_acima_do_runtime_reprova(tmp_path: Path) -> None:
+    nested = "node_modules/some-dep/node_modules/@types/node"
+    found = _divergences(_types_repo(tmp_path, {_TYPES_KEY: "26.6.4", nested: "28.1.0"}))
+    assert [d.split(":")[0] for d in found] == [f"frontend/package-lock.json#{nested}"]
+    assert found[0].endswith("fixe a cópia aninhada com `overrides` no package.json")
+
+
+@pytest.mark.parametrize("version", [None, "latest", ""])
+def test_types_node_sem_versao_mensuravel_reprova(tmp_path: Path, version: object) -> None:
+    found = _divergences(_types_repo(tmp_path, {_TYPES_KEY: version}))
+    assert len(found) == 1 and "sem major numérico" in found[0]
+
+
+def test_types_node_declarado_sem_copia_no_lock_reprova(tmp_path: Path) -> None:
+    _types_repo(tmp_path, {})
+    expected = (
+        "frontend/package-lock.json: @types/node declarado em frontend/package.json sem cópia "
+        "no lock; esperado `packages` com a versão"
+    )
+    assert _divergences(tmp_path) == [expected]
+    (tmp_path / "frontend/package-lock.json").unlink()
+    assert _divergences(tmp_path) == [expected]
+
+
+def test_app_sem_types_node_nao_tem_o_que_medir(tmp_path: Path) -> None:
+    assert check_node_parity(_types_repo(tmp_path, {}, declared=False)).divergences == []
+
+
+def test_types_node_mede_contra_o_nvmrc_do_proprio_app(tmp_path: Path) -> None:
+    """Bump de runtime alinhado libera o major dos types — a unidade é o app."""
+    _types_repo(tmp_path, {_TYPES_KEY: "28.0.0"})
+    assert main(["--root", str(tmp_path)]) == 1
+    _write(tmp_path, "frontend/.nvmrc", "28\n")
+    _write(tmp_path, "frontend/Dockerfile", f"FROM node:28-alpine{_DIGEST}\n")
+    assert main(["--root", str(tmp_path)]) == 0
+
+
 # --- Repo real: o gate discrimina sobre os arquivos que o CI de fato lê ---------
 
 
@@ -235,7 +379,9 @@ def _copy_real_inputs(dest: Path) -> Path:
             path.name.startswith("Dockerfile")
             or is_workflow(rel)
             or bool(_COMPOSE_RE.match(path.name))
-            or (rel.count("/") == 1 and path.name in {"package.json", ".nvmrc"})
+            or (
+                rel.count("/") == 1 and path.name in {"package.json", "package-lock.json", ".nvmrc"}
+            )
         )
         if wanted:
             (dest / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -255,6 +401,10 @@ def test_repo_real_passa_e_mede_os_sitios_conhecidos() -> None:
     assert report.majors == {"frontend": 26, "frontend-ops": 26}
     wheres = {pin.where.split(":")[0].split("#")[0] for pin in report.pins}
     assert {"frontend/Dockerfile", "frontend-ops/Dockerfile", "docker-compose.dev.yml"} <= wheres
+    assert {w.split("#")[0] for w in report.types_node} == {
+        "frontend/package-lock.json",
+        "frontend-ops/package-lock.json",
+    }
 
 
 def test_repo_real_dockerfile_em_node_28_reprova(tmp_path: Path) -> None:
@@ -269,9 +419,9 @@ def test_repo_real_literal_velho_no_ci_reprova(tmp_path: Path) -> None:
     root = _copy_real_inputs(tmp_path)
     ci = ".github/workflows/ci.yml"
     text = (root / ci).read_text()
-    (root / ci).write_text(
-        text.replace("node-version-file: frontend/.nvmrc", 'node-version: "20"', 1)
-    )
+    head, job = text.split("\n  frontend-checks:\n", 1)
+    job = job.replace("node-version-file: frontend/.nvmrc", 'node-version: "20"', 1)
+    (root / ci).write_text(f"{head}\n  frontend-checks:\n{job}")
     assert _divergences(root) == [
         ".github/workflows/ci.yml#frontend-checks: 'node-version: 20' → major 20; esperado 26 "
         "(frontend/.nvmrc); alinhe este sítio — ou, se o major novo é o certo (PR de major do "
@@ -287,6 +437,53 @@ def test_repo_real_bump_de_major_alinhado_por_app_passa(tmp_path: Path) -> None:
     _bump(root, "frontend-ops/.nvmrc", "26", "28", 1)
     assert main(["--root", str(root)]) == 0
     assert check_node_parity(root).majors == {"frontend": 26, "frontend-ops": 28}
+
+
+def test_repo_real_types_node_acima_do_runtime_reprova(tmp_path: Path) -> None:
+    """Mutação no lock real: o PR de major de @types/node do Dependabot fica vermelho."""
+    root = _copy_real_inputs(tmp_path)
+    lock_path = root / "frontend/package-lock.json"
+    lock = json.loads(lock_path.read_text())
+    assert node_major(lock["packages"][_TYPES_KEY]["version"]) <= 26
+    lock["packages"][_TYPES_KEY]["version"] = "27.0.0"
+    lock_path.write_text(json.dumps(lock))
+    found = _divergences(root)
+    assert len(found) == 1
+    assert found[0].startswith(f"frontend/package-lock.json#{_TYPES_KEY}: @types/node '27.0.0'")
+
+
+def test_repo_real_lint_sem_setup_node_reprova(tmp_path: Path) -> None:
+    """Mutação no ci.yml real: os hooks `node -e`/`npx` do Lint voltam ao Node do runner."""
+    root = _copy_real_inputs(tmp_path)
+    ci = root / ".github/workflows/ci.yml"
+    workflow = yaml.safe_load(ci.read_text())
+    steps = workflow["jobs"]["lint-all"]["steps"]
+    kept = [st for st in steps if not str(st.get("uses", "")).startswith("actions/setup-node@")]
+    assert len(steps) - len(kept) == 1
+    workflow["jobs"]["lint-all"]["steps"] = kept
+    ci.write_text(yaml.safe_dump(workflow, sort_keys=False))
+    found = _divergences(root)
+    assert len(found) == 1
+    assert found[0].startswith(".github/workflows/ci.yml#lint-all: step ")
+    assert "chama `pre-commit` no Node do runner" in found[0]
+
+
+def _groups_carrying_types_node_major(update: dict[str, object]) -> list[str]:
+    carrying = []
+    for name, group in (update.get("groups") or {}).items():
+        majors = "major" in group.get("update-types", ["major"])
+        matches = any(fnmatch.fnmatch("@types/node", p) for p in group.get("patterns", []))
+        excluded = any(fnmatch.fnmatch("@types/node", p) for p in group.get("exclude-patterns", []))
+        if majors and matches and not excluded:
+            carrying.append(name)
+    return carrying
+
+
+def test_dependabot_isola_o_major_de_types_node() -> None:
+    """Agrupado, o major vermelho de @types/node travaria eslint/prettier junto."""
+    config = yaml.safe_load((_REPO / ".github/dependabot.yml").read_text())
+    npm = [u for u in config["updates"] if u["package-ecosystem"] == "npm"]
+    assert npm and all(_groups_carrying_types_node_major(u) == [] for u in npm)
 
 
 def test_hook_roda_sempre_e_nao_e_pulado_no_ci() -> None:

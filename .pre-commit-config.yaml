@@ -710,10 +710,11 @@ repos:
         # O `docker` do Dependabot subiu o FROM node:22→26 (#1634) e o CI seguiu
         # em Node 20 (EOL) por 6 semanas. `<app>/.nvmrc` é o major do app;
         # FROM, setup-node, container e compose têm de bater. PR de major do
-        # Dependabot fica vermelho aqui até o .nvmrc subir junto. always_run:
-        # os inputs incluem `*/package.json` descoberto, e o script lê ~15
-        # arquivos (<0,2s) — regex de `files:` só criaria o furo do commit local.
-        name: "Major do Node: <app>/.nvmrc = FROM node = CI = compose"
+        # Dependabot fica vermelho aqui até o .nvmrc subir junto. Também:
+        # @types/node do lock ≤ .nvmrc, e job que chama Node sem setup-node antes.
+        # always_run: os inputs incluem `*/package.json` descoberto, e o script lê
+        # ~20 arquivos (~0,5s de CPU) — regex de `files:` só criaria o furo do commit local.
+        name: "Major do Node: <app>/.nvmrc = FROM node = CI = compose; @types/node ≤ .nvmrc"
         entry: python3 dev/check_node_version_parity.py
         language: system
         pass_filenames: false

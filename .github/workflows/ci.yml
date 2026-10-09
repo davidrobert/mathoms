@@ -512,6 +512,14 @@ jobs:
         with:
           version: "0.5.x"
 
+      - name: Setup Node
+        # Hooks `language: system` chamam Node: probabilidade-parity roda `node -e`
+        # e frontend-lock-sync roda `npx`. Sem este step rodavam no Node do runner,
+        # e um bump do runner mudava o resultado em silêncio (node-version-parity).
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc
+
       - name: Install lint deps (via uv)
         # ADR-182: jsonschema + pyyaml para os hooks doc-* da vault Obsidian
         # (validate_frontmatter, check_doc_links, check_doc_filename_id,
