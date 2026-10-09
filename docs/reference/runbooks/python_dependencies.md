@@ -71,12 +71,18 @@ mismatch. O Docker daemon precisa estar UP.
 
 ```bash
 docker run --rm --platform linux/amd64 -v "$PWD":/work -w /work python:3.12-slim bash -c "
-  pip install -q pip-tools
+  pip install -q 'pip-tools==7.6.1' 'click<8.2'
   pip-compile --quiet --generate-hashes --strip-extras \
     --output-file=requirements.lock \
     requirements.in backend/requirements.in"
 ```
 
+- `click<8.2`: com click ≥8.2, o pip-tools (7.5 e 7.6, medido em 2026-10-09)
+  escreve um `--no-index` falso no header do lock. Não muda a resolução, mas o
+  header deixa de dizer o comando que gerou o arquivo.
+- Para subir pacotes específicos sem mexer no resto, acrescente `-P <pacote>`
+  para cada alvo. Na família opentelemetry, o `-P` vai em todos os membros (ver
+  §Uma entrada pip e a família opentelemetry).
 - `--strip-extras`: remove sufixos `[extra]` (ex.: `uvicorn[standard]`) que o
   `--require-hashes` não aceita; as deps do extra entram resolvidas mesmo assim.
 - A ordem dos `.in` no comando não altera o resultado (resolução é conjunta).
@@ -107,7 +113,7 @@ benignos.
    force re-resolução total com `--upgrade`:
    ```bash
    docker run --rm --platform linux/amd64 -v "$PWD":/work -w /work python:3.12-slim bash -c "
-     pip install -q pip-tools
+     pip install -q 'pip-tools==7.6.1' 'click<8.2'
      pip-compile --quiet --generate-hashes --strip-extras --upgrade \
        --output-file=requirements.lock requirements.in backend/requirements.in"
    ```
@@ -277,6 +283,36 @@ entradas, não só as `pip`.
   os de security update, que têm limite próprio de 10. O erro cai do lado barato,
   no máximo uma issue a mais.
 
+### Triagem da fila pip: direto, lote ou congelado (2026-10-09)
+
+Com o lock combinado, cada PR pip do Dependabot cai num de quatro destinos:
+
+- **Piso que o lock já satisfaz:** entra direto, pelo próprio PR, com
+  auto-merge. Prod não muda, porque a imagem instala o lock. O `lockfile-sync`
+  passa.
+- **Piso acima do pin do lock:** o `lockfile-sync` reprova o Lint. Vai para o
+  **lote semanal**: um PR humano, depois do job agendado de segunda (06:00 BRT),
+  que sobe os pisos e regenera o lock (Tarefa 1 com `-P` só nos alvos + Tarefa 2).
+  Na descrição, liste os PRs absorvidos e feche cada um com link para o lote.
+  Não persiga onda a onda: todo merge que toca o `dependabot.yml` dispara job em
+  todas as entradas e abre outra leva. Em 2026-10-09 foram 30 PRs pip em quatro
+  levas (03, 11, 12 e 15 UTC).
+- **Major ou caminho crítico** fica fora do lote comum, num PR próprio:
+  websockets 16→17 foi isolado do fix de segurança do cryptography (#2195 ×
+  #2188).
+- **Congelados** (`ignore` por `update-types`, security update continua
+  abrindo). O motivo e a condição de retomada ficam no comentário de cada regra
+  em `.github/dependabot.yml`:
+  - **`litellm` e `instructor`:** caminho de toda chamada LLM, que o CI só
+    testa com mock; ≥1.98 o litellm traz boto3/botocore sem uso.
+  - **`numpy`:** bump é rebaseline do Monte Carlo ([[ADR-360]]); ≥2.5 exige
+    Python 3.12, e o updater resolve em 3.11.
+  - **`redis`:** acima do teto do kombu.
+- **`playwright`** sobe junto com o `@playwright/test` do frontend, no mesmo PR.
+  O PDF de prod sai do Chromium do playwright Python, e o `frontend-print-visual`
+  valida com o do frontend. O hook `playwright-parity` reprova o PR que partir o
+  par, como o #2151 fez em 2026-10-09.
+
 ### PR do Dependabot parado
 
 Vale para todo ecossistema, não só `pip`. Fechar PR do Dependabot vira ignore
@@ -302,7 +338,9 @@ nasce vermelho até alguém regenerar o `.lock`.
   1,3 dia nos 99 medidos. Contrafactual: o lote de 09-07 teria avisado em 09-13,
   16 dias antes de o stale fechá-lo.
 - **Saídas** (escolha uma, e então feche a issue):
-  1. **Merge.** No pip, rode a Tarefa 1 no próprio PR do Dependabot.
+  1. **Merge.** No pip, o piso que o lock já satisfaz entra pelo próprio PR. O
+     piso acima do lock vai para o lote semanal (§Triagem da fila pip), não para
+     um commit de lock na branch do Dependabot.
   2. **Lane de migração**, para major que pede trabalho (ex.: vite 6→8,
      typescript 6→7). O PR pode ficar aberto enquanto sobrar vaga.
   3. **`ignore` no `.github/dependabot.yml`**, com data e condição de retomada no
