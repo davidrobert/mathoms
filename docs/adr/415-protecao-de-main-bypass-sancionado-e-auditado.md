@@ -5,7 +5,7 @@ title: "Proteção de main: squash-only, bypass sancionado e auditado, e o SHA m
 status: Decidido
 phase: PLAN-ci-trust Onda 0
 date: "2026-08-25"
-amended_at: ["2026-08-26"]
+amended_at: ["2026-08-26", "2026-10-09"]
 relates_to:
   - "[[ADR-210]]"
   - "[[ADR-322]]"
@@ -23,6 +23,11 @@ tags:
 ---
 
 # ADR-415 — Proteção de main: squash-only, bypass sancionado e auditado
+
+> **Emenda 2026-10-09 — D2 supersedida pela [[ADR-448]] (Decidido e aplicado):** em
+> 2026-10-09 houve 24 bypasses fora dos usos sancionados, e o registro da D3 não
+> mudou o comportamento. `bypass_actors` agora é `[]`, e a válvula virou concessão
+> temporária para um merge. D1 e D3–D6 seguem aqui. Ver §Emenda 2026-10-09.
 
 > **Emenda 2026-08-26 (correção de fato, não de decisão):** a §Validação
 > afirmava que o merge do #1723 *"não é bypass"*. É — `rule-suite 3817455583`
@@ -241,3 +246,20 @@ Consequência para o critério de aceite da Onda 0: "mergeado sem bypass" era
 **duplamente** inadequado — não suficiente (a corrida entra sem bypass) e,
 aqui, nem verdadeiro. O critério correto é o veredito do detector sobre o SHA
 de merge, cruzado com o `result` do rule-suite daquele push.
+
+## Emenda 2026-10-09 — a D2 é supersedida pela ADR-448
+
+A premissa da D2 era que "o que muda o custo não é a proibição, e sim o registro
+automático". Ela foi refutada em 2026-10-09:
+
+- 24 de 88 pushes em `main` foram `bypass`, nenhum nos dois usos sancionados;
+- o detector da D3 registrou todos na #1728, e ninguém reagiu;
+- um deles (#2131) quebrou o `npm ci` de todo PR até o revert #2172.
+
+A [[ADR-448]] supersede só a D2: o papel Admin sai de `bypass_actors`, e o
+rollback de gate brickado passa a ser feito por concessão temporária do bypass
+para um único merge. Ela foi aplicada em 2026-10-09 (`bypass_actors=[]`,
+`current_user_can_bypass=never`, com o ensaio registrado no histórico do
+ruleset). A rejeição de "Remover `bypass_actors`" (§Alternativas
+rejeitadas) supunha que o bypass do papel fosse o único rollback; a própria D4 já
+citava o histórico do ruleset, que a concessão temporária usa.
