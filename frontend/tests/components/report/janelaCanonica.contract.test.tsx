@@ -752,7 +752,7 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
     // Os títulos ainda existem: se um card for renomeado, o assert cai aqui em
     // vez de a varredura passar a medir uma seção a menos, em silêncio.
     expect(titulos).toContain("Despesas por Categoria");
-    expect(titulos).toContain("Receita vs Despesa — Mês a Mês");
+    expect(titulos).toContain("Receitas e Saídas por Categoria — Mês a Mês");
     // E `noEscopoDaLane` não remove nada — reintroduzir exclusão falha alto.
     expect(
       [...noEscopoDaLane(container).querySelectorAll("section")].length,

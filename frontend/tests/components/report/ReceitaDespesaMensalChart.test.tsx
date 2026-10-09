@@ -7,6 +7,8 @@
  *  - Slide window: clicks em prev/next mudam o periodo exibido.
  *  - Toggle de visibilidade do dataset (RDMLegend.swatch -> meta.hidden).
  *  - Print mode: oculta nav e legenda, renderiza bloco de totais.
+ *  - ADR-333: a pilha de `despesa_datasets` traz o aporte e se chama "Saídas";
+ *    a paleta pula as cores semânticas.
  *
  * O canvas Chart.js e mockado via `vi.mock("react-chartjs-2", ...)` — o
  * componente continua chamando `onChartReady` para o flow imperativo
@@ -84,9 +86,15 @@ vi.mock("react-chartjs-2", () => {
   };
 });
 
+const mockUseIsPrint = vi.hoisted(() => vi.fn(() => false));
+vi.mock("@/components/report/hooks/useIsPrint", () => ({
+  useIsPrint: () => mockUseIsPrint(),
+}));
+
 beforeEach(() => {
   mocks.chartUpdate.mockClear();
   mocks.datasetMeta.length = 0;
+  mockUseIsPrint.mockReturnValue(false);
 });
 
 function buildFluxo(months: number): FluxoCaixaSummary {
@@ -132,9 +140,9 @@ describe("tooltip helpers", () => {
     expect(rdmTooltipTitle([item])).toBe("26/02 — Receitas");
   });
 
-  it("title: stack=despesa -> sufixo ' — Despesas'", () => {
+  it("title: stack=despesa -> sufixo ' — Saídas' (a pilha traz o aporte)", () => {
     const item = makeItem("despesa", "Moradia", 0);
-    expect(rdmTooltipTitle([item])).toBe("26/01 — Despesas");
+    expect(rdmTooltipTitle([item])).toBe("26/01 — Saídas");
   });
 
   it("body: lista apenas entries do stack hovered, ordenadas desc", () => {
@@ -200,9 +208,12 @@ describe("<ReceitaDespesaMensalChart />", () => {
 
   it("renderiza titulo, context, conclusao, e canvas mockado", () => {
     render(<ReceitaDespesaMensalChart fluxo={buildFluxo(6)} />);
-    expect(screen.getByText("Receita vs Despesa — Mês a Mês")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /Receita vs Despesa/i })).toBeInTheDocument();
-    const chart = screen.getByRole("img", { name: /Receita vs Despesa/i });
+    expect(
+      screen.getByText("Receitas e Saídas por Categoria — Mês a Mês"),
+    ).toBeInTheDocument();
+    const chart = screen.getByRole("img", {
+      name: "Receitas e saídas por categoria, mês a mês; aportes incluídos nas saídas",
+    });
     expect(chart.getAttribute("data-dataset-count")).toBe("3");
   });
 
@@ -221,7 +232,7 @@ describe("<ReceitaDespesaMensalChart />", () => {
   it("slide window: prev/next mudam labels do canvas", async () => {
     const user = userEvent.setup();
     render(<ReceitaDespesaMensalChart fluxo={buildFluxo(18)} />);
-    const chart = screen.getByRole("img", { name: /Receita vs Despesa/i });
+    const chart = screen.getByRole("img", { name: /Receitas e saídas por categoria/i });
     const initialLabels = JSON.parse(chart.getAttribute("data-labels") ?? "[]");
     expect(initialLabels.length).toBeLessThanOrEqual(12);
     // Default offset ja esta na ultima janela; prev volta um mes
@@ -236,13 +247,14 @@ describe("<ReceitaDespesaMensalChart />", () => {
     expect(afterNext).toEqual(initialLabels);
   });
 
-  it("legenda mostra grupos Receitas e Despesas", () => {
+  it("legenda mostra grupos Receitas e Saídas", () => {
     render(<ReceitaDespesaMensalChart fluxo={buildFluxo(6)} />);
     const receitas = screen.getByText("Receitas").parentElement!;
-    const despesas = screen.getByText("Despesas").parentElement!;
+    const saidas = screen.getByText("Saídas").parentElement!;
     expect(within(receitas).getByText("Salário")).toBeInTheDocument();
     expect(within(receitas).getByText("Aluguéis")).toBeInTheDocument();
-    expect(within(despesas).getByText("Moradia")).toBeInTheDocument();
+    expect(within(saidas).getByText("Moradia")).toBeInTheDocument();
+    expect(screen.queryByText("Despesas")).toBeNull();
   });
 
   it("toggle no swatch flipa data-legend-hidden e chama chart.update()", async () => {
@@ -262,6 +274,81 @@ describe("<ReceitaDespesaMensalChart />", () => {
     const { container } = render(<ReceitaDespesaMensalChart fluxo={buildFluxo(4)} />);
     expect(container.querySelector("[data-chart-context]")).not.toBeNull();
     expect(container.querySelector("[data-chart-conclusion]")).not.toBeNull();
+  });
+});
+
+// ─── ADR-333: a pilha de saídas inclui o aporte ───
+// Totais da série buildFluxo(4): receitas 4.600 + 2.300 = 6.900; saídas
+// 700 + 780 + 860 + 940 = 3.280; líquido 3.620.
+describe("<ReceitaDespesaMensalChart /> · textos da pilha de saídas (ADR-333)", () => {
+  function texto(selector: string): string {
+    return document.querySelector(selector)?.textContent ?? "";
+  }
+
+  it("contexto qualifica as saídas e não diz 'despesa'", () => {
+    render(<ReceitaDespesaMensalChart fluxo={buildFluxo(4)} />);
+    expect(texto("[data-chart-context]")).toMatch(
+      /^Série temporal mensal de receitas \(R\$\s?6\.900\) versus saídas \(R\$\s?3\.280, aportes incluídos\) em 4 meses documentados\.$/,
+    );
+    expect(texto("[data-chart-context]")).not.toMatch(/despesa/i);
+  });
+
+  it("conclusão rotula o líquido como 'após aportes'", () => {
+    render(<ReceitaDespesaMensalChart fluxo={buildFluxo(4)} />);
+    expect(texto("[data-chart-conclusion]")).toMatch(
+      /^Fluxo líquido após aportes de R\$\s?3\.620 em 4 meses documentados\.$/,
+    );
+  });
+
+  it("sem despesa_datasets: nem 'saídas (R$ 0)' nem líquido sobre dado ausente", () => {
+    // Antes saía "versus despesas (R$ 0)" — zero afirmado sobre ausência, e com
+    // a copy nova seria "aportes incluídos" sobre ele.
+    const fluxo = buildFluxo(4);
+    const det = fluxo.receita_despesa_mensal_detalhado!;
+    render(
+      <ReceitaDespesaMensalChart
+        fluxo={{ receita_despesa_mensal_detalhado: { ...det, despesa_datasets: [] } }}
+      />,
+    );
+    expect(texto("[data-chart-context]")).toMatch(
+      /^Série temporal mensal de receitas \(R\$\s?6\.900\) em 4 meses documentados\.$/,
+    );
+    expect(document.querySelector("[data-chart-conclusion]")).toBeNull();
+  });
+
+  it("PDF: sem legenda impressa, o qualificador vai no rótulo dos totais", () => {
+    mockUseIsPrint.mockReturnValue(true);
+    render(<ReceitaDespesaMensalChart fluxo={buildFluxo(4)} />);
+    const bloco = texto("[data-rdm-print-totals]");
+    expect(bloco).toMatch(/Total receitas:\s*R\$\s?6\.900/);
+    expect(bloco).toMatch(/Total saídas \(aportes incluídos\):\s*R\$\s?3\.280/);
+    expect(bloco).toMatch(/Fluxo líquido após aportes:\s*R\$\s?3\.620/);
+    expect(bloco).not.toMatch(/despesa/i);
+    expect(document.querySelector("[data-rdm-legend]")).toBeNull();
+  });
+
+  it("paleta pula as cores semânticas — o aporte não sai verde nem vermelho", () => {
+    // Produtor não emite backgroundColor. Com 1 fonte de receita, a ordem
+    // alfabética punha Alimentação em `--chart-2` (= gain) e o aporte em
+    // `--chart-3` (= loss). jsdom sem CSS ⇒ LIGHT_FALLBACK dos tokens.
+    const data = [100, 200, 300];
+    const fluxo: FluxoCaixaSummary = {
+      receita_despesa_mensal_detalhado: {
+        labels: ["26/01", "26/02", "26/03"],
+        receita_datasets: [{ label: "Salário", data }],
+        despesa_datasets: [
+          { label: "Alimentação", data },
+          { label: "Aporte Investimento", data },
+        ],
+      },
+    };
+    render(<ReceitaDespesaMensalChart fluxo={fluxo} />);
+    const chart = screen.getByRole("img", { name: /Receitas e saídas por categoria/i });
+    const cores: string[] = JSON.parse(chart.getAttribute("data-bg-colors") ?? "[]");
+    expect(cores).toHaveLength(3);
+    expect(cores).not.toContain("#15803D");
+    expect(cores).not.toContain("#B91C1C");
+    expect(new Set(cores).size).toBe(3);
   });
 });
 
@@ -288,7 +375,7 @@ describe("<ReceitaDespesaMensalChart /> · cores resolvidas (anti-regressão)", 
       },
     };
     render(<ReceitaDespesaMensalChart fluxo={fluxo} />);
-    const chart = screen.getByRole("img", { name: /Receita vs Despesa/i });
+    const chart = screen.getByRole("img", { name: /Receitas e saídas por categoria/i });
     const bgColors: ReadonlyArray<string | null> = JSON.parse(
       chart.getAttribute("data-bg-colors") ?? "[]",
     );

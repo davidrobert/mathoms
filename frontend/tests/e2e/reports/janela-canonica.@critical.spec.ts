@@ -53,7 +53,7 @@ const PONTUAIS_FULL = /R\$\s?250\.000,00/;
  * varredura em silêncio. */
 const CARDS_ANTES_EXCLUIDOS = [
   "Despesas por Categoria",
-  "Receita vs Despesa — Mês a Mês",
+  "Receitas e Saídas por Categoria — Mês a Mês",
 ];
 
 async function openReport(page: Page): Promise<void> {
