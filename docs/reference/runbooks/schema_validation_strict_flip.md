@@ -27,7 +27,9 @@ Todos verificáveis; sem exceção informal.
 ### 1.1. Código de enforcement mergeado
 
 - [ ] Raise em strict no `DBArtifactStore._validate_schema` ([[ADR-284]] §A).
-- [ ] `ValidationError` não-retryable em `_run_stage_with_retry` ([[ADR-284]] §A).
+- [ ] Stage roda uma vez por run, sem retry de stage ([[ADR-443]]) — o abort de
+  `ValidationError` não dorme backoff por construção. A guarda da [[ADR-284]] §A
+  saiu com o retry em 2026-10-08.
 - [ ] `mode_overrides` consumido por `_effective_schema_validation_mode` ([[ADR-284]] §C).
 
 Verificação rápida:
@@ -238,8 +240,8 @@ fechada sem rollback + linha registrada no §7. Próximo schema da fila repete
 
 ### 8.1. Confirmar que é abort de schema (30s)
 
-O erro é **não-retryable por desenho** ([[ADR-284]] §A) — não houve backoff, a
-falha é do primeiro attempt. Três sinais, em ordem de custo:
+O stage roda **uma vez** ([[ADR-443]]) — não houve backoff, a falha é da única
+tentativa. Três sinais, em ordem de custo:
 
 ```sql
 -- 1. o run e o stage onde parou
@@ -252,13 +254,17 @@ SELECT stage, status, errors FROM pipeline_stage_logs
 ```
 
 A mensagem do raise é
-`payload de <stage>/<key> viola <schema> em modo strict`. O `reason_class`
-gravado é **`output_invalid`** — contrato rejeitado, não bug nosso.
+`payload de <stage>/<key> viola <schema> em modo strict` — **é por ela que se
+filtra** (`errors` da query 2). Contrato rejeitado, não bug nosso.
 
-> ⚠️ Runs anteriores a 2026-08-24 gravaram `internal_error` para este caso: a
-> `ValidationError` chega **nua** (vem do store, não de um provider) e caía no
-> ramo genérico. Corrigido junto com este runbook; ao triar incidente antigo,
-> não confie no `reason_class`.
+> ⚠️ **Não filtre por `reason_class`.** Este aviso dizia que runs anteriores a
+> 2026-08-24 gravavam `internal_error` e que a correção daquele dia passava a gravar
+> `output_invalid`. **Correção 2026-10-08, medida:** o abort grava `unknown`, antes e
+> depois de 2026-08-24. A `ValidationError` nasce em `DBArtifactStore.write`, dentro
+> do runner, e `orchestrator._run_stage` a achata em `success: False` antes do
+> classificador — a correção de 2026-08-24 está num ramo que este abort não
+> alcança. Fechar isso é o §Deferimento da [[ADR-443]]; quando fechar, o teste
+> `xfail` estrito que o cobra fica vermelho e obriga a reescrever este parágrafo.
 
 3. Os **paths** em drift estão no logger `mathoms.pipeline.schema_validation`
    com `mode=strict, outcome=reject` — é o §4 deste runbook.

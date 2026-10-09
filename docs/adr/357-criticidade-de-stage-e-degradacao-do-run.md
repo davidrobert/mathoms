@@ -5,7 +5,7 @@ title: "Criticidade de stage e degradação do run — add-on advisory não veta
 status: Decidido
 phase: "A40.l18"
 date: "2026-08-03"
-amended_at: ["2026-08-07"]
+amended_at: ["2026-08-07", "2026-10-08"]
 relates_to:
   - "[[ADR-199]]"
   - "[[ADR-131]]"
@@ -39,6 +39,13 @@ tags:
 > pagando em `status` de lane. Quitado aqui pela [[A40.l20]] PR2, que implementa
 > contra este vocabulário (`degraded`, `partial_failure`, criticality) e teria
 > ficado descrevendo uma ADR proposta.
+>
+> **Emenda 2026-10-08 — §8 corrigida pela [[ADR-443]].** A abertura da §8
+> (*"`_run_stage_with_retry` só retenta exceção — correto como está"*) e a
+> "assimetria" do blockquote de 2026-08-07 pressupunham que exceção de stage chegasse
+> ao retry. Não chegava, em stage nenhum: o retry de stage nunca operou in-process e
+> foi apagado. Continua de pé: degradável não retenta dentro do run, e retomar é run
+> novo com `from_stage`.
 
 ## Contexto
 
@@ -334,6 +341,15 @@ drift + `degraded`, no padrão guardado por dialeto já usado no repo.
 > Python (`degraded` declarado no tipo, ausente no código, gate verde).
 
 ### 8. Degradável = não-retryável in-run, não-reexecutável, re-rodável por run novo
+
+> **Correção 2026-10-08 ([[ADR-443]]).** A frase abaixo — *"só retenta exceção —
+> correto como está"* — descrevia um mecanismo que nunca operou sobre falha de stage:
+> `orchestrator._run_stage` achata a exceção do runner em `success: False` nos dois
+> executores, então nenhuma chegava a `_run_stage_with_retry`, em stage nenhum — a
+> tabela era inerte nos 4 stages, não só no parecer, como diz o blockquote de
+> 2026-08-07 mais abaixo. A camada foi **apagada**, não religada: o stage roda uma vez
+> por run. A conclusão desta seção sobrevive intacta — degradável não retenta dentro
+> do run, e "retentar o parecer" é run novo com `from_stage` ([[ADR-291]]).
 
 `_run_stage_with_retry` só retenta exceção — correto como está. "Retentar só o
 parecer" é run novo com `from_stage` ([[ADR-291]]), não resume.
