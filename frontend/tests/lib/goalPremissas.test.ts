@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildAportePremissasRows,
   buildIFPremissasRows,
   formatGoalVigenciaDate,
+  type PremissaRow,
 } from "@/lib/goalPremissas";
+import { PERCENTUAL_COM_PONTO } from "../shared/percentualPtBr";
 
 describe("formatGoalVigenciaDate", () => {
   it("formata YYYY-MM-DD para dd/mm/aaaa", () => {
@@ -32,5 +35,53 @@ describe("buildIFPremissasRows", () => {
     expect(rows.some((r) => r.label.includes("Patrimônio-alvo (operacional)"))).toBe(
       true
     );
+  });
+});
+
+describe("percentual das premissas usa vírgula (COPY_GUIDELINES §4.6)", () => {
+  const valor = (rows: PremissaRow[], label: string) =>
+    rows.find((r) => r.label === label)?.value;
+
+  // Os inputs do wizard andam de 0,5 em 0,5: o número cru interpolado saía
+  // "4.5% a.a." sem `toFixed` nenhum.
+  it("meta IF: TRS, retorno real e taxa conservadora", () => {
+    const rows = buildIFPremissasRows(
+      {
+        renda_passiva_mensal_brl: 10000,
+        trs_pct: 4.5,
+        retorno_real_anual_pct: 5.5,
+        horizonte_anos: 10,
+        taxa_retirada_conservadora_pct: 3.5,
+      },
+      null
+    );
+    expect(valor(rows, "TRS (taxa de retirada segura)")).toBe("4,5% a.a.");
+    expect(valor(rows, "Retorno real esperado")).toBe("5,5% a.a. (acima da inflação)");
+    expect(valor(rows, "Taxa conservadora (Trinity)")).toBe("3,5% a.a.");
+    expect(rows.map((r) => r.value).join(" ")).not.toMatch(PERCENTUAL_COM_PONTO);
+  });
+
+  it("meta IF: valor inteiro leva a casa do formatPercent, como no IFHeroCard", () => {
+    const rows = buildIFPremissasRows(
+      {
+        renda_passiva_mensal_brl: 10000,
+        trs_pct: 5,
+        retorno_real_anual_pct: 6,
+        horizonte_anos: 10,
+      },
+      null
+    );
+    expect(valor(rows, "TRS (taxa de retirada segura)")).toBe("5,0% a.a.");
+    expect(valor(rows, "Taxa conservadora (Trinity)")).toBe("4,0% a.a.");
+  });
+
+  it("meta de aporte: distribuição percentual", () => {
+    const rows = buildAportePremissasRows(
+      { meta_aporte_mensal_brl: 3000, dia_aporte: 5 },
+      { aporte_anual_brl: 36000, distribuicao_pct: { RF: 66.7, RV: 33.3 } }
+    );
+    const distribuicao = valor(rows, "Distribuição");
+    expect(distribuicao).toBe("RF: 66,7% · RV: 33,3%");
+    expect(distribuicao).not.toMatch(PERCENTUAL_COM_PONTO);
   });
 });
