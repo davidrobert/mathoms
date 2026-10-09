@@ -12,6 +12,7 @@ passa pelo `__call__` e provaria nada.
 from __future__ import annotations
 
 import logging
+import traceback
 from unittest.mock import patch
 
 import pytest
@@ -110,11 +111,13 @@ def _prazo_estoura_tratando_erro_de_banco(*_args, **_kwargs):
         raise SoftTimeLimitExceeded()  # noqa: B904 — o contexto implícito é o caso
 
 
-def test_fim_de_prazo_passa_intacto_mesmo_sobre_erro_de_banco(seeded):  # noqa: F811
-    """O tipo é contrato do `on_failure` (`failure_reason=time_limit_exceeded`)."""
+def test_fim_de_prazo_sai_com_o_tipo_e_sem_o_contexto_de_banco(seeded):  # noqa: F811
+    """O `on_failure` lê o tipo; o traceback que o Celery loga e grava no backend não leva o DETAIL."""
     resultado = _aplica_com_setup_quebrado(seeded, _prazo_estoura_tratando_erro_de_banco)
 
     assert type(resultado.result) is SoftTimeLimitExceeded
+    texto = (resultado.traceback or "") + "".join(traceback.format_exception(resultado.result))
+    assert not [v for v in _VALORES if v in texto], texto
 
 
 def test_self_retry_sobre_erro_de_banco_continua_retentando():

@@ -24,10 +24,11 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 
-# Passam intactas: redigir o `Retry` derrubaria o `self.retry(exc=…)`, e o tipo do fim de
-# prazo é contrato do `on_failure` (`failure_reason=time_limit_exceeded`). O contexto de
-# banco que viajar com elas sai pelo log, onde o filtro de record da D3 o redige.
-_CONTROLE_DE_FLUXO_DO_CELERY = (Retry, Ignore, Reject, SoftTimeLimitExceeded, TimeLimitExceeded)
+# Passam intactas: redigir o `Retry` derrubaria o `self.retry(exc=…)`.
+_CONTROLE_DE_FLUXO_DO_CELERY = (Retry, Ignore, Reject)
+# O tipo do fim de prazo é contrato do `on_failure` (`failure_reason=time_limit_exceeded`),
+# mas o traceback dele leva o contexto: sai uma instância nova, do mesmo tipo, sem ele.
+_FIM_DE_PRAZO = (SoftTimeLimitExceeded, TimeLimitExceeded)
 
 
 class DatabaseFailureRedactingTask(Task):
@@ -40,11 +41,19 @@ class DatabaseFailureRedactingTask(Task):
         except _CONTROLE_DE_FLUXO_DO_CELERY:
             raise
         except Exception as exc:  # noqa: BLE001 — relança sempre; só troca o texto
-            redacted = as_redacted_exception(exc)
+            redacted = _redacted_for_celery(exc)
             if redacted is None:
                 raise
         # Fora do `except`: relançar lá dentro grudaria a original em `__context__`.
         raise redacted from None
+
+
+def _redacted_for_celery(exc: Exception) -> Exception | None:
+    """None se a cadeia não tocou o banco; o fim de prazo mantém o tipo, sem o contexto."""
+    redacted = as_redacted_exception(exc)
+    if redacted is None or not isinstance(exc, _FIM_DE_PRAZO):
+        return redacted
+    return type(exc)(*exc.args).with_traceback(exc.__traceback__)
 
 
 # `task_cls` e não decorator no `run`: o `autoretry_for` embrulha o `run` por fora e
