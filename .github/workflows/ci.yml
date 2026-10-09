@@ -239,6 +239,8 @@ jobs:
               - 'frontend/**'
               - 'design-tokens/**'
               - 'config/report_layout.yaml'
+              # O `--verify-image` deste job confere o mapa de npm do script.
+              - 'dev/check_frontend_lock_sync.py'
               - '.github/workflows/ci.yml'
             # Sem `design-tokens/**`: o `tokens.css` do ops é gerado E commitado
             # em `frontend-ops/src/styles/` (sync gateado por
@@ -246,6 +248,7 @@ jobs:
             # token que o afeta já cai em `frontend-ops/**`.
             frontend_ops:
               - 'frontend-ops/**'
+              - 'dev/check_frontend_lock_sync.py'
               - '.github/workflows/ci.yml'
             pipeline:
               - 'pipeline/**'
@@ -1044,6 +1047,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: npm da imagem do FROM = mapa do lock-sync
+        # O hook frontend-lock-sync julga o lock com o npm que NPM_BY_NODE_MAJOR
+        # dá para o major do FROM; aqui a imagem pinada responde `npm -v`. Bump
+        # de digest que traga npm de outro major reprova aqui, não no build de prod.
+        run: python3 ../dev/check_frontend_lock_sync.py --verify-image frontend
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -1212,6 +1221,12 @@ jobs:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v7
+
+      - name: npm da imagem do FROM = mapa do lock-sync
+        # O hook frontend-lock-sync julga o lock com o npm que NPM_BY_NODE_MAJOR
+        # dá para o major do FROM; aqui a imagem pinada responde `npm -v`. Bump
+        # de digest que traga npm de outro major reprova aqui, não no build de prod.
+        run: python3 ../dev/check_frontend_lock_sync.py --verify-image frontend-ops
 
       - name: Setup Node
         uses: actions/setup-node@v6

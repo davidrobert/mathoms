@@ -3,7 +3,7 @@
  * Valores monetários: usar formatCurrency no componente.
  */
 
-import { formatCurrency, formatPercent, formatUSDPtBR } from "@/lib/format";
+import { formatCurrency, formatNumber, formatPercent, formatUSDPtBR } from "@/lib/format";
 import type {
   AlocacaoGoalInputs,
   AlocacaoGoalDerived,
@@ -138,6 +138,15 @@ export function buildAportePremissasRows(
   return rows;
 }
 
+// O produtor arredonda os meses a 1 casa (`compute_dolar_derived`); mês
+// inteiro segue sem ",0", como saía cru.
+const MESES_ATE_UMA_CASA = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+
+/** Horizonte da dolarização em pt-BR: meses com até 1 casa, anos com 1. */
+export function formatHorizonteDolar(meses: number): { meses: string; anos: string } {
+  return { meses: MESES_ATE_UMA_CASA.format(meses), anos: formatNumber(meses / 12, 1) };
+}
+
 export function buildDolarPremissasRows(
   inputs: DolarGoalInputs,
   derived: DolarGoalDerived | null,
@@ -161,12 +170,10 @@ export function buildDolarPremissasRows(
   }
   if (derived) {
     const m = derived.horizonte_estimado_meses;
+    const h = formatHorizonteDolar(m);
     rows.push({
       label: "Horizonte estimado",
-      value:
-        m > 0
-          ? `${m} meses (~${(m / 12).toFixed(1)} anos)`
-          : "—",
+      value: m > 0 ? `${h.meses} meses (~${h.anos} anos)` : "—",
     });
   }
   return rows;

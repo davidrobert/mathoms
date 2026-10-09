@@ -120,14 +120,14 @@ export function formatNumber(value: number, decimals = 0): string {
 export function formatBytes(bytes: number | null | undefined): string {
   if (!bytes) return "—";
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024) return `${formatNumber(bytes / 1024)} KB`;
+  return `${formatNumber(bytes / (1024 * 1024), 1)} MB`;
 }
 
 export function formatDuration(ms: number | null | undefined): string {
   if (ms == null) return "—";
   if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 60000) return `${formatNumber(ms / 1000, 1)}s`;
   return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
 }
 

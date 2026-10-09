@@ -337,14 +337,6 @@ estrategico:
           enabled: true
           variant: "feature"
           size: "full"
-        - id: "estrategia_aporte"
-          enabled: true
-          variant: "highlight"
-          size: "full"
-        - id: "contrafluxo"
-          enabled: true
-          variant: "primary"
-          size: "half"
       # comparisons/changelog por seção (v2.8, ADR-148) removidos em W4-T07
       # (SNAPSHOT_CHANGELOG_V3): o diff vive na seção V0 do shell.
 
@@ -662,6 +654,7 @@ estrategico:
 # ==============================================================================
 # Referência: IDs de cards consumidos pelo renderer React.
 # Use os IDs abaixo nas seções acima. Cada ID mapeia para um componente.
+# A coluna do meio é HISTÓRICA: builders do renderer HTML removido na ADR-129.
 #
 # ID                          | Builder Function                        | Seção Original
 # ----------------------------|-----------------------------------------|---------------
@@ -675,8 +668,6 @@ estrategico:
 # milhas                      | build_milhas_card()                     | S2
 # alocacao_atual_vs_alvo      | <React-only: AlocacaoAtualVsAlvoCard>   | S3 (A11)
 # kpi_rentabilidade           | (inline HTML block)                     | S3
-# estrategia_aporte           | build_estrategia_aporte_card()          | S3
-# contrafluxo                 | (inline HTML block)                     | S3
 # pontos_fortes               | build_pontos_fortes_card()              | S10
 # pontos_urgentes             | build_pontos_urgentes_card()            | S10
 # equilibrio_cerbasi          | build_equilibrio_cerbasi_card()         | S10
