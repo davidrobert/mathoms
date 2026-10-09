@@ -105,6 +105,21 @@ class InProcessPipelineClient:
         return bool(spec and spec.is_llm)
 
 
+def _stage_execute_payload(ctx, workspace_id: str) -> dict[str, Any]:
+    """Mapeia o ctx do run para o ``StageExecuteRequest`` do pipeline-service."""
+    return {
+        "run_id": ctx.pipeline_run_id or "",
+        "workspace_id": workspace_id,
+        "workspace_root": str(ctx.root),
+        "config_dir": str(ctx.config_dir) if ctx.config_dir else None,
+        "incremental": bool(getattr(ctx, "incremental", False)),
+        "incremental_doc_paths": list(getattr(ctx, "incremental_doc_paths", []) or []),
+        # ADR-355: o serviço rehidrata o ctx do zero a partir deste payload —
+        # sem o campo, o stage roda do outro lado com LLM liberado.
+        "skip_llm": not bool(getattr(ctx, "llm_calls_allowed", True)),
+    }
+
+
 class HttpPipelineClient:
     """Forwards stage execution to pipeline-service over HTTP.
 
@@ -127,20 +142,9 @@ class HttpPipelineClient:
         )
 
     def execute_stage(self, ctx, stage: str, *, workspace_id: str) -> StageResult:
-        payload = {
-            "run_id": ctx.pipeline_run_id or "",
-            "workspace_id": workspace_id,
-            "workspace_root": str(ctx.root),
-            "config_dir": str(ctx.config_dir) if ctx.config_dir else None,
-            "incremental": bool(getattr(ctx, "incremental", False)),
-            "incremental_doc_paths": list(getattr(ctx, "incremental_doc_paths", []) or []),
-            # ADR-355: o serviço rehidrata o ctx do zero a partir deste payload —
-            # sem o campo, o stage roda do outro lado com LLM liberado.
-            "skip_llm": not bool(getattr(ctx, "llm_calls_allowed", True)),
-        }
         resp = self._http.post(
             f"{self._base_url}/api/v1/pipeline/stages/{stage}/execute",
-            json=payload,
+            json=_stage_execute_payload(ctx, workspace_id),
         )
         resp.raise_for_status()
         data = resp.json()
