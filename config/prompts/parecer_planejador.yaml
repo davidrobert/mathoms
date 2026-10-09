@@ -248,7 +248,13 @@
 # mesmo corpo (só hints e catálogo mudam). O #2065 (A40.l92) bumpa `_SCHEMA_VERSION` em PR
 # próprio: deploys separados são duas invalidações, e é aceito — acoplar prenderia um P1
 # ao merge de um P0 e deixaria o delta de cada um inatribuível.
-version: "2.21.0"
+# 2.22.0 — [[ADR-341]] §Emenda 2026-10-09 (R23 da persona 1.3.0): o hint de
+# `investimentos` mandava ancorar em "qual classe está sub ou sobrealocada", e com a
+# indicação suprimida o modelo nomeava a classe do aporte — 4 de 4 no eval real. Passa a
+# citar o comparável publicado e, com `motivo_supressao`, a declarar o motivo sem refazer
+# desvio nem classe pela composição ou pelas metas. Texto trocado, contagem de hints igual.
+# MINOR; sai no mesmo PR do `PROMPT_VERSION` 2.6.0, uma invalidação só.
+version: "2.22.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -542,7 +548,7 @@ context_sections:
         on_null: "skip"
     narrative_hints:
       - "COMPOSIÇÃO ≠ ALOCAÇÃO (A40.l120): `Previdência` é SUBCONJUNTO do KPI de renda fixa. Alocação vs alvo sai de $.goals.alocacao_alvo.derived.renda_fixa_atual_pct (carteira líquida); '% da carteira financeira' é composição."
-      - "Ancore no gap entre atual e alvo da família — qual classe está sub ou sobrealocada."
+      - "Ancore no gap atual vs alvo pelo comparável publicado ($.goals.alocacao_alvo.derived). Com motivo_supressao preenchido, declare o motivo; não refaça desvio nem classe do aporte pela composição ou pelas metas."
       - "Não recomende ativo específico. Comente o comportamento da carteira."
 
   # --------------------------------------------------------------------------
