@@ -1181,41 +1181,7 @@
   "alertas": [
     "Rentabilidade: N/D"
   ],
-  "cenarios_conjuge": {
-    "anos_if": [
-      null
-    ],
-    "aportes": [
-      0
-    ],
-    "cenarios": [
-      {
-        "ano_if": null,
-        "aporte_mensal": 0,
-        "idade_titular": null,
-        "nome": "Sem renda do cônjuge",
-        "prazo_if_anos": null,
-        "resumo": "Sem renda do cônjuge, aporte cai para R$ 0,00/mês (66% do base). Prazo até a IF não projetável com as premissas deste cenário."
-      }
-    ],
-    "idade_titular_if": [
-      null
-    ],
-    "labels": [
-      "Sem renda do cônjuge"
-    ],
-    "prazos_if": [
-      null
-    ],
-    "premissas": {
-      "aporte_base": 0,
-      "fator_reduzido": "0.660000",
-      "investivel_atual": 28000000,
-      "meta_if": 100000000,
-      "retorno_real_anual_pct": "6.000000",
-      "salario_conjuge_clt_brl": 0
-    }
-  },
+  "cenarios_conjuge": {},
   "changelog": null,
   "comparisons": null,
   "composicao_familiar": {
