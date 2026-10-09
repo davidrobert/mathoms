@@ -7,13 +7,15 @@ Start worker:
 import sys
 from pathlib import Path
 
-from celery import Celery
+from celery import Celery, Task
+from celery.exceptions import Ignore, Reject, Retry
 from celery.schedules import crontab
 from celery.signals import worker_process_init
 
 from backend.app.core.config import settings
 from backend.app.core.logging import get_logger, setup_logging
 from backend.app.core.otel import instrument_celery, setup_otel
+from pipeline.observability.failure_text import as_redacted_exception
 
 # BUG-002 fix: ensure project root is on sys.path so that `import pipeline`
 # works inside the Celery worker process (fork pool doesn't inherit sys.path).
@@ -21,7 +23,27 @@ _project_root = str(Path(__file__).resolve().parent.parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-celery_app = Celery("fin")
+
+class DatabaseFailureRedactingTask(Task):
+    """Base de toda task do app (ADR-441 D2): falha cuja cadeia tocou o banco sai redigida
+    antes do log de falha do Celery, do result backend e do ``on_failure``."""
+
+    def __call__(self, *args, **kwargs):
+        try:
+            return super().__call__(*args, **kwargs)
+        except (Retry, Ignore, Reject):
+            raise  # controle de fluxo: redigir o `Retry` derrubaria o `self.retry(exc=…)`
+        except Exception as exc:  # noqa: BLE001 — relança sempre; só troca o texto
+            redacted = as_redacted_exception(exc)
+            if redacted is None:
+                raise
+        # Fora do `except`: relançar lá dentro grudaria a original em `__context__`.
+        raise redacted from None
+
+
+# `task_cls` e não decorator no `run`: o `autoretry_for` embrulha o `run` por fora e
+# veria só o tipo já redigido (medido na revisão da ADR-441).
+celery_app = Celery("fin", task_cls=DatabaseFailureRedactingTask)
 
 celery_app.conf.update(
     broker_url=settings.REDIS_URL,

@@ -15,10 +15,12 @@ Os testes dirigem o loop REAL. No caminho de produção, o orchestrator REAL: o
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
 import pytest_asyncio
 from psycopg.errors import OperationalError as PgOperationalError
 from psycopg.errors import UniqueViolation
@@ -221,6 +223,9 @@ def test_erro_de_banco_que_escapa_do_client_nao_vaza_pelo_traceback(seeded):
 
 def test_retry_continua_casando_o_texto_cru_do_driver(seeded):
     """Redigir o que é gravado não pode cegar o retry: `connection` segue retentando."""
+    # Escopo honesto: `run_stage_fn` que levanta é a exceção que ESCAPA do client.
+    # In-process o orchestrator engole a exceção e o retry nem dispara — a tabela de
+    # retry sai na ADR-443, e este teste sai com ela.
     import backend.app.tasks.pipeline_task as task_module
 
     def _cai_a_conexao(_ctx, _stage):
@@ -265,3 +270,81 @@ def test_crash_da_task_nao_grava_o_valor_no_stage_log(seeded):
     assert log.errors.startswith("Task crashed:")
     assert not [v for v in _VALORES if v in log.errors], log.errors
     assert "UniqueViolation" in log.errors
+
+
+def _quebra_com_detail(_ctx) -> None:
+    raise _unique_violation_com_detail()
+
+
+@pytest.fixture
+def spans_exportados(monkeypatch):
+    """Tracer do orchestrator apontado para um exporter em memória — o que iria ao OTLP."""
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+    import pipeline.orchestrator as orch
+
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    monkeypatch.setattr(orch, "_TRACER", provider.get_tracer("teste.falha_de_stage"))
+    yield exporter
+    provider.shutdown()
+
+
+def test_span_do_stage_nao_exporta_o_valor(spans_exportados, tmp_path):
+    """`record_exception` derivaria `exception.message` de `str(exc)`; os atributos o sobrescrevem."""
+    from pipeline.orchestrator import _run_stage
+
+    ctx = SimpleNamespace(root=tmp_path, pipeline_run_id="run-span")
+    with patch("pipeline.orchestrator._get_stage_runner", return_value=_quebra_com_detail):
+        _run_stage(ctx, _STAGE)
+
+    (span,) = spans_exportados.get_finished_spans()
+    (evento,) = [e for e in span.events if e.name == "exception"]
+    exportado = json.dumps(dict(evento.attributes), ensure_ascii=False)
+    assert not [v for v in _VALORES if v in exportado], exportado
+    assert evento.attributes["exception.type"].endswith("IntegrityError")
+    assert evento.attributes["db.response.status_code"] == "23505"
+
+
+class _RecordsCapturados(logging.Handler):
+    """Guarda o record inteiro — mensagem, `extra` e traceback — como texto."""
+
+    def __init__(self) -> None:
+        super().__init__(level=logging.DEBUG)
+        self.textos: list[str] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        campos = {k: str(v) for k, v in vars(record).items()}
+        self.textos.append(record.getMessage() + json.dumps(campos, ensure_ascii=False))
+
+
+@pytest.fixture
+def log_do_pipeline_task(monkeypatch):
+    import backend.app.tasks.pipeline_task as task_module
+
+    task_logger = logging.getLogger(task_module.__name__)
+    monkeypatch.setattr(task_logger, "disabled", False)
+    capturados = _RecordsCapturados()
+    task_logger.addHandler(capturados)
+    yield capturados
+    task_logger.removeHandler(capturados)
+
+
+def test_commit_de_artefato_que_falha_loga_sem_o_valor(seeded, log_do_pipeline_task):
+    """No Postgres, o DETAIL de um 23502 aqui é a linha de `pipeline_artifacts` inteira."""
+    import backend.app.tasks.pipeline_task as task_module
+    from pipeline.orchestrator import StageResult
+
+    commit_quebrado = _unique_violation_com_detail()
+    with patch.object(
+        task_module, "_commit_and_close_artifact_session", side_effect=commit_quebrado
+    ):
+        _rodar_loop(seeded, lambda _c, s: StageResult(stage=s, success=True, detail={}))
+
+    falhas = [t for t in log_do_pipeline_task.textos if "artifact commit failed" in t]
+    assert falhas, log_do_pipeline_task.textos  # não-vácuo: o commit falhou e foi logado
+    assert not [v for v in _VALORES for t in falhas if v in t], falhas
+    assert all("23505" in t for t in falhas)  # o shape sobrevive: sqlstate no `extra`
