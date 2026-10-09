@@ -262,7 +262,7 @@ jobs:
         # desses paths — exporta `chrome-path` que injetamos como CHROME_PATH
         # no step LHCI (env honrada por chrome-launcher).
         id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
           install-chromedriver: false
