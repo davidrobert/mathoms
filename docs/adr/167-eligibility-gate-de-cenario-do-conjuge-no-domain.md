@@ -143,4 +143,4 @@ de todo solteiro.
 3. **Suprimir o cenário sem aporte declarado** (4º veredito `sem_aporte_declarado`,
    proposto pelo `financial-planner` no #2171 e recusado lá por ser elegibilidade). Dono:
    `financial-planner`. **Retomada:** junto da [[A40.l126]], que desenha o caminho do
-   casal; publicar a ausência do aporte como ausência é escopo do #2171.
+   casal; a ausência do aporte já sai publicada como ausência desde o #2171.

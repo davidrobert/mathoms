@@ -87,9 +87,10 @@ Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o 
 populado por `CenariosConjugeAnalyzer.to_legacy_dict()` em
 `pipeline/domain/services/cenarios_conjuge_analyzer.py`):
 
-- `labels: list[str]`, `aportes: list[float]`, `prazos_if: list[float]`,
-  `anos_if: list[int]` — vetores paralelos por cenário (atualmente fixo
-  em 1 cenário "Sem renda do cônjuge").
+- `labels: list[str]`, `aportes: list[float | null]`, `prazos_if: list[float | null]`,
+  `anos_if: list[int | null]` — vetores paralelos por cenário (atualmente fixo
+  em 1 cenário "Sem renda do cônjuge"). `aportes` é `null` quando não há aporte
+  declarado (ADR-373, #2171); prazo e ano, quando não projetáveis.
 - `idade_titular_if: list[int | null]` — chave role-keyed (ADR-338);
   `null` quando o prazo não é projetável (era a sentinela `999`).
 - `premissas: object` com `meta_if`, `investivel_atual`,

@@ -628,7 +628,7 @@ gastar.
 | Drift medido no corpus real — 11,8% dos artefatos violam o próprio schema | #1650 |
 | [[ADR-409]] + `dev/measure_schema_drift.py` + 12 testes | #1656 |
 | Kill-switch provado — 4 testes, 4 mutações | #1664 |
-| `reason_class` do abort corrigido + §8 runbook de incidente | #1665 |
+| `reason_class` do abort corrigido + §8 runbook de incidente — o fix do classificador ficou **inerte no executor de produção** até 2026-10-09 (§Passo 3); efetivo em #2164 ([[ADR-447]]) | #1665 |
 | §Escopo 4 — `tests/` valida em strict por default | #1667 |
 
 **A alavanca de longo prazo não é o flip; é o gate ter virado comando.** Antes, o

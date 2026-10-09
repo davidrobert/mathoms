@@ -74,3 +74,12 @@ declarado); chart do cenário opcional-mas-completo nas narrativas.
    `exige_manifesto` cobre delta e anulação; o `{}` desta lane cai nesse ponto cego.
    Dono: `data-engineer`. **Retomada:** na próxima mudança de contrato que remova campo
    monetário do E5.
+6. **A baseline das métricas do parecer em print quebra com qualquer mudança de altura
+   acima dela.** O recorte é o locator da tabela com a página inteira montada em print e
+   tolerância 0,0003; o card que saiu da S3 deslocou a tabela por um valor fracionário e
+   dois separadores andaram 1 px (208→209, 362→363), com conteúdo idêntico. Medido no
+   #2201: o job visual de `main` passava na mesma base (run 37952398232), esta branch
+   reprovava. O "piso de ruído = 0 px" da [[A40.l92]] vale para o mesmo SHA, não para
+   mudança de layout acima. Dono: `product-designer` (dono da [[A40.l92]]). **Retomada:**
+   na próxima vez que o gate reprovar sem mudança na tabela — ou ao revisar o recorte
+   (posição normalizada ou âncora própria).
