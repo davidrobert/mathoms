@@ -10,7 +10,6 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 import { render, screen } from "@testing-library/react";
 
 import { AliquotaDualGauge } from "@/components/report/charts/AliquotaDualGauge";
-import { ContrafluxoCard } from "@/components/report/cards/ContrafluxoCard";
 import { EndividamentoCard } from "@/components/report/cards/EndividamentoCard";
 import { EquilibrioCerbasiCard } from "@/components/report/cards/EquilibrioCerbasiCard";
 import { IrpfIrPagoCard } from "@/components/report/cards/IrpfIrPagoCard";
@@ -19,25 +18,6 @@ import { ScoreCard } from "@/components/report/ui/ScoreCard";
 import type { IrpfKpis } from "@/types/irpf";
 import type { EquilibrioCerbasiData } from "@/types/report-analysis";
 import { PERCENTUAL_COM_PONTO } from "../../shared/percentualPtBr";
-
-describe("<ContrafluxoCard /> — percentual pt-BR", () => {
-  it("subtítulo (2 casas) e tabela de cenários (1 casa) usam vírgula", () => {
-    const { container } = render(
-      <ContrafluxoCard
-        contrafluxo={{
-          selic_atual: 10.75,
-          cenarios: { base: { selic: 10.5, cdi: 10.4 } },
-        }}
-        cdi_anual={10.65}
-      />,
-    );
-
-    expect(screen.getByText("Selic atual: 10,75% a.a. | CDI: 10,65%")).toBeInTheDocument();
-    expect(screen.getByText("10,5%")).toBeInTheDocument();
-    expect(screen.getByText("10,4%")).toBeInTheDocument();
-    expect(container.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
-  });
-});
 
 describe("<EquilibrioCerbasiCard /> — percentual pt-BR", () => {
   // O produtor arredonda para 1 casa (`equilibrio_cerbasi_analyzer.py`): o número

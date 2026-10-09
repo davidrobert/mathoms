@@ -4,14 +4,10 @@ import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import {
   AlocacaoAtualVsAlvoCard,
-  ContrafluxoCard,
-  EstrategiaAporteCard,
   ProventosYieldCard,
   RentabilidadeCard,
   Top15AtivosCard,
   type AlocacaoDerived,
-  type ContrafluxoData,
-  type EstrategiaAporteData,
   type InvestimentosClasseData,
   type Top15AtivosData,
 } from "../cards";
@@ -20,17 +16,9 @@ import { readNarrativeConclusion } from "../utils/chartNarrative";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 import type { PatrimonioData, RatiosData } from "@/types/report-analysis";
-import {
-  readCenariosConjuge,
-  readMonteCarloData,
-  readProventosRows,
-} from "../utils/reportContractGuards";
+import { readCenariosConjuge, readProventosRows } from "../utils/reportContractGuards";
 
-interface InvestimentosBlock extends InvestimentosClasseData, Top15AtivosData {
-  estrategia_aporte?: EstrategiaAporteData;
-  contrafluxo?: ContrafluxoData;
-  cdi_anual?: number;
-}
+type InvestimentosBlock = InvestimentosClasseData & Top15AtivosData;
 
 /** F9 · F2.C — Seção S3 (Investimentos). */
 export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
@@ -38,9 +26,6 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const goals = data.goals as Record<string, unknown> | undefined;
   // ADR-166 (A8.4 PR3): fallback dual-key removido — chave universal estável.
   const cenarios = readCenariosConjuge(data.cenarios_conjuge);
-  // Mesmo predicado da legenda do cone na S7: aporte declarado é o que entra
-  // na simulação (`aporte_mensal_usado > 0`).
-  const aporteDeclarado = readMonteCarloData(data.if_monte_carlo)?.aporte_mensal_usado;
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const ratios = data.ratios as unknown as RatiosData | undefined;
@@ -48,7 +33,6 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const residencia = (data.patrimonio as PatrimonioData | undefined)
     ?.cobertura_classificacao_imovel?.residencia;
 
-  const estrategiaAporte = inv?.estrategia_aporte;
   // ADR-141 §Emenda: o desvio é computado no backend (goals.alocacao_alvo.derived).
   // Payload E5 antigo (sem derived) → card oculto; nunca recomputar client-side.
   const alocacaoDerived = (goals?.alocacao_alvo as
@@ -84,19 +68,6 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
           fallbackConclusion={deriveChartConclusion("cenarios_conjuge", data)}
         />
       )}
-
-      {/* Sem wrapper: o card é size="full" e pode retornar null. */}
-      <EstrategiaAporteCard
-        estrategia={estrategiaAporte}
-        cenarios={cenarios}
-        aporteDeclarado={aporteDeclarado}
-      />
-      <div className="md:col-span-2">
-        <ContrafluxoCard
-          contrafluxo={inv?.contrafluxo}
-          cdi_anual={inv?.cdi_anual}
-        />
-      </div>
 
       {/* Track T06 · ADR-191 — card Rentabilidade rebrandeado (TRS efetiva
           full-width com cobertura essencial + ano-base + defasagem). */}
