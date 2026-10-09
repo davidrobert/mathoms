@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 
@@ -13,6 +14,7 @@ from backend.app.services.section_summary_orchestrator import (
     _SECTION_KEYS,
     SUPPORTED_SECTION_IDS,
     _default_fallback,
+    _slice_section_data,
     compute_snapshot_hash,
     generate_all_section_summaries,
 )
@@ -222,3 +224,13 @@ def test_mudar_so_a_narrativa_nao_invalida_o_cache_da_secao():
             generator=_gerador(llm, cache=cache),
         )
     assert len(llm.prompts) == len(SUPPORTED_SECTION_IDS)
+
+
+def test_hash_da_chave_cobre_os_mesmos_bytes_que_o_prompt_recebe():
+    """Slice igual é input igual: a chave hasheia a serialização que vai ao prompt."""
+    llm = FakeLLMPromptRecorder()
+    e5 = _e5_com_narrativas()
+    generate_all_section_summaries(workspace_id=1, e5_data=e5, generator=_gerador(llm))
+    for section_id, prompt in llm.prompts:
+        esperado = compute_snapshot_hash(_slice_section_data(e5, section_id))
+        assert hashlib.sha256(prompt.encode("utf-8")).hexdigest() == esperado, section_id

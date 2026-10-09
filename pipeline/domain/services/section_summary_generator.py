@@ -91,6 +91,13 @@ DeterministicFallback = Callable[[str, Mapping[str, Any]], Optional[str]]
 _SEM_CONTEXTO_DE_FALLBACK: Mapping[str, Any] = MappingProxyType({})
 
 
+# A chave de cache não separa tenants (workspace UUID resolve para 0), então ela
+# só é segura se cobrir todo o input variável do prompt: os dois saem daqui.
+def serialize_section_payload(snapshot_data: Mapping[str, Any]) -> str:
+    """Serialização única do payload — a que vai ao prompt e a que a chave hasheia."""
+    return json.dumps(snapshot_data, sort_keys=True, ensure_ascii=False, default=str)
+
+
 @dataclass(frozen=True)
 class PromptTemplate:
     """Template carregado do YAML — system + user (com placeholders)."""
@@ -243,7 +250,7 @@ class SectionSummaryGenerator:
         template: PromptTemplate,
         snapshot_data: Mapping[str, Any],
     ) -> str:
-        payload = json.dumps(snapshot_data, ensure_ascii=False, default=str)
+        payload = serialize_section_payload(snapshot_data)
         return template.user_prompt_template.replace("{section_data_json}", payload)
 
     def _write_cache(self, cache_key: str, text: str) -> None:

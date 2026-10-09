@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import os
 from pathlib import Path
@@ -20,6 +19,7 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGeneratorConfig,
     load_prompt_templates_from_yaml,
     load_prompt_version_from_yaml,
+    serialize_section_payload,
 )
 from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
 
@@ -187,8 +187,8 @@ def _build_cache():
 
 
 def compute_snapshot_hash(snapshot_data: Mapping[str, Any]) -> str:
-    """Hash determinístico do payload da seção (entra em cache key)."""
-    raw = json.dumps(snapshot_data, sort_keys=True, ensure_ascii=False, default=str)
+    """Hash do payload na serialização que vai ao prompt (entra em cache key)."""
+    raw = serialize_section_payload(snapshot_data)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
