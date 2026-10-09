@@ -57,7 +57,7 @@ opentelemetry-instrumentation-logging>=0.66b1
 
 # Monte Carlo simulations (pipeline/if_projector.py imported transitively)
 # Teto de major por ADR-360 — ver comentário em requirements.in da raiz.
-numpy>=1.26,<3
+numpy>=2.5.3,<3
 
 # Dev/test
 pytest>=8.0
