@@ -26,9 +26,9 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("@/lib/WorkspaceProvider", () => ({
-  WorkspaceProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
-  useWorkspace: () => ({
+vi.mock("@/lib/WorkspaceProvider", () => {
+  // Referência estável, como o contexto real: ver o mock global em tests/setup.ts.
+  const value = {
     workspace: {
       id: "ws-1",
       name: "WS",
@@ -40,8 +40,14 @@ vi.mock("@/lib/WorkspaceProvider", () => ({
     isLoading: false,
     error: null,
     refresh: vi.fn(),
-  }),
-}));
+  };
+  return {
+    WorkspaceProvider: ({ children }: { children: ReactNode }) => (
+      <>{children}</>
+    ),
+    useWorkspace: () => value,
+  };
+});
 
 import AppShell from "@/components/AppShell";
 

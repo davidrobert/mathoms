@@ -12,9 +12,9 @@ import { ReportShell } from "@/components/report/ReportShell";
 import type { UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
 
-vi.mock("@/lib/WorkspaceProvider", () => ({
-  WorkspaceProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
-  useWorkspace: () => ({
+vi.mock("@/lib/WorkspaceProvider", () => {
+  // Referência estável, como o contexto real: ver o mock global em tests/setup.ts.
+  const value = {
     workspace: {
       id: "ws-test",
       name: "Workspace",
@@ -26,8 +26,14 @@ vi.mock("@/lib/WorkspaceProvider", () => ({
     isLoading: false,
     error: null,
     refresh: vi.fn(),
-  }),
-}));
+  };
+  return {
+    WorkspaceProvider: ({ children }: { children: ReactNode }) => (
+      <>{children}</>
+    ),
+    useWorkspace: () => value,
+  };
+});
 
 // F3.2: ReportModeProvider uses next/navigation hooks — mock them in test env
 vi.mock("next/navigation", () => ({

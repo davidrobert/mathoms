@@ -18,13 +18,17 @@ import { render, screen } from "@testing-library/react";
 import { server } from "../../mocks/server";
 import { reportSectionHandlers } from "../../mocks/reportSectionHandlers";
 
-vi.mock("@/lib/WorkspaceProvider", () => ({
-  useWorkspace: () => ({
+vi.mock("@/lib/WorkspaceProvider", () => {
+  // Referência estável, como o contexto real: ver o mock global em tests/setup.ts.
+  const value = {
     workspace: { id: "ws-1" },
     workspaces: [],
     loading: false,
-  }),
-}));
+  };
+  return {
+    useWorkspace: () => value,
+  };
+});
 
 import { MigratedSection } from "@/components/report/MigratedSection";
 import { LAYOUT } from "@/generated/report-layout";

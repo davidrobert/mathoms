@@ -70,10 +70,12 @@ vi.mock("react-chartjs-2", () => {
 });
 
 /** Default workspace para páginas `(app)/` que usam `useWorkspace()` sem provider real. */
-vi.mock("@/lib/WorkspaceProvider", () => ({
-  WorkspaceProvider: ({ children }: { children: ReactNode }) =>
-    createElement(Fragment, null, children),
-  useWorkspace: () => ({
+vi.mock("@/lib/WorkspaceProvider", () => {
+  // Uma referência só, como o contexto real. Objeto novo por chamada punha
+  // `workspace` novo nas deps de todo efeito, e o hook refazia o fetch a cada
+  // render: 166 requests em 68 ms no useConsumoPontuais com msw 2, e 996 sem
+  // soltar o `isLoading` com msw 3.
+  const value = {
     workspace: {
       id: "ws-1",
       name: "Test WS",
@@ -85,8 +87,13 @@ vi.mock("@/lib/WorkspaceProvider", () => ({
     isLoading: false,
     error: null,
     refresh: vi.fn(),
-  }),
-}));
+  };
+  return {
+    WorkspaceProvider: ({ children }: { children: ReactNode }) =>
+      createElement(Fragment, null, children),
+    useWorkspace: () => value,
+  };
+});
 
 // ─── MSW lifecycle ───
 // Padrão "error" garante que toda chamada não-mockada quebre o teste em vez de
