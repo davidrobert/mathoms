@@ -79,7 +79,7 @@ o cap novo: com 15 linhas de `top_ativos`, ancoráveis caem de 33/36 (91,7%) par
 catálogo pega só as 5 maiores de cada lista. Com 5 linhas e 3400 B: **40/41 (97,6%)**, demanda
 18787 B, folga 23,6%. Sem eles a lane fecharia a eviction e reabriria a classe da A40.l83.
 
-## Critério de aceite — itens 1 a 5 batidos em 2026-10-09 (#2173)
+## Critério de aceite — batido em 2026-10-09 (#2173)
 
 1. ✅ Com eviction forçada, o orçamento publicado nomeia as mesmas seções que o marcador enviado
    ao modelo, e remover a escrita reprova: **7 mutações do produtor** pegam (stage sem a escrita,
@@ -92,15 +92,17 @@ catálogo pega só as 5 maiores de cada lista. Com 5 linhas e 3400 B: **40/41 (9
    44 de 60 entradas em 3340 B. Sem corte degenerado.
 4. ✅ O teste "10/10" declara que mede o mecanismo; o aceite da [[A40.l85]] passa a incluir bytes.
 5. ✅ Emenda datada da [[ADR-341]]: D1 vira regra de folga; D7 publica a eviction.
-6. PR #2173 mergeado em `main` com CI verde — único PR da lane (o plano de dois PRs caiu quando o
-   #2117 mergeou antes).
+6. ✅ PR #2173 mergeado em `main` (`95e193c2`) com CI verde — único PR da lane (o plano de dois
+   PRs caiu quando o #2117 mergeou antes).
 
 **Predição registrada antes da regeneração (observação, não gate — a §Emenda 2026-09-01 da
-[[ADR-341]] veta contar `campos_faltantes` como critério):** no primeiro parecer gerado com o
-manifest 2.23.0, `evicted_section_ids == []` e zero pedidos com raiz em `$.investimentos`,
+[[ADR-341]] veta contar `campos_faltantes` como critério):** no primeiro parecer do dogfood
+regenerado depois do #2173 (manifest 2.23.0 ou posterior), `evicted_section_ids == []` e zero
+pedidos com raiz em `$.investimentos`,
 `$.if_monte_carlo`, `$.passive_income`, `$.cenarios_conjuge` ou `$.goals`, contados por **raiz
-de path em todos os `reason`** — a persistência hoje troca o rótulo de `out_of_catalog` (item 5
-abaixo) sem perder a linha. Os pedidos de `taxa_juros_aa` **não** devem cair. Se a predição
+de path em todos os `reason`** — parecer anterior ao #2174 persistiu `out_of_catalog` como
+`llm_declared` (item 5 abaixo), então a comparação com o histórico ignora o rótulo. Os pedidos
+de `taxa_juros_aa` **não** devem cair. Se a predição
 falhar: N=3, owner-gated.
 
 ## Deferimento datado — 2026-10-09
@@ -110,14 +112,16 @@ falhar: N=3, owner-gated.
 2. **Input de red line `block` em seção de prioridade baixa** (RL7 lê `ratios`, p7): mover o
    escalar de concentração e gatear "todo path lido por red line `block` mora em prioridade
    ≤ 4". Dono `prompt-engineer` + `financial-planner`. Retomada: X8-folga < 15% ou qualquer
-   eviction de `ratios`. Com 24 KB e 5 linhas, `ratios` só sai acima de ~27 KB de demanda.
+   eviction de `ratios`. Medido no E5 do run `40d1af2a` com o manifest 2.24.0: com cap 24576,
+   `ratios` só sai quando a demanda do corpo passa de 27350 B — hoje ela é 18841 B.
 3. **`max_total_input_tokens` sem consumidor:** alarme pós-call sobre `tokens_in` real. Dono
    `prompt-engineer`. Retomada: próxima mudança de system prompt ou de persona.
 4. **Contador OTLP, card em `/admin/metrics` e alerta de produção (< 10%)**. Dono `sre-devops` +
    `data-engineer`. Retomada: primeiro workspace fora do dogfood.
 5. **`field_request_out_of_catalog` nunca chega a `planner_field_requests`:**
    `_partition_campos` mantém a entrada no array e no audit, e `_persist_field_requests`
-   deduplica por path com o array primeiro. Tarefa própria.
+   deduplica por path com o array primeiro. ✅ Entregue no #2174 (2026-10-09): o motivo
+   chega à tabela em vez de virar `llm_declared`.
 6. **RL7 tem três réguas:** REGRA 14 do system prompt (60/40), validador (75/50) e hint do
    manifest (50/75). Tarefa própria; dono `prompt-engineer` + `financial-planner`. ✅ Entregue
    no #2211 (2026-10-09): régua única pela [[ADR-340]] §Emenda 2026-10-09, manifest 2.22.0 —
