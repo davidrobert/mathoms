@@ -24,6 +24,9 @@
 #   - manifest_version registra-se no aggregate PlannerReview (auditoria)
 #   - cache Redis tem manifest_version na chave (bump invalida)
 #   - ADR breaking quando DSL muda; tunning de paths/labels é editorial
+#   - o user prompt renderizado é pinado em `user_prompt_sha256` (fim do arquivo):
+#     byte que muda — por este arquivo ou pelo código que o renderiza — muda o pin, e
+#     editar o pin cobra este bump
 # ==============================================================================
 
 # 1.5 — A26.l1 (ADR-279 §E): catálogo de citação (citation_catalog) injeta as
@@ -232,12 +235,60 @@
 # comentário — nada do que o modelo recebe muda. PATCH, e mesmo assim COBRA a frota uma
 # vez: o gate de bump compara o arquivo inteiro, e `manifest_version` compõe a chave de
 # cache.
-version: "2.20.1"
+# 2.21.0 — A40.l123 ([[ADR-439]]): o veredito do balde de imóvel chega ao modelo. Desde o
+# #2049 o E5 publica `patrimonio.cobertura_classificacao_imovel` — a fatia do VALOR de
+# imóveis sem classificação e um veredito por balde — e o parecer não recebia nada: lia a
+# linha "Imóveis Investimento" da tabela de classes e a concentração como medida, quando o
+# imóvel sem classificação conta como investimento e pode ser a moradia. Entram 4 campos
+# no bloco "Cobertura e incerteza" (sem R$, sem contagem, sem endereço) e 6 hints com a
+# direção do erro (co-design `prompt-engineer` + `financial-planner` + `product-manager`).
+# O schema aceita 8 hints por seção e `patrimonio` estava cheia: "Diferencie residência…"
+# vira o hint da residência, e "Severidade da concentração" muda para `ratios`, onde o
+# número mora — texto idêntico. Junto, `_is_money_key` deixa de tomar `n_total` por
+# dinheiro: o catálogo compõe o prompt e não entra na chave de cache.
+# MINOR (ADR-233, regra adicional não-breaking); `PROMPT_VERSION` fica — nem o módulo do
+# prompt nem a persona mudam. COBRA a frota: snapshot E5 anterior ao #2049 regenera com o
+# mesmo corpo (só hints e catálogo mudam). O #2065 (A40.l92) bumpa `_SCHEMA_VERSION` em PR
+# próprio: deploys separados são duas invalidações, e é aceito — acoplar prenderia um P1
+# ao merge de um P0 e deixaria o delta de cada um inatribuível.
+# 2.21.1 — [[ADR-199]] §Emenda 2026-10-09, fecho dos deferimentos: entra
+# `user_prompt_sha256` no fim do arquivo — o sha256 do user prompt que `_build_prompts`
+# monta sobre a fixture sintética congelada, por regime de eviction. Fecha a classe que a
+# nota da 2.21.0 nomeia ("o catálogo compõe o prompt e não entra na chave de cache"):
+# byte que muda pelo distiller, pelo catálogo ou pelo formatter muda o pin, e editar o
+# pin cobra este bump. Junto, `persona_hash` sai de `persona.required_frontmatter_fields`
+# (a persona perdeu o placeholder, e nenhum código lê a lista) e o banner do bloco
+# `persona` para de afirmar leitor. PATCH (ADR-233): nada do que o modelo recebe muda.
+# Sai no mesmo PR que `PROMPT_VERSION` 2.5.1 — uma invalidação da frota, não duas.
+# 2.22.0 — A40.l124 §Deferimento 6 ([[ADR-340]] §Emenda 2026-10-09): a hint "Severidade da
+# concentração" passa a declarar a régua do validador da RL7 e do ponto urgente — acima de
+# 50% 'Média', acima de 75% 'Alta' —, e não mais "≥50% é Alta", que vinha da emenda de
+# 2026-07-16, anterior ao degrau determinístico da A40.l90. A fronteira vira exclusiva e a
+# meta vira "até 50%" (§Emenda 2026-10-08); sai o contraexemplo do 40, que só o repetia.
+# Par do PROMPT_VERSION 2.6.0 (REGRA 14), no mesmo PR: um deploy, uma invalidação.
+# Co-design `financial-planner` + `prompt-engineer`. MINOR (ADR-233).
+# Os pins `user_prompt_sha256` são re-pinados: a hint compõe o user prompt nos três regimes.
+# 2.23.0 — A40.l124 ([[ADR-341]] §Emenda 2026-10-09): o corpo volta a caber inteiro. Medido
+# com o manifest de cada run sobre o E5 do próprio run, a demanda passou o cap de 16384 em
+# 2026-08-26 (evictava `investimentos`) e levou `independencia_financeira` em 2026-08-29 —
+# e o parecer passou a pedir como "faltante" exatamente essas raízes. O cap vai a 24576 pela
+# regra de folga da emenda (≥ 20% sobre a demanda medida; o X8 da rodada acusa abaixo de
+# 15%). Devolver as seções custa ancorabilidade, e o custo entra neste bump: `top_ativos`
+# 15 → 5 linhas (com 15, dez ficam sem rota de citação por construção — o catálogo pega as
+# 5 maiores de cada lista) e `citation_catalog.max_bytes` 2600 → 3400 (joelho re-medido).
+# No E5 real: 10/10 seções, folga ~23%, ancoráveis 40/41 (eram 33/36 com 3 seções fora). O
+# cabeçalho de tabela passa a dizer "top N de M" (distiller): "5 de 5" e "5 de 15" chegavam
+# iguais ao modelo. MINOR (ADR-233). COBRA a frota: `manifest_version` compõe a chave de
+# cache, e o cabeçalho novo muda o prompt sem mudar a chave — por isso viaja neste bump.
+# Re-pina os três `user_prompt_sha256` da 2.22.0: o render muda pelo cap, pelas linhas de
+# `top_ativos`, pelo cabeçalho e pelo catálogo; o system prompt não muda.
+version: "2.23.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
 # ------------------------------------------------------------------------------
-# Persona (ADR-201) — orchestrator lê, hash registrado no aggregate
+# Persona (ADR-201) — declaração sem leitor em runtime: `load_persona` lê
+# `_PERSONA_PATH` (parecer_manifest.py) e hasheia o arquivo inteiro, frontmatter incluso
 # ------------------------------------------------------------------------------
 persona:
   path: "config/agents/planner_persona.md"
@@ -245,7 +296,6 @@ persona:
     - id
     - version
     - methodology_anchors
-    - persona_hash
 
 # ------------------------------------------------------------------------------
 # Hints globais (registro consultivo) — aplicáveis a todas as seções
@@ -371,6 +421,17 @@ context_sections:
           - {path: "$.patrimonio.guarda_de_sinal.modo", label: "Guarda de sinal — modo", format: "string"}
           - {path: "$.patrimonio.guarda_de_sinal.cobertura_completa", label: "Guarda de sinal — cobertura completa", format: "raw"}
           - {path: "$.patrimonio.guarda_de_sinal.motivo_supressao", label: "Motivo de supressão da prescrição (null = nada suprimido)", format: "string"}
+          # [[A40.l123]] · [[ADR-439]]: o veredito do balde de imóvel. Sem R$ (a ressalva
+          # precisa da fatia e da direção, não do valor), sem contagem (a fatia que decide é
+          # de VALOR, [[ADR-433]] §D3; imóvel sem valor já chega por `itens_sem_valor`), sem
+          # endereço (PII). `imoveis_geradores.motivo` fica fora: os três dão a mesma direção
+          # na IF, e o único uso seria pedido de cadastro, que o parecer não deve fazer.
+          # Labels curtas de propósito: o significado de cada código mora nos hints, fora
+          # do orçamento do corpo.
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.pct_desconhecido", label: "Imóveis sem classificação (% do valor dos imóveis)", format: "percent2"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.residencia.status", label: "Residência — veredito", format: "string"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.residencia.motivo", label: "Residência — motivo", format: "string"}
+          - {path: "$.patrimonio.cobertura_classificacao_imovel.imoveis_geradores.status", label: "Imóveis de renda — veredito", format: "string"}
       # [[A40.l111]] · [[ADR-431]]: um grão ABAIXO de `guarda_de_sinal.modo`. O balde
       # agregado segue positivo e o modelo o lê como completo; sem esta tabela ele
       # prescreveria sobre um patrimônio que é PISO, não retrato. Sem `descricao`:
@@ -399,10 +460,10 @@ context_sections:
       - "Leia $.diagnostico_confianca.nivel antes de prescrever: 'insuficiente' torna a prescrição provisória, com ressalva no item; 'parcial' exige ressalva onde a base pesa. É veredito do motor (ADR-353) — não recalcule."
       - "guarda_de_sinal.motivo_supressao não-nulo = prescrição já suprimida a montante (ADR-394): declare o motivo, não reintroduza. Com investimentos_nao_atribuidos>0 ou nao_classificado_pct>0, todo % de carteira declara a incompletude."
       - "Concentração imobiliária = RISCO: cite $.ratios.concentracao_imobiliaria (base carteira produtiva, SSOT ADR-340), NÃO o pct de tabela_classes[imóveis] (COMPOSIÇÃO, base total investido). Dois números legítimos; risco usa o de risco."
-      - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
       - "Rótulo de base obrigatório (A37.l9): todo percentual citado declara a base. Peso de classe financeira (Internacional/RF/Ações/FIIs) sai da coluna '% da carteira financeira' — nunca rotule 'carteira financeira' número de base com imóvel."
       - "Internacional ≠ cambial (A37.l9): alocação internacional = classe Internacional ÷ carteira financeira; exposição cambial = posições em moeda estrangeira ÷ investível financeiro. Dois conceitos, duas bases — cite separados, nunca funda."
-      - "Diferencie residência (não gera renda) de imóveis de investimento — não comente residência como investimento."
+      - "Residência não é investimento. Veredito zero_apurado = a família declarou que aluga: não prescreva compra de moradia. nao_apurado = sem número, não estime; nao_declarada = não se sabe se é própria ou alugada: não afirme nenhuma das duas."
+      - "Motivo da residência: nao_classificada ou nao_localizada = a família indicou moradia própria, não identificada neste retrato (pode estar entre os imóveis sem classificação); sem_valor = identificada, sem valor neste retrato."
       - "classification=nu_proprietario (ADR-235): nu-propriedade com usufruto vitalício — ativo ilíquido por contrato civil. Não recomende venda como liquidez; consolidação só com extinção do usufruto (não infira prazo)."
 
   # --------------------------------------------------------------------------
@@ -497,8 +558,13 @@ context_sections:
     aligned_with_layout: "S3"
     eviction_priority: 9
     blocks:
+      # A40.l124: 5 linhas, não 15. O catálogo de citação pega as `_MAX_LIST_ITEMS` (5)
+      # MAIORES de cada lista, e o produtor ordena por valor (`top_ativos_analyzer.py`):
+      # com 15 linhas, dez R$ visíveis ficavam sem rota de citação por construção. O
+      # título nomeia o corte do PRODUTOR (`TopAtivosConfig.limit`), para que "top 5 de
+      # 15" no cabeçalho não seja lido como "a carteira tem 15 ativos".
       - format: "table"
-        title: "Top ativos (até 15)"
+        title: "Maiores posições, por valor (o motor lista até 15)"
         path: "$.investimentos.top_ativos[*]"
         columns:
           - {path: "posicao", label: "#", format: "int"}
@@ -507,7 +573,7 @@ context_sections:
           - {path: "membro", label: "Membro", format: "raw"}
           - {path: "valor", label: "Valor", format: "brl"}
           - {path: "pct_carteira", label: "% carteira", format: "percent2"}
-        max_rows: 15
+        max_rows: 5
       - format: "scalar"
         path: "$.investimentos.n_imoveis_total"
         label: "Imóveis cadastrados (residência + investimento)"
@@ -578,6 +644,10 @@ context_sections:
             format: "raw"
     narrative_hints:
       - "Concentração como risco: cite o número do bloco escalar acima ($.ratios.concentracao_imobiliaria), não o pct de composição. É percentual — escreva na prosa (ex.: '~60%'); não precisa âncora (catálogo é só monetário)."
+      # Régua da RL7 ([[ADR-340]] §Emenda 2026-10-09): os números e os rótulos são os de
+      # parecer_red_lines — tests/test_parecer_rl7_regua_unica.py cobra a paridade.
+      - "Severidade da concentração: acima de 50%, risco de severidade 'Média' em `Alocação` ou `Saúde de balanço`; acima de 75%, 'Alta' — a mesma régua de pontos_urgentes. Meta: até 50% da carteira produtiva, via aportes, sem exigir venda."
+      - "Imóveis sem classificação acima de zero contam como investimento e podem ser a moradia: concentração, imóveis de investimento e patrimônio gerador são TETO; TRS, PISO. Não recalcule. Com imóvel sem valor apurado, a direção é indeterminada."
       - "Alíquota com base (A37.l9): ratios.aliquota_efetiva_ir_pct é EFETIVA (blended) — IR total ÷ renda total (PF+PJ). Rotule 'efetiva (blended)' ao citar; não confunda com marginal nem com irpf_kpis.aliquota_sobre_tributavel/total_pct."
       - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
       - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
@@ -641,6 +711,7 @@ context_sections:
       - "Cenários cônjuge ausentes (objeto vazio) = workspace solteiro ou casal sem meta IF; não force narrativa."
       # ADR-290 F2 — valor determinístico (par do hint de saude_balanco).
       - "Ancore patrimônio-alvo/renda passiva via ancoras (NÃO escreva o R$ na prosa): path na folha ($.passive_income.*, $.if_monte_carlo.*), rotulo = o rotulo_id da linha do catálogo (não o root da seção)."
+      - "Imóveis de renda nao_apurado: pode haver imóvel de renda não identificado ou sem valor, que a IF não credita — prazo e progresso são o extremo conservador. Diga que o real pode ser melhor; não dimensione aporte nem corte pelo gap."
 
   # --------------------------------------------------------------------------
   # 7) Previdência + IRPF (S8 / S_IRPF_RENDA / S_IRPF_OTIMIZACAO)
@@ -765,6 +836,8 @@ context_sections:
     narrative_hints:
       - "Não duplique pontos_fortes determinísticos no output — re-priorize sob ótica metodológica e cite só os 3-6 mais relevantes."
       - "Score baixo (< 5) força ao menos 1 risco severidade Crítica no output."
+      - "Com imóvel sem classificação ou sem valor apurado, não prescreva venda de imóvel — diluir por aporte segue válido. Concentração: mantenha a severidade do número, confiança no máximo 'media'; ponto forte só se for teto abaixo da meta."
+      - "Vereditos e motivos do bloco de imóveis (apurado, nao_apurado, sem_valor…) são códigos internos: descreva o significado na prosa, nunca o código, e não os transforme em pedido de cadastro ou reclassificação à família."
 
   # --------------------------------------------------------------------------
   # 10) Plano de ação (S11 / plano_de_acao) — referência ao operating system
@@ -875,9 +948,11 @@ tools:
 # ==============================================================================
 max_tool_iterations: 6
 max_total_input_tokens: 50000
-max_exec_context_bytes: 16384  # ~16KB hard limit do CORPO (pré tool calls; hints e
-# catálogo de citação ficam fora, com orçamento próprio). ADR-341 D1: dimensionado
-# para o corpo medido do dogfood (15,6KB) com folga (~+US$0,01–0,02/parecer). O
+max_exec_context_bytes: 24576  # hard limit do CORPO (hints e catálogo de citação ficam
+# fora, com orçamento próprio). ADR-341 §Emenda 2026-10-09: não é número dimensionado uma
+# vez — é REGRA de folga ≥ 20% sobre a demanda medida no E5 real, re-medida quando o X8 da
+# rodada unificada acusa folga < 15% ou seção evictada (o stage publica o orçamento em
+# `output_summary.exec_context`). Medido na 2.22.0: demanda ~18,8 KB, folga ~23%. O
 # budget NÃO é a garantia de completude — a garantia é a eviction por seção (D2):
 # excedeu → seções inteiras de menor prioridade saem, com marcador nomeando-as.
 # Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação sem bloquear;
@@ -897,12 +972,14 @@ evidencia_verification_mode: "strict"
 # após a projeção dos campos de incerteza (RV8-05) — o joelho ANDA quando o
 # manifest projeta mais dinheiro visível: era 2400 com 36 folhas visíveis, é 2600
 # com 37. 1600→52,8% · 2600→86,5%, e nada acima compra ancorabilidade.
+# A40.l124: com investimentos e IF de volta ao corpo (cap 24576, `top_ativos` 5) o joelho
+# andou de novo — 41 folhas visíveis: 2600→80,5% · 3000→95,1% · 3400→97,6%, e nada acima.
 citation_catalog:
   emit: true
   format: "flat_path_list"
   monetary_only: true
   max_entries: 60
-  max_bytes: 2600
+  max_bytes: 3400
 
 # A40.l49 — rótulo do chip por folha, não por bloco. rotulo_id é o que o LLM
 # copia; label é o texto do chip (finalize). Path ausente daqui = fail-open.
@@ -966,3 +1043,20 @@ gating:
     teaser_riscos_oculto: true  # CTA "+14 riscos no Premium"
   premium:
     all: true
+
+# ==============================================================================
+# PIN DO USER PROMPT RENDERIZADO ([[ADR-199]] §Emenda 2026-10-09)
+# ==============================================================================
+# Metadado de TESTE, sem leitor em runtime (`load_manifest` ignora a chave). Lido por
+# tests/test_parecer_prompt_fingerprint.py: sha256 do user prompt que `_build_prompts`
+# monta sobre tests/fixtures/parecer_prompt_fingerprint/e5_sintetico.json, por regime de
+# eviction (cap deste manifest; 6144; 344). O distiller, o catálogo e o formatter moldam
+# o prompt sem passar por versão nenhuma: mudou o byte, o teste pede o pin novo, e editar
+# este arquivo cobra bump de `version:` (gate W2-T05). Refactor que não muda byte não
+# toca aqui. Par: `SYSTEM_PROMPT_SHA256` em pipeline/llm/prompts/parecer_planejador.py,
+# ao lado de `PROMPT_VERSION`.
+# ==============================================================================
+user_prompt_sha256:
+  sem_evicao: "41d61cc330c21f1d99ce797e3ac8c1fb464118cb7439808c1c5d9b78d4d88327"
+  evicao: "57c43f44d2773fa1f844df4849fa2e2a8c86350e4a45a4f9dcc9ccd09c0b935d"
+  corte_duro: "be4afe6a5d76a7ecd74b79137f0eb7ccb9e0e8b9bc3cc3a350e1055456366029"

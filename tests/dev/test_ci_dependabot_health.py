@@ -46,6 +46,17 @@ REAL_HISTORY = [
 ]
 
 
+def _pr(number: int, branch: str, created: str, closed: str | None = None) -> dict:
+    return {
+        "number": number,
+        "url": f"https://github.com/{REPO}/pull/{number}",
+        "headRefName": f"dependabot/{branch}",
+        "createdAt": created,
+        "closedAt": closed,
+        "mergedAt": None,
+    }
+
+
 def _findings(entries, raw_runs, now):
     return mod.measure_findings(entries, mod.scheduled_runs(raw_runs), now)
 
@@ -53,12 +64,17 @@ def _findings(entries, raw_runs, now):
 class FakeGh:
     """Registra as chamadas `gh` e responde por subcomando — sem rede."""
 
-    def __init__(self, runs: list[dict], issues: list[dict] | None = None) -> None:
+    def __init__(self, runs: list[dict], issues: list[dict] | None = None, prs=None) -> None:
         self.calls: list[tuple[str, ...]] = []
         self.runs, self.issues = runs, issues or []
+        young = _pr(1, "pip/x-1.0", datetime.now(timezone.utc).isoformat())
+        self.prs = [young] if prs is None else prs
 
     def __call__(self, *args: str) -> str:
         self.calls.append(args)
+        if args[:2] == ("pr", "list"):
+            want_open = args[args.index("--state") + 1] == "open"
+            return json.dumps([p for p in self.prs if (p["closedAt"] is None) is want_open])
         if args[:2] == ("api", "--paginate"):
             return "".join(json.dumps(r) + "\n" for r in self.runs)
         if args[0] == "api":
@@ -294,3 +310,113 @@ def test_falha_da_medicao_vira_warning_e_nunca_levanta(monkeypatch, capsys, falh
     monkeypatch.setenv("GH_REPO", REPO)
     mod.check_dependabot_health(LABEL, dry_run=False)
     assert "::warning title=dependabot-health sem medição::" in capsys.readouterr().out
+
+
+# ── PR parado (co-design sre-devops 2026-10-09) ──────────────────────────────────
+NPM_FRONTEND = mod.DependabotEntry("npm", "/frontend", "weekly", 2)
+GO_SECURITY = "go_modules/services/pipeline-service-go/go_modules-ab12cd34ef"
+NOW = datetime.fromisoformat("2026-10-20T02:00:00+00:00")
+TRIAGED = [{"number": 9, "state": "CLOSED", "body": "", "closedAt": "2026-10-08T12:00:00Z"}]
+
+
+def _stuck(raws: list[dict], entries=(NPM_FRONTEND,), now=NOW) -> list[mod.EntryFinding]:
+    return mod.stuck_findings(list(entries), mod.parse_prs(list(entries), raws), now)
+
+
+def _vite(created: str = "2026-10-01T09:00:00Z") -> dict:
+    return _pr(2131, "npm_and_yarn/frontend/vite-8.3.3", created)
+
+
+def test_vagas_saem_do_open_pull_requests_limit_do_yml_real():
+    limits = {(e.ecosystem, e.directory): e.pr_limit for e in mod.load_entries()}
+    assert limits[("npm", "/frontend-ops")] == 3
+    assert limits[("pip", "/")] == 8
+
+
+@pytest.mark.parametrize(("age_hours", "stuck"), [(5 * 24 - 1, False), (5 * 24 + 1, True)])
+def test_limiar_do_pr_parado_e_5_dias(age_hours, stuck):
+    assert bool(_stuck([_vite((NOW - timedelta(hours=age_hours)).isoformat())])) is stuck
+
+
+def test_pr_parado_vira_linha_da_entrada_com_as_vagas():
+    (found,) = _stuck([_vite()])
+    assert (found.entry, found.signal) == ("npm /frontend", "PR parado")
+    assert "[#2131](" in found.evidence and "desde 2026-10-01" in found.evidence
+    assert "1/2 vagas ocupadas" in found.evidence and "lotada" not in found.evidence
+
+
+def test_entrada_lotada_e_destacada():
+    raws = [_vite(), _pr(2132, "npm_and_yarn/frontend/typescript-7.0.2", "2026-10-19T09:00:00Z")]
+    (found,) = _stuck(raws)
+    assert "**lotada**, 2/2 vagas ocupadas" in found.evidence
+
+
+def test_pr_sem_entrada_no_yml_tambem_vira_linha_e_nao_conta_como_entrada(capsys):
+    """Security update parado (go_modules) é o mais grave, mesmo fora do limite de vagas."""
+    prs = mod.parse_prs([NPM_FRONTEND], [_pr(2020, GO_SECURITY, "2026-10-01T00:00:00Z")])
+    (found,) = mod.stuck_findings([NPM_FRONTEND], prs, NOW)
+    assert found.entry == "go_modules (sem entrada)" and "n/d (só security)" in found.evidence
+    mod.report([NPM_FRONTEND], [], prs, [found])
+    assert "1/1 entradas saudáveis" in capsys.readouterr().out
+
+
+def test_aceite_pr_parado_abre_issue_e_nao_toca_no_pr(monkeypatch):
+    now = datetime.now(timezone.utc)
+    run = _raw(
+        "npm_and_yarn in /frontend - Update #1", f"{now - timedelta(days=1):%Y-%m-%d}", "success"
+    )
+    gh = FakeGh([run], prs=[_vite((now - timedelta(days=6)).isoformat())])
+    monkeypatch.setattr(mod, "_gh", gh)
+    monkeypatch.setattr(mod, "load_entries", lambda: [NPM_FRONTEND])
+    monkeypatch.setenv("GH_REPO", REPO)
+    mod.check_dependabot_health(LABEL, dry_run=False)
+    assert gh.verbs()[-1] == "issue create"
+    assert "#2131" in gh.calls[-1][gh.calls[-1].index("--body") + 1]
+    assert [c[:2] for c in gh.calls if c[0] == "pr"] == [("pr", "list"), ("pr", "list")]
+
+
+@pytest.mark.parametrize(
+    ("created", "reopens"), [("2026-10-01T09:00:00Z", False), ("2026-10-10T09:00:00Z", True)]
+)
+def test_pr_parado_triado_nao_volta_e_pr_cruzando_depois_volta(monkeypatch, created, reopens):
+    gh = FakeGh([])
+    monkeypatch.setattr(mod, "_gh", gh)
+    mod.sync_issue(_stuck([_vite(created)]), TRIAGED, NOW, label=LABEL, repo=REPO, dry_run=False)
+    assert ("issue create" in gh.verbs()) is reopens
+
+
+def test_pr_deixado_aberto_na_triagem_volta_quando_a_entrada_lota(monkeypatch):
+    """Na triagem (10-08) sobrava vaga; o PR novo de 10-19 é jovem, mas lota a entrada."""
+    raws = [_vite(), _pr(2140, "npm_and_yarn/frontend/sharp-0.36.0", "2026-10-19T09:00:00Z")]
+    gh = FakeGh([])
+    monkeypatch.setattr(mod, "_gh", gh)
+    mod.sync_issue(_stuck(raws), TRIAGED, NOW, label=LABEL, repo=REPO, dry_run=False)
+    assert gh.verbs() == ["label create", "issue create"]
+
+
+def test_issue_aberta_por_outro_sinal_marca_o_pr_ja_triado(monkeypatch):
+    red = mod.EntryFinding("pip /", "vermelho", "runs", newest_fact=NOW - timedelta(hours=3))
+    gh = FakeGh([])
+    monkeypatch.setattr(mod, "_gh", gh)
+    mod.sync_issue([red, *_stuck([_vite()])], TRIAGED, NOW, label=LABEL, repo=REPO, dry_run=False)
+    rows = [
+        r
+        for r in gh.calls[-1][gh.calls[-1].index("--body") + 1].splitlines()
+        if r.startswith("| `")
+    ]
+    assert "triado em" not in rows[0] and rows[1].endswith("_(triado em 2026-10-08)_ |")
+
+
+def test_issue_aberta_fecha_quando_so_restam_triados_e_diz_o_que_zerou(monkeypatch):
+    red = mod.EntryFinding("pip /", "vermelho", "runs", newest_fact=NOW - timedelta(hours=3))
+    stuck = _stuck([_vite()])
+    body = mod.issue_body([red, *stuck], REPO)
+    open_ = [{"number": 7, "state": "OPEN", "body": body, "closedAt": None}, *TRIAGED]
+    gh = FakeGh([])
+    monkeypatch.setattr(mod, "_gh", gh)
+    mod.sync_issue(stuck, open_, NOW, label=LABEL, repo=REPO, dry_run=False)
+    close = gh.calls[-1]
+    assert close[:2] == ("issue", "close")
+    assert close[close.index("--comment") + 1] == (
+        "Zerou: `pip /` (vermelho). Restam só achados já triados."
+    )

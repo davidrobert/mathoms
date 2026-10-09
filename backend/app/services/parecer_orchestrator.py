@@ -18,7 +18,11 @@ from backend.app.core.llm_metrics import get_llm_metrics_emitter
 from backend.app.models.planner_review import ParecerRetentionReason
 from backend.app.services.parecer_antagonismo import rebaixa_sugestoes_antagonicas
 from backend.app.services.parecer_context_sanitizer import sanitize_e5_for_parecer
-from backend.app.services.parecer_distiller import citation_catalog_for, distill_exec_context
+from backend.app.services.parecer_distiller import (
+    citation_catalog_for,
+    distill_exec_context,
+    distill_exec_context_with_budget,
+)
 from backend.app.services.parecer_evidencia import (
     EVIDENCIA_VERIFICATION_VERSION,
     EvidenciaVerification,
@@ -26,6 +30,7 @@ from backend.app.services.parecer_evidencia import (
     resolve_evidencia_mode,
     verify_evidencia,
 )
+from backend.app.services.parecer_exec_context_budget import ExecContextBudget
 from backend.app.services.parecer_finalization import (
     compute_suggestion_dedup_key,
     empty_needs_review_output,
@@ -64,6 +69,7 @@ from pipeline.llm.prompts.parecer_planejador import (
 )
 from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+from pipeline.stage_failure_reason import StageFailureReason, reason_from_exception
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # 1.1 (A40.l89 · ADR-399 D1): `Metrica` ganha `metrica_key` required e perde
@@ -113,6 +119,10 @@ class ParecerGenerationResult:
     # INDISPONIBILIDADE técnica: nada foi gerado, logo não há desfecho retido a
     # persistir — o leitor responde 404, não 200 (§D6).
     retention_reason: Optional[str] = None
+    # Classe da falha TÉCNICA (ADR-447): membro de `StageFailureReason` derivado do
+    # objeto da exceção, nunca da prosa. Preenchida exatamente quando `needs_review`
+    # não tem `retention_reason` — a XOR que `_needs_review` impõe.
+    failure_class: Optional[str] = None
     evidencia_summary: Optional[dict] = None
     evidencia_entries: Optional[list[dict]] = None
     red_lines_summary: Optional[dict] = None
@@ -120,6 +130,10 @@ class ParecerGenerationResult:
     # p/ PlannerFieldRequest) + telemetria (rebaixamento de confiança, 3-vias).
     field_request_audit: Optional[list[dict]] = None
     pos_llm_guardrails: Optional[dict] = None
+    # ADR-341 §Emenda 2026-10-09: orçamento do corpo que o modelo recebeu. `None` é
+    # DESCONHECIDO — nenhum corpo montado, ou envelope de cache anterior à telemetria —,
+    # nunca "nada evictado".
+    exec_context: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if self.tool_trace is None:
@@ -152,6 +166,16 @@ class ParecerOrchestratorConfig:
 # ----------------------------------------------------------------------
 
 
+def _e5_digest(e5_data: Mapping[str, Any]) -> str:
+    """Prefixo do sha256 do E5 canônico (``sort_keys``) — componente da chave."""
+    e5_raw = json.dumps(e5_data, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(e5_raw.encode("utf-8")).hexdigest()[:16]
+
+
+# ev{N}: ADR-279 §E. p{prompt_version}: bump de prompt auto-invalida (emenda ADR-199).
+# rl{N}: ADR-300 — parecer cacheado sob rl antigo não passou pela red line nova.
+# ph/t: carimbados no `metadata` do output cacheado (ADR-199 §E3) — sem eles, o hit
+# servia o parecer da persona antiga com o hash novo no PlannerReview.
 def compute_cache_key(
     *,
     e5_data: Mapping[str, Any],
@@ -159,16 +183,16 @@ def compute_cache_key(
     schema_version: str,
     model_id: str,
     workspace_id: str,
+    persona_hash: str,
+    tier: str,
     prompt_version: str = PROMPT_VERSION,
 ) -> str:
     """Chave Redis canônica do parecer (ADR-199 §pattern ADR-144)."""
-    e5_raw = json.dumps(e5_data, sort_keys=True, ensure_ascii=False, default=str)
-    e5_hash = hashlib.sha256(e5_raw.encode("utf-8")).hexdigest()[:16]
-    # ev{N}: ADR-279 §E. p{prompt_version}: bump de prompt auto-invalida (emenda ADR-199).
-    # rl{N}: ADR-300 — parecer cacheado sob rl antigo não passou pela red line nova.
+    e5_hash = _e5_digest(e5_data)
     composite = (
         f"{workspace_id}:{e5_hash}:{manifest_version}:{schema_version}:{model_id}"
         f":ev{EVIDENCIA_VERIFICATION_VERSION}:p{prompt_version}:rl{RED_LINES_VERSION}"
+        f":ph{persona_hash}:t{tier}"
     )
     digest = hashlib.sha256(composite.encode("utf-8")).hexdigest()
     return f"mathoms:llm:parecer_planejador:{digest}"
@@ -192,6 +216,19 @@ class _CachedParecer:
     evidencia_summary: Optional[dict]
     evidencia_entries: Optional[list[dict]]
     retention_reason: Optional[str]
+    # Guardado, nunca recomputado no hit: o código do distiller não compõe a chave, e
+    # recomputar descreveria por até 7 dias um corpo que o modelo nunca viu. Entrada
+    # gravada antes da telemetria lê `None` (desconhecido) — sem bump de envelope.
+    exec_context: Optional[dict] = None
+
+    def result_fields(self) -> dict[str, Any]:
+        """Campos do resultado que o hit repopula a partir do envelope."""
+        return {
+            "evidencia_summary": self.evidencia_summary,
+            "evidencia_entries": self.evidencia_entries,
+            "retention_reason": self.retention_reason,
+            "exec_context": self.exec_context,
+        }
 
 
 # Fail-open é simetria load-bearing com o write: LLMCacheBackend não tem `delete` e o
@@ -209,6 +246,7 @@ def _try_cache(cache: Any, key: str) -> Optional[_CachedParecer]:
             evidencia_summary=envelope.get("evidencia_summary"),
             evidencia_entries=envelope.get("evidencia_entries"),
             retention_reason=envelope.get("retention_reason"),
+            exec_context=envelope.get("exec_context"),
         )
     except Exception as exc:  # noqa: BLE001 — leitura de cache é best-effort
         logger.warning(
@@ -226,6 +264,7 @@ def _write_cache(cache: Any, key: str, cached: _CachedParecer, ttl_s: int) -> No
             "evidencia_summary": cached.evidencia_summary,
             "evidencia_entries": cached.evidencia_entries,
             "retention_reason": cached.retention_reason,
+            "exec_context": cached.exec_context,
         }
         cache.set(key, json.dumps(payload, ensure_ascii=False), ttl_s=ttl_s)
     except Exception as exc:  # noqa: BLE001 — cache write é best-effort
@@ -343,23 +382,41 @@ def _needs_review_overrides(
     # Sem default de propósito: `None` é valor SIGNIFICATIVO (indisponibilidade
     # técnica, sem row) e um default o tornaria o silêncio de quem esqueceu.
     reason_code: Optional[ParecerRetentionReason],
+    # Idem, e XOR com `reason_code` (ADR-447): exatamente um dos dois vem.
+    failure_class: Optional[StageFailureReason],
     elapsed_ms: int,
 ) -> dict:
     """Campos que distinguem o desfecho retido do resultado base."""
+    _require_one_classification(reason_code=reason_code, failure_class=failure_class)
     return {
         "status": "needs_review",
         "error_detail": reason,
         "retention_reason": reason_code.value if reason_code else None,
+        "failure_class": failure_class.value if failure_class else None,
         "latency_ms": elapsed_ms,
     }
 
 
+def _require_one_classification(
+    *, reason_code: Optional[ParecerRetentionReason], failure_class: Optional[StageFailureReason]
+) -> None:
+    """Exatamente um entre retenção (política) e falha técnica — nunca os dois, nunca nenhum."""
+    if (reason_code is None) == (failure_class is None):
+        raise ValueError(
+            "needs_review exige exatamente um de reason_code/failure_class, "
+            f"got reason_code={reason_code!r} failure_class={failure_class!r}"
+        )
+
+
 # `reason_code` é obrigatório de propósito (ADR-366 §D3): produtor novo não compila sem
 # classificar, e assim não existe ramo que caia em parse da prosa de `error_detail`.
+# `failure_class` também (ADR-447), e os dois são XOR: retenção é juízo sobre um
+# conteúdo que existe, falha técnica é a ausência dele — o decoder nunca desempata.
 def _needs_review(
     *,
     reason: str,
     reason_code: Optional[ParecerRetentionReason],
+    failure_class: Optional[StageFailureReason],
     persona_hash: str,
     manifest: ManifestData,
     config: ParecerOrchestratorConfig,
@@ -374,7 +431,7 @@ def _needs_review(
         config=config,
         metrics=metrics,
     )
-    return replace(base, **_needs_review_overrides(reason, reason_code, elapsed_ms))
+    return replace(base, **_needs_review_overrides(reason, reason_code, failure_class, elapsed_ms))
 
 
 def _hit_result(
@@ -389,14 +446,7 @@ def _hit_result(
     base = _base_result(
         output=cached.output, persona_hash=persona_hash, manifest=manifest, config=config
     )
-    return replace(
-        base,
-        cache_hit=True,
-        latency_ms=elapsed_ms,
-        evidencia_summary=cached.evidencia_summary,
-        evidencia_entries=cached.evidencia_entries,
-        retention_reason=cached.retention_reason,
-    )
+    return replace(base, cache_hit=True, latency_ms=elapsed_ms, **cached.result_fields())
 
 
 def _success_result(
@@ -460,6 +510,8 @@ def generate_parecer(
         schema_version=config.schema_version,
         model_id=config.model_id,
         workspace_id=config.workspace_id,
+        persona_hash=persona_hash,
+        tier=config.tier,
     )
     cached = _try_cache(cache, key)
     if cached is not None:
@@ -475,42 +527,52 @@ def generate_parecer(
         return _needs_review(
             reason="LLM service unavailable (ANTHROPIC_API_KEY missing)",
             reason_code=None,  # indisponibilidade: nada gerado, nada cobrado (ADR-366 §D6)
+            failure_class=StageFailureReason.llm_unavailable,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
             elapsed_ms=_elapsed_ms(start),
             metrics=_NO_LLM_CALL,
         )
-    return _generate_with_llm(
+    system_prompt, user_prompt, budget = _build_prompts_with_budget(
+        manifest=manifest, persona_body=persona_body, e5_data=e5_data
+    )
+    _log_exec_context(budget, config)
+    # Anexado AQUI, e não em cada `return` do caminho de geração: são cinco desfechos, e o
+    # próximo que alguém escrever herda a telemetria por construção, não por memória.
+    result = _generate_with_llm(
         llm=llm,
         cache=cache,
         cache_key=key,
         manifest=manifest,
-        persona_body=persona_body,
+        prompts=(system_prompt, user_prompt),
+        exec_context=budget.as_dict(),
         persona_hash=persona_hash,
         e5_data=e5_data,
         config=config,
         start=start,
     )
+    return replace(result, exec_context=budget.as_dict())
 
 
 def _call_llm_safe(
     *, llm: Any, system_prompt: str, user_prompt: str, config: ParecerOrchestratorConfig
-) -> tuple[Optional[ParecerPlanejadorOutput], Optional[str]]:
-    """Invoca LLM com Instructor (output validado pelo schema); exceção vira ``(None, error_msg)``."""
+) -> tuple[Optional[ParecerPlanejadorOutput], Optional[str], Optional[StageFailureReason]]:
+    """Invoca LLM com Instructor (output validado pelo schema); exceção vira ``(None, rótulo, classe)``."""
     try:
         output = _invoke_parecer_llm(
             llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, config=config
         )
         _emit_riscos_truncados(output)
-        return output, None
+        return output, None, None
     except Exception as exc:  # noqa: BLE001 — todas exceções viram needs_review
         label = _exc_label(exc)
         logger.warning(
             "parecer_planejador_llm_call_failed",
             extra={"workspace_id": config.workspace_id, "error": label},
         )
-        return None, f"LLM call failed: {label}"
+        # Último ponto com o objeto vivo: a classe sai dele, nunca do rótulo (ADR-447).
+        return None, f"LLM call failed: {label}", reason_from_exception(exc)
 
 
 def _exc_label(exc: Exception) -> str:
@@ -580,14 +642,37 @@ def _emit_riscos_truncados(output: ParecerPlanejadorOutput) -> None:
         )
 
 
+def _build_prompts_with_budget(
+    *, manifest: ManifestData, persona_body: str, e5_data: Mapping[str, Any]
+) -> tuple[str, str, ExecContextBudget]:
+    """(system_prompt, user_prompt) + o orçamento do corpo que vai neles."""
+    exec_context, budget = distill_exec_context_with_budget(manifest, e5_data)
+    return (
+        SYSTEM_PROMPT_TEMPLATE.format(persona_body=persona_body),
+        USER_PROMPT_TEMPLATE.format(exec_context=exec_context),
+        budget,
+    )
+
+
 def _build_prompts(
     *, manifest: ManifestData, persona_body: str, e5_data: Mapping[str, Any]
 ) -> tuple[str, str]:
     """Constrói (system_prompt, user_prompt) via persona + manifest distillado."""
-    exec_context = distill_exec_context(manifest, e5_data)
-    return (
-        SYSTEM_PROMPT_TEMPLATE.format(persona_body=persona_body),
-        USER_PROMPT_TEMPLATE.format(exec_context=exec_context),
+    system_prompt, user_prompt, _budget = _build_prompts_with_budget(
+        manifest=manifest, persona_body=persona_body, e5_data=e5_data
+    )
+    return system_prompt, user_prompt
+
+
+# Emitido ANTES da chamada: se o LLM falhar, o log ainda diz o que ele ia receber. Só
+# inteiros e ids de seção — o mesmo dict que o stage publica em `output_summary`.
+def _log_exec_context(budget: ExecContextBudget, config: ParecerOrchestratorConfig) -> None:
+    """Evento do corpo enviado — WARNING quando a eviction ou o corte degenerado agiu."""
+    degradado = bool(budget.evicted_section_ids) or budget.hard_cut
+    logger.log(
+        logging.WARNING if degradado else logging.INFO,
+        "parecer_planejador_exec_context",
+        extra={"workspace_id": config.workspace_id, **budget.as_dict()},
     )
 
 
@@ -713,22 +798,21 @@ def _generate_with_llm(
     cache: Any,
     cache_key: str,
     manifest: ManifestData,
-    persona_body: str,
+    prompts: tuple[str, str],
+    exec_context: dict,
     persona_hash: str,
     e5_data: Mapping[str, Any],
     config: ParecerOrchestratorConfig,
     start: float,
 ) -> ParecerGenerationResult:
     """Sub-path quando LLM está disponível — chama, valida sigilo, finaliza, cacheia."""
-    system_prompt, user_prompt = _build_prompts(
-        manifest=manifest, persona_body=persona_body, e5_data=e5_data
-    )
+    system_prompt, user_prompt = prompts
     tools = PlannerDrillDown(
         e5_data=e5_data,
         section_whitelist=manifest.tools_section_whitelist,
         format_hints=manifest.format_hints,
     )
-    raw, err = _call_llm_safe(
+    raw, err, failure = _call_llm_safe(
         llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, config=config
     )
     metrics = _extract_last_call_metrics(llm, call_attempted=True)
@@ -736,6 +820,7 @@ def _generate_with_llm(
         return _needs_review(
             reason=err or "LLM call failed",
             reason_code=None,  # indisponibilidade: nenhum output válido (ADR-366 §D6)
+            failure_class=failure or StageFailureReason.unknown,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -747,6 +832,7 @@ def _generate_with_llm(
         base = _needs_review(
             reason=red_lines_err,
             reason_code=ParecerRetentionReason.conselho_vedado,
+            failure_class=None,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -764,6 +850,7 @@ def _generate_with_llm(
             _needs_review(
                 reason=sigilo_err,
                 reason_code=ParecerRetentionReason.sigilo,
+                failure_class=None,
                 persona_hash=persona_hash,
                 manifest=manifest,
                 config=config,
@@ -778,6 +865,7 @@ def _generate_with_llm(
         base = _needs_review(
             reason=evidencia_err,
             reason_code=decision.retention_reason,
+            failure_class=None,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -834,6 +922,7 @@ def _generate_with_llm(
             retention_reason=(
                 decision.retention_reason.value if decision.retention_reason else None
             ),
+            exec_context=exec_context,
         ),
         ttl_s=config.cache_ttl_s,
     )

@@ -49,10 +49,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # issues: write — abre Issue de estouro de budget; actions: read — lê runs.
+    # pull-requests: read — idade dos PRs do Dependabot (sinal "PR parado"). O repo
+    # é público e a leitura passaria sem ela; declarada para não depender disso.
     permissions:
       contents: read
       issues: write
       actions: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v7
 
@@ -345,7 +348,9 @@ jobs:
 
       # ── Saúde das entradas do Dependabot (co-design sre-devops 2026-10-09) ──
       # O workflow dinâmico do Dependabot não tem canal de falha: pip `/` saiu
-      # `failure` em 08-31, 09-07, 10-05 e 10-09 (#2124) e ninguém viu. Mora aqui
+      # `failure` em 08-31, 09-07, 10-05 e 10-09 (#2124) e ninguém viu. O mesmo
+      # step cobre PR do Dependabot parado há mais de 5 dias: isento do stale
+      # (#2147), ele ocuparia a vaga do `open-pull-requests-limit` calado. Mora aqui
       # e não no automerge-watchdog (48 runs/dia) porque diário basta para
       # cadência semanal. `!cancelled()`: é sinal independente dos steps acima.
       # Nunca sai != 0 — run vermelho dispararia o canal de falha deste host.

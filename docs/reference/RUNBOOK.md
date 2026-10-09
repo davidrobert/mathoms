@@ -284,7 +284,9 @@ Olhe **1×/semana**, em Métricas → *Degradação de etapas* (30d), três núm
    `reason_class` não cobre os tipos reais — e toda a copy client-facing da
    [[A40.l22]] fica construída em cima de moeda ao ar (a [[A40.l20]], citada aqui
    até 2026-08-08, fechou em #1278 e é a produtora do estado, não da copy). Revise
-   `backend/app/services/pipeline/stage_failure_reason.py`.
+   `pipeline/stage_failure_reason.py` — o classificador migrou para lá em 2026-10-09
+   ([[ADR-447]]). Até essa data a falha de LLM do parecer e a exceção do runner gravavam
+   `unknown` por construção: janela que cruza 2026-10-09 superestima `unknown`.
 3. **Por etapa.** `review_finances_holistic` degradando é visível ao cliente
    premium e custa API; `validate_cross` é grátis e invisível. A etapa decide se o
    próximo passo é olhar o provider ou o código.

@@ -1186,16 +1186,16 @@
       null
     ],
     "aportes": [
-      0
+      null
     ],
     "cenarios": [
       {
         "ano_if": null,
-        "aporte_mensal": 0,
+        "aporte_mensal": null,
         "idade_titular": null,
         "nome": "Sem renda do cônjuge",
         "prazo_if_anos": null,
-        "resumo": "Sem renda do cônjuge, aporte cai para R$ 0,00/mês (66% do base). Prazo até a IF não projetável com as premissas deste cenário."
+        "resumo": "Quanto a perda da renda do cônjuge adia a independência financeira depende do aporte mensal, que você ainda não declarou. Defina sua meta de aporte mensal em Meu Plano → Aportes."
       }
     ],
     "idade_titular_if": [
@@ -1208,7 +1208,7 @@
       null
     ],
     "premissas": {
-      "aporte_base": 0,
+      "aporte_base": null,
       "fator_reduzido": "0.660000",
       "investivel_atual": 28000000,
       "meta_if": 100000000,

@@ -112,5 +112,8 @@ caminho de sucesso alcança `_write_cache`.
   parecer da persona antiga. Uma linha no composite, mesma família da emenda
   2026-06-12 da [[ADR-199]]. Também para lane própria; não embarcou aqui para não
   misturar invalidação de cache com contabilidade.
+  → **Fechado em 2026-10-09** ([#2166](https://github.com/davidrobert/mathoms/pull/2166)): o `persona_hash` compõe a chave
+  ([[ADR-199]] §Emenda 2026-10-09, E3).
 - **`config.tier` fora da key**: hit cross-tier faz `tier_at_generation` do
   envelope divergir do `output.metadata` — mesmo destino.
+  → **Fechado em 2026-10-09** no mesmo PR ([#2166](https://github.com/davidrobert/mathoms/pull/2166)): `tier` compõe a chave.

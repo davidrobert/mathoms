@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Badge, Button, TextInput } from "@/components/ui";
 import { api, AdminApiError } from "@/lib/api";
 import { useAuthGuard } from "@/lib/auth-guard";
-import type { AdminUserSummary, UserWorkspace } from "@/lib/types";
+import type { AdminUserListResponse, AdminUserSummary, UserWorkspace } from "@/lib/types";
+import { useAdminFetch } from "@/lib/use-admin-fetch";
 import { UserActionModal } from "./user-actions";
 
 type ActionKind =
@@ -27,6 +28,16 @@ interface SortState {
   direction: SortDirection;
 }
 
+interface UsersQuery {
+  filter: string;
+}
+
+const NO_USERS: AdminUserSummary[] = [];
+
+function fetchUsers(query: UsersQuery): Promise<AdminUserListResponse> {
+  return api.listUsers({ q: query.filter || undefined, limit: 200 });
+}
+
 function compareUsers(a: AdminUserSummary, b: AdminUserSummary, key: SortKey): number {
   const av = a[key];
   const bv = b[key];
@@ -38,11 +49,10 @@ function compareUsers(a: AdminUserSummary, b: AdminUserSummary, key: SortKey): n
 
 export default function UsersPage() {
   const { principal } = useAuthGuard();
-  const [users, setUsers] = useState<AdminUserSummary[]>([]);
-  const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState<UsersQuery>({ filter: "" });
+  const listing = useAdminFetch(query, fetchUsers, "Falha ao carregar usuários.");
+  const [actionError, setActionError] = useState<string | null>(null);
   const [openAction, setOpenAction] = useState<OpenAction | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
@@ -50,6 +60,15 @@ export default function UsersPage() {
     Record<string, UserWorkspace[] | "loading" | "error">
   >({});
   const [sort, setSort] = useState<SortState | null>(null);
+  const users = listing.data?.users ?? NO_USERS;
+  const total = listing.data?.total ?? 0;
+  const { loading } = listing;
+  const error = actionError ?? listing.error;
+
+  function reload(): void {
+    setActionError(null);
+    setQuery({ filter: q });
+  }
 
   function toggleSort(key: SortKey): void {
     setSort((prev) => {
@@ -87,28 +106,6 @@ export default function UsersPage() {
     }
   }
 
-  const load = useCallback(
-    async (filter: string): Promise<void> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await api.listUsers({ q: filter || undefined, limit: 200 });
-        setUsers(res.users);
-        setTotal(res.total);
-      } catch (err) {
-        if (err instanceof AdminApiError) setError(`${err.status} · ${err.code}`);
-        else setError("Falha ao carregar usuários.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    void load("");
-  }, [load]);
-
   async function toggleDev(u: AdminUserSummary): Promise<void> {
     const enabling = !u.is_developer;
     if (enabling) {
@@ -120,9 +117,9 @@ export default function UsersPage() {
     }
     try {
       await api.setDeveloperFlag(u.id, enabling);
-      await load(q);
+      reload();
     } catch (err) {
-      setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao alternar flag.");
+      setActionError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao alternar flag.");
     }
   }
 
@@ -143,7 +140,7 @@ export default function UsersPage() {
           className="flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            void load(q);
+            reload();
           }}
         >
           <TextInput
@@ -288,7 +285,7 @@ export default function UsersPage() {
           action={{ kind: openAction.kind }}
           canHardDelete={Boolean(canHardDelete)}
           onClose={() => setOpenAction(null)}
-          onChanged={() => void load(q)}
+          onChanged={reload}
         />
       )}
     </section>

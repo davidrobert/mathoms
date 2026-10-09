@@ -7,6 +7,7 @@ import os
 from typing import TYPE_CHECKING
 
 from pipeline.llm.models_catalog import PARECER_MODEL as _DEFAULT_MODEL
+from pipeline.stage_failure_reason import StageFailureReason, failure_class_detail
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
@@ -118,6 +119,27 @@ def _audit_detail(result) -> dict:
     }
 
 
+# A falha técnica leva a classe que `_call_llm_safe` derivou do objeto da exceção
+# (ADR-447); a retenção não leva — `retention_reason` já a classifica, e os dois são
+# XOR por construção em `_needs_review`. Ler via `getattr`: fakes de resultado
+# anteriores ao campo seguem valendo como "sem classe".
+def _failure_class_detail(result) -> dict:
+    """`detail["failure_class"]` da falha técnica; vazio na retenção por política."""
+    failure_class = getattr(result, "failure_class", None)
+    if failure_class is None:
+        return {}
+    return failure_class_detail(StageFailureReason(failure_class))
+
+
+# [[ADR-341]] §Emenda 2026-10-09: o orçamento do corpo que o modelo recebeu, nos DOIS
+# desfechos — é o que diz se um bloqueio de red line veio de seção evictada. Mora no
+# status (`output_summary`, texto claro), não no `_meta` cifrado: o leitor é o X8 da
+# rodada unificada, por SELECT, sem decifrar artefato.
+def _exec_context_detail(result) -> dict:
+    """Orçamento do exec context (bytes + seções evictadas); `None` = desconhecido."""
+    return {"exec_context": getattr(result, "exec_context", None)}
+
+
 # `retention_reason` None = indisponibilidade técnica: nada foi gerado, logo não há
 # desfecho retido a persistir — o leitor responde 404, não 200 (ADR-366 §D3/§D6). Os 5
 # campos de auditoria eram descartados aqui, e a persistência os indexa com
@@ -134,8 +156,10 @@ def _needs_review_return(result, workspace_id: str, store) -> dict:
         "status": "needs_review",
         "reason": result.error_detail,
         "retention_reason": result.retention_reason,
+        **_failure_class_detail(result),
         **_cost_detail(result),
         **_audit_detail(result),
+        **_exec_context_detail(result),
     }
     if result.evidencia_summary is not None:
         status["evidencia_verification"] = result.evidencia_summary
@@ -176,6 +200,7 @@ def _success_return(result, workspace_id: str) -> dict:
         "cache_hit": result.cache_hit,
         **_cost_detail(result),
         **_audit_detail(result),
+        **_exec_context_detail(result),
         "parecer_summary": summary,
         # Preenchido também no sucesso: parecer ENTREGUE pode ter perdido itens
         # (`entregue_com_retencao`), e é o desfecho comum (ADR-366 §D1).

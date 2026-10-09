@@ -92,59 +92,29 @@ class TestDistillExecContext:
 # -----------------------------------------------------------------------
 
 
+_PERSONA_HASH = "a" * 64
+_KEY_BASE = {
+    "e5_data": {"a": 1},
+    "manifest_version": "1.0",
+    "schema_version": "1.0",
+    "model_id": "m",
+    "workspace_id": "ws",
+    "persona_hash": _PERSONA_HASH,
+    "tier": "premium",
+}
+
+
 class TestCacheKey:
     def test_deterministic(self):
-        e5 = {"a": 1}
-        k1 = compute_cache_key(
-            e5_data=e5,
-            manifest_version="1.0",
-            schema_version="1.0",
-            model_id="m",
-            workspace_id="ws",
-        )
-        k2 = compute_cache_key(
-            e5_data=e5,
-            manifest_version="1.0",
-            schema_version="1.0",
-            model_id="m",
-            workspace_id="ws",
-        )
-        assert k1 == k2
+        assert compute_cache_key(**_KEY_BASE) == compute_cache_key(**_KEY_BASE)
 
     def test_changes_with_manifest_version(self):
-        e5 = {"a": 1}
-        k1 = compute_cache_key(
-            e5_data=e5,
-            manifest_version="1.0",
-            schema_version="1.0",
-            model_id="m",
-            workspace_id="ws",
-        )
-        k2 = compute_cache_key(
-            e5_data=e5,
-            manifest_version="2.0",
-            schema_version="1.0",
-            model_id="m",
-            workspace_id="ws",
-        )
-        assert k1 != k2
+        k2 = compute_cache_key(**{**_KEY_BASE, "manifest_version": "2.0"})
+        assert compute_cache_key(**_KEY_BASE) != k2
 
     def test_changes_with_workspace(self):
-        e5 = {"a": 1}
-        k1 = compute_cache_key(
-            e5_data=e5,
-            manifest_version="1.0",
-            schema_version="1.0",
-            model_id="m",
-            workspace_id="ws-a",
-        )
-        k2 = compute_cache_key(
-            e5_data=e5,
-            manifest_version="1.0",
-            schema_version="1.0",
-            model_id="m",
-            workspace_id="ws-b",
-        )
+        k1 = compute_cache_key(**{**_KEY_BASE, "workspace_id": "ws-a"})
+        k2 = compute_cache_key(**{**_KEY_BASE, "workspace_id": "ws-b"})
         assert k1 != k2
 
 
@@ -244,6 +214,8 @@ class TestGenerateParecerOrchestrator:
             schema_version="1.0",
             model_id="anthropic/claude-sonnet-4-6",
             workspace_id="ws-pv",
+            persona_hash=_PERSONA_HASH,
+            tier="premium",
         )
         key_v1 = compute_cache_key(**kwargs, prompt_version="1.4.0")
         key_v2 = compute_cache_key(**kwargs, prompt_version="1.5.0")
