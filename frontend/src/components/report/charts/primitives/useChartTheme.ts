@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 export interface ChartSemanticPalette {
   readonly gain: string;
   readonly loss: string;
+  readonly neutral: string;
 }
 
 export interface ChartPalette {
@@ -50,6 +51,7 @@ const LIGHT_FALLBACK: ChartPalette = {
   semantic: {
     gain: "#15803D",
     loss: "#B91C1C",
+    neutral: "#64748B",
   },
 };
 
@@ -81,6 +83,7 @@ function resolvePalette(): ChartPalette {
     semantic: {
       gain: readVar(root, "--semantic-gain", LIGHT_FALLBACK.semantic.gain),
       loss: readVar(root, "--semantic-loss", LIGHT_FALLBACK.semantic.loss),
+      neutral: readVar(root, "--semantic-neutral-financial", LIGHT_FALLBACK.semantic.neutral),
     },
   };
 }

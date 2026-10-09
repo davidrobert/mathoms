@@ -67,9 +67,12 @@ templates:
   # taxa de poupança ex-aporte exibida no hero. "Quanto sobra" vive num lugar
   # só, o KPI de folga do card de Consumo Consciente. Emitir capacidade/aporte/
   # sobra aqui exige co-change no E5 — lane A40.l15.
+  # O termo bruto se chama "saídas, aportes incluídos": "despesa" na mesma S2 é
+  # a base da rosca, que tira o aporte (ADR-333 §Emenda). Mesmo nome da série
+  # do chart e do `/plano` ("Saídas (inclui aportes)").
   fluxo_mensal:
-    template: "Sobre {janela_escopo}: receita recorrente de {receita_recorrente|brl}/mês e despesa média de {despesa_mensal|brl}/mês."
-    fallback: "Receita vs despesa mês a mês."
+    template: "Sobre {janela_escopo}: receita recorrente de {receita_recorrente|brl}/mês e saídas de {saidas_mensal|brl}/mês, aportes incluídos."
+    fallback: "Receitas e saídas mês a mês."
     required_keys:
       - "fluxo_caixa.janela_12m.receita_recorrente_mensal"
       - "fluxo_caixa.janela_12m.despesa_mensal_media"
@@ -98,9 +101,12 @@ templates:
     fallback: "Distribuição das despesas por categoria."
     required_keys: ["fluxo_caixa.despesas_por_categoria"]
 
+  # O card deriva a própria conclusão das séries que desenha
+  # (`ReceitaDespesaMensalChart.buildConclusion`): total da série inteira, sem
+  # mensalizar (ADR-306 D1). "Após aportes" porque as saídas incluem o aporte.
   receita_despesa_mensal:  # fallback-only (Fase 6 — sem builder); placeholders não interpolam
-    template: "Ao longo do período analisado, fluxo líquido médio foi {fluxo_medio|brl}/mês."
-    fallback: "Receita vs despesa ao longo do tempo."
+    template: "Fluxo líquido após aportes de {fluxo_liquido|brl} em {meses_documentados}."
+    fallback: "Receitas e saídas ao longo do tempo."
     required_keys: ["fluxo_caixa.receita_despesa_mensal_detalhado"]
 
   viagens:  # fallback-only (Fase 6 — sem builder); placeholders não interpolam
