@@ -29,7 +29,7 @@ _DIVERGENCE_THRESHOLD_PCT = 10.0
 _CASAL_LABEL = "casal"
 # Subcódigos específicos do Grupo 01 (Bens Imóveis) RFB (espelha dev/dedup_property_identity.py).
 # "01" e "" são genéricos (grupo-pai sem subcódigo, ex.: comprovantes de bem ADR-239).
-_SPECIFIC_CODIGOS_RFB = frozenset({"11", "12", "13", "14", "15", "17", "19"})
+SPECIFIC_CODIGOS_RFB = frozenset({"11", "12", "13", "14", "15", "17", "19"})
 
 
 @dataclass(frozen=True)
@@ -198,7 +198,7 @@ def _has_generic_codigo_in_groups(grouped: dict[tuple, list[dict]], keys: list[t
     all_codigos: set[str] = set()
     for key in keys:
         all_codigos |= _group_codigos(grouped[key])
-    return any(cod not in _SPECIFIC_CODIGOS_RFB for cod in all_codigos)
+    return any(cod not in SPECIFIC_CODIGOS_RFB for cod in all_codigos)
 
 
 def _has_conflicting_specific_codigos_in_groups(
@@ -207,7 +207,7 @@ def _has_conflicting_specific_codigos_in_groups(
     """True se 2+ codigos específicos divergentes (ex.: 11 e 12) — conflito humano, não merge."""
     specifics: set[str] = set()
     for key in keys:
-        specifics |= _group_codigos(grouped[key]) & _SPECIFIC_CODIGOS_RFB
+        specifics |= _group_codigos(grouped[key]) & SPECIFIC_CODIGOS_RFB
     return len(specifics) >= 2
 
 
@@ -227,7 +227,7 @@ def _consolidate_keys(
 def _pick_primary_key(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> tuple:
     """Específico (11/12/...) vence sobre genérico (01/'')."""
     for key in keys:
-        if _group_codigos(grouped[key]) & _SPECIFIC_CODIGOS_RFB:
+        if _group_codigos(grouped[key]) & SPECIFIC_CODIGOS_RFB:
             return key
     return keys[0]
 
@@ -437,6 +437,7 @@ def _maybe_warning(group: list[dict], property_id: str | None) -> _CoreWarning |
 __all__ = [
     "DedupResult",
     "DedupWarning",
+    "SPECIFIC_CODIGOS_RFB",
     "dedup_imoveis_consolidados",
     "resolve_dedup_winner_by_property_id",
 ]

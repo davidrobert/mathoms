@@ -192,8 +192,22 @@ def canonicalize(descricao: str) -> Optional[str]:
     return None
 
 
+# [[ADR-440]] D5: a chave montada da âncora da ficha precisa sair BYTE-IGUAL à que
+# `canonicalize` gravou nas rows — então passa pelo extractor e pelo formatador do
+# próprio degrau da cascata, em vez de reimplementar o formato (2ª função de identidade).
+def canonical_do_nivel(texto: str, nivel: str) -> Optional[str]:
+    """Só o degrau `nivel` da cascata sobre `texto`, no formato que `canonicalize` grava."""
+    for extractor, level, fmt in _CASCADE:
+        if level == nivel:
+            resultado = extractor(texto) if texto else None
+            return fmt(resultado) if resultado is not None else None
+    niveis = [level for _, level, _ in _CASCADE]
+    raise ValueError(f"nível de cascata desconhecido: {nivel!r}; esperado um de {niveis}")
+
+
 __all__ = [
     "normalize",
     "extract_via_numero",
     "canonicalize",
+    "canonical_do_nivel",
 ]
