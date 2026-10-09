@@ -37,7 +37,7 @@ class TestNormalizeDescricao:
         assert "3/12" in normalize_descricao("PARC 3/12 LOJA")
 
     def test_collapses_whitespace_and_casing(self):
-        assert normalize_descricao("  pix  recebido  arvo  ") == "pix recebido arvo"
+        assert normalize_descricao("  pix  recebido  empresa  ") == "pix recebido empresa"
 
     def test_empty_and_none(self):
         assert normalize_descricao("") == ""
@@ -46,15 +46,15 @@ class TestNormalizeDescricao:
     def test_strips_routing_suffix_salarios_pj(self):
         # ADR-255 it. 2 — sufixo final ` — Salários PJ` removido antes do hash.
         assert normalize_descricao(
-            "Pix recebido de ARVO SAUDE LTDA — Salários PJ"
-        ) == normalize_descricao("Pix recebido de ARVO SAUDE LTDA")
+            "Pix recebido de EMPRESA EXEMPLO LTDA — Salários PJ"
+        ) == normalize_descricao("Pix recebido de EMPRESA EXEMPLO LTDA")
 
     def test_strips_routing_suffix_only_at_end(self):
         # GUARD: sufixo em meio da descrição NÃO é stripado (só no final).
         # Cenário hipotético: bug futuro de parser que insere o tag no meio.
         # Acento preservado por normalize_descricao (vs normalize_banco).
         assert "salários pj" in normalize_descricao(
-            "Pix recebido — Salários PJ de ARVO SAUDE LTDA — pagamento mensal"
+            "Pix recebido — Salários PJ de EMPRESA EXEMPLO LTDA — pagamento mensal"
         )
 
     def test_strips_routing_suffix_case_insensitive(self):
@@ -71,8 +71,8 @@ class TestNormalizeDescricao:
 
 class TestCentsInt:
     def test_avoids_float_drift(self):
-        # 47208.77 * 100 em float = 4720876.999... — int(round(...)) salva.
-        assert cents_int(47208.77) == 4720877
+        # 20000.01 * 100 em float = 2000000.9999999998 — int(round(...)) salva.
+        assert cents_int(20000.01) == 2000001
 
     def test_negative(self):
         assert cents_int(-100.5) == -10050
@@ -85,8 +85,8 @@ class TestHashV1:
             banco="C6Bank",
             titular="david",
             tipo_conta="extratoconta",
-            valor=47208.77,
-            descricao="Pix recebido de ARVO SAUDE LTDA",
+            valor=20000.01,
+            descricao="Pix recebido de EMPRESA EXEMPLO LTDA",
         )
 
     def test_deterministic_across_bank_casing_drift(self):
@@ -114,7 +114,7 @@ class TestHashV1:
 
     def test_changes_with_valor(self):
         h1 = _hash_v1(**self._base())
-        h2 = _hash_v1(**{**self._base(), "valor": 47208.78})
+        h2 = _hash_v1(**{**self._base(), "valor": 20000.02})
         assert h1 != h2
 
     def test_changes_with_genuinely_different_descricao(self):
@@ -128,18 +128,22 @@ class TestHashV1:
         # ADR-255 it. 2 / critério #12 — C6 emite a MESMA transação em PDFs
         # diferentes ora com `" — Salários PJ"`, ora sem. Hash deve colapsar.
         h_with = _hash_v1(
-            **{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ"}
+            **{**self._base(), "descricao": "Pix recebido de EMPRESA EXEMPLO LTDA — Salários PJ"}
         )
-        h_without = _hash_v1(**{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA"})
+        h_without = _hash_v1(
+            **{**self._base(), "descricao": "Pix recebido de EMPRESA EXEMPLO LTDA"}
+        )
         assert h_with == h_without
 
     def test_collapses_routing_suffix_13_salario(self):
         # Décimo terceiro: mesmo PIX em 2 extratos com sufixo " — 13 Salário"
         # ora presente, ora omitido.
         h_with = _hash_v1(
-            **{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário"}
+            **{**self._base(), "descricao": "Pix recebido de EMPRESA EXEMPLO LTDA — 13 Salário"}
         )
-        h_without = _hash_v1(**{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA"})
+        h_without = _hash_v1(
+            **{**self._base(), "descricao": "Pix recebido de EMPRESA EXEMPLO LTDA"}
+        )
         assert h_with == h_without
 
     def test_collapses_routing_suffix_transf_pix(self):

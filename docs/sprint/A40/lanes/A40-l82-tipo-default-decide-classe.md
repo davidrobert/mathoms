@@ -40,8 +40,8 @@ tags:
 ## Problema
 
 O r8 (run `d0f6260a`, 2026-08-24) abriu como achado **nº 1, Crítico P0**:
-**11 de 61 posições migram** de `Fundos` para `Renda Fixa` — **R$ 174.636,71,
-13,1%** sobre a carteira **pós-resolver** (ano-base por membro, Σ 1.335.354,95) —
+**11 de 61 posições migram** de `Fundos` para `Renda Fixa` — **13,1%** sobre a
+carteira **pós-resolver** (ano-base por membro) —
 com `autoridade: "keyword"` (confiança plena), zero
 `review_reason`, `nao_classificado_pct` parado e nenhum golden quebrado.
 
@@ -51,9 +51,8 @@ com `autoridade: "keyword"` (confiança plena), zero
 | Renda Fixa | 21 | **32** |
 
 > **Duas bases, ambas certas.** A tabela 61×3 do #1698 mede os **itens crus**
-> (maior ano por item, Σ 1.946.473,20) e dá **R$ 323.936,08 · 16,6%**. Esta lane
-> mede **pós-resolver** (ano-base por membro, Σ 1.335.354,95) e dá **R$ 174.636,71
-> · 13,1%**. Quem cruzar os dois documentos vê dois percentuais para "a mesma
+> (maior ano por item) e dá **16,6%**. Esta lane mede **pós-resolver** (ano-base por
+> membro) e dá **13,1%**. Quem cruzar os dois documentos vê dois percentuais para "a mesma
 > coisa" — são recortes diferentes do mesmo fato, não divergência.
 
 ### Os itens são fundos de ações rotulados renda fixa
@@ -172,14 +171,14 @@ Fixa" legítimo para `Fundos` — errado sob subjacente > veículo.
   **dono: `data-engineer`**, aditivo, delta zero em cents, ~~sem janela~~ —
   **janela dada no fechamento** (ver o bullet retratado abaixo e [[ADR-400]]
   §"A contenção tem custo medido"): o campo passa a ter custo corrente de
-  R$ 25.337,34 em KPI publicado.
+  ~23% na reserva publicada da cônjuge.
 - ~~**Reserva de emergência** — o RV8-01 **não** a contamina hoje.~~
   **Retratado no fechamento (2026-08-25): a conclusão estava invertida.** As duas
   premissas eram verdadeiras — o titular usa mesmo `_positions_for_member` (medido:
-  `726.500,16 [posicoes]`, **idêntico** nos três cenários) e o item da cônjuge é
+  `[posicoes]` **idêntico** nos três cenários) e o item da cônjuge é
   mesmo uma `poupanca` genuinamente líquida. Mas é **por ser líquida** que tirá-la
   custa: sem `tipo` ela cai em `Outros`, sai de `_LIQUID_BUCKETS` e a reserva da
-  cônjuge **cai R$ 25.337,34** (110.130,67 → 84.793,33, `fonte=irpf`). O movimento é
+  cônjuge **cai ~23%** (`fonte=irpf`). O movimento é
   **todo do `tipo`** — o corte das cinco marcas é **zero** na reserva, porque
   `Fundos` e `Outros` são ambos ilíquidos.
   **Por que importa:** `poupanca` sai do ramo `if "poupanca" in desc_lower` —
@@ -189,7 +188,7 @@ Fixa" legítimo para `Fundos` — errado sob subjacente > veículo.
   magnitude conhecidos. Não reabre a decisão (25k declarado < 174k mudo; banda
   "Excessiva" mantida, 43,9 → 42,8 meses), mas **dá janela** ao
   `tipo_proveniencia` — ver [[ADR-400]] §"A contenção tem custo medido".
-- **RV8-04 — R$ 642.744,79 não-atribuídos** entrando na reserva do titular por
+- **RV8-04 — o saldo não-atribuído** entrando na reserva do titular por
   `not membro → titular`: defeito **anterior** a esta lane e 25× maior que o de cima.
   **Dono: `data-engineer`**, janela própria.
 

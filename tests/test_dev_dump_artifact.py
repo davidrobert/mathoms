@@ -121,21 +121,21 @@ def test_select_path_erra_nomeando_o_segmento_ausente():
 
 
 def test_render_mascara_valor_monetario_e_cpf_por_default():
-    out = dump_artifact.render({"valor": "110.130,67", "doc": "123.456.789-00"}, raw=False)
-    assert "110.130,67" not in out
+    out = dump_artifact.render({"valor": "123.456,78", "doc": "123.456.789-00"}, raw=False)
+    assert "123.456,78" not in out
     assert "123.456.789-00" not in out
     assert "<VAL>" in out and "<CPF>" in out
 
 
 def test_render_raw_devolve_json_valido_com_o_numero():
-    out = dump_artifact.render({"valor": 110130.67}, raw=True)
-    assert json.loads(out) == {"valor": 110130.67}
+    out = dump_artifact.render({"valor": 123456.78}, raw=True)
+    assert json.loads(out) == {"valor": 123456.78}
 
 
 def test_render_default_nao_e_json_valido_por_construcao():
     """A máscara corrompe o JSON de propósito — quem quer parsear pede `--raw`."""
     with pytest.raises(json.JSONDecodeError):
-        json.loads(dump_artifact.render({"valor": 110130.67}, raw=False))
+        json.loads(dump_artifact.render({"valor": 123456.78}, raw=False))
 
 
 # =============================================================================

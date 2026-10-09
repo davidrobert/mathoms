@@ -126,14 +126,14 @@ class TestLooseMatchCrossCodigoRFB:
 
     def test_first_write_wins_preserva_codigo_mais_antigo(self, sync_db):
         ws = _seed_workspace(sync_db)
-        existing = _seed_property(sync_db, ws, codigo_rfb="01", endereco_canonical="exemplo 2192")
+        existing = _seed_property(sync_db, ws, codigo_rfb="01", endereco_canonical="exemplo 1000")
         with sync_db() as session:
             resolver = DBPropertyIdentityResolver(session=session)
             record = resolver.match_or_create(
                 workspace_id=ws.id,
-                lookup=_new_lookup(codigo_rfb="11", endereco_canonical="exemplo 2192"),
+                lookup=_new_lookup(codigo_rfb="11", endereco_canonical="exemplo 1000"),
                 first_seen_year=2024,
-                descricao_sample="APTO - AV EXEMPLO 2192",
+                descricao_sample="APTO - AV EXEMPLO 1000",
             )
             assert record.property_id == existing.id
             assert record.codigo_rfb == "01"  # preserva invariante E5
@@ -314,7 +314,7 @@ class TestFuzzyMatchCanonicalProximity:
 
     def test_fuzzy_ignora_canonicals_com_prefixo_forte(self, sync_db):
         ws = _seed_workspace(sync_db)
-        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:453527")
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:123456")
         record = _resolve(
             sync_db,
             ws.id,
