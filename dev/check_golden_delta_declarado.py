@@ -28,9 +28,16 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # `tests/test_golden_delta_declarado.py` não conseguiria distinguir cópia de partilha.
 sys.path.insert(0, str(REPO_ROOT))
 
-from dev.check_golden_rebaseline_isolation import _GOLDEN_PREFIXES  # noqa: E402
+from dev.check_golden_rebaseline_isolation import (  # noqa: E402
+    _GOLDEN_PREFIXES,
+    MergeSinteticoInesperado,
+    base_do_merge_sintetico,
+)
 
 MANIFESTO = "tests/fixtures/pipeline_golden/rebaseline_manifest.yaml"
+# A ferramenta mora ao lado deste script; o repo MEDIDO é o `REPO_ROOT`. Os dois só
+# coincidem em produção — o teste mede um repo sintético com o `golden_diff` real.
+_GOLDEN_DIFF = Path(__file__).resolve().parent / "golden_diff.py"
 
 
 def _git(*args: str) -> str:
@@ -65,7 +72,7 @@ def _diff_de(base_sha: str, path: str, tmp: Path) -> int:
     codigo = subprocess.run(
         [
             sys.executable,
-            str(REPO_ROOT / "dev" / "golden_diff.py"),
+            str(_GOLDEN_DIFF),
             str(antigo),
             path,
             "--manifest",
@@ -100,10 +107,33 @@ def _medir_todos(base: str, tocados: list[str]) -> int:
     return falhou
 
 
-def main(argv: list[str] | None = None) -> int:
+# No CI a base é o pai 1 do merge sintético, o mesmo do gate de isolamento: diffar
+# `base.sha..HEAD` media o delta que a MAIN fez desde a base do PR e o cobrava dele —
+# com o manifesto já esvaziado pelo closeout, o rebaseline alheio reprovava o PR.
+def _base(args: argparse.Namespace) -> str:
+    if args.pr_head_sha:
+        return base_do_merge_sintetico(args.pr_head_sha, args.merge_sha, cwd=REPO_ROOT)
+    return args.base_sha
+
+
+def _args_do_delta(argv: list[str] | None) -> argparse.Namespace:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base-sha", required=True)
-    base = ap.parse_args(argv).base_sha
+    modo = ap.add_mutually_exclusive_group(required=True)
+    modo.add_argument("--base-sha", help="local: base do diff (ex.: origin/main)")
+    modo.add_argument("--pr-head-sha", help="CI: `pull_request.head.sha`")
+    ap.add_argument("--merge-sha", help="CI: `GITHUB_SHA`, o merge sintético")
+    args = ap.parse_args(argv)
+    if bool(args.pr_head_sha) != bool(args.merge_sha):
+        ap.error("--pr-head-sha e --merge-sha andam juntos")
+    return args
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        base = _base(_args_do_delta(argv))
+    except MergeSinteticoInesperado as exc:
+        print(f"golden_diff: {exc}", file=sys.stderr)
+        return 2
 
     tocados = goldens_tocados(base)
     if not tocados:

@@ -256,3 +256,27 @@ def test_wise_fiscal_flags_renderiza_items_com_codes():
     assert len(items) == 2
     assert {i["code"] for i in items} == {"CBE", "CARNELEAO"}
     assert "fact-check" in out["wise_fiscal_flags"]["context"].lower()
+
+
+def _conclusao_top15(**extra: Any) -> str:
+    return _narrate(extra)["top15_ativos"]["conclusion"]
+
+
+# [[ADR-444]] D5: item sem peso não concentra carteira, e o desconhecido sob `piso` pode ser
+# parte da residência — nos dois casos a linha de diversificação sai do produtor.
+def test_top15_sem_peso_nao_prescreve_diversificacao() -> None:
+    conclusao = _conclusao_top15(top_asset_sem_peso=True)
+    assert "fora do % da carteira" in conclusao
+    assert "diversificação" not in conclusao
+
+
+def test_top15_desconhecido_sob_piso_nao_prescreve() -> None:
+    conclusao = _conclusao_top15(top_asset_desconhecido=True, residencia_piso=True)
+    assert "é o maior ativo individual" in conclusao
+    assert "diversificação" not in conclusao
+
+
+# [[ADR-420]] §D2: sabidamente não-residência, o não classificado fica no lado conservador.
+def test_top15_desconhecido_sem_piso_mantem_a_linha() -> None:
+    conclusao = _conclusao_top15(top_asset_desconhecido=True, residencia_piso=False)
+    assert "diversificação" in conclusao

@@ -12,7 +12,7 @@ import { TrendingUp } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
 import {
   getTaskProgress,
   ApiError,
@@ -106,7 +106,7 @@ export function TaskProgressCard({ workspaceId, taskId }: TaskProgressCardProps)
                   done ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                 )}
               >
-                {pct.toFixed(1)}%
+                {formatPercent(pct)}
               </span>
             )}
           </div>

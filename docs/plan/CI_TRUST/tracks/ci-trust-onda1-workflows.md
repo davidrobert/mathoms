@@ -45,6 +45,13 @@ tags:
   `cancel-in-progress: false` para `schedule`. **Pré-req do religamento.**
 - Encolher a legenda de sinais no `budget-alert.yml` (pós-#1613/#1625,
   `WAIVED` e `GH` não aparecem mais na Issue).
+  - No mesmo PR, corrigir o cabeçalho `Permissões` do arquivo. Hoje ele diz
+    *"actions:read (não usado direto, mas reservado p/ futura inspeção de
+    runs)"*, o que é falso: o fallback de billing, o watchdog, o drift e a
+    saúde do Dependabot (#2145) leem runs com o `actions: read` do job. Podar
+    a permissão por esse texto cegaria os quatro. Achado no closeout do #2145
+    (2026-10-09). Não sai em PR próprio porque mudança em
+    `.github/workflows/**` recusa o `update-branch` do trem.
 - Fecha os §Follow-ups menores de [[ADR-210]] §21b/§21c (blockquote de
   fechamento em cada um).
 

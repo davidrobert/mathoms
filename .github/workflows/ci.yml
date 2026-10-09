@@ -508,9 +508,17 @@ jobs:
       - name: Install uv (SHA-pinned v8.1.0)
         # uv é resolver/installer 5-10x mais rápido que pip para deps Python.
         # SHA pin previne tag-rewrite; v8.1.0 é a release mais recente.
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
         with:
           version: "0.5.x"
+
+      - name: Setup Node
+        # Hooks `language: system` chamam Node: probabilidade-parity roda `node -e`
+        # e frontend-lock-sync roda `npx`. Sem este step rodavam no Node do runner,
+        # e um bump do runner mudava o resultado em silêncio (node-version-parity).
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: frontend/.nvmrc
 
       - name: Install lint deps (via uv)
         # ADR-182: jsonschema + pyyaml para os hooks doc-* da vault Obsidian
@@ -610,7 +618,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install uv (SHA-pinned v8.1.0)
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
         with:
           version: "0.5.x"
 
@@ -682,23 +690,44 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python dev/check_lineage_eval_gate.py
 
-      - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
-        if: github.event_name == 'pull_request'
-        # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
-        # isolado (fluxo G-c). Deepen: checkout é shallow (depth 1).
+      # Os dois gates de golden medem a faixa do PR no merge sintético (pai 1 = main,
+      # pai 2 = cabeça), e ela exige o histórico do `GITHUB_SHA` inteiro. Ancorado no
+      # SHA porque o `--deepen` relativo só aprofunda commit que alguma ref do servidor
+      # ainda alcança: quando a main anda, o GitHub recomputa o `refs/pull/N/merge` (re-
+      # run, ou push na main durante o pytest acima) e o HEAD ficava sem pais — com o
+      # gate verde calado. Passo próprio e `!cancelled()`: o vermelho de um gate não
+      # esconde o do outro, nem o dos testes acima.
+      - name: Histórico do merge sintético (gates de golden)
+        id: historico-pr
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: |
-          git fetch --no-tags --deepen=500 origin
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            git fetch --no-tags --unshallow origin "$GITHUB_SHA"
+          fi
+
+      - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.historico-pr.outcome == 'success' }}
+        # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
+        # isolado (fluxo G-c). A faixa sai do merge sintético, NUNCA de
+        # `pull_request.base.sha`: ele é o merge-base do último push, e
+        # `base.sha..HEAD` arrastava a main desde então (#2065).
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
           python dev/check_golden_rebaseline_isolation.py \
-            --commit-range "${{ github.event.pull_request.base.sha }}..HEAD"
+            --pr-head-sha "$PR_HEAD_SHA" --merge-sha "$GITHUB_SHA"
 
       # O passo acima enforça ISOLAMENTO e não produz delta. Sem este, "delta de golden
       # declarado" era prosa no corpo do PR — `dev/golden_diff.py` existia e nada o
-      # invocava. Roda DEPOIS porque reaproveita o histórico já aprofundado acima.
+      # invocava. Mesma base do passo acima: o delta é o que o PR muda sobre a main do
+      # merge, não o que a main mudou desde a base do PR.
       - name: Delta de golden declarado, não narrado (A40.l80 · destrava A40.l90)
-        if: github.event_name == 'pull_request'
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.historico-pr.outcome == 'success' }}
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           python dev/check_golden_delta_declarado.py \
-            --base-sha "${{ github.event.pull_request.base.sha }}"
+            --pr-head-sha "$PR_HEAD_SHA" --merge-sha "$GITHUB_SHA"
 
   backend-tests:
     name: Backend tests (backend/tests/)
@@ -761,7 +790,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install uv (SHA-pinned v8.1.0)
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
         with:
           version: "0.5.x"
 
@@ -1012,10 +1041,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend/Dockerfile — vale para todo
-          # setup-node do frontend aqui e no nightly.yml. Bump do
-          # Dockerfile → bump aqui.
-          node-version: "26"
+          # Major vem do frontend/.nvmrc — vale para todo setup-node do
+          # frontend aqui e no nightly.yml. dev/check_node_version_parity.py
+          # (pre-commit) reprova se os FROM do frontend/Dockerfile divergirem.
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1181,9 +1210,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend-ops/Dockerfile: o job existe para
-          # prever o build da imagem. Bump do Dockerfile → bump aqui.
-          node-version: "26"
+          # O job existe para prever o build da imagem: o major vem do
+          # frontend-ops/.nvmrc, e dev/check_node_version_parity.py reprova se os
+          # FROM do frontend-ops/Dockerfile divergirem. Arquivo próprio, não o do
+          # frontend: o Dependabot abre um PR de major por diretório.
+          node-version-file: frontend-ops/.nvmrc
           cache: npm
           cache-dependency-path: frontend-ops/package-lock.json
 
@@ -1243,7 +1274,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1510,7 +1541,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1619,7 +1650,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 

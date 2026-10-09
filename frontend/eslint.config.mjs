@@ -84,8 +84,9 @@ const MENSALIZACAO_RESTRITA = CAMPOS_MENSALIZADOS.flatMap((campo) => [
 // (`${x.toFixed(1)}%`, também com `?.` na cadeia), JSX (`{x.toFixed(1)}%`, com o
 // `%` na mesma linha ou na seguinte, ou `{"%"}`) e concatenação
 // (`x.toFixed(1) + "%"`). Foi a grafia de 15 dos 18 call-sites com ponto que o
-// relatório tinha em 2026-10-08. `toFixed(0)` fica de fora: inteiro não tem
-// separador decimal.
+// relatório tinha em 2026-10-08, e de 12 dos 18 que o resto do src/ tinha
+// (plano/, tasks/, lib/). `toFixed(0)` fica de fora: inteiro não tem separador
+// decimal.
 //
 // **O que NÃO pega:** número cru interpolado (`${pct}%` — o EquilibrioCerbasiCard
 // era este caso, sem `toFixed` nenhum), ternário (`${c ? x.toFixed(1) : y}%`),
@@ -259,8 +260,13 @@ export default [
       ],
 
       // A40.l3 (ADR-306 D1) — gate de CONSUMO da mensalização de fluxo.
-      // Ver bloco dedicado abaixo para o racional e a allowlist.
-      "no-restricted-syntax": ["error", ...MENSALIZACAO_RESTRITA],
+      // Ver bloco dedicado abaixo para o racional e a allowlist. Percentual com
+      // ponto (COPY_GUIDELINES §4.6) vale para todo o src/, não só o relatório.
+      "no-restricted-syntax": [
+        "error",
+        ...MENSALIZACAO_RESTRITA,
+        ...PERCENTUAL_COM_PONTO_RESTRITO,
+      ],
     },
   },
   {
