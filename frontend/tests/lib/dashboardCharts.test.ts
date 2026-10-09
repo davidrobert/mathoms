@@ -1,9 +1,9 @@
 /**
- * Contrato do bar chart do dashboard (`/plano` › Mês corrente) — lado TS do par.
+ * Contrato dos gráficos do dashboard (`/plano` › Mês corrente) — lado TS do par.
  *
  * Lê a MESMA fixture que `backend/tests/test_dashboard_charts_contract.py`, gerada
- * pelo produtor (`build_charts`): fixture escrita à mão descreveria um mundo que o
- * produtor não emite (lição da A40.l3). "Investimentos por Classe" saía como
+ * pelo produtor (`build_charts`) sobre um E5 dos produtores reais: fixture escrita
+ * à mão descreveria um mundo que o produtor não emite (lição da A40.l3). "Investimentos por Classe" saía como
  * `{classes, total}` e `normalizeBarData` devolvia zero linhas — card com título
  * e sem barras.
  */
@@ -16,9 +16,10 @@ import {
   isMonthlyBarChart,
   normalizeBarData,
 } from "@/app/(app)/plano/_components/_dashboard/dashboardHelpers";
+import { normalizePieData } from "@/app/(app)/plano/_components/_dashboard/dashboardPie";
 import type { DashboardChart } from "@/lib/api";
 
-const FIXTURE: { charts: DashboardChart[] } = JSON.parse(
+const FIXTURE: { charts: DashboardChart[]; conferencia: Record<string, number> } = JSON.parse(
   readFileSync(path.resolve(__dirname, "../fixtures/dashboard_charts.json"), "utf8"),
 );
 
@@ -57,5 +58,29 @@ describe("dashboard — clique na barra só onde há destino", () => {
       },
     };
     expect(isMonthlyBarChart(mensal)).toBe(true);
+  });
+});
+
+function chart(title: string): DashboardChart {
+  const found = FIXTURE.charts.find((c) => c.title === title);
+  if (!found) {
+    const titles = FIXTURE.charts.map((c) => c.title).join(", ");
+    throw new Error(`fixture sem o gráfico "${title}"; tem: ${titles}`);
+  }
+  return found;
+}
+
+describe("Despesas por Categoria", () => {
+  it("sem aporte, rótulo humano e chave crua para o deep-link", () => {
+    const { slices, clickable } = normalizePieData(chart("Despesas por Categoria"));
+    expect(slices).toEqual([{ id: "alimentacao", name: "Alimentação", value: 108000 }]);
+    expect(clickable).toBe(true);
+  });
+
+  it("o aporte retirado é a transferência patrimonial do E5 (ADR-333)", () => {
+    const { notes } = normalizePieData(chart("Despesas por Categoria"));
+    const transferencia = FIXTURE.conferencia["fluxo_caixa.janela_12m.transferencia_patrimonial"];
+    expect(transferencia).toBeGreaterThan(0);
+    expect(notes).toEqual([{ kind: "base_despesas", janelaMeses: 12, aporteExcluido: transferencia }]);
   });
 });

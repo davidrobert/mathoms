@@ -11,7 +11,9 @@ import {
 import type { DashboardChart } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CHART_COLORS, normalizePieData } from "./dashboardHelpers";
+import { CHART_COLORS } from "./dashboardHelpers";
+import { normalizePieData, type PieSlice } from "./dashboardPie";
+import { PieNotes } from "./PieNotes";
 
 const TOOLTIP_ITEM_STYLE = {
   fontFamily: "var(--font-mono)",
@@ -25,10 +27,11 @@ const TOOLTIP_CONTENT_STYLE = {
   color: "var(--popover-foreground)",
 } as const;
 
-function makeSliceClickHandler(onSliceClick?: (name: string) => void) {
+function makeSliceClickHandler(onSliceClick?: (id: string) => void) {
   if (!onSliceClick) return undefined;
-  return (entry: { name?: string }) => {
-    if (entry?.name) onSliceClick(entry.name);
+  return (entry: { payload?: Partial<PieSlice> }) => {
+    const id = entry?.payload?.id;
+    if (id) onSliceClick(id);
   };
 }
 
@@ -37,10 +40,10 @@ export function PieChartCard({
   onSliceClick,
 }: {
   chart: DashboardChart;
-  onSliceClick?: (name: string) => void;
+  onSliceClick?: (id: string) => void;
 }) {
-  const data = normalizePieData(chart);
-  const handleClick = makeSliceClickHandler(onSliceClick);
+  const pie = normalizePieData(chart);
+  const handleClick = makeSliceClickHandler(pie.clickable ? onSliceClick : undefined);
 
   return (
     <Card>
@@ -48,10 +51,11 @@ export function PieChartCard({
         <CardTitle>{chart.title}</CardTitle>
       </CardHeader>
       <CardContent>
+        <PieNotes notes={pie.notes} />
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={data}
+              data={pie.slices}
               dataKey="value"
               nameKey="name"
               cx="50%"
@@ -60,11 +64,11 @@ export function PieChartCard({
               innerRadius="45%"
               paddingAngle={2}
               strokeWidth={0}
-              cursor={onSliceClick ? "pointer" : undefined}
+              cursor={handleClick ? "pointer" : undefined}
               onClick={handleClick}
             >
-              {data.map((entry, idx) => (
-                <Cell key={entry.name} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+              {pie.slices.map((entry, idx) => (
+                <Cell key={entry.id} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
               ))}
             </Pie>
             <Tooltip

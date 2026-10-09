@@ -95,15 +95,9 @@ def build_charts(e5: dict[str, Any]) -> list[DashboardChart]:
             )
         )
 
-    despesas_cat = fluxo.get("despesas_por_categoria", {})
-    if despesas_cat:
-        charts.append(
-            DashboardChart(
-                chart_type="pie",
-                title="Despesas por Categoria",
-                data=despesas_cat,
-            )
-        )
+    despesas = _chart_despesas_por_categoria(fluxo.get("janela_12m") or {})
+    if despesas is not None:
+        charts.append(despesas)
 
     patrimonio = e5.get("patrimonio", {})
     composicao = patrimonio.get("composicao", {})
@@ -129,6 +123,23 @@ def build_charts(e5: dict[str, Any]) -> list[DashboardChart]:
         )
 
     return charts
+
+
+# Chave crua de propósito: tirar o aporte (ADR-333 §Emenda) e humanizar o rótulo é do
+# leitor, com `isAporteInvestimentoKey`/`humanizeCategoryLabel` — o mesmo do relatório.
+def _chart_despesas_por_categoria(janela_12m: dict[str, Any]) -> DashboardChart | None:
+    categorias = janela_12m.get("despesas_por_categoria") or {}
+    if not categorias:
+        return None
+    return DashboardChart(
+        chart_type="pie",
+        title="Despesas por Categoria",
+        data={
+            "fonte": "despesas_por_categoria",
+            "categorias": categorias,
+            "janela_meses": janela_12m.get("janela_meses", 0),
+        },
+    )
 
 
 def _bar_data_por_classe(tabela_classes: list[dict[str, Any]]) -> dict[str, Any]:

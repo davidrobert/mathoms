@@ -54,28 +54,6 @@ export function normalizeBarData(chart: DashboardChart): {
   return { rows, keys };
 }
 
-export interface PieDataItem {
-  name: string;
-  value: number;
-}
-
-export function normalizePieData(chart: DashboardChart): PieDataItem[] {
-  const raw = chart.data as Record<string, unknown>;
-
-  if (Array.isArray(raw.labels) && Array.isArray(raw.values)) {
-    const labels = raw.labels as string[];
-    const values = raw.values as number[];
-    return labels.map((label, i) => ({
-      name: label,
-      value: values[i] ?? 0,
-    }));
-  }
-
-  return Object.entries(raw)
-    .filter(([, v]) => typeof v === "number")
-    .map(([name, value]) => ({ name, value: value as number }));
-}
-
 const PT_MONTHS: Record<string, string> = {
   jan: "01", fev: "02", mar: "03", abr: "04",
   mai: "05", jun: "06", jul: "07", ago: "08",

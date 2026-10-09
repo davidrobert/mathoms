@@ -1,6 +1,58 @@
 {
   "charts": [
     {
+      "chart_type": "pie",
+      "title": "Despesas por Categoria",
+      "data": {
+        "fonte": "despesas_por_categoria",
+        "categorias": {
+          "alimentacao": 108000.0,
+          "aporte_investimento": 48000.0
+        },
+        "janela_meses": 12
+      }
+    },
+    {
+      "chart_type": "pie",
+      "title": "Composição Patrimonial",
+      "data": {
+        "items": [
+          {
+            "categoria": "Investimentos Titular",
+            "valor": 300000.0,
+            "pct": 46.15
+          },
+          {
+            "categoria": "Outros imóveis",
+            "valor": 200000.0,
+            "pct": 30.77
+          },
+          {
+            "categoria": "Investimentos Cônjuge",
+            "valor": 100000.0,
+            "pct": 15.39
+          },
+          {
+            "categoria": "Caixa e Moeda Estrangeira",
+            "valor": 50000.0,
+            "pct": 7.69
+          },
+          {
+            "categoria": "Residência",
+            "valor": 0.0,
+            "pct": 0.0,
+            "estado": "nao_apurado",
+            "motivo": "nao_classificada"
+          },
+          {
+            "categoria": "Veículos",
+            "valor": 0.0,
+            "pct": 0.0
+          }
+        ]
+      }
+    },
+    {
       "chart_type": "bar",
       "title": "Investimentos por Classe",
       "data": {
@@ -23,5 +75,8 @@
         ]
       }
     }
-  ]
+  ],
+  "conferencia": {
+    "fluxo_caixa.janela_12m.transferencia_patrimonial": 48000.0
+  }
 }

@@ -88,8 +88,8 @@ export default function PlanoPage() {
       );
     }
   };
-  const handleSliceClick = (name: string) => {
-    router.push(`/transactions?category=${encodeURIComponent(name)}`);
+  const handleSliceClick = (categoria: string) => {
+    router.push(`/transactions?category=${encodeURIComponent(categoria)}`);
   };
 
   return (
