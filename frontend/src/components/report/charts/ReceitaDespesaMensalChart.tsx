@@ -5,6 +5,7 @@ import type {
   Chart as ChartJS,
   ChartData,
   ChartOptions,
+  Tick,
   TooltipCallbacks,
 } from "chart.js";
 
@@ -249,6 +250,10 @@ function sliceWindow(
   return { labels, datasets: sliced };
 }
 
+function formatMoneyAxisTick(v: number | string, _i: number, ticks: readonly Tick[]): string {
+  return formatBRLAxisTick(Number(v), ticks.map((t) => t.value));
+}
+
 function buildOptions(): ChartOptions<"bar"> {
   return {
     responsive: true,
@@ -261,14 +266,7 @@ function buildOptions(): ChartOptions<"bar"> {
     },
     scales: {
       x: { stacked: true, grid: { display: false } },
-      y: {
-        stacked: true,
-        beginAtZero: true,
-        ticks: {
-          callback: (v, _i, ticks) =>
-            formatBRLAxisTick(Number(v), ticks.map((t) => t.value)),
-        },
-      },
+      y: { stacked: true, beginAtZero: true, ticks: { callback: formatMoneyAxisTick } },
     },
   };
 }
