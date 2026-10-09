@@ -352,8 +352,11 @@ nasce vermelho até alguém regenerar o `.lock`.
   1. **Merge.** No pip, o piso que o lock já satisfaz entra pelo próprio PR. O
      piso acima do lock vai para o lote semanal (§Triagem da fila pip), não para
      um commit de lock na branch do Dependabot.
-  2. **Lane de migração**, para major que pede trabalho (ex.: vite 6→8,
-     typescript 6→7). O PR pode ficar aberto enquanto sobrar vaga.
+  2. **Lane de migração**, para major que pede trabalho e instala (ex.: vite
+     6→8). O PR pode ficar aberto enquanto sobrar vaga. Major npm que **não
+     instala**, porque o peer de um vizinho o exclui (ex.: typescript 6→7), não
+     fica aberto: vira pausa da saída 3 com linha em `PAUSES` de
+     `dev/check_dependabot_major_pauses.py` ([[ADR-449]]).
   3. **`ignore` no `.github/dependabot.yml`**, com data e condição de retomada no
      comentário (padrão do `ignore` de redis acima). Só depois feche o PR.
 - **Nunca** só fechar o PR nem comentar `@dependabot ignore`. As duas coisas viram
