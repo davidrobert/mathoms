@@ -4,13 +4,15 @@ type: lane
 title: "O gate de elegibilidade do cenário do cônjuge nunca rodou, e o critério de renda dele media um sinal que não existe"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 2201
+ship_date: "2026-10-09"
 priority: P1
 branch_slug: a40-l125-gate-do-cenario-do-conjuge
 owner: financial-planner
 depends_on: []
 adrs: ["[[ADR-167]]", "[[ADR-387]]"]
-tags: [type/lane, sprint/a40, status/in-progress, priority/p1, area/pipeline]
+tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/pipeline]
 ---
 
 # A40.l125 — `gate-do-cenario-do-conjuge`
