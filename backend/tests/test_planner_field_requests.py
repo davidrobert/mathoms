@@ -267,6 +267,50 @@ async def test_persist_field_requests_includes_3_vias_audit_from_meta(db, sync_s
     _assert_rows_match_3_vias(_field_requests_for_review(sync_session, review_id))
 
 
+async def _persist_with_meta(db, sync_session, campos: list[dict], meta: dict) -> list:
+    """Semeia parecer com ``campos`` + ``_meta`` e devolve as rows persistidas do review."""
+    workspace = await factories.make_workspace(db)
+    run = await factories.make_run(db, workspace=workspace)
+    _, parecer = await _make_artifacts(db, workspace, run, campos=campos)
+    parecer.content_json = {**parecer.content_json, "_meta": meta}
+    await db.commit()
+    review_id = persist_planner_review(
+        sync_session, workspace_id=workspace.id, run_id=run.id, detail=_make_detail()
+    )
+    sync_session.commit()
+    return _field_requests_for_review(sync_session, review_id)
+
+
+# ADR-206 §Emenda 2026-08-25: out_of_catalog audita SEM remover, então o mesmo path vem
+# no array e no audit. Com o array primeiro, o dedup gravava `llm_declared` e o sinal de
+# truncamento de contexto ficava indistinguível de ausência genuína na tabela.
+@pytest.mark.asyncio
+async def test_persist_out_of_catalog_reason_wins_over_llm_declared(db, sync_session):
+    """Uma row só (UNIQUE review+path), com o reason do audit."""
+    campo = {"field_path": "$.if_monte_carlo", "motivo": "probabilidade de atingir a meta"}
+    audit = [{**campo, "reason": "field_request_out_of_catalog"}]
+    rows = await _persist_with_meta(db, sync_session, [campo], {"field_request_audit": audit})
+    assert [(r.field_path, r.reason) for r in rows] == [
+        ("$.if_monte_carlo", "field_request_out_of_catalog")
+    ]
+
+
+# FP-4 D3-A: o pedido de taxa é injetado ANTES do filtro, que o audita como out_of_catalog
+# quando a taxa é 0 e o path ficou fora do catálogo renderizado. O audit classifica pedido
+# do modelo; aplicado aqui, atribuiria ao LLM um campo que ele nunca pediu.
+@pytest.mark.asyncio
+async def test_persist_guardrail_injected_wins_over_audit_reason(db, sync_session):
+    """Origem vence classificação: o path injetado segue ``guardrail_injected``."""
+    path = "$.endividamento.dividas[0].taxa_juros_aa"
+    campo = {"field_path": path, "motivo": "taxa de juros da dívida em aberto"}
+    meta = {
+        "pos_llm_guardrails": {"taxa_divida_injetada_paths": [path]},
+        "field_request_audit": [{**campo, "reason": "field_request_out_of_catalog"}],
+    }
+    rows = await _persist_with_meta(db, sync_session, [campo], meta)
+    assert [(r.field_path, r.reason) for r in rows] == [(path, "guardrail_injected")]
+
+
 def _persist_twice(sync_session, workspace_id: str, run_id: str) -> tuple[str, str]:
     """Helper: invoca persist 2x e retorna (first_id, second_id)."""
     first_id = persist_planner_review(

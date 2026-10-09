@@ -11,13 +11,12 @@
     ]
   },
   "observado_em": {
-    "fixture": "2026-09-02",
+    "fixture": "2026-10-09",
     "producao:40d1af2a": "2026-09-02",
-    "schema": "2026-09-02"
+    "schema": "2026-10-09"
   },
   "universo": {
     "cenarios_conjuge": [
-      "fixture",
       "producao:40d1af2a",
       "schema"
     ],
