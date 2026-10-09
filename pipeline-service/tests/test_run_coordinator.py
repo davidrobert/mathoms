@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import contextlib
+from types import SimpleNamespace
+
+import pytest
+
 
 def test_run_rejects_unknown_stage(client, tmp_path):
     r = client.post(
@@ -104,3 +109,44 @@ def test_run_skips_llm_stages_when_requested(client, tmp_path, monkeypatch):
     assert executed == ["reconcile_transactions"]
     stages_resp = {s["stage"]: s for s in body["stages"]}
     assert stages_resp["extract_members"]["detail"]["skipped"] is True
+
+
+class _FlushRecorder:
+    """Hooks fake: anota se a transação do stage ainda estava aberta quando o flush veio."""
+
+    def __init__(self, ctx) -> None:
+        self._ctx = ctx
+        self.flushes_inside_stage_transaction: list[bool] = []
+
+    def flush_call_log(self) -> None:
+        session = self._ctx.artifact_store.session
+        self.flushes_inside_stage_transaction.append(session.in_transaction())
+
+
+@pytest.mark.parametrize("stage_raises", [False, True])
+def test_deferred_call_log_flushes_after_the_stage_session_closes(
+    tmp_path, monkeypatch, stage_raises
+):
+    """Em SQLite o LLMCallLog só grava com o write-lock do stage liberado (ADR-173 §Emenda 2026-10-08)."""
+    from app.contracts.runs import RunStartRequest
+    from app.services.run_coordinator import _execute_one_stage
+
+    from pipeline.orchestrator import StageResult
+
+    def fake_run_stage(ctx, stage):
+        ctx.artifact_store.write("llm_lock_probe", "doc-0", {"idx": 0})
+        if stage_raises:
+            raise RuntimeError("fixture: falha deterministica")
+        return StageResult(stage=stage, success=True, duration_ms=1.0)
+
+    monkeypatch.setattr("pipeline.orchestrator._run_stage", fake_run_stage, raising=True)
+    ctx = SimpleNamespace(artifact_store=None)
+    ctx.llm_call_hooks = _FlushRecorder(ctx)
+    req = RunStartRequest(
+        run_id="r1", workspace_id="ws1", workspace_root=str(tmp_path), stages=["E1.5"]
+    )
+
+    with contextlib.suppress(RuntimeError):
+        _execute_one_stage(req, ctx, "extract_baseline")
+
+    assert ctx.llm_call_hooks.flushes_inside_stage_transaction == [False]

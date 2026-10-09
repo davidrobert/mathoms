@@ -86,7 +86,7 @@ export default function DocumentsPage() {
 
       <div>
         {flash && (
-          <div className="mb-4 rounded-md border border-semantic-gain/30 bg-semantic-gain/10 text-semantic-gain text-sm px-3 py-2">
+          <div className="mb-4 rounded-md border border-semantic-gain/30 bg-semantic-gain/10 text-semantic-gain-on-tint text-sm px-3 py-2">
             {flash}
           </div>
         )}

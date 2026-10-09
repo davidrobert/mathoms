@@ -359,6 +359,13 @@ corpus, e generaliza para o marcador de quebra de série que a **W5-R2** vai pre
 trinca E3→E4→E5 + `$def`. Gatilhos de especialista ao reabrir: `data-engineer` (contrato E5) +
 `product-designer` (copy do marcador).
 
+> ⚠️ **2026-10-08 — gatilho candidato, não anotado na época** (closeout da [[A40.l113]]). A
+> [[ADR-433]] D1 (#1962, 2026-09-01) mudou o método de eleição do ano-base 31/12 e move os
+> componentes de `patrimonio.liquido` no dogfood — residência e dívidas do titular saíam
+> zero. O proxy não a vê (os dois lados do par têm o bloco cross-documento), então o par
+> que atravessa o #1962 julgaria a variação do `M_PL` como movimento real. Não medido em
+> relatório publicado. Se ela conta como a *"2ª mudança de método"* é decisão deste plano.
+
 #### Riscos próprios
 
 | ID | Risco | Mitigação |

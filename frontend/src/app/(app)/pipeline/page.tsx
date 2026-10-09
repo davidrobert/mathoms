@@ -450,7 +450,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         )}
 
         {activeRun?.status === "completed" && (
-          <div className="mb-6 rounded-lg bg-gain/10 p-4 text-center text-sm text-gain">
+          <div className="mb-6 rounded-lg bg-gain/10 p-4 text-center text-sm text-gain-on-tint">
             Relatório gerado com sucesso! Redirecionando...
           </div>
         )}

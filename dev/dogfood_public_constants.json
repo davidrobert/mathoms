@@ -1,0 +1,14 @@
+[
+  {
+    "cents": 1675434,
+    "fonte": "IRPF — teto anual do desconto simplificado (Lei 9.250/1995, art. 10, redação da Lei 14.663/2023)"
+  },
+  {
+    "cents": 356150,
+    "fonte": "IRPF — teto anual de dedução com instrução por pessoa (Lei 9.250/1995, art. 8º, II, b)"
+  },
+  {
+    "cents": 227508,
+    "fonte": "IRPF — dedução anual por dependente (Lei 9.250/1995, art. 8º, II, c)"
+  }
+]

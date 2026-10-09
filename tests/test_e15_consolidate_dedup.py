@@ -13,7 +13,7 @@ from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.context import WorkspaceContext
 
 _DESC_LIVING_WISH = (
-    "APARTAMENTO COND EXEMPLO B - AV EXEMPLO 2192 TORRE 2 APT 163, SANTO AMARO SAO PAULO/SP"
+    "APARTAMENTO COND EXEMPLO B - AV EXEMPLO 1000 TORRE 1 APT 101, BAIRRO EXEMPLO SAO PAULO/SP"
 )
 
 
@@ -70,14 +70,14 @@ def _run_consolidate(ctx: WorkspaceContext) -> list[dict]:
 
 @pytest.fixture
 def co_declared_cond_exemplo_b(tmp_path: Path) -> list[dict]:
-    """Cenário real: David R$ 477.436,58 vs Mariana R$ 530.000 (COND EXEMPLO B)."""
+    """Cenário: titular R$ 470.000 vs cônjuge R$ 510.000 (COND EXEMPLO B)."""
     baseline = _make_baseline(
         [
             _make_item(
-                codigo="11", descricao=_DESC_LIVING_WISH, valor_brl=477436.58, membro="david_robert"
+                codigo="11", descricao=_DESC_LIVING_WISH, valor_brl=470000.00, membro="david_robert"
             ),
             _make_item(
-                codigo="11", descricao=_DESC_LIVING_WISH, valor_brl=530000.00, membro="mariana_xxx"
+                codigo="11", descricao=_DESC_LIVING_WISH, valor_brl=510000.00, membro="mariana_xxx"
             ),
         ]
     )
@@ -141,7 +141,7 @@ def test_co_declared_collapses_to_single_entry(co_declared_cond_exemplo_b):
 
 
 def test_co_declared_uses_maior_valor(co_declared_cond_exemplo_b):
-    assert co_declared_cond_exemplo_b[0]["valores_31_12"]["2024"] == 530000.0
+    assert co_declared_cond_exemplo_b[0]["valores_31_12"]["2024"] == 510000.0
 
 
 def test_co_declared_marks_casal(co_declared_cond_exemplo_b):
@@ -155,7 +155,7 @@ def test_co_declared_preserves_property_id(co_declared_cond_exemplo_b):
 
 
 def test_co_declared_below_10pct_no_warning(co_declared_cond_exemplo_b):
-    # 477.436,58 vs 530.000 ≈ 9.92% — abaixo do limiar
+    # 470.000 vs 510.000 ≈ 7.8% — abaixo do limiar
     assert "_dedup_warning" not in co_declared_cond_exemplo_b[0]
 
 
@@ -185,7 +185,7 @@ def irpf_plus_comprovante_bem(tmp_path: Path) -> list[dict]:
     baseline = _make_baseline(
         [
             _make_item(
-                codigo="11", descricao=desc_irpf, valor_brl=212706.24, membro="david_robert"
+                codigo="11", descricao=desc_irpf, valor_brl=200000.00, membro="david_robert"
             ),
             _make_item(
                 codigo="01", descricao=desc_comprovante, valor_brl=0.0, membro="david_martins"
@@ -197,12 +197,12 @@ def irpf_plus_comprovante_bem(tmp_path: Path) -> list[dict]:
 
 
 def test_irpf_e_comprovante_bem_funde_cross_codigo(irpf_plus_comprovante_bem):
-    # IRPF (cod=11, R$ 212k) + comprovante (cod=01, R$ 0) com mesmo canonical
+    # IRPF (cod=11, R$ 200k) + comprovante (cod=01, R$ 0) com mesmo canonical
     # devem ser fundidos via cross-codigo merge (ADR-246).
     assert len(irpf_plus_comprovante_bem) == 1
     merged = irpf_plus_comprovante_bem[0]
     # Específico vence
-    assert merged["valores_31_12"]["2024"] == 212706.24
+    assert merged["valores_31_12"]["2024"] == 200000.0
     # Ambos proprietarios entram
     assert set(merged["proprietarios"]) == {"david_robert", "david_martins"}
 

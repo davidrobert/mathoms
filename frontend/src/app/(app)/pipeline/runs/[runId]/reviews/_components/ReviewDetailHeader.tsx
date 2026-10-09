@@ -44,7 +44,7 @@ export function ReviewDetailHeader({
           aria-label={`Status: ${STATUS_LABEL[review.status]}`}
           className={`rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${
             review.status === "pending"
-              ? "bg-alert/10 text-alert"
+              ? "bg-alert/10 text-alert-on-tint"
               : "bg-muted text-muted-foreground"
           }`}
         >

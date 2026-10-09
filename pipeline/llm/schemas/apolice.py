@@ -9,6 +9,8 @@ from typing import Annotated, Literal, Optional, Union
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 
 # Bump quando alterar prompt ``apolice`` de modo que afete output (ADR-144 cache).
+# v1.3.1 — exemplo genérico na docstring de ``_strip_spurious_quotes``; bump pareado
+# com o prompt, sem mudança de contrato.
 # v1.3.0 — A37.l11: bump pareado com o prompt (instrução de `seguradora` reforçada
 # — code EXATO do catálogo, variação derivada do nome é inválida). Schema em si
 # não mudou; canonicalização/validação Python acontece no boundary do stage.
@@ -28,12 +30,12 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_valida
 # combinada multi-bem (1 erro por campo Decimal/date). Fix: BeforeValidator por campo
 # coage tipos antes do strict check; strip continua atacando aspas spurious do Haiku.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.3.0"
+PROMPT_VERSION = "1.3.1"
 
 
 def _strip_spurious_quotes(value):
     """LLM Haiku às vezes vaza aspas dos exemplos do prompt como notação visual,
-    gerando ``'"4509.98"'`` (string com aspas literais). Decimal/Literal/date
+    gerando ``'"1234.56"'`` (string com aspas literais). Decimal/Literal/date
     falham determinístico. Strip cobre aspas duplas e simples nas pontas; cascade
     recursivo em dict/list para sub-models (BemSegurado*, Cobertura*)."""
     if isinstance(value, str):

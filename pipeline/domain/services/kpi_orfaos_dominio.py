@@ -17,10 +17,11 @@ from __future__ import annotations
 #   A chave chamava-se `protecao_cobertura` e **nomeava um conceito que o payload
 #   não publica**: não existe agregado de capital segurado no schema — por desenho,
 #   é a própria ADR-387. O que `pct_renda_anual` entrega é prêmio/renda, carga do
-#   seguro no orçamento. Medido: 6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM, logo é
-#   **razão 0–1**, e estava declarada `pct`: quem lesse pelo contrato publicaria
-#   0,0057% no lugar de 0,57%, erro de 100× que nenhum gate via. Cobertura de
-#   capital continua sendo tratada qualitativamente por `gap_qualitativo`.
+#   seguro no orçamento. Medido no dogfood: prêmio ÷ valor publicado só reproduz a
+#   renda declarada se o campo for **razão 0–1**, e estava declarada `pct`: quem lesse
+#   pelo contrato publicaria 0,006% no lugar de 0,6%, erro de 100× que nenhum gate
+#   via. Cobertura de capital continua sendo tratada qualitativamente por
+#   `gap_qualitativo`.
 # - `taxa_poupanca_recorrente` — RV2-24: `poupanca_referencia_pct` (25) e
 #   `pontos_fortes_taxa_poupanca_min_pct` (30) descrevem o mesmo conceito sem
 #   precedência declarada. O resolver NÃO escolhe: escolher seria inventar regra de
@@ -60,9 +61,9 @@ _ORFAOS_DOMINIO = (
         # `resolve_renda_anual_liquida`. Declarar "ativa" era o modo de falha que a
         # [[ADR-399]] existe para impedir — observado de uma base sob rótulo de outra.
         "renda_anual_liquida",
-        # E é razão 0–1, não `pct`: 6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM. Sob `pct`
-        # o leitor publicaria 0,0057% no lugar de 0,57% — o mesmo modo de falha do
-        # rótulo de base, um andar abaixo, na unidade.
+        # E é razão 0–1, não `pct`: prêmio ÷ valor publicado só reproduz a renda sob
+        # razão. Sob `pct` o leitor publicaria 0,006% no lugar de 0,6% — o mesmo modo
+        # de falha do rótulo de base, um andar abaixo, na unidade.
         "ratio_0_1",
         "Custo dos seguros sobre a renda anual",
         "capital ideal exige inventário de proteção confirmado (ADR-387)",

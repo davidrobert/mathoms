@@ -116,21 +116,21 @@ class TestBasic:
         e = {
             "_source": "btg_portfolio.json",
             "instituicao": "btgpactual",
-            "membro": "mariana_ribeiro_andrade",
+            "membro": "beltrana_de_tal",
             "data_referencia": "2026-03-31",
             "tipo_documento": "investment_report",
             "investimentos": [
-                {"tipo": "cdb", "descricao": "CDB BTG Agibank", "valor_brl": 29353.39},
-                {"tipo": "cdb", "descricao": "CDB PicPay", "valor_brl": 30442.60},
+                {"tipo": "cdb", "descricao": "CDB BTG Agibank", "valor_brl": 30000.00},
+                {"tipo": "cdb", "descricao": "CDB PicPay", "valor_brl": 25000.00},
             ],
         }
 
         out = c.consolidate([e])
 
         assert out.n_posicoes == 2
-        assert out.total_por_membro == {"mariana_ribeiro_andrade": 59795.99}
+        assert out.total_por_membro == {"beltrana_de_tal": 55000.00}
         assert out.dados[0]["nome"] == "CDB BTG Agibank"
-        assert out.dados[0]["valor_atual"] == 29353.39
+        assert out.dados[0]["valor_atual"] == 30000.00
 
 
 class TestDedup:

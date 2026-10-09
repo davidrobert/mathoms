@@ -215,9 +215,9 @@ domínio decidida e vale publicar ao usuário.
 
 **E2 — `protecao_cobertura` → `protecao_custo_premio`.** A chave nomeava um conceito que
 o payload **não publica**: não existe agregado de capital segurado no schema, por desenho
-— é a própria [[ADR-387]]. O que `pct_renda_anual` entrega é prêmio/renda. Medido:
-6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM, logo **razão 0–1** declarada como `pct`; quem
-lesse pelo contrato publicaria 0,0057% no lugar de 0,57%. Agora `unidade: ratio_0_1`,
+— é a própria [[ADR-387]]. O que `pct_renda_anual` entrega é prêmio/renda. Medido no
+dogfood: prêmio ÷ valor publicado só reproduz a renda sob **razão 0–1**, declarada como
+`pct`; quem lesse pelo contrato publicaria 0,006% no lugar de 0,6%. Agora `unidade: ratio_0_1`,
 base `renda_anual_liquida`.
 
 **E3 — `rotulo` entra no catálogo.** O nome da métrica carrega domínio e rótulo autorado

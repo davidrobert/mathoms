@@ -69,8 +69,8 @@ export function S9CoberturaNaoConfirmada({
       <p className="text-style-body mt-2">
         {frasePolice(documentary)} {fraseRetencao(documentary)}
       </p>
-      {vigencia && <p className="text-style-caption mt-2 text-muted">{vigencia}</p>}
-      <p className="text-style-caption mt-2 text-muted">
+      {vigencia && <p className="text-style-caption mt-2 text-muted-foreground">{vigencia}</p>}
+      <p className="text-style-caption mt-2 text-muted-foreground">
         Isto não afirma que sua cobertura é adequada nem que falta cobertura: o que falta é a
         confirmação do que está contratado.
       </p>

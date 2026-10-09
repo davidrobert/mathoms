@@ -110,8 +110,8 @@ def test_bradesco_synthetic_extracts_transactions(tmp_path: Path):
             period="2026-04",
             transactions=_BRADESCO_TX,
             account_holder="Titular Golden",
-            agency="3221",
-            account_number="77113-9",
+            agency="1234",
+            account_number="12345-6",
         )
     )
     parser_fn = route_to_parser(filename)
@@ -311,8 +311,8 @@ def test_santander_synthetic_extracts_transactions(tmp_path: Path):
             period="2026-04",
             transactions=_SAMPLE_TX,
             account_holder="Titular Golden",
-            agency="1652",
-            account_number="01001341-6",
+            agency="1234",
+            account_number="01000001-0",
         )
     )
     parser_fn = route_to_parser(filename)

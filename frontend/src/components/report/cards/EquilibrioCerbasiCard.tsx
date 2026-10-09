@@ -1,4 +1,5 @@
 import { ReportCard } from "../ReportCard";
+import { formatPercent } from "@/lib/format";
 import type { EquilibrioCerbasiData } from "@/types/report-analysis";
 
 /** F9 · F2.B · S2 — Card "Equilíbrio Cerbasi".
@@ -28,13 +29,13 @@ export function EquilibrioCerbasiCard({
         {/* Barra visual presente vs futuro */}
         <div>
           <div className="flex justify-between text-xs text-[var(--surface-muted-foreground)]">
-            <span>Presente ({pctPresente}%)</span>
-            <span>Futuro ({pctFuturo}%)</span>
+            <span>Presente ({formatPercent(pctPresente)})</span>
+            <span>Futuro ({formatPercent(pctFuturo)})</span>
           </div>
           <div
             className="mt-1 flex h-4 overflow-hidden rounded-full"
             role="img"
-            aria-label={`Distribuição do fluxo: ${pctPresente}% para o presente, ${pctFuturo}% para o futuro`}
+            aria-label={`Distribuição do fluxo: ${formatPercent(pctPresente)} para o presente, ${formatPercent(pctFuturo)} para o futuro`}
           >
             <div
               className="bg-[var(--brand-primary)] transition-[width]"

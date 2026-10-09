@@ -5,6 +5,7 @@ title: "Registro de custo de LLM é fonte de verdade que perde row e vaza identi
 sprint: A42
 status: open
 priority: P1
+partial_delivery: true
 branch_slug: a42-l7-registro-de-custo-perde-row
 adrs:
   - "[[ADR-173]]"
@@ -96,3 +97,34 @@ interpolação), e há precedente de correção já aplicada noutro módulo.
   zero falhando o run em modo estrito.
 - **Migration em PR próprio**, encadeada depois da [[A40.l19]] (#1241); cadeia
   de revisão linear verificada antes do merge.
+
+## Entrega parcial (2026-10-08)
+
+O **#2072** fecha o **item 2** e a **decisão 3**. O resto segue aberto.
+
+- **Item 2 (contenção), fechado.** No dogfood, os stages de 1 call batiam o custo
+  declarado em 89 de 95 runs. Os multi-call (`extract_baseline`, `extract_irpf_full`)
+  batiam em 0, e o ledger guardava ~30% do declarado. Mecanismo e decisão estão na
+  [[ADR-173]] §Emenda 2026-10-08: em writer único, o registro espera a sessão do stage
+  fechar. O Postgres não mudou.
+- **Decisão 3 (falha contável), fechada.** A falha do registro virou ERROR
+  `mathoms.llm.call_log_persist_failed`, com campos tipados e sem `str(exc)`. Um flush
+  que falha retém o pendente e emite dead-letter sem PII.
+- **Itens 1/5, abertos.** Três produtores interpolam o filename no `stage`:
+  `extract_informe_aluguel`, `extract_with_llm` e `extract_informes_anuais`. O `stage`
+  entra na chave do cache da [[ADR-307]], então mudar o argumento invalida o cache. O
+  `data-engineer` sugere que o hook carimbe o stage do orquestrador.
+- **Item 6, desenho em aberto.** Os testes do #2072 provam persistência, não cobertura.
+  O `sre-devops` propõe checar `SUM(ledger) ≥ custo declarado` por (run, stage), num
+  lado só, porque retry soma rows legítimas. O `data-engineer` aponta que
+  `output_summary.cost_usd` é float, autodeclarado e de shape variado (o
+  `extract_with_llm` declara `llm_usage`). A testemunha tem de ser a verdade em memória
+  do run.
+- **Itens 3/4 e 7, abertos.** Nada aqui toca tentativa cobrada nem a FK.
+- **Residual.**
+  - O caminho Postgres foi raciocinado, não medido; precisa virar gate antes do cutover.
+  - A contenção entre processos no SQLite continua; nesse caso o flush fica retido e
+    sai um dead-letter.
+  - Um crash no meio do stage perde o pendente (só SQLite).
+  - O hard-stop agora vê o gasto real: julho/2026 teria parado, com US$ 67 declarados
+    contra teto de US$ 50.

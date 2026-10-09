@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Mapping, Optional
 
+from pipeline.domain.services.imovel_na_carteira import CLASSES_IMOVEL_FISICO
+
 # Ordem canônica das chaves comparáveis — também é o tie-break do
 # next-aporte (ADR-141 emenda item 3).
 COMPARABLE_KEYS: tuple[str, ...] = ("renda_fixa", "acoes_br", "acoes_int", "fiis", "fora_alvo")
@@ -23,7 +25,6 @@ _BUCKET_TO_COMPARABLE: dict[str, str] = {
     "Outros": "fora_alvo",
 }
 _BUCKET_CAIXA = "Caixa"
-_BUCKET_IMOVEIS = "Imóveis Investimento"
 
 # Inputs v2 que agregam em cada chave comparável (renormalização exclui caixa_pct).
 _ALVO_INPUTS_BY_COMPARABLE: dict[str, tuple[str, ...]] = {
@@ -235,7 +236,7 @@ def _ingest_classe(carteira: _Carteira, categoria: str, valor: Decimal) -> None:
     if categoria == _BUCKET_CAIXA:
         carteira.caixa_brl += valor
         return
-    if categoria == _BUCKET_IMOVEIS:
+    if categoria in CLASSES_IMOVEL_FISICO:
         carteira.imoveis_brl += valor
         return
     key = _BUCKET_TO_COMPARABLE.get(categoria)
