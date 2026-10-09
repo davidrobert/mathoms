@@ -441,7 +441,7 @@
 | ADR-444 | adr | Proposto |  | Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência | `adr/444-imovel-de-uso-nao-apurado-entra-na-carteira-com-valor-e-sem-peso.md` |
 | ADR-445 | adr | Proposto |  | Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho | `adr/445-transacao-de-escrita-nao-atravessa-io-lento.md` |
 | ADR-447 | adr | Decidido |  | A classe da falha sai do objeto vivo e atravessa o executor no detail do stage | `adr/447-classe-da-falha-sai-do-objeto-vivo-e-atravessa-o-executor.md` |
-| ADR-448 | adr | Proposto |  | Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge | `adr/448-bypass-do-ruleset-sai-do-papel-admin-break-glass-por-concessao.md` |
+| ADR-448 | adr | Decidido |  | Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge | `adr/448-bypass-do-ruleset-sai-do-papel-admin-break-glass-por-concessao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

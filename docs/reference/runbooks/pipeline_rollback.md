@@ -213,7 +213,7 @@ if [ "$(gh api $R --jq '.bypass_actors | length')" = 0 ]; then
     gh api -X PUT $R --input - <<<'{"bypass_actors":[{"actor_id":5,"actor_type":"RepositoryRole","bypass_mode":"pull_request"}]}'
     gh pr merge "$N" --squash --admin )
 else
-  gh pr merge "$N" --squash --admin   # ADR-448 ainda Proposto: o bypass do Admin segue concedido
+  gh pr merge "$N" --squash --admin   # bypass já concedido: outra janela de break-glass aberta — não revogue a dela
 fi
 
 # 4. Aguarde deploy automático completar (CI/CD)
