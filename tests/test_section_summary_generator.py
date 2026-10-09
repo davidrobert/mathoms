@@ -15,7 +15,12 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
 )
-from tests.fakes.llm import FakeLLMRaisingClient, FakeLLMSuccess
+from tests.fakes.llm import (
+    FakeLLMRaisingClient,
+    FakeLLMSuccess,
+    nunca_cita_dinheiro,
+    sempre_cita_dinheiro,
+)
 
 _TEMPLATE = PromptTemplate(
     system_prompt="You are a financial editor.",
@@ -28,15 +33,17 @@ def _make_generator(*, llm, config=None):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=InMemoryLLMCache(),
+        cites_money=nunca_cita_dinheiro,
         templates=_TEMPLATES,
         config=config or SectionSummaryGeneratorConfig(),
     )
 
 
-def _make_generator_with_cache(*, llm, cache):
+def _make_generator_with_cache(*, llm, cache, cites_money=nunca_cita_dinheiro):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache,
+        cites_money=cites_money,
         templates=_TEMPLATES,
         config=SectionSummaryGeneratorConfig(),
     )
@@ -157,6 +164,7 @@ def _make_generator_with_version(*, llm, cache, prompt_version):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache,
+        cites_money=nunca_cita_dinheiro,
         templates=_TEMPLATES,
         config=SectionSummaryGeneratorConfig(prompt_version=prompt_version),
     )
@@ -261,3 +269,24 @@ def test_section_summary_output_rejects_invalid_tone():
 
     with pytest.raises(Exception):
         SectionSummaryOutput(summary_md="ok " * 5, tone="invalid_tone")  # type: ignore[arg-type]
+
+
+# ─── Cenário extra: prosa com valor monetário é descartada ──────────
+# O prompt proíbe R$ (ADR-090) e a 2.0.0 tirou o `key_metric_ref` que oferecia
+# alternativa. Pós-check em vez de reask: o retry do Instructor não chega à
+# telemetria, custa até 3× e sairia rotulado `invalid_json`.
+
+
+def test_monetary_inline_is_discarded_with_tokens_counted_and_not_cached():
+    cache = InMemoryLLMCache()
+    fake = FakeLLMSuccess(text="Texto que cita valor.", prompt_tokens=2000, completion_tokens=500)
+    gen = _make_generator_with_cache(llm=fake, cache=cache, cites_money=sempre_cita_dinheiro)
+    kwargs = {"section_id": "S1", "snapshot_hash": "h", "workspace_id": 1}
+    first = gen.generate(snapshot_data={"x": 1}, **kwargs)
+    assert first.source == "fallback"
+    assert first.fallback_reason == "monetary_inline"
+    assert first.text == ""
+    assert first.cost_usd == Decimal("0.004500")  # tokens pagos entram na conta
+    second = gen.generate(snapshot_data={"x": 1}, **kwargs)
+    assert second.fallback_reason == "monetary_inline"  # descarte não vira cache
+    assert fake.calls == 2

@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 from typing import Any, Mapping, Optional
 
+from backend.app.services.parecer_prose_money import extract_money_tokens, extract_usd_tokens
 from pipeline.domain.services.section_summary_generator import (
     LLMRawResponse,
     PromptTemplate,
@@ -104,6 +105,13 @@ class _LiteLLMSectionSummaryClient:
         )
 
 
+# Detector do parecer, não `\breais\b`: "juros reais" e "ganhos reais" são
+# vocabulário do relatório. Exige número junto de R$/reais/US$/dólares.
+def _cita_valor_monetario(summary_md: str) -> bool:
+    """Prosa com valor monetário — o prompt proíbe (ADR-090)."""
+    return bool(extract_money_tokens([summary_md]) or extract_usd_tokens([summary_md]))
+
+
 def _resolve_yaml_path() -> str:
     """Localiza o YAML de prompts independente de cwd."""
     candidates = [Path(_PROMPT_YAML), Path(__file__).resolve().parents[3] / _PROMPT_YAML]
@@ -156,6 +164,7 @@ def build_default_generator(
     return SectionSummaryGenerator(
         llm_client=llm_client,
         cache=_build_cache(),
+        cites_money=_cita_valor_monetario,
         templates=resolved_templates,
         config=config
         or SectionSummaryGeneratorConfig(

@@ -15,6 +15,7 @@ import backend.app.services.section_summary_orchestrator as orchestrator
 from backend.app.services.section_summary_orchestrator import (
     _SECTION_KEYS,
     SUPPORTED_SECTION_IDS,
+    _cita_valor_monetario,
     _slice_section_data,
     compute_snapshot_hash,
     generate_all_section_summaries,
@@ -33,6 +34,7 @@ def _make_test_generator():
     return SectionSummaryGenerator(
         llm_client=FakeLLMSuccess(text="Resumo de teste."),
         cache=InMemoryLLMCache(),
+        cites_money=_cita_valor_monetario,
         templates=templates,
         config=SectionSummaryGeneratorConfig(),
     )
@@ -125,6 +127,7 @@ def _gerador(llm, *, cache=None) -> SectionSummaryGenerator:
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache or InMemoryLLMCache(),
+        cites_money=_cita_valor_monetario,
         templates=templates,
         config=SectionSummaryGeneratorConfig(),
     )
@@ -191,4 +194,28 @@ def test_flag_ligada_sem_chave_de_api_nao_preenche_a_camada_1(monkeypatch: pytes
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.setattr(orchestrator, "_build_cache", InMemoryLLMCache)
     result = generate_all_section_summaries(workspace_id=1, e5_data=_e5_com_narrativas())
+    assert result == {}
+
+
+@pytest.mark.parametrize(
+    "prosa, cita",
+    [
+        ("Patrimônio de R$ 1.234 concentrado em imóveis.", True),
+        ("Sobram 720 mil reais no período.", True),
+        ("Ativos de US$ 10 mil no exterior.", True),
+        ("Juros reais acima da inflação sustentam a carteira.", False),
+        ("Taxa de poupança de 23% no período.", False),
+        ("A reserva cobre 8 meses do custo de vida.", False),
+    ],
+)
+def test_detector_monetario_e_o_do_parecer(prosa: str, cita: bool):
+    assert _cita_valor_monetario(prosa) is cita
+
+
+def test_prosa_com_valor_monetario_nao_chega_a_section_summaries():
+    llm = FakeLLMPromptRecorder(text="Patrimônio de R$ 1.234 concentrado em imóveis.")
+    result = generate_all_section_summaries(
+        workspace_id=1, e5_data=_e5_com_narrativas(), generator=_gerador(llm)
+    )
+    assert len(llm.prompts) == len(SUPPORTED_SECTION_IDS)
     assert result == {}

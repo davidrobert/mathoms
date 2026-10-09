@@ -14,7 +14,7 @@ import logging
 import time
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Literal, Mapping, Optional, Protocol
+from typing import Any, Callable, Literal, Mapping, Optional, Protocol
 
 from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
 
@@ -83,6 +83,11 @@ class SectionSummaryCache(Protocol):
     def set(self, key: str, value: str, ttl_s: int = ...) -> None: ...
 
 
+# Callable: ``(summary_md) -> bool`` — True quando a prosa cita valor monetário.
+# Injetado porque o detector canônico (``parecer_prose_money``) mora no backend.
+MonetaryProseDetector = Callable[[str], bool]
+
+
 # A chave de cache não separa tenants (workspace UUID resolve para 0), então ela
 # só é segura se cobrir todo o input variável do prompt: os dois saem daqui.
 def serialize_section_payload(snapshot_data: Mapping[str, Any]) -> str:
@@ -134,11 +139,13 @@ class SectionSummaryGenerator:
         *,
         llm_client: SectionSummaryLLMClient,
         cache: SectionSummaryCache,
+        cites_money: MonetaryProseDetector,
         templates: Mapping[str, PromptTemplate],
         config: SectionSummaryGeneratorConfig | None = None,
     ) -> None:
         self._llm = llm_client
         self._cache = cache
+        self._cites_money = cites_money
         self._templates = templates
         self._config = config or SectionSummaryGeneratorConfig()
 
@@ -205,6 +212,8 @@ class SectionSummaryGenerator:
             raw = self._invoke_llm(template, ctx.snapshot_data, ctx.section_id)
         except Exception as exc:  # noqa: BLE001 — boundary aberto
             return self._degraded_result(ctx, _classify_llm_error(exc))
+        if self._cites_money(raw.output.summary_md):
+            return self._rejected_result(raw, ctx)
         return self._build_llm_result(raw, ctx.section_id, ctx.snapshot_hash, cache_key, ctx.start)
 
     def _invoke_llm(
@@ -255,6 +264,24 @@ class SectionSummaryGenerator:
         in_cost = (Decimal(prompt_tokens) / million) * cfg.cost_per_million_input_usd
         out_cost = (Decimal(completion_tokens) / million) * cfg.cost_per_million_output_usd
         return (in_cost + out_cost).quantize(Decimal("0.000001"))
+
+    # Pós-check, não reask: o retry do Instructor não chega à telemetria, custa
+    # até 3× e sairia rotulado `invalid_json`. Os tokens já foram pagos.
+    def _rejected_result(self, raw: LLMRawResponse, ctx: "_GenerateCtx") -> SectionSummaryResult:
+        cost = self._estimate_cost(raw.prompt_tokens, raw.completion_tokens)
+        latency_ms = int((time.monotonic() - ctx.start) * 1000)
+        self._emit_telemetry(
+            _rejection_event(raw, ctx.section_id, ctx.snapshot_hash, latency_ms, cost)
+        )
+        return SectionSummaryResult(
+            text="",
+            source="fallback",
+            latency_ms=latency_ms,
+            fallback_reason=MONETARY_INLINE,
+            cost_usd=cost,
+            prompt_tokens=raw.prompt_tokens,
+            completion_tokens=raw.completion_tokens,
+        )
 
     def _degraded_result(self, ctx: "_GenerateCtx", reason: str) -> SectionSummaryResult:
         latency_ms = int((time.monotonic() - ctx.start) * 1000)
@@ -320,6 +347,26 @@ def _llm_success_event(
     )
 
 
+def _rejection_event(
+    raw: LLMRawResponse,
+    section_id: str,
+    snapshot_hash: str,
+    latency_ms: int,
+    cost: Decimal,
+) -> "_TelemetryEvent":
+    return _TelemetryEvent(
+        section_id=section_id,
+        snapshot_hash=snapshot_hash,
+        latency_ms=latency_ms,
+        cache_hit=False,
+        fallback_used=True,
+        cost_usd=cost,
+        prompt_tokens=raw.prompt_tokens,
+        completion_tokens=raw.completion_tokens,
+        error_class=MONETARY_INLINE,
+    )
+
+
 def _fallback_event(
     section_id: str,
     snapshot_hash: str,
@@ -335,6 +382,8 @@ def _fallback_event(
         error_class=reason,
     )
 
+
+MONETARY_INLINE = "monetary_inline"
 
 _RATE_LIMIT_HINTS = ("429", "rate limit", "rate_limit", "too many requests")
 _TIMEOUT_HINTS = ("timeout", "timed out")

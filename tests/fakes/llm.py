@@ -67,6 +67,16 @@ class FakeLLMRaisingClient:
         raise self.error
 
 
+def nunca_cita_dinheiro(summary_md: str) -> bool:
+    """Detector monetário que nunca dispara — o canônico mora no backend."""
+    return False
+
+
+def sempre_cita_dinheiro(summary_md: str) -> bool:
+    """Detector monetário que sempre dispara — força o descarte `monetary_inline`."""
+    return True
+
+
 @dataclass
 class FakeStructuredLLMClient:
     """Stand-in para `LLMService.call` — output Pydantic pré-programado, sem API."""
