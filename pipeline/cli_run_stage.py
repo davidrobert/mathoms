@@ -226,8 +226,21 @@ def _rollback_and_close(session) -> None:
         session.close()
 
 
+def _close_by_outcome(session, stage: str, result) -> None:
+    """Commit sse o desfecho preserva a transação do stage — a regra do loop in-process."""
+    from pipeline.stage_outcome import commits_stage_transaction, resolve_stage_outcome
+
+    outcome = resolve_stage_outcome(stage, delivered=bool(result.success))
+    if commits_stage_transaction(stage, outcome):
+        _commit_and_close(session)
+    else:
+        _rollback_and_close(session)
+
+
 def _run_with_store(ctx, stage: str, session):
-    """Executa o stage e fecha a sessão — commit no sucesso, rollback em raise."""
+    """Executa o stage e fecha a sessão pelo desfecho (ADR-357 §6); rollback em raise."""
+    # `_run_stage` achata a exceção do runner em `success=False`: a falha do stage
+    # chega como resultado, nunca pelo `except` — que só vê `BaseException`.
     from pipeline.orchestrator import _run_stage
 
     try:
@@ -235,8 +248,7 @@ def _run_with_store(ctx, stage: str, session):
     except BaseException:
         _rollback_and_close(session)
         raise
-    else:
-        _commit_and_close(session)
+    _close_by_outcome(session, stage, result)
     return result
 
 
