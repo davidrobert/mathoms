@@ -108,10 +108,12 @@ def _read_upstream(path: Path) -> str | None:
 
 # `_read_upstream` devolvia `None` para DOIS casos — arquivo novo e ref inexistente —
 # e `_check_bump` tratava os dois como OK. Ref que não resolve desligava o gate inteiro
-# em silêncio: todo arquivo vira "novo", nenhum bump é cobrado. Hoje o único consumidor
-# é o pre-commit local (não há job de CI para este hook), onde `origin/main` costuma
-# existir — mas a condição é ambiente, não invariante, e ampliar a cobertura de um
-# instrumento que pode estar desligado é o defeito que a A40.l93 fecha nos outros três.
+# em silêncio: todo arquivo vira "novo", nenhum bump é cobrado. Os consumidores são o
+# pre-commit local e o job Lint do CI (`pre-commit run --all-files`, depois do step que
+# busca `origin/main` — ci.yml, desde o #1716). Nos dois, `origin/main` costuma existir
+# — mas a condição é ambiente, não invariante, e ampliar a cobertura de um instrumento
+# que pode estar desligado é o defeito que a A40.l93 fecha nos outros três. Os pins do
+# prompt do parecer (ADR-199 §Emenda 2026-10-09) dependem deste gate rodar no CI.
 def _upstream_ref_error() -> str | None:
     """Devolve mensagem se ``UPSTREAM_REF`` não resolve para um commit."""
     rc, _ = _run_git(["rev-parse", "--verify", "--quiet", f"{UPSTREAM_REF}^{{commit}}"])
