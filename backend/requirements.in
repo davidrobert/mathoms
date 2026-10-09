@@ -60,5 +60,5 @@ opentelemetry-instrumentation-logging>=0.66b1
 numpy>=1.26,<3
 
 # Dev/test
-pytest>=8.0
+pytest>=9.1.1
 pytest-asyncio>=1.4.0
