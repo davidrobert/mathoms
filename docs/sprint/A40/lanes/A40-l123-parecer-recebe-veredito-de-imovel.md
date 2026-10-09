@@ -156,3 +156,7 @@ resultado está decidido antes de rodar (`prompt-engineer`).
    para imóvel pela [[ADR-439]] D4. Dono `financial-planner`.
 6. **[[A40.l112]] precisa de re-triagem** no fecho da l113: a cobertura que ela pede saiu no
    #2049, e o parecer passa a ressalvar a concentração — o KPI do relatório, não.
+7. **Acoplamento com a [[A40.l122]]** (#2096 é o expand; o produtor emite no PR-B): quando o
+   imóvel de uso não apurado ganhar linha própria na tabela de classes, o hint de `ratios`
+   que chama "imóveis de investimento" de TETO deixa de valer para essa linha. Dono: o PR-C
+   da l122, que já planeja as superfícies LLM — registrado na lane dela.
