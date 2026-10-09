@@ -248,7 +248,14 @@
 # mesmo corpo (só hints e catálogo mudam). O #2065 (A40.l92) bumpa `_SCHEMA_VERSION` em PR
 # próprio: deploys separados são duas invalidações, e é aceito — acoplar prenderia um P1
 # ao merge de um P0 e deixaria o delta de cada um inatribuível.
-version: "2.21.0"
+# 2.22.0 — A40.l124 §Deferimento 6 ([[ADR-340]] §Emenda 2026-10-09): a hint "Severidade da
+# concentração" passa a declarar a régua do validador da RL7 e do ponto urgente — acima de
+# 50% 'Média', acima de 75% 'Alta' —, e não mais "≥50% é Alta", que vinha da emenda de
+# 2026-07-16, anterior ao degrau determinístico da A40.l90. A fronteira vira exclusiva e a
+# meta vira "até 50%" (§Emenda 2026-10-08); sai o contraexemplo do 40, que só o repetia.
+# Par do PROMPT_VERSION 2.6.0 (REGRA 14), no mesmo PR: um deploy, uma invalidação.
+# Co-design `financial-planner` + `prompt-engineer`. MINOR (ADR-233).
+version: "2.22.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -605,7 +612,9 @@ context_sections:
             format: "raw"
     narrative_hints:
       - "Concentração como risco: cite o número do bloco escalar acima ($.ratios.concentracao_imobiliaria), não o pct de composição. É percentual — escreva na prosa (ex.: '~60%'); não precisa âncora (catálogo é só monetário)."
-      - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
+      # Régua da RL7 ([[ADR-340]] §Emenda 2026-10-09): os números e os rótulos são os de
+      # parecer_red_lines — tests/test_parecer_rl7_regua_unica.py cobra a paridade.
+      - "Severidade da concentração: acima de 50%, risco de severidade 'Média' em `Alocação` ou `Saúde de balanço`; acima de 75%, 'Alta' — a mesma régua de pontos_urgentes. Meta: até 50% da carteira produtiva, via aportes, sem exigir venda."
       - "Imóveis sem classificação acima de zero contam como investimento e podem ser a moradia: concentração, imóveis de investimento e patrimônio gerador são TETO; TRS, PISO. Não recalcule. Com imóvel sem valor apurado, a direção é indeterminada."
       - "Alíquota com base (A37.l9): ratios.aliquota_efetiva_ir_pct é EFETIVA (blended) — IR total ÷ renda total (PF+PJ). Rotule 'efetiva (blended)' ao citar; não confunda com marginal nem com irpf_kpis.aliquota_sobre_tributavel/total_pct."
       - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
