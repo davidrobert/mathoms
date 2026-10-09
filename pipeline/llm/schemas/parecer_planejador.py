@@ -389,7 +389,7 @@ class CampoFaltante(BaseModel):
     # exatamente os que falham o regex. Hard-fail viraria reask; ``motivo`` carrega
     # o sinal mesmo com path None.
     field_path: EvidenciaPath = None
-    motivo: str = Field(..., min_length=5, max_length=200)
+    motivo: _prose(5, 200)
 
 
 class ParecerPlanejadorOutput(BaseModel):

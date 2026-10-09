@@ -10,7 +10,7 @@ import type {
 
 import { ReportCard } from "../ReportCard";
 import { ChartCanvas } from "./primitives/ChartCanvas";
-import { useChartTheme } from "./primitives/useChartTheme";
+import { useChartTheme, type ChartPalette } from "./primitives/useChartTheme";
 import { RDMLegend, type RDMLegendItem } from "./RDMLegend";
 import { fmtBRL, formatChartMonthLabel } from "./_shared";
 import { useIsPrint } from "../hooks/useIsPrint";
@@ -37,7 +37,14 @@ interface EnrichedDataset {
   readonly backgroundColor: string;
 }
 
-/** v2.E.6 — Chart "Receita vs Despesa — Mês a Mês" (Chart.js stacked).
+/** v2.E.6 — Chart "Receitas e Saídas por Categoria — Mês a Mês" (Chart.js
+ * stacked).
+ *
+ * A pilha de `despesa_datasets` se chama "Saídas" porque inclui o aporte, que é
+ * poupança e não consumo (ADR-333): "Despesas" nomearia, na mesma S2, a base da
+ * rosca que tira o aporte. O aporte fica na pilha — a visibilidade da poupança
+ * pertence às superfícies de fluxo (ADR-333 §Emenda). "Por Categoria" separa
+ * este card do "Receitas e Saídas por Mês" do `/plano`, que é o de totais.
  *
  * Substitui o AreaChart Recharts anterior; replica
  * `EXEMPLO_DE_RELATORIO.html:1794-1806` + script :7756-7939:
@@ -58,13 +65,14 @@ export function ReceitaDespesaMensalChart({
 }) {
   const isPrint = useIsPrint();
   const theme = useChartTheme();
+  const palette = useMemo(() => paletaSemSemantica(theme), [theme]);
   const det = fluxo?.receita_despesa_mensal_detalhado;
   const allLabels = det?.labels ?? [];
   const totalMonths = allLabels.length;
   const enriched = useEnrichedDatasets(
     det?.receita_datasets,
     det?.despesa_datasets,
-    theme.categorical,
+    palette,
   );
 
   const [offset, setOffset] = useState<number>(() => Math.max(0, totalMonths - WINDOW));
@@ -123,7 +131,7 @@ export function ReceitaDespesaMensalChart({
   const legend = buildLegendItems(enriched, hiddenIdx);
 
   return (
-    <ReportCard variant="neutral" title="Receita vs Despesa — Mês a Mês">
+    <ReportCard variant="neutral" title="Receitas e Saídas por Categoria — Mês a Mês">
       <p style={CONTEXT_STYLE} data-chart-context>
         {context}
       </p>
@@ -144,7 +152,7 @@ export function ReceitaDespesaMensalChart({
           data={data}
           options={options}
           height={256}
-          ariaLabel="Receita vs Despesa Mês a Mês"
+          ariaLabel="Receitas e saídas por categoria, mês a mês; aportes incluídos nas saídas"
           onChartReady={setChartInstance}
         />
       </div>
@@ -159,9 +167,11 @@ export function ReceitaDespesaMensalChart({
 
       {isPrint && <PrintTotalsBlock enriched={enriched} />}
 
-      <p style={CONCLUSION_STYLE} data-chart-conclusion>
-        {conclusion}
-      </p>
+      {conclusion && (
+        <p style={CONCLUSION_STYLE} data-chart-conclusion>
+          {conclusion}
+        </p>
+      )}
     </ReportCard>
   );
 }
@@ -176,9 +186,10 @@ function enrichSeriesForStack(
   let idx = startIdx;
   const len = Math.max(palette.length, 1);
   (series ?? []).forEach((ds) => {
-    // palette vem de useChartTheme().categorical, sempre 12 entradas
-    // (LIGHT_FALLBACK garante). `palette[0]` cobre o caso degenerado
-    // (palette vazia em SSR/teste sem CSS) sem hex literal.
+    // palette vem de `paletaSemSemantica(useChartTheme())`: as 12 entradas
+    // categóricas (LIGHT_FALLBACK garante) menos as semânticas. `palette[0]`
+    // cobre o caso degenerado (palette vazia em SSR/teste sem CSS) sem hex
+    // literal.
     const fallback = palette[((idx % len) + len) % len] ?? palette[0];
     datasets.push({
       label: ds.label,
@@ -189,6 +200,18 @@ function enrichSeriesForStack(
     idx++;
   });
   return { datasets, nextIdx: idx };
+}
+
+/** `--chart-2/3` repetem `--semantic-gain/loss`. Na ordem do produtor (receitas,
+ * depois saídas em ordem alfabética), o aporte cai num desses slots com uma ou
+ * duas fontes de receita e sairia verde ou vermelho — ganho ou perda, o que a
+ * ADR-333 nega. A paleta da RDM pula toda cor semântica. */
+function paletaSemSemantica(theme: ChartPalette): readonly string[] {
+  const semanticas = new Set(
+    [theme.semantic.gain, theme.semantic.loss].map((c) => c.toLowerCase()),
+  );
+  const livres = theme.categorical.filter((c) => !semanticas.has(c.toLowerCase()));
+  return livres.length > 0 ? livres : theme.categorical;
 }
 
 function useEnrichedDatasets(
@@ -271,7 +294,7 @@ export function rdmTooltipTitle(items: readonly RDMTooltipItem[]): string {
   if (!items.length) return "";
   const stack = items[0].dataset.stack;
   const lbl = items[0].label ?? "";
-  return `${lbl}${stack === "receita" ? " — Receitas" : " — Despesas"}`;
+  return `${lbl}${stack === "receita" ? " — Receitas" : " — Saídas"}`;
 }
 
 export function rdmTooltipBody(items: readonly RDMTooltipItem[]): readonly string[] {
@@ -335,10 +358,18 @@ function mesesDocumentados(n: number): string {
   return `${n} ${n === 1 ? "mês documentado" : "meses documentados"}`;
 }
 
+/** Cláusula só para a pilha que existe: sem `despesa_datasets` o texto imprimia
+ * "despesas (R$ 0)" — zero afirmado sobre dado ausente, e com a copy nova seria
+ * "aportes incluídos" sobre ele. */
 function buildContext(enriched: readonly EnrichedDataset[], totalMonths: number): string {
-  const totalReceita = sumStack(enriched, "receita");
-  const totalDespesa = sumStack(enriched, "despesa");
-  return `Série temporal mensal de receitas (${fmtBRL(totalReceita)}) versus despesas (${fmtBRL(totalDespesa)}) em ${mesesDocumentados(totalMonths)}.`;
+  const clausulas: string[] = [];
+  if (hasStack(enriched, "receita")) {
+    clausulas.push(`receitas (${fmtBRL(sumStack(enriched, "receita"))})`);
+  }
+  if (hasStack(enriched, "despesa")) {
+    clausulas.push(`saídas (${fmtBRL(sumStack(enriched, "despesa"))}, aportes incluídos)`);
+  }
+  return `Série temporal mensal de ${clausulas.join(" versus ")} em ${mesesDocumentados(totalMonths)}.`;
 }
 
 /** Totaliza a janela renderizada — **sem mensalizar e sem taxa** (ADR-306 D1).
@@ -348,11 +379,23 @@ function buildContext(enriched: readonly EnrichedDataset[], totalMonths: number)
  * taxa de poupança, sob base diferente da canônica, no MESMO S2 que já publica
  * as duas (fluxo mensal na janela 12m; taxa no hero de S1). O leitor não tinha
  * como reconciliar 42.667/mês com 92.000/mês. A divisão da lane já declarava
- * esta forma em `conclusionUtils.ts` — só não estava implementada. */
+ * esta forma em `conclusionUtils.ts` — só não estava implementada.
+ *
+ * "Após aportes" rotula a base: as saídas incluem o aporte, e quem poupa muito
+ * veria um líquido perto de zero ao lado da taxa de poupança do hero. Sem uma
+ * das pilhas não há líquido a afirmar. */
 function buildConclusion(enriched: readonly EnrichedDataset[], totalMonths: number): string {
-  if (totalMonths === 0) return "";
+  if (totalMonths === 0 || !temAsDuasPilhas(enriched)) return "";
   const liquido = sumStack(enriched, "receita") - sumStack(enriched, "despesa");
-  return `Fluxo líquido de ${fmtBRL(liquido)} em ${mesesDocumentados(totalMonths)}.`;
+  return `Fluxo líquido após aportes de ${fmtBRL(liquido)} em ${mesesDocumentados(totalMonths)}.`;
+}
+
+function hasStack(enriched: readonly EnrichedDataset[], stack: "receita" | "despesa"): boolean {
+  return enriched.some((d) => d.stack === stack);
+}
+
+function temAsDuasPilhas(enriched: readonly EnrichedDataset[]): boolean {
+  return hasStack(enriched, "receita") && hasStack(enriched, "despesa");
 }
 
 function sumStack(enriched: readonly EnrichedDataset[], stack: "receita" | "despesa"): number {
@@ -367,21 +410,27 @@ function formatPeriodLabel(labels: readonly string[]): string {
   return `${labels[0]}  —  ${labels[labels.length - 1]}`;
 }
 
+/** No PDF a legenda some, então o qualificador do aporte vai no rótulo impresso. */
 function PrintTotalsBlock({ enriched }: { readonly enriched: readonly EnrichedDataset[] }) {
   const totalReceita = sumStack(enriched, "receita");
-  const totalDespesa = sumStack(enriched, "despesa");
-  const liquido = totalReceita - totalDespesa;
+  const totalSaidas = sumStack(enriched, "despesa");
   return (
     <div style={PRINT_BLOCK_STYLE} data-rdm-print-totals>
-      <div>
-        <strong>Total receitas:</strong> {fmtBRL(totalReceita)}
-      </div>
-      <div>
-        <strong>Total despesas:</strong> {fmtBRL(totalDespesa)}
-      </div>
-      <div>
-        <strong>Fluxo líquido:</strong> {fmtBRL(liquido)}
-      </div>
+      {hasStack(enriched, "receita") && (
+        <div>
+          <strong>Total receitas:</strong> {fmtBRL(totalReceita)}
+        </div>
+      )}
+      {hasStack(enriched, "despesa") && (
+        <div>
+          <strong>Total saídas (aportes incluídos):</strong> {fmtBRL(totalSaidas)}
+        </div>
+      )}
+      {temAsDuasPilhas(enriched) && (
+        <div>
+          <strong>Fluxo líquido após aportes:</strong> {fmtBRL(totalReceita - totalSaidas)}
+        </div>
+      )}
     </div>
   );
 }

@@ -213,15 +213,21 @@ services:
 
   # Console interno de operações (ADR-116). Opcional — só sobe com
   # `--profile ops`. Default aponta para o api da stack; override para host
-  # via INTERNAL_OPS_API_BASE quando rodar o api fora do compose.
+  # via MATHOMS_DOCKER_OPS_API_BASE quando rodar o api fora do compose.
+  # É build arg, não env: o rewrite `/admin/*` fica no routes-manifest do
+  # `next build`, e a tag `:dev` guarda o último valor — trocar (ou voltar ao
+  # default) exige `up --build`. Não lê INTERNAL_OPS_API_BASE do shell: o
+  # RUNBOOK §7.2 exporta essa para o `npm run dev` com 127.0.0.1, que é
+  # inalcançável de dentro do container.
   frontend-ops:
     profiles: ["ops"]
     build:
       context: ./frontend-ops
       dockerfile: Dockerfile
+      args:
+        INTERNAL_OPS_API_BASE: "${MATHOMS_DOCKER_OPS_API_BASE:-http://api:8000}"
     image: mathoms-frontend-ops:dev
     environment:
-      INTERNAL_OPS_API_BASE: "${INTERNAL_OPS_API_BASE:-http://api:8000}"
       NODE_ENV: production
     ports:
       - "127.0.0.1:${MATHOMS_DOCKER_OPS_PORT:-3110}:3100"

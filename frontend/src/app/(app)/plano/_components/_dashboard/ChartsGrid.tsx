@@ -2,14 +2,10 @@
 
 import type { DashboardChart } from "@/lib/api";
 import { BarChartCard } from "./BarChartCard";
+import { CategoryBarChartCard } from "./CategoryBarChartCard";
 import { ChartSkeleton } from "./ChartSkeleton";
-import { isMonthlyBarChart } from "./dashboardHelpers";
+import { isMonthlyBarChart, isWideChart } from "./dashboardHelpers";
 import { PieChartCard } from "./PieChartCard";
-
-function isDespesasCategoryChart(title: string): boolean {
-  const t = title.toLowerCase();
-  return t.includes("categoria") || t.includes("despesas por");
-}
 
 function ChartCard({
   chart,
@@ -18,14 +14,14 @@ function ChartCard({
 }: {
   chart: DashboardChart;
   onBarClick: (label: string) => void;
-  onSliceClick: (name: string) => void;
+  onSliceClick: (id: string) => void;
 }) {
   if (chart.chart_type === "pie") {
-    const pieHandler = isDespesasCategoryChart(chart.title) ? onSliceClick : undefined;
-    return <PieChartCard chart={chart} onSliceClick={pieHandler} />;
+    return <PieChartCard chart={chart} onSliceClick={onSliceClick} />;
   }
-  const barHandler = isMonthlyBarChart(chart) ? onBarClick : undefined;
-  return <BarChartCard chart={chart} onBarClick={barHandler} />;
+  if (!isMonthlyBarChart(chart)) return <CategoryBarChartCard chart={chart} />;
+  const span = isWideChart(chart) ? "lg:col-span-2" : undefined;
+  return <BarChartCard chart={chart} onBarClick={onBarClick} className={span} />;
 }
 
 export function ChartsGrid({
@@ -37,7 +33,7 @@ export function ChartsGrid({
   loading: boolean;
   charts: DashboardChart[];
   onBarClick: (label: string) => void;
-  onSliceClick: (name: string) => void;
+  onSliceClick: (id: string) => void;
 }) {
   if (loading) {
     return (

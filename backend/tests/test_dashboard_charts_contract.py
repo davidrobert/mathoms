@@ -1,14 +1,17 @@
-"""Contrato do bar chart do dashboard: `build_charts` (produtor) ↔ `normalizeBarData` (leitor).
+"""Contrato dos gráficos do dashboard: `build_charts` (produtor) ↔ leitores TS de barra e pizza.
 
 Par sobre uma fixture compartilhada, ``frontend/tests/fixtures/dashboard_charts.json``:
 este lado assere que o produtor emite exatamente a fixture; o lado TS
-(``frontend/tests/lib/dashboardCharts.test.ts``) assere que o leitor tira barras
-dela. "Investimentos por Classe" saía com ``{classes, total}``, o leitor só lê
-``{labels, datasets}`` e o card do ``/plano`` renderizava título sem barras: cada lado
-tinha a sua crença do contrato e nenhum teste ligava as duas.
+(``frontend/tests/lib/dashboardCharts.test.ts``) assere que os leitores tiram barras e
+fatias dela. Três cards do ``/plano`` saíam vazios, cada lado com a sua crença do
+contrato e nenhum teste ligando as duas: "Investimentos por Classe" (``{classes, total}``),
+"Composição Patrimonial" (``{items}``) e "Receita vs Despesa Mensal", que lia um
+``datasets`` que o E5 nunca emitiu.
 
-A fixture é GERADA pelo produtor, nunca escrita à mão (lição da A40.l3). Para regravar
-após mudança legítima de shape::
+O último mostra por que o E5 do par sai dos PRODUTORES REAIS (``FluxoCaixaEnricher``,
+``build_composicao``, ``RatiosCalculator``): um E5 escrito à mão é a mesma crença do
+produtor, e passaria. A fixture é GERADA, nunca escrita à mão (lição da A40.l3). Para
+regravar após mudança legítima de shape::
 
     MATHOMS_UPDATE_DASHBOARD_CHARTS_FIXTURE=1 \\
       .venv/bin/python -m pytest backend/tests/test_dashboard_charts_contract.py -q
@@ -23,53 +26,21 @@ from typing import Any
 
 from backend.app.schemas.dashboard import DashboardResponse
 from backend.app.services.dashboard_service import build_charts
+from backend.tests.helpers.dashboard_e5 import e5_sintetico
 
 _REPO = Path(__file__).resolve().parents[2]
 _FIXTURE = _REPO / "frontend" / "tests" / "fixtures" / "dashboard_charts.json"
 _UPDATE_ENV = "MATHOMS_UPDATE_DASHBOARD_CHARTS_FIXTURE"
-
-# Valores sintéticos. A última linha antecipa a A40.l122: imóvel com uso não apurado
-# publica `pct` null — o gráfico plota `valor` e não pode depender de `pct`.
-_E5: dict[str, Any] = {
-    "investimentos": {
-        "tabela_classes": [
-            {
-                "categoria": "Renda Fixa",
-                "valor": 300000.0,
-                "pct": 40.0,
-                "pct_carteira_financeira": 75.0,
-            },
-            {
-                "categoria": "Imóveis Investimento",
-                "valor": 200000.0,
-                "pct": 26.67,
-                "pct_carteira_financeira": None,
-            },
-            {
-                "categoria": "Ações BR",
-                "valor": 100000.0,
-                "pct": 13.33,
-                "pct_carteira_financeira": 25.0,
-            },
-            {
-                "categoria": "Imóveis com uso não apurado",
-                "valor": 150000.0,
-                "pct": None,
-                "pct_carteira_financeira": None,
-            },
-        ],
-        "total": 750000.0,
-    }
-}
+_E5 = e5_sintetico()
 
 
-def _charts_no_wire(e5: dict[str, Any]) -> list[dict[str, Any]]:
+def _charts_no_wire(e5: dict[str, Any]) -> dict[str, dict[str, Any]]:
     response = DashboardResponse(kpis=[], charts=build_charts(e5), alerts=[])
-    return response.model_dump(mode="json")["charts"]
+    return {chart["title"]: chart for chart in response.model_dump(mode="json")["charts"]}
 
 
 def test_investimentos_por_classe_sai_no_shape_que_o_leitor_le():
-    (chart,) = _charts_no_wire(_E5)
+    chart = _charts_no_wire(_E5)["Investimentos por Classe"]
     assert chart["chart_type"] == "bar"
     assert chart["data"] == {
         "labels": ["Renda Fixa", "Imóveis Investimento", "Ações BR", "Imóveis com uso não apurado"],
@@ -77,10 +48,64 @@ def test_investimentos_por_classe_sai_no_shape_que_o_leitor_le():
     }
 
 
+def test_receitas_e_saidas_sai_no_shape_do_leitor_de_barras():
+    data = _charts_no_wire(_E5)["Receitas e Saídas por Mês"]["data"]
+    mensal = _E5["fluxo_caixa"]["receita_despesa_mensal_detalhado"]
+    assert data["x_axis"] == "month"
+    assert data["labels"] == [f"2025-{m:02d}" for m in range(3, 13)] + ["2026-01", "2026-02"]
+    assert data["datasets"] == [
+        {"label": "Receitas", "tone": "gain", "data": mensal["totais_receita"][-12:]},
+        {
+            "label": "Saídas (inclui aportes)",
+            "tone": "neutral",
+            "data": mensal["totais_despesa"][-12:],
+        },
+    ]
+
+
+def test_mes_fora_do_formato_do_e5_passa_cru():
+    e5 = {"fluxo_caixa": {"receita_despesa_mensal_detalhado": {"labels": ["26/02", "2026"]}}}
+    data = _charts_no_wire(e5)["Receitas e Saídas por Mês"]["data"]
+    assert data["labels"] == ["2026-02", "2026"]
+
+
+def test_composicao_sai_crua_para_o_predicado_unico_do_leitor():
+    chart = _charts_no_wire(_E5)["Composição Patrimonial"]
+    assert chart["chart_type"] == "pie"
+    assert chart["data"] == {
+        "fonte": "composicao_patrimonial",
+        "composicao": _E5["patrimonio"]["composicao"],
+    }
+
+
+def test_composicao_fora_do_formato_lista_nao_vira_grafico():
+    e5 = {"patrimonio": {"composicao": {"Residência": 0.0}}}
+    assert "Composição Patrimonial" not in _charts_no_wire(e5)
+
+
+def test_despesas_por_categoria_le_a_janela_12m_e_nao_o_periodo_inteiro():
+    data = _charts_no_wire(_E5)["Despesas por Categoria"]["data"]
+    janela = _E5["fluxo_caixa"]["janela_12m"]
+    assert data == {
+        "fonte": "despesas_por_categoria",
+        "categorias": janela["despesas_por_categoria"],
+        "janela_meses": 12,
+    }
+    assert data["categorias"] != _E5["fluxo_caixa"]["despesas_por_categoria"]
+
+
+# `conferencia` leva ao lado TS o número do E5 contra o qual ele confere o que o seu
+# predicado de aporte tirou da pizza — o par dos dois lados de "o que é aporte".
 def test_fixture_compartilhada_e_a_saida_do_produtor():
-    charts = _charts_no_wire(_E5)
+    janela = _E5["fluxo_caixa"]["janela_12m"]
+    esperado = {
+        "charts": list(_charts_no_wire(_E5).values()),
+        "conferencia": {
+            "fluxo_caixa.janela_12m.transferencia_patrimonial": janela["transferencia_patrimonial"]
+        },
+    }
     if os.environ.get(_UPDATE_ENV) == "1":
-        payload = json.dumps({"charts": charts}, ensure_ascii=False, indent=2) + "\n"
+        payload = json.dumps(esperado, ensure_ascii=False, indent=2) + "\n"
         _FIXTURE.write_text(payload, encoding="utf-8")
     fixture = json.loads(_FIXTURE.read_text(encoding="utf-8"))
-    assert fixture == {"charts": charts}, f"fixture desatualizada; regrave com {_UPDATE_ENV}=1"
+    assert fixture == esperado, f"fixture desatualizada; regrave com {_UPDATE_ENV}=1"

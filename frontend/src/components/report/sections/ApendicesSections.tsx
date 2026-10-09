@@ -7,7 +7,10 @@ import { DisclaimersCard } from "../cards/DisclaimersCard";
 import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
 import type { ReportAnalysisData } from "@/lib/api";
-import { readPremissasEconomicas } from "../utils/reportContractGuards";
+import {
+  readCenariosConjuge,
+  readPremissasEconomicas,
+} from "../utils/reportContractGuards";
 import { formatDate } from "@/lib/format";
 import {
   formatGoalVigenciaDate,
@@ -218,12 +221,16 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
           </section>
           <section>
             <h4 className="font-display font-semibold">
-              Alocação contracíclica e análise fundamentalista
+              Alocação por classe e rebalanceamento por aporte
             </h4>
             <p className="text-[var(--surface-muted-foreground)]">
-              Priorizar indexadores de renda fixa fora do ciclo aquecido;
-              análise fundamentalista em ações (P/L, ROE, DY) e FIIs (DY,
-              vacância, P/VP).
+              Compara a carteira de investimentos — sem caixa e sem imóveis
+              físicos — com a alocação-alvo declarada. Usa quatro classes: renda
+              fixa (indexadores somados, com previdência), ações Brasil (com
+              fundos), ações internacionais e FIIs. Indica a classe mais abaixo
+              do alvo para o próximo aporte, para reduzir o desvio sem vender.
+              Sem alvo declarado, ou com parte do patrimônio sem valor confiável
+              ou sem classe definida, o relatório não faz essa indicação.
             </p>
           </section>
           <section>
@@ -254,16 +261,7 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
  * justificar o stress test em tom não-alarmista (CVM/Susep).
  */
 export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
-  const cenarios = data.cenarios_conjuge as
-    | {
-        labels?: string[];
-        aportes?: number[];
-        prazos_if?: number[];
-        anos_if?: number[];
-        cenarios?: Array<{ aporte_mensal?: number; prazo_if_anos?: number; ano_if?: number; resumo?: string }>;
-        premissas?: { aporte_base?: number };
-      }
-    | undefined;
+  const cenarios = readCenariosConjuge(data.cenarios_conjuge);
   // A37.l10 PD-09 — o payload E5 (IFProjection.to_legacy_dict) expõe
   // prazo_anos_realista/ano_if; ausência degrada a coluna base para "—".
   // `null` é a forma atual; o `!== 999` cobre artefatos E5 já persistidos
@@ -277,11 +275,9 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
       ? { if_prazo_anos: prazoBase, if_ano: rawGoals?.ano_if ?? undefined }
       : undefined;
 
-  const hasCenarios = !!cenarios?.labels && cenarios.labels.length > 0;
-
-  // ADR-167 hide-when-empty: workspace inelegível (gate retorna False) →
+  // ADR-167 hide-when-empty: workspace inelegível (o E5 publica `{}`) →
   // seção some completamente. Numeração A/B/D/E preservada.
-  if (!hasCenarios) {
+  if (!cenarios) {
     return null;
   }
 
@@ -299,9 +295,7 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
         segurança do plano atual.
       </p>
 
-      {hasCenarios && (
-        <StressScenarioCard cenarios={cenarios!} goals={goals} />
-      )}
+      <StressScenarioCard cenarios={cenarios} goals={goals} />
     </ReportSection>
   );
 }
@@ -322,9 +316,9 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
         <SimpleTable
           headers={["Pilar", "Aplicação"]}
           rows={[
-            ["Patrimônio gerador de renda", "Independência financeira e montagem de carteira"],
+            ["Patrimônio gerador de renda", "Meta e prazo da independência financeira; renda passiva atual"],
             ["Equilíbrio presente × futuro", "Comportamento financeiro do casal e família"],
-            ["Alocação contracíclica + análise fundamentalista", "Otimização de classes de ativos"],
+            ["Alocação por classe", "Desvio vs alvo e próximo aporte"],
             ["Score Mathoms", "Metodologia própria (5 componentes ponderados)"],
           ]}
         />

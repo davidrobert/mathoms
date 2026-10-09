@@ -12,6 +12,9 @@ export interface ChartBarProps extends ChartBaseProps {
   readonly stacked?: boolean;
   readonly horizontal?: boolean;
   readonly formatValue?: (v: number) => string;
+  /** Default: `formatValue`. Separado para série plotada negativa cujo nome já
+   * dá a direção — o eixo mantém o sinal, o tooltip não repete. */
+  readonly formatTooltipValue?: (v: number) => string;
 }
 
 const DEFAULT_FORMATTER = (v: number): string =>
@@ -27,6 +30,7 @@ export function ChartBar({
   stacked = false,
   horizontal = false,
   formatValue = DEFAULT_FORMATTER,
+  formatTooltipValue = formatValue,
   height = "auto",
   ariaLabel,
   ...rest
@@ -62,7 +66,7 @@ export function ChartBar({
           callbacks: {
             label: (ctx) => {
               const v = ctx.parsed[horizontal ? "x" : "y"];
-              return `${ctx.dataset.label}: ${formatValue(v ?? 0)}`;
+              return `${ctx.dataset.label}: ${formatTooltipValue(v ?? 0)}`;
             },
           },
         },
@@ -85,7 +89,7 @@ export function ChartBar({
         },
       },
     }),
-    [stacked, horizontal, series.length, theme, formatValue],
+    [stacked, horizontal, series.length, theme, formatValue, formatTooltipValue],
   );
 
   return (

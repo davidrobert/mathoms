@@ -18,6 +18,10 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
   }, info) => {
     await ensureLoggedIn(page, request, info);
 
+    // addInitScript só aplica após navegação real; about:blank bloqueia
+    // localStorage (SecurityError). Navegamos antes de ler o token.
+    await page.goto("/acao");
+
     const token = await page.evaluate(() =>
       localStorage.getItem("fin_token"),
     );
@@ -37,7 +41,6 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
     }
 
     const u = userForWorker(info);
-    const code = `D${(info.parallelIndex + 90).toString().padStart(2, "0")}`;
 
     // POST cria Decision
     const createResp = await request.post(
@@ -47,8 +50,11 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        // ADR-214: o frontend não passa `code` desde a A12 — o server gera
+        // D{N:02d} (MAX+1 sob advisory lock). Explícito seria o caminho do
+        // importer e colidiria no UNIQUE(workspace_id, code) no retry, que com
+        // PW_RUN_STAMP cai no mesmo workspace.
         data: {
-          code,
           title: `E2E ${u.full_name} fictício`,
           status: "Decidido",
           amount_brl: "1000.00",
@@ -57,7 +63,7 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
     );
     expect(createResp.status(), await createResp.text()).toBe(201);
     const created = await createResp.json();
-    expect(created.code).toBe(code);
+    expect(created.code).toMatch(/^D\d{2,}$/);
     expect(created.status).toBe("Decidido");
 
     // POST execute → status vira Executado

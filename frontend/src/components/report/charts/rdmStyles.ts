@@ -1,4 +1,4 @@
-/** Estilos do chart "Receita vs Despesa — Mês a Mês" (v2.E.6).
+/** Estilos do chart "Receitas e Saídas por Categoria — Mês a Mês" (v2.E.6).
  *
  * Movimento **mecânico** (mesmos valores, zero efeito visual) extraído de
  * `ReceitaDespesaMensalChart.tsx` em A40.l3, quando o texto novo daquele card

@@ -5,6 +5,7 @@ title: "Convenção numérica de percentual no contrato E5 — valor absoluto"
 status: Decidido
 phase: "Pré-requisito PR-2 do PLANNER_REVIEW"
 date: "2026-05-13"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-090]]"
   - "[[ADR-143]]"
@@ -29,6 +30,16 @@ tags:
 # ADR-209 — Convenção numérica de percentual no contrato E5 (valor absoluto)
 
 **Status:** Decidido (pré-requisito PR-2 do PLANNER_REVIEW) • **Data:** 2026-05-13
+
+> **Emendada em 2026-10-09** — o `formatPercent` deixou de ser legado: é o formatador
+> canônico de percentual do relatório. A §D3 (Camada 4) e o risco de "limpeza em
+> sprint+1" ficam superados; a regra de que o formatador não multiplica continua.
+> Ver §Emenda 2026-10-09.
+
+> **Emendada em 2026-10-09 (b)** — a emenda acima apoia a segurança do formatador na
+> D1, mas a D1 não vale em quatro campos `*_pct` do E5: eles chegam como razão 0..1, e
+> o frontend multiplica por 100 antes de formatar. Só um deles tem registro (RV4-51).
+> Ver §Emenda 2026-10-09 (b).
 
 ## Contexto
 
@@ -138,6 +149,72 @@ ADR vira `Decidido (A12 — pré-PLANNER_REVIEW Ato 4)` no merge.
 - **Baixo:** falsos negativos da Camada 2 (persona). LLM tem 1-3% de chance de ignorar regra; mitigado pela Camada 3 (manifest no exec context — exposto a cada call).
 - **Baixo:** alguma chamada futura ao `formatPercent` legado supondo fracional permanece dormente; flag para limpeza em sprint+1.
 - **Baixo:** workspace com `valor_pct < 1` (rentabilidade < 1% a.a.) hoje renderizado errado pelo `conclusionUtils.format("pct")`. Frontend fix corrige.
+
+## Emenda 2026-10-09 — `formatPercent` é o formatador canônico, não legado
+
+A §D3 (Camada 4) flagou `formatPercent` (`frontend/src/lib/format.ts`) como legado, "não
+chamada pelo report", e o §Riscos pediu limpeza na sprint seguinte. A prática inverteu
+as duas coisas:
+
+- #1403 (2026-08-12, RV4-19 do [[REPORT-REVIEWS-active]]) passou a usá-lo nos cards da
+  tabela de composição, inclusive na linha de total, para as duas pontas não divergirem.
+- #2091 (2026-10-09) trocou por ele os percentuais com ponto do relatório e criou o gate
+  ESLint de `toFixed(n)` colado ao `%`. O COPY_GUIDELINES §4.6 o prescreve como a
+  renderização de percentual.
+- #2126 (2026-10-09) levou os 35 `toFixed(n).replace(".", ",")` restantes para
+  `formatPercent`/`formatNumber`, com gate para a vírgula escrita à mão.
+
+Re-medido em 2026-10-09: 59 chamadas em 28 arquivos de `frontend/src/components/report/`
+(`rg -c 'formatPercent\(' frontend/src/components/report`).
+
+**O que continua valendo:** o formatador recebe o valor absoluto e não multiplica
+(`44.7` é 44,7%) — é a D1 que torna seguro usá-lo no relatório inteiro. O risco do
+§Riscos muda de natureza: deixa de ser uma função dormente e passa a ser qualquer
+chamador que receba fração. A proteção é a D1 (campos `*_pct` absolutos no contrato),
+não a remoção da função.
+
+## Emenda 2026-10-09 (b) — a D1 não vale em quatro campos do E5
+
+A §Emenda 2026-10-09 conclui que a proteção contra chamador que recebe fração "é a D1
+(campos `*_pct` absolutos no contrato)". Medido no mesmo dia (`main` @ `6918df1b`):
+quatro campos `*_pct` do E5 chegam como razão 0..1, e o frontend compensa
+multiplicando por 100 antes de chamar `formatPercent`.
+
+| Call-site (em `frontend/src/components/report/`) | Campo do E5 | O que o schema declara |
+| --- | --- | --- |
+| `sections/SProtecao/ProtecaoKpiHero.tsx` | `protecao_patrimonial.pct_renda_anual` | "0..1 como decimal; 0.025 = 2.5%" |
+| `sections/SProtecao/ProtecaoGapVeiculos.tsx` | `protecao_patrimonial.bens_com_gap_cobertura[].gap_pct` | nada; o produtor emite `(fipe - lmi) / fipe` |
+| `cards/CascataFiscalCard.layers.tsx` | `tributario.cascata.carga_total_pct` | "RAZÃO 0–1 (…), não percentual" |
+| `cards/CascataFiscalCard.header.tsx` | `tributario.cascata.fator_r_pct` | "razão 0–1" |
+
+Quem chamar `formatPercent` num desses campos confiando na D1 publica um valor 100×
+menor (`formatPercent(0.025)` → `"0,0%"`). Método: `*_pct` com descrição fracionária
+em `config/schemas/`, mais `* 100` em `frontend/src` (fora do relatório não há
+compensação). Campo fracionário sem unidade declarada e sem compensação no call-site
+escapa aos dois.
+
+Os quatro estão no escopo da §D4: o bloco de proteção ([[ADR-240]]) entra no E5 por
+`$ref`. Agravantes medidos:
+
+- **A mesma chave tem duas unidades no bloco.** `tributario.cascata.triggers[].params.fator_r_pct`
+  sai absoluto (`_pct_str` multiplica por 100), e `cards/CascataFiscalCard.triggers.ts`
+  o formata, corretamente, sem compensar.
+- **A [[ADR-236]] escreve o `fator_r_pct` com `× 100`**, que o produtor
+  (`_compute_fator_r`) não aplica.
+- **Dois textos afirmam a D1 sem exceção:** a R21 da persona (Camada 2), contrariada
+  pela dica de proteção em `pipeline/llm/prompts/parecer_planejador.py`
+  (`pct_renda_anual > 0.05`), e o COPY_GUIDELINES §4.6, segundo o qual os `*_pct`
+  "já chegam absolutos".
+
+Só o `pct_renda_anual` tem registro: o achado RV4-51 em
+[PIPELINE-REVIEWS-active](../_MOC/PIPELINE-REVIEWS-active.md) (P3, `procede-aberto`,
+trilha `data-engineer`). Migrar os produtores ou declarar exceção à D1 (na forma da
+§D2) é decisão de quem tratar o RV4-51; esta emenda só registra a medida.
+
+**Duas notas de cronologia.** O item da §Riscos nasceu sem objeto: o #246, que tirou
+de `formatPercent` o `style: "percent"` (a multiplicação por 100), mergeou 3 h antes do
+#245, que trouxe esta ADR. E o #2123 (2026-10-09) estendeu o formatador e o gate de
+`toFixed(n)` colado ao `%` a `src/**`, fora do relatório.
 
 ## Referências
 

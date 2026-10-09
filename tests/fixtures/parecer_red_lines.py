@@ -396,19 +396,22 @@ CLEAN: tuple[CleanFixture, ...] = (
         ),
         _e5(),
     ),
-    # RL7 — concentração do E5 COM risco Alto de tema correspondente
+    # RL7 — concentração do E5 COM risco Alto de tema correspondente. Lê `ratios`, como os
+    # envenenados: com `real_estate.concentracao_pct`, que a RL7 não lê desde o C11-Fase2,
+    # a concentração caía em 0 e o limpo passava sem exercer o predicado (medido por mutação).
     CleanFixture(
         "rl7_clean_coberto",
         "RL7",
         _output(riscos=[_risco("Alta", "Saúde de balanço")]),
-        _e5(real_estate={"concentracao_pct": 65.0, "alertas": []}),
+        _e5(ratios={"taxa_endividamento_pct": 8.0, "concentracao_imobiliaria": 80.0}),
     ),
-    # RL7 1.4 — 40-60% com tema abordado em MÉDIA é defensável (Cerbasi×AUVP divergem),
-    # NÃO subdiagnóstico — falso-positivo real do 2º dogfood (52% com riscos Média/Alocação)
+    # RL7 1.4 — na faixa do meio (hoje 50-75%, base carteira) o tema abordado em MÉDIA é
+    # defensável (Cerbasi×AUVP divergem), NÃO subdiagnóstico — falso-positivo real do 2º
+    # dogfood (riscos Média/Alocação)
     CleanFixture(
         "rl7_clean_meia_concentracao_media",
         "RL7",
         _output(riscos=[_risco("Média", "Alocação"), _risco("Alta", "Liquidez")]),
-        _e5(real_estate={"concentracao_pct": 52.0, "alertas": []}),
+        _e5(ratios={"taxa_endividamento_pct": 8.0, "concentracao_imobiliaria": 52.0}),
     ),
 )

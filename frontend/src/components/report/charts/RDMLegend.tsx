@@ -2,10 +2,11 @@
 
 import type { CSSProperties } from "react";
 
-/** v2.E.6 — Legenda agrupada custom para Receita vs Despesa Mês a Mês.
+/** v2.E.6 — Legenda agrupada custom para Receitas e Saídas por Categoria.
  *
  * Paridade visual com `EXEMPLO_DE_RELATORIO.html:7902-7938`. Renderiza
- * dois grupos ("Receitas" + "Despesas") com swatches clicaveis. Toggle
+ * dois grupos ("Receitas" + "Saídas") com swatches clicaveis. "Saídas", não
+ * "Despesas": o grupo traz o aporte, que não é consumo (ADR-333). Toggle
  * imperativo no chart fica do lado do consumidor — esta componente apenas
  * reflete o estado e propaga clicks. Componente puro, sem state interno.
  */
@@ -27,7 +28,7 @@ export function RDMLegend({ receitas, despesas, onToggle, className }: RDMLegend
   return (
     <div className={className} style={CONTAINER_STYLE} data-rdm-legend>
       <LegendGroup title="Receitas" items={receitas} onToggle={onToggle} />
-      <LegendGroup title="Despesas" items={despesas} onToggle={onToggle} />
+      <LegendGroup title="Saídas" items={despesas} onToggle={onToggle} />
     </div>
   );
 }

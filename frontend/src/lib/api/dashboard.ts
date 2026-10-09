@@ -3,6 +3,7 @@ import { apiFetch } from "./core";
 // ─── Dashboard Types ───
 
 export interface DashboardKPI {
+  key: string;
   label: string;
   value: string;
   raw_value: number;

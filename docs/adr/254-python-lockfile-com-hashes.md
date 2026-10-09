@@ -5,7 +5,7 @@ title: "Python lockfile com hashes — pip-tools vs uv — Sprint A20"
 status: Decidido
 phase: A20.l10
 date: "2026-05-22"
-amended_at: ["2026-06-18", "2026-08-11", "2026-08-12"]
+amended_at: ["2026-06-18", "2026-08-11", "2026-08-12", "2026-10-09"]
 relates_to:
   - "[[ADR-228]]"
   - "[[ADR-230]]"
@@ -41,6 +41,12 @@ tags:
 > `requirements-test.lock` deixou de ser opcional. Inclui a refutação medida do
 > sinal (b) e dois deferimentos datados (composite action; paridade de
 > interpretador prod↔CI) — ver §"Emenda 2026-08-12".
+>
+> **Emenda (2026-10-09):** o hook `check_lockfile_sync` nunca comparou diffs nem
+> forçou regen em PR do Dependabot — conferia só presença, e a `main` chegou a
+> violar 5 pisos. Passa a reprovar pin fora do especificador do `.in` e a família
+> `opentelemetry-*` partida; o `dependabot.yml` tem uma entrada pip só — ver
+> §"Emenda 2026-10-09".
 
 ## Contexto
 
@@ -85,7 +91,7 @@ compatibilidade com `pip install --require-hashes` no Dockerfile multi-stage
 - Dockerfile ([[ADR-248]]) consome via `pip install --require-hashes -r
   requirements.lock`.
 - Pre-commit hook `dev/check_lockfile_sync.py` bloqueia commit com diff em `.in`
-  sem diff correspondente em `.lock`.
+  sem diff correspondente em `.lock` (falso até 2026-10-09 — ver §Emenda 2026-10-09).
 - CI (jobs de teste) instala das `.in` loose (com dev extras, sem hashes — ver
   §Neutras); `security.yml` audita o `requirements.lock` pinado.
 - Dependabot monitora os `.in`; regen do `.lock` é manual (lock combinado
@@ -353,6 +359,53 @@ Decidir se CI converge para 3.12 (paridade com prod) ou prod sobe para 3.13
 nunca voltar a ser implícita. Hoje ela não está escrita em lugar nenhum além
 desta emenda. Dono: `sre-devops`; se virar invariante, é ADR `Proposto`
 própria, não emenda.
+
+## Emenda 2026-10-09 — o hook mede o especificador, não só a presença
+
+A §Decisão e o critério 3 da §Validação afirmavam que `dev/check_lockfile_sync.py`
+bloqueia `.in` sem `.lock` correspondente e "força a regen no PR" do Dependabot.
+Nenhuma das duas afirmações era verdade. O hook nunca comparou diffs: conferia só
+se cada nome declarado num `.in` aparecia com `==` no lock. Um PR de piso
+(`>=X` → `>=Y`) mantém o nome e passava verde. Em 2026-10-08 a `main` violava
+5 pisos já mergeados (sqlalchemy, pydantic-settings, litellm, opentelemetry-api,
+opentelemetry-instrumentation-celery), e o conserto foi o #2046.
+
+**Fix:** o hook reprova quando o pin do lock não está no `SpecifierSet` do `.in`
+(`packaging.requirements`), e reporta `arquivo:linha`.
+
+- Os nomes casam por PEP 503. Os extras são ignorados, porque o lock usa
+  `--strip-extras`.
+- O pin pré-release é medido só pelo intervalo.
+- O marcador é avaliado contra o alvo do lock: linux/x86_64, com o Python do
+  header do pip-compile.
+- Marcador com `python_full_version` e opções `-r`/`-c`/`-e` falham alto. Antes,
+  essas opções eram puladas em silêncio.
+- O hook roda com `language: python` + `packaging==26.2` pinado. O env de lint
+  do CI só tinha `packaging` por tabela do pytest, e assim nenhum workflow
+  muda.
+
+**A família `opentelemetry-*` anda junta.** Ela é acoplada por `==` (sdk 1.Y ⇒
+`api==1.Y`; instrumentation 0.Xb ⇒ `semantic-conventions==0.Xb`). Por isso o
+hook também exige um piso `>=` só por trilha: núcleo 1.x e contrib 0.Xb. Em
+2026-10-09 o #2101 e o #2102 subiram um membro cada e partiram a família; o
+conserto foi o #2143. Do lado do Dependabot, a entrada pip é uma só (`/`, que
+cobre os dois `.in`), e só as sentinelas `opentelemetry-api` e
+`opentelemetry-instrumentation-fastapi` recebem version update (#2178; runbook
+[python_dependencies](../reference/runbooks/python_dependencies.md) §Uma entrada
+pip e a família opentelemetry).
+
+`tests/dev/test_check_lockfile_sync.py` carrega três provas:
+
+- o contrafactual das 5 violações;
+- a não-inércia sobre o lock real: a árvore passa, e um piso acima do pin
+  reprova;
+- a não-inércia da regra de família sobre o `.in` real: os pisos alinhados
+  passam, e subir um membro sozinho reprova.
+
+**Fora do gate, de propósito:** um diff de `.in` que o lock atual já satisfaz
+passa sem regen. É o caso do piso que o pin já cumpre ou do teto acima do pin.
+O lock continua válido para o `.in`, e quem quer a versão nova roda a Tarefa 4
+do runbook.
 
 ## Referências externas
 

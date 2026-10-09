@@ -220,7 +220,10 @@ Blast radius **medido**: `fmt_currency` tem **72 call sites de produção**
 | b | negativo sai `R$ -1,5M` — §4.1 proíbe sinal entre símbolo e número (canônico `-R$ 1,5 mi`) | `:36` + `f"R$ {sign}…"` · alcançável por `fmt_currency(M['fluxo_liquido'])` em `charts_narrator.py:166,187` |
 | c | espaço comum onde §4.1 manda NBSP | medido: todo output traz `0x20` |
 | d | §4.2 exige forma **completa** abaixo de R$ 10.000, mas compacta a partir de R$ 1.000 | `:42` · `fmt_currency(1500) → 'R$ 1,5k'` |
-| e | `backend/app/services/dashboard_service.py:25-30` é um **3º formatador** com os mesmos defeitos **+ separador US** | `_fmt_brl`, consumido em `:58`/`:85` |
+| e | ~~`backend/app/services/dashboard_service.py:25-30` é um **3º formatador** com os mesmos defeitos **+ separador US**~~ **quitado por remoção (2026-10-09, #2202)** | ~~`_fmt_brl`, consumido em `:58`/`:85`~~ — saiu junto com os dois KPIs que o consumiam ("Patrimônio Líquido", ADR-156, e "Receita vs Despesa", ADR-306 D1); o dashboard não formata mais BRL |
+
+O **6** do título é a medição de abertura e contava o `_fmt_brl`. O total não foi re-medido
+depois da remoção, porque a lista dos seis não está enumerada aqui.
 
 **Veredito: lane própria, não polish** — e o argumento não é o tamanho do diff: são
 formatadores independentes na mesma superfície, e corrigir só um cria divergência

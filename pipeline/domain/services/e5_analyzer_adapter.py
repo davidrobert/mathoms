@@ -49,6 +49,8 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeAnalyzer,
     CenariosConjugeConfig,
     CenariosConjugeResult,
+    VereditoCenarioConjuge,
+    veredito_cenario_conjuge,
 )
 from pipeline.domain.services.composicao_familiar import build_composicao_familiar
 from pipeline.domain.services.consumo_consciente_calculator import (
@@ -762,14 +764,8 @@ class E5AnalyzerAdapter:
         # 15. Equilibrio Cerbasi.
         equilibrio = self._equilibrio.analyze(fluxo_legacy)
 
-        # 16. Cenarios conjuge (se disponível).
-        cenarios: CenariosConjugeResult | None = None
-        if self._cenarios is not None and if_projection is not None:
-            cenarios = self._cenarios.analyze(
-                patrimonio=patrimonio_full,
-                goals={"if_meta": if_projection.if_meta},
-                fluxo=fluxo_legacy,
-            )
+        # 16. Cenário do cônjuge — a elegibilidade decide antes do cálculo (ADR-167).
+        cenarios = self._cenarios_conjuge(patrimonio_full, if_projection, fluxo_legacy)
 
         # 17. Diagnósticos comportamentais + confiança por cobertura (ADR-353).
         diagnosticos = self._diagnostico.analyze(fluxo_legacy, ratios_dict)
@@ -875,6 +871,29 @@ class E5AnalyzerAdapter:
         ref = _faixa_ref_fiscal(irpf, self._reference_date)
         snapshots = family_snapshots_from_config(self._family_config, ref)
         return build_composicao_familiar(snapshots, faixa_ref=ref.isoformat())
+
+    # O log separa "o gate recusou" de "faltou insumo" (sem data de nascimento ou
+    # sem meta IF declarada): o `has_data` da serialização não distingue os dois.
+    def _cenarios_conjuge(
+        self,
+        patrimonio_full: dict,
+        if_projection: IFProjection | None,
+        fluxo_legacy: dict,
+    ) -> CenariosConjugeResult | None:
+        if self._cenarios is None or if_projection is None:
+            _logger.info("mathoms.pipeline.e5.cenario_conjuge", extra={"veredito": "nao_avaliado"})
+            return None
+        veredito = veredito_cenario_conjuge(
+            conjuge_key=self._identity.conjuge_key, if_meta=if_projection.if_meta
+        )
+        _logger.info("mathoms.pipeline.e5.cenario_conjuge", extra={"veredito": veredito.value})
+        if veredito is not VereditoCenarioConjuge.elegivel:
+            return None
+        return self._cenarios.analyze(
+            patrimonio=patrimonio_full,
+            goals={"if_meta": if_projection.if_meta},
+            fluxo=fluxo_legacy,
+        )
 
     def _compute_passive_income(
         self,

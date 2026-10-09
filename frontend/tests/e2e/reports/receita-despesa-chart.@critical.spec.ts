@@ -1,5 +1,5 @@
 /**
- * v2.E.6 — gate funcional do chart "Receita vs Despesa — Mês a Mês".
+ * v2.E.6 — gate funcional do chart "Receitas e Saídas por Categoria — Mês a Mês".
  *
  * Tagged @critical: confirma que slide window e legenda toggle funcionam
  * em /reports/[id] com fixture `medium.json` (estendida com 14 meses
@@ -16,7 +16,7 @@ import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 function receitaDespesaCard(page: Page) {
   return page
     .locator("section")
-    .filter({ hasText: "Receita vs Despesa — Mês a Mês" })
+    .filter({ hasText: "Receitas e Saídas por Categoria — Mês a Mês" })
     .filter({ hasNot: page.locator("section") });
 }
 

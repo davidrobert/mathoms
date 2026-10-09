@@ -441,6 +441,7 @@
 | ADR-444 | adr | Proposto |  | Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência | `adr/444-imovel-de-uso-nao-apurado-entra-na-carteira-com-valor-e-sem-peso.md` |
 | ADR-445 | adr | Proposto |  | Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho | `adr/445-transacao-de-escrita-nao-atravessa-io-lento.md` |
 | ADR-447 | adr | Decidido |  | A classe da falha sai do objeto vivo e atravessa o executor no detail do stage | `adr/447-classe-da-falha-sai-do-objeto-vivo-e-atravessa-o-executor.md` |
+| ADR-448 | adr | Decidido |  | Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge | `adr/448-bypass-do-ruleset-sai-do-papel-admin-break-glass-por-concessao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -939,6 +940,9 @@
 | A40.l121 | lane | in_progress | A40 | O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF | `sprint/A40/lanes/A40-l121-ancora-estruturada-de-imovel.md` |
 | A40.l122 | lane | in_progress | A40 | A casa da família entra na carteira de investimentos quando a residência não é apurada: tabela de classes e ranking falham ABERTO | `sprint/A40/lanes/A40-l122-residencia-fora-da-classe.md` |
 | A40.l123 | lane | shipped | A40 | O parecer não recebe o veredito do balde de imóvel: lê como medida o número que pode conter a moradia, e pode prescrever vendê-la | `sprint/A40/lanes/A40-l123-parecer-recebe-veredito-de-imovel.md` |
+| A40.l124 | lane | shipped | A40 | O parecer não vê independência financeira nem investimentos desde agosto: o corpo pede ~20 KB contra 16 KB, a eviction é muda e o teste que a vigia mede 40% do tamanho real | `sprint/A40/lanes/A40-l124-parecer-cego-a-if-e-investimentos.md` |
+| A40.l125 | lane | shipped | A40 | O gate de elegibilidade do cenário do cônjuge nunca rodou, e o critério de renda dele media um sinal que não existe | `sprint/A40/lanes/A40-l125-gate-do-cenario-do-conjuge.md` |
+| A40.l126 | lane | open | A40 | O cenário do cônjuge afirma o que não mediu: a contribuição do cônjuge sai de um label sem membro, e a premissa de 2/3 do aporte não aparece | `sprint/A40/lanes/A40-l126-cenario-do-casal-rotulado.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | cancelled | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
