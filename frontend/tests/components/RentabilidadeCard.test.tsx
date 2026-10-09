@@ -142,6 +142,14 @@ describe("<RentabilidadeCard /> · back-compat (sem campo aninhado)", () => {
     expect(screen.getByText(/Yield observado sobre patrimônio gerador/i)).toBeInTheDocument();
   });
 
+  // O produtor serializa string de 2 casas (`ratios_calculator._format_pct_or_nd`,
+  // ADR-209 §D2) — o ramo número acima é o que quase nunca chega.
+  it("formata a string decimal do produtor como percentual pt-BR", () => {
+    render(<RentabilidadeCard ratios={{ rentabilidade_pct: "3.20" }} />);
+    expect(screen.getByText("3,20%")).toBeInTheDocument();
+    expect(screen.queryByText("3.20")).not.toBeInTheDocument();
+  });
+
   it("renderiza fallback com N/D quando rentabilidade_pct=string", () => {
     const ratios: RatiosData = {
       rentabilidade_pct: "N/D",

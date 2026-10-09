@@ -31,11 +31,13 @@ function readRentabilidade(ratios: RatiosData): RentabilidadeRatio | null {
 
 /** Back-compat: workspaces antes do PR-A (sem campo aninhado) caem aqui. */
 function RentabilidadeFallbackCard({ ratios }: { ratios: RatiosData }) {
-  const valor = ratios.rentabilidade_pct;
+  // ADR-209 §D2: chega string de 2 casas ("3.20") ou "N/D". O `?? NaN` impede
+  // que ausente vire "0,00%" (COPY_GUIDELINES §4.3).
+  const valor = Number(ratios.rentabilidade_pct ?? Number.NaN);
   return (
     <ReportCard size="full" title="Renda passiva sobre patrimônio (TRS)" variant="feature">
       <p className="font-mono text-2xl tabular-nums">
-        {typeof valor === "number" ? formatPercent(valor, 2) : String(valor ?? "N/D")}
+        {Number.isFinite(valor) ? formatPercent(valor, 2) : "N/D"}
       </p>
       <p className="mt-2 text-sm text-[var(--surface-muted-foreground)]">
         Yield observado sobre patrimônio gerador. Contexto detalhado disponível
