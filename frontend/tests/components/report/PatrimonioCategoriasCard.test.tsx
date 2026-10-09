@@ -11,6 +11,7 @@ import { render, screen } from "@testing-library/react";
 
 import { PatrimonioCategoriasCard } from "@/components/report/cards/PatrimonioCategoriasCard";
 import type { PatrimonioData } from "@/types/report-analysis";
+import { PERCENTUAL_COM_PONTO } from "../../shared/percentualPtBr";
 
 vi.mock("next/link", () => ({
   default: ({ children, href }: { children: unknown; href: string }) => (
@@ -46,6 +47,18 @@ describe("PatrimonioCategoriasCard — estados da composição", () => {
     expect(
       screen.getByText(/Balde com valor negativo/),
     ).toBeDefined();
+  });
+
+  // A linha "Total Bruto" já dizia "100,0%"; as linhas da mesma coluna, "42.9%".
+  it("percentual da linha usa vírgula decimal, como o total (pt-BR)", () => {
+    const { container } = renderCard([
+      { categoria: "Veículos", valor: 21_430, pct: 42.86 },
+      { categoria: "Caixa e Moeda Estrangeira", valor: 28_570, pct: 57.14 },
+    ]);
+
+    expect(screen.getByText("42,9%")).toBeDefined();
+    expect(screen.getByText("57,1%")).toBeDefined();
+    expect(container.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
   });
 
   it("payload saudável não ganha nota de rodapé nenhuma", () => {

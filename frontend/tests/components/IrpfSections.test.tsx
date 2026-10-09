@@ -757,10 +757,10 @@ describe("<IrpfRendaAnualCard /> · ADR-266 completude tri-state", () => {
       ano_base: 2025,
       ano_base_default: 2024,
       ano_base_completude: "incompleto",
-      completude_motivo: "Falta declaração de CPF ***.***.***-60 (presente em ano-base anterior).",
-      evolucao_renda_anos: { "2024": "180000.00", "2025": "5469.95" },
-      renda_anual_familiar_brl: "5469.95",
-      renda_liquida_familiar_brl: "5469.95",
+      completude_motivo: "Falta declaração de CPF ***.***.***-00 (presente em ano-base anterior).",
+      evolucao_renda_anos: { "2024": "180000.00", "2025": "5000.00" },
+      renda_anual_familiar_brl: "5000.00",
+      renda_liquida_familiar_brl: "5000.00",
     };
     const data = { irpf_kpis: kpis } as unknown as ReportAnalysisData;
     render(<IrpfRendaSection data={data} />);

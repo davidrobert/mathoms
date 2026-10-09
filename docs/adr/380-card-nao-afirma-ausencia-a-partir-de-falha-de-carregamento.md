@@ -26,7 +26,7 @@ tags:
 
 O card "Exposição Cambial" exibiu, para o workspace de dogfood, o badge
 `0% sem exposição` e a frase **"Seu patrimônio está 100% denominado em real"**
-— sobre um patrimônio com R$ 83.869,92 (6,45% do investível) em quatro contas
+— sobre um patrimônio com 6,45% do investível em quatro contas
 em USD e EUR. No mesmo relatório, o parecer do planejador dizia
 `exposicao_cambial_pct=6.45%` e recomendava ampliar a exposição.
 

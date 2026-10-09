@@ -197,8 +197,8 @@ def test_o_denominador_publicado_nao_e_o_da_fixture(dogfood_e5, roster):
 def test_dinheiro_em_string_decimal_entra_no_denominador():
     """A27.l3 §D1: exigir `int|float` tirava `irpf_kpis`/`protecao_patrimonial` inteiras. A
     raiz entra pelo CAMINHO, não pelo tipo — trocar string por número não move o denominador."""
-    como_string = {"irpf_kpis": {"ir_pago_total_brl": "177344.77"}}
-    como_numero = {"irpf_kpis": {"ir_pago_total_brl": 177344.77}}
+    como_string = {"irpf_kpis": {"ir_pago_total_brl": "123456.78"}}
+    como_numero = {"irpf_kpis": {"ir_pago_total_brl": 123456.78}}
     assert measure_coverage(como_string).monetary_roots == {"irpf_kpis"}
     assert (
         measure_coverage(como_string).monetary_roots == measure_coverage(como_numero).monetary_roots

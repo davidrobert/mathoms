@@ -20,13 +20,13 @@ def _builder() -> CashFlowBuilder:
 
 _DEFAULT_RECEITA: dict = dict(
     data="2026-03-30",
-    descricao="Pix recebido de ARVO SAUDE LTDA",
-    valor=47208.77,
+    descricao="Pix recebido de EMPRESA EXEMPLO LTDA",
+    valor=20000.01,
     banco="C6Bank",
     titular="david",
     tipo_conta="extratoconta",
     categoria="receita_pj",
-    origem="Arvo (David - PJ)",
+    origem="Empresa (Titular - PJ)",
 )
 
 _DEFAULT_DESPESA: dict = dict(
@@ -59,8 +59,8 @@ def _despesa(**overrides) -> ClassifiedTransaction:
 
 
 class TestCrossDocumentDedup:
-    def test_arvo_3x_collapses_to_1(self):
-        # Cenário Arvo do report 9b31d739-...: mesmo PIX C6 presente em 3 E3s
+    def test_pix_pj_3x_collapses_to_1(self):
+        # Cenário do report 9b31d739-...: mesmo PIX C6 presente em 3 E3s
         # (1 CSV C6 explícito + 2 PDFs C6 "unknown" — snapshots cumulativos do
         # app C6 PJ não reconhecidos pelo classificador E0). Drift de casing no
         # banco simula documento sem identificação canônica.
@@ -72,8 +72,8 @@ class TestCrossDocumentDedup:
         cf = _builder().build(txs)
 
         assert cf.receitas.total_transacoes == 1
-        assert cf.receitas.total_geral == 47208.77
-        assert cf.fluxo_mensal.receitas["por_mes"]["2026-03"]["Arvo (David - PJ)"] == 47208.77
+        assert cf.receitas.total_geral == 20000.01
+        assert cf.fluxo_mensal.receitas["por_mes"]["2026-03"]["Empresa (Titular - PJ)"] == 20000.01
         assert cf.dedup_report.collapsed_count == 2
         # Valor ≥ R$ 10k → review entry esperada
         assert cf.dedup_report.review_count == 1
@@ -89,7 +89,7 @@ class TestCrossDocumentDedup:
         cf = _builder().build(txs)
 
         assert cf.receitas.total_transacoes == 2
-        assert cf.receitas.total_geral == 47208.77 * 2
+        assert cf.receitas.total_geral == 20000.01 * 2
         assert cf.dedup_report.collapsed_count == 0
 
     def test_internal_transfer_different_tipo_conta_preserved(self):
@@ -174,12 +174,12 @@ class TestCrossDocumentDedup:
         # Sintoma original do bug: tooltip do mês com valor 3× — após dedup
         # o `_total` do mês deve voltar ao valor real.
         txs = [
-            _receita(banco="C6Bank"),  # 47208.77
+            _receita(banco="C6Bank"),  # 20000.01
             _receita(banco="C6 Bank"),
             _receita(banco="c6bank"),
             _receita(
                 data="2026-03-15",
-                valor=8247.0,
+                valor=8000.0,
                 descricao="Rendimentos CDB",
                 categoria="rendimento",
                 origem="Rendimentos Financeiros",
@@ -189,4 +189,4 @@ class TestCrossDocumentDedup:
         cf = _builder().build(txs)
 
         total_mar = cf.fluxo_mensal.receitas["por_mes"]["2026-03"]["_total"]
-        assert total_mar == 47208.77 + 8247.0
+        assert total_mar == 20000.01 + 8000.0

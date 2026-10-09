@@ -21,7 +21,7 @@ CONE_KEYS = ("caminho_p10", "caminho_p50", "caminho_p90")
 def _payload_com_cone() -> dict:
     return {
         "if_monte_carlo": {
-            "caminho_p10": [[2026, 11037269.90], [2027, 11500000.0]],
+            "caminho_p10": [[2026, 11234567.89], [2027, 11500000.0]],
             "caminho_p50": [[2026, 12000000.0]],
             "caminho_p90": [[2026, 14000000.0]],
             "valor_final_p50": 12000000.0,

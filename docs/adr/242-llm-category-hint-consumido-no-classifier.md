@@ -36,10 +36,10 @@ O stage `extract_with_llm` ([pipeline/stages/extract_with_llm.py:302](../../pipe
 
 Caso observado em relatório real (workspace `Exemplo`, run `c36c4baf-…`, dezembro/2025): informe de rendimentos Itaú extraído via LLM produziu 4 linhas:
 
-- "Rendimento Bruto RDB/CDB" R$ 787,75 — `categoria_sugerida: "rendimento_investimento"` → caiu em `receita_investimento` (genérico)
-- "Rendimento Líquido RDB/CDB (valor a declarar)" R$ 610,85 — `categoria_sugerida: "rendimento_investimento"` → **double-counting**: bruto = líquido + IRRF; somar ambos infla receita em ~78%
-- "IRRF retido" R$ -176,90 — `categoria_sugerida: "imposto"` → caiu em `nao_identificado`
-- "Parcelas pagas Crédito Imobiliário (ano 2025)" R$ -52.429,06 — `categoria_sugerida: "financiamento_imobiliario"` → caiu em `nao_identificado`. Esta linha é o **acumulado anual** do informe IR, não evento de dezembro; tratá-la como despesa mensal quebra `fluxo_mensal_detalhado` (taxa de poupança ficou em -3661% e despesa mensal média sobrenanceira).
+- "Rendimento Bruto RDB/CDB" (valor B) — `categoria_sugerida: "rendimento_investimento"` → caiu em `receita_investimento` (genérico)
+- "Rendimento Líquido RDB/CDB (valor a declarar)" (B − IRRF) — `categoria_sugerida: "rendimento_investimento"` → **double-counting**: bruto = líquido + IRRF; somar ambos infla receita em ~78%
+- "IRRF retido" (negativo) — `categoria_sugerida: "imposto"` → caiu em `nao_identificado`
+- "Parcelas pagas Crédito Imobiliário (ano 2025)" (acumulado anual, negativo) — `categoria_sugerida: "financiamento_imobiliario"` → caiu em `nao_identificado`. Esta linha é o **acumulado anual** do informe IR, não evento de dezembro; tratá-la como despesa mensal quebra `fluxo_mensal_detalhado` (taxa de poupança ficou em -3661% e despesa mensal média sobrenanceira).
 
 Causa direta: classificador ignora o hint LLM. Causa estrutural: linhas anuais do informe IR não têm fronteira semântica no pipeline — entram como `transacoes` mensais e poluem todo cálculo de fluxo.
 
@@ -67,7 +67,7 @@ Hint é traduzido para categoria canônica via tabela explícita em [pipeline/do
 Vocabulário do hint inclui o sentinel `info_fiscal_anual` para marcar linhas que NÃO são eventos de caixa mensal: acumulados anuais do informe IR (parcelas pagas ano X, valor a declarar, etc.). O classifier **skipa** a transação inteira em [transaction_classifier.py `_classify_account_audit`](../../pipeline/domain/services/transaction_classifier.py) antes mesmo da hierarquia D1.
 
 Trata o caso observado:
-- "Parcelas pagas Crédito Imobiliário (ano 2025)" R$ -52.429,06 → `info_fiscal_anual` → excluída do fluxo. A despesa real está no extrato bancário, mês a mês.
+- "Parcelas pagas Crédito Imobiliário (ano 2025)" → `info_fiscal_anual` → excluída do fluxo. A despesa real está no extrato bancário, mês a mês.
 - "Rendimento Líquido (valor a declarar)" → `info_fiscal_anual` quando há linha "Bruto" separada (evita double-counting). Visível no IRPF (E1.6) mas não como receita de caixa.
 
 ### D3. Vocabulário enum (20 valores) referendado pelo financial-planner
