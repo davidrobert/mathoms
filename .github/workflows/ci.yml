@@ -1181,9 +1181,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend-ops/Dockerfile: o job existe para
-          # prever o build da imagem. Bump do Dockerfile → bump aqui.
-          node-version: "26"
+          # O job existe para prever o build da imagem: o major vem do
+          # frontend-ops/.nvmrc, e dev/check_node_version_parity.py reprova se os
+          # FROM do frontend-ops/Dockerfile divergirem. Arquivo próprio, não o do
+          # frontend: o Dependabot abre um PR de major por diretório.
+          node-version-file: frontend-ops/.nvmrc
           cache: npm
           cache-dependency-path: frontend-ops/package-lock.json
 
