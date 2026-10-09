@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-432 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
+433 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 369
+- **Decidido**: 370
 - **Proposto**: 58
 - **Roadmap**: 5
 
@@ -332,7 +332,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-417]] — Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review · phase A40
 - [[ADR-435]] — O gate de PII mede o publicado, e a cobertura declarada é igual à medida · phase A40.l115
 
-### Proposto (7)
+### Proposto (8)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
@@ -341,6 +341,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 - [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
 - [[ADR-389]] — As tabelas mensal e anual do IRPF são duas fontes importadas, não duas escalas de uma · phase A40.l56
+- [[ADR-441]] — Erro de banco cruza fronteira de persistência por shape, nunca por valor
 
 ## categorization
 
@@ -724,14 +725,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## security
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 - [[ADR-299]] — SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) · phase audit-r2 · SEC-03
-
-### Proposto (1)
-
 - [[ADR-442]] — Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push
 
 ## seguranca

@@ -183,7 +183,7 @@ function PausedQueueCard({
     <Card className="mb-6 border-alert/50">
       <CardContent className="space-y-4">
         <div className="flex items-center gap-3">
-          <AlertTriangle aria-hidden className="h-5 w-5 text-alert" />
+          <AlertTriangle aria-hidden className="h-5 w-5 text-alert-on-tint" />
           <h2 className="font-medium text-foreground">
             Sua análise está pausada esperando você
           </h2>
@@ -279,7 +279,7 @@ function QueueGroupCard({
   onFixSequence,
 }: FixHandlers & { group: QueueGroup }) {
   const Icon = group.severity === "error" ? AlertCircle : AlertTriangle;
-  const iconClass = group.severity === "error" ? "text-loss" : "text-alert";
+  const iconClass = group.severity === "error" ? "text-loss" : "text-alert-on-tint";
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="flex items-center gap-2">

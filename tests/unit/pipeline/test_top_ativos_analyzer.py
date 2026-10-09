@@ -142,8 +142,10 @@ class TestImoveisInvestimento:
         assert r.top_ativos[0].tipo_origem == "imovel"
 
     def test_residencia_filtrada_por_property_id_override(self):
-        """ADR-215 §1 sunset: filtro por property_id ∈ residencia_property_ids."""
-        cfg = TopAtivosConfig.from_configs(residencia_property_ids=frozenset({"p-vm"}))
+        """ADR-215 §1: o override `residencia_principal` tira o imóvel do ranking."""
+        cfg = TopAtivosConfig.from_configs(
+            property_classification_overrides={"p-vm": "residencia_principal"}
+        )
         imoveis = [
             {"property_id": "p-vm", "valor_irpf": 800_000},
             {"descricao": "Sala", "valor_irpf": 300_000},

@@ -22,7 +22,7 @@ export function Delta({ value, percent, currency, invert = false, className }: D
       className={cn(
         "inline-flex items-center gap-1 text-sm font-medium font-mono tabular-nums",
         isZero
-          ? "text-neutral-financial"
+          ? "text-muted-foreground"
           : isPositive
             ? "text-gain"
             : "text-loss",

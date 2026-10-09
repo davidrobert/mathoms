@@ -427,7 +427,7 @@ def imovel_valor(imovel: dict) -> float:
     return 0.0
 
 
-def imovel_property_id(imovel: dict) -> str | None:
+def imovel_property_id(imovel: Mapping[str, Any]) -> str | None:
     """Retorna `property_id` (ADR-215 P2) anexado ao imóvel pelo E1.5c, ou None."""
     pid = imovel.get("property_id")
     if isinstance(pid, str) and pid:

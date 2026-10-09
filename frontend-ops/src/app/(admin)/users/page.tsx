@@ -324,7 +324,7 @@ function SortableHeader({
         <span>{label}</span>
         <span
           aria-hidden="true"
-          className={active ? "text-brand-primary text-xs" : "text-surface-muted-fg/60 text-xs"}
+          className={active ? "text-brand-primary text-xs" : "text-surface-muted-fg text-xs"}
         >
           {indicator}
         </span>

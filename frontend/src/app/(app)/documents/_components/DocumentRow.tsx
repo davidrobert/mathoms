@@ -91,7 +91,7 @@ function DocTypeCell({ doc, uncertain }: { doc: DocumentResponse; uncertain: boo
           <Tooltip>
             <TooltipTrigger
               type="button"
-              className="shrink-0 rounded p-0.5 text-warning hover:bg-warning/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="shrink-0 rounded p-0.5 text-alert-on-tint hover:bg-warning/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Classificação incerta — edite tipo e instituição com o ícone de lápis"
             >
               <AlertTriangle className="h-4 w-4" aria-hidden />
