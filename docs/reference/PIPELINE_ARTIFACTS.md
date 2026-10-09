@@ -90,19 +90,20 @@ populado por `CenariosConjugeAnalyzer.to_legacy_dict()` em
 - `labels: list[str]`, `aportes: list[float]`, `prazos_if: list[float]`,
   `anos_if: list[int]` — vetores paralelos por cenário (atualmente fixo
   em 1 cenário "Sem renda do cônjuge").
-- `idade_<titular_key>_if: list[int]` — chave dinâmica
-  (titular_key vem de `family_members`); declarada via
-  `patternProperties` no schema. Sem upper bound — sentinela legada
-  `prazo=999` propaga para idade>120.
+- `idade_titular_if: list[int | null]` — chave role-keyed (ADR-338);
+  `null` quando o prazo não é projetável (era a sentinela `999`).
 - `premissas: object` com `meta_if`, `investivel_atual`,
   `retorno_real_anual_pct`, `aporte_base`, `fator_reduzido`,
-  `salario_<conjuge_key>_clt_brl`.
+  `salario_conjuge_clt_brl` (role-keyed, ADR-338).
 - `cenarios: list[object]` — cada item tem `nome`, `aporte_mensal`,
   `prazo_if_anos`, `ano_if`, `resumo` (obrigatórios em strict) +
-  `idade_<titular_key>` (chave dinâmica via `patternProperties`).
-- Eligibility gate (ADR-167) emite `{}` quando workspace não-elegível
-  (solteiro / 1 renda / casal sem meta IF / casal 95-5). Schema aceita
-  o objeto vazio.
+  `idade_titular`.
+- Gate de elegibilidade (ADR-167 §Emenda 2026-10-09) emite `{}` quando o
+  workspace não tem cônjuge cadastrado (`papel = conjuge`) ou meta IF
+  positiva. Família de 1 renda e casal 95/5 **seguem** recebendo o bloco:
+  os critérios de renda estão deferidos (a divisão não é mensurável). `{}`
+  é a forma canônica de "omitido"; o schema aceita o objeto vazio e o
+  chart do cenário some das narrativas.
 
 Declarado formalmente em
 [config/schemas/e5_analysis.schema.json](../../config/schemas/e5_analysis.schema.json)
