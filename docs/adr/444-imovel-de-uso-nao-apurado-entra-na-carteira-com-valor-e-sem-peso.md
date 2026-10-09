@@ -2,7 +2,7 @@
 id: ADR-444
 type: adr
 title: "Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência"
-status: Proposto
+status: Decidido
 phase: A40.l122
 date: "2026-10-08"
 relates_to:
@@ -23,7 +23,7 @@ aliases:
   - "com valor e sem peso"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
 ---
@@ -165,6 +165,10 @@ diverge — os produtores leem o bloco publicado e a `classificacao_imovel` por 
    determinística contra prescrição sobre a linha sem peso, e eval do dono (2.20.0 × 2.21.0)
    num bump só do manifesto. O PR-B já melhora essas superfícies sem tocá-las: hoje elas
    recebem a casa como "Imóvel de investimento" com percentual.
+6. **Baseline de print com a linha sem peso no #1** (`product-designer`). O badge "Imóveis
+   com uso não apurado" é o único rótulo longo o bastante para estourar a caixa A4; ele
+   quebra linha e as classes curtas seguem `nowrap`, então nenhuma baseline existente se
+   move. Falta a baseline do regime, que pede fixture própria gerada no runner Linux.
 
 ## Gates
 

@@ -23,14 +23,10 @@ export type {
 // Sprint A16 L2 P5 (ADR-236 §D5) — Tributário PJ Cascata Fiscal.
 export { CascataFiscalCard } from "./CascataFiscalCard";
 export { ConsumoConscienteCard } from "./ConsumoConscienteCard";
-export { ContrafluxoCard } from "./ContrafluxoCard";
-export type { ContrafluxoData } from "./ContrafluxoCard";
 export { DiagnosticoComportamentalCard } from "./DiagnosticoComportamentalCard";
 export { EndividamentoCard } from "./EndividamentoCard";
 export { ExposicaoCambialCard } from "./ExposicaoCambialCard";
 export { EquilibrioCerbasiCard } from "./EquilibrioCerbasiCard";
-export { EstrategiaAporteCard } from "./EstrategiaAporteCard";
-export type { EstrategiaAporteData } from "./EstrategiaAporteCard";
 // InvestimentosClasseCard substituído por AlocacaoAtualVsAlvoCard em A11 (2026-05-11).
 // Removido em Fase B com migração v1→v2 (ADR-141).
 export { InvestimentosClasseCard } from "./InvestimentosClasseCard";
