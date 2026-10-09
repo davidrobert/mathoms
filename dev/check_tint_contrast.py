@@ -236,7 +236,7 @@ def declared_utilities(fe: Frontend) -> dict[str, str]:
     if not out:
         raise SystemExit(
             f"{fe.src}: nenhum `--color-*: var(--…)` em @theme de "
-            f"{[str(p.relative_to(ROOT)) for p in fe.theme_css]} — o gate ficaria "
+            f"{[p.name for p in fe.theme_css]} — o gate ficaria "
             "cego a `bg-<utility>/N` e `text-<utility>`."
         )
     return out
@@ -268,7 +268,7 @@ def _assert_sem_tema_escuro(fe: Frontend) -> None:
     for where, line in _source_lines(fe.src):
         if TEMA_ESCURO_RE.search(line):
             raise SystemExit(
-                f"{where}: {fe.src.relative_to(ROOT)} é medido só no tema claro, mas "
+                f"{where}: o app é medido só no tema claro, mas "
                 "esta linha liga tema escuro — inclua 'dark' em `Frontend.temas`."
             )
 
