@@ -15,10 +15,17 @@ from pipeline.domain.services.patrimonio_imovel_classifier import (
 )
 
 CLASSE_IMOVEIS_INVESTIMENTO = "Imóveis Investimento"
+# [[ADR-444]] D3: imóvel que pode ser a residência entra com valor e SEM PESO. O nome é
+# chave gravada no artefato e rótulo exibido ao mesmo tempo — renomear custa duas fases.
+CLASSE_IMOVEIS_USO_NAO_APURADO = "Imóveis com uso não apurado"
 
 # Imóvel físico fica fora da carteira financeira (A37.l9) e entra na alocação como imóvel.
 # Um conjunto só: classe de imóvel que fique fora dele some calada de um dos leitores.
-CLASSES_IMOVEL_FISICO: frozenset[str] = frozenset({CLASSE_IMOVEIS_INVESTIMENTO})
+CLASSES_IMOVEL_FISICO: frozenset[str] = frozenset(
+    {CLASSE_IMOVEIS_INVESTIMENTO, CLASSE_IMOVEIS_USO_NAO_APURADO}
+)
+# Fora de `total` e de toda base de carteira: publica valor, nunca percentual.
+CLASSES_SEM_PESO: frozenset[str] = frozenset({CLASSE_IMOVEIS_USO_NAO_APURADO})
 
 
 def classe_do_imovel_na_carteira(
@@ -33,6 +40,8 @@ def classe_do_imovel_na_carteira(
 
 __all__ = [
     "CLASSES_IMOVEL_FISICO",
+    "CLASSES_SEM_PESO",
     "CLASSE_IMOVEIS_INVESTIMENTO",
+    "CLASSE_IMOVEIS_USO_NAO_APURADO",
     "classe_do_imovel_na_carteira",
 ]

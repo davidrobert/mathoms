@@ -64,6 +64,7 @@ from pipeline.llm.prompts.parecer_planejador import (
 )
 from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+from pipeline.stage_failure_reason import StageFailureReason, reason_from_exception
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # 1.1 (A40.l89 · ADR-399 D1): `Metrica` ganha `metrica_key` required e perde
@@ -113,6 +114,10 @@ class ParecerGenerationResult:
     # INDISPONIBILIDADE técnica: nada foi gerado, logo não há desfecho retido a
     # persistir — o leitor responde 404, não 200 (§D6).
     retention_reason: Optional[str] = None
+    # Classe da falha TÉCNICA (ADR-447): membro de `StageFailureReason` derivado do
+    # objeto da exceção, nunca da prosa. Preenchida exatamente quando `needs_review`
+    # não tem `retention_reason` — a XOR que `_needs_review` impõe.
+    failure_class: Optional[str] = None
     evidencia_summary: Optional[dict] = None
     evidencia_entries: Optional[list[dict]] = None
     red_lines_summary: Optional[dict] = None
@@ -353,23 +358,41 @@ def _needs_review_overrides(
     # Sem default de propósito: `None` é valor SIGNIFICATIVO (indisponibilidade
     # técnica, sem row) e um default o tornaria o silêncio de quem esqueceu.
     reason_code: Optional[ParecerRetentionReason],
+    # Idem, e XOR com `reason_code` (ADR-447): exatamente um dos dois vem.
+    failure_class: Optional[StageFailureReason],
     elapsed_ms: int,
 ) -> dict:
     """Campos que distinguem o desfecho retido do resultado base."""
+    _require_one_classification(reason_code=reason_code, failure_class=failure_class)
     return {
         "status": "needs_review",
         "error_detail": reason,
         "retention_reason": reason_code.value if reason_code else None,
+        "failure_class": failure_class.value if failure_class else None,
         "latency_ms": elapsed_ms,
     }
 
 
+def _require_one_classification(
+    *, reason_code: Optional[ParecerRetentionReason], failure_class: Optional[StageFailureReason]
+) -> None:
+    """Exatamente um entre retenção (política) e falha técnica — nunca os dois, nunca nenhum."""
+    if (reason_code is None) == (failure_class is None):
+        raise ValueError(
+            "needs_review exige exatamente um de reason_code/failure_class, "
+            f"got reason_code={reason_code!r} failure_class={failure_class!r}"
+        )
+
+
 # `reason_code` é obrigatório de propósito (ADR-366 §D3): produtor novo não compila sem
 # classificar, e assim não existe ramo que caia em parse da prosa de `error_detail`.
+# `failure_class` também (ADR-447), e os dois são XOR: retenção é juízo sobre um
+# conteúdo que existe, falha técnica é a ausência dele — o decoder nunca desempata.
 def _needs_review(
     *,
     reason: str,
     reason_code: Optional[ParecerRetentionReason],
+    failure_class: Optional[StageFailureReason],
     persona_hash: str,
     manifest: ManifestData,
     config: ParecerOrchestratorConfig,
@@ -384,7 +407,7 @@ def _needs_review(
         config=config,
         metrics=metrics,
     )
-    return replace(base, **_needs_review_overrides(reason, reason_code, elapsed_ms))
+    return replace(base, **_needs_review_overrides(reason, reason_code, failure_class, elapsed_ms))
 
 
 def _hit_result(
@@ -487,6 +510,7 @@ def generate_parecer(
         return _needs_review(
             reason="LLM service unavailable (ANTHROPIC_API_KEY missing)",
             reason_code=None,  # indisponibilidade: nada gerado, nada cobrado (ADR-366 §D6)
+            failure_class=StageFailureReason.llm_unavailable,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -508,21 +532,22 @@ def generate_parecer(
 
 def _call_llm_safe(
     *, llm: Any, system_prompt: str, user_prompt: str, config: ParecerOrchestratorConfig
-) -> tuple[Optional[ParecerPlanejadorOutput], Optional[str]]:
-    """Invoca LLM com Instructor (output validado pelo schema); exceção vira ``(None, error_msg)``."""
+) -> tuple[Optional[ParecerPlanejadorOutput], Optional[str], Optional[StageFailureReason]]:
+    """Invoca LLM com Instructor (output validado pelo schema); exceção vira ``(None, rótulo, classe)``."""
     try:
         output = _invoke_parecer_llm(
             llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, config=config
         )
         _emit_riscos_truncados(output)
-        return output, None
+        return output, None, None
     except Exception as exc:  # noqa: BLE001 — todas exceções viram needs_review
         label = _exc_label(exc)
         logger.warning(
             "parecer_planejador_llm_call_failed",
             extra={"workspace_id": config.workspace_id, "error": label},
         )
-        return None, f"LLM call failed: {label}"
+        # Último ponto com o objeto vivo: a classe sai dele, nunca do rótulo (ADR-447).
+        return None, f"LLM call failed: {label}", reason_from_exception(exc)
 
 
 def _exc_label(exc: Exception) -> str:
@@ -740,7 +765,7 @@ def _generate_with_llm(
         section_whitelist=manifest.tools_section_whitelist,
         format_hints=manifest.format_hints,
     )
-    raw, err = _call_llm_safe(
+    raw, err, failure = _call_llm_safe(
         llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, config=config
     )
     metrics = _extract_last_call_metrics(llm, call_attempted=True)
@@ -748,6 +773,7 @@ def _generate_with_llm(
         return _needs_review(
             reason=err or "LLM call failed",
             reason_code=None,  # indisponibilidade: nenhum output válido (ADR-366 §D6)
+            failure_class=failure or StageFailureReason.unknown,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -759,6 +785,7 @@ def _generate_with_llm(
         base = _needs_review(
             reason=red_lines_err,
             reason_code=ParecerRetentionReason.conselho_vedado,
+            failure_class=None,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -776,6 +803,7 @@ def _generate_with_llm(
             _needs_review(
                 reason=sigilo_err,
                 reason_code=ParecerRetentionReason.sigilo,
+                failure_class=None,
                 persona_hash=persona_hash,
                 manifest=manifest,
                 config=config,
@@ -790,6 +818,7 @@ def _generate_with_llm(
         base = _needs_review(
             reason=evidencia_err,
             reason_code=decision.retention_reason,
+            failure_class=None,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,

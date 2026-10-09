@@ -4,8 +4,11 @@
 # manual em major (PR fica open para review).
 #
 # Updates abrem PR contra `main` com label `dependency` (já criada via
-# Onda 2) e prefixo `chore(deps):` no commit. Auto-labeler em pr-quality.yml
-# também adiciona `dependency` por path (defense-in-depth).
+# Onda 2) e prefixo `chore(deps):` no commit. O labeler do pr-quality.yml roda
+# com `sync-labels: true` e é quem decide as labels que declara: ele mantém
+# `dependency` e `dependabot` em todo branch `dependabot/…` por `head-branch`.
+# `dependabot` é a isenção do stale.yml e não entra aqui em `labels:`, porque
+# a fonte é uma só (.github/labeler.yml).
 
 version: 2
 updates:
@@ -146,14 +149,12 @@ updates:
   # pacote amarrado. Lista de patterns e não `["*"]` + exclude porque exclude
   # depende de alguém lembrar do próximo major problemático.
   #
-  # `ignore` com `update-types` vale só para VERSION updates (doc do GitHub:
-  # "Security updates will always be created regardless of the update-types
-  # setting"). Então o major do tailwind para de aparecer no ciclo semanal, mas
-  # o security update tailwind 3→4 continua abrindo — sozinho, e vermelho no
-  # `frontend-ops-checks` até a migração v4. É o rastreador dela: tailwind
-  # 3.4.19 é HIGH no `npm audit` via `braces` (GHSA-vfj7-8cjw-p6xm cobre todas
-  # as versões) e só o v4 sai da cadeia. NÃO troque por `ignore` sem
-  # `update-types`: isso suprime o security update também e o rastreador some.
+  # Até 2026-10-09 havia aqui um `ignore` do major de `tailwindcss`, que segurava
+  # o 3→4 até a migração v4 (#2082). Saiu com ela: major de tailwind volta a
+  # abrir PR próprio — os grupos abaixo só cobrem patch/minor. Se um major
+  # precisar de pausa de novo, `ignore` COM `update-types`: ele vale só para
+  # VERSION updates ("Security updates will always be created regardless of the
+  # update-types setting"); sem `update-types`, o security update some também.
   # ----------------------------------------------------------------------
   - package-ecosystem: "npm"
     directory: "/frontend-ops"
@@ -169,9 +170,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    ignore:
-      - dependency-name: "tailwindcss"
-        update-types: ["version-update:semver-major"]
     groups:
       ops-security:
         applies-to: security-updates

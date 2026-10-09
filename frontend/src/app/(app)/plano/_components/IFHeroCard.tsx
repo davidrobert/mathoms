@@ -13,6 +13,7 @@ import {
   ifMonthlyContributionDisplay,
   type IFGoalResponse,
 } from "@/lib/api";
+import { formatPercent } from "@/lib/format";
 
 import type { IFProgress } from "./usePlanoOverview";
 
@@ -97,12 +98,12 @@ function IFHeroProgress({
           </p>
         </div>
         <p className="font-mono text-2xl font-semibold tabular-nums">
-          {progress.pct.toFixed(1)}%
+          {formatPercent(progress.pct)}
         </p>
       </div>
       <ProgressBar
         value={progress.pct}
-        ariaLabel={`Progresso rumo à meta de independência financeira: ${progress.pct.toFixed(1)}%`}
+        ariaLabel={`Progresso rumo à meta de independência financeira: ${formatPercent(progress.pct)}`}
         className="mt-3 bg-muted"
         barClassName="bg-gradient-to-r from-[var(--brand-info)] to-[var(--brand-accent)] transition-all duration-700"
       />
@@ -191,7 +192,7 @@ function KPIColumn({ label, value, position, footnote }: KPIColumnProps) {
 function IFHeroParams({ goal }: { goal: IFGoalResponse }) {
   const i = goal.inputs;
   const d = goal.derived;
-  const conservadoraPct = (i.taxa_retirada_conservadora_pct ?? 4.0).toFixed(1);
+  const conservadoraPct = formatPercent(i.taxa_retirada_conservadora_pct ?? 4.0);
   return (
     <details className="group mt-5">
       <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
@@ -201,15 +202,15 @@ function IFHeroParams({ goal }: { goal: IFGoalResponse }) {
       <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
         <ParamItem
           label="TRS operacional"
-          value={`${i.trs_pct.toFixed(1)}% a.a.`}
+          value={`${formatPercent(i.trs_pct)} a.a.`}
         />
         <ParamItem
           label="Retorno real"
-          value={`${i.retorno_real_anual_pct.toFixed(1)}% a.a.`}
+          value={`${formatPercent(i.retorno_real_anual_pct)} a.a.`}
         />
         <ParamItem label="Horizonte" value={`${i.horizonte_anos} anos`} />
         <ParamItem
-          label={`Meta conservadora (${conservadoraPct}%)`}
+          label={`Meta conservadora (${conservadoraPct})`}
           value={<MonetaryValue value={d.if_meta_conservadora_brl} />}
         />
       </dl>
