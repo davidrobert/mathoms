@@ -72,8 +72,9 @@ cônjuge sem id) é declarado no schema e no parecer.
 > Do item 5 do §Deferimento da [[ADR-444]], **não** saíram: o `piso` da residência (o
 > parecer não recebe o número dela, e `prompt-engineer` + `financial-planner` o julgaram
 > redundante com a fatia em % — volta à mesa se a linha própria mudar isso), a exceção de
-> tom da S3, a guarda determinística e o eval. O bump do PR-C passa a ser **2.22.0**: a
-> 2.21.0 é da A40.l123. Ao flipar a [[ADR-444]], reconcilie o item 5 com o que já saiu.
+> tom da S3, a guarda determinística e o eval. O PR-C sobe a próxima MINOR do manifest: o
+> "2.20.0 × 2.21.0" do item 5 não existe mais (a 2.21.0 foi da A40.l123, e a `main` já
+> passou dela). Ao flipar a [[ADR-444]], reconcilie o item 5 com o que já saiu.
 
 ## Critério de aceite
 

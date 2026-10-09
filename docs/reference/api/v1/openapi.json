@@ -2585,6 +2585,10 @@
             ],
             "title": "Delta Percent"
           },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
           "label": {
             "title": "Label",
             "type": "string"
@@ -2599,6 +2603,7 @@
           }
         },
         "required": [
+          "key",
           "label",
           "value",
           "raw_value"
@@ -3301,6 +3306,7 @@
               {
                 "maxLength": 16,
                 "minLength": 1,
+                "pattern": "^D[0-9]+$",
                 "type": "string"
               },
               {

@@ -164,6 +164,7 @@ const transactions: TransactionItem[] = [
 const dashboard: DashboardResponse = {
   kpis: [
     {
+      key: "receitas",
       label: "Receitas",
       value: "R$ 12.500,00",
       raw_value: 12_500,
@@ -171,6 +172,7 @@ const dashboard: DashboardResponse = {
       delta_percent: 0.04,
     },
     {
+      key: "despesas",
       label: "Despesas",
       value: "R$ 8.400,00",
       raw_value: -8_400,
@@ -178,6 +180,7 @@ const dashboard: DashboardResponse = {
       delta_percent: -0.014,
     },
     {
+      key: "saldo",
       label: "Saldo",
       value: "R$ 4.100,00",
       raw_value: 4_100,
@@ -185,6 +188,7 @@ const dashboard: DashboardResponse = {
       delta_percent: 0.1,
     },
     {
+      key: "score",
       label: "Score",
       value: "78",
       raw_value: 78,

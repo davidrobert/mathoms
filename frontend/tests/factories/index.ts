@@ -306,6 +306,7 @@ export function makeNotification(
 
 export function makeKPI(overrides: Partial<DashboardKPI> = {}): DashboardKPI {
   return {
+    key: "kpi",
     label: "KPI",
     value: "R$ 0,00",
     raw_value: 0,

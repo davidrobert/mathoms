@@ -1,0 +1,49 @@
+{
+  "_doc": "Frase de supressão do card Atual vs Alvo e do narrador do E5N, por motivo. Lida por frontend/tests/components/report/alocacaoSupressao.test.ts e por tests/test_e5n_narrativas_coerentes.py: as duas pontas imprimem a mesma frase. `motivo` tem a forma que o produtor emite (alocacao_alvo_deviation, patrimonio_sign_guard, investimentos_cobertura).",
+  "rodape": [
+    {
+      "motivo": "cobertura_incompleta: conjuge",
+      "frase": "Não indicamos a classe do próximo aporte: os investimentos do cônjuge não foram apurados."
+    },
+    {
+      "motivo": "cobertura_incompleta: titular",
+      "frase": "Não indicamos a classe do próximo aporte: os investimentos do titular não foram apurados."
+    },
+    {
+      "motivo": "cobertura_incompleta: titular, conjuge",
+      "frase": "Não indicamos a classe do próximo aporte: os investimentos do titular e do cônjuge não foram apurados."
+    },
+    {
+      "motivo": "cobertura_incompleta: membro_sem_papel",
+      "frase": "Não indicamos a classe do próximo aporte: os investimentos de um membro da família não foram apurados."
+    },
+    {
+      "motivo": "nao_classificado: 5.1% da carteira",
+      "frase": "Não indicamos a classe do próximo aporte: parte da carteira está sem classe definida."
+    },
+    {
+      "motivo": "balde_negativo: veiculos, residencia",
+      "frase": "Não indicamos a classe do próximo aporte: há bem com valor negativo registrado no patrimônio."
+    },
+    {
+      "motivo": "valor_nao_apurado: 1 item(ns)",
+      "frase": "Não indicamos a classe do próximo aporte: há um bem sem valor apurado."
+    },
+    {
+      "motivo": "valor_nao_apurado: 3 item(ns)",
+      "frase": "Não indicamos a classe do próximo aporte: há 3 bens sem valor apurado."
+    },
+    {
+      "motivo": "causa_futura: detalhe",
+      "frase": "Não indicamos a classe do próximo aporte: parte do patrimônio está sem valor confiável."
+    },
+    {
+      "motivo": "cobertura_incompleta: conjuge; nao_classificado: 12.0% da carteira",
+      "frase": "Não indicamos a classe do próximo aporte. Os investimentos do cônjuge não foram apurados. Parte da carteira está sem classe definida."
+    },
+    {
+      "motivo": "balde_negativo: veiculos; valor_nao_apurado: 2 item(ns); nao_classificado: 3.0% da carteira",
+      "frase": "Não indicamos a classe do próximo aporte. Há bem com valor negativo registrado no patrimônio. Há 2 bens sem valor apurado. Parte da carteira está sem classe definida."
+    }
+  ]
+}

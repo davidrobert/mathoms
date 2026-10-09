@@ -104,13 +104,13 @@ FORBIDDEN_RE = re.compile(
 SUBSTITUTIONS = {
     "Bruno Perini": "remover atribuição — pilar 'patrimônio gerador de renda'",
     "Gustavo Cerbasi": "remover atribuição — pilar 'equilíbrio entre presente e futuro'",
-    "Raul Sena": "remover atribuição — pilar 'alocação contracíclica + análise fundamentalista'",
+    "Raul Sena": "remover atribuição — pilar 'alocação por classe e rebalanceamento por aporte'",
     "Viver de Renda": "patrimônio gerador de renda / renda passiva sustentada",
     "Equilíbrio Financeiro": "equilíbrio entre presente e futuro / balanço presente-futuro",
     "Casais Inteligentes": "decisão financeira a quatro mãos / planejamento patrimonial do casal",
     "Perini": "padrão consagrado de planejamento patrimonial brasileiro",
     "Cerbasi": "(remover) — descreva o conceito sem atribuir",
-    "AUVP": "alocação contracíclica / estratégia adaptativa à curva de juros",
+    "AUVP": "alocação por classe / rebalanceamento por aporte",
 }
 
 # ---------------------------------------------------------------------------
