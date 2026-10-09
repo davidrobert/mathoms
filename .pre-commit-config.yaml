@@ -1,13 +1,23 @@
 # .pre-commit-config.yaml — hooks locais + comunitários
 #
 # Instalar uma vez:  pip install pre-commit && pre-commit install --install-hooks
-# Instalar commit-msg hook também: pre-commit install --hook-type commit-msg
+# (instala os três tipos de `default_install_hook_types`). Com `core.hooksPath`
+# setado o `pre-commit install` se recusa a instalar — e o pre-push nunca foi
+# instalado nesta máquina até 2026-10-08: `main-drift-check` e
+# `code-style-baseline-prepush` não rodavam no push. Não sete `core.hooksPath`;
+# worktrees já leem os hooks do diretório comum por default.
 #
 # Rodar manualmente em todos os arquivos: pre-commit run --all-files
 #
 # Os hooks locais usam os scripts em dev/ — mesma lógica do dev/commit.py,
-# aplicada por git hook (pre-commit e commit-msg). Defense-in-depth:
+# aplicada por git hook (pre-commit, commit-msg e pre-push). Defense-in-depth:
 # mesmo quem roda `git commit` direto é protegido.
+
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+# Sem isto, hook sem `stages` roda em TODO estágio instalado: no commit-msg recebe o
+# COMMIT_EDITMSG como filename (o motivo dos pins em `check-symlinks`/`destroyed-symlinks`
+# abaixo), e no pre-push a bateria inteira roda de novo sobre o range já validado.
+default_stages: [pre-commit]
 
 repos:
   # ----------------------------------------------------------------------

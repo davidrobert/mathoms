@@ -112,12 +112,13 @@ pip install playwright && playwright install chromium
 
 ```bash
 pip install pre-commit
-pre-commit install --install-hooks
-pre-commit install --hook-type commit-msg
+pre-commit install --install-hooks   # pre-commit, commit-msg e pre-push
 ```
 
-Os hooks rodam `dev/check_forbidden_paths.py`, `dev/validate_commit_msg.py`,
-ruff, lint anti-PII, etc. — mesma lógica que `dev/commit.py` aplica.
+Os três tipos vêm de `default_install_hook_types` no `.pre-commit-config.yaml`. Os hooks
+rodam `dev/check_forbidden_paths.py`, `dev/validate_commit_msg.py`, ruff, lint anti-PII,
+etc. — mesma lógica que `dev/commit.py` aplica; no push rodam só os de
+`stages: [pre-push]` (`default_stages: [pre-commit]` segura o resto).
 
 **Se aparecer `Cowardly refusing to install hooks with core.hooksPath set`:**
 algum clone antigo (ex.: `fin-current`) deixou `core.hooksPath` apontando para
@@ -131,9 +132,13 @@ Se o origin for `~/.gitconfig` ou o `.git/config` deste repo, e não há outra
 ferramenta dependendo dele, remova:
 
 ```bash
-git config --unset-all core.hooksPath          # local
-git config --global --unset-all core.hooksPath # global (se foi de lá)
+git config --unset-all core.hooksPath             # local
+git config --worktree --unset-all core.hooksPath  # config.worktree de cada worktree
+git config --global --unset-all core.hooksPath    # global (se foi de lá)
 ```
+
+Worktrees leem os hooks do diretório comum por default: `core.hooksPath` apontando para
+esse mesmo diretório é redundante e só serve para fazer o `pre-commit install` recusar.
 
 Depois rode `pre-commit install --install-hooks` de novo.
 

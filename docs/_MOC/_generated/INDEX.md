@@ -310,8 +310,8 @@
 | ADR-312 | adr | Decidido |  | Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers | `adr/312-canonicalizacao-vocabulario-writer-e2-llm.md` |
 | ADR-313 | adr | Proposto |  | Licença open-source do Mathoms — BSL 1.1 vs AGPL-3.0 vs Apache-2.0/MIT | `adr/313-licenca-open-source-mathoms.md` |
 | ADR-314 | adr | Proposto |  | Escopo público do repo — allowlist/blocklist de paths e IP excluído | `adr/314-escopo-publico-repo-allowlist-ip.md` |
-| ADR-315 | adr | Proposto |  | Estratégia de rewrite de histórico git para release pública | `adr/315-estrategia-rewrite-historico-git.md` |
-| ADR-316 | adr | Proposto |  | Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) | `adr/316-aceite-risco-metadados-github-imutaveis.md` |
+| ADR-315 | adr | Roadmap |  | Estratégia de rewrite de histórico git para release pública | `adr/315-estrategia-rewrite-historico-git.md` |
+| ADR-316 | adr | Decidido |  | Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) | `adr/316-aceite-risco-metadados-github-imutaveis.md` |
 | ADR-317 | adr | Proposto |  | Identidade de autoria no mailmap público | `adr/317-identidade-autoria-mailmap-publico.md` |
 | ADR-318 | adr | Proposto |  | Fronteira de idioma — apresentação pública EN vs vault canônico PT-BR | `adr/318-fronteira-idioma-en-apresentacao-ptbr-vault.md` |
 | ADR-319 | adr | Decidido |  | Contrato de gates anti-regressão PII + sigilo metodológico pós-público | `adr/319-contrato-gates-antiregressao-pii-sigilo.md` |
@@ -435,6 +435,7 @@
 | ADR-438 | adr | Proposto |  | Destino de leitura do parecer é derivado pela máquina, não escolhido pela prosa | `adr/438-destino-de-leitura-derivado-no-parecer.md` |
 | ADR-439 | adr | Decidido |  | Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero | `adr/439-balde-de-imovel-sem-classificacao-apurada-sai-null.md` |
 | ADR-440 | adr | Proposto |  | A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade | `adr/440-ancora-de-imovel-vem-da-ficha-por-parser-deterministico.md` |
+| ADR-442 | adr | Proposto |  | Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push | `adr/442-valor-de-workspace-real-nao-entra-no-repositorio.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
