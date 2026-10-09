@@ -34,6 +34,14 @@ describe("ApendiceASection", () => {
       screen.getByText(/Glossário de termos financeiros e categorias/),
     ).toBeInTheDocument();
   });
+
+  // O glossário é vocabulário genérico, mas não define rótulo de método que o
+  // relatório não aplica: o verbete era uma tese de timing de juros.
+  it("define o rebalanceamento por aporte, não a alocação contracíclica", () => {
+    const { container } = render(<ApendiceASection data={emptyData()} />);
+    expect(container.textContent).not.toMatch(/contrac[ií]clic/i);
+    expect(screen.getByText("Rebalanceamento por aporte")).toBeInTheDocument();
+  });
 });
 
 describe("ApendiceBSection", () => {
@@ -46,7 +54,24 @@ describe("ApendiceBSection", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Patrimônio gerador de renda/)).toBeInTheDocument();
     expect(screen.getByText(/Equilíbrio entre presente e futuro/)).toBeInTheDocument();
-    expect(screen.getByText(/Alocação contracíclica/)).toBeInTheDocument();
+  });
+
+  // O pilar afirmava método sem produtor: nenhum stage emite taxa de juros nem
+  // múltiplo de ação (P/L, ROE, P/VP), e os cards que o ilustravam saíram do S3.
+  it("não afirma alocação contracíclica nem análise fundamentalista", () => {
+    const { container } = render(<ApendiceBSection data={emptyData()} />);
+    expect(container.textContent).not.toMatch(/contrac[ií]clic/i);
+    expect(container.textContent).not.toMatch(/fundamentalista/i);
+    expect(container.textContent).not.toMatch(/P\/L|ROE|P\/VP/);
+  });
+
+  it("descreve o pilar que o produto calcula: alocação por classe × alvo", () => {
+    render(<ApendiceBSection data={emptyData()} />);
+    expect(
+      screen.getByText("Alocação por classe e rebalanceamento por aporte"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/classe mais abaixo do alvo para o próximo aporte/)).toBeInTheDocument();
+    expect(screen.getByText(/o relatório não faz essa indicação/)).toBeInTheDocument();
   });
 
   it("lista metas vigentes humanizadas a partir do snapshot", () => {
@@ -249,6 +274,15 @@ describe("ApendiceDSection", () => {
     expect(
       screen.getByText(/Sem informação de lineage disponível/),
     ).toBeInTheDocument();
+  });
+
+  it("a tabela de pilares não lista método sem produtor", () => {
+    const { container } = render(<ApendiceDSection data={emptyData()} />);
+    expect(container.textContent).not.toMatch(/contrac[ií]clic/i);
+    expect(container.textContent).not.toMatch(/fundamentalista/i);
+    // O produto projeta meta e prazo de IF; não monta carteira.
+    expect(container.textContent).not.toMatch(/montagem de carteira/i);
+    expect(screen.getByText("Desvio vs alvo e próximo aporte")).toBeInTheDocument();
   });
 
   it("mostra pipeline_run_id e contagem de documentos quando lineage existe", () => {

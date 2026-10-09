@@ -26,6 +26,9 @@ services:
       # ANTHROPIC_API_KEY: "sk-ant-..."
 
   # Aponte o console interno para um api rodando no host (fora do compose).
+  # Build arg (o rewrite é resolvido no `next build`): suba com `up --build`,
+  # e de novo com `--build` sem o override para voltar ao api da stack.
   frontend-ops:
-    environment:
-      INTERNAL_OPS_API_BASE: "http://host.docker.internal:8001"
+    build:
+      args:
+        INTERNAL_OPS_API_BASE: "http://host.docker.internal:8001"

@@ -167,11 +167,12 @@ def test_s9_e_bubble_empty_sem_rota_interna_nem_workspace():
     assert "Plano de Ação" in bubble["conclusion"]
 
 
-def test_cenarios_conjuge_empty_sem_workspace():
+def test_cenarios_conjuge_vazio_nao_emite_chart():
+    # ADR-167: o bloco vazio é "o E5 recusou o cenário". O texto de "não aplicável"
+    # chegava ao parecer via `$.narrativas` e tinha conclusão vazia, que reprovava
+    # a validação do E5.N.
     out = _narrate_charts_with(riscos=[], metrics_overrides={"cm_prazos": []})
-    cenarios = out["cenarios_conjuge"]
-    assert "workspace" not in cenarios["context"].lower()
-    assert "relatório" in cenarios["context"]
+    assert "cenarios_conjuge" not in out
 
 
 def test_summary_s9_seguro_vida_zero_renders_a_definir():

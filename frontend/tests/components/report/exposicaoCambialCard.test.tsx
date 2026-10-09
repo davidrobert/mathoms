@@ -104,6 +104,8 @@ describe("ExposicaoCambialCard V2 mode (com workspaceId)", () => {
     expect(screen.getByText("IVVB11")).toBeInTheDocument();
     expect(screen.getByText(/catálogo Mathoms/i)).toBeInTheDocument();
     expect(screen.getByText(/lastro não declarado/i)).toBeInTheDocument();
+    // O V2 soma a carteira com lastro; o rodapé diz isso.
+    expect(screen.getByText(/e ativos com lastro fora do real\./)).toBeInTheDocument();
   });
 
   it("com base e zero medido, afirma ausência de exposição", async () => {
@@ -195,5 +197,29 @@ describe("ExposicaoCambialCard V2 mode (com workspaceId)", () => {
     render(<ExposicaoCambialCard data={v1Data} workspaceId={null} />);
     expect(screen.getByText(/10,0% ·/)).toBeInTheDocument();
     expect(screen.queryByText(/10\.0%/)).not.toBeInTheDocument();
+  });
+
+  // ADR-403: a banda de 10% é piso de proteção, não meta de alocação — a meta
+  // internacional é do comparativo Atual vs Alvo. Nem é contracíclica.
+  it("o rodapé não apresenta o piso como sugestão de alocação", () => {
+    const { container } = render(<ExposicaoCambialCard data={v1Data} workspaceId={null} />);
+    expect(container.textContent).not.toMatch(/contrac[ií]clic/i);
+    expect(container.textContent).not.toMatch(/sugest[aã]o de aloca/i);
+    expect(container.textContent).toMatch(/Piso de proteção cambial: 10%/);
+    expect(container.textContent).toMatch(/Não é alvo de alocação/);
+  });
+
+  // ADR-403 D3: na v1 a carteira com lastro fica fora do total.
+  it("v1 não diz que o percentual inclui ativos com lastro", () => {
+    const { container } = render(<ExposicaoCambialCard data={v1Data} workspaceId={null} />);
+    expect(container.textContent).toMatch(/Considera caixa em moeda forte \(USD, EUR\)\./);
+    expect(container.textContent).not.toMatch(/lastro fora do real/);
+  });
+
+  it("v2 do E5 diz que o percentual inclui ativos com lastro", () => {
+    const { container } = render(
+      <ExposicaoCambialCard data={{ ...v1Data, definicao_versao: 2 }} workspaceId={null} />,
+    );
+    expect(container.textContent).toMatch(/e ativos com lastro fora do real\./);
   });
 });

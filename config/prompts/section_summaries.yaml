@@ -5,6 +5,9 @@
 # a chave `version:` (1.1.0) é a prompt-version de máquina (cache/telemetria).
 # Semver puro desde 2026-08-28 (A40.l93): a ADR-233 já exige X.Y.Z e o gate de bump
 # passou a cobrir este arquivo. `1.1` -> `1.1.0` invalida a chave uma vez (TTL 24h).
+# 1.2.0 (2026-10-09, [[ADR-341]] §Emenda): a S3 deixa de pedir gap vs alvo, estratégia
+# de aporte e "contrafluxo" — o slice dela não traz alvo nem desvio, e nenhum produtor
+# emite os dados do contrafluxo; "contrafluxo" sai do vocabulário do system prompt.
 #
 # Para cada section_id do `report_layout.yaml`, define system + user prompt
 # template para o `SectionSummaryGenerator` (LiteLLM + Instructor).
@@ -35,14 +38,14 @@
 #   (24h) expirar.
 # ==============================================================================
 
-version: "1.1.0"
+version: "1.2.0"
 
 system_prompt: |
   Você edita relatórios de planejamento patrimonial pessoal para a Mathoms.
   Voz: consultiva, calma, técnica mas próxima — como um planejador sênior
   conversando com a família. Vocabulário Perini, Cerbasi e AUVP onde couber
   (independência financeira, reserva de emergência, taxa de poupança,
-  contrafluxo, TRS, aporte programado, patrimônio investível).
+  TRS, aporte programado, patrimônio investível).
 
   Sua tarefa: para a seção indicada, escrever 1-2 frases em prosa que
   contextualizem a leitura principal — **sem repetir números do cabeçalho**,
@@ -163,29 +166,30 @@ sections:
   # --------------------------------------------------------------------------
   # S3 — Investimentos — title canônico:
   # "Investimentos — Carteira Financeira"
-  # Foco: alocação atual vs alvo + diversificação + coerência com perfil.
+  # Foco: composição por classe + concentração em ativo. O slice da S3
+  # (`_SECTION_KEYS` no orchestrator) é só `investimentos`: alvo, desvio e
+  # próximo aporte moram em `goals.alocacao_alvo.derived`, fora dele, e o card
+  # Atual vs Alvo os mostra deterministicamente. Pedir o gap aqui era pedir dado
+  # que o prompt não recebe (1.2.0).
   # --------------------------------------------------------------------------
   S3:
     label: "Investimentos — Carteira Financeira"
     user_prompt: |
       Seção S3 — Carteira de investimentos.
 
-      Esta seção compara a alocação atual com a alocação alvo da família,
-      lista os top ativos e a diversificação por classe (renda fixa, ações,
-      FIIs, ativos USD). Estratégia de aporte e contrafluxo AUVP entram
-      como leitura de execução.
+      Esta seção mostra a composição da carteira por classe (renda fixa,
+      ações, FIIs, internacional), os principais ativos e a parcela sem
+      classe identificada. A comparação com a alocação-alvo tem card próprio.
 
-      Escreva 1-2 frases que ancorem o leitor no **gap entre atual e alvo**
-      — qual classe está sub ou sobrealocada, e se a estratégia de aporte
-      do ciclo corrige ou reforça o desvio. Se a carteira está aderente,
-      diga isso.
+      Escreva 1-2 frases sobre a composição: qual classe pesa mais na
+      carteira financeira (use `pct_carteira_financeira`, que exclui imóveis)
+      e se um único ativo concentra a carteira. Não comente alvo, desvio,
+      próximo aporte nem conjuntura de juros.
 
-      Tom: "warning" se desvio de qualquer classe > 10 pontos percentuais
-      vs alvo OU concentração em 1 ativo > 20%; "positive" se carteira
-      dentro de ±5pp do alvo em todas as classes; "neutral" caso contrário.
+      Tom: "warning" se um único ativo, fora imóveis de investimento, passa
+      de 20% em `pct_carteira`; "neutral" caso contrário.
 
-      `key_metric_ref` esperado: `investimentos.total` ou
-      `investimentos.maior_desvio_classe` quando o ângulo for o gap.
+      `key_metric_ref` esperado: `investimentos.total`.
 
       Dados da seção (JSON):
       ```json

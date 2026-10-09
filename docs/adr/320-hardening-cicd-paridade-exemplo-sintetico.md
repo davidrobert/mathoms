@@ -31,6 +31,13 @@ tags:
 > PRs do Dependabot. A emenda no fim desta nota cria o lock de fatos
 > `.github/actions.lock.yml` e o gate offline `dev/check_action_inputs.py`. Rede
 > continua só no passo manual (o refresh do lock), nunca no gate.
+>
+> **Emenda (2026-10-09, runtime pelo lock) — o registro descrevia a action, não a
+> versão em uso:** o gate de job required lia `runs_using` de um registro chaveado
+> por `owner/repo` e descartava o `@ref`. Um bump para versão docker ou node20
+> passava verde. A emenda no fim desta nota lê o runtime do lock pelo `uses:`
+> exato, aceita só node24 em job required (composite inclusive fica fora) e põe
+> piso node24/composite/docker em todo workflow.
 
 **Status:** Decidido (A34) · **Data:** 2026-07-08 · Uma das 8 ADRs do gate G0 de
 [[PLAN-public-release]]. Diferente das ADRs 313–318 (owner-gated), esta
@@ -303,3 +310,70 @@ real.
   sem scope `workflow`, porque o lock fica fora de `.github/workflows/`.
   **Condição de retomada:** mais de 2 PRs `github-actions` por mês parados há mais
   de 48h só por causa do lock. **Dono:** o owner do repo.
+
+## Emenda 2026-10-09 (runtime pelo lock) — `runs.using` lido por versão, só node24 em job required
+
+**O buraco.** O `dev/check_required_job_actions.py` lia `runs_using` do
+`.github/third-party-actions.yml`, chaveado por `owner/repo`, e descartava o
+`@ref`. O fato descrevia a action, não a versão em uso. Um bump do Dependabot que
+levasse uma action de job required para uma versão docker ou node20 passava
+verde. A §Emenda 2026-10-09 acima já previa a saída: o runtime vem do lock, não de
+um segundo arquivo de fatos.
+
+**Regra.**
+
+- **O fato vem do lock, pelo `uses:` exato.** O registro vira só política:
+  `actions` é uma lista de nomes `owner/repo` admitidos em job required, e
+  `required_jobs` declara o fecho. Entrada em forma de mapa (um `runs_using`
+  copiado de volta, por exemplo) ou chave de topo desconhecida reprova. Fato no
+  registro seria a segunda fonte, e ela diverge do lock no primeiro bump. A data
+  de admissão fica no `git log`.
+- **Em job required, só node24.** Docker continua vedado (§Emenda 2026-08-03) e
+  `docker://` reprova pela forma. Composite também sai: ela pode embrulhar uma
+  action docker ou rodar `docker run` num step, e o lock só lê o action.yml de
+  topo, o que reabre o #1161. Resolver os `uses:` da composite recursivamente
+  não pegaria o `docker run`. Custo hoje: zero. As duas composites em uso
+  (trivy-action e pip-audit) estão em `security.yml`, fora do fecho.
+- **Em todo workflow, piso node24/composite/docker.** É uma lista de permitidos:
+  node16/node20 reprovam, e um runtime futuro (node26) reprova até alguém
+  incluí-lo de propósito. Desde 2026-09-23 o runner hospedado não tem Node 20 e
+  roda as actions JS em node24, sem opt-out. A action node20 roda num runtime que
+  o mantenedor nunca testou, e quando quebra é no nightly ou no security, que
+  ninguém acompanha. Em outubro de 2026, node20 declarado é sinal de action
+  abandonada (13 meses sem release desde o anúncio de 2025-09). Como o Dependabot
+  só sobe versão, na prática o piso é o gate de adoção de action nova.
+- **O gate reprova sozinho.** Ref fora do lock vira violação própria, com
+  mensagem que aponta para o refresh. Não depende do hook `action-inputs`: com
+  `SKIP=action-inputs`, com o hook removido ou com o script rodado avulso, o fato
+  desconhecido passaria verde. Forma sem runtime verificável (`uses:` de job,
+  action local `./`) reprova; `docker://` fora de required passa, porque é docker.
+- **Mesmo parser.** O gate importa `collect_step_uses`, `unsupported_form` e
+  `load_lock` do `dev/check_action_inputs.py`. Dois parsers do mesmo conjunto de
+  `uses:` acabam divergindo.
+
+**Correções à §Emenda 2026-08-03, sem reescrevê-la.** (a) A regra "deve ser
+`node20`/`composite`" passa a ser "só node24" em job required. (b) "Por que não há
+gate automático" ficou falso em 2026-08-05 (#1203), quando o gate offline com
+registro entrou. Ele não precisa de rede porque o fato é lido por adoção, hoje via
+lock. (c) Quatro citações "§Emenda 2026-08-05" apontavam para seção que não existe
+nesta ADR e passam a citar 2026-08-03: docstring do gate, docstring do teste,
+comentário do hook `required-job-actions` e cabeçalho do registro.
+
+**Limite conhecido, que não é regressão.** Num ref de tag (`actions/*@vN`), o lock
+guarda um retrato do `resolved_sha`. Se o mantenedor move a tag, o runtime muda e
+a chave não, e o gate offline não vê. O refresh relê as tags quando abre rede. Com
+o registro chaveado por nome, antes, era pior.
+
+**Medição (sobre a branch do #2170, `725c3c9e`).** 118 sítios `uses:`, 42 deles
+em jobs required (12 refs distintos), 17 refs no lock e 0 violações. Prova de
+mutação em 8 mecanismos (busca por ref exato, ref fora do lock, composite e
+`docker://` em required, node20 no piso, forma de registro, forma não suportada e
+admissão): cada mutação reprova ≥1 teste.
+
+### Deferimento datado (2026-10-09, runtime pelo lock)
+
+- **Composite em job required.** Hoje reprova sempre. Admiti-la exigiria ler os
+  steps dela (os `uses:` e os `run:` com `docker`), além do action.yml de topo.
+  **Condição de retomada:** a primeira composite que precisar entrar num job
+  required, ou mudança na política de runtime do runner hospedado. **Dono:** o
+  owner do repo, que abre a lane com `sre-devops`.
