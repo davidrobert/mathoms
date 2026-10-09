@@ -229,7 +229,7 @@ aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25:
   - version
   - vuln-type
   runs_using: composite
-astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b:
+astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7:
   inputs:
   - activate-environment
   - add-problem-matchers
@@ -238,6 +238,7 @@ astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b:
   - cache-python
   - cache-suffix
   - checksum
+  - download-from-astral-mirror
   - enable-cache
   - github-token
   - ignore-empty-workdir
@@ -246,6 +247,7 @@ astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b:
   - no-project
   - prune-cache
   - python-version
+  - quiet
   - resolution-strategy
   - restore-cache
   - save-cache
