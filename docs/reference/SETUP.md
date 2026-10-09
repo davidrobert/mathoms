@@ -57,7 +57,7 @@ Docs públicas: `docs.mathoms.ai` · Status page: `status.mathoms.ai` · Landing
 | Ferramenta     | Versão mínima | Como instalar                                     |
 | -------------- | ------------- | ------------------------------------------------- |
 | Python         | 3.11+         | `brew install python@3.13`                        |
-| Node.js        | 18+           | `brew install node`                               |
+| Node.js        | major de [`frontend/.nvmrc`](../../frontend/.nvmrc) | `nvm install` / `fnm install` em `frontend/` |
 | Redis          | 7+            | `brew install redis`                              |
 | Git            | 2.x           | `brew install git`                                |
 
