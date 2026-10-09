@@ -61,13 +61,13 @@ jobs:
       baseline_b64: ${{ steps.candidate.outputs.baseline_b64 }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Python
         id: setup-python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -78,7 +78,7 @@ jobs:
 
       - name: Restore venv cache
         id: venv-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .venv
           key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
@@ -157,7 +157,7 @@ jobs:
     env:
       YYYY_MM: ${{ needs.golden-monthly.outputs.yyyy_mm }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Valida a candidata e escreve a baseline
         env:
@@ -214,7 +214,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
