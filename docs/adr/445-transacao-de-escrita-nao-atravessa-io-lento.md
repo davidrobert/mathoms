@@ -45,7 +45,7 @@ imediato, depois de autoflushar o INSERT), e o lock fica até esse commit. O SQL
 por arquivo, e o WAL só libera leitura. Qualquer outra conexão que escreva na janela espera o
 `busy_timeout` (30 s) e cai em `database is locked`. Usar outro engine não resolve. É a 4ª
 ocorrência do mecanismo: as duas que originaram a [[ADR-256]], o `llm_call_log` da [[A42.l7]] e o
-heartbeat (PR #2073).
+heartbeat da [[A37.l12]], que desiste em 200 ms (o PRAGMA dele ainda vaza pelo pool: PR #2073).
 
 **Medição (dogfood local, só leitura).** Fontes: o DB de dogfood em `mode=ro` (130 runs, de
 2026-05-15 a 09-01, 1 workspace), o `worker.log` com eco SQL do run `40d1af2a` inteiro e o

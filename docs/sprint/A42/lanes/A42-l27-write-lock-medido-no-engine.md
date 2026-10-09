@@ -38,7 +38,7 @@ nunca espera.
 
 O dev roda fora do envelope seguro. O worker nativo e o smoke sobem com `--concurrency=2` sobre
 SQLite, o que permite dois runs de workspaces diferentes no mesmo arquivo. Nenhum guarda
-impede subir beat sobre SQLite, onde o heartbeat cega e o watchdog marcaria `failed` um run vivo.
+impede subir beat sobre SQLite, onde o heartbeat cega e o watchdog pode marcar `failed` um run vivo.
 O lock não tem resposta própria: vira 500 em texto puro.
 
 ## Escopo

@@ -16,7 +16,7 @@ tags:
   - area/pipeline
   - status/decidido
   - type/adr
-size_lines: 72
+size_lines: 73
 ---
 
 # ADR-172 — Stuck-runs detector via heartbeat + Celery beat
@@ -79,7 +79,8 @@ size_lines: 72
 - Motivo: a sessão do stage segura o write-lock do 1º write até o commit ([[ADR-445]]). O
   heartbeat de 200 ms desiste, e só a batida de início de stage aterrissa.
 - Em 120 runs, 2 tiveram janela acima do limiar de 15 min. Com este detector ligado sobre
-  SQLite, os dois teriam sido marcados `failed` com o worker vivo.
+  SQLite, a varredura veria a batida vencida; o flip esperaria o mesmo lock e, se
+  aterrissasse logo depois do commit do stage, marcaria `failed` um run vivo (item 2).
 - Hoje isso não acontece: o dev nativo não sobe beat, e os compose sobem beat com Postgres.
 
 **Decisão.**
