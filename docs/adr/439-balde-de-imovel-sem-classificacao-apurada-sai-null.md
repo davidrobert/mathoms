@@ -130,15 +130,22 @@ O gate literal da lane (*"geradores zero com override `locado` gravado"*) dá fa
 no imóvel de renda vendido: o override órfão persiste, porque `property_identity` não tem
 `last_seen` e override só se grava. Um `raise` abortaria todo run do workspace, para sempre.
 O gate vira teste, com oráculo tirado do estado de DB da fixture, mutação (publisher devolve
-0 ⇒ vermelho) e matriz de regimes. Em runtime fica `review_reason` WARN quando há evidência
-contrária: override da classe sem imóvel no run **e** imóvel em aberto.
+0 ⇒ vermelho) e matriz de regimes. Em runtime fica `review_reason` WARN
+(`domain.classificacao_imovel_nao_apurada`, advisory) só quando há evidência contrária: para
+geradores, override gerador sem imóvel no run **e** imóvel em aberto (`vinculo_perdido`); para a
+residência, o override `residencia_principal` sem imóvel no run (`nao_localizada`) — que também
+avisa quem vendeu a casa e não atualizou o status.
 
 ## Consequências
 
 - **Números que mudam (PR do flip):** `residencia` vira `null` onde não foi declarada ou não
-  foi localizada; o par de geradores vira `null` onde há imóvel em aberto. O rebaseline de
-  golden e snapshot marca `comparison_base_changed`: é correção de medição, não melhora
-  ([[ADR-190]] §Emenda 2026-08-10).
+  foi localizada; o par de geradores vira `null` onde há imóvel em aberto. É correção de
+  medição, não melhora. O changelog entre relatórios ([[ADR-190]]) compara
+  `patrimonio.liquido`, `patrimonio.bruto` e afins — campos que a partição intacta não move —,
+  então `comparison_base_changed` não precisa disparar, e nada aqui o liga.
+  ⚠️ *Corrigido no closeout de 2026-10-08:* a versão mergeada dizia que o rebaseline "marca
+  `comparison_base_changed`". O flag é derivado em runtime da presença de
+  `consolidacao_cross_documento` nos dois lados do par; rebaseline nenhum o marca.
 - `golden_diff.py` passa a enxergar número→`null`. Sem isso, a supressão (ou uma regressão
   para `null`) rebaselinaria sem waiver.
 - **Expand→contract:** schema e leitores aceitam `null` antes de o produtor emitir.
