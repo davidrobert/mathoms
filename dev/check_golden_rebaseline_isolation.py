@@ -32,10 +32,16 @@ from pathlib import Path
 # numéricos, o view-model publicado) estava FORA — o hook rodava verde e cego sobre o
 # único golden que a A40.l90 iria rebaselinar. Fechar só esse arquivo seria fechar por
 # instância; o conjunto abaixo é o critério aplicado.
+#
+# `tests/golden_baselines/` (métricas estruturais do parecer com LLM real, ADR-199 T-27)
+# entrou pelo mesmo critério quando o rebaseline mensal passou a sair em branch do
+# workflow `planner-golden-monthly.yml` — o prefixo protege o commit HUMANO que
+# re-semeia junto de mudança no código do parecer.
 _GOLDEN_PREFIXES = (
     "tests/fixtures/pipeline_golden/",
     "backend/tests/snapshots/",
     "dev/snapshots/",
+    "tests/golden_baselines/",
 )
 _PRODUCTION_PREFIXES = ("pipeline/", "scripts/", "backend/app/")
 
