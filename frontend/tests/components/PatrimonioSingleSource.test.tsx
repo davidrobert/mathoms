@@ -112,17 +112,21 @@ describe("IFHeroCard + PlanoKpiRow — percentual pt-BR (COPY_GUIDELINES §4.6)"
     },
   };
 
+  // `percentual_conquistado` chega com 2 casas: 24,65 é empate, e o KPI e o
+  // hero precisam arredondar igual (24,7 — o `toFixed` dava 24.6).
+  const progress: IFProgress = { ...PROGRESS, pct: 24.65 };
+
   it("progresso, aria-label da barra e parâmetros do cálculo usam vírgula", () => {
     const { container } = render(
       <div>
         <PlanoKpiRow
           patrimonioSnapshot={SNAPSHOT}
           ifGoal={goal}
-          ifProgress={PROGRESS}
+          ifProgress={progress}
           aporteGoal={null}
           loading={false}
         />
-        <IFHeroCard goal={goal} progress={PROGRESS} patrimonio={SNAPSHOT.value} />
+        <IFHeroCard goal={goal} progress={progress} patrimonio={SNAPSHOT.value} />
       </div>,
     );
 

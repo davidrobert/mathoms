@@ -75,13 +75,16 @@ describe("percentual das premissas usa vírgula (COPY_GUIDELINES §4.6)", () => 
     expect(valor(rows, "Taxa conservadora (Trinity)")).toBe("4,0% a.a.");
   });
 
-  it("meta de aporte: distribuição percentual", () => {
+  // O produtor quantiza em 2 casas (`compute_aporte_derived`): x,x5 é empate,
+  // e o Intl arredonda o decimal exibido (12,35 → 12,4) onde `toFixed`
+  // arredondava o binário (12,349… → 12.3).
+  it("meta de aporte: distribuição percentual, com empate x,x5", () => {
     const rows = buildAportePremissasRows(
-      { meta_aporte_mensal_brl: 3000, dia_aporte: 5 },
-      { aporte_anual_brl: 36000, distribuicao_pct: { RF: 66.7, RV: 33.3 } }
+      { meta_aporte_mensal_brl: 2000, dia_aporte: 5 },
+      { aporte_anual_brl: 24000, distribuicao_pct: { RF: 87.65, RV: 12.35 } }
     );
     const distribuicao = valor(rows, "Distribuição");
-    expect(distribuicao).toBe("RF: 66,7% · RV: 33,3%");
+    expect(distribuicao).toBe("RF: 87,7% · RV: 12,4%");
     expect(distribuicao).not.toMatch(PERCENTUAL_COM_PONTO);
   });
 });

@@ -129,14 +129,15 @@ const APORTE_GOAL: AporteGoalResponse = {
   workspace_id: "ws-1",
   type: "APORTE_MENSAL",
   meta_version: 1,
+  // 1753/2000 e 247/2000: o empate x,x5 que o produtor (2 casas) emite.
   inputs: {
-    meta_aporte_mensal_brl: 3000,
+    meta_aporte_mensal_brl: 2000,
     dia_aporte: 5,
-    distribuicao: { "Renda fixa": 2000, "Renda variável": 1000 },
+    distribuicao: { "Renda fixa": 1753, "Renda variável": 247 },
   },
   derived: {
-    aporte_anual_brl: 36000,
-    distribuicao_pct: { "Renda fixa": 66.7, "Renda variável": 33.3 },
+    aporte_anual_brl: 24000,
+    distribuicao_pct: { "Renda fixa": 87.65, "Renda variável": 12.35 },
   },
   effective_from: "2026-01-01",
   effective_to: null,
@@ -149,6 +150,8 @@ const APORTE_GOAL: AporteGoalResponse = {
 };
 
 describe("Página de aportes — percentual pt-BR", () => {
+  // A página e o card de premissas mostram o mesmo `distribuicao_pct`: os dois
+  // arredondam o empate do mesmo jeito.
   it("distribuição derivada e linha de premissas usam vírgula", async () => {
     server.use(
       http.get(`${WS_API}/goals/aportes`, () => HttpResponse.json(APORTE_GOAL)),
@@ -158,10 +161,10 @@ describe("Página de aportes — percentual pt-BR", () => {
     );
     const { container } = render(<AportesEditPage />);
 
-    expect(await screen.findByText("66,7%", {}, { timeout: 3000 })).toBeInTheDocument();
-    expect(screen.getByText("33,3%")).toBeInTheDocument();
+    expect(await screen.findByText("87,7%", {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(screen.getByText("12,4%")).toBeInTheDocument();
     expect(
-      screen.getByText("Renda fixa: 66,7% · Renda variável: 33,3%"),
+      screen.getByText("Renda fixa: 87,7% · Renda variável: 12,4%"),
     ).toBeInTheDocument();
     expect(container.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
   });
