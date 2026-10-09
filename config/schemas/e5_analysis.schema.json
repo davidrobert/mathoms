@@ -2354,7 +2354,7 @@
         "total_imoveis_uso_nao_apurado": {
           "type": "number",
           "minimum": 0,
-          "description": "Valor da linha 'Imóveis com uso não apurado' (ADR-444 D3): imóveis de classificação desconhecida quando a residência não foi apurada (patrimonio.cobertura_classificacao_imovel.residencia.status = nao_apurado) — podem conter a residência. Fora de total e de toda base de carteira; 0 quando a linha não existe."
+          "description": "Valor da linha 'Imóveis com uso não apurado' (ADR-444 D3): imóveis de classificação desconhecida quando a residência não foi apurada (patrimonio.cobertura_classificacao_imovel.residencia.status = nao_apurado) — podem conter a residência. Fora de total e de toda base de carteira. AUSENTE quando a linha não existe (zero publicado viraria 'R$ 0,00' em todo parecer); na conservação, ausência conta zero."
         },
         "nao_classificado_pct": {
           "type": "number",
