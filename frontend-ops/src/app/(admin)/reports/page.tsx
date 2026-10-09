@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, TextInput } from "@/components/ui";
 import { PurgeCard } from "@/components/PurgeCard";
-import { api, AdminApiError } from "@/lib/api";
-import type { PurgeReportsResponse, ReportSummary } from "@/lib/types";
+import { api } from "@/lib/api";
+import type { AdminReportListResponse, PurgeReportsResponse } from "@/lib/types";
+import { useAdminFetch } from "@/lib/use-admin-fetch";
 
 function formatBytes(bytes: number | null): string {
   if (bytes == null) return "—";
@@ -21,43 +22,29 @@ function formatBytes(bytes: number | null): string {
 
 const PAGE_SIZE = 25;
 
+interface ReportsQuery {
+  user: string;
+  workspace: string;
+  offset: number;
+}
+
+function fetchReports(query: ReportsQuery): Promise<AdminReportListResponse> {
+  return api.listReports({
+    user_id: query.user.trim() || undefined,
+    workspace_id: query.workspace.trim() || undefined,
+    limit: PAGE_SIZE,
+    offset: query.offset,
+  });
+}
+
 export default function ReportsPage() {
   const [userId, setUserId] = useState("");
   const [workspaceId, setWorkspaceId] = useState("");
-  const [appliedUser, setAppliedUser] = useState("");
-  const [appliedWs, setAppliedWs] = useState("");
-  const [reports, setReports] = useState<ReportSummary[]>([]);
-  const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
-
-  const load = useCallback(
-    async (u: string, w: string, off: number): Promise<void> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await api.listReports({
-          user_id: u.trim() || undefined,
-          workspace_id: w.trim() || undefined,
-          limit: PAGE_SIZE,
-          offset: off,
-        });
-        setReports(res.reports);
-        setTotal(res.total);
-      } catch (err) {
-        setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao carregar.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    void load(appliedUser, appliedWs, offset);
-  }, [load, offset, appliedUser, appliedWs, reloadKey]);
+  const [query, setQuery] = useState<ReportsQuery>({ user: "", workspace: "", offset: 0 });
+  const { data, loading, error } = useAdminFetch(query, fetchReports, "Falha ao carregar.");
+  const reports = data?.reports ?? [];
+  const total = data?.total ?? 0;
+  const { offset } = query;
 
   return (
     <section className="space-y-10">
@@ -97,7 +84,8 @@ export default function ReportsPage() {
           flashCopy={(p) =>
             `Purge concluído: ${p.count} relatórios · ${p.artifacts_removed ?? 0} artefatos E5.`
           }
-          onAfterPurge={() => setReloadKey((k) => k + 1)}
+          // Cópia = pedido novo: useAdminFetch compara a query por identidade.
+          onAfterPurge={() => setQuery((current) => ({ ...current }))}
         />
       </div>
 
@@ -113,9 +101,7 @@ export default function ReportsPage() {
             className="flex gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              setOffset(0);
-              setAppliedUser(userId);
-              setAppliedWs(workspaceId);
+              setQuery({ user: userId, workspace: workspaceId, offset: 0 });
             }}
           >
             <TextInput
@@ -213,7 +199,9 @@ export default function ReportsPage() {
           <div className="mt-4 flex items-center justify-between text-sm text-surface-muted-fg">
             <Button
               variant="secondary"
-              onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
+              onClick={() =>
+                setQuery((current) => ({ ...current, offset: Math.max(0, current.offset - PAGE_SIZE) }))
+              }
               disabled={offset === 0 || loading}
             >
               Anterior
@@ -223,7 +211,7 @@ export default function ReportsPage() {
             </span>
             <Button
               variant="secondary"
-              onClick={() => setOffset((o) => o + PAGE_SIZE)}
+              onClick={() => setQuery((current) => ({ ...current, offset: current.offset + PAGE_SIZE }))}
               disabled={offset + PAGE_SIZE >= total || loading}
             >
               Próxima
