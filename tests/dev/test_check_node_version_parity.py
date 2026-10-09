@@ -480,7 +480,7 @@ def _groups_carrying_types_node_major(update: dict[str, object]) -> list[str]:
 
 
 def test_dependabot_isola_o_major_de_types_node() -> None:
-    """Agrupado, o major vermelho de @types/node travaria eslint/prettier junto."""
+    """Fixa pela config o isolamento que o specificity do Dependabot já dá (#2153)."""
     config = yaml.safe_load((_REPO / ".github/dependabot.yml").read_text())
     npm = [u for u in config["updates"] if u["package-ecosystem"] == "npm"]
     assert npm and all(_groups_carrying_types_node_major(u) == [] for u in npm)
