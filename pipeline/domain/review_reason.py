@@ -73,6 +73,9 @@ class ReviewReasonCode(str, enum.Enum):
     # existe, e fica FORA da base; este fica DENTRO. A remediação difere: um pede
     # documento, o outro pede reconciliação de titularidade.
     domain_investimento_sem_titularidade = "domain.investimento_sem_titularidade"
+    # [[ADR-439]] D7: a família classificou o imóvel (override gravado) e o run não o
+    # alcançou — o balde sai `null`. ADVISORY: o run segue; o achado é o vínculo perdido.
+    domain_classificacao_imovel_nao_apurada = "domain.classificacao_imovel_nao_apurada"
     # DE-6 ([[ADR-398]]): o eixo ativo do item veio do `categoria_hint`, não de
     # um fato — mint de identidade recusado, porque rotular converteria um
     # passivo em ativo do patrimônio bruto.

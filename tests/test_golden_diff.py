@@ -311,3 +311,17 @@ def test_load_manifest_aceita_cents_nulo(tmp_path):
 
     entries = load_manifest(_write_manifest(tmp_path, [{**_FULL_ENTRY, "new_cents": None}]))
     assert entries[0].new_cents is None
+
+
+def test_main_reprova_anulacao_com_mensagem_e_sem_traceback(tmp_path, capsys):
+    """O caminho do RELATÓRIO também roda: `delta_cents` é `None` na anulação."""
+    import json
+
+    from dev.golden_diff import main
+
+    old, new = tmp_path / "old.json", tmp_path / "new.json"
+    old.write_text(json.dumps({"patrimonio": {"residencia": 0}}), encoding="utf-8")
+    new.write_text(json.dumps({"patrimonio": {"residencia": None}}), encoding="utf-8")
+
+    assert main([str(old), str(new)]) == 1
+    assert "patrimonio.residencia (0 → null, anulação)" in capsys.readouterr().err

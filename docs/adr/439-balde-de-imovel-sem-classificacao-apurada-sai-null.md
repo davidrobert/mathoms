@@ -2,7 +2,7 @@
 id: ADR-439
 type: adr
 title: "Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero"
-status: Proposto
+status: Decidido
 phase: A40.l113
 date: "2026-10-08"
 relates_to:
@@ -21,7 +21,7 @@ aliases:
   - "zero de imóvel só com evidência de zero"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
 ---
@@ -162,5 +162,11 @@ contrária: override da classe sem imóvel no run **e** imóvel em aberto.
 
 - `tests/unit/pipeline/test_veredito_balde_imovel.py` — a matriz de D2/D3, incluindo o imóvel
   de renda vendido (zero verdadeiro) e o desconhecido sem valor apurado (em aberto).
-- Teste de mutação + matriz de regimes no PR do flip (D7).
-- `check_schema_manifest_drift`, `check_view_model_contract` e o `golden_diff` corrigido.
+- `tests/test_veredito_imovel_gate_adr439.py` — o gate da D7: matriz de 7 regimes (U5, nada
+  classificado, aluga, vendeu o imóvel de renda, tudo classificado, residência órfã, sem
+  imóvel), oráculo tirado do estado de DB da fixture, e mutação do veredito para "sempre
+  apurado" que deixa o gate vermelho.
+- `tests/test_golden_discrimina_classificacao_de_imovel.py` — o regime `toda_classificada` é
+  o único caso do golden com o par numérico; os outros dois o publicam `null`.
+- `check_schema_manifest_drift`, `check_view_model_contract` e o `golden_diff`, que desde o
+  #2051 cobra manifesto de campo monetário que vira `null`.
