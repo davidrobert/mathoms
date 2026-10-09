@@ -73,3 +73,16 @@ def rollback_and_close(session) -> None:
         session.rollback()
     finally:
         session.close()
+
+
+def close_by_outcome(session, stage: str, result) -> None:
+    """Commit sse o desfecho preserva a transação do stage (ADR-357 §6) — a regra do loop in-process."""
+    # `_run_stage` achata a exceção do runner em `success=False`: sem decidir pelo
+    # desfecho, o commit levaria o que o stage escreveu antes de não entregar.
+    from pipeline.stage_outcome import commits_stage_transaction, resolve_stage_outcome
+
+    outcome = resolve_stage_outcome(stage, delivered=bool(result.success))
+    if commits_stage_transaction(stage, outcome):
+        commit_and_close(session)
+    else:
+        rollback_and_close(session)

@@ -7,13 +7,15 @@ Start worker:
 import sys
 from pathlib import Path
 
-from celery import Celery
+from celery import Celery, Task
+from celery.exceptions import Ignore, Reject, Retry, SoftTimeLimitExceeded, TimeLimitExceeded
 from celery.schedules import crontab
 from celery.signals import worker_process_init
 
 from backend.app.core.config import settings
 from backend.app.core.logging import get_logger, setup_logging
 from backend.app.core.otel import instrument_celery, setup_otel
+from pipeline.observability.failure_text import as_redacted_exception
 
 # BUG-002 fix: ensure project root is on sys.path so that `import pipeline`
 # works inside the Celery worker process (fork pool doesn't inherit sys.path).
@@ -21,7 +23,42 @@ _project_root = str(Path(__file__).resolve().parent.parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-celery_app = Celery("fin")
+
+# Passam intactas: redigir o `Retry` derrubaria o `self.retry(exc=…)`.
+_CONTROLE_DE_FLUXO_DO_CELERY = (Retry, Ignore, Reject)
+# O tipo do fim de prazo é contrato do `on_failure` (`failure_reason=time_limit_exceeded`),
+# mas o traceback dele leva o contexto: sai uma instância nova, do mesmo tipo, sem ele.
+_FIM_DE_PRAZO = (SoftTimeLimitExceeded, TimeLimitExceeded)
+
+
+class DatabaseFailureRedactingTask(Task):
+    """Base de toda task do app (ADR-441 D2): falha cuja cadeia tocou o banco sai redigida
+    antes do log de falha do Celery, do result backend e do ``on_failure``."""
+
+    def __call__(self, *args, **kwargs):
+        try:
+            return super().__call__(*args, **kwargs)
+        except _CONTROLE_DE_FLUXO_DO_CELERY:
+            raise
+        except Exception as exc:  # noqa: BLE001 — relança sempre; só troca o texto
+            redacted = _redacted_for_celery(exc)
+            if redacted is None:
+                raise
+        # Fora do `except`: relançar lá dentro grudaria a original em `__context__`.
+        raise redacted from None
+
+
+def _redacted_for_celery(exc: Exception) -> Exception | None:
+    """None se a cadeia não tocou o banco; o fim de prazo mantém o tipo, sem o contexto."""
+    redacted = as_redacted_exception(exc)
+    if redacted is None or not isinstance(exc, _FIM_DE_PRAZO):
+        return redacted
+    return type(exc)(*exc.args).with_traceback(exc.__traceback__)
+
+
+# `task_cls` e não decorator no `run`: o `autoretry_for` embrulha o `run` por fora e
+# veria só o tipo já redigido (medido na revisão da ADR-441).
+celery_app = Celery("fin", task_cls=DatabaseFailureRedactingTask)
 
 celery_app.conf.update(
     broker_url=settings.REDIS_URL,

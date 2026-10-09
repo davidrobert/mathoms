@@ -251,7 +251,7 @@ function NaoIdentificadoAlert({ pct }: { pct: number }) {
         icon={<AlertTriangle className="h-4 w-4" aria-hidden="true" />}
       >
         <p>
-          Despesas não identificadas somam {pct.toFixed(1).replace(".", ",")}% do total
+          Despesas não identificadas somam {formatPercent(pct)} do total
           na janela — a distribuição acima subestima as demais categorias.
           Reclassificar devolve precisão ao gráfico.
         </p>

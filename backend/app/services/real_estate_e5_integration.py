@@ -18,6 +18,7 @@ from backend.app.services.real_estate_adapter import (
     IRPFAluguelEntry,
     calculate_for_workspace,
 )
+from pipeline.domain.services.baseline_item_classifier import codigo_rfb_do_imovel
 from pipeline.domain.services.concentracao_imobiliaria import (
     compute_concentracao_imobiliaria_pct,
 )
@@ -153,10 +154,12 @@ def _dedup_entries(identities: list[PropertyIdentity], baseline_payload: dict | 
         im.get("property_id"): im.get("valores_31_12") or {}
         for im in (baseline_payload or {}).get("imoveis_consolidados") or []
     }
+    # Mesma forma que o E1.5c entrega à policy: com `'01-11'` cru o dedup o leria como
+    # genérico e elegeria vencedor diferente do E1.5c ([[ADR-225]] §Emenda 2026-10-08).
     return [
         {
             "property_id": ident.id,
-            "codigo_rfb": ident.codigo_rfb,
+            "codigo_rfb": codigo_rfb_do_imovel(ident.codigo_rfb),
             "endereco_canonical": ident.endereco_canonical,
             "descricao": ident.descricao_sample,
             "valores_31_12": valores.get(ident.id, {}),

@@ -53,7 +53,6 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 
 | Arquivo | Nome | Tipo | Veredito |
 |---|---|---|---|
-| `services/pipeline/retry_config.py:44` | `STAGE_RETRY_CONFIGS` | `dict[str, StageRetryConfig]` frozen | ✅ imutável (criado uma vez, lido) |
 | `services/classification/institution_classifier.py:11` | `INSTITUTION_CONTENT_PATTERNS` | `list[tuple[re.Pattern, str]]` | ✅ regex compilado, nunca alterado (re-exportado por `documents/content_classifier.py`) |
 | `services/classification/period_extractor.py:7-27` | `_PERIOD_RANGE_RE`, `_YYYYMM_RE`, `_MONTH_YEAR_BR_RE`, `_MESES` | regex + mapping | ✅ imutável |
 | `services/tarefas_md_parser.py:20-146` | `_MD_TO_CATEGORY`, `_MONTH_PT`, `_STATUS_FROM_MD`, `_*_RE` | mapping + regex | ✅ imutável |
