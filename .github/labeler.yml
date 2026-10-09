@@ -102,6 +102,13 @@
           - 'backend/tests/**'
           - 'frontend/tests/**'
 
+# `sync-labels: true` (pr-quality.yml) remove toda label DECLARADA aqui que não
+# case com o PR, inclusive a que o Dependabot aplicou via `labels:`. Só por path,
+# `dependency` saía dos PRs de workflow, Docker e frontend-ops (5 de 10 abertos
+# em 2026-10-09). O `head-branch` entra no mesmo `any` que o `changed-files`
+# (OR) e mantém a label em todo PR do Dependabot.
+# Nenhum workflow lê `dependency` hoje. Auto-merge futuro por esta label pegaria
+# bump de Docker, que a ADR-249 deixa só para review manual.
 dependency:
   - changed-files:
       - any-glob-to-any-file:
@@ -112,3 +119,12 @@ dependency:
           - 'frontend/package-lock.json'
           - 'go.work'
           - 'go.work.sum'
+  - head-branch: ['^dependabot/']
+
+# Isenção do stale.yml (`exempt-pr-labels`): o actions/stale não filtra por
+# autor, e fechar PR do Dependabot vira ignore da release. A label existe só por
+# branch, nunca por path. Se viesse por path, PR humano que mexe em manifest
+# ficaria isento para sempre. Fonte única: o labeler (não o `labels:` do
+# dependabot.yml). Gate: tests/dev/test_stale_dependabot_exemption.py.
+dependabot:
+  - head-branch: ['^dependabot/']
