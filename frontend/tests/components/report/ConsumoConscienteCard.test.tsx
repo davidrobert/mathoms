@@ -69,6 +69,12 @@ describe("<ConsumoConscienteCard />", () => {
     expect(screen.queryByText(/aporte_investimento/)).toBeNull();
   });
 
+  // COPY_GUIDELINES §4.2 — o título da lista escrevia "≥ R$2k".
+  it("título da lista escreve o limiar em reais, sem k", () => {
+    renderWithItems([item("lazer_viagens", 4000, 1)]);
+    expect(screen.getByText("Gastos pontuais ≥ R$ 2.000")).toBeInTheDocument();
+  });
+
   it("KR-B: categoria desconhecida cai em fallback sem `_` e sem inicial minúscula", () => {
     renderWithItems([item("categoria_futura_desconhecida", 2100, 1)]);
 
@@ -139,6 +145,8 @@ describe("<ConsumoConscienteCard /> · declaração da base", () => {
     expect(linha).not.toBeNull();
     const texto = linha!.textContent!.replace(/ /g, " ");
     expect(texto).toContain("18 lançamentos");
+    // COPY_GUIDELINES §4.2 — o limiar era escrito "R$2k".
+    expect(texto).toContain("lançamentos ≥ R$ 2.000 no período completo");
     expect(texto).toMatch(/recorrentes R\$\s?65\.000 \(13\)/);
     expect(texto).toMatch(/transferências R\$\s?16\.000 \(2\)/);
     // [[ADR-425]] §D1 — o residual não medido é impresso ONDE a base aparece.
