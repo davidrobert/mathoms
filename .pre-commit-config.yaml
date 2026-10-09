@@ -755,11 +755,14 @@ repos:
       - id: frontend-lock-sync
         # Gate inspirado no incidente 2026-04-25 (cb0ff11) — package.json
         # commitado sem regenerar lockfile quebrou `npm ci` em CI por ~5h.
-        name: "frontend/package-lock.json em sync com package.json"
+        # O lock de cada app é julgado pelo npm que o FROM node do app traz
+        # (npm 10 e 11 divergem; ver o docstring), então o Dockerfile e o próprio
+        # script também disparam o hook.
+        name: "<app>/package-lock.json passa no npm ci do npm do FROM node"
         entry: python3 dev/check_frontend_lock_sync.py
         language: system
         pass_filenames: false
-        files: ^frontend/(package\.json|package-lock\.json)$
+        files: ^([^/]+/(package(-lock)?\.json|Dockerfile)|dev/check_frontend_lock_sync\.py)$
 
       - id: node-version-parity
         # O `docker` do Dependabot subiu o FROM node:22→26 (#1634) e o CI seguiu

@@ -130,27 +130,6 @@ NAMED_PAIRS = [
     _par_do_badge_de_alocacao("semantic-alert-on-tint", "semantic-warning", 14),
     _par_do_badge_de_alocacao("semantic-loss-on-tint", "semantic-danger", 14),
     _par_do_badge_de_alocacao("surface-muted-foreground-on-tint", "surface-muted-foreground", 15),
-    # Pai tintado + `<p>` filho, achados no ataque da A40.l33: a linha do `<div>`
-    # não tem `text-[…]` e a linha do `<p>` não tem tint, então nenhuma das duas
-    # sozinha vira par. O substrato aqui é declarado (`var(--surface-card)`),
-    # logo o tint do `.card-variant-highlight` do card em volta não entra —
-    # `color-mix` com segunda cor opaca não compõe com o que está atrás.
-    (
-        "components/report/cards/EstrategiaAporteCard.tsx",
-        "semantic-gain-on-tint",
-        "semantic-gain",
-        8,
-        "surface-card",
-        AA_TEXTO_PEQUENO,
-    ),
-    (
-        "components/report/cards/EstrategiaAporteCard.tsx",
-        "brand-primary",
-        "brand-primary",
-        8,
-        "surface-card",
-        AA_TEXTO_PEQUENO,
-    ),
     # S_parecer: tint por `style` inline no `<div>`, texto no `<p>` filho. Passa
     # a 4,76:1 e NÃO foi repintado — a calibragem do S_parecer é do dono
     # (A40.l33 §Deferido). Nomeado para que uma mudança de token não o derrube

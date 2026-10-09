@@ -32,8 +32,8 @@ import {
  * - `danger`  → `--semantic-loss`            (vermelho de perda/risco)
  *
  * Fonte do bg: `color-mix(in oklab, <tone> 8-10%, transparent)` —
- * mesma técnica adotada por `<EstrategiaAporteCard/>`,
- * `<ReportShell/>` (§warn) e demais cards do relatório. Dark mode
+ * mesma técnica adotada por `<ReportShell/>` (§warn) e demais cards
+ * do relatório. Dark mode
  * derivado automaticamente via `tokens.css` (não precisa de
  * `dark:` aliases).
  */
