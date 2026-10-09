@@ -162,8 +162,8 @@ D aterrissar.
   documentos. Dono: `data-engineer`, sem prazo; retomar quando a lane tocar o stage.
 
 **Roteado, sem lane nova:** `store.write` de até 8 threads sobre a mesma `Session`
-(`extract_with_llm`) vai para a branch `agent/e2-llm-store-write-main-thread/20261008-2056`,
-que já tem o fix commitado; o holder explícito no harness do #2072 vai para a [[A42.l7]].
+(`extract_with_llm`) é fechado pelo #2092, que move o write para a thread dona da `Session`
+sem mudar a janela do lock; o holder explícito no harness do #2072 vai para a [[A42.l7]].
 
 ## Consequências
 
