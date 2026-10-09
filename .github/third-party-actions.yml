@@ -20,29 +20,29 @@
 
 actions:
   actions/checkout:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   actions/setup-python:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   actions/cache:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   actions/upload-artifact:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   actions/setup-node:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   actions/github-script:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   actions/labeler:
     runs_using: node20
     verified_at: "2026-08-05"
   actions/setup-go:
-    runs_using: node20
-    verified_at: "2026-08-05"
+    runs_using: node24
+    verified_at: "2026-10-08"
   gitleaks/gitleaks-action:
     runs_using: node20
     verified_at: "2026-08-05"
