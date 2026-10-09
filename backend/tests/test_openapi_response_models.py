@@ -12,9 +12,10 @@ status ``204 No Content``.
 
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Any, Iterable
 
 from backend.app.main import app
+from backend.tests._app_routes import iter_effective_routes, openapi_snapshot_operations
 
 # Rotas built-in do FastAPI (docs/redoc/openapi-spec) — não são nosso contrato.
 _FASTAPI_BUILTIN_PATHS = frozenset(
@@ -43,11 +44,13 @@ _NON_JSON_RESPONSE_CLASSES = frozenset(
 _NO_CONTENT_STATUS = frozenset({204, 205, 304})
 
 
-def _iter_endpoints() -> Iterable[tuple[str, str, object, object, int | None]]:
+def _iter_endpoints(
+    routes: Iterable[Any] | None = None,
+) -> Iterable[tuple[str, str, object, object, int | None]]:
     """Yield (method, path, response_model, response_class, status_code) por endpoint
     exposto pelo app, pulando built-ins FastAPI e métodos HEAD/OPTIONS."""
-    for route in app.routes:
-        if not hasattr(route, "methods"):
+    for route in iter_effective_routes(app.routes) if routes is None else routes:
+        if not getattr(route, "methods", None):
             continue
         path = route.path
         if path in _FASTAPI_BUILTIN_PATHS:
@@ -92,3 +95,31 @@ def test_every_json_endpoint_has_response_model_or_explicit_response_class() -> 
         "``response_model=...`` (para JSON) ou ``response_class=...`` (para "
         "file/stream/html). Gaps:\n  - " + "\n  - ".join(gaps)
     )
+
+
+def _unexamined_schema_operations(routes: Iterable[Any]) -> set[tuple[str, str]]:
+    """Operações do OpenAPI commitado que o gate não examinou — não-vazio = gate cego."""
+    examined = {(method, path) for method, path, *_ in _iter_endpoints(routes)}
+    return openapi_snapshot_operations() - examined
+
+
+def test_gate_examines_every_openapi_operation() -> None:
+    """Não-vácuo: o gate acima vê toda operação do snapshot, não só as do topo da árvore."""
+    unexamined = _unexamined_schema_operations(iter_effective_routes(app.routes))
+    assert not unexamined, (
+        f"o gate da ADR-109 não examinou {len(unexamined)} operação(ões) do openapi.json "
+        f"commitado (ex.: {sorted(unexamined)[:3]}) — iteração de rotas perdeu parte da árvore"
+    )
+
+
+def test_gate_blindness_is_detected() -> None:
+    """Contrafactual da guarda: tirar uma rota, ou todas, aparece como operação não examinada."""
+    routes = iter_effective_routes(app.routes)
+    dropped = next(
+        r
+        for r in routes
+        if r.path == "/api/v1/workspaces/{workspace_id}/documents" and "GET" in (r.methods or ())
+    )
+    remaining = [r for r in routes if r is not dropped]
+    assert _unexamined_schema_operations(remaining) == {("GET", dropped.path)}
+    assert _unexamined_schema_operations([]) == openapi_snapshot_operations()
