@@ -419,14 +419,14 @@ class TestLLMCategoryHint:
                 {
                     "data": "2025-12-31",
                     "descricao": "Parcelas pagas Crédito Imobiliário (ano 2025)",
-                    "valor": -52429.06,
+                    "valor": -24000.00,
                     "tipo": "debito",
                     "categoria_sugerida": "info_fiscal_anual",
                 },
                 {
                     "data": "2025-12-31",
                     "descricao": "Rendimento Líquido (valor a declarar)",
-                    "valor": 610.85,
+                    "valor": 85.00,
                     "tipo": "credito",
                     "categoria_sugerida": "info_fiscal_anual",
                 },
@@ -451,8 +451,8 @@ class TestLLMCategoryHint:
             transacoes=[
                 {
                     "data": "2026-01-15",
-                    "descricao": "Pagamento Contrato 10171192207",
-                    "valor": -52000.0,
+                    "descricao": "Pagamento Contrato 10000000001",
+                    "valor": -24000.0,
                     "tipo": "debito",
                     "categoria_sugerida": "moradia_financiamento_amortizacao",
                 }
@@ -472,7 +472,7 @@ class TestLLMCategoryHint:
                 {
                     "data": "2025-12-31",
                     "descricao": "Rendimento Bruto RDB/CDB",
-                    "valor": 787.75,
+                    "valor": 100.00,
                     "tipo": "credito",
                     "categoria_sugerida": "rendimento_renda_fixa",
                 }

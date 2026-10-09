@@ -1,6 +1,7 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import type { CardVariant } from "@/generated/report-layout";
+import { formatPercent } from "@/lib/format";
 import { parseDecimalString, type IrpfKpis } from "@/types/irpf";
 
 interface IrpfSplitTrabalhoCapitalCardProps {
@@ -27,7 +28,7 @@ function SplitLegend({ label, value, pct, swatchClass }: SplitLegendProps) {
           <MonetaryValue value={value} />
         </p>
         <p className="font-mono text-xs tabular-nums text-[var(--surface-muted-foreground)]">
-          {pct.toFixed(1).replace(".", ",")}% do total
+          {formatPercent(pct)} do total
         </p>
       </dd>
     </div>

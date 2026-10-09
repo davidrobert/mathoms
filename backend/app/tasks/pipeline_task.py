@@ -5,7 +5,7 @@ The core logic is identical to the former _run_pipeline_thread but:
 - Publishes events via Redis Pub/Sub for WebSocket delivery
 - Checks cancellation flag in DB between stages (stage-boundary cancel)
 - Supports acks_late for crash recovery
-- Per-stage retry with configurable retryable errors (Phase 5C.5)
+- Per-stage single attempt — no stage-level retry in any executor (ADR-443)
 """
 
 from __future__ import annotations
@@ -53,7 +53,6 @@ from backend.app.services.pipeline.events import (
 from backend.app.services.pipeline.pipeline_adapter import (
     build_tasks_payload_sync,
 )
-from backend.app.services.pipeline.retry_config import get_retry_config
 from backend.app.services.pipeline.stage_review_gate import repark_stage_if_undecided
 from backend.app.services.report_tasks_snapshot_service import (
     build_snapshot_sync,
@@ -509,43 +508,26 @@ def _retry_parked_documents(ws_id: str, tenant_root: Path) -> None:
         logger.info("reclassify_retry ws=%s %s", ws_id, stats)
 
 
-def _is_schema_validation_error(exc: Exception) -> bool:
-    """Erro de contrato é determinístico — nunca retryable (ADR-284); sem a guarda, stages com ``retryable_errors`` casariam substring do texto e queimariam backoff."""
-    import jsonschema
-
-    return isinstance(exc, jsonschema.ValidationError)
-
-
-def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
-    """Execute a stage with configurable retry on transient errors.
-
-    Returns (result, attempts, error_msg, tb, reason_class). result is None if all
-    retries exhausted; reason_class is derived from the live exception OBJECT.
-    """
-    # `reason_class` sai daqui, e não do texto de `error_msg`, porque a ADR-357
-    # §Delta item 1 proíbe re-derivar a classe por match de string sobre a
-    # mensagem. Este é o último ponto em que o objeto de exceção existe.
+# Uma tentativa, sem retry de stage (ADR-443): o transiente de LLM é do
+# `LLMService.call` (ADR-270), que fecha com `retryable=False`, e a falha de
+# transporte do shell é da composição do client (ADR-323). Exceção levantada
+# dentro do runner nunca chega aqui — `orchestrator._run_stage` a achata em
+# `StageResult(success=False)` nos dois executores. Chega só o que cruza o
+# executor (transporte HTTP, import do runner), e para isso este é o último ponto
+# com o objeto vivo: `reason_class` sai dele, nunca de match sobre a mensagem
+# (ADR-357 §Delta item 1).
+def _run_stage_once(ctx, stage_name: str, run_stage_fn):
+    """Executa o stage uma vez; ``(result, error_msg, tb, reason_class)``, com ``result=None`` se a exceção cruzou o executor."""
     from backend.app.services.pipeline.stage_failure_reason import (
         StageFailureReason,
         reason_from_exception,
     )
 
-    retry_cfg = get_retry_config(stage_name)
-    attempts = 0
-    last_tb = None
-
-    while True:
-        try:
-            result = _run_stage(ctx, stage_name)
-            return result, attempts + 1, None, None, StageFailureReason.unknown.value
-        except Exception as exc:
-            last_tb = traceback.format_exc()
-            error_msg = str(exc)[:2000]
-            if not _is_schema_validation_error(exc) and retry_cfg.should_retry(attempts, error_msg):
-                attempts += 1
-                time.sleep(retry_cfg.delay_for_attempt(attempts - 1))
-                continue
-            return None, attempts + 1, error_msg, last_tb, reason_from_exception(exc).value
+    try:
+        result = run_stage_fn(ctx, stage_name)
+    except Exception as exc:
+        return None, str(exc)[:2000], traceback.format_exc(), reason_from_exception(exc).value
+    return result, None, None, StageFailureReason.unknown.value
 
 
 _CRASH_RUN_STATUSES = (
@@ -812,7 +794,7 @@ def _open_artifact_session(
     return session, store
 
 
-def _commit_and_close_artifact_session(session) -> None:
+def _commit_and_close_artifact_session(session, ctx) -> None:
     """Commit+close de uma sessão por-stage. Rollback se commit falhar."""
     if session is None:
         return
@@ -823,9 +805,10 @@ def _commit_and_close_artifact_session(session) -> None:
         raise
     finally:
         session.close()
+        _flush_deferred_llm_call_log(ctx)
 
 
-def _rollback_and_close_artifact_session(session) -> None:
+def _rollback_and_close_artifact_session(session, ctx) -> None:
     """Rollback+close — usado quando stage falha antes do commit."""
     if session is None:
         return
@@ -833,6 +816,16 @@ def _rollback_and_close_artifact_session(session) -> None:
         session.rollback()
     finally:
         session.close()
+        _flush_deferred_llm_call_log(ctx)
+
+
+def _flush_deferred_llm_call_log(ctx) -> None:
+    # Write-lock do SQLite liberado: só agora o LLMCallLog adiado do stage grava
+    # (ADR-173 §Emenda 2026-10-08) — e antes do `_record_stage_result`, onde o
+    # drift do parecer lê o ledger. Rollback também grava: o gasto aconteceu.
+    from backend.app.services.pipeline.run_context_factory import flush_deferred_llm_call_log
+
+    flush_deferred_llm_call_log(ctx)
 
 
 def _mark_run_started(run_id: str, tier: str, celery_task_id: str) -> bool:
@@ -918,7 +911,6 @@ def _record_stage_exception(
     run_id: str,
     stage_name: str,
     log_id: str,
-    attempts: int,
     exc_error: str | None,
     exc_tb: str | None,
     elapsed_ms: int,
@@ -926,17 +918,15 @@ def _record_stage_exception(
     outcome: "StageOutcome",
     reason_class: str = "unknown",
 ) -> None:
-    error_msg = f"{exc_error} (after {attempts} attempt(s))" if attempts > 1 else exc_error
     with SyncSessionLocal() as db:
         stage_log = db.get(PipelineStageLog, log_id)
         stage_log.status = _STAGE_STATUS_BY_OUTCOME[outcome]
         stage_log.duration_ms = elapsed_ms
         stage_log.completed_at = datetime.now(timezone.utc)
-        stage_log.errors = error_msg
+        stage_log.errors = exc_error
         stage_log.output_summary = {
             "error_type": exc_error.split(":")[0].strip() if exc_error else "Exception",
             "traceback": exc_tb,
-            "attempt_count": attempts,
             "reason_class": reason_class,
         }
         # Ver §3 em `_record_stage_result`: degradação não popula campo de falha.
@@ -1417,7 +1407,7 @@ def _execute_stages_loop(
     """
     from backend.app.services.pipeline import stage_failure_reason as sfr
     from pipeline.stage_outcome import (
-        commits_artifacts_on_degrade,
+        commits_stage_transaction,
         resolve_stage_outcome,
         stage_criticality,
     )
@@ -1468,21 +1458,18 @@ def _execute_stages_loop(
         ctx.artifact_store = store
 
         start_mono = time.monotonic()
-        result, attempts, exc_error, exc_tb, exc_reason = _run_stage_with_retry(
-            ctx, stage_name, run_stage_fn
-        )
+        result, exc_error, exc_tb, exc_reason = _run_stage_once(ctx, stage_name, run_stage_fn)
         elapsed_ms = int((time.monotonic() - start_mono) * 1000)
         completed_pct = int(((stage_idx + 1) / total_stages) * 100)
 
-        # Exception during stage (all retries exhausted): rollback + close.
+        # Exceção cruzou o executor (ADR-443 — tentativa única): rollback + close.
         if result is None:
             outcome = resolve_stage_outcome(stage_name, delivered=False)
-            _rollback_and_close_artifact_session(stage_session)
+            _rollback_and_close_artifact_session(stage_session, ctx)
             _record_stage_exception(
                 run_id,
                 stage_name,
                 log_id,
-                attempts,
                 exc_error,
                 exc_tb,
                 elapsed_ms,
@@ -1507,7 +1494,7 @@ def _execute_stages_loop(
         if result.success and _has_validation_errors(result):
             # needs_review: commit artefatos coletados antes de pausar.
             try:
-                _commit_and_close_artifact_session(stage_session)
+                _commit_and_close_artifact_session(stage_session, ctx)
             except Exception:  # noqa: BLE001
                 logger.exception("artifact commit failed on needs_review stage=%s", stage_name)
             _record_stage_needs_review(run_id, stage_name, log_id, result, elapsed_ms)
@@ -1527,7 +1514,7 @@ def _execute_stages_loop(
 
         if result.success:
             try:
-                _commit_and_close_artifact_session(stage_session)
+                _commit_and_close_artifact_session(stage_session, ctx)
             except Exception as exc:  # noqa: BLE001
                 logger.exception("artifact commit failed stage=%s: %s", stage_name, exc)
                 has_failure = True
@@ -1537,7 +1524,7 @@ def _execute_stages_loop(
                 if stop_on_error:
                     break
                 continue
-        elif outcome == "degraded" and commits_artifacts_on_degrade(stage_name):
+        elif commits_stage_transaction(stage_name, outcome):
             # ADR-357 §6 — artifact degradado é COMMITADO (nunca publicado): a
             # superfície de diagnóstico precisa ter o que ler, e o marcador
             # terminal promete "artefatos persistidos". A exceção travada é o
@@ -1546,11 +1533,11 @@ def _execute_stages_loop(
             # `_meta.status` que os dois leitores usam para discriminar, e
             # commitar mentiria sobre um E5 que está completo.
             try:
-                _commit_and_close_artifact_session(stage_session)
+                _commit_and_close_artifact_session(stage_session, ctx)
             except Exception as exc:  # noqa: BLE001
                 logger.exception("artifact commit failed on degrade stage=%s: %s", stage_name, exc)
         else:
-            _rollback_and_close_artifact_session(stage_session)
+            _rollback_and_close_artifact_session(stage_session, ctx)
 
         delivered = _record_stage_result(
             run_id,
@@ -1971,4 +1958,6 @@ def run_pipeline_task(
         return {"status": "completed" if not has_failure else "failed", "run_id": run_id}
     finally:
         obs_reset(obs_tokens)
+        # Fim de vida dos hooks do run: regrava o que um flush de stage devolveu ao pendente.
+        _flush_deferred_llm_call_log(ctx)
         _close_config_store_session(config_store_session)

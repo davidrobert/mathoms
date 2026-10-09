@@ -107,7 +107,7 @@ function ImportExportTabContent({ workspace }: { workspace: UserWorkspace }) {
   return (
     <div className="space-y-8">
       {error && <div className="rounded-lg bg-loss/10 p-3 text-sm text-loss">{error}</div>}
-      {success && <div className="rounded-lg bg-gain/10 p-3 text-sm text-gain">{success}</div>}
+      {success && <div className="rounded-lg bg-gain/10 p-3 text-sm text-gain-on-tint">{success}</div>}
 
       {/* Export */}
       <Card>

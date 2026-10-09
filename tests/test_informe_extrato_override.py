@@ -164,17 +164,17 @@ def test_sem_informes_passthrough():
 
 
 def test_cnpj_raiz_casa_descricao_sem_nome_do_banco():
-    """A representação que quebra hoje: 'Conta Corrente - Ag 9652...' não
+    """A representação que quebra hoje: 'Conta Corrente - Ag 1234...' não
     contém 'itau', mas o cnpj_emissor resolve para o code do catálogo."""
     entry = _entry(
         tipo="conta_corrente",
         moeda="BRL",
-        descricao="Conta Corrente - Ag 9652 Conta 0004397-8",
+        descricao="Conta Corrente - Ag 1234 Conta 0012345-6",
         cnpj_emissor="60701190000104",
         saldo_brl="0.00",
         saldo_original="0.00",
     )
-    pos = _posicao(banco="itau", moeda="BRL", valor_brl=5156.06, saldo_original=5156.06)
+    pos = _posicao(banco="itau", moeda="BRL", valor_brl=5000.00, saldo_original=5000.00)
     result = apply_informe_override([pos], [entry], cnpj_raiz_to_code={"60701190": ("itau",)})
     assert result.detalhes[0].fonte == "informe_31_12"
     assert entry["informe_venceu_extrato"] is True

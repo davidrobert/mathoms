@@ -133,18 +133,18 @@ def test_negativo_fisico_sobrevive_sem_mutacao(balde: str) -> None:
     assert result.motivo_supressao == f"balde_negativo: {balde}"
 
 
-# O r6 (`7b64b6c7`) publicou `imoveis_nao_geradores` = −125.381,88 com o agregado
-# `imoveis_investimento` POSITIVO em 437.324,36 — guarda restrita aos 7 baldes
+# O r6 (`7b64b6c7`) publicou `imoveis_nao_geradores` NEGATIVO com o agregado
+# `imoveis_investimento` POSITIVO — guarda restrita aos 7 baldes
 # ADR-145 erraria exatamente o run que motivou a lane.
 def test_split_derivado_negativo_e_pego_com_agregado_positivo() -> None:
     result = aplicar_guarda_de_sinal(
-        _baldes(imoveis_investimento="437324.36", imoveis_nao_geradores="-125381.88"),
+        _baldes(imoveis_investimento="400000.00", imoveis_nao_geradores="-100000.00"),
         modo=SignGuardMode.enforce,
     )
 
     assert [s.balde for s in result.sobreviventes] == ["imoveis_nao_geradores"]
-    assert result.baldes.imoveis_nao_geradores == Decimal("-125381.88")
-    assert result.baldes.imoveis_investimento == Decimal("437324.36")
+    assert result.baldes.imoveis_nao_geradores == Decimal("-100000.00")
+    assert result.baldes.imoveis_investimento == Decimal("400000.00")
 
 
 def test_corpus_limpo_nao_dispara_nada() -> None:

@@ -42,11 +42,10 @@ Existem **três** produtores de "gasto pontual" em produção, com filtros **dis
 
 Lista e KPI do mesmo card filtram coisas diferentes. O que **prescreve** é o que menos filtra.
 
-**Medido no dogfood** (janela 12m, `total_pontuais_janela` = R$ 394.525,39): R$ 194.886,65
-saem do C6Bank nomeando outro banco do próprio titular e R$ 32.000 são conversões BRL→USD
-na Wise — **57,5% da base** é movimentação patrimonial, toda caída em `nao_identificado`
-porque o detector não a pegou. E `aporte_investimento` é R$ 190.000 de `total_pontuais`
-(20,6%), que o parecer cita como âncora do risco "gastos pontuais elevados".
+**Medido no dogfood** (janela 12m): uma saída do C6Bank nomeando outro banco do próprio
+titular e conversões BRL→USD na Wise — **57,5% da base** é movimentação patrimonial, toda caída em `nao_identificado`
+porque o detector não a pegou. E `aporte_investimento` é 20,6% de
+`total_pontuais`, que o parecer cita como âncora do risco "gastos pontuais elevados".
 
 > A [[ADR-422]] tirou essa contaminação das prescrições **determinísticas** — a folga não lê
 > mais pontuais e o teto deixou de existir. **Mas o parecer ainda a consome:** o exec context
@@ -118,9 +117,9 @@ que existe num produtor e falta no outro"*. Medido, isolando cada causa:
 
 | recorte | Δ full | Δ janela |
 | --- | --- | --- |
-| ex-`transfer_categories` (aporte) | −R$ 190.000,00 | **R$ 0,00** |
-| ex-transferência interna **detectada** | **R$ 0,00** | **R$ 0,00** |
-| ex-`nao_identificado` | −R$ 348.916,19 | **−R$ 249.374,91** |
+| ex-`transfer_categories` (aporte) | −o aporte inteiro | **0** |
+| ex-transferência interna **detectada** | **0** | **0** |
+| ex-`nao_identificado` | −o maior dos três | **−63,2% da base da janela** |
 
 A metade "transferência interna" move **zero** porque o **E4 já a aplica**
 (`transaction_classifier.py:361`). A metade `transfer_categories` move zero **na
@@ -142,7 +141,7 @@ lado não alcança o outro.
 ### A cobertura da base é 36,8%, não "57,5% de contaminação"
 
 Os dois números são coisas diferentes e a lane os misturava: **63,2%** da janela
-(R$ 249.374,91) é `nao_identificado` — **não medido**; os R$ 226.886,65 (57,5%) são a
+é `nao_identificado` — **não medido**; os 57,5% são a
 fatia que a revisão **conseguiu identificar** como movimentação dentro desse balde. O
 resto é genuinamente desconhecido.
 
@@ -287,7 +286,7 @@ Os quatro PRs da tabela + os dois escapes herdados da [[A40.l101]] + o `LC6-06`.
   `test_fixture_discrimina_cada_motivo` vem **antes** dos gates de exclusão porque sem
   uma linha por motivo **acima do limiar** eles passariam por vacuidade.
 - **Nenhum número do dogfood real foi remedido.** Os deltas desta lane são da fixture
-  do repo e da aritmética; os R$ 190.000 / R$ 249.374,91 vêm da medição da
+  do repo e da aritmética; os 20,6% / 63,2% vêm da medição da
   [[ADR-425]], não de um run novo.
 - **`pontual_mensal` continua sem emitir** — sai desta lane por decisão do co-design.
 

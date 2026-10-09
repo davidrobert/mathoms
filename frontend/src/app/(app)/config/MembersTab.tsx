@@ -198,7 +198,7 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
         </div>
       )}
       {success && (
-        <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain">
+        <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain-on-tint">
           {success} <button onClick={() => setSuccess("")} className="ml-2 underline">fechar</button>
         </div>
       )}

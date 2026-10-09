@@ -44,7 +44,7 @@ tem dois valores:
 
 | Superfície | Resolver | Cônjuge |
 | --- | --- | --- |
-| `patrimonio.investimentos_conjuge` | `resolve_members` (`patrimonio_resolvers.py`) | `n=9` · **R$ 110.130,67** |
+| `patrimonio.investimentos_conjuge` | `resolve_members` (`patrimonio_resolvers.py`) | `n=9` · **C (> 0)** |
 | `total_financeiro` / `tabela_classes` / `top_ativos` | `E5MemberResolver` (`e5_member_resolver.py`) | `n=9` · **R$ 0,00** |
 
 Medido em `207fca00` sobre o run `33514dc4`; `git show --stat 11b90a4e` não lista
@@ -133,18 +133,18 @@ emite `investimentos_consolidados` como **lista** de itens com `proprietario` e
 
 ### A0 — a divergência é prospectiva; no payload guardado os dois lados dizem `0,00`
 
-A tabela do §Problema apresenta `110.130,67` e `0,00` como dois valores **no mesmo
+A tabela do §Problema apresenta `C` e `0,00` como dois valores **no mesmo
 payload**. O artefato do run `33514dc4` (`data_analise: 2026-08-18`) não mostra isso:
 
 | campo do artefato | valor |
 | --- | --- |
 | `patrimonio.investimentos_conjuge` | **0,0** |
-| `investimentos.total_financeiro` | `1.225.224,28` (= só o titular) |
+| `investimentos.total_financeiro` | `F` (= só o titular) |
 | `investimentos.instituicoes_por_membro[1]` | 3 instituições da cônjuge, **sem campo `n_posicoes`** |
 
 O run é de **2026-08-18**; o #1578 mergeou em **2026-08-19 19:19Z**. Os dois resolvers
-estavam no eixo do domicílio quando ele rodou, então **ambos** publicaram `0,00`. Os
-`110.130,67` são o que `resolve_members` produz **hoje** ao reprocessar aquele baseline
+estavam no eixo do domicílio quando ele rodou, então **ambos** publicaram `0,00`. O
+`C` é o que `resolve_members` produz **hoje** ao reprocessar aquele baseline
 — re-computação num commit posterior, não leitura do payload. E `n_posicoes` não existe
 no artefato: as linhas de `instituicoes_por_membro` têm só `membro` e `instituicoes`.
 
@@ -160,9 +160,9 @@ projeção do mecanismo pretendido, não medição do código que shipou.
 
 ### A — a instância confere, a premissa não
 
-Reproduzido: mesmo baseline, cônjuge vale **R$ 110.130,67** por `resolve_members` e
-**R$ 0,00** por `E5MemberResolver`; `tabela_classes` total move `1.335.354,95` →
-`1.225.224,28`. `git show --stat 11b90a4e` lista 13 arquivos e **nenhum** é
+Reproduzido: mesmo baseline, cônjuge vale **C** por `resolve_members` e
+**R$ 0,00** por `E5MemberResolver`; `tabela_classes` total cai exatamente `C`
+(−8,2%). `git show --stat 11b90a4e` lista 13 arquivos e **nenhum** é
 `e5_member_resolver.py`. Tudo isso se sustenta.
 
 O que **não** se sustenta é a leitura de que o delta seja o eixo de ano. Com o ano
@@ -190,7 +190,7 @@ autoritativo e remover o outro" perde dado nos **dois** sentidos, e os dois desf
   Os dois resolvers emitem **vereditos [[ADR-406]] opostos** sobre a mesma posição — e
   isso é ressalva, não valor, então o §Critério (escrito sobre valores) não alcança.
 - **Copiar `anos_base_por_membro` para o B** → o top-up sem guarda **subtrai
-  R$ 110.130,67 do titular** (`1.225.224,28` → `1.115.093,61`). A epígrafe diz que o
+  `C` do titular** (−9,0% no balde dele). A epígrafe diz que o
   remendo "fecha o número"; medido, ele **abre um número novo**, na mesma família
   `unattributed → titular` que a [[ADR-394]] §D8 cortou.
 
@@ -284,7 +284,7 @@ por mutação nos **dois** membros, sem backfill do corpus.
    | autoridade (o que o D2 leu) | `keyword` 56 · `sem_match` 5 | `keyword` 57 · `sem_match` 4 |
    | **classe** (o que importava) | Fundos 12 · Renda Fixa 21 | **Fundos 2 · Renda Fixa 32** |
 
-   **11 de 61 posições migram, R$ 174.636,71.** A autoridade quase não se move
+   **11 de 61 posições migram, 13,1% da carteira.** A autoridade quase não se move
    porque casou keyword nos dois casos — só mudou **qual** balde. Virou o
    **RV8-01** do r8, Crítico P0, e a regressão é desta lane. Ver §RV8-01 abaixo.
 2. **O mecanismo do §C estava impreciso.** `classify_asset_outcome` **concatena**
@@ -429,7 +429,7 @@ Medido, reclassificando os mesmos 61 itens do baseline do r8 com e sem `tipo`:
 | Fundos | 12 | **2** |
 | Renda Fixa | 21 | **32** |
 
-**11 de 61 posições migram · R$ 174.636,71 · 13,1% da carteira.** Todas com
+**11 de 61 posições migram · 13,1% da carteira.** Todas com
 `autoridade: "keyword"` — confiança plena. Zero `review_reason`,
 `nao_classificado_pct` parado, nenhum golden quebrado.
 

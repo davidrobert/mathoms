@@ -283,7 +283,7 @@ def _run(session: Session, *, execute: bool, max_delete: int) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
-    engine = create_engine(args.db_url or _resolve_db_url(), future=True)
+    engine = create_engine(args.db_url or _resolve_db_url(), future=True, hide_parameters=True)
     factory = sessionmaker(bind=engine, expire_on_commit=False, future=True)
     with factory() as session:
         return _run(session, execute=args.execute, max_delete=args.max_delete)

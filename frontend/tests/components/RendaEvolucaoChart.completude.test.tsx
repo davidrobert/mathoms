@@ -53,7 +53,7 @@ describe("<RendaEvolucaoChart /> · ADR-266 legenda completude", () => {
       evolucao_renda_anos: {
         "2023": "160000.00",
         "2024": "180000.00",
-        "2025": "5469.95",
+        "2025": "5000.00",
       },
       anos_completude_por_ano: {
         "2023": "completo",
@@ -74,7 +74,7 @@ describe("<RendaEvolucaoChart /> · ADR-266 legenda completude", () => {
       evolucao_renda_anos: {
         "2023": "160000.00",
         "2024": "180000.00",
-        "2025": "5469.95",
+        "2025": "5000.00",
       },
       anos_completude_por_ano: {
         "2023": "completo",

@@ -358,18 +358,18 @@ class TestMoedaEstrangeiraFallback:
         baseline = {
             "investimentos_consolidados": [
                 {
-                    "descricao": "DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 6.524,00",
-                    "valores_31_12": {"2025": 34433.67},
+                    "descricao": "DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 1.000,00",
+                    "valores_31_12": {"2025": 5500.00},
                     "proprietario": "david_robert",
                 },
                 {
-                    "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN)",
-                    "valores_31_12": {"2025": 484.80},
+                    "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ESTADOS UNIDOS)",
+                    "valores_31_12": {"2025": 500.00},
                     "proprietario": "david_robert",
                 },
                 {
                     "descricao": "BANCO ITAU - APLICACAO RENDA FIXA RDB/CDB",
-                    "valores_31_12": {"2025": 151602.49},
+                    "valores_31_12": {"2025": 100000.00},
                     "proprietario": "david_robert",
                 },
             ]
@@ -377,7 +377,7 @@ class TestMoedaEstrangeiraFallback:
 
         total, detalhes = _extract_me_caixa_from_baseline(baseline)
 
-        assert total == pytest.approx(34918.47, abs=0.01)
+        assert total == pytest.approx(6000.00, abs=0.01)
         assert len(detalhes) == 2
         assert all(d.tipo == "moeda_estrangeira_irpf" for d in detalhes)
         assert all(d.moeda == "BRL" for d in detalhes)
@@ -452,15 +452,15 @@ class TestMoedaEstrangeiraFallback:
         baseline = {
             "investimentos_consolidados": [
                 {
-                    "descricao": "DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 6.524,00",
-                    "valores_31_12": {"2025": 34433.67},
+                    "descricao": "DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 1.000,00",
+                    "valores_31_12": {"2025": 5500.00},
                 }
             ]
         }
 
         total, detalhes, _ = adapter._load_caixa_from_e3(store, baseline=baseline)
 
-        assert total == pytest.approx(35433.67, abs=0.01)  # 1000 BRL + 34433.67 IRPF
+        assert total == pytest.approx(6500.00, abs=0.01)  # 1000 BRL + 5500.00 IRPF
         assert any(d.tipo == "moeda_estrangeira_irpf" for d in detalhes)
         assert any(d.tipo == "caixa" for d in detalhes)
 
@@ -732,10 +732,10 @@ class TestA6d33Wiring:
         store = InMemoryArtifactStore()
         _seed_minimal(store)
         for per_fim, saldo in (
-            ("2024-03-31", 22120.66),
-            ("2025-01-31", 80629.65),
-            ("2026-04-15", 847.26),
-            ("2024-10-31", 149551.72),
+            ("2024-03-31", 20000.00),
+            ("2025-01-31", 80000.00),
+            ("2026-04-15", 850.00),
+            ("2024-10-31", 150000.00),
         ):
             store.seed(
                 "E3",
@@ -750,9 +750,9 @@ class TestA6d33Wiring:
             )
         adapter = E5AnalyzerAdapter()
         total, detalhes, _ = adapter._load_caixa_from_e3(store)
-        assert total == 847.26
+        assert total == 850.00
         assert len(detalhes) == 1
-        assert detalhes[0].saldo_original == 847.26
+        assert detalhes[0].saldo_original == 850.00
 
     def test_load_caixa_keeps_distinct_accounts(self):
         """Contas distintas (banco ou titular diferente) não são deduplicadas."""
@@ -814,25 +814,14 @@ class TestA6d33Wiring:
         assert adapter._identity.titular_key == "carlos"
         assert adapter._identity.conjuge_key == "ana"
 
-    def test_residencia_property_ids_extracted_from_overrides(self):
-        """ADR-215 §1 sunset: subset `residencia_principal` é extraído de
-        `property_classification_overrides` e propagado para analyzers
-        downstream (`classes`, `top_ativos`, `instituicoes`)."""
-        adapter = E5AnalyzerAdapter.from_configs(
-            property_classification_overrides={
-                "prop-residencia": "residencia_principal",
-                "prop-locado": "locado",
-            }
-        )
-        assert adapter._inv_classes._config.residencia_property_ids == frozenset(
-            {"prop-residencia"}
-        )
-        assert adapter._top_ativos._config.classes_config.residencia_property_ids == frozenset(
-            {"prop-residencia"}
-        )
-        assert adapter._instituicoes._config.classes_config.residencia_property_ids == frozenset(
-            {"prop-residencia"}
-        )
+    def test_overrides_de_imovel_chegam_inteiros_a_classes_e_ranking(self):
+        """ADR-215 §1: classes e ranking recebem o mapa inteiro, não um set derivado —
+        cada imóvel passa pelo mesmo `classificacao_do_imovel` do patrimônio."""
+        overrides = {"prop-residencia": "residencia_principal", "prop-locado": "locado"}
+        adapter = E5AnalyzerAdapter.from_configs(property_classification_overrides=overrides)
+        assert adapter._inv_classes._config.property_classification_overrides == overrides
+        top_cfg = adapter._top_ativos._config.classes_config
+        assert top_cfg.property_classification_overrides == overrides
 
 
 class TestA75TypedCambio:

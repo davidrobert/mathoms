@@ -99,3 +99,10 @@ export function monthLabelToDateRange(
   const end = `${yyyy}-${mm}-${String(lastDay).padStart(2, "0")}`;
   return { date_from: start, date_to: end };
 }
+
+/** Só barra com eixo de meses tem destino no clique — nas demais (classes de
+ *  investimento) o cursor de link prometeria um clique que não leva a nada. */
+export function isMonthlyBarChart(chart: DashboardChart): boolean {
+  const { rows } = normalizeBarData(chart);
+  return rows.length > 0 && rows.every((row) => monthLabelToDateRange(row.month) !== null);
+}

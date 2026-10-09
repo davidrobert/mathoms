@@ -14,7 +14,7 @@ import { ReviewNatureBadge } from "./ReviewNatureBadge";
 
 export function SeverityIcon({ severity }: { severity: "error" | "warning" }) {
   const Icon = severity === "error" ? AlertCircle : AlertTriangle;
-  const cls = severity === "error" ? "text-loss" : "text-alert";
+  const cls = severity === "error" ? "text-loss" : "text-alert-on-tint";
   return <Icon aria-hidden className={`h-4 w-4 shrink-0 ${cls}`} />;
 }
 
@@ -26,7 +26,7 @@ export function CountPill({
   severity: "error" | "warning";
 }) {
   const cls =
-    severity === "error" ? "bg-loss/10 text-loss" : "bg-alert/10 text-alert";
+    severity === "error" ? "bg-loss/10 text-loss" : "bg-alert/10 text-alert-on-tint";
   return (
     <span
       aria-hidden

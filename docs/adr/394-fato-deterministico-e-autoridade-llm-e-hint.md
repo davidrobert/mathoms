@@ -265,18 +265,18 @@ Medido sobre `report_data.json` dos 6 runs completos do dogfood, campo a campo:
 | nível | disparo | leitura |
 | --- | --- | --- |
 | 6 componentes < 0 | **0/36** (0 em 6 runs) | a guarda no componente não teria disparado em nenhum run |
-| split derivado < 0 | **1/12** — só r6, `imoveis_nao_geradores` = −125.381,88 | é o único negativo publicado do corpus |
-| linhas de `caixa_detalhes` < 0 | **6/6 runs**, sempre a mesma linha de −95,62 | anula dentro de um caixa de +257.683,53 |
+| split derivado < 0 | **1/12** — só r6, `imoveis_nao_geradores` negativo | é o único negativo publicado do corpus |
+| linhas de `caixa_detalhes` < 0 | **6/6 runs**, sempre a mesma linha negativa (~0,04% do caixa) | anula dentro do próprio caixa positivo |
 
 Três consequências de desenho, todas medidas e não estimadas:
 
 1. **A guarda mede agregado, não linha.** No nível da linha ela dispararia em 6/6
-   runs por R$ 95,62 que se anulam dentro do próprio balde — ruído recorrente, o
+   runs por uma linha de ~0,04% do caixa que se anula dentro do próprio balde — ruído recorrente, o
    modo de falha que a [[A40.l67]] cita ao exigir a rota de reclassificação.
 2. **O split derivado precisa estar coberto.** Ele é o único negativo publicado
    do corpus; uma guarda restrita aos 7 baldes [[ADR-145]] erraria exatamente o
    run que a motivou. No r6 o agregado `imoveis_investimento` seguia **positivo**
-   (437.324,36) com o negativo escondido dentro do split.
+   com o negativo escondido dentro do split.
 3. **O disparo esperado em regime é 0.** O único disparo do corpus é o r6, cuja
    causa a [[A40.l66]] fechou a montante (o item negativo não chega mais a balde
    de ativo). A guarda é rede, não detector primário.
@@ -331,16 +331,16 @@ buraco contaria como "100% coberto" no denominador errado.
 
 | run | `fonte_investimentos` | titular | cônjuge | `pl_ressalva` |
 | --- | --- | --- | --- | --- |
-| r1–r4 (07-25 → 08-04) | `posicoes_atuais+irpf` | 943.189,25 | 188.123,73 | `false` |
-| r5 (`0a040a22`) | `posicoes_atuais` | 943.189,25 | **0,00** | `false` |
-| r6 (`7b64b6c7`) | `posicoes_atuais` | 943.189,25 | **0,00** | `false` |
+| r1–r4 (07-25 → 08-04) | `posicoes_atuais+irpf` | T | C (> 0) | `false` |
+| r5 (`0a040a22`) | `posicoes_atuais` | T | **0,00** | `false` |
+| r6 (`7b64b6c7`) | `posicoes_atuais` | T | **0,00** | `false` |
 
 - **`nao_apurado` em r5+r6: 2/4 instâncias-membro (50%)**; sobre os 6 runs,
   **2/12 (17%)**. É o budget WARN-first do item 3a.
 - **A regressão é datada e localizada.** Entre r4 (2026-08-04) e r5 (2026-08-16)
   o `fonte_investimentos` caiu de `posicoes_atuais+irpf` para `posicoes_atuais`:
   o fallback IRPF do cônjuge **deixou de disparar** (`if irpf_conjuge > 0`), e
-  o balde foi de 188.123,73 para 0,00. Não é um zero antigo — é um valor que o
+  o balde foi de C (positivo) para 0,00. Não é um zero antigo — é um valor que o
   relatório publicava e parou de publicar, sem dizer nada.
 - **`pl_ressalva` é `false` em 6/6 runs** — inclusive nos 2 em que a cobertura
   quebrou. Isso mede, em vez de supor, que ela é **inerte** para esta classe: a
@@ -419,7 +419,7 @@ abaixo — e a [[ADR-346]] já a decidiu ("ausência não vira zero"); ela só n
 aplicada aqui.
 
 Medido no corpus: o balde do cônjuge saía `0,00` com os 9 lançamentos dela
-valorando **R$ 110.130,67** em 2023. A simetria prova que o defeito é do eixo e
+valorando um saldo positivo em 2023. A simetria prova que o defeito é do eixo e
 não do cônjuge — forçando o ano do domicílio para 2023, quem zera é o **titular**.
 
 Consequências:
@@ -435,7 +435,7 @@ Consequências:
   a valer só quando os dois membros estão no mesmo ano. `total_bens_summary` é de
   um ano só; com anos distintos a divergência dispara por construção e o resíduo
   fabricaria patrimônio — mesma família do `unattributed → titular` que a §D8
-  cortou. Medido: sem a guarda o titular perdia R$ 110k.
+  cortou. Medido: sem a guarda o titular perdia o equivalente ao saldo do cônjuge.
 
 ### Correção da §Taxa de disparo medida (b)
 
@@ -498,9 +498,9 @@ render, fora desta lane.
 ## Emenda 2026-08-21 (d) — o eixo de ano era metade; a outra é o documento que nunca entrou
 
 A §Emenda (c) mediu que o ano-base era do domicílio e que isso zerava quem
-declarava em ano disjunto. Estava certo e o fix (D10) recuperou **R$ 110.130,67**.
-Mas o balde do cônjuge valia **R$ 298.254,40** antes de 2026-08-12, e a (c) não
-explica os **R$ 188.123,73** restantes.
+declarava em ano disjunto. Estava certo e o fix (D10) recuperou **~37%** do balde do cônjuge.
+Mas o balde valia mais antes de 2026-08-12, e a (c) não explica os **~63%**
+restantes.
 
 **Eles nunca entraram no pipeline.** `pipeline/stages/extract_baseline.py`
 seleciona documentos com `sorted(rglob)` — ordem lexicográfica sobre **hash de
@@ -633,6 +633,6 @@ O segundo termo vem da [[ADR-431]], que resolve o fato **um grão abaixo**, onde
 eixos; os consumidores não mudam, porque já leem `motivo_supressao_do_patrimonio`.
 
 **O que continua verdade.** Descer a guarda ao grão da linha **genericamente** segue
-fora: a §Taxa de disparo mediu o modo de falha (6/6 runs por R$ 95,62 que se anulam
+fora: a §Taxa de disparo mediu o modo de falha (6/6 runs por uma linha de ~0,04% do caixa que se anula
 dentro do próprio caixa). O escopo da ADR-431 é **item de ativo físico**, onde negativo
 é impossível por definição — não a linha em geral.

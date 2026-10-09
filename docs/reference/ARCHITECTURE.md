@@ -433,7 +433,6 @@ de `stage`, portanto redundante. Não construir sobre ela.
 | **vault** | Encrypt/decrypt passwords at-rest (Fernet) |
 | **pdf_renderer** | Server-side PDF via Playwright headless Chromium |
 | **events** | Redis Pub/Sub publisher para WebSocket |
-| **retry_config** | Retry strategies & backoff |
 | **seed** | Populate initial workspace data (demo/template) |
 | **tarefas_md_parser** | Parse legacy tarefas.md → task objects |
 

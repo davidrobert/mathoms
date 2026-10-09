@@ -53,7 +53,6 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 
 | Arquivo | Nome | Tipo | Veredito |
 |---|---|---|---|
-| `services/pipeline/retry_config.py:44` | `STAGE_RETRY_CONFIGS` | `dict[str, StageRetryConfig]` frozen | ✅ imutável (criado uma vez, lido) |
 | `services/classification/institution_classifier.py:11` | `INSTITUTION_CONTENT_PATTERNS` | `list[tuple[re.Pattern, str]]` | ✅ regex compilado, nunca alterado (re-exportado por `documents/content_classifier.py`) |
 | `services/classification/period_extractor.py:7-27` | `_PERIOD_RANGE_RE`, `_YYYYMM_RE`, `_MONTH_YEAR_BR_RE`, `_MESES` | regex + mapping | ✅ imutável |
 | `services/tarefas_md_parser.py:20-146` | `_MD_TO_CATEGORY`, `_MONTH_PT`, `_STATUS_FROM_MD`, `_*_RE` | mapping + regex | ✅ imutável |
@@ -81,6 +80,7 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `pipeline/domain/lineage_registry.py:26` | `LINEAGE_RULE_REFS` | `dict[str, dict[str, str]]` literal eager | ✅ categoria (a) — mapping de domínio imutável (ADR-281 B2, bridge nó-de-lineage → código); refactor-safe via `dev/check_lineage_refs.py` |
 | `pipeline/llm/response_cache.py` (ADR-307 · W6-T02) | cache de resposta LLM | Redis via `WorkspaceContext.llm_response_cache` | ✅ categoria (b) — estado vive no Redis compartilhado (`mathoms:llm:resp:*`, TTL 7d); o pipeline só carrega o Protocol injetado (mesmo padrão `llm_call_hooks`); `NoOpLLMCache` degrada em miss quando Redis cai |
 | `core/llm_metrics.py:107` (A33.l7 · ADR-110) | `_EMITTER_SINGLETON` | `OtelLLMMetrics` lazy singleton | ✅ categoria (b) — mesma env (`OTEL_EXPORTER_OTLP_ENDPOINT`) produz o mesmo emitter em qualquer worker; instrumentos OTel são thread-safe por contrato do SDK e o agregado vive no collector, não no processo. Sem endpoint → `None` (no-op, opt-in ADR-110) |
+| `services/llm_budget_service.py` (A42.l7 · ADR-173 §Emenda 2026-10-08) | `LLMBudgetService._pending` | `list` + `threading.Lock` **por instância** | ✅ categoria (b) — não é global: vive o tempo dos hooks do run (Celery, `run_coordinator`) ou do stage (executor HTTP/CLI) e só existe em engine de writer único (SQLite). É gravado ao fechar cada sessão de stage e no `close()` do contexto; crash do worker perde o pendente (só SQLite, aceito na emenda). Lock porque o `extract_with_llm` chama o LLM em `ThreadPoolExecutor` com os hooks compartilhados |
 
 **Veredito:** ✅ **OK**. Todos os globais são (a) constantes imutáveis —
 safe; ou (b) singletons idempotentes inicializados lazy — cada worker

@@ -226,6 +226,15 @@ Painel de 4 especialistas sobre 3 lacunas que uma recon adversarial expôs
    > (era repetida 4×). Teste alimentado pelo produtor
    > (`backend/tests/test_stage_retry_vocabulary.py`), provado por mutação —
    > contra a tabela antiga, exatamente os 5 casos dos gaps ficam vermelhos.
+   >
+   > ⚠️ **Correção 2026-10-08 ([[ADR-443]]) — o "retry que funciona" nunca
+   > funcionou.** A refutação acima acertou o casamento de substring e errou o
+   > objeto: `should_retry` nunca era chamado sobre falha de stage, porque
+   > `orchestrator._run_stage` achata a exceção do runner antes de
+   > `_run_stage_with_retry` — nos 4 stages da tabela, desde que o retry nasceu. O
+   > teste "alimentado pelo produtor" provava `_normalize`, não o retry: o fake
+   > levantava direto no `run_stage_fn` e pulava o orquestrador. Tabela, vocabulário
+   > e teste foram apagados; o stage roda uma vez por run.
 6. **Observabilidade é condição de merge, não follow-up** — log sem sink é
    silêncio com outra sintaxe. Ver §Decisões do dono, itens 1 e 2.
 
@@ -271,6 +280,10 @@ de ADR é reservado em prosa (precedente [[ADR-356]]).
 4. **Assimetria de retry** — `retry_config["review_finances_holistic"]` só
    alcança o caminho de exceção. Nomeado como **não-corrigido aqui** para que
    ninguém "harmonize" e re-pague o stage LLM (regressão que a A37.l12 fechou).
+   **Fechado 2026-10-08 pela [[ADR-443]]:** não havia assimetria — a tabela era
+   inerte nos 4 stages, não só neste, porque nenhuma exceção de stage chega ao
+   retry in-process. A camada foi apagada, não harmonizada: o stage roda uma vez e
+   o stage LLM não é re-pago.
 5. **Run só-de-cauda com `from_stage`** — `_find_latest_analysis_artifact`
    filtra por `pipeline_run_id`, então o re-run não cria row em `reports`.
    Verificado que **não destrói** a existente; a dívida é o teste de regressão
@@ -299,11 +312,16 @@ de ADR é reservado em prosa (precedente [[ADR-356]]).
    composto agora é escolher o índice errado com custo de migration. Gatilho de
    retomada: Postgres vivo **e** rows degradadas na casa dos milhares, **ou** p95
    do endpoint encostando no 1s do `SLO.md`.
-9. **CI própria do `frontend-ops`** — lane A42. O app não está em nenhum workflow;
+9. ~~**CI própria do `frontend-ops`** — lane A42. O app não está em nenhum workflow;
    o PR2 fechou só a falha específica (paridade do `types.ts` por pytest + 1 linha
    no `files_yaml`). Job mínimo defensável: `setup-node@v4` + `npm ci` +
    `typecheck` + `lint`, gateado por grupo `frontend_ops` novo, sem Playwright e
-   sem `build`.
+   sem `build`.~~ **Entregue em 2026-10-08 no #2069, e COM `build`.** A lane A42
+   nunca foi criada. O security update #2057 subiu `tailwindcss` 3→4 junto do
+   fix de `next` e quebrou o `next build` do app (consertado no #2066) com
+   `typecheck` e `lint` verdes — só o `build` executa o PostCSS, então o "sem
+   `build`" deste item teria repetido o falso-verde. Job `frontend-ops-checks`
+   em `ci.yml`, no fecho do `All checks green`.
 
 ## Critério de aceite
 

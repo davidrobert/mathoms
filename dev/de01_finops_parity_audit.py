@@ -28,7 +28,7 @@ def _session_factory():
 
     default_db = REPO_ROOT / "mathoms.db"
     db_url = os.environ.get(_ENV_DB, f"sqlite:///{default_db}")
-    return sessionmaker(bind=create_engine(db_url, future=True), future=True)
+    return sessionmaker(bind=create_engine(db_url, future=True, hide_parameters=True), future=True)
 
 
 def _llm_cents_for(session, *, run_id: str, stage: str) -> int | None:

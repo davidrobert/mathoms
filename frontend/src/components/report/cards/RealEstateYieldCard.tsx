@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CardVariant } from "@/generated/report-layout";
+import { formatPercent } from "@/lib/format";
 import type {
   RealEstateAlerta,
   RealEstateBenchmarks,
@@ -91,11 +92,11 @@ function RealEstateHero({ data }: { data: RealEstateData }) {
           Cap rate líquido
         </p>
         <p className="font-mono text-4xl font-semibold tabular-nums leading-none">
-          {cap.toFixed(2).replace(".", ",")}%
+          {formatPercent(cap, 2)}
           <span className="ml-2 text-xl text-[var(--surface-muted-foreground)]">a.a.</span>
         </p>
         <p className="text-sm text-[var(--surface-muted-foreground)]">
-          {(data.concentracao_pct ?? 0).toFixed(1).replace(".", ",")}% da carteira
+          {formatPercent(data.concentracao_pct ?? 0)} da carteira
           produtiva em imóveis ilíquidos · cap rate sobre {data.imoveis.length}{" "}
           {data.imoveis.length === 1 ? "imóvel" : "imóveis"} com renda apurada
         </p>
@@ -143,7 +144,7 @@ function RealEstateBarChart({
               opacity: r.isSelf ? 1 : 0.5,
             }}
           />
-          <span className="font-mono tabular-nums">{r.value.toFixed(2).replace(".", ",")}%</span>
+          <span className="font-mono tabular-nums">{formatPercent(r.value, 2)}</span>
         </li>
       ))}
     </ul>
@@ -253,7 +254,7 @@ function RealEstateRow({ im }: { im: RealEstateImovel }) {
       </td>
       <td className="py-2 pr-2 text-right font-mono tabular-nums">
         {im.cap_rate_liquido_pct !== null
-          ? `${im.cap_rate_liquido_pct.toFixed(2).replace(".", ",")}%`
+          ? formatPercent(im.cap_rate_liquido_pct, 2)
           : "—"}
       </td>
       <td className="py-2">

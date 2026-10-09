@@ -12,7 +12,7 @@ from pathlib import Path
 from app.contracts.runs import RunStartRequest, RunSummaryResponse
 from app.contracts.stages import StageExecuteResponse
 from app.services.artifact_session import (
-    commit_and_close,
+    close_by_outcome,
     open_artifact_store,
     rollback_and_close,
 )
@@ -96,8 +96,18 @@ def _execute_one_stage(req: RunStartRequest, ctx, stage: str) -> StageExecuteRes
         rollback_and_close(session)
         raise
     else:
-        commit_and_close(session)
+        close_by_outcome(session, stage, sr)
+    finally:
+        _flush_deferred_llm_call_log(ctx)
     return _to_response(sr)
+
+
+def _flush_deferred_llm_call_log(ctx) -> None:
+    # Sessão do stage já fechada nos dois ramos: o LLMCallLog adiado em SQLite
+    # grava agora, não no fim do run (ADR-173 §Emenda 2026-10-08).
+    from backend.app.services.pipeline.run_context_factory import flush_deferred_llm_call_log
+
+    flush_deferred_llm_call_log(ctx)
 
 
 def _publish_stage_outcome(

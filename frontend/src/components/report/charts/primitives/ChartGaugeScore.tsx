@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { formatNumber } from "@/lib/format";
 import {
   type GaugePalette,
   type ScoreClasseKey,
@@ -244,7 +245,7 @@ export function ChartGaugeScore({
     return () => ro.disconnect();
   }, [value, max, animProgress, themeKey]);
 
-  const formattedValue = value.toFixed(1).replace(".", ",");
+  const formattedValue = formatNumber(value, 1);
   const computedAria =
     ariaLabel ?? `Score ${formattedValue} de ${max}, classificação ${classeLabel}`;
 

@@ -9,7 +9,7 @@
 > CHANGELOG, READMEs de pacote), logs estruturados (`mathoms.*`) e
 > comentários de código — esses ficam fora do escopo.
 >
-> **Última revisão:** 2026-07-04.
+> **Última revisão:** 2026-10-09.
 
 ---
 
@@ -230,6 +230,20 @@ quando o dado simplesmente não foi capturado.
 - **Nunca** usar `float` para arredondar (ADR-090) — `Money.brl()` /
   `Decimal`. Arredondamento é responsabilidade do backend; UI apenas
   formata.
+
+### 4.6 Percentual
+
+- Separador decimal: `,` (vírgula), o mesmo do §4.1 — `42,8%`, nunca `42.8%`.
+- Renderização via `formatPercent(valor, casas)` (`frontend/src/lib/format.ts`,
+  1 casa por padrão). Os campos `*_pct` já chegam absolutos — `44.7` é 44,7%
+  ([[ADR-209]]); o formatador não multiplica.
+- `toFixed` não conhece locale e escreve o ponto. Em
+  `frontend/src/components/report/` o ESLint reprova `toFixed(n)` colado ao `%`.
+- Número com casas que não é percentual (meses, nota, contribuição) usa o mesmo
+  separador via `formatNumber(valor, casas)`. A vírgula escrita à mão —
+  `toFixed(n).replace(".", ",")` — também é reprovada pelo ESLint no relatório:
+  arredonda o binário (`0.35` vira `0,3`; o Intl dá `0,4`, o half-up do §4.5) e
+  não agrupa milhar.
 
 ---
 

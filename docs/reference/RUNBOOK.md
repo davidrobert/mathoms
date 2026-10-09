@@ -752,6 +752,12 @@ específico do dogfood e **não** existia sob `InProcess`:
 artefatos enquanto o worker escreve `pipeline_runs`/eventos, e SQLite WAL admite
 um escritor por vez. **1 ocorrência = rollback.**
 
+> **Correção 2026-10-08 ([[A42.l7]]).** "Não existia sob `InProcess`" era falso: o
+> loop Celery em Python produzia `database is locked` em todo stage LLM multi-call —
+> o `record_call` do `LLMCallLog` esbarrava no write-lock da sessão do stage e o aviso
+> era engolido. A lane passou a adiar esse registro até a sessão fechar; em log de
+> worker anterior à correção, a ocorrência **não** é sinal do shell Go.
+
 ---
 
 ## 12. Referências
@@ -761,6 +767,7 @@ um escritor por vez. **1 ocorrência = rollback.**
 - [runbooks/schema_validation_strict_flip.md](runbooks/schema_validation_strict_flip.md) — flip warn→strict per-schema (gate por baseline 7d + rollback de 1 linha, ADR-284)
 - [runbooks/override_legacy_drop.md](runbooks/override_legacy_drop.md) — ADR-282 Fase E: drop destrutivo do hash legado de override (gates G1/G2/G2b/G3 + backup/PITR + sign-off do owner; drafts da migration destrutiva e do sentinela G3 em apêndice — drop gated por go/no-go)
 - [runbooks/disaster_recovery.md](runbooks/disaster_recovery.md) — **DR canônico**: `RPO ≤ 24h · RTO ≤ 4h`, custódia da chave Fernet, ordem de restore e a fronteira DR ≠ rollback ([[ADR-228]])
+- [runbooks/planner_golden_rebaseline.md](runbooks/planner_golden_rebaseline.md) — rebaseline do golden mensal do parecer com LLM real: branch do workflow + PR aberto pelo humano, sem auto-merge (Ruleset rejeita push em `main`; [[ADR-322]])
 - [runbooks/vault_full_audit.md](runbooks/vault_full_audit.md) — auditoria full (100%) do vault: 3 fases ou one-shot `/audit-vault --scope all --full` (modo de evento, ADR-302)
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
 - [BACKLOG.md](../BACKLOG.md) — 7E (operational readiness) · F7F-Local

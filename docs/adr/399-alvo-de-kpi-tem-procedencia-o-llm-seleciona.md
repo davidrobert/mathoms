@@ -37,7 +37,8 @@ aliases:
 > duas direções — `operador` estreita para `{<=, >=}` e o construtor de `KpiTarget` recusa
 > operador estrito. Concentração passa de `<` a `<=`, que é como agregador, red-line e
 > registro de risco sempre julgaram; **despesas não identificadas vira órfã por (b)** — o
-> número fala da leitura do relatório, não da família. Ver §Emenda 2026-10-08.
+> número fala da leitura do relatório, não da família. E a **D1 estampa o veredito**
+> (`comparador`, `nivel_confianca`): o front desenha, não julga. Ver §Emenda 2026-10-08.
 >
 > ⚠️ **Emendada em 2026-08-28** ([[A40.l93]]): o **path do observado é requisito do
 > catálogo** — alvo cujo observado o resolver do parecer não consegue ler é o comparador
@@ -214,9 +215,9 @@ domínio decidida e vale publicar ao usuário.
 
 **E2 — `protecao_cobertura` → `protecao_custo_premio`.** A chave nomeava um conceito que
 o payload **não publica**: não existe agregado de capital segurado no schema, por desenho
-— é a própria [[ADR-387]]. O que `pct_renda_anual` entrega é prêmio/renda. Medido:
-6.022,27 / 0,005686 ⇒ renda ≈ 1,06 MM, logo **razão 0–1** declarada como `pct`; quem
-lesse pelo contrato publicaria 0,0057% no lugar de 0,57%. Agora `unidade: ratio_0_1`,
+— é a própria [[ADR-387]]. O que `pct_renda_anual` entrega é prêmio/renda. Medido no
+dogfood: prêmio ÷ valor publicado só reproduz a renda sob **razão 0–1**, declarada como
+`pct`; quem lesse pelo contrato publicaria 0,006% no lugar de 0,6%. Agora `unidade: ratio_0_1`,
 base `renda_anual_liquida`.
 
 **E3 — `rotulo` entra no catálogo.** O nome da métrica carrega domínio e rótulo autorado
@@ -394,9 +395,45 @@ Duas correções de contrato no mesmo produtor:
 - O produtor do tier julgava o share **bruto** e publicava 1 casa: 10,04% saía `parcial` ao
   lado de "10,0%". Passa a arredondar uma vez e a julgar e narrar nessa precisão.
 
+### E11 — o veredito da métrica viaja como dado (emenda à D1)
+
+A D1 derivou `target` e `valor_atual` e parou ali: o finalize consumia o `operador` só para
+pôr o glifo na string, e o front re-derivava os dois números por regex sobre a string
+renderizada. A regex comia o glifo — `"≤ 20,0%"` e `"≥ 20,0%"` eram indistinguíveis — e a
+trilha `clamp(atual / alvo)` de um teto ENCHIA conforme a métrica piorava: 45% contra
+`≤ 20%` desenhava barra cheia, a gramática de "meta atingida" sobre uma violação de 25pp. A
+mesma classe de defeito desta ADR, um andar acima: autoridade determinística perdida na
+serialização.
+
+A D1 passa a estampar, ao lado de `target`, o **veredito** — e o front só desenha:
+
+- `comparador = {operador, conforme, progresso_pct}`, calculado sobre o valor **bruto** pelo
+  predicado único `conforme_ao_limiar` (E9), só quando a linha publica alvo E observado. O
+  `operador` vai cru; `progresso_pct` existe só no piso e vale 100 **se e só se** conforme —
+  pela estrutura, não pela aritmética.
+- `nivel_confianca`, para a órfã cuja situação é o nível que o produtor publica (E10),
+  declarado no catálogo em `NIVEL_DO_PRODUTOR_PATH`, sem recálculo.
+- Número e status não se contradizem na mesma linha: se 1 casa põe o observado do lado
+  errado do limiar, o `valor_atual` ganha a 2ª (20,04 → "20,04%"). Arredondar na direção do
+  veredito fabricaria número; o resíduo abaixo de meio centésimo é limite declarado.
+- O veredito julga o número **cru**, não o que o resolver formatou para quem lê: com o hint
+  `percent2`, o observado chegava "62,50%" e o veredito da concentração nunca saía em
+  produção. E onde o catálogo declara um extremo conservador (`OBSERVADO_CONSERVADOR_PATH`;
+  hoje, o piso com titular identificado da reserva), o veredito vai nele e a medida sai como
+  intervalo — a regra geral da [[ADR-412]] §E3, para a tabela nunca contradizer o canal de
+  risco, que já julga o piso.
+
+A leitura segue **subtrativa** (§Emenda 2026-08-27): o read-path só repassa `comparador` de
+linha carimbada que ainda publica alvo, forma inválida vira `None` (nunca 500), e parecer de
+era anterior ao campo perde a situação — nada a recalcula sobre documento entregue. O cache
+guarda o output já estampado, então `_SCHEMA_VERSION` foi a 1.2, e o par (versão, campos
+estampados) passa a ser gateado por introspecção da árvore do output: o `section_id`
+estampado da [[A40.l117]] tinha entrado sem bump, e nada via.
+
 ### O que esta emenda NÃO faz
 
 - **Não pareia o alvo de reserva com o gatilho.** O alvo (`meses_alvo` por perfil) e o
   gatilho (`reserva_minima_meses`) são dois limiares, não duas leituras do mesmo.
-- **Não publica o veredito.** O `comparador` no wire do parecer é o restante da [[A40.l92]],
-  com emenda própria à D1.
+- **Não desenha severidade.** O veredito é conforme/não conforme; os degraus acima do teto
+  (concentração 75, despesas 30) seguem no canal de risco, que é a fonte única da
+  severidade — a tabela pode dizer menos que ele, nunca contradizê-lo.
