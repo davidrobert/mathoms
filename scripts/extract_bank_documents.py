@@ -259,7 +259,6 @@ class _Routing:
 class _ExtractedDocument:
     """Documento que passou pela fase de parse e aguarda o store."""
 
-    file_name: str
     stage: str
     key: str
     payload: Dict[str, Any]
@@ -283,7 +282,6 @@ def _ready_document(
     from pipeline.domain.services.e2_natural_key import stamp_natural_key
 
     return _ExtractedDocument(
-        file_name=file_path.name,
         stage="extract_with_llm" if is_llm else routing.stage_for(file_path),
         key=_artifact_key_for_file(file_path),
         payload=result,
@@ -306,7 +304,7 @@ def _parse_document(
     if is_llm and routing.escalates_in_place:
         key = _artifact_key_for_file(file_path)
         return _ExtractedDocument(
-            file_path.name, routing.target_stage, key, result, escalation_stub=True
+            stage=routing.target_stage, key=key, payload=result, escalation_stub=True
         )
     doc = _ready_document(file_path, result, routing)
     # Depois do stamp: se ele levantar, o documento conta uma vez só no except.
