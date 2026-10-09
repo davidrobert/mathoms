@@ -47,7 +47,7 @@ Concentração imobiliária alta = passivo imobilizado dominante em vez de carte
 **Doutrina canônica.** Decidida em [ADR-177](../../adr/177-thresholds-e-referencias-metodologicas-como.md) (rules-as-code consolidation Sprint A10.2). Alternativas rejeitadas: (1) `goals.json` como source of truth via `ConfigStore.get_methodology_thresholds()` — perpetua mock-config-driven, ninguém edita JSON em produção (ADR-143 já provou); (2) tabela DB versionada estilo `fiscal_parameters` — overkill para 7 thresholds estáveis. Mudar o valor exige PR + revisão (gate intencional); demanda real de override por cliente migra para Goal type dedicado.
 
 **Enforcer.**
-- [`pipeline/domain/services/real_estate_metrics.py`](../../../pipeline/domain/services/real_estate_metrics.py) — `RealEstateConfig.concentracao_alerta_pct: Decimal = Decimal("40.0")` (default do alerta).
+- [`pipeline/domain/services/real_estate_metrics.py`](../../../pipeline/domain/services/real_estate_metrics.py) — `RealEstateConfig.concentracao_alerta_pct: Decimal = Decimal("50.0")` (default do alerta; corrigido em 2026-10-09 — este bullet ainda dizia `40.0`, que a correção de 2026-08-31 acima não alcançou).
 - [`pipeline/domain/services/real_estate_metrics_aggregator.py`](../../../pipeline/domain/services/real_estate_metrics_aggregator.py) — dispara `concentracao_alta` quando `concentracao_pct > config.concentracao_alerta_pct`.
 - [`pipeline/domain/services/methodology_constants.py`](../../../pipeline/domain/services/methodology_constants.py) — `IMOVEL_PCT_PATRIMONIO_IDEAL: Decimal = Decimal("50")`, consumida só por `scripts/generate_narratives.py` (contexto do narrador LLM).
 
