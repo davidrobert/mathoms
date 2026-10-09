@@ -1,63 +1,39 @@
-# Registro de actions usadas em jobs required (gate: dev/check_required_job_actions.py).
+# Registro de actions admitidas em jobs required — POLÍTICA, à mão (gate:
+# dev/check_required_job_actions.py). O FATO (`runs.using` de cada versão em uso)
+# vive em .github/actions.lock.yml, gerado por `python3 dev/refresh_actions_lock.py`
+# e chaveado pelo `uses:` exato. Por isso este arquivo não guarda runs_using nem
+# data de verificação: um fato aqui viraria segunda fonte, que diverge do lock no
+# primeiro bump. O gate reprova `actions` que não seja lista de nomes.
 #
-# ADR-320 §Emenda 2026-08-05: `runs.using: docker` é vedado em job required —
+# ADR-320 §Emenda 2026-08-03: `runs.using: docker` é vedado em job required —
 # o SHA-pin das actions de terceiro (A34.l14) cobre o CÓDIGO da action, não a
 # IMAGEM BASE que uma action `runs.using: docker` builda em runtime. Achado do
 # #1161: `CodelyTV/pr-size-labeler` puxava `alpine:3.15` sem digest, um timeout
 # de I/O do Docker Hub bloqueou o build, e o required check "Title (Conventional
 # Commits)" reprovou o repo inteiro sem nenhuma linha de diff alcançar o job.
+# ADR-320 §Emenda 2026-10-09 (runtime pelo lock): em job required só node24 —
+# composite também fica fora, porque pode embrulhar uma action docker ou rodar
+# `docker run` num step, e o lock só lê o action.yml de topo.
 #
-# Ação sem gate era convenção editorial — dívida, não garantia (mesma família da
-# emenda da ADR-111). Este arquivo + o gate tornam a regra verificável.
-#
-# Adicionar action nova a um job `required_jobs` abaixo: consulte o `action.yml`
-# dela no ref pinado ANTES de adicionar a entrada — rede só neste passo manual,
-# o gate em si não a exige:
-#   gh api repos/<owner>/<repo>/contents/action.yml?ref=<sha-ou-tag> --jq '.content' | base64 -d | grep -A2 '^runs:'
-# Se `runs.using` vier `docker` (ou variante `docker1`/etc.), a action NÃO pode
-# entrar num job `required_jobs` — mova o job para fora do fecho, ou troque a
-# action por um script inline (padrão do #1161: `gh` CLI em vez de action).
+# Admitir action nova num job `required_jobs`: use-a no workflow, rode o refresh
+# e leia o `runs_using` dela no lock. Só node24 entra aqui. Docker ou composite:
+# mova o job para fora do fecho, ou troque a action por script inline (padrão do
+# #1161: `gh` CLI em vez de action).
 
 actions:
-  actions/checkout:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  actions/setup-python:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  actions/cache:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  actions/upload-artifact:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  actions/setup-node:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  actions/github-script:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  actions/labeler:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  actions/setup-go:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  gitleaks/gitleaks-action:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  tj-actions/changed-files:
-    runs_using: node24
-    verified_at: "2026-08-05"
-  astral-sh/setup-uv:
-    runs_using: node24
-    verified_at: "2026-08-05"
-  golangci/golangci-lint-action:
-    runs_using: node24
-    verified_at: "2026-10-08"
-  amannn/action-semantic-pull-request:
-    runs_using: node24
-    verified_at: "2026-10-08"
+  - actions/checkout
+  - actions/setup-python
+  - actions/cache
+  - actions/upload-artifact
+  - actions/setup-node
+  - actions/github-script
+  - actions/labeler
+  - actions/setup-go
+  - gitleaks/gitleaks-action
+  - tj-actions/changed-files
+  - astral-sh/setup-uv
+  - golangci/golangci-lint-action
+  - amannn/action-semantic-pull-request
 
 # Fecho de jobs required — não é o mesmo que "todo job do workflow". A
 # Repository Ruleset `main-protection` exige dois status checks: "All checks
