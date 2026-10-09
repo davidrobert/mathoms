@@ -323,7 +323,7 @@ export function ActiveRunCard({
         />
 
         {stallWarning && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg bg-alert/10 px-3 py-2.5 text-sm text-alert">
+          <div className="mb-4 flex items-start gap-2 rounded-lg bg-alert/10 px-3 py-2.5 text-sm text-alert-on-tint">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{stallWarning}</span>
           </div>

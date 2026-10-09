@@ -29,7 +29,7 @@ const SINAL_COLOR: Record<PctRendaSinal, string> = {
 /** Nomeia o que falta em vez de julgar sobre soma parcial (ADR-240 §Emenda 2026-08-08). */
 function EscopoParcial({ categorias }: { categorias: string[] }) {
   return (
-    <div className="text-style-caption mt-1 text-muted" data-testid="protecao-kpi-b-escopo">
+    <div className="text-style-caption mt-1 text-muted-foreground" data-testid="protecao-kpi-b-escopo">
       Este total soma apenas as apólices que analisamos nos seus documentos. Você tem cobertura
       cadastrada de {categorias.join(", ")} sem documento correspondente, então não avaliamos a
       faixa.
@@ -50,7 +50,7 @@ export function ProtecaoKpiHero({ data }: { data: ProtecaoPatrimonialData }) {
     <div className="report-card report-card--highlight" data-testid="protecao-kpi-hero">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <div className="text-style-caption text-muted">Prêmio total anual</div>
+          <div className="text-style-caption text-muted-foreground">Prêmio total anual</div>
           <MonetaryValue value={premioTotal} size="hero" data-testid="protecao-kpi-g" />
           <div className="text-style-caption mt-1">
             {Object.entries(decomp).map(([tipo, valor]) => (
@@ -61,9 +61,9 @@ export function ProtecaoKpiHero({ data }: { data: ProtecaoPatrimonialData }) {
           </div>
         </div>
         <div>
-          <div className="text-style-caption text-muted">% renda anual em prêmios</div>
+          <div className="text-style-caption text-muted-foreground">% renda anual em prêmios</div>
           <div
-            className={`text-style-kpi ${vereditoSuprimido ? "text-muted" : SINAL_COLOR[sinal]}`}
+            className={`text-style-kpi ${vereditoSuprimido ? "text-muted-foreground" : SINAL_COLOR[sinal]}`}
             data-testid="protecao-kpi-b"
           >
             {formatPercent(pctRenda * 100, 2)}

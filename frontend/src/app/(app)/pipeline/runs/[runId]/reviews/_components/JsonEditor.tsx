@@ -77,7 +77,7 @@ export function JsonEditor({
         <p
           id="json-editor-error"
           role="alert"
-          className="flex items-start gap-2 rounded-md border border-alert/40 bg-alert/5 p-2 text-xs text-alert"
+          className="flex items-start gap-2 rounded-md border border-alert/40 bg-alert/5 p-2 text-xs text-alert-on-tint"
         >
           <AlertTriangle aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>JSON inválido: {error}</span>

@@ -106,7 +106,6 @@ from pipeline.domain.services.income_origin_resolver import (
 )
 from pipeline.domain.services.instituicoes_por_membro_analyzer import (
     InstituicoesPorMembroAnalyzer,
-    InstituicoesPorMembroConfig,
     InstituicoesPorMembroResult,
     MembroInstituicoes,
 )
@@ -278,7 +277,6 @@ __all__ = [
     "PrevidenciaConfig",
     "ClasseAtivo",
     "InstituicoesPorMembroAnalyzer",
-    "InstituicoesPorMembroConfig",
     "InstituicoesPorMembroResult",
     "InvestimentosClassesAnalysis",
     "InvestimentosClassesAnalyzer",

@@ -108,6 +108,23 @@ export interface Sugestao {
   categoria_sugestao?: ImpactoTipo | null;
 }
 
+/** A40.l92 — operador do comparador, cru do catálogo. `<` segue aceito: o parecer pode
+ *  ser regenerado sobre E5 anterior à doutrina do limiar (ADR-399 §Emenda 2026-10-08). */
+export type OperadorComparador = "<" | "<=" | ">=";
+
+/** Tiers da ADR-353 D1 — situação que o PRODUTOR publica para métrica que fala da
+ *  leitura do relatório, não da família (despesas não identificadas). */
+export type NivelConfianca = "alta" | "parcial" | "insuficiente";
+
+/** A40.l92 — veredito do comparador, calculado no backend sobre o valor bruto. O front
+ *  desenha; não julga e não re-deriva número de string renderizada. */
+export interface Comparador {
+  operador: OperadorComparador;
+  conforme: boolean;
+  /** Só no piso (`>=`); teto nunca tem progresso. 100 se e só se `conforme`. */
+  progresso_pct: number | null;
+}
+
 export interface Metrica {
   nome: string;
   /** `| null`, nunca opcional: `response_model` materializa defaults, então o wire
@@ -119,6 +136,10 @@ export interface Metrica {
   /** Por que não há alvo. Célula vazia o leitor lê como "não mediram" — afirmação
    *  diferente de "não afirmamos um alvo". */
   target_motivo: string | null;
+  /** `null` = sem comparação publicada: órfã, observado ausente ou parecer de era
+   *  anterior ao campo — a leitura subtrai, nunca recalcula sobre documento entregue. */
+  comparador: Comparador | null;
+  nivel_confianca: NivelConfianca | null;
   frequencia_revisao: FrequenciaRevisao;
   section_id: PlannerSectionId;
   tema_canonico: TemaCanonico | null;

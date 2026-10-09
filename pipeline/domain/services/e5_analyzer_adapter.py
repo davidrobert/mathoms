@@ -121,7 +121,6 @@ from pipeline.domain.services.informe_extrato_override import (
 )
 from pipeline.domain.services.instituicoes_por_membro_analyzer import (
     InstituicoesPorMembroAnalyzer,
-    InstituicoesPorMembroConfig,
     InstituicoesPorMembroResult,
 )
 from pipeline.domain.services.investimentos_classes_analyzer import (
@@ -449,14 +448,10 @@ class E5AnalyzerAdapter:
         """
         identity = MemberIdentity.from_family(family)
         # ADR-215 §1: classificação user-driven em `workspace_property_overrides`
-        # (gravado via UI P5 / endpoint P4) é fonte ÚNICA. Adapter extrai o
-        # subset `residencia_principal` em `residencia_property_ids` para os
-        # analyzers downstream (top_ativos, classes, instituicoes, members)
-        # que precisam apenas saber "qual imóvel é a residência".
+        # (gravado via UI P5 / endpoint P4) é fonte ÚNICA. Classes e ranking recebem
+        # o mapa inteiro e classificam cada imóvel pelo mesmo `classificacao_do_imovel`
+        # do patrimônio — nunca por um set de ids derivado aqui.
         overrides = property_classification_overrides or {}
-        residencia_property_ids = frozenset(
-            pid for pid, cls_ in overrides.items() if cls_ == "residencia_principal"
-        )
         patrimonio_cfg = PatrimonioConfig(
             members=identity,
             property_classification_overrides=overrides,
@@ -523,19 +518,15 @@ class E5AnalyzerAdapter:
             ),
             investimentos_classes_analyzer=InvestimentosClassesAnalyzer(
                 InvestimentosClassesConfig.from_configs(
-                    scoring=scoring, residencia_property_ids=residencia_property_ids
+                    scoring=scoring, property_classification_overrides=overrides
                 )
             ),
             top_ativos_analyzer=TopAtivosAnalyzer(
                 TopAtivosConfig.from_configs(
-                    scoring=scoring, residencia_property_ids=residencia_property_ids
+                    scoring=scoring, property_classification_overrides=overrides
                 )
             ),
-            instituicoes_analyzer=InstituicoesPorMembroAnalyzer(
-                InstituicoesPorMembroConfig.from_configs(
-                    residencia_property_ids=residencia_property_ids
-                )
-            ),
+            instituicoes_analyzer=InstituicoesPorMembroAnalyzer(),
             consumo_calculator=ConsumoConscienteCalculator(
                 GastoPontualPolicy.from_scoring(scoring)
             ),

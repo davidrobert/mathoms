@@ -116,8 +116,11 @@ def commits_do_push(de: str, para: str) -> list[str]:
     """Commits que o push publica — a lista inteira, não o diff líquido."""
     if not para or _ZEROS.match(para):
         return []
-    faixa = [para, "--not", "--remotes"] if not de or _ZEROS.match(de) else [f"{de}..{para}"]
-    return _git("rev-list", "--reverse", *faixa).split()
+    # Exclui o já publicado em QUALQUER ref remoto, não só no da branch: com `de..para`, o
+    # merge da main numa branch já pushada reescaneava a main e travava todo PR (2026-10-09).
+    # `^de` vem antes de `--not`, que inverte tudo o que o segue.
+    ja_publicado = [] if not de or _ZEROS.match(de) else [f"^{de}"]
+    return _git("rev-list", "--reverse", para, *ja_publicado, "--not", "--remotes").split()
 
 
 def linhas_do_commit(sha: str) -> Iterator[Linha]:

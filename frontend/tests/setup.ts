@@ -191,6 +191,25 @@ Object.defineProperty(window, "ResizeObserver", {
 // scrollIntoView (Radix/base-ui usam ao abrir Combobox/Select)
 Element.prototype.scrollIntoView = vi.fn();
 
+// PointerEvent — jsdom não implementa; @base-ui/react ≥1.8 dispara o clique do
+// Enter/Espaço em botão não-nativo com `new PointerEvent("click")`.
+if (typeof window.PointerEvent === "undefined") {
+  class PointerEventPolyfill extends MouseEvent {
+    readonly pointerId: number;
+    readonly pointerType: string;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, init);
+      this.pointerId = init.pointerId ?? 0;
+      this.pointerType = init.pointerType ?? "";
+    }
+  }
+  Object.defineProperty(window, "PointerEvent", {
+    writable: true,
+    configurable: true,
+    value: PointerEventPolyfill,
+  });
+}
+
 // URL.createObjectURL (export.ts blob → download flow)
 if (typeof URL.createObjectURL === "undefined") {
   Object.defineProperty(URL, "createObjectURL", {
