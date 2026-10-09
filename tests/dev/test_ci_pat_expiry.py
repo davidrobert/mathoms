@@ -165,3 +165,11 @@ def test_leitura_incoerente_com_200_vira_warning_sem_issue(monkeypatch, com_pat,
     mod.check_pat_expiry("ops-pat-expiry", dry_run=False)
     assert not any(c[0] == "issue" for c in gh.calls)
     assert "leitura incoerente" in capsys.readouterr().out
+
+
+def test_folga_registra_a_data_lida_no_log(monkeypatch, com_pat, capsys):
+    """Runbook §2 passo 5 confere o vencimento ~90 dias à frente; sem a data no log
+    a validação pós-rotação só via 'folga > 14 dias', que vale para qualquer data."""
+    monkeypatch.setattr(mod, "_gh", FakeGh())
+    mod.check_pat_expiry("ops-pat-expiry", dry_run=True)
+    assert "folga > 14 dias (vence 2027-01-06 12:00 UTC)" in capsys.readouterr().out

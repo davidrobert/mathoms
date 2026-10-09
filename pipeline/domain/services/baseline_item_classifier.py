@@ -17,18 +17,46 @@ from typing import Any, Mapping, Optional
 # `_classify_investimento` — é indexado por GRUPO, então o composto tem de ser parseado:
 # sem isso ele vira chave inexistente e o item cai no balde genérico em silêncio.
 # Ler o SUBcódigo seria pior que não ler: `'07-01'` (fundo) daria `imovel` (A42.l15).
-_CODIGO_COMPOSTO = re.compile(r"^(\d{1,2})-\d{1,2}$")
+_CODIGO_COMPOSTO = re.compile(r"^(\d{1,2})-(\d{1,2})$")
+_CODIGO_PLANO = re.compile(r"^\d{1,2}$")
+_GRUPO_IMOVEL = "01"
+
+
+def _sem_prefixo_de_grupo(codigo: Any) -> str:
+    s = str(codigo).strip().upper()
+    return s[1:] if s.startswith("G") else s
 
 
 def grupo_rfb(codigo: Any) -> str:
     """Grupo RFB da ficha: `'07-04'` → `'07'`; `'41'` → `'41'`; `'G1'` → `'01'`."""
-    s = str(codigo).strip().upper()
-    if s.startswith("G"):
-        s = s[1:]
+    s = _sem_prefixo_de_grupo(codigo)
     composto = _CODIGO_COMPOSTO.match(s)
     if composto:
         s = composto.group(1)
     return s.zfill(2)
+
+
+# Identidade lê o SUBcódigo — o oposto do roteamento acima, porque aqui é ele que
+# discrimina: dentro do grupo 01 separa apartamento (`11`) de casa (`12`), e é o mesmo
+# par de dígitos que o código plano das declarações anteriores traz (`'01-11'` ↔ `'11'`),
+# então a chave atravessa a troca de layout. O grupo fundiria apartamento e casa
+# ([[ADR-225]] §Alternativas B). Composto de OUTRO grupo não tem sub-código de imóvel:
+# `'07-01'` daria `'01'`, o genérico que o dedup funde com qualquer específico — o balde
+# `imovel` veio do rótulo, e o código o desmente ([[ADR-394]]).
+def subcodigo_imovel_rfb(codigo: Any) -> Optional[str]:
+    """Chave de identidade: `'01-11'`→`'11'`, `'11'`→`'11'`, `'G1'`→`'01'`; `'07-01'`/ilegível→None."""
+    s = _sem_prefixo_de_grupo("" if codigo is None else codigo)
+    composto = _CODIGO_COMPOSTO.match(s)
+    if composto:
+        grupo, subcodigo = composto.groups()
+        return subcodigo.zfill(2) if grupo.zfill(2) == _GRUPO_IMOVEL else None
+    return s.zfill(2) if _CODIGO_PLANO.match(s) else None
+
+
+def codigo_rfb_do_imovel(codigo: Any) -> str:
+    """Valor do campo `codigo_rfb`: o sub-código quando legível; senão o cru, como evidência."""
+    cru = "" if codigo is None else str(codigo).strip()
+    return subcodigo_imovel_rfb(cru) or cru
 
 
 SECAO_ATIVO = "bens_direitos"

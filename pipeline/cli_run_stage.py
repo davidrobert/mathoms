@@ -35,6 +35,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
+from pipeline.observability.failure_text import describe_failure
+
 EXIT_OK = 0
 EXIT_STAGE_FAILED = 1
 EXIT_USAGE = 2
@@ -294,9 +296,13 @@ def main(argv: Optional[list[str]] = None) -> int:
         return _fail(EXIT_USAGE, "unknown_stage", str(exc))
     _maybe_bootstrap_otel()
     token = _attach_traceparent()
+    # O stderr vai cru ao shell Go, que o devolve no corpo do 503 (ADR-441 D2).
     try:
         return _execute_run_stage(stage, args)
     except CliEnvironmentError as exc:
-        return _fail(EXIT_USAGE, "environment", str(exc), adr="ADR-303 D4")
+        return _fail(EXIT_USAGE, "environment", describe_failure(exc).message, adr="ADR-303 D4")
+    except Exception as exc:  # noqa: BLE001 — mesma semântica do traceback não tratado
+        print(describe_failure(exc).traceback, file=sys.stderr, end="")
+        return EXIT_STAGE_FAILED
     finally:
         _detach_traceparent(token)
