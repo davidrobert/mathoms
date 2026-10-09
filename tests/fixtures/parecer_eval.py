@@ -19,7 +19,7 @@ disparando aqui é falso-positivo), métrica que o holdout monocultura anterior 
 
 Eixos secundários variados entre fixtures (para o número do gate não ser dominado por
 uma red line): presença/ausência de dívida cara (RL2 — ``endividamento.dividas[].taxa_juros_aa``),
-concentração imobiliária > 40 (RL7 — ``real_estate.concentracao_pct``), presença de seguro
+concentração imobiliária > 50 (RL7 — ``ratios.concentracao_imobiliaria``), presença de seguro
 (RL6 — ``alertas`` sem ``seguro_vida_ausente``). PII-zero: nenhum CPF, valores sintéticos.
 
 ``make_workspace_e5`` fixa a reserva pelos parâmetros explícitos por estrato — ``cobertura_meses``
@@ -97,7 +97,8 @@ def _add_divida_cara(e5: dict) -> dict:
 def _add_concentracao_imovel(e5: dict) -> dict:
     """RL7 + casos-alvo R3.3. Concentração alta: o SSOT de RISCO é
     ratios.concentracao_imobiliaria (base carteira produtiva, ADR-340) — o parecer
-    cita este (severidade Alta em ~60%, não Crítica; meta <50%), não a composição.
+    cita este (severidade Média na faixa 50–75%, Alta acima; meta até 50%), não a
+    composição.
     PGBL no teto (FP-04): limite=0 é confirmação, não 'investigar do zero'."""
     e5["real_estate"] = {"concentracao_pct": 59.97, "valor_total_imoveis": 2_600_000.0}
     e5.setdefault("ratios", {})["concentracao_imobiliaria"] = 59.97

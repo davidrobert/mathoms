@@ -29,6 +29,12 @@ PR_LIST_FIELDS = (
 )
 
 RunsFetcher = Callable[[dict[str, Any]], list[dict[str, Any]]]
+StateFetcher = Callable[[int], str]
+Pause = Callable[[float], None]
+# Releituras individuais da cabeça que a lista em lote devolveu UNKNOWN. Se a 2ª
+# ainda vier UNKNOWN com frequência, suba para 3 (ADR-322 §Emenda 2026-10-09).
+UNKNOWN_REREADS = 2
+UNKNOWN_REREAD_PAUSE_S = 5.0
 _HTTP_STATUS_RE = re.compile(r"HTTP (\d{3})")
 _RATE_LIMIT_RE = re.compile(r"rate limit|abuse detection|secondary", re.IGNORECASE)
 
@@ -113,6 +119,37 @@ def _runs_for_pr(pr: dict[str, Any]) -> list[dict[str, Any]]:
     return runs_for_commit(pr["headRefOid"])
 
 
+def merge_state(number: int) -> str:
+    """`mergeable_state` do REST `GET /pulls/N`, no enum do GraphQL. A leitura
+    individual dispara o cálculo que a lista em lote só devolve como UNKNOWN
+    (doc: `mergeable: null` = job em background, reenvie depois)."""
+    out = _gh("api", f"repos/{{owner}}/{{repo}}/pulls/{number}", "--jq", ".mergeable_state")
+    return out.strip().upper()
+
+
+def _reread_unknown(number: int, state_for: StateFetcher, pause: Pause) -> str:
+    """Falha da API degrada para UNKNOWN: segurar é o desfecho de antes da releitura."""
+    for attempt in range(1, UNKNOWN_REREADS + 1):
+        if attempt > 1:
+            pause(UNKNOWN_REREAD_PAUSE_S)
+        try:
+            state = state_for(number)
+        except GhCallFailed as failure:
+            print(f"releitura #{number} falhou — {failure.describe()}; segura")
+            return "UNKNOWN"
+        if state != "UNKNOWN":
+            print(f"relido #{number}: UNKNOWN→{state} na tentativa {attempt}")
+            return state
+    print(f"relido #{number}: UNKNOWN após {UNKNOWN_REREADS} tentativas; segura")
+    return "UNKNOWN"
+
+
+def _head_state(pr: dict[str, Any], state_for: StateFetcher, pause: Pause) -> str | None:
+    """UNKNOWN da lista é ausência de leitura, não cabeça em voo: relê só esse caso."""
+    listed = pr.get("mergeStateStatus")
+    return _reread_unknown(pr["number"], state_for, pause) if listed == "UNKNOWN" else listed
+
+
 def _has_excluded_label(pr: dict[str, Any]) -> bool:
     return any(label.get("name", "").lower() in EXCLUDED_LABELS for label in pr.get("labels") or [])
 
@@ -195,6 +232,10 @@ class TrainDecision:
     head_on_hold: dict[str, Any] | None
     waiting_behind: int
     refused: tuple[Refusal, ...] = ()
+    # Estado da cabeça depois da releitura; o dict da cabeça fica intacto porque o
+    # watchdog compara identidade com o `train_head` dele.
+    head_state: str | None = None
+    waiting_unknown: int = 0
 
     @property
     def hit_refusal_cap(self) -> bool:
@@ -206,7 +247,23 @@ def _behind_in(prs: list[dict[str, Any]]) -> int:
     return sum(1 for pr in prs if pr.get("mergeStateStatus") == "BEHIND")
 
 
-def decide_train(prs: list[dict[str, Any]], runs_for: RunsFetcher = _runs_for_pr) -> TrainDecision:
+def _unknown_in(prs: list[dict[str, Any]]) -> int:
+    """Atrás da cabeça não se relê: o número só diz quantos a lista não soube classificar."""
+    return sum(1 for pr in prs if pr.get("mergeStateStatus") == "UNKNOWN")
+
+
+def _hold(pr: dict[str, Any], state: str | None, behind: list[dict[str, Any]]) -> TrainDecision:
+    return TrainDecision(
+        None, pr, _behind_in(behind), head_state=state, waiting_unknown=_unknown_in(behind)
+    )
+
+
+def decide_train(
+    prs: list[dict[str, Any]],
+    runs_for: RunsFetcher = _runs_for_pr,
+    state_for: StateFetcher | None = None,
+    pause: Pause | None = None,
+) -> TrainDecision:
     """Primeiro PR BEHIND da fila cujo turno chegou, ou o motivo de o trem esperar —
     quem out_of_train_reason exclui é pulado, e PENDING nunca é pulado: atualizar
     o próximo enquanto a cabeça roda CI desperdiça runs e pode livelock
@@ -214,14 +271,25 @@ def decide_train(prs: list[dict[str, Any]], runs_for: RunsFetcher = _runs_for_pr
     dos dois atualiza PR, mas só o segundo tem trabalho em voo e fila atrás."""
     queue = eligible_train(prs)
     for position, pr in enumerate(queue):
-        reason = out_of_train_reason(pr, runs_for)
-        if reason is not None:
-            print(f"skip #{pr['number']}: {reason}")
+        if _skipped(pr, runs_for):
             continue
-        if pr.get("mergeStateStatus") == "BEHIND":
-            return TrainDecision(pr, None, 0)
-        return TrainDecision(None, pr, _behind_in(queue[position + 1 :]))
+        reader = state_for or merge_state
+        return _decide_head(pr, queue[position + 1 :], reader, pause or time.sleep)
     return TrainDecision(None, None, 0)
+
+
+def _skipped(pr: dict[str, Any], runs_for: RunsFetcher) -> bool:
+    reason = out_of_train_reason(pr, runs_for)
+    if reason is not None:
+        print(f"skip #{pr['number']}: {reason}")
+    return reason is not None
+
+
+def _decide_head(
+    pr: dict[str, Any], behind: list[dict[str, Any]], state_for: StateFetcher, pause: Pause
+) -> TrainDecision:
+    state = _head_state(pr, state_for, pause)
+    return TrainDecision(pr, None, 0) if state == "BEHIND" else _hold(pr, state, behind)
 
 
 def select_pr_to_update(
@@ -317,15 +385,24 @@ def _outcome_phrase(decision: TrainDecision) -> str:
     head = decision.head_on_hold
     if head is None:
         return _no_head_phrase(decision)
-    atras = (
-        f"{decision.waiting_behind} PR(s) elegível(is) BEHIND atrás"
-        if decision.waiting_behind
-        else "nenhum PR elegível atrás"
-    )
+    state = decision.head_state or head.get("mergeStateStatus")
+    if state == "UNKNOWN":
+        return (
+            f"trem segurando: cabeça #{head['number']} sem mergeabilidade calculada "
+            f"pelo GitHub (mergeStateStatus=UNKNOWN após releitura) — {_atras_phrase(decision)}"
+        )
     return (
         f"trem segurando: cabeça #{head['number']} em andamento "
-        f"(mergeStateStatus={head.get('mergeStateStatus')}) — {atras}"
+        f"(mergeStateStatus={state}) — {_atras_phrase(decision)}"
     )
+
+
+def _atras_phrase(decision: TrainDecision) -> str:
+    """UNKNOWN atrás entra na conta: 15 PRs esperando liam "nenhum atrás" em 2026-10-09."""
+    if not (decision.waiting_behind or decision.waiting_unknown):
+        return "nenhum PR elegível atrás"
+    unknown = f" + {decision.waiting_unknown} UNKNOWN" if decision.waiting_unknown else ""
+    return f"{decision.waiting_behind} PR(s) elegível(is) BEHIND{unknown} atrás"
 
 
 def describe_decision(decision: TrainDecision) -> str:
