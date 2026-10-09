@@ -113,7 +113,7 @@ function VaultPageContent({ workspace }: { workspace: UserWorkspace }) {
         </div>
       )}
       {successMsg && (
-        <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain">
+        <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain-on-tint">
           {successMsg}
           <button onClick={() => setSuccessMsg("")} className="ml-2 font-medium underline">fechar</button>
         </div>

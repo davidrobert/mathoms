@@ -57,7 +57,7 @@ function MessageBanner({
   onDismiss: () => void;
 }) {
   if (!message) return null;
-  const cls = kind === "error" ? "bg-loss/10 text-loss" : "bg-gain/10 text-gain";
+  const cls = kind === "error" ? "bg-loss/10 text-loss" : "bg-gain/10 text-gain-on-tint";
   return (
     <div className={`mb-4 rounded-lg p-3 text-sm ${cls}`}>
       {message}

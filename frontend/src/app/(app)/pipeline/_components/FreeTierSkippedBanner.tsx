@@ -34,7 +34,7 @@ export function FreeTierSkippedBanner({
       className="mb-6 flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm"
     >
       <AlertTriangle
-        className="mt-0.5 h-4 w-4 shrink-0 text-warning"
+        className="mt-0.5 h-4 w-4 shrink-0 text-alert-on-tint"
         aria-hidden="true"
       />
       <p className="flex-1 text-foreground">
@@ -42,7 +42,7 @@ export function FreeTierSkippedBanner({
         Alguns documentos podem estar incompletos.{" "}
         <Link
           href="/config"
-          className="font-medium text-warning underline underline-offset-2 hover:text-warning/80"
+          className="font-medium text-alert-on-tint underline underline-offset-2 hover:no-underline"
         >
           Faça upgrade para processar documentos completos.
         </Link>

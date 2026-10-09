@@ -27,7 +27,7 @@ export function ProtecaoGapVeiculos({ bens }: { bens: BemGapCobertura[] }) {
   if (bens.length === 0) {
     return (
       <div className="report-card report-card--neutral" data-testid="protecao-gap-empty">
-        <p className="text-style-body text-muted">
+        <p className="text-style-body text-muted-foreground">
           Sem veículos com cobertura material identificados. Aguardando refresh FIPE
           ou apólice ingerida.
         </p>
@@ -72,7 +72,7 @@ export function ProtecaoGapVeiculos({ bens }: { bens: BemGapCobertura[] }) {
           ))}
         </tbody>
       </table>
-      <p className="mt-2 text-style-caption text-muted" data-testid="protecao-gap-help">
+      <p className="mt-2 text-style-caption text-muted-foreground" data-testid="protecao-gap-help">
         {SINAL_COPY[mostSeriousSinal(bens)]}
       </p>
     </div>
