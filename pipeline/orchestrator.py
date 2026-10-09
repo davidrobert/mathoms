@@ -214,6 +214,11 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
 
     from pipeline.observability import StageLogTail, get_logger
     from pipeline.observability.context import reset_stage, set_stage
+    from pipeline.stage_failure_reason import (
+        StageFailureReason,
+        failure_class_detail,
+        reason_from_exception,
+    )
 
     runner = _get_stage_runner(stage)
     if runner is None:
@@ -312,11 +317,14 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                         "exit_code": code,
                     },
                 )
+                # `sys.exit` de script legado não carrega tipo: a causa só existe no
+                # stderr, e classificar pela prosa é vetado (ADR-357). `unknown`
+                # explícito separa este caso do produtor anterior ao contrato (ADR-446).
                 return StageResult(
                     stage=stage,
                     success=False,
                     duration_ms=elapsed,
-                    detail=_with_tail(None),
+                    detail=_with_tail(failure_class_detail(StageFailureReason.unknown)),
                     error=error_msg,
                 )
             except Exception as exc:
@@ -337,11 +345,13 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                         **failure.log_fields(),
                     },
                 )
+                # Último ponto com o objeto vivo nos dois executores: a classe sai
+                # dele aqui e viaja no `detail`, que o shell Go repassa (ADR-446).
                 return StageResult(
                     stage=stage,
                     success=False,
                     duration_ms=elapsed,
-                    detail=_with_tail(None),
+                    detail=_with_tail(failure_class_detail(reason_from_exception(exc))),
                     error=failure.message,
                 )
     finally:

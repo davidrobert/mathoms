@@ -218,13 +218,15 @@ def test_falha_do_shell_nao_reexecuta_o_stage(shell_failure, fallback, no_backof
 
 
 def test_classe_da_falha_do_runner_sobrevive_ao_executor(monkeypatch, tmp_path):
-    """Era `xfail` estrito até o §Deferimento da ADR-443 fechar (2026-10-08)."""
+    """Era `xfail` estrito até o §Deferimento da ADR-443 fechar (2026-10-08, ADR-446)."""
     from backend.app.services.pipeline.stage_failure_reason import reason_from_stage_detail
 
+    # `extract_members` deixa o `LLMError` chegar ao `_run_stage` em produção; o
+    # `extract_with_llm` que estava aqui o captura por documento antes.
     _install_raising_leaf(monkeypatch)
     ctx = SimpleNamespace(root=tmp_path, pipeline_run_id="run")
 
-    result = pc.InProcessPipelineClient().execute_stage(ctx, "extract_with_llm", workspace_id="ws")
+    result = pc.InProcessPipelineClient().execute_stage(ctx, "extract_members", workspace_id="ws")
 
     assert reason_from_stage_detail(result.detail).value == "provider_error"
 
