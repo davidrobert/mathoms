@@ -32,8 +32,17 @@ inbox
 inbox_processed
 _scratch
 _archive
-*.db
-*.sqlite
+
+# SQLite em qualquer diretório (FORBIDDEN_SUFFIXES) e seus sidecars
+# `<db>-wal`/`-shm`/`-journal`/`-mjNNNN`: o `-wal` guarda páginas inteiras do
+# banco. Um dev que roda o backend com cwd=backend/ deixa `backend/mathoms.db*`,
+# e o `COPY backend/` os levaria.
+**/*.db
+**/*.db-*
+**/*.sqlite
+**/*.sqlite-*
+**/*.sqlite3
+**/*.sqlite3-*
 
 # Proibidos pelo git em QUALQUER diretório (FORBIDDEN_BASENAMES de
 # dev/check_forbidden_paths.py). Sem `**/` o padrão só casa a raiz do contexto:
