@@ -7,6 +7,7 @@ import { MonetaryValue } from "../MonetaryValue";
 import { Alert } from "../ui/Alert";
 import { LastroDeclareDropdown } from "./LastroDeclareDropdown";
 import { useExposicaoCambialV2 } from "@/hooks/useExposicaoCambialV2";
+import { formatPercent } from "@/lib/format";
 import type {
   ExposicaoCambialAtivo,
   LastroMoeda,
@@ -92,11 +93,6 @@ export function ExposicaoCambialCard({
   return <SemBaseCard />;
 }
 
-/** Percentual em pt-BR: vírgula decimal (COPY §4). */
-function fmtPct(pct: number): string {
-  return pct.toFixed(1).replace(".", ",");
-}
-
 function ExposicaoCambialCardV1({
   data,
   controlesIndisponiveis,
@@ -112,7 +108,7 @@ function ExposicaoCambialCardV1({
     <ReportCard variant="feature" title="Exposição Cambial">
       <div className="space-y-4">
         <CardHeader
-          badgeText={semExposicao ? null : `${fmtPct(data.pct_investivel_financeiro)}% · ${TIER_LABEL[tier] ?? tier}`}
+          badgeText={semExposicao ? null : `${formatPercent(data.pct_investivel_financeiro)} · ${TIER_LABEL[tier] ?? tier}`}
           tier={tier}
         />
         {semExposicao ? (
@@ -179,7 +175,7 @@ function ExposicaoCambialCardV2({
     <ReportCard variant="feature" title="Exposição Cambial">
       <div className="space-y-4">
         <CardHeader
-          badgeText={semExposicao ? null : `${fmtPct(pct)}% · ${TIER_LABEL[tier] ?? tier}`}
+          badgeText={semExposicao ? null : `${formatPercent(pct)} · ${TIER_LABEL[tier] ?? tier}`}
           tier={tier}
         />
         {semExposicao ? (
@@ -282,7 +278,7 @@ function PorMoedaTableV1({
               <MonetaryValue value={row.valor_brl} />
             </td>
             <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-              {fmtPct(row.pct_total_cambial)}%
+              {formatPercent(row.pct_total_cambial)}
             </td>
           </tr>
         ))}
@@ -317,7 +313,7 @@ function PorMoedaTableV2({
               <MonetaryValue value={parseFloat(row.valor_brl)} />
             </td>
             <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-              {fmtPct(row.share_pct)}%
+              {formatPercent(row.share_pct)}
             </td>
           </tr>
         ))}
