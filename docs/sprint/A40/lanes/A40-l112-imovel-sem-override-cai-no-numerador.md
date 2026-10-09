@@ -74,3 +74,9 @@ A evidência é fixture sintética. O dogfood real tem os 6 imóveis classificad
 - Os três estados são distinguíveis no payload, e a fixture os separa dois-a-dois.
 - A fatia não-classificada de cat_2 é publicada, não inferida.
 - Mutação que devolve o `else` a catch-all deixa o gate vermelho.
+
+## Atualização 2026-10-08 — a cobertura é publicada, e a exposição foi medida
+
+A [[ADR-439]] D1 (#2049) publica `patrimonio.cobertura_classificacao_imovel`: a partição do valor de imóvel por classificação, desconhecido incluso, do mesmo laço dos splitters. Isso entrega o item *"cobertura publicada"* do §Escopo; a cobertura AO LADO do KPI de concentração (superfície) segue com esta lane.
+
+A §Prevalência dizia que *"o dogfood real tem os 6 imóveis classificados"*. Vale para o DB, não para o run: no `U5`, com os 6 overrides gravados, 8 de 9 itens chegaram sem `property_id` — a era `1.4.1` do prompt E1.5a cortou a identidade — e o workspace classificado se comportou como o regime default. A exposição deixa de ser só estrutural enquanto a causa não fecha ([[A40.l121]]).
