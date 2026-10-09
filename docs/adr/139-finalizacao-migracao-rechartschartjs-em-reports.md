@@ -84,7 +84,8 @@ agentes simultâneos em worktrees isoladas).
 - `WaterfallIfChart.tsx` e `PatrimonioDoughnutChart.tsx` continuam em
   Recharts dentro de `/reports/**`. Migração pode virar **v2.E.9**
   futura se produto pedir paridade.
-- Recharts permanece em `frontend/src/components/charts/Mathom*.tsx` e
+- Recharts permanece em frontend/src/components/charts/Mathom*.tsx
+  (removidos em 2026-10-09: wrappers sem consumidor) e
   `frontend/src/app/(app)/plano/_components/_dashboard/` (caminho atual
   do antigo `dashboard/_components/`) — ADR-037 com escopo
   restringido.
@@ -116,8 +117,9 @@ local **ou** explicitar fallback quando `node_modules` indisponível.
   Bar, Despesas Doughnut, Receita vs Despesa Mensal).
 - ✅ Bundle Recharts pode ser parcialmente tree-shaken se nenhuma
   rota fora de `/reports/**` usá-lo — não é o caso atual
-  (`MathomBarChart`, `MathomPieChart`, `MathomAreaChart` em
-  `frontend/src/components/charts/` ainda usam).
+  (MathomBarChart, MathomPieChart, MathomAreaChart em
+  frontend/src/components/charts/ ainda usam; removidos em 2026-10-09,
+  o consumidor que resta é o dashboard do `/plano`).
 - ✅ Coordenação multi-agente em hotspots compartilhados validada
   empiricamente (3 colisões resolvidas) — protocolo
   CLAUDE.md §Hotspots funcionou para esta sprint.

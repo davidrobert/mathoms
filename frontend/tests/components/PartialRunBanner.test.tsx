@@ -1,9 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { PartialRunBanner } from "@/app/(app)/pipeline/_components/PartialRunBanner";
 import { ActiveRunCard } from "@/app/(app)/pipeline/_components/ActiveRunCard";
+import { FailedRunCard } from "@/app/(app)/pipeline/_components/FailedRunCard";
 import { makePartialRun, makeRun, makeStageLog } from "../factories";
+import { DECIMAL_COM_PONTO } from "../shared/decimalPtBr";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...rest }: any) => <a href={href} {...rest}>{children}</a>,
@@ -76,5 +78,42 @@ describe("<ActiveRunCard /> — contador de etapas conhece `degraded`", () => {
       />,
     );
     expect(screen.getByText(/Ver detalhes técnicos \(2\/2 etapas\)/)).toBeInTheDocument();
+  });
+});
+
+describe("<FailedRunCard /> — duração da etapa nos detalhes técnicos", () => {
+  function renderDetalhes(durationMs: number) {
+    const run = makeRun({
+      status: "failed",
+      failed_at_stage: "reconcile_transactions",
+      completed_at: null,
+      stage_logs: [
+        makeStageLog({
+          stage: "reconcile_transactions",
+          status: "failed",
+          duration_ms: durationMs,
+          errors: "falha sintética",
+        }),
+      ],
+    });
+    const view = render(
+      <FailedRunCard run={run} onRetry={vi.fn()} onDismiss={vi.fn()} triggering={false} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Ver detalhes técnicos" }));
+    return view;
+  }
+
+  // 1,45 s é empate no decimal exibido: o `toFixed` à mão dava "1.4s".
+  it("usa vírgula decimal", () => {
+    const { container } = renderDetalhes(1450);
+    expect(screen.getByText("1,5s")).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(DECIMAL_COM_PONTO);
+  });
+
+  // A duração passa pelo `formatDuration` do "Falhou após" e da lista de
+  // etapas: acima de um minuto, "2m 5s" onde o card escrevia "125.0s".
+  it("etapa longa sai em minutos, como o resto da página", () => {
+    renderDetalhes(125_000);
+    expect(screen.getByText("2m 5s")).toBeInTheDocument();
   });
 });

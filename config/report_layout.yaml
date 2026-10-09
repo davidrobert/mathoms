@@ -337,14 +337,6 @@ estrategico:
           enabled: true
           variant: "feature"
           size: "full"
-        - id: "estrategia_aporte"
-          enabled: true
-          variant: "highlight"
-          size: "full"
-        - id: "contrafluxo"
-          enabled: true
-          variant: "primary"
-          size: "half"
       # comparisons/changelog por seção (v2.8, ADR-148) removidos em W4-T07
       # (SNAPSHOT_CHANGELOG_V3): o diff vive na seção V0 do shell.
 
@@ -662,6 +654,7 @@ estrategico:
 # ==============================================================================
 # Referência: IDs de cards consumidos pelo renderer React.
 # Use os IDs abaixo nas seções acima. Cada ID mapeia para um componente.
+# A coluna do meio é HISTÓRICA: builders do renderer HTML removido na ADR-129.
 #
 # ID                          | Builder Function                        | Seção Original
 # ----------------------------|-----------------------------------------|---------------
@@ -675,8 +668,6 @@ estrategico:
 # milhas                      | build_milhas_card()                     | S2
 # alocacao_atual_vs_alvo      | <React-only: AlocacaoAtualVsAlvoCard>   | S3 (A11)
 # kpi_rentabilidade           | (inline HTML block)                     | S3
-# estrategia_aporte           | build_estrategia_aporte_card()          | S3
-# contrafluxo                 | (inline HTML block)                     | S3
 # pontos_fortes               | build_pontos_fortes_card()              | S10
 # pontos_urgentes             | build_pontos_urgentes_card()            | S10
 # equilibrio_cerbasi          | build_equilibrio_cerbasi_card()         | S10
@@ -745,7 +736,9 @@ chart_titles:
   receita_bar: "Receita por Fonte"
   despesas_doughnut: "Despesas por Categoria"
   fluxo_mensal: "Fluxo de Caixa Mensal"
-  receita_despesa_mensal: "Receita vs Despesa — Mês a Mês"
+  # ADR-333: a pilha de saídas inclui o aporte, que não é despesa; "por
+  # Categoria" separa do "Receitas e Saídas por Mês" (totais) do /plano.
+  receita_despesa_mensal: "Receitas e Saídas por Categoria — Mês a Mês"
   score_gauge: "Score Financeiro"
   top15_ativos: "Top 15 Ativos Financeiros"
   projecao_3cenarios: "Projeção Patrimonial — 3 Cenários"

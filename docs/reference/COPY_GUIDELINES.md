@@ -82,7 +82,7 @@ remover por concisão.
 | **Fatura** | Demonstrativo de cartão de crédito com vencimento mensal | minúsculo em corpo | — | `extrato do cartão` (errado) |
 | **Extrato** | Demonstrativo de movimentações de conta corrente, poupança ou investimento | minúsculo em corpo | — | `histórico` (genérico demais) |
 | **Boleto** | Título de cobrança bancária com código de barras | minúsculo em corpo | — | `cobrança`, `pagamento` |
-| **Despesa** | Saída de caixa do período (passado/realizado) | minúsculo em corpo | — | `gasto` (em contexto contábil), `custo` |
+| **Despesa** | Saída de caixa **de consumo** do período (passado/realizado). Aporte a investimento não é despesa ([[ADR-333]]): a soma com ele é **Saídas (inclui aportes)** (§2.2) | minúsculo em corpo | — | `gasto` (em contexto contábil), `custo`; `saída` / `saídas` (é a base com o aporte, §2.2) |
 | **Gasto** | Sinônimo coloquial de despesa — **aceito em copy de UI** quando "despesa" soar técnico demais | minúsculo em corpo | — | — |
 | **Custo** | Reservado para PJ / empresa (custo do serviço, custo fixo). **Não usar** em finanças pessoais | — | — | "custo de vida" → use "despesas mensais" |
 | **Gap IF** | Distância entre patrimônio investível atual e o número da IF | minúsculo em corpo | — | `falta`, `déficit` |
@@ -127,6 +127,8 @@ Quando uma decisão terminológica nova surgir, adicione linha aqui com
 | **Chave de IA** `@2026-08-08` | Credencial de LLM do próprio usuário (BYOK, PRODUCT.md §4). É o que separa `tier` free de premium: `_classify_llm_config` devolve `"premium"` ⟺ existe `LLMConfig` cuja `api_key_encrypted` **decripta** para texto não-vazio. Em copy user-facing, **o gatilho de ação é a chave**, nunca a compra | minúsculo em corpo; sentence case em título de estado ("Parecer exige uma chave de IA ativa") | — | `plano Premium` / `assinar` / `contratar` **como gatilho de ação** (não há pricing — PRODUCT.md §7 diz "Pendente" —, e acusaria de downgrade quem perdeu a chave numa rotação de `FERNET_KEY`); `API key` em corpo user-facing (aceito só em label de formulário); `tier` (termo interno) |
 | **Itens do parecer retidos** `@2026-08-07` | Contador de retenção do parecer: é escalar do parecer INTEIRO (`retention.items_dropped_count`), e o enforcement remove risco **ou** sugestão — logo o objeto é "itens do parecer", nunca o bucket em cuja caption o número aparece | minúsculo em corpo | — | `N riscos retidos` (o exemplo da linha acima; falso quando o item retido foi uma sugestão, e a caption dele mora na tabela de riscos); `N itens retidos` **sem** "do parecer" (o leitor lê como itens da lista ao lado) |
 | **Lançamento em mais de um documento** `@2026-08-10` | O mesmo lançamento aparece em ≥2 documentos do mesmo banco e o relatório o conta **uma vez só**. Declarado sempre como fato com contagem (N lançamentos, M meses), nunca como lista — e sempre com a base rotulada, porque corpus e janela de 12 meses têm contagens distintas ([[ADR-306]] D1) | minúsculo em corpo | — | `consolidado` / `consolidação` (PRODUCT.md §1 já usa "consolida extratos, faturas" como **juntar numa visão** — o leitor entende "somado", que é o oposto do que houve); `removido` / `excluído` / `apagado` (a linha não some do extrato da família; ela deixa de contar 2×); `em duplicidade` **sem sujeito** (convida "duplicado por quem?", e a resposta honesta é uma divulgação maior que este contador não é o lugar de fazer); `colapso`, `cross-documento`, `deduplicação` (jargão de implementação, §6.3); `arquivo` (o rótulo do produto é **documento**) |
+| **Saídas (inclui aportes)** `@2026-10-09` | Toda saída de caixa do período, consumo **e** aporte a investimento: a série bruta `totais_despesa` / `despesa_mensal_media` ([[ADR-333]]). Nome da série no "Fluxo de Caixa Mensal" do relatório e no "Receitas e Saídas por Mês" do `/plano`; em prosa, "saídas de R$ X/mês, aportes incluídos". O rótulo é **fixo**, haja ou não aporte no período: ele define a base, e um rótulo condicional mudaria com o seletor de período. Cor neutra (`--semantic-neutral-financial`), nunca a de perda | maiúscula inicial no nome da série e Title Case em título de card ("Receitas e Saídas por Categoria — Mês a Mês"); minúsculo em corpo | "Saídas" sozinho só onde o aporte aparece nomeado ao lado (legenda agrupada da RDM, que lista o aporte como item) | `despesa` / `despesas` sobre a base com aporte (o aporte é poupança, não consumo, e na mesma S2 a rosca "Despesas por Categoria" tira o aporte: uma palavra para duas bases); `gastos` (idem); `-R$` no tooltip (o nome já dá a direção, e `-R$` é do vermelho, §4.1) |
+| **Fluxo líquido após aportes** `@2026-10-09` | Receitas menos **saídas (inclui aportes)**: a identidade de caixa do `fluxo_liquido` ([[ADR-333]]). O "após aportes" é obrigatório, porque quem poupa muito tem líquido perto de zero ou negativo e, sem o rótulo, leria "não poupei" ao lado da taxa de poupança | minúsculo em corpo; "Fluxo líquido após aportes:" em rótulo | — | `fluxo líquido` **sem** "após aportes" quando as saídas incluem o aporte; `sobra` / `quanto sobra` (o "quanto sobra" do relatório é a folga mensal do Consumo Consciente, outra base) |
 | **Rebalanceamento por aporte** `@2026-10-09` | Correção do desvio da carteira contra a alocação-alvo pelos novos aportes, sem venda: o aporte vai para a classe mais abaixo do alvo (`goals.alocacao_alvo.derived.next_aporte_classe`). É o método de alocação que o relatório aplica — pilar do Apêndice B, verbete do glossário, rodapé do card Atual vs Alvo | minúsculo em corpo; sentence case em título ("Alocação por classe e rebalanceamento por aporte") | — | `alocação contracíclica` e `estratégia adaptativa à curva de juros` (retirados no §2 — método sem produtor); `rebalancear vendendo` (o mecanismo é o aporte); `otimização de classes` (o produto compara com o alvo declarado, não otimiza) |
 | **Nu-propriedade** `@2026-08-30` | Imóvel em que o cliente é nu-proprietário e um terceiro detém usufruto vitalício ([[ADR-235]]). A copy declara **duas** coisas: não gera caixa nem é vendável livremente, **e** o número na tela é o custo descontado pelo usufruto, não o valor de um imóvel livre. A negação fecha a frase, e **sem quantificador** — o produto não estima o valor pleno ([[ADR-235]] §Alternativas B: *"precisão falsa custa mais que silêncio honesto"*) | minúsculo em corpo | "propriedade plena"; "quando o usufruto terminar" | `consolidação` / `consolidar` (mesma colisão já registrada na linha acima — "consolidação do imóvel" ao lado de "relatório consolidado" lê como agregação de dado, não como evento jurídico); `valorização`, `ganho futuro`, `salto patrimonial`, `vale hoje X` (abrem o erro inverso — o leitor superestima o patrimônio, que contamina score, meta de IF e aporte, enquanto subestimar um imóvel ilíquido não contamina quase nada); adjetivo de magnitude ("bem menor", "significativamente") é tábua atuarial disfarçada de prosa |
 
@@ -239,15 +241,21 @@ quando o dado simplesmente não foi capturado.
 - Renderização via `formatPercent(valor, casas)` (`frontend/src/lib/format.ts`,
   1 casa por padrão). Os campos `*_pct` já chegam absolutos — `44.7` é 44,7%
   ([[ADR-209]]); o formatador não multiplica.
-- `toFixed` não conhece locale e escreve o ponto. Em todo o `frontend/src/` o
-  ESLint reprova `toFixed(n)` colado ao `%`. Número cru (`${pct}%`) e `toFixed`
-  guardado em variável escapam do gate: ficam com os testes de render, que
-  assertam a vírgula e recusam o ponto (`frontend/tests/shared/percentualPtBr.ts`).
-- Número com casas que não é percentual (meses, nota, contribuição) usa o mesmo
-  separador via `formatNumber(valor, casas)`. A vírgula escrita à mão —
-  `toFixed(n).replace(".", ",")` — também é reprovada pelo ESLint no relatório:
-  arredonda o binário (`0.35` vira `0,3`; o Intl dá `0,4`, o half-up do §4.5) e
-  não agrupa milhar.
+- Número com casas que não é percentual (meses, nota, tamanho de arquivo,
+  duração) usa o mesmo separador via `formatNumber(valor, casas)`: `1,5 MB`,
+  `71,2 meses`, `2,3s`.
+- `toFixed` e `toPrecision` não conhecem locale e escrevem o ponto. A vírgula
+  escrita à mão — `toFixed(n).replace(".", ",")` — arredonda o binário (`0.35`
+  vira `0,3`; o Intl dá `0,4`, o half-up do §4.5) e não agrupa milhar. Em todo o
+  `frontend/src/` o ESLint reprova `toFixed(n)` com casas e `toPrecision`;
+  `toFixed(0)` passa, porque inteiro não tem separador. Valor que não é copy (CSS
+  inline, path SVG, payload decimal) vai para um helper nomeado com isenção por
+  arquivo no `frontend/eslint.config.mjs`, nunca para `eslint-disable` na linha,
+  que desliga também os outros gates da regra.
+- Número cru interpolado (`${pct}%`, ou `${meses} meses` de um campo
+  fracionário) escapa de qualquer gate. Fica com os testes de render, que
+  assertam a vírgula e recusam o ponto (`frontend/tests/shared/percentualPtBr.ts`
+  e `frontend/tests/shared/decimalPtBr.ts`).
 
 ---
 

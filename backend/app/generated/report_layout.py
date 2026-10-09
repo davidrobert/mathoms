@@ -337,15 +337,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                         {   'id': 'proventos_yield',
                                                             'enabled': True,
                                                             'variant': 'feature',
-                                                            'size': 'full'},
-                                                        {   'id': 'estrategia_aporte',
-                                                            'enabled': True,
-                                                            'variant': 'highlight',
-                                                            'size': 'full'},
-                                                        {   'id': 'contrafluxo',
-                                                            'enabled': True,
-                                                            'variant': 'primary',
-                                                            'size': 'half'}]},
+                                                            'size': 'full'}]},
                                        {   'id': 'S4',
                                            'title': 'Real Estate — Imóveis e Renda Passiva',
                                            'enabled': True,
@@ -584,7 +576,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                         'receita_bar': 'Receita por Fonte',
                         'despesas_doughnut': 'Despesas por Categoria',
                         'fluxo_mensal': 'Fluxo de Caixa Mensal',
-                        'receita_despesa_mensal': 'Receita vs Despesa — Mês a Mês',
+                        'receita_despesa_mensal': 'Receitas e Saídas por Categoria — Mês a Mês',
                         'score_gauge': 'Score Financeiro',
                         'top15_ativos': 'Top 15 Ativos Financeiros',
                         'projecao_3cenarios': 'Projeção Patrimonial — 3 Cenários',
@@ -654,5 +646,5 @@ LAYOUT_DICT: dict = {   'version': '1.2',
 
 LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)
 
-ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'posicao_informe_31_12', 'exposicao_cambial', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'protecao_kpi_hero', 'protecao_bens', 'protecao_gap_qualitativo', 'protecao_apolices', 'alocacao_atual_vs_alvo', 'kpi_rentabilidade', 'proventos_yield', 'estrategia_aporte', 'contrafluxo', 'real_estate_yield', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'irpf_dependentes_declarados', 'irpf_dedutiveis_aplicados', 'hero_gap_protecao', 'cobertura_seguros', 'sucessao', 'acoes_mitigacao', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref')
+ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'posicao_informe_31_12', 'exposicao_cambial', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'protecao_kpi_hero', 'protecao_bens', 'protecao_gap_qualitativo', 'protecao_apolices', 'alocacao_atual_vs_alvo', 'kpi_rentabilidade', 'proventos_yield', 'real_estate_yield', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'irpf_dependentes_declarados', 'irpf_dedutiveis_aplicados', 'hero_gap_protecao', 'cobertura_seguros', 'sucessao', 'acoes_mitigacao', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref')
 ALL_CHART_IDS: tuple[str, ...] = ('patrimonio_doughnut', 'waterfall_if', 'score_gauge', 'fluxo_mensal', 'receita_bar', 'despesas_doughnut', 'receita_despesa_mensal', 'viagens', 'protecao_premio_decomp', 'top15_ativos', 'cenarios_conjuge', 'projecao_3cenarios', 'renda_passiva', 'impostos_pj', 'renda_evolucao_multi_anos', 'aliquota_efetiva_dual_gauge', 'bubble_riscos', 'top5_decisoes')

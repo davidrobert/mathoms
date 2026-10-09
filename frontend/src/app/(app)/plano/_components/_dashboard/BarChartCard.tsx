@@ -68,6 +68,7 @@ export function BarChartCard({
               labelFormatter={monthLabel ? (label) => monthLabel(String(label)) : undefined}
               itemStyle={TOOLTIP_ITEM_STYLE}
               contentStyle={TOOLTIP_CONTENT_STYLE}
+              cursor={{ className: "fill-[var(--surface-row-hover)]" }}
             />
             <Legend {...LEGEND_PROPS} />
             {keys.map((dk) => (

@@ -31,7 +31,7 @@ function ErrorMetadataRow({ failedStage }: { failedStage: PipelineStageLog | und
       {failedStage?.duration_ms != null && (
         <span>
           <span className="text-loss">duração</span>{" "}
-          <span className="text-foreground">{(failedStage.duration_ms / 1000).toFixed(1)}s</span>
+          <span className="text-foreground">{formatDuration(failedStage.duration_ms)}</span>
         </span>
       )}
       {errorType && (

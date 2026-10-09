@@ -36,6 +36,11 @@ tags:
 > sprint+1" ficam superados; a regra de que o formatador não multiplica continua.
 > Ver §Emenda 2026-10-09.
 
+> **Emendada em 2026-10-09 (b)** — a emenda acima apoia a segurança do formatador na
+> D1, mas a D1 não vale em quatro campos `*_pct` do E5: eles chegam como razão 0..1, e
+> o frontend multiplica por 100 antes de formatar. Só um deles tem registro (RV4-51).
+> Ver §Emenda 2026-10-09 (b).
+
 ## Contexto
 
 - Brainstorm 2026-05-12 do plano `docs/archive/PLANNER_REVIEW-2026-07-09.md` (achado **DE-I.2** do `data-engineer`) identificou que o E5 (`config/schemas/e5_analysis.schema.json`) tem risco de inconsistência de unidades de percentual entre campos `*_pct`: alguns absolutos (`44.7` = 44,7%), outros fracionais (`0.447` = 44,7%).
@@ -167,6 +172,49 @@ Re-medido em 2026-10-09: 59 chamadas em 28 arquivos de `frontend/src/components/
 §Riscos muda de natureza: deixa de ser uma função dormente e passa a ser qualquer
 chamador que receba fração. A proteção é a D1 (campos `*_pct` absolutos no contrato),
 não a remoção da função.
+
+## Emenda 2026-10-09 (b) — a D1 não vale em quatro campos do E5
+
+A §Emenda 2026-10-09 conclui que a proteção contra chamador que recebe fração "é a D1
+(campos `*_pct` absolutos no contrato)". Medido no mesmo dia (`main` @ `6918df1b`):
+quatro campos `*_pct` do E5 chegam como razão 0..1, e o frontend compensa
+multiplicando por 100 antes de chamar `formatPercent`.
+
+| Call-site (em `frontend/src/components/report/`) | Campo do E5 | O que o schema declara |
+| --- | --- | --- |
+| `sections/SProtecao/ProtecaoKpiHero.tsx` | `protecao_patrimonial.pct_renda_anual` | "0..1 como decimal; 0.025 = 2.5%" |
+| `sections/SProtecao/ProtecaoGapVeiculos.tsx` | `protecao_patrimonial.bens_com_gap_cobertura[].gap_pct` | nada; o produtor emite `(fipe - lmi) / fipe` |
+| `cards/CascataFiscalCard.layers.tsx` | `tributario.cascata.carga_total_pct` | "RAZÃO 0–1 (…), não percentual" |
+| `cards/CascataFiscalCard.header.tsx` | `tributario.cascata.fator_r_pct` | "razão 0–1" |
+
+Quem chamar `formatPercent` num desses campos confiando na D1 publica um valor 100×
+menor (`formatPercent(0.025)` → `"0,0%"`). Método: `*_pct` com descrição fracionária
+em `config/schemas/`, mais `* 100` em `frontend/src` (fora do relatório não há
+compensação). Campo fracionário sem unidade declarada e sem compensação no call-site
+escapa aos dois.
+
+Os quatro estão no escopo da §D4: o bloco de proteção ([[ADR-240]]) entra no E5 por
+`$ref`. Agravantes medidos:
+
+- **A mesma chave tem duas unidades no bloco.** `tributario.cascata.triggers[].params.fator_r_pct`
+  sai absoluto (`_pct_str` multiplica por 100), e `cards/CascataFiscalCard.triggers.ts`
+  o formata, corretamente, sem compensar.
+- **A [[ADR-236]] escreve o `fator_r_pct` com `× 100`**, que o produtor
+  (`_compute_fator_r`) não aplica.
+- **Dois textos afirmam a D1 sem exceção:** a R21 da persona (Camada 2), contrariada
+  pela dica de proteção em `pipeline/llm/prompts/parecer_planejador.py`
+  (`pct_renda_anual > 0.05`), e o COPY_GUIDELINES §4.6, segundo o qual os `*_pct`
+  "já chegam absolutos".
+
+Só o `pct_renda_anual` tem registro: o achado RV4-51 em
+[PIPELINE-REVIEWS-active](../_MOC/PIPELINE-REVIEWS-active.md) (P3, `procede-aberto`,
+trilha `data-engineer`). Migrar os produtores ou declarar exceção à D1 (na forma da
+§D2) é decisão de quem tratar o RV4-51; esta emenda só registra a medida.
+
+**Duas notas de cronologia.** O item da §Riscos nasceu sem objeto: o #246, que tirou
+de `formatPercent` o `style: "percent"` (a multiplicação por 100), mergeou 3 h antes do
+#245, que trouxe esta ADR. E o #2123 (2026-10-09) estendeu o formatador e o gate de
+`toFixed(n)` colado ao `%` a `src/**`, fora do relatório.
 
 ## Referências
 

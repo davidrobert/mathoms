@@ -53,7 +53,7 @@ const PONTUAIS_FULL = /R\$\s?250\.000,00/;
  * varredura em silêncio. */
 const CARDS_ANTES_EXCLUIDOS = [
   "Despesas por Categoria",
-  "Receita vs Despesa — Mês a Mês",
+  "Receitas e Saídas por Categoria — Mês a Mês",
 ];
 
 async function openReport(page: Page): Promise<void> {
@@ -210,19 +210,20 @@ test.describe("janela canônica de fluxo @critical", () => {
   }) => {
     await openReport(page);
 
+    // O contexto descreve as barras; o agregado rotulado é só da conclusão —
+    // repeti-lo imprimia a mesma média duas vezes no card (ADR-306 D1 exige
+    // rótulo, não posição).
     const context = fluxoCard(page).locator("[data-chart-context]");
-    // Contagem das barras vem do render; a base do agregado, do payload.
     await expect(context).toContainText("No gráfico: 12 meses");
-    await expect(context).toContainText("os últimos 12 meses documentados");
-    await expect(context).toContainText(RECEITA_12M);
-    await expect(context).toContainText(DESPESA_12M);
-    await expect(context).not.toContainText(RECEITA_FULL);
-    await expect(context).not.toContainText(DESPESA_FULL);
+    await expect(context).not.toContainText(/R\$/);
 
     const conclusion = fluxoCard(page).locator("[data-chart-conclusion]");
     await expect(conclusion).toContainText("os últimos 12 meses documentados");
     await expect(conclusion).toContainText(RECEITA_12M);
     await expect(conclusion).toContainText(DESPESA_12M);
+    // ADR-333: a média bruta inclui o aporte — "saídas", nunca "despesa".
+    await expect(conclusion).toContainText("aportes incluídos");
+    await expect(conclusion).not.toContainText(/despesa/i);
     await expect(conclusion).not.toContainText(RECEITA_FULL);
     await expect(conclusion).not.toContainText(DESPESA_FULL);
   });
@@ -335,13 +336,16 @@ test.describe("janela canônica de fluxo @critical", () => {
     // renderiza e o resto do teste mediria a superfície de tela.
     await expect(page.locator("[data-rdm-print-totals]")).toHaveCount(1);
 
+    // No PDF também: o contexto descreve as barras, a base rotulada é da
+    // conclusão — que é o texto impresso ao lado do número.
     const context = fluxoCard(page).locator("[data-chart-context]");
-    await expect(context).toContainText("os últimos 12 meses documentados");
-    await expect(context).toContainText(RECEITA_12M);
-    await expect(context).not.toContainText(RECEITA_FULL);
+    await expect(context).toContainText("No gráfico: 12 meses");
+    await expect(context).not.toContainText(/R\$/);
 
     const conclusion = fluxoCard(page).locator("[data-chart-conclusion]");
+    await expect(conclusion).toContainText("os últimos 12 meses documentados");
     await expect(conclusion).toContainText(RECEITA_12M);
+    await expect(conclusion).toContainText("aportes incluídos");
     await expect(conclusion).not.toContainText(RECEITA_FULL);
 
     // I5 — no PDF o rótulo tem de estar impresso ao lado do número, nos dois
