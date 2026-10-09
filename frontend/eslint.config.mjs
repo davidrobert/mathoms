@@ -76,6 +76,62 @@ const MENSALIZACAO_RESTRITA = CAMPOS_MENSALIZADOS.flatMap((campo) => [
   },
 ]);
 
+// Percentual em copy pt-BR leva vírgula decimal (COPY_GUIDELINES §4.1) e passa
+// por `formatPercent`. Mesmo racional de custo do gate acima: step ESLint de
+// `frontend-checks` + hook `eslint-frontend`, nenhum processo novo.
+//
+// **O que esta regra pega:** `toFixed(n)` com n ≠ 0 colado ao `%` — template
+// (`${x.toFixed(1)}%`, também com `?.` na cadeia), JSX (`{x.toFixed(1)}%`, com o
+// `%` na mesma linha ou na seguinte, ou `{"%"}`) e concatenação
+// (`x.toFixed(1) + "%"`). Foi a grafia de 15 dos 18 call-sites com ponto que o
+// relatório tinha em 2026-10-08. `toFixed(0)` fica de fora: inteiro não tem
+// separador decimal.
+//
+// **O que NÃO pega:** número cru interpolado (`${pct}%` — o EquilibrioCerbasiCard
+// era este caso, sem `toFixed` nenhum), ternário (`${c ? x.toFixed(1) : y}%`),
+// `%` fora do elemento (`<b>{x.toFixed(1)}</b>%`) e `toFixed` guardado em
+// variável antes de ganhar o `%`. Esses caem nos testes de render de cada card,
+// que assertam a vírgula e recusam o ponto (`tests/shared/percentualPtBr.ts`).
+const MENSAGEM_PERCENTUAL =
+  "Percentual em copy pt-BR usa vírgula decimal: formatPercent(valor, casas) de " +
+  "@/lib/format. `toFixed` não conhece locale e escreve \"42.8%\" (COPY_GUIDELINES §4.1).";
+
+const TO_FIXED_COM_CASAS =
+  ':matches(CallExpression[callee.property.name="toFixed"]:not([arguments.0.value=0]), ' +
+  'ChainExpression[expression.callee.property.name="toFixed"]:not([expression.arguments.0.value=0]))';
+
+const COMECA_COM_PERCENT = "/^\\s*%/";
+
+// O quasi que segue `expressions[i]` é `quasis[i + 1]` — arrays irmãos, que o
+// esquery só relaciona por posição. Parear por índice evita disparar num
+// template que tem `toFixed` sem `%` e um `%` depois de outra interpolação.
+const PERCENTUAL_EM_TEMPLATE = Array.from({ length: 8 }, (_, i) => ({
+  selector:
+    `TemplateLiteral:has(> ${TO_FIXED_COM_CASAS}:nth-child(${i + 1}))` +
+    `:has(> TemplateElement:nth-child(${i + 2})[value.raw=${COMECA_COM_PERCENT}])`,
+  message: MENSAGEM_PERCENTUAL,
+}));
+
+const PERCENTUAL_COM_PONTO_RESTRITO = [
+  ...PERCENTUAL_EM_TEMPLATE,
+  {
+    selector: `JSXExpressionContainer:has(> ${TO_FIXED_COM_CASAS}) + JSXText[value=${COMECA_COM_PERCENT}]`,
+    message: MENSAGEM_PERCENTUAL,
+  },
+  {
+    selector:
+      `JSXExpressionContainer:has(> ${TO_FIXED_COM_CASAS}) + ` +
+      `JSXExpressionContainer[expression.value=${COMECA_COM_PERCENT}]`,
+    message: MENSAGEM_PERCENTUAL,
+  },
+  {
+    selector:
+      `BinaryExpression[operator="+"]:has(> ${TO_FIXED_COM_CASAS}.left)` +
+      `[right.value=${COMECA_COM_PERCENT}]`,
+    message: MENSAGEM_PERCENTUAL,
+  },
+];
+
 const CARD_MONEY_MESSAGE =
   "A40.l44: cards de janela renderizam o payload table-ready; aritmética, filtro " +
   "ou ordenação monetária pertencem ao produtor E5.";
@@ -184,8 +240,15 @@ export default [
     },
   },
   {
+    // Os blocos abaixo que redefinem `no-restricted-syntax` SUBSTITUEM este (flat
+    // config não concatena opções de regra) — por isso cada um repete o array.
     files: ["src/components/report/**/*.{ts,tsx}"],
     rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...MENSALIZACAO_RESTRITA,
+        ...PERCENTUAL_COM_PONTO_RESTRITO,
+      ],
       "no-restricted-imports": [
         "error",
         {
@@ -222,6 +285,7 @@ export default [
       "no-restricted-syntax": [
         "error",
         ...MENSALIZACAO_RESTRITA,
+        ...PERCENTUAL_COM_PONTO_RESTRITO,
         ...CARD_MONEY_RESTRICTIONS,
       ],
     },
@@ -231,8 +295,8 @@ export default [
     // Allowlist por arquivo (não por linha) porque a regra é "quem lê", não
     // "onde lê" — e é o seletor que garante o par (valor, rótulo). `janelaLabel.ts`
     // NÃO entra: ele só interpreta o vocabulário `janela`/`janela_meses`, nunca
-    // toca campo de valor.
+    // toca campo de valor. A isenção é da mensalização, não do percentual.
     files: ["src/components/report/utils/fluxoJanela.ts"],
-    rules: { "no-restricted-syntax": "off" },
+    rules: { "no-restricted-syntax": ["error", ...PERCENTUAL_COM_PONTO_RESTRITO] },
   },
 ];
