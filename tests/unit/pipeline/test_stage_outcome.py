@@ -11,6 +11,7 @@ from pipeline.stage_outcome import (
     REQUIRED,
     StageOutcome,
     commits_artifacts_on_degrade,
+    commits_stage_transaction,
     resolve_stage_outcome,
     stage_criticality,
 )
@@ -65,6 +66,10 @@ def test_nome_legado_resolve_para_a_mesma_criticidade(legacy: str, descritivo: s
     # num teste feliz que só usa nomes descritivos.
     assert stage_criticality(legacy) == stage_criticality(descritivo) == DEGRADABLE
     assert resolve_stage_outcome(legacy, delivered=False) is StageOutcome.degraded
+    degraded = StageOutcome.degraded
+    assert commits_stage_transaction(legacy, degraded) is commits_stage_transaction(
+        descritivo, degraded
+    )
 
 
 def test_stage_desconhecido_e_fail_closed() -> None:
@@ -92,3 +97,33 @@ def test_politica_de_commit_e_declarada_por_stage() -> None:
     assert commits_artifacts_on_degrade("generate_narratives") is False
     assert commits_artifacts_on_degrade("review_finances_holistic") is True
     assert commits_artifacts_on_degrade("validate_cross") is True
+
+
+# Oráculo explícito da §6, não derivado do registry: se a declaração de um stage
+# mudar, este teste muda junto — é a decisão que ele trava.
+_SOBREVIVE_A_DEGRADACAO = {
+    "generate_narratives": False,  # escreve na chave do E5, não na própria
+    "review_finances_holistic": True,
+    "validate_cross": True,
+}
+
+
+@pytest.mark.parametrize("outcome", [StageOutcome.completed, StageOutcome.skipped])
+@pytest.mark.parametrize("stage", FULL_ORDER)
+def test_entrega_preserva_a_transacao_do_stage(stage: str, outcome: StageOutcome) -> None:
+    assert commits_stage_transaction(stage, outcome) is True
+
+
+@pytest.mark.parametrize("stage", FULL_ORDER)
+def test_nao_entrega_so_preserva_a_transacao_do_degradavel_de_chave_propria(stage: str) -> None:
+    # A composição que todo executor faz: desfecho pela criticidade, depois o
+    # predicado. Required que não entrega nunca commita (ADR-256).
+    outcome = resolve_stage_outcome(stage, delivered=False)
+    expected = _SOBREVIVE_A_DEGRADACAO.get(stage, False)
+    assert commits_stage_transaction(stage, outcome) is expected
+
+
+def test_failed_nunca_preserva_a_transacao_nem_em_degradavel() -> None:
+    # `failed` num degradável não sai do `resolve_stage_outcome`, mas o predicado
+    # não pode depender disso para negar o commit.
+    assert commits_stage_transaction("validate_cross", StageOutcome.failed) is False

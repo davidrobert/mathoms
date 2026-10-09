@@ -4,7 +4,8 @@
 # em 127.0.0.1 responde "Empty reply" ao host. O isolamento é o prefixo
 # `127.0.0.1:` no `ports:` do compose — NUNCA publique sem ele.
 
-# node:26-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
+# node:<major>-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
+# O major é o de frontend-ops/.nvmrc — o gate node-version-parity reprova divergência.
 FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./

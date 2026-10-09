@@ -65,6 +65,10 @@ tags: [type/lane, sprint/a42, status/open, priority/p1, area/backend, area/pipel
    Em `main`, o teste do ramo de sucesso tem de falhar.
 2. **Espelhos do helper de commit:** `artifact_session_factory`, a `artifact_session` do
    pipeline-service e o `cli_run_stage` seguem a mesma regra onde decidem o desfecho.
+   > **Nota 2026-10-09:** a regra de *quando* commitar já é única —
+   > `pipeline/stage_outcome.py::commits_stage_transaction`, usada pelos três espelhos e
+   > pelo `elif` do loop ([[ADR-303]] §Emenda 2026-10-09). Até ali os espelhos
+   > commitavam em qualquer retorno. Falta deles só o ramo do commit que falha.
 3. **CAS:** uma batida que aterrissa entre o SELECT e o UPDATE impede o flip. O teste roda com
    engine real.
 4. **Sessão de config:** quando o flush de um resolver falha, a sessão faz rollback, a próxima

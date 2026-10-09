@@ -190,7 +190,9 @@ services:
   # Frontend Next.js em modo dev (HMR via `npm run dev`). node_modules fica em
   # named volume para não pisar no mount de código e não reinstalar a cada up.
   frontend:
-    image: node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920
+    # Major = frontend/.nvmrc (gate node-version-parity). O Dependabot não cobre
+    # compose: o digest envelhece, só o major é enforçado.
+    image: node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3
     working_dir: /app/frontend
     command: ["sh", "-c", "[ -d node_modules/next ] || npm ci; npx next dev --turbopack -H 0.0.0.0 -p 3000"]
     environment:

@@ -172,6 +172,66 @@ automaticamente** — ele abre PR subindo o `.in`, e o `dev/check_lockfile_sync.
 falha no CI até que alguém rode a Tarefa 1 e adicione o `.lock` regenerado ao
 PR. Esse é o gate intencional: upgrade major nunca entra sem revalidação.
 
+### `ignore` de redis — teto do kombu (2026-10-09)
+
+As duas entradas `pip` ignoram `redis>=6.5`. Esse é o teto que o `kombu[redis]`
+(via `celery[redis]`) impõe. Sem o `ignore`, o updater pergunta primeiro se
+`redis==<último>` resolve. A resposta é não, mas o pip 26.2.1 do updater não
+consegue provar: ele desce o `wrapt` até o sdist 1.13.3, cujo build quebra, e o
+job inteiro sai `failure` ("Dependabot can't resolve your Python dependency
+files"). Foi o estado de 2026-08-31 a 2026-10-09.
+
+- **Quando mexer:** `tests/dev/test_dependabot_redis_ceiling.py` lê o teto do
+  kombu instalado pelo lock. No PR que regenerar o lock com outro kombu, ele
+  reprova se o teto mudou: ajuste o `versions`, ou apague o `ignore` se o teto
+  sumiu.
+- **Job do Dependabot vermelho:** rode `gh run view <id> --log`. A tabela
+  "Dependencies failed to update" nomeia a dependência. O comando que falhou é
+  o `pip-compile -v ... -P <dep>` dela.
+- **Reprodução:** use o pip do updater, não o local. A versão está em
+  `python/helpers/requirements.txt` do `dependabot-core`, no SHA da imagem
+  `dependabot-updater-pip:<sha>` que o log imprime. Com pip 24/25, o mesmo
+  `.in` dá `ResolutionImpossible` em menos de 1 min, o que o Dependabot trata
+  como `update_not_possible` (verde).
+
+### Saúde das entradas do Dependabot (issue `ops-dependabot-red`)
+
+O workflow dinâmico do Dependabot (`dynamic/dependabot/dependabot-updates`) não
+tem canal de falha. A entrada pip `/` saiu `failure` de 2026-08-31 a 2026-10-09,
+e pip `/backend` e github_actions `/` passaram de 07-28 a 10-09 sem run
+agendada — nada no repositório viu. `dev/ci_dependabot_health.py` roda no cron
+diário do `budget-alert.yml` e mantém **uma** issue `ops-dependabot-red`, com
+`S3` de 10 dias no `.github/scheduled-workflows.yml`. Vale para todas as
+entradas, não só as `pip`.
+
+- **Fonte:** as entradas vêm do `.github/dependabot.yml`; as runs, de
+  `actions/workflows/<id>/runs?event=dynamic` (últimos 90 dias). Run de entrada
+  agendada se chama `pip in /. - Update #N`; rebase de PR traz ` for <deps>` e é
+  ignorado. A raiz vira `/.` e o ecossistema usa o nome interno (`npm` →
+  `npm_and_yarn`, `github-actions` → `github_actions`, `gomod` → `go_modules`),
+  medido em 2026-10-09 sobre 395 runs.
+- **vermelho:** as 2 últimas runs concluídas da entrada são `failure` (uma só
+  pode ser instabilidade do registry). Diagnóstico: "Job do Dependabot vermelho"
+  na subseção acima.
+- **sem run:** a última run é mais velha que o limite do `schedule.interval`
+  (daily 3 · weekly 10 · monthly 40 dias). Em `network/updates`, *Check for
+  updates* na entrada: entrada que nunca completou job deixa de ser agendada.
+  Mudar o `dependabot.yml` também dispara todas.
+- **sem correspondência:** nenhuma run casa com a entrada, ou o ecossistema / o
+  intervalo não tem medição. Vira linha na issue, nunca pass calado. Ecossistema
+  novo sem tradução reprova antes, em `tests/dev/test_ci_dependabot_health.py`.
+- **Triar = fechar à mão**, com comentário apontando o PR do conserto. Não espere
+  a próxima run passar: o `S3` reprovaria o `Lint` do próprio PR do conserto (a
+  classe do impasse de 2026-10-08). O cron só abre issue **nova** com fato
+  posterior ao fechamento — run `failure` criada depois dele, ou o limite de
+  "sem run" vencido de novo. Nunca `reopen`: a issue herdaria o `createdAt` e o
+  `S3` reprovaria na hora. Com tudo saudável, o cron fecha a issue aberta.
+- **Medição falha** (token, API, yml): `::warning title=dependabot-health sem
+  medição::` no log, issue intocada, run verde. Zero runs na janela conta como
+  instrumento cego, não como dez entradas sem run.
+- **Limite:** o aviso "cannot open any more pull requests" só aparece na UI do
+  Dependabot. O job sai `success` e o script não o vê.
+
 ## Hook de sincronia
 
 `dev/check_lockfile_sync.py` (pre-commit) compara o conjunto de deps diretas
