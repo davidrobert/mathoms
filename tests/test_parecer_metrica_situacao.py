@@ -41,14 +41,19 @@ def _drill(e5: dict) -> PlannerDrillDown:
     )
 
 
-def _e5(*, endividamento=45.0, concentracao=34.86, cobertura=5.6, nivel="parcial") -> dict:
+def _e5(
+    *, endividamento=45.0, concentracao=34.86, cobertura=5.6, piso=None, nivel="parcial"
+) -> dict:
+    reserva = {"meses_alvo": 6, "cobertura_meses": cobertura}
+    if piso is not None:
+        reserva["piso_cobertura_meses"] = piso
     e5 = {
         **E5_COMPLETO,
         "ratios": {
             "taxa_endividamento_pct": endividamento,
             "concentracao_imobiliaria": concentracao,
         },
-        "reserva_emergencia": {"meses_alvo": 6, "cobertura_meses": cobertura},
+        "reserva_emergencia": reserva,
         "diagnostico_confianca": {"nivel": nivel, "share_nao_identificado_pct": 12.0},
     }
     e5["kpi_targets"] = build_kpi_targets(
@@ -286,3 +291,31 @@ def test_artefato_sem_exclude_none_tambem_valida_contra_o_schema():
         if dump["comparador"] is not None:
             dump["comparador"].setdefault("progresso_pct", None)
         jsonschema.validate(dump, metrica_schema)
+
+
+# [[ADR-412]] §E3 — veredito no extremo conservador, medida como intervalo (co-design
+# financial-planner). Achado da revisão adversarial: com alvo 6, cobertura 6,4 e piso 5,2
+# a tabela dizia "atingido" enquanto os pontos urgentes, que julgam o piso, diziam
+# "abaixo do mínimo de 6" — sobre o mesmo payload.
+def test_reserva_julga_o_piso_como_o_canal_de_risco_e_mostra_o_intervalo():
+    from pipeline.domain.services.risk_trigger_registry import build_risk_triggers
+
+    m = _estampa("reserva_cobertura_meses", _e5(cobertura=6.4, piso=5.2))
+
+    gatilho = build_risk_triggers({"thresholds_alertas": {"reserva_minima_meses": 6}})
+    assert gatilho["reserva_cobertura_meses"].rompido(5.2), "o canal de risco dispara aqui"
+    assert m.comparador == Comparador(operador=">=", conforme=False, progresso_pct=86)
+    assert m.valor_atual == "5,2 a 6,4 meses"
+
+
+def test_reserva_sem_spread_mostra_um_numero_so():
+    m = _estampa("reserva_cobertura_meses", _e5(cobertura=6.4, piso=6.4))
+
+    assert m.comparador.conforme is True and m.valor_atual == "6,4 meses"
+
+
+def test_intervalo_ganha_a_segunda_casa_nas_duas_pontas_quando_o_piso_beira_o_alvo():
+    m = _estampa("reserva_cobertura_meses", _e5(cobertura=6.4, piso=5.96))
+
+    assert m.comparador.conforme is False
+    assert m.valor_atual == "5,96 a 6,40 meses"

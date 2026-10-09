@@ -37,7 +37,10 @@ if str(REPO_ROOT) not in sys.path:
 
 from backend.app.services.parecer_manifest import load_manifest  # noqa: E402
 from pipeline.domain.services.kpi_orfaos_dominio import NIVEL_DO_PRODUTOR_PATH  # noqa: E402
-from pipeline.domain.services.kpi_target_catalog import build_kpi_targets  # noqa: E402
+from pipeline.domain.services.kpi_target_catalog import (  # noqa: E402
+    OBSERVADO_CONSERVADOR_PATH,
+    build_kpi_targets,
+)
 from pipeline.llm.tools.planner_drill_down import _JSONPATH_RE, _parse_jsonpath  # noqa: E402
 
 # Não sai de config: o gate não olha limiar, e depender do ConfigStore o tornaria
@@ -81,6 +84,8 @@ def _ponteiros(chave: str, alvo: dict) -> list[tuple[str, str]]:
     # path ilegível aqui é linha sem situação, calada.
     if chave in NIVEL_DO_PRODUTOR_PATH:
         out.append(("nivel", NIVEL_DO_PRODUTOR_PATH[chave]))
+    if chave in OBSERVADO_CONSERVADOR_PATH:
+        out.append(("observado_conservador", OBSERVADO_CONSERVADOR_PATH[chave]))
     return out
 
 

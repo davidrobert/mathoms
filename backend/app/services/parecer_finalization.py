@@ -12,6 +12,8 @@ from backend.app.services.parecer_metrica_situacao import (
     alvo_sem_comparador,
     comparador_da_metrica,
     exibir_sem_contradicao,
+    extremo_conservador,
+    medidas_da_linha,
     nivel_do_produtor,
 )
 from backend.app.services.parecer_section_route import resolve_destino
@@ -328,27 +330,31 @@ def _stamp_metrica(metrica: Metrica, drill: PlannerDrillDown, alvos: Mapping) ->
         update={
             "nome": _rotulo_de(alvo, metrica.metrica_key),
             # O veredito julga o número CRU; o render segue o hint de quem lê.
-            **_situacao(alvo, drill.valor_bruto(path).value, valor),
+            **_situacao(alvo, medidas_da_linha(metrica.metrica_key, drill, path), valor),
             "nivel_confianca": nivel_do_produtor(metrica.metrica_key, drill),
         }
     )
 
 
 # `valor` é None quando o observado não resolve — e aí a linha não tem alvo nem veredito.
-def _situacao(alvo: Mapping, bruto, valor: Optional[str]) -> dict:
+def _situacao(alvo: Mapping, medidas: tuple, valor: Optional[str]) -> dict:
     """Observado, alvo e veredito da linha saem juntos — separados, o par mente."""
     par = _par(alvo, valor)
-    comparador = comparador_da_metrica(alvo, bruto, alvo_publicado=par["target"] is not None)
+    medida, conservador = medidas
+    julgado = extremo_conservador(alvo, medida, conservador)
+    comparador = comparador_da_metrica(alvo, julgado, alvo_publicado=par["target"] is not None)
     if comparador is not None:
-        valor = _sem_contradicao(bruto, alvo, comparador) or valor
+        valor = _sem_contradicao(alvo, julgado, medida, comparador) or valor
     return {"valor_atual": valor, **par, "comparador": comparador}
 
 
-def _sem_contradicao(bruto, alvo: Mapping, comparador) -> Optional[str]:
-    render, numero = _UNIDADE_RENDER.get(alvo.get("unidade") or ""), _coerce_number(bruto)
-    if render is None or numero is None:
+def _sem_contradicao(alvo: Mapping, julgado, medida, comparador) -> Optional[str]:
+    render = _UNIDADE_RENDER.get(alvo.get("unidade") or "")
+    if render is None:
         return None
-    return exibir_sem_contradicao(numero, render[1], alvo["unidade"], alvo["limiar"], comparador)
+    return exibir_sem_contradicao(
+        julgado, medida, render[1], alvo["unidade"], alvo["limiar"], comparador
+    )
 
 
 def _destino(item, e5_data: Optional[Mapping] = None) -> str:

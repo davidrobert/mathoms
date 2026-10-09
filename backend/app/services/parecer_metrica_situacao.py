@@ -17,6 +17,7 @@ from pipeline.domain.services.comparador_de_limiar import (
     veredito_do_comparador,
 )
 from pipeline.domain.services.kpi_orfaos_dominio import MOTIVO_DA_ORFA, NIVEL_DO_PRODUTOR_PATH
+from pipeline.domain.services.kpi_target_catalog import OBSERVADO_CONSERVADOR_PATH
 from pipeline.llm.schemas.parecer_comparador import (
     Comparador,
     NivelConfianca,
@@ -74,23 +75,45 @@ _CASAS_ADAPTATIVAS = (1, 2)
 _SUFIXO = {"meses": " meses", "pct": "%", "pct_aa": "%", "ratio_0_1": "%"}
 
 
+def medidas_da_linha(metrica_key: str, drill: PlannerDrillDown, path: str) -> tuple[Any, Any]:
+    """(medida crua, extremo conservador cru quando o catálogo o declara)."""
+    conservador_path = OBSERVADO_CONSERVADOR_PATH.get(metrica_key)
+    conservador = drill.valor_bruto(conservador_path).value if conservador_path else None
+    return drill.valor_bruto(path).value, conservador
+
+
+def extremo_conservador(alvo: Mapping, medida: Any, conservador: Any) -> Any:
+    """O lado da medida que menos favorece a conformidade — [[ADR-412]] §E3."""
+    m, c = numero_finito(medida), numero_finito(conservador)
+    if m is None or c is None:
+        return medida
+    return min(m, c) if alvo.get("operador") == ">=" else max(m, c)
+
+
 def exibir_sem_contradicao(
-    numero: float, fator: float, unidade: str, limiar: Any, comparador: Comparador
+    julgado: Any, medida: Any, fator: float, unidade: str, limiar: Any, comparador: Comparador
 ) -> Optional[str]:
-    """Observado na menor precisão em que o número exibido concorda com o veredito."""
-    sufixo = _SUFIXO.get(unidade)
-    if sufixo is None:
+    """Observado (intervalo, se o extremo julgado difere) sem contradizer o veredito."""
+    sufixo, lim = _SUFIXO.get(unidade), numero_finito(limiar)
+    j, m = numero_finito(julgado), numero_finito(medida)
+    if sufixo is None or lim is None or j is None:
         return None
-    limiar_num = numero_finito(limiar)
-    if limiar_num is None:
-        return None
-    escalado = numero * fator
-    limiar_exibido = limiar_num * Decimal(str(fator))
+    limiar_exibido, escala = lim * Decimal(str(fator)), Decimal(str(fator))
     casas = next(
-        (c for c in _CASAS_ADAPTATIVAS if _concorda(escalado, c, limiar_exibido, comparador)),
+        (
+            c
+            for c in _CASAS_ADAPTATIVAS
+            if _concorda(float(j * escala), c, limiar_exibido, comparador)
+        ),
         _CASAS_ADAPTATIVAS[-1],
     )
-    return f"{escalado:.{casas}f}".replace(".", ",") + sufixo
+    pontas = sorted({_numero_exibido(v * escala, casas) for v in (j, m if m is not None else j)})
+    texto = " a ".join(f"{v:.{casas}f}".replace(".", ",") for v in pontas)
+    return texto + sufixo
+
+
+def _numero_exibido(valor: Decimal, casas: int) -> Decimal:
+    return Decimal(f"{float(valor):.{casas}f}")
 
 
 # Compara o que a família LÊ: a string formatada, não o float — `f"{20.05:.1f}"` e o
@@ -104,5 +127,7 @@ __all__ = [
     "alvo_sem_comparador",
     "comparador_da_metrica",
     "exibir_sem_contradicao",
+    "extremo_conservador",
+    "medidas_da_linha",
     "nivel_do_produtor",
 ]
