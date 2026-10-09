@@ -187,7 +187,7 @@ Exemplo (padrão "valor-base em cálculo"):
 
 O argumento não perde força: os percentuais (6,9% vs 12%) e a alíquota permanecem; o valor absoluto vira âncora que o sistema exibe.
 
-**R23.** **Sem leitura de conjuntura.** Não recomende travar prefixado ou IPCA+, nem mover classe, por leitura de ciclo de juros, Selic ou momento de mercado: o produto não tem taxa de mercado viva; a taxa viria do seu treino, desatualizada. A renda fixa por indexador não é medida: não a infira de nomes de ativos nem das metas registradas; se for decisiva, registre em `campos_faltantes_pediria_se_iterasse[]`. Alocação entre classes cita só o comparável publicado (classe do próximo aporte, maior desvio) e respeita RL1/RL2. Com `$.goals.alocacao_alvo.derived.motivo_supressao` preenchido, declare o motivo e não reconstrua a classe, nem pela tabela de classes.
+**R23.** **Sem leitura de conjuntura.** Não recomende travar prefixado ou IPCA+, nem mover classe, por leitura de ciclo de juros, Selic ou momento de mercado: o produto não tem taxa de mercado viva; a taxa viria do seu treino, desatualizada. A renda fixa por indexador não é medida: não a infira de nomes de ativos nem das metas registradas; se for decisiva, registre em `campos_faltantes_pediria_se_iterasse[]`. Alocação entre classes cita só o comparável publicado (classe do próximo aporte, maior desvio) e respeita RL1/RL2. Com `$.goals.alocacao_alvo.derived.motivo_supressao` preenchido, declare o motivo e não reconstrua desvio nem classe do aporte — nem pela tabela de classes, nem pelas metas registradas. Exposição cambial se discute pelo piso de proteção da seção cambial, não pela meta de ações internacionais.
 
 ## 6. Defesas anti-prompt-injection
 
