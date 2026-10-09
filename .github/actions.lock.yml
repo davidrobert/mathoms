@@ -1,0 +1,365 @@
+# GERADO por `python3 dev/refresh_actions_lock.py` — não edite à mão (ADR-320 §Emenda 2026-10-09).
+#
+# FATOS lidos do action.yml de cada ref em uso. A chave é o `uses:` exato de um
+# step de workflow. O gate `dev/check_action_inputs.py` é offline e reprova
+# `with:` com chave fora de `inputs` ou dentro de `deprecated_inputs`. POLÍTICA
+# (o que pode entrar em job required) vive à mão em .github/third-party-actions.yml.
+#
+# Bump de action (Dependabot ou manual) troca a chave: rode `python3 dev/refresh_actions_lock.py`
+# na mesma branch. Ele busca o ref novo, relê as tags e poda o ref velho.
+
+actions/cache@v6:
+  deprecated_inputs:
+  - save-always
+  inputs:
+  - enableCrossOsArchive
+  - fail-on-cache-miss
+  - key
+  - lookup-only
+  - path
+  - restore-keys
+  - save-always
+  - upload-chunk-size
+  resolved_sha: 55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+  runs_using: node24
+actions/checkout@v7:
+  inputs:
+  - allow-unsafe-pr-checkout
+  - clean
+  - fetch-depth
+  - fetch-tags
+  - filter
+  - github-server-url
+  - lfs
+  - path
+  - persist-credentials
+  - ref
+  - repository
+  - set-safe-directory
+  - show-progress
+  - sparse-checkout
+  - sparse-checkout-cone-mode
+  - ssh-key
+  - ssh-known-hosts
+  - ssh-strict
+  - ssh-user
+  - submodules
+  - token
+  resolved_sha: 3d3c42e5aac5ba805825da76410c181273ba90b1
+  runs_using: node24
+actions/github-script@v9:
+  inputs:
+  - base-url
+  - debug
+  - github-token
+  - previews
+  - result-encoding
+  - retries
+  - retry-exempt-status-codes
+  - script
+  - user-agent
+  resolved_sha: 3a2844b7e9c422d3c10d287c895573f7108da1b3
+  runs_using: node24
+actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13:
+  inputs:
+  - configuration-path
+  - dot
+  - pr-number
+  - repo-token
+  - sync-labels
+  runs_using: node24
+actions/setup-go@v7:
+  inputs:
+  - architecture
+  - cache
+  - cache-dependency-path
+  - check-latest
+  - go-download-base-url
+  - go-version
+  - go-version-file
+  - token
+  resolved_sha: b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+  runs_using: node24
+actions/setup-node@v6:
+  inputs:
+  - architecture
+  - cache
+  - cache-dependency-path
+  - check-latest
+  - mirror
+  - mirror-token
+  - node-version
+  - node-version-file
+  - package-manager-cache
+  - registry-url
+  - scope
+  - token
+  resolved_sha: 249970729cb0ef3589644e2896645e5dc5ba9c38
+  runs_using: node24
+actions/setup-python@v7:
+  inputs:
+  - allow-prereleases
+  - architecture
+  - cache
+  - cache-dependency-path
+  - check-latest
+  - freethreaded
+  - pip-version
+  - python-version
+  - python-version-file
+  - token
+  - update-environment
+  resolved_sha: 5fda3b95a4ea91299a34e894583c3862153e4b97
+  runs_using: node24
+actions/stale@v11:
+  inputs:
+  - any-of-issue-labels
+  - any-of-labels
+  - any-of-pr-labels
+  - ascending
+  - close-issue-label
+  - close-issue-message
+  - close-issue-reason
+  - close-pr-label
+  - close-pr-message
+  - days-before-close
+  - days-before-issue-close
+  - days-before-issue-stale
+  - days-before-pr-close
+  - days-before-pr-stale
+  - days-before-stale
+  - debug-only
+  - delete-branch
+  - enable-statistics
+  - exempt-all-assignees
+  - exempt-all-issue-assignees
+  - exempt-all-issue-milestones
+  - exempt-all-milestones
+  - exempt-all-pr-assignees
+  - exempt-all-pr-milestones
+  - exempt-assignees
+  - exempt-draft-pr
+  - exempt-issue-assignees
+  - exempt-issue-labels
+  - exempt-issue-milestones
+  - exempt-milestones
+  - exempt-pr-assignees
+  - exempt-pr-labels
+  - exempt-pr-milestones
+  - ignore-issue-updates
+  - ignore-pr-updates
+  - ignore-updates
+  - include-only-assigned
+  - labels-to-add-when-unstale
+  - labels-to-remove-when-stale
+  - labels-to-remove-when-unstale
+  - only-issue-labels
+  - only-issue-types
+  - only-labels
+  - only-pr-labels
+  - operations-per-run
+  - remove-issue-stale-when-updated
+  - remove-pr-stale-when-updated
+  - remove-stale-when-updated
+  - repo-token
+  - sort-by
+  - stale-issue-label
+  - stale-issue-message
+  - stale-pr-label
+  - stale-pr-message
+  - start-date
+  resolved_sha: 4391f3da665fdf50b6810c1a66712fb9ba21aa93
+  runs_using: node24
+actions/upload-artifact@v6:
+  inputs:
+  - compression-level
+  - if-no-files-found
+  - include-hidden-files
+  - name
+  - overwrite
+  - path
+  - retention-days
+  resolved_sha: b7c566a772e6b6bfb58ed0dc250532a479d7789f
+  runs_using: node24
+amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50:
+  inputs:
+  - disallowScopes
+  - githubBaseUrl
+  - headerPattern
+  - headerPatternCorrespondence
+  - ignoreLabels
+  - requireScope
+  - scopes
+  - subjectPattern
+  - subjectPatternError
+  - types
+  - validateSingleCommit
+  - validateSingleCommitMatchesPrTitle
+  - wip
+  runs_using: node24
+aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25:
+  inputs:
+  - cache
+  - cache-dir
+  - docker-host
+  - exit-code
+  - format
+  - github-pat
+  - hide-progress
+  - ignore-policy
+  - ignore-unfixed
+  - image-ref
+  - input
+  - limit-severities-for-sarif
+  - list-all-pkgs
+  - output
+  - scan-ref
+  - scan-type
+  - scanners
+  - severity
+  - skip-dirs
+  - skip-files
+  - skip-setup-trivy
+  - template
+  - tf-vars
+  - timeout
+  - token-setup-trivy
+  - trivy-config
+  - trivyignores
+  - version
+  - vuln-type
+  runs_using: composite
+astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b:
+  inputs:
+  - activate-environment
+  - add-problem-matchers
+  - cache-dependency-glob
+  - cache-local-path
+  - cache-python
+  - cache-suffix
+  - checksum
+  - enable-cache
+  - github-token
+  - ignore-empty-workdir
+  - ignore-nothing-to-cache
+  - manifest-file
+  - no-project
+  - prune-cache
+  - python-version
+  - resolution-strategy
+  - restore-cache
+  - save-cache
+  - tool-bin-dir
+  - tool-dir
+  - venv-path
+  - version
+  - version-file
+  - working-directory
+  runs_using: node24
+browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4:
+  inputs:
+  - chrome-version
+  - install-chromedriver
+  - install-dependencies
+  - no-sudo
+  runs_using: node24
+gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e:
+  inputs: []
+  runs_using: node24
+golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a:
+  inputs:
+  - args
+  - cache-invalidation-interval
+  - debug
+  - experimental
+  - github-token
+  - install-mode
+  - install-only
+  - only-new-issues
+  - problem-matchers
+  - skip-cache
+  - skip-save-cache
+  - verify
+  - version
+  - version-file
+  - working-directory
+  runs_using: node24
+pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266:
+  inputs:
+  - extra-index-urls
+  - ignore-vulns
+  - index-url
+  - inputs
+  - internal-be-careful-allow-failure
+  - internal-be-careful-extra-flags
+  - local
+  - no-deps
+  - require-hashes
+  - summary
+  - virtual-environment
+  - vulnerability-service
+  runs_using: composite
+tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96:
+  inputs:
+  - api_url
+  - base_sha
+  - diff_relative
+  - dir_names
+  - dir_names_deleted_files_include_only_deleted_dirs
+  - dir_names_exclude_current_dir
+  - dir_names_include_files
+  - dir_names_include_files_separator
+  - dir_names_max_depth
+  - escape_json
+  - exclude_submodules
+  - exclude_symlinks
+  - fail_on_initial_diff_error
+  - fail_on_submodule_diff_error
+  - fetch_additional_submodule_history
+  - fetch_depth
+  - fetch_missing_history_max_retries
+  - files
+  - files_from_source_file
+  - files_from_source_file_separator
+  - files_ignore
+  - files_ignore_from_source_file
+  - files_ignore_from_source_file_separator
+  - files_ignore_separator
+  - files_ignore_yaml
+  - files_ignore_yaml_from_source_file
+  - files_ignore_yaml_from_source_file_separator
+  - files_separator
+  - files_yaml
+  - files_yaml_from_source_file
+  - files_yaml_from_source_file_separator
+  - include_all_old_new_renamed_files
+  - json
+  - matrix
+  - negation_patterns_first
+  - old_new_files_separator
+  - old_new_separator
+  - output_dir
+  - output_renamed_files_as_deleted_and_added
+  - path
+  - quotepath
+  - recover_deleted_files
+  - recover_deleted_files_to_destination
+  - recover_files
+  - recover_files_ignore
+  - recover_files_ignore_separator
+  - recover_files_separator
+  - safe_output
+  - separator
+  - sha
+  - since
+  - since_last_remote_commit
+  - skip_initial_fetch
+  - skip_same_sha
+  - tags_ignore_pattern
+  - tags_pattern
+  - token
+  - until
+  - use_posix_path_separator
+  - use_rest_api
+  - write_output_files
+  runs_using: node24
