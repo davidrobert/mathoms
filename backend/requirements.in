@@ -38,7 +38,7 @@ openpyxl>=3.1.0   # .xlsx files
 xlrd>=2.0.1       # .xls files (OLE2/BIFF format — xlrd 2.x dropped xlsx support intentionally)
 
 # Phase 9 — Server-side PDF via Playwright (ADR-076)
-playwright>=1.47.0
+playwright>=1.63.0  # == @playwright/test do frontend: o print-visual valida o Chromium do PDF de prod
 
 # Phase 5 — Task Queue + Real-time
 celery[redis]>=5.6.3

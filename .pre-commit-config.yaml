@@ -411,6 +411,18 @@ repos:
         pass_filenames: false
         files: '^(requirements\.in|backend/requirements\.in|requirements\.lock)$'
 
+      - id: playwright-parity
+        # O PDF de prod sai do Chromium do playwright Python; o print-visual do
+        # CI valida com o do playwright npm do frontend. Versões iguais ⇒ mesma
+        # build do Chromium ⇒ a baseline do CI vale para prod. O Dependabot sobe
+        # cada lado num PR separado (#2106 pip, #2130 npm) e este hook reprova
+        # o que partir o par.
+        name: "playwright Python == playwright do frontend (Chromium do PDF)"
+        entry: python3 dev/check_playwright_parity.py
+        language: system
+        pass_filenames: false
+        files: '^(requirements\.lock|frontend/package-lock\.json)$'
+
       - id: docker-sha-pin
         # ADR-249 (A20.l2): toda imagem base externa em Dockerfile/compose
         # versionado deve estar pinada por digest @sha256: do índice multi-arch
