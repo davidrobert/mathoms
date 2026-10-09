@@ -25,7 +25,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from dev.ci_advance_automerge_train import GhCallFailed, _gh  # noqa: E402
-from dev.ci_dependabot_health import labelled_issues, load_entries, parse_ts  # noqa: E402
+from dev.ci_dependabot_health import load_entries, parse_ts  # noqa: E402
 from dev.ci_dependabot_stuck_prs import split_branch  # noqa: E402
 
 SLO = {"critical": timedelta(hours=72), "high": timedelta(days=14)}
@@ -272,6 +272,15 @@ def close_comment(previous_body: str) -> str:
     gone = [f"#{m['number']} (`{m['package']}`)" for m in ALERT_ROW.finditer(previous_body)]
     tail = "Nenhum alerta com conserto além do SLO sem PR."
     return f"Zerou: {', '.join(gone)}. {tail}" if gone else tail
+
+
+def labelled_issues(label: str) -> list[dict]:
+    """Pelo `_gh` deste módulo: o do `ci_dependabot_health` escaparia do fake nos testes."""
+    fields = "number,state,body,closedAt"
+    out = _gh(
+        "issue", "list", "--state", "all", "--label", label, "--limit", "20", "--json", fields
+    )
+    return json.loads(out)
 
 
 def closed_by_human(repo: str, issue: dict) -> bool:
