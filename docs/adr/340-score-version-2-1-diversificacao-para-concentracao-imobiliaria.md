@@ -310,3 +310,25 @@ REGRA 14 (`PROMPT_VERSION` 2.6.0) e a hint (manifest 2.22.0); o ponto urgente j�
 por `test_degraus_pareados_com_a_red_line`. `tests/test_parecer_rl7_regua_unica.py` mede a
 escada no predicado e cobra dos dois textos limiar, fronteira exclusiva e rótulo-piso, com um
 inventário que reprova uma terceira cópia — 11 mutantes, 11 mortos.
+
+**Medido — sonda LLM antes do merge** (pedida pelos dois especialistas, autorizada pelo dono;
+US$ 7,77). Nove fixtures sintéticas do HOLDOUT com eixo imóvel × {59,97; 70; 75,01}%, temp 0,
+com o ponto urgente real injetado em cada E5: RL-7 em **0/27**; risco no tema certo em
+**27/27**; "Crítica" na faixa em **0/18**; meta "40%" em **0/27**. A severidade máxima no tema
+bateu o alvo em **23/27** — os quatro desvios são "Alta" a 70%, um degrau acima: o validador
+aceita, o ponto urgente contradiz. A 59,97 deu 9/9 "Média" nas mesmas fixtures, então o desvio
+depende do nível, não da família. Uma geração caiu no fallback de infra (erro de conexão, custo
+0) e disparou RL-7 sobre parecer vazio; repetida, saiu limpa. Quem acompanhar a taxa de RL-7
+por `prompt_version` precisa separar esses fallbacks, ou a série mede a rede e não o prompt.
+
+### Deferimento datado — calibração perto do degrau de 75 (2026-10-09)
+
+**Dono:** `prompt-engineer` + `financial-planner`. O `prompt-engineer` atribui o desvio ao
+texto da faixa ter só piso ("Média, nunca abaixo"): o modelo usa o espaço acima perto do
+degrau seguinte, enquanto a faixa de cima, que tem teto explícito, acertou 9/9. A troca
+candidata é "nunca abaixo" → "em toda a faixa". Ela **não foi sondada**: o dono preferiu
+mergear o texto medido a pagar outra rodada. **Retomada:** o próximo bump que tocar a RL7 leva
+a troca e re-sonda os níveis 70 e 75,01. Qualquer "Média" a 75,01 reprova o texto, porque ali
+vira hard-block. Fica pendente também classificar os riscos secundários "Baixa" que apareceram
+no tema em 7 das 27 gerações: se forem a mesma concentração com dois rótulos, é defeito de
+coerência. O instrumento desta sonda não guardou títulos; o da próxima guarda.
