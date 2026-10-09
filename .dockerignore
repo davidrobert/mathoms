@@ -34,9 +34,18 @@ _scratch
 _archive
 *.db
 *.sqlite
-.env
-.env.*
-!.env.example
+
+# Proibidos pelo git em QUALQUER diretório (FORBIDDEN_BASENAMES de
+# dev/check_forbidden_paths.py). Sem `**/` o padrão só casa a raiz do contexto:
+# `backend/.env` passava pelo `COPY backend/`, e `frontend/.env.production` vai
+# para o `.next/standalone` da imagem final. Nenhum `.env*` entra no contexto,
+# nem os modelos `*.example` — nada no build os lê. NEXT_PUBLIC_* do frontend
+# chega ao `next build` por build-arg (frontend/Dockerfile).
+**/.env
+**/.env.*
+**/dogfood_denylist.v1
+**/dogfood_denylist.key
+**/dogfood_denylist.manifest.json
 
 # Segredos e legado de config/ (gitignored). Os Dockerfiles fazem `COPY config/`,
 # então um build a partir de checkout local que os tenha os grava numa layer da
