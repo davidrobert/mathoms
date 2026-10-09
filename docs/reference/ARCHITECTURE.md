@@ -790,7 +790,7 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 | `/transactions` | Filtros, busca, override de categoria, export CSV/XLSX |
 | `/reports` | Lista de relatórios (metadata, score, tamanho) |
 | `/reports/[id]` | **Render nativo React** — Estratégico (S1–S10 + plano_de_acao + APP_A-E) + USA (U1-U4). Modo Tático removido (ADR-151). `<SuggestionCallout/>` inline em seções com sugestões + agregador "§ Próximos passos" no fim (ADR-153 · Onda 5). |
-| `/plano` | **Home única do app** (ADR-155 · Direção E consolidação). 3 seções verticais: (1) Estratégia — KPIs estratégicos · `SuggestionsBanner` · Hero IF · Metas de suporte; (2) Mês corrente (ex-/dashboard) — alertas · KPIs operacionais · ChartsGrid; (3) Plano de Ação — Decisões em vigor · UpcomingTasksWidget · Tarefas ligadas à IF |
+| `/plano` | **Home única do app** (ADR-155 · Direção E consolidação). 3 seções verticais, nesta ordem: (1) Estratégia — KPIs estratégicos · `SuggestionsBanner` · Hero IF · Metas de suporte; (2) Plano de Ação (colapsado) — Decisões em vigor · UpcomingTasksWidget · Tarefas ligadas à IF; (3) Análise Financeira (ex-/dashboard, colapsada) — alertas · indicadores · ChartsGrid da última análise do E5 |
 | `/plano/meta-if` | Editor da meta IF com simulador live |
 | `/plano/meta-if/wizard` | Wizard 4 passos (renda → TRS → horizonte → confirm) |
 | `/acao` | **Superfície dinâmica** (Direção E · Onda 6, ADR-152): tabs Inbox · Tarefas · Timeline · Notas. **Inbox** consome `Suggestion` (ADR-153 · Onda 5) com fluxos Aceitar/Modificar/Descartar. **Notas** consome `WorkspaceNotes` (ADR-154 · Onda 1). |

@@ -88,19 +88,36 @@ describe("PatrimonioCategoriasCard — residência não apurada (ADR-439 D2)", (
     motivo,
   });
 
-  it("não localizada: diz onde está o valor e NÃO oferece regravar", () => {
+  it("não localizada: diz onde pode estar o valor, e a ação só vem com a condição de venda", () => {
     renderCard([residencia("nao_localizada"), POSITIVO]);
 
     expect(screen.getByText("Não apurada")).toBeDefined();
-    expect(screen.getByText(/não localizamos o imóvel que vocês marcaram/)).toBeDefined();
-    expect(screen.queryByRole("link", { name: /Marcar residência/ })).toBeNull();
+    expect(screen.getByText(/não localizamos na declaração o imóvel marcado/)).toBeDefined();
+    expect(screen.getByText(/Se ele foi vendido ou transferido, a marcação ficou desatualizada/)).toBeDefined();
+    expect(screen.getByRole("link", { name: /Atualizar residência/ })).toBeDefined();
     expect(screen.queryByText("— Sem fonte apurada para esta categoria.")).toBeNull();
   });
 
   it("não declarada: o CTA da ADR-215 aparece pela primeira vez no relatório", () => {
     renderCard([residencia("nao_declarada"), POSITIVO]);
 
-    const link = screen.getByRole("link", { name: /Marcar residência/ });
+    const link = screen.getByRole("link", { name: /Indicar residência/ });
     expect(link.getAttribute("href")).toBe("/config?tab=members");
+  });
+
+  // A frase antiga não dizia direção nenhuma; as duas formas do motivo apontam para lados opostos.
+  it("sem valor: diz a direção do erro nos dois ramos", () => {
+    renderCard([residencia("sem_valor"), POSITIVO]);
+
+    expect(screen.getByText(/Se ainda é próprio, ficou fora da soma, e o patrimônio real é maior/)).toBeDefined();
+    expect(screen.getByText(/Se foi vendido ou transferido, a residência atual pode estar em Outros imóveis/)).toBeDefined();
+  });
+
+  // O travessão casa a nota com a célula `—` só para quem vê; lido, abriria a frase.
+  it("o travessão do rodapé não chega ao leitor de tela", () => {
+    renderCard([residencia("nao_declarada"), POSITIVO]);
+
+    const nota = screen.getByTestId("nota-residencia-nao-apurada");
+    expect(nota.querySelector('[aria-hidden="true"]')?.textContent).toBe("— ");
   });
 });

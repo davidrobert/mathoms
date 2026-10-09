@@ -81,6 +81,7 @@ describe("a11y — compostos", () => {
   // A40.l71 — os 3 estados novos da composição juntos. O `nao_apurado`
   // renderiza travessão, que sem o par sr-only chega ao leitor de tela como
   // célula vazia: a mesma ambiguidade "zero ≠ não medido" que a lane fecha.
+  // A residência não apurada traz a nota com link no meio do rodapé (ADR-439 D2).
   it("PatrimonioCategoriasCard com negativo e não-apurado é acessível", async () => {
     const { container } = render(
       <PatrimonioCategoriasCard
@@ -88,6 +89,7 @@ describe("a11y — compostos", () => {
           {
             bruto: 50_000,
             composicao: [
+              { categoria: "Residência", valor: 0, pct: 0, estado: "nao_apurado", motivo: "sem_valor" },
               { categoria: "Veículos", valor: 50_000, pct: 100 },
               { categoria: "Outros imóveis", valor: -200_000, pct: 0 },
               { categoria: "Investimentos Cônjuge", valor: 0, pct: 0 },
@@ -96,6 +98,7 @@ describe("a11y — compostos", () => {
         }
       />,
     );
+    expect(container.querySelector('[data-testid="nota-residencia-nao-apurada"] a')).not.toBeNull();
     const results = await axe(container);
     assertNoSeriousViolations(results);
   });
@@ -234,6 +237,6 @@ describe("a11y — pages", () => {
   });
 
   // ADR-155: DashboardPage virou redirect; teste a11y dos charts/KPIs
-  // operacionais (que agora vivem na seção "Mês corrente" do /plano)
+  // (que agora vivem na seção "Análise Financeira" do /plano)
   // fica como lane futura `plano-a11y` quando produto pedir.
 });
