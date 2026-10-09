@@ -512,6 +512,14 @@ jobs:
         with:
           version: "0.5.x"
 
+      - name: Setup Node
+        # Hooks `language: system` chamam Node: probabilidade-parity roda `node -e`
+        # e frontend-lock-sync roda `npx`. Sem este step rodavam no Node do runner,
+        # e um bump do runner mudava o resultado em silêncio (node-version-parity).
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: frontend/.nvmrc
+
       - name: Install lint deps (via uv)
         # ADR-182: jsonschema + pyyaml para os hooks doc-* da vault Obsidian
         # (validate_frontmatter, check_doc_links, check_doc_filename_id,
@@ -1012,10 +1020,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend/Dockerfile — vale para todo
-          # setup-node do frontend aqui e no nightly.yml. Bump do
-          # Dockerfile → bump aqui.
-          node-version: "26"
+          # Major vem do frontend/.nvmrc — vale para todo setup-node do
+          # frontend aqui e no nightly.yml. dev/check_node_version_parity.py
+          # (pre-commit) reprova se os FROM do frontend/Dockerfile divergirem.
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1181,9 +1189,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend-ops/Dockerfile: o job existe para
-          # prever o build da imagem. Bump do Dockerfile → bump aqui.
-          node-version: "26"
+          # O job existe para prever o build da imagem: o major vem do
+          # frontend-ops/.nvmrc, e dev/check_node_version_parity.py reprova se os
+          # FROM do frontend-ops/Dockerfile divergirem. Arquivo próprio, não o do
+          # frontend: o Dependabot abre um PR de major por diretório.
+          node-version-file: frontend-ops/.nvmrc
           cache: npm
           cache-dependency-path: frontend-ops/package-lock.json
 
@@ -1243,7 +1253,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1510,7 +1520,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1619,7 +1629,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
