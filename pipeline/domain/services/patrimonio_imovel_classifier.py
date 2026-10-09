@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Any, Mapping
 
 from pipeline.domain.services.patrimonio_types import (
     RealEstateValuationContext,
@@ -197,7 +198,9 @@ def _balde_de_cobertura(classificacao: str) -> str:
 # Produtor único do estado ternário. Os três splitters liam `overrides.get(pid)`
 # cada um do seu jeito e colapsavam "sem id" com "sem rótulo" dentro do `else`;
 # nomear o terceiro estado é o que permite declará-lo ([[ADR-433]] §D3).
-def classificacao_do_imovel(imovel: dict, overrides_by_property_id: dict[str, str]) -> str:
+def classificacao_do_imovel(
+    imovel: Mapping[str, Any], overrides_by_property_id: Mapping[str, str]
+) -> str:
     """`desconhecido` quando falta id ou rótulo; senão a classification do override."""
     pid = imovel_property_id(imovel)
     if not pid:

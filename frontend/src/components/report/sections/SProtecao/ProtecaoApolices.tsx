@@ -86,7 +86,7 @@ export function ProtecaoApolices({ data }: { data: ProtecaoPatrimonialData }) {
         </tbody>
       </table>
       {data.corretoras_count > 1 && (
-        <p className="mt-2 text-style-caption text-muted" data-testid="protecao-multi-corretor">
+        <p className="mt-2 text-style-caption text-muted-foreground" data-testid="protecao-multi-corretor">
           {data.corretoras_count} corretoras distintas nas apólices vigentes —
           considere consolidar quando renovar (questão neutra, depende de relacionamento).
         </p>

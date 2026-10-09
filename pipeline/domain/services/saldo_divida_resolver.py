@@ -10,7 +10,7 @@ superfície diferente do relatório:
   **total** saía zero.
 
 Medido no run ``40d1af2a``: ``endividamento.total_dividas`` publicou ``0,00`` na
-mesma página em que os quatro financiamentos somavam ``R$ 230.459,13``.
+mesma página em que os quatro financiamentos listados somavam saldo positivo.
 
 A regra é a Rota C decidida pelo `financial-planner` em 2026-09-01: **o passivo
 sempre aparece; o que muda é o carimbo e o motivo.** Omitir passivo é o inverso da

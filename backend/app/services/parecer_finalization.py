@@ -8,6 +8,14 @@ from datetime import datetime, timezone
 from typing import Mapping, Optional
 
 from backend.app.services.parecer_citation_catalog import ancora_format_hint
+from backend.app.services.parecer_metrica_situacao import (
+    alvo_sem_comparador,
+    comparador_da_metrica,
+    exibir_sem_contradicao,
+    extremo_conservador,
+    medidas_da_linha,
+    nivel_do_produtor,
+)
 from backend.app.services.parecer_section_route import resolve_destino
 from pipeline.llm.schemas.parecer_planejador import (
     Ancora,
@@ -281,10 +289,17 @@ def _rotulo_de(alvo: Mapping, chave: str) -> str:
 def _sem_entrada_no_catalogo(metrica: Metrica) -> Metrica:
     """E5 anterior ao #1591 não publica `kpi_targets`: não se inventa número, mas a
     linha precisa de identidade — 67 artefatos do dogfood caem aqui."""
+    # Sobrescreve os campos estampados em vez de herdá-los: `SkipJsonSchema` só esconde o
+    # campo do contrato, e o que o modelo mandar em `target`/`valor_atual` chegava aqui
+    # intacto — publicado ao lado de "alvo não resolvido" (A40.l92, achado data-engineer).
     return metrica.model_copy(
         update={
             "nome": _rotulo_de({}, metrica.metrica_key),
+            "valor_atual": None,
+            "target": None,
             "target_motivo": "alvo não resolvido para este KPI",
+            "comparador": None,
+            "nivel_confianca": None,
         }
     )
 
@@ -298,23 +313,47 @@ def _par(alvo: Mapping, valor: Optional[str]) -> dict:
     return {"target": _render_target(alvo), "target_motivo": alvo.get("motivo")}
 
 
+# `.get()` em TODO campo: `rotulo` nasceu no #1770 e `kpi_targets` existe desde o
+# #1591 — há uma janela de E5 persistidos sem ele. Indexar com `[]` derrubava o stage
+# com KeyError, DEPOIS de pagar a chamada LLM e ANTES de `_write_cache`, então cada
+# retry pagava de novo. Regenerar só o parecer sobre E5 do run base (ADR-291) é a
+# operação normal, não o caso raro.
 def _stamp_metrica(metrica: Metrica, drill: PlannerDrillDown, alvos: Mapping) -> Metrica:
     alvo = alvos.get(metrica.metrica_key)
     if not isinstance(alvo, Mapping):
         return _sem_entrada_no_catalogo(metrica)
-    # `.get()` em TODO campo: `rotulo` nasceu no #1770 e `kpi_targets` existe desde o
-    # #1591 — há uma janela de E5 persistidos sem ele. Indexar com `[]` derrubava o stage
-    # com KeyError, DEPOIS de pagar a chamada LLM e ANTES de `_write_cache`, então cada
-    # retry pagava de novo. Regenerar só o parecer sobre E5 do run base (ADR-291) é a
-    # operação normal, não o caso raro.
-    observado = drill.get_e5_jsonpath(alvo.get("observado_path") or "")
+    alvo = alvo_sem_comparador(metrica.metrica_key, alvo)
+    path = alvo.get("observado_path") or ""
+    observado = drill.get_e5_jsonpath(path)
     valor = _render_valor(observado.value, alvo.get("unidade") or "") if observado.found else None
     return metrica.model_copy(
         update={
             "nome": _rotulo_de(alvo, metrica.metrica_key),
-            "valor_atual": valor,
-            **_par(alvo, valor),
+            # O veredito julga o número CRU; o render segue o hint de quem lê.
+            **_situacao(alvo, medidas_da_linha(metrica.metrica_key, drill, path), valor),
+            "nivel_confianca": nivel_do_produtor(metrica.metrica_key, drill),
         }
+    )
+
+
+# `valor` é None quando o observado não resolve — e aí a linha não tem alvo nem veredito.
+def _situacao(alvo: Mapping, medidas: tuple, valor: Optional[str]) -> dict:
+    """Observado, alvo e veredito da linha saem juntos — separados, o par mente."""
+    par = _par(alvo, valor)
+    medida, conservador = medidas
+    julgado = extremo_conservador(alvo, medida, conservador)
+    comparador = comparador_da_metrica(alvo, julgado, alvo_publicado=par["target"] is not None)
+    if comparador is not None:
+        valor = _sem_contradicao(alvo, julgado, medida, comparador) or valor
+    return {"valor_atual": valor, **par, "comparador": comparador}
+
+
+def _sem_contradicao(alvo: Mapping, julgado, medida, comparador) -> Optional[str]:
+    render = _UNIDADE_RENDER.get(alvo.get("unidade") or "")
+    if render is None:
+        return None
+    return exibir_sem_contradicao(
+        julgado, medida, render[1], alvo["unidade"], alvo["limiar"], comparador
     )
 
 

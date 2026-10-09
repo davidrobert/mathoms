@@ -2,11 +2,11 @@
 # Multi-stage, Next standalone, bind 127.0.0.1:3100 dentro do container.
 # Expor para o host apenas via `-p 127.0.0.1:3100:3100` no compose (NUNCA 0.0.0.0).
 
-# node:22-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
+# node:26-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
 FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install --no-audit --no-fund
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
 FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS builder
 WORKDIR /app

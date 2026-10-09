@@ -47,11 +47,11 @@ class TestConfig:
         )
         assert cfg.keywords_por_classe["Ações BR"] == ("custom",)
 
-    def test_residencia_property_ids_passthrough(self):
+    def test_overrides_de_imovel_passthrough(self):
         cfg = InvestimentosClassesConfig.from_configs(
-            residencia_property_ids=frozenset({"prop-residencia"})
+            property_classification_overrides={"prop-residencia": "residencia_principal"}
         )
-        assert cfg.residencia_property_ids == frozenset({"prop-residencia"})
+        assert cfg.property_classification_overrides == {"prop-residencia": "residencia_principal"}
 
     def test_scoring_can_introduce_new_class(self):
         # Forward-compat: classe nova em scoring.json não precisa estar em defaults.
@@ -208,8 +208,10 @@ class TestImoveisInvestimento:
         assert cats.get("Imóveis Investimento") == 300_000.0
 
     def test_residencia_excluida_por_property_id_override(self):
-        """ADR-215 §1 sunset: filtro por property_id ∈ residencia_property_ids."""
-        cfg = InvestimentosClassesConfig.from_configs(residencia_property_ids=frozenset({"p-vm"}))
+        """ADR-215 §1: o override `residencia_principal` tira o imóvel da carteira."""
+        cfg = InvestimentosClassesConfig.from_configs(
+            property_classification_overrides={"p-vm": "residencia_principal"}
+        )
         imoveis = [
             {"property_id": "p-vm", "valor_irpf": 800_000},
             {"descricao": "Sala", "valor_irpf": 300_000},

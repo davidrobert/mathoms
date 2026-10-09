@@ -118,8 +118,9 @@ describe("S_ProtecaoSection", () => {
       render(<S_ProtecaoSection data={makeData()} />);
       expect(screen.getByTestId("protecao-kpi-hero")).toBeInTheDocument();
       expect(screen.getByTestId("protecao-kpi-g")).toBeInTheDocument();
-      // KPI B em faixa "ok" (2.375% entre 1% e 3%)
-      expect(screen.getByTestId("protecao-kpi-b")).toHaveTextContent("2.38%");
+      // KPI B em faixa "ok" (2,375% entre 1% e 3%)
+      expect(screen.getByTestId("protecao-kpi-b")).toHaveTextContent("2,38%");
+      expect(screen.getByTestId("protecao-kpi-b")).not.toHaveTextContent("2.38%");
       expect(screen.getByTestId("protecao-kpi-b-sinal")).toHaveTextContent(
         "Faixa observada",
       );
@@ -130,6 +131,14 @@ describe("S_ProtecaoSection", () => {
       expect(screen.getByTestId("protecao-gap-veiculos")).toBeInTheDocument();
       expect(screen.getByTestId("protecao-gap-row-v-1")).toBeInTheDocument();
       expect(screen.getByTestId("protecao-gap-row-v-toro")).toBeInTheDocument();
+    });
+
+    it("coluna Gap formata o percentual com vírgula decimal (pt-BR)", () => {
+      render(<S_ProtecaoSection data={makeData()} />);
+      const toro = screen.getByTestId("protecao-gap-row-v-toro");
+      // gap_pct "0.400000" é fração; a célula multiplica por 100.
+      expect(toro).toHaveTextContent("40,0%");
+      expect(toro).not.toHaveTextContent("40.0%");
     });
 
     it("renderiza chips qualitativos apenas para flag=true", () => {
@@ -349,7 +358,7 @@ describe("KPI B — escopo declarado (ADR-240 §Emenda 2026-08-08)", () => {
 
   it("mantém o valor do KPI visível — suprime o julgamento, não o dado", () => {
     render(<S_ProtecaoSection data={comEscopoParcial()} />);
-    expect(screen.getByTestId("protecao-kpi-b")).toHaveTextContent("2.38%");
+    expect(screen.getByTestId("protecao-kpi-b")).toHaveTextContent("2,38%");
   });
 
   it("artifact antigo sem o bloco segue emitindo o veredito", () => {

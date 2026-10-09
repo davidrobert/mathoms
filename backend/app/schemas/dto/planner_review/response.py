@@ -8,6 +8,12 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from pipeline.llm.schemas.parecer_comparador import (
+    NivelConfianca,
+    OperadorComparador,
+    erro_de_forma,
+)
+
 # Enums user-facing alinhados com pipeline.llm.schemas.parecer_planejador.
 # Reexpostos aqui para evitar dep do frontend em módulo pipeline (boundary
 # CLAUDE.md: `pipeline/**` permanece backend-side; DTOs HTTP têm shape próprio).
@@ -113,6 +119,26 @@ class SugestaoDTO(BaseModel):
     ancoras: list[AncoraDTO] = Field(default_factory=list)
 
 
+class ComparadorDTO(BaseModel):
+    """Veredito do comparador, calculado no finalize — o front desenha, não julga (A40.l92)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    operador: OperadorComparador
+    conforme: bool
+    # Só no piso; teto nunca tem progresso. Nunca `undefined` no wire: chega `null`.
+    progresso_pct: Optional[int] = Field(default=None, ge=0, le=100)
+
+    # A mesma forma do contrato de escrita: o front desenha barra quando há progresso, então
+    # teto com progresso persistido viraria trilha — a leitura o recusa e subtrai.
+    @model_validator(mode="after")
+    def _ck_forma(self) -> "ComparadorDTO":
+        erro = erro_de_forma(self.operador, self.conforme, self.progresso_pct)
+        if erro:
+            raise ValueError(erro)
+        return self
+
+
 class MetricaDTO(BaseModel):
     """Métrica observável — sem ancora user-facing; alvo derivado do catálogo."""
 
@@ -128,6 +154,10 @@ class MetricaDTO(BaseModel):
     valor_atual: Optional[str] = None
     target: Optional[str] = None
     target_motivo: Optional[str] = None
+    # A40.l92 — `null` = sem comparação publicada (órfã, observado ausente, ou parecer de
+    # era anterior ao campo: a leitura subtrai, nunca recalcula sobre documento entregue).
+    comparador: Optional[ComparadorDTO] = None
+    nivel_confianca: Optional[NivelConfianca] = None
     frequencia_revisao: FrequenciaRevisao
     section_id: SectionId
     tema_canonico: Optional[TemaCanonico] = None

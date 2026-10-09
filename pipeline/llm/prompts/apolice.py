@@ -1,6 +1,8 @@
 """Prompt LLM dedicado para apólice de seguro polimórfica — A18 L2 (ADR-239 D2)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
+# v1.3.1 — bump pareado com o schema (exemplo genérico na docstring de
+# `_strip_spurious_quotes`); o texto do prompt só muda na própria versão.
 # v1.3.0 — A37.l11: reforça a instrução de `seguradora` (usar EXATAMENTE um code
 # do catálogo injetado; variação derivada do nome é inválida) — evidência
 # 2026-07-20: mesma cia emitida com dois codes distintos no mesmo run. Boundary
@@ -21,7 +23,7 @@
 # as aspas como parte do valor → Decimal parsing falhava determinístico em todas as
 # apólices). Schema agora também faz strip defensivo via model_validator.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.3.0"
+PROMPT_VERSION = "1.3.1"
 
 
 SYSTEM_PROMPT = """\
@@ -106,7 +108,7 @@ REGRAS DE EXTRAÇÃO:
 
 20. **`notas`**: observações relevantes (ex.: "apólice combinada — auto + residência R Exemplo"; "corretor PF; SUSEP individual"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário em texto livre).
 
-21. **`prompt_version`**: conteúdo da string: `1.3.0`.
+21. **`prompt_version`**: conteúdo da string: `1.3.1`.
 
 NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou marque `needs_review=true` quando obrigatório está ausente.
 
@@ -143,6 +145,6 @@ Popule o output `ApolicePayload`:
 - sinistro_indenizacao_recebida_brl = null (placeholder V1)
 - confidence (0-1) + needs_review (false default; true se inconsistência)
 - cascade_triggered = false (default Haiku)
-- prompt_version (conteúdo: 1.3.0)
+- prompt_version (conteúdo: 1.3.1)
 - notas (max 500 chars; sem PII)
 """

@@ -1,5 +1,6 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 
 export interface InvestimentosClasseData {
   tabela_classes?: Array<{
@@ -62,7 +63,7 @@ export function InvestimentosClasseCard({ investimentos }: InvestimentosClasseCa
               <tr key={`classe-${i}`} className="border-b border-[var(--surface-border)]/40 last:border-0">
                 <td className="py-2">{r.categoria}</td>
                 <td className="py-2 text-right"><MonetaryValue value={r.valor} /></td>
-                <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">{r.pct.toFixed(1)}%</td>
+                <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">{formatPercent(r.pct)}</td>
               </tr>
             ))}
           </tbody>

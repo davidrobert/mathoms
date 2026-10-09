@@ -1719,9 +1719,13 @@ def _e5_advisory_reasons(patrimonio: Dict[str, Any]) -> list[dict]:
     """Razões que DIAGNOSTICAM sem reter ([[ADR-412]] §Emenda E1)."""
     from pipeline.domain.services.atribuicao_review_reasons import review_reasons_da_atribuicao
     from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
+    from pipeline.domain.services.veredito_balde_imovel import (
+        review_reasons_da_classificacao_imovel,
+    )
 
-    return review_reasons_da_atribuicao(
-        patrimonio, stage="analyze_finances", artifact_key=E5_ARTIFACT_KEY
+    destino = {"stage": "analyze_finances", "artifact_key": E5_ARTIFACT_KEY}
+    return review_reasons_da_atribuicao(patrimonio, **destino) + (
+        review_reasons_da_classificacao_imovel(patrimonio, **destino)
     )
 
 

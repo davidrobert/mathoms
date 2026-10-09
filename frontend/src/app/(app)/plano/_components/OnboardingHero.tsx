@@ -122,7 +122,7 @@ function NextStep({
         </div>
         <p className="mt-1 text-xs text-muted-foreground">{description}</p>
         {disabled && disabledHint && (
-          <p className="mt-1 text-[11px] italic text-muted-foreground/80">
+          <p className="mt-1 text-[11px] italic text-muted-foreground">
             {disabledHint}
           </p>
         )}
@@ -172,7 +172,7 @@ function NextStepBadge({
       className={[
         "grid h-7 w-7 shrink-0 place-items-center rounded-full border text-xs font-semibold tabular-nums",
         disabled
-          ? "border-muted-foreground/30 text-muted-foreground/60"
+          ? "border-muted-foreground/30 text-muted-foreground"
           : "border-foreground/40 text-foreground",
       ].join(" ")}
       aria-label={`Passo ${n}`}

@@ -110,6 +110,9 @@ async def run_async_migrations() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        # Migration de dados falha com row de cliente no bound parameter — e o
+        # traceback vai ao log do deploy.
+        hide_parameters=True,
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

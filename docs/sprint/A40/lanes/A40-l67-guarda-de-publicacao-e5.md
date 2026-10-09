@@ -174,13 +174,13 @@ Sobre `report_data.json` dos **6 runs completos** do dogfood:
 | nível | disparo | efeito no desenho |
 |---|---|---|
 | 6 componentes < 0 | **0/36** | a guarda no componente é rede, não detector |
-| split derivado < 0 | **1/12** — só r6, `imoveis_nao_geradores` = −125.381,88 | **entrou no escopo** |
-| linhas de `caixa_detalhes` < 0 | **6/6 runs** (−95,62) | a guarda mede **agregado**, não linha |
+| split derivado < 0 | **1/12** — só r6, `imoveis_nao_geradores` negativo | **entrou no escopo** |
+| linhas de `caixa_detalhes` < 0 | **6/6 runs** (a mesma linha, ~0,04% do caixa) | a guarda mede **agregado**, não linha |
 
 O `imoveis_geradores`/`imoveis_nao_geradores` é o split de cat_2
 ([[ADR-142]]/[[ADR-215]] §6), **não** um dos 7 baldes [[ADR-145]] que o item 1d
 nomeia. Uma guarda literal ao texto teria passado **verde sobre o r6**: lá o
-agregado `imoveis_investimento` seguia positivo (437.324,36) com o negativo
+agregado `imoveis_investimento` seguia positivo com o negativo
 escondido dentro do split. Entrou em `BALDES_FISICOS` e é detectado **sem
 mutação** — mutá-lo quebraria a invariante 4a (`imoveis_investimento ≡
 geradores + não-geradores ≡ imoveis_fisicos_brl`) que a Onda 0 instalou.

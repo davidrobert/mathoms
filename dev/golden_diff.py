@@ -12,145 +12,29 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Callable
 
-# Chaves-folha numéricas que NÃO são monetárias (percentuais, contagens, idades,
-# anos, ratios, score). Tudo o mais numérico é tratado como monetário (default).
-_NON_MONETARY_EXACT = frozenset(
-    {
-        "pct",
-        "peso",
-        "nota",
-        "max",
-        "n",
-        "count",
-        "sigma_usado",
-        "fator_reduzido",
-        "aliquota_marginal",
-        "data",
-        "idade_david",
-        "idade_meta_usada",
-        "ano_if",
-        "anos_if",
-        "if_pct",
-        "if_trs",
-        "folga_pct",
-        "n_imoveis_total",
-        "janela_n_meses",
-        "transacoes_total",
-        "transacoes_duplicadas_removidas",
-        # Contador do bloco `fluxo_caixa.provisionado` (corte de provisionado).
-        # Monetário-por-default leria `transacoes=4` como R$ 0,04 e reportaria
-        # delta_cents fantasma — mesma classe de `transacoes_total` acima.
-        "transacoes",
-        "acumuladores_pct_gerador",
-        "percentual_patrimonio",
-        # ADR-401: ano-base do saldo da dívida. O prefixo `ano_` do
-        # classificador não alcança `saldo_ano_referencia`, e monetário-por-
-        # default leria 2024 como R$ 20,24 no snapshot do view-model — mesma
-        # classe que motivou o rename `taxa_juros` -> `taxa_juros_aa`.
-        "saldo_ano_referencia",
-        # ADR-369 D2 aposentou estas duas do contrato; ficam porque o diff também
-        # compara goldens HISTÓRICOS, onde elas existem — remover reintroduziria
-        # o delta_cents fantasma nessas comparações.
-        "prob_if_ate_idade_meta",
-        "taxa_poupanca_recorrente",
-        "taxa_poupanca_total",
-        "meses_alvo",  # alvo da reserva em meses (A28.l1), não R$
-        # A40.l93: valor-alvo de `kpi_targets.*`. A unidade mora no IRMÃO `unidade`
-        # (pct | pct_aa | meses | ano | ratio_0_1), nunca no nome — nenhum sufixo a
-        # carrega, então a entrada é exata, como `saldo_ano_referencia`. Monetário-por-
-        # default publicava 4 alvos ×100 no snapshot do view-model: 50 (pct) como
-        # R$ 5.000, 10 (pct) como R$ 1.000, 20 (pct) como R$ 2.000 e — o pior —
-        # 18 MESES como R$ 1.800. A isenção é segura enquanto nenhum membro do enum de
-        # `unidade` for monetário, e isso é asserido em
-        # tests/test_parecer_metrica_stamping.py, não confiado.
-        "limiar",
-        # ADR-360 — proveniência do Monte Carlo. Monetário-por-default trataria
-        # `seed_usado=360` como R$ 3,60 e reportaria delta_cents fantasma.
-        "seed_usado",
-        "n_simulacoes_usado",
-        # A40.l80: ORDINAL (rank no top de ativos). `posicao=1` virava R$ 1,00 e o
-        # snapshot publicava 100. Entrada exata e não prefixo: não há família de
-        # ordinais aqui, e `posicao_*` monetário é plausível num domínio de carteira.
-        "posicao",
-        "contagem",  # A27.l3: CONTAGEM, ao lado do irmão que é dinheiro.
-    }
-)
-_NON_MONETARY_SUFFIXES = (
-    "_pct",
-    "_meses",
-    "_anos",
-    "_idade",
-    "_idade_if",
-    "_ano_if",
-    "idade_if",
-    "_aa",
-    "_count",
-    # A40.l80: número de VERSÃO não é dinheiro. Monetário-por-default lia
-    # `base_versao=1` como R$ 0,01 e o snapshot o publicava como 100. Sufixo, e
-    # não entrada exata, porque `definicao_versao` ([[ADR-403]]) e
-    # `score_version` ([[ADR-217]]) tinham o mesmo defeito latente — fechar por
-    # instância deixaria o próximo campo de versão nascer com o mesmo bug.
-    "_versao",
-    "_version",
-)
-_NON_MONETARY_PREFIXES = (
-    "idade_",
-    "anos_",
-    "ano_",
-    "nivel_",
-    "prazo_",
-    "prazos_",
-    "pct_",
-    # ADR-361: `prob_*` é fração 0-1, não R$. Sem o prefixo o classificador
-    # monetário-por-default leria `prob_if_ate_horizonte=0.44` como R$ 0,44 e
-    # reportaria delta_cents fantasma — terceiro remendo da mesma classe.
-    "prob_",
-    # A40.l80 (destrava A40.l90): `n_*` é CONTAGEM. `n_posicoes=1` virava R$ 1,00 e
-    # o snapshot o publicava como 100. Prefixo porque `n_imoveis_total` e
-    # `janela_n_meses` já estavam como entrada exata — a família existe.
-    "n_",
-    # Concentração é sempre RAZÃO. `ratios.concentracao_imobiliaria` publica 82,19 e
-    # o classificador lia R$ 82,19 — mover o campo reportava delta monetário
-    # FABRICADO, o que bloquearia a A40.l90 com justificativa falsa no manifesto.
-    # A causa fica a montante e está roteada: o produtor calcula
-    # `concentracao_imobiliaria_pct` e publica a chave SEM o `_pct`
-    # (`ratios_calculator.py`), então o nome publicado perde a unidade que a
-    # propriedade interna carrega.
-    "concentracao_",
-)
+# Irmão carregado por caminho: o módulo é importado DENTRO do pacote `dev` e também
+# FORA dele (`spec_from_file_location`, no snapshot do view-model e em dois testes).
+_DEV_DIR = str(Path(__file__).resolve().parent)
+if _DEV_DIR not in sys.path:
+    sys.path.append(_DEV_DIR)
 
-# Blocos inteiros que não publicam dinheiro. Diferente de `_NON_MONETARY_PREFIXES`,
-# que olha a FOLHA: aqui o discriminante é o BLOCO, e ele é NECESSÁRIO, não conveniente
-# — `score.*` ([[ADR-217]]) publica pontos em `valor` e `contribuicao`, dois nomes que
-# em OUTROS blocos são dinheiro (`investimentos.tabela_classes[].valor`,
-# `patrimonio.composicao[].valor`). Nenhuma regra por folha consegue separar os dois.
-# `cobertura_publicada.` publica MÉTRICA (A27.l3): `denominador` 17→20 saía +300 cents no golden.
-_NON_MONETARY_NAMESPACES = ("score.", "cobertura_publicada.")
-
-# Unidade é TOKEN, não sufixo. `equivalente_meses_poupanca` carrega `meses` no meio e
-# escapava de `_NON_MONETARY_SUFFIXES`; fechar por entrada exata deixaria o próximo
-# `<algo>_meses_<algo>` nascer com o mesmo bug — a lição que `_versao` já registrou.
-# Raio de explosão medido contra `config/schemas/e5_analysis.schema.json` (2026-08-28):
-# 7 nomes mudam de classe e nenhum é monetário; zero toca `*_brl` ou `valor`.
-# A27.l3: `pontos` é CONTAGEM (`pontos_revisao` era a única folha "monetária" de `narrativas`).
-_NON_MONETARY_UNIT_TOKENS = frozenset(
-    {"pct", "meses", "anos", "idade", "aa", "ano", "ratio", "pontos"}
+from golden_diff_allowlist import (  # noqa: E402
+    MARCADORES_MONETARIOS,
+    NON_MONETARY_EXACT,
+    NON_MONETARY_NAMESPACES,
+    NON_MONETARY_PREFIXES,
+    NON_MONETARY_SUFFIXES,
+    NON_MONETARY_UNIT_TOKENS,
 )
 
 ClassifyFn = Callable[[str], bool]
 
 
-# O marcador de moeda na folha VENCE o bloco. Sem isto, declarar `score.` como
-# namespace abriria a porta que o design fecha: um `score.premio_brl` futuro passaria
-# mudo. Namespace afrouxa o monetário-por-default, e este é o preço de mantê-lo alto.
-_MARCADORES_MONETARIOS = ("_brl", "_usd", "_eur", "_reais", "_cents")
-
-
 def _bloco_nao_monetario(path: str) -> bool:
     leaf = path.rsplit(".", 1)[-1].split("[", 1)[0]
-    if leaf.endswith(_MARCADORES_MONETARIOS):
+    if leaf.endswith(MARCADORES_MONETARIOS):
         return False
-    return re.sub(r"\[[^\]]*\]", "", path).startswith(_NON_MONETARY_NAMESPACES)
+    return re.sub(r"\[[^\]]*\]", "", path).startswith(NON_MONETARY_NAMESPACES)
 
 
 def is_monetary(path: str) -> bool:
@@ -158,13 +42,13 @@ def is_monetary(path: str) -> bool:
     leaf = path.rsplit(".", 1)[-1].split("[", 1)[0]
     if _bloco_nao_monetario(path):
         return False
-    if leaf in _NON_MONETARY_EXACT:
+    if leaf in NON_MONETARY_EXACT:
         return False
-    if leaf.endswith(_NON_MONETARY_SUFFIXES):
+    if leaf.endswith(NON_MONETARY_SUFFIXES):
         return False
-    if leaf.startswith(_NON_MONETARY_PREFIXES):
+    if leaf.startswith(NON_MONETARY_PREFIXES):
         return False
-    if set(leaf.split("_")) & _NON_MONETARY_UNIT_TOKENS:
+    if set(leaf.split("_")) & NON_MONETARY_UNIT_TOKENS:
         return False
     return True
 
@@ -184,9 +68,17 @@ class FieldDiff:
     old: Any = None
     new: Any = None
     delta_cents: int | None = None  # só para value_delta monetário
+    # Campo monetário que passou de número a `null` ou de `null` a número. Não há
+    # `delta_cents` a calcular, e era exatamente por isso que a supressão de um balde
+    # rebaselinava sem waiver ([[ADR-439]] · co-design `data-engineer`).
+    anulacao: bool = False
 
     def is_monetary_value_delta(self) -> bool:
         return self.kind == "value_delta" and self.delta_cents is not None
+
+    def exige_manifesto(self) -> bool:
+        """Delta monetário OU anulação monetária — os dois movem o número publicado."""
+        return self.is_monetary_value_delta() or self.anulacao
 
 
 _NATURAL_KEYS = (
@@ -222,7 +114,15 @@ def _scalar_diff(path: str, old: Any, new: Any, classify: ClassifyFn) -> list[Fi
         return [FieldDiff(path, "value_delta", old, new)]
     if classify(path) and isinstance(old, (int, float)) and isinstance(new, (int, float)):
         return [FieldDiff(path, "value_delta", old, new, to_cents(new) - to_cents(old))]
+    if classify(path) and _numero_contra_nulo(old, new):
+        return [FieldDiff(path, "value_delta", old, new, anulacao=True)]
     return [FieldDiff(path, "value_delta", old, new)]
+
+
+def _numero_contra_nulo(old: Any, new: Any) -> bool:
+    """Exatamente um lado é `null` e o outro é número (bool não é número aqui)."""
+    lados = [v for v in (old, new) if v is not None]
+    return len(lados) == 1 and isinstance(lados[0], (int, float)) and not isinstance(lados[0], bool)
 
 
 def _diff_list(path: str, old: list, new: list, classify: ClassifyFn) -> list[FieldDiff]:
@@ -342,8 +242,8 @@ _REF_RE = r"^\S+:\d+$"
 class ManifestEntry:
     golden: str
     path: str
-    old_cents: int
-    new_cents: int
+    old_cents: int | None  # `None` = o lado era `null` (anulação, [[ADR-439]])
+    new_cents: int | None
     adr: str  # justificativa obrigatória (F2-DB6); fora da chave de match
     rationale: str
     ref: str  # file:line da mudança de produção (G-c)
@@ -369,12 +269,20 @@ def _validated_entry(e: dict) -> ManifestEntry:
     return ManifestEntry(
         e["golden"],
         e["path"],
-        int(e["old_cents"]),
-        int(e["new_cents"]),
+        _cents_declarado(e["old_cents"]),
+        _cents_declarado(e["new_cents"]),
         str(e["adr"]),
         str(e["rationale"]),
         str(e["ref"]),
     )
+
+
+def _cents_declarado(valor: Any) -> int | None:
+    return None if valor is None else int(valor)
+
+
+def _cents_ou_nulo(valor: Any) -> int | None:
+    return None if valor is None else to_cents(valor)
 
 
 def load_manifest(path: Path) -> list[ManifestEntry]:
@@ -392,7 +300,7 @@ def check_manifest(
     covered: set[int] = set()
     uncovered: list[FieldDiff] = []
     for d in diffs:
-        if not d.is_monetary_value_delta():
+        if not d.exige_manifesto():
             continue
         match = _match_entry(d, relevant)
         if match is None:
@@ -407,8 +315,8 @@ def _match_entry(diff: FieldDiff, entries: list[ManifestEntry]) -> ManifestEntry
     for e in entries:
         if (
             e.path == diff.path
-            and e.old_cents == to_cents(diff.old)
-            and e.new_cents == to_cents(diff.new)
+            and e.old_cents == _cents_ou_nulo(diff.old)
+            and e.new_cents == _cents_ou_nulo(diff.new)
         ):
             return e
     return None
@@ -454,11 +362,20 @@ def _load_json(path: Path) -> dict:
 MANIFESTO_PADRAO = "tests/fixtures/pipeline_golden/rebaseline_manifest.yaml"
 
 
+# Anulação não tem `delta_cents`: formatá-lo com `:+d` derrubava o gate em `TypeError`
+# — falha de leitura no lugar da reprovação que ele existe para dar (A40.l113).
+def _descrever_delta(d: FieldDiff) -> str:
+    if d.anulacao:
+        lados = ("null" if v is None else _fmt(v) for v in (d.old, d.new))
+        return " → ".join(lados) + ", anulação"
+    return f"{d.delta_cents:+d} cents"
+
+
 def _report_violations(uncovered: list[FieldDiff], orphans: list[ManifestEntry]) -> None:
     for d in uncovered:
         print(
             f"::error:: value_delta monetário não-justificado: {d.path} "
-            f"({d.delta_cents:+d} cents) — adicione ao manifesto de rebaseline",
+            f"({_descrever_delta(d)}) — adicione ao manifesto de rebaseline",
             file=sys.stderr,
         )
     # A mensagem nomeia o REMÉDIO porque quem lê esta falha quase nunca é quem criou a

@@ -812,7 +812,7 @@ def _open_artifact_session(
     return session, store
 
 
-def _commit_and_close_artifact_session(session) -> None:
+def _commit_and_close_artifact_session(session, ctx) -> None:
     """Commit+close de uma sessão por-stage. Rollback se commit falhar."""
     if session is None:
         return
@@ -823,9 +823,10 @@ def _commit_and_close_artifact_session(session) -> None:
         raise
     finally:
         session.close()
+        _flush_deferred_llm_call_log(ctx)
 
 
-def _rollback_and_close_artifact_session(session) -> None:
+def _rollback_and_close_artifact_session(session, ctx) -> None:
     """Rollback+close — usado quando stage falha antes do commit."""
     if session is None:
         return
@@ -833,6 +834,16 @@ def _rollback_and_close_artifact_session(session) -> None:
         session.rollback()
     finally:
         session.close()
+        _flush_deferred_llm_call_log(ctx)
+
+
+def _flush_deferred_llm_call_log(ctx) -> None:
+    # Write-lock do SQLite liberado: só agora o LLMCallLog adiado do stage grava
+    # (ADR-173 §Emenda 2026-10-08) — e antes do `_record_stage_result`, onde o
+    # drift do parecer lê o ledger. Rollback também grava: o gasto aconteceu.
+    from backend.app.services.pipeline.run_context_factory import flush_deferred_llm_call_log
+
+    flush_deferred_llm_call_log(ctx)
 
 
 def _mark_run_started(run_id: str, tier: str, celery_task_id: str) -> bool:
@@ -1477,7 +1488,7 @@ def _execute_stages_loop(
         # Exception during stage (all retries exhausted): rollback + close.
         if result is None:
             outcome = resolve_stage_outcome(stage_name, delivered=False)
-            _rollback_and_close_artifact_session(stage_session)
+            _rollback_and_close_artifact_session(stage_session, ctx)
             _record_stage_exception(
                 run_id,
                 stage_name,
@@ -1507,7 +1518,7 @@ def _execute_stages_loop(
         if result.success and _has_validation_errors(result):
             # needs_review: commit artefatos coletados antes de pausar.
             try:
-                _commit_and_close_artifact_session(stage_session)
+                _commit_and_close_artifact_session(stage_session, ctx)
             except Exception:  # noqa: BLE001
                 logger.exception("artifact commit failed on needs_review stage=%s", stage_name)
             _record_stage_needs_review(run_id, stage_name, log_id, result, elapsed_ms)
@@ -1527,7 +1538,7 @@ def _execute_stages_loop(
 
         if result.success:
             try:
-                _commit_and_close_artifact_session(stage_session)
+                _commit_and_close_artifact_session(stage_session, ctx)
             except Exception as exc:  # noqa: BLE001
                 logger.exception("artifact commit failed stage=%s: %s", stage_name, exc)
                 has_failure = True
@@ -1546,11 +1557,11 @@ def _execute_stages_loop(
             # `_meta.status` que os dois leitores usam para discriminar, e
             # commitar mentiria sobre um E5 que está completo.
             try:
-                _commit_and_close_artifact_session(stage_session)
+                _commit_and_close_artifact_session(stage_session, ctx)
             except Exception as exc:  # noqa: BLE001
                 logger.exception("artifact commit failed on degrade stage=%s: %s", stage_name, exc)
         else:
-            _rollback_and_close_artifact_session(stage_session)
+            _rollback_and_close_artifact_session(stage_session, ctx)
 
         delivered = _record_stage_result(
             run_id,
@@ -1971,4 +1982,6 @@ def run_pipeline_task(
         return {"status": "completed" if not has_failure else "failed", "run_id": run_id}
     finally:
         obs_reset(obs_tokens)
+        # Fim de vida dos hooks do run: regrava o que um flush de stage devolveu ao pendente.
+        _flush_deferred_llm_call_log(ctx)
         _close_config_store_session(config_store_session)

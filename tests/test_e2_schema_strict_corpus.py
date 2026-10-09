@@ -154,12 +154,12 @@ _ITAU_CDB_PDF_LINES = [
     "Extrato de movimentação mensal - CDB-DI",
     "Período: 01/07/2026 à 22/07/2026",
     "30/06/2026 SALDO ANTERIOR 100.000,00",
-    "22/07/2026 SALDO FINAL 124.940,17",
+    "22/07/2026 SALDO FINAL 110.000,00",
 ]
 _SANT_CDB_PDF_LINES = [
     "DETALHES DO INVESTIMENTO",
-    "CDB Valor total (R$) : 143.248,51 Valores Referentes a : 22/07/2026",
-    "CDB DI SANTANDER Valor Total : R$ 143.248,51 Disponível para Resgate : R$ 138.304,04",
+    "CDB Valor total (R$) : 100.000,00 Valores Referentes a : 22/07/2026",
+    "CDB DI SANTANDER Valor Total : R$ 100.000,00 Disponível para Resgate : R$ 98.000,00",
     "Você possui 1 contrato neste investimento",
 ]
 # Posição acionária Itaú (A39.l9): a qtd Total é o int antes do ticker;
