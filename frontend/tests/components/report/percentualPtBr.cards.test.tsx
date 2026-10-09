@@ -17,6 +17,7 @@ import { IrpfIrPagoCard } from "@/components/report/cards/IrpfIrPagoCard";
 import { IrpfSplitTrabalhoCapitalCard } from "@/components/report/cards/IrpfSplitTrabalhoCapitalCard";
 import { ScoreCard } from "@/components/report/ui/ScoreCard";
 import type { IrpfKpis } from "@/types/irpf";
+import type { EquilibrioCerbasiData } from "@/types/report-analysis";
 import { PERCENTUAL_COM_PONTO } from "../../shared/percentualPtBr";
 
 describe("<ContrafluxoCard /> — percentual pt-BR", () => {
@@ -59,6 +60,47 @@ describe("<EquilibrioCerbasiCard /> — percentual pt-BR", () => {
     // `width: 62,5%` é declaração CSS inválida — a barra sumiria.
     const barra = container.querySelector<HTMLElement>('[role="img"] > div');
     expect(barra?.style.width).toBe("62.5%");
+  });
+});
+
+describe("<EquilibrioCerbasiCard /> — ausente não vira zero (COPY_GUIDELINES §4.3)", () => {
+  const AUSENTE = "Dados de equilíbrio não disponíveis.";
+
+  // Shape das 6 fixtures E2E (`tests/e2e/fixtures/reports/*.json`): sem `pct_*` e com
+  // `presente`/`futuro` em fração. Nenhum produtor emitiu esse shape, e o card afirmava
+  // "Presente (0,0%)", desenhava barras de largura 0 e imprimia o float cru "0.55".
+  it("sem pct_presente/pct_futuro declara ausência em vez de afirmar 0,0%", () => {
+    const equilibrio = {
+      presente: 0.55,
+      futuro: 0.3,
+      padrao_vida: 0.15,
+    } as unknown as EquilibrioCerbasiData;
+    const { container } = render(<EquilibrioCerbasiCard equilibrio={equilibrio} />);
+
+    expect(container.textContent).not.toMatch(/0,0\s?%/);
+    expect(container.textContent).not.toContain("0.55");
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByText(AUSENTE)).toBeInTheDocument();
+  });
+
+  // Os dois pcts dividem o mesmo todo: com um só, o outro sairia "0,0%" inventado.
+  it("um pct sem o par também é ausência", () => {
+    const { container } = render(<EquilibrioCerbasiCard equilibrio={{ pct_presente: 62.5 }} />);
+
+    expect(container.textContent).not.toMatch(/0,0\s?%/);
+    expect(screen.getByText(AUSENTE)).toBeInTheDocument();
+  });
+
+  it("zero real continua sendo publicado como zero", () => {
+    render(
+      <EquilibrioCerbasiCard
+        equilibrio={{ pct_presente: 0, pct_futuro: 100, classificacao: "Investidor" }}
+      />,
+    );
+
+    expect(screen.getByText("Presente (0,0%)")).toBeInTheDocument();
+    expect(screen.getByText("Futuro (100,0%)")).toBeInTheDocument();
+    expect(screen.queryByText(AUSENTE)).not.toBeInTheDocument();
   });
 });
 
