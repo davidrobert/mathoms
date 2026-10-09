@@ -45,4 +45,24 @@
 #
 # Regra: quem mergeia um rebaseline drena o manifesto logo em seguida. O registro do
 # que mudou vive na lane, no corpo do PR e no histórico do git — não aqui.
-[]
+- golden: dogfood_view_model.json
+  path: patrimonio.residencia
+  old_cents: 0
+  new_cents: null
+  adr: ADR-439
+  rationale: "residência sem a palavra da família (status ausente ≡ undeclared) sai null, não zero"
+  ref: pipeline/domain/services/patrimonio_calculator.py:285
+- golden: dogfood_view_model.json
+  path: patrimonio.imoveis_geradores
+  old_cents: 1500000000
+  new_cents: null
+  adr: ADR-439
+  rationale: "par de geradores sai null com o apartamento sem override em aberto"
+  ref: pipeline/domain/services/patrimonio_calculator.py:287
+- golden: dogfood_view_model.json
+  path: patrimonio.imoveis_nao_geradores
+  old_cents: 4500000000
+  new_cents: null
+  adr: ADR-439
+  rationale: "par de imoveis_geradores — vai a null junto"
+  ref: pipeline/domain/services/patrimonio_calculator.py:290

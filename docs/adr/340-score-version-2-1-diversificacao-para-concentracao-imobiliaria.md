@@ -6,7 +6,7 @@ status: Decidido
 phase: dogfood-c11-fin05
 date: "2026-07-15"
 decided_at: "2026-07-16"
-amended_at: ["2026-07-16", "2026-08-29"]
+amended_at: ["2026-07-16", "2026-08-29", "2026-10-08"]
 relates_to:
   - "[[ADR-145]]"
   - "[[ADR-235]]"
@@ -24,6 +24,12 @@ tags:
 ---
 
 # ADR-340 — `score_version 2.1`: diversificação → concentração imobiliária invertida
+
+> **Emenda 2026-10-08 ([[A40.l92]] · co-design `financial-planner`):** a meta *"abaixo de
+> 50%"* lê-se **até 50%** — o limiar é o último valor conforme e o alerta dispara em `> 50`,
+> como sempre disparou no agregador, na RL-7 e no `RiskTrigger`. A prosa "abaixo de" é a
+> origem provável do `<` que o catálogo de KPI publicava. Nenhum número desta nota muda. Ver
+> [§Emenda](#emenda--o-limiar-é-o-último-valor-conforme-2026-10-08).
 
 > **Emenda 2026-08-29 (retratação de fato · [[A40.l95]] · `RR6-02` da rodada U2):** a frase
 > *"a métrica de concentração considera **só cat_2 (imóveis de renda)**"* na §Decisão é **falsa** —
@@ -229,3 +235,13 @@ está escrita na [[ADR-420]] §Alternativas (D).
 referências do produto divergem legitimamente entre si, estabilidade contra diversificação),
 não função do numerador. O que precisa de reconciliação é o rationale de
 `FORMULAS.md` §219, que sustenta o 50 por um argumento de magnitude de base.
+
+## Emenda — o limiar é o último valor conforme (2026-10-08)
+
+A §Emenda de 2026-07-16 escreveu a meta como *"abaixo de 50% da carteira produtiva"*, e o
+catálogo de KPI publicou `operador: "<"`. Em 50,00 exato o catálogo afirmava violação
+enquanto o agregador (`> 50`), a RL-7 e o `RiskTrigger` (`<=`) diziam conforme — e com o
+veredito que a [[A40.l92]] publica na tabela do parecer, a superfície contradiria o canal de
+risco sobre o mesmo payload. A doutrina é a da [[ADR-399]] §Emenda 2026-10-08: o limiar é o
+último valor conforme, nas duas direções. A meta lê-se **até 50%**; o limiar 50, o
+`spread_critico` 45 e a RL-7 em 75 não se movem.

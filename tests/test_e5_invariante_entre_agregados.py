@@ -73,6 +73,19 @@ def _run_dogfood_com_alvo(tmp_path: Path, itens: list[dict]) -> dict:
     return run_dogfood_pipeline(tmp_path, raw_baseline=baseline, e2_extracts=extratos)
 
 
+# [[ADR-439]] D3: o par é numérico e soma cat_2, ou é `null` — nunca misto. No `null` o
+# invariante segue medindo a soma, pela partição do bloco (mesmo laço dos splitters); sem
+# isto ele viraria ramo vazio, porque a fixture deixa o imóvel sem classificação.
+def _split_de_cat2(patrimonio: dict) -> int:
+    par = (patrimonio.get("imoveis_geradores"), patrimonio.get("imoveis_nao_geradores"))
+    assert (par[0] is None) == (par[1] is None), f"par de geradores misto: {par}"
+    if par[0] is not None:
+        return _cents(par[0]) + _cents(par[1])
+    b = patrimonio["cobertura_classificacao_imovel"]
+    termos = ("geradores_identificados", "nao_geradores_identificados", "valor_desconhecido")
+    return sum(_cents(b[t]) for t in termos)
+
+
 def _termos_4a(e5: dict) -> tuple[int, int, int]:
     """Os três medidores do mesmo estoque, em cents."""
     patrimonio = e5.get("patrimonio") or {}
@@ -81,9 +94,7 @@ def _termos_4a(e5: dict) -> tuple[int, int, int]:
         "guard anti-vacuidade: `derived` vazio faria o invariante comparar com 0 e "
         f"falhar por campo ausente, não por discordância (derived={sorted(derived)})"
     )
-    split = _cents(patrimonio.get("imoveis_geradores")) + _cents(
-        patrimonio.get("imoveis_nao_geradores")
-    )
+    split = _split_de_cat2(patrimonio)
     return (
         _cents(patrimonio.get("imoveis_investimento")),
         split,
