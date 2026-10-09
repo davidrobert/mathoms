@@ -89,7 +89,7 @@ MATHOMS_FERNET_KEY="<chave>" \
 ### 4. Validar relatório do user
 
 Abrir `/reports/<id>` do user e conferir:
-- Card "Receita vs Despesa — Mês a Mês" mostra `_total` mensal correto.
+- Card "Receitas e Saídas por Categoria — Mês a Mês" mostra `_total` mensal correto.
 - Tooltip de cada mês não tem mais o sintoma de 2-3× inflado.
 - KPIs do top-card (taxa de poupança, despesa média) recalculados.
 

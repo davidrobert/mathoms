@@ -16,7 +16,7 @@ const TONE_COLORS: Record<string, string> = {
  *  — `--chart-4` sobre o card dá 2,06:1 — e o ordena alfabeticamente por default. Texto
  *  neutro, cor só no ícone, e a ordem do payload: fatia maior primeiro, receitas antes. */
 export const LEGEND_PROPS = {
-  labelStyle: { color: "var(--muted-foreground)" },
+  labelStyle: { color: "var(--surface-muted-foreground)" },
   itemSorter: null,
 } as const;
 

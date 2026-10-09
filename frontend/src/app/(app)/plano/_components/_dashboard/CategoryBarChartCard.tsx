@@ -19,9 +19,9 @@ import { AXIS_TICK_STYLE, TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE } from "./ch
 import { categoryBarChartHeight, LEGEND_PROPS, normalizeBarData } from "./dashboardHelpers";
 
 const CATEGORY_AXIS_WIDTH = 112;
-// O <Text> recebe a largura do eixo inteiro mas é ancorado em `width − tickSize − tickMargin`:
-// quebrar na largura cheia empurra a linha 8px para fora do <svg>, que corta (overflow hidden).
-// 104 também cai entre "Imóveis com uso" e "Imóveis com uso não" — a negação fica na 2ª linha.
+// O <Text> recebe a largura do eixo inteiro mas é ancorado em `width − tickSize − tickMargin`
+// (6 + 2, defaults do recharts): quebrar na largura cheia empurra a linha 8px para fora do
+// <svg>, que corta (overflow hidden).
 const CATEGORY_LABEL_WIDTH = CATEGORY_AXIS_WIDTH - 8;
 
 function CategoryTick({ x, y, textAnchor, verticalAnchor, className, payload }: YAxisTickContentProps) {

@@ -857,7 +857,7 @@ export const LAYOUT: ReportLayout = {
     "receita_bar": "Receita por Fonte",
     "despesas_doughnut": "Despesas por Categoria",
     "fluxo_mensal": "Fluxo de Caixa Mensal",
-    "receita_despesa_mensal": "Receita vs Despesa — Mês a Mês",
+    "receita_despesa_mensal": "Receitas e Saídas por Categoria — Mês a Mês",
     "score_gauge": "Score Financeiro",
     "top15_ativos": "Top 15 Ativos Financeiros",
     "projecao_3cenarios": "Projeção Patrimonial — 3 Cenários",

@@ -806,7 +806,6 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 - **Shell:** AppShell, AuthBootstrap, ErrorBoundary, WorkspaceSwitcher, ViewerBanner
 - **Data:** DataTable, DateRangePicker, ConfirmDialog, PhaseStepper
 - **Display:** KPICard, StatusBadge, Delta, EmptyState, Spinner, NotificationCenter, ThemeToggle
-- **Charts:** FinAreaChart, FinBarChart, FinPieChart (wrappers Recharts)
 - **UI base (shadcn):** 18 primitivos (button, card, input, label, table, dialog, alert-dialog, select, sheet, badge, tabs, separator, skeleton, switch, textarea, tooltip, sonner)
 
 ### Hooks e utils
@@ -978,7 +977,6 @@ mathoms.ai/
 │   │   │       └── vault/, config/
 │   │   ├── components/
 │   │   │   ├── ui/            # 23 shadcn/base-ui primitives
-│   │   │   ├── charts/        # 3 Recharts wrappers
 │   │   │   ├── tasks/         # 9 task components
 │   │   │   ├── report/        # Report Premium v1 (decomposto pós-Fase 10)
 │   │   │   │   ├── ui/        # 14 primitivos (Kpi, Alert, Badge, Timeline, NotasCard, kanban/, badges/)

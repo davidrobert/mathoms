@@ -51,11 +51,14 @@ jobs:
     # issues: write — abre Issue de estouro de budget; actions: read — lê runs.
     # pull-requests: read — idade dos PRs do Dependabot (sinal "PR parado"). O repo
     # é público e a leitura passaria sem ela; declarada para não depender disso.
+    # vulnerability-alerts: read — alertas do Dependabot (canal de SLO). Só aceita
+    # read/none, e `security-events` NÃO cobre Dependabot (doc workflow-syntax).
     permissions:
       contents: read
       issues: write
       actions: read
       pull-requests: read
+      vulnerability-alerts: read
     steps:
       - uses: actions/checkout@v7
 
@@ -360,3 +363,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: python3 dev/ci_dependabot_health.py --label ops-dependabot-red
+
+      # ── Alerta do Dependabot com conserto, sem PR e além do SLO (ADR-230 §Emenda
+      # 2026-10-09) ── O #130 (pdfjs-dist, HIGH) ficou 63 dias aberto contra 14: o
+      # conserto exigia major do pai, o Dependabot nunca abriu PR e nada avisou.
+      # Mora aqui pelo mesmo motivo do step acima, e é issue própria porque a
+      # triagem difere: lá fechar à mão é triagem; aqui só o dismiss do alerta é.
+      # Nunca sai != 0; 403 (permissão ou alertas desligados) vira linha na issue.
+      - name: Alerta do Dependabot além do SLO sem PR
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 dev/ci_dependabot_alert_slo.py --label security-slo-breach
