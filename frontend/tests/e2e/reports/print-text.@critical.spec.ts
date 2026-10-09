@@ -130,8 +130,8 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
     // O cabeçalho "Situação" fica fora: sai em caixa alta (`uppercase`) e já é coberto,
     // sem caixa, por "cabeçalhos de tabela visíveis no desktop chegam ao PDF".
     const situacoes = [
-      "Abaixo do mínimo",
-      "Mínimo atingido",
+      "Abaixo do alvo",
+      "Alvo atingido",
       "Acima do limite",
       "Dentro do limite",
       "Cobertura parcial",

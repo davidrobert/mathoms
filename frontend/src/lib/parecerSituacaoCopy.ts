@@ -30,10 +30,13 @@ const NIVEL: Record<NivelConfianca, SituacaoDaMetrica> = {
   insuficiente: { texto: "Cobertura insuficiente", tom: "atencao", progressoPct: null },
 };
 
-// O substantivo ensina a polaridade: "limite" é teto, "mínimo" é piso — e explica por que
-// só o piso tem barra. "Meta" fica de fora porque colide com os Goals da família.
+// O substantivo ensina a polaridade: "limite" é teto, "alvo" é piso. "Alvo" nomeia a coluna
+// vizinha, não a natureza do limiar — por isso é verdadeiro nos três pisos, inclusive o da
+// reserva, que é o alvo do PERFIL (6/12/18 meses) e não um mínimo: "abaixo do mínimo"
+// contradizia o canal de risco, cujo mínimo é outro número. "Meta" fica de fora porque
+// colide com os Goals da família; "acima do alvo" num teto leria como elogio a violação.
 function textoDoComparador(c: Comparador): string {
-  if (c.operador === ">=") return c.conforme ? "Mínimo atingido" : "Abaixo do mínimo";
+  if (c.operador === ">=") return c.conforme ? "Alvo atingido" : "Abaixo do alvo";
   return c.conforme ? "Dentro do limite" : "Acima do limite";
 }
 

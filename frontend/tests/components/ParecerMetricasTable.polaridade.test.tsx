@@ -66,11 +66,11 @@ describe("ParecerMetricasTable — polaridade do comparador", () => {
     );
 
     expect(progresso(container)?.value).toBe(100);
-    expect(screen.getByText("Mínimo atingido")).toBeInTheDocument();
+    expect(screen.getByText("Alvo atingido")).toBeInTheDocument();
   });
 
   // 5,6 contra 6 meses: a barra a 93% lia "atingido" a 12px — por isso o status existe.
-  it("piso abaixo do mínimo diz que não atingiu, com a barra como apoio", () => {
+  it("piso abaixo do alvo diz que não atingiu, com a barra como apoio", () => {
     const { container } = render(
       <ParecerMetricasTable
         metricas={[
@@ -84,7 +84,7 @@ describe("ParecerMetricasTable — polaridade do comparador", () => {
       />,
     );
 
-    expect(screen.getByText("Abaixo do mínimo")).toBeInTheDocument();
+    expect(screen.getByText("Abaixo do alvo")).toBeInTheDocument();
     expect(progresso(container)?.value).toBe(93);
     expect(progresso(container)?.getAttribute("aria-valuetext")).toBe("5,6 meses de ≥ 6,0 meses");
   });

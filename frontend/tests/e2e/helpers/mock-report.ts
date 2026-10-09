@@ -162,10 +162,11 @@ function parecerContent() {
     // PDF verem as seis: sem a linha de teto, "a trilha não enche com a piora" passaria
     // por ausência do caso. Valores sintéticos, PII-zero.
     metricas: [
-      metrica("S3", "Cobertura da reserva de emergência", "5,6 meses", "≥ 6,0 meses", {
+      // A reserva julga o piso conservador e mostra a medida como intervalo ([[ADR-412]] §E3).
+      metrica("S3", "Cobertura da reserva de emergência", "5,2 a 5,6 meses", "≥ 6,0 meses", {
         operador: ">=",
         conforme: false,
-        progresso_pct: 93,
+        progresso_pct: 86,
       }),
       metrica("S7", "Renda passiva sobre a despesa essencial", "112,0%", "≥ 100,0%", {
         operador: ">=",
