@@ -74,7 +74,15 @@ sobraram PRs que nem chegaram a ser tentados.
 
 ## 2. PAT ausente/expirado (causa nº 1 de trem parado)
 
-1. Criar fine-grained PAT em <https://github.com/settings/personal-access-tokens/new>:
+> **Aviso antecipado (ADR-322 §Emenda 2026-10-08):** um step do watchdog lê o header de
+> expiração do PAT e abre a issue `ops-pat-expiry` em **T-14**, com o formulário
+> abaixo já pré-preenchido (`dev/ci_pat_expiry.py::rotation_url`). Ela fecha
+> sozinha quando a folga passa de 14 dias. O limite `S3` dela é de 11 dias, então
+> o `Lint` só é cobrado em T-3.
+
+1. Criar fine-grained PAT pelo formulário pré-preenchido (nome, 90 dias e as
+   permissões abaixo). Só o **Repository access** precisa ser escolhido à mão:
+   <https://github.com/settings/personal-access-tokens/new?target_name=davidrobert&expires_in=90&contents=write&pull_requests=write&issues=write&actions=read>
    - **Repository access:** only `davidrobert/mathoms`
    - **Permissions:** Contents → Read and write · Pull requests → Read and write ·
      Issues → Read and write (issue de stall) · Actions → Read-only (estado dos
@@ -86,10 +94,21 @@ sobraram PRs que nem chegaram a ser tentados.
 3. Kick: `gh workflow run "Auto-update PR branches"`
 4. Validar: próximo run do advance sem warning; update-branch aparece com
    `triggering_actor` = davidrobert, CI do PR dispara (não `action_required`).
+5. **Validar o aviso de expiração (obrigatório até 1h após a rotação):**
+   `gh workflow run automerge-watchdog.yml` e, no log do step `Aviso de expiração
+   do AUTOUPDATE_PAT`, confirmar `pat-expiry: folga > 14 dias` (o vencimento lido
+   deve ficar ~90 dias à frente). Se aparecer `::warning:: pat-expiry sem medição`,
+   o aviso está cego (formato do header). Se a issue `ops-pat-expiry` abrir com um
+   PAT de 90 dias, o header não chega para fine-grained. Nos dois casos, reverta o
+   step (ADR-322 §Emenda 2026-10-08).
 
 > A identidade do PAT **não** pode entrar na bypass list do Ruleset
 > (`gh api repos/davidrobert/mathoms/rulesets/15884038`) — token com
-> contents:write + bypass = push direto em main latente.
+> contents:write + bypass = push direto em main latente. **A garantia não vem
+> do desenho:** o bypass vale para o papel Admin (`RepositoryRole 5`, modo
+> `pull_request`), e o PAT age como o dono, que é admin. Se um PAT fine-grained
+> sem a permissão Administration herda esse bypass **não foi medido**. Por isso
+> a migração para GitHub App tem prazo (ADR-322 §Emenda 2026-10-08).
 
 ## 3. Runs órfãos `action_required`
 

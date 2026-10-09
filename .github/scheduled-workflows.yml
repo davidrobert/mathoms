@@ -166,6 +166,11 @@ workflows:
     alerts:
       - label: ops-train
         max_issue_age_days: 3
+      # Aviso antecipado do PAT (ADR-322 §Emenda 2026-10-08): abre em T-14, então
+      # 11 dias põem a cobrança do S3 em T-3, com o trem ainda andando. Com os 3
+      # do `ops-train`, o aviso travaria o Lint em T-11 — pior que a expiração.
+      - label: ops-pat-expiry
+        max_issue_age_days: 11
 
   - file: stale.yml
     crons: ["30 6 * * *"]

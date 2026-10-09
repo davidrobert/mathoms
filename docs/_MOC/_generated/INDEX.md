@@ -1257,6 +1257,7 @@
 | TRACK-category-overrides-policy-adr | track | consumed | A11 | Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes) | `sprint/A11/tracks/category-overrides-policy-adr.md` |
 | TRACK-category-overrides-schema-delta | track | consumed | A11 | Track Category Overrides W2 — Schema delta (updated_by_user_id + DTO version fields) | `sprint/A11/tracks/category-overrides-schema-delta.md` |
 | TRACK-category-overrides-ui-refactor | track | consumed | A11 | Track Category Overrides W4 — UI refactor (CategoriesTab + useCategoriesAndMembers) | `sprint/A11/tracks/category-overrides-ui-refactor.md` |
+| TRACK-ci-trust-github-app | track | ready |  | Track GitHub App — identidade não-admin do trem substitui o AUTOUPDATE_PAT | `plan/CI_TRUST/tracks/ci-trust-github-app.md` |
 | TRACK-ci-trust-onda0-governanca | track | consumed |  | Track Onda 0 — registro e válvula: detector pós-merge, auditoria de bypass, ADR de merge-protection, PR 0 do trem | `plan/CI_TRUST/tracks/ci-trust-onda0-governanca.md` |
 | TRACK-ci-trust-onda1-workflows | track | ready |  | Track Onda 1 — leva única de .github/workflows/**: inertes, canal de falha 9/9, endgame do watchdog (heartbeat), security-green, nightly por job | `plan/CI_TRUST/tracks/ci-trust-onda1-workflows.md` |
 | TRACK-citacao-deterministica | track | ready | A27 | Track A26.l9 — citação determinística (LLM emite path+rótulo; pipeline renderiza valor) | `sprint/A27/tracks/citacao-deterministica.md` |
