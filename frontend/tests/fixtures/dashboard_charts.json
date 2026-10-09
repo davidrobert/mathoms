@@ -1,0 +1,27 @@
+{
+  "charts": [
+    {
+      "chart_type": "bar",
+      "title": "Investimentos por Classe",
+      "data": {
+        "labels": [
+          "Renda Fixa",
+          "Imóveis Investimento",
+          "Ações BR",
+          "Imóveis com uso não apurado"
+        ],
+        "datasets": [
+          {
+            "label": "Valor",
+            "data": [
+              300000.0,
+              200000.0,
+              100000.0,
+              150000.0
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
