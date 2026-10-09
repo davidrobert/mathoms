@@ -4,6 +4,7 @@ type: adr
 title: "Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push"
 status: Decidido
 date: "2026-10-08"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-319]]"
   - "[[ADR-435]]"
@@ -26,6 +27,10 @@ tags:
 ---
 
 # ADR-442 — Valor monetário de workspace real não entra no repositório
+
+> **Aditada 2026-10-09:** achado, decisão intacta — o tokenizador não lê milhar pontuado
+> sem `R$` nem sufixo de escala, e o critério 6 só atesta o que ele lê (§Aditamento
+> 2026-10-09).
 
 ## Contexto
 
@@ -146,3 +151,21 @@ Dono da implementação: `sre-devops`. Dono da execução: o dono do repositóri
 5. Canário: `--self-test` planta o valor-canário num repositório temporário e exige hit.
 6. `--tree` sobre o HEAD saneado: 0 hits no tier A.
 7. O gerador recusa escrever dentro da árvore.
+
+## Aditamento 2026-10-09 — o que o tokenizador não lê, e o que o critério 6 atesta
+
+Achado, sem decisão nova: o gate não muda. Ampliar a cobertura é co-design `sre-devops` +
+`information-architect`, pelo §Deferimento datado. Medido com formas **sintéticas** contra
+`centavos_da_linha` e `e_tier_a`:
+
+- **Milhar pontuado sem `R$` e sem centavos (`1.234.567`) não é lido.** `_BR` exige `,dd`,
+  `_ISO` exige decimal no fim e `_REAIS_INTEIROS` exige o prefixo. Não é arredondamento —
+  vale para valor exato em reais —, e o item "Arredondados" do §Deferimento não o cobre.
+- **Sufixo de escala não é lido** (`1,2 mi`, `450k`, `450 mil`, `1,2M`); `1,23 mi` vira
+  R$ 1,23. Arredondado com prefixo (`R$ 1.200.000`) é lido e sai pelo tier A, por desenho (D1).
+- **O critério 6 atesta o instrumento, não a árvore.** `--tree` com 0 hits prova ausência só do
+  que o tokenizador lê e o tier A admite. O achado nasceu de uma instância no HEAD, anterior ao
+  gate, que escapava pelas duas camadas (forma não lida e arredondada), já relativizada. O
+  inventário local (`path:linha`, nunca o valor) ficou com o dono.
+- **"Arredondados" é o único item do §Deferimento sem condição de retomada.** Defini-la é parte
+  do co-design.

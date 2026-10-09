@@ -20,6 +20,12 @@ updates:
   # pelo Dependabot — ele sobe o constraint no .in e o hook check_lockfile_sync
   # falha o CI até alguém regenerar o .lock (runbook python_dependencies.md).
   # Gate intencional: upgrade nunca entra sem revalidação amd64.
+  #
+  # UMA entrada só: a `/` cobre os dois .in (o log do updater roda
+  # `pip-compile ... backend/requirements.in`). A `/backend` saiu em 2026-10-09:
+  # ficou sem job de 07-28 a 10-09 e, no primeiro job, duplicou os PRs da `/`
+  # (#2103≡#2104, #2105≡#2108) e partiu a família opentelemetry entre as duas
+  # (#2101/#2102). Não a recrie.
   # ----------------------------------------------------------------------
   - package-ecosystem: "pip"
     directory: "/"
@@ -28,7 +34,8 @@ updates:
       day: "monday"
       time: "06:00"
       timezone: "America/Sao_Paulo"
-    open-pull-requests-limit: 5
+    # 8 e não 5: esta entrada passou a cobrir os dois .in (eram 5 + 5).
+    open-pull-requests-limit: 8
     labels: ["dependency", "area:pipeline"]
     commit-message:
       prefix: "chore(deps)"
@@ -50,6 +57,7 @@ updates:
           - "pydantic"
           - "alembic"
           - "celery"
+          - "fastapi"
     ignore:
       # redis acima do teto do kombu[redis] (celery[redis] → kombu 5.6.x pede
       # redis<6.5). O updater pergunta se `redis==<último>` resolve; a resposta
@@ -80,41 +88,24 @@ updates:
       # entrada. Security updates seguem abrindo.
       - dependency-name: "numpy"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
-
-  - package-ecosystem: "pip"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "America/Sao_Paulo"
-    open-pull-requests-limit: 5
-    labels: ["dependency", "area:backend"]
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    groups:
-      patch-and-minor:
-        update-types: ["patch", "minor"]
-        exclude-patterns:
-          - "anthropic"
-          - "openai"
-          - "sqlalchemy"
-          - "pydantic"
-          - "alembic"
-          - "celery"
-          - "fastapi"
-    ignore:
-      # Mesmo teto do kombu[redis] da entrada "/" — ver o comentário lá.
-      - dependency-name: "redis"
-        versions: [">=6.5"]
-      # litellm congelado — ver o comentário na entrada "/".
-      - dependency-name: "litellm"
+      # Família opentelemetry-*: grupos pip nunca agruparam neste repo, então
+      # cada release abria até 7 PRs de piso, um por membro (#2101/#2102 subiam
+      # um cada), e a família é acoplada por `==` — um membro sozinho não
+      # resolve contra o lock. Só as sentinelas api (core 1.x) e
+      # instrumentation-fastapi (contrib 0.Xb) recebem version update; o PR delas
+      # sobe a família inteira (runbook python_dependencies.md §Uma entrada pip e
+      # a família opentelemetry). `update-types`, e não regra nua: security
+      # updates seguem abrindo. tests/dev/test_dependabot_otel_sentinels.py
+      # amarra esta lista ao .in.
+      - dependency-name: "opentelemetry-sdk"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
-      # instructor e numpy congelados — ver os comentários na entrada "/".
-      - dependency-name: "instructor"
+      - dependency-name: "opentelemetry-exporter-otlp-proto-http"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
-      - dependency-name: "numpy"
+      - dependency-name: "opentelemetry-instrumentation-sqlalchemy"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-celery"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-logging"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------
@@ -336,6 +327,17 @@ updates:
   # CRÍTICO: ci.yml usa SHA-pin para tj-actions e astral-sh/setup-uv
   # (CVE-2025-30066 / mar/2025). Dependabot atualiza esses SHAs quando
   # nova versão sai, e o PR mostra changelog para review.
+  #
+  # Todo PR desta entrada troca um `uses:` e nasce vermelho no hook
+  # `action-inputs` (ADR-320 §Emenda 2026-10-09), porque o ref novo ainda não
+  # está em .github/actions.lock.yml. Na branch do PR, rode
+  # `python3 dev/refresh_actions_lock.py` e commite o lock: o diff mostra os
+  # inputs que a versão nova ganhou e perdeu. Depois desse commit,
+  # `@dependabot rebase`/`recreate` fazem force-push e apagam o lock, e o PR
+  # BEHIND passa a ser atualizado à mão. `gh pr update-branch` e o trem são
+  # recusados quando os commits novos da main tocam `.github/workflows/**`,
+  # porque os tokens não têm scope `workflow`. Nesse caso use
+  # `git merge origin/main` + push por SSH, ou "Update branch" na UI.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
