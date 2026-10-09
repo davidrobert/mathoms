@@ -9,7 +9,8 @@ com data e gatilho no comentário, e uma linha em `PAUSES`. O gate reprova:
    igualdade de conjunto (app, dependência, major);
 2. pausa cujo gatilho disparou: nenhuma entrada do `<app>/package-lock.json`
    declara `peerDependencies[peer]` que exclua o major. O peer opcional conta,
-   porque é combinação fora do suporte do vizinho, mesmo que o npm 11 a aceite;
+   porque o gate não sabe se o código que o importa roda; quem pausa confere
+   (o msw 3 não foi pausado por isso, ADR-449);
 3. pausa vencida: `--today` passou do `review_by`. Renovar é um commit com
    justificativa, não um silêncio.
 
@@ -97,7 +98,6 @@ PAUSES: tuple[MajorPause, ...] = (
         dt.date(2027, 1, 31),
         "#2180",
     ),
-    MajorPause("frontend", ("msw",), 3, "msw", dt.date(2026, 10, 9), dt.date(2027, 1, 31), "#2187"),
 )
 
 

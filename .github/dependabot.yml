@@ -189,7 +189,7 @@ updates:
           - "@playwright/test"
     # Majors pausados (ADR-449). O peer de um vizinho no lock barra o major, e o
     # PR do Dependabot só ficaria vermelho, ocupando vaga. `versions`, e não
-    # `update-types`, para segurar só o major travado. Os quatro são
+    # `update-types`, para segurar só o major travado. Os três são
     # devDependencies fora do bundle, e o `npm audit` do security.yml segue
     # vendo CVE neles (a doc não diz se o `ignore` por `versions` segura
     # security update). Cada pausa tem linha em
@@ -209,13 +209,6 @@ updates:
       # valida o `next build` com o 7. Prazo: 2027-01-31.
       - dependency-name: "typescript"
         versions: [">=7"]
-      # msw 3 (#2187, 2026-10-09): o @vitest/mocker@5.0.3 declara peer opcional
-      # msw ^2.4.9. O npm 11 instala assim mesmo, mas a combinação fica fora do
-      # suporte do Vitest. Gatilho: o Vitest aceitar o msw 3. A migração troca
-      # `onUnhandledRequest` por `onUnhandledFrame` (tests/setup.ts) e revalida
-      # o golden do msw-lint.mjs (ADR-069). Prazo: 2027-01-31.
-      - dependency-name: "msw"
-        versions: [">=3"]
 
   # ----------------------------------------------------------------------
   # npm — frontend-ops (console interno, ADR-116)

@@ -26,19 +26,26 @@ tags:
 
 ## Contexto
 
-Em 2026-10-09 havia 14 PRs do Dependabot abertos. Cinco eram majors npm que só
-sabiam ficar vermelhos, porque um vizinho no lock declara peer que exclui o major:
+Em 2026-10-09 havia 14 PRs do Dependabot abertos. Seis, de três majors npm,
+ficavam vermelhos, e em todos um vizinho no lock declara peer que exclui o major:
 
 | major | PRs | bloqueador no lock (peer) |
 |---|---|---|
 | eslint 10 (+ `@eslint/js`) | #2232 (frontend), #2230 e #2181 (ops) | `eslint-plugin-react@7.37.5`: `^3 … ^8 \|\| ^9.7` |
 | typescript 7 | #2132 (frontend), #2180 (ops) | `@typescript-eslint/*@8.71.1`: `>=4.8.4 <6.1.0` |
-| msw 3 | #2187 (frontend) | `@vitest/mocker@5.0.3`: `^2.4.9` (opcional) |
+| msw 3 | #2187 (frontend) | `@vitest/mocker@5.0.3`: `^2.4.9` (opcional, nunca carregado: vira migração) |
 
 O `eslint-plugin-react` não tem release desde 2025-04, e o ESLint 9 é EOL desde
 2026-08-06 ([version-support](https://eslint.org/version-support/)): esperar pelo
-upstream não é plano. No msw 3, o npm 11 instala com o peer opcional fora do
-range. O que quebra é o `tsc` (`onUnhandledRequest` virou `onUnhandledFrame`).
+upstream não é plano.
+
+O msw 3 não estava bloqueado. O `@vitest/mocker` só importa msw no export
+`./browser` (`dist/browser.js`), que só o `@vitest/browser` carrega. O frontend
+roda Vitest com `jsdom`/`threads`, sem browser mode e sem `@vitest/browser` no
+lock. O npm 11 instala o par, e o vermelho do #2187 no Lint era falso positivo
+do `npm@10` do lock-sync (corrigido no #2245). O que quebra de verdade é o
+`tsc`: `onUnhandledRequest` virou `onUnhandledFrame`. Logo, é major desbloqueado
+e entra como migração (D3), não como pausa.
 
 A política vivia espalhada: comentários do `dependabot.yml`, o runbook
 [python_dependencies](../reference/runbooks/python_dependencies.md) (§Triagem:
@@ -57,6 +64,10 @@ propôs nota nova pequena que cita o runbook, e é o que esta é.
 major nos dois apps (`frontend`, `frontend-ops`). Grupo do Dependabot junta só o
 que sobe junto (famílias do #2229). Teto de peer atrasado não se resolve com
 grupo: o PR do grupo fica vermelho do mesmo jeito. Ele vira pausa (D2).
+
+**Peer opcional só sustenta pausa se o código que o importa roda no projeto.**
+O gate conta o opcional no gatilho, porque não sabe se aquele caminho roda.
+Quem decide pausar confere o caminho (ex.: msw 3 acima).
 
 **D2 — Major bloqueado por peer não fica em PR aberto.** Ele vira:
 
@@ -81,8 +92,8 @@ sobe para `error` ([[ADR-114]]).
 **D4 — `eslint-plugin-react` sai pelo `@eslint-react/eslint-plugin`** (mantido,
 peer `eslint: *`). O frontend usa 3 regras (`jsx-key`, `jsx-no-target-blank`,
 `no-direct-mutation-state`), e o ops usa o `recommended`. Como o ESLint 9 já é
-EOL, o prazo da pausa do eslint 10 é **2026-11-30**. TS 7 e msw 3 dependem de
-upstream ativo e têm prazo **2027-01-31**.
+EOL, o prazo da pausa do eslint 10 é **2026-11-30**. O TS 7 depende de upstream
+ativo e tem prazo **2027-01-31**.
 
 **D5 — Pausas de 2026-10-09:**
 
@@ -90,10 +101,13 @@ upstream ativo e têm prazo **2027-01-31**.
 |---|---|---|---|
 | frontend, ops | `eslint`, `@eslint/js` ≥10 | plugin com peer ^10, ou plugin fora do lock (D4) | 2026-11-30 |
 | frontend, ops | `typescript` ≥7 | typescript-eslint aceitar o 7; a migração valida o `next build` | 2027-01-31 |
-| frontend | `msw` ≥3 | Vitest aceitar o msw 3; a migração troca `onUnhandledFrame` e revalida o golden do `msw-lint.mjs` ([[ADR-069]]) | 2027-01-31 |
 
 No ops, o `typescript` é pausado por `versions` e não por `semver-major`: o
 5.9→6.0 segue abrindo, para o ops alcançar o 6.0 do frontend (D1).
+
+O msw 3 (#2187) não é pausado. Ele entra como migração em PR próprio (D3): troca
+`onUnhandledFrame` em `tests/setup.ts` e mantém igual o golden do `msw-lint.mjs`
+([[ADR-069]]).
 
 ## Alternativas rejeitadas
 
@@ -113,7 +127,7 @@ No ops, o `typescript` é pausado por `versions` e não por `semver-major`: o
 ## Consequências e limites
 
 - A doc do Dependabot não diz se um `ignore` por `versions` também segura
-  security update. As quatro dependências pausadas são devDependencies fora do
+  security update. As três dependências pausadas são devDependencies fora do
   bundle, e o `npm audit` do `security.yml` segue reportando CVE nelas.
 - O mesmo peer `<6.1.0` barra o TS 6.1, que ainda não existe. Quando sair, o PR
   de minor fica vermelho: o gate desta ADR não o vê, porque só lê `>=N` de major.
@@ -129,4 +143,4 @@ No ops, o `typescript` é pausado por `versions` e não por `semver-major`: o
   9/9 mutantes, entre eles gatilho que nunca dispara, prazo ignorado, igualdade
   de conjunto quebrada nos dois sentidos, forma livre de `ignore`, peer ignorado,
   caret sem teto, hyphen aceito e `<` inclusivo.
-- Hook no repo real: 5 pausas, todas com bloqueador lido do lock.
+- Hook no repo real: 4 pausas, todas com bloqueador lido do lock.
