@@ -243,8 +243,7 @@ def _stuck_finding(
     group: list[StuckPr],
     prs: list[DependabotPr],
 ) -> EntryFinding:
-    links = "; ".join(f"[#{s.pr.number}]({s.pr.url}) `{s.pr.key}` desde {s.since:%Y-%m-%d}"
-                      for s in group)  # fmt: skip
+    links = "; ".join(map(_stuck_link, group))
     newest = max(s.since for s in group) + STUCK_PR_AGE
     if entry is None:
         evidence = f"{links} · sem entrada no `dependabot.yml`: vagas n/d (só security)"
@@ -252,6 +251,10 @@ def _stuck_finding(
     seats = Occupancy(entry.pr_limit, tuple(p for p in prs if p.entry_key() == key))
     evidence = f"{links} · {_seats(seats)}"
     return EntryFinding(entry.name, "PR parado", evidence, newest_fact=newest, occupancy=seats)
+
+
+def _stuck_link(stuck: StuckPr) -> str:
+    return f"[#{stuck.pr.number}]({stuck.pr.url}) `{stuck.pr.key}` desde {stuck.since:%Y-%m-%d}"
 
 
 def _seats(occupancy: Occupancy) -> str:
@@ -311,7 +314,7 @@ def triage_guide(repo: str) -> str:
         f"{STUCK_PR_AGE.days} dias, ou a entrada do PR deixado aberto lotar.\n\n"
         f'Limite: "cannot open any more pull requests" só aparece na UI do Dependabot; a '
         f"ocupação acima conta os PRs abertos, com security update junto.\n\n"
-        f"Runbook: `{RUNBOOK}` §Saúde das entradas do Dependabot.\n\n"
+        f"Runbook: `{RUNBOOK}` §Saúde das entradas do Dependabot e §PR do Dependabot parado.\n\n"
         f"_Mantida por `dev/ci_dependabot_health.py`; `S3` de 10 dias no manifesto._"
     )
 
