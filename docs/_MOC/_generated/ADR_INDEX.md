@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-436 ADRs (ADR-001 a ADR-447) em [`docs/adr/`](../../adr/).
+437 ADRs (ADR-001 a ADR-448) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 373
-- **Proposto**: 58
+- **Proposto**: 59
 - **Roadmap**: 5
 
 ## Fundação
@@ -360,9 +360,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
 - [[ADR-415]] — Proteção de main: squash-only, bypass sancionado e auditado, e o SHA mergeado como unidade de verificação · phase PLAN-ci-trust Onda 0
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-363]] — Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem · phase A40
+- [[ADR-448]] — Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge
 
 ## dados
 
