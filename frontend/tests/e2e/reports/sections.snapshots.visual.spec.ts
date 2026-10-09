@@ -116,6 +116,29 @@ async function setupReport(page: Page, theme: Theme): Promise<void> {
   }
 }
 
+/** FABs do `FloatingNav` — `position: fixed`, logo entram no recorte de
+ * QUALQUER locator que caia no canto inferior direito da viewport. Pior que
+ * estático: `data-visible` deles é função da posição de scroll, que é função da
+ * altura da página — então mudança em seção não relacionada mudaria a baseline.
+ * É o mesmo acoplamento estranho que o recorte page-level da capa tinha.
+ *
+ * Não era hipotético no helper de seção: sem esta máscara, os dois FABs
+ * (28×44 px cada, cortados pela borda direita) ficavam congelados em 16 das 26
+ * baselines, numa altura diferente em cada uma.
+ *
+ * A máscara cobre o border-box; a `box-shadow` fica de fora e muda com a
+ * visibilidade. Medido no pior caso, os dois FABs sumindo juntos: 1.486 px
+ * crus mudam por baseline, o delta máximo chega a 41,5% do limiar do
+ * pixelmatch, e o comparador conta 0 (runs 37882163019 e 37888645408). A
+ * margem é da sombra preta a 20%; escurecê-la exige medir de novo. */
+function floatingNavMask(page: Page) {
+  return page.locator(
+    'button[aria-label="Voltar ao topo"], ' +
+      'button[aria-label="Ir para o final"], ' +
+      'button[aria-label="Abrir índice do relatório"]',
+  );
+}
+
 async function snapshotSection(
   page: Page,
   sectionId: string,
@@ -160,8 +183,9 @@ async function snapshotSection(
       // precisa reprovar).
       maxDiffPixelRatio: 0.025,
       // Mascarar elementos cuja renderização exata não importa para
-      // detecção de regressão estrutural (ex.: timestamps).
-      mask: [page.locator("[data-mask-snapshot]")],
+      // detecção de regressão estrutural (ex.: timestamps) e os FABs, que não
+      // pertencem à seção (ver `floatingNavMask`).
+      mask: [page.locator("[data-mask-snapshot]"), floatingNavMask(page)],
     },
   );
 }
@@ -178,19 +202,6 @@ test.describe("Snapshots — modo estratégico", () => {
     }
   }
 });
-
-/** FABs do `FloatingNav` — `position: fixed`, logo entram no recorte de
- * QUALQUER locator que caia no canto inferior direito da viewport. Pior que
- * estático: `data-visible` deles é função da posição de scroll, que é função da
- * altura da página — então mudança em seção não relacionada mudaria a baseline.
- * É o mesmo acoplamento estranho que o recorte page-level da capa tinha. */
-function floatingNavMask(page: Page) {
-  return page.locator(
-    'button[aria-label="Voltar ao topo"], ' +
-      'button[aria-label="Ir para o final"], ' +
-      'button[aria-label="Abrir índice do relatório"]',
-  );
-}
 
 // ─── Cover (estratégico, fullPage do hero) ─────────────────────────────
 
