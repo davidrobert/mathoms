@@ -16,7 +16,7 @@ import type { DashboardChart } from "@/lib/api";
 import { formatCompact, formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AXIS_TICK_STYLE, TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE } from "./chartStyles";
-import { categoryBarChartHeight, normalizeBarData } from "./dashboardHelpers";
+import { categoryBarChartHeight, LEGEND_PROPS, normalizeBarData } from "./dashboardHelpers";
 
 const CATEGORY_AXIS_WIDTH = 112;
 // O <Text> recebe a largura do eixo inteiro mas é ancorado em `width − tickSize − tickMargin`:
@@ -87,7 +87,7 @@ export function CategoryBarChartCard({ chart }: { chart: DashboardChart }) {
               contentStyle={TOOLTIP_CONTENT_STYLE}
               cursor={{ className: "fill-[var(--surface-row-hover)]" }}
             />
-            {keys.length > 1 && <Legend />}
+            {keys.length > 1 && <Legend {...LEGEND_PROPS} />}
             {keys.map((dk) => (
               <Bar
                 key={dk.key}

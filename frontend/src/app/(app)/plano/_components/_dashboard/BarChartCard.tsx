@@ -13,8 +13,13 @@ import {
 import type { DashboardChart } from "@/lib/api";
 import { formatCompact, formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  formatIsoMonthShort,
+  isMonthlyBarChart,
+  LEGEND_PROPS,
+  normalizeBarData,
+} from "./dashboardHelpers";
 import { AXIS_TICK_STYLE, TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE } from "./chartStyles";
-import { normalizeBarData } from "./dashboardHelpers";
 
 type BarEntryPayload = {
   month?: unknown;
@@ -33,15 +38,18 @@ function makeBarClickHandler(onBarClick?: (label: string) => void) {
 export function BarChartCard({
   chart,
   onBarClick,
+  className,
 }: {
   chart: DashboardChart;
   onBarClick?: (label: string) => void;
+  className?: string;
 }) {
   const { rows, keys } = normalizeBarData(chart);
   const handleClick = makeBarClickHandler(onBarClick);
+  const monthLabel = isMonthlyBarChart(chart) ? formatIsoMonthShort : undefined;
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>{chart.title}</CardTitle>
       </CardHeader>
@@ -49,7 +57,7 @@ export function BarChartCard({
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-            <XAxis dataKey="month" tick={{ style: AXIS_TICK_STYLE }} />
+            <XAxis dataKey="month" tick={{ style: AXIS_TICK_STYLE }} tickFormatter={monthLabel} />
             <YAxis
               width={72}
               tick={{ style: AXIS_TICK_STYLE, className: "tabular-nums" }}
@@ -57,10 +65,11 @@ export function BarChartCard({
             />
             <Tooltip
               formatter={(value) => formatCurrency(Number(value))}
+              labelFormatter={monthLabel ? (label) => monthLabel(String(label)) : undefined}
               itemStyle={TOOLTIP_ITEM_STYLE}
               contentStyle={TOOLTIP_CONTENT_STYLE}
             />
-            <Legend />
+            <Legend {...LEGEND_PROPS} />
             {keys.map((dk) => (
               <Bar
                 key={dk.key}
