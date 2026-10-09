@@ -359,7 +359,7 @@ def test_prazo_nasce_do_soft_limit_efetivo_da_task():
     assert _run_deadline_for(default).budget_s == 3000
     deadline = _run_deadline_for(override)
     assert deadline.budget_s == 600
-    assert deadline.expires_at - deadline.started_at == 600 + SIGNAL_GRACE_S
+    assert deadline.expires_at - deadline.started_at == pytest.approx(600 + SIGNAL_GRACE_S)
     no_limit = SimpleNamespace(request=SimpleNamespace(timelimit=None), soft_time_limit=None)
     assert _run_deadline_for(no_limit).expires_at is None
 
