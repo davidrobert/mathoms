@@ -147,7 +147,9 @@ class TestSecurityGreenAgrega:
     """O cabeçalho do security.yml afirmava "bloqueia merge se algum scan
     falhar" enquanto NENHUM job dele era required — `pip-audit` e
     `npm-audit-prod` se declaravam "gate blocking" e ninguém consumia o
-    resultado. O agregador é quem torna a afirmação verdadeira."""
+    resultado. O agregador é quem torna a afirmação verdadeira — quando for
+    required: medido em 2026-10-08, o Ruleset ainda exige só `All checks
+    green` + `Title`, e o flip é o item 1.5 / KR-D do CI_TRUST (owner)."""
 
     def _workflow(self) -> dict:
         import yaml
