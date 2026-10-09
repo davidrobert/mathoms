@@ -272,6 +272,8 @@
 # cabeçalho de tabela passa a dizer "top N de M" (distiller): "5 de 5" e "5 de 15" chegavam
 # iguais ao modelo. MINOR (ADR-233). COBRA a frota: `manifest_version` compõe a chave de
 # cache, e o cabeçalho novo muda o prompt sem mudar a chave — por isso viaja neste bump.
+# Re-pina os três `user_prompt_sha256` da 2.21.1: o render muda pelo cap, pelas linhas de
+# `top_ativos`, pelo cabeçalho e pelo catálogo; o system prompt não muda.
 version: "2.22.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
@@ -1045,6 +1047,6 @@ gating:
 # ao lado de `PROMPT_VERSION`.
 # ==============================================================================
 user_prompt_sha256:
-  sem_evicao: "f10e8dcf2c54dda160625f30e23501555e0ec55fff750d0ef379a4642c25c755"
-  evicao: "9d681f9141f66eb4244988a4e0dab249de3814183f3aca7984c87f510e1eee40"
-  corte_duro: "a494dc868e1525f7a607434f8a47e032890596b56df70551c03a2730af9fde5c"
+  sem_evicao: "fb8031e0cafa292c365e52ecfdba5b2bec54b8d47425ce797b054915c4d44080"
+  evicao: "24fd238d6d5e468741b9dbecb3c89becf3aad95b84b526342d20495f55c9120b"
+  corte_duro: "aa0a4aca0c78d02cddf4a488e6710c063734aa1d595be4c30f4aa3325bd882e4"
