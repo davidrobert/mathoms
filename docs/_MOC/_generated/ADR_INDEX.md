@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-433 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
+434 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 370
+- **Decidido**: 371
 - **Proposto**: 58
 - **Roadmap**: 5
 
@@ -77,7 +77,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## LLM
 
-### Decidido (7)
+### Decidido (8)
 
 - [[ADR-024]] — LiteLLM como proxy universal · phase F4
 - [[ADR-025]] — BYOK (Bring Your Own Key) · phase F4
@@ -86,6 +86,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-028]] — E7 full scope na Fase 4 · phase F4
 - [[ADR-270]] — Retry de LLM calls — categoria network + cap de timeout · phase A17.llm-retry
 - [[ADR-288]] — Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable
+- [[ADR-443]] — Stage roda uma vez por run — não há retry de stage em executor nenhum
 
 ## Task Queue
 

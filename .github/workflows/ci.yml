@@ -229,6 +229,11 @@ jobs:
               # `pipeline_lib` abaixo. O build/TS do app em si é do grupo
               # `frontend_ops` (job `frontend-ops-checks`).
               - 'frontend-ops/src/lib/types.ts'
+              # Mesma classe para o contrato do `DashboardChart`: a fixture é
+              # gerada por `build_charts` e lida pelo teste TS; um PR que a edite
+              # sozinha dispararia só o job do frontend, e o pytest que a confere
+              # contra o produtor (`test_dashboard_charts_contract.py`) não rodaria.
+              - 'frontend/tests/fixtures/dashboard_charts.json'
               - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'
@@ -1007,7 +1012,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          # Paridade com os FROM do frontend/Dockerfile — vale para todo
+          # setup-node do frontend aqui e no nightly.yml. Bump do
+          # Dockerfile → bump aqui.
+          node-version: "26"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1235,7 +1243,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "26"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1502,7 +1510,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "26"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1611,7 +1619,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "26"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 

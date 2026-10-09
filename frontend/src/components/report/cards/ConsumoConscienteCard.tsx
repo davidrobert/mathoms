@@ -8,6 +8,7 @@ import { resolveConsumoBases } from "../utils/fluxoJanela";
 import { janelaBadgeLabel } from "../utils/janelaLabel";
 import { useConsumoPontuais } from "@/hooks/useConsumoPontuais";
 import { humanizeCategoryLabel } from "@/lib/categoryLabels";
+import { formatNumber } from "@/lib/format";
 import { PERIOD_LABELS, type Period } from "@/lib/periodUtils";
 import type {
   BasePontuais,
@@ -74,7 +75,7 @@ function ConsumoKpis({ consumo }: { consumo: ConsumoConscienteData }) {
           {folga && <JanelaBadge label={folga} />}
         </KpiTerm>
         <dd className="mt-1 font-mono text-lg font-semibold tabular-nums">
-          {bases.equivalente?.toFixed(1).replace(".", ",") ?? "—"}
+          {bases.equivalente != null ? formatNumber(bases.equivalente, 1) : "—"}
         </dd>
       </div>
       <div>
