@@ -6,13 +6,16 @@ from decimal import Decimal
 
 import pytest
 
-from backend.app.services.pipeline.stage_failure_reason import (
+from pipeline.llm.error_classification import LLMError, LLMErrorType, LLMValidationError
+from pipeline.stage_failure_reason import (
+    _CAPTURABLE,
     _REASON_BY_LLM_ERROR,
+    FAILURE_CLASS_KEY,
     StageFailureReason,
+    failure_class_detail,
     reason_from_exception,
     reason_from_stage_detail,
 )
-from pipeline.llm.error_classification import LLMError, LLMErrorType, LLMValidationError
 
 
 def test_mapa_e_funcao_total_sobre_llm_error_type():
@@ -92,3 +95,78 @@ def test_abort_de_schema_e_output_invalido_nao_bug_nosso():
     exc = jsonschema.ValidationError("payload de E3/x viola e3_reconciled.schema.json")
     assert not hasattr(exc, "error_type")
     assert reason_from_exception(exc) is StageFailureReason.output_invalid
+
+
+# --- ADR-447: a classe atravessa o executor em `detail["failure_class"]` --------------
+
+
+def _imagem_de_reason_from_exception() -> set[StageFailureReason]:
+    import jsonschema
+
+    from pipeline.llm.call_hooks import LLMBudgetExceededError
+
+    excecoes = [LLMError("x", error_type) for error_type in LLMErrorType] + [
+        LLMBudgetExceededError("ws-1", Decimal("11.00"), Decimal("10.00")),
+        jsonschema.ValidationError("x"),
+        RuntimeError("x"),
+    ]
+    return {reason_from_exception(exc) for exc in excecoes}
+
+
+def test_o_que_a_captura_afirma_e_a_imagem_do_classificador():
+    """O decoder aceita exatamente o que `reason_from_exception` produz — nem mais, nem menos."""
+    assert _CAPTURABLE == _imagem_de_reason_from_exception()
+    assert StageFailureReason.enforcement not in _CAPTURABLE
+    assert StageFailureReason.missing_input not in _CAPTURABLE
+
+
+def test_builder_grava_so_o_membro_do_enum():
+    assert failure_class_detail(StageFailureReason.timeout) == {FAILURE_CLASS_KEY: "timeout"}
+
+
+@pytest.mark.parametrize(
+    "fora_do_contrato",
+    ["timeout", StageFailureReason.enforcement, StageFailureReason.missing_input, None],
+)
+def test_builder_recusa_o_que_nao_e_captura(fora_do_contrato):
+    """String solta ou juízo com derivação própria não entra pela chave da captura."""
+    with pytest.raises(ValueError, match="capturável"):
+        failure_class_detail(fora_do_contrato)
+
+
+@pytest.mark.parametrize("membro", sorted(_CAPTURABLE, key=lambda m: m.value))
+def test_decoder_devolve_a_classe_capturada(membro: StageFailureReason):
+    assert reason_from_stage_detail(failure_class_detail(membro)) is membro
+
+
+@pytest.mark.parametrize("valor", ["enforcement", "missing_input", "coisa_nova", 3, ["timeout"]])
+def test_decoder_nao_aceita_valor_que_a_captura_nao_produz(valor):
+    """Valor presente e inválido é `unknown` — não cai para o `reason` declarado."""
+    detail = {FAILURE_CLASS_KEY: valor, "reason": "e5_not_found"}
+    assert reason_from_stage_detail(detail) is StageFailureReason.unknown
+
+
+def test_precedencia_retencao_captura_declarado():
+    """Ordem fixa: o juízo de política vence a captura, que vence o motivo declarado."""
+    tudo = {
+        "retention_reason": "dado_insuficiente",
+        FAILURE_CLASS_KEY: "budget_exhausted",
+        "reason": "e5_not_found",
+    }
+    assert reason_from_stage_detail(tudo) is StageFailureReason.enforcement
+    sem_retencao = {k: v for k, v in tudo.items() if k != "retention_reason"}
+    assert reason_from_stage_detail(sem_retencao) is StageFailureReason.budget_exhausted
+    so_declarado = {"reason": "e5_not_found", FAILURE_CLASS_KEY: None}
+    assert reason_from_stage_detail(so_declarado) is StageFailureReason.missing_input
+
+
+def test_nao_caminha_a_cadeia_da_excecao():
+    """Bug levantado dentro de `except LLMError` é bug nosso, não falha do provider."""
+    try:
+        try:
+            raise LLMError("overloaded", LLMErrorType.provider_error)
+        except LLMError:
+            raise KeyError("campo")  # noqa: B904 — o contexto implícito é o objeto do teste
+    except KeyError as exc:
+        assert exc.__context__ is not None
+        assert reason_from_exception(exc) is StageFailureReason.internal_error

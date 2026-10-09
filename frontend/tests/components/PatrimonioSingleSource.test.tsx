@@ -17,6 +17,7 @@ import type {
 } from "@/app/(app)/plano/_components/usePlanoOverview";
 import type { IFGoalResponse } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { PERCENTUAL_COM_PONTO } from "../shared/percentualPtBr";
 
 const SNAPSHOT: PatrimonioSnapshot = {
   value: 487_321.55,
@@ -96,5 +97,49 @@ describe("Patrimônio single-source @ADR-156 @Onda7", () => {
     ) as HTMLElement | null;
     expect(patrimonioCard?.textContent).toContain("Patrimônio líquido");
     expect(patrimonioCard?.textContent).toContain("—");
+  });
+});
+
+describe("IFHeroCard + PlanoKpiRow — percentual pt-BR (COPY_GUIDELINES §4.6)", () => {
+  // Valores distintos entre si: cada asserção só casa o seu call-site.
+  const goal: IFGoalResponse = {
+    ...IF_GOAL,
+    inputs: {
+      ...IF_GOAL.inputs,
+      trs_pct: 4.5,
+      retorno_real_anual_pct: 5.5,
+      taxa_retirada_conservadora_pct: 3.5,
+    },
+  };
+
+  // `percentual_conquistado` chega com 2 casas: 24,65 é empate, e o KPI e o
+  // hero precisam arredondar igual (24,7 — o `toFixed` dava 24.6).
+  const progress: IFProgress = { ...PROGRESS, pct: 24.65 };
+
+  it("progresso, aria-label da barra e parâmetros do cálculo usam vírgula", () => {
+    const { container } = render(
+      <div>
+        <PlanoKpiRow
+          patrimonioSnapshot={SNAPSHOT}
+          ifGoal={goal}
+          ifProgress={progress}
+          aporteGoal={null}
+          loading={false}
+        />
+        <IFHeroCard goal={goal} progress={progress} patrimonio={SNAPSHOT.value} />
+      </div>,
+    );
+
+    // KPI do PlanoKpiRow + número grande do hero.
+    expect(screen.getAllByText("24,7%")).toHaveLength(2);
+    expect(
+      screen.getByRole("progressbar", {
+        name: "Progresso rumo à meta de independência financeira: 24,7%",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("4,5% a.a.")).toBeInTheDocument();
+    expect(screen.getByText("5,5% a.a.")).toBeInTheDocument();
+    expect(screen.getByText("Meta conservadora (3,5%)")).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
   });
 });

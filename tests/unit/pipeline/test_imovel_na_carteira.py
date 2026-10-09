@@ -7,7 +7,9 @@ passaria a contá-la como ativo financeiro.
 
 from __future__ import annotations
 
+import json
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -15,13 +17,25 @@ from pipeline.domain.services.alocacao_alvo_deviation import AlocacaoAlvoDeviati
 from pipeline.domain.services.imovel_na_carteira import (
     CLASSE_IMOVEIS_INVESTIMENTO,
     CLASSES_IMOVEL_FISICO,
+    CLASSES_SEM_PESO,
     classe_do_imovel_na_carteira,
 )
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesAnalyzer,
     InvestimentosClassesConfig,
+    _pct_carteira_financeira,
 )
 from pipeline.domain.services.top_ativos_analyzer import TopAtivosAnalyzer, TopAtivosConfig
+
+_SCHEMA_E5 = Path(__file__).resolve().parents[3] / "config" / "schemas" / "e5_analysis.schema.json"
+
+
+def _categorias_do_schema() -> list[str]:
+    investimentos = json.loads(_SCHEMA_E5.read_text(encoding="utf-8"))["properties"][
+        "investimentos"
+    ]
+    return investimentos["properties"]["tabela_classes"]["items"]["properties"]["categoria"]["enum"]
+
 
 _OVERRIDES = {"p-casa": "residencia_principal", "p-sala": "locado"}
 _CASA = {"property_id": "p-casa", "valor_31_12_ano_base": 800_000}
@@ -61,12 +75,28 @@ def test_tabela_e_ranking_roteiam_pelo_mesmo_classificador() -> None:
 
 @pytest.mark.parametrize("classe", sorted(CLASSES_IMOVEL_FISICO))
 def test_classe_fisica_fica_fora_da_carteira_financeira(classe: str) -> None:
-    analise = InvestimentosClassesAnalyzer().analyze(
-        [{"imoveis": [_SEM_ID], "investimentos": [{"tipo": "CDB", "valor": 100_000}]}]
+    assert _pct_carteira_financeira(classe, 500_000.0, 100_000.0) is None
+
+
+def test_classe_financeira_tem_peso_na_carteira_financeira() -> None:
+    assert _pct_carteira_financeira("Renda Fixa", 50_000.0, 100_000.0) == 50.0
+
+
+def test_classe_sem_peso_e_classe_fisica() -> None:
+    assert CLASSES_SEM_PESO <= CLASSES_IMOVEL_FISICO
+
+
+# Exaustividade sobre o CONTRATO, não sobre a lista do módulo: categoria que o schema aceita
+# e a alocação não reconhece seria descartada calada e moveria o caixa% (ADR-444 D7).
+@pytest.mark.parametrize("categoria", _categorias_do_schema())
+def test_alocacao_ingere_toda_categoria_do_schema(categoria: str) -> None:
+    resultado = AlocacaoAlvoDeviationCalculator().calculate(
+        [{"categoria": categoria, "valor": 100}]
     )
-    linha = next(c for c in analise.tabela_classes if c.categoria == classe)
-    assert linha.pct_carteira_financeira is None
-    assert analise.total_financeiro == Decimal("100000.0")
+    ingerido = (
+        resultado.carteira_liquida_brl + resultado.caixa.valor_brl + resultado.imoveis_fisicos_brl
+    )
+    assert ingerido == Decimal("100")
 
 
 @pytest.mark.parametrize("classe", sorted(CLASSES_IMOVEL_FISICO))

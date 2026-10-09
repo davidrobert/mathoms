@@ -62,6 +62,18 @@ def test_priority_roots_rank_first(whitelist):
         assert roots_in_order.index("reserva_emergencia") < roots_in_order.index("irpf_kpis")
 
 
+# [[A40.l123]]: `n_` é contagem por convenção do E5 — o `ancora_format_hint` já a lê como
+# int. O token "total" fazia `n_total` passar por dinheiro, e o catálogo listava a
+# contagem de imóveis como "R$ 5,00", citável como valor.
+def test_contagem_com_token_monetario_no_nome_nao_e_citavel(whitelist):
+    bloco = {"n_total": 5, "valor_total": 600_000.0}
+    e5 = {"patrimonio": {"cobertura_classificacao_imovel": bloco}}
+    paths = {e.path for e in build_citation_catalog(e5, section_whitelist=whitelist)}
+
+    assert "$.patrimonio.cobertura_classificacao_imovel.valor_total" in paths
+    assert "$.patrimonio.cobertura_classificacao_imovel.n_total" not in paths
+
+
 def test_empty_when_no_money_leaves(whitelist):
     e5 = {"score": {"valor": None}, "ratios": {"rentabilidade_pct": "4.70"}}
     entries = build_citation_catalog(e5, section_whitelist=whitelist)

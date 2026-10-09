@@ -4,6 +4,7 @@ type: adr
 title: "Stage roda uma vez por run — não há retry de stage em executor nenhum"
 status: Decidido
 date: "2026-10-08"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-270]]"
   - "[[ADR-357]]"
@@ -116,6 +117,13 @@ boundary próprio.
   `xfail(strict=True)` — fica vermelho quando a classe passar a sobreviver, e obriga a
   reescrever o §8.1.
 
+> ✅ **Fechado 2026-10-09 pela [[ADR-447]].** A classe sai do objeto vivo onde ele é
+> capturado — o `except` de `_run_stage` nos dois executores e o `_call_llm_safe` do parecer,
+> um segundo achatamento que este § não via — e viaja em `detail["failure_class"]`; o
+> classificador migrou para `pipeline/stage_failure_reason.py`. O `xfail` virou teste comum e
+> o §8.1 do runbook voltou a filtrar por `reason_class`. Fica deferida, com dono, a classe por
+> documento nos stages que capturam por documento ([[ADR-447]] §Deferimento).
+
 ## Critério de aceite
 
 - `backend/tests/test_run_stage_once.py`:
@@ -123,6 +131,6 @@ boundary próprio.
     sem sleep, e termina `failed` ou `degraded` pela criticidade;
   - caminho HTTP (`MockTransport`): `RemoteProtocolError` e `ReadTimeout` com fallback
     ligado, `ConnectError` e `503` com ele desligado — 1 POST cada (eram 3);
-  - o `xfail` estrito do §Deferimento.
+  - o `xfail` estrito do §Deferimento — teste comum desde 2026-10-09 ([[ADR-447]]).
 - Mutações provadas: retry na fronteira reprova os 4 casos HTTP; retry sobre
   `success=False` reprova a composição in-process.
