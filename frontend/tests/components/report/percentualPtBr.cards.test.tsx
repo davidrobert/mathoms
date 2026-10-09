@@ -1,5 +1,5 @@
 /**
- * Percentual em copy pt-BR usa vírgula decimal (COPY_GUIDELINES §4.1) — os dois
+ * Percentual em copy pt-BR usa vírgula decimal (COPY_GUIDELINES §4.6) — os dois
  * cards trocados para `formatPercent` que não tinham arquivo de teste. Um arquivo
  * só porque o Vitest custa por arquivo, não por teste.
  *

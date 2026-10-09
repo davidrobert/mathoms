@@ -76,7 +76,7 @@ const MENSALIZACAO_RESTRITA = CAMPOS_MENSALIZADOS.flatMap((campo) => [
   },
 ]);
 
-// Percentual em copy pt-BR leva vírgula decimal (COPY_GUIDELINES §4.1) e passa
+// Percentual em copy pt-BR leva vírgula decimal (COPY_GUIDELINES §4.6) e passa
 // por `formatPercent`. Mesmo racional de custo do gate acima: step ESLint de
 // `frontend-checks` + hook `eslint-frontend`, nenhum processo novo.
 //
@@ -94,7 +94,7 @@ const MENSALIZACAO_RESTRITA = CAMPOS_MENSALIZADOS.flatMap((campo) => [
 // que assertam a vírgula e recusam o ponto (`tests/shared/percentualPtBr.ts`).
 const MENSAGEM_PERCENTUAL =
   "Percentual em copy pt-BR usa vírgula decimal: formatPercent(valor, casas) de " +
-  "@/lib/format. `toFixed` não conhece locale e escreve \"42.8%\" (COPY_GUIDELINES §4.1).";
+  "@/lib/format. `toFixed` não conhece locale e escreve \"42.8%\" (COPY_GUIDELINES §4.6).";
 
 const TO_FIXED_COM_CASAS =
   ':matches(CallExpression[callee.property.name="toFixed"]:not([arguments.0.value=0]), ' +
