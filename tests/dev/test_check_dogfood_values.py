@@ -134,6 +134,43 @@ def test_pre_push_le_commit_a_commit_e_nao_o_diff_liquido(denylist, repo, monkey
     assert gate.main(["--pre-push"]) == 1
 
 
+def _commit(repo: Path, nome: str, texto: str) -> str:
+    _stage(repo, nome, texto)
+    _git(repo, "commit", "-q", "-m", texto)
+    return _git(repo, "rev-parse", "HEAD").strip()
+
+
+def _pre_push(monkeypatch, repo: Path, de: str) -> int:
+    monkeypatch.setenv("PRE_COMMIT_FROM_REF", de)
+    monkeypatch.setenv("PRE_COMMIT_TO_REF", _git(repo, "rev-parse", "HEAD").strip())
+    return gate.main(["--pre-push"])
+
+
+def test_pre_push_pos_rebase_ignora_commit_ja_publicado_em_outro_remoto(
+    denylist, repo, monkeypatch
+):
+    base = _commit(repo, "base.md", "base\n")
+    _git(repo, "checkout", "-q", "-b", "feature")
+    publicado_da_branch = _commit(repo, "feature.md", "feature v1\n")
+    _git(repo, "checkout", "-q", base)
+    _commit(repo, "alheio.md", "medido: R$ 123.456,78\n")
+    _commit(repo, "alheio.md", "medido: positivo\n")
+    _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
+    _git(repo, "update-ref", "refs/remotes/origin/feature", publicado_da_branch)
+    _git(repo, "checkout", "-q", "feature")
+    _git(repo, "rebase", "-q", "origin/main")
+    assert _pre_push(monkeypatch, repo, publicado_da_branch) == 0
+
+
+def test_pre_push_nao_reabre_o_que_a_propria_branch_ja_publicou_sem_ref_remota_local(
+    denylist, repo, monkeypatch
+):
+    _commit(repo, "wip.md", "medido: R$ 123.456,78\n")
+    ja_no_remoto = _commit(repo, "wip.md", "medido: positivo\n")
+    _commit(repo, "novo.md", "novo\n")
+    assert _pre_push(monkeypatch, repo, ja_no_remoto) == 0
+
+
 def test_conteudo_que_comeca_com_mais_mais_nao_cega_o_hunk(denylist, repo):
     _stage(repo, "nota.md", "++ linha que vira +++ no diff\nR$ 123.456,78\n")
     assert gate.main(["--staged"]) == 1

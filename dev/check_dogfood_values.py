@@ -116,8 +116,9 @@ def commits_do_push(de: str, para: str) -> list[str]:
     """Commits que o push publica — a lista inteira, não o diff líquido."""
     if not para or _ZEROS.match(para):
         return []
-    faixa = [para, "--not", "--remotes"] if not de or _ZEROS.match(de) else [f"{de}..{para}"]
-    return _git("rev-list", "--reverse", *faixa).split()
+    # Commit já em algum remoto já foi publicado: após rebase, `de..para` reabria a main inteira.
+    ja_publicados = ["--remotes"] if not de or _ZEROS.match(de) else ["--remotes", de]
+    return _git("rev-list", "--reverse", para, "--not", *ja_publicados).split()
 
 
 def linhas_do_commit(sha: str) -> Iterator[Linha]:
