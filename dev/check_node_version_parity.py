@@ -42,9 +42,9 @@ parariam em silêncio. `engines` sem strict é só warn. O job sem `setup-node`
 fecha pela regra de `run:` acima.
 
 Deferido (2026-10-08; dono: owner do repo): `@types/node` = runtime. `≤` não vê
-estagnação — o frontend-ops fica em types 22 contra runtime 26 (sem
-version-updates npm no dependabot.yml). Retomar no próximo bump de major do
-runtime ou quando o frontend-ops ganhar version-updates npm.
+estagnação (hoje types 25 no frontend e 22 no frontend-ops, runtime 26) nem API
+removida entre o major dos types e o do runtime. Retomar no próximo bump de
+major do runtime.
 
 Eixos NÃO fechados: dev local fora do compose (nenhum controle de install que
 poupe o Dependabot); `.node-version`/`.tool-versions`; Node de imagem que não se
