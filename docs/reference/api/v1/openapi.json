@@ -2187,6 +2187,44 @@
         "title": "CollapseEnforceUpdate",
         "type": "object"
       },
+      "ComparadorDTO": {
+        "additionalProperties": false,
+        "description": "Veredito do comparador, calculado no finalize \u2014 o front desenha, n\u00e3o julga (A40.l92).",
+        "properties": {
+          "conforme": {
+            "title": "Conforme",
+            "type": "boolean"
+          },
+          "operador": {
+            "enum": [
+              "<",
+              "<=",
+              ">="
+            ],
+            "title": "Operador",
+            "type": "string"
+          },
+          "progresso_pct": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progresso Pct"
+          }
+        },
+        "required": [
+          "operador",
+          "conforme"
+        ],
+        "title": "ComparadorDTO",
+        "type": "object"
+      },
       "ConfigExportResponse": {
         "description": "Export all configs for the workspace (DB values + defaults for unedited).",
         "properties": {
@@ -6866,6 +6904,16 @@
         "additionalProperties": false,
         "description": "M\u00e9trica observ\u00e1vel \u2014 sem ancora user-facing; alvo derivado do cat\u00e1logo.",
         "properties": {
+          "comparador": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComparadorDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "frequencia_revisao": {
             "enum": [
               "mensal",
@@ -6875,6 +6923,22 @@
             ],
             "title": "Frequencia Revisao",
             "type": "string"
+          },
+          "nivel_confianca": {
+            "anyOf": [
+              {
+                "enum": [
+                  "alta",
+                  "parcial",
+                  "insuficiente"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nivel Confianca"
           },
           "nome": {
             "title": "Nome",

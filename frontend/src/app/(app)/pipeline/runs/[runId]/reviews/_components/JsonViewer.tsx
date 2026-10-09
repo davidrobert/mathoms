@@ -79,7 +79,7 @@ function HighlightedLine({
   return (
     <span
       data-json-path={key}
-      className={isError ? "block bg-alert/10 text-alert" : "block"}
+      className={isError ? "block bg-alert/10 text-alert-on-tint" : "block"}
     >
       {line}
       {!isLast ? "\n" : ""}

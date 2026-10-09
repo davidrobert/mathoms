@@ -174,7 +174,7 @@ export default function ReportsPage() {
                 <tr key={r.id} className="border-t border-surface-border">
                   <td className="px-4 py-2 text-surface-fg">{r.title}</td>
                   <td className="px-4 py-2 text-surface-muted-fg">
-                    {r.owner_email ?? <span className="italic text-surface-muted-fg/60">—</span>}
+                    {r.owner_email ?? <span className="italic text-surface-muted-fg">—</span>}
                   </td>
                   <td
                     className="px-4 py-2 font-mono text-xs text-surface-muted-fg"

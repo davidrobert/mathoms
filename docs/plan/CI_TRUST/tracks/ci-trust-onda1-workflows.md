@@ -70,6 +70,16 @@ público) com o desenho fechado no co-design `sre-devops` de 2026-08-25:
   antiga, **pré-vencimentos** (AUTOUPDATE_PAT, waivers — warning ≤14d; hoje
   waiver só tem 2 estados: válido / hard-fail repo-wide, e foi isso que
   produziu 7 bypasses em 08-14).
+
+  > **Nota 2026-10-09 — o PAT sai deste PR.** O vencimento chegou (10-07)
+  > antes do PR 3. O #2050 (aberto, auto-merge ligado) entrega o aviso T-14
+  > do `AUTOUPDATE_PAT` como step do watchdog (`dev/ci_pat_expiry.py`, issue
+  > `ops-pat-expiry`, `S3` de 11 dias), e ele passa a ser o **único**
+  > instrumento do fato "PAT vence". O heartbeat não reimplementa nem
+  > espelha essa medição, e o pré-vencimento do corpo fica só com os waivers.
+  > O aviso do PAT se aposenta junto com o PAT, no PR de limpeza do
+  > [[TRACK-ci-trust-github-app]].
+
 - **Gate de PR = sinais offline (S0 + waiver vencido) + 1 chamada** ao
   endpoint de **Issues** (fora do índice de runs, onde moram as 6/7 leituras
   obsoletas medidas). Reprova se: Issue ausente (**fail-closed** — hoje

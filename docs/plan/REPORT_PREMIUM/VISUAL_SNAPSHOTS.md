@@ -12,13 +12,20 @@ pegam.
 
 ## Por que é opt-in (label `visual` ou `workflow_dispatch`)
 
-- 34 testes neste spec (13 seções + cover + sumário executivo + 2 estados de
-  `S_parecer`, × 2 temas), dos quais 30 produzem baseline — `S4` e `APP_C` não
-  montam com a fixture `medium`. O projeto `visual` roda 44 no total, somando o
-  `sections.fixtures.smoke.visual.spec.ts`. ~2 min (medido: 1m57s no run
+- 35 testes neste spec (13 seções + cover + sumário executivo + 2 estados de
+  `S_parecer`, × 2 temas, mais a tabela de métricas do parecer no papel, só
+  light), dos quais 31 produzem baseline — `S4` e `APP_C` não montam com a
+  fixture `medium`. O projeto `visual` roda 50 no total, em 3 arquivos: este, o
+  `sections.fixtures.smoke.visual.spec.ts` (10) e o
+  `visual-regression.visual.spec.ts` (5). ~2 min (medido: 1m57s no run
   `33326297663`), mas não vale bloquear todo PR por isso: a maioria não toca o
   renderer. <!-- re-medido 2026-08-30 no closeout da A40.l103 (#1859), que
   somou as 2 baselines de `sumario-executivo`: 32→34, 28→30, 42→44. -->
+  <!-- re-medido 2026-10-08 no closeout da A40.l92 (#2065) com
+       `npx playwright test --project=visual --list`: +1 teste e +1 baseline
+       (`parecer-metricas-print`), 34→35 e 30→31. O total do projeto deu 50, não
+       45: os 5 testes do `visual-regression.visual.spec.ts` não estavam na conta
+       anterior (44 = 34 + 10). -->
   <!-- O "~50 testes (24 seções)" que estava aqui era da era Tático+USA
        (ADR-151 / ADR-168) e ficou stale por ~4 meses. Contagem em doc
        envelhece — confira no spec antes de citar. -->
@@ -56,8 +63,9 @@ Dois valores em uso, e a diferença é deliberada:
 
 | Alvo | Valor | Por quê |
 | --- | --- | --- |
-| Seções (helper) | `maxDiffPixelRatio: 0.025` | Absorve subpixel de canvas do chart.js. Herdado da [[A40.l53]]; **não** re-medido desde então |
+| Seções (helper) | `maxDiffPixelRatio: 0.025` | Absorve subpixel de canvas do chart.js. Herdado da [[A40.l53]] e **não** recalibrado. A [[A40.l92]] mediu que ele não pega uma barra inteira: na sonda (run 37845587590), a regressão de origem da lane reprovou o snapshot dedicado da tabela por 1.135 px e **passou** em `S_parecer-parcial` |
 | `cover` e `sumario-executivo` | `maxDiffPixelRatio: 0.0003` | **Medido nos dois extremos** pela [[A40.l103]]: piso de ruído 0px (2 `workflow_dispatch` do mesmo SHA devolveram 28/28 baselines byte-idênticas) e menor mudança que precisa reprovar 304px (~0,076%, `"XX"` no `subtitle`). Nenhum dos dois tem canvas, logo não herdam o `0.025` |
+| `parecer-metricas-print` (papel, só light) | `maxDiffPixelRatio: 0.0003` | **Medido nos dois extremos** pela [[A40.l92]]: ruído 0 px; a regressão de origem da lane (trilha cheia em linha de teto) muda 1.135 px e reprova, ~11× acima do teto (~105 px em 703×500). Existe porque a baseline da seção não pegava essa regressão |
 
 > ⚠️ **`0.025` é folga grande em imagem pequena.** O primeiro valor tentado na
 > capa, `0.005`, deixava passar uma mudança de texto por folga de 6,6× — a

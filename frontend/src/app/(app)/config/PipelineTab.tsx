@@ -66,7 +66,7 @@ function PipelineTabContent({ workspace }: { workspace: UserWorkspace }) {
   return (
     <div className="space-y-6">
       {error && <div className="rounded-lg bg-loss/10 p-3 text-sm text-loss">{error}</div>}
-      {success && <div className="rounded-lg bg-gain/10 p-3 text-sm text-gain">{success}</div>}
+      {success && <div className="rounded-lg bg-gain/10 p-3 text-sm text-gain-on-tint">{success}</div>}
 
       <ConfigSection title="LLM" description="Configurações do modelo de linguagem" fields={[
         { key: "model", label: "Modelo", value: llm.model as string ?? "claude-sonnet-4-6", type: "text" },

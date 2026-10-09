@@ -270,6 +270,32 @@ def test_payload_sem_kpi_targets_publica_linha_com_identidade():
     assert saida.metricas[0].target_motivo
 
 
+# `SkipJsonSchema` só ESCONDE o campo do contrato enviado ao modelo: `Metrica` ainda
+# aceita `target`/`valor_atual` se vierem no tool output, e o ramo sem entrada no
+# catálogo (E5 anterior ao #1591, regenerado via ADR-291) os preservava — alvo autorado
+# pelo LLM publicado como se fosse do catálogo. Achado do co-design `data-engineer`
+# (A40.l92). A fixture é o tool output, não um dict à mão no artefato.
+def test_ramo_sem_catalogo_nao_preserva_numero_autorado_pelo_modelo():
+    autorada = Metrica.model_validate(
+        {
+            "metrica_key": "reserva_cobertura_meses",
+            "frequencia_revisao": "trimestral",
+            "target": "≥ 3 meses",
+            "valor_atual": "9 meses",
+        }
+    )
+    assert autorada.target == "≥ 3 meses", "o canal precisa estar aberto — senão é vácuo"
+    from backend.app.services.parecer_finalization import stamp_metrica_targets
+    from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+
+    e5 = _e5_com_reserva(6)
+    drill = PlannerDrillDown(e5_data=e5, section_whitelist=frozenset({"reserva_emergencia"}))
+    saida = stamp_metrica_targets(make_output(metricas=[autorada]), drill, {})
+
+    assert saida.metricas[0].target is None, "alvo do modelo sobreviveu ao estampador"
+    assert saida.metricas[0].valor_atual is None, "observado do modelo sobreviveu"
+
+
 # 5,6 meses contra alvo 6 renderizava "6 meses ≥ 6 meses": violação lida como
 # conformidade, que é a primeira linha do que a ADR-399 existe para impedir.
 def test_meses_preserva_a_casa_que_decide_o_veredito():
@@ -319,4 +345,75 @@ def test_isencao_de_limiar_no_golden_diff_exige_enum_de_unidade_nao_monetario():
         "no golden_diff, então alvo nessa unidade sairia lido como número puro sem "
         "ninguém acusar. Se a unidade nova É adimensional, adicione-a a _ADIMENSIONAIS "
         "aqui — deliberadamente à mão. Se for monetária, `limiar` não pode seguir isento."
+    )
+
+
+# ---------------------------------------------------------------------------
+# A40.l92 — campo estampado novo exige bump do `_SCHEMA_VERSION`
+# ---------------------------------------------------------------------------
+
+# O envelope do cache (TTL 7d) guarda o output JÁ estampado, e `_SCHEMA_VERSION` está na
+# chave: campo estampado novo sem bump serve o envelope velho sem ele, e re-rodar o stage
+# cai no mesmo hit. Nada gateava o par — o #1772 bumpou à mão, e o `section_id` estampado
+# da A40.l117 entrou sem bump. "Estampado" = campo do modelo fora do JSON schema enviado ao
+# LLM (`SkipJsonSchema`), achado por introspecção em toda a árvore do output.
+_ESTAMPADOS_POR_VERSAO = {
+    "1.2": frozenset(
+        {
+            ("Ancora", "label"),
+            ("Ancora", "valor_renderizado"),
+            ("Metrica", "comparador"),
+            ("Metrica", "nivel_confianca"),
+            ("Metrica", "nome"),
+            ("Metrica", "section_id"),
+            ("Metrica", "target"),
+            ("Metrica", "target_motivo"),
+            ("Metrica", "valor_atual"),
+            ("ParecerPlanejadorOutput", "riscos_truncados"),
+            ("PontoForte", "section_id"),
+            ("Risco", "section_id"),
+            ("Sugestao", "section_id"),
+        }
+    ),
+}
+
+
+def _submodelos(anotacao) -> list:
+    from pydantic import BaseModel
+
+    if isinstance(anotacao, type) and issubclass(anotacao, BaseModel):
+        return [anotacao]
+    import typing
+
+    return [m for arg in typing.get_args(anotacao) for m in _submodelos(arg)]
+
+
+def _campos_estampados() -> set[tuple[str, str]]:
+    from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
+
+    vistos, pendentes = set(), [ParecerPlanejadorOutput]
+    while pendentes:
+        modelo = pendentes.pop()
+        if modelo not in vistos:
+            vistos.add(modelo)
+            pendentes.extend(
+                m for f in modelo.model_fields.values() for m in _submodelos(f.annotation)
+            )
+    return {
+        (m.__name__, campo)
+        for m in vistos
+        for campo in set(m.model_fields) - set(m.model_json_schema().get("properties", {}))
+    }
+
+
+def test_campo_estampado_novo_exige_bump_do_schema_version():
+    from backend.app.services.parecer_orchestrator import _SCHEMA_VERSION
+
+    assert _SCHEMA_VERSION in _ESTAMPADOS_POR_VERSAO, "bump sem registrar os campos da versão"
+    atuais = _campos_estampados()
+    assert ("Metrica", "comparador") in atuais, "introspecção cega — o gate seria vácuo"
+    assert atuais == _ESTAMPADOS_POR_VERSAO[_SCHEMA_VERSION], (
+        "campo estampado mudou sem bump de _SCHEMA_VERSION — o cache serviria o envelope "
+        f"velho: novos {sorted(atuais - _ESTAMPADOS_POR_VERSAO[_SCHEMA_VERSION])}, "
+        f"sumidos {sorted(_ESTAMPADOS_POR_VERSAO[_SCHEMA_VERSION] - atuais)}"
     )

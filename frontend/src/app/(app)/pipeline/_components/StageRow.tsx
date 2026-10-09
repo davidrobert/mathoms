@@ -18,7 +18,7 @@ const VARIANT_COLORS: Record<string, string> = {
   info: "text-info-financial",
   success: "text-gain",
   error: "text-loss",
-  warning: "text-warning",
+  warning: "text-alert-on-tint",
   muted: "text-muted-foreground",
 };
 
@@ -49,7 +49,7 @@ function StageRowLabel({ stage }: { stage: PipelineStageLog }) {
       <span className="block">
         {stageName(stage.stage)}
         {stage.status === "needs_review" && (
-          <span className="ml-2 text-xs text-warning">(revisão)</span>
+          <span className="ml-2 text-xs text-alert-on-tint">(revisão)</span>
         )}
         {llmNote && (
           <span className="mt-0.5 block text-xs font-normal text-muted-foreground">

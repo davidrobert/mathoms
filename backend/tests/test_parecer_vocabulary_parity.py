@@ -26,10 +26,12 @@ from backend.app.models.planner_review import (
     ParecerRetentionReason,
 )
 from backend.app.schemas.dto.planner_review import (
+    ComparadorDTO,
     PlannerReviewAbsenceDetail,
     PlannerReviewResponse,
     RetentionDetail,
 )
+from pipeline.llm.schemas.parecer_comparador import NivelConfianca, OperadorComparador
 
 _TS_CLIENT = (
     Path(__file__).resolve().parents[2] / "frontend" / "src" / "lib" / "api" / "planner-review.ts"
@@ -68,6 +70,10 @@ _VOCABULARIOS = [
     ),
     ("PlannerReviewStatus", set(VALID_PLANNER_REVIEW_STATUSES), None),
     ("PlannerReviewAbsenceCode", _absence_codes(), (PlannerReviewAbsenceDetail, "code")),
+    # A40.l92 — o DTO importa o Literal do contrato do pipeline (mesmo objeto), então a
+    # cópia que pode divergir é a união TS, escrita à mão.
+    ("OperadorComparador", set(get_args(OperadorComparador)), (ComparadorDTO, "operador")),
+    ("NivelConfianca", set(get_args(NivelConfianca)), None),
 ]
 
 
