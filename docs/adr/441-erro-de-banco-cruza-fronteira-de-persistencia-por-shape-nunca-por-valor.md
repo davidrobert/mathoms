@@ -80,8 +80,9 @@ como o `redaction.py` da [[ADR-273]]):
   do 503 do shell Go); a borda do executor; o crash da task (`Task crashed:`); os
   `logger.exception` de commit de artefato (`exc_info=False` + shape, ADR-404 D5); e uma
   **Task base no app Celery inteiro** (`task_cls`, sobrescreve `__call__`), que cobre o
-  log de falha, o result backend e o `on_failure` das 14 tasks. `Retry`, `Ignore`,
-  `Reject` e `BaseException` fora de `Exception` passam intactos.
+  log de falha, o result backend e o `on_failure` das 14 tasks. Passam intactos `Retry`,
+  `Ignore`, `Reject`, o fim de prazo (`SoftTimeLimitExceeded`/`TimeLimitExceeded`, cujo tipo
+  o `on_failure` lê) e `BaseException` fora de `Exception`.
 - **Frontend** — `pipelineErrorMessages.ts` ganha a PRIMEIRA regra, chaveada no marcador:
   statement timeout → mensagem de timeout; o resto → genérico da fase. O marcador é
   contrato Python ↔ TypeScript, com teste dos dois lados.

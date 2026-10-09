@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from celery import Celery, Task
-from celery.exceptions import Ignore, Reject, Retry
+from celery.exceptions import Ignore, Reject, Retry, SoftTimeLimitExceeded, TimeLimitExceeded
 from celery.schedules import crontab
 from celery.signals import worker_process_init
 
@@ -24,6 +24,12 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 
+# Passam intactas: redigir o `Retry` derrubaria o `self.retry(exc=…)`, e o tipo do fim de
+# prazo é contrato do `on_failure` (`failure_reason=time_limit_exceeded`). O contexto de
+# banco que viajar com elas sai pelo log, onde o filtro de record da D3 o redige.
+_CONTROLE_DE_FLUXO_DO_CELERY = (Retry, Ignore, Reject, SoftTimeLimitExceeded, TimeLimitExceeded)
+
+
 class DatabaseFailureRedactingTask(Task):
     """Base de toda task do app (ADR-441 D2): falha cuja cadeia tocou o banco sai redigida
     antes do log de falha do Celery, do result backend e do ``on_failure``."""
@@ -31,8 +37,8 @@ class DatabaseFailureRedactingTask(Task):
     def __call__(self, *args, **kwargs):
         try:
             return super().__call__(*args, **kwargs)
-        except (Retry, Ignore, Reject):
-            raise  # controle de fluxo: redigir o `Retry` derrubaria o `self.retry(exc=…)`
+        except _CONTROLE_DE_FLUXO_DO_CELERY:
+            raise
         except Exception as exc:  # noqa: BLE001 — relança sempre; só troca o texto
             redacted = as_redacted_exception(exc)
             if redacted is None:

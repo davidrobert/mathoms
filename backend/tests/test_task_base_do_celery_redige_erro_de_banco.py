@@ -15,6 +15,7 @@ import logging
 from unittest.mock import patch
 
 import pytest
+from celery.exceptions import SoftTimeLimitExceeded
 from sqlalchemy.exc import IntegrityError
 
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
@@ -100,6 +101,20 @@ def test_erro_que_nao_e_de_banco_passa_intacto(seeded):  # noqa: F811
 
     assert type(resultado.result) is ValueError
     assert str(resultado.result) == "erro de domínio"
+
+
+def _prazo_estoura_tratando_erro_de_banco(*_args, **_kwargs):
+    try:
+        raise _unique_violation_com_detail()
+    except IntegrityError:
+        raise SoftTimeLimitExceeded()  # noqa: B904 — o contexto implícito é o caso
+
+
+def test_fim_de_prazo_passa_intacto_mesmo_sobre_erro_de_banco(seeded):  # noqa: F811
+    """O tipo é contrato do `on_failure` (`failure_reason=time_limit_exceeded`)."""
+    resultado = _aplica_com_setup_quebrado(seeded, _prazo_estoura_tratando_erro_de_banco)
+
+    assert type(resultado.result) is SoftTimeLimitExceeded
 
 
 def test_self_retry_sobre_erro_de_banco_continua_retentando():
