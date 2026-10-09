@@ -46,7 +46,7 @@ redis>=5.0.0  # teto vem do kombu[redis] (<6.5); .github/dependabot.yml ignora a
 websockets>=12.0
 
 # A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
-python-json-logger>=3.2
+python-json-logger>=4.2.0
 opentelemetry-api>=1.45.1
 opentelemetry-sdk>=1.45.1
 opentelemetry-exporter-otlp-proto-http>=1.45.1
