@@ -1052,7 +1052,7 @@
           "ref": "pipeline.domain.services.investimentos_classes_analyzer:InvestimentosClassesAnalyzer.analyze"
         },
         "transform": "soma das classes de ativo da carteira",
-        "value": "680000.00"
+        "value": "490000.00"
       },
       "patrimonio.bruto": {
         "edge_type": "aggregation",
@@ -2103,25 +2103,32 @@
     "tabela_classes": [
       {
         "categoria": "Imóveis Investimento",
-        "pct": "88.240000",
+        "pct": "83.670000",
         "pct_carteira_financeira": null,
-        "valor": 60000000
+        "valor": 41000000
       },
       {
         "categoria": "Renda Fixa",
-        "pct": "11.760000",
+        "pct": "16.330000",
         "pct_carteira_financeira": "100.000000",
         "valor": 8000000
+      },
+      {
+        "categoria": "Imóveis com uso não apurado",
+        "pct": null,
+        "pct_carteira_financeira": null,
+        "valor": 19000000
       }
     ],
     "top_ativos": [
       {
         "autoridade": "origem",
-        "classe": "Imóveis Investimento",
+        "classe": "Imóveis com uso não apurado",
+        "classificacao_imovel": "desconhecido",
         "instituicao": "",
         "membro": "Alex",
-        "nome": "Imóvel de investimento",
-        "pct_carteira": "27.940000",
+        "nome": "Imóvel com uso não apurado",
+        "pct_carteira": null,
         "posicao": 1,
         "tipo_origem": "imovel",
         "valor": 19000000
@@ -2129,10 +2136,11 @@
       {
         "autoridade": "origem",
         "classe": "Imóveis Investimento",
+        "classificacao_imovel": "locado",
         "instituicao": "",
         "membro": "Alex",
         "nome": "Imóvel de investimento",
-        "pct_carteira": "22.060000",
+        "pct_carteira": "30.610000",
         "posicao": 2,
         "tipo_origem": "imovel",
         "valor": 15000000
@@ -2140,10 +2148,11 @@
       {
         "autoridade": "origem",
         "classe": "Imóveis Investimento",
+        "classificacao_imovel": "especulacao",
         "instituicao": "",
         "membro": "Alex",
         "nome": "Imóvel de investimento",
-        "pct_carteira": "14.710000",
+        "pct_carteira": "20.410000",
         "posicao": 3,
         "tipo_origem": "imovel",
         "valor": 10000000
@@ -2151,10 +2160,11 @@
       {
         "autoridade": "origem",
         "classe": "Imóveis Investimento",
+        "classificacao_imovel": "nu_proprietario",
         "instituicao": "",
         "membro": "Alex",
         "nome": "Imóvel de investimento",
-        "pct_carteira": "13.240000",
+        "pct_carteira": "18.370000",
         "posicao": 4,
         "tipo_origem": "imovel",
         "valor": 9000000
@@ -2165,7 +2175,7 @@
         "instituicao": "Bancoficticio",
         "membro": "Alex",
         "nome": "Renda Fixa (Bancoficticio)",
-        "pct_carteira": "11.760000",
+        "pct_carteira": "16.330000",
         "posicao": 5,
         "tipo_origem": "investimento",
         "valor": 8000000
@@ -2173,18 +2183,20 @@
       {
         "autoridade": "origem",
         "classe": "Imóveis Investimento",
+        "classificacao_imovel": "uso_pessoal",
         "instituicao": "",
         "membro": "Alex",
         "nome": "Imóvel de investimento",
-        "pct_carteira": "10.290000",
+        "pct_carteira": "14.290000",
         "posicao": 6,
         "tipo_origem": "imovel",
         "valor": 7000000
       }
     ],
-    "total": 68000000,
+    "total": 49000000,
     "total_financeiro": 8000000,
-    "total_imoveis_investimento": 60000000
+    "total_imoveis_investimento": 41000000,
+    "total_imoveis_uso_nao_apurado": 19000000
   },
   "kpi_targets": {
     "aliquota_efetiva_ir": {

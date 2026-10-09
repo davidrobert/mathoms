@@ -438,7 +438,7 @@
 | ADR-441 | adr | Decidido |  | Erro de banco cruza fronteira de persistência por shape, nunca por valor | `adr/441-erro-de-banco-cruza-fronteira-de-persistencia-por-shape-nunca-por-valor.md` |
 | ADR-442 | adr | Decidido |  | Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push | `adr/442-valor-de-workspace-real-nao-entra-no-repositorio.md` |
 | ADR-443 | adr | Decidido |  | Stage roda uma vez por run — não há retry de stage em executor nenhum | `adr/443-stage-roda-uma-vez-por-run-sem-retry-de-stage.md` |
-| ADR-444 | adr | Proposto |  | Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência | `adr/444-imovel-de-uso-nao-apurado-entra-na-carteira-com-valor-e-sem-peso.md` |
+| ADR-444 | adr | Decidido |  | Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência | `adr/444-imovel-de-uso-nao-apurado-entra-na-carteira-com-valor-e-sem-peso.md` |
 | ADR-445 | adr | Proposto |  | Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho | `adr/445-transacao-de-escrita-nao-atravessa-io-lento.md` |
 | ADR-446 | adr | Decidido |  | Soft time limit encerra o run — nenhum stage começa depois do prazo | `adr/446-soft-time-limit-encerra-o-run.md` |
 | ADR-447 | adr | Decidido |  | A classe da falha sai do objeto vivo e atravessa o executor no detail do stage | `adr/447-classe-da-falha-sai-do-objeto-vivo-e-atravessa-o-executor.md` |
