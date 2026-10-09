@@ -16,7 +16,10 @@ import inspect
 
 import pytest
 
-from backend.app.services.parecer_distiller import distill_exec_context
+from backend.app.services.parecer_distiller import (
+    distill_exec_context,
+    distill_exec_context_with_budget,
+)
 from backend.app.services.parecer_manifest import load_manifest, load_persona
 from backend.app.services.parecer_orchestrator import _build_prompts
 from pipeline.llm.litellm_client import LLMService
@@ -108,8 +111,12 @@ def test_transporte_com_tool_exige_contrato_model_facing(prompts_montados):
 
 
 def test_inventario_de_superficies_e_declarado_por_igualdade():
-    """Produtor novo em `distill_exec_context` sem entrada em SUPERFICIES reprova."""
-    fonte = inspect.getsource(distill_exec_context)
+    """Produtor novo no exec context sem entrada em SUPERFICIES reprova."""
+    # O compositor é `distill_exec_context_with_budget` desde a A40.l124; o público virou
+    # wrapper. Os DOIS fontes entram: produtor que alguém pendurar no wrapper também conta.
+    fonte = inspect.getsource(distill_exec_context) + inspect.getsource(
+        distill_exec_context_with_budget
+    )
     produtores = {
         "section_bodies": "_render_section_body",
         "hints": "_render_hints_block",

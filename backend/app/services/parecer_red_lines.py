@@ -123,15 +123,22 @@ _PROX = 45
 _HEDGE = re.compile(r"(pode render|historicamente|busca rentabili|tende a|pode valoriz)")
 _TICKER = re.compile(r"\b[A-Z]{4}\d{1,2}\b")
 
-# RL-7: só o sinal ESTRUTURADO de real_estate vira hard-block — tema inequívoco.
-# pontos_urgentes/alertas top-level são texto livre (sem tema mapeável
+# RL-7: só o número ESTRUTURADO (`ratios.concentracao_imobiliaria`) vira hard-block —
+# tema inequívoco. pontos_urgentes/alertas top-level são texto livre (sem tema mapeável
 # deterministicamente) → fora do hard-block (follow-up: tag de tema por item).
 _TEMA_CONCENTRACAO = {"Alocação", "Saúde de balanço"}
 _SEVERIDADE_ALTA = {"Crítica", "Alta"}
-# RL7 graduado (1.4, financial-planner 2026-06-30): em 40–60% Cerbasi (estabilidade)
-# e AUVP (diversificar) legitimamente divergem → Média basta (abordar ≠ silenciar);
-# >60% mesmo Cerbasi não sustenta → exige Alta; alerta estruturado do E5 → exige Alta.
+# RL7 graduado (1.4, financial-planner 2026-06-30), nascido em 40/60 na base antiga e
+# trasladado para 50/75 na base carteira pelo C11-Fase2 ([[ADR-340]]). Na faixa (50,75]
+# as referências divergem legitimamente — aluguel como renda passiva × diversificação
+# por classe → Média basta (abordar ≠ silenciar); acima de 75 convergem → exige Alta.
+# 50 é a borda INFERIOR da faixa, não o ponto médio dela (§Emenda 2026-10-09).
 _SEVERIDADE_MEDIA_MAIS = {"Crítica", "Alta", "Média"}
+#: Degraus da RL7 em % da carteira produtiva; o limiar é o último valor conforme
+#: ([[ADR-340]] §Emenda 2026-10-08). A REGRA 14 do prompt e a hint `ratios` do manifest
+#: declaram os mesmos números — `tests/test_parecer_rl7_regua_unica.py` cobra.
+RL7_LIMIAR_EXIGE_MEDIA_PCT = 50.0
+RL7_LIMIAR_EXIGE_ALTA_PCT = 75.0
 
 
 @dataclass(frozen=True)
@@ -363,9 +370,9 @@ def _severidade_exigida_concentracao(e5: Mapping[str, Any]) -> set[str] | None:
     ratios = e5.get("ratios") or {}
     conc = ratios.get("concentracao_imobiliaria")
     conc = conc if isinstance(conc, (int, float)) else 0.0
-    if conc > 75.0:
+    if conc > RL7_LIMIAR_EXIGE_ALTA_PCT:
         return _SEVERIDADE_ALTA
-    if conc > 50.0:
+    if conc > RL7_LIMIAR_EXIGE_MEDIA_PCT:
         return _SEVERIDADE_MEDIA_MAIS
     return None
 
@@ -426,6 +433,8 @@ __all__ = [
     "RED_LINES",
     "LIMIAR_TAXA_MENSAL_PCT",
     "RED_LINES_VERSION",
+    "RL7_LIMIAR_EXIGE_ALTA_PCT",
+    "RL7_LIMIAR_EXIGE_MEDIA_PCT",
     "RedLineViolation",
     "RedLinesResult",
     "TAXA_KEYS",

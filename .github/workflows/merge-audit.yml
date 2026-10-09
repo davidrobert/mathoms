@@ -17,8 +17,13 @@
 #
 # Ressalva declarada: ler `rulesets/rule-suites` exige permissão de
 # administração, que o `GITHUB_TOKEN` não tem. O braço de enriquecimento
-# (quem deu o bypass) degrada com a lacuna DITA na Issue; o veredito do SHA,
+# (quem deu o bypass) degrada com a lacuna DITA na issue; o veredito do SHA,
 # que é o instrumento primário, não depende dele.
+#
+# Registro (ADR-448): cada SHA fora do gate abre UMA issue própria, com o SHA
+# curto e o PR no título e um marcador do SHA completo no corpo, que torna o
+# re-run idempotente. A issue única (#1728) acumulou 56 comentários e ninguém
+# reagiu — formato encerrado na aplicação da ADR-448.
 
 # SEM `schedule:` de propósito, nesta primeira versão. O gate de liveness
 # exige que todo workflow agendado esteja no manifesto (S0) E que o Actions já
@@ -33,9 +38,10 @@ name: Merge audit
 on:
   push:
     branches: [main]
-  # ⚠️ O braço de sweep NÃO funciona com o `github.token`: `rule-suites` exige
-  # `Administration: read`, permissão que não existe na chave `permissions:` do
-  # Actions. Disparado assim, ele aborta com rc=2 ("não medido") — que é o
+  # ⚠️ O braço de sweep NÃO funciona com o `github.token`: `rule-suites`, o
+  # `history` do ruleset e o campo `bypass_actors` exigem `Administration:
+  # read`, permissão que não existe na chave `permissions:` do Actions.
+  # Disparado assim, ele aborta com rc=2 ("não medido") — que é o
   # comportamento correto, e não um bug. Ele passa a valer quando a Onda 1
   # trouxer um token de admin (PR 4 do track `ci-trust-onda1-workflows`).
   workflow_dispatch:
@@ -62,7 +68,7 @@ jobs:
       contents: read # commits/{sha}/pulls
       checks: read # commits/{sha}/check-runs
       pull-requests: read # PR do SHA
-      issues: write # Issue de auditoria
+      issues: write # issue por incidente
     steps:
       - uses: actions/checkout@v7
         with:
@@ -79,7 +85,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh label create merge-protection --force \
-            --description "Merge em main sem gate no SHA que entrou (ADR-415)" \
+            --description "Proteção de main: merge fora do gate ou ruleset fora da ADR-448" \
             --color B60205
 
       - name: Auditar o SHA que entrou em main
@@ -95,3 +101,41 @@ jobs:
         run: |
           python3 dev/ci_audit_merge_protection.py --sweep \
             --period "${{ inputs.period || 'week' }}"
+
+  # Tripwire do ruleset (ADR-448), sem admin. O `GITHUB_TOKEN` não vê
+  # `bypass_actors` (a API OMITE a chave para quem não administra — ler a
+  # ausência como `0` seria o alarme mudo), mas vê `enforcement`, `rules` e
+  # `updated_at`: gate enfraquecido vira alarme vivo, e mudança nova
+  # (concessão de break-glass, toggle de enforcement, que não deixa
+  # rule-suite) vira issue a explicar com o `--sweep` de admin.
+  ruleset:
+    name: Ruleset de main de pé?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # A chave do tripwire é a MESMA em todo push até o ruleset mudar: dois
+    # merges seguidos, em paralelo, abririam a mesma issue duas vezes. Fila
+    # global; o pendente que for cancelado não leva nada — o próximo run lê o
+    # mesmo estado.
+    concurrency:
+      group: merge-audit-ruleset
+      cancel-in-progress: false
+    permissions:
+      contents: read # GET rulesets/{id}
+      issues: write # issue de alarme
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Garantir a label da auditoria
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create merge-protection --force \
+            --description "Proteção de main: merge fora do gate ou ruleset fora da ADR-448" \
+            --color B60205
+
+      - name: Tripwire do ruleset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 dev/ci_audit_merge_protection.py --ruleset

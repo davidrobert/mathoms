@@ -5,7 +5,7 @@ title: "Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintéti
 status: Decidido
 phase: A34
 date: "2026-07-08"
-amended_at: ["2026-08-03"]
+amended_at: ["2026-08-03", "2026-10-09"]
 relates_to: ["[[PLAN-public-release]]", "[[A34.l13]]", "[[A34.l14]]", "[[A34.l15]]", "[[A34.l8]]"]
 supersedes: []
 superseded_by: []
@@ -25,6 +25,12 @@ tags:
 > indisponibilidade do Docker Hub. A emenda no fim desta nota fecha a regra:
 > action de terceiro em job *required* não pode ser `runs.using: docker`. Leia a
 > decisão 2 como "fecha reescrita de tag", não como "fecha dependência externa".
+>
+> **Emenda (2026-10-09) — input que a action não declara passa calado:** o runner
+> só avisa `Unexpected input(s)` e ignora a chave, e foi assim que o stale fechou 8
+> PRs do Dependabot. A emenda no fim desta nota cria o lock de fatos
+> `.github/actions.lock.yml` e o gate offline `dev/check_action_inputs.py`. Rede
+> continua só no passo manual (o refresh do lock), nunca no gate.
 
 **Status:** Decidido (A34) · **Data:** 2026-07-08 · Uma das 8 ADRs do gate G0 de
 [[PLAN-public-release]]. Diferente das ADRs 313–318 (owner-gated), esta
@@ -206,3 +212,94 @@ em profundidade (label cosmética nunca gateia merge). As 3 actions restantes de
 [[A34.l14]] são `node20` — nenhuma outra Docker action está em caminho de merge.
 Registro operacional da sprint em [[MOC-sprint-a40]] §Infra de CI tocada durante
 a sprint.
+
+## Emenda 2026-10-09 — `with:` com input que a action não declara passa calado
+
+**Incidente.** O `stale.yml` passava `exempt-pr-authors` para `actions/stale`, um
+input que a action não tem (nem na v10 nem na v11). O runner emite
+`##[warning]Unexpected input(s) 'exempt-pr-authors', valid inputs are [...]` (run
+37896120249) e segue sem o efeito. A isenção nunca valeu, e o stale fechou 8 PRs
+do Dependabot (#2006–#2015). O conserto do workflow é o #2147. Esta emenda trata
+a classe.
+
+**Por que nenhum gate pegou, e por que o actionlint não resolve.** O repo não roda
+actionlint, e adotá-lo não bastaria. Na main `83dee228`, o actionlint v1.7.12 dá
+0 achados. A base embarcada dele conhece 2 dos 17 refs em uso, nenhum ref
+SHA-pinned, e vai só até `actions/stale@v10`. O SHA-pin da decisão 2 e a política
+de menor major em Node 24 põem os refs à frente dessa base por construção.
+
+**Regra.** Todo `uses:` de step casa com uma entrada de `.github/actions.lock.yml`,
+e toda chave do `with:` é um input que o action.yml daquele ref declara e não
+depreca. A comparação é case-insensitive, como a do runner
+(`StringComparer.OrdinalIgnoreCase`), e `args`/`entrypoint` só valem em action
+`docker`. O gate é `dev/check_action_inputs.py` (hook `action-inputs`), que entra
+no CI pelo `lint-all`.
+
+- **Fatos gerados ficam separados da política escrita à mão.** O lock guarda
+  `runs_using`, `inputs`, `deprecated_inputs` e, só para ref de tag,
+  `resolved_sha`. A chave é o `uses:` exato. O `.github/third-party-actions.yml`
+  continua sendo política (o que pode entrar em job required), porque o PyYAML
+  apaga comentários no dump e o cabeçalho do registro carrega a história desta
+  ADR.
+- **O gate é offline e a rede fica só no refresh.** `dev/refresh_actions_lock.py`
+  chama `gh api` com timeout e é tudo-ou-nada: erro que não seja 404, ou timeout,
+  aborta sem escrever. Se nenhum ref falta, ele não abre rede e só poda. Quando
+  abre, relê também as tags, que andam sem PR. Ref de branch é recusado.
+- **Forma que o gate não sabe verificar reprova:** `uses:` de job, action local
+  `./` e `docker://`. Hoje não há nenhuma. Deixá-las passar sem aviso seria a
+  mesma classe do incidente.
+- **Input deprecado e entrada órfã reprovam.** Aviso que não bloqueia é o
+  incidente com um bump de atraso. Com as órfãs barradas, o lock espelha o
+  universo em uso e o diff do refresh dá para revisar.
+
+**Alternativas rejeitadas:**
+
+1. actionlint: não cumpre o critério, pelos números acima.
+2. Buscar o action.yml online no próprio gate: põe `api.github.com` no caminho
+   required, a classe do #1161.
+3. Lock com fallback online no CI: o lock deixaria de ser atualizado, e o desenho
+   viraria a opção 2 disfarçada.
+4. Chave `owner/repo@vMAJOR`, para que patch e minor não tocassem o lock
+   (proposta do `build-vs-buy`): o major de um SHA-pin teria de sair do comentário
+   `# vX.Y.Z`, que o YAML descarta, que falta em 9 sítios e que ninguém verifica.
+   Além disso, minor costuma adicionar input, e o refresh voltaria do mesmo jeito.
+
+**Custo aceito.** Todo PR do Dependabot `github-actions` nasce vermelho até alguém
+rodar o refresh na branch dele. O procedimento está no `dependabot.yml`. Em regime
+são ~1 PR agrupado de patch/minor por semana, mais majors esporádicos. O diff do
+lock vira o resumo de breaking change que o revisor precisa.
+
+O custo maior vem depois do commit do lock. A partir dele, o
+`@dependabot rebase` deixa de servir, porque faz force-push e apaga o lock. Quando
+os commits novos da main tocam `.github/workflows/**`, `gh pr update-branch` e o
+trem também são recusados, porque nenhum dos tokens tem scope `workflow`. Sobra
+merge + push por SSH. Medido antes deste gate: o #2137 ficou BEHIND 3 vezes em ~25
+min, e ele e o #2139 entraram por bypass. A condição de retomada do refresh
+automático (abaixo) mede exatamente esse custo. Quando o registro
+passar a ser amarrado ao `@ref` (trabalho em voo em 2026-10-08), o `runs_using`
+dele deve vir deste lock, e não de um segundo arquivo de fatos com o mesmo
+universo de chaves.
+
+**Medição (main `83dee228`).** 12 workflows, 117 sítios `uses:`, 17 refs e
+exatamente 1 achado, o `exempt-pr-authors`. Com o `stale.yml` do #2147, 0
+achados. O teste reintroduz o input no `stale.yml` real e reprova contra o lock
+real.
+
+### Deferimento datado (2026-10-09)
+
+- **actionlint + shellcheck + zizmor**, para as outras classes: expressões, o bash
+  inline do `ci.yml`, template-injection e permissions. Inputs já estão cobertos
+  aqui. No zizmor, só os audits offline podem entrar no required. **Condição de
+  retomada:** a próxima leva de hardening de `.github/workflows/**`, ou um
+  incidente de workflow que este gate não alcance. **Dono:** o owner do repo, que
+  abre a lane com `build-vs-buy` + `sre-devops`.
+- **Reforço pelo runner:** varrer as annotations `Unexpected input(s)` dos
+  check-runs num watchdog diário que já existe. Ele não substitui o gate, porque
+  workflow agendado nunca roda em PR. Antes de contar com ele, confirmar que o
+  aviso vira annotation. **Condição de retomada:** um segundo incidente da classe
+  que o gate não pegue (input removido dentro da mesma tag, por exemplo).
+  **Dono:** o owner do repo.
+- **Refresh automático em PR do Dependabot:** workflow com segredo do Dependabot e
+  sem scope `workflow`, porque o lock fica fora de `.github/workflows/`.
+  **Condição de retomada:** mais de 2 PRs `github-actions` por mês parados há mais
+  de 48h só por causa do lock. **Dono:** o owner do repo.

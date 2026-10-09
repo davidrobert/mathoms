@@ -570,6 +570,10 @@ Versões no mesmo PR (`PROMPT_VERSION` 2.5.0 · persona 1.2.0 · manifest 2.19.0
 três compõem `compute_cache_key` — separá-las cobraria a frota **três vezes** pela mesma
 correção. Budget reconferido pelo tripwire: **−1,58%**.
 
+> ⚠️ **Correção 2026-10-09:** a persona **não** compunha `compute_cache_key` até a
+> [[ADR-199]] §Emenda 2026-10-09 — a cobrança única desta entrega valeu porque manifest
+> e `PROMPT_VERSION` subiram no mesmo PR. O parágrafo acima é snapshot e não se reescreve.
+
 ### O que fica, e por que não foi junto
 
 > ⚠️ **SUPERADO em 2026-09-02 — as três precondições caíram e o destino de citação

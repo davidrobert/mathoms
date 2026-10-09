@@ -780,20 +780,20 @@ export type E5AnalysisArtifact = {
   };
   "cenarios_conjuge"?: {
     "labels"?: Array<string>;
-    "aportes"?: Array<number>;
+    "aportes"?: Array<number | null>;
     "prazos_if"?: Array<number | null>;
     "anos_if"?: Array<number | null>;
     "premissas"?: {
       "meta_if"?: number;
       "investivel_atual"?: number;
       "retorno_real_anual_pct"?: number;
-      "aporte_base"?: number;
+      "aporte_base"?: number | null;
       "fator_reduzido"?: number;
       "salario_conjuge_clt_brl"?: number;
     };
     "cenarios"?: Array<{
       "nome": string;
-      "aporte_mensal": number;
+      "aporte_mensal": number | null;
       "prazo_if_anos": number | null;
       "ano_if": number | null;
       "resumo": string;

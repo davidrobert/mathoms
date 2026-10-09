@@ -2,6 +2,7 @@
 
 import type { DashboardChart } from "@/lib/api";
 import { BarChartCard } from "./BarChartCard";
+import { CategoryBarChartCard } from "./CategoryBarChartCard";
 import { ChartSkeleton } from "./ChartSkeleton";
 import { isMonthlyBarChart } from "./dashboardHelpers";
 import { PieChartCard } from "./PieChartCard";
@@ -24,8 +25,8 @@ function ChartCard({
     const pieHandler = isDespesasCategoryChart(chart.title) ? onSliceClick : undefined;
     return <PieChartCard chart={chart} onSliceClick={pieHandler} />;
   }
-  const barHandler = isMonthlyBarChart(chart) ? onBarClick : undefined;
-  return <BarChartCard chart={chart} onBarClick={barHandler} />;
+  if (isMonthlyBarChart(chart)) return <BarChartCard chart={chart} onBarClick={onBarClick} />;
+  return <CategoryBarChartCard chart={chart} />;
 }
 
 export function ChartsGrid({
