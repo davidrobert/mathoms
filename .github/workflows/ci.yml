@@ -1012,10 +1012,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # Paridade com os FROM do frontend/Dockerfile — vale para todo
-          # setup-node do frontend aqui e no nightly.yml. Bump do
-          # Dockerfile → bump aqui.
-          node-version: "26"
+          # Major vem do frontend/.nvmrc — vale para todo setup-node do
+          # frontend aqui e no nightly.yml. dev/check_node_version_parity.py
+          # (pre-commit) reprova se os FROM do frontend/Dockerfile divergirem.
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1243,7 +1243,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1510,7 +1510,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -1619,7 +1619,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "26"
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
