@@ -2,7 +2,7 @@
 id: ADR-448
 type: adr
 title: "Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge"
-status: Proposto
+status: Decidido
 date: "2026-10-09"
 relates_to:
   - "[[ADR-415]]"
@@ -16,14 +16,14 @@ aliases:
   - "break-glass por concessão"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/ci
   - area/security
 ---
 
 > Supersedure parcial de [[ADR-415]] §D2: o bypass do papel Admin. As decisões
-> D1 e D3–D6 seguem canônicas na 415. Este texto fica `Proposto` até o dono
-> aplicar o `PUT` do §Aceite e vira `Decidido` depois do `GET` de verificação.
+> D1 e D3–D6 seguem canônicas na 415. **Decidido e aplicado em 2026-10-09**,
+> com o `GET` de verificação e o ensaio do break-glass registrados em §Aceite.
 
 # ADR-448 — Bypass do Ruleset sai do papel Admin
 
@@ -44,7 +44,9 @@ rollback de gate brickado e indisponibilidade de plataforma. A aposta era que
   `merged` em 6–25 s. Os merges normais pelo auto-merge não têm o
   `auto_merge_disabled`. É o fluxo de quem mergeia "passando por cima das
   regras", seja pela UI web, seja por `gh pr merge --admin` ou `PUT /merge`.
-  O cliente não foi identificado: sete sessões de agente negaram com evidência.
+  Sete sessões de agente negaram com evidência. **O dono confirmou (2026-10-09)
+  que mergeou pela UI web**, com "Update branch" e o merge que passa por cima
+  das regras. O bypass do papel não distingue intenção, pressa ou cliente.
 - **Dano:**
   - o #2131 (vite 8) entrou antes de o `All checks green` concluir; o check
     terminou vermelho 2 min depois, e o `npm ci` de todo PR falhou até o
@@ -123,3 +125,16 @@ rollback de gate brickado e indisponibilidade de plataforma. A aposta era que
    ganha +2 versões, e `rules|length` continua 5 em cada.
 3. Só então: `status: Decidido`, tag `status/decidido`, e emenda na 415
    registrando a supersedure efetiva.
+
+### Executado em 2026-10-09 (autorização do dono no chat)
+
+- **`PUT` aplicado com backup.** O `GET` depois dele: `enforcement=active`,
+  `bypass_actors=[]`, `current_user_can_bypass=never`, `rules=5`.
+  `rules` e `conditions` ficaram idênticos ao backup; só `bypass_actors` mudou.
+- **Ensaio do break-glass sem merge** (subshell com `trap`). O
+  `rulesets/15884038/history` passou de 2 para 5 versões:
+  - remoção (`v52592012`, bypass=0);
+  - concessão (`v52592028`, bypass=1, janela de <1 s);
+  - revogação pelo `trap` (`v52592029`, bypass=0).
+
+  As três versões têm `rules=5` e `enforcement=active`.
