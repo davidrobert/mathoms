@@ -25,7 +25,12 @@ export interface EstrategiaAporteData {
 interface EstrategiaAporteCardProps {
   estrategia?: EstrategiaAporteData;
   /** Fallback: cenários IF (legado) */
-  cenarios?: { aportes?: number[]; labels?: string[] };
+  cenarios?: {
+    aportes?: ReadonlyArray<number | null>;
+    labels?: ReadonlyArray<string>;
+  };
+  /** `if_monte_carlo.aporte_mensal_usado` — o aporte que a família declarou. */
+  aporteDeclarado?: number;
 }
 
 /** F9 · F2.C · S3 — Card "Estratégia de Aporte e Alocação".
@@ -35,6 +40,7 @@ interface EstrategiaAporteCardProps {
 export function EstrategiaAporteCard({
   estrategia,
   cenarios,
+  aporteDeclarado,
 }: EstrategiaAporteCardProps) {
   const destinos = estrategia?.destinos ?? [];
   const hasRichData = destinos.length > 0;
@@ -139,39 +145,63 @@ export function EstrategiaAporteCard({
   // estado honesto "Meta de aporte não configurada" (A40.l100). O PMT que caberia
   // sob aquele rótulo só existe em `goal_service.compute_if_derived` (agregado
   // Goal, rota /plano); nunca foi plumbado até o payload do relatório.
+  //
+  // O "não configurada" tem predicado PRÓPRIO, o mesmo da legenda do cone na S7.
+  // Antes ele valia pela ausência do cenário do cônjuge, que o gate da ADR-167
+  // passou a produzir para todo solteiro — inclusive o que declarou aporte. E ele
+  // vence a tabela: sem aporte não há o que um cenário reduza (desempate do
+  // `senior-cto`, 2026-10-09).
+  if (aporteDeclarado == null || aporteDeclarado <= 0) {
+    return <SemMetaDeAporteCard />;
+  }
   const labels = cenarios?.labels ?? [];
-  const aportes = cenarios?.aportes ?? [];
+  // Solteiro com aporte declarado: nada a tabular, e a S7 já publica o aporte.
+  if (labels.length === 0) return null;
+  return <CenariosDeAporteCard labels={labels} aportes={cenarios?.aportes ?? []} />;
+}
 
+function SemMetaDeAporteCard() {
   return (
     <ReportCard variant="highlight" title="Estratégia de Aportes">
       <div className="space-y-4">
-        {labels.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--surface-border)] text-left">
-                  <th scope="col" className="pb-2 font-display font-semibold">Cenário</th>
-                  <th scope="col" className="pb-2 text-right font-display font-semibold">Aporte/mês</th>
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          Meta de aporte não configurada.
+        </p>
+      </div>
+    </ReportCard>
+  );
+}
+
+function CenariosDeAporteCard({
+  labels,
+  aportes,
+}: {
+  labels: ReadonlyArray<string>;
+  aportes: ReadonlyArray<number | null>;
+}) {
+  return (
+    <ReportCard variant="highlight" title="Estratégia de Aportes">
+      <div className="space-y-4">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--surface-border)] text-left">
+                <th scope="col" className="pb-2 font-display font-semibold">Cenário</th>
+                <th scope="col" className="pb-2 text-right font-display font-semibold">Aporte/mês</th>
+              </tr>
+            </thead>
+            <tbody>
+              {labels.map((label, i) => (
+                <tr key={label} className="border-b border-[var(--surface-border)]/40 last:border-0">
+                  <td className="py-2">{label}</td>
+                  <td className="py-2 text-right">
+                    <MonetaryValue value={aportes[i]} />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {labels.map((label, i) => (
-                  <tr key={label} className="border-b border-[var(--surface-border)]/40 last:border-0">
-                    <td className="py-2">{label}</td>
-                    <td className="py-2 text-right">
-                      <MonetaryValue value={aportes[i]} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {labels.length === 0 && (
-          <p className="text-sm text-[var(--surface-muted-foreground)]">
-            Meta de aporte não configurada.
-          </p>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ReportCard>
   );

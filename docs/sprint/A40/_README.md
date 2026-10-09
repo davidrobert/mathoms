@@ -449,7 +449,17 @@ promoção a `current`.
 >
 > **Portanto o r8 precede o DE-7**, e não o contrário: ele é a única forma de
 > obter um número medível para o achado. Vale para o DE-8 pelo mesmo motivo.
-## Lanes (120 no disco · 120 nesta tabela — ver nota ao fim)
+
+> **Re-run completo exige parecer que leu o corpo inteiro — 2026-10-09 ([[A40.l124]]).**
+> Re-run cujo parecer publique `exec_context.evicted_section_ids` não-vazio (lido pelo X8
+> da rodada) **não conta** para os 2 re-runs consecutivos — mesma forma da ressalva "o
+> primeiro com LLM": o E6 dele não leu o que o relatório publica. Medido: desde 2026-08-29
+> todo parecer do dogfood rodou sem as seções de independência financeira e de
+> investimentos. X8 `INAPLICAVEL` (campo ausente ou `null`) também não conta — ausência
+> de medição não é medição de ausência. A lane fica **fora** da cláusula de reinício (não
+> muta E3/E5): isto qualifica o que conta, não empurra o início do contador.
+
+## Lanes (125 no disco · 125 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -614,6 +624,9 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l121]] | O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF | P0 | in_progress | aberta 2026-10-08 do item 3 do §Deferimento da [[A40.l113]] (critério 3) · **medido no `E1.5a`** (runs `1.3.0` × `1.4.1` sobre os mesmos documentos): `canonicalize(descricao)` cai de **8/10 para 2/10** itens imóvel, e em 8/8 o via+número vivia no valor do campo rotulado `Logradouro` da ficha — a `1.4.1` copia só a discriminação, e copia certo · 6 rows de `property_identity` com override do usuário (5 cunhadas em `via_numero`, 1 em `mat:`); com extrator perfeito, chaves nos 3 níveis re-alcançam **6/6** sem mint, só `via_numero` alcança 5/6 · conserto em 3 PRs: contrato (2 schemas + repasse inerte) → produtor (bump do prompt) → enricher (chave multi-nível, sem cunhar) · o PR do enricher espera a normalização do `codigo_rfb` (VARCHAR(4)) |
 | [[A40.l122]] | A casa da família entra na carteira de investimentos quando a residência não é apurada: tabela de classes e ranking falham **aberto** | P1 | in_progress | aberta 2026-10-08 do **elo 5** da [[A40.l113]], confirmado em 2026-09-01 e nunca roteado ([[ADR-439]] o declarou fora dela) · **medido no run `40d1af2a`**: ali a residência tem id e o defeito é latente; no contrafactual em que só ela perde o id, `total` ×1,555, Renda Fixa `pct` 22,70 → 14,60 e a casa vira **#1 do ranking** como "Imóvel de investimento" (35,7%), com "considere diversificação" · ⚠️ **refutada** a premissa recebida de que o elo move `total_financeiro`/`nao_classificado_pct` (3,93 → 5,61): razão 1,0000 e 5,61 nos dois lados · dos três analyzers do enunciado, `instituicoes_por_membro` não era afetado (recebia o set e nunca o lia) · [[ADR-444]] `Proposto`: com a residência `nao_apurado`, imóvel desconhecido entra **com valor e sem peso** em "Imóveis com uso não apurado", e nenhuma prescrição de diversificação recai sobre ele · PR-0 [#2079](https://github.com/davidrobert/mathoms/pull/2079) (roteador único) → PR-A expand → PR-B flip |
 | [[A40.l123]] | O parecer não recebe o veredito do balde de imóvel e lê como medida o número que pode conter a moradia | P1 | ✅ **#2117** | aberta 2026-10-08 como desdobramento da [[A40.l113]] ([[ADR-439]]): o único registro do item era um comentário que apontava para um §Deferimento sem a linha · manifest 2.21.0 projeta a fatia e os vereditos, com a direção do erro nos hints · **fora da cláusula de reinício** (não muta E3/E5) |
+| [[A40.l124]] | O parecer não vê independência financeira nem investimentos desde agosto: o corpo pede ~20 KB contra 16 KB, a eviction é muda e o teste que a vigia mede 40% do tamanho real | P1 | ✅ **#2173** | aberta 2026-10-09 do item 2 do §Deferimento da A40.l123 (PR #2117) e do `PV13-17` (§r13, "sem lane" com ponteiro errado para a [[ADR-349]]) · medido sobre o E5 de cada run com o manifest do próprio run: `investimentos` evictada desde **08-26** e `independencia_financeira` desde **08-29**, e os `campos_faltantes` do parecer passam a pedir exatamente essas raízes nas mesmas datas · o teste que afirma 10/10 seções mede um fixture de **40%** do corpo real · ✅ **shipped 2026-10-09** num PR só: orçamento publicado em `output_summary`, X8 da rodada, cap 24576, `top_ativos` 15→5 e catálogo 2600→3400 — no E5 real, 10/10 seções (eram 7/10), folga 23,3%, ancoráveis 33/36 → 40/41 · fora da cláusula de reinício (não muta E3/E5), dentro da definição de re-run completo |
+| [[A40.l125]] | O gate de elegibilidade do cenário do cônjuge nunca rodou, e o critério de renda dele media um sinal que não existe | P1 | ✅ **#2201** | aberta 2026-10-09 · `should_render_conjuge_scenarios` órfã desde o #81: solteiro, família de 1 renda e casal 95/5 viam o cenário · **o critério de renda não tinha sinal**: o label de receita é o mapeamento PJ/CLT do template **global**, saneado para papel na A34.l11 — ligado como estava, o gate apagaria o cenário de todo casal · gate ligado por cônjuge cadastrado + meta IF ([[ADR-167]] §Emenda 2026-10-09); critérios de renda deferidos para o escritor da [[ADR-387]] · **o E5.N do solteiro reprovava a validação** com o bloco vazio — consertado junto · front com fonte única de presença (S3, APP_C, card de aportes) |
+| [[A40.l126]] | O cenário do cônjuge afirma o que não mediu: a contribuição do cônjuge sai de um label sem membro, e a premissa de 2/3 do aporte não aparece | P1 | open | desmembrada da [[A40.l125]] em 2026-10-09 pelo `financial-planner`: manter o cenário para casal com divisão de renda não mensurável exige rótulo de hipótese · `divisao_renda: "nao_mensurada"`, `salario_conjuge_clt_brl` → `null`, narrador e card de aportes |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
@@ -657,6 +670,11 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 > rg -No '^\| \[\[A40\.l[0-9]+\]\]' docs/sprint/A40/_README.md | sort -u | wc -l
 > ```
 >
+> **Re-medição 2026-10-09 (abertura da [[A40.l124]]):** disco **123**, tabela **123**, pelos
+> dois comandos abaixo. O cabeçalho declarava `120 · 120`: a [[A40.l121]], a [[A40.l122]] e a
+> [[A40.l123]] entraram com arquivo e linha sem mover o cabeçalho — a mesma forma de drift das
+> notas abaixo.
+
 > **Re-medição 2026-09-02 (closeout da [[A40.l117]]):** disco **119**, tabela **119**;
 > o cabeçalho declarava `118 · 118`. **O drift é meu e nasceu no #1966** (`24a375eb`):
 > medido, em `24a375eb^` era `118 · 118` coerente, e esse PR adicionou **o arquivo da

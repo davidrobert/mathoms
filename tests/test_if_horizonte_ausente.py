@@ -34,10 +34,18 @@ _IDADE_MAXIMA_PLAUSIVEL = 120
 _ANO_MAXIMO_PLAUSIVEL = 2200
 
 
-@pytest.fixture(scope="module")
-def e5_sem_convergencia(tmp_path_factory) -> dict:
-    root = tmp_path_factory.mktemp("if_horizonte_ausente")
-    write_e5_config(root)
+# O cenário do cônjuge só existe para casal (ADR-167): sobre a família default,
+# solteira, o bloco sai `{}` e o teste dele passaria por vacuidade.
+_FAMILY_CASAL = {
+    "titular": "david",
+    "membros": {
+        "david": {"nome_curto": "David", "papel": "titular", "data_nascimento": "1985-06-15"},
+        "bia": {"nome_curto": "Bia", "papel": "conjuge", "data_nascimento": "1987-07-22"},
+    },
+}
+
+
+def _run_dogfood(root: Path) -> dict:
     return run_dogfood_pipeline(
         root,
         raw_baseline=load_fixture(_DOGFOOD / "baseline-1.5.json"),
@@ -46,6 +54,20 @@ def e5_sem_convergencia(tmp_path_factory) -> dict:
             "fict_b": load_fixture(_DOGFOOD / "extrato-b-2_extract.json"),
         },
     )
+
+
+@pytest.fixture(scope="module")
+def e5_sem_convergencia(tmp_path_factory) -> dict:
+    root = tmp_path_factory.mktemp("if_horizonte_ausente")
+    write_e5_config(root)
+    return _run_dogfood(root)
+
+
+@pytest.fixture(scope="module")
+def e5_casal_sem_convergencia(tmp_path_factory) -> dict:
+    root = tmp_path_factory.mktemp("if_horizonte_ausente_casal")
+    write_e5_config(root, family=_FAMILY_CASAL)
+    return _run_dogfood(root)
 
 
 def test_fixture_realmente_nao_converge(e5_sem_convergencia):
@@ -68,9 +90,10 @@ def test_monte_carlo_nao_afirma_alvo(e5_sem_convergencia):
     assert mc["prob_if_ate_prazo_declarado"] is None
 
 
-def test_cenario_conjuge_nao_projeta_horizonte(e5_sem_convergencia):
-    cenarios = e5_sem_convergencia.get("cenarios_conjuge") or {}
-    for cenario in cenarios.get("cenarios", []):
+def test_cenario_conjuge_nao_projeta_horizonte(e5_casal_sem_convergencia):
+    cenarios = e5_casal_sem_convergencia["cenarios_conjuge"]
+    assert cenarios["cenarios"], "a fixture de casal tem de publicar o cenário"
+    for cenario in cenarios["cenarios"]:
         assert cenario["prazo_if_anos"] is None
         assert cenario["ano_if"] is None
         assert cenario["idade_titular"] is None

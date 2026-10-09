@@ -27,8 +27,9 @@ test.describe("@critical /protecao — cadastro de apólice", () => {
     // Empty state ou listagem — abrir o dialog via botão de header.
     await page.getByTestId("add-protection").click();
 
-    // Form de cadastro.
-    await expect(page.getByText("Cadastrar apólice")).toBeVisible();
+    // Form de cadastro. "Cadastrar apólice" também rotula o CTA do header e o
+    // submit: a asserção mira o dialog, nomeado pelo título (aria-labelledby).
+    await expect(page.getByRole("dialog", { name: "Cadastrar apólice" })).toBeVisible();
 
     // Categoria default é "vida" (primeira do select). Capital + data início.
     await page.getByLabel("Capital segurado (R$)").fill("500000,00");
@@ -45,11 +46,16 @@ test.describe("@critical /protecao — cadastro de apólice", () => {
       timeout: 10_000,
     });
     await expect(page.getByText("Seguradora Teste S/A")).toBeVisible();
-    await expect(page.getByText(/R\$\s*500\.000/)).toBeVisible();
+    // O capital também aparece no TotalsStrip ("Cobertura total"): asserção e
+    // cancelamento miram a linha da apólice recém-cadastrada.
+    const row = page
+      .getByTestId(/^protection-row-/)
+      .filter({ hasText: "Seguradora Teste S/A" });
+    await expect(row.getByText(/R\$\s*500\.000/)).toBeVisible();
 
     // Cancela — confirma via window.confirm.
     page.on("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: "Cancelar apólice" }).first().click();
+    await row.getByRole("button", { name: "Cancelar apólice" }).click();
 
     // Após cancelar, com filtro default "Ativa", a linha desaparece.
     await expect(page.getByText("Nenhuma apólice corresponde aos filtros.")).toBeVisible({
@@ -68,13 +74,16 @@ test.describe("@critical /protecao — cadastro de apólice", () => {
     await page.getByLabel("Início da vigência").fill("2026-01-01");
     await page.getByRole("button", { name: /Cadastrar apólice/ }).click();
 
-    await expect(page.getByText(/R\$\s*100\.000/)).toBeVisible({ timeout: 10_000 });
+    // `protections-totals` repete o valor ("Cobertura total: R$ 100.000" com
+    // uma só apólice ativa) — o alvo é a célula Capital da linha listada.
+    const capitalCell = page.getByRole("cell", { name: /R\$\s*100\.000/ });
+    await expect(capitalCell).toBeVisible({ timeout: 10_000 });
 
     // Mudar filtro para "Todas categorias" só para sanity check do select.
     const categoryFilter = page.getByTestId("filter-category");
     await categoryFilter.click();
     await page.getByRole("option", { name: "Vida" }).click();
 
-    await expect(page.getByText(/R\$\s*100\.000/)).toBeVisible();
+    await expect(capitalCell).toBeVisible();
   });
 });

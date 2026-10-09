@@ -227,6 +227,19 @@ def _is_impostos_pj_pendente(chart: dict) -> bool:
     return "Perfil tributário PJ pendente" in context
 
 
+def _chart_incompleto(chart_key: str, chart: dict) -> list[str]:
+    found: list[str] = []
+    if "context" not in chart or not chart["context"]:
+        found.append(f"charts.{chart_key}.context is missing or empty")
+    # ADR-236 §D5: impostos_pj em estado "perfil pendente" tem
+    # conclusion vazia por contrato (card UI renderiza só context+CTA).
+    if chart_key == "impostos_pj" and _is_impostos_pj_pendente(chart):
+        return found
+    if "conclusion" not in chart or not chart["conclusion"]:
+        found.append(f"charts.{chart_key}.conclusion is missing or empty")
+    return found
+
+
 def _monetary_format_errors(text: str, field_name: str) -> list[str]:
     found: list[str] = []
     if re.search(r"R\$\s*[\d.,]+\s*KM", text, re.IGNORECASE):
@@ -308,7 +321,6 @@ def validate_narrativas(
         "renda_passiva",
         "top15_ativos",
         "impostos_pj",
-        cenarios_section_key,
         "viagens",
         "bubble_riscos",
         "top5_decisoes",
@@ -320,15 +332,11 @@ def validate_narrativas(
             if chart_key not in charts:
                 errors.append(f"Missing charts.{chart_key}")
             else:
-                chart = charts[chart_key]
-                if "context" not in chart or not chart["context"]:
-                    errors.append(f"charts.{chart_key}.context is missing or empty")
-                # ADR-236 §D5: impostos_pj em estado "perfil pendente" tem
-                # conclusion vazia por contrato (card UI renderiza só context+CTA).
-                if chart_key == "impostos_pj" and _is_impostos_pj_pendente(chart):
-                    continue
-                if "conclusion" not in chart or not chart["conclusion"]:
-                    errors.append(f"charts.{chart_key}.conclusion is missing or empty")
+                errors.extend(_chart_incompleto(chart_key, charts[chart_key]))
+        # ADR-167: o cenário do cônjuge só existe para quem o E5 o publicou —
+        # opcional, mas presente tem de estar completo.
+        if cenarios_section_key in charts:
+            errors.extend(_chart_incompleto(cenarios_section_key, charts[cenarios_section_key]))
 
     if "perfil_familia" in narrativas_obj:
         for side in ["left", "right"]:
