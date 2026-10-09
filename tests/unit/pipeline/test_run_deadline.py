@@ -128,3 +128,51 @@ def test_run_stage_segue_achatando_falha_do_stage(fake_billiard, monkeypatch, tm
     result = orchestrator._run_stage(WorkspaceContext(root=tmp_path), "reconcile_transactions")
 
     assert result.success is False and result.error == "provider caiu"
+
+
+@pytest.fixture
+def span_exporter(monkeypatch):
+    """TracerProvider em memória (padrão de `tests/test_cli_run_stage_otel.py`)."""
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+    import pipeline.orchestrator as orch
+
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    trace._TRACER_PROVIDER_SET_ONCE._done = False  # type: ignore[attr-defined]
+    trace.set_tracer_provider(provider)
+    monkeypatch.setattr(orch, "_TRACER", trace.get_tracer("mathoms.pipeline.orchestrator"))
+    yield exporter
+    trace._TRACER_PROVIDER_SET_ONCE._done = False  # type: ignore[attr-defined]
+    trace._TRACER_PROVIDER = None  # type: ignore[attr-defined]
+
+
+def test_fim_de_prazo_sobre_erro_de_banco_vai_ao_span_sanitizado(
+    fake_billiard, span_exporter, monkeypatch, tmp_path
+):
+    """O sinal que estoura tratando erro de banco carrega o DETAIL na cadeia (ADR-441 D2)."""
+    import sqlalchemy.exc
+
+    from pipeline import orchestrator
+    from pipeline.context import WorkspaceContext
+
+    def _raise(_ctx):
+        try:
+            raise sqlalchemy.exc.DataError(
+                "INSERT INTO t VALUES (:v)", {"v": "VALOR-SECRETO"}, ValueError("x")
+            )
+        except sqlalchemy.exc.DataError:
+            raise fake_billiard()  # noqa: B904 — o sinal não escolhe causa: o erro fica no __context__
+
+    monkeypatch.setattr(orchestrator, "_get_stage_runner", lambda _stage: _raise)
+    with pytest.raises(fake_billiard):
+        orchestrator._run_stage(WorkspaceContext(root=tmp_path), "reconcile_transactions")
+
+    (span,) = span_exporter.get_finished_spans()
+    events = [event for event in span.events if event.name == "exception"]
+    assert len(events) == 1, "a gravação automática do span levaria a cadeia crua"
+    assert "VALOR-SECRETO" not in str(dict(events[0].attributes))

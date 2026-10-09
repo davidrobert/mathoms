@@ -277,3 +277,22 @@ def test_e2_llm_sinal_no_as_completed_cancela_os_documentos_pendentes(
         _run_e2_llm(e2_ctx, monkeypatch, _create)
 
     assert len(provider_calls) <= 2, "documento que não começou não pode chegar ao provedor"
+
+
+def test_write_na_thread_principal_relanca_o_fim_de_prazo_em_vez_de_virar_erro(fake_billiard):
+    """`_persist_e2_llm_write` roda no laço do `as_completed`: engolir o sinal ali drenava a fila."""
+    from pipeline.stages.extract_with_llm import (
+        _E2LLMPendingWrite,
+        _E2LLMProgress,
+        _persist_e2_llm_write,
+    )
+
+    class _StoreSignaled:
+        def write(self, *_args) -> None:
+            raise fake_billiard()
+
+    entry = {"file": "doc.pdf", "transactions": 0, "investments": 0, "confidence": 1.0}
+    pending = _E2LLMPendingWrite(key="doc", payload={}, processed=entry)
+
+    with pytest.raises(fake_billiard):
+        _persist_e2_llm_write(_StoreSignaled(), pending, _E2LLMProgress(total=1, run_id=None))
