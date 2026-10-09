@@ -53,13 +53,6 @@
     --ring: oklch(0.708 0 0);
     --radius: 0.625rem;
 
-    /* Financial semantic colors — colorblind-safe */
-    --gain: oklch(0.52 0.17 155);
-    --loss: oklch(0.55 0.22 25);
-    --neutral-financial: oklch(0.556 0 0);
-    --alert: oklch(0.68 0.16 75);
-    --info-financial: oklch(0.55 0.15 250);
-
     /* Report shell layout — altura fixa do ReportTopNav sticky.
      * Consumida pelo `<aside class="sidebar-toc">` para ancorar
      * `lg:sticky lg:top-[var(--report-topnav-h)]` logo abaixo do topnav. */
@@ -94,13 +87,6 @@
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
-
-    /* Financial semantic colors — dark mode */
-    --gain: oklch(0.65 0.19 155);
-    --loss: oklch(0.65 0.22 25);
-    --neutral-financial: oklch(0.708 0 0);
-    --alert: oklch(0.75 0.15 75);
-    --info-financial: oklch(0.65 0.15 250);
 
     /* Sidebar */
     --sidebar: oklch(0.205 0 0);
