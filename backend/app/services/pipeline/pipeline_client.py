@@ -117,6 +117,10 @@ def _stage_execute_payload(ctx, workspace_id: str) -> dict[str, Any]:
         # ADR-355: o serviço rehidrata o ctx do zero a partir deste payload —
         # sem o campo, o stage roda do outro lado com LLM liberado.
         "skip_llm": not bool(getattr(ctx, "llm_calls_allowed", True)),
+        # ADR-291 · ADR-303 D2: sem o pin, o store remoto não tem fallback e o
+        # from_stage lê E3/E4/E5 do run corrente, que não os produziu.
+        "base_run_id": getattr(ctx, "base_run_id", None),
+        "base_run_fallback_stages": sorted(getattr(ctx, "base_run_fallback_stages", ()) or ()),
     }
 
 
