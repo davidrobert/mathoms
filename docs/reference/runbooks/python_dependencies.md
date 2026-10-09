@@ -172,6 +172,28 @@ automaticamente** — ele abre PR subindo o `.in`, e o `dev/check_lockfile_sync.
 falha no CI até que alguém rode a Tarefa 1 e adicione o `.lock` regenerado ao
 PR. Esse é o gate intencional: upgrade major nunca entra sem revalidação.
 
+### `ignore` de redis — teto do kombu (2026-10-09)
+
+As duas entradas `pip` ignoram `redis>=6.5`. Esse é o teto que o `kombu[redis]`
+(via `celery[redis]`) impõe. Sem o `ignore`, o updater pergunta primeiro se
+`redis==<último>` resolve. A resposta é não, mas o pip 26.2.1 do updater não
+consegue provar: ele desce o `wrapt` até o sdist 1.13.3, cujo build quebra, e o
+job inteiro sai `failure` ("Dependabot can't resolve your Python dependency
+files"). Foi o estado de 2026-08-31 a 2026-10-09.
+
+- **Quando mexer:** `tests/dev/test_dependabot_redis_ceiling.py` lê o teto do
+  kombu instalado pelo lock. No PR que regenerar o lock com outro kombu, ele
+  reprova se o teto mudou: ajuste o `versions`, ou apague o `ignore` se o teto
+  sumiu.
+- **Job do Dependabot vermelho:** rode `gh run view <id> --log`. A tabela
+  "Dependencies failed to update" nomeia a dependência. O comando que falhou é
+  o `pip-compile -v ... -P <dep>` dela.
+- **Reprodução:** use o pip do updater, não o local. A versão está em
+  `python/helpers/requirements.txt` do `dependabot-core`, no SHA da imagem
+  `dependabot-updater-pip:<sha>` que o log imprime. Com pip 24/25, o mesmo
+  `.in` dá `ResolutionImpossible` em menos de 1 min, o que o Dependabot trata
+  como `update_not_possible` (verde).
+
 ## Hook de sincronia
 
 `dev/check_lockfile_sync.py` (pre-commit) compara o conjunto de deps diretas
