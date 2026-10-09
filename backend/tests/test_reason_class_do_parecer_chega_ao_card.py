@@ -74,10 +74,10 @@ def _production_ctx(seed: dict, hooks) -> SimpleNamespace:
     return ctx
 
 
-def _run_e5_then_real_parecer(seed: dict, ctx, monkeypatch) -> None:
+def _install_e5_then_real_parecer(monkeypatch) -> None:
+    """E5 sintético grava o payload; o parecer roda o runner REAL; cache em memória."""
     import backend.app.services.parecer_orchestrator as orchestrator_module
     import pipeline.orchestrator as orchestrator
-    from backend.app.tasks.pipeline_task import _execute_stages_loop
 
     real_runner = orchestrator._get_stage_runner
 
@@ -91,6 +91,11 @@ def _run_e5_then_real_parecer(seed: dict, ctx, monkeypatch) -> None:
         lambda s: _e5_writer if s == _E5_STAGE else real_runner(s),
     )
     monkeypatch.setattr(orchestrator_module, "_build_cache", InMemoryLLMCache)
+
+
+def _run_production_loop(seed: dict, ctx, monkeypatch) -> None:
+    from backend.app.tasks.pipeline_task import _execute_stages_loop
+
     monkeypatch.delenv("MATHOMS_PIPELINE_SERVICE_URL", raising=False)
     pc.reset_pipeline_client()
     client = pc.get_pipeline_client()
@@ -131,7 +136,8 @@ async def test_falha_de_llm_do_parecer_chega_ao_card(
     if provider_down:
         _provider_timing_out(monkeypatch)
 
-    _run_e5_then_real_parecer(seeded, _production_ctx(seeded, hooks), monkeypatch)
+    _install_e5_then_real_parecer(monkeypatch)
+    _run_production_loop(seeded, _production_ctx(seeded, hooks), monkeypatch)
 
     log = await _parecer_log(seeded)
     assert log.status.value == "degraded"
