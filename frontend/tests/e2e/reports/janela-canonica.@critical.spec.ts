@@ -336,13 +336,16 @@ test.describe("janela canônica de fluxo @critical", () => {
     // renderiza e o resto do teste mediria a superfície de tela.
     await expect(page.locator("[data-rdm-print-totals]")).toHaveCount(1);
 
+    // No PDF também: o contexto descreve as barras, a base rotulada é da
+    // conclusão — que é o texto impresso ao lado do número.
     const context = fluxoCard(page).locator("[data-chart-context]");
-    await expect(context).toContainText("os últimos 12 meses documentados");
-    await expect(context).toContainText(RECEITA_12M);
-    await expect(context).not.toContainText(RECEITA_FULL);
+    await expect(context).toContainText("No gráfico: 12 meses");
+    await expect(context).not.toContainText(/R\$/);
 
     const conclusion = fluxoCard(page).locator("[data-chart-conclusion]");
+    await expect(conclusion).toContainText("os últimos 12 meses documentados");
     await expect(conclusion).toContainText(RECEITA_12M);
+    await expect(conclusion).toContainText("aportes incluídos");
     await expect(conclusion).not.toContainText(RECEITA_FULL);
 
     // I5 — no PDF o rótulo tem de estar impresso ao lado do número, nos dois
