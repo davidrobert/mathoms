@@ -2,9 +2,9 @@
 id: ADR-441
 type: adr
 title: "Erro de banco cruza fronteira de persistência por shape, nunca por valor"
-status: Proposto
+status: Decidido
 date: "2026-10-08"
-tags: [type/adr, status/proposto, area/backend, area/seguranca, area/observabilidade]
+tags: [type/adr, status/decidido, area/backend, area/seguranca, area/observabilidade]
 relates_to:
   - "[[ADR-068]]"
   - "[[ADR-110]]"
@@ -22,8 +22,8 @@ amended_at: []
 
 # ADR-441 — Erro de banco cruza fronteira de persistência por shape, nunca por valor
 
-> `Proposto` em 2026-10-08 — co-desenho `sre-devops`, revisão `senior-cto`. **D1 entregue**
-> no PR que abre esta nota (hot-fix); D2 e D3 vêm nos PRs seguintes, nesta ordem.
+> `Decidido` em 2026-10-08 — co-desenho `sre-devops`, revisão `senior-cto`. **D1** entregue
+> em #2081 (hot-fix), **D2** em #2094; a **D3** vem no PR seguinte.
 
 ## Contexto
 
@@ -36,8 +36,9 @@ fizeram do defeito uma classe:
    engole a exceção do stage e devolve `StageResult.error = str(exc)`, sem teto — ela
    nunca chega a `_run_stage_with_retry`.
 2. **O driver põe o valor no texto.** O psycopg 3 monta `str(orig)` com o
-   `PQresultErrorMessage` inteiro: `DETAIL: Key (...)=(...)` no 23505, `Failing row
-   contains (<linha>)` no 23502/23514, o valor na mensagem primária no 22P02.
+   `PQresultErrorMessage` inteiro. Medido ao vivo em PG 16, com `hide_parameters` ligado:
+   o DETAIL do 23505 na chave natural traz nome e endereço, o 23502 traz a linha
+   (`Failing row contains`), o 22P02 traz o valor na mensagem primária.
 3. **O bind processor também.** Com `hide_parameters=True`, um `Numeric` que recebe texto
    sai `StatementError: (builtins.ValueError) could not convert string to float:
    'R$ 350.000,00'` — no SQLite do dogfood, hoje.
@@ -85,10 +86,11 @@ como o `redaction.py` da [[ADR-273]]):
   statement timeout → mensagem de timeout; o resto → genérico da fase. O marcador é
   contrato Python ↔ TypeScript, com teste dos dois lados.
 
-**D3 — Handler sanitiza o record, e o Celery não sequestra o root.** Filtro por objeto
-(`record.exc_info`, `record.args`, `record.msg`) nos nossos handlers e no `StageLogTail`;
-`worker_hijack_root_logger=False` (medido: dois handlers no root do worker, um fora do
-JSON). Não espera o go-live: pelo item 3, o SQLite leva valor a log e a `log_tail` hoje.
+**D3 — Handler sanitiza o record, e o Celery não instala handler próprio.** Filtro por
+objeto (`record.exc_info`, `record.args`, `record.msg`) nos nossos handlers e no
+`StageLogTail`; receiver no sinal `celery.signals.setup_logging`. Medido: sem ele o root
+do worker tem dois handlers, um fora do JSON e do filtro — e `worker_hijack_root_logger=False`
+ainda deixa dois. Não espera o go-live: pelo item 3, o SQLite leva valor ao log hoje.
 
 **D4 — OTLP só liga com scrub no exporter.** `SQLAlchemyInstrumentor` e
 `CeleryInstrumentor` gravam o texto do driver por fora do nosso código.
@@ -112,6 +114,13 @@ JSON). Não espera o go-live: pelo item 3, o SQLite leva valor a log e a `log_ta
 | stderr do filho repassado pelo shell Go | `logChildStderr` (já texto) | D3 |
 | `documents.error_message` ×3, `data_export_requests.error_message` | services | deferido |
 
+Prova da D2: `tests/unit/pipeline/test_failure_text.py`,
+`backend/tests/test_falha_de_stage_nao_publica_valor_do_banco.py`,
+`backend/tests/test_task_base_do_celery_redige_erro_de_banco.py`,
+`tests/test_cli_run_stage_redige_erro_de_banco.py` e
+`frontend/tests/lib/pipelineErrorMessages.test.ts` — cada fronteira revertida sozinha
+derruba o seu teste.
+
 ## Deferimentos datados (2026-10-08)
 
 - **As linhas "deferido" da D5 e a D4.** Dono: o dono do repo, que abre a lane. Retomada:
@@ -125,6 +134,7 @@ JSON). Não espera o go-live: pelo item 3, o SQLite leva valor a log e a `log_ta
 - **`isinstance(exc, StatementError)`.** Medido: `PendingRollbackError` escapa.
 - **Decorator no `run` da task.** Medido: derruba `self.retry(exc=…)` e `autoretry_for`,
   que passam a ver só o tipo redigido.
+- **`worker_hijack_root_logger=False`.** Medido: o root do worker segue com dois handlers.
 - **Regex sobre `[parameters:`.** Fecha a sintaxe de hoje, não a classe.
 - **Emenda à [[ADR-404]].** A §Fronteira dela põe o `stage_log` no plano de controle.
 
