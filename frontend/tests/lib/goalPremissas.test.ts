@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildAportePremissasRows,
+  buildDolarPremissasRows,
   buildIFPremissasRows,
   formatGoalVigenciaDate,
   type PremissaRow,
@@ -86,5 +87,33 @@ describe("percentual das premissas usa vírgula (COPY_GUIDELINES §4.6)", () => 
     const distribuicao = valor(rows, "Distribuição");
     expect(distribuicao).toBe("RF: 87,7% · RV: 12,4%");
     expect(distribuicao).not.toMatch(PERCENTUAL_COM_PONTO);
+  });
+});
+
+describe("horizonte da dolarização usa vírgula (COPY_GUIDELINES §4.1)", () => {
+  const horizonte = (meses: number) =>
+    buildDolarPremissasRows(
+      { meta_usd: 50000, aporte_mensal_brl: 4000 },
+      { horizonte_estimado_meses: meses }
+    ).find((r) => r.label === "Horizonte estimado")?.value;
+
+  // O produtor arredonda os meses a 1 casa (`compute_dolar_derived`): eles
+  // chegam fracionários e saíam crus, "71.2 meses".
+  it("meses fracionários e anos com uma casa", () => {
+    expect(horizonte(71.2)).toBe("71,2 meses (~5,9 anos)");
+  });
+
+  it("meses inteiros seguem sem casa; os anos mantêm a sua", () => {
+    expect(horizonte(96)).toBe("96 meses (~8,0 anos)");
+  });
+
+  // 1,8 / 12 = 0,15 é empate no decimal exibido: o Intl arredonda para cima
+  // (§4.5), onde `toFixed` arredondava o binário (0,1499…) e dava "0.1".
+  it("empate dos anos arredonda o decimal exibido", () => {
+    expect(horizonte(1.8)).toBe("1,8 meses (~0,2 anos)");
+  });
+
+  it("agrupa milhar", () => {
+    expect(horizonte(1234.5)).toBe("1.234,5 meses (~102,9 anos)");
   });
 });

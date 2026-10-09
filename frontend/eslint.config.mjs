@@ -76,84 +76,40 @@ const MENSALIZACAO_RESTRITA = CAMPOS_MENSALIZADOS.flatMap((campo) => [
   },
 ]);
 
-// Percentual em copy pt-BR leva vírgula decimal (COPY_GUIDELINES §4.6) e passa
-// por `formatPercent`. Mesmo racional de custo do gate acima: step ESLint de
-// `frontend-checks` + hook `eslint-frontend`, nenhum processo novo.
+// Número com casas em copy pt-BR leva vírgula decimal (COPY_GUIDELINES §4.6) e
+// passa por `formatNumber`/`formatPercent` (`@/lib/format`). Mesmo racional de
+// custo do gate acima: step ESLint de `frontend-checks` + hook `eslint-frontend`,
+// nenhum processo novo.
 //
-// **O que esta regra pega:** `toFixed(n)` com n ≠ 0 colado ao `%` — template
-// (`${x.toFixed(1)}%`, também com `?.` na cadeia), JSX (`{x.toFixed(1)}%`, com o
-// `%` na mesma linha ou na seguinte, ou `{"%"}`) e concatenação
-// (`x.toFixed(1) + "%"`). Foi a grafia de 15 dos 18 call-sites com ponto que o
-// relatório tinha em 2026-10-08, e de 12 dos 18 que o resto do src/ tinha
-// (plano/, tasks/, lib/). `toFixed(0)` fica de fora: inteiro não tem separador
-// decimal.
+// **O que esta regra pega:** toda chamada de `toFixed(n)` com n ≠ 0 e de
+// `toPrecision` — com ou sem `%`, com ou sem unidade, guardada em variável ou
+// não. Elas não conhecem locale ("42.8%", "1.5 MB", "71.2 meses"), e a vírgula
+// escrita à mão (`.replace(".", ",")`) arredonda o binário (0.35 → "0,3", onde o
+// Intl dá "0,4") e não agrupa milhar. Substitui os gates de `toFixed` colado ao
+// `%` (#2091, #2123) e de vírgula à mão (#2126), que recortavam pela grafia dos
+// ofensores já vistos: eram 56 chamadas em 2026-10-08 e nenhuma depois deles e do
+// PR desta regra. `toFixed(0)` fica de fora: inteiro não tem separador decimal.
 //
-// **O que NÃO pega:** número cru interpolado (`${pct}%` — o EquilibrioCerbasiCard
-// era este caso, sem `toFixed` nenhum), ternário (`${c ? x.toFixed(1) : y}%`),
-// `%` fora do elemento (`<b>{x.toFixed(1)}</b>%`) e `toFixed` guardado em
-// variável antes de ganhar o `%`. Esses caem nos testes de render de cada card,
-// que assertam a vírgula e recusam o ponto (`tests/shared/percentualPtBr.ts`).
-const MENSAGEM_PERCENTUAL =
-  "Percentual em copy pt-BR usa vírgula decimal: formatPercent(valor, casas) de " +
-  "@/lib/format. `toFixed` não conhece locale e escreve \"42.8%\" (COPY_GUIDELINES §4.6).";
+// **O que NÃO pega:** número cru interpolado (`${pct}%`, `${meses} meses` de um
+// campo fracionário). Esse fica com os testes de render, que assertam a vírgula e
+// recusam o ponto (`tests/shared/percentualPtBr.ts`, `tests/shared/decimalPtBr.ts`).
+//
+// **Uso fora de copy** (CSS inline, path SVG, payload decimal): helper nomeado em
+// `src/lib/` com isenção por arquivo, no padrão do `fluxoJanela.ts` abaixo. Nunca
+// `eslint-disable` na linha: ele desliga a regra inteira, e a mensalização e o
+// money dos cards de janela caem junto. Prova do seletor, com inventário zero:
+// `tests/components/report/windowCardBoundaries.test.ts`.
+const MENSAGEM_NUMERO_COM_CASAS =
+  "Número com casas em copy pt-BR passa por formatNumber(valor, casas) ou " +
+  "formatPercent(valor, casas) de @/lib/format. `toFixed`/`toPrecision` não conhecem " +
+  "locale (\"1.5 MB\", \"42.8%\") e a vírgula à mão arredonda o binário " +
+  "(0.35 → \"0,3\") (COPY_GUIDELINES §4.6).";
 
-const TO_FIXED_COM_CASAS =
-  ':matches(CallExpression[callee.property.name="toFixed"]:not([arguments.0.value=0]), ' +
-  'ChainExpression[expression.callee.property.name="toFixed"]:not([expression.arguments.0.value=0]))';
-
-const COMECA_COM_PERCENT = "/^\\s*%/";
-
-// O quasi que segue `expressions[i]` é `quasis[i + 1]` — arrays irmãos, que o
-// esquery só relaciona por posição. Parear por índice evita disparar num
-// template que tem `toFixed` sem `%` e um `%` depois de outra interpolação.
-const PERCENTUAL_EM_TEMPLATE = Array.from({ length: 8 }, (_, i) => ({
-  selector:
-    `TemplateLiteral:has(> ${TO_FIXED_COM_CASAS}:nth-child(${i + 1}))` +
-    `:has(> TemplateElement:nth-child(${i + 2})[value.raw=${COMECA_COM_PERCENT}])`,
-  message: MENSAGEM_PERCENTUAL,
-}));
-
-const PERCENTUAL_COM_PONTO_RESTRITO = [
-  ...PERCENTUAL_EM_TEMPLATE,
-  {
-    selector: `JSXExpressionContainer:has(> ${TO_FIXED_COM_CASAS}) + JSXText[value=${COMECA_COM_PERCENT}]`,
-    message: MENSAGEM_PERCENTUAL,
-  },
+const NUMERO_COM_CASAS_RESTRITO = [
   {
     selector:
-      `JSXExpressionContainer:has(> ${TO_FIXED_COM_CASAS}) + ` +
-      `JSXExpressionContainer[expression.value=${COMECA_COM_PERCENT}]`,
-    message: MENSAGEM_PERCENTUAL,
-  },
-  {
-    selector:
-      `BinaryExpression[operator="+"]:has(> ${TO_FIXED_COM_CASAS}.left)` +
-      `[right.value=${COMECA_COM_PERCENT}]`,
-    message: MENSAGEM_PERCENTUAL,
-  },
-];
-
-// Vírgula decimal escrita à mão: `x.toFixed(1).replace(".", ",")` acerta o
-// separador, mas arredonda o binário exato (0.35 → "0,3", onde o Intl dá "0,4")
-// e não agrupa milhar ("1234,5"). Eram 35 call-sites no relatório em 2026-10-08;
-// dois cards podiam arredondar o mesmo valor de formas diferentes.
-//
-// **O que esta regra pega:** `replace`/`replaceAll` chamado sobre o resultado de
-// `toFixed` com `","` no segundo argumento — `.replace(".", ",")`,
-// `.replace(/\./g, ",")`, com ou sem `?.` na cadeia. **Não pega:** o `toFixed`
-// guardado em variável antes do `replace`, nem outra substituição sobre ele
-// (`.replace(/\.0$/, "")`).
-const MENSAGEM_VIRGULA_A_MAO =
-  "Número em copy pt-BR passa por formatNumber(valor, casas) ou formatPercent(valor, casas) " +
-  "de @/lib/format. `toFixed(n).replace(\".\", \",\")` arredonda o binário (0.35 → \"0,3\") e " +
-  "não agrupa milhar (COPY_GUIDELINES §4.5).";
-
-const VIRGULA_A_MAO_RESTRITA = [
-  {
-    selector:
-      'CallExpression[callee.property.name=/^replace(All)?$/]' +
-      '[callee.object.callee.property.name="toFixed"][arguments.1.value=","]',
-    message: MENSAGEM_VIRGULA_A_MAO,
+      'CallExpression[callee.property.name=/^to(Fixed|Precision)$/]:not([arguments.0.value=0])',
+    message: MENSAGEM_NUMERO_COM_CASAS,
   },
 ];
 
@@ -260,12 +216,12 @@ export default [
       ],
 
       // A40.l3 (ADR-306 D1) — gate de CONSUMO da mensalização de fluxo.
-      // Ver bloco dedicado abaixo para o racional e a allowlist. Percentual com
-      // ponto (COPY_GUIDELINES §4.6) vale para todo o src/, não só o relatório.
+      // Ver bloco dedicado abaixo para o racional e a allowlist. Número com
+      // casas (COPY_GUIDELINES §4.6) vale para todo o src/, não só o relatório.
       "no-restricted-syntax": [
         "error",
         ...MENSALIZACAO_RESTRITA,
-        ...PERCENTUAL_COM_PONTO_RESTRITO,
+        ...NUMERO_COM_CASAS_RESTRITO,
       ],
     },
   },
@@ -277,8 +233,7 @@ export default [
       "no-restricted-syntax": [
         "error",
         ...MENSALIZACAO_RESTRITA,
-        ...PERCENTUAL_COM_PONTO_RESTRITO,
-        ...VIRGULA_A_MAO_RESTRITA,
+        ...NUMERO_COM_CASAS_RESTRITO,
       ],
       "no-restricted-imports": [
         "error",
@@ -316,8 +271,7 @@ export default [
       "no-restricted-syntax": [
         "error",
         ...MENSALIZACAO_RESTRITA,
-        ...PERCENTUAL_COM_PONTO_RESTRITO,
-        ...VIRGULA_A_MAO_RESTRITA,
+        ...NUMERO_COM_CASAS_RESTRITO,
         ...CARD_MONEY_RESTRICTIONS,
       ],
     },
@@ -327,10 +281,10 @@ export default [
     // Allowlist por arquivo (não por linha) porque a regra é "quem lê", não
     // "onde lê" — e é o seletor que garante o par (valor, rótulo). `janelaLabel.ts`
     // NÃO entra: ele só interpreta o vocabulário `janela`/`janela_meses`, nunca
-    // toca campo de valor. A isenção é da mensalização, não do percentual.
+    // toca campo de valor. A isenção é da mensalização, não do número com casas.
     files: ["src/components/report/utils/fluxoJanela.ts"],
     rules: {
-      "no-restricted-syntax": ["error", ...PERCENTUAL_COM_PONTO_RESTRITO, ...VIRGULA_A_MAO_RESTRITA],
+      "no-restricted-syntax": ["error", ...NUMERO_COM_CASAS_RESTRITO],
     },
   },
 ];

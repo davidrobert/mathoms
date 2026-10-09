@@ -6,6 +6,11 @@
  *
  * As premissas (`goalPremissas.ts`) e o IFHeroCard/PlanoKpiRow têm a asserção
  * no teste que já os exercitava.
+ *
+ * Decimal com unidade segue a mesma regra (§4.1): horizonte da dolarização
+ * ("71,2 meses (~5,9 anos)") e tamanho de anexo ("1,5 MB"). Os meses chegam
+ * fracionários da API e eram interpolados crus — caso que nenhum gate de
+ * `toFixed` alcança.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -13,10 +18,11 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 
 import { server } from "../mocks/server";
+import { DECIMAL_COM_PONTO } from "../shared/decimalPtBr";
 import { PERCENTUAL_COM_PONTO } from "../shared/percentualPtBr";
 
-// Referência estável: a página de aportes tem `router` nas deps do effect de
-// carga, e um objeto novo por render a recarrega em laço.
+// Referência estável: as páginas de aportes e de dolarização têm `router` nas
+// deps do effect de carga, e um objeto novo por render as recarrega em laço.
 const router = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
@@ -24,14 +30,20 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+import { TaskAttachments } from "@/components/tasks/TaskAttachments";
 import { TaskProgressCard } from "@/components/tasks/TaskProgressCard";
 import { DecisionCard } from "@/app/(app)/plano/_components/DecisionCard";
+import { SupportGoalsRow } from "@/app/(app)/plano/_components/SupportGoalsRow";
 import AportesEditPage from "@/app/(app)/plano/aportes/page";
 import MetaIFWizardPage from "@/app/(app)/plano/meta-if/wizard/page";
+import DolarizacaoEditPage from "@/app/(app)/plano/dolarizacao/page";
+import DolarizacaoWizardPage from "@/app/(app)/plano/dolarizacao/wizard/page";
 import type {
   AporteGoalResponse,
   Decision,
+  DolarGoalResponse,
   IFGoalDerived,
+  TaskAttachmentMeta,
   TaskProgress,
 } from "@/lib/api";
 
@@ -212,5 +224,100 @@ describe("Wizard da meta IF — percentual pt-BR", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("15a · 4,5% · 5,5%")).toBeInTheDocument();
     expect(container.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
+  });
+});
+
+// `compute_dolar_derived` arredonda os meses a 1 casa: fracionário é o normal.
+const DOLAR_GOAL: DolarGoalResponse = {
+  id: "goal-dolar",
+  workspace_id: "ws-1",
+  type: "DOLARIZACAO",
+  meta_version: 1,
+  inputs: { meta_usd: 50000, aporte_mensal_brl: 4000 },
+  derived: { horizonte_estimado_meses: 71.2 },
+  effective_from: "2026-01-01",
+  effective_to: null,
+  is_template: false,
+  notes: null,
+  created_by: null,
+  created_by_name: null,
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+};
+
+const HORIZONTE = "71,2 meses (~5,9 anos)";
+
+function stubDolarizacao() {
+  server.use(
+    http.get(`${WS_API}/goals/dolarizacao`, () => HttpResponse.json(DOLAR_GOAL)),
+    http.post(`${WS_API}/goals/dolarizacao/compute`, () =>
+      HttpResponse.json({ derived: DOLAR_GOAL.derived, cambio_utilizado: 5.7 }),
+    ),
+  );
+}
+
+describe("Meta de dolarização — horizonte pt-BR", () => {
+  it("página: premissas, horizonte e estimativa usam vírgula", async () => {
+    stubDolarizacao();
+    const { container } = render(<DolarizacaoEditPage />);
+
+    // Linha do card de premissas + <dd> do horizonte.
+    expect(await screen.findAllByText(HORIZONTE, {}, { timeout: 3000 })).toHaveLength(2);
+    expect(screen.getByText(/^Estimativa: 71,2 meses \(~5,9 anos\) ao cambio de/)).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(DECIMAL_COM_PONTO);
+  });
+
+  it("wizard: estimativa e revisão do passo 2 usam vírgula", async () => {
+    stubDolarizacao();
+    const user = userEvent.setup();
+    const { container } = render(<DolarizacaoWizardPage />);
+
+    await user.click(await screen.findByRole("button", { name: /Proximo/ }));
+    // Linha do card de premissas + <dd> da revisão.
+    expect(await screen.findAllByText(HORIZONTE, {}, { timeout: 3000 })).toHaveLength(2);
+    expect(screen.getByText("71,2 meses")).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(DECIMAL_COM_PONTO);
+  });
+
+  it("card de metas de suporte usa vírgula", () => {
+    const { container } = render(
+      <SupportGoalsRow aporteGoal={null} dolarGoal={DOLAR_GOAL} alocacaoGoal={null} />,
+    );
+    expect(screen.getByText("~71,2 meses")).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(DECIMAL_COM_PONTO);
+  });
+});
+
+function anexo(id: string, sizeBytes: number | null): TaskAttachmentMeta {
+  return {
+    id,
+    task_id: "task-1",
+    workspace_id: "ws-1",
+    original_filename: `${id}.pdf`,
+    content_type: "application/pdf",
+    size_bytes: sizeBytes,
+    uploaded_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+  };
+}
+
+describe("<TaskAttachments /> — tamanho pt-BR", () => {
+  // O card tinha formatador próprio, cópia do `formatBytes` com KB de 1 casa e
+  // ausente vazio; agora usa o compartilhado (KB inteiro, ausente "—", §4.3).
+  it("MB com vírgula, KB inteiro e tamanho ausente como travessão", async () => {
+    server.use(
+      http.get(`${WS_API}/tasks/:taskId/attachments`, () =>
+        HttpResponse.json({
+          attachments: [anexo("mb", 1_572_864), anexo("kb", 240_000), anexo("sem", null)],
+          total: 3,
+        }),
+      ),
+    );
+    const { container } = render(<TaskAttachments workspaceId="ws-1" taskId="task-1" />);
+
+    expect(await screen.findByText("1,5 MB")).toBeInTheDocument();
+    expect(screen.getByText("234 KB")).toBeInTheDocument();
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(DECIMAL_COM_PONTO);
   });
 });
