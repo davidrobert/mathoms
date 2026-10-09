@@ -60,7 +60,7 @@ describe("ReportShell", () => {
   // Estes testes medem o **primeiro paint** do shell: capa, ToC, header,
   // badge, spinner. Todas as asserções são síncronas — rodam antes de
   // qualquer fetch de seção resolver. Sem estes handlers, as 5 requests das
-  // seções filhas caíam no `onUnhandledRequest: "error"` e rejeitavam contra
+  // seções filhas caíam no `onUnhandledFrame: "error"` e rejeitavam contra
   // uma árvore já assertada: ruído no log, zero sinal no teste.
   beforeEach(() => {
     server.use(...reportSectionHandlers("ws-test"));

@@ -57,7 +57,7 @@ beforeEach(() => {
   pathnameMock = "/dashboard";
   server.use(
     // Badge de sugestões pendentes na sidebar — nenhum teste daqui declara
-    // contagem; sem override a request rejeitava pelo `onUnhandledRequest`.
+    // contagem; sem override a request rejeitava pelo `onUnhandledFrame`.
     http.get("/api/v1/workspaces/:workspaceId/suggestions/count", () =>
       HttpResponse.json({ count: 0, status: "Pendente" }),
     ),

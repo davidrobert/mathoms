@@ -149,7 +149,7 @@ function buildData(
 // As asserções deste arquivo leem só o texto entregue via `data` (fixture do
 // produtor). S2/S7 e o card de exposição cambial buscam do backend ao montar —
 // dado que nenhum teste aqui declara. Sem override, essas requests rejeitavam
-// pelo `onUnhandledRequest: "error"` (22 linhas de ruído por run) sem mudar uma
+// pelo `onUnhandledFrame: "error"` (22 linhas de ruído por run) sem mudar uma
 // asserção sequer. O estado vazio declarado mantém a árvore idêntica.
 beforeEach(() => {
   server.use(...reportSectionHandlers("ws-1"));
