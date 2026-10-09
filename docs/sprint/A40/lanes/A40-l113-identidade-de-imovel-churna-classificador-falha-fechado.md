@@ -179,6 +179,11 @@ listados, logo `liquido == bruto`) caem pela **mesma linha**. Isso refuta duas a
 
 ## Disposição dos critérios de aceite, após a medição
 
+> ⚠️ **2026-10-08 — lane `shipped` (#2063).** O critério 1 fechou com a [[ADR-439]]
+> (supressão do agregado, D1–D3) e o 2 como teste de efeito (D7); o 3 deixou de ser
+> inexequível e foi para a [[A40.l121]] ([[ADR-440]]). A tabela abaixo é a evidência de
+> 2026-09-01; a disposição final está em §Execução de 2026-10-08.
+
 > **PR #1962 (`c551e832`) mergeado em 2026-09-01** com [[ADR-433]] `Decidido`. A lane segue
 > `in_progress`: 2 dos 4 critérios entregues, 1 substituído e 1 medido como inexequível.
 
@@ -193,6 +198,13 @@ A [[ADR-433]] (`Decidido`) carrega a decisão. Dois critérios desta lane **não
 | 4 | fixture com `property_id` nulo em 8 de 9 | ✅ `tests/unit/pipeline/test_ano_base_por_classe_adr433.py` |
 
 ### Por que o critério 2 é substituído
+
+> ⚠️ **2026-10-08 — o predicado abaixo não foi o adotado.** *Zero com override gravado*
+> dá falso-positivo no imóvel vendido: o override fica gravado depois que o imóvel sai da
+> declaração. A [[ADR-439]] inverte a pergunta — o balde só publica zero com evidência de
+> zero (residência só com `rented`; geradores só sem imóvel em aberto) — e o gate da D7 é
+> teste de matriz de regimes com mutação, não `raise`; em runtime sobra a razão advisory.
+> A perna de dívida segue sendo a da [[A40.l114]].
 
 Um gate sobre `count(property_id)` teria ficado **verde sobre o maior erro deste run**: a
 residência saiu zero sendo o **único** item que **tinha** `property_id`. E o balde que
@@ -273,6 +285,11 @@ decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
 
 ## Os outros três achados que a `U5` roteou para esta lane
 
+> ⚠️ **2026-10-08 — com a lane `shipped`:** `RR9-04` e `LC9-10` ➜ [[A40.l121]] (fecham
+> quando a identidade voltar com a âncora da ficha); `PV13-01` fica **sem lane**, com
+> decisão, gatilho e prioridade re-derivada (P2) na linha do [[PIPELINE-REVIEWS-active]]
+> e no inventário de [[MOC-a40-historico]] §Destino dos itens do closeout da A40.l113.
+
 O §Origem cita só o `RR9-01`. A rodada atribuiu **quatro** achados a esta lane, e os
 outros três não estavam registrados aqui — o que os deixaria órfãos no instante em que a
 lane ficasse terminal.
@@ -351,7 +368,10 @@ como escrita — com a descrição da era `1.3.0` —, ela confirmaria a cadeia.
 - `cobertura_classificacao_imovel` ([[ADR-433]] §D3) **não tinha chamador em produção**. Publicado pela ADR-439 D1.
 - `workspaces.residencia_status` ([[ADR-215]]) **nunca chegava ao E5**. Plumbado em #2049; o "— + CTA" da ADR-215 aparece pela primeira vez no relatório.
 - A ADR-215 declara `backend/tests/integration/test_property_override_sticky.py` ("classificação sobrevive ao re-upload") e o arquivo **não existe** — é o gate que teria pego a regressão da `1.4.1`. ➜ [[A40.l121]].
-- A checagem de residência por `property_id` em `investimentos_classes`, `top_ativos` e `instituicoes` (o elo 5 desta lane) segue falhando **aberta**; dormente no U5 (a residência tem id), viva quando ela perde identidade. ➜ sessão sugerida ao dono em 2026-10-08, sem lane id.
-- O parecer não recebe o veredito: os campos novos estão em `E5_FIELDS_FORA_DO_PARECER`. Projetá-los no bloco "Cobertura e incerteza" pede bump do manifest e eval ➜ `prompt-engineer`; sessão sugerida ao dono em 2026-10-08, sem lane id.
-- Valores reais do dogfood commitados em 12 arquivos de docs e testes de repo **público** ➜ sessão aberta pelo dono.
+- A checagem de residência por `property_id` em `investimentos_classes`, `top_ativos` e `instituicoes` (o elo 5 desta lane) segue falhando **aberta**; dormente no U5 (a residência tem id), viva quando ela perde identidade. ➜ **A40.l122** (sessão aberta pelo dono em 2026-10-08; código no #2079, lane ainda fora da `main`).
+- O parecer não recebe o veredito: os campos novos estão em `E5_FIELDS_FORA_DO_PARECER`. Projetá-los no bloco "Cobertura e incerteza" pede bump do manifest e eval ➜ **A40.l123** (sessão aberta pelo dono em 2026-10-08, `prompt-engineer`; lane ainda fora da `main`).
+- Valores reais do dogfood commitados em 12 arquivos de docs e testes de repo **público** ➜ sessão aberta pelo dono (#2071, e a política no #2076).
+- O `PV13-01` fica **sem lane**: decisão, gatilho e P2 re-derivado na linha do
+  [[PIPELINE-REVIEWS-active]]. Destino de cada item em [[MOC-a40-historico]] §Destino dos
+  itens do closeout da A40.l113.
 - O workflow "Auto-update PR branches" falha com HTTP 401 desde ao menos 2026-10-08 (issue #2038) — PR fica `BEHIND` e o auto-merge não anda sozinho.
