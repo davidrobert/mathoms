@@ -119,7 +119,8 @@ falhar: N=3, owner-gated.
    `_partition_campos` mantém a entrada no array e no audit, e `_persist_field_requests`
    deduplica por path com o array primeiro. Tarefa própria.
 6. **RL7 tem três réguas:** REGRA 14 do system prompt (60/40), validador (75/50) e hint do
-   manifest (50/75). Tarefa própria; dono `prompt-engineer` + `financial-planner`.
+   manifest (50/75). Tarefa própria; dono `prompt-engineer` + `financial-planner`. ➜ Em voo no
+   PR #2211 (2026-10-09): régua única pela [[ADR-340]] §Emenda 2026-10-09.
 7. **Blocos `key_value` sem teto de folhas** (`$.ratios`, `$.protecao_patrimonial`) crescem com
    o dado sem ninguém mexer no manifest. `max_leaves` por bloco é DSL nova ([[ADR-200]]). Dono
    `prompt-engineer` + `information-architect`. Retomada: X8-folga < 15%.
