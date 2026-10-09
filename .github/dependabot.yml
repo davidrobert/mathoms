@@ -319,6 +319,14 @@ updates:
   # CRÍTICO: ci.yml usa SHA-pin para tj-actions e astral-sh/setup-uv
   # (CVE-2025-30066 / mar/2025). Dependabot atualiza esses SHAs quando
   # nova versão sai, e o PR mostra changelog para review.
+  #
+  # Todo PR desta entrada troca um `uses:` e nasce vermelho no hook
+  # `action-inputs` (ADR-320 §Emenda 2026-10-09), porque o ref novo ainda não
+  # está em .github/actions.lock.yml. Na branch do PR, rode
+  # `python3 dev/refresh_actions_lock.py` e commite o lock: o diff mostra os
+  # inputs que a versão nova ganhou e perdeu. Para trazer a main depois, use
+  # `gh pr update-branch --rebase`. `@dependabot rebase`/`recreate` fazem
+  # force-push e apagam o commit do lock.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
