@@ -14,6 +14,7 @@ import { useChartTheme, type ChartPalette } from "./primitives/useChartTheme";
 import { RDMLegend, type RDMLegendItem } from "./RDMLegend";
 import { fmtBRL, formatChartMonthLabel } from "./_shared";
 import { useIsPrint } from "../hooks/useIsPrint";
+import { formatBRLAxisTick } from "@/lib/format";
 import type { ChartSeries, FluxoCaixaSummary } from "@/types/report-analysis";
 import {
   CONCLUSION_STYLE,
@@ -248,12 +249,6 @@ function sliceWindow(
   return { labels, datasets: sliced };
 }
 
-function formatMoneyAxisTick(v: number | string): string {
-  const n = Number(v);
-  if (Math.abs(n) >= 1000) return `R$ ${(n / 1000).toFixed(0)}k`;
-  return `R$ ${Math.round(n)}`;
-}
-
 function buildOptions(): ChartOptions<"bar"> {
   return {
     responsive: true,
@@ -266,7 +261,14 @@ function buildOptions(): ChartOptions<"bar"> {
     },
     scales: {
       x: { stacked: true, grid: { display: false } },
-      y: { stacked: true, beginAtZero: true, ticks: { callback: formatMoneyAxisTick } },
+      y: {
+        stacked: true,
+        beginAtZero: true,
+        ticks: {
+          callback: (v, _i, ticks) =>
+            formatBRLAxisTick(Number(v), ticks.map((t) => t.value)),
+        },
+      },
     },
   };
 }
