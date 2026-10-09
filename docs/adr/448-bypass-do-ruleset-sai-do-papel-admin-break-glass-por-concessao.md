@@ -4,6 +4,7 @@ type: adr
 title: "Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge"
 status: Decidido
 date: "2026-10-09"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-415]]"
   - "[[ADR-322]]"
@@ -24,6 +25,11 @@ tags:
 > Supersedure parcial de [[ADR-415]] §D2: o bypass do papel Admin. As decisões
 > D1 e D3–D6 seguem canônicas na 415. **Decidido e aplicado em 2026-10-09**,
 > com o `GET` de verificação e o ensaio do break-glass registrados em §Aceite.
+
+> **Emenda 2026-10-09 — os itens deferidos foram executados (#2210):** cada
+> incidente vira uma issue própria, e o Ruleset ganhou alarme em dois braços: o
+> sweep com admin varre o `history` (tolerância de break-glass: 15 min) e um
+> tripwire sem admin roda a cada push. Ver §Emenda 2026-10-09.
 
 # ADR-448 — Bypass do Ruleset sai do papel Admin
 
@@ -107,6 +113,7 @@ rollback de gate brickado e indisponibilidade de plataforma. A aposta era que
     uma janela de break-glass;
   - o bypass vira **uma issue por incidente**, com a #1728 triada e fechada.
   Condição de retomada: logo após esta ADR virar `Decidido`.
+  **Executados em 2026-10-09 (#2210)** — ver §Emenda 2026-10-09.
 
 ## Aceite
 
@@ -138,3 +145,46 @@ rollback de gate brickado e indisponibilidade de plataforma. A aposta era que
   - revogação pelo `trap` (`v52592029`, bypass=0).
 
   As três versões têm `rules=5` e `enforcement=active`.
+
+## Emenda 2026-10-09 — os itens deferidos, executados
+
+Os dois itens de §Consequências entraram no `merge-audit` (#2210), com
+co-design do `sre-devops`. O estado foi medido antes de ligar o alarme
+(`bypass_actors=[]` desde a versão 52592012), então ele nasce armado, sem
+condição de guarda.
+
+- **Uma issue por incidente.** O braço `--sha` abre a issue do SHA fora do
+  gate, com o SHA curto e o PR no título. O `--sweep` abre uma para todo
+  `bypass`, mesmo com veredito `gated`. Um marcador do SHA no corpo, lido na
+  listagem REST de issues, torna o re-run idempotente. A search API, que o
+  `gh issue list --label` usa, indexa com atraso. Issue fechada conta como
+  registrada.
+- **Antes da aplicação desta ADR, o registro é o legado.** O sweep ignora
+  bypass e janela anteriores à versão 52592012. A #1728 fica como registro
+  legado e é triada e fechada, com o resumo dos 58 casos, no fecho deste PR.
+- **Tolerância de break-glass: 15 min**, só para concessão de bypass. A D2
+  dura um `gh pr merge --admin`, e o ensaio ficou aberto 703 ms. Os 15 min
+  cobrem o break-glass feito à mão, sem o `trap`, e rede lenta. Acima disso,
+  não é concessão para UM merge.
+- **O sweep varre o `history`**, não só o estado atual: um sweep diário quase
+  nunca pega aberta uma janela de 703 ms. Ele alarma toda janela acima de
+  15 min. Também alarma, sem tolerância, gate enfraquecido: `enforcement`
+  fora de `active` (D3), `All checks green` fora dos required ou `strict`
+  desligado. Janela ainda aberta é condição viva, e issue fechada com ela de
+  pé é reaberta.
+- **Tripwire sem admin, a cada push**, em job com fila global. Ele lê
+  `enforcement`, as regras e o `updated_at`. Gate enfraquecido vira alarme
+  vivo, e mudança nova vira issue a explicar com o sweep. É por aqui que
+  aparece o toggle de `enforcement`, que não deixa rule-suite.
+- **`bypass_actors` ausente não é zero.** A API omite a chave para quem não
+  administra o ruleset, então `--jq '.bypass_actors|length'` com o
+  `GITHUB_TOKEN` daria `0`. O sweep sai "não medido" (rc=2), e o runbook
+  §4.2 testa `has("bypass_actors")`.
+
+**Achado que a D3 da [[ADR-415]] não previa.** Três dos 24 bypasses de
+2026-10-09 (#2139, #2153 e #2163) saíram `gated` no detector: o check estava
+verde no head, mas a base estava desatualizada sob `strict`, e o rule-suite
+registra `2 of 2 required status checks are expected`. O #2163 deixou o lock
+violando o piso do `cryptography`. O sweep pega esse caso pelo `bypass`, mas o
+braço `--sha`, sem admin, não pega. O veredito `stale` ficou deferido com dono
+em [[PLAN-ci-trust]], item 0.2c.
