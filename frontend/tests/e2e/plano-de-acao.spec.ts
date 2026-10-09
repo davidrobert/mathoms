@@ -41,10 +41,6 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
     }
 
     const u = userForWorker(info);
-    // Com PW_RUN_STAMP, retry e outro projeto do mesmo run podem cair no
-    // workspace do mesmo parallelIndex, e code repetido viola o
-    // UNIQUE(workspace_id, code) → 500. workerIndex nunca se repete no run.
-    const code = `D${(info.parallelIndex + 90).toString().padStart(2, "0")}-w${info.workerIndex}`;
 
     // POST cria Decision
     const createResp = await request.post(
@@ -54,8 +50,11 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        // ADR-214: o frontend não passa `code` desde a A12 — o server gera
+        // D{N:02d} (MAX+1 sob advisory lock). Explícito seria o caminho do
+        // importer e colidiria no UNIQUE(workspace_id, code) no retry, que com
+        // PW_RUN_STAMP cai no mesmo workspace.
         data: {
-          code,
           title: `E2E ${u.full_name} fictício`,
           status: "Decidido",
           amount_brl: "1000.00",
@@ -64,7 +63,7 @@ test.describe("Plano de Ação — Decision aggregate @critical", () => {
     );
     expect(createResp.status(), await createResp.text()).toBe(201);
     const created = await createResp.json();
-    expect(created.code).toBe(code);
+    expect(created.code).toMatch(/^D\d{2,}$/);
     expect(created.status).toBe("Decidido");
 
     // POST execute → status vira Executado
