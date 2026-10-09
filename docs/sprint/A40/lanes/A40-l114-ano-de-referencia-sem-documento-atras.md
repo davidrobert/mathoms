@@ -80,8 +80,8 @@ isso que consertar só o `resumo.ano_referencia` **não bastaria**.
 | `resolve_value_year` | `2026` |
 | `anos_base_por_membro` | titular `2026` · cônjuge `2023` |
 | `_split_dividas(…, "2026")` | **`(0.0, 0.0)`** |
-| `_split_dividas(…, "2025")` | `(230459.13, 0.0)` |
-| publicado: `endividamento.total_dividas` | `0.0` — com 4 itens somando `230459.13` |
+| `_split_dividas(…, "2025")` | `(Σ dos 4 itens, 0.0)` |
+| publicado: `endividamento.total_dividas` | `0.0` — com 4 itens de saldo positivo |
 
 ## A cadeia, elo a elo
 
@@ -133,18 +133,18 @@ informar, e ela sai invertida.
 
 | campo publicado | run `40d1af2a` | depois | delta |
 |---|---:|---:|---|
-| `patrimonio.bruto` | 2.012.174,02 | **3.879.177,72** | +92,8% |
-| `patrimonio.dividas` | 0,00 | **230.459,13** | — |
-| `patrimonio.liquido` | 2.012.174,02 (= bruto) | **3.648.718,59** | ≠ bruto |
-| `patrimonio.veiculos` | 0,00 | **227.476,00** | — |
-| `patrimonio.imoveis_investimento` | 701.170,57 | **2.340.698,27** | +233,8% |
+| `patrimonio.bruto` | B | **1,928 × B** | +92,8% |
+| `patrimonio.dividas` | 0,00 | **D** (Σ dos 4 itens) | — |
+| `patrimonio.liquido` | B (= bruto) | **1,928 × B − D** | ≠ bruto |
+| `patrimonio.veiculos` | 0,00 | **> 0** | — |
+| `patrimonio.imoveis_investimento` | I | **3,338 × I** | +233,8% |
 | `ratios.taxa_endividamento_pct` | 0,0 | **5,94** | — |
-| `endividamento.total_dividas` | 0,00 | **230.459,13** | = Σ dos 4 itens |
+| `endividamento.total_dividas` | 0,00 | **D** | = Σ dos 4 itens |
 | Ponto Forte de dívida | *"Endividamento Mínimo"* | *"Endividamento Controlado"* | — |
 
 **Correção de atribuição na manchete do `U5` — e correção da minha própria correção.**
 A rodada creditou `patrimonio.bruto −48,1%` ao conjunto das duas cadeias. A medição
-isola o eixo de ano como causa: 2.012.174,02 ÷ 3.879.177,72 = **0,519**, o `−48,1%`
+isola o eixo de ano como causa: bruto antes ÷ bruto depois = **0,519**, o `−48,1%`
 publicado ao centésimo.
 
 **Mas o crédito não é desta lane.** A [[A40.l113]] mergeou (`c551e832`, [[ADR-433]])
@@ -156,6 +156,10 @@ suficientes, e o que chegou primeiro leva.
 
 O que **permanece** zero depois de tudo é `patrimonio.residencia` e
 `patrimonio.imoveis_geradores` — a classificação de imóvel, também da [[A40.l113]].
+
+> ⚠️ **2026-10-08:** deixou de ser zero. A [[A40.l113]] fechou (#2063, [[ADR-439]]): os dois
+> baldes saem `null` com veredito quando a classificação não foi apurada, e a causa — a
+> identidade perdida na era `1.4.1` do prompt E1.5a — está na [[A40.l121]].
 
 ### O que esta lane entrega depois disso, e é dela
 
@@ -192,10 +196,9 @@ nomeado, não como mudança silenciosa em ADR alheia.
    define mais o eixo.
 2. **Filtrar o documento da varredura do E1.5** (ele tem stage próprio,
    `extract_informes_anuais` · [[ADR-238]]) — recusado **por medição**. Aquele caminho
-   captura só a fatia de previdência (`saldo_31_12: "18715.24"`) e a **mislabela** como
-   `ano_base: 2025` — o mesmo erro de tipo, na direção oposta. O CDB-DI (116.374,26) e
-   os Cofrinhos (206.491,70) não são capturados por caminho nenhum: **R$ 322.865,96**
-   sairiam do baseline. Filtrar trocaria o defeito de lugar.
+   captura só a fatia de previdência e a **mislabela** como `ano_base: 2025` — o mesmo
+   erro de tipo, na direção oposta. O CDB-DI e os Cofrinhos não são capturados por
+   caminho nenhum: **~95% do valor do documento** sairia do baseline. Filtrar trocaria o defeito de lugar.
 
 ### Follow-ups medidos, com dono (inventário — re-verificados em 2026-09-02)
 

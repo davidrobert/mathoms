@@ -7,7 +7,12 @@ distribui percentual, sem tocar em agregado nenhum.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pipeline.domain.services.patrimonio_types import MemberIdentity
+
+if TYPE_CHECKING:
+    from pipeline.domain.services.veredito_balde_imovel import VereditoBalde
 
 
 def build_composicao(
@@ -20,6 +25,7 @@ def build_composicao(
     caixa: float,
     veiculos: float,
     nao_atribuidos: float = 0.0,
+    veredito_residencia: "VereditoBalde | None" = None,
 ) -> list[dict]:
     """Categorias visíveis + percentuais via largest-remainder (soma = 100%).
 
@@ -46,7 +52,22 @@ def build_composicao(
         )
     aplicar_percentuais_maior_resto(composicao)
     composicao.sort(key=lambda x: x["valor"], reverse=True)
+    _declarar_residencia_nao_apurada(composicao, veredito_residencia)
     return composicao
+
+
+# A linha fica na partição com `valor: 0` — a soma da composição continua `bruto` — e
+# ganha o estado que a separa do zero de quem aluga, que a [[ADR-215]] P5 esconde.
+# `valor: null` aqui quebraria `validate_cross` CV2 e a prosa ([[ADR-439]] D5).
+def _declarar_residencia_nao_apurada(
+    composicao: list[dict], veredito: "VereditoBalde | None"
+) -> None:
+    if veredito is None or veredito.publicavel:
+        return
+    for linha in composicao:
+        if linha["categoria"] == ROTULO_RESIDENCIA:
+            linha["estado"] = veredito.status.value
+            linha["motivo"] = veredito.motivo.value if veredito.motivo else None
 
 
 # [[ADR-215]] P3 renomeou o bucket cat_2 de "Imóveis Investimento" para "Imóveis de
@@ -82,6 +103,11 @@ def _categorias(
         {"categoria": "Caixa e Moeda Estrangeira", "valor": caixa},
         {"categoria": "Veículos", "valor": veiculos},
     ]
+
+
+#: Rótulo exibido da residência. A linha literal de `_categorias` fica como está: é o que
+#: `dev/check_composicao_predicate.py` casa contra o predicado do frontend.
+ROTULO_RESIDENCIA = "Residência"
 
 
 def aplicar_percentuais_maior_resto(composicao: list[dict]) -> None:

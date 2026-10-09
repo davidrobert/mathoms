@@ -119,14 +119,14 @@ class TestSplitImoveisWithOverrides:
         assert o == 300.0
 
     def test_real_case_dogfood_5at5(self):
-        """Caso real workspace 5@5.com: 1 casa código 12 + 4 apartamentos código 11."""
+        """Forma do caso de dogfood: 1 casa código 12 + 4 apartamentos código 11."""
         titular = {
             "imoveis": [
-                _make_imovel("p-casa-exemplo", 996_821.46, "CASA - RUA EXEMPLO, 100"),
-                _make_imovel("p-apto-paulista", 350_000.00, "APTO EXEMPLO C 34"),
-                _make_imovel("p-apto-exemplo-d", 212_706.24, "APTO EDIFICIO EXEMPLO D 12"),
-                _make_imovel("p-cyrela1", 270_000.00, "APTO COND EXEMPLO A"),
-                _make_imovel("p-cyrela2", 530_000.00, "APTO COND EXEMPLO B"),
+                _make_imovel("p-casa-exemplo", 900_000.00, "CASA - RUA EXEMPLO, 100"),
+                _make_imovel("p-apto-paulista", 300_000.00, "APTO EXEMPLO C 34"),
+                _make_imovel("p-apto-exemplo-d", 200_000.00, "APTO EDIFICIO EXEMPLO D 12"),
+                _make_imovel("p-cond-a", 250_000.00, "APTO COND EXEMPLO A"),
+                _make_imovel("p-cond-b", 500_000.00, "APTO COND EXEMPLO B"),
             ]
         }
         overrides = {"p-casa-exemplo": CLASSIFICATION_RESIDENCIA_PRINCIPAL}
@@ -135,8 +135,8 @@ class TestSplitImoveisWithOverrides:
             conjuge_bens={},
             overrides_by_property_id=overrides,
         )
-        assert residencia == 996_821.46
-        assert outros == 350_000.00 + 212_706.24 + 270_000.00 + 530_000.00
+        assert residencia == 900_000.00
+        assert outros == 300_000.00 + 200_000.00 + 250_000.00 + 500_000.00
 
 
 def test_calculator_reexporta_o_vocabulario_inteiro_de_classification():

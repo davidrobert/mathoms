@@ -219,7 +219,7 @@ class TestSerialize:
         tx = Transaction(
             date(2025, 12, 31),
             "Parcelas Pagas Crédito Imobiliário (ano 2025)",
-            Money.brl("-52429.06"),
+            Money.brl("-24000.00"),
             category_hint="info_fiscal_anual",
         )
         stmt = _stmt(transactions=[tx])

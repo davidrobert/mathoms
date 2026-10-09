@@ -5,6 +5,7 @@ title: "O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` au
 status: Decidido
 phase: A40.l113
 date: "2026-09-01"
+amended_at: ["2026-10-08"]
 relates_to:
   - "[[ADR-274]]"
   - "[[ADR-383]]"
@@ -29,6 +30,12 @@ tags:
 
 # ADR-433 — O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado
 
+> **Emendada 2026-10-08:** a supressão do agregado que a §Consequências deferia "sobre a
+> escada de limiares da [[ADR-353]]" é decidida pela [[ADR-439]] **sem** a escada — o
+> veredito é categórico por balde. D1–D3 desta ADR seguem de pé. **Corrigida no mesmo dia:**
+> a §Consequências manda marcar `comparison_base_changed` no rebaseline, e rebaseline
+> nenhum o marca — §Correção 2026-10-08.
+
 ## Contexto
 
 A rodada unificada `U5` publicou, sobre **corpus documental idêntico** ao das três
@@ -50,7 +57,7 @@ corrigido.
 
 Executando os produtores reais contra o artefato `consolidate_baseline` do próprio run,
 o publicado foi reproduzido ao centavo (`split_imoveis_with_overrides` → `(0.0,
-701170.57)`).
+X)`).
 
 1. `anos_base_por_membro` elegia o ano-base do membro como `max()` sobre a **união** de
    `imoveis_consolidados`, `investimentos_consolidados`, `veiculos_consolidados` e
@@ -65,7 +72,7 @@ A residência é o caso que fecha o argumento: ela **tem** `property_id` e **tem
 `residencia_principal` gravado. Saiu zero por **valor**, não por identidade.
 
 Contrafactual, sobre o mesmo payload: com o ano eleito por classe, `residencia`
-0,00 → **996.821,46** e `total_dividas` 0,00 → **230.459,13**.
+0,00 → **R** (o maior item isolado) e `total_dividas` 0,00 → **D** (Σ dos 4 financiamentos).
 
 ### Duas afirmações do registro que caem
 
@@ -93,7 +100,7 @@ abaixo — o comentário em `patrimonio_resolvers.py` já descrevia esta famíli
 um **conjunto** de itens; o item que sumiu da declaração continua sem casar.
 
 Isto foi verificado, não suposto: neste corpus o carry-forward por item somaria
-**642.706,24** em duplicata — as três propriedades aparecem em 2025 **e** em 2024 —, e o
+**~27% do valor imobiliário** em duplicata — as três propriedades aparecem em 2025 **e** em 2024 —, e o
 discriminador que o tornaria seguro (baixa registrada como zero **declarado**) **não
 existe em nenhum item deste corpus**.
 
@@ -144,6 +151,7 @@ conservadora aqui; há escolha honesta.
   relatório não pode narrá-la como ganho ([[ADR-190]] §Emenda 2026-08-10). ⚠️ Aquela regra
   só age sob `comparison_base_changed`, e **nada nesta ADR liga o flag**: quem rebaselinar
   o snapshot precisa marcá-lo, senão a proteção é nominal.
+  ⚠️ *Corrigido em 2026-10-08:* o diagnóstico procede, o remédio não existe — §Correção 2026-10-08.
 - `titular_data["ano_base"]` passa a ser o **menor** ano eleito entre as classes (frescor
   nunca superestimado, [[ADR-410]] D6), com `ano_base_por_classe` ao lado — que é a
   "datas por linha" da [[ADR-383]] §6.
@@ -155,7 +163,7 @@ conservadora aqui; há escolha honesta.
 ## Alternativas consideradas
 
 1. **Fallback para o ano mais recente do próprio item.** Rejeitada: é o veto literal da
-   [[ADR-274]], e a medição mostrou que duplicaria 642.706,24 neste corpus.
+   [[ADR-274]], e a medição mostrou que duplicaria ~27% do valor imobiliário neste corpus.
 2. **Resolver o ano item a item, com a data viajando no payload.** Rejeitada: a
    [[ADR-383]] D3 fixou o grão do árbitro em *fonte inteira, nunca ativo isolado*, e a
    troca de semântica ("posição em 31/12/X" → "posição mais recente conhecida") é decisão
@@ -176,3 +184,36 @@ conservadora aqui; há escolha honesta.
   `2026` na mesma fixture — sem ele, a correção poderia ser inerte e o teste passaria.
 - Conservação: `residencia + outros` e `geradores + não-geradores` ao centavo, e a
   partição monetária byte-idêntica sob o estado ternário.
+
+## Emenda 2026-10-08 — a supressão deferida sai sem a escada da ADR-353
+
+A §Consequências deferiu publicar `residencia`/`imoveis_geradores` como `null` *"sobre a
+escada de limiares da [[ADR-353]]"*. A [[ADR-439]] executa o deferimento e **troca o
+critério**. A escada mede cobertura de categorização de gasto e está `Proposto`; a
+residência é um item só, e a fatia desconhecida pode contê-la em qualquer tamanho. Aplicada
+ao run `U5` já corrigido, a escada suprimiria uma residência identificada e verdadeira.
+O veredito passa a ser categórico: zero de residência só com `rented`, e o par de geradores
+só sem imóvel em aberto.
+
+Uma medição desta ADR também não sobrevive: `cobertura_classificacao_imovel` era citada
+como "a fatia fica mensurável", mas **nenhum código de produção a chamava**. Ela passa a ser
+publicada pela [[ADR-439]] D1.
+
+## Correção 2026-10-08 — o flag não se marca por rebaseline
+
+Achada no closeout da [[A40.l113]]. A §Consequências prescreve que *"quem rebaselinar o
+snapshot precisa marcá-lo"*. Não há como: `comparison_base_changed` é derivado em runtime, no
+par de relatórios, pelo proxy de presença de `fluxo_caixa.consolidacao_cross_documento`
+([[ADR-190]] §Emenda 2026-08-10, item 5; `_base_de_comparacao_mudou`), e rebaseline nenhum o
+liga.
+
+O diagnóstico ao lado segue de pé — para esta ADR a proteção é nominal. A D1 move os
+componentes de `patrimonio.liquido` (residência, outros imóveis e dívidas do titular:
+[[A40.l113]] §Contrafactuais medidos), e o proxy não vê a mudança, porque os dois lados do par
+têm o bloco cross-documento. O remédio é o predicado por identificador de método no artefato,
+deferido no §W6 do [[PLAN-snapshot-changelog-v3]] com gatilho *"[[A42.l5]] abrir ou a 2ª
+mudança de método"*. A D1 é candidata a esse gatilho e nenhum registro a anotou até aqui; a
+nota datada está no §W6, e a decisão de reabrir é do plano.
+
+A [[ADR-439]] repetiu o engano ("o rebaseline marca o flag") e o corrigiu na mesma data; lá o
+flag não precisa disparar, porque nenhuma métrica do changelog se move.

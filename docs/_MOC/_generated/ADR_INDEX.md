@@ -5,13 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-428 ADRs (ADR-001 a ADR-438) em [`docs/adr/`](../../adr/).
+431 ADRs (ADR-001 a ADR-442) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 367
+- **Decidido**: 369
 - **Proposto**: 57
-- **Roadmap**: 4
+- **Roadmap**: 5
 
 ## Fundação
 
@@ -583,7 +583,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (84)
+### Decidido (85)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -669,8 +669,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-426]] — O destino E3→E4 declara valor, ou o eixo-valor não é medido · phase A42
 - [[ADR-433]] — O ano-base 31/12 é eleito dentro da classe de ativo, e `property_id` ausente é um terceiro estado · phase A40.l113
 - [[ADR-434]] — Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado · phase A42
+- [[ADR-439]] — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero · phase A40.l113
 
-### Proposto (18)
+### Proposto (19)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -690,6 +691,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-419]] — O gatilho de risco deriva de doutrina, nunca de alvo declarado; a regra nomeia a chave do KPI
 - [[ADR-429]] — Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita · phase A40
 - [[ADR-430]] — Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 · phase A40.l96
+- [[ADR-440]] — A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade · phase A40.l121
 
 ### Roadmap (1)
 
@@ -727,17 +729,24 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 - [[ADR-299]] — SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) · phase audit-r2 · SEC-03
 
+### Proposto (1)
+
+- [[ADR-442]] — Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push
+
 ## seguranca
 
-### Decidido (1)
+### Decidido (2)
 
+- [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) · phase G0
 - [[ADR-319]] — Contrato de gates anti-regressão PII + sigilo metodológico pós-público · phase A34
 
-### Proposto (3)
+### Proposto (1)
+
+- [[ADR-317]] — Identidade de autoria no mailmap público
+
+### Roadmap (1)
 
 - [[ADR-315]] — Estratégia de rewrite de histórico git para release pública
-- [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs)
-- [[ADR-317]] — Identidade de autoria no mailmap público
 
 ## tooling
 

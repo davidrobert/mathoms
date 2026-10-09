@@ -2,8 +2,8 @@
 """Gate: proíbe parse monetário à mão fora do parser canônico (ADR-090 · r5/M28)."""
 
 # O idioma `.replace(".", "").replace(",", ".")` existia em 9 implementações. Aplicado
-# a string que já é decimal ISO ("243285.37", que é o que os nossos stages emitem) ele
-# strippa a decimal como se fosse milhar e devolve 24328537.0 — inflação de 100×.
+# a string que já é decimal ISO ("123456.78", que é o que os nossos stages emitem) ele
+# strippa a decimal como se fosse milhar e devolve 12345678.0 — inflação de 100×.
 # Chegou ao relatório: patrimônio líquido, IF (798% contra 16,7% real), prazo e gap.
 #
 # Por que gate e não só teste: a suíte ficou VERDE durante todo o incidente. Cada cópia

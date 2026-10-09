@@ -469,7 +469,9 @@ def load_metrics_from_e5(
 
     # Composição patrimonial
     imoveis_invest = pat.get("imoveis_investimento", 0)
-    residencia = pat.get("residencia", 0)
+    # [[ADR-439]] D2: `null` = residência não apurada; o valor dela, se identificado em
+    # outro run, está em `imoveis_investimento` — somar 0 aqui não perde dinheiro.
+    residencia = pat.get("residencia") or 0
 
     # Receitas por fonte
     por_fonte = fluxo.get("por_fonte", {})
@@ -625,6 +627,7 @@ def load_metrics_from_e5(
         "patrimonio_investivel": patrimonio_investivel,
         "imoveis_investimento": imoveis_invest,
         "residencia": residencia,
+        "residencia_veredito": (pat.get("cobertura_classificacao_imovel") or {}).get("residencia"),
         _KEY_INV_TITULAR: investimentos_titular,
         _KEY_INV_CONJUGE: investimentos_conjuge,
         "veiculos": pat.get("veiculos", 0),

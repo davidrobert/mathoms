@@ -26,7 +26,7 @@ pytz>=2024.1
 anthropic>=0.30
 
 # Schema validation
-jsonschema>=4.20
+jsonschema>=4.26.0
 
 # Monte Carlo simulations (IF projector — N3)
 # Teto de major por ADR-360: a política do numpy garante o bit stream do

@@ -36,7 +36,7 @@ _IMOVEIS_2025 = [
         "proprietario": "david",
         "descricao": "Casa",
         "property_id": _PID_CASA,
-        "valores_31_12": {"2025": 996821.46},
+        "valores_31_12": {"2025": 900000.0},
     },
     {
         "proprietario": "david",
@@ -48,12 +48,12 @@ _VEICULOS_2025 = [
     {"proprietario": "david", "descricao": "Carro", "valores_31_12": {"2025": 40000.0}}
 ]
 _DIVIDAS_2025 = [
-    {"proprietario": "david", "descricao": "Financiamento", "saldo_31_12": {"2025": 230459.13}}
+    {"proprietario": "david", "descricao": "Financiamento", "saldo_31_12": {"2025": 200000.0}}
 ]
 # O investimento é a única classe que alcança 2026, e é ele que sequestrava o ano
 # das outras três na eleição por união.
 _INVESTIMENTOS_2026 = [
-    {"proprietario": "david", "descricao": "CDB", "valores_31_12": {"2026": 116374.26}}
+    {"proprietario": "david", "descricao": "CDB", "valores_31_12": {"2026": 100000.0}}
 ]
 
 
@@ -97,9 +97,9 @@ def test_residencia_e_divida_nao_projetam_zero(baseline_com_investimento_adianta
         conjuge_bens={},
         overrides_by_property_id={_PID_CASA: CLASSIFICATION_RESIDENCIA_PRINCIPAL},
     )
-    assert residencia == pytest.approx(996821.46)
+    assert residencia == pytest.approx(900000.0)
     assert outros == pytest.approx(350000.0)
-    assert titular["total_dividas"] == pytest.approx(230459.13)
+    assert titular["total_dividas"] == pytest.approx(200000.0)
     assert sum(v["valor_31_12_ano_base"] for v in bens["veiculos"]) == pytest.approx(40000.0)
 
 
@@ -138,8 +138,8 @@ def test_cobertura_mede_valor_porque_a_contagem_mente():
     """8 de 9 por contagem, 57% por valor: a residência é o maior item isolado."""
     bens = {
         "imoveis": [
-            {"property_id": _PID_CASA, "valores_31_12": {"2025": 996821.46}},
-            *({"valores_31_12": {"2025": 167984.60}} for _ in range(8)),
+            {"property_id": _PID_CASA, "valores_31_12": {"2025": 900000.0}},
+            *({"valores_31_12": {"2025": 150000.0}} for _ in range(8)),
         ]
     }
     for im in bens["imoveis"]:
@@ -150,7 +150,7 @@ def test_cobertura_mede_valor_porque_a_contagem_mente():
         overrides_by_property_id={_PID_CASA: CLASSIFICATION_RESIDENCIA_PRINCIPAL},
     )
     assert (cobertura.n_desconhecido, cobertura.n_total) == (8, 9)
-    assert cobertura.pct_desconhecido == pytest.approx(57.4, abs=0.5)
+    assert cobertura.pct_desconhecido == pytest.approx(57.1, abs=0.5)
 
 
 def test_a_particao_monetaria_nao_se_move_com_o_estado_ternario():

@@ -39,14 +39,10 @@ export interface PatrimonioCaixaDetalhe {
 }
 
 import type { Posicao3112Row } from "./posicao-31-12";
+import type { CoberturaClassificacaoImovel, PatrimonioCategoria } from "./patrimonio-imovel";
 
 export type { Posicao3112Row };
-
-export interface PatrimonioCategoria {
-  categoria: string;
-  valor: number;
-  pct: number;
-}
+export type * from "./patrimonio-imovel";
 
 export interface PatrimonioData {
   bruto?: number;
@@ -56,14 +52,14 @@ export interface PatrimonioData {
   /** ADR-142 + ADR-215 §6: financeiro + cat_2_efetivo (imóveis geradores líquidos);
    *  igual a investivel_financeiro quando imoveis_no_if=false. */
   investivel_efetivo?: number;
-  /** ADR-215 §6: valor bruto de imóveis classificados como locado/comercial. */
-  imoveis_geradores?: number;
-  /** ADR-215 §6: imóveis classificados como uso pessoal/especulação/desconhecido. */
-  imoveis_nao_geradores?: number;
+  /** ADR-215 §6 locado/comercial; ADR-439 D3: `null` (com o par) se há imóvel em aberto. */
+  imoveis_geradores?: number | null;
+  /** ADR-215 §6: uso pessoal/especulação. ADR-439 D3: par de `imoveis_geradores`. */
+  imoveis_nao_geradores?: number | null;
   /** ADR-142: toggle per-workspace para incluir imóveis no cálculo de IF. */
   imoveis_no_if?: boolean;
   dividas?: number;
-  residencia?: number;
+  residencia?: number | null; // ADR-439 D2: `null` = não apurada; 0 só com `rented`
   imoveis_investimento?: number;
   veiculos?: number;
   investimentos_titular?: number; // ADR-338: role-keyed (nome só em valores)
@@ -77,6 +73,7 @@ export interface PatrimonioData {
   posicao_31_12?: Posicao3112Row[];
   /** A33.l2 P5.4 — ativos no exterior ≥ USD 1MM em 31/12 (Res. BCB 279/2022). */
   cbe_obrigatorio?: boolean;
+  cobertura_classificacao_imovel?: CoberturaClassificacaoImovel; // ADR-439 D1; ausente = legado
 }
 
 // Bloco G — Exposição cambial (plan/RESIDENCIA_E_USO, co-design 2026-05-18).

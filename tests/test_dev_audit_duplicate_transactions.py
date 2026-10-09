@@ -14,10 +14,10 @@ _SPEC.loader.exec_module(_module)
 
 class TestForensicKey:
     def test_round_trips_cents(self):
-        # 47208.77 deve gerar cents = 4720877 (sem float drift)
-        tx = {"data": "2026-03-30", "valor": 47208.77, "descricao": "ARVO"}
+        # 20000.01 deve gerar cents = 2000001 (sem float drift)
+        tx = {"data": "2026-03-30", "valor": 20000.01, "descricao": "EMPRESA"}
         k = _module._forensic_key(tx)
-        assert k == ("2026-03-30", 4720877, "arvo")
+        assert k == ("2026-03-30", 2000001, "empresa")
 
     def test_normalizes_descricao_to_lower(self):
         tx = {"data": "2026-01-01", "valor": 10.0, "descricao": "  PIX Recebido  "}

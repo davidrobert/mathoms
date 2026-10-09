@@ -77,7 +77,7 @@ class AnosBaseDoMembro:
         return frozenset(self.por_classe.values())
 
 
-# `float()` cru devolvia ``default`` para string pt-BR (`"243.285,37"` → 0,0) — a
+# `float()` cru devolvia ``default`` para string pt-BR (`"123.456,78"` → 0,0) — a
 # falha-espelho do ×100 (r5/M28): ali o dinheiro inflava, aqui desaparecia.
 def safe_float(val: Any, default: float = 0.0) -> float:
     """Converte ``val`` para ``float``; retorna ``default`` se falhar."""
@@ -233,6 +233,11 @@ class PatrimonioConfig:
     # ``desconhecido`` nunca entram, independente do toggle (Perini/Cerbasi).
     # Default ``True`` preserva retro-compat com `pipeline.json:14` legado.
     include_real_estate_in_if: bool = True
+
+    # [[ADR-215]] `workspaces.residencia_status` (owned | rented | undeclared). Só
+    # `rented` autoriza publicar residência ZERO ([[ADR-439]] D2); `None` (CLI/teste
+    # sem DB) vale como `undeclared`, o default da coluna.
+    residencia_status: str | None = None
 
 
 # Produtores carregam datas em larguras mistas ("YYYY-MM-DD", "YYYY-MM", "");

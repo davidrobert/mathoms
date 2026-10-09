@@ -310,8 +310,8 @@
 | ADR-312 | adr | Decidido |  | Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers | `adr/312-canonicalizacao-vocabulario-writer-e2-llm.md` |
 | ADR-313 | adr | Proposto |  | Licença open-source do Mathoms — BSL 1.1 vs AGPL-3.0 vs Apache-2.0/MIT | `adr/313-licenca-open-source-mathoms.md` |
 | ADR-314 | adr | Proposto |  | Escopo público do repo — allowlist/blocklist de paths e IP excluído | `adr/314-escopo-publico-repo-allowlist-ip.md` |
-| ADR-315 | adr | Proposto |  | Estratégia de rewrite de histórico git para release pública | `adr/315-estrategia-rewrite-historico-git.md` |
-| ADR-316 | adr | Proposto |  | Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) | `adr/316-aceite-risco-metadados-github-imutaveis.md` |
+| ADR-315 | adr | Roadmap |  | Estratégia de rewrite de histórico git para release pública | `adr/315-estrategia-rewrite-historico-git.md` |
+| ADR-316 | adr | Decidido |  | Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) | `adr/316-aceite-risco-metadados-github-imutaveis.md` |
 | ADR-317 | adr | Proposto |  | Identidade de autoria no mailmap público | `adr/317-identidade-autoria-mailmap-publico.md` |
 | ADR-318 | adr | Proposto |  | Fronteira de idioma — apresentação pública EN vs vault canônico PT-BR | `adr/318-fronteira-idioma-en-apresentacao-ptbr-vault.md` |
 | ADR-319 | adr | Decidido |  | Contrato de gates anti-regressão PII + sigilo metodológico pós-público | `adr/319-contrato-gates-antiregressao-pii-sigilo.md` |
@@ -433,6 +433,9 @@
 | ADR-436 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/436-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
 | ADR-437 | adr | Decidido |  | Componente suprimido sai do denominador do score, com piso publicado | `adr/437-componente-suprimido-sai-do-denominador-com-piso-publicado.md` |
 | ADR-438 | adr | Proposto |  | Destino de leitura do parecer é derivado pela máquina, não escolhido pela prosa | `adr/438-destino-de-leitura-derivado-no-parecer.md` |
+| ADR-439 | adr | Decidido |  | Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero | `adr/439-balde-de-imovel-sem-classificacao-apurada-sai-null.md` |
+| ADR-440 | adr | Proposto |  | A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade | `adr/440-ancora-de-imovel-vem-da-ficha-por-parser-deterministico.md` |
+| ADR-442 | adr | Proposto |  | Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push | `adr/442-valor-de-workspace-real-nao-entra-no-repositorio.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -919,7 +922,7 @@
 | A40.l110 | lane | shipped | A40 | O baseline grava `date.today()` no artefato e o §F da ADR-409 nomeia o produtor errado: matar o fóssil nas duas pontas | `sprint/A40/lanes/A40-l110-fossil-do-baseline-e-idempotencia.md` |
 | A40.l111 | lane | shipped | A40 | Imóvel com valor negativo entra na soma do patrimônio: o valor impossível vira `null` declarado, não zero nem passivo | `sprint/A40/lanes/A40-l111-valor-nao-apurado-em-item-fisico.md` |
 | A40.l112 | lane | open | A40 | Imóvel sem classificação nenhuma entra no numerador da concentração pelo `else`, e reclassificar um deles move o KPI de 82 para 0 | `sprint/A40/lanes/A40-l112-imovel-sem-override-cai-no-numerador.md` |
-| A40.l113 | lane | in_progress | A40 | A identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS: residência e imóvel gerador são publicados como zero | `sprint/A40/lanes/A40-l113-identidade-de-imovel-churna-classificador-falha-fechado.md` |
+| A40.l113 | lane | shipped | A40 | A identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS: residência e imóvel gerador são publicados como zero | `sprint/A40/lanes/A40-l113-identidade-de-imovel-churna-classificador-falha-fechado.md` |
 | A40.l114 | lane | shipped | A40 | O ano de referência afirma um 31/12 que ainda não fechou, e o eixo zera imóveis, veículos e a dívida do titular | `sprint/A40/lanes/A40-l114-ano-de-referencia-sem-documento-atras.md` |
 | A40.l115 | lane | shipped | A40 | O sanitizer de PII mede o contexto de ENTRADA e nunca o output: o relatório publica CPF parcialmente mascarado e conta bancária completa | `sprint/A40/lanes/A40-l115-sanitizer-mede-a-entrada-e-publica-a-saida.md` |
 | A40.l116 | lane | shipped | A40 | O guard de autocontradição do parecer erra a seção pela terceira vez, e o teste que o cobre importa a própria constante — cego por construção | `sprint/A40/lanes/A40-l116-guard-de-liquidez-erra-a-secao-e-o-teste-e-cego.md` |
@@ -928,6 +931,7 @@
 | A40.l119 | lane | open | A40 | O elogio à reserva tem dois produtores e o guard alcança um; e a ressalva reescreve a descrição sem tocar o título que o leitor vê | `sprint/A40/lanes/A40-l119-elogio-com-produtor-duplo-e-ressalva-que-nao-alcanca-o-titulo.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l120 | lane | shipped | A40 | O parecer chama de renda fixa uma soma que inclui previdência, e o número com que ele deveria concordar não chega até ele | `sprint/A40/lanes/A40-l120-previdencia-dobrada-em-renda-fixa.md` |
+| A40.l121 | lane | in_progress | A40 | O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF | `sprint/A40/lanes/A40-l121-ancora-estruturada-de-imovel.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | cancelled | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
@@ -955,11 +959,11 @@
 | A40.l35 | lane | shipped | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
 | A40.l36 | lane | shipped | A40 | Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes | `sprint/A40/lanes/A40-l36-double-count-na-base-da-cascata-s8.md` |
 | A40.l37 | lane | open | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
-| A40.l38 | lane | shipped | A40 | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
+| A40.l38 | lane | shipped | A40 | Caixa canônico: denylist de instituição suprime caixa do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
 | A40.l39 | lane | open | A40 | Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal | `sprint/A40/lanes/A40-l39-posicao-visoes-corrente-fiscal.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l40 | lane | shipped | A40 | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | `sprint/A40/lanes/A40-l40-identidade-institucional-cnpj-raiz.md` |
-| A40.l41 | lane | open | A40 | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
+| A40.l41 | lane | open | A40 | Frescor cross-pool: posição stale de 2025-03 vale ~86× o IRPF 31/12/2025 no bruto | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
 | A40.l42 | lane | shipped | A40 | Safra IRPF errada: baseline pegajoso — E1.5c re-consolida o próprio output do run anterior e ignora o E1.5 fresco | `sprint/A40/lanes/A40-l42-safra-irpf-baseline-pegajoso.md` |
 | A40.l43 | lane | shipped | A40 | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | `sprint/A40/lanes/A40-l43-perfil-familia-prosa-sobre-pessoas.md` |
 | A40.l44 | lane | shipped | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
@@ -1014,7 +1018,7 @@
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A40.l90 | lane | shipped | A40 | A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar | `sprint/A40/lanes/A40-l90-limiar-de-risco-le-o-catalogo.md` |
 | A40.l91 | lane | shipped | A40 | A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos | `sprint/A40/lanes/A40-l91-base-da-meta-if.md` |
-| A40.l92 | lane | open | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
+| A40.l92 | lane | in_progress | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
 | A40.l93 | lane | shipped | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
 | A40.l94 | lane | shipped | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
 | A40.l95 | lane | shipped | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |

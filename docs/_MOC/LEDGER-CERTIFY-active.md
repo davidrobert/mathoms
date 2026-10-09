@@ -554,7 +554,7 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 >   no artefato E5 (`e5_analysis.schema.json:2137`, [[ADR-406]] D5) e congelado em
 >   `tests/fixtures/dedup/policy_parity_snapshot.json`.
 >
-> Efeito no relatório, mesmo corpus: `Internacional` R$ 34.857,23 → **R$ 423,56**,
+> Efeito no relatório, mesmo corpus: `Internacional` **−98,8%**,
 > `nao_classificado_pct` 3,93% → **6,51%**, com **totais publicados idênticos ao centavo** —
 > redistribuição com Σ preservado, a classe cega aos invariantes de conservação.
 
@@ -621,7 +621,7 @@ da [[A42.l3]], que reescreve o mesmo arquivo. Aresta com a [[A42.l6]] declarada 
 > medição acima for refeita. Dinheiro segue fora: a soma fecha ao centavo (refutação embutida
 > na própria linha). **Dono até lá:** `_README` da [[A42]] §Fora do sprint.
 >
-> ⚠️ **O número do efeito acima envelheceu duas vezes.** `Internacional` R$ 423,56 foi medido
+> ⚠️ **O número do efeito acima envelheceu duas vezes.** o `Internacional` −98,8% foi medido
 > antes do #1937 e do #1939, e **os dois mexeram na chave**. Quem for reconciliar
 > `Internacional` (a [[A40.l50]] é quem tem a rota) precisa **re-medir**, não reler.
 
@@ -652,8 +652,8 @@ não mudaram.
 > caem pela **mesma linha determinística** — `anos_base_por_membro` elegia o ano-base por
 > `max()` sobre a **união** das classes de ativo, e um saldo bancário de 2026 fazia
 > imóveis/veículos/dívidas (que param em 2025) projetarem `0,00`. A residência saiu zero
-> **tendo** `property_id` e override gravados. Medido: `residencia` 0,00 → 996.821,46;
-> `total_dividas` 0,00 → 230.459,13 — reprodução no grão do produtor contra o artefato do
+> **tendo** `property_id` e override gravados. Medido: `residencia` e `total_dividas`
+> saem de 0,00 para o valor declarado — reprodução no grão do produtor contra o artefato do
 > run `40d1af2a`, não um run publicado novo. ⚠️ **Crédito não é exclusivo:** a [[A40.l114]]
 > (#1961) entregou o produtor único de saldo e o invariante temporal, e mediu pós-rebase que
 > os dois consertos são **independentemente suficientes** neste corpus — os números ficam
@@ -669,7 +669,7 @@ não mudaram.
 | LC9-07 — o delta E3→E4 destravado pela [[A42.l18]] **provavelmente não é perda**: destino > origem é o **único** sinal que nenhuma perda de pipeline produz (perda encolhe o destino) | correção | Médio | P1 | PARCIAL · NOVO — 2 mecanismos de instrumento nomeados, nenhum medido ainda | procede-fechado | ⚠️ **a PREMISSA é falsa, medida na [[A42.l25]]**: o campo publicava `out − in = −1.998.772` ⇒ destino **MENOR**, que é exatamente a assinatura de perda. Este achado leu o **detalhe** (`+1.998.772`) — é **vítima direta do `LC9-06`**. A conclusão (*não é perda*) sobrevive, mas por mecanismo medido, não pelo sinal. **Mecanismo 1** (dois parsers, 1000×): cai na magnitude, procede na **classe** — `cents_int` (produtor) vs `Decimal(str(v))` (harness) discordam no **meio-centavo**. **Mecanismo 2** (quatro termos, duas convenções): **100% do gap** — 48 receitas negativas, `2 × 999.386 = 1.998.772` exato. Fechado por [[ADR-434]]: `Δ = 0` e veredito **`conservado`** no corpus real |
 | LC9-08 — KR-B da [[A40]]: `entregue 7 · sombra 317`, **idêntico** ao `U4` e ao `U3` | contrato | — | — | MEDIÇÃO-DE-CONHECIDO — o critério é `entregue=0` ⇒ **não fecha** | procede-aberto | quarto ponto consecutivo sem movimento |
 | LC9-09 — sonda LC06: `investimentos_consolidados` **63 → 58** com **D2=0 e D3=0**; a população de investimentos **estabilizou** | identidade/dedup | — | — | **POSITIVO VERIFICADO** — efeito da [[A42.l15]] (#1939), medido | fechado por medição | `proprietario` passou a vir preenchido em **55 de 58**, com `cnpj_emissor` novo: a âncora de identidade saiu do free-text para campo **estruturado**. A pausa caiu de **6 para 2** avisos, e as duas causas que desapareceram são exatamente `investimento_sem_titularidade` (era 49,03%) e `instituicao_ausente` |
-| LC9-10 — sonda de imóveis, **direção oposta à de investimentos no mesmo run**: população **7 → 9** com **D2=8**, `property_id` **5 de 7 → 1 de 9** | identidade/dedup | Crítico | P0 | CONFIRMADO · NOVO | procede-aberto | **não é o `LC6-02`**: aquele é churn de `investment_id` e **melhorou** aqui. Este é o **consumidor** do id falhando aberto, na população de imóveis. Dona [[A40.l113]]  · ⏳ **Disposição 2026-09-01 (#1962):** o eixo é a grafia do `codigo_rfb` (`01-11` em 2025 vs `11` em 2024/23), agora registrada no **item 4** do §Deferimento da [[A40.l113]] e roteada para [[TRACK-property-identity-cross-era]]. Antes disto o único registro do defeito apontava para uma lane que o excluía do escopo |
+| LC9-10 — sonda de imóveis, **direção oposta à de investimentos no mesmo run**: população **7 → 9** com **D2=8**, `property_id` **5 de 7 → 1 de 9** | identidade/dedup | Crítico | P0 | CONFIRMADO · NOVO | procede-aberto | **não é o `LC6-02`**: aquele é churn de `investment_id` e **melhorou** aqui. Este é o **consumidor** do id falhando aberto, na população de imóveis. Dona [[A40.l113]]  · ⏳ **Disposição 2026-09-01 (#1962):** o eixo é a grafia do `codigo_rfb` (`01-11` em 2025 vs `11` em 2024/23), agora registrada no **item 4** do §Deferimento da [[A40.l113]] e roteada para [[TRACK-property-identity-cross-era]]. Antes disto o único registro do defeito apontava para uma lane que o excluía do escopo · ⏳ **2026-10-08:** a [[A40.l113]] fechou (#2063) e este achado deixa de ser ponteiro dela. O colapso de `property_id` `5 de 7 → 1 de 9` é a era `1.4.1` do prompt E1.5a ➜ [[A40.l121]]. Os 2 itens a mais (`7 → 9`) são os dois imóveis alugados do titular declarados em 2024 e 2025 que não se fundiram — sem identidade e com grafia `01-11`/`11` — ➜ [[A40.l121]] + #2062 |
 
 **Positivos verificados.** X2 determinístico (**2.289** células, 0 divergentes, pin de
 overrides estável — idêntico ao `U4`) · X3 vetorial **FECHA 0/1.540** (era 1/1.540 no `U4`)

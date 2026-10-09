@@ -94,8 +94,8 @@ from pipeline.domain.services.patrimonio_resolvers import (
     rv_ressalva,
 )
 from pipeline.domain.services.patrimonio_sign_guard import (
-    ItemFisicoSemValor,
     aplicar_guarda_aos_componentes,
+    itens_fisicos_sem_valor,
 )
 from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
@@ -110,6 +110,7 @@ from pipeline.domain.services.posicao_31_12_builder import (
     build_posicao_31_12,
 )
 from pipeline.domain.services.saldo_divida_resolver import dividas_nao_apuradas
+from pipeline.domain.services.veredito_balde_imovel import classificar_imoveis_do_run
 
 __all__ = [
     "PatrimonioCalculator",
@@ -124,26 +125,6 @@ __all__ = [
     "split_imoveis_alocacao_vs_fora",
     "split_imoveis_geradores_vs_nao_geradores",
 ]
-
-
-# Colhido dos MESMOS dicts que alimentam as somas — `titular_bens`/`conjuge_bens`
-# são a projeção por membro que `imovel_valor`/`veiculo_valor` leem. Reler o
-# baseline aqui criaria a segunda fonte que pode divergir do que foi somado.
-def _itens_sem_valor(titular_bens: dict, conjuge_bens: dict) -> tuple[ItemFisicoSemValor, ...]:
-    """Ativos físicos que chegaram sem valor apurado ([[ADR-431]])."""
-    achados: list[ItemFisicoSemValor] = []
-    for bens in (titular_bens, conjuge_bens):
-        for colecao in ("imoveis", "veiculos"):
-            achados.extend(
-                ItemFisicoSemValor(
-                    colecao=colecao,
-                    descricao=str(item.get("descricao") or ""),
-                    ano=str(item.get("ano_base") or ""),
-                )
-                for item in (bens.get(colecao) or [])
-                if isinstance(item, dict) and item.get("valor_nao_apurado")
-            )
-    return tuple(achados)
 
 
 class PatrimonioCalculator:
@@ -220,7 +201,7 @@ class PatrimonioCalculator:
         )
         guarda, investimentos_titular, investimentos_conjuge, caixa_total_brl = (
             aplicar_guarda_aos_componentes(
-                itens_sem_valor=_itens_sem_valor(titular_bens, conjuge_bens),
+                itens_sem_valor=itens_fisicos_sem_valor(titular_bens, conjuge_bens),
                 residencia=residencia,
                 imoveis_investimento=imoveis_investimento,
                 veiculos=veiculos,
@@ -232,6 +213,14 @@ class PatrimonioCalculator:
             )
         )
         total_dividas += float(guarda.dividas_curto_prazo_brl)
+        imovel = classificar_imoveis_do_run(
+            titular_bens=titular_bens,
+            conjuge_bens=conjuge_bens,
+            overrides=self._config.property_classification_overrides or {},
+            residencia_status=self._config.residencia_status,
+            residencia=residencia,
+            geradores=imoveis_geradores,
+        )
 
         patrimonio_bruto = self._compute_bruto(
             inputs,
@@ -268,6 +257,7 @@ class PatrimonioCalculator:
             caixa=caixa_total_brl,
             veiculos=veiculos,
             nao_atribuidos=nao_atribuidos,
+            veredito_residencia=imovel.vereditos.residencia,
         )
 
         cobertura = ressalva["cobertura"]
@@ -290,12 +280,19 @@ class PatrimonioCalculator:
                 inputs.baseline.get("dividas") or inputs.baseline.get("dividas_consolidadas")
             ),
             "liquido": round(patrimonio_liquido, 2),
-            "residencia": round(residencia, 2),
+            # [[ADR-439]] D2/D3: `None` onde o veredito diz não apurado — a partição interna
+            # (bruto, cat_2, composição) segue com os floats; só a AFIRMAÇÃO muda.
+            "residencia": round(residencia, 2) if imovel.vereditos.residencia.publicavel else None,
             "imoveis_investimento": round(imoveis_investimento, 2),
-            "imoveis_geradores": round(imoveis_geradores, 2),
-            "imoveis_nao_geradores": round(imoveis_nao_geradores, 2),
+            "imoveis_geradores": (
+                round(imoveis_geradores, 2) if imovel.vereditos.geradores.publicavel else None
+            ),
+            "imoveis_nao_geradores": (
+                round(imoveis_nao_geradores, 2) if imovel.vereditos.geradores.publicavel else None
+            ),
             "imoveis_alocacao": round(imoveis_alocacao, 2),
             "imoveis_fora_alocacao": round(imoveis_fora_alocacao, 2),
+            "cobertura_classificacao_imovel": imovel.bloco(),
             identity.key_inv_titular: valor_publicavel(investimentos_titular, cobertura, "titular"),
             identity.key_inv_conjuge: valor_publicavel(investimentos_conjuge, cobertura, "conjuge"),
             # CTO-02: `caixa_total_brl` guarda o caixa TOTAL (BRL + ME); o ME

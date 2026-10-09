@@ -62,10 +62,10 @@ renderiza, então o ritmo **já é derivável** pelo leitor). Não é emitido po
 **Condição de retomada, cumulativa:** `cobertura_nivel == alta` **e**
 `janela_meses == 12`. Fora disso, `null` + `motivo_supressao`.
 
-**D3 — O teto também não serve.** `(publicado + nao_identificado)/n` dá R$ 32.877/mês
-no dogfood contra piso de R$ 12.096 — banda de **2,7×**. Provisionar pelo teto faria a
-família guardar contra R$ 194.886,65 que nomeiam outro banco do próprio titular e
-R$ 32.000 de conversão BRL→USD, e — pior — **removeria o incentivo de classificar**,
+**D3 — O teto também não serve.** `(publicado + nao_identificado)/n` dá **2,7×**
+o piso no dogfood — essa é a largura da banda. Provisionar pelo teto faria a
+família guardar contra uma saída que nomeia outro banco do próprio titular e
+conversões BRL→USD, e — pior — **removeria o incentivo de classificar**,
 que é a única saída da contaminação ([[ADR-425]] §Consequências). **Com 36,8% de
 cobertura não existe número de provisão defensável; a largura da banda é o achado.**
 

@@ -18,7 +18,8 @@ Invariantes:
   coexiste com a sessão de escrita do ``DBArtifactStore``
   (``artifact_session_factory``) — só o artifact store escreve enquanto o
   stage roda (ADR-256). Fechamento: artifact store primeiro (commit/rollback
-  libera o write-lock), ``HydratedContext.close()`` depois.
+  libera o write-lock), ``HydratedContext.close()`` depois — ele grava o
+  ``LLMCallLog`` adiado, que precisa do lock livre (ADR-173 §Emenda 2026-10-08).
 - Este módulo **não importa celery**.
 """
 
@@ -66,11 +67,20 @@ class HydratedContext:
     config_store_session: Session
 
     def close(self) -> None:
-        """Fecha a sessão de config — chamar SEMPRE após o artifact store fechar."""
+        """Grava o ``LLMCallLog`` adiado e fecha a sessão de config — SEMPRE após o artifact store fechar."""
+        flush_deferred_llm_call_log(self.ctx)
         try:
             self.config_store_session.close()
         except Exception as exc:
             logger.warning("config_store_session close failed: %s", exc)
+
+
+def flush_deferred_llm_call_log(ctx) -> None:
+    """Grava o ``LLMCallLog`` adiado do run — chamar só com a sessão do stage FECHADA."""
+    # getattr: ctx de teste/executor sem hooks, ou hooks fake sem buffer.
+    flush = getattr(getattr(ctx, "llm_call_hooks", None), "flush_call_log", None)
+    if flush is not None:
+        flush()
 
 
 def _default_session_factory() -> Session:
@@ -87,6 +97,23 @@ def _read_imoveis_no_if(ws_id: str, session: Session) -> bool:
         select(Workspace.imoveis_no_if).where(Workspace.id == ws_id)
     ).scalar_one_or_none()
     return True if row is None else bool(row)
+
+
+def _read_residencia_status(ws_id: str, session: Session) -> Optional[str]:
+    """[[ADR-215]] `residencia_status`; ``None`` quando o workspace não existe."""
+    from backend.app.models.workspace import Workspace
+
+    return session.execute(
+        select(Workspace.residencia_status).where(Workspace.id == ws_id)
+    ).scalar_one_or_none()
+
+
+def _workspace_flags(ws_id: str, session: Session) -> dict:
+    """Escolhas do workspace que o E5 lê ([[ADR-222]] · [[ADR-215]] · [[ADR-439]])."""
+    return {
+        "imoveis_no_if": _read_imoveis_no_if(ws_id, session),
+        "residencia_status": _read_residencia_status(ws_id, session),
+    }
 
 
 def _db_resolvers(session: Session) -> dict:
@@ -120,18 +147,20 @@ def _build_ctx(
         pipeline_run_id=run_id,
         workspace_id=ws_id,
         config_store=build_config_store(db=session),
-        imoveis_no_if=_read_imoveis_no_if(ws_id, session),
+        **_workspace_flags(ws_id, session),
         **_db_resolvers(session),
     )
 
 
 def _attach_llm_budget_hooks(ctx, ws_id: str, run_id: str) -> None:
-    # ADR-173: hard-stop de budget + LLMCallLog em toda chamada LLM. O service
-    # é stateless entre instâncias (budget/gasto lidos do DB + cache Redis) —
-    # instanciar por-stage produz a mesma semântica do por-run do Celery.
+    # ADR-173: hard-stop de budget + LLMCallLog em toda chamada LLM. Budget e
+    # gasto vêm do DB + cache Redis, mas em SQLite o service CARREGA as calls
+    # adiadas da instância até o flush (§Emenda 2026-10-08) — por isso todo
+    # executor grava ao fechar a sessão do stage e no ``close()`` do contexto:
+    # instância por-stage (HTTP/CLI) só não perde o pendente porque o close flusha.
     from backend.app.services.llm_budget_service import LLMBudgetService
 
-    ctx.llm_call_hooks = LLMBudgetService(ws_id, pipeline_run_id=run_id)
+    ctx.llm_call_hooks = LLMBudgetService.for_pipeline_run(ws_id, run_id)
 
 
 def _attach_llm_response_cache(ctx) -> None:

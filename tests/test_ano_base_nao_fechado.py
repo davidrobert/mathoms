@@ -5,7 +5,7 @@ Medido no run ``40d1af2a`` (2026-09-01): uma tela de posição do Itaú capturad
 do domicílio inteiro para 2026, e aí ``_resolve_item_valor`` não achou a chave em
 nenhum item de 2025 — 7 imóveis, 7 veículos e as 4 dívidas do titular foram
 publicados como **zero**, com o total de dívida ``0,00`` ao lado de uma lista que
-somava ``R$ 230.459,13`` na mesma página.
+somava saldo positivo na mesma página.
 
 A fixture precisa das **duas** condições juntas — item em ano não fechado *e*
 dívidas chaveadas só em anos anteriores. Faltando uma, o teste passa com o defeito
@@ -47,7 +47,7 @@ from pipeline.stages.extract_baseline import _ano_nao_fechado_reason
 
 TITULAR = "fulano_de_tal"
 CONJUGE = "beltrana_de_tal"
-SALDO_TOTAL = 230459.13
+SALDO_TOTAL = 200000.0
 
 
 @pytest.fixture
@@ -64,13 +64,13 @@ def _dividas_do_titular() -> list[dict]:
             "proprietario": TITULAR,
             "tipo": "financiamento_imobiliario",
             "ano_referencia": 2025,
-            "saldo_31_12": {"2025": 205381.88, "2024": 234642.79},
+            "saldo_31_12": {"2025": 180000.0, "2024": 195000.0},
         },
         {
             "proprietario": TITULAR,
             "tipo": "financiamento_imobiliario",
             "ano_referencia": 2025,
-            "saldo_31_12": {"2025": 25077.25},
+            "saldo_31_12": {"2025": 20000.0},
         },
     ]
 
@@ -79,14 +79,14 @@ def _dividas_do_titular() -> list[dict]:
 def baseline() -> dict:
     """Corpus mínimo com a forma do defeito: um item em ano NÃO fechado."""
     aberto = str(ultimo_ano_31_12_fechado() + 1)
-    investimento = {"descricao": "CDB-DI", "valores_31_12": {aberto: 116374.26}}
-    imovel = {"descricao": "Casa", "valores_31_12": {"2025": 1639527.70}}
+    investimento = {"descricao": "CDB-DI", "valores_31_12": {aberto: 100000.0}}
+    imovel = {"descricao": "Casa", "valores_31_12": {"2025": 900000.0}}
     return {
         # A tela de meio de ano: único item do corpus no ano ainda em curso.
         "investimentos_consolidados": [{**investimento, "proprietario": TITULAR}],
         "imoveis_consolidados": [{**imovel, "proprietario": TITULAR}],
         "dividas": _dividas_do_titular(),
-        "patrimonio_por_ano": {aberto: {"total_bens": 1755901.96, "total_dividas": SALDO_TOTAL}},
+        "patrimonio_por_ano": {aberto: {"total_bens": 1000000.0, "total_dividas": SALDO_TOTAL}},
     }
 
 
@@ -129,7 +129,7 @@ def test_os_tres_produtores_do_total_concordam(baseline, identity):
     titular_div, conjuge_div = pr._split_dividas(baseline, identity, "2025")
     soma_resolver = sum(float(resolver_saldo(dv, "2025").valor) for dv in baseline["dividas"])
     analise = EndividamentoAnalyzer().analyze(
-        {"bruto": 1755901.96, "dividas": titular_div + conjuge_div},
+        {"bruto": 1000000.0, "dividas": titular_div + conjuge_div},
         [],
         dividas_baseline=baseline["dividas"],
         ano_ref="2025",
@@ -150,7 +150,7 @@ def test_o_filtro_de_ano_e_load_bearing(baseline, identity):
     ano_aberto = str(ultimo_ano_31_12_fechado() + 1)
     com_eixo_certo, _ = pr._split_imoveis(baseline, identity, "2025")
     com_eixo_aberto, _ = pr._split_imoveis(baseline, identity, ano_aberto)
-    assert sum(i["valor_31_12_ano_base"] for i in com_eixo_certo) == pytest.approx(1639527.70)
+    assert sum(i["valor_31_12_ano_base"] for i in com_eixo_certo) == pytest.approx(900000.0)
     assert (
         sum(i["valor_31_12_ano_base"] for i in com_eixo_aberto) == 0.0
     ), "sem o filtro de ano o imóvel não zera — fixture inerte"
@@ -190,7 +190,7 @@ def test_saldo_ilegivel_nao_conta_como_apurado():
 
 def test_tripwire_reprova_total_zero_com_itens(identity):
     """Critério 4 — contradição interna não chega a publicar."""
-    dividas = [{"proprietario": TITULAR, "saldo_31_12": {"2025": 205381.88}}]
+    dividas = [{"proprietario": TITULAR, "saldo_31_12": {"2025": 180000.0}}]
     with pytest.raises(TotalDividasContraditorioError):
         EndividamentoAnalyzer().analyze(
             {"bruto": 1000000.0, "dividas": 0.0},

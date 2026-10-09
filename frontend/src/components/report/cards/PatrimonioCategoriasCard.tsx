@@ -1,10 +1,12 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import {
   visibleCompositionRows,
   type VisibleCompositionRow,
 } from "../utils/visibleCompositionRows";
-import type { PatrimonioData } from "@/types/report-analysis";
+import type { MotivoBaldeImovel, PatrimonioData } from "@/types/report-analysis";
 
 interface PatrimonioCategoriasCardProps {
   patrimonio: PatrimonioData | undefined;
@@ -20,7 +22,7 @@ function ValorCell({ row }: { row: VisibleCompositionRow }) {
     return (
       <>
         <span aria-hidden="true">—</span>
-        <span className="sr-only">Sem fonte apurada</span>
+        <span className="sr-only">{row.motivo ? "Não apurada" : "Sem fonte apurada"}</span>
       </>
     );
   }
@@ -31,6 +33,43 @@ function ValorCell({ row }: { row: VisibleCompositionRow }) {
       <MonetaryValue value={row.valor} />
       {row.state === "negativo" ? <span aria-hidden="true">&nbsp;*</span> : null}
     </>
+  );
+}
+
+const MARCAR_RESIDENCIA = (
+  <Link
+    href="/config?tab=members"
+    style={{ color: "var(--brand-primary)", textDecoration: "underline" }}
+  >
+    Marcar residência
+  </Link>
+);
+
+/** ADR-439 D2 — a nota diz a direção do erro e a ação; `nao_localizada` não tem CTA,
+ *  porque o override já existe e sem `property_id` não haveria onde regravá-lo. */
+function notaDaResidencia(motivo: MotivoBaldeImovel): ReactNode {
+  if (motivo === "nao_localizada") {
+    return "Residência: não localizamos o imóvel que vocês marcaram; o valor dele pode estar somado em Outros imóveis.";
+  }
+  if (motivo === "sem_valor") {
+    return "Residência: o imóvel que vocês marcaram está na declaração sem valor apurado em 31/12.";
+  }
+  return (
+    <>
+      Residência: vocês ainda não indicaram qual imóvel é; até lá, todos contam em Outros
+      imóveis · {MARCAR_RESIDENCIA}
+    </>
+  );
+}
+
+function NotaResidencia({ motivo }: { motivo: MotivoBaldeImovel }) {
+  return (
+    <p
+      className="mt-1 text-xs text-[var(--surface-muted-foreground)]"
+      data-testid="nota-residencia-nao-apurada"
+    >
+      — {notaDaResidencia(motivo)}
+    </p>
   );
 }
 
@@ -45,7 +84,8 @@ export function PatrimonioCategoriasCard({
   const rows = visibleCompositionRows(patrimonio);
   const total = patrimonio?.bruto ?? 0;
   const hasNegativo = rows.some((row) => row.state === "negativo");
-  const hasNaoApurado = rows.some((row) => row.state === "nao_apurado");
+  const hasNaoApurado = rows.some((row) => row.state === "nao_apurado" && !row.motivo);
+  const motivoResidencia = rows.find((row) => row.state === "nao_apurado" && row.motivo)?.motivo;
 
   if (rows.length === 0) {
     return (
@@ -104,6 +144,7 @@ export function PatrimonioCategoriasCard({
           {hasNaoApurado ? "— Sem fonte apurada para esta categoria." : null}
         </p>
       ) : null}
+      {motivoResidencia ? <NotaResidencia motivo={motivoResidencia} /> : null}
     </ReportCard>
   );
 }

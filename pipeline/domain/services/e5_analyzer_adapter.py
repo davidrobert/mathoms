@@ -129,6 +129,7 @@ from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesAnalyzer,
     InvestimentosClassesConfig,
 )
+from pipeline.domain.services.investimentos_cobertura import CoberturaStatus
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer, partition_irpf_payloads
 from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
 from pipeline.domain.services.orcamento_calculator import (
@@ -426,6 +427,7 @@ class E5AnalyzerAdapter:
         cambio_observed_at: dict[str, str] | None = None,
         property_classification_overrides: dict[str, str] | None = None,
         imoveis_no_if: bool = True,
+        residencia_status: str | None = None,
         seguradoras_catalog: Mapping[str, str] | None = None,
         protection_bundle: ProtectionBundle | None = None,
         cnpj_raiz_to_code: Mapping[str, tuple[str, ...]] | None = None,
@@ -459,6 +461,7 @@ class E5AnalyzerAdapter:
             members=identity,
             property_classification_overrides=overrides,
             include_real_estate_in_if=imoveis_no_if,
+            residencia_status=residencia_status,
         )
         reserva_cfg = ReservaEmergenciaConfig.from_scoring_json(scoring or {}, identity)
         score_cfg = FinancialScoreConfig.from_scoring_json(scoring or {})
@@ -1220,6 +1223,14 @@ def _monte_carlo_config(
 _HAIRCUT_ALUGUEL_BRUTO_PARA_LIQUIDO = 1.0 - (0.275 + 0.15 + 0.01)
 
 
+# Gerador não apurado não é "sem gerador": com o toggle desligado o termo sai `None`,
+# que o contrato já lê como não medido, e a meta segue a bruta ([[ADR-439]] D6).
+# Payload legado sem o bloco ([[ADR-439]] D1) segue o comportamento anterior.
+def _geradores_apurados(patrimonio: dict) -> bool:
+    bloco = (patrimonio.get("cobertura_classificacao_imovel") or {}).get("imoveis_geradores") or {}
+    return bloco.get("status") != CoberturaStatus.nao_apurado.value
+
+
 # [[ADR-418]] §D2 — o termo que a meta desconta: renda passiva de ativo que o numerador
 # NÃO conta. Hoje o único eixo de exclusão é ``imoveis_no_if``; eixo novo entra AQUI, e
 # eixo que não passe por aqui reabre a dupla-penalidade.
@@ -1238,7 +1249,7 @@ def _renda_passiva_fora_do_investivel(
     if passive_income is None or passive_income.status != "ok":
         return None
     imoveis_no_if = patrimonio_full.get("imoveis_no_if")
-    if imoveis_no_if is None:
+    if imoveis_no_if is None or not (imoveis_no_if or _geradores_apurados(patrimonio_full)):
         return None
     if bool(imoveis_no_if):
         return RendaPassivaFora(0.0, OrigemRendaFora.cat2_no_numerador)

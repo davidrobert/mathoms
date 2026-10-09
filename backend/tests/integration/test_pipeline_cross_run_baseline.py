@@ -52,9 +52,9 @@ _RICH_BASELINE = {
     ],
     "veiculos_consolidados": [
         {
-            "descricao": "FIAT TORO",
+            "descricao": "PICAPE EXEMPLO",
             "proprietario": "david",
-            "valores_31_12": {"2024": 191354.0},
+            "valores_31_12": {"2024": 150000.0},
             "tipo": "veiculo",
         },
     ],

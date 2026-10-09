@@ -35,7 +35,7 @@ O card `posicao_informe_31_12` (S1) mistura 6 linhas de informe 31/12/2025 com
 10 linhas de extrato com saldo **atual** (até 2026-08-11) sob o header "Valor
 em 31/12" ([PosicaoInformeCard.tsx:86](../../../../frontend/src/components/report/cards/PosicaoInformeCard.tsx)).
 A mesma conta aparece 2× sem vínculo (Itaú CC informe R$ 0,00 + extrato
-R$ 5.156,06; Wise BRL idem). A regra "informe vence extrato D+1"
+com saldo positivo; Wise BRL idem). A regra "informe vence extrato D+1"
 ([[ADR-238]] D5) é letra morta: a janela roda sobre o **último** extrato da
 conta e nunca dispara em workspace com extratos correntes.
 

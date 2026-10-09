@@ -1,0 +1,23 @@
+# Build context = ./frontend-ops, então o .dockerignore da raiz NÃO se aplica.
+# Sem este arquivo o `COPY . .` do builder sobrescreve o node_modules do `npm ci`
+# pelo do host (binários nativos darwin numa imagem linux/musl) e leva o
+# `.env.local` do dev para a camada do builder.
+
+node_modules
+.next
+out
+build
+.env*
+next-env.d.ts
+*.tsbuildinfo
+
+tests
+playwright-report
+test-results
+
+*.log
+npm-debug.log*
+.DS_Store
+
+Dockerfile
+.dockerignore

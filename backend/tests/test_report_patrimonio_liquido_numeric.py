@@ -33,10 +33,10 @@ async def test_patrimonio_liquido_persiste_decimal_exato(db):
 
 def test_denorm_from_analysis_extrai_score_e_patrimonio():
     score, pl = Report.denorm_from_analysis(
-        {"score": {"valor": 6.3}, "patrimonio": {"liquido": 3395285.46}}
+        {"score": {"valor": 6.3}, "patrimonio": {"liquido": 3000000.00}}
     )
     assert score == 6.3
-    assert pl == Decimal("3395285.46")
+    assert pl == Decimal("3000000.00")
     assert isinstance(pl, Decimal)
 
 

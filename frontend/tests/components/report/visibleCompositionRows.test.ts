@@ -96,6 +96,34 @@ describe("visibleCompositionRows — provas por mutação", () => {
   });
 });
 
+describe("visibleCompositionRows — residência não apurada (ADR-439 D5)", () => {
+  it("zero declarado `nao_apurado` NÃO some: vira linha `nao_apurado`, fora do donut", () => {
+    const rows = visibleCompositionRows(
+      patrimonio([
+        {
+          categoria: CATEGORIA_RESIDENCIA_LABEL,
+          valor: 0,
+          pct: 0,
+          estado: "nao_apurado",
+          motivo: "nao_localizada",
+        } as never,
+        POSITIVO,
+      ]),
+    );
+
+    expect(rows.map((r) => r.state)).toEqual(["nao_apurado", "apurado"]);
+    expect(donutSlices(rows).map((s) => s.label)).toEqual(["Veículos"]);
+  });
+
+  it("zero de quem aluga (sem estado) segue escondido — ADR-215 P5", () => {
+    const rows = visibleCompositionRows(
+      patrimonio([{ categoria: CATEGORIA_RESIDENCIA_LABEL, valor: 0, pct: 0 }, POSITIVO]),
+    );
+
+    expect(rows.map((r) => r.categoria)).toEqual(["Veículos"]);
+  });
+});
+
 describe("visibleCompositionRows — fallbacks de leitura", () => {
   it("cai em tabela_categorias quando composicao falta", () => {
     const data = { tabela_categorias: [POSITIVO] } as PatrimonioData;

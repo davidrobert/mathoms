@@ -36,15 +36,22 @@ export interface DonutSlice {
 export const CATEGORIA_RESIDENCIA_LABEL = "Residência";
 
 /** Zero da residência não vira linha nenhuma (ADR-215 P5) — os demais zeros
- *  viram estado, porque some-los foi o que produziu o desacordo do RV6-23. */
+ *  viram estado, porque some-los foi o que produziu o desacordo do RV6-23.
+ *  ADR-439 D5: o zero que o produtor declara `nao_apurado` NÃO é o de quem aluga —
+ *  escondê-lo era publicar "não tem casa" em silêncio. */
 function isHiddenResidenciaZero(row: PatrimonioCategoria): boolean {
-  return row.categoria === CATEGORIA_RESIDENCIA_LABEL && row.valor === 0;
+  return (
+    row.categoria === CATEGORIA_RESIDENCIA_LABEL &&
+    row.valor === 0 &&
+    row.estado !== "nao_apurado"
+  );
 }
 
 /** `hasCoverage` chega da `cobertura_investimentos[]` (A40.l69). Enquanto ela
  *  não existe no payload, todo zero é `nao_apurado`: afirmar `zero_apurado` sem
  *  fonte é exatamente a afirmação falsa do RV6-04. */
 function classify(row: PatrimonioCategoria, hasCoverage: boolean): CompositionRowState {
+  if (row.estado === "nao_apurado") return "nao_apurado";
   if (row.valor < 0) return "negativo";
   if (row.valor > 0) return "apurado";
   return hasCoverage ? "zero_apurado" : "nao_apurado";
