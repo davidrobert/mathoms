@@ -11,6 +11,8 @@ function metrica(over: Partial<Metrica> = {}): Metrica {
     valor_atual: "1,7%",
     target: null,
     target_motivo: "rentabilidade observada não tem alvo canônico",
+    comparador: null,
+    nivel_confianca: null,
     frequencia_revisao: "trimestral",
     section_id: "S7",
     tema_canonico: "Renda passiva",
@@ -43,7 +45,7 @@ describe("ParecerMetricasTable — KPI sem alvo canônico", () => {
 
     // `—` sozinho é o único portador de significado e some para o SR (1.3.1).
     expect(container.querySelector("progress")).toBeNull();
-    expect(screen.getByText("Sem trilha")).toBeInTheDocument();
+    expect(screen.getByText("Sem comparação publicada")).toBeInTheDocument();
     expect(container.querySelector('tr[data-alvo="ausente"]')).not.toBeNull();
   });
 

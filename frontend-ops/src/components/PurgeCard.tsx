@@ -117,7 +117,7 @@ export function PurgeCard<T extends PurgePreviewBase>({
   return (
     <div className="space-y-4">
       {flash && (
-        <div className="rounded-md border border-semantic-gain/30 bg-semantic-gain/10 text-semantic-gain text-sm px-3 py-2">
+        <div className="rounded-md border border-semantic-gain/30 bg-semantic-gain/10 text-semantic-gain-on-tint text-sm px-3 py-2">
           {flash}
         </div>
       )}

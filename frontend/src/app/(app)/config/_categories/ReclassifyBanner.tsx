@@ -41,7 +41,7 @@ export function ReclassifyBanner({
             </p>
           )}
           {status === "conflict" && (
-            <p className="mt-1 text-xs text-alert">
+            <p className="mt-1 text-xs text-alert-on-tint">
               Já há um reprocessamento em andamento.{" "}
               <Link href="/pipeline" className="underline">Ver progresso.</Link>
             </p>

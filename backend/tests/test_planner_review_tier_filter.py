@@ -317,3 +317,96 @@ def test_chave_ausente_no_artefato_nao_derruba_a_rota():
     content, _ = apply_tier_filter(artifact=_artifact_com_metrica(dump), tier="premium")
 
     assert content.metricas[0].target is None
+
+
+# ---------------------------------------------------------------------------
+# A40.l92 — o veredito viaja como dado; a leitura só subtrai
+# ---------------------------------------------------------------------------
+
+_TETO_VIOLADO = {"operador": "<=", "conforme": False}
+
+
+def _carimbada(**extra) -> dict:
+    return {
+        **_metrica(),
+        "metrica_key": "taxa_endividamento",
+        "target": "≤ 20,0%",
+        "valor_atual": "45,0%",
+        **extra,
+    }
+
+
+def test_veredito_carimbado_chega_ao_dto():
+    content, _ = apply_tier_filter(
+        artifact=_artifact_com_metrica(_carimbada(comparador=_TETO_VIOLADO)), tier="premium"
+    )
+
+    comparador = content.metricas[0].comparador
+    assert (comparador.operador, comparador.conforme, comparador.progresso_pct) == (
+        "<=",
+        False,
+        None,
+    )
+
+
+def test_parecer_anterior_ao_campo_perde_a_situacao_e_nao_ganha_uma():
+    """Era 1.1 (`metrica_key` + `target`, sem `comparador`): nada é recalculado na leitura."""
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(_carimbada()), tier="premium")
+
+    assert content.metricas[0].comparador is None
+    assert content.metricas[0].target == "≤ 20,0%", "o alvo carimbado segue servido"
+
+
+def test_veredito_sem_alvo_publicado_nao_e_servido():
+    orfa = _carimbada(target=None, comparador=_TETO_VIOLADO)
+
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(orfa), tier="premium")
+
+    assert content.metricas[0].comparador is None
+
+
+def test_veredito_em_artefato_legado_nao_e_servido():
+    legado = {**_metrica(), "comparador": _TETO_VIOLADO, "nivel_confianca": "parcial"}
+
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(legado), tier="premium")
+
+    assert content.metricas[0].comparador is None
+    assert content.metricas[0].nivel_confianca is None
+
+
+@pytest.mark.parametrize(
+    "malformado",
+    [
+        {"operador": ">", "conforme": True},
+        {"operador": "<=", "conforme": False, "progresso_pct": 140},
+        {"operador": "<=", "conforme": "talvez"},
+        {"operador": "<=", "conforme": False, "extra": 1},
+        # Forma incoerente: o front desenha barra quando há progresso, então teto com
+        # progresso persistido viraria trilha; 100 sem conforme seria barra cheia mentindo.
+        {"operador": "<=", "conforme": False, "progresso_pct": 50},
+        {"operador": ">=", "conforme": False, "progresso_pct": 100},
+    ],
+)
+def test_veredito_malformado_vira_ausencia_nunca_500(malformado):
+    content, _ = apply_tier_filter(
+        artifact=_artifact_com_metrica(_carimbada(comparador=malformado)), tier="premium"
+    )
+
+    assert content.metricas[0].comparador is None
+
+
+@pytest.mark.parametrize(
+    "nivel,servido",
+    [("parcial", "parcial"), ("otimo", None), (None, None), (["parcial"], None), ({"a": 1}, None)],
+)
+def test_nivel_do_produtor_so_e_servido_no_vocabulario(nivel, servido):
+    despesas = {
+        **_metrica(),
+        "metrica_key": "despesas_nao_categorizadas",
+        "target": None,
+        "nivel_confianca": nivel,
+    }
+
+    content, _ = apply_tier_filter(artifact=_artifact_com_metrica(despesas), tier="premium")
+
+    assert content.metricas[0].nivel_confianca == servido

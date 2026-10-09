@@ -4,7 +4,7 @@ type: plan
 title: "CI Trust — o veredito do CI precisa ser confiável nos dois sentidos"
 status: in_progress
 created_at: "2026-08-25"
-last_review: "2026-08-25"
+last_review: "2026-10-09"
 sprint_origem: A40
 sprint_atual: A40
 sprints_envolvidas: [A40]
@@ -113,6 +113,7 @@ no *momento do merge* é outro instrumento (item 0.2).
 | **KR-F** | 9/9 workflows do manifesto com canal de falha declarado em `alerts:` | Provado por falha forçada que abre Issue (hoje 2/9; em 08-17 o `auto-update-prs` falhou 10× em ~5h e nada percebeu) |
 | **KR-G** | Gate que depende de produtor externo hard-falha quando o produtor não rodou | Mutação: remover o produtor ⇒ exit ≠ 0 (`lineage-eval` é o caso nomeado) |
 | **KR-H** | Mediana open→merge não regride (12 min) | Cada gate novo declara o custo em minutos de mediana antes de entrar |
+| **KR-I** | Em 90d a partir do flip para o App: 0 h de fila parada por credencial expirada ou revogada **e** 0 credencial de longa duração no caminho de merge (baseline 2026-10-09: 1 — o `AUTOUPDATE_PAT`, que parou o trem a partir de 2026-10-07) | Mede o resultado, não "App instalado": KR-B não piora, KR-H não regride, e o App não aparece em `bypass_actors` |
 
 ## Mapa deferimento → item (a fonte é a ADR; o plano carrega predicado+dono+verificação)
 
@@ -122,12 +123,13 @@ no *momento do merge* é outro instrumento (item 0.2).
 | 0.2 | Todo SHA que entra em `main` tem veredito registrado (ausente/failure/bypass ⇒ Issue classificada); sweep diário de rule-suites (`time_period=week`, paginado) + diff de `rulesets/{id}/history`; **backfill dos 64** | **ADR nova `Proposto`** (política de merge-protection — o Ruleset não tem ADR hoje) | idem — PR do detector |
 | 0.3 | `allowed_merge_methods = ["squash"]`; bypass vira **uso sancionado nomeado** (é o rollback de mudança que brique `all-green`); condição de re-decisão para admin novo | idem ADR nova | idem |
 | 0.4 | Workflows LLM sem secret deixam de contar como cobertura: waiver datado nas 2 entradas do manifesto (3 linhas, sem janela de workflow) | classe "teste que se auto-pula não é gate" | idem (manifesto não starva o trem) |
-| 1.1 | S1/S2/S3 fora do required; gate de PR = sinais offline + **heartbeat-Issue durável** (existe + `updatedAt` ≤ máx + `violations: 0` + `checked: M/M`); 5 modos residuais R1–R5 declarados; pré-vencimento de PAT/waiver no corpo (warning ≤14d) | [[ADR-210]] §Adendo 2026-08-21b — endgame retomado; entrada `ops-watchdog` original **superada** (Issue que nunca fecha é incompatível com `max_issue_age_days: 3`; fechar por supersedure, precedente §21c) | [TRACK-ci-trust-onda1-workflows](tracks/ci-trust-onda1-workflows.md) — PR 3 da leva, com emenda datada da ADR-210 |
+| 1.1 | S1/S2/S3 fora do required; gate de PR = sinais offline + **heartbeat-Issue durável** (existe + `updatedAt` ≤ máx + `violations: 0` + `checked: M/M`); 5 modos residuais R1–R5 declarados; pré-vencimento de PAT/waiver no corpo (warning ≤14d) — *nota 2026-10-09: a parte do PAT sai do heartbeat. O #2050 (aberto, auto-merge ligado) entrega o aviso T-14 (`ops-pat-expiry`), que passa a ser o único instrumento desse fato até a revogação do PAT no item 2.5* | [[ADR-210]] §Adendo 2026-08-21b — endgame retomado; entrada `ops-watchdog` original **superada** (Issue que nunca fecha é incompatível com `max_issue_age_days: 3`; fechar por supersedure, precedente §21c) | [TRACK-ci-trust-onda1-workflows](tracks/ci-trust-onda1-workflows.md) — PR 3 da leva, com emenda datada da ADR-210 |
 | 1.2 | Falha de compensador abre Issue (9/9) | [[ADR-210]] §Adendo 2026-08-21c §Deferido ("próxima leva que tocar `.github/workflows/**`") | idem — PR 2 |
 | 1.3 | Timeouts declarados (go-lint/go-test/all-green); concurrency do nightly não deixa cron pesado cancelar main-smoke; comentários de custo re-medidos; teto do pipeline-tests re-baseado (mediana 3m15s = 65% do teto); legenda do budget-alert | [[ADR-210]] §Follow-ups 21b/21c | idem — PR 1 (inertes) |
 | 1.4 | Nightly religado **por job** (main-smoke → 7 verdes → lineage-eval → pesados) e waiver **removido** (não renovado) | religar tudo de uma vez reativa o gate fail-open do lineage-eval — loop de 06-15, reincidente #638/#647 | idem + ação owner |
 | 1.5 | `security-green` agregador (`if: always()`, espelho do all-green) required no Ruleset; `security` `max_issue_age_days` 21→7 | fecha a exposição de 28d; o cabeçalho do security.yml passa a ser verdade em vez de ser corrigido para menos | idem |
 | 2.x | ver §Onda 2 | — | lanes `planned`; promoção por consumidor datado |
+| 2.5 | Trem e watchdog sob identidade de GitHub App (token de 1h, sem papel Admin, fora de `bypass_actors`), com a chave num Environment que só `main` alcança; `AUTOUPDATE_PAT` revogado depois de 14 dias seguidos verdes | [[ADR-322]] D2 + §Emenda 2026-10-08 (PR #2050): deferimento datado, 2026-12-07. Sem ADR nova — o desenho de implementação mora no track | [TRACK-ci-trust-github-app](tracks/ci-trust-github-app.md) |
 
 ## Onda 0 — registro e válvula ✅ **FECHADA em 2026-08-25** (PRs #1723 + #1729)
 
@@ -221,7 +223,10 @@ da [[ADR-210]] que acompanha o PR:
 
 - Cron mantém **uma** Issue `ops-watchdog` que nunca fecha; corpo
   máquina-legível: `violations`, `checked: M/N`, idade da violação mais
-  antiga, pré-vencimentos (PAT, waivers).
+  antiga, pré-vencimentos (PAT, waivers). *Nota 2026-10-09: o PAT sai
+  deste corpo. O aviso T-14 do #2050 (`ops-pat-expiry`) é o único
+  instrumento do vencimento dele e se aposenta junto com o PAT no item 2.5;
+  aqui ficam só os waivers.*
 - Gate de PR faz **1 chamada** (endpoint de Issues — fora do índice de runs,
   onde moram as leituras obsoletas) e reprova se: Issue ausente (fail-closed),
   `updatedAt` > máx, `violations > 0` ou `checked < N`.
@@ -242,12 +247,13 @@ de latência (KR-H); decidir à parte, provavelmente gate por label/path.
 
 | Item | P | O quê |
 |---|---|---|
-| 2.0 **gate de decisão: Organization + merge queue** | P0 da onda | ADR `Proposto` owner-gated (desenho `senior-cto`+`sre-devops`). Público **não basta** — merge queue exige org. Decisão até ~2026-09-20 amarra a rotação do PAT (org ⇒ PAT morre; senão rotacionar até 10-05). Princípio até lá: **nada de payback longo dentro do trem** (GitHub App, features de trem); investir só no que sobrevive (detector, canais de falha, heartbeat, manifesto, auditoria) |
+| 2.0 **gate de decisão: Organization + merge queue** | P0 da onda | ADR `Proposto` owner-gated (desenho `senior-cto`+`sre-devops`). Público **não basta** — merge queue exige org. Decisão até ~2026-09-20 amarra a rotação do PAT (org ⇒ PAT morre; senão rotacionar até 10-05). Princípio até lá: **nada de payback longo dentro do trem** (GitHub App, features de trem); investir só no que sobrevive (detector, canais de falha, heartbeat, manifesto, auditoria). **Nota 2026-10-09:** a data passou sem decisão, e a rotação até 10-05 também não aconteceu: o PAT venceu em 10-07 (§Datas duras). O GitHub App saiu do "payback longo" (§Cortados, nota de mesma data) e segue **independente** desta decisão, como item 2.5: o custo é 1 PR de workflows + spike + 1 PR de limpeza, com 14 dias de janela entre o flip e a revogação, sem ADR nova. **Cláusula de cancelamento:** se 2.0 sair `sim` **com data de migração** antes de o PR de workflows do item 2.5 mergear, o item 2.5 é cancelado; `sim` sem data não cancela |
 | 2.1 **fechar a corrida do `update-branch`** | **P0** | **Observada em produção 2026-08-25**, não é mais risco teórico: o merge do #1723 entrou `absent` porque o trem trocou o head 19s antes e o auto-merge não esperou o run novo virar *pending required*. O trem precisa esperar esse estado, ou desarmar/re-armar o auto-merge em volta do `update-branch`. Custo a declarar: latência na fila (KR-H). Sobrevive à decisão 2.0 apenas se ela for "não" — merge queue nativo dissolve a classe |
 | 2.1b starvation por classificação de run | P1 | Só se 2.0 = não. `required_workflow_failed` por JOB; watchdog com `gh run rerun --failed` capado |
 | 2.2 índices `_generated` no CI | — | **Não decidir ainda**, mas o backfill (2026-08-25) já estreitou: dos 64 bypasses, **7 entraram com o required check VERMELHO** (#1399, #1453, #1459, #1494, #1505, #1508, #1701) e 46 com ele concluindo depois do merge. Há material suficiente para explicar `main` vermelha sem invocar "gates não compõem". Falta cruzar com as 3 medições falhas; depois disso, se sobrar drift, rotear a `information-architect` |
 | 2.3 hooks diff-based inertes no CI | P1 | float-money per-line etc. sob `--all-files` — step `--commit-range` (padrão golden-rebaseline-isolation) + inventário da classe |
 | 2.4 ligar `vars.CI_SKIP_DOCS_ONLY` | P2 | Dependência DURA de 1.4 (≥7 main-smoke verdes; [[ADR-322]] §Emenda 2026-08-21 item 4 — a trava é protocolo, nada a enforça); predicado no runbook; aceite: hit rate medido + 0 skips com predicado 5 sobre SHA não-success |
+| 2.5 **identidade do trem: `AUTOUPDATE_PAT` → GitHub App** | P1 (P0 nos gatilhos do track) | **Exceção ao predicado da onda (2026-10-09):** não espera evidência da Onda 1 — o vencimento de 10-07 é a evidência; o prazo é absoluto. Executa a [[ADR-322]] D2 com o prazo da §Emenda 2026-10-08 (PR #2050): **track consumido até 2026-12-07**, com flip para o App até 2026-11-20 (14 dias verdes antes de revogar o PAT). App não-admin e fora de `bypass_actors`; chave no Environment `automerge-train` (só `main`); troca explícita por `vars.TRAIN_IDENTITY`, sem fallback. Spike obrigatório: update-branch pelo App não pode nascer `action_required` (se nascer, ADR nova). Pré-condições: PAT rotacionado, aviso do #2050 validado até 1h depois da rotação, #2050 em `main`. Independe de 2.0, salvo a cláusula de cancelamento (item 2.0, nota 2026-10-09). KR-I. Veículo: [[TRACK-ci-trust-github-app]] |
 
 **Cortados desta janela (motivo declarado):** paginação `read_open_issues`
 (guarda correta em #1625; morde só ≥100 issues, hoje ~10) · validador local de
@@ -256,12 +262,20 @@ exercitado — junto de 1.x quando o workflow ganhar vida) · recalibrar
 budget-alert (depende da §Premissa) · migrar PAT→GitHub App (payback morto se
 2.0 = sim).
 
+> **Nota 2026-10-09 — o corte "migrar PAT→GitHub App" caducou.** O
+> vencimento do PAT em 10-07 é a evidência que faltava: o App virou o item
+> 2.5 e segue independente do 2.0. Cláusula de cancelamento: se o 2.0 sair
+> `sim` **com data de migração** antes de o PR de workflows do
+> [[TRACK-ci-trust-github-app]] mergear, o track é cancelado. O texto do
+> corte acima fica como registro de 2026-08-25.
+
 ## Datas duras (espelhadas em [OWNER-GATED §0](../../_MOC/OWNER-GATED-active.md))
 
 | Data | Item | O que quebra | Mitigação no plano |
 |---|---|---|---|
-| ~2026-10-07 | AUTOUPDATE_PAT expira | Trem para **e** o kick do watchdog morre junto; `S2` fica verde (fail-open no deadline) | Pré-vencimento no heartbeat (warning ≤14d) — PR 3; decisão 2.0 até ~09-20 |
+| ~2026-10-07 | AUTOUPDATE_PAT expira | Trem para **e** o kick do watchdog morre junto; `S2` fica verde (fail-open no deadline) | Pré-vencimento no heartbeat (warning ≤14d) — PR 3; decisão 2.0 até ~09-20. **Nota 2026-10-09:** venceu em 2026-10-07 sem aviso (último run verde do `auto-update-prs` às 01:47 UTC; 1º `HTTP 401` às 02:35, no `automerge-watchdog`, e no trem às 02:46). Nem o PR 3 nem a decisão 2.0 (~09-20) saíram antes, e a rotação até 10-05 não aconteceu. A #2038 (`ops-train`) foi triada e fechada em 10-09 01:36 UTC; a falha seguinte abriu a #2083, cujo `S3` reprova o `Lint` de todo PR a partir de 2026-10-13 00:00 UTC (conta por data, idade > 3 dias). Rotação: owner-only, até 10-12, pendente ([OWNER-GATED §0](../../_MOC/OWNER-GATED-active.md)). O aviso T-14 sai do heartbeat: o #2050 (aberto, auto-merge ligado) o entrega como step do watchdog. Saída estrutural: item 2.5 |
 | 2026-10-15 | **3 waivers** vencem juntos (nightly + 2 entradas LLM) | Hard-fail em TODO merge, por desenho — 3 violações simultâneas (precedente 08-13: 7 bypasses no dia seguinte) | Onda 1 **remove** o do nightly; os 2 LLM dependem da decisão de secrets (item 1.3). Warning T-30d no heartbeat |
+| 2026-12-07 | Prazo do item 2.5 (PAT → GitHub App; [[ADR-322]] §Emenda 2026-10-08, PR #2050) | Nada quebra no dia; o que vence é a **margem**. O PAT da rotação pendente vence 90 dias depois dela, e sem o App o 10-07 se repete | Flip para o App até 2026-11-20 (14 dias de janela) — [[TRACK-ci-trust-github-app]]; aviso T-14 do #2050 como rede |
 
 ## Correções de registro produzidas por esta investigação
 

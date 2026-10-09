@@ -221,3 +221,33 @@ def test_gerador_grava_0600_e_o_canario_e_detectavel(tmp_path, monkeypatch, caps
 )
 def test_escalar_fora_do_dominio_monetario_e_ignorado(valor):
     assert gerador.centavos_do_escalar(valor) == set()
+
+
+def _pr_publicado_recebe_main_antiga(repo: Path) -> str:
+    """Branch `pr` já pushada recebe merge de uma main cujo commit antigo tem o valor."""
+    _stage(repo, "base.md", "base\n")
+    _git(repo, "commit", "-q", "-m", "base")
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _stage(repo, "pr.md", "trabalho do PR\n")
+    _git(repo, "commit", "-q", "-m", "pr")
+    pr_publicado = _git(repo, "rev-parse", "HEAD").strip()
+    _git(repo, "checkout", "-q", "-")
+    _stage(repo, "antigo.md", "medido: R$ 123.456,78\n")
+    _git(repo, "commit", "-q", "-m", "main antiga, já pública")
+    _git(repo, "update-ref", "refs/remotes/origin/main", _git(repo, "rev-parse", "HEAD").strip())
+    _git(repo, "update-ref", "refs/remotes/origin/pr", pr_publicado)
+    _git(repo, "checkout", "-q", "pr")
+    _git(repo, "merge", "-q", "--no-edit", "refs/remotes/origin/main")
+    return pr_publicado
+
+
+def test_pre_push_de_merge_da_main_nao_reescaneia_o_que_ja_e_publico(denylist, repo, monkeypatch):
+    """Com `de..para`, o merge da main numa branch já pushada reescaneava a main: um valor
+    antigo dela bloqueava o push de todo PR (2026-10-09). Commit novo segue barrado."""
+    monkeypatch.setenv("PRE_COMMIT_FROM_REF", _pr_publicado_recebe_main_antiga(repo))
+    monkeypatch.setenv("PRE_COMMIT_TO_REF", _git(repo, "rev-parse", "HEAD").strip())
+    assert gate.main(["--pre-push"]) == 0
+    _stage(repo, "novo.md", "medido: R$ 123.456,78\n")
+    _git(repo, "commit", "-q", "-m", "commit novo do PR")
+    monkeypatch.setenv("PRE_COMMIT_TO_REF", _git(repo, "rev-parse", "HEAD").strip())
+    assert gate.main(["--pre-push"]) == 1

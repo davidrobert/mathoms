@@ -43,7 +43,7 @@ export function EmptyState({
         )}
       >
         {Icon && (
-          <Icon className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
+          <Icon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
         )}
         <p className="text-sm font-medium">{title}</p>
         <p className="mt-1 text-xs text-muted-foreground">{description}</p>
@@ -80,7 +80,7 @@ export function EmptyState({
   return (
     <div className={cn("py-12 text-center", className)}>
       {Icon && (
-        <Icon className="mx-auto mb-4 h-10 w-10 text-muted-foreground/50" />
+        <Icon className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
       )}
       <h2 className="font-heading text-lg font-semibold">{title}</h2>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>

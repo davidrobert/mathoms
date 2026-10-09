@@ -51,6 +51,15 @@ def test_view_model_junto_de_producao_e_violacao():
     assert violation([_VIEW_MODEL, _PRODUCTION]) is not None
 
 
+_BASELINE_PARECER = "tests/golden_baselines/parecer_monthly_2026-10.json"
+
+
+def test_baseline_mensal_do_parecer_junto_de_producao_e_violacao():
+    """Mata: tirar `tests/golden_baselines/` de `_GOLDEN_PREFIXES`."""
+    assert is_golden(_BASELINE_PARECER)
+    assert violation([_BASELINE_PARECER, "pipeline/stages/parecer_planejador.py"]) is not None
+
+
 def test_catraca_junto_de_producao_continua_legitima():
     """O fluxo normal é corrigir o código e atualizar a catraca no MESMO commit."""
     assert violation([_CATRACA, _PRODUCTION]) is None

@@ -101,7 +101,7 @@ export function LiveStepProgress({
                   <span
                     className={
                       elapsedMs > activity.estimatedDurationMs
-                        ? "text-warning"
+                        ? "text-alert-on-tint"
                         : "text-muted-foreground"
                     }
                     title="Tempo decorrido / mediana histórica"
@@ -139,7 +139,7 @@ export function LiveStepProgress({
         <p className="mt-1 flex items-center gap-1.5 leading-snug text-muted-foreground">
           {stalled ? (
             <AlertCircle
-              className="h-3 w-3 shrink-0 text-warning"
+              className="h-3 w-3 shrink-0 text-alert-on-tint"
               aria-label="Sem sinal do servidor"
             />
           ) : (
@@ -151,7 +151,7 @@ export function LiveStepProgress({
           <span>
             {phaseLabel}
             {stalled && typeof stalledForMs === "number" && (
-              <span className="ml-1 text-warning">
+              <span className="ml-1 text-alert-on-tint">
                 — sem sinal há {formatDurationShort(stalledForMs)}
               </span>
             )}

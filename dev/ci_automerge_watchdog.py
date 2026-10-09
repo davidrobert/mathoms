@@ -20,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from dev.ci_advance_automerge_train import (  # noqa: E402
+    GhCallFailed,
     RunsFetcher,
     _gh,
     eligible_train,
@@ -232,11 +233,24 @@ def signal_stall(prs: list[dict[str, Any]], dry_run: bool) -> None:
         _close_stall_issue(issue, dry_run)
 
 
+def _list_prs_explaining_401() -> list[dict[str, Any]]:
+    """401 continua vermelho — só troca o traceback pela causa e o remédio."""
+    try:
+        return list_watchdog_prs()
+    except GhCallFailed as exc:
+        if exc.status == 401:
+            print(
+                "::error title=AUTOUPDATE_PAT inválido::HTTP 401 — PAT expirado ou "
+                f"revogado. Rotacione: {RUNBOOK} §2"
+            )
+        raise
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="só reporta, não age")
     args = parser.parse_args()
-    prs = list_watchdog_prs()
+    prs = _list_prs_explaining_401()
     reenable_stale_disabled(prs, args.dry_run)
     kick_orphans(prs, args.dry_run)
     signal_stall(prs, args.dry_run)
