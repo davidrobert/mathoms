@@ -96,7 +96,7 @@ function RentabilidadeHeroBlock({ valorPct }: { valorPct: number }) {
         TRS efetiva
       </p>
       <p className="font-mono text-4xl font-semibold tabular-nums leading-none">
-        {valorPct.toFixed(2).replace(".", ",")}%
+        {formatPercent(valorPct, 2)}
         <span className="ml-2 text-xl text-[var(--surface-muted-foreground)]">a.a.</span>
       </p>
     </div>
@@ -123,7 +123,7 @@ function RentabilidadeContextBlock({
       </p>
       {cobertura !== null ? (
         <p className="font-mono text-3xl font-semibold tabular-nums leading-none">
-          {cobertura.toFixed(1).replace(".", ",")}%
+          {formatPercent(cobertura)}
         </p>
       ) : (
         <p className="text-base text-[var(--surface-muted-foreground)]">—</p>

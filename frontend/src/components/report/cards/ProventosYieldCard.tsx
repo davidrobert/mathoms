@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNumber, formatPercent } from "@/lib/format";
 import type { ProventosAtivoData } from "@/types/report-analysis";
 import { MonetaryValue } from "../MonetaryValue";
 import { ReportCard } from "../ReportCard";
@@ -74,10 +75,6 @@ function sum(values: readonly number[]): number {
   return values.reduce((acc, v) => acc + v, 0);
 }
 
-function fmtPct(pct: number): string {
-  return `${pct.toFixed(2).replace(".", ",")}%`;
-}
-
 // ───────────────────────── Hero ─────────────────────────────────────────────
 
 function ProventosHero({ agg }: { agg: ProventosAggregate }) {
@@ -121,7 +118,7 @@ function PrimaryMetric({ agg }: { agg: ProventosAggregate }) {
           className="font-mono text-4xl font-semibold tabular-nums leading-none"
           aria-label={ariaValorAtual(agg.yieldSobreValorAtual)}
         >
-          {fmtPct(agg.yieldSobreValorAtual)}
+          {formatPercent(agg.yieldSobreValorAtual, 2)}
           <span className="ml-2 text-xl text-[var(--surface-muted-foreground)]">a.a.</span>
         </p>
         <p className="text-sm text-[var(--surface-muted-foreground)]">
@@ -151,9 +148,9 @@ function YieldSobreCusto({ pct }: { pct: number }) {
       </p>
       <p
         className="font-mono text-4xl font-semibold tabular-nums leading-none"
-        aria-label={`Yield sobre custo: ${pct.toFixed(2).replace(".", ",")} por cento, renda sobre custo de aquisição`}
+        aria-label={`Yield sobre custo: ${formatNumber(pct, 2)} por cento, renda sobre custo de aquisição`}
       >
-        {fmtPct(pct)}
+        {formatPercent(pct, 2)}
         <span className="ml-2 text-xl text-[var(--surface-muted-foreground)]">a.a.</span>
       </p>
       <p className="text-sm text-[var(--surface-muted-foreground)]">
@@ -172,14 +169,14 @@ function YieldSobreValorAtual({ pct }: { pct: number }) {
       aria-label={ariaValorAtual(pct)}
     >
       Yield sobre valor atual:{" "}
-      <span className="font-mono tabular-nums">{fmtPct(pct)}</span> — renda anual ÷ valor
+      <span className="font-mono tabular-nums">{formatPercent(pct, 2)}</span> — renda anual ÷ valor
       de mercado em 31/12
     </p>
   );
 }
 
 function ariaValorAtual(pct: number): string {
-  return `Yield sobre valor atual: ${pct.toFixed(2).replace(".", ",")} por cento, renda sobre valor de mercado em 31 de dezembro`;
+  return `Yield sobre valor atual: ${formatNumber(pct, 2)} por cento, renda sobre valor de mercado em 31 de dezembro`;
 }
 
 // ───────────────────────── Tabela por ativo ────────────────────────────────
@@ -263,9 +260,9 @@ function YieldCell({
   const rotulo = kind === "custo" ? "Yield sobre custo" : "Yield sobre valor atual";
   return (
     <span
-      aria-label={`${rotulo} de ${ticker}: ${pct.toFixed(2).replace(".", ",")} por cento, ${denominador}`}
+      aria-label={`${rotulo} de ${ticker}: ${formatNumber(pct, 2)} por cento, ${denominador}`}
     >
-      {fmtPct(pct)}
+      {formatPercent(pct, 2)}
     </span>
   );
 }
