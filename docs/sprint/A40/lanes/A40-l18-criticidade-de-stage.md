@@ -185,6 +185,12 @@ Painel de 4 especialistas sobre 3 lacunas que uma recon adversarial expôs
    — precedente `summary["redelivered"]`). Nunca re-derivado por match de string
    sobre a mensagem: isso seria classificação fabricada.
    É **descritivo, nunca dispositivo** — ver [[ADR-357]] §2.
+
+   > **Nota 2026-10-09 — [[ADR-447]].** Este item descrevia o desenho, não o que
+   > shipou: até o #2164 o `except` do parecer (`_call_llm_safe`) achatava a exceção
+   > no rótulo `"LLM call failed: <tipo>"`, e a falha de LLM do parecer gravava
+   > `reason_class: unknown`. A classe passou a sair do objeto ali em 2026-10-09.
+
 2. **A disposição é cega à forma da não-entrega.** As duas rotas do loop —
    `result is None` (exceção após retries) e `result.success is False` — mapeiam
    ambas para `degraded` quando `criticality=degradable`. **`result.error` é
