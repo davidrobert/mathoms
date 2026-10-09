@@ -314,3 +314,12 @@ updates:
     groups:
       actions-patch-and-minor:
         update-types: ["patch", "minor"]
+      # Major de actions/* sai num PR só, como o #2084: com PR por major, 9
+      # majors pendentes ocupavam o limite de 5 e as de terceiro ficavam sem
+      # vaga. Terceiros seguem individuais, porque cada um pede leitura de
+      # breaking change e update do registro (ADR-320). Major que quebrar no
+      # grupo sai por `ignore:` aqui, com motivo e data, e não por
+      # `@dependabot ignore`, que guarda a supressão fora do git.
+      actions-first-party-major:
+        patterns: ["actions/*"]
+        update-types: ["major"]
