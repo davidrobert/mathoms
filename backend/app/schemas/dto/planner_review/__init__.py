@@ -1,6 +1,7 @@
 """DTOs do aggregate ``PlannerReview`` (ADR-199 / ADR-208)."""
 
 from backend.app.schemas.dto.planner_review.response import (
+    ComparadorDTO,
     Confianca,
     FrequenciaRevisao,
     GatedCounts,
@@ -25,6 +26,7 @@ from backend.app.schemas.dto.planner_review.response import (
 )
 
 __all__ = [
+    "ComparadorDTO",
     "Confianca",
     "FrequenciaRevisao",
     "GatedCounts",

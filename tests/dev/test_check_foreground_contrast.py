@@ -2,7 +2,9 @@
 
 Trava: (a) o repo real passa; (b) o fundo declarado na linha manda sobre o
 neutro presumido; (c) alpha no foreground entra no cálculo; (d) alias resolve na
-mensagem; (e) isenção stale falha em vez de silenciar.
+mensagem; (e) isenção stale falha em vez de silenciar; (f) a utility nomeada do
+`@theme` (`text-surface-muted-fg/60`) é medida, no `frontend/` e no
+`frontend-ops/` — no console ela reprovou a 2,77:1 sem gate que visse (#2082).
 
 O item (b) é o que separa este gate de uma proibição de token: texto branco
 sobre botão sólido é correto e mediria 1,00:1 contra o card. Sem ler o fundo da
@@ -12,6 +14,7 @@ própria linha, o gate reprovaria o call-site certo e ensinaria a ignorá-lo.
 from __future__ import annotations
 
 import importlib.util
+import shutil
 import sys
 from pathlib import Path
 
@@ -77,13 +80,15 @@ def test_sugestao_de_alpha_aponta_o_modificador() -> None:
 
 def test_isencao_stale_falha(monkeypatch: pytest.MonkeyPatch) -> None:
     """Isenção que sobrevive ao próprio motivo é fail-open."""
-    monkeypatch.setattr(
-        cfc,
-        "FUNDO_NAO_NEUTRO",
-        [("components/report/ReportSourceStrip.tsx", "semantic-gain", "motivo inventado")],
-    )
+    rel = "frontend/src/components/report/ReportSourceStrip.tsx"
+    vivo = cfc.Uso(f"{rel}:12", "surface-border", None, None)
+    monkeypatch.setattr(cfc, "LIMIAR_ICONE", [])
+    monkeypatch.setattr(cfc, "FUNDO_NO_PAI", [])
+    monkeypatch.setattr(cfc, "FUNDO_NAO_NEUTRO", [(rel, "semantic-gain", "motivo inventado")])
     with pytest.raises(SystemExit, match="stale"):
-        cfc._checa_isencoes_stale()
+        cfc._checa_isencoes_stale([vivo])
+    monkeypatch.setattr(cfc, "FUNDO_NAO_NEUTRO", [(rel, "surface-border", "separador")])
+    cfc._checa_isencoes_stale([vivo])
 
 
 def test_bg_tintado_nao_conta_como_fundo_solido() -> None:
@@ -119,3 +124,75 @@ def test_style_sem_background_cai_nos_neutros() -> None:
     (uso,) = cfc._usos_style("x.tsx", linhas, 0)
     assert uso.fundo is None
     assert cfc._pior_contra(uso, TOKENS)[0] < 4.5
+
+
+UTILS = {
+    "surface-muted-fg": "surface-muted-foreground",
+    "brand-primary": "brand-primary",
+    "brand-primary-fg": "brand-primary-foreground",
+}
+
+
+def test_utility_nomeada_com_alpha_e_medida() -> None:
+    """A forma que o Tailwind v3 do console compilava para nada e o v4 renderiza."""
+    (uso,) = cfc._usos_className(
+        "x.tsx:1", '<span className="italic text-surface-muted-fg/60">', UTILS
+    )
+    assert (uso.token, uso.alpha, uso.fundo) == ("surface-muted-foreground", 60, None)
+    assert cfc._pior_contra(uso, TOKENS)[0] < 4.5
+
+
+def test_bg_nomeado_solido_e_fundo_e_variante_nao_e() -> None:
+    """`hover:bg-X` não é o fundo do texto em repouso: medir só contra ele
+    aprovaria o estado que mais se vê."""
+    (botao,) = cfc._usos_className("x.tsx:1", "bg-brand-primary text-brand-primary-fg", UTILS)
+    assert botao.fundo == "brand-primary"
+    (hover,) = cfc._usos_className("x.tsx:1", "hover:bg-brand-primary text-brand-primary-fg", UTILS)
+    assert hover.fundo is None
+
+
+def test_fundo_no_pai_mede_contra_o_fundo_declarado() -> None:
+    """Texto claro de tooltip escuro: isento seria cego; contra o card, 1,00:1."""
+    rel = cfc.FUNDO_NO_PAI[0][0]
+    uso = cfc.Uso(f"{rel}:1", "surface-background", 80, None)
+    tokens = {
+        "light": {
+            "surface-background": "#F8FAFC",
+            "surface-foreground": "#0F172A",
+            "surface-card": "#FFFFFF",
+            "surface-muted": "#F1F5F9",
+        }
+    }
+    assert cfc._falhas([uso], tokens) == ([], 1)
+    assert cfc._falhas([uso._replace(where="outro.tsx:1")], tokens)[0]
+
+
+def _ops_em(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Cópia do frontend-ops com os CSS REAIS dele, fora do repo."""
+    src = tmp_path / "frontend-ops" / "src"
+    for css in ("app/globals.css", "styles/tokens.css"):
+        (src / css).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(_REPO / "frontend-ops" / "src" / css, src / css)
+    monkeypatch.setattr(cfc, "ROOT", tmp_path)
+    monkeypatch.setattr(sys.modules["check_tint_contrast"], "ROOT", tmp_path)
+    return cfc.FRONTENDS[1]._replace(
+        src=src, tokens_css=src / "styles/tokens.css", theme_css=(src / "app/globals.css",)
+    )
+
+
+def _falhas_do_ops(fe, classe: str) -> list[str]:
+    (fe.src / "page.tsx").write_text(f'<span className="italic {classe}">—</span>\n')
+    themes = cfc.temas_medidos(fe)
+    return cfc._falhas(cfc._usos(fe.src, cfc.utilities(fe, themes["light"])), themes)[0]
+
+
+def test_muted_fg_60_revertido_do_2082_reprova_no_ops(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regressão do #2082 no console: o `/60` reprova (≈2,77:1 sobre muted) e a
+    forma sem modificador passa."""
+    fe = _ops_em(tmp_path, monkeypatch)
+    (falha,) = _falhas_do_ops(fe, "text-surface-muted-fg/60")
+    assert "frontend-ops/src/page.tsx:1" in falha
+    assert "--surface-muted-foreground/60" in falha
+    assert _falhas_do_ops(fe, "text-surface-muted-fg") == []

@@ -96,7 +96,7 @@ export function DataTable<T>({
   };
 
   const SortIcon = ({ colId }: { colId: string }) => {
-    if (sortCol !== colId) return <ArrowUpDown className="ml-1 inline h-3.5 w-3.5 text-muted-foreground/60" />;
+    if (sortCol !== colId) return <ArrowUpDown className="ml-1 inline h-3.5 w-3.5 text-muted-foreground" />;
     if (sortDir === "asc") return <ArrowUp className="ml-1 inline h-3.5 w-3.5" />;
     return <ArrowDown className="ml-1 inline h-3.5 w-3.5" />;
   };

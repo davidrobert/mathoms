@@ -33,23 +33,33 @@ novo): `FUNDO_NAO_NEUTRO`, para texto que não vive sobre fundo neutro e não o
 declara na linha; e `LIMIAR_ICONE`, para ícone puro, onde 1.4.11 pede 3:1 e não
 4,5. Fundo sólido declarado na própria linha o gate resolve sozinho — texto
 branco em botão colorido é correto e mediria 1,00:1 contra o card.
+
+**Terceira sintaxe, e a primeira medida nos dois apps**: a utility nomeada do
+`@theme` (`text-surface-muted-fg/60`, `text-semantic-alert`). O Tailwind v3 do
+`frontend-ops` compilava a forma com `/N` para nada; no v4 (#2082) ela renderiza
+e reprovou ali sem que este gate visse — ele não lia o `frontend-ops/` nem a
+forma. Resolução utility → token em `check_tint_contrast.utilities`.
 """
 
 from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from typing import NamedTuple
 
 from check_tint_contrast import (
     AA_TEXTO_PEQUENO,
-    SRC,
-    TOKENS_CSS,
+    FRONTENDS,
+    ROOT,
+    SEM_UTILITIES,
     canonical,
     composite,
     contrast_ratio,
-    token_map,
+    named_utilities,
+    temas_medidos,
+    utilities,
 )
 
 FUNDOS_NEUTROS = ("surface-card", "surface-muted")
@@ -60,7 +70,7 @@ AA_NAO_TEXTO = 3.0
 # mesma linha (esse caso o gate resolve sozinho). Cada entrada diz sobre o quê.
 FUNDO_NAO_NEUTRO = [
     (
-        "components/report/ReportSourceStrip.tsx",
+        "frontend/src/components/report/ReportSourceStrip.tsx",
         "surface-border",
         "separadores `·` com aria-hidden — decoração, isenta de 1.4.3/1.4.11",
     ),
@@ -71,9 +81,21 @@ FUNDO_NAO_NEUTRO = [
 # o desfecho certo para "ícone que ninguém enxerga".
 LIMIAR_ICONE = [
     (
-        "components/report/ReportSectionStub.tsx",
+        "frontend/src/components/report/ReportSectionStub.tsx",
         "brand-neutral",
         "ícone `<Construction/>` do stub de seção — 4,19:1, acima de 1.4.11",
+    ),
+]
+
+# Texto cujo fundo vive no componente PAI, fora da linha. Medido contra esse
+# fundo em vez de isento: a isenção deixaria de ver regressão do token.
+# `(arquivo, token do texto, token do fundo, sobre o quê)`.
+FUNDO_NO_PAI = [
+    (
+        "frontend/src/app/(app)/documents/_components/DocumentRow.tsx",
+        "surface-background",
+        "surface-foreground",
+        "texto do `TooltipContent` do shadcn, que pinta `bg-foreground`",
     ),
 ]
 
@@ -102,18 +124,26 @@ class Uso(NamedTuple):
     fundo: str | None  # fundo sólido declarado na mesma linha, se houver
 
 
-def _arquivos():
-    fontes = (p for p in sorted(SRC.rglob("*")) if p.suffix in {".tsx", ".ts"})
+def _arquivos(src):
+    fontes = (p for p in sorted(src.rglob("*")) if p.suffix in {".tsx", ".ts"})
     for path in fontes:
-        yield path.relative_to(SRC), path.read_text(encoding="utf-8").splitlines()
+        yield path.relative_to(ROOT), path.read_text(encoding="utf-8").splitlines()
 
 
-def _usos_className(where: str, line: str) -> list[Uso]:
-    fundo = BG_SOLIDO_RE.search(line)
-    return [
-        Uso(where, token, int(alpha) if alpha else None, fundo.group(1) if fundo else None)
-        for token, alpha in FG_RE.findall(line)
-    ]
+def _fundo_solido(line: str, utils: Mapping[str, str]) -> str | None:
+    """Fundo sólido incondicional da linha. `hover:bg-X` não é o fundo do texto
+    em repouso — medir só contra ele aprovaria o estado que mais se vê."""
+    if m := BG_SOLIDO_RE.search(line):
+        return m.group(1)
+    solidos = (u for u in named_utilities(line, utils) if u.kind == "bg" and u.alpha is None)
+    return next((u.token for u in solidos if not u.variante), None)
+
+
+def _usos_className(where: str, line: str, utils: Mapping[str, str] = SEM_UTILITIES) -> list[Uso]:
+    fundo = _fundo_solido(line, utils)
+    textos = [(token, int(alpha) if alpha else None) for token, alpha in FG_RE.findall(line)]
+    textos += [(u.token, u.alpha) for u in named_utilities(line, utils) if u.kind == "text"]
+    return [Uso(where, token, alpha, fundo) for token, alpha in textos]
 
 
 def _fundo_do_style(linhas: list[str], idx: int) -> str | None:
@@ -130,19 +160,20 @@ def _usos_style(rel, linhas: list[str], idx: int) -> list[Uso]:
     ]
 
 
-def _usos() -> list[Uso]:
+def _usos(src, utils: Mapping[str, str]) -> list[Uso]:
     out = []
-    for rel, linhas in _arquivos():
+    for rel, linhas in _arquivos(src):
         for idx, linha in enumerate(linhas):
-            out += _usos_className(f"{rel}:{idx + 1}", linha)
+            out += _usos_className(f"{rel}:{idx + 1}", linha, utils)
             out += _usos_style(rel, linhas, idx)
     return out
 
 
-def _casa(uso: Uso, entradas) -> str | None:
-    for rel, token, motivo in entradas:
-        if uso.where.startswith(rel) and uso.token == token:
-            return motivo
+def _casa(uso: Uso, entradas) -> tuple[str, ...] | None:
+    """Resto da entrada (motivo, ou fundo + motivo) cujo arquivo e token casam."""
+    for rel, token, *resto in entradas:
+        if uso.where.startswith(f"{rel}:") and uso.token == token:
+            return tuple(resto)
     return None
 
 
@@ -175,11 +206,13 @@ def _sugestao(token: str, alpha: int | None, themes) -> str:
     return "esta cor não serve como texto sobre o card; escolha um par legível"
 
 
-def _falhas(themes) -> tuple[list[str], int]:
+def _falhas(usos: list[Uso], themes) -> tuple[list[str], int]:
     falhas, medidos = [], 0
-    for uso in _usos():
+    for uso in usos:
         if _casa(uso, FUNDO_NAO_NEUTRO):
             continue
+        if no_pai := _casa(uso, FUNDO_NO_PAI):
+            uso = uso._replace(fundo=no_pai[0])
         pior, onde, cor = _pior_contra(uso, themes)
         if pior == 99.0:
             continue
@@ -195,28 +228,41 @@ def _falhas(themes) -> tuple[list[str], int]:
     return falhas, medidos
 
 
-def _checa_isencoes_stale() -> None:
+def _checa_isencoes_stale(usos: list[Uso]) -> None:
+    """Entrada cujo arquivo não usa mais o token como texto, em nenhuma sintaxe."""
     nomeadas = [(e, "FUNDO_NAO_NEUTRO") for e in FUNDO_NAO_NEUTRO]
     nomeadas += [(e, "LIMIAR_ICONE") for e in LIMIAR_ICONE]
-    for (rel, token, motivo), nome in nomeadas:
-        source = (SRC / rel).read_text(encoding="utf-8")
-        if f"text-[var(--{token})]" in source:
+    nomeadas += [(e, "FUNDO_NO_PAI") for e in FUNDO_NO_PAI]
+    vivos = {(uso.where.rsplit(":", 1)[0], uso.token) for uso in usos}
+    for (rel, token, *resto), nome in nomeadas:
+        if (rel, token) in vivos:
             continue
         raise SystemExit(
-            f"frontend/src/{rel}: isenção stale em {nome} — o arquivo não usa "
-            f"mais text-[var(--{token})] ({motivo}). Remova a entrada."
+            f"{rel}: isenção stale em {nome} — o arquivo não usa mais "
+            f"--{token} como cor de texto ({resto[-1]}). Remova a entrada."
         )
 
 
+def _mede_apps() -> tuple[list[str], int]:
+    """Falhas e usos medidos dos dois apps, cada um nos temas que ele ativa."""
+    falhas, medidos, usos_todos = [], 0, []
+    for fe in FRONTENDS:
+        themes = temas_medidos(fe)
+        usos = _usos(fe.src, utilities(fe, themes["light"]))
+        falhas_app, medidos_app = _falhas(usos, themes)
+        falhas, medidos, usos_todos = falhas + falhas_app, medidos + medidos_app, usos_todos + usos
+    _checa_isencoes_stale(usos_todos)
+    return falhas, medidos
+
+
 def main() -> int:
-    themes = {t: token_map(TOKENS_CSS.read_text(encoding="utf-8"), t) for t in ("light", "dark")}
-    _checa_isencoes_stale()
-    falhas, medidos = _falhas(themes)
+    falhas, medidos = _mede_apps()
     if not falhas:
         print(
             f"ok — {medidos} uso(s) de cor de texto dentro do limiar "
             f"({len(FUNDO_NAO_NEUTRO)} isento(s) por fundo não neutro, "
-            f"{len(LIMIAR_ICONE)} medido(s) a {AA_NAO_TEXTO}:1 por serem ícone)"
+            f"{len(LIMIAR_ICONE)} medido(s) a {AA_NAO_TEXTO}:1 por serem ícone, "
+            f"{len(FUNDO_NO_PAI)} contra o fundo do componente pai)"
         )
         return 0
     print("Texto que reprova contra o fundo neutro do card:\n")

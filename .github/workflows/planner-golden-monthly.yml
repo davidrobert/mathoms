@@ -6,8 +6,20 @@
 # acima de threshold; baseline armazenado em `tests/golden_baselines/`.
 #
 # Quando: 1° dia do mês 06:00 UTC + workflow_dispatch.
-# Custo controlado: 1 fixture canônico (~$0.50 por execução).
+# Custo controlado: 1 fixture canônico, 2 chamadas LLM (~US$1 por execução).
 # Falha → cria Issue automaticamente (`planner-drift-monthly` label).
+#
+# Rebaseline (`update_baseline=true`) NÃO pusha em `main`: o Ruleset
+# `main-protection` exige PR + required checks e só dá bypass ao Admin, então
+# o antigo push direto do workflow em `main` era rejeitado — caminho morto e
+# nunca exercitado. Agora o job `baseline-branch` pusha
+# `agent/planner-golden-baseline/<yyyyMM>-<run_id>-<attempt>` e o summary do
+# run traz o link do PR pré-preenchido; quem despachou abre o PR (sem
+# auto-merge — a amostra é nova e ninguém a revisou). Por que não abrir o PR
+# daqui: o GITHUB_TOKEN não cria PR neste repo
+# (`can_approve_pull_request_reviews: false`) e PR de bot não dispara o CI
+# (ADR-322); o PAT ficou de fora (decisão sre-devops 2026-10-08). Runbook:
+# docs/reference/runbooks/planner_golden_rebaseline.md.
 
 name: Planner Golden Monthly (LLM real)
 
@@ -18,7 +30,7 @@ on:
   workflow_dispatch:
     inputs:
       update_baseline:
-        description: "Re-gerar baseline (commit no repo após sucesso)"
+        description: "Re-gerar baseline (pusha branch agent/planner-golden-baseline/*; o PR é aberto pelo link do summary)"
         type: boolean
         default: false
       model_id:
@@ -30,8 +42,9 @@ concurrency:
   group: planner-monthly-${{ github.ref }}
   cancel-in-progress: false
 
-# A34.l13 (ADR-320): default read; o job golden-monthly eleva contents+issues
-# write (commit de baseline + Issue de drift) — justificado inline abaixo.
+# A34.l13 (ADR-320): default read. Escrita só nos jobs que não executam o venv:
+# `baseline-branch` (contents) e `report-failure` (issues) — o job que roda deps
+# de terceiros + a chamada LLM fica sem token de escrita nenhum.
 permissions:
   contents: read
 
@@ -41,11 +54,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write  # para commit do baseline novo (--update-baseline)
-      issues: write    # para abrir Issue em drift detectado
+      contents: read
+    outputs:
+      pytest_outcome: ${{ steps.golden.outcome }}
+      yyyy_mm: ${{ steps.candidate.outputs.yyyy_mm }}
+      baseline_b64: ${{ steps.candidate.outputs.baseline_b64 }}
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Setup Python
         id: setup-python
@@ -73,8 +91,10 @@ jobs:
 
       - name: Check API key secret presence
         id: key-check
+        env:
+          GOLDEN_KEY: ${{ secrets.ANTHROPIC_API_KEY_GOLDEN_MONTHLY }}
         run: |
-          if [ -z "${{ secrets.ANTHROPIC_API_KEY_GOLDEN_MONTHLY }}" ]; then
+          if [ -z "$GOLDEN_KEY" ]; then
             echo "has_key=false" >> "$GITHUB_OUTPUT"
             echo "::warning::ANTHROPIC_API_KEY_GOLDEN_MONTHLY ausente — skip"
           else
@@ -82,6 +102,7 @@ jobs:
           fi
 
       - name: Run monthly golden (LLM real)
+        id: golden
         if: steps.key-check.outputs.has_key == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_GOLDEN_MONTHLY }}
@@ -94,38 +115,115 @@ jobs:
             -o "junit_family=xunit2" \
             --junitxml=golden-monthly-results.xml
 
-      - name: Upload junit results
+      # A baseline viaja como output (~1 KB) e não como artifact baixado: o job
+      # que escreve no repo não executa nada deste runner, e a validação do
+      # payload (shape fechado + teto) é dele, em dev/ci_planner_baseline_branch.py.
+      - name: Exporta a baseline candidata (update_baseline)
+        id: candidate
+        if: |
+          steps.golden.outcome == 'success' &&
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.update_baseline == 'true'
+        run: |
+          yyyy_mm="$(date -u +%Y-%m)"
+          file="tests/golden_baselines/parecer_monthly_${yyyy_mm}.json"
+          if [ ! -f "$file" ]; then
+            echo "::error::$file não foi escrito pelo teste — nada a rebaselinar"
+            exit 1
+          fi
+          echo "yyyy_mm=$yyyy_mm" >> "$GITHUB_OUTPUT"
+          echo "baseline_b64=$(base64 -w0 "$file")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload junit results + baseline candidata
         if: always() && steps.key-check.outputs.has_key == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: golden-monthly-results
-          path: golden-monthly-results.xml
+          path: |
+            golden-monthly-results.xml
+            tests/golden_baselines/
           retention-days: 90
 
-      - name: Commit updated baseline (when --update-baseline)
-        if: |
-          success() &&
-          steps.key-check.outputs.has_key == 'true' &&
-          github.event_name == 'workflow_dispatch' &&
-          github.event.inputs.update_baseline == 'true'
+  baseline-branch:
+    name: Branch de rebaseline (PR aberto por humano)
+    needs: golden-monthly
+    if: needs.golden-monthly.outputs.baseline_b64 != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # contents: write — só o push da branch agent/*; `main` é protegida pelo
+    # Ruleset e o PR é aberto pelo humano (ver cabeçalho).
+    permissions:
+      contents: write
+    env:
+      YYYY_MM: ${{ needs.golden-monthly.outputs.yyyy_mm }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Valida a candidata e escreve a baseline
+        env:
+          BASELINE_B64: ${{ needs.golden-monthly.outputs.baseline_b64 }}
         run: |
+          if ! [[ "$YYYY_MM" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]]; then
+            echo "::error::yyyy_mm fora do formato YYYY-MM: '$YYYY_MM'"
+            exit 1
+          fi
+          # Nome único por run: force-push de bot em branch com PR aberto gera
+          # `synchronize` sem CI (ADR-322) e congela o PR.
+          branch="agent/planner-golden-baseline/${YYYY_MM//-/}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "BRANCH=$branch" >> "$GITHUB_ENV"
+          python3 -I dev/ci_planner_baseline_branch.py \
+            --yyyy-mm "$YYYY_MM" \
+            --branch "$branch" \
+            --repo "$GITHUB_REPOSITORY" \
+            --server-url "$GITHUB_SERVER_URL" \
+            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --summary-out "$RUNNER_TEMP/baseline-summary.md"
+
+      - name: Commit e push da branch
+        run: |
+          file="tests/golden_baselines/parecer_monthly_${YYYY_MM}.json"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/golden_baselines/
-          if ! git diff --staged --quiet; then
-            git commit -m "chore(test): bump planner monthly golden baseline ($(date -u +%Y-%m))"
-            git push origin HEAD:main
-          else
-            echo "Baseline já está atualizada — nada para commitar."
+          git switch -c "$BRANCH"
+          git add -- "$file"
+          if git diff --cached --quiet; then
+            echo "::notice::Baseline já está atualizada — nada para commitar."
+            exit 0
           fi
+          git commit -m "chore(test): bump planner monthly golden baseline (${YYYY_MM})" \
+            -m "Gerada pelo run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID."
+          git push origin "HEAD:refs/heads/$BRANCH"
+          cat "$RUNNER_TEMP/baseline-summary.md" >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Rebaseline pronta::branch $BRANCH — abra o PR pelo link no summary do run (sem auto-merge)"
 
+  # Canal de falha em job PRÓPRIO (ADR-210 §camada 4, KR-F do PLAN-ci-trust):
+  # concentra `issues: write` fora do job que roda o venv, e enxerga o job que
+  # estourou `timeout-minutes` — esse termina `cancelled` e nunca passava pelo
+  # `if: failure()` de um step dentro dele (o LIMITE que o comentário antigo
+  # declarava). Custo aceito: cancelamento manual do run também registra.
+  report-failure:
+    name: Canal de falha (drift + compensador)
+    needs: [golden-monthly, baseline-branch]
+    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      # Só drift de verdade (pytest falhou num run agendado) — falha de infra
+      # cai apenas no canal genérico abaixo.
       - name: Create issue on drift detected
         if: |
-          failure() &&
-          steps.key-check.outputs.has_key == 'true' &&
-          github.event_name == 'schedule'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github.event_name == 'schedule' &&
+          needs.golden-monthly.outputs.pytest_outcome == 'failure'
         run: |
           existing=$(gh issue list --label planner-drift-monthly --state open --json number --jq 'length')
           if [ "$existing" -eq 0 ]; then
@@ -139,6 +237,8 @@ jobs:
           1. Baixar baseline antigo vs output novo (artifacts).
           2. Decidir: regressão (fix prompt/persona) OU melhoria (update baseline via workflow_dispatch).
           3. Atualizar via `gh workflow run 'Planner Golden Monthly (LLM real)' -f update_baseline=true`.
+          4. Abrir o PR pelo link no summary desse run (branch `agent/planner-golden-baseline/*`, sem auto-merge).
+          Runbook: docs/reference/runbooks/planner_golden_rebaseline.md
           EOF
           )
             gh issue create \
@@ -149,17 +249,12 @@ jobs:
             echo "Issue planner-drift-monthly aberta — pulando criação."
           fi
 
-      # Canal de falha do compensador (ADR-210 §camada 4, KR-F do PLAN-ci-trust).
       # O `S2` do watchdog mede run INICIADO, não bem-sucedido: sem este step,
       # um compensador que inicia e falha todo run é invisível. Em 2026-08-17 o
       # `auto-update-prs` falhou 10x em ~5h, a fila parou, e nada percebeu.
-      # LIMITE declarado: `if: failure()` só dispara se um step ANTERIOR deste
-      # job falhou — job que nao recebe runner (budget, outage) nao passa por
-      # aqui, e essa classe continua coberta so pelo `S2`.
+      # LIMITE declarado: run que nao recebe runner (budget, outage) nao passa
+      # por aqui, e essa classe continua coberta so pelo `S2`.
       - name: Canal de falha — registra em Issue rotulada
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           python3 dev/ci_report_workflow_failure.py \
             --workflow planner-golden-monthly.yml --label ops-llm-eval

@@ -86,7 +86,7 @@ function DefaultFallback({ error, reset }: { error: Error; reset: () => void }) 
           Voltar para Meu Plano
         </Button>
       </div>
-      <details className="mt-6 w-full text-left text-xs text-muted-foreground/80">
+      <details className="mt-6 w-full text-left text-xs text-muted-foreground">
         <summary className="cursor-pointer select-none hover:text-muted-foreground">
           Detalhes técnicos
         </summary>

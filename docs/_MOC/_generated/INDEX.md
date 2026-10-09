@@ -435,6 +435,7 @@
 | ADR-438 | adr | Proposto |  | Destino de leitura do parecer é derivado pela máquina, não escolhido pela prosa | `adr/438-destino-de-leitura-derivado-no-parecer.md` |
 | ADR-439 | adr | Decidido |  | Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero | `adr/439-balde-de-imovel-sem-classificacao-apurada-sai-null.md` |
 | ADR-440 | adr | Proposto |  | A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade | `adr/440-ancora-de-imovel-vem-da-ficha-por-parser-deterministico.md` |
+| ADR-441 | adr | Proposto |  | Erro de banco cruza fronteira de persistência por shape, nunca por valor | `adr/441-erro-de-banco-cruza-fronteira-de-persistencia-por-shape-nunca-por-valor.md` |
 | ADR-442 | adr | Decidido |  | Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push | `adr/442-valor-de-workspace-real-nao-entra-no-repositorio.md` |
 | ADR-445 | adr | Proposto |  | Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho | `adr/445-transacao-de-escrita-nao-atravessa-io-lento.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
@@ -1019,7 +1020,7 @@
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A40.l90 | lane | shipped | A40 | A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar | `sprint/A40/lanes/A40-l90-limiar-de-risco-le-o-catalogo.md` |
 | A40.l91 | lane | shipped | A40 | A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos | `sprint/A40/lanes/A40-l91-base-da-meta-if.md` |
-| A40.l92 | lane | in_progress | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
+| A40.l92 | lane | shipped | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
 | A40.l93 | lane | shipped | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
 | A40.l94 | lane | shipped | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
 | A40.l95 | lane | shipped | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |
@@ -1256,6 +1257,7 @@
 | TRACK-category-overrides-policy-adr | track | consumed | A11 | Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes) | `sprint/A11/tracks/category-overrides-policy-adr.md` |
 | TRACK-category-overrides-schema-delta | track | consumed | A11 | Track Category Overrides W2 — Schema delta (updated_by_user_id + DTO version fields) | `sprint/A11/tracks/category-overrides-schema-delta.md` |
 | TRACK-category-overrides-ui-refactor | track | consumed | A11 | Track Category Overrides W4 — UI refactor (CategoriesTab + useCategoriesAndMembers) | `sprint/A11/tracks/category-overrides-ui-refactor.md` |
+| TRACK-ci-trust-github-app | track | ready |  | Track GitHub App — identidade não-admin do trem substitui o AUTOUPDATE_PAT | `plan/CI_TRUST/tracks/ci-trust-github-app.md` |
 | TRACK-ci-trust-onda0-governanca | track | consumed |  | Track Onda 0 — registro e válvula: detector pós-merge, auditoria de bypass, ADR de merge-protection, PR 0 do trem | `plan/CI_TRUST/tracks/ci-trust-onda0-governanca.md` |
 | TRACK-ci-trust-onda1-workflows | track | ready |  | Track Onda 1 — leva única de .github/workflows/**: inertes, canal de falha 9/9, endgame do watchdog (heartbeat), security-green, nightly por job | `plan/CI_TRUST/tracks/ci-trust-onda1-workflows.md` |
 | TRACK-citacao-deterministica | track | ready | A27 | Track A26.l9 — citação determinística (LLM emite path+rótulo; pipeline renderiza valor) | `sprint/A27/tracks/citacao-deterministica.md` |

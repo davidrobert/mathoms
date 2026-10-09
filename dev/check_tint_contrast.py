@@ -16,6 +16,14 @@ achou 7 call-sites reprovando — inclusive o mesmo 1,86:1 que abriu a lane — 
 porque escreviam o tint de outro jeito. As três formas em uso estão em
 `_tints_in_line`, e forma nova é o modo de falha a vigiar aqui.
 
+A quarta forma chegou com o Tailwind v4 no `frontend-ops` (#2082): a utility
+nomeada `bg-semantic-gain/15`, que o v3 compilava para nada e o v4 renderiza.
+Ela reprovou 2 pares no console sem que gate algum visse — o gate não lia o
+`frontend-ops/` nem a sintaxe. O nome da utility vira token pelos blocos
+`@theme` de cada app (`--color-semantic-gain: var(--semantic-gain)`), então
+utility nova entra sozinha; o que precisa de curadoria é a utility cujo destino
+não é token de `tokens.json` (`Frontend.fora_da_paleta`).
+
 Limite honesto: sob tint *translúcido* o fundo é assumido `--surface-card`.
 Onde a forma declara o substrato (`color-mix(… , var(--Y))`) o valor é opaco e
 o substrato declarado é usado. Componente sobre fundo bem mais escuro/claro que
@@ -24,18 +32,58 @@ o card sai medido errado — nesse caso o par tem de ser nomeado em
 
 Segundo limite: o pareamento é dentro de UMA linha. Ícone colorido cujo
 `text-[…]` vive num elemento filho não é pareado aqui — entra em `NAMED_PAIRS`.
+
+Terceiro limite: variante (`hover:`, `dark:`) é medida como se fosse
+incondicional, nos temas que o app ativa. É o lado conservador — mede a mais,
+nunca a menos.
 """
 
 from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Iterator, Mapping
 from pathlib import Path
+from types import MappingProxyType
 from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parent.parent
 TOKENS_CSS = ROOT / "frontend" / "src" / "styles" / "tokens.css"
 SRC = ROOT / "frontend" / "src"
+OPS_SRC = ROOT / "frontend-ops" / "src"
+SEM_UTILITIES: Mapping[str, str] = MappingProxyType({})
+
+
+class Frontend(NamedTuple):
+    """App que consome os tokens: código, hex de cada token, nome de cada utility."""
+
+    src: Path
+    tokens_css: Path
+    # Arquivos com `@theme`, na ordem de import: bloco posterior sobrescreve.
+    theme_css: tuple[Path, ...]
+    temas: tuple[str, ...]
+    fora_da_paleta: frozenset[str] = frozenset()
+
+
+FRONTENDS = (
+    Frontend(
+        SRC,
+        TOKENS_CSS,
+        (TOKENS_CSS, SRC / "app" / "globals.css"),
+        ("light", "dark"),
+        # shadcn/ui: `--primary`, `--destructive`… são oklch em globals.css, não
+        # tokens de tokens.json — não há hex a medir. Ficam fora por NOME.
+        frozenset(
+            {"primary", "primary-foreground", "secondary", "secondary-foreground", "destructive"}
+        ),
+    ),
+    # Console interno: só o tema claro é ativado. O tokens.css dele traz o bloco
+    # dark (mesmo gerador), mas nada no app liga `.dark`/`data-theme` — premissa
+    # verificada em `temas_medidos`, não só declarada.
+    Frontend(
+        OPS_SRC, OPS_SRC / "styles" / "tokens.css", (OPS_SRC / "app" / "globals.css",), ("light",)
+    ),
+)
 
 AA_TEXTO_PEQUENO = 4.5
 # 1.4.11 (objeto gráfico / ícone) — limiar mais baixo que texto, mas existe.
@@ -141,11 +189,13 @@ ALIAS = {
     "semantic-success": "semantic-gain",
 }
 
-# Três sintaxes produzem o mesmo pixel; a primeira versão do gate via só a (1).
+# Quatro sintaxes produzem o mesmo pixel; a primeira versão do gate via só a (1).
 #   (1) bg-[color-mix(in_srgb,var(--X)_15%,transparent)]  — Tailwind arbitrary
 #   (2) color-mix(in srgb, var(--X) 8%, var(--Y))         — substrato declarado,
 #       inclusive em `style` inline (espaços em vez de `_`)
 #   (3) bg-[var(--X)]/15                                  — opacity modifier
+#   (4) bg-semantic-gain/15                               — utility nomeada do
+#       `@theme`; o texto pareado vem como `text-semantic-gain`
 # (2) é opaca: compõe contra o substrato declarado, não contra o pai.
 COLOR_MIX_RE = re.compile(
     r"color-mix\(in[ _]srgb,[ _]*var\(--([\w-]+)\)[ _](\d+)%,[ _]*"
@@ -153,7 +203,12 @@ COLOR_MIX_RE = re.compile(
 )
 OPACITY_BG_RE = re.compile(r"bg-\[var\(--([\w-]+)\)\]/(\d+)")
 FG_RE = re.compile(r"text-\[var\(--([\w-]+)\)\]")
+NAMED_RE = re.compile(r"(?<![\w-])(bg|text)-([a-z][a-z0-9-]*)(?:/(\d+))?(?![\w/-])")
 BLOCK_RE = re.compile(r"([^{}]+)\{([^{}]*)\}")
+COMMENT_RE = re.compile(r"/\*.*?\*/", re.S)
+THEME_BLOCK_RE = re.compile(r"@theme\b[^{;]*\{([^{}]*)\}")
+THEME_COLOR_RE = re.compile(r"--color-([\w-]+):\s*var\(--([\w-]+)\)")
+TEMA_ESCURO_RE = re.compile(r"(?<![\w-])dark:|data-theme")
 DECL_RE = re.compile(r"--([\w-]+):\s*(#[0-9A-Fa-f]{6})\b")
 
 
@@ -169,6 +224,74 @@ def token_map(css: str, theme: str) -> dict[str, str]:
         for name, hex_value in DECL_RE.findall(body):
             out[name] = hex_value
     return out
+
+
+def declared_utilities(fe: Frontend) -> dict[str, str]:
+    """utility → destino `var(--Y)`, como o Tailwind v4 resolve os `@theme`."""
+    out: dict[str, str] = {}
+    for path in fe.theme_css:
+        css = COMMENT_RE.sub("", path.read_text(encoding="utf-8"))
+        for body in THEME_BLOCK_RE.findall(css):
+            out.update(THEME_COLOR_RE.findall(body))
+    if not out:
+        raise SystemExit(
+            f"{fe.src}: nenhum `--color-*: var(--…)` em @theme de "
+            f"{[p.name for p in fe.theme_css]} — o gate ficaria "
+            "cego a `bg-<utility>/N` e `text-<utility>`."
+        )
+    return out
+
+
+def utilities(fe: Frontend, tokens: Mapping[str, str]) -> dict[str, str]:
+    """utility → token mensurável. Destino sem hex falha, salvo `fora_da_paleta`;
+    entrada de `fora_da_paleta` que nenhuma utility usa também falha."""
+    declaradas = declared_utilities(fe)
+    cegas = {u: t for u, t in declaradas.items() if t not in tokens and t not in fe.fora_da_paleta}
+    stale = fe.fora_da_paleta - set(declaradas.values())
+    if cegas or stale:
+        raise SystemExit(
+            f"{fe.src}: utility sem hex em {fe.tokens_css.name} e fora de `fora_da_paleta` "
+            f"{sorted(cegas.items())}; entradas stale em `fora_da_paleta` {sorted(stale)}."
+        )
+    return {u: t for u, t in declaradas.items() if t in tokens}
+
+
+def temas_medidos(fe: Frontend) -> dict[str, dict[str, str]]:
+    """Mapa token → hex por tema que o app ativa."""
+    if "dark" not in fe.temas:
+        _assert_sem_tema_escuro(fe)
+    css = fe.tokens_css.read_text(encoding="utf-8")
+    return {theme: token_map(css, theme) for theme in fe.temas}
+
+
+def _assert_sem_tema_escuro(fe: Frontend) -> None:
+    for where, line in _source_lines(fe.src):
+        if TEMA_ESCURO_RE.search(line):
+            raise SystemExit(
+                f"{where}: o app é medido só no tema claro, mas "
+                "esta linha liga tema escuro — inclua 'dark' em `Frontend.temas`."
+            )
+
+
+class Utility(NamedTuple):
+    kind: str  # "bg" | "text"
+    token: str
+    alpha: int | None
+    variante: bool  # prefixada (`hover:`, `dark:`…)
+
+
+def named_utilities(line: str, utilities: Mapping[str, str]) -> list[Utility]:
+    """Cada `bg-<u>[/N]` / `text-<u>[/N]` da linha cujo `<u>` é cor do `@theme`."""
+    return [
+        Utility(
+            m[1],
+            utilities[m[2]],
+            int(m[3]) if m[3] else None,
+            line[m.start() - 1 : m.start()] == ":",
+        )
+        for m in NAMED_RE.finditer(line)
+        if m[2] in utilities
+    ]
 
 
 def channels(hex_value: str) -> tuple[int, int, int]:
@@ -215,34 +338,52 @@ class TintPair(NamedTuple):
     min_ratio: float = AA_TEXTO_PEQUENO
 
 
-def _tints_in_line(line: str) -> list[tuple[str, int, str]]:
+def _tints_in_line(
+    line: str, utilities: Mapping[str, str] = SEM_UTILITIES
+) -> list[tuple[str, int, str]]:
     """`(token, %, substrato)` de cada tint declarado na linha."""
     mixes = [
         (token, int(pct), substrate or "surface-card")
         for token, pct, substrate in COLOR_MIX_RE.findall(line)
     ]
-    return mixes + [(token, int(pct), "surface-card") for token, pct in OPACITY_BG_RE.findall(line)]
+    mixes += [(token, int(pct), "surface-card") for token, pct in OPACITY_BG_RE.findall(line)]
+    return mixes + [
+        (u.token, u.alpha, "surface-card")
+        for u in named_utilities(line, utilities)
+        if u.kind == "bg" and u.alpha is not None
+    ]
 
 
-def _pairs_in_line(where: str, line: str) -> list[TintPair]:
-    fgs = FG_RE.findall(line)
+def _fgs_in_line(line: str, utilities: Mapping[str, str] = SEM_UTILITIES) -> list[str]:
+    named = [u.token for u in named_utilities(line, utilities) if u.kind == "text"]
+    return FG_RE.findall(line) + named
+
+
+def _pairs_in_line(
+    where: str, line: str, utilities: Mapping[str, str] = SEM_UTILITIES
+) -> list[TintPair]:
+    fgs = _fgs_in_line(line, utilities)
     return [
         TintPair(where, fg, bg, pct, substrate)
-        for bg, pct, substrate in _tints_in_line(line)
+        for bg, pct, substrate in _tints_in_line(line, utilities)
         for fg in fgs
     ]
 
 
 # Checar só a cor do texto deixava o percentual apodrecer: o call-site vira 30%
 # e o gate segue reportando o contraste de 15%, que ninguém pinta.
-def _assert_fresh(where: str, source: str, pair: TintPair) -> None:
+def _assert_fresh(
+    where: str, source: str, pair: TintPair, utilities: Mapping[str, str] = SEM_UTILITIES
+) -> None:
     """Entrada nomeada que não corresponde mais ao arquivo é fantasma."""
-    if f"var(--{pair.fg_token})" not in source:
+    lines = source.splitlines()
+    textos = {fg for line in lines for fg in _fgs_in_line(line, utilities)}
+    if f"var(--{pair.fg_token})" not in source and pair.fg_token not in textos:
         raise SystemExit(
             f"{where}: entrada stale em NAMED_PAIRS — o arquivo não usa mais "
             f"--{pair.fg_token}. Atualize ou remova a entrada."
         )
-    declarados = {(t, p) for line in source.splitlines() for t, p, _ in _tints_in_line(line)}
+    declarados = {(t, p) for line in lines for t, p, _ in _tints_in_line(line, utilities)}
     if (pair.bg_token, pair.pct) not in declarados:
         raise SystemExit(
             f"{where}: entrada stale em NAMED_PAIRS — o arquivo não declara tint "
@@ -250,20 +391,20 @@ def _assert_fresh(where: str, source: str, pair: TintPair) -> None:
         )
 
 
-def named_pairs() -> list[TintPair]:
+def named_pairs(utilities: Mapping[str, str] = SEM_UTILITIES) -> list[TintPair]:
     """Pares nomeados (texto em elemento filho) + checagem de staleness."""
     out = []
     for rel, fg_token, bg_token, pct, substrate, min_ratio in NAMED_PAIRS:
         pair = TintPair(
             f"frontend/src/{rel} (par nomeado)", fg_token, bg_token, pct, substrate, min_ratio
         )
-        _assert_fresh(pair.where, (SRC / rel).read_text(encoding="utf-8"), pair)
+        _assert_fresh(pair.where, (SRC / rel).read_text(encoding="utf-8"), pair, utilities)
         out.append(pair)
     return out
 
 
-def _source_lines():
-    for path in sorted(SRC.rglob("*")):
+def _source_lines(src: Path = SRC) -> Iterator[tuple[str, str]]:
+    for path in sorted(src.rglob("*")):
         if path.suffix not in {".tsx", ".ts"}:
             continue
         rel = path.relative_to(ROOT)
@@ -271,14 +412,22 @@ def _source_lines():
             yield f"{rel}:{lineno}", line
 
 
-def same_color_pairs() -> list[TintPair]:
+def same_color_pairs(
+    src: Path = SRC, utilities: Mapping[str, str] = SEM_UTILITIES
+) -> list[TintPair]:
     """Cada linha que declara tint E cor de texto da mesma cor."""
     return [
         pair
-        for where, line in _source_lines()
-        for pair in _pairs_in_line(where, line)
+        for where, line in _source_lines(src)
+        for pair in _pairs_in_line(where, line, utilities)
         if is_same_color_pair(pair.fg_token, pair.bg_token)
     ]
+
+
+def app_pairs(fe: Frontend, utilities: Mapping[str, str]) -> list[TintPair]:
+    """Pares inferidos por linha do app + os nomeados, que são do `frontend/`."""
+    pairs = same_color_pairs(fe.src, utilities)
+    return pairs + named_pairs(utilities) if fe.src == SRC else pairs
 
 
 def _violation(pair: TintPair, theme: str, tokens: dict[str, str]) -> str | None:
@@ -314,16 +463,25 @@ def _report(failures: list[str], measured: int) -> None:
     )
 
 
-def main() -> int:
-    css = TOKENS_CSS.read_text(encoding="utf-8")
-    themes = {t: token_map(css, t) for t in ("light", "dark")}
-    pairs = same_color_pairs() + named_pairs()
+def measure_app(fe: Frontend) -> tuple[list[TintPair], list[str]]:
+    """Pares medidos do app e as violações deles, em cada tema que ele ativa."""
+    themes = temas_medidos(fe)
+    pairs = app_pairs(fe, utilities(fe, themes["light"]))
     failures = [
         msg
         for pair in pairs
         for theme, tokens in themes.items()
         if (msg := _violation(pair, theme, tokens))
     ]
+    return pairs, failures
+
+
+def main() -> int:
+    pairs: list[TintPair] = []
+    failures: list[str] = []
+    for fe in FRONTENDS:
+        app_pairs_, app_failures = measure_app(fe)
+        pairs, failures = pairs + app_pairs_, failures + app_failures
     if not failures:
         nomeados = sum(1 for p in pairs if p.min_ratio != AA_TEXTO_PEQUENO)
         print(

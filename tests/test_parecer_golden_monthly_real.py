@@ -1,9 +1,10 @@
-"""Golden mensal com LLM real (ADR-199 Ato 6 T-27). Roda APENAS via workflow `planner-golden-monthly.yml` — skipa em CI normal via marker + env check. Compara métricas estruturais vs baseline; falha se variação > threshold."""
+"""Golden mensal com LLM real (ADR-199 Ato 6 T-27). A classe `monthly_real` roda APENAS via workflow `planner-golden-monthly.yml` — skipa em CI normal via env check; os testes do helper de semeadura rodam em todo CI. Compara métricas estruturais vs baseline; falha se variação > threshold."""
 
 from __future__ import annotations
 
 import json
 import os
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -135,12 +136,29 @@ def _write_baseline(metrics: dict, yyyy_mm: str) -> Path:
     return path
 
 
+def _update_flag() -> bool:
+    return os.environ.get("MATHOMS_GOLDEN_UPDATE_BASELINE") == "1"
+
+
+def _seed_first_baseline_or_fail(current: dict, yyyy_mm: str) -> None:
+    """Sem baseline, só o dispatch com ``update_baseline=true`` semeia — o agendado FALHA."""
+    # Escrever-e-pular no agendado recriava o "primeiro baseline" todo mês sem nunca
+    # persisti-lo (só o ramo de update commita): o drift jamais era comparado.
+    if not _update_flag():
+        pytest.fail(
+            f"Sem baseline em {_BASELINE_DIR} — o drift não tem referência. Semeie com "
+            "`gh workflow run 'Planner Golden Monthly (LLM real)' -f update_baseline=true` "
+            "e abra o PR pelo link no summary do run "
+            "(docs/reference/runbooks/planner_golden_rebaseline.md)."
+        )
+    _write_baseline(current, yyyy_mm)
+
+
 def _assert_no_drift_or_update(prev_metrics: dict, current: dict, yyyy_mm: str) -> None:
     """Valida drift; respeita ``MATHOMS_GOLDEN_UPDATE_BASELINE=1`` para aceitar mudança."""
-    update_flag = os.environ.get("MATHOMS_GOLDEN_UPDATE_BASELINE") == "1"
     drift = _drift_threshold_exceeded(prev_metrics, current)
     if drift:
-        if update_flag:
+        if _update_flag():
             _write_baseline(current, yyyy_mm)
             pytest.skip(f"Baseline atualizada manualmente (drift aceito): {drift}")
         pytest.fail(
@@ -162,15 +180,35 @@ class TestPlannerGoldenMonthly:
         assert artifact["_meta"]["cost_usd"] > 0
         assert artifact["diagnostico_geral"]
 
-    def test_drift_vs_baseline_or_create_first(self):
-        """Compara métricas estruturais vs último baseline. Sem baseline = cria primeiro."""
+    def test_drift_vs_baseline(self):
+        """Compara métricas estruturais vs último baseline. Sem baseline = falha, salvo update."""
         _real_llm_or_skip()
         artifact = _call_real_llm(_load_canonical_e5())
         current = _structural_metrics(artifact)
         yyyy_mm = datetime.now(timezone.utc).strftime("%Y-%m")
         prev_baseline_path = _latest_baseline_path()
         if prev_baseline_path is None:
-            path = _write_baseline(current, yyyy_mm)
-            pytest.skip(f"Primeiro baseline criado em {path}")
+            _seed_first_baseline_or_fail(current, yyyy_mm)
+            return
         prev_metrics = json.loads(prev_baseline_path.read_text(encoding="utf-8"))["metrics"]
         _assert_no_drift_or_update(prev_metrics, current, yyyy_mm)
+
+
+_METRICS = {"p0_count": 1, "riscos_count": 4, "ancora_dominante_riscos": "Perini"}
+
+
+def test_sem_baseline_e_sem_update_o_run_falha_em_vez_de_pular(tmp_path, monkeypatch):
+    """Mata: voltar ao "escreve o primeiro baseline e pula" no run agendado."""
+    monkeypatch.setattr(sys.modules[__name__], "_BASELINE_DIR", tmp_path)
+    monkeypatch.delenv("MATHOMS_GOLDEN_UPDATE_BASELINE", raising=False)
+    with pytest.raises(pytest.fail.Exception, match="update_baseline=true"):
+        _seed_first_baseline_or_fail(_METRICS, "2026-10")
+    assert not list(tmp_path.iterdir())
+
+
+def test_sem_baseline_com_update_o_dispatch_semeia(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys.modules[__name__], "_BASELINE_DIR", tmp_path)
+    monkeypatch.setenv("MATHOMS_GOLDEN_UPDATE_BASELINE", "1")
+    _seed_first_baseline_or_fail(_METRICS, "2026-10")
+    written = json.loads((tmp_path / "parecer_monthly_2026-10.json").read_text(encoding="utf-8"))
+    assert written["metrics"] == _METRICS and written["yyyy_mm"] == "2026-10"

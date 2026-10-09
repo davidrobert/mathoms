@@ -91,7 +91,7 @@ export default function TransferConfigEditor() {
         </div>
       ) : null}
       {success ? (
-        <div role="status" className="rounded-lg bg-gain/10 p-3 text-sm text-gain">
+        <div role="status" className="rounded-lg bg-gain/10 p-3 text-sm text-gain-on-tint">
           {success}
         </div>
       ) : null}
