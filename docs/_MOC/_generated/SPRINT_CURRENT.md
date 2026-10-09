@@ -18,6 +18,7 @@ open · in_progress.
 - [[A40.l112]] — Imóvel sem classificação nenhuma entra no numerador da concentração pelo `else`, e reclassificar um deles move o KPI de 82 para 0 · priority P2 · área dados/pipeline · branch `a40-l112-imovel-sem-override-cai-no-numerador`
 - [[A40.l118]] — Campo emitido sem consumidor pode carregar valor errado, e o gate de classe mede existência do leitor — nunca a corretude do número · priority P2 · área pipeline/frontend · branch `a40-l118-valor-errado-em-campo-sem-leitor`
 - [[A40.l119]] — O elogio à reserva tem dois produtores e o guard alcança um; e a ressalva reescreve a descrição sem tocar o título que o leitor vê · priority P2 · área backend · branch `a40-l119-elogio-com-produtor-duplo-e-ressalva-que-nao-alcanca-o-titulo`
+- [[A40.l126]] — O cenário do cônjuge afirma o que não mediu: a contribuição do cônjuge sai de um label sem membro, e a premissa de 2/3 do aporte não aparece · priority P1 · área pipeline · branch `a40-l126-cenario-do-casal-rotulado`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · área frontend/product-design/financial-planning · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l37]] — A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 · priority P2 · área pipeline · branch `a40-l37-tabela-de-ir-tres-fontes`
 - [[A40.l39]] — Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l39-posicao-visoes-corrente-fiscal`
@@ -39,6 +40,7 @@ open · in_progress.
 
 - [[A40.l121]] — O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF · priority P0 · área pipeline · branch `a40-l121-ancora-estruturada-de-imovel`
 - [[A40.l122]] — A casa da família entra na carteira de investimentos quando a residência não é apurada: tabela de classes e ranking falham ABERTO · priority P1 · área pipeline/financial-planning · branch `a40-l122-residencia-fora-da-classe`
+- [[A40.l125]] — O gate de elegibilidade do cenário do cônjuge nunca rodou, e o critério de renda dele media um sinal que não existe · priority P1 · área pipeline · branch `a40-l125-gate-do-cenario-do-conjuge`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 
 ---
