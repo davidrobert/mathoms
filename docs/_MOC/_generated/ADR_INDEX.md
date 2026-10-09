@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-432 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
+433 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 369
-- **Proposto**: 58
+- **Proposto**: 59
 - **Roadmap**: 5
 
 ## Fundação
@@ -672,7 +672,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-434]] — Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado · phase A42
 - [[ADR-439]] — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero · phase A40.l113
 
-### Proposto (19)
+### Proposto (20)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -693,6 +693,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-429]] — Estorno é despesa assinada na categoria original, no mês do estorno — nunca receita · phase A40
 - [[ADR-430]] — Contrato E1→E4 do mapa instituição→membro: hint tier 1 fundido no produtor único, com origem carregada até o E5 · phase A40.l96
 - [[ADR-440]] — A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade · phase A40.l121
+- [[ADR-444]] — Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre imóvel desconhecido · phase A40.l122
 
 ### Roadmap (1)
 
