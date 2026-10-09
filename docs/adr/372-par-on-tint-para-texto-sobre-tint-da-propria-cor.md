@@ -4,7 +4,7 @@ type: adr
 title: "Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma"
 status: Decidido
 date: "2026-08-08"
-amended_at: ["2026-08-13", "2026-08-27"]
+amended_at: ["2026-08-13", "2026-08-27", "2026-10-08"]
 relates_to: ["[[ADR-076]]", "[[ADR-117]]", "[[ADR-143]]", "[[ADR-236]]"]
 tags:
   - type/adr
@@ -20,6 +20,10 @@ tags:
 > **sintaxe**: 7 call-sites escreviam o tint como `bg-[var(--X)]/15` e ficaram
 > fora do conjunto medido, reprovando com os mesmos números desta ADR. Ver
 > §Emenda 2026-08-13.
+>
+> **Emendada em 2026-10-08** — a quarta forma (utility nomeada do `@theme`) e o
+> segundo app (`frontend-ops/`) chegaram juntos no Tailwind v4 do console. Ver
+> §Emenda 2026-10-08.
 
 ## Contexto
 
@@ -197,3 +201,33 @@ Dois erros de registro, achados ao re-medir os tokens no fecho da [[A40.l33]]:
 
 Nenhum call-site muda; `check_tint_contrast` seguia medindo os 7 pares o tempo
 todo (`ok — 37 par(es)`, EXIT=0 em 2026-08-27). O que estava errado era a ADR.
+
+## Emenda 2026-10-08 — a quarta forma e o segundo app
+
+A §Emenda 2026-08-13 deixou dito que forma nova é o modo de falha a vigiar. Ela
+voltou por dois lados, no Tailwind v4 do console interno (#2082):
+
+- **Forma:** a utility nomeada do `@theme`, `bg-semantic-gain/15` com
+  `text-semantic-gain`. No v3 o modificador sobre utility nomeada não compilava
+  no console; no v4 renderiza.
+- **App:** os dois gates só liam `frontend/src/`. O `frontend-ops/` ficou com 2
+  pares reprovando — Badge `success` a 4,09:1 e `text-surface-muted-fg/60` a
+  2,77:1 —, corrigidos à mão no #2082 sem gate que os visse.
+
+Correção: os gates resolvem utility → token pelos blocos `@theme` de cada app e
+medem os dois apps — o console só no tema claro, premissa checada (linha com
+`dark:`/`data-theme` faz o gate falhar). Falha fechada se o app não tem bloco
+`@theme` ou se uma utility aponta para destino sem hex.
+
+Ao aprender a forma, o gate achou **68 call-sites em 42 arquivos** reprovando no
+`frontend/`: 22 pares texto-sobre-tint (âmbar a 1,93:1, ganho a 4,38:1), 35
+âmbar direto no card, 13 com opacity modifier e 10 `text-muted` nas seções de
+Proteção — a utility pinta `--surface-muted` como cor de **texto**, 1,00:1.
+Corrigidos pela D1 (cor do texto); nenhum tint mudou. Nenhuma decisão muda.
+
+**Limite novo, declarado.** A paleta oklch do shadcn (`--primary`,
+`--secondary`, `--destructive` em `globals.css`) não é token de `tokens.json` e
+fica fora por nome (`Frontend.fora_da_paleta`, com checagem de staleness). Fora
+não quer dizer que passa: `bg-destructive/10 text-destructive` dos primitivos
+`button`/`badge` mede **4,01:1** no claro (convertendo o oklch à mão). Corrigir
+pede decisão de token, não aplicação mecânica da D1.

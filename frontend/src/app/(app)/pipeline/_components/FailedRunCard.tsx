@@ -30,25 +30,25 @@ function ErrorMetadataRow({ failedStage }: { failedStage: PipelineStageLog | und
     <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 py-2 border-b border-loss/10 text-muted-foreground">
       {failedStage && (
         <span>
-          <span className="text-loss/60">etapa</span>{" "}
+          <span className="text-loss">etapa</span>{" "}
           <span className="text-foreground">{failedStage.stage}</span>
         </span>
       )}
       {failedStage?.duration_ms != null && (
         <span>
-          <span className="text-loss/60">duração</span>{" "}
+          <span className="text-loss">duração</span>{" "}
           <span className="text-foreground">{(failedStage.duration_ms / 1000).toFixed(1)}s</span>
         </span>
       )}
       {attempts !== undefined && (
         <span>
-          <span className="text-loss/60">tentativas</span>{" "}
+          <span className="text-loss">tentativas</span>{" "}
           <span className="text-foreground">{attempts}</span>
         </span>
       )}
       {errorType && (
         <span>
-          <span className="text-loss/60">tipo</span>{" "}
+          <span className="text-loss">tipo</span>{" "}
           <span className="text-foreground">{errorType}</span>
         </span>
       )}

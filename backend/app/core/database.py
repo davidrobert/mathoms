@@ -51,12 +51,18 @@ def attach_sqlite_pragmas(target_engine) -> None:
     event.listen(sync_target, "connect", _apply_sqlite_pragmas)
 
 
+# `hide_parameters` nos dois engines: `str(StatementError)` ecoa os bound
+# parameters — o DataError de 2026-10-08 levou endereço e nome do imóvel ao
+# stage_log, ao WS e ao traceback. Na fonte cobre todo sink, inclusive log, span e
+# result backend do Celery. Gate: `dev/check_engine_hide_parameters.py`.
+
 # --- Async engine (used by FastAPI endpoints) ---
 
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     future=True,
+    hide_parameters=True,
     connect_args=_sqlite_connect_args(settings.DATABASE_URL),
 )
 
@@ -70,6 +76,7 @@ sync_engine = create_engine(
     settings.sync_database_url,
     echo=settings.DEBUG,
     future=True,
+    hide_parameters=True,
     connect_args=_sqlite_connect_args(settings.sync_database_url),
 )
 

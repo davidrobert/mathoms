@@ -4,7 +4,7 @@ type: adr
 title: "Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)"
 status: Decidido
 date: "2026-07-09"
-amended_at: ["2026-08-08", "2026-08-21", "2026-08-25"]
+amended_at: ["2026-08-08", "2026-08-21", "2026-08-25", "2026-10-08"]
 relates_to:
   - "[[ADR-210]]"
   - "[[ADR-320]]"
@@ -18,6 +18,12 @@ tags:
 ---
 
 # ADR-322 — Trem de auto-merge serializado com identidade real
+
+> **Emenda 2026-10-08 (incidente de expiração do PAT):** o watchdog passa a
+> avisar o `AUTOUPDATE_PAT` em **T-14** (issue `ops-pat-expiry`, `S3` de 11 dias)
+> e o 401 ganha mensagem acionável. A garantia "identidade fora da bypass list"
+> não vale para o PAT, que age como o dono admin; por isso o GitHub App, alvo da
+> **D2**, ganha prazo (2026-12-07). D1, D3 e D4 não reabrem. Ver §Emenda 2026-10-08.
 
 > **Emenda 2026-08-25 (implementação do que a §Emenda 2026-08-08 decidiu):** o
 > 403 do `update_branch` deixou de matar o run — a recusa é terminal para
@@ -261,3 +267,73 @@ disparado pelo PR-cabeça ou por qualquer merge de `main` que traga mudança em
 sobrevive e a fila anda. Também **rejeitado**: dar escopo `workflow` ao
 `AUTOUPDATE_PAT` — um PAT que escreve workflow pode escrever um workflow que
 exfiltra os secrets do repo, e o repo é público ([[PLAN-ci-trust]] §Onda 0).
+
+## Emenda 2026-10-08 — o PAT expira com 90 dias de aviso possível e nenhum dado
+
+**Incidente.** O `AUTOUPDATE_PAT` criado em 2026-07-09 (90 dias, como a **D2**
+manda) expirou em ~2026-10-07 01:47 UTC. Daí em diante `auto-update-prs` e
+`automerge-watchdog` falharam todo run com `HTTP 401: Bad credentials`, e o canal
+de falha abriu a #2038 (`ops-train`) às 02:35. O canal funcionou; o que faltou foi
+**antecedência**. O `ops-train` tem `max_issue_age_days: 3`, então o `S3` do
+`check_scheduled_workflows` passaria a reprovar o `Lint` de **todo PR** em 2026-10-10.
+Ou seja, um vencimento conhecido desde julho derrubaria o repositório inteiro em 3 dias.
+
+**O que passa a valer:**
+
+1. **Aviso em T-14.** `dev/ci_pat_expiry.py` é um step próprio do
+   `automerge-watchdog.yml`, posto antes do watchdog para rodar mesmo quando o
+   401 derruba o job. Ele lê o header `github-authentication-token-expiration`
+   de uma chamada autenticada com o PAT.
+   Com folga ≤14 dias, mantém **uma** issue `ops-pat-expiry` com o formulário de PAT
+   fine-grained já pré-preenchido com as permissões da **D2**. Com folga >14 dias,
+   ela fecha sozinha. O valor vem no fuso do dono (`... -0300`) e é normalizado para
+   UTC; HTTP 200 com vencimento a <1h é leitura incoerente e vira `::warning::`.
+   **Medição real pendente:** o header nunca foi lido com um PAT fine-grained deste
+   repo. A validação é obrigação datada do runbook §2: até 1h depois da rotação, o
+   log precisa mostrar `pat-expiry: folga > 14 dias`. Se aparecer `sem medição` ou a
+   issue abrir com PAT de 90 dias, o step é revertido.
+2. **Label próprio, limite 11 dias.** O aviso não usa `ops-train`. Com 3 dias de
+   limite, ele travaria o `Lint` em T-11, enquanto o trem ainda anda. Com 11, o
+   `S3` só cobra em T-3. A issue é editada no lugar, nunca fechada e reaberta,
+   porque o `S3` conta a idade pelo `createdAt`.
+3. **Só mede com o PAT explícito** (`AUTOMERGE_KICK=1`). O fallback
+   `GITHUB_TOKEN` vive ~1h, e medi-lo abriria falso alarme.
+4. **Header ausente não é folga.** Token sem expiração viola a **D2** e abre a
+   mesma issue.
+5. **A medição nunca reprova o run.** Um run vermelho abriria `ops-train`, e o `S3`
+   travaria os merges por defeito do instrumento. Falha de leitura vira
+   `::warning::`. O **401 continua vermelho**, agora com mensagem que aponta o
+   runbook §2. Revogação não aparece no header; quem a cobre é o 401.
+
+**Achado: a garantia de identidade não vale para o PAT.** O runbook §2 diz que a
+identidade do PAT não pode entrar na bypass list do Ruleset, e a **D2** promete
+"identidade própria fora da bypass list" para o App-alvo. Medido em
+2026-10-08 (`gh api repos/davidrobert/mathoms/rulesets/15884038`):
+`bypass_actors = [{RepositoryRole 5 (Admin), bypass_mode: pull_request}]`, e o
+repo é **público**. O PAT age como o dono, que é admin. **Não medido:** se um PAT
+fine-grained sem a permissão Administration herda o bypass do papel na hora do
+merge, e por desenho não é medível: o `rule-suites` registra o ator, não o tipo de
+credencial; o trem nunca pede merge com bypass (a observação passiva sai verde por
+vacuidade); e uma sonda ativa geraria bypass fora dos usos sancionados da
+[[ADR-415]] D2. A pergunta morre com a revogação do PAT. Mesmo no melhor caso, a
+garantia depende de um detalhe de implementação do GitHub, não do desenho.
+
+**Deferimento datado — GitHub App deixa de ser condicional.**
+- **Antes:** "alvo estrutural; PAT é stopgap aceito".
+- **Agora:** o App é a única identidade não-admin disponível. O token de
+  instalação vive 1h, e a chave pode ser trocada sem downtime, porque duas chaves
+  coexistem.
+- **Dono:** davidrobert.
+- **Prazo:** **2026-12-07**, data absoluta (≈T-30 do PAT de 90 dias que substitui o
+  que expirou em 2026-10-07; se a rotação atrasar, o prazo não anda). Veículo: item
+  2.5 do [[PLAN-ci-trust]].
+- **Forma:** esta emenda é o registro da decisão. O desenho de implementação
+  (variável de identidade, Environment, critério de revogação) mora no plano. ADR
+  nova só se o spike refutar a premissa ou se o desenho sair da **D2** (App com
+  bypass ou com a permissão `workflows`).
+- **Spike obrigatório antes de apagar o PAT:** um update-branch feito pelo App
+  não pode nascer `action_required`.
+- **Fora de escopo:** a permissão `workflows` continua fora. O 403 de PR que
+  toca `.github/workflows/**` (§Emenda 2026-08-08) não muda com o App.
+- **Retomada:** se a data passar sem o item 2.5 em andamento, o aviso
+  `ops-pat-expiry` do próximo ciclo é o lembrete.

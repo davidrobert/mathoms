@@ -1,7 +1,52 @@
+/* Escopo de varredura = src/, o mesmo `content` do tailwind.config.ts v3. */
+@import "tailwindcss" source("../");
 @import "../styles/tokens.css";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+/* ADR-050 — tokens via @theme, sem tailwind.config.ts. Os nomes das utilities
+ * (surface-bg, brand-primary-fg…) são os do config v3 que este bloco substitui.
+ * `reference`: tokens.css já declara as variáveis; sem ele o Tailwind emitiria
+ * --font-display: var(--font-display) no :root. */
+@theme inline reference {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-fg: var(--brand-primary-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-fg: var(--brand-accent-foreground);
+  --color-brand-neutral: var(--brand-neutral);
+  --color-brand-danger: var(--brand-danger);
+  --color-brand-danger-fg: var(--brand-danger-foreground);
+  --color-brand-warning: var(--brand-warning);
+  --color-brand-warning-fg: var(--brand-warning-foreground);
+  --color-brand-info: var(--brand-info);
+
+  --color-surface-bg: var(--surface-background);
+  --color-surface-fg: var(--surface-foreground);
+  --color-surface-card: var(--surface-card);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-muted-fg: var(--surface-muted-foreground);
+  --color-surface-border: var(--surface-border);
+  --color-surface-input: var(--surface-input);
+  --color-surface-ring: var(--surface-ring);
+
+  --color-semantic-gain: var(--semantic-gain);
+  --color-semantic-gain-on-tint: var(--semantic-gain-on-tint);
+  --color-semantic-loss: var(--semantic-loss);
+  --color-semantic-alert: var(--semantic-alert);
+  --color-semantic-info: var(--semantic-info-financial);
+
+  --radius-card: var(--radius-card);
+  --radius-pill: var(--radius-pill);
+}
+
+/* Preflight v4 tirou o cursor pointer de button; mantém o comportamento v3. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 :root {
   color-scheme: light dark;

@@ -202,6 +202,10 @@ Ela é dona assinada de C14, de C19 e do arquivo. Número-neutro, cabe no closeo
   patrimônio). Reconciliar junto com `FORMULAS.md` §219 no PR de implementação.
 - **`risk_trigger_registry` usa `<=` e o catálogo publica `<`**, divergindo em **50,00 exato** —
   o comentário do registry declara a escolha. Território da [[A40.l90]]/[[A40.l92]], não desta.
+  ✅ **Resolvido na [[A40.l92]] (2026-10-08):** o catálogo passou a `<=` e o `RiskTrigger`
+  ao predicado único `conforme_ao_limiar` (#2048); o veredito da tabela do parecer julga o
+  alvo do catálogo pelo mesmo predicado (#2065). A doutrina é a da [[ADR-399]] §Emenda
+  2026-10-08: o limiar é o último valor conforme.
 
 ## Critério de aceite — prevalece sobre o de cima
 
