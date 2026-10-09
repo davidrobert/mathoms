@@ -3,6 +3,7 @@
  * proteção + premissas que abre o corpo do card.
  */
 import type { CascataPayload } from "@/lib/api";
+import { formatNumber, formatPercent } from "@/lib/format";
 import { PREMISSAS_SENTENCE, PROTECTION_SENTENCE } from "./CascataFiscalCard.copy";
 
 export function RegimeSubheader({ cascata }: { cascata: CascataPayload }) {
@@ -38,13 +39,13 @@ function FatorRBadge({
     ? "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain-on-tint)]"
     : "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert-on-tint)]";
   const label = isAnexoIII ? "Anexo III" : "Anexo V";
-  const pctTxt = (pct * 100).toFixed(1).replace(".", ",");
+  const fatorRPct = pct * 100;
   return (
     <span
       className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase ${className}`}
-      aria-label={`Fator-R móvel 12 meses ${pctTxt} por cento — ${label}`}
+      aria-label={`Fator-R móvel 12 meses ${formatNumber(fatorRPct, 1)} por cento — ${label}`}
     >
-      Fator-R {pctTxt}% · {label}
+      Fator-R {formatPercent(fatorRPct)} · {label}
     </span>
   );
 }

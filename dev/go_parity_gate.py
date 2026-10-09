@@ -5,6 +5,13 @@
 # de artefato NUNCA vem de cálculo (código idêntico) — só de o shell corromper
 # args/env/I/O.
 #
+# Ponto cego: o gate compara runs que TERMINAM, então não vê a fronteira
+# transacional — o que o executor faz com a escrita de um stage que não
+# entregou. O CLI do shell commitava esse parcial e o in-process não ([[ADR-303]]
+# §Emenda 2026-10-09). Essa classe é guardada pela tabela de disposição rodada
+# nos três executores (`tests/test_cli_run_stage_disposition.py` e irmãos) e
+# pelo invariante do ledger do soak (`docs/plan/GO_SHELL/tracks/f2-cutover.md`).
+#
 # Critério (co-design 2026-07-08, tracks/f2-cutover.md):
 # - Tier-1 (determinístico): run com skip_llm (DETERMINISTIC_ORDER) + fixture sem
 #   fallback LLM no E2 → payload E0→E5 100% determinístico → paridade value-exact

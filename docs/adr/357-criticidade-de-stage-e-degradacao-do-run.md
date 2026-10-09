@@ -291,6 +291,10 @@ opcional: o marcador terminal promete "artefatos persistidos", e marcar
 
 Os dois leitores já discriminam por `_meta.status == "Gerado"`.
 
+A regra desta § mora num predicado só, `pipeline/stage_outcome.py::commits_stage_transaction`,
+aplicado pelos quatro executores: o loop in-process, o CLI do shell Go e as duas rotas do
+pipeline-service ([[ADR-303]] §Emenda 2026-10-09).
+
 **Exceção travada:** commit-on-degrade só é seguro quando o artifact degradado
 tem **chave própria**, porque é ali que cabe o marcador `_meta.status` que os dois
 leitores usam para discriminar. `generate_narratives` escreve em

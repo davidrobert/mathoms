@@ -1407,7 +1407,7 @@ def _execute_stages_loop(
     """
     from backend.app.services.pipeline import stage_failure_reason as sfr
     from pipeline.stage_outcome import (
-        commits_artifacts_on_degrade,
+        commits_stage_transaction,
         resolve_stage_outcome,
         stage_criticality,
     )
@@ -1524,7 +1524,7 @@ def _execute_stages_loop(
                 if stop_on_error:
                     break
                 continue
-        elif outcome == "degraded" and commits_artifacts_on_degrade(stage_name):
+        elif commits_stage_transaction(stage_name, outcome):
             # ADR-357 §6 — artifact degradado é COMMITADO (nunca publicado): a
             # superfície de diagnóstico precisa ter o que ler, e o marcador
             # terminal promete "artefatos persistidos". A exceção travada é o

@@ -1,5 +1,6 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 import type { EndividamentoData } from "@/types/report-analysis";
 
 /** F9 · F2.A · S1 — Card "Endividamento".
@@ -50,7 +51,7 @@ export function EndividamentoCard({
             </p>
             <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">
               <span className="font-mono tabular-nums">
-                {pct.toFixed(1).replace(".", ",")}%
+                {formatPercent(pct)}
               </span>{" "}
               do patrimônio
             </p>
@@ -96,7 +97,7 @@ export function EndividamentoCard({
                       </td>
                       <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
                         {d.taxa_juros_aa != null
-                          ? `${d.taxa_juros_aa.toFixed(2).replace(".", ",")}% a.a.`
+                          ? `${formatPercent(d.taxa_juros_aa, 2)} a.a.`
                           : "—"}
                       </td>
                     </tr>

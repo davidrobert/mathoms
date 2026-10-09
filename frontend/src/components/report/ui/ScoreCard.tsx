@@ -1,6 +1,7 @@
 "use client";
 
 import { ChartGaugeScore, type ScoreClasseKey } from "@/components/report/charts/primitives";
+import { formatNumber } from "@/lib/format";
 
 export type ScoreClasse =
   | "Excelente"
@@ -116,7 +117,7 @@ export function ScoreCard({
             color: accent,
           }}
         >
-          {value.toFixed(1).replace(".", ",")} — {classe}
+          {formatNumber(value, 1)} — {classe}
         </span>
       </header>
 
@@ -284,7 +285,7 @@ function BreakdownRow({ row, max }: BreakdownRowProps) {
               textAlign: "right",
             }}
           >
-            {row.valor.toFixed(1).replace(".", ",")}
+            {formatNumber(row.valor, 1)}
           </span>
         </div>
       </td>
@@ -300,7 +301,7 @@ function BreakdownRow({ row, max }: BreakdownRowProps) {
         }}
       >
         {row.contribuicao !== undefined
-          ? row.contribuicao.toFixed(2).replace(".", ",")
+          ? formatNumber(row.contribuicao, 2)
           : "—"}
       </td>
     </tr>
