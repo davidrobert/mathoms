@@ -101,6 +101,15 @@ class TestJanelasDoHistory:
     def test_tolerancia_e_de_15_minutos(self) -> None:
         assert alarm.BREAK_GLASS_TOLERANCE == timedelta(minutes=15)
 
+    def test_exatamente_15_minutos_ainda_e_janela(self) -> None:
+        """A tolerância é inclusiva: alarma o que passa DELA, não o que a atinge."""
+        history = _history(
+            (3, at(minutes=25), ruleset_state()), (2, at(minutes=10), ruleset_state(bypass=1))
+        )
+        run = FakeGh(history=history)
+        _sweep(run)
+        assert run.writes == []
+
     def test_enforcement_desligado_alarma_sem_tolerancia(self) -> None:
         """ADR-448 D3: o toggle não é break-glass — 1 s já é incidente."""
         history = _history(
