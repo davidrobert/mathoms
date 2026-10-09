@@ -129,9 +129,9 @@ function SituacaoCell({ metrica }: { metrica: Metrica }) {
         {severityIcon(atencao ? "atencao" : "alinhado")}
         {situacao.texto}
       </span>
-      {situacao.progressoPct !== null && (
+      {(situacao.progressoPct !== null || situacao.texto === "Acima do limite") && (
         <progress
-          value={situacao.progressoPct}
+          value={situacao.progressoPct ?? 100}
           max={100}
           aria-valuetext={`${metrica.valor_atual} de ${metrica.target}`}
           className="parecer-progress h-1.5 w-24 appearance-none overflow-hidden rounded-full bg-[var(--surface-muted)] [&::-moz-progress-bar]:bg-[var(--brand-primary)] [&::-webkit-progress-bar]:bg-[var(--surface-muted)] [&::-webkit-progress-value]:bg-[var(--brand-primary)]"

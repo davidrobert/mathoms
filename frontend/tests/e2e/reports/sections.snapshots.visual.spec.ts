@@ -178,7 +178,7 @@ async function snapshotSection(
       // herdar esta. Re-calibrar este valor é lane própria; não o copie para
       // baseline nova sem medir o par (piso de ruído, menor mudança que
       // precisa reprovar).
-      maxDiffPixelRatio: 0.025,
+      maxDiffPixelRatio: 0, // SONDA: tolerância zero — cada pixel reporta
       // Mascarar elementos cuja renderização exata não importa para
       // detecção de regressão estrutural (ex.: timestamps) e os FABs, que não
       // pertencem à seção (ver `floatingNavMask`).
