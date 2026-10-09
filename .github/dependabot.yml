@@ -12,11 +12,17 @@ updates:
   # ----------------------------------------------------------------------
   # Python — pipeline + backend (ADR-254)
   #
-  # Sources são requirements.in (/) + backend/requirements.in. O lock de prod
-  # é combinado cross-dir (requirements.lock único) e NÃO é auto-regenerado
-  # pelo Dependabot — ele sobe o constraint no .in e o hook check_lockfile_sync
-  # falha o CI até alguém regenerar o .lock (runbook python_dependencies.md).
-  # Gate intencional: upgrade nunca entra sem revalidação amd64.
+  # UMA entrada só. A `/` cobre requirements.in E backend/requirements.in (o
+  # log do updater roda `pip-compile ... backend/requirements.in`). Até
+  # 2026-10-09 havia também uma `/backend`: ficou sem job de 07-28 a 10-09 e,
+  # no primeiro job, duplicou os PRs da `/` (#2103≡#2104, #2105≡#2108) e partiu
+  # a família opentelemetry entre as duas (#2101/#2102). Não a recrie.
+  #
+  # O Dependabot sobe o piso no .in e às vezes regenera o requirements.lock
+  # (#2029), às vezes não (#2102). Quando não regenera, o hook
+  # check_lockfile_sync reprova o CI — o lock tem que satisfazer o .in — até
+  # alguém rodar a Tarefa 1 do runbook python_dependencies.md. Gate
+  # intencional: upgrade nunca entra sem revalidação amd64.
   # ----------------------------------------------------------------------
   - package-ecosystem: "pip"
     directory: "/"
@@ -25,7 +31,8 @@ updates:
       day: "monday"
       time: "06:00"
       timezone: "America/Sao_Paulo"
-    open-pull-requests-limit: 5
+    # 8 e não 5: esta entrada passou a cobrir os dois .in (eram 5 + 5).
+    open-pull-requests-limit: 8
     labels: ["dependency", "area:pipeline"]
     commit-message:
       prefix: "chore(deps)"
@@ -47,30 +54,27 @@ updates:
           - "pydantic"
           - "alembic"
           - "celery"
-
-  - package-ecosystem: "pip"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "America/Sao_Paulo"
-    open-pull-requests-limit: 5
-    labels: ["dependency", "area:backend"]
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    groups:
-      patch-and-minor:
-        update-types: ["patch", "minor"]
-        exclude-patterns:
-          - "anthropic"
-          - "openai"
-          - "sqlalchemy"
-          - "pydantic"
-          - "alembic"
-          - "celery"
           - "fastapi"
+    ignore:
+      # Família opentelemetry-*: grupos pip nunca agruparam neste repo, então
+      # cada release abria até 7 PRs de piso, um por membro — todos vermelhos no
+      # lockfile-sync (a família é acoplada por `==`) e disputando o limite de
+      # PRs. Só as sentinelas api (core 1.x) e instrumentation-fastapi (contrib
+      # 0.Xb0) recebem version update; o PR delas pede a família inteira
+      # (runbook python_dependencies.md §Família opentelemetry). `update-types`,
+      # e não regra nua: só version updates são suprimidas, security updates
+      # seguem abrindo. tests/dev/test_dependabot_otel_sentinels.py amarra esta
+      # lista ao .in.
+      - dependency-name: "opentelemetry-sdk"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-exporter-otlp-proto-http"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-sqlalchemy"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-celery"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "opentelemetry-instrumentation-logging"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------
   # npm — frontend
