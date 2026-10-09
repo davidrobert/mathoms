@@ -19,24 +19,48 @@ _FIRST = {
 _SECOND = {"posicao": 2, "nome": "ITSA4", "valor": 150_000, "membro": "mariana"}
 
 
+_VAZIO = {
+    "nome": "",
+    "valor": 0,
+    "membro": "",
+    "instituicao": "",
+    "sem_peso": False,
+    "desconhecido": False,
+}
+
+
 def test_returns_first_item_of_top_ativos():
     out = _find_top_asset({"investimentos": {"top_ativos": [_FIRST, _SECOND]}})
-    assert out == {k: _FIRST[k] for k in ("nome", "valor", "membro", "instituicao")}
+    esperado = {k: _FIRST[k] for k in ("nome", "valor", "membro", "instituicao")}
+    assert out == esperado | {"sem_peso": False, "desconhecido": False}
 
 
 def test_returns_empty_when_top_ativos_missing():
-    out = _find_top_asset({"investimentos": {}})
-    assert out == {"nome": "", "valor": 0, "membro": "", "instituicao": ""}
+    assert _find_top_asset({"investimentos": {}}) == _VAZIO
 
 
 def test_returns_empty_when_top_ativos_is_empty_list():
-    out = _find_top_asset({"investimentos": {"top_ativos": []}})
-    assert out == {"nome": "", "valor": 0, "membro": "", "instituicao": ""}
+    assert _find_top_asset({"investimentos": {"top_ativos": []}}) == _VAZIO
 
 
 def test_returns_empty_when_investimentos_block_missing():
-    out = _find_top_asset({})
-    assert out == {"nome": "", "valor": 0, "membro": "", "instituicao": ""}
+    assert _find_top_asset({}) == _VAZIO
+
+
+# [[ADR-444]] D4/D5: a prosa do narrador lê do payload se o #1 tem peso e se o uso dele é
+# conhecido — o mesmo que o card do ranking lê.
+def test_marca_o_topo_sem_peso():
+    topo = _FIRST | {"pct_carteira": None, "classificacao_imovel": "desconhecido"}
+    out = _find_top_asset({"investimentos": {"top_ativos": [topo]}})
+    assert out["sem_peso"] is True
+    assert out["desconhecido"] is True
+
+
+def test_marca_o_topo_desconhecido_com_peso():
+    topo = _FIRST | {"pct_carteira": 30.0, "classificacao_imovel": "desconhecido"}
+    out = _find_top_asset({"investimentos": {"top_ativos": [topo]}})
+    assert out["sem_peso"] is False
+    assert out["desconhecido"] is True
 
 
 # Fixture sintética (sem PII real — ADR-319): apenas as PALAVRAS-marcador que a

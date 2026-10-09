@@ -9,7 +9,8 @@
 # ---------------------------------------------------------------------------
 # Stage 1: deps — instala node_modules a partir do package-lock.json
 # ---------------------------------------------------------------------------
-# node:22-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
+# node:<major>-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
+# O major é o de frontend/.nvmrc — o gate node-version-parity reprova divergência.
 FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
