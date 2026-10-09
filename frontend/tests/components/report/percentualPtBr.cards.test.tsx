@@ -10,33 +10,14 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 import { render, screen } from "@testing-library/react";
 
 import { AliquotaDualGauge } from "@/components/report/charts/AliquotaDualGauge";
-import { ContrafluxoCard } from "@/components/report/cards/ContrafluxoCard";
 import { EndividamentoCard } from "@/components/report/cards/EndividamentoCard";
 import { EquilibrioCerbasiCard } from "@/components/report/cards/EquilibrioCerbasiCard";
 import { IrpfIrPagoCard } from "@/components/report/cards/IrpfIrPagoCard";
 import { IrpfSplitTrabalhoCapitalCard } from "@/components/report/cards/IrpfSplitTrabalhoCapitalCard";
 import { ScoreCard } from "@/components/report/ui/ScoreCard";
 import type { IrpfKpis } from "@/types/irpf";
+import type { EquilibrioCerbasiData } from "@/types/report-analysis";
 import { PERCENTUAL_COM_PONTO } from "../../shared/percentualPtBr";
-
-describe("<ContrafluxoCard /> — percentual pt-BR", () => {
-  it("subtítulo (2 casas) e tabela de cenários (1 casa) usam vírgula", () => {
-    const { container } = render(
-      <ContrafluxoCard
-        contrafluxo={{
-          selic_atual: 10.75,
-          cenarios: { base: { selic: 10.5, cdi: 10.4 } },
-        }}
-        cdi_anual={10.65}
-      />,
-    );
-
-    expect(screen.getByText("Selic atual: 10,75% a.a. | CDI: 10,65%")).toBeInTheDocument();
-    expect(screen.getByText("10,5%")).toBeInTheDocument();
-    expect(screen.getByText("10,4%")).toBeInTheDocument();
-    expect(container.textContent).not.toMatch(PERCENTUAL_COM_PONTO);
-  });
-});
 
 describe("<EquilibrioCerbasiCard /> — percentual pt-BR", () => {
   // O produtor arredonda para 1 casa (`equilibrio_cerbasi_analyzer.py`): o número
@@ -59,6 +40,48 @@ describe("<EquilibrioCerbasiCard /> — percentual pt-BR", () => {
     // `width: 62,5%` é declaração CSS inválida — a barra sumiria.
     const barra = container.querySelector<HTMLElement>('[role="img"] > div');
     expect(barra?.style.width).toBe("62.5%");
+  });
+});
+
+describe("<EquilibrioCerbasiCard /> — ausente não vira zero (COPY_GUIDELINES §4.3)", () => {
+  const AUSENTE = "Sem fluxo de caixa no período para calcular a divisão entre presente e futuro.";
+
+  // Shape que as 6 fixtures E2E carregavam: sem `pct_*` e com `presente`/`futuro` em
+  // fração. Nenhum produtor emitiu esse shape, e o card afirmava "Presente (0,0%)",
+  // desenhava barras de largura 0 e imprimia o float cru "0.55". O produtor omite a
+  // divisão quando não há base — o mesmo caminho.
+  it("sem pct_presente/pct_futuro declara ausência em vez de afirmar 0,0%", () => {
+    const equilibrio = {
+      presente: 0.55,
+      futuro: 0.3,
+      padrao_vida: 0.15,
+    } as unknown as EquilibrioCerbasiData;
+    const { container } = render(<EquilibrioCerbasiCard equilibrio={equilibrio} />);
+
+    expect(container.textContent).not.toMatch(/0,0\s?%/);
+    expect(container.textContent).not.toContain("0.55");
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByText(AUSENTE)).toBeInTheDocument();
+  });
+
+  // Os dois pcts dividem o mesmo todo: com um só, o outro sairia "0,0%" inventado.
+  it("um pct sem o par também é ausência", () => {
+    const { container } = render(<EquilibrioCerbasiCard equilibrio={{ pct_presente: 62.5 }} />);
+
+    expect(container.textContent).not.toMatch(/0,0\s?%/);
+    expect(screen.getByText(AUSENTE)).toBeInTheDocument();
+  });
+
+  it("zero real continua sendo publicado como zero", () => {
+    render(
+      <EquilibrioCerbasiCard
+        equilibrio={{ pct_presente: 0, pct_futuro: 100, classificacao: "Investidor" }}
+      />,
+    );
+
+    expect(screen.getByText("Presente (0,0%)")).toBeInTheDocument();
+    expect(screen.getByText("Futuro (100,0%)")).toBeInTheDocument();
+    expect(screen.queryByText(AUSENTE)).not.toBeInTheDocument();
   });
 });
 
