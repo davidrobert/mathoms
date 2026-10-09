@@ -129,6 +129,66 @@ describe("<AlocacaoAtualVsAlvoCard />", () => {
     expect(screen.getByText(/Classes fora do plano/)).toBeInTheDocument();
   });
 
+  describe("prescrição suprimida pelo produtor (ADR-394 §Emenda · ADR-400)", () => {
+    const DESALINHADA: AlocacaoDerived["comparaveis"] = [
+      { classe: "renda_fixa", valor_brl: 50_000, componentes: ["Renda Fixa"], atual_pct: 50, alvo_pct: 60, desvio_pp: -10, severity: "rebalancear" },
+      { classe: "acoes_br", valor_brl: 40_000, componentes: ["Ações BR"], atual_pct: 40, alvo_pct: 30, desvio_pp: 10, severity: "rebalancear" },
+      { classe: "fiis", valor_brl: 6_000, componentes: ["FIIs"], atual_pct: 6, alvo_pct: 3, desvio_pp: 3, severity: "atencao" },
+      { classe: "acoes_int", valor_brl: 4_000, componentes: ["Internacional"], atual_pct: 4, alvo_pct: 7, desvio_pp: -3, severity: "atencao" },
+      { classe: "fora_alvo", valor_brl: 0, componentes: [], atual_pct: 0, alvo_pct: 0, desvio_pp: 0, severity: "alinhado" },
+    ];
+
+    function suprimida(motivo: string, overrides: Partial<AlocacaoDerived> = {}) {
+      return makeDerived({
+        carteira_liquida_brl: 100_000,
+        has_alvo: true,
+        desvio_max_pct: null,
+        next_aporte_classe: null,
+        comparaveis: DESALINHADA,
+        motivo_supressao: motivo,
+        ...overrides,
+      });
+    }
+
+    function expectSemPrescricao(): void {
+      for (const prescricao of [/Rebalancear/i, /Atenção/i, /Carteira alinhada|aderente/i, /Próximo aporte →/]) {
+        expect(screen.queryAllByText(prescricao), String(prescricao)).toHaveLength(0);
+      }
+    }
+
+    it("cobertura incompleta: nem badge nem rodapé prescrevem, e a causa é declarada", () => {
+      render(<AlocacaoAtualVsAlvoCard derived={suprimida("cobertura_incompleta: conjuge")} />);
+      expectSemPrescricao();
+      expect(screen.getByText(/cônjuge/)).toBeInTheDocument();
+    });
+
+    it("incerteza de classe parcial (2–10%): desvio máximo sobrevive, a indicação não", () => {
+      render(
+        <AlocacaoAtualVsAlvoCard
+          derived={suprimida("nao_classificado: 5.1% da carteira", { desvio_max_pct: 10 })}
+        />,
+      );
+      expectSemPrescricao();
+      expect(screen.getByText(/5,1% da carteira/)).toBeInTheDocument();
+    });
+
+    it("carteira dentro de 2pp com cobertura incompleta não vira elogio", () => {
+      render(
+        <AlocacaoAtualVsAlvoCard
+          derived={suprimida("cobertura_incompleta: conjuge", { comparaveis: BALANCED.comparaveis })}
+        />,
+      );
+      expectSemPrescricao();
+    });
+
+    it("a descrição sobrevive: a tabela por classe continua com atual, alvo e desvio", () => {
+      render(<AlocacaoAtualVsAlvoCard derived={suprimida("balde_negativo: veiculos")} />);
+      expect(screen.getAllByText("Renda Fixa").length).toBeGreaterThan(0);
+      expect(screen.getByRole("columnheader", { name: "Desvio (pp)" })).toBeInTheDocument();
+      expect(screen.getAllByText("-10,0").length).toBeGreaterThan(0);
+    });
+  });
+
   it("exibe linha de caixa com sinal de excesso quando sinal_excesso=true", () => {
     render(
       <AlocacaoAtualVsAlvoCard
