@@ -178,7 +178,7 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](../DECISIONS.
 
 | Componente | Local |
 | --- | --- |
-| UI | `frontend-ops/` (Next app separada, bind `127.0.0.1:3100`) |
+| UI | `frontend-ops/` (Next app separada, bind `127.0.0.1:3100`; no compose, `0.0.0.0:3100` dentro do container e publicado só em `127.0.0.1:3110` do host) |
 | Rotas | `/admin/*` (FastAPI · só monta se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1`) |
 | Auth | `config/internal_operators.yaml` (bcrypt) + JWT cookie `ops_session` `httpOnly + SameSite=Strict + Path=/admin`, TTL 8h |
 | Segredo de sessão | `MATHOMS_INTERNAL_OPS_SESSION_SECRET` (**distinto** de `MATHOMS_SECRET_KEY` do cliente) |
@@ -232,7 +232,15 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](../DECISIONS.
    `http://127.0.0.1:8001` (ver [`next.config.ts`](../../frontend-ops/next.config.ts)).
    Se você rodou o backend de ops em outra porta, exporte
    `INTERNAL_OPS_API_BASE=http://127.0.0.1:<porta>` antes de `npm run dev`.
-   Ou via compose: `docker compose -f docker-compose.dev.yml up frontend-ops`.
+
+   Ou via compose: `docker compose -f docker-compose.dev.yml --profile ops up -d --build frontend-ops`
+   → UI em http://127.0.0.1:3110/login (`MATHOMS_DOCKER_OPS_PORT`). Na imagem
+   o rewrite é **build arg** (`MATHOMS_DOCKER_OPS_API_BASE`, default
+   `http://api:8000`): trocar o destino exige `--build`. O `api` do compose
+   ainda não monta `/admin/*` (flag desligada), então ali o login devolve 404 —
+   para operar, use o backend de ops do passo 3 com
+   `MATHOMS_DOCKER_OPS_API_BASE=http://host.docker.internal:8001` (Docker
+   Desktop; no Linux o `host-gateway` não alcança um uvicorn em `127.0.0.1`).
 
 ### 7.3 Operações disponíveis (UI)
 

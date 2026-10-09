@@ -13,9 +13,9 @@ entrypoint). Um `HEALTHCHECK` no Dockerfile aplicaria o mesmo comando aos três
 modos — mas só o `api` expõe HTTP. Por isso o healthcheck **não vive no
 Dockerfile backend**; cada service declara o seu no compose.
 
-A imagem **pipeline-service é single-modo** (sempre `uvicorn :8001`) — aí o
-`HEALTHCHECK` vive **no próprio Dockerfile** (paridade com k8s/ECS, que leem a
-instrução da imagem).
+As imagens **pipeline-service** (sempre `uvicorn :8001`) e **frontend-ops**
+(sempre `node server.js :3100`) são single-modo — aí o `HEALTHCHECK` vive **no
+próprio Dockerfile** (paridade com k8s/ECS, que leem a instrução da imagem).
 
 | Service | Healthcheck | Onde declarado |
 |---|---|---|
@@ -23,6 +23,7 @@ instrução da imagem).
 | `worker` | `celery -A backend.app.worker inspect ping` | compose |
 | `beat` | **nenhum** (ver §3) | — |
 | `pipeline-service` | `python -c "urllib...:8001/health"` | `pipeline-service/Dockerfile` |
+| `frontend-ops` | `wget -q -O /dev/null 127.0.0.1:3100/login` (liveness; `/login` renderiza sem o api) | `frontend-ops/Dockerfile` |
 | `postgres` / `redis-*` / `frontend` | nativo da imagem base | compose |
 
 > O módulo Celery é `backend.app.worker` (variável `celery_app`, app `"fin"`).
