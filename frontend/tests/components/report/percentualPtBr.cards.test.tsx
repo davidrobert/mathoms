@@ -64,11 +64,12 @@ describe("<EquilibrioCerbasiCard /> — percentual pt-BR", () => {
 });
 
 describe("<EquilibrioCerbasiCard /> — ausente não vira zero (COPY_GUIDELINES §4.3)", () => {
-  const AUSENTE = "Dados de equilíbrio não disponíveis.";
+  const AUSENTE = "Sem fluxo de caixa no período para calcular a divisão entre presente e futuro.";
 
-  // Shape das 6 fixtures E2E (`tests/e2e/fixtures/reports/*.json`): sem `pct_*` e com
-  // `presente`/`futuro` em fração. Nenhum produtor emitiu esse shape, e o card afirmava
-  // "Presente (0,0%)", desenhava barras de largura 0 e imprimia o float cru "0.55".
+  // Shape que as 6 fixtures E2E carregavam: sem `pct_*` e com `presente`/`futuro` em
+  // fração. Nenhum produtor emitiu esse shape, e o card afirmava "Presente (0,0%)",
+  // desenhava barras de largura 0 e imprimia o float cru "0.55". O produtor omite a
+  // divisão quando não há base — o mesmo caminho.
   it("sem pct_presente/pct_futuro declara ausência em vez de afirmar 0,0%", () => {
     const equilibrio = {
       presente: 0.55,
