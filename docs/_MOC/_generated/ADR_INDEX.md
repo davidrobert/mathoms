@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-431 ADRs (ADR-001 a ADR-442) em [`docs/adr/`](../../adr/).
+432 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 369
-- **Proposto**: 57
+- **Proposto**: 58
 - **Roadmap**: 5
 
 ## Fundação
@@ -39,9 +39,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
 - [[ADR-423]] — Snapshot de `copy_from` declara `Index` ou o índice morre em SQLite; e o gate de drift passa a enxergar índice · phase A40.l97
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-424]] — SQL só-SQLite numa migration quebra a cadeia em Postgres; o gate é `upgrade head` contra PG no fecho required
+- [[ADR-445]] — Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho · phase A42.l27
 
 ## Pipeline
 
