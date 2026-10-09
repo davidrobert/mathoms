@@ -301,6 +301,21 @@ coincide com o bump 2.21.0 do manifest (#2117) se os dois entrarem antes do mesm
   está provada para o distiller. **Condição de retomada:** teste sem LLM que fixa o
   sha256 do system e do user de `_build_prompts`, sobre fixture sintética — o system
   contra `PROMPT_VERSION`, o user contra `(PROMPT_VERSION, manifest.version)`.
+
+  > **Fechado em 2026-10-09** ([#NNNN](https://github.com/davidrobert/mathoms/pull/NNNN)):
+  > `tests/test_parecer_prompt_fingerprint.py` fixa, sem LLM, o sha256 do system
+  > (`SYSTEM_PROMPT_SHA256`, junto de `PROMPT_VERSION`) e do user por regime de eviction
+  > (`user_prompt_sha256` no manifest), sobre fixture congelada que cobre todo path do
+  > manifest menos dois ausentes deliberados. Cada pin mora no arquivo cuja versão governa:
+  > byte muda ⇒ pin muda ⇒ o gate W2-T05 cobra o bump; refactor sem mudança de byte não
+  > cobra nada. Por isso o user responde ao `version:` do manifest — e também a
+  > `PROMPT_VERSION` quando a mudança é no `USER_PROMPT_TEMPLATE`. A byte-identidade que
+  > faltava foi provada antes do pin (2× no mesmo processo, e em subprocessos com
+  > `PYTHONHASHSEED` 0 e 1), e o teste a re-prova a cada run. Os quatro commits, medidos no
+  > fecho por replay sobre a fixture: reverter `509d8d0e` ou `f19fe720` move o pin;
+  > reverter `087ab664` não (refactor); `48dd0a22` é inalcançável, porque o manifest não
+  > projeta `$.narrativas`. Hashear o prompt na chave fica como plano B, se a fixture se
+  > mostrar cega.
 - **A telemetria por versão não vê a persona (dono: `prompt-engineer`).**
   `PROMPT_VERSION` faz dois trabalhos: invalidar cache — agora coberto pelo hash — e
   separar telemetria: a janela `(prompt_version, model)` do drift monitor, o rótulo de
@@ -309,3 +324,17 @@ coincide com o bump 2.21.0 do manifest (#2117) se os dois entrarem antes do mesm
   misturou dois regimes. **Condição de retomada:** o teste do item acima (o system pinado
   em `PROMPT_VERSION` cobre os dois) ou `dev/check_prompt_version_bumped.py` exigindo
   bump quando `planner_persona.md` muda — em PR próprio, porque não invalida cache.
+
+  > **Fechado em 2026-10-09** no mesmo PR, pelo primeiro ramo: com o system pinado,
+  > editar a persona exige bump de `PROMPT_VERSION`, e o ramo do gate ficou redundante.
+  > Estreia na `PROMPT_VERSION` 2.5.1, que tira o placeholder ([[ADR-201]] §Correção
+  > 2026-10-09). A persona também entrou no grupo `pipeline` do filtro de mudanças do CI:
+  > sem isso, um PR que só a edita — o caso do `27bcd6d7` — pulava o job que roda o pin.
+- **O schema de saída chega ao modelo por um terceiro canal, sem versão de prompt
+  (dono: `prompt-engineer`).** O Instructor envia `ParecerPlanejadorOutput` como tool,
+  com o vocabulário de `MetricaKey` junto; o módulo do schema não declara
+  `PROMPT_VERSION`, e o `_SCHEMA_VERSION` do orchestrator só sobe em mudança breaking.
+  Mesma classe do primeiro item, achada no fecho dele. **Condição de retomada:** antes da
+  próxima mudança não-breaking no schema de saída (descrição de campo, membro de
+  `MetricaKey`) — pin do JSON schema serializado num arquivo que o W2-T05 vigia, o mesmo
+  mecanismo.
