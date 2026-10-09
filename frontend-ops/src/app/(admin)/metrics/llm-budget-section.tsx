@@ -3,11 +3,12 @@
 // Editor de budget LLM por workspace (A30.l1 · ADR-173). Janela = mês-calendário
 // UTC (mesma do hard-stop) — NÃO usar a janela rolling do /llm-cost-by-workspace.
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Modal } from "@/components/Modal";
 import { Badge, Button, TextInput } from "@/components/ui";
 import { api, AdminApiError } from "@/lib/api";
 import type { LLMBudgetMonthResponse, WorkspaceLLMBudgetMonth } from "@/lib/types";
+import { useAdminFetch } from "@/lib/use-admin-fetch";
 
 const STATUS_LABEL: Record<WorkspaceLLMBudgetMonth["status"], string> = {
   ok: "OK",
@@ -40,23 +41,9 @@ function resultingStatus(
 }
 
 function useLlmBudget() {
-  const [data, setData] = useState<LLMBudgetMonthResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async (): Promise<void> => {
-    setError(null);
-    try {
-      setData(await api.getLlmBudgetByWorkspace());
-    } catch (err) {
-      setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao carregar budget LLM.");
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  return { data, error, load };
+  const [reloads, setReloads] = useState(0);
+  const { data, error } = useAdminFetch(reloads, api.getLlmBudgetByWorkspace, "Falha ao carregar budget LLM.");
+  return { data, error, reload: () => setReloads((n) => n + 1) };
 }
 
 function SectionIntro({ data }: { data: LLMBudgetMonthResponse | null }) {
@@ -104,12 +91,12 @@ function BudgetEditor({ data, reload }: { data: LLMBudgetMonthResponse; reload: 
 }
 
 export function LlmBudgetSection() {
-  const { data, error, load } = useLlmBudget();
+  const { data, error, reload } = useLlmBudget();
   return (
     <div className="mt-8">
       <SectionIntro data={data} />
       {error && <ErrorBanner msg={error} />}
-      {data && <BudgetEditor data={data} reload={() => void load()} />}
+      {data && <BudgetEditor data={data} reload={reload} />}
     </div>
   );
 }
