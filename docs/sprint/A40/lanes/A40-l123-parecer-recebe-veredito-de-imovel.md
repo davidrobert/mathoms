@@ -95,7 +95,8 @@ prescritiva), `product-manager` (prioridade, aceite). Manifest **2.21.0**, MINOR
   | 2.21.0 | 20.147 B | 16.283 B | 101 B | idem |
 
   O conjunto evictado não muda (critério 4). A folga é fina: a próxima da fila é `ratios`,
-  onde mora a concentração, e foi por isso que duas labels encurtaram (77 B → 101 B).
+  onde mora a concentração, e foi por isso que duas labels encurtaram (77 B → 101 B). Medido
+  sob o cap de 16 KB, antes da [[A40.l124]] subi-lo a 24576 — a folga de hoje é a dela.
 - **Checagem com LLM real, braço único** — autorizada pelo dono: 9 chamadas, manifest
   2.21.0, E5 sintético PII-zero com concentração de ~60%, US$ 2,49. Com fatia em aberto (U5
   ×3, golden ×2): ressalva de classificação de imóvel em **5/5**, IF descrita como extremo
@@ -150,6 +151,8 @@ resultado está decidido antes de rodar (`prompt-engineer`).
    no caminho de produção (sanitizado) a 2.21.0 pede 19912 B sobre o mesmo E5, e a eviction
    não nasceu na 2.19.0 — medindo cada run com o próprio manifest, `investimentos` sai desde
    2026-08-26 e `independencia_financeira` desde 2026-08-29.
+   ➜ **Resolvido** pela [[A40.l124]] (#2173, 2026-10-09): telemetria do orçamento, cap do
+   corpo 16384 → 24576 e catálogo 2600 → 3400.
 3. **`pct_desconhecido` 0/0 publica 0,0** em família sem imóvel — zero sem evidência de zero.
    Dono `data-engineer`; não bloqueia (o veredito da residência diz `nao_declarada`).
 4. **CTA de cadastro no parecer:** hoje o hint o proíbe. Reabrir é do `product-designer`, que

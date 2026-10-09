@@ -330,17 +330,19 @@ repos:
         types: [python]
 
       - id: required-job-actions
-        # ADR-320 §Emenda 2026-08-05: SHA-pin (A34.l14) cobre o código da
+        # ADR-320 §Emenda 2026-08-03: SHA-pin (A34.l14) cobre o código da
         # action, não a imagem Docker que ela builda em runtime — #1161
         # (CodelyTV/pr-size-labeler puxando alpine:3.15 sem digest) reprovou
-        # o required check inteiro sem nenhum diff alcançar o job. Gate
-        # 100% offline contra .github/third-party-actions.yml.
-        name: "Veda action Docker / não-registrada em job required (ADR-320)"
+        # o required check inteiro sem nenhum diff alcançar o job.
+        # §Emenda 2026-10-09 (runtime pelo lock): runs.using lido de
+        # .github/actions.lock.yml pelo `uses:` exato; só node24 em job
+        # required, piso node24/composite/docker em todo workflow. Offline.
+        # `always_run` sem `files:`: o lock muda a cada bump de action.
+        name: "Runtime de action pelo lock: só node24 em job required (ADR-320)"
         entry: python3 dev/check_required_job_actions.py
         language: system
         pass_filenames: false
         always_run: true
-        files: ^\.github/(workflows/.*\.ya?ml|third-party-actions\.ya?ml)$
 
       - id: action-inputs
         # ADR-320 §Emenda 2026-10-09: input que a action não declara é ignorado
@@ -413,13 +415,18 @@ repos:
         files: ^(backend/tests|tests)/.*\.py$
 
       - id: lockfile-sync
-        # ADR-254 (A20.l10): garante requirements.lock em sincronia com as
-        # deps diretas de requirements.in + backend/requirements.in. Bloqueia
-        # commit que edita .in sem regenerar o .lock. Regen exige container
-        # linux/amd64 — ver docs/reference/runbooks/python_dependencies.md.
+        # ADR-254 (A20.l10 · §Emenda 2026-10-09): a versão pinada em
+        # requirements.lock satisfaz o specifier de cada dep direta de
+        # requirements.in + backend/requirements.in, e os pisos da família
+        # opentelemetry-* andam juntos. Bloqueia o .in que sobe piso sem
+        # regenerar o .lock. Regen exige container linux/amd64 — ver
+        # docs/reference/runbooks/python_dependencies.md.
+        # `language: python` + `packaging` pinado: o env de lint do CI só tinha
+        # `packaging` por tabela do pytest, e o hook não pode depender dele.
         name: "Lockfile Python em sincronia (requirements.in ↔ requirements.lock)"
-        entry: python3 dev/check_lockfile_sync.py
-        language: system
+        entry: python dev/check_lockfile_sync.py
+        language: python
+        additional_dependencies: ["packaging==26.2"]
         pass_filenames: false
         files: '^(requirements\.in|backend/requirements\.in|requirements\.lock)$'
 

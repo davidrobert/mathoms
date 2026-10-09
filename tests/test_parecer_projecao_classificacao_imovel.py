@@ -210,9 +210,9 @@ def test_snapshot_sem_o_bloco_renderiza_o_mesmo_corpo() -> None:
     assert _corpo(manifest, _e5(None)) == _corpo(_sem_os_campos(manifest), _e5(None))
 
 
-# O E5 real do dogfood já evicta `plano_acao_atual`; a seção seguinte da fila é
-# `investimentos`. O teto abaixo é o crescimento que esta decisão comprou no pior regime
-# (motivo mais longo, fatia de três dígitos) — subir exige re-medir a eviction no E5 real.
+# Crescimento que esta decisão comprou no pior regime (motivo mais longo, fatia de três
+# dígitos). No E5 real do dogfood ele levou a folga do corpo a 101 B sob o cap de 16 KB
+# (A40.l123); a A40.l124 subiu o cap. Subir este teto exige re-medir a eviction no E5 real.
 _TETO_DO_BLOCO_BYTES = 240
 
 
