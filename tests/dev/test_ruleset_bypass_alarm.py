@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -233,3 +234,30 @@ class TestTripwireSemAdmin:
     def test_erro_de_api_e_nao_medido(self, capsys: Any) -> None:
         rc, run = self._tripwire(ruleset_error="gh api: Bad Gateway (HTTP 502)")
         assert rc == 2 and run.writes == [] and "NÃO MEDIDO" in capsys.readouterr().err
+
+
+class TestWorkflow:
+    """O tripwire escreve uma chave compartilhada entre runs: dois pushes
+    seguidos, em paralelo, abririam a mesma issue duas vezes."""
+
+    def _jobs(self) -> dict[str, Any]:
+        text = (REPO_ROOT / ".github/workflows/merge-audit.yml").read_text(encoding="utf-8")
+        return yaml.safe_load(text)["jobs"]
+
+    def _job_que_roda(self, flag: str) -> dict[str, Any]:
+        jobs = [
+            j for j in self._jobs().values() if any(flag in s.get("run", "") for s in j["steps"])
+        ]
+        assert len(jobs) == 1, f"esperado 1 job rodando `{flag}`"
+        return jobs[0]
+
+    def test_tripwire_em_job_com_concorrencia_global_sem_cancelar(self) -> None:
+        concorrencia = self._job_que_roda("--ruleset")["concurrency"]
+        assert "github.sha" not in concorrencia["group"]
+        assert concorrencia["cancel-in-progress"] is False
+
+    @pytest.mark.parametrize("flag", ["--ruleset", "--sha"])
+    def test_todo_job_que_escreve_issue_garante_a_label_antes(self, flag: str) -> None:
+        passos = [s.get("run", "") for s in self._job_que_roda(flag)["steps"]]
+        label = next(i for i, r in enumerate(passos) if "gh label create" in r)
+        assert label < next(i for i, r in enumerate(passos) if flag in r)
