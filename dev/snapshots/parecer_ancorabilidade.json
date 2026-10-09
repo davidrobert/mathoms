@@ -3,8 +3,8 @@
   "corpus": "make_workspace_e5 (sintético, PII-zero)",
   "parametros_geradores": {
     "manifest_version": "2.22.0",
-    "max_exec_context_bytes": 24576,
-    "catalogo_max_bytes": 3400,
+    "max_exec_context_bytes": 16384,
+    "catalogo_max_bytes": 2600,
     "catalogo_max_entries": 60,
     "max_list_items": 5,
     "priority_roots": [

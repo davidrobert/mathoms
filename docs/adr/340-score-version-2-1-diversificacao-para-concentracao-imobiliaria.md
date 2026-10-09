@@ -6,7 +6,7 @@ status: Decidido
 phase: dogfood-c11-fin05
 date: "2026-07-15"
 decided_at: "2026-07-16"
-amended_at: ["2026-07-16", "2026-08-29", "2026-10-08"]
+amended_at: ["2026-07-16", "2026-08-29", "2026-10-08", "2026-10-09"]
 relates_to:
   - "[[ADR-145]]"
   - "[[ADR-235]]"
@@ -24,6 +24,13 @@ tags:
 ---
 
 # ADR-340 — `score_version 2.1`: diversificação → concentração imobiliária invertida
+
+> **Emenda 2026-10-09 (A40.l124 §Deferimento 6 · co-design `financial-planner` +
+> `prompt-engineer`):** a RL-7 passa a ter **uma régua**, a do validador e do ponto urgente
+> determinístico: acima de 50% o parecer escreve **"Média"**, nunca abaixo; acima de 75%,
+> **"Alta"** — "Crítica" só com reserva abaixo da meta ou dívida cara. **Supera** a frase da
+> §Emenda 2026-07-16 *"~60% é 'Alta'"*, escrita antes de a máquina ter rótulo na faixa. Nenhum
+> limiar se move. Ver [§Emenda](#emenda--uma-régua-para-a-severidade-da-rl-7-2026-10-09).
 
 > **Emenda 2026-10-08 ([[A40.l92]] · co-design `financial-planner`):** a meta *"abaixo de
 > 50%"* lê-se **até 50%** — o limiar é o último valor conforme e o alerta dispara em `> 50`,
@@ -245,3 +252,83 @@ veredito que a [[A40.l92]] publica na tabela do parecer, a superfície contradir
 risco sobre o mesmo payload. A doutrina é a da [[ADR-399]] §Emenda 2026-10-08: o limiar é o
 último valor conforme, nas duas direções. A meta lê-se **até 50%**; o limiar 50, o
 `spread_critico` 45 e a RL-7 em 75 não se movem.
+
+## Emenda — uma régua para a severidade da RL-7 (2026-10-09)
+
+Origem: A40.l124 §Deferimento 6. Medido em `main` `00fbd15e`, quatro lugares davam a
+severidade da concentração sobre o mesmo `ratios.concentracao_imobiliaria`:
+
+| lugar | o que dizia |
+|---|---|
+| REGRA 14 do system prompt (RL7) | `> 60%` ⇒ "Alta"; "entre 40% e 60%, Média basta"; alerta estruturado ⇒ "Alta" |
+| validador (`_severidade_exigida_concentracao`) | piso "Média" acima de 50, piso "Alta" acima de 75 |
+| hint "Severidade da concentração" do manifest | "≥50% é ALTA"; "em ~60% escreva 'Alta'" |
+| ponto urgente determinístico ([[A40.l90]]) | "Média" em (50,75], "Alta" acima |
+
+O #981 (C11-Fase2) trasladou o validador para a base carteira e não tocou a REGRA 14,
+contra o changelog do próprio módulo do prompt; a hint veio da §Emenda 2026-07-16 desta nota.
+
+**Decisão (`financial-planner`):**
+
+1. **Faixa (50,75]: "Média", nunca abaixo** — alvo e piso coincidem. Com o uso pessoal fora
+   do numerador ([[ADR-420]]), a divergência legítima na faixa é entre aluguel como renda
+   passiva e diversificação por classe; a estabilidade da moradia só pesa onde o imóvel não tem
+   classificação, e ali o número já é teto. Acima de 75 as três referências convergem.
+2. **Acima de 75: "Alta"**, o topo da escala do ponto urgente. **"Crítica" só com agravante de
+   liquidez que o E5 já sinaliza** — reserva abaixo da meta ou dívida cara: patrimônio ilíquido
+   sem colchão é o caminho da perda (venda forçada, crédito caro). Na faixa, o agravante entra
+   no risco de reserva ou de dívida, cujo remédio é mais rápido.
+3. **A cláusula "alerta estruturado ⇒ Alta" sai do prompt** — devolvia o acoplamento a
+   `real_estate.alertas` que o #981 tirou do validador (e o manifest nem projeta esse campo).
+4. **Meta: até 50% da carteira produtiva, via aporte, sem exigir venda.** É o alvo que o
+   catálogo publica ([[ADR-399]]); outro número na prosa contradiz a tabela do mesmo relatório.
+   "Sem exigir" não é proibir: acima de 75 a venda gradual pode aparecer como alternativa,
+   nunca como P0 e nunca com imóvel sem classificação.
+
+**O que esta emenda supera.** A frase da §Emenda 2026-07-16 *"em ~60% (entre alerta 50 e
+hard-block 75) a concentração é 'Alta'"*. Ela foi escrita quando a faixa não tinha rótulo
+determinístico, e pôs o alvo um degrau acima do piso. Desde a [[A40.l90]] o ponto urgente
+publica "Média" sobre o mesmo payload — e o princípio daquela emenda, *"a linguagem do parecer
+não pode descalar em relação aos tiers da máquina"*, é exatamente o que agora aponta para
+"Média". Dois rótulos para o mesmo fato custam mais que um degrau de nuance; a nuance perto de
+75 vai na prosa, não no rótulo.
+
+**Justificativa reancorada.** A "banda 40–60 em que as referências divergem" — na §Emenda
+2026-08-29 desta nota, em [[ADR-420]] §D4 (que chama o 50 de "ponto médio" dela) e em
+`FORMULAS.md` §219 — é a escala da RL7 1.4 **na base antiga**. Na base carteira a faixa de
+divergência é (50,75], e o 50 é a **borda inferior** dela, não o ponto médio. Nenhum limiar se
+move; corrige-se a leitura, que levava de volta a "Alta" em ~60%.
+
+**O que se perde.** Com alvo igual ao piso, a margem vai a zero: "Baixa" na faixa vira
+`conselho_vedado`. Por isso a REGRA 14 diz "nunca abaixo", e o tema do risco passa a cobrir o
+argumento de iliquidez — `Liquidez` está fora dos temas da RL-7 e bloqueava com a severidade
+certa.
+
+**Onde a régua vive.** O validador é a fonte (`RL7_LIMIAR_EXIGE_MEDIA_PCT`,
+`RL7_LIMIAR_EXIGE_ALTA_PCT`; predicado intocado, `RED_LINES_VERSION` fica). Declaram-na a
+REGRA 14 (`PROMPT_VERSION` 2.6.0) e a hint (manifest 2.22.0); o ponto urgente já era pareado
+por `test_degraus_pareados_com_a_red_line`. `tests/test_parecer_rl7_regua_unica.py` mede a
+escada no predicado e cobra dos dois textos limiar, fronteira exclusiva e rótulo-piso, com um
+inventário que reprova uma terceira cópia — 11 mutantes, 11 mortos.
+
+**Medido — sonda LLM antes do merge** (pedida pelos dois especialistas, autorizada pelo dono;
+US$ 7,77). Nove fixtures sintéticas do HOLDOUT com eixo imóvel × {59,97; 70; 75,01}%, temp 0,
+com o ponto urgente real injetado em cada E5: RL-7 em **0/27**; risco no tema certo em
+**27/27**; "Crítica" na faixa em **0/18**; meta "40%" em **0/27**. A severidade máxima no tema
+bateu o alvo em **23/27** — os quatro desvios são "Alta" a 70%, um degrau acima: o validador
+aceita, o ponto urgente contradiz. A 59,97 deu 9/9 "Média" nas mesmas fixtures, então o desvio
+depende do nível, não da família. Uma geração caiu no fallback de infra (erro de conexão, custo
+0) e disparou RL-7 sobre parecer vazio; repetida, saiu limpa. Quem acompanhar a taxa de RL-7
+por `prompt_version` precisa separar esses fallbacks, ou a série mede a rede e não o prompt.
+
+### Deferimento datado — calibração perto do degrau de 75 (2026-10-09)
+
+**Dono:** `prompt-engineer` + `financial-planner`. O `prompt-engineer` atribui o desvio ao
+texto da faixa ter só piso ("Média, nunca abaixo"): o modelo usa o espaço acima perto do
+degrau seguinte, enquanto a faixa de cima, que tem teto explícito, acertou 9/9. A troca
+candidata é "nunca abaixo" → "em toda a faixa". Ela **não foi sondada**: o dono preferiu
+mergear o texto medido a pagar outra rodada. **Retomada:** o próximo bump que tocar a RL7 leva
+a troca e re-sonda os níveis 70 e 75,01. Qualquer "Média" a 75,01 reprova o texto, porque ali
+vira hard-block. Fica pendente também classificar os riscos secundários "Baixa" que apareceram
+no tema em 7 das 27 gerações: se forem a mesma concentração com dois rótulos, é defeito de
+coerência. O instrumento desta sonda não guardou títulos; o da próxima guarda.

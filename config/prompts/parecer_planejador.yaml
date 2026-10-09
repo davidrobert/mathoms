@@ -260,7 +260,15 @@
 # (a persona perdeu o placeholder, e nenhum código lê a lista) e o banner do bloco
 # `persona` para de afirmar leitor. PATCH (ADR-233): nada do que o modelo recebe muda.
 # Sai no mesmo PR que `PROMPT_VERSION` 2.5.1 — uma invalidação da frota, não duas.
-# 2.22.0 — A40.l124 ([[ADR-341]] §Emenda 2026-10-09): o corpo volta a caber inteiro. Medido
+# 2.22.0 — A40.l124 §Deferimento 6 ([[ADR-340]] §Emenda 2026-10-09): a hint "Severidade da
+# concentração" passa a declarar a régua do validador da RL7 e do ponto urgente — acima de
+# 50% 'Média', acima de 75% 'Alta' —, e não mais "≥50% é Alta", que vinha da emenda de
+# 2026-07-16, anterior ao degrau determinístico da A40.l90. A fronteira vira exclusiva e a
+# meta vira "até 50%" (§Emenda 2026-10-08); sai o contraexemplo do 40, que só o repetia.
+# Par do PROMPT_VERSION 2.6.0 (REGRA 14), no mesmo PR: um deploy, uma invalidação.
+# Co-design `financial-planner` + `prompt-engineer`. MINOR (ADR-233).
+# Os pins `user_prompt_sha256` são re-pinados: a hint compõe o user prompt nos três regimes.
+# 2.23.0 — A40.l124 ([[ADR-341]] §Emenda 2026-10-09): o corpo volta a caber inteiro. Medido
 # com o manifest de cada run sobre o E5 do próprio run, a demanda passou o cap de 16384 em
 # 2026-08-26 (evictava `investimentos`) e levou `independencia_financeira` em 2026-08-29 —
 # e o parecer passou a pedir como "faltante" exatamente essas raízes. O cap vai a 24576 pela
@@ -272,9 +280,9 @@
 # cabeçalho de tabela passa a dizer "top N de M" (distiller): "5 de 5" e "5 de 15" chegavam
 # iguais ao modelo. MINOR (ADR-233). COBRA a frota: `manifest_version` compõe a chave de
 # cache, e o cabeçalho novo muda o prompt sem mudar a chave — por isso viaja neste bump.
-# Re-pina os três `user_prompt_sha256` da 2.21.1: o render muda pelo cap, pelas linhas de
+# Re-pina os três `user_prompt_sha256` da 2.22.0: o render muda pelo cap, pelas linhas de
 # `top_ativos`, pelo cabeçalho e pelo catálogo; o system prompt não muda.
-version: "2.22.0"
+version: "2.23.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -636,7 +644,9 @@ context_sections:
             format: "raw"
     narrative_hints:
       - "Concentração como risco: cite o número do bloco escalar acima ($.ratios.concentracao_imobiliaria), não o pct de composição. É percentual — escreva na prosa (ex.: '~60%'); não precisa âncora (catálogo é só monetário)."
-      - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
+      # Régua da RL7 ([[ADR-340]] §Emenda 2026-10-09): os números e os rótulos são os de
+      # parecer_red_lines — tests/test_parecer_rl7_regua_unica.py cobra a paridade.
+      - "Severidade da concentração: acima de 50%, risco de severidade 'Média' em `Alocação` ou `Saúde de balanço`; acima de 75%, 'Alta' — a mesma régua de pontos_urgentes. Meta: até 50% da carteira produtiva, via aportes, sem exigir venda."
       - "Imóveis sem classificação acima de zero contam como investimento e podem ser a moradia: concentração, imóveis de investimento e patrimônio gerador são TETO; TRS, PISO. Não recalcule. Com imóvel sem valor apurado, a direção é indeterminada."
       - "Alíquota com base (A37.l9): ratios.aliquota_efetiva_ir_pct é EFETIVA (blended) — IR total ÷ renda total (PF+PJ). Rotule 'efetiva (blended)' ao citar; não confunda com marginal nem com irpf_kpis.aliquota_sobre_tributavel/total_pct."
       - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
@@ -1047,6 +1057,6 @@ gating:
 # ao lado de `PROMPT_VERSION`.
 # ==============================================================================
 user_prompt_sha256:
-  sem_evicao: "fb8031e0cafa292c365e52ecfdba5b2bec54b8d47425ce797b054915c4d44080"
-  evicao: "24fd238d6d5e468741b9dbecb3c89becf3aad95b84b526342d20495f55c9120b"
-  corte_duro: "aa0a4aca0c78d02cddf4a488e6710c063734aa1d595be4c30f4aa3325bd882e4"
+  sem_evicao: "8c4a48fb604a73b6ddefaf1268b2171b5ac996b61b8c677ade5e78bf0445e91a"
+  evicao: "2c4e51feef790a7597bc5004292b522946fdcedea88ad45b2861f4101b4bc9e9"
+  corte_duro: "1ab03b7e01cfdccaa9a5d55ac8ee71ebdf64604d5f4e45d055ba636f7f9db553"

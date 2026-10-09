@@ -5,7 +5,7 @@ title: "Red lines do parecer: 4ª camada de validação determinística (conselh
 status: Decidido
 phase: "A22.l2 · F3 launch-trust"
 date: "2026-06-26"
-amended_at: ["2026-06-30", "2026-08-19"]
+amended_at: ["2026-06-30", "2026-08-19", "2026-10-09"]
 relates_to:
   - "[[ADR-202]]"
   - "[[ADR-279]]"
@@ -40,6 +40,12 @@ lane [[A22.l2]] (= F3-O1 de [[PLAN-launch-trust]]).
 > **Calibração 1.5 (2026-08-19):** RL2 passa a ler a taxa **numérica** e o
 > período do campo fica **declarado** (% a.a.) — ver §"Calibração 1.5". O invariante
 > não muda; o que muda é o input deixar de ser inalcançável.
+
+> **Correção de registro (2026-10-09):** o #981 (C11-Fase2, 2026-07-16) recalibrou a RL-7 —
+> fonte, degraus e o acoplamento a `real_estate.alertas` — sem registro aqui e sem bump de
+> `RED_LINES_VERSION`. As §§"Reconciliação dos predicados" e "Resolução de RL3 e RL7"
+> descrevem um validador que não roda mais; os números vivos estão na [[ADR-340]] §Emenda
+> 2026-10-09. Ver [§Correção](#correção-de-registro--a-rl-7-que-o-validador-roda-desde-o-c11-fase2-2026-10-09).
 
 ## Contexto
 
@@ -336,3 +342,31 @@ no budget**; segurança (zero conselho indefensável publicado) segue verde por 
   REGRA 14 = prevenção.
 - Extração de `taxa_mensal` numérica (fortalece RL-2); injeção do
   `institution_catalog` em RL-4; tag de tema em `pontos_urgentes` (amplia RL-7).
+
+## Correção de registro — a RL-7 que o validador roda desde o C11-Fase2 (2026-10-09)
+
+**O que mudou sem registro.** O #981 (2026-07-16, C11-Fase2 da [[ADR-340]]) trocou três coisas
+em `_severidade_exigida_concentracao`: a fonte (`real_estate.concentracao_pct` →
+`ratios.concentracao_imobiliaria`, o SSOT na base carteira), os degraus (40/60 → 50/75, porque
+a base carteira lê mais alto) e o acoplamento a `real_estate.alertas`, que saiu — o alerta
+`concentracao_alta` dispara em 50 e furaria a linha do 75. `RED_LINES_VERSION` ficou em 1.4, e
+parecer em cache sob a régua anterior podia ser servido até o TTL. É fato passado: a 1.5
+(2026-08-19) já invalidou essas chaves.
+
+**O que fica desatualizado, e fica como está.** A §"Reconciliação dos predicados" (RL-7 lendo
+`real_estate.concentracao_pct > 40` / `real_estate.alertas`) e a §"Resolução de RL3 e RL7"
+(">60% ou alerta estruturado → Alta; 40–60% → Média+") são registro datado da 1.4 na base
+antiga. Os números vivos moram na [[ADR-340]] §Emenda 2026-10-09 e no código
+(`RL7_LIMIAR_EXIGE_MEDIA_PCT`, `RL7_LIMIAR_EXIGE_ALTA_PCT`); esta nota não os repete, para não
+ser a quinta régua.
+
+**A simetria que o changelog pedia, agora cobrada.** O módulo do prompt mandava atualizar a
+REGRA 14 no mesmo PR que recalibrasse o validador, e o #981 não o fez — a RL7 do prompt ficou na
+escala 1.4 por quase três meses. Voltou em `PROMPT_VERSION` 2.6.0, e
+`tests/test_parecer_rl7_regua_unica.py` cobra por teste o que antes dependia de disciplina.
+
+**O lado "alarmismo" da RL-7 nunca foi implementado.** A tabela das 7 red lines dá à RL-7 um
+hard (subdiagnóstico) e um warning (alarmismo); o validador só tem o primeiro. É o mecanismo
+natural para "Crítica" na faixa (50,75], que a régua de 2026-10-09 veda pela instrução.
+Follow-up com bump próprio de `RED_LINES_VERSION`, dono `financial-planner` + `prompt-engineer`;
+retomada quando a medição pós-2.6.0 mostrar "Crítica" na faixa.

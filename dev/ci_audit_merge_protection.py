@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Audita a proteção de main (ADR-415): o SHA que ENTROU foi gateado? Modos:
-`--sha <sha>` (pós-merge), `--sweep` (bypasses do período), `--backfill <json>`."""
+"""Audita a proteção de main (ADR-415 · ADR-448): o SHA que ENTROU foi gateado?
+Modos: `--sha <sha>` (pós-merge), `--ruleset` (tripwire sem admin), `--sweep`
+(com admin: history do ruleset + bypasses do período), `--backfill <json>`.
+Cada incidente vira UMA issue própria."""
 
 from __future__ import annotations
 
@@ -9,13 +11,31 @@ import json
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import quote
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from dev.merge_incident_issues import (  # noqa: E402
+    AUDIT_LABEL,
+    marker,
+    open_issue,
+    registry,
+)
+from dev.ruleset_bypass_alarm import (  # noqa: E402
+    ADR_448_APPLIED,
+    check_ruleset,
+    ruleset_tripwire,
+)
+
+__all__ = ["AUDIT_LABEL"]
+
 GATE_CHECK = "All checks green"
-AUDIT_LABEL = "merge-protection"
-AUDIT_ISSUE_TITLE = "CI: merge sem gate em main — auditoria da proteção (ADR-415)"
+MAIN_REF = "refs/heads/main"
 SWEEP_PERIOD = "week"
 SWEEP_MAX_PAGES = 8
 PAGE_SIZE = 100
@@ -26,6 +46,14 @@ RED = "red"
 ABSENT = "absent"
 UNKNOWN = "unknown"
 UNGATED = frozenset({LATE, RED, ABSENT, UNKNOWN})
+
+TRIAGE = (
+    "**Triagem:** uso sancionado do break-glass — rollback de gate brickado ou "
+    "indisponibilidade da plataforma (ADR-415 D2, mantidos pela ADR-448 D2)? "
+    "Feche com o motivo. Fora disso é incidente: `red` pede revert; nos outros "
+    "vereditos, confirme o CI de `main` depois do merge. Quem fecha é a "
+    "triagem humana — o detector não fecha nem reabre."
+)
 
 Runner = Callable[[list[str]], str]
 
@@ -62,6 +90,15 @@ class MergeVerdict:
     @property
     def is_ungated(self) -> bool:
         return self.verdict in UNGATED
+
+
+@dataclass(frozen=True)
+class BypassRecord:
+    """Avaliação `bypass` do Ruleset para um push em `main` (rule-suites)."""
+
+    actor: str
+    suite_id: int | None
+    pushed_at: datetime | None = None
 
 
 def classify(check: dict[str, Any] | None, merged_at: str | None) -> tuple[str, str]:
@@ -107,18 +144,21 @@ def verdict_for_sha(run: Runner, sha: str) -> MergeVerdict:
     return MergeVerdict(sha, pull.get("number"), verdict, detail)
 
 
-def bypass_index(run: Runner, period: str = SWEEP_PERIOD) -> dict[str, str]:
-    """SHA → ator dos merges com `result: bypass`. Pagina até esgotar: o default
-    da API é `time_period=day` e uma página só — foi assim que uma leitura viu
-    2 de 64 bypasses em 2026-08-25 (ADR-415 §D4). Sair pelo teto é truncagem
-    silenciosa, a mesma classe que a ADR denuncia: vira erro."""
-    found: dict[str, str] = {}
+def bypass_index(run: Runner, period: str = SWEEP_PERIOD) -> dict[str, BypassRecord]:
+    """SHA → registro dos pushes em main com `result: bypass`. Pagina até
+    esgotar: o default da API é `time_period=day` e uma página só — foi assim
+    que uma leitura viu 2 de 64 bypasses em 2026-08-25 (ADR-415 §D4). O filtro
+    `rule_suite_result` encolhe a leitura (24 de 93 avaliações em 2026-10-09);
+    sair pelo teto é truncagem silenciosa, a classe que a ADR denuncia: erro."""
+    found: dict[str, BypassRecord] = {}
     for page in range(1, SWEEP_MAX_PAGES + 1):
-        query = f"per_page={PAGE_SIZE}&time_period={period}&page={page}"
-        suites = _api(run, f"repos/{{owner}}/{{repo}}/rulesets/rule-suites?{query}") or []
-        for suite in suites:
-            if suite.get("result") == "bypass":
-                found[suite["after_sha"]] = suite.get("actor_name") or "?"
+        suites = (
+            _api(
+                run, f"repos/{{owner}}/{{repo}}/rulesets/rule-suites?{_suites_query(period, page)}"
+            )
+            or []
+        )
+        found |= _bypass_records(suites)
         if len(suites) < PAGE_SIZE:
             return found  # página parcial (ou vazia) = fim real da leitura
     raise RuntimeError(
@@ -126,9 +166,27 @@ def bypass_index(run: Runner, period: str = SWEEP_PERIOD) -> dict[str, str]:
     )
 
 
+def _suites_query(period: str, page: int) -> str:
+    return (
+        f"ref={MAIN_REF}&rule_suite_result=bypass&per_page={PAGE_SIZE}"
+        f"&time_period={period}&page={page}"
+    )
+
+
+def _bypass_records(suites: list[dict[str, Any]]) -> dict[str, BypassRecord]:
+    """O filtro do servidor não é confiado sozinho: só `result: bypass` entra."""
+    return {
+        s["after_sha"]: BypassRecord(
+            s.get("actor_name") or "?", s.get("id"), _ts(s.get("pushed_at"))
+        )
+        for s in suites
+        if s.get("result") == "bypass"
+    }
+
+
 def _safe_bypass_index(
     run: Runner, period: str = SWEEP_PERIOD
-) -> tuple[dict[str, str], str | None]:
+) -> tuple[dict[str, BypassRecord], str | None]:
     """Índice de bypass, ou o motivo de não ter lido. Ler rule-suites exige
     permissão de administração, que o `GITHUB_TOKEN` não tem — a ausência é
     declarada, nunca silenciosa."""
@@ -138,57 +196,86 @@ def _safe_bypass_index(
         return {}, str(exc)
 
 
-def _describe(verdict: MergeVerdict, bypass_actor: str | None) -> str:
+def merged_by(run: Runner, pr: int | None) -> str | None:
+    """Quem mergeou, pelo PR. Legível com o `GITHUB_TOKEN`, ao contrário do
+    ator do rule-suite — é o que a issue tem quando o rule-suite dá 403."""
+    if pr is None:
+        return None
+    pull = _api(run, f"repos/{{owner}}/{{repo}}/pulls/{pr}") or {}
+    return (pull.get("merged_by") or {}).get("login")
+
+
+def _describe(verdict: MergeVerdict, bypass: BypassRecord | None) -> str:
     pr = f"PR #{verdict.pr}" if verdict.pr else "sem PR"
-    origem = f" · bypass do Ruleset por `{bypass_actor}`" if bypass_actor else ""
+    origem = f" · bypass do Ruleset por `{bypass.actor}`" if bypass else ""
     return f"`{verdict.sha[:8]}` ({pr}) — **{verdict.verdict}**: {verdict.detail}{origem}"
 
 
-def _issue_body(lines: list[str], note: str | None) -> str:
-    corpo = [
-        f"Merges em `main` cujo required check `{GATE_CHECK}` **não gateou o SHA que entrou**.",
-        "",
-        "O predicado é o veredito *no momento do merge*: check ausente, vermelho,",
-        "ou concluído depois do merge. Verde que chega depois não protegeu nada.",
-        "",
-        *[f"- {line}" for line in lines],
-    ]
+def incident_title(verdict: MergeVerdict) -> str:
+    pr = f"PR #{verdict.pr}" if verdict.pr else "sem PR"
+    if verdict.is_ungated:
+        return f"CI: {verdict.sha[:8]} ({pr}) entrou em main sem gate — {verdict.verdict}"
+    return f"CI: {verdict.sha[:8]} ({pr}) entrou em main por bypass do Ruleset"
+
+
+def _rule_suite_line(bypass: BypassRecord | None, note: str | None, period: str) -> str:
+    if bypass:
+        return f"`bypass` por `{bypass.actor}` (rule-suite {bypass.suite_id})"
     if note:
-        corpo += ["", f"> Enriquecimento de bypass indisponível: {note}"]
-    corpo += ["", "_Mantida por `dev/ci_audit_merge_protection.py` (ADR-415)._"]
-    return "\n".join(corpo)
+        return f"não lido — {note}"
+    return f"nenhum `bypass` para este SHA em `time_period={period}`"
 
 
-def _find_issue(run: Runner) -> int | None:
-    out = run(["issue", "list", "--state", "open", "--label", AUDIT_LABEL, "--json", "number"])
-    issues = json.loads(out or "[]")
-    return issues[0]["number"] if issues else None
+@dataclass(frozen=True)
+class IncidentContext:
+    """O que enriquece o veredito: o bypass (ou a lacuna) e quem mergeou."""
+
+    bypass: BypassRecord | None
+    note: str | None
+    merger: str | None
+    period: str = SWEEP_PERIOD
 
 
-def _write_issue(run: Runner, number: int | None, body: str, append: bool) -> None:
-    """Cria, ou ACRESCENTA ao registro. `issue edit --body` substitui o corpo:
-    usá-lo por merge apagaria o merge anterior, e a ADR-415 §Consequências
-    promete que nenhum deixa de existir no registro."""
-    if number is None:
-        args = ["issue", "create", "--title", AUDIT_ISSUE_TITLE, "--label", AUDIT_LABEL]
-        run([*args, "--body", body])
-        return
-    run(
-        ["issue", "comment", str(number), "--body", body]
-        if append
-        else ["issue", "edit", str(number), "--body", body]
+def incident_body(verdict: MergeVerdict, ctx: IncidentContext) -> str:
+    pr = f"#{verdict.pr}" if verdict.pr else "nenhum"
+    por = f" · mergeado por `{ctx.merger}` (`merged_by` do PR)" if ctx.merger else ""
+    return "\n".join(
+        [
+            marker("sha", verdict.sha),
+            "Merge em `main` fora do gate — um incidente, uma issue (ADR-448).",
+            "",
+            f"- **Commit:** {verdict.sha}",
+            f"- **PR:** {pr}{por}",
+            f"- **`{GATE_CHECK}` no momento do merge:** **{verdict.verdict}** — {verdict.detail}",
+            f"- **Rule-suite:** {_rule_suite_line(ctx.bypass, ctx.note, ctx.period)}",
+            "",
+            TRIAGE,
+            "",
+            "_Aberta por `dev/ci_audit_merge_protection.py` (ADR-415 D3 · ADR-448)._",
+        ]
     )
 
 
-def upsert_issue(
-    run: Runner, lines: list[str], note: str | None, dry_run: bool, append: bool = False
-) -> None:
-    body = _issue_body(lines, note)
-    number = _find_issue(run)
-    if dry_run:
-        print(f"[dry-run] issue {'append ' + str(number) if number else 'create'}:\n{body}")
-        return
-    _write_issue(run, number, body, append)
+def file_incidents(
+    run: Runner,
+    verdicts: list[MergeVerdict],
+    index: tuple[dict[str, BypassRecord], str | None],
+    dry_run: bool,
+    period: str = SWEEP_PERIOD,
+) -> int:
+    """Uma issue por SHA ainda não registrado; devolve quantas abriu. Rodar de
+    novo (re-run do job, sweep da mesma janela) não duplica."""
+    bypasses, note = index
+    keys = registry(run)
+    abertas = 0
+    for verdict in verdicts:
+        if f"sha={verdict.sha}" in keys:
+            print(f"já registrado: {verdict.sha[:8]} — nenhuma issue nova")
+            continue
+        ctx = IncidentContext(bypasses.get(verdict.sha), note, merged_by(run, verdict.pr), period)
+        open_issue(run, incident_title(verdict), incident_body(verdict, ctx), dry_run)
+        abertas += 1
+    return abertas
 
 
 def audit_shas(
@@ -204,39 +291,53 @@ def audit_shas(
     return [_describe(v, bypasses.get(v.sha)) for v in ungated], note
 
 
-def _sweep_shas(run: Runner, period: str) -> tuple[list[str], str | None]:
-    bypasses, note = _safe_bypass_index(run, period)
-    return list(bypasses), note
-
-
 def _run_sha_mode(run: Runner, sha: str, dry_run: bool) -> int:
-    lines, note = audit_shas(run, [sha])
-    if not lines:
+    verdict = verdict_for_sha(run, sha)
+    if not verdict.is_ungated:
         print(f"gate ok: {sha[:8]} entrou com `{GATE_CHECK}` verde antes do merge")
         return 0
-    print("\n".join(lines))
-    upsert_issue(run, lines, note, dry_run, append=True)
+    print(_describe(verdict, None))
+    file_incidents(run, [verdict], _safe_bypass_index(run), dry_run)
     return 0
 
 
-def _run_sweep_mode(run: Runner, period: str, dry_run: bool) -> int:
+def _not_measured(what: str, note: str) -> int:
     """Sem leitura, não há contagem. Imprimir `0 bypasses` depois de um 403
     seria o instrumento cometendo a falta que ele existe para denunciar — e
     `rulesets/rule-suites` exige Administration:read, que o `GITHUB_TOKEN` não
     pode receber (não existe na chave `permissions:`), então esse 403 é o caso
     esperado, não o excepcional. Sai != 0 para o run ficar vermelho."""
-    shas, note = _sweep_shas(run, period)
+    print(f"NÃO MEDIDO: {what} — {note}", file=sys.stderr)
+    print(f"sweep abortado: sem leitura de {what} não há contagem a afirmar")
+    return 2
+
+
+def _run_sweep_mode(run: Runner, period: str, dry_run: bool, now: datetime) -> int:
+    """Todo `bypass` vira incidente, mesmo com veredito `gated`: em 2026-10-09,
+    3 dos 24 tinham o check verde no head e base desatualizada sob `strict`."""
+    ruleset_note = check_ruleset(run, now, dry_run)
+    if ruleset_note:
+        return _not_measured("ruleset", ruleset_note)
+    bypasses, note = _safe_bypass_index(run, period)
     if note:
-        print(f"NÃO MEDIDO: rule-suites indisponível — {note}", file=sys.stderr)
-        print("sweep abortado: sem leitura de rule-suites não há contagem a afirmar")
-        return 2
-    print(f"sweep {period}: {len(shas)} merge(s) com bypass do Ruleset")
-    lines, _ = audit_shas(run, shas, period) if shas else ([], None)
-    if lines:
-        # append também aqui: o sweep reporta a janela, e substituir o corpo
-        # apagaria os merges que o modo `--sha` registrou entre dois sweeps.
-        upsert_issue(run, lines, None, dry_run, append=True)
+        return _not_measured("rule-suites", note)
+    novos = _since_adr_448(bypasses)
+    antigos = len(bypasses) - len(novos)
+    print(f"sweep {period}: {len(bypasses)} merge(s) com bypass ({antigos} anteriores à ADR-448)")
+    verdicts = [verdict_for_sha(run, sha) for sha in novos]
+    file_incidents(run, verdicts, (novos, None), dry_run, period)
     return 0
+
+
+def _since_adr_448(bypasses: dict[str, BypassRecord]) -> dict[str, BypassRecord]:
+    """Bypass anterior à aplicação da ADR-448 era o regime da ADR-415 D2 e tem
+    registro próprio (a #1728, triada e fechada): reabri-lo aqui viraria 24
+    issues de uma vez sobre a rajada de 2026-10-09. Sem `pushed_at`, conta."""
+    return {
+        sha: r
+        for sha, r in bypasses.items()
+        if r.pushed_at is None or r.pushed_at >= ADR_448_APPLIED
+    }
 
 
 def _backfill_shas(path: str) -> list[str]:
@@ -259,22 +360,25 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--sha", help="veredito de um SHA de main (modo pós-merge)")
-    group.add_argument("--sweep", action="store_true", help="bypasses do período")
+    group.add_argument("--ruleset", action="store_true", help="tripwire do ruleset (sem admin)")
+    group.add_argument("--sweep", action="store_true", help="ruleset + bypasses do período")
     group.add_argument("--backfill", help="JSON de evidência com a lista de bypasses")
     parser.add_argument(
         "--period", default=SWEEP_PERIOD, help="janela do índice de bypass (day|week|month)"
     )
-    parser.add_argument("--dry-run", action="store_true", help="não escreve Issue")
+    parser.add_argument("--dry-run", action="store_true", help="não escreve issue")
     return parser
 
 
-def main(argv: list[str] | None = None, run: Runner = _gh) -> int:
+def main(argv: list[str] | None = None, run: Runner = _gh, now: datetime | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.sha:
         return _run_sha_mode(run, args.sha, args.dry_run)
     if args.backfill:
         return _run_backfill_mode(run, args.backfill, args.period)
-    return _run_sweep_mode(run, args.period, args.dry_run)
+    if args.ruleset:
+        return ruleset_tripwire(run, args.dry_run)
+    return _run_sweep_mode(run, args.period, args.dry_run, now or datetime.now(timezone.utc))
 
 
 if __name__ == "__main__":
