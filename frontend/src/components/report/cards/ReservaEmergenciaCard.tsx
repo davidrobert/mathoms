@@ -2,6 +2,7 @@ import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { formatNumber } from "@/lib/format";
 import { formatJanelaTooltip, parseJanelaRotulo } from "../utils/janelaLabel";
 import type { CardVariant } from "@/generated/report-layout";
 import type { ReservaEmergenciaData } from "@/types/report-analysis";
@@ -90,7 +91,7 @@ export function ReservaEmergenciaCard({
       <div className="space-y-4">
         <div>
           <p className="font-mono text-3xl font-semibold tabular-nums text-[var(--surface-foreground)]">
-            {cobertura.toFixed(1).replace(".", ",")} meses
+            {formatNumber(cobertura, 1)} meses
           </p>
           <p className="text-sm text-[var(--surface-muted-foreground)]">
             de cobertura • {reserva?.avaliacao_liquidity ?? "—"}

@@ -19,7 +19,6 @@ from backend.app.models import (
     Workspace,
 )
 from backend.app.services.storage.db_artifact_store import DBArtifactStore
-from backend.app.tasks.pipeline_task import _run_stage_with_retry
 from pipeline.domain.services.fluxo_janelas import build_fluxo_janelas
 
 _INVALID_E3 = {"not_a_valid_e3_shape": True}
@@ -185,44 +184,6 @@ async def test_strict_e5_persiste_janelas_validas_e_rejeita_shape_incompleto(
     ws_bad, run_bad = await _seed(db, email="janelas-bad@test.com")
     with pytest.raises(jsonschema.ValidationError):
         await _run(db, lambda c: _write_e5(c, ws_bad, run_bad, invalido))
-
-
-class TestValidationErrorNuncaRetenta:
-    """Erro de schema é determinístico — retry queima backoff sem chance de passar."""
-
-    def test_validation_error_nao_retenta_mesmo_com_texto_retryable(self, monkeypatch):
-        import backend.app.tasks.pipeline_task as pt
-
-        monkeypatch.setattr(
-            pt.time, "sleep", lambda *_: pytest.fail("retry de ValidationError dormiu backoff")
-        )
-        calls = []
-
-        def _stage(ctx, stage_name):
-            calls.append(stage_name)
-            raise jsonschema.ValidationError("connection timeout 503 rate_limit")
-
-        result, attempts, error_msg, tb, _reason = _run_stage_with_retry(None, "E2-llm", _stage)
-        assert result is None
-        assert attempts == 1
-        assert len(calls) == 1
-        assert "rate_limit" in error_msg
-
-    def test_erro_transiente_continua_retentavel(self, monkeypatch):
-        import backend.app.tasks.pipeline_task as pt
-
-        sleeps = []
-        monkeypatch.setattr(pt.time, "sleep", sleeps.append)
-        calls = []
-
-        def _stage(ctx, stage_name):
-            calls.append(stage_name)
-            raise RuntimeError("connection timeout")
-
-        result, attempts, _, _, _ = _run_stage_with_retry(None, "E2-llm", _stage)
-        assert result is None
-        assert attempts == 3  # 1 tentativa + 2 retries (STAGE_RETRY_CONFIGS["E2-llm"])
-        assert len(sleeps) == 2
 
 
 @pytest.mark.asyncio

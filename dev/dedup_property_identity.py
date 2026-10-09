@@ -291,7 +291,9 @@ def _process(workspace_id: str, dry_run: bool) -> dict:
     # máquina local não vai para arquivo tracked.
     default_db = Path(__file__).resolve().parent.parent / "mathoms.db"
     db_url = os.environ.get("MATHOMS_DATABASE_URL_SYNC", f"sqlite:///{default_db}")
-    Session = sessionmaker(bind=create_engine(db_url, future=True), future=True)
+    Session = sessionmaker(
+        bind=create_engine(db_url, future=True, hide_parameters=True), future=True
+    )
     with Session() as session:
         report = _build_report(session, workspace_id, dry_run)
         if not dry_run:

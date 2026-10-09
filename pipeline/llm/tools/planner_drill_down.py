@@ -138,7 +138,15 @@ class PlannerDrillDown:
         )
         return result
 
-    def _resolve_path(self, path: str) -> ToolResult:
+    # A40.l92: o format hint serve a quem LÊ (o modelo, a âncora); o veredito do comparador
+    # julga o NÚMERO. Com o hint `percent2`, o observado da concentração chegava como
+    # "62,50%" e o comparador não tinha o que comparar — a linha saía sem situação, calada.
+    # Fora do trace e do cache de sessão: não é chamada do modelo.
+    def valor_bruto(self, path: str) -> ToolResult:
+        """Valor CRU do path, sem format hint — para quem julga, não para quem lê."""
+        return self._resolve_path(path, formatar=False)
+
+    def _resolve_path(self, path: str, formatar: bool = True) -> ToolResult:
         """Resolve JSONPath subset; rejeita sintaxe/semântica fora da whitelist."""
         if not _JSONPATH_RE.match(path):
             return ToolResult(found=False, reason="path_not_whitelisted")
@@ -151,8 +159,11 @@ class PlannerDrillDown:
             return ToolResult(found=False, reason="value_absent")
         if value is None:
             return ToolResult(found=False, reason="value_null", type_name="NoneType")
-        formatted = _apply_path_post(value, path, segments[0][0], self.format_hints)
-        return ToolResult(found=True, value=formatted, type_name=type(value).__name__)
+        if formatar:
+            value_out = _apply_path_post(value, path, segments[0][0], self.format_hints)
+        else:
+            value_out = value
+        return ToolResult(found=True, value=value_out, type_name=type(value).__name__)
 
     # ------------------------------------------------------------------
     # Audit accessors

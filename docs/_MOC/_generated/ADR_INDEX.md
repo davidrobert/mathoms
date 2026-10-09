@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-432 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
+434 ADRs (ADR-001 a ADR-445) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 370
-- **Proposto**: 57
+- **Decidido**: 371
+- **Proposto**: 58
 - **Roadmap**: 5
 
 ## Fundação
@@ -77,7 +77,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## LLM
 
-### Decidido (7)
+### Decidido (8)
 
 - [[ADR-024]] — LiteLLM como proxy universal · phase F4
 - [[ADR-025]] — BYOK (Bring Your Own Key) · phase F4
@@ -86,6 +86,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-028]] — E7 full scope na Fase 4 · phase F4
 - [[ADR-270]] — Retry de LLM calls — categoria network + cap de timeout · phase A17.llm-retry
 - [[ADR-288]] — Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable
+- [[ADR-443]] — Stage roda uma vez por run — não há retry de stage em executor nenhum
 
 ## Task Queue
 
@@ -332,7 +333,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-417]] — Toda pausa tem saída terminal sancionada, e abandonar é decisão de run, não de review · phase A40
 - [[ADR-435]] — O gate de PII mede o publicado, e a cobertura declarada é igual à medida · phase A40.l115
 
-### Proposto (7)
+### Proposto (8)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
@@ -341,6 +342,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 - [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
 - [[ADR-389]] — As tabelas mensal e anual do IRPF são duas fontes importadas, não duas escalas de uma · phase A40.l56
+- [[ADR-441]] — Erro de banco cruza fronteira de persistência por shape, nunca por valor
 
 ## categorization
 

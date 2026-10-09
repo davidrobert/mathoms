@@ -1,6 +1,7 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import type { CardVariant } from "@/generated/report-layout";
+import { formatPercent } from "@/lib/format";
 import { parseDecimalString, type IrpfKpis } from "@/types/irpf";
 
 interface IrpfIrPagoCardProps {
@@ -11,7 +12,7 @@ interface IrpfIrPagoCardProps {
 function formatPct(s: string): string {
   const n = parseDecimalString(s);
   if (n === null) return "—";
-  return `${n.toFixed(2).replace(".", ",")}%`;
+  return formatPercent(n, 2);
 }
 
 /** ADR-157 · S_IRPF_RENDA — IR pago no ano + alíquota efetiva (RFB e Cerbasi).

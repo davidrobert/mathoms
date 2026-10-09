@@ -133,11 +133,19 @@ def build_charts(e5: dict[str, Any]) -> list[DashboardChart]:
             DashboardChart(
                 chart_type="bar",
                 title="Investimentos por Classe",
-                data={"classes": tabela_classes, "total": investimentos.get("total", 0)},
+                data=_bar_data_por_classe(tabela_classes),
             )
         )
 
     return charts
+
+
+def _bar_data_por_classe(tabela_classes: list[dict[str, Any]]) -> dict[str, Any]:
+    # `valor`, nunca `pct`: imóvel com uso não apurado publica `pct` null (A40.l122).
+    return {
+        "labels": [classe["categoria"] for classe in tabela_classes],
+        "datasets": [{"label": "Valor", "data": [classe["valor"] for classe in tabela_classes]}],
+    }
 
 
 def build_alerts(e5: dict[str, Any]) -> list[DashboardAlert]:

@@ -5,6 +5,7 @@ title: "Boundary de artefatos do executor remoto (A3.store): pipeline-service in
 status: Decidido
 phase: "A3.store — fix do modo HTTP do pipeline-service"
 date: "2026-07-03"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-112]]"
   - "[[ADR-150]]"
@@ -13,6 +14,7 @@ relates_to:
   - "[[ADR-241]]"
   - "[[ADR-256]]"
   - "[[ADR-291]]"
+  - "[[ADR-357]]"
 aliases:
   - "ADR 303"
   - "A3.store"
@@ -27,6 +29,11 @@ size_lines: 128
 # ADR-303 — Boundary de artefatos do executor remoto (A3.store)
 
 **Status:** Decidido (A3.store — fix do modo HTTP) • **Data:** 2026-07-03
+
+> **Emenda 2026-10-09 — D1 espelhava só o ramo de exceção.** O executor remoto
+> commitava o que um stage required escreveu antes de não entregar, e o loop
+> in-process faz rollback. A disposição vem agora de um predicado único (§Emenda
+> 2026-10-09, ao fim).
 
 ## Contexto
 
@@ -131,3 +138,28 @@ HTTP com store SQLite, assertando persistência em `pipeline_artifacts`.
   Registrado em [GO_PORT_DEPS.md](../reference/GO_PORT_DEPS.md) §5.6.
 - ⚠️ Dois produtores de escrita em `pipeline_artifacts` (backend Celery e
   executor remoto) — mitigado por D3 (mesma classe, constraint, run único).
+
+## Emenda 2026-10-09 — D1: o espelho inclui a disposição pelo desfecho
+
+O "espelho" de D1 cobriu só o ramo de exceção: `pipeline/cli_run_stage.py`, o
+`stage_executor` e o `run_coordinator` do pipeline-service faziam rollback em raise e
+commit em qualquer retorno. Só que `orchestrator._run_stage` achata a exceção do runner
+em `success=False`, e ao executor só chega `BaseException`. O que um stage required
+escreveu antes de não entregar ficava commitado — artefatos e a DML de domínio da mesma
+sessão (`vehicles` do `extract_comprovantes_bens`, learning loop do E4). Esse parcial
+vira o "latest" do fallback da [[ADR-241]], aposenta a versão boa anterior
+(`retention_until`) e torna o run elegível como base de `from_stage` ([[ADR-291]]),
+porque `_resolve_base_run` decide por presença de rows. No DB de dogfood, leitura
+`mode=ro` em 2026-10-09 achou 2 pares (run, stage) com artefato commitado e stage_log
+só `failed`, ambos de 2026-07-07. A forma bate com o executor remoto, porque o loop
+in-process da época já fazia rollback em `success=False`. Nenhum dos dois runs é
+elegível como base: ambos pararam antes do E3.
+
+**Decisão, sem reabrir D1:** `pipeline/stage_outcome.py::commits_stage_transaction` é a
+regra única dos executores — entrega commita; não-entrega só commita no degradável de
+chave própria ([[ADR-357]] §6). Exceção que cruza o executor segue com rollback; commit
+que falha é da [[A42.l28]]. Guarda: a mesma tabela-oráculo roda nos três executores
+(`tests/test_cli_run_stage_disposition.py`, em subprocess real, e os homônimos
+`test_stage_transaction_disposition.py` de `backend/tests/` e `pipeline-service/tests/`).
+O `dev/go_parity_gate.py` não vê esta classe, porque compara runs que terminam; quem a
+vê no soak é o invariante do ledger ([[TRACK-f2-cutover]] §Soak).

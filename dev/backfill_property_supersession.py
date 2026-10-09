@@ -207,7 +207,7 @@ def _session_factory():
 
     default_db = REPO_ROOT / "mathoms.db"
     db_url = os.environ.get("MATHOMS_DATABASE_URL_SYNC", f"sqlite:///{default_db}")
-    return sessionmaker(bind=create_engine(db_url, future=True), future=True)
+    return sessionmaker(bind=create_engine(db_url, future=True, hide_parameters=True), future=True)
 
 
 # O sweep observa a tabela inteira do workspace — é justamente o que o

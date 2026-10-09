@@ -47,6 +47,15 @@ updates:
           - "pydantic"
           - "alembic"
           - "celery"
+    ignore:
+      # redis acima do teto do kombu[redis] (celery[redis] → kombu 5.6.x pede
+      # redis<6.5). O updater pergunta se `redis==<último>` resolve; a resposta
+      # é não, mas o pip 26 dele não a prova: desce o wrapt até o sdist 1.13.3,
+      # cujo build quebra, e o job inteiro sai `failure` (08-31 → 10-09). O
+      # `versions` espelha o teto do kombu instalado pelo lock —
+      # tests/dev/test_dependabot_redis_ceiling.py reprova quando ele mudar.
+      - dependency-name: "redis"
+        versions: [">=6.5"]
 
   - package-ecosystem: "pip"
     directory: "/backend"
@@ -71,6 +80,10 @@ updates:
           - "alembic"
           - "celery"
           - "fastapi"
+    ignore:
+      # Mesmo teto do kombu[redis] da entrada "/" — ver o comentário lá.
+      - dependency-name: "redis"
+        versions: [">=6.5"]
 
   # ----------------------------------------------------------------------
   # npm — frontend

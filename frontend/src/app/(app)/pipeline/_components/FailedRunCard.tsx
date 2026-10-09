@@ -17,14 +17,8 @@ function readOutputString(summary: OutputSummary, key: string): string | undefin
   return typeof v === "string" ? v : undefined;
 }
 
-function readOutputNumber(summary: OutputSummary, key: string): number | undefined {
-  const v = summary?.[key];
-  return typeof v === "number" ? v : undefined;
-}
-
 function ErrorMetadataRow({ failedStage }: { failedStage: PipelineStageLog | undefined }) {
   const summary = failedStage?.output_summary as OutputSummary;
-  const attempts = readOutputNumber(summary, "attempt_count");
   const errorType = readOutputString(summary, "error_type");
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 py-2 border-b border-loss/10 text-muted-foreground">
@@ -38,12 +32,6 @@ function ErrorMetadataRow({ failedStage }: { failedStage: PipelineStageLog | und
         <span>
           <span className="text-loss">duração</span>{" "}
           <span className="text-foreground">{(failedStage.duration_ms / 1000).toFixed(1)}s</span>
-        </span>
-      )}
-      {attempts !== undefined && (
-        <span>
-          <span className="text-loss">tentativas</span>{" "}
-          <span className="text-foreground">{attempts}</span>
         </span>
       )}
       {errorType && (

@@ -36,7 +36,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from backend.app.services.parecer_manifest import load_manifest  # noqa: E402
-from pipeline.domain.services.kpi_target_catalog import build_kpi_targets  # noqa: E402
+from pipeline.domain.services.kpi_orfaos_dominio import NIVEL_DO_PRODUTOR_PATH  # noqa: E402
+from pipeline.domain.services.kpi_target_catalog import (  # noqa: E402
+    OBSERVADO_CONSERVADOR_PATH,
+    build_kpi_targets,
+)
 from pipeline.llm.tools.planner_drill_down import _JSONPATH_RE, _parse_jsonpath  # noqa: E402
 
 # Não sai de config: o gate não olha limiar, e depender do ConfigStore o tornaria
@@ -70,12 +74,18 @@ def _erro_de(chave: str, campo: str, path: str, whitelist: frozenset[str]) -> st
     return None
 
 
-def _ponteiros(alvo: dict) -> list[tuple[str, str]]:
-    """(campo, path) de `observado_path` + `ref` quando o ref é JSONPath."""
+def _ponteiros(chave: str, alvo: dict) -> list[tuple[str, str]]:
+    """(campo, path) de `observado_path`, `ref` quando é JSONPath, e o nível do produtor."""
     out = [("observado_path", alvo["observado_path"])]
     ref = alvo.get("ref")
     if isinstance(ref, str) and ref.startswith("$."):
         out.append(("ref", ref))
+    # A40.l92: a situação de métrica sobre o relatório é o nível que o produtor publica —
+    # path ilegível aqui é linha sem situação, calada.
+    if chave in NIVEL_DO_PRODUTOR_PATH:
+        out.append(("nivel", NIVEL_DO_PRODUTOR_PATH[chave]))
+    if chave in OBSERVADO_CONSERVADOR_PATH:
+        out.append(("observado_conservador", OBSERVADO_CONSERVADOR_PATH[chave]))
     return out
 
 
@@ -85,7 +95,7 @@ def _errors() -> list[str]:
     return [
         erro
         for chave, alvo in sorted(alvos.items())
-        for campo, path in _ponteiros(alvo)
+        for campo, path in _ponteiros(chave, alvo)
         if (erro := _erro_de(chave, campo, path, whitelist)) is not None
     ]
 
