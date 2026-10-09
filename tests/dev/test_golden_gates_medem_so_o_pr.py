@@ -365,26 +365,31 @@ def test_passo_de_historico_do_ci_delimita_o_pr_mesmo_com_o_merge_recomputado(
     assert _acusados_pelo_ci(evento, capsys) == {proprio[:10]}
 
 
-def test_a_fixture_reproduz_o_merge_recomputado_com_o_deepen_relativo(historico, tmp_path):
-    """Anti-vacuidade do teste acima: com o fetch de antes, o HEAD fica sem pais."""
+# A anti-vacuidade prova o ESTADO, não o comportamento do `--deepen` relativo, que muda
+# com a versão: o git 2.50 aprofunda o merge raso enquanto uma ref o alcança, e o 2.55
+# do runner não o aprofundou nem com a ref viva. Ancorar no SHA independe das duas.
+def test_a_fixture_recomputada_deixa_o_merge_sem_ref_e_sem_pais(historico, tmp_path):
+    """Anti-vacuidade do teste acima: só o passo do CI pode trazer os pais do merge."""
     evento, _ = _pr_atras_da_main_com_misto_proprio(historico)
     clone = _clone_do_checkout(evento, tmp_path / "ci")
     _github_recomputa_o_merge(evento)
-    _git(clone, "fetch", "-q", "--no-tags", "--deepen=500", "origin")
+    assert _git(evento.repo, "for-each-ref", "--contains", evento.merge_sha) == ""
     with pytest.raises(isolamento.MergeSinteticoInesperado, match="sem pais"):
         isolamento.base_do_merge_sintetico(evento.head_sha, evento.merge_sha, cwd=clone)
 
 
 @pytest.mark.parametrize(
-    "aprofunda,recusa",
-    [(0, "sem pais"), (2, "cruza o limite do clone raso")],
-    ids=["sem-fetch", "deepen-curto"],
+    "profundidade,recusa",
+    [(None, "sem pais"), (3, "cruza o limite do clone raso")],
+    ids=["sem-fetch", "historico-curto"],
 )
-def test_clone_raso_demais_e_recusado_em_vez_de_mentir(historico, tmp_path, aprofunda, recusa):
+def test_clone_raso_demais_e_recusado_em_vez_de_mentir(historico, tmp_path, profundidade, recusa):
     """Faixa truncada pelo clone raso arrastaria a main; a guarda recusa."""
     evento, _ = _pr_atras_da_main_com_misto_proprio(historico)
     clone = _clone_do_checkout(evento, tmp_path / "ci")
-    if aprofunda:
-        _git(clone, "fetch", "-q", "--no-tags", f"--deepen={aprofunda}", "origin")
+    if profundidade:
+        _git(
+            clone, "fetch", "-q", "--no-tags", f"--depth={profundidade}", "origin", evento.merge_sha
+        )
     with pytest.raises(isolamento.MergeSinteticoInesperado, match=re.escape(recusa)):
         isolamento.base_do_merge_sintetico(evento.head_sha, evento.merge_sha, cwd=clone)
