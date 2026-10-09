@@ -4,7 +4,7 @@ type: adr
 title: "Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma"
 status: Decidido
 date: "2026-08-08"
-amended_at: ["2026-08-13", "2026-08-27", "2026-10-08"]
+amended_at: ["2026-08-13", "2026-08-27", "2026-10-08", "2026-10-09"]
 relates_to: ["[[ADR-076]]", "[[ADR-117]]", "[[ADR-143]]", "[[ADR-236]]"]
 tags:
   - type/adr
@@ -24,6 +24,11 @@ tags:
 > **Emendada em 2026-10-08** — a quarta forma (utility nomeada do `@theme`) e o
 > segundo app (`frontend-ops/`) chegaram juntos no Tailwind v4 do console. Ver
 > §Emenda 2026-10-08.
+>
+> **Emendada em 2026-10-09** — a paleta oklch do shadcn/ui sai de
+> `fora_da_paleta` e passa a ser medida; `destructive` vira o vermelho do design
+> system com par `-on-tint`, e `dark:` é medido só no tema escuro. Ver §Emenda
+> 2026-10-09.
 
 ## Contexto
 
@@ -230,4 +235,57 @@ Corrigidos pela D1 (cor do texto); nenhum tint mudou. Nenhuma decisão muda.
 fica fora por nome (`Frontend.fora_da_paleta`, com checagem de staleness). Fora
 não quer dizer que passa: `bg-destructive/10 text-destructive` dos primitivos
 `button`/`badge` mede **4,01:1** no claro (convertendo o oklch à mão). Corrigir
-pede decisão de token, não aplicação mecânica da D1.
+pede decisão de token, não aplicação mecânica da D1. (Fechado na §Emenda
+2026-10-09.)
+
+## Emenda 2026-10-09 — a paleta do shadcn entra na medição
+
+A §Emenda 2026-10-08 deixou a paleta oklch do shadcn fora por nome e mediu à mão
+o que ela escondia. Esta emenda fecha as duas pontas: a decisão de token e a
+medição.
+
+**Decisão de token (co-desenhada com o `product-designer`).** No `@theme` do
+`globals.css`, `--color-destructive` aponta para `--semantic-danger` e o alias
+novo `--color-destructive-on-tint` aponta para `--semantic-loss-on-tint`; o
+`--destructive` oklch sai do `:root`/`.dark`. As variantes `destructive` de
+`button`/`badge` trocam o **texto** para `text-destructive-on-tint`; o tint
+(`bg-destructive/N`) não muda — é a D1. `semantic-danger`, e não `brand-danger`,
+porque `danger`/`loss` já são alias pela D3 e o par `-on-tint` existe sob o nome
+canônico; `brand-danger` fica para preenchimento sólido, que é o que o par
+`-foreground` dele cobre. Recusadas: um par oklch próprio (`--destructive-on-tint`
+no globals.css), que mantinha dois vermelhos no produto e não consertava o texto
+liso; e trocar só o texto da variante, que misturava tint de uma paleta com texto
+de outra.
+
+| texto | antes (shadcn) | depois |
+| --- | --- | --- |
+| variante sobre tint 10%, claro / escuro | 4,01 ✗ / 4,48 ✗ | 5,45 / 6,74 |
+| variante sobre tint 20% (`hover:`; `dark:` base), claro / escuro | 3,31 ✗ / 3,84 ✗ | 4,59 / 5,73 |
+| `text-destructive` liso sobre `--surface-muted`, claro | 4,35 ✗ | 5,91 |
+
+**Medição.** O mapa token → hex converte `oklch(L C H)` opaco para sRGB (canal
+recortado fora do gamut — dá o hex que o Tailwind publica, `red-600` → `#E7000B`)
+e lê **todo** CSS com `@theme` do app, na ordem do cascade, não só o
+`tokens.css`. `fora_da_paleta` deixa de existir: utility cujo destino não tem
+hex opaco (cor translúcida, `var()` encadeado) derruba o gate, em vez de sair
+calada. Ao ganhar a paleta, o gate achou mais três classes, corrigidas junto:
+badges sólidos de notificação com `text-white` sobre o vermelho (2,89:1 no
+escuro → `bg-brand-danger text-brand-danger-foreground`, 6,47 / 5,81), o ícone
+`text-destructive/70` do `DocumentRow` (3,13:1) e a legenda dos gráficos do
+`/plano`, que pintava `var(--muted-foreground)` — o cinza do shadcn, 4,33:1 sobre
+`--surface-muted` — e passa a `--surface-muted-foreground`. Cinco spinners
+`text-primary-foreground` dentro de `<Button>` default entram em `FUNDO_NO_PAI`,
+medidos contra `bg-primary`.
+
+**`dark:` é medido só no escuro.** O terceiro limite do gate media variante como
+incondicional. Para `hover:` isso é o lado conservador; para `dark:` é medir um
+pixel que não existe: `dark:hover:bg-destructive/30` no claro reprovava o par
+corrigido a 3,80:1, e a única saída seria escurecer o `--semantic-loss-on-tint`
+claro — que a D1 manda deixar igual à base onde a base passa. Tint ou texto com
+`dark:` na cadeia de variantes viram par do tema escuro; o resto segue medido nos
+dois temas.
+
+**Limite que continua aberto.** A paleta default do Tailwind (`text-white`,
+`text-amber-600`) não está em `@theme` do app e segue invisível aos dois gates —
+foi assim que os badges de notificação passaram. Medi-la exige ler o `theme.css`
+do pacote `tailwindcss`, que o gate não instala.

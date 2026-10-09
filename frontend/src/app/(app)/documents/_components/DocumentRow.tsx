@@ -141,7 +141,7 @@ function StatusCell({ doc }: { doc: DocumentResponse }) {
         )}
         {doc.pipeline_extract_notes && (
           <Tooltip>
-            <TooltipTrigger className="cursor-help text-destructive/70">
+            <TooltipTrigger className="cursor-help text-destructive">
               <AlertCircle className="inline h-3.5 w-3.5" aria-label="Notas de extração" />
             </TooltipTrigger>
             <TooltipContent className="max-w-xs whitespace-pre-wrap text-left text-xs">

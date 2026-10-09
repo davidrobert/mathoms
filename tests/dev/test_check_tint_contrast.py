@@ -4,7 +4,8 @@ Trava: (a) o repo real passa; (b) a aritmética WCAG bate com valores de
 referência conhecidos; (c) alias (`warning`↔`alert`) não escapa do pareamento;
 (d) o par `-on-tint` não é confundido com "cores diferentes"; (e) um par que
 reprova é de fato reportado; (f) as quatro sintaxes de tint são pareadas;
-(g) o `frontend-ops/` é medido, com a utility nomeada resolvida pelo `@theme`.
+(g) o `frontend-ops/` é medido, com a utility nomeada resolvida pelo `@theme`;
+(h) a paleta oklch do shadcn/ui é medida, e `dark:` só no tema escuro.
 
 Os itens (c), (f) e (g) são o que o teste existe para proteger, e pelo mesmo
 motivo: os modos de ficar verde **por não olhar** — o caro, porque (a) continua
@@ -13,17 +14,21 @@ call-sites reprovando (1,86:1 entre eles) que só escreviam o tint como
 `bg-[var(--X)]/15` em vez de `bg-[color-mix(…)]`. (g) também foi medido: no
 Tailwind v4 do console (#2082) o Badge `success` renderizou a 4,09:1 e nenhum
 gate viu, porque nenhum lia o `frontend-ops/` nem a forma `bg-<utility>/N`.
+(h) idem: `bg-destructive/10 text-destructive` dos primitivos `button`/`badge`
+media 4,01:1 no claro e ficava fora por nome (`fora_da_paleta`), sem hex a medir.
 """
 
 from __future__ import annotations
 
 import importlib.util
 import shutil
+import sys
 from pathlib import Path
 
 import pytest
 
 _REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO / "dev"))
 _spec = importlib.util.spec_from_file_location("ctc", _REPO / "dev" / "check_tint_contrast.py")
 assert _spec and _spec.loader
 ctc = importlib.util.module_from_spec(_spec)
@@ -78,6 +83,119 @@ def test_frontend_ops_e_medido_no_repo_real() -> None:
     assert ("semantic-gain-on-tint", "semantic-gain", 15) in {
         (p.fg_token, p.bg_token, p.pct) for p in pares
     }
+
+
+_FE = _REPO / "frontend" / "src"
+# globals.css do `frontend/` antes do conserto, reduzido ao que o gate lê: o
+# `@theme` do shadcn/ui e a paleta oklch de cada tema.
+_SHADCN_ANTES = """
+@import "../styles/tokens.css";
+@custom-variant dark (&:is(.dark *));
+@theme inline {
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-destructive: var(--destructive);
+}
+:root {
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+}
+.dark {
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+}
+"""
+# Variante `destructive` do `button.tsx` antes e depois do conserto (ADR-372
+# §Emenda 2026-10-09): o tint fica, o texto troca para o par `-on-tint`.
+_BUTTON_REVERTIDO = (
+    'destructive: "bg-destructive/10 text-destructive hover:bg-destructive/20 '
+    'dark:bg-destructive/20 dark:hover:bg-destructive/30",'
+)
+_BUTTON_CORRIGIDO = (
+    'destructive: "bg-destructive/10 text-destructive-on-tint hover:bg-destructive/20 '
+    'dark:bg-destructive/20 dark:hover:bg-destructive/30",'
+)
+
+
+def _frontend_em(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, componente: str, globals_css: str | None = None
+):
+    """Cópia do `frontend/` com o tokens.css REAL, o globals.css real (ou o dado)
+    e um componente de uma linha. Fora de `SRC`, então sem os pares nomeados."""
+    monkeypatch.setattr(ctc, "ROOT", tmp_path)
+    src = tmp_path / "frontend" / "src"
+    (src / "styles").mkdir(parents=True)
+    (src / "app").mkdir()
+    shutil.copy(_FE / "styles/tokens.css", src / "styles/tokens.css")
+    css = globals_css or (_FE / "app/globals.css").read_text(encoding="utf-8")
+    (src / "app/globals.css").write_text(css, encoding="utf-8")
+    (src / "components").mkdir()
+    (src / "components" / "ui.tsx").write_text(componente + "\n", encoding="utf-8")
+    return ctc.FRONTENDS[0]._replace(
+        src=src,
+        tokens_css=src / "styles/tokens.css",
+        theme_css=(src / "styles/tokens.css", src / "app/globals.css"),
+    )
+
+
+def test_destructive_do_shadcn_e_medido_e_reprova_antes_do_conserto(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A paleta oklch do shadcn ficava fora por nome — `bg-destructive/10
+    text-destructive` a 4,01:1 no claro passava calado. Cadeia inteira: arquivo →
+    `@theme` → `--destructive` oklch → hex → contraste."""
+    componente = 'destructive: "bg-destructive/10 text-destructive",'
+    _, falhas = ctc.measure_app(_frontend_em(tmp_path, monkeypatch, componente, _SHADCN_ANTES))
+    em_claro = [f for f in falhas if "4.01:1 em light" in f]
+    assert len(em_claro) == 1, falhas
+    assert "frontend/src/components/ui.tsx:1" in em_claro[0]
+    assert "text --destructive sobre tint 10% de --destructive" in em_claro[0]
+
+
+def test_variante_destructive_revertida_reprova_e_a_corrigida_passa(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Com o globals.css real: `--destructive` aponta para o vermelho do design
+    system, e o texto na cor base ainda reprova o tint de 20% do escuro."""
+    _, falhas = ctc.measure_app(_frontend_em(tmp_path, monkeypatch, _BUTTON_REVERTIDO))
+    assert any("em dark" in f and "tint 20%" in f for f in falhas), falhas
+
+    pares, falhas = ctc.measure_app(_frontend_em(tmp_path / "b", monkeypatch, _BUTTON_CORRIGIDO))
+    assert falhas == []
+    assert {(p.fg_token, p.bg_token, p.pct, p.tema) for p in pares} == {
+        ("semantic-loss-on-tint", "semantic-danger", 10, None),
+        ("semantic-loss-on-tint", "semantic-danger", 20, None),
+        ("semantic-loss-on-tint", "semantic-danger", 20, "dark"),
+        ("semantic-loss-on-tint", "semantic-danger", 30, "dark"),
+    }
+
+
+def test_variantes_destructive_do_repo_real_sao_medidas() -> None:
+    """Não-inércia: os dois primitivos entram no conjunto medido."""
+    pares, _ = ctc.measure_app(ctc.FRONTENDS[0])
+    medidos = {p.where.split(":")[0] for p in pares if p.bg_token == "semantic-danger"}
+    assert {"frontend/src/components/ui/button.tsx", "frontend/src/components/ui/badge.tsx"} <= (
+        medidos
+    )
+
+
+def test_tint_com_dark_so_e_medido_no_escuro(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`dark:bg-X/30` não pinta pixel no claro. Medi-lo ali reprovava o par
+    `-on-tint` cujo valor claro é a base por desenho (ADR-372 D1) — 3,80:1."""
+    componente = 'x: "bg-loss/10 text-loss-on-tint dark:hover:bg-loss/30",'
+    pares, falhas = ctc.measure_app(_frontend_em(tmp_path, monkeypatch, componente))
+    assert falhas == []
+    assert {(p.pct, p.tema) for p in pares} == {(10, None), (30, "dark")}
 
 
 @pytest.mark.parametrize(
@@ -151,7 +269,20 @@ def test_substrato_declarado_e_usado_no_lugar_do_card() -> None:
     """`color-mix(…, var(--Y))` é opaco: compõe contra `--Y`, não contra o card
     nem contra o fundo do pai."""
     linha = 'className="bg-[color-mix(in_srgb,var(--semantic-gain)_8%,var(--surface-muted))]"'
-    assert ctc._tints_in_line(linha) == [("semantic-gain", 8, "surface-muted")]
+    assert ctc._tints_in_line(linha) == [("semantic-gain", 8, "surface-muted", None)]
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        'className="dark:bg-[color-mix(in_srgb,var(--semantic-gain)_8%,transparent)]"',
+        'className="dark:hover:bg-[var(--semantic-gain)]/8"',
+        'className="dark:bg-semantic-gain/8"',
+    ],
+)
+def test_prefixo_dark_restringe_o_tint_ao_escuro_nas_tres_formas_de_classe(linha: str) -> None:
+    tints = ctc._tints_in_line(linha, {"semantic-gain": "semantic-gain"})
+    assert tints == [("semantic-gain", 8, "surface-card", "dark")]
 
 
 def test_pares_nomeados_cobrem_o_que_o_pareamento_por_linha_nao_alcanca() -> None:
@@ -243,9 +374,10 @@ UTILS = {
 @pytest.mark.parametrize(
     ("linha", "esperado"),
     [
-        ("text-semantic-gain-on-tint", [("text", "semantic-gain-on-tint", None, False)]),
-        ("text-surface-muted-fg/60", [("text", "surface-muted-foreground", 60, False)]),
-        ("hover:bg-semantic-gain/10", [("bg", "semantic-gain", 10, True)]),
+        ("text-semantic-gain-on-tint", [("text", "semantic-gain-on-tint", None, False, False)]),
+        ("text-surface-muted-fg/60", [("text", "surface-muted-foreground", 60, False, False)]),
+        ("hover:bg-semantic-gain/10", [("bg", "semantic-gain", 10, True, False)]),
+        ("dark:hover:bg-semantic-gain/30", [("bg", "semantic-gain", 30, True, True)]),
         # Nome que não é cor do `@theme` não vira token.
         ("text-sm text-left bg-clip-padding", []),
         # Opacidade arbitrária fica fora — e não pode casar um prefixo do nome.
@@ -291,13 +423,41 @@ def test_utility_sem_hex_fora_da_lista_falha(tmp_path: Path) -> None:
         ctc.utilities(fe, {"semantic-gain": "#000000"})
 
 
-def test_fora_da_paleta_isenta_e_entrada_stale_falha(tmp_path: Path) -> None:
-    css = "@theme { --color-primary: var(--primary); --color-g: var(--semantic-gain); }"
-    fe = _frontend_com_css(tmp_path, css, fora_da_paleta=frozenset({"primary"}))
-    assert ctc.utilities(fe, {"semantic-gain": "#000000"}) == {"g": "semantic-gain"}
-    stale = fe._replace(fora_da_paleta=frozenset({"primary", "destructive"}))
-    with pytest.raises(SystemExit, match="destructive"):
-        ctc.utilities(stale, {"semantic-gain": "#000000"})
+@pytest.mark.parametrize(
+    ("oklch", "esperado"),
+    [
+        (("0.577", "0.245", "27.325"), "#E7000B"),  # red-600 publicado pelo Tailwind
+        (("57.7%", "0.245", "27.325"), "#E7000B"),
+        (("1", "0", "0"), "#FFFFFF"),
+        (("0.205", "0", "0"), "#171717"),
+    ],
+)
+def test_oklch_vira_o_hex_que_o_tailwind_publica(oklch: tuple, esperado: str) -> None:
+    assert ctc.oklch_hex(*oklch) == esperado
+
+
+def test_token_map_le_oklch_opaco_e_ignora_translucido() -> None:
+    """Cor com alpha não tem hex próprio: fica fora do mapa, e a utility que
+    apontar para ela derruba o gate em `utilities` em vez de medir errado."""
+    css = ":root { --a: oklch(0.205 0 0); --b: oklch(1 0 0 / 10%); --c: #FFFFFF; }"
+    assert ctc.token_map(css, "light") == {"a": "#171717", "c": "#FFFFFF"}
+
+
+def test_temas_medidos_le_a_paleta_de_todo_css_com_theme(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """O `--destructive` vive no globals.css, não no tokens.css — o mapa lia só
+    o segundo, e por isso a paleta do shadcn não tinha hex."""
+    fe = _frontend_em(tmp_path, monkeypatch, "", _SHADCN_ANTES)
+    temas = ctc.temas_medidos(fe)
+    assert (temas["light"]["destructive"], temas["dark"]["destructive"]) == ("#E7000B", "#FF6467")
+    assert temas["light"]["surface-card"] == "#FFFFFF"
+
+
+def test_utility_para_cor_translucida_falha(tmp_path: Path) -> None:
+    fe = _frontend_com_css(tmp_path, "@theme { --color-border: var(--border); }")
+    with pytest.raises(SystemExit, match="border"):
+        ctc.utilities(fe, ctc.token_map(":root { --border: oklch(1 0 0 / 10%); }", "light"))
 
 
 def test_app_so_claro_que_liga_tema_escuro_falha(
