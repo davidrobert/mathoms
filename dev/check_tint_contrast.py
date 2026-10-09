@@ -89,6 +89,15 @@ AA_TEXTO_PEQUENO = 4.5
 # 1.4.11 (objeto gráfico / ícone) — limiar mais baixo que texto, mas existe.
 AA_NAO_TEXTO = 3.0
 
+
+def _par_do_badge_de_alocacao(
+    fg: str, tint: str, pct: int
+) -> tuple[str, str, str, int, str, float]:
+    """Badge do card Atual vs Alvo: tint e texto do mesmo `style`, sobre o card."""
+    path = "components/report/cards/alocacaoCardParts.tsx"
+    return (path, fg, tint, pct, "surface-card", AA_TEXTO_PEQUENO)
+
+
 # Pares que o pareamento por linha NÃO alcança: o tint está no elemento pai e o
 # `text-[…]` num filho (ícone colorido ao lado de prosa em foreground neutro, ou
 # `<p>` logo abaixo do `<div>` tintado). Nomeados à mão porque inferir a relação
@@ -120,30 +129,9 @@ NAMED_PAIRS = [
     # alcança. Foi a varredura dark do axe que achou: `rebalancear` dava 4,44:1.
     # Nomeados porque cobrir object literal por regex seria frágil o bastante
     # para virar falso-verde.
-    (
-        "components/report/cards/alocacaoCardParts.tsx",
-        "semantic-gain-on-tint",
-        "semantic-success",
-        12,
-        "surface-card",
-        AA_TEXTO_PEQUENO,
-    ),
-    (
-        "components/report/cards/alocacaoCardParts.tsx",
-        "semantic-alert-on-tint",
-        "semantic-warning",
-        14,
-        "surface-card",
-        AA_TEXTO_PEQUENO,
-    ),
-    (
-        "components/report/cards/alocacaoCardParts.tsx",
-        "semantic-loss-on-tint",
-        "semantic-danger",
-        14,
-        "surface-card",
-        AA_TEXTO_PEQUENO,
-    ),
+    _par_do_badge_de_alocacao("semantic-gain-on-tint", "semantic-success", 12),
+    _par_do_badge_de_alocacao("semantic-alert-on-tint", "semantic-warning", 14),
+    _par_do_badge_de_alocacao("semantic-loss-on-tint", "semantic-danger", 14),
     # Pai tintado + `<p>` filho, achados no ataque da A40.l33: a linha do `<div>`
     # não tem `text-[…]` e a linha do `<p>` não tem tint, então nenhuma das duas
     # sozinha vira par. O substrato aqui é declarado (`var(--surface-card)`),
