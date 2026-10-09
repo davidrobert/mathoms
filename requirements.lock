@@ -658,9 +658,9 @@ eval-type-backport==0.3.1 \
     --hash=sha256:279ab641905e9f11129f56a8a78f493518515b83402b860f6f06dd7c011fdfa8 \
     --hash=sha256:57e993f7b5b69d271e37482e62f74e76a0276c82490cf8e4f0dffeb6b332d5ed
     # via -r backend/requirements.in
-fastapi==0.136.3 \
-    --hash=sha256:3d2a69bdf04b7e9f3afa292c3bc7a98816bbfafa10bc9b45f3f3700d2f761620 \
-    --hash=sha256:e487fae93ad408e6f47641ee4dfe389864fd7bec92e547ea8498fc13f43e83ab
+fastapi==0.143.0 \
+    --hash=sha256:1acffe48206a80917cf7dac21992b5c44b25384e8902bf745c1fd9dabcf6c51f \
+    --hash=sha256:3e9395fd35276425b61b516a31fdd7c77fe2af83e41b4da22e30696fb1304c5d
     # via -r backend/requirements.in
 fastuuid==0.14.0 \
     --hash=sha256:05a8dde1f395e0c9b4be515b7a521403d1e8349443e7641761af07c7ad1624b1 \
@@ -1741,6 +1741,7 @@ opentelemetry-api==1.45.1 \
     --hash=sha256:b31553efa588ae44bc306f863c785c5333a9ecc091248c6ee68b4b6c87fdedfb
     # via
     #   -r backend/requirements.in
+    #   fastapi
     #   opentelemetry-exporter-http-transport
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-instrumentation
