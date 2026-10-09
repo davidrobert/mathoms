@@ -433,7 +433,8 @@
 | ADR-436 | adr | Decidido |  | Cobertura por profundidade é termo do veredito de flip, e o grão do item é contrato | `adr/436-cobertura-por-profundidade-e-termo-do-veredito-de-flip.md` |
 | ADR-437 | adr | Decidido |  | Componente suprimido sai do denominador do score, com piso publicado | `adr/437-componente-suprimido-sai-do-denominador-com-piso-publicado.md` |
 | ADR-438 | adr | Proposto |  | Destino de leitura do parecer é derivado pela máquina, não escolhido pela prosa | `adr/438-destino-de-leitura-derivado-no-parecer.md` |
-| ADR-439 | adr | Proposto |  | Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero | `adr/439-balde-de-imovel-sem-classificacao-apurada-sai-null.md` |
+| ADR-439 | adr | Decidido |  | Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero | `adr/439-balde-de-imovel-sem-classificacao-apurada-sai-null.md` |
+| ADR-440 | adr | Proposto |  | A identidade de imóvel ancora nos campos da ficha de Bens e Direitos, lidos por parser determinístico, com chave por nível e veto por unidade | `adr/440-ancora-de-imovel-vem-da-ficha-por-parser-deterministico.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -929,6 +930,7 @@
 | A40.l119 | lane | open | A40 | O elogio à reserva tem dois produtores e o guard alcança um; e a ressalva reescreve a descrição sem tocar o título que o leitor vê | `sprint/A40/lanes/A40-l119-elogio-com-produtor-duplo-e-ressalva-que-nao-alcanca-o-titulo.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l120 | lane | shipped | A40 | O parecer chama de renda fixa uma soma que inclui previdência, e o número com que ele deveria concordar não chega até ele | `sprint/A40/lanes/A40-l120-previdencia-dobrada-em-renda-fixa.md` |
+| A40.l121 | lane | in_progress | A40 | O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF | `sprint/A40/lanes/A40-l121-ancora-estruturada-de-imovel.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | cancelled | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
@@ -1015,7 +1017,7 @@
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A40.l90 | lane | shipped | A40 | A superfície determinística de risco tem quatro regras hard-coded e não lê o catálogo canônico de limiar | `sprint/A40/lanes/A40-l90-limiar-de-risco-le-o-catalogo.md` |
 | A40.l91 | lane | shipped | A40 | A meta de independência é composta pela fórmula bruta e consumida nos slots líquidos | `sprint/A40/lanes/A40-l91-base-da-meta-if.md` |
-| A40.l92 | lane | open | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
+| A40.l92 | lane | in_progress | A40 | A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora | `sprint/A40/lanes/A40-l92-polaridade-do-comparador.md` |
 | A40.l93 | lane | shipped | A40 | Alvo publicado cujo observado o parecer nunca lê, e o comparador que isso mascarava | `sprint/A40/lanes/A40-l93-fecho-tecnico-dos-residuais.md` |
 | A40.l94 | lane | shipped | A40 | Folga mensal reclassifica gasto pontual realizado como sobra recuperável | `sprint/A40/lanes/A40-l94-folga-reclassifica-gasto-realizado.md` |
 | A40.l95 | lane | shipped | A40 | Numerador da concentração imobiliária inclui bem que o motor declara não-gerador | `sprint/A40/lanes/A40-l95-numerador-de-concentracao-inclui-nao-gerador.md` |

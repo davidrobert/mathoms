@@ -6,8 +6,11 @@ A forma do run `U5`: a residência resolveu identidade, os quatro imóveis grava
 
 from __future__ import annotations
 
+import json
 from decimal import Decimal
+from pathlib import Path
 
+import jsonschema
 import pytest
 
 from pipeline.domain.services.investimentos_cobertura import CoberturaStatus
@@ -18,6 +21,7 @@ from pipeline.domain.services.veredito_balde_imovel import (
     MotivoBaldeImovel,
     VereditoBalde,
     evidencia_de_imoveis,
+    review_reasons_da_classificacao_imovel,
     veredito_geradores,
     veredito_residencia,
     vereditos_de_imovel,
@@ -169,3 +173,50 @@ def test_to_dict_publica_o_vocabulario_de_cobertura() -> None:
     assert payload["overrides_sem_imovel"] == {"residencia_principal": 0, "geradores": 2}
     assert payload["n_desconhecido_em_aberto"] == 1
     assert VereditoBalde(CoberturaStatus.zero_apurado).to_dict()["motivo"] is None
+
+
+# ── [[ADR-439]] D7: só evidência CONTRÁRIA vira razão, e ela é advisory ─────────────
+
+
+def _bloco(residencia: str | None, geradores: str | None) -> dict:
+    def veredito(motivo):
+        status = "nao_apurado" if motivo else "apurado"
+        return {"status": status, "motivo": motivo, "piso": False}
+
+    return {
+        "cobertura_classificacao_imovel": {
+            "residencia": veredito(residencia),
+            "imoveis_geradores": veredito(geradores),
+        }
+    }
+
+
+@pytest.mark.parametrize(
+    ("residencia", "geradores", "baldes"),
+    [
+        (None, "vinculo_perdido", ["imoveis_geradores"]),
+        ("nao_localizada", None, ["residencia"]),
+        ("nao_localizada", "vinculo_perdido", ["residencia", "imoveis_geradores"]),
+        ("nao_declarada", "nao_classificados", []),
+        ("nao_classificada", "sem_valor", []),
+    ],
+)
+def test_razao_so_para_vinculo_perdido(residencia, geradores, baldes) -> None:
+    """Nunca classificou é estado do produto — o CTA cuida; o achado é o vínculo perdido."""
+    razoes = review_reasons_da_classificacao_imovel(
+        _bloco(residencia, geradores), stage="analyze_finances", artifact_key="analise_financeira"
+    )
+
+    assert [r["offending_value"] for r in razoes] == [f"balde={b}" for b in baldes]
+    assert {r["code"] for r in razoes} <= {"domain.classificacao_imovel_nao_apurada"}
+
+
+def test_razao_valida_no_contrato_e_nao_carrega_endereco() -> None:
+    schema_path = Path(__file__).resolve().parents[3] / "config/schemas/review_reason.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    (razao,) = review_reasons_da_classificacao_imovel(
+        _bloco(None, "vinculo_perdido"), stage="analyze_finances", artifact_key="x"
+    )
+
+    jsonschema.validate(razao, schema)
+    assert razao["offending_value"] == "balde=imoveis_geradores"
