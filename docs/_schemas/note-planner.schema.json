@@ -42,14 +42,14 @@
         "path": {
           "type": "string",
           "pattern": "^config/agents/.+\\.md$",
-          "description": "Path da persona rules-as-code (ADR-201)."
+          "description": "Path da persona rules-as-code (ADR-201). Declarativo, sem leitor em runtime: `load_persona` lê `_PERSONA_PATH` (backend/app/services/parecer_manifest.py), não este campo."
         },
         "required_frontmatter_fields": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
           "items": {"type": "string", "minLength": 1},
-          "description": "Frontmatter da persona que o orchestrator valida no boot."
+          "description": "Campos que o frontmatter da persona declara. Sem leitor em runtime — nenhum código valida esta lista no boot (ADR-201 §Correção 2026-10-09)."
         }
       }
     },
@@ -148,6 +148,17 @@
             "description": "Texto do chip; o finalize carimba em ancora.label."
           }
         }
+      }
+    },
+    "user_prompt_sha256": {
+      "type": "object",
+      "description": "Pin do user prompt renderizado (ADR-199 §Emenda 2026-10-09): sha256 do user prompt que `_build_prompts` monta sobre a fixture congelada de tests/fixtures/parecer_prompt_fingerprint/, por regime de eviction. Metadado de TESTE, sem leitor em runtime — lido por tests/test_parecer_prompt_fingerprint.py. Mora no manifest de propósito: o gate W2-T05 cobra bump de `version` de qualquer edição deste arquivo, então byte do prompt que muda ⇒ pin que muda ⇒ bump. Par de `SYSTEM_PROMPT_SHA256` em pipeline/llm/prompts/parecer_planejador.py.",
+      "additionalProperties": false,
+      "required": ["sem_evicao", "evicao", "corte_duro"],
+      "properties": {
+        "sem_evicao": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "evicao": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "corte_duro": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
       }
     }
   },
