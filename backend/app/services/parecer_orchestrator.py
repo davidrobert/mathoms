@@ -72,7 +72,10 @@ logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # `PROMPT_VERSION`, e `pipeline/llm/schemas/parecer_planejador.py` não declara. Sem
 # ele, envelope gerado sob o contrato antigo seria servido por 7 dias de TTL com
 # `metrica_key` ausente — e re-rodar o stage cairia no mesmo cache.
-_SCHEMA_VERSION = "1.1"  # bump em mudança breaking do output schema (ADR-202)
+# 1.2 (A40.l92): `Metrica` ganha `comparador` e `nivel_confianca`, estampados. O envelope
+# do cache guarda o output JÁ estampado, então o 1.1 serviria a linha sem veredito. O par
+# (versão, campos estampados) é gateado em `test_parecer_metrica_stamping.py`.
+_SCHEMA_VERSION = "1.2"  # bump em mudança breaking do output schema (ADR-202)
 # Allowlist de forma p/ o código de classificação em `_exc_label` — o valor vem de
 # `LLMErrorType`, mas a asserção de forma é barata e fecha a classe de vazamento inteira.
 _SAFE_ERROR_CODE_RE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
