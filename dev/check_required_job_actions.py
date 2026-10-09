@@ -14,6 +14,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_PATH = REPO_ROOT / ".github" / "third-party-actions.yml"
 WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
 SAFE_RUNS_USING = {"node16", "node20", "node24", "composite"}
+# Job agregador de cada status check exigido pelo Ruleset `main-protection`.
+CLOSURE_ROOTS = {"ci.yml": "all-green", "pr-quality.yml": "title-lint"}
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,8 @@ class Violation:
     reason: str
 
     def format(self) -> str:
+        if not self.action_ref:
+            return f"{self.workflow}::{self.job} — {self.reason}"
         return f"{self.workflow}::{self.job} usa `{self.action_ref}` — {self.reason}"
 
 
@@ -86,23 +90,57 @@ def check_all(registry: dict) -> list[Violation]:
     return violations
 
 
+def _job_needs(job: dict) -> list[str]:
+    needs = job.get("needs") or []
+    return [needs] if isinstance(needs, str) else list(needs)
+
+
+def required_closure(workflow_path: Path, root: str) -> set[str]:
+    """Fecho transitivo de `needs:` a partir do agregador — o que o Ruleset de fato exige."""
+    jobs = yaml.safe_load(workflow_path.read_text(encoding="utf-8")).get("jobs") or {}
+    closure: set[str] = set()
+    pending = [root]
+    while pending:
+        name = pending.pop()
+        if name not in closure:
+            closure.add(name)
+            pending.extend(_job_needs(jobs.get(name) or {}))
+    return closure
+
+
+def check_closure_declared(registry: dict) -> list[Violation]:
+    """Job no fecho do agregador e fora de `required_jobs` passaria calado por `check_all`."""
+    violations: list[Violation] = []
+    for workflow_file, root in CLOSURE_ROOTS.items():
+        declared = set(registry["required_jobs"].get(workflow_file) or [])
+        closure = required_closure(WORKFLOW_DIR / workflow_file, root)
+        violations.extend(
+            Violation(
+                workflow_file, job, "", "no fecho `needs:` do agregador mas fora de required_jobs"
+            )
+            for job in sorted(closure - declared)
+        )
+    return violations
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
 
     registry = load_registry()
-    violations = check_all(registry)
+    violations = check_closure_declared(registry) + check_all(registry)
     if not violations:
-        print("✓ nenhuma action Docker / não-registrada em job required.")
+        print("✓ fecho required declarado; nenhuma action Docker / não-registrada nele.")
         return 0
 
-    print(f"✗ {len(violations)} violação(ões) — job required com action de risco:\n")
+    print(f"✗ {len(violations)} violação(ões) no fecho de jobs required:\n")
     for v in violations:
         print(f"  {v.format()}")
     print(
-        "\nRegistre a action em .github/third-party-actions.yml (após confirmar "
-        "runs.using offline-por-adoção), ou mova o job para fora do fecho "
-        "required_jobs, ou troque por script inline — ver comentário do arquivo."
+        "\nJob fora de required_jobs: declare-o em .github/third-party-actions.yml. "
+        "Action: registre-a ali (após confirmar runs.using offline-por-adoção), "
+        "ou mova o job para fora do fecho, ou troque por script inline — ver "
+        "comentário do arquivo."
     )
     return 1
 

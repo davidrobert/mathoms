@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 370
-- **Proposto**: 58
+- **Decidido**: 371
+- **Proposto**: 57
 - **Roadmap**: 5
 
 ## Fundação
@@ -725,14 +725,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## security
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 - [[ADR-299]] — SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) · phase audit-r2 · SEC-03
-
-### Proposto (1)
-
 - [[ADR-442]] — Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push
 
 ## seguranca
