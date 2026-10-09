@@ -2291,28 +2291,57 @@
                   "Fundos",
                   "Caixa",
                   "Imóveis Investimento",
-                  "Outros"
+                  "Outros",
+                  "Imóveis com uso não apurado"
                 ]
               },
               "valor": {
                 "type": "number"
               },
               "pct": {
-                "type": "number",
-                "description": "Percentual absoluto da classe sobre o TOTAL INVESTIDO (financeiro + imóveis de investimento; 44.7 = 44,7%, ADR-209). Soma do array ~100. Rótulo de base obrigatório nos renderers: '% do total investido' (A37.l9)."
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "Percentual absoluto da classe sobre o TOTAL INVESTIDO (financeiro + Imóveis Investimento; 44.7 = 44,7%, ADR-209). Soma do array ~100 entre as linhas com peso. Rótulo de base obrigatório nos renderers: '% do total investido' (A37.l9). null SÓ na linha 'Imóveis com uso não apurado', que entra com valor e sem peso, fora do total investido (ADR-444 D3); a restrição cruzada do item reprova null em qualquer outra linha."
               },
               "pct_carteira_financeira": {
                 "type": [
                   "number",
                   "null"
                 ],
-                "description": "Percentual absoluto da classe sobre a CARTEIRA FINANCEIRA (total - imóveis físicos; A37.l9). null para 'Imóveis Investimento' (fora da base) e carteira financeira vazia. Peso de classe financeira (Internacional/RF/RV/FII) cita-se SEMPRE desta base, nunca da base com imóvel físico."
+                "description": "Percentual absoluto da classe sobre a CARTEIRA FINANCEIRA (total - imóveis físicos; A37.l9). null para as duas linhas de imóvel físico ('Imóveis Investimento' e 'Imóveis com uso não apurado', fora da base) e carteira financeira vazia. Peso de classe financeira (Internacional/RF/RV/FII) cita-se SEMPRE desta base, nunca da base com imóvel físico."
+              }
+            },
+            "if": {
+              "properties": {
+                "categoria": {
+                  "const": "Imóveis com uso não apurado"
+                }
+              },
+              "required": [
+                "categoria"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pct": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "pct": {
+                  "type": "number"
+                }
               }
             }
           }
         },
         "total": {
-          "type": "number"
+          "type": "number",
+          "description": "Total investido = carteira financeira + Imóveis Investimento. Exclui a linha 'Imóveis com uso não apurado' (com valor e sem peso, ADR-444 D3): total + total_imoveis_uso_nao_apurado = Σ tabela_classes[].valor."
         },
         "total_financeiro": {
           "type": "number",
@@ -2320,7 +2349,12 @@
         },
         "total_imoveis_investimento": {
           "type": "number",
-          "description": "Subtotal de imóveis físicos (classe 'Imóveis Investimento') da tabela (A37.l9)."
+          "description": "Subtotal da linha 'Imóveis Investimento' (A37.l9): imóveis não-residência pelo veredito do run — os classificados (qualquer uso; não implica renda) e, com a residência identificada, os desconhecidos por eliminação. Resíduo declarado: a cota do cônjuge sem property_id pode estar aqui, e é o piso de patrimonio.cobertura_classificacao_imovel.residencia (ADR-439 D2 · ADR-444 D6)."
+        },
+        "total_imoveis_uso_nao_apurado": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Valor da linha 'Imóveis com uso não apurado' (ADR-444 D3): imóveis de classificação desconhecida quando a residência não foi apurada (patrimonio.cobertura_classificacao_imovel.residencia.status = nao_apurado) — podem conter a residência. Fora de total e de toda base de carteira; 0 quando a linha não existe."
         },
         "nao_classificado_pct": {
           "type": "number",
@@ -2373,7 +2407,7 @@
         "top_ativos": {
           "type": "array",
           "maxItems": 15,
-          "description": "Ranking determinístico produzido por TopAtivosAnalyzer; coerente com tabela_classes (mesmo bens_por_membro). Enum de classe = BUCKETS canônicos (ADR-193).",
+          "description": "Ranking determinístico produzido por TopAtivosAnalyzer; coerente com tabela_classes (mesmo bens_por_membro). Enum de classe = BUCKETS canônicos (ADR-193) + 'Imóveis com uso não apurado' (ADR-444, fora de BUCKETS).",
           "items": {
             "type": "object",
             "required": [
@@ -2408,7 +2442,8 @@
                   "Fundos",
                   "Caixa",
                   "Imóveis Investimento",
-                  "Outros"
+                  "Outros",
+                  "Imóveis com uso não apurado"
                 ]
               },
               "membro": {
@@ -2422,10 +2457,13 @@
                 "minimum": 0
               },
               "pct_carteira": {
-                "type": "number",
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 0,
                 "maximum": 100,
-                "description": "Percentual absoluto do ativo sobre a carteira total (44.7 = 44,7%, ADR-209)."
+                "description": "Percentual absoluto do ativo sobre a carteira (44.7 = 44,7%, ADR-209). A base exclui os itens 'Imóveis com uso não apurado', que saem com null — com valor e sem peso (ADR-444 D4); a restrição cruzada do item reprova null em qualquer outra classe."
               },
               "tipo_origem": {
                 "type": "string",
@@ -2450,9 +2488,49 @@
                   null
                 ],
                 "description": "Qual degrau decidiu `classe` (ADR-400) — provenance por linha do ranking. null = a linha não passou pelo classificador (imóvel: a classe vem da origem do item). conclusivo/presuntivo/sem_mapa são emitidos pelo degrau 1, que entra em rodada posterior."
+              },
+              "classificacao_imovel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "uso_pessoal",
+                  "locado",
+                  "comercial",
+                  "especulacao",
+                  "nu_proprietario",
+                  "desconhecido",
+                  null
+                ],
+                "description": "Classificação de uso do imóvel (override da família, ADR-215), só em tipo_origem 'imovel'; null em investimento. 'desconhecido' = sem property_id ou sem override: o nome do item é 'Imóvel com uso não apurado' em qualquer regime, e nenhuma prescrição de diversificação recai sobre ele (ADR-444 D4/D5). residencia_principal nunca aparece: a residência fica fora do ranking."
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "if": {
+              "properties": {
+                "classe": {
+                  "const": "Imóveis com uso não apurado"
+                }
+              },
+              "required": [
+                "classe"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pct_carteira": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "pct_carteira": {
+                  "type": "number"
+                }
+              }
+            }
           }
         },
         "instituicoes_por_membro": {
