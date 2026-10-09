@@ -4,8 +4,11 @@
 # manual em major (PR fica open para review).
 #
 # Updates abrem PR contra `main` com label `dependency` (já criada via
-# Onda 2) e prefixo `chore(deps):` no commit. Auto-labeler em pr-quality.yml
-# também adiciona `dependency` por path (defense-in-depth).
+# Onda 2) e prefixo `chore(deps):` no commit. O labeler do pr-quality.yml roda
+# com `sync-labels: true` e é quem decide as labels que declara: ele mantém
+# `dependency` e `dependabot` em todo branch `dependabot/…` por `head-branch`.
+# `dependabot` é a isenção do stale.yml e não entra aqui em `labels:`, porque
+# a fonte é uma só (.github/labeler.yml).
 
 version: 2
 updates:
