@@ -1023,7 +1023,14 @@ externos. Se já está numa branch `agent/*`, não recrie — continue nela.
 6. **Habilite auto-merge** (`gh pr merge <N> --squash --auto`) ou peça
    review se PR não-trivial. **Squash é o único método** — preserva
    `main` linear, e commit message vira título do PR (Conventional Commits).
-7. Após merge: `git fetch origin && git log -1 origin/main` confirma o
+7. **Ligue o monitor do PR (app desktop).** `ccd_pr` `get_status` (se o
+   PR não aparecer, `bind_pr` com a URL) e `set_monitor` com
+   `auto_fix: true`. É o único aviso que acorda a sessão: CI vermelho,
+   conflito, comentário de review. Ele **não** avisa `BEHIND` nem o
+   merge — com o Ruleset strict, quem atualiza a branch é o trem de
+   auto-merge ([[ADR-322]]), um PR por vez, em FIFO. Não fique em loop de
+   polling (`until … sleep`) esperando o merge.
+8. Após merge: `git fetch origin && git log -1 origin/main` confirma o
    commit-merge. Em sua máquina: `git checkout main && git pull
    --ff-only && git branch -d agent/<slug>/<ts>` (auto-delete remoto
    também ocorre).
