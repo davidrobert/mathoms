@@ -4,7 +4,8 @@
 # PR ainda parado +7d → fechado (re-abrir é trivial).
 # Issue sem atividade >60d → label `stale`. Issue stale +14d → fechada.
 #
-# Excluir labels que indicam pausa intencional: blocked, pinned.
+# Excluir labels que indicam pausa intencional: blocked, pinned. PR do
+# Dependabot fica fora pela label `dependabot` (ver `exempt-pr-labels`).
 
 name: Stale
 
@@ -14,6 +15,16 @@ on:
     # não sobrepor execução.
     - cron: "30 6 * * *"
   workflow_dispatch:
+    inputs:
+      # Dispatch nasce sem efeito: só loga o que faria. `-f debug-only=false`
+      # age sobre PRs e issues reais, igual ao run agendado. Mesmo em debug, o
+      # stale grava o cache `_state` (itens processados) no ref do run. Valide
+      # com `--ref <branch>`, nunca em main, porque um run de debug que esgote o
+      # `operations-per-run` faria o agendado pular itens.
+      debug-only:
+        description: "Só loga o que faria (false = marca e fecha de verdade)"
+        type: boolean
+        default: true
 
 # A34.l13 (ADR-320): default read; marcação/fechamento vive no job.
 permissions:
@@ -47,7 +58,11 @@ jobs:
           close-pr-message: |
             Fechado por inatividade. Re-abra quando quiser retomar — comentários
             e diff ficam preservados.
-          exempt-pr-labels: "blocked,pinned,security"
+          # `dependabot`: fechar PR do Dependabot vira ignore implícito da
+          # release ("OK, I won't notify you again" — #2006–#2015, 2026-09-29).
+          # O actions/stale não filtra por autor; a label é o proxy, e o
+          # labeler a aplica por `head-branch`, então o sync-labels nunca a tira.
+          exempt-pr-labels: "blocked,pinned,security,dependabot"
 
           # ----- Issues -----
           days-before-issue-stale: 60
@@ -60,9 +75,8 @@ jobs:
             Fechada por inatividade. Re-abra ou crie issue nova se ainda for relevante.
           exempt-issue-labels: "blocked,pinned,security,tech-debt"
 
-          # Não marca PR de Dependabot como stale — eles fecham sozinhos
-          # quando uma versão mais nova é lançada e abrem novo PR.
-          exempt-pr-authors: "dependabot,dependabot[bot]"
+          # `schedule` não tem `inputs` → false; o dispatch liga por default.
+          debug-only: ${{ inputs.debug-only == true }}
 
           # Limita # de operações por run (rate-limit safety).
           operations-per-run: 60
