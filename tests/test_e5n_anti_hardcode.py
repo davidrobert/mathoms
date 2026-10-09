@@ -343,7 +343,7 @@ def test_s4_nao_publica_valor_zero_de_residencia() -> None:
     payload["patrimonio"]["residencia"] = 0
     s4 = summaries(payload, GOALS_A)["s4"]
     assert "residência" not in s4, s4
-    assert "imóveis de investimento somando" in s4, s4
+    assert "outros imóveis somando" in s4, s4
 
 
 def test_s3_nao_inventa_contagem_de_categorias() -> None:

@@ -269,6 +269,17 @@ são Linux/CI-parity e **não foram regeradas** — regerar em macOS produz base
 inútil, e o diff local do PDF é da 1ª página (capa + hero), que estes textos nem
 tocam.
 
+> **Reconciliado 2026-10-08 (#2068):** o gate de pixel **viu** esta entrega. O context
+> do donut passou de 2 linhas para 1, a S2 foi de 976×2970 para 976×2946, e dimensão
+> diferente reprova o `toHaveScreenshot` antes de o `maxDiffPixelRatio` ser lido. A
+> afirmação acima vale só para texto que mantém a contagem de linhas (a conclusão de
+> Receita vs Despesa sozinha dá 0,13%). Desde o merge do #1864, a S2 reprova em todo run
+> do job visual sobre `main`. Ficou latente por 39 dias porque nenhum PR com label
+> `visual` foi aberto depois.
+> Bissecção no runner Linux: o pai `04551a0b` passa e `42ad07dd` reprova só a S2, com
+> render 0 px igual ao de `main`. As baselines `S2-{light,dark}` foram regeradas no
+> #2068. A do PDF não foi verificada.
+
 ## Evidência de produção recebida da [[A42.l25]] (2026-09-01)
 
 O corpus `ws-1b9f2cf5` tem **48 receitas negativas** somando **R$ 9.993,86** — `PAGAMENTO EFETUADO`/estorno classificados como receita, que é exatamente o defeito que a [[ADR-429]] descreve e hoje só sustenta com fixture. Medido no fecho da [[A42.l25]] (#1965) ao decompor o eixo-valor E3→E4: as 48 explicam **100%** do Δ daquela perna (`2 × 999.386 = 1.998.772` cents, exato).
