@@ -1302,8 +1302,18 @@ jobs:
           # cascata (#644). Desabilita o throttle no backend de teste, como
           # backend/tests/conftest.py (_disable_register_rate_limit).
           MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR: "0"
+          # Mesma classe, no login: a policy é 10/60s POR IP e o helper faz
+          # register (409) → login a cada teste, dos 2 workers, de um IP só.
+          # Medido em 2026-10-09 (run 37872122975): 12 de 39 logins em 429 e
+          # nenhum 429 em outro endpoint — upload/pipeline_run são por
+          # workspace e ficam no default de propósito. "0" não desliga
+          # (`count <= 0` nega tudo). O lockout por conta não muda.
+          MATHOMS_RATE_LIMIT_LOGIN: "10000/60"
         shell: bash
         run: |
+          # Override malformado só loga WARNING e volta calado a 10/60 — o
+          # sintoma seria 429 no meio do Playwright, não aqui.
+          python -c "import os; from backend.app.services.security.rate_limit import resolve_policy as r; p = r('login'); assert f'{p.limit}/{p.window_s}' == os.environ['MATHOMS_RATE_LIMIT_LOGIN'], p"
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
             > /tmp/uvicorn.log 2>&1 &
           echo "UVICORN_PID=$!" >> "$GITHUB_ENV"
@@ -1428,7 +1438,21 @@ jobs:
           # Cross-browser (Firefox + WebKit) movido para nightly.yml.
           # Regressões cross-browser são raras; rodar só Chromium em PR
           # corta ~50% do runtime do gate E2E quando label `e2e` ativo.
-          npm run test:e2e -- --project=chromium
+          #
+          # Fora: todo `tests/e2e/reports/*@critical*.spec.ts` (88 de 125
+          # testes em 2026-10-09). São fixture mockada via `page.route`, sem
+          # backend real, e já têm dono required: `frontend-checks` (step de
+          # render, que seleciona `reports/` + `@critical`) e, para o
+          # `print.@critical`, `frontend-print-visual`. Aqui eles só repetiam
+          # aquele gate — e o `print-text` hard-falhava por falta de
+          # `pdftotext`, que este job não tem motivo para instalar. A regex
+          # exige o NOME do arquivo (`@critical` + `.spec.ts`): o que ela tira
+          # é, por construção, o que o `--grep @critical` do outro job pega, e
+          # spec de `reports/` sem a tag continua rodando aqui. Se o path
+          # mudar e ela parar de casar, os specs voltam a rodar (vermelho
+          # barulhento), não somem.
+          npm run test:e2e -- --project=chromium \
+            --grep-invert '(^| )reports/[^ ]*@critical[^ ]*\.spec\.ts( |$)'
 
       - name: Upload backend + celery logs (diagnóstico E2E)
         if: failure()
