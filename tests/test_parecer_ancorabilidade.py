@@ -93,7 +93,7 @@ class TestParidadeCorpusManifest:
         )
 
     def test_cabecalho_orfao_e_nomeado_e_nao_conta_como_cobertura(self, manifest, e5):
-        """`_render_table` com `rows == []` emite `**Top ativos (até 15)** (top 0):` —
+        """`_render_table` com `rows == []` emite o cabeçalho de tabela com `(top 0 de 0)` —
         cabeçalho sem linha. `_render_key_value` se protege disso (`:174`), `_render_table`
         não. É esse estado que fazia o corpus PARECER coberto. Fix é do dono do distiller
         (l31); aqui o instrumento se recusa a contá-lo como cobertura."""
@@ -101,6 +101,26 @@ class TestParidadeCorpusManifest:
         assert orfaos, "nenhum cabeçalho órfão — se o distiller foi corrigido, remova este teste"
         assert all(not c.covered for c in orfaos)
         assert all(c.cardinalidade == 0 for c in orfaos)
+
+
+# A40.l124: linha visível além do que o catálogo cita por lista (`_MAX_LIST_ITEMS`, as
+# MAIORES por valor) fica sem rota de citação por construção — com `top_ativos` em 15, dez R$
+# do corpo não tinham rota. Igualdade de conjunto: tabela monetária nova acima do limite
+# reprova pedindo declaração aqui; `tabela_classes` é a lacuna estrutural já nomeada no
+# distiller (`_table_money_paths`).
+_TABELAS_ACIMA_DO_CATALOGO = frozenset({"$.investimentos.tabela_classes[*]"})
+
+
+def test_tabela_monetaria_nao_mostra_mais_linhas_do_que_o_catalogo_cita():
+    acima = {
+        bloco["path"]
+        for secao in load_manifest().sections
+        for bloco in secao.get("blocks", [])
+        if bloco.get("format") == "table"
+        and any(c.get("format") == "brl" for c in bloco.get("columns", []))
+        and int(bloco.get("max_rows", 10)) > _MAX_LIST_ITEMS
+    }
+    assert acima == _TABELAS_ACIMA_DO_CATALOGO
 
 
 # -----------------------------------------------------------------------
@@ -133,8 +153,11 @@ class TestInstrumentoMedeOObservavel:
 
     def test_catalogo_renderizado_e_menor_que_o_construido(self, manifest, e5):
         """94% vs 78% no corpus original: `max_bytes` corta entries antes de o modelo
-        ver. Medir contra o construído é o verde-falso nº 2."""
-        report = measure_anchorability(manifest, e5)
+        ver. Medir contra o construído é o verde-falso nº 2. O orçamento é forçado: no
+        joelho re-medido da A40.l124 (3400) o catálogo deste corpus cabe inteiro — no E5
+        real o corte segue (44 de 60) —, e sem corte a premissa do teste sumiria (A40.l85)."""
+        catalogo = replace(manifest.citation_catalog, max_bytes=1600)
+        report = measure_anchorability(replace(manifest, citation_catalog=catalogo), e5)
         assert report.catalogo_renderizado < report.catalogo_construido
 
     def test_medicao_nao_esta_degradada_por_hard_cut(self, manifest, e5):

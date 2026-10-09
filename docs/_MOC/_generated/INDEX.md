@@ -940,6 +940,7 @@
 | A40.l121 | lane | in_progress | A40 | O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF | `sprint/A40/lanes/A40-l121-ancora-estruturada-de-imovel.md` |
 | A40.l122 | lane | in_progress | A40 | A casa da família entra na carteira de investimentos quando a residência não é apurada: tabela de classes e ranking falham ABERTO | `sprint/A40/lanes/A40-l122-residencia-fora-da-classe.md` |
 | A40.l123 | lane | shipped | A40 | O parecer não recebe o veredito do balde de imóvel: lê como medida o número que pode conter a moradia, e pode prescrever vendê-la | `sprint/A40/lanes/A40-l123-parecer-recebe-veredito-de-imovel.md` |
+| A40.l124 | lane | shipped | A40 | O parecer não vê independência financeira nem investimentos desde agosto: o corpo pede ~20 KB contra 16 KB, a eviction é muda e o teste que a vigia mede 40% do tamanho real | `sprint/A40/lanes/A40-l124-parecer-cego-a-if-e-investimentos.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | cancelled | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
