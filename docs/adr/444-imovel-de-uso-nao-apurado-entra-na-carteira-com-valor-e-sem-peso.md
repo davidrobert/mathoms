@@ -1,7 +1,7 @@
 ---
 id: ADR-444
 type: adr
-title: "Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre imóvel desconhecido"
+title: "Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência"
 status: Proposto
 phase: A40.l122
 date: "2026-10-08"
@@ -93,12 +93,16 @@ dos demais o exclui. Todo item imóvel publica `classificacao_imovel`. O `nome` 
 não apurado" em qualquer regime — "de investimento" reafirmaria o qualificador que a
 [[ADR-420]] §D1 tirou da composição.
 
-### D5 — Nenhuma prescrição de diversificação recai sobre imóvel desconhecido
+### D5 — Nenhuma prescrição de diversificação recai sobre o que pode ser a residência
 
-O alarme de concentração (25%) passa ao maior item **com peso**; no lugar dele, um CTA pelo
-motivo — em `nao_localizada` o CTA não pede "marque", porque o override existe. Os dois
-produtores determinísticos da prosa (`deriveInsight` e `charts_narrator`) leem o mesmo payload:
-a prosa morre no produtor ([[ADR-412]] §E3).
+Item sem peso não concentra carteira: o alarme (25%) passa ao maior item **com peso**, e no
+lugar dele entra um CTA pelo motivo — em `nao_localizada` o CTA não pede "marque", porque o
+override existe. Sob `piso`, o desconhecido no #1 também não recebe "considere
+diversificação": pode ser a cota da casa. Fora dos dois casos o alarme fica: o desconhecido
+**sabidamente** não-residência (família que aluga) é o não-classificado do KPI de risco, e fica
+no lado conservador ([[ADR-420]] §D2). Os dois produtores determinísticos da prosa
+(`deriveInsight` e `charts_narrator`) leem o mesmo payload — `pct_carteira`,
+`classificacao_imovel` e o `piso` publicado: a prosa morre no produtor ([[ADR-412]] §E3).
 
 ### D6 — O resíduo `apurado` + `piso` fica fora, e é declarado onde o leitor lê
 

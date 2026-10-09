@@ -47,8 +47,9 @@ padrão e não roda em produção.
 
 [[ADR-444]] (`Proposto`): com a residência `nao_apurado` (os quatro motivos, `sem_valor`
 incluso), imóvel de classificação desconhecida entra **com valor e sem peso** na linha "Imóveis
-com uso não apurado"; nenhuma prescrição de diversificação recai sobre imóvel desconhecido; o
-resíduo `apurado` + `piso` (cota do cônjuge sem id) é declarado no schema e no parecer.
+com uso não apurado"; nenhuma prescrição de diversificação recai sobre o que pode ser a
+residência (item sem peso, ou desconhecido sob `piso`); o resíduo `apurado` + `piso` (cota do
+cônjuge sem id) é declarado no schema e no parecer.
 
 ## Entregas
 
