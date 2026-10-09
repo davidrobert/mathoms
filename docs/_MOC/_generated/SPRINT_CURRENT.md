@@ -38,7 +38,6 @@ open · in_progress.
 ## In progress
 
 - [[A40.l121]] — O prompt 1.4.1 tirou o endereço da descrição e a identidade de imóvel perdeu a âncora: a chave passa a vir da ficha estruturada do IRPF · priority P0 · área pipeline · branch `a40-l121-ancora-estruturada-de-imovel`
-- [[A40.l123]] — O parecer não recebe o veredito do balde de imóvel: lê como medida o número que pode conter a moradia, e pode prescrever vendê-la · priority P1 · área llm/pipeline · branch `parecer-cobertura-imovel`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · área pipeline/frontend/financial-planning · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l92]] — A trilha de progresso ignora a polaridade do operador e enche conforme a métrica piora · priority P0 · área frontend/relatorio · branch `a40-l92-polaridade-do-comparador`
 

@@ -4,7 +4,9 @@ type: lane
 title: "O parecer não recebe o veredito do balde de imóvel: lê como medida o número que pode conter a moradia, e pode prescrever vendê-la"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 2117
+ship_date: "2026-10-09"
 priority: P1
 branch_slug: parecer-cobertura-imovel
 owner: prompt-engineer
@@ -17,7 +19,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/llm
   - area/pipeline
@@ -119,10 +121,10 @@ prescritiva), `product-manager` (prioridade, aceite). Manifest **2.21.0**, MINOR
    O parecer fica declarado como terceiro leitor do veredito em [[ADR-439]] §Gates.
 5. Mutação: hint removido, campo removido, escape amplo restaurado e escape estreito
    removido reprovam.
-6. **Prova de fecho: o 1º re-run da A40** (que já roda com LLM). No regime de fatia em aberto:
-   ressalva com a direção do erro, nenhuma prescrição de venda de imóvel, prazo de IF descrito
-   como conservador, nenhum código interno na prosa; com `rented`, nenhum "comprar". Re-run
-   fora do regime ⇒ **INAPLICÁVEL**, declarado.
+6. **Comportamento do modelo:** verificado no 1º re-run da A40, como insumo operacional no
+   `_README` da sprint (adendo de 2026-10-09 ao §Insumo declarado do 1º re-run) — não como
+   cláusula desta lane, por decisão do `product-manager`. A checagem de braço único do
+   §Medido antecipa o sinal, sem substituí-lo.
 
 ## Eval — por que o golden do parecer não ganha o caso
 
