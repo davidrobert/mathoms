@@ -113,14 +113,14 @@ _MATRICULA_PATTERN = re.compile(
     flags=re.IGNORECASE,
 )
 
-# Código QuintoAndar: "Cód. Imóvel QuintoAndar: 894064293" etc.
+# Código QuintoAndar: "Cód. Imóvel QuintoAndar: 100000001" etc.
 _QUINTOANDAR_PATTERN = re.compile(
     r"quintoandar[\s:]*(\d+)",
     flags=re.IGNORECASE,
 )
 
 # IPTU / Inscrição Municipal: aceita formatos diversos
-# ("087.006.0478-1", "30105434946", "087.006.0478/1"). Permite até 30 chars não-dígitos
+# ("123.456.7890-1", "10000000001", "123.456.7890/1"). Permite até 30 chars não-dígitos
 # entre o rótulo e o número (cobre "Inscrição Municipal (IPTU): NNN").
 # Mín. 6 dígitos pós-normalização.
 _IPTU_PATTERN = re.compile(

@@ -44,8 +44,8 @@ semeia da entropia do SO, então o cone P10/P50/P90 mudava a cada execução com
 input idêntico.
 
 Medido em dois runs reais do mesmo workspace (`skip_llm=True`, minutos de
-diferença, mesmo código): `if_monte_carlo.caminho_p10[22]` deu R$ 11.037.269,90
-num run e R$ 10.961.276,98 no outro — 0,7%, divergindo em toda a série.
+diferença, mesmo código): `if_monte_carlo.caminho_p10[22]` divergiu 0,7% entre
+os dois runs, e a divergência atravessa a série toda.
 
 Sweep de 30 seeds em dois perfis de acumulação, para dimensionar:
 

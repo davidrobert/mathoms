@@ -62,7 +62,7 @@ def test_coerce_decimal_aceita_string_int_decimal_e_float():
     assert _coerce_decimal(None) is None
     assert _coerce_decimal(Decimal("9.99")) == Decimal("9.99")
     # ADR-090: float é coercido no boundary do LLM (não há Decimal nativo em JSON).
-    assert _coerce_decimal(7424.71) == Decimal("7424.71")
+    assert _coerce_decimal(6543.21) == Decimal("6543.21")
     assert _coerce_decimal(0.0) == Decimal("0")
 
 

@@ -608,6 +608,13 @@ coberto por ADR existente.
 - **Dados sensíveis:** **nunca** expor CPFs, valores monetários reais,
   senhas, documentos pessoais ou conteúdo financeiro bruto em commits,
   logs, exemplos, docstrings, fixtures ou outputs de console.
+- **Evidência do dogfood em arquivo versionado** (doc, teste, docstring,
+  prompt, mensagem de commit) é ponteiro (`run · stage · campo`) + relação
+  (sinal, razão, Δ%) — nunca o valor absoluto, nem arredondado: `R$ 123k`
+  ainda é o número. Fixture de teste é sintética por construção. Gate local:
+  `dev/check_dogfood_values.py` em pre-commit, commit-msg e pre-push
+  ([[ADR-442]]); a denylist sai de `dev/build_dogfood_denylist.py` e mora fora
+  da árvore. Falso positivo em fixture: troque o número.
 
 ### Methodology = code (ADR-143)
 

@@ -59,7 +59,7 @@ def test_posicao_atribuida_com_zero_e_zero_apurado() -> None:
 
 
 def test_fallback_irpf_e_apurado() -> None:
-    c = classificar_cobertura(_obs(fallback_irpf=True, valor_brl=Decimal("188123.73")))
+    c = classificar_cobertura(_obs(fallback_irpf=True, valor_brl=Decimal("150000.00")))
     assert c.status is CoberturaStatus.apurado and c.fonte == "irpf"
 
 
@@ -196,13 +196,13 @@ def _por_membro(result: dict) -> dict:
 
 def test_conjuge_sem_posicao_e_sem_bens_sai_nao_apurado(config: PatrimonioConfig) -> None:
     """O defeito do r5/r6 fica nomeado em vez de publicar 0,00 calado."""
-    result = PatrimonioCalculator(config).calculate(_inputs({"david": 943_189.25}))
+    result = PatrimonioCalculator(config).calculate(_inputs({"david": 900_000.0}))
 
     assert _por_membro(result) == {"titular": "apurado", "conjuge": "nao_apurado"}
 
 
 def test_conjuge_com_posicao_zerada_sai_zero_apurado(config: PatrimonioConfig) -> None:
-    result = PatrimonioCalculator(config).calculate(_inputs({"david": 943_189.25, "mariana": 0.0}))
+    result = PatrimonioCalculator(config).calculate(_inputs({"david": 900_000.0, "mariana": 0.0}))
 
     assert _por_membro(result)["conjuge"] == "zero_apurado"
 
@@ -287,15 +287,15 @@ def test_membro_nao_apurado_pausa_o_stage_em_needs_review() -> None:
 
 def test_balde_nao_apurado_publica_null_e_nao_zero(config: PatrimonioConfig) -> None:
     """O eixo da lane: `0,00` afirma sobre o patrimônio da pessoa; `null` não afirma."""
-    result = PatrimonioCalculator(config).calculate(_inputs({"david": 943_189.25}))
+    result = PatrimonioCalculator(config).calculate(_inputs({"david": 900_000.0}))
 
     assert result["investimentos_conjuge"] is None
-    assert result["investimentos_titular"] == 943_189.25
+    assert result["investimentos_titular"] == 900_000.0
 
 
 def test_balde_zero_apurado_publica_zero(config: PatrimonioConfig) -> None:
     """Guard anti-vacuidade: sem ele, `null` em tudo passaria neste arquivo."""
-    result = PatrimonioCalculator(config).calculate(_inputs({"david": 943_189.25, "mariana": 0.0}))
+    result = PatrimonioCalculator(config).calculate(_inputs({"david": 900_000.0, "mariana": 0.0}))
 
     assert result["investimentos_conjuge"] == 0.0
 
@@ -372,9 +372,9 @@ def test_os_tres_estados_sao_alcancaveis_pela_fachada(config: PatrimonioConfig) 
     """Cada estado do enum ocorre a partir de um baseline que o produtor emite."""
     alcancados = set()
     for totais, conjuge_inv in (
-        ({"david": 943_189.25, "mariana": 110_130.67}, None),  # apurado
-        ({"david": 943_189.25, "mariana": 0.0}, None),  # zero_apurado
-        ({"david": 943_189.25}, None),  # nao_apurado
+        ({"david": 900_000.0, "mariana": 100_000.0}, None),  # apurado
+        ({"david": 900_000.0, "mariana": 0.0}, None),  # zero_apurado
+        ({"david": 900_000.0}, None),  # nao_apurado
     ):
         result = PatrimonioCalculator(config).calculate(_inputs(totais, conjuge_inv=conjuge_inv))
         alcancados |= {c["status"] for c in result["cobertura_investimentos"]}
@@ -384,7 +384,7 @@ def test_os_tres_estados_sao_alcancaveis_pela_fachada(config: PatrimonioConfig) 
 def test_frescor_carrega_o_ano_base_do_membro(config: PatrimonioConfig) -> None:
     """`fonte` diz de ONDE; `frescor` diz de QUANDO — a lane pediu os dois."""
     result = PatrimonioCalculator(config).calculate(
-        _inputs({"david": 943_189.25, "mariana": 110_130.67})
+        _inputs({"david": 900_000.0, "mariana": 100_000.0})
     )
     por_membro = {c["membro"]: c for c in result["cobertura_investimentos"]}
     assert por_membro["titular"]["frescor"] == "2025"

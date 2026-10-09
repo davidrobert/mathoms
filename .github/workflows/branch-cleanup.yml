@@ -30,7 +30,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -87,6 +87,11 @@ jobs:
           STALE_COUNT: ${{ steps.detect.outputs.stale_count }}
         run: |
           set -euo pipefail
+          # O label nunca existiu no repo: `gh issue create --label` abortava todo
+          # run desde junho e o relatório nunca saiu (Issue #1938). `--force` é
+          # upsert — idempotente, e erro real (permissão) ainda reprova o step.
+          gh label create branch-cleanup --force --color C5DEF5 \
+            --description "Relatório mensal de branches agent/* stale (branch-cleanup.yml)"
           TITLE="Branch hygiene: ${STALE_COUNT} agent/* branches stale"
           # Procura issue aberta com mesmo prefixo de título (idempotente entre runs).
           existing=$(gh issue list \

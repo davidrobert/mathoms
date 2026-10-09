@@ -7,11 +7,16 @@ O ``LLMService`` (pipeline) não pode importar sqlalchemy/redis (boundary
 
 from __future__ import annotations
 
+import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Protocol
 
 if TYPE_CHECKING:
     from pipeline.llm.litellm_client import LLMCallResult
+
+# A42.l7 · ADR-173: o registro de custo é a fonte do hard-stop — falha dele é
+# ERROR contável, nunca aviso de texto livre.
+_call_log_logger = logging.getLogger("mathoms.llm.call_log_persist_failed")
 
 
 class LLMBudgetExceededError(Exception):
@@ -43,3 +48,23 @@ class LLMCallHooks(Protocol):
     ) -> None:
         """Pós-call: persiste 1 row de telemetria (``LLMCallLog``)."""
         ...
+
+
+def stage_without_document_suffix(stage: str) -> str:
+    """Stage para log/dead-letter: 3 produtores ainda interpolam o filename após ``:`` (A42.l7)."""
+    return stage.split(":", 1)[0]
+
+
+def log_record_call_failure(result: "LLMCallResult", stage: str, exc: Exception) -> None:
+    """ERROR contável da row de custo perdida — a call segue, já custou tokens."""
+    # Sem str(exc): o StatementError do SQLAlchemy carrega os bound parameters,
+    # e o stage de 3 produtores traz nome de documento (ADR-404).
+    _call_log_logger.error(
+        "llm call_log persist failed",
+        extra={
+            "stage": stage_without_document_suffix(stage),
+            "model": result.model,
+            "cost_usd": result.cost_estimate_usd,
+            "error_class": type(exc).__name__,
+        },
+    )

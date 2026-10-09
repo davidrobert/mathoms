@@ -1,6 +1,7 @@
 "use client";
 
 import { MonetaryValue } from "../../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 import type { BemGapCobertura, ProtecaoGapSinal } from "@/types/protecao";
 
 const SINAL_COPY: Record<ProtecaoGapSinal, string> = {
@@ -61,7 +62,7 @@ export function ProtecaoGapVeiculos({ bens }: { bens: BemGapCobertura[] }) {
               <td className="text-right">
                 <MonetaryValue value={Number.parseFloat(b.fipe_brl)} />
               </td>
-              <td className="text-right">{(Number.parseFloat(b.gap_pct) * 100).toFixed(1)}%</td>
+              <td className="text-right">{formatPercent(Number.parseFloat(b.gap_pct) * 100)}</td>
               <td>
                 <span className={`rounded px-2 py-0.5 text-style-caption ${SINAL_BADGE[b.sinal]}`}>
                   {SINAL_LABEL[b.sinal]}

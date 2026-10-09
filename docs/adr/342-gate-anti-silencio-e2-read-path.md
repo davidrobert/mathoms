@@ -239,15 +239,15 @@ IOF, tarifas e seguros embutidos — não só compras.
   conta no total Brasil — verificado a cent). `pagamento` sai com `tipo=pagamento`
   (E3/E4 = transferência interna). Corrige corrupção de valor no layout
   lado-a-lado: a poluição da coluna Resumo, fundida na linha pelo pdfplumber, era
-  capturada pelo `$`-âncora (o pagamento −119,21 virava +119,21) — estripe da
+  capturada pelo `$`-âncora (um pagamento negativo virava positivo) — estripe da
   poluição **antes** do match.
 - **Itaú cartão** (`parse_itau_fatura`, parser novo): total único combinado →
   checksum contra "Total dos lançamentos atuais" (`escopo=lancamentos_atuais` =
   nacional + internacional + "Repasse de IOF"). Extração via `extract_words` +
   filtro de coluna por `x0` (o único caminho robusto no sub-layout sem espaços).
 
-**Verificação (corpus real, PII-zero no repo):** 3 faturas Santander (R$ 39,96 /
-543,68 / 3.566,08) e 3 Itaú (R$ 59,00 / 59,00 / 154,53) fecham em cents, zero
+**Verificação (corpus real, PII-zero no repo):** 3 faturas Santander e 3 Itaú
+fecham em cents, zero
 falso-fire; golden sintético (`test_fatura_parser_checksum.py`) prova o fechamento
 e a quebra-ao-perder-linha nomeando o balde. **WARN-first mantido** — flip HARD
 por parser só após ≥1 sprint de corpus verde (rollout por banco, §Consequências).

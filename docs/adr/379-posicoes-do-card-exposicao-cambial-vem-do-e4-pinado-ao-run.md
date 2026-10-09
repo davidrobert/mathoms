@@ -79,12 +79,11 @@ do DB, para saber o que ligar o braço produz **antes** de ligá-lo:
 
 | Cenário | Total | % do investível |
 |---|---|---|
-| Só caixa (hoje) | R$ 83.869,92 | 6,45% |
-| Caixa + ativos, como o resolver está | R$ 88.434,32 | 6,80% |
-| Caixa + ativos, cripto volátil fora | R$ 83.869,92 | **6,45%** |
+| Só caixa (hoje) | B | 6,45% |
+| Caixa + ativos, como o resolver está | 1,054 × B | 6,80% |
+| Caixa + ativos, cripto volátil fora | B | **6,45%** |
 
-O braço de ativos contribuiria R$ 4.564,40 — **100% cripto** (Hashdex, BTC, ETH,
-ADA, AXS). Com a exclusão que o domínio pede, o número **não muda**: ligar a fonte
+O braço de ativos contribuiria ~5,4% a mais — **100% cripto**. Com a exclusão que o domínio pede, o número **não muda**: ligar a fonte
 é correção de mecanismo, não perseguição de tier.
 
 Três achados que a medição revelou e que mudam o escopo:
@@ -98,9 +97,8 @@ Três achados que a medição revelou e que mudam o escopo:
 2. **Nenhuma das 18 posições casou o catálogo** — todas resolveram por
    `fallback_classe`. O catálogo (21 entradas) está inerte para este workspace, e
    o card promete no rodapé "ativos com lastro econômico não-BRL".
-3. **Fundos BDR ficam de fora e ninguém decidiu isso.** "Alaska Black FIC de FIA -
-   BDR NÍVEL I" (R$ 41.846,29) e "Western Asset BDR FIF" (R$ 28.764,28) somam
-   R$ 70.610,57 e classificam como `Fundos` → BRL. BDR replica ativo estrangeiro,
+3. **Fundos BDR ficam de fora e ninguém decidiu isso.** Dois fundos BDR do dogfood
+   classificam como `Fundos` → BRL. BDR replica ativo estrangeiro,
    então o lastro econômico é externo — mas não há entrada de catálogo nem keyword
    para BDR. Se contarem, a exposição deste workspace quase dobra. Questão de
    domínio em aberto, não coberta pelo co-design de 2026-08-12.
@@ -114,7 +112,7 @@ Três achados que a medição revelou e que mudam o escopo:
 - Ao ligar o braço de ativos, o total do card **muda sem que dado do usuário
   tenha mudado**. Duas decisões de domínio precisam entrar junto, ou o número
   fica errado de outro jeito: cripto não conta como proteção cambial (V1 exclui,
-  o resolver do V2 dá `USD` — divergência medida de R$ 4.564,40), e
+  o resolver do V2 dá `USD` — divergência medida de ~5,4% do card), e
   `MIXED`/`OTHER` não podem somar 100% no KPI, contra o que a [[ADR-224]] §6 já
   havia decidido.
 - Registre no PR o percentual antes/depois com o denominador corrigido. Nenhuma

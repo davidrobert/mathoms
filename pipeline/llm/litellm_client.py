@@ -16,7 +16,7 @@ from typing import Any, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
-from pipeline.llm.call_hooks import LLMCallHooks
+from pipeline.llm.call_hooks import LLMCallHooks, log_record_call_failure
 from pipeline.llm.error_classification import (
     BACKOFF_DELAYS,
     BACKOFF_DELAYS_NETWORK,
@@ -344,11 +344,7 @@ class LLMService:
                     try:
                         self._hooks.record_call(result, stage=stage, prompt_version=prompt_version)
                     except Exception as record_exc:
-                        logger.warning(
-                            "%sLLMCallLog persist failed (call succeeded): %s",
-                            tag,
-                            record_exc,
-                        )
+                        log_record_call_failure(result, stage or "unknown", record_exc)
 
                 emit_call_quality(
                     response,

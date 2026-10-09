@@ -8,7 +8,7 @@ from pipeline.domain.services.posicao_31_12_builder import build_posicao_31_12
 
 def _informe_entry(**over) -> dict:
     base = {
-        "descricao": "RDB/CDB - Ag 9652 Conta 0004397-8",
+        "descricao": "RDB/CDB - Ag 1234 Conta 0012345-6",
         "tipo": "cdb",
         "moeda": "BRL",
         "saldo_brl": "1000.00",

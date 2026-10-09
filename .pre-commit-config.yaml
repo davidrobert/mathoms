@@ -1,13 +1,23 @@
 # .pre-commit-config.yaml — hooks locais + comunitários
 #
 # Instalar uma vez:  pip install pre-commit && pre-commit install --install-hooks
-# Instalar commit-msg hook também: pre-commit install --hook-type commit-msg
+# (instala os três tipos de `default_install_hook_types`). Com `core.hooksPath`
+# setado o `pre-commit install` se recusa a instalar — e o pre-push nunca foi
+# instalado nesta máquina até 2026-10-08: `main-drift-check` e
+# `code-style-baseline-prepush` não rodavam no push. Não sete `core.hooksPath`;
+# worktrees já leem os hooks do diretório comum por default.
 #
 # Rodar manualmente em todos os arquivos: pre-commit run --all-files
 #
 # Os hooks locais usam os scripts em dev/ — mesma lógica do dev/commit.py,
-# aplicada por git hook (pre-commit e commit-msg). Defense-in-depth:
+# aplicada por git hook (pre-commit, commit-msg e pre-push). Defense-in-depth:
 # mesmo quem roda `git commit` direto é protegido.
+
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+# Sem isto, hook sem `stages` roda em TODO estágio instalado: no commit-msg recebe o
+# COMMIT_EDITMSG como filename (o motivo dos pins em `check-symlinks`/`destroyed-symlinks`
+# abaixo), e no pre-push a bateria inteira roda de novo sobre o range já validado.
+default_stages: [pre-commit]
 
 repos:
   # ----------------------------------------------------------------------
@@ -415,6 +425,34 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      # ADR-442: valor monetário do workspace de dogfood não entra no repositório. Compara
+      # as linhas ADICIONADAS contra a denylist HMAC local (~/.config/mathoms, gerada por
+      # dev/build_dogfood_denylist.py). Sem o diretório o hook fica inativo (CI, sessão
+      # cloud); com ele e sem a lista, falha. A saída nunca carrega o valor.
+      - id: dogfood-values
+        name: "Valor do dogfood fora do repositório (ADR-442)"
+        entry: python3 dev/check_dogfood_values.py --staged
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      - id: dogfood-values-commit-msg
+        name: "Valor do dogfood fora da mensagem de commit (ADR-442)"
+        entry: python3 dev/check_dogfood_values.py --commit-msg
+        language: system
+        stages: [commit-msg]
+
+      # Commit a commit, nunca o diff líquido: valor que entra num WIP e sai no seguinte é
+      # publicado pelo push (branch + refs/pull/*), e o squash não desfaz isso.
+      - id: dogfood-values-pre-push
+        name: "pre-push: valor do dogfood, commit a commit (ADR-442)"
+        entry: python3 dev/check_dogfood_values.py --pre-push
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
 
       - id: sigilo-terms
         # §13 sigilo metodológico (LEGAL/IP) — duas superfícies (A34.l5):

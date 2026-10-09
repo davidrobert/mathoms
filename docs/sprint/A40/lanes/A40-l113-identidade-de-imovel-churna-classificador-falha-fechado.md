@@ -4,13 +4,15 @@ type: lane
 title: "A identidade de imóvel churna entre runs e os dois classificadores falham FECHADOS: residência e imóvel gerador são publicados como zero"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 2063
+ship_date: "2026-10-08"
 priority: P0
 branch_slug: a40-l113-identidade-de-imovel-churna-classificador-falha-fechado
 owner: data-engineer
 depends_on: []
-adrs: ["[[ADR-215]]", "[[ADR-246]]", "[[ADR-394]]", "[[ADR-433]]"]
-tags: [type/lane, sprint/a40, status/in-progress, priority/p0, area/pipeline, area/financial-planning]
+adrs: ["[[ADR-215]]", "[[ADR-246]]", "[[ADR-394]]", "[[ADR-433]]", "[[ADR-439]]"]
+tags: [type/lane, sprint/a40, status/shipped, priority/p0, area/pipeline, area/financial-planning]
 ---
 
 # A40.l113 — `identidade-de-imovel-churna-classificador-falha-fechado`
@@ -102,7 +104,7 @@ confirmada ponta a ponta e o eixo é a canonicalização.
 
 > Rodada de medição sobre o artefato `consolidate_baseline` do próprio run `40d1af2a`
 > (o do `U5`), executando os produtores reais contra o payload real. O publicado foi
-> **reproduzido ao centavo**: `split_imoveis_with_overrides` devolve `(0.0, 701170.57)`,
+> **reproduzido ao centavo**: `split_imoveis_with_overrides` devolve `(0.0, X)`,
 > idêntico a `patrimonio.residencia` / `patrimonio.imoveis_investimento` publicados.
 
 ### O que se confirma
@@ -114,6 +116,10 @@ confirmada ponta a ponta e o eixo é a canonicalização.
 - o balde do desconhecido não existe e o zero é publicado sem aviso ✅
 
 ### O que se refuta
+
+> ⚠️ **Correção 2026-10-08:** o item abaixo acerta que o caractere duplicado não é a
+> causa e erra o porquê — o eixo é a era do prompt E1.5a, confirmado no E1.5a. Ver
+> §Execução de 2026-10-08.
 
 **1. O caractere duplicado não é a causa.** A descrição churnada é a do item `EDIFICIOO` (era `EDIFICIO`). Mas **8** itens falharam a canonicalização, e o motivo é
 estrutural, não churn: `canonicalize` exige via+número, e as descrições de IRPF em que ela
@@ -147,10 +153,10 @@ corrigido ao mover o eixo de *domicílio* para *membro* — um nível abaixo: de
 
 | | ano-base atual (`max` global = 2026) | ano por classe (imóveis do titular = 2025) |
 |---|---|---|
-| `residencia` | **0,00** | **996.821,46** |
-| cat_2 (outros imóveis) | 701.170,57 | 1.343.876,81 |
+| `residencia` | **0,00** | **R** (o maior item isolado) |
+| cat_2 (outros imóveis) | X | 1,917 × X |
 | `imoveis_geradores` | **0,00** | **0,00** ← não se move |
-| `total_dividas` (titular) | **0,00** | **230.459,13** |
+| `total_dividas` (titular) | **0,00** | **D** (Σ dos 4 itens) |
 
 `imoveis_geradores` **não se move** com o ano corrigido: os 4 imóveis `locado` estão sem
 `property_id` neste run. **Os dois defeitos são necessários** — nenhum sozinho fecha o
@@ -173,6 +179,11 @@ listados, logo `liquido == bruto`) caem pela **mesma linha**. Isso refuta duas a
 
 ## Disposição dos critérios de aceite, após a medição
 
+> ⚠️ **2026-10-08 — lane `shipped` (#2063).** O critério 1 fechou com a [[ADR-439]]
+> (supressão do agregado, D1–D3) e o 2 como teste de efeito (D7); o 3 deixou de ser
+> inexequível e foi para a [[A40.l121]] ([[ADR-440]]). A tabela abaixo é a evidência de
+> 2026-09-01; a disposição final está em §Execução de 2026-10-08.
+
 > **PR #1962 (`c551e832`) mergeado em 2026-09-01** com [[ADR-433]] `Decidido`. A lane segue
 > `in_progress`: 2 dos 4 critérios entregues, 1 substituído e 1 medido como inexequível.
 
@@ -187,6 +198,13 @@ A [[ADR-433]] (`Decidido`) carrega a decisão. Dois critérios desta lane **não
 | 4 | fixture com `property_id` nulo em 8 de 9 | ✅ `tests/unit/pipeline/test_ano_base_por_classe_adr433.py` |
 
 ### Por que o critério 2 é substituído
+
+> ⚠️ **2026-10-08 — o predicado abaixo não foi o adotado.** *Zero com override gravado*
+> dá falso-positivo no imóvel vendido: o override fica gravado depois que o imóvel sai da
+> declaração. A [[ADR-439]] inverte a pergunta — o balde só publica zero com evidência de
+> zero (residência só com `rented`; geradores só sem imóvel em aberto) — e o gate da D7 é
+> teste de matriz de regimes com mutação, não `raise`; em runtime sobra a razão advisory.
+> A perna de dívida segue sendo a da [[A40.l114]].
 
 Um gate sobre `count(property_id)` teria ficado **verde sobre o maior erro deste run**: a
 residência saiu zero sendo o **único** item que **tinha** `property_id`. E o balde que
@@ -212,7 +230,7 @@ arbitrário.
 ### O que foi entregue
 
 - **Eixo do ano por classe** ([[ADR-433]] D1) + endurecimento do crédito de resíduo (D2).
-  Medido: `residencia` 0,00 → **996.821,46**; `total_dividas` 0,00 → **230.459,13**;
+  Medido: `residencia` 0,00 → **R**; `total_dividas` 0,00 → **D**;
   `veiculos` volta ao declarado. Conservação intacta.
 - **Estado ternário** (D3): `CLASSIFICATION_DESCONHECIDO` deixa de ser constante órfã e
   passa a ter produtor único; cobertura medida em valor **e** contagem (57,4% do valor
@@ -220,6 +238,8 @@ arbitrário.
 - Regressão com **A/B provado**: 4 dos 8 testes reprovam contra o produtor anterior.
 
 ## Deferimento datado — 2026-09-01 (revisto em 2026-09-02)
+
+> ⚠️ **2026-10-08:** itens 1 e 2 entregues ([[ADR-439]], #2049/#2063); item 3 ➜ [[A40.l121]]; item 4 ➜ #2062 (`codigo_rfb` normalizado na chave e nas comparações). Disposição em §Execução de 2026-10-08 — o texto abaixo é evidência datada.
 
 Quatro itens ficam abertos, com condição de retomada explícita. Nenhum é bloqueado por
 decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
@@ -265,6 +285,11 @@ decisão; todos por **contrato ou blast radius** que não cabem nesta rodada.
 
 ## Os outros três achados que a `U5` roteou para esta lane
 
+> ⚠️ **2026-10-08 — com a lane `shipped`:** `RR9-04` e `LC9-10` ➜ [[A40.l121]] (fecham
+> quando a identidade voltar com a âncora da ficha); `PV13-01` fica **sem lane**, com
+> decisão, gatilho e prioridade re-derivada (P2) na linha do [[PIPELINE-REVIEWS-active]]
+> e no inventário de [[MOC-a40-historico]] §Destino dos itens do closeout da A40.l113.
+
 O §Origem cita só o `RR9-01`. A rodada atribuiu **quatro** achados a esta lane, e os
 outros três não estavam registrados aqui — o que os deixaria órfãos no instante em que a
 lane ficasse terminal.
@@ -301,3 +326,52 @@ Duas consequências que o registro não tem:
    `investimentos_titular` — quem pegar precisa medir isso junto, não depois. Idem a
    interação com a [[A40.l96]] (#1936), que o registro afirma "declarada na lane" e que
    até agora **não estava**.
+
+## Execução de 2026-10-08 — a [[ADR-439]] fecha os itens 1 e 2, e a refutação 1 cai
+
+> Co-design `financial-planner` + `data-engineer` + `product-designer` antes de codar. Três
+> PRs: **#2049** (expand — contrato e leitores aceitam o balde `null`, nada se move),
+> **#2051** (`golden_diff` passa a cobrar manifesto de número→`null`) e **#2063** (os baldes
+> saem `null`, gate de teste, razão advisory). [[ADR-439]] `Decidido`, com emenda datada na
+> [[ADR-433]].
+
+### A refutação 1 de 2026-09-01 não se sustenta — o eixo é a era do prompt
+
+A §Medição de 2026-09-01 afirmou que os 8 itens sem `property_id` falharam *"por motivo
+estrutural, não churn"*. Vale para as descrições **do U5**, não para os mesmos imóveis antes:
+
+| run | prompt E1.5a | itens | com `property_id` | os 4 `locado`: descrição com via | sem id com via |
+|---|---|---|---|---|---|
+| `3a5b9c7d` | `1.3.0` | 7 | 5 | **4 de 4** | 0 de 2 |
+| `7d860f0b` | `1.3.0` | 7 | 5 | **4 de 4** | 0 de 2 |
+| `40d1af2a` (U5) | **`1.4.1`** | 9 | 1 | — | **0 de 8** |
+
+**Confirmado no E1.5a pela [[A40.l121]]** (com autorização do dono, só traços): `canonicalize`
+acerta via+número em **8/10** imóveis na `1.3.0` e **2/10** na `1.4.1`. A ficha de Bens e
+Direitos traz logradouro, número, IPTU e matrícula em campos próprios; a `1.3.0` os dobrava na
+descrição, a `1.4.1` ([[A42.l15]], #1939 — "transcrição literal da discriminação", efeito
+declarado não medido) copia só a discriminação. A §"Medição de 1 comando" mandava reverter a
+descrição *à forma do run anterior*; a de 09-01 reverteu só o caractere duplicado. Executada
+como escrita — com a descrição da era `1.3.0` —, ela confirmaria a cadeia.
+
+### Disposição dos itens do §Deferimento
+
+| # | item | disposição 2026-10-08 |
+|---|---|---|
+| 1 | supressão do agregado | ✅ [[ADR-439]] D1–D3 — **sem** a escada da [[ADR-353]] (apagaria residência verdadeira); veredito categórico: residência zero só com `rented`, par de geradores `null` com imóvel em aberto |
+| 2 | gate por efeito | ✅ D7 — **teste**, não `raise`: override órfão também é imóvel vendido, e um `raise` abortaria todo run do workspace. Matriz de 7 regimes, oráculo do estado de DB, mutação deixa vermelho. Runtime: `domain.classificacao_imovel_nao_apurada` advisory |
+| 3 | âncora estruturada | ➜ **[[A40.l121]]** (P0, `data-engineer`, [[ADR-440]]) — deixou de ser inexequível: é o conserto de causa de regressão viva. Por decisão do dono, a âncora vem de um **parser determinístico dos rótulos da ficha** no E1.5a (cura os artefatos `1.3.0`/`1.4.1` já gravados, sem re-extração LLM), e **não** entra no `baseline_patrimonial` — o enricher a remove depois da identidade, por PII. A "Correção de rota (2026-09-02)" deste item (*"declarar nos DOIS schemas"*) **deixa de valer** para esse desenho ([[ADR-440]] D3) |
+| 4 | `codigo_rfb` com dois produtores | ➜ **#2062** (sessão aberta pelo dono em 2026-10-08): `01-11` estoura `property_identity.codigo_rfb VARCHAR(4)` no Postgres; normalização para o sub-código na chave **e** nas comparações do resolver |
+
+### Achados novos, e para onde cada um foi
+
+- `cobertura_classificacao_imovel` ([[ADR-433]] §D3) **não tinha chamador em produção**. Publicado pela ADR-439 D1.
+- `workspaces.residencia_status` ([[ADR-215]]) **nunca chegava ao E5**. Plumbado em #2049; o "— + CTA" da ADR-215 aparece pela primeira vez no relatório.
+- A ADR-215 declara `backend/tests/integration/test_property_override_sticky.py` ("classificação sobrevive ao re-upload") e o arquivo **não existe** — é o gate que teria pego a regressão da `1.4.1`. ➜ [[A40.l121]].
+- A checagem de residência por `property_id` em `investimentos_classes`, `top_ativos` e `instituicoes` (o elo 5 desta lane) segue falhando **aberta**; dormente no U5 (a residência tem id), viva quando ela perde identidade. ➜ **A40.l122** (sessão aberta pelo dono em 2026-10-08; código no #2079, lane ainda fora da `main`).
+- O parecer não recebe o veredito: os campos novos estão em `E5_FIELDS_FORA_DO_PARECER`. Projetá-los no bloco "Cobertura e incerteza" pede bump do manifest e eval ➜ **A40.l123** (sessão aberta pelo dono em 2026-10-08, `prompt-engineer`; lane ainda fora da `main`).
+- Valores reais do dogfood commitados em 12 arquivos de docs e testes de repo **público** ➜ sessão aberta pelo dono (#2071, e a política no #2076).
+- O `PV13-01` fica **sem lane**: decisão, gatilho e P2 re-derivado na linha do
+  [[PIPELINE-REVIEWS-active]]. Destino de cada item em [[MOC-a40-historico]] §Destino dos
+  itens do closeout da A40.l113.
+- O workflow "Auto-update PR branches" falha com HTTP 401 desde ao menos 2026-10-08 (issue #2038) — PR fica `BEHIND` e o auto-merge não anda sozinho.
