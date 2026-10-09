@@ -61,7 +61,7 @@ def resolve_stage_outcome(
 ) -> StageOutcome:
     """Combina `(retorno, criticality)` no desfecho do stage (ADR-357 §2)."""
     # `delivered=False` cobre **as duas** rotas de não-entrega — `success: False`
-    # e exceção que esgotou os retries — porque a disposição é cega à FORMA da
+    # e exceção que cruzou o executor (ADR-443) — porque a disposição é cega à FORMA da
     # não-entrega. `result.error` não entra na assinatura de propósito:
     # `error is None` significa "nenhuma exceção cruzou a fronteira do runner",
     # não "o stage declarou", e a mesma falha de rede cai dos dois lados
@@ -71,3 +71,14 @@ def resolve_stage_outcome(
     if stage_criticality(stage) == DEGRADABLE:
         return StageOutcome.degraded
     return StageOutcome.failed
+
+
+def commits_stage_transaction(stage: str, outcome: StageOutcome) -> bool:
+    """Se a transação do stage — artefatos e DML de domínio — sobrevive ao desfecho."""
+    # Regra única dos executores: loop in-process, CLI do shell Go e as rotas do
+    # pipeline-service. O stage é a unidade de trabalho (ADR-256): o que ele
+    # escreveu antes de não entregar viraria o "latest" do fallback da ADR-241 e o
+    # run base de `from_stage` (ADR-291). Exceção: degradável de chave própria (§6).
+    if outcome.delivered:
+        return True
+    return outcome is StageOutcome.degraded and commits_artifacts_on_degrade(stage)

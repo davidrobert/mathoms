@@ -2,7 +2,7 @@
 type: moc
 title: OWNER-GATED-active — Fila de itens travados no owner
 aliases: ["OWNER-GATED", "owner-gated", "owner-queue"]
-last_review: "2026-08-25"
+last_review: "2026-10-09"
 ---
 
 # OWNER-GATED-active — Fila de itens travados no owner
@@ -36,10 +36,11 @@ last_review: "2026-08-25"
 
 | Data | Item | O que quebra | Doc-fonte |
 |---|---|---|---|
-| ~2026-09-20 | Decidir Organization + merge queue nativo (amarra o destino do `AUTOUPDATE_PAT`) | Sem decisão, a rotação do PAT vira obrigatória até 10-05; e nada de payback longo deveria entrar no trem até lá | [[PLAN-ci-trust]] §Onda 2 |
-| ~2026-10-07 | `AUTOUPDATE_PAT` expira (criado 2026-07-09, política ≤90d) | Trem de auto-merge para (PRs BEHIND congelam); o kick do watchdog morre junto e o `S2` fica **verde** — fail-open no próprio deadline | [[PLAN-ci-trust]] §Datas duras · [runbook](../reference/runbooks/automerge_train.md) §2 |
+| ~2026-09-20 | Decidir Organization + merge queue nativo (amarra o destino do `AUTOUPDATE_PAT`) | Sem decisão, a rotação do PAT vira obrigatória até 10-05; e nada de payback longo deveria entrar no trem até lá. **Nota 2026-10-09:** passou sem decisão, e a rotação até 10-05 também não aconteceu (linha abaixo). O GitHub App do trem não espera mais por ela ([[PLAN-ci-trust]] item 2.5). Só um `sim` **com data de migração** antes de o PR de workflows do [[TRACK-ci-trust-github-app]] mergear cancela o track. A decisão em si segue owner-gated | [[PLAN-ci-trust]] §Onda 2 |
+| ~2026-10-07 | `AUTOUPDATE_PAT` expira (criado 2026-07-09, política ≤90d) | Trem de auto-merge para (PRs BEHIND congelam); o kick do watchdog morre junto e o `S2` fica **verde** — fail-open no próprio deadline. **Nota 2026-10-09 — venceu.** Trem e watchdog em `HTTP 401` desde 2026-10-07 (entre 01:47 e 02:35 UTC): 203 runs falhos até 10-09 02:30 UTC; 16 PRs `BEHIND` às 03:13. A #2038 (`ops-train`) foi triada e fechada em 10-09 01:36 UTC; a #2083 abriu às 01:39, e o `S3` dela reprova o `Lint` de todo PR a partir de 2026-10-13 00:00 UTC (conta por data, idade > 3 dias). **Ação do owner, P0: rotacionar até 2026-10-12** pelo formulário do runbook §2, anotar aqui a nova data de expiração (rotação + 90 dias) e, depois do primeiro run verde, fechar a #2083 — o canal de falha não fecha issue sozinho. A rotação vale mesmo com o App a caminho: o PAT é o rollback do [[TRACK-ci-trust-github-app]] até a revogação. **Obrigação datada, até 1h depois da rotação** (ou do merge do #2050, se ele entrar depois): `gh workflow run automerge-watchdog.yml` e, no log do step `Aviso de expiração do AUTOUPDATE_PAT`, confirmar `pat-expiry: folga > 14 dias`. Se aparecer `sem medição`, ou se a issue `ops-pat-expiry` abrir com um PAT de 90 dias, reverter o step (PR que o remove junto da entrada `ops-pat-expiry` do manifesto) | [[PLAN-ci-trust]] §Datas duras · [runbook](../reference/runbooks/automerge_train.md) §2 |
 | 2026-10-15 | **Três** waivers vencem juntos: `nightly.yml` + as 2 entradas LLM (`llm-cross-provider-smoke`, `planner-golden-monthly`) | Hard-fail em **todo** merge do repo, por desenho — e o vencimento é *por entrada*, então são 3 violações simultâneas (precedente 08-13/14: o vencimento anterior produziu 7 bypasses no dia seguinte) | [[PLAN-ci-trust]] §Onda 1 remove o do nightly; os 2 LLM dependem da decisão de secrets abaixo |
 | ~2026-10-15 | **Decidir os 3 secrets LLM** (`ANTHROPIC_API_KEY_CROSS_PROVIDER`, `OPENAI_API_KEY_CROSS_PROVIDER`, `ANTHROPIC_API_KEY_GOLDEN_MONTHLY`) | Sem eles os 2 workflows agendados rodam **verdes sem medir nada** (skip por secret ausente) e o manifesto os declara como cobertura viva. Criar os secrets, ou aceitar por escrito que a paridade cross-provider e o golden do parecer não são medidos | [[PLAN-ci-trust]] §Onda 1 item 1.3 |
+| 2026-12-07 | **Criar o GitHub App do trem.** Owner-only, até ~11-13: criar o App na UI (URL pré-preenchida no track), gerar e baixar a chave, instalar só em `davidrobert/mathoms`, rodar `gh secret set TRAIN_APP_PRIVATE_KEY --env automerge-train` e apagar o `.pem`. No fim, revogar o `AUTOUPDATE_PAT`. O resto é do agente | Nada quebra no dia; o que vence é a **margem**. Sem o App, o trem segue num PAT de 90 dias que age como o dono (admin) num repo público, e o próximo vencimento repete o 10-07; o aviso T-14 do #2050 só antecipa. O flip para o App precisa sair até 2026-11-20 para caber a janela de 14 dias. Cancela só se o 2.0 sair `sim` com data de migração antes do PR de workflows do track | [[TRACK-ci-trust-github-app]] · [[ADR-322]] §Emenda 2026-10-08 (PR #2050) |
 
 ## 1. Decisão estratégica
 

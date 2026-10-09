@@ -14,6 +14,7 @@ import { Alert } from "./ui/Alert";
 import { useNeedsReviewCount } from "./hooks/useNeedsReviewCount";
 import { useParecerRetidoCount } from "./hooks/useParecerRetidoCount";
 import { frasePecasRetidas } from "@/lib/parecerRetencaoCopy";
+import { formatPercent } from "@/lib/format";
 import {
   computeDataQualitySignals,
   type NaoIdentificadoShare,
@@ -145,7 +146,7 @@ function NaoIdentificadoRow({ share }: { share: NaoIdentificadoShare }) {
       }}
     >
       <MonetaryValue value={share.valor} compact /> em despesas sem categoria (
-      {share.pct.toFixed(1).replace(".", ",")}% do total) — reclassificar
+      {formatPercent(share.pct)} do total) — reclassificar
       devolve precisão ao fluxo de caixa.
     </SignalRow>
   );
