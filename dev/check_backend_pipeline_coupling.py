@@ -26,6 +26,7 @@ _ALLOWED_CROSS_BOUNDARY_PREFIXES: dict[str, str] = {
     "scripts.pipeline_common": "cobertura por scripts/pipeline_common.py no filtro pipeline_lib — módulo compartilhado (CLAUDE.md), importado por DBArtifactStore/artifact_retention em produção",
     "scripts.e2": "cobertura por scripts/e2/** no filtro pipeline_lib — parsers de banco (registry + banks/<banco>.py)",
     "scripts.reconcile_transactions": "cobertura por scripts/reconcile_transactions.py no filtro pipeline_lib — o predicado da sombra do colapso (ADR-364) só é alcançável com DBArtifactStore real, logo o teste dele mora em backend/tests/",
+    "scripts.consolidate_baseline": "cobertura por scripts/consolidate_baseline.py no filtro pipeline_lib — a classificação que sobrevive ao re-upload (ADR-215 · ADR-440) só é provável com o resolver de DB real, logo o teste sticky mora em backend/tests/integration/",
 }
 _BOUNDARY_ROOTS = frozenset({"tests", "scripts"})
 
