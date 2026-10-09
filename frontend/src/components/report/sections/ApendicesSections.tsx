@@ -218,12 +218,16 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
           </section>
           <section>
             <h4 className="font-display font-semibold">
-              Alocação contracíclica e análise fundamentalista
+              Alocação por classe e rebalanceamento por aporte
             </h4>
             <p className="text-[var(--surface-muted-foreground)]">
-              Priorizar indexadores de renda fixa fora do ciclo aquecido;
-              análise fundamentalista em ações (P/L, ROE, DY) e FIIs (DY,
-              vacância, P/VP).
+              Compara a carteira de investimentos — sem caixa e sem imóveis
+              físicos — com a alocação-alvo declarada. Usa quatro classes: renda
+              fixa (indexadores somados, com previdência), ações Brasil (com
+              fundos), ações internacionais e FIIs. Indica a classe mais abaixo
+              do alvo para o próximo aporte, para reduzir o desvio sem vender.
+              Sem alvo declarado, ou com parte do patrimônio sem valor confiável
+              ou sem classe definida, o relatório não faz essa indicação.
             </p>
           </section>
           <section>
@@ -322,9 +326,9 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
         <SimpleTable
           headers={["Pilar", "Aplicação"]}
           rows={[
-            ["Patrimônio gerador de renda", "Independência financeira e montagem de carteira"],
+            ["Patrimônio gerador de renda", "Meta e prazo da independência financeira; renda passiva atual"],
             ["Equilíbrio presente × futuro", "Comportamento financeiro do casal e família"],
-            ["Alocação contracíclica + análise fundamentalista", "Otimização de classes de ativos"],
+            ["Alocação por classe", "Desvio vs alvo e próximo aporte"],
             ["Score Mathoms", "Metodologia própria (5 componentes ponderados)"],
           ]}
         />
