@@ -16,9 +16,10 @@ Usage:
 import json
 import re
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from scripts.e2.common import DATA_DIR, OUTPUT_DIR, log
 from scripts.e2.registry import (
@@ -28,6 +29,9 @@ from scripts.e2.registry import (
     route_to_parser,
 )
 from scripts.e2.validation import validate_extrato_result, validate_fatura_result
+
+if TYPE_CHECKING:
+    from pipeline.domain.services.e2_natural_key import NaturalKeyStats
 
 try:
     import pdfplumber
@@ -232,6 +236,145 @@ def _artifact_key_for_file(file_path: Path) -> str:
     return stem
 
 
+@dataclass(frozen=True)
+class _Routing:
+    """Para onde vai o artefato de cada documento nesta execução do stage."""
+
+    target_stage: str | None
+    extratos_only: bool
+    faturas_only: bool
+    dry_run: bool
+
+    @property
+    def escalates_in_place(self) -> bool:
+        return self.target_stage is not None and not self.dry_run
+
+    def stage_for(self, file_path: Path) -> str:
+        return self.target_stage or _target_stage_for_file(
+            file_path, extratos_only=self.extratos_only, faturas_only=self.faturas_only
+        )
+
+
+@dataclass(frozen=True)
+class _ExtractedDocument:
+    """Documento que passou pela fase de parse e aguarda o store."""
+
+    file_name: str
+    stage: str
+    key: str
+    payload: Dict[str, Any]
+    n_tx: int = 0
+    escalation_stub: bool = False
+    counts_as_processed: bool = False
+    nk_stats: Optional["NaturalKeyStats"] = None
+
+
+def _count_validation_notes(result: Dict[str, Any], stats: dict) -> None:
+    notes = [note for note in result.get("notas", []) if isinstance(note, str)]
+    stats["erros_validacao"] += sum(note.startswith("ERROR") for note in notes)
+    stats["warnings"] += sum(note.startswith("WARN") for note in notes)
+
+
+def _ready_document(
+    file_path: Path, result: Dict[str, Any], routing: _Routing
+) -> _ExtractedDocument:
+    is_llm = bool(result.get("requires_llm_fallback"))
+    # ADR-278 B4: estampa K4 natural_key + direction antes de persistir.
+    from pipeline.domain.services.e2_natural_key import stamp_natural_key
+
+    return _ExtractedDocument(
+        file_name=file_path.name,
+        stage="extract_with_llm" if is_llm else routing.stage_for(file_path),
+        key=_artifact_key_for_file(file_path),
+        payload=result,
+        n_tx=len(result.get("transacoes", [])) + len(result.get("itens", [])),
+        counts_as_processed=not is_llm,
+        nk_stats=stamp_natural_key(result),
+    )
+
+
+def _parse_document(
+    file_path: Path, stats: dict, routing: _Routing
+) -> Optional[_ExtractedDocument]:
+    result = process_file(file_path, dry_run=routing.dry_run)
+    if result is None:
+        return None
+    is_llm = bool(result.get("requires_llm_fallback"))
+    if is_llm:
+        stats["llm_fallback"] += 1
+        log(LOG_UNIFIED, "WARN", f"  → Requer LLM fallback: {file_path.name}")
+    if is_llm and routing.escalates_in_place:
+        key = _artifact_key_for_file(file_path)
+        return _ExtractedDocument(
+            file_path.name, routing.target_stage, key, result, escalation_stub=True
+        )
+    doc = _ready_document(file_path, result, routing)
+    # Depois do stamp: se ele levantar, o documento conta uma vez só no except.
+    _count_validation_notes(result, stats)
+    return doc
+
+
+def _extract_document(
+    file_path: Path, stats: dict, routing: _Routing
+) -> Optional[_ExtractedDocument]:
+    """Fase de parse: falha aqui é do documento — conta em ``erros_validacao`` e o lote segue."""
+    try:
+        return _parse_document(file_path, stats, routing)
+    except Exception as e:
+        stats["erros_validacao"] += 1
+        log(LOG_UNIFIED, "ERROR", f"  Failed: {file_path.name} — {e}")
+        return None
+
+
+def _count_processed(doc: _ExtractedDocument, stats: dict) -> None:
+    if doc.counts_as_processed:
+        stats["processados"] += 1
+        stats["transacoes_total"] += doc.n_tx
+
+
+def _write_escalation_stub(store, doc: _ExtractedDocument) -> None:
+    # ADR-342: grava o stub de escalação NO stage determinístico —
+    # supersede parcial de run anterior (senão o fallback
+    # workspace-scoped do store ressuscita o parcial e a
+    # escalação vira no-op). E3 pula stubs; o pickup do E2-llm
+    # trata key-só-stub como não-processada.
+    store.write(doc.stage, doc.key, doc.payload)
+    log(LOG_UNIFIED, "WARN", f"  → stub de escalação: {doc.stage}/{doc.key}")
+
+
+def _keeps_existing_artifact(store, doc: _ExtractedDocument, stats: dict) -> bool:
+    # Overwrite protection: não sobrescrever extrato com 0 txns se já
+    # há artefato com txns (mesma lógica do main legado).
+    if doc.n_tx > 0 or not store.exists(doc.stage, doc.key):
+        return False
+    existing = store.read(doc.stage, doc.key) or {}
+    existing_txns = len(existing.get("transacoes", [])) + len(existing.get("itens", []))
+    if existing_txns == 0:
+        return False
+    # Não é processado: a key já foi gravada — e contada — por outro arquivo deste run.
+    stats["skipped_overwrite"] += 1
+    log(
+        LOG_UNIFIED,
+        "WARN",
+        f"  SKIP: {doc.stage}/{doc.key} já tem {existing_txns} txns; "
+        f"não sobrescrever com resultado de 0 txns",
+    )
+    return True
+
+
+def _write_extracted(store, doc: _ExtractedDocument, stats: dict) -> None:
+    store.write(doc.stage, doc.key, doc.payload)
+    # Conta só depois do write: recusado em strict, o documento não é progresso.
+    _count_processed(doc, stats)
+    nk = doc.nk_stats
+    log(
+        LOG_UNIFIED,
+        "INFO" if doc.n_tx > 0 else "WARN",
+        f"  → store.write({doc.stage}, {doc.key}, {doc.n_tx} tx) "
+        f"[natural_key {nk.with_key}/{nk.tx_total}]",
+    )
+
+
 def run_with_store(
     *,
     store,
@@ -260,6 +403,10 @@ def run_with_store(
     Returns:
         Dict com estatísticas: ``processados``, ``transacoes_total``,
         ``llm_fallback``, ``erros_validacao``, ``warnings``, ``skipped_overwrite``.
+
+    Falha de parse é do documento e o lote segue. Exceção do store propaga: o
+    stage é a unidade de trabalho (ADR-256), e documento só conta como
+    processado depois do write — um write recusado em strict nunca é progresso.
     """
     files = find_all_files(extratos_only=extratos_only, faturas_only=faturas_only)
 
@@ -279,6 +426,7 @@ def run_with_store(
     total_files = len(files)
     from pipeline.live_progress import emit_item_progress
 
+    routing = _Routing(target_stage, extratos_only, faturas_only, dry_run)
     for idx, file_path in enumerate(files):
         emit_item_progress(
             pipeline_run_id,
@@ -288,84 +436,23 @@ def run_with_store(
             items_total=total_files,
             phase="preparing",
         )
-        try:
-            result = process_file(file_path, dry_run=dry_run)
-            if result is None:
-                continue
-
-            key = _artifact_key_for_file(file_path)
-            is_llm = bool(result.get("requires_llm_fallback"))
-            if is_llm:
-                stats["llm_fallback"] += 1
-                stage = "extract_with_llm"
-                log(LOG_UNIFIED, "WARN", f"  → Requer LLM fallback: {file_path.name}")
-                if target_stage is not None and not dry_run:
-                    # ADR-342: grava o stub de escalação NO stage determinístico —
-                    # supersede parcial de run anterior (senão o fallback
-                    # workspace-scoped do store ressuscita o parcial e a
-                    # escalação vira no-op). E3 pula stubs; o pickup do E2-llm
-                    # trata key-só-stub como não-processada.
-                    store.write(target_stage, key, result)
-                    log(LOG_UNIFIED, "WARN", f"  → stub de escalação: {target_stage}/{key}")
-                    continue
-            else:
-                stage = target_stage or _target_stage_for_file(
-                    file_path, extratos_only=extratos_only, faturas_only=faturas_only
-                )
-
-            n_tx = len(result.get("transacoes", [])) + len(result.get("itens", []))
-            if not is_llm:
-                stats["processados"] += 1
-                stats["transacoes_total"] += n_tx
-
-            for note in result.get("notas", []):
-                if isinstance(note, str):
-                    if note.startswith("ERROR"):
-                        stats["erros_validacao"] += 1
-                    elif note.startswith("WARN"):
-                        stats["warnings"] += 1
-
-            if dry_run:
-                continue
-
-            # Overwrite protection: não sobrescrever extrato com 0 txns se já
-            # há artefato com txns (mesma lógica do main legado).
-            if n_tx == 0 and store.exists(stage, key):
-                existing = store.read(stage, key) or {}
-                existing_txns = len(existing.get("transacoes", [])) + len(existing.get("itens", []))
-                if existing_txns > 0:
-                    stats["skipped_overwrite"] += 1
-                    log(
-                        LOG_UNIFIED,
-                        "WARN",
-                        f"  SKIP: {stage}/{key} já tem {existing_txns} txns; "
-                        f"não sobrescrever com resultado de 0 txns",
-                    )
-                    continue
-
-            emit_item_progress(
-                pipeline_run_id,
-                emit_stage,
-                current_item=file_path.name,
-                items_done=idx,
-                items_total=total_files,
-                phase="persisting",
-            )
-            # ADR-278 B4: estampa K4 natural_key + direction antes de persistir.
-            from pipeline.domain.services.e2_natural_key import stamp_natural_key
-
-            nk_stats = stamp_natural_key(result)
-            store.write(stage, key, result)
-            log(
-                LOG_UNIFIED,
-                "INFO" if n_tx > 0 else "WARN",
-                f"  → store.write({stage}, {key}, {n_tx} tx) "
-                f"[natural_key {nk_stats.with_key}/{nk_stats.tx_total}]",
-            )
-
-        except Exception as e:
-            stats["erros_validacao"] += 1
-            log(LOG_UNIFIED, "ERROR", f"  Failed: {file_path.name} — {e}")
+        doc = _extract_document(file_path, stats, routing)
+        if doc is None or dry_run:
+            continue
+        if doc.escalation_stub:
+            _write_escalation_stub(store, doc)
+            continue
+        if _keeps_existing_artifact(store, doc, stats):
+            continue
+        emit_item_progress(
+            pipeline_run_id,
+            emit_stage,
+            current_item=file_path.name,
+            items_done=idx,
+            items_total=total_files,
+            phase="persisting",
+        )
+        _write_extracted(store, doc, stats)
 
     if total_files > 0:
         emit_item_progress(

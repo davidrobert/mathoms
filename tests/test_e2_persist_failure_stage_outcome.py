@@ -16,6 +16,7 @@ from backend.app.services.storage.db_artifact_store import DBArtifactStore
 from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.context import WorkspaceContext
 from pipeline.orchestrator import _run_stage
+from pipeline.stage_failure_reason import StageFailureReason, reason_from_stage_detail
 
 _REPO_CONFIG = Path(__file__).resolve().parents[1] / "config"
 _VALIDO = "itau_extratoconta_202604-0_original.csv"
@@ -160,8 +161,8 @@ def test_unico_documento_recusado_em_strict_nao_sai_verde(stage_session, tenant_
 
     assert gravadas == []
     assert result.success is False
-    # O que o §8.1 do runbook filtra: a classe (ADR-447) e a mensagem do raise.
-    assert result.detail["failure_class"] == "output_invalid"
+    # O que o §8.1 do runbook filtra: o veredito do decoder (ADR-447) e a mensagem do raise.
+    assert reason_from_stage_detail(result.detail) is StageFailureReason.output_invalid
     assert (
         "extract_statements/santander_extratoconta_202604 viola e2_extract.schema.json"
         in result.error
@@ -175,7 +176,7 @@ def test_recusa_em_strict_derruba_o_stage_mesmo_com_irmao_gravado(stage_session,
 
     assert "santander_extratoconta_202604" not in gravadas
     assert result.success is False
-    assert result.detail["failure_class"] == "output_invalid"
+    assert reason_from_stage_detail(result.detail) is StageFailureReason.output_invalid
 
 
 def test_falha_de_parse_continua_sendo_do_documento(tenant_root):
@@ -197,7 +198,7 @@ def test_erro_do_store_fora_do_schema_derruba_o_stage(tenant_root):
     result = _rodar_extract_statements(tenant_root, store)
 
     assert result.success is False
-    assert result.detail["failure_class"] == "internal_error"
+    assert reason_from_stage_detail(result.detail) is StageFailureReason.internal_error
 
 
 def test_stub_de_escalacao_que_nao_grava_derruba_o_stage(tenant_root):
