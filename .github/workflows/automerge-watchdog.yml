@@ -52,7 +52,7 @@ jobs:
       AUTOMERGE_KICK: ${{ secrets.AUTOUPDATE_PAT != '' && '1' || '0' }}
       GH_REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Aviso antecipado do PAT (ADR-322 §Emenda 2026-10-08): T-14, issue única
       # `ops-pat-expiry` (S3 de 11 dias no manifesto). Vem ANTES do watchdog para

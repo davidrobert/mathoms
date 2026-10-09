@@ -134,14 +134,35 @@ O desenho fechado está na [[ADR-440]] (D1–D7).
 
 | PR | conteúdo | depende de |
 |---|---|---|
-| docs | esta lane + [[ADR-440]] `Proposto` | — |
-| PR0 | `ancora_imovel` + `ancora_versao` em `e15_baseline_extract.schema.json`; teste de que o schema aceita e recusa as formas certas | docs |
+| docs · ✅ #2064 | esta lane + [[ADR-440]] `Proposto` | — |
+| PR0 · ✅ #2070 | `ancora_imovel` + `ancora_versao` em `e15_baseline_extract.schema.json`; teste de que o schema aceita e recusa as formas certas | docs |
 | PR1 | parser + join + integração no `E1.5a` (antes do early-return do incremental) + razões; `golden_diff` do dogfood igual a zero | PR0 |
 | PR2 | `match()` no port e nos adapters; enricher em duas fases com veto; repasse em `consolidate_from_itens` + remoção da âncora após a identidade; teste sticky; medição no dogfood; [[ADR-440]] vira `Decidido` com as emendas datadas da [[ADR-225]] e da [[ADR-265]] | PR1 · davidrobert/mathoms#2062 (normalização do `codigo_rfb`) |
 
 O PR2 toca o mesmo trecho do enricher que o #2062 (`_lookup_or_mark`) e monta cada chave pelo
 sub-código normalizado dele: o `PropertyLookupKey` passa a recusar grafia crua. O #2062 espera uma
 consulta de colisão em produção pelo dono, então o PR2 não tem data.
+
+## Achados roteados para esta lane
+
+O closeout da [[A40.l113]] (#2078) aponta dois achados para cá. A rota volta registrada aqui
+para não ficar só de ida.
+
+| achado | registro | fecha por esta lane? |
+|---|---|---|
+| `RR9-04` — o `#S4` afirma e nega imóveis de investimento (card, KPI e ranking discordam) | [[REPORT-REVIEWS-active]] §r9 | **sim**, no PR2. `real_estate.valor_total_imoveis` resolve valor por `property_id` (`_valor_by_property`); com a identidade de volta, os três leitores deixam de ver vazio. Critério: no primeiro run do dogfood depois do PR2, card, KPI e ranking do `#S4` concordam |
+| `LC9-10` — população de imóveis 7 → 9, `property_id` 5 de 7 → 1 de 9 | [[LEDGER-CERTIFY-active]] §r9 | **sim, junto com o davidrobert/mathoms#2062**. O sub-código normalizado desfaz os 3 pares de grafia `01-11`×`11`, e a âncora devolve o `property_id` que o dedup cross-IRPF ([[ADR-246]]) usa como chave. Critério: no mesmo run, população 9 → 7 e `property_id` em 7 de 7 |
+
+**`PV13-01`** ([[PIPELINE-REVIEWS-active]] §r13, sem lane). O gatilho de reabertura "a chave de
+identidade da A40.l121 passar a ler `titular_key`" **não dispara**: as chaves do PR2 são de
+endereço e de unidade (via+nº, `mat:`, `iptu:`), e a posse provável decide por discriminador de
+unidade e `descricao_sample`. `titular_key` segue onde já estava — no `_residual_unique`, para item
+sem canonical, e gravado no mint. O outro gatilho, literal de papel em `imoveis_consolidados`,
+está em **0 de 9** no corpus medido.
+
+**Cláusula de reinício da A40.** O #2078 põe esta lane na lista nominal (muta E3/E5 a montante de
+todo run). O contador de 2 re-runs só começa com ela terminal: depois do PR2 e da medição no
+dogfood.
 
 ## Fora do escopo
 
