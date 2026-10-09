@@ -101,8 +101,16 @@ def banco_do_stage(tmp_path: Path):
 
 
 @pytest.fixture(autouse=True)
-def _pool_cheio(monkeypatch: pytest.MonkeyPatch) -> None:
+def _pool_cheio_e_config_do_repo(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Pool com _WORKERS threads; validação de schema lendo o config/ real do repo."""
+    import scripts.pipeline_common as pc
+
     monkeypatch.setenv("MATHOMS_E2_LLM_CONCURRENCY", str(_WORKERS))
+    # Teste vizinho (`route_documents._init_config`) reponta CONFIG_DIR para um
+    # layout sem `schema_validation` e não desfaz: o write em strict virava no-op.
+    monkeypatch.setattr(pc, "CONFIG_DIR", Path(__file__).resolve().parents[2] / "config")
+    monkeypatch.setattr(pc, "_schema_registry", None)
+    monkeypatch.delitem(pc._config_cache, "pipeline.json", raising=False)
 
 
 def _semeia_documentos(raiz: Path) -> list[Path]:
