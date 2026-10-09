@@ -40,6 +40,22 @@ class FakeLLMSuccess:
 
 
 @dataclass
+class FakeLLMPromptRecorder:
+    """LLM client que sucede e grava ``(section_id, user_prompt)`` de cada chamada."""
+
+    text: str = "Summary determinístico do fake."
+    prompts: list[tuple[str, str]] = field(default_factory=list)
+
+    def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
+        self.prompts.append((section_id, user_prompt))
+        return LLMRawResponse(
+            output=SectionSummaryOutput(summary_md=self.text),
+            prompt_tokens=1500,
+            completion_tokens=300,
+        )
+
+
+@dataclass
 class FakeLLMRaisingClient:
     """LLM client que sempre levanta — usado para forçar fallback."""
 

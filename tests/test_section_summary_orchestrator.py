@@ -4,12 +4,15 @@
 
 from __future__ import annotations
 
+import json
 import os
 
 import pytest
 
 from backend.app.services.section_summary_orchestrator import (
+    _SECTION_KEYS,
     SUPPORTED_SECTION_IDS,
+    _default_fallback,
     compute_snapshot_hash,
     generate_all_section_summaries,
 )
@@ -19,7 +22,12 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
 )
-from tests.fakes.llm import FakeLLMSuccess, make_fake_fallback
+from tests.fakes.llm import (
+    FakeLLMPromptRecorder,
+    FakeLLMRaisingClient,
+    FakeLLMSuccess,
+    make_fake_fallback,
+)
 
 
 def _make_test_generator():
@@ -147,3 +155,75 @@ def test_fallback_usa_destino_declarado_no_layout():
 
     snapshot_data = {"_narrativas": {"summaries": {"s9": "2 riscos prioritários: a, b."}}}
     assert _default_fallback("S9", snapshot_data) == "2 riscos prioritários: a, b."
+
+
+# O payload da seção ia ao provider com `_narrativas` anexado — as narrativas
+# do relatório inteiro, com R$ formatado — em todas as seções. O único leitor
+# era o fallback determinístico. O prompt leva o slice declarado e só ele; o
+# fallback recebe a narrativa por outro canal.
+_SENTINELA = "SENTINELA-NARRATIVA-DE-OUTRA-SECAO"
+
+
+def _e5_com_narrativas(texto_s1: str = _SENTINELA) -> dict:
+    chaves_de_slice = {chave for chaves in _SECTION_KEYS.values() for chave in chaves}
+    e5 = {chave: {"marcador": f"slice:{chave}"} for chave in sorted(chaves_de_slice)}
+    e5["composicao_familiar"] = {"marcador": "fora-de-todo-slice"}
+    e5["narrativas"] = {"summaries": {"s1": texto_s1, "s9": f"{_SENTINELA} s9"}}
+    return e5
+
+
+def _gerador(llm, *, cache=None, fallback=None) -> SectionSummaryGenerator:
+    templates = {
+        sid: PromptTemplate(system_prompt="Editor.", user_prompt_template="{section_data_json}")
+        for sid in SUPPORTED_SECTION_IDS
+    }
+    return SectionSummaryGenerator(
+        llm_client=llm,
+        cache=cache or InMemoryLLMCache(),
+        fallback=fallback or make_fake_fallback("fallback"),
+        templates=templates,
+        config=SectionSummaryGeneratorConfig(),
+    )
+
+
+def test_narrativas_nao_entram_no_prompt_de_nenhuma_secao():
+    llm = FakeLLMPromptRecorder()
+    generate_all_section_summaries(
+        workspace_id=1, e5_data=_e5_com_narrativas(), generator=_gerador(llm)
+    )
+    assert [sid for sid, _ in llm.prompts] == list(SUPPORTED_SECTION_IDS)
+    vazados = [sid for sid, prompt in llm.prompts if _SENTINELA in prompt]
+    assert vazados == [], f"narrativa de outra seção no prompt de {vazados}"
+
+
+def test_prompt_de_cada_secao_carrega_exatamente_o_slice_declarado():
+    llm = FakeLLMPromptRecorder()
+    generate_all_section_summaries(
+        workspace_id=1, e5_data=_e5_com_narrativas(), generator=_gerador(llm)
+    )
+    for section_id, prompt in llm.prompts:
+        assert set(json.loads(prompt)) == set(_SECTION_KEYS[section_id]), section_id
+
+
+def test_fallback_ainda_le_a_narrativa_quando_o_llm_falha():
+    gen = _gerador(
+        FakeLLMRaisingClient(error=TimeoutError("request timed out")),
+        fallback=_default_fallback,
+    )
+    e5 = _e5_com_narrativas(texto_s1="Narrativa determinística da S1.")
+    result = generate_all_section_summaries(workspace_id=1, e5_data=e5, generator=gen)
+    assert result["S1"] == "Narrativa determinística da S1."
+    assert result["S9"] == f"{_SENTINELA} s9"
+
+
+def test_mudar_so_a_narrativa_nao_invalida_o_cache_da_secao():
+    """A chave hasheia o que o LLM lê (ADR-144 §2) — e a narrativa não vai ao prompt."""
+    llm = FakeLLMPromptRecorder()
+    cache = InMemoryLLMCache()
+    for texto in ("Primeira redação da S1.", "Segunda redação da S1."):
+        generate_all_section_summaries(
+            workspace_id=1,
+            e5_data=_e5_com_narrativas(texto_s1=texto),
+            generator=_gerador(llm, cache=cache),
+        )
+    assert len(llm.prompts) == len(SUPPORTED_SECTION_IDS)
