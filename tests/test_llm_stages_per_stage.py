@@ -145,6 +145,24 @@ class TestE15Stage:
 # ══════════════════════════════════════════════════════════════════════════
 
 
+def _llm_por_documento(**kwargs):
+    """`quebra.csv` falha no provider; `sem_banco.csv` volta sem institution."""
+    nome = kwargs["stage"].removeprefix("E2-llm:")
+    if nome == "quebra.csv":
+        raise RuntimeError("provider 500")
+    saida = make_e2_llm_output()
+    if nome == "sem_banco.csv":
+        saida = saida.model_copy(update={"institution": ""})
+    return make_llm_call_result(saida)
+
+
+def _semeia_um_documento_por_destino(root: Path) -> None:
+    stmts_dir = root / "data" / "financial_statements"
+    stmts_dir.mkdir(parents=True)
+    for nome, conteudo in (("ok", "x"), ("sem_banco", "x"), ("quebra", "x"), ("vazio", "  ")):
+        (stmts_dir / f"{nome}.csv").write_text(conteudo)
+
+
 class TestE2LLMStage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
@@ -187,6 +205,24 @@ class TestE2LLMStage:
         assert result["queued"]["total"] == 1
         assert result["queued"]["by_data_subdir"].get("financial_statements") == 1
         assert result["e2_llm_settings"]["workers"] == 1
+
+    def test_cada_documento_sai_do_pool_no_seu_destino(self, tmp_path):
+        """Artefato, needs_review, skip e erro chegam ao balde certo; só o ok grava."""
+        ctx = make_llm_ctx(tmp_path)
+        _semeia_um_documento_por_destino(tmp_path)
+
+        with patch("pipeline.llm.litellm_client.LLMService.call", side_effect=_llm_por_documento):
+            from pipeline.stages.extract_with_llm import run
+
+            result = run(ctx)
+
+        revisao = [p["file"] for p in result["processed"] if p.get("needs_review")]
+        gravados = [p["file"] for p in result["processed"] if p.get("output")]
+        assert (gravados, revisao) == (["ok.csv"], ["sem_banco.csv"])
+        assert [e["file"] for e in result["errors"]] == ["quebra.csv"]
+        assert [s["file"] for s in result["skipped_docs"]] == ["vazio.csv"]
+        assert result["balanco"]["fecha"] is True
+        assert ctx.artifact_store.list_keys("extract_with_llm") == ["ok"]
 
     def test_e2_llm_perf_settings_defaults(self, tmp_path):
         from pipeline.stages.extract_with_llm import _e2_llm_perf_settings
