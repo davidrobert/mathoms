@@ -150,6 +150,12 @@ describe("<RentabilidadeCard /> · back-compat (sem campo aninhado)", () => {
     expect(screen.queryByText("3.20")).not.toBeInTheDocument();
   });
 
+  // A §D2 manda o consumidor trocar vírgula por ponto antes do cast.
+  it("aceita a string legada com vírgula decimal", () => {
+    render(<RentabilidadeCard ratios={{ rentabilidade_pct: "3,20" }} />);
+    expect(screen.getByText("3,20%")).toBeInTheDocument();
+  });
+
   it("renderiza fallback com N/D quando rentabilidade_pct=string", () => {
     const ratios: RatiosData = {
       rentabilidade_pct: "N/D",

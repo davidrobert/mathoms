@@ -31,9 +31,11 @@ function readRentabilidade(ratios: RatiosData): RentabilidadeRatio | null {
 
 /** Back-compat: workspaces antes do PR-A (sem campo aninhado) caem aqui. */
 function RentabilidadeFallbackCard({ ratios }: { ratios: RatiosData }) {
-  // ADR-209 §D2: chega string de 2 casas ("3.20") ou "N/D". O `?? NaN` impede
-  // que ausente vire "0,00%" (COPY_GUIDELINES §4.3).
-  const valor = Number(ratios.rentabilidade_pct ?? Number.NaN);
+  // ADR-209 §D2: chega string de 2 casas ("3.20") ou "N/D", e o consumidor troca
+  // vírgula por ponto antes do cast. Ausente não pode virar "0,00%"
+  // (COPY_GUIDELINES §4.3), daí o NaN explícito.
+  const bruto = ratios.rentabilidade_pct;
+  const valor = bruto == null ? Number.NaN : Number(String(bruto).replace(",", "."));
   return (
     <ReportCard size="full" title="Renda passiva sobre patrimônio (TRS)" variant="feature">
       <p className="font-mono text-2xl tabular-nums">
